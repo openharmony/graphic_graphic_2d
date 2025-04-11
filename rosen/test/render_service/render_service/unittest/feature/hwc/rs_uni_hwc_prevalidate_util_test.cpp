@@ -140,6 +140,43 @@ HWTEST_F(RSUniHwcPrevalidateUtilTest, IsYUVBufferFormat002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: IsNeedDssRotate001
+ * @tc.desc: IsNeedDssRotate, format is valid
+ * @tc.type: FUNC
+ * @tc.require: issueIBZZJT
+ */
+HWTEST_F(RSUniHwcPrevalidateUtilTest, IsNeedDssRotate001, TestSize.Level1)
+{
+    auto& uniHwcPrevalidateUtil = RSUniHwcPrevalidateUtil::GetInstance();
+    bool ret = uniHwcPrevalidateUtil.IsNeedDssRotate(GraphicTransformType::GRAPHIC_ROTATE_NONE);
+    ASSERT_EQ(ret, false);
+    ret = uniHwcPrevalidateUtil.IsNeedDssRotate(GraphicTransformType::GRAPHIC_ROTATE_90);
+    ASSERT_EQ(ret, true);
+    ret = uniHwcPrevalidateUtil.IsNeedDssRotate(GraphicTransformType::GRAPHIC_ROTATE_180);
+    ASSERT_EQ(ret, false);
+    ret = uniHwcPrevalidateUtil.IsNeedDssRotate(GraphicTransformType::GRAPHIC_ROTATE_270);
+    ASSERT_EQ(ret, true);
+    ret = uniHwcPrevalidateUtil.IsNeedDssRotate(GraphicTransformType::GRAPHIC_FLIP_H);
+    ASSERT_EQ(ret, false);
+    ret = uniHwcPrevalidateUtil.IsNeedDssRotate(GraphicTransformType::GRAPHIC_FLIP_V);
+    ASSERT_EQ(ret, false);
+    ret = uniHwcPrevalidateUtil.IsNeedDssRotate(GraphicTransformType::GRAPHIC_FLIP_H_ROT90);
+    ASSERT_EQ(ret, true);
+    ret = uniHwcPrevalidateUtil.IsNeedDssRotate(GraphicTransformType::GRAPHIC_FLIP_V_ROT90);
+    ASSERT_EQ(ret, true);
+    ret = uniHwcPrevalidateUtil.IsNeedDssRotate(GraphicTransformType::GRAPHIC_FLIP_H_ROT180);
+    ASSERT_EQ(ret, false);
+    ret = uniHwcPrevalidateUtil.IsNeedDssRotate(GraphicTransformType::GRAPHIC_FLIP_V_ROT180);
+    ASSERT_EQ(ret, false);
+    ret = uniHwcPrevalidateUtil.IsNeedDssRotate(GraphicTransformType::GRAPHIC_FLIP_H_ROT270);
+    ASSERT_EQ(ret, true);
+    ret = uniHwcPrevalidateUtil.IsNeedDssRotate(GraphicTransformType::GRAPHIC_FLIP_V_ROT270);
+    ASSERT_EQ(ret, true);
+    ret = uniHwcPrevalidateUtil.IsNeedDssRotate(GraphicTransformType::GRAPHIC_ROTATE_BUTT);
+    ASSERT_EQ(ret, false);
+}
+
+/**
  * @tc.name: CreateDisplayNodeLayerInfo001
  * @tc.desc: CreateDisplayNodeLayerInfo, node is nullptr
  * @tc.type: FUNC
@@ -348,6 +385,39 @@ HWTEST_F(RSUniHwcPrevalidateUtilTest, CheckIfDoArsrPre002, TestSize.Level1)
     ASSERT_NE(surfaceNode, nullptr);
     bool ret = uniHwcPrevalidateUtil.CheckIfDoArsrPre(surfaceNode);
     ASSERT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: CheckIfDoCopybit001
+ * @tc.desc: CheckIfDoCopybit, input normal surfacenode
+ * @tc.type: FUNC
+ * @tc.require: issueIBZZJT
+ */
+HWTEST_F(RSUniHwcPrevalidateUtilTest, CheckIfDoCopybit001, TestSize.Level1)
+{
+    auto& uniHwcPrevalidateUtil = RSUniHwcPrevalidateUtil::GetInstance();
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(surfaceNode, nullptr);
+    auto bufferHandle = surfaceNode->surfaceHandler_->buffer_.buffer->GetBufferHandle();
+    ASSERT_NE(bufferHandle, nullptr);
+    bufferHandle->format = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_YUV_422_I;
+    RequestLayerInfo info;
+    uniHwcPrevalidateUtil.CheckIfDoCopybit(surfaceNode, GraphicTransformType::GRAPHIC_ROTATE_90, info);
+}
+
+/**
+ * @tc.name: CheckIfDoCopybit002
+ * @tc.desc: CheckIfDoCopybit, input normal surfacenode
+ * @tc.type: FUNC
+ * @tc.require: issueIBZZJT
+ */
+HWTEST_F(RSUniHwcPrevalidateUtilTest, CheckIfDoCopybit002, TestSize.Level1)
+{
+    auto& uniHwcPrevalidateUtil = RSUniHwcPrevalidateUtil::GetInstance();
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+    RequestLayerInfo info;
+    uniHwcPrevalidateUtil.CheckIfDoCopybit(surfaceNode, GraphicTransformType::GRAPHIC_ROTATE_90, info);
 }
 
 /**

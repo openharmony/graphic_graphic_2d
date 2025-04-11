@@ -477,6 +477,16 @@ public:
         arsrTag_ = arsrTag;
     }
 
+    bool GetCopybitTag() const
+    {
+        return copybitTag_;
+    }
+
+    void SetCopybitTag(bool copybitTag)
+    {
+        copybitTag_ = copybitTag;
+    }
+
     void CollectSurface(const std::shared_ptr<RSBaseRenderNode>& node, std::vector<RSBaseRenderNode::SharedPtr>& vec,
         bool isUniRender, bool onlyFirstLevel) override;
     void CollectSelfDrawingChild(const std::shared_ptr<RSBaseRenderNode>& node, std::vector<NodeId>& vec) override;
@@ -1613,6 +1623,7 @@ private:
     bool needHidePrivacyContent_ = false;
     bool isHardwareForcedByBackgroundAlpha_ = false;
     bool arsrTag_ = true;
+    bool copybitTag_ = false;
     bool subThreadAssignable_ = false;
     bool oldNeedDrawBehindWindow_ = false;
     RectI skipFrameDirtyRect_;
