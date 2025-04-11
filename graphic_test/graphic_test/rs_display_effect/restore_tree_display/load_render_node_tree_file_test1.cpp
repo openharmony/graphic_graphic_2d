@@ -1208,116 +1208,6 @@ GRAPHIC_TEST(LoadRenderNodeTreeFileTest1, CONTENT_DISPLAY_TEST, dewuTest20)
     LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/dewu_20");
 }
 
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest1, CONTENT_DISPLAY_TEST, zuoyebangTest01)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/zuoyebang_01");
-}
-
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest1, CONTENT_DISPLAY_TEST, zuoyebangTest02)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/zuoyebang_02");
-}
-
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest1, CONTENT_DISPLAY_TEST, zuoyebangTest03)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/zuoyebang_03");
-}
-
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest1, CONTENT_DISPLAY_TEST, zuoyebangTest04)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/zuoyebang_04");
-}
-
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest1, CONTENT_DISPLAY_TEST, zuoyebangTest05)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/zuoyebang_05");
-}
-
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest1, CONTENT_DISPLAY_TEST, zuoyebangTest06)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/zuoyebang_06");
-}
-
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest1, CONTENT_DISPLAY_TEST, zuoyebangTest07)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/zuoyebang_07");
-}
-
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest1, CONTENT_DISPLAY_TEST, zuoyebangTest08)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/zuoyebang_08");
-}
-
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest1, CONTENT_DISPLAY_TEST, zuoyebangTest09)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/zuoyebang_09");
-}
-
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest1, CONTENT_DISPLAY_TEST, zuoyebangTest10)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/zuoyebang_10");
-}
-
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest1, CONTENT_DISPLAY_TEST, zuoyebangTest11)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/zuoyebang_11");
-}
-
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest1, CONTENT_DISPLAY_TEST, zuoyebangTest12)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/zuoyebang_12");
-}
-
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest1, CONTENT_DISPLAY_TEST, zuoyebangTest13)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/zuoyebang_13");
-}
-
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest1, CONTENT_DISPLAY_TEST, zuoyebangTest14)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/zuoyebang_14");
-}
-
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest1, CONTENT_DISPLAY_TEST, zuoyebangTest15)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/zuoyebang_15");
-}
-
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest1, CONTENT_DISPLAY_TEST, zuoyebangTest16)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/zuoyebang_16");
-}
-
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest1, CONTENT_DISPLAY_TEST, zuoyebangTest17)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/zuoyebang_17");
-}
-
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest1, CONTENT_DISPLAY_TEST, zuoyebangTest18)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/zuoyebang_18");
-}
-
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest1, CONTENT_DISPLAY_TEST, zuoyebangTest19)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/zuoyebang_19");
-}
-
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest1, CONTENT_DISPLAY_TEST, zuoyebangTest20)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/zuoyebang_20");
-}
-
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest1, CONTENT_DISPLAY_TEST, zuoyebangTest21)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/zuoyebang_21");
-}
-
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest1, CONTENT_DISPLAY_TEST, zuoyebangTest22)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/zuoyebang_22");
-}
-
 GRAPHIC_TEST(LoadRenderNodeTreeFileTest1, CONTENT_DISPLAY_TEST, yunshanfuTest01)
 {
     LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/yunshanfu_01");
@@ -2278,9 +2168,9 @@ GRAPHIC_TEST(LoadRenderNodeTreeFileTest1, CONTENT_DISPLAY_TEST, sohuxinwenTest17
     LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/sohuxinwen_17");
 }
 
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest1, CONTENT_DISPLAY_TEST, dongchediTest03)
+GRAPHIC_TEST(LoadRenderNodeTreeFileTest1, CONTENT_DISPLAY_TEST, dongchediTest02)
 {
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/dongchedi_03");
+    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/dongchedi_02");
 }
 
 GRAPHIC_TEST(LoadRenderNodeTreeFileTest1, CONTENT_DISPLAY_TEST, dongchediTest03)
