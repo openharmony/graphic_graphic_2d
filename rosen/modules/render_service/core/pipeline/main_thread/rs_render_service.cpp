@@ -327,7 +327,7 @@ static bool convertToLongLongUint(const std::string& str, uint64_t& value, int8_
     if (end == str.c_str()) {
         return false;
     }
-    if (errno == ERANGE && value == UULONG_MAX) {
+    if (errno == ERANGE && value == ULLONG_MAX) {
         return false;
     }
     if (*end != '\0') {
