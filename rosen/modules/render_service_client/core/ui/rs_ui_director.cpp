@@ -248,6 +248,9 @@ void RSUIDirector::GoBackground(bool isTextureExport)
                 std::shared_ptr<RSSurface> rsSurface = RSSurfaceExtractor::ExtractRSSurface(surfaceNode);
                 if (rsSurface == nullptr) {
                     ROSEN_LOGE("rsSurface is nullptr");
+#ifdef RS_ENABLE_VK
+                    RSModifiersDraw::EraseForegroundRoot(root_);
+#endif
                     return;
                 }
                 rsSurface->ClearBuffer();
