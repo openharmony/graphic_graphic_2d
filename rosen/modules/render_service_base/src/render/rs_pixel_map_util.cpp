@@ -163,10 +163,10 @@ void RSPixelMapUtil::TransformDataSetForAstc(std::shared_ptr<Media::PixelMap> pi
     pixelMap->GetTransformData(transformData);
     Size realSize;
     pixelMap->GetAstcRealSize(realSize);
-    dst.SetLeft(dst.GetLeft() - (realSize.width - src.GetRight()) / HALF_F);
-    dst.SetTop(dst.GetTop() - (realSize.height - src.GetBottom()) / HALF_F);
-    dst.SetRight(dst.GetRight() + (realSize.width - src.GetRight()) / HALF_F);
-    dst.SetBottom(dst.GetBottom() + (realSize.height - src.GetBottom()) / HALF_F);
+    dst.SetLeft(dst.GetLeft() - std::abs((realSize.width - src.GetWidth()) / HALF_F));
+    dst.SetTop(dst.GetTop() - std::abs((realSize.height - src.GetHeight()) / HALF_F));
+    dst.SetRight(dst.GetRight() + std::abs((realSize.width - src.GetWidth()) / HALF_F));
+    dst.SetBottom(dst.GetBottom() + std::abs((realSize.height - src.GetHeight()) / HALF_F));
     if (transformData.scaleX != 0 && transformData.scaleY != 0) {
         src.SetRight(src.GetRight() / abs(transformData.scaleX));
         src.SetBottom(src.GetBottom() / abs(transformData.scaleY));
