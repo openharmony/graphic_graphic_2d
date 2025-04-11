@@ -677,6 +677,33 @@ HWTEST_F(SkiaCanvasTest, GetRoundInDeviceClipBoundsTest001, TestSize.Level1)
     auto rect = skiaCanvas->GetRoundInDeviceClipBounds();
 }
 
+/**
+ * @tc.name: InheriteState
+ * @tc.desc: Test for Canvas Inherite State
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(SkiaCanvasTest, InheriteState, TestSize.Level1)
+{
+    Canvas canvas;
+    auto skiaCanvas = std::make_shared<SkiaCanvas>();
+    ASSERT_TRUE(skiaCanvas != nullptr);
+    skiaCanvas->InheriteState(&canvas);
+}
+
+/**
+ * @tc.name: BuildStateInherite
+ * @tc.desc: Test for Build Inherite State
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(SkiaCanvasTest, BuildStateInherite, TestSize.Level1)
+{
+    auto skiaCanvas = std::make_shared<SkiaCanvas>();
+    ASSERT_TRUE(skiaCanvas != nullptr);
+    skiaCanvas->BuildStateInherite(100.0, 100.0);
+}
+
 #ifdef RS_ENABLE_GPU
 /**
  * @tc.name: GetGPUContextTest001
