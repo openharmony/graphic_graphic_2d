@@ -271,19 +271,9 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
         RS_LOGD_IF(DEBUG_COMPOSER, "RSHardwareThread::CommitAndReleaseLayers rate:%{public}u, " \
             "now:%{public}" PRIu64 ", vsyncId:%{public}" PRIu64 ", size:%{public}zu, %{public}s",
             currentRate, param.frameTimestamp, param.vsyncId, layers.size(), surfaceName.c_str());
-
-        bool isScreenPoweringOff = false;
-        auto screenManager = CreateOrGetScreenManager();
-        if (screenManager) {
-            isScreenPoweringOff = screenManager->IsScreenPoweringOff(output->GetScreenId());
-        }
-
-        if (!isScreenPoweringOff) {
-            ExecuteSwitchRefreshRate(output, param.rate);
-            PerformSetActiveMode(output, param.frameTimestamp, param.constraintRelativeTime);
-            AddRefreshRateCount(output);
-        }
-
+        ExecuteSwitchRefreshRate(output, param.rate);
+        PerformSetActiveMode(output, param.frameTimestamp, param.constraintRelativeTime);
+        AddRefreshRateCount(output);
         if (RSSystemProperties::IsSuperFoldDisplay() && output->GetScreenId() == 0) {
             std::vector<LayerInfoPtr> reviseLayers = layers;
             ChangeLayersForActiveRectOutside(reviseLayers, curScreenId);
@@ -291,7 +281,7 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
         } else {
             output->SetLayerInfo(layers);
         }
-        if (output->IsDeviceValid() && !isScreenPoweringOff) {
+        if (output->IsDeviceValid()) {
             hdiBackend_->Repaint(output);
             RecordTimestamp(layers);
         }

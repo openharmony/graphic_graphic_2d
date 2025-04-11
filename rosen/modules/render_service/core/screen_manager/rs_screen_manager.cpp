@@ -19,7 +19,6 @@
 #include <parameters.h>
 #include "param/sys_param.h"
 
-#include "common/rs_background_thread.h"
 #include "common/rs_optional_trace.h"
 #include "display_engine/rs_color_temperature.h"
 #include "gfx/first_frame_notifier/rs_first_frame_notifier.h"
@@ -983,19 +982,13 @@ RSScreenCapability RSScreenManager::GetScreenCapability(ScreenId id) const
 
 ScreenPowerStatus RSScreenManager::GetScreenPowerStatus(ScreenId id) const
 {
-    ScreenPowerStatus status = ScreenPowerStatus::INVALID_POWER_STATUS;
-    RSBackgroundThread::Instance().PostSyncTask([id, &status, this]() {
-        auto screen = GetScreen(id);
-        if (screen == nullptr) {
-            RS_LOGW("%{public}s: There is no screen for id %{public}" PRIu64, __func__, id);
-            status = INVALID_POWER_STATUS;
-            return;
-        }
+    auto screen = GetScreen(id);
+    if (screen == nullptr) {
+        RS_LOGW("%{public}s: There is no screen for id %{public}" PRIu64, __func__, id);
+        return INVALID_POWER_STATUS;
+    }
 
-        status = static_cast<ScreenPowerStatus>(screen->GetPowerStatus());
-    });
-
-    return status;
+    return static_cast<ScreenPowerStatus>(screen->GetPowerStatus());
 }
 
 ScreenRotation RSScreenManager::GetScreenCorrection(ScreenId id) const
@@ -1477,7 +1470,7 @@ int32_t RSScreenManager::SetRogScreenResolution(ScreenId id, uint32_t width, uin
     return SUCCESS;
 }
 
-void RSScreenManager::UpdateScreenPowerStatus(ScreenId id, ScreenPowerStatus status)
+void RSScreenManager::SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status)
 {
     auto screen = GetScreen(id);
     if (screen == nullptr) {
@@ -1531,30 +1524,9 @@ void RSScreenManager::UpdateScreenPowerStatus(ScreenId id, ScreenPowerStatus sta
     screenPowerStatus_[id] = status;
 }
 
-void RSScreenManager::SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status)
-{
-    RSBackgroundThread::Instance().PostTask([id, status, this]() {
-        if (status == ScreenPowerStatus::POWER_STATUS_OFF) {
-            std::lock_guard<std::shared_mutex> lock(powerStatusMutex_);
-            isScreenPoweringOff_.insert(id);
-        }
-
-        UpdateScreenPowerStatus(id, status);
-
-        std::lock_guard<std::shared_mutex> lock(powerStatusMutex_);
-        isScreenPoweringOff_.erase(id);
-    });
-}
-
 bool RSScreenManager::IsScreenPoweringOn() const
 {
     return isScreenPoweringOn_;
-}
-
-bool RSScreenManager::IsScreenPoweringOff(ScreenId id) const
-{
-    std::shared_lock<std::shared_mutex> lock(powerStatusMutex_);
-    return isScreenPoweringOff_.count(id) != 0;
 }
 
 bool RSScreenManager::SetVirtualMirrorScreenCanvasRotation(ScreenId id, bool canvasRotation)
