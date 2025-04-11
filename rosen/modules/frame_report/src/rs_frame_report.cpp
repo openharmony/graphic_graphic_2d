@@ -121,7 +121,7 @@ int RsFrameReport::GetEnable()
     }
 }
 
-void RsFrameReport::ReportSchedEvent(FrameSchedEvent event, const std::unordered_map<std::string, std::string> &payload)
+void RsFrameReport::ReportSchedEvent(FrameSchedEvent event, const std::unordered_map<std::string, std::string>& payload)
 {
     if (reportSchedEventFunc_ == nullptr) {
         reportSchedEventFunc_ = (ReportSchedEventFunc)LoadSymbol("ReportSchedEvent");
@@ -132,6 +132,17 @@ void RsFrameReport::ReportSchedEvent(FrameSchedEvent event, const std::unordered
         LOGE("RsFrameReport load ReportSchedEvent function failed!");
     }
 }
+
+#ifdef RS_ENABLE_VK
+void RsFrameReport::ModifierReportSchedEvent(
+    FrameSchedEvent event, const std::unordered_map<std::string, std::string> &payload)
+{
+    if (!frameSchedSoLoaded_) {
+        LoadLibrary();
+    }
+    ReportSchedEvent(event, payload);
+}
+#endif
 
 void RsFrameReport::ProcessCommandsStart()
 {

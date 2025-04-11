@@ -28,8 +28,7 @@ public:
     int32_t ParseFeatureParam(FeatureParamMapType &featureMap, xmlNode &node) override;
 
 private:
-    int32_t ParseStencilPixelOcclusionCullingInternal(FeatureParamMapType &featureMap, xmlNode &node);
-    std::shared_ptr<StencilPixelOcclusionCullingParam> stencilPixelOcclusionCullingParam_;
+    int32_t ParseStencilPixelOcclusionCullingInternal(xmlNode &node);
 };
 } // namespace OHOS::Rosen
 #endif // SPOC_PARAM_PARSE_H

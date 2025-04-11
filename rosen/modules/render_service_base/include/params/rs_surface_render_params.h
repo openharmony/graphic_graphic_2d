@@ -48,6 +48,7 @@ struct RSLayerInfo {
     GraphicLayerType layerType = GraphicLayerType::GRAPHIC_LAYER_TYPE_GRAPHIC;
     int32_t layerSource;
     bool arsrTag = true;
+    bool copybitTag = false;
     bool operator==(const RSLayerInfo& layerInfo) const
     {
         return (srcRect == layerInfo.srcRect) && (dstRect == layerInfo.dstRect) &&
@@ -55,7 +56,7 @@ struct RSLayerInfo {
             (zOrder == layerInfo.zOrder) && (blendType == layerInfo.blendType) &&
             (transformType == layerInfo.transformType) && (ROSEN_EQ(alpha, layerInfo.alpha)) &&
             (layerSource == layerInfo.layerSource) && (layerType == layerInfo.layerType) &&
-            (arsrTag == layerInfo.arsrTag);
+            (arsrTag == layerInfo.arsrTag) && (copybitTag == layerInfo.copybitTag);
     }
 #endif
 };
@@ -314,6 +315,8 @@ public:
 
     RectI GetScreenRect() const;
     void RecordScreenRect(RectI rect);
+    void RecordDirtyRegionMatrix(const Drawing::Matrix& matrix);
+    const Drawing::Matrix& GetDirtyRegionMatrix();
 
     void SetOcclusionVisible(bool visible);
     bool GetOcclusionVisible() const override;
@@ -720,6 +723,7 @@ private:
     Color backgroundColor_ = RgbPalette::Transparent();
     bool isHwcEnabledBySolidLayer_ = false;
     RectI screenRect_;
+    Drawing::Matrix dirtyRegionMatrix_;
 
     RectI dstRect_;
     RectI oldDirtyInSurface_;

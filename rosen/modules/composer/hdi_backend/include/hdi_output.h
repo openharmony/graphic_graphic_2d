@@ -153,6 +153,7 @@ private:
     bool CheckIfDoArsrPre(const LayerInfoPtr &layerInfo);
     bool CheckIfDoArsrPreForVm(const LayerInfoPtr &layerInfo);
     bool CheckSupportArsrPreMetadata();
+    bool CheckSupportCopybitMetadata();
 
     void ClearBufferCache();
     std::map<LayerInfoPtr, sptr<SyncFence>> GetLayersReleaseFenceLocked();

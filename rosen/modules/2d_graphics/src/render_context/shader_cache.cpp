@@ -43,6 +43,9 @@ ShaderCache::~ShaderCache()
 
 void ShaderCache::InitShaderCache(const char* identity, const size_t size, bool isUni)
 {
+    if (initialized_) {
+        return;
+    }
     std::lock_guard<std::mutex> lock(mutex_);
 
     if (filePath_.length() <= 0) {

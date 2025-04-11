@@ -1357,16 +1357,12 @@ void VSyncDistributor::OnDVSyncEvent(int64_t now, int64_t period,
     }
 
     std::vector<sptr<VSyncConnection>> conns;
-    uint32_t generatorRefreshRate;
     int64_t vsyncCount;
     {
         bool waitForVsync = false;
         std::lock_guard<std::mutex> locker(mutex_);
         DVSync::Instance().RecordVSync(this, now, period, refreshRate, true);
         vsyncCount = DVSync::Instance().GetVsyncCount(event_.vsyncCount);
-        if (refreshRate > 0) {
-            generatorRefreshRate = refreshRate;
-        }
         vsyncMode_ = vsyncMode;
         ChangeConnsRateLocked(vsyncMaxRefreshRate);
         // must ltpo mode
@@ -1396,7 +1392,7 @@ void VSyncDistributor::OnDVSyncEvent(int64_t now, int64_t period,
         countTraceValue_ = (countTraceValue_ + 1) % 2; // 2 : change num
         CountTrace(HITRACE_TAG_GRAPHIC_AGP, "vsync-" + name_, countTraceValue_);
     }
-    ConnectionsPostEvent(conns, now, period, generatorRefreshRate, vsyncCount, true);
+    ConnectionsPostEvent(conns, now, period, refreshRate, vsyncCount, true);
 #endif
 }
 // End of DVSync

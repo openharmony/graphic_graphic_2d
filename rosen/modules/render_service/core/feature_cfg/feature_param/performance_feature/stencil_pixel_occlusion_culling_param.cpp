@@ -17,7 +17,7 @@
 
 namespace OHOS::Rosen {
 
-bool StencilPixelOcclusionCullingParam::IsStencilPixelOcclusionCullingEnable() const
+bool StencilPixelOcclusionCullingParam::IsStencilPixelOcclusionCullingEnable()
 {
     return isStencilPixelOcclusionCullingEnable_;
 }

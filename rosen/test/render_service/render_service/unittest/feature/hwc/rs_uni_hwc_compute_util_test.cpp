@@ -423,11 +423,11 @@ HWTEST_F(RSUniHwcComputeUtilTest, IsHwcEnabledByScalingModeTest, Function | Smal
 {
     NodeId id = 0;
     RSSurfaceRenderNode node(id);
-    EXPECT_TRUE(RSUniHwcComputeUtil::IsHwcEnabledByScalingMode(node, ScalingMode::SCALING_MODE_FREEZE));
+    EXPECT_FALSE(RSUniHwcComputeUtil::IsHwcEnabledByScalingMode(node, ScalingMode::SCALING_MODE_FREEZE));
     EXPECT_TRUE(RSUniHwcComputeUtil::IsHwcEnabledByScalingMode(node, ScalingMode::SCALING_MODE_SCALE_TO_WINDOW));
-    EXPECT_FALSE(RSUniHwcComputeUtil::IsHwcEnabledByScalingMode(node, ScalingMode::SCALING_MODE_SCALE_CROP));
+    EXPECT_TRUE(RSUniHwcComputeUtil::IsHwcEnabledByScalingMode(node, ScalingMode::SCALING_MODE_SCALE_CROP));
     EXPECT_FALSE(RSUniHwcComputeUtil::IsHwcEnabledByScalingMode(node, ScalingMode::SCALING_MODE_NO_SCALE_CROP));
-    EXPECT_FALSE(RSUniHwcComputeUtil::IsHwcEnabledByScalingMode(node, ScalingMode::SCALING_MODE_SCALE_FIT));
+    EXPECT_TRUE(RSUniHwcComputeUtil::IsHwcEnabledByScalingMode(node, ScalingMode::SCALING_MODE_SCALE_FIT));
 }
 
 /*

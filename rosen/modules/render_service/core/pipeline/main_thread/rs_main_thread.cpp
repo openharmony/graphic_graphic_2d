@@ -4578,7 +4578,8 @@ bool RSMainThread::IsDrawingGroupChanged(const RSRenderNode& cacheRootNode) cons
     return false;
 }
 
-void RSMainThread::CheckAndUpdateInstanceContentStaticStatus(std::shared_ptr<RSSurfaceRenderNode> instanceNode) const
+CM_INLINE void RSMainThread::CheckAndUpdateInstanceContentStaticStatus(
+    std::shared_ptr<RSSurfaceRenderNode> instanceNode) const
 {
     if (instanceNode == nullptr) {
         RS_LOGE("CheckAndUpdateInstanceContentStaticStatus instanceNode invalid.");

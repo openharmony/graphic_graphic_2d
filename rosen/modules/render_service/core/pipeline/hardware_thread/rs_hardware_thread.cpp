@@ -81,6 +81,8 @@ constexpr int64_t MAX_DELAY_TIME = 100; // 100ms
 constexpr int64_t NS_MS_UNIT_CONVERSION = 1000000;
 constexpr int64_t UNI_RENDER_VSYNC_OFFSET_DELAY_MODE = 3300000; // 3.3ms
 constexpr uint32_t DELAY_TIME_OFFSET = 5; // 5ms
+constexpr uint32_t MAX_TOTAL_SURFACE_NAME_LENGTH = 320;
+constexpr uint32_t MAX_SINGLE_SURFACE_NAME_LENGTH = 20;
 }
 
 static int64_t SystemTime()
@@ -263,9 +265,9 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
             startTimeNs = std::chrono::duration_cast<std::chrono::nanoseconds>(
                 std::chrono::steady_clock::now().time_since_epoch()).count();
         }
-        RS_TRACE_NAME_FMT("RSHardwareThread::CommitAndReleaseLayers rate: %u, now: %" PRIu64 ", " \
-            "vsyncId: %" PRIu64 ", size: %zu, %s", currentRate, param.frameTimestamp, param.vsyncId, layers.size(),
-            surfaceName.c_str());
+        RS_TRACE_NAME_FMT("CommitLayers rate:%u,now:%" PRIu64 ",vsyncId:%" PRIu64 ",size:%zu,%s",
+            currentRate, param.frameTimestamp, param.vsyncId, layers.size(),
+            GetSurfaceNameInLayersForTrace(layers).c_str());
         RS_LOGD_IF(DEBUG_COMPOSER, "RSHardwareThread::CommitAndReleaseLayers rate:%{public}u, " \
             "now:%{public}" PRIu64 ", vsyncId:%{public}" PRIu64 ", size:%{public}zu, %{public}s",
             currentRate, param.frameTimestamp, param.vsyncId, layers.size(), surfaceName.c_str());
@@ -425,6 +427,27 @@ std::string RSHardwareThread::GetSurfaceNameInLayers(const std::vector<LayerInfo
         surfaceName += ", " + layer->GetSurface()->GetName();
     }
     surfaceName += "]";
+    return surfaceName;
+}
+
+std::string RSHardwareThread::GetSurfaceNameInLayersForTrace(const std::vector<LayerInfoPtr>& layers)
+{
+    uint32_t count = layers.size();
+    for (const auto& layer : layers) {
+        if (layer == nullptr || layer->GetSurface() == nullptr) {
+            continue;
+        }
+        count += layer->GetSurface()->GetName().length();
+    }
+    bool exceedLimit = count > MAX_TOTAL_SURFACE_NAME_LENGTH;
+    std::string surfaceName = "Names:";
+    for (const auto& layer : layers) {
+        if (layer == nullptr || layer->GetSurface() == nullptr) {
+            continue;
+        }
+        surfaceName += (exceedLimit ? layer->GetSurface()->GetName().substr(0, MAX_SINGLE_SURFACE_NAME_LENGTH) :
+                                      layer->GetSurface()->GetName()) + ",";
+    }
     return surfaceName;
 }
 

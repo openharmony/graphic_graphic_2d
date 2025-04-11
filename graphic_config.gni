@@ -233,6 +233,11 @@ check_hgm_ext_file_args = [
   rebase_path(
       "//foundation/graphic/graphic_2d_ext/hgm_manager/build/hgm_config.gni"),
 ]
+check_modifiers_draw_ext_file_args = [
+  "--filename",
+  rebase_path(
+      "//foundation/graphic/graphic_2d_ext/modifiers_draw/build/modifiers_draw_config.gni"),
+]
 
 if (exec_script(check_graphic_ext_file_script,
                 check_ddgr_ext_file_args,
@@ -322,6 +327,22 @@ if (exec_script(check_graphic_ext_file_script,
   }
 }
 
+graphic_2d_modifiers_draw_configs = {
+}
+if (exec_script(check_graphic_ext_file_script,
+                check_modifiers_draw_ext_file_args,
+                "string") == "True") {
+  graphic_2d_modifiers_draw_configs = {
+    import(
+        "//foundation/graphic/graphic_2d_ext/modifiers_draw/build/modifiers_draw_config.gni")
+  }
+}
+
+if (graphic_2d_feature_enable_vulkan &&
+    defined(graphic_2d_modifiers_draw_configs.vendor_root)) {
+  gpu_defines += [ "ACE_ENABLE_HYBRID_RENDER" ]
+}
+
 flutter_root = "//third_party/flutter"
 ace_flutter_engine_root = "$flutter_root/build"
 graphic_2d_root = "//foundation/graphic/graphic_2d"
@@ -341,6 +362,7 @@ bundlefwk_path = "//foundation/bundlemanager/bundle_framework"
 bundlefwk_inner_api_path = "${bundlefwk_path}/interfaces/inner_api"
 mindspore_root = "//third_party/mindspore"
 rosen_root = "//foundation/graphic/graphic_2d/rosen"
+drivers_display_interface = "//drivers/peripheral/display/interfaces"
 
 accessibility_enable = false
 if (defined(global_parts_info) &&

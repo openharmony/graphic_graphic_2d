@@ -5024,6 +5024,22 @@ HWTEST_F(RSNodeTest, SetColorBlendMode, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetIsCrossNode
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSNodeTest, SetIsCrossNode, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    EXPECT_NE(RSTransactionProxy::instance_, nullptr);
+    RSTransactionProxy::instance_ = nullptr;
+    rsNode->SetIsCrossNode(false);
+    EXPECT_EQ(RSTransactionProxy::instance_, nullptr);
+    RSTransactionProxy::instance_ = transactionProxy;
+}
+
+/**
  * @tc.name: SetTextureExport
  * @tc.desc:
  * @tc.type:FUNC

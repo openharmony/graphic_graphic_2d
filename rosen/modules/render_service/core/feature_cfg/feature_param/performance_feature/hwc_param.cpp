@@ -35,7 +35,7 @@ void HWCParam::SetHwcExpandingScreenEnabled(bool isEnabled)
     isHwcExpandingScreenEnabled_ = isEnabled;
 }
 
-bool HWCParam::IsHwcExpandingScreenEnabled() const
+bool HWCParam::IsHwcExpandingScreenEnabled()
 {
     return isHwcExpandingScreenEnabled_;
 }

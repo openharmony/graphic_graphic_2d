@@ -226,6 +226,41 @@ private:
     std::shared_ptr<ExtendImageObject> objectHandle_;
 };
 
+#ifdef RS_ENABLE_VK
+class RSB_EXPORT DrawHybridPixelMapOpItem : public DrawWithPaintOpItem {
+public:
+    struct ConstructorHandle : public OpItem {
+        ConstructorHandle(const OpDataHandle& objectHandle, const SamplingOptions& sampling,
+            const PaintHandle& paintHandle)
+            : OpItem(DrawOpItem::HYBRID_RENDER_PIXELMAP_OPITEM), objectHandle(objectHandle), sampling(sampling),
+              paintHandle(paintHandle) {}
+        ~ConstructorHandle() override = default;
+        OpDataHandle objectHandle;
+        SamplingOptions sampling;
+        PaintHandle paintHandle;
+    };
+    DrawHybridPixelMapOpItem(const DrawCmdList& cmdList, ConstructorHandle* handle);
+    DrawHybridPixelMapOpItem(const std::shared_ptr<Media::PixelMap>& pixelMap,
+        const AdaptiveImageInfo& rsImageInfo, const SamplingOptions& sampling, const Paint& paint);
+    ~DrawHybridPixelMapOpItem() override = default;
+
+    static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
+    void Marshalling(DrawCmdList& cmdList) override;
+    void Playback(Canvas* canvas, const Rect* rect) override;
+    void SetNodeId(NodeId id) override;
+    virtual void DumpItems(std::string& out) const override;
+    void Purge() override
+    {
+        if (objectHandle_) {
+            objectHandle_->Purge();
+        }
+    }
+private:
+    SamplingOptions sampling_;
+    std::shared_ptr<ExtendImageObject> objectHandle_;
+};
+#endif
+
 class RSB_EXPORT DrawPixelMapRectOpItem : public DrawWithPaintOpItem {
 public:
     struct ConstructorHandle : public OpItem {

@@ -44,11 +44,8 @@ void StencilPixelOcclusionCullingParamTest::TearDown() {}
  */
 HWTEST_F(StencilPixelOcclusionCullingParamTest, SetStencilPixelOcclusionCullingEnable, Function | SmallTest | Level1)
 {
-    StencilPixelOcclusionCullingParam SPOCParam;
-    SPOCParam.SetStencilPixelOcclusionCullingEnable(true);
-    ASSERT_TRUE(SPOCParam.isStencilPixelOcclusionCullingEnable_);
-    SPOCParam.SetStencilPixelOcclusionCullingEnable(false);
-    ASSERT_FALSE(SPOCParam.isStencilPixelOcclusionCullingEnable_);
+    StencilPixelOcclusionCullingParam::SetStencilPixelOcclusionCullingEnable(true);
+    ASSERT_TRUE(StencilPixelOcclusionCullingParam::IsStencilPixelOcclusionCullingEnable());
 }
 
 /**
@@ -59,11 +56,8 @@ HWTEST_F(StencilPixelOcclusionCullingParamTest, SetStencilPixelOcclusionCullingE
  */
 HWTEST_F(StencilPixelOcclusionCullingParamTest, IsStencilPixelOcclusionCullingEnable, Function | SmallTest | Level1)
 {
-    StencilPixelOcclusionCullingParam SPOCParam;
-    SPOCParam.isStencilPixelOcclusionCullingEnable_ = true;
-    ASSERT_TRUE(SPOCParam.IsStencilPixelOcclusionCullingEnable());
-    SPOCParam.isStencilPixelOcclusionCullingEnable_ = false;
-    ASSERT_FALSE(SPOCParam.IsStencilPixelOcclusionCullingEnable());
+    StencilPixelOcclusionCullingParam::SetStencilPixelOcclusionCullingEnable(false);
+    ASSERT_FALSE(StencilPixelOcclusionCullingParam::IsStencilPixelOcclusionCullingEnable());
 }
 } // namespace Rosen
 } // namespace OHOS

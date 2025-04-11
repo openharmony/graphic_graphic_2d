@@ -876,7 +876,7 @@ void RSNode::SetBounds(const Vector4f& bounds)
 {
     SetProperty<RSBoundsModifier, RSAnimatableProperty<Vector4f>>(RSModifierType::BOUNDS, bounds);
     OnBoundsSizeChanged();
-    if (GetStagingProperties().GetBounds().x_ != 0 || GetStagingProperties().GetBounds().y_ != 0) {
+    if (bounds.x_ != 0 || bounds.y_ != 0) {
         SetDrawNode();
     }
 }
@@ -936,8 +936,7 @@ void RSNode::SetBoundsHeight(float height)
 void RSNode::SetFrame(const Vector4f& bounds)
 {
     SetProperty<RSFrameModifier, RSAnimatableProperty<Vector4f>>(RSModifierType::FRAME, bounds);
-    if (GetStagingProperties().GetFrame().x_ != GetStagingProperties().GetBounds().x_
-        || GetStagingProperties().GetFrame().y_ != GetStagingProperties().GetBounds().y_) {
+    if (bounds.x_ != 0 || bounds.y_ != 0) {
         SetDrawNode();
     }
 }

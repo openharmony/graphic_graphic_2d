@@ -38,6 +38,10 @@
 #include "ui/rs_surface_node.h"
 #include "ui/rs_ui_context.h"
 #include "ui/rs_ui_context_manager.h"
+#ifdef RS_ENABLE_VK
+#include "modifier_render_thread/rs_modifiers_draw_thread.h"
+#include "modifier_render_thread/rs_modifiers_draw.h"
+#endif
 
 #ifdef _WIN32
 #include <windows.h>
@@ -102,6 +106,9 @@ void RSUIDirector::Init(bool shouldCreateRenderThread, bool isMultiInstance)
     } else {
         // force fallback animaiions send to RS if no render thread
         RSNodeMap::Instance().GetAnimationFallbackNode()->isRenderServiceNode_ = true; // ToDo
+#ifdef RS_ENABLE_VK
+        InitHybridRender();
+#endif
     }
     if (!cacheDir_.empty()) {
         RSRenderThread::Instance().SetCacheDir(cacheDir_);
@@ -128,6 +135,41 @@ void RSUIDirector::SetFlushEmptyCallback(FlushEmptyCallback flushEmptyCallback)
         }
     }
 }
+
+#ifdef RS_ENABLE_VK
+void RSUIDirector::InitHybridRender()
+{
+    if (RSSystemProperties::GetHybridRenderEnabled() && !cacheDir_.empty()) {
+        RSModifiersDrawThread::Instance().SetCacheDir(cacheDir_);
+        CommitTransactionCallback callback =
+            [] (std::shared_ptr<RSIRenderClient> &renderServiceClient,
+            std::unique_ptr<RSTransactionData>&& rsTransactionData, uint32_t& transactionDataIndex) {
+            auto task = [renderServiceClient, transactionData = std::move(rsTransactionData),
+                &transactionDataIndex]() mutable {
+                renderServiceClient->CommitTransaction(RSModifiersDrawThread::ConvertTransaction(transactionData));
+                transactionDataIndex = transactionData->GetIndex();
+            };
+            RSModifiersDrawThread::Instance().ScheduleTask(task);
+        };
+        SetCommitTransactionCallback(callback);
+    }
+}
+
+void RSUIDirector::SetCommitTransactionCallback(CommitTransactionCallback commitTransactionCallback)
+{
+    if (rsUIContext_) {
+        auto transaction = rsUIContext_->GetRSTransaction();
+        if (transaction != nullptr) {
+            transaction->SetCommitTransactionCallback(commitTransactionCallback);
+        }
+    } else {
+        auto transactionProxy = RSTransactionProxy::GetInstance();
+        if (transactionProxy != nullptr) {
+            transactionProxy->SetCommitTransactionCallback(commitTransactionCallback);
+        }
+    }
+}
+#endif
 
 void RSUIDirector::StartTextureExport()
 {
@@ -170,6 +212,9 @@ void RSUIDirector::GoForeground(bool isTextureExport)
             surfaceNode->SetAbilityState(RSSurfaceNodeAbilityState::FOREGROUND);
         }
     }
+#ifdef RS_ENABLE_VK
+    RSModifiersDraw::InsertForegroundRoot(root_);
+#endif
 }
 
 void RSUIDirector::GoBackground(bool isTextureExport)
@@ -192,6 +237,9 @@ void RSUIDirector::GoBackground(bool isTextureExport)
             surfaceNode->SetAbilityState(RSSurfaceNodeAbilityState::BACKGROUND);
         }
         if (isTextureExport || isUniRenderEnabled_) {
+#ifdef RS_ENABLE_VK
+            RSModifiersDraw::EraseForegroundRoot(root_);
+#endif
             return;
         }
         // clean bufferQueue cache
@@ -216,6 +264,9 @@ void RSUIDirector::GoBackground(bool isTextureExport)
         });
 #endif
     }
+#ifdef RS_ENABLE_VK
+    RSModifiersDraw::EraseForegroundRoot(root_);
+#endif
 }
 
 void RSUIDirector::Destroy(bool isTextureExport)
@@ -360,9 +411,12 @@ void RSUIDirector::FlushAnimationStartTime(uint64_t timeStamp)
 
 void RSUIDirector::FlushModifier()
 {
-    auto rsUIContext = rsUIContext_;
-    auto modifierManager = rsUIContext ? rsUIContext->GetRSModifierManager()
-                                        : RSModifierManagerMap::Instance()->GetModifierManager(gettid());
+    std::shared_ptr<RSModifierManager> modifierManager = nullptr;
+    if (rsUIContext_ == nullptr) {
+        modifierManager = RSModifierManagerMap::Instance()->GetModifierManager(gettid());
+    } else {
+        modifierManager = rsUIContext_->GetRSModifierManager();
+    }
     if (modifierManager == nullptr) {
         return;
     }

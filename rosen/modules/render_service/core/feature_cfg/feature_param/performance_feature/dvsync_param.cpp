@@ -17,46 +17,46 @@
 
 namespace OHOS::Rosen {
 
-bool DVSyncParam::IsDVSyncEnable() const
+bool DVSyncParam::IsDVSyncEnable()
 {
     return isRsDVSyncEnabled_;
 }
-bool DVSyncParam::IsUiDVSyncEnable() const
+bool DVSyncParam::IsUiDVSyncEnable()
 {
     return isUiDVSyncEnabled_;
 }
 
-bool DVSyncParam::IsNativeDVSyncEnable() const
+bool DVSyncParam::IsNativeDVSyncEnable()
 {
     return isNativeDVSyncEnabled_;
 }
 
-bool DVSyncParam::IsAdaptiveDVSyncEnable() const
+bool DVSyncParam::IsAdaptiveDVSyncEnable()
 {
     return isAdaptiveDVSyncEnabled_;
 }
 
-uint32_t DVSyncParam::GetRsBufferCount() const
+uint32_t DVSyncParam::GetRsBufferCount()
 {
     return rsBufferCount_;
 }
 
-uint32_t DVSyncParam::GetUiBufferCount() const
+uint32_t DVSyncParam::GetUiBufferCount()
 {
     return uiBufferCount_;
 }
 
-uint32_t DVSyncParam::GetNativeBufferCount() const
+uint32_t DVSyncParam::GetNativeBufferCount()
 {
     return nativeBufferCount_;
 }
 
-uint32_t DVSyncParam::GetWebBufferCount() const
+uint32_t DVSyncParam::GetWebBufferCount()
 {
     return webBufferCount_;
 }
 
-std::unordered_map<std::string, std::string> DVSyncParam::GetAdaptiveConfig() const
+std::unordered_map<std::string, std::string> DVSyncParam::GetAdaptiveConfig()
 {
     return adaptiveConfig_;
 }

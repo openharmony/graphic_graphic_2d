@@ -73,6 +73,20 @@ typedef enum {
 OH_Drawing_Canvas* OH_Drawing_CanvasCreate(void);
 
 /**
+ * @brief Creates an <b>OH_Drawing_Canvas</b> object from <b>OH_Drawing_PixelMap</b>.
+ * The OH_Drawing_PixelMap should be dissolved by OH_Drawing_PixelMapDissolve after the OH_Drawing_Canvas is destroyed.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param pixelMap Indicates the pointer to an <b>OH_Drawing_PixelMap</b> object.
+ * @return Returns the pointer to the <b>OH_Drawing_Canvas</b> object created.
+ *         If nullptr is returned, the creation fails.
+ *         The possible cause of the failure is that the available memory is empty or pixelMap is nullptr.
+ * @since 20
+ * @version 1.0
+ */
+OH_Drawing_Canvas* OH_Drawing_CanvasCreateWithPixelMap(OH_Drawing_PixelMap* pixelMap);
+
+/**
  * @brief Destroys an <b>OH_Drawing_Canvas</b> object and reclaims the memory occupied by the object.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing

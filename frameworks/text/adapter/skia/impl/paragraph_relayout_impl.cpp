@@ -14,6 +14,7 @@
  */
 
 #include "hm_symbol_txt.h"
+#include "modules/skparagraph/include/Paragraph.h"
 #include "paragraph_impl.h"
 
 #include <algorithm>
@@ -402,7 +403,7 @@ namespace {
 
         [](Paragraph& paragraph, skt::Block& skiaBlock, const TextStyle& spTextStyle, skt::InternalState& state) {
             skt::TextRange textRange = skiaBlock.fRange;
-            paragraph.UpdateColor(textRange.start, textRange.end, spTextStyle.color, true);
+            paragraph.UpdateColor(textRange.start, textRange.end, spTextStyle.color, skt::UtfEncodeType::kUtf16);
             state = std::min(skt::InternalState::kFormatted, state);
         },
 
