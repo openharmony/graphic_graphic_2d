@@ -89,13 +89,13 @@ template("skia_libtxt") {
     ]
 
     external_deps = []
-    deps = [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics" ]
     if (platform_is_ohos) {
       external_deps += [
         "bundle_framework:appexecfwk_base",
         "bundle_framework:appexecfwk_core",
         "hitrace:hitrace_meter",
         "init:libbegetutil",
+        "ipc:ipc_core",
         "samgr:samgr_proxy",
       ]
       defines += [
@@ -107,7 +107,7 @@ template("skia_libtxt") {
     }
 
     if (is_arkui_x) {
-      deps += [
+      deps = [
         "//third_party/bounds_checking_function:libsec_static",
         "//third_party/jsoncpp:jsoncpp_static",
         "//third_party/skia:skia_$platform",
@@ -154,8 +154,8 @@ ohos_static_library("font_asset") {
   public_configs = [ ":skia_libtxt_config" ]
   defines = []
   external_deps = [
-    "bounds_checking_function:libsec_static",
-    "cJSON:cjson_static",
+    "bounds_checking_function:libsec_shared",
+    "cJSON:cjson",
     "hilog:libhilog",
     "skia:skia_canvaskit",
   ]

@@ -85,8 +85,9 @@ ohos_source_set("libtexgine_source") {
     ]
   } else {
     external_deps = [
-      "bounds_checking_function:libsec_static",
-      "cJSON:cjson_static",
+      "bounds_checking_function:libsec_shared",
+      "cJSON:cjson",
+      "skia:skia_canvaskit",
     ]
   }
 

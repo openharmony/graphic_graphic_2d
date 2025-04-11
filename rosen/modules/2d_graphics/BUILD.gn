@@ -336,6 +336,7 @@ template("graphics2d_source_set") {
       } else {
         external_deps += [
           "bounds_checking_function:libsec_static",
+          "icu:shared_icuuc",
           "skia:skia_canvaskit",
         ]
       }
