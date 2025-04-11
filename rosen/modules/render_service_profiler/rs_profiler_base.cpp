@@ -26,6 +26,7 @@
 #include "message_parcel.h"
 #include "rs_profiler.h"
 #include "rs_profiler_cache.h"
+#include "rs_profiler_capture_recorder.h"
 #include "rs_profiler_file.h"
 #include "rs_profiler_log.h"
 #include "rs_profiler_network.h"
@@ -78,6 +79,7 @@ bool RSProfiler::enabled_ = RSSystemProperties::GetProfilerEnabled();
 bool RSProfiler::betaRecordingEnabled_ = RSSystemProperties::GetBetaRecordingMode() != 0;
 int8_t RSProfiler::signalFlagChanged_ = 0;
 std::atomic_bool RSProfiler::dcnRedraw_ = false;
+std::atomic_bool RSProfiler::renderNodeKeepDrawCmdList_ = false;
 std::vector<RSRenderNode::WeakPtr> g_childOfDisplayNodesPostponed;
 
 static TextureRecordType g_textureRecordType = TextureRecordType::LZ4;
@@ -1213,6 +1215,16 @@ void RSProfiler::DrawingNodeAddClearOp(const std::shared_ptr<Drawing::DrawCmdLis
         return;
     }
     drawCmdList->ClearOp();
+}
+
+void RSProfiler::SetRenderNodeKeepDrawCmd(bool enable)
+{
+    renderNodeKeepDrawCmdList_ = enable && IsEnabled();
+}
+
+bool RSProfiler::KeepDrawCmd()
+{
+    return renderNodeKeepDrawCmdList_;
 }
 
 static uint64_t NewAshmemDataCacheId()

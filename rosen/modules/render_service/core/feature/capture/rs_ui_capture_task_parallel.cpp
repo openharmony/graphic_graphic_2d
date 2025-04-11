@@ -51,6 +51,10 @@
 #include "platform/ohos/backend/native_buffer_utils.h"
 #endif
 
+#ifdef RS_PROFILER_ENABLED
+#include "rs_profiler_capture_recorder.h"
+#endif
+
 namespace OHOS {
 namespace Rosen {
 
@@ -248,6 +252,11 @@ bool RSUiCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback, cons
         RS_LOGE("RSUiCaptureTaskParallel::Run: RenderParams is nullptr!");
         return false;
     }
+    // check if capturing was triggered, if so - add the recording canvas
+    if (auto canvasRec = RSCaptureRecorder::GetInstance().TryComponentScreenshotCapture(
+        static_cast<float>(canvas.GetWidth()), static_cast<float>(canvas.GetHeight()))) {
+        canvas.AddCanvas(canvasRec);
+    }
     Drawing::Matrix relativeMatrix = Drawing::Matrix();
     relativeMatrix.Set(Drawing::Matrix::Index::SCALE_X, captureConfig_.scaleX);
     relativeMatrix.Set(Drawing::Matrix::Index::SCALE_Y, captureConfig_.scaleY);
@@ -270,7 +279,8 @@ bool RSUiCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback, cons
     RSUniRenderThread::SetCaptureParam(CaptureParam(true, true, false));
     nodeDrawable_->OnCapture(canvas);
     RSUniRenderThread::ResetCaptureParam();
-
+    // finish capturing if started
+    RSCaptureRecorder::GetInstance().EndComponentScreenshotCapture();
 #if (defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK)) && (defined RS_ENABLE_EGLIMAGE)
 #ifdef RS_ENABLE_UNI_RENDER
     bool snapshotDmaEnabled = system::GetBoolParameter("rosen.snapshotDma.enabled", true);

@@ -79,6 +79,8 @@ const RSProfiler::CommandRegistry RSProfiler::COMMANDS = {
     { "rscon_print", DumpConnections },
     { "save_rdc", SaveRdc },
     { "save_skp", SaveSkp },
+    { "save_offscreen", SaveOffscreenSkp },
+    { "save_component", SaveComponentSkp },
     { "info", GetDeviceInfo },
     { "freq", GetDeviceFrequency },
     { "fixenv", FixDeviceEnv },
@@ -94,6 +96,7 @@ const RSProfiler::CommandRegistry RSProfiler::COMMANDS = {
     { "reset", Reset },
     { "drawing_canvas", DumpDrawingCanvasNodes },
     { "drawing_canvas_enable", DrawingCanvasRedrawEnable },
+    { "keep_draw_cmd", RenderNodeKeepDrawCmd },
     { "rsrecord_replay_speed", PlaybackSetSpeed },
     { "rsrecord_replay_immediate", PlaybackSetImmediate },
     { "build_test_tree", BuildTestTree },
@@ -137,6 +140,45 @@ void RSProfiler::SaveSkp(const ArgList& args)
         Respond("Recording .skp for DrawingCanvasNode: id=" + std::to_string(nodeId));
     }
     AwakeRenderServiceThread();
+}
+
+void RSProfiler::SaveOffscreenSkp(const ArgList& args)
+{
+    const auto nodeIdArg = args.Node();
+    Respond("Trying to playback the drawing commands for node: " + std::to_string(nodeIdArg));
+    if (nodeIdArg == 0) {
+        Respond("Pass correct node id in args: save_offscreen <node_id>");
+        return;
+    }
+
+    const auto& map = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
+    for (const auto& [_, subMap] : map.renderNodeMap_) {
+        for (const auto& [_, node] : subMap) {
+            if (node->GetId() != nodeIdArg) {
+                continue;
+            }
+            if (node->IsOnTheTree()) {
+                Respond("Node is on tree, pick off-screen node");
+                return;
+            }
+            Respond("Node found, trying to capture");
+            auto adapter = node->GetRenderDrawable();
+            auto drawable = std::reinterpret_pointer_cast<DrawableV2::RSRenderNodeDrawable>(adapter);
+            auto nodeRect = drawable->GetRenderParams()->GetAbsDrawRect();
+            if (auto canvasRec = RSCaptureRecorder::GetInstance().TryOffscreenCanvasCapture(
+                nodeRect.GetWidth(), nodeRect.GetHeight())) {
+                RSPaintFilterCanvas paintFilterCanvas(canvasRec);
+                drawable->OnDraw(paintFilterCanvas);
+                RSCaptureRecorder::GetInstance().EndOffscreenCanvasCapture();
+            }
+        }
+    }
+}
+
+void RSProfiler::SaveComponentSkp(const ArgList& args)
+{
+    RSCaptureRecorder::GetInstance().SetComponentScreenshotFlag(true);
+    Respond("Capturing for the next \"Component Screenshot\" is set.");
 }
 
 void RSProfiler::SetSystemParameter(const ArgList& args)
@@ -200,6 +242,14 @@ void RSProfiler::DrawingCanvasRedrawEnable(const ArgList& args)
 {
     const auto enable = args.Uint64(); // 0 - disabled, >0 - enabled
     RSProfiler::SetDrawingCanvasNodeRedraw(enable > 0);
+}
+
+void RSProfiler::RenderNodeKeepDrawCmd(const ArgList& args)
+{
+    const auto enable = args.Uint64(); // 0 - disabled, >0 - enabled
+    std::string varEnabled = (enable > 0 ? "true" : "false");
+    Respond("Set: KeepDrawCmdList to: " + varEnabled);
+    RSProfiler::SetRenderNodeKeepDrawCmd(enable > 0);
 }
 
 void RSProfiler::ClearFilter(const ArgList& args)

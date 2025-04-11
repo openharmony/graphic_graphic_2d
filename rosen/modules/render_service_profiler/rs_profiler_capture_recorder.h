@@ -48,9 +48,16 @@ public:
     // Used for .skp capturing of DrawingCanvasNode's local canvas
     Drawing::Canvas* TryDrawingCanvasCapture(float width, float height, uint64_t nodeId);
     void EndDrawingCanvasCapture();
+    // Used for .skp capturing from offscreen Canvas nodes
+    Drawing::Canvas* TryOffscreenCanvasCapture(float width, float height);
+    void EndOffscreenCanvasCapture();
+    // Used for .skp capturing for component screenshot scenario with RSUiCaptureTaskParallel
+    Drawing::Canvas* TryComponentScreenshotCapture(float width, float height);
+    void EndComponentScreenshotCapture();
 
     void InvalidateDrawingCanvasNodeId();
     void SetDrawingCanvasNodeId(uint64_t nodeId);
+    void SetComponentScreenshotFlag(bool flag);
 
     // to check if .rdc is recorded and send the filename to client
     static bool PullAndSendRdc();
@@ -77,6 +84,8 @@ private:
     // to make sure the capture start/finish happen for the same frame / thread
     bool recordingTriggeredFullFrame_ = false;
     bool recordingTriggeredDrawingCanvas_ = false;
+    bool recordingTriggeredOffscreenCanvas_ = false;
+    bool recordingTriggeredComponentScreenshot_ = false;
 
     std::shared_ptr<Drawing::Picture> picture_;
 
@@ -90,7 +99,8 @@ private:
     bool isPageActive_ = false;
     bool isMskpActive_ = false;
     uint64_t drawingCanvasNodeId_ = 0;
-
+    bool isComponentScreenshot_ = false;
+    
     bool profilerEnabled_ = false;
 };
 

@@ -3856,7 +3856,7 @@ void RSRenderNode::OnTreeStateChanged()
         std::atomic_store_explicit(&fullChildrenList_, EmptyChildrenList, std::memory_order_release);
         drawableVec_[static_cast<int8_t>(RSDrawableSlot::CHILDREN)].reset();
         stagingDrawCmdList_.clear();
-        drawCmdListNeedSync_ = true;
+        drawCmdListNeedSync_ = !RS_PROFILER_KEEP_DRAW_CMD(); // false only when used for debugging
         uifirstNeedSync_ = true;
         AddToPendingSyncList();
     }
