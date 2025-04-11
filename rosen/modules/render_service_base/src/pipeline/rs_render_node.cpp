@@ -827,8 +827,6 @@ void RSRenderNode::ChildrenListDump(std::string& out) const
     const int childrenCntLimit = 10;
 
     if (!isFullChildrenListValid_) {
-        out += ", Children list needs update, current count: " + std::to_string(fullChildrenList_->size()) +
-               " expected count: " + std::to_string(sortedChildren->size());
         out += ", Children list needs update, current count: " + std::to_string(fullChildrenList_->size());
         if (!fullChildrenList_->empty()) {
             int cnt = 0;
@@ -879,13 +877,6 @@ void RSRenderNode::ChildrenListDump(std::string& out) const
     }
     if (!disappearingChildren_.empty()) {
         out += ", disappearingChildren: " + std::to_string(disappearingChildren_.size());
-    }
-
-    out += "\n";
-
-    for (auto& child : children_) {
-        if (auto c = child.lock()) {
-            c->DumpTree(depth + 1, out);
         int cnt = 0;
         out += "(";
         for (auto& [child, _] : disappearingChildren_) {
@@ -899,9 +890,6 @@ void RSRenderNode::ChildrenListDump(std::string& out) const
             cnt++;
         }
         out += ")";
-    }
-    for (auto& [child, pos] : disappearingChildren_) {
-        child->DumpTree(depth + 1, out);
     }
     out += "\n";
 }
