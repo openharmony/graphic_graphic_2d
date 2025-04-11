@@ -36,6 +36,7 @@ public:
     static constexpr int SLEEP_TIME_US = 500;
     static constexpr uint32_t VIRTUAL_SCREEN_WIDTH = 480;
     static constexpr uint32_t VIRTUAL_SCREEN_HEIGHT = 320;
+    static constexpr uint32_t SLEEP_TIME_FOR_BACKGROUD = 1000000; //1000ms
     static constexpr uint32_t LIGHT_LEVEL = 1;
     static constexpr uint64_t SCREEN_ID = 10;
     static inline ScreenId mockScreenId_;
@@ -726,33 +727,6 @@ HWTEST_F(RSScreenManagerTest, GetScreenType_001, TestSize.Level1)
 }
 
 /*
- * @tc.name: SetScreenMirror_001
- * @tc.desc: Test SetScreenMirror
- * @tc.type: FUNC
- * @tc.require: issueI5ZK2I
- */
-HWTEST_F(RSScreenManagerTest, SetScreenMirror_001, testing::ext::TestSize.Level2)
-{
-    auto screenManager = CreateOrGetScreenManager();
-    ASSERT_NE(nullptr, screenManager);
-    ScreenId id = screenManager->GetDefaultScreenId();
-
-    std::string name = "virtualScreen01";
-    uint32_t width = 480;
-    uint32_t height = 320;
-
-    auto csurface = IConsumerSurface::Create();
-    ASSERT_NE(csurface, nullptr);
-    auto producer = csurface->GetProducer();
-    auto psurface = Surface::CreateSurfaceAsProducer(producer);
-    ASSERT_NE(psurface, nullptr);
-
-    auto mirrorId = screenManager->CreateVirtualScreen(name, width, height, psurface);
-    ASSERT_NE(INVALID_SCREEN_ID, mirrorId);
-    screenManager->SetScreenMirror(id, mirrorId);
-}
-
-/*
  * @tc.name: SetScreenConstraint_001
  * @tc.desc: Test SetScreenConstraint
  * @tc.type: FUNC
@@ -1220,16 +1194,22 @@ HWTEST_F(RSScreenManagerTest, SetScreenPowerStatus_003, TestSize.Level1)
     OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
         static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
     screenManager->SetScreenPowerStatus(screenId, ScreenPowerStatus::POWER_STATUS_ON);
+    usleep(SLEEP_TIME_FOR_BACKGROUD);
     ASSERT_EQ(screenManagerImpl.screenPowerStatus_[screenId], POWER_STATUS_ON);
     screenManager->SetScreenPowerStatus(screenId, ScreenPowerStatus::POWER_STATUS_ON_ADVANCED);
+    usleep(SLEEP_TIME_FOR_BACKGROUD);
     ASSERT_EQ(screenManagerImpl.screenPowerStatus_[screenId], POWER_STATUS_ON_ADVANCED);
     screenManager->SetScreenPowerStatus(screenId, ScreenPowerStatus::POWER_STATUS_OFF);
+    usleep(SLEEP_TIME_FOR_BACKGROUD);
     ASSERT_EQ(screenManagerImpl.screenPowerStatus_[screenId], POWER_STATUS_OFF);
     screenManager->SetScreenPowerStatus(screenId, ScreenPowerStatus::POWER_STATUS_OFF_ADVANCED);
+    usleep(SLEEP_TIME_FOR_BACKGROUD);
     ASSERT_EQ(screenManagerImpl.screenPowerStatus_[screenId], POWER_STATUS_OFF_ADVANCED);
     screenManager->SetScreenPowerStatus(screenId, ScreenPowerStatus::POWER_STATUS_DOZE);
+    usleep(SLEEP_TIME_FOR_BACKGROUD);
     ASSERT_EQ(screenManagerImpl.screenPowerStatus_[screenId], POWER_STATUS_DOZE);
     screenManager->SetScreenPowerStatus(screenId, ScreenPowerStatus::POWER_STATUS_DOZE_SUSPEND);
+    usleep(SLEEP_TIME_FOR_BACKGROUD);
     ASSERT_EQ(screenManagerImpl.screenPowerStatus_[screenId], POWER_STATUS_DOZE_SUSPEND);
 }
 
@@ -1857,16 +1837,17 @@ HWTEST_F(RSScreenManagerTest, IsAllScreensPowerOff_002, TestSize.Level1)
 }
 
 /*
- * @tc.name: ForceRefreshOneFrameIfNoRNV_001
- * @tc.desc: Test ForceRefreshOneFrameIfNoRNV.
+ * @tc.name: PostAndRemoveForceRefreshTaskTest
+ * @tc.desc: Test PostForceRefreshTask and RemoveForceRefreshTask.
  * @tc.type: FUNC
  * @tc.require: issueI9S56D
  */
-HWTEST_F(RSScreenManagerTest, ForceRefreshOneFrameIfNoRNV_001, TestSize.Level1)
+HWTEST_F(RSScreenManagerTest, PostAndRemoveForceRefreshTaskTest, TestSize.Level1)
 {
     auto screenManager = CreateOrGetScreenManager();
     ASSERT_NE(nullptr, screenManager);
-    screenManager->ForceRefreshOneFrameIfNoRNV();
+    screenManager->PostForceRefreshTask();
+    screenManager->RemoveForceRefreshTask();
 }
 
 /*

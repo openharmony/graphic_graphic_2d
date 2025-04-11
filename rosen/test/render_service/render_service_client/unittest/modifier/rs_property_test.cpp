@@ -167,7 +167,7 @@ HWTEST_F(RSPropertyTest, operator001, TestSize.Level1)
     auto prop1 = std::make_shared<RSPropertyBase>();
     auto prop2 = std::make_shared<RSPropertyBase>();
     prop1 = nullptr;
-    ASSERT_TRUE(prop1 == nullptr);
+    ASSERT_TRUE(prop2 != nullptr);
     prop1 += prop2;
 }
 
@@ -194,7 +194,7 @@ HWTEST_F(RSPropertyTest, operator003, TestSize.Level1)
     auto prop1 = std::make_shared<RSPropertyBase>();
     auto prop2 = std::make_shared<RSPropertyBase>();
     prop1 = nullptr;
-    ASSERT_TRUE(prop1 == nullptr);
+    ASSERT_TRUE(prop2 != nullptr);
     prop1 -= prop2;
 }
 
@@ -220,8 +220,8 @@ HWTEST_F(RSPropertyTest, operator005, TestSize.Level1)
 {
     auto prop1 = std::make_shared<RSPropertyBase>();
     float scale = 2;
+    ASSERT_TRUE(prop1 != nullptr);
     prop1 = nullptr;
-    ASSERT_TRUE(prop1 == nullptr);
     prop1 *= scale;
 }
 
@@ -248,7 +248,7 @@ HWTEST_F(RSPropertyTest, operator007, TestSize.Level1)
     auto prop1 = std::make_shared<RSPropertyBase>();
     auto prop2 = std::make_shared<RSPropertyBase>();
     prop1 = nullptr;
-    ASSERT_TRUE(prop1 == nullptr);
+    ASSERT_TRUE(prop2 != nullptr);
     prop1 = prop1 + prop2;
 }
 
@@ -275,7 +275,7 @@ HWTEST_F(RSPropertyTest, operator009, TestSize.Level1)
     auto prop1 = std::make_shared<RSPropertyBase>();
     auto prop2 = std::make_shared<RSPropertyBase>();
     prop1 = nullptr;
-    ASSERT_TRUE(prop1 == nullptr);
+    ASSERT_TRUE(prop2 != nullptr);
     prop1 = prop1 - prop2;
 }
 
@@ -301,8 +301,8 @@ HWTEST_F(RSPropertyTest, operator011, TestSize.Level1)
 {
     auto prop1 = std::make_shared<RSPropertyBase>();
     float scale = 2;
+    ASSERT_TRUE(prop1 != nullptr);
     prop1 = nullptr;
-    ASSERT_TRUE(prop1 == nullptr);
     prop1 = prop1 * scale;
 }
 
@@ -329,7 +329,7 @@ HWTEST_F(RSPropertyTest, operator013, TestSize.Level1)
     auto prop1 = std::make_shared<RSPropertyBase>();
     auto prop2 = std::make_shared<RSPropertyBase>();
     prop1 = nullptr;
-    ASSERT_TRUE(prop1 == nullptr);
+    ASSERT_TRUE(prop2 != nullptr);
     ASSERT_TRUE(prop1 != prop2);
 }
 
@@ -356,7 +356,7 @@ HWTEST_F(RSPropertyTest, operator015, TestSize.Level1)
     auto prop1 = std::make_shared<RSPropertyBase>();
     auto prop2 = std::make_shared<RSPropertyBase>();
     prop1 = nullptr;
-    ASSERT_TRUE(prop1 == nullptr);
+    ASSERT_TRUE(prop2 != nullptr);
     ASSERT_TRUE(prop1 != prop2);
 }
 

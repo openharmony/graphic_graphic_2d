@@ -183,6 +183,9 @@ public:
                              buffer->GetHeight() != preBuffer_.buffer->GetHeight();
     }
 
+    void UpdateBuffer(const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence, const Rect& damage,
+        const int64_t timestamp);
+
     void SetBufferTransformTypeChanged(bool flag)
     {
         bufferTransformTypeChanged_ = flag;

@@ -25,7 +25,6 @@
 #include "vsync_sampler.h"
 // DISPLAYENGINE
 #include "syspara/parameters.h"
-#include "platform/common/rs_system_properties.h"
 
 using namespace OHOS::HDI::Display::Graphic::Common::V1_0;
 
@@ -42,7 +41,7 @@ namespace Rosen {
 static constexpr uint32_t NUMBER_OF_HISTORICAL_FRAMES = 2;
 static const std::string GENERIC_METADATA_KEY_ARSR_PRE_NEEDED = "ArsrDoEnhance";
 static int32_t SOLID_SURFACE_COUNT = 0;
-static int32_t g_enableMergeFence = OHOS::system::GetIntParameter<int32_t>("persist.sys.graphic.enableMergeFence", 0);
+static int32_t g_enableMergeFence = OHOS::system::GetIntParameter<int32_t>("persist.sys.graphic.enableMergeFence", 1);
 
 std::shared_ptr<HdiOutput> HdiOutput::CreateHdiOutput(uint32_t screenId)
 {
@@ -291,6 +290,7 @@ void HdiOutput::GetLayerInfos(std::vector<LayerInfoPtr>& layerInfos)
 
 void HdiOutput::UpdatePrevLayerInfoLocked()
 {
+    RS_TRACE_NAME_FMT("HdiOutput::UpdatePrevLayerInfoLocked, layerIdMap size %u", layerIdMap_.size());
     for (auto iter = layerIdMap_.begin(); iter != layerIdMap_.end(); iter++) {
         LayerPtr layer = iter->second;
         layer->SavePrevLayerInfo();
@@ -525,6 +525,7 @@ int32_t HdiOutput::CommitAndGetReleaseFence(
 
 int32_t HdiOutput::UpdateInfosAfterCommit(sptr<SyncFence> fbFence)
 {
+    RS_TRACE_NAME("HdiOutput::UpdateInfosAfterCommit");
     std::unique_lock<std::mutex> lock(mutex_);
     if (thirdFrameAheadPresentFence_ == nullptr) {
         return GRAPHIC_DISPLAY_NULL_PTR;
@@ -596,6 +597,7 @@ int32_t HdiOutput::ReleaseFramebuffer(const sptr<SyncFence>& releaseFence)
         if (!CheckFbSurface()) { // wrong check
             ret = GRAPHIC_DISPLAY_NULL_PTR;
         } else {
+            RS_TRACE_NAME_FMT("HdiOutput::ReleaseFramebuffer, seqNum %u", lastFrameBuffer_->GetSeqNum());
             ret = fbSurface_->ReleaseFramebuffer(lastFrameBuffer_, releaseFence);
         }
     }
@@ -616,7 +618,7 @@ void HdiOutput::ReleaseSurfaceBuffer(sptr<SyncFence>& releaseFence)
         if (buffer == nullptr) {
             return;
         }
-        RS_TRACE_NAME("HdiOutput::ReleaseBuffer");
+        RS_TRACE_NAME_FMT("HdiOutput::ReleaseBuffer, seqNum %u", buffer->GetSeqNum());
         auto ret = cSurface->ReleaseBuffer(buffer, releaseFence);
         if (ret == OHOS::SURFACE_ERROR_OK) {
             // reset prevBuffer if we release it successfully,
@@ -698,7 +700,7 @@ std::map<LayerInfoPtr, sptr<SyncFence>> HdiOutput::GetLayersReleaseFenceLocked()
         }
 
         const LayerPtr &layer = iter->second;
-        if (RSSystemProperties::IsPhoneType() && g_enableMergeFence == 0) {
+        if (g_enableMergeFence == 0) {
             layer->SetReleaseFence(fences_[i]);
             res[layer->GetLayerInfo()] = fences_[i];
         } else {

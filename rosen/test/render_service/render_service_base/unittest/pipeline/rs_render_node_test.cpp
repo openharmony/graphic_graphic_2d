@@ -1064,33 +1064,6 @@ HWTEST_F(RSRenderNodeTest, SetGeoUpdateDelayTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: StoreMustRenewedInfoTest
- * @tc.desc:
- * @tc.type: FUNC
- * @tc.require: issueI9T3XY
- */
-HWTEST_F(RSRenderNodeTest, StoreMustRenewedInfoTest, TestSize.Level1)
-{
-    auto node = std::make_shared<RSRenderNode>(id, context);
-    node->hasHardwareNode_ = true;
-    EXPECT_FALSE(node->mustRenewedInfo_);
-    node->StoreMustRenewedInfo();
-    EXPECT_TRUE(node->mustRenewedInfo_);
-
-    node->mustRenewedInfo_ = false;
-    node->hasHardwareNode_ = false;
-    node->childHasVisibleFilter_ = true;
-    node->StoreMustRenewedInfo();
-    EXPECT_TRUE(node->mustRenewedInfo_);
-
-    node->mustRenewedInfo_ = false;
-    node->childHasVisibleFilter_ = false;
-    node->childHasVisibleEffect_ = true;
-    node->StoreMustRenewedInfo();
-    EXPECT_TRUE(node->mustRenewedInfo_);
-}
-
-/**
  * @tc.name: UpdateSubSurfaceCntTest
  * @tc.desc: test addChild and removeChild
  * @tc.type: FUNC

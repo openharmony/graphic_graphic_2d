@@ -101,8 +101,9 @@ HWTEST_F(RSTransactionProxyTest, SetRenderServiceClient001, TestSize.Level1)
 HWTEST_F(RSTransactionProxyTest, SetRenderServiceClient002, TestSize.Level1)
 {
     auto renderServiceClient = nullptr;
-    ASSERT_EQ(renderServiceClient, nullptr);
-    RSTransactionProxy::GetInstance()->SetRenderServiceClient(renderServiceClient);
+    auto rsTransactionProxy = RSTransactionProxy::GetInstance();
+    ASSERT_NE(rsTransactionProxy, nullptr);
+    rsTransactionProxy->SetRenderServiceClient(renderServiceClient);
 }
 
 /**

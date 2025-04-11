@@ -184,6 +184,21 @@ HWTEST_F(VSyncDistributorTest, RequestNextVSync005, Function | MediumTest| Level
 }
 
 /*
+* Function: RequestNextVSync006
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call RequestNextVSync
+ */
+HWTEST_F(VSyncDistributorTest, RequestNextVSync006, Function | MediumTest| Level3)
+{
+    sptr<VSyncConnection> conn = new VSyncConnection(vsyncDistributor, "VSyncDistributorTest");
+    VSyncDistributorTest::vsyncDistributor->AddConnection(conn);
+    ASSERT_EQ(VSyncDistributorTest::vsyncDistributor->RequestNextVSync(conn, "UrgentSelfdrawing", 0), VSYNC_ERROR_OK);
+    ASSERT_EQ(VSyncDistributorTest::vsyncDistributor->RemoveConnection(conn), VSYNC_ERROR_OK);
+}
+
+/*
 * Function: SetVSyncRate001
 * Type: Function
 * Rank: Important(2)

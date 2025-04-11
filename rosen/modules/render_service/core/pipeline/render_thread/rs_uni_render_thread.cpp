@@ -32,6 +32,7 @@
 #include "include/gpu/GrDirectContext.h"
 #include "utils/graphic_coretrace.h"
 #include "memory/rs_memory_manager.h"
+#include "mem_param.h"
 #include "params/rs_display_render_params.h"
 #include "params/rs_surface_render_params.h"
 #include "feature/uifirst/rs_sub_thread_manager.h"
@@ -345,6 +346,7 @@ void RSUniRenderThread::Render()
         RS_RSUNIRENDERTHREAD_RENDER);
     if (!rootNodeDrawable_) {
         RS_LOGE("rootNodeDrawable is nullptr");
+        return;
     }
     if (vmaOptimizeFlag_) { // render this frame with vma cache on/off
         std::lock_guard<std::mutex> lock(vmaCacheCountMutex_);
@@ -539,9 +541,7 @@ void RSUniRenderThread::NotifyDisplayNodeBufferReleased()
 
 void RSUniRenderThread::PerfForBlurIfNeeded()
 {
-    auto socPerfParam = std::static_pointer_cast<SOCPerfParam>(
-        GraphicFeatureParamManager::GetInstance().GetFeatureParam(FEATURE_CONFIGS[SOC_PERF]));
-    if (socPerfParam != nullptr && !socPerfParam->IsBlurSOCPerfEnable()) {
+    if (!SOCPerfParam::IsBlurSOCPerfEnable()) {
         return;
     }
 
@@ -772,7 +772,7 @@ void RSUniRenderThread::TrimMem(std::string& dumpString, std::string& type)
             TrimMemGpuLimitType(gpuContext, dumpString, type, typeGpuLimit);
         } else {
             uint32_t pid = static_cast<uint32_t>(std::atoi(type.c_str()));
-            Drawing::GPUResourceTag tag(pid, 0, 0, 0, "TrimMem");
+            Drawing::GPUResourceTag tag(pid, 0, 0, 0, 0, "TrimMem");
             MemoryManager::ReleaseAllGpuResource(gpuContext, tag);
         }
         dumpString.append("trimMem: " + type + "\n");
@@ -785,8 +785,9 @@ void RSUniRenderThread::DumpMem(DfxString& log)
     std::vector<std::pair<NodeId, std::string>> nodeTags;
     const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
     nodeMap.TraverseSurfaceNodes([&nodeTags](const std::shared_ptr<RSSurfaceRenderNode> node) {
-        std::string name = node->GetName() + " " + std::to_string(node->GetId());
-        nodeTags.push_back({node->GetId(), name});
+        NodeId nodeId = node->GetId();
+        std::string name = node->GetName() + " " + std::to_string(ExtractPid(nodeId)) + " " + std::to_string(nodeId);
+        nodeTags.push_back({nodeId, name});
     });
     PostSyncTask([&log, &nodeTags, this]() {
         if (!uniRenderEngine_) {
@@ -827,13 +828,7 @@ void RSUniRenderThread::DefaultClearMemoryCache()
 
 void RSUniRenderThread::PostClearMemoryTask(ClearMemoryMoment moment, bool deeply, bool isDefaultClean)
 {
-    bool isDeeplyRelGpuResEnable = false;
-    auto relGpuResParam = std::static_pointer_cast<DeeplyRelGpuResParam>(
-        GraphicFeatureParamManager::GetInstance().GetFeatureParam(FEATURE_CONFIGS[DEEPLY_REL_GPU_RES]));
-    if (relGpuResParam != nullptr) {
-        isDeeplyRelGpuResEnable = relGpuResParam->IsDeeplyRelGpuResEnable();
-    }
-    auto task = [this, moment, deeply, isDefaultClean, isDeeplyRelGpuResEnable]() {
+    auto task = [this, moment, deeply, isDefaultClean]() {
         if (!uniRenderEngine_) {
             return;
         }
@@ -853,7 +848,7 @@ void RSUniRenderThread::PostClearMemoryTask(ClearMemoryMoment moment, bool deepl
         SkGraphics::PurgeAllCaches(); // clear cpu cache
         auto pid = *(this->exitedPidSet_.begin());
         if (this->exitedPidSet_.size() == 1 && pid == -1) { // no exited app, just clear scratch resource
-            if (deeply || isDeeplyRelGpuResEnable) {
+            if (deeply || MEMParam::IsDeeplyRelGpuResEnable()) {
                 MemoryManager::ReleaseUnlockAndSafeCacheGpuResource(grContext);
             } else {
                 MemoryManager::ReleaseUnlockGpuResource(grContext);
@@ -889,7 +884,7 @@ void RSUniRenderThread::PostClearMemoryTask(ClearMemoryMoment moment, bool deepl
             rate = defaultRefreshRate;
         }
         PostTask(task, CLEAR_GPU_CACHE,
-            (isDeeplyRelGpuResEnable ? TIME_OF_THE_FRAMES : TIME_OF_EIGHT_FRAMES) / rate);
+            (MEMParam::IsDeeplyRelGpuResEnable() ? TIME_OF_THE_FRAMES : TIME_OF_EIGHT_FRAMES) / rate);
     } else {
         PostTask(task, DEFAULT_CLEAR_GPU_CACHE, TIME_OF_DEFAULT_CLEAR_GPU_CACHE);
     }
@@ -897,7 +892,7 @@ void RSUniRenderThread::PostClearMemoryTask(ClearMemoryMoment moment, bool deepl
 
 void RSUniRenderThread::ReclaimMemory()
 {
-    if (!RSSystemProperties::GetReclaimMemoryEnabled()) {
+    if (!RSSystemProperties::GetReclaimMemoryEnabled() || !MEMParam::IsReclaimEnabled()) {
         return;
     }
 

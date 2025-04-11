@@ -17,9 +17,9 @@
 #include <limits>
 #include <test_header.h>
 
-#include "hgm_core.h"
-#include "hgm_frame_rate_manager.h"
 #include "hgm_app_page_url_strategy.h"
+#include "hgm_frame_rate_manager.h"
+#include "hgm_test_base.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -33,11 +33,15 @@ namespace {
     const std::string STRATEGY = "5";
     const std::string PKG_NAME = "com.pkg.other";
     const std::string PAGE_NAME = "other";
+    const std::string PAGE_NAME1 = "other1";
 }
 
-class HgmAppPageUrlStrategyTest : public testing::Test {
+class HgmAppPageUrlStrategyTest : public HgmTestBase {
 public:
-    static void SetUpTestCase() {}
+    static void SetUpTestCase()
+    {
+        HgmTestBase::SetUpTestCase();
+    }
     static void TearDownTestCase() {}
     void SetUp();
     void TearDown() {}
@@ -127,6 +131,7 @@ HWTEST_F(HgmAppPageUrlStrategyTest, NotifyScreenSettingChange001, Function | Sma
  */
 HWTEST_F(HgmAppPageUrlStrategyTest, NotifyScreenSettingChange002, Function | SmallTest | Level1)
 {
+    pid_t pid = 1;
     PolicyConfigData::ScreenSetting screenSetting;
 
     appPageUrlStrategy_->SetPageUrlConfig(screenSetting_.pageUrlConfig);
@@ -138,6 +143,16 @@ HWTEST_F(HgmAppPageUrlStrategyTest, NotifyScreenSettingChange002, Function | Sma
     ASSERT_EQ(GetPageUrlVoteInfo(DEF_PID), HGM_ERROR);
     appPageUrlStrategy_->NotifyPageName(DEF_PID, PKG_NAME, PAGE_NAME, false);
     ASSERT_EQ(GetPageUrlVoteInfo(DEF_PID), HGM_ERROR);
+    appPageUrlStrategy_->CleanPageUrlVote(pid);
+    HgmAppPageUrlStrategy::VoterInfo voterInfo = {false, PKG_NAME, PAGE_NAME};
+    appPageUrlStrategy_->pageUrlVoterInfo_.try_emplace(0, voterInfo);
+    std::unordered_map<std::string, std::string> pageUrlConfig;
+    pageUrlConfig.try_emplace(PAGE_NAME1, PAGE_NAME1);
+    appPageUrlStrategy_->pageUrlConfig_.try_emplace(PKG_NAME, pageUrlConfig);
+    ASSERT_LE(appPageUrlStrategy_->pageUrlConfig_[PKG_NAME].count(PAGE_NAME), 0);
+    appPageUrlStrategy_->NotifyScreenSettingChange();
+    appPageUrlStrategy_->NotifyPageName(DEF_PID, PKG_NAME, PAGE_NAME, false);
+    ASSERT_LE(appPageUrlStrategy_->pageUrlConfig_[PKG_NAME].count(PAGE_NAME), 0);
 }
 } // namespace Rosen
 } // namespace OHOS

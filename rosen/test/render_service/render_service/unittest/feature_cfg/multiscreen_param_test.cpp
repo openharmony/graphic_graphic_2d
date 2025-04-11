@@ -91,5 +91,19 @@ HWTEST_F(MultiScreenParamTest, SetRsSetScreenPowerStatus, Function | SmallTest |
     MultiScreenParam::SetRsSetScreenPowerStatus(false);
     EXPECT_FALSE(MultiScreenParam::IsRsSetScreenPowerStatus());
 }
+
+/**
+ * @tc.name: SetMirrorDisplayCloseP3
+ * @tc.desc: Verify the SetMirrorDisplayCloseP3/IsMirrorDisplayCloseP3 function
+ * @tc.type: FUNC
+ * @tc.require: #IBOA5Q
+ */
+HWTEST_F(MultiScreenParamTest, SetMirrorDisplayCloseP3, Function | SmallTest | Level1)
+{
+    MultiScreenParam::SetMirrorDisplayCloseP3(true);
+    EXPECT_TRUE(MultiScreenParam::IsMirrorDisplayCloseP3());
+    MultiScreenParam::SetMirrorDisplayCloseP3(false);
+    EXPECT_FALSE(MultiScreenParam::IsMirrorDisplayCloseP3());
+}
 } // namespace Rosen
 } // namespace OHOS

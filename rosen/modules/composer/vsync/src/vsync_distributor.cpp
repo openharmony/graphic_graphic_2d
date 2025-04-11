@@ -52,6 +52,7 @@ constexpr int32_t SCHED_PRIORITY = 2;
 constexpr int32_t DEFAULT_VSYNC_RATE = 1;
 constexpr uint32_t SOCKET_CHANNEL_SIZE = 1024;
 constexpr int32_t VSYNC_CONNECTION_MAX_SIZE = 256;
+constexpr std::string_view URGENT_SELF_DRAWING = "UrgentSelfdrawing";
 }
 
 VSyncConnection::VSyncConnectionDeathRecipient::VSyncConnectionDeathRecipient(
@@ -1027,6 +1028,7 @@ VsyncError VSyncDistributor::RequestNextVSync(const sptr<VSyncConnection> &conne
 
     RS_TRACE_NAME_FMT("%s_RequestNextVSync", connection->info_.name_.c_str());
     bool NeedPreexecute = false;
+    bool isUrgent = fromWhom == URGENT_SELF_DRAWING;
     int64_t timestamp = 0;
     int64_t period = 0;
     int64_t vsyncCount = 0;
@@ -1041,10 +1043,16 @@ VsyncError VSyncDistributor::RequestNextVSync(const sptr<VSyncConnection> &conne
             connection->rate_ = 0;
         }
         connection->triggerThisTime_ = true;
+        if (isUrgent) {
+            NeedPreexecute = VSyncCheckPreexecuteAndUpdateTs(connection, timestamp, period, vsyncCount);
+        }
         EnableVSync();
         // Start of DVSync
         DVSyncRecordRNV(connection, fromWhom, lastVSyncTS);
-        NeedPreexecute = DVSyncCheckPreexecuteAndUpdateTs(connection, timestamp, period, vsyncCount);
+        // adaptive sync game mode, urgent scenario don't need to preexecute
+        if (!isUrgent) {
+            NeedPreexecute = DVSyncCheckPreexecuteAndUpdateTs(connection, timestamp, period, vsyncCount);
+        }
         lastNotifyTime_ = Now();
     }
     if (NeedPreexecute) {
@@ -1568,6 +1576,26 @@ void VSyncDistributor::DVSyncRecordRNV(const sptr<VSyncConnection> &connection, 
 #endif
 }
 
+bool VSyncDistributor::VSyncCheckPreexecuteAndUpdateTs(const sptr<VSyncConnection> &connection, int64_t &timestamp,
+    int64_t &period, int64_t &vsyncCount)
+{
+    if (controller_ == nullptr || vsyncEnabled_) {
+        return false;
+    }
+    bool NeedPreexecute = controller_->NeedPreexecuteAndUpdateTs(timestamp, period);
+    if (NeedPreexecute) {
+        RS_TRACE_NAME_FMT("VSyncDistributor::VSyncCheckPreexecuteAndUpdateTs timestamp:%ld, period:%ld",
+            timestamp, period);
+        event_.vsyncCount++;
+        vsyncCount = event_.vsyncCount;
+        if (connection->rate_ == 0) {
+            connection->rate_ = -1;
+        }
+        connection->triggerThisTime_ = false;
+    }
+    return NeedPreexecute;
+}
+
 bool VSyncDistributor::DVSyncCheckPreexecuteAndUpdateTs(const sptr<VSyncConnection> &connection, int64_t &timestamp,
     int64_t &period, int64_t &vsyncCount)
 {
@@ -1597,6 +1625,11 @@ void VSyncDistributor::NotifyPackageEvent(const std::vector<std::string>& packag
 
 void VSyncDistributor::NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt)
 {
+#if defined(RS_ENABLE_DVSYNC)
+    if (IsDVsyncOn()) {
+        dvsync_->NotifyTouchEvent(touchStatus, touchCnt);
+    }
+#endif
 #if defined(RS_ENABLE_DVSYNC_2)
     DVSync::Instance().NotifyTouchEvent(touchStatus, touchCnt);
 #endif

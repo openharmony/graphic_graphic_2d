@@ -31,7 +31,7 @@ const int32_t GLOBAL_ERROR = 10000;
 // The expectLength of regex match of "rgb(255,0,0)". The elements:0 is the string, 1 is r, 2 is g, 3 is b.
 constexpr uint32_t RGB_SUB_MATCH_SIZE = 4;
 // The expectLength of regex match of "rgba(255,0,0,0.5)". The elements:0 is the string, 1 is r, 2 is g, 3 is b, 4 is a.
-constexpr uint32_t RGBA_SUB_MATCH_SIZE = 5;
+constexpr uint32_t RGBA_SUB_MATCH_SIZE = 7;
 // The length of standard color, the length of str is must like "FF00FF00" which length is 8.
 constexpr uint32_t COLOR_STRING_SIZE_STANDARD = 8;
 constexpr uint32_t COLOR_OFFSET_GREEN = 8;
@@ -43,7 +43,8 @@ constexpr uint32_t COLOR_DEFAULT_ALPHA = 0xFF000000;
 const std::vector<size_t> EXPECT_MAGIC_COLOR_LENGTHS = {7, 9};
 const std::vector<size_t> EXPECT_MAGIC_MINI_COLOR_LENGTHS = {4, 5};
 const std::regex COLOR_WITH_RGB(R"(rgb\(([+]?[0-9]+)\,([+]?[0-9]+)\,([+]?[0-9]+)\))", std::regex::icase);
-const std::regex COLOR_WITH_RGBA(R"(rgba\(([+]?[0-9]+)\,([+]?[0-9]+)\,([+]?[0-9]+)\,(\d+\.?\d*)\))", std::regex::icase);
+const std::regex COLOR_WITH_RGBA(R"(rgba\(([+]?[0-9]+)\,([+]?[0-9]+)\,([+]?[0-9]+)\,((0|1)(\.\d+)?)\))",
+    std::regex::icase);
 const std::regex HEX_PATTERN("^[0-9a-fA-F]+$");
 #endif
 napi_value JsTool::Init(napi_env env, napi_value exportObj)
@@ -510,9 +511,14 @@ bool JsTool::GetResourceColor(napi_env env, napi_value res, uint32_t& result)
     if (valueType == napi_string) {
         size_t len = 0;
         napi_get_value_string_utf8(env, res, nullptr, 0, &len);
-        char str[len + 1];
+        char* str = new(std::nothrow) char[len + 1];
+        if (!str) {
+            ROSEN_LOGE("JsTool::GetResourceColor memory is insufficient and failed to apply");
+            return false;
+        }
         napi_get_value_string_utf8(env, res, str, len + 1, &len);
         std::string colorStr(str, len);
+        delete[] str;
         if (!GetColorStringResult(colorStr, result)) {
             ROSEN_LOGE("JsTool::GetResourceColor failed to GetColorStringResult!");
             return false;

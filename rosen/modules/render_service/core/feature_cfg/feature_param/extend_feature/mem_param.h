@@ -24,13 +24,22 @@ public:
     MEMParam() = default;
     ~MEMParam() = default;
 
-    std::string GetRSWatchPoint() const;
+    static std::string GetRSWatchPoint();
+    static bool IsReclaimEnabled();
+    static int GetRSCacheLimitsResourceSize();
+    static bool IsDeeplyRelGpuResEnable();
 
 protected:
-    void SetRSWatchPoint(std::string rsWatchPoint);
+    static void SetRSWatchPoint(std::string rsWatchPoint);
+    static void SetReclaimEnabled(bool isEnabled);
+    static void SetRSCacheLimitsResourceSize(int rsCacheLimitsResourceSize);
+    static void SetDeeplyRelGpuResEnable(bool isDeeplyRelGpuResEnable);
 
 private:
-    std::string rsWatchPoint_ = "";
+    inline static std::string rsWatchPoint_ = "";
+    inline static bool isReclaimEnabled_ = false;
+    inline static int rsCacheLimitsResourceSize_ = 0;
+    inline static bool isDeeplyRelGpuResEnable_ = false;
 
     friend class MEMParamParse;
 };

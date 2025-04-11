@@ -194,14 +194,8 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, PrepareOffscreenRender001, TestSize.Le
     ASSERT_NE(renderNode_, nullptr);
     displayDrawable_->PrepareOffscreenRender(*displayDrawable_);
 
-    auto rotateOffScreenFeatureParam =
-         GraphicFeatureParamManager::GetInstance().GetFeatureParam(FEATURE_CONFIGS[ROTATEOFFSCREEN]);
-    auto rotateOffScreenParam = std::static_pointer_cast<RotateOffScreenParam>(rotateOffScreenFeatureParam);
-    if (rotateOffScreenParam == nullptr) {
-        rotateOffScreenParam = std::make_shared<RotateOffScreenParam>();
-    }
-    auto type = rotateOffScreenParam->GetRotateOffScreenDisplayNodeEnable();
-    rotateOffScreenParam->SetRotateOffScreenDisplayNodeEnable(true);
+    auto type = RotateOffScreenParam::GetRotateOffScreenDisplayNodeEnable();
+    RotateOffScreenParam::SetRotateOffScreenDisplayNodeEnable(true);
 
     auto params = static_cast<RSDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
     params->isRotationChanged_ = true;
@@ -217,7 +211,7 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, PrepareOffscreenRender001, TestSize.Le
     displayDrawable_->curCanvas_->surface_ = surface.get();
     displayDrawable_->PrepareOffscreenRender(*displayDrawable_);
     ASSERT_TRUE(displayDrawable_->curCanvas_->GetSurface());
-    rotateOffScreenParam->SetRotateOffScreenDisplayNodeEnable(type);
+    RotateOffScreenParam::SetRotateOffScreenDisplayNodeEnable(type);
 }
 
 /**
@@ -552,33 +546,6 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, HardCursorCreateLayerTest, TestSize.Le
     drawablePtr->renderParams_ = std::make_unique<RSRenderParams>(id);
     result = displayDrawable_->HardCursorCreateLayer(processor);
     ASSERT_EQ(result, false);
-}
-
-/**
- * @tc.name: DRMCreateLayer
- * @tc.desc: Test DRMCreateLayer
- * @tc.type: FUNC
- * @tc.require: #IAX2SN
- */
-HWTEST_F(RSDisplayRenderNodeDrawableTest, DRMCreateLayerTest, TestSize.Level1)
-{
-    ASSERT_NE(renderNode_, nullptr);
-    ASSERT_NE(displayDrawable_, nullptr);
-    ASSERT_NE(displayDrawable_->renderParams_, nullptr);
-
-    auto params = static_cast<RSDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
-    ASSERT_NE(params, nullptr);
-    auto processor = RSProcessorFactory::CreateProcessor(params->GetCompositeType());
-    ASSERT_NE(processor, nullptr);
-    displayDrawable_->DRMCreateLayer(processor);
-
-    NodeId id = 1;
-    auto rsSurfaceNode = std::make_shared<RSSurfaceRenderNode>(id);
-    auto drawableAdapter = RSRenderNodeDrawableAdapter::OnGenerate(rsSurfaceNode);
-    params->hardwareEnabledDrawables_.push_back(drawableAdapter);
-    ASSERT_TRUE(params->GetHardwareEnabledDrawables().size() != 0);
-
-    displayDrawable_->DRMCreateLayer(processor);
 }
 
 /**

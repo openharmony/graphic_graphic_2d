@@ -16,8 +16,7 @@
 #include "hfbc_param.h"
 
 namespace OHOS::Rosen {
-
-const std::unordered_map<std::string, std::string>& HFBCParam::GetHfbcConfigMap() const
+const std::unordered_map<std::string, std::string>& HFBCParam::GetHfbcConfigMap()
 {
     return hfbcConfig_;
 }

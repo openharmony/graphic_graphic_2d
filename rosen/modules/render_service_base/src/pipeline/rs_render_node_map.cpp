@@ -169,7 +169,9 @@ bool RSRenderNodeMap::RegisterRenderNode(const std::shared_ptr<RSBaseRenderNode>
         AddUIExtensionSurfaceNode(surfaceNode);
         ObtainLauncherNodeId(surfaceNode);
         ObtainScreenLockWindowNodeId(surfaceNode);
-        RSSurfaceFpsManager::GetInstance().RegisterSurfaceFps(id, surfaceNode->GetName());
+        if (surfaceNode->IsSelfDrawingType()) {
+            RSSurfaceFpsManager::GetInstance().RegisterSurfaceFps(id, surfaceNode->GetName());
+        }
     } else if (nodePtr->GetType() == RSRenderNodeType::CANVAS_DRAWING_NODE) {
         auto canvasDrawingNode = nodePtr->ReinterpretCastTo<RSCanvasDrawingRenderNode>();
         canvasDrawingNodeMap_.emplace(id, canvasDrawingNode);

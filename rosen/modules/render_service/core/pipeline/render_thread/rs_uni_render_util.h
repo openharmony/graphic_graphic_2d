@@ -46,8 +46,9 @@ public:
         std::shared_ptr<RSDirtyRegionManager> dirtyManager, Occlusion::Region& dirtyRegion);
     static std::vector<RectI> MergeDirtyHistory(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable,
         int32_t bufferAge, ScreenInfo& screenInfo, RSDirtyRectsDfx& rsDirtyRectsDfx, RSDisplayRenderParams& params);
-    static std::vector<RectI> MergeDirtyHistoryInVirtual(
-        DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable, int32_t bufferAge, ScreenInfo& screenInfo);
+    // isSecScreen means that special layers can be displayed on the screen, for example wired mirror screen.
+    static std::vector<RectI> MergeDirtyHistoryInVirtual(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable,
+        int32_t bufferAge, ScreenInfo& screenInfo, bool isSecScreen = false);
     // merge history dirty region of current display node and its child surfacenode(app windows)
     // for mirror display, call this function twice will introduce additional dirtyhistory in dirtymanager
     static void MergeDirtyHistoryForDrawable(DrawableV2::RSDisplayRenderNodeDrawable& drawable, int32_t bufferAge,
@@ -71,8 +72,10 @@ public:
     static Occlusion::Region MergeDirtyRects(Occlusion::Region dirtyRegion);
     static void MergeDirtyHistoryInVirtual(
         DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable, int32_t bufferAge, bool renderParallel = false);
+    // isSecScreen means that special layers can be displayed on the screen, for example wired mirror screen.
     static Occlusion::Region MergeVisibleDirtyRegionInVirtual(
-        std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& allSurfaceNodeDrawables);
+        std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& allSurfaceNodeDrawables,
+        RSDisplayRenderParams& displayParams, bool isSecScreen = false);
     static std::vector<RectI> GetCurrentFrameVisibleDirty(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable,
         ScreenInfo& screenInfo, RSDisplayRenderParams& params);
     static std::vector<RectI> ScreenIntersectDirtyRects(const Occlusion::Region &region, ScreenInfo& screenInfo);
@@ -110,26 +113,16 @@ public:
     static void ClearNodeCacheSurface(std::shared_ptr<Drawing::Surface>&& cacheSurface,
         std::shared_ptr<Drawing::Surface>&& cacheCompletedSurface,
         uint32_t cacheSurfaceThreadIndex, uint32_t completedSurfaceThreadIndex);
-    static void CacheSubThreadNodes(std::list<std::shared_ptr<RSSurfaceRenderNode>>& oldSubThreadNodes,
-        std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes);
 #ifdef RS_ENABLE_VK
     static uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
     static void SetVkImageInfo(std::shared_ptr<OHOS::Rosen::Drawing::VKTextureInfo> vkImageInfo,
         const VkImageCreateInfo& imageInfo);
-    static Drawing::BackendTexture MakeBackendTexture(uint32_t width, uint32_t height,
-        VkFormat format = VK_FORMAT_R8G8B8A8_UNORM);
+    static Drawing::BackendTexture MakeBackendTexture(uint32_t width, uint32_t height, pid_t pid,
+        RSTagTracker::TAGTYPE tag, VkFormat format = VK_FORMAT_R8G8B8A8_UNORM);
 #endif
-    static void UpdateRealSrcRect(RSSurfaceRenderNode& node, const RectI& absRect);
-    static void DealWithNodeGravity(RSSurfaceRenderNode& node, const Drawing::Matrix& totalMatrix);
-    static void DealWithScalingMode(RSSurfaceRenderNode& node, const Drawing::Matrix& totalMatrix);
-    static void CheckForceHardwareAndUpdateDstRect(RSSurfaceRenderNode& node);
-    static void LayerRotate(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo);
-    static void LayerCrop(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo);
     static GraphicTransformType GetLayerTransform(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo);
     static void OptimizedFlushAndSubmit(std::shared_ptr<Drawing::Surface>& surface,
         Drawing::GPUContext* const grContext, bool optFenceWait = true);
-    static void AccumulateMatrixAndAlpha(std::shared_ptr<RSSurfaceRenderNode>& hwcNode,
-        Drawing::Matrix& matrix, float& alpha);
     static SecRectInfo GenerateSecRectInfoFromNode(RSRenderNode& node, RectI rect);
     static SecSurfaceInfo GenerateSecSurfaceInfoFromNode(
         NodeId uiExtensionId, NodeId hostId, SecRectInfo uiExtensionRectInfo);
@@ -164,27 +157,11 @@ public:
     static bool CheckRenderSkipIfScreenOff(bool extraFrame = false, std::optional<ScreenId> screenId = std::nullopt);
     static void UpdateHwcNodeProperty(std::shared_ptr<RSSurfaceRenderNode> hwcNode);
     static void MultiLayersPerf(size_t layerNum);
-    static GraphicTransformType GetConsumerTransform(const RSSurfaceRenderNode& node,
-        const sptr<SurfaceBuffer> buffer, const sptr<IConsumerSurface> consumer);
-    static Drawing::Rect CalcSrcRectByBufferRotation(const SurfaceBuffer& buffer,
-        const GraphicTransformType consumerTransformType, Drawing::Rect newSrcRect);
-    static bool IsHwcEnabledByGravity(RSSurfaceRenderNode& node, const Gravity frameGravity);
-    static void DealWithNodeGravityOldVersion(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo);
     static Drawing::Rect GetImageRegions(float screenWidth, float screenHeight,
         float realImageWidth, float realImageHeight);
-    static RectI SrcRectRotateTransform(const SurfaceBuffer& buffer,
-        const GraphicTransformType bufferRotateTransformType, const RectI& newSrcRect);
-    static void CalcSrcRectByBufferFlip(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo);
-    static bool IsHwcEnabledByScalingMode(RSSurfaceRenderNode& node, const ScalingMode scalingMode);
-    static void UpdateHwcNodeByScalingMode(RSSurfaceRenderNode& node, const Drawing::Matrix& totalMatrix,
-        const Drawing::Matrix& gravityMatrix, const Drawing::Matrix& scalingModeMatrix);
-    static GraphicTransformType GetRotateTransformForRotationFixed(RSSurfaceRenderNode& node,
-        sptr<IConsumerSurface> consumer);
 
 private:
     static void SetSrcRect(BufferDrawParam& params, const sptr<SurfaceBuffer>& buffer);
-    static void SortSubThreadNodes(std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes);
-    static void HandleHardwareNode(const std::shared_ptr<RSSurfaceRenderNode>& node);
     static void PostReleaseSurfaceTask(std::shared_ptr<Drawing::Surface>&& surface, uint32_t threadIndex);
     static bool FrameAwareTraceBoost(size_t layerNum);
     static void RequestPerf(uint32_t layerLevel, bool onOffTag);

@@ -53,14 +53,9 @@ RSInterfaces::~RSInterfaces() noexcept
 {
 }
 
-int32_t RSInterfaces::SetFocusAppInfo(FocusAppInfo& info)
+int32_t RSInterfaces::SetFocusAppInfo(const FocusAppInfo& info)
 {
-    int32_t pid = info.pid;
-    int32_t uid = info.uid;
-    const std::string bundleName = info.bundleName;
-    const std::string abilityName = info.abilityName;
-    uint64_t focusNodeId = info.focusNodeId;
-    return renderServiceClient_->SetFocusAppInfo(pid, uid, bundleName, abilityName, focusNodeId);
+    return renderServiceClient_->SetFocusAppInfo(info);
 }
 
 ScreenId RSInterfaces::GetDefaultScreenId()
@@ -356,6 +351,12 @@ bool RSInterfaces::TakeSurfaceCaptureForUI(std::shared_ptr<RSNode> node,
         ROSEN_LOGW("RSInterfaces::TakeSurfaceCaptureForUI rsnode is nullpter return");
         return false;
     }
+    // textureExportNode process cmds in renderThread of application, isSync is unnecessary.
+    if (node->IsTextureExportNode()) {
+        ROSEN_LOGD("RSInterfaces::TakeSurfaceCaptureForUI rsNode [%{public}" PRIu64
+            "] is textureExportNode, set isSync false", node->GetId());
+        isSync = false;
+    }
     if (!((node->GetType() == RSUINodeType::ROOT_NODE) ||
           (node->GetType() == RSUINodeType::CANVAS_NODE) ||
           (node->GetType() == RSUINodeType::CANVAS_DRAWING_NODE) ||
@@ -375,6 +376,38 @@ bool RSInterfaces::TakeSurfaceCaptureForUI(std::shared_ptr<RSNode> node,
         return renderServiceClient_->TakeSurfaceCapture(node->GetId(), callback, captureConfig, {}, specifiedAreaRect);
     } else {
         return TakeSurfaceCaptureForUIWithoutUni(node->GetId(), callback, scaleX, scaleY);
+    }
+}
+
+bool RSInterfaces::TakeSurfaceCaptureForUIWithConfig(std::shared_ptr<RSNode> node,
+    std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig,
+    const Drawing::Rect& specifiedAreaRect)
+{
+    if (!node) {
+        ROSEN_LOGW("RSInterfaces::TakeSurfaceCaptureForUIWithConfig rsnode is nullpter return");
+        return false;
+    }
+    // textureExportNode process cmds in renderThread of application, isSync is unnecessary.
+    if (node->IsTextureExportNode()) {
+        ROSEN_LOGD("RSInterfaces::TakeSurfaceCaptureForUI rsNode [%{public}" PRIu64
+            "] is textureExportNode, set isSync false", node->GetId());
+        captureConfig.isSync = false;
+    }
+    if (!((node->GetType() == RSUINodeType::ROOT_NODE) ||
+          (node->GetType() == RSUINodeType::CANVAS_NODE) ||
+          (node->GetType() == RSUINodeType::CANVAS_DRAWING_NODE) ||
+          (node->GetType() == RSUINodeType::SURFACE_NODE))) {
+        ROSEN_LOGE("RSInterfaces::TakeSurfaceCaptureForUIWithConfig unsupported node type return");
+        return false;
+    }
+    captureConfig.captureType = SurfaceCaptureType::UICAPTURE;
+    if (RSSystemProperties::GetUniRenderEnabled()) {
+        if (captureConfig.isSync) {
+            node->SetTakeSurfaceForUIFlag();
+        }
+        return renderServiceClient_->TakeSurfaceCapture(node->GetId(), callback, captureConfig, {}, specifiedAreaRect);
+    } else {
+        return TakeSurfaceCaptureForUIWithoutUni(node->GetId(), callback, captureConfig.scaleX, captureConfig.scaleY);
     }
 }
 
@@ -971,6 +1004,11 @@ void RSInterfaces::SetLayerTop(const std::string &nodeIdStr, bool isTop)
     renderServiceClient_->SetLayerTop(nodeIdStr, isTop);
 }
 
+void RSInterfaces::SetColorFollow(const std::string &nodeIdStr, bool isColorFollow)
+{
+    renderServiceClient_->SetColorFollow(nodeIdStr, isColorFollow);
+}
+
 void RSInterfaces::NotifyScreenSwitched()
 {
     renderServiceClient_->NotifyScreenSwitched();
@@ -1004,11 +1042,6 @@ void RSInterfaces::NotifyPageName(const std::string &packageName, const std::str
             packageName.c_str(), pageName.c_str(), isEnter);
         renderServiceClient_->NotifyPageName(packageName, pageName, isEnter);
     }
-}
-
-void RSInterfaces::TestLoadFileSubTreeToNode(NodeId nodeId, const std::string &filePath)
-{
-    renderServiceClient_->TestLoadFileSubTreeToNode(nodeId, filePath);
 }
 
 bool RSInterfaces::GetHighContrastTextState()

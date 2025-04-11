@@ -28,21 +28,13 @@
 namespace OHOS {
 namespace Rosen {
 
-struct FocusAppInfo {
-    int32_t pid = -1;
-    int32_t uid = -1;
-    std::string bundleName;
-    std::string abilityName;
-    uint64_t focusNodeId;
-};
-
 class RSC_EXPORT RSInterfaces {
 public:
     static RSInterfaces &GetInstance();
     RSInterfaces(const RSInterfaces &) = delete;
     void operator=(const RSInterfaces &) = delete;
 
-    int32_t SetFocusAppInfo(FocusAppInfo& info);
+    int32_t SetFocusAppInfo(const FocusAppInfo& info);
 
     ScreenId GetDefaultScreenId();
 
@@ -114,6 +106,10 @@ public:
     bool TakeSurfaceCaptureForUI(std::shared_ptr<RSNode> node,
         std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX = 1.f, float scaleY = 1.f,
         bool isSync = false, const Drawing::Rect& specifiedAreaRect = Drawing::Rect(0.f, 0.f, 0.f, 0.f));
+
+    bool TakeSurfaceCaptureForUIWithConfig(std::shared_ptr<RSNode> node,
+        std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig = {},
+        const Drawing::Rect& specifiedAreaRect = Drawing::Rect(0.f, 0.f, 0.f, 0.f));
 
     bool TakeSelfSurfaceCapture(std::shared_ptr<RSSurfaceNode> node, std::shared_ptr<SurfaceCaptureCallback> callback,
         RSSurfaceCaptureConfig captureConfig = {});
@@ -365,6 +361,8 @@ public:
     // Make this node(nodeIdStr) should do DSS composition and set the layer to top. otherwise do GPU composition.
     void SetLayerTop(const std::string &nodeIdStr, bool isTop);
 
+    void SetColorFollow(const std::string &nodeIdStr, bool isColorFollow);
+
     void NotifyScreenSwitched();
 
     void ForceRefreshOneFrameWithNextVSync();
@@ -378,8 +376,6 @@ public:
 #endif
 
     void NotifyPageName(const std::string &packageName, const std::string &pageName, bool isEnter);
-
-    void TestLoadFileSubTreeToNode(NodeId nodeId, const std::string &filePath);
 
     bool GetHighContrastTextState();
 

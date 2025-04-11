@@ -14,7 +14,7 @@
 import("//build/test.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
-module_out_path = "graphic_2d/composer"
+module_out_path = "graphic_2d/graphic_2d/composer"
 
 group("unittest") {
   testonly = true
@@ -100,9 +100,10 @@ ohos_unittest("vsync_receiver_test") {
     ":vsync_test_common",
     "../../../../../modules/platform:eventhandler",
     "../../../../../modules/render_service_client:librender_service_client",
-    "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
     "//foundation/graphic/graphic_2d/utils:socketpair",
   ]
+
+  external_deps = [ "ipc:ipc_core" ]
 }
 
 ## UnitTest vsync_receiver_test }}}
@@ -186,12 +187,12 @@ ohos_static_library("vsync_test_common") {
   public_deps = [
     "//foundation/graphic/graphic_2d/rosen/modules/composer/native_vsync:libnative_vsync",
     "//foundation/graphic/graphic_2d/rosen/modules/composer/vsync:libvsync",
-    "//third_party/googletest:gmock_main",
-    "//third_party/googletest:gtest_main",
   ]
 
   public_external_deps = [
     "c_utils:utils",
+    "googletest:gmock_main",
+    "googletest:gtest_main",
     "graphic_surface:surface",
   ]
 

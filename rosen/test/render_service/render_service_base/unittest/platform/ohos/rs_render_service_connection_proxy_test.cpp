@@ -143,9 +143,13 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, CreateVSyncConnection, TestSize.Lev
     std::string name("name");
     uint64_t id = 1;
     NodeId windowNodeId = 1;
-    ASSERT_EQ(proxy->CreateVSyncConnection(name, token, id, windowNodeId), nullptr);
+    sptr<IVSyncConnection> conn = nullptr;
+    VSyncConnParam vsyncConnParam = {id, windowNodeId, false};
+    proxy->CreateVSyncConnection(conn, name, token, vsyncConnParam);
+    ASSERT_EQ(conn, nullptr);
     token = new IRemoteStub<VSyncIConnectionToken>();
-    ASSERT_EQ(proxy->CreateVSyncConnection(name, token, id, windowNodeId), nullptr);
+    proxy->CreateVSyncConnection(conn, name, token, vsyncConnParam);
+    ASSERT_EQ(conn, nullptr);
 }
 
 /**
@@ -181,7 +185,15 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, SetFocusAppInfo, TestSize.Level1)
     std::string bundleName("bundle");
     std::string abilityName("ability");
     uint64_t focusNodeId = 1;
-    ASSERT_EQ(proxy->SetFocusAppInfo(pid, uid, bundleName, abilityName, focusNodeId), 0);
+    FocusAppInfo info = {
+        .pid = pid,
+        .uid = uid,
+        .bundleName = bundleName,
+        .abilityName = abilityName,
+        .focusNodeId = focusNodeId};
+    int32_t repCode;
+    proxy->SetFocusAppInfo(info, repCode);
+    ASSERT_EQ(repCode, 0);
 }
 
 /**
@@ -341,7 +353,8 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, SetScreenActiveRect, TestSize.Level
         .w = 0,
         .h = 0,
     };
-    proxy->SetScreenActiveRect(id, activeRect);
+    uint32_t repCode;
+    proxy->SetScreenActiveRect(id, activeRect, repCode);
     ASSERT_NE(proxy->transactionDataIndex_, 0);
 }
 
@@ -447,6 +460,20 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, SetShowRefreshRateEnabled, TestSize
 HWTEST_F(RSRenderServiceConnectionProxyTest, GetRealtimeRefreshRate, TestSize.Level1)
 {
     EXPECT_GE(proxy->GetRealtimeRefreshRate(INVALID_SCREEN_ID), 0);
+}
+
+/**
+ * @tc.name: SetPhysicalScreenResolution Test
+ * @tc.desc: SetPhysicalScreenResolution Test
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderServiceConnectionProxyTest, SetPhysicalScreenResolution, TestSize.Level1)
+{
+    ScreenId id = INVALID_SCREEN_ID;
+    uint32_t newWidth = 1920;
+    uint32_t newHeight = 1080;
+    auto ret = proxy->SetPhysicalScreenResolution(id, newWidth, newHeight);
+    EXPECT_EQ(ret, StatusCode::RS_CONNECTION_ERROR);
 }
 
 /**
@@ -834,7 +861,9 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, SetVirtualMirrorScreenScaleMode, Te
  */
 HWTEST_F(RSRenderServiceConnectionProxyTest, SetGlobalDarkColorMode, TestSize.Level1)
 {
-    ASSERT_TRUE(proxy->SetGlobalDarkColorMode(true));
+    bool success;
+    proxy->SetGlobalDarkColorMode(true, success);
+    ASSERT_TRUE(success);
 }
 
 /**
@@ -879,7 +908,9 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, RegisterSurfaceOcclusionChangeCallb
     ASSERT_NE(samgr, nullptr);
     auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
     sptr<RSIOcclusionChangeCallback> callback = iface_cast<RSIOcclusionChangeCallback>(remoteObject);
-    EXPECT_NE(proxy->RegisterOcclusionChangeCallback(callback), -1);
+    int32_t repCode;
+    proxy->RegisterOcclusionChangeCallback(callback, repCode);
+    EXPECT_NE(repCode, -1);
     NodeId id = 1;
     proxy->UnRegisterSurfaceOcclusionChangeCallback(id);
     sptr<RSISurfaceOcclusionChangeCallback> callbackTwo = iface_cast<RSISurfaceOcclusionChangeCallback>(remoteObject);
@@ -928,7 +959,9 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, RegisterFirstFrameCommitCallback, T
 HWTEST_F(RSRenderServiceConnectionProxyTest, SetSystemAnimatedScenes, TestSize.Level1)
 {
     proxy->SetAppWindowNum(1);
-    ASSERT_FALSE(proxy->SetSystemAnimatedScenes(SystemAnimatedScenes::ENTER_MISSION_CENTER, false));
+    bool success;
+    proxy->SetSystemAnimatedScenes(SystemAnimatedScenes::ENTER_MISSION_CENTER, false, success);
+    ASSERT_FALSE(success);
 }
 
 /**

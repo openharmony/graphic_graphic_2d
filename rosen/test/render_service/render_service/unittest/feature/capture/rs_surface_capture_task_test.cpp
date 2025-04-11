@@ -952,8 +952,8 @@ HWTEST_F(RSSurfaceCaptureTaskTest, TakeSelfSurfaceCaptureTest001, Function | Sma
 
     ret = rsInterfaces_->TakeSelfSurfaceCapture(surfaceNode_, surfaceCaptureCb_, captureConfig);
     ASSERT_EQ(ret, true);
-    ASSERT_EQ(CheckSurfaceCaptureCallback(), true);
 #if defined(RS_ENABLE_UNI_RENDER)
+    ASSERT_EQ(CheckSurfaceCaptureCallback(), true);
     ASSERT_EQ(surfaceCaptureCb_->IsTestSuccess(), true);
 #endif
 }
@@ -971,8 +971,8 @@ HWTEST_F(RSSurfaceCaptureTaskTest, TakeSelfSurfaceCaptureTest002, Function | Sma
     captureConfig.scaleY = -1.f;
     bool ret = rsInterfaces_->TakeSelfSurfaceCapture(surfaceNode_, surfaceCaptureCb_, captureConfig);
     ASSERT_EQ(ret, true);
+#ifdef RS_ENABLE_UNI_RENDER
     ASSERT_EQ(CheckSurfaceCaptureCallback(), true);
-#if defined(RS_ENABLE_UNI_RENDER)
     ASSERT_EQ(surfaceCaptureCb_->IsTestSuccess(), false);
 #endif
     surfaceCaptureCb_->Reset();
@@ -981,8 +981,8 @@ HWTEST_F(RSSurfaceCaptureTaskTest, TakeSelfSurfaceCaptureTest002, Function | Sma
     captureConfig.scaleY = 2.f;
     ret = rsInterfaces_->TakeSelfSurfaceCapture(surfaceNode_, surfaceCaptureCb_, captureConfig);
     ASSERT_EQ(ret, true);
+#ifdef RS_ENABLE_UNI_RENDER
     ASSERT_EQ(CheckSurfaceCaptureCallback(), true);
-#if defined(RS_ENABLE_UNI_RENDER)
     ASSERT_EQ(surfaceCaptureCb_->IsTestSuccess(), false);
 #endif
     surfaceCaptureCb_->Reset();
@@ -991,8 +991,8 @@ HWTEST_F(RSSurfaceCaptureTaskTest, TakeSelfSurfaceCaptureTest002, Function | Sma
     captureConfig.scaleY = 0.5;
     ret = rsInterfaces_->TakeSelfSurfaceCapture(surfaceNode_, surfaceCaptureCb_, captureConfig);
     ASSERT_EQ(ret, true);
+#ifdef RS_ENABLE_UNI_RENDER
     ASSERT_EQ(CheckSurfaceCaptureCallback(), true);
-#if defined(RS_ENABLE_UNI_RENDER)
     ASSERT_EQ(surfaceCaptureCb_->IsTestSuccess(), true);
 #endif
 }
@@ -1009,8 +1009,8 @@ HWTEST_F(RSSurfaceCaptureTaskTest, TakeSelfSurfaceCaptureTest003, Function | Sma
     captureConfig.useDma = true;
     bool ret = rsInterfaces_->TakeSelfSurfaceCapture(surfaceNode_, surfaceCaptureCb_, captureConfig);
     ASSERT_EQ(ret, true);
+#ifdef RS_ENABLE_UNI_RENDER
     ASSERT_EQ(CheckSurfaceCaptureCallback(), true);
-#if defined(RS_ENABLE_UNI_RENDER)
     ASSERT_EQ(surfaceCaptureCb_->IsTestSuccess(), true);
 #endif
     surfaceCaptureCb_->Reset();
@@ -1018,8 +1018,8 @@ HWTEST_F(RSSurfaceCaptureTaskTest, TakeSelfSurfaceCaptureTest003, Function | Sma
     captureConfig.useDma = false;
     ret = rsInterfaces_->TakeSelfSurfaceCapture(surfaceNode_, surfaceCaptureCb_, captureConfig);
     ASSERT_EQ(ret, true);
+#ifdef RS_ENABLE_UNI_RENDER
     ASSERT_EQ(CheckSurfaceCaptureCallback(), true);
-#if defined(RS_ENABLE_UNI_RENDER)
     ASSERT_EQ(surfaceCaptureCb_->IsTestSuccess(), true);
 #endif
 }
@@ -1036,8 +1036,8 @@ HWTEST_F(RSSurfaceCaptureTaskTest, TakeSelfSurfaceCaptureTest004, Function | Sma
     captureConfig.useCurWindow = true;
     bool ret = rsInterfaces_->TakeSelfSurfaceCapture(surfaceNode_, surfaceCaptureCb_, captureConfig);
     ASSERT_EQ(ret, true);
+#ifdef RS_ENABLE_UNI_RENDER
     ASSERT_EQ(CheckSurfaceCaptureCallback(), true);
-#if defined(RS_ENABLE_UNI_RENDER)
     ASSERT_EQ(surfaceCaptureCb_->IsTestSuccess(), true);
 #endif
     surfaceCaptureCb_->Reset();
@@ -1045,8 +1045,8 @@ HWTEST_F(RSSurfaceCaptureTaskTest, TakeSelfSurfaceCaptureTest004, Function | Sma
     captureConfig.useCurWindow = false;
     ret = rsInterfaces_->TakeSelfSurfaceCapture(surfaceNode_, surfaceCaptureCb_, captureConfig);
     ASSERT_EQ(ret, true);
+#ifdef RS_ENABLE_UNI_RENDER
     ASSERT_EQ(CheckSurfaceCaptureCallback(), true);
-#if defined(RS_ENABLE_UNI_RENDER)
     ASSERT_EQ(surfaceCaptureCb_->IsTestSuccess(), true);
 #endif
 }

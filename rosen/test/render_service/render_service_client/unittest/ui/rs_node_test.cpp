@@ -3304,6 +3304,24 @@ HWTEST_F(RSNodeTest, SetandGetClipToFrame002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetAnimationsCount
+ * @tc.desc: test results of GetAnimationsCount
+ * @tc.type: FUNC
+ * @tc.require: issueIBWOU7
+ */
+HWTEST_F(RSNodeTest, GetAnimationsCount, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    AnimationId animationId = 1;
+    auto animation = std::make_shared<RSAnimation>();
+    rsNode->animations_.clear();
+    EXPECT_TRUE(rsNode->animations_.empty());
+    rsNode->animations_.insert({ animationId, animation });
+    auto animationsSize = rsNode->GetAnimationsCount();
+    EXPECT_EQ(animationsSize, 1);
+}
+
+/**
  * @tc.name: SetBoundsWidth
  * @tc.desc: test results of SetBoundsWidth
  * @tc.type: FUNC
@@ -5221,6 +5239,22 @@ HWTEST_F(RSNodeTest, AddKeyFrame, TestSize.Level1)
     PropertyCallback propertyCallback = []() {};
     rsNode->AddKeyFrame(1.f, timingCurve, propertyCallback);
     rsNode->AddKeyFrame(1.f, propertyCallback);
+}
+
+/**
+ * @tc.name: AddKeyFrame02
+ * @tc.desc: test results of AddKeyFrame02
+ * @tc.type: FUNC
+ * @tc.require: issueI9KAZH
+ */
+HWTEST_F(RSNodeTest, AddKeyFrame02, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
+    RSAnimationTimingCurve timingCurve;
+    PropertyCallback propertyCallback = []() {};
+    rsNode->AddKeyFrame(nullptr, 1.f, timingCurve, propertyCallback);
+    rsNode->AddKeyFrame(nullptr, 1.f, propertyCallback);
 }
 
 /**
@@ -7703,6 +7737,43 @@ HWTEST_F(RSNodeTest, UpdateGlobalGeometry, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetRSUIContext
+ * @tc.desc: test results of SetRSUIContext
+ * @tc.type: FUNC
+ * @tc.require: issueIBX6OE
+ */
+HWTEST_F(RSNodeTest, SetRSUIContext, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
+    rsNode->SetRSUIContext(nullptr);
+    EXPECT_EQ(rsNode->GetRSUIContext(), nullptr);
+    auto rsUIContext = std::make_shared<RSUIContext>();
+    rsNode->SetRSUIContext(rsUIContext);
+    rsNode->SetRSUIContext(rsUIContext);
+    EXPECT_EQ(rsNode->GetRSUIContext(), rsUIContext);
+    auto rsUIContext2 = std::make_shared<RSUIContext>();
+    rsNode->SetRSUIContext(rsUIContext);
+    EXPECT_EQ(rsNode->GetRSUIContext(), rsUIContext2);
+}
+
+/**
+ * @tc.name: SetSkipCheckInMultiInstance
+ * @tc.desc: test results of SetSkipCheckInMultiInstance
+ * @tc.type: FUNC
+ * @tc.require: issueIBX6OE
+ */
+HWTEST_F(RSNodeTest, SetSkipCheckInMultiInstance, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
+    rsNode->SetSkipCheckInMultiInstance(true);
+    EXPECT_TRUE(rsNode->isSkipCheckInMultiInstance_);
+    rsNode->SetSkipCheckInMultiInstance(false);
+    EXPECT_FALSE(rsNode->isSkipCheckInMultiInstance_);
+}
+
+/**
  * @tc.name: DumpTree
  * @tc.desc: test results of DumpTree
  * @tc.type: FUNC
@@ -7762,6 +7833,19 @@ HWTEST_F(RSNodeTest, MarkUifirstNode, TestSize.Level1)
 
     rsNode->MarkUifirstNode(false);
     EXPECT_TRUE(!rsNode->isUifirstNode_);
+}
+
+/**
+ * @tc.name: SetBackgroundShaderProgress001
+ * @tc.desc: SetBackgroundShaderProgress
+ * @tc.type: FUNC
+ * @tc.require: issueI9RLG7
+ */
+HWTEST_F(RSNodeTest, SetBackgroundShaderProgress001, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
+    rsNode->SetBackgroundShaderProgress(1.0f);
 }
 
 /**

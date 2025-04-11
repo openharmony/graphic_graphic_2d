@@ -248,6 +248,8 @@ private:
     void DVSyncRecordRNV(const sptr<VSyncConnection> &connection, const std::string &fromWhom, int64_t lastVSyncTS);
     bool DVSyncCheckPreexecuteAndUpdateTs(const sptr<VSyncConnection> &connection, int64_t &timestamp,
         int64_t &period, int64_t &vsyncCount);
+    bool VSyncCheckPreexecuteAndUpdateTs(const sptr<VSyncConnection> &connection, int64_t &timestamp,
+        int64_t &period, int64_t &vsyncCount);
     sptr<VSyncController> dvsyncController_ = nullptr;
     bool dvsyncControllerEnabled_ = false;
     // End of DVSync

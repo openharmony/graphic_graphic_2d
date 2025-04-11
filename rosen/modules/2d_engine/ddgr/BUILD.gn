@@ -32,7 +32,7 @@ if (defined(graphic_2d_ext_feature_enable_ddgr) &&
       debug = false
     }
 
-    ldflags = ddgr_compiler_set.ldflags
+    ldflags = ddgr_link_config_set.ldflags
     deps = [ ":ddgr_compiler_src_set" ]
 
     part_name = "graphic_2d"
@@ -75,6 +75,7 @@ if (defined(graphic_2d_ext_feature_enable_ddgr) &&
       debug = false
     }
 
+    ldflags = ddgr_link_config_set.ldflags
     deps = [ ":ddgr_src_set" ]
     data_deps = [ ":libddgr_compiler" ]
     public_configs = [ ":public_ddgr_config" ]
@@ -94,7 +95,8 @@ if (defined(graphic_2d_ext_feature_enable_ddgr) &&
 
     sources = ddgr_src_set.sources
     configs = [ ":ddgr_config" ]
-    external_deps = ddgr_src_set.external_deps
+    configs += ddgr_src_set.configs
+    public_external_deps = ddgr_src_set.public_external_deps
     deps = ddgr_src_set.deps
 
     deps += [ ":generate_shader_register_code" ]

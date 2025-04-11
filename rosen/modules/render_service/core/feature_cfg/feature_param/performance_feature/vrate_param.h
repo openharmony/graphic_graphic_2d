@@ -26,10 +26,13 @@ public:
 
     static bool GetVRateEnable();
 
-    void SetVRateEnable(bool isVRateEnable);
+protected:
+    static void SetVRateEnable(bool isVRateEnable);
 
 private:
     inline static bool isVRateEnable_ = false;
+
+    friend class VRateParamParse;
 };
 } // namespace OHOS::Rosen
 #endif // VRATE_PARAM_H

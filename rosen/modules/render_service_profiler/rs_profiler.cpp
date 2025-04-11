@@ -95,7 +95,6 @@ static uint32_t g_effectiveNodeTimeCount = CALC_PERF_NODE_TIME_COUNT_MAX;
 static uint64_t g_calcPerfNodeTime[CALC_PERF_NODE_TIME_COUNT_MAX];
 static int g_nodeListPerfCalcIndex = -1;
 
-static std::string g_testDataSubTree;
 static std::string g_testDataFrame;
 static std::vector<RSRenderNode::SharedPtr> g_childOfDisplayNodes;
 static uint32_t g_recordParcelNumber = 0;
@@ -907,7 +906,13 @@ std::string RSProfiler::FirstFrameUnmarshalling(const std::string& data, uint32_
     focusNodeId = Utils::PatchNodeId(focusNodeId);
 
     CreateMockConnection(focusPid);
-    g_mainThread->SetFocusAppInfo(focusPid, focusUid, bundleName, abilityName, focusNodeId);
+    FocusAppInfo info = {
+        .pid = focusPid,
+        .uid = focusUid,
+        .bundleName = bundleName,
+        .abilityName = abilityName,
+        .focusNodeId = focusNodeId};
+    g_mainThread->SetFocusAppInfo(info);
 
     return "";
 }
@@ -2122,29 +2127,6 @@ std::vector<std::pair<uint64_t, int64_t>> RSProfiler::AnimeGetStartTimesFlattene
     return headerAnimeStartTimes;
 }
 
-void RSProfiler::TestLoadFileSubTree(NodeId nodeId, const std::string &filePath)
-{
-    auto node = GetRenderNode(nodeId);
-    if (!node) {
-        RS_LOGE("RSProfiler::TestLoadFileSubTree node is nullptr");
-        return;
-    }
-
-    std::ifstream file(filePath);
-    if (!file.is_open()) {
-        std::error_code ec(errno, std::system_category());
-        RS_LOGE("RSProfiler::TestLoadFileSubTree read file failed: %{public}s", ec.message().c_str());
-        return;
-    }
-    std::stringstream stream;
-    stream << file.rdbuf();
-    file.close();
-    std::string errorReason = UnmarshalSubTree(*g_context, stream, *node, RSFILE_VERSION_LATEST);
-    if (errorReason.size()) {
-        RS_LOGE("RSProfiler::TestLoadFileSubTree failed: %{public}s", errorReason.c_str());
-    }
-}
-
 void RSProfiler::TestSaveSubTree(const ArgList& args)
 {
     const auto nodeId = args.Node();
@@ -2156,15 +2138,15 @@ void RSProfiler::TestSaveSubTree(const ArgList& args)
 
     std::stringstream stream;
     MarshalSubTree(*g_context, stream, *node, RSFILE_VERSION_LATEST);
-    g_testDataSubTree = stream.str();
+    std::string testDataSubTree = stream.str();
 
-    Respond("Save SubTree Size: " + std::to_string(g_testDataSubTree.size()));
+    Respond("Save SubTree Size: " + std::to_string(testDataSubTree.size()));
 
     // save file need setenforce 0
     const std::string filePath = "/data/rssbtree_test_" + std::to_string(nodeId);
     std::ofstream file(filePath);
     if (file.is_open()) {
-        file << g_testDataSubTree;
+        file << testDataSubTree;
         file.close();
         Respond("Save subTree Success, file path:" + filePath);
     } else {
@@ -2181,13 +2163,40 @@ void RSProfiler::TestLoadSubTree(const ArgList& args)
         return;
     }
 
+    const auto filePath = args.String(1);
+    if (filePath.empty()) {
+        Respond("Error: Path is empty");
+        return;
+    }
+
+    std::ifstream file(filePath);
+    if (!file.is_open()) {
+        std::error_code ec(errno, std::system_category());
+        RS_LOGE("RSProfiler::TestLoadSubTree read file failed: %{public}s", ec.message().c_str());
+        Respond("RSProfiler::TestLoadSubTree read file failed: " + ec.message());
+        return;
+    }
     std::stringstream stream;
-    stream.str(g_testDataSubTree);
+    stream << file.rdbuf();
+    file.close();
     std::string errorReason = UnmarshalSubTree(*g_context, stream, *node, RSFILE_VERSION_LATEST);
-    if (!errorReason.size()) {
-        errorReason = "OK";
+    if (errorReason.size()) {
+        RS_LOGE("RSProfiler::TestLoadSubTree failed: %{public}s", errorReason.c_str());
+        Respond("RSProfiler::TestLoadSubTree failed: " + errorReason);
     }
     Respond("Load subTree result: " + errorReason);
+}
+
+void RSProfiler::TestClearSubTree(const ArgList& args)
+{
+    FilterMockNode(*g_context);
+    constexpr int maxCountForSecurity = 1000;
+    for (int i = 0; !RSRenderNodeGC::Instance().IsBucketQueueEmpty() && i < maxCountForSecurity; i++) {
+        RSRenderNodeGC::Instance().ReleaseNodeBucket();
+    }
+    RSTypefaceCache::Instance().ReplayClear();
+    ImageCache::Reset();
+    Respond("Clear SubTree Success");
 }
 
 void RSProfiler::MarshalSubTree(RSContext& context, std::stringstream& data,

@@ -86,5 +86,17 @@ HWTEST_F(GraphicFeatureParamManagerTest, GetFeatureParam, Function | SmallTest |
         ASSERT_NE(featureParam, nullptr);
     }
 }
+
+/**
+ * @tc.name: VectorlengthTest
+ * @tc.desc: Test Vector Length And Enum Length
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(GraphicFeatureParamManagerTest, VectorlengthTest, Function | SmallTest | Level1)
+{
+    ASSERT_EQ(static_cast<size_t>(FeatureModule::ENUM_LENGTH), std::size(FEATURE_CONFIGS));
+    ASSERT_EQ(static_cast<size_t>(FeatureModule::ENUM_LENGTH), std::size(FEATURE_MODULES));
+}
 } // namespace Rosen
 } // namespace OHOS

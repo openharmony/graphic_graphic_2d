@@ -62,7 +62,7 @@ public:
     // regenerate the cache or reuse the existing cache.
     // Note: If srcRect or dstRect is empty, we'll use the DeviceClipRect as the corresponding rect.
     void DrawFilter(RSPaintFilterCanvas& canvas, const std::shared_ptr<RSDrawingFilter>& filter,
-        bool manuallyHandleFilterCahe = false, bool shouldClearFilteredCache = true,
+        bool manuallyHandleFilterCache = false, bool shouldClearFilteredCache = true,
         const std::optional<Drawing::RectI>& srcRect = std::nullopt,
         const std::optional<Drawing::RectI>& dstRect = std::nullopt);
 
@@ -108,7 +108,7 @@ public:
     void MarkFilterRegionIsLargeArea();
     bool IsAIBarCacheValid();
     void MarkEffectNode();
-    void MarkNeedClearFilterCache();
+    void MarkNeedClearFilterCache(NodeId nodeId);
     bool NeedPendingPurge() const;
     bool IsSkippingFrame() const;
     void MarkRotationChanged();

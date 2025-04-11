@@ -375,16 +375,6 @@ bool RSSystemProperties::IsPhoneType()
     return false;
 }
 
-bool RSSystemProperties::IsTabletType()
-{
-    return false;
-}
-
-bool RSSystemProperties::IsPcType()
-{
-    return false;
-}
-
 bool RSSystemProperties::IsBetaRelease()
 {
     return false;
@@ -493,11 +483,6 @@ bool RSSystemProperties::IsForceClient()
 uint32_t RSSystemProperties::GetBlurEffectTerminateLimit()
 {
     return 0;
-}
-
-bool RSSystemProperties::GetTextBlobAsPixelMap()
-{
-    return false;
 }
 
 bool RSSystemProperties::GetUnmarshParallelFlag()

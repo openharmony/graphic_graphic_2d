@@ -12,6 +12,7 @@
 # limitations under the License.
 
 import("//build/ohos.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 group("drawingnapi") {
   deps = [
@@ -29,11 +30,11 @@ config("local_drawing_config") {
 
   include_dirs = [
     "../drawing",
-    "../../../../../rosen/modules/2d_engine/rosen_text/skia_txt",
-    "../../../../../rosen/modules/2d_graphics/include",
-    "../../../../../rosen/modules/2d_graphics/src",
-    "../../../../../rosen/modules/2d_graphics/src/drawing/engine_adapter",
-    "../../../../../rosen/modules/render_service_base/include",
+    "$graphic_2d_root/frameworks/text/adapter/skia",
+    "$graphic_2d_root/rosen/modules/2d_graphics/include",
+    "$graphic_2d_root/rosen/modules/2d_graphics/src",
+    "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing/engine_adapter",
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
   ]
 }
 
@@ -89,8 +90,8 @@ if (is_arkui_x) {
     public_configs = [ ":drawing_config" ]
 
     deps = [
-      "../../../../../rosen/modules/2d_graphics:2d_graphics",
-      "../../../../../rosen/modules/render_service_base:librender_service_base_static",
+      "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
+      "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base_static",
       "//foundation/arkui/napi:ace_napi",
     ]
     defines += [ "MODULE_DRAWING" ]
@@ -131,8 +132,8 @@ if (is_arkui_x) {
     public_configs = [ ":drawing_config" ]
 
     deps = [
-      "../../../../../rosen/modules/2d_graphics:2d_graphics",
-      "../../../../../rosen/modules/render_service_base:librender_service_base",
+      "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
+      "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
     ]
 
     external_deps = [ "napi:ace_napi" ]
@@ -147,6 +148,7 @@ if (is_arkui_x) {
         "ability_runtime:abilitykit_native",
         "ability_runtime:app_context",
         "ability_runtime:napi_common",
+        "eventhandler:libeventhandler",
         "hilog:libhilog",
         "image_framework:image_native",
         "init:libbegetutil",

@@ -36,6 +36,15 @@ constexpr int DEFAULT_DIRTY_ALIGN_ENABLED_VALUE = 0;
 constexpr int DEFAULT_CORRECTION_MODE_VALUE = 999;
 constexpr int DEFAULT_SCALE_MODE = 2;
 constexpr const char* DEFAULT_CLIP_RECT_THRESHOLD = "0.9";
+#ifdef RS_ENABLE_VK
+constexpr int DEFAULT_TEXTBLOB_LINE_COUNT = 9;
+struct GetComponentSwitch ComponentSwitchTable[] = {
+    {ComponentEnableSwitch::TEXTBLOB, RSSystemProperties::GetHybridRenderTextBlobEnabled},
+    {ComponentEnableSwitch::SVG, RSSystemProperties::GetHybridRenderSvgEnabled},
+    {ComponentEnableSwitch::HMSYMBOL, RSSystemProperties::GetHybridRenderHmsymbolEnabled},
+    {ComponentEnableSwitch::CANVAS, RSSystemProperties::GetHybridRenderCanvasEnabled},
+};
+#endif
 }
 
 #if (defined (ACE_ENABLE_GL) && defined (ACE_ENABLE_VK)) || (defined (RS_ENABLE_GL) && defined (RS_ENABLE_VK))
@@ -330,7 +339,7 @@ bool RSSystemProperties::GetReclaimMemoryEnabled()
     static CachedHandle g_Handle = CachedParameterCreate("persist.reclaim.memory.enabled", "1");
     int changed = 0;
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
-    return (ConvertToInt(enable, 1) != 0) && (system::GetParameter("const.product.devicetype", "pc") != "wearable");
+    return ConvertToInt(enable, 1) != 0;
 }
 
 bool RSSystemProperties::GetOcclusionEnabled()
@@ -1029,19 +1038,6 @@ bool RSSystemProperties::IsPhoneType()
     return isPhone;
 }
 
-bool RSSystemProperties::IsTabletType()
-{
-    static bool isTablet = system::GetParameter("const.product.devicetype", "pc") == "tablet";
-    return isTablet;
-}
-
-bool RSSystemProperties::IsPcType()
-{
-    static bool isPc = (system::GetParameter("const.product.devicetype", "pc") == "pc") ||
-                       (system::GetParameter("const.product.devicetype", "pc") == "2in1");
-    return isPc;
-}
-
 bool RSSystemProperties::IsSuperFoldDisplay()
 {
     static const std::string foldScreenType = system::GetParameter("const.window.foldscreen.type", "0,0,0,0");
@@ -1255,6 +1251,13 @@ uint32_t RSSystemProperties::GetUnMarshParallelSize()
     return size;
 }
 
+bool RSSystemProperties::GetJankLoadOptimizeEnabled()
+{
+    static bool jankLoadOptimizeEnabled =
+        system::GetBoolParameter("persist.sys.graphic.jankLoadOptimize.enabled", true);
+    return jankLoadOptimizeEnabled;
+}
+
 int RSSystemProperties::GetRSNodeLimit()
 {
     static int rsNodeLimit =
@@ -1348,5 +1351,106 @@ bool RSSystemProperties::GetNodeGroupGroupedByUIEnabled()
         system::GetBoolParameter("const.graphic.enable_grouped_by_ui", false);
     return groupedByUIEnabled;
 }
+
+#ifdef RS_ENABLE_VK
+bool RSSystemProperties::GetHybridRenderEnabled()
+{
+    return GetHybridRenderSystemEnabled() || GetHybridRenderCcmEnabled();
+}
+
+int32_t RSSystemProperties::GetHybridRenderCcmEnabled()
+{
+    static int32_t hybridRenderCcmEnabled =
+        std::atoi((system::GetParameter("const.graphics.hybridrenderenable", "0")).c_str());
+    return hybridRenderCcmEnabled;
+}
+
+// The switch are for scheme debugging. After the scheme is stabilizated, the switch will be removed.
+bool RSSystemProperties::GetHybridRenderSystemEnabled()
+{
+    static bool hybridRenderSystemEnabled = Drawing::SystemProperties::IsUseVulkan() &&
+        system::GetBoolParameter("persist.sys.graphic.hybrid_render", false);
+    return hybridRenderSystemEnabled;
+}
+
+bool RSSystemProperties::GetHybridRenderDfxEnabled()
+{
+    static bool hybridRenderDfxEnabled = GetHybridRenderSystemEnabled() &&
+        system::GetBoolParameter("persist.sys.graphic.hybrid_render_dfx_enabled", false);
+    return hybridRenderDfxEnabled;
+}
+
+uint32_t RSSystemProperties::GetHybridRenderTextBlobLenCount()
+{
+    static uint32_t textBlobLenCount =
+        system::GetIntParameter("persist.sys.graphic.hybrid_render_text_blob_len_count", DEFAULT_TEXTBLOB_LINE_COUNT);
+    return textBlobLenCount;
+}
+
+bool RSSystemProperties::GetHybridRenderParallelConvertEnabled()
+{
+    static bool paraConvertEnabled = GetHybridRenderSystemEnabled() &&
+        system::GetBoolParameter("persist.sys.graphic.hybrid_render_parallelconvert_enabled", false);
+    return paraConvertEnabled;
+}
+
+// The switch are for scheme debugging. After the scheme is stabilizated, the switch will be removed.
+bool RSSystemProperties::GetHybridRenderCanvasEnabled()
+{
+    static bool canvasEnabled = GetHybridRenderSystemEnabled() &&
+        system::GetBoolParameter("persist.sys.graphic.hybrid_render_canvas_drawing_node_enabled", false);
+    return canvasEnabled;
+}
+
+bool RSSystemProperties::GetHybridRenderMemeoryReleaseEnabled()
+{
+    static bool memoryReleaseEnabled = GetHybridRenderSystemEnabled() &&
+        system::GetBoolParameter("persist.sys.graphic.hybrid_render_memory_release_enabled", false);
+    return memoryReleaseEnabled;
+}
+
+// The switch are for scheme debugging. After the scheme is stabilizated, the switch will be removed.
+bool RSSystemProperties::GetHybridRenderTextBlobEnabled()
+{
+    static bool textblobEnabled = GetHybridRenderSystemEnabled() &&
+        system::GetBoolParameter("persist.sys.graphic.hybrid_render_textblob_enabled", false);
+    return textblobEnabled;
+}
+
+// The switch are for scheme debugging. After the scheme is stabilizated, the switch will be removed.
+bool RSSystemProperties::GetHybridRenderSvgEnabled()
+{
+    static bool svgEnabled = GetHybridRenderSystemEnabled() &&
+        system::GetBoolParameter("persist.sys.graphic.hybrid_render_svg_enabled", false);
+    return svgEnabled;
+}
+
+// The switch are for scheme debugging. After the scheme is stabilizated, the switch will be removed.
+bool RSSystemProperties::GetHybridRenderHmsymbolEnabled()
+{
+    static bool hmsymbolEnabled = GetHybridRenderSystemEnabled() &&
+        system::GetBoolParameter("persist.sys.graphic.hybrid_render_hmsymbol_enabled", false);
+    return hmsymbolEnabled;
+}
+
+int32_t RSSystemProperties::GetHybridRenderSwitch(ComponentEnableSwitch bitSeq)
+{
+    static int32_t hybridRenderFeatureSwitch =
+        std::stol((system::GetParameter("const.graphics.hybridrenderfeatureswitch", "0x00")).c_str(), nullptr, 16);
+    static std::vector<int> hybridRenderSystemProperty(std::size(ComponentSwitchTable));
+
+    if (!GetHybridRenderEnabled()) {
+        return 0;
+    }
+
+    hybridRenderSystemProperty[static_cast<int>(bitSeq)] =
+        ComponentSwitchTable[static_cast<int>(bitSeq)].ComponentHybridSwitch();
+
+    return (GetHybridRenderCcmEnabled() && (!hybridRenderFeatureSwitch ?
+        1 : (1 << static_cast<int>(bitSeq)) & hybridRenderFeatureSwitch)) ||
+        hybridRenderSystemProperty[static_cast<int>(bitSeq)];
+}
+#endif
+
 } // namespace Rosen
 } // namespace OHOS

@@ -622,12 +622,15 @@ static void MarshalDrawCmdModifiers(
             if (!modifier) {
                 continue;
             }
-            if (auto commandList = reinterpret_cast<Drawing::DrawCmdList*>(modifier->GetDrawCmdListId())) {
-                std::string allocData = commandList->ProfilerPushAllocators();
-                commandList->MarshallingDrawOps();
-                commandList->PatchTypefaceIds(true);
+            if (auto oldCmdList = modifier->GetPropertyDrawCmdList()) {
+                auto newCmdList = std::make_shared<Drawing::DrawCmdList>(oldCmdList->GetWidth(),
+                    oldCmdList->GetHeight(), Drawing::DrawCmdList::UnmarshalMode::IMMEDIATE);
+                oldCmdList->MarshallingDrawOps(newCmdList.get());
+                newCmdList->PatchTypefaceIds(oldCmdList);
+
+                modifier->SetPropertyDrawCmdList(newCmdList);
                 MarshalRenderModifier(*modifier, data);
-                commandList->ProfilerPopAllocators(allocData);
+                modifier->SetPropertyDrawCmdList(oldCmdList);
             } else {
                 MarshalRenderModifier(*modifier, data);
             }
@@ -1474,7 +1477,7 @@ std::string RSProfiler::UnmarshalSubTreeLo(RSContext& context, std::stringstream
     uint32_t childCount;
     data.read(reinterpret_cast<char*>(&childCount), sizeof(childCount));
     for (uint32_t i = 0; i < childCount; i++) {
-        UnmarshalSubTreeLo(context, data, *node, fileVersion);
+        errorReason = UnmarshalSubTreeLo(context, data, *node, fileVersion);
         if (errorReason.size()) {
             return errorReason;
         }

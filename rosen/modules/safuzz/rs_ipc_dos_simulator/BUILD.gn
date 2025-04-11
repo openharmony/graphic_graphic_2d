@@ -109,6 +109,7 @@ ohos_fuzztest("RSIpcDosSimulator") {
     "cJSON:cjson",
     "c_utils:utils",
     "graphic_surface:surface",
+    "graphics_effect:graphics_effect_core",
     "hilog:libhilog",
     "hitrace:hitrace_meter",
     "image_framework:image_native",

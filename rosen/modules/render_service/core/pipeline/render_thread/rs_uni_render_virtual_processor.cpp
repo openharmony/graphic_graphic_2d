@@ -491,8 +491,10 @@ void RSUniRenderVirtualProcessor::UniScale(RSPaintFilterCanvas& canvas,
                 slrManager_->CheckOrRefreshScreen(virtualScreenWidth_, virtualScreenHeight_,
                     mirroredScreenWidth_, mirroredScreenHeight_);
             }
+            slrManager_->CheckOrRefreshColorSpace(renderFrameConfig_.colorGamut);
             slrManager_->CanvasScale(canvas);
-            RS_LOGD("RSUniRenderVirtualProcessor::UniScale: Scale With SLR.");
+            RS_LOGD("RSUniRenderVirtualProcessor::UniScale: Scale With SLR, color is %{public}d.",
+                renderFrameConfig_.colorGamut);
             return;
         }
 

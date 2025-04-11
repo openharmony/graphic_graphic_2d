@@ -98,11 +98,13 @@ std::unordered_map<uint32_t, std::string> typeOpDes = {
     { DrawOpItem::IMAGE_SNAPSHOT_OPITEM,    "IMAGE_SNAPSHOT_OPITEM" },
     { DrawOpItem::SURFACEBUFFER_OPITEM,     "SURFACEBUFFER_OPITEM"},
     { DrawOpItem::DRAW_FUNC_OPITEM,         "DRAW_FUNC_OPITEM"},
+    { DrawOpItem::HYBRID_RENDER_PIXELMAP_OPITEM, "HYBRID_RENDER_PIXELMAP_OPITEM"},
 };
 
 namespace {
 constexpr int TEXT_BLOB_CACHE_MARGIN = 10;
 constexpr float HIGH_CONTRAST_OFFSCREEN_THREASHOLD = 0.99f;
+constexpr size_t MAX_GLYPH_ID_COUNT = 20;
 
 template<class A, class F>
 void DumpArray(std::string& out, const A& array, F func)
@@ -1879,6 +1881,13 @@ void DrawTextBlobOpItem::DumpItems(std::string& out) const
     if (textBlob_ != nullptr) {
         out += " TextBlob[";
         out += "UniqueID:" + std::to_string(textBlob_->UniqueID());
+        std::vector<uint16_t> glyphIds;
+        TextBlob::GetDrawingGlyphIDforTextBlob(textBlob_.get(), glyphIds);
+        out += " GlyphID[";
+        for (size_t index = 0; index < std::min(glyphIds.size(), MAX_GLYPH_ID_COUNT); index++) {
+            out += " " + std::to_string(glyphIds[index]);
+        }
+        out += "]";
         auto bounds = textBlob_->Bounds();
         if (bounds != nullptr) {
             out += " Bounds";

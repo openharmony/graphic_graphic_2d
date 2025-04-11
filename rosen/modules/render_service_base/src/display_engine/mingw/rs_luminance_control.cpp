@@ -22,6 +22,12 @@ constexpr float HDR_DEFAULT_SCALER = 1000.0f / 203.0f;
 
 namespace OHOS {
 namespace Rosen {
+RSLuminanceControl& RSLuminanceControl::Get()
+{
+    static RSLuminanceControl instance;
+    return instance;
+}
+
 RSLuminanceControl::~RSLuminanceControl()
 {
     // destructor
@@ -83,7 +89,8 @@ double RSLuminanceControl::GetHdrBrightnessRatio(ScreenId screenId, int mode)
     return 1.0; // 1.0 refers to default value, no need to process.
 }
 
-float RSLuminanceControl::CalScaler(const float& maxContentLightLevel, int32_t dynamicMetadataSize, const float& ratio)
+float RSLuminanceControl::CalScaler(const float& maxContentLightLevel, const std::vector<uint8_t>& dynamicMetadata,
+    const float& ratio)
 {
     return HDR_DEFAULT_SCALER;
 }

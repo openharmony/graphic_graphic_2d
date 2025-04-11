@@ -443,7 +443,8 @@ bool DoSetScreenActiveRect()
         .w = w,
         .h = h
     };
-    rsConn_->SetScreenActiveRect(id, activeRect);
+    uint32_t repCode;
+    rsConn_->SetScreenActiveRect(id, activeRect, repCode);
     return true;
 }
 
@@ -464,7 +465,9 @@ bool DoCreateVSyncConnection()
     }
     uint64_t id = GetData<uint64_t>();
     sptr<VSyncIConnectionToken> token = new IRemoteStub<VSyncIConnectionToken>();
-    rsConn_->CreateVSyncConnection("test", token, id);
+    sptr<IVSyncConnection> conn = nullptr;
+    VSyncConnParam vsyncConnParam = {id, 0, false};
+    rsConn_->CreateVSyncConnection(conn, "test", token, vsyncConnParam);
     return true;
 }
 
@@ -554,7 +557,8 @@ bool DoRegisterOcclusionChangeCallback()
     }
     OcclusionChangeCallback callback = [](std::shared_ptr<RSOcclusionData> data) {};
     sptr<CustomOcclusionChangeCallback> cb = new CustomOcclusionChangeCallback(callback);
-    rsConn_->RegisterOcclusionChangeCallback(cb);
+    int32_t repCode = GetData<int32_t>();
+    rsConn_->RegisterOcclusionChangeCallback(cb, repCode);
     return true;
 }
 
@@ -640,7 +644,14 @@ bool DoSetFocusAppInfo()
     std::string bundleName = GetData<std::string>();
     std::string abilityName = GetData<std::string>();
     uint64_t focusNodeId = GetData<uint64_t>();
-    rsConn_->SetFocusAppInfo(pid, uid, bundleName, abilityName, focusNodeId);
+    FocusAppInfo info = {
+        .pid = pid,
+        .uid = uid,
+        .bundleName = bundleName,
+        .abilityName = abilityName,
+        .focusNodeId = focusNodeId};
+    int32_t repCode = GetData<int32_t>();
+    rsConn_->SetFocusAppInfo(info, repCode);
     return true;
 }
 
@@ -891,7 +902,8 @@ bool DoSetGlobalDarkColorMode()
         return false;
     }
     bool isDark = GetData<bool>();
-    rsConn_->SetGlobalDarkColorMode(isDark);
+    bool success = GetData<bool>();
+    rsConn_->SetGlobalDarkColorMode(isDark, success);
     return true;
 }
 
@@ -947,7 +959,8 @@ bool DOSetVirtualScreenRefreshRate()
     uint64_t id = GetData<uint64_t>();
     uint32_t maxRefreshRate = GetData<uint32_t>();
     uint32_t actualRefreshRate = GetData<uint32_t>();
-    rsConn_->SetVirtualScreenRefreshRate(id, maxRefreshRate, actualRefreshRate);
+    int32_t retVal = GetData<int32_t>();
+    rsConn_->SetVirtualScreenRefreshRate(id, maxRefreshRate, actualRefreshRate, retVal);
     return true;
 }
 
@@ -957,7 +970,8 @@ bool DOSetSystemAnimatedScenes()
         return false;
     }
     uint32_t systemAnimatedScenes = GetData<uint32_t>();
-    rsConn_->SetSystemAnimatedScenes(static_cast<SystemAnimatedScenes>(systemAnimatedScenes), false);
+    bool success = GetData<bool>();
+    rsConn_->SetSystemAnimatedScenes(static_cast<SystemAnimatedScenes>(systemAnimatedScenes), false, success);
     return true;
 }
 

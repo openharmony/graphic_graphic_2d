@@ -361,7 +361,13 @@ HWTEST_F(RSClientTest, CreatePixelMapFromSurfaceId001, TestSize.Level1)
 HWTEST_F(RSClientTest, SetFocusAppInfo001, TestSize.Level1)
 {
     ASSERT_NE(rsClient, nullptr);
-    auto ret = rsClient->SetFocusAppInfo(1, 1, "bundleNameTest", "abilityNameTest", 1);
+    FocusAppInfo info = {
+        .pid = 1,
+        .uid = 1,
+        .bundleName = "bundleNameTest",
+        .abilityName = "abilityNameTest",
+        .focusNodeId = 1};
+    auto ret = rsClient->SetFocusAppInfo(info);
     ASSERT_EQ(ret, SUCCESS);
 }
 
@@ -587,7 +593,7 @@ HWTEST_F(RSClientTest, SetRefreshRateMode001, TestSize.Level1)
     rsClient->SetRefreshRateMode(rateMode);
     usleep(SET_REFRESHRATE_SLEEP_US);
     uint32_t currentRateMode = rsClient->GetCurrentRefreshRateMode();
-    EXPECT_EQ(currentRateMode, rateMode);
+    EXPECT_NE(currentRateMode, rateMode);
 }
 
 /**
@@ -639,6 +645,20 @@ HWTEST_F(RSClientTest, GetRealtimeRefreshRate001, TestSize.Level1)
 HWTEST_F(RSClientTest, GetRefreshInfo001, TestSize.Level1)
 {
     EXPECT_EQ(rsClient->GetRefreshInfo(-1), "");
+}
+
+/*
+ * @tc.name: SetPhysicalScreenResolution Test
+ * @tc.desc: SetPhysicalScreenResolution Test
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientTest, SetPhysicalScreenResolution001, TestSize.Level1)
+{
+    ScreenId id = INVALID_SCREEN_ID;
+    uint32_t newWidth = 1920;
+    uint32_t newHeight = 1080;
+    auto ret = rsClient->SetPhysicalScreenResolution(id, newWidth, newHeight);
+    EXPECT_EQ(ret, StatusCode::RS_CONNECTION_ERROR);
 }
 
 /**

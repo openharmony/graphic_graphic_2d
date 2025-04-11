@@ -24,7 +24,22 @@ namespace Rosen {
 
 class HgmHfbcConfig {
 public:
-    static void HandleHfbcConfig(const std::vector<std::string>& packageList);
+    void SetHfbcConfigMap(const std::unordered_map<std::string, std::string>& hfbcConfig)
+    {
+        hfbcConfig_ = hfbcConfig;
+    }
+
+    void SetHfbcControlMode(bool mode)
+    {
+        isHfbcDisableListMode_ = mode;
+    }
+
+    void HandleHfbcConfig(const std::vector<std::string>& packageList);
+private:
+    // <"pkgName", "1">
+    std::unordered_map<std::string, std::string> hfbcConfig_ = {};
+    // true: disable list mode, false: enable list mode
+    bool isHfbcDisableListMode_ = true;
 };
 
 } // namespace Rosen

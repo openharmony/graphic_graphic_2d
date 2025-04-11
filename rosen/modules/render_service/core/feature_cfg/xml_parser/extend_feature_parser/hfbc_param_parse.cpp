@@ -16,7 +16,6 @@
 #include "hfbc_param_parse.h"
 
 #include "hgm_core.h"
-#include "hgm_frame_rate_manager.h"
 
 namespace OHOS::Rosen {
 
@@ -35,7 +34,7 @@ int32_t HFBCParamParse::ParseFeatureParam(FeatureParamMapType &featureMap, xmlNo
             continue;
         }
 
-        if (ParseHfbcInternal(featureMap, *currNode) != PARSE_EXEC_SUCCESS) {
+        if (ParseHfbcInternal(*currNode) != PARSE_EXEC_SUCCESS) {
             RS_LOGE("HFBCParamParse stop parsing, parse internal fail");
             return PARSE_INTERNAL_FAIL;
         }
@@ -44,17 +43,9 @@ int32_t HFBCParamParse::ParseFeatureParam(FeatureParamMapType &featureMap, xmlNo
     return PARSE_EXEC_SUCCESS;
 }
 
-int32_t HFBCParamParse::ParseHfbcInternal(FeatureParamMapType &featureMap, xmlNode &node)
+int32_t HFBCParamParse::ParseHfbcInternal(xmlNode &node)
 {
     xmlNode *currNode = &node;
-
-    auto iter = featureMap.find(FEATURE_CONFIGS[HFBC]);
-    if (iter != featureMap.end()) {
-        hfbcParam_ = std::static_pointer_cast<HFBCParam>(iter->second);
-    } else {
-        RS_LOGE("HFBCParamParse stop parsing, no initializing param map");
-        return PARSE_NO_PARAM;
-    }
 
     // Start Parse Feature Params
     int xmlParamType = GetXmlNodeAsInt(*currNode);
@@ -65,7 +56,13 @@ int32_t HFBCParamParse::ParseHfbcInternal(FeatureParamMapType &featureMap, xmlNo
             RS_LOGE("HFBCParamParse parse MultiParam fail");
         }
         if (name == "HfbcDisable") {
-            HgmCore::Instance().SetHfbcConfigMap(hfbcParam_->GetHfbcConfigMap());
+            HgmTaskHandleThread::Instance().PostTask([val] () {
+                HgmHfbcConfig& hfbcConfig = HgmCore::Instance().GetHfbcConfig();
+                RS_LOGI("HFBCParamParse postTask about hfbcConfig");
+                hfbcConfig.SetHfbcConfigMap(HFBCParam::GetHfbcConfigMap());
+                // 0: enable list mode, other: disable list mode
+                hfbcConfig.SetHfbcControlMode(val != "0");
+            });
         }
     }
     return PARSE_EXEC_SUCCESS;
@@ -91,7 +88,7 @@ int32_t HFBCParamParse::ParseFeatureMultiParamForApp(xmlNode &node, std::string 
         RS_LOGI("HFBCParamParse %{public}s: appName:%{public}s, value:%{public}s",
             __func__, appName.c_str(), val.c_str());
         if (name == "HfbcDisable") {
-            hfbcParam_->SetHfbcConfigForApp(appName, val);
+            HFBCParam::SetHfbcConfigForApp(appName, val);
         } else {
             RS_LOGE("HFBCParamParse ParseFeatureMultiParam cannot find name:%s", name.c_str());
             return PARSE_NO_PARAM;

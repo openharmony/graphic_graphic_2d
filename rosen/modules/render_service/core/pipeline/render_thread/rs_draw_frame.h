@@ -41,7 +41,7 @@ public:
 
     void SetRenderThreadParams(std::unique_ptr<RSRenderThreadParams>& stagingRenderThreadParams);
     void PostAndWait();
-    void PostDirectCompositionJankStats(const JankDurationParams& rsParams);
+    void PostDirectCompositionJankStats(const JankDurationParams& rsParams, bool optimizeLoad);
 
 private:
     void RenderFrame();

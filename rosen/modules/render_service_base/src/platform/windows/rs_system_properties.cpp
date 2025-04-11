@@ -429,16 +429,6 @@ bool RSSystemProperties::IsPhoneType()
     return false;
 }
 
-bool RSSystemProperties::IsTabletType()
-{
-    return false;
-}
-
-bool RSSystemProperties::IsPcType()
-{
-    return false;
-}
-
 bool RSSystemProperties::IsBetaRelease()
 {
     return false;
@@ -633,5 +623,73 @@ bool RSSystemProperties::GetNodeGroupGroupedByUIEnabled()
 {
     return false;
 }
+
+#ifdef RS_ENABLE_VK
+bool RSSystemProperties::GetHybridRenderEnabled()
+{
+    return false;
+}
+
+int32_t RSSystemProperties::GetHybridRenderCcmEnabled()
+{
+    return 0;
+}
+
+// The switch are for scheme debugging. After the scheme is stabilizated, the switch will be removed.
+bool RSSystemProperties::GetHybridRenderSystemEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetHybridRenderDfxEnabled()
+{
+    return false;
+}
+
+uint32_t RSSystemProperties::GetHybridRenderTextBlobLenCount()
+{
+    return 0;
+}
+
+bool RSSystemProperties::GetHybridRenderParallelConvertEnabled()
+{
+    return false;
+}
+
+// The switch are for scheme debugging. After the scheme is stabilizated, the switch will be removed.
+bool RSSystemProperties::GetHybridRenderCanvasEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetHybridRenderMemeoryReleaseEnabled()
+{
+    return false;
+}
+
+// The switch are for scheme debugging. After the scheme is stabilizated, the switch will be removed.
+bool RSSystemProperties::GetHybridRenderTextBlobEnabled()
+{
+    return false;
+}
+
+// The switch are for scheme debugging. After the scheme is stabilizated, the switch will be removed.
+bool RSSystemProperties::GetHybridRenderSvgEnabled()
+{
+    return false;
+}
+
+// The switch are for scheme debugging. After the scheme is stabilizated, the switch will be removed.
+bool RSSystemProperties::GetHybridRenderHmsymbolEnabled()
+{
+    return false;
+}
+
+int32_t RSSystemProperties::GetHybridRenderSwitch(ComponentEnableSwitch bitSeq)
+{
+    return 0;
+}
+#endif
+
 } // namespace Rosen
 } // namespace OHOS

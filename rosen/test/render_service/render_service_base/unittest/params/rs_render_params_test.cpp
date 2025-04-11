@@ -524,8 +524,8 @@ HWTEST_F(RSRenderParamsTest, SetHDRBrightnessTest, TestSize.Level2)
     std::unique_ptr<RSRenderParams> target = std::make_unique<RSRenderParams>(id);
     RSRenderParams params(id);
     auto renderParams = static_cast<RSRenderParams*>(target.get());
-    renderParams->hdrBrightness_ = false;
-    bool hdrBrightness = true;
+    renderParams->hdrBrightness_ = 0.0f;
+    float hdrBrightness = 1.0f;
     renderParams->needSync_ = false;
 
     renderParams->SetHDRBrightness(hdrBrightness);

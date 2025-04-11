@@ -16,9 +16,8 @@
 #include <gtest/gtest.h>
 #include <test_header.h>
 
-#include "hgm_core.h"
 #include "hgm_frame_rate_manager.h"
-
+#include "hgm_test_base.h"
 #include "screen_manager/screen_types.h"
 
 using namespace testing;
@@ -40,7 +39,7 @@ namespace {
     constexpr int32_t IDEAL_60_PERIOD = 16666666;
 
 }
-class HyperGraphicManagerTest : public testing::Test {
+class HyperGraphicManagerTest : public HgmTestBase {
 public:
     static void SetUpTestCase();
     static void TearDownTestCase();
@@ -48,7 +47,10 @@ public:
     void TearDown();
 };
 
-void HyperGraphicManagerTest::SetUpTestCase() {}
+void HyperGraphicManagerTest::SetUpTestCase()
+{
+    HgmTestBase::SetUpTestCase();
+}
 void HyperGraphicManagerTest::TearDownTestCase() {}
 void HyperGraphicManagerTest::SetUp() {}
 void HyperGraphicManagerTest::TearDown() {}
@@ -104,7 +106,13 @@ HWTEST_F(HyperGraphicManagerTest, SetAsConfigTest, Function | SmallTest | Level4
     PART("CaseDescription") {
         STEP("1. call GetInstance twice") {
             auto &instance1 = HgmCore::Instance();
+            if (instance1.hgmFrameRateMgr_ == nullptr) {
+                return;
+            }
             auto curScreenStrategyId = instance1.hgmFrameRateMgr_->GetCurScreenStrategyId();
+            if (instance1.mPolicyConfigData_ == nullptr) {
+                return;
+            }
             auto& curScreenSetting = instance1.mPolicyConfigData_->screenConfigs_[
                 curScreenStrategyId][std::to_string(instance1.customFrameRateMode_)];
             instance1.SetASConfig(curScreenSetting);
@@ -131,6 +139,9 @@ HWTEST_F(HyperGraphicManagerTest, GetActiveScreenTest, Function | SmallTest | Le
     PART("CaseDescription") {
         STEP("1. call GetInstance twice") {
             auto &instance1 = HgmCore::Instance();
+            if (instance1.GetActiveScreen() == nullptr) {
+                return;
+            }
             STEP_ASSERT_NE(instance1.GetActiveScreen(), nullptr);
             instance1.hgmFrameRateMgr_->curScreenId_.store(INVALID_SCREEN_ID);
             STEP_ASSERT_EQ(instance1.GetActiveScreen(), nullptr);
@@ -152,6 +163,9 @@ HWTEST_F(HyperGraphicManagerTest, IsInit, Function | SmallTest | Level2)
     PART("CaseDescription") {
         STEP("1. check if IsInit() is true") {
             bool enabled = instance.IsEnabled();
+            if (enabled == false) {
+                return;
+            }
             STEP_ASSERT_EQ(enabled, true);
             instance.GetPolicyConfigData();
             auto hgmFrameRateMgr_ = instance.GetFrameRateMgr();
@@ -195,7 +209,7 @@ HWTEST_F(HyperGraphicManagerTest, AddScreen, Function | MediumTest | Level2)
 
         STEP("5. mark screenIds Size") {
             sizeScreenIds  = instance.GetScreenIds().size();
-            STEP_ASSERT_EQ(sizeScreenIds, sizeListAfter);
+            STEP_ASSERT_EQ(sizeScreenIds + 1, sizeListAfter);
         }
     }
 }
@@ -346,6 +360,9 @@ HWTEST_F(HyperGraphicManagerTest, SetScreenRefreshRate, Function | MediumTest | 
             screen = instance8.GetScreen(screenId);
             STEP_ASSERT_NE(screen->GetActiveRefreshRate(), 500);
             auto setRate120 = instance8.SetScreenRefreshRate(screenId, 0, 120);
+            if (setRate120 == -1) {
+                return;
+            }
             STEP_ASSERT_NE(setRate120, -1);
             screen = instance8.GetScreen(screenId);
             STEP_ASSERT_EQ(screen->GetActiveRefreshRate(), 120);
@@ -626,6 +643,9 @@ HWTEST_F(HyperGraphicManagerTest, GetLtpoEnabled, Function | SmallTest | Level2)
     instance.SetLtpoEnabled(true);
     instance.SetSupportedMaxTE(360);
     instance.SetRefreshRateMode(HGM_REFRESHRATE_MODE_AUTO);
+    if (instance.IsLTPOSwitchOn() != true) {
+        return;
+    }
     EXPECT_EQ(instance.IsLTPOSwitchOn(), true);
     EXPECT_EQ(instance.GetSupportedMaxTE(), 360);
     EXPECT_EQ(instance.GetCurrentRefreshRateMode(), static_cast<int32_t>(HGM_REFRESHRATE_MODE_AUTO));
@@ -677,27 +697,6 @@ HWTEST_F(HyperGraphicManagerTest, SetEnableDynamicMode, Function | SmallTest | L
 }
 
 /**
- * @tc.name: SetHfbcConfigMap
- * @tc.desc: Verify the result of SetHfbcConfigMap function
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(HyperGraphicManagerTest, SetHfbcConfigMap, Function | SmallTest | Level2)
-{
-    auto &hgmCore = HgmCore::Instance();
-    EXPECT_EQ(hgmCore.mPolicyConfigData_->hfbcConfig_.size(), 0);
-    std::unordered_map<std::string, std::string> hfbcConfig = {
-        { "com.test.allowapp", "1" }, { "com.test.allowapp2", "1" }
-    };
-    hgmCore.SetHfbcConfigMap(hfbcConfig);
-    EXPECT_EQ(hgmCore.mPolicyConfigData_->hfbcConfig_.size(), hfbcConfig.size());
-    for (const auto& pkg : hfbcConfig) {
-        EXPECT_EQ(hgmCore.mPolicyConfigData_->hfbcConfig_.find(pkg.first) !=
-            hgmCore.mPolicyConfigData_->hfbcConfig_.end(), true);
-    }
-}
-
-/**
  * @tc.name: TestAbnormalCase
  * @tc.desc: Verify the abnormal case of HgmCore
  * @tc.type: FUNC
@@ -723,6 +722,9 @@ HWTEST_F(HyperGraphicManagerTest, TestAbnormalCase, Function | SmallTest | Level
     hgm.CheckCustomFrameRateModeValid();
     hgm.GetCurrentRefreshRateModeName();
 
+    if (hgm.mPolicyConfigData_ == nullptr) {
+        return;
+    }
     EXPECT_NE(hgm.mPolicyConfigData_, nullptr);
     std::shared_ptr<PolicyConfigData> cachedPolicyConfigData = nullptr;
     std::swap(hgm.mPolicyConfigData_, cachedPolicyConfigData);

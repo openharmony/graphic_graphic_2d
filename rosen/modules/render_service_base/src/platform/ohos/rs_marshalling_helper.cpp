@@ -141,7 +141,6 @@ static bool UnmarshallingRecordCmdToDrawCmdList(Parcel& parcel, std::shared_ptr<
     }
     uint32_t recordCmdSize = parcel.ReadUint32();
     if (recordCmdSize == 0) {
-        ROSEN_LOGE("UnmarshallingRecordCmdToDrawCmdList ReadUint32 failed");
         return true;
     }
     if (recordCmdSize > USHRT_MAX) {
@@ -200,7 +199,6 @@ bool UnmarshallingExtendObjectToDrawCmdList(Parcel& parcel, std::shared_ptr<Draw
     }
     uint32_t objectSize = parcel.ReadUint32();
     if (objectSize == 0) {
-        ROSEN_LOGE("UnmarshallingExtendObjectToDrawCmdList ReadUint32 failed");
         return true;
     }
     if (objectSize > USHRT_MAX) {
@@ -526,7 +524,7 @@ bool RSMarshallingHelper::ReadColorSpaceFromParcel(Parcel& parcel, std::shared_p
 bool RSMarshallingHelper::UnmarshallingNoLazyGeneratedImage(Parcel& parcel,
     std::shared_ptr<Drawing::Image>& val, void*& imagepixelAddr)
 {
-    size_t pixmapSize{0};
+    uint32_t pixmapSize{0};
     if (!parcel.ReadUint32(pixmapSize)) {
         ROSEN_LOGE("RSMarshallingHelper::UnmarshallingNoLazyGeneratedImage Read pixmapSize failed");
         return false;
@@ -538,14 +536,14 @@ bool RSMarshallingHelper::UnmarshallingNoLazyGeneratedImage(Parcel& parcel,
         return false;
     }
 
-    size_t rb{0};
+    uint32_t rb{0};
     int width{0};
     int height{0};
     if (!parcel.ReadUint32(rb) || !parcel.ReadInt32(width) || !parcel.ReadInt32(height)) {
         ROSEN_LOGE("RSMarshallingHelper::UnmarshallingNoLazyGeneratedImage Read ImageInfo failed");
         return false;
     }
-    size_t ct{0};
+    uint32_t ct{0};
     if (!parcel.ReadUint32(ct)) {
         ROSEN_LOGE("RSMarshallingHelper::UnmarshallingNoLazyGeneratedImage Read ct failed");
         return false;
@@ -554,7 +552,7 @@ bool RSMarshallingHelper::UnmarshallingNoLazyGeneratedImage(Parcel& parcel,
     if (ct >= Drawing::ColorType::COLORTYPE_ALPHA_8 && ct <= Drawing::ColorType::COLORTYPE_RGB_888X) {
         colorType = static_cast<Drawing::ColorType>(ct);
     }
-    size_t at{0};
+    uint32_t at{0};
     if (!parcel.ReadUint32(at)) {
         ROSEN_LOGE("RSMarshallingHelper::UnmarshallingNoLazyGeneratedImage Read at failed");
         return false;
@@ -638,7 +636,7 @@ bool RSMarshallingHelper::SkipImage(Parcel& parcel)
         ROSEN_LOGD("RSMarshallingHelper::SkipImage lazy");
         return SkipData(parcel);
     } else {
-        size_t pixmapSize{0};
+        uint32_t pixmapSize{0};
         if (!parcel.ReadUint32(pixmapSize)) {
             ROSEN_LOGE("RSMarshallingHelper::SkipImage Read pixmapSize failed");
             return false;

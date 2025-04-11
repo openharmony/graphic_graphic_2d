@@ -28,18 +28,21 @@ public:
     static bool IsSlrScaleEnabled();
     static bool IsRsReportHwcDead();
     static bool IsRsSetScreenPowerStatus();
+    static bool IsMirrorDisplayCloseP3();
 
 protected:
     static void SetExternalScreenSecure(bool isSecure);
     static void SetSlrScaleEnabled(bool isEnabled);
     static void SetRsReportHwcDead(bool isEnabled);
     static void SetRsSetScreenPowerStatus(bool isEnabled);
+    static void SetMirrorDisplayCloseP3(bool isEnabled);
 
 private:
     inline static bool isExternalScreenSecure_ = false;
     inline static bool isSlrScaleEnabled_ = false;
     inline static bool isRsReportHwcDead_ = false;
     inline static bool isRsSetScreenPowerStatus_ = true;
+    inline static bool isMirrorDisplayCloseP3_ = true;
  
     friend class MultiScreenParamParse;
 };

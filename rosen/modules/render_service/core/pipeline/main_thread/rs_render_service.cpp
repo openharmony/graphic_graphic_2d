@@ -32,6 +32,7 @@
 #include "rs_render_service_connection.h"
 #include "vsync_generator.h"
 #include "rs_trace.h"
+#include "ge_mesa_blur_shader_filter.h"
 
 #include "common/rs_singleton.h"
 #ifdef RS_ENABLE_GPU
@@ -40,6 +41,7 @@
 #include "pipeline/hardware_thread/rs_hardware_thread.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_uni_render_judgement.h"
+#include "render/rs_kawase_blur_shader_filter.h"
 #include "system/rs_system_parameters.h"
 #include "gfx/fps_info/rs_surface_fps_manager.h"
 #include "gfx/dump/rs_dump_manager.h"
@@ -319,6 +321,17 @@ void RSRenderService::DumpAllNodesMemSize(std::string& dumpString) const
     });
 }
 
+static unsigned long long SafeStringToULL(const std::string& str)
+{
+    char* endptr = nullptr;
+    errno = 0;
+    unsigned long long value = std::strtoull(str.c_str(), &endptr, 10);
+    if (endptr == str.c_str() || *endptr != '\0' || errno == ERANGE) {
+        return 0;
+    }
+    return value;
+}
+
 void RSRenderService::FPSDUMPProcess(std::unordered_set<std::u16string>& argSets,
     std::string& dumpString, const std::u16string& arg) const
 {
@@ -332,44 +345,67 @@ void RSRenderService::FPSDUMPProcess(std::unordered_set<std::u16string>& argSets
         return ;
     }
     RS_TRACE_NAME("RSRenderService::FPSDUMPProcess");
-    std::string fpsArg = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}
-        .to_bytes(*argSets.begin());
+    std::unordered_set<std::string> options{"-name", "-id"};
     std::unordered_set<std::string> args{"DisplayNode", "composer", "UniRender"};
-    if (args.find(fpsArg) != args.end()) {
-        DumpFps(dumpString, fpsArg);
+    std::string argStr("");
+    std::string option("-name");
+    for (const std::u16string& arg : argSets) {
+        std::string str = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}
+            .to_bytes(arg);
+        if (options.find(str) != options.end()) {
+            option = str;
+        } else {
+            argStr = str;
+        }
+    }
+    if (option == "-id") {
+        DumpSurfaceNodeFpsById(dumpString, SafeStringToULL(argStr));
     } else {
-        DumpSurfaceNodeFps(dumpString, fpsArg);
+        if (args.find(argStr) != args.end()) {
+            DumpFps(dumpString, argStr);
+        } else {
+            DumpSurfaceNodeFpsByName(dumpString, argStr);
+        }
     }
 }
 
-void RSRenderService::DumpFps(std::string& dumpString, std::string& fpsArg) const
+void RSRenderService::DumpFps(std::string& dumpString, std::string& layerName) const
 {
     auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
     if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
 #ifdef RS_ENABLE_GPU
         RSHardwareThread::Instance().ScheduleTask(
-            [this, &dumpString, &fpsArg]() { return screenManager_->FpsDump(dumpString, fpsArg); }).wait();
+            [this, &dumpString, &layerName]() { return screenManager_->FpsDump(dumpString, layerName); }).wait();
 #endif
     } else {
         mainThread_->ScheduleTask(
-            [this, &dumpString, &fpsArg]() { return screenManager_->FpsDump(dumpString, fpsArg); }).wait();
+            [this, &dumpString, &layerName]() { return screenManager_->FpsDump(dumpString, layerName); }).wait();
     }
 }
 
-void RSRenderService::DumpSurfaceNodeFps(std::string& dumpString, std::string& fpsArg) const
+void RSRenderService::DumpSurfaceNodeFpsByName(std::string& dumpString, std::string& layerName) const
 {
     dumpString += "\n-- The recently fps records info of screens:\n";
     auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
-    const auto& nodeMap = mainThread_->GetContext().GetNodeMap();
-    NodeId nodeId = 0;
-    nodeMap.TraverseSurfaceNodesBreakOnCondition(
-        [&nodeId, &fpsArg](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) {
-        if (surfaceNode->GetName() == fpsArg && surfaceNode->IsOnTheTree() == true) {
-            nodeId = surfaceNode->GetId();
-            return true;
-        }
-        return false;
-    });
+    if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
+#ifdef RS_ENABLE_GPU
+        RSHardwareThread::Instance().ScheduleTask(
+            [this, &dumpString, &layerName]() {
+                return RSSurfaceFpsManager::GetInstance().Dump(dumpString, layerName);
+            }).wait();
+#endif
+    } else {
+        mainThread_->ScheduleTask(
+            [this, &dumpString, &layerName]() {
+                return RSSurfaceFpsManager::GetInstance().Dump(dumpString, layerName);
+            }).wait();
+    }
+}
+
+void RSRenderService::DumpSurfaceNodeFpsById(std::string& dumpString, NodeId nodeId) const
+{
+    dumpString += "\n-- The recently fps records info of screens:\n";
+    auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
     if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
 #ifdef RS_ENABLE_GPU
         RSHardwareThread::Instance().ScheduleTask(
@@ -398,48 +434,71 @@ void RSRenderService::FPSDUMPClearProcess(std::unordered_set<std::u16string>& ar
         return ;
     }
     RS_TRACE_NAME("RSRenderService::FPSDUMPClearProcess");
-    std::string fpsArg = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}
-        .to_bytes(*argSets.begin());
+    std::unordered_set<std::string> options{"-name", "-id"};
     std::unordered_set<std::string> args{"DisplayNode", "composer"};
-    if (args.find(fpsArg) != args.end()) {
-        ClearFps(dumpString, fpsArg);
+    std::string argStr("");
+    std::string option("-name");
+    for (const std::u16string& arg : argSets) {
+        std::string str = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}
+            .to_bytes(arg);
+        if (options.find(str) != options.end()) {
+            option = str;
+        } else {
+            argStr = str;
+        }
+    }
+    if (option == "-id") {
+        ClearSurfaceNodeFpsById(dumpString, SafeStringToULL(argStr));
     } else {
-        ClearSurfaceNodeFps(dumpString, fpsArg);
+        if (args.find(argStr) != args.end()) {
+            ClearFps(dumpString, argStr);
+        } else {
+            ClearSurfaceNodeFpsByName(dumpString, argStr);
+        }
     }
 }
 
-void RSRenderService::ClearFps(std::string& dumpString, std::string& fpsArg) const
+void RSRenderService::ClearFps(std::string& dumpString, std::string& layerName) const
 {
     auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
     if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
 #ifdef RS_ENABLE_GPU
         RSHardwareThread::Instance().ScheduleTask(
-            [this, &dumpString, &fpsArg]() {
-                return screenManager_->ClearFpsDump(dumpString, fpsArg);
+            [this, &dumpString, &layerName]() {
+                return screenManager_->ClearFpsDump(dumpString, layerName);
             }).wait();
 #endif
     } else {
         mainThread_->ScheduleTask(
-            [this, &dumpString, &fpsArg]() {
-                return screenManager_->ClearFpsDump(dumpString, fpsArg);
+            [this, &dumpString, &layerName]() {
+                return screenManager_->ClearFpsDump(dumpString, layerName);
             }).wait();
     }
 }
 
-void RSRenderService::ClearSurfaceNodeFps(std::string& dumpString, std::string& fpsArg) const
+void RSRenderService::ClearSurfaceNodeFpsByName(std::string& dumpString, std::string& layerName) const
 {
     dumpString += "\n-- Clear fps records info of screens:\n";
     auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
-    const auto& nodeMap = mainThread_->GetContext().GetNodeMap();
-    NodeId nodeId = 0;
-    nodeMap.TraverseSurfaceNodesBreakOnCondition(
-        [&nodeId, &fpsArg](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) {
-        if (surfaceNode->GetName() == fpsArg && surfaceNode->IsOnTheTree() == true) {
-            nodeId = surfaceNode->GetId();
-            return true;
-        }
-        return false;
-    });
+    if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
+#ifdef RS_ENABLE_GPU
+        RSHardwareThread::Instance().ScheduleTask(
+            [this, &dumpString, &layerName]() {
+                return RSSurfaceFpsManager::GetInstance().ClearDump(dumpString, layerName);
+            }).wait();
+#endif
+    } else {
+        mainThread_->ScheduleTask(
+            [this, &dumpString, &layerName]() {
+                return RSSurfaceFpsManager::GetInstance().ClearDump(dumpString, layerName);
+            }).wait();
+    }
+}
+
+void RSRenderService::ClearSurfaceNodeFpsById(std::string& dumpString, NodeId nodeId) const
+{
+    dumpString += "\n-- Clear fps records info of screens:\n";
+    auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
     if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
 #ifdef RS_ENABLE_GPU
         RSHardwareThread::Instance().ScheduleTask(
@@ -988,17 +1047,12 @@ void RSRenderService::RegisterGpuFuncs()
 // need called after GraphicFeatureParamManager::GetInstance().Init();
 void RSRenderService::FilterCCMInit()
 {
-    auto filterParam = GraphicFeatureParamManager::GetInstance().featureParamMap_[FEATURE_CONFIGS[FILTER]];
-    if (filterParam == nullptr) {
-        return;
-    }
-    RSFilterCacheManager::isCCMFilterCacheEnable_ =
-        std::static_pointer_cast<FilterParam>(filterParam)->IsFilterCacheEnable();
-    RSFilterCacheManager::isCCMEffectMergeEnable_ =
-        std::static_pointer_cast<FilterParam>(filterParam)->IsEffectMergeEnable();
+    RSFilterCacheManager::isCCMFilterCacheEnable_ = FilterParam::IsFilterCacheEnable();
+    RSFilterCacheManager::isCCMEffectMergeEnable_ = FilterParam::IsEffectMergeEnable();
     RSProperties::SetFilterCacheEnabledByCCM(RSFilterCacheManager::isCCMFilterCacheEnable_);
-    RSProperties::SetBlurAdaptiveAdjustEnabledByCCM(
-        std::static_pointer_cast<FilterParam>(filterParam)->IsBlurAdaptiveAdjust());
+    RSProperties::SetBlurAdaptiveAdjustEnabledByCCM(FilterParam::IsBlurAdaptiveAdjust());
+    RSKawaseBlurShaderFilter::SetMesablurAllEnabledByCCM(FilterParam::IsMesablurAllEnable());
+    GEMESABlurShaderFilter::SetMesaModeByCCM(FilterParam::GetSimplifiedMesaMode());
 }
 } // namespace Rosen
 } // namespace OHOS

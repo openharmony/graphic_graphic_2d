@@ -17,19 +17,9 @@
 
 namespace OHOS::Rosen {
 
-bool ColorGamutParam::IsCoveredSurfaceCloseP3()
-{
-    return isCoveredSurfaceCloseP3_;
-}
-
 bool ColorGamutParam::IsSLRCloseP3()
 {
     return isSLRCloseP3_;
-}
-
-void ColorGamutParam::SetCoveredSurfaceCloseP3(bool isEnable)
-{
-    isCoveredSurfaceCloseP3_ = isEnable;
 }
 
 void ColorGamutParam::SetSLRCloseP3(bool isEnable)

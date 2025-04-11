@@ -322,6 +322,40 @@ ohos_executable("render_service_client_ui_capture_demo") {
   subsystem_name = "graphic"
 }
 
+ohos_executable("render_service_client_ui_capture_config_demo") {
+  sources = [ "render_service_client_ui_capture_config_demo.cpp" ]
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
+  deps = [
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
+  ]
+
+  external_deps = [
+    "access_token:libaccesstoken_sdk",
+    "access_token:libnativetoken",
+    "access_token:libtoken_setproc",
+    "c_utils:utils",
+    "hilog:libhilog",
+    "init:libbegetutil",
+  ]
+
+  public_external_deps = [
+    "$public_deps_skia",
+    "libpng:libpng",
+    "window_manager:libwm",
+    "zlib:libz",
+  ]
+
+  part_name = "graphic_2d"
+  subsystem_name = "graphic"
+}
+
 ohos_executable("render_service_client_scale_demo") {
   sources = [ "render_service_client_scale_demo.cpp" ]
 
@@ -783,6 +817,12 @@ ohos_executable("render_service_client__alpha_offscreen_demo") {
 ohos_executable("render_service_client_first_frame_callback_demo") {
   sources = [ "render_service_client_first_frame_callback_demo.cpp" ]
 
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
   deps = [
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
     "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
@@ -790,9 +830,9 @@ ohos_executable("render_service_client_first_frame_callback_demo") {
 
   external_deps = [
     "c_utils:utils",
-    "eventhandler:libeventhandler",
     "hilog:libhilog",
-    "window_manager:libwm",
+    "image_framework:image_native",
+    "window_manager:libdm",
     "window_manager:sms",
   ]
 

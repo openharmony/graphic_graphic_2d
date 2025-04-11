@@ -60,7 +60,7 @@ RSUniHwcPrevalidateUtil::RSUniHwcPrevalidateUtil()
     }
     RS_LOGI("[%{public}s_%{public}d]:load success", __func__, __LINE__);
     loadSuccess_ = true;
-    isPrevalidateHwcNodeEnable_ = RSUniHwcPrevalidateUtil::GetPrevalidateEnabled();
+    isPrevalidateHwcNodeEnable_ = PrevalidateParam::IsPrevalidateEnable();
     arsrPreEnabled_ = RSSystemParameters::GetArsrPreEnabled();
 }
 
@@ -70,16 +70,6 @@ RSUniHwcPrevalidateUtil::~RSUniHwcPrevalidateUtil()
         dlclose(preValidateHandle_);
         preValidateHandle_ = nullptr;
     }
-}
-
-bool RSUniHwcPrevalidateUtil::GetPrevalidateEnabled()
-{
-    auto prevalidateFeatureParam = GraphicFeatureParamManager::GetInstance().GetFeatureParam("PrevalidateConfig");
-    auto prevalidateFeature = std::static_pointer_cast<PrevalidateParam>(prevalidateFeatureParam);
-    if (prevalidateFeature != nullptr) {
-        return prevalidateFeature->IsPrevalidateEnable();
-    }
-    return true;
 }
 
 bool RSUniHwcPrevalidateUtil::IsPrevalidateEnable()

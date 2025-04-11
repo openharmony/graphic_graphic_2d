@@ -32,9 +32,9 @@ class RSNodeVisitor : public std::enable_shared_from_this<RSNodeVisitor> {
 public:
     RSNodeVisitor() = default;
     RSNodeVisitor(const RSNodeVisitor&) = delete;
-    RSNodeVisitor(const RSNodeVisitor&&) = delete;
+    RSNodeVisitor(RSNodeVisitor&&) = delete;
     RSNodeVisitor& operator=(const RSNodeVisitor&) = delete;
-    RSNodeVisitor& operator=(const RSNodeVisitor&&) = delete;
+    RSNodeVisitor& operator=(RSNodeVisitor&&) = delete;
     virtual ~RSNodeVisitor() = default;
 
     virtual void QuickPrepareDisplayRenderNode(RSDisplayRenderNode& node) {};

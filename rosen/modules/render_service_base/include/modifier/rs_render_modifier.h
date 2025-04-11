@@ -94,6 +94,11 @@ public:
     {
         return nullptr;
     }
+
+    virtual void SetPropertyDrawCmdList(std::shared_ptr<Drawing::DrawCmdList> ptr) const
+    {
+    }
+    
     virtual uint64_t GetDrawCmdListId() const
     {
         return 0;
@@ -175,6 +180,12 @@ public:
     {
         return property_->Get();
     }
+
+    void SetPropertyDrawCmdList(std::shared_ptr<Drawing::DrawCmdList> ptr) const override
+    {
+        return property_->Set(ptr);
+    }
+    
     uint64_t GetDrawCmdListId() const override
     {
         Drawing::DrawCmdListPtr drawCmd = property_->Get();
@@ -340,23 +351,6 @@ public:
     RSModifierType GetType() override
     {
         return RSModifierType::CUSTOM_CLIP_TO_FRAME;
-    }
-};
-
-class RSB_EXPORT RSBehindWindowFilterEnabledRenderModifier : public RSBackgroundRenderModifier {
-public:
-    RSBehindWindowFilterEnabledRenderModifier(const std::shared_ptr<RSRenderPropertyBase>& property)
-        : RSBackgroundRenderModifier(property)
-    {
-        property->SetModifierType(RSModifierType::BEHIND_WINDOW_FILTER_ENABLED);
-    }
-    ~RSBehindWindowFilterEnabledRenderModifier() override = default;
-    void Apply(RSModifierContext& context) const override {}
-    void Update(const std::shared_ptr<RSRenderPropertyBase>& prop, bool isDelta) override;
-    bool Marshalling(Parcel& parcel) override;
-    RSModifierType GetType() override
-    {
-        return RSModifierType::BEHIND_WINDOW_FILTER_ENABLED;
     }
 };
 

@@ -15,6 +15,7 @@
 
 #include "skia_gpu_context.h"
 #include "include/gpu/gl/GrGLInterface.h"
+#include "include/gpu/vk/GrVulkanTrackerInterface.h"
 #include "src/gpu/GrDirectContextPriv.h"
 #include "include/core/SkTypes.h"
 
@@ -389,6 +390,12 @@ void SkiaGPUContext::SetCurrentGpuResourceTag(const GPUResourceTag &tag)
     if (!grContext_) {
         LOGD("SkiaGPUContext::ReleaseByTag, grContext_ is nullptr");
         return;
+    }
+    if (tag.fCid != 0) {
+        RECORD_GPU_RESOURCE_DRAWABLE_CALLER(tag.fCid);
+        if (tag.fWid == 0) {
+            return;
+        }
     }
     GrGpuResourceTag grTag(tag.fPid, tag.fTid, tag.fWid, tag.fFid, tag.fName);
     grContext_->setCurrentGrResourceTag(grTag);

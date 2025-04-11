@@ -196,7 +196,7 @@ private:
     static thread_local bool isOpDropped_;
     static thread_local bool isOffScreenWithClipHole_;
     static inline std::atomic<int> totalProcessedNodeCount_ = 0;
-    static inline std::atomic<int> processedNodeCount_ = 0;
+    static thread_local inline int processedNodeCount_ = 0;
     // used foe render group cache
 
     // opinc cache state
@@ -232,6 +232,7 @@ private:
     }
     bool isOpincMarkCached_ = false;
     bool IsOpincNodeInScreenRect(RSRenderParams& params);
+    friend class RsSubThreadCache;
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

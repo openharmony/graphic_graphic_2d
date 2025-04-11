@@ -356,8 +356,13 @@ bool DoSetFocusAppInfo(const uint8_t* data, size_t size)
     std::string bundleName = "bundleName";
     std::string abilityName = "abilityName";
     uint64_t focusNodeId = GetData<uint64_t>();
-
-    client->SetFocusAppInfo(pid, uid, bundleName, abilityName, focusNodeId);
+    FocusAppInfo info = {
+        .pid = pid,
+        .uid = uid,
+        .bundleName = bundleName,
+        .abilityName = abilityName,
+        .focusNodeId = focusNodeId};
+    client->SetFocusAppInfo(info);
     return true;
 }
 
@@ -2041,7 +2046,13 @@ bool DoSetFocusAppInfo002(const uint8_t *data, size_t size)
     uint64_t focusNodeId = GetData<uint64_t>();
 
     RSRenderServiceConnectHub::GetInstance()->Destroy();
-    client->SetFocusAppInfo(pid, uid, bundleName, abilityName, focusNodeId);
+    FocusAppInfo info = {
+        .pid = pid,
+        .uid = uid,
+        .bundleName = bundleName,
+        .abilityName = abilityName,
+        .focusNodeId = focusNodeId};
+    client->SetFocusAppInfo(info);
     client->GetDefaultScreenId();
     client->GetActiveScreenId();
     client->GetAllScreenIds();

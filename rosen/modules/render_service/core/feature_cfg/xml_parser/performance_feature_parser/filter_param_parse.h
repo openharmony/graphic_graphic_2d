@@ -28,8 +28,7 @@ public:
     int32_t ParseFeatureParam(FeatureParamMapType &featureMap, xmlNode &node) override;
 
 private:
-    int32_t ParseFilterCacheInternal(FeatureParamMapType &featureMap, xmlNode &node);
-    std::shared_ptr<FilterParam> filterParam_;
+    int32_t ParseFilterCacheInternal(xmlNode &node);
 };
 } // namespace OHOS::Rosen
 #endif // FILTER_CACHE_PARAM_PARSE_H

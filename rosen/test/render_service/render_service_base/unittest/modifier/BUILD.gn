@@ -12,6 +12,7 @@
 # limitations under the License.
 
 import("//build/test.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 module_output_path = "graphic_2d/graphic_2d/render_service_base/modifier"
 
@@ -28,13 +29,13 @@ ohos_unittest("RSRenderServiceBaseModifierTest") {
 
   configs = [
     ":render_test",
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:export_config",
+    "$graphic_2d_root/rosen/modules/render_service_base:export_config",
   ]
 
   include_dirs = [
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/include",
-    "//foundation/graphic/graphic_2d/rosen/include",
-    "//foundation/graphic/graphic_2d/rosen/test/include",
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
+    "$graphic_2d_root/rosen/include",
+    "$graphic_2d_root/rosen/test/include",
   ]
 
   cflags = [
@@ -43,12 +44,12 @@ ohos_unittest("RSRenderServiceBaseModifierTest") {
   ]
 
   deps = [
-    "../../../../../modules/render_service_base:librender_service_base",
-    "../../../../../modules/render_service_base:render_service_base_src",
-    "//third_party/googletest:gtest_main",
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_base:render_service_base_src",
   ]
   external_deps = [
     "c_utils:utils",
+    "googletest:gtest_main",
     "graphic_surface:surface",
     "image_framework:image_native",
     "init:libbegetutil",
@@ -62,8 +63,7 @@ ohos_unittest("RSRenderServiceBaseModifierTest") {
 ###############################################################################
 config("render_test") {
   visibility = [ ":*" ]
-  include_dirs =
-      [ "//foundation/graphic/graphic_2d/rosen/modules/render_service_base" ]
+  include_dirs = [ "$graphic_2d_root/rosen/modules/render_service_base" ]
 }
 
 group("unittest") {

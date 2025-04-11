@@ -13,7 +13,7 @@
 
 import("//build/test.gni")
 
-module_out_path = "graphic_2d/vulkan_layers"
+module_out_path = "graphic_2d/graphic_2d/vulkan_layers"
 
 group("unittest") {
   testonly = true

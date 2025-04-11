@@ -110,7 +110,7 @@ public:
         int32_t drawMin;
         int32_t drawMax;
         int32_t down;
-        // Does this game app require Adaptive Sync?
+        // Does this game app require Adaptive Sync? Yes/No/Skip Required
         int32_t supportAS;
         // <bufferName, fps>
         std::unordered_map<std::string, int32_t> bufferFpsMap;
@@ -192,15 +192,19 @@ public:
     // <"VIRTUAL_AXX", "4">
     std::unordered_map<std::string, std::string> virtualDisplayConfigs_;
     bool virtualDisplaySwitch_;
+    // <"p3NodeCount", "0">
+    bool p3NodeCountSwitch_ = false;
+    // <"isCoveredSurfaceCloseP3", "0">
+    bool isCoveredSurfaceCloseP3_ = false;
     // <"screen0_LTPO", "LTPO-DEFAULT">
     std::unordered_map<std::string, std::string> screenStrategyConfigs_;
     std::unordered_map<std::string, std::string> sourceTuningConfig_;
     std::unordered_map<std::string, std::string> solidLayerConfig_;
     std::unordered_map<std::string, std::string> hwcSourceTuningConfig_;
     std::unordered_map<std::string, std::string> hwcSolidLayerConfig_;
+    // <"up_timeout_ms", 3000>
+    std::unordered_map<std::string, std::string> timeoutStrategyConfig_;
     std::unordered_map<std::string, std::string> videoCallLayerConfig_;
-    // <"pkgName", "1">
-    std::unordered_map<std::string, std::string> hfbcConfig_;
     StrategyConfigMap strategyConfigs_;
     ScreenConfigMap screenConfigs_;
     SupportedModeMap supportedModeConfigs_;

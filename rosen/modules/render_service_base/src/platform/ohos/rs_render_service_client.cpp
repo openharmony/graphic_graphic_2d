@@ -191,8 +191,9 @@ std::shared_ptr<VSyncReceiver> RSRenderServiceClient::CreateVSyncReceiver(
         return nullptr;
     }
     sptr<VSyncIConnectionToken> token = new IRemoteStub<VSyncIConnectionToken>();
-    sptr<IVSyncConnection> conn = renderService->
-        CreateVSyncConnection(name, token, id, windowNodeId, fromXcomponent);
+    sptr<IVSyncConnection> conn = nullptr;
+    VSyncConnParam vsyncConnParam = {id, windowNodeId, fromXcomponent};
+    renderService->CreateVSyncConnection(conn, name, token, vsyncConnParam);
     if (conn == nullptr) {
         ROSEN_LOGE("RSRenderServiceClient::CreateVSyncReceiver Failed");
         return nullptr;
@@ -389,15 +390,15 @@ bool RSRenderServiceClient::SetHwcNodeBounds(int64_t rsNodeId, float positionX, 
     return true;
 }
 
-int32_t RSRenderServiceClient::SetFocusAppInfo(
-    int32_t pid, int32_t uid, const std::string &bundleName, const std::string &abilityName, uint64_t focusNodeId)
+int32_t RSRenderServiceClient::SetFocusAppInfo(const FocusAppInfo& info)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
-
-    return renderService->SetFocusAppInfo(pid, uid, bundleName, abilityName, focusNodeId);
+    int32_t repCode;
+    renderService->SetFocusAppInfo(info, repCode);
+    return repCode;
 }
 
 ScreenId RSRenderServiceClient::GetDefaultScreenId()
@@ -1106,7 +1107,9 @@ bool RSRenderServiceClient::SetGlobalDarkColorMode(bool isDark)
         ROSEN_LOGE("RSRenderServiceClient::SetGlobalDarkColorMode: renderService is nullptr");
         return false;
     }
-    return renderService->SetGlobalDarkColorMode(isDark);
+    bool success;
+    renderService->SetGlobalDarkColorMode(isDark, success);
+    return success;
 }
 
 int32_t RSRenderServiceClient::GetScreenGamutMap(ScreenId id, ScreenGamutMap& mode)
@@ -1308,7 +1311,9 @@ int32_t RSRenderServiceClient::SetVirtualScreenRefreshRate(
     if (renderService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
-    return renderService->SetVirtualScreenRefreshRate(id, maxRefreshRate, actualRefreshRate);
+    int32_t retVal = 0;
+    renderService->SetVirtualScreenRefreshRate(id, maxRefreshRate, actualRefreshRate, retVal);
+    return retVal;
 }
 
 uint32_t RSRenderServiceClient::SetScreenActiveRect(ScreenId id, const Rect& activeRect)
@@ -1317,7 +1322,9 @@ uint32_t RSRenderServiceClient::SetScreenActiveRect(ScreenId id, const Rect& act
     if (renderService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
-    return renderService->SetScreenActiveRect(id, activeRect);
+    uint32_t repCode;
+    return renderService->SetScreenActiveRect(id, activeRect, repCode);
+    return repCode;
 }
 
 class CustomOcclusionChangeCallback : public RSOcclusionChangeCallbackStub
@@ -1345,7 +1352,9 @@ int32_t RSRenderServiceClient::RegisterOcclusionChangeCallback(const OcclusionCh
         return RENDER_SERVICE_NULL;
     }
     sptr<CustomOcclusionChangeCallback> cb = new CustomOcclusionChangeCallback(callback);
-    return renderService->RegisterOcclusionChangeCallback(cb);
+    int32_t repCode;
+    renderService->RegisterOcclusionChangeCallback(cb, repCode);
+    return repCode;
 }
 
 class CustomSurfaceOcclusionChangeCallback : public RSSurfaceOcclusionChangeCallbackStub
@@ -1591,7 +1600,9 @@ bool RSRenderServiceClient::SetSystemAnimatedScenes(SystemAnimatedScenes systemA
         ROSEN_LOGE("RSRenderServiceClient::SetSystemAnimatedScenes renderService == nullptr!");
         return false;
     }
-    return renderService->SetSystemAnimatedScenes(systemAnimatedScenes, isRegularAnimation);
+    bool success;
+    renderService->SetSystemAnimatedScenes(systemAnimatedScenes, isRegularAnimation, success);
+    return success;
 }
 
 void RSRenderServiceClient::ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow)
@@ -2024,6 +2035,14 @@ void RSRenderServiceClient::SetLayerTop(const std::string &nodeIdStr, bool isTop
     }
 }
 
+void RSRenderServiceClient::SetColorFollow(const std::string &nodeIdStr, bool isColorFollow)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService != nullptr) {
+        renderService->SetColorFollow(nodeIdStr, isColorFollow);
+    }
+}
+
 void RSRenderServiceClient::NotifyScreenSwitched()
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
@@ -2095,14 +2114,6 @@ void RSRenderServiceClient::NotifyPageName(const std::string &packageName,
         return;
     }
     renderService->NotifyPageName(packageName, pageName, isEnter);
-}
-
-void RSRenderServiceClient::TestLoadFileSubTreeToNode(NodeId nodeId, const std::string &filePath)
-{
-    auto renderService = RSRenderServiceConnectHub::GetRenderService();
-    if (renderService != nullptr) {
-        renderService->TestLoadFileSubTreeToNode(nodeId, filePath);
-    }
 }
 
 bool RSRenderServiceClient::GetHighContrastTextState()

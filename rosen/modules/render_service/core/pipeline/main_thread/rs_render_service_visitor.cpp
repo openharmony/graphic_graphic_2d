@@ -116,10 +116,11 @@ void RSRenderServiceVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
     RSScreenModeInfo modeInfo = {};
     screenManager->GetDefaultScreenActiveMode(modeInfo);
     uint32_t refreshRate = modeInfo.GetScreenRefreshRate();
+    screenManager->RemoveForceRefreshTask();
     // skip frame according to skipFrameInterval value of SetScreenSkipFrameInterval interface
     if (node.SkipFrame(refreshRate, curScreenInfo.skipFrameInterval)) {
         RS_TRACE_NAME("SkipFrame, screenId:" + std::to_string(node.GetScreenId()));
-        screenManager->ForceRefreshOneFrameIfNoRNV();
+        screenManager->PostForceRefreshTask();
         return;
     }
 

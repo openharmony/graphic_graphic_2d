@@ -504,14 +504,15 @@ HWTEST_F(RSAnimationTest, AnimationFinishCallbackTest002, TestSize.Level1)
     int testData = 0;
     std::shared_ptr<AnimationFinishCallback> callback =
         std::make_shared<AnimationFinishCallback>([&]() { testData += 1; });
-    std::shared_ptr<AnimationFinishCallback> callbackCopy = callback;
+    std::shared_ptr<AnimationFinishCallback> callback2 =
+        std::make_shared<AnimationFinishCallback>([&]() { testData = 0; });
     /**
      * @tc.steps: step2. start animation finishCallback test
      */
-    callback.reset();
-    EXPECT_EQ(0, testData);
-    callbackCopy.reset();
-    EXPECT_EQ(1, testData);
+    callback.Execute();
+    EXPECT_TRUE(testData);
+    callback2.Execute();
+    EXPECT_FALSE(testData);
 }
 
 /**

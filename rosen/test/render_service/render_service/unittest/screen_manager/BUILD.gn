@@ -15,7 +15,8 @@ import("//build/test.gni")
 import("//foundation/graphic/graphic_2d/ace_platforms.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
-module_output_path = "graphic_2d/rosen_engine/render_service/screen_manager"
+module_output_path =
+    "graphic_2d/graphic_2d/rosen_engine/render_service/screen_manager"
 
 ##############################  VsyncEnabledScreenIdTest  ##################################
 ohos_unittest("VsyncEnabledScreenIdTest") {
@@ -24,18 +25,18 @@ ohos_unittest("VsyncEnabledScreenIdTest") {
   sources = [ "vsync_enabled_screen_id_test.cpp" ]
 
   include_dirs = [
-    "../../../../../modules/render_service/core",
-    "../../../../../modules/render_service_base/src",
-    "../../../../../modules/render_service_client/core",
-    "../../../../../include",
-    "../../../../../test/include",
+    "$graphic_2d_root/rosen/modules/render_service/core",
+    "$graphic_2d_root/rosen/modules/render_service_base/src",
+    "$graphic_2d_root/rosen/modules/render_service_client/core",
+    "$graphic_2d_root/rosen/include",
+    "$graphic_2d_root/rosen/test/include",
   ]
 
   deps = [
-    "../../../../../modules/composer:libcomposer",
-    "../../../../../modules/render_service:librender_service",
-    "../../../../../modules/render_service_base:librender_service_base",
-    "../../../../../modules/render_service_client:librender_service_client",
+    "$graphic_2d_root/rosen/modules/composer:libcomposer",
+    "$graphic_2d_root/rosen/modules/render_service:librender_service",
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
   ]
 
   external_deps = [
@@ -72,26 +73,24 @@ ohos_unittest("RSScreenManagerTest") {
   configs = [ ":screen_manager_test" ]
 
   include_dirs = [
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service/core",
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/src",
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_client/core",
-    "//foundation/graphic/graphic_2d/rosen/include",
-    "//foundation/graphic/graphic_2d/rosen/test/include",
-    "//foundation/barrierfree/accessibility/interfaces/innerkits/acfwk/include",
+    "$graphic_2d_root/rosen/modules/render_service/core",
+    "$graphic_2d_root/rosen/modules/render_service_base/src",
+    "$graphic_2d_root/rosen/modules/render_service_client/core",
+    "$graphic_2d_root/rosen/include",
+    "$graphic_2d_root/rosen/test/include",
     "$graphic_2d_root/rosen/test/render_service/render_service/unittest/pipeline/mock",
   ]
 
   deps = [
-    "//foundation/graphic/graphic_2d/rosen/modules/composer:libcomposer",
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service:librender_service",
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
-    "//third_party/googletest:gmock_main",
-    "//third_party/googletest:gtest_main",
+    "$graphic_2d_root/rosen/modules/composer:libcomposer",
+    "$graphic_2d_root/rosen/modules/render_service:librender_service",
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
   ]
 
   external_deps = [
     "c_utils:utils",
+    "googletest:gmock_main",
     "hilog:libhilog",
     "init:libbegetutil",
   ]
@@ -127,7 +126,6 @@ ohos_unittest("TouchScreenTest") {
 
   external_deps = [
     "c_utils:utils",
-    "googletest:gtest_main",
     "hilog:libhilog",
     "init:libbegetutil",
   ]
@@ -156,26 +154,24 @@ ohos_unittest("RSScreenTest") {
   configs = [ ":screen_test" ]
 
   include_dirs = [
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service/core",
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/src",
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_client/core",
-    "//foundation/graphic/graphic_2d/rosen/include",
-    "//foundation/graphic/graphic_2d/rosen/test/include",
-    "//foundation/barrierfree/accessibility/interfaces/innerkits/acfwk/include",
+    "$graphic_2d_root/rosen/modules/render_service/core",
+    "$graphic_2d_root/rosen/modules/render_service_base/src",
+    "$graphic_2d_root/rosen/modules/render_service_client/core",
+    "$graphic_2d_root/rosen/include",
+    "$graphic_2d_root/rosen/test/include",
     "$graphic_2d_root/rosen/test/render_service/render_service/unittest/pipeline/mock",
   ]
 
   deps = [
-    "//foundation/graphic/graphic_2d/rosen/modules/composer:libcomposer",
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service:librender_service",
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
-    "//third_party/googletest:gmock_main",
-    "//third_party/googletest:gtest_main",
+    "$graphic_2d_root/rosen/modules/composer:libcomposer",
+    "$graphic_2d_root/rosen/modules/render_service:librender_service",
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
   ]
 
   external_deps = [
     "c_utils:utils",
+    "googletest:gmock_main",
     "hilog:libhilog",
     "init:libbegetutil",
   ]
@@ -195,7 +191,7 @@ ohos_unittest("RSScreenTest") {
 config("screen_manager_test") {
   #visibility = [ ":*" ]
   include_dirs =
-      [ "//foundation/graphic/graphic_2d/rosen/modules/render_service/core" ]
+      [ "$graphic_2d_root/rosen/modules/render_service/core" ]
 }
 
 ###############################################################################
@@ -208,7 +204,7 @@ config("touch_screen_test") {
 config("screen_test") {
   #visibility = [ ":*" ]
   include_dirs =
-      [ "//foundation/graphic/graphic_2d/rosen/modules/render_service/core" ]
+      [ "$graphic_2d_root/rosen/modules/render_service/core" ]
 }
 
 group("unittest") {

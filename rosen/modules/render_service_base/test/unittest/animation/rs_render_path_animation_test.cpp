@@ -391,7 +391,7 @@ HWTEST_F(RSRenderPathAnimationTest, OnAnimate003, TestSize.Level1)
     renderPathAnimation->valueEstimator_ = nullptr;
     renderPathAnimation->property_ = std::make_shared<RSRenderPropertyBase>();
     renderPathAnimation->property_->CreateRSValueEstimator(RSValueEstimatorType::CURVE_VALUE_ESTIMATOR);
-    EXPECT_TRUE(renderPathAnimation->valueEstimator_ == nullptr);
+    EXPECT_FALSE(renderPathAnimation->valueEstimator_);
     GTEST_LOG_(INFO) << "RSRenderPathAnimationTest OnAnimate003 end";
 }
 

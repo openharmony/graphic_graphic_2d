@@ -25,13 +25,10 @@ ohos_fuzztest("RSAibarShaderFilterFuzzTest") {
     "../../../../../modules/render_service_base/src",
     "../../../../../modules/render_service_base/include",
     "../../../../../modules/2d_graphics/include",
-    "../../../../../modules/graphics_effect/include",
-    "../../../../../modules/graphics_effect/src",
     "../../../../../modules/utils",
   ]
   deps = [
     "../../../../../modules/2d_graphics:2d_graphics",
-    "../../../../../modules/graphics_effect:libgraphics_effect",
     "../../../../../modules/render_service:librender_service",
     "../../../../../modules/render_service_base:librender_service_base",
     "../../../../../modules/render_service_base:render_service_base_src",
@@ -40,6 +37,7 @@ ohos_fuzztest("RSAibarShaderFilterFuzzTest") {
   external_deps = [
     "c_utils:utils",
     "graphic_surface:sync_fence",
+    "graphics_effect:graphics_effect_core",
     "hilog:libhilog",
     "ipc:ipc_single",
   ]

@@ -20,6 +20,7 @@
 #include "display_engine/rs_luminance_control.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
 #include "gfx/performance/rs_perfmonitor_reporter.h"
+#include "memory/rs_tag_tracker.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
 #include "pipeline/rs_paint_filter_canvas.h"
@@ -28,7 +29,6 @@
 #include "rs_trace.h"
 #include "system/rs_system_parameters.h"
 #include "pipeline/main_thread/rs_main_thread.h"
-#include "include/gpu/vk/GrVulkanTrackerInterface.h"
 #include "utils/graphic_coretrace.h"
 
 namespace OHOS::Rosen::DrawableV2 {
@@ -81,7 +81,7 @@ void RSRenderNodeDrawable::Draw(Drawing::Canvas& canvas)
  */
 void RSRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 {
-    RECORD_GPU_RESOURCE_DRAWABLE_CALLER(GetId())
+    RSTagTracker tagTracker(canvas.GetGPUContext().get(), 0, GetId(), RSTagTracker::TAGTYPE::TAG_DRAW_RENDER_NODE);
     RSRenderNodeDrawable::TotalProcessedNodeCountInc();
     Drawing::Rect bounds = GetRenderParams() ? GetRenderParams()->GetFrameRect() : Drawing::Rect(0, 0, 0, 0);
 
@@ -104,7 +104,8 @@ void RSRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
     RSRenderNodeDrawable::OnDraw(canvas);
 }
 
-void RSRenderNodeDrawable::GenerateCacheIfNeed(Drawing::Canvas& canvas, RSRenderParams& params)
+CM_INLINE void RSRenderNodeDrawable::GenerateCacheIfNeed(
+    Drawing::Canvas& canvas, RSRenderParams& params)
 {
     RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
         RS_RSRENDERNODEDRAWABLE_GENERATECACHEIFNEED);
@@ -252,7 +253,7 @@ void RSRenderNodeDrawable::TraverseSubTreeAndDrawFilterWithClip(Drawing::Canvas&
     curDrawingCacheRoot_ = root;
 }
 
-void RSRenderNodeDrawable::CheckCacheTypeAndDraw(
+CM_INLINE void RSRenderNodeDrawable::CheckCacheTypeAndDraw(
     Drawing::Canvas& canvas, const RSRenderParams& params, bool isInCapture)
 {
     RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
@@ -582,13 +583,14 @@ void RSRenderNodeDrawable::InitCachedSurface(Drawing::GPUContext* gpuContext, co
             colorType = Drawing::ColorType::COLORTYPE_RGBA_F16;
             format = VK_FORMAT_R16G16B16A16_SFLOAT;
         }
-        cachedBackendTexture_ = RSUniRenderUtil::MakeBackendTexture(width, height, format);
+        cachedBackendTexture_ = RSUniRenderUtil::MakeBackendTexture(width, height, ExtractPid(nodeId_),
+            RSTagTracker::TAGTYPE::TAG_DRAW_RENDER_NODE, format);
         auto vkTextureInfo = cachedBackendTexture_.GetTextureInfo().GetVKTextureInfo();
         if (!cachedBackendTexture_.IsValid() || !vkTextureInfo) {
             return;
         }
-        vulkanCleanupHelper_ = new NativeBufferUtils::VulkanCleanupHelper(
-            RsVulkanContext::GetSingleton(), vkTextureInfo->vkImage, vkTextureInfo->vkAlloc.memory);
+        vulkanCleanupHelper_ = new NativeBufferUtils::VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
+            vkTextureInfo->vkImage, vkTextureInfo->vkAlloc.memory, vkTextureInfo->vkAlloc.statName);
         auto colorSpace = RSBaseRenderEngine::ConvertColorGamutToDrawingColorSpace(colorGamut);
         cachedSurface_ = Drawing::Surface::MakeFromBackendTexture(gpuContext, cachedBackendTexture_.GetTextureInfo(),
             Drawing::TextureOrigin::BOTTOM_LEFT, 1, colorType, colorSpace,
@@ -894,9 +896,11 @@ void RSRenderNodeDrawable::UpdateCacheSurface(Drawing::Canvas& canvas, const RSR
     }
 #endif
     // update cache updateTimes
+    int32_t updateTimes = 0;
     {
         std::lock_guard<std::mutex> lock(drawingCacheMapMutex_);
         drawingCacheUpdateTimeMap_[nodeId_]++;
+        updateTimes = drawingCacheUpdateTimeMap_[nodeId_];
     }
     {
         std::lock_guard<std::mutex> lock(drawingCacheContiUpdateTimeMapMutex_);
@@ -907,8 +911,7 @@ void RSRenderNodeDrawable::UpdateCacheSurface(Drawing::Canvas& canvas, const RSR
         cacheUpdatedNodeMap_.emplace(params.GetId(), true);
     }
     auto ctx = RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetContext();
-    RSPerfMonitorReporter::GetInstance().EndRendergroupMonitor(startTime, nodeId_, ctx,
-        drawingCacheUpdateTimeMap_[nodeId_]);
+    RSPerfMonitorReporter::GetInstance().EndRendergroupMonitor(startTime, nodeId_, ctx, updateTimes);
 }
 
 int RSRenderNodeDrawable::GetTotalProcessedNodeCount()

@@ -269,17 +269,27 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
         RS_LOGD_IF(DEBUG_COMPOSER, "RSHardwareThread::CommitAndReleaseLayers rate:%{public}u, " \
             "now:%{public}" PRIu64 ", vsyncId:%{public}" PRIu64 ", size:%{public}zu, %{public}s",
             currentRate, param.frameTimestamp, param.vsyncId, layers.size(), surfaceName.c_str());
-        ExecuteSwitchRefreshRate(output, param.rate);
-        PerformSetActiveMode(output, param.frameTimestamp, param.constraintRelativeTime);
-        AddRefreshRateCount(output);
-        if (RSSystemProperties::IsSuperFoldDisplay()) {
+
+        bool isScreenPoweringOff = false;
+        auto screenManager = CreateOrGetScreenManager();
+        if (screenManager) {
+            isScreenPoweringOff = screenManager->IsScreenPoweringOff(output->GetScreenId());
+        }
+
+        if (!isScreenPoweringOff) {
+            ExecuteSwitchRefreshRate(output, param.rate);
+            PerformSetActiveMode(output, param.frameTimestamp, param.constraintRelativeTime);
+            AddRefreshRateCount(output);
+        }
+
+        if (RSSystemProperties::IsSuperFoldDisplay() && output->GetScreenId() == 0) {
             std::vector<LayerInfoPtr> reviseLayers = layers;
             ChangeLayersForActiveRectOutside(reviseLayers, curScreenId);
             output->SetLayerInfo(reviseLayers);
         } else {
             output->SetLayerInfo(layers);
         }
-        if (output->IsDeviceValid()) {
+        if (output->IsDeviceValid() && !isScreenPoweringOff) {
             hdiBackend_->Repaint(output);
             RecordTimestamp(layers);
         }
@@ -346,6 +356,10 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
 
 void RSHardwareThread::ChangeLayersForActiveRectOutside(std::vector<LayerInfoPtr>& layers, ScreenId screenId)
 {
+#ifdef ROSEN_EMULATOR
+    RS_LOGD("RSHardwareThread::emulator device do not need add layer");
+    return;
+#endif
     if (!RSSystemProperties::IsSuperFoldDisplay() || layers.size() == 0) {
         return;
     }
@@ -445,14 +459,13 @@ bool RSHardwareThread::IsDelayRequired(OHOS::Rosen::HgmCore& hgmCore, RefreshRat
         if (AdaptiveModeStatus(output) == SupportASStatus::SUPPORT_AS) {
             RS_LOGD("RSHardwareThread::CommitAndReleaseLayers in Adaptive Mode");
             RS_TRACE_NAME("CommitAndReleaseLayers in Adaptive Mode");
-            isLastAdaptive_ = true;
             return false;
         }
         if (hasGameScene && AdaptiveModeStatus(output) == SupportASStatus::GAME_SCENE_SKIP) {
-            RS_LOGD("RSHardwareThread::CommitAndReleaseLayers skip dalayTime Calculation");
+            RS_LOGD("RSHardwareThread::CommitAndReleaseLayers skip delayTime Calculation");
+            RS_TRACE_NAME("CommitAndReleaseLayers in Game Scene and skiped delayTime Calculation");
             return false;
         }
-        isLastAdaptive_ = false;
     } else {
         if (!hgmCore.IsDelayMode()) {
             return false;
@@ -618,7 +631,6 @@ int32_t RSHardwareThread::AdaptiveModeStatus(const OutputPtr &output)
         return SupportASStatus::NOT_SUPPORT;
     }
 
-    bool isSamplerEnabled = hdiBackend_->GetVsyncSamplerEnabled(output);
     auto& hgmCore = OHOS::Rosen::HgmCore::Instance();
 
     // if in game adaptive vsync mode and do direct composition,send layer immediately
@@ -627,22 +639,12 @@ int32_t RSHardwareThread::AdaptiveModeStatus(const OutputPtr &output)
         int32_t adaptiveStatus = frameRateMgr->AdaptiveStatus();
         RS_LOGD("RSHardwareThread::CommitAndReleaseLayers send layer adaptiveStatus: %{public}u", adaptiveStatus);
         if (adaptiveStatus == SupportASStatus::SUPPORT_AS) {
-            if (isSamplerEnabled) {
-                // when phone enter game adaptive sync mode must disable vsync sampler
-                hdiBackend_->SetVsyncSamplerEnabled(output, false);
-            }
             return SupportASStatus::SUPPORT_AS;
         }
         if (adaptiveStatus == SupportASStatus::GAME_SCENE_SKIP) {
             return SupportASStatus::GAME_SCENE_SKIP;
         }
     }
-    if (isLastAdaptive_ && !isSamplerEnabled) {
-        // exit adaptive sync mode must restore vsync sampler, and startSample immediately
-        hdiBackend_->SetVsyncSamplerEnabled(output, true);
-        hdiBackend_->StartSample(output);
-    }
-
     return SupportASStatus::NOT_SUPPORT;
 }
 

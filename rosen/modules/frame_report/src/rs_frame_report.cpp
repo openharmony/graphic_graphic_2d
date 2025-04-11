@@ -40,14 +40,7 @@ RsFrameReport& RsFrameReport::GetInstance()
     return instance;
 }
 
-RsFrameReport::RsFrameReport() {}
-
-RsFrameReport::~RsFrameReport()
-{
-    CloseLibrary();
-}
-
-void RsFrameReport::Init()
+RsFrameReport::RsFrameReport()
 {
     int ret = LoadLibrary();
     if (!ret) {
@@ -59,6 +52,16 @@ void RsFrameReport::Init()
     if (initFunc_ != nullptr) {
         initFunc_();
     }
+}
+
+RsFrameReport::~RsFrameReport()
+{
+    CloseLibrary();
+}
+
+void RsFrameReport::Init()
+{
+    ReportSchedEvent(FrameSchedEvent::INIT, {});
 }
 
 bool RsFrameReport::LoadLibrary()
@@ -118,7 +121,7 @@ int RsFrameReport::GetEnable()
     }
 }
 
-void RsFrameReport::ReportSchedEvent(FrameSchedEvent event, const std::unordered_map<std::string, std::string> &payload)
+void RsFrameReport::ReportSchedEvent(FrameSchedEvent event, const std::unordered_map<std::string, std::string>& payload)
 {
     if (reportSchedEventFunc_ == nullptr) {
         reportSchedEventFunc_ = (ReportSchedEventFunc)LoadSymbol("ReportSchedEvent");
@@ -129,6 +132,17 @@ void RsFrameReport::ReportSchedEvent(FrameSchedEvent event, const std::unordered
         LOGE("RsFrameReport load ReportSchedEvent function failed!");
     }
 }
+
+#ifdef RS_ENABLE_VK
+void RsFrameReport::ModifierReportSchedEvent(
+    FrameSchedEvent event, const std::unordered_map<std::string, std::string> &payload)
+{
+    if (!frameSchedSoLoaded_) {
+        LoadLibrary();
+    }
+    ReportSchedEvent(event, payload);
+}
+#endif
 
 void RsFrameReport::ProcessCommandsStart()
 {
@@ -240,6 +254,11 @@ void RsFrameReport::PostAndWait()
 void RsFrameReport::BeginFlush()
 {
     ReportSchedEvent(FrameSchedEvent::RS_BEGIN_FLUSH, {});
+}
+
+void RsFrameReport::ReportDDGRTaskInfo()
+{
+    ReportSchedEvent(FrameSchedEvent::RS_DDGR_TASK, {});
 }
 } // namespace Rosen
 } // namespace OHOS

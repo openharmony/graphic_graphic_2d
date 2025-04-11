@@ -318,6 +318,13 @@ public:
     inline bool Intersect(const RectF& other);
 
     /*
+    * @brief        If RectF and another RectF do not intersect, the result is [0, 0, 0, 0].
+    * @param other  limit of result.
+    * @return       true if other and RectF have area in common.
+    */
+    inline void IntersectRect(const RectF& other);
+
+    /*
      * @brief        If other is valid, sets RectF to the union of itself and other.
      * @param other  expansion RectF.
      * @return       true if other is valid.
@@ -469,6 +476,19 @@ inline bool RectF::Intersect(const RectF& other)
     }
     *this = rectF;
     return true;
+}
+
+inline void RectF::IntersectRect(const RectF& other)
+{
+    scalar left = std::max(left_, other.left_);
+    scalar top = std::max(top_, other.top_);
+    scalar right = std::min(right_, other.right_);
+    scalar bottom = std::min(bottom_, other.bottom_);
+    if (right <= left || bottom <= top) {
+        *this = RectF();
+    } else {
+        *this = RectF(left, top, right, bottom);
+    }
 }
 
 inline bool RectF::Join(const RectF& other)

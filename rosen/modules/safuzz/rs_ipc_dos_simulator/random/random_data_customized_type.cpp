@@ -325,18 +325,23 @@ SurfaceWindowType RandomDataCustomizedType::GetRandomSurfaceWindowType()
     return static_cast<SurfaceWindowType>(randomIndex);
 }
 
-std::optional<Drawing::Rect> RandomDataCustomizedType::GetRandomOptionalDrawingRect()
+Drawing::Rect RandomDataCustomizedType::GetRandomDrawingRect()
 {
-    static constexpr float NULLOPT_PROBABILITY = 0.05f;
-    if (RandomEngine::ChooseByProbability(NULLOPT_PROBABILITY)) {
-        return std::nullopt;
-    }
     float l = RandomDataBasicType::GetRandomFloat();
     float t = RandomDataBasicType::GetRandomFloat();
     float r = RandomDataBasicType::GetRandomFloat();
     float b = RandomDataBasicType::GetRandomFloat();
     Drawing::Rect rect(l, t, r, b);
     return rect;
+}
+
+std::optional<Drawing::Rect> RandomDataCustomizedType::GetRandomOptionalDrawingRect()
+{
+    static constexpr float NULLOPT_PROBABILITY = 0.05f;
+    if (RandomEngine::ChooseByProbability(NULLOPT_PROBABILITY)) {
+        return std::nullopt;
+    }
+    return GetRandomDrawingRect();
 }
 
 Vector2f RandomDataCustomizedType::GetRandomVector2f()

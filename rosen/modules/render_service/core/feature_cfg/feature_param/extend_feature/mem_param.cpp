@@ -16,7 +16,7 @@
 #include "mem_param.h"
 
 namespace OHOS::Rosen {
-std::string MEMParam::GetRSWatchPoint() const
+std::string MEMParam::GetRSWatchPoint()
 {
     return rsWatchPoint_;
 }
@@ -24,5 +24,35 @@ std::string MEMParam::GetRSWatchPoint() const
 void MEMParam::SetRSWatchPoint(std::string rsWatchPoint)
 {
     rsWatchPoint_ = rsWatchPoint;
+}
+
+int MEMParam::GetRSCacheLimitsResourceSize()
+{
+    return rsCacheLimitsResourceSize_;
+}
+
+void MEMParam::SetRSCacheLimitsResourceSize(int rsCacheLimitsResourceSize)
+{
+    rsCacheLimitsResourceSize_ = rsCacheLimitsResourceSize;
+}
+
+bool MEMParam::IsReclaimEnabled()
+{
+    return isReclaimEnabled_;
+}
+
+void MEMParam::SetReclaimEnabled(bool isEnabled)
+{
+    isReclaimEnabled_ = isEnabled;
+}
+
+bool MEMParam::IsDeeplyRelGpuResEnable()
+{
+    return isDeeplyRelGpuResEnable_;
+}
+
+void MEMParam::SetDeeplyRelGpuResEnable(bool isDeeplyRelGpuResEnable)
+{
+    isDeeplyRelGpuResEnable_ = isDeeplyRelGpuResEnable;
 }
 } // namespace OHOS::Rosen

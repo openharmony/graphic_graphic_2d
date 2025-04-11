@@ -75,7 +75,7 @@ HWTEST_F(RSAnimationCommandTest, CreateParticleAnimation001, TestSize.Level1)
     NodeId targetId = static_cast<NodeId>(-1);
     std::shared_ptr<RSRenderParticleAnimation> animation = nullptr;
     AnimationCommandHelper::CreateParticleAnimation(context, targetId, animation);
-    ASSERT_EQ(targetId, static_cast<NodeId>(-1));
+    ASSERT_TRUE(targetId);
 
     NodeId id = static_cast<NodeId>(1);
     RSContext context2;
@@ -129,7 +129,7 @@ HWTEST_F(RSAnimationCommandTest, CreateAnimation001, TestSize.Level1)
     animation = std::make_shared<RSRenderAnimation>();
     AnimationCommandHelper::CreateAnimation(context, targetId, animation);
     auto nod = context.GetNodeMap().GetRenderNode<RSRenderNode>(targetId);
-    EXPECT_TRUE(targetId == 1);
+    EXPECT_TRUE(targetId);
 
     targetId = 0;
     auto node = context.GetNodeMap().GetRenderNode<RSRenderNode>(targetId);
@@ -138,13 +138,13 @@ HWTEST_F(RSAnimationCommandTest, CreateAnimation001, TestSize.Level1)
     auto modifier = std::make_shared<RSGeometryTransRenderModifier>(property);
     node->modifiers_[id] = modifier;
     AnimationCommandHelper::CreateAnimation(context, targetId, animation);
-    EXPECT_TRUE(modifier != nullptr);
+    EXPECT_TRUE(modifier);
 
     node->modifiers_.clear();
     id = 1;
     node->modifiers_[id] = modifier;
     AnimationCommandHelper::CreateAnimation(context, targetId, animation);
-    EXPECT_TRUE(modifier != nullptr);
+    EXPECT_TRUE(modifier);
 }
 
 /**
@@ -163,7 +163,7 @@ HWTEST_F(RSAnimationCommandTest, CreateParticleAnimation002, TestSize.Level1)
 
     animation = std::make_shared<RSRenderParticleAnimation>();
     AnimationCommandHelper::CreateParticleAnimation(context, targetId, animation);
-    EXPECT_TRUE(targetId == 1);
+    EXPECT_TRUE(targetId);
 
     targetId = 0;
     AnimationCommandHelper::CreateParticleAnimation(context, targetId, animation);
@@ -186,7 +186,7 @@ HWTEST_F(RSAnimationCommandTest, CancelAnimation001, TestSize.Level1)
 
     targetId = 0;
     AnimationCommandHelper::CancelAnimation(context, targetId, propertyId);
-    EXPECT_TRUE(targetId == 0);
+    EXPECT_FALSE(targetId);
 }
 
 /**

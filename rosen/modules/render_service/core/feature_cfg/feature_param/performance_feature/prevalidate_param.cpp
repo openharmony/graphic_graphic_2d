@@ -17,7 +17,7 @@
 
 namespace OHOS::Rosen {
 
-bool PrevalidateParam::IsPrevalidateEnable() const
+bool PrevalidateParam::IsPrevalidateEnable()
 {
     return isPrevalidateEnable_;
 }

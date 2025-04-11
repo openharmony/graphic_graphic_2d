@@ -88,5 +88,12 @@ void RSCanvasNodeCommandHelper::SetLinkedRootNodeId(RSContext& context, NodeId n
     }
 }
 
+void RSCanvasNodeCommandHelper::SetIsWideColorGamut(RSContext& context, NodeId nodeId, bool isWideColorGamut)
+{
+    if (auto node = context.GetNodeMap().GetRenderNode<RSCanvasRenderNode>(nodeId)) {
+        node->SetIsWideColorGamut(isWideColorGamut);
+    }
+}
+
 } // namespace Rosen
 } // namespace OHOS

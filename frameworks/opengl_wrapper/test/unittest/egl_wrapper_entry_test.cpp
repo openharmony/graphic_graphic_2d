@@ -710,23 +710,6 @@ HWTEST_F(EglWrapperEntryTest, EglSwapBuffersImpl001, Level1)
 }
 
 /**
- * @tc.name: EglSwapBuffersImpl002
- * @tc.desc:
- * @tc.type: FUNC
- */
-HWTEST_F(EglWrapperEntryTest, EglSwapBuffersImpl002, Level1)
-{
-    EGLint majorVersion;
-    EGLint minorVersion;
-    EGLDisplay dpy = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-    EGLBoolean ret = eglInitialize(dpy, &majorVersion, &minorVersion);
-    ASSERT_EQ(ret, EGL_TRUE);
-
-    auto result = gWrapperHook.wrapper.eglSwapBuffers(dpy, nullptr);
-    ASSERT_EQ(EGL_FALSE, result);
-}
-
-/**
  * @tc.name: EglTerminateImpl001
  * @tc.desc:
  * @tc.type: FUNC

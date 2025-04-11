@@ -64,10 +64,11 @@ void RSRenderParams::SetMatrix(const Drawing::Matrix& matrix)
     needSync_ = true;
     dirtyType_.set(RSRenderParamsDirtyType::MATRIX_DIRTY);
 }
+
 const Drawing::Matrix& RSRenderParams::GetMatrix() const
 {
     return matrix_;
-}\
+}
 
 bool RSRenderParams::HasUnobscuredUEC() const
 {
@@ -358,7 +359,7 @@ void RSRenderParams::SetFrameGravity(Gravity gravity)
 
 void RSRenderParams::SetHDRBrightness(float hdrBrightness)
 {
-    if (hdrBrightness_ == hdrBrightness) {
+    if (ROSEN_EQ(hdrBrightness_, hdrBrightness)) {
         return;
     }
     hdrBrightness_ = hdrBrightness;

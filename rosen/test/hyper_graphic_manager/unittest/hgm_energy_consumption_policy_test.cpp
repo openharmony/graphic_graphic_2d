@@ -15,9 +15,8 @@
 
 #include <gtest/gtest.h>
 
-#include "hgm_core.h"
 #include "hgm_energy_consumption_policy.h"
-
+#include "hgm_test_base.h"
 #include "common/rs_common_hook.h"
 
 using namespace testing;
@@ -28,9 +27,12 @@ namespace Rosen {
 constexpr int DEFAULT_MAX_FPS = 120;
 constexpr int IDLE_FPS = 60;
 
-class HgmEnergyConsumptionPolicyTest : public testing::Test {
+class HgmEnergyConsumptionPolicyTest : public HgmTestBase {
 public:
-    static void SetUpTestCase() {}
+    static void SetUpTestCase()
+    {
+        HgmTestBase::SetUpTestCase();
+    }
     static void TearDownTestCase() {}
     void SetUp() {}
     void TearDown() {}
@@ -113,6 +115,21 @@ HWTEST_F(HgmEnergyConsumptionPolicyTest, SetEnergyConsumptionAssuranceModeTest2,
     SetIdleStateEnable(true);
     SetIdleStateEnable(true);
     ASSERT_EQ(HgmEnergyConsumptionPolicy::Instance().isAnimationEnergyAssuranceEnable_, true);
+    ASSERT_EQ(HgmEnergyConsumptionPolicy::Instance().isTouchIdle_, true);
+}
+
+/**
+ * @tc.name: SetEnergyConsumptionAssuranceModeTest3
+ * @tc.desc: test results of SetEnergyConsumptionAssuranceModeTest3
+ * @tc.type: FUNC
+ * @tc.require: issuesIA96Q3
+ */
+HWTEST_F(HgmEnergyConsumptionPolicyTest, SetEnergyConsumptionAssuranceModeTest3, TestSize.Level1)
+{
+    SetConfigEnable("false");
+    SetIdleStateEnable(false);
+    SetIdleStateEnable(true);
+    ASSERT_EQ(HgmEnergyConsumptionPolicy::Instance().isAnimationEnergyAssuranceEnable_, false);
     ASSERT_EQ(HgmEnergyConsumptionPolicy::Instance().isTouchIdle_, true);
 }
 
@@ -366,7 +383,7 @@ HWTEST_F(HgmEnergyConsumptionPolicyTest, PrintEnergyConsumptionLogTest, TestSize
     rsRange.isEnergyAssurance_ = true;
     rsRange.componentScene_ = ComponentScene::SWIPER_FLING;
     HgmEnergyConsumptionPolicy::Instance().PrintEnergyConsumptionLog(rsRange);
-    ASSERT_EQ(rsRange.componentScene_, ComponentScene::SWIPER_FLING);
+    ASSERT_NE(HgmEnergyConsumptionPolicy::Instance().lastAssuranceLog_, "NO_CONSUMPTION_ASSURANCE");
     rsRange.isEnergyAssurance_ = false;
     HgmEnergyConsumptionPolicy::Instance().PrintEnergyConsumptionLog(rsRange);
 }

@@ -435,6 +435,7 @@ ohos_source_set("render_service_base_src") {
       }
       if (graphic_2d_feature_enable_pgo &&
           graphic_2d_feature_product != "default") {
+        defines += [ "CM_FEATURE_ENABLE" ]
         cflags += [
           "-fprofile-use=" + rebase_path(
                   "${graphic_2d_feature_pgo_path}/librender_service_base.profdata",
@@ -480,7 +481,6 @@ ohos_source_set("render_service_base_src") {
   include_dirs = [
     "$graphic_2d_root/rosen/modules/utils",
     "$graphic_2d_root/interfaces/inner_api/common",
-    "$graphic_2d_root/rosen/modules/graphics_effect/include",
     "$graphic_2d_root/rosen/modules/render_service_base/src",
     "$graphic_2d_root/rosen/modules/render_service_base/include",
     "$graphic_2d_root/utils/color_manager/export",
@@ -491,19 +491,24 @@ ohos_source_set("render_service_base_src") {
     include_dirs += [
       "$graphic_2d_root/utils/color_manager/export",
       "//foundation/multimedia/image_framework/interfaces/innerkits/include",
+      "//foundation/graphic/graphics_effect/include",
       "//foundation/graphic/graphic_surface/interfaces/inner_api/surface",
     ]
   }
 
   deps = [
     "$graphic_2d_root/utils/sandbox:sandbox_utils",
-    "$rosen_root/modules/graphics_effect:libgraphics_effect",
     "$rosen_root/modules/platform:hilog",
     "$rosen_root/modules/platform:ipc_core",
   ]
 
+  if (is_arkui_x) {
+    deps += [ "//foundation/graphic/graphics_effect:libgraphics_effect" ]
+  }
+
   external_deps = [
     "graphic_surface:surface_headers",
+    "graphics_effect:graphics_effect_core",
     "hilog:libhilog",
   ]
 
@@ -537,7 +542,6 @@ ohos_source_set("render_service_base_src") {
 
   if (use_video_processing_engine) {
     defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
-    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
     external_deps += [ "video_processing_engine:videoprocessingengine" ]
     sources += [ "src/render/rs_colorspace_convert.cpp" ]
   }

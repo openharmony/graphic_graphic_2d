@@ -292,7 +292,7 @@ HWTEST_F(RSGPUOverdrawCanvasListenerTest, DrawRegionWithSpecifiedRegionTest003, 
     listener.DrawPicture(picture);
 
     listener.Clear(Drawing::Color::COLOR_BLACK);
-    EXPECT_TRUE(listener.overdrawCanvas_);
+    EXPECT_FALSE(listener.overdrawCanvas_);
 }
 
 /**

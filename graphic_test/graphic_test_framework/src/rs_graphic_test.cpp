@@ -79,7 +79,7 @@ UIPoint RSGraphicTest::GetScreenCapacity(const string testCase)
         cl++;
         num = cl * cl;
     }
-    int rl = ceil(static_cast<double>(testCnt / cl));
+    int rl = ceil(static_cast<double>(testCnt) / cl);
     return {cl, rl};
 }
       
@@ -118,16 +118,20 @@ void RSGraphicTest::SetUp()
         ::testing::UnitTest::GetInstance()->current_test_info();
     const auto& extInfo = ::OHOS::Rosen::TestDefManager::Instance().GetTestInfo(
         testInfo->test_case_name(), testInfo->name());
+    if (extInfo == nullptr) {
+        return;
+    }
+    auto size = GetScreenSize();
+    cout << "SetUp:size:" << size.x_ << "*" << size.y_ << endl;
     if (!extInfo->isMultiple) {
         cout << "SetUp:isMultiple is false" << endl;
+        SetScreenSurfaceBounds({0, 0, size.x_, size.y_});
         return;
     }
 
     cout << "SetUp:isMultiple is true" << endl;
     auto capacity = GetScreenCapacity(string(testInfo->test_case_name()));
-    auto size = GetScreenSize();
     cout << "SetUp:capacity:" << capacity.x_ << "*" << capacity.y_ << endl;
-    cout << "SetUp:size:" << size.x_ << "*" << size.y_ << endl;
     if (imageWriteId_ == 0) {
         SetScreenSurfaceBounds({0, 0, capacity.x_*size.x_, capacity.y_*size.y_});
         cout << "ScreenSurfaceBounds:[" << capacity.x_*size.x_ << "*" << capacity.y_*size.y_ << "]" << endl;
@@ -150,6 +154,9 @@ bool RSGraphicTest::WaitOtherTest()
         testInfo->test_case_name(), testInfo->name());
     int testCaseCnt = ::OHOS::Rosen::TestDefManager::Instance().GetTestCaseCnt(
         string(testInfo->test_case_name()));
+    if (extInfo == nullptr) {
+        return true;
+    }
     if (!extInfo->isMultiple) {
         return false;
     }
@@ -213,6 +220,7 @@ void RSGraphicTest::TearDown()
     WaitTimeout(RSParameterParse::Instance().testCaseWaitTime);
 
     GetRootNode()->ResetTestSurface();
+    RSGraphicTestDirector::Instance().SendProfilerCommand("rssubtree_clear");
     RSGraphicTestDirector::Instance().FlushMessage();
     WaitTimeout(RSParameterParse::Instance().testCaseWaitTime);
 }
@@ -230,7 +238,8 @@ void RSGraphicTest::AddFileRenderNodeTreeToNode(std::shared_ptr<RSNode> node, co
     WaitTimeout(RSParameterParse::Instance().testCaseWaitTime);
 
     std::cout << "load subbtree to node file path is " << filePath << std::endl;
-    RSInterfaces::GetInstance().TestLoadFileSubTreeToNode(node->GetId(), filePath);
+    std::string command = "rssubtree_load " + std::to_string(node->GetId()) + " " + filePath;
+    RSGraphicTestDirector::Instance().SendProfilerCommand(command);
     RSGraphicTestDirector::Instance().FlushMessage();
     WaitTimeout(LOAD_TREE_WAIT_TIME * RSParameterParse::Instance().testCaseWaitTime);
 }

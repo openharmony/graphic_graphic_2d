@@ -248,6 +248,10 @@ void RSLightBlurShaderFilter::ApplyLightBlur(Drawing::Canvas& canvas,
         return;
     }
 
+    if (NeedClearLightBlurResultCache(canvas)) {
+        ClearLightBlurResultCache();
+    }
+
     bool hasDownSample4xShader = InitDownSample4xShader();
     bool canDownSample4xAndMixImage = InitDownSample4xAndMixShader() &&
         lightBlurResultCache_[0] != nullptr && lightBlurResultCache_[1] != nullptr;
@@ -310,6 +314,18 @@ void RSLightBlurShaderFilter::UpdateLightBlurResultCache(const std::shared_ptr<D
     }
     lightBlurResultCache_[0] = lightBlurResultCache_[1];
     lightBlurResultCache_[1] = image;
+}
+
+bool RSLightBlurShaderFilter::NeedClearLightBlurResultCache(Drawing::Canvas& canvas) const
+{
+    return (lightBlurResultCache_[0] != nullptr && !lightBlurResultCache_[0]->IsValid(canvas.GetGPUContext().get())) ||
+        (lightBlurResultCache_[1] != nullptr && !lightBlurResultCache_[1]->IsValid(canvas.GetGPUContext().get()));
+}
+
+void RSLightBlurShaderFilter::ClearLightBlurResultCache()
+{
+    lightBlurResultCache_[0] = nullptr;
+    lightBlurResultCache_[1] = nullptr;
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -43,6 +43,24 @@ void RSDrawFrameTest::SetUp() {}
 void RSDrawFrameTest::TearDown() {}
 
 /**
+ * @tc.name: PostDirectCompositionJankStatsTest
+ * @tc.desc: test PostDirectCompositionJankStats
+ * @tc.type: FUNC
+ * @tc.require: issueI6QM6E
+ */
+HWTEST_F(RSDrawFrameTest, PostDirectCompositionJankStatsTest, TestSize.Level1)
+{
+    RSDrawFrame drawFrame_;
+    JankDurationParams rsParams;
+    bool optimizeLoadTrue = true;
+    drawFrame_.PostDirectCompositionJankStats(rsParams, optimizeLoadTrue);
+    EXPECT_TRUE(optimizeLoadTrue);
+    bool optimizeLoadFalse = false;
+    drawFrame_.PostDirectCompositionJankStats(rsParams, optimizeLoadFalse);
+    EXPECT_FALSE(optimizeLoadFalse);
+}
+
+/**
  * @tc.name: NotifyClearGpuCacheTest
  * @tc.desc: test NotifyClearGpuCache
  * @tc.type: FUNC

@@ -447,6 +447,7 @@ HWTEST_F(RSSymbolAnimationTest, InitSupportAnimationTableTest, TestSize.Level1)
     auto symbolAnimation = RSSymbolAnimation();
     symbolAnimation.InitSupportAnimationTable(); // init data
     symbolAnimation.InitSupportAnimationTable(); // if data exists, data will not init again
+    EXPECT_FALSE(symbolAnimation.publicSupportAnimations_.empty());
     GTEST_LOG_(INFO) << "RSSymbolAnimationTest InitSupportAnimationTable end";
 }
 
@@ -474,7 +475,7 @@ HWTEST_F(RSSymbolAnimationTest, ReplaceAnimationTest001, TestSize.Level1)
      */
     symbolAnimation.SpliceAnimation(canvasNode, disappearGroupParas);
     symbolAnimation.SpliceAnimation(canvasNode, appearGroupParas);
-
+    EXPECT_FALSE(appearGroupParas.empty());
     NotifyStartAnimation();
     GTEST_LOG_(INFO) << "RSSymbolAnimationTest ReplaceAnimationTest001 end";
 }
@@ -500,6 +501,7 @@ HWTEST_F(RSSymbolAnimationTest, PopNodeFromReplaceListTest001, TestSize.Level1)
      */
     symbolSpanId = 9999; // random value
     symbolAnimation.PopNodeFromReplaceList(symbolSpanId);
+    EXPECT_TRUE(symbolSpanId);
     GTEST_LOG_(INFO) << "RSSymbolAnimationTest PopNodeFromReplaceListTest001 end";
 }
 
@@ -529,6 +531,7 @@ HWTEST_F(RSSymbolAnimationTest, PopNodeFromReplaceListTest002, TestSize.Level1)
     rootNode->replaceNodesSwapArr_[APPEAR_STATUS] = {appearNodeConfig};
     rootNode->replaceNodesSwapArr_[INVALID_STATUS] = {appearNodeConfig};
     symbolAnimation.PopNodeFromReplaceList(symbolSpanId);
+    EXPECT_TRUE(symbolAnimation.rsNode_);
     GTEST_LOG_(INFO) << "RSSymbolAnimationTest PopNodeFromReplaceListTest002 end";
 }
 
@@ -551,6 +554,7 @@ HWTEST_F(RSSymbolAnimationTest, BounceAnimationTest001, TestSize.Level1)
      */
     symbolAnimation.SpliceAnimation(canvasNode, oneGroupParas);
     NotifyStartAnimation();
+    EXPECT_FALSE(oneGroupParas.empty());
     GTEST_LOG_(INFO) << "RSSymbolAnimationTest BounceAnimationTest001 end";
 }
 
@@ -573,6 +577,7 @@ HWTEST_F(RSSymbolAnimationTest, BounceAnimationTest002, TestSize.Level1)
      */
     symbolAnimation.SpliceAnimation(nullptr, oneGroupParas);
     NotifyStartAnimation();
+    EXPECT_FALSE(oneGroupParas.empty());
     GTEST_LOG_(INFO) << "RSSymbolAnimationTest BounceAnimationTest002 end";
 }
 
@@ -594,6 +599,7 @@ HWTEST_F(RSSymbolAnimationTest, BounceAnimationTest003, TestSize.Level1)
      */
     symbolAnimation.SpliceAnimation(canvasNode, oneGroupParas);
     NotifyStartAnimation();
+    EXPECT_FALSE(oneGroupParas.empty());
     GTEST_LOG_(INFO) << "RSSymbolAnimationTest BounceAnimationTest003 end";
 }
 
@@ -695,6 +701,7 @@ HWTEST_F(RSSymbolAnimationTest, AppearAnimation001, TestSize.Level1)
      */
     symbolAnimation.SpliceAnimation(canvasNode, oneGroupParas);
     NotifyStartAnimation();
+    EXPECT_FALSE(oneGroupParas.empty());
     GTEST_LOG_(INFO) << "RSSymbolAnimationTest AppearAnimation001 end";
 }
 
@@ -717,6 +724,7 @@ HWTEST_F(RSSymbolAnimationTest, AppearAnimation002, TestSize.Level1)
      */
     symbolAnimation.SpliceAnimation(nullptr, oneGroupParas);
     NotifyStartAnimation();
+    EXPECT_FALSE(oneGroupParas.empty());
     GTEST_LOG_(INFO) << "RSSymbolAnimationTest AppearAnimation002 end";
 }
 
@@ -738,6 +746,7 @@ HWTEST_F(RSSymbolAnimationTest, AppearAnimation003, TestSize.Level1)
      */
     symbolAnimation.SpliceAnimation(canvasNode, oneGroupParas);
     NotifyStartAnimation();
+    EXPECT_FALSE(oneGroupParas.empty());
     GTEST_LOG_(INFO) << "RSSymbolAnimationTest AppearAnimation003 end";
 }
 
@@ -897,9 +906,9 @@ HWTEST_F(RSSymbolAnimationTest, KeyframeAlphaSymbolAnimation006, TestSize.Level1
     /**
      * @tc.steps: step2. start KeyframeAlphaSymbolAnimation test
      */
-    EXPECT_TRUE(getParasFlag == false);
-    EXPECT_TRUE(totalDuration == 0);
-    EXPECT_TRUE(timePercents.size() == 0);
+    EXPECT_FALSE(getParasFlag);
+    EXPECT_FALSE(totalDuration);
+    EXPECT_FALSE(timePercents.size());
     NotifyStartAnimation();
     GTEST_LOG_(INFO) << "RSSymbolAnimationTest KeyframeAlphaSymbolAnimation006 end";
 }
@@ -1104,6 +1113,7 @@ HWTEST_F(RSSymbolAnimationTest, SetNodePivotTest001, TestSize.Level1)
      * @tc.steps: step2. start SetNodePivot test
      */
     NotifyStartAnimation();
+    EXPECT_FALSE(symbolAnimation.rsNode_);
     GTEST_LOG_(INFO) << "RSSymbolAnimationTest SetNodePivotTest001 end";
 }
 
@@ -1129,6 +1139,7 @@ HWTEST_F(RSSymbolAnimationTest, SetNodePivotTest002, TestSize.Level1)
      * @tc.steps: step2. start SetNodePivot test
      */
     NotifyStartAnimation();
+    EXPECT_FALSE(symbolAnimation.rsNode_);
     GTEST_LOG_(INFO) << "RSSymbolAnimationTest SetNodePivotTest002 end";
 }
 
@@ -1150,6 +1161,7 @@ HWTEST_F(RSSymbolAnimationTest, SpliceAnimation001, TestSize.Level1)
      * @tc.steps: step2. start SetNodePivot test
      */
     NotifyStartAnimation();
+    EXPECT_FALSE(symbolAnimation.rsNode_);
     GTEST_LOG_(INFO) << "RSSymbolAnimationTest SpliceAnimation001 end";
 }
 
@@ -1191,6 +1203,7 @@ HWTEST_F(RSSymbolAnimationTest, DrawPathOnCanvas001, TestSize.Level1)
      */
     symbolAnimation.DrawPathOnCanvas(recordingCanvas, symbolNode, vector4f);
     NotifyStartAnimation();
+    EXPECT_FALSE(vector4f.IsZero());
     GTEST_LOG_(INFO) << "RSSymbolAnimationTest DrawPathOnCanvas001 end";
 }
 
@@ -1260,6 +1273,7 @@ HWTEST_F(RSSymbolAnimationTest, GroupAnimationStart001, TestSize.Level1)
      * @tc.steps: step2.4 test node is nullptr, animations not is empty;
      */
     symbolAnimation.GroupAnimationStart(newCanvasNode, animations);
+    EXPECT_FALSE(animations.empty());
     GTEST_LOG_(INFO) << "RSSymbolAnimationTest GroupAnimationStart001 end";
 }
 } // namespace Rosen

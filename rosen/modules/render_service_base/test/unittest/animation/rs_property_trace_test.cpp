@@ -106,6 +106,7 @@ HWTEST_F(RSPropertyTraceTest, RSPropertyTraceTest004, TestSize.Level1)
     outFile.close();
 
     RSPropertyTrace::GetInstance().RefreshNodeTraceInfo();
+    EXPECT_FALSE(RSPropertyTrace::GetInstance().IsNeedPropertyTrace(""));
     GTEST_LOG_(INFO) << "RSPropertyTraceTest RSPropertyTraceTest004 end";
 }
 
@@ -124,6 +125,7 @@ HWTEST_F(RSPropertyTraceTest, RSPropertyTraceTest005, TestSize.Level1)
     outFile.close();
 
     RSPropertyTrace::GetInstance().RefreshNodeTraceInfo();
+    EXPECT_FALSE(RSPropertyTrace::GetInstance().IsNeedPropertyTrace(""));
     GTEST_LOG_(INFO) << "RSPropertyTraceTest RSPropertyTraceTest005 end";
 }
 
@@ -142,6 +144,7 @@ HWTEST_F(RSPropertyTraceTest, RSPropertyTraceTest006, TestSize.Level1)
     outFile.close();
 
     RSPropertyTrace::GetInstance().RefreshNodeTraceInfo();
+    EXPECT_FALSE(RSPropertyTrace::GetInstance().IsNeedPropertyTrace(""));
     GTEST_LOG_(INFO) << "RSPropertyTraceTest RSPropertyTraceTest006 end";
 }
 

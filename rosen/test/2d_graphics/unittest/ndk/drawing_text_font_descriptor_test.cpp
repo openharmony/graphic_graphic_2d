@@ -31,9 +31,13 @@ namespace fs = std::filesystem;
 
 const std::string STYLISH_FONT_CONFIG_FILE = "/system/fonts/visibility_list.json";
 const std::string STYLISH_FONT_CONFIG_PROD_FILE = "/sys_prod/fonts/visibility_list.json";
-const std::string INSTALLED_FONT_CONFIG_FILE =
-    "/data/service/el1/public/for-all-app/fonts/install_fontconfig.json";
+const std::string INSTALLED_FONT_CONFIG_FILE = "/data/service/el1/public/for-all-app/fonts/install_fontconfig.json";
+
+bool ExistStylishFontConfigFile()
+{
+    return fs::exists(STYLISH_FONT_CONFIG_FILE) || fs::exists(STYLISH_FONT_CONFIG_PROD_FILE);
 }
+} // namespace
 
 class OH_Drawing_FontDescriptorTest : public testing::Test {
 };
@@ -62,7 +66,11 @@ HWTEST_F(OH_Drawing_FontDescriptorTest, OH_Drawing_FontDescriptorTest002, TestSi
     OH_Drawing_FontDescriptor* descArr = OH_Drawing_MatchFontDescriptors(desc, &num);
     OH_Drawing_DestroyFontDescriptor(desc);
     EXPECT_NE(descArr, nullptr);
-    EXPECT_EQ(num, 141);
+    if (ExistStylishFontConfigFile()) {
+        EXPECT_EQ(num, 142);
+    } else {
+        EXPECT_EQ(num, 141);
+    }
     OH_Drawing_DestroyFontDescriptors(descArr, num);
 }
 
@@ -194,7 +202,7 @@ HWTEST_F(OH_Drawing_FontDescriptorTest, OH_Drawing_FontDescriptorTest007, TestSi
  */
 HWTEST_F(OH_Drawing_FontDescriptorTest, OH_Drawing_FontDescriptorTest008, TestSize.Level1)
 {
-    if (!fs::exists(STYLISH_FONT_CONFIG_FILE) && !fs::exists(STYLISH_FONT_CONFIG_PROD_FILE)) {
+    if (!ExistStylishFontConfigFile()) {
         return;
     }
     OH_Drawing_SystemFontType fontType = OH_Drawing_SystemFontType::STYLISH;
@@ -227,7 +235,11 @@ HWTEST_F(OH_Drawing_FontDescriptorTest, OH_Drawing_FontDescriptorTest009, TestSi
     OH_Drawing_Array *fontList = OH_Drawing_GetSystemFontFullNamesByType(fontType);
     ASSERT_NE(fontList, nullptr);
     size_t size = OH_Drawing_GetDrawingArraySize(fontList);
-    EXPECT_EQ(size, 140);
+    if (ExistStylishFontConfigFile()) {
+        EXPECT_EQ(size, 141);
+    } else {
+        EXPECT_EQ(size, 140);
+    }
     for (size_t i = 0; i < size; i++) {
         const OH_Drawing_String *fontFullName = OH_Drawing_GetSystemFontFullNameByIndex(fontList, i);
         EXPECT_NE(fontFullName, nullptr);
@@ -249,8 +261,7 @@ HWTEST_F(OH_Drawing_FontDescriptorTest, OH_Drawing_FontDescriptorTest009, TestSi
  */
 HWTEST_F(OH_Drawing_FontDescriptorTest, OH_Drawing_FontDescriptorTest010, TestSize.Level1)
 {
-    if (!fs::exists(STYLISH_FONT_CONFIG_FILE) && !fs::exists(STYLISH_FONT_CONFIG_PROD_FILE) &&
-        !fs::exists(INSTALLED_FONT_CONFIG_FILE)) {
+    if (!ExistStylishFontConfigFile() && !fs::exists(INSTALLED_FONT_CONFIG_FILE)) {
         return;
     }
     OH_Drawing_SystemFontType fontType = OH_Drawing_SystemFontType(INSTALLED | STYLISH);
@@ -280,10 +291,14 @@ HWTEST_F(OH_Drawing_FontDescriptorTest, OH_Drawing_FontDescriptorTest010, TestSi
 HWTEST_F(OH_Drawing_FontDescriptorTest, OH_Drawing_FontDescriptorTest011, TestSize.Level1)
 {
     OH_Drawing_SystemFontType fontType = OH_Drawing_SystemFontType(ALL | STYLISH);
-    OH_Drawing_Array *fontList = OH_Drawing_GetSystemFontFullNamesByType(fontType);
+    OH_Drawing_Array* fontList = OH_Drawing_GetSystemFontFullNamesByType(fontType);
     ASSERT_NE(fontList, nullptr);
     size_t size = OH_Drawing_GetDrawingArraySize(fontList);
-    EXPECT_EQ(size, 141);
+    if (ExistStylishFontConfigFile()) {
+        EXPECT_EQ(size, 142);
+    } else {
+        EXPECT_EQ(size, 140);
+    }
     for (size_t i = 0; i < size; i++) {
         const OH_Drawing_String *fontFullName = OH_Drawing_GetSystemFontFullNameByIndex(fontList, i);
         EXPECT_NE(fontFullName, nullptr);
@@ -329,13 +344,17 @@ HWTEST_F(OH_Drawing_FontDescriptorTest, OH_Drawing_FontDescriptorTest012, TestSi
 HWTEST_F(OH_Drawing_FontDescriptorTest, OH_Drawing_FontDescriptorTest013, TestSize.Level1)
 {
     OH_Drawing_FontCollection *fc = OH_Drawing_CreateSharedFontCollection();
-    const char* fontFamily = "FTToken";
-    const char* fontPath = "/system/fonts/FTToken.ttf";
+    const char* fontFamily = "HM Symbol Regular";
+    const char* fontPath = "/system/fonts/HMSymbolVF.ttf";
     OH_Drawing_RegisterFont(fc, fontFamily, fontPath);
 
     OH_Drawing_Array *ttfs = OH_Drawing_GetSystemFontFullNamesByType(ALL);
     size_t num = OH_Drawing_GetDrawingArraySize(ttfs);
-    EXPECT_EQ(num, 143);
+    if (ExistStylishFontConfigFile()) {
+        EXPECT_EQ(num, 142);
+    } else {
+        EXPECT_EQ(num, 140);
+    }
     FontDescriptorMgrInstance.ClearFontFileCache();
     OH_Drawing_DestroyFontCollection(fc);
 }
@@ -348,8 +367,8 @@ HWTEST_F(OH_Drawing_FontDescriptorTest, OH_Drawing_FontDescriptorTest013, TestSi
 HWTEST_F(OH_Drawing_FontDescriptorTest, OH_Drawing_FontDescriptorTest014, TestSize.Level1)
 {
     OH_Drawing_FontCollection *fc = OH_Drawing_CreateSharedFontCollection();
-    const char* fontFamily = "FTToken";
-    const char* fontPath = "/system/fonts/FTToken.ttf";
+    const char* fontFamily = "HM Symbol Regular";
+    const char* fontPath = "/system/fonts/HMSymbolVF.ttf";
     OH_Drawing_RegisterFont(fc, fontFamily, fontPath);
 
     OH_Drawing_Array *ttfs = OH_Drawing_GetSystemFontFullNamesByType(CUSTOMIZED);
@@ -358,7 +377,7 @@ HWTEST_F(OH_Drawing_FontDescriptorTest, OH_Drawing_FontDescriptorTest014, TestSi
     for (size_t i = 0; i < num; i++) {
         const OH_Drawing_String *fullName = OH_Drawing_GetSystemFontFullNameByIndex(ttfs, i);
         OH_Drawing_FontDescriptor *fd = OH_Drawing_GetFontDescriptorByFullName(fullName, CUSTOMIZED);
-        ASSERT_STREQ(fd->fullName, "FTToken");
+        ASSERT_STREQ(fd->fullName, "HM Symbol Regular");
     }
     FontDescriptorMgrInstance.ClearFontFileCache();
     OH_Drawing_DestroyFontCollection(fc);
@@ -372,8 +391,8 @@ HWTEST_F(OH_Drawing_FontDescriptorTest, OH_Drawing_FontDescriptorTest014, TestSi
 HWTEST_F(OH_Drawing_FontDescriptorTest, OH_Drawing_FontDescriptorTest015, TestSize.Level1)
 {
     OH_Drawing_FontCollection *fc = OH_Drawing_CreateSharedFontCollection();
-    const char* fontFamily = "FTToken";
-    const char* fontPath = "/system/fonts/FTToken.ttf";
+    const char* fontFamily = "HM Symbol Regular";
+    const char* fontPath = "/system/fonts/HMSymbolVF.ttf";
     OH_Drawing_RegisterFont(fc, fontFamily, fontPath);
     OH_Drawing_RegisterFont(fc, fontFamily, fontPath);
     OH_Drawing_RegisterFont(fc, fontFamily, fontPath);
@@ -386,7 +405,7 @@ HWTEST_F(OH_Drawing_FontDescriptorTest, OH_Drawing_FontDescriptorTest015, TestSi
     for (size_t i = 0; i < num; i++) {
         const OH_Drawing_String *fullName = OH_Drawing_GetSystemFontFullNameByIndex(ttfs, i);
         OH_Drawing_FontDescriptor *fd = OH_Drawing_GetFontDescriptorByFullName(fullName, CUSTOMIZED);
-        ASSERT_STREQ(fd->fullName, "FTToken");
+        ASSERT_STREQ(fd->fullName, "HM Symbol Regular");
     }
     FontDescriptorMgrInstance.ClearFontFileCache();
     OH_Drawing_DestroyFontCollection(fc);
@@ -470,8 +489,8 @@ HWTEST_F(OH_Drawing_FontDescriptorTest, OH_Drawing_FontDescriptorTest018, TestSi
 HWTEST_F(OH_Drawing_FontDescriptorTest, OH_Drawing_FontDescriptorTest019, TestSize.Level1)
 {
     OH_Drawing_FontCollection *fc = OH_Drawing_CreateFontCollection();
-    const char* fontFamily = "FTToken";
-    const char* fontPath = "/system/fonts/FTToken.ttf";
+    const char* fontFamily = "HM Symbol Regular";
+    const char* fontPath = "/system/fonts/HMSymbolVF.ttf";
     OH_Drawing_RegisterFont(fc, fontFamily, fontPath);
 
     OH_Drawing_Array *ttfs = OH_Drawing_GetSystemFontFullNamesByType(CUSTOMIZED);
@@ -480,7 +499,7 @@ HWTEST_F(OH_Drawing_FontDescriptorTest, OH_Drawing_FontDescriptorTest019, TestSi
     for (size_t i = 0; i < num; i++) {
         const OH_Drawing_String *fullName = OH_Drawing_GetSystemFontFullNameByIndex(ttfs, i);
         OH_Drawing_FontDescriptor *fd = OH_Drawing_GetFontDescriptorByFullName(fullName, CUSTOMIZED);
-        ASSERT_STREQ(fd->fullName, "FTToken");
+        ASSERT_STREQ(fd->fullName, "HM Symbol Regular");
     }
 
     OH_Drawing_TypographyStyle *typoStyle = OH_Drawing_CreateTypographyStyle();

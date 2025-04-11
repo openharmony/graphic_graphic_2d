@@ -187,16 +187,19 @@ void DrawCmdList::Dump(std::string& out)
     }
 }
 
-void DrawCmdList::MarshallingDrawOps()
+void DrawCmdList::MarshallingDrawOps(Drawing::DrawCmdList *cmdlist)
 {
     if (mode_ == DrawCmdList::UnmarshalMode::IMMEDIATE) {
         return;
+    }
+    if (!cmdlist) {
+        cmdlist = this;
     }
     std::lock_guard<std::recursive_mutex> lock(mutex_);
     if (replacedOpListForVector_.empty()) {
         for (auto& op : drawOpItems_) {
             if (op) {
-                op->Marshalling(*this);
+                op->Marshalling(*cmdlist);
             }
         }
         return;
@@ -208,7 +211,7 @@ void DrawCmdList::MarshallingDrawOps()
     uint32_t opReplaceIndex = 0;
     for (auto index = 0u; index < drawOpItems_.size(); ++index) {
         if (drawOpItems_[index]) {
-            drawOpItems_[index]->Marshalling(*this);
+            drawOpItems_[index]->Marshalling(*cmdlist);
         }
         if (index == static_cast<size_t>(replacedOpListForVector_[opReplaceIndex].first)) {
             opIndexForCache[opReplaceIndex] = lastOpItemOffset_.value();
@@ -217,7 +220,7 @@ void DrawCmdList::MarshallingDrawOps()
     }
     for (auto index = 0u; index < replacedOpListForVector_.size(); ++index) {
         if (replacedOpListForVector_[index].second) {
-            replacedOpListForVector_[index].second->Marshalling(*this);
+            replacedOpListForVector_[index].second->Marshalling(*cmdlist);
         }
         replacedOpListForBuffer_.emplace_back(opIndexForCache[index], lastOpItemOffset_.value());
     }
@@ -429,6 +432,18 @@ void DrawCmdList::SetReplacedOpList(std::vector<std::pair<size_t, size_t>> repla
     replacedOpListForBuffer_ = replacedOpList;
 }
 
+#ifdef RS_ENABLE_VK
+DrawCmdList::HybridRenderType DrawCmdList::GetHybridRenderType() const
+{
+    return hybridRenderType_;
+}
+
+void DrawCmdList::SetHybridRenderType(DrawCmdList::HybridRenderType hybridRenderType)
+{
+    hybridRenderType_ = hybridRenderType;
+}
+#endif
+
 void DrawCmdList::UpdateNodeIdToPicture(NodeId nodeId)
 {
     if (drawOpItems_.size() == 0) {
@@ -625,43 +640,16 @@ void DrawCmdList::PlaybackByBuffer(Canvas& canvas, const Rect* rect)
     canvas.DetachPaint();
 }
 
-size_t DrawCmdList::CountTextBlobNum()
-{
-    size_t textBlobCnt = 0;
-    if (mode_ == DrawCmdList::UnmarshalMode::IMMEDIATE) {
-        size_t offset = offset_;
-        size_t maxOffset = opAllocator_.GetSize();
-        uint32_t count = 0;
-        do {
-            count++;
-            void* itemPtr = opAllocator_.OffsetToAddr(offset, sizeof(OpItem));
-            auto* curOpItemPtr = static_cast<OpItem*>(itemPtr);
-            if (curOpItemPtr == nullptr) {
-                break;
-            }
-            uint32_t type = curOpItemPtr->GetType();
-            if (type == DrawOpItem::TEXT_BLOB_OPITEM) {
-                textBlobCnt++;
-            }
-            if (curOpItemPtr->GetNextOpItemOffset() < offset + sizeof(OpItem)) {
-                break;
-            }
-            offset = curOpItemPtr->GetNextOpItemOffset();
-        } while (offset != 0 && offset < maxOffset && count <= MAX_OPITEMSIZE);
-    }
-    return textBlobCnt;
-}
-
-void DrawCmdList::ProfilerTextBlob(void* handle, uint32_t count, bool takeIdFromList)
+void DrawCmdList::ProfilerTextBlob(void* handle, uint32_t count, std::shared_ptr<Drawing::DrawCmdList> refDrawCmdList)
 {
     if (!handle) {
         return;
     }
     DrawTextBlobOpItem::ConstructorHandle* constructorHandle =
         static_cast<DrawTextBlobOpItem::ConstructorHandle*>(handle);
-    if (takeIdFromList) {
-        if (count > 0 && count - 1 < drawOpItems_.size()) {
-            auto drawOpItem = drawOpItems_[count - 1];
+    if (refDrawCmdList) {
+        if (count > 0 && count - 1 < refDrawCmdList->drawOpItems_.size()) {
+            auto drawOpItem = refDrawCmdList->drawOpItems_[count - 1];
             if (drawOpItem && drawOpItem->GetType() == DrawOpItem::TEXT_BLOB_OPITEM) {
                 auto drawTextOpItem = static_cast<DrawTextBlobOpItem*>(drawOpItem.get());
                 constructorHandle->globalUniqueId = drawTextOpItem->GetTypefaceId();
@@ -674,7 +662,7 @@ void DrawCmdList::ProfilerTextBlob(void* handle, uint32_t count, bool takeIdFrom
     }
 }
 
-void DrawCmdList::PatchTypefaceIds(bool takeIdFromList)
+void DrawCmdList::PatchTypefaceIds(std::shared_ptr<Drawing::DrawCmdList> refDrawCmdList)
 {
     size_t offset = offset_;
     size_t maxOffset = opAllocator_.GetSize();
@@ -690,7 +678,7 @@ void DrawCmdList::PatchTypefaceIds(bool takeIdFromList)
         if (type == DrawOpItem::TEXT_BLOB_OPITEM) {
             DrawTextBlobOpItem::ConstructorHandle* handle =
                 static_cast<DrawTextBlobOpItem::ConstructorHandle*>(curOpItemPtr);
-            ProfilerTextBlob(handle, count, takeIdFromList);
+            ProfilerTextBlob(handle, count, refDrawCmdList);
         }
         if (curOpItemPtr->GetNextOpItemOffset() < offset + sizeof(OpItem)) {
             break;

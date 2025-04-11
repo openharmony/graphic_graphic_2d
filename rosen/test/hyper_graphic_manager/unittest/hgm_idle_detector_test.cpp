@@ -17,6 +17,7 @@
 #include <test_header.h>
 
 #include "hgm_idle_detector.h"
+#include "hgm_test_base.h"
 #include "pipeline/rs_render_node.h"
 
 using namespace testing;
@@ -40,7 +41,7 @@ namespace {
     constexpr pid_t Pid = 0;
     const NodeId id = 0;
 }
-class HgmIdleDetectorTest : public testing::Test {
+class HgmIdleDetectorTest : public HgmTestBase {
 public:
     static void SetUpTestCase();
     static void TearDownTestCase();
@@ -48,7 +49,10 @@ public:
     void TearDown();
 };
 
-void HgmIdleDetectorTest::SetUpTestCase() {}
+void HgmIdleDetectorTest::SetUpTestCase()
+{
+    HgmTestBase::SetUpTestCase();
+}
 void HgmIdleDetectorTest::TearDownTestCase() {}
 void HgmIdleDetectorTest::SetUp() {}
 void HgmIdleDetectorTest::TearDown() {}

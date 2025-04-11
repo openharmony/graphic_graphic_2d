@@ -406,22 +406,22 @@ bool RSSurfaceRenderParams::GetGlobalPositionEnabled() const
     return isGlobalPositionEnabled_;
 }
 
-void RSSurfaceRenderParams::SetDRMGlobalPositionEnabled(bool isEnabled)
+void RSSurfaceRenderParams::SetHwcGlobalPositionEnabled(bool isEnabled)
 {
-    isDRMGlobalPositionEnabled_ = isEnabled;
+    isHwcGlobalPositionEnabled_ = isEnabled;
 }
-bool RSSurfaceRenderParams::GetDRMGlobalPositionEnabled() const
+bool RSSurfaceRenderParams::GetHwcGlobalPositionEnabled() const
 {
-    return isDRMGlobalPositionEnabled_;
+    return isHwcGlobalPositionEnabled_;
 }
 
-void RSSurfaceRenderParams::SetDRMCrossNode(bool isCrossNode)
+void RSSurfaceRenderParams::SetHwcCrossNode(bool isCrossNode)
 {
-    isDRMCrossNode_ = isCrossNode;
+    isHwcCrossNode_ = isCrossNode;
 }
 bool RSSurfaceRenderParams::IsDRMCrossNode() const
 {
-    return isDRMCrossNode_;
+    return isHwcCrossNode_;
 }
 
 void RSSurfaceRenderParams::SetIsNodeToBeCaptured(bool isNodeToBeCaptured)
@@ -482,6 +482,17 @@ const std::unordered_map<std::string, bool>& RSSurfaceRenderParams::GetWatermark
 bool RSSurfaceRenderParams::IsWatermarkEmpty() const
 {
     return watermarkHandles_.empty();
+}
+
+RectI RSSurfaceRenderParams::GetScreenRect() const
+{
+    return screenRect_;
+}
+
+void RSSurfaceRenderParams::RecordScreenRect(RectI rect)
+{
+    screenRect_ = rect;
+    needSync_ = true;
 }
 
 void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
@@ -556,6 +567,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->specialLayerManager_ = specialLayerManager_;
     targetSurfaceParams->privacyContentLayerIds_ = privacyContentLayerIds_;
     targetSurfaceParams->name_ = name_;
+    targetSurfaceParams->bundleName_ = bundleName_;
     targetSurfaceParams->surfaceCacheContentStatic_ = surfaceCacheContentStatic_;
     targetSurfaceParams->positionZ_ = positionZ_;
     targetSurfaceParams->isSubTreeDirty_ = isSubTreeDirty_;
@@ -564,8 +576,8 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->isSubSurfaceNode_ = isSubSurfaceNode_;
     targetSurfaceParams->isGlobalPositionEnabled_ = isGlobalPositionEnabled_;
     targetSurfaceParams->isNodeToBeCaptured_ = isNodeToBeCaptured_;
-    targetSurfaceParams->isDRMGlobalPositionEnabled_ = isDRMGlobalPositionEnabled_;
-    targetSurfaceParams->isDRMCrossNode_ = isDRMCrossNode_;
+    targetSurfaceParams->isHwcGlobalPositionEnabled_ = isHwcGlobalPositionEnabled_;
+    targetSurfaceParams->isHwcCrossNode_ = isHwcCrossNode_;
     targetSurfaceParams->dstRect_ = dstRect_;
     targetSurfaceParams->isSkipDraw_ = isSkipDraw_;
     targetSurfaceParams->isLayerTop_ = isLayerTop_;
@@ -597,6 +609,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->apiCompatibleVersion_ = apiCompatibleVersion_;
     targetSurfaceParams->isBufferFlushed_ = isBufferFlushed_;
     targetSurfaceParams->colorFollow_ = colorFollow_;
+    targetSurfaceParams->screenRect_ = screenRect_;
     RSRenderParams::OnSync(target);
 }
 
