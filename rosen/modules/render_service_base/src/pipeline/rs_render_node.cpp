@@ -809,13 +809,73 @@ void RSRenderNode::DumpTree(int32_t depth, std::string& out) const
     DumpDrawCmdModifiers(out);
     DumpModifiers(out);
     animationManager_.DumpAnimations(out);
+    ChildrenListDump(out);
 
+    for (auto& child : children_) {
+        if (auto c = child.lock()) {
+            c->DumpTree(depth + 1, out);
+        }
+    }
+    for (auto& [child, pos] : disappearingChildren_) {
+        child->DumpTree(depth + 1, out);
+    }
+}
+
+void RSRenderNode::ChildrenListDump(std::string& out) const
+{
     auto sortedChildren = GetSortedChildren();
+    const int childrenCntLimit = 10;
+
     if (!isFullChildrenListValid_) {
         out += ", Children list needs update, current count: " + std::to_string(fullChildrenList_->size()) +
                " expected count: " + std::to_string(sortedChildren->size());
+        out += ", Children list needs update, current count: " + std::to_string(fullChildrenList_->size());
+        if (!fullChildrenList_->empty()) {
+            int cnt = 0;
+            out += "(";
+            for (auto child = fullChildrenList_->begin(); child != fullChildrenList_->end(); child++) {
+                if (cnt > childrenCntLimit) {
+                    break;
+                }
+                if ((*child) == nullptr) {
+                    continue;
+                }
+                out += std::to_string((*child)->GetId()) + " ";
+                cnt++;
+            }
+            out += ")";
+        }
+        out +=" expected count: " + std::to_string(sortedChildren->size());
+        if (!sortedChildren->empty()) {
+            int cnt = 0;
+            out += "(";
+            for (auto child = sortedChildren->begin(); child != sortedChildren->end(); child++) {
+                if (cnt > childrenCntLimit) {
+                    break;
+                }
+                if ((*child) == nullptr) {
+                    continue;
+                }
+                out += std::to_string((*child)->GetId()) + " ";
+                cnt++;
+            }
+            out += ")";
+        }
     } else if (!sortedChildren->empty()) {
         out += ", sortedChildren: " + std::to_string(sortedChildren->size());
+        int cnt = 0;
+        out += "(";
+        for (auto child = sortedChildren->begin(); child != sortedChildren->end(); child++) {
+            if (cnt > childrenCntLimit) {
+                break;
+            }
+            if ((*child) == nullptr) {
+                continue;
+            }
+            out += std::to_string((*child)->GetId()) + " ";
+            cnt++;
+        }
+        out += ")";
     }
     if (!disappearingChildren_.empty()) {
         out += ", disappearingChildren: " + std::to_string(disappearingChildren_.size());
@@ -826,11 +886,24 @@ void RSRenderNode::DumpTree(int32_t depth, std::string& out) const
     for (auto& child : children_) {
         if (auto c = child.lock()) {
             c->DumpTree(depth + 1, out);
+        int cnt = 0;
+        out += "(";
+        for (auto& [child, _] : disappearingChildren_) {
+            if (cnt > childrenCntLimit) {
+                break;
+            }
+            if (child == nullptr) {
+                continue;
+            }
+            out += std::to_string(child->GetId()) + " ";
+            cnt++;
         }
+        out += ")";
     }
     for (auto& [child, pos] : disappearingChildren_) {
         child->DumpTree(depth + 1, out);
     }
+    out += "\n";
 }
 
 void RSRenderNode::DumpNodeType(RSRenderNodeType nodeType, std::string& out)
