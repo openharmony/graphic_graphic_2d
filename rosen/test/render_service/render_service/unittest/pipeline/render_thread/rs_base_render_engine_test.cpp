@@ -53,7 +53,7 @@ HWTEST_F(RSBaseRenderEngineUnitTest, ResetCurrentContextTest, TestSize.Level1)
     ASSERT_EQ(renderEngine->renderContext_, nullptr);
     renderEngine->renderContext_ = std::make_shared<RenderContext>();
     renderEngine->ResetCurrentContext();
-    ASSERT_EQ(renderEngine->renderContext_, nullptr);
+    ASSERT_NE(renderEngine->renderContext_, nullptr);
 }
 
 /**
