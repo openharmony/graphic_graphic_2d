@@ -319,15 +319,21 @@ void RSRenderService::DumpAllNodesMemSize(std::string& dumpString) const
     });
 }
 
-static unsigned long long SafeStringToULL(const std::string& str)
+static bool convertToLongLongUint(const std::string& str, uint64_t& value, int8_t base = 10)
 {
-    char* endptr = nullptr;
+    char* end;
     errno = 0;
-    unsigned long long value = std::strtoull(str.c_str(), &endptr, 10);
-    if (endptr == str.c_str() || *endptr != '\0' || errno == ERANGE) {
-        return 0;
+    value = std::strtoull(str.c_str(), &end, base);
+    if (end == str.c_str()) {
+        return false;
     }
-    return value;
+    if (errno == ERANGE && value == UULONG_MAX) {
+        return false;
+    }
+    if (*end != '\0') {
+        return false;
+    }
+    return true;
 }
 
 void RSRenderService::FPSDUMPProcess(std::unordered_set<std::u16string>& argSets,
@@ -357,7 +363,12 @@ void RSRenderService::FPSDUMPProcess(std::unordered_set<std::u16string>& argSets
         }
     }
     if (option == "-id") {
-        DumpSurfaceNodeFpsById(dumpString, SafeStringToULL(argStr));
+        NodeId nodeId = 0;
+        if (!convertToLongLongUint(argStr, nodeId)) {
+            dumpString = "The input nodeId is invalid, please re-enter";
+            return ;
+        }
+        DumpSurfaceNodeFpsById(dumpString, nodeId);
     } else {
         if (args.find(argStr) != args.end()) {
             DumpFps(dumpString, argStr);
@@ -446,7 +457,12 @@ void RSRenderService::FPSDUMPClearProcess(std::unordered_set<std::u16string>& ar
         }
     }
     if (option == "-id") {
-        ClearSurfaceNodeFpsById(dumpString, SafeStringToULL(argStr));
+        NodeId nodeId = 0;
+        if (!convertToLongLongUint(argStr, nodeId)) {
+            dumpString = "The input nodeId is invalid, please re-enter";
+            return ;
+        }
+        ClearSurfaceNodeFpsById(dumpString, nodeId);
     } else {
         if (args.find(argStr) != args.end()) {
             ClearFps(dumpString, argStr);
