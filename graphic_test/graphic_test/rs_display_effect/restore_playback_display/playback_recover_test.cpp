@@ -39,12 +39,12 @@ GRAPHIC_D_TEST(PlaybackRecoverTest, CONTENT_DISPLAY_TEST, shezhiStartTest01)
     PlaybackRecover("/data/local/tmp/Playback/shezhi_start.ohr", 1.065f);
 }
 
-GRAPHIC_D_TEST(PlaybackRecoverTest, CONTENT_DISPLAY_TEST, shezhiStartTest01)
+GRAPHIC_D_TEST(PlaybackRecoverTest, CONTENT_DISPLAY_TEST, shezhiStartTest02)
 {
     PlaybackRecover("/data/local/tmp/Playback/shezhi_start.ohr", 1.21f);
 }
 
-GRAPHIC_D_TEST(PlaybackRecoverTest, CONTENT_DISPLAY_TEST, shezhiStartTest01)
+GRAPHIC_D_TEST(PlaybackRecoverTest, CONTENT_DISPLAY_TEST, shezhiStartTest03)
 {
     PlaybackRecover("/data/local/tmp/Playback/shezhi_start.ohr", 2.1f);
 }
@@ -366,7 +366,7 @@ GRAPHIC_D_TEST(PlaybackRecoverTest, CONTENT_DISPLAY_TEST, haluoHuaDongTest04)
 
 GRAPHIC_D_TEST(PlaybackRecoverTest, CONTENT_DISPLAY_TEST, haluoHuaDongTest05)
 {
-    PlaybackRecover("/data/local/tmp/Playback/haluo_huadong.ohr", 4f);
+    PlaybackRecover("/data/local/tmp/Playback/haluo_huadong.ohr", 4.0f);
 }
 
 GRAPHIC_D_TEST(PlaybackRecoverTest, CONTENT_DISPLAY_TEST, huaweiyueduHuaDongTest01)
