@@ -19,6 +19,7 @@
 #include <parameters.h>
 #include "param/sys_param.h"
 #include "screen_manager/rs_screen_manager.h"
+#include "screen_manager/rs_screen.h"
 #include "transaction/rs_interfaces.h"
 #include "mock_hdi_device.h"
 
@@ -2859,11 +2860,11 @@ HWTEST_F(RSScreenManagerTest, ReleaseScreenDmaBufferTest_001, TestSize.Level1)
         static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
 
     ScreenId screenId = SCREEN_ID;
-    impl::RSScreenManager::ReleaseScreenDmaBuffer(screenId);
+    screenManagerImpl.ReleaseScreenDmaBuffer(screenId);
     ASSERT_EQ(screenManagerImpl.GetOutput(screenId), nullptr);
 
     screenManagerImpl.screens_[SCREEN_ID] = std::make_shared<impl::RSScreen>(SCREEN_ID, false, nullptr, nullptr);
-    impl::RSScreenManager::ReleaseScreenDmaBuffer(screenId);
+    screenManagerImpl.ReleaseScreenDmaBuffer(screenId);
     ASSERT_EQ(screenManagerImpl.GetOutput(screenId), nullptr);
 }
 

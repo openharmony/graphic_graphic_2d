@@ -679,7 +679,14 @@ void RSMainThread::Init()
     }
 #endif
 
-    RSDisplayRenderNode::SetReleaseTask(&impl::RSScreenManager::ReleaseScreenDmaBuffer);
+    RSDisplayRenderNode::SetReleaseTask([](ScreenId id) {
+        auto screenManager = CreateOrGetScreenManager();
+        if (screenManager == nullptr) {
+            RS_LOGE("ReleaseScreenDmaBuffer: screenManager is nullptr");
+            return;
+        }
+        screenManager->ReleaseScreenDmaBuffer(id);
+    });
     RSDisplayRenderNode::SetScreenStatusNotifyTask([](bool status) {
         sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
         if (screenManager == nullptr) {

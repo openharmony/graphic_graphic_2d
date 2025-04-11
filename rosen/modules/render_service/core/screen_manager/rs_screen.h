@@ -176,7 +176,7 @@ public:
 namespace impl {
 class RSScreen : public OHOS::Rosen::RSScreen {
 public:
-    RSScreen(ScreenId id, bool isVirtual, std::shared_ptr<HdiOutput> output, sptr<Surface> surface);
+    RSScreen(ScreenId id, std::shared_ptr<HdiOutput> output);
     RSScreen(const VirtualScreenConfigs& configs);
     ~RSScreen() override = default;
 
@@ -366,8 +366,8 @@ private:
     std::atomic<int32_t> currentVirtualColorGamutIdx_ = 0;
     std::atomic<int32_t> currentPhysicalColorGamutIdx_ = 0;
     std::atomic<ScreenGamutMap> currentVirtualGamutMap_ = GAMUT_MAP_CONSTANT;
-    int32_t currentVirtualHDRFormatIdx_ = 0;
-    int32_t currentPhysicalHDRFormatIdx_ = 0;
+    std::atomic<int32_t> currentVirtualHDRFormatIdx_ = 0;
+    std::atomic<int32_t> currentPhysicalHDRFormatIdx_ = 0;
     std::vector<ScreenHDRFormat> supportedVirtualHDRFormats_ = {
         NOT_SUPPORT_HDR };
     std::vector<ScreenHDRFormat> supportedPhysicalHDRFormats_;

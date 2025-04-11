@@ -78,22 +78,16 @@ std::map<ScreenHDRFormat, GraphicHDRFormat> RSScreen::RS_TO_HDI_HDR_FORMAT_MAP {
 
 constexpr int MAX_LUM = 1000;
 
-RSScreen::RSScreen(ScreenId id,
-    bool isVirtual,
-    std::shared_ptr<HdiOutput> output,
-    sptr<Surface> surface)
+RSScreen::RSScreen(ScreenId id, std::shared_ptr<HdiOutput> output)
     : id_(id),
-      isVirtual_(isVirtual),
-      hdiOutput_(std::move(output)),
-      producerSurface_(std::move(surface))
+      isVirtual_(false),
+      hdiOutput_(std::move(output))
 {
-    if (!IsVirtual()) {
-        hdrCapability_.formatCount = 0;
-        name_ = "Screen_" + std::to_string(id_);
-        PhysicalScreenInit();
-        RS_LOGW("init physical: {id: %{public}" PRIu64 ", w * h: [%{public}u * %{public}u], "
-            "screenType: %{public}u}", id_, width_, height_, screenType_);
-    }
+    hdrCapability_.formatCount = 0;
+    name_ = "Screen_" + std::to_string(id_);
+    PhysicalScreenInit();
+    RS_LOGW("init physical: {id: %{public}" PRIu64 ", w * h: [%{public}u * %{public}u], "
+        "screenType: %{public}u}", id_, width_, height_, screenType_);
     capability_.props.clear();
 }
 
@@ -145,7 +139,7 @@ void RSScreen::PhysicalScreenInit() noexcept
     }
     std::transform(hdrCapability_.formats.begin(), hdrCapability_.formats.end(),
                    back_inserter(supportedPhysicalHDRFormats_),
-                   [](GraphicHDRFormat item) -> ScreenHDRFormat {return HDI_HDR_FORMAT_TO_RS_MAP[item];});
+                   [](GraphicHDRFormat item) -> ScreenHDRFormat { return HDI_HDR_FORMAT_TO_RS_MAP[item]; });
     auto status = GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_ON;
     if (MultiScreenParam::IsRsSetScreenPowerStatus() || id_ == 0) {
         RS_LOGI("%{public}s: RSScreen(id %{public}" PRIu64 ") start SetScreenPowerStatus to On",
