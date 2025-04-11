@@ -586,7 +586,7 @@ void RSUniHwcComputeUtil::UpdateHwcNodeProperty(std::shared_ptr<RSSurfaceRenderN
                 UIPoint anchorPoint { rect.GetLeft(), rect.GetTop() };
                 std::for_each(std::begin(offsetVecs), std::end(offsetVecs),
                     [&currIntersectedRoundCornerAABBs, hwcNodeRect, offset,
-                        radiusX, radiusY, anchorPoint](auto offsetVec) {
+                     radiusX, radiusY, anchorPoint](auto offsetVec) {
                         auto res = anchorPoint + offset * offsetVec;
                         auto roundCornerAABB = RectI(res.x_, res.y_, radiusX, radiusY);
                         if (!roundCornerAABB.IntersectRect(hwcNodeRect).IsEmpty()) {
@@ -670,8 +670,8 @@ GraphicTransformType RSUniHwcComputeUtil::GetLayerTransform(RSSurfaceRenderNode&
     if (node.GetFixRotationByUser()) {
         surfaceNodeRotation = -1 * rotationDegree;
     } else {
-        surfaceNodeRotation =
-            RSUniRenderUtil::TransferToAntiClockwiseDegrees(static_cast<int>(round(node.GetAbsRotation())) % ROUND_ANGLE);
+        surfaceNodeRotation = RSUniRenderUtil::TransferToAntiClockwiseDegrees(
+                                static_cast<int>(round(node.GetAbsRotation())) % ROUND_ANGLE);
     }
     auto transformType = GraphicTransformType::GRAPHIC_ROTATE_NONE;
     auto buffer = node.GetRSSurfaceHandler()->GetBuffer();
