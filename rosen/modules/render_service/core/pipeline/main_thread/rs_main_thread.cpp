@@ -1520,16 +1520,15 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
 {
     ResetHardwareEnabledState(isUniRender_);
     RS_OPTIONAL_TRACE_BEGIN("RSMainThread::ConsumeAndUpdateAllNodes");
-    bool needRequestNextVsync = false;
+    needRequestNextVsync_ = false;
     if (!isUniRender_) {
         dividedRenderbufferTimestamps_.clear();
     }
     RSDrmUtil::ClearDrmNodes();
     const auto& nodeMap = GetContext().GetNodeMap();
-    bool isHdrSwitchChanged = RSLuminanceControl::Get().IsHdrPictureOn() != prevHdrSwitchStatus_;
+    isHdrSwitchChanged_ = RSLuminanceControl::Get().IsHdrPictureOn() != prevHdrSwitchStatus_;
     if (UNLIKELY(consumeAndUpdateNode_ == nullptr)) {
-        consumeAndUpdateNode_ = [this, &needRequestNextVsync, isHdrSwitchChanged](
-                                    const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) mutable {
+        consumeAndUpdateNode_ = [this](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) mutable {
             if (UNLIKELY(surfaceNode == nullptr)) {
                 return;
             }
@@ -1539,7 +1538,7 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
                 surfaceNode->ResetIsOnlyBasicGeoTransform();
             }
             if (surfaceNode->GetName().find(CAPTURE_WINDOW_NAME) != std::string::npos ||
-                (isHdrSwitchChanged && surfaceNode->GetHDRPresent())) {
+                (isHdrSwitchChanged_ && surfaceNode->GetHDRPresent())) {
                 RS_LOGD("RSMainThread::ConsumeAndUpdateAllNodes set %{public}s content dirty",
                     surfaceNode->GetName().c_str());
                 surfaceNode->SetContentDirty(); // screen recording capsule and hdr switch change force mark dirty
@@ -1663,7 +1662,7 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
 #endif
             // still have buffer(s) to consume.
             if (surfaceHandler->GetAvailableBufferCount() > 0) {
-                needRequestNextVsync = true;
+                needRequestNextVsync_ = true;
             }
             surfaceNode->SetVideoHdrStatus(RSHdrUtil::CheckIsHdrSurface(*surfaceNode));
             if (surfaceNode->GetVideoHdrStatus() == HdrStatus::NO_HDR) {
@@ -1673,7 +1672,7 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
     }
     nodeMap.TraverseSurfaceNodes(consumeAndUpdateNode_);
     prevHdrSwitchStatus_ = RSLuminanceControl::Get().IsHdrPictureOn();
-    if (needRequestNextVsync) {
+    if (needRequestNextVsync_) {
         RequestNextVSync();
     }
     RS_OPTIONAL_TRACE_END();
