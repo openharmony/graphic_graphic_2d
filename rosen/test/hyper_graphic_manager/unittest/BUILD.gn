@@ -205,7 +205,7 @@ group("unittest") {
   testonly = true
 
   deps = [
-    ":hyper_graphic_manager_test"
+    ":hyper_graphic_manager_test1"
     ":hgm_pointer_manager_test",
     ":hgm_touch_manager_test",
   ]
