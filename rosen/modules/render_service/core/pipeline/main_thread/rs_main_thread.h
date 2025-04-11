@@ -695,6 +695,9 @@ private:
     std::map<pid_t, std::vector<std::unique_ptr<RSTransactionData>>> cachedSkipTransactionDataMap_;
     std::unordered_map<pid_t, uint64_t> transactionDataLastWaitTime_;
 
+    bool needRequestNextVsync_ = false;
+    bool isHdrSwitchChanged_ = false;
+
     /**
      * @brief A set to store buffer IDs of images that are about to be unmapped from GPU cache.
      *
