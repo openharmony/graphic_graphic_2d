@@ -57,13 +57,15 @@ int32_t XMLParser::Parse()
     if (ParseInternal(*root) == false) {
         return XML_PARSE_INTERNAL_FAIL;
     }
+    int32_t upTimeoutMs = UP_TIMEOUT_MS;
     auto& timeoutStrategyConfig = mParsedData_->timeoutStrategyConfig_;
     if (timeoutStrategyConfig.find(S_UP_TIMEOUT_MS) != timeoutStrategyConfig.end() &&
         IsNumber(timeoutStrategyConfig[S_UP_TIMEOUT_MS])) {
-        int32_t upTimeoutMs = static_cast<int32_t>(std::stoi(timeoutStrategyConfig[S_UP_TIMEOUT_MS]));
-        for (auto& [_, val] : mParsedData_->strategyConfigs_) {
-            val.upTimeOut = val.upTimeOut == UP_TIMEOUT_MS ? upTimeoutMs : val.upTimeOut;
-        }
+        int32_t upTimeoutMsCfg = static_cast<int32_t>(std::stoi(timeoutStrategyConfig[S_UP_TIMEOUT_MS]));
+        upTimeoutMs = upTimeoutMsCfg == 0 ? upTimeoutMs : upTimeoutMsCfg;
+    }
+    for (auto& [_, val] : mParsedData_->strategyConfigs_) {
+        val.upTimeOut = val.upTimeOut == 0 ? upTimeoutMs : val.upTimeOut;
     }
     return EXEC_SUCCESS;
 }
@@ -771,7 +773,7 @@ bool XMLParser::BuildStrategyConfig(xmlNode &currNode, PolicyConfigData::Strateg
     strategy.drawMax = IsNumber(drawMax) ? std::stoi(drawMax) : 0;
     strategy.down = IsNumber(down) ? std::stoi(down) : strategy.max;
     strategy.supportAS = IsNumber(supportAS) ? std::stoi(supportAS) : 0;
-    strategy.upTimeOut = IsNumber(upTimeOut) ? std::stoi(upTimeOut) : UP_TIMEOUT_MS;
+    strategy.upTimeOut = IsNumber(upTimeOut) ? std::stoi(upTimeOut) : 0;
     return true;
 }
 } // namespace OHOS::Rosen
