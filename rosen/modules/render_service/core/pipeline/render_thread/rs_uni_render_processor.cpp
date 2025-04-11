@@ -305,6 +305,7 @@ LayerInfoPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, s
     layer->SetMatrix(matrix);
     layer->SetLayerSourceTuning(params.GetLayerSourceTuning());
     layer->SetLayerArsr(layerInfo.arsrTag);
+    layer->SetLayerCopybit(layerInfo.copybitTag);
     return layer;
 }
 

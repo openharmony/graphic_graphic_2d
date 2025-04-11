@@ -473,6 +473,16 @@ public:
         return arsrTag_;
     }
 
+    void SetLayerCopybit(bool copybitTag)
+    {
+        copybitTag_ = copybitTag;
+    }
+
+    bool GetLayerCopybit() const
+    {
+        return copybitTag_;
+    }
+
     void SetNeedBilinearInterpolation(bool need)
     {
         needBilinearInterpolation_ = need;
@@ -516,6 +526,7 @@ public:
         layerSource_ = layerInfo->GetLayerSourceTuning();
         rotationFixed_ = layerInfo->GetRotationFixed();
         arsrTag_ = layerInfo->GetLayerArsr();
+        copybitTag_ = layerInfo->GetLayerCopybit();
         needBilinearInterpolation_ = layerInfo->GetNeedBilinearInterpolation();
     }
 
@@ -643,6 +654,7 @@ private:
     int32_t layerSource_ = 0; // default layer source tag
     bool rotationFixed_ = false;
     bool arsrTag_ = true;
+    bool copybitTag_ = false;
     std::vector<float> drmCornerRadiusInfo_;
 };
 } // namespace Rosen

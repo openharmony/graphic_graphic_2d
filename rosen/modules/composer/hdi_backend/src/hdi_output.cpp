@@ -40,6 +40,7 @@ namespace OHOS {
 namespace Rosen {
 static constexpr uint32_t NUMBER_OF_HISTORICAL_FRAMES = 2;
 static const std::string GENERIC_METADATA_KEY_ARSR_PRE_NEEDED = "ArsrDoEnhance";
+static const std::string GENERIC_METADATA_KEY_COPYBIT_NEEDED = "TryToDoCopybit";
 static int32_t g_enableMergeFence = OHOS::system::GetIntParameter<int32_t>("persist.sys.graphic.enableMergeFence", 1);
 
 std::shared_ptr<HdiOutput> HdiOutput::CreateHdiOutput(uint32_t screenId)
@@ -233,6 +234,15 @@ bool HdiOutput::CheckSupportArsrPreMetadata()
     return false;
 }
 
+bool HdiOutput::CheckSupportCopybitMetadata()
+{
+    const auto& validKeys = device_->GetSupportedLayerPerFrameParameterKey();
+    if (std::find(validKeys.begin(), validKeys.end(), GENERIC_METADATA_KEY_COPYBIT_NEEDED) != validKeys.end()) {
+        return true;
+    }
+    return false;
+}
+
 int32_t HdiOutput::CreateLayerLocked(uint64_t surfaceId, const LayerInfoPtr &layerInfo)
 {
     LayerPtr layer = HdiLayer::CreateHdiLayer(screenId_);
@@ -270,6 +280,14 @@ int32_t HdiOutput::CreateLayerLocked(uint64_t surfaceId, const LayerInfoPtr &lay
         if (device_->SetLayerPerFrameParameter(screenId_,
             layerId, GENERIC_METADATA_KEY_ARSR_PRE_NEEDED, valueBlob) != GRAPHIC_DISPLAY_SUCCESS) {
             HLOGE("SetLayerPerFrameParameter Fail!");
+        }
+    }
+
+    if (layerInfo->GetLayerCopybit() && CheckSupportCopybitMetadata()) {
+        const std::vector<int8_t> valueBlob{static_cast<int8_t>(1)};
+        if (device_->SetLayerPerFrameParameter(screenId_,
+            layerId, GENERIC_METADATA_KEY_COPYBIT_NEEDED, valueBlob) != GRAPHIC_DISPLAY_SUCCESS) {
+                HLOGE("SetLayerPerFrameParameter Fail!");
         }
     }
 

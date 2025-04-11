@@ -184,10 +184,8 @@ void RSUniRenderVisitor::PartialRenderOptionInit()
     isDirtyAlignEnabled_ = DirtyRegionParam::IsTileBasedAlignEnable();
 
     if (RSSystemProperties::GetStencilPixelOcclusionCullingEnabled() == StencilPixelOcclusionCullingType::DEFAULT) {
-        if (auto spocParam = std::static_pointer_cast<StencilPixelOcclusionCullingParam>(
-            GraphicFeatureParamManager::GetInstance().GetFeatureParam("SpocConfig"))) {
-                isStencilPixelOcclusionCullingEnabled_ = spocParam->IsStencilPixelOcclusionCullingEnable();
-        }
+        isStencilPixelOcclusionCullingEnabled_ =
+            StencilPixelOcclusionCullingParam::IsStencilPixelOcclusionCullingEnable();
     } else {
         isStencilPixelOcclusionCullingEnabled_ =
             RSSystemProperties::GetStencilPixelOcclusionCullingEnabled() != StencilPixelOcclusionCullingType::DISABLED;
@@ -3142,20 +3140,6 @@ void RSUniRenderVisitor::UpdateHWCNodeClipRect(std::shared_ptr<RSSurfaceRenderNo
     clipRect.top_ = static_cast<int>(std::floor(absClipRect.GetTop()));
     clipRect.width_ = static_cast<int>(std::ceil(absClipRect.GetRight() - clipRect.left_));
     clipRect.height_ = static_cast<int>(std::ceil(absClipRect.GetBottom() - clipRect.top_));
-}
-
-bool RSUniRenderVisitor::IsStencilPixelOcclusionCullingEnable() const
-{
-    static auto stencilPixelOcclusionCullingParam =
-            GraphicFeatureParamManager::GetInstance().GetFeatureParam("SpocConfig");
-    auto stencilPixelOcclusionCullingFeature =
-        std::static_pointer_cast<StencilPixelOcclusionCullingParam>(stencilPixelOcclusionCullingParam);
-    if (stencilPixelOcclusionCullingFeature == nullptr) {
-        ROSEN_LOGE("RSUniRenderVisitor::IsStencilPixelOcclusionCullingEnable "
-        "stencilPixelOcclusionCullingFeature is nullptr");
-        return false;
-    }
-    return stencilPixelOcclusionCullingFeature->IsStencilPixelOcclusionCullingEnable();
 }
 
 void RSUniRenderVisitor::UpdateHardwareStateByHwcNodeBackgroundAlpha(

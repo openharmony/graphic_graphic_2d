@@ -32,7 +32,7 @@ int32_t StencilPixelOcclusionCullingParamParse::ParseFeatureParam(FeatureParamMa
             continue;
         }
 
-        if (ParseStencilPixelOcclusionCullingInternal(featureMap, *curNode) != PARSE_EXEC_SUCCESS) {
+        if (ParseStencilPixelOcclusionCullingInternal(*curNode) != PARSE_EXEC_SUCCESS) {
             RS_LOGE("StencilPixelOcclusionCullingParamParse stop parsing, parse internal fail");
             return PARSE_INTERNAL_FAIL;
         }
@@ -41,26 +41,17 @@ int32_t StencilPixelOcclusionCullingParamParse::ParseFeatureParam(FeatureParamMa
     return PARSE_EXEC_SUCCESS;
 }
 
-int32_t StencilPixelOcclusionCullingParamParse::ParseStencilPixelOcclusionCullingInternal(
-    FeatureParamMapType &featureMap, xmlNode &node)
+int32_t StencilPixelOcclusionCullingParamParse::ParseStencilPixelOcclusionCullingInternal(xmlNode &node)
 {
-    auto iter = featureMap.find(FEATURE_CONFIGS[SPOC]);
-    if (iter != featureMap.end()) {
-        stencilPixelOcclusionCullingParam_ = std::static_pointer_cast<StencilPixelOcclusionCullingParam>(iter->second);
-    } else {
-        RS_LOGE("StencilPixelOcclusionCullingParamParse stop parsing, no initializing param map");
-        return PARSE_NO_PARAM;
-    }
-
     // Start Parse Feature Params
     int xmlParamType = GetXmlNodeAsInt(node);
     auto name = ExtractPropertyValue("name", node);
     if (xmlParamType == PARSE_XML_FEATURE_SWITCH && name == "SpocEnabled") {
         auto val = ExtractPropertyValue("value", node);
         bool isEnabled = ParseFeatureSwitch(val);
-        stencilPixelOcclusionCullingParam_->SetStencilPixelOcclusionCullingEnable(isEnabled);
+        StencilPixelOcclusionCullingParam::SetStencilPixelOcclusionCullingEnable(isEnabled);
         RS_LOGI("StencilPixelOcclusionCullingParamParse parse SpocEnabled %{public}d",
-            stencilPixelOcclusionCullingParam_->IsStencilPixelOcclusionCullingEnable());
+            StencilPixelOcclusionCullingParam::IsStencilPixelOcclusionCullingEnable());
     }
     return PARSE_EXEC_SUCCESS;
 }

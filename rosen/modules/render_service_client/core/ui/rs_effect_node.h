@@ -45,6 +45,7 @@ protected:
     RSEffectNode& operator=(const RSEffectNode&&) = delete;
 private:
     void RegisterNodeMap() override;
+    bool preFreeze_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

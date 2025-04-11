@@ -44,11 +44,10 @@ void DVSyncParamTest::TearDown() {}
  */
 HWTEST_F(DVSyncParamTest, SetDVSyncEnable, Function | SmallTest | Level1)
 {
-    DVSyncParam dvsyncParam;
-    dvsyncParam.SetDVSyncEnable(false);
-    ASSERT_EQ(dvsyncParam.isRsDVSyncEnabled_, false);
-    dvsyncParam.SetDVSyncEnable(true);
-    ASSERT_EQ(dvsyncParam.isRsDVSyncEnabled_, true);
+    DVSyncParam::SetDVSyncEnable(false);
+    ASSERT_EQ(DVSyncParam::isRsDVSyncEnabled_, false);
+    DVSyncParam::SetDVSyncEnable(true);
+    ASSERT_EQ(DVSyncParam::isRsDVSyncEnabled_, true);
 }
 
 /**
@@ -59,11 +58,10 @@ HWTEST_F(DVSyncParamTest, SetDVSyncEnable, Function | SmallTest | Level1)
  */
 HWTEST_F(DVSyncParamTest, SetUiDVSyncEnable, Function | SmallTest | Level1)
 {
-    DVSyncParam dvsyncParam;
-    dvsyncParam.SetUiDVSyncEnable(false);
-    ASSERT_EQ(dvsyncParam.isUiDVSyncEnabled_, false);
-    dvsyncParam.SetUiDVSyncEnable(true);
-    ASSERT_EQ(dvsyncParam.isUiDVSyncEnabled_, true);
+    DVSyncParam::SetUiDVSyncEnable(false);
+    ASSERT_EQ(DVSyncParam::isUiDVSyncEnabled_, false);
+    DVSyncParam::SetUiDVSyncEnable(true);
+    ASSERT_EQ(DVSyncParam::isUiDVSyncEnabled_, true);
 }
 
 /**
@@ -74,11 +72,10 @@ HWTEST_F(DVSyncParamTest, SetUiDVSyncEnable, Function | SmallTest | Level1)
  */
 HWTEST_F(DVSyncParamTest, SetNativeDVSyncEnable, Function | SmallTest | Level1)
 {
-    DVSyncParam dvsyncParam;
-    dvsyncParam.SetNativeDVSyncEnable(false);
-    ASSERT_EQ(dvsyncParam.isNativeDVSyncEnabled_, false);
-    dvsyncParam.SetNativeDVSyncEnable(true);
-    ASSERT_EQ(dvsyncParam.isNativeDVSyncEnabled_, true);
+    DVSyncParam::SetNativeDVSyncEnable(false);
+    ASSERT_EQ(DVSyncParam::isNativeDVSyncEnabled_, false);
+    DVSyncParam::SetNativeDVSyncEnable(true);
+    ASSERT_EQ(DVSyncParam::isNativeDVSyncEnabled_, true);
 }
 
 /**
@@ -89,11 +86,10 @@ HWTEST_F(DVSyncParamTest, SetNativeDVSyncEnable, Function | SmallTest | Level1)
  */
 HWTEST_F(DVSyncParamTest, SetAdaptiveDVSyncEnable, Function | SmallTest | Level1)
 {
-    DVSyncParam dvsyncParam;
-    dvsyncParam.SetAdaptiveDVSyncEnable(false);
-    ASSERT_EQ(dvsyncParam.isAdaptiveDVSyncEnabled_, false);
-    dvsyncParam.SetAdaptiveDVSyncEnable(true);
-    ASSERT_EQ(dvsyncParam.isAdaptiveDVSyncEnabled_, true);
+    DVSyncParam::SetAdaptiveDVSyncEnable(false);
+    ASSERT_EQ(DVSyncParam::isAdaptiveDVSyncEnabled_, false);
+    DVSyncParam::SetAdaptiveDVSyncEnable(true);
+    ASSERT_EQ(DVSyncParam::isAdaptiveDVSyncEnabled_, true);
 }
 
 /**
@@ -104,9 +100,8 @@ HWTEST_F(DVSyncParamTest, SetAdaptiveDVSyncEnable, Function | SmallTest | Level1
  */
 HWTEST_F(DVSyncParamTest, SetRsBufferCount, Function | SmallTest | Level1)
 {
-    DVSyncParam dvsyncParam;
-    dvsyncParam.SetRsBufferCount(1);
-    ASSERT_EQ(dvsyncParam.rsBufferCount_, 1);
+    DVSyncParam::SetRsBufferCount(1);
+    ASSERT_EQ(DVSyncParam::rsBufferCount_, 1);
 }
 
 /**
@@ -117,9 +112,8 @@ HWTEST_F(DVSyncParamTest, SetRsBufferCount, Function | SmallTest | Level1)
  */
 HWTEST_F(DVSyncParamTest, SetUiBufferCount, Function | SmallTest | Level1)
 {
-    DVSyncParam dvsyncParam;
-    dvsyncParam.SetUiBufferCount(3);
-    ASSERT_EQ(dvsyncParam.uiBufferCount_, 3);
+    DVSyncParam::SetUiBufferCount(3);
+    ASSERT_EQ(DVSyncParam::uiBufferCount_, 3);
 }
 
 /**
@@ -130,9 +124,8 @@ HWTEST_F(DVSyncParamTest, SetUiBufferCount, Function | SmallTest | Level1)
  */
 HWTEST_F(DVSyncParamTest, SetNativeBufferCount, Function | SmallTest | Level1)
 {
-    DVSyncParam dvsyncParam;
-    dvsyncParam.SetNativeBufferCount(2);
-    ASSERT_EQ(dvsyncParam.nativeBufferCount_, 2);
+    DVSyncParam::SetNativeBufferCount(2);
+    ASSERT_EQ(DVSyncParam::nativeBufferCount_, 2);
 }
 
 /**
@@ -143,9 +136,8 @@ HWTEST_F(DVSyncParamTest, SetNativeBufferCount, Function | SmallTest | Level1)
  */
 HWTEST_F(DVSyncParamTest, SetWebBufferCount, Function | SmallTest | Level1)
 {
-    DVSyncParam dvsyncParam;
-    dvsyncParam.SetWebBufferCount(1);
-    ASSERT_EQ(dvsyncParam.webBufferCount_, 1);
+    DVSyncParam::SetWebBufferCount(1);
+    ASSERT_EQ(DVSyncParam::webBufferCount_, 1);
 }
 
 /**
@@ -156,11 +148,10 @@ HWTEST_F(DVSyncParamTest, SetWebBufferCount, Function | SmallTest | Level1)
  */
 HWTEST_F(DVSyncParamTest, IsDVSyncEnable, Function | SmallTest | Level1)
 {
-    DVSyncParam dvsyncParam;
-    dvsyncParam.isRsDVSyncEnabled_ = true;
-    ASSERT_EQ(dvsyncParam.IsDVSyncEnable(), true);
-    dvsyncParam.isRsDVSyncEnabled_ = false;
-    ASSERT_EQ(dvsyncParam.IsDVSyncEnable(), false);
+    DVSyncParam::isRsDVSyncEnabled_ = true;
+    ASSERT_EQ(DVSyncParam::IsDVSyncEnable(), true);
+    DVSyncParam::isRsDVSyncEnabled_ = false;
+    ASSERT_EQ(DVSyncParam::IsDVSyncEnable(), false);
 }
 
 /**
@@ -171,11 +162,10 @@ HWTEST_F(DVSyncParamTest, IsDVSyncEnable, Function | SmallTest | Level1)
  */
 HWTEST_F(DVSyncParamTest, IsUiDVSyncEnable, Function | SmallTest | Level1)
 {
-    DVSyncParam dvsyncParam;
-    dvsyncParam.isUiDVSyncEnabled_ = true;
-    ASSERT_EQ(dvsyncParam.IsUiDVSyncEnable(), true);
-    dvsyncParam.isUiDVSyncEnabled_ = false;
-    ASSERT_EQ(dvsyncParam.IsUiDVSyncEnable(), false);
+    DVSyncParam::isUiDVSyncEnabled_ = true;
+    ASSERT_EQ(DVSyncParam::IsUiDVSyncEnable(), true);
+    DVSyncParam::isUiDVSyncEnabled_ = false;
+    ASSERT_EQ(DVSyncParam::IsUiDVSyncEnable(), false);
 }
 
 /**
@@ -186,11 +176,10 @@ HWTEST_F(DVSyncParamTest, IsUiDVSyncEnable, Function | SmallTest | Level1)
  */
 HWTEST_F(DVSyncParamTest, IsNativeDVSyncEnable, Function | SmallTest | Level1)
 {
-    DVSyncParam dvsyncParam;
-    dvsyncParam.isNativeDVSyncEnabled_ = true;
-    ASSERT_EQ(dvsyncParam.IsNativeDVSyncEnable(), true);
-    dvsyncParam.isNativeDVSyncEnabled_ = false;
-    ASSERT_EQ(dvsyncParam.IsNativeDVSyncEnable(), false);
+    DVSyncParam::isNativeDVSyncEnabled_ = true;
+    ASSERT_EQ(DVSyncParam::IsNativeDVSyncEnable(), true);
+    DVSyncParam::isNativeDVSyncEnabled_ = false;
+    ASSERT_EQ(DVSyncParam::IsNativeDVSyncEnable(), false);
 }
 
 /**
@@ -201,11 +190,10 @@ HWTEST_F(DVSyncParamTest, IsNativeDVSyncEnable, Function | SmallTest | Level1)
  */
 HWTEST_F(DVSyncParamTest, IsAdaptiveDVSyncEnable, Function | SmallTest | Level1)
 {
-    DVSyncParam dvsyncParam;
-    dvsyncParam.isAdaptiveDVSyncEnabled_ = true;
-    ASSERT_EQ(dvsyncParam.IsAdaptiveDVSyncEnable(), true);
-    dvsyncParam.isAdaptiveDVSyncEnabled_ = false;
-    ASSERT_EQ(dvsyncParam.IsAdaptiveDVSyncEnable(), false);
+    DVSyncParam::isAdaptiveDVSyncEnabled_ = true;
+    ASSERT_EQ(DVSyncParam::IsAdaptiveDVSyncEnable(), true);
+    DVSyncParam::isAdaptiveDVSyncEnabled_ = false;
+    ASSERT_EQ(DVSyncParam::IsAdaptiveDVSyncEnable(), false);
 }
 
 /**
@@ -216,9 +204,8 @@ HWTEST_F(DVSyncParamTest, IsAdaptiveDVSyncEnable, Function | SmallTest | Level1)
  */
 HWTEST_F(DVSyncParamTest, GetUiBufferCount, Function | SmallTest | Level1)
 {
-    DVSyncParam dvsyncParam;
-    dvsyncParam.uiBufferCount_ = 3;
-    ASSERT_EQ(dvsyncParam.GetUiBufferCount(), 3);
+    DVSyncParam::uiBufferCount_ = 3;
+    ASSERT_EQ(DVSyncParam::GetUiBufferCount(), 3);
 }
 
 /**
@@ -229,9 +216,8 @@ HWTEST_F(DVSyncParamTest, GetUiBufferCount, Function | SmallTest | Level1)
  */
 HWTEST_F(DVSyncParamTest, GetRsBufferCount, Function | SmallTest | Level1)
 {
-    DVSyncParam dvsyncParam;
-    dvsyncParam.rsBufferCount_ = 1;
-    ASSERT_EQ(dvsyncParam.GetRsBufferCount(), 1);
+    DVSyncParam::rsBufferCount_ = 1;
+    ASSERT_EQ(DVSyncParam::GetRsBufferCount(), 1);
 }
 
 /**
@@ -242,9 +228,8 @@ HWTEST_F(DVSyncParamTest, GetRsBufferCount, Function | SmallTest | Level1)
  */
 HWTEST_F(DVSyncParamTest, GetNativeBufferCount, Function | SmallTest | Level1)
 {
-    DVSyncParam dvsyncParam;
-    dvsyncParam.nativeBufferCount_ = 2;
-    ASSERT_EQ(dvsyncParam.GetNativeBufferCount(), 2);
+    DVSyncParam::nativeBufferCount_ = 2;
+    ASSERT_EQ(DVSyncParam::GetNativeBufferCount(), 2);
 }
 
 /**
@@ -255,9 +240,8 @@ HWTEST_F(DVSyncParamTest, GetNativeBufferCount, Function | SmallTest | Level1)
  */
 HWTEST_F(DVSyncParamTest, GetWebBufferCount, Function | SmallTest | Level1)
 {
-    DVSyncParam dvsyncParam;
-    dvsyncParam.webBufferCount_ = 1;
-    ASSERT_EQ(dvsyncParam.GetWebBufferCount(), 1);
+    DVSyncParam::webBufferCount_ = 1;
+    ASSERT_EQ(DVSyncParam::GetWebBufferCount(), 1);
 }
 
 /**
@@ -268,11 +252,10 @@ HWTEST_F(DVSyncParamTest, GetWebBufferCount, Function | SmallTest | Level1)
 */
 HWTEST_F(DVSyncParamTest, SetAdaptiveConfig, Function | SmallTest | Level1)
 {
-    DVSyncParam dvsyncParam;
     std::string name = "test";
     std::string val = "1";
-    dvsyncParam.SetAdaptiveConfig(name, val);
-    ASSERT_EQ(dvsyncParam.adaptiveConfig_[name], val);
+    DVSyncParam::SetAdaptiveConfig(name, val);
+    ASSERT_EQ(DVSyncParam::adaptiveConfig_[name], val);
 }
 
 /**
@@ -283,11 +266,10 @@ HWTEST_F(DVSyncParamTest, SetAdaptiveConfig, Function | SmallTest | Level1)
 */
 HWTEST_F(DVSyncParamTest, GetAdaptiveConfig, Function | SmallTest | Level1)
 {
-    DVSyncParam dvsyncParam;
     std::string name = "test";
     std::string val = "1";
-    dvsyncParam.SetAdaptiveConfig(name, val);
-    std::unordered_map<std::string, std::string> adaptiveConfig = dvsyncParam.GetAdaptiveConfig();
+    DVSyncParam::SetAdaptiveConfig(name, val);
+    std::unordered_map<std::string, std::string> adaptiveConfig = DVSyncParam::GetAdaptiveConfig();
     ASSERT_EQ(adaptiveConfig[name], val);
 }
 } // namespace Rosen

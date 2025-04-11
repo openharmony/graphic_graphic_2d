@@ -37,6 +37,7 @@
 #include "hdi_device.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_hisysevent.h"
+#include "vsync_sampler.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -53,6 +54,7 @@ namespace {
     constexpr uint32_t VOTER_SCENE_PRIORITY_BEFORE_PACKAGES = 1;
     constexpr uint32_t VOTER_LTPO_PRIORITY_BEFORE_PACKAGES = 2;
     constexpr uint64_t BUFFER_IDLE_TIME_OUT = 200000000; // 200ms
+    constexpr long DRAG_SCENE_CHANGE_RATE_TIMEOUT = 100; // 100ms
     const static std::string UP_TIME_OUT_TASK_ID = "UP_TIME_OUT_TASK_ID";
     const static std::string S_UP_TIMEOUT_MS = "up_timeout_ms";
     const static std::string S_RS_IDLE_TIMEOUT_MS = "rs_idle_timeout_ms";
@@ -383,13 +385,33 @@ void HgmFrameRateManager::UpdateGuaranteedPlanVote(uint64_t timestamp)
 
 void HgmFrameRateManager::ProcessLtpoVote(const FrameRateRange& finalRange)
 {
+    isDragScene_ = finalRange.type_ == DRAG_SCENE_FRAME_RATE_TYPE;
     if (finalRange.IsValid()) {
-        auto refreshRate = CalcRefreshRate(curScreenId_.load(), finalRange);
+        auto refreshRate = AvoidChangeRateFrequent(CalcRefreshRate(curScreenId_.load(), finalRange));
+        RS_TRACE_NAME_FMT("ProcessLtpoVote isDragScene_: [%d], refreshRate: [%d], lastLtpoRefreshRate_: [%d]",
+            isDragScene_, refreshRate, lastLtpoRefreshRate_);
         DeliverRefreshRateVote(
             {"VOTER_LTPO", refreshRate, refreshRate, DEFAULT_PID, finalRange.GetExtInfo()}, ADD_VOTE);
     } else {
         DeliverRefreshRateVote({.voterName = "VOTER_LTPO"}, REMOVE_VOTE);
     }
+}
+
+uint32_t HgmFrameRateManager::AvoidChangeRateFrequent(uint32_t refreshRate)
+{
+    if (!isDragScene_) {
+        return refreshRate;
+    }
+
+    auto curTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now()
+                    .time_since_epoch()).count();
+    if (refreshRate < lastLtpoRefreshRate_ && curTime - lastLtpoVoteTime_ < DRAG_SCENE_CHANGE_RATE_TIMEOUT) {
+        return lastLtpoRefreshRate_;
+    }
+
+    lastLtpoRefreshRate_ = refreshRate;
+    lastLtpoVoteTime_ = curTime;
+    return refreshRate;
 }
 
 void HgmFrameRateManager::UniProcessDataForLtpo(uint64_t timestamp,
@@ -625,17 +647,7 @@ void HgmFrameRateManager::HandleFrameRateChangeForLTPO(uint64_t timestamp, bool 
     // Start of DVSync
     int64_t delayTime = CreateVSyncGenerator()->SetCurrentRefreshRate(controllerRate_, lastRefreshRate);
     if (delayTime != 0) {
-        int64_t controllerRate = controllerRate_;
-        std::vector<std::pair<FrameRateLinkerId, uint32_t>> appChangeData = appChangeData_;
-        bool needUpdate = isNeedUpdateAppOffset_;
-        RSTaskMessage::RSTask task = [this, targetTime, controllerRate, appChangeData, needUpdate]() {
-            if (controller_) {
-                vsyncCountOfChangeGeneratorRate_ = controller_->ChangeGeneratorRate(controllerRate,
-                    appChangeData, targetTime, needUpdate);
-            }
-            CreateVSyncGenerator()->SetCurrentRefreshRate(0, 0);
-        };
-        HgmTaskHandleThread::Instance().PostTask(task, delayTime);
+        DVSyncTaskProcessor(delayTime, targetTime);
     } else if (controller_) {
         vsyncCountOfChangeGeneratorRate_ = controller_->ChangeGeneratorRate(
             controllerRate_, appChangeData_, targetTime, isNeedUpdateAppOffset_);
@@ -644,6 +656,21 @@ void HgmFrameRateManager::HandleFrameRateChangeForLTPO(uint64_t timestamp, bool 
     isNeedUpdateAppOffset_ = false;
     pendingRefreshRate_ = std::make_shared<uint32_t>(currRefreshRate_);
     SetChangeGeneratorRateValid(false);
+}
+
+void HgmFrameRateManager::DVSyncTaskProcessor(int64_t delayTime, uint64_t targetTime)
+{
+    int64_t controllerRate = controllerRate_;
+    std::vector<std::pair<FrameRateLinkerId, uint32_t>> appChangeData = appChangeData_;
+    bool needUpdate = isNeedUpdateAppOffset_;
+    RSTaskMessage::RSTask task = [this, targetTime, controllerRate, appChangeData, needUpdate]() {
+        if (controller_) {
+            vsyncCountOfChangeGeneratorRate_ = controller_->ChangeGeneratorRate(controllerRate,
+                appChangeData, targetTime, needUpdate);
+        }
+        CreateVSyncGenerator()->SetCurrentRefreshRate(0, 0);
+    };
+    HgmTaskHandleThread::Instance().PostTask(task, delayTime);
 }
 
 void HgmFrameRateManager::GetLowBrightVec(const std::shared_ptr<PolicyConfigData>& configData)
@@ -1454,6 +1481,9 @@ bool HgmFrameRateManager::MergeLtpo2IdleVote(
                 continue;
             }
         }
+        if (isDragScene_ && curVoteInfo.voterName == "VOTER_TOUCH") {
+            continue;
+        }
         ProcessVoteLog(curVoteInfo, false);
         if (mergeSuccess) {
             mergedVoteRange.first = mergedVoteRange.first > curVoteInfo.min ? mergedVoteRange.first : curVoteInfo.min;
@@ -1619,6 +1649,9 @@ VoteInfo HgmFrameRateManager::ProcessRefreshRateVote()
         curScreenStrategyId_.c_str(), static_cast<int>(curScreenId_.load()), curRefreshRateMode_, min, max);
     SetResultVoteInfo(resultVoteInfo, min, max);
     ProcessAdaptiveSync(resultVoteInfo.voterName);
+
+    auto sampler = CreateVSyncSampler();
+    sampler->SetAdaptive(isAdaptive_.load() == SupportASStatus::SUPPORT_AS);
     return resultVoteInfo;
 }
 

@@ -1097,6 +1097,21 @@ HWTEST_F(VSyncGeneratorTest, RemoveDVSyncListenerTest001, Function | MediumTest|
     VsyncError error = VSyncGeneratorTest::vsyncGenerator_->RemoveDVSyncListener(cb);
     ASSERT_EQ(error, VSYNC_ERROR_INVALID_ARGUMENTS);
 }
+
+/*
+* Function: CheckSampleIsAdaptiveTest001
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: Test CheckSampleIsAdaptive
+ */
+HWTEST_F(VSyncGeneratorTest, CheckSampleIsAdaptiveTest001, Function | MediumTest| Level0)
+{
+    // 20000000ns
+    ASSERT_EQ(VSyncGeneratorTest::vsyncGenerator_->CheckSampleIsAdaptive(20000000), true);
+    // 16500000ns
+    ASSERT_EQ(VSyncGeneratorTest::vsyncGenerator_->CheckSampleIsAdaptive(16500000), false);
+}
 } // namespace
 } // namespace Rosen
 } // namespace OHOS

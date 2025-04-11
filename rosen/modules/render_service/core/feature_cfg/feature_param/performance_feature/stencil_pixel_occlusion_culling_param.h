@@ -24,13 +24,13 @@ public:
     StencilPixelOcclusionCullingParam() = default;
     ~StencilPixelOcclusionCullingParam() = default;
 
-    bool IsStencilPixelOcclusionCullingEnable() const;
+    static bool IsStencilPixelOcclusionCullingEnable();
 
 protected:
-    void SetStencilPixelOcclusionCullingEnable(bool isEnable);
+    static void SetStencilPixelOcclusionCullingEnable(bool isEnable);
 
 private:
-    bool isStencilPixelOcclusionCullingEnable_ = false;
+    inline static bool isStencilPixelOcclusionCullingEnable_ = false;
 
     friend class StencilPixelOcclusionCullingParamParse;
 };

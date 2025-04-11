@@ -236,6 +236,7 @@ private:
     bool CollectFrameRateChange(FrameRateRange finalRange, std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker,
         const FrameRateLinkerMap& appFrameRateLinkers);
     void HandleFrameRateChangeForLTPO(uint64_t timestamp, bool followRs);
+    void DVSyncTaskProcessor(int64_t delayTime, uint64_t targetTime);
     void UpdateSoftVSync(bool followRs);
     void SetChangeGeneratorRateValid(bool valid);
     void FrameRateReport();
@@ -280,6 +281,7 @@ private:
         sptr<VSyncController> appController, sptr<VSyncGenerator> vsyncGenerator);
     // vrate voting to hgm linkerId means that frameLinkerid, appFrameRate means that vrate
     void CollectVRateChange(uint64_t linkerId, FrameRateRange& appFrameRate);
+    uint32_t AvoidChangeRateFrequent(uint32_t refreshRate);
     std::string GetGameNodeName() const
     {
         std::lock_guard<std::mutex> lock(pendingMutex_);
@@ -370,6 +372,10 @@ private:
     std::map<uint64_t, int> vRatesMap_;
     ChangeDssRefreshRateCbType changeDssRefreshRateCb_;
     HgmAppPageUrlStrategy appPageUrlStrategy_;
+
+    bool isDragScene_ = false;
+    uint32_t lastLtpoRefreshRate_ = 0;
+    long lastLtpoVoteTime_ = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

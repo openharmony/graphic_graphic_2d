@@ -128,8 +128,6 @@ public:
         screenInfo_ = screenInfo;
     }
 
-    bool IsStencilPixelOcclusionCullingEnable() const;
-
     // Use in updating hwcnode hardware state with background alpha
     void UpdateHardwareStateByHwcNodeBackgroundAlpha(const std::vector<std::weak_ptr<RSSurfaceRenderNode>>& hwcNodes,
         RectI& backgroundAlphaRect, bool& isHardwareEnableByBackgroundAlpha);
