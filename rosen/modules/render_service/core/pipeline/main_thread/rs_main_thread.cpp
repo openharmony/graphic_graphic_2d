@@ -4756,6 +4756,9 @@ bool RSMainThread::HasMirrorDisplay() const
 
 void RSMainThread::UpdateRogSizeIfNeeded()
 {
+    if (!RSSystemProperties::IsPhoneType() || RSSystemProperties::IsFoldScreenFlag()) {
+        return;
+    }
     const std::shared_ptr<RSBaseRenderNode> rootNode = context_->GetGlobalRootRenderNode();
     if (!rootNode) {
         return;
