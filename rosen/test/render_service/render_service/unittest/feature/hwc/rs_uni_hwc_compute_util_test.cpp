@@ -638,4 +638,356 @@ HWTEST_F(RSUniHwcComputeUtilTest, GetConsumerTransformTest, Function | SmallTest
         node.GetRSSurfaceHandler()->buffer_.buffer, node.GetRSSurfaceHandler()->consumer_);
     ASSERT_EQ(consumerTransform, GRAPHIC_ROTATE_NONE);
 }
+
+/*
+ * @tc.name: GetMatrix_001
+ * @tc.desc: test GetMatrix with nullptr Node
+ * @tc.type: FUNC
+ * @tc.require: issueIAVIB4
+ */
+HWTEST_F(RSUniHwcComputeUtilTest, GetMatrix_001, TestSize.Level2)
+{
+    std::shared_ptr<RSRenderNode> node = nullptr;
+    ASSERT_EQ(node, nullptr);
+    ASSERT_EQ(RSUniHwcComputeUtil::GetMatrix(node), std::nullopt);
+}
+
+/*
+ * @tc.name: GetMatrix_002
+ * @tc.desc: test GetMatrix with nullptr boundsGeo_
+ * @tc.type: FUNC
+ * @tc.require: issueIAVIB4
+ */
+HWTEST_F(RSUniHwcComputeUtilTest, GetMatrix_002, TestSize.Level2)
+{
+    NodeId id = 1;
+    std::shared_ptr<RSRenderNode> node = std::make_shared<RSRenderNode>(id);
+    ASSERT_NE(node, nullptr);
+    node->renderContent_->renderProperties_.boundsGeo_ = nullptr;
+    ASSERT_EQ(RSUniHwcComputeUtil::GetMatrix(node), std::nullopt);
+}
+
+/*
+ * @tc.name: GetMatrix_003
+ * @tc.desc: test GetMatrix with boundsGeo_
+ * @tc.type: FUNC
+ * @tc.require: issueIAVIB4
+ */
+HWTEST_F(RSUniHwcComputeUtilTest, GetMatrix_003, TestSize.Level2)
+{
+    NodeId id = 1;
+    std::shared_ptr<RSRenderNode> node = std::make_shared<RSRenderNode>(id);
+    ASSERT_NE(node, nullptr);
+    node->renderContent_->renderProperties_.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
+    ASSERT_EQ(RSUniHwcComputeUtil::GetMatrix(node), node->renderContent_->renderProperties_.boundsGeo_->GetMatrix());
+}
+
+/*
+ * @tc.name: GetMatrix_004
+ * @tc.desc: test GetMatrix sandbox hasvalue and parent is nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueIAVIB4
+ */
+HWTEST_F(RSUniHwcComputeUtilTest, GetMatrix_004, TestSize.Level2)
+{
+    NodeId id = 1;
+    std::shared_ptr<RSRenderNode> node = std::make_shared<RSRenderNode>(id);
+    ASSERT_NE(node, nullptr);
+    node->renderContent_->renderProperties_.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
+    node->renderContent_->renderProperties_.sandbox_ = std::make_unique<Sandbox>();
+    node->renderContent_->renderProperties_.sandbox_->position_ = std::make_optional<Vector2f>(1.0f, 1.0f);
+    ASSERT_EQ(RSUniHwcComputeUtil::GetMatrix(node), std::nullopt);
+}
+
+/*
+ * @tc.name: GetMatrix_005
+ * @tc.desc: test GetMatrix sandbox hasvalue and parent has no geo
+ * @tc.type: FUNC
+ * @tc.require: issueIAVIB4
+ */
+HWTEST_F(RSUniHwcComputeUtilTest, GetMatrix_005, TestSize.Level2)
+{
+    NodeId parentId = 0;
+    std::shared_ptr<RSRenderNode> parentNode = std::make_shared<RSRenderNode>(parentId);
+    ASSERT_NE(parentNode, nullptr);
+    parentNode->renderContent_->renderProperties_.boundsGeo_ = nullptr;
+    NodeId id = 1;
+    std::shared_ptr<RSRenderNode> node = std::make_shared<RSRenderNode>(id);
+    ASSERT_NE(node, nullptr);
+    node->renderContent_->renderProperties_.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
+    node->renderContent_->renderProperties_.sandbox_ = std::make_unique<Sandbox>();
+    node->renderContent_->renderProperties_.sandbox_->position_ = std::make_optional<Vector2f>(1.0f, 1.0f);
+    node->SetParent(parentNode);
+    ASSERT_EQ(RSUniHwcComputeUtil::GetMatrix(node), Drawing::Matrix());
+}
+
+/*
+ * @tc.name: GetMatrix_006
+ * @tc.desc: test GetMatrix sandbox hasvalue and parent has geo
+ * @tc.type: FUNC
+ * @tc.require: issueIAVIB4
+ */
+HWTEST_F(RSUniHwcComputeUtilTest, GetMatrix_006, TestSize.Level2)
+{
+    NodeId parentId = 0;
+    std::shared_ptr<RSRenderNode> parentNode = std::make_shared<RSRenderNode>(parentId);
+    ASSERT_NE(parentNode, nullptr);
+    parentNode->renderContent_->renderProperties_.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
+    NodeId id = 1;
+    std::shared_ptr<RSRenderNode> node = std::make_shared<RSRenderNode>(id);
+    ASSERT_NE(node, nullptr);
+    node->renderContent_->renderProperties_.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
+    node->renderContent_->renderProperties_.sandbox_ = std::make_unique<Sandbox>();
+    node->renderContent_->renderProperties_.sandbox_->position_ = std::make_optional<Vector2f>(1.0f, 1.0f);
+    node->SetParent(parentNode);
+    auto invertAbsParentMatrix = Drawing::Matrix();
+    parentNode->renderContent_->renderProperties_.boundsGeo_->GetAbsMatrix().Invert(invertAbsParentMatrix);
+    auto assertResult = node->renderContent_->renderProperties_.boundsGeo_->GetAbsMatrix();
+    assertResult.PostConcat(invertAbsParentMatrix);
+    ASSERT_EQ(RSUniHwcComputeUtil::GetMatrix(node), assertResult);
+}
+
+/*
+ * @tc.name: GetLayerTransformTest
+ * @tc.desc: Verify function GetLayerTransform
+ * @tc.type: FUNC
+ * @tc.require: issuesI9KRF1
+ */
+HWTEST_F(RSUniHwcComputeUtilTest, GetLayerTransformTest, Function | SmallTest | Level2)
+{
+    NodeId id = 0;
+    RSSurfaceRenderNode node(id);
+    ScreenInfo screenInfo;
+    GraphicTransformType type = RSUniHwcComputeUtil::GetLayerTransform(node, screenInfo);
+
+    node.GetRSSurfaceHandler()->consumer_ = IConsumerSurface::Create();
+    type = RSUniHwcComputeUtil::GetLayerTransform(node, screenInfo);
+    EXPECT_TRUE(type == GraphicTransformType::GRAPHIC_ROTATE_NONE);
+}
+
+/*
+ * @tc.name: GetLayerTransformTest002
+ * @tc.desc: Test GetLayerTransform when consumer and buffer is not nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueIAJBBO
+ */
+HWTEST_F(RSUniHwcComputeUtilTest, GetLayerTransformTest002, TestSize.Level2)
+{
+    NodeId id = 0;
+    RSSurfaceRenderNode node(id);
+    node.surfaceHandler_ = nullptr;
+    ScreenInfo screenInfo;
+    GraphicTransformType type = RSUniHwcComputeUtil::GetLayerTransform(node, screenInfo);
+
+    node.surfaceHandler_ = std::make_shared<RSSurfaceHandler>(id);
+    ASSERT_NE(node.surfaceHandler_, nullptr);
+    node.GetRSSurfaceHandler()->buffer_.buffer = OHOS::SurfaceBuffer::Create();
+    node.GetRSSurfaceHandler()->consumer_ = IConsumerSurface::Create();
+    type = RSUniHwcComputeUtil::GetLayerTransform(node, screenInfo);
+    EXPECT_TRUE(type == GraphicTransformType::GRAPHIC_ROTATE_NONE);
+}
+
+/*
+ * @tc.name: HasNonZRotationTransform_001
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniHwcComputeUtilTest, HasNonZRotationTransform_001, Function | SmallTest | Level2)
+{
+    bool hasNonZRotationTransform;
+    Drawing::Matrix matrix = Drawing::Matrix();
+    matrix.SetMatrix(1, 0, 0, 0, 1, 0, 0, 0, 1);
+    hasNonZRotationTransform = RSUniHwcComputeUtil::HasNonZRotationTransform(matrix);
+    ASSERT_FALSE(hasNonZRotationTransform);
+}
+
+/*
+ * @tc.name: HasNonZRotationTransform_002
+ * @tc.desc: test HasNonZRotationTransform with ScaleX and ScaleY have same sign
+ * @tc.type: FUNC
+ * @tc.require: #IANUEG
+ */
+HWTEST_F(RSUniHwcComputeUtilTest, HasNonZRotationTransform_002, Function | SmallTest | Level2)
+{
+    bool hasNonZRotationTransform;
+    Drawing::Matrix matrix = Drawing::Matrix();
+    matrix.SetMatrix(-1, 0, 0, 0, -1, 0, 0, 0, 1);
+    hasNonZRotationTransform = RSUniHwcComputeUtil::HasNonZRotationTransform(matrix);
+    ASSERT_FALSE(hasNonZRotationTransform);
+}
+
+/*
+ * @tc.name: HasNonZRotationTransform_003
+ * @tc.desc: Test HasNonZRotationTransform when ScaleX and ScaleY have different sign
+ * @tc.type: FUNC
+ * @tc.require: issueIAJOWI
+ */
+HWTEST_F(RSUniHwcComputeUtilTest, HasNonZRotationTransform_003, Function | SmallTest | Level2)
+{
+    bool hasNonZRotationTransform;
+    Drawing::Matrix matrix = Drawing::Matrix();
+    matrix.SetMatrix(-1, 0, 0, 0, 1, 0, 0, 0, 1);
+    hasNonZRotationTransform = RSUniHwcComputeUtil::HasNonZRotationTransform(matrix);
+    ASSERT_TRUE(hasNonZRotationTransform);
+}
+
+/**
+ * @tc.name: IntersectRect_001
+ * @tc.desc: test for seting RectF to intersection.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniHwcComputeUtilTest, IntersectRect_001, Function | SmallTest | Level1)
+{
+    Drawing::Rect rectf1(1.0f, 2.0f, 3.0f, 4.0f);
+    Drawing::Rect rectf2;
+    RSUniHwcComputeUtil::IntersectRect(rectf1, rectf2);
+    EXPECT_EQ(0.0f, rectf1.GetLeft());
+    EXPECT_EQ(0.0f, rectf1.GetTop());
+    EXPECT_EQ(0.0f, rectf1.GetRight());
+    EXPECT_EQ(0.0f, rectf1.GetBottom());
+}
+
+/**
+ * @tc.name: IntersectRect_002
+ * @tc.desc: test for seting RectF to intersection.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniHwcComputeUtilTest, IntersectRect_002, Function | SmallTest | Level1)
+{
+    Drawing::Rect rectf1(1.0f, 2.0f, 3.0f, 4.0f);
+    Drawing::Rect rectf2(1.0f, 2.0f, 3.0f, 5.0f);
+    RSUniHwcComputeUtil::IntersectRect(rectf1, rectf2);
+    EXPECT_EQ(1.0f, rectf2.GetLeft());
+    EXPECT_EQ(2.0f, rectf2.GetTop());
+    EXPECT_EQ(3.0f, rectf2.GetRight());
+    EXPECT_EQ(4.0f, rectf2.GetBottom());
+}
+
+/**
+ * @tc.name: IS_NULLPTR_001
+ * @tc.desc: test for IS_NULLPTR
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniHwcComputeUtilTest, IS_NULLPTR_001, Function | SmallTest | Level1)
+{
+    int* ptr1 = nullptr;
+    auto result = RSUniHwcComputeUtil::IS_NULLPTR(ptr1);
+    EXPECT_TRUE(result);
+    delete ptr1;
+    ptr1 = nullptr;
+}
+
+/**
+ * @tc.name: IS_NULLPTR_002
+ * @tc.desc: test for IS_NULLPTR
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniHwcComputeUtilTest, IS_NULLPTR_002, Function | SmallTest | Level1)
+{
+    int* ptr1 = new int;
+    auto result = RSUniHwcComputeUtil::IS_NULLPTR(ptr1);
+    EXPECT_FALSE(result);
+    delete ptr1;
+    ptr1 = nullptr;
+}
+
+/**
+ * @tc.name: IS_NULLPTR_003
+ * @tc.desc: test for IS_NULLPTR
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniHwcComputeUtilTest, IS_NULLPTR_003, Function | SmallTest | Level1)
+{
+    std::unique_ptr<int> ptr1 = std::make_unique<int>(5);
+    auto result = RSUniHwcComputeUtil::IS_NULLPTR(std::move(ptr1));
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: IS_ANY_NULLPTR_001
+ * @tc.desc: test for IS_ANY_NULLPTR
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniHwcComputeUtilTest, IS_ANY_NULLPTR_001, Function | SmallTest | Level1)
+{
+    uint8_t* ptr1 = nullptr;
+    char* ptr2 = nullptr;
+    float* ptr3 = nullptr;
+    auto result = RSUniHwcComputeUtil::IS_ANY_NULLPTR(ptr1, ptr2, ptr3);
+    EXPECT_TRUE(result);
+    delete ptr1;
+    delete ptr2;
+    delete ptr3;
+    ptr1 = nullptr;
+    ptr2 = nullptr;
+    ptr3 = nullptr;
+}
+
+/**
+ * @tc.name: IS_ANY_NULLPTR_002
+ * @tc.desc: test for IS_ANY_NULLPTR
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniHwcComputeUtilTest, IS_ANY_NULLPTR_002, Function | SmallTest | Level1)
+{
+    uint8_t* ptr1 = new uint8_t;
+    char* ptr2 = nullptr;
+    float* ptr3 = new float;
+    auto result = RSUniHwcComputeUtil::IS_ANY_NULLPTR(ptr1, ptr2, ptr3);
+    EXPECT_FALSE(result);
+    delete ptr1;
+    delete ptr2;
+    delete ptr3;
+    ptr1 = nullptr;
+    ptr2 = nullptr;
+    ptr3 = nullptr;
+}
+
+/**
+ * @tc.name: IS_ANY_NULLPTR_003
+ * @tc.desc: test for IS_ANY_NULLPTR
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniHwcComputeUtilTest, IS_ANY_NULLPTR_003, Function | SmallTest | Level1)
+{
+    uint8_t* ptr1 = new uint8_t;
+    char* ptr2 = new char;
+    float* ptr3 = new float;
+    auto result = RSUniHwcComputeUtil::IS_ANY_NULLPTR(ptr1, ptr2, ptr3);
+    EXPECT_FALSE(result);
+    delete ptr1;
+    delete ptr2;
+    delete ptr3;
+    ptr1 = nullptr;
+    ptr2 = nullptr;
+    ptr3 = nullptr;
+}
+
+/**
+ * @tc.name: IS_ANY_NULLPTR_004
+ * @tc.desc: test for IS_ANY_NULLPTR
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniHwcComputeUtilTest, IS_ANY_NULLPTR_004, Function | SmallTest | Level1)
+{
+    uint8_t* ptr1 = new uint8_t;
+    char* ptr2 = new char;
+    std::unique_ptr<int> ptr3 = std::make_unique<int>(5);
+    auto result = RSUniHwcComputeUtil::IS_ANY_NULLPTR(ptr1, ptr2, std::move(ptr3));
+    EXPECT_FALSE(result);
+    delete ptr1;
+    delete ptr2;
+    ptr1 = nullptr;
+    ptr2 = nullptr;
+}
 }

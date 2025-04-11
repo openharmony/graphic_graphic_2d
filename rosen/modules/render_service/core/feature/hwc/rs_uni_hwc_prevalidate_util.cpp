@@ -22,6 +22,7 @@
 #include "pipeline/render_thread/rs_base_render_util.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
 #include "pipeline/rs_pointer_window_manager.h"
+#include "feature/hwc/rs_uni_hwc_compute_util.h"
 
 #include "common/rs_common_hook.h"
 #include "common/rs_obj_abs_geometry.h"
@@ -277,7 +278,7 @@ void RSUniHwcPrevalidateUtil::EmplaceSurfaceNodeLayer(
     std::vector<RequestLayerInfo>& prevalidLayers, RSSurfaceRenderNode::SharedPtr node,
     uint32_t curFps, uint32_t& zOrder, const ScreenInfo& screenInfo)
 {
-    auto transform = RSUniRenderUtil::GetLayerTransform(*node, screenInfo);
+    auto transform = RSUniHwcComputeUtil::GetLayerTransform(*node, screenInfo);
     RequestLayerInfo surfaceLayer;
     if (RSUniHwcPrevalidateUtil::GetInstance().CreateSurfaceNodeLayerInfo(
         zOrder++, node, transform, curFps, surfaceLayer)) {

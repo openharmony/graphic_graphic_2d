@@ -17,10 +17,38 @@
 
 #include "pipeline/render_thread/rs_uni_render_util.h"
 
+#include <utility>
+
 namespace OHOS {
 namespace Rosen {
+
+#define CHECK_NULL_VOID(...)                                    \
+    do {                                                        \
+        if (RSUniHwcComputeUtil::IS_ANY_NULLPTR(__VA_ARGS__)) { \
+            return;                                             \
+        }                                                       \
+    } while (0)
+
 class RSUniHwcComputeUtil {
 public:
+    template <typename T>
+    constexpr static bool IS_NULLPTR(const T& ptr)
+    {
+        if constexpr (std::is_pointer_v<T>) {
+            return ptr == nullptr;
+        } else {
+            return ptr.get() == nullptr;
+        }
+    }
+    template <typename... Args>
+    constexpr static bool IS_ANY_NULLPTR(Args... args)
+    {
+        const auto results = std::make_tuple((IS_NULLPTR(args))...);
+        const bool anyNull = std::apply([](const auto&... result) {
+            return (result || ...);
+        }, results);
+        return anyNull;
+    }
     static void CalcSrcRectByBufferFlip(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo);
     static Drawing::Rect CalcSrcRectByBufferRotation(const SurfaceBuffer& buffer,
         const GraphicTransformType consumerTransformType, Drawing::Rect newSrcRect);
@@ -31,8 +59,6 @@ public:
         const GraphicTransformType consumerTransformType);
     static void DealWithNodeGravityOldVersion(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo);
     static void DealWithScalingMode(RSSurfaceRenderNode& node, const Drawing::Matrix& totalMatrix);
-    static bool IsHwcEnabledByGravity(RSSurfaceRenderNode& node, const Gravity frameGravity);
-    static bool IsHwcEnabledByScalingMode(RSSurfaceRenderNode& node, const ScalingMode scalingMode);
     static void LayerCrop(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo);
     static void LayerRotate(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo);
     static RectI SrcRectRotateTransform(const SurfaceBuffer& buffer,
@@ -44,6 +70,31 @@ public:
         const sptr<SurfaceBuffer> buffer, const sptr<IConsumerSurface> consumer);
     static GraphicTransformType GetRotateTransformForRotationFixed(RSSurfaceRenderNode& node,
         sptr<IConsumerSurface> consumer);
+    static void UpdateHwcNodeProperty(std::shared_ptr<RSSurfaceRenderNode> hwcNode);
+    template<typename... Callbacks>
+    static void TraverseParentNodeAndReduce(std::shared_ptr<RSSurfaceRenderNode> hwcNode, Callbacks&&... callbacks)
+    {
+        static_assert((std::is_invocable<Callbacks, std::shared_ptr<RSRenderNode>>::value && ...),
+                    "uninvocable callback");
+        if (!hwcNode) {
+            return;
+        }
+        auto parent = std::static_pointer_cast<RSRenderNode>(hwcNode);
+        while (static_cast<bool>(parent = parent->GetParent().lock())) {
+            (std::invoke(callbacks, parent), ...);
+            if (parent->GetType() == RSRenderNodeType::DISPLAY_NODE) {
+                break;
+            }
+        }
+    }
+    static bool HasNonZRotationTransform(Drawing::Matrix matrix);
+    static GraphicTransformType GetLayerTransform(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo);
+    static std::optional<Drawing::Matrix> GetMatrix(std::shared_ptr<RSRenderNode> hwcNode);
+    static void IntersectRect(Drawing::Rect& rect1, const Drawing::Rect& rect2);
+
+private:
+    static bool IsHwcEnabledByGravity(RSSurfaceRenderNode& node, const Gravity frameGravity);
+    static bool IsHwcEnabledByScalingMode(RSSurfaceRenderNode& node, const ScalingMode scalingMode);
 };
 } // namespace Rosen
 } // namespace OHOS
