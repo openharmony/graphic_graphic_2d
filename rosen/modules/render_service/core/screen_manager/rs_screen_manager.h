@@ -110,7 +110,6 @@ public:
     virtual void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status) = 0;
     virtual ScreenPowerStatus GetScreenPowerStatus(ScreenId id) const = 0;
     virtual bool IsScreenPoweringOn() const = 0;
-    virtual bool IsScreenPoweringOff(ScreenId id) const = 0;
     virtual bool IsScreenPowerOff(ScreenId id) const = 0;
     virtual bool IsAllScreensPowerOff() const = 0;
     virtual void DisablePowerOffRenderControl(ScreenId id) = 0;
@@ -281,7 +280,6 @@ public:
     void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status) override;
     ScreenPowerStatus GetScreenPowerStatus(ScreenId id) const override;
     bool IsScreenPoweringOn() const override;
-    bool IsScreenPoweringOff(ScreenId id) const override;
     bool IsScreenPowerOff(ScreenId id) const override;
     bool IsAllScreensPowerOff() const override;
     void DisablePowerOffRenderControl(ScreenId id) override;
@@ -392,8 +390,6 @@ private:
     void ProcessScreenDisConnected(std::shared_ptr<HdiOutput>& output);
     void HandleDefaultScreenDisConnected();
 
-    void UpdateScreenPowerStatus(ScreenId id, ScreenPowerStatus status);
-
     void RegSetScreenVsyncEnabledCallbackForMainThread(ScreenId vsyncEnabledScreenId);
     void RegSetScreenVsyncEnabledCallbackForHardwareThread(ScreenId vsyncEnabledScreenId);
     void UpdateVsyncEnabledScreenId(ScreenId screenId);
@@ -443,7 +439,6 @@ private:
 
     mutable std::shared_mutex powerStatusMutex_;
     std::unordered_map<ScreenId, uint32_t> screenPowerStatus_;
-    std::unordered_set<ScreenId> isScreenPoweringOff_;
 
     mutable std::shared_mutex backLightAndCorrectionMutex_;
     std::unordered_map<ScreenId, uint32_t> screenBacklight_;
