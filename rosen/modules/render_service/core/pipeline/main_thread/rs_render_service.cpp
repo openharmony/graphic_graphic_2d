@@ -319,7 +319,7 @@ void RSRenderService::DumpAllNodesMemSize(std::string& dumpString) const
     });
 }
 
-static bool convertToLongLongUint(const std::string& str, uint64_t& value, int8_t base = 10)
+static bool ConvertToLongLongUint(const std::string& str, uint64_t& value, int8_t base = 10)
 {
     char* end;
     errno = 0;
@@ -364,7 +364,7 @@ void RSRenderService::FPSDUMPProcess(std::unordered_set<std::u16string>& argSets
     }
     if (option == "-id") {
         NodeId nodeId = 0;
-        if (!convertToLongLongUint(argStr, nodeId)) {
+        if (!ConvertToLongLongUint(argStr, nodeId)) {
             dumpString = "The input nodeId is invalid, please re-enter";
             return ;
         }
@@ -458,7 +458,7 @@ void RSRenderService::FPSDUMPClearProcess(std::unordered_set<std::u16string>& ar
     }
     if (option == "-id") {
         NodeId nodeId = 0;
-        if (!convertToLongLongUint(argStr, nodeId)) {
+        if (!ConvertToLongLongUint(argStr, nodeId)) {
             dumpString = "The input nodeId is invalid, please re-enter";
             return ;
         }
