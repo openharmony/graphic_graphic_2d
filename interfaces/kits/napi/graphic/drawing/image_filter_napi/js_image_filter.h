@@ -22,7 +22,7 @@
 #include "color_filter_napi/js_color_filter.h"
 #include "effect/image_filter.h"
 #include "effect/shader_effect.h"
-
+#include "shader_effect_napi/js_shader_effect.h"
 
 namespace OHOS::Rosen {
 namespace Drawing {
@@ -36,7 +36,12 @@ public:
     static napi_value Constructor(napi_env env, napi_callback_info info);
     static void Destructor(napi_env env, void *nativeObject, void *finalize);
     static napi_value CreateBlurImageFilter(napi_env env, napi_callback_info info);
+    static napi_value CreateBlendImageFilter(napi_env env, napi_callback_info info);
+    static napi_value CreateComposeImageFilter(napi_env env, napi_callback_info info);
     static napi_value CreateFromColorFilter(napi_env env, napi_callback_info info);
+    static napi_value CreateFromImage(napi_env env, napi_callback_info info);
+    static napi_value CreateFromShaderEffect(napi_env env, napi_callback_info info);
+    static napi_value CreateOffsetImageFilter(napi_env env, napi_callback_info info);
     static napi_value Create(napi_env env, const std::shared_ptr<ImageFilter> imageFilter);
     DRAWING_API std::shared_ptr<ImageFilter> GetImageFilter();
 

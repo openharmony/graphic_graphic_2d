@@ -30,6 +30,7 @@ namespace Drawing {
 class Data;
 class ImageFilter;
 class ColorFilter;
+class Bitmap;
 enum class GradientDir : uint8_t {
     LEFT = 0,
     TOP,

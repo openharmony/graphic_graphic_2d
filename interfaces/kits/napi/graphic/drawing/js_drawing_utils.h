@@ -26,6 +26,10 @@
 #include "draw/shadow.h"
 #include "native_engine/native_engine.h"
 #include "native_engine/native_value.h"
+#ifdef ROSEN_OHOS
+#include "pixel_map.h"
+#include "pixel_map_napi.h"
+#endif
 #include "text/font.h"
 #include "text/font_mgr.h"
 #include "text/font_metrics.h"
@@ -481,6 +485,15 @@ napi_value NapiThrowError(napi_env env, DrawingErrorCode err, const std::string&
 std::shared_ptr<Font> GetThemeFont(std::shared_ptr<Font> font);
 std::shared_ptr<Font> MatchThemeFont(std::shared_ptr<Font> font, int32_t unicode);
 std::shared_ptr<FontMgr> GetFontMgr(std::shared_ptr<Font> font);
+class Bitmap;
+class ColorSpace;
+#ifdef ROSEN_OHOS
+extern std::shared_ptr<Drawing::ColorSpace> ColorSpaceToDrawingColorSpace(Media::ColorSpace colorSpace);
+extern Drawing::ColorType PixelFormatToDrawingColorType(Media::PixelFormat pixelFormat);
+extern Drawing::AlphaType AlphaTypeToDrawingAlphaType(Media::AlphaType alphaType);
+extern bool ExtracetDrawingBitmap(std::shared_ptr<Media::PixelMap> pixelMap, Drawing::Bitmap& bitmap);
+extern std::shared_ptr<Drawing::Image> ExtractDrawingImage(std::shared_ptr<Media::PixelMap> pixelMap);
+#endif
 } // namespace Drawing
 } // namespace OHOS::Rosen
 

@@ -34,7 +34,6 @@ public:
         IMAGE_SHADER,
         IMAGE_FILTER
     };
-    ExtendObject() = default;
     ExtendObject(ExtendObjectType type) noexcept
         : type_(type) {}
     virtual ~ExtendObject() = default;

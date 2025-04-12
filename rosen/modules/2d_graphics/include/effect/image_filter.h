@@ -43,7 +43,7 @@ public:
         GRADIENT_BLUR,
         BLEND,
         SHADER,
-        IMAGE,
+        IMAGE
     };
     /**
      * @brief Create a filter that blurs its input by the separate X and Y sinma value.
@@ -133,6 +133,16 @@ public:
     static std::shared_ptr<ImageFilter> CreateShaderImageFilter(std::shared_ptr<ShaderEffect> shader,
         const Rect& cropRect = noCropRect);
 
+    /**
+     * @brief Create a filter to render the contents of the input Image with rect.
+     *
+     * @param srcRect Indicates the pointer to a src rect object.
+     * @param dstRect Indicates the pointer to a dst rect object.
+     * @return    A shared pointer to ImageFilter that its type is bitmap.
+     */
+    static std::shared_ptr<ImageFilter> CreateBitmapImageFilter(
+        const std::shared_ptr<Image>& image, const Rect& srcRect, const Rect& dstRect);
+
     virtual ~ImageFilter() = default;
     FilterType GetType() const;
     virtual DrawingType GetDrawingType() const
@@ -170,6 +180,7 @@ public:
     ImageFilter(FilterType t, std::shared_ptr<ShaderEffect> shader, const Rect& cropRect = noCropRect) noexcept;
     ImageFilter(FilterType t, const std::shared_ptr<Image>& image, const RectF& srcRect,
         const RectF& dstRect) noexcept;
+
 protected:
     ImageFilter() noexcept;
 
