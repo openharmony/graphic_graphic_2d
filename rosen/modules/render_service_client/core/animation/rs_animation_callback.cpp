@@ -36,6 +36,11 @@ AnimationFinishCallback::AnimationFinishCallback(
     : AnimationCallback(std::move(callback)), finishCallbackType_(finishCallbackType)
 {}
 
+bool AnimationFinishCallback::IsValid()
+{
+    return callback_ != nullptr;
+}
+
 void AnimationFinishCallback::Execute()
 {
     if (callback_ != nullptr) {
