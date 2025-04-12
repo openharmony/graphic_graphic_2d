@@ -705,6 +705,7 @@ HWTEST_F(HyperGraphicManagerTest, SetEnableDynamicMode, Function | SmallTest | L
 HWTEST_F(HyperGraphicManagerTest, TestAbnormalCase, Function | SmallTest | Level4)
 {
     auto &hgm = HgmCore::Instance();
+    hgm.mParser_.reset();
     hgm.Init();
 
     auto mgr = hgm.GetFrameRateMgr();

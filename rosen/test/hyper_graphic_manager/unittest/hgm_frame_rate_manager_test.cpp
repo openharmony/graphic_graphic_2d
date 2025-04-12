@@ -408,7 +408,7 @@ HWTEST_F(HgmFrameRateMgrTest, HgmConfigCallbackManagerTest002, Function | SmallT
             hccMgr->SyncRefreshRateUpdateCallback(OLED_60_HZ);
             ASSERT_EQ(hccMgr->animDynamicCfgCallbacks_.empty(), false);
             hccMgr->UnRegisterHgmConfigChangeCallback(pid);
-            hccMgr->animDynamicCfgCallbacks_.try_emplace(0, cb);
+            hccMgr->animDynamicCfgCallbacks_.try_emplace(pid, cb);
             std::shared_ptr<HgmMultiAppStrategy> multiAppStrategy_;
             auto frameRateMgr = hgmCore.GetFrameRateMgr();
             frameRateMgr->GetMultiAppStrategy().GetForegroundPidApp().try_emplace(0,
@@ -646,7 +646,7 @@ HWTEST_F(HgmFrameRateMgrTest, CleanPidCallbackTest, Function | SmallTest | Level
     EventInfo eventInfo2 = { .eventName = "VOTER_SCENE", .eventStatus = true, .description = testScene };
     mgr->HandleRefreshRateEvent(0, eventInfo2);
     mgr->UpdateVoteRule();
-    mgr->sceneStack_.push_back(std::make_pair("sceneName", 0));
+    mgr->sceneStack_.push_back(std::make_pair("sceneName1", 0));
     mgr->UpdateVoteRule();
     sleep(1);
 }
@@ -774,6 +774,9 @@ HWTEST_F(HgmFrameRateMgrTest, ProcessRefreshRateVoteTest, Function | SmallTest |
     frameRateMgr.voters_.push_back("VOTER_ANCO");
     auto voterIter1 = std::find(frameRateMgr.voters_.begin(), frameRateMgr.voters_.end(), "VOTER_ANCO");
     EXPECT_FALSE(frameRateMgr.ProcessRefreshRateVote(voterIter1, resultVoteInfo, voteRange, voterGamesEffective));
+    frameRateMgr.voters_.push_back("VOTER_VIDEO");
+    voterIter1 = std::find(frameRateMgr.voters_.begin(), frameRateMgr.voters_.end(), "VOTER_VIDEO");
+    EXPECT_TRUE(frameRateMgr.ProcessRefreshRateVote(voterIter1, resultVoteInfo, voteRange, voterGamesEffective));
 }
 
 /**

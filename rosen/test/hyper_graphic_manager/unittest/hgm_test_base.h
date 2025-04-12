@@ -40,6 +40,8 @@ const std::string TEST_XML_CONTENT = (R"(<?xml version="1.0" encoding="UTF-8" st
     -->
     <HgmConfig version="1.0" xmlns:xi="http://www.w3.org/2001/XInclude">
     <Param name="default_refreshrate_mode" value="-1"/>
+    <Param name="p3_node_count_config" value="1"/>
+    <Param name="is_covered_surface_close_p3_config" value="1"/>
     <Params name="refresh_rate_4settings">
         <Setting name="-1" id="-1"/>
         <Setting name="60" id="1"/>
@@ -52,7 +54,12 @@ const std::string TEST_XML_CONTENT = (R"(<?xml version="1.0" encoding="UTF-8" st
         <Strategy name="8" min="60" max="120" dynamicMode="1"/>
         <Strategy name="12" min="120" max="120" dynamicMode="0"/>
     </Params>
-    <Params name="refreshRate_virtual_display_config" switch="1"></Params>
+    <Params name="refreshRate_virtual_display_config" switch="1">
+    </Params>
+    <Params name="refreshRate_virtual_display_config" switch="-1">
+    </Params>
+    <Params name="safe_vote" switch="1">
+    </Params>
     <Params name="screen_strategy_config">
         <Strategy name="screen0_LTPO" type="LTPO-DEFAULT"/>
     </Params>
@@ -101,6 +108,12 @@ const std::string TEST_XML_CONTENT = (R"(<?xml version="1.0" encoding="UTF-8" st
         <Category name="app_list" multi_app_strategy="focus">
             <App name="aaa" strategy="12"/>
         </Category>
+            <Category name="app_list" multi_app_strategy="strategy_1">
+            <App name="aaa" strategy="12"/>
+        </Category>
+                <Category name="app_list" multi_app_strategy="max">
+            <App name="aaa" strategy="12"/>
+        </Category>
         <Category name="app_types">
             <App name="aaa" strategy="12" />
         </Category>
@@ -110,12 +123,30 @@ const std::string TEST_XML_CONTENT = (R"(<?xml version="1.0" encoding="UTF-8" st
         <Category name="performance_config">
             <App name="aaa" strategy="12" />
         </Category>
+        <Category name="xxx">
+            <App name="aaa" strategy="12" />
+        </Category>
         </Setting>
     </Params>
     <Params name="rs_video_frame_rate_vote_config" switch="1">
         <App name="aaa" value="1"/>
     </Params>
     <Params name="source_tuning_for_yuv420">
+        <App name="aaa" value="1"/>
+    </Params>
+    <Params name="rs_solid_color_layer_config">
+        <App name="aaa" value="1"/>
+    </Params>
+    <Params name="hfbc_config">
+        <App name="aaa" value="1"/>
+    </Params>
+    <Params name="timeout_strategy_config">
+        <App name="aaa" value="1"/>
+    </Params>
+    <Params name="video_call_layer_config">
+        <App name="aaa" value="1"/>
+    </Params>
+    <Params name="xxx">
         <App name="aaa" value="1"/>
     </Params>
     </HgmConfig>)");
