@@ -25,6 +25,23 @@ RSSurfaceFpsManager& RSSurfaceFpsManager::GetInstance()
     return instance;
 }
 
+bool ConvertToLongLongUint(const std::string& str, uint64_t& value, int8_t base = 10)
+{
+    char* end;
+    errno = 0;
+    value = std::strtoull(str.c_str(), &end, base);
+    if (end == str.c_str()) {
+        return false;
+    }
+    if (errno == ERANGE && value == ULLONG_MAX) {
+        return false;
+    }
+    if (*end != '\0') {
+        return false;
+    }
+    return true;
+}
+
 bool RSSurfaceFpsManager::RegisterSurfaceFps(NodeId id, const std::string& name)
 {
     std::unique_lock<std::shared_mutex> lock(smtx);
@@ -156,6 +173,38 @@ void RSSurfaceFpsManager::ClearDumpByPid(std::string& result, pid_t pid)
     }
     result += " The fps info of surface [" + surfaceFps->GetName() + "] is cleared.\n";
     surfaceFps->ClearDump();
+}
+
+void RSSurfaceFpsManager::DumpSurfaceNodeFps(std::string& dumpString, const std::string& option, const std::string& arg)
+{
+    dumpString += "\n-- The recently fps records info of screens:\n";
+    if (option == "-name") {
+        Dump(dumpString, arg);
+    } else {
+        NodeId nodeId = 0;
+        if (!ConvertToLongLongUint(arg, nodeId)) {
+            dumpString = "The input nodeId is invalid, please re-enter";
+            return ;
+        } else {
+            Dump(dumpString, nodeId);
+        }
+    }
+}
+
+void RSSurfaceFpsManager::ClearSurfaceNodeFps(std::string& dumpString, const std::string& option, const std::string& arg)
+{
+    dumpString += "\n-- Clear fps records info of screens:\n";
+    if (option == "-name") {
+        ClearDump(dumpString, arg);
+    } else {
+        NodeId nodeId = 0;
+        if (!ConvertToLongLongUint(arg, nodeId)) {
+            dumpString = "The input nodeId is invalid, please re-enter";
+            return ;
+        } else {
+            ClearDump(dumpString, nodeId);
+        }
+    }
 }
 
 std::unordered_map<NodeId, std::shared_ptr<RSSurfaceFps>> RSSurfaceFpsManager::GetSurfaceFpsMap() const
