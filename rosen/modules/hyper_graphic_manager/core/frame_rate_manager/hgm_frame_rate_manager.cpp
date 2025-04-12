@@ -1180,7 +1180,7 @@ std::string HgmFrameRateManager::GetCurScreenExtStrategyId()
     return curScreenStrategyId;
 }
 
-void HgmFrameRateManager::UpdateScreenExtStrategyConfig(const PolicyConfigData::screenConfigMap& screenConfigs)
+void HgmFrameRateManager::UpdateScreenExtStrategyConfig(const PolicyConfigData::ScreenConfigMap& screenConfigs)
 {
     std::unordered_set<std::string> screenConfigKeys;
     for (const auto& config : screenConfigs) {
