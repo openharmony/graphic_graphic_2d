@@ -56,8 +56,6 @@ const std::string TEST_XML_CONTENT = (R"(<?xml version="1.0" encoding="UTF-8" st
     </Params>
     <Params name="refreshRate_virtual_display_config" switch="1">
     </Params>
-    <Params name="refreshRate_virtual_display_config" switch="-1">
-    </Params>
     <Params name="safe_vote" switch="1">
     </Params>
     <Params name="screen_strategy_config">
@@ -71,6 +69,8 @@ const std::string TEST_XML_CONTENT = (R"(<?xml version="1.0" encoding="UTF-8" st
             <Ltpo name="alignRate" value="100"/>
             <Ltpo name="pipelineOffsetPulseNum" value="100"/>
             <Ltpo name="adaptiveSync" value="0"/>
+            <Ltpo name="vBlankIdleCorrectSwitch" value="100"/>
+            <Ltpo name="lowRateToHighQuickSwitch" value="100"/>
         </Category>
         <Category name="rs_animation_power_config">
             <Setting name="aaa" value="60"/>
@@ -108,12 +108,6 @@ const std::string TEST_XML_CONTENT = (R"(<?xml version="1.0" encoding="UTF-8" st
         <Category name="app_list" multi_app_strategy="focus">
             <App name="aaa" strategy="12"/>
         </Category>
-            <Category name="app_list" multi_app_strategy="strategy_1">
-            <App name="aaa" strategy="12"/>
-        </Category>
-                <Category name="app_list" multi_app_strategy="max">
-            <App name="aaa" strategy="12"/>
-        </Category>
         <Category name="app_types">
             <App name="aaa" strategy="12" />
         </Category>
@@ -121,7 +115,8 @@ const std::string TEST_XML_CONTENT = (R"(<?xml version="1.0" encoding="UTF-8" st
             <App name="aaa" strategy="12" />
         </Category>
         <Category name="performance_config">
-            <App name="aaa" strategy="12" />
+            <Ltpo name="pluseNum" value="1" />
+            <Ltpo name="pipelineDelayModeEnable" value="1" />
         </Category>
         <Category name="xxx">
             <App name="aaa" strategy="12" />
