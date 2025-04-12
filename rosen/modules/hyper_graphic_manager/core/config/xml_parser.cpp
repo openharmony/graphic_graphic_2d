@@ -653,7 +653,7 @@ int32_t XMLParser::ReplenishMissThermalConfig(const PolicyConfigData::ScreenConf
             if (screenSetting->second.smallSizeAnimationDynamicSettings.empty()) {
                 screenSetting->second.smallSizeArea = screenSettingDefalut.smallSizeArea;
                 screenSetting->second.smallSizeLength = screenSettingDefalut.smallSizeLength;
-                screenSetting->second.smallSizeAnimationDynamicSettings = 
+                screenSetting->second.smallSizeAnimationDynamicSettings =
                     screenSettingDefalut.smallSizeAnimationDynamicSettings;
             }
             if (screenSetting->second.animationPowerConfig.empty()) {

@@ -1139,20 +1139,20 @@ void HgmFrameRateManager::HandleScreenFrameRate(std::string curScreenName)
 
 void HgmFrameRateManager::HandleScreenExtStrategyChange(bool status, const std::string& suffix)
 {
-   if (screenExtStrategyMap_.find(suffix) == screenExtStrategyMap_.end()) {
-       return;
-   }
-   screenExtStrategyMap_[suffix].second = status;
+    if (screenExtStrategyMap_.find(suffix) == screenExtStrategyMap_.end()) {
+        return;
+    }
+    screenExtStrategyMap_[suffix].second = status;
 
-   std::string curScreenStrategyId = GetCurScreenExtStrategyId();
-   if (curScreenStrategyId != curScreenStrategyId_) {
+    std::string curScreenStrategyId = GetCurScreenExtStrategyId();
+    if (curScreenStrategyId != curScreenStrategyId_) {
         RS_TRACE_NAME_FMT("HgmFrameRateManager::HandleScreenExtStrategyChange type:%s, status:%d",
             curScreenStrategyId.c_str(), status);
         HGM_LOGI("HgmFrameRateManager::HandleScreenExtStrategyChange type:%{public}s, status:%{public}d",
             curScreenStrategyId.c_str(), status);
         curScreenStrategyId_ = curScreenStrategyId;
         UpdateScreenFrameRate();
-   }
+    }
 }
 
 std::string HgmFrameRateManger::GetCurScreenExtStrategyId()
