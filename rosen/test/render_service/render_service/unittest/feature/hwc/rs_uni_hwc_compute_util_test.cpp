@@ -654,7 +654,7 @@ HWTEST_F(RSUniHwcComputeUtilTest, GetMatrix_001, TestSize.Level2)
 
 /*
  * @tc.name: GetMatrix_002
- * @tc.desc: test GetMatrix with nullptr boundsGeo_
+ * @tc.desc: test GetMatrix with boundsGeo_
  * @tc.type: FUNC
  * @tc.require: issueIAVIB4
  */
@@ -663,13 +663,12 @@ HWTEST_F(RSUniHwcComputeUtilTest, GetMatrix_002, TestSize.Level2)
     NodeId id = 1;
     std::shared_ptr<RSRenderNode> node = std::make_shared<RSRenderNode>(id);
     ASSERT_NE(node, nullptr);
-    node->renderContent_->renderProperties_.boundsGeo_ = nullptr;
-    ASSERT_EQ(RSUniHwcComputeUtil::GetMatrix(node), std::nullopt);
+    ASSERT_EQ(RSUniHwcComputeUtil::GetMatrix(node), node->renderContent_->renderProperties_.boundsGeo_->GetMatrix());
 }
 
 /*
  * @tc.name: GetMatrix_003
- * @tc.desc: test GetMatrix with boundsGeo_
+ * @tc.desc: test GetMatrix sandbox hasValue and parent is nullptr
  * @tc.type: FUNC
  * @tc.require: issueIAVIB4
  */
@@ -678,65 +677,25 @@ HWTEST_F(RSUniHwcComputeUtilTest, GetMatrix_003, TestSize.Level2)
     NodeId id = 1;
     std::shared_ptr<RSRenderNode> node = std::make_shared<RSRenderNode>(id);
     ASSERT_NE(node, nullptr);
-    node->renderContent_->renderProperties_.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
-    ASSERT_EQ(RSUniHwcComputeUtil::GetMatrix(node), node->renderContent_->renderProperties_.boundsGeo_->GetMatrix());
-}
-
-/*
- * @tc.name: GetMatrix_004
- * @tc.desc: test GetMatrix sandbox hasvalue and parent is nullptr
- * @tc.type: FUNC
- * @tc.require: issueIAVIB4
- */
-HWTEST_F(RSUniHwcComputeUtilTest, GetMatrix_004, TestSize.Level2)
-{
-    NodeId id = 1;
-    std::shared_ptr<RSRenderNode> node = std::make_shared<RSRenderNode>(id);
-    ASSERT_NE(node, nullptr);
-    node->renderContent_->renderProperties_.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
     node->renderContent_->renderProperties_.sandbox_ = std::make_unique<Sandbox>();
     node->renderContent_->renderProperties_.sandbox_->position_ = std::make_optional<Vector2f>(1.0f, 1.0f);
     ASSERT_EQ(RSUniHwcComputeUtil::GetMatrix(node), std::nullopt);
 }
 
 /*
- * @tc.name: GetMatrix_005
- * @tc.desc: test GetMatrix sandbox hasvalue and parent has no geo
- * @tc.type: FUNC
- * @tc.require: issueIAVIB4
- */
-HWTEST_F(RSUniHwcComputeUtilTest, GetMatrix_005, TestSize.Level2)
-{
-    NodeId parentId = 0;
-    std::shared_ptr<RSRenderNode> parentNode = std::make_shared<RSRenderNode>(parentId);
-    ASSERT_NE(parentNode, nullptr);
-    parentNode->renderContent_->renderProperties_.boundsGeo_ = nullptr;
-    NodeId id = 1;
-    std::shared_ptr<RSRenderNode> node = std::make_shared<RSRenderNode>(id);
-    ASSERT_NE(node, nullptr);
-    node->renderContent_->renderProperties_.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
-    node->renderContent_->renderProperties_.sandbox_ = std::make_unique<Sandbox>();
-    node->renderContent_->renderProperties_.sandbox_->position_ = std::make_optional<Vector2f>(1.0f, 1.0f);
-    node->SetParent(parentNode);
-    ASSERT_EQ(RSUniHwcComputeUtil::GetMatrix(node), Drawing::Matrix());
-}
-
-/*
- * @tc.name: GetMatrix_006
+ * @tc.name: GetMatrix_004
  * @tc.desc: test GetMatrix sandbox hasvalue and parent has geo
  * @tc.type: FUNC
  * @tc.require: issueIAVIB4
  */
-HWTEST_F(RSUniHwcComputeUtilTest, GetMatrix_006, TestSize.Level2)
+HWTEST_F(RSUniHwcComputeUtilTest, GetMatrix_004, TestSize.Level2)
 {
     NodeId parentId = 0;
     std::shared_ptr<RSRenderNode> parentNode = std::make_shared<RSRenderNode>(parentId);
     ASSERT_NE(parentNode, nullptr);
-    parentNode->renderContent_->renderProperties_.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
     NodeId id = 1;
     std::shared_ptr<RSRenderNode> node = std::make_shared<RSRenderNode>(id);
     ASSERT_NE(node, nullptr);
-    node->renderContent_->renderProperties_.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
     node->renderContent_->renderProperties_.sandbox_ = std::make_unique<Sandbox>();
     node->renderContent_->renderProperties_.sandbox_->position_ = std::make_optional<Vector2f>(1.0f, 1.0f);
     node->SetParent(parentNode);

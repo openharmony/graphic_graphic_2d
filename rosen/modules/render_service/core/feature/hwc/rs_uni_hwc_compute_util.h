@@ -75,12 +75,12 @@ public:
     static void TraverseParentNodeAndReduce(std::shared_ptr<RSSurfaceRenderNode> hwcNode, Callbacks&&... callbacks)
     {
         static_assert((std::is_invocable<Callbacks, std::shared_ptr<RSRenderNode>>::value && ...),
-                    "uninvocable callback");
+                      "uninvocable callback");
         if (!hwcNode) {
             return;
         }
         auto parent = std::static_pointer_cast<RSRenderNode>(hwcNode);
-        while (static_cast<bool>(parent = parent->GetParent().lock())) {
+        while ((parent = parent->GetParent().lock())) {
             (std::invoke(callbacks, parent), ...);
             if (parent->GetType() == RSRenderNodeType::DISPLAY_NODE) {
                 break;

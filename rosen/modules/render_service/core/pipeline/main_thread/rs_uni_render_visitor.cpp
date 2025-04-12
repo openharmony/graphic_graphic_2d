@@ -74,6 +74,9 @@
 // blur predict
 #include "rs_frame_blur_predict.h"
 
+#undef LOG_TAG
+#define LOG_TAG "RSUniRenderVisitor"
+
 namespace OHOS {
 namespace Rosen {
 namespace {
