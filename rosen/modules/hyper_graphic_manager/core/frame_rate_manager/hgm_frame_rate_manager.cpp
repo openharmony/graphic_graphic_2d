@@ -1189,7 +1189,7 @@ void HgmFrameRateManager::UpdateScreenExtStrategyConfig(const PolicyConfigData::
 
     for (auto it = screenExtStrategyMap_.begin(); it != screenExtStrategyMap_.end();) {
         if (std::find_if(screenConfigKeys.begin(), screenConfigKeys.end(),
-            [&](const auto &item) {return item.find(it->first) != sta::string::nops; }) == screenConfigKeys.end()) {
+            [&](const auto &item) {return item.find(it->first) != std::string::npos; }) == screenConfigKeys.end()) {
             it = screenExtStrategyMap_.erase(it);
         } else {
             ++it;

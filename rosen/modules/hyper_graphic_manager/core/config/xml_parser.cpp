@@ -617,7 +617,7 @@ void XMLParser::ReplenishMissThermalAppGameConfig(PolicyConfigData::ScreenSettin
                                                   const PolicyConfigData::ScreenSetting& screenSettingDefalut)
 {
     if (screenSetting.appList.empty()) {
-        screenSetting.appList = screenConfigDefault.appList;
+        screenSetting.appList = screenSettingDefalut.appList;
         screenSetting.multiAppStrategyType = screenSettingDefalut.multiAppStrategyType;
         screenSetting.multiAppStrategyName = screenSettingDefalut.multiAppStrategyName;
     }
@@ -627,7 +627,7 @@ void XMLParser::ReplenishMissThermalAppGameConfig(PolicyConfigData::ScreenSettin
     if (screenSetting.gameSceneList.empty()) {
         screenSetting.gameSceneList = screenSettingDefalut.gameSceneList;
     }
-    if (screenSetting.gameAppNodeList.empty()) {l
+    if (screenSetting.gameAppNodeList.empty()) {
         screenSetting.gameAppNodeList = screenSettingDefalut.gameAppNodeList;
     }
 }
@@ -669,7 +669,7 @@ int32_t XMLParser::ReplenishMissThermalConfig(const PolicyConfigData::ScreenConf
                 screenSetting->second.componentPowerConfig = screenSettingDefalut.componentPowerConfig;
             }
             if (screenSetting->second.pageUrlConfig.empty()) {
-                screenSetting.second.pageUrlConfig = screenSettingDefalut.pageUrlConfig;
+                screenSetting->second.pageUrlConfig = screenSettingDefalut.pageUrlConfig;
             }
             if (screenSetting->second.performanceConfig.empty()) {
                 screenSetting->second.performanceConfig = screenSettingDefalut.performanceConfig;

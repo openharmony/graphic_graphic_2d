@@ -37,10 +37,10 @@ const std::string HGM_CONFIG_TYPE_THERMAL_SUFFIX = "_THERMAL";
 const std::string HGM_CONFIG_TYPE_DRAGSLIDE_SUFFIX = "_DRAGSLIDE";
 const std::string HGM_CONFIG_TYPE_THROWSLIDE_SUFFIX = "_THROWSLIDE";
 // {Suffix, {Priority, State}}
-std::unordered_map<std::string, std::pair<int32_t, bool>> HGM_CONFIG_SCREENEXT_STRATEGY_MAP = {
+const std::unordered_map<std::string, std::pair<int32_t, bool>> HGM_CONFIG_SCREENEXT_STRATEGY_MAP = {
     {HGM_CONFIG_TYPE_THERMAL_SUFFIX, {1, false}},
     {HGM_CONFIG_TYPE_DRAGSLIDE_SUFFIX, {2, false}},
-    {HGM_CONFIG_TYPE_THROWSLIDE_SUFFIX, {3, false}}
+    {HGM_CONFIG_TYPE_THROWSLIDE_SUFFIX, {3, false}},
 };
 
 enum OledRefreshRate {
