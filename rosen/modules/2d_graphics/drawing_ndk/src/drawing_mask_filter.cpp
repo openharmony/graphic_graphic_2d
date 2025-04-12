@@ -14,22 +14,22 @@
  */
 
 #include "drawing_mask_filter.h"
-
+#include "drawing_helper.h"
 #include "effect/mask_filter.h"
 
 using namespace OHOS;
 using namespace Rosen;
 using namespace Drawing;
 
-static MaskFilter* CastToMaskFilter(OH_Drawing_MaskFilter* cMaskFilter)
-{
-    return reinterpret_cast<MaskFilter*>(cMaskFilter);
-}
-
 OH_Drawing_MaskFilter* OH_Drawing_MaskFilterCreateBlur(OH_Drawing_BlurType blurType, float sigma, bool respectCTM)
 {
-    return (OH_Drawing_MaskFilter*)new MaskFilter(MaskFilter::FilterType::BLUR,
-        static_cast<BlurType>(blurType), sigma, respectCTM);
+    NativeHandle<MaskFilter>* maskFilterHandle = new NativeHandle<MaskFilter>;
+    maskFilterHandle->value = MaskFilter::CreateBlurMaskFilter(static_cast<BlurType>(blurType), sigma, respectCTM);
+    if (maskFilterHandle->value == nullptr) {
+        delete maskFilterHandle;
+        return nullptr;
+    }
+    return Helper::CastTo<NativeHandle<MaskFilter>*, OH_Drawing_MaskFilter*>(maskFilterHandle);
 }
 
 void OH_Drawing_MaskFilterDestroy(OH_Drawing_MaskFilter* cMaskFilter)
@@ -37,5 +37,5 @@ void OH_Drawing_MaskFilterDestroy(OH_Drawing_MaskFilter* cMaskFilter)
     if (!cMaskFilter) {
         return;
     }
-    delete CastToMaskFilter(cMaskFilter);
+    delete Helper::CastTo<OH_Drawing_MaskFilter*, NativeHandle<MaskFilter>*>(cMaskFilter);
 }

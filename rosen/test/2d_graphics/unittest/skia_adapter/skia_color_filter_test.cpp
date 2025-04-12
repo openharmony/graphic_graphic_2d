@@ -175,6 +175,19 @@ HWTEST_F(SkiaColorFilterTest, AsAColorMatrix001, TestSize.Level1)
     EXPECT_TRUE(skiaColorFilter.GetColorFilter() != nullptr);
 }
 
+/**
+ * @tc.name: CreateLightingColorFilter001
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require: IAZ845
+ * @tc.author:
+ */
+ HWTEST_F(SkiaColorFilterTest, CreateLightingColorFilter001, TestSize.Level1)
+ {
+     auto colorFilter = ColorFilter::CreateLightingColorFilter(0xff00c800, 0xff001400);
+     EXPECT_FALSE(nullptr == colorFilter);
+ }
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
