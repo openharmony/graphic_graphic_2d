@@ -80,7 +80,7 @@ public:
             return;
         }
         auto parent = std::static_pointer_cast<RSRenderNode>(hwcNode);
-        while (parent = parent->GetParent().lock()) {
+        while ((parent = parent->GetParent().lock())) {
             (std::invoke(callbacks, parent), ...);
             if (parent->GetType() == RSRenderNodeType::DISPLAY_NODE) {
                 break;
