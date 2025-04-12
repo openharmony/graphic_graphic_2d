@@ -613,7 +613,7 @@ int32_t XMLParser::ParseAppTypes(xmlNode& node, std::unordered_map<int32_t, std:
     return EXEC_SUCCESS;
 }
 
-void XMLParser::ReplenishMissThermalAppGameConfig(auto& screenSetting)
+void XMLParser::ReplenishMissThermalAppGameConfig(auto& screenSetting, const auto& screenSettingDefalut)
 {
     if (screenSetting->second.appList.empty()) {
         screenSetting->second.appList = screenConfigDefault.appList;
@@ -653,7 +653,7 @@ int32_t XMLParser::ReplenishMissThermalConfig(const PolicyConfigData::ScreenConf
                 screenSetting->second.smallSizeArea = screenSettingDefalut.smallSizeArea;
                 screenSetting->second.smallSizeLength = screenSettingDefalut.smallSizeLength;
                 screenSetting->second.smallSizeAnimationDynamicSettings = 
-                    screenConfigDefault.smallSizeAnimationDynamicSettings;
+                    screenSettingDefalut.smallSizeAnimationDynamicSettings;
             }
             if (screenSetting->second.animationPowerConfig.empty()) {
                 screenSetting->second.animationPowerConfig = screenSettingDefalut.animationPowerConfig;
@@ -661,19 +661,19 @@ int32_t XMLParser::ReplenishMissThermalConfig(const PolicyConfigData::ScreenConf
             if (screenSetting->second.uiPowerConfig.empty()) {
                 screenSetting->second.uiPowerConfig = screenSettingDefalut.uiPowerConfig;
             }
-            if (screenSetting.second.ancoSceneList.empty()) {
-                screenSetting.second.ancoSceneList = screenSettingDefalut,ancoSceneList;
+            if (screenSetting->second.ancoSceneList.empty()) {
+                screenSetting->second.ancoSceneList = screenSettingDefalut.ancoSceneList;
             }
-            if (screenSetting.second.componentPowerConfig.empty()) {
-                screenSetting,second.componentPowerConfig = screenSettingDefalut.componentPowerConfig;
+            if (screenSetting->second.componentPowerConfig.empty()) {
+                screenSetting->second.componentPowerConfig = screenSettingDefalut.componentPowerConfig;
             }
             if (screenSetting->second.pageUrlConfig.empty()) {
                 screenSetting.second.pageUrlConfig = screenSettingDefalut.pageUrlConfig;
             }
-            if (screenSetting.second.performanceConfig.empty()) {
+            if (screenSetting->second.performanceConfig.empty()) {
                 screenSetting->second.performanceConfig = screenSettingDefalut.performanceConfig;
             }
-            ReplenishMissThermalLastConfig(screenSetting);
+            ReplenishMissThermalAppGameConfig(screenSetting, screenSettingDefalut);
         } else {
             screenConfig[id] = screenSettingDefalut;
         }
