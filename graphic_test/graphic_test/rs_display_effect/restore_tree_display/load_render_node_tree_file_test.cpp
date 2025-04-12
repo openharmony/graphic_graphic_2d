@@ -363,31 +363,6 @@ GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, xinxiTest12)
     LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/xinxi_12");
 }
 
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, liulanqiTest01)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/liulanqi_01");
-}
-
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, liulanqiTest02)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/liulanqi_02");
-}
-
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, liulanqiTest03)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/liulanqi_03");
-}
-
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, liulanqiTest04)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/liulanqi_04");
-}
-
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, liulanqiTest05)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/liulanqi_05");
-}
-
 GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, liulanqiTest06)
 {
     LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/liulanqi_06");
@@ -398,24 +373,9 @@ GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, liulanqiTest07)
     LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/liulanqi_07");
 }
 
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, liulanqiTest08)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/liulanqi_08");
-}
-
 GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, liulanqiTest09)
 {
     LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/liulanqi_09");
-}
-
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, liulanqiTest10)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/liulanqi_10");
-}
-
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, liulanqiTest11)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/liulanqi_11");
 }
 
 GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, liulanqiTest12)
@@ -441,11 +401,6 @@ GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, liulanqiTest15)
 GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, liulanqiTest16)
 {
     LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/liulanqi_16");
-}
-
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, liulanqiTest17)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/liulanqi_17");
 }
 
 GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, liulanqiTest18)
@@ -486,11 +441,6 @@ GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, jisuanqiTest05)
 GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, jisuanqiTest06)
 {
     LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/jisuanqi_06");
-}
-
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, riliTest01)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/rili_01");
 }
 
 GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, riliTest02)
@@ -1178,49 +1128,9 @@ GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, dewuTest14)
     LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/dewu_14");
 }
 
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, dewuTest15)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/dewu_15");
-}
-
 GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, dewuTest16)
 {
     LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/dewu_16");
-}
-
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, dewuTest17)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/dewu_17");
-}
-
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, dewuTest18)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/dewu_18");
-}
-
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, dewuTest19)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/dewu_19");
-}
-
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, dewuTest20)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/dewu_20");
-}
-
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, yunshanfuTest01)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/yunshanfu_01");
-}
-
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, yunshanfuTest02)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/yunshanfu_02");
-}
-
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, yunshanfuTest03)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/yunshanfu_03");
 }
 
 GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, yunshanfuTest04)
@@ -1268,11 +1178,6 @@ GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, meituxiuxiuTest05
     LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/meituxiuxiu_05");
 }
 
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, tengxunhuiyiTest01)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/tengxunhuiyi_01");
-}
-
 GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, youzhengyinhangTest01)
 {
     LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/youzhengyinhang_01");
@@ -1291,11 +1196,6 @@ GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, youzhengyinhangTe
 GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, youzhengyinhangTest04)
 {
     LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/youzhengyinhang_04");
-}
-
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, youzhengyinhangTest05)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/youzhengyinhang_05");
 }
 
 GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, youzhengyinhangTest06)
@@ -1328,26 +1228,6 @@ GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, youzhengyinhangTe
     LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/youzhengyinhang_11");
 }
 
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, youzhengyinhangTest12)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/youzhengyinhang_12");
-}
-
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, youzhengyinhangTest13)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/youzhengyinhang_13");
-}
-
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, youzhengyinhangTest14)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/youzhengyinhang_14");
-}
-
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, youzhengyinhangTest15)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/youzhengyinhang_15");
-}
-
 GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, zhaoshangyinhangTest01)
 {
     LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/zhaoshangyinhang_01");
@@ -1358,16 +1238,6 @@ GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, zhaoshangyinhangT
     LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/zhaoshangyinhang_02");
 }
 
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, zhaoshangyinhangTest03)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/zhaoshangyinhang_03");
-}
-
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, zhaoshangyinhangTest04)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/zhaoshangyinhang_04");
-}
-
 GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, zhaoshangyinhangTest05)
 {
     LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/zhaoshangyinhang_05");
@@ -1376,36 +1246,6 @@ GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, zhaoshangyinhangT
 GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, zhaoshangyinhangTest06)
 {
     LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/zhaoshangyinhang_06");
-}
-
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, zhaoshangyinhangTest07)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/zhaoshangyinhang_07");
-}
-
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, zhaoshangyinhangTest08)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/zhaoshangyinhang_08");
-}
-
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, zhaoshangyinhangTest09)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/zhaoshangyinhang_09");
-}
-
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, zhaoshangyinhangTest10)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/zhaoshangyinhang_10");
-}
-
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, zhaoshangyinhangTest11)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/zhaoshangyinhang_11");
-}
-
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, zhaoshangyinhangTest12)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/zhaoshangyinhang_12");
 }
 
 GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, zhaoshangyinhangTest13)
@@ -1458,11 +1298,6 @@ GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, qimaoxiaoshuoTest
     LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/qimaoxiaoshuo_09");
 }
 
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, qimaoxiaoshuoTest10)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/qimaoxiaoshuo_10");
-}
-
 GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, qimaoxiaoshuoTest11)
 {
     LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/qimaoxiaoshuo_11");
@@ -1488,21 +1323,6 @@ GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, zhongguoliantongT
     LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/zhongguoliantong_03");
 }
 
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, zhongguoliantongTest04)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/zhongguoliantong_04");
-}
-
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, zhongguoliantongTest05)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/zhongguoliantong_05");
-}
-
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, zhongguoliantongTest06)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/zhongguoliantong_06");
-}
-
 GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, zhongguoliantongTest07)
 {
     LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/zhongguoliantong_07");
@@ -1511,11 +1331,6 @@ GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, zhongguoliantongT
 GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, zhongguoliantongTest08)
 {
     LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/zhongguoliantong_08");
-}
-
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, zhongguoliantongTest09)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/zhongguoliantong_09");
 }
 
 GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, didichuxingTest01)
@@ -1533,34 +1348,9 @@ GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, didichuxingTest03
     LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/didichuxing_03");
 }
 
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, didichuxingTest04)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/didichuxing_04");
-}
-
 GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, didichuxingTest05)
 {
     LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/didichuxing_05");
-}
-
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, didichuxingTest06)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/didichuxing_06");
-}
-
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, didichuxingTest07)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/didichuxing_07");
-}
-
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, didichuxingTest08)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/didichuxing_08");
-}
-
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, didichuxingTest09)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/didichuxing_09");
 }
 
 GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, qunaerlvxingTest01)
@@ -1583,16 +1373,6 @@ GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, qunaerlvxingTest0
     LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/qunaerlvxing_04");
 }
 
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, qunaerlvxingTest05)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/qunaerlvxing_05");
-}
-
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, qunaerlvxingTest06)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/qunaerlvxing_06");
-}
-
 GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, qunaerlvxingTest07)
 {
     LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/qunaerlvxing_07");
@@ -1613,16 +1393,6 @@ GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, qunaerlvxingTest1
     LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/qunaerlvxing_10");
 }
 
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, qunaerlvxingTest11)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/qunaerlvxing_11");
-}
-
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, qunaerlvxingTest12)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/qunaerlvxing_12");
-}
-
 GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, tianmaoTest01)
 {
     LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/tianmao_01");
@@ -1633,11 +1403,6 @@ GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, tianmaoTest02)
     LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/tianmao_02");
 }
 
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, tianmaoTest03)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/tianmao_03");
-}
-
 GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, zhongguodianxinTest01)
 {
     LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/zhongguodianxin_01");
@@ -1646,11 +1411,6 @@ GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, zhongguodianxinTe
 GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, zhongguodianxinTest02)
 {
     LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/zhongguodianxin_02");
-}
-
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, zhongguodianxinTest03)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/zhongguodianxin_03");
 }
 
 GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, zhongguodianxinTest04)
@@ -1686,16 +1446,6 @@ GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, zhongguodianxinTe
 GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, zhongguodianxinTest10)
 {
     LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/zhongguodianxin_10");
-}
-
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, zhongguodianxinTest11)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/zhongguodianxin_11");
-}
-
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, zhongguodianxinTest12)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/zhongguodianxin_12");
 }
 
 GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, zhongguodianxinTest13)
@@ -1753,69 +1503,14 @@ GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, taobaotejiabanTes
     LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/taobaotejiaban_01");
 }
 
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, taobaotejiabanTest02)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/taobaotejiaban_02");
-}
-
 GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, taobaotejiabanTest03)
 {
     LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/taobaotejiaban_03");
 }
 
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, taobaotejiabanTest04)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/taobaotejiaban_04");
-}
-
 GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, taobaotejiabanTest05)
 {
     LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/taobaotejiaban_05");
-}
-
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, taobaotejiabanTest06)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/taobaotejiaban_06");
-}
-
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, taobaotejiabanTest07)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/taobaotejiaban_07");
-}
-
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, taobaotejiabanTest08)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/taobaotejiaban_08");
-}
-
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, taobaotejiabanTest09)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/taobaotejiaban_09");
-}
-
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, taobaotejiabanTest10)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/taobaotejiaban_10");
-}
-
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, taobaotejiabanTest11)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/taobaotejiaban_11");
-}
-
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, taobaotejiabanTest12)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/taobaotejiaban_12");
-}
-
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, taobaotejiabanTest13)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/taobaotejiaban_13");
-}
-
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, taobaotejiabanTest14)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/taobaotejiaban_14");
 }
 
 GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, alibabaTest01)
@@ -1838,11 +1533,6 @@ GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, alibabaTest04)
     LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/alibaba_04");
 }
 
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, alibabaTest05)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/alibaba_05");
-}
-
 GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, alibabaTest06)
 {
     LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/alibaba_06");
@@ -1853,44 +1543,9 @@ GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, alibabaTest07)
     LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/alibaba_07");
 }
 
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, alibabaTest08)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/alibaba_08");
-}
-
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, alibabaTest09)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/alibaba_09");
-}
-
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, alibabaTest10)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/alibaba_10");
-}
-
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, alibabaTest11)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/alibaba_11");
-}
-
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, alibabaTest12)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/alibaba_12");
-}
-
 GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, alibabaTest13)
 {
     LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/alibaba_13");
-}
-
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, alibabaTest14)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/alibaba_14");
-}
-
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, alibabaTest15)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/alibaba_15");
 }
 
 GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, alibabaTest16)
@@ -1901,11 +1556,6 @@ GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, alibabaTest16)
 GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, alibabaTest17)
 {
     LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/alibaba_17");
-}
-
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, alibabaTest18)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/alibaba_18");
 }
 
 GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, mangguoTVTest01)
@@ -1983,11 +1633,6 @@ GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, mangguoTVTest15)
     LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/mangguoTV_15");
 }
 
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, mangguoTVTest16)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/mangguoTV_16");
-}
-
 GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, mangguoTVTest17)
 {
     LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/mangguoTV_17");
@@ -2013,24 +1658,9 @@ GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, tianyanchaTest03)
     LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/tianyancha_03");
 }
 
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, tianyanchaTest04)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/tianyancha_04");
-}
-
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, tianyanchaTest05)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/tianyancha_05");
-}
-
 GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, tianyanchaTest06)
 {
     LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/tianyancha_06");
-}
-
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, tianyanchaTest07)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/tianyancha_07");
 }
 
 GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, tianyanchaTest08)
@@ -2093,11 +1723,6 @@ GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, sohuxinwenTest02)
     LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/sohuxinwen_02");
 }
 
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, sohuxinwenTest03)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/sohuxinwen_03");
-}
-
 GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, sohuxinwenTest04)
 {
     LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/sohuxinwen_04");
@@ -2143,11 +1768,6 @@ GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, sohuxinwenTest12)
     LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/sohuxinwen_12");
 }
 
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, sohuxinwenTest13)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/sohuxinwen_13");
-}
-
 GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, sohuxinwenTest14)
 {
     LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/sohuxinwen_14");
@@ -2166,11 +1786,6 @@ GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, sohuxinwenTest16)
 GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, sohuxinwenTest17)
 {
     LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/sohuxinwen_17");
-}
-
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, dongchediTest02)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/dongchedi_02");
 }
 
 GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, dongchediTest03)
@@ -2258,11 +1873,6 @@ GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, dongchediTest19)
     LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/dongchedi_19");
 }
 
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, dongchediTest20)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/dongchedi_20");
-}
-
 GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, dongchediTest21)
 {
     LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/dongchedi_21");
@@ -2303,19 +1913,9 @@ GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, dongchediTest28)
     LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/dongchedi_28");
 }
 
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, dongchediTest29)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/dongchedi_29");
-}
-
 GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, dongchediTest30)
 {
     LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/dongchedi_30");
-}
-
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, dongchediTest31)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/dongchedi_31");
 }
 
 GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, dongchediTest32)
@@ -2326,11 +1926,6 @@ GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, dongchediTest32)
 GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, dongchediTest33)
 {
     LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/dongchedi_33");
-}
-
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, dongchediTest34)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/dongchedi_34");
 }
 
 GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, dongchediTest35)
@@ -2363,64 +1958,8 @@ GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, yingshiyunshipinT
     LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/yingshiyunshipin_03");
 }
 
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, yingshiyunshipinTest04)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/yingshiyunshipin_04");
-}
-
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, yingshiyunshipinTest05)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/yingshiyunshipin_05");
-}
-
 GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, yingshiyunshipinTest06)
 {
     LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/yingshiyunshipin_06");
 }
-
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, yingshiyunshipinTest07)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/yingshiyunshipin_07");
-}
-
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, saomiaoqunengwangTest01)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/saomiaoqunengwang_01");
-}
-
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, saomiaoqunengwangTest02)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/saomiaoqunengwang_02");
-}
-
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, saomiaoqunengwangTest03)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/saomiaoqunengwang_03");
-}
-
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, saomiaoqunengwangTest04)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/saomiaoqunengwang_04");
-}
-
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, saomiaoqunengwangTest05)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/saomiaoqunengwang_05");
-}
-
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, saomiaoqunengwangTest06)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/saomiaoqunengwang_06");
-}
-
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, saomiaoqunengwangTest07)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/saomiaoqunengwang_07");
-}
-
-GRAPHIC_TEST(LoadRenderNodeTreeFileTest, CONTENT_DISPLAY_TEST, saomiaoqunengwangTest08)
-{
-    LoadRenderNodeTreeFile("/data/local/tmp/NodeTree/saomiaoqunengwang_08");
-}
-
 } // namespace OHOS::Rosen
