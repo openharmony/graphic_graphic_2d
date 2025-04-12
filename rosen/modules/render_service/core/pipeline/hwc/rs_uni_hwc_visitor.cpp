@@ -1100,9 +1100,6 @@ void RSUniHwcVisitor::UpdatePrepareClip(RSRenderNode& node)
 {
     const auto& property = node.GetRenderProperties();
     auto& geoPtr = property.GetBoundsGeometry();
-    if (geoPtr == nullptr) {
-        return;
-    }
     // Dirty Region use abstract coordinate, property of node use relative coordinate
     // BoundsRect(if exists) is mapped to absRect_ of RSObjAbsGeometry.
     if (property.GetClipToBounds()) {
