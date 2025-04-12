@@ -613,7 +613,7 @@ int32_t XMLParser::ParseAppTypes(xmlNode& node, std::unordered_map<int32_t, std:
     return EXEC_SUCCESS;
 }
 
-void XMLParser::ReplenishMissThermalAppGameConfig(PolicyConfigData::ScreenSetting& screenSetting, 
+void XMLParser::ReplenishMissThermalAppGameConfig(PolicyConfigData::ScreenSetting& screenSetting,
                                                   const PolicyConfigData::ScreenSetting& screenSettingDefalut)
 {
     if (screenSetting.appList.empty()) {
