@@ -700,27 +700,22 @@ std::optional<Drawing::Matrix> RSUniHwcComputeUtil::GetMatrix(
     if (!hwcNode) {
         return std::nullopt;
     }
-    auto relativeMat = Drawing::Matrix();
-    auto& property = hwcNode->GetRenderProperties();
-    if (auto geo = property.GetBoundsGeometry()) {
-        if (LIKELY(!property.GetSandBox().has_value())) {
-            relativeMat = geo->GetMatrix();
-        } else {
-            auto parent = hwcNode->GetParent().lock();
-            if (!parent) {
-                return std::nullopt;
-            }
-            if (auto parentGeo = parent->GetRenderProperties().GetBoundsGeometry()) {
-                auto invertAbsParentMatrix = Drawing::Matrix();
-                parentGeo->GetAbsMatrix().Invert(invertAbsParentMatrix);
-                relativeMat = geo->GetAbsMatrix();
-                relativeMat.PostConcat(invertAbsParentMatrix);
-            }
-        }
+    const auto& property = hwcNode->GetRenderProperties();
+    auto geo = property.GetBoundsGeometry();
+    if (LIKELY(!property.GetSandBox().has_value())) {
+        return geo->GetMatrix();
     } else {
-        return std::nullopt;
+        auto parent = hwcNode->GetParent().lock();
+        if (!parent) {
+            return std::nullopt;
+        }
+        auto parentGeo = parent->GetRenderProperties().GetBoundsGeometry();
+        Drawing::Matrix invertAbsParentMatrix;
+        parentGeo->GetAbsMatrix().Invert(invertAbsParentMatrix);
+        Drawing::Matrix relativeMat = geo->GetAbsMatrix();
+        relativeMat.PostConcat(invertAbsParentMatrix);
+        return relativeMat;
     }
-    return relativeMat;
 }
 
 void RSUniHwcComputeUtil::IntersectRect(Drawing::Rect& rect1, const Drawing::Rect& rect2)

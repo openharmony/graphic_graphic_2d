@@ -25,6 +25,9 @@
 #include "common/rs_optional_trace.h"
 #include "rs_profiler.h"
 
+#undef LOG_TAG
+#define LOG_TAG "RSUniHwcVisitor"
+
 namespace OHOS {
 namespace Rosen {
 constexpr int32_t MAX_ALPHA = 255;
