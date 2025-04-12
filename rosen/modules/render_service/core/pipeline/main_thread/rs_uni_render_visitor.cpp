@@ -803,7 +803,7 @@ void RSUniRenderVisitor::QuickPrepareDisplayRenderNode(RSDisplayRenderNode& node
         TryNotifyUIBufferAvailable();
     }
     PostPrepare(node);
-    UpdateHwcNodeEnable();
+    hwcVisitor_->UpdateHwcNodeEnable();
     UpdateDisplayRcdRenderNode();
     UpdateSurfaceDirtyAndGlobalDirty();
     UpdateSurfaceOcclusionInfo();
@@ -1483,8 +1483,9 @@ void RSUniRenderVisitor::QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node)
     }
     dirtyFlag_ =
         node.UpdateDrawRectAndDirtyRegion(*dirtyManager, dirtyFlag_, prepareClipRect_, parentSurfaceNodeMatrix_);
+
     // update prepare clip before children
-    UpdatePrepareClip(node);
+    hwcVisitor_->UpdatePrepareClip(node);
     node.UpdateCurCornerRadius(curCornerRadius_);
 
     bool isCurrOffscreen = hwcVisitor_->UpdateIsOffscreen(node);
@@ -1523,11 +1524,6 @@ void RSUniRenderVisitor::UpdateRotationStatusForEffectNode(RSEffectRenderNode& n
         curDisplayNode_->GetScreenId() != node.GetCurrentAttachedScreenId());
     node.SetCurrentAttachedScreenId(curDisplayNode_->GetScreenId());
     node.SetRotationChanged(curDisplayNode_->IsRotationChanged());
-}
-
-void RSUniRenderVisitor::UpdatePrepareClip(RSRenderNode& node)
-{
-    hwcVisitor_->UpdatePrepareClip(node);
 }
 
 bool RSUniRenderVisitor::IsLeashAndHasMainSubNode(RSRenderNode& node) const
@@ -1779,7 +1775,7 @@ CM_INLINE bool RSUniRenderVisitor::AfterUpdateSurfaceDirtyCalc(RSSurfaceRenderNo
         }
     }
     UpdateAncoPrepareClip(node);
-    UpdateDstRect(node, geoPtr->GetAbsRect(), prepareClipRect_);
+    hwcVisitor_->UpdateDstRect(node, geoPtr->GetAbsRect(), prepareClipRect_);
     node.UpdatePositionZ();
     if (node.IsHardwareEnabledType() && node.GetZorderChanged() && curSurfaceNode_) {
         curSurfaceNode_->SetNeedCollectHwcNode(true);
@@ -1797,7 +1793,7 @@ CM_INLINE bool RSUniRenderVisitor::AfterUpdateSurfaceDirtyCalc(RSSurfaceRenderNo
     // 3. Update HwcNode Info for appNode
     UpdateHwcNodeInfoForAppNode(node);
     if (node.IsHardwareEnabledTopSurface()) {
-        UpdateTopSurfaceSrcRect(node, geoPtr->GetAbsMatrix(), geoPtr->GetAbsRect());
+        hwcVisitor_->UpdateTopSurfaceSrcRect(node, geoPtr->GetAbsMatrix(), geoPtr->GetAbsRect());
     }
     // 4. Update color gamut for appNode
     if (!RsCommonHook::Instance().GetIsCoveredSurfaceCloseP3() ||
@@ -1889,47 +1885,11 @@ void RSUniRenderVisitor::UpdateHwcNodeInfoForAppNode(RSSurfaceRenderNode& node)
         if (geo == nullptr) {
             return;
         }
-        UpdateSrcRect(node, geo->GetAbsMatrix());
-        UpdateHwcNodeByTransform(node, geo->GetAbsMatrix());
-        UpdateHwcNodeEnableByBackgroundAlpha(node);
-        UpdateHwcNodeEnableByBufferSize(node);
+        hwcVisitor_->UpdateSrcRect(node, geo->GetAbsMatrix());
+        hwcVisitor_->UpdateHwcNodeByTransform(node, geo->GetAbsMatrix());
+        hwcVisitor_->UpdateHwcNodeEnableByBackgroundAlpha(node);
+        hwcVisitor_->UpdateHwcNodeEnableByBufferSize(node);
     }
-}
-
-void RSUniRenderVisitor::UpdateTopSurfaceSrcRect(RSSurfaceRenderNode& node,
-    const Drawing::Matrix& absMatrix, const RectI& absRect)
-{
-    hwcVisitor_->UpdateTopSurfaceSrcRect(node, absMatrix, absRect);
-}
-
-void RSUniRenderVisitor::UpdateSrcRect(RSSurfaceRenderNode& node, const Drawing::Matrix& totalMatrix)
-{
-    hwcVisitor_->UpdateSrcRect(node, totalMatrix);
-}
-
-void RSUniRenderVisitor::UpdateDstRect(RSSurfaceRenderNode& node, const RectI& absRect, const RectI& clipRect)
-{
-    hwcVisitor_->UpdateDstRect(node, absRect, clipRect);
-}
-
-void RSUniRenderVisitor::UpdateHwcNodeByTransform(RSSurfaceRenderNode& node, const Drawing::Matrix& totalMatrix)
-{
-    hwcVisitor_->UpdateHwcNodeByTransform(node, totalMatrix);
-}
-
-void RSUniRenderVisitor::UpdateHwcNodeEnableByBackgroundAlpha(RSSurfaceRenderNode& node)
-{
-    hwcVisitor_->UpdateHwcNodeEnableByBackgroundAlpha(node);
-}
-
-void RSUniRenderVisitor::UpdateHwcNodeEnableByBufferSize(RSSurfaceRenderNode& node)
-{
-    hwcVisitor_->UpdateHwcNodeEnableByBufferSize(node);
-}
-
-void RSUniRenderVisitor::UpdateHwcNodeEnableByRotateAndAlpha(std::shared_ptr<RSSurfaceRenderNode>& hwcNode)
-{
-    hwcVisitor_->UpdateHwcNodeEnableByRotateAndAlpha(hwcNode);
 }
 
 void RSUniRenderVisitor::ProcessAncoNode(std::shared_ptr<RSSurfaceRenderNode>& hwcNodePtr, bool& ancoHasGpu)
@@ -1955,11 +1915,6 @@ void RSUniRenderVisitor::ProcessAncoNode(std::shared_ptr<RSSurfaceRenderNode>& h
             hwcNodePtr->GetName().c_str(), hwcNodePtr->GetId());
     }
     ancoHasGpu = (ancoHasGpu || hwcNodePtr->IsHardwareForcedDisabled());
-}
-
-void RSUniRenderVisitor::UpdateHwcNodeEnable()
-{
-    hwcVisitor_->UpdateHwcNodeEnable();
 }
 
 void RSUniRenderVisitor::UpdateAncoNodeHWCDisabledState(
@@ -2298,23 +2253,6 @@ void RSUniRenderVisitor::UpdateDisplayRcdRenderNode()
     }
 }
 
-void RSUniRenderVisitor::UpdateHwcNodeEnableByNodeBelow()
-{
-    hwcVisitor_->UpdateHwcNodeEnableByNodeBelow();
-}
-
-void RSUniRenderVisitor::UpdateTransparentHwcNodeEnable(
-    const std::vector<std::weak_ptr<RSSurfaceRenderNode>>& hwcNodes)
-{
-    hwcVisitor_->UpdateTransparentHwcNodeEnable(hwcNodes);
-}
-
-void RSUniRenderVisitor::UpdateChildHwcNodeEnableByHwcNodeBelow(std::vector<RectI>& hwcRects,
-    std::shared_ptr<RSSurfaceRenderNode>& appNode)
-{
-    hwcVisitor_->UpdateChildHwcNodeEnableByHwcNodeBelow(hwcRects, appNode);
-}
-
 void RSUniRenderVisitor::UpdateCornerRadiusInfoForDRM(std::shared_ptr<RSSurfaceRenderNode> hwcNode,
     std::vector<RectI>& hwcRects)
 {
@@ -2387,12 +2325,6 @@ bool RSUniRenderVisitor::CheckIfRoundCornerIntersectDRM(const float& ratio, std:
         }
     }
     return isIntersectWithRoundCorner;
-}
-
-void RSUniRenderVisitor::UpdateHwcNodeEnableByHwcNodeBelowSelf(std::vector<RectI>& hwcRects,
-    std::shared_ptr<RSSurfaceRenderNode>& hwcNode, bool isIntersectWithRoundCorner)
-{
-    hwcVisitor_->UpdateHwcNodeEnableByHwcNodeBelowSelf(hwcRects, hwcNode, isIntersectWithRoundCorner);
 }
 
 void RSUniRenderVisitor::UpdateSurfaceOcclusionInfo()
@@ -2844,7 +2776,7 @@ CM_INLINE void RSUniRenderVisitor::PostPrepare(RSRenderNode& node, bool subTreeS
     auto isOccluded = curSurfaceNode_ ?
         curSurfaceNode_->IsMainWindowType() && curSurfaceNode_->GetVisibleRegion().IsEmpty() : false;
     if (subTreeSkipped && (!isOccluded || node.IsFirstLevelCrossNode())) {
-        UpdateHwcNodeRectInSkippedSubTree(node);
+        hwcVisitor_->UpdateHwcNodeRectInSkippedSubTree(node);
         CheckFilterNodeInSkippedSubTreeNeedClearCache(node, *curDirtyManager);
         UpdateSubSurfaceNodeRectInSkippedSubTree(node);
     }
@@ -2860,7 +2792,7 @@ CM_INLINE void RSUniRenderVisitor::PostPrepare(RSRenderNode& node, bool subTreeS
         globalFilterRect = node.GetFilterRect();
     }
     if (node.GetRenderProperties().NeedFilter() || node.GetHwcRecorder().IsBlendWithBackground()) {
-        UpdateHwcNodeEnableByFilterRect(
+        hwcVisitor_->UpdateHwcNodeEnableByFilterRect(
             curSurfaceNode_, node.GetOldDirtyInSurface(), node.GetId(), NeedPrepareChindrenInReverseOrder(node),
             node.GetHwcRecorder().zOrderForCalcHwcNodeEnableByFilter_);
         node.CalVisibleFilterRect(prepareClipRect_);
@@ -2952,55 +2884,15 @@ void RSUniRenderVisitor::CheckFilterNodeInSkippedSubTreeNeedClearCache(
         }
         RectI filterRect;
         filterNode->UpdateFilterRegionInSkippedSubTree(dirtyManager, rootNode, filterRect, prepareClipRect_);
-        UpdateHwcNodeEnableByFilterRect(curSurfaceNode_, filterNode->GetOldDirtyInSurface(), filterNode->GetId());
+        hwcVisitor_->UpdateHwcNodeEnableByFilterRect(curSurfaceNode_, filterNode->GetOldDirtyInSurface(),
+                                                     filterNode->GetId());
         CollectFilterInfoAndUpdateDirty(*filterNode, dirtyManager, filterRect, filterRect);
     }
-}
-
-void RSUniRenderVisitor::UpdateHwcNodeRectInSkippedSubTree(const RSRenderNode& rootNode)
-{
-    hwcVisitor_->UpdateHwcNodeRectInSkippedSubTree(rootNode);
-}
-
-void RSUniRenderVisitor::UpdateHardwareStateByHwcNodeBackgroundAlpha(
-    const std::vector<std::weak_ptr<RSSurfaceRenderNode>>& hwcNodes, RectI& backgroundAlphaRect,
-    bool& isHardwareEnableByBackgroundAlpha)
-{
-    hwcVisitor_->UpdateHardwareStateByHwcNodeBackgroundAlpha(hwcNodes, backgroundAlphaRect,
-        isHardwareEnableByBackgroundAlpha);
-}
-
-bool RSUniRenderVisitor::IsNodeAboveInsideOfNodeBelow(const RectI& rectAbove, std::list<RectI>& hwcNodeRectList)
-{
-    for (auto rectBelow: hwcNodeRectList) {
-        if (rectAbove.IsInsideOf(rectBelow)) {
-            return true;
-        }
-    }
-    return false;
-}
-
-void RSUniRenderVisitor::CalcHwcNodeEnableByFilterRect(std::shared_ptr<RSSurfaceRenderNode>& node,
-    const RectI& filterRect, NodeId filterNodeId, bool isReverseOrder, int32_t filterZorder)
-{
-    hwcVisitor_->CalcHwcNodeEnableByFilterRect(node, filterRect, filterNodeId, isReverseOrder, filterZorder);
-}
-
-void RSUniRenderVisitor::UpdateHwcNodeEnableByFilterRect(std::shared_ptr<RSSurfaceRenderNode>& node,
-    const RectI& filterRect, NodeId filterNodeId, bool isReverseOrder, int32_t filterZorder)
-{
-    hwcVisitor_->UpdateHwcNodeEnableByFilterRect(node, filterRect, filterNodeId, isReverseOrder, filterZorder);
 }
 
 void RSUniRenderVisitor::UpdateHwcNodeEnableByGlobalFilter(std::shared_ptr<RSSurfaceRenderNode>& node)
 {
     hwcVisitor_->UpdateHwcNodeEnableByGlobalFilter(node);
-}
-
-void RSUniRenderVisitor::UpdateHwcNodeEnableByGlobalCleanFilter(
-    const std::vector<std::pair<NodeId, RectI>>& cleanFilter, RSSurfaceRenderNode& hwcNodePtr)
-{
-    hwcVisitor_->UpdateHwcNodeEnableByGlobalCleanFilter(cleanFilter, hwcNodePtr);
 }
 
 inline static void ResetSubSurfaceNodesCalState(
@@ -3042,7 +2934,7 @@ void RSUniRenderVisitor::UpdateSubSurfaceNodeRectInSkippedSubTree(const RSRender
 
         subSurfaceNodePtr->SetOldDirtyInSurface(subSurfaceRect.IntersectRect(prepareClipRect_));
         UpdateNodeVisibleRegion(*subSurfaceNodePtr);
-        UpdateDstRect(*subSurfaceNodePtr, subSurfaceRect, prepareClipRect_);
+        hwcVisitor_->UpdateDstRect(*subSurfaceNodePtr, subSurfaceRect, prepareClipRect_);
         subSurfaceNodePtr->SetCalcRectInPrepare(true);
         if (subSurfaceNodePtr->IsLeashOrMainWindow()) {
             curMainAndLeashWindowNodesIds_.push(subSurfaceNodePtr->GetId());

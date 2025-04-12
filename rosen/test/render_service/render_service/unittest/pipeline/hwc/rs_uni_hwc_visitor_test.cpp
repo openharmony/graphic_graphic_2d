@@ -1140,28 +1140,11 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByGlobalDirtyFilter_002, TestSi
 
 /**
  * @tc.name: UpdatePrepareClip_001
- * @tc.desc: Test UpdatePrepareClip001, geoPtr = nullptr
+ * @tc.desc: Test UpdatePrepareClip001, clipToBounds_ & clipToframe_ = true;
  * @tc.type: FUNC
  * @tc.require: issueIAJSIS
  */
 HWTEST_F(RSUniHwcVisitorTest, UpdatePrepareClip001, TestSize.Level1)
-{
-    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-    ASSERT_NE(rsUniRenderVisitor, nullptr);
-    auto rsUniHwcVisitor = std::make_shared<RSUniHwcVisitor>(*rsUniRenderVisitor);
-    ASSERT_NE(rsUniHwcVisitor, nullptr);
-    auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    node->GetMutableRenderProperties().boundsGeo_ = nullptr;
-    rsUniHwcVisitor->UpdatePrepareClip(*node);
-}
-
-/**
- * @tc.name: UpdatePrepareClip_002
- * @tc.desc: Test UpdatePrepareClip002, clipToBounds_ & clipToframe_ = true;
- * @tc.type: FUNC
- * @tc.require: issueIAJSIS
- */
-HWTEST_F(RSUniHwcVisitorTest, UpdatePrepareClip002, TestSize.Level1)
 {
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
@@ -1174,12 +1157,12 @@ HWTEST_F(RSUniHwcVisitorTest, UpdatePrepareClip002, TestSize.Level1)
 }
 
 /**
- * @tc.name: UpdatePrepareClip_003
- * @tc.desc: Test UpdatePrepareClip003, clipToBounds_ & clipToframe_ = false;
+ * @tc.name: UpdatePrepareClip_002
+ * @tc.desc: Test UpdatePrepareClip002, clipToBounds_ & clipToframe_ = false;
  * @tc.type: FUNC
  * @tc.require: issueIAJSIS
  */
-HWTEST_F(RSUniHwcVisitorTest, UpdatePrepareClip003, TestSize.Level1)
+HWTEST_F(RSUniHwcVisitorTest, UpdatePrepareClip002, TestSize.Level1)
 {
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
