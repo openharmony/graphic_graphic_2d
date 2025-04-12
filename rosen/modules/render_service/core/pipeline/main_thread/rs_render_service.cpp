@@ -71,6 +71,23 @@ uint32_t GenerateTaskId()
     static std::atomic<uint32_t> id;
     return id.fetch_add(1, std::memory_order::memory_order_relaxed);
 }
+
+bool ConvertToLongLongUint(const std::string& str, uint64_t& value, int8_t base = 10)
+{
+    char* end;
+    errno = 0;
+    value = std::strtoull(str.c_str(), &end, base);
+    if (end == str.c_str()) {
+        return false;
+    }
+    if (errno == ERANGE && value == ULLONG_MAX) {
+        return false;
+    }
+    if (*end != '\0') {
+        return false;
+    }
+    return true;
+}
 }
 RSRenderService::RSRenderService() {}
 
@@ -317,23 +334,6 @@ void RSRenderService::DumpAllNodesMemSize(std::string& dumpString) const
 
         surfaceConsumer->Dump(dumpString);
     });
-}
-
-static bool ConvertToLongLongUint(const std::string& str, uint64_t& value, int8_t base = 10)
-{
-    char* end;
-    errno = 0;
-    value = std::strtoull(str.c_str(), &end, base);
-    if (end == str.c_str()) {
-        return false;
-    }
-    if (errno == ERANGE && value == ULLONG_MAX) {
-        return false;
-    }
-    if (*end != '\0') {
-        return false;
-    }
-    return true;
 }
 
 void RSRenderService::FPSDUMPProcess(std::unordered_set<std::u16string>& argSets,
