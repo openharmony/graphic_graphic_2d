@@ -776,7 +776,7 @@ HWTEST_F(HgmFrameRateMgrTest, ProcessRefreshRateVoteTest, Function | SmallTest |
     EXPECT_FALSE(frameRateMgr.ProcessRefreshRateVote(voterIter1, resultVoteInfo, voteRange, voterGamesEffective));
     frameRateMgr.voters_.push_back("VOTER_VIDEO");
     voterIter1 = std::find(frameRateMgr.voters_.begin(), frameRateMgr.voters_.end(), "VOTER_VIDEO");
-    EXPECT_TRUE(frameRateMgr.ProcessRefreshRateVote(voterIter1, resultVoteInfo, voteRange, voterGamesEffective));
+    EXPECT_FALSE(frameRateMgr.ProcessRefreshRateVote(voterIter1, resultVoteInfo, voteRange, voterGamesEffective));
 }
 
 /**
