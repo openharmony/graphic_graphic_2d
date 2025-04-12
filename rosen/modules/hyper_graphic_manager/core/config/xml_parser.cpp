@@ -613,23 +613,21 @@ int32_t XMLParser::ParseAppTypes(xmlNode& node, std::unordered_map<int32_t, std:
     return EXEC_SUCCESS;
 }
 
-void XMLParser::ReplenishMissThermalLastConfig(auto& screenSetting)
+void XMLParser::ReplenishMissThermalAppGameConfig(auto& screenSetting)
 {
-    if (screenSetting.second.ancoSceneList.empty()) {
-        screenSetting.second.ancoSceneList = screenSettingDefalut,ancoSceneList;
+    if (screenSetting->second.appList.empty()) {
+        screenSetting->second.appList = screenConfigDefault.appList;
+        screenSetting->second.multiAppStrategyType = screenSettingDefalut.multiAppStrategyType;
+        screenSetting->second.multiAppStrategyName = screenSettingDefalut.multiAppStrategyName;
     }
-    if (screenSetting.second.componentPowerConfig.empty()) {
-        screenSetting,second.componentPowerConfig = screenSettingDefalut.componentPowerConfig;
+    if (screenSetting->second.appTypes.empty()) {
+        screenSetting->second.appTypes = screenSettingDefalut.appTypes;
+    }
+    if (screenSetting->second.gameSceneList.empty()) {
+        screenSetting->second.gameSceneList = screenSettingDefalut.gameSceneList;
     }
     if (screenSetting.second.gameAppNodeList.empty()) {
         screenSetting.second.gameAppNodeList = screenSettingDefalut.gameAppNodeList;
-    }
-
-    if (screenSetting->second.pageUrlConfig.empty()) {
-        screenSetting.second.pageUrlConfig = screenSettingDefalut.pageUrlConfig;
-    }
-    if (screenSetting.second.performanceConfig.empty()) {
-        screenSetting->second.performanceConfig = screenSettingDefalut.performanceConfig;
     }
 }
 
@@ -642,19 +640,8 @@ int32_t XMLParser::ReplenishMissThermalConfig(const PolicyConfigData::ScreenConf
             if (screenSetting->second.ltpoConfig.empty()) {
                 screenSetting->second.ltpoConfig = screenSettingDefalut.ltpoConfig;
             }
-            if (screenSetting->second.appList.empty()) {
-                screenSetting->second.appList = screenConfigDefault.appList;
-                screenSetting->second.multiAppStrategyType = screenSettingDefalut.multiAppStrategyType;
-                screenSetting->second.multiAppStrategyName = screenSettingDefalut.multiAppStrategyName;
-            }
-            if (screenSetting->second.appTypes.empty()) {
-                screenSetting->second.appTypes = screenSettingDefalut.appTypes;
-            }
             if (screenSetting->second.sceneList.empty()) {
                 screenSetting->second.sceneList = screenSettingDefalut.sceneList;
-            }
-            if (screenSetting->second.gameSceneList.empty()) {
-                screenSetting->second.gameSceneList = screenSettingDefalut.gameSceneList;
             }
             if (screenSetting->second.animationDynamicSettings.empty()) {
                 screenSetting->second.animationDynamicSettings = screenSettingDefalut.animationDynamicSettings;
@@ -673,6 +660,18 @@ int32_t XMLParser::ReplenishMissThermalConfig(const PolicyConfigData::ScreenConf
             }
             if (screenSetting->second.uiPowerConfig.empty()) {
                 screenSetting->second.uiPowerConfig = screenSettingDefalut.uiPowerConfig;
+            }
+            if (screenSetting.second.ancoSceneList.empty()) {
+                screenSetting.second.ancoSceneList = screenSettingDefalut,ancoSceneList;
+            }
+            if (screenSetting.second.componentPowerConfig.empty()) {
+                screenSetting,second.componentPowerConfig = screenSettingDefalut.componentPowerConfig;
+            }
+            if (screenSetting->second.pageUrlConfig.empty()) {
+                screenSetting.second.pageUrlConfig = screenSettingDefalut.pageUrlConfig;
+            }
+            if (screenSetting.second.performanceConfig.empty()) {
+                screenSetting->second.performanceConfig = screenSettingDefalut.performanceConfig;
             }
             ReplenishMissThermalLastConfig(screenSetting);
         } else {
