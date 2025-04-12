@@ -34,6 +34,8 @@ public:
     void ClearDump(std::string& result, NodeId id);
     void DumpByPid(std::string& result, pid_t pid);
     void ClearDumpByPid(std::string& result, pid_t pid);
+    void DumpSurfaceNodeFps(std::string& dumpString, const std::string& option, const std::string& arg);
+    void ClearSurfaceNodeFps(std::string& dumpString, const std::string& option, const std::string& arg);
     std::unordered_map<NodeId, std::shared_ptr<RSSurfaceFps>> GetSurfaceFpsMap() const;
 private:
     RSSurfaceFpsManager() = default;
