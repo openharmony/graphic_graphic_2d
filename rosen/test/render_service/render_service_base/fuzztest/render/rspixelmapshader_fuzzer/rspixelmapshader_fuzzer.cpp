@@ -135,8 +135,8 @@ bool RSMainFuzzTest(const uint8_t* data, size_t size)
     MessageParcel parcel;
     pixelMapShader1->Marshalling(parcel);
     pixelMapShader2->Unmarshalling(parcel);
-    std::shared_ptr<Drawing::ShaderEffect> shaderEffect;
-    shaderEffect.reset(reinterpret_cast<Drawing::ShaderEffect*>(pixelMapShader2->GenerateBaseObject()));
+    std::shared_ptr<Drawing::ShaderEffect> shaderEffect =
+        std::static_pointer_cast<Drawing::ShaderEffect>(pixelMapShader2->GenerateBaseObject());
 
     return true;
 }

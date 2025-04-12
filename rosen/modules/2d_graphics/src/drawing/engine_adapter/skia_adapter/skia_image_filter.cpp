@@ -16,22 +16,25 @@
 #include "skia_image_filter.h"
 #include "skia_helper.h"
 
+#include "image/image.h"
 #include "include/effects/SkImageFilters.h"
 #include "include/core/SkTileMode.h"
 #include "src/core/SkImageFilter_Base.h"
 
 #include "skia_color_filter.h"
+#include "skia_image.h"
 #include "skia_shader_effect.h"
 
 #include "effect/color_filter.h"
 #include "effect/image_filter.h"
 #include "utils/data.h"
 #include "utils/log.h"
+#include "utils/performanceCaculate.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-static constexpr size_t numberOfCoefficients = 4;
+static constexpr size_t NUMBER_OF_COEFFICIENTS = 4;
 
 SkiaImageFilter::SkiaImageFilter() noexcept : filter_(nullptr) {}
 
@@ -107,7 +110,7 @@ void SkiaImageFilter::InitWithArithmetic(const std::vector<scalar>& coefficients
     bool enforcePMColor, const std::shared_ptr<ImageFilter> f1,
     const std::shared_ptr<ImageFilter> f2, const Rect& cropRect)
 {
-    if (coefficients.size() != numberOfCoefficients) {
+    if (coefficients.size() != NUMBER_OF_COEFFICIENTS) {
         LOGD("SkiaImageFilter::InitWithArithmetic: the number of coefficients must be 4");
         return;
     }
@@ -145,6 +148,24 @@ void SkiaImageFilter::InitWithGradientBlur(float radius,
     GradientBlurType blurType, const std::shared_ptr<ImageFilter> f)
 {
     return;
+}
+
+void SkiaImageFilter::InitWithBitmap(const std::shared_ptr<Image>& image, const Rect& srcRect, const Rect& dstRect)
+{
+    if (image == nullptr) {
+        LOGD("SkiaImageFilter::InitWithBitmap: image is nullptr!");
+        return;
+    }
+    SkRect skSrcRect = SkRect::MakeLTRB(srcRect.GetLeft(), srcRect.GetTop(), srcRect.GetRight(), srcRect.GetBottom());
+    SkRect skDstRect = SkRect::MakeLTRB(dstRect.GetLeft(), dstRect.GetTop(), dstRect.GetRight(), dstRect.GetBottom());
+    DRAWING_PERFORMANCE_TEST_SKIA_NO_PARAM_RETURN;
+    auto imageImpl = image->GetImpl<SkiaImage>();
+    if (imageImpl == nullptr) {
+        LOGD("SkiaImageFilter::InitWithBitmap: imageImpl is nullptr!");
+        return;
+    }
+    filter_ = SkImageFilters::Image(
+        imageImpl->GetImage(), skSrcRect, skDstRect, SkSamplingOptions(SkFilterMode::kLinear));
 }
 
 sk_sp<SkImageFilter> SkiaImageFilter::GetImageFilter() const

@@ -30,13 +30,25 @@ namespace Drawing {
  */
 class DRAWING_API ExtendObject {
 public:
+    enum class ExtendObjectType {
+        IMAGE_SHADER,
+        IMAGE_FILTER
+    };
     ExtendObject() = default;
+    ExtendObject(ExtendObjectType type) noexcept
+        : type_(type) {}
     virtual ~ExtendObject() = default;
 #ifdef ROSEN_OHOS
     virtual bool Marshalling(Parcel&) = 0;
     virtual bool Unmarshalling(Parcel&) = 0;
 #endif
-    virtual void* GenerateBaseObject() = 0;
+    virtual std::shared_ptr<void> GenerateBaseObject() = 0;
+    ExtendObject::ExtendObjectType GetType()
+    {
+        return type_;
+    }
+protected:
+    ExtendObject::ExtendObjectType type_;
 };
 } // namespace Drawing
 } // namespace Rosen

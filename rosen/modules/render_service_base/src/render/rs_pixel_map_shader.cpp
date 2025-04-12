@@ -23,7 +23,12 @@ namespace Rosen {
 RSPixelMapShader::RSPixelMapShader(
     std::shared_ptr<Media::PixelMap> pixelMap, Drawing::TileMode tileX, Drawing::TileMode tileY,
     const Drawing::SamplingOptions& sampling, const Drawing::Matrix& matrix)
-    : pixelMap_(pixelMap), tileX_(tileX), tileY_(tileY), sampling_(sampling), matrix_(matrix) {}
+    : Drawing::ExtendObject(ExtendObjectType::IMAGE_SHADER),
+      pixelMap_(pixelMap),
+      tileX_(tileX),
+      tileY_(tileY),
+      sampling_(sampling),
+      matrix_(matrix) {}
 
 #ifdef ROSEN_OHOS
 bool RSPixelMapShader::Marshalling(Parcel& parcel)
@@ -45,7 +50,7 @@ bool RSPixelMapShader::Unmarshalling(Parcel& parcel)
 }
 #endif
 
-void* RSPixelMapShader::GenerateBaseObject()
+std::shared_ptr<void> RSPixelMapShader::GenerateBaseObject()
 {
 #ifdef ROSEN_OHOS
     if (pixelMap_ && pixelMap_->IsUnMap()) {
@@ -57,7 +62,7 @@ void* RSPixelMapShader::GenerateBaseObject()
         return nullptr;
     }
     // Be Careful: the Object Ptr should be managed by Caller.
-    return new Drawing::ShaderEffect(
+    return std::make_shared<Drawing::ShaderEffect>(
         Drawing::ShaderEffect::ShaderEffectType::IMAGE, *image, tileX_, tileY_, sampling_, matrix_);
 }
 } // namespace Rosen

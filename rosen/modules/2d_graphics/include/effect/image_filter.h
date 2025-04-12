@@ -42,7 +42,8 @@ public:
         COMPOSE,
         GRADIENT_BLUR,
         BLEND,
-        SHADER
+        SHADER,
+        IMAGE,
     };
     /**
      * @brief Create a filter that blurs its input by the separate X and Y sinma value.
@@ -167,6 +168,8 @@ public:
         std::shared_ptr<ImageFilter> foreground = nullptr,
         const Rect& cropRect = noCropRect) noexcept;
     ImageFilter(FilterType t, std::shared_ptr<ShaderEffect> shader, const Rect& cropRect = noCropRect) noexcept;
+    ImageFilter(FilterType t, const std::shared_ptr<Image>& image, const RectF& srcRect,
+        const RectF& dstRect) noexcept;
 protected:
     ImageFilter() noexcept;
 
