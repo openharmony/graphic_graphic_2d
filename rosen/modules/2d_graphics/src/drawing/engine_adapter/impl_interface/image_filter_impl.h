@@ -74,6 +74,7 @@ public:
     virtual void InitWithBlend(BlendMode mode, const Rect& cropRect, std::shared_ptr<ImageFilter> background,
         std::shared_ptr<ImageFilter> foreground = nullptr) = 0;
     virtual void InitWithShader(std::shared_ptr<ShaderEffect> shader, const Rect& cropRect) = 0;
+    virtual void InitWithBitmap(const std::shared_ptr<Image>& image, const Rect& srcRect, const Rect& dstRect) = 0;
 };
 } // namespace Drawing
 } // namespace Rosen

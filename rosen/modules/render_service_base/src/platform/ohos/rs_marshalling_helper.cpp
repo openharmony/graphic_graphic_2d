@@ -58,6 +58,7 @@
 #include "render/rs_material_filter.h"
 #include "render/rs_motion_blur_filter.h"
 #include "render/rs_path.h"
+#include "render/rs_pixel_map_filter.h"
 #include "render/rs_pixel_map_shader.h"
 #include "render/rs_shader.h"
 #include "transaction/rs_ashmem_helper.h"
@@ -184,6 +185,9 @@ bool MarshallingExtendObjectFromDrawCmdList(Parcel& parcel, const std::shared_pt
         return false;
     }
     for (const auto& object : objectVec) {
+        if (!parcel.WriteUint32(static_cast<uint32_t>(object->GetType()))) {
+            return false;
+        }
         if (!object->Marshalling(parcel)) {
             return false;
         }
@@ -207,11 +211,22 @@ bool UnmarshallingExtendObjectToDrawCmdList(Parcel& parcel, std::shared_ptr<Draw
     }
     std::vector<std::shared_ptr<Drawing::ExtendObject>> objectVec;
     for (uint32_t i = 0; i < objectSize; i++) {
-        std::shared_ptr<RSPixelMapShader> object = std::make_shared<RSPixelMapShader>();
-        if (!object->Unmarshalling(parcel)) {
-            return false;
+        std::shared_ptr<Drawing::ExtendObject> object = nullptr;
+        uint32_t type = parcel.ReadUint32();
+        if (type == static_cast<uint32_t>(Drawing::ExtendObject::ExtendObjectType::IMAGE_SHADER)) {
+            object = std::make_shared<RSPixelMapShader>();
+            if (!object->Unmarshalling(parcel)) {
+                return false;
+            }
+        } else if (type == static_cast<uint32_t>(Drawing::ExtendObject::ExtendObjectType::IMAGE_FILTER)) {
+            object = std::make_shared<RSPixelMapFilter>();
+            if (!object->Unmarshalling(parcel)) {
+                return false;
+            }
         }
-        objectVec.emplace_back(object);
+        if (object) {
+            objectVec.emplace_back(object);
+        }
     }
     return val->SetupExtendObject(objectVec);
 }

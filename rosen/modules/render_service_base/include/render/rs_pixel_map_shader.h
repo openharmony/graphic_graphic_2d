@@ -23,7 +23,7 @@ namespace OHOS {
 namespace Rosen {
 class RSB_EXPORT RSPixelMapShader : public Drawing::ExtendObject {
 public:
-    RSPixelMapShader() = default;
+    RSPixelMapShader() : Drawing::ExtendObject(ExtendObjectType::IMAGE_SHADER) {}
     RSPixelMapShader(
         std::shared_ptr<Media::PixelMap> pixelMap, Drawing::TileMode tileX, Drawing::TileMode tileY,
         const Drawing::SamplingOptions& sampling, const Drawing::Matrix& matrix);
@@ -33,7 +33,7 @@ public:
     bool Unmarshalling(Parcel& parcel) override;
 #endif
     // Be Careful: this Function will return an Object Ptr which should be managed by Caller.
-    void* GenerateBaseObject() override;
+    std::shared_ptr<void> GenerateBaseObject() override;
 private:
     std::shared_ptr<Media::PixelMap> pixelMap_;
     Drawing::TileMode tileX_;

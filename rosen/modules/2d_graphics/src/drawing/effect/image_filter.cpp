@@ -83,6 +83,14 @@ ImageFilter::ImageFilter(FilterType t, float radius, const std::vector<std::pair
     impl_->InitWithGradientBlur(radius, fractionStops, direction, blurType, input);
 }
 
+ImageFilter::ImageFilter(
+    FilterType t, const std::shared_ptr<Image>& image, const Rect& srcRect, const Rect& dstRect) noexcept
+    : ImageFilter()
+{
+    type_ = t;
+    impl_->InitWithBitmap(image, srcRect, dstRect);
+}
+
 ImageFilter::ImageFilter(FilterType t) noexcept
     : type_(t), impl_(ImplFactory::CreateImageFilterImpl())
 {}
