@@ -334,7 +334,7 @@ int32_t XMLParser::ParseScreenConfig(xmlNode& node)
         screenConfig[id] = screenSetting;
         HGM_LOGI("HgmXMLParser ParseScreenConfig id=%{public}s", id.c_str());
     }
-    for (const auto& screenExtStrategy : HGM_CONFIG_SEREENEXT_STRATEGY_MAP) {
+    for (const auto& screenExtStrategy : HGM_CONFIG_SCREENEXT_STRATEGY_MAP) {
         if (size_t pos = type.find(screenExtStrategy.first); pos != std::string::npos) {
             auto defaultScreenConfig = mParsedData_->screenConfigs_.find(type.substr(0, pos));
             if (defaultScreenConfig != mParsedData_->screenConfigs_.end()) {
