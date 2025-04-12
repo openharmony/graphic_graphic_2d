@@ -331,7 +331,6 @@ HWTEST_F(HgmFrameRateMgrTest, ProcessPendingRefreshRate, Function | SmallTest | 
     frameRateMgr.ProcessPendingRefreshRate(currTime, vsyncid, rsRate, isUiDvsyncOn);
     ASSERT_EQ(hgmCore.pendingConstraintRelativeTime_,
         frameRateMgr.lastPendingConstraintRelativeTime_);
-    frameRateMgr.HandleScreenExtStrategyChange(true);
     uint32_t pendingRefreshRate = OLED_60_HZ;
     frameRateMgr.pendingRefreshRate_ = std::make_shared<uint32_t>(pendingRefreshRate);
     frameRateMgr.ProcessPendingRefreshRate(currTime, vsyncid, rsRate, isUiDvsyncOn);
