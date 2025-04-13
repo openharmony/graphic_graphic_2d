@@ -550,7 +550,7 @@ void RSUniHwcVisitor::UpdateHwcNodeEnable()
             }
         }
 
-        uniRenderVisitor_.UpdateHwcNodeEnableByGlobalFilter(surfaceNode);
+        UpdateHwcNodeEnableByGlobalFilter(surfaceNode);
         surfaceNode->ResetNeedCollectHwcNode();
         const auto& hwcNodes = surfaceNode->GetChildHardwareEnabledNodes();
         if (hwcNodes.empty()) {
