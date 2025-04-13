@@ -41,7 +41,8 @@ int32_t IntraAppOcclusionCullingParamParse::ParseFeatureParam(FeatureParamMapTyp
     return PARSE_EXEC_SUCCESS;
 }
 
-int32_t IntraAppOcclusionCullingParamParse::ParseIntraAppOcclusionCullingInternal(FeatureParamMapType &featureMap, xmlNode &node)
+int32_t IntraAppOcclusionCullingParamParse::ParseIntraAppOcclusionCullingInternal(FeatureParamMapType &featureMap,
+                                                                                  xmlNode &node)
 {
     xmlNode *currNode = &node;
 

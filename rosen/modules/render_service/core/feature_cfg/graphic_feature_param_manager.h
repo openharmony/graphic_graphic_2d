@@ -121,7 +121,8 @@ const std::vector<ModuleConfig> FEATURE_MODULES = {
         [] { return std::make_unique<VRateParam>(); }},
     {FEATURE_CONFIGS[ROTATEOFFSCREEN], [] { return std::make_unique<RotateOffScreenParamParse>(); },
         [] { return std::make_unique<RotateOffScreenParam>(); }},
-    {FEATURE_CONFIGS[INTRA_APP_OCCLUSION_CULLING], [] { return std::make_unique<IntraAppOcclusionCullingParamParse>(); },
+    {FEATURE_CONFIGS[INTRA_APP_OCCLUSION_CULLING], [] {
+        return std::make_unique<IntraAppOcclusionCullingParamParse>(); },
         [] { return std::make_unique<IntraAppOcclusionCullingParam>(); }}
 };
 
