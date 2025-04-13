@@ -1100,6 +1100,8 @@ private:
     const std::shared_ptr<RSRenderContent> renderContent_ = std::make_shared<RSRenderContent>();
 
     void OnRegister(const std::weak_ptr<RSContext>& context);
+    void ChildrenListDump(std::string& out) const;
+
     // purge resource
     inline void SetPurgeStatus(bool flag);
     inline void SyncPurgeFunc();
