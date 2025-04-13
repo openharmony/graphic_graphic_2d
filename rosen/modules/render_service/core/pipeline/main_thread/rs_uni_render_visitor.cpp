@@ -2890,11 +2890,6 @@ void RSUniRenderVisitor::CheckFilterNodeInSkippedSubTreeNeedClearCache(
     }
 }
 
-void RSUniRenderVisitor::UpdateHwcNodeEnableByGlobalFilter(std::shared_ptr<RSSurfaceRenderNode>& node)
-{
-    hwcVisitor_->UpdateHwcNodeEnableByGlobalFilter(node);
-}
-
 inline static void ResetSubSurfaceNodesCalState(
     std::vector<std::pair<NodeId, std::weak_ptr<RSSurfaceRenderNode>>>& subSurfaceNodes)
 {
