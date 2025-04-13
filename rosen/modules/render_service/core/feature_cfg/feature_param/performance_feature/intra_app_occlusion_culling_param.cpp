@@ -13,22 +13,18 @@
  * limitations under the License.
  */
 
-#ifndef OCCLUSION_CULLING_PARAM_PARSE_H
-#define OCCLUSION_CULLING_PARAM_PARSE_H
-
-#include <map>
-#include "xml_parser_base.h"
-#include "occlusion_culling_param.h"
+#include "intra_app_occlusion_culling_param.h"
 
 namespace OHOS::Rosen {
-class OcclusionCullingParamParse : public XMLParserBase {
-public:
-    OcclusionCullingParamParse() = default;
-    ~OcclusionCullingParamParse() = default;
-    int32_t ParseFeatureParam(FeatureParamMapType &featureMap, xmlNode &node) override;
 
-private:
-    int32_t ParseOcclusionCullingInternal(FeatureParamMapType &featureMap, xmlNode &node);
-};
+bool IntraAppOcclusionCullingParam::IsIntraAppOcclusionCullingEnable()
+{
+    return intraAppOcclusionCullingEnable_;
+}
+
+void IntraAppOcclusionCullingParam::SetIntraAppOcclusionCullingEnable(bool intraAppOcclusionCullingEnable)
+{
+    intraAppOcclusionCullingEnable_ = intraAppOcclusionCullingEnable;
+}
+
 } // namespace OHOS::Rosen
-#endif // OCCLUSION_CULLING_PARAM_PARSE_H

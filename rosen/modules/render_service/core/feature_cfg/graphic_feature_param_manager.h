@@ -43,10 +43,10 @@
 #include "mem_param.h"
 #include "multiscreen_param_parse.h"
 #include "multiscreen_param.h"
+#include "intra_app_occlusion_culling_param_parse.h"
+#include "intra_app_occlusion_culling_param.h"
 #include "opinc_param_parse.h"
 #include "opinc_param.h"
-#include "occlusion_culling_param_parse.h"
-#include "occlusion_culling_param.h"
 #include "prevalidate_param_parse.h"
 #include "prevalidate_param.h"
 #include "rotateoffscreen_param_parse.h"
@@ -76,7 +76,6 @@ struct ModuleConfig {
     std::function<std::unique_ptr<XMLParserBase>()> xmlParser;
     std::function<std::unique_ptr<FeatureParam>()> featureParam;
 };
-
 // add new module here
 const std::vector<ModuleConfig> FEATURE_MODULES = {
     {FEATURE_CONFIGS[DIRTYREGION], [] { return std::make_unique<DirtyRegionParamParse>(); },
@@ -122,8 +121,8 @@ const std::vector<ModuleConfig> FEATURE_MODULES = {
         [] { return std::make_unique<VRateParam>(); }},
     {FEATURE_CONFIGS[ROTATEOFFSCREEN], [] { return std::make_unique<RotateOffScreenParamParse>(); },
         [] { return std::make_unique<RotateOffScreenParam>(); }},
-    {FEATURE_CONFIGS[OCCLUSION_CULLING], [] { return std::make_unique<OcclusionCullingParamParse>(); },
-        [] { return std::make_unique<OcclusionCullingParam>(); }}
+    {FEATURE_CONFIGS[INTRA_APP_OCCLUSION_CULLING], [] { return std::make_unique<IntraAppOcclusionCullingParamParse>(); },
+        [] { return std::make_unique<IntraAppOcclusionCullingParam>(); }}
 };
 
 class GraphicFeatureParamManager : public RefBase {

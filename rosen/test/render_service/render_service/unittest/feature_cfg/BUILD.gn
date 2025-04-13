@@ -49,7 +49,7 @@ ohos_unittest("feature_cfg_test") {
     "ui_capture_param_test.cpp",
     "uifirst_param_test.cpp",
     "vrate_param_test.cpp",
-    "occlusion_culling_param_test.cpp",
+    "intra_app_occlusion_culling_param_test.cpp",
     "xml_parser_base_test.cpp",
   ]
 

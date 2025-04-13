@@ -13,22 +13,22 @@
  * limitations under the License.
  */
 
-#ifndef OCCLUSION_CULLING_PARAM_H
-#define OCCLUSION_CULLING_PARAM_H
+#ifndef INTRA_APP_OCCLUSION_CULLING_PARAM_H
+#define INTRA_APP_OCCLUSION_CULLING_PARAM_H
 
 #include "feature_param.h"
 
 namespace OHOS::Rosen {
-class OcclusionCullingParam : public FeatureParam {
+class IntraAppOcclusionCullingParam : public FeatureParam {
 public:
-    OcclusionCullingParam() = default;
-    ~OcclusionCullingParam() = default;
-    static bool IsOcclusionCullingEnable();
+    IntraAppOcclusionCullingParam() = default;
+    ~IntraAppOcclusionCullingParam() = default;
+    static bool IsIntraAppOcclusionCullingEnable();
 protected:
-    static void SetOcclusionCullingEnable(bool OcclusionCullingEnable);
+    static void SetIntraAppOcclusionCullingEnable(bool intraAppOcclusionCullingEnable);
 private:
-    inline static bool OcclusionCullingEnable_ = false;
-    friend class OcclusionCullingParamParse;
+    inline static bool intraAppOcclusionCullingEnable_ = false;
+    friend class IntraAppOcclusionCullingParamParse;
 };
 } // namespace OHOS::Rosen
-#endif // OCCLUSION_CULLING_PARAM_H
+#endif // INTRA_APP_OCCLUSION_CULLING_PARAM_H

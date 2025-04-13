@@ -46,7 +46,7 @@ const std::vector<std::string> FEATURE_CONFIGS = {
     "VRateConfig",
     "AccessibilityConfig",
     "RotateOffScreenConfig",
-    "OcclusionCullingConfig",
+    "IntraAppOcclusionCullingConfig",
 };
 
 enum FeatureModule {
@@ -72,7 +72,7 @@ enum FeatureModule {
     VRATE,
     ACCESSIBILITY,
     ROTATEOFFSCREEN,
-    OCCLUSION_CULLING,
+    INTRA_APP_OCCLUSION_CULLING,
     // Do not change it.
     ENUM_LENGTH,
 };

@@ -14,16 +14,16 @@
  */
 
 #include <sstream>
-#include "occlusion_culling_param_parse.h"
+#include "intra_app_occlusion_culling_param_parse.h"
 
 namespace OHOS::Rosen {
 
-int32_t OcclusionCullingParamParse::ParseFeatureParam(FeatureParamMapType &featureMap, xmlNode &node)
+int32_t IntraAppOcclusionCullingParamParse::ParseFeatureParam(FeatureParamMapType &featureMap, xmlNode &node)
 {
-    RS_LOGI("OcclusionCullingParamParse start");
+    RS_LOGI("IntraAppOcclusionCullingParamParse start");
     xmlNode *currNode = &node;
     if (currNode->xmlChildrenNode == nullptr) {
-        RS_LOGD("OcclusionCullingParamParse stop parsing, no children nodes");
+        RS_LOGD("IntraAppOcclusionCullingParamParse stop parsing, no children nodes");
         return PARSE_GET_CHILD_FAIL;
     }
 
@@ -33,21 +33,21 @@ int32_t OcclusionCullingParamParse::ParseFeatureParam(FeatureParamMapType &featu
             continue;
         }
 
-        if (ParseOcclusionCullingInternal(featureMap, *currNode) != PARSE_EXEC_SUCCESS) {
-            RS_LOGD("OcclusionCullingParamParse stop parsing, parse internal fail");
+        if (ParseIntraAppOcclusionCullingInternal(featureMap, *currNode) != PARSE_EXEC_SUCCESS) {
+            RS_LOGD("IntraAppOcclusionCullingParamParse stop parsing, parse internal fail");
             return PARSE_INTERNAL_FAIL;
         }
     }
     return PARSE_EXEC_SUCCESS;
 }
 
-int32_t OcclusionCullingParamParse::ParseOcclusionCullingInternal(FeatureParamMapType &featureMap, xmlNode &node)
+int32_t IntraAppOcclusionCullingParamParse::ParseIntraAppOcclusionCullingInternal(FeatureParamMapType &featureMap, xmlNode &node)
 {
     xmlNode *currNode = &node;
 
-    auto iter = featureMap.find(FEATURE_CONFIGS[OCCLUSION_CULLING]);
+    auto iter = featureMap.find(FEATURE_CONFIGS[INTRA_APP_OCCLUSION_CULLING]);
     if (iter == featureMap.end()) {
-        RS_LOGD("OcclusionCullingParamParse stop parsing, no initializing param map");
+        RS_LOGD("IntraAppOcclusionCullingParamParse stop parsing, no initializing param map");
         return PARSE_INTERNAL_FAIL;
     }
     // Start Parse Feature Params
@@ -55,11 +55,11 @@ int32_t OcclusionCullingParamParse::ParseOcclusionCullingInternal(FeatureParamMa
     auto name = ExtractPropertyValue("name", *currNode);
     auto val = ExtractPropertyValue("value", *currNode);
     if (xmlParamType == PARSE_XML_FEATURE_SWITCH) {
-        bool isOcclusionCullingEnable = ParseFeatureSwitch(val);
-        if (name == "OcclusionCullingEnable") {
-            OcclusionCullingParam::SetOcclusionCullingEnable(isOcclusionCullingEnable);
-            RS_LOGI("OcclusionCullingParamParse parse OcclusionCullingEnable %{public}d",
-                OcclusionCullingParam::IsOcclusionCullingEnable());
+        bool parseFeatireSwitchResult = ParseFeatureSwitch(val);
+        if (name == "IntraAppOcclusionCullingEnable") {
+            IntraAppOcclusionCullingParam::SetIntraAppOcclusionCullingEnable(parseFeatireSwitchResult);
+            RS_LOGI("IntraAppOcclusionCullingParamParse parse IntraAppOcclusionCullingEnable %{public}d",
+                IntraAppOcclusionCullingParam::IsIntraAppOcclusionCullingEnable());
         }
     }
 
