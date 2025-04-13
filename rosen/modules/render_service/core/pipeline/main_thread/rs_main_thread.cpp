@@ -1863,13 +1863,11 @@ void RSMainThread::CheckIfHardwareForcedDisabled()
     bool isMultiDisplay = rootNode->GetChildrenCount() > 1;
     MultiDisplayChange(isMultiDisplay);
 
-    auto hwcFeatureParam = std::static_pointer_cast<HWCParam>(
-        GraphicFeatureParamManager::GetInstance().GetFeatureParam(FEATURE_CONFIGS[HWC]));
     // check all children of global root node, and only disable hardware composer
     // in case node's composite type is UNI_RENDER_EXPAND_COMPOSITE or Wired projection
     const auto& children = rootNode->GetChildren();
     auto itr = std::find_if(children->begin(), children->end(),
-        [hwcFeature = hwcFeatureParam](const std::shared_ptr<RSRenderNode>& child) -> bool {
+        [](const std::shared_ptr<RSRenderNode>& child) -> bool {
             if (child == nullptr || child->GetType() != RSRenderNodeType::DISPLAY_NODE) {
                 return false;
             }
@@ -1878,21 +1876,9 @@ void RSMainThread::CheckIfHardwareForcedDisabled()
                 // wired projection case
                 return displayNodeSp->GetCompositeType() == RSDisplayRenderNode::CompositeType::UNI_RENDER_COMPOSITE;
             }
-            if (!hwcFeature) {
-                return false;
-            }
-            if (hwcFeature->IsHwcExpandingScreenEnabled()) {
-                return displayNodeSp->GetCompositeType() ==
-                    RSDisplayRenderNode::CompositeType::UNI_RENDER_EXPAND_COMPOSITE;
-            }
-            auto screenManager = CreateOrGetScreenManager();
-            if (!screenManager) {
-                return false;
-            }
-            RSScreenType screenType;
-            screenManager->GetScreenType(displayNodeSp->GetScreenId(), screenType);
-            // For PC expand physical screen.
-            return displayNodeSp->GetScreenId() != 0 && screenType != RSScreenType::VIRTUAL_TYPE_SCREEN;
+            // virtual expand screen
+            return displayNodeSp->GetCompositeType() ==
+                RSDisplayRenderNode::CompositeType::UNI_RENDER_EXPAND_COMPOSITE;
     });
 
     bool isExpandScreenOrWiredProjectionCase = itr != children->end();
