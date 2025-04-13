@@ -1852,7 +1852,7 @@ static bool CheckOverlayDisplayEnable()
 
 void RSMainThread::CheckIfHardwareForcedDisabled()
 {
-    ColorFilterMode colorFilterMode = renderEngine_->GetColorFilterMode();
+    ColorFilterMode colorFilterMode = RSBaseRenderEngine::GetColorFilterMode();
     bool hasColorFilter = colorFilterMode >= ColorFilterMode::INVERT_COLOR_ENABLE_MODE &&
         colorFilterMode <= ColorFilterMode::INVERT_DALTONIZATION_TRITANOMALY_MODE;
     std::shared_ptr<RSBaseRenderNode> rootNode = context_->GetGlobalRootRenderNode();
