@@ -1144,7 +1144,7 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByGlobalDirtyFilter_002, TestSi
  * @tc.type: FUNC
  * @tc.require: issuesIAE6YM
  */
-HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeEnableByGlobalFilter, TestSize.Level2)
+HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByGlobalFilter, TestSize.Level2)
 {
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
@@ -1169,7 +1169,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeEnableByGlobalFilter, TestSize.Lev
  * @tc.type: FUNC
  * @tc.require: IAHFXD
  */
-HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeEnableByGlobalFilter001, TestSize.Level1)
+HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByGlobalFilter001, TestSize.Level1)
 {
     // create input args.
     auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
@@ -1194,7 +1194,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeEnableByGlobalFilter001, TestSize.
  * @tc.type: FUNC
  * @tc.require: IAHFXD
  */
-HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeEnableByGlobalFilter002, TestSize.Level1)
+HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByGlobalFilter002, TestSize.Level1)
 {
     // create input args.
     auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
@@ -1225,7 +1225,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeEnableByGlobalFilter002, TestSize.
  * @tc.type: FUNC
  * @tc.require: IAHFXD
  */
-HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeEnableByGlobalFilter003, TestSize.Level1)
+HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByGlobalFilter003, TestSize.Level1)
 {
     // create input args.
     auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
