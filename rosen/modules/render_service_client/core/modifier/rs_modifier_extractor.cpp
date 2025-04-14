@@ -486,6 +486,16 @@ Color RSModifierExtractor::GetLightColor() const
     GET_PROPERTY_FROM_MODIFIERS(Color, LIGHT_COLOR, RgbPalette::White(), =);
 }
 
+int RSModifierExtractor::GetColorBlendMode() const
+{
+    GET_PROPERTY_FROM_MODIFIERS(int, COLOR_BLEND_MODE, static_cast<int>(RSColorBlendMode::NONE), =);
+}
+
+int RSModifierExtractor::GetColorBlendApplyType() const
+{
+    GET_PROPERTY_FROM_MODIFIERS(int, COLOR_BLEND_APPLY_TYPE, static_cast<int>(RSColorBlendApplyType::FAST), =);
+}
+
 std::string RSModifierExtractor::Dump() const
 {
     std::string dumpInfo;
