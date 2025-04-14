@@ -845,7 +845,7 @@ bool RSRenderAnimatableProperty<Vector4<Color>>::IsNearEqual(
         auto otherValue = animatableProperty->Get();
         auto& otherData = otherValue.data_;
         int16_t threshold = static_cast<int16_t>(zeroThreshold);
-        return thisData[0].IsNearEqual(otherData[0], threshold) && thisData[2].IsNearEqual(otherData[2], threshold) &&
+        return thisData[0].IsNearEqual(otherData[0], threshold) && thisData[1].IsNearEqual(otherData[1], threshold) &&
                thisData[2].IsNearEqual(otherData[2], threshold) && thisData[3].IsNearEqual(otherData[3], threshold);
     }
     ROSEN_LOGE(
