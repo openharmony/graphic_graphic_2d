@@ -162,7 +162,6 @@ Drawing::Canvas* RSCaptureRecorder::TryComponentScreenshotCapture(float width, f
     if (!isComponentScreenshot_) {
         return nullptr;
     }
-
     recordingTriggeredComponentScreenshot_ = true;
     return TryInstantCaptureSKP(width, height);
 }

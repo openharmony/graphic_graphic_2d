@@ -68,7 +68,7 @@
 #define RS_PROFILER_REPLAY_FIX_TRINDEX(curIndex, lastIndex) RSProfiler::ReplayFixTrIndex(curIndex, lastIndex)
 #define RS_PROFILER_PATCH_TYPEFACE_ID(parcel, val) RSProfiler::PatchTypefaceId(parcel, val)
 #define RS_PROFILER_DRAWING_NODE_ADD_CLEAROP(drawCmdList) RSProfiler::DrawingNodeAddClearOp(drawCmdList)
-#define RS_PROFILER_KEEP_DRAW_CMD() RSProfiler::KeepDrawCmd()
+#define RS_PROFILER_KEEP_DRAW_CMD(drawCmdListNeedSync) RSProfiler::KeepDrawCmd(drawCmdListNeedSync)
 #define RS_PROFILER_PROCESS_ADD_CHILD(parent, child, index) RSProfiler::ProcessAddChild(parent, child, index)
 #else
 #define RS_PROFILER_INIT(renderSevice)
@@ -106,7 +106,7 @@
 #define RS_PROFILER_REPLAY_FIX_TRINDEX(curIndex, lastIndex)
 #define RS_PROFILER_PATCH_TYPEFACE_ID(parcel, val)
 #define RS_PROFILER_DRAWING_NODE_ADD_CLEAROP(drawCmdList) (drawCmdList)->ClearOp()
-#define RS_PROFILER_KEEP_DRAW_CMD() false
+#define RS_PROFILER_KEEP_DRAW_CMD(drawCmdListNeedSync) drawCmdListNeedSync = true
 #define RS_PROFILER_PROCESS_ADD_CHILD(parent, child, index) false
 #endif
 
@@ -244,7 +244,7 @@ public:
 
     RSB_EXPORT static void DrawingNodeAddClearOp(const std::shared_ptr<Drawing::DrawCmdList>& drawCmdList);
     RSB_EXPORT static void SetDrawingCanvasNodeRedraw(bool enable);
-    RSB_EXPORT static bool KeepDrawCmd();
+    RSB_EXPORT static void KeepDrawCmd(bool& drawCmdListNeedSync);
     RSB_EXPORT static void SetRenderNodeKeepDrawCmd(bool enable);
 
 private:
@@ -503,6 +503,7 @@ private:
     // set to true in DT only
     RSB_EXPORT static bool testing_;
 
+    static RSContext* context_;
     // flag for enabling profiler
     RSB_EXPORT static bool enabled_;
     RSB_EXPORT static std::atomic_uint32_t mode_;

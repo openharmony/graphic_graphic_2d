@@ -1222,9 +1222,9 @@ void RSProfiler::SetRenderNodeKeepDrawCmd(bool enable)
     renderNodeKeepDrawCmdList_ = enable && IsEnabled();
 }
 
-bool RSProfiler::KeepDrawCmd()
+void RSProfiler::KeepDrawCmd(bool& drawCmdListNeedSync)
 {
-    return renderNodeKeepDrawCmdList_;
+    drawCmdListNeedSync = !renderNodeKeepDrawCmdList_;
 }
 
 static uint64_t NewAshmemDataCacheId()

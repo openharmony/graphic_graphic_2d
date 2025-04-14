@@ -88,10 +88,8 @@ private:
     bool recordingTriggeredComponentScreenshot_ = false;
 
     std::shared_ptr<Drawing::Picture> picture_;
-
     std::unique_ptr<Drawing::SharingSerialContext> serialContext_;
     std::unique_ptr<Drawing::FileWStream> openMultiPicStream_;
-
     std::shared_ptr<Drawing::Document> multiPic_;
     int32_t mskpMaxLocal_ = 0;
     int32_t mskpIdxCurrent_ = -1;
@@ -100,7 +98,6 @@ private:
     bool isMskpActive_ = false;
     uint64_t drawingCanvasNodeId_ = 0;
     bool isComponentScreenshot_ = false;
-    
     bool profilerEnabled_ = false;
 };
 
