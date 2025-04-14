@@ -33,6 +33,7 @@ namespace Rosen {
 namespace {
 constexpr uint32_t SURFACE_COLOR = 0xffffffff;
 constexpr int64_t LOAD_TREE_WAIT_TIME = 3;
+constexpr int PLAYBACK_PREPARE_WAIT_TIME = 5000;
 
 bool ShouldRunCurrentTest()
 {
@@ -267,7 +268,7 @@ void RSGraphicTest::PlaybackRecover(const std::string& filePath, float pauseTime
         "rsrecord_replay_prepare " + std::to_string(pid) + " " + std::to_string(pauseTimeStamp) + " " + filePath;
     std::cout << "Playback Prepare: " << command << std::endl;
     RSGraphicTestDirector::Instance().SendProfilerCommand(command);
-    WaitTimeout(RSParameterParse::Instance().testCaseWaitTime);
+    WaitTimeout(PLAYBACK_PREPARE_WAIT_TIME);
 
     // playback start
     command = "rsrecord_replay";
