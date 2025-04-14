@@ -892,7 +892,9 @@ void RSUniRenderThread::PostClearMemoryTask(ClearMemoryMoment moment, bool deepl
 
 void RSUniRenderThread::ReclaimMemory()
 {
-    if (!RSSystemProperties::GetReclaimMemoryEnabled() || !MEMParam::IsReclaimEnabled()) {
+    if (!RSSystemProperties::GetReclaimMemoryEnabled() || !MEMParam::IsReclaimEnabled() ||
+        // Ensure user don't enable the parameter. When we have an interrupt mechanism, remove it.
+        system::GetParameter("persist.ace.testmode.enabled", "0") != "1") {
         return;
     }
 
