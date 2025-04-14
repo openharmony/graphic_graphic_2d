@@ -1165,11 +1165,9 @@ std::string HgmFrameRateManager::GetCurScreenExtStrategyId()
 
     std::string suffix;
     for (const auto& [key, value] : screenExtStrategyMap_) {
-        if (value.second) {
-            if (screenExtStrategyMap_.find(suffix) == screenExtStrategyMap_.end() ||
-                value.first > screenExtStrategyMap_[suffix].first) {
-                    suffix = key;
-            }
+        if (value.second && (screenExtStrategyMap_.find(suffix) == screenExtStrategyMap_.end() ||
+            value.first > screenExtStrategyMap_[suffix].first)) {
+            suffix = key;
         }
     }
     std::string curScreenStrategyId = curScreenDefaultStrategyId_ + suffix;

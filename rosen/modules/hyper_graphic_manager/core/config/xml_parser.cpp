@@ -338,9 +338,9 @@ int32_t XMLParser::ParseScreenConfig(xmlNode& node)
         if (size_t pos = type.find(screenExtStrategy.first); pos != std::string::npos) {
             auto defaultScreenConfig = mParsedData_->screenConfigs_.find(type.substr(0, pos));
             if (defaultScreenConfig != mParsedData_->screenConfigs_.end()) {
-                ReplenishMissThermalConfig(defaultScreenConfig->second, screenConfig);
+                ReplenishMissingScreenConfig(defaultScreenConfig->second, screenConfig);
             } else {
-                HGM_LOGE("XMLParser failed to ReplenishMissThermalConfig %{public}s", type.c_str());
+                HGM_LOGE("XMLParser failed to ReplenishMissingScreenConfig %{public}s", type.c_str());
                 return EXEC_SUCCESS;
             }
         }
@@ -613,7 +613,7 @@ int32_t XMLParser::ParseAppTypes(xmlNode& node, std::unordered_map<int32_t, std:
     return EXEC_SUCCESS;
 }
 
-void XMLParser::ReplenishMissThermalAppGameConfig(PolicyConfigData::ScreenSetting& screenSetting,
+void XMLParser::ReplenishMissingScreenAppGameConfig(PolicyConfigData::ScreenSetting& screenSetting,
                                                   const PolicyConfigData::ScreenSetting& screenSettingDefalut)
 {
     if (screenSetting.appList.empty()) {
@@ -632,52 +632,53 @@ void XMLParser::ReplenishMissThermalAppGameConfig(PolicyConfigData::ScreenSettin
     }
 }
 
-int32_t XMLParser::ReplenishMissThermalConfig(const PolicyConfigData::ScreenConfig& screenConfigDefault,
+int32_t XMLParser::ReplenishMissingScreenConfig(const PolicyConfigData::ScreenConfig& screenConfigDefault,
                                               PolicyConfigData::ScreenConfig& screenConfig)
 {
-    HGM_LOGD("HgmXMLParser ReplenishMissThermalConfig");
+    HGM_LOGD("HgmXMLParser ReplenishMissingScreenConfig");
     for (const auto& [id, screenSettingDefalut] : screenConfigDefault) {
-        if (const auto& screenSetting = screenConfig.find(id); screenSetting != screenConfig.end()) {
-            if (screenSetting->second.ltpoConfig.empty()) {
-                screenSetting->second.ltpoConfig = screenSettingDefalut.ltpoConfig;
-            }
-            if (screenSetting->second.sceneList.empty()) {
-                screenSetting->second.sceneList = screenSettingDefalut.sceneList;
-            }
-            if (screenSetting->second.animationDynamicSettings.empty()) {
-                screenSetting->second.animationDynamicSettings = screenSettingDefalut.animationDynamicSettings;
-            }
-            if (screenSetting->second.aceSceneDynamicSettings.empty()) {
-                screenSetting->second.aceSceneDynamicSettings = screenSettingDefalut.aceSceneDynamicSettings;
-            }
-            if (screenSetting->second.smallSizeAnimationDynamicSettings.empty()) {
-                screenSetting->second.smallSizeArea = screenSettingDefalut.smallSizeArea;
-                screenSetting->second.smallSizeLength = screenSettingDefalut.smallSizeLength;
-                screenSetting->second.smallSizeAnimationDynamicSettings =
-                    screenSettingDefalut.smallSizeAnimationDynamicSettings;
-            }
-            if (screenSetting->second.animationPowerConfig.empty()) {
-                screenSetting->second.animationPowerConfig = screenSettingDefalut.animationPowerConfig;
-            }
-            if (screenSetting->second.uiPowerConfig.empty()) {
-                screenSetting->second.uiPowerConfig = screenSettingDefalut.uiPowerConfig;
-            }
-            if (screenSetting->second.ancoSceneList.empty()) {
-                screenSetting->second.ancoSceneList = screenSettingDefalut.ancoSceneList;
-            }
-            if (screenSetting->second.componentPowerConfig.empty()) {
-                screenSetting->second.componentPowerConfig = screenSettingDefalut.componentPowerConfig;
-            }
-            if (screenSetting->second.pageUrlConfig.empty()) {
-                screenSetting->second.pageUrlConfig = screenSettingDefalut.pageUrlConfig;
-            }
-            if (screenSetting->second.performanceConfig.empty()) {
-                screenSetting->second.performanceConfig = screenSettingDefalut.performanceConfig;
-            }
-            ReplenishMissThermalAppGameConfig(screenSetting->second, screenSettingDefalut);
-        } else {
+        const auto& screenSetting = screenConfig.find(id);
+        if (screenSetting == screenConfig.end()) {
             screenConfig[id] = screenSettingDefalut;
+            continue;
         }
+        if (screenSetting->second.ltpoConfig.empty()) {
+            screenSetting->second.ltpoConfig = screenSettingDefalut.ltpoConfig;
+        }
+        if (screenSetting->second.sceneList.empty()) {
+            screenSetting->second.sceneList = screenSettingDefalut.sceneList;
+        }
+        if (screenSetting->second.animationDynamicSettings.empty()) {
+            screenSetting->second.animationDynamicSettings = screenSettingDefalut.animationDynamicSettings;
+        }
+        if (screenSetting->second.aceSceneDynamicSettings.empty()) {
+            screenSetting->second.aceSceneDynamicSettings = screenSettingDefalut.aceSceneDynamicSettings;
+        }
+        if (screenSetting->second.smallSizeAnimationDynamicSettings.empty()) {
+            screenSetting->second.smallSizeArea = screenSettingDefalut.smallSizeArea;
+            screenSetting->second.smallSizeLength = screenSettingDefalut.smallSizeLength;
+            screenSetting->second.smallSizeAnimationDynamicSettings =
+                screenSettingDefalut.smallSizeAnimationDynamicSettings;
+        }
+        if (screenSetting->second.animationPowerConfig.empty()) {
+            screenSetting->second.animationPowerConfig = screenSettingDefalut.animationPowerConfig;
+        }
+        if (screenSetting->second.uiPowerConfig.empty()) {
+            screenSetting->second.uiPowerConfig = screenSettingDefalut.uiPowerConfig;
+        }
+        if (screenSetting->second.ancoSceneList.empty()) {
+            screenSetting->second.ancoSceneList = screenSettingDefalut.ancoSceneList;
+        }
+        if (screenSetting->second.componentPowerConfig.empty()) {
+            screenSetting->second.componentPowerConfig = screenSettingDefalut.componentPowerConfig;
+        }
+        if (screenSetting->second.pageUrlConfig.empty()) {
+            screenSetting->second.pageUrlConfig = screenSettingDefalut.pageUrlConfig;
+        }
+        if (screenSetting->second.performanceConfig.empty()) {
+            screenSetting->second.performanceConfig = screenSettingDefalut.performanceConfig;
+        }
+        ReplenishMissingScreenAppGameConfig(screenSetting->second, screenSettingDefalut);
     }
     return EXEC_SUCCESS;
 }
