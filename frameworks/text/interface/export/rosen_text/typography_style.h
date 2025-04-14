@@ -143,7 +143,9 @@ struct TypographyStyle {
             this->ellipsisModal == rhs.ellipsisModal &&
             skia::textlayout::nearlyEqual(this->textSplitRatio, rhs.textSplitRatio) &&
             this->defaultTextStyleUid == rhs.defaultTextStyleUid &&
-            this->tab == rhs.tab;
+            this->tab == rhs.tab &&
+            this->paragraphSpacing == rhs.paragraphSpacing &&
+            this->isEndAddParagraphSpacing == rhs.isEndAddParagraphSpacing;
     }
     TextStyle GetTextStyle() const;
     void SetTextStyle(TextStyle& textstyle);
