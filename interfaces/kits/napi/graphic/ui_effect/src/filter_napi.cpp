@@ -346,7 +346,7 @@ static bool GetLinearFractionStops(napi_env env, napi_value param, std::shared_p
         double value1 = 0.0;
         double value2 = 0.0;
         if (napi_get_value_double(env, temp1, &value1) != napi_ok ||
-            napi_get_value_double(env, temp1, &value1) != napi_ok) {
+            napi_get_value_double(env, temp2, &value2) != napi_ok) {
             FILTER_LOG_E("GetLinearFractionStops region coordinates not double");
             return false;
         }
@@ -376,6 +376,8 @@ napi_value FilterNapi::SetRadiusGradientBlurPara(napi_env env, napi_callback_inf
         FILTER_LOG_E("FilterNapi SetRadiusGradientBlurPara parsing input fail"));
 
     std::shared_ptr<RadiusGradientBlurPara> para = std::make_shared<RadiusGradientBlurPara>();
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok, nullptr,
+        FILTER_LOG_E("FilterNapi SetRadiusGradientBlurPara para is nullptr"));
 
     if (argCount != NUM_2) {
         FILTER_LOG_E("Args number less than 2");
