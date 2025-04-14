@@ -205,6 +205,16 @@ int AshmemFdContainer::ReadSafeFd(Parcel &parcel, std::function<int(Parcel&)> re
     size_t offset = parcel.GetReadPosition();
     sptr<IPCFileDescriptor> descriptor = parcel.ReadObject<IPCFileDescriptor>();
 
+    int parcelFd = INVALID_FD;
+    if (descriptor == nullptr) {
+        ROSEN_LOGE("AshmemFdContainer::ReadSafeFd ReadObject failed");
+    } else {
+        parcelFd = descriptor->GetFd();
+    }
+    if (parcelFd < 0) {
+        ROSEN_LOGE("AshmemFdContainer::ReadSafeFd failed: invalid parcelFd = %{public}d", parcelFd);
+    }
+
     int containerFd = INVALID_FD;
     auto it = fds_.find(offset);
     if (it != fds_.end()) {
@@ -214,7 +224,15 @@ int AshmemFdContainer::ReadSafeFd(Parcel &parcel, std::function<int(Parcel&)> re
         ROSEN_LOGE("AshmemFdContainer::ReadSafeFd failed: offset %{public}zu not found", offset);
     }
     if (containerFd < 0) {
-        ROSEN_LOGE("AshmemFdContainer::ReadSafeFd failed: containerFd = %{public}d", containerFd);
+        ROSEN_LOGE("AshmemFdContainer::ReadSafeFd failed: invalid containerFd = %{public}d", containerFd);
+    }
+
+    if (parcelFd != containerFd) {
+        ROSEN_LOGW("AshmemFdContainer::ReadSafeFd inconsistent parcelFd = %{public}d, containerFd = %{public}d",
+            parcelFd, containerFd);
+    }
+
+    if (containerFd < 0) {
         return INVALID_FD;
     }
 
@@ -222,19 +240,7 @@ int AshmemFdContainer::ReadSafeFd(Parcel &parcel, std::function<int(Parcel&)> re
     if (safeFd < 0) {
         ROSEN_LOGE("AshmemFdContainer::ReadSafeFd dup failed: containerFd = %{public}d, errno = %{public}d",
             containerFd, errno);
-        return safeFd;
     }
-
-    if (descriptor == nullptr) {
-        ROSEN_LOGW("AshmemFdContainer::ReadSafeFd ReadObject failed");
-    } else {
-        int parcelFd = descriptor->GetFd();
-        if (parcelFd != containerFd) {
-            ROSEN_LOGW("AshmemFdContainer::ReadSafeFd inconsistent parcelFd = %{public}d, containerFd = %{public}d",
-                parcelFd, containerFd);
-        }
-    }
-
     return safeFd;
 }
 
