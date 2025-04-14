@@ -25,6 +25,7 @@ namespace {
     constexpr uint32_t NUM_6 = 6;
     constexpr uint32_t NUM_7 = 7;
     constexpr uint32_t NUM_8 = 8;
+    constexpr uint32_t NUM_1000 = 1000;
     constexpr int32_t ERR_NOT_SYSTEM_APP = 202;
 }
 
@@ -300,7 +301,7 @@ napi_value FilterNapi::SetPixelStretch(napi_env env, napi_callback_info info)
 GradientDirection FilterNapi::ParserGradientDirection(napi_env env, napi_value argv)
 {
     if (UIEffectNapiUtils::GetType(env, argv) == napi_number) {
-        double tmp = 0.0f;
+        double tmp = 0.0;
         if (napi_get_value_double(env, argv, &tmp) == napi_ok) {
             int32_t direction = static_cast<int32_t>(tmp);
             auto iter = INDEX_TO_DIRECTION.find(direction);
@@ -314,18 +315,13 @@ GradientDirection FilterNapi::ParserGradientDirection(napi_env env, napi_value a
 
 static bool GetLinearFractionStops(napi_env env, napi_value param, std::shared_ptr<RadiusGradientBlurPara>& para)
 {
-    napi_valuetype valueType = napi_undefined;
-    valueType = UIEffectNapiUtils::GetType(env, param);
-    if (valueType == napi_undefined) {
-        return true;
-    }
     uint32_t arraySize = 0;
     if (!IsArrayForNapiValue(env, param, arraySize)) {
         FILTER_LOG_E("GetLinearFractionStops get args fail, not array");
         return false;
     }
-    if (arraySize < NUM_2) {
-        FILTER_LOG_E("GetLinearFractionStops fractionStops num less than 2");
+    if (arraySize < NUM_2 && arraySize > NUM_1000) {
+        FILTER_LOG_E("GetLinearFractionStops fractionStops num less than 2 or greater than 1000");
         return false;
     }
 
