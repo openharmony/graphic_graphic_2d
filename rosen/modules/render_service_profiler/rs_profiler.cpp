@@ -47,7 +47,7 @@ namespace OHOS::Rosen {
 
 // (user): Move to RSProfiler
 static RSRenderService* g_renderService = nullptr;
-static RSContext* RSProfiler::context_ = nullptr;
+RSContext* RSProfiler::context_ = nullptr;
 static RSMainThread* g_mainThread = nullptr;
 static std::atomic<int32_t> g_renderServiceCpuId = 0;
 static std::atomic<int32_t> g_renderServiceRenderCpuId = 0;

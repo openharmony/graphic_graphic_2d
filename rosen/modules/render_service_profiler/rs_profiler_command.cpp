@@ -144,7 +144,7 @@ void RSProfiler::SaveSkp(const ArgList& args)
 
 void RSProfiler::SaveOffscreenSkp(const ArgList& args)
 {
-    if(!context_) {
+    if (!context_) {
         return;
     }
     const auto nodeIdArg = args.Node();
@@ -173,7 +173,7 @@ void RSProfiler::SaveOffscreenSkp(const ArgList& args)
         }
         auto nodeRect = drawableRenderParams->GetAbsDrawRect();
         if (auto canvasRec = RSCaptureRecorder::GetInstance().TryOffscreenCanvasCapture(
-            nodeRect.GetWidth(), nodeRect.GetHeight())){
+            nodeRect.GetWidth(), nodeRect.GetHeight())) {
             RSPaintFilterCanvas paintFilterCanvas(canvasRec);
             drawable->OnDraw(paintFilterCanvas);
             RSCaptureRecorder::GetInstance().EndOffscreenCanvasCapture();
