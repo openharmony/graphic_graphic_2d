@@ -166,15 +166,10 @@ OH_Drawing_ShaderEffect* OH_Drawing_ShaderEffectCreateSweepGradientWithLocalMatr
     const OH_Drawing_Point* centerPt, const uint32_t* colors, const float* pos, uint32_t size,
     OH_Drawing_TileMode tileMode, const OH_Drawing_Matrix* matrix)
 {
-    if (matrix == nullptr) {
-        return OH_Drawing_ShaderEffectCreateSweepGradient(centerPt, colors, pos, size, tileMode);
-    }
     if (centerPt == nullptr || colors == nullptr) {
-        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return nullptr;
     }
     if (tileMode < CLAMP || tileMode > DECAL) {
-        g_drawingErrorCode = OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE;
         return nullptr;
     }
     std::vector<ColorQuad> colorsVector;
@@ -187,7 +182,7 @@ OH_Drawing_ShaderEffect* OH_Drawing_ShaderEffectCreateSweepGradientWithLocalMatr
     }
     return CastShaderEffect(ShaderEffect::CreateSweepGradient(
         *CastToPoint(centerPt), colorsVector, posVector, static_cast<TileMode>(tileMode), 0,
-        360, CastToMatrix(matrix))); // 360: endAngle
+        360, matrix ? CastToMatrix(matrix) : nullptr)); // 360: endAngle
 }
 
 OH_Drawing_ShaderEffect* OH_Drawing_ShaderEffectCreateSweepGradient(const OH_Drawing_Point* cCenterPt,

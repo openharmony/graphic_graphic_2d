@@ -24,7 +24,6 @@
 #include "effect/color_filter.h"
 #include "utils/data.h"
 #include "utils/log.h"
-#include "utils/performanceCaculate.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -93,7 +92,6 @@ void SkiaColorFilter::InitWithOverDrawColor(const ColorQuad colors[OVER_DRAW_COL
 
 void SkiaColorFilter::InitWithLighting(ColorQuad mul, ColorQuad add)
 {
-    DRAWING_PERFORMANCE_TEST_SKIA_NO_PARAM_RETURN;
     filter_ = SkColorMatrixFilter::MakeLightingFilter(static_cast<SkColor>(mul), static_cast<SkColor>(add));
 }
 

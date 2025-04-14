@@ -362,7 +362,7 @@ napi_value JsShaderEffect::CreateComposeShader(napi_env env, napi_callback_info 
     napi_valuetype valueType = napi_undefined;
     if (napi_typeof(env, argv[ARGC_ZERO], &valueType) != napi_ok || valueType != napi_object) {
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "JsShaderEffect::CreateBlendShader Argv[ZERO] is invalid.");
+            "Incorrect CreateComposeShader parameter0 type.");
     }
     JsShaderEffect* dstJsShaderEffect = nullptr;
     GET_UNWRAP_PARAM(ARGC_ZERO, dstJsShaderEffect);
@@ -373,7 +373,7 @@ napi_value JsShaderEffect::CreateComposeShader(napi_env env, napi_callback_info 
 
     if (napi_typeof(env, argv[ARGC_ONE], &valueType) != napi_ok || valueType != napi_object) {
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "JsShaderEffect::CreateBlendShader Argv[ONE] is invalid.");
+            "Incorrect CreateComposeShader parameter1 type.");
     }
     JsShaderEffect* srcJsShaderEffect = nullptr;
     GET_UNWRAP_PARAM(ARGC_ONE, srcJsShaderEffect);
@@ -384,7 +384,7 @@ napi_value JsShaderEffect::CreateComposeShader(napi_env env, napi_callback_info 
 
     int32_t jsBlendMode = 0;
     GET_ENUM_PARAM(ARGC_TWO, jsBlendMode, static_cast<int32_t>(BlendMode::CLEAR),
-                   static_cast<int32_t>(BlendMode::LUMINOSITY));
+        static_cast<int32_t>(BlendMode::LUMINOSITY));
 
     std::shared_ptr<ShaderEffect> effectShader = ShaderEffect::CreateBlendShader(*dstJsShaderEffect->GetShaderEffect(),
         *srcJsShaderEffect->GetShaderEffect(), static_cast<BlendMode>(jsBlendMode));
@@ -515,27 +515,18 @@ napi_value JsShaderEffect::CreateImageShader(napi_env env, napi_callback_info in
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect samplingOptions parameter.");
     }
 
-    if (argc == ARGC_FOUR) {
-        std::shared_ptr<ShaderEffect> imageShader =
-            ShaderEffect::CreateImageShader(*image, static_cast<TileMode>(jsTileModeX),
-                static_cast<TileMode>(jsTileModeY), *samplingOptions.get(), Drawing::Matrix());
-        return JsShaderEffect::Create(env, imageShader);
-    } else if (argc == ARGC_FIVE) {
+    Drawing::Matrix matrix;
+    if (argc == ARGC_FIVE) {
         JsMatrix* jsMatrix = nullptr;
         GET_UNWRAP_PARAM_OR_NULL(ARGC_FOUR, jsMatrix);
 
-        if (jsMatrix == nullptr) {
-            std::shared_ptr<ShaderEffect> imageShader =
-            ShaderEffect::CreateImageShader(*image, static_cast<TileMode>(jsTileModeX),
-                static_cast<TileMode>(jsTileModeY), *samplingOptions.get(), Drawing::Matrix());
-            return JsShaderEffect::Create(env, imageShader);
+        if (jsMatrix != nullptr && jsMatrix->GetMatrix() != nullptr) {
+            matrix = *jsMatrix->GetMatrix();
         }
-
-        std::shared_ptr<ShaderEffect> imageShader = ShaderEffect::CreateImageShader(*image,
-            static_cast<TileMode>(jsTileModeX), static_cast<TileMode>(jsTileModeY), *samplingOptions.get(),
-            jsMatrix->GetMatrix() ? *jsMatrix->GetMatrix() : Drawing::Matrix());
-        return JsShaderEffect::Create(env, imageShader);
     }
+    std::shared_ptr<ShaderEffect> imageShader = ShaderEffect::CreateImageShader(*image,
+        static_cast<TileMode>(jsTileModeX), static_cast<TileMode>(jsTileModeY), *samplingOptions, matrix);
+    return JsShaderEffect::Create(env, imageShader);
 #endif
     return nullptr;
 }

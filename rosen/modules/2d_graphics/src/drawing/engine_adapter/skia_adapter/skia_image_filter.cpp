@@ -149,21 +149,23 @@ void SkiaImageFilter::InitWithGradientBlur(float radius,
     return;
 }
 
-void SkiaImageFilter::InitWithBitmap(const std::shared_ptr<Image>& image, const Rect& srcRect, const Rect& dstRect)
+void SkiaImageFilter::InitWithImage(const std::shared_ptr<Image>& image, const Rect& srcRect, const Rect& dstRect,
+    const SamplingOptions& options)
 {
     if (image == nullptr) {
-        LOGD("SkiaImageFilter::InitWithBitmap: image is nullptr!");
+        LOGD("SkiaImageFilter::InitWithImage: image is nullptr!");
         return;
     }
     SkRect skSrcRect = SkRect::MakeLTRB(srcRect.GetLeft(), srcRect.GetTop(), srcRect.GetRight(), srcRect.GetBottom());
     SkRect skDstRect = SkRect::MakeLTRB(dstRect.GetLeft(), dstRect.GetTop(), dstRect.GetRight(), dstRect.GetBottom());
     auto imageImpl = image->GetImpl<SkiaImage>();
     if (imageImpl == nullptr) {
-        LOGD("SkiaImageFilter::InitWithBitmap: imageImpl is nullptr!");
+        LOGD("SkiaImageFilter::InitWithImage: imageImpl is nullptr!");
         return;
     }
-    filter_ = SkImageFilters::Image(
-        imageImpl->GetImage(), skSrcRect, skDstRect, SkSamplingOptions(SkFilterMode::kLinear));
+    SkSamplingOptions samplingOptions(static_cast<SkFilterMode>(options.GetFilterMode()),
+        static_cast<SkMipmapMode>(options.GetMipmapMode()));
+    filter_ = SkImageFilters::Image(imageImpl->GetImage(), skSrcRect, skDstRect, samplingOptions);
 }
 
 sk_sp<SkImageFilter> SkiaImageFilter::GetImageFilter() const
