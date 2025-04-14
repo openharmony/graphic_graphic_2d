@@ -554,8 +554,11 @@ public:
 
     void SetColorBlendMode(int colorBlendMode);
     int GetColorBlendMode() const;
+    bool IsColorBlendModeValid() const;
+    bool IsColorBlendModeNone() const;
     void SetColorBlendApplyType(int colorBlendApplyType);
     int GetColorBlendApplyType() const;
+    bool IsColorBlendApplyTypeOffscreen() const;
 
 #if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     const std::unique_ptr<RSFilterCacheManager>& GetFilterCacheManager(bool isForeground) const;

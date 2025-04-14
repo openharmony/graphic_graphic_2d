@@ -324,6 +324,8 @@ public:
     void UpdateChildrenRect(const RectI& subRect);
     void UpdateCurCornerRadius(Vector4f& curCornerRadius);
     void SetDirty(bool forceAddToActiveList = false);
+    void SetBlendWithBackground(bool isBlendWithBackgroun);
+    bool IsBlendWithBackground() const;
 
     virtual void AddDirtyType(RSModifierType type)
     {
@@ -1057,6 +1059,7 @@ private:
     bool foregroundFilterRegionChanged_ = false;
     bool foregroundFilterInteractWithDirty_ = false;
     bool isOccluded_ = false;
+    bool isBlendWithBackground_ = false;
     // for UIExtension info collection
     bool childrenHasUIExtension_ = false;
     bool isAccessibilityConfigChanged_ = false;
