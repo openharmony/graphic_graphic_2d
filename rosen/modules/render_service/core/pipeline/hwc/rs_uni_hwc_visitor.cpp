@@ -893,13 +893,13 @@ void RSUniHwcVisitor::UpdateHwcNodeEnableByGlobalCleanFilter(
                 "%" PRIu64, hwcNode.GetName().c_str(), hwcNode.GetId(), filter->first);
 #ifdef HIPERF_TRACE_ENABLE
             RS_LOGW("hiperf_surface: name:%s disabled by transparentCleanFilter, "
-                "surfaceRect: [%d, %d, %d, %d]->[%d, %d, %d, %d]", hwcNodePtr.GetName().c_str(),
-                hwcNodePtr.GetSrcRect().GetLeft(), hwcNodePtr.GetSrcRect().GetRight(),
-                hwcNodePtr.GetSrcRect().GetTop(), hwcNodePtr.GetSrcRect().GetBottom(),
-                hwcNodePtr.GetSrcRect().GetLeft(), hwcNodePtr.GetSrcRect().GetRight(),
-                hwcNodePtr.GetSrcRect().GetTop(), hwcNodePtr.GetSrcRect().GetBottom());
+                "surfaceRect: [%d, %d, %d, %d]->[%d, %d, %d, %d]", hwcNode.GetName().c_str(),
+                hwcNode.GetSrcRect().GetLeft(), hwcNode.GetSrcRect().GetRight(),
+                hwcNode.GetSrcRect().GetTop(), hwcNode.GetSrcRect().GetBottom(),
+                hwcNode.GetSrcRect().GetLeft(), hwcNode.GetSrcRect().GetRight(),
+                hwcNode.GetSrcRect().GetTop(), hwcNode.GetSrcRect().GetBottom());
 #endif
-hwcNode.SetHardwareForcedDisabledState(true);
+            hwcNode.SetHardwareForcedDisabledState(true);
             Statistics().UpdateHwcDisabledReasonForDFX(hwcNode.GetId(),
                 HwcDisabledReasons::DISABLED_BY_TRANSPARENT_CLEAN_FLITER, hwcNode.GetName());
             break;
@@ -929,11 +929,11 @@ void RSUniHwcVisitor::UpdateHwcNodeEnableByGlobalDirtyFilter(
                 "filterId:%" PRIu64, hwcNode.GetName().c_str(), hwcNode.GetId(), filter->first);
 #ifdef HIPERF_TRACE_ENABLE
             RS_LOGW("hiperf_surface: name:%s disabled by transparentDirtyFilter, "
-                "surfaceRect: [%d, %d, %d, %d]->[%d, %d, %d, %d]", hwcNodePtr->GetName().c_str(),
-                hwcNodePtr->GetSrcRect().GetLeft(), hwcNodePtr->GetSrcRect().GetRight(),
-                hwcNodePtr->GetSrcRect().GetTop(), hwcNodePtr->GetSrcRect().GetBottom(),
-                hwcNodePtr->GetSrcRect().GetLeft(), hwcNodePtr->GetSrcRect().GetRight(),
-                hwcNodePtr->GetSrcRect().GetTop(), hwcNodePtr->GetSrcRect().GetBottom());
+                "surfaceRect: [%d, %d, %d, %d]->[%d, %d, %d, %d]", hwcNode->GetName().c_str(),
+                hwcNode->GetSrcRect().GetLeft(), hwcNode->GetSrcRect().GetRight(),
+                hwcNode->GetSrcRect().GetTop(), hwcNode->GetSrcRect().GetBottom(),
+                hwcNode->GetSrcRect().GetLeft(), hwcNode->GetSrcRect().GetRight(),
+                hwcNode->GetSrcRect().GetTop(), hwcNode->GetSrcRect().GetBottom());
 #endif
             hwcNode.SetHardwareForcedDisabledState(true);
             Statistics().UpdateHwcDisabledReasonForDFX(hwcNode.GetId(),
