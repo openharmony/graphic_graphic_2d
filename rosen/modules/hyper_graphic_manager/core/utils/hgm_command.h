@@ -164,6 +164,8 @@ public:
     std::unordered_map<std::string, std::string> solidLayerConfig_;
     // <"pkgName", "1">
     std::unordered_map<std::string, std::string> hfbcConfig_;
+    // true: disable list mode, false: enable list mode
+    bool isHfbcDisableListMode_ = true;
     StrategyConfigMap strategyConfigs_;
     ScreenConfigMap screenConfigs_;
     bool videoFrameRateVoteSwitch_ = false;

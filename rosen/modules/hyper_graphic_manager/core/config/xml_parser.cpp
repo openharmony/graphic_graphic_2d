@@ -153,6 +153,8 @@ int32_t XMLParser::ParseSubSequentParams(xmlNode &node, std::string &paraName)
     } else if (paraName == "rs_solid_color_layer_config") {
         setResult = ParseSimplex(node, mParsedData_->solidLayerConfig_);
     } else if (paraName == "hfbc_config") {
+        // default: disable list mode, enabledlist: enable list mode
+        mParsedData_->isHfbcDisableListMode_ = ExtractPropertyValue("enabledlist", node) == "";
         setResult = ParseSimplex(node, mParsedData_->hfbcConfig_);
     } else {
         setResult = EXEC_SUCCESS;
