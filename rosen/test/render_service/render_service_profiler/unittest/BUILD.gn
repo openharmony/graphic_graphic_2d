@@ -23,6 +23,7 @@ group("unittest") {
     ":RSProfilerPacketTest",
     ":RSProfilerSocketTest",
     ":RSProfilerUtilsTest",
+    "standard:test",
   ]
 }
 
