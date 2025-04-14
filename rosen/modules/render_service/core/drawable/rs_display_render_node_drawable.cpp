@@ -893,7 +893,7 @@ std::vector<RectI> RSDisplayRenderNodeDrawable::CalculateVirtualDirty(
     ScreenInfo mainScreenInfo = screenManager->QueryScreenInfo(mirrorParams->GetScreenId());
     int32_t bufferAge = virtualProcesser->GetBufferAge();
     std::vector<RectI> damageRegionRects = RSUniRenderUtil::MergeDirtyHistoryInVirtual(
-        *mirroredDrawable, bufferAge, mainScreenInfo);
+        *mirroredDrawable, bufferAge, mainScreenInfo, false);
     std::shared_ptr<RSObjAbsGeometry> tmpGeo = std::make_shared<RSObjAbsGeometry>();
     for (auto& rect : damageRegionRects) {
         RectI mappedRect = tmpGeo->MapRect(rect.ConvertTo<float>(), canvasMatrix);
@@ -1186,7 +1186,7 @@ std::vector<RectI> RSDisplayRenderNodeDrawable::CalculateVirtualDirtyForWiredScr
     std::shared_ptr<RSObjAbsGeometry> tmpGeo = std::make_shared<RSObjAbsGeometry>();
     // merge history dirty and map to mirrored wired screen by matrix
     auto tempDamageRegionRects = RSUniRenderUtil::MergeDirtyHistoryInVirtual(
-        *mirroredDrawable, bufferAge, mainScreenInfo);
+        *mirroredDrawable, bufferAge, mainScreenInfo, true);
     for (auto& rect : tempDamageRegionRects) {
         RectI mappedRect = tmpGeo->MapRect(rect.ConvertTo<float>(), canvasMatrix);
         damageRegionRects.emplace_back(mappedRect);
