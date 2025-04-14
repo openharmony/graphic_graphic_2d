@@ -685,6 +685,12 @@ Drawing::RecordingCanvas::DrawFunc RSUseEffectDrawable::CreateDrawFunc() const
             paintFilterCanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
             return;
         }
+        if (ptr->useEffectType_ == UseEffectType::BEHIND_WINDOW && paintFilterCanvas->GetIsDrawingCache()) {
+            RS_OPTIONAL_TRACE_NAME_FMT("RSUseEffectDrawable::CreateDrawFunc drawBehindWindow DrawingCache bounds:%s",
+                paintFilterCanvas->GetDeviceClipBounds().ToString().c_str());
+            paintFilterCanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
+            return;
+        }
         const auto& effectData = paintFilterCanvas->GetEffectData();
         if (ptr->useEffectType_ != UseEffectType::BEHIND_WINDOW &&
             (effectData == nullptr || effectData->cachedImage_ == nullptr)) {

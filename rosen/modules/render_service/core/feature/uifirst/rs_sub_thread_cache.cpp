@@ -38,6 +38,7 @@
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/sk_resource_manager.h"
 #include "platform/common/rs_log.h"
+#include "render/rs_drawing_filter.h"
 #include "rs_profiler.h"
 #include "utils/graphic_coretrace.h"
 #include "rs_frame_report.h"
@@ -258,6 +259,7 @@ bool RsSubThreadCache::DrawCacheSurface(DrawableV2::RSSurfaceRenderNodeDrawable*
     auto samplingOptions = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
     auto translateX = gravityMatrix.Get(Drawing::Matrix::TRANS_X);
     auto translateY = gravityMatrix.Get(Drawing::Matrix::TRANS_Y);
+    DrawBehindWindowBeforeCache(canvas, translateX, translateY);
     auto stencilVal = canvas.GetStencilVal();
     if (stencilVal > Drawing::Canvas::INVALID_STENCIL_VAL && stencilVal < canvas.GetMaxStencilVal()) {
         RS_OPTIONAL_TRACE_NAME_FMT("DrawImageWithStencil, stencilVal: %" PRId64 "", stencilVal);
@@ -421,6 +423,7 @@ void RsSubThreadCache::UpdateCompletedCacheSurface()
     std::swap(cacheSurface_, cacheCompletedSurface_);
     std::swap(cacheSurfaceThreadIndex_, completedSurfaceThreadIndex_);
     std::swap(cacheSurfaceInfo_, cacheCompletedSurfaceInfo_);
+    std::swap(cacheBehindWindowData_, cacheCompletedBehindWindowData_);
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     std::swap(cacheBackendTexture_, cacheCompletedBackendTexture_);
 #ifdef RS_ENABLE_VK
@@ -442,6 +445,7 @@ void RsSubThreadCache::ClearCacheSurface(bool isClearCompletedCacheSurface)
     cacheSurface_ = nullptr;
     cacheSurfaceInfo_ = { -1, -1, -1.f };
     isCacheValid_ = false;
+    ResetCacheBehindWindowData();
 #ifdef RS_ENABLE_VK
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
         RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
@@ -453,6 +457,7 @@ void RsSubThreadCache::ClearCacheSurface(bool isClearCompletedCacheSurface)
         cacheCompletedSurface_ = nullptr;
         cacheCompletedSurfaceInfo_ = { -1, -1, -1.f };
         isCacheCompletedValid_ = false;
+        ResetCacheCompletedBehindWindowData();
 #ifdef RS_ENABLE_VK
         if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
             RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
@@ -1062,5 +1067,78 @@ bool RsSubThreadCache::BufferFormatNeedUpdate(std::shared_ptr<Drawing::Surface> 
         cacheSurface->GetImageInfo().GetColorType() != Drawing::ColorType::COLORTYPE_RGBA_F16 : false;
     RS_LOGD("RsSubThreadCache::BufferFormatNeedUpdate: %{public}d", bufferFormatNeedUpdate);
     return bufferFormatNeedUpdate;
+}
+
+void RsSubThreadCache::SetCacheBehindWindowData(const std::shared_ptr<RSPaintFilterCanvas::CacheBehindWindowData>& data)
+{
+    cacheBehindWindowData_ = data;
+}
+
+void RsSubThreadCache::SetCacheCompletedBehindWindowData(
+    const std::shared_ptr<RSPaintFilterCanvas::CacheBehindWindowData>& data)
+{
+    cacheCompletedBehindWindowData_ = data;
+}
+
+void RsSubThreadCache::ResetCacheBehindWindowData()
+{
+    cacheBehindWindowData_.reset();
+}
+
+void RsSubThreadCache::ResetCacheCompletedBehindWindowData()
+{
+    cacheCompletedBehindWindowData_.reset();
+}
+
+void RsSubThreadCache::DrawBehindWindowBeforeCache(RSPaintFilterCanvas& canvas,
+    const Drawing::scalar px, const Drawing::scalar py)
+{
+    if (!cacheCompletedBehindWindowData_) {
+        RS_LOGD("RsSubThreadCache::DrawBehindWindowBeforeCache no need to draw");
+        return;
+    }
+    if (!cacheCompletedBehindWindowData_->filter_ || !cacheCompletedBehindWindowData_->rect_.IsValid()) {
+        RS_LOGE("RsSubThreadCache::DrawBehindWindowBeforeCache data is not valid");
+        return;
+    }
+    auto surface = canvas.GetSurface();
+    if (!surface) {
+        RS_LOGE("RsSubThreadCache::DrawBehindWindowBeforeCache surface is nullptr");
+        return;
+    }
+    RSAutoCanvasRestore acr(&canvas, RSPaintFilterCanvas::SaveType::kCanvasAndAlpha);
+    canvas.Translate(px, py);
+    Drawing::Rect absRect;
+    canvas.GetTotalMatrix().MapRect(absRect, cacheCompletedBehindWindowData_->rect_);
+    Drawing::RectI imageRect(std::ceil(absRect.GetLeft()), std::ceil(absRect.GetTop()), std::ceil(absRect.GetRight()),
+        std::ceil(absRect.GetBottom()));
+    auto deviceRect = Drawing::RectI(0, 0, surface->Width(), surface->Height());
+    imageRect.Intersect(deviceRect);
+    auto filter = std::static_pointer_cast<RSDrawingFilter>(cacheCompletedBehindWindowData_->filter_);
+    auto imageSnapshot = surface->GetImageSnapshot(imageRect);
+    if (!imageSnapshot) {
+        RS_LOGE("RsSubThreadCache::DrawBehindWindowBeforeCache imageSnapshot is nullptr");
+        return;
+    }
+    filter->PreProcess(imageSnapshot);
+    std::shared_ptr<Drawing::Surface> offscreenSurface =
+        surface->MakeSurface(imageSnapshot->GetWidth(), imageSnapshot->GetHeight());
+    if (!offscreenSurface) {
+        RS_LOGE("RsSubThreadCache::DrawBehindWindowBeforeCache offscreenSurface is nullptr");
+        return;
+    }
+    RSPaintFilterCanvas offscreenCanvas(offscreenSurface.get());
+    auto clipBounds = Drawing::Rect(0, 0, imageRect.GetWidth(), imageRect.GetHeight());
+    auto imageSnapshotBounds = Drawing::Rect(0, 0, imageSnapshot->GetWidth(), imageSnapshot->GetHeight());
+    filter->DrawImageRect(offscreenCanvas, imageSnapshot, imageSnapshotBounds, clipBounds);
+    filter->PostProcess(offscreenCanvas);
+    auto imageCache = offscreenSurface->GetImageSnapshot();
+    if (!imageCache) {
+        RS_LOGE("RsSubThreadCache::DrawBehindWindowBeforeCache imageCache is nullptr");
+        return;
+    }
+    canvas.ResetMatrix();
+    canvas.DrawImage(*imageCache, static_cast<float>(imageRect.GetLeft()), static_cast<float>(imageRect.GetTop()),
+        Drawing::SamplingOptions());
 }
 } // namespace OHOS::Rosen

@@ -211,6 +211,12 @@ public:
 
     void SubDraw(DrawableV2::RSSurfaceRenderNodeDrawable* surfaceDrawable, Drawing::Canvas& canvas);
 
+    void SetCacheBehindWindowData(const std::shared_ptr<RSPaintFilterCanvas::CacheBehindWindowData>& data);
+    void SetCacheCompletedBehindWindowData(const std::shared_ptr<RSPaintFilterCanvas::CacheBehindWindowData>& data);
+    void ResetCacheBehindWindowData();
+    void ResetCacheCompletedBehindWindowData();
+    void DrawBehindWindowBeforeCache(RSPaintFilterCanvas& canvas,
+        const Drawing::scalar px = 0.f, const Drawing::scalar py = 0.f);
 private:
     void ClearCacheSurface(bool isClearCompletedCacheSurface = true);
     bool DrawUIFirstCache(DrawableV2::RSSurfaceRenderNodeDrawable* surfaceDrawable, RSPaintFilterCanvas& rscanvas,
@@ -268,6 +274,8 @@ private:
     Drawing::Region uifirstDirtyRegion_;
     bool uifrstDirtyEnableFlag_ = false;
     Drawing::Region uifirstMergedDirtyRegion_;
+    std::shared_ptr<RSPaintFilterCanvas::CacheBehindWindowData> cacheBehindWindowData_;
+    std::shared_ptr<RSPaintFilterCanvas::CacheBehindWindowData> cacheCompletedBehindWindowData_;
 };
 } // DrawableV2
 } // OHOS::Rosen
