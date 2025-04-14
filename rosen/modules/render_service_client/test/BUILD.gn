@@ -826,6 +826,7 @@ ohos_executable("render_service_client_multi_instance_demo") {
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "hilog:libhilog",
+    "window_manager:libdm",
     "window_manager:libwm",
     "window_manager:sms",
   ]
