@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 
-#include <sstream>
 #include "mem_param_parse.h"
 
 namespace OHOS::Rosen {
@@ -53,8 +52,8 @@ int32_t MEMParamParse::ParseMemInternal(xmlNode &node)
             MEMParam::SetRSWatchPoint(val);
             RS_LOGI("MEMParamParse parse RSWatchPoint %{public}s", MEMParam::GetRSWatchPoint().c_str());
         } else if (name == "RSCacheLimitsResourceSize" && IsNumber(val)) {
-                MEMParam::SetRSCacheLimitsResourceSize(stoi(val));
-                RS_LOGI("RSCacheLimitsResourceSize %{public}d", MEMParam::GetRSCacheLimitsResourceSize());
+            MEMParam::SetRSCacheLimitsResourceSize(stoi(val));
+            RS_LOGI("RSCacheLimitsResourceSize %{public}d", MEMParam::GetRSCacheLimitsResourceSize());
         }
     } else if (xmlParamType == PARSE_XML_FEATURE_SWITCH) {
         bool isEnabled = ParseFeatureSwitch(val);
