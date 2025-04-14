@@ -751,6 +751,7 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSLi
         return flag;
     }
     bool success = parcel.WriteInt32(1) && Marshalling(parcel, val->blurRadius_);
+    success &= Marshalling(parcel, val->isRadiusGradient_);
     success &= parcel.WriteUint32(static_cast<uint32_t>(val->fractionStops_.size()));
     for (size_t i = 0; i < val->fractionStops_.size(); i++) {
         success &= Marshalling(parcel, val->fractionStops_[i].first);
@@ -770,9 +771,11 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSLinear
         return true;
     }
     float blurRadius;
+    bool isRadiusGradient = false;
     std::vector<std::pair<float, float>> fractionStops;
     GradientDirection direction = GradientDirection::NONE;
     bool success = Unmarshalling(parcel, blurRadius);
+    success &= Unmarshalling(parcel, isRadiusGradient);
     uint32_t fractionStopsSize{0};
     if (!parcel.ReadUint32(fractionStopsSize)) {
         ROSEN_LOGE("RSMarshallingHelper::Unmarshalling RSLinearGradientBlurPara Read fractionStopsSize failed");
@@ -800,6 +803,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSLinear
     success &= Unmarshalling(parcel, direction);
     if (success) {
         val = std::make_shared<RSLinearGradientBlurPara>(blurRadius, fractionStops, direction);
+        val->isRadiusGradient_ = isRadiusGradient;
     }
     return success;
 }
