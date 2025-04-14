@@ -2193,6 +2193,7 @@ void RSUniRenderUtil::UpdateHwcNodeProperty(std::shared_ptr<RSSurfaceRenderNode>
     Drawing::Matrix totalMatrix = hwcNodeGeo->GetMatrix();
     auto hwcNodeRect = hwcNodeGeo->GetAbsRect();
     bool isNodeRenderByDrawingCache = false;
+    bool isNodeRenderBySaveLayer = false;
     hwcNode->SetAbsRotation(hwcNode->GetRenderProperties().GetRotation());
     RSUniRenderUtil::TraverseParentNodeAndReduce(
         hwcNode,
@@ -2272,11 +2273,20 @@ void RSUniRenderUtil::UpdateHwcNodeProperty(std::shared_ptr<RSSurfaceRenderNode>
         },
         [hwcNode](std::shared_ptr<RSRenderNode> parent) {
             hwcNode->SetAbsRotation(hwcNode->GetAbsRotation() + parent->GetRenderProperties().GetRotation());
+        },
+        [&isNodeRenderBySaveLayer](std::shared_ptr<RSRenderNode> parent) {
+            if (isNodeRenderBySaveLayer) {
+                return;
+            }
+            const auto& parentProperty = parent->GetRenderProperties();
+            isNodeRenderBySaveLayer = isNodeRenderBySaveLayer ||
+                (parentProperty.IsColorBlendApplyTypeOffscreen() && !parentProperty.IsColorBlendModeNone());
         });
-    if (isNodeRenderByDrawingCache) {
-        RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%" PRIu64 " disabled by drawing cache",
-            hwcNode->GetName().c_str(), hwcNode->GetId());
-        hwcNode->SetHardwareForcedDisabledState(isNodeRenderByDrawingCache);
+    if (isNodeRenderByDrawingCache || isNodeRenderBySaveLayer) {
+        RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%" PRIu64 " disabled by drawing cache or save layer, ",
+            "isNodeRenderByDrawingCache[%d] isNodeRenderBySaveLayer[%d]",
+            hwcNode->GetName().c_str(), hwcNode->GetId(), isNodeRenderByDrawingCache, isNodeRenderBySaveLayer);
+        hwcNode->SetHardwareForcedDisabledState(true);
     }
     hwcNode->SetTotalMatrix(totalMatrix);
     hwcNode->SetGlobalAlpha(alpha);

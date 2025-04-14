@@ -400,6 +400,7 @@ private:
     bool hasSkipLayer_ = false;
     float curAlpha_ = 1.f;
     float globalZOrder_ = 0.0f;
+    bool isOffscreen_ = false;
     bool isScreenRotationAnimating_ = false;
     // added for judge if drawing cache changes
     bool isDrawingCacheEnabled_ = false;
