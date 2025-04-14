@@ -12,8 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- #ifndef UIEFFECT_FILTER_LINEAR_GRADIENT_BLUR_PARA_H
- #define UIEFFECT_FILTER_LINEAR_GRADIENT_BLUR_PARA_H
+ #ifndef UIEFFECT_FILTER_RADIUS_GRADIENT_BLUR_PARA_H
+ #define UIEFFECT_FILTER_RADIUS_GRADIENT_BLUR_PARA_H
  #include <iostream>
  #include "filter_para.h"
  #include "common/rs_vector2.h"
@@ -68,4 +68,4 @@ private:
 };
 } // namespace Rosen
 } // namespace OHOS
-#endif // UIEFFECT_FILTER_LINEAR_GRADIENT_BLUR_PARA_H
+#endif // UIEFFECT_FILTER_RADIUS_GRADIENT_BLUR_PARA_H
