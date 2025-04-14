@@ -150,13 +150,12 @@ std::shared_ptr<Drawing::Image> RsSubThreadCache::GetCompletedImage(
         }
         auto vkTexture = cacheCompletedBackendTexture_.GetTextureInfo().GetVKTextureInfo();
         // When the colorType is FP16, the colorspace of the uifirst buffer must be sRGB
-        // In other cases, the colorspace follows the targetColorGamut_
+        // In other cases, ensure the image's color space matches the target surface's color profile.
         auto colorSpace = Drawing::ColorSpace::CreateSRGB();
         if (vkTexture != nullptr && vkTexture->format == VK_FORMAT_R16G16B16A16_SFLOAT) {
             colorType = Drawing::ColorType::COLORTYPE_RGBA_F16;
-        } else if (targetColorGamut_ != GRAPHIC_COLOR_GAMUT_SRGB) {
-            colorSpace =
-                Drawing::ColorSpace::CreateRGB(Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::DCIP3);
+        } else if (cacheCompletedSurface_) {
+            colorSpace = cacheCompletedSurface_->GetImageInfo().GetColorSpace();
         }
 #endif
         auto image = std::make_shared<Drawing::Image>();
@@ -335,9 +334,12 @@ void RsSubThreadCache::InitCacheSurface(Drawing::GPUContext* gpuContext,
         // When the colorType is FP16, the colorspace of the uifirst buffer must be sRGB
         // In other cases, the colorspace follows the targetColorGamut_
         auto colorSpace = Drawing::ColorSpace::CreateSRGB();
+        RS_LOGD("RsSubThreadCache::InitCacheSurface sub thread cache's targetColorGamut_ is [%{public}d]",
+            targetColorGamut_);
         if (isNeedFP16) {
             format = VK_FORMAT_R16G16B16A16_SFLOAT;
             colorType = Drawing::ColorType::COLORTYPE_RGBA_F16;
+            RS_LOGD("RsSubThreadCache::InitCacheSurface colorType is FP16, take colorspace to sRGB");
         } else if (targetColorGamut_ != GRAPHIC_COLOR_GAMUT_SRGB) {
             colorSpace =
                 Drawing::ColorSpace::CreateRGB(Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::DCIP3);

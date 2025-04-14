@@ -579,9 +579,13 @@ void RSRenderNodeDrawable::InitCachedSurface(Drawing::GPUContext* gpuContext, co
         OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::DDGR) {
         auto colorType = Drawing::ColorType::COLORTYPE_RGBA_8888;
         VkFormat format = VK_FORMAT_R8G8B8A8_UNORM;
+        // When colorType is FP16, buffer's colorspace must be sRGB
+        // In other cases, the colorspace follows screen colorspace
+        auto colorSpace = RSBaseRenderEngine::ConvertColorGamutToDrawingColorSpace(colorGamut);
         if (isNeedFP16) {
             colorType = Drawing::ColorType::COLORTYPE_RGBA_F16;
             format = VK_FORMAT_R16G16B16A16_SFLOAT;
+            colorSpace = Drawing::ColorSpace::CreateSRGB();
         }
         cachedBackendTexture_ = RSUniRenderUtil::MakeBackendTexture(width, height, ExtractPid(nodeId_),
             RSTagTracker::TAGTYPE::TAG_DRAW_RENDER_NODE, format);
@@ -591,7 +595,6 @@ void RSRenderNodeDrawable::InitCachedSurface(Drawing::GPUContext* gpuContext, co
         }
         vulkanCleanupHelper_ = new NativeBufferUtils::VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
             vkTextureInfo->vkImage, vkTextureInfo->vkAlloc.memory, vkTextureInfo->vkAlloc.statName);
-        auto colorSpace = RSBaseRenderEngine::ConvertColorGamutToDrawingColorSpace(colorGamut);
         cachedSurface_ = Drawing::Surface::MakeFromBackendTexture(gpuContext, cachedBackendTexture_.GetTextureInfo(),
             Drawing::TextureOrigin::BOTTOM_LEFT, 1, colorType, colorSpace,
             NativeBufferUtils::DeleteVkImage, vulkanCleanupHelper_);
@@ -680,9 +683,11 @@ std::shared_ptr<Drawing::Image> RSRenderNodeDrawable::GetCachedImage(RSPaintFilt
         }
         Drawing::TextureOrigin origin = Drawing::TextureOrigin::BOTTOM_LEFT;
         Drawing::BitmapFormat info = Drawing::BitmapFormat{cachedImage_->GetColorType(), cachedImage_->GetAlphaType()};
+        // Ensure the image's color space matches the target surface's color profile.
+        auto colorSpace = cachedSurface_->GetImageInfo().GetColorSpace();
         cachedImage_ = std::make_shared<Drawing::Image>();
         bool ret = cachedImage_->BuildFromTexture(*canvas.GetGPUContext(), cachedBackendTexture_.GetTextureInfo(),
-            origin, info, nullptr, NativeBufferUtils::DeleteVkImage, vulkanCleanupHelper_->Ref());
+            origin, info, colorSpace, NativeBufferUtils::DeleteVkImage, vulkanCleanupHelper_->Ref());
         if (!ret) {
             RS_LOGE("RSRenderNodeDrawable::GetCachedImage image BuildFromTexture failed");
             return nullptr;
