@@ -55,7 +55,7 @@ private:
     static napi_value SetPixelStretch(napi_env env, napi_callback_info info);
     static napi_value SetWaterRipple(napi_env env, napi_callback_info info);
     static napi_value SetFlyOut(napi_env env, napi_callback_info info);
-    static napi_value SetRadiusGradientBlutPara(napi_env env, napi_callback_info info);
+    static napi_value SetRadiusGradientBlurPara(napi_env env, napi_callback_info info);
     static napi_value SetDistort(napi_env env, napi_callback_info info);
     static Drawing::TileMode ParserArgumentType(napi_env env, napi_value argv);
     static GradientDirection ParserGradientDirection(napi_env env, napi_value argv);

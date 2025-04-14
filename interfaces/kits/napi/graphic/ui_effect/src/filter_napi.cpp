@@ -334,7 +334,7 @@ static bool GetLinearFractionStops(napi_env env, napi_value param, std::shared_p
         napi_value jsValue;
         if ((napi_get_element(env, param, i, &jsValue)) != napi_ok) {
             FILTER_LOG_E("GetLinearFractionStops get args fail");
-            return false; 
+            return false;
         }
         napi_value temp1;
         napi_value temp2;
