@@ -104,6 +104,12 @@ ImageFilter::FilterType ImageFilter::GetType() const
     return type_;
 }
 
+std::shared_ptr<ImageFilter> ImageFilter::CreateBitmapImageFilter(
+    const std::shared_ptr<Image>& image, const Rect& srcRect, const Rect& dstRect)
+{
+    return std::make_shared<ImageFilter>(ImageFilter::FilterType::IMAGE, image, srcRect, dstRect);
+}
+
 std::shared_ptr<ImageFilter> ImageFilter::CreateBlurImageFilter(scalar sigmaX, scalar sigmaY, TileMode mode,
     std::shared_ptr<ImageFilter> input, ImageBlurType blurType, const Rect& cropRect)
 {

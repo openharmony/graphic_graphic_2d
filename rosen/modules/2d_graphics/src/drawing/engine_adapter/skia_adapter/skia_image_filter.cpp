@@ -29,7 +29,6 @@
 #include "effect/image_filter.h"
 #include "utils/data.h"
 #include "utils/log.h"
-#include "utils/performanceCaculate.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -158,7 +157,6 @@ void SkiaImageFilter::InitWithBitmap(const std::shared_ptr<Image>& image, const 
     }
     SkRect skSrcRect = SkRect::MakeLTRB(srcRect.GetLeft(), srcRect.GetTop(), srcRect.GetRight(), srcRect.GetBottom());
     SkRect skDstRect = SkRect::MakeLTRB(dstRect.GetLeft(), dstRect.GetTop(), dstRect.GetRight(), dstRect.GetBottom());
-    DRAWING_PERFORMANCE_TEST_SKIA_NO_PARAM_RETURN;
     auto imageImpl = image->GetImpl<SkiaImage>();
     if (imageImpl == nullptr) {
         LOGD("SkiaImageFilter::InitWithBitmap: imageImpl is nullptr!");

@@ -337,7 +337,6 @@ void Paint::Dump(std::string& out) const
     out += " hasFilter:" + std::string(hasFilter_ ? "true" : "false");
     out += ']';
 }
-
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
