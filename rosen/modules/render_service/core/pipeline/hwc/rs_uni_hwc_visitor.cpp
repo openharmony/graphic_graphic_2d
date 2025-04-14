@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include "hwc_param.h"
 #include "rs_uni_hwc_visitor.h"
 
 #include "feature/hwc/rs_uni_hwc_compute_util.h"
@@ -1141,5 +1142,18 @@ void RSUniHwcVisitor::UpdateTopSurfaceSrcRect(RSSurfaceRenderNode& node,
         RSUniHwcComputeUtil::UpdateRealSrcRect(node, absRect);
     }
 }
+
+bool RSUniHwcVisitor::IsDisableHwcOnExpandScreen() const
+{
+    if (uniRenderVisitor_.curDisplayNode_ == nullptr) {
+        RS_LOGE("curDisplayNode is null");
+        return false;
+    }
+
+    // screenId > 0 means non-primary screen normally.
+    return HWCParam::IsDisableHwcOnExpandScreen() &&
+        uniRenderVisitor_.curDisplayNode_->GetScreenId() > 0;
+}
+
 } // namespace Rosen
 } // namespace OHOS

@@ -71,6 +71,8 @@ public:
     void UpdateTopSurfaceSrcRect(RSSurfaceRenderNode& node,
         const Drawing::Matrix& absMatrix, const RectI& absRect);
 
+    bool IsDisableHwcOnExpandScreen() const;
+
     // DFX
     HwcDisabledReasonCollection& Statistics() { return hwcDisabledReasonCollection_; }
 

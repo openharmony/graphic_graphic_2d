@@ -30,14 +30,14 @@ void HWCParam::SetSolidColorLayerForApp(std::string appName, std::string val)
     solidColorLayerMap_[std::move(appName)] = std::move(val);
 }
 
-void HWCParam::SetHwcExpandingScreenEnabled(bool isEnabled)
+void HWCParam::SetDisableHwcOnExpandScreen(bool isEnable)
 {
-    isHwcExpandingScreenEnabled_ = isEnabled;
+    isDisableHwcOnExpandScreen_ = isEnable;
 }
 
-bool HWCParam::IsHwcExpandingScreenEnabled()
+bool HWCParam::IsDisableHwcOnExpandScreen()
 {
-    return isHwcExpandingScreenEnabled_;
+    return isDisableHwcOnExpandScreen_;
 }
 
 void HWCParam::MoveDataToHgmCore()

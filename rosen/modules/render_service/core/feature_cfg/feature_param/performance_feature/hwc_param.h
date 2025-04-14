@@ -26,18 +26,18 @@ public:
     HWCParam() = default;
     ~HWCParam() = default;
 
-    static bool IsHwcExpandingScreenEnabled();
+    static bool IsDisableHwcOnExpandScreen();
     static bool IsSolidLayerEnable();
 
 protected:
     void SetSourceTuningForApp(std::string appName, std::string val);
     void SetSolidColorLayerForApp(std::string appName, std::string val);
-    static void SetHwcExpandingScreenEnabled(bool isEnabled);
+    static void SetDisableHwcOnExpandScreen(bool isEnable);
     void MoveDataToHgmCore();
     static void SetSolidLayerEnable(bool isEnable);
 
 private:
-    inline static bool isHwcExpandingScreenEnabled_ = false;
+    inline static bool isDisableHwcOnExpandScreen_ = false;
     inline static bool isSolidLayerEnable_ = false;
     std::unordered_map<std::string, std::string> sourceTuningMap_;
     std::unordered_map<std::string, std::string> solidColorLayerMap_;
