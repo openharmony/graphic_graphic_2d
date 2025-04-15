@@ -3464,16 +3464,7 @@ void RSUniRenderVisitor::UpdateHWCNodeClipRect(std::shared_ptr<RSSurfaceRenderNo
 
 bool RSUniRenderVisitor::IsStencilPixelOcclusionCullingEnable() const
 {
-    static auto stencilPixelOcclusionCullingParam =
-            GraphicFeatureParamManager::GetInstance().GetFeatureParam("SpocConfig");
-    auto stencilPixelOcclusionCullingFeature =
-        std::static_pointer_cast<StencilPixelOcclusionCullingParam>(stencilPixelOcclusionCullingParam);
-    if (stencilPixelOcclusionCullingFeature == nullptr) {
-        ROSEN_LOGE("RSUniRenderVisitor::IsStencilPixelOcclusionCullingEnable "
-        "stencilPixelOcclusionCullingFeature is nullptr");
-        return false;
-    }
-    return stencilPixelOcclusionCullingFeature->IsStencilPixelOcclusionCullingEnable();
+    return OcclusionCullingParam::IsStencilPixelOcclusionCullingEnable();
 }
 
 void RSUniRenderVisitor::UpdateHardwareStateByHwcNodeBackgroundAlpha(

@@ -13,23 +13,26 @@
  * limitations under the License.
  */
 
-#ifndef SPOC_PARAM_PARSE_H
-#define SPOC_PARAM_PARSE_H
+#ifndef SPOC_PARAM_H
+#define SPOC_PARAM_H
 
-#include "stencil_pixel_occlusion_culling_param.h"
-#include "xml_parser_base.h"
+#include "feature_param.h"
 
 namespace OHOS::Rosen {
-class StencilPixelOcclusionCullingParamParse : public XMLParserBase {
+class OcclusionCullingParam : public FeatureParam {
 public:
-    StencilPixelOcclusionCullingParamParse() = default;
-    ~StencilPixelOcclusionCullingParamParse() = default;
+    OcclusionCullingParam() = default;
+    ~OcclusionCullingParam() = default;
 
-    int32_t ParseFeatureParam(FeatureParamMapType &featureMap, xmlNode &node) override;
-
+    static bool IsStencilPixelOcclusionCullingEnable();
+    static bool IsIntraAppOcclusionCullingEnable();
+protected:
+    static void SetStencilPixelOcclusionCullingEnable(bool isEnable);
+    static void SetIntraAppOcclusionCullingEnable(bool isEnable);
 private:
-    int32_t ParseStencilPixelOcclusionCullingInternal(FeatureParamMapType &featureMap, xmlNode &node);
-    std::shared_ptr<StencilPixelOcclusionCullingParam> stencilPixelOcclusionCullingParam_;
+    inline static bool stencilPixelOcclusionCullingEnable_ = false;
+    inline static bool intraAppOcclusionCullingEnable_ = false;
+    friend class OcclusionCullingParamParse;
 };
 } // namespace OHOS::Rosen
-#endif // SPOC_PARAM_PARSE_H
+#endif // SPOC_PARAM_H

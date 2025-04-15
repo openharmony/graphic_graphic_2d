@@ -43,8 +43,8 @@
 #include "mem_param.h"
 #include "multiscreen_param_parse.h"
 #include "multiscreen_param.h"
-#include "intra_app_occlusion_culling_param_parse.h"
-#include "intra_app_occlusion_culling_param.h"
+#include "occlusion_culling_param.h"
+#include "occlusion_culling_param_parse.h"
 #include "opinc_param_parse.h"
 #include "opinc_param.h"
 #include "prevalidate_param_parse.h"
@@ -53,8 +53,6 @@
 #include "rotateoffscreen_param.h"
 #include "speciallayer_param.h"
 #include "speciallayer_param_parse.h"
-#include "stencil_pixel_occlusion_culling_param.h"
-#include "stencil_pixel_occlusion_culling_param_parse.h"
 #include "uifirst_param_parse.h"
 #include "uifirst_param.h"
 #include "vrate_param_parse.h"
@@ -91,8 +89,8 @@ const std::vector<ModuleConfig> FEATURE_MODULES = {
         [] { return std::make_unique<MEMParam>(); }},
     {FEATURE_CONFIGS[SPECIALLAYER], [] { return std::make_unique<SpecialLayerParamParse>(); },
         [] { return std::make_unique<SpecialLayerParam>(); }},
-    {FEATURE_CONFIGS[SPOC], [] { return std::make_unique<StencilPixelOcclusionCullingParamParse>(); },
-        [] { return std::make_unique<StencilPixelOcclusionCullingParam>(); }},
+    {FEATURE_CONFIGS[OCCLUSION_CULLING], [] { return std::make_unique<OcclusionCullingParamParse>(); },
+        [] {return std::make_unique<OcclusionCullingParam>(); }},
     {FEATURE_CONFIGS[OPInc], [] {return std::make_unique<OPIncParamParse>(); },
         [] {return std::make_unique<OPIncParam>(); }},
     {FEATURE_CONFIGS[MULTISCREEN], [] { return std::make_unique<MultiScreenParamParse>(); },
@@ -121,9 +119,6 @@ const std::vector<ModuleConfig> FEATURE_MODULES = {
         [] { return std::make_unique<VRateParam>(); }},
     {FEATURE_CONFIGS[ROTATEOFFSCREEN], [] { return std::make_unique<RotateOffScreenParamParse>(); },
         [] { return std::make_unique<RotateOffScreenParam>(); }},
-    {FEATURE_CONFIGS[INTRA_APP_OCCLUSION_CULLING], [] {
-        return std::make_unique<IntraAppOcclusionCullingParamParse>(); },
-        [] { return std::make_unique<IntraAppOcclusionCullingParam>(); }}
 };
 
 class GraphicFeatureParamManager : public RefBase {
