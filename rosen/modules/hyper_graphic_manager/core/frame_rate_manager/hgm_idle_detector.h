@@ -56,7 +56,8 @@ public:
 
     void UpdateAceAnimatorExpectedFrameRate(int32_t aceAnimatorExpectedFrameRate)
     {
-        if (aceAnimatorExpectedFrameRate > aceAnimatorExpectedFrameRate_) {
+        if (aceAnimatorExpectedFrameRate_ != 0 &&
+            (aceAnimatorExpectedFrameRate == 0 || aceAnimatorExpectedFrameRate > aceAnimatorExpectedFrameRate_)) {
             aceAnimatorExpectedFrameRate_ = aceAnimatorExpectedFrameRate;
         }
     }
