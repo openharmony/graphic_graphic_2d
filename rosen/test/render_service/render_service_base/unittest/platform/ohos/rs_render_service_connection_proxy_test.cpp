@@ -1063,6 +1063,20 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, NotifyHgmConfigEvent, TestSize.Leve
 }
 
 /**
+ * @tc.name: NotifyXComponentExpectedFrameRate Test
+ * @tc.desc: NotifyXComponentExpectedFrameRate Test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderServiceConnectionProxyTest, NotifyXComponentExpectedFrameRate, TestSize.Level1)
+{
+    std::string id = "xcomponent";
+    int32_t expectedFrameRate = 5;
+    proxy->NotifyXComponentExpectedFrameRate(id, expectedFrameRate);
+    ASSERT_TRUE(proxy);
+}
+
+/**
  * @tc.name: RunOnRemoteDiedCallback Test
  * @tc.desc: RunOnRemoteDiedCallback Test
  * @tc.type:FUNC

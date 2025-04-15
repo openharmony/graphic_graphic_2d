@@ -1437,6 +1437,21 @@ HWTEST_F(RSInterfacesTest, NotifyHgmConfigEvent001, Function | SmallTest | Level
 }
 
 /*
+ * @tc.name: NotifyXComponentExpectedFrameRate
+ * @tc.desc: Notify hgm config event to hgm
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, NotifyXComponentExpectedFrameRate, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    std::string id = "xcomponent";
+    int32_t expectedFrameRate = 5;
+    rsInterfaces->NotifyXComponentExpectedFrameRate(id, expectedFrameRate);
+    ASSERT_NE(rsInterfaces, nullptr);
+}
+
+/*
  * @tc.name: RegisterHgmRefreshRateModeChangeCallback Test
  * @tc.desc: RegisterHgmRefreshRateModeChangeCallback Test
  * @tc.type: FUNC

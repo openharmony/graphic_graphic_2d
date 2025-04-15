@@ -180,6 +180,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     int32_t repCode = GetData<int32_t>();
     uint32_t retureCode = GetData<uint32_t>();
     bool success = GetData<bool>();
+    int32_t expectedFrameRate = GetData<int32_t>();
 
     rsRenderServiceConnectionProxy.CommitTransaction(transactionData);
     rsRenderServiceConnectionProxy.ExecuteSynchronousTask(task);
@@ -267,6 +268,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     rsRenderServiceConnectionProxy.NotifyTouchEvent(pid1, uid);
     rsRenderServiceConnectionProxy.NotifyDynamicModeEvent(true);
     rsRenderServiceConnectionProxy.NotifyHgmConfigEvent(name, true);
+    rsRenderServiceConnectionProxy.NotifyXComponentExpectedFrameRate(name, expectedFrameRate);
     rsRenderServiceConnectionProxy.ReportEventResponse(info);
     rsRenderServiceConnectionProxy.ReportEventComplete(info);
     rsRenderServiceConnectionProxy.ReportEventJankFrame(info);

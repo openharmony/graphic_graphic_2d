@@ -23,9 +23,11 @@
       *HgmConfigCallbackManager::RegisterHgmConfigChangeCallback*;
       *HgmConfigCallbackManager::RegisterHgmRefreshRateModeChangeCallback*;
       *HgmConfigCallbackManager::RegisterHgmRefreshRateUpdateCallback*;
+      *HgmConfigCallbackManager::RegisterXComponentExpectedFrameRateCallback*;
       *HgmConfigCallbackManager::SyncHgmConfigChangeCallback*;
       *HgmConfigCallbackManager::SyncRefreshRateModeChangeCallback*;
       *HgmConfigCallbackManager::SyncRefreshRateUpdateCallback*;
+      *HgmConfigCallbackManager::SyncXComponentExpectedFrameRateCallback*;
       *HgmConfigCallbackManager::UnRegisterHgmConfigChangeCallback*;
 
       *HgmCore::AddScreen*;

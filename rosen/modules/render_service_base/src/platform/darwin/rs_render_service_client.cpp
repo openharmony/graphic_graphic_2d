@@ -632,6 +632,10 @@ void RSRenderServiceClient::NotifyHgmConfigEvent(const std::string &eventName, b
 {
 }
 
+void RSRenderServiceClient::NotifyXComponentExpectedFrameRate(const std::string& id, int32_t expectedFrameRate)
+{
+}
+
 void RSRenderServiceClient::NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt)
 {
 }

@@ -883,6 +883,11 @@ void RSInterfaces::NotifyHgmConfigEvent(const std::string &eventName, bool state
     renderServiceClient_->NotifyHgmConfigEvent(eventName, state);
 }
 
+void RSInterfaces::NotifyXComponentExpectedFrameRate(const std::string& id, int32_t expectedFrameRate)
+{
+    renderServiceClient_->NotifyXComponentExpectedFrameRate(id, expectedFrameRate);
+}
+
 void RSInterfaces::DisableCacheForRotation()
 {
     renderServiceClient_->SetCacheEnabledForRotation(false);

@@ -1742,6 +1742,14 @@ void RSRenderServiceClient::NotifyHgmConfigEvent(const std::string &eventName, b
     }
 }
 
+void RSRenderServiceClient::NotifyXComponentExpectedFrameRate(const std::string& id, int32_t expectedFrameRate)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService != nullptr) {
+        renderService->NotifyXComponentExpectedFrameRate(id, expectedFrameRate);
+    }
+}
+
 void RSRenderServiceClient::NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();

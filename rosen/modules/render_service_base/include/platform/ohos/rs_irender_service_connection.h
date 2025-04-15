@@ -321,6 +321,8 @@ public:
 
     virtual ErrCode NotifyHgmConfigEvent(const std::string &eventName, bool state) = 0;
 
+    virtual ErrCode NotifyXComponentExpectedFrameRate(const std::string& id, int32_t expectedFrameRate) = 0;
+
     virtual ErrCode ReportEventResponse(DataBaseRs info) = 0;
 
     virtual ErrCode ReportEventComplete(DataBaseRs info) = 0;

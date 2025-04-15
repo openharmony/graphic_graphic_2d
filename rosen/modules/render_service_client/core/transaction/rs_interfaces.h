@@ -305,6 +305,8 @@ public:
 
     void NotifyHgmConfigEvent(const std::string &eventName, bool state);
 
+    void NotifyXComponentExpectedFrameRate(const std::string& id, int32_t expectedFrameRate);
+
     void ReportEventResponse(DataBaseRs info);
 
     void ReportEventComplete(DataBaseRs info);

@@ -2364,18 +2364,15 @@ int32_t RSRenderServiceConnection::RegisterFirstFrameCommitCallback(
 int32_t RSRenderServiceConnection::RegisterFrameRateLinkerExpectedFpsUpdateCallback(int32_t dstPid,
     sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback> callback)
 {
-    if (!mainThread_ || dstPid == 0) {
+    if (dstPid == 0) {
         return StatusCode::INVALID_ARGUMENTS;
     }
-    auto task = [pid = remotePid_, dstPid, callback, weakThis = wptr<RSRenderServiceConnection>(this)]() {
-        sptr<RSRenderServiceConnection> connection = weakThis.promote();
-        if (!connection || !connection->mainThread_) {
-            return;
-        }
-        connection->mainThread_->GetContext().GetMutableFrameRateLinkerMap()
-            .RegisterFrameRateLinkerExpectedFpsUpdateCallback(pid, dstPid, callback);
-    };
-    mainThread_->PostTask(task);
+
+    HgmTaskHandleThread::Instance().PostTask([remotePid = remotePid_, dstPid, callback] () {
+        HgmConfigCallbackManager::GetInstance()->RegisterXComponentExpectedFrameRateCallback(
+            remotePid, dstPid, callback);
+    });
+
     return StatusCode::SUCCESS;
 }
 
@@ -2607,6 +2604,15 @@ ErrCode RSRenderServiceConnection::NotifyHgmConfigEvent(const std::string &event
         } else if (eventName == "IL_THROW_SLIDE") {
             frameRateMgr->HandleScreenExtStrategyChange(state, HGM_CONFIG_TYPE_THROWSLIDE_SUFFIX);
         }
+    });
+    return ERR_OK;
+}
+
+ErrCode RSRenderServiceConnection::NotifyXComponentExpectedFrameRate(const std::string& id, int32_t expectedFrameRate)
+{
+    HgmTaskHandleThread::Instance().PostTask([remotePid = remotePid_, id, expectedFrameRate] () {
+        HgmConfigCallbackManager::GetInstance()->SyncXComponentExpectedFrameRateCallback(
+            remotePid, id, expectedFrameRate);
     });
     return ERR_OK;
 }

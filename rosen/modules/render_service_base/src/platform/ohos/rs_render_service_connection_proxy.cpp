@@ -4278,6 +4278,33 @@ ErrCode RSRenderServiceConnectionProxy::NotifyHgmConfigEvent(const std::string &
     return ERR_OK;
 }
 
+ErrCode RSRenderServiceConnectionProxy::NotifyXComponentExpectedFrameRate(
+    const std::string& id, int32_t expectedFrameRate)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("NotifyXComponentExpectedFrameRate: GetDescriptor err.");
+        return ERR_INVALID_VALUE;
+    }
+    if (!data.WriteString(id)) {
+        return ERR_INVALID_VALUE;
+    }
+    if (!data.WriteInt32(expectedFrameRate)) {
+        return ERR_INVALID_VALUE;
+    }
+    option.SetFlags(MessageOption::TF_ASYNC);
+    uint32_t code = static_cast<uint32_t>(
+        RSIRenderServiceConnectionInterfaceCode::NOTIFY_XCOMPONENT_EXPECTED_FRAMERATE);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::NotifyXComponentExpectedFrameRate: Send Request err.");
+        return ERR_INVALID_VALUE;
+    }
+    return ERR_OK;
+}
+
 ErrCode RSRenderServiceConnectionProxy::SetCacheEnabledForRotation(bool isEnabled)
 {
     MessageParcel data;

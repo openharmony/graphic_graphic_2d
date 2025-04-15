@@ -294,6 +294,8 @@ public:
 
     ErrCode NotifyHgmConfigEvent(const std::string &eventName, bool state) override;
 
+    ErrCode NotifyXComponentExpectedFrameRate(const std::string& id, int32_t expectedFrameRate) override;
+
     ErrCode ReportEventResponse(DataBaseRs info) override;
 
     ErrCode ReportEventComplete(DataBaseRs info) override;

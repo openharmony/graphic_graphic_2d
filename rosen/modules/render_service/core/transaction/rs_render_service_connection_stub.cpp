@@ -154,6 +154,7 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_TOUCH_EVENT),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_DYNAMIC_MODE_EVENT),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_HGMCONFIG_EVENT),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_XCOMPONENT_EXPECTED_FRAMERATE),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_HARDWARE_ENABLED),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_HIDE_PRIVACY_CONTENT),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK),
@@ -2797,6 +2798,17 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             NotifyHgmConfigEvent(eventName, state);
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_XCOMPONENT_EXPECTED_FRAMERATE) : {
+            std::string id;
+            int32_t expectedFrameRate;
+            if (!data.ReadString(id) || !data.ReadInt32(expectedFrameRate)) {
+                RS_LOGE("RSRenderServiceConnectionStub::NOTIFY_XCOMPONENT_EXPECTED_FRAMERATE Read parcel failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            NotifyXComponentExpectedFrameRate(id, expectedFrameRate);
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_HGM_CFG_CALLBACK) : {

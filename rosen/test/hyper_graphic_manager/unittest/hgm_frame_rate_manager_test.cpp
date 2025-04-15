@@ -18,12 +18,13 @@
 #include <climits>
 
 #include "common/rs_common_def.h"
-#include "hgm_frame_rate_manager.h"
 #include "hgm_config_callback_manager.h"
+#include "hgm_frame_rate_manager.h"
 #include "hgm_idle_detector.h"
 #include "hgm_test_base.h"
+#include "ipc_callbacks/rs_frame_rate_linker_expected_fps_update_callback_stub.h"
 #include "pipeline/rs_surface_render_node.h"
-
+#include "transaction/rs_render_service_client.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -86,6 +87,26 @@ namespace {
         .h = INT_MAX,
     };
 }
+
+class MyCustomFrameRateLinkerExpectedFpsUpdateCallback : public RSFrameRateLinkerExpectedFpsUpdateCallbackStub {
+public:
+    explicit MyCustomFrameRateLinkerExpectedFpsUpdateCallback(
+        const FrameRateLinkerExpectedFpsUpdateCallback& callback) : cb_(callback) {}
+    ~MyCustomFrameRateLinkerExpectedFpsUpdateCallback() override {};
+
+    void OnFrameRateLinkerExpectedFpsUpdate(pid_t dstPid, int32_t expectedFps) override
+    {
+        ROSEN_LOGD("MyCustomFrameRateLinkerExpectedFpsUpdateCallback::OnFrameRateLinkerExpectedFpsUpdate called,"
+            " pid=%{public}d, fps=%{public}d", dstPid, expectedFps);
+        if (cb_ != nullptr) {
+            cb_(dstPid, expectedFps);
+        }
+    }
+
+private:
+    FrameRateLinkerExpectedFpsUpdateCallback cb_;
+};
+
 class HgmFrameRateMgrTest : public HgmTestBase {
 public:
     static void SetUpTestCase();
@@ -419,6 +440,58 @@ HWTEST_F(HgmFrameRateMgrTest, HgmConfigCallbackManagerTest002, Function | SmallT
             hccMgr->refreshRateUpdateCallbacks_.clear();
             hccMgr->refreshRateUpdateCallbacks_.try_emplace(0, cb);
             hccMgr->SyncRefreshRateUpdateCallback(OLED_60_HZ);
+        }
+    }
+}
+
+/**
+ * @tc.name: HgmConfigCallbackManagerTest003
+ * @tc.desc: Verify the result of HgmConfigCallbackManagerTest003 function
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, HgmConfigCallbackManagerTest003, Function | SmallTest | Level1)
+{
+    sptr<HgmConfigCallbackManager> hccMgr = HgmConfigCallbackManager::GetInstance();
+    pid_t listenerPid = 1;
+    pid_t dstPid = 1;
+    vector<int32_t> expectedFrameRates = {60, 0};
+    std::string idStr = "";
+    const sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback> cb = nullptr;
+    std::unordered_map<pid_t, sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback>> cbMap;
+    cbMap.try_emplace(listenerPid, cb);
+    hccMgr->xcomponentExpectedFrameRateCallbacks_.try_emplace(dstPid, cbMap);
+
+    int32_t fps_ = 30;
+    std::function<void(int32_t, int32_t)> callback = [&fps_](int32_t dstPid, int32_t fps) {
+        fps_ = fps;
+    };
+    auto temp = new MyCustomFrameRateLinkerExpectedFpsUpdateCallback(callback);
+    auto cb1 = iface_cast<RSIFrameRateLinkerExpectedFpsUpdateCallback>(temp);
+    for (const auto& expectedFrameRate : expectedFrameRates) {
+        PART("HgmConfigCallbackManagerTest") {
+            STEP("1. Test RegisterXComponentExpectedFrameRateCallback function with callback") {
+                hccMgr->RegisterXComponentExpectedFrameRateCallback(listenerPid, dstPid, cb);
+                hccMgr->xcomponentExpectedFrameRate_.clear();
+                hccMgr->xcomponentExpectedFrameRate_.try_emplace(dstPid, expectedFrameRate);
+                hccMgr->RegisterXComponentExpectedFrameRateCallback(listenerPid, dstPid, cb1);
+                ASSERT_EQ(hccMgr->xcomponentExpectedFrameRateCallbacks_[dstPid][listenerPid], cb1);
+            }
+            STEP("2. Test SyncXComponentExpectedFrameRateCallback function with callback") {
+                ASSERT_NE(cb1, nullptr);
+                hccMgr->xcomponentExpectedFrameRateCallbacks_.clear();
+                cbMap.clear();
+                cbMap.try_emplace(listenerPid, cb);
+                hccMgr->xcomponentExpectedFrameRateCallbacks_.try_emplace(dstPid, cbMap);
+                hccMgr->SyncXComponentExpectedFrameRateCallback(dstPid, idStr, expectedFrameRate);
+                hccMgr->xcomponentExpectedFrameRateCallbacks_.clear();
+                cbMap.clear();
+                cbMap.try_emplace(listenerPid, cb1);
+                hccMgr->xcomponentExpectedFrameRateCallbacks_.try_emplace(dstPid, cbMap);
+                hccMgr->SyncXComponentExpectedFrameRateCallback(dstPid, idStr, expectedFrameRate);
+                ASSERT_EQ(hccMgr->xcomponentExpectedFrameRate_[dstPid], expectedFrameRate);
+            }
+            ASSERT_EQ(fps_, expectedFrameRate);
         }
     }
 }

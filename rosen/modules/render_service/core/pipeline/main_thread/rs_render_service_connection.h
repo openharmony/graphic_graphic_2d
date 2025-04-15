@@ -333,6 +333,8 @@ private:
 
     ErrCode NotifyHgmConfigEvent(const std::string &eventName, bool state) override;
 
+    ErrCode NotifyXComponentExpectedFrameRate(const std::string& id, int32_t expectedFrameRate) override;
+
     ErrCode SetCacheEnabledForRotation(bool isEnabled) override;
 
     ErrCode SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus, bool& success) override;
