@@ -73,6 +73,23 @@ uint32_t GenerateTaskId()
     static std::atomic<uint32_t> id;
     return id.fetch_add(1, std::memory_order::memory_order_relaxed);
 }
+
+bool ConvertToLongLongUint(const std::string& str, uint64_t& value, int8_t base = 10)
+{
+    char* end;
+    errno = 0;
+    value = std::strtoull(str.c_str(), &end, base);
+    if (end == str.c_str()) {
+        return false;
+    }
+    if (errno == ERANGE && value == ULLONG_MAX) {
+        return false;
+    }
+    if (*end != '\0') {
+        return false;
+    }
+    return true;
+}
 }
 RSRenderService::RSRenderService() {}
 
@@ -316,17 +333,6 @@ void RSRenderService::DumpAllNodesMemSize(std::string& dumpString) const
     });
 }
 
-static unsigned long long SafeStringToULL(const std::string& str)
-{
-    char* endptr = nullptr;
-    errno = 0;
-    unsigned long long value = std::strtoull(str.c_str(), &endptr, 10);
-    if (endptr == str.c_str() || *endptr != '\0' || errno == ERANGE) {
-        return 0;
-    }
-    return value;
-}
-
 void RSRenderService::FPSDUMPProcess(std::unordered_set<std::u16string>& argSets,
     std::string& dumpString, const std::u16string& arg) const
 {
@@ -340,7 +346,6 @@ void RSRenderService::FPSDUMPProcess(std::unordered_set<std::u16string>& argSets
         return ;
     }
     RS_TRACE_NAME("RSRenderService::FPSDUMPProcess");
-    std::unordered_set<std::string> options{"-name", "-id"};
     std::unordered_set<std::string> args{"DisplayNode", "composer", "UniRender"};
     std::string argStr("");
     std::string option("-name");
@@ -353,14 +358,10 @@ void RSRenderService::FPSDUMPProcess(std::unordered_set<std::u16string>& argSets
             argStr = str;
         }
     }
-    if (option == "-id") {
-        DumpSurfaceNodeFpsById(dumpString, SafeStringToULL(argStr));
+    if (option == "-name" && args.find(argStr) != args.end()) {
+        DumpFps(dumpString, argStr);
     } else {
-        if (args.find(argStr) != args.end()) {
-            DumpFps(dumpString, argStr);
-        } else {
-            DumpSurfaceNodeFpsByName(dumpString, argStr);
-        }
+        RSSurfaceFpsManager::GetInstance().DumpSurfaceNodeFps(dumpString, option, argStr);
     }
 }
 
@@ -378,44 +379,6 @@ void RSRenderService::DumpFps(std::string& dumpString, std::string& layerName) c
     }
 }
 
-void RSRenderService::DumpSurfaceNodeFpsByName(std::string& dumpString, std::string& layerName) const
-{
-    dumpString += "\n-- The recently fps records info of screens:\n";
-    auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
-    if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
-#ifdef RS_ENABLE_GPU
-        RSHardwareThread::Instance().ScheduleTask(
-            [this, &dumpString, &layerName]() {
-                return RSSurfaceFpsManager::GetInstance().Dump(dumpString, layerName);
-            }).wait();
-#endif
-    } else {
-        mainThread_->ScheduleTask(
-            [this, &dumpString, &layerName]() {
-                return RSSurfaceFpsManager::GetInstance().Dump(dumpString, layerName);
-            }).wait();
-    }
-}
-
-void RSRenderService::DumpSurfaceNodeFpsById(std::string& dumpString, NodeId nodeId) const
-{
-    dumpString += "\n-- The recently fps records info of screens:\n";
-    auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
-    if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
-#ifdef RS_ENABLE_GPU
-        RSHardwareThread::Instance().ScheduleTask(
-            [this, &dumpString, &nodeId]() {
-                return RSSurfaceFpsManager::GetInstance().Dump(dumpString, nodeId);
-            }).wait();
-#endif
-    } else {
-        mainThread_->ScheduleTask(
-            [this, &dumpString, &nodeId]() {
-                return RSSurfaceFpsManager::GetInstance().Dump(dumpString, nodeId);
-            }).wait();
-    }
-}
-
 void RSRenderService::FPSDUMPClearProcess(std::unordered_set<std::u16string>& argSets,
     std::string& dumpString, const std::u16string& arg) const
 {
@@ -429,7 +392,6 @@ void RSRenderService::FPSDUMPClearProcess(std::unordered_set<std::u16string>& ar
         return ;
     }
     RS_TRACE_NAME("RSRenderService::FPSDUMPClearProcess");
-    std::unordered_set<std::string> options{"-name", "-id"};
     std::unordered_set<std::string> args{"DisplayNode", "composer"};
     std::string argStr("");
     std::string option("-name");
@@ -442,14 +404,10 @@ void RSRenderService::FPSDUMPClearProcess(std::unordered_set<std::u16string>& ar
             argStr = str;
         }
     }
-    if (option == "-id") {
-        ClearSurfaceNodeFpsById(dumpString, SafeStringToULL(argStr));
+    if (option == "-name" && args.find(argStr) != args.end()) {
+        ClearFps(dumpString, argStr);
     } else {
-        if (args.find(argStr) != args.end()) {
-            ClearFps(dumpString, argStr);
-        } else {
-            ClearSurfaceNodeFpsByName(dumpString, argStr);
-        }
+        RSSurfaceFpsManager::GetInstance().ClearSurfaceNodeFps(dumpString, option, argStr);
     }
 }
 
