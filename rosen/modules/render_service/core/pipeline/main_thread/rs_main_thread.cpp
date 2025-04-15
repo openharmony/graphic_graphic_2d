@@ -4729,6 +4729,9 @@ bool RSMainThread::HasMirrorDisplay() const
 
 void RSMainThread::UpdateRogSizeIfNeeded()
 {
+    if (RSSystemProperties::IsFoldScreenFlag()) {
+        return;
+    }
     const std::shared_ptr<RSBaseRenderNode> rootNode = context_->GetGlobalRootRenderNode();
     if (!rootNode) {
         return;
@@ -4737,11 +4740,6 @@ void RSMainThread::UpdateRogSizeIfNeeded()
     if (child != nullptr && child->IsInstanceOf<RSDisplayRenderNode>()) {
         auto displayNode = child->ReinterpretCastTo<RSDisplayRenderNode>();
         if (displayNode == nullptr) {
-            return;
-        }
-        const uint32_t boundsWidth = static_cast<uint32_t>(displayNode->GetRenderProperties().GetBoundsWidth());
-        const uint32_t boundsHeight = static_cast<uint32_t>(displayNode->GetRenderProperties().GetBoundsHeight());
-        if (boundsWidth == displayNode->GetRogWidth() || boundsHeight == displayNode->GetRogHeight()) {
             return;
         }
         RSHardwareThread::Instance().PostTask([displayNode]() {
