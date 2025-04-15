@@ -1363,6 +1363,7 @@ void RSDisplayRenderNodeDrawable::WiredScreenProjection(
 
     curCanvas_->Save();
     ScaleAndRotateMirrorForWiredScreen(*mirroredDrawable);
+    Drawing::Matrix curCanvasMatrix = curCanvas_->GetTotalMatrix();
     RSDirtyRectsDfx rsDirtyRectsDfx(*mirroredDrawable);
     // HDR does not support wired screen
     if (isRedraw) {
@@ -1374,7 +1375,6 @@ void RSDisplayRenderNodeDrawable::WiredScreenProjection(
         rsDirtyRectsDfx.SetVirtualDirtyRects(damageRegionRects, params.GetScreenInfo());
         DrawWiredMirrorCopy(*mirroredDrawable);
     }
-    Drawing::Matrix curCanvasMatrix = curCanvas_->GetTotalMatrix();
     curCanvas_->Restore();
     rsDirtyRectsDfx.OnDrawVirtual(*curCanvas_);
     renderFrame->Flush();

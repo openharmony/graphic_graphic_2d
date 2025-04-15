@@ -6429,6 +6429,47 @@ HWTEST_F(RSNodeTest, SetNodeName, TestSize.Level1)
     EXPECT_NE(RSTransactionProxy::instance_, nullptr);
 }
 
+#ifdef RS_ENABLE_VK
+/**
+ * @tc.name: HybridRender001
+ * @tc.desc: Test SetHybridRenderCanvas and IsHybridRenderCanvas
+ * @tc.type: FUNC
+ * @tc.require: IBFOIN
+ */
+HWTEST_F(RSNodeTest, HybridRender001, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    auto ret = rsNode->IsHybridRenderCanvas();
+    EXPECT_EQ(ret, false);
+
+    rsNode->SetHybridRenderCanvas(true);
+    ret = rsNode->IsHybridRenderCanvas();
+    EXPECT_EQ(ret, true);
+}
+
+/**
+ * @tc.name: Dump001
+ * @tc.desc: Test Dump
+ * @tc.type: FUNC
+ * @tc.require: IBFOIN
+ */
+HWTEST_F(RSNodeTest, Dump001, TestSize.Level1)
+{
+    RSSurfaceNodeConfig config = {
+        .SurfaceNodeName = "testNode"
+    };
+    RSSurfaceNode::SharedPtr rsNode = RSSurfaceNode::Create(config);
+    string out1;
+    rsNode->Dump(out1);
+    ASSERT_TRUE(!out1.empty());
+
+    rsNode->SetHybridRenderCanvas(true);
+    string out2;
+    rsNode->Dump(out2);
+    ASSERT_TRUE(!out2.empty());
+}
+#endif
+
 /**
  * @tc.name: SetTakeSurfaceForUIFlag
  * @tc.desc: test results of SetTakeSurfaceForUIFlag
@@ -7833,6 +7874,52 @@ HWTEST_F(RSNodeTest, Dump, TestSize.Level1)
     string out2;
     rsNode->Dump(out2);
     ASSERT_TRUE(!out2.empty());
+}
+
+/**
+ * @tc.name: SetIsOnTheTree001
+ * @tc.desc: test results of SetIsOnTheTree while init
+ * @tc.type: FUNC
+ * @tc.require: issueIBYM26
+ */
+HWTEST_F(RSNodeTest, SetIsOnTheTree001, TestSize.Level2)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetIsOnTheTree(false);
+    ASSERT_EQ(rsNode->isOnTheTree_, false);
+}
+
+/**
+ * @tc.name: SetIsOnTheTree002
+ * @tc.desc: test results of SetIsOnTheTree while flag change
+ * @tc.type: FUNC
+ * @tc.require: issueIBYM26
+ */
+HWTEST_F(RSNodeTest, SetIsOnTheTree002, TestSize.Level2)
+{
+    auto uiContext = std::make_shared<RSUIContext>();
+    auto rsNode = RSCanvasNode::Create(false, false, uiContext);
+    rsNode->SetIsOnTheTree(false);
+    rsNode->SetIsOnTheTree(true);
+    ASSERT_EQ(rsNode->isOnTheTree_, true);
+}
+
+/**
+ * @tc.name: SetIsOnTheTree003
+ * @tc.desc: test results of SetIsOnTheTree while has child
+ * @tc.type: FUNC
+ * @tc.require: issueIBYM26
+ */
+HWTEST_F(RSNodeTest, SetIsOnTheTree003, TestSize.Level2)
+{
+    auto parent = RSCanvasNode::Create(false, false);
+    auto child = RSCanvasNode::Create(false, false);
+    RSNodeMap::MutableInstance().RegisterNode(parent);
+    RSNodeMap::MutableInstance().RegisterNode(child);
+
+    parent->children_.push_back(child->id_);
+    parent->SetIsOnTheTree(true);
+    ASSERT_EQ(child->isOnTheTree_, true);
 }
 
 /**

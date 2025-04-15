@@ -137,6 +137,7 @@ void HgmFrameRateManager::Init(sptr<VSyncController> rsController,
         if (curScreenStrategyId_.empty()) {
             curScreenStrategyId_ = "LTPO-DEFAULT";
         }
+        curScreenDefaultStrategyId_ = curScreenStrategyId_;
         if (curRefreshRateMode_ != HGM_REFRESHRATE_MODE_AUTO && configData->xmlCompatibleMode_) {
             curRefreshRateMode_ = configData->SettingModeId2XmlModeId(curRefreshRateMode_);
         }
@@ -147,6 +148,7 @@ void HgmFrameRateManager::Init(sptr<VSyncController> rsController,
         UpdateEnergyConsumptionConfig();
         multiAppStrategy_.CalcVote();
         HandleIdleEvent(ADD_VOTE);
+        UpdateScreenExtStrategyConfig(configData->screenConfigs_);
     }
 
     RegisterCoreCallbacksAndInitController(rsController, appController, vsyncGenerator);
@@ -1129,42 +1131,68 @@ void HgmFrameRateManager::HandleScreenFrameRate(std::string curScreenName)
     } else {
         curScreenStrategyId_ = "LTPO-DEFAULT";
     }
+    curScreenDefaultStrategyId_ = curScreenStrategyId_;
 
-    if (isEnableThermalStrategy_ && configData->screenConfigs_.find(
-        curScreenStrategyId_ + HGM_CONFIG_TYPE_THERMAL_SUFFIX) != configData->screenConfigs_.end()) {
-        curScreenStrategyId_ += HGM_CONFIG_TYPE_THERMAL_SUFFIX;
-    }
-
+    curScreenStrategyId_ = GetCurScreenExtStrategyId();
     UpdateScreenFrameRate();
 }
 
-void HgmFrameRateManager::HandleThermalFrameRate(bool status)
+void HgmFrameRateManager::HandleScreenExtStrategyChange(bool status, const std::string& suffix)
+{
+    if (screenExtStrategyMap_.find(suffix) == screenExtStrategyMap_.end()) {
+        return;
+    }
+    screenExtStrategyMap_[suffix].second = status;
+
+    std::string curScreenStrategyId = GetCurScreenExtStrategyId();
+    if (curScreenStrategyId != curScreenStrategyId_) {
+        RS_TRACE_NAME_FMT("HgmFrameRateManager::HandleScreenExtStrategyChange type:%s, status:%d",
+            curScreenStrategyId.c_str(), status);
+        HGM_LOGI("HgmFrameRateManager::HandleScreenExtStrategyChange type:%{public}s, status:%{public}d",
+            curScreenStrategyId.c_str(), status);
+        curScreenStrategyId_ = curScreenStrategyId;
+        UpdateScreenFrameRate();
+    }
+}
+
+std::string HgmFrameRateManager::GetCurScreenExtStrategyId()
 {
     auto& hgmCore = HgmCore::Instance();
     auto configData = hgmCore.GetPolicyConfigData();
     if (configData == nullptr) {
-        return;
+        return curScreenDefaultStrategyId_;
     }
 
-    if (isEnableThermalStrategy_ == status) {
-        return;
+    std::string suffix;
+    for (const auto& [key, value] : screenExtStrategyMap_) {
+        if (value.second && (screenExtStrategyMap_.find(suffix) == screenExtStrategyMap_.end() ||
+            value.first > screenExtStrategyMap_[suffix].first)) {
+            suffix = key;
+        }
     }
-    isEnableThermalStrategy_ = status;
-    std::string curScreenStrategyId;
-    if (isEnableThermalStrategy_) {
-        curScreenStrategyId = curScreenStrategyId_ + HGM_CONFIG_TYPE_THERMAL_SUFFIX;
-    } else {
-        curScreenStrategyId = curScreenStrategyId_.substr(
-            0, curScreenStrategyId_.length() - std::string(HGM_CONFIG_TYPE_THERMAL_SUFFIX).length());
-    }
+    std::string curScreenStrategyId = curScreenDefaultStrategyId_ + suffix;
     if (configData->screenConfigs_.find(curScreenStrategyId) == configData->screenConfigs_.end()) {
-        HGM_LOGE("HgmFrameRateManager::HandleThermalFrameRate not support thermal config");
-        return;
+        HGM_LOGE("HgmFrameRateManager::HandleScreenExtStrategyChange not support %{public}s config", suffix.c_str());
+        return curScreenDefaultStrategyId_;
     }
-    RS_TRACE_NAME_FMT("HgmFrameRateManager::HandleThermalFrameRate type:%s, status:%d", curScreenStrategyId.c_str(),
-        status);
-    curScreenStrategyId_ = curScreenStrategyId;
-    UpdateScreenFrameRate();
+    return curScreenStrategyId;
+}
+
+void HgmFrameRateManager::UpdateScreenExtStrategyConfig(const PolicyConfigData::ScreenConfigMap& screenConfigs)
+{
+    std::unordered_set<std::string> screenConfigKeys;
+    for (const auto& config : screenConfigs) {
+        screenConfigKeys.insert(config.first);
+    }
+
+    for (auto it = screenExtStrategyMap_.begin(); it != screenExtStrategyMap_.end();) {
+        if (std::find_if(screenConfigKeys.begin(), screenConfigKeys.end(),
+            [&](const auto &item) {return item.find(it->first) != std::string::npos; }) == screenConfigKeys.end()) {
+            it = screenExtStrategyMap_.erase(it);
+        } else {
+            ++it;
+        }
+    }
 }
 
 void HgmFrameRateManager::UpdateScreenFrameRate()

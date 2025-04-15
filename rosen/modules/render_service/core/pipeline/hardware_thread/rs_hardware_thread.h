@@ -137,7 +137,7 @@ private:
 
     bool needRetrySetRate_ = false;
 
-    std::unordered_map<ScreenId, OutputPtr> outputMap_;
+    std::unordered_map<ScreenId, std::weak_ptr<HdiOutput>> outputMap_;
     RefreshRateParam refreshRateParam_;
 
     friend class RSUniRenderThread;

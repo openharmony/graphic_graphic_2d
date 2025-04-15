@@ -42,15 +42,9 @@ enum class FrameSchedEvent {
     RS_DDGR_TASK = 10017,
 };
 
+using InitFunc = void (*)();
 using FrameGetEnableFunc = int (*)();
 using ReportSchedEventFunc = void (*)(FrameSchedEvent, const std::unordered_map<std::string, std::string>&);
-using InitFunc = void (*)();
-using ProcessCommandsStartFunc = void(*)();
-using AnimateStartFunc = void(*)();
-using RenderStartFunc = void(*)(uint64_t);
-using ParallelRenderStartFunc = void(*)();
-using RenderEndFunc = void(*)();
-using ParallelRenderEndFunc = void(*)();
 using SendCommandsStartFunc = void(*)();
 using SetFrameParamFunc = void(*)(int, int, int, int);
 class RsFrameReport final {
@@ -62,17 +56,19 @@ public:
 #ifdef RS_ENABLE_VK
     void ModifierReportSchedEvent(FrameSchedEvent event, const std::unordered_map<std::string, std::string>& payload);
 #endif
-    void ProcessCommandsStart();
-    void AnimateStart();
-    void RenderStart(uint64_t timestamp);
-    void RSRenderStart();
-    void RenderEnd();
-    void RSRenderEnd();
     void SendCommandsStart();
     void SetFrameParam(int requestId, int load, int schedFrameNum, int value);
+    void RenderStart(uint64_t timestamp);
+    void RenderEnd();
+    void DirectRenderEnd();
+    void UniRenderStart();
+    void UniRenderEnd();
     void UnblockMainThread();
     void PostAndWait();
     void BeginFlush();
+    void ReportBufferCount(int count);
+    void ReportHardwareInfo(int tid);
+    void ReportFrameDeadline(int deadline);
     void ReportDDGRTaskInfo();
 
 private:
@@ -85,17 +81,14 @@ private:
     void *frameSchedHandle_ = nullptr;
     bool frameSchedSoLoaded_ = false;
 
+    InitFunc initFunc_ = nullptr;
     FrameGetEnableFunc frameGetEnableFunc_ = nullptr;
     ReportSchedEventFunc reportSchedEventFunc_ = nullptr;
-    InitFunc initFunc_ = nullptr;
-    ProcessCommandsStartFunc processCommandsStartFun_ = nullptr;
-    AnimateStartFunc animateStartFunc_ = nullptr;
-    RenderStartFunc renderStartFunc_ = nullptr;
-    ParallelRenderStartFunc parallelRenderStartFunc_ = nullptr;
-    RenderEndFunc renderEndFunc_ = nullptr;
-    ParallelRenderEndFunc parallelRenderEndFunc_ = nullptr;
     SendCommandsStartFunc sendCommandsStartFunc_ = nullptr;
     SetFrameParamFunc setFrameParamFunc_ = nullptr;
+
+    int bufferCount_ = 0;
+    int hardwareTid_ = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

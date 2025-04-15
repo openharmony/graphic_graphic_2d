@@ -63,6 +63,7 @@ void RSUifirstManagerTest::TearDownTestCase()
     renderNodeMap.canvasDrawingNodeMap_.clear();
     renderNodeMap.uiExtensionSurfaceNodes_.clear();
 
+    uifirstManager_.subthreadProcessingNode_.clear();
     uifirstManager_.subthreadProcessDoneNode_.clear();
     uifirstManager_.markForceUpdateByUifirst_.clear();
     uifirstManager_.pendingPostNodes_.clear();

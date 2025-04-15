@@ -15,7 +15,6 @@
 #include "memory/rs_memory_snapshot.h"
 
 #include "platform/common/rs_log.h"
-#include <vector>
 
 namespace OHOS {
 namespace Rosen {

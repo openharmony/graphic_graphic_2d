@@ -61,5 +61,19 @@ HWTEST_F(MEMParamTest, SetDeeplyRelGpuResEnable, Function | SmallTest | Level1)
     MEMParam::SetDeeplyRelGpuResEnable(false);
     EXPECT_EQ(MEMParam::IsDeeplyRelGpuResEnable(), false);
 }
+
+/**
+ * @tc.name: SetRSCacheLimitsResourceSize
+ * @tc.desc: Verify the SetRSCacheLimitsResourceSize function
+ * @tc.type: FUNC
+ * @tc.require: #IBIE4T
+ */
+HWTEST_F(MEMParamTest, SetRSCacheLimitsResourceSize, Function | SmallTest | Level1)
+{
+    int cacheLimitResourceSize = 33220204;
+    MEMParam memParam;
+    memParam.SetRSCacheLimitsResourceSize(cacheLimitResourceSize);
+    EXPECT_EQ(memParam.GetRSCacheLimitsResourceSize(), cacheLimitResourceSize);
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -376,6 +376,9 @@ public:
 #endif
 
     void NotifyPageName(const std::string &packageName, const std::string &pageName, bool isEnter);
+
+    bool GetHighContrastTextState();
+
 private:
     RSInterfaces();
     ~RSInterfaces() noexcept;

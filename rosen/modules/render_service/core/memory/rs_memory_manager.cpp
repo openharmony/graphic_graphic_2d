@@ -743,14 +743,12 @@ void MemoryManager::FillMemorySnapshot()
     }
 
     std::unordered_map<pid_t, MemorySnapshotInfo> infoMap;
-#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     for (auto& pid : pidList) {
         MemorySnapshotInfo& mInfo = infoMap[pid];
         int32_t uid;
         auto& appMgrClient = RSSingleton<AppExecFwk::AppMgrClient>::GetInstance();
         appMgrClient.GetBundleNameByPid(pid, mInfo.bundleName, uid);
     }
-#endif
     MemorySnapshot::Instance().FillMemorySnapshot(infoMap);
 }
 

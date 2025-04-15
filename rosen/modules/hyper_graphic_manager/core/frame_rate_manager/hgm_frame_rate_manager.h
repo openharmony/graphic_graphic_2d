@@ -168,7 +168,9 @@ public:
     void HandleRefreshRateMode(int32_t refreshRateMode);
     void HandleScreenPowerStatus(ScreenId id, ScreenPowerStatus status);
     void HandleScreenRectFrameRate(ScreenId id, const GraphicIRect& activeRect);
-    void HandleThermalFrameRate(bool status);
+    void HandleScreenExtStrategyChange(bool status, const std::string& suffix);
+    std::string GetCurScreenExtStrategyId();
+    void UpdateScreenExtStrategyConfig(const PolicyConfigData::ScreenConfigMap& screenConfigs);
 
     // called by RSHardwareThread
     void HandleRsFrame();
@@ -342,8 +344,9 @@ private:
     std::atomic<ScreenId> curScreenId_ = 0;
     std::atomic<ScreenId> lastCurScreenId_ = 0;
     std::string curScreenStrategyId_ = "LTPO-DEFAULT";
+    std::string curScreenDefaultStrategyId_ = "LTPO-DEFAULT";
     bool isLtpo_ = true;
-    bool isEnableThermalStrategy_ = false;
+    std::unordered_map<std::string, std::pair<int32_t, bool>> screenExtStrategyMap_ = HGM_CONFIG_SCREENEXT_STRATEGY_MAP;
     int32_t isAmbientStatus_ = 0;
     bool isAmbientEffect_ = false;
     int32_t stylusMode_ = -1;

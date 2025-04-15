@@ -185,7 +185,7 @@ enum class RSIRenderServiceConnectionInterfaceCode : CodeUnderlyingType {
 #endif
 
     ON_FIRST_FRAME_COMMIT = 0x011000,
-    
+    GET_HIGH_CONTRAST_TEXT_STATE = 0x012000,
 // Special invocation. Do not change it.
     NOTIFY_LIGHT_FACTOR_STATUS = 1000,
     NOTIFY_PACKAGE_EVENT = 1001,

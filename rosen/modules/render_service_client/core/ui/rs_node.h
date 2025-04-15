@@ -559,11 +559,22 @@ public:
     void SetRSUIContext(std::shared_ptr<RSUIContext> rsUIContext);
 
     void SetSkipCheckInMultiInstance(bool isSkipCheckInMultiInstance);
+
+#ifdef RS_ENABLE_VK
+    bool IsHybridRenderCanvas() const;
+    void SetHybridRenderCanvas(bool hybridRenderCanvas);
+#endif
+
+    bool GetIsOnTheTree()
+    {
+        return isOnTheTree_;
+    }
 protected:
     explicit RSNode(
-        bool isRenderServiceNode, bool isTextureExportNode = false, std::shared_ptr<RSUIContext> rsUIContext = nullptr);
+        bool isRenderServiceNode, bool isTextureExportNode = false, std::shared_ptr<RSUIContext> rsUIContext = nullptr,
+        bool isOnTheTree = false);
     explicit RSNode(bool isRenderServiceNode, NodeId id, bool isTextureExportNode = false,
-        std::shared_ptr<RSUIContext> rsUIContext = nullptr);
+        std::shared_ptr<RSUIContext> rsUIContext = nullptr, bool isOnTheTree = false);
 
     bool isRenderServiceNode_;
     bool isTextureExportNode_ = false;
@@ -599,6 +610,7 @@ protected:
     std::shared_ptr<RSTransactionHandler> GetRSTransaction() const;
     bool AddCommand(std::unique_ptr<RSCommand>& command, bool isRenderServiceCommand = false,
         FollowType followType = FollowType::NONE, NodeId nodeId = 0) const;
+    void SetIsOnTheTree(bool flag);
 
 private:
     static NodeId GenerateId();
@@ -690,6 +702,12 @@ private:
 
     std::recursive_mutex animationMutex_;
     mutable std::recursive_mutex propertyMutex_;
+
+#ifdef RS_ENABLE_VK
+    bool hybridRenderCanvas_ = false;
+#endif
+    bool isOnTheTree_ = false;
+    bool isOnTheTreeInit_ = false;
 
     friend class RSUIDirector;
     friend class RSTransition;

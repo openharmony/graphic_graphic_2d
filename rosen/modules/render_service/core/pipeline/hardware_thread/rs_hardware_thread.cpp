@@ -275,7 +275,8 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
         bool isScreenPoweringOff = false;
         auto screenManager = CreateOrGetScreenManager();
         if (screenManager) {
-            isScreenPoweringOff = screenManager->IsScreenPoweringOff(output->GetScreenId());
+            isScreenPoweringOff = RSSystemProperties::IsSmallFoldDevice() &&
+                screenManager->IsScreenPoweringOff(output->GetScreenId());
         }
 
         if (!isScreenPoweringOff) {
@@ -815,17 +816,18 @@ void RSHardwareThread::ChangeDssRefreshRate(ScreenId screenId, uint32_t refreshR
         PostDelayTask(task, period / NS_MS_UNIT_CONVERSION + delayTime_ + DELAY_TIME_OFFSET);
     } else {
         auto outputIter = outputMap_.find(screenId);
-        if (outputIter == outputMap_.end() || outputIter->second == nullptr) {
+        if (outputIter == outputMap_.end()) {
             return;
         }
-        if (HgmCore::Instance().GetActiveScreenId() != screenId) {
+        auto output = outputIter->second.lock();
+        if (output == nullptr || HgmCore::Instance().GetActiveScreenId() != screenId) {
             return;
         }
-        ExecuteSwitchRefreshRate(outputIter->second, refreshRate);
+        ExecuteSwitchRefreshRate(output, refreshRate);
         PerformSetActiveMode(
-            outputIter->second, refreshRateParam_.frameTimestamp, refreshRateParam_.constraintRelativeTime);
-        if (outputIter->second->IsDeviceValid()) {
-            hdiBackend_->Repaint(outputIter->second);
+            output, refreshRateParam_.frameTimestamp, refreshRateParam_.constraintRelativeTime);
+        if (output->IsDeviceValid()) {
+            hdiBackend_->Repaint(output);
         }
     }
 }

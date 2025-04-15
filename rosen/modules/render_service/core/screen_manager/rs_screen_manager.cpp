@@ -19,8 +19,8 @@
 #include <parameters.h>
 #include "param/sys_param.h"
 
-#include "common/rs_background_thread.h"
 #include "common/rs_optional_trace.h"
+#include "common/rs_switching_thread.h"
 #include "display_engine/rs_color_temperature.h"
 #include "gfx/first_frame_notifier/rs_first_frame_notifier.h"
 #include "graphic_feature_param_manager.h"
@@ -29,6 +29,7 @@
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_display_render_node.h"
 #include "platform/common/rs_log.h"
+#include "platform/common/rs_system_properties.h"
 #include "rs_screen.h"
 #include "rs_trace.h"
 #include "vsync_sampler.h"
@@ -48,6 +49,7 @@ constexpr uint16_t SENSOR_EVENT_FIRST_DATA = 0;
 constexpr float HALF_FOLDED_MAX_THRESHOLD = 140.0F;
 constexpr float OPEN_HALF_FOLDED_MIN_THRESHOLD = 25.0F;
 constexpr uint32_t WAIT_FOR_ACTIVE_SCREEN_ID_TIMEOUT = 1000;
+constexpr uint32_t WAIT_FOR_STATUS_TASK_TIMEOUT = 1000; // 1000ms
 constexpr uint32_t MAX_VIRTUAL_SCREEN_NUM = 64;
 constexpr uint32_t MAX_VIRTUAL_SCREEN_WIDTH = 65536;
 constexpr uint32_t MAX_VIRTUAL_SCREEN_HEIGHT = 65536;
@@ -958,8 +960,19 @@ RSScreenCapability RSScreenManager::GetScreenCapability(ScreenId id) const
 
 ScreenPowerStatus RSScreenManager::GetScreenPowerStatus(ScreenId id) const
 {
+    if (!RSSystemProperties::IsSmallFoldDevice()) {
+        auto screen = GetScreen(id);
+        if (screen == nullptr) {
+            RS_LOGW("%{public}s: There is no screen for id %{public}" PRIu64, __func__, id);
+            return INVALID_POWER_STATUS;
+        }
+
+        ScreenPowerStatus status = static_cast<ScreenPowerStatus>(screen->GetPowerStatus());
+        return status;
+    }
+
     ScreenPowerStatus status = ScreenPowerStatus::INVALID_POWER_STATUS;
-    RSBackgroundThread::Instance().PostSyncTask([id, &status, this]() {
+    RSSwitchingThread::Instance().PostSyncTask([id, &status, this]() {
         auto screen = GetScreen(id);
         if (screen == nullptr) {
             RS_LOGW("%{public}s: There is no screen for id %{public}" PRIu64, __func__, id);
@@ -1508,7 +1521,13 @@ void RSScreenManager::UpdateScreenPowerStatus(ScreenId id, ScreenPowerStatus sta
 
 void RSScreenManager::SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status)
 {
-    RSBackgroundThread::Instance().PostTask([id, status, this]() {
+    if (!RSSystemProperties::IsSmallFoldDevice()) {
+        UpdateScreenPowerStatus(id, status);
+        return;
+    }
+
+    ResetScreenPowerStatusTask();
+    RSSwitchingThread::Instance().PostTask([id, status, this]() {
         if (status == ScreenPowerStatus::POWER_STATUS_OFF) {
             std::lock_guard<std::shared_mutex> lock(powerStatusMutex_);
             isScreenPoweringOff_.insert(id);
@@ -1516,9 +1535,39 @@ void RSScreenManager::SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status
 
         UpdateScreenPowerStatus(id, status);
 
-        std::lock_guard<std::shared_mutex> lock(powerStatusMutex_);
-        isScreenPoweringOff_.erase(id);
+        {
+            std::lock_guard<std::shared_mutex> lock(powerStatusMutex_);
+            isScreenPoweringOff_.erase(id);
+        }
+
+        std::unique_lock<std::mutex> taskLock(syncTaskMutex_);
+        statusTaskEndFlag_ = true;
+        statusTaskCV_.notify_all();
     });
+}
+
+void RSScreenManager::ResetScreenPowerStatusTask()
+{
+    if (!RSSystemProperties::IsSmallFoldDevice()) {
+        return;
+    }
+
+    std::unique_lock<std::mutex> taskLock(syncTaskMutex_);
+    statusTaskEndFlag_ = false;
+}
+
+void RSScreenManager::WaitScreenPowerStatusTask()
+{
+    if (!RSSystemProperties::IsSmallFoldDevice()) {
+        return;
+    }
+
+    std::unique_lock<std::mutex> taskLock(syncTaskMutex_);
+    if (!statusTaskCV_.wait_for(taskLock, std::chrono::milliseconds(WAIT_FOR_STATUS_TASK_TIMEOUT), [this]() {
+        return statusTaskEndFlag_;
+    })) {
+        RS_LOGW("[UL_POWER] %{public}s: wait screen power status task timeouter", __func__);
+    }
 }
 
 bool RSScreenManager::IsScreenPoweringOn() const

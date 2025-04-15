@@ -56,6 +56,10 @@
 #include "ui/rs_ui_context.h"
 #include "ui/rs_ui_director.h"
 
+#ifdef RS_ENABLE_VK
+#include "modifier_render_thread/rs_modifiers_draw.h"
+#endif
+
 #ifdef _WIN32
 #include <windows.h>
 #define gettid GetCurrentThreadId
@@ -96,10 +100,11 @@ bool IsPathAnimatableModifier(const RSModifierType& type)
 }
 }
 
-RSNode::RSNode(bool isRenderServiceNode, NodeId id, bool isTextureExportNode, std::shared_ptr<RSUIContext> rsUIContext)
+RSNode::RSNode(bool isRenderServiceNode, NodeId id, bool isTextureExportNode, std::shared_ptr<RSUIContext> rsUIContext,
+    bool isOnTheTree)
     : isRenderServiceNode_(isRenderServiceNode), isTextureExportNode_(isTextureExportNode), id_(id),
       rsUIContext_(rsUIContext), stagingPropertiesExtractor_(id, rsUIContext),
-      showingPropertiesFreezer_(id, rsUIContext)
+      showingPropertiesFreezer_(id, rsUIContext), isOnTheTree_(isOnTheTree)
 {
     InitUniRenderEnabled();
 
@@ -128,8 +133,9 @@ RSNode::RSNode(bool isRenderServiceNode, NodeId id, bool isTextureExportNode, st
     hasCreateRenderNodeInRS_ = !hasCreateRenderNodeInRT_;
 }
 
-RSNode::RSNode(bool isRenderServiceNode, bool isTextureExportNode, std::shared_ptr<RSUIContext> rsUIContext)
-    : RSNode(isRenderServiceNode, GenerateId(), isTextureExportNode, rsUIContext) {}
+RSNode::RSNode(bool isRenderServiceNode, bool isTextureExportNode, std::shared_ptr<RSUIContext> rsUIContext,
+    bool isOnTheTree)
+    : RSNode(isRenderServiceNode, GenerateId(), isTextureExportNode, rsUIContext, isOnTheTree) {}
 
 RSNode::~RSNode()
 {
@@ -137,6 +143,9 @@ RSNode::~RSNode()
         FallbackAnimationsToRoot();
     }
     ClearAllModifiers();
+#ifdef RS_ENABLE_VK
+    RSModifiersDraw::EraseOffTreeNode(instanceId_, id_);
+#endif
 
     // break current (ui) parent-child relationship.
     // render nodes will check if its child is expired and remove it, no need to manually remove it here.
@@ -3074,6 +3083,29 @@ bool RSNode::IsRenderServiceNode() const
     return (g_isUniRenderEnabled || isRenderServiceNode_) && (!isTextureExportNode_);
 }
 
+void RSNode::SetIsOnTheTree(bool flag)
+{
+    if (isOnTheTree_ == flag && isOnTheTreeInit_ == true) {
+        return;
+    }
+    isOnTheTreeInit_ = true;
+    isOnTheTree_ = flag;
+#ifdef RS_ENABLE_VK
+    if (!flag) {
+        RSModifiersDraw::InsertOffTreeNode(instanceId_, id_);
+    } else {
+        RSModifiersDraw::EraseOffTreeNode(instanceId_, id_);
+    }
+#endif
+    for (const auto& childId : children_) {
+        auto childPtr = RSNodeMap::Instance().GetNode(childId);
+        if (childPtr == nullptr) {
+            continue;
+        }
+        childPtr->SetIsOnTheTree(flag);
+    }
+}
+
 void RSNode::AddChild(SharedPtr child, int index)
 {
     if (child == nullptr) {
@@ -3119,6 +3151,7 @@ void RSNode::AddChild(SharedPtr child, int index)
         RS_TRACE_NAME_FMT("RSNode::AddChild, Id: %" PRIu64 ", SurfaceNode:[Id: %" PRIu64 ", name: %s]",
             id_, childId, surfaceNode->GetName().c_str());
     }
+    child->SetIsOnTheTree(isOnTheTree_);
 }
 
 void RSNode::MoveChild(SharedPtr child, int index)
@@ -3144,6 +3177,7 @@ void RSNode::MoveChild(SharedPtr child, int index)
     std::unique_ptr<RSCommand> command = std::make_unique<RSBaseNodeMoveChild>(id_, childId, index);
 
     AddCommand(command, IsRenderServiceNode(), GetFollowType(), id_);
+    child->SetIsOnTheTree(isOnTheTree_);
 }
 
 void RSNode::RemoveChild(SharedPtr child)
@@ -3169,6 +3203,7 @@ void RSNode::RemoveChild(SharedPtr child)
         RS_TRACE_NAME_FMT("RSNode::RemoveChild, Id: %" PRIu64 ", SurfaceNode:[Id: %" PRIu64 ", name: %s]",
             id_, childId, surfaceNode->GetName().c_str());
     }
+    child->SetIsOnTheTree(false);
 }
 
 void RSNode::RemoveChildByNodeId(NodeId childId)
@@ -3209,6 +3244,7 @@ void RSNode::AddCrossParentChild(SharedPtr child, int index)
     std::unique_ptr<RSCommand> command = std::make_unique<RSBaseNodeAddCrossParentChild>(id_, childId, index);
 
     AddCommand(command, IsRenderServiceNode(), GetFollowType(), id_);
+    child->SetIsOnTheTree(isOnTheTree_);
 }
 
 void RSNode::RemoveCrossParentChild(SharedPtr child, NodeId newParentId)
@@ -3317,6 +3353,7 @@ void RSNode::RemoveFromTree()
     std::unique_ptr<RSCommand> command = std::make_unique<RSBaseNodeRemoveFromTree>(nodeId);
     // always send Remove-From-Tree command
     AddCommand(command, IsRenderServiceNode(), GetFollowType(), nodeId);
+    SetIsOnTheTree(false);
 }
 
 void RSNode::ClearChildren()
@@ -3325,6 +3362,7 @@ void RSNode::ClearChildren()
         auto childPtr = rsUIContext_.lock() ? rsUIContext_.lock()->GetNodeMap().GetNode(child)
                                             : RSNodeMap::Instance().GetNode(child);
         if (childPtr) {
+            childPtr->SetIsOnTheTree(false);
             childPtr->SetParent(0);
             childPtr->MarkDirty(NodeDirtyType::APPEARANCE, true);
         }
@@ -3401,6 +3439,18 @@ RSNode::SharedPtr RSNode::GetParent()
                                : RSNodeMap::Instance().GetNode(parent_);
 }
 
+#ifdef RS_ENABLE_VK
+bool RSNode::IsHybridRenderCanvas() const
+{
+    return hybridRenderCanvas_;
+}
+
+void RSNode::SetHybridRenderCanvas(bool hybridRenderCanvas)
+{
+    hybridRenderCanvas_ = hybridRenderCanvas;
+}
+#endif
+
 void RSNode::DumpTree(int depth, std::string& out) const
 {
     for (int i = 0; i < depth; i++) {
@@ -3452,6 +3502,10 @@ void RSNode::Dump(std::string& out) const
         out += "null";
     }
     out += "], outOfParent[" + std::to_string(static_cast<int>(outOfParent_));
+#ifdef RS_ENABLE_VK
+    out += "], hybridRenderCanvas[";
+    out += hybridRenderCanvas_ ? "true" : "false";
+#endif
     out += "], animations[";
     for (const auto& [id, anim] : animations_) {
         out += "{id:" + std::to_string(id);

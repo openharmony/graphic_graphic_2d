@@ -268,6 +268,22 @@ namespace {
         [](skt::Paragraph& paragraph, const ParagraphStyle& style, skt::InternalState& state) {
             paragraph.updateTextAlign(static_cast<skt::TextAlign>(style.textAlign));
             state = std::min(skt::InternalState::kShaped, state);
+        },
+
+        [](skt::Paragraph& paragraph, const ParagraphStyle& style, skt::InternalState& state) {
+            paragraph.getParagraphStyle().setParagraphSpacing(style.paragraphSpacing);
+            state = std::min(skt::InternalState::kShaped, state);
+        },
+
+        [](skt::Paragraph& paragraph, const ParagraphStyle& style, skt::InternalState& state) {
+            paragraph.getParagraphStyle().setIsEndAddParagraphSpacing(style.isEndAddParagraphSpacing);
+            state = std::min(skt::InternalState::kShaped, state);
+        },
+
+        [](skt::Paragraph& paragraph, const ParagraphStyle& style, skt::InternalState& state) {
+            paragraph.getParagraphStyle().setTextHeightBehavior(
+                static_cast<skt::TextHeightBehavior>(style.textHeightBehavior));
+            state = std::min(skt::InternalState::kIndexed, state);
         }
     };
 

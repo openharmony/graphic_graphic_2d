@@ -25,6 +25,7 @@
 #include "include/gpu/vk/GrVkExtensions.h"
 #include "vulkan/vulkan_core.h"
 #include "vulkan/vulkan_xeg.h"
+#include "platform/ohos/backend/rs_vulkan_header_ext.h"
 
 #define VK_NO_PROTOTYPES 1
 
@@ -265,6 +266,7 @@ private:
     VkPhysicalDeviceFeatures2 physicalDeviceFeatures2_;
     VkPhysicalDeviceProtectedMemoryFeatures* protectedMemoryFeatures_ = nullptr;
     VkPhysicalDeviceSamplerYcbcrConversionFeatures ycbcrFeature_;
+    VkDeviceMemoryExclusiveThresholdHUAWEI deviceMemoryExclusiveThreshold_;
     GrVkExtensions skVkExtensions_;
     RsVulkanMemStat mVkMemStat;
 

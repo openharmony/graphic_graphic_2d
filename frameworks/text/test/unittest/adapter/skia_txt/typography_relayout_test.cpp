@@ -1001,5 +1001,129 @@ HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest024, TestSize.Le
     EXPECT_EQ(symbolTxt.GetCommonSubType(), Drawing::DrawingCommonSubType::UP);
     EXPECT_EQ(symbolTxt.GetRenderMode(), Drawing::DrawingSymbolRenderingStrategy::MULTIPLE_OPACITY);
 }
+
+/*
+ * @tc.name: OHDrawingTypographyRelayoutTest025
+ * @tc.desc: test the paragraph spacing style and the paragraph end spacing style of relayout
+ * @tc.type: FUNC
+ */
+HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest025, TestSize.Level1)
+{
+    const double maxWidth = LAYOUT_WIDTH;
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    typographyStyle.paragraphSpacing = 0;
+    typographyStyle.isEndAddParagraphSpacing = false;
+
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    std::u16string text = u"relayout test";
+    OHOS::Rosen::TextStyle textStyle;
+    typographyCreate->PushStyle(textStyle);
+    typographyCreate->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
+    typography->Layout(maxWidth);
+    double preParagraphyHeight = typography->GetHeight();
+
+    typographyStyle.paragraphSpacing = 40;
+    typographyStyle.isEndAddParagraphSpacing = true;
+    std::bitset<static_cast<size_t>(RelayoutParagraphStyleAttribute::PARAGRAPH_STYLE_ATTRIBUTE_BUTT)> styleBitset;
+    styleBitset.set(static_cast<size_t>(RelayoutParagraphStyleAttribute::SPACING));
+    styleBitset.set(static_cast<size_t>(RelayoutParagraphStyleAttribute::SPACING_IS_END));
+    typographyStyle.relayoutChangeBitmap = styleBitset;
+
+    std::vector<TextStyle> relayoutTextStyles;
+    relayoutTextStyles.push_back(textStyle);
+    typography->Relayout(maxWidth, typographyStyle, relayoutTextStyles);
+    double relayoutParagraphyHeight = typography->GetHeight();
+    EXPECT_TRUE(skia::textlayout::nearlyEqual(preParagraphyHeight + 40, relayoutParagraphyHeight));
+}
+
+/*
+ * @tc.name: OHDrawingTypographyRelayoutTest026
+ * @tc.desc: test the paragraph spacing style and the paragraph end spacing style of relayout(ineffective)
+ * @tc.type: FUNC
+ */
+HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest026, TestSize.Level1)
+{
+    const double maxWidth = LAYOUT_WIDTH;
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    typographyStyle.paragraphSpacing = 0;
+    typographyStyle.isEndAddParagraphSpacing = false;
+
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    std::u16string text = u"relayout test";
+    OHOS::Rosen::TextStyle textStyle;
+    typographyCreate->PushStyle(textStyle);
+    typographyCreate->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
+    typography->Layout(maxWidth);
+    double preParagraphyHeight = typography->GetHeight();
+
+    std::bitset<static_cast<size_t>(RelayoutParagraphStyleAttribute::PARAGRAPH_STYLE_ATTRIBUTE_BUTT)> styleBitset;
+    styleBitset.set(static_cast<size_t>(RelayoutParagraphStyleAttribute::SPACING));
+    typographyStyle.relayoutChangeBitmap = styleBitset;
+    typographyStyle.paragraphSpacing = 40;
+    std::vector<TextStyle> relayoutTextStyles;
+    relayoutTextStyles.push_back(textStyle);
+    typography->Relayout(maxWidth, typographyStyle, relayoutTextStyles);
+    double relayoutParagraphyHeight1 = typography->GetHeight();
+    EXPECT_TRUE(skia::textlayout::nearlyEqual(preParagraphyHeight, relayoutParagraphyHeight1));
+
+    typographyStyle.paragraphSpacing = -40;
+    typographyStyle.isEndAddParagraphSpacing = true;
+    styleBitset.set(static_cast<size_t>(RelayoutParagraphStyleAttribute::SPACING_IS_END));
+    typographyStyle.relayoutChangeBitmap = styleBitset;
+    typography->Relayout(maxWidth, typographyStyle, relayoutTextStyles);
+    double relayoutParagraphyHeight2 = typography->GetHeight();
+    EXPECT_TRUE(skia::textlayout::nearlyEqual(preParagraphyHeight, relayoutParagraphyHeight2));
+}
+
+/*
+ * @tc.name: OHDrawingTypographyRelayoutTest027
+ * @tc.desc: test the text height behavior style of relayout
+ * @tc.type: FUNC
+ */
+HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest027, TestSize.Level1)
+{
+    constexpr double maxWidth = 50;
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    typographyStyle.fontSize = 50;
+    typographyStyle.textHeightBehavior = TextHeightBehavior::ALL;
+    typographyStyle.heightScale = 10.0;
+    typographyStyle.heightOnly = true;
+
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    std::u16string text = u"中文你好世界。 English Hello World.中文你好世界。 English Hello World.中文你好世界。 English Hello "
+        u"World.中文你好世界。 English Hello World.";
+    typographyCreate->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
+    typography->Layout(maxWidth);
+    EXPECT_TRUE(skia::textlayout::nearlyEqual(typography->GetHeight(), 38000));
+
+    std::bitset<static_cast<size_t>(RelayoutParagraphStyleAttribute::PARAGRAPH_STYLE_ATTRIBUTE_BUTT)> styleBitset;
+    styleBitset.set(static_cast<size_t>(RelayoutParagraphStyleAttribute::TEXT_HEIGHT_BEHAVIOR));
+    typographyStyle.relayoutChangeBitmap = styleBitset;
+
+    std::vector<TextStyle> relayoutTextStyles;
+    typographyStyle.textHeightBehavior = TextHeightBehavior::DISABLE_FIRST_ASCENT;
+    typography->Relayout(maxWidth, typographyStyle, relayoutTextStyles);
+    EXPECT_TRUE(skia::textlayout::nearlyEqual(typography->GetHeight(), 37650));
+
+    typographyStyle.textHeightBehavior = TextHeightBehavior::DISABLE_LAST_ASCENT;
+    typography->Relayout(maxWidth, typographyStyle, relayoutTextStyles);
+    EXPECT_TRUE(skia::textlayout::nearlyEqual(typography->GetHeight(), 37908));
+
+    typographyStyle.textHeightBehavior = TextHeightBehavior::DISABLE_ALL;
+    typography->Relayout(maxWidth, typographyStyle, relayoutTextStyles);
+    EXPECT_TRUE(skia::textlayout::nearlyEqual(typography->GetHeight(), 37558));
+}
 } // namespace Rosen
 } // namespace OHOS

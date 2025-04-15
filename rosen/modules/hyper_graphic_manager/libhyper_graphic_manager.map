@@ -97,7 +97,7 @@
       *HgmFrameRateManager::HandleSceneEvent*;
       *HgmFrameRateManager::HandleScreenPowerStatus*;
       *HgmFrameRateManager::HandleScreenRectFrameRate*;
-      *HgmFrameRateManager::HandleThermalFrameRate*;
+      *HgmFrameRateManager::HandleScreenExtStrategyChange*;
       *HgmFrameRateManager::HandleTouchEvent*;
       *HgmFrameRateManager::HgmFrameRateManager*;
       *HgmFrameRateManager::Init*;

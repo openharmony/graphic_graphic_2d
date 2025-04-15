@@ -19,6 +19,7 @@
 #include <set>
 
 #include "common/rs_common_def.h"
+#include <vector>
 
 namespace OHOS {
 namespace Rosen {

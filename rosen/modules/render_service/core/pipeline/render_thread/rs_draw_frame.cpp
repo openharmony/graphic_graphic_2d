@@ -35,6 +35,11 @@
 
 namespace OHOS {
 namespace Rosen {
+
+namespace {
+    static constexpr int RENDER_TIMEOUT = 2500; // 2500ms: render timeout threshold
+    static constexpr int RENDER_TIMEOUT_ABORT = 12; // 12: render 12 consecutive frames are too long
+}
 RSDrawFrame::RSDrawFrame()
     : unirenderInstance_(RSUniRenderThread::Instance()), rsParallelType_(RSSystemParameters::GetRsParallelType())
 {}
@@ -55,9 +60,10 @@ void RSDrawFrame::RenderFrame()
         RS_RSDRAWFRAME_RENDERFRAME);
     HitracePerfScoped perfTrace(RSDrawFrame::debugTraceEnabled_, HITRACE_TAG_GRAPHIC_AGP, "OnRenderFramePerfCount");
     RS_TRACE_NAME_FMT("RenderFrame");
+    StartCheck();
     // The destructor of GPUCompositonCacheGuard, a memory release check will be performed
     RSMainThread::GPUCompositonCacheGuard guard;
-    RsFrameReport::GetInstance().ReportSchedEvent(FrameSchedEvent::RS_UNI_RENDER_START, {});
+    RsFrameReport::GetInstance().UniRenderStart();
     JankStatsRenderFrameStart();
     unirenderInstance_.IncreaseFrameCount();
     RSUifirstManager::Instance().ProcessSubDoneNode();
@@ -69,7 +75,6 @@ void RSDrawFrame::RenderFrame()
     UnblockMainThread();
     RsFrameReport::GetInstance().UnblockMainThread();
     Render();
-    RsFrameReport::GetInstance().ReportSchedEvent(FrameSchedEvent::RS_RENDER_END, {});
     ReleaseSelfDrawingNodeBuffer();
     NotifyClearGpuCache();
     RSMainThread::Instance()->CallbackDrawContextStatusToWMS(true);
@@ -82,7 +87,40 @@ void RSDrawFrame::RenderFrame()
     MemoryManager::MemoryOverCheck(unirenderInstance_.GetRenderEngine()->GetRenderContext()->GetDrGPUContext());
     JankStatsRenderFrameEnd(doJankStats);
     RSPerfMonitorReporter::GetInstance().ReportAtRsFrameEnd();
-    RsFrameReport::GetInstance().RenderEnd();
+    RsFrameReport::GetInstance().UniRenderEnd();
+    EndCheck();
+}
+
+void RSDrawFrame::StartCheck()
+{
+    timer_ = std::make_shared<RSTimer>("RenderFrame", RENDER_TIMEOUT);
+}
+
+void RSDrawFrame::EndCheck()
+{
+    ExceptionCheck exceptionCheck;
+    exceptionCheck.pid_ = getpid();
+    exceptionCheck.uid_ = getuid();
+    exceptionCheck.processName_ = "/system/bin/render_service";
+    exceptionCheck.exceptionPoint_ = "render_pipeline_timeout";
+
+    if (timer_->GetDuration() >= RENDER_TIMEOUT) {
+        if (++longFrameCount_ == 6) { // 6: render 6 consecutive frames are too long
+            RS_LOGE("Render Six consecutive frames are too long.");
+            exceptionCheck.exceptionCnt_ = longFrameCount_;
+            exceptionCheck.exceptionMoment_ = timer_->GetSeconds();
+            exceptionCheck.UploadRenderExceptionData();
+        }
+    } else {
+        longFrameCount_ = 0;
+    }
+    if (longFrameCount_ == RENDER_TIMEOUT_ABORT) {
+        exceptionCheck.exceptionCnt_ = longFrameCount_;
+        exceptionCheck.exceptionMoment_ = timer_->GetSeconds();
+        exceptionCheck.UploadRenderExceptionData();
+        sleep(1); // sleep 1s : abort will kill RS, sleep 1s for hisysevent report.
+        abort(); // The RS process needs to be restarted because 12 consecutive frames times out.
+    }
 }
 
 void RSDrawFrame::NotifyClearGpuCache()
