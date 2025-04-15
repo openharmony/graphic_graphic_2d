@@ -57,6 +57,7 @@ public:
     void UpdateChildHwcNodeEnableByHwcNodeBelow(std::vector<RectI>& hwcRects,
         std::shared_ptr<RSSurfaceRenderNode>& appNode);
     void UpdateTransparentHwcNodeEnable(const std::vector<std::weak_ptr<RSSurfaceRenderNode>>& hwcNodes);
+    bool IsBackFilterBehindSurface(std::shared_ptr<RSSurfaceRenderNode>& node, NodeId filterNodeId);
     void CalcHwcNodeEnableByFilterRect(std::shared_ptr<RSSurfaceRenderNode>& node,
         const RectI& filterRect, NodeId filterNodeId, bool isReverseOrder = false, int32_t filterZorder = 0);
     void UpdateHwcNodeEnableByFilterRect(std::shared_ptr<RSSurfaceRenderNode>& node,
