@@ -969,6 +969,12 @@ bool RSSystemProperties::IsFoldScreenFlag()
     return isFoldScreenFlag;
 }
 
+bool RSSystemProperties::IsSmallFoldDevice()
+{
+    static std::string foldType = system::GetParameter("const.window.foldscreen.type", "0,0,0,0");
+    return foldType == "2,0,0,0" || foldType == "4,2,0,0";
+}
+
 bool RSSystemProperties::GetCacheCmdEnabled()
 {
     static CachedHandle g_Handle = CachedParameterCreate("rosen.cacheCmd.enabled", "1");

@@ -1145,6 +1145,7 @@ void RSRenderServiceConnection::SetScreenPowerStatus(ScreenId id, ScreenPowerSta
             }
             screenManager_->SetScreenPowerStatus(id, status);
         }).wait();
+        screenManager_->WaitScreenPowerStatusTask();
         mainThread_->SetDiscardJankFrames(true);
         renderThread_.SetDiscardJankFrames(true);
         HgmTaskHandleThread::Instance().PostTask([id, status]() {

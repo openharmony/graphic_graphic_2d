@@ -16,6 +16,7 @@
 #ifndef RS_SCREEN_MANAGER
 #define RS_SCREEN_MANAGER
 
+#include <condition_variable>
 #include <cstdint>
 #include <future>
 #include <memory>
@@ -109,7 +110,9 @@ public:
 
     virtual void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status) = 0;
     virtual ScreenPowerStatus GetScreenPowerStatus(ScreenId id) const = 0;
+    virtual void WaitScreenPowerStatusTask() = 0;
     virtual bool IsScreenPoweringOn() const = 0;
+    virtual bool IsScreenPoweringOff(ScreenId id) const = 0;
     virtual bool IsScreenPowerOff(ScreenId id) const = 0;
     virtual bool IsAllScreensPowerOff() const = 0;
     virtual void DisablePowerOffRenderControl(ScreenId id) = 0;
@@ -279,7 +282,9 @@ public:
 
     void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status) override;
     ScreenPowerStatus GetScreenPowerStatus(ScreenId id) const override;
+    void WaitScreenPowerStatusTask() override;
     bool IsScreenPoweringOn() const override;
+    bool IsScreenPoweringOff(ScreenId id) const override;
     bool IsScreenPowerOff(ScreenId id) const override;
     bool IsAllScreensPowerOff() const override;
     void DisablePowerOffRenderControl(ScreenId id) override;
@@ -390,6 +395,9 @@ private:
     void ProcessScreenDisConnected(std::shared_ptr<HdiOutput>& output);
     void HandleDefaultScreenDisConnected();
 
+    void UpdateScreenPowerStatus(ScreenId id, ScreenPowerStatus status);
+    void ResetScreenPowerStatusTask();
+
     void RegSetScreenVsyncEnabledCallbackForMainThread(ScreenId vsyncEnabledScreenId);
     void RegSetScreenVsyncEnabledCallbackForHardwareThread(ScreenId vsyncEnabledScreenId);
     void UpdateVsyncEnabledScreenId(ScreenId screenId);
@@ -439,6 +447,11 @@ private:
 
     mutable std::shared_mutex powerStatusMutex_;
     std::unordered_map<ScreenId, uint32_t> screenPowerStatus_;
+    std::unordered_set<ScreenId> isScreenPoweringOff_;
+
+    std::mutex syncTaskMutex_;
+    std::condition_variable statusTaskCV_;
+    bool statusTaskEndFlag_ = false;
 
     mutable std::shared_mutex backLightAndCorrectionMutex_;
     std::unordered_map<ScreenId, uint32_t> screenBacklight_;
