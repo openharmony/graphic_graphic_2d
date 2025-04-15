@@ -270,7 +270,7 @@ private:
     std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> pendingPostCardNodes_;
     std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> pendingResetNodes_;
     std::list<NodeId> sortedSubThreadNodeIds_;
-    std::vector<std::shared_ptr<RSSurfaceRenderNode>>  pindingResetWindowCachedNodes_;
+    std::vector<std::shared_ptr<RSSurfaceRenderNode>> pindingResetWindowCachedNodes_;
 
     std::set<NodeId> reuseNodes_;
     std::set<NodeId> collectedCardNodes_;

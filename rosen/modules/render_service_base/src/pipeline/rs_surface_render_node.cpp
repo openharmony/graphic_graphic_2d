@@ -2188,9 +2188,10 @@ void RSSurfaceRenderNode::OnSync()
 {
 #ifdef RS_ENABLE_GPU
     if (!skipFrameDirtyRect_.IsEmpty()) {
-        auto surfaceDirtyRect = dirtyManager_->GetCurrentFrameDirtyRegion();
-        surfaceDirtyRect = surfaceDirtyRect.JoinRect(skipFrameDirtyRect_);
-        dirtyManager_->SetCurrentFrameDirtyRect(surfaceDirtyRect);
+        dirtyManager_->MergeDirtyRect(skipFrameDirtyRect_);
+        auto uifirstDirtyRect = dirtyManager_->GetUifirstFrameDirtyRegion();
+        uifirstDirtyRect = uifirstDirtyRect.JoinRect(skipFrameDirtyRect_);
+        dirtyManager_->SetUifirstFrameDirtyRect(uifirstDirtyRect);
         skipFrameDirtyRect_.Clear();
     }
     RS_OPTIONAL_TRACE_NAME_FMT("RSSurfaceRenderNode::OnSync name[%s] dirty[%s]",
