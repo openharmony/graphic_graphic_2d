@@ -52,7 +52,7 @@ int32_t OcclusionCullingParamParse::ParseOcclusionCullingInternal(xmlNode &node)
         OcclusionCullingParam::SetStencilPixelOcclusionCullingEnable(isEnabled);
         RS_LOGI("OcclusionCullingParamParse parse SpocEnabled %{public}d",
             OcclusionCullingParam::IsStencilPixelOcclusionCullingEnable());
-    } else if (xmlParamType == PARSE_XML_FEATURE_SWITCH && name == "IntraAppCotrolsLevelOcclusionCullingEnable") {
+    } else if (xmlParamType == PARSE_XML_FEATURE_SWITCH && name == "IntraAppControlsLevelOcclusionCullingEnable") {
         auto val = ExtractPropertyValue("value", node);
         bool parseFeatireSwitchResult = ParseFeatureSwitch(val);
         OcclusionCullingParam::SetIntraAppControlsLevelOcclusionCullingEnable(parseFeatireSwitchResult);
