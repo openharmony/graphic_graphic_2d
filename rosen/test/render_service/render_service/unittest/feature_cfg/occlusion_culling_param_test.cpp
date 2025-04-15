@@ -46,6 +46,16 @@ HWTEST_F(OcclusionCullingParamTest, SetStencilPixelOcclusionCullingEnable, Funct
 {
     OcclusionCullingParam::SetStencilPixelOcclusionCullingEnable(true);
     ASSERT_TRUE(OcclusionCullingParam::IsStencilPixelOcclusionCullingEnable());
+}
+
+/**
+ * @tc.name: IsStencilPixelOcclusionCullingEnable
+ * @tc.desc: Verify the result of IsStencilPixelOcclusionCullingEnable function
+ * @tc.type: FUNC
+ * @tc.require: #IBPXUM
+ */
+HWTEST_F(OcclusionCullingParamTest, IsStencilPixelOcclusionCullingEnable, Function | SmallTest | Level1)
+{
     OcclusionCullingParam::SetStencilPixelOcclusionCullingEnable(false);
     ASSERT_FALSE(OcclusionCullingParam::IsStencilPixelOcclusionCullingEnable());
 }
