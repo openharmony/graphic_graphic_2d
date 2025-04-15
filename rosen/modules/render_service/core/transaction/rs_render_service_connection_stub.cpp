@@ -144,6 +144,7 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_PACKAGE_EVENT),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_REFRESH_RATE_EVENT),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_SOFT_VSYNC_EVENT),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_SOFT_VSYNC_RATE_DISCOUNT_EVENT),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REPORT_EVENT_RESPONSE),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REPORT_EVENT_COMPLETE),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REPORT_EVENT_JANK_FRAME),
@@ -2751,6 +2752,21 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             NotifySoftVsyncEvent(pid, rateDiscount);
             break;
         }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_SOFT_VSYNC_RATE_DISCOUNT_EVENT) : {
+            uint32_t pid{0};
+            std::string name;
+            uint32_t rateDiscount{0};
+            if (!data.ReadUint32(pid) || !data.ReadString(name) || !data.ReadUint32(rateDiscount)) {
+                RS_LOGE("RSRenderServiceConnectionStub::NOTIFY_SOFT_VSYNC_RATE_DISCOUNT_EVENT Read parcel failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            bool result = NotifySoftVsyncRateDiscountEvent(pid, name, rateDiscount);
+            if (!reply.WriteBool(result)) {
+                ret = ERR_INVALID_REPLY;
+            }
+            break;
+        }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_DYNAMIC_MODE_EVENT) : {
             bool enableDynamicMode{false};
             if (!data.ReadBool(enableDynamicMode)) {
@@ -3304,6 +3320,13 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
 #endif
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_HIGH_CONTRAST_TEXT_STATE) : {
+            bool highContrast = GetHighContrastTextState();
+            if (!reply.WriteBool(highContrast)) {
+                ret = ERR_INVALID_REPLY;
+            }
+            break;
+        }
         default: {
             return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
         }

@@ -1064,6 +1064,28 @@ HWTEST_F(VSyncDistributorTest, AdaptiveDVSyncEnableTest001, Function | MediumTes
     vsyncDistributor->AdaptiveDVSyncEnable(nodeName, 0, 0, needConsume);
     ASSERT_EQ(needConsume, true);
 }
+
+/*
+* Function: SetVsyncRateDiscountLTPSTest001
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. test SetVsyncRateDiscountLTPS
+ */
+HWTEST_F(VSyncDistributorTest, SetVsyncRateDiscountLTPSTest001, Function | MediumTest| Level3)
+{
+    std::string name = "UnityChoreographer";
+    sptr<VSyncConnection> conn = new VSyncConnection(vsyncDistributor, name, nullptr, 4294967296);
+
+    vsyncDistributor->GetVsyncNameLinkerIds(1, name);
+    ASSERT_EQ(vsyncDistributor->SetVsyncRateDiscountLTPS(1, name, 1), VSYNC_ERROR_INVALID_ARGUMENTS);
+
+    ASSERT_EQ(vsyncDistributor->AddConnection(conn, 0), VSYNC_ERROR_OK);
+    vsyncDistributor->GetVsyncNameLinkerIds(1, name);
+    ASSERT_EQ(vsyncDistributor->SetVsyncRateDiscountLTPS(1, name, 1), VSYNC_ERROR_OK);
+    ASSERT_EQ(vsyncDistributor->SetVsyncRateDiscountLTPS(1, name, 2), VSYNC_ERROR_OK);
+    ASSERT_EQ(vsyncDistributor->RemoveConnection(conn), VSYNC_ERROR_OK);
+}
 } // namespace
 } // namespace Rosen
 } // namespace OHOS

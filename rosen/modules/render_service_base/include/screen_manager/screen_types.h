@@ -108,7 +108,6 @@ typedef enum : uint32_t {
     POWER_STATUS_DOZE,
     POWER_STATUS_DOZE_SUSPEND,
     POWER_STATUS_BUTT,
-    POWER_STATUS_OFF_ONGOING,
     INVALID_POWER_STATUS,
 } ScreenPowerStatus;
 

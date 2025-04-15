@@ -433,7 +433,7 @@ void RSUifirstManager::ProcessDoneNode()
             continue;
         }
         RS_LOGI("erase processingNode %{public}" PRIu64, id);
-        RS_TRACE_NAME_FMT("erase processingNode %s %{public}" PRIu64, drawable->GetName().c_str(), id);
+        RS_TRACE_NAME_FMT("erase processingNode %s %" PRIu64, drawable->GetName().c_str(), id);
         pendingPostNodes_.erase(it->first); // dele doing node in pendingpostlist
         pendingPostCardNodes_.erase(it->first);
         // skipped by doing, need update cache because the doing cache is too old
@@ -793,7 +793,7 @@ RSUifirstManager::SkipSyncState RSUifirstManager::CollectSkipSyncNodeWithDrawabl
     return SkipSyncState::STATE_NEED_CHECK;
 }
 
-bool RSUifirstManager::CollectSkipSyncNode(const std::shared_ptr<RSRenderNode> &node)
+CM_INLINE bool RSUifirstManager::CollectSkipSyncNode(const std::shared_ptr<RSRenderNode>& node)
 {
     if (!node) {
         return false;
@@ -1431,7 +1431,7 @@ bool RSUifirstManager::IsLeashWindowCache(RSSurfaceRenderNode& node, bool animat
         }
         // 1: Planning: support multi appwindows
         isNeedAssignToSubThread = (isNeedAssignToSubThread ||
-                (node.GetForceUIFirst() || node.GetUIFirstSwitch() == RSUIFirstSwitch::FORCE_ENABLE_LIMIT)) 
+                (node.GetForceUIFirst() || node.GetUIFirstSwitch() == RSUIFirstSwitch::FORCE_ENABLE_LIMIT))
                 && !node.HasFilter() && !RSUifirstManager::Instance().rotationChanged_;
     }
 
@@ -1496,7 +1496,7 @@ bool RSUifirstManager::IsNonFocusWindowCache(RSSurfaceRenderNode& node, bool ani
     return RSUifirstManager::Instance().QuerySubAssignable(node, isDisplayRotation);
 }
 
-bool RSUifirstManager::IsToSubByAppAnimation() const
+CM_INLINE bool RSUifirstManager::IsToSubByAppAnimation() const
 {
     for (auto& it : currentFrameEvent_) {
         if (std::find(toSubByAppAnimation_.begin(), toSubByAppAnimation_.end(), it.sceneId) !=
@@ -1960,6 +1960,17 @@ void RSUifirstManager::RecordScreenRect(RSSurfaceRenderNode& node, RectI rect)
         return;
     }
     stagingSurfaceParams->RecordScreenRect(rect);
+    node.AddToPendingSyncList();
+}
+
+void RSUifirstManager::RecordDirtyRegionMatrix(RSSurfaceRenderNode& node, const Drawing::Matrix& matrix)
+{
+    auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams*>(node.GetStagingRenderParams().get());
+    if (!stagingSurfaceParams) {
+        RS_LOGE("RecordDirtyRegionMatrix stagingSurfaceParams is nullptr");
+        return;
+    }
+    stagingSurfaceParams->RecordDirtyRegionMatrix(matrix);
     node.AddToPendingSyncList();
 }
 } // namespace Rosen

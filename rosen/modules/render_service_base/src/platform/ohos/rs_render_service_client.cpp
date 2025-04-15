@@ -2115,5 +2115,14 @@ void RSRenderServiceClient::NotifyPageName(const std::string &packageName,
     }
     renderService->NotifyPageName(packageName, pageName, isEnter);
 }
+
+bool RSRenderServiceClient::GetHighContrastTextState()
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService != nullptr) {
+        return renderService->GetHighContrastTextState();
+    }
+    return false;
+}
 } // namespace Rosen
 } // namespace OHOS

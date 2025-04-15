@@ -25,6 +25,7 @@
 #include "include/gpu/vk/GrVkExtensions.h"
 #include "vulkan/vulkan_core.h"
 #include "vulkan/vulkan_xeg.h"
+#include "platform/ohos/backend/rs_vulkan_header_ext.h"
 
 #define VK_NO_PROTOTYPES 1
 

@@ -38,10 +38,6 @@ ohos_fuzztest("RSRenderServiceConnectionStubFuzzTest") {
     "../../../../../modules/render_service/core/feature_cfg/xml_parser/performance_feature_parser",
     "../../../../../modules/render_service_base/src",
     "../../../../../test/include",
-    "$memmgr_root/interface/innerkits/include",
-    "$memmgr_root/services/memmgrservice/include/memory_level_manager",
-    "$memmgr_plugin_root/interface/innerkits/include",
-    "$memmgr_plugin_root/services/memmgrservice/include/memory_level_manager",
   ]
 
   deps = [
@@ -66,6 +62,10 @@ ohos_fuzztest("RSRenderServiceConnectionStubFuzzTest") {
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
+
+  if (use_memmgr_plugin || use_memmgr) {
+    external_deps += [ "memmgr:memmgrclient" ]
+  }
 
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]

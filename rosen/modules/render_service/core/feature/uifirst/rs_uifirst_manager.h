@@ -185,6 +185,7 @@ public:
     void MarkSubHighPriorityType(RSSurfaceRenderNode& node);
     void MarkPostNodesPriority();
     void RecordScreenRect(RSSurfaceRenderNode& node, RectI rect);
+    void RecordDirtyRegionMatrix(RSSurfaceRenderNode& node, const Drawing::Matrix& matrix);
 private:
     RSUifirstManager() = default;
     ~RSUifirstManager() = default;

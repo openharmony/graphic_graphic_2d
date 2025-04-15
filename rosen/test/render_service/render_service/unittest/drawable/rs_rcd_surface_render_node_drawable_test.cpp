@@ -115,20 +115,87 @@ void InitRcdRenderParamsInvalid03(RSRenderParams* params)
     rcdParams->SetResourceChanged(false);
 }
 
-
 void InitRcdRenderParamsInvalid04(RSRenderParams* params)
 {
     if (params == nullptr) {
         return;
     }
     auto rcdParams = static_cast<RSRcdRenderParams*>(params);
-    rcdParams->SetPathBin("");  // Invalid path
+    rcdParams->SetPathBin("");  // invalid path
     rcdParams->SetBufferSize(1);
     rcdParams->SetCldWidth(1);
     rcdParams->SetCldHeight(1);
     rcdParams->SetSrcRect(RectI(0, 0, 1, 1));
     rcdParams->SetDstRect(RectI(0, 0, 1, 1));
     rcdParams->SetRcdBitmap(std::make_shared<Drawing::Bitmap>());
+    rcdParams->SetRcdEnabled(true);
+    rcdParams->SetResourceChanged(false);
+}
+
+void InitRcdRenderParamsInvalid05(RSRenderParams* params)
+{
+    if (params == nullptr) {
+        return;
+    }
+    auto rcdParams = static_cast<RSRcdRenderParams*>(params);
+    rcdParams->SetPathBin("");
+    rcdParams->SetBufferSize(1);
+    rcdParams->SetCldWidth(1);
+    rcdParams->SetCldHeight(1);
+    rcdParams->SetSrcRect(RectI(0, 0, -1, -1));  // invalid src rect
+    rcdParams->SetDstRect(RectI(0, 0, -1, -1));  // invalid dst rect
+    rcdParams->SetRcdBitmap(std::make_shared<Drawing::Bitmap>());
+    rcdParams->SetRcdEnabled(true);
+    rcdParams->SetResourceChanged(false);
+}
+
+void InitRcdRenderParamsInvalid06(RSRenderParams* params)
+{
+    if (params == nullptr) {
+        return;
+    }
+    auto rcdParams = static_cast<RSRcdRenderParams*>(params);
+    rcdParams->SetPathBin("");
+    rcdParams->SetBufferSize(1); // invalid buffer size
+    rcdParams->SetCldWidth(1);   // invalid cld width
+    rcdParams->SetCldHeight(1);  // invalid cld height
+    rcdParams->SetSrcRect(RectI(0, 0, 1, 1));
+    rcdParams->SetDstRect(RectI(0, 0, 1, 1));
+    rcdParams->SetRcdBitmap(std::make_shared<Drawing::Bitmap>());
+    rcdParams->SetRcdEnabled(true);
+    rcdParams->SetResourceChanged(false);
+}
+
+void InitRcdRenderParamsInvalid07(RSRenderParams* params)
+{
+    if (params == nullptr) {
+        return;
+    }
+    auto rcdParams = static_cast<RSRcdRenderParams*>(params);
+    rcdParams->SetPathBin("");  // invalid path
+    rcdParams->SetBufferSize(1);
+    rcdParams->SetCldWidth(1);
+    rcdParams->SetCldHeight(1);
+    rcdParams->SetSrcRect(RectI(0, 0, 1, 1));
+    rcdParams->SetDstRect(RectI(0, 0, 1, 1));
+    rcdParams->SetRcdBitmap(nullptr);  // invalid bitmap
+    rcdParams->SetRcdEnabled(true);
+    rcdParams->SetResourceChanged(false);
+}
+
+void InitRcdRenderParamsInvalid08(RSRenderParams* params)
+{
+    if (params == nullptr) {
+        return;
+    }
+    auto rcdParams = static_cast<RSRcdRenderParams*>(params);
+    rcdParams->SetPathBin("");                   // Invalid path
+    rcdParams->SetBufferSize(1);                 // invalid buffer size
+    rcdParams->SetCldWidth(1);                   // invalid cld width
+    rcdParams->SetCldHeight(1);                  // invalid cld height
+    rcdParams->SetSrcRect(RectI(0, 0, -1, -1));  // invalid src rect
+    rcdParams->SetDstRect(RectI(0, 0, -1, -1));  // invalid dst rect
+    rcdParams->SetRcdBitmap(nullptr);            // invalid bitmap
     rcdParams->SetRcdEnabled(true);
     rcdParams->SetResourceChanged(false);
 }
@@ -285,6 +352,18 @@ HWTEST_F(RSRcdSurfaceRenderNodeDrawableTest, RCDDrawableInvalidParameters, TestS
     InitRcdRenderParamsInvalid04(rcdDrawable->renderParams_.get());
     EXPECT_TRUE(rcdDrawable->FillHardwareResource(2, 2) == false);
 
+    InitRcdRenderParamsInvalid05(rcdDrawable->renderParams_.get());
+    EXPECT_TRUE(rcdDrawable->FillHardwareResource(2, 2) == false);
+
+    InitRcdRenderParamsInvalid06(rcdDrawable->renderParams_.get());
+    EXPECT_TRUE(rcdDrawable->FillHardwareResource(2, 2) == false);
+
+    InitRcdRenderParamsInvalid07(rcdDrawable->renderParams_.get());
+    EXPECT_TRUE(rcdDrawable->FillHardwareResource(2, 2) == false);
+
+    InitRcdRenderParamsInvalid08(rcdDrawable->renderParams_.get());
+    EXPECT_TRUE(rcdDrawable->FillHardwareResource(2, 2) == false);
+
     delete surfaceBuffer;
 }
 
@@ -329,12 +408,12 @@ HWTEST_F(RSRcdSurfaceRenderNodeDrawableTest, ProcessRcdSurfaceRenderNode1, TestS
 }
 
 /*
- * @tc.name: ConsumeAndUpdateBufferTest
- * @tc.desc: Test RSRcdSurfaceRenderNodeDrawableTest.ConsumeAndUpdateBufferTest
+ * @tc.name: ConsumeAndUpdateBufferTest1
+ * @tc.desc: Test RSRcdSurfaceRenderNodeDrawableTest.ConsumeAndUpdateBufferTest1
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSRcdSurfaceRenderNodeDrawableTest, ConsumeAndUpdateBufferTest, TestSize.Level1)
+HWTEST_F(RSRcdSurfaceRenderNodeDrawableTest, ConsumeAndUpdateBufferTest1, TestSize.Level1)
 {
     auto bottomDrawable = GetRcdTestDrawable();
     EXPECT_NE(bottomDrawable, nullptr);
@@ -352,6 +431,41 @@ HWTEST_F(RSRcdSurfaceRenderNodeDrawableTest, ConsumeAndUpdateBufferTest, TestSiz
     bottomDrawable->PrepareResourceBuffer();
     bottomDrawable->ProcessRcdSurfaceRenderNode(processor);
 }
+
+/*
+ * @tc.name: ConsumeAndUpdateBufferTest2
+ * @tc.desc: Test RSRcdSurfaceRenderNodeDrawableTest.ConsumeAndUpdateBufferTest2
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRcdSurfaceRenderNodeDrawableTest, ConsumeAndUpdateBufferTest2, TestSize.Level1)
+{
+    auto bottomDrawable = GetRcdTestDrawable();
+    EXPECT_NE(bottomDrawable, nullptr);
+
+    auto renderParams = std::move(bottomDrawable->renderParams_);
+    EXPECT_TRUE(!bottomDrawable->ConsumeAndUpdateBuffer());
+    bottomDrawable->renderParams_ = std::move(renderParams);
+
+    auto surfaceHandler = bottomDrawable->surfaceHandler_;
+    bottomDrawable->surfaceHandler_ = nullptr;
+    EXPECT_TRUE(!bottomDrawable->ConsumeAndUpdateBuffer());
+    bottomDrawable->surfaceHandler_ = surfaceHandler;
+
+    auto bufferCount = surfaceHandler->bufferAvailableCount_.load();
+    surfaceHandler->bufferAvailableCount_.store(0);
+    EXPECT_TRUE(bottomDrawable->ConsumeAndUpdateBuffer());
+    surfaceHandler->bufferAvailableCount_.store(bufferCount);
+
+    auto consumer = surfaceHandler->consumer_;
+    surfaceHandler->consumer_ = nullptr;
+    EXPECT_TRUE(bottomDrawable->ConsumeAndUpdateBuffer());
+    surfaceHandler->consumer_ = consumer;
+
+    bottomDrawable->PrepareResourceBuffer();
+    bottomDrawable->ConsumeAndUpdateBuffer();
+}
+
 
 /*
  * @tc.name: RSRcdSurfaceRenderNodeDrawable

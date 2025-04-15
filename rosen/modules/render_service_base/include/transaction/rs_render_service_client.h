@@ -448,6 +448,9 @@ public:
     int32_t RegisterSelfDrawingNodeRectChangeCallback(const SelfDrawingNodeRectChangeCallback& callback);
 
     void NotifyPageName(const std::string &packageName, const std::string &pageName, bool isEnter);
+
+    bool GetHighContrastTextState();
+
 private:
     void TriggerSurfaceCaptureCallback(NodeId id, const RSSurfaceCaptureConfig& captureConfig,
         std::shared_ptr<Media::PixelMap> pixelmap);

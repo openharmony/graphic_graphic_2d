@@ -30,7 +30,6 @@
 #include "feature/uifirst/rs_sub_thread_manager.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
 #include "graphic_feature_param_manager.h"
-#include "include/gpu/vk/GrVulkanTrackerInterface.h"
 #include "memory/rs_tag_tracker.h"
 #include "params/rs_display_render_params.h"
 #include "params/rs_surface_render_params.h"
@@ -409,7 +408,6 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     if (vmaCacheOff_) {
         Drawing::StaticFactory::SetVmaCacheStatus(false); // render this frame with vma cache off
     }
-    RECORD_GPU_RESOURCE_DRAWABLE_CALLER(GetId())
     auto rscanvas = reinterpret_cast<RSPaintFilterCanvas*>(&canvas);
     if (!rscanvas) {
         SetDrawSkipType(DrawSkipType::CANVAS_NULL);
@@ -567,7 +565,7 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     } else {
         gpuContext = RSSubThreadManager::Instance()->GetGrContextFromSubThread(realTid);
     }
-    RSTagTracker tagTracker(gpuContext.get(), surfaceParams->GetId(),
+    RSTagTracker tagTracker(gpuContext.get(), surfaceParams->GetId(), surfaceParams->GetId(),
         RSTagTracker::TAGTYPE::TAG_DRAW_SURFACENODE, surfaceParams->GetName());
 
     // Draw base pipeline start
@@ -844,6 +842,36 @@ void RSSurfaceRenderNodeDrawable::ResetVirtualScreenWhiteListRootId(NodeId id)
     }
 }
 
+bool RSSurfaceRenderNodeDrawable::IsVisibleRegionEqualOnPhysicalAndVirtual(RSSurfaceRenderParams& surfaceParams)
+{
+    // leash window has no visible region, we should check its children.
+    if (surfaceParams.IsLeashWindow()) {
+        for (const auto& nestedDrawable : GetDrawableVectorById(surfaceParams.GetAllSubSurfaceNodeIds())) {
+            auto surfaceDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(nestedDrawable);
+            if (!surfaceDrawable) {
+                continue;
+            }
+            auto renderParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable->GetRenderParams().get());
+            if (!renderParams) {
+                continue;
+            }
+            if (!IsVisibleRegionEqualOnPhysicalAndVirtual(*renderParams)) {
+                RS_LOGD("%{public}s visible region not equal, id:%{public}" PRIu64,
+                    renderParams->GetName().c_str(), renderParams->GetId());
+                RS_TRACE_NAME_FMT("%s visible region not equal, id:%" PRIu64,
+                    renderParams->GetName().c_str(), renderParams->GetId());
+                return false;
+            }
+        }
+        return true;
+    }
+
+    auto visibleRegion = surfaceParams.GetVisibleRegion();
+    auto virtualVisibleRegion = surfaceParams.GetVisibleRegionInVirtual();
+    // use XOR to check if two regions are equal.
+    return visibleRegion.Xor(virtualVisibleRegion).IsEmpty();
+}
+
 void RSSurfaceRenderNodeDrawable::CaptureSurface(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams)
 {
     RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
@@ -920,7 +948,7 @@ void RSSurfaceRenderNodeDrawable::CaptureSurface(RSPaintFilterCanvas& canvas, RS
         !RSUniRenderThread::GetCaptureParam().isSystemCalling_;
     bool enableVisiableRect = RSUniRenderThread::Instance().GetEnableVisiableRect();
     if (!(specialLayerManager.Find(HAS_GENERAL_SPECIAL) || surfaceParams.GetHDRPresent() || hasHidePrivacyContent ||
-        enableVisiableRect)) {
+        enableVisiableRect || !IsVisibleRegionEqualOnPhysicalAndVirtual(surfaceParams))) {
         if (subThreadCache_.DealWithUIFirstCache(this, canvas, surfaceParams, *uniParams)) {
             if (RSUniRenderThread::GetCaptureParam().isSingleSurface_) {
                 RS_LOGI("%{public}s DealWithUIFirstCache", __func__);
@@ -1012,7 +1040,15 @@ void RSSurfaceRenderNodeDrawable::DealWithSelfDrawingNodeBuffer(
             VideoInfo videoInfo;
             auto surfaceNodeImage = renderEngine->CreateImageFromBuffer(canvas, params, videoInfo);
 
-            SurfaceNodeInfo surfaceNodeInfo = {surfaceNodeImage, rotateMatrix, params.srcRect, params.dstRect};
+            // Use to adapt to AIBar DSS solution
+            Color solidLayerColor = RgbPalette::Transparent();
+            if (surfaceParams.GetIsHwcEnabledBySolidLayer()) {
+                solidLayerColor = surfaceParams.GetSolidLayerColor();
+                RS_TRACE_NAME_FMT("solidLayer enabled, color:%08x", solidLayerColor.AsArgbInt());
+            }
+            SurfaceNodeInfo surfaceNodeInfo = {
+                surfaceNodeImage, rotateMatrix, params.srcRect, params.dstRect, solidLayerColor};
+
             HveFilter::GetHveFilter().PushSurfaceNodeInfo(surfaceNodeInfo);
         }
         return;

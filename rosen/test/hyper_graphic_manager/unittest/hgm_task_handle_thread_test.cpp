@@ -15,16 +15,17 @@
 
 #include <gtest/gtest.h>
 #include <test_header.h>
+#include <thread>
 
 #include "hgm_task_handle_thread.h"
-#include <thread>
+#include "hgm_test_base.h"
 
 using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS {
 namespace Rosen {
-class HgmTaskHandleThreadTest : public testing::Test {
+class HgmTaskHandleThreadTest : public HgmTestBase {
 public:
     static void SetUpTestCase();
     static void TearDownTestCase();
@@ -32,7 +33,10 @@ public:
     void TearDown();
 };
 
-void HgmTaskHandleThreadTest::SetUpTestCase() {}
+void HgmTaskHandleThreadTest::SetUpTestCase()
+{
+    HgmTestBase::SetUpTestCase();
+}
 void HgmTaskHandleThreadTest::TearDownTestCase() {}
 void HgmTaskHandleThreadTest::SetUp() {}
 void HgmTaskHandleThreadTest::TearDown() {}

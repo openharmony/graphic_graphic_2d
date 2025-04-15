@@ -32,7 +32,7 @@ int32_t OcclusionCullingParamParse::ParseFeatureParam(FeatureParamMapType &featu
             continue;
         }
 
-        if (ParseOcclusionCullingInternal(featureMap, *curNode) != PARSE_EXEC_SUCCESS) {
+        if (ParseOcclusionCullingInternal(*curNode) != PARSE_EXEC_SUCCESS) {
             RS_LOGE("OcclusionCullingParamParse stop parsing, parse internal fail");
             return PARSE_INTERNAL_FAIL;
         }
@@ -41,7 +41,7 @@ int32_t OcclusionCullingParamParse::ParseFeatureParam(FeatureParamMapType &featu
     return PARSE_EXEC_SUCCESS;
 }
 
-int32_t OcclusionCullingParamParse::ParseOcclusionCullingInternal(FeatureParamMapType &featureMap, xmlNode &node)
+int32_t OcclusionCullingParamParse::ParseOcclusionCullingInternal(xmlNode &node)
 {
     // Start Parse Feature Params
     int xmlParamType = GetXmlNodeAsInt(node);

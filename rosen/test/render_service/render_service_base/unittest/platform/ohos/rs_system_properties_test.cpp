@@ -938,7 +938,7 @@ HWTEST_F(RSSystemPropertiesTest, GetImageGpuResourceCacheEnable, TestSize.Level1
  */
 HWTEST_F(RSSystemPropertiesTest, GetBoolSystemProperty, TestSize.Level1)
 {
-    ASSERT_TRUE(RSSystemProperties::GetBoolSystemProperty(std::string("noName").c_str(), true));
+    EXPECT_FALSE(RSSystemProperties::GetBoolSystemProperty(std::string("noName").c_str(), false));
 }
 
 /**

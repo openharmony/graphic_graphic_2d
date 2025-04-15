@@ -1043,5 +1043,10 @@ void RSInterfaces::NotifyPageName(const std::string &packageName, const std::str
         renderServiceClient_->NotifyPageName(packageName, pageName, isEnter);
     }
 }
+
+bool RSInterfaces::GetHighContrastTextState()
+{
+    return renderServiceClient_->GetHighContrastTextState();
+}
 } // namespace Rosen
 } // namespace OHOS

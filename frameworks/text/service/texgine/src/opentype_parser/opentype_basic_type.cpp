@@ -42,7 +42,8 @@ const std::string Tag::Get() const
 int16_t Int16::Get() const
 {
     if (G_ENDIAN.big != '\0') {
-        return ((data & 0x0000ff00) >> 8) | ((data & 0x000000ff) << 8);     // 8 means offset
+        // 8 means offset
+        return ((static_cast<uint16_t>(data) & 0x0000ff00) >> 8) | ((static_cast<uint16_t>(data) & 0x000000ff) << 8);
     } else {
         return data;
     }

@@ -28,7 +28,7 @@ public:
     int32_t ParseFeatureParam(FeatureParamMapType &featureMap, xmlNode &node) override;
 
 private:
-    int32_t ParseOcclusionCullingInternal(FeatureParamMapType &featureMap, xmlNode &node);
+    int32_t ParseOcclusionCullingInternal(xmlNode &node);
 };
 } // namespace OHOS::Rosen
 #endif // OCCLUSION_CULLING_PARAM_PARSE_H

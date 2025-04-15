@@ -22,10 +22,6 @@ ohos_unittest("2d_graphics_engine_adapter_test") {
 
   sources = [ "static_factory_test.cpp" ]
 
-  include_dirs = [ "//third_party/googletest/googletest/include" ]
-
-  deps = [ "//third_party/googletest:gtest_main" ]
-
   defines = [ "ROSEN_OHOS" ]
   if (rs_enable_gpu) {
     defines += [ "RS_ENABLE_GPU" ]

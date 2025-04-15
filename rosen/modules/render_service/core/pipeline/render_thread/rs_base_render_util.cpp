@@ -966,7 +966,7 @@ void RSBaseRenderUtil::MergeBufferDamages(Rect& surfaceDamage, const std::vector
     surfaceDamage = { damage.left_, damage.top_, damage.width_, damage.height_ };
 }
 
-bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler,
+CM_INLINE bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler,
     uint64_t presentWhen, bool dropFrameByPidEnable, bool adaptiveDVSyncEnable, bool needConsume)
 {
     if (surfaceHandler.GetAvailableBufferCount() <= 0) {
@@ -1385,7 +1385,7 @@ void RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(GraphicTransformType tr
     }
 
     if (nodeParams != nullptr && (nodeParams->GetApiCompatibleVersion() >= API18 ||
-        nodeParams->GetName() == "RosenWeb")) {
+        nodeParams->GetName().find("RosenWeb") != std::string::npos)) {
         // deal with buffer's gravity effect in node's inner space.
         params.matrix.PreConcat(RSBaseRenderUtil::GetGravityMatrix(gravity, bufferBounds, localBounds));
         params.matrix.PreConcat(
@@ -1589,44 +1589,6 @@ bool RSBaseRenderUtil::WriteSurfaceRenderNodeToPng(const RSSurfaceRenderNode& no
     param.height = static_cast<uint32_t>(bufferHandle->height);
     param.data = static_cast<uint8_t *>(buffer->GetVirAddr());
     param.stride = static_cast<uint32_t>(bufferHandle->stride);
-    param.bitDepth = Detail::BITMAP_DEPTH;
-
-    return WriteToPng(filename, param);
-}
-
-bool RSBaseRenderUtil::WriteCacheRenderNodeToPng(const RSRenderNode& node)
-{
-    auto type = RSSystemProperties::GetDumpSurfaceType();
-    if (type != DumpSurfaceType::SINGLESURFACE && type != DumpSurfaceType::ALLSURFACES) {
-        return false;
-    }
-    uint64_t id = static_cast<uint64_t>(RSSystemProperties::GetDumpSurfaceId());
-    if (type == DumpSurfaceType::SINGLESURFACE && !ROSEN_EQ(node.GetId(), id)) {
-        return false;
-    }
-    std::shared_ptr<Drawing::Surface> surface = node.GetCacheSurface();
-    if (!surface) {
-        return false;
-    }
-
-    int64_t nowVal = GenerateCurrentTimeStamp();
-    std::string filename = "/data/CacheRenderNode_" +
-        std::to_string(node.GetId()) + "_" +
-        std::to_string(nowVal) + ".png";
-    WriteToPngParam param;
-
-    auto image = surface->GetImageSnapshot();
-    if (!image) {
-        return false;
-    }
-    Drawing::BitmapFormat format = { Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_PREMUL };
-    Drawing::Bitmap bitmap;
-    bitmap.Build(image->GetWidth(), image->GetHeight(), format);
-    image->ReadPixels(bitmap, 0, 0);
-    param.width = static_cast<uint32_t>(image->GetWidth());
-    param.height = static_cast<uint32_t>(image->GetHeight());
-    param.data = static_cast<uint8_t *>(bitmap.GetPixels());
-    param.stride = static_cast<uint32_t>(bitmap.GetRowBytes());
     param.bitDepth = Detail::BITMAP_DEPTH;
 
     return WriteToPng(filename, param);
@@ -1888,33 +1850,6 @@ GraphicTransformType RSBaseRenderUtil::GetFlipTransform(GraphicTransformType tra
         case GraphicTransformType::GRAPHIC_FLIP_V_ROT180:
         case GraphicTransformType::GRAPHIC_FLIP_V_ROT270: {
             return GraphicTransformType::GRAPHIC_FLIP_V;
-        }
-        default: {
-            return transform;
-        }
-    }
-}
-
-GraphicTransformType RSBaseRenderUtil::ClockwiseToAntiClockwiseTransform(GraphicTransformType transform)
-{
-    switch (transform) {
-        case GraphicTransformType::GRAPHIC_ROTATE_90: {
-            return GraphicTransformType::GRAPHIC_ROTATE_270;
-        }
-        case GraphicTransformType::GRAPHIC_ROTATE_270: {
-            return GraphicTransformType::GRAPHIC_ROTATE_90;
-        }
-        case GraphicTransformType::GRAPHIC_FLIP_H_ROT90: {
-            return GraphicTransformType::GRAPHIC_FLIP_V_ROT90;
-        }
-        case GraphicTransformType::GRAPHIC_FLIP_H_ROT270: {
-            return GraphicTransformType::GRAPHIC_FLIP_V_ROT270;
-        }
-        case GraphicTransformType::GRAPHIC_FLIP_V_ROT90: {
-            return GraphicTransformType::GRAPHIC_FLIP_H_ROT90;
-        }
-        case GraphicTransformType::GRAPHIC_FLIP_V_ROT270: {
-            return GraphicTransformType::GRAPHIC_FLIP_H_ROT270;
         }
         default: {
             return transform;

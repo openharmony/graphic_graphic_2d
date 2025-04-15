@@ -123,14 +123,18 @@ ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(DrawableV2::RSDisplayRe
         return info;
     }
     const auto& buffer = surfaceHandler->GetBuffer(); // we guarantee the buffer is valid.
+#ifndef ROSEN_EMULATOR
     const auto& activeRect = params->GetScreenInfo().activeRect;
+#endif
     info.srcRect = GraphicIRect {0, 0, buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight()};
     info.dstRect = GraphicIRect {0, 0, static_cast<int32_t>(screenInfo_.GetRotatedPhyWidth()),
         static_cast<int32_t>(screenInfo_.GetRotatedPhyHeight())};
+#ifndef ROSEN_EMULATOR
     if (activeRect.width_ > 0 && activeRect.height_ > 0) {
         info.srcRect = GraphicIRect {activeRect.left_, activeRect.top_, activeRect.width_, activeRect.height_};
         info.dstRect = GraphicIRect {activeRect.left_, activeRect.top_, activeRect.width_, activeRect.height_};
     }
+#endif
     auto bound = params->GetBounds();
     info.boundRect = {0, 0,
         static_cast<int32_t>(bound.GetWidth()), static_cast<int32_t>(bound.GetHeight())};

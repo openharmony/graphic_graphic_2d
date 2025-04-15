@@ -88,6 +88,7 @@ HWTEST_F(RSPointerWindowManagerTest, SetHardCursorNodeInfoTest002, TestSize.Leve
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(1);
     surfaceNode->nodeType_ = RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE;
     surfaceNode->name_ = "pointer window";
+    surfaceNode->isOnTheTree_ = true;
     auto& rsPointerWindowManager = RSPointerWindowManager::Instance();
     rsPointerWindowManager.SetHardCursorNodeInfo(surfaceNode);
     ASSERT_NE(rsPointerWindowManager.hardCursorNodeMap_.size(), 0);
@@ -102,7 +103,12 @@ HWTEST_F(RSPointerWindowManagerTest, HardCursorCreateLayerForDirectTest, TestSiz
 {
     auto processor = std::make_shared<RSUniRenderProcessor>();
     ASSERT_NE(processor, nullptr);
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(1);
+    surfaceNode->nodeType_ = RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE;
+    surfaceNode->name_ = "pointer window";
+    surfaceNode->isOnTheTree_ = true;
     auto& rsPointerWindowManager = RSPointerWindowManager::Instance();
+    rsPointerWindowManager.SetHardCursorNodeInfo(surfaceNode);
     auto& hardCursorNodes = rsPointerWindowManager.GetHardCursorNode();
     ASSERT_NE(hardCursorNodes.size(), 0);
     for (auto& [_, drawable] :  hardCursorNodes) {

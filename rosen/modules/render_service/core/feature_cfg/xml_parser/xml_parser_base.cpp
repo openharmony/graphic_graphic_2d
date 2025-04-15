@@ -131,6 +131,7 @@ bool XMLParserBase::ParseInternal(xmlNode &node)
         RS_LOGI("XMLParserBase featureName is: %{public}s", featureName.c_str());
         if (featureName == "") {
             RS_LOGE("XMLParserBase featureName is empty");
+            continue;
         }
         auto parseMap = GraphicFeatureParamManager::GetInstance().featureParseMap_;
         auto featureMap = GraphicFeatureParamManager::GetInstance().featureParamMap_;
@@ -140,6 +141,7 @@ bool XMLParserBase::ParseInternal(xmlNode &node)
             parseSuccess = featureObj->ParseFeatureParam(featureMap, *currNode);
             if (parseSuccess != PARSE_EXEC_SUCCESS) {
                 RS_LOGE("XMLParserBase current feature : %{public}s parse fail", featureName.c_str());
+                continue;
             }
         } else {
             RS_LOGD("XMLParserBase featureMap cannot find feature %{public}s", featureName.c_str());

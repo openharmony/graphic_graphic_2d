@@ -36,7 +36,7 @@ public:
         std::shared_ptr<RSUIContext> rsUIContext = nullptr);
 
 protected:
-    void AttachRSSurfaceNode(std::shared_ptr<RSSurfaceNode> surfaceNode) const;
+    void AttachRSSurfaceNode(std::shared_ptr<RSSurfaceNode> surfaceNode);
     void SetEnableRender(bool flag) const;
     void OnBoundsSizeChanged() const override;
 

@@ -28,10 +28,8 @@ public:
     int32_t ParseFeatureParam(FeatureParamMapType &featureMap, xmlNode &node) override;
 
 private:
-    int32_t ParseDVSyncInternal(FeatureParamMapType &featureMap, xmlNode &node);
+    int32_t ParseDVSyncInternal(xmlNode &node);
     int32_t ParseFeatureMultiParam(xmlNode &node, std::string &name);
-
-    std::shared_ptr<DVSyncParam> dvsyncParam_;
 };
 } // namespace OHOS::Rosen
 #endif // DVSYNC_PARAM_PARSE_H

@@ -1096,24 +1096,6 @@ HWTEST_F(RSSurfaceRenderNodeTest, UpdateSrcRectTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: UpdateHwcDisabledBySrcRectTest
- * @tc.desc: test results of UpdateHwcDisabledBySrcRect
- * @tc.type: FUNC
- * @tc.require: issueI9JAFQ
- */
-HWTEST_F(RSSurfaceRenderNodeTest, UpdateHwcDisabledBySrcRectTest, TestSize.Level1)
-{
-    bool hasRotation = false;
-    auto buffer = SurfaceBuffer::Create();
-    auto renderNode = std::make_shared<RSSurfaceRenderNode>(id, context);
-    renderNode->UpdateHwcDisabledBySrcRect(hasRotation);
-
-    renderNode->GetRSSurfaceHandler()->buffer_.buffer = buffer;
-    renderNode->UpdateHwcDisabledBySrcRect(hasRotation);
-    ASSERT_FALSE(renderNode->isHardwareForcedDisabledBySrcRect_);
-}
-
-/**
  * @tc.name: IsYUVBufferFormatTest
  * @tc.desc: test results of IsYUVBufferFormat
  * @tc.type: FUNC

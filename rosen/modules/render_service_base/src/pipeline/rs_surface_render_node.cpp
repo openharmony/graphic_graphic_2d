@@ -178,17 +178,6 @@ void RSSurfaceRenderNode::UpdateSrcRect(const Drawing::Canvas& canvas, const Dra
     }
 }
 
-void RSSurfaceRenderNode::UpdateHwcDisabledBySrcRect(bool hasRotation)
-{
-#ifndef ROSEN_CROSS_PLATFORM
-    const auto& buffer = surfaceHandler_->GetBuffer();
-    isHardwareForcedDisabledBySrcRect_ = false;
-    if (buffer == nullptr) {
-        return;
-    }
-#endif
-}
-
 bool RSSurfaceRenderNode::IsYUVBufferFormat() const
 {
 #ifndef ROSEN_CROSS_PLATFORM
@@ -1806,6 +1795,7 @@ void RSSurfaceRenderNode::UpdateHwcNodeLayerInfo(GraphicTransformType transform,
     layer.matrix = totalMatrix_;
     layer.alpha = GetGlobalAlpha();
     layer.arsrTag = GetArsrTag();
+    layer.copybitTag = GetCopybitTag();
     if (isHardCursorEnable) {
         layer.layerType = GraphicLayerType::GRAPHIC_LAYER_TYPE_CURSOR;
     } else {

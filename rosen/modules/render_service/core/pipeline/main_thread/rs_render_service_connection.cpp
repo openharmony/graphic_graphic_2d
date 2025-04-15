@@ -992,15 +992,6 @@ ErrCode RSRenderServiceConnection::GetRefreshInfo(pid_t pid, std::string& enable
     auto& context = mainThread_->GetContext();
     auto& nodeMap = context.GetMutableNodeMap();
     std::string surfaceName = nodeMap.GetSelfDrawSurfaceNameByPid(pid);
-    NodeId nodeId = 0;
-    nodeMap.TraverseSurfaceNodesBreakOnCondition(
-        [&nodeId, &surfaceName](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) {
-        if (surfaceNode->GetName() == surfaceName && surfaceNode->IsOnTheTree() == true) {
-            nodeId = surfaceNode->GetId();
-            return true;
-        }
-        return false;
-    });
     if (surfaceName.empty()) {
         enable = "";
         return ERR_INVALID_VALUE;
@@ -1010,22 +1001,22 @@ ErrCode RSRenderServiceConnection::GetRefreshInfo(pid_t pid, std::string& enable
     if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
 #ifdef RS_ENABLE_GPU
         RSHardwareThread::Instance().ScheduleTask(
-            [weakThis = wptr<RSRenderServiceConnection>(this), &dumpString, &nodeId]() {
+            [weakThis = wptr<RSRenderServiceConnection>(this), &dumpString, &pid]() {
                 sptr<RSRenderServiceConnection> connection = weakThis.promote();
                 if (connection == nullptr || connection->screenManager_ == nullptr) {
                     return;
                 }
-                RSSurfaceFpsManager::GetInstance().Dump(dumpString, nodeId);
+                RSSurfaceFpsManager::GetInstance().DumpByPid(dumpString, pid);
             }).wait();
 #endif
     } else {
         mainThread_->ScheduleTask(
-            [weakThis = wptr<RSRenderServiceConnection>(this), &dumpString, &nodeId]() {
+            [weakThis = wptr<RSRenderServiceConnection>(this), &dumpString, &pid]() {
                 sptr<RSRenderServiceConnection> connection = weakThis.promote();
                 if (connection == nullptr || connection->screenManager_ == nullptr) {
                     return;
                 }
-                RSSurfaceFpsManager::GetInstance().Dump(dumpString, nodeId);
+                RSSurfaceFpsManager::GetInstance().DumpByPid(dumpString, pid);
             }).wait();
     }
     enable = dumpString;
@@ -1154,6 +1145,7 @@ void RSRenderServiceConnection::SetScreenPowerStatus(ScreenId id, ScreenPowerSta
             }
             screenManager_->SetScreenPowerStatus(id, status);
         }).wait();
+        screenManager_->WaitScreenPowerStatusTask();
         mainThread_->SetDiscardJankFrames(true);
         renderThread_.SetDiscardJankFrames(true);
         HgmTaskHandleThread::Instance().PostTask([id, status]() {
@@ -2538,6 +2530,43 @@ ErrCode RSRenderServiceConnection::NotifySoftVsyncEvent(uint32_t pid, uint32_t r
     return ERR_OK;
 }
 
+bool RSRenderServiceConnection::NotifySoftVsyncRateDiscountEvent(uint32_t pid,
+    const std::string &name, uint32_t rateDiscount)
+{
+    if (!appVSyncDistributor_) {
+        return false;
+    }
+
+    std::vector<uint64_t> linkerIds = appVSyncDistributor_->GetVsyncNameLinkerIds(pid, name);
+    if (linkerIds.empty()) {
+        RS_LOGW("RSRenderServiceConnection::NotifySoftVsyncRateDiscountEvent: pid=%{public}d linkerIds is nullptr.",
+            pid);
+        return false;
+    }
+
+    auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
+    if (frameRateMgr == nullptr) {
+        RS_LOGW("RSRenderServiceConnection::NotifySoftVsyncRateDiscountEvent: pid=%{public}d frameRateMgr is nullptr.",
+            pid);
+        return false;
+    }
+
+    if (!frameRateMgr->SetVsyncRateDiscountLTPO(linkerIds, rateDiscount)) {
+        RS_LOGW("RSRenderServiceConnection::NotifySoftVsyncRateDiscountEvent: pid=%{public}d Set LTPO fail.",
+            pid);
+        return false;
+    }
+
+    VsyncError ret = appVSyncDistributor_->SetVsyncRateDiscountLTPS(pid, name, rateDiscount);
+    if (ret != VSYNC_ERROR_OK) {
+        RS_LOGW("RSRenderServiceConnection::NotifySoftVsyncRateDiscountEvent: pid=%{public}d Set LTPS fail.",
+            pid);
+        return false;
+    }
+
+    return true;
+}
+
 void RSRenderServiceConnection::NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt)
 {
     if (mainThread_ != nullptr) {
@@ -2569,8 +2598,14 @@ ErrCode RSRenderServiceConnection::NotifyHgmConfigEvent(const std::string &event
             RS_LOGW("RSRenderServiceConnection::NotifyHgmConfigEvent: frameRateMgr is nullptr.");
             return;
         }
+        RS_LOGI("RSRenderServiceConnection::NotifyHgmConfigEvent: recive notify %{public}s, %{public}d",
+            eventName.c_str(), state);
         if (eventName == "HGMCONFIG_HIGH_TEMP") {
-            frameRateMgr->HandleThermalFrameRate(state);
+            frameRateMgr->HandleScreenExtStrategyChange(state, HGM_CONFIG_TYPE_THERMAL_SUFFIX);
+        } else if (eventName == "IA_DRAG_SLIDE") {
+            frameRateMgr->HandleScreenExtStrategyChange(state, HGM_CONFIG_TYPE_DRAGSLIDE_SUFFIX);
+        } else if (eventName == "IL_THROW_SLIDE") {
+            frameRateMgr->HandleScreenExtStrategyChange(state, HGM_CONFIG_TYPE_THROWSLIDE_SUFFIX);
         }
     });
     return ERR_OK;
@@ -3026,5 +3061,11 @@ ErrCode RSRenderServiceConnection::NotifyPageName(const std::string &packageName
     });
     return StatusCode::SUCCESS;
 }
+
+bool RSRenderServiceConnection::GetHighContrastTextState()
+{
+    return RSBaseRenderEngine::IsHighContrastEnabled();
+}
+
 } // namespace Rosen
 } // namespace OHOS

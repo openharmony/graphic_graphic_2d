@@ -85,7 +85,7 @@ bool RSSurfaceCaptureTask::Run(sptr<RSISurfaceCaptureCallback> callback)
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     auto renderContext = RSMainThread::Instance()->GetRenderEngine()->GetRenderContext();
     Drawing::GPUContext* grContext = renderContext != nullptr ? renderContext->GetDrGPUContext() : nullptr;
-    RSTagTracker tagTracker(grContext, node->GetId(), RSTagTracker::TAGTYPE::TAG_CAPTURE, nodeName);
+    RSTagTracker tagTracker(grContext, node->GetId(), node->GetId(), RSTagTracker::TAGTYPE::TAG_CAPTURE, nodeName);
 #endif
     auto surface = CreateSurface(pixelmap, colorSpace);
     if (surface == nullptr) {

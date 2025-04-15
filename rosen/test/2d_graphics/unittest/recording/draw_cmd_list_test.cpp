@@ -152,20 +152,6 @@ HWTEST_F(DrawCmdListTest, GenerateCacheByBuffer006, TestSize.Level1)
     EXPECT_FALSE(drawCmdList->isCached_);
     delete drawCmdList;
 }
-
-/**
- * @tc.name: CountTextBlobNum007
- * @tc.desc: Test the CountTextBlobNum function.
- * @tc.type: FUNC
- * @tc.require: IBJ4VQ
- */
-HWTEST_F(DrawCmdListTest, CountTextBlobNum007, TestSize.Level1)
-{
-    auto drawCmdList = new DrawCmdList(DrawCmdList::UnmarshalMode::IMMEDIATE);
-    size_t textBlobCnt = drawCmdList->CountTextBlobNum();
-    EXPECT_TRUE(textBlobCnt == 0);
-    delete drawCmdList;
-}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

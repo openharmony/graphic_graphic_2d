@@ -322,6 +322,11 @@ bool RSSystemProperties::IsFoldScreenFlag()
     return false;
 }
 
+bool RSSystemProperties::IsSmallFoldDevice()
+{
+    return false;
+}
+
 int RSSystemProperties::GetFilterCacheSizeThreshold()
 {
     return 0;

@@ -744,6 +744,74 @@ void DrawPixelMapWithParmOpItem::DumpItems(std::string& out) const
     sampling_.Dump(out);
 }
 
+#ifdef RS_ENABLE_VK
+/* DrawHybridPixelMapOpItem */
+UNMARSHALLING_REGISTER(DrawHybridPixelMapOpItem, DrawOpItem::HYBRID_RENDER_PIXELMAP_OPITEM,
+    DrawHybridPixelMapOpItem::Unmarshalling, sizeof(DrawHybridPixelMapOpItem::ConstructorHandle));
+ 
+DrawHybridPixelMapOpItem::DrawHybridPixelMapOpItem(
+    const DrawCmdList& cmdList, DrawHybridPixelMapOpItem::ConstructorHandle* handle)
+    : DrawWithPaintOpItem(cmdList, handle->paintHandle, HYBRID_RENDER_PIXELMAP_OPITEM), sampling_(handle->sampling)
+{
+    objectHandle_ = CmdListHelper::GetImageObjectFromCmdList(cmdList, handle->objectHandle);
+}
+
+DrawHybridPixelMapOpItem::DrawHybridPixelMapOpItem(const std::shared_ptr<Media::PixelMap>& pixelMap,
+    const AdaptiveImageInfo& rsImageInfo, const SamplingOptions& sampling, const Paint& paint)
+    : DrawWithPaintOpItem(paint, HYBRID_RENDER_PIXELMAP_OPITEM), sampling_(sampling)
+{
+    objectHandle_ = std::make_shared<RSExtendImageObject>(pixelMap, rsImageInfo);
+}
+ 
+void DrawHybridPixelMapOpItem::Marshalling(DrawCmdList& cmdList)
+{
+    PaintHandle paintHandle;
+    GenerateHandleFromPaint(cmdList, paint_, paintHandle);
+    auto objectHandle = CmdListHelper::AddImageObjectToCmdList(cmdList, objectHandle_);
+    cmdList.AddOp<ConstructorHandle>(objectHandle, sampling_, paintHandle);
+}
+ 
+std::shared_ptr<DrawOpItem> DrawHybridPixelMapOpItem::Unmarshalling(const DrawCmdList& cmdList, void* handle)
+{
+    return std::make_shared<DrawHybridPixelMapOpItem>(
+        cmdList, static_cast<DrawHybridPixelMapOpItem::ConstructorHandle*>(handle));
+}
+ 
+void DrawHybridPixelMapOpItem::SetNodeId(NodeId id)
+{
+    if (objectHandle_ == nullptr) {
+        LOGE("DrawHybridPixelMapOpItem objectHandle is nullptr!");
+        return;
+    }
+    objectHandle_->SetNodeId(id);
+}
+ 
+void DrawHybridPixelMapOpItem::Playback(Canvas* canvas, const Rect* rect)
+{
+    if (objectHandle_ == nullptr) {
+        LOGE("DrawHybridPixelMapOpItem objectHandle is nullptr!");
+        return;
+    }
+
+    OHOS::Rosen::RSPaintFilterCanvas* paintCanvas = static_cast<OHOS::Rosen::RSPaintFilterCanvas*>(canvas);
+    Drawing::Filter filter;
+
+    filter.SetColorFilter(ColorFilter::CreateBlendModeColorFilter(paintCanvas->GetEnvForegroundColor(),
+        BlendMode::SRC_ATOP));
+    paint_.SetFilter(filter);
+
+    objectHandle_->SetPaint(paint_);
+    paintCanvas->AttachPaint(paint_);
+    objectHandle_->Playback(*paintCanvas, *rect, sampling_, false);
+}
+ 
+void DrawHybridPixelMapOpItem::DumpItems(std::string& out) const
+{
+    out += " sampling";
+    sampling_.Dump(out);
+}
+#endif
+
 /* DrawPixelMapRectOpItem */
 UNMARSHALLING_REGISTER(DrawPixelMapRect, DrawOpItem::PIXELMAP_RECT_OPITEM,
     DrawPixelMapRectOpItem::Unmarshalling, sizeof(DrawPixelMapRectOpItem::ConstructorHandle));

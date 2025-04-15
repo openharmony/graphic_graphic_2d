@@ -16,6 +16,7 @@
 #include <gtest/gtest.h>
 #include <test_header.h>
 
+#include "hgm_test_base.h"
 #include "rs_frame_rate_vote.h"
 
 using namespace testing;
@@ -25,7 +26,7 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 }
-class RSVideoFrameRateVoteTest : public testing::Test {
+class RSVideoFrameRateVoteTest : public HgmTestBase {
 public:
     static void SetUpTestCase();
     static void TearDownTestCase();
@@ -39,7 +40,10 @@ public:
     int64_t releaseCallbackResult_ {0};
 };
 
-void RSVideoFrameRateVoteTest::SetUpTestCase() {}
+void RSVideoFrameRateVoteTest::SetUpTestCase()
+{
+    HgmTestBase::SetUpTestCase();
+}
 void RSVideoFrameRateVoteTest::TearDownTestCase() {}
 void RSVideoFrameRateVoteTest::SetUp() {}
 void RSVideoFrameRateVoteTest::TearDown() {}

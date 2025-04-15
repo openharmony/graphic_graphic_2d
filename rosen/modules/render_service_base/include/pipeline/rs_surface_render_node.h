@@ -477,6 +477,16 @@ public:
         arsrTag_ = arsrTag;
     }
 
+    bool GetCopybitTag() const
+    {
+        return copybitTag_;
+    }
+
+    void SetCopybitTag(bool copybitTag)
+    {
+        copybitTag_ = copybitTag;
+    }
+
     void CollectSurface(const std::shared_ptr<RSBaseRenderNode>& node, std::vector<RSBaseRenderNode::SharedPtr>& vec,
         bool isUniRender, bool onlyFirstLevel) override;
     void CollectSelfDrawingChild(const std::shared_ptr<RSBaseRenderNode>& node, std::vector<NodeId>& vec) override;
@@ -999,7 +1009,6 @@ public:
     bool UpdateDirtyIfFrameBufferConsumed();
 
     void UpdateSrcRect(const Drawing::Canvas& canvas, const Drawing::RectI& dstRect, bool hasRotation = false);
-    void UpdateHwcDisabledBySrcRect(bool hasRotation);
 
     // if a surfacenode's dstrect is empty, its subnodes' prepare stage can be skipped
     bool ShouldPrepareSubnodes();
@@ -1482,6 +1491,11 @@ public:
         return selfAndParentShouldPaint_;
     }
 
+    inline bool IsHardwareDisabledBySrcRect() const
+    {
+        return isHardwareForcedDisabledBySrcRect_;
+    }
+
 protected:
     void OnSync() override;
     void OnSkipSync() override;
@@ -1501,10 +1515,6 @@ private:
     void ClearHistoryUnSubmittedDirtyInfo();
     void UpdateHistoryUnsubmittedDirtyInfo();
     void SetUIExtensionUnobscured(bool obscured);
-    inline bool IsHardwareDisabledBySrcRect() const
-    {
-        return isHardwareForcedDisabledBySrcRect_;
-    }
     void OnSubSurfaceChanged();
     void UpdateChildSubSurfaceNodes(RSSurfaceRenderNode::SharedPtr node, bool isOnTheTree);
     bool IsYUVBufferFormat() const;
@@ -1612,6 +1622,7 @@ private:
     bool needHidePrivacyContent_ = false;
     bool isHardwareForcedByBackgroundAlpha_ = false;
     bool arsrTag_ = true;
+    bool copybitTag_ = false;
     bool subThreadAssignable_ = false;
     bool oldNeedDrawBehindWindow_ = false;
     RectI skipFrameDirtyRect_;

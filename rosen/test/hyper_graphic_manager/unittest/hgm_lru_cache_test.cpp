@@ -18,15 +18,19 @@
 #include <test_header.h>
 
 #include "hgm_lru_cache.h"
+#include "hgm_test_base.h"
 
 using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS {
 namespace Rosen {
-class HgmLRUCacheTest : public testing::Test {
+class HgmLRUCacheTest : public HgmTestBase {
 public:
-    static void SetUpTestCase() {}
+    static void SetUpTestCase()
+    {
+        HgmTestBase::SetUpTestCase();
+    }
     static void TearDownTestCase() {}
     void SetUp() {}
     void TearDown() {}

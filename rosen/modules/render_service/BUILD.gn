@@ -25,7 +25,21 @@ config("render_service_link_config") {
     ]
 
     if (graphic_2d_feature_enable_pgo && enable_enhanced_opt) {
-      ldflags += [ "-Wl,--aarch64-inline-plt" ]
+      ldflags += [
+        "-Wl,--aarch64-inline-plt",
+        "-Wl,-plugin-opt=-split-machine-functions",
+        "-Wl,-mllvm",
+        "-Wl,-fixup-unconditional-branch-unsafely",
+        "-Wl,--no-create-thunks-introduced-by-mfs",
+        "-Wl,-mllvm",
+        "-Wl,-mfs-psi-cutoff=999500",
+        "-Wl,-z",
+        "-Wl,keep-text-section-prefix",
+        "-Wl,--symbol-ordering-file=" +
+            rebase_path("${graphic_2d_feature_pgo_path}/librender_service.txt",
+                        root_build_dir),
+        "-Wl,--no-warn-symbol-ordering",
+      ]
     }
   }
 }
@@ -67,6 +81,7 @@ ohos_shared_library("librender_service") {
       }
       if (graphic_2d_feature_enable_pgo &&
           graphic_2d_feature_product != "default") {
+        defines += [ "CM_FEATURE_ENABLE" ]
         cflags += [
           "-fprofile-use=" + rebase_path(
                   "${graphic_2d_feature_pgo_path}/librender_service.profdata",

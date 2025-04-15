@@ -37,9 +37,8 @@ ohos_unittest("RSRenderServiceBaseDelegateTest") {
 
   deps = [
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
-    "//third_party/googletest:gtest_main",
   ]
-  include_dirs += [ "//third_party/skia/src" ]
+
   external_deps = [
     "c_utils:utils",
     "init:libbegetutil",

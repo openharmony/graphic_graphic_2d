@@ -168,7 +168,9 @@ public:
     void HandleRefreshRateMode(int32_t refreshRateMode);
     void HandleScreenPowerStatus(ScreenId id, ScreenPowerStatus status);
     void HandleScreenRectFrameRate(ScreenId id, const GraphicIRect& activeRect);
-    void HandleThermalFrameRate(bool status);
+    void HandleScreenExtStrategyChange(bool status, const std::string& suffix);
+    std::string GetCurScreenExtStrategyId();
+    void UpdateScreenExtStrategyConfig(const PolicyConfigData::ScreenConfigMap& screenConfigs);
 
     // called by RSHardwareThread
     void HandleRsFrame();
@@ -226,6 +228,8 @@ public:
     void CleanPageUrlVote(pid_t pid);
     void HandlePageUrlEvent();
     void NotifyPageName(pid_t pid, const std::string &packageName, const std::string &pageName, bool isEnter);
+    // called by OS_IPC thread
+    bool SetVsyncRateDiscountLTPO(const std::vector<uint64_t>& linkerIds, uint32_t rateDiscount);
 private:
     void Reset();
     void UpdateAppSupportedState();
@@ -235,7 +239,9 @@ private:
     void SetAceAnimatorVote(const std::shared_ptr<RSRenderFrameRateLinker>& linker);
     bool CollectFrameRateChange(FrameRateRange finalRange, std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker,
         const FrameRateLinkerMap& appFrameRateLinkers);
+    bool CollectGameRateDiscountChange(uint64_t linkerId, FrameRateRange& expectedRange);
     void HandleFrameRateChangeForLTPO(uint64_t timestamp, bool followRs);
+    void DVSyncTaskProcessor(int64_t delayTime, uint64_t targetTime);
     void UpdateSoftVSync(bool followRs);
     void SetChangeGeneratorRateValid(bool valid);
     void FrameRateReport();
@@ -280,6 +286,7 @@ private:
         sptr<VSyncController> appController, sptr<VSyncGenerator> vsyncGenerator);
     // vrate voting to hgm linkerId means that frameLinkerid, appFrameRate means that vrate
     void CollectVRateChange(uint64_t linkerId, FrameRateRange& appFrameRate);
+    uint32_t AvoidChangeRateFrequent(uint32_t refreshRate);
     std::string GetGameNodeName() const
     {
         std::lock_guard<std::mutex> lock(pendingMutex_);
@@ -292,6 +299,7 @@ private:
         curGameNodeName_ = nodeName;
     }
     void FrameRateReportTask(uint32_t leftRetryTimes);
+    void EraseGameRateDiscountMap(pid_t pid);
 
     std::atomic<uint32_t> currRefreshRate_ = 0;
     uint32_t controllerRate_ = 0;
@@ -336,8 +344,9 @@ private:
     std::atomic<ScreenId> curScreenId_ = 0;
     std::atomic<ScreenId> lastCurScreenId_ = 0;
     std::string curScreenStrategyId_ = "LTPO-DEFAULT";
+    std::string curScreenDefaultStrategyId_ = "LTPO-DEFAULT";
     bool isLtpo_ = true;
-    bool isEnableThermalStrategy_ = false;
+    std::unordered_map<std::string, std::pair<int32_t, bool>> screenExtStrategyMap_ = HGM_CONFIG_SCREENEXT_STRATEGY_MAP;
     int32_t isAmbientStatus_ = 0;
     bool isAmbientEffect_ = false;
     int32_t stylusMode_ = -1;
@@ -370,6 +379,12 @@ private:
     std::map<uint64_t, int> vRatesMap_;
     ChangeDssRefreshRateCbType changeDssRefreshRateCb_;
     HgmAppPageUrlStrategy appPageUrlStrategy_;
+    // FORMAT: <linkerid, rateDiscount>
+    std::map<uint64_t, uint32_t> gameRateDiscountMap_;
+
+    bool isDragScene_ = false;
+    uint32_t lastLtpoRefreshRate_ = 0;
+    long lastLtpoVoteTime_ = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

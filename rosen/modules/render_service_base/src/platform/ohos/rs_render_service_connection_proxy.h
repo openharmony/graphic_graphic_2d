@@ -286,6 +286,8 @@ public:
 
     ErrCode NotifySoftVsyncEvent(uint32_t pid, uint32_t rateDiscount) override;
 
+    bool NotifySoftVsyncRateDiscountEvent(uint32_t pid, const std::string &name, uint32_t rateDiscount) override;
+
     void NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt) override;
 
     void NotifyDynamicModeEvent(bool enableDynamicMode) override;
@@ -355,6 +357,9 @@ public:
     int32_t RegisterSelfDrawingNodeRectChangeCallback(sptr<RSISelfDrawingNodeRectChangeCallback> callback) override;
 
     ErrCode NotifyPageName(const std::string &packageName, const std::string &pageName, bool isEnter) override;
+
+    bool GetHighContrastTextState() override;
+
 private:
     bool FillParcelWithTransactionData(
         std::unique_ptr<RSTransactionData>& transactionData, std::shared_ptr<MessageParcel>& data);

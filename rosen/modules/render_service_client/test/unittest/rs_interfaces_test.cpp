@@ -2330,5 +2330,31 @@ HWTEST_F(RSInterfacesTest, SetAncoForceDoDirect, Function | SmallTest | Level2)
     bool res = rsInterfaces->SetAncoForceDoDirect(false);
     ASSERT_EQ(res, false);
 }
+
+/*
+ * @tc.name: SetColorFollow001
+ * @tc.desc: Test SetColorFollow with false.
+ * @tc.type: FUNC
+ * @tc.require: issueIBZALS
+ */
+HWTEST_F(RSInterfacesTest, SetColorFollow001, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    std::string nodeIdStr = "1";
+    rsInterfaces->SetColorFollow(nodeIdStr, false);
+}
+
+/*
+ * @tc.name: SetColorFollow002
+ * @tc.desc: Test SetColorFollow with true.
+ * @tc.type: FUNC
+ * @tc.require: issueIBZALS
+ */
+HWTEST_F(RSInterfacesTest, SetColorFollow002, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    std::string nodeIdStr = "1";
+    rsInterfaces->SetColorFollow(nodeIdStr, true);
+}
 } // namespace Rosen
 } // namespace OHOS

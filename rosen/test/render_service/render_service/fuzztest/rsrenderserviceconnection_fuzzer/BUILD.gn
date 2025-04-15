@@ -43,10 +43,6 @@ ohos_fuzztest("RSRenderServiceConnectionFuzzTest") {
     "../../../../../../../../../../base/security/access_token/interfaces/innerkits/nativetoken/include",
     "../../../../../../../../../../base/security/access_token/interfaces/innerkits/token_sptproc/include",
     "$graphic_2d_root/frameworks/surface/include",
-    "$memmgr_root/interface/innerkits/include",
-    "$memmgr_root/services/memmgrservice/include/memory_level_manager",
-    "$memmgr_plugin_root/interface/innerkits/include",
-    "$memmgr_plugin_root/services/memmgrservice/include/memory_level_manager",
   ]
 
   deps = [
@@ -87,6 +83,10 @@ ohos_fuzztest("RSRenderServiceConnectionFuzzTest") {
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
+
+  if (use_memmgr_plugin || use_memmgr) {
+    external_deps += [ "memmgr:memmgrclient" ]
+  }
 
   defines = []
   if (graphic_2d_support_access_token) {

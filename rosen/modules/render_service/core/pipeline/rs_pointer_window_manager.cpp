@@ -14,6 +14,7 @@
  */
 
 #include "pipeline/rs_pointer_window_manager.h"
+#include "feature/hwc/rs_uni_hwc_compute_util.h"
 #include "common/rs_optional_trace.h"
 #include "feature_cfg/graphic_feature_param_manager.h"
 #include "pipeline/main_thread/rs_main_thread.h"
@@ -102,7 +103,7 @@ void RSPointerWindowManager::UpdatePointerInfo()
     if (surfaceNode == nullptr) {
         return;
     }
-    RSUniRenderUtil::UpdateHwcNodeProperty(surfaceNode);
+    RSUniHwcComputeUtil::UpdateHwcNodeProperty(surfaceNode);
 
     // 2.update (layerInfo.matrix = TotalMatrix)
     if (surfaceNode->GetScreenId() != INVALID_SCREEN_ID) {
@@ -112,7 +113,7 @@ void RSPointerWindowManager::UpdatePointerInfo()
             return;
         }
         auto screenInfo = screenManager->QueryScreenInfo(surfaceNode->GetScreenId());
-        auto transform = RSUniRenderUtil::GetLayerTransform(*surfaceNode, screenInfo);
+        auto transform = RSUniHwcComputeUtil::GetLayerTransform(*surfaceNode, screenInfo);
         surfaceNode->UpdateHwcNodeLayerInfo(transform, isPointerEnableHwc_);
     }
 #endif
@@ -141,8 +142,10 @@ void RSPointerWindowManager::SetHardCursorNodeInfo(std::shared_ptr<RSSurfaceRend
         (!hardCursorNode->ShouldPaint() && !hardCursorNode->GetHardCursorStatus())) {
         return;
     }
-    auto nodeId = hardCursorNode->GetId();
-    hardCursorNodeMap_.emplace(nodeId, hardCursorNode);
+    if (hardCursorNode->IsOnTheTree()) {
+        auto nodeId = hardCursorNode->GetId();
+        hardCursorNodeMap_.emplace(nodeId, hardCursorNode);
+    }
 }
 
 const std::map<NodeId, std::shared_ptr<RSSurfaceRenderNode>>& RSPointerWindowManager::GetHardCursorNode() const
@@ -207,6 +210,19 @@ bool RSPointerWindowManager::HasMirrorDisplay() const
         }
     }
     return false;
+}
+
+void RSPointerWindowManager::CollectAllHardCursor(
+    RSSurfaceRenderNode& hardCursorNode, std::shared_ptr<RSDisplayRenderNode>& curDisplayNode)
+{
+    if (hardCursorNode.IsHardwareEnabledTopSurface() &&
+        (hardCursorNode.ShouldPaint() || hardCursorNode.GetHardCursorStatus())) {
+        auto surfaceNodeDrawable =
+            std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(hardCursorNode.GetRenderDrawable());
+        if (surfaceNodeDrawable && hardCursorNode.IsOnTheTree()) {
+            hardCursorDrawableMap_.emplace(curDisplayNode->GetId(), hardCursorNode.GetRenderDrawable());
+        }
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

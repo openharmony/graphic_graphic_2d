@@ -85,6 +85,7 @@ void RSDisplayNode::AddDisplayNodeToTree()
 {
     std::unique_ptr<RSCommand> command = std::make_unique<RSDisplayNodeAddToTree>(GetId());
     AddCommand(command, true);
+    SetIsOnTheTree(true);
     ROSEN_LOGI("RSDisplayNode::AddDisplayNodeToTree, id:%{public}" PRIu64, GetId());
 }
 
@@ -92,6 +93,7 @@ void RSDisplayNode::RemoveDisplayNodeFromTree()
 {
     std::unique_ptr<RSCommand> command = std::make_unique<RSDisplayNodeRemoveFromTree>(GetId());
     AddCommand(command, true);
+    SetIsOnTheTree(false);
     ROSEN_LOGI("RSDisplayNode::RemoveDisplayNodeFromTree, id:%{public}" PRIu64, GetId());
 }
 
@@ -233,7 +235,7 @@ bool RSDisplayNode::IsMirrorDisplay() const
 }
 
 RSDisplayNode::RSDisplayNode(const RSDisplayNodeConfig& config, std::shared_ptr<RSUIContext> rsUIContext)
-    : RSNode(true, false, rsUIContext), screenId_(config.screenId), offsetX_(0), offsetY_(0),
+    : RSNode(true, false, rsUIContext, true), screenId_(config.screenId), offsetX_(0), offsetY_(0),
       isMirroredDisplay_(config.isMirrored)
 {
     (void)screenId_;
@@ -242,7 +244,7 @@ RSDisplayNode::RSDisplayNode(const RSDisplayNodeConfig& config, std::shared_ptr<
 }
 
 RSDisplayNode::RSDisplayNode(const RSDisplayNodeConfig& config, NodeId id, std::shared_ptr<RSUIContext> rsUIContext)
-    : RSNode(true, id, false, rsUIContext), screenId_(config.screenId), offsetX_(0), offsetY_(0),
+    : RSNode(true, id, false, rsUIContext, true), screenId_(config.screenId), offsetX_(0), offsetY_(0),
       isMirroredDisplay_(config.isMirrored)
 {}
 
