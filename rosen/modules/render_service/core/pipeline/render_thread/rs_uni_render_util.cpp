@@ -84,19 +84,17 @@ void PerfRequest(int32_t perfRequestCode, bool onOffTag)
 #endif
 }
 }
-void RSUniRenderUtil::MergeDirtyRectAfterMergeHistory(
-    std::shared_ptr<RSDirtyRegionManager> dirtyManager, Occlusion::Region& dirtyRegion)
+void RSUniRenderUtil::ExpandDamageRegionToSingleRect(Occlusion::Region& damageRegion)
 {
     const auto clipRectThreshold = RSSystemProperties::GetClipRectThreshold();
     if (clipRectThreshold < 1.f) {
-        Occlusion::Region allDirtyRegion{ Occlusion::Rect{ dirtyManager->GetDirtyRegion() } };
-        allDirtyRegion.OrSelf(dirtyRegion);
-        auto bound = allDirtyRegion.GetBound();
-        if (allDirtyRegion.GetSize() > 1 && !bound.IsEmpty() &&
-            allDirtyRegion.Area() > bound.Area() * clipRectThreshold) {
-            dirtyManager->MergeDirtyRectAfterMergeHistory(bound.ToRectI());
+        auto bound = damageRegion.GetBound();
+        // Multi-rects damage region will lead to clip path, which is performance-affecting.
+        // Within reasonable threshold, consider expanding multi-rects into one single rect for performance improvement.
+        if (damageRegion.GetSize() > 1 && !bound.IsEmpty() && damageRegion.Area() > bound.Area() * clipRectThreshold) {
             RS_OPTIONAL_TRACE_NAME_FMT("dirty expand: %s to %s",
-                allDirtyRegion.GetRegionInfo().c_str(), bound.GetRectInfo().c_str());
+                damageRegion.GetRegionInfo().c_str(), bound.GetRectInfo().c_str());
+            damageRegion = Occlusion::Region { bound };
         }
     }
 }
@@ -111,10 +109,7 @@ std::vector<RectI> RSUniRenderUtil::MergeDirtyHistory(DrawableV2::RSDisplayRende
     RSUniRenderUtil::MergeDirtyHistoryForDrawable(displayDrawable, bufferAge, params, false);
     Occlusion::Region dirtyRegion = RSUniRenderUtil::MergeVisibleAdvancedDirtyRegion(
         curAllSurfaceDrawables, RSUniRenderThread::Instance().GetDrawStatusVec());
-    if (uniParam->GetAdvancedDirtyType() == AdvancedDirtyRegionType::DISABLED &&
-        !uniParam->IsDirtyAlignEnabled()) {
-        MergeDirtyRectAfterMergeHistory(dirtyManager, dirtyRegion);
-    }
+
     RectI screenRectI(0, 0, static_cast<int32_t>(screenInfo.phyWidth), static_cast<int32_t>(screenInfo.phyHeight));
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
     // overlay display expand dirty region
@@ -144,6 +139,9 @@ std::vector<RectI> RSUniRenderUtil::MergeDirtyHistory(DrawableV2::RSDisplayRende
             RS_LOGI("RSUniRenderUtil::MergeDirtyHistory unsupported advanced dirty region type");
             RS_TRACE_NAME_FMT("RSUniRenderUtil::MergeDirtyHistory unsupported advanced dirty region type");
             break;
+    }
+    if (!uniParam->IsDirtyAlignEnabled()) {
+        ExpandDamageRegionToSingleRect(damageRegion);
     }
     Occlusion::Region drawnRegion;
     if (screenInfo.isSamplingOn && screenInfo.samplingScale > 0) {

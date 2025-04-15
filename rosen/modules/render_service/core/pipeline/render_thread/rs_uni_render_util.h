@@ -42,8 +42,8 @@ namespace Rosen {
 class RSDirtyRectsDfx;
 class RSUniRenderUtil {
 public:
-    static void MergeDirtyRectAfterMergeHistory(
-        std::shared_ptr<RSDirtyRegionManager> dirtyManager, Occlusion::Region& dirtyRegion);
+    // planning: dirty region related functions should be moved to feature_utils
+    static void ExpandDamageRegionToSingleRect(Occlusion::Region& damageRegion);
     static std::vector<RectI> MergeDirtyHistory(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable,
         int32_t bufferAge, ScreenInfo& screenInfo, RSDirtyRectsDfx& rsDirtyRectsDfx, RSDisplayRenderParams& params);
     // isSecScreen means that special layers can be displayed on the screen, for example wired mirror screen.
