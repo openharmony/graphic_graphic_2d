@@ -61,17 +61,17 @@ HWTEST_F(OcclusionCullingParamTest, IsStencilPixelOcclusionCullingEnable, Functi
 }
 
 /**
- * @tc.name: SetIntraAppOcclusionCullingEnable
- * @tc.desc: Verify the result of SetIntraAppOcclusionCullingEnable function
+ * @tc.name: SetIntraAppControlsLevelOcclusionCullingEnable
+ * @tc.desc: Verify the result of SetIntraAppControlsLevelOcclusionCullingEnable function
  * @tc.type: FUNC
  * @tc.require: #IBPXUM
  */
-HWTEST_F(OcclusionCullingParamTest, SetIntraAppOcclusionCullingEnable, Function | SmallTest | Level1)
+HWTEST_F(OcclusionCullingParamTest, SetIntraAppControlsLevelOcclusionCullingEnable, Function | SmallTest | Level1)
 {
-    OcclusionCullingParam::SetIntraAppOcclusionCullingEnable(true);
-    ASSERT_TRUE(OcclusionCullingParam::IsIntraAppOcclusionCullingEnable());
-    OcclusionCullingParam::SetIntraAppOcclusionCullingEnable(false);
-    ASSERT_FALSE(OcclusionCullingParam::IsIntraAppOcclusionCullingEnable());
+    OcclusionCullingParam::SetIntraAppControlsLevelOcclusionCullingEnable(true);
+    ASSERT_TRUE(OcclusionCullingParam::IsIntraAppControlsLevelOcclusionCullingEnable());
+    OcclusionCullingParam::SetIntraAppControlsLevelOcclusionCullingEnable(false);
+    ASSERT_FALSE(OcclusionCullingParam::IsIntraAppControlsLevelOcclusionCullingEnable());
 }
 } // namespace Rosen
 } // namespace OHOS

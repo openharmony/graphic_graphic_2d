@@ -52,12 +52,12 @@ int32_t OcclusionCullingParamParse::ParseOcclusionCullingInternal(xmlNode &node)
         OcclusionCullingParam::SetStencilPixelOcclusionCullingEnable(isEnabled);
         RS_LOGI("OcclusionCullingParamParse parse SpocEnabled %{public}d",
             OcclusionCullingParam::IsStencilPixelOcclusionCullingEnable());
-    } else if (xmlParamType == PARSE_XML_FEATURE_SWITCH && name == "IntraAppOcclusionCullingEnable") {
+    } else if (xmlParamType == PARSE_XML_FEATURE_SWITCH && name == "IntraAppCotrolsLevelOcclusionCullingEnable") {
         auto val = ExtractPropertyValue("value", node);
         bool parseFeatireSwitchResult = ParseFeatureSwitch(val);
-        OcclusionCullingParam::SetIntraAppOcclusionCullingEnable(parseFeatireSwitchResult);
-        RS_LOGI("OcclusionCullingParamParse parse IntraAppOcclusionCullingEnable %{public}d",
-            OcclusionCullingParam::IsIntraAppOcclusionCullingEnable());
+        OcclusionCullingParam::SetIntraAppControlsLevelOcclusionCullingEnable(parseFeatireSwitchResult);
+        RS_LOGI("OcclusionCullingParamParse parse IntraAppControlsLevelOcclusionCullingEnable %{public}d",
+            OcclusionCullingParam::IsIntraAppControlsLevelOcclusionCullingEnable());
     }
     return PARSE_EXEC_SUCCESS;
 }

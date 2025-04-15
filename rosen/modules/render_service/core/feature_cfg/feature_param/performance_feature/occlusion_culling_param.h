@@ -25,13 +25,13 @@ public:
     ~OcclusionCullingParam() = default;
 
     static bool IsStencilPixelOcclusionCullingEnable();
-    static bool IsIntraAppOcclusionCullingEnable();
+    static bool IsIntraAppControlsLevelOcclusionCullingEnable();
 protected:
     static void SetStencilPixelOcclusionCullingEnable(bool isEnable);
-    static void SetIntraAppOcclusionCullingEnable(bool isEnable);
+    static void SetIntraAppControlsLevelOcclusionCullingEnable(bool isEnable);
 private:
     inline static bool stencilPixelOcclusionCullingEnable_ = false;
-    inline static bool intraAppOcclusionCullingEnable_ = false;
+    inline static bool intraAppControlsLevelOcclusionCullingEnable_ = false;
     friend class OcclusionCullingParamParse;
 };
 } // namespace OHOS::Rosen

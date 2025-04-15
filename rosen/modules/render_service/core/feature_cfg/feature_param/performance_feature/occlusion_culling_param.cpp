@@ -27,13 +27,13 @@ void OcclusionCullingParam::SetStencilPixelOcclusionCullingEnable(bool isEnable)
     stencilPixelOcclusionCullingEnable_ = isEnable;
 }
 
-bool OcclusionCullingParam::IsIntraAppOcclusionCullingEnable()
+bool OcclusionCullingParam::IsIntraAppControlsLevelOcclusionCullingEnable()
 {
-    return intraAppOcclusionCullingEnable_;
+    return intraAppControlsLevelOcclusionCullingEnable_;
 }
 
-void OcclusionCullingParam::SetIntraAppOcclusionCullingEnable(bool isEnable)
+void OcclusionCullingParam::SetIntraAppControlsLevelOcclusionCullingEnable(bool isEnable)
 {
-    intraAppOcclusionCullingEnable_ = isEnable;
+    intraAppControlsLevelOcclusionCullingEnable_ = isEnable;
 }
 } // namespace OHOS::Rosen
