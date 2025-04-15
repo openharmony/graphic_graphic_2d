@@ -1940,6 +1940,49 @@ HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_CanvasDrawPixelMapNine
 }
 
 /*
+ * @tc.name: NativeDrawingCanvasTest_CanvasCreateWithPixelMap001
+ * @tc.desc: test for OH_Drawing_CanvasCreateWithPixelMap.
+ * @tc.type: FUNC
+ * @tc.require: IBHFF5
+ */
+HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_CanvasCreateWithPixelMap001, TestSize.Level1)
+{
+    OH_Pixelmap_InitializationOptions *options = nullptr;
+    OH_PixelmapInitializationOptions_Create(&options);
+    EXPECT_NE(options, nullptr);
+
+    // 1 means width
+    OH_PixelmapInitializationOptions_SetWidth(options, 1);
+    // 1 means height
+    OH_PixelmapInitializationOptions_SetHeight(options, 1);
+    // 3 means RGBA format
+    OH_PixelmapInitializationOptions_SetPixelFormat(options, 3);
+    // 2 means ALPHA_FORMAT_PREMUL format
+    OH_PixelmapInitializationOptions_SetAlphaType(options, 2);
+    // 4 means data length
+    size_t bufferSize = 4;
+    void *buffer = malloc(bufferSize);
+    EXPECT_NE(buffer, nullptr);
+
+    OH_PixelmapNative *pixelMap = nullptr;
+    OH_PixelmapNative_CreatePixelmap(static_cast<uint8_t *>(buffer), bufferSize, options, &pixelMap);
+    EXPECT_NE(pixelMap, nullptr);
+    OH_Drawing_PixelMap *drPixelMap = OH_Drawing_PixelMapGetFromOhPixelMapNative(pixelMap);
+    EXPECT_NE(drPixelMap, nullptr);
+
+    OH_Drawing_Canvas *canvas = OH_Drawing_CanvasCreateWithPixelMap(nullptr);
+    EXPECT_EQ(canvas, nullptr);
+    canvas = OH_Drawing_CanvasCreateWithPixelMap(drPixelMap);
+    EXPECT_NE(canvas, nullptr);
+
+    OH_Drawing_CanvasDestroy(canvas);
+    OH_Drawing_PixelMapDissolve(drPixelMap);
+    OH_PixelmapNative_Release(pixelMap);
+    OH_PixelmapInitializationOptions_Release(options);
+    free(buffer);
+}
+
+/*
  * @tc.name: NativeDrawingCanvasTest_ImageFilterCreateOffsetImageFilter001
  * @tc.desc: test for creates an OH_Drawing_ImageFilter object that instance with the provided x and y offset.
  * @tc.type: FUNC
