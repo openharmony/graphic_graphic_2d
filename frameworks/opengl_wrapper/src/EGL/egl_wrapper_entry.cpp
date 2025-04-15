@@ -304,7 +304,10 @@ static __eglMustCastToProperFunctionPointerType FindBuiltinWrapper(const char* p
 #else
     static void* dlglv3Handle = dlopen("/system/lib/platformsdk/libGLESv3.so", RTLD_NOW | RTLD_LOCAL);
 #endif
-
+    if (dlglv3Handle == nullptr) {
+        WLOGE("Failed to load GLES library using dl open");
+        return nullptr;
+    }
     void* proc = dlsym(dlglv3Handle, procname);
     if (proc) {
         return (__eglMustCastToProperFunctionPointerType)proc;
