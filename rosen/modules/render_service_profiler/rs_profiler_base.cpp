@@ -321,7 +321,7 @@ void RSProfiler::TimePauseResume(uint64_t curTime)
 {
     if (g_pauseAfterTime > 0) {
         if (curTime > g_pauseAfterTime) {
-            g_pauseCumulativeTime += curTime - g_pauseAfterTime;
+            g_pauseCumulativeTime += static_cast<int64_t>(curTime - g_pauseAfterTime);
         }
     }
     g_pauseAfterTime = 0;
