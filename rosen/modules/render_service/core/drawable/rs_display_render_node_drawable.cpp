@@ -1130,6 +1130,7 @@ void RSDisplayRenderNodeDrawable::DrawWiredMirrorOnDraw(
         auto hasSecSurface = mirroredParams->GetDisplayHasSecSurface();
         if (hasSecSurface[mirroredParams->GetScreenId()]) {
             curCanvas_->Clear(Drawing::Color::COLOR_BLACK);
+            virtualDirtyRefresh_ = true;
             RS_LOGI("RSDisplayRenderNodeDrawable::DrawWiredMirrorOnDraw, "
                 "set canvas to black because of security layer.");
             return;
@@ -1194,8 +1195,9 @@ std::vector<RectI> RSDisplayRenderNodeDrawable::CalculateVirtualDirtyForWiredScr
 
     auto syncDirtyManager = GetSyncDirtyManager();
     // reset dirty rect as mirrored wired screen size when first time connection or matrix changed
-    if (!(lastMatrix_ == canvasMatrix)) {
+    if (!(lastMatrix_ == canvasMatrix) || virtualDirtyRefresh_) {
         syncDirtyManager->ResetDirtyAsSurfaceSize();
+        virtualDirtyRefresh_ = false;
         lastMatrix_ = canvasMatrix;
     }
     UpdateDisplayDirtyManager(bufferAge, false);
