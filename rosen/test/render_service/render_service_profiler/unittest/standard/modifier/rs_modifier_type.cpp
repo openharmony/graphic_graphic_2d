@@ -30,12 +30,12 @@ public:
 };
 
 /*
- * @tc.name: FixSurfaceNodeCommandTest
+ * @tc.name: FixSurfaceNodeCommandTest001
  * @tc.desc: Fix enum class to prevent undetectable changes
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSModifierTypeTest, FixSurfaceNodeCommandTest, Level1 | Standard)
+HWTEST_F(RSModifierTypeTest, FixSurfaceNodeCommandTest001, Level1 | Standard)
 {
     EXPECT_EQ(static_cast<int16_t>(RSModifierType::INVALID), 0);
     EXPECT_EQ(static_cast<int16_t>(RSModifierType::BOUNDS), 1);
@@ -85,6 +85,16 @@ HWTEST_F(RSModifierTypeTest, FixSurfaceNodeCommandTest, Level1 | Standard)
     EXPECT_EQ(static_cast<int16_t>(RSModifierType::FG_BRIGHTNESS_POSCOEFF), 45);
     EXPECT_EQ(static_cast<int16_t>(RSModifierType::FG_BRIGHTNESS_NEGCOEFF), 46);
     EXPECT_EQ(static_cast<int16_t>(RSModifierType::FG_BRIGHTNESS_FRACTION), 47);
+}
+
+/*
+ * @tc.name: FixSurfaceNodeCommandTest002
+ * @tc.desc: Fix enum class to prevent undetectable changes
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSModifierTypeTest, FixSurfaceNodeCommandTest002, Level1 | Standard)
+{
     EXPECT_EQ(static_cast<int16_t>(RSModifierType::BG_BRIGHTNESS_RATES), 48);
     EXPECT_EQ(static_cast<int16_t>(RSModifierType::BG_BRIGHTNESS_SATURATION), 49);
     EXPECT_EQ(static_cast<int16_t>(RSModifierType::BG_BRIGHTNESS_POSCOEFF), 50);
@@ -133,6 +143,16 @@ HWTEST_F(RSModifierTypeTest, FixSurfaceNodeCommandTest, Level1 | Standard)
     EXPECT_EQ(static_cast<int16_t>(RSModifierType::OUTLINE_COLOR), 93);
     EXPECT_EQ(static_cast<int16_t>(RSModifierType::OUTLINE_WIDTH), 94);
     EXPECT_EQ(static_cast<int16_t>(RSModifierType::OUTLINE_STYLE), 95);
+}
+
+/*
+ * @tc.name: FixSurfaceNodeCommandTest003
+ * @tc.desc: Fix enum class to prevent undetectable changes
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSModifierTypeTest, FixSurfaceNodeCommandTest003, Level1 | Standard)
+{
     EXPECT_EQ(static_cast<int16_t>(RSModifierType::OUTLINE_DASH_WIDTH), 96);
     EXPECT_EQ(static_cast<int16_t>(RSModifierType::OUTLINE_DASH_GAP), 97);
     EXPECT_EQ(static_cast<int16_t>(RSModifierType::OUTLINE_RADIUS), 98);
@@ -171,7 +191,16 @@ HWTEST_F(RSModifierTypeTest, FixSurfaceNodeCommandTest, Level1 | Standard)
     EXPECT_EQ(static_cast<int16_t>(RSModifierType::FG_BLUR_DISABLE_SYSTEM_ADAPTATION), 131);
     EXPECT_EQ(static_cast<int16_t>(RSModifierType::ATTRACTION_FRACTION), 132);
     EXPECT_EQ(static_cast<int16_t>(RSModifierType::ATTRACTION_DSTPOINT), 133);
+}
 
+/*
+ * @tc.name: FixSurfaceNodeCommandTest004
+ * @tc.desc: Fix enum class to prevent undetectable changes
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSModifierTypeTest, FixSurfaceNodeCommandTest004, Level1 | Standard)
+{
     EXPECT_EQ(static_cast<int16_t>(RSModifierType::CUSTOM), 200);
     EXPECT_EQ(static_cast<int16_t>(RSModifierType::EXTENDED), 201);
     EXPECT_EQ(static_cast<int16_t>(RSModifierType::TRANSITION), 202);
