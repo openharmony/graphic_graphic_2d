@@ -70,6 +70,7 @@ public:
     sptr<Surface> GetFrameBufferSurface();
     std::unique_ptr<FrameBufferEntry> GetFramebuffer();
     void Dump(std::string &result) const;
+    void DumpCurrentFrameLayers() const;
     void DumpFps(std::string &result, const std::string &arg) const;
     void DumpHitchs(std::string &result, const std::string &arg) const;
     void ClearFpsDump(std::string &result, const std::string &arg);
