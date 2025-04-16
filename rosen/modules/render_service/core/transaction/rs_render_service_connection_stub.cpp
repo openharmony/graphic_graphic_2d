@@ -393,6 +393,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
     if (!accessible && code != static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::TAKE_SURFACE_CAPTURE) &&
         code != static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_MEMORY_GRAPHIC) &&
         code != static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_REFRESH_INFO) &&
+        code != static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_REFRESH_INFO_TO_SP) &&
         code != static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_BUFFER_AVAILABLE_LISTENER) &&
         code != static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_BUFFER_CLEAR_LISTENER)) {
         RS_LOGE("RSRenderServiceConnectionStub::OnRemoteRequest no permission code:%{public}d", code);
@@ -1095,6 +1096,26 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             std::string refreshInfo;
             if (GetRefreshInfo(pid, refreshInfo) != ERR_OK || !reply.WriteString(refreshInfo)) {
                 RS_LOGE("RSRenderServiceConnectionStub::GET_REFRESH_INFO Write refreshInfo failed!");
+                ret = ERR_INVALID_REPLY;
+            }
+            break;
+        }
+
+        case static_cast<uint64_t>(RSIRenderServiceConnectionInterfaceCode::GET_REFRESH_INFO_TO_SP): {
+            auto token = data.ReadInterfaceToken();
+            if (token != RSIRenderServiceConnection::GetDescriptor()) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
+            uint64_t nodeId{0};
+            if (!data.ReadUint64(nodeId)) {
+                RS_LOGE("RSRenderServiceConnectionStub::GET_REFRESH_INFO_TO_SP Read nodeId failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            std::string refreshInfoToSP;
+            if (GetRefreshInfoToSP(nodeId, refreshInfoToSP) != ERR_OK || !reply.WriteString(refreshInfoToSP)) {
+                RS_LOGE("RSRenderServiceConnectionStub::GET_REFRESH_INFO_TO_SP Write refreshInfoToSP failed!");
                 ret = ERR_INVALID_REPLY;
             }
             break;

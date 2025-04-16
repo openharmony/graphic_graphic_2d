@@ -1468,6 +1468,38 @@ ErrCode RSRenderServiceConnectionProxy::GetRefreshInfo(pid_t pid, std::string& e
     return ERR_OK;
 }
 
+ErrCode RSRenderServiceConnectionProxy::GetRefreshInfoToSP(NodeId id, std::string& enable)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("GetRefreshInfoToSP: WriteInterfaceToken GetDescriptor err.");
+        enable = "";
+        return ERR_INVALID_VALUE;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    if (!data.WriteUint64(id)) {
+        ROSEN_LOGE("GetRefreshInfoToSP: WriteUint64 id err.");
+        enable = "";
+        return ERR_INVALID_VALUE;
+    }
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_REFRESH_INFO_TO_SP);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceProxy sendrequest error : %{public}d", err);
+        enable = "";
+        return ERR_INVALID_VALUE;
+    }
+
+    if (!reply.ReadString(enable)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::GetRefreshInfo Read enable failed");
+        return ERR_INVALID_VALUE;
+    }
+    return ERR_OK;
+}
+
 int32_t RSRenderServiceConnectionProxy::SetPhysicalScreenResolution(ScreenId id, uint32_t width, uint32_t height)
 {
     MessageParcel data;
