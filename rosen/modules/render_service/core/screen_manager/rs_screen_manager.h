@@ -179,9 +179,11 @@ public:
 
     virtual int32_t SetCastScreenEnableSkipWindow(ScreenId id, bool enable) = 0;
     virtual int32_t SetVirtualScreenBlackList(ScreenId id, const std::vector<uint64_t>& blackList) = 0;
+    virtual int32_t SetVirtualScreenTypeBlackList(ScreenId id, const std::vector<uint8_t>& typeBlackList) = 0;
     virtual int32_t AddVirtualScreenBlackList(ScreenId id, const std::vector<uint64_t>& blackList) = 0;
     virtual int32_t RemoveVirtualScreenBlackList(ScreenId id, const std::vector<uint64_t>& blackList) = 0;
     virtual const std::unordered_set<uint64_t> GetVirtualScreenBlackList(ScreenId id) const = 0;
+    virtual const std::unordered_set<uint8_t> GetVirtualScreenTypeBlackList(ScreenId id) const = 0;
     virtual std::unordered_set<uint64_t> GetAllBlackList() const = 0;
     virtual std::unordered_set<uint64_t> GetAllWhiteList() const = 0;
 
@@ -351,9 +353,11 @@ public:
 
     int32_t SetCastScreenEnableSkipWindow(ScreenId id, bool enable) override;
     int32_t SetVirtualScreenBlackList(ScreenId id, const std::vector<uint64_t>& blackList) override;
+    int32_t SetVirtualScreenTypeBlackList(ScreenId id, const std::vector<uint8_t>& typeBlackList) override;
     int32_t AddVirtualScreenBlackList(ScreenId id, const std::vector<uint64_t>& blackList) override;
     int32_t RemoveVirtualScreenBlackList(ScreenId id, const std::vector<uint64_t>& blackList) override;
     const std::unordered_set<uint64_t> GetVirtualScreenBlackList(ScreenId id) const override;
+    const std::unordered_set<uint8_t> GetVirtualScreenTypeBlackList(ScreenId id) const override;
     std::unordered_set<uint64_t> GetAllBlackList() const override;
     std::unordered_set<uint64_t> GetAllWhiteList() const override;
 
@@ -459,6 +463,9 @@ private:
 
     mutable std::mutex blackListMutex_;
     std::unordered_set<uint64_t> castScreenBlackList_ = {};
+
+    mutable std::mutex typeBlackListMutex_;
+    std::unordered_set<uint8_t> castScreenTypeBlackList_ = {};
 
     uint64_t frameId_ = 0; // only used by SetScreenConstraint, called in hardware thread per frame
 

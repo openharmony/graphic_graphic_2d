@@ -76,6 +76,9 @@ public:
 
     int32_t SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector) override;
 
+    ErrCode SetVirtualScreenTypeBlackList(
+        ScreenId id, std::vector<NodeType>& typeBlackListVector, int32_t& repCode) override;
+
     ErrCode AddVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector, int32_t& repCode) override;
     
     ErrCode RemoveVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector, int32_t& repCode) override;

@@ -348,14 +348,14 @@ public:
 
     bool IsLeashOrMainWindow() const
     {
-        return nodeType_ <= RSSurfaceNodeType::LEASH_WINDOW_NODE;
+        return nodeType_ <= RSSurfaceNodeType::LEASH_WINDOW_NODE || nodeType_ == RSSurfaceNodeType::CURSOR_NODE;
     }
 
     bool IsMainWindowType() const
     {
         // a mainWindowType surfacenode will not mounted under another mainWindowType surfacenode
         // including app main window, starting window, and selfdrawing window
-        return nodeType_ <= RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE;
+        return nodeType_ <= RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE || nodeType_ == RSSurfaceNodeType::CURSOR_NODE;
     }
 
     bool GetIsLastFrameHwcEnabled() const
@@ -398,7 +398,8 @@ public:
         // self drawing surfacenode has its own buffer, and rendered in its own progress/thread
         // such as surfaceview (web/videos) and self draw windows (such as mouse pointer and boot animation)
         return nodeType_ == RSSurfaceNodeType::SELF_DRAWING_NODE ||
-               nodeType_ == RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE;
+                nodeType_ == RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE ||
+                nodeType_ == RSSurfaceNodeType::CURSOR_NODE;
     }
 
     bool IsUIFirstSelfDrawCheck();

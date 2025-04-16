@@ -179,10 +179,22 @@ public:
         blackList_ = blackList;
     }
 
+    void SetTypeBlackList(const std::unordered_set<NodeType>& typeBlackList)
+    {
+        std::lock_guard<std::mutex> lock(nodeListMutex_);
+        typeBlackList_ = typeBlackList;
+    }
+
     const std::unordered_set<NodeId> GetBlackList() const
     {
         std::lock_guard<std::mutex> lock(nodeListMutex_);
         return blackList_;
+    }
+
+    const std::unordered_set<NodeType> GetTypeBlackList() const
+    {
+        std::lock_guard<std::mutex> lock(nodeListMutex_);
+        return typeBlackList_;
     }
 
     void SetWhiteList(const std::unordered_set<NodeId>& whiteList)
@@ -276,6 +288,7 @@ private:
 
     mutable std::mutex nodeListMutex_;
     std::unordered_set<NodeId> blackList_ = {};
+    std::unordered_set<NodeType> typeBlackList_ = {};
     std::unordered_set<NodeId> whiteList_ = {};
     Drawing::RectI visibleRect_;
 

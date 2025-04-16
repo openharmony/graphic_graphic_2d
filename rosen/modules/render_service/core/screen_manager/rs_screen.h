@@ -154,9 +154,11 @@ public:
     virtual void SetCastScreenEnableSkipWindow(bool enable) = 0;
     virtual bool GetCastScreenEnableSkipWindow() = 0;
     virtual void SetBlackList(const std::unordered_set<uint64_t>& blackList) = 0;
+    virtual void SetTypeBlackList(const std::unordered_set<uint8_t>& typeBlackList) = 0;
     virtual void AddBlackList(const std::vector<uint64_t>& blackList) = 0;
     virtual void RemoveBlackList(const std::vector<uint64_t>& blackList) = 0;
     virtual const std::unordered_set<uint64_t> GetBlackList() const = 0;
+    virtual const std::unordered_set<uint8_t> GetTypeBlackList() const = 0;
     virtual const std::unordered_set<uint64_t>& GetWhiteList() const = 0;
 
     virtual void SetSecurityExemptionList(const std::vector<uint64_t>& securityExemptionList) = 0;
@@ -288,9 +290,11 @@ public:
     void SetCastScreenEnableSkipWindow(bool enable) override;
     bool GetCastScreenEnableSkipWindow() override;
     void SetBlackList(const std::unordered_set<uint64_t>& blackList) override;
+    void SetTypeBlackList(const std::unordered_set<uint8_t>& typeBlackList) override;
     void AddBlackList(const std::vector<uint64_t>& blackList) override;
     void RemoveBlackList(const std::vector<uint64_t>& blackList) override;
     const std::unordered_set<uint64_t> GetBlackList() const override;
+    const std::unordered_set<uint8_t> GetTypeBlackList() const override;
     const std::unordered_set<uint64_t>& GetWhiteList() const override;
 
     void SetSecurityExemptionList(const std::vector<uint64_t>& securityExemptionList) override;
@@ -390,6 +394,9 @@ private:
 
     mutable std::mutex blackListMutex_;
     std::unordered_set<uint64_t> blackList_ = {};
+
+    mutable std::mutex typeBlackListMutex_;
+    std::unordered_set<uint8_t> typeBlackList_ = {};
 
     mutable std::mutex securityExemptionMutex_;
     std::vector<uint64_t> securityExemptionList_ = {};

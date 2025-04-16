@@ -63,6 +63,7 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_RESOLUTION),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_SURFACE),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_BLACKLIST),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_TYPE_BLACKLIST),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::ADD_VIRTUAL_SCREEN_BLACKLIST),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REMOVE_VIRTUAL_SCREEN_BLACKLIST),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_SECURITY_EXEMPTION_LIST),
@@ -276,7 +277,7 @@ std::shared_ptr<MessageParcel> CopyParcelIfNeed(MessageParcel& old, pid_t callin
 bool CheckCreateNodeAndSurface(pid_t pid, RSSurfaceNodeType nodeType, SurfaceWindowType windowType)
 {
     constexpr int nodeTypeMin = static_cast<int>(RSSurfaceNodeType::DEFAULT);
-    constexpr int nodeTypeMax = static_cast<int>(RSSurfaceNodeType::UI_EXTENSION_SECURE_NODE);
+    constexpr int nodeTypeMax = static_cast<int>(RSSurfaceNodeType::NODE_MAX);
 
     int typeNum = static_cast<int>(nodeType);
     if (typeNum < nodeTypeMin || typeNum > nodeTypeMax) {
@@ -666,6 +667,23 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             int32_t status = SetVirtualScreenBlackList(id, blackListVector);
             if (!reply.WriteInt32(status)) {
                 RS_LOGE("RSRenderServiceConnectionStub::SET_VIRTUAL_SCREEN_BLACKLIST Write status failed!");
+                ret = ERR_INVALID_REPLY;
+            }
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_TYPE_BLACKLIST): {
+            // read the parcel data.
+            ScreenId id{INVALID_SCREEN_ID};
+            std::vector<NodeType> typeBlackListVector;
+            if (!data.ReadUint64(id) || !data.ReadUInt8Vector(&typeBlackListVector)) {
+                RS_LOGE("RSRenderServiceConnectionStub::SET_VIRTUAL_SCREEN_TYPE_BLACKLIST read parcel failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            int32_t repCode;
+            SetVirtualScreenTypeBlackList(id, typeBlackListVector, repCode);
+            if (!reply.WriteInt32(repCode)) {
+                RS_LOGE("RSRenderServiceConnectionStub::SET_VIRTUAL_SCREEN_TYPE_BLACKLIST Write repCode failed!");
                 ret = ERR_INVALID_REPLY;
             }
             break;

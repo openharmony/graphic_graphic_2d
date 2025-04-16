@@ -655,11 +655,14 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
                 RSUniRenderThread::Instance().SetVisibleRect(Drawing::RectI());
                 return;
             }
+            currentTypeBlackList_ = screenManager->GetVirtualScreenTypeBlackList(paramScreenId);
+            RSUniRenderThread::Instance().SetTypeBlackList(currentTypeBlackList_);
             RSUniRenderThread::Instance().SetWhiteList(screenInfo.whiteList);
             curSecExemption_ = params->GetSecurityExemption();
             uniParam->SetSecExemption(curSecExemption_);
             DrawMirrorScreen(*params, processor);
             lastBlackList_ = currentBlackList_;
+            lastTypeBlackList_ = currentTypeBlackList_;
             lastSecExemption_ = curSecExemption_;
             lastVisibleRect_ = curVisibleRect_;
             RSUniRenderThread::Instance().SetVisibleRect(Drawing::RectI());
@@ -1065,7 +1068,8 @@ int32_t RSDisplayRenderNodeDrawable::GetSpecialLayerType(RSDisplayRenderParams& 
         return hasGeneralSpecialLayer ? HAS_SPECIAL_LAYER :
             (params.HasCaptureWindow() ? CAPTURE_WINDOW : NO_SPECIAL_LAYER);
     }
-    if (hasGeneralSpecialLayer || !uniRenderThread.GetWhiteList().empty() || !currentBlackList_.empty()) {
+    if (hasGeneralSpecialLayer || !uniRenderThread.GetWhiteList().empty() || !currentBlackList_.empty() ||
+        !currentTypeBlackList_.empty()) {
         return HAS_SPECIAL_LAYER;
     } else if (params.HasCaptureWindow()) {
         return CAPTURE_WINDOW;
@@ -1106,7 +1110,8 @@ std::vector<RectI> RSDisplayRenderNodeDrawable::CalculateVirtualDirty(
     }
     if (!(lastMatrix_ == canvasMatrix) || !(lastMirrorMatrix_ == mirrorParams->GetMatrix()) ||
         uniParam->GetForceMirrorScreenDirty() || lastBlackList_ != currentBlackList_ ||
-        mirrorParams->IsSpecialLayerChanged() || lastSecExemption_ != curSecExemption_ || virtualDirtyRefresh_ ||
+        lastTypeBlackList_ != currentTypeBlackList_ || mirrorParams->IsSpecialLayerChanged() ||
+        lastSecExemption_ != curSecExemption_ || virtualDirtyRefresh_ ||
         (enableVisibleRect_ && (lastVisibleRect_ != curVisibleRect_ || params.HasSecLayerInVisibleRectChanged()))) {
         GetSyncDirtyManager()->ResetDirtyAsSurfaceSize();
         virtualDirtyRefresh_ = false;
@@ -1211,6 +1216,7 @@ void RSDisplayRenderNodeDrawable::DrawMirror(RSDisplayRenderParams& params,
     curCanvas_->RestoreToCount(0);
     rsDirtyRectsDfx.OnDrawVirtual(*curCanvas_);
     RSUniRenderThread::Instance().SetBlackList({});
+    RSUniRenderThread::Instance().SetTypeBlackList({});
     RSUniRenderThread::Instance().SetWhiteList({});
     uniParam.SetSecExemption(false);
 }

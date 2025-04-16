@@ -350,8 +350,7 @@ bool RSSurfaceRenderNodeDrawable::IsHardwareEnabled()
 
 bool RSSurfaceRenderNodeDrawable::IsHardwareEnabledTopSurface() const
 {
-    return surfaceNodeType_ == RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE &&
-        GetName() == "pointer window" && RSSystemProperties::GetHardCursorEnabled();
+    return surfaceNodeType_ == RSSurfaceNodeType::CURSOR_NODE && RSSystemProperties::GetHardCursorEnabled();
 }
 
 void RSSurfaceRenderNodeDrawable::PreprocessUnobscuredUEC(RSPaintFilterCanvas& canvas)
@@ -808,6 +807,14 @@ bool RSSurfaceRenderNodeDrawable::CheckIfSurfaceSkipInMirror(const RSSurfaceRend
     if (blackList.find(surfaceParams.GetId()) != blackList.end()) {
         RS_LOGD("RSSurfaceRenderNodeDrawable::CheckIfSurfaceSkipInMirror: \
             (surfaceParamsId:[%{public}" PRIu64 "]) is in black list", surfaceParams.GetId());
+        return true;
+    }
+    // Check type black list.
+    const auto& typeBlackList = RSUniRenderThread::Instance().GetTypeBlackList();
+    NodeType nodeType = static_cast<NodeType>(surfaceParams.GetSurfaceNodeType());
+    if (typeBlackList.find(nodeType) != typeBlackList.end()) {
+        RS_LOGD("RSSurfaceRenderNodeDrawable::CheckIfSurfaceSkipInMirror: "
+            "(surfaceNodeType:[%{public}u]) is in type black list", nodeType);
         return true;
     }
     // Check white list.

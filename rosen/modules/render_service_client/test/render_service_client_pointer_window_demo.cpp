@@ -120,7 +120,7 @@ bool InitSurface()
     DisplayId displayId = DisplayManager::GetInstance().GetDefaultDisplayId();
     RSSurfaceNodeConfig surfaceNodeConfig;
     surfaceNodeConfig.SurfaceNodeName = "pointer window";
-    RSSurfaceNodeType surfaceNodeType = RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE;
+    RSSurfaceNodeType surfaceNodeType = RSSurfaceNodeType::CURSOR_NODE;
     std::cout << "RSSurfaceNode::Create" <<std::endl;
     surfaceNode = RSSurfaceNode::Create(surfaceNodeConfig, surfaceNodeType);
     if (!surfaceNode) {

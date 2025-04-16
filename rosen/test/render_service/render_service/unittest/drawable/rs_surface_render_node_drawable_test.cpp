@@ -1058,7 +1058,7 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, DealWithSelfDrawingNodeBufferTest001, 
     surfaceParams->isLayerTop_ = true;
     surfaceDrawable_->DealWithSelfDrawingNodeBuffer(canvas, *surfaceParams);
     ASSERT_TRUE(surfaceParams->IsLayerTop());
-    surfaceDrawable_->surfaceNodeType_ = RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE;
+    surfaceDrawable_->surfaceNodeType_ = RSSurfaceNodeType::CURSOR_NODE;
     surfaceDrawable_->name_ = "pointer window";
     surfaceDrawable_->DealWithSelfDrawingNodeBuffer(canvas, *surfaceParams);
 }

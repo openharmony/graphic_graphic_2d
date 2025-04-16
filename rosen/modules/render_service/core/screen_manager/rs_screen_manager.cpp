@@ -1121,6 +1121,25 @@ int32_t RSScreenManager::SetVirtualScreenBlackList(ScreenId id, const std::vecto
     return SUCCESS;
 }
 
+int32_t RSScreenManager::SetVirtualScreenTypeBlackList(ScreenId id, const std::vector<uint8_t>& typeBlackList)
+{
+    std::unordered_set<NodeType> screenTypeBlackList(typeBlackList.begin(), typeBlackList.end());
+    if (id == INVALID_SCREEN_ID) {
+        RS_LOGI("%{public}s: Cast screen typeblacklists for id %{public}" PRIu64, __func__, id);
+        std::lock_guard<std::mutex> lock(typeBlackListMutex_);
+        castScreenTypeBlackList_ = std::move(screenTypeBlackList);
+        return SUCCESS;
+    }
+    auto virtualScreen = GetScreen(id);
+    if (virtualScreen == nullptr) {
+        RS_LOGW("%{public}s: There is no screen for id %{public}" PRIu64, __func__, id);
+        return SCREEN_NOT_FOUND;
+    }
+    RS_LOGI("%{public}s: Record screen typeblacklists for id %{public}" PRIu64, __func__, id);
+    virtualScreen->SetTypeBlackList(screenTypeBlackList);
+    return SUCCESS;
+}
+
 int32_t RSScreenManager::AddVirtualScreenBlackList(ScreenId id, const std::vector<uint64_t>& blackList)
 {
     if (id == INVALID_SCREEN_ID) {
@@ -1301,6 +1320,22 @@ const std::unordered_set<NodeId> RSScreenManager::GetVirtualScreenBlackList(Scre
     }
     RS_LOGD("%{public}s: Record screen blacklists for id %{public}" PRIu64, __func__, id);
     return virtualScreen->GetBlackList();
+}
+
+const std::unordered_set<NodeType> RSScreenManager::GetVirtualScreenTypeBlackList(ScreenId id) const
+{
+    auto virtualScreen = GetScreen(id);
+    if (virtualScreen == nullptr) {
+        RS_LOGW("%{public}s: There is no screen for id %{public}" PRIu64, __func__, id);
+        return {};
+    }
+    if (virtualScreen->GetCastScreenEnableSkipWindow()) {
+        RS_LOGW("%{public}s: Cast screen typeblacklists for id %{public}" PRIu64, __func__, id);
+        std::lock_guard<std::mutex> lock(typeBlackListMutex_);
+        return castScreenTypeBlackList_;
+    }
+    RS_LOGD("%{public}s: Record screen typeblacklists for id %{public}" PRIu64, __func__, id);
+    return virtualScreen->GetTypeBlackList();
 }
 
 std::unordered_set<uint64_t> RSScreenManager::GetAllBlackList() const

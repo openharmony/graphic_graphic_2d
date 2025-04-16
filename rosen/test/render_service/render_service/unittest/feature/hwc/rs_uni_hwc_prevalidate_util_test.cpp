@@ -296,7 +296,7 @@ HWTEST_F(RSUniHwcPrevalidateUtilTest, CheckHwcNodeAndGetPointerWindow002, TestSi
     std::shared_ptr<RSSurfaceRenderNode> hwcNode = RSTestUtil::CreateSurfaceNode();
     std::shared_ptr<RSSurfaceRenderNode> pointerWindow = nullptr;
     hwcNode->isOnTheTree_ = true;
-    hwcNode->nodeType_ = RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE;
+    hwcNode->nodeType_ = RSSurfaceNodeType::CURSOR_NODE;
     hwcNode->name_ = "pointer window";
     bool ret = RSUniHwcPrevalidateUtil::CheckHwcNodeAndGetPointerWindow(hwcNode, pointerWindow);
     EXPECT_EQ(ret, false);

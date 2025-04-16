@@ -1775,6 +1775,32 @@ HWTEST_F(RSInterfacesTest, SetVirtualScreenBlackList_Test, Function | SmallTest 
 }
 
 /*
+ * @tc.name: SetVirtualScreenTypeBlackList
+ * @tc.desc: Test SetVirtualScreenTypeBlackList
+ * @tc.type: FUNC
+ * @tc.require:issueI9P2VD
+ */
+HWTEST_F(RSInterfacesTest, SetVirtualScreenTypeBlackList_Test, Function | SmallTest | Level2)
+{
+    auto cSurface = IConsumerSurface::Create();
+    ASSERT_NE(cSurface, nullptr);
+
+    auto producer = cSurface->GetProducer();
+    auto pSurface = Surface::CreateSurfaceAsProducer(producer);
+    EXPECT_NE(pSurface, nullptr);
+    uint32_t defaultWidth = 720;
+    uint32_t defaultHeight = 1280;
+
+    ScreenId virtualScreenId = rsInterfaces->CreateVirtualScreen(
+        "virtualScreen0", defaultWidth, defaultHeight, pSurface, INVALID_SCREEN_ID, -1);
+    EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
+
+    std::vector<NodeType> typeBlackList = {1, 2, 3};
+    int32_t ret = rsInterfaces->SetVirtualScreenTypeBlackList(virtualScreenId, typeBlackList);
+    ASSERT_EQ(ret, 0);
+}
+
+/*
  * @tc.name: AddVirtualScreenBlackList
  * @tc.desc: Test AddVirtualScreenBlackList
  * @tc.type: FUNC

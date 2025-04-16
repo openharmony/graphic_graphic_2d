@@ -4336,7 +4336,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdatePointWindowDirtyStatus001, TestSize.Level
     ASSERT_NE(rsUniRenderVisitor, nullptr);
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(0);
     surfaceNode->InitRenderParams();
-    surfaceNode->nodeType_ = RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE;
+    surfaceNode->nodeType_ = RSSurfaceNodeType::CURSOR_NODE;
     surfaceNode->name_ = "pointer window";
 
     // globalZOrder_ + 2 is displayNode layer

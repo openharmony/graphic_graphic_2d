@@ -198,7 +198,9 @@ private:
     std::shared_ptr<Drawing::Surface> offscreenSurface_ = nullptr; // temporarily holds offscreen surface
     std::shared_ptr<RSPaintFilterCanvas> canvasBackup_ = nullptr; // backup current canvas before offscreen render
     std::unordered_set<NodeId> currentBlackList_ = {};
+    std::unordered_set<NodeType> currentTypeBlackList_ = {};
     std::unordered_set<NodeId> lastBlackList_ = {};
+    std::unordered_set<NodeType> lastTypeBlackList_ = {};
     bool curSecExemption_ = false;
     bool lastSecExemption_ = false;
     std::shared_ptr<Drawing::Image> cacheImgForCapture_ = nullptr;

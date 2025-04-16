@@ -698,6 +698,40 @@ int32_t RSRenderServiceConnectionProxy::SetVirtualScreenBlackList(ScreenId id, s
     return status;
 }
 
+ErrCode RSRenderServiceConnectionProxy::SetVirtualScreenTypeBlackList(
+    ScreenId id, std::vector<NodeType>& typeBlackListVector, int32_t& repCode)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_ASYNC);
+
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("SetVirtualScreenTypeBlackList: WriteInterfaceToken GetDescriptor err.");
+        repCode = WRITE_PARCEL_ERR;
+        return ERR_INVALID_VALUE;
+    }
+
+    if (!data.WriteUint64(id)) {
+        ROSEN_LOGE("SetVirtualScreenTypeBlackList: WriteUint64 id err.");
+        repCode = WRITE_PARCEL_ERR;
+        return ERR_INVALID_VALUE;
+    }
+    if (!data.WriteUInt8Vector(typeBlackListVector)) {
+        ROSEN_LOGE("SetVirtualScreenTypeBlackList: WriteUInt8Vector typeBlackListVector err.");
+        repCode = WRITE_PARCEL_ERR;
+        return ERR_INVALID_VALUE;
+    }
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_TYPE_BLACKLIST);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::SetVirtualScreenTypeBlackList: Send Request err.");
+        return ERR_INVALID_VALUE;
+    }
+
+    repCode = reply.ReadInt32();
+    return ERR_OK;
+}
+
 ErrCode RSRenderServiceConnectionProxy::AddVirtualScreenBlackList(
     ScreenId id, std::vector<NodeId>& blackListVector, int32_t& repCode)
 {
