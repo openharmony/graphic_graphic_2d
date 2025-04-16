@@ -240,11 +240,6 @@ void HgmFrameRateManager::InitTouchManager()
             multiAppStrategy_.HandleTouchInfo(touchInfo);
             UpdateSoftVSync(false);
         };
-        touchManager_.RegisterEventCallback(TouchEvent::UP_TIMEOUT_EVENT, [this] (TouchEvent event) {
-            SetSchedulerPreferredFps(OLED_60_HZ);
-            SetIsNeedUpdateAppOffset(true);
-            touchManager_.ChangeState(TouchState::IDLE_STATE);
-        });
         touchManager_.RegisterEventCallback(TouchEvent::DOWN_EVENT, [this] (TouchEvent event) {
             SetSchedulerPreferredFps(OLED_120_HZ);
             touchManager_.ChangeState(TouchState::DOWN_STATE);
@@ -258,6 +253,8 @@ void HgmFrameRateManager::InitTouchManager()
         });
         touchManager_.RegisterEnterStateCallback(TouchState::IDLE_STATE,
             [this, updateTouchToMultiAppStrategy] (TouchState lastState, TouchState newState) {
+            SetSchedulerPreferredFps(OLED_60_HZ);
+            SetIsNeedUpdateAppOffset(true);
             startCheck_.store(false);
             updateTouchToMultiAppStrategy(newState);
             voterTouchEffective_.store(false);
@@ -1998,7 +1995,7 @@ void HgmFrameRateManager::CheckRefreshRateChange(bool followRs, bool frameRateCh
     bool needChangeDssRefreshRate = currRefreshRate_.load() != refreshRate;
     // 当dvsync在连续延迟切帧阶段，使用dvsync内记录的刷新率判断是否变化
     CreateVSyncGenerator()->DVSyncRateChanged(controllerRate_, frameRateChanged);
-    if (HgmCore::Instance().GetLtpoEnabled() && frameRateChanged) {
+    if (HgmCore::Instance().GetLtpoEnabled() && (frameRateChanged || isNeedUpdateAppOffset_)) {
         HandleFrameRateChangeForLTPO(timestamp_.load(), followRs);
         if (needChangeDssRefreshRate && changeDssRefreshRateCb_ != nullptr) {
             changeDssRefreshRateCb_(curScreenId_.load(), refreshRate, true);

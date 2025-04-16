@@ -112,6 +112,7 @@ int64_t HgmVSyncGeneratorController::ChangeGeneratorRate(const uint32_t controll
         currentRate_ = controllerRate;
     } else {
         if (isNeedUpdateAppOffset) {
+            listenerPhase.cb = appController_;
             listenerPhase.phaseByPulseNum = pulseNum;
         }
         vsyncGenerator_->ChangeGeneratorRefreshRateModel(listenerRate, listenerPhase, controllerRate, vsyncCount);
