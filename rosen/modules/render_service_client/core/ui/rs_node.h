@@ -42,6 +42,8 @@
 #include "ui_effect/filter/include/filter_water_ripple_para.h"
 #include "ui_effect/filter/include/filter_fly_out_para.h"
 #include "ui_effect/filter/include/filter_distort_para.h"
+#include "ui_effect/filter/include/filter_radius_gradient_blur_para.h"
+
 #include "transaction/rs_transaction_handler.h"
 #include "transaction/rs_sync_transaction_handler.h"
 #include "recording/recording_canvas.h"

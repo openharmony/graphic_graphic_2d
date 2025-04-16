@@ -1831,6 +1831,13 @@ void RSNode::SetUICompositingFilter(const OHOS::Rosen::Filter* compositingFilter
             auto stretchPercent = pixelStretchPara->GetStretchPercent();
             SetPixelStretchPercent(stretchPercent, pixelStretchPara->GetTileMode());
         }
+        if (filterPara->GetParaType() == FilterPara::RADIUS_GRADIENT_BLUR) {
+            auto para = std::static_pointer_cast<RadiusGradientBlurPara>(filterPara);
+            auto linearGradientBlurPara = std::make_shared<RSLinearGradientBlurPara>(para->GetBlurRadius(),
+                para->GetFractionStops(), para->GetDirection());
+            linearGradientBlurPara->isRadiusGradient_ = true;
+            SetLinearGradientBlurPara(linearGradientBlurPara);
+        }
     }
 }
 
