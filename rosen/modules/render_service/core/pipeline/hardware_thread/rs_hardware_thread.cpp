@@ -813,8 +813,8 @@ void RSHardwareThread::ChangeDssRefreshRate(ScreenId screenId, uint32_t refreshR
             ChangeDssRefreshRate(screenId, refreshRate, false);
         };
         int64_t period = hgmCore.GetIdealPeriod(hgmCore.GetScreenCurrentRefreshRate(screenId));
-        uint32_t delayDouble = 2;
-        PostDelayTask(task, (period / NS_MS_UNIT_CONVERSION + delayTime_) * delayDouble + DELAY_TIME_OFFSET);
+        uint32_t delayRate = 2;
+        PostDelayTask(task, (period / NS_MS_UNIT_CONVERSION + delayTime_) * delayRate + DELAY_TIME_OFFSET);
     } else {
         auto outputIter = outputMap_.find(screenId);
         if (outputIter == outputMap_.end()) {
