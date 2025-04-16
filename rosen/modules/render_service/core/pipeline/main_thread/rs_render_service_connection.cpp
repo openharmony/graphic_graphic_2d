@@ -561,6 +561,7 @@ ErrCode RSRenderServiceConnection::GetPixelMapByProcessId(
         if (connection == nullptr || connection->mainThread_ == nullptr) {
             return;
         }
+        RS_TRACE_NAME_FMT("RSRenderServiceConnection::GetPixelMapByProcessId getSurfaceBufferByPidTask pid: %d", pid);
         auto selfDrawingNodeVector =
             connection->mainThread_->GetContext().GetMutableNodeMap().GetSelfDrawingNodeInProcess(pid);
         for (auto iter = selfDrawingNodeVector.rbegin(); iter != selfDrawingNodeVector.rend(); ++iter) {

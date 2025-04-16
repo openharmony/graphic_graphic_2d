@@ -1466,6 +1466,16 @@ public:
         return selfAndParentShouldPaint_;
     }
 
+    void SetAppWindowZOrder(int32_t appWindowZOrder)
+    {
+        appWindowZOrder_ = appWindowZOrder;
+    }
+
+    int32_t GetAppWindowZOrder() const
+    {
+        return appWindowZOrder_;
+    }
+
 protected:
     void OnSync() override;
     void OnSkipSync() override;
@@ -1713,6 +1723,7 @@ private:
     // valid filter nodes within, including itself
     std::vector<std::shared_ptr<RSRenderNode>> filterNodes_;
     std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> drawingCacheNodes_;
+    int32_t appWindowZOrder_ = 0;
 
     /*
         ContainerWindow configs acquired from arkui, including container window state, screen density, container border
