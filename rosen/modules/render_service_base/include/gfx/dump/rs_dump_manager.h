@@ -57,6 +57,7 @@ enum class RSDumpID : uint8_t {
     GPU_INFO,
     EXIST_PID_MEM_INFO,
     RS_RENDER_NODE_INFO,
+    CURRENT_FRAME_BUFFER,
 };
 
 // Define a function type alias for the dump point handling function
@@ -116,6 +117,7 @@ const std::unordered_map<std::u16string, RSDumpCmd> cmdMap_ = {
     { u"gles", { { RSDumpID::GPU_INFO }, "inquire gpu info" } },
     { u"dumpExistPidMem", { { RSDumpID::EXIST_PID_MEM_INFO }, "dumpExistPidMem [pid], dump exist pid mem info" } },
     { u"dumpNode", { { RSDumpID::RS_RENDER_NODE_INFO }, "dump render node info" } },
+    { u"buffer", { { RSDumpID::CURRENT_FRAME_BUFFER }, "dump current frame buffer"} },
 };
 
 // Define the RSDumpManager class
