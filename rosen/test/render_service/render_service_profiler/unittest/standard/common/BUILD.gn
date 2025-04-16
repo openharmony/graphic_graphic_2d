@@ -15,14 +15,13 @@ import("//build/test.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 import("$graphic_2d_root/rosen/modules/render_service_base/config.gni")
 
-module_output_path = "graphic_2d/graphic_2d/rosen/modules/render_service_profiler/standard"
+module_output_path =
+    "graphic_2d/graphic_2d/rosen/modules/render_service_profiler/standard"
 
 group("unittest") {
   testonly = true
 
-  deps = [
-    ":RSCommonDefTest",
-  ]
+  deps = [ ":RSCommonDefTest" ]
 }
 
 ## Build RSCommonDefTest
@@ -33,9 +32,8 @@ ohos_unittest("RSCommonDefTest") {
 }
 
 config("rs_test_common_config") {
-  include_dirs = [
-    "$graphic_2d_root/rosen/modules/render_service_base/include",
-  ]
+  include_dirs =
+      [ "$graphic_2d_root/rosen/modules/render_service_base/include" ]
 
   cflags = [
     "-Wall",
