@@ -408,6 +408,10 @@ public:
 
     void SetMainAndLeashSurfaceDirty(bool isDirty);
 
+    void SetForceCloseHdr(bool isForceCloseHdr);
+
+    bool GetForceCloseHdr() const;
+
     void SetHDRPresent(bool hdrPresent);
 
     void SetBrightnessRatio(float brightnessRatio);
@@ -608,6 +612,7 @@ private:
     bool isMirroredDisplay_ = false;
     bool hasMirroredDisplayChanged_ = false;
     bool isSecurityDisplay_ = false;
+    bool isForceCloseHdr_ = false;
     bool hasUniRenderHdrSurface_ = false;
     bool isLuminanceStatusChange_ = false;
     bool preRotationStatus_ = false;

@@ -55,6 +55,8 @@ public:
 
     bool GetSecurityDisplay() const;
 
+    void SetForceCloseHdr(bool isForceCloseHdr);
+
     bool IsMirrorDisplay() const;
 
     void SetBootAnimation(bool isBootAnimation);
