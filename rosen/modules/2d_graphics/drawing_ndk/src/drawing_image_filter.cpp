@@ -66,10 +66,8 @@ OH_Drawing_ImageFilter* OH_Drawing_ImageFilterCreateFromColorFilter(
 
 OH_Drawing_ImageFilter* OH_Drawing_ImageFilterCreateOffset(float x, float y, OH_Drawing_ImageFilter* imageFilter)
 {
-    NativeHandle<ImageFilter>* inputHandle = nullptr;
-    if (imageFilter) {
-        inputHandle = Helper::CastTo<OH_Drawing_ImageFilter*, NativeHandle<ImageFilter>*>(imageFilter);
-    }
+    NativeHandle<ImageFilter>* inputHandle = imageFilter ? Helper::CastTo<OH_Drawing_ImageFilter*,
+        NativeHandle<ImageFilter>*>(imageFilter) : nullptr;
     NativeHandle<ImageFilter>* imageFilterHandle = new NativeHandle<ImageFilter>;
     imageFilterHandle->value =
         ImageFilter::CreateOffsetImageFilter(x, y, inputHandle ? inputHandle->value : nullptr);
@@ -77,20 +75,17 @@ OH_Drawing_ImageFilter* OH_Drawing_ImageFilterCreateOffset(float x, float y, OH_
         delete imageFilterHandle;
         return nullptr;
     }
-    g_drawingErrorCode = OH_DRAWING_SUCCESS;
     return Helper::CastTo<NativeHandle<ImageFilter>*, OH_Drawing_ImageFilter*>(imageFilterHandle);
 }
 
 OH_Drawing_ImageFilter* OH_Drawing_ImageFilterCreateFromShaderEffect(OH_Drawing_ShaderEffect* shaderEffct)
 {
     if (shaderEffct == nullptr) {
-        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return nullptr;
     }
     NativeHandle<ShaderEffect>* shaderFilterHandle =
         Helper::CastTo<OH_Drawing_ShaderEffect*, NativeHandle<ShaderEffect>*>(shaderEffct);
     if (shaderFilterHandle->value == nullptr) {
-        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return nullptr;
     }
     NativeHandle<ImageFilter>* imageFilterHandle = new NativeHandle<ImageFilter>;
@@ -99,7 +94,6 @@ OH_Drawing_ImageFilter* OH_Drawing_ImageFilterCreateFromShaderEffect(OH_Drawing_
         delete imageFilterHandle;
         return nullptr;
     }
-    g_drawingErrorCode = OH_DRAWING_SUCCESS;
     return Helper::CastTo<NativeHandle<ImageFilter>*, OH_Drawing_ImageFilter*>(imageFilterHandle);
 }
 

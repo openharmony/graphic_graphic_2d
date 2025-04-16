@@ -22,6 +22,7 @@
 #include "base_impl.h"
 
 #include "effect/shader_effect.h"
+#include "utils/sampling_options.h"
 #include "utils/scalar.h"
 
 namespace OHOS {
@@ -30,7 +31,6 @@ namespace Drawing {
 class Data;
 class ImageFilter;
 class ColorFilter;
-class Bitmap;
 enum class GradientDir : uint8_t {
     LEFT = 0,
     TOP,
@@ -75,7 +75,8 @@ public:
     virtual void InitWithBlend(BlendMode mode, const Rect& cropRect, std::shared_ptr<ImageFilter> background,
         std::shared_ptr<ImageFilter> foreground = nullptr) = 0;
     virtual void InitWithShader(std::shared_ptr<ShaderEffect> shader, const Rect& cropRect) = 0;
-    virtual void InitWithBitmap(const std::shared_ptr<Image>& image, const Rect& srcRect, const Rect& dstRect) = 0;
+    virtual void InitWithImage(const std::shared_ptr<Image>& image, const Rect& srcRect, const Rect& dstRect,
+        const SamplingOptions& options) = 0;
 };
 } // namespace Drawing
 } // namespace Rosen

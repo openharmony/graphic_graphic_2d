@@ -207,13 +207,13 @@ napi_value JsColorFilter::CreateLightingColorFilter(napi_env env, napi_callback_
     if (!ConvertFromAdaptHexJsColor(env, argv[ARGC_ZERO], mulColor)) {
         ROSEN_LOGE("JsColorFilter::CreateLightingColorFilter Argv[0] is invalid");
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "Parameter verification failed. The range of color channels must be [0, 255].");
+            "Parameter0 verification failed. The range of color channels must be [0, 255].");
     }
     ColorQuad addColor;
     if (!ConvertFromAdaptHexJsColor(env, argv[ARGC_ONE], addColor)) {
         ROSEN_LOGE("JsColorFilter::CreateLightingColorFilter Argv[1] is invalid");
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "Parameter verification failed. The range of color channels must be [0, 255].");
+            "Parameter1 verification failed. The range of color channels must be [0, 255].");
     }
 
     std::shared_ptr<ColorFilter> colorFilter = ColorFilter::CreateLightingColorFilter(mulColor, addColor);

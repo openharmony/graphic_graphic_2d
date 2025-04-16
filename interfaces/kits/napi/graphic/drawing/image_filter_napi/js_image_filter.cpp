@@ -18,7 +18,8 @@
 #include "native_value.h"
 
 #include "js_drawing_utils.h"
-#include "image/bitmap.h"
+#include "image/image.h"
+#include "utils/sampling_options.h"
 
 namespace OHOS::Rosen {
 namespace Drawing {
@@ -212,22 +213,18 @@ napi_value JsImageFilter::CreateFromImage(napi_env env, napi_callback_info info)
     Media::PixelMapNapi* pixelMapNapi = nullptr;
     GET_UNWRAP_PARAM(ARGC_ZERO, pixelMapNapi);
 
-    if (pixelMapNapi->GetPixelNapiInner() == nullptr) {
+    std::shared_ptr<Media::PixelMap> pixelMap = pixelMapNapi->GetPixelNapiInner();
+    if (pixelMap == nullptr) {
         ROSEN_LOGE("JsImageFilter::CreateFromImage GetPixelNapiInner failed!");
         return nullptr;
     }
 
-    Bitmap bitmap;
-    if (!ExtracetDrawingBitmap(pixelMapNapi->GetPixelNapiInner(), bitmap)) {
-        ROSEN_LOGE("JsImageFilter::CreateFromImage ExtracetDrawingBitmap failed!");
-        return nullptr;
-    }
-    auto image = bitmap.MakeImage();
+    std::shared_ptr<Drawing::Image> image = ExtractDrawingImage(pixelMap);
     if (image == nullptr) {
         ROSEN_LOGE("JsImageFilter::CreateFromImage image is nullptr!");
         return nullptr;
     }
-    Drawing::Rect srcRect = Drawing::Rect(0.0f, 0.0f, bitmap.GetWidth(), bitmap.GetHeight());
+    Drawing::Rect srcRect = Drawing::Rect(0.0f, 0.0f, image->GetWidth(), image->GetHeight());
     Drawing::Rect dstRect = srcRect;
     if (argc >= ARGC_TWO) {
         napi_valuetype valueType = napi_undefined;
@@ -268,7 +265,8 @@ napi_value JsImageFilter::CreateFromImage(napi_env env, napi_callback_info info)
         }
     }
 
-    std::shared_ptr<ImageFilter> imgFilter = ImageFilter::CreateBitmapImageFilter(bitmap.MakeImage(), srcRect, dstRect);
+    std::shared_ptr<ImageFilter> imgFilter = ImageFilter::CreateImageImageFilter(image, srcRect, dstRect,
+        SamplingOptions(FilterMode::LINEAR));
     return JsImageFilter::Create(env, imgFilter);
 #else
     return nullptr;
@@ -285,6 +283,7 @@ napi_value JsImageFilter::CreateFromShaderEffect(napi_env env, napi_callback_inf
     std::shared_ptr<ImageFilter> imgFilter = ImageFilter::CreateShaderImageFilter(shaderEffect);
     return JsImageFilter::Create(env, imgFilter);
 }
+
 napi_value JsImageFilter::CreateOffsetImageFilter(napi_env env, napi_callback_info info)
 {
     size_t argc = ARGC_THREE;

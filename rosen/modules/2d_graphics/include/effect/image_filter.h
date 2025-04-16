@@ -19,6 +19,7 @@
 #include "effect/color_filter.h"
 #include "drawing/engine_adapter/impl_interface/image_filter_impl.h"
 #include "utils/drawing_macros.h"
+#include "utils/sampling_options.h"
 #include "utils/scalar.h"
 
 namespace OHOS {
@@ -140,8 +141,9 @@ public:
      * @param dstRect Indicates the pointer to a dst rect object.
      * @return    A shared pointer to ImageFilter that its type is bitmap.
      */
-    static std::shared_ptr<ImageFilter> CreateBitmapImageFilter(
-        const std::shared_ptr<Image>& image, const Rect& srcRect, const Rect& dstRect);
+    static std::shared_ptr<ImageFilter> CreateImageImageFilter(
+        const std::shared_ptr<Image>& image, const Rect& srcRect, const Rect& dstRect,
+        const SamplingOptions& options = SamplingOptions());
 
     virtual ~ImageFilter() = default;
     FilterType GetType() const;
@@ -179,7 +181,7 @@ public:
         const Rect& cropRect = noCropRect) noexcept;
     ImageFilter(FilterType t, std::shared_ptr<ShaderEffect> shader, const Rect& cropRect = noCropRect) noexcept;
     ImageFilter(FilterType t, const std::shared_ptr<Image>& image, const RectF& srcRect,
-        const RectF& dstRect) noexcept;
+        const RectF& dstRect, const SamplingOptions& options = SamplingOptions()) noexcept;
 
 protected:
     ImageFilter() noexcept;

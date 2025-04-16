@@ -175,9 +175,8 @@ OH_Drawing_ShaderEffect* OH_Drawing_ShaderEffectCreateRadialGradientWithLocalMat
  * @version 1.0
  */
 OH_Drawing_ShaderEffect* OH_Drawing_ShaderEffectCreateSweepGradientWithLocalMatrix(
-    const OH_Drawing_Point* center, const uint32_t* colors, const float* pos, uint32_t size,
-    OH_Drawing_TileMode tileMode,
-    const OH_Drawing_Matrix* matrix);
+    const OH_Drawing_Point* centerPt, const uint32_t* colors, const float* pos, uint32_t size,
+    OH_Drawing_TileMode tileMode, const OH_Drawing_Matrix* matrix);
 
 /**
  * @brief Creates an <b>OH_Drawing_ShaderEffect</b> that generates a sweep gradient given a center.

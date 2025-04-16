@@ -19,6 +19,7 @@
 #include "draw/color.h"
 #include "include/effects/SkImageFilters.h"
 #include "skia_adapter/skia_image_filter.h"
+#include "utils/sampling_options.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -131,22 +132,21 @@ HWTEST_F(SkiaImageFilterTest, Deserialize001, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: IAZ845
  */
-HWTEST_F(SkiaImageFilterTest, InitWithBitmap001, TestSize.Level1)
+HWTEST_F(SkiaImageFilterTest, InitWithImage001, TestSize.Level1)
 {
     int32_t width = 200;
     int32_t height = 200;
     std::shared_ptr<Image> image = nullptr;
     Rect rect(0.0f, 0.0f, width, height);
     std::shared_ptr<SkiaImageFilter> skiaImageFilter = std::make_shared<SkiaImageFilter>();
-    skiaImageFilter->InitWithBitmap(image, rect, rect);
-    EXPECT_TRUE(skiaImageFilter->filter_ == nullptr);
 
     BitmapFormat bitmapFormat = { ColorType::COLORTYPE_BGRA_8888, AlphaType::ALPHATYPE_PREMUL };
     Bitmap bitmap;
     bitmap.Build(width, height, bitmapFormat);
     image = bitmap.MakeImage();
     EXPECT_TRUE(image != nullptr);
-    skiaImageFilter->InitWithBitmap(image, rect, rect);
+    SamplingOptions options(FilterMode::LINEAR);
+    skiaImageFilter->InitWithImage(image, rect, rect, options);
     EXPECT_TRUE(skiaImageFilter->filter_ != nullptr);
 }
 } // namespace Drawing
