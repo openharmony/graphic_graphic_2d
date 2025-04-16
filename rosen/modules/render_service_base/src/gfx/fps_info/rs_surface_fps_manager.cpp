@@ -175,12 +175,12 @@ void RSSurfaceFpsManager::ClearDumpByPid(std::string& result, pid_t pid)
     surfaceFps->ClearDump();
 }
 
-void RSSurfaceFpsManager::DumpSurfaceNodeFps(std::string& dumpString, const std::string& option, const std::string& arg)
+void RSSurfaceFpsManager::DumpSurfaceNodeFps(std::string& dumpString, const std::string& option, const std::string& arg) const
 {
     dumpString += "\n-- The recently fps records info of screens:\n";
     if (option == "-name") {
         Dump(dumpString, arg);
-    } else {
+    } else if (option == "-id") {
         NodeId nodeId = 0;
         if (!ConvertToLongLongUint(arg, nodeId)) {
             dumpString = "The input nodeId is invalid, please re-enter";
@@ -188,16 +188,18 @@ void RSSurfaceFpsManager::DumpSurfaceNodeFps(std::string& dumpString, const std:
         } else {
             Dump(dumpString, nodeId);
         }
+    } else {
+        dumpString = "The input option must be \"-name\" or \"-id\", please re-enter";
+        return ;
     }
 }
 
-void RSSurfaceFpsManager::ClearSurfaceNodeFps(
-    std::string& dumpString, const std::string& option, const std::string& arg)
+void RSSurfaceFpsManager::ClearSurfaceNodeFps(std::string& dumpString, const std::string& option, const std::string& arg) const
 {
     dumpString += "\n-- Clear fps records info of screens:\n";
     if (option == "-name") {
         ClearDump(dumpString, arg);
-    } else {
+    } else if (option == "-id") {
         NodeId nodeId = 0;
         if (!ConvertToLongLongUint(arg, nodeId)) {
             dumpString = "The input nodeId is invalid, please re-enter";
@@ -205,6 +207,9 @@ void RSSurfaceFpsManager::ClearSurfaceNodeFps(
         } else {
             ClearDump(dumpString, nodeId);
         }
+    } else {
+        dumpString = "The input option must be \"-name\" or \"-id\", please re-enter";
+        return ;
     }
 }
 

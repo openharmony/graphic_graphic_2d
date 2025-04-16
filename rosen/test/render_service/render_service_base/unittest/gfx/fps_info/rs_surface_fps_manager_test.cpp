@@ -156,4 +156,40 @@ HWTEST_F(RSSurfaceFpsManagerTest, DumpAndClearDump, TestSize.Level1)
     result.clear();
     surfaceFpsManager.UnregisterSurfaceFps(id);
 }
+
+/**
+ * @tc.name: DumpAndClearSurfaceNodeFps
+ * @tc.desc: test results of DumpAndClearSurfaceNodeFps
+ * @tc.type:FUNC
+ * @tc.require: IC1APD
+ */
+HWTEST_F(RSSurfaceFpsManagerTest, DumpAndClearSurfaceNodeFps, TestSize.Level1)
+{
+    RSSurfaceFpsManager& surfaceFpsManager = RSSurfaceFpsManager::GetInstance();
+    std::string result("");
+    surfaceFpsManager.DumpSurfaceNodeFps(result, "-name", "surface");
+    EXPECT_TRUE(result.find("fps") != std::string::npos);
+    result.clear();
+    surfaceFpsManager.DumpSurfaceNodeFps(result, "-id", "123");
+    EXPECT_TRUE(result.find("fps") != std::string::npos);
+    result.clear();
+    surfaceFpsManager.DumpSurfaceNodeFps(result, "-id", "abc");
+    EXPECT_TRUE(result.find("nodeId") != std::string::npos);
+    result.clear();
+    surfaceFpsManager.DumpSurfaceNodeFps(result, "-invalid", "surface");
+    EXPECT_TRUE(result.find("must") != std::string::npos);
+    result.clear();
+    surfaceFpsManager.ClearSurfaceNodeFps(result, "-name", "surface");
+    EXPECT_TRUE(result.find("fps") != std::string::npos);
+    result.clear();
+    surfaceFpsManager.ClearSurfaceNodeFps(result, "-id", "123");
+    EXPECT_TRUE(result.find("fps") != std::string::npos);
+    result.clear();
+    surfaceFpsManager.ClearSurfaceNodeFps(result, "-id", "abc");
+    EXPECT_TRUE(result.find("nodeId") != std::string::npos);
+    result.clear();
+    surfaceFpsManager.ClearSurfaceNodeFps(result, "-invalid", "surface");
+    EXPECT_TRUE(result.find("must") != std::string::npos);
+    result.clear();
+}
 }
