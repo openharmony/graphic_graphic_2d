@@ -188,7 +188,7 @@ void RSUniRenderVisitor::PartialRenderOptionInit()
 
     if (RSSystemProperties::GetStencilPixelOcclusionCullingEnabled() == StencilPixelOcclusionCullingType::DEFAULT) {
         isStencilPixelOcclusionCullingEnabled_ =
-            StencilPixelOcclusionCullingParam::IsStencilPixelOcclusionCullingEnable();
+            OcclusionCullingParam::IsStencilPixelOcclusionCullingEnable();
     } else {
         isStencilPixelOcclusionCullingEnabled_ =
             RSSystemProperties::GetStencilPixelOcclusionCullingEnabled() != StencilPixelOcclusionCullingType::DISABLED;

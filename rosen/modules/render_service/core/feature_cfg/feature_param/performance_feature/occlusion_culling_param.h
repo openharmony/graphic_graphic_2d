@@ -19,20 +19,20 @@
 #include "feature_param.h"
 
 namespace OHOS::Rosen {
-class StencilPixelOcclusionCullingParam : public FeatureParam {
+class OcclusionCullingParam : public FeatureParam {
 public:
-    StencilPixelOcclusionCullingParam() = default;
-    ~StencilPixelOcclusionCullingParam() = default;
+    OcclusionCullingParam() = default;
+    ~OcclusionCullingParam() = default;
 
     static bool IsStencilPixelOcclusionCullingEnable();
-
+    static bool IsIntraAppControlsLevelOcclusionCullingEnable();
 protected:
     static void SetStencilPixelOcclusionCullingEnable(bool isEnable);
-
+    static void SetIntraAppControlsLevelOcclusionCullingEnable(bool isEnable);
 private:
-    inline static bool isStencilPixelOcclusionCullingEnable_ = false;
-
-    friend class StencilPixelOcclusionCullingParamParse;
+    inline static bool stencilPixelOcclusionCullingEnable_ = false;
+    inline static bool intraAppControlsLevelOcclusionCullingEnable_ = false;
+    friend class OcclusionCullingParamParse;
 };
 } // namespace OHOS::Rosen
 #endif // SPOC_PARAM_H
