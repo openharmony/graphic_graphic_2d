@@ -169,6 +169,49 @@ OH_Drawing_Path* OH_Drawing_PathCopy(OH_Drawing_Path*);
 void OH_Drawing_PathDestroy(OH_Drawing_Path*);
 
 /**
+ * @brief Sets <b>OH_Drawing_Path</b> object with the same content of another.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param path Indicates the pointer to an <b>OH_Drawing_Path</b> object.
+ * @param other Indicates the pointer to an <b>OH_Drawing_Path</b> object to copy content from.
+ * @return Returns the error code.
+ *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
+ *         Returns {@link OH_DRAWING_ERROR_INVALID_PARAMETER} if path or other is nullptr.
+ * @since 20
+ * @version 1.0
+ */
+OH_Drawing_ErrorCode OH_Drawing_PathSetPath(OH_Drawing_Path* path, OH_Drawing_Path* other);
+
+/**
+ * @brief Checks if <b>OH_Drawing_Path</b> represents a empty.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param path Indicates the pointer to an <b>OH_Drawing_Path</b> object.
+ * @param isEmpty Indicates the return value.
+ * @return Returns the error code.
+ *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
+ *         Returns {@link OH_DRAWING_ERROR_INVALID_PARAMETER} if path or isEmpty is nullptr.
+ * @since 20
+ * @version 1.0
+ */
+OH_Drawing_ErrorCode OH_Drawing_PathIsEmpty(OH_Drawing_Path* path, bool* isEmpty);
+
+/**
+ * @brief Checks if <b>OH_Drawing_Path</b> represents a rectangle.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param path Indicates the pointer to an <b>OH_Drawing_Path</b> object.
+ * @param rect Indicates the Pointer to an <b>OH_Drawing_Rect</b> object.
+ * @param isRect Indicates the return value.
+ * @return Returns the error code.
+ *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
+ *         Returns {@link OH_DRAWING_ERROR_INVALID_PARAMETER} if path or isEmpty is nullptr.
+ * @since 20
+ * @version 1.0
+ */
+OH_Drawing_ErrorCode OH_Drawing_PathIsRect(OH_Drawing_Path* path, OH_Drawing_Rect* rect, bool* isRect);
+
+/**
  * @brief Sets the start point of a path.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
@@ -560,6 +603,20 @@ void OH_Drawing_PathTransformWithPerspectiveClip(OH_Drawing_Path* src, const OH_
  * @version 1.0
  */
 void OH_Drawing_PathSetFillType(OH_Drawing_Path*, OH_Drawing_PathFillType);
+
+/**
+ * @brief Gets FillType, the rule used to fill path.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param path Indicates the pointer to an <b>OH_Drawing_Path</b> object.
+ * @param pathFillType Indicates the FillType apply to path.
+ * @return Returns the error code.
+ *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
+ *         Returns {@link OH_DRAWING_ERROR_INVALID_PARAMETER} if path or isEmpty is nullptr.
+ * @since 20
+ * @version 1.0
+ */
+OH_Drawing_ErrorCode OH_Drawing_PathGetFillType(OH_Drawing_Path* path, OH_Drawing_PathFillType* pathFillType);
 
 /**
  * @brief Gets the length of the current path object.

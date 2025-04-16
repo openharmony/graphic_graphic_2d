@@ -86,6 +86,37 @@ void OH_Drawing_PathDestroy(OH_Drawing_Path* cPath)
     delete CastToPath(cPath);
 }
 
+OH_Drawing_ErrorCode OH_Drawing_PathSetPath(OH_Drawing_Path* cPath, OH_Drawing_Path* cOther)
+{
+    if (cPath == nullptr || cOther == nullptr) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    Path* path = CastToPath(cPath);
+    Path* other = CastToPath(cOther);
+    path->SetPath(*other);
+    return OH_DRAWING_SUCCESS;
+}
+
+OH_Drawing_ErrorCode OH_Drawing_PathIsEmpty(OH_Drawing_Path* cPath, bool* isEmpty)
+{
+    if (cPath == nullptr || isEmpty == nullptr) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    *isEmpty = CastToPath(cPath)->IsEmpty();
+    return OH_DRAWING_SUCCESS;
+}
+
+OH_Drawing_ErrorCode OH_Drawing_PathIsRect(OH_Drawing_Path* cPath, OH_Drawing_Rect* cRect, bool* isRect)
+{
+    if (cPath == nullptr || isRect == nullptr) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    Path* path = CastToPath(cPath);
+    Rect* rect = CastToRect(cRect);
+    *isRect = path->IsRect(rect);
+    return OH_DRAWING_SUCCESS;
+}
+
 void OH_Drawing_PathMoveTo(OH_Drawing_Path* cPath, float x, float y)
 {
     Path* path = CastToPath(cPath);
@@ -491,6 +522,17 @@ void OH_Drawing_PathSetFillType(OH_Drawing_Path* cPath, OH_Drawing_PathFillType 
         return;
     }
     path->SetFillStyle(static_cast<PathFillType>(fillstyle));
+}
+
+OH_Drawing_ErrorCode OH_Drawing_PathGetFillType(OH_Drawing_Path* cPath, OH_Drawing_PathFillType* pathFillType)
+{
+    if (cPath == nullptr || pathFillType == nullptr) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    Path* path = CastToPath(cPath);
+    PathFillType* type = reinterpret_cast<PathFillType*>(pathFillType);
+    *type = path->GetFillStyle();
+    return OH_DRAWING_SUCCESS;
 }
 
 void OH_Drawing_PathClose(OH_Drawing_Path* cPath)

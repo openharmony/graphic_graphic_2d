@@ -87,6 +87,17 @@ typedef enum {
 OH_Drawing_Region* OH_Drawing_RegionCreate(void);
 
 /**
+ * @brief Creates an <b>OH_Drawing_Region</b> copy object.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param region Indicates the pointer to an <b>OH_Drawing_Region</b> object to copy.
+ * @return Returns the pointer to the <b>OH_Drawing_Region</b> object created.
+ * @since 20
+ * @version 1.0
+ */
+OH_Drawing_Region* OH_Drawing_RegionCopy(const OH_Drawing_Region* region);
+
+/**
  * @brief Determines whether the region contains the specified coordinates.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing

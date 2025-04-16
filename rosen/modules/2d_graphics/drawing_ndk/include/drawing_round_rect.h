@@ -83,6 +83,17 @@ typedef enum {
 OH_Drawing_RoundRect* OH_Drawing_RoundRectCreate(const OH_Drawing_Rect*, float xRad, float yRad);
 
 /**
+ * @brief Creates an <b>OH_Drawing_RoundRect</b> copy object.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param roundRect Indicates the pointer to an <b>OH_Drawing_RoundRect</b> object to copy.
+ * @return Returns the pointer to the <b>OH_Drawing_RoundRect</b> object created.
+ * @since 20
+ * @version 1.0
+ */
+OH_Drawing_RoundRect* OH_Drawing_RoundRectCopy(const OH_Drawing_RoundRect* roundRect);
+
+/**
  * @brief Sets the radiusX and radiusY for a specific corner position.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
