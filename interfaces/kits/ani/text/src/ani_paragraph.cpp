@@ -1,36 +1,36 @@
 /*
-* Copyright (c) 2025 Huawei Device Co., Ltd.
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
-
-#include <cstdint>
-#include <codecvt>
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 #include "ani_paragraph.h"
-#include "typography_create.h"
-#include "font_collection.h"
+
+#include <codecvt>
+#include <cstdint>
+
 #include "ani_text_utils.h"
+#include "font_collection.h"
+#include "typography_create.h"
+
 #include "utils/text_log.h"
 
 namespace OHOS::Rosen {
 namespace {
 static const char* ANI_CLASS_PARAGRAPH = "L@ohos/graphics/text/text/Paragraph;";
-static const char* ANI_CLASS_LineMetrics = "L@ohos/graphics/text/text/LineMetricsInternal;";
+static const char* ANI_CLASS_LINEMETRICS_I = "L@ohos/graphics/text/text/LineMetricsInternal;";
 } // namespace
 
-AniParagraph::AniParagraph()
-{
-}
+AniParagraph::AniParagraph() {}
 
 void AniParagraph::Constructor(ani_env* env, ani_object object)
 {
@@ -58,10 +58,10 @@ ani_status AniParagraph::AniInit(ani_vm* vm, uint32_t* result)
     }
 
     std::array methods = {
-        ani_native_function{"nativeConstructor", nullptr, reinterpret_cast<void*>(Constructor)},
-        ani_native_function{"nativeLayoutSync", "D:V", reinterpret_cast<void*>(LayoutSync)},
-        ani_native_function{"nativeGetLongestLine", ":D", reinterpret_cast<void*>(GetLongestLine)},
-        ani_native_function{"nativeGetLineMetrics", ":Lescompat/Array;", reinterpret_cast<void*>(GetLineMetrics)},
+        ani_native_function { "nativeConstructor", nullptr, reinterpret_cast<void*>(Constructor) },
+        ani_native_function { "nativeLayoutSync", "D:V", reinterpret_cast<void*>(LayoutSync) },
+        ani_native_function { "nativeGetLongestLine", ":D", reinterpret_cast<void*>(GetLongestLine) },
+        ani_native_function { "nativeGetLineMetrics", ":Lescompat/Array;", reinterpret_cast<void*>(GetLineMetrics) },
     };
 
     ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
@@ -105,7 +105,7 @@ ani_ref AniParagraph::GetLineMetrics(ani_env* env, ani_object object)
 
     ani_size index = 0;
     for (auto lineMetrics : vectorLineMetrics) {
-        ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_LineMetrics, ":V", (ani_long)&lineMetrics);
+        ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_LINEMETRICS_I, ":V", (ani_long)&lineMetrics);
         env->Object_SetPropertyByName_Int(aniObj, "StartIndex", ani_int(lineMetrics.startIndex));
         env->Object_SetPropertyByName_Int(aniObj, "endIndex", ani_int(lineMetrics.endIndex));
         env->Object_SetPropertyByName_Double(aniObj, "ascent", ani_int(lineMetrics.ascender));
@@ -116,7 +116,7 @@ ani_ref AniParagraph::GetLineMetrics(ani_env* env, ani_object object)
         env->Object_SetPropertyByName_Double(aniObj, "baseline", ani_int(lineMetrics.baseline));
         env->Object_SetPropertyByName_Int(aniObj, "lineNumber", ani_int(lineMetrics.lineNumber));
         env->Object_SetPropertyByName_Int(aniObj, "topHeight", ani_int(lineMetrics.y));
-        //env->Object_SetPropertyByName_Int(aniObj, "runMetrics", ani_int(lineMetrics.runMetrics));
+        // env->Object_SetPropertyByName_Int(aniObj, "runMetrics", ani_int(lineMetrics.runMetrics));
         if (ANI_OK != env->Object_CallMethodByName_Void(arrayObj, "$_set", "ILstd/core/Object;:V", index, aniObj)) {
             TEXT_LOGE("Object_CallMethodByName_Void $_set failed");
             break;

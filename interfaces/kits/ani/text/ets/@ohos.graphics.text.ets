@@ -31,10 +31,7 @@ namespace text {
   export class FontCollection {
     static { loadLibrary('text_engine_ani.z') }
     public nativeObj : long = 0;
-    private native nativeConstructor(): void;
-    constructor() {
-      this.nativeConstructor();
-    }
+    native constructor();
   }
 
   /**
