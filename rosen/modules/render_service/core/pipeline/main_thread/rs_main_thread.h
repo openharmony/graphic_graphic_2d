@@ -575,7 +575,7 @@ private:
     void ResetHardwareEnabledState(bool isUniRender);
     void CheckIfHardwareForcedDisabled();
     bool DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNode, bool waitForRT);
-    bool BufferIsVisibleUpdate();
+    bool BufferIsVisibleAndUpdate();
 
     bool isUniRender_ = RSUniRenderJudgement::IsUniRender();
     bool needWaitUnmarshalFinished_ = true;

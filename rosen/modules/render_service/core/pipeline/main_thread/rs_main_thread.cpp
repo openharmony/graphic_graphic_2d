@@ -2474,7 +2474,9 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
         RS_LOGE("DoDirectComposition: ScreenState error!");
         return false;
     }
-    if (children->size() == 1 && (!displayNode->GetHwcNodeIsVisible() || !BufferIsVisibleUpdate())) {
+
+    // children->size()==1,the extended screen is not supported 
+    if (children->size() == 1 && (!displayNode->GetHwcNodeIsVisible() || !BufferIsVisibleAndUpdate())) {
         RS_TRACE_NAME("DoDirectComposition no hwcNode in visibleRegion");
         return true;
     }
@@ -2577,7 +2579,7 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
     return true;
 }
 
-bool RSMainThread::BufferIsVisibleUpdate()
+bool RSMainThread::BufferIsVisibleAndUpdate()
 {
     bool bufferNeedUpdate = false;
     for (auto& surfaceNode : hardwareEnabledNodes_) {

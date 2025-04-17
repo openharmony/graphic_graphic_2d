@@ -334,7 +334,7 @@ void RSDisplayRenderNodeDrawable::RenderOverDraw()
     curCanvas_->DetachBrush();
 }
 
-static inline bool GetLayersNeedCommit(uint32_t forceCommitReason, bool needForceUpdateHwcNode,
+static inline bool IsForceCommit(uint32_t forceCommitReason, bool needForceUpdateHwcNode,
     bool hasHardCursor)
 {
     return (forceCommitReason & ~(ForceCommitReason::FORCED_BY_HWCUPDATE |
@@ -372,7 +372,7 @@ bool RSDisplayRenderNodeDrawable::CheckDisplayNodeSkip(
     bool hasHardCursor = (hardCursorDrawable != nullptr);
     bool hardCursorNeedCommit = (hasHardCursor != hardCursorLastCommitSuccess_);
     auto forceCommitReason = RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetForceCommitReason();
-    bool layersNeedCommit = GetLayersNeedCommit(forceCommitReason, params.GetNeedForceUpdateHwcNodes(), hasHardCursor);
+    bool layersNeedCommit = IsForceCommit(forceCommitReason, params.GetNeedForceUpdateHwcNodes(), hasHardCursor);
     RS_TRACE_NAME_FMT("DisplayNode skip, forceCommitReason: %d, forceUpdateByHwcNodes %d, "
         "byHardCursor: %d", forceCommitReason, params.GetNeedForceUpdateHwcNodes(), hardCursorNeedCommit);
     if (!layersNeedCommit && !hardCursorNeedCommit) {
