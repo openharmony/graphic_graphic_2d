@@ -1036,7 +1036,12 @@ ErrCode RSRenderServiceConnection::GetRefreshInfoToSP(NodeId id, std::string& en
         RSHardwareThread::Instance().ScheduleTask(
             [weakThis = wptr<RSRenderServiceConnection>(this), &dumpString, &id]() {
                 sptr<RSRenderServiceConnection> connection = weakThis.promote();
-                if (connection == nullptr || connection->screenManager_ == nullptr) {
+                if (connection == nullptr) {
+                    RS_LOGE("GetRefreshInfoToSP connection is nullptr");
+                    return;
+                }
+                if (connection->screenManager_ == nullptr) {
+                    RS_LOGE("GetRefreshInfoToSP connection->screenManager_ is nullptr");
                     return;
                 }
                 RSSurfaceFpsManager::GetInstance().Dump(dumpString, id);
@@ -1046,7 +1051,12 @@ ErrCode RSRenderServiceConnection::GetRefreshInfoToSP(NodeId id, std::string& en
         mainThread_->ScheduleTask(
             [weakThis = wptr<RSRenderServiceConnection>(this), &dumpString, &id]() {
                 sptr<RSRenderServiceConnection> connection = weakThis.promote();
-                if (connection == nullptr || connection->screenManager_ == nullptr) {
+                if (connection == nullptr) {
+                    RS_LOGE("GetRefreshInfoToSP connection is nullptr");
+                    return;
+                }
+                if (connection->screenManager_ == nullptr) {
+                    RS_LOGE("GetRefreshInfoToSP connection->screenManager_ is nullptr");
                     return;
                 }
                 RSSurfaceFpsManager::GetInstance().Dump(dumpString, id);
