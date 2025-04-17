@@ -19,8 +19,8 @@
 #include <parameters.h>
 #include "param/sys_param.h"
 
-#include "common/rs_background_thread.h"
 #include "common/rs_optional_trace.h"
+#include "common/rs_switching_thread.h"
 #include "display_engine/rs_color_temperature.h"
 #include "gfx/first_frame_notifier/rs_first_frame_notifier.h"
 #include "graphic_feature_param_manager.h"
@@ -29,6 +29,7 @@
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_display_render_node.h"
 #include "platform/common/rs_log.h"
+#include "platform/common/rs_system_properties.h"
 #include "rs_trace.h"
 #include "vsync_sampler.h"
 
@@ -47,6 +48,7 @@ constexpr uint16_t SENSOR_EVENT_FIRST_DATA = 0;
 constexpr float HALF_FOLDED_MAX_THRESHOLD = 140.0F;
 constexpr float OPEN_HALF_FOLDED_MIN_THRESHOLD = 25.0F;
 constexpr uint32_t WAIT_FOR_ACTIVE_SCREEN_ID_TIMEOUT = 1000;
+constexpr uint32_t WAIT_FOR_STATUS_TASK_TIMEOUT = 1000; // 1000ms
 constexpr uint32_t MAX_VIRTUAL_SCREEN_NUM = 64;
 constexpr uint32_t MAX_VIRTUAL_SCREEN_WIDTH = 65536;
 constexpr uint32_t MAX_VIRTUAL_SCREEN_HEIGHT = 65536;
@@ -249,7 +251,7 @@ ScreenId RSScreenManager::GetActiveScreenId()
 
 bool RSScreenManager::IsAllScreensPowerOff() const
 {
-    std::scoped_lock lock(screenMapmutex_, powerStatusMutex_);
+    std::scoped_lock lock(screenMapMutex_, powerStatusMutex_);
     if (screenPowerStatus_.empty()) {
         RS_LOGE("%{public}s: screenPowerStatus_ is empty.", __func__);
         return false;
@@ -385,7 +387,7 @@ void RSScreenManager::OnHwcDeadEvent()
 {
     std::map<ScreenId, std::shared_ptr<OHOS::Rosen::RSScreen>> screens;
     {
-        std::lock_guard<std::mutex> lock(screenMapmutex_);
+        std::lock_guard<std::mutex> lock(screenMapMutex_);
         screens = std::move(screens_);
     }
     for (const auto& [id, screen] : screens) {
@@ -570,7 +572,7 @@ void RSScreenManager::AddScreenToHgm(std::shared_ptr<HdiOutput>& output)
         ScreenId thisId = ToScreenId(output->GetScreenId());
         auto screen = GetScreen(thisId);
         if (screen == nullptr) {
-            RS_LOGE("%{public}s invalid screen id, screen not found : %{public}" PRIu64, __func__, thisId);
+            RS_LOGE("invalid screen id, screen not found : %{public}" PRIu64, thisId);
             return;
         }
 
@@ -609,9 +611,9 @@ void RSScreenManager::RemoveScreenFromHgm(std::shared_ptr<HdiOutput>& output)
     RS_LOGI("%{public}s in", __func__);
     HgmTaskHandleThread::Instance().PostTask([id = ToScreenId(output->GetScreenId())] () {
         auto& hgmCore = OHOS::Rosen::HgmCore::Instance();
-        RS_LOGI("%{public}s remove screen, id: %{public}" PRIu64, __func__, id);
+        RS_LOGI("remove screen, id: %{public}" PRIu64, id);
         if (hgmCore.RemoveScreen(id)) {
-            RS_LOGW("%{public}s failed to remove screen : %{public}" PRIu64, __func__, id);
+            RS_LOGW("failed to remove screen : %{public}" PRIu64, id);
         }
     });
 }
@@ -628,7 +630,7 @@ void RSScreenManager::ProcessScreenConnected(std::shared_ptr<HdiOutput>& output)
     }
     auto screen = std::make_shared<RSScreen>(id, isVirtual, output, nullptr);
 
-    std::unique_lock<std::mutex> lock(screenMapmutex_);
+    std::unique_lock<std::mutex> lock(screenMapMutex_);
     screens_[id] = screen;
     if (isFoldScreenFlag_ && foldScreenIds_.size() < ORIGINAL_FOLD_SCREEN_AMOUNT) {
         foldScreenIds_[id] = {true, false};
@@ -663,12 +665,12 @@ void RSScreenManager::ProcessScreenConnected(std::shared_ptr<HdiOutput>& output)
 void RSScreenManager::ProcessScreenDisConnected(std::shared_ptr<HdiOutput>& output)
 {
     ScreenId id = ToScreenId(output->GetScreenId());
-    RS_LOGI("%{public}s process screen disconnected, id: %{public}" PRIu64, __func__, id);
+    RS_LOGW("%{public}s process screen disconnected, id: %{public}" PRIu64, __func__, id);
     if (GetScreen(id) == nullptr) {
         RS_LOGW("%{public}s: There is no screen for id %{public}" PRIu64, __func__, id);
     } else {
         TriggerCallbacks(id, ScreenEvent::DISCONNECTED);
-        std::lock_guard<std::mutex> lock(screenMapmutex_);
+        std::lock_guard<std::mutex> lock(screenMapMutex_);
         screens_.erase(id);
         RS_LOGI("%{public}s: Screen(id %{public}" PRIu64 ") disconnected.", __func__, id);
     }
@@ -691,7 +693,7 @@ void RSScreenManager::ProcessScreenDisConnected(std::shared_ptr<HdiOutput>& outp
 
 void RSScreenManager::UpdateVsyncEnabledScreenId(ScreenId screenId)
 {
-    std::unique_lock<std::mutex> lock(screenMapmutex_);
+    std::unique_lock<std::mutex> lock(screenMapMutex_);
     if (isFoldScreenFlag_ && foldScreenIds_.size() == ORIGINAL_FOLD_SCREEN_AMOUNT) {
         bool isAllFoldScreenDisconnected = true;
         for (const auto& [foldScreenId, foldScreenStatus] : foldScreenIds_) {
@@ -772,7 +774,7 @@ void RSScreenManager::RegSetScreenVsyncEnabledCallbackForHardwareThread(ScreenId
 void RSScreenManager::HandleDefaultScreenDisConnected()
 {
     ScreenId defaultScreenId = INVALID_SCREEN_ID;
-    std::lock_guard<std::mutex> lock(screenMapmutex_);
+    std::lock_guard<std::mutex> lock(screenMapMutex_);
     for (const auto& [id, screen] : screens_) {
         if (screen == nullptr) {
             RS_LOGW("%{public}s: screen %{public}" PRIu64 " not found", __func__, id);
@@ -802,7 +804,7 @@ void RSScreenManager::UpdateFoldScreenConnectStatusLocked(ScreenId screenId, boo
 
 uint64_t RSScreenManager::JudgeVSyncEnabledScreenWhileHotPlug(ScreenId screenId, bool connected)
 {
-    std::unique_lock<std::mutex> lock(screenMapmutex_);
+    std::unique_lock<std::mutex> lock(screenMapMutex_);
     UpdateFoldScreenConnectStatusLocked(screenId, connected);
 
     auto vsyncSampler = CreateVSyncSampler();
@@ -836,7 +838,7 @@ uint64_t RSScreenManager::JudgeVSyncEnabledScreenWhileHotPlug(ScreenId screenId,
 
 uint64_t RSScreenManager::JudgeVSyncEnabledScreenWhilePowerStatusChanged(ScreenId screenId, ScreenPowerStatus status)
 {
-    std::unique_lock<std::mutex> lock(screenMapmutex_);
+    std::unique_lock<std::mutex> lock(screenMapMutex_);
     uint64_t vsyncEnabledScreenId = CreateVSyncSampler()->GetVsyncEnabledScreenId();
     auto it = foldScreenIds_.find(screenId);
     if (it == foldScreenIds_.end()) {
@@ -983,13 +985,30 @@ RSScreenCapability RSScreenManager::GetScreenCapability(ScreenId id) const
 
 ScreenPowerStatus RSScreenManager::GetScreenPowerStatus(ScreenId id) const
 {
-    auto screen = GetScreen(id);
-    if (screen == nullptr) {
-        RS_LOGW("%{public}s: There is no screen for id %{public}" PRIu64, __func__, id);
-        return INVALID_POWER_STATUS;
+    if (!RSSystemProperties::IsSmallFoldDevice()) {
+        auto screen = GetScreen(id);
+        if (screen == nullptr) {
+            RS_LOGW("%{public}s: There is no screen for id %{public}" PRIu64, __func__, id);
+            return INVALID_POWER_STATUS;
+        }
+
+        ScreenPowerStatus status = static_cast<ScreenPowerStatus>(screen->GetPowerStatus());
+        return status;
     }
 
-    return static_cast<ScreenPowerStatus>(screen->GetPowerStatus());
+    ScreenPowerStatus status = ScreenPowerStatus::INVALID_POWER_STATUS;
+    RSSwitchingThread::Instance().PostSyncTask([id, &status, this]() {
+        auto screen = GetScreen(id);
+        if (screen == nullptr) {
+            RS_LOGW("%{public}s: There is no screen for id %{public}" PRIu64, __func__, id);
+            status = INVALID_POWER_STATUS;
+            return;
+        }
+
+        status = static_cast<ScreenPowerStatus>(screen->GetPowerStatus());
+    });
+
+    return status;
 }
 
 ScreenRotation RSScreenManager::GetScreenCorrection(ScreenId id) const
@@ -1010,7 +1029,7 @@ ScreenId RSScreenManager::GetDefaultScreenId() const
 
 std::vector<ScreenId> RSScreenManager::GetAllScreenIds() const
 {
-    std::lock_guard<std::mutex> lock(screenMapmutex_);
+    std::lock_guard<std::mutex> lock(screenMapMutex_);
     std::vector<ScreenId> ids;
     for (auto iter = screens_.begin(); iter != screens_.end(); ++iter) {
         ids.emplace_back(iter->first);
@@ -1028,12 +1047,12 @@ ScreenId RSScreenManager::CreateVirtualScreen(
     std::vector<NodeId> whiteList)
 {
     if (currentVirtualScreenNum_ >= MAX_VIRTUAL_SCREEN_NUM) {
-        RS_LOGW("%{public}s: virtual screens num %{public}" PRIu32" has reached the maximum limit!",
+        RS_LOGW("%{public}s: virtual screens num %{public}" PRIu32 " has reached the maximum limit!",
             __func__, currentVirtualScreenNum_.load());
         return INVALID_SCREEN_ID;
     }
     if (width > MAX_VIRTUAL_SCREEN_WIDTH || height > MAX_VIRTUAL_SCREEN_HEIGHT) {
-        RS_LOGW("%{public}s: width %{public}" PRIu32" or height %{public}" PRIu32" has reached"
+        RS_LOGW("%{public}s: width %{public}" PRIu32 " or height %{public}" PRIu32 " has reached"
             " the maximum limit!", __func__, width, height);
         return INVALID_SCREEN_ID;
     }
@@ -1065,7 +1084,7 @@ ScreenId RSScreenManager::CreateVirtualScreen(
     configs.whiteList = std::unordered_set<NodeId>(whiteList.begin(), whiteList.end());
 
     {
-        std::lock_guard<std::mutex> lock(screenMapmutex_);
+        std::lock_guard<std::mutex> lock(screenMapMutex_);
         screens_[newId] = std::make_shared<RSScreen>(configs);
     }
     ++currentVirtualScreenNum_;
@@ -1099,6 +1118,25 @@ int32_t RSScreenManager::SetVirtualScreenBlackList(ScreenId id, const std::vecto
         }
         mainScreen->SetBlackList(screenBlackList);
     }
+    return SUCCESS;
+}
+
+int32_t RSScreenManager::SetVirtualScreenTypeBlackList(ScreenId id, const std::vector<uint8_t>& typeBlackList)
+{
+    std::unordered_set<NodeType> screenTypeBlackList(typeBlackList.begin(), typeBlackList.end());
+    if (id == INVALID_SCREEN_ID) {
+        RS_LOGI("%{public}s: Cast screen typeblacklists for id %{public}" PRIu64, __func__, id);
+        std::lock_guard<std::mutex> lock(typeBlackListMutex_);
+        castScreenTypeBlackList_ = std::move(screenTypeBlackList);
+        return SUCCESS;
+    }
+    auto virtualScreen = GetScreen(id);
+    if (virtualScreen == nullptr) {
+        RS_LOGW("%{public}s: There is no screen for id %{public}" PRIu64, __func__, id);
+        return SCREEN_NOT_FOUND;
+    }
+    RS_LOGI("%{public}s: Record screen typeblacklists for id %{public}" PRIu64, __func__, id);
+    virtualScreen->SetTypeBlackList(screenTypeBlackList);
     return SUCCESS;
 }
 
@@ -1284,10 +1322,26 @@ const std::unordered_set<NodeId> RSScreenManager::GetVirtualScreenBlackList(Scre
     return virtualScreen->GetBlackList();
 }
 
+const std::unordered_set<NodeType> RSScreenManager::GetVirtualScreenTypeBlackList(ScreenId id) const
+{
+    auto virtualScreen = GetScreen(id);
+    if (virtualScreen == nullptr) {
+        RS_LOGW("%{public}s: There is no screen for id %{public}" PRIu64, __func__, id);
+        return {};
+    }
+    if (virtualScreen->GetCastScreenEnableSkipWindow()) {
+        RS_LOGW("%{public}s: Cast screen typeblacklists for id %{public}" PRIu64, __func__, id);
+        std::lock_guard<std::mutex> lock(typeBlackListMutex_);
+        return castScreenTypeBlackList_;
+    }
+    RS_LOGD("%{public}s: Record screen typeblacklists for id %{public}" PRIu64, __func__, id);
+    return virtualScreen->GetTypeBlackList();
+}
+
 std::unordered_set<uint64_t> RSScreenManager::GetAllBlackList() const
 {
     std::unordered_set<uint64_t> allBlackList;
-    std::scoped_lock lock(screenMapmutex_, blackListMutex_);
+    std::scoped_lock lock(screenMapMutex_, blackListMutex_);
     for (const auto& [_, screen] : screens_) {
         if (screen == nullptr) {
             continue;
@@ -1304,7 +1358,7 @@ std::unordered_set<uint64_t> RSScreenManager::GetAllBlackList() const
 
 std::unordered_set<uint64_t> RSScreenManager::GetAllWhiteList() const
 {
-    std::lock_guard<std::mutex> lock(screenMapmutex_);
+    std::lock_guard<std::mutex> lock(screenMapMutex_);
     std::unordered_set<uint64_t> allWhiteList;
     for (const auto& screen : screens_) {
         if (screen.second != nullptr) {
@@ -1362,7 +1416,7 @@ bool RSScreenManager::GetAndResetVirtualSurfaceUpdateFlag(ScreenId id) const
 void RSScreenManager::RemoveVirtualScreen(ScreenId id)
 {
     {
-        std::lock_guard<std::mutex> lock(screenMapmutex_);
+        std::lock_guard<std::mutex> lock(screenMapMutex_);
         auto screensIt = screens_.find(id);
         if (screensIt == screens_.end() || screensIt->second == nullptr) {
             RS_LOGW("%{public}s: There is no screen for id %{public}" PRIu64, __func__, id);
@@ -1444,7 +1498,7 @@ int32_t RSScreenManager::SetPhysicalScreenResolution(ScreenId id, uint32_t width
 int32_t RSScreenManager::SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height)
 {
     if (width > MAX_VIRTUAL_SCREEN_WIDTH || height > MAX_VIRTUAL_SCREEN_HEIGHT) {
-        RS_LOGW("%{public}s: width %{public}" PRIu32 " or height %{public}" PRIu32" has reached "
+        RS_LOGW("%{public}s: width %{public}" PRIu32 " or height %{public}" PRIu32 " has reached "
             "the maximum limit!", __func__, width, height);
         return INVALID_ARGUMENTS;
     }
@@ -1471,7 +1525,7 @@ int32_t RSScreenManager::SetRogScreenResolution(ScreenId id, uint32_t width, uin
     return SUCCESS;
 }
 
-void RSScreenManager::SetScreenPowerStatusForBackgroud(ScreenId id, ScreenPowerStatus status)
+void RSScreenManager::UpdateScreenPowerStatus(ScreenId id, ScreenPowerStatus status)
 {
     auto screen = GetScreen(id);
     if (screen == nullptr) {
@@ -1527,20 +1581,64 @@ void RSScreenManager::SetScreenPowerStatusForBackgroud(ScreenId id, ScreenPowerS
 
 void RSScreenManager::SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status)
 {
-    if (status == ScreenPowerStatus::POWER_STATUS_OFF) {
-        RS_LOGD("[power_off_ongoing] ScreenID: %{public}" PRIu64 " PowerStatus is %{public}d", id, status);
-        std::lock_guard<std::shared_mutex> lock(powerStatusMutex_);
-        screenPowerStatus_[id] = ScreenPowerStatus::POWER_STATUS_OFF_ONGOING;
+    if (!RSSystemProperties::IsSmallFoldDevice()) {
+        UpdateScreenPowerStatus(id, status);
+        return;
     }
 
-    RSBackgroundThread::Instance().PostTask([id, status, this]() {
-        SetScreenPowerStatusForBackgroud(id, status);
+    ResetScreenPowerStatusTask();
+    RSSwitchingThread::Instance().PostTask([id, status, this]() {
+        if (status == ScreenPowerStatus::POWER_STATUS_OFF) {
+            std::lock_guard<std::shared_mutex> lock(powerStatusMutex_);
+            isScreenPoweringOff_.insert(id);
+        }
+
+        UpdateScreenPowerStatus(id, status);
+
+        {
+            std::lock_guard<std::shared_mutex> lock(powerStatusMutex_);
+            isScreenPoweringOff_.erase(id);
+        }
+
+        std::unique_lock<std::mutex> taskLock(syncTaskMutex_);
+        statusTaskEndFlag_ = true;
+        statusTaskCV_.notify_all();
     });
+}
+
+void RSScreenManager::ResetScreenPowerStatusTask()
+{
+    if (!RSSystemProperties::IsSmallFoldDevice()) {
+        return;
+    }
+
+    std::unique_lock<std::mutex> taskLock(syncTaskMutex_);
+    statusTaskEndFlag_ = false;
+}
+
+void RSScreenManager::WaitScreenPowerStatusTask()
+{
+    if (!RSSystemProperties::IsSmallFoldDevice()) {
+        return;
+    }
+
+    std::unique_lock<std::mutex> taskLock(syncTaskMutex_);
+    if (!statusTaskCV_.wait_for(taskLock, std::chrono::milliseconds(WAIT_FOR_STATUS_TASK_TIMEOUT), [this]() {
+        return statusTaskEndFlag_;
+    })) {
+        RS_LOGW("[UL_POWER] %{public}s: wait screen power status task timeouter", __func__);
+    }
 }
 
 bool RSScreenManager::IsScreenPoweringOn() const
 {
     return isScreenPoweringOn_;
+}
+
+bool RSScreenManager::IsScreenPoweringOff(ScreenId id) const
+{
+    std::shared_lock<std::shared_mutex> lock(powerStatusMutex_);
+    return isScreenPoweringOff_.count(id) != 0;
 }
 
 bool RSScreenManager::SetVirtualMirrorScreenCanvasRotation(ScreenId id, bool canvasRotation)
@@ -1615,7 +1713,7 @@ RSScreenData RSScreenManager::GetScreenData(ScreenId id) const
 int32_t RSScreenManager::ResizeVirtualScreen(ScreenId id, uint32_t width, uint32_t height)
 {
     if (width > MAX_VIRTUAL_SCREEN_WIDTH || height > MAX_VIRTUAL_SCREEN_HEIGHT) {
-        RS_LOGW("%{public}s: width %{public}" PRIu32 " or height %{public}" PRIu32" has reached"
+        RS_LOGW("%{public}s: width %{public}" PRIu32 " or height %{public}" PRIu32 " has reached"
             " the maximum limit!", __func__, width, height);
         return INVALID_ARGUMENTS;
     }
@@ -1651,8 +1749,7 @@ void RSScreenManager::SetScreenBacklight(ScreenId id, uint32_t level)
     {
         std::lock_guard<std::shared_mutex> lock(backLightAndCorrectionMutex_);
         if (screenBacklight_[id] == level) {
-            RS_LOGD("%{public}s: repeat backlight screenId: %{public}" PRIu64 " newLevel: %d",
-                __func__, id, level);
+            RS_LOGD("%{public}s: repeat backlight screenId: %{public}" PRIu64 " newLevel: %d", __func__, id, level);
         }
         screenBacklight_[id] = level;
     }
@@ -1760,7 +1857,7 @@ int32_t RSScreenManager::AddScreenChangeCallback(const sptr<RSIScreenChangeCallb
     }
 
     {
-        std::lock_guard<std::mutex> lock(screenMapmutex_);
+        std::lock_guard<std::mutex> lock(screenMapMutex_);
         // when the callback first registered, maybe there were some physical screens already connected,
         // so notify to remote immediately.
         for (const auto& [id, screen] : screens_) {
@@ -1794,7 +1891,7 @@ void RSScreenManager::RemoveScreenChangeCallback(const sptr<RSIScreenChangeCallb
 
 void RSScreenManager::DisplayDump(std::string& dumpString)
 {
-    std::lock_guard<std::mutex> lock(screenMapmutex_);
+    std::lock_guard<std::mutex> lock(screenMapMutex_);
     int32_t index = 0;
     for (const auto& [id, screen] : screens_) {
         if (screen == nullptr) {
@@ -1817,7 +1914,7 @@ void RSScreenManager::DisplayDump(std::string& dumpString)
 
 void RSScreenManager::SurfaceDump(std::string& dumpString)
 {
-    std::lock_guard<std::mutex> lock(screenMapmutex_);
+    std::lock_guard<std::mutex> lock(screenMapMutex_);
     int32_t index = 0;
     for (const auto& [id, screen] : screens_) {
         if (screen == nullptr) {
@@ -1831,7 +1928,7 @@ void RSScreenManager::SurfaceDump(std::string& dumpString)
 
 void RSScreenManager::FpsDump(std::string& dumpString, std::string& arg)
 {
-    std::lock_guard<std::mutex> lock(screenMapmutex_);
+    std::lock_guard<std::mutex> lock(screenMapMutex_);
     int32_t index = 0;
     dumpString += "\n-- The recently fps records info of screens:\n";
     for (const auto& [id, screen] : screens_) {
@@ -1846,7 +1943,7 @@ void RSScreenManager::FpsDump(std::string& dumpString, std::string& arg)
 
 void RSScreenManager::ClearFpsDump(std::string& dumpString, std::string& arg)
 {
-    std::lock_guard<std::mutex> lock(screenMapmutex_);
+    std::lock_guard<std::mutex> lock(screenMapMutex_);
     int32_t index = 0;
     dumpString += "\n-- Clear fps records info of screens:\n";
     for (const auto& [id, screen] : screens_) {
@@ -1863,7 +1960,7 @@ void RSScreenManager::ClearFrameBufferIfNeed()
 {
 #ifdef RS_ENABLE_GPU
     RSHardwareThread::Instance().PostTask([this]() {
-        std::lock_guard<std::mutex> lock(screenMapmutex_);
+        std::lock_guard<std::mutex> lock(screenMapMutex_);
         for (const auto& [id, screen] : screens_) {
             if (!screen || !screen->GetOutput()) {
                 RS_LOGE("%{public}s: screen %{public}" PRIu64 " not found.", __func__, id);
@@ -1896,7 +1993,7 @@ int32_t RSScreenManager::SetScreenConstraint(ScreenId id, uint64_t timestamp, Sc
 
 void RSScreenManager::HitchsDump(std::string& dumpString, std::string& arg)
 {
-    std::lock_guard<std::mutex> lock(screenMapmutex_);
+    std::lock_guard<std::mutex> lock(screenMapMutex_);
     int32_t index = 0;
     dumpString += "\n-- The recently window hitchs records info of screens:\n";
     for (const auto& [id, screen] : screens_) {
@@ -2173,7 +2270,7 @@ ScreenInfo RSScreenManager::GetActualScreenMaxResolution() const
 {
     ScreenId maxScreenId = INVALID_SCREEN_ID;
     {
-        std::lock_guard<std::mutex> lock(screenMapmutex_);
+        std::lock_guard<std::mutex> lock(screenMapMutex_);
         uint32_t maxResolution = 0;
         for (const auto& [id, screen] : screens_) {
             if (!screen || screen->IsVirtual()) {
@@ -2214,8 +2311,7 @@ bool RSScreenManager::IsScreenPowerOff(ScreenId id) const
         return false;
     }
     return screenPowerStatus_.at(id) == GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_SUSPEND ||
-        screenPowerStatus_.at(id) == GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_OFF ||
-        screenPowerStatus_.at(id) == GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_OFF_ONGOING;
+        screenPowerStatus_.at(id) == GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_OFF;
 }
 
 void RSScreenManager::DisablePowerOffRenderControl(ScreenId id)
@@ -2310,7 +2406,7 @@ bool RSScreenManager::IsVisibleRectSupportRotation(ScreenId id) const
 
 bool RSScreenManager::AnyScreenFits(std::function<bool(const ScreenNode&)> func) const
 {
-    std::lock_guard<std::mutex> lock(screenMapmutex_);
+    std::lock_guard<std::mutex> lock(screenMapMutex_);
     return std::any_of(screens_.cbegin(), screens_.cend(), func);
 }
 
@@ -2324,7 +2420,7 @@ void RSScreenManager::TriggerCallbacks(ScreenId id, ScreenEvent event, ScreenCha
 
 std::shared_ptr<OHOS::Rosen::RSScreen> RSScreenManager::GetScreen(ScreenId id) const
 {
-    std::lock_guard<std::mutex> lock(screenMapmutex_);
+    std::lock_guard<std::mutex> lock(screenMapMutex_);
     auto iter = screens_.find(id);
     if (iter == screens_.end() || iter->second == nullptr) {
         return nullptr;

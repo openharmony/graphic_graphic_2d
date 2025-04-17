@@ -13,23 +13,27 @@
  * limitations under the License.
  */
 
-#ifndef SPOC_PARAM_PARSE_H
-#define SPOC_PARAM_PARSE_H
+#ifndef RS_SWITCHING_THREAD_H
+#define RS_SWITCHING_THREAD_H
 
-#include "stencil_pixel_occlusion_culling_param.h"
-#include "xml_parser_base.h"
+#include "event_handler.h"
+
+#include "common/rs_macros.h"
 
 namespace OHOS::Rosen {
-class StencilPixelOcclusionCullingParamParse : public XMLParserBase {
+class RSB_EXPORT RSSwitchingThread final {
 public:
-    StencilPixelOcclusionCullingParamParse() = default;
-    ~StencilPixelOcclusionCullingParamParse() = default;
-
-    int32_t ParseFeatureParam(FeatureParamMapType &featureMap, xmlNode &node) override;
+    static RSSwitchingThread& Instance();
+    void PostTask(const std::function<void()>& task);
+    void PostSyncTask(const std::function<void()>& task);
 
 private:
-    int32_t ParseStencilPixelOcclusionCullingInternal(FeatureParamMapType &featureMap, xmlNode &node);
-    std::shared_ptr<StencilPixelOcclusionCullingParam> stencilPixelOcclusionCullingParam_;
+    RSSwitchingThread();
+    ~RSSwitchingThread() = default;
+
+    std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
+    std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
 };
-} // namespace OHOS::Rosen
-#endif // SPOC_PARAM_PARSE_H
+}
+#endif // RS_SWITCHING_THREAD_H
+ 

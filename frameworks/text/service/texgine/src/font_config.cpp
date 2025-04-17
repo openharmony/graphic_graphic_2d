@@ -49,16 +49,18 @@ FontConfig::FontConfig(const char* fname)
 
 char* FontConfig::GetFileData(const char* fname, int& size)
 {
+    const char* realPath = fname;
 #ifdef BUILD_NON_SDK_VER
-    char realPath[PATH_MAX] = {0};
-    if (fname == nullptr || realpath(fname, realPath) == NULL) {
+    char real[PATH_MAX] = {0};
+    if (fname == nullptr || realpath(fname, real) == NULL) {
         TEXT_LOGE("Invalid parameter");
         return nullptr;
     }
+    realPath = real;
 #endif
-    std::ifstream file(fname);
+    std::ifstream file(realPath);
     if (file.good()) {
-        FILE* fp = fopen(fname, "r");
+        FILE* fp = fopen(realPath, "r");
         if (fp == nullptr) {
             return nullptr;
         }

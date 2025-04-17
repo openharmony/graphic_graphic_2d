@@ -175,9 +175,16 @@ void RSGraphicTestDirector::FlushMessage()
     rsUiDirector_->SendMessages();
 }
 
-std::shared_ptr<Media::PixelMap> RSGraphicTestDirector::TakeScreenCaptureAndWait(int ms)
+std::shared_ptr<Media::PixelMap> RSGraphicTestDirector::TakeScreenCaptureAndWait(int ms, bool isScreenShot)
 {
     RS_TRACE_NAME("RSGraphicTestDirector::TakeScreenCaptureAndWait");
+
+    if (isScreenShot) {
+        auto pixelMap =
+            DisplayManager::GetInstance().GetScreenshot(DisplayManager::GetInstance().GetDefaultDisplayId());
+        return pixelMap;
+    }
+
     auto callback = std::make_shared<TestSurfaceCaptureCallback>();
     if (!RSInterfaces::GetInstance().TakeSurfaceCaptureForUI(rootNode_->screenSurfaceNode_, callback)) {
         return nullptr;

@@ -90,6 +90,7 @@ bool RSPhysicalScreenFuzzTest(const uint8_t* data, size_t size)
 
     // get data
     uint64_t id = GetData<uint64_t>();
+    uint8_t type = GetData<uint8_t>();
     uint32_t modeId = GetData<uint32_t>();
     uint32_t status = GetData<uint32_t>();
     uint32_t level = GetData<uint32_t>();
@@ -160,7 +161,10 @@ bool RSPhysicalScreenFuzzTest(const uint8_t* data, size_t size)
     rsInterfaces.SetGlobalDarkColorMode(GetData<bool>());
     std::vector<NodeId> blackListVector = {};
     blackListVector.push_back(id);
+    std::vector<NodeType> typeBlackListVector = {};
+    typeBlackListVector.push_back(type);
     rsInterfaces.SetVirtualScreenBlackList(static_cast<ScreenId>(id), blackListVector);
+    rsInterfaces.SetVirtualScreenTypeBlackList(static_cast<ScreenId>(id), typeBlackListVector);
     rsInterfaces.AddVirtualScreenBlackList(static_cast<ScreenId>(id), blackListVector);
     rsInterfaces.RemoveVirtualScreenBlackList(static_cast<ScreenId>(id), blackListVector);
     rsInterfaces.SetScreenSecurityMask(static_cast<ScreenId>(id), nullptr);

@@ -280,6 +280,21 @@ template("render_service_client_source_set") {
       defines += tp_defines
     }
 
+    if (graphic_2d_feature_enable_vulkan) {
+      sources += [
+        "core/modifier_render_thread/rs_modifiers_draw.cpp",
+        "core/modifier_render_thread/rs_modifiers_draw_thread.cpp",
+      ]
+      external_deps += [
+        "ffrt:libffrt",
+        "qos_manager:qos",
+      ]
+      if (defined(graphic_2d_modifiers_draw_configs.vendor_root)) {
+        sources += graphic_2d_modifiers_draw_configs.librender_service_ext_modifiers_draw_sources
+        sources -= graphic_2d_modifiers_draw_configs.librender_service_ext_modifiers_draw_sources_del
+      }
+    }
+
     public_configs = [ ":render_service_client_config" ]
 
     part_name = "graphic_2d"

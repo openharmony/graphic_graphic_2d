@@ -13,17 +13,31 @@
  * limitations under the License.
  */
 
-#include "stencil_pixel_occlusion_culling_param.h"
+#ifndef RS_VULKAN_HEADER_EXT_H
+#define RS_VULKAN_HEADER_EXT_H
 
-namespace OHOS::Rosen {
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-bool StencilPixelOcclusionCullingParam::IsStencilPixelOcclusionCullingEnable() const
-{
-    return isStencilPixelOcclusionCullingEnable_;
+namespace OHOS {
+namespace Rosen {
+
+typedef enum VkStructureTypeHUAWEI {
+    VK_STRUCTURE_TYPE_DEVICE_MEMORY_EXCLUSIVE_THRESHOLD_INFO = VK_STRUCTURE_TYPE_MAX_ENUM - 37,
+} VkstructureTypeHUAWEI;
+
+typedef struct VkDeviceMemoryExclusiveThresholdHUAWEI {
+    VkStructureTypeHUAWEI sType;
+    const void*           pNext;
+    uint32_t              threshold;
+} VkDeviceMemoryExclusiveThresholdHUAWEI;
+
+}
 }
 
-void StencilPixelOcclusionCullingParam::SetStencilPixelOcclusionCullingEnable(bool isEnable)
-{
-    isStencilPixelOcclusionCullingEnable_ = isEnable;
+#ifdef __cplusplus
 }
-} // namespace OHOS::Rosen
+#endif
+
+#endif

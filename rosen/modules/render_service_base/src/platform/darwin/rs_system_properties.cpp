@@ -328,6 +328,11 @@ bool RSSystemProperties::IsFoldScreenFlag()
     return false;
 }
 
+bool RSSystemProperties::IsSmallFoldDevice()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetKawaseEnabled()
 {
     return false;

@@ -56,6 +56,9 @@ public:
 
     int32_t SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector);
 
+    // use surfaceNodeType to set black list
+    int32_t SetVirtualScreenTypeBlackList(ScreenId id, std::vector<NodeType>& typeBlackListVector);
+
     int32_t AddVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector);
 
     int32_t RemoveVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector);
@@ -376,6 +379,9 @@ public:
 #endif
 
     void NotifyPageName(const std::string &packageName, const std::string &pageName, bool isEnter);
+
+    bool GetHighContrastTextState();
+
 private:
     RSInterfaces();
     ~RSInterfaces() noexcept;

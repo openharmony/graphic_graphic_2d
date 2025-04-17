@@ -418,6 +418,10 @@ uint32_t RSScreen::SetScreenActiveRect(const GraphicIRect& activeRect)
 
 bool RSScreen::CalculateMaskRectAndReviseRect(const GraphicIRect& activeRect, GraphicIRect& reviseRect)
 {
+#ifdef ROSEN_EMULATOR
+    RS_LOGD("%{public}s emulator device do not revise rect", __func__);
+    return false;
+#endif
     if (!RSSystemProperties::IsSuperFoldDisplay()) {
         RS_LOGE("device is not super fold display");
         return false;
@@ -1243,6 +1247,12 @@ void RSScreen::SetBlackList(const std::unordered_set<uint64_t>& blackList)
     blackList_ = blackList;
 }
 
+void RSScreen::SetTypeBlackList(const std::unordered_set<uint8_t>& typeBlackList)
+{
+    std::lock_guard<std::mutex> lock(typeBlackListMutex_);
+    typeBlackList_ = typeBlackList;
+}
+
 void RSScreen::AddBlackList(const std::vector<uint64_t>& blackList)
 {
     std::lock_guard<std::mutex> lock(blackListMutex_);
@@ -1271,6 +1281,12 @@ const std::unordered_set<uint64_t> RSScreen::GetBlackList() const
 {
     std::lock_guard<std::mutex> lock(blackListMutex_);
     return blackList_;
+}
+
+const std::unordered_set<uint8_t> RSScreen::GetTypeBlackList() const
+{
+    std::lock_guard<std::mutex> lock(typeBlackListMutex_);
+    return typeBlackList_;
 }
 
 int32_t RSScreen::SetScreenConstraint(uint64_t frameId, uint64_t timestamp, ScreenConstraintType type)

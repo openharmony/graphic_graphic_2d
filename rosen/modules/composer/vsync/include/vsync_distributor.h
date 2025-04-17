@@ -132,6 +132,7 @@ public:
     VsyncError SetHighPriorityVSyncRate(int32_t highPriorityRate, const sptr<VSyncConnection>& connection);
     VsyncError SetQosVSyncRate(uint64_t windowNodeId, int32_t rate, bool isSystemAnimateScene = false);
     VsyncError SetQosVSyncRateByPidPublic(uint32_t pid, uint32_t rate, bool isSystemAnimateScene);
+    VsyncError SetVsyncRateDiscountLTPS(uint32_t pid, const std::string &name, uint32_t rateDiscount);
 
     // used by DVSync
     bool IsDVsyncOn();
@@ -155,11 +156,13 @@ public:
     void FirstRequestVsync();
     void NotifyPackageEvent(const std::vector<std::string>& packageList);
     void NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt);
-    void SetBufferInfo(std::string &name, int32_t bufferCount, int64_t lastFlushedTimeStamp);
+    void SetBufferInfo(uint64_t id, const std::string &name, uint32_t queueSize,
+        int32_t bufferCount, int64_t lastConsumeTime);
     bool AdaptiveDVSyncEnable(const std::string &nodeName, int64_t timeStamp, int32_t bufferCount, bool &needConsume);
 
     // used by V Rate
     std::vector<uint64_t> GetSurfaceNodeLinkerIds(uint64_t windowNodeId);
+    std::vector<uint64_t> GetVsyncNameLinkerIds(uint32_t pid, const std::string &name);
 
 private:
 
@@ -252,6 +255,7 @@ private:
         int64_t &period, int64_t &vsyncCount);
     sptr<VSyncController> dvsyncController_ = nullptr;
     bool dvsyncControllerEnabled_ = false;
+    std::map<pid_t, std::vector<sptr<VSyncConnection>>> unalliedWindowConnectionsMap_;
     // End of DVSync
     int64_t beforeWaitRnvTime_ = 0;
     int64_t afterWaitRnvTime_ = 0;

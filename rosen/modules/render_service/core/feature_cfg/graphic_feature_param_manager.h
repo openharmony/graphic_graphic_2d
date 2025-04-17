@@ -43,6 +43,8 @@
 #include "mem_param.h"
 #include "multiscreen_param_parse.h"
 #include "multiscreen_param.h"
+#include "occlusion_culling_param.h"
+#include "occlusion_culling_param_parse.h"
 #include "opinc_param_parse.h"
 #include "opinc_param.h"
 #include "prevalidate_param_parse.h"
@@ -51,8 +53,6 @@
 #include "rotateoffscreen_param.h"
 #include "speciallayer_param.h"
 #include "speciallayer_param_parse.h"
-#include "stencil_pixel_occlusion_culling_param.h"
-#include "stencil_pixel_occlusion_culling_param_parse.h"
 #include "uifirst_param_parse.h"
 #include "uifirst_param.h"
 #include "vrate_param_parse.h"
@@ -74,7 +74,6 @@ struct ModuleConfig {
     std::function<std::unique_ptr<XMLParserBase>()> xmlParser;
     std::function<std::unique_ptr<FeatureParam>()> featureParam;
 };
-
 // add new module here
 const std::vector<ModuleConfig> FEATURE_MODULES = {
     {FEATURE_CONFIGS[DIRTYREGION], [] { return std::make_unique<DirtyRegionParamParse>(); },
@@ -90,8 +89,8 @@ const std::vector<ModuleConfig> FEATURE_MODULES = {
         [] { return std::make_unique<MEMParam>(); }},
     {FEATURE_CONFIGS[SPECIALLAYER], [] { return std::make_unique<SpecialLayerParamParse>(); },
         [] { return std::make_unique<SpecialLayerParam>(); }},
-    {FEATURE_CONFIGS[SPOC], [] { return std::make_unique<StencilPixelOcclusionCullingParamParse>(); },
-        [] { return std::make_unique<StencilPixelOcclusionCullingParam>(); }},
+    {FEATURE_CONFIGS[OCCLUSION_CULLING], [] { return std::make_unique<OcclusionCullingParamParse>(); },
+        [] {return std::make_unique<OcclusionCullingParam>(); }},
     {FEATURE_CONFIGS[OPInc], [] {return std::make_unique<OPIncParamParse>(); },
         [] {return std::make_unique<OPIncParam>(); }},
     {FEATURE_CONFIGS[MULTISCREEN], [] { return std::make_unique<MultiScreenParamParse>(); },

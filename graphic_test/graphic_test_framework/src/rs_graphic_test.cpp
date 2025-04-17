@@ -33,6 +33,7 @@ namespace Rosen {
 namespace {
 constexpr uint32_t SURFACE_COLOR = 0xffffffff;
 constexpr int64_t LOAD_TREE_WAIT_TIME = 3;
+constexpr int PLAYBACK_PREPARE_WAIT_TIME = 5000;
 
 bool ShouldRunCurrentTest()
 {
@@ -166,6 +167,33 @@ bool RSGraphicTest::WaitOtherTest()
     return false;
 }
 
+void RSGraphicTest::TestCaseCapture(bool isScreenshot)
+{
+    const ::testing::TestInfo* const testInfo =
+        ::testing::UnitTest::GetInstance()->current_test_info();
+    const auto& extInfo = ::OHOS::Rosen::TestDefManager::Instance().GetTestInfo(
+        testInfo->test_case_name(), testInfo->name());
+
+    auto pixelMap = RSGraphicTestDirector::Instance().TakeScreenCaptureAndWait(
+        RSParameterParse::Instance().surfaceCaptureWaitTime, isScreenshot);
+    if (pixelMap) {
+        std::string filename = GetImageSavePath(extInfo->filePath);
+        filename += testInfo->test_case_name();
+        if (!extInfo->isMultiple) {
+            filename += std::string("_") + testInfo->name();
+        }
+        filename += std::string(".png");
+        if (std::filesystem::exists(filename)) {
+            LOGW("RSGraphicTest file exists %{public}s", filename.c_str());
+        }
+        if (!WriteToPngWithPixelMap(filename, *pixelMap)) {
+            LOGE("RSGraphicTest::TearDown write image failed %{public}s-%{public}s",
+                testInfo->test_case_name(), testInfo->name());
+        }
+        std::cout << "png write to " << filename << std::endl;
+    }
+}
+
 void RSGraphicTest::TearDown()
 {
     if (!shouldRunTest_) {
@@ -193,31 +221,19 @@ void RSGraphicTest::TearDown()
         return;
     }
 
+    bool isDynamicTest = extInfo->testMode == RSGraphicTestMode::DYNAMIC;
     if (isManualTest) {
         WaitTimeout(RSParameterParse::Instance().manualTestWaitTime);
     } else {
-        auto pixelMap = RSGraphicTestDirector::Instance().TakeScreenCaptureAndWait(
-            RSParameterParse::Instance().surfaceCaptureWaitTime);
-        if (pixelMap) {
-            std::string filename = GetImageSavePath(extInfo->filePath);
-            filename += testInfo->test_case_name();
-            if (!extInfo->isMultiple) {
-                filename += std::string("_") + testInfo->name();
-            }
-            filename += std::string(".png");
-            if (std::filesystem::exists(filename)) {
-                LOGW("RSGraphicTest file exists %{public}s", filename.c_str());
-            }
-            if (!WriteToPngWithPixelMap(filename, *pixelMap)) {
-                LOGE("RSGraphicTest::TearDown write image failed %{public}s-%{public}s",
-                    testInfo->test_case_name(), testInfo->name());
-            }
-            std::cout << "png write to " << filename << std::endl;
-        }
+        TestCaseCapture(isDynamicTest);
     }
 
     AfterEach();
     WaitTimeout(RSParameterParse::Instance().testCaseWaitTime);
+
+    if (isDynamicTest) {
+        PlaybackStop();
+    }
 
     GetRootNode()->ResetTestSurface();
     RSGraphicTestDirector::Instance().SendProfilerCommand("rssubtree_clear");
@@ -242,6 +258,31 @@ void RSGraphicTest::AddFileRenderNodeTreeToNode(std::shared_ptr<RSNode> node, co
     RSGraphicTestDirector::Instance().SendProfilerCommand(command);
     RSGraphicTestDirector::Instance().FlushMessage();
     WaitTimeout(LOAD_TREE_WAIT_TIME * RSParameterParse::Instance().testCaseWaitTime);
+}
+
+void RSGraphicTest::PlaybackRecover(const std::string& filePath, float pauseTimeStamp)
+{
+    // playback prepare
+    int64_t pid = 0;
+    std::string command =
+        "rsrecord_replay_prepare " + std::to_string(pid) + " " + std::to_string(pauseTimeStamp) + " " + filePath;
+    std::cout << "Playback Prepare: " << command << std::endl;
+    RSGraphicTestDirector::Instance().SendProfilerCommand(command);
+    WaitTimeout(PLAYBACK_PREPARE_WAIT_TIME);
+
+    // playback start
+    command = "rsrecord_replay";
+    std::cout << "Playback Start: " << command << std::endl;
+    RSGraphicTestDirector::Instance().SendProfilerCommand(command);
+    WaitTimeout(static_cast<int>(pauseTimeStamp * UNIT_SEC_TO_MS) + RSParameterParse::Instance().testCaseWaitTime);
+}
+
+void RSGraphicTest::PlaybackStop()
+{
+    // playback stop
+    std::string command = "rsrecord_replay_stop";
+    std::cout << "Playback Stop: " << command << std::endl;
+    RSGraphicTestDirector::Instance().SendProfilerCommand(command);
 }
 
 std::shared_ptr<RSGraphicRootNode> RSGraphicTest::GetRootNode() const

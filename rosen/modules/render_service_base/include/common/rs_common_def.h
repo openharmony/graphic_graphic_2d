@@ -33,6 +33,7 @@ class Surface;
 
 namespace Rosen {
 using AnimationId = uint64_t;
+using NodeType = uint8_t;
 using NodeId = uint64_t;
 using PropertyId = uint64_t;
 using FrameRateLinkerId = uint64_t;
@@ -71,6 +72,12 @@ enum class FollowType : uint8_t {
 
 #define LIKELY(exp) (__builtin_expect((exp) != 0, true))
 #define UNLIKELY(exp) (__builtin_expect((exp) != 0, false))
+
+#ifdef CM_FEATURE_ENABLE
+#define CM_INLINE __attribute__((always_inline))
+#else
+#define CM_INLINE
+#endif
 
 // types for RenderNode
 enum class RSRenderNodeType : uint32_t {
@@ -315,7 +322,7 @@ enum class RSSurfaceNodeType : uint8_t {
     DEFAULT,
     APP_WINDOW_NODE,          // surfacenode created as app main window
     STARTING_WINDOW_NODE,     // starting window, surfacenode created by wms
-    SELF_DRAWING_WINDOW_NODE, // create by wms, such as pointer window and bootanimation
+    SELF_DRAWING_WINDOW_NODE, // create by wms, such as bootanimation
     LEASH_WINDOW_NODE,        // leashwindow
     ABILITY_COMPONENT_NODE,   // surfacenode created as ability component
     SELF_DRAWING_NODE,        // surfacenode created by arkui component (except ability component)
@@ -324,6 +331,8 @@ enum class RSSurfaceNodeType : uint8_t {
     SCB_SCREEN_NODE,          // surfacenode created as sceneboard
     UI_EXTENSION_COMMON_NODE, // uiextension node
     UI_EXTENSION_SECURE_NODE, // uiextension node that requires info callback
+    CURSOR_NODE,              // cursor node created by MMI
+    NODE_MAX,
 };
 
 enum class MultiThreadCacheType : uint8_t {

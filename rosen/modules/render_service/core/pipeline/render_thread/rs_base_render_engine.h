@@ -130,7 +130,6 @@ public:
     RSBaseRenderEngine();
     virtual ~RSBaseRenderEngine() noexcept;
     void Init(bool independentContext = false);
-    void InitCapture(bool independentContext = false);
     RSBaseRenderEngine(const RSBaseRenderEngine&) = delete;
     void operator=(const RSBaseRenderEngine&) = delete;
 
@@ -189,10 +188,6 @@ public:
     {
         return renderContext_;
     }
-    const std::shared_ptr<RenderContext>& GetCaptureRenderContext()
-    {
-        return captureRenderContext_;
-    }
 #endif // RS_ENABLE_GL || RS_ENABLE_VK
     void ResetCurrentContext();
 
@@ -244,7 +239,6 @@ private:
 
 #if (defined RS_ENABLE_GL) || (defined RS_ENABLE_VK)
     std::shared_ptr<RenderContext> renderContext_ = nullptr;
-    std::shared_ptr<RenderContext> captureRenderContext_ = nullptr;
 #endif // RS_ENABLE_GL || RS_ENABLE_VK
 #if (defined(RS_ENABLE_EGLIMAGE) && defined(RS_ENABLE_GPU))
     std::shared_ptr<RSEglImageManager> eglImageManager_ = nullptr;

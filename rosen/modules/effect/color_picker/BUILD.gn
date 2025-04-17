@@ -42,6 +42,10 @@ config("graphic_napi_color_picker_config") {
   ]
 }
 
+config("graphic_napi_color_picker_public_config") {
+  include_dirs = [ "include" ]
+}
+
 if (is_arkui_x) {
   ohos_source_set("color_picker") {
     configs = [ ":graphic_napi_color_picker_config" ]
@@ -69,6 +73,7 @@ if (is_arkui_x) {
 } else {
   ohos_shared_library("color_picker") {
     configs = [ ":graphic_napi_color_picker_config" ]
+    public_configs = [ ":graphic_napi_color_picker_public_config" ]
     sources = [
       "src/color_extract.cpp",
       "src/color_picker.cpp",

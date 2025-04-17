@@ -178,17 +178,6 @@ void RSSurfaceRenderNode::UpdateSrcRect(const Drawing::Canvas& canvas, const Dra
     }
 }
 
-void RSSurfaceRenderNode::UpdateHwcDisabledBySrcRect(bool hasRotation)
-{
-#ifndef ROSEN_CROSS_PLATFORM
-    const auto& buffer = surfaceHandler_->GetBuffer();
-    isHardwareForcedDisabledBySrcRect_ = false;
-    if (buffer == nullptr) {
-        return;
-    }
-#endif
-}
-
 bool RSSurfaceRenderNode::IsYUVBufferFormat() const
 {
 #ifndef ROSEN_CROSS_PLATFORM
@@ -407,7 +396,7 @@ void RSSurfaceRenderNode::OnTreeStateChanged()
                 context->MarkNeedPurge(ClearMemoryMoment::SCENEBOARD_SURFACE_NODE_HIDE, RSContext::PurgeType::STRONGLY);
             }
         }
-    } else if (GetName() == "pointer window") {
+    } else if (GetSurfaceNodeType() == RSSurfaceNodeType::CURSOR_NODE) {
         FindScreenId();
     }
 #endif
@@ -708,7 +697,8 @@ void RSSurfaceRenderNode::SetSurfaceNodeType(RSSurfaceNodeType nodeType)
 {
     if (nodeType_ == RSSurfaceNodeType::ABILITY_COMPONENT_NODE ||
         nodeType_ == RSSurfaceNodeType::UI_EXTENSION_COMMON_NODE ||
-        nodeType_ == RSSurfaceNodeType::UI_EXTENSION_SECURE_NODE) {
+        nodeType_ == RSSurfaceNodeType::UI_EXTENSION_SECURE_NODE ||
+        nodeType_ == RSSurfaceNodeType::CURSOR_NODE) {
         return;
     }
     if (nodeType == RSSurfaceNodeType::UI_EXTENSION_COMMON_NODE ||
@@ -1286,8 +1276,7 @@ void RSSurfaceRenderNode::SetLayerTop(bool isTop)
 
 bool RSSurfaceRenderNode::IsHardwareEnabledTopSurface() const
 {
-    return nodeType_ == RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE &&
-        GetName() == "pointer window" && RSSystemProperties::GetHardCursorEnabled();
+    return GetSurfaceNodeType() == RSSurfaceNodeType::CURSOR_NODE && RSSystemProperties::GetHardCursorEnabled();
 }
 
 void RSSurfaceRenderNode::SetHardCursorStatus(bool status)
@@ -1806,6 +1795,7 @@ void RSSurfaceRenderNode::UpdateHwcNodeLayerInfo(GraphicTransformType transform,
     layer.matrix = totalMatrix_;
     layer.alpha = GetGlobalAlpha();
     layer.arsrTag = GetArsrTag();
+    layer.copybitTag = GetCopybitTag();
     if (isHardCursorEnable) {
         layer.layerType = GraphicLayerType::GRAPHIC_LAYER_TYPE_CURSOR;
     } else {
@@ -2799,7 +2789,7 @@ void RSSurfaceRenderNode::UpdateCacheSurfaceDirtyManager(int bufferAge)
 void RSSurfaceRenderNode::SetIsOnTheTree(bool onTree, NodeId instanceRootNodeId, NodeId firstLevelNodeId,
     NodeId cacheNodeId, NodeId uifirstRootNodeId, NodeId displayNodeId)
 {
-    if (strcmp(GetName().c_str(), "pointer window") != 0) {
+    if (GetSurfaceNodeType() == RSSurfaceNodeType::CURSOR_NODE) {
         std::string uniqueIdStr = "null";
 #ifndef ROSEN_CROSS_PLATFORM
         uniqueIdStr = GetRSSurfaceHandler() != nullptr && GetRSSurfaceHandler()->GetConsumer() != nullptr ?

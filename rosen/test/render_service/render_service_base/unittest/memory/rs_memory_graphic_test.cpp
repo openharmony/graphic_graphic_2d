@@ -69,14 +69,18 @@ HWTEST_F(RSMemoryGraphicTest, MarshallingTest, testing::ext::TestSize.Level1)
 HWTEST_F(RSMemoryGraphicTest, IncreaseCpuMemoryTest, testing::ext::TestSize.Level1)
 {
     // for test
+    float size1 = 0;
+    // for test
     float glSize = 1.0;
     // for test
     float graphicSize = 1.0;
     MemoryGraphic memoryGraphic;
+    memoryGraphic.SetCpuMemorySize(size1);
+    memoryGraphic.SetGpuMemorySize(size1);
     memoryGraphic.IncreaseCpuMemory(glSize);
     memoryGraphic.IncreaseGpuMemory(graphicSize);
-    int ret = 0;
-    ASSERT_EQ(ret, 0);
+    EXPECT_EQ(1.0, memoryGraphic.GetCpuMemorySize());
+    EXPECT_EQ(1.0, memoryGraphic.GetGpuMemorySize());
 }
 
 /**

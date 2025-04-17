@@ -32,7 +32,7 @@ public:
 
     void Run();
     void FlushMessage();
-    std::shared_ptr<Media::PixelMap> TakeScreenCaptureAndWait(int ms);
+    std::shared_ptr<Media::PixelMap> TakeScreenCaptureAndWait(int ms, bool isScreenShot = false);
     void ResetImagePath();
 
     std::shared_ptr<RSGraphicRootNode> GetRootNode() const;

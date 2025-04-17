@@ -16,7 +16,7 @@
 #include <gtest/gtest.h>
 #include <test_header.h>
 
-#include "hgm_core.h"
+#include "hgm_test_base.h"
 #include "hgm_vsync_generator_controller.h"
 #include "common/rs_common_def.h"
 #include "pipeline/rs_render_frame_rate_linker.h"
@@ -35,7 +35,7 @@ namespace {
     std::shared_ptr<HgmVSyncGeneratorController> controller =
         std::make_shared<HgmVSyncGeneratorController>(rsController, appController, vsyncGenerator);
 }
-class HgmVSyncGeneratorControllerTest : public testing::Test {
+class HgmVSyncGeneratorControllerTest : public HgmTestBase {
 public:
     static void SetUpTestCase();
     static void TearDownTestCase();
@@ -43,7 +43,10 @@ public:
     void TearDown();
 };
 
-void HgmVSyncGeneratorControllerTest::SetUpTestCase() {}
+void HgmVSyncGeneratorControllerTest::SetUpTestCase()
+{
+    HgmTestBase::SetUpTestCase();
+}
 void HgmVSyncGeneratorControllerTest::TearDownTestCase() {}
 void HgmVSyncGeneratorControllerTest::SetUp() {}
 void HgmVSyncGeneratorControllerTest::TearDown() {}
@@ -65,6 +68,7 @@ HWTEST_F(HgmVSyncGeneratorControllerTest, ChangeGeneratorRate, TestSize.Level1)
     uint32_t controllerRate3 = 90;
     controller->ChangeGeneratorRate(controllerRate3, appChangeData);
     uint32_t controllerRate4 = 120;
+    controller->currentRate_ = controllerRate4;
     controller->ChangeGeneratorRate(controllerRate4, appChangeData);
 }
 
@@ -94,7 +98,7 @@ HWTEST_F(HgmVSyncGeneratorControllerTest, GetCurrentOffset, TestSize.Level1)
     EXPECT_EQ(controller->CalcVSyncQuickTriggerTime(0, 0), 0);
     EXPECT_EQ(controller->CalcVSyncQuickTriggerTime(0, 1), 0);
     controller->vsyncGenerator_ = nullptr;
-    EXPECT_EQ(controller->CalcVSyncQuickTriggerTime(0, 0), 0);
+    EXPECT_EQ(controller->CalcVSyncQuickTriggerTime(0, 1), 0);
 }
 
 /*

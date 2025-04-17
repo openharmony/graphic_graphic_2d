@@ -13,26 +13,27 @@
  * limitations under the License.
  */
 
-#ifndef SPOC_PARAM_H
-#define SPOC_PARAM_H
-
-#include "feature_param.h"
+#include "occlusion_culling_param.h"
 
 namespace OHOS::Rosen {
-class StencilPixelOcclusionCullingParam : public FeatureParam {
-public:
-    StencilPixelOcclusionCullingParam() = default;
-    ~StencilPixelOcclusionCullingParam() = default;
 
-    bool IsStencilPixelOcclusionCullingEnable() const;
+bool OcclusionCullingParam::IsStencilPixelOcclusionCullingEnable()
+{
+    return stencilPixelOcclusionCullingEnable_;
+}
 
-protected:
-    void SetStencilPixelOcclusionCullingEnable(bool isEnable);
+void OcclusionCullingParam::SetStencilPixelOcclusionCullingEnable(bool isEnable)
+{
+    stencilPixelOcclusionCullingEnable_ = isEnable;
+}
 
-private:
-    bool isStencilPixelOcclusionCullingEnable_ = false;
+bool OcclusionCullingParam::IsIntraAppControlsLevelOcclusionCullingEnable()
+{
+    return intraAppControlsLevelOcclusionCullingEnable_;
+}
 
-    friend class StencilPixelOcclusionCullingParamParse;
-};
+void OcclusionCullingParam::SetIntraAppControlsLevelOcclusionCullingEnable(bool isEnable)
+{
+    intraAppControlsLevelOcclusionCullingEnable_ = isEnable;
+}
 } // namespace OHOS::Rosen
-#endif // SPOC_PARAM_H

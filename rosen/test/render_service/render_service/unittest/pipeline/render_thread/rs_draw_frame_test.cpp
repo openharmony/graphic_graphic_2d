@@ -158,4 +158,18 @@ HWTEST_F(RSDrawFrameTest, JankStatsRenderFrameEndTest, TestSize.Level1)
     drawFrame_.JankStatsRenderFrameEnd(true);
     ASSERT_FALSE(drawFrame_.unirenderInstance_.discardJankFrames_);
 }
+
+/**
+ * @tc.name: EndCheck
+ * @tc.desc: test EndCheck
+ * @tc.type: FUNC
+ * @tc.require: issueIC0B60
+ */
+HWTEST_F(RSDrawFrameTest, EndCheckTest, TestSize.Level1)
+{
+    RSDrawFrame drawFrame_;
+    drawFrame_.timer_ = std::make_shared<RSTimer>("RenderFrame", 2500); // 2500ms
+    drawFrame_.EndCheck();
+    ASSERT_EQ(drawFrame_.longFrameCount_, 0);
+}
 }

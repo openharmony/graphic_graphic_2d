@@ -279,6 +279,7 @@ public:
     static int GetDebugTraceLevel();
     static bool FindNodeInTargetList(std::string node);
     static bool IsFoldScreenFlag();
+    static bool IsSmallFoldDevice();
     static bool GetCacheCmdEnabled();
     static bool GetASTCEnabled();
     static bool GetCachedBlurPartialRenderEnabled();

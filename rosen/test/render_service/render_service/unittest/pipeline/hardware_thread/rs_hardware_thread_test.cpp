@@ -432,12 +432,17 @@ HWTEST_F(RSHardwareThreadTest, PerformSetActiveMode, TestSize.Level1)
     hgmCore.modeListToApply_->insert({screenId_, rate});
     hardwareThread.PerformSetActiveMode(output, 0, 0);
 
+    uint64_t timestamp = 0;
     auto supportedModes = screenManager->GetScreenSupportedModes(screenId_);
     ASSERT_EQ(supportedModes.size(), 0);
     HgmCore::Instance().hgmFrameRateMgr_->isAdaptive_ = true;
     HgmCore::Instance().hgmFrameRateMgr_->isGameNodeOnTree_ = true;
     hardwareThread.PerformSetActiveMode(output, 0, 0);
     HgmCore::Instance().hgmFrameRateMgr_ = nullptr;
+    hardwareThread.PerformSetActiveMode(output, 0, 0);
+    HgmCore::Instance().vBlankIdleCorrectSwitch_.store(true);
+    hardwareThread.vblankIdleCorrector_.isVBlankIdle_ = true;
+    hardwareThread.OnScreenVBlankIdleCallback(screenId_, timestamp);
     hardwareThread.PerformSetActiveMode(output, 0, 0);
 }
 

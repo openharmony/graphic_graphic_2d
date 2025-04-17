@@ -18,6 +18,7 @@
 #include <test_header.h>
 
 #include "hgm_hfbc_config.h"
+#include "hgm_test_base.h"
 #include <parameters.h>
 
 using namespace testing;
@@ -30,9 +31,12 @@ constexpr const char* VDEC_HFBC_SWITCH = "vendor.vdec.hfbc.disable.fromuser";
 HgmHfbcConfig g_hfbcConfig;
 }
 
-class HgmHfbcConfigTest : public testing::Test {
+class HgmHfbcConfigTest : public HgmTestBase {
 public:
-    static void SetUpTestCase() {}
+    static void SetUpTestCase()
+    {
+        HgmTestBase::SetUpTestCase();
+    }
     static void TearDownTestCase() {}
     void SetUp() {}
     void TearDown() {}

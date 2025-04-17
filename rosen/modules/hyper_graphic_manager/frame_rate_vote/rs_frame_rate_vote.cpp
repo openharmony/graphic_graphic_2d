@@ -76,7 +76,7 @@ void RSFrameRateVote::VideoFrameRateVote(uint64_t surfaceNodeId, OHSurfaceSource
     sptr<SurfaceBuffer>& buffer)
 {
     // OH SURFACE SOURCE VIDEO AN UI VOTE
-    if (lastVotedRate_ == OLED_NULL_HZ && CheckSurfaceAndUi(sourceType)) {
+    if (lastVotedRate_ != OLED_NULL_HZ && CheckSurfaceAndUi(sourceType)) {
         std::lock_guard<ffrt::mutex> autoLock(ffrtMutex_);
         if (surfaceVideoFrameRateVote_.find(lastSurfaceNodeId_) != surfaceVideoFrameRateVote_.end()) {
             if (surfaceVideoFrameRateVote_[lastSurfaceNodeId_]) {
@@ -145,6 +145,10 @@ void RSFrameRateVote::SurfaceVideoVote(uint64_t surfaceNodeId, uint32_t rate)
         CancelVoteRate(lastVotedPid_, VIDEO_VOTE_FLAG);
         lastVotedPid_ = DEFAULT_PID;
         lastVotedRate_ = OLED_NULL_HZ;
+        if (ffrtQueue_ && taskHandler_) {
+            ffrtQueue_->cancel(taskHandler_);
+            taskHandler_ = nullptr;
+        }
         return;
     }
     auto maxElement = std::max_element(surfaceVideoRate_.begin(), surfaceVideoRate_.end(),

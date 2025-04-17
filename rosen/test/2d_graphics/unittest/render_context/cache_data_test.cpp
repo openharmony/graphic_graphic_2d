@@ -440,7 +440,7 @@ HWTEST_F(CacheDataTest, clean_data_test_002, TestSize.Level1)
     cacheData->RandClean(0);
     cacheData->cleanThreshold_ = 0;
     cacheData->RandClean(1);
-    EXPECT_GE(6, cacheData->totalSize_);
+    EXPECT_LE(cacheData->totalSize_, 1);
 }
 
 /**

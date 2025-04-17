@@ -366,7 +366,7 @@ void InitRcdCldLayerInfo(HardwareLayerInfo* layerInfo)
     layerInfo->cldHeight = 1;
 }
 
-void InitRcdCldLayerInfo(RcdExtInfo* extInfo, RCDSurfaceType type = RCDSurfaceType::BOTTOM)
+void InitRcdExtInfo(RcdExtInfo* extInfo, RCDSurfaceType type = RCDSurfaceType::BOTTOM)
 {
     if (extInfo == nullptr) {
         return;
@@ -378,6 +378,16 @@ void InitRcdCldLayerInfo(RcdExtInfo* extInfo, RCDSurfaceType type = RCDSurfaceTy
     extInfo->frameBounds = RectF(0, 0, 1, 1);
     extInfo->frameViewPort = RectF(0, 0, 1, 1);
     extInfo->surfaceType = type;
+}
+
+void InitRcdSourceInfo(RcdSourceInfo* sourceInfo)
+{
+    if (sourceInfo == nullptr) {
+        return;
+    }
+    sourceInfo->bufferWidth = 1;
+    sourceInfo->bufferHeight = 1;
+    sourceInfo->bufferSize = 1;
 }
 
 /*
@@ -2026,4 +2036,75 @@ HWTEST_F(RSRoundCornerDisplayTest, RegisterRcdMsgTest, TestSize.Level1)
     msgBus.SendMsg<NodeId, bool>(TOPIC_RCD_DISPLAY_HWRESOURCE, id, 0);
 }
 
+/*
+ * @tc.name: RcdCldLayerInfoTest
+ * @tc.desc: Test RSRoundCornerDisplayTest.RcdCldLayerInfoTest
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRoundCornerDisplayTest, RcdCldLayerInfoTest, TestSize.Level1)
+{
+    auto rcdNode = RSRcdSurfaceRenderNode::Create(0, static_cast<RCDSurfaceType>(RCDSurfaceType::BOTTOM));
+
+    InitRcdCldLayerInfo(&rcdNode->cldLayerInfo_);
+    rcdNode->UpdateRcdRenderParams(true, nullptr);
+
+    auto rcdParams = static_cast<RSRcdRenderParams*>(rcdNode->stagingRenderParams_.get());
+    EXPECT_TRUE(rcdParams->GetPathBin() == "/sys_prod/etc/display/RoundCornerDisplay/test.bin");
+    EXPECT_TRUE(rcdParams->GetBufferSize() == 1);
+    EXPECT_TRUE(rcdParams->GetCldWidth() == 1);
+    EXPECT_TRUE(rcdParams->GetCldHeight() == 1);
+}
+
+/*
+ * @tc.name: RcdExtInfoTest
+ * @tc.desc: Test RSRoundCornerDisplayTest.RcdExtInfoTest
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRoundCornerDisplayTest, RcdExtInfoTest, TestSize.Level1)
+{
+    auto rcdNode = RSRcdSurfaceRenderNode::Create(0, static_cast<RCDSurfaceType>(RCDSurfaceType::BOTTOM));
+
+    InitRcdExtInfo(&rcdNode->rcdExtInfo_);
+    rcdNode->UpdateRcdRenderParams(true, nullptr);
+
+    auto rcdParams = static_cast<RSRcdRenderParams*>(rcdNode->stagingRenderParams_.get());
+    EXPECT_FALSE(rcdParams->GetSrcRect().IsEmpty());
+    EXPECT_FALSE(rcdParams->GetDstRect().IsEmpty());
+
+    EXPECT_FALSE(rcdNode->GetSrcRect().IsEmpty());
+    EXPECT_FALSE(rcdNode->GetDstRect().IsEmpty());
+    EXPECT_TRUE(rcdNode->IsBottomSurface());
+
+    rcdNode->ResetCurrFrameState();
+    EXPECT_TRUE(rcdNode->GetSrcRect().IsEmpty());
+    EXPECT_TRUE(rcdNode->GetDstRect().IsEmpty());
+    EXPECT_TRUE(rcdNode->rcdExtInfo_.surfaceBounds.IsEmpty());
+    EXPECT_TRUE(rcdNode->rcdExtInfo_.frameBounds.IsEmpty());
+    EXPECT_TRUE(rcdNode->rcdExtInfo_.frameViewPort.IsEmpty());
+}
+
+/*
+ * @tc.name: RcdSourceInfoTest
+ * @tc.desc: Test RSRoundCornerDisplayTest.RcdSourceInfoTest
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRoundCornerDisplayTest, RcdSourceInfoTest, TestSize.Level1)
+{
+    auto rcdNode = RSRcdSurfaceRenderNode::Create(0, static_cast<RCDSurfaceType>(RCDSurfaceType::BOTTOM));
+
+    InitRcdSourceInfo(&rcdNode->rcdSourceInfo);
+    EXPECT_EQ(rcdNode->GetRcdBufferWidth(), 1);
+    EXPECT_EQ(rcdNode->GetRcdBufferHeight(), 1);
+    EXPECT_EQ(rcdNode->GetRcdBufferSize(), 1);
+
+    rcdNode->SetRcdBufferWidth(100);
+    rcdNode->SetRcdBufferHeight(100);
+    rcdNode->SetRcdBufferSize(10000);
+    EXPECT_EQ(rcdNode->GetRcdBufferWidth(), 100);
+    EXPECT_EQ(rcdNode->GetRcdBufferHeight(), 100);
+    EXPECT_EQ(rcdNode->GetRcdBufferSize(), 10000);
+}
 } // OHOS::Rosen

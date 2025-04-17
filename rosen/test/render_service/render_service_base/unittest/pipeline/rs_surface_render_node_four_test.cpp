@@ -410,5 +410,18 @@ HWTEST_F(RSSurfaceRenderNodeFourTest, GetBehindWindowRegionTest, TestSize.Level1
     auto node = std::make_shared<RSRenderNode>(1, rsContext);
     ASSERT_NE(node->GetBehindWindowRegion(), region);
 }
+
+/**
+ * @tc.name: SetAndGetAppWindowZOrderTest
+ * @tc.desc: Test SetAppWindowZOrder and GetAppWindowZOrder api
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceRenderNodeFourTest, SetAndGetAppWindowZOrderTest, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(0, rsContext);
+    surfaceNode->SetAppWindowZOrder(1);
+    ASSERT_EQ(surfaceNode->GetAppWindowZOrder(), 1);
+}
 } // namespace Rosen
 } // namespace OHOS

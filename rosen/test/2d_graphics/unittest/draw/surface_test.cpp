@@ -234,6 +234,19 @@ HWTEST_F(SurfaceTest, GetImageSnapshot005, TestSize.Level1)
     ASSERT_TRUE(ret == nullptr);
 }
 
+/**
+ * @tc.name: SetParallelRender
+ * @tc.desc: Test for seting parallel render.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(SurfaceTest, SetParallelRender, TestSize.Level1)
+{
+    auto surface = std::make_unique<Surface>();
+    ASSERT_TRUE(surface != nullptr);
+    surface->SetParallelRender(true);
+}
+
 #ifdef RS_ENABLE_GL
 /**
  * @tc.name: Wait006

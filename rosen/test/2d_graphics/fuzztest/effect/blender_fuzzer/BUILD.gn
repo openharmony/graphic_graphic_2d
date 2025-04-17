@@ -39,14 +39,7 @@ ohos_fuzztest("BlenderFuzzTest") {
     "../../../../../modules/2d_graphics/src",
     "../../../../../test/2d_graphics/fuzztest",
   ]
-
-  include_dirs += [
-    "//third_party/skia",
-    "//third_party/skia/include/",
-    "//third_party/skia/include/core/",
-    "//third_party/skia/third_party/externals/swiftshader/third_party/SPIRV-Headers/tools/buildHeaders/jsoncpp/dist/",
-  ]
-
+  
   deps = [ "../../../../../modules/2d_graphics:2d_graphics" ]
   external_deps = [ "skia:skia_canvaskit" ]
 

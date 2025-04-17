@@ -17,12 +17,13 @@
 #include <test_header.h>
 #include <climits>
 
-#include "hgm_core.h"
+#include "common/rs_common_def.h"
 #include "hgm_frame_rate_manager.h"
 #include "hgm_config_callback_manager.h"
 #include "hgm_idle_detector.h"
+#include "hgm_test_base.h"
 #include "pipeline/rs_surface_render_node.h"
-#include "common/rs_common_def.h"
+
 
 using namespace testing;
 using namespace testing::ext;
@@ -40,6 +41,7 @@ namespace {
     constexpr uint32_t touchCount = 1;
     constexpr uint32_t delay_60Ms = 60;
     constexpr uint32_t delay_110Ms = 110;
+    constexpr uint32_t lastTouchUpExpectFps = 90;
     constexpr int32_t OLED_72_HZ = 72;
     constexpr int32_t OLED_50_HZ = 50;
     constexpr int32_t OLED_80_HZ = 80;
@@ -50,7 +52,9 @@ namespace {
     constexpr int32_t frameRateLinkerId2 = 2;
     constexpr int32_t errorVelocity = -1;
     constexpr int32_t strategy3 = 3;
+    constexpr int32_t maxSize = 25;
     const std::string testScene = "TestScene";
+    constexpr int32_t STYLUS_LINK_WRITE = 2;
     const GraphicIRect rectF {
         .x = 0,
         .y = 0,
@@ -82,7 +86,7 @@ namespace {
         .h = INT_MAX,
     };
 }
-class HgmFrameRateMgrTest : public testing::Test {
+class HgmFrameRateMgrTest : public HgmTestBase {
 public:
     static void SetUpTestCase();
     static void TearDownTestCase();
@@ -91,7 +95,10 @@ public:
     void InitHgmFrameRateManager(HgmFrameRateManager &frameRateMgr);
 };
 
-void HgmFrameRateMgrTest::SetUpTestCase() {}
+void HgmFrameRateMgrTest::SetUpTestCase()
+{
+    HgmTestBase::SetUpTestCase();
+}
 void HgmFrameRateMgrTest::TearDownTestCase() {}
 void HgmFrameRateMgrTest::SetUp() {}
 void HgmFrameRateMgrTest::TearDown() {}
@@ -145,9 +152,14 @@ HWTEST_F(HgmFrameRateMgrTest, MergeRangeByPriority, Function | SmallTest | Level
 void HgmFrameRateMgrTest::InitHgmFrameRateManager(HgmFrameRateManager &frameRateMgr)
 {
     int64_t offset = 0;
+    auto& hgmCore = HgmCore::Instance();
     auto vsyncGenerator = CreateVSyncGenerator();
     sptr<Rosen::VSyncController> rsController = new VSyncController(vsyncGenerator, offset);
     sptr<Rosen::VSyncController> appController = new VSyncController(vsyncGenerator, offset);
+    auto& configData = hgmCore.GetPolicyConfigData();
+    configData->xmlCompatibleMode_ = true;
+    frameRateMgr.curScreenStrategyId_ = "";
+    frameRateMgr.curRefreshRateMode_ = 0;
     frameRateMgr.Init(nullptr, nullptr, nullptr);
     frameRateMgr.Init(rsController, appController, vsyncGenerator);
 
@@ -160,6 +172,9 @@ void HgmFrameRateMgrTest::InitHgmFrameRateManager(HgmFrameRateManager &frameRate
     screenSetting.strategy = settingStrategyName;
     frameRateMgr.multiAppStrategy_.SetStrategyConfigs(strategyConfigs);
     frameRateMgr.multiAppStrategy_.SetScreenSetting(screenSetting);
+    for (int i = 0; i < maxSize; ++i) {
+        frameRateMgr.frameRateVoteInfoVec_.emplace_back(i, VoteInfo{});
+    }
     frameRateMgr.ReportHiSysEvent({ .extInfo = "ON" });
 }
 
@@ -299,6 +314,13 @@ HWTEST_F(HgmFrameRateMgrTest, ProcessPendingRefreshRate, Function | SmallTest | 
     hgmCore.ltpoEnabled_ = false;
     FrameRateLinkerId id;
     frameRateMgr.rsFrameRateLinker_  = std::make_shared<RSRenderFrameRateLinker>(id);
+
+    frameRateMgr.appFrameRateLinkers_.clear();
+    frameRateMgr.appFrameRateLinkers_.try_emplace(id, nullptr);
+    frameRateMgr.UpdateSoftVSync(true);
+    frameRateMgr.appFrameRateLinkers_.try_emplace(id, frameRateMgr.rsFrameRateLinker_);
+    frameRateMgr.UpdateSoftVSync(true);
+    frameRateMgr.currRefreshRate_.store(OLED_90_HZ);
     frameRateMgr.UpdateSoftVSync(true);
     int64_t vsyncid = 0;
     uint32_t rsRate = 0;
@@ -307,18 +329,29 @@ HWTEST_F(HgmFrameRateMgrTest, ProcessPendingRefreshRate, Function | SmallTest | 
     frameRateMgr.ProcessPendingRefreshRate(currTime, vsyncid, rsRate, isUiDvsyncOn);
     frameRateMgr.lastPendingConstraintRelativeTime_ = currTime;
     frameRateMgr.ProcessPendingRefreshRate(currTime, vsyncid, rsRate, isUiDvsyncOn);
-    ASSERT_EQ(HgmCore::Instance().pendingConstraintRelativeTime_,
+    ASSERT_EQ(hgmCore.pendingConstraintRelativeTime_,
         frameRateMgr.lastPendingConstraintRelativeTime_);
-    frameRateMgr.HandleThermalFrameRate(true);
+    uint32_t pendingRefreshRate = OLED_60_HZ;
+    frameRateMgr.pendingRefreshRate_ = std::make_shared<uint32_t>(pendingRefreshRate);
+    frameRateMgr.ProcessPendingRefreshRate(currTime, vsyncid, rsRate, isUiDvsyncOn);
+    ASSERT_EQ(frameRateMgr.pendingConstraintRelativeTime_, 0);
+    ASSERT_EQ(frameRateMgr.lastPendingRefreshRate_, OLED_60_HZ);
+    frameRateMgr.pendingRefreshRate_ = nullptr;
+    frameRateMgr.ProcessPendingRefreshRate(currTime, vsyncid, rsRate, isUiDvsyncOn);
+    frameRateMgr.voterTouchEffective_ = true;
+    std::string surfaceName = "surface0";
+    size_t oldSize = frameRateMgr.surfaceData_.size();
+    frameRateMgr.UpdateSurfaceTime(surfaceName, pid, UIFWKType::FROM_UNKNOWN);
+    EXPECT_GE(frameRateMgr.surfaceData_.size(), oldSize);
 }
 
 /**
- * @tc.name: HgmConfigCallbackManagerTest
- * @tc.desc: Verify the result of HgmConfigCallbackManagerTest function
+ * @tc.name: HgmConfigCallbackManagerTest001
+ * @tc.desc: Verify the result of HgmConfigCallbackManagerTest001 function
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmFrameRateMgrTest, HgmConfigCallbackManagerTest, Function | SmallTest | Level1)
+HWTEST_F(HgmFrameRateMgrTest, HgmConfigCallbackManagerTest001, Function | SmallTest | Level1)
 {
     sptr<HgmConfigCallbackManager> hccMgr = HgmConfigCallbackManager::GetInstance();
     PART("HgmConfigCallbackManagerTest") {
@@ -333,13 +366,33 @@ HWTEST_F(HgmFrameRateMgrTest, HgmConfigCallbackManagerTest, Function | SmallTest
             ASSERT_EQ(hccMgr->animDynamicCfgCallbacks_.empty(), true);
             hccMgr->SyncHgmConfigChangeCallback();
         }
-        STEP("3. Test SyncCallback function with callback") {
+    }
+}
+
+/**
+ * @tc.name: HgmConfigCallbackManagerTest002
+ * @tc.desc: Verify the result of HgmConfigCallbackManagerTest002 function
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, HgmConfigCallbackManagerTest002, Function | SmallTest | Level1)
+{
+    sptr<HgmConfigCallbackManager> hccMgr = HgmConfigCallbackManager::GetInstance();
+    PART("HgmConfigCallbackManagerTest") {
+        STEP("1. Test SyncCallback function with callback") {
             sptr<CustomHgmCallback> cb = new CustomHgmCallback();
             hccMgr->animDynamicCfgCallbacks_[0] = cb;
             hccMgr->refreshRateModeCallbacks_[0] = cb;
             hccMgr->SyncHgmConfigChangeCallback();
             hccMgr->SyncRefreshRateModeChangeCallback(0);
             hccMgr->RegisterHgmConfigChangeCallback(0, nullptr);
+            auto& hgmCore = HgmCore::Instance();
+            auto& configData = hgmCore.GetPolicyConfigData();
+            configData->pageNameList_.push_back("com.app10");
+            ScreenId id = 0;
+            int32_t mode = 0;
+            sptr<HgmScreen> screen = new HgmScreen(id, mode, screenSize);
+            hgmCore.screenList_.push_back(screen);
             hccMgr->RegisterHgmConfigChangeCallback(pid, cb);
             hccMgr->RegisterHgmRefreshRateUpdateCallback(0, nullptr);
             hccMgr->RegisterHgmRefreshRateUpdateCallback(pid, cb);
@@ -354,8 +407,16 @@ HWTEST_F(HgmFrameRateMgrTest, HgmConfigCallbackManagerTest, Function | SmallTest
             hccMgr->SyncRefreshRateUpdateCallback(OLED_60_HZ);
             ASSERT_EQ(hccMgr->animDynamicCfgCallbacks_.empty(), false);
             hccMgr->UnRegisterHgmConfigChangeCallback(pid);
-            hccMgr->animDynamicCfgCallbacks_.try_emplace(0, cb);
+            hccMgr->animDynamicCfgCallbacks_.try_emplace(pid, cb);
+            std::shared_ptr<HgmMultiAppStrategy> multiAppStrategy_;
+            auto frameRateMgr = hgmCore.GetFrameRateMgr();
+            frameRateMgr->GetMultiAppStrategy().GetForegroundPidApp().try_emplace(0,
+                std::pair<int32_t, std::string>{0, "com.app10"});
             hccMgr->SyncHgmConfigChangeCallback();
+            hccMgr->refreshRateUpdateCallbacks_.try_emplace(0, cb);
+            hccMgr->SyncRefreshRateUpdateCallback(OLED_60_HZ);
+            hccMgr->SyncHgmConfigChangeCallback();
+            hccMgr->refreshRateUpdateCallbacks_.clear();
             hccMgr->refreshRateUpdateCallbacks_.try_emplace(0, cb);
             hccMgr->SyncRefreshRateUpdateCallback(OLED_60_HZ);
         }
@@ -458,13 +519,35 @@ HWTEST_F(HgmFrameRateMgrTest, MultiThread001, Function | SmallTest | Level1)
             // HandleScreenPowerStatus
             frameRateMgr.HandleScreenPowerStatus(i, ScreenPowerStatus::POWER_STATUS_ON);
             frameRateMgr.HandleScreenPowerStatus(i, ScreenPowerStatus::POWER_STATUS_OFF);
+        }
+    });
+    sleep(2); // wait for handler task finished
+}
 
+/**
+ * @tc.name: HandleScreenRectFrameRate
+ * @tc.desc: Verify the result of HandleScreenRectFrameRate function
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, HandleScreenRectFrameRate, Function | SmallTest | Level1)
+{
+    int32_t testThreadNum = 100;
+    HgmFrameRateManager frameRateMgr;
+    HgmTaskHandleThread::Instance().PostTask([&]() {
+        for (int i = 0; i < testThreadNum; i++) {
             // HandleScreenRectFrameRate
             frameRateMgr.HandleScreenRectFrameRate(i, rectF);
             frameRateMgr.HandleScreenRectFrameRate(i, rectM);
             frameRateMgr.HandleScreenRectFrameRate(i, rectG);
             frameRateMgr.HandleScreenRectFrameRate(i, rectNeg);
+            auto& hgmCore = HgmCore::Instance();
+            auto screen = hgmCore.GetScreen(0);
+            screen->isSelfOwnedScreenFlag_.store(true);
+            auto& configData = hgmCore.GetPolicyConfigData();
+            configData->virtualDisplayConfigs_.clear();
             frameRateMgr.HandleScreenRectFrameRate(i, rectMax);
+            EXPECT_EQ(frameRateMgr.curScreenStrategyId_, "LTPO-DEFAULT");
         }
     });
     sleep(2); // wait for handler task finished
@@ -503,6 +586,8 @@ HWTEST_F(HgmFrameRateMgrTest, UpdateGuaranteedPlanVoteTest, Function | SmallTest
     std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
     mgr->UpdateGuaranteedPlanVote(currTime);
     EXPECT_FALSE(mgr->idleDetector_.GetAceAnimatorIdleState());
+    mgr->lastTouchUpExpectFps_ = OLED_90_HZ;
+    EXPECT_EQ(mgr->idleDetector_.GetTouchUpExpectedFPS(), mgr->lastTouchUpExpectFps_);
 }
 
 /**
@@ -530,6 +615,8 @@ HWTEST_F(HgmFrameRateMgrTest, CleanPidCallbackTest, Function | SmallTest | Level
     mgr->CleanVote(gamePid);
     mgr->pidRecord_.emplace(defaultPid);
     mgr->CleanVote(gamePid);
+    mgr->pidRecord_.emplace(gamePid);
+    mgr->CleanVote(gamePid);
 
     ASSERT_EQ(mgr->sceneStack_.empty(), true);
     mgr->sceneStack_.push_back(std::make_pair("sceneName", 0));
@@ -550,15 +637,16 @@ HWTEST_F(HgmFrameRateMgrTest, CleanPidCallbackTest, Function | SmallTest | Level
     mgr->curScreenStrategyId_ = savedScreenStrategyId;
     std::swap(hgm.mPolicyConfigData_, cachedPolicyConfigData);
     EXPECT_NE(hgm.mPolicyConfigData_, nullptr);
-    auto frameRateMgr = hgm.GetFrameRateMgr();
-    auto screenSetting = frameRateMgr->multiAppStrategy_.GetScreenSetting();
+    auto screenSetting = mgr->multiAppStrategy_.GetScreenSetting();
     screenSetting.sceneList.insert(make_pair(testScene, PolicyConfigData::SceneConfig{"1", "1"}));
     screenSetting.gameSceneList.insert(make_pair(testScene, "1"));
     screenSetting.ancoSceneList.insert(make_pair(testScene, PolicyConfigData::SceneConfig{"1", "1"}));
-    frameRateMgr->multiAppStrategy_.SetScreenSetting(screenSetting);
+    mgr->multiAppStrategy_.SetScreenSetting(screenSetting);
     EventInfo eventInfo2 = { .eventName = "VOTER_SCENE", .eventStatus = true, .description = testScene };
-    frameRateMgr->HandleRefreshRateEvent(0, eventInfo2);
-    frameRateMgr->UpdateVoteRule();
+    mgr->HandleRefreshRateEvent(0, eventInfo2);
+    mgr->UpdateVoteRule();
+    mgr->sceneStack_.push_back(std::make_pair("sceneName1", 0));
+    mgr->UpdateVoteRule();
     sleep(1);
 }
 
@@ -577,6 +665,7 @@ HWTEST_F(HgmFrameRateMgrTest, HandleEventTest, Function | SmallTest | Level2)
     auto &hgm = HgmCore::Instance();
     mgr->DeliverRefreshRateVote({"VOTER_GAMES", 120, 90, 0}, true);
 
+    mgr->GetExpectedFrameRate(static_cast<RSPropertyUnit>(RSPropertyUnit::PIXEL_POSITION), 100.f, 0, 0);
     mgr->GetExpectedFrameRate(static_cast<RSPropertyUnit>(0xff), 100.f, 0, 0);
     if (hgm.mPolicyConfigData_ == nullptr) {
         return;
@@ -681,6 +770,12 @@ HWTEST_F(HgmFrameRateMgrTest, ProcessRefreshRateVoteTest, Function | SmallTest |
     frameRateMgr.ancoScenes_.emplace("VOTER_ANCO");
     resVoteInfo = frameRateMgr.ProcessRefreshRateVote();
     EXPECT_EQ(resVoteInfo.min, OLED_MIN_HZ);
+    frameRateMgr.voters_.push_back("VOTER_ANCO");
+    auto voterIter1 = std::find(frameRateMgr.voters_.begin(), frameRateMgr.voters_.end(), "VOTER_ANCO");
+    EXPECT_FALSE(frameRateMgr.ProcessRefreshRateVote(voterIter1, resultVoteInfo, voteRange, voterGamesEffective));
+    frameRateMgr.voters_.push_back("VOTER_VIDEO");
+    voterIter1 = std::find(frameRateMgr.voters_.begin(), frameRateMgr.voters_.end(), "VOTER_VIDEO");
+    EXPECT_FALSE(frameRateMgr.ProcessRefreshRateVote(voterIter1, resultVoteInfo, voteRange, voterGamesEffective));
 }
 
 /**
@@ -692,7 +787,6 @@ HWTEST_F(HgmFrameRateMgrTest, ProcessRefreshRateVoteTest, Function | SmallTest |
 HWTEST_F(HgmFrameRateMgrTest, ProcessRefreshRateVoteTest2, Function | SmallTest | Level2)
 {
     HgmFrameRateManager frameRateMgr;
-    VoteInfo resultVoteInfo;
     VoteRange voteRange = { OLED_MIN_HZ, OLED_MAX_HZ };
     frameRateMgr.DeliverRefreshRateVote({"VOTER_PACKAGES", OLED_60_HZ, OLED_120_HZ, 0}, true);
     frameRateMgr.DeliverRefreshRateVote({"VOTER_LTPO", OLED_120_HZ, OLED_120_HZ, 0}, true);
@@ -768,6 +862,8 @@ HWTEST_F(HgmFrameRateMgrTest, FrameRateReportTest, Function | SmallTest | Level2
     mgr.schedulePreferredFps_ = OLED_60_HZ;
     mgr.currRefreshRate_ = OLED_60_HZ;
     mgr.FrameRateReport();
+    mgr.currRefreshRate_ = OLED_90_HZ;
+    mgr.FrameRateReport();
     mgr.curRefreshRateMode_ = 0;
     mgr.schedulePreferredFps_ = 0;
     mgr.schedulePreferredFpsChange_ = true;
@@ -796,6 +892,9 @@ HWTEST_F(HgmFrameRateMgrTest, CollectFrameRateChange, Function | SmallTest | Lev
         {frameRateLinkerId2, appFrameRateLinker}
     };
     EXPECT_EQ(mgr.CollectFrameRateChange(finalRange, rsFrameRateLinker, appFrameRateLinkers), false);
+    mgr.currRefreshRate_.store(OLED_60_HZ);
+    EXPECT_GT(mgr.GetDrawingFrameRate(mgr.currRefreshRate_, finalRange), 0);
+    EXPECT_EQ(mgr.CollectFrameRateChange(finalRange, rsFrameRateLinker, appFrameRateLinkers), true);
     mgr.controller_ = nullptr;
     EXPECT_EQ(mgr.CollectFrameRateChange(finalRange, rsFrameRateLinker, appFrameRateLinkers), false);
 }
@@ -883,6 +982,31 @@ HWTEST_F(HgmFrameRateMgrTest, HandleFrameRateChangeForLTPO, Function | SmallTest
     frameRateMgr->controller_ = std::make_shared<HgmVSyncGeneratorController>(rsController,
         appController, vsyncGenerator);
     frameRateMgr->HandleFrameRateChangeForLTPO(0, false);
+}
+
+/**
+ * @tc.name: DVSyncTaskProcess
+ * @tc.desc: Verify the result of DVSyncTaskProcess
+ * @tc.type: FUNC
+ * @tc.require: issueIBX8OW
+ */
+HWTEST_F(HgmFrameRateMgrTest, DVSyncTaskProcessor, Function | SmallTest | Level2)
+{
+    auto &hgmCore = HgmCore::Instance();
+    auto frameRateMgr = hgmCore.GetFrameRateMgr();
+    hgmCore.SetPendingScreenRefreshRate(OLED_144_HZ);
+    auto lastRefreshRate = hgmCore.GetPendingScreenRefreshRate();
+    frameRateMgr->controllerRate_ = OLED_30_HZ;
+    frameRateMgr->currRefreshRate_ = OLED_120_HZ;
+    VSyncController* rsController = nullptr;
+    VSyncController* appController = nullptr;
+    VSyncGenerator* vsyncGenerator = nullptr;
+    frameRateMgr->controller_ = std::make_shared<HgmVSyncGeneratorController>(rsController,
+        appController, vsyncGenerator);
+    ASSERT_NE(frameRateMgr->controller_, nullptr);
+    int64_t delayTime = 10;
+    uint64_t targetTime = 0;
+    frameRateMgr->DVSyncTaskProcessor(delayTime, targetTime);
 }
 
 /**
@@ -1035,6 +1159,7 @@ HWTEST_F(HgmFrameRateMgrTest, HandleScreenPowerStatus, Function | SmallTest | Le
     EXPECT_EQ(hgmCore.AddScreen(internalScreenId, 0, screenSize), EXEC_SUCCESS);
 
     // fold -> expand -> fold
+    frameRateMgr->curScreenStrategyId_.clear();
     frameRateMgr->HandleScreenPowerStatus(internalScreenId, ScreenPowerStatus::POWER_STATUS_SUSPEND);
     frameRateMgr->HandleScreenPowerStatus(externalScreenId, ScreenPowerStatus::POWER_STATUS_ON);
     EXPECT_EQ(frameRateMgr->curScreenId_, externalScreenId);
@@ -1076,23 +1201,42 @@ HWTEST_F(HgmFrameRateMgrTest, HandleScreenPowerStatus, Function | SmallTest | Le
 }
 
 /**
- * @tc.name: HandleThermalFrameRate
- * @tc.desc: Verify the result of HandleThermalFrameRate
+ * @tc.name: NotifyScreenRectFrameRateChange
+ * @tc.desc: Verify the result of NotifyScreenRectFrameRateChange
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmFrameRateMgrTest, HandleThermalFrameRate, Function | SmallTest | Level1)
+HWTEST_F(HgmFrameRateMgrTest, NotifyScreenRectFrameRateChange, Function | SmallTest | Level1)
+{
+    auto &hgmCore = HgmCore::Instance();
+    Rect activeRect;
+    ScreenId id = 0;
+    GraphicIRect dstActiveRect {
+        .x = activeRect.x,
+        .y = activeRect.y,
+        .w = activeRect.w,
+        .h = activeRect.h,
+    };
+    hgmCore.NotifyScreenRectFrameRateChange(id, dstActiveRect);
+    EXPECT_NE(hgmCore.hgmFrameRateMgr_, nullptr);
+}
+
+/**
+ * @tc.name: HandleScreenExtStrategyChange
+ * @tc.desc: Verify the result of HandleScreenExtStrategyChange
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, HandleScreenExtStrategyChange, Function | SmallTest | Level1)
 {
     auto &hgmCore = HgmCore::Instance();
     auto frameRateMgr = hgmCore.GetFrameRateMgr();
     if (frameRateMgr == nullptr || hgmCore.mPolicyConfigData_ == nullptr) {
         return;
     }
-    frameRateMgr->HandleThermalFrameRate(true);
-    EXPECT_EQ(frameRateMgr->isEnableThermalStrategy_, true);
-
-    frameRateMgr->HandleThermalFrameRate(false);
-    EXPECT_EQ(frameRateMgr->isEnableThermalStrategy_, false);
+    frameRateMgr->HandleScreenExtStrategyChange(true, "_THERMAL");
+    frameRateMgr->HandleScreenExtStrategyChange(false, "test");
+    EXPECT_NE(frameRateMgr, nullptr);
 }
 
 /**
@@ -1147,6 +1291,40 @@ HWTEST_F(HgmFrameRateMgrTest, HandlePackageEvent, Function | SmallTest | Level1)
 
     frameRateMgr->HandlePackageEvent(DEFAULT_PID, {pkgName1});
     checkFunc(false, true, false, false);
+    frameRateMgr->currRefreshRate_ = OLED_30_HZ;
+    FrameRateRange finalRange = {OLED_60_HZ, OLED_120_HZ, OLED_60_HZ};
+    EXPECT_EQ(frameRateMgr->CalcRefreshRate(frameRateMgr->curScreenId_.load(), finalRange),
+        frameRateMgr->currRefreshRate_);
+    frameRateMgr->stylusMode_ = STYLUS_LINK_WRITE;
+    frameRateMgr->stylusVec_.clear();
+    ASSERT_EQ(frameRateMgr->CalcRefreshRate(frameRateMgr->curScreenId_.load(), finalRange),
+        frameRateMgr->currRefreshRate_);
+}
+
+/**
+ * @tc.name: AvoidChangeRateFrequent
+ * @tc.desc: Verify the result of AvoidChangeRateFrequent
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, AvoidChangeRateFrequent, Function | SmallTest | Level1)
+{
+    auto &hgmCore = HgmCore::Instance();
+    auto frameRateMgr = hgmCore.GetFrameRateMgr();
+    if (frameRateMgr == nullptr) {
+        return;
+    }
+    
+    frameRateMgr->isDragScene_ = false;
+    ASSERT_EQ(frameRateMgr->AvoidChangeRateFrequent(120), 120);
+    ASSERT_EQ(frameRateMgr->AvoidChangeRateFrequent(72), 72);
+
+    frameRateMgr->isDragScene_ = true;
+    ASSERT_EQ(frameRateMgr->AvoidChangeRateFrequent(120), 120);
+    ASSERT_EQ(frameRateMgr->AvoidChangeRateFrequent(72), 120);
+
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+    ASSERT_EQ(frameRateMgr->AvoidChangeRateFrequent(72), 72);
 }
 
 /**
@@ -1201,6 +1379,65 @@ HWTEST_F(HgmFrameRateMgrTest, HandleDynamicModeEvent, Function | SmallTest | Lev
     }
     frameRateMgr->HandleDynamicModeEvent(true);
     EXPECT_EQ(hgmCore.enableDynamicMode_, true);
+}
+
+/**
+ * @tc.name: ProcessPageUrlVote
+ * @tc.desc: Verify the result of ProcessPageUrlVote
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, ProcessPageUrlVote, Function | SmallTest | Level1)
+{
+    auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
+    pid_t pid = 0;
+    std::string strategy = "";
+    bool isAddVote = true;
+    std::string packageName = "";
+    std::string pageName = "";
+    bool isEnter = true;
+    frameRateMgr->ProcessPageUrlVote(pid, strategy, isAddVote);
+    frameRateMgr->CleanPageUrlVote(pid);
+    frameRateMgr->NotifyPageName(pid, packageName, pageName, isEnter);
+    EXPECT_EQ(frameRateMgr->appPageUrlStrategy_.pageUrlConfig_,
+        frameRateMgr->multiAppStrategy_.screenSettingCache_.pageUrlConfig);
+}
+
+/**
+ * @tc.name: CollectGameRateDiscountChange
+ * @tc.desc: Verify the result of CollectGameRateDiscountChange
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, CollectGameRateDiscountChange, Function | SmallTest | Level2)
+{
+    HgmFrameRateManager mgr;
+    InitHgmFrameRateManager(mgr);
+    FrameRateRange appExpectedRange = {OLED_60_HZ, OLED_120_HZ, OLED_60_HZ};
+    FrameRateRange appZeroExpectedRange = {OLED_MIN_HZ, OLED_120_HZ, OLED_MIN_HZ};
+    FrameRateRange appErrExpectedRange = {OLED_60_HZ, OLED_120_HZ, OLED_MIN_HZ};
+
+    EXPECT_EQ(mgr.CollectGameRateDiscountChange(frameRateLinkerId1, appExpectedRange), false);
+    std::vector<uint64_t> linkerIds = {frameRateLinkerId1, frameRateLinkerId2};
+
+    mgr.currRefreshRate_ = OLED_60_HZ;
+    uint32_t rateDiscount = 0;
+    EXPECT_EQ(mgr.SetVsyncRateDiscountLTPO(linkerIds, rateDiscount), true);
+    EXPECT_EQ(mgr.CollectGameRateDiscountChange(frameRateLinkerId1, appExpectedRange), false);
+    rateDiscount = 1;
+    EXPECT_EQ(mgr.SetVsyncRateDiscountLTPO(linkerIds, rateDiscount), true);
+    EXPECT_EQ(mgr.CollectGameRateDiscountChange(frameRateLinkerId1, appExpectedRange), false);
+    rateDiscount = 2;
+    EXPECT_EQ(mgr.SetVsyncRateDiscountLTPO(linkerIds, rateDiscount), true);
+    mgr.CollectGameRateDiscountChange(frameRateLinkerId1, appExpectedRange);
+    mgr.CollectGameRateDiscountChange(frameRateLinkerId1, appZeroExpectedRange);
+    EXPECT_EQ(mgr.CollectGameRateDiscountChange(frameRateLinkerId1, appErrExpectedRange), false);
+
+    mgr.currRefreshRate_ = OLED_MIN_HZ;
+    mgr.CollectGameRateDiscountChange(frameRateLinkerId1, appExpectedRange);
+    EXPECT_EQ(mgr.CollectGameRateDiscountChange(frameRateLinkerId1, appZeroExpectedRange), false);
+
+    mgr.EraseGameRateDiscountMap(frameRateLinkerId1);
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -292,10 +292,12 @@ HWTEST_F(RSMemoryTrackTest, CountRSMemoryTest004, testing::ext::TestSize.Level1)
 HWTEST_F(RSMemoryTrackTest, DumpMemoryStatisticsTest, testing::ext::TestSize.Level1)
 {
     DfxString log;
+    std::string str1 = log.GetString();
+    ASSERT_EQ(str1, "");
     std::function<std::tuple<uint64_t, std::string, RectI, bool> (uint64_t)> func;
     MemoryTrack::Instance().DumpMemoryStatistics(log, func);
-    int ret = 0;
-    ASSERT_EQ(ret, 0);
+    std::string str2 = log.GetString();
+    ASSERT_NE(str2, "");
 }
 
 /**
@@ -306,11 +308,11 @@ HWTEST_F(RSMemoryTrackTest, DumpMemoryStatisticsTest, testing::ext::TestSize.Lev
  */
 HWTEST_F(RSMemoryTrackTest, AddPictureRecordTest, testing::ext::TestSize.Level1)
 {
-    const void* addr;
+    const void* addr = nullptr;
     MemoryInfo info;
-    MemoryTrack::Instance().AddPictureRecord(addr, info);
-    int ret = 0;
-    ASSERT_EQ(ret, 0);
+    MemoryTrack& test1 =  MemoryTrack::Instance();
+    test1.AddPictureRecord(addr, info);
+    EXPECT_TRUE(test1.memPicRecord_.count(addr));
 }
 
 /**
@@ -321,10 +323,13 @@ HWTEST_F(RSMemoryTrackTest, AddPictureRecordTest, testing::ext::TestSize.Level1)
  */
 HWTEST_F(RSMemoryTrackTest, RemovePictureRecordTest, testing::ext::TestSize.Level1)
 {
-    const void* addr;
-    MemoryTrack::Instance().RemovePictureRecord(addr);
-    int ret = 0;
-    ASSERT_EQ(ret, 0);
+    const void* addr = nullptr;
+    MemoryInfo info;
+    MemoryTrack& test1 = MemoryTrack::Instance();
+    test1.AddPictureRecord(addr, info);
+    EXPECT_TRUE(test1.memPicRecord_.count(addr));
+    test1.RemovePictureRecord(addr);
+    EXPECT_FALSE(test1.memPicRecord_.count(addr));
 }
 
 /**
@@ -335,12 +340,16 @@ HWTEST_F(RSMemoryTrackTest, RemovePictureRecordTest, testing::ext::TestSize.Leve
  */
 HWTEST_F(RSMemoryTrackTest, UpdatePictureInfoTest, testing::ext::TestSize.Level1)
 {
-    const void* addr;
+    const void* addr = nullptr;
+    MemoryInfo info;
     NodeId nodeId = 1;
     pid_t pid = -1;
-    MemoryTrack::Instance().UpdatePictureInfo(addr, nodeId, pid);
-    int ret = 0;
-    ASSERT_EQ(ret, 0);
+    MemoryTrack& test1 = MemoryTrack::Instance();
+    test1.AddPictureRecord(addr, info);
+    test1.UpdatePictureInfo(addr, nodeId, pid);
+    auto itr = test1.memPicRecord_.find(addr);
+    MemoryInfo info2 = itr->second;
+    EXPECT_EQ(-1, info2.pid);  //1.for test
 }
 
 /**
@@ -441,13 +450,10 @@ HWTEST_F(RSMemoryTrackTest, GenerateDumpTitleTest, testing::ext::TestSize.Level1
  */
 HWTEST_F(RSMemoryTrackTest, DumpMemoryNodeStatisticsTest, testing::ext::TestSize.Level1)
 {
-    // for test
     DfxString log;
-    std::function<std::tuple<uint64_t, std::string, RectI, bool> (uint64_t)> func;
     MemoryTrack::Instance().DumpMemoryNodeStatistics(log);
-    MemoryTrack::Instance().DumpMemoryPicStatistics(log, func);
-    int ret = 1;
-    ASSERT_EQ(ret, 1);
+    std::string  str = log.GetString();
+    EXPECT_NE("", str);
 }
 
 /**
@@ -458,16 +464,15 @@ HWTEST_F(RSMemoryTrackTest, DumpMemoryNodeStatisticsTest, testing::ext::TestSize
  */
 HWTEST_F(RSMemoryTrackTest, RemoveNodeFromMapTest001, testing::ext::TestSize.Level1)
 {
-    // fot test
-    const NodeId id = 1;
-    // fot test
-    pid_t pid = -1;
-    // fot test
-    size_t size = sizeof(10);
-    MemoryTrack::Instance().RemoveNodeFromMap(id, pid, size);
-    MemoryTrack::Instance().RemoveNodeOfPidFromMap(pid, size, id);
-    int ret = 1;
-    ASSERT_EQ(ret, 1);
+    MemoryInfo info = {.pid = -1, .size = sizeof(10)}; //for test
+    const NodeId id = 1; // fot test
+    MemoryTrack& test1 = MemoryTrack::Instance();
+    test1.AddNodeRecord(id, info);
+    pid_t pidTest;
+    size_t sizeTest;
+    test1.RemoveNodeFromMap(id, pidTest, sizeTest);
+    EXPECT_EQ(1, pidTest); //for test
+    EXPECT_EQ(sizeof(10), sizeTest); //for test
 }
 
 /**
@@ -478,16 +483,15 @@ HWTEST_F(RSMemoryTrackTest, RemoveNodeFromMapTest001, testing::ext::TestSize.Lev
  */
 HWTEST_F(RSMemoryTrackTest, RemoveNodeFromMapTest002, testing::ext::TestSize.Level1)
 {
-    // fot test
-    const NodeId id = 0;
-    // fot test
-    pid_t pid = 0;
-    // fot test
-    size_t size = sizeof(10);
-    MemoryTrack::Instance().RemoveNodeFromMap(id, pid, size);
-    MemoryTrack::Instance().RemoveNodeOfPidFromMap(pid, size, id);
-    int ret = 1;
-    ASSERT_EQ(ret, 1);
+    MemoryInfo info = {.pid = 0, .size = sizeof(10)}; //for test
+    const NodeId id = 0; // fot test
+    MemoryTrack& test1 = MemoryTrack::Instance();
+    test1.AddNodeRecord(id, info);
+    pid_t pidTest;
+    size_t sizeTest;
+    test1.RemoveNodeFromMap(id, pidTest, sizeTest);
+    EXPECT_EQ(0, pidTest); //for test
+    EXPECT_EQ(sizeof(10), sizeTest); //for test
 }
 
 /**
