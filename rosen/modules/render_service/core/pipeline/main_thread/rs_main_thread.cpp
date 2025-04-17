@@ -4246,6 +4246,28 @@ void RSMainThread::PerfAfterAnim(bool needRequestNextVsync)
     }
 }
 
+bool RSMainThread::IsFastComposeAllow(uint64_t unsignedVsyncPeriod, bool nextVsyncRequested,
+    uint64_t unsignedNowTime, uint64 lastVsyncTime)
+{
+    if (!context_) {
+        return false;
+    }
+    // only support 60hz fastcompose 
+    if(unsignedVsyncPeriod > REFRESH_PERIOD + PERIOD_MAX_OFFSET ||
+        unsignedVsyncPeriod < REFRESH_PERIOD - PERIOD_MAX_OFFSET) {
+        return false;
+    }
+    // fastcompose not work at dvsync preTime scene
+    if(timestamp_ > curTime_ && timestamp_ - curTime_ > PERIOD_MAX_OFFSET) {
+        return false;
+    }
+    // if buffer come after Vsync and before onVsync invoke by others, don't fastcompose  
+    if(nextVsyncRequested && (unsignedNowTime - lastVsyncTime) % unsignedVsyncPeriod < FASTCOMPOSE_OFFSET) {
+        return false;
+    }
+    return true;
+}
+
 void RSMainThread::CheckFastCompose(int64_t lastFlushedDesiredPresentTimeStamp)
 {
     auto nowTime = SystemTime();
@@ -4267,13 +4289,12 @@ void RSMainThread::CheckFastCompose(int64_t lastFlushedDesiredPresentTimeStamp)
         lastVsyncTime = timestamp_;
         lastFastComposeTimeStampDiff_ = 0;
     }
-    if (ret != VSYNC_ERROR_OK || unsignedVsyncPeriod > REFRESH_PERIOD + PERIOD_MAX_OFFSET ||
-    	unsignedVsyncPeriod < REFRESH_PERIOD - PERIOD_MAX_OFFSET || !context_ ||
-        (timestamp_ > curTime_ && timestamp_ - curTime_ > PERIOD_MAX_OFFSET) ||
-        (nextVsyncRequested && (unsignedNowTime - lastVsyncTime) % unsignedVsyncPeriod < FASTCOMPOSE_OFFSET)) {
+    if (ret != VSYNC_ERROR_OK ||
+        !IsFastComposeAllow(unsignedVsyncPeriod, nextVsyncRequested, unsignedNowTime, lastVsyncTime)) {
         RequestNextVSync();
         return;
     }
+    // if buffer come near vsync and next vsync not requested, do fast compose
     if (!nextVsyncRequested && (unsignedNowTime - lastVsyncTime) % unsignedVsyncPeriod >
         unsignedVsyncPeriod - FASTCOMPOSE_OFFSET) {
         unsignedNowTime += FASTCOMPOSE_OFFSET;
@@ -4292,7 +4313,7 @@ void RSMainThread::CheckFastCompose(int64_t lastFlushedDesiredPresentTimeStamp)
         RS_TRACE_NAME("RSMainThread::CheckFastCompose success, start fastcompose");
         RS_LOGD("RSMainThread::fastcompose late for %{public}" PRIu64, unsignedNowTime - lastVsyncTime);
         if (earlyFastComposeFlag) {
-            curTime_ -= FASTCOMPOSE_OFFSET;
+            curTime_ -= FASTCOMPOSE_OFFSET; // adapt timestamp diff at early fastcompose
         }
         ForceRefreshForUni(true);
         return;
