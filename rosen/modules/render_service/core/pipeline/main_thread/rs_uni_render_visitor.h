@@ -43,6 +43,7 @@ namespace OHOS {
 namespace Rosen {
 class RSPaintFilterCanvas;
 class RSUniHwcVisitor;
+class RSOcclusionHandler;
 class RSUniRenderVisitor : public RSNodeVisitor {
 public:
     using SurfaceDirtyMgrPair = std::pair<std::shared_ptr<RSSurfaceRenderNode>, std::shared_ptr<RSSurfaceRenderNode>>;
@@ -306,6 +307,16 @@ private:
 
     void CollectSelfDrawingNodeRectInfo(RSSurfaceRenderNode& node);
 
+    // Used to collect prepared subtree into the control-level occlusion culling handler.
+    // For the root node, trigger occlusion detection.
+    void CollectSubTreeAndProcessOcclusion(RSRenderNode& node, bool subTreeSkipped);
+
+    // Used to collect prepared node into the control-level occlusion culling handler.
+    void CollectNodeForOcclusion(RSRenderNode& node);
+
+    // Used to initialize the handler of control-level occlusion culling.
+    void InitializeOcclusionHandler(RSRootRenderNode& node);
+
     friend class RSUniHwcVisitor;
     std::unique_ptr<RSUniHwcVisitor> hwcVisitor_;
 
@@ -449,6 +460,9 @@ private:
     int32_t rsDisplayNodeChildNum_ = 0;
 
     int32_t appWindowZOrder_ = 0;
+
+    // Used for control-level occlusion culling.
+    std::shared_ptr<RSOcclusionHandler> curOcclusionHandler_;
 };
 } // namespace Rosen
 } // namespace OHOS

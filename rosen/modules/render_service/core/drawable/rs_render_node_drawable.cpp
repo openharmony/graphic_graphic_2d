@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -84,6 +84,10 @@ void RSRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     RSTagTracker tagTracker(canvas.GetGPUContext().get(), 0, GetId(), RSTagTracker::TAGTYPE::TAG_DRAW_RENDER_NODE);
     RSRenderNodeDrawable::TotalProcessedNodeCountInc();
     Drawing::Rect bounds = GetRenderParams() ? GetRenderParams()->GetFrameRect() : Drawing::Rect(0, 0, 0, 0);
+    // Skip nodes that were culled by the control-level occlusion.
+    if (SkipCulledNodeAndDrawChildren(canvas, bounds)) {
+        return;
+    }
 
     DrawBackground(canvas, bounds);
 
@@ -94,6 +98,24 @@ void RSRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     DrawChildren(canvas, bounds);
 
     DrawForeground(canvas, bounds);
+}
+
+bool RSRenderNodeDrawable::SkipCulledNodeAndDrawChildren(Drawing::Canvas& canvas, Drawing::Rect& bounds)
+{
+    auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
+    auto id = GetId();
+    // Control-level occlusion culling, active exclusively in the uni render thread and
+    // disabled during capture or off-screen rendering.
+    if (id != 0 && paintFilterCanvas->GetParallelThreadIdx() == UNI_RENDER_THREAD_INDEX &&
+        LIKELY(!RSUniRenderThread::IsInCaptureProcess()) && GetOpDropped()) {
+        if (paintFilterCanvas->GetCulledNodes().count(id) > 0) {
+            RS_OPTIONAL_TRACE_NAME_FMT("RSRenderNodeDrawable::SkipCulledNode id: %lu culled success", id);
+            CollectInfoForUnobscuredUEC(canvas);
+            DrawChildren(canvas, bounds);
+            return true;
+        }
+    }
+    return false;
 }
 
 /*

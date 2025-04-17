@@ -449,6 +449,26 @@ void RSRenderNode::SetHasUnobscuredUEC()
     stagingRenderParams_->SetHasUnobscuredUEC(hasUnobscuredUEC);
 }
 
+// Determines node opaque and occlusion culling participation for control-level occlusion
+void RSRenderNode::GetOcclusionInfo(const std::unordered_set<RSModifierType>& opaqueModifiers,
+    const std::unordered_set<RSModifierType>& occluderModifiers, bool& isOpaque, bool& isSubTreeIgnored) const
+{
+    isOpaque = true;
+    for (const auto& pair : modifiers_) {
+        auto modifierType = pair.second->GetType();
+        // When a node has a modifier that is not in the opaqueModifiers, it is judged as a non opaque node.
+        if (opaqueModifiers.find(modifierType) == opaqueModifiers.end()) {
+            isOpaque = false;
+            // When a node has a modifier that is not in the opaqueModifiers and occluderModifiers,
+            // it is determined that the subtree should not participate in occlusion culling.
+            if (occluderModifiers.find(modifierType) == occluderModifiers.end()) {
+                isSubTreeIgnored = true;
+                return;
+            }
+        }
+    }
+}
+
 void RSRenderNode::SetHdrNum(bool flag, NodeId instanceRootNodeId)
 {
     auto context = GetContext().lock();
@@ -4513,7 +4533,7 @@ OutOfParentType RSRenderNode::GetOutOfParent() const
 {
     return outOfParent_;
 }
-RSRenderNode::NodeGroupType RSRenderNode::GetNodeGroupType()
+RSRenderNode::NodeGroupType RSRenderNode::GetNodeGroupType() const
 {
     uint8_t type = NodeGroupType::GROUP_TYPE_BUTT;
     while (type != NodeGroupType::NONE) {
