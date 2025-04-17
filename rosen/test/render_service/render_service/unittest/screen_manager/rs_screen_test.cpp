@@ -493,6 +493,21 @@ HWTEST_F(RSScreenTest, SurfaceDumpTest, testing::ext::TestSize.Level1)
 }
 
 /*
+ * @tc.name: DumpCurrentFrameLayersTest
+ * @tc.desc: DumpCurrentFrameLayers Test
+ * @tc.type: FUNC
+ * @tc.require: issueIAXTPS
+ */
+HWTEST_F(RSScreenTest, DumpCurrentFrameLayersTest, testing::ext::TestSize.Level1)
+{
+    ScreenId id = 0;
+    auto rsScreen = std::make_shared<impl::RSScreen>(id, false, HdiOutput::CreateHdiOutput(id), nullptr);
+    ASSERT_NE(nullptr, rsScreen);
+    int32_t screenIndex = 0;
+    rsScreen->DumpCurrentFrameLayers(screenIndex);
+}
+
+/*
  * @tc.name: FpsDumpTest
  * @tc.desc: FpsDump Test
  * @tc.type: FUNC
