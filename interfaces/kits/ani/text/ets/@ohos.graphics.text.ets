@@ -19,6 +19,7 @@
  */
 import type drawing from '@ohos.graphics.drawing';
 import type common2D from '@ohos.graphics.common2D';
+import { Resource } from 'global.resource';
 
 /**
  * Provides functions such as 2D graphics text paragraphs, text styles.
@@ -30,8 +31,18 @@ import type common2D from '@ohos.graphics.common2D';
 namespace text {
   export class FontCollection {
     static { loadLibrary('text_engine_ani.z') }
-    public nativeObj : long = 0;
+    private nativeObj : long = 0;
     native constructor();
+
+    public native static getGlobalInstance(): FontCollection;
+
+    public native loadFontSync(name: string, path: Resource | string): void;
+
+    public native clearCaches(): void;
+
+    public loadFont(name: string, path: Resource | string): void {
+      this.loadFontSync(name, path);
+    }
   }
 
   /**
