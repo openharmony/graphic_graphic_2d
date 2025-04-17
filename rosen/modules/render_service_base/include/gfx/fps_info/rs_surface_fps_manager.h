@@ -39,7 +39,7 @@ public:
     void ClearDumpByPid(std::string& result, pid_t pid);
     void PorcessParam(
         const std::unordered_set<std::u16string>& argSets, std::string& option, std::string& argStr);
-    void IsSurface(const std::string& option, const std::string& argStr);
+    bool IsSurface(const std::string& option, const std::string& argStr);
     void DumpSurfaceNodeFps(std::string& dumpString, const std::string& option, const std::string& arg);
     void ClearSurfaceNodeFps(std::string& dumpString, const std::string& option, const std::string& arg);
     std::unordered_map<NodeId, std::shared_ptr<RSSurfaceFps>> GetSurfaceFpsMap() const;

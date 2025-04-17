@@ -14,6 +14,9 @@
  */
 
 #include <memory>
+#include <string>
+#include <codecvt>
+#include <locale>
 
 #include "common/rs_common_def.h"
 #include "gfx/fps_info/rs_surface_fps_manager.h"
@@ -190,7 +193,7 @@ void RSSurfaceFpsManager::PorcessParam(
     return ;
 }
 
-void RSSurfaceFpsManager::IsSurface(const std::string& option, const std::string& argStr)
+bool RSSurfaceFpsManager::IsSurface(const std::string& option, const std::string& argStr)
 {
     return option == PARAM_ID || uniRenderArgs.find(argStr) == uniRenderArgs.end();
 }
