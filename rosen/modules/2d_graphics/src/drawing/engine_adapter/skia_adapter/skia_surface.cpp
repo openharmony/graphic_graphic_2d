@@ -121,7 +121,10 @@ bool SkiaSurface::Bind(const Image& image)
     if (skImage->isLazyGenerated()) {
         skImage = skImage->makeTextureImage(grContext.get());
     }
-
+    if (skImage == nullptr) {
+        LOGD("SkiaSurface bind Image failed: skImage is nullptr");
+        return false;
+    }
     GrSurfaceOrigin grSurfaceOrigin;
     GrBackendTexture grBackendTexture;
     SkSurfaceProps surfaceProps(SURFACE_PROPS_FLAGS, kRGB_H_SkPixelGeometry);
