@@ -84,6 +84,12 @@ private:
     static bool IsDmaMemory(const PixelMemInfo& memory);
     static bool IsDmaMemory(AllocatorType type);
 
+    static bool PullHeapMemory(uint64_t id, const ImageInfo& info, PixelMemInfo& memory, size_t& skipBytes);
+    static void PushHeapMemory(uint64_t id, const ImageInfo& info, const PixelMemInfo& memory, size_t skipBytes);
+    static void PushHeapMemory(uint64_t id, PixelMap& map);
+
+    static bool DefaultHeapMemory(uint64_t id, const ImageInfo& info, PixelMemInfo& memory, size_t& skipBytes);
+
     static EncodedType TryEncodeTexture(const ImageProperties* properties, const ImageData& data, Image& image);
 
     static bool ValidateBufferSize(const PixelMemInfo& memory);

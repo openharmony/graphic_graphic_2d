@@ -494,6 +494,9 @@ void RSProfiler::OnRenderEnd()
 
     RS_TRACE_NAME("Profiler OnRenderEnd");
     g_renderServiceCpuId = Utils::GetCpuId();
+
+    ProcessCommands();
+    ProcessSendingRdc();
 }
 
 void RSProfiler::OnParallelRenderBegin()
@@ -604,8 +607,6 @@ void RSProfiler::OnFrameEnd()
 
     RS_TRACE_NAME("Profiler OnFrameEnd");
     g_renderServiceCpuId = Utils::GetCpuId();
-    ProcessCommands();
-    ProcessSendingRdc();
     RecordUpdate();
 
     UpdateDirtyRegionBetaRecord(g_dirtyRegionPercentage);

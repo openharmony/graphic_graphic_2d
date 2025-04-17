@@ -92,6 +92,8 @@ bool PixelMapStorage::Push(uint64_t id, PixelMap& map)
         PushDmaMemory(id, map);
     } else if (IsSharedMemory(map)) {
         PushSharedMemory(id, map);
+    } else {
+        PushHeapMemory(id, map);
     }
     return true;
 }
@@ -99,12 +101,20 @@ bool PixelMapStorage::Push(uint64_t id, PixelMap& map)
 bool PixelMapStorage::Pull(uint64_t id, const ImageInfo& info, PixelMemInfo& memory, size_t& skipBytes)
 {
     skipBytes = 0u;
+    bool retCode = false;
     if (IsSharedMemory(memory)) {
-        return PullSharedMemory(id, info, memory, skipBytes);
+        retCode = PullSharedMemory(id, info, memory, skipBytes);
     } else if (IsDmaMemory(memory)) {
-        return PullDmaMemory(id, info, memory, skipBytes);
+        retCode = PullDmaMemory(id, info, memory, skipBytes);
+    } else {
+        retCode = PullHeapMemory(id, info, memory, skipBytes);
     }
-    return false;
+
+    if (!retCode) {
+        retCode = DefaultHeapMemory(id, info, memory, skipBytes);
+    }
+    
+    return retCode;
 }
 
 bool PixelMapStorage::Push(uint64_t id, const ImageInfo& info, const PixelMemInfo& memory, size_t skipBytes)
@@ -117,6 +127,8 @@ bool PixelMapStorage::Push(uint64_t id, const ImageInfo& info, const PixelMemInf
         PushSharedMemory(id, info, memory, skipBytes);
     } else if (IsDmaMemory(memory)) {
         PushDmaMemory(id, info, memory, skipBytes);
+    } else {
+        PushHeapMemory(id, info, memory, skipBytes);
     }
     return true;
 }
@@ -227,6 +239,56 @@ void PixelMapStorage::PushDmaMemory(uint64_t id, PixelMap& map)
     MessageParcel parcel;
     surfaceBuffer->WriteToMessageParcel(parcel);
     PushImage(id, pixels, parcel.GetReadableBytes(), buffer, &properties);
+}
+
+void PixelMapStorage::PushHeapMemory(uint64_t id, const ImageInfo& info, const PixelMemInfo& memory, size_t skipBytes)
+{
+    ImageProperties properties(info);
+    PushImage(false, id, GenerateImageData(info, memory), skipBytes, nullptr, &properties);
+}
+
+void PixelMapStorage::PushHeapMemory(uint64_t id, PixelMap& map)
+{
+    if (!map.GetFd()) {
+        return;
+    }
+
+    constexpr size_t skipBytes = 24u;
+    const auto baseSize = static_cast<size_t>(const_cast<PixelMap&>(map).GetByteCount());
+    const ImageProperties properties(map);
+    const uint8_t *base = map.GetPixels();
+    if (base && baseSize) {
+        const auto pixels = GenerateImageData(base, baseSize, map);
+        PushImage(false, id, pixels, skipBytes, nullptr, &properties);
+    }
+}
+
+bool PixelMapStorage::PullHeapMemory(uint64_t id, const ImageInfo& info, PixelMemInfo& memory, size_t& skipBytes)
+{
+    if (memory.bufferSize <= PixelMap::MIN_IMAGEDATA_SIZE) {
+        return false;
+    }
+
+    auto retCode = PullSharedMemory(id, info, memory, skipBytes);
+    
+    constexpr size_t skipFdSize = 24u;
+    skipBytes = skipFdSize;
+
+    return retCode;
+}
+
+bool PixelMapStorage::DefaultHeapMemory(uint64_t id, const ImageInfo& info, PixelMemInfo& memory, size_t& skipBytes)
+{
+    memory.allocatorType = AllocatorType::HEAP_ALLOC;
+    memory.base = reinterpret_cast<uint8_t*>(malloc(memory.bufferSize));
+    if (memory.base) {
+        memset_s(memory.base, memory.bufferSize, 0, memory.bufferSize);
+    }
+    memory.context = nullptr;
+
+    constexpr size_t skipFdSize = 24u;
+    skipBytes = skipFdSize;
+    return true;
 }
 
 int32_t PixelMapStorage::EncodeSeqLZ4(const ImageData& source, ImageData& dst)
