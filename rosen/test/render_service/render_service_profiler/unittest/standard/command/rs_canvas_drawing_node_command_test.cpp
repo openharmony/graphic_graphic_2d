@@ -37,7 +37,8 @@ public:
  */
 HWTEST_F(RSCanvasDrawingNodeCommandTypeTest, FixRSCanvasDrawingNodeCommand, Level1 | Standard)
 {
-    EXPECT_EQ(static_cast<uint16_t>(CANVAS_DRAWING_NODE_CREATE), 0x0000);
-    EXPECT_EQ(static_cast<uint16_t>(CANVAS_DRAWING_NODE_RESET_SURFACE), 0x0001);
+    auto value = 0;
+    EXPECT_EQ(static_cast<uint16_t>(CANVAS_DRAWING_NODE_CREATE), value++);
+    EXPECT_EQ(static_cast<uint16_t>(CANVAS_DRAWING_NODE_RESET_SURFACE), value++);
 }
 } // namespace OHOS::Rosen

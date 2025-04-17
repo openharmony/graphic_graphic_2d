@@ -37,18 +37,19 @@ public:
  */
 HWTEST_F(RSCommandTypeTest, FixCanvasNodeCommand, Level1 | Standard)
 {
-    EXPECT_EQ(static_cast<uint16_t>(BASE_NODE), 0x0000);
-    EXPECT_EQ(static_cast<uint16_t>(RS_NODE), 0x0001);
-    EXPECT_EQ(static_cast<uint16_t>(CANVAS_NODE), 0x0002);
-    EXPECT_EQ(static_cast<uint16_t>(SURFACE_NODE), 0x0003);
-    EXPECT_EQ(static_cast<uint16_t>(PROXY_NODE), 0x0004);
-    EXPECT_EQ(static_cast<uint16_t>(ROOT_NODE), 0x0005);
-    EXPECT_EQ(static_cast<uint16_t>(DISPLAY_NODE), 0x0006);
-    EXPECT_EQ(static_cast<uint16_t>(EFFECT_NODE), 0x0007);
-    EXPECT_EQ(static_cast<uint16_t>(CANVAS_DRAWING_NODE), 0x0008);
-    EXPECT_EQ(static_cast<uint16_t>(ANIMATION), 0x0009);
-    EXPECT_EQ(static_cast<uint16_t>(RS_NODE_SYNCHRONOUS_READ_PROPERTY), 0x000A);
-    EXPECT_EQ(static_cast<uint16_t>(RS_NODE_SYNCHRONOUS_GET_VALUE_FRACTION), 0x000B);
-    EXPECT_EQ(static_cast<uint16_t>(FRAME_RATE_LINKER), 0x000C);
+    auto value = 0;
+    EXPECT_EQ(static_cast<uint16_t>(BASE_NODE), value++);
+    EXPECT_EQ(static_cast<uint16_t>(RS_NODE), value++);
+    EXPECT_EQ(static_cast<uint16_t>(CANVAS_NODE), value++);
+    EXPECT_EQ(static_cast<uint16_t>(SURFACE_NODE), value++);
+    EXPECT_EQ(static_cast<uint16_t>(PROXY_NODE), value++);
+    EXPECT_EQ(static_cast<uint16_t>(ROOT_NODE), value++);
+    EXPECT_EQ(static_cast<uint16_t>(DISPLAY_NODE), value++);
+    EXPECT_EQ(static_cast<uint16_t>(EFFECT_NODE), value++);
+    EXPECT_EQ(static_cast<uint16_t>(CANVAS_DRAWING_NODE), value++);
+    EXPECT_EQ(static_cast<uint16_t>(ANIMATION), value++);
+    EXPECT_EQ(static_cast<uint16_t>(RS_NODE_SYNCHRONOUS_READ_PROPERTY), value++);
+    EXPECT_EQ(static_cast<uint16_t>(RS_NODE_SYNCHRONOUS_GET_VALUE_FRACTION), value++);
+    EXPECT_EQ(static_cast<uint16_t>(FRAME_RATE_LINKER), value++);
 }
 } // namespace OHOS::Rosen

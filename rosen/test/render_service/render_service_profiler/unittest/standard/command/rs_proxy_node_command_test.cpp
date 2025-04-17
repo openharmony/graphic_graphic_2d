@@ -37,8 +37,9 @@ public:
  */
 HWTEST_F(RSProxyNodeCommandTypeTest, FixProxyNodeCommandTest, Level1 | Standard)
 {
-    EXPECT_EQ(static_cast<uint16_t>(PROXY_NODE_CREATE), 0);
-    EXPECT_EQ(static_cast<uint16_t>(PROXY_NODE_RESET_CONTEXT_VARIABLE_CACHE), 1);
-    EXPECT_EQ(static_cast<uint16_t>(REMOVE_MODIFIERS), 2);
+    auto value = 0;
+    EXPECT_EQ(static_cast<uint16_t>(PROXY_NODE_CREATE), value++);
+    EXPECT_EQ(static_cast<uint16_t>(PROXY_NODE_RESET_CONTEXT_VARIABLE_CACHE), value++);
+    EXPECT_EQ(static_cast<uint16_t>(REMOVE_MODIFIERS), value++);
 }
 } // namespace OHOS::Rosen

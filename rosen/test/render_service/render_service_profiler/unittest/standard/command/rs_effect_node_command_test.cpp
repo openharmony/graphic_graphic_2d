@@ -37,6 +37,6 @@ public:
  */
 HWTEST_F(RSEffectNodeCommandTypeTest, FixEffectNodeCommand, Level1 | Standard)
 {
-    EXPECT_EQ(static_cast<uint16_t>(EFFECT_NODE_CREATE), 0x0000);
+    EXPECT_EQ(static_cast<uint16_t>(EFFECT_NODE_CREATE), 0);
 }
 } // namespace OHOS::Rosen

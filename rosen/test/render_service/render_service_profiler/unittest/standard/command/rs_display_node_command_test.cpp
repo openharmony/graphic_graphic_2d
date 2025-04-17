@@ -37,17 +37,18 @@ public:
  */
 HWTEST_F(RSDisplayNodeCommandTypeTest, FixDisplayNodeCommand, Level1 | Standard)
 {
-    EXPECT_EQ(static_cast<uint16_t>(DISPLAY_NODE_CREATE), 0x0000);
-    EXPECT_EQ(static_cast<uint16_t>(DISPLAY_NODE_SET_SCREEN_ID), 0x0001);
-    EXPECT_EQ(static_cast<uint16_t>(DISPLAY_NODE_SET_DISPLAY_OFFSET), 0x0002);
-    EXPECT_EQ(static_cast<uint16_t>(DISPLAY_NODE_SET_SECURITY_DISPLAY), 0x0003);
-    EXPECT_EQ(static_cast<uint16_t>(DISPLAY_NODE_SET_DISPLAY_MODE), 0x0004);
-    EXPECT_EQ(static_cast<uint16_t>(DISPLAY_NODE_SET_SCREEN_ROTATION), 0x0005);
-    EXPECT_EQ(static_cast<uint16_t>(DISPLAY_NODE_SET_BOOT_ANIMATION), 0x0006);
-    EXPECT_EQ(static_cast<uint16_t>(DISPLAY_NODE_SET_ROG_SIZE), 0x0007);
-    EXPECT_EQ(static_cast<uint16_t>(DISPLAY_NODE_ADD_TO_TREE), 0x0008);
-    EXPECT_EQ(static_cast<uint16_t>(DISPLAY_NODE_REMOVE_FROM_TREE), 0x0009);
-    EXPECT_EQ(static_cast<uint16_t>(DISPLAY_NODE_SET_NODE_PID), 0x000A);
-    EXPECT_EQ(static_cast<uint16_t>(DISPLAY_NODE_SET_VIRTUAL_SCREEN_MUTE_STATUS), 0x000B);
+    auto value = 0;
+    EXPECT_EQ(static_cast<uint16_t>(DISPLAY_NODE_CREATE), value++);
+    EXPECT_EQ(static_cast<uint16_t>(DISPLAY_NODE_SET_SCREEN_ID), value++);
+    EXPECT_EQ(static_cast<uint16_t>(DISPLAY_NODE_SET_DISPLAY_OFFSET), value++);
+    EXPECT_EQ(static_cast<uint16_t>(DISPLAY_NODE_SET_SECURITY_DISPLAY), value++);
+    EXPECT_EQ(static_cast<uint16_t>(DISPLAY_NODE_SET_DISPLAY_MODE), value++);
+    EXPECT_EQ(static_cast<uint16_t>(DISPLAY_NODE_SET_SCREEN_ROTATION), value++);
+    EXPECT_EQ(static_cast<uint16_t>(DISPLAY_NODE_SET_BOOT_ANIMATION), value++);
+    EXPECT_EQ(static_cast<uint16_t>(DISPLAY_NODE_SET_ROG_SIZE), value++);
+    EXPECT_EQ(static_cast<uint16_t>(DISPLAY_NODE_ADD_TO_TREE), value++);
+    EXPECT_EQ(static_cast<uint16_t>(DISPLAY_NODE_REMOVE_FROM_TREE), value++);
+    EXPECT_EQ(static_cast<uint16_t>(DISPLAY_NODE_SET_NODE_PID), value++);
+    EXPECT_EQ(static_cast<uint16_t>(DISPLAY_NODE_SET_VIRTUAL_SCREEN_MUTE_STATUS), value++);
 }
 } // namespace OHOS::Rosen

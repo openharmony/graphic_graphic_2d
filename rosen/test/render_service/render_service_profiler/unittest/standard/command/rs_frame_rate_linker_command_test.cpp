@@ -37,7 +37,8 @@ public:
  */
 HWTEST_F(RSFrameRateLinkerCommandTypeTest, FixRSFrameRateLinkerCommand, Level1 | Standard)
 {
-    EXPECT_EQ(static_cast<uint16_t>(FRAME_RATE_LINKER_DESTROY), 0x0000);
-    EXPECT_EQ(static_cast<uint16_t>(FRAME_RATE_LINKER_UPDATE_RANGE), 0x0001);
+    auto value = 0;
+    EXPECT_EQ(static_cast<uint16_t>(FRAME_RATE_LINKER_DESTROY), value++);
+    EXPECT_EQ(static_cast<uint16_t>(FRAME_RATE_LINKER_UPDATE_RANGE), value++);
 }
 } // namespace OHOS::Rosen

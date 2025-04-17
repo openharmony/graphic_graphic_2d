@@ -37,8 +37,9 @@ public:
  */
 HWTEST_F(RSNodeShowingCommandTypeTest, FixNodeShowingCommandTest, Level1 | Standard)
 {
-    EXPECT_EQ(static_cast<uint16_t>(GET_RENDER_PROPERTY), 0);
-    EXPECT_EQ(static_cast<uint16_t>(GET_RENDER_PROPERTIES), 1);
-    EXPECT_EQ(static_cast<uint16_t>(GET_VALUE_FRACTION), 2);
+    auto value = 0;
+    EXPECT_EQ(static_cast<uint16_t>(GET_RENDER_PROPERTY), value++);
+    EXPECT_EQ(static_cast<uint16_t>(GET_RENDER_PROPERTIES), value++);
+    EXPECT_EQ(static_cast<uint16_t>(GET_VALUE_FRACTION), value++);
 }
 } // namespace OHOS::Rosen

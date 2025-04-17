@@ -37,11 +37,12 @@ public:
  */
 HWTEST_F(RSCanvasNodeCommandTypeTest, FixCanvasNodeCommand, Level1 | Standard)
 {
-    EXPECT_EQ(static_cast<uint16_t>(CANVAS_NODE_CREATE), 0x0000);
-    EXPECT_EQ(static_cast<uint16_t>(CANVAS_NODE_UPDATE_RECORDING), 0x0001);
-    EXPECT_EQ(static_cast<uint16_t>(CANVAS_NODE_CLEAR_RECORDING), 0x0002);
-    EXPECT_EQ(static_cast<uint16_t>(CANVAS_NODE_SET_HDR_PRESENT), 0x0003);
-    EXPECT_EQ(static_cast<uint16_t>(CANVAS_NODE_SET_LINKED_ROOTNODE), 0x0004);
-    EXPECT_EQ(static_cast<uint16_t>(CANVAS_NODE_SET_IS_WIDE_COLOR_GAMUT), 0x0005);
+    auto value = 0;
+    EXPECT_EQ(static_cast<uint16_t>(CANVAS_NODE_CREATE), value++);
+    EXPECT_EQ(static_cast<uint16_t>(CANVAS_NODE_UPDATE_RECORDING), value++);
+    EXPECT_EQ(static_cast<uint16_t>(CANVAS_NODE_CLEAR_RECORDING), value++);
+    EXPECT_EQ(static_cast<uint16_t>(CANVAS_NODE_SET_HDR_PRESENT), value++);
+    EXPECT_EQ(static_cast<uint16_t>(CANVAS_NODE_SET_LINKED_ROOTNODE), value++);
+    EXPECT_EQ(static_cast<uint16_t>(CANVAS_NODE_SET_IS_WIDE_COLOR_GAMUT), value++);
 }
 } // namespace OHOS::Rosen

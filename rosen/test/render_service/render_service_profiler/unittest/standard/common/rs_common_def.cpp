@@ -37,9 +37,10 @@ public:
  */
 HWTEST_F(UIFirstTest, FixUiFirstCcmTest, Level1 | Standard)
 {
-    EXPECT_EQ(static_cast<uint8_t>(UiFirstCcmType::SINGLE), 1);
-    EXPECT_EQ(static_cast<uint8_t>(UiFirstCcmType::MULTI), 2);
-    EXPECT_EQ(static_cast<uint8_t>(UiFirstCcmType::HYBRID), 3);
+    auto value = 1;
+    EXPECT_EQ(static_cast<uint8_t>(UiFirstCcmType::SINGLE), value++);
+    EXPECT_EQ(static_cast<uint8_t>(UiFirstCcmType::MULTI), value++);
+    EXPECT_EQ(static_cast<uint8_t>(UiFirstCcmType::HYBRID), value++);
 }
 
 /*
@@ -50,11 +51,12 @@ HWTEST_F(UIFirstTest, FixUiFirstCcmTest, Level1 | Standard)
  */
 HWTEST_F(UIFirstTest, FixRSUIFirstSwitch, Level1 | Standard)
 {
-    EXPECT_EQ(static_cast<uint16_t>(RSUIFirstSwitch::NONE), 0);
-    EXPECT_EQ(static_cast<uint16_t>(RSUIFirstSwitch::MODAL_WINDOW_CLOSE), 1);
-    EXPECT_EQ(static_cast<uint16_t>(RSUIFirstSwitch::FORCE_DISABLE), 2);
-    EXPECT_EQ(static_cast<uint16_t>(RSUIFirstSwitch::FORCE_ENABLE), 3);
-    EXPECT_EQ(static_cast<uint16_t>(RSUIFirstSwitch::FORCE_ENABLE_LIMIT), 4);
-    EXPECT_EQ(static_cast<uint16_t>(RSUIFirstSwitch::FORCE_DISABLE_NONFOCUS), 5);
+    auto value = 0;
+    EXPECT_EQ(static_cast<uint16_t>(RSUIFirstSwitch::NONE), value++);
+    EXPECT_EQ(static_cast<uint16_t>(RSUIFirstSwitch::MODAL_WINDOW_CLOSE), value++);
+    EXPECT_EQ(static_cast<uint16_t>(RSUIFirstSwitch::FORCE_DISABLE), value++);
+    EXPECT_EQ(static_cast<uint16_t>(RSUIFirstSwitch::FORCE_ENABLE), value++);
+    EXPECT_EQ(static_cast<uint16_t>(RSUIFirstSwitch::FORCE_ENABLE_LIMIT), value++);
+    EXPECT_EQ(static_cast<uint16_t>(RSUIFirstSwitch::FORCE_DISABLE_NONFOCUS), value++);
 }
 } // namespace OHOS::Rosen

@@ -38,30 +38,33 @@ public:
  */
 HWTEST_F(RSAnimationCommandTest, FixRSAnimationCommand, Level1 | Standard)
 {
-    EXPECT_EQ(static_cast<uint16_t>(RSAnimationCommandType::ANIMATION_CREATE_CURVE), 0x0100);
-    EXPECT_EQ(static_cast<uint16_t>(RSAnimationCommandType::ANIMATION_CREATE_PARTICLE), 0x0101);
-    EXPECT_EQ(static_cast<uint16_t>(RSAnimationCommandType::ANIMATION_CREATE_KEYFRAME), 0x0102);
-    EXPECT_EQ(static_cast<uint16_t>(RSAnimationCommandType::ANIMATION_CREATE_PATH), 0x0103);
-    EXPECT_EQ(static_cast<uint16_t>(RSAnimationCommandType::ANIMATION_CREATE_TRANSITION), 0x0104);
-    EXPECT_EQ(static_cast<uint16_t>(RSAnimationCommandType::ANIMATION_CREATE_SPRING), 0x0105);
-    EXPECT_EQ(static_cast<uint16_t>(RSAnimationCommandType::ANIMATION_CREATE_INTERPOLATING_SPRING), 0x0106);
+    auto value = 0x0100;
+    EXPECT_EQ(static_cast<uint16_t>(RSAnimationCommandType::ANIMATION_CREATE_CURVE), value++);
+    EXPECT_EQ(static_cast<uint16_t>(RSAnimationCommandType::ANIMATION_CREATE_PARTICLE), value++);
+    EXPECT_EQ(static_cast<uint16_t>(RSAnimationCommandType::ANIMATION_CREATE_KEYFRAME), value++);
+    EXPECT_EQ(static_cast<uint16_t>(RSAnimationCommandType::ANIMATION_CREATE_PATH), value++);
+    EXPECT_EQ(static_cast<uint16_t>(RSAnimationCommandType::ANIMATION_CREATE_TRANSITION), value++);
+    EXPECT_EQ(static_cast<uint16_t>(RSAnimationCommandType::ANIMATION_CREATE_SPRING), value++);
+    EXPECT_EQ(static_cast<uint16_t>(RSAnimationCommandType::ANIMATION_CREATE_INTERPOLATING_SPRING), value++);
 
-    EXPECT_EQ(static_cast<uint16_t>(RSAnimationCommandType::ANIMATION_START), 0x0200);
-    EXPECT_EQ(static_cast<uint16_t>(RSAnimationCommandType::ANIMATION_PAUSE), 0x0201);
-    EXPECT_EQ(static_cast<uint16_t>(RSAnimationCommandType::ANIMATION_RESUME), 0x0202);
-    EXPECT_EQ(static_cast<uint16_t>(RSAnimationCommandType::ANIMATION_FINISH), 0x0203);
-    EXPECT_EQ(static_cast<uint16_t>(RSAnimationCommandType::ANIMATION_REVERSE), 0x0204);
-    EXPECT_EQ(static_cast<uint16_t>(RSAnimationCommandType::ANIMATION_SET_FRACTION), 0x0205);
-    EXPECT_EQ(static_cast<uint16_t>(RSAnimationCommandType::ANIMATION_CANCEL), 0x0206);
+    value = 0x0200;
+    EXPECT_EQ(static_cast<uint16_t>(RSAnimationCommandType::ANIMATION_START), value++);
+    EXPECT_EQ(static_cast<uint16_t>(RSAnimationCommandType::ANIMATION_PAUSE), value++);
+    EXPECT_EQ(static_cast<uint16_t>(RSAnimationCommandType::ANIMATION_RESUME), value++);
+    EXPECT_EQ(static_cast<uint16_t>(RSAnimationCommandType::ANIMATION_FINISH), value++);
+    EXPECT_EQ(static_cast<uint16_t>(RSAnimationCommandType::ANIMATION_REVERSE), value++);
+    EXPECT_EQ(static_cast<uint16_t>(RSAnimationCommandType::ANIMATION_SET_FRACTION), value++);
+    EXPECT_EQ(static_cast<uint16_t>(RSAnimationCommandType::ANIMATION_CANCEL), value++);
 
     EXPECT_EQ(static_cast<uint16_t>(RSAnimationCommandType::ANIMATION_CALLBACK), 0x0300);
 
-    EXPECT_EQ(static_cast<uint16_t>(RSAnimationCommandType::INTERACTIVE_ANIMATOR_CREATE), 0x0400);
-    EXPECT_EQ(static_cast<uint16_t>(RSAnimationCommandType::INTERACTIVE_ANIMATOR_DESTORY), 0x0401);
-    EXPECT_EQ(static_cast<uint16_t>(RSAnimationCommandType::INTERACTIVE_ANIMATOR_PAUSE), 0x0402);
-    EXPECT_EQ(static_cast<uint16_t>(RSAnimationCommandType::INTERACTIVE_ANIMATOR_CONTINUE), 0x0403);
-    EXPECT_EQ(static_cast<uint16_t>(RSAnimationCommandType::INTERACTIVE_ANIMATOR_FINISH), 0x0404);
-    EXPECT_EQ(static_cast<uint16_t>(RSAnimationCommandType::INTERACTIVE_ANIMATOR_REVERSE), 0x0405);
-    EXPECT_EQ(static_cast<uint16_t>(RSAnimationCommandType::INTERACTIVE_ANIMATOR_SET_FRACTION), 0x0406);
+    value = 0x0400;
+    EXPECT_EQ(static_cast<uint16_t>(RSAnimationCommandType::INTERACTIVE_ANIMATOR_CREATE), value++);
+    EXPECT_EQ(static_cast<uint16_t>(RSAnimationCommandType::INTERACTIVE_ANIMATOR_DESTORY), value++);
+    EXPECT_EQ(static_cast<uint16_t>(RSAnimationCommandType::INTERACTIVE_ANIMATOR_PAUSE), value++);
+    EXPECT_EQ(static_cast<uint16_t>(RSAnimationCommandType::INTERACTIVE_ANIMATOR_CONTINUE), value++);
+    EXPECT_EQ(static_cast<uint16_t>(RSAnimationCommandType::INTERACTIVE_ANIMATOR_FINISH), value++);
+    EXPECT_EQ(static_cast<uint16_t>(RSAnimationCommandType::INTERACTIVE_ANIMATOR_REVERSE), value++);
+    EXPECT_EQ(static_cast<uint16_t>(RSAnimationCommandType::INTERACTIVE_ANIMATOR_SET_FRACTION), value++);
 }
 } // namespace OHOS::Rosen

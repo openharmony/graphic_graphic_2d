@@ -37,10 +37,11 @@ public:
  */
 HWTEST_F(RSRootNodeCommandTypeTest, FixRootNodeCommandTest, Level1 | Standard)
 {
-    EXPECT_EQ(static_cast<uint16_t>(ROOT_NODE_CREATE), 0);
-    EXPECT_EQ(static_cast<uint16_t>(ROOT_NODE_ATTACH), 1);
-    EXPECT_EQ(static_cast<uint16_t>(ATTACH_TO_UNI_SURFACENODE), 2);
-    EXPECT_EQ(static_cast<uint16_t>(SET_ENABLE_RENDER), 3);
-    EXPECT_EQ(static_cast<uint16_t>(UPDATE_SUGGESTED_BUFFER_SIZE), 4);
+    auto value = 0;
+    EXPECT_EQ(static_cast<uint16_t>(ROOT_NODE_CREATE), value++);
+    EXPECT_EQ(static_cast<uint16_t>(ROOT_NODE_ATTACH), value++);
+    EXPECT_EQ(static_cast<uint16_t>(ATTACH_TO_UNI_SURFACENODE), value++);
+    EXPECT_EQ(static_cast<uint16_t>(SET_ENABLE_RENDER), value++);
+    EXPECT_EQ(static_cast<uint16_t>(UPDATE_SUGGESTED_BUFFER_SIZE), value++);
 }
 } // namespace OHOS::Rosen
