@@ -15,7 +15,6 @@
 
 #include "gtest/gtest.h"
 
-#include "animation/rs_animation_report.h"
 #include "animation/rs_implicit_animator.h"
 #include "animation/rs_motion_path_option.h"
 #include "ui/rs_canvas_node.h"
@@ -295,8 +294,6 @@ HWTEST_F(RSImplicitAnimatorTest, ProcessAnimationFinishCallbackGuaranteeTaskTest
     implicitAnimator4->OpenImplicitAnimation(timingProtocol4, timingCurve3, std::move(callback2));
     EXPECT_TRUE(implicitAnimator4 != nullptr);
     implicitAnimator4->ProcessAnimationFinishCallbackGuaranteeTask();
-
-    RSAnimationReport::ReportFinishCallbackMissing(0, 0.f);
 
     GTEST_LOG_(INFO) << "RSImplicitAnimatorTest ProcessAnimationFinishCallbackGuaranteeTaskTest001 end";
 }
