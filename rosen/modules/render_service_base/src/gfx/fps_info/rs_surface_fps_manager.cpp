@@ -194,7 +194,8 @@ void RSSurfaceFpsManager::DumpSurfaceNodeFps(std::string& dumpString, const std:
     }
 }
 
-void RSSurfaceFpsManager::ClearSurfaceNodeFps(std::string& dumpString, const std::string& option, const std::string& arg) const
+void RSSurfaceFpsManager::ClearSurfaceNodeFps(
+    std::string& dumpString, const std::string& option, const std::string& arg)
 {
     dumpString += "\n-- Clear fps records info of screens:\n";
     if (option == "-name") {
