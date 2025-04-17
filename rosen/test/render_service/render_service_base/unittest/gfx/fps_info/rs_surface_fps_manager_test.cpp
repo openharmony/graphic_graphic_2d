@@ -203,8 +203,8 @@ HWTEST_F(RSSurfaceFpsManagerTest, ProcessParamAndIsSurface, TestSize.Level1)
 {
     RSSurfaceFpsManager& surfaceFpsManager = RSSurfaceFpsManager::GetInstance();
     std::string result("");
-    std::unordered_set<std::u16string> surfaceArgSets("4234", "-id");
-    std::unordered_set<std::u16string> displayArgSets("DisplayNode", "-name");
+    std::unordered_set<std::u16string> surfaceArgSets{u"4234", u"-id"};
+    std::unordered_set<std::u16string> displayArgSets{u"DisplayNode", u"-name"};
     std::string option;
     std::string argStr;
     surfaceFpsManager.ProcessParam(surfaceArgSets, option, argStr);
