@@ -903,7 +903,7 @@ ohos_unittest("RSUniRenderEngineTest") {
 ohos_unittest("RSMagicPointerRenderManagerTest") {
   module_out_path = module_output_path
   if (defined(input_ext_feature_magiccursor) && input_ext_feature_magiccursor) {
-    sources = 
+    sources =
         [ "magic_pointer_render/rs_magic_pointer_render_manager_test.cpp" ]
     deps = [ ":rs_test_common" ]
     external_deps = [
