@@ -569,7 +569,7 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, CheckDisplayNodeSkipTest, TestSize.Lev
     ASSERT_EQ(result, true);
 
     RSUniRenderThread::Instance().uniRenderEngine_ = std::make_shared<RSRenderEngine>();
-    RSUniRenderThread::Instance().GetRSRenderThreadParams()->forceCommitReason_ = 0;
+    RSUniRenderThread::Instance().GetRSRenderThreadParams()->forceCommitReason_ = 1;
     result = displayDrawable_->CheckDisplayNodeSkip(*params, processor);
     ASSERT_EQ(result, true);
 
