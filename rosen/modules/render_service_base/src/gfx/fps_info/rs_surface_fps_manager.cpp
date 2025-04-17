@@ -175,7 +175,8 @@ void RSSurfaceFpsManager::ClearDumpByPid(std::string& result, pid_t pid)
     surfaceFps->ClearDump();
 }
 
-void RSSurfaceFpsManager::DumpSurfaceNodeFps(std::string& dumpString, const std::string& option, const std::string& arg) const
+void RSSurfaceFpsManager::DumpSurfaceNodeFps(
+    std::string& dumpString, const std::string& option, const std::string& arg)
 {
     dumpString += "\n-- The recently fps records info of screens:\n";
     if (option == "-name") {
@@ -194,7 +195,8 @@ void RSSurfaceFpsManager::DumpSurfaceNodeFps(std::string& dumpString, const std:
     }
 }
 
-void RSSurfaceFpsManager::ClearSurfaceNodeFps(std::string& dumpString, const std::string& option, const std::string& arg) const
+void RSSurfaceFpsManager::ClearSurfaceNodeFps(
+    std::string& dumpString, const std::string& option, const std::string& arg)
 {
     dumpString += "\n-- Clear fps records info of screens:\n";
     if (option == "-name") {
