@@ -150,6 +150,7 @@ void HgmFrameRateManager::Init(sptr<VSyncController> rsController,
         multiAppStrategy_.CalcVote();
         HandleIdleEvent(ADD_VOTE);
         UpdateScreenExtStrategyConfig(configData->screenConfigs_);
+        GetVRateMiniFPS(configData);
     }
 
     RegisterCoreCallbacksAndInitController(rsController, appController, vsyncGenerator);
@@ -477,6 +478,25 @@ void HgmFrameRateManager::UpdateSoftVSync(bool followRs)
     ReportHiSysEvent(lastVoteInfo_);
 }
 
+void HgmFrameRateManager::GetVRateMiniFPS(const std::shared_ptr<PolicyConfigData>& configData)
+{
+    if (configData == nullptr) {
+        HGM_LOGE("GetVRateMiniFPS configData is nullptr use dafault value");
+        return;
+    }
+    if (configData->vRateControlList_.find(vrateControlMinifps_) == configData->vRateControlList_.end()) {
+        HGM_LOGE("GetVRateMiniFPS vrateControlMinifps_ config is invalid use dafault value");
+        return;
+    }
+    if (!XMLParser::IsNumber(configData->vRateControlList_[vrateControlMinifps_])) {
+        HGM_LOGE("GetVRateMiniFPS vrateControlMinifps_ config is Is Not Number use dafault value");
+        return;
+    }
+
+    vrateControlMinifpsValue_ = static_cast<int32_t>(std::stoi(configData->vRateControlList_[vrateControlMinifps_]));
+    HGM_LOGI("GetVRateMiniFPS vrateControlMinifpsValue:%{public}d", vrateControlMinifpsValue_);
+}
+
 void HgmFrameRateManager::CollectVRateChange(uint64_t linkerId, FrameRateRange& finalRange)
 {
     auto iter = vRatesMap_.find(linkerId);
@@ -507,11 +527,16 @@ void HgmFrameRateManager::CollectVRateChange(uint64_t linkerId, FrameRateRange& 
     }
 
     appFrameRate = static_cast<int>(controllerRate_) / iter->second;
-    // vrate is int::max means app need not refreshing
-    if (appFrameRate == 0) {
-        //appFrameRate value is 1  means that not refreshing.
+    if (iter->second == std::numeric_limits<int>::max()) {
+        // invisible window 1 means app need not refreshing
         appFrameRate = 1;
     }
+
+    // vrate is int::max means app need not refreshing
+    if (appFrameRate == 0 && vrateControlMinifpsValue_ >= 0) {
+        appFrameRate = vrateControlMinifpsValue_;
+    }
+
     finalRange.min_ = OLED_NULL_HZ;
     finalRange.max_ = OLED_144_HZ;
     RS_TRACE_NAME_FMT("CollectVRateChange modification pid = %d , linkerIdS = %" PRIu64 ",appFrameRate = %d,"

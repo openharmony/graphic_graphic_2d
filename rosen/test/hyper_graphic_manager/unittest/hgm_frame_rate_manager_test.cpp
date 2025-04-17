@@ -651,6 +651,40 @@ HWTEST_F(HgmFrameRateMgrTest, CleanPidCallbackTest, Function | SmallTest | Level
 }
 
 /**
+ * @tc.name: GetVRateMiniFPS
+ * @tc.desc: Verify the result of GetVRateMiniFPS
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, GetVRateMiniFPS, Function | SmallTest | Level2)
+{
+    std::unique_ptr<HgmFrameRateManager> mgr = std::make_unique<HgmFrameRateManager>();
+    std::shared_ptr<PolicyConfigData> configData = std::make_shared<PolicyConfigData>();
+
+    configData->vRateControlList_.clear();
+    mgr->GetVRateMiniFPS(configData);
+    ASSERT_EQ(mgr->vrateControlMinifpsValue_, 30);
+
+    configData->vRateControlList_["minifps"] = "abc";
+    mgr->GetVRateMiniFPS(configData);
+    ASSERT_EQ(mgr->vrateControlMinifpsValue_, 30);
+
+    configData->vRateControlList_["minifps"] = "-1";
+    ASSERT_EQ(configData->vRateControlList_["minifps"], "-1");
+    int32_t vrateControlMinifpsValue_ = static_cast<int32_t>(std::stoi(configData->vRateControlList_["minifps"]));
+    ASSERT_EQ(vrateControlMinifpsValue_, -1);
+    mgr->GetVRateMiniFPS(configData);
+    ASSERT_EQ(mgr->vrateControlMinifpsValue_, -1);
+
+    configData->vRateControlList_["minifps"] = "10";
+    ASSERT_EQ(configData->vRateControlList_["minifps"], "10");
+    vrateControlMinifpsValue_ = static_cast<int32_t>(std::stoi(configData->vRateControlList_["minifps"]));
+    ASSERT_EQ(vrateControlMinifpsValue_, 10);
+    mgr->GetVRateMiniFPS(configData);
+    ASSERT_EQ(mgr->vrateControlMinifpsValue_, 10);
+}
+
+/**
  * @tc.name: HandleEventTest
  * @tc.desc: Verify the result of HandleEventTest
  * @tc.type: FUNC

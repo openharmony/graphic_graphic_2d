@@ -120,6 +120,7 @@
       *HgmFrameRateManager::SetVsyncRateDiscountLTPO*;
       *HgmFrameRateManager::EraseGameRateDiscountMap*;
       *HgmFrameRateManager::CollectGameRateDiscountChange*;
+      *HgmFrameRateManager::GetVRateMiniFPS*;
 
       *HgmHfbcConfig::HandleHfbcConfig*;
       *HgmHfbcConfig::SetHfbcConfigMap*;
