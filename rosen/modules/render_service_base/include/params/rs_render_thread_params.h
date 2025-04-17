@@ -52,7 +52,7 @@ struct HardCursorInfo {
 };
 
 enum ForceCommitReason {
-    NO_FALSE = 0,
+    NO_FORCE = 0,
     FORCED_BY_UNIRENDERFLAG = 1,
     FORCED_BY_HWCUPDATE = 1 << 1,
     FORCED_BY_POINTERWINDOW = 1 << 2,

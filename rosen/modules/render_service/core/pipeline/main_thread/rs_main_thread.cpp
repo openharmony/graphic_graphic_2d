@@ -2475,7 +2475,7 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
         return false;
     }
 
-    // children->size()==1,the extended screen is not supported 
+    // children->size() is 1,the extended screen is not supported
     if (children->size() == 1 && (!displayNode->GetHwcNodeIsVisible() || !BufferIsVisibleAndUpdate())) {
         RS_TRACE_NAME("DoDirectComposition no hwcNode in visibleRegion");
         return true;
