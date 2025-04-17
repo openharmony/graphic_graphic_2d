@@ -207,7 +207,7 @@ public:
     bool GetScreenPowerOnChanged() const;
     bool IsAccessibilityConfigChanged() const;
     bool IsCurtainScreenUsingStatusChanged() const;
-    bool IsFastComposeAllow(uint64_t unsignedVsyncPeriod,bool nextVsyncRequested,
+    bool IsFastComposeAllow(uint64_t unsignedVsyncPeriod, bool nextVsyncRequested,
         uint64_t unsignedNowTime, uint64 lastVsyncTime);
     void CheckFastCompose(int64_t bufferTimeStamp);
     bool CheckAdaptiveCompose();

@@ -4249,7 +4249,7 @@ void RSMainThread::PerfAfterAnim(bool needRequestNextVsync)
 bool RSMainThread::IsFastComposeAllow(uint64_t unsignedVsyncPeriod, bool nextVsyncRequested,
     uint64_t unsignedNowTime, uint64 lastVsyncTime)
 {
-    if (!context_) {
+    if (unsignedVsyncPeriod == 0) {
         return false;
     }
     // only support 60hz fastcompose
@@ -4289,7 +4289,7 @@ void RSMainThread::CheckFastCompose(int64_t lastFlushedDesiredPresentTimeStamp)
         lastVsyncTime = timestamp_;
         lastFastComposeTimeStampDiff_ = 0;
     }
-    if (ret != VSYNC_ERROR_OK ||
+    if (ret != VSYNC_ERROR_OK || !context_ ||
         !IsFastComposeAllow(unsignedVsyncPeriod, nextVsyncRequested, unsignedNowTime, lastVsyncTime)) {
         RequestNextVSync();
         return;
