@@ -178,7 +178,7 @@ void RSSurfaceFpsManager::ClearDumpByPid(std::string& result, pid_t pid)
     surfaceFps->ClearDump();
 }
 
-void RSSurfaceFpsManager::PorcessParam(
+void RSSurfaceFpsManager::ProcessParam(
     const std::unordered_set<std::u16string>& argSets, std::string& option, std::string& argStr)
 {
     option = PARAM_NAME;

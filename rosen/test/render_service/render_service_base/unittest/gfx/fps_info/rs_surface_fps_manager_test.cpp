@@ -192,4 +192,28 @@ HWTEST_F(RSSurfaceFpsManagerTest, DumpAndClearSurfaceNodeFps, TestSize.Level1)
     EXPECT_TRUE(result.find("must") != std::string::npos);
     result.clear();
 }
+
+/**
+ * @tc.name: ProcessParamAndIsSurface
+ * @tc.desc: test results of ProcessParamAndIsSurface
+ * @tc.type:FUNC
+ * @tc.require: IC1APD
+ */
+HWTEST_F(RSSurfaceFpsManagerTest, ProcessParamAndIsSurface, TestSize.Level1)
+{
+    RSSurfaceFpsManager& surfaceFpsManager = RSSurfaceFpsManager::GetInstance();
+    std::string result("");
+    std::unordered_set<std::u16string> surfaceArgSets("4234", "-id");
+    std::unordered_set<std::u16string> displayArgSets("DisplayNode", "-name");
+    std::string option;
+    std::string argStr;
+    surfaceFpsManager.ProcessParam(surfaceArgSets, option, argStr);
+    EXPECT_TRUE(option == "-id");
+    EXPECT_TRUE(argStr == "4234");
+    EXPECT_TRUE(surfaceFpsManager.IsSurface(option, argStr));
+    surfaceFpsManager.ProcessParam(displayArgSets, option, argStr);
+    EXPECT_TRUE(option == "-name");
+    EXPECT_TRUE(argStr == "DisplayNode");
+    EXPECT_FALSE(surfaceFpsManager.IsSurface(option, argStr));
+}
 }

@@ -334,7 +334,7 @@ void RSRenderService::FPSDUMPProcess(std::unordered_set<std::u16string>& argSets
     RS_TRACE_NAME("RSRenderService::FPSDUMPProcess");
     auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
     std::string option(""), argStr("");
-    RSSurfaceFpsManager::GetInstance().PorcessParam(argSets, option, argStr);
+    RSSurfaceFpsManager::GetInstance().ProcessParam(argSets, option, argStr);
     if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL
         && RSSurfaceFpsManager::GetInstance().IsSurface(option, argStr)) {
         RSSurfaceFpsManager::GetInstance().DumpSurfaceNodeFps(dumpString, option, argStr);
@@ -372,7 +372,7 @@ void RSRenderService::FPSDUMPClearProcess(std::unordered_set<std::u16string>& ar
     RS_TRACE_NAME("RSRenderService::FPSDUMPClearProcess");
     auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
     std::string option(""), argStr("");
-    RSSurfaceFpsManager::GetInstance().PorcessParam(argSets, option, argStr);
+    RSSurfaceFpsManager::GetInstance().ProcessParam(argSets, option, argStr);
     if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL
         && RSSurfaceFpsManager::GetInstance().IsSurface(option, argStr)) {
         RSSurfaceFpsManager::GetInstance().ClearSurfaceNodeFps(dumpString, option, argStr);

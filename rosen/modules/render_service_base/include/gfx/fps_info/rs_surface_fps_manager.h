@@ -37,7 +37,7 @@ public:
     void ClearDump(std::string& result, NodeId id);
     void DumpByPid(std::string& result, pid_t pid);
     void ClearDumpByPid(std::string& result, pid_t pid);
-    void PorcessParam(
+    void ProcessParam(
         const std::unordered_set<std::u16string>& argSets, std::string& option, std::string& argStr);
     bool IsSurface(const std::string& option, const std::string& argStr);
     void DumpSurfaceNodeFps(std::string& dumpString, const std::string& option, const std::string& arg);
