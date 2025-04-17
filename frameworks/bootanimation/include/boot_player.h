@@ -21,6 +21,9 @@
 #endif
 #include "transaction/rs_interfaces.h"
 #include "util.h"
+#include <system_ability_definition.h>
+#include <iservice_registry.h>
+
 
 namespace OHOS {
 static const int64_t MAX_WAIT_MEDIA_CREATE_TIME = 5000; // 5S
@@ -67,6 +70,36 @@ public:
         format.PutIntValue(Media::PlayerKeys::STREAM_USAGE, STREAM_USAGE_ENFORCED_TONE);
         format.PutIntValue(Media::PlayerKeys::RENDERER_FLAG, 0);
         return format;
+    }
+
+    void CheckAndCreateMedia()
+    {
+        sptr<ISystemAbilityManager> saMgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+        if (saMgr == nullptr) {
+            LOGE("saMgr is null");
+            return;
+        }
+        int64_t startTime = GetSystemCurrentTime();
+        int64_t endTime = startTime;
+        while ((endTime - startTime) < MAX_WAIT_MEDIA_CREATE_TIME
+            && (saMgr.CheckSystemAbility(OHOS::PLAYER_DISTRIBUTED_SERVICE_ID)) == nullptr) {
+            usleep(SLEEP_TIME_US_10);
+            endTime = GetSystemCurrentTime();
+        }
+        if (saMgr.CheckSystemAbility(OHOS::PLAYER_DISTRIBUTED_SERVICE_ID)) == nullptr) {
+            LOGE("CheckMediaSa fail");
+            return;
+        }
+        LOGI("CheckMediaSa success");
+
+        startTime = GetSystemCurrentTime();
+        endTime = startTime;
+        while ((endTime - startTime) < MAX_WAIT_MEDIA_CREATE_TIME
+            && (mediaPlayer_ = Media::PlayerFactory::CreatePlayer()) == nullptr) {
+            usleep(SLEEP_TIME_US);
+            endTime = GetSystemCurrentTime();
+            LOGI("mediaPlayer is nullptr, try create again");
+        }
     }
 #endif
 
