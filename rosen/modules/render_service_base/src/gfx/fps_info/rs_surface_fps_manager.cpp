@@ -181,6 +181,7 @@ void RSSurfaceFpsManager::ClearDumpByPid(std::string& result, pid_t pid)
 void RSSurfaceFpsManager::PorcessParam(
     const std::unordered_set<std::u16string>& argSets, std::string& option, std::string& argStr)
 {
+    option = PARAM_NAME;
     for (const std::u16string& arg : argSets) {
         std::string str = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}
             .to_bytes(arg);
