@@ -447,6 +447,8 @@ private:
     bool globalShouldPaint_ = true;
 
     int32_t rsDisplayNodeChildNum_ = 0;
+
+    int32_t appWindowZOrder_ = 0;
 };
 } // namespace Rosen
 } // namespace OHOS
