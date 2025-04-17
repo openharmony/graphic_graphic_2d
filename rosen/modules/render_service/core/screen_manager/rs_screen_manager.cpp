@@ -1601,7 +1601,7 @@ void RSScreenManager::WaitScreenPowerStatusTask()
     if (!statusTaskCV_.wait_for(taskLock, std::chrono::milliseconds(WAIT_FOR_STATUS_TASK_TIMEOUT), [this]() {
         return statusTaskEndFlag_;
     })) {
-        RS_LOGW("[UL_POWER] %{public}s: wait screen power status task timeouter", __func__);
+        RS_LOGW("[UL_POWER] %{public}s: wait screen power status task timeout", __func__);
     }
 }
 
