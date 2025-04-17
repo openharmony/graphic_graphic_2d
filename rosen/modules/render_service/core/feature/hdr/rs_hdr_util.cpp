@@ -245,6 +245,11 @@ void RSHdrUtil::CheckPixelFormatWithSelfDrawingNode(RSSurfaceRenderNode& surface
             surfaceNode.GetName().c_str());
         return;
     }
+    if (displayNode.GetForceCloseHdr()) {
+        RS_LOGD("RSHdrUtil::CheckPixelFormatWithSelfDrawingNode node(%{public}s) forceclosehdr.",
+            surfaceNode.GetName().c_str());
+        return;
+    }
     if (!surfaceNode.IsHardwareForcedDisabled()) {
         RS_LOGD("RSHdrUtil::CheckPixelFormatWithSelfDrawingNode node(%{public}s) is hardware-enabled",
             surfaceNode.GetName().c_str());

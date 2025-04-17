@@ -152,6 +152,19 @@ HWTEST_F(RSDisplayNodeTest, GetSecurityDisplay001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetForceCloseHdrTest
+ * @tc.desc: test results of SetForceCloseHdr
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSDisplayNodeTest, SetForceCloseHdrTest, TestSize.Level1)
+{
+    RSDisplayNodeConfig c;
+    RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(c);
+    ASSERT_TRUE(displayNode != nullptr);
+    displayNode->SetForceCloseHdr(true);
+}
+
+/**
  * @tc.name: SetScreenId001
  * @tc.desc:
  * @tc.type:FUNC
