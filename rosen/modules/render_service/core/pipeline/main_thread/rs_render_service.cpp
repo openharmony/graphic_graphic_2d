@@ -319,7 +319,7 @@ void RSRenderService::DumpAllNodesMemSize(std::string& dumpString) const
     });
 }
 
-void RSRenderService::FPSDUMPProcess(std::unordered_set<std::u16string>& argSets,
+void RSRenderService::FPSDumpProcess(std::unordered_set<std::u16string>& argSets,
     std::string& dumpString, const std::u16string& arg) const
 {
     auto iter = argSets.find(arg);
@@ -328,10 +328,10 @@ void RSRenderService::FPSDUMPProcess(std::unordered_set<std::u16string>& argSets
     }
     argSets.erase(iter);
     if (argSets.empty()) {
-        RS_LOGE("RSRenderService::FPSDUMPProcess layer name is not specified");
+        RS_LOGE("RSRenderService::FPSDumpProcess layer name is not specified");
         return ;
     }
-    RS_TRACE_NAME("RSRenderService::FPSDUMPProcess");
+    RS_TRACE_NAME("RSRenderService::FPSDumpProcess");
     auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
     std::string option("");
     std::string argStr("");
@@ -358,7 +358,7 @@ void RSRenderService::DumpFps(std::string& dumpString, std::string& layerName) c
     }
 }
 
-void RSRenderService::FPSDUMPClearProcess(std::unordered_set<std::u16string>& argSets,
+void RSRenderService::FPSDumpClearProcess(std::unordered_set<std::u16string>& argSets,
     std::string& dumpString, const std::u16string& arg) const
 {
     auto iter = argSets.find(arg);
@@ -367,10 +367,10 @@ void RSRenderService::FPSDUMPClearProcess(std::unordered_set<std::u16string>& ar
     }
     argSets.erase(iter);
     if (argSets.empty()) {
-        RS_LOGE("RSRenderService::FPSDUMPClearProcess layer name is not specified");
+        RS_LOGE("RSRenderService::FPSDumpClearProcess layer name is not specified");
         return ;
     }
-    RS_TRACE_NAME("RSRenderService::FPSDUMPClearProcess");
+    RS_TRACE_NAME("RSRenderService::FPSDumpClearProcess");
     auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
     std::string option("");
     std::string argStr("");
@@ -868,13 +868,13 @@ void RSRenderService::RegisterFpsFuncs()
     // fps info cmd, [windowname]/composer fps
     RSDumpFunc fpsInfoFunc = [this](const std::u16string &cmd, std::unordered_set<std::u16string> &argSets,
                                            std::string &dumpString) -> void {
-        FPSDUMPProcess(argSets, dumpString, cmd);
+        FPSDumpProcess(argSets, dumpString, cmd);
     };
 
     // fps clear cmd : [surface name]/composer fpsClear
     RSDumpFunc fpsClearFunc = [this](const std::u16string &cmd, std::unordered_set<std::u16string> &argSets,
                                             std::string &dumpString) -> void {
-        FPSDUMPClearProcess(argSets, dumpString, cmd);
+        FPSDumpClearProcess(argSets, dumpString, cmd);
     };
 
     // fps count

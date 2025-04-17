@@ -22,8 +22,10 @@
 #include "common/rs_common_def.h"
 
 namespace OHOS::Rosen {
-const std::string PARAM_NAME = "-name";
-const std::string PARAM_ID = "-id";
+static const std::string PARAM_NAME = "-name";
+static const std::string PARAM_ID = "-id";
+static const std::unordered_set<std::string> options{PARAM_NAME, PARAM_ID};
+static const std::unordered_set<std::string> uniRenderArgs{"DisplayNode", "composer", "UniRender"};
 
 class RSB_EXPORT RSSurfaceFpsManager {
 public:
@@ -56,8 +58,6 @@ private:
     std::shared_ptr<RSSurfaceFps> GetSurfaceFpsByPid(pid_t pid);
     std::unordered_map<NodeId, std::shared_ptr<RSSurfaceFps>> surfaceFpsMap_;
     std::shared_mutex smtx;
-    std::unordered_set<std::string> options{PARAM_NAME, PARAM_ID};
-    std::unordered_set<std::string> uniRenderArgs{"DisplayNode", "composer", "UniRender"};
 };
 }
 #endif

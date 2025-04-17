@@ -61,10 +61,10 @@ private:
         const std::u16string& arg) const;
     void DumpMem(std::unordered_set<std::u16string>& argSets, std::string& dumpString) const;
     void DumpNode(std::unordered_set<std::u16string>& argSets, std::string& dumpString) const;
-    void FPSDUMPProcess(std::unordered_set<std::u16string>& argSets, std::string& dumpString,
+    void FPSDumpProcess(std::unordered_set<std::u16string>& argSets, std::string& dumpString,
         const std::u16string& arg) const;
     void DumpFps(std::string& dumpString, std::string& layerName) const;
-    void FPSDUMPClearProcess(std::unordered_set<std::u16string>& argSets,
+    void FPSDumpClearProcess(std::unordered_set<std::u16string>& argSets,
         std::string& dumpString, const std::u16string& arg) const;
     void ClearFps(std::string& dumpString, std::string& layerName) const;
 
