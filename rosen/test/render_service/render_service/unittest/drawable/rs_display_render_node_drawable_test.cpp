@@ -28,6 +28,7 @@
 #include "pipeline/render_thread/rs_uni_render_util.h"
 #include "pipeline/render_thread/rs_uni_render_virtual_processor.h"
 #include "platform/drawing/rs_surface_converter.h"
+#include "screen_manager/rs_screen.h"
 // xml parser
 #include "graphic_feature_param_manager.h"
 

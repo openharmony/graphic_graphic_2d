@@ -145,7 +145,7 @@ void RSScreen::PhysicalScreenInit() noexcept
     }
     std::transform(hdrCapability_.formats.begin(), hdrCapability_.formats.end(),
                    back_inserter(supportedPhysicalHDRFormats_),
-                   [](GraphicHDRFormat item) -> ScreenHDRFormat {return HDI_HDR_FORMAT_TO_RS_MAP[item];});
+                   [](GraphicHDRFormat item) -> ScreenHDRFormat { return HDI_HDR_FORMAT_TO_RS_MAP[item]; });
     auto status = GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_ON;
     if (MultiScreenParam::IsRsSetScreenPowerStatus() || id_ == 0) {
         RS_LOGI("%{public}s: RSScreen(id %{public}" PRIu64 ") start SetScreenPowerStatus to On",

@@ -27,6 +27,7 @@
 #include "pipeline/main_thread/rs_render_service_connection.h"
 #include "rs_irender_service.h"
 #include "transaction/rs_render_service_connection_stub.h"
+#include "screen_manager/rs_screen.h"
 
 using namespace testing;
 using namespace testing::ext;

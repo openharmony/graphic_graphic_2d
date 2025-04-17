@@ -22,6 +22,7 @@
 #include <memory>
 #include <mutex>
 #include <queue>
+#include <shared_mutex>
 #include <unordered_map>
 #include <unordered_set>
 
@@ -43,10 +44,10 @@
 #include <screen_manager/screen_types.h>
 #include <screen_manager/rs_virtual_screen_resolution.h>
 #include <screen_manager/rs_screen_info.h>
-#include <screen_manager/rs_screen.h>
 
 namespace OHOS {
 namespace Rosen {
+class RSScreen;
 class RSScreenManager : public RefBase {
 public:
     RSScreenManager() = default;
@@ -85,9 +86,10 @@ public:
     virtual void RemoveForceRefreshTask() = 0;
 
     virtual void ClearFrameBufferIfNeed() = 0;
+    virtual void ReleaseScreenDmaBuffer(ScreenId id) = 0;
 
     /* only used for mock tests */
-    virtual void MockHdiScreenConnected(std::shared_ptr<impl::RSScreen> rsScreen) = 0;
+    virtual void MockHdiScreenConnected(std::shared_ptr<RSScreen> rsScreen) = 0;
 
     // physical screen
     virtual std::shared_ptr<HdiOutput> GetOutput(ScreenId id) const = 0;
@@ -253,16 +255,10 @@ public:
     void RemoveForceRefreshTask() override;
 
     void ClearFrameBufferIfNeed() override;
-    static void ReleaseScreenDmaBuffer(uint64_t screenId);
+    void ReleaseScreenDmaBuffer(ScreenId screenId) override;
 
     /* only used for mock tests */
-    void MockHdiScreenConnected(std::shared_ptr<impl::RSScreen> rsScreen) override
-    {
-        if (rsScreen == nullptr) {
-            return;
-        }
-        screens_[rsScreen->Id()] = rsScreen;
-    }
+    void MockHdiScreenConnected(std::shared_ptr<OHOS::Rosen::RSScreen> rsScreen) override;
 
     // physical screen
     std::shared_ptr<HdiOutput> GetOutput(ScreenId id) const override;
