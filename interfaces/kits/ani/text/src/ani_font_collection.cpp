@@ -25,7 +25,7 @@
 
 namespace OHOS::Rosen {
 namespace {
-static const char* ANI_CLASS_FONT_COLLECTION = "L@ohos/graphics/text/text/FontCollection;";
+const char* ANI_CLASS_FONT_COLLECTION = "L@ohos/graphics/text/text/FontCollection;";
 } // namespace
 
 AniFontCollection::AniFontCollection() {}

@@ -26,8 +26,8 @@
 
 namespace OHOS::Rosen {
 namespace {
-static const char* ANI_CLASS_PARAGRAPH = "L@ohos/graphics/text/text/Paragraph;";
-static const char* ANI_CLASS_LINEMETRICS_I = "L@ohos/graphics/text/text/LineMetricsInternal;";
+const char* ANI_CLASS_PARAGRAPH = "L@ohos/graphics/text/text/Paragraph;";
+const char* ANI_CLASS_LINEMETRICS_I = "L@ohos/graphics/text/text/LineMetricsInternal;";
 } // namespace
 
 AniParagraph::AniParagraph() {}
