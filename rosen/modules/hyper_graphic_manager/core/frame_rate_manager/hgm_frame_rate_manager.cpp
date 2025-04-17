@@ -1380,7 +1380,7 @@ void HgmFrameRateManager::MarkVoteChange(const std::string& voter)
     CreateVSyncGenerator()->DVSyncRateChanged(controllerRate_, frameRateChanged);
     auto& hgmCore = HgmCore::Instance();
     bool needForceUpdate = currRefreshRate_.load() != hgmCore.GetPendingScreenRefreshRate();
-    if (hgmCore.GetLtpoEnabled() && frameRateChanged) {
+    if (hgmCore.GetLtpoEnabled() && (frameRateChanged || isNeedUpdateAppOffset_)) {
         HandleFrameRateChangeForLTPO(timestamp_.load(), false);
         if (needChangeDssRefreshRate && changeDssRefreshRateCb_ != nullptr) {
             changeDssRefreshRateCb_(curScreenId_, refreshRate, true);
