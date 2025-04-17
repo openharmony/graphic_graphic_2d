@@ -39,6 +39,21 @@ void AniFontCollection::Constructor(ani_env* env, ani_object object)
     }
 }
 
+ani_object AniFontCollection::GetGlobalInstance(ani_env* env, ani_class cls)
+{
+    return ani_object {};
+}
+
+void AniFontCollection::LoadFontSync(ani_env* env, ani_object obj, ani_string name, ani_object path)
+{
+    TEXT_LOGD("[ANI] %{public}s", __func__);
+}
+
+void AniFontCollection::ClearCaches(ani_env* env, ani_object obj)
+{
+    TEXT_LOGD("[ANI] %{public}s", __func__);
+}
+
 ani_status AniFontCollection::AniInit(ani_vm* vm, uint32_t* result)
 {
     ani_env* env;
@@ -55,7 +70,15 @@ ani_status AniFontCollection::AniInit(ani_vm* vm, uint32_t* result)
         return ANI_NOT_FOUND;
     }
 
-    std::array methods = { ani_native_function { "<ctor>", ":V", reinterpret_cast<void*>(Constructor) } };
+    std::string globalInstance = ":" + std::string(ANI_CLASS_FONT_COLLECTION);
+    std::string loadFontSync = "Lstd/core/String;Lstd/core/Object;:V";
+
+    std::array methods = {
+        ani_native_function { "<ctor>", ":V", reinterpret_cast<void*>(Constructor) },
+        ani_native_function { "getGlobalInstance", globalInstance.c_str(), reinterpret_cast<void*>(GetGlobalInstance) },
+        ani_native_function { "loadFontSync", loadFontSync.c_str(), reinterpret_cast<void*>(LoadFontSync) },
+        ani_native_function { "clearCaches", ":V", reinterpret_cast<void*>(ClearCaches) },
+    };
 
     ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
     if (ret != ANI_OK) {
