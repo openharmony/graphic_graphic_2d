@@ -33,6 +33,7 @@ config("local_text") {
     "../text/fontdescriptor_napi/include",
     "../drawing",
     "$graphic_2d_root/rosen/modules/2d_engine/rosen_text/export/rosen_text",
+    "$graphic_2d_root/rosen/modules/2d_engine/rosen_text/skia_txt",
     "$graphic_2d_root/rosen/modules/2d_graphics/include",
     "$graphic_2d_root/interfaces/kits/napi/graphic/text/utils",
     "$graphic_2d_root/rosen/modules/texgine/src",
