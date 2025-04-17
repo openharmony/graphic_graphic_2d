@@ -77,7 +77,10 @@ ohos_source_set("libtexgine_source") {
   }
   if (is_arkui_x) {
     defines += [ "CROSS_PLATFORM" ]
-    public_deps += [ "//third_party/jsoncpp:jsoncpp_static" ]
+    public_deps += [
+      "//third_party/jsoncpp:jsoncpp_static",
+      "//third_party/skia:skia_$platform",
+    ]
     deps = [
       "//third_party/bounds_checking_function:libsec_static",
       "//third_party/cJSON:cjson_static",
