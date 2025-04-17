@@ -15,8 +15,10 @@
 
 #include "feature/uifirst/rs_uifirst_manager.h"
 #include "gtest/gtest.h"
+#include "pipeline/main_thread/rs_uni_render_visitor.h"
 #include "pipeline/rs_test_util.h"
 #include "pipeline/rs_canvas_render_node.h"
+#include "pipeline/rs_surface_render_node.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -831,6 +833,91 @@ HWTEST_F(RSUifirstManagerTest, UpdateUifirstNodesPC, TestSize.Level1)
     uifirstManager_.uifirstType_ = UiFirstCcmType::SINGLE;
     uifirstManager_.isUiFirstOn_ = false;
     uifirstManager_.rotationChanged_ = false;
+}
+
+/**
+ * @tc.name: UpdateUifirstNodesPC
+ * @tc.desc: Test UpdateUifirstNodes, with deviceType is PC
+ * @tc.type: FUNC
+ * @tc.require: #IC1LJK
+ */
+HWTEST_F(RSUifirstManagerTest, UpdateUifirstNodesPC_001, TestSize.Level1)
+{
+    // save uifirstmanager_ states and restore at the end
+    auto uifirstType = uifirstManager_.uifirstType_;
+    auto isUiFirstOn = uifirstManager_.isUiFirstOn_;
+    auto rotationChanged = uifirstManager_.rotationChanged_;
+
+    // Given: build uifirst state
+    uifirstManager_.uifirstType_ = UiFirstCcmType::MULTI;
+    uifirstManager_.isUiFirstOn_ = true;
+    uifirstManager_.rotationChanged_ = false;
+
+    // Given: build rstree CanvasNode->SurfaceNode(leashwindow) and visitor
+    auto leashWindowNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(leashWindowNode, nullptr);
+    leashWindowNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
+    leashWindowNode->firstLevelNodeId_ = leashWindowNode->GetId();
+    leashWindowNode->SetNeedCollectHwcNode(true); // force to prepare subtree
+    NodeId canvasNodeId = static_cast<NodeId>(0);
+    auto rsCanvasRenderNode = std::make_shared<RSCanvasRenderNode>(canvasNodeId);
+    ASSERT_NE(rsCanvasRenderNode, nullptr);
+    rsCanvasRenderNode->stagingRenderParams_ = std::make_unique<RSRenderParams>(canvasNodeId);
+    auto children = std::vector<std::shared_ptr<RSRenderNode>>();
+    children.push_back(leashWindowNode);
+    rsCanvasRenderNode->fullChildrenList_ = std::make_shared<std::vector<std::shared_ptr<RSRenderNode>>>(children);
+    auto visitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(visitor, nullptr);
+    visitor->ancestorNodeHasAnimation_ = true;
+    visitor->curDisplayDirtyManager_ = std::make_shared<RSDirtyRegionManager>();
+    NodeId displayNodeId = 2;
+    RSDisplayNodeConfig config;
+    visitor->curDisplayNode_ = std::make_shared<RSDisplayRenderNode>(displayNodeId, config);
+
+    // case01: shouldpaint of parent node is false
+    rsCanvasRenderNode->shouldPaint_ = false;
+    leashWindowNode->shouldPaint_ = true;
+    leashWindowNode->SetSkipDraw(false);
+    visitor->QuickPrepareCanvasRenderNode(*rsCanvasRenderNode);
+    ASSERT_EQ(leashWindowNode->lastFrameUifirstFlag_, MultiThreadCacheType::NONE);
+    ASSERT_EQ(leashWindowNode->GetSubThreadAssignable(), false);
+
+    // case02: shouldpaint of parent node is true but shouldpaint of leashwindow is false
+    rsCanvasRenderNode->shouldPaint_ = true;
+    leashWindowNode->shouldPaint_ = false;
+    leashWindowNode->SetSkipDraw(false);
+    visitor->QuickPrepareCanvasRenderNode(*rsCanvasRenderNode);
+    ASSERT_EQ(leashWindowNode->lastFrameUifirstFlag_, MultiThreadCacheType::NONE);
+    ASSERT_EQ(leashWindowNode->GetSubThreadAssignable(), false);
+
+    // case03: shouldpaint of parent node and leashwindow is true, but leashwindow skipdraw is true
+    rsCanvasRenderNode->shouldPaint_ = true;
+    leashWindowNode->shouldPaint_ = true;
+    leashWindowNode->SetSkipDraw(true);
+    visitor->QuickPrepareCanvasRenderNode(*rsCanvasRenderNode);
+    ASSERT_EQ(leashWindowNode->lastFrameUifirstFlag_, MultiThreadCacheType::NONE);
+    ASSERT_EQ(leashWindowNode->GetSubThreadAssignable(), false);
+
+    // case04: shouldpaint of parent node and leashwindow is true, but leashwindow skipdraw is false
+    rsCanvasRenderNode->shouldPaint_ = true;
+    leashWindowNode->shouldPaint_ = true;
+    leashWindowNode->SetSkipDraw(false);
+    visitor->QuickPrepareCanvasRenderNode(*rsCanvasRenderNode);
+    ASSERT_EQ(leashWindowNode->lastFrameUifirstFlag_, MultiThreadCacheType::NONE);
+    ASSERT_EQ(leashWindowNode->GetSubThreadAssignable(), true);
+
+    // case05: shouldpaint of parent node and leashwindow is true, but leashwindow skipdraw is false
+    rsCanvasRenderNode->shouldPaint_ = true;
+    leashWindowNode->shouldPaint_ = true;
+    leashWindowNode->SetSkipDraw(false);
+    visitor->QuickPrepareCanvasRenderNode(*rsCanvasRenderNode);
+    ASSERT_EQ(leashWindowNode->lastFrameUifirstFlag_, MultiThreadCacheType::NONFOCUS_WINDOW);
+    ASSERT_EQ(leashWindowNode->GetSubThreadAssignable(), true);
+
+    // restore uifirstManager_ states
+    uifirstManager_.uifirstType_ = uifirstType;
+    uifirstManager_.isUiFirstOn_ = isUiFirstOn;
+    uifirstManager_.rotationChanged_ = rotationChanged;
 }
 
 /**
