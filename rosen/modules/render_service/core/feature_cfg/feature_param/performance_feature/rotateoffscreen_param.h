@@ -26,10 +26,13 @@ public:
 
     static bool GetRotateOffScreenDisplayNodeEnable();
 
-    void SetRotateOffScreenDisplayNodeEnable(bool enable);
+protected:
+    static void SetRotateOffScreenDisplayNodeEnable(bool enable);
 
 private:
     inline static bool isRotateOffScreenDisplayNodeEnable_ = false;
+
+    friend class RotateOffScreenParamParse;
 };
 } // namespace OHOS::Rosen
 #endif // OFFSCREEN_PARAM_H

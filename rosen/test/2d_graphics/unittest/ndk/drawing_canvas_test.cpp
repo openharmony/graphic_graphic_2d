@@ -23,6 +23,7 @@
 #include "drawing_error_code.h"
 #include "drawing_filter.h"
 #include "drawing_font.h"
+#include "drawing_helper.h"
 #include "drawing_image.h"
 #include "drawing_image_filter.h"
 #include "drawing_mask_filter.h"
@@ -655,11 +656,19 @@ HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_ColorFilterCreateBlend
     EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
     OH_Drawing_FilterSetColorFilter(filter, nullptr);
     OH_Drawing_FilterGetColorFilter(filter, colorFilterTmp);
-    EXPECT_EQ(reinterpret_cast<ColorFilter*>(colorFilterTmp)->GetType(), ColorFilter::FilterType::NO_TYPE);
+    NativeHandle<ColorFilter>* colorFilterHandle = Helper::CastTo<OH_Drawing_ColorFilter*,
+        NativeHandle<ColorFilter>*>(colorFilterTmp);
+    EXPECT_NE(colorFilterHandle, nullptr);
+    EXPECT_NE(colorFilterHandle->value, nullptr);
+    EXPECT_EQ(colorFilterHandle->value->GetType(), ColorFilter::FilterType::NO_TYPE);
 
     OH_Drawing_FilterSetColorFilter(filter, colorFilter);
     OH_Drawing_FilterGetColorFilter(filter, colorFilterTmp);
-    EXPECT_EQ(reinterpret_cast<ColorFilter*>(colorFilterTmp)->GetType(), ColorFilter::FilterType::BLEND_MODE);
+    NativeHandle<ColorFilter>* colorFilterHandleT = Helper::CastTo<OH_Drawing_ColorFilter*,
+        NativeHandle<ColorFilter>*>(colorFilterTmp);
+    EXPECT_NE(colorFilterHandleT, nullptr);
+    EXPECT_NE(colorFilterHandleT->value, nullptr);
+    EXPECT_EQ(colorFilterHandleT->value->GetType(), ColorFilter::FilterType::BLEND_MODE);
 
     OH_Drawing_BrushSetFilter(brush_, nullptr);
     OH_Drawing_BrushSetFilter(brush_, filter);
@@ -1928,6 +1937,139 @@ HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_CanvasDrawPixelMapNine
     OH_Drawing_RectDestroy(srcRect);
     OH_Drawing_RectDestroy(dstRect);
     delete recordingCanvas;
+}
+
+/*
+ * @tc.name: NativeDrawingCanvasTest_CanvasCreateWithPixelMap001
+ * @tc.desc: test for OH_Drawing_CanvasCreateWithPixelMap.
+ * @tc.type: FUNC
+ * @tc.require: IBHFF5
+ */
+HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_CanvasCreateWithPixelMap001, TestSize.Level1)
+{
+    OH_Pixelmap_InitializationOptions *options = nullptr;
+    OH_PixelmapInitializationOptions_Create(&options);
+    EXPECT_NE(options, nullptr);
+
+    // 1 means width
+    OH_PixelmapInitializationOptions_SetWidth(options, 1);
+    // 1 means height
+    OH_PixelmapInitializationOptions_SetHeight(options, 1);
+    // 3 means RGBA format
+    OH_PixelmapInitializationOptions_SetPixelFormat(options, 3);
+    // 2 means ALPHA_FORMAT_PREMUL format
+    OH_PixelmapInitializationOptions_SetAlphaType(options, 2);
+    // 4 means data length
+    size_t bufferSize = 4;
+    void *buffer = malloc(bufferSize);
+    EXPECT_NE(buffer, nullptr);
+
+    OH_PixelmapNative *pixelMap = nullptr;
+    OH_PixelmapNative_CreatePixelmap(static_cast<uint8_t *>(buffer), bufferSize, options, &pixelMap);
+    EXPECT_NE(pixelMap, nullptr);
+    OH_Drawing_PixelMap *drPixelMap = OH_Drawing_PixelMapGetFromOhPixelMapNative(pixelMap);
+    EXPECT_NE(drPixelMap, nullptr);
+
+    OH_Drawing_Canvas *canvas = OH_Drawing_CanvasCreateWithPixelMap(nullptr);
+    EXPECT_EQ(canvas, nullptr);
+    canvas = OH_Drawing_CanvasCreateWithPixelMap(drPixelMap);
+    EXPECT_NE(canvas, nullptr);
+
+    OH_Drawing_CanvasDestroy(canvas);
+    OH_Drawing_PixelMapDissolve(drPixelMap);
+    OH_PixelmapNative_Release(pixelMap);
+    OH_PixelmapInitializationOptions_Release(options);
+    free(buffer);
+}
+
+/*
+ * @tc.name: NativeDrawingCanvasTest_ImageFilterCreateOffsetImageFilter001
+ * @tc.desc: test for creates an OH_Drawing_ImageFilter object that instance with the provided x and y offset.
+ * @tc.type: FUNC
+ * @tc.require: IAYWTV
+ */
+HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_ImageFilterCreateOffset001, TestSize.Level1)
+{
+    OH_Drawing_ImageFilter* cInput = nullptr;
+    float dx = 0.f;
+    float dy = 0.f;
+
+    OH_Drawing_ImageFilter* imagefilterTest1 =
+        OH_Drawing_ImageFilterCreateOffset(dx, dy, cInput);
+    EXPECT_TRUE(imagefilterTest1 != nullptr);
+
+    float sifmaX = 10.0f;
+    float sigmaY = 10.0f;
+    cInput = OH_Drawing_ImageFilterCreateBlur(sifmaX, sigmaY, CLAMP, nullptr);
+    EXPECT_TRUE(cInput != nullptr);
+    OH_Drawing_ImageFilter* imagefilterTest2 =
+        OH_Drawing_ImageFilterCreateOffset(dx, dy, cInput);
+    EXPECT_TRUE(imagefilterTest2 != nullptr);
+
+    OH_Drawing_ImageFilterDestroy(cInput);
+    OH_Drawing_ImageFilterDestroy(imagefilterTest1);
+    OH_Drawing_ImageFilterDestroy(imagefilterTest2);
+}
+
+/*
+ * @tc.name: NativeDrawingCanvasTest_ImageFilterCreateShaderImageFilter001
+ * @tc.desc: test for creates an OH_Drawing_ImageFilter object that renders the contents of the input Shader.
+ * @tc.type: FUNC
+ * @tc.require: IAYWTV
+ */
+HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_ImageFilterCreateShaderImageFilter001, TestSize.Level1)
+{
+    OH_Drawing_ShaderEffect* cShader = nullptr;
+    OH_Drawing_ImageFilter* imagefilterTest1 = OH_Drawing_ImageFilterCreateFromShaderEffect(cShader);
+    EXPECT_TRUE(imagefilterTest1 == nullptr);
+    uint32_t color = 1;
+    cShader = OH_Drawing_ShaderEffectCreateColorShader(color);
+    EXPECT_TRUE(cShader != nullptr);
+    OH_Drawing_ImageFilter* imagefilterTest2 = OH_Drawing_ImageFilterCreateFromShaderEffect(cShader);
+    EXPECT_TRUE(imagefilterTest2 != nullptr);
+
+    OH_Drawing_ShaderEffectDestroy(cShader);
+    OH_Drawing_ImageFilterDestroy(imagefilterTest1);
+    OH_Drawing_ImageFilterDestroy(imagefilterTest2);
+}
+
+/*
+ * @tc.name: NativeDrawingCanvasTest_ColorFilterCreateLighting001
+ * @tc.desc: test for colorfilter create lighting.
+ * @tc.type: FUNC
+ * @tc.require: IAYWTV
+ */
+HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_ColorFilterCreateLighting001, TestSize.Level1)
+{
+    OH_Drawing_ColorFilter* colorFilter = OH_Drawing_ColorFilterCreateLighting(0xff0000ff, 0xff000001);
+    EXPECT_NE(colorFilter, nullptr);
+    OH_Drawing_ColorFilter* colorFilterTmp = OH_Drawing_ColorFilterCreateLinearToSrgbGamma();
+    EXPECT_NE(colorFilterTmp, nullptr);
+    OH_Drawing_Filter* filter = OH_Drawing_FilterCreate();
+    EXPECT_NE(filter, nullptr);
+
+    OH_Drawing_FilterSetColorFilter(nullptr, colorFilter);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    OH_Drawing_FilterSetColorFilter(filter, nullptr);
+    OH_Drawing_FilterGetColorFilter(filter, colorFilterTmp);
+    NativeHandle<ColorFilter>* colorFilterHandle = Helper::CastTo<OH_Drawing_ColorFilter*,
+        NativeHandle<ColorFilter>*>(colorFilterTmp);
+    EXPECT_NE(colorFilterHandle, nullptr);
+    EXPECT_NE(colorFilterHandle->value, nullptr);
+    EXPECT_EQ(colorFilterHandle->value->GetType(), ColorFilter::FilterType::NO_TYPE);
+
+    OH_Drawing_FilterSetColorFilter(filter, colorFilter);
+    OH_Drawing_FilterGetColorFilter(filter, colorFilterTmp);
+    NativeHandle<ColorFilter>* colorFilterHandleT = Helper::CastTo<OH_Drawing_ColorFilter*,
+        NativeHandle<ColorFilter>*>(colorFilterTmp);
+    EXPECT_NE(colorFilterHandleT, nullptr);
+    EXPECT_NE(colorFilterHandleT->value, nullptr);
+    EXPECT_EQ(colorFilterHandleT->value->GetType(), ColorFilter::FilterType::LIGHTING);
+
+    OH_Drawing_BrushSetFilter(brush_, nullptr);
+    OH_Drawing_BrushSetFilter(brush_, filter);
+    OH_Drawing_Rect *rect = OH_Drawing_RectCreate(0, 0, 100, 100);
+    OH_Drawing_CanvasDrawRect(canvas_, rect);
 }
 } // namespace Drawing
 } // namespace Rosen

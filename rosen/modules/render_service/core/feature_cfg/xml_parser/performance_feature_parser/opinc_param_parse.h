@@ -29,9 +29,7 @@ public:
     int32_t ParseFeatureParam(FeatureParamMapType &featureMap, xmlNode &node) override;
 
 private:
-    int32_t ParseOPIncInternal(FeatureParamMapType &featureMap, xmlNode &node);
-
-    std::shared_ptr<OPIncParam> opincParam_;
+    int32_t ParseOPIncInternal(xmlNode &node);
 };
 } // namespace OHOS::Rosen
 #endif // OPINC_PARAM_PARSE_H

@@ -172,7 +172,7 @@ HWTEST_F(RSPixelMapShaderTest, GenerateBaseObjectTest, TestSize.Level1)
 {
     RSPixelMapShader* rsPixelMapShader1 = new RSPixelMapShader();
     ASSERT_NE(rsPixelMapShader1, nullptr);
-    void* base1 = rsPixelMapShader1->GenerateBaseObject();
+    std::shared_ptr<void> base1 = rsPixelMapShader1->GenerateBaseObject();
     ASSERT_EQ(base1, nullptr);
     delete rsPixelMapShader1;
 
@@ -182,16 +182,16 @@ HWTEST_F(RSPixelMapShaderTest, GenerateBaseObjectTest, TestSize.Level1)
     RSPixelMapShader* rsPixelMapShader2 = new RSPixelMapShader(pixelMap, Drawing::TileMode::CLAMP,
         Drawing::TileMode::CLAMP, Drawing::SamplingOptions(), Drawing::Matrix());
     ASSERT_NE(rsPixelMapShader2, nullptr);
-    void* base2 = rsPixelMapShader2->GenerateBaseObject();
+    std::shared_ptr<void> base2 = rsPixelMapShader2->GenerateBaseObject();
     ASSERT_NE(base2, nullptr);
-    std::shared_ptr<Drawing::ShaderEffect> shaderEffect;
-    shaderEffect.reset(reinterpret_cast<Drawing::ShaderEffect*>(base2));
+    std::shared_ptr<Drawing::ShaderEffect> shaderEffect
+        = std::static_pointer_cast<Drawing::ShaderEffect>(base2);
     delete rsPixelMapShader2;
 
     RSPixelMapShader* rsPixelMapShader3 = new RSPixelMapShader(nullptr, Drawing::TileMode::CLAMP,
         Drawing::TileMode::CLAMP, Drawing::SamplingOptions(), Drawing::Matrix());
     ASSERT_NE(rsPixelMapShader3, nullptr);
-    void* base3 = rsPixelMapShader3->GenerateBaseObject();
+    std::shared_ptr<void> base3 = rsPixelMapShader3->GenerateBaseObject();
     ASSERT_EQ(base3, nullptr);
     delete rsPixelMapShader3;
 }

@@ -228,7 +228,7 @@ void RSCanvasDrawingRenderNode::ContentStyleSlotUpdate()
 #ifdef RS_ENABLE_GPU
     auto surfaceParams = GetStagingRenderParams()->GetCanvasDrawingSurfaceParams();
     if (surfaceParams.width == 0 || surfaceParams.height == 0) {
-        RS_LOGE("RSCanvasDrawingRenderNode::ContentStyleSlotUpdate Area Size Error, NodeId[%{public}" PRIu64 "]"
+        RS_LOGI_LIMIT("RSCanvasDrawingRenderNode::ContentStyleSlotUpdate Area Size Error, NodeId[%{public}" PRIu64 "]"
             "width[%{public}d], height[%{public}d]", GetId(), surfaceParams.width, surfaceParams.height);
         return;
     }

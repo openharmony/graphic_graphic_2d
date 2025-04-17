@@ -264,16 +264,14 @@ void RSDisplayRenderNode::UpdateRenderParams()
     displayParams->offsetY_ = GetDisplayOffsetY();
     displayParams->nodeRotation_ = GetRotation();
     auto mirroredNode = GetMirrorSource().lock();
-    if (mirroredNode == nullptr) {
-        displayParams->mirrorSourceId_ = INVALID_NODEID;
-        displayParams->mirrorSourceDrawable_.reset();
-        RS_LOGW("RSDisplayRenderNode::UpdateRenderParams mirroredNode is null");
-    } else {
+    if (mirroredNode) {
         displayParams->mirrorSourceDrawable_ = mirroredNode->GetRenderDrawable();
-        displayParams->mirrorSourceId_ = mirroredNode->GetId();
         displayParams->virtualScreenMuteStatus_ = virtualScreenMuteStatus_;
+    } else {
+        displayParams->mirrorSourceDrawable_.reset();
     }
     displayParams->isSecurityExemption_ = isSecurityExemption_;
+    displayParams->mirrorSourceId_ = mirroredNode ? mirroredNode->GetId() : INVALID_NODEID;
     displayParams->mirrorSource_ = GetMirrorSource();
     displayParams->hasSecLayerInVisibleRect_ = hasSecLayerInVisibleRect_;
     displayParams->hasSecLayerInVisibleRectChanged_ = hasSecLayerInVisibleRectChanged_;

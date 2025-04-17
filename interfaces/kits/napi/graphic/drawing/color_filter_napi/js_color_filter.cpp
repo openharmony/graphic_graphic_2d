@@ -32,7 +32,8 @@ napi_value JsColorFilter::Init(napi_env env, napi_value exportObj)
         DECLARE_NAPI_STATIC_FUNCTION("createLinearToSRGBGamma", JsColorFilter::CreateLinearToSRGBGamma),
         DECLARE_NAPI_STATIC_FUNCTION("createSRGBGammaToLinear", JsColorFilter::CreateSRGBGammaToLinear),
         DECLARE_NAPI_STATIC_FUNCTION("createLumaColorFilter", JsColorFilter::CreateLumaColorFilter),
-        DECLARE_NAPI_STATIC_FUNCTION("createMatrixColorFilter", JsColorFilter::CreateMatrixColorFilter)
+        DECLARE_NAPI_STATIC_FUNCTION("createMatrixColorFilter", JsColorFilter::CreateMatrixColorFilter),
+        DECLARE_NAPI_STATIC_FUNCTION("createLightingColorFilter", JsColorFilter::CreateLightingColorFilter),
     };
 
     napi_value constructor = nullptr;
@@ -194,6 +195,28 @@ napi_value JsColorFilter::CreateMatrixColorFilter(napi_env env, napi_callback_in
     }
 
     std::shared_ptr<ColorFilter> colorFilter = ColorFilter::CreateFloatColorFilter(matrix);
+    return JsColorFilter::Create(env, colorFilter);
+}
+
+napi_value JsColorFilter::CreateLightingColorFilter(napi_env env, napi_callback_info info)
+{
+    napi_value argv[ARGC_TWO] = {nullptr};
+    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_TWO);
+
+    ColorQuad mulColor;
+    if (!ConvertFromAdaptHexJsColor(env, argv[ARGC_ZERO], mulColor)) {
+        ROSEN_LOGE("JsColorFilter::CreateLightingColorFilter Argv[0] is invalid");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter0 verification failed. The range of color channels must be [0, 255].");
+    }
+    ColorQuad addColor;
+    if (!ConvertFromAdaptHexJsColor(env, argv[ARGC_ONE], addColor)) {
+        ROSEN_LOGE("JsColorFilter::CreateLightingColorFilter Argv[1] is invalid");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Parameter1 verification failed. The range of color channels must be [0, 255].");
+    }
+
+    std::shared_ptr<ColorFilter> colorFilter = ColorFilter::CreateLightingColorFilter(mulColor, addColor);
     return JsColorFilter::Create(env, colorFilter);
 }
 

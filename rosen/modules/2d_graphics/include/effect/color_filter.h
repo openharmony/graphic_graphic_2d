@@ -39,6 +39,7 @@ public:
         COMPOSE,
         LUMA,
         OVER_DRAW,
+        LIGHTING,
     };
 
     // Color matrix is a 4x5 float type matrix.
@@ -55,6 +56,7 @@ public:
     static std::shared_ptr<ColorFilter> CreateLinearToSrgbGamma();
     static std::shared_ptr<ColorFilter> CreateSrgbGammaToLinear();
     static std::shared_ptr<ColorFilter> CreateOverDrawColorFilter(const ColorQuad colors[OVER_DRAW_COLOR_NUM]);
+    static std::shared_ptr<ColorFilter> CreateLightingColorFilter(ColorQuad mul, ColorQuad add);
     /*
      * @brief   Create a ColorFilter that its type is luma.
      * @return  A shared pointer to ColorFilter that its type is luma.
@@ -88,6 +90,7 @@ public:
         Clamp clamp = Clamp::YES_CLAMP) noexcept;
     ColorFilter(FilterType t) noexcept;
     ColorFilter(FilterType t, const ColorQuad colors[OVER_DRAW_COLOR_NUM]) noexcept;
+    ColorFilter(FilterType t, ColorQuad mul, ColorQuad add) noexcept;
     std::shared_ptr<Data> Serialize() const;
     bool Deserialize(std::shared_ptr<Data> data);
     bool AsAColorMatrix(scalar matrix[MATRIX_SIZE]) const;

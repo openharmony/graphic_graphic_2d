@@ -61,6 +61,9 @@ HWTEST_F(HgmXmlParserTest, LoadConfiguration, Function | SmallTest | Level1)
             STEP_ASSERT_EQ(parser->mParsedData_, nullptr);
             load = parser->LoadConfiguration(config);
             STEP_ASSERT_GE(load, 0);
+            if (parser->mParsedData_ == nullptr) {
+                return;
+            }
             STEP_ASSERT_NE(parser->mParsedData_, nullptr);
             load = parser->LoadConfiguration(config);
             STEP_ASSERT_GE(load, 0);

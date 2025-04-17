@@ -1,0 +1,135 @@
+# Copyright (c) 2025 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/config/features.gni")
+import("//build/test.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
+import("${graphic_2d_root}/rosen/modules/render_service_base/config.gni")
+
+ohos_fuzztest("RSIpcDosSimulator") {
+  module_out_path = "graphic_2d/rosen/modules/safuzz"
+  fuzz_config_file =
+      "$graphic_2d_root/rosen/modules/safuzz/rs_ipc_dos_simulator"
+
+  include_dirs = [
+    ".",
+    "$graphic_2d_root/rosen/modules/render_service_base/src",
+  ]
+
+  cflags = [
+    "-g",
+    "-O0",
+    "-Wno-unused-variable",
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+
+  sources = [
+    # entry point
+    "main.cpp",
+
+    # customized
+    "customized/random_animation.cpp",
+    "customized/random_draw_cmd_list.cpp",
+    "customized/random_drawop.cpp",
+    "customized/random_matrix.cpp",
+    "customized/random_pixel_map.cpp",
+    "customized/random_properties_map.cpp",
+    "customized/random_rs_filter.cpp",
+    "customized/random_rs_gradient_blur_para.cpp",
+    "customized/random_rs_image.cpp",
+    "customized/random_rs_mask.cpp",
+    "customized/random_rs_path.cpp",
+    "customized/random_rs_render_modifier.cpp",
+    "customized/random_rs_render_particle.cpp",
+    "customized/random_rs_render_property_base.cpp",
+    "customized/random_rs_shader.cpp",
+    "customized/random_surface.cpp",
+    "customized/random_typeface.cpp",
+
+    # ipc
+    "ipc/message_parcel_basic_type_utils.cpp",
+    "ipc/message_parcel_customized_type_utils.cpp",
+    "ipc/message_parcel_utils.cpp",
+    "ipc/rs_irender_service_connection_ipc_interface_code_utils.cpp",
+    "ipc/rs_render_service_connection_proxy_utils.cpp",
+
+    # pipeline
+    "pipeline/argument_parser.cpp",
+    "pipeline/config_manager.cpp",
+
+    # random
+    "random/random_data_basic_type.cpp",
+    "random/random_data_customized_type.cpp",
+    "random/random_engine.cpp",
+
+    # tools
+    "tools/common_utils.cpp",
+    "tools/token_utils.cpp",
+
+    # transaction
+    "transaction/rs_ashmem_helper_utils.cpp",
+    "transaction/rs_transaction_data_utils.cpp",
+  ]
+
+  defines = []
+  if (current_os == "ohos" || current_os == "ohos_ng") {
+    defines += [ "ROSEN_OHOS" ]
+  }
+  if (defined(input_ext_feature_magiccursor) && input_ext_feature_magiccursor) {
+    defines += [ "OHOS_BUILD_ENABLE_MAGICCURSOR" ]
+  }
+  if (defined(rosen_cross_platform) && rosen_cross_platform) {
+    defines += [ "ROSEN_CROSS_PLATFORM" ]
+  }
+  if (defined(graphic_2d_support_access_token) &&
+      graphic_2d_support_access_token) {
+    defines += [ "SUPPORT_ACCESS_TOKEN" ]
+  }
+
+  deps = [
+    "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_base:render_service_base_src",
+    "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
+  ]
+
+  external_deps = [
+    "access_token:libaccesstoken_sdk",
+    "cJSON:cjson",
+    "c_utils:utils",
+    "graphic_surface:surface",
+    "graphics_effect:graphics_effect_core",
+    "hilog:libhilog",
+    "hitrace:hitrace_meter",
+    "image_framework:image_native",
+    "ipc:ipc_core",
+    "samgr:samgr_proxy",
+  ]
+  if (defined(graphic_2d_support_access_token) &&
+      graphic_2d_support_access_token) {
+    external_deps += [
+      "access_token:libnativetoken",
+      "access_token:libtoken_setproc",
+    ]
+  }
+
+  part_name = "graphic_2d"
+  subsystem_name = "graphic"
+}
+
+group("safuzztest") {
+  testonly = true
+
+  deps = [ ":RSIpcDosSimulator" ]
+}

@@ -50,7 +50,6 @@ ohos_unittest("RSRenderServiceBasePropertyTest") {
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/src",
     "//foundation/graphic/graphic_2d/rosen/include",
     "//foundation/graphic/graphic_2d/rosen/test/include",
-    "$graphic_2d_root/rosen/modules/graphics_effect/include",
   ]
 
   deps = [
@@ -61,6 +60,7 @@ ohos_unittest("RSRenderServiceBasePropertyTest") {
 
   external_deps = [
     "c_utils:utils",
+    "graphics_effect:graphics_effect_core",
     "hilog:libhilog",
     "init:libbegetutil",
     "skia:skia_canvaskit",

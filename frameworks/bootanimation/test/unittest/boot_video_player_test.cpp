@@ -204,6 +204,7 @@ HWTEST_F(BootVideoPlayerTest, BootVideoPlayerTest_006, TestSize.Level1)
     params.callback = &callback_;
     std::shared_ptr<BootVideoPlayer> player = std::make_shared<BootVideoPlayer>(params);
     bool result = player->IsNormalBoot();
-    EXPECT_TRUE(result);
+    std::string bootReason = system::GetParameter("ohos.boot.reboot_reason", "");
+    EXPECT_EQ(result, bootReason.empty() ? false : true);
 }
 }

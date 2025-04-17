@@ -60,6 +60,12 @@ ColorFilter::ColorFilter(FilterType t,
     impl_->InitWithOverDrawColor(colors);
 }
 
+ColorFilter::ColorFilter(FilterType t, ColorQuad mul, ColorQuad add) noexcept : ColorFilter()
+{
+    type_ = t;
+    impl_->InitWithLighting(mul, add);
+}
+
 void ColorFilter::InitWithCompose(const float f1[MATRIX_SIZE], const float f2[MATRIX_SIZE], Clamp clamp)
 {
     type_ = ColorFilter::FilterType::COMPOSE;
@@ -146,6 +152,11 @@ std::shared_ptr<ColorFilter> ColorFilter::CreateOverDrawColorFilter(
     const ColorQuad colors[OVER_DRAW_COLOR_NUM])
 {
     return std::make_shared<ColorFilter>(ColorFilter::FilterType::OVER_DRAW, colors);
+}
+
+std::shared_ptr<ColorFilter> ColorFilter::CreateLightingColorFilter(ColorQuad mul, ColorQuad add)
+{
+    return std::make_shared<ColorFilter>(ColorFilter::FilterType::LIGHTING, mul, add);
 }
 
 std::shared_ptr<Data> ColorFilter::Serialize() const

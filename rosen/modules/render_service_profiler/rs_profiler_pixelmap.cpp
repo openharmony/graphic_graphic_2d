@@ -256,8 +256,8 @@ int32_t PixelMapStorage::EncodeJpeg(const ImageData& source, ImageData& dst, con
     Media::InitializationOptions opts = { .size = { .width = properties.width, .height = properties.height },
         .srcPixelFormat = properties.format,
         .pixelFormat = Media::PixelFormat::RGBA_8888,
-        .srcRowStride = properties.stride,
-        .alphaType = OHOS::Media::AlphaType::IMAGE_ALPHA_TYPE_OPAQUE };
+        .alphaType = OHOS::Media::AlphaType::IMAGE_ALPHA_TYPE_OPAQUE,
+        .srcRowStride = properties.stride };
     auto sourceRgb = Media::PixelMap::Create(reinterpret_cast<const uint32_t*>(source.data()), source.size(), opts);
     if (!sourceRgb) {
         HRPE("Failed to create source to encode to rgb");

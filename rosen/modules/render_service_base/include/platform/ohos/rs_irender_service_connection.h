@@ -68,11 +68,10 @@ public:
     virtual ErrCode CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config, sptr<Surface>& sfc,
         bool unobscured = false) = 0;
 
-    virtual sptr<IVSyncConnection> CreateVSyncConnection(const std::string& name,
-                                                         const sptr<VSyncIConnectionToken>& token = nullptr,
-                                                         uint64_t id = 0,
-                                                         NodeId windowNodeId = 0,
-                                                         bool fromXcomponent = false) = 0;
+    virtual ErrCode CreateVSyncConnection(sptr<IVSyncConnection>& vsyncConn,
+                                          const std::string& name,
+                                          const sptr<VSyncIConnectionToken>& token = nullptr,
+                                          VSyncConnParam vsyncConnParam = {0, 0, false}) = 0;
 
     virtual ErrCode GetPixelMapByProcessId(std::vector<PixelMapInfo>& pixelMapInfoVector, pid_t pid,
         int32_t& repCode) = 0;
@@ -271,7 +270,8 @@ public:
 
     virtual int32_t SetScreenSkipFrameInterval(ScreenId id, uint32_t skipFrameInterval) = 0;
 
-    virtual int32_t SetVirtualScreenRefreshRate(ScreenId id, uint32_t maxRefreshRate, uint32_t& actualRefreshRate) = 0;
+    virtual ErrCode SetVirtualScreenRefreshRate(
+        ScreenId id, uint32_t maxRefreshRate, uint32_t& actualRefreshRate, int32_t& retVal) = 0;
 
     virtual uint32_t SetScreenActiveRect(ScreenId id, const Rect& activeRect) = 0;
 

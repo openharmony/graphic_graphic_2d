@@ -83,6 +83,13 @@ ImageFilter::ImageFilter(FilterType t, float radius, const std::vector<std::pair
     impl_->InitWithGradientBlur(radius, fractionStops, direction, blurType, input);
 }
 
+ImageFilter::ImageFilter(FilterType t, const std::shared_ptr<Image>& image, const Rect& srcRect, const Rect& dstRect,
+    const SamplingOptions& options) noexcept : ImageFilter()
+{
+    type_ = t;
+    impl_->InitWithImage(image, srcRect, dstRect, options);
+}
+
 ImageFilter::ImageFilter(FilterType t) noexcept
     : type_(t), impl_(ImplFactory::CreateImageFilterImpl())
 {}
@@ -94,6 +101,12 @@ ImageFilter::ImageFilter() noexcept
 ImageFilter::FilterType ImageFilter::GetType() const
 {
     return type_;
+}
+
+std::shared_ptr<ImageFilter> ImageFilter::CreateImageImageFilter(
+    const std::shared_ptr<Image>& image, const Rect& srcRect, const Rect& dstRect, const SamplingOptions& options)
+{
+    return std::make_shared<ImageFilter>(ImageFilter::FilterType::IMAGE, image, srcRect, dstRect, options);
 }
 
 std::shared_ptr<ImageFilter> ImageFilter::CreateBlurImageFilter(scalar sigmaX, scalar sigmaY, TileMode mode,

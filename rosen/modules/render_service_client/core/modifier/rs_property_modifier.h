@@ -1237,15 +1237,6 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
-class RSC_EXPORT RSBehindWindowFilterEnabledModifier : public RSBackgroundModifier {
-public:
-    explicit RSBehindWindowFilterEnabledModifier(const std::shared_ptr<RSPropertyBase>& property);
-    virtual ~RSBehindWindowFilterEnabledModifier() = default;
-protected:
-    RSModifierType GetModifierType() const override;
-    std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
-};
-
 class RSC_EXPORT RSBehindWindowFilterRadiusModifier : public RSBackgroundModifier {
 public:
     explicit RSBehindWindowFilterRadiusModifier(const std::shared_ptr<RSPropertyBase>& property);

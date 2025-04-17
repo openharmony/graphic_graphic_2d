@@ -3215,6 +3215,19 @@ void RSSurfaceRenderNode::SetDisplayNit(float displayNit)
 #endif
 }
 
+void RSSurfaceRenderNode::SetColorFollow(bool colorFollow)
+{
+#ifdef RS_ENABLE_GPU
+    auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (stagingSurfaceParams) {
+        stagingSurfaceParams->SetColorFollow(colorFollow);
+    }
+    if (stagingRenderParams_->NeedSync()) {
+        AddToPendingSyncList();
+    }
+#endif
+}
+
 void RSSurfaceRenderNode::SetBrightnessRatio(float brightnessRatio)
 {
 #ifdef RS_ENABLE_GPU
@@ -3336,20 +3349,7 @@ void RSSurfaceRenderNode::SetOldNeedDrawBehindWindow(bool val)
 
 bool RSSurfaceRenderNode::NeedDrawBehindWindow() const
 {
-    return !GetRenderProperties().GetBackgroundFilter() && GetBehindWindowFilterEnabled() &&
-        !childrenBlurBehindWindow_.empty();
-}
-
-bool RSSurfaceRenderNode::GetBehindWindowFilterEnabled() const
-{
-    auto& drawCmdModifiers = const_cast<RSRenderContent::DrawCmdContainer&>(GetDrawCmdModifiers());
-    auto itr = drawCmdModifiers.find(RSModifierType::BEHIND_WINDOW_FILTER_ENABLED);
-    if (itr == drawCmdModifiers.end() || itr->second.empty()) {
-        return true; // default value
-    }
-    const auto& modifier = itr->second.back();
-    auto renderProperty = std::static_pointer_cast<RSRenderProperty<bool>>(modifier->GetProperty());
-    return renderProperty->GetRef();
+    return !GetRenderProperties().GetBackgroundFilter() && !childrenBlurBehindWindow_.empty();
 }
 
 void RSSurfaceRenderNode::AddChildBlurBehindWindow(NodeId id)

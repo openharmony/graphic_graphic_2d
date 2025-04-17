@@ -1312,6 +1312,7 @@ public:
     void SetNeedOffscreen(bool needOffscreen);
     void SetSdrNit(float sdrNit);
     void SetDisplayNit(float displayNit);
+    void SetColorFollow(bool colorFollow);
     void SetBrightnessRatio(float brightnessRatio);
     void SetLayerLinearMatrix(const std::vector<float>& layerLinearMatrix);
     void SetSdrHasMetadata(bool hasMetadata);
@@ -1406,7 +1407,6 @@ public:
     bool NeedUpdateDrawableBehindWindow() const override;
     void SetOldNeedDrawBehindWindow(bool val);
     bool NeedDrawBehindWindow() const override;
-    bool GetBehindWindowFilterEnabled() const;
     void AddChildBlurBehindWindow(NodeId id) override;
     void RemoveChildBlurBehindWindow(NodeId id) override;
     void CalDrawBehindWindowRegion() override;

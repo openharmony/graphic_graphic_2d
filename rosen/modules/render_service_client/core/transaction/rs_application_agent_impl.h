@@ -25,7 +25,7 @@
 namespace OHOS {
 namespace Rosen {
 #ifdef ROSEN_OHOS
-class RSApplicationAgentImpl final : public RSApplicationAgentStub {
+class RSC_EXPORT RSApplicationAgentImpl final : public RSApplicationAgentStub {
 #else
 class RSApplicationAgentImpl final {
 #endif

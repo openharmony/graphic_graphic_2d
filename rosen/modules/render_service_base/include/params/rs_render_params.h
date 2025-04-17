@@ -396,7 +396,7 @@ private:
     RectF localDrawRect_;
     RectI absDrawRect_;
     Vector2f cacheSize_;
-    Gravity frameGravity_ = Gravity::DEFAULT;
+    Gravity frameGravity_ = Gravity::CENTER;
     // default 1.0f means max available headroom
     float hdrBrightness_ = 1.0f;
     bool freezeFlag_ = false;

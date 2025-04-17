@@ -1289,12 +1289,18 @@ bool DoCreateNodeAndSurface(const uint8_t* data, size_t size)
     MessageOption option;
 
     NodeId id = static_cast<NodeId>(newPid) << 32;
+    uint8_t type = GetData<uint8_t>();
+    bool isTextureExportNode = GetData<bool>();
+    bool isSync = GetData<bool>();
+    uint8_t surfaceWindowType = GetData<uint8_t>();
+    bool unobscured = GetData<bool>();
     dataParcel.WriteUint64(id);
     dataParcel.WriteString("SurfaceName");
-    dataParcel.WriteUint8(0);
-    dataParcel.WriteBool(true);
-    dataParcel.WriteBool(true);
-    dataParcel.WriteUint8(0);
+    dataParcel.WriteUint8(type);
+    dataParcel.WriteBool(isTextureExportNode);
+    dataParcel.WriteBool(isSync);
+    dataParcel.WriteUint8(surfaceWindowType);
+    dataParcel.WriteBool(unobscured);
     connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
     return true;
 }
@@ -3281,8 +3287,12 @@ bool DoCreateVSyncConnection(const uint8_t* data, size_t size)
     auto screenManagerPtr = impl::RSScreenManager::GetInstance();
     auto mainThread = RSMainThread::Instance();
     sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
-    sptr<RSRenderServiceConnectionStub> connectionStub_ =
-        new RSRenderServiceConnection(newPid, nullptr, mainThread, screenManagerPtr, token_->AsObject(), nullptr);
+    DVSyncFeatureParam dvsyncParam;
+    auto generator = CreateVSyncGenerator();
+    auto appVSyncController = new VSyncController(generator, 0);
+    sptr<VSyncDistributor> appVSyncDistributor = new VSyncDistributor(appVSyncController, "app", dvsyncParam);
+    sptr<RSRenderServiceConnectionStub> connectionStub_ = new RSRenderServiceConnection(
+        newPid, nullptr, mainThread, screenManagerPtr, token_->AsObject(), appVSyncDistributor);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
@@ -3290,9 +3300,12 @@ bool DoCreateVSyncConnection(const uint8_t* data, size_t size)
     auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
     sptr<VSyncIConnectionToken> vsyncIConnectionToken_ = iface_cast<VSyncIConnectionToken>(remoteObject);
-
+    uint64_t id = GetData<uint64_t>();
+    NodeId windowNodeID = GetData<NodeId>();
     dataParcel.WriteString(" ");
     dataParcel.WriteRemoteObject(vsyncIConnectionToken_->AsObject());
+    dataParcel.WriteUint64(id);
+    dataParcel.WriteUint64(windowNodeID);
     dataParcel.RewindRead(0);
     connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
     return true;
@@ -3453,9 +3466,11 @@ bool DoRegisterBufferAvailableListener(const uint8_t* data, size_t size)
     auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
     sptr<RSIBufferAvailableCallback> rsIBufferAvailableCallback_ = iface_cast<RSIBufferAvailableCallback>(remoteObject);
     auto nodeId = static_cast<NodeId>(newPid) << 32;
+    bool isFromRenderThread = GetData<bool>();
     dataParcel.WriteInterfaceToken(GetDescriptor());
     dataParcel.WriteUint64(nodeId);
     dataParcel.WriteRemoteObject(rsIBufferAvailableCallback_->AsObject());
+    dataParcel.WriteBool(isFromRenderThread);
     dataParcel.RewindRead(0);
     connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
     return true;

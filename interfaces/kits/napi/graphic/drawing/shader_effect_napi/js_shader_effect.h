@@ -37,7 +37,9 @@ public:
     static napi_value CreateLinearGradient(napi_env env, napi_callback_info info);
     static napi_value CreateRadialGradient(napi_env env, napi_callback_info info);
     static napi_value CreateSweepGradient(napi_env env, napi_callback_info info);
+    static napi_value CreateComposeShader(napi_env env, napi_callback_info info);
     static napi_value CreateConicalGradient(napi_env env, napi_callback_info info);
+    static napi_value CreateImageShader(napi_env env, napi_callback_info info);
     std::shared_ptr<ShaderEffect> GetShaderEffect();
 
 private:

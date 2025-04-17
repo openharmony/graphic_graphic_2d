@@ -15,8 +15,11 @@
 
 #include <cstddef>
 #include "gtest/gtest.h"
+#include "image/bitmap.h"
+#include "draw/color.h"
 #include "include/effects/SkImageFilters.h"
 #include "skia_adapter/skia_image_filter.h"
+#include "utils/sampling_options.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -120,6 +123,31 @@ HWTEST_F(SkiaImageFilterTest, Deserialize001, TestSize.Level1)
     skiaImageFilter->Deserialize(nullptr);
     std::shared_ptr<Data> data = std::make_shared<Data>();
     skiaImageFilter->Deserialize(data);
+}
+
+
+/**
+ * @tc.name: InitWithBitmap001
+ * @tc.desc: Test InitWithBitmap
+ * @tc.type: FUNC
+ * @tc.require: IAZ845
+ */
+HWTEST_F(SkiaImageFilterTest, InitWithImage001, TestSize.Level1)
+{
+    int32_t width = 200;
+    int32_t height = 200;
+    std::shared_ptr<Image> image = nullptr;
+    Rect rect(0.0f, 0.0f, width, height);
+    std::shared_ptr<SkiaImageFilter> skiaImageFilter = std::make_shared<SkiaImageFilter>();
+
+    BitmapFormat bitmapFormat = { ColorType::COLORTYPE_BGRA_8888, AlphaType::ALPHATYPE_PREMUL };
+    Bitmap bitmap;
+    bitmap.Build(width, height, bitmapFormat);
+    image = bitmap.MakeImage();
+    EXPECT_TRUE(image != nullptr);
+    SamplingOptions options(FilterMode::LINEAR);
+    skiaImageFilter->InitWithImage(image, rect, rect, options);
+    EXPECT_TRUE(skiaImageFilter->filter_ != nullptr);
 }
 } // namespace Drawing
 } // namespace Rosen

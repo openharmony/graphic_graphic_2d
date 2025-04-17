@@ -656,12 +656,12 @@ std::shared_ptr<ShaderEffect> CmdListHelper::GetShaderEffectFromCmdList(const Cm
         if (!object) {
             return nullptr;
         }
-        void* baseObject = object->GenerateBaseObject();
+        std::shared_ptr<void> baseObject = object->GenerateBaseObject();
         if (!baseObject) {
             return nullptr;
         }
-        std::shared_ptr<ShaderEffect> shaderEffect;
-        shaderEffect.reset(reinterpret_cast<ShaderEffect*>(baseObject));
+        std::shared_ptr<ShaderEffect> shaderEffect =
+            std::static_pointer_cast<ShaderEffect>(baseObject);
         return shaderEffect;
     }
 

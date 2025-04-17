@@ -70,11 +70,10 @@ private:
     ErrCode CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config, sptr<Surface>& sfc,
         bool unobscured = false) override;
 
-    sptr<IVSyncConnection> CreateVSyncConnection(const std::string& name,
-                                                 const sptr<VSyncIConnectionToken>& token,
-                                                 uint64_t id,
-                                                 NodeId windowNodeId = 0,
-                                                 bool fromXcomponent = false) override;
+    ErrCode CreateVSyncConnection(sptr<IVSyncConnection>& vsyncConn,
+                                  const std::string& name,
+                                  const sptr<VSyncIConnectionToken>& token,
+                                  VSyncConnParam vsyncConnParam = {0, 0, false}) override;
 
     ErrCode GetPixelMapByProcessId(std::vector<PixelMapInfo>& pixelMapInfoVector, pid_t pid, int32_t& repCode) override;
 
@@ -264,7 +263,8 @@ private:
 
     int32_t SetScreenSkipFrameInterval(ScreenId id, uint32_t skipFrameInterval) override;
 
-    int32_t SetVirtualScreenRefreshRate(ScreenId id, uint32_t maxRefreshRate, uint32_t& actualRefreshRate) override;
+    ErrCode SetVirtualScreenRefreshRate(
+        ScreenId id, uint32_t maxRefreshRate, uint32_t& actualRefreshRate, int32_t& retVal) override;
 
     uint32_t SetScreenActiveRect(ScreenId id, const Rect& activeRect) override;
 

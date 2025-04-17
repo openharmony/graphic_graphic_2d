@@ -287,7 +287,6 @@ ohos_shared_library("librender_service") {
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/utils",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/frame_rate_vote",
     "$graphic_2d_root/rosen/modules/create_pixelmap_surface/include",
-    "$graphic_2d_root/rosen/modules/graphics_effect/include",
     "$graphic_2d_root/rosen/modules/frame_load/include",
   ]
   if (use_video_processing_engine) {
@@ -297,7 +296,6 @@ ohos_shared_library("librender_service") {
   deps = [
     "$graphic_2d_root/rosen/modules/composer:libcomposer",
     "$graphic_2d_root/rosen/modules/create_pixelmap_surface:create_pixelmap_surface",
-    "$graphic_2d_root/rosen/modules/graphics_effect:libgraphics_effect",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager:libhyper_graphic_manager",
     "$graphic_2d_root/rosen/modules/render_frame_trace:render_frame_trace",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
@@ -387,6 +385,7 @@ ohos_shared_library("librender_service") {
     "ffrt:libffrt",
     "graphic_surface:frame_report",
     "graphic_surface:surface",
+    "graphics_effect:graphics_effect_core",
     "hicollie:libhicollie",
     "hilog:libhilog",
     "hisysevent:libhisysevent",

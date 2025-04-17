@@ -617,7 +617,7 @@ private:
 
     bool NeedClip() const;
     bool NeedBlurFuzed();
-    bool NeedLightBlur();
+    bool NeedLightBlur(bool disableSystemAdaptation);
 
     const RectF& GetBgImageRect() const;
     void GenerateRRect();

@@ -143,7 +143,7 @@ HWTEST_F(RSDotMatrixShaderTest, MarshallingAndUnmarshalling001, TestSize.Level1)
     Parcel parcel;
     EXPECT_TRUE(testShader.Marshalling(parcel));
     bool needReset = true;
-    EXPECT_TRUE(testShader.Unmarshalling(parcel, needReset));
+    EXPECT_FALSE(testShader.Unmarshalling(parcel, needReset));
     EXPECT_FALSE(needReset);
 }
 

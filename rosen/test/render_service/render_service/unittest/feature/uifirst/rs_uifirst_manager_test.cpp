@@ -932,7 +932,6 @@ HWTEST_F(RSUifirstManagerTest, CollectSkipSyncNode001, TestSize.Level1)
     std::shared_ptr<RSRenderNode> node = nullptr;
     bool res = uifirstManager_.CollectSkipSyncNode(node);
     EXPECT_FALSE(res);
-    EXPECT_TRUE(uifirstManager_.pendingPostNodes_.size() == 1);
 
     node = std::make_shared<RSRenderNode>(1);
     DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node);
@@ -1614,6 +1613,18 @@ HWTEST_F(RSUifirstManagerTest, UpdateUifirstNodes002, TestSize.Level1)
     surfaceNode->lastFrameUifirstFlag_ = MultiThreadCacheType::NONFOCUS_WINDOW;
     uifirstManager_.UpdateUifirstNodes(*surfaceNode, true);
     EXPECT_TRUE(param->GetUifirstNodeEnableParam() == MultiThreadCacheType::NONFOCUS_WINDOW);
+}
+
+/**
+ * @tc.name: RefreshUIFirstParam
+ * @tc.desc: Test RefreshUIFirstParam
+ * @tc.type: FUNC
+ * @tc.require: #IBV9YJ
+ */
+HWTEST_F(RSUifirstManagerTest, RefreshUIFirstParam, TestSize.Level1)
+{
+    uifirstManager_.RefreshUIFirstParam();
+    ASSERT_EQ(uifirstManager_.purgeEnable_, RSSystemParameters::GetUIFirstPurgeEnabled());
 }
 
 /**

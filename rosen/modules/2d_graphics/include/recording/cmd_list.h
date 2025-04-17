@@ -313,9 +313,6 @@ public:
     CmdList& operator=(CmdList&&) = delete;
     CmdList& operator=(const CmdList&) = delete;
 
-    std::string ProfilerPushAllocators();
-    void ProfilerPopAllocators(const std::string& data);
-
 #ifdef ROSEN_OHOS
     /*
      * @brief  return surfaceBufferEntry index, negative is error.

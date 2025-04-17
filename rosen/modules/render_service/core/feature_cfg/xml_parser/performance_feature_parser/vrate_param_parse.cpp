@@ -31,7 +31,7 @@ int32_t VRateParamParse::ParseFeatureParam(FeatureParamMapType &featureMap, xmlN
             continue;
         }
 
-        if (ParseVRateInternal(featureMap, *currNode) != PARSE_EXEC_SUCCESS) {
+        if (ParseVRateInternal(*currNode) != PARSE_EXEC_SUCCESS) {
             RS_LOGE("VRateParamParse stop parsing, parse internal fail");
             return PARSE_INTERNAL_FAIL;
         }
@@ -39,25 +39,16 @@ int32_t VRateParamParse::ParseFeatureParam(FeatureParamMapType &featureMap, xmlN
     return PARSE_EXEC_SUCCESS;
 }
 
-int32_t VRateParamParse::ParseVRateInternal(FeatureParamMapType &featureMap, xmlNode &node)
+int32_t VRateParamParse::ParseVRateInternal(xmlNode &node)
 {
-    xmlNode *currNode = &node;
-
-    auto iter = featureMap.find(FEATURE_CONFIGS[VRATE]);
-    if (iter == featureMap.end()) {
-        RS_LOGE("VRateParamParse stop parsing, no initializing param map");
-        return PARSE_INTERNAL_FAIL;
-    }
-    vRateParam_ = std::static_pointer_cast<VRateParam>(iter->second);
-
     // Start Parse Feature Params
-    int xmlParamType = GetXmlNodeAsInt(*currNode);
-    auto name = ExtractPropertyValue("name", *currNode);
-    auto val = ExtractPropertyValue("value", *currNode);
+    int xmlParamType = GetXmlNodeAsInt(node);
+    auto name = ExtractPropertyValue("name", node);
+    auto val = ExtractPropertyValue("value", node);
     if (xmlParamType == PARSE_XML_FEATURE_SWITCH) {
         bool isEnabled = ParseFeatureSwitch(val);
         if (name == "VRateEnabled") {
-            vRateParam_->SetVRateEnable(isEnabled);
+            VRateParam::SetVRateEnable(isEnabled);
             RS_LOGI("VRateParamParse parse VRateEnabl %{public}d", isEnabled);
         }
     }

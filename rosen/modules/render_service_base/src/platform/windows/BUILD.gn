@@ -59,19 +59,18 @@ ohos_source_set("windows") {
     "$rosen_root/modules/platform:utils",
   ]
 
-  if (defined(use_rosen_drawing) && use_rosen_drawing) {
-    defines += [ "USE_ROSEN_DRAWING" ]
-    public_deps += [
-      "$rosen_root/modules/2d_graphics:2d_graphics",
-      "$rosen_root/modules/graphics_effect:libgraphics_effect",
-    ]
-  }
-
   external_deps = [
     "egl:libEGL",
     "graphic_surface:surface_headers",
     "hilog:libhilog",
   ]
+
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    defines += [ "USE_ROSEN_DRAWING" ]
+    public_deps += [ "$rosen_root/modules/2d_graphics:2d_graphics" ]
+
+    external_deps += [ "graphics_effect:graphics_effect_core" ]
+  }
 
   part_name = "graphic_2d"
   subsystem_name = "graphic"

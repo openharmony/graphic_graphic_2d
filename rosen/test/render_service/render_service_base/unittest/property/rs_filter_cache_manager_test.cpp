@@ -752,7 +752,7 @@ HWTEST_F(RSFilterCacheManagerTest, IsForceUseFilterCacheTest, TestSize.Level1)
     EXPECT_FALSE(rsFilterCacheManager->NeedPendingPurge());
     rsFilterCacheManager->stagingFilterInteractWithDirty_ = true;
     rsFilterCacheManager->pendingPurge_ = true;
-    EXPECT_TRUE(rsFilterCacheManager->NeedPendingPurge());
+    EXPECT_FALSE(rsFilterCacheManager->NeedPendingPurge());
 
     rsFilterCacheManager->stagingFilterInteractWithDirty_ = true;
     rsFilterCacheManager->stagingRotationChanged_ = true;

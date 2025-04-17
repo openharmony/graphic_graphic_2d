@@ -46,6 +46,7 @@ public:
     void Compose(const ColorFilter& f) override;
     void InitWithLuma() override;
     void InitWithOverDrawColor(const ColorQuad colors[OVER_DRAW_COLOR_NUM]) override;
+    void InitWithLighting(ColorQuad mul, ColorQuad add) override;
     sk_sp<SkColorFilter> GetColorFilter() const;
 
     /*

@@ -33,6 +33,7 @@ TextStyle ParagraphStyle::ConvertToTextStyle() const
     result.height = height;
     result.heightOverride = heightOverride;
     result.textStyleUid = defaultTextStyleUid;
+    result.halfLeading = halfLeading;
     return result;
 }
 

@@ -269,6 +269,7 @@ ohos_source_set("render_service_base_src") {
     "src/render/rs_motion_blur_filter.cpp",
     "src/render/rs_particles_drawable.cpp",
     "src/render/rs_path.cpp",
+    "src/render/rs_pixel_map_filter.cpp",
     "src/render/rs_pixel_map_shader.cpp",
     "src/render/rs_pixel_map_util.cpp",
     "src/render/rs_resource_manager.cpp",
@@ -480,7 +481,6 @@ ohos_source_set("render_service_base_src") {
   include_dirs = [
     "$graphic_2d_root/rosen/modules/utils",
     "$graphic_2d_root/interfaces/inner_api/common",
-    "$graphic_2d_root/rosen/modules/graphics_effect/include",
     "$graphic_2d_root/rosen/modules/render_service_base/src",
     "$graphic_2d_root/rosen/modules/render_service_base/include",
     "$graphic_2d_root/utils/color_manager/export",
@@ -491,19 +491,24 @@ ohos_source_set("render_service_base_src") {
     include_dirs += [
       "$graphic_2d_root/utils/color_manager/export",
       "//foundation/multimedia/image_framework/interfaces/innerkits/include",
+      "//foundation/graphic/graphics_effect/include",
       "//foundation/graphic/graphic_surface/interfaces/inner_api/surface",
     ]
   }
 
   deps = [
     "$graphic_2d_root/utils/sandbox:sandbox_utils",
-    "$rosen_root/modules/graphics_effect:libgraphics_effect",
     "$rosen_root/modules/platform:hilog",
     "$rosen_root/modules/platform:ipc_core",
   ]
 
+  if (is_arkui_x) {
+    deps += [ "//foundation/graphic/graphics_effect:libgraphics_effect" ]
+  }
+
   external_deps = [
     "graphic_surface:surface_headers",
+    "graphics_effect:graphics_effect_core",
     "hilog:libhilog",
   ]
 

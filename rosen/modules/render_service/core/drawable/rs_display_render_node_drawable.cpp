@@ -617,8 +617,10 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         "offsetX=%{public}d, offsetY=%{public}d", paramScreenId, offsetX_, offsetY_);
     SetScreenRotationForPointLight(*params);
 
-    const RectI& dirtyRegion = GetSyncDirtyManager()->GetCurrentFrameDirtyRegion();
-    const auto& activeSurfaceRect = GetSyncDirtyManager()->GetActiveSurfaceRect();
+    auto syncDirtyManager = GetSyncDirtyManager();
+    const RectI& dirtyRegion = syncDirtyManager->GetCurrentFrameDirtyRegion();
+    const auto& activeSurfaceRect = syncDirtyManager->GetActiveSurfaceRect().IsEmpty() ?
+        syncDirtyManager->GetSurfaceRect() : syncDirtyManager->GetActiveSurfaceRect();
     RS_TRACE_NAME_FMT("RSDisplayRenderNodeDrawable::OnDraw[%" PRIu64 "][%" PRIu64
         "] zoomed(%d), dirty(%d, %d, %d, %d), active(%d, %d, %d, %d)",
         paramScreenId, GetId(), params->GetZoomed(),
@@ -2166,7 +2168,7 @@ void RSDisplayRenderNodeDrawable::FinishHdrDraw(Drawing::Brush& paint, float hdr
 
 bool RSDisplayRenderNodeDrawable::EnablescRGBForP3AndUiFirst(const GraphicColorGamut& currentGamut)
 {
-    return RSSystemParameters::IsNeedScRGBForP3(currentGamut) && RSMainThread::Instance()->IsUIFirstOn();
+    return RSSystemParameters::IsNeedScRGBForP3(currentGamut) && RSUifirstManager::Instance().GetUiFirstSwitch();
 }
 
 void RSDisplayRenderNodeDrawable::PrepareOffscreenRender(const RSDisplayRenderNodeDrawable& displayDrawable,

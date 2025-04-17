@@ -52,6 +52,8 @@ public:
     void InitWithBlend(BlendMode mode, const Rect& cropRect, std::shared_ptr<ImageFilter> background,
         std::shared_ptr<ImageFilter> foreground = nullptr) override;
     void InitWithShader(std::shared_ptr<ShaderEffect> shader, const Rect& cropRect) override;
+    void InitWithImage(const std::shared_ptr<Image>& image, const Rect& srcRect, const Rect& dstRect,
+        const SamplingOptions& options) override;
     sk_sp<SkImageFilter> GetImageFilter() const;
     /*
      * @brief  Update the member variable to filter, adaptation layer calls.

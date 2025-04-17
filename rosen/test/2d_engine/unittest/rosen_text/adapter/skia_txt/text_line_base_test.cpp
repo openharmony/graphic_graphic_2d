@@ -137,7 +137,7 @@ HWTEST_F(OHDrawingTextLineBaseTest, OHDrawingTextLineBaseTest005, TestSize.Level
     double descent = 0;
     double leading = 0;
     EXPECT_FLOAT_EQ(textLine_[0]->GetTypographicBounds(&ascent, &descent, &leading), 49.377823);
-    EXPECT_FLOAT_EQ(ascent, 12.992);
+    EXPECT_FLOAT_EQ(ascent, -12.992);
     EXPECT_FLOAT_EQ(descent, 3.4160001);
     EXPECT_FLOAT_EQ(leading, 0.000000);
 

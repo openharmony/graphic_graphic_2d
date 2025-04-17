@@ -44,8 +44,8 @@ const std::vector<std::string> FEATURE_CONFIGS = {
     "SurfaceCaptureConfig",
     "UICaptureConfig",
     "DeeplyReleaseGpuResourceConfig",
-    "AccessibilityConfig",
     "VRateConfig",
+    "AccessibilityConfig",
     "RotateOffScreenConfig",
 };
 
@@ -70,8 +70,8 @@ enum FeatureModule {
     SURFACE_CAPTURE,
     UI_CAPTURE,
     DEEPLY_REL_GPU_RES,
-    ACCESSIBILITY,
     VRATE,
+    ACCESSIBILITY,
     ROTATEOFFSCREEN,
 };
 

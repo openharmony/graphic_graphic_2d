@@ -139,16 +139,15 @@ void RSColorSpaceConvert::GetHDRDynamicMetadata(const sptr<SurfaceBuffer>& surfa
 }
 
 void RSColorSpaceConvert::GetFOVMetadata(const sptr<SurfaceBuffer>& surfaceBuffer,
-    std::vector<uint8_t>& adaptiveFOVMetadata, GSError& ret)
+    std::vector<uint8_t>& adaptiveFOVMetadata)
 {
     if (surfaceBuffer == nullptr) {
         RS_LOGE("surfaceBuffer is nullptr. Failed to get FOV metadata.");
-        ret = GSERROR_INVALID_ARGUMENTS;
         return;
     }
-    ret = MetadataHelper::GetAdaptiveFOVMetadata(surfaceBuffer, adaptiveFOVMetadata);
+    GSError ret = MetadataHelper::GetAdaptiveFOVMetadata(surfaceBuffer, adaptiveFOVMetadata);
     if (ret != GSERROR_OK) {
-        RS_LOGD("RSColorSpaceConvert::GetFOVMetadata( failed with ret: %{public}u.", ret);
+        RS_LOGD("RSColorSpaceConvert::GetFOVMetadata failed with ret: %{public}u.", ret);
     }
 }
 
@@ -176,7 +175,7 @@ bool RSColorSpaceConvert::SetColorSpaceConverterDisplayParameter(const sptr<Surf
 
     GetHDRStaticMetadata(surfaceBuffer, parameter.staticMetadata, ret);
     GetHDRDynamicMetadata(surfaceBuffer, parameter.dynamicMetadata, ret);
-    GetFOVMetadata(surfaceBuffer, parameter.adaptiveFOVMetadata, ret);
+    GetFOVMetadata(surfaceBuffer, parameter.adaptiveFOVMetadata);
 
     float scaler = DEFAULT_SCALER;
     auto& rsLuminance = RSLuminanceControl::Get();

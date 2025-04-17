@@ -37,7 +37,6 @@ group("graphic_common_test") {
     "rosen/modules/composer:test",
     "rosen/modules/create_pixelmap_surface:test",
     "rosen/modules/effect/test/unittest:test",
-    "rosen/modules/graphics_effect/test:test",
     "rosen/test/frame_analyzer:test",
     "rosen/test/frame_report:test",
     "rosen/test/hyper_graphic_manager:test",

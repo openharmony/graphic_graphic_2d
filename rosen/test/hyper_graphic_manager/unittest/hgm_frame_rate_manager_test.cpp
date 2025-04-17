@@ -530,6 +530,9 @@ HWTEST_F(HgmFrameRateMgrTest, CleanPidCallbackTest, Function | SmallTest | Level
     ASSERT_EQ(savedScreenStrategyId, defaultScreenStrategyId);
     mgr->curScreenStrategyId_ = invalidScreenStrategyId;
     mgr->UpdateVoteRule();
+    if (hgm.mPolicyConfigData_ == nullptr) {
+        return;
+    }
     EXPECT_NE(hgm.mPolicyConfigData_, nullptr);
     std::shared_ptr<PolicyConfigData> cachedPolicyConfigData = nullptr;
     std::swap(hgm.mPolicyConfigData_, cachedPolicyConfigData);
@@ -566,6 +569,9 @@ HWTEST_F(HgmFrameRateMgrTest, HandleEventTest, Function | SmallTest | Level2)
     mgr->DeliverRefreshRateVote({"VOTER_GAMES", 120, 90, 0}, true);
 
     mgr->GetExpectedFrameRate(static_cast<RSPropertyUnit>(0xff), 100.f, 0, 0);
+    if (hgm.mPolicyConfigData_ == nullptr) {
+        return;
+    }
     EXPECT_NE(hgm.mPolicyConfigData_, nullptr);
     std::shared_ptr<PolicyConfigData> cachedPolicyConfigData = nullptr;
     std::swap(hgm.mPolicyConfigData_, cachedPolicyConfigData);

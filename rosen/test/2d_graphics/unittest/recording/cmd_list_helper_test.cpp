@@ -437,37 +437,6 @@ HWTEST_F(CmdListHelperTest, ColorFilter, TestSize.Level1)
     EXPECT_NE(sptr, nullptr);
 }
 
-/**
- * @tc.name: ProfilerPushAllocators
- * @tc.desc: Test the ProfilerPushAllocators function.
- * @tc.type: FUNC
- * @tc.require: IAI0U9
- */
-HWTEST_F(CmdListHelperTest, ProfilerPushAllocators, TestSize.Level1)
-{
-    auto cmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
-    std::string data = cmdList->ProfilerPushAllocators();
-    // Check if the list of allocators is NOT empty.
-    EXPECT_NE(data.size(), 0);
-}
-
-/**
- * @tc.name: ProfilerPopAllocators
- * @tc.desc: Test the ProfilerPopAllocators function.
- * @tc.type: FUNC
- * @tc.require: IAI0U9
- */
-HWTEST_F(CmdListHelperTest, ProfilerPopAllocators, TestSize.Level1)
-{
-    auto cmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
-    std::string data = cmdList->ProfilerPushAllocators();
-    cmdList->ProfilerPopAllocators(data);
-    std::string newData = cmdList->ProfilerPushAllocators();
-    cmdList->ProfilerPopAllocators(newData);
-    // Check if the list of allocators has NOT been changed
-    EXPECT_EQ(data, newData);
-}
-
 #ifdef ROSEN_OHOS
 /**
  * @tc.name: AddSurfaceBufferEntryToCmdList
