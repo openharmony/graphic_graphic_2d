@@ -78,9 +78,9 @@ void AnimationCommandHelper::CreateAnimation(
     }
     RsCommonHook::Instance().OnStartNewAnimation(animation->GetFrameRateRange().GetComponentName());
     node->GetAnimationManager().AddAnimation(animation);
-    auto modifier = node->GetModifier(animation->GetPropertyId());
-    if (modifier != nullptr) {
-        animation->AttachRenderProperty(modifier->GetProperty());
+    auto property = node->GetProperty(animation->GetPropertyId());
+    if (property != nullptr) {
+        animation->AttachRenderProperty(property);
     }
     auto currentTime = context.GetCurrentTimestamp();
     animation->SetStartTime(currentTime);

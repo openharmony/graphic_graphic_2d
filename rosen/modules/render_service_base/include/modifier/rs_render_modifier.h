@@ -19,6 +19,7 @@
 #include <memory>
 
 #include "parcel.h"
+#include "platform/common/rs_log.h"
 #include "rs_modifier_type.h"
 
 #include "common/rs_color.h"
@@ -421,6 +422,23 @@ public:
         return RSModifierType::BEHIND_WINDOW_FILTER_MASK_COLOR;
     }
 };
+
+class RSB_EXPORT RSComplexShaderParamRenderModifier : public RSBackgroundRenderModifier {
+public:
+    RSComplexShaderParamRenderModifier(const std::shared_ptr<RSRenderPropertyBase>& property)
+        : RSBackgroundRenderModifier(property)
+    {
+        property->SetModifierType(RSModifierType::COMPLEX_SHADER_PARAM);
+    }
+    ~RSComplexShaderParamRenderModifier() override = default;
+    void Apply(RSModifierContext& context) const override;
+    void Update(const std::shared_ptr<RSRenderPropertyBase>& prop, bool isDelta) override;
+    bool Marshalling(Parcel& parcel) override;
+    RSModifierType GetType() override
+    {
+        return RSModifierType::COMPLEX_SHADER_PARAM;
+    }
+};   
 
 // declare RenderModifiers like RSBoundsRenderModifier
 #define DECLARE_ANIMATABLE_MODIFIER(MODIFIER_NAME, TYPE, MODIFIER_TYPE, DELTA_OP, MODIFIER_TIER, THRESHOLD_TYPE) \

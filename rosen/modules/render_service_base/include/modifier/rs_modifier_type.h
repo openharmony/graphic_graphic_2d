@@ -183,6 +183,7 @@ enum class RSModifierType : int16_t {
     BEHIND_WINDOW_FILTER_MASK_COLOR = 150,
     CHILDREN = 151, // PLACEHOLDER, no such modifier, but we need a dirty flag
     MAX_RS_MODIFIER_TYPE = 152,
+    COMPLEX_SHADER_PARAM = 153,
 };
 
 enum class RSPropertyModifierType : uint8_t {
@@ -204,6 +205,7 @@ enum class RSRenderPropertyType : int16_t {
     PROPERTY_MATRIX3F,
     PROPERTY_QUATERNION,
     PROPERTY_FILTER,
+    PROPERTY_SHADER_PARAM,
     PROPERTY_VECTOR2F,
     PROPERTY_VECTOR3F,
     PROPERTY_VECTOR4F,
@@ -250,6 +252,7 @@ public:
             case RSModifierType::FOREGROUND_COLOR: return "ForegroundColor";
             case RSModifierType::BACKGROUND_COLOR: return "BackgroundColor";
             case RSModifierType::BACKGROUND_SHADER: return "BackgroundShader";
+            case RSModifierType::COMPLEX_SHADER_PARAM: return "ComplexShaderParam";
             case RSModifierType::BACKGROUND_SHADER_PROGRESS: return "BackgroundShaderProgress";
             case RSModifierType::BG_IMAGE: return "BgImage";
             case RSModifierType::BG_IMAGE_INNER_RECT: return "BgImageInnerRect";

@@ -1590,6 +1590,28 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSFilter
     return success;
 }
 
+// std::vector<float>
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::vector<float>& val)
+{
+    bool success = parcel.WriteUint32(val.size());
+    for (const auto &element : val) {
+        success &= parcel.WriteFloat(element);
+    }
+    return success;
+}
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::vector<float>& val)
+{
+    uint32_t size = 0;
+    bool success = parcel.ReadUint32(size);
+ 
+    for (auto i = 0u; i < size; i++) {
+        float element = 0.f;
+        success &= parcel.ReadFloat(element);
+        val.push_back(element);
+    }
+    return success;
+}
+
 // RSImageBase
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSImageBase>& val)
 {
@@ -2710,6 +2732,7 @@ MARSHALLING_AND_UNMARSHALLING(RSRenderAnimatableProperty)
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector2f)                                           \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector3f)                                           \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector4<uint32_t>)                                  \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::vector<float>)                                 \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector4<Color>)                                     \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector4f)                                           \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<Drawing::DrawCmdList>)              \
@@ -2737,6 +2760,7 @@ BATCH_EXPLICIT_INSTANTIATION(RSRenderProperty)
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector3f)                  \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector4<Color>)            \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector4f)                  \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::vector<float>)        \
     EXPLICIT_INSTANTIATION(TEMPLATE, RRectT<float>)
 
 BATCH_EXPLICIT_INSTANTIATION(RSRenderAnimatableProperty)
