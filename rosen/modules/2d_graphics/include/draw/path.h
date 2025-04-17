@@ -475,6 +475,10 @@ public:
      */
     virtual void Reset();
 
+    void SetLastPoint(scalar x, scalar y);
+
+    void ReWind();
+
     /**
      * @brief A closed contour connects the first and last Point with line, forming a continuous loop.
      */

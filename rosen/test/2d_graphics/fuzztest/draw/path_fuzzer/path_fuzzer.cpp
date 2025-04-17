@@ -323,6 +323,7 @@ bool PathFuzzTest005(const uint8_t* data, size_t size)
  * 测试以下 Path 接口：
  * 1. Path()
  * 2. AddPoly(...)
+ * 3. Rewind()
  */
 bool PathFuzzTest006(const uint8_t* data, size_t size)
 {
@@ -348,6 +349,7 @@ bool PathFuzzTest006(const uint8_t* data, size_t size)
     int count = points.size();
     bool close = GetObject<bool>();
     path.AddPoly(points, count, close);
+    path.ReWind();
     return true;
 }
 

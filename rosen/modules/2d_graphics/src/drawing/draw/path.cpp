@@ -265,6 +265,16 @@ void Path::Reset()
     impl_->Reset();
 }
 
+void Path::SetLastPoint(scalar x, scalar y)
+{
+    impl_->SetLastPoint(x, y);
+}
+
+void Path::ReWind()
+{
+    impl_->ReWind();
+}
+
 void Path::Close()
 {
     impl_->Close();

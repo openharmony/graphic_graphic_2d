@@ -1145,6 +1145,36 @@ HWTEST_F(PathTest, Dump001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: ReWind001
+ * @tc.desc: ReWind Path
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(PathTest, ReWind001, TestSize.Level1)
+{
+    Path path;
+    path.MoveTo(1.0f, 2.0f);
+    path.LineTo(3.0f, 4.0f);
+    path.ReWind();
+    EXPECT_TRUE(path.IsEmpty());
+}
+
+/**
+ * @tc.name: SetLastPoint001
+ * @tc.desc: ReWind Path
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(PathTest, SetLastPoint001, TestSize.Level1)
+{
+    Path path;
+    path.MoveTo(1.0f, 2.0f);
+    path.LineTo(3.0f, 4.0f);
+    path.SetLastPoint(5.0f, 6.0f);
+    EXPECT_FALSE(path.IsEmpty());
+}
+
+/**
  * @tc.name: Serialize001
  * @tc.desc: Data returned shouldn't be nullptr
  * @tc.type: FUNC

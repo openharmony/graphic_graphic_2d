@@ -393,6 +393,16 @@ void SkiaPath::Reset()
     isChanged_ = true;
 }
 
+void SkiaPath::SetLastPoint(scalar x, scalar y)
+{
+    path_.setLastPt(x, y);
+}
+
+void SkiaPath::ReWind()
+{
+    path_.rewind();
+}
+
 void SkiaPath::Close()
 {
     path_.close();
