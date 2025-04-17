@@ -332,23 +332,14 @@ void RSRenderService::FPSDUMPProcess(std::unordered_set<std::u16string>& argSets
         return ;
     }
     RS_TRACE_NAME("RSRenderService::FPSDUMPProcess");
-    std::unordered_set<std::string> options{"-name", "-id"};
-    std::unordered_set<std::string> args{"DisplayNode", "composer", "UniRender"};
-    std::string argStr("");
-    std::string option("-name");
-    for (const std::u16string& arg : argSets) {
-        std::string str = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}
-            .to_bytes(arg);
-        if (options.find(str) != options.end()) {
-            option = str;
-        } else {
-            argStr = str;
-        }
-    }
-    if (option == "-name" && args.find(argStr) != args.end()) {
-        DumpFps(dumpString, argStr);
-    } else {
+    auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
+    std::string option(""), argStr("");
+    RSSurfaceFpsManager::GetInstance().PorcessParam(argSets, option, argStr);
+    if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL
+        && RSSurfaceFpsManager::GetInstance().IsSurface(option, argStr)) {
         RSSurfaceFpsManager::GetInstance().DumpSurfaceNodeFps(dumpString, option, argStr);
+    } else {
+        DumpFps(dumpString, argStr);
     }
 }
 
@@ -379,23 +370,14 @@ void RSRenderService::FPSDUMPClearProcess(std::unordered_set<std::u16string>& ar
         return ;
     }
     RS_TRACE_NAME("RSRenderService::FPSDUMPClearProcess");
-    std::unordered_set<std::string> options{"-name", "-id"};
-    std::unordered_set<std::string> args{"DisplayNode", "composer"};
-    std::string argStr("");
-    std::string option("-name");
-    for (const std::u16string& arg : argSets) {
-        std::string str = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}
-            .to_bytes(arg);
-        if (options.find(str) != options.end()) {
-            option = str;
-        } else {
-            argStr = str;
-        }
-    }
-    if (option == "-name" && args.find(argStr) != args.end()) {
-        ClearFps(dumpString, argStr);
-    } else {
+    auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
+    std::string option(""), argStr("");
+    RSSurfaceFpsManager::GetInstance().PorcessParam(argSets, option, argStr);
+    if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL
+        && RSSurfaceFpsManager::GetInstance().IsSurface(option, argStr)) {
         RSSurfaceFpsManager::GetInstance().ClearSurfaceNodeFps(dumpString, option, argStr);
+    } else {
+        ClearFps(dumpString, argStr);
     }
 }
 

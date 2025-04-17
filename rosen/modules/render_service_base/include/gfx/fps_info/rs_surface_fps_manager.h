@@ -22,6 +22,9 @@
 #include "common/rs_common_def.h"
 
 namespace OHOS::Rosen {
+const std::string PARAM_NAME = "-name";
+const std::string PARAM_ID = "-id";
+
 class RSB_EXPORT RSSurfaceFpsManager {
 public:
     static RSSurfaceFpsManager &GetInstance();
@@ -34,6 +37,9 @@ public:
     void ClearDump(std::string& result, NodeId id);
     void DumpByPid(std::string& result, pid_t pid);
     void ClearDumpByPid(std::string& result, pid_t pid);
+    void PorcessParam(
+        const std::unordered_set<std::u16string>& argSets, std::string& option, std::string& argStr);
+    void IsSurface(const std::string& option, const std::string& argStr);
     void DumpSurfaceNodeFps(std::string& dumpString, const std::string& option, const std::string& arg);
     void ClearSurfaceNodeFps(std::string& dumpString, const std::string& option, const std::string& arg);
     std::unordered_map<NodeId, std::shared_ptr<RSSurfaceFps>> GetSurfaceFpsMap() const;
@@ -50,6 +56,8 @@ private:
     std::shared_ptr<RSSurfaceFps> GetSurfaceFpsByPid(pid_t pid);
     std::unordered_map<NodeId, std::shared_ptr<RSSurfaceFps>> surfaceFpsMap_;
     std::shared_mutex smtx;
+    std::unordered_set<std::string> options{PARAM_NAME, PARAM_ID};
+    std::unordered_set<std::string> uniRenderArgs{"DisplayNode", "composer", "UniRender"};
 };
 }
 #endif
