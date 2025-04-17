@@ -22,7 +22,7 @@ function main() {
   const opts: image.InitializationOptions = {
     size: { width: 480, height: 360 },
     editable: true,
-    pixelFormat: 4,
+    pixelFormat: image.PixelMapFormat.BGRA_8888,
   };
   let pixelMap: image.PixelMap = image.createPixelMapSync(opts);
   if (pixelMap == undefined) {
