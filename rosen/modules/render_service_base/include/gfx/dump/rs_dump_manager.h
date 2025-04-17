@@ -120,6 +120,8 @@ const std::unordered_map<std::u16string, RSDumpCmd> cmdMap_ = {
     { u"buffer", { { RSDumpID::CURRENT_FRAME_BUFFER }, "dump current frame buffer"} },
 };
 
+const std::unordered_set<std::u16string> excludeCmds = { u"buffer" };
+
 // Define the RSDumpManager class
 class RSB_EXPORT RSDumpManager {
 public:
