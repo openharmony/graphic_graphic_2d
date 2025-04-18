@@ -24,13 +24,13 @@ namespace OHOS::Rosen {
 class AniParagraph final {
 public:
     AniParagraph();
-    static void Constructor(ani_env* env, ani_object object);
     static ani_status AniInit(ani_vm* vm, uint32_t* result);
+private:
+    static void Constructor(ani_env* env, ani_object object);
     static void LayoutSync(ani_env* env, ani_object object, ani_double width);
     static ani_double GetLongestLine(ani_env* env, ani_object object);
     static ani_ref GetLineMetrics(ani_env* env, ani_object object);
-
-private:
+    static ani_object GetLineMetricsAt(ani_env* env, ani_object object, ani_double lineNumber);
     std::shared_ptr<Typography> paragraph_ = nullptr;
 };
 } // namespace OHOS::Rosen

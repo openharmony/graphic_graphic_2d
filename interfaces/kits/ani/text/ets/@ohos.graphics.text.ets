@@ -61,7 +61,7 @@ namespace text {
     private native nativeLayoutSync(width: number): void;
     private native nativeGetLongestLine(): number;
     private native nativeGetLineMetrics(): Array<LineMetrics>;
-    private native nativeGetLineMetrics(lineNumber: number): LineMetrics | undefined;
+    private native nativeGetLineMetricsAt(lineNumber: number): LineMetrics | undefined;
 
     /**
      * Calculates the positioning of all the glyphs.
@@ -100,9 +100,9 @@ namespace text {
      * @syscap SystemCapability.Graphics.Drawing
      * @since 12
      */
-    //getLineMetrics(lineNumber: number): LineMetrics | undefined {
-    //    return this.nativeGetLineMetrics(lineNumber);
-    //};
+    getLineMetrics(lineNumber: number): LineMetrics | undefined {
+        return this.nativeGetLineMetricsAt(lineNumber);
+    };
   }
 
   /**

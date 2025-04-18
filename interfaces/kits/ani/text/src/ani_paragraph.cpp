@@ -62,6 +62,7 @@ ani_status AniParagraph::AniInit(ani_vm* vm, uint32_t* result)
         ani_native_function { "nativeLayoutSync", "D:V", reinterpret_cast<void*>(LayoutSync) },
         ani_native_function { "nativeGetLongestLine", ":D", reinterpret_cast<void*>(GetLongestLine) },
         ani_native_function { "nativeGetLineMetrics", ":Lescompat/Array;", reinterpret_cast<void*>(GetLineMetrics) },
+        ani_native_function { "nativeGetLineMetricsAt", "D:L@ohos/graphics/text/text/LineMetrics;", reinterpret_cast<void*>(GetLineMetricsAt) },
     };
 
     ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
@@ -92,6 +93,23 @@ ani_double AniParagraph::GetLongestLine(ani_env* env, ani_object object)
     return aniParagraph->paragraph_->GetActualWidth();
 }
 
+ani_object AniConvertLineMetrics(ani_env* env, const LineMetrics& lineMetrics)
+{
+    ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_LINEMETRICS_I, ":V");
+    env->Object_SetPropertyByName_Double(aniObj, "StartIndex", ani_int(lineMetrics.startIndex));
+    env->Object_SetPropertyByName_Double(aniObj, "endIndex", ani_int(lineMetrics.endIndex));
+    env->Object_SetPropertyByName_Double(aniObj, "ascent", ani_int(lineMetrics.ascender));
+    env->Object_SetPropertyByName_Double(aniObj, "descent", ani_int(lineMetrics.descender));
+    env->Object_SetPropertyByName_Double(aniObj, "height", ani_int(lineMetrics.height));
+    env->Object_SetPropertyByName_Double(aniObj, "width", ani_int(lineMetrics.width));
+    env->Object_SetPropertyByName_Double(aniObj, "left", ani_int(lineMetrics.x));
+    env->Object_SetPropertyByName_Double(aniObj, "baseline", ani_int(lineMetrics.baseline));
+    env->Object_SetPropertyByName_Double(aniObj, "lineNumber", ani_int(lineMetrics.lineNumber));
+    env->Object_SetPropertyByName_Double(aniObj, "topHeight", ani_int(lineMetrics.y));
+    // env->Object_SetPropertyByName_Int(aniObj, "runMetrics", ani_int(lineMetrics.runMetrics));
+    return aniObj;
+}
+
 ani_ref AniParagraph::GetLineMetrics(ani_env* env, ani_object object)
 {
     ani_object arrayObj = AniTextUtils::CreateAniUndefined(env);
@@ -105,18 +123,7 @@ ani_ref AniParagraph::GetLineMetrics(ani_env* env, ani_object object)
 
     ani_size index = 0;
     for (auto lineMetrics : vectorLineMetrics) {
-        ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_LINEMETRICS_I, ":V");
-        env->Object_SetPropertyByName_Int(aniObj, "StartIndex", ani_int(lineMetrics.startIndex));
-        env->Object_SetPropertyByName_Int(aniObj, "endIndex", ani_int(lineMetrics.endIndex));
-        env->Object_SetPropertyByName_Double(aniObj, "ascent", ani_int(lineMetrics.ascender));
-        env->Object_SetPropertyByName_Double(aniObj, "descent", ani_int(lineMetrics.descender));
-        env->Object_SetPropertyByName_Double(aniObj, "height", ani_int(lineMetrics.height));
-        env->Object_SetPropertyByName_Double(aniObj, "width", ani_int(lineMetrics.width));
-        env->Object_SetPropertyByName_Double(aniObj, "left", ani_int(lineMetrics.x));
-        env->Object_SetPropertyByName_Double(aniObj, "baseline", ani_int(lineMetrics.baseline));
-        env->Object_SetPropertyByName_Int(aniObj, "lineNumber", ani_int(lineMetrics.lineNumber));
-        env->Object_SetPropertyByName_Int(aniObj, "topHeight", ani_int(lineMetrics.y));
-        // env->Object_SetPropertyByName_Int(aniObj, "runMetrics", ani_int(lineMetrics.runMetrics));
+        ani_object aniObj = AniConvertLineMetrics(env, lineMetrics);
         if (ANI_OK != env->Object_CallMethodByName_Void(arrayObj, "$_set", "ILstd/core/Object;:V", index, aniObj)) {
             TEXT_LOGE("Object_CallMethodByName_Void $_set failed");
             break;
@@ -124,5 +131,20 @@ ani_ref AniParagraph::GetLineMetrics(ani_env* env, ani_object object)
         index++;
     }
     return arrayObj;
+}
+
+ani_object AniParagraph::GetLineMetricsAt(ani_env* env, ani_object object, ani_double lineNumber)
+{
+    AniParagraph* aniParagraph = AniTextUtils::GetNativeFromObj<AniParagraph>(env, object);
+    if (aniParagraph == nullptr || aniParagraph->paragraph_ == nullptr) {
+        TEXT_LOGE("paragraph is null");
+        return AniTextUtils::CreateAniUndefined(env);
+    }
+    LineMetrics lineMetrics;
+    if (!aniParagraph->paragraph_->GetLineMetricsAt(lineNumber, &lineMetrics)) {
+        TEXT_LOGE("Failed to get line metrics");
+        return AniTextUtils::CreateAniUndefined(env);
+    }
+    return AniConvertLineMetrics(env, lineMetrics);
 }
 } // namespace OHOS::Rosen
