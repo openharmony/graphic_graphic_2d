@@ -46,6 +46,7 @@ ani_object AniTextUtils::CreateAniObject(ani_env* env, const std::string name, c
     }
     return obj;
 }
+
 ani_object AniTextUtils::CreateAniArray(ani_env* env, size_t size)
 {
     ani_class arrayCls;
@@ -88,7 +89,7 @@ std::string AniTextUtils::AniToStdStringUtf8(ani_env* env, ani_string str)
     return content;
 }
 
-bool AniTextUtils::ReadFile(const std::string& filePath, std::string& data)
+bool AniTextUtils::ReadFile(const std::string& filePath, size_t dataLen, std::unique_ptr<uint8_t[]>& data)
 {
     char realPath[PATH_MAX] = { 0 };
     if (realpath(filePath.c_str(), realPath) == nullptr) {
@@ -101,9 +102,16 @@ bool AniTextUtils::ReadFile(const std::string& filePath, std::string& data)
         TEXT_LOGE("Failed to open file:%{public}s", filePath.c_str());
         return false;
     }
-    std::stringstream buffer;
-    buffer << file.rdbuf();
-    data = buffer.str();
+    file.seekg(0, std::ios::end);
+    int length = file.tellg();
+    if (length == -1) {
+        TEXT_LOGE("Failed to get file length:%{public}s", filePath.c_str());
+        return false;
+    }
+    dataLen = static_cast<size_t>(length);
+    data = std::make_unique<uint8_t[]>(dataLen);
+    file.seekg(0, std::ios::beg);
+    file.read(reinterpret_cast<char*>(data.get()), dataLen);
     return true;
 }
 

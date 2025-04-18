@@ -19,6 +19,7 @@
 #include <cstdint>
 #include <sys/stat.h>
 
+#include "ani_resource_parser.h"
 #include "ani_text_utils.h"
 
 #include "utils/text_log.h"
@@ -67,6 +68,8 @@ void AniFontCollection::LoadFontSync(ani_env* env, ani_object obj, ani_string na
         TEXT_LOGE("Null font collection");
         return;
     }
+    std::unique_ptr<uint8_t[]> data;
+    size_t dataLen = 0;
 
     ani_class stringClass;
     env->FindClass("Lstd/core/String;", &stringClass);
@@ -75,13 +78,11 @@ void AniFontCollection::LoadFontSync(ani_env* env, ani_object obj, ani_string na
 
     if (isString) {
         std::string pathStr = AniTextUtils::AniToStdStringUtf8(env, static_cast<ani_string>(path));
-        std::string data;
-        if (!AniTextUtils::SplitAbsoluteFontPath(pathStr) || !AniTextUtils::ReadFile(pathStr, data)) {
+        if (!AniTextUtils::SplitAbsoluteFontPath(pathStr) || !AniTextUtils::ReadFile(pathStr, dataLen, data)) {
             TEXT_LOGE("Failed to split absolute font path");
             return;
         }
-        aniFontCollection->fontCollection_->LoadFont(
-            familyName, reinterpret_cast<const uint8_t*>(data.data()), data.size());
+        aniFontCollection->fontCollection_->LoadFont(familyName, data.get(), dataLen);
         return;
     }
 
@@ -91,6 +92,12 @@ void AniFontCollection::LoadFontSync(ani_env* env, ani_object obj, ani_string na
     env->Object_InstanceOf(path, resourceClass, &isResource);
 
     if (isResource) {
+        AniResource resource = AniResourceParser::ParseResource(env, path);
+        if (!AniResourceParser::ResolveResource(resource, dataLen, data)) {
+            TEXT_LOGE("Failed to resolve resource");
+            return;
+        }
+        aniFontCollection->fontCollection_->LoadFont(familyName, data.get(), dataLen);
         return;
     }
 }

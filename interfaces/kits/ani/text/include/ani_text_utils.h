@@ -47,7 +47,7 @@ public:
     static ani_object CreateAniObject(ani_env* env, const std::string name, const char* signature);
     static ani_object CreateAniArray(ani_env* env, size_t size);
     static std::string AniToStdStringUtf8(ani_env* env, ani_string str);
-    static bool ReadFile(const std::string& filePath, std::string& data);
+    static bool ReadFile(const std::string& filePath, size_t dataLen, std::unique_ptr<uint8_t[]>& data);
     static bool SplitAbsoluteFontPath(std::string& absolutePath);
 };
 } // namespace OHOS::Rosen

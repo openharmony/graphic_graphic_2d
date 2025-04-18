@@ -38,6 +38,7 @@ ohos_shared_library("text_engine_ani") {
   sources = [
     "./src/ani_font_collection.cpp",
     "./src/ani_paragraph.cpp",
+    "./src/ani_resource_parser.cpp",
     "./src/ani_text_manager.cpp",
     "./src/ani_text_utils.cpp",
   ]
@@ -56,6 +57,8 @@ ohos_shared_library("text_engine_ani") {
   ]
 
   external_deps = [
+    "ability_runtime:abilitykit_native",
+    "ability_runtime:app_context",
     "hilog:libhilog",
     "resource_management:global_resmgr",
     "runtime_core:ani",
