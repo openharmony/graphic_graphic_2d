@@ -706,10 +706,7 @@ void RSProfiler::RenderServiceTreeDump(JsonWriter& out, pid_t pid)
         rootNode = nullptr;
         auto& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
         nodeMap.TraversalNodes([&rootNode, pid](const std::shared_ptr<RSBaseRenderNode>& node) {
-            if (node == nullptr) {
-                return;
-            }
-            if (!node->GetSortedChildren()) {
+            if (!node || !node->GetSortedChildren()) {
                 return;
             }
             auto parentPtr = node->GetParent().lock();
@@ -729,6 +726,11 @@ void RSProfiler::RenderServiceTreeDump(JsonWriter& out, pid_t pid)
         Respond("rootNode not found");
         root.PushObject();
         root.PopObject();
+    }
+
+    if (g_context) {
+        auto& rootOffscreen = out["Offscreen node"];
+        DumpOffscreen(*g_context, rootOffscreen, useMockPid, pid);
     }
 }
 
@@ -1261,7 +1263,9 @@ void RSProfiler::DumpTreeToJson(const ArgList& args)
     json.PopObject();
     Network::SendRSTreeDumpJSON(json.GetDumpString());
 
-    Respond(json.GetDumpString());
+    if (args.String() != "NOLOG") {
+        Network::SendMessage(json.GetDumpString());
+    }
 }
 
 void RSProfiler::DumpSurfaces(const ArgList& args)

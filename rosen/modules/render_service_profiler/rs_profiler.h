@@ -345,8 +345,9 @@ private:
 
     // JSON
     static void RenderServiceTreeDump(JsonWriter& out, pid_t pid);
+    RSB_EXPORT static void DumpOffscreen(RSContext& context, JsonWriter& rootOffscreen, bool useMockPid, pid_t pid);
     RSB_EXPORT static void DumpNode(const RSRenderNode& node, JsonWriter& out,
-        bool clearMockFlag = false, bool absRoot = false);
+        bool clearMockFlag = false, bool absRoot = false, bool isSorted = true);
     RSB_EXPORT static void DumpNodeAbsoluteProperties(const RSRenderNode& node, JsonWriter& out);
     RSB_EXPORT static void DumpNodeAnimations(const RSAnimationManager& animationManager, JsonWriter& out);
     RSB_EXPORT static void DumpNodeAnimation(const RSRenderAnimation& animation, JsonWriter& out);
