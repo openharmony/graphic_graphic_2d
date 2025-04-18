@@ -2476,10 +2476,12 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
     }
 
     // children->size() is 1, the extended screen is not supported
-    if (children->size() == 1 && (!displayNode->GetHwcNodeIsVisible() || !BufferIsVisibleAndUpdate())) {
-        RS_TRACE_NAME("DoDirectComposition no hwcNode in visibleRegion");
+    // there is no hwcNode in visibleRegion or no Buffer is visible or need update
+    if (children->size() == 1 && (!displayNode->HasVisibleHwcNodes() || !ExitsBufferIsVisibleAndUpdate())) {
+        RS_TRACE_NAME("[%{public}s]: no hwcNode in visibleRegion", __func__);
         return true;
     }
+
 #ifdef RS_ENABLE_GPU
     auto processor = RSProcessorFactory::CreateProcessor(displayNode->GetCompositeType());
     auto renderEngine = GetRenderEngine();
@@ -2579,12 +2581,12 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
     return true;
 }
 
-bool RSMainThread::BufferIsVisibleAndUpdate()
+bool RSMainThread::ExitsBufferIsVisibleAndUpdate()
 {
     bool bufferNeedUpdate = false;
     for (auto& surfaceNode : hardwareEnabledNodes_) {
         if (surfaceNode == nullptr) {
-            RS_LOGE("DoDirectComposition: surfaceNode is null");
+            RS_LOGE("[%{public}s]: surfaceNode is null", __func__);
             continue;
         }
         if (surfaceNode->GetRSSurfaceHandler()->IsCurrentFrameBufferConsumed() &&
@@ -2605,10 +2607,10 @@ uint32_t RSMainThread::GetForceCommitReason() const
 {
     uint32_t forceCommitReason = 0;
     if (isHardwareEnabledBufferUpdated_) {
-        forceCommitReason |= ForceCommitReason::FORCED_BY_HWCUPDATE;
+        forceCommitReason |= ForceCommitReason::FORCED_BY_HWC_UPDATE;
     }
     if (forceUpdateUniRenderFlag_) {
-        forceCommitReason |= ForceCommitReason::FORCED_BY_UNIRENDERFLAG;
+        forceCommitReason |= ForceCommitReason::FORCED_BY_UNI_RENDER_FLAG;
     }
     return forceCommitReason;
 }

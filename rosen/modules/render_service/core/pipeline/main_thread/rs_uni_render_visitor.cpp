@@ -2239,7 +2239,7 @@ void RSUniRenderVisitor::UpdateIfHwcNodesHaveVisibleRegion(
     for (auto& nodePtr : curMainAndLeashSurfaces) {
         auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(nodePtr);
         if (!surfaceNode) {
-            RS_LOGE("UpdateSurfaceDirtyAndGlobalDirty surfaceNode is nullptr");
+            RS_LOGE("[%{public}s]: surfaceNode is nullptr", __func__);
             continue;
         }
         if (surfaceNode->GetVisibleRegion().IsEmpty()) {
@@ -2249,7 +2249,6 @@ void RSUniRenderVisitor::UpdateIfHwcNodesHaveVisibleRegion(
         if (hwcNodes.empty()) {
             continue;
         }
-
         UpdateHwcNodesIfVisibleForApp(surfaceNode, hwcNodes, hasVisibleHwcNodes, needForceUpdateHwcNodes);
         if (needForceUpdateHwcNodes) {
             break;
@@ -2276,7 +2275,6 @@ void RSUniRenderVisitor::UpdateHwcNodesIfVisibleForApp(std::shared_ptr<RSSurface
             hasVisibleHwcNodes = true;
             if (hwcNodePtr->GetRSSurfaceHandler()->IsCurrentFrameBufferConsumed()) {
                 needForceUpdateHwcNodes = true;
-                break;
             }
         } else {
             hwcNodePtr->SetLastFrameHasVisibleRegion(false); // invisible Region
@@ -3196,7 +3194,7 @@ void RSUniRenderVisitor::SetUniRenderThreadParam(std::unique_ptr<RSRenderThreadP
     renderThreadParams->hasDisplayHdrOn_ = hasDisplayHdrOn_;
     renderThreadParams->hasMirrorDisplay_ = hasMirrorDisplay_;
     if (RSPointerWindowManager::Instance().IsNeedForceCommitByPointer()) {
-        renderThreadParams->forceCommitReason_ |= ForceCommitReason::FORCED_BY_POINTERWINDOW;
+        renderThreadParams->forceCommitReason_ |= ForceCommitReason::FORCED_BY_POINTER_WINDOW;
     }
 }
 

@@ -53,9 +53,9 @@ struct HardCursorInfo {
 
 enum ForceCommitReason {
     NO_FORCE = 0,
-    FORCED_BY_UNIRENDERFLAG = 1,
-    FORCED_BY_HWCUPDATE = 1 << 1,
-    FORCED_BY_POINTERWINDOW = 1 << 2,
+    FORCED_BY_UNI_RENDER_FLAG = 1,
+    FORCED_BY_HWC_UPDATE = 1 << 1,
+    FORCED_BY_POINTER_WINDOW = 1 << 2,
 };
 
 class RSB_EXPORT RSRenderThreadParams {

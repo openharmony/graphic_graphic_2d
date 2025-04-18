@@ -337,10 +337,10 @@ void RSDisplayRenderNodeDrawable::RenderOverDraw()
 static inline bool IsForceCommit(uint32_t forceCommitReason, bool needForceUpdateHwcNode,
     bool hasHardCursor)
 {
-    return (forceCommitReason & ~(ForceCommitReason::FORCED_BY_HWCUPDATE |
-                                  ForceCommitReason::FORCED_BY_POINTERWINDOW)) ||
-           ((forceCommitReason & ForceCommitReason::FORCED_BY_HWCUPDATE) && needForceUpdateHwcNode) ||
-           ((forceCommitReason & ForceCommitReason::FORCED_BY_POINTERWINDOW) && !hasHardCursor);
+    return (forceCommitReason & ~(ForceCommitReason::FORCED_BY_HWC_UPDATE |
+                                  ForceCommitReason::FORCED_BY_POINTER_WINDOW)) ||
+           ((forceCommitReason & ForceCommitReason::FORCED_BY_HWC_UPDATE) && needForceUpdateHwcNode) ||
+           ((forceCommitReason & ForceCommitReason::FORCED_BY_POINTER_WINDOW) && !hasHardCursor);
 }
 
 bool RSDisplayRenderNodeDrawable::CheckDisplayNodeSkip(
