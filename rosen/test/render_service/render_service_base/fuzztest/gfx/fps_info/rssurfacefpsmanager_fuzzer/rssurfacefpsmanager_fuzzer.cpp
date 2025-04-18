@@ -87,6 +87,8 @@ bool RSSurfaceFpsManagerFuzzTest(const uint8_t* data, size_t size)
     std::string result = GetStringFromData(STR_LEN);
     std::string name = GetStringFromData(STR_LEN);
     std::string uname = GetStringFromData(STR_LEN);
+    std::string option = GetStringFromData(STR_LEN);
+    std::string arg = GetStringFromData(STR_LEN);
     NodeId id = GetData<NodeId>();
     NodeId uid = GetData<NodeId>();
     pid_t pid = GetData<pid_t>();
@@ -120,7 +122,8 @@ bool RSSurfaceFpsManagerFuzzTest(const uint8_t* data, size_t size)
     surfaceFpsManager.GetSurfaceFpsByPid(upid);
     surfaceFpsManager.UnregisterSurfaceFps(id);
     surfaceFpsManager.UnregisterSurfaceFps(uid);
-
+    surfaceFpsManager.DumpSurfaceNodeFps(result, option, arg);
+    surfaceFpsManager.ClearSurfaceNodeFps(result, option, arg);
     return true;
 }
 
