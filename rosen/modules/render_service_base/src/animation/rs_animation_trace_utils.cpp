@@ -135,6 +135,8 @@ void RSAnimationTraceUtils::addAnimationFinishTrace(
             ROSEN_LOGI("%{public}s node[%{public}" PRIu64 "] animate[%{public}" PRIu64 "]",
                 info.c_str(), nodeId, animationId);
         }
+    } else {
+        RS_TRACE_NAME_FMT("frame animation node[%llu]", nodeId);
     }
 }
 
@@ -163,6 +165,9 @@ void RSAnimationTraceUtils::addAnimationFrameTrace(const uint64_t nodeId, const 
         RS_TRACE_NAME_FMT("frame animation node[%llu] name[%s] pro[%llu] animate[%llu], fraction %f, value[%s], "
             "time[%lld], dur[%d], repeat[%d]", nodeId, nodeName.c_str(), propertyId, animationId, fraction,
             propertyValue.c_str(), time, dur, repeat);
+    } else {
+        RS_TRACE_NAME_FMT("frame animation node[%llu] name[%s]",
+            "dur[%d], repeat[%d]", nodeId, nodeName, c_str(), dur, repeat);
     }
 }
 
