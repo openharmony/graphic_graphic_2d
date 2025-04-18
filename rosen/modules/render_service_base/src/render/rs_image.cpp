@@ -408,6 +408,11 @@ Drawing::Matrix RSImage::GetFitMatrix() const
     return fitMatrix_.value();
 }
 
+std::shared_ptr<Drawing::Image> RSImage::GetImage() const
+{
+    return image_;
+}
+
 RectF RSImage::GetDstRect()
 {
     return dstRect_;

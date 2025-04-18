@@ -115,6 +115,10 @@ public:
             if (const auto& pixelMap = image_->GetPixelMap()) {
                 image_->SetDstRect(RectF(position_.x_, position_.y_, static_cast<float>(pixelMap->GetWidth()),
                     static_cast<float>(pixelMap->GetHeight())));
+            } else if (image_->GetImage()) {
+                auto drawImage = image_->GetImage();
+                image_->SetDstRect(RectF(position_.x_, position_.y_, static_cast<float>(drawImage->GetWidth()),
+                    static_cast<float>(drawImage->GetHeight())));
             }
         }
     }

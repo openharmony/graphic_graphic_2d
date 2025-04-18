@@ -103,7 +103,8 @@ void RSParticlesDrawable::CaculateImageAtlsArry(Drawing::Canvas& canvas,
         return;
     }
     auto pixelmap = image->GetPixelMap();
-    if (pixelmap == nullptr) {
+    auto drawImage = image->GetImage;
+    if (pixelmap == nullptr && drawImage == nullptr) {
         return;
     }
     auto imageIndex = particle->GetImageIndex();
@@ -124,10 +125,12 @@ void RSParticlesDrawable::CaculateImageAtlsArry(Drawing::Canvas& canvas,
         Color color = particle->GetColor();
         auto alpha = color.GetAlpha();
         color.SetAlpha(alpha * opacity);
+        auto width = pixelMap == nullptr ? drawImage->GetWidth() : pixelMap->GetWidth();
+        auto height = pixelMap == nullptr ? drawImage->GetHeight() : pixelMap->GetHeight();
         imageRsxform_[imageIndex].push_back(
-            MakeRSXform(Vector2f(pixelmap->GetWidth() / DOUBLE, pixelmap->GetHeight() / DOUBLE), position, spin,
-                image->GetDstRect().GetWidth() / pixelmap->GetWidth() * scale));
-        imageTex_[imageIndex].push_back(Drawing::Rect(0, 0, pixelmap->GetWidth(), pixelmap->GetHeight()));
+            MakeRSXform(Vector2f(width / DOUBLE, height / DOUBLE), position, spin,
+                image->GetDstRect().GetWidth() / width * scale));
+        imageTex_[imageIndex].push_back(Drawing::Rect(0, 0, width, height));
         imageColors_[imageIndex].push_back(Drawing::Color(color.AsArgbInt()).CastToColorQuad());
         count_[imageIndex]++;
     } else {
