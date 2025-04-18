@@ -94,6 +94,7 @@ public:
     void Init();
     void Start();
     bool IsNeedProcessBySingleFrameComposer(std::unique_ptr<RSTransactionData>& rsTransactionData);
+    void ChangeDirectCompositionFlag(bool isAnimateRequestNextVsync);
     void UpdateFocusNodeId(NodeId focusNodeId);
     void UpdateNeedDrawFocusChange(NodeId id);
     void ProcessDataBySingleFrameComposer(std::unique_ptr<RSTransactionData>& rsTransactionData);
@@ -766,6 +767,7 @@ private:
     bool isHardwareForcedDisabled_ = false; // if app node has shadow or filter, disable hardware composer for all
     bool doDirectComposition_ = true;
     bool isLastFrameDirectComposition_ = false;
+    bool lastNeedAnimateRequestNextVsync_ = false;
 
     // for client node tree dump
     struct NodeTreeDumpTask {
