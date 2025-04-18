@@ -715,8 +715,6 @@ ErrCode RSRenderServiceConnection::SetVirtualScreenTypeBlackList(
 {
     if (typeBlackListVector.empty()) {
         RS_LOGW("SetVirtualScreenTypeBlackList typeBlackList is empty.");
-        repCode = StatusCode::BLACKLIST_IS_EMPTY;
-        return ERR_INVALID_VALUE;
     }
     std::lock_guard<std::mutex> lock(mutex_);
     if (!screenManager_) {
