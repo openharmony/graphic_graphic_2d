@@ -20,6 +20,7 @@
 #include "common/rs_optional_trace.h"
 #include "drawable/rs_property_drawable_utils.h"
 #include "gfx/performance/rs_perfmonitor_reporter.h"
+#include "memory/rs_tag_tracker.h"
 #include "pipeline/rs_recording_canvas.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
@@ -53,6 +54,10 @@ Drawing::RecordingCanvas::DrawFunc RSPropertyDrawable::CreateDrawFunc() const
 {
     auto ptr = std::static_pointer_cast<const RSPropertyDrawable>(shared_from_this());
     return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
+#ifdef RS_ENABLE_GPU
+        RSTagTracker tagTracker(canvas ? canvas->GetGPUContext().get() : nullptr,
+            RSTagTracker::SOURCETYPE::SOURCE_RSPROPERTYDRAWABLE);
+#endif
         ptr->drawCmdList_->Playback(*canvas);
         if (!ptr->propertyDescription_.empty()) {
             RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(TRACE_LEVEL_TWO, "RSPropertyDrawable:: %s, bounds:%s",
@@ -223,6 +228,10 @@ Drawing::RecordingCanvas::DrawFunc RSFilterDrawable::CreateDrawFunc() const
 {
     auto ptr = std::static_pointer_cast<const RSFilterDrawable>(shared_from_this());
     return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
+#ifdef RS_ENABLE_GPU
+        RSTagTracker tagTracker(canvas ? canvas->GetGPUContext().get() : nullptr,
+            RSTagTracker::SOURCETYPE::SOURCE_RSFILTERDRAWABLE);
+#endif
         if (ptr->needDrawBehindWindow_) {
             if (!canvas->GetSurface()) {
                 RS_LOGE("RSFilterDrawable::CreateDrawFunc DrawBehindWindow surface is nullptr");

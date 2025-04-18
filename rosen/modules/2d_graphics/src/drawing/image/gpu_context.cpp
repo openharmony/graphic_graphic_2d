@@ -203,6 +203,11 @@ void GPUContext::SetCurrentGpuResourceTag(const GPUResourceTag &tag)
     impl_->SetCurrentGpuResourceTag(tag);
 }
 
+GPUResourceTag GPUContext::GetCurrentGpuResourceTag() const
+{
+    return impl_->GetCurrentGpuResourceTag();
+}
+
 void GPUContext::GetUpdatedMemoryMap(std::unordered_map<pid_t, size_t> &out)
 {
     impl_->GetUpdatedMemoryMap(out);

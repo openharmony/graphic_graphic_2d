@@ -35,6 +35,25 @@ RSTagTracker::RSTagTracker(Drawing::GPUContext* gpuContext, RSTagTracker::TAGTYP
 #endif
 }
 
+RSTagTracker::RSTagTracker(Drawing::GPUContext* gpuContext,
+    RSTagTracker::SOURCETYPE sourceType) : gpuContext_(gpuContext)
+{
+    if (!gpuContext_) {
+        return;
+    }
+    if (!g_releaseResourceEnabled_) {
+        return;
+    }
+#if defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK)
+    Drawing::GPUResourceTag tag = gpuContext_->GetCurrentGpuResourceTag();
+    if (tag.fFid == 0) {
+        ROSEN_LOGE("RSTagTracker::RSTagTracker GpuResourceTag is Empty, sourceType is %{public}d", sourceType);
+    }
+    tag.fSid = sourceType;
+    gpuContext_->SetCurrentGpuResourceTag(tag);
+#endif
+}
+
 void RSTagTracker::UpdateReleaseResourceEnabled(bool releaseResEnabled)
 {
     g_releaseResourceEnabled_ = releaseResEnabled;

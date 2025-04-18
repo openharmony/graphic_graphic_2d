@@ -285,7 +285,7 @@ void SkiaGPUContext::PurgeUnlockedResourcesByTag(bool scratchResourcesOnly, cons
         LOGD("SkiaGPUContext::PurgeUnlockedResourcesByTag, grContext_ is nullptr");
         return;
     }
-    GrGpuResourceTag grTag(tag.fPid, tag.fTid, tag.fWid, tag.fFid, tag.fName);
+    GrGpuResourceTag grTag(tag.fPid, tag.fTid, tag.fWid, tag.fFid, tag.fSid, tag.fName);
     grContext_->purgeUnlockedResourcesByTag(scratchResourcesOnly, grTag);
 }
 
@@ -332,7 +332,7 @@ void SkiaGPUContext::ReleaseByTag(const GPUResourceTag &tag)
         LOGD("SkiaGPUContext::ReleaseByTag, grContext_ is nullptr");
         return;
     }
-    GrGpuResourceTag grTag(tag.fPid, tag.fTid, tag.fWid, tag.fFid, tag.fName);
+    GrGpuResourceTag grTag(tag.fPid, tag.fTid, tag.fWid, tag.fFid, tag.fSid, tag.fName);
     grContext_->releaseByTag(grTag);
 }
 
@@ -361,7 +361,7 @@ void SkiaGPUContext::DumpMemoryStatisticsByTag(TraceMemoryDump* traceMemoryDump,
         LOGD("SkiaGPUContext::DumpMemoryStatisticsByTag, sktraceMemoryDump is nullptr");
         return;
     }
-    GrGpuResourceTag grTag(tag.fPid, tag.fTid, tag.fWid, tag.fFid, tag.fName);
+    GrGpuResourceTag grTag(tag.fPid, tag.fTid, tag.fWid, tag.fFid, tag.fSid, tag.fName);
     grContext_->dumpMemoryStatisticsByTag(skTraceMemoryDump, grTag);
 }
 
@@ -387,11 +387,22 @@ void SkiaGPUContext::DumpMemoryStatistics(TraceMemoryDump* traceMemoryDump)
 void SkiaGPUContext::SetCurrentGpuResourceTag(const GPUResourceTag &tag)
 {
     if (!grContext_) {
-        LOGD("SkiaGPUContext::ReleaseByTag, grContext_ is nullptr");
+        LOGD("SkiaGPUContext::SetCurrentGpuResourceTag, grContext_ is nullptr");
         return;
     }
-    GrGpuResourceTag grTag(tag.fPid, tag.fTid, tag.fWid, tag.fFid, tag.fName);
+    GrGpuResourceTag grTag(tag.fPid, tag.fTid, tag.fWid, tag.fFid, tag.fSid, tag.fName);
     grContext_->setCurrentGrResourceTag(grTag);
+}
+
+GPUResourceTag SkiaGPUContext::GetCurrentGpuResourceTag() const
+{
+    if (!grContext_) {
+        LOGD("SkiaGPUContext::GetCurrentGpuResourceTag, grContext_ is nullptr");
+        return {};
+    }
+    GrGpuResourceTag grTag = grContext_->getCurrentGrResourceTag();
+    GPUResourceTag tag(grTag.fPid, grTag.fTid, grTag.fWid, grTag.fFid, grTag.fName);
+    return tag;
 }
 
 sk_sp<GrDirectContext> SkiaGPUContext::GetGrContext() const
