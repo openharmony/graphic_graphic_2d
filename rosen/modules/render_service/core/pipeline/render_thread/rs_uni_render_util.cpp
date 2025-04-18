@@ -1937,7 +1937,7 @@ void RSUniRenderUtil::OptimizedFlushAndSubmit(std::shared_ptr<Drawing::Surface>&
 #ifndef ENABLE_M133_SKIA
         backendSemaphore.initVulkan(semaphore);
 #else
-        backendSemaphore = GrBackendSemaphore::MakeVk(semaphore);
+        backendSemaphore = GrBackendSemaphores::MakeVk(semaphore);
 #endif
 
         DestroySemaphoreInfo* destroyInfo =

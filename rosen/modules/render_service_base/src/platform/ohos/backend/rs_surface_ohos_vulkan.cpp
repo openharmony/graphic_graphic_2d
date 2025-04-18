@@ -300,7 +300,7 @@ bool RSSurfaceOhosVulkan::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uin
 #ifndef ENABLE_M133_SKIA
     backendSemaphore.initVulkan(semaphore);
 #else
-    backendSemaphore = GrBackendSemaphore::MakeVk(semaphore);
+    backendSemaphore = GrBackendSemaphores::MakeVk(semaphore);
 #endif
 
     if (mSurfaceMap.find(mSurfaceList.front()) == mSurfaceMap.end()) {
