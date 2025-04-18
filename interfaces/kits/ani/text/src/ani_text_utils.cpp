@@ -15,6 +15,9 @@
 
 #include "ani_text_utils.h"
 
+#include <fstream>
+#include <sstream>
+
 namespace OHOS::Rosen {
 
 ani_object AniTextUtils::CreateAniUndefined(ani_env* env)
@@ -61,5 +64,63 @@ ani_object AniTextUtils::CreateAniArray(ani_env* env, size_t size)
         return CreateAniUndefined(env);
     }
     return arrayObj;
+}
+
+std::string AniTextUtils::AniToStdStringUtf8(ani_env* env, ani_string str)
+{
+    ani_size strSize;
+    if (ANI_OK != env->String_GetUTF8Size(str, &strSize)) {
+        TEXT_LOGE("[ANI] String_GetUTF8Size Failed");
+        return "";
+    }
+
+    std::vector<char> buffer(strSize + 1);
+    char* utf8Buffer = buffer.data();
+
+    ani_size bytesWritten = 0;
+    if (ANI_OK != env->String_GetUTF8(str, utf8Buffer, strSize + 1, &bytesWritten)) {
+        TEXT_LOGE("[ANI] String_GetUTF8 Failed");
+        return "";
+    }
+
+    utf8Buffer[bytesWritten] = '\0';
+    std::string content = std::string(utf8Buffer);
+    return content;
+}
+
+bool AniTextUtils::ReadFile(const std::string& filePath, std::string& data)
+{
+    char realPath[PATH_MAX] = { 0 };
+    if (realpath(filePath.c_str(), realPath) == nullptr) {
+        TEXT_LOGE("Invalid filePath %{public}s", filePath.c_str());
+        return false;
+    }
+
+    std::ifstream file(realPath);
+    if (!file.is_open()) {
+        TEXT_LOGE("Failed to open file:%{public}s", filePath.c_str());
+        return false;
+    }
+    std::stringstream buffer;
+    buffer << file.rdbuf();
+    data = buffer.str();
+    return true;
+}
+
+bool AniTextUtils::SplitAbsoluteFontPath(std::string& absolutePath)
+{
+    auto iter = absolutePath.find_first_of(':');
+    if (iter == std::string::npos) {
+        TEXT_LOGE("Failed to find separator in path:%{public}s", absolutePath.c_str());
+        return false;
+    }
+    std::string head = absolutePath.substr(0, iter);
+    if ((head == "file" && absolutePath.size() > sizeof("file://") - 1)) {
+        absolutePath = absolutePath.substr(iter + 3); // 3 means skip "://"
+        // the file format is like "file://system/fonts...",
+        return true;
+    }
+
+    return false;
 }
 } // namespace OHOS::Rosen

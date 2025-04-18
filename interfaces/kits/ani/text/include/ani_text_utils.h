@@ -24,6 +24,7 @@
 #include "utils/text_log.h"
 
 namespace OHOS::Rosen {
+constexpr const char* NATIVE_OBJ = "nativeObj";
 class AniTextUtils {
 public:
     template<typename T>
@@ -31,7 +32,7 @@ public:
     {
         ani_status ret;
         ani_long nativeObj {};
-        if ((ret = env->Object_GetFieldByName_Long(obj, "nativeObj", &nativeObj)) != ANI_OK) {
+        if ((ret = env->Object_GetFieldByName_Long(obj, NATIVE_OBJ, &nativeObj)) != ANI_OK) {
             TEXT_LOGE("[ANI] Object_GetField_Long fetch failed");
             return nullptr;
         }
@@ -45,6 +46,9 @@ public:
     static ani_object CreateAniUndefined(ani_env* env);
     static ani_object CreateAniObject(ani_env* env, const std::string name, const char* signature);
     static ani_object CreateAniArray(ani_env* env, size_t size);
+    static std::string AniToStdStringUtf8(ani_env* env, ani_string str);
+    static bool ReadFile(const std::string& filePath, std::string& data);
+    static bool SplitAbsoluteFontPath(std::string& absolutePath);
 };
 } // namespace OHOS::Rosen
 

@@ -25,15 +25,23 @@
 
 namespace OHOS::Rosen {
 namespace {
-const char* ANI_CLASS_FONT_COLLECTION = "L@ohos/graphics/text/text/FontCollection;";
+constexpr const char* ANI_CLASS_FONT_COLLECTION = "L@ohos/graphics/text/text/FontCollection;";
 } // namespace
 
-AniFontCollection::AniFontCollection() {}
+AniFontCollection::AniFontCollection()
+{
+    fontCollection_ = FontCollection::From(nullptr);
+}
+
+AniFontCollection::AniFontCollection(std::shared_ptr<FontCollection> fc)
+{
+    fontCollection_ = fc;
+}
 
 void AniFontCollection::Constructor(ani_env* env, ani_object object)
 {
     AniFontCollection* aniFontCollection = new AniFontCollection();
-    if (ANI_OK != env->Object_SetFieldByName_Long(object, "nativeObj", reinterpret_cast<ani_long>(aniFontCollection))) {
+    if (ANI_OK != env->Object_SetFieldByName_Long(object, NATIVE_OBJ, reinterpret_cast<ani_long>(aniFontCollection))) {
         TEXT_LOGE("Failed to create ani FontCollection obj");
         return;
     }
@@ -41,17 +49,60 @@ void AniFontCollection::Constructor(ani_env* env, ani_object object)
 
 ani_object AniFontCollection::GetGlobalInstance(ani_env* env, ani_class cls)
 {
-    return ani_object {};
+    static AniFontCollection aniFontCollection = AniFontCollection(FontCollection::Create());
+
+    ani_object obj = AniTextUtils::CreateAniObject(env, ANI_CLASS_FONT_COLLECTION, ":V");
+
+    if (ANI_OK != env->Object_SetFieldByName_Long(obj, NATIVE_OBJ, reinterpret_cast<ani_long>(&aniFontCollection))) {
+        TEXT_LOGE("Failed to create ani FontCollection obj");
+    }
+    return obj;
 }
 
 void AniFontCollection::LoadFontSync(ani_env* env, ani_object obj, ani_string name, ani_object path)
 {
-    TEXT_LOGD("[ANI] %{public}s", __func__);
+    std::string familyName = AniTextUtils::AniToStdStringUtf8(env, name);
+    auto aniFontCollection = AniTextUtils::GetNativeFromObj<AniFontCollection>(env, obj);
+    if (aniFontCollection == nullptr || aniFontCollection->fontCollection_ == nullptr) {
+        TEXT_LOGE("Null font collection");
+        return;
+    }
+
+    ani_class stringClass;
+    env->FindClass("Lstd/core/String;", &stringClass);
+    ani_boolean isString = false;
+    env->Object_InstanceOf(path, stringClass, &isString);
+
+    if (isString) {
+        std::string pathStr = AniTextUtils::AniToStdStringUtf8(env, static_cast<ani_string>(path));
+        std::string data;
+        if (!AniTextUtils::SplitAbsoluteFontPath(pathStr) || !AniTextUtils::ReadFile(pathStr, data)) {
+            TEXT_LOGE("Failed to split absolute font path");
+            return;
+        }
+        aniFontCollection->fontCollection_->LoadFont(
+            familyName, reinterpret_cast<const uint8_t*>(data.data()), data.size());
+        return;
+    }
+
+    ani_class resourceClass;
+    env->FindClass("Lglobal/resource/Resource", &resourceClass);
+    ani_boolean isResource = false;
+    env->Object_InstanceOf(path, resourceClass, &isResource);
+
+    if (isResource) {
+        return;
+    }
 }
 
 void AniFontCollection::ClearCaches(ani_env* env, ani_object obj)
 {
-    TEXT_LOGD("[ANI] %{public}s", __func__);
+    auto aniFontCollection = AniTextUtils::GetNativeFromObj<AniFontCollection>(env, obj);
+    if (aniFontCollection == nullptr || aniFontCollection->fontCollection_ == nullptr) {
+        TEXT_LOGE("Null font collection");
+        return;
+    }
+    aniFontCollection->fontCollection_->ClearCaches();
 }
 
 ani_status AniFontCollection::AniInit(ani_vm* vm, uint32_t* result)
