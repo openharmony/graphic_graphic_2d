@@ -3504,7 +3504,7 @@ void RSMainThread::Animate(uint64_t timestamp)
 
 void RSMainThread::ChangeDirectCompositionFlag(bool needAnimateRequestNextVsync)
 {
-    // if the animation is running or it's on the last frame of the animation, then change the doDirectComposition_ flag 
+    // if the animation is running or it's on the last frame of the animation, then change the doDirectComposition_ flag
     // to false.
     if (needAnimateRequestNextVsync || (!needAnimateRequestNextVsync && lastNeedAnimateRequestNextVsync_)) {
         doDirectComposition_ = false;
