@@ -173,7 +173,6 @@ static std::unordered_map<RSModifierType, ModifierUnmarshallingFunc> funcLUT = {
     { RSModifierType::COMPLEX_SHADER_PARAM, [](Parcel& parcel) -> RSRenderModifier* {
         std::shared_ptr<RSRenderAnimatableProperty<std::vector<float>>> prop;
         if (!RSMarshallingHelper::Unmarshalling(parcel, prop)) {
-            ROSEN_LOGE("RSModifierType::COMPLEX_SHADER_PARAM Unmarshalling failed");
             return nullptr;
         }
         auto modifier = new RSComplexShaderParamRenderModifier(prop);
@@ -459,7 +458,6 @@ bool RSBehindWindowFilterMaskColorRenderModifier::Marshalling(Parcel& parcel)
 void RSComplexShaderParamRenderModifier::Apply(RSModifierContext& context) const
 {
     auto renderProperty = std::static_pointer_cast<RSRenderAnimatableProperty<std::vector<float>>>(property_);
-        ROSEN_LOGE("RSComplexShaderParamRenderModifier::Apply antong");
         context.properties_.SetComplexShaderParam(
             Add(context.properties_.GetComplexShaderParam().value_or(std::vector<float>()), renderProperty->Get()));
 }
@@ -478,9 +476,6 @@ bool RSComplexShaderParamRenderModifier::Marshalling(Parcel& parcel)
     auto renderProperty = std::static_pointer_cast<RSRenderAnimatableProperty<std::vector<float>>>(property_);
     bool flag = parcel.WriteInt16(static_cast<int16_t>(RSModifierType::COMPLEX_SHADER_PARAM)) &&
         RSMarshallingHelper::Marshalling(parcel, renderProperty);
-    if (!flag) {
-        ROSEN_LOGE("RSComplexShaderParamRenderModifier::Marshalling failed");
-    }
     return flag;
 }
 

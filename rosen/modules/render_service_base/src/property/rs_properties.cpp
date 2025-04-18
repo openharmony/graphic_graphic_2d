@@ -209,6 +209,7 @@ constexpr static std::array<ResetPropertyFunc, static_cast<int>(RSModifierType::
     [](RSProperties* prop) { prop->SetFgBlurDisableSystemAdaptation(true); }, // FG_BLUR_DISABLE_SYSTEM_ADAPTATION
     [](RSProperties* prop) { prop->SetAttractionFraction(0.f); },        // ATTRACTION_FRACTION
     [](RSProperties* prop) { prop->SetAttractionDstPoint({}); },         // ATTRACTION_DSTPOINT
+    [](RSProperties* prop) { prop->SetComplexShaderParam({}); },         // COMPLEX_SHADER_PARAM
 };
 
 // Check if g_propertyResetterLUT size match and is fully initialized (the last element should never be nullptr)
@@ -1046,6 +1047,21 @@ float RSProperties::GetBackgroundShaderProgress() const
     return decoration_ ? decoration_->bgShaderProgress_ : -1.f;
 }
 
+void RSProperties::SetComplexShaderParam(const std::vector<float> &param)
+{
+    complexShaderParam_ = param;
+    if (!param.empty()) {
+        isDrawn_ = true;
+    }
+    bgShaderNeedUpdate_ = true;
+    SetDirty();
+    contentDirty_ = true;
+}
+ 
+std::optional<std::vector<float>> RSProperties::GetComplexShaderParam() const
+{
+    return complexShaderParam_;
+}
 
 void RSProperties::SetBgImage(const std::shared_ptr<RSImage>& image)
 {
@@ -4583,6 +4599,11 @@ void RSProperties::UpdateBackgroundShader()
     bgShaderNeedUpdate_ = false;
     const auto& bgShader = GetBackgroundShader();
     if (bgShader) {
+        const auto &param = GetComplexShaderParam();
+        if (param.has_value()) {
+            const auto &paramValue = param.value();
+            bgShader->MakeDrawingShader(GetBoundsRect(), paramValue);
+        }
         bgShader->MakeDrawingShader(GetBoundsRect(), GetBackgroundShaderProgress());
     }
 }
