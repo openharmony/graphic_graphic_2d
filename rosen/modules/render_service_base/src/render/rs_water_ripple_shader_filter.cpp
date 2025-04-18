@@ -34,11 +34,19 @@ RSWaterRippleShaderFilter::RSWaterRippleShaderFilter(
     rippleCenterX_ = rippleCenterX;
     rippleCenterY_ = rippleCenterY;
     rippleMode_ = rippleMode;
+#ifndef ENABLE_M133_SKIA
     hash_ = SkOpts::hash(&progress_, sizeof(progress_), hash_);
     hash_ = SkOpts::hash(&waveCount_, sizeof(waveCount_), hash_);
     hash_ = SkOpts::hash(&rippleCenterX_, sizeof(rippleCenterX_), hash_);
     hash_ = SkOpts::hash(&rippleCenterY_, sizeof(rippleCenterY_), hash_);
     hash_ = SkOpts::hash(&rippleMode_, sizeof(rippleMode_), hash_);
+#else
+    hash_ = SkChecksum::Hash32(&progress_, sizeof(progress_), hash_);
+    hash_ = SkChecksum::Hash32(&waveCount_, sizeof(waveCount_), hash_);
+    hash_ = SkChecksum::Hash32(&rippleCenterX_, sizeof(rippleCenterX_), hash_);
+    hash_ = SkChecksum::Hash32h(&rippleCenterY_, sizeof(rippleCenterY_), hash_);
+    hash_ = SkChecksum::Hash32(&rippleMode_, sizeof(rippleMode_), hash_);
+#endif
 }
  
 RSWaterRippleShaderFilter::~RSWaterRippleShaderFilter() = default;

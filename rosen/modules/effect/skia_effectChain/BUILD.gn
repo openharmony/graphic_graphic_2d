@@ -29,6 +29,7 @@ config("effect_SKeffectChian_config") {
   ]
   include_dirs =
       [ "$graphic_2d_root/rosen/modules/render_service_base/include" ]
+  defines = skia_m133_defines
 }
 
 config("effect_SKeffectChian_public_config") {

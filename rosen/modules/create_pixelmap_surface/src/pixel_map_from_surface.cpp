@@ -719,8 +719,13 @@ bool PixelMapFromSurface::DrawImage(GrRecordingContext *context,
     if (backendTexturePtr == nullptr) {
         return false;
     }
+#ifndef ENABLE_M133_SKIA
     sk_sp<SkImage> image = SkImage::MakeFromTexture(context, *backendTexturePtr,
         kTopLeft_GrSurfaceOrigin, colorType, kPremul_SkAlphaType, nullptr);
+#else
+    sk_sp<SkImage> image = SkImage::BorrowTextureFrom(context, *backendTexturePtr,
+        kTopLeft_GrSurfaceOrigin, colorType, kPremul_SkAlphaType, nullptr);
+#endif
     if (image == nullptr) {
         RS_LOGE("make skImage fail");
         return false;

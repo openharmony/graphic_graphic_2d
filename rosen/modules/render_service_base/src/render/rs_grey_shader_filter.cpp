@@ -23,8 +23,13 @@ RSGreyShaderFilter::RSGreyShaderFilter(float greyCoefLow, float greyCoefHigh)
     : greyCoefLow_(greyCoefLow), greyCoefHigh_(greyCoefHigh)
 {
     type_ = ShaderFilterType::GREY;
+#ifndef ENABLE_M133_SKIA
     hash_ = SkOpts::hash(&greyCoefLow_, sizeof(greyCoefLow_), hash_);
     hash_ = SkOpts::hash(&greyCoefHigh_, sizeof(greyCoefHigh_), hash_);
+#else
+    hash_ = SkChecksum::Hash32(&greyCoefLow_, sizeof(greyCoefLow_), hash_);
+    hash_ = SkChecksum::Hash32(&greyCoefHigh_, sizeof(greyCoefHigh_), hash_);
+#endif
 }
 
 RSGreyShaderFilter::~RSGreyShaderFilter() {};

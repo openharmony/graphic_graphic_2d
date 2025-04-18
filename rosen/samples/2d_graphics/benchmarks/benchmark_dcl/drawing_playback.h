@@ -50,7 +50,11 @@ public:
 private:
     uint16_t curFrameNum_ = 0;
     std::string fPath_;
+#ifndef ENABLE_M133_SKIA
     mutable SkTArray<SkDocumentPage> fPages_;
+#else
+    mutable TArray<SkDocumentPage> fPages_;
+#endif
 };
 
 class DrawingDCL : public BenchMark {

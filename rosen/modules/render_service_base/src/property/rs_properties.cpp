@@ -2989,7 +2989,11 @@ void RSProperties::GenerateBackgroundBlurFilter()
 {
     std::shared_ptr<Drawing::ImageFilter> blurFilter = Drawing::ImageFilter::CreateBlurImageFilter(
         backgroundBlurRadiusX_, backgroundBlurRadiusY_, Drawing::TileMode::CLAMP, nullptr);
+#ifndef ENABLE_M133_SKIA
     uint32_t hash = SkOpts::hash(&backgroundBlurRadiusX_, sizeof(backgroundBlurRadiusX_), 0);
+#else
+    uint32_t hash = SkChecksum::Hash32(&backgroundBlurRadiusX_, sizeof(backgroundBlurRadiusX_), 0);
+#endif
     std::shared_ptr<RSDrawingFilter> originalFilter = nullptr;
 
     if (NeedLightBlur(bgBlurDisableSystemAdaptation)) {
@@ -3048,9 +3052,15 @@ void RSProperties::GenerateBackgroundMaterialBlurFilter()
     float radiusForHash = DecreasePrecision(backgroundBlurRadius_);
     float saturationForHash = DecreasePrecision(backgroundBlurSaturation_);
     float brightnessForHash = DecreasePrecision(backgroundBlurBrightness_);
+#ifndef ENABLE_M133_SKIA
     uint32_t hash = SkOpts::hash(&radiusForHash, sizeof(radiusForHash), 0);
     hash = SkOpts::hash(&saturationForHash, sizeof(saturationForHash), hash);
     hash = SkOpts::hash(&brightnessForHash, sizeof(brightnessForHash), hash);
+#else
+    uint32_t hash = SkChecksum::Hash32(&radiusForHash, sizeof(radiusForHash), 0);
+    hash = SkChecksum::Hash32(&saturationForHash, sizeof(saturationForHash), hash);
+    hash = SkChecksum::Hash32(&brightnessForHash, sizeof(brightnessForHash), hash);
+#endif
 
     std::shared_ptr<Drawing::ColorFilter> colorFilter = GetMaterialColorFilter(
         backgroundBlurSaturation_, backgroundBlurBrightness_);
@@ -3106,7 +3116,11 @@ void RSProperties::GenerateForegroundBlurFilter()
 
     std::shared_ptr<Drawing::ImageFilter> blurFilter = Drawing::ImageFilter::CreateBlurImageFilter(
         foregroundBlurRadiusX_, foregroundBlurRadiusY_, Drawing::TileMode::CLAMP, nullptr);
+#ifndef ENABLE_M133_SKIA
     uint32_t hash = SkOpts::hash(&foregroundBlurRadiusX_, sizeof(foregroundBlurRadiusX_), 0);
+#else
+    uint32_t hash = SkChecksum::Hash32(&foregroundBlurRadiusX_, sizeof(foregroundBlurRadiusX_), 0);
+#endif
     std::shared_ptr<RSDrawingFilter> originalFilter = nullptr;
 
     // fuse grey-adjustment and pixel-stretch with blur filter
@@ -3155,7 +3169,11 @@ void RSProperties::GenerateForegroundMaterialBlurFilter()
     if (foregroundColorMode_ == BLUR_COLOR_MODE::FASTAVERAGE) {
         foregroundColorMode_ = BLUR_COLOR_MODE::AVERAGE;
     }
+#ifndef ENABLE_M133_SKIA
     uint32_t hash = SkOpts::hash(&foregroundBlurRadius_, sizeof(foregroundBlurRadius_), 0);
+#else
+    uint32_t hash = SkChecksum::Hash32(&foregroundBlurRadius_, sizeof(foregroundBlurRadius_), 0);
+#endif
     std::shared_ptr<Drawing::ColorFilter> colorFilter = GetMaterialColorFilter(
         foregroundBlurSaturation_, foregroundBlurBrightness_);
     if (NeedLightBlur(fgBlurDisableSystemAdaptation)) {
@@ -3188,8 +3206,13 @@ void RSProperties::GenerateForegroundMaterialBlurFilter()
             originalFilter->Compose(colorImageFilter, hash) : std::make_shared<RSDrawingFilter>(colorImageFilter, hash);
         originalFilter = originalFilter->Compose(std::static_pointer_cast<RSShaderFilter>(kawaseBlurFilter));
     } else {
+#ifndef ENABLE_M133_SKIA
         hash = SkOpts::hash(&foregroundBlurSaturation_, sizeof(foregroundBlurSaturation_), hash);
         hash = SkOpts::hash(&foregroundBlurBrightness_, sizeof(foregroundBlurBrightness_), hash);
+#else
+        hash = SkChecksum::Hash32(&foregroundBlurSaturation_, sizeof(foregroundBlurSaturation_), hash);
+        hash = SkChecksum::Hash32(&foregroundBlurBrightness_, sizeof(foregroundBlurBrightness_), hash);
+#endif
         originalFilter = originalFilter?
             originalFilter->Compose(blurColorFilter, hash) : std::make_shared<RSDrawingFilter>(blurColorFilter, hash);
     }
@@ -3214,7 +3237,11 @@ void RSProperties::GenerateBackgroundMaterialFuzedBlurFilter()
         mesaBlurShaderFilter = std::make_shared<RSMESABlurShaderFilter>(backgroundBlurRadius_);
     }
     originalFilter = std::make_shared<RSDrawingFilter>(mesaBlurShaderFilter);
+#ifndef ENABLE_M133_SKIA
     uint32_t hash = SkOpts::hash(&backgroundBlurRadius_, sizeof(backgroundBlurRadius_), 0);
+#else
+    uint32_t hash = SkChecksum::Hash32(&backgroundBlurRadius_, sizeof(backgroundBlurRadius_), 0);
+#endif
     std::shared_ptr<Drawing::ColorFilter> colorFilter = GetMaterialColorFilter(
         backgroundBlurSaturation_, backgroundBlurBrightness_);
     auto colorImageFilter = Drawing::ImageFilter::CreateColorFilterImageFilter(*colorFilter, nullptr);
@@ -3238,7 +3265,11 @@ void RSProperties::GenerateCompositingMaterialFuzedBlurFilter()
         mesaBlurShaderFilter = std::make_shared<RSMESABlurShaderFilter>(foregroundBlurRadius_);
     }
     originalFilter = std::make_shared<RSDrawingFilter>(mesaBlurShaderFilter);
+#ifndef ENABLE_M133_SKIA
     uint32_t hash = SkOpts::hash(&foregroundBlurRadius_, sizeof(foregroundBlurRadius_), 0);
+#else
+    uint32_t hash = SkChecksum::Hash32(&foregroundBlurRadius_, sizeof(foregroundBlurRadius_), 0);
+#endif
     std::shared_ptr<Drawing::ColorFilter> colorFilter = GetMaterialColorFilter(
         foregroundBlurSaturation_, foregroundBlurBrightness_);
     auto colorImageFilter = Drawing::ImageFilter::CreateColorFilterImageFilter(*colorFilter, nullptr);
@@ -3265,7 +3296,11 @@ void RSProperties::GenerateAIBarFilter()
             std::make_shared<RSKawaseBlurShaderFilter>(aiBarRadius);
         originalFilter = originalFilter->Compose(std::static_pointer_cast<RSShaderFilter>(kawaseBlurFilter));
     } else {
+#ifndef ENABLE_M133_SKIA
         uint32_t hash = SkOpts::hash(&aiBarRadius, sizeof(aiBarRadius), 0);
+#else
+        uint32_t hash = SkChecksum::Hash32(&aiBarRadius, sizeof(aiBarRadius), 0);
+#endif
         originalFilter = originalFilter->Compose(blurFilter, hash);
     }
     backgroundFilter_ = originalFilter;

@@ -27,7 +27,11 @@ RSMagnifierShaderFilter::RSMagnifierShaderFilter(const std::shared_ptr<RSMagnifi
     : magnifierPara_(para)
 {
     type_ = ShaderFilterType::MAGNIFIER;
+#ifndef ENABLE_M133_SKIA
     hash_ = SkOpts::hash(&magnifierPara_, sizeof(magnifierPara_), hash_);
+#else
+    hash_ = SkChecksum::Hash32(&magnifierPara_, sizeof(magnifierPara_), hash_);
+#endif
 }
 
 RSMagnifierShaderFilter::~RSMagnifierShaderFilter() = default;

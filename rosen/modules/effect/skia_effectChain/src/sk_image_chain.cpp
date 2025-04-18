@@ -133,7 +133,11 @@ bool SKImageChain::CreateGPUCanvas()
 #else
     sk_sp<GrContext> grContext(GrContext::MakeGL(std::move(glInterface)));
 #endif
+#ifndef ENABLE_M133_SKIA
     gpuSurface_ = SkSurface::MakeRenderTarget(grContext.get(), SkBudgeted::kNo, imageInfo_);
+#else
+    gpuSurface_ = SkSurface::MakeRenderTarget(grContext.get(), skgpu::Budgeted::kNo, imageInfo_);
+#endif
     if (!gpuSurface_) {
         LOGE("Failed to create surface for GPU.");
         return false;

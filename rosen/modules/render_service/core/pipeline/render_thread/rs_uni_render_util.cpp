@@ -1934,7 +1934,11 @@ void RSUniRenderUtil::OptimizedFlushAndSubmit(std::shared_ptr<Drawing::Surface>&
         VkSemaphore semaphore;
         vkContext.vkCreateSemaphore(vkContext.GetDevice(), &semaphoreInfo, nullptr, &semaphore);
         GrBackendSemaphore backendSemaphore;
+#ifndef ENABLE_M133_SKIA
         backendSemaphore.initVulkan(semaphore);
+#else
+        backendSemaphore = GrBackendSemaphore::MakeVk(semaphore);
+#endif
 
         DestroySemaphoreInfo* destroyInfo =
             new DestroySemaphoreInfo(vkContext.vkDestroySemaphore, vkContext.GetDevice(), semaphore);

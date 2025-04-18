@@ -35,8 +35,13 @@ RSMotionBlurFilter::RSMotionBlurFilter(const std::shared_ptr<MotionBlurParam>& p
     : RSDrawingFilterOriginal(nullptr), motionBlurPara_(para)
 {
     type_ = FilterType::MOTION_BLUR;
+#ifndef ENABLE_M133_SKIA
     hash_ = SkOpts::hash(&type_, sizeof(type_), 0);
     hash_ = SkOpts::hash(&motionBlurPara_, sizeof(motionBlurPara_), hash_);
+#else
+    hash_ = SkChecksum::Hash32(&type_, sizeof(type_), 0);
+    hash_ = SkChecksum::Hash32(&motionBlurPara_, sizeof(motionBlurPara_), hash_);
+#endif
 }
 
 RSMotionBlurFilter::~RSMotionBlurFilter() = default;

@@ -27,7 +27,11 @@ RSKawaseBlurShaderFilter::RSKawaseBlurShaderFilter(int radius)
     : radius_(radius)
 {
     type_ = ShaderFilterType::KAWASE;
+#ifndef ENABLE_M133_SKIA
     hash_ = SkOpts::hash(&radius_, sizeof(radius_), 0);
+#else
+    hash_ = SkChecksum::Hash32(&radius_, sizeof(radius_), 0);
+#endif
 }
 
 RSKawaseBlurShaderFilter::~RSKawaseBlurShaderFilter() = default;

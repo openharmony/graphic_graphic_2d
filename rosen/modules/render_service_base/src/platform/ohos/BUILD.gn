@@ -25,6 +25,7 @@ config("export_config") {
     "$graphic_2d_root/rosen/modules/composer/vsync/include",
   ]
   defines = rs_common_define
+  defines += skia_m133_defines
 }
 
 ohos_source_set("rosen_ohos_sources") {

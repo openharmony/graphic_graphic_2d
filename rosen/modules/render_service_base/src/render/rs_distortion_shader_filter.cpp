@@ -28,11 +28,19 @@ RSDistortionFilter::RSDistortionFilter(float distortionK)
 {
     type_ = FilterType::DISTORT;
 
+#ifndef ENABLE_M133_SKIA
     hash_ = SkOpts::hash(&type_, sizeof(type_), 0);
     hash_ = SkOpts::hash(&distortionK_, sizeof(distortionK_), hash_);
     hash_ = SkOpts::hash(&scaleCoord_, sizeof(scaleCoord_), hash_);
     hash_ = SkOpts::hash(&offsetX_, sizeof(offsetX_), hash_);
     hash_ = SkOpts::hash(&offsetY_, sizeof(offsetY_), hash_);
+#else
+    hash_ = SkChecksum::Hash32(&type_, sizeof(type_), 0);
+    hash_ = SkChecksum::Hash32(&distortionK_, sizeof(distortionK_), hash_);
+    hash_ = SkChecksum::Hash32(&scaleCoord_, sizeof(scaleCoord_), hash_);
+    hash_ = SkChecksum::Hash32(&offsetX_, sizeof(offsetX_), hash_);
+    hash_ = SkChecksum::Hash32(&offsetY_, sizeof(offsetY_), hash_);
+#endif
 }
 
 RSDistortionFilter::~RSDistortionFilter() = default;

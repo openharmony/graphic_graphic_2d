@@ -26,9 +26,15 @@ RSLinearGradientBlurShaderFilter::RSLinearGradientBlurShaderFilter(
     type_ = ShaderFilterType::LINEAR_GRADIENT_BLUR;
     geoWidth_ = geoWidth;
     geoHeight_ = geoHeight;
+#ifndef ENABLE_M133_SKIA
     hash_ = SkOpts::hash(&linearGradientBlurPara_, sizeof(linearGradientBlurPara_), 0);
     hash_ = SkOpts::hash(&geoWidth_, sizeof(geoWidth_), hash_);
     hash_ = SkOpts::hash(&geoHeight_, sizeof(geoHeight_), hash_);
+#else
+    hash_ = SkChecksum::Hash32(&linearGradientBlurPara_, sizeof(linearGradientBlurPara_), 0);
+    hash_ = SkChecksum::Hash32(&geoWidth_, sizeof(geoWidth_), hash_);
+    hash_ = SkChecksum::Hash32(&geoHeight_, sizeof(geoHeight_), hash_);
+#endif
 }
 
 RSLinearGradientBlurShaderFilter::~RSLinearGradientBlurShaderFilter() = default;

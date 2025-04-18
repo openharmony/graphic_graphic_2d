@@ -85,11 +85,19 @@ RSMaterialFilter::RSMaterialFilter(int style, float dipScale, BLUR_COLOR_MODE mo
     imageFilter_ = RSMaterialFilter::CreateMaterialStyle(static_cast<MATERIAL_BLUR_STYLE>(style), dipScale, ratio);
     type_ = FilterType::MATERIAL;
 
+#ifndef ENABLE_M133_SKIA
     hash_ = SkOpts::hash(&type_, sizeof(type_), 0);
     hash_ = SkOpts::hash(&style, sizeof(style), hash_);
     hash_ = SkOpts::hash(&colorMode_, sizeof(colorMode_), hash_);
     hash_ = SkOpts::hash(&ratio, sizeof(ratio), hash_);
     hash_ = SkOpts::hash(&disableSystemAdaptation_, sizeof(disableSystemAdaptation_), hash_);
+#else
+    hash_ = SkChecksum::Hash32(&type_, sizeof(type_), 0);
+    hash_ = SkChecksum::Hash32(&style, sizeof(style), hash_);
+    hash_ = SkChecksum::Hash32(&colorMode_, sizeof(colorMode_), hash_);
+    hash_ = SkChecksum::Hash32(&ratio, sizeof(ratio), hash_);
+    hash_ = SkChecksum::Hash32(&disableSystemAdaptation_, sizeof(disableSystemAdaptation_), hash_);
+#endif
 }
 
 RSMaterialFilter::RSMaterialFilter(MaterialParam materialParam, BLUR_COLOR_MODE mode)
@@ -108,6 +116,8 @@ RSMaterialFilter::RSMaterialFilter(MaterialParam materialParam, BLUR_COLOR_MODE 
     float radiusForHash = DecreasePrecision(radius_);
     float saturationForHash = DecreasePrecision(saturation_);
     float brightnessForHash = DecreasePrecision(brightness_);
+
+#ifndef ENABLE_M133_SKIA
     hash_ = SkOpts::hash(&type_, sizeof(type_), 0);
     hash_ = SkOpts::hash(&radiusForHash, sizeof(radiusForHash), hash_);
     hash_ = SkOpts::hash(&saturationForHash, sizeof(saturationForHash), hash_);
@@ -115,6 +125,15 @@ RSMaterialFilter::RSMaterialFilter(MaterialParam materialParam, BLUR_COLOR_MODE 
     hash_ = SkOpts::hash(&maskColor_, sizeof(maskColor_), hash_);
     hash_ = SkOpts::hash(&colorMode_, sizeof(colorMode_), hash_);
     hash_ = SkOpts::hash(&disableSystemAdaptation_, sizeof(disableSystemAdaptation_), hash_);
+#else
+    hash_ = SkChecksum::Hash32(&type_, sizeof(type_), 0);
+    hash_ = SkChecksum::Hash32(&radiusForHash, sizeof(radiusForHash), hash_);
+    hash_ = SkChecksum::Hash32h(&saturationForHash, sizeof(saturationForHash), hash_);
+    hash_ = SkChecksum::Hash32(&brightnessForHash, sizeof(brightnessForHash), hash_);
+    hash_ = SkChecksum::Hash32h(&maskColor_, sizeof(maskColor_), hash_);
+    hash_ = SkChecksum::Hash32(&colorMode_, sizeof(colorMode_), hash_);
+    hash_ = SkChecksum::Hash32h(&disableSystemAdaptation_, sizeof(disableSystemAdaptation_), hash_);
+#endif
 }
 
 RSMaterialFilter::~RSMaterialFilter() = default;
@@ -157,7 +176,11 @@ std::shared_ptr<RSDrawingFilterOriginal> RSMaterialFilter::Compose(
     std::shared_ptr<RSMaterialFilter> result = std::make_shared<RSMaterialFilter>(materialParam, colorMode_);
     result->imageFilter_ = Drawing::ImageFilter::CreateComposeImageFilter(imageFilter_, other->GetImageFilter());
     auto otherHash = other->Hash();
+#ifndef ENABLE_M133_SKIA
     result->hash_ = SkOpts::hash(&otherHash, sizeof(otherHash), hash_);
+#else
+    result->hash_ = SkChecksum::Hash32(&otherHash, sizeof(otherHash), hash_);
+#endif
     return result;
 }
 

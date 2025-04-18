@@ -22,6 +22,7 @@ config("create_pixelmap_surface_public_config") {
     "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing/engine_adapter",
   ]
   defines = gpu_defines
+  defines += skia_m133_defines
 }
 
 ohos_source_set("create_pixelmap_surface_src") {

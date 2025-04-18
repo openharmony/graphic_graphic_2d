@@ -27,7 +27,11 @@ RSColorfulShadowFilter::RSColorfulShadowFilter(
       isFilled_(isFill)
 {
     type_ = FilterType::COLORFUL_SHADOW;
+#ifndef ENABLE_M133_SKIA
     hash_ = SkOpts::hash(&type_, sizeof(type_), 0);
+#else
+    hash_ = SkChecksum::Hash32(&type_, sizeof(type_), 0);
+#endif
 }
 
 std::string RSColorfulShadowFilter::GetDescription()

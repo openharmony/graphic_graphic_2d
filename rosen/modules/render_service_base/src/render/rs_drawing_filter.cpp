@@ -88,7 +88,11 @@ RSDrawingFilter::RSDrawingFilter(std::shared_ptr<Drawing::ImageFilter> imageFilt
     shaderFilters_ = shaderFilters;
     for (const auto& shaderFilter : shaderFilters_) {
         uint32_t hash = shaderFilter->Hash();
+#ifndef ENABLE_M133_SKIA
         hash_ = SkOpts::hash(&hash, sizeof(hash), hash_);
+#else
+        hash_ = SkChecksum::Hash32(&hash, sizeof(hash), hash_);
+#endif
     }
     imageFilterHash_ = hash;
 }
@@ -208,7 +212,11 @@ bool RSDrawingFilter::CanSkipFrame(float radius)
 
 uint32_t RSDrawingFilter::Hash() const
 {
+#ifndef ENABLE_M133_SKIA
     auto hash = SkOpts::hash(&imageFilterHash_, sizeof(imageFilterHash_), hash_);
+#else
+    auto hash = SkChecksum::Hash32(&imageFilterHash_, sizeof(imageFilterHash_), hash_);
+#endif
     return hash;
 }
 
@@ -236,8 +244,13 @@ std::shared_ptr<RSDrawingFilter> RSDrawingFilter::Compose(const std::shared_ptr<
     }
     auto otherShaderHash = other->ShaderHash();
     auto otherImageHash = other->ImageHash();
+#ifndef ENABLE_M133_SKIA
     result->hash_ = SkOpts::hash(&otherShaderHash, sizeof(otherShaderHash), hash_);
     result->imageFilterHash_ = SkOpts::hash(&otherImageHash, sizeof(otherImageHash), imageFilterHash_);
+#else
+    result->hash_ = SkChecksum::Hash32(&otherShaderHash, sizeof(otherShaderHash), hash_);
+    result->imageFilterHash_ = SkChecksum::Hash32(&otherImageHash, sizeof(otherImageHash), imageFilterHash_);
+#endif
     return result;
 }
 
@@ -251,7 +264,11 @@ std::shared_ptr<RSDrawingFilter> RSDrawingFilter::Compose(const std::shared_ptr<
     }
     result->InsertShaderFilter(other);
     auto otherHash = other->Hash();
+#ifndef ENABLE_M133_SKIA
     result->hash_ = SkOpts::hash(&otherHash, sizeof(otherHash), hash_);
+#else
+    result->hash_ = SkChecksum::Hash32(&otherHash, sizeof(otherHash), hash_);
+#endif
     return result;
 }
 
@@ -265,7 +282,11 @@ std::shared_ptr<RSDrawingFilter> RSDrawingFilter::Compose(
         return result;
     }
     result->imageFilter_ = Drawing::ImageFilter::CreateComposeImageFilter(imageFilter_, other);
+#ifndef ENABLE_M133_SKIA
     result->imageFilterHash_ = SkOpts::hash(&hash, sizeof(hash), imageFilterHash_);
+#else
+    result->imageFilterHash_ = SkChecksum::Hash32(&hash, sizeof(hash), imageFilterHash_);
+#endif
     return result;
 }
 

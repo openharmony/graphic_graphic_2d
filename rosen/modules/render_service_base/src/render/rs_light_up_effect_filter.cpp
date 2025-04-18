@@ -27,8 +27,13 @@ RSLightUpEffectFilter::RSLightUpEffectFilter(float lightUpDegree)
 {
     type_ = FilterType::LIGHT_UP_EFFECT;
 
+#ifndef ENABLE_M133_SKIA
     hash_ = SkOpts::hash(&type_, sizeof(type_), 0);
     hash_ = SkOpts::hash(&lightUpDegree_, sizeof(lightUpDegree_), hash_);
+#else
+    hash_ = SkChecksum::Hash32(&type_, sizeof(type_), 0);
+    hash_ = SkChecksum::Hash32(&lightUpDegree_, sizeof(lightUpDegree_), hash_);
+#endif
 }
 
 RSLightUpEffectFilter::~RSLightUpEffectFilter() = default;
@@ -63,7 +68,11 @@ std::shared_ptr<RSDrawingFilterOriginal> RSLightUpEffectFilter::Compose(
     std::shared_ptr<RSLightUpEffectFilter> result = std::make_shared<RSLightUpEffectFilter>(lightUpDegree_);
     result->imageFilter_ = Drawing::ImageFilter::CreateComposeImageFilter(imageFilter_, other->GetImageFilter());
     auto otherHash = other->Hash();
+#ifndef ENABLE_M133_SKIA
     result->hash_ = SkOpts::hash(&otherHash, sizeof(otherHash), hash_);
+#else
+    result->hash_ = SkChecksum::Hash32(&otherHash, sizeof(otherHash), hash_);
+#endif
     return result;
 }
 

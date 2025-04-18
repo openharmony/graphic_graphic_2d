@@ -29,6 +29,8 @@ if (enable_text_gine) {
   defines = [ "USE_GRAPHIC_TEXT_GINE" ]
 }
 
+defines += skia_m133_defines
+
 template("drawing_ndk_source_set") {
   forward_variables_from(invoker, "*")
 

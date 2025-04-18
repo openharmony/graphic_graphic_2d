@@ -34,8 +34,13 @@ RSForegroundEffectFilter::RSForegroundEffectFilter(float blurRadius)
     MakeForegroundEffect();
     ComputeParamter(blurRadius);
 
+#ifndef ENABLE_M133_SKIA
     hash_ = SkOpts::hash(&type_, sizeof(type_), 0);
     hash_ = SkOpts::hash(&blurRadius_, sizeof(blurRadius_), hash_);
+#else
+    hash_ = SkChecksum::Hash32(&type_, sizeof(type_), 0);
+    hash_ = SkChecksum::Hash32(&blurRadius_, sizeof(blurRadius_), hash_);
+#endif
 }
 
 RSForegroundEffectFilter::~RSForegroundEffectFilter() = default;
