@@ -28,7 +28,7 @@ namespace {
 const int SMALL2MEDIUM_RECV = 0;
 const int SMALL2MEDIUM_SEND = 1;
 const int SMALL2SMALL = 2;
-const int KEYMOUSE = 3;
+const int MINI_RECV = 3;
 
 } // namespace
  
@@ -90,8 +90,8 @@ std::shared_ptr<Drawing::RuntimeEffect> GEWaterRippleFilter::GetWaterRippleEffec
         case SMALL2SMALL: {
             return GetWaterRippleEffectSS();
         }
-        case KEYMOUSE: {
-            return GetWaterRippleEffectKM();
+        case MINI_RECV: {
+            return GetWaterRippleEffectMR();
         }
         default: {
             LOGE("GEWaterRippleFilter::ProcessImage: Not support current ripple mode");
@@ -120,13 +120,13 @@ std::shared_ptr<Drawing::RuntimeEffect> GEWaterRippleFilter::GetWaterRippleEffec
     return g_waterRippleEffectSS;
 }
 
-std::shared_ptr<Drawing::RuntimeEffect> GEWaterRippleFilter::GetWaterRippleEffectKM()
+std::shared_ptr<Drawing::RuntimeEffect> GEWaterRippleFilter::GetWaterRippleEffectMR()
 {
-    static std::shared_ptr<Drawing::RuntimeEffect> g_waterRippleEffectKM = nullptr;
-    if (g_waterRippleEffectKM == nullptr) {
-        g_waterRippleEffectKM = Drawing::RuntimeEffect::CreateForShader(shaderStringKeyMouse);
+    static std::shared_ptr<Drawing::RuntimeEffect> g_waterRippleEffectMR = nullptr;
+    if (g_waterRippleEffectMR == nullptr) {
+        g_waterRippleEffectMR = Drawing::RuntimeEffect::CreateForShader(shaderStringMiniRecv);
     }
-    return g_waterRippleEffectKM;
+    return g_waterRippleEffectMR;
 }
 
 } // namespace Rosen
