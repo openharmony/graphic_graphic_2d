@@ -685,7 +685,7 @@ napi_value JsFont::OnGetBounds(napi_env env, napi_callback_info info)
         return nullptr;
     }
     for (uint32_t i = 0; i < glyphscnt; i++) {
-        napi_value element = GetRectAndConvertToJsValue(env, std::make_shared<Rect>(rectPtr[i]));
+        napi_value element = GetRectAndConvertToJsValue(env, rectPtr[i]);
         status = napi_set_element(env, rectJsArray, i, element);
         if (status != napi_ok) {
             ROSEN_LOGE("failed to set array element");
