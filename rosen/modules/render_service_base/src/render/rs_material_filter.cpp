@@ -32,6 +32,10 @@
 #include "include/effects/SkBlurImageFilter.h"
 #endif
 
+#ifdef ENABLE_M133_SKIA
+#include "src/core/SkChecksum.h"
+#endif
+
 namespace OHOS {
 namespace Rosen {
 namespace {

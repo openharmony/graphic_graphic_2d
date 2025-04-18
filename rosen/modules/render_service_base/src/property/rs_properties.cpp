@@ -47,6 +47,10 @@
 #include "render/rs_distortion_shader_filter.h"
 #include "drawable/rs_property_drawable_utils.h"
 
+#ifdef ENABLE_M133_SKIA
+#include "src/core/SkChecksum.h"
+#endif
+
 namespace OHOS {
 namespace Rosen {
 namespace {

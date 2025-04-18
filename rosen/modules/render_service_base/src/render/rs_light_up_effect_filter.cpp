@@ -19,6 +19,10 @@
 #include "platform/common/rs_log.h"
 #include "effect/color_matrix.h"
 
+#ifdef ENABLE_M133_SKIA
+#include "src/core/SkChecksum.h"
+#endif
+
 namespace OHOS {
 namespace Rosen {
 RSLightUpEffectFilter::RSLightUpEffectFilter(float lightUpDegree)

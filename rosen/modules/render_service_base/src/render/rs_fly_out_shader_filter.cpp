@@ -19,6 +19,10 @@
 #include "platform/common/rs_log.h"
 #include "src/core/SkOpts.h"
 
+#ifdef ENABLE_M133_SKIA
+#include "src/core/SkChecksum.h"
+#endif
+
 namespace OHOS {
 namespace Rosen {
 // 0.22 means the ratio of deformation distance of the first four points a, a1, b1, b to width when fly out

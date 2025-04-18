@@ -56,6 +56,10 @@
 #include "include/gpu/gl/GrGLInterface.h"
 #include "utils/graphic_coretrace.h"
 
+#ifdef ENABLE_M133_SKIA
+#include "include/gpu/ganesh/SkImageGanesh.h"
+#endif
+
 
 namespace OHOS {
 namespace Rosen {

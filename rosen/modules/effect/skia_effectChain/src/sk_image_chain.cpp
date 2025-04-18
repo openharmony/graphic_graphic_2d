@@ -33,6 +33,10 @@
 #include "sk_image_chain.h"
 #include "platform/common/rs_system_properties.h"
 
+#ifdef ENABLE_M133_SKIA
+#include "include/gpu/GpuTypes.h"
+#endif
+
 namespace OHOS {
 namespace Rosen {
 SKImageChain::SKImageChain(SkCanvas* canvas, sk_sp<SkImage> image) : canvas_(canvas), image_(image)

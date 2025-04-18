@@ -20,6 +20,10 @@
 #include "platform/common/rs_system_properties.h"
 #include "src/core/SkOpts.h"
 
+#ifdef ENABLE_M133_SKIA
+#include "src/core/SkChecksum.h"
+#endif
+
 namespace OHOS {
 namespace Rosen {
 RSMESABlurShaderFilter::RSMESABlurShaderFilter(int radius)

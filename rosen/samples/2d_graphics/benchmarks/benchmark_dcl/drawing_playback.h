@@ -32,10 +32,17 @@
 #include "include/core/SkCanvas.h"
 #include "include/core/SkData.h"
 #include "include/core/SkPicture.h"
-#include "src/utils/SkMultiPictureDocument.h"
 #include "tools/flags/CommonFlagsConfig.h"
 #include "tools/gpu/MemoryCache.h"
 #include "src/utils/SkOSPath.h"
+
+#ifndef ENABLE_M133_SKIA
+#include "src/utils/SkMultiPictureDocument.h"
+#include "include/private/SkTArray.h"
+#else
+#include "include/docs/SkMultiPictureDocument.h"
+#include "include/private/base/SkTArray.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
