@@ -46,6 +46,55 @@ namespace text {
   }
 
   /**
+   * Builds a Paragraph containing text with the given styling information.
+   * @syscap SystemCapability.Graphics.Drawing
+   * @since 12
+   */
+  export class ParagraphBuilder {
+    static { loadLibrary('text_engine_ani.z') }
+    private nativeObj : long = 0;
+    /**
+     * Constructor ParagraphBuilder.
+     * @param { ParagraphStyle } paragraphStyle - Paragraph style {@link ParagraphStyle}
+     * @param { FontCollection } fontCollection - Font collection {@link FontCollection}
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    native constructor(paragraphStyle: ParagraphStyle, fontCollection: FontCollection);
+
+    /**
+     * Push a style to the stack.
+     * @param { TextStyle } textStyle - Text style {@link TextStyle}
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    native pushStyle(textStyle: TextStyle): void;
+
+    /**
+     * Remove a style from the stack.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    native popStyle(): void;
+
+    /**
+     * Adds text to the builder.
+     * @param { string } text - Text string
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    native addText(text: string): void;
+
+    /**
+     * Create paragraph object.
+     * @returns { Paragraph } The paragraph value returned to the caller.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    native build(): Paragraph;
+  }
+
+  /**
    * A paragraph retains the size and position of each glyph in the text and can be efficiently resized and painted.
    * @syscap SystemCapability.Graphics.Drawing
    * @since 12
@@ -53,25 +102,14 @@ namespace text {
   export class Paragraph {
     static { loadLibrary('text_engine_ani.z') }
     public nativeObj : long = 0;
-    private native nativeConstructor(): void;
-    constructor() {
-      this.nativeConstructor();
-    }
-
-    private native nativeLayoutSync(width: number): void;
-    private native nativeGetLongestLine(): number;
-    private native nativeGetLineMetrics(): Array<LineMetrics>;
-    private native nativeGetLineMetricsAt(lineNumber: number): LineMetrics | undefined;
-
+    native constructor();
     /**
      * Calculates the positioning of all the glyphs.
      * @param { number } width - Control how wide the text is allowed to be.
      * @syscap SystemCapability.Graphics.Drawing
      * @since 12
      */
-    layoutSync(width: number): void {
-      this.nativeLayoutSync(width);
-    };
+    native layoutSync(width: number): void;
 
     /**
      * Get the longest line of horizontal space this paragraph occupies.
@@ -79,9 +117,7 @@ namespace text {
      * @syscap SystemCapability.Graphics.Drawing
      * @since 12
      */
-    getLongestLine(): number {
-        return this.nativeGetLongestLine();
-    };
+    native getLongestLine(): number;
 
     /**
      * Returns the array of line metrics for a line of text.
@@ -89,9 +125,7 @@ namespace text {
      * @syscap SystemCapability.Graphics.Drawing
      * @since 12
      */
-    getLineMetrics(): Array<LineMetrics> {
-        return this.nativeGetLineMetrics();
-    };
+    native getLineMetrics(): Array<LineMetrics>;
 
     /**
      * Returns line metrics info for the line.
@@ -103,6 +137,36 @@ namespace text {
     getLineMetrics(lineNumber: number): LineMetrics | undefined {
         return this.nativeGetLineMetricsAt(lineNumber);
     };
+
+    private native nativeGetLineMetricsAt(lineNumber: number): LineMetrics | undefined;
+  }
+
+  /**
+   * Determines the configuration used by ParagraphBuilder to position lines within a Paragraph of text.
+   * @typedef ParagraphStyle
+   * @syscap SystemCapability.Graphics.Drawing
+   * @since 12
+   */
+  export interface ParagraphStyle {
+    maxLines?: number;
+  }
+
+  export class ParagraphStyleInternal implements ParagraphStyle {
+    maxLines?: number;
+  }
+
+  /**
+   * Describes text style.
+   * @typedef TextStyle
+   * @syscap SystemCapability.Graphics.Drawing
+   * @since 12
+   */
+  export interface TextStyle {
+    fontSize?: number;
+  }
+
+  export class TextStyleInternal implements TextStyle {
+    fontSize?: number;
   }
 
   /**

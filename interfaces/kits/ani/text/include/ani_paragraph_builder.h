@@ -13,26 +13,26 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_ROSEN_ANI_PARAGRAPH_H
-#define OHOS_ROSEN_ANI_PARAGRAPH_H
+#ifndef OHOS_ROSEN_ANI_PARAGRAPH_BUILDER_H
+#define OHOS_ROSEN_ANI_PARAGRAPH_BUILDER_H
 
 #include <ani.h>
 
-#include "typography.h"
+#include "typography_create.h"
 
 namespace OHOS::Rosen {
-class AniParagraph final {
+class AniParagraphBuilder final {
 public:
-    AniParagraph();
-    void setTypography(std::unique_ptr<OHOS::Rosen::Typography>& typography);
+    AniParagraphBuilder();
     static ani_status AniInit(ani_vm* vm, uint32_t* result);
 private:
-    static void Constructor(ani_env* env, ani_object object);
-    static void LayoutSync(ani_env* env, ani_object object, ani_double width);
-    static ani_double GetLongestLine(ani_env* env, ani_object object);
-    static ani_ref GetLineMetrics(ani_env* env, ani_object object);
-    static ani_object GetLineMetricsAt(ani_env* env, ani_object object, ani_double lineNumber);
-    std::shared_ptr<Typography> paragraph_ = nullptr;
+    static void Constructor(ani_env* env, ani_object object, ani_object paragraphStyle, ani_object fontCollection);
+    static void pushStyle(ani_env* env, ani_object object, ani_object textStyle);
+    static void popStyle(ani_env* env, ani_object object);
+    static void addText(ani_env* env, ani_object object, ani_string text);
+    static ani_object build(ani_env* env, ani_object object);
+    
+    std::unique_ptr<TypographyCreate> typographyCreate_ = nullptr;
 };
 } // namespace OHOS::Rosen
-#endif // OHOS_ROSEN_ANI_PARAGRAPH_H
+#endif // OHOS_ROSEN_ANI_PARAGRAPH_BUILDER_H

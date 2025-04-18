@@ -19,15 +19,12 @@
 #include <cstdint>
 #include <sys/stat.h>
 
+#include "ani_common.h"
 #include "ani_resource_parser.h"
 #include "ani_text_utils.h"
-
 #include "utils/text_log.h"
 
 namespace OHOS::Rosen {
-namespace {
-constexpr const char* ANI_CLASS_FONT_COLLECTION = "L@ohos/graphics/text/text/FontCollection;";
-} // namespace
 
 AniFontCollection::AniFontCollection()
 {

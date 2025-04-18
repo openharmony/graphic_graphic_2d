@@ -16,6 +16,7 @@
 
 #include "ani_font_collection.h"
 #include "ani_paragraph.h"
+#include "ani_paragraph_builder.h"
 
 namespace {
 using namespace OHOS::Rosen;
@@ -23,7 +24,7 @@ using namespace OHOS::Rosen;
 #define STRUCT_LIST(...) using AniTypes = std::tuple<__VA_ARGS__>
 
 // add new struct in this macro
-STRUCT_LIST(AniFontCollection, AniParagraph);
+STRUCT_LIST(AniFontCollection, AniParagraph, AniParagraphBuilder);
 
 template<typename T>
 static ani_status InitOneStruct(ani_vm* vm, uint32_t* result)

@@ -15,6 +15,7 @@
 
 #include "ani_text_utils.h"
 
+#include <cstdint>
 #include <fstream>
 #include <sstream>
 
@@ -86,6 +87,28 @@ std::string AniTextUtils::AniToStdStringUtf8(ani_env* env, ani_string str)
 
     utf8Buffer[bytesWritten] = '\0';
     std::string content = std::string(utf8Buffer);
+    return content;
+}
+
+std::u16string AniTextUtils::AniToStdStringUtf16(ani_env* env, ani_string str)
+{
+    ani_size strSize;
+    if (ANI_OK != env->String_GetUTF16Size(str, &strSize)) {
+        TEXT_LOGE("[ANI] String_GetUTF8Size Failed");
+        return u"";
+    }
+
+    strSize++;
+    std::vector<uint16_t> buffer(strSize);
+    uint16_t* utf16Buffer = buffer.data();
+
+    ani_size bytesWritten = 0;
+    if (ANI_OK != env->String_GetUTF16(str, utf16Buffer, strSize, &bytesWritten)) {
+        TEXT_LOGE("[ANI] String_GetUTF16 Failed");
+        return u"";
+    }
+    utf16Buffer[bytesWritten] = '\0';
+    std::u16string content(reinterpret_cast<const char16_t*>(utf16Buffer), strSize);
     return content;
 }
 

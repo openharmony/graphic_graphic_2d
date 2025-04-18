@@ -18,19 +18,20 @@
 #include <codecvt>
 #include <cstdint>
 
+#include "ani_common.h"
 #include "ani_text_utils.h"
 #include "font_collection.h"
 #include "typography_create.h"
-
 #include "utils/text_log.h"
 
 namespace OHOS::Rosen {
-namespace {
-const char* ANI_CLASS_PARAGRAPH = "L@ohos/graphics/text/text/Paragraph;";
-const char* ANI_CLASS_LINEMETRICS_I = "L@ohos/graphics/text/text/LineMetricsInternal;";
-} // namespace
 
 AniParagraph::AniParagraph() {}
+
+void AniParagraph::setTypography(std::unique_ptr<OHOS::Rosen::Typography>& typography)
+{
+    paragraph_ = std::move(typography);
+}
 
 void AniParagraph::Constructor(ani_env* env, ani_object object)
 {
@@ -46,28 +47,29 @@ ani_status AniParagraph::AniInit(ani_vm* vm, uint32_t* result)
     ani_env* env;
     ani_status ret;
     if ((ret = vm->GetEnv(ANI_VERSION_1, &env)) != ANI_OK) {
-        TEXT_LOGE("[ANI] null env");
+        TEXT_LOGE("[ANI] AniParagraph null env:%{public}d", ret);
         return ANI_NOT_FOUND;
     }
 
     ani_class cls = nullptr;
     ret = env->FindClass(ANI_CLASS_PARAGRAPH, &cls);
     if (ret != ANI_OK) {
-        TEXT_LOGE("[ANI] can't find class: %{public}s", ANI_CLASS_PARAGRAPH);
+        TEXT_LOGE("[ANI] AniParagraph can't find class:%{public}d", ret);
         return ANI_NOT_FOUND;
     }
 
     std::array methods = {
-        ani_native_function { "nativeConstructor", nullptr, reinterpret_cast<void*>(Constructor) },
-        ani_native_function { "nativeLayoutSync", "D:V", reinterpret_cast<void*>(LayoutSync) },
-        ani_native_function { "nativeGetLongestLine", ":D", reinterpret_cast<void*>(GetLongestLine) },
-        ani_native_function { "nativeGetLineMetrics", ":Lescompat/Array;", reinterpret_cast<void*>(GetLineMetrics) },
-        ani_native_function { "nativeGetLineMetricsAt", "D:L@ohos/graphics/text/text/LineMetrics;", reinterpret_cast<void*>(GetLineMetricsAt) },
+        ani_native_function{"<ctor>", ":V", reinterpret_cast<void*>(Constructor)},
+        ani_native_function{"layoutSync", "D:V", reinterpret_cast<void*>(LayoutSync)},
+        ani_native_function{"getLongestLine", ":D", reinterpret_cast<void*>(GetLongestLine)},
+        ani_native_function{"getLineMetrics", ":Lescompat/Array;", reinterpret_cast<void*>(GetLineMetrics)},
+        ani_native_function{"nativeGetLineMetricsAt", "D:L@ohos/graphics/text/text/LineMetrics;",
+                            reinterpret_cast<void*>(GetLineMetricsAt)},
     };
 
     ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
     if (ret != ANI_OK) {
-        TEXT_LOGE("[ANI] bind methods fail: %{public}s", ANI_CLASS_PARAGRAPH);
+        TEXT_LOGE("[ANI] AniParagraph bind methods fail::%{public}d", ret);
         return ANI_NOT_FOUND;
     }
     return ANI_OK;
