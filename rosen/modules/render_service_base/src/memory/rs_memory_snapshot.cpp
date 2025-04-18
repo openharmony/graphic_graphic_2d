@@ -15,7 +15,6 @@
 #include "memory/rs_memory_snapshot.h"
 
 #include "platform/common/rs_log.h"
-#include <vector>
 
 namespace OHOS {
 namespace Rosen {
@@ -42,6 +41,10 @@ void MemorySnapshot::AddCpuMemory(const pid_t pid, const size_t size)
     size_t cpuMemory = 0;
     {
         std::lock_guard<std::mutex> lock(mutex_);
+        if (appMemorySnapshots_.find(pid) == appMemorySnapshots_.end()) {
+            dirtyMemorySnapshots_.push_back(pid);
+        }
+
         MemorySnapshotInfo& mInfo = appMemorySnapshots_[pid];
         mInfo.pid = pid;
         mInfo.cpuMemory += size;
@@ -127,6 +130,24 @@ void MemorySnapshot::GetMemorySnapshot(std::unordered_map<pid_t, MemorySnapshotI
 {
     std::lock_guard<std::mutex> lock(mutex_);
     map = appMemorySnapshots_;
+}
+
+void MemorySnapshot::GetDirtyMemorySnapshot(std::vector<pid_t>& list)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    list = dirtyMemorySnapshots_;
+}
+
+void MemorySnapshot::FillMemorySnapshot(std::unordered_map<pid_t, MemorySnapshotInfo>& infoMap)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    for (auto pPid = dirtyMemorySnapshots_.begin(); pPid != dirtyMemorySnapshots_.end();) {
+        auto it = appMemorySnapshots_.find(*pPid);
+        if (it != appMemorySnapshots_.end()) {
+            it->second.bundleName = infoMap[it->first].bundleName;
+        }
+        pPid = dirtyMemorySnapshots_.erase(pPid);
+    }
 }
 
 size_t MemorySnapshot::GetTotalMemory()
