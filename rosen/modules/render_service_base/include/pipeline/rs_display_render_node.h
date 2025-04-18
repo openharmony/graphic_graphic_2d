@@ -584,6 +584,7 @@ public:
 
     void SetNeedForceUpdateHwcNodes(bool needForceUpdate, bool hasVisibleHwcNodes);
     bool GetNeedForceUpdateHwcNodes() const { return needForceUpdateHwcNodes_; }
+
     bool HasVisibleHwcNodes() const { return hasVisibleHwcNodes_; }
 
     void SetTargetSurfaceRenderNodeId(NodeId nodeId)
