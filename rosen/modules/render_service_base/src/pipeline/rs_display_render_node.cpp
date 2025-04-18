@@ -247,6 +247,15 @@ void RSDisplayRenderNode::RecordMainAndLeashSurfaces(RSBaseRenderNode::SharedPtr
     curMainAndLeashSurfaceNodes_.push_back(surface);
 }
 
+Occlusion::Region RSDisplayRenderNode::GetTopSurfaceOpaqueRegion() const
+{
+    Occlusion::Region topSurfaceOpaqueRegion;
+    for (const auto& rect : topSurfaceOpaqueRects_) {
+        topSurfaceOpaqueRegion.OrSelf(rect);
+    }
+    return topSurfaceOpaqueRegion;
+}
+
 void RSDisplayRenderNode::RecordTopSurfaceOpaqueRects(Occlusion::Rect rect)
 {
     topSurfaceOpaqueRects_.push_back(rect);

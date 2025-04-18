@@ -48,6 +48,7 @@ constexpr uint32_t RGBA_MAX = 255;
 constexpr uint64_t INVALID_LEASH_PERSISTENTID = 0;
 constexpr uint8_t TOP_OCCLUSION_SURFACES_NUM = 3;
 constexpr uint8_t OCCLUSION_ENABLE_SCENE_NUM = 2;
+constexpr int16_t DEFAULT_OCCLUSION_SURFACE_ORDER = -1;
 
 // types in the same layer should be 0/1/2/4/8
 // types for UINode

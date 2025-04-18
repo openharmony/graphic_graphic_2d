@@ -1253,9 +1253,31 @@ void RSUniRenderVisitor::ResetCrossNodesVisitedStatus()
     hasVisitedCrossNodeIds_.clear();
 }
 
+Occlusion::Region RSUniRenderVisitor::GetSurfaceTransparentFilterRegion(NodeId surfaceNodeId) const
+{
+    Occlusion::Region surfaceTransparentFilterRegion;
+    auto transparentCleanFilterIt = transparentCleanFilter_.find(surfaceNodeId);
+    if (transparentCleanFilterIt != transparentCleanFilter_.end()) {
+        for (auto it = transparentCleanFilterIt->second.begin(); it != transparentCleanFilterIt->second.end(); ++it) {
+            surfaceTransparentFilterRegion.OrSelf(Occlusion::Region(it->second));
+        }
+    }
+    auto transparentDirtyFilterIt = transparentDirtyFilter_.find(surfaceNodeId);
+    if (transparentDirtyFilterIt != transparentDirtyFilter_.end()) {
+        for (auto it = transparentDirtyFilterIt->second.begin(); it != transparentDirtyFilterIt->second.end(); ++it) {
+            surfaceTransparentFilterRegion.OrSelf(Occlusion::Region(it->second));
+        }
+    }
+    return surfaceTransparentFilterRegion;
+}
+
 void RSUniRenderVisitor::CollectTopOcclusionSurfacesInfo(RSSurfaceRenderNode& node, bool isParticipateInOcclusion)
 {
-    if (!isStencilPixelOcclusionCullingEnabled_) {
+    if (!isStencilPixelOcclusionCullingEnabled_ || occlusionSurfaceOrder_ <= DEFAULT_OCCLUSION_SURFACE_ORDER) {
+        return;
+    }
+    if (curDisplayNode_ == nullptr) {
+        RS_LOGE("%s: curDisplayNode_ is nullptr", __func__);
         return;
     }
     auto parent = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node.GetParent().lock());
@@ -1263,28 +1285,29 @@ void RSUniRenderVisitor::CollectTopOcclusionSurfacesInfo(RSSurfaceRenderNode& no
         return;
     }
     auto stencilVal = occlusionSurfaceOrder_ * OCCLUSION_ENABLE_SCENE_NUM;
-    if (!isParticipateInOcclusion) {
-        if (occlusionSurfaceOrder_ < TOP_OCCLUSION_SURFACES_NUM) {
-            parent->SetStencilVal(stencilVal);
+    auto opaqueRegionRects = node.GetOpaqueRegion().GetRegionRects();
+    if (!isParticipateInOcclusion || opaqueRegionRects.empty()) {
+        ++stencilVal;
+        RS_OPTIONAL_TRACE_NAME_FMT("%s: %s set stencil[%d]", __func__,
+            node.GetName().c_str(), static_cast<int>(stencilVal));
+        parent->SetStencilVal(stencilVal);
+        if (occlusionSurfaceOrder_ < TOP_OCCLUSION_SURFACES_NUM &&
+            !GetSurfaceTransparentFilterRegion(node.GetId()).And(
+                curDisplayNode_->GetTopSurfaceOpaqueRegion()).IsEmpty()) {
+            RS_OPTIONAL_TRACE_NAME_FMT("%s: %s's transparent filter terminate spoc, current occlusion surface "
+                "order: %" PRId16 "", __func__, node.GetName().c_str(), occlusionSurfaceOrder_);
+            occlusionSurfaceOrder_ = DEFAULT_OCCLUSION_SURFACE_ORDER;
         }
         return;
     }
     parent->SetStencilVal(stencilVal);
     if (occlusionSurfaceOrder_ > 0) {
-        auto opaqueRegionRects = node.GetOpaqueRegion().GetRegionRects();
-        if (curDisplayNode_ == nullptr) {
-            RS_LOGE("RSUniRenderVisitor::CollectTopOcclusionSurfacesInfo curDisplayNode_ is nullptr");
-            return;
-        }
-        if (!opaqueRegionRects.empty()) {
-            auto maxOpaqueRect = std::max_element(opaqueRegionRects.begin(), opaqueRegionRects.end(),
-                [](Occlusion::Rect a, Occlusion::Rect b) ->bool { return a.Area() < b.Area(); });
-            curDisplayNode_->RecordTopSurfaceOpaqueRects(*maxOpaqueRect);
-            parent->SetStencilVal(stencilVal);
-            RS_OPTIONAL_TRACE_NAME_FMT("RSUniRenderVisitor::CollectTopOcclusionSurfacesInfo record name[%s] rect[%s]",
-                node.GetName().c_str(), (*maxOpaqueRect).GetRectInfo().c_str());
-            --occlusionSurfaceOrder_;
-        }
+        auto maxOpaqueRect = std::max_element(opaqueRegionRects.begin(), opaqueRegionRects.end(),
+            [](Occlusion::Rect a, Occlusion::Rect b) ->bool { return a.Area() < b.Area(); });
+        RS_OPTIONAL_TRACE_NAME_FMT("%s: record name[%s] rect[%s] stencil[%d]", __func__,
+            node.GetName().c_str(), maxOpaqueRect->GetRectInfo().c_str(), static_cast<int>(stencilVal));
+        curDisplayNode_->RecordTopSurfaceOpaqueRects(*maxOpaqueRect);
+        --occlusionSurfaceOrder_;
     }
 }
 

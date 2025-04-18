@@ -870,6 +870,86 @@ HWTEST_F(RSUniRenderVisitorTest, CollectTopOcclusionSurfacesInfo001, TestSize.Le
     rsUniRenderVisitor->CollectTopOcclusionSurfacesInfo(*rsSurfaceRenderNode, false);
 }
 
+/**
+ * @tc.name: CollectTopOcclusionSurfacesInfo002
+ * @tc.desc: test CollectTopOcclusionSurfacesInfo
+ * @tc.type:FUNC
+ * @tc.require:issuesIC13ZS
+ */
+HWTEST_F(RSUniRenderVisitorTest, CollectTopOcclusionSurfacesInfo002, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    NodeId id = 0;
+    RSDisplayNodeConfig displayConfig;
+    rsUniRenderVisitor->curDisplayNode_ = std::make_shared<RSDisplayRenderNode>(id, displayConfig);
+    rsUniRenderVisitor->isStencilPixelOcclusionCullingEnabled_ = true;
+    rsUniRenderVisitor->occlusionSurfaceOrder_ = TOP_OCCLUSION_SURFACES_NUM;
+
+    RSSurfaceRenderNodeConfig config;
+    ++id;
+    config.id = id;
+    config.nodeType = RSSurfaceNodeType::APP_WINDOW_NODE;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(config);
+    ++id;
+    config.id = id;
+    config.nodeType = RSSurfaceNodeType::LEASH_WINDOW_NODE;
+    auto parentSurfaceNode = std::make_shared<RSSurfaceRenderNode>(config);
+    surfaceNode->SetParent(parentSurfaceNode);
+    
+    rsUniRenderVisitor->CollectTopOcclusionSurfacesInfo(*surfaceNode, false);
+    EXPECT_EQ(parentSurfaceNode->stencilVal_, TOP_OCCLUSION_SURFACES_NUM * OCCLUSION_ENABLE_SCENE_NUM + 1);
+}
+
+/**
+ * @tc.name: CollectTopOcclusionSurfacesInfo003
+ * @tc.desc: test CollectTopOcclusionSurfacesInfo
+ * @tc.type:FUNC
+ * @tc.require:issuesIC13ZS
+ */
+HWTEST_F(RSUniRenderVisitorTest, CollectTopOcclusionSurfacesInfo003, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    NodeId id = 0;
+    RSDisplayNodeConfig displayConfig;
+    rsUniRenderVisitor->curDisplayNode_ = std::make_shared<RSDisplayRenderNode>(id, displayConfig);
+    rsUniRenderVisitor->isStencilPixelOcclusionCullingEnabled_ = true;
+    rsUniRenderVisitor->occlusionSurfaceOrder_ = TOP_OCCLUSION_SURFACES_NUM;
+    constexpr int defaultRegionSize{100};
+    Occlusion::Region defaultRegion(Occlusion::Rect(0, 0, defaultRegionSize, defaultRegionSize));
+
+    RSSurfaceRenderNodeConfig config;
+    ++id;
+    config.id = id;
+    config.nodeType = RSSurfaceNodeType::APP_WINDOW_NODE;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(config);
+    ++id;
+    config.id = id;
+    config.nodeType = RSSurfaceNodeType::LEASH_WINDOW_NODE;
+    auto parentSurfaceNode = std::make_shared<RSSurfaceRenderNode>(config);
+    surfaceNode->SetParent(parentSurfaceNode);
+    surfaceNode->GetOpaqueRegion() = defaultRegion;
+
+    rsUniRenderVisitor->CollectTopOcclusionSurfacesInfo(*surfaceNode, true);
+    EXPECT_EQ(parentSurfaceNode->stencilVal_, TOP_OCCLUSION_SURFACES_NUM * OCCLUSION_ENABLE_SCENE_NUM);
+    EXPECT_EQ(rsUniRenderVisitor->occlusionSurfaceOrder_, TOP_OCCLUSION_SURFACES_NUM - 1);
+
+    ++id;
+    config.id = id;
+    config.nodeType = RSSurfaceNodeType::APP_WINDOW_NODE;
+    auto surfaceNode2 = std::make_shared<RSSurfaceRenderNode>(config);
+    ++id;
+    config.id = id;
+    config.nodeType = RSSurfaceNodeType::LEASH_WINDOW_NODE;
+    auto parentSurfaceNode2 = std::make_shared<RSSurfaceRenderNode>(config);
+    surfaceNode2->SetParent(parentSurfaceNode2);
+    rsUniRenderVisitor->transparentCleanFilter_[surfaceNode2->GetId()].emplace_back(
+        surfaceNode2->GetId(), RectI(0, 0, defaultRegionSize, defaultRegionSize));
+
+    rsUniRenderVisitor->CollectTopOcclusionSurfacesInfo(*surfaceNode2, false);
+    EXPECT_EQ(parentSurfaceNode2->stencilVal_, (TOP_OCCLUSION_SURFACES_NUM - 1) * OCCLUSION_ENABLE_SCENE_NUM + 1);
+    EXPECT_EQ(rsUniRenderVisitor->occlusionSurfaceOrder_, DEFAULT_OCCLUSION_SURFACE_ORDER);
+}
+
 /*
  * @tc.name: SetSurfafaceGlobalDirtyRegion
  * @tc.desc: Add two surfacenode child to test global dirty region
