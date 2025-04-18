@@ -26,6 +26,7 @@
 #include "rs_trace.h"
 #include "common/rs_optional_trace.h"
 #include "params/rs_surface_render_params.h"
+#include "platform/common/rs_system_properties.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -39,7 +40,7 @@ void WaitAcquireFence(const sptr<SyncFence>& acquireFence)
 }
 
 constexpr size_t MAX_CACHE_SIZE = 16;
-constexpr size_t MAX_CACHE_SIZE_FOR_VIRTUAL_SCREEN = 40;
+constexpr size_t MAX_CACHE_SIZE_FOR_REUSE = 40;
 static const bool ENABLE_VKIMAGE_DFX = system::GetBoolParameter("persist.graphic.enable_vkimage_dfx", false);
 
 #define DFX_LOG(enableDfx, format, ...) \
@@ -169,11 +170,13 @@ std::shared_ptr<NativeVkImageRes> RSVkImageManager::NewImageCacheFromBuffer(
     }
 
     if (isMatchVirtualScreen) {
-        if (imageCacheVirtualScreenSeqSize <= MAX_CACHE_SIZE_FOR_VIRTUAL_SCREEN) {
+        if (imageCacheVirtualScreenSeqSize <= MAX_CACHE_SIZE_FOR_REUSE) {
             imageCacheVirtualScreenSeqs_.emplace(bufferId, imageCache);
         }
     } else {
-        imageCacheSeqs_.emplace(bufferId, imageCache);
+        if (!RSSystemProperties::GetHybridRenderEnabled() || imageCacheSeqSize < MAX_CACHE_SIZE_FOR_REUSE) {
+            imageCacheSeqs_.emplace(bufferId, imageCache);
+        }
         cacheQueue_.push(bufferId);
     }
     return imageCache;
