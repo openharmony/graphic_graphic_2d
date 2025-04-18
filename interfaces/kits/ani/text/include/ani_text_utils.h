@@ -27,7 +27,7 @@ namespace OHOS::Rosen {
 class AniTextUtils {
 public:
     template<typename T>
-    static T* GetObjectFromEnv(ani_env* env, ani_object obj)
+    static T* GetNativeFromObj(ani_env* env, ani_object obj)
     {
         ani_status ret;
         ani_long nativeObj {};
@@ -43,7 +43,7 @@ public:
         return object;
     };
     static ani_object CreateAniUndefined(ani_env* env);
-    static ani_object CreateAniObject(ani_env* env, const std::string name, const char* signature, ani_long addr);
+    static ani_object CreateAniObject(ani_env* env, const std::string name, const char* signature);
     static ani_object CreateAniArray(ani_env* env, size_t size);
 };
 } // namespace OHOS::Rosen

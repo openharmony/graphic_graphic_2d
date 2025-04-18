@@ -74,7 +74,7 @@ ani_status AniParagraph::AniInit(ani_vm* vm, uint32_t* result)
 
 void AniParagraph::LayoutSync(ani_env* env, ani_object object, ani_double width)
 {
-    AniParagraph* aniParagraph = AniTextUtils::GetObjectFromEnv<AniParagraph>(env, object);
+    AniParagraph* aniParagraph = AniTextUtils::GetNativeFromObj<AniParagraph>(env, object);
     if (aniParagraph == nullptr || aniParagraph->paragraph_ == nullptr) {
         TEXT_LOGE("paragraph is null");
         return;
@@ -84,7 +84,7 @@ void AniParagraph::LayoutSync(ani_env* env, ani_object object, ani_double width)
 
 ani_double AniParagraph::GetLongestLine(ani_env* env, ani_object object)
 {
-    AniParagraph* aniParagraph = AniTextUtils::GetObjectFromEnv<AniParagraph>(env, object);
+    AniParagraph* aniParagraph = AniTextUtils::GetNativeFromObj<AniParagraph>(env, object);
     if (aniParagraph == nullptr || aniParagraph->paragraph_ == nullptr) {
         TEXT_LOGE("paragraph is null");
         return 0;
@@ -95,7 +95,7 @@ ani_double AniParagraph::GetLongestLine(ani_env* env, ani_object object)
 ani_ref AniParagraph::GetLineMetrics(ani_env* env, ani_object object)
 {
     ani_object arrayObj = AniTextUtils::CreateAniUndefined(env);
-    AniParagraph* aniParagraph = AniTextUtils::GetObjectFromEnv<AniParagraph>(env, object);
+    AniParagraph* aniParagraph = AniTextUtils::GetNativeFromObj<AniParagraph>(env, object);
     if (aniParagraph == nullptr || aniParagraph->paragraph_ == nullptr) {
         TEXT_LOGE("paragraph is null");
         return arrayObj;
@@ -105,7 +105,7 @@ ani_ref AniParagraph::GetLineMetrics(ani_env* env, ani_object object)
 
     ani_size index = 0;
     for (auto lineMetrics : vectorLineMetrics) {
-        ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_LINEMETRICS_I, ":V", (ani_long)&lineMetrics);
+        ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_LINEMETRICS_I, ":V");
         env->Object_SetPropertyByName_Int(aniObj, "StartIndex", ani_int(lineMetrics.startIndex));
         env->Object_SetPropertyByName_Int(aniObj, "endIndex", ani_int(lineMetrics.endIndex));
         env->Object_SetPropertyByName_Double(aniObj, "ascent", ani_int(lineMetrics.ascender));

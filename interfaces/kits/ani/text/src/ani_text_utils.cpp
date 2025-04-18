@@ -24,7 +24,7 @@ ani_object AniTextUtils::CreateAniUndefined(ani_env* env)
     return static_cast<ani_object>(aniRef);
 }
 
-ani_object AniTextUtils::CreateAniObject(ani_env* env, const std::string name, const char* signature, ani_long addr)
+ani_object AniTextUtils::CreateAniObject(ani_env* env, const std::string name, const char* signature)
 {
     ani_class cls;
     if (env->FindClass(name.c_str(), &cls) != ANI_OK) {
@@ -37,7 +37,7 @@ ani_object AniTextUtils::CreateAniObject(ani_env* env, const std::string name, c
         return CreateAniUndefined(env);
     }
     ani_object obj = {};
-    if (env->Object_New(cls, ctor, &obj, addr) != ANI_OK) {
+    if (env->Object_New(cls, ctor, &obj) != ANI_OK) {
         TEXT_LOGE("[ANI] create object failed %{public}s", name.c_str());
         return CreateAniUndefined(env);
     }
