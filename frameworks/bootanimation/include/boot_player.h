@@ -24,7 +24,6 @@
 #include <system_ability_definition.h>
 #include <iservice_registry.h>
 
-
 namespace OHOS {
 static const int64_t MAX_WAIT_MEDIA_CREATE_TIME = 5000; // 5S
 #ifdef PLAYER_FRAMEWORK_ENABLE
@@ -74,23 +73,23 @@ public:
 
     void CheckAndCreateMedia()
     {
-        sptr<ISystemAbilityManager> saMgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-        if (saMgr == nullptr) {
-            LOGE("saMgr is null");
+        sptr<ISystemAbilityManager> samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+        if (samgr == nullptr) {
+            LOGE("samgr is nullptr");
             return;
         }
         int64_t startTime = GetSystemCurrentTime();
         int64_t endTime = startTime;
         while ((endTime - startTime) < MAX_WAIT_MEDIA_CREATE_TIME
-            && (saMgr->CheckSystemAbility(OHOS::PLAYER_DISTRIBUTED_SERVICE_ID)) == nullptr) {
+            && samgr->CheckSystemAbility(OHOS::PLAYER_DISTRIBUTED_SERVICE_ID) == nullptr) {
             usleep(SLEEP_TIME_US_10);
             endTime = GetSystemCurrentTime();
         }
-        if (saMgr->CheckSystemAbility(OHOS::PLAYER_DISTRIBUTED_SERVICE_ID)) == nullptr) {
-            LOGE("CheckMediaSa fail");
+        if (samgr->CheckSystemAbility(OHOS::PLAYER_DISTRIBUTED_SERVICE_ID) == nullptr) {
+            LOGE("CheckMediaSA fail");
             return;
         }
-        LOGI("CheckMediaSa success");
+        LOGI("CheckMediaSA success");
 
         startTime = GetSystemCurrentTime();
         endTime = startTime;
