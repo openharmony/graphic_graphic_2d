@@ -69,8 +69,9 @@ void VSyncControllerCallback::OnConnsRefreshRateChanged(const std::vector<std::p
  */
 HWTEST_F(VSyncControllerTest, SetEnable001, Function | MediumTest | Level2)
 {
-    bool isGeneratorEnable = false;
-    ASSERT_EQ(VSyncControllerTest::vsyncController_->SetEnable(true, isGeneratorEnable), VSYNC_ERROR_OK);
+    bool vsyncEnabledFlag = false;
+    ASSERT_EQ(VSyncControllerTest::vsyncController_->SetEnable(true, vsyncEnabledFlag), VSYNC_ERROR_OK);
+    ASSERT_EQ(vsyncEnabledFlag, true);
 }
 
 /*
@@ -121,8 +122,9 @@ HWTEST_F(VSyncControllerTest, SetPhaseOffset001, Function | MediumTest | Level2)
  */
 HWTEST_F(VSyncControllerTest, SetEnable002, Function | MediumTest | Level2)
 {
-    bool isGeneratorEnable = false;
-    ASSERT_EQ(VSyncControllerTest::vsyncController_->SetEnable(false, isGeneratorEnable), VSYNC_ERROR_OK);
+    bool vsyncEnabledFlag = true;
+    ASSERT_EQ(VSyncControllerTest::vsyncController_->SetEnable(false, vsyncEnabledFlag), VSYNC_ERROR_OK);
+    ASSERT_EQ(vsyncEnabledFlag, false);
 }
 
 /*
