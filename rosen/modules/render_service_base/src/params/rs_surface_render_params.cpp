@@ -623,6 +623,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->colorFollow_ = colorFollow_;
     targetSurfaceParams->screenRect_ = screenRect_;
     targetSurfaceParams->dirtyRegionMatrix_ = dirtyRegionMatrix_;
+    targetSurfaceParams->uiFirstFrameGravity_ = uiFirstFrameGravity_;
     RSRenderParams::OnSync(target);
 }
 
