@@ -210,6 +210,7 @@ constexpr uint32_t EVENT_SET_HARDWARE_UTIL = 100004;
 constexpr uint32_t EVENT_NAME_MAX_LENGTH = 50;
 constexpr uint32_t HIGH_32BIT = 32;
 constexpr uint64_t PERIOD_MAX_OFFSET = 1000000; // 1ms
+constexpr uint64_t FASTCOMPOSE_OFFSET = 300000; // 300us
 constexpr const char* WALLPAPER_VIEW = "WallpaperView";
 constexpr const char* CLEAR_GPU_CACHE = "ClearGpuCache";
 constexpr const char* DESKTOP_NAME_FOR_ROTATION = "SCBDesktop";
@@ -4253,22 +4254,42 @@ void RSMainThread::PerfAfterAnim(bool needRequestNextVsync)
     }
 }
 
+bool RSMainThread::IsFastComposeAllow(uint64_t unsignedVsyncPeriod, bool nextVsyncRequested,
+    uint64_t unsignedNowTime, uint64_t lastVsyncTime)
+{
+    if (unsignedVsyncPeriod == 0) {
+        return false;
+    }
+    // only support 60hz fastcompose
+    if (unsignedVsyncPeriod > REFRESH_PERIOD + PERIOD_MAX_OFFSET ||
+        unsignedVsyncPeriod < REFRESH_PERIOD - PERIOD_MAX_OFFSET) {
+        return false;
+    }
+    // fastcompose not work at dvsync preTime scene
+    if (timestamp_ > curTime_ && timestamp_ - curTime_ > PERIOD_MAX_OFFSET) {
+        return false;
+    }
+    // if buffer come after Vsync and before onVsync invoke by others, don't fastcompose
+    if (nextVsyncRequested && (unsignedNowTime - lastVsyncTime) % unsignedVsyncPeriod < FASTCOMPOSE_OFFSET) {
+        return false;
+    }
+    return true;
+}
+
 void RSMainThread::CheckFastCompose(int64_t lastFlushedDesiredPresentTimeStamp)
 {
     auto nowTime = SystemTime();
     uint64_t unsignedNowTime = static_cast<uint64_t>(nowTime);
     uint64_t unsignedLastFlushedDesiredPresentTimeStamp = static_cast<uint64_t>(lastFlushedDesiredPresentTimeStamp);
     int64_t vsyncPeriod = 0;
+    bool nextVsyncRequested = true;
+    bool earlyFastComposeFlag = false;
     VsyncError ret = VSYNC_ERROR_UNKOWN;
     if (receiver_) {
         ret = receiver_->GetVSyncPeriod(vsyncPeriod);
+        nextVsyncRequested = receiver_->IsRequestedNextVSync();
     }
     uint64_t unsignedVsyncPeriod = static_cast<uint64_t>(vsyncPeriod);
-    if (ret != VSYNC_ERROR_OK || unsignedVsyncPeriod > REFRESH_PERIOD + PERIOD_MAX_OFFSET ||
-    	unsignedVsyncPeriod < REFRESH_PERIOD - PERIOD_MAX_OFFSET || !context_) {
-        RequestNextVSync();
-        return;
-    }
     uint64_t lastVsyncTime = 0;
     if (lastFastComposeTimeStamp_ > 0 && timestamp_ == lastFastComposeTimeStamp_) {
         lastVsyncTime = timestamp_ - lastFastComposeTimeStampDiff_;
@@ -4276,24 +4297,36 @@ void RSMainThread::CheckFastCompose(int64_t lastFlushedDesiredPresentTimeStamp)
         lastVsyncTime = timestamp_;
         lastFastComposeTimeStampDiff_ = 0;
     }
+    if (ret != VSYNC_ERROR_OK || !context_ ||
+        !IsFastComposeAllow(unsignedVsyncPeriod, nextVsyncRequested, unsignedNowTime, lastVsyncTime)) {
+        RequestNextVSync();
+        return;
+    }
+    // if buffer come near vsync and next vsync not requested, do fast compose
+    if (!nextVsyncRequested && (unsignedNowTime - lastVsyncTime) % unsignedVsyncPeriod >
+        unsignedVsyncPeriod - FASTCOMPOSE_OFFSET) {
+        unsignedNowTime += FASTCOMPOSE_OFFSET;
+        earlyFastComposeFlag = true;
+    }
     lastVsyncTime = unsignedNowTime - (unsignedNowTime - lastVsyncTime) % unsignedVsyncPeriod;
-    RS_TRACE_NAME_FMT("RSMainThread::CheckFastCompose now = %" PRIu64 "" \
-        ", lastVsyncTime = %" PRIu64 ", timestamp_ = %" PRIu64, unsignedNowTime, lastVsyncTime, timestamp_);
+    RS_TRACE_NAME_FMT("RSMainThread::CheckFastCompose now = %" PRIu64 ", lastVsyncTime = %" PRIu64 ", timestamp_ = %"
+        "" PRIu64 "earlyFastCompose = %d", unsignedNowTime, lastVsyncTime, timestamp_, earlyFastComposeFlag);
     // ignore animation scenario and mult-window scenario
     bool isNeedSingleFrameCompose = context_->GetAnimatingNodeList().empty() &&
         context_->GetNodeMap().GetVisibleLeashWindowCount() < MULTI_WINDOW_PERF_START_NUM;
     // 1/2 vsync period to support continunous fastcompose
     if (isNeedSingleFrameCompose && unsignedNowTime - timestamp_ > unsignedVsyncPeriod / 2 &&
-        unsignedLastFlushedDesiredPresentTimeStamp > lastVsyncTime - unsignedVsyncPeriod &&
         unsignedLastFlushedDesiredPresentTimeStamp < lastVsyncTime &&
         unsignedNowTime - lastVsyncTime < REFRESH_PERIOD / 2) { // invoke when late less than 1/2 refresh period
         RS_TRACE_NAME("RSMainThread::CheckFastCompose success, start fastcompose");
-        RS_LOGD("RSMainThread::CheckFastCompose fastcompose start"
-            ", buffer late for %{public}" PRIu64, unsignedNowTime - lastVsyncTime);
+        RS_LOGD("RSMainThread::fastcompose late for %{public}" PRIu64, unsignedNowTime - lastVsyncTime);
+        if (earlyFastComposeFlag) {
+            curTime_ -= FASTCOMPOSE_OFFSET; // adapt timestamp diff at early fastcompose
+        }
         ForceRefreshForUni(true);
-    } else {
-        RequestNextVSync();
+        return;
     }
+    RequestNextVSync();
 }
 
 bool RSMainThread::CheckAdaptiveCompose()
