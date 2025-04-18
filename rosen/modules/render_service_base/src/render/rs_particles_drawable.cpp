@@ -228,7 +228,8 @@ void RSParticlesDrawable::DrawCircle(Drawing::Canvas& canvas)
     canvas.DetachBrush();
 }
 
-bool RSParticlesDrawable::CheckImageNull(std::shared_ptr<Drawing::Image>& image, const std::shared_ptr<Drawing::Image>& drawImage)
+bool RSParticlesDrawable::CheckImageNull(std::shared_ptr<Drawing::Image>& image,
+    const std::shared_ptr<Drawing::Image>& drawImage)
 {
     if (image) {
         return false;
