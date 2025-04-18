@@ -1390,7 +1390,7 @@ std::shared_ptr<RSFilter> RSPropertyDrawableUtils::GenerateBehindWindowFilter(fl
 #ifndef ENABLE_M133_SKIA
     uint32_t hash = SkOpts::hash(&radius, sizeof(radius), 0);
 #else
-    uint32_t hash = SkChecksum::Hash32(&radius, sizeof(radius), 0);    
+    uint32_t hash = SkChecksum::Hash32(&radius, sizeof(radius), 0);
 #endif
     std::shared_ptr<Drawing::ColorFilter> colorFilter = GenerateMaterialColorFilter(saturation, brightness);
     std::shared_ptr<Drawing::ImageFilter> blurColorFilter =
