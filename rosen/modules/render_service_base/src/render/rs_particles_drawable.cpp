@@ -246,6 +246,7 @@ void RSParticlesDrawable::DrawImages(Drawing::Canvas& canvas)
     while (imageCount_--) {
         if (imageVector_[imageCount_] != nullptr) {
             std::shared_ptr<Drawing::Image> image = nullptr;
+            auto pixelmap = imageVector_[imageCount_]->GetPixelMap();
             if (pixelmap) {
                 image = RSPixelMapUtil::ExtractDrawingImage(pixelmap);
             }
