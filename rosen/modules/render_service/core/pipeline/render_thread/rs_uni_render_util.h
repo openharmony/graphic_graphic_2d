@@ -117,7 +117,7 @@ public:
     static void SetVkImageInfo(std::shared_ptr<OHOS::Rosen::Drawing::VKTextureInfo> vkImageInfo,
         const VkImageCreateInfo& imageInfo);
     static Drawing::BackendTexture MakeBackendTexture(uint32_t width, uint32_t height, pid_t pid,
-        RSTagTracker::TAGTYPE tag, VkFormat format = VK_FORMAT_R8G8B8A8_UNORM);
+        VkFormat format = VK_FORMAT_R8G8B8A8_UNORM);
 #endif
     static void OptimizedFlushAndSubmit(std::shared_ptr<Drawing::Surface>& surface,
         Drawing::GPUContext* const grContext, bool optFenceWait = true);

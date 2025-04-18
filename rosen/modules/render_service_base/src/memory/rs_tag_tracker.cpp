@@ -30,7 +30,7 @@ RSTagTracker::RSTagTracker(Drawing::GPUContext* gpuContext, RSTagTracker::TAGTYP
         return;
     }
 #if defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK)
-    Drawing::GPUResourceTag tag(0, 0, 0, 0, tagType, TagType2String(tagType));
+    Drawing::GPUResourceTag tag(0, 0, 0, tagType, TagType2String(tagType));
     gpuContext_->SetCurrentGpuResourceTag(tag);
 #endif
 }
@@ -74,21 +74,6 @@ std::string RSTagTracker::TagType2String(TAGTYPE type)
         case TAG_UNTAGGED :
             tagType = "untagged";
             break;
-        case TAG_DRAW_CANVAS_NODE:
-            tagType = "draw_canvas_node";
-            break;
-        case TAG_DRAW_CANVAS_DRAWING_NODE:
-            tagType = "draw_canvas_drawing_node";
-            break;
-        case TAG_DRAW_EFFECT_NODE:
-            tagType = "draw_effect_node";
-            break;
-        case TAG_DRAW_DISPLAY_NODE:
-            tagType = "draw_display_node";
-            break;
-        case TAG_DRAW_RENDER_NODE:
-            tagType = "draw_render_node";
-            break;
         default :
             tagType = "";
             break;
@@ -96,7 +81,8 @@ std::string RSTagTracker::TagType2String(TAGTYPE type)
     return tagType;
 }
 
-RSTagTracker::RSTagTracker(Drawing::GPUContext* gpuContext, uint64_t wid, uint64_t cid, RSTagTracker::TAGTYPE tagType)
+RSTagTracker::RSTagTracker(Drawing::GPUContext* gpuContext, NodeId nodeId,
+    RSTagTracker::TAGTYPE tagType, const std::string& name)
     : gpuContext_(gpuContext)
 {
     if (!gpuContext_) {
@@ -106,30 +92,7 @@ RSTagTracker::RSTagTracker(Drawing::GPUContext* gpuContext, uint64_t wid, uint64
         return;
     }
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
-    uint32_t pid = ExtractPid(wid);
-    if (pid == 0) {
-        pid = ExtractPid(cid);
-    }
-    Drawing::GPUResourceTag tag(pid, 0, wid, cid, tagType, TagType2String(tagType));
-    gpuContext_->SetCurrentGpuResourceTag(tag);
-#endif
-}
-
-RSTagTracker::RSTagTracker(Drawing::GPUContext* gpuContext, uint64_t wid, uint64_t cid,
-    RSTagTracker::TAGTYPE tagType, const std::string& name) : gpuContext_(gpuContext)
-{
-    if (!gpuContext_) {
-        return;
-    }
-    if (!g_releaseResourceEnabled_) {
-        return;
-    }
-#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
-    uint32_t pid = ExtractPid(wid);
-    if (pid == 0) {
-        pid = ExtractPid(cid);
-    }
-    Drawing::GPUResourceTag tag(pid, 0, wid, cid, tagType, name);
+    Drawing::GPUResourceTag tag(ExtractPid(nodeId), 0, nodeId, tagType, name);
     gpuContext_->SetCurrentGpuResourceTag(tag);
 #endif
 }
@@ -157,7 +120,7 @@ void RSTagTracker::SetTagEnd()
     }
     isSetTagEnd_ = true;
 #if defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK)
-    Drawing::GPUResourceTag tagEnd(0, 0, 0, 0, 0, "SetTagEnd");
+    Drawing::GPUResourceTag tagEnd(0, 0, 0, 0, "SetTagEnd");
     gpuContext_->SetCurrentGpuResourceTag(tagEnd);
 #endif
 }
@@ -170,7 +133,7 @@ RSTagTracker::~RSTagTracker()
 #if defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK)
     // Set empty tag to notify skia that the tag is complete
     if (!isSetTagEnd_ && gpuContext_) {
-        Drawing::GPUResourceTag tagEnd(0, 0, 0, 0, 0, "~RSTagTracker");
+        Drawing::GPUResourceTag tagEnd(0, 0, 0, 0, "~RSTagTracker");
         gpuContext_->SetCurrentGpuResourceTag(tagEnd);
     }
 #endif

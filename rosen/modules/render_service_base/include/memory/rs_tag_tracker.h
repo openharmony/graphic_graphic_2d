@@ -25,11 +25,6 @@ class RSB_EXPORT RSTagTracker {
 public:
     enum TAGTYPE : uint32_t {
         TAG_DRAW_SURFACENODE = 1, // don't change head and tail, insert the middle if u add data.
-        TAG_DRAW_CANVAS_NODE,
-        TAG_DRAW_CANVAS_DRAWING_NODE,
-        TAG_DRAW_EFFECT_NODE,
-        TAG_DRAW_RENDER_NODE,
-        TAG_DRAW_DISPLAY_NODE,
         TAG_SUB_THREAD,
         TAG_SAVELAYER_DRAW_NODE,
         TAG_RESTORELAYER_DRAW_NODE,
@@ -39,11 +34,9 @@ public:
         TAG_RENDER_FRAME,
         TAG_UNTAGGED,
         TAG_CAPTURE,
-        TAG_MAX
     };
     RSTagTracker(Drawing::GPUContext* gpuContext, RSTagTracker::TAGTYPE tagType);
-    RSTagTracker(Drawing::GPUContext* gpuContext, uint64_t wid, uint64_t cid, RSTagTracker::TAGTYPE tagType);
-    RSTagTracker(Drawing::GPUContext* gpuContext, uint64_t wid, uint64_t cid,
+    RSTagTracker(Drawing::GPUContext* gpuContext, NodeId nodeId,
         RSTagTracker::TAGTYPE tagType, const std::string& name);
     RSTagTracker(Drawing::GPUContext* gpuContext, Drawing::GPUResourceTag& tag);
     void SetTagEnd();
