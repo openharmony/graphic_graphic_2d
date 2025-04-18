@@ -70,6 +70,7 @@ private:
     static bool debugTraceEnabled_;
     std::shared_ptr<RSTimer> timer_ = nullptr;
     int longFrameCount_ = 0;
+    ExceptionCheck exceptionCheck_;
 };
 } // namespace Rosen
 } // namespace OHOS
