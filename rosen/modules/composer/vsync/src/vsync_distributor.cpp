@@ -385,6 +385,11 @@ VsyncError VSyncDistributor::AddConnection(const sptr<VSyncConnection>& connecti
             }
         }
     } else {
+        pid_t extractPid = ExtractPid(connection->id_);
+        if (extractPid != 0) {
+            unalliedWindowConnectionsMap_[extractPid].push_back(connection);
+        }
+
         uint32_t tmpPid;
         if (QosGetPidByName(connection->info_.name_, tmpPid) == VSYNC_ERROR_OK) {
             connectionsMap_[tmpPid].push_back(connection);
@@ -412,6 +417,16 @@ VsyncError VSyncDistributor::RemoveConnection(const sptr<VSyncConnection>& conne
         connectionCounter_.erase(proxyPid);
     }
     connectionsMap_.erase(connection->windowNodeId_);
+    auto unalliedWindowConns = unalliedWindowConnectionsMap_.find(ExtractPid(connection->id_));
+    if (unalliedWindowConns != unalliedWindowConnectionsMap_.end()) {
+        auto connIter = find(unalliedWindowConns->second.begin(), unalliedWindowConns->second.end(), connection);
+        if (connIter != unalliedWindowConns->second.end()) {
+            unalliedWindowConns->second.erase(connIter);
+        }
+        if (unalliedWindowConns->second.empty()) {
+            unalliedWindowConnectionsMap_.erase(unalliedWindowConns);
+        }
+    }
     uint32_t tmpPid;
     if (QosGetPidByName(connection->info_.name_, tmpPid) == VSYNC_ERROR_OK) {
         pidWindowIdMap_.erase(tmpPid);
@@ -1194,6 +1209,25 @@ VsyncError VSyncDistributor::SetQosVSyncRateByPidPublic(uint32_t pid, uint32_t r
     return VSYNC_ERROR_OK;
 }
 
+std::vector<uint64_t> VSyncDistributor::GetVsyncNameLinkerIds(uint32_t pid, const std::string &name)
+{
+    std::lock_guard<std::mutex> locker(mutex_);
+    auto iter = unalliedWindowConnectionsMap_.find(pid);
+    if (iter == unalliedWindowConnectionsMap_.end()) {
+        return {};
+    }
+
+    std::vector<uint64_t> connLinkerIds {};
+    for (auto& connection : iter->second) {
+        if (connection != nullptr) {
+            if (connection->info_.name_.compare(name) == 0) {
+                connLinkerIds.push_back(connection->id_);
+            }
+        }
+    }
+    return connLinkerIds;
+}
+
 constexpr pid_t VSyncDistributor::ExtractPid(uint64_t id)
 {
     constexpr uint32_t bits = 32u;
@@ -1216,6 +1250,38 @@ std::vector<uint64_t> VSyncDistributor::GetSurfaceNodeLinkerIds(uint64_t windowN
     }
 
     return connectionLinkerIds;
+}
+
+VsyncError VSyncDistributor::SetVsyncRateDiscountLTPS(uint32_t pid, const std::string &name, uint32_t rateDiscount)
+{
+    std::lock_guard<std::mutex> locker(mutex_);
+    auto iter = unalliedWindowConnectionsMap_.find(pid);
+    if (iter == unalliedWindowConnectionsMap_.end()) {
+        return VSYNC_ERROR_INVALID_ARGUMENTS;
+    }
+
+    bool isNeedNotify = false;
+    for (auto& connection : iter->second) {
+        if (connection != nullptr && connection->highPriorityRate_ != static_cast<int32_t>(rateDiscount) &&
+            connection->info_.name_.compare(name) == 0) {
+            connection->highPriorityRate_ = static_cast<int32_t>(rateDiscount);
+            connection->highPriorityState_ = true;
+            VLOGD("SetVsyncRateDiscountLTPS conn name:%{public}s, highPriorityRate:%{public}d",
+                connection->info_.name_.c_str(), connection->highPriorityRate_);
+            isNeedNotify = true;
+        }
+    }
+    if (isNeedNotify) {
+#if defined(RS_ENABLE_DVSYNC)
+        if (dvsync_->IsFeatureEnabled()) {
+            con_.notify_all();
+        } else
+#endif
+        {
+            EnableVSync();
+        }
+    }
+    return VSYNC_ERROR_OK;
 }
 
 VsyncError VSyncDistributor::SetQosVSyncRate(uint64_t windowNodeId, int32_t rate, bool isSystemAnimateScene)
@@ -1291,16 +1357,12 @@ void VSyncDistributor::OnDVSyncEvent(int64_t now, int64_t period,
     }
 
     std::vector<sptr<VSyncConnection>> conns;
-    uint32_t generatorRefreshRate;
     int64_t vsyncCount;
     {
         bool waitForVsync = false;
         std::lock_guard<std::mutex> locker(mutex_);
         DVSync::Instance().RecordVSync(this, now, period, refreshRate, true);
         vsyncCount = DVSync::Instance().GetVsyncCount(event_.vsyncCount);
-        if (refreshRate > 0) {
-            generatorRefreshRate = refreshRate;
-        }
         vsyncMode_ = vsyncMode;
         ChangeConnsRateLocked(vsyncMaxRefreshRate);
         // must ltpo mode
@@ -1330,7 +1392,7 @@ void VSyncDistributor::OnDVSyncEvent(int64_t now, int64_t period,
         countTraceValue_ = (countTraceValue_ + 1) % 2; // 2 : change num
         CountTrace(HITRACE_TAG_GRAPHIC_AGP, "vsync-" + name_, countTraceValue_);
     }
-    ConnectionsPostEvent(conns, now, period, generatorRefreshRate, vsyncCount, true);
+    ConnectionsPostEvent(conns, now, period, refreshRate, vsyncCount, true);
 #endif
 }
 // End of DVSync
@@ -1645,10 +1707,11 @@ bool VSyncDistributor::AdaptiveDVSyncEnable(const std::string &nodeName, int64_t
 #endif
 }
 
-void VSyncDistributor::SetBufferInfo(std::string &name, int32_t bufferCount, int64_t lastFlushedTimeStamp)
+void VSyncDistributor::SetBufferInfo(uint64_t id, const std::string &name, uint32_t queueSize,
+    int32_t bufferCount, int64_t lastConsumeTime)
 {
 #if defined(RS_ENABLE_DVSYNC_2)
-    DVSync::Instance().SetBufferInfo(name, bufferCount, lastFlushedTimeStamp);
+    DVSync::Instance().SetBufferInfo(id, name, queueSize, bufferCount, lastConsumeTime);
 #endif
 }
 

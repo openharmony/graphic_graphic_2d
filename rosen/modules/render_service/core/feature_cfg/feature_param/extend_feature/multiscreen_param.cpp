@@ -56,4 +56,14 @@ void MultiScreenParam::SetRsSetScreenPowerStatus(bool isEnabled)
 {
     isRsSetScreenPowerStatus_ = isEnabled;
 }
+
+bool MultiScreenParam::IsMirrorDisplayCloseP3()
+{
+    return isMirrorDisplayCloseP3_;
+}
+
+void MultiScreenParam::SetMirrorDisplayCloseP3(bool isEnabled)
+{
+    isMirrorDisplayCloseP3_ = isEnabled;
+}
 } // namespace OHOS::Rosen

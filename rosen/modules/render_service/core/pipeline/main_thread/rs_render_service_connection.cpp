@@ -710,6 +710,23 @@ int32_t RSRenderServiceConnection::SetVirtualScreenBlackList(ScreenId id, std::v
     return screenManager_->SetVirtualScreenBlackList(id, blackListVector);
 }
 
+ErrCode RSRenderServiceConnection::SetVirtualScreenTypeBlackList(
+    ScreenId id, std::vector<NodeType>& typeBlackListVector, int32_t& repCode)
+{
+    if (typeBlackListVector.empty()) {
+        RS_LOGW("SetVirtualScreenTypeBlackList typeBlackList is empty.");
+        repCode = StatusCode::BLACKLIST_IS_EMPTY;
+        return ERR_INVALID_VALUE;
+    }
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (!screenManager_) {
+        repCode = StatusCode::SCREEN_NOT_FOUND;
+        return ERR_INVALID_VALUE;
+    }
+    repCode = screenManager_->SetVirtualScreenTypeBlackList(id, typeBlackListVector);
+    return ERR_OK;
+}
+
 ErrCode RSRenderServiceConnection::AddVirtualScreenBlackList(
     ScreenId id, std::vector<NodeId>& blackListVector, int32_t& repCode)
 {
@@ -1145,6 +1162,7 @@ void RSRenderServiceConnection::SetScreenPowerStatus(ScreenId id, ScreenPowerSta
             }
             screenManager_->SetScreenPowerStatus(id, status);
         }).wait();
+        screenManager_->WaitScreenPowerStatusTask();
         mainThread_->SetDiscardJankFrames(true);
         renderThread_.SetDiscardJankFrames(true);
         HgmTaskHandleThread::Instance().PostTask([id, status]() {
@@ -2529,6 +2547,43 @@ ErrCode RSRenderServiceConnection::NotifySoftVsyncEvent(uint32_t pid, uint32_t r
     return ERR_OK;
 }
 
+bool RSRenderServiceConnection::NotifySoftVsyncRateDiscountEvent(uint32_t pid,
+    const std::string &name, uint32_t rateDiscount)
+{
+    if (!appVSyncDistributor_) {
+        return false;
+    }
+
+    std::vector<uint64_t> linkerIds = appVSyncDistributor_->GetVsyncNameLinkerIds(pid, name);
+    if (linkerIds.empty()) {
+        RS_LOGW("RSRenderServiceConnection::NotifySoftVsyncRateDiscountEvent: pid=%{public}d linkerIds is nullptr.",
+            pid);
+        return false;
+    }
+
+    auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
+    if (frameRateMgr == nullptr) {
+        RS_LOGW("RSRenderServiceConnection::NotifySoftVsyncRateDiscountEvent: pid=%{public}d frameRateMgr is nullptr.",
+            pid);
+        return false;
+    }
+
+    if (!frameRateMgr->SetVsyncRateDiscountLTPO(linkerIds, rateDiscount)) {
+        RS_LOGW("RSRenderServiceConnection::NotifySoftVsyncRateDiscountEvent: pid=%{public}d Set LTPO fail.",
+            pid);
+        return false;
+    }
+
+    VsyncError ret = appVSyncDistributor_->SetVsyncRateDiscountLTPS(pid, name, rateDiscount);
+    if (ret != VSYNC_ERROR_OK) {
+        RS_LOGW("RSRenderServiceConnection::NotifySoftVsyncRateDiscountEvent: pid=%{public}d Set LTPS fail.",
+            pid);
+        return false;
+    }
+
+    return true;
+}
+
 void RSRenderServiceConnection::NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt)
 {
     if (mainThread_ != nullptr) {
@@ -2560,8 +2615,14 @@ ErrCode RSRenderServiceConnection::NotifyHgmConfigEvent(const std::string &event
             RS_LOGW("RSRenderServiceConnection::NotifyHgmConfigEvent: frameRateMgr is nullptr.");
             return;
         }
+        RS_LOGI("RSRenderServiceConnection::NotifyHgmConfigEvent: recive notify %{public}s, %{public}d",
+            eventName.c_str(), state);
         if (eventName == "HGMCONFIG_HIGH_TEMP") {
-            frameRateMgr->HandleThermalFrameRate(state);
+            frameRateMgr->HandleScreenExtStrategyChange(state, HGM_CONFIG_TYPE_THERMAL_SUFFIX);
+        } else if (eventName == "IA_DRAG_SLIDE") {
+            frameRateMgr->HandleScreenExtStrategyChange(state, HGM_CONFIG_TYPE_DRAGSLIDE_SUFFIX);
+        } else if (eventName == "IL_THROW_SLIDE") {
+            frameRateMgr->HandleScreenExtStrategyChange(state, HGM_CONFIG_TYPE_THROWSLIDE_SUFFIX);
         }
     });
     return ERR_OK;
@@ -3017,5 +3078,11 @@ ErrCode RSRenderServiceConnection::NotifyPageName(const std::string &packageName
     });
     return StatusCode::SUCCESS;
 }
+
+bool RSRenderServiceConnection::GetHighContrastTextState()
+{
+    return RSBaseRenderEngine::IsHighContrastEnabled();
+}
+
 } // namespace Rosen
 } // namespace OHOS

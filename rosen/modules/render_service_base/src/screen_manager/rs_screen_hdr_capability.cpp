@@ -59,9 +59,9 @@ void RSScreenHDRCapability::SetMaxAverageLum(float maxAverageLum)
     maxAverageLum_ = maxAverageLum;
 }
 
-void RSScreenHDRCapability::SetHdrFormats(const std::vector<ScreenHDRFormat>& formats)
+void RSScreenHDRCapability::SetHdrFormats(std::vector<ScreenHDRFormat> formats)
 {
-    hdrFormats_ = formats;
+    hdrFormats_ = std::move(formats);
 }
 
 bool RSScreenHDRCapability::WriteVector(const std::vector<ScreenHDRFormat>& formats, Parcel &parcel) const

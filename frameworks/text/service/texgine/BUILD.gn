@@ -58,11 +58,7 @@ ohos_source_set("libtexgine_source") {
     "src/font_descriptor_cache.cpp",
     "src/font_descriptor_mgr.cpp",
     "src/font_parser.cpp",
-    "src/opentype_parser/cmap_table_parser.cpp",
-    "src/opentype_parser/name_table_parser.cpp",
     "src/opentype_parser/opentype_basic_type.cpp",
-    "src/opentype_parser/post_table_parser.cpp",
-    "src/opentype_parser/ranges.cpp",
   ]
 
   configs = [
@@ -81,10 +77,7 @@ ohos_source_set("libtexgine_source") {
   }
   if (is_arkui_x) {
     defines += [ "CROSS_PLATFORM" ]
-    public_deps += [
-      "//third_party/jsoncpp:jsoncpp_static",
-      "//third_party/skia:skia_$platform",
-    ]
+    public_deps += [ "//third_party/jsoncpp:jsoncpp_static" ]
     deps = [
       "//third_party/bounds_checking_function:libsec_static",
       "//third_party/cJSON:cjson_static",
@@ -93,7 +86,6 @@ ohos_source_set("libtexgine_source") {
     external_deps = [
       "bounds_checking_function:libsec_static",
       "cJSON:cjson_static",
-      "skia:skia_canvaskit",
     ]
   }
 

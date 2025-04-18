@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,24 +13,27 @@
  * limitations under the License.
  */
 
-#include "post_table_parser.h"
-
-#include "utils/text_log.h"
+#include "common/rs_exception_check.h"
+#ifdef ROSEN_OHOS
+#include "platform/common/rs_hisysevent.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
-namespace TextEngine {
-const struct PostTable* PostTableParser::Parse(const char* data, int32_t size)
+
+int64_t RSTimer::GetDuration()
 {
-    return reinterpret_cast<const struct PostTable*>(data);
+    return (GetNanoSeconds() - timestamp_) / MILLI;
 }
 
-void PostTableParser::Dump() const
+void ExceptionCheck::UploadRenderExceptionData()
 {
-    const auto& table = *reinterpret_cast<const struct PostTable*>(data_);
-    TEXT_LOGI("PostTable size %{public}d, version %{public}d, italic angle %{public}f, is fixed pitch %{public}d",
-        size_, table.version.Get(), table.italicAngle.Get(), table.isFixedPitch.Get());
+#ifdef ROSEN_OHOS
+    RSHiSysEvent::EventWrite(RSEventName::RS_RENDER_EXCEPTION, RSEventType::RS_FAULT,
+        "PID", pid_, "UID", uid_, "PROCESS_NAME", processName_,
+        "EXCEPTION_CNT", exceptionCnt_, "EXCEPTION_TIME", exceptionMoment_,
+        "EXCEPTION_POINT", exceptionPoint_);
+#endif
 }
-} // namespace TextEngine
 } // namespace Rosen
 } // namespace OHOS

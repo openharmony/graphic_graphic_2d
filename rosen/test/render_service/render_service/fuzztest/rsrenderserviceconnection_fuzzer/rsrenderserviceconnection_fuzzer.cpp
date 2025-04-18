@@ -687,6 +687,18 @@ bool DoGetGlobalDirtyRegionInfo()
     return true;
 }
 
+bool DoNotifySoftVsyncRateDiscountEvent()
+{
+    if (rsConn_ == nullptr) {
+        return false;
+    }
+    uint32_t pid = GetData<uint32_t>();
+    std::string name = GetData<std::string>();
+    uint32_t rateDiscount = GetData<uint32_t>();
+    bool result = rsConn_->NotifySoftVsyncRateDiscountEvent(pid, name, rateDiscount);
+    return result;
+}
+
 bool DoGetLayerComposeInfo()
 {
     if (rsConn_ == nullptr) {

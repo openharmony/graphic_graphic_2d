@@ -107,7 +107,7 @@ void RSRootNode::RegisterNodeMap()
 RSRootNode::RSRootNode(bool isRenderServiceNode, bool isSamelayerRender, std::shared_ptr<RSUIContext> rsUIContext)
     : RSCanvasNode(isRenderServiceNode, isSamelayerRender, rsUIContext) {}
 
-void RSRootNode::AttachRSSurfaceNode(std::shared_ptr<RSSurfaceNode> surfaceNode) const
+void RSRootNode::AttachRSSurfaceNode(std::shared_ptr<RSSurfaceNode> surfaceNode)
 {
     if (!IsUniRenderEnabled() || isTextureExportNode_) {
         std::unique_ptr<RSCommand> command = std::make_unique<RSRootNodeAttachRSSurfaceNode>(GetId(),
@@ -118,6 +118,7 @@ void RSRootNode::AttachRSSurfaceNode(std::shared_ptr<RSSurfaceNode> surfaceNode)
             std::make_unique<RSRootNodeAttachToUniSurfaceNode>(GetId(), surfaceNode->GetId());
         AddCommand(command, true);
     }
+    SetIsOnTheTree(surfaceNode->GetIsOnTheTree());
 }
 
 void RSRootNode::SetEnableRender(bool flag) const
@@ -151,6 +152,16 @@ void RSRootNode::OnBoundsSizeChanged() const
     std::unique_ptr<RSCommand> command =
         std::make_unique<RSRootNodeUpdateSuggestedBufferSize>(GetId(), bounds.z_, bounds.w_);
     AddCommand(command, false);
+}
+
+void RSRootNode::UpdateOcclusionCullingStatus(bool enable, NodeId keyOcclusionNodeId)
+{
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSUpdateOcclusionCullingStatus>(GetId(), enable, keyOcclusionNodeId);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, IsRenderServiceNode());
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

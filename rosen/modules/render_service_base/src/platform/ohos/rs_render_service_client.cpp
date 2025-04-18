@@ -458,6 +458,17 @@ int32_t RSRenderServiceClient::SetVirtualScreenBlackList(ScreenId id, std::vecto
     return renderService->SetVirtualScreenBlackList(id, blackListVector);
 }
 
+int32_t RSRenderServiceClient::SetVirtualScreenTypeBlackList(ScreenId id, std::vector<NodeType>& typeBlackListVector)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        return RENDER_SERVICE_NULL;
+    }
+    int32_t repCode;
+    renderService->SetVirtualScreenTypeBlackList(id, typeBlackListVector, repCode);
+    return repCode;
+}
+
 int32_t RSRenderServiceClient::AddVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
@@ -2114,6 +2125,15 @@ void RSRenderServiceClient::NotifyPageName(const std::string &packageName,
         return;
     }
     renderService->NotifyPageName(packageName, pageName, isEnter);
+}
+
+bool RSRenderServiceClient::GetHighContrastTextState()
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService != nullptr) {
+        return renderService->GetHighContrastTextState();
+    }
+    return false;
 }
 } // namespace Rosen
 } // namespace OHOS

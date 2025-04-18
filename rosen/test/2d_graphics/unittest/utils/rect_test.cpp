@@ -420,40 +420,6 @@ HWTEST_F(RectTest, RectIntersect003, TestSize.Level1)
 }
 
 /**
- * @tc.name: IntersectRect001
- * @tc.desc: test for seting RectF to intersection.
- * @tc.type: FUNC
- * @tc.require: I6ZMMK
- */
-HWTEST_F(RectTest, IntersectRect001, TestSize.Level1)
-{
-    RectF rectf1(1.0f, 2.0f, 3.0f, 4.0f);
-    RectF rectf2;
-    rectf1.IntersectRect(rectf2);
-    EXPECT_EQ(0.0f, rectf1.GetLeft());
-    EXPECT_EQ(0.0f, rectf1.GetTop());
-    EXPECT_EQ(0.0f, rectf1.GetRight());
-    EXPECT_EQ(0.0f, rectf1.GetBottom());
-}
-
-/**
- * @tc.name: IntersectRect002
- * @tc.desc: test for seting RectF to intersection.
- * @tc.type: FUNC
- * @tc.require: I6ZMMK
- */
-HWTEST_F(RectTest, IntersectRect002, TestSize.Level1)
-{
-    RectF rectf1(1.0f, 2.0f, 3.0f, 4.0f);
-    RectF rectf2(1.0f, 2.0f, 3.0f, 5.0f);
-    rectf2.IntersectRect(rectf1);
-    EXPECT_EQ(1.0f, rectf2.GetLeft());
-    EXPECT_EQ(2.0f, rectf2.GetTop());
-    EXPECT_EQ(3.0f, rectf2.GetRight());
-    EXPECT_EQ(4.0f, rectf2.GetBottom());
-}
-
-/**
  * @tc.name: RectJoin001
  * @tc.desc: test for seting RectF to the union of itself and other.
  * @tc.type: FUNC

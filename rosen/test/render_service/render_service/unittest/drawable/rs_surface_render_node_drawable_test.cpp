@@ -1058,7 +1058,7 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, DealWithSelfDrawingNodeBufferTest001, 
     surfaceParams->isLayerTop_ = true;
     surfaceDrawable_->DealWithSelfDrawingNodeBuffer(canvas, *surfaceParams);
     ASSERT_TRUE(surfaceParams->IsLayerTop());
-    surfaceDrawable_->surfaceNodeType_ = RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE;
+    surfaceDrawable_->surfaceNodeType_ = RSSurfaceNodeType::CURSOR_NODE;
     surfaceDrawable_->name_ = "pointer window";
     surfaceDrawable_->DealWithSelfDrawingNodeBuffer(canvas, *surfaceParams);
 }
@@ -1242,5 +1242,63 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, GetGravityMatrixTest, TestSize.Level1)
     Drawing::Matrix matrix = surfaceDrawable_->GetGravityMatrix(100, 100);
     ASSERT_EQ(matrix.Get(Drawing::Matrix::TRANS_X), 0);
     ASSERT_EQ(matrix.Get(Drawing::Matrix::TRANS_Y), 0);
+}
+
+/**
+ * @tc.name: IsVisibleRegionEqualOnPhysicalAndVirtualTest
+ * @tc.desc: test if visible region and virtual visible region equals.
+ * @tc.type: FUNC
+ * @tc.require: issueIBZ8K3
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, IsVisibleRegionEqualOnPhysicalAndVirtualTest, TestSize.Level1)
+{
+    Occlusion::Region emptyRegion;
+    NodeId leashId = 1;
+    auto leashWindow = std::make_shared<RSSurfaceRenderNode>(leashId);
+    auto leashDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(leashWindow));
+    ASSERT_NE(leashDrawable, nullptr);
+    auto leashParams = static_cast<RSSurfaceRenderParams*>(leashDrawable->GetRenderParams().get());
+    ASSERT_NE(leashParams, nullptr);
+    leashParams->isLeashWindow_ = true;
+    leashParams->SetVisibleRegion(emptyRegion);
+    leashParams->SetVisibleRegionInVirtual(emptyRegion);
+
+    NodeId appId = 2;
+    auto appWindow = std::make_shared<RSSurfaceRenderNode>(appId);
+    auto appDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(appWindow));
+    ASSERT_NE(appDrawable, nullptr);
+    auto appParams = static_cast<RSSurfaceRenderParams*>(appDrawable->GetRenderParams().get());
+    ASSERT_NE(appParams, nullptr);
+    leashParams->isAppWindow_ = true;
+    leashParams->allSubSurfaceNodeIds_.insert(appId);
+
+    // all empty
+    appParams->SetVisibleRegion(emptyRegion);
+    appParams->SetVisibleRegionInVirtual(emptyRegion);
+    ASSERT_TRUE(leashDrawable->IsVisibleRegionEqualOnPhysicalAndVirtual(*leashParams));
+
+    // region has one area
+    Occlusion::Region region({ 100, 100, 1000, 1000 });
+    appParams->SetVisibleRegion(region);
+    appParams->SetVisibleRegionInVirtual(region);
+    ASSERT_TRUE(leashDrawable->IsVisibleRegionEqualOnPhysicalAndVirtual(*leashParams));
+
+    // region has multi area
+    Occlusion::Region region2({ 100, 1200, 1000, 1500 });
+    auto multiAreaRegion = region.Or(region2);
+    appParams->SetVisibleRegion(multiAreaRegion);
+    appParams->SetVisibleRegionInVirtual(multiAreaRegion);
+    ASSERT_TRUE(leashDrawable->IsVisibleRegionEqualOnPhysicalAndVirtual(*leashParams));
+
+    appParams->SetVisibleRegion(region);
+    appParams->SetVisibleRegionInVirtual(multiAreaRegion);
+    ASSERT_FALSE(leashDrawable->IsVisibleRegionEqualOnPhysicalAndVirtual(*leashParams));
+
+    // one region is empty
+    appParams->SetVisibleRegion(emptyRegion);
+    appParams->SetVisibleRegionInVirtual(region);
+    ASSERT_FALSE(leashDrawable->IsVisibleRegionEqualOnPhysicalAndVirtual(*leashParams));
 }
 }

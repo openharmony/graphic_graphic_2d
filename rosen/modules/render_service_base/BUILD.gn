@@ -36,7 +36,7 @@ if (!is_mingw && !is_mac && !is_cross_platform &&
 
   ohos_rust_static_ffi("particle_cxx_rust") {
     sources = [ "rust/src/lib.rs" ]
-    deps = [ "//third_party/rust/crates/cxx:lib" ]
+    external_deps = [ "rust_cxx:lib" ]
     part_name = "graphic_2d"
     subsystem_name = "graphic"
   }
@@ -56,7 +56,7 @@ if (!is_mingw && !is_mac && !is_cross_platform &&
       "//third_party/rust/crates/cxx/include/cxx.h",
       "//third_party/rust/crates/cxx/src/cxx.cc",
     ]
-    deps = [ "//third_party/rust/crates/cxx:lib" ]
+    external_deps = [ "rust_cxx:lib" ]
   }
 }
 
@@ -140,11 +140,13 @@ ohos_source_set("render_service_base_src") {
     "src/common/rs_color.cpp",
     "src/common/rs_common_def.cpp",
     "src/common/rs_common_tools.cpp",
+    "src/common/rs_exception_check.cpp",
     "src/common/rs_obj_abs_geometry.cpp",
     "src/common/rs_occlusion_region.cpp",
     "src/common/rs_occlusion_region_helper.cpp",
     "src/common/rs_rectangles_merger.cpp",
     "src/common/rs_special_layer_manager.cpp",
+    "src/common/rs_switching_thread.cpp",
     "src/common/rs_thread_handler_generic.cpp",
     "src/common/rs_thread_looper_generic.cpp",
     "src/common/rs_thread_looper_impl.cpp",
@@ -333,6 +335,7 @@ ohos_source_set("render_service_base_src") {
       "src/params/rs_rcd_render_params.cpp",
       "src/params/rs_render_params.cpp",
       "src/params/rs_render_thread_params.cpp",
+      "src/params/rs_root_render_params.cpp",
       "src/params/rs_surface_render_params.cpp",
     ]
   }
@@ -435,6 +438,7 @@ ohos_source_set("render_service_base_src") {
       }
       if (graphic_2d_feature_enable_pgo &&
           graphic_2d_feature_product != "default") {
+        defines += [ "CM_FEATURE_ENABLE" ]
         cflags += [
           "-fprofile-use=" + rebase_path(
                   "${graphic_2d_feature_pgo_path}/librender_service_base.profdata",
@@ -648,7 +652,21 @@ config("render_service_base_link_config") {
     ]
 
     if (graphic_2d_feature_enable_pgo && enable_enhanced_opt) {
-      ldflags += [ "-Wl,--aarch64-inline-plt" ]
+      ldflags += [
+        "-Wl,--aarch64-inline-plt",
+        "-Wl,-plugin-opt=-split-machine-functions",
+        "-Wl,-mllvm",
+        "-Wl,-fixup-unconditional-branch-unsafely",
+        "-Wl,--no-create-thunks-introduced-by-mfs",
+        "-Wl,-mllvm",
+        "-Wl,-mfs-psi-cutoff=999500",
+        "-Wl,-z",
+        "-Wl,keep-text-section-prefix",
+        "-Wl,--symbol-ordering-file=" + rebase_path(
+                "${graphic_2d_feature_pgo_path}/librender_service_base.txt",
+                root_build_dir),
+        "-Wl,--no-warn-symbol-ordering",
+      ]
     }
   }
 }

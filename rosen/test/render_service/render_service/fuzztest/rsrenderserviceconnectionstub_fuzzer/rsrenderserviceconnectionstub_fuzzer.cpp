@@ -3653,6 +3653,39 @@ bool DoCreateNode(const uint8_t* data, size_t size)
     connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
     return true;
 }
+
+bool DoNotifySoftVsyncRateDiscountEvent(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    uint32_t code =
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_SOFT_VSYNC_RATE_DISCOUNT_EVENT);
+    pid_t newPid = getpid();
+    sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSRenderServiceConnectionStub> connectionStub_ =
+        new RSRenderServiceConnection(newPid, nullptr, nullptr, nullptr, token_->AsObject(), nullptr);
+
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+    MessageOption option;
+
+    uint32_t pid = GetData<uint32_t>();
+    std::string name = GetData<std::string>();
+    uint32_t rateDiscount = GetData<uint32_t>();
+    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteUint32(pid);
+    dataParcel.WriteString(name);
+    dataParcel.WriteUint32(rateDiscount);
+    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    return true;
+}
 } // Rosen
 } // OHOS
 
@@ -3777,5 +3810,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoSetScreenRefreshRate(data, size);
     OHOS::Rosen::DoGetScreenCurrentRefreshRate(data, size);
     OHOS::Rosen::DoCreateNode(data, size);
+    OHOS::Rosen::DoNotifySoftVsyncRateDiscountEvent(data, size);
     return 0;
 }

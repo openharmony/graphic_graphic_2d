@@ -207,6 +207,8 @@ public:
     bool GetScreenPowerOnChanged() const;
     bool IsAccessibilityConfigChanged() const;
     bool IsCurtainScreenUsingStatusChanged() const;
+    bool IsFastComposeAllow(uint64_t unsignedVsyncPeriod, bool nextVsyncRequested,
+        uint64_t unsignedNowTime, uint64_t lastVsyncTime);
     void CheckFastCompose(int64_t bufferTimeStamp);
     bool CheckAdaptiveCompose();
     void ForceRefreshForUni(bool needDelay = false);
@@ -436,7 +438,8 @@ public:
     void NotifyUnmarshalTask(int64_t uiTimestamp);
     void NotifyPackageEvent(const std::vector<std::string>& packageList);
     void NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt);
-    void SetBufferInfo(std::string &name, int32_t bufferCount, int64_t lastFlushedTimeStamp);
+    void SetBufferInfo(uint64_t id, const std::string &name, uint32_t queueSize,
+        int32_t bufferCount, int64_t lastConsumeTime);
 
     // Enable HWCompose
     bool IsHardwareEnabledNodesNeedSync();
@@ -639,7 +642,6 @@ private:
     std::atomic_bool discardJankFrames_ = false;
     std::atomic_bool skipJankAnimatorFrame_ = false;
     pid_t lastCleanCachePid_ = -1;
-    int preHardwareTid_ = -1;
     int32_t unmarshalFinishedCount_ = 0;
     uint32_t appWindowNum_ = 0;
     pid_t desktopPidForRotationScene_ = 0;
@@ -649,8 +651,6 @@ private:
     uint32_t leashWindowCount_ = 0;
     pid_t exitedPid_ = -1;
     RsParallelType rsParallelType_;
-    // render start hardware task count
-    uint32_t preUnExecuteTaskNum_ = 0;
     std::atomic<int32_t> focusAppPid_ = -1;
     std::atomic<int32_t> focusAppUid_ = -1;
     std::atomic<uint32_t> requestNextVsyncNum_ = 0;
@@ -694,6 +694,9 @@ private:
     TransactionDataIndexMap effectiveTransactionDataIndexMap_;
     std::map<pid_t, std::vector<std::unique_ptr<RSTransactionData>>> cachedSkipTransactionDataMap_;
     std::unordered_map<pid_t, uint64_t> transactionDataLastWaitTime_;
+
+    bool needRequestNextVsync_ = false;
+    bool isHdrSwitchChanged_ = false;
 
     /**
      * @brief A set to store buffer IDs of images that are about to be unmapped from GPU cache.

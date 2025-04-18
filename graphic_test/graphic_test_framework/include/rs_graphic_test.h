@@ -48,12 +48,15 @@ public:
     virtual void AfterEach() {};
 
     void AddFileRenderNodeTreeToNode(std::shared_ptr<RSNode> node, const std::string& filePath);
+    void PlaybackRecover(const std::string& filePath, float pauseTimeStamp);
+    void PlaybackStop();
 private:
     std::string GetImageSavePath(const std::string path);
     bool IsSingleTest();
     UIPoint GetScreenCapacity(const std::string testCase);
     UIPoint GetPos(int id, int cl);
     bool WaitOtherTest();
+    void TestCaseCapture(bool isScreenshot);
 
     bool shouldRunTest_ = true;
     Vector4f surfaceBounds_;

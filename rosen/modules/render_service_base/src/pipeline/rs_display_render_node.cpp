@@ -525,6 +525,16 @@ GraphicColorGamut RSDisplayRenderNode::GetColorSpace() const
     return colorSpace_;
 }
 
+void RSDisplayRenderNode::SetForceCloseHdr(bool isForceCloseHdr)
+{
+    isForceCloseHdr_ = isForceCloseHdr;
+}
+
+bool RSDisplayRenderNode::GetForceCloseHdr() const
+{
+    return isForceCloseHdr_;
+}
+
 RSRenderNode::ChildrenListSharedPtr RSDisplayRenderNode::GetSortedChildren() const
 {
     int32_t currentScbPid = GetCurrentScbPid();

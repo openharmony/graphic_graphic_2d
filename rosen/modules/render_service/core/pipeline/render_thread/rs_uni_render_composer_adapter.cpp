@@ -1290,8 +1290,6 @@ LayerInfoPtr RSUniRenderComposerAdapter::CreateBufferLayer(
             surfaceDrawable.GetId());
         return nullptr;
     }
-    RS_TRACE_NAME_FMT("CreateLayer:%s XYWH[%d %d %d %d]", surfaceDrawable.GetName().c_str(),
-        info.dstRect.x, info.dstRect.y, info.dstRect.w, info.dstRect.h);
     if (info.buffer) {
         RS_LOGD("RsDebug RSUniRenderComposerAdapter::CreateBufferLayer surfaceNode id:%{public}" PRIu64 " name:"
             "[%{public}s] dst [%{public}d %{public}d %{public}d %{public}d] SrcRect [%{public}d %{public}d]"
@@ -1320,6 +1318,12 @@ LayerInfoPtr RSUniRenderComposerAdapter::CreateBufferLayer(
     } else if (scalingMode == ScalingMode::SCALING_MODE_SCALE_FIT) {
         LayerScaleFit(layer);
     }
+    auto& layerRect = layer->GetLayerSize();
+    auto& cropRect = layer->GetCropRect();
+    RS_TRACE_NAME_FMT("CreateLayer:%s ScreenId:%llu layerRect XYWH[%d %d %d %d], "
+        "cropRect XYWH[%d %d %d %d], transform:%d", surfaceDrawable.GetName().c_str(), screenInfo_.id,
+        layerRect.x, layerRect.y, layerRect.w, layerRect.h,
+        cropRect.x, cropRect.y, cropRect.w, cropRect.h, layer->GetTransformType());
     return layer;
 }
 

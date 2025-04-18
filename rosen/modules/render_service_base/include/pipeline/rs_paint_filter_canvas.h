@@ -153,7 +153,7 @@ class RSB_EXPORT RSPaintFilterCanvas : public RSPaintFilterCanvasBase {
 public:
     RSPaintFilterCanvas(Drawing::Canvas* canvas, float alpha = 1.0f);
     RSPaintFilterCanvas(Drawing::Surface* surface, float alpha = 1.0f);
-    ~RSPaintFilterCanvas() override = default;;
+    ~RSPaintFilterCanvas() override = default;
 
     void CopyConfigurationToOffscreenCanvas(const RSPaintFilterCanvas& other);
     void PushDirtyRegion(Drawing::Region& resultRegion);
@@ -312,6 +312,17 @@ public:
     bool GetIsWindowFreezeCapture() const;
     void SetIsWindowFreezeCapture(bool isWindowFreezeCapture);
 
+    // Set culled nodes for control-level occlusion culling
+    void SetCulledNodes(const std::unordered_set<NodeId>&& culledNodes)
+    {
+        culledNodes_ = std::move(culledNodes);
+    }
+    // Get culled nodes for control-level occlusion culling
+    const std::unordered_set<NodeId>& GetCulledNodes() const
+    {
+        return culledNodes_;
+    }
+
 protected:
     using Env = struct {
         Color envForegroundColor_;
@@ -365,6 +376,7 @@ private:
     Drawing::Surface* surface_ = nullptr;
     Drawing::Canvas* storeMainCanvas_ = nullptr; // store main canvas
     Drawing::Rect visibleRect_ = Drawing::Rect();
+    std::unordered_set<NodeId> culledNodes_; // store culled nodes for control-level occlusion culling
 
     std::stack<float> alphaStack_;
     std::stack<Env> envStack_;
@@ -381,6 +393,32 @@ private:
     std::stack<Drawing::Surface*> storeMainScreenSurface_; // store surface_
     std::stack<Drawing::Canvas*> storeMainScreenCanvas_; // store canvas_
 };
+
+#ifdef RS_ENABLE_VK
+class RSHybridRenderPaintFilterCanvas : public RSPaintFilterCanvas {
+public:
+    RSHybridRenderPaintFilterCanvas(Drawing::Canvas* canvas, float alpha = 1.0f) : RSPaintFilterCanvas(canvas, alpha)
+    {}
+
+    RSHybridRenderPaintFilterCanvas(Drawing::Surface* surface, float alpha = 1.0f) : RSPaintFilterCanvas(surface, alpha)
+    {}
+
+    //Override the AttachPaint method
+    CoreCanvas& AttachPaint(const Drawing::Paint& paint) override;
+
+    bool IsRenderWithForegroundColor() const
+    {
+        return isRenderWithForegroundColor;
+    }
+
+    void SetRenderWithForegroundColor(bool renderFilterStatus)
+    {
+        isRenderWithForegroundColor = renderFilterStatus;
+    }
+private:
+    bool isRenderWithForegroundColor = false;
+};
+#endif
 
 // Helper class similar to SkAutoCanvasRestore, but also restores alpha and/or env
 class RSB_EXPORT RSAutoCanvasRestore {

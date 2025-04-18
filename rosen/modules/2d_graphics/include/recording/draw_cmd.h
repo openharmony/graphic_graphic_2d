@@ -99,6 +99,7 @@ public:
         SURFACEBUFFER_OPITEM,
         DRAW_FUNC_OPITEM,
         RECORD_CMD_OPITEM,
+        HYBRID_RENDER_PIXELMAP_OPITEM,
     };
 
     static void BrushHandleToBrush(const BrushHandle& brushHandle, const DrawCmdList& cmdList, Brush& brush);

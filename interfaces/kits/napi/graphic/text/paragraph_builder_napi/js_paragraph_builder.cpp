@@ -14,11 +14,15 @@
  */
 
 #include "js_paragraph_builder.h"
+
+#include <string>
+
 #include "fontcollection_napi/js_fontcollection.h"
 #include "js_native_api.h"
 #include "line_typeset_napi/js_line_typeset.h"
 #include "napi_common.h"
 #include "paragraph_napi/js_paragraph.h"
+#include "txt/text_bundle_config_parser.h"
 #include "utils/string_util.h"
 #include "utils/text_log.h"
 
@@ -173,15 +177,29 @@ napi_value JsParagraphBuilder::OnAddText(napi_env env, napi_callback_info info)
         return NapiGetUndefined(env);
     }
 
-    size_t len = 0;
-    if (napi_get_value_string_utf16(env, argv[0], nullptr, 0, &len) != napi_ok) {
-        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Failed get utf16 length");
+    if (SPText::TextBundleConfigParser::GetInstance().IsTargetApiVersion(SPText::SINCE_API18_VERSION)) {
+        size_t len = 0;
+        if (napi_get_value_string_utf16(env, argv[0], nullptr, 0, &len) != napi_ok) {
+            TEXT_LOGE("Failed to get utf16 length");
+            return NapiGetUndefined(env);
+        }
+
+        auto buffer = std::make_unique<char16_t[]>(len + 1);
+        if (napi_get_value_string_utf16(env, argv[0], buffer.get(), len + 1, &len) != napi_ok) {
+            TEXT_LOGE("Failed to get utf16");
+            return NapiGetUndefined(env);
+        }
+        typographyCreate_->AppendText(std::u16string {buffer.get()});
+    } else {
+        std::string text = "";
+        if (ConvertFromJsValue(env, argv[0], text)) {
+            if (!IsUtf8(text.c_str(), text.size())) {
+                TEXT_LOGE("Invalid utf-8 text");
+                return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params");
+            }
+            typographyCreate_->AppendText(Str8ToStr16(text));
+        }
     }
-    auto buffer = std::make_unique<char16_t[]>(len + 1);
-    if (napi_get_value_string_utf16(env, argv[0], buffer.get(), len + 1, &len) != napi_ok) {
-        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Failed get utf16");
-    }
-    typographyCreate_->AppendText(buffer.get());
     return NapiGetUndefined(env);
 }
 

@@ -99,6 +99,9 @@ private:
 
     int32_t SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector) override;
 
+    ErrCode SetVirtualScreenTypeBlackList(
+        ScreenId id, std::vector<NodeType>& typeBlackListVector, int32_t& repCode) override;
+
     ErrCode AddVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector, int32_t& repCode) override;
 
     ErrCode RemoveVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector, int32_t& repCode) override;
@@ -325,6 +328,8 @@ private:
 
     ErrCode NotifySoftVsyncEvent(uint32_t pid, uint32_t rateDiscount) override;
 
+    bool NotifySoftVsyncRateDiscountEvent(uint32_t pid, const std::string &name, uint32_t rateDiscount) override;
+
     void NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt) override;
 
     void NotifyDynamicModeEvent(bool enableDynamicModeEvent) override;
@@ -382,6 +387,8 @@ private:
 #endif
 
     ErrCode NotifyPageName(const std::string &packageName, const std::string &pageName, bool isEnter) override;
+
+    bool GetHighContrastTextState() override;
 
     pid_t remotePid_;
     wptr<RSRenderService> renderService_;

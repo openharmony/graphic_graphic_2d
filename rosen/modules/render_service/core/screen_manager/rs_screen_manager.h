@@ -16,11 +16,13 @@
 #ifndef RS_SCREEN_MANAGER
 #define RS_SCREEN_MANAGER
 
+#include <condition_variable>
 #include <cstdint>
 #include <future>
 #include <memory>
 #include <mutex>
 #include <queue>
+#include <shared_mutex>
 #include <unordered_map>
 #include <unordered_set>
 
@@ -42,10 +44,10 @@
 #include <screen_manager/screen_types.h>
 #include <screen_manager/rs_virtual_screen_resolution.h>
 #include <screen_manager/rs_screen_info.h>
-#include <screen_manager/rs_screen.h>
 
 namespace OHOS {
 namespace Rosen {
+class RSScreen;
 class RSScreenManager : public RefBase {
 public:
     RSScreenManager() = default;
@@ -84,9 +86,10 @@ public:
     virtual void RemoveForceRefreshTask() = 0;
 
     virtual void ClearFrameBufferIfNeed() = 0;
+    virtual void ReleaseScreenDmaBuffer(ScreenId id) = 0;
 
     /* only used for mock tests */
-    virtual void MockHdiScreenConnected(std::shared_ptr<impl::RSScreen> rsScreen) = 0;
+    virtual void MockHdiScreenConnected(std::shared_ptr<RSScreen> rsScreen) = 0;
 
     // physical screen
     virtual std::shared_ptr<HdiOutput> GetOutput(ScreenId id) const = 0;
@@ -109,6 +112,7 @@ public:
 
     virtual void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status) = 0;
     virtual ScreenPowerStatus GetScreenPowerStatus(ScreenId id) const = 0;
+    virtual void WaitScreenPowerStatusTask() = 0;
     virtual bool IsScreenPoweringOn() const = 0;
     virtual bool IsScreenPoweringOff(ScreenId id) const = 0;
     virtual bool IsScreenPowerOff(ScreenId id) const = 0;
@@ -177,9 +181,11 @@ public:
 
     virtual int32_t SetCastScreenEnableSkipWindow(ScreenId id, bool enable) = 0;
     virtual int32_t SetVirtualScreenBlackList(ScreenId id, const std::vector<uint64_t>& blackList) = 0;
+    virtual int32_t SetVirtualScreenTypeBlackList(ScreenId id, const std::vector<uint8_t>& typeBlackList) = 0;
     virtual int32_t AddVirtualScreenBlackList(ScreenId id, const std::vector<uint64_t>& blackList) = 0;
     virtual int32_t RemoveVirtualScreenBlackList(ScreenId id, const std::vector<uint64_t>& blackList) = 0;
     virtual const std::unordered_set<uint64_t> GetVirtualScreenBlackList(ScreenId id) const = 0;
+    virtual const std::unordered_set<uint8_t> GetVirtualScreenTypeBlackList(ScreenId id) const = 0;
     virtual std::unordered_set<uint64_t> GetAllBlackList() const = 0;
     virtual std::unordered_set<uint64_t> GetAllWhiteList() const = 0;
 
@@ -249,16 +255,10 @@ public:
     void RemoveForceRefreshTask() override;
 
     void ClearFrameBufferIfNeed() override;
-    static void ReleaseScreenDmaBuffer(uint64_t screenId);
+    void ReleaseScreenDmaBuffer(ScreenId screenId) override;
 
     /* only used for mock tests */
-    void MockHdiScreenConnected(std::shared_ptr<impl::RSScreen> rsScreen) override
-    {
-        if (rsScreen == nullptr) {
-            return;
-        }
-        screens_[rsScreen->Id()] = rsScreen;
-    }
+    void MockHdiScreenConnected(std::shared_ptr<OHOS::Rosen::RSScreen> rsScreen) override;
 
     // physical screen
     std::shared_ptr<HdiOutput> GetOutput(ScreenId id) const override;
@@ -280,6 +280,7 @@ public:
 
     void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status) override;
     ScreenPowerStatus GetScreenPowerStatus(ScreenId id) const override;
+    void WaitScreenPowerStatusTask() override;
     bool IsScreenPoweringOn() const override;
     bool IsScreenPoweringOff(ScreenId id) const override;
     bool IsScreenPowerOff(ScreenId id) const override;
@@ -348,9 +349,11 @@ public:
 
     int32_t SetCastScreenEnableSkipWindow(ScreenId id, bool enable) override;
     int32_t SetVirtualScreenBlackList(ScreenId id, const std::vector<uint64_t>& blackList) override;
+    int32_t SetVirtualScreenTypeBlackList(ScreenId id, const std::vector<uint8_t>& typeBlackList) override;
     int32_t AddVirtualScreenBlackList(ScreenId id, const std::vector<uint64_t>& blackList) override;
     int32_t RemoveVirtualScreenBlackList(ScreenId id, const std::vector<uint64_t>& blackList) override;
     const std::unordered_set<uint64_t> GetVirtualScreenBlackList(ScreenId id) const override;
+    const std::unordered_set<uint8_t> GetVirtualScreenTypeBlackList(ScreenId id) const override;
     std::unordered_set<uint64_t> GetAllBlackList() const override;
     std::unordered_set<uint64_t> GetAllWhiteList() const override;
 
@@ -393,6 +396,7 @@ private:
     void HandleDefaultScreenDisConnected();
 
     void UpdateScreenPowerStatus(ScreenId id, ScreenPowerStatus status);
+    void ResetScreenPowerStatusTask();
 
     void RegSetScreenVsyncEnabledCallbackForMainThread(ScreenId vsyncEnabledScreenId);
     void RegSetScreenVsyncEnabledCallbackForHardwareThread(ScreenId vsyncEnabledScreenId);
@@ -419,7 +423,7 @@ private:
     ScreenId GenerateVirtualScreenId();
     void ForceRefreshOneFrame() const;
 
-    mutable std::mutex screenMapmutex_;
+    mutable std::mutex screenMapMutex_;
     std::map<ScreenId, std::shared_ptr<OHOS::Rosen::RSScreen>> screens_;
     using ScreenNode = decltype(screens_)::value_type;
     bool AnyScreenFits(std::function<bool(const ScreenNode&)> func) const;
@@ -445,12 +449,19 @@ private:
     std::unordered_map<ScreenId, uint32_t> screenPowerStatus_;
     std::unordered_set<ScreenId> isScreenPoweringOff_;
 
+    std::mutex syncTaskMutex_;
+    std::condition_variable statusTaskCV_;
+    bool statusTaskEndFlag_ = false;
+
     mutable std::shared_mutex backLightAndCorrectionMutex_;
     std::unordered_map<ScreenId, uint32_t> screenBacklight_;
     std::unordered_map<ScreenId, ScreenRotation> screenCorrection_;
 
     mutable std::mutex blackListMutex_;
     std::unordered_set<uint64_t> castScreenBlackList_ = {};
+
+    mutable std::mutex typeBlackListMutex_;
+    std::unordered_set<uint8_t> castScreenTypeBlackList_ = {};
 
     uint64_t frameId_ = 0; // only used by SetScreenConstraint, called in hardware thread per frame
 

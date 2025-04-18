@@ -23,7 +23,6 @@
 #include "rs_trace.h"
 #include "system/rs_system_parameters.h"
 
-#include "include/gpu/vk/GrVulkanTrackerInterface.h"
 #include "common/rs_common_def.h"
 #include "common/rs_optional_trace.h"
 #include "common/rs_singleton.h"
@@ -348,6 +347,11 @@ bool RSDisplayRenderNodeDrawable::CheckDisplayNodeSkip(
         RSMainThread::Instance()->GetDirtyFlag()) {
         return false;
     }
+    if (params.GetHDRPresent() && (offscreenSurface_ == nullptr ||
+        offscreenSurface_->GetImageInfo().GetColorType() != Drawing::ColorType::COLORTYPE_RGBA_F16)) {
+        RS_LOGD("RSDisplayRenderNodeDrawable::CheckDisplayNodeSkip prepare buffer type not fp16");
+        return false;
+    }
 
     RS_LOGD("DisplayNode skip");
     RS_TRACE_NAME("DisplayNode skip");
@@ -511,7 +515,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 {
     RECORD_GPURESOURCE_CORETRACE_CALLER_WITHNODEID(Drawing::CoreFunction::
         RS_RSDISPLAYRENDERNODEDRAWABLE_ONDRAW, GetId());
-    RECORD_GPU_RESOURCE_DRAWABLE_CALLER(GetId())
+    RSTagTracker tagTracker(canvas.GetGPUContext().get(), 0, GetId(), RSTagTracker::TAGTYPE::TAG_DRAW_DISPLAY_NODE);
     SetDrawSkipType(DrawSkipType::NONE);
     // canvas will generate in every request frame
     (void)canvas;
@@ -656,11 +660,14 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
                 RSUniRenderThread::Instance().SetVisibleRect(Drawing::RectI());
                 return;
             }
+            currentTypeBlackList_ = screenManager->GetVirtualScreenTypeBlackList(paramScreenId);
+            RSUniRenderThread::Instance().SetTypeBlackList(currentTypeBlackList_);
             RSUniRenderThread::Instance().SetWhiteList(screenInfo.whiteList);
             curSecExemption_ = params->GetSecurityExemption();
             uniParam->SetSecExemption(curSecExemption_);
             DrawMirrorScreen(*params, processor);
             lastBlackList_ = currentBlackList_;
+            lastTypeBlackList_ = currentTypeBlackList_;
             lastSecExemption_ = curSecExemption_;
             lastVisibleRect_ = curVisibleRect_;
             RSUniRenderThread::Instance().SetVisibleRect(Drawing::RectI());
@@ -795,6 +802,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
             if (uniParam->IsOpDropped()) {
                 if (uniParam->IsDirtyAlignEnabled()) {
+                    RS_TRACE_NAME_FMT("dirty align enabled and no clip operation");
                     curCanvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
                 } else {
                     uniParam->SetClipRegion(clipRegion);
@@ -893,7 +901,6 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         RS_LOGI("Drawing Performance Flush start %{public}lld", Drawing::PerformanceCaculate::GetUpTime(false));
     }
     RS_TRACE_BEGIN("RSDisplayRenderNodeDrawable Flush");
-    RECORD_GPU_RESOURCE_DRAWABLE_CALLER(GetId())
     RsFrameReport::GetInstance().BeginFlush();
     renderFrame->Flush();
     RS_TRACE_END();
@@ -1066,7 +1073,8 @@ int32_t RSDisplayRenderNodeDrawable::GetSpecialLayerType(RSDisplayRenderParams& 
         return hasGeneralSpecialLayer ? HAS_SPECIAL_LAYER :
             (params.HasCaptureWindow() ? CAPTURE_WINDOW : NO_SPECIAL_LAYER);
     }
-    if (hasGeneralSpecialLayer || !uniRenderThread.GetWhiteList().empty() || !currentBlackList_.empty()) {
+    if (hasGeneralSpecialLayer || !uniRenderThread.GetWhiteList().empty() || !currentBlackList_.empty() ||
+        !currentTypeBlackList_.empty()) {
         return HAS_SPECIAL_LAYER;
     } else if (params.HasCaptureWindow()) {
         return CAPTURE_WINDOW;
@@ -1107,7 +1115,8 @@ std::vector<RectI> RSDisplayRenderNodeDrawable::CalculateVirtualDirty(
     }
     if (!(lastMatrix_ == canvasMatrix) || !(lastMirrorMatrix_ == mirrorParams->GetMatrix()) ||
         uniParam->GetForceMirrorScreenDirty() || lastBlackList_ != currentBlackList_ ||
-        mirrorParams->IsSpecialLayerChanged() || lastSecExemption_ != curSecExemption_ || virtualDirtyRefresh_ ||
+        lastTypeBlackList_ != currentTypeBlackList_ || mirrorParams->IsSpecialLayerChanged() ||
+        lastSecExemption_ != curSecExemption_ || virtualDirtyRefresh_ ||
         (enableVisibleRect_ && (lastVisibleRect_ != curVisibleRect_ || params.HasSecLayerInVisibleRectChanged()))) {
         GetSyncDirtyManager()->ResetDirtyAsSurfaceSize();
         virtualDirtyRefresh_ = false;
@@ -1212,6 +1221,7 @@ void RSDisplayRenderNodeDrawable::DrawMirror(RSDisplayRenderParams& params,
     curCanvas_->RestoreToCount(0);
     rsDirtyRectsDfx.OnDrawVirtual(*curCanvas_);
     RSUniRenderThread::Instance().SetBlackList({});
+    RSUniRenderThread::Instance().SetTypeBlackList({});
     RSUniRenderThread::Instance().SetWhiteList({});
     uniParam.SetSecExemption(false);
 }
@@ -1364,6 +1374,7 @@ void RSDisplayRenderNodeDrawable::WiredScreenProjection(
 
     curCanvas_->Save();
     ScaleAndRotateMirrorForWiredScreen(*mirroredDrawable);
+    Drawing::Matrix curCanvasMatrix = curCanvas_->GetTotalMatrix();
     RSDirtyRectsDfx rsDirtyRectsDfx(*mirroredDrawable);
     // HDR does not support wired screen
     if (isRedraw) {
@@ -1375,7 +1386,6 @@ void RSDisplayRenderNodeDrawable::WiredScreenProjection(
         rsDirtyRectsDfx.SetVirtualDirtyRects(damageRegionRects, params.GetScreenInfo());
         DrawWiredMirrorCopy(*mirroredDrawable);
     }
-    Drawing::Matrix curCanvasMatrix = curCanvas_->GetTotalMatrix();
     curCanvas_->Restore();
     rsDirtyRectsDfx.OnDrawVirtual(*curCanvas_);
     renderFrame->Flush();

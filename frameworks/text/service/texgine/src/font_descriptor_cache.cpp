@@ -21,7 +21,6 @@
 #include <fcntl.h>
 #include <fstream>
 #include <sys/stat.h>
-#include <unicode/brkiter.h>
 #include <unistd.h>
 
 #include "font_config.h"

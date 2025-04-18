@@ -51,6 +51,9 @@ enum class RelayoutParagraphStyleAttribute {
     ELLIPSIS = 21,
     ELLIPSIS_MODAL = 22,
     TEXT_ALIGN = 23,
+    SPACING = 24,
+    SPACING_IS_END = 25,
+    TEXT_HEIGHT_BEHAVIOR = 26,
 
     PARAGRAPH_STYLE_ATTRIBUTE_BUTT,
 };
@@ -140,7 +143,9 @@ struct TypographyStyle {
             this->ellipsisModal == rhs.ellipsisModal &&
             skia::textlayout::nearlyEqual(this->textSplitRatio, rhs.textSplitRatio) &&
             this->defaultTextStyleUid == rhs.defaultTextStyleUid &&
-            this->tab == rhs.tab;
+            this->tab == rhs.tab &&
+            this->paragraphSpacing == rhs.paragraphSpacing &&
+            this->isEndAddParagraphSpacing == rhs.isEndAddParagraphSpacing;
     }
     TextStyle GetTextStyle() const;
     void SetTextStyle(TextStyle& textstyle);

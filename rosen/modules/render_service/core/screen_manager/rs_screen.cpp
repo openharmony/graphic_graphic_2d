@@ -145,7 +145,7 @@ void RSScreen::PhysicalScreenInit() noexcept
     }
     std::transform(hdrCapability_.formats.begin(), hdrCapability_.formats.end(),
                    back_inserter(supportedPhysicalHDRFormats_),
-                   [](GraphicHDRFormat item) -> ScreenHDRFormat {return HDI_HDR_FORMAT_TO_RS_MAP[item];});
+                   [](GraphicHDRFormat item) -> ScreenHDRFormat { return HDI_HDR_FORMAT_TO_RS_MAP[item]; });
     auto status = GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_ON;
     if (MultiScreenParam::IsRsSetScreenPowerStatus() || id_ == 0) {
         RS_LOGI("%{public}s: RSScreen(id %{public}" PRIu64 ") start SetScreenPowerStatus to On",
@@ -419,7 +419,7 @@ uint32_t RSScreen::SetScreenActiveRect(const GraphicIRect& activeRect)
 bool RSScreen::CalculateMaskRectAndReviseRect(const GraphicIRect& activeRect, GraphicIRect& reviseRect)
 {
 #ifdef ROSEN_EMULATOR
-    RS_LOGD("{public}s emulator device do not revise rect", __func__);
+    RS_LOGD("%{public}s emulator device do not revise rect", __func__);
     return false;
 #endif
     if (!RSSystemProperties::IsSuperFoldDisplay()) {
@@ -1247,6 +1247,12 @@ void RSScreen::SetBlackList(const std::unordered_set<uint64_t>& blackList)
     blackList_ = blackList;
 }
 
+void RSScreen::SetTypeBlackList(const std::unordered_set<uint8_t>& typeBlackList)
+{
+    std::lock_guard<std::mutex> lock(typeBlackListMutex_);
+    typeBlackList_ = typeBlackList;
+}
+
 void RSScreen::AddBlackList(const std::vector<uint64_t>& blackList)
 {
     std::lock_guard<std::mutex> lock(blackListMutex_);
@@ -1275,6 +1281,12 @@ const std::unordered_set<uint64_t> RSScreen::GetBlackList() const
 {
     std::lock_guard<std::mutex> lock(blackListMutex_);
     return blackList_;
+}
+
+const std::unordered_set<uint8_t> RSScreen::GetTypeBlackList() const
+{
+    std::lock_guard<std::mutex> lock(typeBlackListMutex_);
+    return typeBlackList_;
 }
 
 int32_t RSScreen::SetScreenConstraint(uint64_t frameId, uint64_t timestamp, ScreenConstraintType type)

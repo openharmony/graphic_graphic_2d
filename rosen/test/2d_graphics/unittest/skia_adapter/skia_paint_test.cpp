@@ -14,7 +14,7 @@
  */
 
 #include <cstddef>
-#include "core/SkPaint.h"
+#include "include/core/SkPaint.h"
 #include "gtest/gtest.h"
 #define private public
 #include "skia_adapter/skia_paint.h"

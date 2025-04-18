@@ -99,6 +99,9 @@ public:
 
     virtual int32_t SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector) = 0;
 
+    virtual ErrCode SetVirtualScreenTypeBlackList(
+        ScreenId id, std::vector<NodeType>& typeBlackListVector, int32_t& repCode) = 0;
+
     virtual ErrCode AddVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector, int32_t& repCode) = 0;
     
     virtual ErrCode RemoveVirtualScreenBlackList(
@@ -313,6 +316,8 @@ public:
 
     virtual ErrCode NotifySoftVsyncEvent(uint32_t pid, uint32_t rateDiscount) = 0;
 
+    virtual bool NotifySoftVsyncRateDiscountEvent(uint32_t pid, const std::string &name, uint32_t rateDiscount) = 0;
+
     virtual void NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt) = 0;
 
     virtual void NotifyDynamicModeEvent(bool enableDynamicMode) = 0;
@@ -395,6 +400,8 @@ public:
     virtual int32_t RegisterSelfDrawingNodeRectChangeCallback(sptr<RSISelfDrawingNodeRectChangeCallback> callback) = 0;
 
     virtual ErrCode NotifyPageName(const std::string &packageName, const std::string &pageName, bool isEnter) = 0;
+
+    virtual bool GetHighContrastTextState() = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

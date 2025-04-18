@@ -92,6 +92,7 @@ enum class RSIRenderServiceConnectionInterfaceCode : CodeUnderlyingType {
     SET_VIRTUAL_SCREEN_USING_STATUS = 0x00200A,
     SET_VIRTUAL_SCREEN_REFRESH_RATE = 0x00200B,
     SET_VIRTUAL_SCREEN_STATUS = 0x00200C,
+    SET_VIRTUAL_SCREEN_TYPE_BLACKLIST = 0x00200D,
 
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
     SET_POINTER_COLOR_INVERSION_CONFIG = 0x004000,
@@ -185,7 +186,7 @@ enum class RSIRenderServiceConnectionInterfaceCode : CodeUnderlyingType {
 #endif
 
     ON_FIRST_FRAME_COMMIT = 0x011000,
-    
+    GET_HIGH_CONTRAST_TEXT_STATE = 0x012000,
 // Special invocation. Do not change it.
     NOTIFY_LIGHT_FACTOR_STATUS = 1000,
     NOTIFY_PACKAGE_EVENT = 1001,
@@ -195,6 +196,7 @@ enum class RSIRenderServiceConnectionInterfaceCode : CodeUnderlyingType {
     NOTIFY_APP_STRATEGY_CONFIG_CHANGE_EVENT = 1005,
     NOTIFY_HGMCONFIG_EVENT = 1006,
     NOTIFY_SCREEN_SWITCHED = 1007,
+    NOTIFY_SOFT_VSYNC_RATE_DISCOUNT_EVENT = 1010,
 };
 } // namespace Rosen
 } // namespace OHOS

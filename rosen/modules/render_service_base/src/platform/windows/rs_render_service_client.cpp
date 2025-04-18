@@ -771,5 +771,10 @@ void RSRenderServiceClient::NotifyPageName(const std::string &packageName,
     const std::string &pageName, bool isEnter)
 {
 }
+
+bool RSRenderServiceClient::GetHighContrastTextState()
+{
+    return false;
+}
 } // namespace Rosen
 } // namespace OHOS

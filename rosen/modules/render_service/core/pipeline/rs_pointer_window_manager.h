@@ -152,7 +152,7 @@ public:
 
     bool CheckHardCursorSupport(uint32_t screenId);
     bool HasMirrorDisplay() const;
-
+    static void CheckHardCursorValid(const RSSurfaceRenderNode& node);
 private:
     bool isNeedForceCommitByPointer_{ false };
     HardCursorInfo hardCursorDrawables_;

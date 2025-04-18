@@ -226,32 +226,6 @@ HWTEST_F(RSSurfaceRenderNodeTwoTest, UpdateSrcRectTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: UpdateHwcDisabledBySrcRectTest
- * @tc.desc: test results of UpdateHwcDisabledBySrcRect
- * @tc.type: FUNC
- * @tc.require: issueIA4VTS
- */
-HWTEST_F(RSSurfaceRenderNodeTwoTest, UpdateHwcDisabledBySrcRectTest, TestSize.Level1)
-{
-    auto renderNode = std::make_shared<RSSurfaceRenderNode>(0);
-    renderNode->UpdateHwcDisabledBySrcRect(true);
-    EXPECT_FALSE(renderNode->IsYUVBufferFormat());
-    auto surfaceBufferImpl = new SurfaceBufferImpl();
-    renderNode->GetRSSurfaceHandler()->buffer_.buffer = surfaceBufferImpl;
-    renderNode->UpdateHwcDisabledBySrcRect(true);
-    EXPECT_FALSE(renderNode->IsYUVBufferFormat());
-    auto handle = new BufferHandle();
-    handle->format = 22;
-    surfaceBufferImpl->handle_ = handle;
-    renderNode->UpdateHwcDisabledBySrcRect(true);
-    EXPECT_TRUE(renderNode->IsYUVBufferFormat());
-    if (renderNode->GetRSSurfaceHandler()->buffer_.buffer) {
-        delete renderNode->GetRSSurfaceHandler()->buffer_.buffer;
-        renderNode->GetRSSurfaceHandler()->buffer_.buffer = nullptr;
-    }
-}
-
-/**
  * @tc.name: IsYUVBufferFormatTest
  * @tc.desc: test results of IsYUVBufferFormat
  * @tc.type: FUNC

@@ -91,6 +91,11 @@ int32_t RSInterfaces::SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>
     return renderServiceClient_->SetVirtualScreenBlackList(id, blackListVector);
 }
 
+int32_t RSInterfaces::SetVirtualScreenTypeBlackList(ScreenId id, std::vector<NodeType>& typeBlackListVector)
+{
+    return renderServiceClient_->SetVirtualScreenTypeBlackList(id, typeBlackListVector);
+}
+
 int32_t RSInterfaces::AddVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector)
 {
     return renderServiceClient_->AddVirtualScreenBlackList(id, blackListVector);
@@ -1042,6 +1047,11 @@ void RSInterfaces::NotifyPageName(const std::string &packageName, const std::str
             packageName.c_str(), pageName.c_str(), isEnter);
         renderServiceClient_->NotifyPageName(packageName, pageName, isEnter);
     }
+}
+
+bool RSInterfaces::GetHighContrastTextState()
+{
+    return renderServiceClient_->GetHighContrastTextState();
 }
 } // namespace Rosen
 } // namespace OHOS
