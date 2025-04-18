@@ -196,7 +196,8 @@ void RSGraphicTest::TestCaseCapture(bool isScreenshot)
 
 void RSGraphicTest::TearDown()
 {
-    if (!shouldRunTest_) {
+    if (!shouldRunTest_ || RSParameterParse::Instance().skipCapture_) {
+        GetRootNode()->ResetTestSurface();
         return;
     }
 
@@ -249,6 +250,9 @@ void RSGraphicTest::RegisterNode(std::shared_ptr<RSNode> node)
 
 void RSGraphicTest::AddFileRenderNodeTreeToNode(std::shared_ptr<RSNode> node, const std::string& filePath)
 {
+    if (!shouldRunTest_ || RSParameterParse::Instance().skipCapture_) {
+        return;
+    }
     //need flush client node to rs firstly
     RSGraphicTestDirector::Instance().FlushMessage();
     WaitTimeout(RSParameterParse::Instance().testCaseWaitTime);
@@ -262,6 +266,9 @@ void RSGraphicTest::AddFileRenderNodeTreeToNode(std::shared_ptr<RSNode> node, co
 
 void RSGraphicTest::PlaybackRecover(const std::string& filePath, float pauseTimeStamp)
 {
+    if (!shouldRunTest_ || RSParameterParse::Instance().skipCapture_) {
+        return;
+    }
     // playback prepare
     int64_t pid = 0;
     std::string command =
