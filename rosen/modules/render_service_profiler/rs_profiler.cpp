@@ -484,6 +484,9 @@ void RSProfiler::OnRenderBegin()
     RS_TRACE_NAME("Profiler OnRenderBegin");
     HRPD("OnRenderBegin()");
     g_renderServiceCpuId = Utils::GetCpuId();
+
+    ProcessCommands();
+    ProcessSendingRdc();
 }
 
 void RSProfiler::OnRenderEnd()
@@ -494,9 +497,6 @@ void RSProfiler::OnRenderEnd()
 
     RS_TRACE_NAME("Profiler OnRenderEnd");
     g_renderServiceCpuId = Utils::GetCpuId();
-
-    ProcessCommands();
-    ProcessSendingRdc();
 }
 
 void RSProfiler::OnParallelRenderBegin()
@@ -728,9 +728,9 @@ void RSProfiler::RenderServiceTreeDump(JsonWriter& out, pid_t pid)
         root.PopObject();
     }
 
-    if (g_context) {
+    if (context_) {
         auto& rootOffscreen = out["Offscreen node"];
-        DumpOffscreen(*g_context, rootOffscreen, useMockPid, pid);
+        DumpOffscreen(*context_, rootOffscreen, useMockPid, pid);
     }
 }
 

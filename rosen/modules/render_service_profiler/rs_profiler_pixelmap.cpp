@@ -41,6 +41,11 @@
 
 namespace OHOS::Rosen {
 
+ImageProperties::ImageProperties(const ImageInfo& info)
+    : format(info.pixelFormat), width(info.size.width), height(info.size.height),
+      stride(PixelMap::GetRGBxRowDataSize(info))
+{}
+
 ImageProperties::ImageProperties(PixelMap& map)
     : format(map.GetPixelFormat()), width(map.GetWidth()), height(map.GetHeight()),
       stride(map.GetRowStride())
@@ -164,7 +169,7 @@ bool PixelMapStorage::PullSharedMemory(uint64_t id, const ImageInfo& info, Pixel
 
 void PixelMapStorage::PushSharedMemory(uint64_t id, const ImageInfo& info, const PixelMemInfo& memory, size_t skipBytes)
 {
-    PushImage(id, GenerateImageData(info, memory), skipBytes);
+    PushImage(AllocatorType::SHARE_MEM_ALLOC, id, GenerateImageData(info, memory), skipBytes);
 }
 
 void PixelMapStorage::PushSharedMemory(uint64_t id, PixelMap& map)
@@ -177,7 +182,8 @@ void PixelMapStorage::PushSharedMemory(uint64_t id, PixelMap& map)
     const auto size = static_cast<size_t>(const_cast<PixelMap&>(map).GetByteCount());
     const ImageProperties properties(map);
     if (auto image = MapImage(*reinterpret_cast<const int32_t*>(map.GetFd()), size, PROT_READ)) {
-        PushImage(id, GenerateImageData(image, size, map), skipBytes, nullptr, &properties);
+        PushImage(
+            AllocatorType::SHARE_MEM_ALLOC, id, GenerateImageData(image, size, map), skipBytes, nullptr, &properties);
         UnmapImage(image, size);
     }
 }
@@ -222,7 +228,7 @@ void PixelMapStorage::PushDmaMemory(uint64_t id, const ImageInfo& info, const Pi
     auto buffer = surfaceBuffer ? surfaceBuffer->GetBufferHandle() : nullptr;
     if (buffer) {
         const auto pixels = GenerateImageData(memory.base, buffer->size, memory.isAstc, GetBytesPerPixel(info));
-        PushImage(id, pixels, skipBytes, buffer);
+        PushImage(AllocatorType::DMA_ALLOC, id, pixels, skipBytes, buffer);
     }
 }
 
@@ -238,13 +244,13 @@ void PixelMapStorage::PushDmaMemory(uint64_t id, PixelMap& map)
         GenerateImageData(reinterpret_cast<const uint8_t*>(surfaceBuffer->GetVirAddr()), buffer->size, map);
     MessageParcel parcel;
     surfaceBuffer->WriteToMessageParcel(parcel);
-    PushImage(id, pixels, parcel.GetReadableBytes(), buffer, &properties);
+    PushImage(AllocatorType::DMA_ALLOC, id, pixels, parcel.GetReadableBytes(), buffer, &properties);
 }
 
 void PixelMapStorage::PushHeapMemory(uint64_t id, const ImageInfo& info, const PixelMemInfo& memory, size_t skipBytes)
 {
     ImageProperties properties(info);
-    PushImage(false, id, GenerateImageData(info, memory), skipBytes, nullptr, &properties);
+    PushImage(AllocatorType::HEAP_ALLOC, id, GenerateImageData(info, memory), skipBytes, nullptr, &properties);
 }
 
 void PixelMapStorage::PushHeapMemory(uint64_t id, PixelMap& map)
@@ -259,7 +265,7 @@ void PixelMapStorage::PushHeapMemory(uint64_t id, PixelMap& map)
     const uint8_t *base = map.GetPixels();
     if (base && baseSize) {
         const auto pixels = GenerateImageData(base, baseSize, map);
-        PushImage(false, id, pixels, skipBytes, nullptr, &properties);
+        PushImage(AllocatorType::HEAP_ALLOC, id, pixels, skipBytes, nullptr, &properties);
     }
 }
 
@@ -362,7 +368,7 @@ void PixelMapStorage::ExtractAlpha(const ImageData& image, ImageData& alpha, con
     }
 }
 
-void PixelMapStorage::PushImage(
+void PixelMapStorage::PushImage(AllocatorType allocType,
     uint64_t id, const ImageData& data, size_t skipBytes, BufferHandle* buffer, const ImageProperties* properties)
 {
     if (data.empty()) {
@@ -556,8 +562,13 @@ int32_t PixelMapStorage::DecodeJpeg(
         return -1;
     }
     ImageData noPadding;
-    noPadding.reserve(properties.width * properties.height * SIZE_OF_PIXEL);
-    err = pmap->ReadPixels(pmap->GetByteCount(), noPadding.data());
+    auto reserveSize = pmap->GetByteCount();
+    if (reserveSize <= 0) {
+        HRPE("Error when reading pixels, GetByteCount is not positive");
+        return -1;
+    }
+    noPadding.reserve(reserveSize);
+    err = pmap->ReadPixels(reserveSize, noPadding.data());
     if (err != 0) {
         HRPE("Error when reading pixels, errcode %{public}u", err);
         return -1;
