@@ -696,5 +696,15 @@ int32_t RSSystemProperties::GetHybridRenderSwitch(ComponentEnableSwitch bitSeq)
 }
 #endif
 
+void RSSystemProperties::SetDebugFmtTraceEnabled(bool flag)
+{
+    debugFmtTraceEnable_ = flag;
+}
+
+bool RSSystemProperties::GetDebugFmtTraceEnabled()
+{
+    return GetDebugTraceEnabled();
+}
+
 } // namespace Rosen
 } // namespace OHOS
