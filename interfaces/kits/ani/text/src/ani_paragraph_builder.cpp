@@ -50,7 +50,7 @@ void AniParagraphBuilder::Constructor(ani_env* env, ani_object object, ani_objec
     TEXT_LOGE("Print maxLine:%{public}zu", typographyStyleNative->maxLines);
     // std::shared_ptr<FontCollection> fontCollectionNative = nullptr;
     // std::unique_ptr<TypographyCreate> typographyCreateNative =
-    //     TypographyCreate::Create(*typographyStyleNative.get(), fontCollectionNative);
+    //     TypographyCreate::Create(*typographyStyleNative, fontCollectionNative);
     // if (!typographyCreateNative) {
     //     TEXT_LOGE("Failed to create typography creator");
     //     return;

@@ -31,6 +31,7 @@ inline constexpr const char* ANI_CLASS_FONT_COLLECTION = "L@ohos/graphics/text/t
 class AniCommon {
 public:
     static std::unique_ptr<TypographyStyle> ParseParagraphStyle(ani_env* env, ani_object obj);
+    static std::unique_ptr<TextStyle> ParseTextStyle(ani_env* env, ani_object obj);
 };
 } // namespace OHOS::Rosen
 #endif // OHOS_ROSEN_ANI_COMMON_H

@@ -166,7 +166,7 @@ ani_status AniTextUtils::ReadOptionalField(ani_env* env, ani_object obj, const c
     ani_boolean isUndefined;
     ret = env->Reference_IsUndefined(ref, &isUndefined);
     if (ret != ANI_OK) {
-        TEXT_LOGE("[ANI] Reference_IsUndefined failed:%{public}d", ret);
+        TEXT_LOGE("[ANI] check ref is undefined failed:%{public}d", ret);
         return ret;
     }
 

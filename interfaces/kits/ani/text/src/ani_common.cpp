@@ -36,13 +36,48 @@ std::unique_ptr<TypographyStyle> AniCommon::ParseParagraphStyle(ani_env* env, an
         return nullptr;
     }
     std::unique_ptr<TypographyStyle> paragraphStyle = std::make_unique<TypographyStyle>();
+
     ani_ref maxLinesRef = nullptr;
     if (AniTextUtils::ReadOptionalField(env, obj, "maxLines", maxLinesRef) == ANI_OK && maxLinesRef != nullptr) {
-        ani_double maxLines;
-        env->Object_CallMethodByName_Double(static_cast<ani_object>(maxLinesRef), "maxLines", nullptr, &maxLines);
+        ani_double maxLines{0};
+        env->Object_CallMethodByName_Double(static_cast<ani_object>(maxLinesRef), "doubleValue", nullptr, &maxLines);
         paragraphStyle->maxLines = static_cast<size_t>(maxLines);
     }
 
+    ani_ref textStyleRef = nullptr;
+    if (AniTextUtils::ReadOptionalField(env, obj, "textStyle", textStyleRef) == ANI_OK && textStyleRef != nullptr) {
+        std::unique_ptr<TextStyle> textStyle = ParseTextStyle(env, static_cast<ani_object>(textStyleRef));
+        if (textStyle != nullptr) {
+            paragraphStyle->SetTextStyle(*textStyle);
+        }
+    }
+
     return paragraphStyle;
+}
+
+std::unique_ptr<TextStyle> AniCommon::ParseTextStyle(ani_env* env, ani_object obj)
+{
+    ani_class cls;
+    ani_status ret;
+    ret = env->FindClass(ANI_CLASS_TEXT_STYLE, &cls);
+    if (ret != ANI_OK) {
+        TEXT_LOGE("[ANI] can't find class:%{public}d", ret);
+        return nullptr;
+    }
+    ani_boolean isObj = false;
+    ret = env->Object_InstanceOf(obj, cls, &isObj);
+    if (!isObj) {
+        TEXT_LOGE("[ANI] Object mismatch:%{public}d", ret);
+        return nullptr;
+    }
+    std::unique_ptr<TextStyle> textStyle = std::make_unique<TextStyle>();
+
+    ani_ref maxLinesRef = nullptr;
+    if (AniTextUtils::ReadOptionalField(env, obj, "fontSize", maxLinesRef) == ANI_OK && maxLinesRef != nullptr) {
+        ani_double fontSize{0};
+        env->Object_CallMethodByName_Double(static_cast<ani_object>(maxLinesRef), "doubleValue", nullptr, &fontSize);
+        textStyle->fontSize = static_cast<size_t>(fontSize);
+    }
+    return textStyle;
 }
 } // namespace OHOS::Rosen

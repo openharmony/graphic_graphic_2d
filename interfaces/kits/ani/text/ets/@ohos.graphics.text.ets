@@ -148,6 +148,20 @@ namespace text {
    * @since 12
    */
   export interface ParagraphStyle {
+    /**
+     * Text style of paragraph.
+     * @type { ?TextStyle }
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    textStyle?: TextStyle;
+
+    /**
+     * Maximum number of lines.
+     * @type { ?number }
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
     maxLines?: number;
   }
 
