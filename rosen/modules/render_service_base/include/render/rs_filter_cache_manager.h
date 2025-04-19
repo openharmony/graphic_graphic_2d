@@ -110,6 +110,7 @@ public:
     void MarkEffectNode();
     void MarkNeedClearFilterCache(NodeId nodeId);
     bool NeedPendingPurge() const;
+    bool IsPendingPurge() const;
     bool IsSkippingFrame() const;
     void MarkRotationChanged();
     bool IsFilterCacheValidForOcclusion();
