@@ -18,6 +18,7 @@
 #include <cstdint>
 #include <fstream>
 #include <sstream>
+#include "ani.h"
 
 namespace OHOS::Rosen {
 
@@ -174,5 +175,35 @@ ani_status AniTextUtils::ReadOptionalField(ani_env* env, ani_object obj, const c
         return ret;
     }
     return ret;
+}
+
+ani_status AniTextUtils::ReadOptionalDoubleField(ani_env* env, ani_object obj, const char* fieldName, ani_double& value)
+{
+    ani_ref ref = nullptr;
+    ani_status result = AniTextUtils::ReadOptionalField(env, obj, fieldName, ref);
+    if (result == ANI_OK && ref != nullptr) {
+        env->Object_CallMethodByName_Double(static_cast<ani_object>(ref), "doubleValue", nullptr, &value);
+    }
+    return result;
+}
+
+ani_status AniTextUtils::ReadOptionalStringField(ani_env* env, ani_object obj, const char* fieldName, std::string& str)
+{
+    ani_ref ref = nullptr;
+    ani_status result = AniTextUtils::ReadOptionalField(env, obj, fieldName, ref);
+    if (result == ANI_OK && ref != nullptr) {
+        str = AniTextUtils::AniToStdStringUtf8(env, static_cast<ani_string>(ref));
+    }
+    return result;
+}
+
+ani_status AniTextUtils::ReadOptionalBoolField(ani_env* env, ani_object obj, const char* fieldName, ani_boolean& value)
+{
+    ani_ref ref = nullptr;
+    ani_status result = AniTextUtils::ReadOptionalField(env, obj, fieldName, ref);
+    if (result == ANI_OK && ref != nullptr) {
+        env->Object_CallMethodByName_Boolean(static_cast<ani_object>(ref), "booleanValue", nullptr, &value);
+    }
+    return result;
 }
 } // namespace OHOS::Rosen

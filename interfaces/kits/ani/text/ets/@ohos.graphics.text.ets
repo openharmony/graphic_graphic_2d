@@ -172,7 +172,166 @@ namespace text {
    * @since 12
    */
   export interface TextStyle {
+    /**
+     * Decoration of text.
+     * @type { ?Decoration } decoration for text
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    //decoration?: Decoration;
+
+    /**
+     * Color of text.
+     * @type { ?common2D.Color } it is uint32_t type data
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    //color?: common2D.Color;
+
+    /**
+     * Font weight of text.
+     * @type { ?FontWeight } it is uint32_t type data
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    //fontWeight?: FontWeight;
+
+    /**
+     * Font style of text.
+     * @type { ?FontStyle } it is uint32_t type data
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    //fontStyle?: FontStyle;
+
+    /**
+     * Base line of text.
+     * @type { ?TextBaseline } it is uint32_t type data
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    //baseline?: TextBaseline;
+
+    /**
+     * Font Families of text.
+     * @type { ?Array<string> } fontfamily gather
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    //fontFamilies?: Array<string>;
+
+    /**
+     * Font size of text.
+     * @type { ?number } it is double type data
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
     fontSize?: number;
+
+    /**
+     * Letter spacing of text.
+     * @type { ?number } it is double type data
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    letterSpacing?: number;
+
+    /**
+     * Word spacing of text.
+     * @type { ?number } it is double type data
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    wordSpacing?: number;
+
+    /**
+     * Height scale of text.
+     * @type { ?number } it is double type data
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    heightScale?: number;
+
+    /**
+     * Half leading of text.
+     * @type { ?boolean } it is boolean type data
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    halfLeading?: boolean;
+
+    /**
+     * Control the height calculation method of font blob, true means calculate the height of the blob by
+     * the font size, false means by the line height and leading.
+     * @type { ?boolean } it is boolean type data
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    heightOnly?: boolean;
+
+    /**
+     * Text ellipsis.
+     * @type { ?string } it is u16string type data.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    ellipsis?: string;
+
+    /**
+     * Text ellipsis mode.
+     * @type { ?EllipsisMode } Ellipsis mode.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    //ellipsisMode?: EllipsisMode;
+
+    /**
+     * Text locale.
+     * @type { ?string } it is string type data.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    locale?: string;
+
+    /**
+     * The offset distance that the underline of text.
+     * @type { ?number } it is double type data.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    baselineShift?: number;
+
+    /**
+     * Text Style available font features.
+     * @type { ?Array<FontFeature> } A collection of font features.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    //fontFeatures?: Array<FontFeature>;
+
+    /**
+     * Text shadows of text.
+     * @type { ?Array<TextShadow> } textShadow gather.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    //textShadows?: Array<TextShadow>;
+
+    /**
+     * Rect style of text.
+     * @type { ?RectStyle } rect style for text.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    //backgroundRect?: RectStyle;
+
+    /**
+     * Text Style available font variations.
+     * @type { ?Array<FontVariation> } A collection of font variations.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    //fontVariations?: Array<FontVariation>;
   }
 
   /**

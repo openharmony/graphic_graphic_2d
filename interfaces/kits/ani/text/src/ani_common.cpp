@@ -72,12 +72,39 @@ std::unique_ptr<TextStyle> AniCommon::ParseTextStyle(ani_env* env, ani_object ob
     }
     std::unique_ptr<TextStyle> textStyle = std::make_unique<TextStyle>();
 
-    ani_ref maxLinesRef = nullptr;
-    if (AniTextUtils::ReadOptionalField(env, obj, "fontSize", maxLinesRef) == ANI_OK && maxLinesRef != nullptr) {
-        ani_double fontSize{0};
-        env->Object_CallMethodByName_Double(static_cast<ani_object>(maxLinesRef), "doubleValue", nullptr, &fontSize);
+    ani_double fontSize{0};
+    if (AniTextUtils::ReadOptionalDoubleField(env, obj, "fontSize", fontSize) == ANI_OK) {
         textStyle->fontSize = static_cast<size_t>(fontSize);
     }
+    ani_double letterSpacing{0};
+    if (AniTextUtils::ReadOptionalDoubleField(env, obj, "letterSpacing", letterSpacing) == ANI_OK) {
+        textStyle->letterSpacing = static_cast<size_t>(letterSpacing);
+    }
+    ani_double wordSpacing{0};
+    if (AniTextUtils::ReadOptionalDoubleField(env, obj, "wordSpacing", wordSpacing) == ANI_OK) {
+        textStyle->wordSpacing = static_cast<size_t>(wordSpacing);
+    }
+    ani_double heightScale{0};
+    if (AniTextUtils::ReadOptionalDoubleField(env, obj, "heightScale", heightScale) == ANI_OK) {
+        textStyle->heightScale = static_cast<size_t>(heightScale);
+    }
+    ani_boolean halfLeading{false};
+    if (AniTextUtils::ReadOptionalBoolField(env, obj, "halfLeading", halfLeading) == ANI_OK) {
+        textStyle->halfLeading = static_cast<bool>(halfLeading);
+    }
+    ani_boolean heightOnly{false};
+    if (AniTextUtils::ReadOptionalBoolField(env, obj, "heightOnly", heightOnly) == ANI_OK) {
+        textStyle->heightOnly = static_cast<bool>(heightOnly);
+    }
+    ani_boolean baselineShift{false};
+    if (AniTextUtils::ReadOptionalBoolField(env, obj, "baselineShift", baselineShift) == ANI_OK) {
+        textStyle->baseLineShift = static_cast<bool>(baselineShift);
+    }
+    std::string locale;
+    if (AniTextUtils::ReadOptionalStringField(env, obj, "locale", locale) == ANI_OK) {
+        textStyle->locale = locale;
+    }
+
     return textStyle;
 }
 } // namespace OHOS::Rosen
