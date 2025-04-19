@@ -32,9 +32,10 @@
 #include "render/rs_linear_gradient_blur_shader_filter.h"
 #include "render/rs_maskcolor_shader_filter.h"
 #include "render/rs_shader_filter.h"
-#include "src/core/SkOpts.h"
 
-#ifdef ENABLE_M133_SKIA
+#ifndef ENABLE_M133_SKIA
+#include "src/core/SkOpts.h"
+#else
 #include "src/core/SkChecksum.h"
 #endif
 

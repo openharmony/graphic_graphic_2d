@@ -22,9 +22,10 @@
 #include "common/rs_color.h"
 #include "common/rs_macros.h"
 #include "image/gpu_context.h"
-#include "src/core/SkOpts.h"
 
-#ifdef ENABLE_M133_SKIA
+#ifndef ENABLE_M133_SKIA
+#include "src/core/SkOpts.h"
+#else
 #include "src/core/SkChecksum.h"
 #endif
 

@@ -46,7 +46,6 @@
 #include "GLES3/gl32.h"
 #endif
 
-#include "include/core/SkImage.h"
 #include "include/core/SkCanvas.h"
 #include "include/core/SkColorSpace.h"
 #include "include/core/SkImageInfo.h"
@@ -56,10 +55,11 @@
 #include "include/gpu/gl/GrGLInterface.h"
 #include "utils/graphic_coretrace.h"
 
-#ifdef ENABLE_M133_SKIA
+#ifndef ENABLE_M133_SKIA
+#include "include/core/SkImage.h"
+#else
 #include "include/gpu/ganesh/SkImageGanesh.h"
 #endif
-
 
 namespace OHOS {
 namespace Rosen {

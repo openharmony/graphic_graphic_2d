@@ -16,8 +16,6 @@
 
 #include <unordered_map>
 
-#include "src/core/SkOpts.h"
-
 #include "common/rs_common_def.h"
 #include "common/rs_optional_trace.h"
 #include "pipeline/rs_paint_filter_canvas.h"
@@ -32,7 +30,9 @@
 #include "include/effects/SkBlurImageFilter.h"
 #endif
 
-#ifdef ENABLE_M133_SKIA
+#ifndef ENABLE_M133_SKIA
+#include "src/core/SkOpts.h"
+#else
 #include "src/core/SkChecksum.h"
 #endif
 

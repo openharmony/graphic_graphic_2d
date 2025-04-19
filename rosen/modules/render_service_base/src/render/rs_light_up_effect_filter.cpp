@@ -14,12 +14,12 @@
  */
 #include "render/rs_light_up_effect_filter.h"
 
-#include "src/core/SkOpts.h"
-
 #include "platform/common/rs_log.h"
 #include "effect/color_matrix.h"
 
-#ifdef ENABLE_M133_SKIA
+#ifndef ENABLE_M133_SKIA
+#include "src/core/SkOpts.h"
+#else
 #include "src/core/SkChecksum.h"
 #endif
 

@@ -17,9 +17,10 @@
 #include "common/rs_common_def.h"
 #include "common/rs_optional_trace.h"
 #include "platform/common/rs_log.h"
-#include "src/core/SkOpts.h"
 
-#ifdef ENABLE_M133_SKIA
+#ifndef ENABLE_M133_SKIA
+#include "src/core/SkOpts.h"
+#else
 #include "src/core/SkChecksum.h"
 #endif
 

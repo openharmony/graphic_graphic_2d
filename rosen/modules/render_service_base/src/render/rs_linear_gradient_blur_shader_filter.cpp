@@ -14,9 +14,9 @@
  */
 #include "render/rs_linear_gradient_blur_shader_filter.h"
 
+#ifndef ENABLE_M133_SKIA
 #include "src/core/SkOpts.h"
-
-#ifdef ENABLE_M133_SKIA
+#else
 #include "src/core/SkChecksum.h"
 #endif
 
