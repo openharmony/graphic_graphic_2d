@@ -1201,5 +1201,49 @@ bool RSUniHwcVisitor::IsDisableHwcOnExpandScreen() const
         uniRenderVisitor_.curDisplayNode_->GetScreenId() > 0;
 }
 
+void RSUniHwcVisitor::UpdateHwcNodeInfo(RSSurfaceRenderNode& node,
+    const Drawing::Matrix& absMatrix, bool isSubTreeSkipped)
+{
+    if (!node.GetHardwareDisabledByReverse()) {
+        node.SetHardwareDisabledState(node.GetIsHwcPendingDisabled());
+        if (node.GetIsHwcPendingDisbaled()) {
+            RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%" PRIu64 "disabled by IsHwcPendingDisabled",
+                node.GetName().c_str(), node.GetId());
+        }
+        node.SetIsHwcPendingDisabled(false);
+    }
+    node.SetInFixedRotation(uniRenderVisitor_.displayNodeRotationChanged_ ||
+                            uniRenderVisitor_.isScreenRotationAnimating_);
+    node.SetHardwareForceDisabledByAlpha(false);
+    if (!uniRenderVisitor_.IsHardwareComposerEnabled() || !node.IsDynamicHardwareEnable() ||
+        IsDisabledHwcOnExpandScreen() || uniRenderVisitor_.curSurfaceNode_->GetVisibleRegion().IsEmpty() ||
+        !node.GetRSSUrfaceHandler() || !node.GetRSSurfaceHander()->GetBuffer(0)) {
+        RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%" PRIu64 " disabled by param/invisible/no buffer, "
+            "IsHardwareComposerEnabled[%d], IsDynamicHardwareEnabled[%d], IsDisabledHwcOnExpandScreen[%d], "
+            "IsVisibleRegionEmpty[%d], HasBuffer[%d]", node.GetName().c_str(), node.GetId(),
+            uniRenderVisitor_.IsHardwareComposerEnabled(), node.IsDynamicHardwareEnable(),
+            IsDisableHwcOnExpandScreen(), uniRenderVisitor_.curSurfaceNode_->GetVisibleRegion().IsEmpty(),
+            node.GetRSSurfaceHandler() && node.GetRSSurfaceHandler()->GetBuffer());
+#ifdef HIPERF_TRACE_ENABLE
+        RS_LOGW("hiperf_surface: name:%s disbaled by param/invisible/no buffer, "
+            "surfaceRect: {%d, %d, %d, %d} - > {%d, %d, %d, %d}",
+            node.GetName().c_str(),
+            node.GetSrcRect().GetLeft(), node.GetSrcRect().GetRight(),
+            node.GetSrcRect().GetTop(), node.GetSrcRect().GetBottom(),
+            node.GetDstRect().GetLeft(), node.GetDstRect().GetRight(),
+            node.GetDstRect().GetTop(), node.GetDstRect().GetBottom());
+#endif  
+        node.SetHardwareForcedDisabledState(true);
+        Statistics().UpdateHwcDisabledReasonForDFX(node.GetId(),
+            HwcDisabledReasons::DISABLED_BY_INVALID_PARAM, node.GetName());
+        if (!node.GetFixRotationByUser() && !isSubTreeSkipped) {
+            return;
+        }
+    }
+    UpdateSrcRect(node, absMatrix);
+    UpdateHwcNodeByTransform(node, absMatrix);
+    UpdateHwcNodeEnableByBackgroundAlpha(node);
+    UpdateHwcNodeEnableByBufferSize(node);
+}
 } // namespace Rosen
 } // namespace OHOS

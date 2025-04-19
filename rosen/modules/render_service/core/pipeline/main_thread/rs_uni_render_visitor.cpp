@@ -1897,47 +1897,11 @@ void RSUniRenderVisitor::UpdateHwcNodeInfoForAppNode(RSSurfaceRenderNode& node)
         if (curSurfaceNode_->GetNeedCollectHwcNode()) {
             curSurfaceNode_->AddChildHardwareEnabledNode(node.ReinterpretCastTo<RSSurfaceRenderNode>());
         }
-        if (!node.GetHardWareDisabledByReverse()) {
-            node.SetHardwareForcedDisabledState(node.GetIsHwcPendingDisabled());
-            if (node.GetIsHwcPendingDisabled()) {
-                RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%" PRIu64 " disabled by IsHwcPendingDisabled",
-                    node.GetName().c_str(), node.GetId());
-            }
-            node.SetIsHwcPendingDisabled(false);
-        }
-        node.SetInFixedRotation(displayNodeRotationChanged_ || isScreenRotationAnimating_);
-        if (!IsHardwareComposerEnabled() || !node.IsDynamicHardwareEnable() ||
-            hwcVisitor_->IsDisableHwcOnExpandScreen() || curSurfaceNode_->GetVisibleRegion().IsEmpty() ||
-            !node.GetRSSurfaceHandler() || !node.GetRSSurfaceHandler()->GetBuffer()) {
-            RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%" PRIu64 " disabled by param/invisible/no buffer, "
-                "IsHardwareComposerEnabled[%d], IsDynamicHardwareEnable[%d], IsDisableHwcOnExpandScreen[%d], "
-                "IsVisibleRegionEmpty[%d], HasBuffer[%d]", node.GetName().c_str(), node.GetId(),
-                IsHardwareComposerEnabled(), node.IsDynamicHardwareEnable(),
-                hwcVisitor_->IsDisableHwcOnExpandScreen(), curSurfaceNode_->GetVisibleRegion().IsEmpty(),
-                node.GetRSSurfaceHandler() && node.GetRSSurfaceHandler()->GetBuffer());
-#ifdef HIPERF_TRACE_ENABLE
-            RS_LOGW("hiperf_surface: name:%s disabled by param/invisible/no buffer, "
-                "surfaceRect: [%d, %d, %d, %d]->[%d, %d, %d, %d]", node.GetName().c_str(),
-                node.GetSrcRect().GetLeft(), node.GetSrcRect().GetRight(),
-                node.GetSrcRect().GetTop(), node.GetSrcRect().GetBottom(),
-                node.GetSrcRect().GetLeft(), node.GetSrcRect().GetRight(),
-                node.GetSrcRect().GetTop(), node.GetSrcRect().GetBottom());
-#endif
-            node.SetHardwareForcedDisabledState(true);
-            hwcVisitor_->Statistics().UpdateHwcDisabledReasonForDFX(node.GetId(),
-                HwcDisabledReasons::DISABLED_BY_INVALID_PARAM, node.GetName());
-            if (!node.GetFixRotationByUser()) {
-                return;
-            }
-        }
         auto& geo = node.GetRenderProperties().GetBoundsGeometry();
         if (geo == nullptr) {
             return;
         }
-        hwcVisitor_->UpdateSrcRect(node, geo->GetAbsMatrix());
-        hwcVisitor_->UpdateHwcNodeByTransform(node, geo->GetAbsMatrix());
-        hwcVisitor_->UpdateHwcNodeEnableByBackgroundAlpha(node);
-        hwcVisitor_->UpdateHwcNodeEnableByBufferSize(node);
+        hwcVisitor_->UpdateHwcNodeInfo(node, geo->GetAbsMatrix());
     }
 }
 
