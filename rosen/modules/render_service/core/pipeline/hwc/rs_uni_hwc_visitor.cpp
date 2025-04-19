@@ -1060,7 +1060,7 @@ void RSUniHwcVisitor::UpdateHwcNodeRectInSkippedSubTree(const RSRenderNode& root
             }
         }
         UpdateDstRect(*hwcNodePtr, rect, clipRect);
-        UpdateHwcNodeInfo(*hwcNodePtr, matrix, true)
+        UpdateHwcNodeInfo(*hwcNodePtr, matrix, true);
         hwcNodePtr->SetTotalMatrix(matrix);
         hwcNodePtr->SetOldDirtyInSurface(geoPtr->MapRect(hwcNodePtr->GetSelfDrawRect(), matrix));
     }
@@ -1211,7 +1211,6 @@ void RSUniHwcVisitor::UpdateHwcNodeInfo(RSSurfaceRenderNode& node,
     }
     node.SetInFixedRotation(uniRenderVisitor_.displayNodeRotationChanged_ ||
                             uniRenderVisitor_.isScreenRotationAnimating_);
-    node.SetHardwareForcedDisabledByAlpha(false);
     if (!uniRenderVisitor_.IsHardwareComposerEnabled() || !node.IsDynamicHardwareEnable() ||
         IsDisableHwcOnExpandScreen() || uniRenderVisitor_.curSurfaceNode_->GetVisibleRegion().IsEmpty() ||
         !node.GetRSSurfaceHandler() || !node.GetRSSurfaceHandler()->GetBuffer()) {
@@ -1229,7 +1228,7 @@ void RSUniHwcVisitor::UpdateHwcNodeInfo(RSSurfaceRenderNode& node,
             node.GetSrcRect().GetTop(), node.GetSrcRect().GetBottom(),
             node.GetDstRect().GetLeft(), node.GetDstRect().GetRight(),
             node.GetDstRect().GetTop(), node.GetDstRect().GetBottom());
-#endif  
+#endif
         node.SetHardwareForcedDisabledState(true);
         Statistics().UpdateHwcDisabledReasonForDFX(node.GetId(),
             HwcDisabledReasons::DISABLED_BY_INVALID_PARAM, node.GetName());
