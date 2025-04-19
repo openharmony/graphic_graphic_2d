@@ -76,6 +76,16 @@
 #include "c/ffrt_cpu_boost.h"
 // xml parser
 #include "graphic_feature_param_manager.h"
+
+#define DRAWING_PATH_DFX(flag, screenId, expectedState)                                         \
+    do {                                                                                        \
+        if (flag != expectedState) {                                                            \
+            flag = expectedState;                                                               \
+            RS_LOGI("RSDisplayRenderNodeDrawable::%{public}s mirror screen %{public}" PRIu64    \
+                " drawing path changed, " #flag ": %{public}d", __func__, screenId, flag);      \
+        }                                                                                       \
+    } while(0)
+
 namespace OHOS::Rosen::DrawableV2 {
 namespace {
 constexpr const char* CLEAR_GPU_CACHE = "ClearGpuCache";
@@ -1032,9 +1042,11 @@ void RSDisplayRenderNodeDrawable::DrawMirrorScreen(
     if ((mirroredParams->GetSecurityDisplay() != params.GetSecurityDisplay() &&
         specialLayerType_ == HAS_SPECIAL_LAYER) || !mirroredDrawable->GetCacheImgForCapture() ||
         params.GetVirtualScreenMuteStatus()) {
+        DRAWING_PATH_DFX(virtualMirrorRedraw_, params.GetScreenId(), true);
         virtualProcesser->SetDrawVirtualMirrorCopy(false);
         DrawMirror(params, virtualProcesser, &RSDisplayRenderNodeDrawable::OnCapture, *uniParam);
     } else {
+        DRAWING_PATH_DFX(virtualMirrorRedraw_, params.GetScreenId(), false);
         virtualProcesser->SetDrawVirtualMirrorCopy(true);
         DrawMirrorCopy(*mirroredDrawable, params, virtualProcesser, *uniParam);
     }
@@ -1388,9 +1400,11 @@ void RSDisplayRenderNodeDrawable::WiredScreenProjection(
     RSDirtyRectsDfx rsDirtyRectsDfx(*mirroredDrawable);
     // HDR does not support wired screen
     if (isRedraw) {
+        DRAWING_PATH_DFX(wiredMirrorRedraw_, params.GetScreenId(), true);
         DrawWiredMirrorOnDraw(*mirroredDrawable, params);
         RSUniRenderThread::Instance().SetBlackList({});
     } else {
+        DRAWING_PATH_DFX(wiredMirrorRedraw_, params.GetScreenId(), false);
         std::vector<RectI> damageRegionRects = CalculateVirtualDirtyForWiredScreen(renderFrame, params,
             isMirrorSLRCopy_ ? scaleManager_->GetScaleMatrix() : curCanvas_->GetTotalMatrix());
         rsDirtyRectsDfx.SetVirtualDirtyRects(damageRegionRects, params.GetScreenInfo());

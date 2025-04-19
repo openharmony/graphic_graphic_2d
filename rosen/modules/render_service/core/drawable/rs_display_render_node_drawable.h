@@ -244,6 +244,10 @@ private:
     int32_t offscreenTranslateY_ = 0;
 
     bool isRenderSkipIfScreenOff_ = false;
+
+    // drawing path dfx
+    bool virtualMirrorRedraw_ = false;
+    bool wiredMirrorRedraw_ = false;
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen
