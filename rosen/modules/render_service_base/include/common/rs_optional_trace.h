@@ -135,7 +135,7 @@ public:
 private:
     bool debugTraceEnable_ = false;
     const int maxSize_ = 256;
-}
+};
 
 class RSOptionalTrace {
 public:
