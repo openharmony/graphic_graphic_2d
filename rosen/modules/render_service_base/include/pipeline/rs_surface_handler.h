@@ -53,13 +53,13 @@ public:
             }
         }
 #endif
-        void Reset()
+        void Reset(bool needBufferDeleteCb = true)
         {
 #ifndef ROSEN_CROSS_PLATFORM
             if (buffer == nullptr) {
                 return;
             }
-            if (bufferDeleteCb_) {
+            if (bufferDeleteCb_ && needBufferDeleteCb) {
                 bufferDeleteCb_(buffer->GetSeqNum());
             }
             buffer = nullptr;
