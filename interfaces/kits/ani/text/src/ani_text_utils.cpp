@@ -154,4 +154,25 @@ bool AniTextUtils::SplitAbsoluteFontPath(std::string& absolutePath)
 
     return false;
 }
+
+ani_status AniTextUtils::ReadOptionalField(ani_env* env, ani_object obj, const char* fieldName, ani_ref& ref)
+{
+    ani_status ret;
+    ret = env->Object_GetPropertyByName_Ref(obj, fieldName, &ref);
+    if (ret != ANI_OK) {
+        TEXT_LOGE("[ANI] Object_GetPropertyByName_Ref failed:%{public}d", ret);
+        return ret;
+    }
+    ani_boolean isUndefined;
+    ret = env->Reference_IsUndefined(ref, &isUndefined);
+    if (ret != ANI_OK) {
+        TEXT_LOGE("[ANI] Reference_IsUndefined failed:%{public}d", ret);
+        return ret;
+    }
+
+    if (isUndefined) {
+        return ret;
+    }
+    return ret;
+}
 } // namespace OHOS::Rosen

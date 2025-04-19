@@ -50,6 +50,7 @@ public:
     static std::u16string AniToStdStringUtf16(ani_env* env, ani_string str);
     static bool ReadFile(const std::string& filePath, size_t dataLen, std::unique_ptr<uint8_t[]>& data);
     static bool SplitAbsoluteFontPath(std::string& absolutePath);
+    static ani_status ReadOptionalField(ani_env* env, ani_object obj, const char* fieldName, ani_ref& ref);
 };
 } // namespace OHOS::Rosen
 

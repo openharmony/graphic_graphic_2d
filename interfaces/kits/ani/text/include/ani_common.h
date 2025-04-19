@@ -25,9 +25,7 @@ inline constexpr const char* ANI_CLASS_PARAGRAPH = "L@ohos/graphics/text/text/Pa
 inline constexpr const char* ANI_CLASS_PARAGRAPH_BUILDER = "L@ohos/graphics/text/text/ParagraphBuilder;";
 inline constexpr const char* ANI_CLASS_LINEMETRICS_I = "L@ohos/graphics/text/text/LineMetricsInternal;";
 inline constexpr const char* ANI_CLASS_PARAGRAPH_STYLE = "L@ohos/graphics/text/text/ParagraphStyle;";
-inline constexpr const char* ANI_CLASS_PARAGRAPH_STYLE_I = "L@ohos/graphics/text/text/ParagraphStyleInternal;";
 inline constexpr const char* ANI_CLASS_TEXT_STYLE = "L@ohos/graphics/text/text/TextStyle;";
-inline constexpr const char* ANI_CLASS_TEXT_STYLE_I = "L@ohos/graphics/text/text/TextStyleInternal;";
 inline constexpr const char* ANI_CLASS_FONT_COLLECTION = "L@ohos/graphics/text/text/FontCollection;";
 
 class AniCommon {

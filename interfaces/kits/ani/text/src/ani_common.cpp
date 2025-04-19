@@ -24,21 +24,25 @@ std::unique_ptr<TypographyStyle> AniCommon::ParseParagraphStyle(ani_env* env, an
 {
     ani_class cls;
     ani_status ret;
-    ret = env->FindClass(ANI_CLASS_PARAGRAPH_STYLE_I, &cls);
+    ret = env->FindClass(ANI_CLASS_PARAGRAPH_STYLE, &cls);
     if (ret != ANI_OK) {
         TEXT_LOGE("[ANI] can't find class:%{public}d", ret);
         return nullptr;
     }
     ani_boolean isObj = false;
-    env->Object_InstanceOf(obj, cls, &isObj);
+    ret = env->Object_InstanceOf(obj, cls, &isObj);
     if (!isObj) {
         TEXT_LOGE("[ANI] Object mismatch:%{public}d", ret);
         return nullptr;
     }
     std::unique_ptr<TypographyStyle> paragraphStyle = std::make_unique<TypographyStyle>();
-    ani_double maxLines{0};
-    env->Object_GetPropertyByName_Double(obj, "maxLines", &maxLines);
-    paragraphStyle->maxLines = static_cast<size_t>(maxLines);
+    ani_ref maxLinesRef = nullptr;
+    if (AniTextUtils::ReadOptionalField(env, obj, "maxLines", maxLinesRef) == ANI_OK && maxLinesRef != nullptr) {
+        ani_double maxLines;
+        env->Object_CallMethodByName_Double(static_cast<ani_object>(maxLinesRef), "maxLines", nullptr, &maxLines);
+        paragraphStyle->maxLines = static_cast<size_t>(maxLines);
+    }
+
     return paragraphStyle;
 }
 } // namespace OHOS::Rosen

@@ -151,10 +151,6 @@ namespace text {
     maxLines?: number;
   }
 
-  export class ParagraphStyleInternal implements ParagraphStyle {
-    maxLines?: number;
-  }
-
   /**
    * Describes text style.
    * @typedef TextStyle
@@ -162,10 +158,6 @@ namespace text {
    * @since 12
    */
   export interface TextStyle {
-    fontSize?: number;
-  }
-
-  export class TextStyleInternal implements TextStyle {
     fontSize?: number;
   }
 

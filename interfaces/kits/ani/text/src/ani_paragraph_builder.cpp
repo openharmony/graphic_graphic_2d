@@ -47,14 +47,15 @@ void AniParagraphBuilder::Constructor(ani_env* env, ani_object object, ani_objec
         TEXT_LOGE("Failed to parse typographyStyle");
         return;
     }
-    std::shared_ptr<FontCollection> fontCollectionNative = nullptr;
-    std::unique_ptr<TypographyCreate> typographyCreateNative =
-        TypographyCreate::Create(*typographyStyleNative.get(), fontCollectionNative);
-    if (!typographyCreateNative) {
-        TEXT_LOGE("Failed to create typography creator");
-        return;
-    }
-    aniParagraphBuilder->typographyCreate_ = std::move(typographyCreateNative);
+    TEXT_LOGE("Print maxLine:%{public}zu", typographyStyleNative->maxLines);
+    // std::shared_ptr<FontCollection> fontCollectionNative = nullptr;
+    // std::unique_ptr<TypographyCreate> typographyCreateNative =
+    //     TypographyCreate::Create(*typographyStyleNative.get(), fontCollectionNative);
+    // if (!typographyCreateNative) {
+    //     TEXT_LOGE("Failed to create typography creator");
+    //     return;
+    // }
+    // aniParagraphBuilder->typographyCreate_ = std::move(typographyCreateNative);
 }
 
 ani_status AniParagraphBuilder::AniInit(ani_vm* vm, uint32_t* result)
@@ -80,7 +81,7 @@ ani_status AniParagraphBuilder::AniInit(ani_vm* vm, uint32_t* result)
         ani_native_function{"<ctor>", ctorSignature.c_str(), reinterpret_cast<void*>(Constructor)},
         ani_native_function{"pushStyle", pushStyleSignature.c_str(), reinterpret_cast<void*>(pushStyle)},
         ani_native_function{"popStyle", ":V", reinterpret_cast<void*>(popStyle)},
-        ani_native_function{"addText", "Lstd/core/String:V", reinterpret_cast<void*>(addText)},
+        ani_native_function{"addText", "Lstd/core/String;:V", reinterpret_cast<void*>(addText)},
         ani_native_function{"build", buildStyleSignature.c_str(), reinterpret_cast<void*>(build)},
     };
 
