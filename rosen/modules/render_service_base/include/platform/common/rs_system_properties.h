@@ -360,6 +360,7 @@ public:
     static bool GetHybridRenderSvgEnabled();
     static bool GetHybridRenderHmsymbolEnabled();
 #endif
+    static bool GetVKImageUseEnabled();
 
 private:
     RSSystemProperties() = default;

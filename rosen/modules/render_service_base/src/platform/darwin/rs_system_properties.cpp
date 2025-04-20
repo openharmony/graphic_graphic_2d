@@ -697,5 +697,10 @@ int32_t RSSystemProperties::GetHybridRenderSwitch(ComponentEnableSwitch bitSeq)
 }
 #endif
 
+bool RSSystemProperties::GetVKImageUseEnabled()
+{
+    return false;
+}
+
 } // namespace Rosen
 } // namespace OHOS

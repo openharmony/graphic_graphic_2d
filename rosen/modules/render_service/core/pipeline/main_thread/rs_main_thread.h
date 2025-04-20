@@ -421,12 +421,6 @@ public:
         unmappedCacheSet_.insert(bufferId);
     }
 
-    void AddToUnmappedMirrorCacheSet(uint32_t bufferId)
-    {
-        std::lock_guard<std::mutex> lock(unmappedCacheSetMutex_);
-        unmappedVirScreenCacheSet_.insert(bufferId);
-    }
-
     void AddToUnmappedCacheSet(const std::set<uint32_t>& seqNumSet)
     {
         std::lock_guard<std::mutex> lock(unmappedCacheSetMutex_);
@@ -708,7 +702,6 @@ private:
      * removed from the GPU cache.
      */
     std::set<uint32_t> unmappedCacheSet_ = {}; // must protected by unmappedCacheSetMutex_
-    std::set<uint32_t> unmappedVirScreenCacheSet_ = {}; // must protected by unmappedCacheSetMutex_
     std::mutex unmappedCacheSetMutex_;
 
     /**

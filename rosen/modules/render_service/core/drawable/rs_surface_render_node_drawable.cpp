@@ -1084,9 +1084,6 @@ void RSSurfaceRenderNodeDrawable::DealWithSelfDrawingNodeBuffer(
     pid_t threadId = gettid();
     auto params = RSUniRenderUtil::CreateBufferDrawParam(*this, false, threadId);
     params.targetColorGamut = GetAncestorDisplayColorGamut(surfaceParams);
-    if (threadId == RSUniRenderThread::Instance().GetTid()) {
-        params.screenId = RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetScreenInfo().id;
-    }
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     params.sdrNits = surfaceParams.GetSdrNit();
     params.tmoNits = surfaceParams.GetDisplayNit();

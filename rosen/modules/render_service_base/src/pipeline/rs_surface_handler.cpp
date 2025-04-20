@@ -80,13 +80,7 @@ void RSSurfaceHandler::UpdateBuffer(
     const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence, const Rect& damage, const int64_t timestamp)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    bool needBufferDelete = true;
-#ifdef RS_ENABLE_VK
-    if (RSSystemProperties::IsUseVulkan()) {
-        needBufferDelete = !RSSystemProperties::GetHybridRenderEnabled();
-    }
-#endif
-    preBuffer_.Reset(needBufferDelete);
+    preBuffer_.Reset(!RSSystemProperties::GetVKImageUseEnabled());
     preBuffer_ = buffer_;
     buffer_.buffer = buffer;
     if (buffer != nullptr) {

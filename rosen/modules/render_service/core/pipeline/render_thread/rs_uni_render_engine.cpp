@@ -29,7 +29,6 @@
 
 #include "drawable/rs_display_render_node_drawable.h"
 #include "drawable/rs_surface_render_node_drawable.h"
-#include "platform/common/rs_system_properties.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -202,14 +201,7 @@ void RSUniRenderEngine::DrawHdiLayerWithParams(RSPaintFilterCanvas& canvas, cons
         params.matrix.Get(Drawing::Matrix::PERSP_2));
     canvas.ConcatMatrix(params.matrix);
     if (!params.useCPU) {
-        bool needBufferDelete = true;
-#ifdef RS_ENABLE_VK
-        if (RSSystemProperties::IsUseVulkan()) {
-            needBufferDelete = !RSSystemProperties::GetHybridRenderEnabled();
-        }
-#endif
-        RegisterDeleteBufferListener(layer->GetSurface(), needBufferDelete);
-
+        RegisterDeleteBufferListener(layer->GetSurface(), !RSSystemProperties::GetVKImageUseEnabled());
         DrawImage(canvas, params);
     } else {
         DrawBuffer(canvas, params);
