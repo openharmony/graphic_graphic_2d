@@ -314,7 +314,6 @@ void RSPropertiesPainter::GetShadowDirtyRect(RectI& dirtyShadow, const RSPropert
         shadowRect.MakeOutset(ambientBlur, ambientBlur);
 
         shadowRect.Join(spotRect);
-        shadowRect.MakeOutset(1, 1);
     } else {
         Drawing::Brush brush;
         brush.SetAntiAlias(true);
@@ -326,6 +325,8 @@ void RSPropertiesPainter::GetShadowDirtyRect(RectI& dirtyShadow, const RSPropert
             brush.ComputeFastBounds(shadowRect, &shadowRect);
         }
     }
+    // avoid 1 pixel reduction caused by converting float to int
+    shadowRect.MakeOutset(1, 1);
 
     auto& geoPtr = (properties.GetBoundsGeometry());
     Drawing::Matrix matrix = (geoPtr && isAbsCoordinate) ? geoPtr->GetAbsMatrix() : Drawing::Matrix();
