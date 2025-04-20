@@ -96,6 +96,7 @@ SPText::ParagraphStyle Convert(const TypographyStyle& style)
         .relayoutChangeBitmap = style.relayoutChangeBitmap,
         .defaultTextStyleUid = style.defaultTextStyleUid,
         .halfLeading = style.halfLeading,
+        .isTrailingSpaceOptimized = style.isTrailingSpaceOptimized,
     };
 }
 
