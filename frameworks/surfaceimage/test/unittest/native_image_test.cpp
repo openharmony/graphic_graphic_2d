@@ -1486,4 +1486,22 @@ HWTEST_F(NativeImageTest, OH_ConsumerSurface_SetDefaultSize001, Function | Mediu
     ASSERT_EQ(OH_ConsumerSurface_SetDefaultSize(consumerSurface, width, height), GSERROR_OK);
     OH_NativeImage_Destroy(&consumerSurface);
 }
+
+/*
+* Function: OH_NativeImage_SetRealTimePriorityMode
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. call OH_NativeImage_SetRealTimePriorityMode
+*                  2. check ret
+* @tc.require: issueI5KG61
+*/
+HWTEST_F(NativeImageTest, OH_NativeImage_SetRealTimePriorityMode001, Function | MediumTest | Level1)
+{
+    ASSERT_EQ(OH_NativeImage_SetRealTimePriorityMode(nullptr), SURFACE_ERROR_INVALID_PARAM);
+    OH_NativeImage* consumerSurface = OH_ConsumerSurface_Create();
+    ASSERT_NE(consumerSurface, nullptr);
+    ASSERT_EQ(OH_NativeImage_SetRealTimePriorityMode(consumerSurface), GSERROR_OK);
+    OH_NativeImage_Destroy(&consumerSurface);
+}
 }

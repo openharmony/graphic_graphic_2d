@@ -392,6 +392,12 @@ SurfaceError SurfaceImage::UpdateEGLImageAndTexture(const sptr<SurfaceBuffer>& b
             "uniqueId: %{public}" PRIu64 ".", textureTarget_, error, uniqueId_);
         return SURFACE_ERROR_EGL_API_FAILED;
     }
+    uint32_t queueSize = 0;
+    GetMaxQueueSize(queueSize);
+    if (queueSize == SINGLE_MODE_MAX_QUEUE_SIZE) {
+        currentSurfaceImage_ = seqNum;
+        currentSurfaceBuffer_ = buffer;
+    }
 
     // Create fence object for current image
     auto iter = imageCacheSeqs_.find(currentSurfaceImage_);
@@ -526,5 +532,13 @@ SurfaceError SurfaceImage::SetDefaultSize(int32_t width, int32_t height)
             "height: %{public}d", ret, uniqueId_, width, height);
     }
     return ret;
+}
+
+SurfaceError SurfaceImage::SetMaxQueueSize(uint32_t queueSize)
+{
+    if (queueSize == 0) {
+        return SURFACE_ERROR_INVALID_PARAM;
+    }
+    return ConsumerSurface::SetMaxQueueSize(queueSize);
 }
 } // namespace OHOS
