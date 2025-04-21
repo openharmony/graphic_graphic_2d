@@ -232,7 +232,6 @@ std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> RSPointerWindowManager:
 {
     auto& renderThreadParams = RSUniRenderThread::Instance().GetRSRenderThreadParams();
     if (!renderThreadParams) {
-        RS_LOGE("[%{public}s]: renderThreadParams is null", __func__);
         return nullptr;
     }
     auto& hardCursorDrawables = renderThreadParams->GetHardCursorDrawables();
@@ -249,7 +248,6 @@ std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> RSPointerWindowManager:
     }
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(hardCursorDrawable->GetRenderParams().get());
     if (!surfaceParams) {
-        RS_LOGE("[%{public}s]: surfaceParams is null", __func__);
         return nullptr;
     }
     auto surfaceDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(hardCursorDrawable);

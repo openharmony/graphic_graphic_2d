@@ -2239,7 +2239,7 @@ void RSUniRenderVisitor::UpdateIfHwcNodesHaveVisibleRegion(
     for (auto& nodePtr : curMainAndLeashSurfaces) {
         auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(nodePtr);
         if (!surfaceNode) {
-            RS_LOGE("[%{public}s]: surfaceNode is nullptr", __func__);
+            RS_LOGD("[%{public}s]: surfaceNode is nullptr", __func__);
             continue;
         }
         if (surfaceNode->GetVisibleRegion().IsEmpty()) {
@@ -2273,6 +2273,9 @@ void RSUniRenderVisitor::UpdateHwcNodesIfVisibleForApp(std::shared_ptr<RSSurface
         if (surfaceNode->GetVisibleRegion().IsIntersectWith(dstRect)) {
             hwcNodePtr->SetLastFrameHasVisibleRegion(true); // visible Region
             hasVisibleHwcNodes = true;
+            if (hwcNodePtr->GetRSSurfaceHandler() == nullptr) {
+                continue;
+            }
             if (hwcNodePtr->GetRSSurfaceHandler()->IsCurrentFrameBufferConsumed()) {
                 needForceUpdateHwcNodes = true;
             }

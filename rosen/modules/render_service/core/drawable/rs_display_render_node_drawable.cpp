@@ -337,6 +337,7 @@ void RSDisplayRenderNodeDrawable::RenderOverDraw()
 static inline bool IsForceCommit(uint32_t forceCommitReason, bool needForceUpdateHwcNode,
     bool hasHardCursor)
 {
+    // 三种情况：不是HWC强制更新或者硬光标的情况，是HWC强制更新并且有强制更新的HWC节点，软光标的情况
     return (forceCommitReason & ~(ForceCommitReason::FORCED_BY_HWC_UPDATE |
                                   ForceCommitReason::FORCED_BY_POINTER_WINDOW)) ||
            ((forceCommitReason & ForceCommitReason::FORCED_BY_HWC_UPDATE) && needForceUpdateHwcNode) ||
@@ -371,6 +372,7 @@ bool RSDisplayRenderNodeDrawable::CheckDisplayNodeSkip(
     auto hardCursorDrawable = RSPointerWindowManager::Instance().GetHardCursorDrawable(GetId());
     bool hasHardCursor = (hardCursorDrawable != nullptr);
     bool hardCursorNeedCommit = (hasHardCursor != hardCursorLastCommitSuccess_);
+    if (RSUniRenderThread::Instance().GetRSRenderThreadParams() == nullptr)
     auto forceCommitReason = RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetForceCommitReason();
     bool layersNeedCommit = IsForceCommit(forceCommitReason, params.GetNeedForceUpdateHwcNodes(), hasHardCursor);
     RS_TRACE_NAME_FMT("DisplayNode skip, forceCommitReason: %d, forceUpdateByHwcNodes %d, "
@@ -385,7 +387,7 @@ bool RSDisplayRenderNodeDrawable::CheckDisplayNodeSkip(
         return false;
     }
     hardCursorLastCommitSuccess_ = hasHardCursor;
-    if (hardCursorDrawable) {
+    if (hardCursorDrawable != nullptr) {
         processor->CreateLayerForRenderThread(*hardCursorDrawable);
     }
     auto& hardwareDrawables =
