@@ -201,7 +201,7 @@ public:
 
     virtual RSScreenCapability GetScreenCapability(ScreenId id) = 0;
 
-    virtual ErrCode GetScreenPowerStatus(uint64_t screenId, unit32_t& status) = 0;
+    virtual ErrCode GetScreenPowerStatus(uint64_t screenId, uint32_t& status) = 0;
 
     virtual RSScreenData GetScreenData(ScreenId id) = 0;
 

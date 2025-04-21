@@ -2119,7 +2119,7 @@ RSScreenCapability RSRenderServiceConnectionProxy::GetScreenCapability(ScreenId 
     return screenCapability;
 }
 
-ErrCode RSRenderServiceConnectionProxy::GetScreenPowerStatus(uint64_t screenId, unit32_t& status)
+ErrCode RSRenderServiceConnectionProxy::GetScreenPowerStatus(uint64_t screenId, uint32_t& status)
 {
     MessageParcel data;
     MessageParcel reply;

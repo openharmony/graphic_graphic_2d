@@ -1562,7 +1562,7 @@ RSScreenCapability RSRenderServiceConnection::GetScreenCapability(ScreenId id)
     }
 }
 
-ErrCode RSRenderServiceConnection::GetScreenPowerStatus(uint64_t screenId, unit32_t& status)
+ErrCode RSRenderServiceConnection::GetScreenPowerStatus(uint64_t screenId, uint32_t& status)
 {
     if (!screenManager_) {
         status = ScreenPowerStatus::INVALID_POWER_STATUS;

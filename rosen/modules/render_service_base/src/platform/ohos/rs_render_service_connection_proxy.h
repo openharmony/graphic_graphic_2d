@@ -178,7 +178,7 @@ public:
 
     RSScreenCapability GetScreenCapability(ScreenId id) override;
 
-    ErrCode GetScreenPowerStatus(uint64_t screenId, unit32_t& status) override;
+    ErrCode GetScreenPowerStatus(uint64_t screenId, uint32_t& status) override;
 
     RSScreenData GetScreenData(ScreenId id) override;
 
