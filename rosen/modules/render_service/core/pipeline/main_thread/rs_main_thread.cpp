@@ -2588,7 +2588,7 @@ bool RSMainThread::ExistBufferIsVisibleAndUpdate()
     bool bufferNeedUpdate = false;
     for (auto& surfaceNode : hardwareEnabledNodes_) {
         if (surfaceNode == nullptr) {
-            RS_LOGE("[%{public}s]: surfaceNode is null", __func__);
+            RS_LOGD("[%{public}s]: surfaceNode is null", __func__);
             continue;
         }
         if (surfaceNode->GetRSSurfaceHandler()->IsCurrentFrameBufferConsumed() &&
