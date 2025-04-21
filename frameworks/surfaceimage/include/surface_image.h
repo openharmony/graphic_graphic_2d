@@ -82,7 +82,7 @@ public:
     
     SurfaceError SetDefaultUsage(uint64_t usage);
     SurfaceError SetDefaultSize(int32_t width, int32_t height);
-    SurfaceError SetDropBufferSwitch(bool switch);
+    SurfaceError SetDropBufferSwitch(bool isOpen);
 private:
     void UpdateBasicInfo(const sptr<SurfaceBuffer>& buffer, int64_t timestamp);
     Rect GetBufferCropRegion(const sptr<OHOS::SurfaceBuffer>& buffer);

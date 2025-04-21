@@ -335,12 +335,13 @@ int32_t OH_ConsumerSurface_SetDefaultSize(OH_NativeImage* image, int32_t width, 
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeImage
  * @param image Indicates the pointer to a <b>OH_NativeImage</b> instance.
+ * @param isOpen Indicates the switch of drop buffer mode.
  * @return {@link NATIVE_ERROR_OK} 0 - Success.
  *     {@link NATIVE_ERROR_INVALID_ARGUMENTS} 40001000 - image is NULL or switch repeated set.
  * @since 17
  * @version 1.0
  */
-int32_t OH_NativeImage_SetDropBufferMode(OH_NativeImage* image, bool switch);
+int32_t OH_NativeImage_SetDropBufferMode(OH_NativeImage* image, bool isOpen);
 #ifdef __cplusplus
 }
 #endif

@@ -541,14 +541,14 @@ SurfaceError SurfaceImage::SetDefaultSize(int32_t width, int32_t height)
     return ret;
 }
 
-SurfaceError SurfaceImage::SetDropBufferSwitch(bool switch)
+SurfaceError SurfaceImage::SetDropBufferSwitch(bool isOpen)
 {
-    if (switch == dropFrameMode_) {
-        BLOGE("SetDropBufferSwitch failed, switch: %{public}d", switch);
+    if (isOpen == dropFrameMode_) {
+        BLOGE("SetDropBufferSwitch failed, switch: %{public}d", isOpen);
         return SURFACE_ERROR_INVALID_PARAM;
     }
-    BLOGI("SetDropBufferSwitch switch: %{public}d", switch);
-    dropFrameMode_ = switch;
+    BLOGI("SetDropBufferSwitch switch: %{public}d", isOpen);
+    dropFrameMode_ = isOpen;
     return SURFACE_ERROR_OK;
 }
 } // namespace OHOS
