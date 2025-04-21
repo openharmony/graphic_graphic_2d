@@ -74,6 +74,9 @@ public:
 
     bool IsDisableHwcOnExpandScreen() const;
 
+    void UpdateHwcNodeInfo(RSSurfaceRenderNode& node, const Drawing::Matrix& absMatrix,
+        bool subTreeSkipped = false);
+
     // DFX
     HwcDisabledReasonCollection& Statistics() { return hwcDisabledReasonCollection_; }
 
