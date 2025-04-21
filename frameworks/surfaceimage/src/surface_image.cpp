@@ -543,6 +543,7 @@ SurfaceError SurfaceImage::SetDefaultSize(int32_t width, int32_t height)
 
 SurfaceError SurfaceImage::SetDropBufferSwitch(bool isOpen)
 {
+    std::lock_guard<std::mutex> lockGuard(opMutex_);
     if (isOpen == dropFrameMode_) {
         BLOGE("SetDropBufferSwitch failed, switch: %{public}d", isOpen);
         return SURFACE_ERROR_INVALID_PARAM;
