@@ -801,11 +801,11 @@ void RSRenderNode::ResetParent()
         parentNode->hasRemovedChild_ = true;
         auto geoPtr = GetRenderProperties().GetBoundsGeometry();
         if (geoPtr != nullptr) {
-            parentNode->removedChildrenRect_ = removedChildrenRect_.JoinRect(
+            parentNode->removedChildrenRect_ = parentNode->removedChildrenRect_.JoinRect(
                 geoPtr->MapRect(selfDrawRect_.JoinRect(childrenRect_.ConvertTo<float>()), geoPtr->GetMatrix()));
         }
         (RSSystemProperties::GetOptimizeParentNodeRegionEnabled() && GetType() == RSRenderNodeType::SURFACE_NODE)
-            ? parentNode->SetParentSubTreeDirty()
+            ? SetParentSubTreeDirty()
             : parentNode->SetContentDirty();
         AddSubSurfaceUpdateInfo(nullptr, parentNode);
     }
