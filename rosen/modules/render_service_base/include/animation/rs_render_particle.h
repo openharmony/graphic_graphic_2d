@@ -117,7 +117,7 @@ public:
         return !(*this == annulusRegion);
     }
     ~AnnulusRegion() = default;
-}
+};
 
 class RSB_EXPORT EmitterConfig {
 public:

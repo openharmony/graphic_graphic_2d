@@ -1190,7 +1190,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, EmitterConfig& val)
     success &= Unmarshalling(parcel, imageWidth);
     success &= Unmarshalling(parcel, imageHeight);
     Vector2f imageSize(imageWidth, imageHeight);
-    AnnulusRegion annlusRegion;
+    AnnulusRegion annulusRegion;
     success &= Unmarshalling(parcel, annulusRegion);
     if (success) {
         Range<int64_t> lifeTime(lifeTimeStart, lifeTimeEnd);

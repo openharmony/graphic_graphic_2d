@@ -788,8 +788,8 @@ Vector2f RSRenderParticle::CalculateParticlePosition(
 
         float radius = GetRandomValue(innerRadius, outerRadius);
         float theta = GetRandomValue(startAngle, endAngle) * DEGREE_TO_RADIAN;
-        positionX = center.x_ + radius_ * cos(theta);
-        positionY = center.y_ + radius_ * sin(theta);
+        positionX = center.x_ + radius * cos(theta);
+        positionY = center.y_ + radius * sin(theta);
     }
     return Vector2f { positionX, positionY };
 }
@@ -810,6 +810,7 @@ void EmitterUpdater::Dump(std::string& out) const
     }
     out += ']';
 }
+
 void EmitterConfig::SetConfigAnnulusRegion(const AnnulusRegion& annulusRegion)
 {
     annulusRegion_ = annulusRegion;
