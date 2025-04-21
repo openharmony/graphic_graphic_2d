@@ -224,11 +224,11 @@ int32_t OH_ConsumerSurface_SetDefaultSize(OH_NativeImage* image, int32_t width, 
     return image->consumer->SetDefaultSize(width, height);
 }
 
-int32_t OH_NativeImage_SetRealTimePriorityMode(OH_NativeImage* image)
+int32_t OH_NativeImage_SetDropBufferMode(OH_NativeImage* image, bool isOpen)
 {
     if (image == nullptr || image->consumer == nullptr) {
         BLOGE("parameter error");
         return SURFACE_ERROR_INVALID_PARAM;
     }
-    return image->consumer->SetMaxQueueSize(SINGLE_MODE_MAX_QUEUE_SIZE);
+    return image->consumer->SetDropBufferSwitch(isOpen);
 }

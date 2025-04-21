@@ -326,22 +326,22 @@ int32_t OH_ConsumerSurface_SetDefaultUsage(OH_NativeImage* image, uint64_t usage
 int32_t OH_ConsumerSurface_SetDefaultSize(OH_NativeImage* image, int32_t width, int32_t height);
 
 /**
- * @brief Set the rendering in real-time priority mode of the <b>OH_NativeImage</b>.\n
- * In this mode, the most recent buffer is promptly rendered for display.\n
+ * @brief Set the rendering in drop buffer mode of the <b>OH_NativeImage</b>.\n
+ * In this mode, most of the buffers produced by the producer will be discarded,
+ * and the latest buffer will be selected for rending.\n
  * This mode can not simultaneously guarantee high frame rate requirements.\n
- * After enabling this mode, setting the buffer queue size on the producer will not take effect.\n
- * After this mode is enabled, it cannot be reverted to normal mode.\n
- * This interface must be called after the <b>OH_NativeImage_Create</b> call immediately.\n
+ * This interface suggest be called after the <b>OH_NativeImage_Create</b> call immediately.\n
  * This interface is a non-thread-safe type interface.\n
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeImage
  * @param image Indicates the pointer to a <b>OH_NativeImage</b> instance.
+ * @param isOpen Indicates the switch of drop buffer mode.
  * @return {@link NATIVE_ERROR_OK} 0 - Success.
  *     {@link NATIVE_ERROR_INVALID_ARGUMENTS} 40001000 - image is NULL.
  * @since 17
  * @version 1.0
  */
-int32_t OH_NativeImage_SetRealTimePriorityMode(OH_NativeImage* image);
+int32_t OH_NativeImage_SetDropBufferMode(OH_NativeImage* image, bool isOpen);
 #ifdef __cplusplus
 }
 #endif
