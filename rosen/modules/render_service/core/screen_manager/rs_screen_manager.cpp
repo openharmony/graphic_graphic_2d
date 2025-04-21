@@ -2370,7 +2370,7 @@ int32_t RSScreenManager::SetScreenLinearMatrix(ScreenId id, const std::vector<fl
     return StatusCode::SUCCESS;
 }
 
-bool RSScreenManager::IsVisibleRectSupportRotation(ScreenId id) const
+bool RSScreenManager::IsVisibleRectSupportRotation(ScreenId id)
 {
     auto screen = GetScreen(id);
     if (screen == nullptr) {

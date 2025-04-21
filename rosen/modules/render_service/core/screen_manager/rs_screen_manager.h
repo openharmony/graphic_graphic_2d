@@ -199,7 +199,7 @@ public:
     virtual int32_t SetMirrorScreenVisibleRect(
         ScreenId id, const Rect& mainScreenRect, bool supportRotation = false) = 0;
     virtual Rect GetMirrorScreenVisibleRect(ScreenId id) const = 0;
-    virtual bool IsVisibleRectSupportRotation(ScreenId id) const = 0;
+    virtual bool IsVisibleRectSupportRotation(ScreenId id) = 0;
 
     virtual int32_t SetVirtualScreenRefreshRate(ScreenId id, uint32_t maxRefreshRate, uint32_t& actualRefreshRate) = 0;
 };
@@ -366,7 +366,7 @@ public:
 
     int32_t SetMirrorScreenVisibleRect(ScreenId id, const Rect& mainScreenRect, bool supportRotation = false) override;
     Rect GetMirrorScreenVisibleRect(ScreenId id) const override;
-    bool IsVisibleRectSupportRotation(ScreenId id) const override;
+    bool IsVisibleRectSupportRotation(ScreenId id) override;
 
     int32_t SetVirtualScreenRefreshRate(ScreenId id, uint32_t maxRefreshRate, uint32_t& actualRefreshRate) override;
 
