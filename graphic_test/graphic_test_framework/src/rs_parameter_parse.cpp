@@ -18,7 +18,7 @@
 namespace OHOS {
 namespace Rosen {
 
-const RSParameterParse& RSParameterParse::Instance()
+RSParameterParse& RSParameterParse::Instance()
 {
     static RSParameterParse instance;
     return instance;
@@ -27,6 +27,11 @@ const RSParameterParse& RSParameterParse::Instance()
 void RSParameterParse::Parse(int argc, char **argv)
 {
     return;
+}
+
+void RSParameterParse::SetSkipCapture(bool isSkip)
+{
+    skipCapture_ = isSkip;
 }
 
 } // namespace Rosen
