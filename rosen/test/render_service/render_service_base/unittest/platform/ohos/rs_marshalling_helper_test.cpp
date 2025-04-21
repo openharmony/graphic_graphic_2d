@@ -1687,5 +1687,32 @@ HWTEST_F(RSMarshallingHelperTest, UnmarshallingTest044, TestSize.Level1)
         }
     }
 }
+
+/**
+ * @tc.name: MarshallingTest045
+ * @tc.desc: Verify function Marshalling
+ * @tc.type:FUNC
+ * @tc.require: issues
+ */
+HWTEST_F(RSMarshallingHelperTest, MarshallingTest045, TestSize.Level1)
+{
+    Parcel parcel;
+    AnnulusRegion region;
+    EXPECT_TRUE(RSMarshallingHelper::Marshalling(parcel, region));
+}
+
+/**
+ * @tc.name: UnmarshallingTest046
+ * @tc.desc: Verify function Unmarshalling
+ * @tc.type:FUNC
+ * @tc.require: issues
+ */
+HWTEST_F(RSMarshallingHelperTest, UnmarshallingTest046, TestSize.Level1)
+{
+    Parcel parcel;
+    AnnulusRegion region;
+    EXPECT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, region));
+}
+
 } // namespace Rosen
 } // namespace OHOS

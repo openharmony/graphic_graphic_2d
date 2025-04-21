@@ -916,6 +916,34 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSMagnif
 }
 
 // Particle
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const AnnulusRegion& val)
+{
+    return Marshalling(parcel, val.center_.x_) && Marshalling(parcel, val.center_.y_) && 
+        Marshalling(parcel, val.innerRadius_) && Marshalling(parcel, val.outerRadius_) &&
+        Marshalling(parcel, val.startAngle_) && Marshalling(parcel, val.endAngle_);
+}
+
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, AnnulusRegion& val)
+{
+    float centerX = 0.f;
+    float centerY = 0.f;
+    float innerRadius = 0.f;
+    float outerRadius = 0.f;
+    float startAngle = 0.f;
+    float endAngle = 0.f;
+    bool success = Unmarshalling(parcel, centerX);
+    success &= Unmarshalling(parcel, centerY);
+    success &= Unmarshalling(parcel, innerRadius);
+    success &= Unmarshalling(parcel, outerRadius);
+    success &= Unmarshalling(parcel, startAngle);
+    success &= Unmarshalling(parcel, endAngle);
+    if (success) {
+        Vector2f center(centerX, centerY);
+        val = AnnulusRegion(center, innerRadius, outerRadius, startAngle, endAngle);
+    }
+    return success;
+}
+
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<EmitterUpdater>& val)
 {
     if (!val) {
@@ -930,6 +958,7 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Emit
     success &= Marshalling(parcel, val->position_);
     success &= Marshalling(parcel, val->emitSize_) ;
     success &= Marshalling(parcel, val->emitRate_);
+    success &= Marshalling(parcel, val->annulusRegion_);
     if (!success) {
         ROSEN_LOGE("RSMarshallingHelper::Marshalling EmitterUpdater failed");
     }
@@ -946,13 +975,16 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<EmitterU
     std::optional<Vector2f> position = std::nullopt;
     std::optional<Vector2f> emitSize = std::nullopt;
     std::optional<int> emitRate = std::nullopt;
+    std::optional<AnnulusRegion> annulusRegion = std::nullopt;
 
     bool success = Unmarshalling(parcel, emitterIndex);
     success &= Unmarshalling(parcel, position);
     success &= Unmarshalling(parcel, emitSize);
     success &= Unmarshalling(parcel, emitRate);
+    success &= Unmarshalling(parcel, annulusRegion);
     if (success) {
         val = std::make_shared<EmitterUpdater>(emitterIndex, position, emitSize, emitRate);
+        val->SetAnnulusRegion(annulusRegion);
     }
     return success;
 }
@@ -1108,6 +1140,7 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const EmitterConfig& val)
     success &= Marshalling(parcel, val.image_);
     success &= Marshalling(parcel, val.imageSize_.x_);
     success &= Marshalling(parcel, val.imageSize_.y_);
+    success &= Marshalling(parcel, val.annulusRegion_);
 
     return success;
 }
@@ -1146,10 +1179,13 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, EmitterConfig& val)
     success &= Unmarshalling(parcel, imageWidth);
     success &= Unmarshalling(parcel, imageHeight);
     Vector2f imageSize(imageWidth, imageHeight);
+    AnnulusRegion annlusRegion;
+    success &= Unmarshalling(parcel, annulusRegion);
     if (success) {
         Range<int64_t> lifeTime(lifeTimeStart, lifeTimeEnd);
         val = EmitterConfig(
             emitRate, emitShape, position, emitSize, particleCount, lifeTime, particleType, radius, image, imageSize);
+        val.SetConfigAnnulusRegion(annulusRegion);
     }
     return success;
 }
@@ -2711,6 +2747,7 @@ MARSHALLING_AND_UNMARSHALLING(RSRenderAnimatableProperty)
     EXPLICIT_INSTANTIATION(TEMPLATE, RenderParticleColorParaType)                        \
     EXPLICIT_INSTANTIATION(TEMPLATE, RenderParticleParaType<float>)                      \
     EXPLICIT_INSTANTIATION(TEMPLATE, ParticleVelocity)                                   \
+    EXPLICIT_INSTANTIATION(TEMPLATE, AnnulusRegion)                                      \
     EXPLICIT_INSTANTIATION(TEMPLATE, EmitterConfig)                                      \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector2f)                                           \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector3f)                                           \

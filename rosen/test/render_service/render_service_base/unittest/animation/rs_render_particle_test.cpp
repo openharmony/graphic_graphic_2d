@@ -834,7 +834,8 @@ HWTEST_F(RSRenderParticleTest, CalculateParticlePositionTest, Level1)
     auto particleParams = std::make_shared<ParticleRenderParams>();
     RSRenderParticle rsRenderParticle(particleParams);
     bool la = rsRenderParticle.IsAlive();
-    rsRenderParticle.CalculateParticlePosition(emitShape_, position_, emitSize_);
+    AnnulusRegion region;
+    rsRenderParticle.CalculateParticlePosition(emitShape_, position_, emitSize_, region);
     ASSERT_EQ(la, false);
 }
 

@@ -88,6 +88,11 @@ const Vector2f& ParticleRenderParams::GetImageSize() const
     return emitterConfig_.imageSize_;
 }
 
+const AnnulusRegion& ParticleRenderParams::GetAnnulusRegion() const
+{
+    return emitterConfig_.annulusRegion_;
+}
+
 float ParticleRenderParams::GetVelocityStartValue() const
 {
     return velocity_.velocityValue_.start_;
@@ -619,7 +624,8 @@ void RSRenderParticle::InitProperty()
         return;
     }
     position_ = CalculateParticlePosition(
-        particleParams_->GetEmitShape(), particleParams_->GetEmitPosition(), particleParams_->GetEmitSize());
+        particleParams_->GetEmitShape(), particleParams_->GetEmitPosition(), particleParams_->GetEmitSize(),
+        particleParams_->GetAnnulusRegion());
 
     float velocityValue =
         GetRandomValue(particleParams_->GetVelocityStartValue(), particleParams_->GetVelocityEndValue());
@@ -742,7 +748,8 @@ int RSRenderParticle::GenerateColorComponent(double mean, double stddev)
 }
 
 Vector2f RSRenderParticle::CalculateParticlePosition(
-    const ShapeType& emitShape, const Vector2f& position, const Vector2f& emitSize)
+    const ShapeType& emitShape, const Vector2f& position, const Vector2f& emitSize,
+    const AnnulusRegion& annulusRegion)
 {
     float positionX = 0.f;
     float positionY = 0.f;
@@ -772,6 +779,18 @@ Vector2f RSRenderParticle::CalculateParticlePosition(
             positionY = y + ry * sin(theta);
         }
     }
+    if (emitShape == ShapeType::ANNULUS) {
+        Vector2f center = annulusRegion.center_;
+        float innerRadius = annulusRegion.innerRadius_;
+        float outerRadius = annulusRegion.outerRadius_;
+        float startAngle = annulusRegion.startAngle_;
+        float endAngle = annulusRegion.endAngle_;
+
+        float radius = GetRandomValue(innerRadius, outerRadius);
+        float theta = GetRandomValue(startAngle, endAngle) * DEGREE_TO_RADIAN;
+        positionX = center.x_ + radius_ * cos(theta);
+        positionY = center.y_ + radius_ * sin(theta);
+    }
     return Vector2f { positionX, positionY };
 }
 
@@ -790,6 +809,15 @@ void EmitterUpdater::Dump(std::string& out) const
         out += " emitRate:" + std::to_string(emitRate_.value());
     }
     out += ']';
+}
+void EmitterConfig::SetConfigAnnulusRegion(const AnnulusRegion& annulusRegion)
+{
+    annulusRegion_ = annulusRegion;
+}
+
+void EmitterUpdater::SetAnnulusRegion(const std::optional<AnnulusRegion>& annulusRegion)
+{
+    annulusRegion_ = annulusRegion;
 }
 } // namespace Rosen
 } // namespace OHOS
