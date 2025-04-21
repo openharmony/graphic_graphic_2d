@@ -373,7 +373,10 @@ bool RSDisplayRenderNodeDrawable::CheckDisplayNodeSkip(
     auto hardCursorDrawable = RSPointerWindowManager::Instance().GetHardCursorDrawable(GetId());
     bool hasHardCursor = (hardCursorDrawable != nullptr);
     bool hardCursorNeedCommit = (hasHardCursor != hardCursorLastCommitSuccess_);
-    if (RSUniRenderThread::Instance().GetRSRenderThreadParams() == nullptr)
+    if (RSUniRenderThread::Instance().GetRSRenderThreadParams() == nullptr) {
+        RS_LOGD("RSUniRenderThread renderThreadParams is null");
+        return false;
+    }
     auto forceCommitReason = RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetForceCommitReason();
     bool layersNeedCommit = IsForceCommit(forceCommitReason, params.GetNeedForceUpdateHwcNodes(), hasHardCursor);
     RS_TRACE_NAME_FMT("DisplayNode skip, forceCommitReason: %d, forceUpdateByHwcNodes %d, "
