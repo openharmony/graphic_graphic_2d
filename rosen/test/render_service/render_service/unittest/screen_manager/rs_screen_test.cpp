@@ -503,8 +503,7 @@ HWTEST_F(RSScreenTest, DumpCurrentFrameLayersTest, testing::ext::TestSize.Level1
     ScreenId id = 0;
     auto rsScreen = std::make_shared<impl::RSScreen>(id, false, HdiOutput::CreateHdiOutput(id), nullptr);
     ASSERT_NE(nullptr, rsScreen);
-    int32_t screenIndex = 0;
-    rsScreen->DumpCurrentFrameLayers(screenIndex);
+    rsScreen->DumpCurrentFrameLayers();
 }
 
 /*

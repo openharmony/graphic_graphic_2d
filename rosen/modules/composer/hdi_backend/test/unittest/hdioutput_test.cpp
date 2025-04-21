@@ -326,6 +326,7 @@ HWTEST_F(HdiOutputTest, DumpHitchs, Function | MediumTest | Level1)
     HdiOutputTest::hdiOutput_->DumpHitchs(ret, "UniRender");
     EXPECT_EQ(ret, "\n");
     HdiOutputTest::hdiOutput_->DumpFps(ret, "UniRender");
+    HdiOutputTest::hdiOutput_->DumpCurrentFrameLayers();
 }
 
 /*
