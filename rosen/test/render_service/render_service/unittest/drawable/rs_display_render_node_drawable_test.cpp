@@ -418,6 +418,23 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, HardCursorCreateLayerTest, TestSize.Le
 }
 
 /**
+ * @tc.name: SetScreenRotationForPointLight
+ * @tc.desc: Test SetScreenRotationForPointLight
+ * @tc.type: FUNC
+ * @tc.require: #I9NVOG
+ */
+HWTEST_F(RSDisplayRenderNodeDrawableTest, SetScreenRotationForPointLight, TestSize.Level1)
+{
+    ASSERT_NE(renderNode_, nullptr);
+    ASSERT_NE(displayDrawable_, nullptr);
+    ASSERT_NE(displayDrawable_->renderParams_, nullptr);
+
+    auto params = static_cast<RSDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
+    ASSERT_NE(params, nullptr);
+    displayDrawable_->SetScreenRotationForPointLight(*params);
+}
+
+/**
  * @tc.name: RequestFrame
  * @tc.desc: Test RequestFrame
  * @tc.type: FUNC
