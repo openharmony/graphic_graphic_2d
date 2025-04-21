@@ -19,6 +19,7 @@
 #include <fstream>
 #include <sstream>
 #include "ani.h"
+#include "typography_style.h"
 
 namespace OHOS::Rosen {
 
@@ -177,7 +178,7 @@ ani_status AniTextUtils::ReadOptionalField(ani_env* env, ani_object obj, const c
     return ret;
 }
 
-ani_status AniTextUtils::ReadOptionalDoubleField(ani_env* env, ani_object obj, const char* fieldName, ani_double& value)
+ani_status AniTextUtils::ReadOptionalDoubleField(ani_env* env, ani_object obj, const char* fieldName, double& value)
 {
     ani_ref ref = nullptr;
     ani_status result = AniTextUtils::ReadOptionalField(env, obj, fieldName, ref);
@@ -197,12 +198,16 @@ ani_status AniTextUtils::ReadOptionalStringField(ani_env* env, ani_object obj, c
     return result;
 }
 
-ani_status AniTextUtils::ReadOptionalBoolField(ani_env* env, ani_object obj, const char* fieldName, ani_boolean& value)
+ani_status AniTextUtils::ReadOptionalBoolField(ani_env* env, ani_object obj, const char* fieldName, bool& value)
 {
     ani_ref ref = nullptr;
     ani_status result = AniTextUtils::ReadOptionalField(env, obj, fieldName, ref);
     if (result == ANI_OK && ref != nullptr) {
-        env->Object_CallMethodByName_Boolean(static_cast<ani_object>(ref), "booleanValue", nullptr, &value);
+        ani_boolean* aniBool = nullptr;
+        result = env->Object_CallMethodByName_Boolean(static_cast<ani_object>(ref), "booleanValue", nullptr, aniBool);
+        if (result == ANI_OK && aniBool != nullptr) {
+            value = static_cast<bool>(*aniBool);
+        }
     }
     return result;
 }

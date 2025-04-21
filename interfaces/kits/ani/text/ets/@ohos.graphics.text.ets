@@ -194,7 +194,7 @@ namespace text {
      * @syscap SystemCapability.Graphics.Drawing
      * @since 12
      */
-    //fontWeight?: FontWeight;
+    fontWeight?: FontWeight;
 
     /**
      * Font style of text.

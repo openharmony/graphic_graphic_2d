@@ -50,10 +50,24 @@ public:
     static std::u16string AniToStdStringUtf16(ani_env* env, ani_string str);
     static bool ReadFile(const std::string& filePath, size_t dataLen, std::unique_ptr<uint8_t[]>& data);
     static bool SplitAbsoluteFontPath(std::string& absolutePath);
-    static ani_status ReadOptionalField(ani_env* env, ani_object obj, const char* fieldName, ani_ref& ref);
-    static ani_status ReadOptionalDoubleField(ani_env* env, ani_object obj, const char* fieldName, ani_double& value);
+    static ani_status ReadOptionalField(ani_env* env, ani_object obj, const char* fieldName, ani_ref& ref);    
+    static ani_status ReadOptionalDoubleField(ani_env* env, ani_object obj, const char* fieldName, double& value);
     static ani_status ReadOptionalStringField(ani_env* env, ani_object obj, const char* fieldName, std::string& str);
-    static ani_status ReadOptionalBoolField(ani_env* env, ani_object obj, const char* fieldName, ani_boolean& value);
+    static ani_status ReadOptionalBoolField(ani_env* env, ani_object obj, const char* fieldName, bool& value);
+    template <typename EnumType>
+    static ani_status ReadOptionalEnumField(ani_env* env, ani_object obj, const char* fieldName, EnumType& value)
+    {
+        ani_ref ref = nullptr;
+        ani_status result = AniTextUtils::ReadOptionalField(env, obj, fieldName, ref);
+        if (result == ANI_OK && ref != nullptr) {
+            ani_int* enumInt = nullptr;
+            result = env->EnumItem_GetValue_Int(static_cast<ani_enum_item>(ref), enumInt);
+            if (result == ANI_OK && enumInt != nullptr) {
+                value = static_cast<EnumType>(*enumInt);
+            }
+        }
+        return result;
+    };
 };
 } // namespace OHOS::Rosen
 

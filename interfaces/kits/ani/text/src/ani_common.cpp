@@ -17,6 +17,7 @@
 #include "ani.h"
 #include "ani_common.h"
 #include "ani_text_utils.h"
+#include "typography_types.h"
 #include "utils/text_log.h"
 
 namespace OHOS::Rosen {
@@ -72,38 +73,15 @@ std::unique_ptr<TextStyle> AniCommon::ParseTextStyle(ani_env* env, ani_object ob
     }
     std::unique_ptr<TextStyle> textStyle = std::make_unique<TextStyle>();
 
-    ani_double fontSize{0};
-    if (AniTextUtils::ReadOptionalDoubleField(env, obj, "fontSize", fontSize) == ANI_OK) {
-        textStyle->fontSize = static_cast<size_t>(fontSize);
-    }
-    ani_double letterSpacing{0};
-    if (AniTextUtils::ReadOptionalDoubleField(env, obj, "letterSpacing", letterSpacing) == ANI_OK) {
-        textStyle->letterSpacing = static_cast<size_t>(letterSpacing);
-    }
-    ani_double wordSpacing{0};
-    if (AniTextUtils::ReadOptionalDoubleField(env, obj, "wordSpacing", wordSpacing) == ANI_OK) {
-        textStyle->wordSpacing = static_cast<size_t>(wordSpacing);
-    }
-    ani_double heightScale{0};
-    if (AniTextUtils::ReadOptionalDoubleField(env, obj, "heightScale", heightScale) == ANI_OK) {
-        textStyle->heightScale = static_cast<size_t>(heightScale);
-    }
-    ani_boolean halfLeading{false};
-    if (AniTextUtils::ReadOptionalBoolField(env, obj, "halfLeading", halfLeading) == ANI_OK) {
-        textStyle->halfLeading = static_cast<bool>(halfLeading);
-    }
-    ani_boolean heightOnly{false};
-    if (AniTextUtils::ReadOptionalBoolField(env, obj, "heightOnly", heightOnly) == ANI_OK) {
-        textStyle->heightOnly = static_cast<bool>(heightOnly);
-    }
-    ani_boolean baselineShift{false};
-    if (AniTextUtils::ReadOptionalBoolField(env, obj, "baselineShift", baselineShift) == ANI_OK) {
-        textStyle->baseLineShift = static_cast<bool>(baselineShift);
-    }
-    std::string locale;
-    if (AniTextUtils::ReadOptionalStringField(env, obj, "locale", locale) == ANI_OK) {
-        textStyle->locale = locale;
-    }
+    AniTextUtils::ReadOptionalEnumField<FontWeight>(env, obj, "fontWeight", textStyle->fontWeight);
+    AniTextUtils::ReadOptionalDoubleField(env, obj, "fontSize", textStyle->fontSize);
+    AniTextUtils::ReadOptionalDoubleField(env, obj, "letterSpacing", textStyle->letterSpacing);
+    AniTextUtils::ReadOptionalDoubleField(env, obj, "wordSpacing", textStyle->wordSpacing);
+    AniTextUtils::ReadOptionalDoubleField(env, obj, "heightScale", textStyle->heightScale);
+    AniTextUtils::ReadOptionalBoolField(env, obj, "halfLeading", textStyle->halfLeading);
+    AniTextUtils::ReadOptionalBoolField(env, obj, "heightOnly", textStyle->heightOnly);
+    AniTextUtils::ReadOptionalDoubleField(env, obj, "baselineShift", textStyle->baseLineShift);
+    AniTextUtils::ReadOptionalStringField(env, obj, "locale", textStyle->locale);
 
     return textStyle;
 }
