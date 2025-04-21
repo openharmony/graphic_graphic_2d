@@ -23,6 +23,10 @@
 #include "surface_utils.h"
 #include "transaction/rs_interfaces.h"
 
+#include "accesstoken_kit.h"
+#include "nativetoken_kit.h"
+#include "token_setproc.h"
+
 using namespace testing::ext;
 
 namespace OHOS {
@@ -40,6 +44,22 @@ public:
     static void SetUpTestCase()
     {
         rsInterfaces = &(RSInterfaces::GetInstance());
+        uint64_t tokenId;
+        const char* perms[1];
+        perms[0] = "ohos.permission.CAPTURE_SCREEN";
+        NativeTokenInfoParams infoInstance = {
+            .dcapsNum = 0,
+            .permsNum = 1,
+            .aclsNum = 0,
+            .dcaps = NULL,
+            .perms = perms,
+            .acls = NULL,
+            .processName = "foundation",
+            .aplStr = "system_basic",
+        };
+        tokenId = GetAccessTokenId(&infoInstance);
+        SetSelfTokenID(tokenId);
+        OHOS::Security::AccessToken::AccessTokenKit::ReloadNativeTokenInfo();
     }
 
     static void TearDownTestCase()
@@ -554,7 +574,7 @@ HWTEST_F(RSInterfacesTest, SetScreenActiveRect001, Function | SmallTest | Level2
         .w = 0,
         .h = 0,
     };
-    EXPECT_EQ(rsInterfaces->SetScreenActiveRect(screenId, activeRect), StatusCode::HDI_ERROR);
+    EXPECT_EQ(rsInterfaces->SetScreenActiveRect(screenId, activeRect), StatusCode::SUCCESS);
 }
 
 /*
