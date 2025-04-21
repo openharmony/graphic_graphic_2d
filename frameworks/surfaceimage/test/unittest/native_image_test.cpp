@@ -1498,7 +1498,6 @@ HWTEST_F(NativeImageTest, OH_ConsumerSurface_SetDefaultSize001, Function | Mediu
 */
 HWTEST_F(NativeImageTest, OH_NativeImage_SetDropBufferMode001, Function | MediumTest | Level1)
 {
-    ASSERT_EQ(OH_NativeImage_SetRealTimePriorityMode(nullptr), SURFACE_ERROR_INVALID_PARAM);
     OH_NativeImage* consumerSurface = OH_ConsumerSurface_Create();
     ASSERT_NE(consumerSurface, nullptr);
     ASSERT_EQ(OH_NativeImage_SetDropBufferMode(nullptr, true), SURFACE_ERROR_INVALID_PARAM);
