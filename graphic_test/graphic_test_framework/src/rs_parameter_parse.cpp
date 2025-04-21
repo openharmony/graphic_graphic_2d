@@ -29,7 +29,7 @@ void RSParameterParse::Parse(int argc, char **argv)
     return;
 }
 
-void SetSkipCapture(bool isSkip)
+void RSParameterParse::SetSkipCapture(bool isSkip)
 {
     skipCapture_ = isSkip;
 }
