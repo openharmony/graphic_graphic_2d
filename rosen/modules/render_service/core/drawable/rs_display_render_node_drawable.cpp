@@ -338,7 +338,10 @@ void RSDisplayRenderNodeDrawable::RenderOverDraw()
 static inline bool IsForceCommit(uint32_t forceCommitReason, bool needForceUpdateHwcNode,
     bool hasHardCursor)
 {
-    // 三种情况：不是HWC强制更新或者硬光标的情况，是HWC强制更新并且有强制更新的HWC节点，软光标的情况
+    /* force commit in 3 situations:
+     1.force commit reasons is not hwc nodes updated or cursor moved
+     2.hwc nodes forced commit and hwc nodes is visible
+     3.soft cursor's position changed */
     return (forceCommitReason & ~(ForceCommitReason::FORCED_BY_HWC_UPDATE |
                                   ForceCommitReason::FORCED_BY_POINTER_WINDOW)) ||
            ((forceCommitReason & ForceCommitReason::FORCED_BY_HWC_UPDATE) && needForceUpdateHwcNode) ||
