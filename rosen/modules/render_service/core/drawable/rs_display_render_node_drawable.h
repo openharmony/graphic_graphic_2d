@@ -247,7 +247,7 @@ private:
 
     bool isRenderSkipIfScreenOff_ = false;
 
-    // drawing path dfx
+    // mirror screen drawing path dfx
     bool mirrorRedraw_ = false;
 };
 } // namespace DrawableV2
