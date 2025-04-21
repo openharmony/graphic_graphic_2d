@@ -238,6 +238,7 @@ public:
     uint32_t GetRealtimeRefreshRate(ScreenId screenId);
 
     std::string GetRefreshInfo(pid_t pid);
+    std::string GetRefreshInfoToSP(NodeId id);
 
 #ifndef ROSEN_ARKUI_X
     int32_t SetPhysicalScreenResolution(ScreenId id, uint32_t width, uint32_t height);

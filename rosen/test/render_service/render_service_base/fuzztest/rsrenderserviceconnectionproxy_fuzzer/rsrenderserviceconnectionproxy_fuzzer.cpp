@@ -169,6 +169,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     bool getUniRenderEnable;
     bool createNodeSuccess;
     std::string getRefreshInfoEnable;
+    std::string getRefreshInfoToSPEnable;
     bool getBitmapSuccess;
     bool getPixelmapSuccess;
     FocusAppInfo appInfo = {
@@ -215,6 +216,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     rsRenderServiceConnectionProxy.SetShowRefreshRateEnabled(true, 0);
     rsRenderServiceConnectionProxy.GetRealtimeRefreshRate(id1);
     rsRenderServiceConnectionProxy.GetRefreshInfo(id1, getRefreshInfoEnable);
+    rsRenderServiceConnectionProxy.GetRefreshInfoToSP(id1, getRefreshInfoToSPEnable);
     rsRenderServiceConnectionProxy.SetPhysicalScreenResolution(id1, width, height);
     rsRenderServiceConnectionProxy.SetVirtualScreenResolution(id1, width, height);
     rsRenderServiceConnectionProxy.SetScreenPowerStatus(id1, status);

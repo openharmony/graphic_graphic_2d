@@ -162,6 +162,7 @@ public:
     virtual uint32_t GetRealtimeRefreshRate(ScreenId screenId) = 0;
 
     virtual ErrCode GetRefreshInfo(pid_t pid, std::string& enable) = 0;
+    virtual ErrCode GetRefreshInfoToSP(NodeId id, std::string& enable) = 0;
 
     virtual int32_t SetPhysicalScreenResolution(ScreenId id, uint32_t width, uint32_t height) = 0;
 

@@ -667,6 +667,17 @@ HWTEST_F(RSClientTest, GetRefreshInfo001, TestSize.Level1)
     EXPECT_EQ(rsClient->GetRefreshInfo(-1), "");
 }
 
+/**
+ * @tc.name: GetRefreshInfoToSP Test
+ * @tc.desc: GetRefreshInfoToSP Test
+ * @tc.type:FUNC
+ * @tc.require: issuesI9K7SJ
+ */
+HWTEST_F(RSClientTest, GetRefreshInfoToSP001, TestSize.Level1)
+{
+    EXPECT_EQ(rsClient->GetRefreshInfoToSP(-1), "");
+}
+
 /*
  * @tc.name: SetPhysicalScreenResolution Test
  * @tc.desc: SetPhysicalScreenResolution Test

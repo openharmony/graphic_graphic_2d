@@ -769,6 +769,23 @@ bool DoGetRefreshInfo(const uint8_t* data, size_t size)
     return true;
 }
 
+bool DoGetRefreshInfoToSP(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
+    NodeId id = GetData<NodeId>();
+    client->GetRefreshInfoToSP(id);
+    return true;
+}
+
 bool DoSetShowRefreshRateEnabled(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -2461,6 +2478,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoGetScreenSupportedRefreshRates(data, size);
     OHOS::Rosen::DoGetShowRefreshRateEnabled(data, size);
     OHOS::Rosen::DoGetRefreshInfo(data, size);
+    OHOS::Rosen::DoGetRefreshInfoToSP(data, size);
     OHOS::Rosen::DoSetShowRefreshRateEnabled(data, size);
     OHOS::Rosen::DoGetRealtimeRefreshRate(data, size);
     OHOS::Rosen::DoSetPhysicalScreenResolution(data, size);

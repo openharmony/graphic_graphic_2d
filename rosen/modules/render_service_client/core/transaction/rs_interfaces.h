@@ -181,6 +181,7 @@ public:
     uint32_t GetRealtimeRefreshRate(ScreenId id);
 
     std::string GetRefreshInfo(pid_t pid);
+    std::string GetRefreshInfoToSP(NodeId id);
 
 #ifndef ROSEN_ARKUI_X
     std::vector<RSScreenModeInfo> GetScreenSupportedModes(ScreenId id);

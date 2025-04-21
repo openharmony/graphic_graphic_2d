@@ -1038,6 +1038,49 @@ ErrCode RSRenderServiceConnection::GetRefreshInfo(pid_t pid, std::string& enable
     return ERR_OK;
 }
 
+ErrCode RSRenderServiceConnection::GetRefreshInfoToSP(NodeId id, std::string& enable)
+{
+    if (!mainThread_) {
+        enable = "";
+        return ERR_INVALID_VALUE;
+    }
+    std::string dumpString;
+    auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
+    if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
+#ifdef RS_ENABLE_GPU
+        RSHardwareThread::Instance().ScheduleTask(
+            [weakThis = wptr<RSRenderServiceConnection>(this), &dumpString, &id]() {
+                sptr<RSRenderServiceConnection> connection = weakThis.promote();
+                if (connection == nullptr) {
+                    RS_LOGE("GetRefreshInfoToSP connection is nullptr");
+                    return;
+                }
+                if (connection->screenManager_ == nullptr) {
+                    RS_LOGE("GetRefreshInfoToSP connection->screenManager_ is nullptr");
+                    return;
+                }
+                RSSurfaceFpsManager::GetInstance().Dump(dumpString, id);
+            }).wait();
+#endif
+    } else {
+        mainThread_->ScheduleTask(
+            [weakThis = wptr<RSRenderServiceConnection>(this), &dumpString, &id]() {
+                sptr<RSRenderServiceConnection> connection = weakThis.promote();
+                if (connection == nullptr) {
+                    RS_LOGE("GetRefreshInfoToSP connection is nullptr");
+                    return;
+                }
+                if (connection->screenManager_ == nullptr) {
+                    RS_LOGE("GetRefreshInfoToSP connection->screenManager_ is nullptr");
+                    return;
+                }
+                RSSurfaceFpsManager::GetInstance().Dump(dumpString, id);
+            }).wait();
+    }
+    enable = dumpString;
+    return ERR_OK;
+}
+
 int32_t RSRenderServiceConnection::GetCurrentRefreshRateMode()
 {
     return HgmTaskHandleThread::Instance().ScheduleTask([] () -> int32_t {

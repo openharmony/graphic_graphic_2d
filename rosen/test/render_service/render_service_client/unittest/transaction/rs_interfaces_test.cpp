@@ -524,6 +524,20 @@ HWTEST_F(RSInterfacesTest, GetRefreshInfo001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetRefreshInfoToSP001
+ * @tc.desc: test results of GetRefreshInfoToSP
+ * @tc.type: FUNC
+ * @tc.require: issueI97N4E
+ */
+HWTEST_F(RSInterfacesTest, GetRefreshInfoToSP001, TestSize.Level1)
+{
+    RSInterfaces& instance = RSInterfaces::GetInstance();
+    NodeId id = 0;
+    std::string str = instance.GetRefreshInfoToSP(id);
+    EXPECT_TRUE(str == "");
+}
+
+/**
  * @tc.name: SetWatermark001
  * @tc.desc: test results of SetWatermark
  * @tc.type: FUNC

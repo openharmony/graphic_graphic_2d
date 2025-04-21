@@ -87,6 +87,7 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::FORCE_REFRESH_ONE_FRAME_WITH_NEXT_VSYNC),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::DISABLE_RENDER_CONTROL_SCREEN),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_DISPLAY_IDENTIFICATION_DATA),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_REFRESH_INFO_TO_SP),
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_POINTER_COLOR_INVERSION_CONFIG),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_POINTER_COLOR_INVERSION_ENABLED),
@@ -1113,6 +1114,21 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             std::string refreshInfo;
             if (GetRefreshInfo(pid, refreshInfo) != ERR_OK || !reply.WriteString(refreshInfo)) {
                 RS_LOGE("RSRenderServiceConnectionStub::GET_REFRESH_INFO Write refreshInfo failed!");
+                ret = ERR_INVALID_REPLY;
+            }
+            break;
+        }
+
+        case static_cast<uint64_t>(RSIRenderServiceConnectionInterfaceCode::GET_REFRESH_INFO_TO_SP): {
+            uint64_t nodeId{0};
+            if (!data.ReadUint64(nodeId)) {
+                RS_LOGE("RSRenderServiceConnectionStub::GET_REFRESH_INFO_TO_SP Read nodeId failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            std::string refreshInfoToSP;
+            if (GetRefreshInfoToSP(nodeId, refreshInfoToSP) != ERR_OK || !reply.WriteString(refreshInfoToSP)) {
+                RS_LOGE("RSRenderServiceConnectionStub::GET_REFRESH_INFO_TO_SP Write refreshInfoToSP failed!");
                 ret = ERR_INVALID_REPLY;
             }
             break;
