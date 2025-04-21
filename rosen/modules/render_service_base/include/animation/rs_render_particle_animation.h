@@ -51,6 +51,13 @@ public:
     {
         return particleSystem_;
     }
+    template <typename T>
+    void UpdateParamsIfChanged(const std::optional<T>& updaterValue, T& targetValue)
+    {
+        if (updaterValue.has_value() && updaterValue.value() != targetValue) {
+            targetValue = updaterValue.value();
+        }
+    }
 
 protected:
     void OnAttach() override;
