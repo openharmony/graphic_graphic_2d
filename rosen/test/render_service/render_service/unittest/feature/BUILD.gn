@@ -20,6 +20,7 @@ group("unittest") {
   testonly = true
   deps = [
     ":RSAncoManagerTest",
+    ":RSDrawWindowCacheTest",
     ":RSHdrUtilTest",
     ":RSOpincManagerTest",
     ":RSSubThreadCacheTest",
@@ -229,6 +230,20 @@ ohos_unittest("RSUifirstManagerTest") {
 ohos_unittest("RSOpincManagerTest") {
   module_out_path = module_output_path
   sources = [ "opinc/rs_opinc_manager_test.cpp" ]
+  deps = [ ":rs_test_common" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
+  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
+    external_deps += [ "sensor:sensor_interface_native" ]
+  }
+}
+
+## Build RSDrawWindowCacheTest
+ohos_unittest("RSDrawWindowCacheTest") {
+  module_out_path = module_output_path
+  sources = [ "uifirst/rs_draw_window_cache_test.cpp" ]
   deps = [ ":rs_test_common" ]
   external_deps = [
     "c_utils:utils",

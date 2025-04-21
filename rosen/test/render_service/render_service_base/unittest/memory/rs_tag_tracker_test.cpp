@@ -224,6 +224,23 @@ HWTEST_F(RSTagTrackerTest, RSTagTracker010, TestSize.Level1)
 }
 
 /**
+ * @tc.name: RSTagTracker011
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTagTrackerTest, RSTagTracker011, TestSize.Level1)
+{
+    RSTagTracker::TAGTYPE tagType = RSTagTracker::TAGTYPE::TAG_DRAW_SURFACENODE;
+    RSTagTracker::SOURCETYPE sourceType = RSTagTracker::SOURCETYPE::SOURCE_RSFILTERDRAWABLE;
+    Drawing::GPUContext gpuContext;
+    RSTagTracker tagTracker1(&gpuContext, tagType);
+    RSTagTracker tagTracker2(&gpuContext, sourceType);
+    tagTracker2.SetTagEnd();
+    EXPECT_TRUE(tagTracker2.gpuContext_ != nullptr);
+}
+
+/**
  * @tc.name: UpdateReleaseResourceEnabled
  * @tc.desc: Test UpdateReleaseResourceEnabled and SetTagEnd
  * @tc.type: FUNC

@@ -1934,10 +1934,7 @@ void RSUniRenderVisitor::UpdateHwcNodeInfoForAppNode(RSSurfaceRenderNode& node)
         if (geo == nullptr) {
             return;
         }
-        hwcVisitor_->UpdateSrcRect(node, geo->GetAbsMatrix());
-        hwcVisitor_->UpdateHwcNodeByTransform(node, geo->GetAbsMatrix());
-        hwcVisitor_->UpdateHwcNodeEnableByBackgroundAlpha(node);
-        hwcVisitor_->UpdateHwcNodeEnableByBufferSize(node);
+        hwcVisitor_->UpdateHwcNodeInfo(node, geo->GetAbsMatrix());
     }
 }
 

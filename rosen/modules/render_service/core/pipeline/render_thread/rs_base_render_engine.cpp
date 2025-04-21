@@ -695,6 +695,9 @@ std::shared_ptr<Drawing::Image> RSBaseRenderEngine::CreateImageFromBuffer(RSPain
             RS_LOGD_IF(DEBUG_COMPOSER, "  - Buffer %{public}u marked for deletion from cache, unmapping",
                 params.buffer->GetSeqNum());
             vkImageManager_->UnMapVkImageFromSurfaceBuffer(params.buffer->GetSeqNum(), true);
+            if (RSSystemProperties::GetHybridRenderEnabled()) {
+                vkImageManager_->UnMapVkImageFromSurfaceBuffer(params.buffer->GetSeqNum());
+            }
         }
         auto bitmapFormat = RSBaseRenderUtil::GenerateDrawingBitmapFormat(params.buffer);
         RS_LOGD_IF(DEBUG_COMPOSER, "  - Generated bitmap format: colorType = %{public}d, alphaType = %{public}d",

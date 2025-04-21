@@ -35,7 +35,31 @@ public:
         TAG_UNTAGGED,
         TAG_CAPTURE,
     };
+    enum SOURCETYPE : uint32_t {
+        SOURCE_OTHER,
+        SOURCE_RSCUSTOMMODIFIERDRAWABLE,
+        SOURCE_RSBEGINBLENDERDRAWABLE,
+        SOURCE_RSSHADOWDRAWABLE,
+        SOURCE_RSBACKGROUNDIMAGEDRAWABLE,
+        SOURCE_RSUSEEFFECTDRAWABLE,
+        SOURCE_RSDYNAMICLIGHTUPDRAWABLE,
+        SOURCE_RSBINARIZATIONDRAWABLE,
+        SOURCE_RSCOLORFILTERDRAWABLE,
+        SOURCE_RSLIGHTUPEFFECTDRAWABLE,
+        SOURCE_RSDYNAMICDIMDRAWABLE,
+        SOURCE_RSFOREGROUNDFILTERDRAWABLE,
+        SOURCE_RSFOREGROUNDFILTERRESTOREDRAWABLE,
+        SOURCE_RSPIXELSTRETCHDRAWABLE,
+        SOURCE_RSPOINTLIGHTDRAWABLE,
+        SOURCE_RSPROPERTYDRAWABLE,
+        SOURCE_RSFILTERDRAWABLE,
+        SOURCE_FINISHOFFSCREENRENDER,
+        SOURCE_DRAWSELFDRAWINGNODEBUFFER,
+        SOURCE_ONCAPTURE,
+        SOURCE_INITCACHEDSURFACE
+    };
     RSTagTracker(Drawing::GPUContext* gpuContext, RSTagTracker::TAGTYPE tagType);
+    RSTagTracker(Drawing::GPUContext* gpuContext, RSTagTracker::SOURCETYPE sourceType);
     RSTagTracker(Drawing::GPUContext* gpuContext, NodeId nodeId,
         RSTagTracker::TAGTYPE tagType, const std::string& name);
     RSTagTracker(Drawing::GPUContext* gpuContext, Drawing::GPUResourceTag& tag);
@@ -43,6 +67,7 @@ public:
     ~RSTagTracker();
     static void UpdateReleaseResourceEnabled(bool releaseResEnabled);
     static std::string TagType2String(TAGTYPE type);
+    static std::string SourceType2String(SOURCETYPE type);
 private:
     bool isSetTagEnd_ = false;
     Drawing::GPUContext* gpuContext_ = nullptr;

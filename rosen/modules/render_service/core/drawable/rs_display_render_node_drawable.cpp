@@ -42,6 +42,7 @@
 #include "feature/round_corner_display/rs_rcd_surface_render_node_drawable.h"
 #include "feature/round_corner_display/rs_round_corner_display_manager.h"
 #include "feature/round_corner_display/rs_message_bus.h"
+#include "feature/uifirst/rs_sub_thread_manager.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
 #include "pipeline/render_thread/rs_base_render_engine.h"
 #include "pipeline/rs_display_render_node.h"
@@ -516,6 +517,14 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     RECORD_GPURESOURCE_CORETRACE_CALLER_WITHNODEID(Drawing::CoreFunction::
         RS_RSDISPLAYRENDERNODEDRAWABLE_ONDRAW, GetId());
     Drawing::GPUResourceTag::SetCurrentNodeId(GetId());
+    std::shared_ptr<Drawing::GPUContext> gpuContext = nullptr;
+    auto realTid = gettid();
+    if (realTid == RSUniRenderThread::Instance().GetTid()) {
+        gpuContext = RSUniRenderThread::Instance().GetRenderEngine()->GetRenderContext()->GetSharedDrGPUContext();
+    } else {
+        gpuContext = RSSubThreadManager::Instance()->GetGrContextFromSubThread(realTid);
+    }
+    RSTagTracker tagTracker(gpuContext.get(), RSTagTracker::TAGTYPE::TAG_UNTAGGED);
     SetDrawSkipType(DrawSkipType::NONE);
     // canvas will generate in every request frame
     (void)canvas;
@@ -1023,9 +1032,11 @@ void RSDisplayRenderNodeDrawable::DrawMirrorScreen(
     if ((mirroredParams->GetSecurityDisplay() != params.GetSecurityDisplay() &&
         specialLayerType_ == HAS_SPECIAL_LAYER) || !mirroredDrawable->GetCacheImgForCapture() ||
         params.GetVirtualScreenMuteStatus()) {
+        MirrorRedrawDFX(true, params.GetScreenId());
         virtualProcesser->SetDrawVirtualMirrorCopy(false);
         DrawMirror(params, virtualProcesser, &RSDisplayRenderNodeDrawable::OnCapture, *uniParam);
     } else {
+        MirrorRedrawDFX(false, params.GetScreenId());
         virtualProcesser->SetDrawVirtualMirrorCopy(true);
         DrawMirrorCopy(*mirroredDrawable, params, virtualProcesser, *uniParam);
     }
@@ -1379,9 +1390,11 @@ void RSDisplayRenderNodeDrawable::WiredScreenProjection(
     RSDirtyRectsDfx rsDirtyRectsDfx(*mirroredDrawable);
     // HDR does not support wired screen
     if (isRedraw) {
+        MirrorRedrawDFX(true, params.GetScreenId());
         DrawWiredMirrorOnDraw(*mirroredDrawable, params);
         RSUniRenderThread::Instance().SetBlackList({});
     } else {
+        MirrorRedrawDFX(false, params.GetScreenId());
         std::vector<RectI> damageRegionRects = CalculateVirtualDirtyForWiredScreen(renderFrame, params,
             isMirrorSLRCopy_ ? scaleManager_->GetScaleMatrix() : curCanvas_->GetTotalMatrix());
         rsDirtyRectsDfx.SetVirtualDirtyRects(damageRegionRects, params.GetScreenInfo());
@@ -2439,5 +2452,14 @@ bool RSDisplayRenderNodeDrawable::SkipFrame(uint32_t refreshRate, ScreenInfo scr
             break;
     }
     return needSkip;
+}
+
+void RSDisplayRenderNodeDrawable::MirrorRedrawDFX(bool mirrorRedraw, ScreenId screenId)
+{
+    if (mirrorRedraw_ != mirrorRedraw) {
+        mirrorRedraw_ = mirrorRedraw;
+        RS_LOGI("RSDisplayRenderNodeDrawable::%{public}s mirror screenId: %{public}" PRIu64
+            " drawing path changed, mirrorRedraw_: %{public}d", __func__, screenId, mirrorRedraw_);
+    }
 }
 } // namespace OHOS::Rosen::DrawableV2

@@ -18,6 +18,7 @@
 #include "metadata_helper.h"
 #endif
 #include "rs_trace.h"
+#include "platform/common/rs_system_properties.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -79,7 +80,13 @@ void RSSurfaceHandler::UpdateBuffer(
     const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence, const Rect& damage, const int64_t timestamp)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    preBuffer_.Reset();
+    bool needBufferDelete = true;
+#ifdef RS_ENABLE_VK
+    if (RSSystemProperties::IsUseVulkan()) {
+        needBufferDelete = !RSSystemProperties::GetHybridRenderEnabled();
+    }
+#endif
+    preBuffer_.Reset(needBufferDelete);
     preBuffer_ = buffer_;
     buffer_.buffer = buffer;
     if (buffer != nullptr) {

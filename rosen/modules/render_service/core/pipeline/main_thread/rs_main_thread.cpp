@@ -3403,7 +3403,6 @@ void RSMainThread::Animate(uint64_t timestamp)
     lastAnimateTimestamp_ = timestamp;
     rsCurrRange_.Reset();
     needRequestNextVsyncAnimate_ = false;
-
     if (context_->animatingNodeList_.empty()) {
         doWindowAnimate_ = false;
         context_->SetRequestedNextVsyncAnimate(false);
@@ -3493,8 +3492,6 @@ void RSMainThread::Animate(uint64_t timestamp)
     RS_LOGD("RSMainThread::Animate end, animating nodes remains, has window animation: %{public}d", curWinAnim);
 
     if (needRequestNextVsync) {
-        doDirectComposition_ = false;
-        RS_OPTIONAL_TRACE_NAME_FMT("rs debug: %s doDirectComposition false", __func__);
         HgmEnergyConsumptionPolicy::Instance().StatisticAnimationTime(timestamp / NS_PER_MS);
         RequestNextVSync("animate", timestamp_);
     } else if (isUniRender_) {
@@ -3505,6 +3502,18 @@ void RSMainThread::Animate(uint64_t timestamp)
     context_->SetRequestedNextVsyncAnimate(needRequestNextVsync);
 
     PerfAfterAnim(needRequestNextVsync);
+    UpdateDirectCompositionByAnimate(needRequestNextVsync);
+}
+
+void RSMainThread::UpdateDirectCompositionByAnimate(bool animateNeedRequestNextVsync)
+{
+    // if the animation is running or it's on the last frame of the animation, then change the doDirectComposition_ flag
+    // to false.
+    if (animateNeedRequestNextVsync || (!animateNeedRequestNextVsync && lastAnimateNeedRequestNextVsync_)) {
+        doDirectComposition_ = false;
+        RS_OPTIONAL_TRACE_NAME_FMT("rs debug: %s doDirectComposition false", __func__);
+    }
+    lastAnimateNeedRequestNextVsync_ = animateNeedRequestNextVsync;
 }
 
 bool RSMainThread::IsNeedProcessBySingleFrameComposer(std::unique_ptr<RSTransactionData>& rsTransactionData)
