@@ -15,12 +15,15 @@
 
 #include "render/rs_blur_filter.h"
 
-#include "src/core/SkOpts.h"
-
 #include "common/rs_common_def.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 
+#ifndef ENABLE_M133_SKIA
+#include "src/core/SkOpts.h"
+#else
+#include "src/core/SkChecksum.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -37,10 +40,17 @@ RSBlurFilter::RSBlurFilter(float blurRadiusX, float blurRadiusY, bool disableSys
 
     float blurRadiusXForHash = DecreasePrecision(blurRadiusX);
     float blurRadiusYForHash = DecreasePrecision(blurRadiusY);
+#ifndef ENABLE_M133_SKIA
     hash_ = SkOpts::hash(&type_, sizeof(type_), 0);
     hash_ = SkOpts::hash(&blurRadiusXForHash, sizeof(blurRadiusXForHash), hash_);
     hash_ = SkOpts::hash(&blurRadiusYForHash, sizeof(blurRadiusYForHash), hash_);
     hash_ = SkOpts::hash(&disableSystemAdaptation, sizeof(disableSystemAdaptation), hash_);
+#else
+    hash_ = SkChecksum::Hash32(&type_, sizeof(type_), 0);
+    hash_ = SkChecksum::Hash32(&blurRadiusXForHash, sizeof(blurRadiusXForHash), hash_);
+    hash_ = SkChecksum::Hash32(&blurRadiusYForHash, sizeof(blurRadiusYForHash), hash_);
+    hash_ = SkChecksum::Hash32(&disableSystemAdaptation, sizeof(disableSystemAdaptation), hash_);
+#endif
 }
 
 RSBlurFilter::~RSBlurFilter() = default;
@@ -85,7 +95,11 @@ std::shared_ptr<RSDrawingFilterOriginal> RSBlurFilter::Compose(
         disableSystemAdaptation_);
     result->imageFilter_ = Drawing::ImageFilter::CreateComposeImageFilter(imageFilter_, other->GetImageFilter());
     auto otherHash = other->Hash();
+#ifndef ENABLE_M133_SKIA
     result->hash_ = SkOpts::hash(&otherHash, sizeof(otherHash), hash_);
+#else
+    result->hash_ = SkChecksum::Hash32(&otherHash, sizeof(otherHash), hash_);
+#endif
     return result;
 }
 

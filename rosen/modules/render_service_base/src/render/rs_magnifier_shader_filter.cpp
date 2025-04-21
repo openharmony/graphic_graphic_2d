@@ -15,7 +15,12 @@
 #include "render/rs_magnifier_shader_filter.h"
 
 #include "platform/common/rs_log.h"
+
+#ifndef ENABLE_M133_SKIA
 #include "src/core/SkOpts.h"
+#else
+#include "src/core/SkChecksum.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -27,7 +32,11 @@ RSMagnifierShaderFilter::RSMagnifierShaderFilter(const std::shared_ptr<RSMagnifi
     : magnifierPara_(para)
 {
     type_ = ShaderFilterType::MAGNIFIER;
+#ifndef ENABLE_M133_SKIA
     hash_ = SkOpts::hash(&magnifierPara_, sizeof(magnifierPara_), hash_);
+#else
+    hash_ = SkChecksum::Hash32(&magnifierPara_, sizeof(magnifierPara_), hash_);
+#endif
 }
 
 RSMagnifierShaderFilter::~RSMagnifierShaderFilter() = default;

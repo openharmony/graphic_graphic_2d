@@ -18,8 +18,12 @@
 #include "effect/runtime_shader_builder.h"
 #include "include/gpu/GrDirectContext.h"
 #include "platform/common/rs_system_properties.h"
-#include "src/core/SkOpts.h"
 
+#ifndef ENABLE_M133_SKIA
+#include "src/core/SkOpts.h"
+#else
+#include "src/core/SkChecksum.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -27,7 +31,11 @@ RSKawaseBlurShaderFilter::RSKawaseBlurShaderFilter(int radius)
     : radius_(radius)
 {
     type_ = ShaderFilterType::KAWASE;
+#ifndef ENABLE_M133_SKIA
     hash_ = SkOpts::hash(&radius_, sizeof(radius_), 0);
+#else
+    hash_ = SkChecksum::Hash32(&radius_, sizeof(radius_), 0);
+#endif
 }
 
 RSKawaseBlurShaderFilter::~RSKawaseBlurShaderFilter() = default;

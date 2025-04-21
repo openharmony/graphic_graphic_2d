@@ -18,7 +18,12 @@
 #include "utils/point.h"
 #include "common/rs_optional_trace.h"
 #include "platform/common/rs_log.h"
+
+#ifndef ENABLE_M133_SKIA
 #include "src/core/SkOpts.h"
+#else
+#include "src/core/SkChecksum.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -26,9 +31,13 @@ RSAttractionEffectFilter::RSAttractionEffectFilter(float attractionFraction)
     : RSDrawingFilterOriginal(nullptr), attractionFraction_(attractionFraction)
 {
     type_ = FilterType::ATTRACTION_EFFECT;
-
+#ifndef ENABLE_M133_SKIA
     hash_ = SkOpts::hash(&type_, sizeof(type_), 0);
     hash_ = SkOpts::hash(&attractionFraction_, sizeof(attractionFraction_), hash_);
+#else
+    hash_ = SkChecksum::Hash32(&type_, sizeof(type_), 0);
+    hash_ = SkChecksum::Hash32(&attractionFraction_, sizeof(attractionFraction_), hash_);
+#endif
 }
 
 RSAttractionEffectFilter::~RSAttractionEffectFilter() = default;

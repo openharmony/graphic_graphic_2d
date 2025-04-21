@@ -103,6 +103,7 @@ ohos_executable("drawing_engine_sample") {
     "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
   ]
   defines = gpu_defines
+  defines += skia_m133_defines
 
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
     defines += [ "USE_ROSEN_DRAWING" ]

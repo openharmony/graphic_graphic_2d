@@ -1387,7 +1387,11 @@ std::shared_ptr<RSFilter> RSPropertyDrawableUtils::GenerateBehindWindowFilter(fl
     RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(TRACE_LEVEL_TWO,
         "RSPropertyDrawableUtils::GenerateBehindWindowFilter, Radius: %f, Saturation: %f, "
         "Brightness: %f, MaskColor: %08X", radius, saturation, brightness, maskColor.AsArgbInt());
+#ifndef ENABLE_M133_SKIA
     uint32_t hash = SkOpts::hash(&radius, sizeof(radius), 0);
+#else
+    uint32_t hash = SkChecksum::Hash32(&radius, sizeof(radius), 0);
+#endif
     std::shared_ptr<Drawing::ColorFilter> colorFilter = GenerateMaterialColorFilter(saturation, brightness);
     std::shared_ptr<Drawing::ImageFilter> blurColorFilter =
         Drawing::ImageFilter::CreateColorBlurImageFilter(*colorFilter, radius, radius);
@@ -1399,8 +1403,13 @@ std::shared_ptr<RSFilter> RSPropertyDrawableUtils::GenerateBehindWindowFilter(fl
             filter->Compose(colorImageFilter, hash) : std::make_shared<RSDrawingFilter>(colorImageFilter, hash);
         filter = filter->Compose(std::static_pointer_cast<RSShaderFilter>(kawaseBlurFilter));
     } else {
+#ifndef ENABLE_M133_SKIA
         hash = SkOpts::hash(&saturation, sizeof(saturation), hash);
         hash = SkOpts::hash(&brightness, sizeof(brightness), hash);
+#else
+        hash = SkChecksum::Hash32(&saturation, sizeof(saturation), hash);
+        hash = SkChecksum::Hash32(&brightness, sizeof(brightness), hash);
+#endif
         filter = filter?
             filter->Compose(blurColorFilter, hash) : std::make_shared<RSDrawingFilter>(blurColorFilter, hash);
     }

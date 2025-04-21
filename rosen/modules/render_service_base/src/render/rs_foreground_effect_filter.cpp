@@ -19,7 +19,12 @@
 #include "draw/surface.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "platform/common/rs_log.h"
+
+#ifndef ENABLE_M133_SKIA
 #include "src/core/SkOpts.h"
+#else
+#include "src/core/SkChecksum.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -34,8 +39,13 @@ RSForegroundEffectFilter::RSForegroundEffectFilter(float blurRadius)
     MakeForegroundEffect();
     ComputeParamter(blurRadius);
 
+#ifndef ENABLE_M133_SKIA
     hash_ = SkOpts::hash(&type_, sizeof(type_), 0);
     hash_ = SkOpts::hash(&blurRadius_, sizeof(blurRadius_), hash_);
+#else
+    hash_ = SkChecksum::Hash32(&type_, sizeof(type_), 0);
+    hash_ = SkChecksum::Hash32(&blurRadius_, sizeof(blurRadius_), hash_);
+#endif
 }
 
 RSForegroundEffectFilter::~RSForegroundEffectFilter() = default;

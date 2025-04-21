@@ -25,6 +25,7 @@ config("export_config") {
 
   defines = rs_common_define
   defines += gpu_defines
+  defines += skia_m133_defines
 }
 
 if (!is_mingw && !is_mac && !is_cross_platform &&
@@ -75,6 +76,7 @@ ohos_source_set("render_service_base_src") {
   }
   defines = []
   defines += gpu_defines
+  defines += skia_m133_defines
   defines += [ "MODULE_RSB" ]
 
   sources = [

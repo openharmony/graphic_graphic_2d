@@ -280,7 +280,11 @@ bool SurfaceOhosVulkan::NativeFlushFrame(std::unique_ptr<SurfaceFrame> &frame)
     vkContext.vkCreateSemaphore(vkContext.GetDevice(), &semaphoreInfo, nullptr, &semaphore);
 
     GrBackendSemaphore backendSemaphore;
+#ifndef ENABLE_M133_SKIA
     backendSemaphore.initVulkan(semaphore);
+#else
+    backendSemaphore = GrBackendSemaphores::MakeVk(semaphore);
+#endif
 
     GrFlushInfo flushInfo;
     flushInfo.fNumSemaphores = 1;

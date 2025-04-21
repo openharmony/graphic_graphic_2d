@@ -117,7 +117,11 @@ MSKPSrc::MSKPSrc(const std::string& path) : fPath_(path)
 {
     std::unique_ptr<SkStreamAsset> stream = SkStream::MakeFromFile(fPath_.c_str());
 
+#ifndef ENABLE_M133_SKIA
     int count = SkMultiPictureDocumentReadPageCount(stream.get());
+#else
+    int count = SkMultiPictureDocument::ReadPageCount(stream.get());
+#endif
     if (count > 0) {
         auto deserialContext = std::make_unique<SkSharingDeserialContext>();
         SkDeserialProcs procs;
@@ -125,7 +129,11 @@ MSKPSrc::MSKPSrc(const std::string& path) : fPath_(path)
         procs.fImageCtx = deserialContext.get();
 
         fPages_.reset(count);
+#ifndef ENABLE_M133_SKIA
         SkMultiPictureDocumentRead(stream.get(), &fPages_[0], count, &procs);
+#else
+        SkMultiPictureDocument::Read(stream.get(), &fPages_[0], count, &procs);
+#endif
     }
 }
 

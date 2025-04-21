@@ -46,7 +46,6 @@
 #include "GLES3/gl32.h"
 #endif
 
-#include "include/core/SkImage.h"
 #include "include/core/SkCanvas.h"
 #include "include/core/SkColorSpace.h"
 #include "include/core/SkImageInfo.h"
@@ -56,6 +55,11 @@
 #include "include/gpu/gl/GrGLInterface.h"
 #include "utils/graphic_coretrace.h"
 
+#ifndef ENABLE_M133_SKIA
+#include "include/core/SkImage.h"
+#else
+#include "include/gpu/ganesh/SkImageGanesh.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -719,8 +723,13 @@ bool PixelMapFromSurface::DrawImage(GrRecordingContext *context,
     if (backendTexturePtr == nullptr) {
         return false;
     }
+#ifndef ENABLE_M133_SKIA
     sk_sp<SkImage> image = SkImage::MakeFromTexture(context, *backendTexturePtr,
         kTopLeft_GrSurfaceOrigin, colorType, kPremul_SkAlphaType, nullptr);
+#else
+    sk_sp<SkImage> image = SkImage::BorrowTextureFrom(context, *backendTexturePtr,
+        kTopLeft_GrSurfaceOrigin, colorType, kPremul_SkAlphaType, nullptr);
+#endif
     if (image == nullptr) {
         RS_LOGE("make skImage fail");
         return false;

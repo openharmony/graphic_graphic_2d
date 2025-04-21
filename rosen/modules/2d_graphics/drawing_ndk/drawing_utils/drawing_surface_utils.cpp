@@ -158,7 +158,11 @@ bool FlushVulkanSurface(Drawing::Surface* surface)
     VkSemaphore semaphore = vkContext.RequireSemaphore();
 
     GrBackendSemaphore backendSemaphore;
+#ifndef ENABLE_M133_SKIA
     backendSemaphore.initVulkan(semaphore);
+#else
+    backendSemaphore = GrBackendSemaphores::MakeVk(semaphore);
+#endif
 
     auto* callbackInfo = new RsVulkanInterface::CallbackSemaphoreInfo(vkContext, semaphore, -1);
 

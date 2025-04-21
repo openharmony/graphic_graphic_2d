@@ -17,7 +17,12 @@
 #include "common/rs_common_def.h"
 #include "common/rs_optional_trace.h"
 #include "platform/common/rs_log.h"
+
+#ifndef ENABLE_M133_SKIA
 #include "src/core/SkOpts.h"
+#else
+#include "src/core/SkChecksum.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -40,9 +45,15 @@ RSFlyOutShaderFilter::RSFlyOutShaderFilter(float degree, uint32_t flyMode)
 {
     type_ = FilterType::FLY_OUT;
 
+#ifndef ENABLE_M133_SKIA
     hash_ = SkOpts::hash(&type_, sizeof(type_), 0);
     hash_ = SkOpts::hash(&degree_, sizeof(degree_), hash_);
     hash_ = SkOpts::hash(&flyMode_, sizeof(flyMode_), hash_);
+#else
+    hash_ = SkChecksum::Hash32(&type_, sizeof(type_), 0);
+    hash_ = SkChecksum::Hash32(&degree_, sizeof(degree_), hash_);
+    hash_ = SkChecksum::Hash32(&flyMode_, sizeof(flyMode_), hash_);
+#endif
 }
 
 

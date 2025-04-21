@@ -33,6 +33,10 @@
 #include "sk_image_chain.h"
 #include "platform/common/rs_system_properties.h"
 
+#ifdef ENABLE_M133_SKIA
+#include "include/gpu/GpuTypes.h"
+#endif
+
 namespace OHOS {
 namespace Rosen {
 SKImageChain::SKImageChain(SkCanvas* canvas, sk_sp<SkImage> image) : canvas_(canvas), image_(image)
@@ -133,7 +137,11 @@ bool SKImageChain::CreateGPUCanvas()
 #else
     sk_sp<GrContext> grContext(GrContext::MakeGL(std::move(glInterface)));
 #endif
+#ifndef ENABLE_M133_SKIA
     gpuSurface_ = SkSurface::MakeRenderTarget(grContext.get(), SkBudgeted::kNo, imageInfo_);
+#else
+    gpuSurface_ = SkSurface::MakeRenderTarget(grContext.get(), skgpu::Budgeted::kNo, imageInfo_);
+#endif
     if (!gpuSurface_) {
         LOGE("Failed to create surface for GPU.");
         return false;

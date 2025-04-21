@@ -22,7 +22,12 @@
 #include "common/rs_color.h"
 #include "common/rs_macros.h"
 #include "image/gpu_context.h"
+
+#ifndef ENABLE_M133_SKIA
 #include "src/core/SkOpts.h"
+#else
+#include "src/core/SkChecksum.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -81,7 +86,11 @@ public:
     void SetFilterType(FilterType type)
     {
         type_ = type;
+#ifndef ENABLE_M133_SKIA
         hash_ = SkOpts::hash(&type_, sizeof(type_), hash_);
+#else
+        hash_ = SkChecksum::Hash32(&type_, sizeof(type_), hash_);
+#endif
     }
 
     virtual bool IsValid() const

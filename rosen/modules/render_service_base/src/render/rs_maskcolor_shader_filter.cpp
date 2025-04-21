@@ -23,9 +23,15 @@ RSMaskColorShaderFilter::RSMaskColorShaderFilter(int colorMode, RSColor maskColo
     : colorMode_(colorMode), maskColor_(maskColor)
 {
     type_ = ShaderFilterType::MASK_COLOR;
+#ifndef ENABLE_M133_SKIA
     hash_ = SkOpts::hash(&type_, sizeof(type_), 0);
     hash_ = SkOpts::hash(&colorMode_, sizeof(colorMode_), hash_);
     hash_ = SkOpts::hash(&maskColor_, sizeof(maskColor_), hash_);
+#else
+    hash_ = SkChecksum::Hash32(&type_, sizeof(type_), 0);
+    hash_ = SkChecksum::Hash32(&colorMode_, sizeof(colorMode_), hash_);
+    hash_ = SkChecksum::Hash32(&maskColor_, sizeof(maskColor_), hash_);
+#endif
 }
 
 RSMaskColorShaderFilter::~RSMaskColorShaderFilter() = default;
