@@ -191,6 +191,8 @@ private:
     bool SkipFrameByInterval(uint32_t refreshRate, uint32_t skipFrameInterval);
     bool SkipFrameByRefreshRate(uint32_t refreshRate, uint32_t expectedRefreshRate);
 
+    void MirrorRedrawDFX(bool mirrorRedraw, ScreenId screenId);
+
     using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::DISPLAY_NODE, OnGenerate>;
     static Registrar instance_;
     std::shared_ptr<RSSurfaceHandler> surfaceHandler_ = nullptr;
@@ -246,8 +248,7 @@ private:
     bool isRenderSkipIfScreenOff_ = false;
 
     // drawing path dfx
-    bool virtualMirrorRedraw_ = false;
-    bool wiredMirrorRedraw_ = false;
+    bool mirrorRedraw_ = false;
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen
