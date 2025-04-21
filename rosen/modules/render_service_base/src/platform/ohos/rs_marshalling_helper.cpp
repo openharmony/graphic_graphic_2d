@@ -918,7 +918,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSMagnif
 // Particle
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const AnnulusRegion& val)
 {
-    return Marshalling(parcel, val.center_.x_) && Marshalling(parcel, val.center_.y_) && 
+    return Marshalling(parcel, val.center_.x_) && Marshalling(parcel, val.center_.y_) &&
         Marshalling(parcel, val.innerRadius_) && Marshalling(parcel, val.outerRadius_) &&
         Marshalling(parcel, val.startAngle_) && Marshalling(parcel, val.endAngle_);
 }

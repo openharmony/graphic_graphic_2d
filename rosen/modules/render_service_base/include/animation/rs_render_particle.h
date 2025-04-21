@@ -100,7 +100,8 @@ public:
     {}
     AnnulusRegion(const Vector2f& center, const float& innerRadius, const float& outerRadius, const float & startAngle,
         const float& endAngle)
-        : center_(center), innerRadius_(innerRadius), outerRadius_(outerRadius), startAngle_(startAngle), endAngle_(endAngle)
+        : center_(center), innerRadius_(innerRadius), outerRadius_(outerRadius),
+          startAngle_(startAngle), endAngle_(endAngle)
     {}
     AnnulusRegion(const AnnulusRegion& region) = default;
     AnnulusRegion& operator=(const AnnulusRegion& region) = default;
