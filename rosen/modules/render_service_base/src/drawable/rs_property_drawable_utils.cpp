@@ -1243,7 +1243,10 @@ Color RSPropertyDrawableUtils::GetInvertBackgroundColor(RSPaintFilterCanvas& can
         RS_LOGI("RSPropertyDrawableUtils::GetInvertBackgroundColor not alpha");
         return RSPropertyDrawableUtils::CalculateInvertColor(backgroundColor);
     }
-    auto imageSnapshot = canvas.GetSurface()->GetImageSnapshot(canvas.GetDeviceClipBounds());
+    auto surface = canvas.GetSurface();
+    std::shared_ptr<Drawing::Image> imageSnapshot = surface == nullptr ?
+        nullptr :
+        surface->GetImageSnapshot(canvas.GetDeviceClipBounds());
     if (imageSnapshot == nullptr) {
         RS_LOGI("RSPropertyDrawableUtils::GetInvertBackgroundColor imageSnapshot null");
         return Color(0);
