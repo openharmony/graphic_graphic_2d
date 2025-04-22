@@ -18,6 +18,7 @@
 #include "rs_profiler_json.h"
 #include "rs_profiler_log.h"
 #include "rs_profiler_network.h"
+#include "rs_profiler_utils.h"
 
 #include <stack>
 #include "common/rs_obj_geometry.h"
@@ -30,7 +31,7 @@
 
 namespace OHOS::Rosen {
 
-void RSProfiler::DumpNode(const RSRenderNode& node, JsonWriter& out, bool clearMockFlag, bool absRoot)
+void RSProfiler::DumpNode(const RSRenderNode& node, JsonWriter& out, bool clearMockFlag, bool absRoot, bool isSorted)
 {
     out.PushObject();
     DumpNodeBaseInfo(node, out, clearMockFlag);
@@ -46,15 +47,45 @@ void RSProfiler::DumpNode(const RSRenderNode& node, JsonWriter& out, bool clearM
 
     auto& children = out["children"];
     children.PushArray();
-    if (node.GetSortedChildren()) {
+
+    if (!isSorted) {
+        for (auto& child : node.GetChildrenList()) {
+            if (child.lock()) {
+                DumpNode(*child.lock(), children, clearMockFlag, false, isSorted);
+            }
+        }
+    } else if (node.GetSortedChildren()) {
         for (auto& child : *node.GetSortedChildren()) {
             if (child) {
-                DumpNode(*child, children, clearMockFlag, false);
+                DumpNode(*child, children, clearMockFlag, false, isSorted);
             }
         }
     }
+
     children.PopArray();
     out.PopObject();
+}
+
+void RSProfiler::DumpOffscreen(RSContext& context, JsonWriter& rootOffscreen, bool useMockPid, pid_t pid)
+{
+    rootOffscreen.PushObject();
+    rootOffscreen["type"] = std::string("OFF_SCREEN");
+    auto& children = rootOffscreen["children"];
+    children.PushArray();
+
+    const auto& map = context.GetMutableNodeMap();
+    map.TraversalNodes([&pid, &children, &useMockPid](const std::shared_ptr<RSBaseRenderNode>& node) {
+        if (node == nullptr) {
+            return;
+        }
+        const auto parent = node->GetParent().lock();
+        if (!parent && (!pid || pid == Utils::ExtractPid(node->GetId()))) {
+            DumpNode(*node, children, useMockPid, pid > 0, false);
+        }
+    });
+    
+    children.PopArray();
+    rootOffscreen.PopObject();
 }
 
 NodeId RSProfiler::AdjustNodeId(NodeId nodeId, bool clearMockFlag)

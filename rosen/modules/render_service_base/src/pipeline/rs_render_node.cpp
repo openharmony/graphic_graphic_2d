@@ -4022,6 +4022,11 @@ uint32_t RSRenderNode::GetChildrenCount() const
     return children_.size();
 }
 
+std::list<RSRenderNode::WeakPtr> RSRenderNode::GetChildrenList() const
+{
+    return children_;
+}
+
 float RSRenderNode::GetHDRBrightness() const
 {
     const auto& drawCmdModifiers = renderContent_->drawCmdModifiers_;

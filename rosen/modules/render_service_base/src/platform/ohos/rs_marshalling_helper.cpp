@@ -2206,6 +2206,9 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
         };
         std::vector<std::shared_ptr<Drawing::SurfaceBufferEntry>> surfaceBufferEntryVec;
         for (uint32_t i = 0; i < surfaceBufferEntrySize; ++i) {
+            if (RS_PROFILER_IF_NEED_TO_SKIP_DRAWCMD_SURFACE(parcel)) {
+                continue;
+            }
             sptr<SurfaceBuffer> surfaceBuffer;
             MessageParcel* parcelSurfaceBuffer = static_cast<MessageParcel*>(&parcel);
             uint32_t sequence = 0U;
