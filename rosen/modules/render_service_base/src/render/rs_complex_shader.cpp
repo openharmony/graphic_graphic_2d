@@ -13,66 +13,66 @@
  * limitations under the License.
  */
  
- #include "render/rs_complex_shader.h"
- #include "common/rs_common_def.h"
- #include "effect/runtime_shader_builder.h"
- #include "ge_visual_effect_impl.h"
- #include "platform/common/rs_log.h"
- #include "ge_external_dynamic_loader.h"
- #include "ext/gex_complex_shader.h"
+#include "render/rs_complex_shader.h"
+#include "common/rs_common_def.h"
+#include "effect/runtime_shader_builder.h"
+#include "ge_visual_effect_impl.h"
+#include "platform/common/rs_log.h"
+#include "ge_external_dynamic_loader.h"
+#include "ext/gex_complex_shader.h"
   
- namespace OHOS {
- namespace Rosen {
+namespace OHOS {
+namespace Rosen {
   
- RSComplexShader::RSComplexShader()
- {
-     type_ = ShaderType::COMPLEX;
- }
+RSComplexShader::RSComplexShader()
+{
+    type_ = ShaderType::COMPLEX;
+}
   
- RSComplexShader::RSComplexShader(GexComlexShaderType type)
-     : shaderType_{type}
- {
-     type_ = ShaderType::COMPLEX;
- }
+RSComplexShader::RSComplexShader(GexComlexShaderType type)
+    : shaderType_{type}
+{
+    type_ = ShaderType::COMPLEX;
+}
   
- void RSComplexShader::MakeDrawingShader(const RectF &rect, std::vector<float> params)
- {
-     shaderEffect_ =
-         GetShaderEffect(params, Drawing::Rect{rect.GetLeft(), rect.GetTop(), rect.GetWidth(), rect.GetHeight()});
- }
+void RSComplexShader::MakeDrawingShader(const RectF &rect, std::vector<float> params)
+{
+    shaderEffect_ =
+        GetShaderEffect(params, Drawing::Rect{rect.GetLeft(), rect.GetTop(), rect.GetWidth(), rect.GetHeight()});
+}
   
- const std::shared_ptr<Drawing::ShaderEffect> &RSComplexShader::GetDrawingShader() const
- {
-     return shaderEffect_;
- }
+const std::shared_ptr<Drawing::ShaderEffect> &RSComplexShader::GetDrawingShader() const
+{
+    return shaderEffect_;
+}
   
- bool RSComplexShader::Marshalling(Parcel &parcel)
- {
-     return parcel.WriteUint32(static_cast<uint32_t>(shaderType_));
- }
+bool RSComplexShader::Marshalling(Parcel &parcel)
+{
+    return parcel.WriteUint32(static_cast<uint32_t>(shaderType_));
+}
   
- bool RSComplexShader::Unmarshalling(Parcel &parcel, bool &needReset)
- {
-     auto type = parcel.ReadUint32();
-     if (type < static_cast<uint32_t>(GexComlexShaderType::MAX)) {
-         shaderType_ = static_cast<GexComlexShaderType>(type);
-         return true;
-     }
-     return false;
- }
+bool RSComplexShader::Unmarshalling(Parcel &parcel, bool &needReset)
+{
+    auto type = parcel.ReadUint32();
+    if (type < static_cast<uint32_t>(GexComlexShaderType::MAX)) {
+        shaderType_ = static_cast<GexComlexShaderType>(type);
+        return true;
+    }
+    return false;
+}
   
- std::shared_ptr<Drawing::ShaderEffect> RSComplexShader::GetShaderEffect(
-     const std::vector<float> &effectParam, const Drawing::RectF &rect)
- {
-     auto shader = GEXComplexShader::CreateDynamicImpl(GEXComplexShaderParams{shaderType_, effectParam});
-     shader->MakeDrawingShader(rect, 0);
-     return shader->GetDrawingShader();
- }
+std::shared_ptr<Drawing::ShaderEffect> RSComplexShader::GetShaderEffect(
+    const std::vector<float> &effectParam, const Drawing::RectF &rect)
+{
+    auto shader = GEXComplexShader::CreateDynamicImpl(GEXComplexShaderParams{shaderType_, effectParam});
+    shader->MakeDrawingShader(rect, 0);
+    return shader->GetDrawingShader();
+}
   
- GexComlexShaderType RSComplexShader::GetShaderType() const
- {
-     return shaderType_;
- }
+GexComlexShaderType RSComplexShader::GetShaderType() const
+{
+    return shaderType_;
+}
   
- }  // namespace Rosen
- }  // namespace OHOS
+}  // namespace Rosen
+}  // namespace OHOS

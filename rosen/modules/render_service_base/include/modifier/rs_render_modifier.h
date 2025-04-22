@@ -280,7 +280,6 @@ public:
     RSAppearanceRenderModifier(const std::shared_ptr<RSRenderPropertyBase>& property)
         : RSAnimatableRenderModifier(property)
     {}
-
     ~RSAppearanceRenderModifier() override = default;
 };
 
@@ -437,7 +436,7 @@ public:
     {
         return RSModifierType::COMPLEX_SHADER_PARAM;
     }
-};   
+};
 
 // declare RenderModifiers like RSBoundsRenderModifier
 #define DECLARE_ANIMATABLE_MODIFIER(MODIFIER_NAME, TYPE, MODIFIER_TYPE, DELTA_OP, MODIFIER_TIER, THRESHOLD_TYPE) \
