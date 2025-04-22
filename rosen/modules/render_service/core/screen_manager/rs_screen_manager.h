@@ -250,7 +250,9 @@ public:
 #ifdef RS_SUBSCRIBE_SENSOR_ENABLE
     virtual void HandlePostureData(const SensorEvent * const event) = 0;
 #endif
-    virtual void ForceRefreshOneFrameIfNoRNV() = 0;
+    virtual void PostForceRefreshTask() = 0;
+
+    virtual void RemoveForceRefreshTask() = 0;
 
     virtual void ClearFrameBufferIfNeed() = 0;
 
@@ -497,7 +499,9 @@ public:
 #ifdef RS_SUBSCRIBE_SENSOR_ENABLE
     void HandlePostureData(const SensorEvent * const event) override;
 #endif
-    void ForceRefreshOneFrameIfNoRNV() override;
+    void PostForceRefreshTask() override;
+
+    void RemoveForceRefreshTask() override;
 
     void ClearFrameBufferIfNeed() override;
 
