@@ -20,8 +20,14 @@
 #include <array>
 
 #include "include/core/SkExecutor.h"
+#ifdef USE_M133_SKIA
+#include "include/gpu/ganesh/GrContextOptions.h"
+#include "include/gpu/ganesh/GrDirectContext.h"
+#include "include/gpu/ganesh/gl/GrGLDirectContext.h"
+#else
 #include "include/gpu/GrContextOptions.h"
 #include "include/gpu/GrDirectContext.h"
+#endif
 
 #include "image/gpu_context.h"
 #include "impl_interface/gpu_context_impl.h"

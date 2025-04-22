@@ -16,7 +16,9 @@
 #ifndef SKIA_HM_SYMBOL_CONFIG_OHOS_H
 #define SKIA_HM_SYMBOL_CONFIG_OHOS_H
 
+#ifndef USE_M133_SKIA
 #include "include/core/HMSymbol.h"
+#endif
 
 #include "text/hm_symbol.h"
 
@@ -32,11 +34,13 @@ public:
         DrawingAnimationType type, uint16_t groupSum, uint16_t animationMode = 0,
         DrawingCommonSubType commonSubType = DrawingCommonSubType::DOWN);
 private:
+#ifndef USE_M133_SKIA
     static DrawingAnimationSetting ConvertToDrawingAnimationSetting(AnimationSetting setting);
 
     static DrawingRenderGroup ConvertToDrawingRenderGroup(RenderGroup group);
 
     static std::vector<DrawingGroupInfo> ConvertToDrawingGroupInfo(std::vector<GroupInfo> infos);
+#endif
 };
 
 } // namespace Drawing

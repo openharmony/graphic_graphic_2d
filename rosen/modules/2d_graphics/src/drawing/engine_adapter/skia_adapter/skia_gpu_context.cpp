@@ -14,8 +14,13 @@
  */
 
 #include "skia_gpu_context.h"
+#ifdef USE_M133_SKIA
+#include "include/gpu/ganesh/gl/GrGLInterface.h"
+#include "src/gpu/ganesh/GrDirectContextPriv.h"
+#else
 #include "include/gpu/gl/GrGLInterface.h"
 #include "src/gpu/GrDirectContextPriv.h"
+#endif
 #include "include/core/SkTypes.h"
 
 #include "skia_data.h"
@@ -81,7 +86,11 @@ static CommonPoolExecutor g_defaultExecutor;
 
 bool SkiaGPUContext::BuildFromGL(const GPUContextOptions& options)
 {
+#ifdef USE_M133_SKIA
+    sk_sp<const GrGLInterface> glInterface(GrGLMakeNativeInterface());
+#else
     sk_sp<const GrGLInterface> glInterface(GrGLCreateNativeInterface());
+#endif
     if (options.GetPersistentCache() != nullptr) {
         skiaPersistentCache_ = std::make_shared<SkiaPersistentCache>(options.GetPersistentCache());
     }
@@ -98,7 +107,11 @@ bool SkiaGPUContext::BuildFromGL(const GPUContextOptions& options)
 #ifdef SKIA_OHOS
     grOptions.clearSmallTexture = options.GetIsUniRender();
 #endif
+#ifdef USE_M133_SKIA
+    grContext_ = GrDirectContexts::MakeGL(std::move(glInterface), grOptions);
+#else
     grContext_ = GrDirectContext::MakeGL(std::move(glInterface), grOptions);
+#endif
     return grContext_ != nullptr ? true : false;
 }
 
@@ -155,7 +168,12 @@ void SkiaGPUContext::FlushAndSubmit(bool syncCpu)
         LOGD("SkiaGPUContext::FlushAndSubmit, grContext_ is nullptr");
         return;
     }
+#ifdef USE_M133_SKIA
+    GrSyncCpu syncCpuEnum = syncCpu ? GrSyncCpu::kYes : GrSyncCpu::kNo;
+    grContext_->flushAndSubmit(syncCpuEnum);
+#else
     grContext_->flushAndSubmit(syncCpu);
+#endif
 }
 
 void SkiaGPUContext::Submit()
@@ -239,7 +257,9 @@ void SkiaGPUContext::DumpGpuStats(std::string& out)
     }
     SkString stat;
     grContext_->priv().dumpGpuStats(&stat);
+#ifndef USE_M133_SKIA
     grContext_->dumpVmaStats(&stat);
+#endif
     out = stat.c_str();
 }
 
@@ -249,7 +269,9 @@ void SkiaGPUContext::DumpAllResource(std::stringstream& dump)
         LOGD("SkiaGPUContext::DumpAllResource, grContext_ is nullptr");
         return;
     }
+#ifndef USE_M133_SKIA
     grContext_->dumpAllResource(dump);
+#endif
 }
 
 void SkiaGPUContext::DumpAllCoreTrace(std::stringstream& dump)
@@ -258,7 +280,9 @@ void SkiaGPUContext::DumpAllCoreTrace(std::stringstream& dump)
         LOGD("SkiaGPUContext::DumpAllCoreTrace, grContext_ is nullptr");
         return;
     }
+#ifndef USE_M133_SKIA
     grContext_->dumpAllCoreTrace(dump);
+#endif
 }
 
 void SkiaGPUContext::ReleaseResourcesAndAbandonContext()
@@ -276,7 +300,12 @@ void SkiaGPUContext::PurgeUnlockedResources(bool scratchResourcesOnly)
         LOGD("SkiaGPUContext::PurgeUnlockedResources, grContext_ is nullptr");
         return;
     }
+#ifdef USE_M133_SKIA
+    size_t bytesToPurge = 0;
+    grContext_->purgeUnlockedResources(bytesToPurge, scratchResourcesOnly);
+#else
     grContext_->purgeUnlockedResources(scratchResourcesOnly);
+#endif
 }
 
 void SkiaGPUContext::PurgeUnlockedResourcesByTag(bool scratchResourcesOnly, const GPUResourceTag &tag)
@@ -285,8 +314,10 @@ void SkiaGPUContext::PurgeUnlockedResourcesByTag(bool scratchResourcesOnly, cons
         LOGD("SkiaGPUContext::PurgeUnlockedResourcesByTag, grContext_ is nullptr");
         return;
     }
+#ifndef USE_M133_SKIA
     GrGpuResourceTag grTag(tag.fPid, tag.fTid, tag.fWid, tag.fFid, tag.fName);
     grContext_->purgeUnlockedResourcesByTag(scratchResourcesOnly, grTag);
+#endif
 }
 
 void SkiaGPUContext::PurgeUnlockedResourcesByPid(bool scratchResourcesOnly, const std::set<pid_t>& exitedPidSet)
@@ -295,7 +326,9 @@ void SkiaGPUContext::PurgeUnlockedResourcesByPid(bool scratchResourcesOnly, cons
         LOGD("SkiaGPUContext::PurgeUnlockedResourcesByPid, grContext_ is nullptr");
         return;
     }
+#ifndef USE_M133_SKIA
     grContext_->purgeUnlockedResourcesByPid(scratchResourcesOnly, exitedPidSet);
+#endif
 }
 
 void SkiaGPUContext::RegisterVulkanErrorCallback(const std::function<void()>& vulkanErrorCallback)
@@ -304,7 +337,9 @@ void SkiaGPUContext::RegisterVulkanErrorCallback(const std::function<void()>& vu
         LOGD("SkiaGPUContext::RegisterVulkanErrorCallback, grContext_ is nullptr");
         return;
     }
+#ifndef USE_M133_SKIA
     grContext_->registerVulkanErrorCallback(vulkanErrorCallback);
+#endif
 }
 
 void SkiaGPUContext::PurgeUnlockAndSafeCacheGpuResources()
@@ -313,7 +348,9 @@ void SkiaGPUContext::PurgeUnlockAndSafeCacheGpuResources()
         LOGD("SkiaGPUContext::PurgeUnlockAndSafeCacheGpuResources, grContext_ is nullptr");
         return;
     }
+#ifndef USE_M133_SKIA
     grContext_->purgeUnlockAndSafeCacheGpuResources();
+#endif
 }
 
 void SkiaGPUContext::PurgeCacheBetweenFrames(bool scratchResourcesOnly, const std::set<pid_t>& exitedPidSet,
@@ -323,7 +360,9 @@ void SkiaGPUContext::PurgeCacheBetweenFrames(bool scratchResourcesOnly, const st
         LOGD("SkiaGPUContext::PurgeCacheBetweenFrames,grContext_ is nullptr");
         return;
     }
+#ifndef USE_M133_SKIA
     grContext_->purgeCacheBetweenFrames(scratchResourcesOnly, exitedPidSet, protectedPidSet);
+#endif
 }
 
 void SkiaGPUContext::ReleaseByTag(const GPUResourceTag &tag)
@@ -332,8 +371,10 @@ void SkiaGPUContext::ReleaseByTag(const GPUResourceTag &tag)
         LOGD("SkiaGPUContext::ReleaseByTag, grContext_ is nullptr");
         return;
     }
+#ifndef USE_M133_SKIA
     GrGpuResourceTag grTag(tag.fPid, tag.fTid, tag.fWid, tag.fFid, tag.fName);
     grContext_->releaseByTag(grTag);
+#endif
 }
 
 void SkiaGPUContext::ResetContext()
@@ -361,8 +402,10 @@ void SkiaGPUContext::DumpMemoryStatisticsByTag(TraceMemoryDump* traceMemoryDump,
         LOGD("SkiaGPUContext::DumpMemoryStatisticsByTag, sktraceMemoryDump is nullptr");
         return;
     }
+#ifndef USE_M133_SKIA
     GrGpuResourceTag grTag(tag.fPid, tag.fTid, tag.fWid, tag.fFid, tag.fName);
     grContext_->dumpMemoryStatisticsByTag(skTraceMemoryDump, grTag);
+#endif
 }
 
 void SkiaGPUContext::DumpMemoryStatistics(TraceMemoryDump* traceMemoryDump)
@@ -390,8 +433,10 @@ void SkiaGPUContext::SetCurrentGpuResourceTag(const GPUResourceTag &tag)
         LOGD("SkiaGPUContext::ReleaseByTag, grContext_ is nullptr");
         return;
     }
+#ifndef USE_M133_SKIA
     GrGpuResourceTag grTag(tag.fPid, tag.fTid, tag.fWid, tag.fFid, tag.fName);
     grContext_->setCurrentGrResourceTag(grTag);
+#endif
 }
 
 sk_sp<GrDirectContext> SkiaGPUContext::GetGrContext() const
@@ -410,7 +455,9 @@ void SkiaGPUContext::GetUpdatedMemoryMap(std::unordered_map<pid_t, size_t> &out)
         LOGD("SkiaGPUContext::GetUpdatedMemoryMap, grContext_ is nullptr");
         return;
     }
+#ifndef USE_M133_SKIA
     grContext_->getUpdatedMemoryMap(out);
+#endif
 }
 
 void SkiaGPUContext::InitGpuMemoryLimit(MemoryOverflowCalllback callback, uint64_t size)
@@ -419,7 +466,9 @@ void SkiaGPUContext::InitGpuMemoryLimit(MemoryOverflowCalllback callback, uint64
         LOGD("SkiaGPUContext::InitGpuMemoryLimit, grContext_ is nullptr");
         return;
     }
+#ifndef USE_M133_SKIA
     grContext_->initGpuMemoryLimit(callback, size);
+#endif
 }
 #ifdef RS_ENABLE_VK
 void SkiaGPUContext::StoreVkPipelineCacheData()
@@ -438,7 +487,9 @@ void SkiaGPUContext::BeginFrame()
         LOGD("SkiaGPUContext::BeginFrame, grContext_ is nullptr");
         return;
     }
+#ifndef USE_M133_SKIA
     grContext_->beginFrame();
+#endif
 }
 
 void SkiaGPUContext::EndFrame()
@@ -447,7 +498,9 @@ void SkiaGPUContext::EndFrame()
         LOGD("SkiaGPUContext::EndFrame, grContext_ is nullptr");
         return;
     }
+#ifndef USE_M133_SKIA
     grContext_->endFrame();
+#endif
 }
 
 void SkiaGPUContext::SetGpuCacheSuppressWindowSwitch(bool enabled)
@@ -456,7 +509,9 @@ void SkiaGPUContext::SetGpuCacheSuppressWindowSwitch(bool enabled)
         LOGD("SkiaGPUContext::SetGpuCacheSuppressWindowSwitch, grContext_ is nullptr");
         return;
     }
+#ifndef USE_M133_SKIA
     grContext_->setGpuCacheSuppressWindowSwitch(enabled);
+#endif
 }
 
 void SkiaGPUContext::SetGpuMemoryAsyncReclaimerSwitch(bool enabled, const std::function<void()>& setThreadPriority)
@@ -465,7 +520,9 @@ void SkiaGPUContext::SetGpuMemoryAsyncReclaimerSwitch(bool enabled, const std::f
         LOGD("SkiaGPUContext::SetGpuMemoryAsyncReclaimerSwitch, grContext_ is nullptr");
         return;
     }
+#ifndef USE_M133_SKIA
     grContext_->setGpuMemoryAsyncReclaimerSwitch(enabled, setThreadPriority);
+#endif
 }
 
 void SkiaGPUContext::FlushGpuMemoryInWaitQueue()
@@ -474,7 +531,9 @@ void SkiaGPUContext::FlushGpuMemoryInWaitQueue()
         LOGD("SkiaGPUContext::FlushGpuMemoryInWaitQueue, grContext_ is nullptr");
         return;
     }
+#ifndef USE_M133_SKIA
     grContext_->flushGpuMemoryInWaitQueue();
+#endif
 }
 
 void SkiaGPUContext::SuppressGpuCacheBelowCertainRatio(const std::function<bool(void)>& nextFrameHasArrived)
@@ -483,7 +542,9 @@ void SkiaGPUContext::SuppressGpuCacheBelowCertainRatio(const std::function<bool(
         LOGD("SkiaGPUContext::SuppressGpuCacheBelowCertainRatio, grContext_ is nullptr");
         return;
     }
+#ifndef USE_M133_SKIA
     grContext_->suppressGpuCacheBelowCertainRatio(nextFrameHasArrived);
+#endif
 }
 
 std::unordered_map<uintptr_t, std::function<void(const std::function<void()>& task)>>
@@ -509,7 +570,9 @@ std::function<void(const std::function<void()>& task)> SkiaGPUContext::GetPostFu
 void SkiaGPUContext::VmaDefragment()
 {
     if (grContext_ != nullptr) {
+#ifndef USE_M133_SKIA
         grContext_->vmaDefragment();
+#endif
     }
 }
 } // namespace Drawing

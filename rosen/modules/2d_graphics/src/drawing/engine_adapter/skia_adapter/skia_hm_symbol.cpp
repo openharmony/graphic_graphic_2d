@@ -31,6 +31,7 @@ void SkiaHMSymbol::PathOutlineDecompose(const Path& path, std::vector<Path>& pat
         LOGD("SkiaHMSymbol::PathOutlineDecompose, skiaPath nullptr");
         return;
     }
+#ifndef USE_M133_SKIA
     const SkPath& skPath = skiaPath->GetPath();
     std::vector<SkPath> skPaths;
     HMSymbol::PathOutlineDecompose(skPath, skPaths);
@@ -39,6 +40,7 @@ void SkiaHMSymbol::PathOutlineDecompose(const Path& path, std::vector<Path>& pat
         pathTmp.GetImpl<SkiaPath>()->SetPath(skPathTmp);
         paths.push_back(pathTmp);
     }
+#endif
 }
 
 void SkiaHMSymbol::MultilayerPath(const std::vector<std::vector<size_t>>& multMap,
@@ -55,12 +57,14 @@ void SkiaHMSymbol::MultilayerPath(const std::vector<std::vector<size_t>>& multMa
         }
         skPaths.push_back(skiaPath->GetPath());
     }
+#ifndef USE_M133_SKIA
     HMSymbol::MultilayerPath(multMap, skPaths, skMultPaths);
     for (const SkPath& skPathTmp : skMultPaths) {
         Path pathTmp;
         pathTmp.GetImpl<SkiaPath>()->SetPath(skPathTmp);
         multPaths.push_back(pathTmp);
     }
+#endif
 }
 } // namespace Drawing
 } // namespace Rosen

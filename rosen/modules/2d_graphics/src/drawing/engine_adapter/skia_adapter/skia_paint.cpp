@@ -25,6 +25,9 @@
 #include "skia_path.h"
 #include "skia_path_effect.h"
 #include "skia_shader_effect.h"
+#ifdef USE_M133_SKIA
+#include "include/core/SkPathUtils.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -198,6 +201,15 @@ bool SkiaPaint::GetFillPath(const Pen& pen, const Path& src, Path& dst, const Re
     if (!srcPathImpl || !dstPathImpl || !matrixImpl) {
         return false;
     }
+#ifdef USE_M133_SKIA
+    if (!rect) {
+        return skpathutils::FillPathWithPaint(srcPathImpl->GetMutablePath(), skPaint, &dstPathImpl->GetMutablePath(),
+                                              nullptr, matrixImpl->ExportMatrix());
+    }
+    SkRect skRect = SkRect::MakeLTRB(rect->GetLeft(), rect->GetTop(), rect->GetRight(), rect->GetBottom());
+    return skpathutils::FillPathWithPaint(srcPathImpl->GetMutablePath(), skPaint, &dstPathImpl->GetMutablePath(),
+                                          &skRect, matrixImpl->ExportMatrix());
+#else
     if (!rect) {
         return skPaint.getFillPath(srcPathImpl->GetMutablePath(), &dstPathImpl->GetMutablePath(),
                                    nullptr, matrixImpl->ExportMatrix());
@@ -205,6 +217,7 @@ bool SkiaPaint::GetFillPath(const Pen& pen, const Path& src, Path& dst, const Re
     SkRect skRect = SkRect::MakeLTRB(rect->GetLeft(), rect->GetTop(), rect->GetRight(), rect->GetBottom());
     return skPaint.getFillPath(srcPathImpl->GetMutablePath(), &dstPathImpl->GetMutablePath(),
                                &skRect, matrixImpl->ExportMatrix());
+#endif
 }
 
 bool SkiaPaint::CanComputeFastBounds(const Brush& brush)

@@ -56,7 +56,11 @@ public:
         return proxy()->getBaseLayerSize();
     }
 
+#ifdef USE_M133_SKIA
+    GrRecordingContext* recordingContext() const override
+#else
     GrRecordingContext* recordingContext() override
+#endif
     {
         return proxy()->recordingContext();
     }
@@ -92,7 +96,11 @@ protected:
     void onDrawDrawable(SkDrawable*, const SkMatrix*) override;
     SkImageInfo onImageInfo() const override;
 
+#ifdef USE_M133_SKIA
+    void onDrawGlyphRunList(const sktext::GlyphRunList&, const SkPaint&) override;
+#else
     void onDrawGlyphRunList(const SkGlyphRunList&, const SkPaint&) override;
+#endif
     void onDrawTextBlob(const SkTextBlob* blob, SkScalar x, SkScalar y, const SkPaint& paint) override;
     void onDrawAnnotation(const SkRect& rect, const char key[], SkData* value) override;
     void onDrawShadowRec(const SkPath& path, const SkDrawShadowRec& rec) override;
@@ -102,7 +110,11 @@ protected:
         const SkSamplingOptions&, const SkPaint*, SrcRectConstraint) override;
 
     // draw on actual canvas
+#ifdef USE_M133_SKIA
+    bool onGetProps(SkSurfaceProps* props, bool top = false) const override;
+#else
     bool onGetProps(SkSurfaceProps* props) const override;
+#endif
 
 private:
     bool OpShouldRecord() const;

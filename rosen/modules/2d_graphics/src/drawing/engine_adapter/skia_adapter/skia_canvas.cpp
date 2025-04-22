@@ -134,8 +134,11 @@ RectI SkiaCanvas::GetRoundInDeviceClipBounds() const
         LOGD("skCanvas_ is null, return on line %{public}d", __LINE__);
         return RectI();
     }
+#ifndef USE_M133_SKIA
     auto iRect = skCanvas_->getRoundInDeviceClipBounds();
     return RectI(iRect.fLeft, iRect.fTop, iRect.fRight, iRect.fBottom);
+#endif
+    return RectI();
 }
 
 #ifdef RS_ENABLE_GPU
@@ -262,7 +265,11 @@ void SkiaCanvas::DrawSdf(const SDFShapeBase& shape)
         return;
     }
     builder.uniform("width") = width;
+#ifndef USE_M133_SKIA
     auto shader = builder.makeShader(nullptr, false);
+#else
+    auto shader = builder.makeShader(nullptr);
+#endif
     SkPaint paint;
     paint.setShader(shader);
     skCanvas_->drawPaint(paint);
@@ -485,8 +492,13 @@ void SkiaCanvas::DrawShadowStyle(const Path& path, const Point3& planeParams, co
     SkColor color2 = spotColor.CastToColorQuad();
     SkShadowFlags flags = static_cast<SkShadowFlags>(flag);
     if (skPathImpl != nullptr) {
+#ifndef USE_M133_SKIA
         SkShadowUtils::DrawShadowStyle(
             skCanvas_, skPathImpl->GetPath(), *point1, *point2, lightRadius, color1, color2, flags, isLimitElevation);
+#else
+        SkShadowUtils::DrawShadow(
+            skCanvas_, skPathImpl->GetPath(), *point1, *point2, lightRadius, color1, color2, flags);
+#endif
     }
 }
 
@@ -968,6 +980,7 @@ void SkiaCanvas::DrawSymbol(const DrawingHMSymbolData& symbol, Point locate, con
         return;
     }
 
+#ifndef USE_M133_SKIA
     HMSymbolData skSymbol;
     if (!ConvertToHMSymbolData(symbol, skSymbol)) {
         LOGD("ConvertToHMSymbolData failed, return on line %{public}d", __LINE__);
@@ -979,6 +992,7 @@ void SkiaCanvas::DrawSymbol(const DrawingHMSymbolData& symbol, Point locate, con
     skPaint_ = defaultPaint_;
     SkiaPaint::PaintToSkPaint(paint, skPaint_);
     skCanvas_->drawSymbol(skSymbol, *skLocate, skPaint_);
+#endif
 }
 
 void SkiaCanvas::ClearStencil(const RectI& rect, uint32_t stencilVal)
@@ -1191,7 +1205,13 @@ void SkiaCanvas::Flush()
         LOGD("skCanvas_ is null, return on line %{public}d", __LINE__);
         return;
     }
+#ifndef USE_M133_SKIA
     skCanvas_->flush();
+#else
+    if (auto dContext = GrAsDirectContext(skCanvas_->recordingContext())) {
+        dContext->flushAndSubmit();
+    }
+#endif
 }
 
 void SkiaCanvas::Clear(ColorQuad color)
@@ -1271,6 +1291,7 @@ void SkiaCanvas::RoundRectCastToSkRRect(const RoundRect& roundRect, SkRRect& skR
     skRRect.setRectRadii(*outer, radii);
 }
 
+#ifndef USE_M133_SKIA
 bool SkiaCanvas::ConvertToHMSymbolData(const DrawingHMSymbolData& symbol, HMSymbolData& skSymbol)
 {
     Path path = symbol.path_;
@@ -1305,6 +1326,7 @@ bool SkiaCanvas::ConvertToHMSymbolData(const DrawingHMSymbolData& symbol, HMSymb
     skSymbol.symbolInfo_.renderGroups = groups;
     return true;
 }
+#endif
 
 void SkiaCanvas::BuildOverDraw(std::shared_ptr<Canvas> canvas)
 {
@@ -1348,6 +1370,7 @@ bool SkiaCanvas::DrawBlurImage(const Image& image, const Drawing::HpsBlurParamet
         return false;
     }
 
+#ifndef USE_M133_SKIA
     SkRect srcRect = SkRect::MakeLTRB(blurParams.src.GetLeft(), blurParams.src.GetTop(),
         blurParams.src.GetRight(), blurParams.src.GetBottom());
     SkRect dstRect = SkRect::MakeLTRB(blurParams.dst.GetLeft(), blurParams.dst.GetTop(),
@@ -1355,6 +1378,8 @@ bool SkiaCanvas::DrawBlurImage(const Image& image, const Drawing::HpsBlurParamet
 
     SkBlurArg blurArg(srcRect, dstRect, blurParams.sigma, blurParams.saturation, blurParams.brightness);
     return skCanvas_->drawBlurImage(img.get(), blurArg);
+#endif
+    return false;
 }
 
 std::array<int, 2> SkiaCanvas::CalcHpsBluredImageDimension(const Drawing::HpsBlurParameter& blurParams)
@@ -1364,6 +1389,7 @@ std::array<int, 2> SkiaCanvas::CalcHpsBluredImageDimension(const Drawing::HpsBlu
         return {0, 0};
     }
 
+#ifndef USE_M133_SKIA
     SkRect srcRect = SkRect::MakeLTRB(blurParams.src.GetLeft(), blurParams.src.GetTop(),
         blurParams.src.GetRight(), blurParams.src.GetBottom());
     SkRect dstRect = SkRect::MakeLTRB(blurParams.dst.GetLeft(), blurParams.dst.GetTop(),
@@ -1371,6 +1397,8 @@ std::array<int, 2> SkiaCanvas::CalcHpsBluredImageDimension(const Drawing::HpsBlu
 
     SkBlurArg blurArg(srcRect, dstRect, blurParams.sigma, blurParams.saturation, blurParams.brightness);
     return skCanvas_->CalcHpsBluredImageDimension(blurArg);
+#endif
+    return {0, 0};
 }
 } // namespace Drawing
 } // namespace Rosen

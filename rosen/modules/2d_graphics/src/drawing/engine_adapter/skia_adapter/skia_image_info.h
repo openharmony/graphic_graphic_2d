@@ -32,7 +32,11 @@
 #define SKIA_IMAGE_INFO_H
 
 #include "include/core/SkImageInfo.h"
+#ifdef USE_M133_SKIA
+#include "include/codec/SkEncodedImageFormat.h"
+#else
 #include "include/core/SkEncodedImageFormat.h"
+#endif
 
 #include "skia_color_space.h"
 

@@ -18,7 +18,9 @@
 
 #include <vector>
 
+#ifndef USE_M133_SKIA
 #include "include/core/HMSymbol.h"
+#endif
 
 #include "draw/path.h"
 #include "text/hm_symbol.h"
