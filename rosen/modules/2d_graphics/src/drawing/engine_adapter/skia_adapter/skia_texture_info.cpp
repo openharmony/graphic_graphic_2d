@@ -122,14 +122,27 @@ GrBackendTexture SkiaTextureInfo::ConvertToGrBackendTexture(const TextureInfo& i
         return ConvertToGrBackendVKTexture(info);
     } else {
         GrGLTextureInfo grGLTextureInfo = { info.GetTarget(), info.GetID(), info.GetFormat() };
+#ifdef USE_M133_SKIA
+        GrBackendTexture backendTexture = GrBackendTextures::MakeGL(info.GetWidth(), info.GetHeight(),
+            static_cast<skgpu::Mipmapped>(info.GetIsMipMapped()? skgpu::Mipmapped::kYes : skgpu::Mipmapped::kNo),
+            grGLTextureInfo);
+#else
+        GrGLTextureInfo grGLTextureInfo = { info.GetTarget(), info.GetID(), info.GetFormat() };
         GrBackendTexture backendTexture(info.GetWidth(), info.GetHeight(),
             static_cast<GrMipMapped>(info.GetIsMipMapped()), grGLTextureInfo);
+#endif
         return backendTexture;
     }
 #else
     GrGLTextureInfo grGLTextureInfo = { info.GetTarget(), info.GetID(), info.GetFormat() };
+#ifdef USE_M133_SKIA
+    GrBackendTexture backendTexture = GrBackendTextures::MakeGL(info.GetWidth(), info.GetHeight(),
+        static_cast<skgpu::Mipmapped>(info.GetIsMipMapped()? skgpu::Mipmapped::kYes : skgpu::Mipmapped::kNo),
+        grGLTextureInfo);
+#else
     GrBackendTexture backendTexture(info.GetWidth(), info.GetHeight(),
         static_cast<GrMipMapped>(info.GetIsMipMapped()), grGLTextureInfo);
+#endif
     return backendTexture;
 #endif
 }
@@ -137,7 +150,11 @@ GrBackendTexture SkiaTextureInfo::ConvertToGrBackendTexture(const TextureInfo& i
 TextureInfo SkiaTextureInfo::ConvertToTextureInfo(const GrBackendTexture& grBackendTexture)
 {
     GrGLTextureInfo* grGLTextureInfo = new GrGLTextureInfo();
+#ifdef USE_M133_SKIA
+    GrBackendTextures::GetGLTextureInfo(grBackendTexture, grGLTextureInfo);
+#else
     grBackendTexture.getGLTextureInfo(grGLTextureInfo);
+#endif
     TextureInfo textureInfo;
     textureInfo.SetWidth(grBackendTexture.width());
     textureInfo.SetHeight(grBackendTexture.height());

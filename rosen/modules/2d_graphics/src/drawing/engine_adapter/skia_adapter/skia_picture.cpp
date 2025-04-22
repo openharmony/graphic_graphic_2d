@@ -15,6 +15,9 @@
 
 #include "skia_picture.h"
 
+#ifdef USE_M133_SKIA
+#include "include/core/SkTypeface.h"
+#endif
 #include "skia_data.h"
 #include "skia_serial_procs.h"
 #include "utils/data.h"

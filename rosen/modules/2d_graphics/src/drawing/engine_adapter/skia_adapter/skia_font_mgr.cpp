@@ -18,6 +18,9 @@
 #include <locale>
 #include <securec.h>
 
+#ifdef USE_M133_SKIA
+#include "include/core/SkFontMgr.h"
+#endif
 #include "include/core/SkString.h"
 #include "include/core/SkTypeface.h"
 #ifndef USE_TEXGINE
@@ -37,6 +40,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
+#ifndef USE_M133_SKIA
 namespace {
 const uint8_t MOVEBITS = 8;
 void SwapBytes(char16_t* srcStr, uint32_t len)
@@ -93,12 +97,17 @@ bool ConvertToUTF16BE(uint8_t* data, uint32_t dataLen, FontByteArray& fullname)
     return false;
 }
 }
+#endif
 
 SkiaFontMgr::SkiaFontMgr(sk_sp<SkFontMgr> skFontMgr) : skFontMgr_(skFontMgr) {}
 
 std::shared_ptr<FontMgrImpl> SkiaFontMgr::CreateDefaultFontMgr()
 {
+#ifdef USE_M133_SKIA
+    return std::make_shared<SkiaFontMgr>(SkFontMgr::RefEmpty());
+#else
     return std::make_shared<SkiaFontMgr>(SkFontMgr::RefDefault());
+#endif
 }
 
 bool SkiaFontMgr::CheckDynamicFontValid(const std::string &familyName, sk_sp<SkTypeface> typeface)
@@ -149,7 +158,11 @@ Typeface* SkiaFontMgr::LoadDynamicFont(const std::string& familyName, const uint
         return nullptr;
     }
     auto stream = std::make_unique<SkMemoryStream>(data, dataLength, true);
+#ifdef USE_M133_SKIA
+    auto typeface = skFontMgr_->makeFromStream(std::move(stream));
+#else
     auto typeface = SkTypeface::MakeFromStream(std::move(stream));
+#endif
     if (!CheckDynamicFontValid(familyName, typeface)) {
         return nullptr;
     }
@@ -158,7 +171,9 @@ Typeface* SkiaFontMgr::LoadDynamicFont(const std::string& familyName, const uint
     } else {
         dynamicFontMgr->font_provider().RegisterTypeface(typeface, familyName);
     }
+#ifndef USE_M133_SKIA
     typeface->setIsCustomTypeface(true);
+#endif
     std::shared_ptr<TypefaceImpl> typefaceImpl = std::make_shared<SkiaTypeface>(typeface);
     return new Typeface(typefaceImpl);
 }
@@ -193,13 +208,19 @@ Typeface* SkiaFontMgr::LoadThemeFont(const std::string& familyName, const std::s
         return nullptr;
     } else {
         auto stream = std::make_unique<SkMemoryStream>(data, dataLength, true);
+#ifdef USE_M133_SKIA
+        auto typeface = skFontMgr_->makeFromStream(std::move(stream));
+#else
         auto typeface = SkTypeface::MakeFromStream(std::move(stream));
+#endif
         if (!typeface) {
             return nullptr;
         } else {
             dynamicFontMgr->font_provider().RegisterTypeface(typeface, themeName);
+#ifndef USE_M133_SKIA
             typeface->setIsCustomTypeface(true);
             typeface->setIsThemeTypeface(true);
+#endif
             std::shared_ptr<TypefaceImpl> typefaceImpl = std::make_shared<SkiaTypeface>(typeface);
             return new Typeface(typefaceImpl);
         }
@@ -217,12 +238,21 @@ Typeface* SkiaFontMgr::MatchFamilyStyleCharacter(const char familyName[], const 
     }
     SkFontStyle skFontStyle;
     SkiaConvertUtils::DrawingFontStyleCastToSkFontStyle(fontStyle, skFontStyle);
+#ifdef USE_M133_SKIA
+    sk_sp<SkTypeface> skTypeface =
+        skFontMgr_->matchFamilyStyleCharacter(familyName, skFontStyle, bcp47, bcp47Count, character);
+#else
     SkTypeface* skTypeface =
         skFontMgr_->matchFamilyStyleCharacter(familyName, skFontStyle, bcp47, bcp47Count, character);
+#endif
     if (!skTypeface) {
         return nullptr;
     }
+#ifdef USE_M133_SKIA
+    std::shared_ptr<TypefaceImpl> typefaceImpl = std::make_shared<SkiaTypeface>(skTypeface);
+#else
     std::shared_ptr<TypefaceImpl> typefaceImpl = std::make_shared<SkiaTypeface>(sk_sp(skTypeface));
+#endif
     return new Typeface(typefaceImpl);
 }
 
@@ -232,12 +262,20 @@ FontStyleSet* SkiaFontMgr::MatchFamily(const char familyName[]) const
         LOGD("SkiaFontMgr::LoadThemeFont, dynamicFontMgr nullptr");
         return nullptr;
     }
+#ifdef USE_M133_SKIA
+    sk_sp<SkFontStyleSet> skFontStyleSetPtr = skFontMgr_->matchFamily(familyName);
+#else
     SkFontStyleSet* skFontStyleSetPtr = skFontMgr_->matchFamily(familyName);
+#endif
     if (!skFontStyleSetPtr) {
         return nullptr;
     }
+#ifdef USE_M133_SKIA
+    std::shared_ptr<FontStyleSetImpl> fontStyleSetImpl = std::make_shared<SkiaFontStyleSet>(skFontStyleSetPtr);
+#else
     sk_sp<SkFontStyleSet> skFontStyleSet{skFontStyleSetPtr};
     std::shared_ptr<FontStyleSetImpl> fontStyleSetImpl = std::make_shared<SkiaFontStyleSet>(skFontStyleSet);
+#endif
     return new FontStyleSet(fontStyleSetImpl);
 }
 
@@ -249,12 +287,21 @@ Typeface* SkiaFontMgr::MatchFamilyStyle(const char familyName[], const FontStyle
     }
     SkFontStyle skFontStyle;
     SkiaConvertUtils::DrawingFontStyleCastToSkFontStyle(fontStyle, skFontStyle);
+#ifdef USE_M133_SKIA
+    sk_sp<SkTypeface> skTypeface =
+        skFontMgr_->matchFamilyStyle(familyName, skFontStyle);
+#else
     SkTypeface* skTypeface =
         skFontMgr_->matchFamilyStyle(familyName, skFontStyle);
+#endif
     if (!skTypeface) {
         return nullptr;
     }
+#ifdef USE_M133_SKIA
+    std::shared_ptr<TypefaceImpl> typefaceImpl = std::make_shared<SkiaTypeface>(skTypeface);
+#else
     std::shared_ptr<TypefaceImpl> typefaceImpl = std::make_shared<SkiaTypeface>(sk_sp(skTypeface));
+#endif
     return new Typeface(typefaceImpl);
 }
 
@@ -281,12 +328,20 @@ FontStyleSet* SkiaFontMgr::CreateStyleSet(int index) const
     if (index < 0 || skFontMgr_ == nullptr) {
         return nullptr;
     }
+#ifdef USE_M133_SKIA
+    sk_sp<SkFontStyleSet> skFontStyleSetPtr = skFontMgr_->createStyleSet(index);
+#else
     SkFontStyleSet* skFontStyleSetPtr = skFontMgr_->createStyleSet(index);
+#endif
     if (!skFontStyleSetPtr) {
         return nullptr;
     }
+#ifdef USE_M133_SKIA
+    std::shared_ptr<FontStyleSetImpl> fontStyleSetImpl = std::make_shared<SkiaFontStyleSet>(skFontStyleSetPtr);
+#else
     sk_sp<SkFontStyleSet> skFontStyleSet{skFontStyleSetPtr};
     std::shared_ptr<FontStyleSetImpl> fontStyleSetImpl = std::make_shared<SkiaFontStyleSet>(skFontStyleSet);
+#endif
     return new FontStyleSet(fontStyleSetImpl);
 }
 
@@ -295,6 +350,7 @@ int SkiaFontMgr::GetFontFullName(int fontFd, std::vector<FontByteArray>& fullnam
     if (skFontMgr_ == nullptr) {
         return ERROR_TYPE_OTHER;
     }
+#ifndef USE_M133_SKIA
     std::vector<SkByteArray> skFullnameVec;
     int ret = skFontMgr_->GetFontFullName(fontFd, skFullnameVec);
     if (ret != SUCCESSED) {
@@ -308,6 +364,7 @@ int SkiaFontMgr::GetFontFullName(int fontFd, std::vector<FontByteArray>& fullnam
             return ERROR_TYPE_OTHER;
         }
     }
+#endif
     return SUCCESSED;
 }
 
@@ -316,7 +373,11 @@ int SkiaFontMgr::ParseInstallFontConfig(const std::string& configPath, std::vect
     if (skFontMgr_ == nullptr) {
         return ERROR_TYPE_OTHER;
     }
+#ifdef USE_M133_SKIA
+    return ERROR_TYPE_OTHER; // Empty implementation
+#else
     return skFontMgr_->ParseInstallFontConfig(configPath, fontPathVec);
+#endif
 }
 } // namespace Drawing
 } // namespace Rosen

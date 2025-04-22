@@ -17,7 +17,11 @@
 
 #include "utils/graphic_coretrace.h"
 #include "skia_adapter/skia_static_factory.h"
+#ifdef USE_M133_SKIA
+#include "src/base/SkUtils.h"
+#else
 #include "src/core/SkUtils.h"
+#endif
 #include "utils/system_properties.h"
 #ifdef ENABLE_DDGR_OPTIMIZE
 #include "ddgr_static_factory.h"

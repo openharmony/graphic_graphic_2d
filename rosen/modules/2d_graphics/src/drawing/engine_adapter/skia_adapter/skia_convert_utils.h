@@ -27,7 +27,9 @@
 #include "include/core/SkSamplingOptions.h"
 #include "include/core/SkString.h"
 #include "include/core/SkTextBlob.h"
+#ifndef USE_M133_SKIA
 #include "src/gpu/GrPerfMonitorReporter.h"
+#endif
 
 #include "text/font_arguments.h"
 #include "text/font_metrics.h"
@@ -214,6 +216,7 @@ public:
         skFontArgs.setPalette(pal);
     }
 
+#ifndef USE_M133_SKIA
     static inline void DrawingTextureEventToRsTextureEvent(const TextureEvent& grTextureEvent,
         RsTextureEvent& rsTextureEvent)
     {
@@ -233,6 +236,7 @@ public:
         rsBlurEvent.fHeight = grBlurEvent.fHeight;
         rsBlurEvent.fBlurTime = grBlurEvent.fBlurTime;
     }
+#endif
 };
 } // namespace Drawing
 } // namespace Rosen

@@ -16,7 +16,12 @@
 #ifndef SKIA_TEXTURE_INFO_H
 #define SKIA_TEXTURE_INFO_H
 #ifdef RS_ENABLE_GPU
+#ifdef USE_M133_SKIA
+#include "include/gpu/ganesh/GrBackendSurface.h"
+#include "include/gpu/ganesh/gl/GrGLBackendSurface.h"
+#else
 #include "include/gpu/GrBackendSurface.h"
+#endif
 #endif
 
 #include "image/image.h"

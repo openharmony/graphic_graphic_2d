@@ -19,7 +19,14 @@
 #include "draw/canvas.h"
 #include "include/core/SkBitmap.h"
 #include "include/core/SkCanvas.h"
+#ifndef USE_M133_SKIA
 #include "include/core/HMSymbol.h"
+#endif
+#ifdef USE_M133_SKIA
+#include "include/gpu/ganesh/GrDirectContext.h"
+#else
+#include "include/gpu/GrDirectContext.h"
+#endif
 #include "include/core/SkImage.h"
 #include "include/core/SkMatrix.h"
 #include "include/core/SkPaint.h"
@@ -187,7 +194,9 @@ public:
 
 private:
     void RoundRectCastToSkRRect(const RoundRect& roundRect, SkRRect& skRRect) const;
+#ifndef USE_M133_SKIA
     bool ConvertToHMSymbolData(const DrawingHMSymbolData& symbol, HMSymbolData& skSymbol);
+#endif
     bool AddSdfPara(SkRuntimeShaderBuilder& builder, const SDFShapeBase& shape);
     std::shared_ptr<SkCanvas> skiaCanvas_;
     SkCanvas* skCanvas_;

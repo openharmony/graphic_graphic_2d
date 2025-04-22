@@ -37,8 +37,12 @@ bool SkiaData::BuildFromMalloc(const void* data, size_t length)
 
 bool SkiaData::BuildFromOHNativeBuffer(OH_NativeBuffer* nativeBuffer, size_t length)
 {
+#ifdef USE_M133_SKIA
+    return false;
+#else
     skData_ = SkData::MakeFromOHNativeBuffer(nativeBuffer, length);
     return skData_ != nullptr;
+#endif
 }
 
 bool SkiaData::BuildWithCopy(const void* data, size_t length)
@@ -116,7 +120,11 @@ std::shared_ptr<Data> SkiaData::Serialize() const
         return nullptr;
     }
 
+#ifdef USE_M133_SKIA
+    SkBinaryWriteBuffer writer({});
+#else
     SkBinaryWriteBuffer writer;
+#endif
     writer.writeDataAsByteArray(skData_.get());
 
     size_t length = writer.bytesWritten();
