@@ -1061,8 +1061,8 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SHOW_REFRESH_RATE_ENABLED): {
-            bool enabled = GetShowRefreshRateEnabled();
-            if (!reply.WriteBool(enabled)) {
+            bool enabled = false;
+            if (GetShowRefreshRateEnabled(enabled) != ERR_OK || !reply.WriteBool(enabled)) {
                 RS_LOGE("RSRenderServiceConnectionStub::GET_SHOW_REFRESH_RATE_ENABLED Write enabled failed!");
                 ret = ERR_INVALID_REPLY;
             }
