@@ -1083,7 +1083,7 @@ ErrCode RSRenderServiceConnection::MarkPowerOffNeedProcessOneFrame()
 {
     auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
     if (renderType != UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
-        reuturn ERR_INVALID_VALUE;
+        return ERR_INVALID_VALUE;
     }
 #ifdef RS_ENABLE_GPU
     renderThread_.PostTask(
@@ -1572,13 +1572,13 @@ ErrCode RSRenderServiceConnection::GetScreenPowerStatus(uint64_t screenId, uint3
     if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
 #ifdef RS_ENABLE_GPU
         status = RSHardwareThread::Instance().ScheduleTask(
-            [=]() { return screenManager_->GetScreenPowerStatus(id); }).get();
+            [=]() { return screenManager_->GetScreenPowerStatus(screenId); }).get();
 #else
         status = ScreenPowerStatus::INVALID_POWER_STATUS;
 #endif
     } else if (mainThread_ != nullptr) {
         status = mainThread_->ScheduleTask(
-            [=]() { return screenManager_->GetScreenPowerStatus(id); }).get();
+            [=]() { return screenManager_->GetScreenPowerStatus(screenId); }).get();
     } else {
         status = ScreenPowerStatus::INVALID_POWER_STATUS;
         return ERR_INVALID_VALUE;
