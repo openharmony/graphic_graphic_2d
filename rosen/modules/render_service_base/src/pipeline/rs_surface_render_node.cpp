@@ -152,6 +152,10 @@ void RSSurfaceRenderNode::SetConsumer(const sptr<IConsumerSurface>& consumer)
 void RSSurfaceRenderNode::UpdateSrcRect(const Drawing::Canvas& canvas, const Drawing::RectI& dstRect,
     bool hasRotation)
 {
+    // if surfaceNode bound change, send message to aps
+#ifdef ENABLE_FULL_SCREEN_RECONGNIZE
+    SendSurfaceNodeBoundChange();
+#endif
     auto localClipRect = RSPaintFilterCanvas::GetLocalClipBounds(canvas, &dstRect).value_or(Drawing::Rect());
     const RSProperties& properties = GetRenderProperties();
     int left = std::clamp<int>(localClipRect.GetLeft(), 0, properties.GetBoundsWidth());
@@ -2799,6 +2803,9 @@ void RSSurfaceRenderNode::SetIsOnTheTree(bool onTree, NodeId instanceRootNodeId,
             "on tree: %{public}d, nodeType: %{public}d, uniqueId: %{public}s, displayNodeId: %{public}" PRIu64,
             GetName().c_str(), GetId(), onTree, static_cast<int>(nodeType_), uniqueIdStr.c_str(), displayNodeId);
     }
+#ifdef ENABLE_FULL_SCREEN_RECONGNIZE
+    SendSurfaceNodeTreeStatus(onTree);
+#endif
     RS_TRACE_NAME_FMT("RSSurfaceRenderNode:SetIsOnTheTree, node:[name: %s, id: %" PRIu64 "], "
         "on tree: %d, nodeType: %d", GetName().c_str(), GetId(), onTree, static_cast<int>(nodeType_));
     instanceRootNodeId = IsLeashOrMainWindow() ? GetId() : instanceRootNodeId;
@@ -2836,6 +2843,30 @@ void RSSurfaceRenderNode::SetIsOnTheTree(bool onTree, NodeId instanceRootNodeId,
     RSBaseRenderNode::SetIsOnTheTree(onTree, instanceRootNodeId, firstLevelNodeId, cacheNodeId,
         INVALID_NODEID, displayNodeId);
 }
+
+#ifdef ENABLE_FULL_SCREEN_RECONGNIZE
+void RSSurfaceRenderNode::SendSurfaceNodeTreeStatus(bool onTree)
+{
+    if (nodeType_ == RSSurfaceNodeType::SELF_DRAWING_NODE && !onTree) {
+        std::shared_ptr<ApsMonitorImpl> apsMonitor = std::make_shared<ApsMonitorImpl>();
+        apsMonitor->SetApsSurfaceDestroyedInfo(std::to_string(GetId()));
+        prevSelfDrawHeight_ = 0.0f;
+        prevSelfDrawWidth_ = 0.0f;
+    }
+}
+
+void RSSurfaceRenderNode::SendSurfaceNodeBoundChange()
+{
+    if (nodeType_ == RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE && prevSelfDrawHeight_ != properties.GetBoundHeight()
+        && prevSelfDrawWidth_ != properties.GetBoundsWidth()) {
+        prevSelfDrawHeight_ = properties.GetBoundHeight();
+        prevSelfDrawWidth_ = properties.GetBoundsWidth();
+        std::shared_ptr<ApsMonitorImpl> apsMonitor_ = std::make_shared<ApsMonitorImpl>();
+        apsMonitor_->SetApsSurfaceBoundChange(std::to_string(prevSelfDrawHeight_), std::to_string(prevSelfDrawWidth_),
+            std::to_string((uint64_t)GetId()));
+    }
+}
+#endif
 
 void RSSurfaceRenderNode::SetUIExtensionUnobscured(bool obscured)
 {

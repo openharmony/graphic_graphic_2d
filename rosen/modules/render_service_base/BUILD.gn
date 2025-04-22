@@ -314,6 +314,7 @@ ohos_source_set("render_service_base_src") {
 
     #monitor
     "src/monitor/self_drawing_node_monitor.cpp",
+    "src/monitor/aps_monitor_impl.cpp",
   ]
 
   if (rs_enable_gpu) {
@@ -574,6 +575,10 @@ ohos_source_set("render_service_base_src") {
     }
 
     deps += [ "$rosen_root/modules/2d_graphics:2d_graphics" ]
+  }
+
+  if (defined(enable_full_screen_recongnize) && enable_full_screen_recongnize) {
+    defines += [ "ENABLE_FULL_SCREEN_RECONGNIZE" ]
   }
 
   if (rosen_cross_platform) {
