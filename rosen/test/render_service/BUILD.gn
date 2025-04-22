@@ -160,6 +160,7 @@ group("test") {
       "render_service_base/fuzztest/nativebufferutils_fuzzer:fuzztest",
       "render_service_base/fuzztest/rssurfaceohosvulkan_fuzzer:fuzztest",
       "render_service_base/fuzztest/rsvulkancontext_fuzzer:fuzztest",
+      "render_service_client/unittest/modifier_render_thread:unittest",
     ]
   }
 
