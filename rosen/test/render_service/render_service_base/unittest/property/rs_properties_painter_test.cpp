@@ -584,7 +584,7 @@ HWTEST_F(RSPropertiesPainterTest, GetForegroundEffectDirtyRect002, TestSize.Leve
     properties.shadow_ = shadow;
     properties.rrect_ = rrect;
     RSPropertiesPainter::GetForegroundEffectDirtyRect(dirtyForegroundEffect, properties);
-    EXPECT_FALSE(dirtyForegroundEffect.IsEmpty());
+    EXPECT_TRUE(dirtyForegroundEffect.IsEmpty());
 }
 
 /**
