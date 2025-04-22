@@ -32,22 +32,22 @@ namespace Rosen {
   
 class RSB_EXPORT RSComplexShader : public RSShader {
 public:
-   RSComplexShader();
-   RSComplexShader(GexComlexShaderType type);
-   ~RSComplexShader() = default;
+    RSComplexShader();
+    RSComplexShader(GexComlexShaderType type);
+    ~RSComplexShader() = default;
 
-   void MakeDrawingShader(const RectF& rect, std::vector<float> params) override;
-   const std::shared_ptr<Drawing::ShaderEffect>& GetDrawingShader() const override;
+     void MakeDrawingShader(const RectF& rect, std::vector<float> params) override;
+     const std::shared_ptr<Drawing::ShaderEffect>& GetDrawingShader() const override;
   
-   bool Marshalling(Parcel& parcel) override;
-   bool Unmarshalling(Parcel& parcel, bool& needReset) override;
+    bool Marshalling(Parcel& parcel) override;
+    bool Unmarshalling(Parcel& parcel, bool& needReset) override;
   
 private:
-   std::shared_ptr<Drawing::ShaderEffect> GetShaderEffect(
-      const std::vector<float> &effectParam, const Drawing::RectF &rect);
+    std::shared_ptr<Drawing::ShaderEffect> GetShaderEffect(
+       const std::vector<float> &effectParam, const Drawing::RectF &rect);
     GexComlexShaderType GetShaderType() const;
-   GexComlexShaderType shaderType_;
-   std::shared_ptr<Drawing::ShaderEffect> shaderEffect_;
+    GexComlexShaderType shaderType_;
+    std::shared_ptr<Drawing::ShaderEffect> shaderEffect_;
 };
 }  // namespace Rosen
 }  // namespace OHOS
