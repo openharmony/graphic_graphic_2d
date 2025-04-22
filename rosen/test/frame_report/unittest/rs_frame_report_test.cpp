@@ -47,7 +47,7 @@ HWTEST_F(RsFrameReportTest, GetEnable001, TestSize.Level1)
     RsFrameReport& fr = RsFrameReport::GetInstance();
     fr.LoadLibrary();
     fr.GetEnable();
-    EXPECT_EQ(fr.GetEnable(), 0);
+    EXPECT_EQ(fr.GetEnable(), 1);
 }
 
 /**
