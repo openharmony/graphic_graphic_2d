@@ -64,20 +64,15 @@ RSColor RSColor::operator-(const RSColor& rhs) const
 
 RSColor RSColor::operator*(float scale) const
 {
-    scale = std::clamp<float>(scale, INT16_MIN, INT16_MAX);
-    return RSColor(round(std::clamp<float>(red_ * scale, INT16_MIN, INT16_MAX)),
-        round(std::clamp<float>(green_ * scale, INT16_MIN, INT16_MAX)),
-        round(std::clamp<float>(blue_ * scale, INT16_MIN, INT16_MAX)),
-        round(std::clamp<float>(alpha_ * scale, INT16_MIN, INT16_MAX)));
+    return RSColor(round(red_ * scale), round(green_ * scale), round(blue_ * scale), round(alpha_ * scale));
 }
 
 RSColor& RSColor::operator*=(float scale)
 {
-    scale = std::clamp<float>(scale, INT16_MIN, INT16_MAX);
-    red_ = round(std::clamp<float>(red_ * scale, INT16_MIN, INT16_MAX));
-    green_ = round(std::clamp<float>(green_ * scale, INT16_MIN, INT16_MAX));
-    blue_ = round(std::clamp<float>(blue_ * scale, INT16_MIN, INT16_MAX));
-    alpha_ = round(std::clamp<float>(alpha_ * scale, INT16_MIN, INT16_MAX));
+    red_ = round(red_ * scale);
+    green_ = round(green_ * scale);
+    blue_ = round(blue_ * scale);
+    alpha_ = round(alpha_ * scale);
     return *this;
 }
 
