@@ -81,7 +81,7 @@ float ParticleNoiseField::CalculateDistanceToRectangleEdge(
 float ParticleNoiseField::CalculateDistanceToEllipseEdge(const Vector2f& direction,
     const Vector2f& center, const Vector2f& axes)
 {
-    if (ROSEN_EQ(direction.x_, 0.f) && ROSEN_EQ(direction.y, 0.f)) {
+    if (ROSEN_EQ(direction.x_, 0.f) && ROSEN_EQ(direction.y_, 0.f)) {
         return 0.0f;
     }
 
@@ -130,7 +130,7 @@ Vector2f ParticleNoiseField::ApplyField(const Vector2f& position, float deltaTim
         if (fieldShape_ == ShapeType::CIRCLE) {
             edgeDistance = fieldSize_.x_ - distance;
         } else if (fieldShape_ == ShapeType::ELLIPSE) {
-            edgeDistance = CalculateDistanceToEllipseEdge(position, direction, fieldCenter_, fieldSize_);
+            edgeDistance = CalculateDistanceToEllipseEdge(direction, fieldCenter_, fieldSize_);
         } else {
             edgeDistance = CalculateDistanceToRectangleEdge(position, direction, fieldCenter_, fieldSize_);
         }
