@@ -198,6 +198,17 @@ ani_status AniTextUtils::ReadOptionalStringField(ani_env* env, ani_object obj, c
     return result;
 }
 
+ani_status AniTextUtils::ReadOptionalU16StringField(ani_env* env, ani_object obj, const char* fieldName,
+                                                    std::u16string& str)
+{
+    ani_ref ref = nullptr;
+    ani_status result = AniTextUtils::ReadOptionalField(env, obj, fieldName, ref);
+    if (result == ANI_OK && ref != nullptr) {
+        str = AniTextUtils::AniToStdStringUtf16(env, static_cast<ani_string>(ref));
+    }
+    return result;
+}
+
 ani_status AniTextUtils::ReadOptionalBoolField(ani_env* env, ani_object obj, const char* fieldName, bool& value)
 {
     ani_ref ref = nullptr;

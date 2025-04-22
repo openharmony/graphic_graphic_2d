@@ -202,7 +202,7 @@ namespace text {
      * @syscap SystemCapability.Graphics.Drawing
      * @since 12
      */
-    //fontStyle?: FontStyle;
+    fontStyle?: FontStyle;
 
     /**
      * Base line of text.
@@ -210,7 +210,7 @@ namespace text {
      * @syscap SystemCapability.Graphics.Drawing
      * @since 12
      */
-    //baseline?: TextBaseline;
+    baseline?: TextBaseline;
 
     /**
      * Font Families of text.
@@ -218,7 +218,7 @@ namespace text {
      * @syscap SystemCapability.Graphics.Drawing
      * @since 12
      */
-    //fontFamilies?: Array<string>;
+    fontFamilies?: Array<string>;
 
     /**
      * Font size of text.
@@ -283,7 +283,7 @@ namespace text {
      * @syscap SystemCapability.Graphics.Drawing
      * @since 12
      */
-    //ellipsisMode?: EllipsisMode;
+    ellipsisMode?: EllipsisMode;
 
     /**
      * Text locale.
@@ -307,7 +307,7 @@ namespace text {
      * @syscap SystemCapability.Graphics.Drawing
      * @since 12
      */
-    //fontFeatures?: Array<FontFeature>;
+    fontFeatures?: Array<FontFeature>;
 
     /**
      * Text shadows of text.
@@ -515,5 +515,229 @@ namespace text {
      * @since 12
      */
     W900,
+  }
+
+  /**
+   * Enumeration of font style of text.
+   * @enum { number }
+   * @syscap SystemCapability.Graphics.Drawing
+   * @since 12
+   */
+  export enum FontStyle {
+    /**
+     * Upright font type.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    NORMAL,
+
+    /**
+     * Slant font.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    ITALIC,
+
+    /**
+     * Oblique font.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    OBLIQUE,
+  }
+
+  /**
+   * Enumeration the type of text baseline.
+   * @enum { number }
+   * @syscap SystemCapability.Graphics.Drawing
+   * @since 12
+   */
+  export enum TextBaseline {
+    /**
+     * The alphabetic baseline, typically used for Latin-based scripts where the baseline aligns
+     * with the base of lowercase letters.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    ALPHABETIC,
+
+    /**
+     * The ideographic baseline, commonly used for ideographic scripts such as Chinese, Japanese, and Korean,
+     * where the baseline aligns with the center of characters.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    IDEOGRAPHIC,
+  }
+
+  /**
+   * Enumerates of ellipsis mode.
+   * @enum { number }
+   * @syscap SystemCapability.Graphics.Drawing
+   * @since 12
+   */
+  export enum EllipsisMode {
+    /**
+     * The ellipsis is shown in the start of text.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    START,
+
+    /**
+     * The ellipsis is shown in the middle of text.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    MIDDLE,
+
+    /**
+     * The ellipsis is shown in the end of text.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    END,
+  }
+
+  /**
+   * Decoration for text.
+   * @typedef Decoration
+   * @syscap SystemCapability.Graphics.Drawing
+   * @since 12
+   */
+  export interface Decoration {
+    /**
+     * Decorates text by line.
+     * @type { ?TextDecorationType }
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    textDecoration?: TextDecorationType;
+
+    /**
+     * Text color.
+     * @type { ?common2D.Color }
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    color?: common2D.Color;
+
+    /**
+     * Text decoration style.
+     * @type { ?TextDecorationStyle }
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    decorationStyle?: TextDecorationStyle;
+
+    /**
+     * The thickness scale of decoration line.
+     * @type { ?number }
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    decorationThicknessScale?: number;
+  }
+
+  /**
+   * Describes font feature of text.
+   * @typedef FontFeature
+   * @syscap SystemCapability.Graphics.Drawing
+   * @since 12
+   */
+  export interface FontFeature {
+    /**
+     * The name of font feature.
+     * @type { string } feature name
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    name: string;
+    /**
+     * The value of font feature.
+     * @type { number } feature value
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    value: number;
+  }
+
+  /**
+   * Enumerates decoration line for text.
+   * @enum { number }
+   * @syscap SystemCapability.Graphics.Drawing
+   * @since 12
+   */
+  export enum TextDecorationType {
+    /**
+     * There are no text decoration.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    NONE,
+
+    /**
+     * There is a decoration line below the text.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    UNDERLINE,
+
+    /**
+     * There is a decoration line above the text.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    OVERLINE,
+
+    /**
+     * There is a decoration line through the middle of the text.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    LINE_THROUGH,
+  }
+
+  /**
+   * Enumerates decoration line style.
+   * @enum { number }
+   * @syscap SystemCapability.Graphics.Drawing
+   * @since 12
+   */
+  export enum TextDecorationStyle {
+    /**
+     * Decoration line is solid line.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    SOLID,
+
+    /**
+     * Decoration line is double line.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    DOUBLE,
+
+    /**
+     * Decoration line is dotted line.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    DOTTED,
+
+    /**
+     * Decoration line is dashed line.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    DASHED,
+
+    /**
+     * Decoration line is wavy line.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    WAVY,
   }
 }

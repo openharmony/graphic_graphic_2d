@@ -15,6 +15,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <vector>
 #include "ani.h"
 #include "ani_common.h"
 #include "ani_text_utils.h"
@@ -39,10 +40,8 @@ std::unique_ptr<TypographyStyle> AniCommon::ParseParagraphStyle(ani_env* env, an
     }
     std::unique_ptr<TypographyStyle> paragraphStyle = std::make_unique<TypographyStyle>();
 
-    ani_ref maxLinesRef = nullptr;
-    if (AniTextUtils::ReadOptionalField(env, obj, "maxLines", maxLinesRef) == ANI_OK && maxLinesRef != nullptr) {
-        ani_double maxLines{0};
-        env->Object_CallMethodByName_Double(static_cast<ani_object>(maxLinesRef), "doubleValue", nullptr, &maxLines);
+    double maxLines;
+    if (AniTextUtils::ReadOptionalDoubleField(env, obj, "maxLines", maxLines) == ANI_OK) {
         paragraphStyle->maxLines = static_cast<size_t>(maxLines);
     }
 
@@ -74,16 +73,88 @@ std::unique_ptr<TextStyle> AniCommon::ParseTextStyle(ani_env* env, ani_object ob
     }
     std::unique_ptr<TextStyle> textStyle = std::make_unique<TextStyle>();
 
+    ani_ref colorRef = nullptr;
+    if (AniTextUtils::ReadOptionalField(env, obj, "color", colorRef) == ANI_OK && colorRef != nullptr) {
+        ParseDrawingColor(env, static_cast<ani_object>(colorRef), textStyle->color);
+    }
+
     AniTextUtils::ReadOptionalEnumField(env, obj, "fontWeight", textStyle->fontWeight);
+    AniTextUtils::ReadOptionalEnumField(env, obj, "fontStyle", textStyle->fontStyle);
+    if (textStyle->fontStyle == FontStyle::OBLIQUE) {
+        textStyle->fontStyle = FontStyle::ITALIC;
+    }
+    AniTextUtils::ReadOptionalEnumField(env, obj, "baseline", textStyle->baseline);
+
+    AniTextUtils::ReadOptionalArrayField<std::string>(
+        env, obj, "fontFamilies", textStyle->fontFamilies,
+        [](ani_env* env, ani_ref ref) { return AniTextUtils::AniToStdStringUtf8(env, static_cast<ani_string>(ref)); });
+
     AniTextUtils::ReadOptionalDoubleField(env, obj, "fontSize", textStyle->fontSize);
     AniTextUtils::ReadOptionalDoubleField(env, obj, "letterSpacing", textStyle->letterSpacing);
     AniTextUtils::ReadOptionalDoubleField(env, obj, "wordSpacing", textStyle->wordSpacing);
     AniTextUtils::ReadOptionalDoubleField(env, obj, "heightScale", textStyle->heightScale);
     AniTextUtils::ReadOptionalBoolField(env, obj, "halfLeading", textStyle->halfLeading);
     AniTextUtils::ReadOptionalBoolField(env, obj, "heightOnly", textStyle->heightOnly);
-    AniTextUtils::ReadOptionalDoubleField(env, obj, "baselineShift", textStyle->baseLineShift);
+    AniTextUtils::ReadOptionalU16StringField(env, obj, "ellipsis", textStyle->ellipsis);
+    AniTextUtils::ReadOptionalEnumField(env, obj, "ellipsisMode", textStyle->ellipsisModal);
     AniTextUtils::ReadOptionalStringField(env, obj, "locale", textStyle->locale);
-
+    AniTextUtils::ReadOptionalDoubleField(env, obj, "baselineShift", textStyle->baseLineShift);
+    ParseFontFeature(env, obj, textStyle->fontFeatures);
+    
     return textStyle;
+}
+
+void AniCommon::ParseDrawingColor(ani_env* env, ani_object obj, Drawing::Color& color)
+{
+    ani_class cls;
+    ani_status ret;
+    ret = env->FindClass(ANI_CLASS_TEXT_STYLE, &cls);
+    if (ret != ANI_OK) {
+        TEXT_LOGE("[ANI] can't find class:%{public}d", ret);
+        return;
+    }
+    ani_boolean isObj = false;
+    ret = env->Object_InstanceOf(obj, cls, &isObj);
+    if (!isObj) {
+        TEXT_LOGE("[ANI] Object mismatch:%{public}d", ret);
+        return;
+    }
+}
+
+void AniCommon::ParseFontFeature(ani_env* env, ani_object obj, FontFeatures& fontFeatures)
+{
+    std::vector<std::string> array;
+    AniTextUtils::ReadOptionalArrayField<std::string>(
+        env, obj, "fontFeatures", array, [&fontFeatures](ani_env* env, ani_ref ref) {
+            ani_object obj = static_cast<ani_object>(ref);
+            ani_class cls;
+            ani_status ret;
+            ret = env->FindClass(ANI_CLASS_FONTFEATURE, &cls);
+            if (ret != ANI_OK) {
+                TEXT_LOGE("[ANI] can't find class:%{public}d", ret);
+                return "";
+            }
+            ani_boolean isObj = false;
+            ret = env->Object_InstanceOf(static_cast<ani_object>(ref), cls, &isObj);
+            if (!isObj) {
+                TEXT_LOGE("[ANI] Object mismatch:%{public}d", ret);
+                return "";
+            }
+            ani_ref nameRef = nullptr;
+            ret = env->Object_GetPropertyByName_Ref(obj, "name", &nameRef);
+            if (ret != ANI_OK) {
+                TEXT_LOGE("[ANI] get filed name failed:%{public}d", ret);
+                return "";
+            }
+            std::string name = AniTextUtils::AniToStdStringUtf8(env, static_cast<ani_string>(nameRef));
+            ani_double valueDouble;
+            ret = env->Object_GetFieldByName_Double(obj, "value", &valueDouble);
+            if (ret != ANI_OK) {
+                TEXT_LOGE("[ANI] get filed name failed:%{public}d", ret);
+                return "";
+            }
+            fontFeatures.SetFeature(name, static_cast<int>(valueDouble));
+            return "";
+        });
 }
 } // namespace OHOS::Rosen

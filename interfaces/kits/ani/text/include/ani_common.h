@@ -21,17 +21,21 @@
 #include "typography_style.h"
 
 namespace OHOS::Rosen {
+inline constexpr const char* NATIVE_OBJ = "nativeObj";
 inline constexpr const char* ANI_CLASS_PARAGRAPH = "L@ohos/graphics/text/text/Paragraph;";
 inline constexpr const char* ANI_CLASS_PARAGRAPH_BUILDER = "L@ohos/graphics/text/text/ParagraphBuilder;";
 inline constexpr const char* ANI_CLASS_LINEMETRICS_I = "L@ohos/graphics/text/text/LineMetricsInternal;";
 inline constexpr const char* ANI_CLASS_PARAGRAPH_STYLE = "L@ohos/graphics/text/text/ParagraphStyle;";
 inline constexpr const char* ANI_CLASS_TEXT_STYLE = "L@ohos/graphics/text/text/TextStyle;";
 inline constexpr const char* ANI_CLASS_FONT_COLLECTION = "L@ohos/graphics/text/text/FontCollection;";
+inline constexpr const char* ANI_CLASS_FONTFEATURE = "L@ohos/graphics/text/text/FontFeature;";
 
 class AniCommon {
 public:
     static std::unique_ptr<TypographyStyle> ParseParagraphStyle(ani_env* env, ani_object obj);
     static std::unique_ptr<TextStyle> ParseTextStyle(ani_env* env, ani_object obj);
+    static void ParseDrawingColor(ani_env* env, ani_object obj, Drawing::Color& color);
+    static void ParseFontFeature(ani_env* env, ani_object obj, FontFeatures& fontFeatures);
 };
 } // namespace OHOS::Rosen
 #endif // OHOS_ROSEN_ANI_COMMON_H

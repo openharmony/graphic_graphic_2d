@@ -24,25 +24,10 @@
 #include "utils/text_log.h"
 
 namespace OHOS::Rosen {
-constexpr const char* NATIVE_OBJ = "nativeObj";
 class AniTextUtils {
 public:
     template<typename T>
-    static T* GetNativeFromObj(ani_env* env, ani_object obj)
-    {
-        ani_status ret;
-        ani_long nativeObj {};
-        if ((ret = env->Object_GetFieldByName_Long(obj, NATIVE_OBJ, &nativeObj)) != ANI_OK) {
-            TEXT_LOGE("[ANI] Object_GetField_Long fetch failed");
-            return nullptr;
-        }
-        T* object = reinterpret_cast<T*>(nativeObj);
-        if (!object) {
-            TEXT_LOGE("[ANI] object is null");
-            return nullptr;
-        }
-        return object;
-    };
+    static T* GetNativeFromObj(ani_env* env, ani_object obj);
     static ani_object CreateAniUndefined(ani_env* env);
     static ani_object CreateAniObject(ani_env* env, const std::string name, const char* signature);
     static ani_object CreateAniArray(ani_env* env, size_t size);
@@ -53,22 +38,77 @@ public:
     static ani_status ReadOptionalField(ani_env* env, ani_object obj, const char* fieldName, ani_ref& ref);    
     static ani_status ReadOptionalDoubleField(ani_env* env, ani_object obj, const char* fieldName, double& value);
     static ani_status ReadOptionalStringField(ani_env* env, ani_object obj, const char* fieldName, std::string& str);
+    static ani_status ReadOptionalU16StringField(ani_env* env, ani_object obj, const char* fieldName,
+                                                 std::u16string& str);
     static ani_status ReadOptionalBoolField(ani_env* env, ani_object obj, const char* fieldName, bool& value);
     template <typename EnumType>
-    static ani_status ReadOptionalEnumField(ani_env* env, ani_object obj, const char* fieldName, EnumType& value)
-    {
-        ani_ref ref = nullptr;
-        ani_status result = AniTextUtils::ReadOptionalField(env, obj, fieldName, ref);
-        if (result == ANI_OK && ref != nullptr) {
-            ani_size index;
-            result = env->EnumItem_GetIndex(static_cast<ani_enum_item>(ref), &index);
-            if (result == ANI_OK) {
-                value = static_cast<EnumType>(index);
-            }
+    static ani_status ReadOptionalEnumField(ani_env* env, ani_object obj, const char* fieldName, EnumType& value);
+    template <typename T, typename Converter>
+    static ani_status ReadOptionalArrayField(ani_env* env, ani_object obj, const char* fieldName, std::vector<T>& array,
+                                             Converter convert);
+};
+
+template <typename T>
+T* AniTextUtils::GetNativeFromObj(ani_env* env, ani_object obj)
+{
+    ani_status ret;
+    ani_long nativeObj{};
+    if ((ret = env->Object_GetFieldByName_Long(obj, NATIVE_OBJ, &nativeObj)) != ANI_OK) {
+        TEXT_LOGE("[ANI] Object_GetField_Long fetch failed");
+        return nullptr;
+    }
+    T* object = reinterpret_cast<T*>(nativeObj);
+    if (!object) {
+        TEXT_LOGE("[ANI] object is null");
+        return nullptr;
+    }
+    return object;
+};
+
+template <typename EnumType>
+ani_status AniTextUtils::ReadOptionalEnumField(ani_env* env, ani_object obj, const char* fieldName, EnumType& value)
+{
+    ani_ref ref = nullptr;
+    ani_status result = AniTextUtils::ReadOptionalField(env, obj, fieldName, ref);
+    if (result == ANI_OK && ref != nullptr) {
+        ani_size index;
+        result = env->EnumItem_GetIndex(static_cast<ani_enum_item>(ref), &index);
+        if (result == ANI_OK) {
+            value = static_cast<EnumType>(index);
         }
+    }
+    return result;
+};
+
+template <typename T, typename Converter>
+ani_status AniTextUtils::ReadOptionalArrayField(ani_env* env, ani_object obj, const char* fieldName,
+                                                std::vector<T>& array, Converter convert)
+{
+    ani_ref ref = nullptr;
+    ani_status result = AniTextUtils::ReadOptionalField(env, obj, fieldName, ref);
+    if (result != ANI_OK || ref == nullptr) {
+        TEXT_LOGE("[ANI] ReadOptionalField failed");
         return result;
-    };
+    }
+
+    ani_object arrayObj = static_cast<ani_object>(ref);
+    ani_double length;
+    result = env->Object_GetPropertyByName_Double(arrayObj, "length", &length);
+    if (result != ANI_OK) {
+        TEXT_LOGE("[ANI] get length failed");
+        return {};
+    }
+
+    for (size_t i = 0; i < static_cast<size_t>(length); i++) {
+        ani_ref entryRef;
+        result = env->Object_CallMethodByName_Ref(arrayObj, "$_get", "I:Lstd/core/Object;", &entryRef, i);
+        if (result != ANI_OK) {
+            TEXT_LOGE("[ANI] get array object failed");
+            return result;
+        }
+        array.emplace_back(convert(env, entryRef));
+    }
+    return ANI_OK;
 };
 } // namespace OHOS::Rosen
-
 #endif // OHOS_ANI_TEXT_UTILS_H
