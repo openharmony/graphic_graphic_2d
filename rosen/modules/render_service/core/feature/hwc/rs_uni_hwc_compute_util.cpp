@@ -56,7 +56,7 @@ bool RSUniHwcComputeUtil::IsHwcEnabledByGravity(RSSurfaceRenderNode& node, const
     // When renderfit mode is not Gravity::RESIZE or Gravity::TOP_LEFT,
     // we currently disable hardware composer.
     if (frameGravity != Gravity::RESIZE && frameGravity != Gravity::TOP_LEFT) {
-        RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%" PRIu64 "disabled by frameGravity[%d]",
+        RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 "disabled by frameGravity[%d]",
             node.GetName().c_str(), node.GetId(), static_cast<int>(frameGravity));
         node.SetHardwareForcedDisabledState(true);
         return false;
@@ -385,7 +385,7 @@ bool RSUniHwcComputeUtil::IsHwcEnabledByScalingMode(RSSurfaceRenderNode& node, c
 {
     // We temporarily disabled HWC when scalingMode is freeze or no_scale_crop
     if (scalingMode == ScalingMode::SCALING_MODE_FREEZE || scalingMode == ScalingMode::SCALING_MODE_NO_SCALE_CROP) {
-        RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%" PRIu64 "disabled by scalingMode[%d]",
+        RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 "disabled by scalingMode[%d]",
             node.GetName().c_str(), node.GetId(), static_cast<int>(scalingMode));
         node.SetHardwareForcedDisabledState(true);
         return false;

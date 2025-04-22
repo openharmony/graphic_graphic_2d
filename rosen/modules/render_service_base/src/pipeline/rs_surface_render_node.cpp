@@ -202,7 +202,7 @@ void RSSurfaceRenderNode::UpdateInfoForClonedNode(NodeId nodeId)
     if (isClonedNode && IsMainWindowType() && clonedSourceNodeNeedOffscreen_) {
         SetNeedCacheSurface(true);
         SetHwcChildrenDisabledState();
-        RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%" PRIu64 " children disabled by isCloneNode",
+        RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " children disabled by isCloneNode",
             GetName().c_str(), GetId());
     }
     SetIsCloned(isClonedNode);
@@ -2636,7 +2636,7 @@ void RSSurfaceRenderNode::SetHwcChildrenDisabledState()
                 continue;
             }
             hwcNodePtr->SetHardwareForcedDisabledState(true);
-            RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%" PRIu64 " disabled by parent",
+            RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " disabled by parent",
                 GetName().c_str(), GetId());
         }
     } else if (IsLeashWindow()) {

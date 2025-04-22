@@ -86,6 +86,8 @@ static inline int g_debugLevel = OHOS::Rosen::RSSystemProperties::GetDebugTraceL
 
 #define RS_PROCESS_TRACE(forceEnable, name) RSProcessTrace processTrace(forceEnable, name)
 
+#define RS_OPTIONAL_TRACE_FMT(fmt, ...) RSOptionalFmtTrace optionalFmtTrace(fmt, ##__VA_ARGS__)
+
 class RenderTrace {
 public:
     static void OptionalTraceStart(const char* fmt, ...)
@@ -103,6 +105,36 @@ public:
     }
 private:
     static const int maxSize_ = 256; // 256 Maximum length of a character string to be printed
+};
+
+class RSOptionalFmtTrace {
+public:
+    RSOptionalFmtTrace(const char* fmt, ...)
+    {
+        debugTraceEnable_ = OHOS::Rosen::RSSystemProperties::GetDebugFmtTraceEnabled();
+        if (debugTraceEnable_) {
+            va_list vaList;
+            char buf[maxSize_];
+            va_start(vaList, fmt);
+            if (vsnprintf_s(buf, sizeof(buf), sizeof(buf) - 1, fmt, vaList) < 0) {
+                va_end(vaList);
+                StartTrace(HITRACE_TAG_GRAPHIC_AGP, "length > 256, error");
+                return;
+            }
+            va_end(vaList);
+            StartTrace(HITRACE_TAG_GRAPHIC_AGP, buf);
+        }
+    }
+    ~RSOptionalFmtTrace()
+    {
+        if (debugTraceEnable_) {
+            FinishTrace(HITRACE_TAG_GRAPHIC_AGP); // 256 Maximum length of a character string to be printed
+        }
+    }
+
+private:
+    bool debugTraceEnable_ = false;
+    const int maxSize_ = 256;
 };
 
 class RSOptionalTrace {
@@ -151,6 +183,7 @@ private:
 #define RS_OPTIONAL_TRACE_BEGIN(name)
 #define RS_OPTIONAL_TRACE_END()
 #define RS_OPTIONAL_TRACE_NAME_FMT(fmt, ...)
+#define RS_OPTIONAL_TRACE_FMT(fmt, ...)
 #define RS_APPOINTED_TRACE_BEGIN(node, name)
 #define RS_OPTIONAL_TRACE_NAME(name)
 #define RS_OPTIONAL_TRACE_FUNC()

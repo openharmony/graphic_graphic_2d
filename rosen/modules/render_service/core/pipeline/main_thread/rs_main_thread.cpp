@@ -219,6 +219,8 @@ constexpr const char* CAPTURE_WINDOW_NAME = "CapsuleWindow";
 constexpr const char* HIDE_NOTCH_STATUS = "persist.sys.graphic.hideNotch.status";
 constexpr const char* DRAWING_CACHE_DFX = "rosen.drawingCache.enabledDfx";
 constexpr const char* DEFAULT_SURFACE_NODE_NAME = "DefaultSurfaceNodeName";
+constexpr const char* ENABLE_DEBUG_FMT_TRACE = "sys.graphic.openTestModeTrace";
+
 #ifdef RS_ENABLE_GL
 constexpr size_t DEFAULT_SKIA_CACHE_SIZE        = 96 * (1 << 20);
 constexpr int DEFAULT_SKIA_CACHE_COUNT          = 2 * (1 << 12);
@@ -738,6 +740,7 @@ void RSMainThread::Init()
     MemoryManager::InitMemoryLimit();
     MemoryManager::SetGpuMemoryLimit(GetRenderEngine()->GetRenderContext()->GetDrGPUContext());
 #endif
+    RSSystemProperties::WatchSystemProperty(ENABLE_DEBUG_FMT_TRACE, OnFmtTraceSwitchCallback, nullptr);
 }
 
 void RSMainThread::NotifyUnmarshalTask(int64_t uiTimestamp)
@@ -5215,6 +5218,15 @@ void RSMainThread::SetBufferInfo(uint64_t id, const std::string &name, uint32_t 
     int32_t bufferCount, int64_t lastConsumeTime)
 {
     rsVSyncDistributor_->SetBufferInfo(id, name, queueSize, bufferCount, lastConsumeTime);
+}
+
+void RSMainThread::OnFmtTraceSwitchCallback(const char *key, const char *value, void *context)
+{
+    if (strcmp(key, ENABLE_DEBUG_FMT_TRACE) != 0) {
+        return;
+    }
+    bool isTraceEnable = (std::atoi(value) != 0);
+    RSSystemProperties::SetDebugFmtTraceEnabled(isTraceEnable);
 }
 } // namespace Rosen
 } // namespace OHOS
