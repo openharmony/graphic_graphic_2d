@@ -100,7 +100,7 @@ inline std::vector<float> operator/(const std::vector<float> &first, float scale
     std::vector<float> result;
     result.reserve(first.size());
     if (ROSEN_EQ(scale, 0.0f)) {
-        return result;
+        return first;
     }
     for (auto i = 0u; i < first.size(); i++) {
         result.push_back(first.at(i) / scale);

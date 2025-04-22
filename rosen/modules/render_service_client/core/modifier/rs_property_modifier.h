@@ -279,7 +279,7 @@ public:
 protected:
     RSModifierType GetModifierType() const override;
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
-};    
+};
 
 class RSC_EXPORT RSUseShadowBatchingModifier : public RSBackgroundModifier {
 public:
