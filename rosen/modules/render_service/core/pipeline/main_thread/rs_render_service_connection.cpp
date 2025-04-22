@@ -2701,6 +2701,7 @@ ErrCode RSRenderServiceConnection::ReportGameStateData(GameStateData info)
         info.bundleName.c_str(), info.uid, info.state, info.pid, info.renderTid);
 
     FrameReport::GetInstance().SetGameScene(info.pid, info.state);
+    return ERR_OK;
 }
 
 ErrCode RSRenderServiceConnection::SetHardwareEnabled(NodeId id, bool isEnabled, SelfDrawingNodeType selfDrawingType,
