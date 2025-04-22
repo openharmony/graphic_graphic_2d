@@ -515,7 +515,7 @@ ErrCode RSRenderServiceConnectionProxy::GetDefaultScreenId(uint64_t& screenId)
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_DEFAULT_SCREEN_ID);
     int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
-        ROSEN_LOGE("%{public}s: sendrequest error : %{public}d", __fuc__, err);
+        ROSEN_LOGE("%{public}s: sendrequest error : %{public}d", __func__, err);
         screenId = INVALID_SCREEN_ID;
         return ERR_INVALID_VALUE;
     }
@@ -543,7 +543,7 @@ ErrCode RSRenderServiceConnectionProxy::GetActiveScreenId(uint64_t& screenId)
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_ACTIVE_SCREEN_ID);
     int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
-        ROSEN_LOGE("%{public}s: sendrequest error : %{public}d", __fuc__, err);
+        ROSEN_LOGE("%{public}s: sendrequest error : %{public}d", __func__, err);
         screenId = INVALID_SCREEN_ID;
         return ERR_INVALID_VALUE;
     }

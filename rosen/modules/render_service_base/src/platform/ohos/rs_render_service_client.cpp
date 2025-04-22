@@ -912,7 +912,7 @@ ScreenPowerStatus RSRenderServiceClient::GetScreenPowerStatus(ScreenId id)
     if (renderService == nullptr) {
         return ScreenPowerStatus::INVALID_POWER_STATUS;
     }
-    unint32_t status {static_cast<int32_t>(ScreenPowerStatus::INVALID_POWER_STATUS)};
+    uint32_t status {static_cast<int32_t>(ScreenPowerStatus::INVALID_POWER_STATUS)};
     renderService->GetScreenPowerStatus(id, status);
     return static_cast<INVALID_POWER_STATUS>(status);
 }
