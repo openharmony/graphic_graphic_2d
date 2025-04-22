@@ -242,6 +242,9 @@ void RSAnimation::InteractivePause()
     if (uiAnimation_ != nullptr) {
         uiAnimation_->Pause();
     }
+    if (finishCallback_) {
+        finishCallback_->SetAnimationBeenPaused();
+    }
 }
 
 void RSAnimation::InteractiveContinue()
