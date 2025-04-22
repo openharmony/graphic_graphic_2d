@@ -317,16 +317,6 @@ public:
         return cacheEnabledForRotation_;
     }
 
-    void SetRequestNextVsyncFlag(bool flag)
-    {
-        needRequestNextVsyncAnimate_ = flag;
-    }
-
-    bool GetRequestNextVsyncFlag() const
-    {
-        return needRequestNextVsyncAnimate_;
-    }
-
     void SetOnVsyncStartTime(int64_t time)
     {
         onVsyncStartTime_ = time;
@@ -527,7 +517,6 @@ private:
     std::shared_ptr<Drawing::Image> watermarkImg_ = nullptr;
     std::unordered_map<std::string, std::shared_ptr<Media::PixelMap>> surfaceNodeWatermarks_;
 
-    bool needRequestNextVsyncAnimate_ = false;
     bool isOverDrawEnabled_ = false;
     bool isDrawingCacheDfxEnabled_ = false;
 
