@@ -19,6 +19,7 @@
 
 #include "ani.h"
 #include "ani_common.h"
+#include "ani_font_collection.h"
 #include "ani_paragraph.h"
 #include "ani_paragraph_builder.h"
 #include "ani_text_utils.h"
@@ -48,14 +49,19 @@ void AniParagraphBuilder::Constructor(ani_env* env, ani_object object, ani_objec
         return;
     }
     TEXT_LOGE("Print maxLine:%{public}zu", typographyStyleNative->maxLines);
-    // std::shared_ptr<FontCollection> fontCollectionNative = nullptr;
-    // std::unique_ptr<TypographyCreate> typographyCreateNative =
-    //     TypographyCreate::Create(*typographyStyleNative, fontCollectionNative);
-    // if (!typographyCreateNative) {
-    //     TEXT_LOGE("Failed to create typography creator");
-    //     return;
-    // }
-    // aniParagraphBuilder->typographyCreate_ = std::move(typographyCreateNative);
+    AniFontCollection* aniFontCollection = AniTextUtils::GetNativeFromObj<AniFontCollection>(env, object);
+    if (aniFontCollection == nullptr || aniFontCollection->GetFontCollection() == nullptr) {
+        TEXT_LOGE("FontCollection is null");
+        return;
+    }
+    std::shared_ptr<FontCollection> fontCollectionNative = aniFontCollection->GetFontCollection();
+    std::unique_ptr<TypographyCreate> typographyCreateNative =
+        TypographyCreate::Create(*typographyStyleNative, fontCollectionNative);
+    if (!typographyCreateNative) {
+        TEXT_LOGE("Failed to create typography creator");
+        return;
+    }
+    aniParagraphBuilder->typographyCreate_ = std::move(typographyCreateNative);
 }
 
 ani_status AniParagraphBuilder::AniInit(ani_vm* vm, uint32_t* result)

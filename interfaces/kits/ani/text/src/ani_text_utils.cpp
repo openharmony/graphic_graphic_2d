@@ -183,7 +183,7 @@ ani_status AniTextUtils::ReadOptionalDoubleField(ani_env* env, ani_object obj, c
     ani_ref ref = nullptr;
     ani_status result = AniTextUtils::ReadOptionalField(env, obj, fieldName, ref);
     if (result == ANI_OK && ref != nullptr) {
-        env->Object_CallMethodByName_Double(static_cast<ani_object>(ref), "doubleValue", nullptr, &value);
+        env->Object_CallMethodByName_Double(static_cast<ani_object>(ref), "doubleValue", ":D", &value);
     }
     return result;
 }
@@ -204,7 +204,7 @@ ani_status AniTextUtils::ReadOptionalBoolField(ani_env* env, ani_object obj, con
     ani_status result = AniTextUtils::ReadOptionalField(env, obj, fieldName, ref);
     if (result == ANI_OK && ref != nullptr) {
         ani_boolean* aniBool = nullptr;
-        result = env->Object_CallMethodByName_Boolean(static_cast<ani_object>(ref), "booleanValue", nullptr, aniBool);
+        result = env->Object_CallMethodByName_Boolean(static_cast<ani_object>(ref), "isTrue", ":Z", aniBool);
         if (result == ANI_OK && aniBool != nullptr) {
             value = static_cast<bool>(*aniBool);
         }

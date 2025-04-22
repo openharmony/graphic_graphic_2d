@@ -445,4 +445,75 @@ namespace text {
     topHeight: number;
     //runMetrics: Map<number, RunMetrics>;
   }
+
+  /**
+   * Enumeration of font weight of text.
+   * @enum { number }
+   * @syscap SystemCapability.Graphics.Drawing
+   * @since 12
+   */
+  export enum FontWeight {
+    /**
+     * Thin
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    W100,
+
+    /**
+     * Extra-light
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    W200,
+
+    /**
+     * Light
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    W300,
+
+    /**
+     * Normal/Regular
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    W400,
+
+    /**
+     * Medium
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    W500,
+
+    /**
+     * Semi-bold
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    W600,
+
+    /**
+     * Bold
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    W700,
+
+    /**
+     * Extra-bold
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    W800,
+
+    /**
+     * Black
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    W900,
+  }
 }

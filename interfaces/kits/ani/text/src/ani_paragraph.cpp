@@ -98,7 +98,7 @@ ani_double AniParagraph::GetLongestLine(ani_env* env, ani_object object)
 ani_object AniConvertLineMetrics(ani_env* env, const LineMetrics& lineMetrics)
 {
     ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_LINEMETRICS_I, ":V");
-    env->Object_SetPropertyByName_Double(aniObj, "StartIndex", ani_int(lineMetrics.startIndex));
+    env->Object_SetPropertyByName_Double(aniObj, "startIndex", ani_int(lineMetrics.startIndex));
     env->Object_SetPropertyByName_Double(aniObj, "endIndex", ani_int(lineMetrics.endIndex));
     env->Object_SetPropertyByName_Double(aniObj, "ascent", ani_int(lineMetrics.ascender));
     env->Object_SetPropertyByName_Double(aniObj, "descent", ani_int(lineMetrics.descender));

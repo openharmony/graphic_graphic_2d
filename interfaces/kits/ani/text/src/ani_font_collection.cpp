@@ -142,4 +142,9 @@ ani_status AniFontCollection::AniInit(ani_vm* vm, uint32_t* result)
     }
     return ANI_OK;
 }
+
+std::shared_ptr<FontCollection> AniFontCollection::GetFontCollection()
+{
+    return fontCollection_;
+}
 } // namespace OHOS::Rosen

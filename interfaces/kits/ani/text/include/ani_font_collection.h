@@ -32,7 +32,7 @@ public:
     static void ClearCaches(ani_env* env, ani_object obj);
     static void Constructor(ani_env* env, ani_object object);
     static ani_status AniInit(ani_vm* vm, uint32_t* result);
-
+    std::shared_ptr<FontCollection> GetFontCollection();
 private:
     std::shared_ptr<FontCollection> fontCollection_ = nullptr;
 };

@@ -14,6 +14,7 @@
  */
 
 #include <cstddef>
+#include <cstdint>
 #include "ani.h"
 #include "ani_common.h"
 #include "ani_text_utils.h"
@@ -73,7 +74,7 @@ std::unique_ptr<TextStyle> AniCommon::ParseTextStyle(ani_env* env, ani_object ob
     }
     std::unique_ptr<TextStyle> textStyle = std::make_unique<TextStyle>();
 
-    AniTextUtils::ReadOptionalEnumField<FontWeight>(env, obj, "fontWeight", textStyle->fontWeight);
+    AniTextUtils::ReadOptionalEnumField(env, obj, "fontWeight", textStyle->fontWeight);
     AniTextUtils::ReadOptionalDoubleField(env, obj, "fontSize", textStyle->fontSize);
     AniTextUtils::ReadOptionalDoubleField(env, obj, "letterSpacing", textStyle->letterSpacing);
     AniTextUtils::ReadOptionalDoubleField(env, obj, "wordSpacing", textStyle->wordSpacing);

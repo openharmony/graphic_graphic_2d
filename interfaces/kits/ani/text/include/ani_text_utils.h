@@ -20,7 +20,7 @@
 #include <vector>
 
 #include "ani.h"
-
+#include "ani_common.h"
 #include "utils/text_log.h"
 
 namespace OHOS::Rosen {
@@ -60,10 +60,10 @@ public:
         ani_ref ref = nullptr;
         ani_status result = AniTextUtils::ReadOptionalField(env, obj, fieldName, ref);
         if (result == ANI_OK && ref != nullptr) {
-            ani_int* enumInt = nullptr;
-            result = env->EnumItem_GetValue_Int(static_cast<ani_enum_item>(ref), enumInt);
-            if (result == ANI_OK && enumInt != nullptr) {
-                value = static_cast<EnumType>(*enumInt);
+            ani_size index;
+            result = env->EnumItem_GetIndex(static_cast<ani_enum_item>(ref), &index);
+            if (result == ANI_OK) {
+                value = static_cast<EnumType>(index);
             }
         }
         return result;
