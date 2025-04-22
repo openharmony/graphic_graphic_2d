@@ -229,9 +229,9 @@ Drawing::RecordingCanvas::DrawFunc RSFilterDrawable::CreateDrawFunc() const
                 return;
             }
             auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
-            RS_TRACE_NAME_FMT("RSFilterDrawable::CreateDrawFunc DrawBehindWindow node[%llu], windowFreezeCapture[%d]"
-                "DrawingCache[%d]", ptr->renderNodeId_, paintFilterCanvas->GetIsWindowFreezeCapture(),
-                paintFilterCanvas->GetIsDrawingCache());
+            RS_TRACE_NAME_FMT("RSFilterDrawable::CreateDrawFunc DrawBehindWindow node[%" PRIu64 "], "
+                "windowFreezeCapture[%d], DrawingCache[%d]", ptr->renderNodeId_,
+                paintFilterCanvas->GetIsWindowFreezeCapture(), paintFilterCanvas->GetIsDrawingCache());
             if (paintFilterCanvas->GetIsWindowFreezeCapture()) {
                 RS_LOGD("RSFilterDrawable::CreateDrawFunc DrawBehindWindow capture freeze surface, "
                     "no need to drawBehindWindow");

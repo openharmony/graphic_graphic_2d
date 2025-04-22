@@ -274,8 +274,8 @@ private:
     Drawing::Region uifirstDirtyRegion_;
     bool uifrstDirtyEnableFlag_ = false;
     Drawing::Region uifirstMergedDirtyRegion_;
-    std::shared_ptr<RSPaintFilterCanvas::CacheBehindWindowData> cacheBehindWindowData_;
-    std::shared_ptr<RSPaintFilterCanvas::CacheBehindWindowData> cacheCompletedBehindWindowData_;
+    std::shared_ptr<RSPaintFilterCanvas::CacheBehindWindowData> cacheBehindWindowData_ = nullptr;
+    std::shared_ptr<RSPaintFilterCanvas::CacheBehindWindowData> cacheCompletedBehindWindowData_ = nullptr;
 };
 } // DrawableV2
 } // OHOS::Rosen

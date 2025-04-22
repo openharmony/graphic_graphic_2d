@@ -315,8 +315,7 @@ public:
     bool GetIsDrawingCache() const;
     void SetIsDrawingCache(bool isDrawingCache);
 
-    struct CacheBehindWindowData
-    {
+    struct CacheBehindWindowData {
         CacheBehindWindowData() = default;
         CacheBehindWindowData(std::shared_ptr<RSFilter> filter, const Drawing::Rect rect);
         ~CacheBehindWindowData() = default;
@@ -369,6 +368,7 @@ private:
     bool multipleScreen_ = false;
     bool isHdrOn_ = false;
     bool isWindowFreezeCapture_ = false;
+    // Drawing window cache or uifirst cache
     bool isDrawingCache_ = false;
     CacheType cacheType_ { RSPaintFilterCanvas::CacheType::UNDEFINED };
     std::atomic_bool isHighContrastEnabled_ { false };
@@ -396,7 +396,7 @@ private:
     std::stack<Drawing::Surface*> storeMainScreenSurface_; // store surface_
     std::stack<Drawing::Canvas*> storeMainScreenCanvas_; // store canvas_
 
-    std::shared_ptr<CacheBehindWindowData> cacheBehindWindowData_;
+    std::shared_ptr<CacheBehindWindowData> cacheBehindWindowData_ = nullptr;
 };
 
 #ifdef RS_ENABLE_VK

@@ -154,6 +154,7 @@ bool RSDrawWindowCache::DealWithCachedWindow(DrawableV2::RSSurfaceRenderNodeDraw
     auto samplingOptions = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
     auto translateX = gravityMatrix.Get(Drawing::Matrix::TRANS_X);
     auto translateY = gravityMatrix.Get(Drawing::Matrix::TRANS_Y);
+    // draw BehindWindowFilter
     surfaceDrawable->GetRsSubThreadCache().DrawBehindWindowBeforeCache(canvas, translateX, translateY);
     // draw content/children
     canvas.DrawImage(*image_, translateX, translateY, samplingOptions);
