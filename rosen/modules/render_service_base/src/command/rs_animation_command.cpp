@@ -81,6 +81,11 @@ void AnimationCommandHelper::CreateAnimation(
     auto property = node->GetProperty(animation->GetPropertyId());
     if (property != nullptr) {
         animation->AttachRenderProperty(property);
+    } else {
+        auto modifier = node->GetModifier(animation->GetPropertyId());
+        if (modifier != nullptr) {
+            animation->AttachRenderProperty(modifier->GetProperty());
+        }
     }
     auto currentTime = context.GetCurrentTimestamp();
     animation->SetStartTime(currentTime);

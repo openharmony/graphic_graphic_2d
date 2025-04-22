@@ -23,7 +23,6 @@
  #include "common/rs_macros.h"
  #include "animation/rs_interpolator.h"
  #include "effect/runtime_effect.h"
- #include "effect/runtime_effect.h"
  #include "ext/gex_complex_shader.h"
  #include "platform/common/rs_log.h"
  #include "rs_shader.h"
@@ -31,24 +30,24 @@
  namespace OHOS {
  namespace Rosen {
   
- class RSC_EXPORT RSComplexShader : public RSShader {
+ class RSB_EXPORT RSComplexShader : public RSShader {
  public:
-     RSComplexShader();
-     RSComplexShader(GexComlexShaderType type);
-     virtual ~RSComplexShader() = default;
+    RSComplexShader();
+    RSComplexShader(GexComlexShaderType type);
+    ~RSComplexShader() = default;
   
-     void MakeDrawingShader(const RectF& rect, std::vector<float> params) override;
-     const std::shared_ptr<Drawing::ShaderEffect>& GetDrawingShader() const override;
+    void MakeDrawingShader(const RectF& rect, std::vector<float> params) override;
+    const std::shared_ptr<Drawing::ShaderEffect>& GetDrawingShader() const override;
   
-     bool Marshalling(Parcel& parcel) override;
-     bool Unmarshalling(Parcel& parcel, bool& needReset) override;
+    bool Marshalling(Parcel& parcel) override;
+    bool Unmarshalling(Parcel& parcel, bool& needReset) override;
   
  private:
-     std::shared_ptr<Drawing::ShaderEffect> GetShaderEffect(
-         const std::vector<float> &effectParam, const Drawing::RectF &rect);
-     GexComlexShaderType GetShaderType() const;
-     GexComlexShaderType shaderType_;
-     std::shared_ptr<Drawing::ShaderEffect> shaderEffect_;
+    std::shared_ptr<Drawing::ShaderEffect> GetShaderEffect(
+        const std::vector<float> &effectParam, const Drawing::RectF &rect);
+    GexComlexShaderType GetShaderType() const;
+    GexComlexShaderType shaderType_;
+    std::shared_ptr<Drawing::ShaderEffect> shaderEffect_;
  };
  }  // namespace Rosen
  }  // namespace OHOS

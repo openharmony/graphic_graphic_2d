@@ -2580,7 +2580,8 @@ void RSRenderNode::AddModifier(const std::shared_ptr<RSRenderModifier>& modifier
         AddGeometryModifier(modifier);
     } else if (modifier->GetType() < RSModifierType::CUSTOM) {
         modifiers_.emplace(modifier->GetPropertyId(), modifier);
-        if (auto property = modifier->GetProperty()) {
+        if (modifier->GetType() == RSModifierType::COMPLEX_SHADER_PARAM) {
+            auto property = modifier->GetProperty();
             properties_.emplace(modifier->GetPropertyId(), property);
         }
     } else {
@@ -2625,6 +2626,9 @@ void RSRenderNode::RemoveModifier(const PropertyId& id)
         ROSEN_LOGI_IF(DEBUG_MODIFIER, "RSRenderNode::remove modifier, node id: %{public}" PRIu64 ", type: %{public}s",
             GetId(), (it->second) ? it->second->GetModifierTypeString().c_str() : "UNKNOWN");
         modifiers_.erase(it);
+        if (auto propertyIt = properties_.find(id) != properties_.end()) {
+            properties_.erase(propertyIt);
+        }
         return;
     }
     for (auto& [type, modifiers] : renderContent_->drawCmdModifiers_) {

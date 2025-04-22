@@ -19,7 +19,6 @@
 #include <memory>
 
 #include "parcel.h"
-#include "platform/common/rs_log.h"
 #include "rs_modifier_type.h"
 
 #include "common/rs_color.h"
