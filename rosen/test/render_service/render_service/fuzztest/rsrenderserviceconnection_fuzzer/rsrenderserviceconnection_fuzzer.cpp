@@ -201,9 +201,10 @@ bool DoGetScreenBacklight()
         return false;
     }
     ScreenId id = GetData<uint64_t>();
-    uint32_t level = GetData<uint32_t>();
-    rsConn_->SetScreenBacklight(id, level);
-    rsConn_->GetScreenBacklight(id, level);
+    uint32_t setLevel = GetData<uint32_t>();
+    rsConn_->SetScreenBacklight(id, setLevel);
+    int32_t getLevel = GetData<int32_t>();
+    rsConn_->GetScreenBacklight(id, getLevel);
     return true;
 }
 
@@ -975,7 +976,7 @@ bool DOSetVirtualScreenRefreshRate()
     uint32_t actualRefreshRate = GetData<uint32_t>();
     int32_t retVal = GetData<int32_t>();
     int32_t resCode;
-    rsConn_->SetVirtualScreenRefreshRate(id, maxRefreshRate, resCode, actualRefreshRate);
+    rsConn_->SetVirtualScreenRefreshRate(id, maxRefreshRate, actualRefreshRate, resCode);
     return true;
 }
 
