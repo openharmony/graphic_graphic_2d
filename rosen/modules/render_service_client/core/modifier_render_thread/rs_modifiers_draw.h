@@ -65,19 +65,24 @@ private:
         std::weak_ptr<Media::PixelMap> lastPixelMap;
         int lastWidth = 0;
         int lastHeight = 0;
+        sptr<SurfaceBuffer> currentSurfaceBuffer = nullptr;
+        sptr<SurfaceBuffer> preAllocSurfaceBuffer = nullptr;
+        bool isNeedGenSnapshot = false;
     };
 
     static sptr<SurfaceBuffer> DmaMemAlloc(
         int32_t width, int32_t height, const std::unique_ptr<Media::PixelMap>& pixelMap);
 
-    static std::shared_ptr<Drawing::Surface> CreateSurfaceFromGpuContext(
+    static sptr<SurfaceBuffer> CreateSurfaceBuffer(
         const std::unique_ptr<Media::PixelMap>& pixelMap, int32_t width, int32_t height);
+
+    static std::shared_ptr<Drawing::Surface> CreateSurfaceFromGpuContext(sptr<SurfaceBuffer> surfaceBufferTmp);
 
     static std::shared_ptr<Drawing::Surface> CreateSurfaceFromCpuContext(
         const std::unique_ptr<Media::PixelMap>& pixelMap);
 
     static std::shared_ptr<Drawing::Surface> CreateSurface(std::unique_ptr<Media::PixelMap>& pixelMap,
-        int32_t width, int32_t height);
+        int32_t width, int32_t height, sptr<SurfaceBuffer> surfaceBufferTmp);
 
     static bool Playback(const std::shared_ptr<Drawing::Surface>& surface,
         const std::shared_ptr<Drawing::DrawCmdList>& cmdList, bool isCanvasType);
@@ -115,6 +120,7 @@ private:
     static std::unordered_set<NodeId> foregroundRootSet_;
 
     static std::mutex foregroundRootSetMutex_;
+    static bool needClearBackgroundMemory_;
 };
 } // namespace Rosen
 } // namespace OHOS

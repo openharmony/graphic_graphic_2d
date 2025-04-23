@@ -26,6 +26,8 @@ using namespace testing::ext;
 
 namespace OHOS {
 namespace Rosen {
+constexpr int32_t DEFAULT_WIDTH = 100;
+constexpr int32_t DEFAULT_HEIGHT = 100;
 class RSModifiersDrawTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -62,10 +64,7 @@ HWTEST_F(RSModifiersDrawTest, DmaMemAllocTest001, TestSize.Level1)
  */
 HWTEST_F(RSModifiersDrawTest, CreateSurfaceFromGpuContextTest001, TestSize.Level1)
 {
-    auto pixelMap = std::make_unique<Media::PixelMap>();
-    int32_t width = 100;
-    int32_t height = 100;
-    auto result = RSModifiersDraw::CreateSurfaceFromGpuContext(pixelMap, width, height);
+    auto result = RSModifiersDraw::CreateSurfaceFromGpuContext(nullptr);
     ASSERT_EQ(result, nullptr);
 }
 
@@ -95,7 +94,7 @@ HWTEST_F(RSModifiersDrawTest, CreateSurfaceTest001, TestSize.Level1)
     auto pixelMap = std::make_unique<Media::PixelMap>();
     int32_t width = 100;
     int32_t height = 100;
-    auto result = RSModifiersDraw::CreateSurface(pixelMap, width, height);
+    auto result = RSModifiersDraw::CreateSurface(pixelMap, width, height, nullptr);
     ASSERT_EQ(result, nullptr);
 }
 
@@ -253,6 +252,32 @@ HWTEST_F(RSModifiersDrawTest, ResetSurfaceByNodeIdTest001, TestSize.Level1)
     int32_t height = 0;
     bool postTask = false;
     ASSERT_FALSE(RSModifiersDraw::ResetSurfaceByNodeId(width, height, nodeId, postTask));
+}
+
+/**
+ * @tc.name: CreateSurfaceBuffer001
+ * @tc.desc: test results of CreateSurfaceBuffer while pixelMap's allocate type is dma
+ * @tc.type: FUNC
+ * @tc.require: issueIC3PRG
+ */
+HWTEST_F(RSModifiersDrawTest, CreateSurfaceBuffer001, TestSize.Level2)
+{
+    auto pixelMap = RSModifiersDraw::CreatePixelMap(DEFAULT_WIDTH, DEFAULT_HEIGHT, true);
+    auto surfaceBuffer = RSModifiersDraw::CreateSurfaceBuffer(pixelMap, DEFAULT_WIDTH, DEFAULT_HEIGHT);
+    ASSERT_NE(surfaceBuffer, nullptr);
+}
+
+/**
+ * @tc.name: CreateSurfaceBuffer002
+ * @tc.desc: test results of CreateSurfaceBuffer while pixelMap's allocate type isn't dma
+ * @tc.type: FUNC
+ * @tc.require: issueIC3PRG
+ */
+HWTEST_F(RSModifiersDrawTest, CreateSurfaceBuffer002, TestSize.Level2)
+{
+    auto pixelMap = RSModifiersDraw::CreatePixelMap(DEFAULT_WIDTH, DEFAULT_HEIGHT, false);
+    auto surfaceBuffer = RSModifiersDraw::CreateSurfaceBuffer(pixelMap, DEFAULT_WIDTH, DEFAULT_HEIGHT);
+    ASSERT_NE(surfaceBuffer, nullptr);
 }
 } // namespace Rosen
 } // namespace OHOS
