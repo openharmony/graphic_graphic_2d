@@ -46,7 +46,8 @@ void RSOcclusionHandlerTest::TearDown() {}
  */
 HWTEST_F(RSOcclusionHandlerTest, UpdateOcclusionCullingStatus_001, TestSize.Level1)
 {
-    NodeId id = 0, keyOcclusionNodeId = 0;
+    NodeId id(0);
+    NodeId keyOcclusionNodeId(0);
     std::shared_ptr<RSOcclusionHandler> rsOcclusionHandler_ =
         std::make_shared<RSOcclusionHandler>(id, keyOcclusionNodeId);
     rsOcclusionHandler_->isOcclusionActive_ = true;
@@ -74,7 +75,8 @@ HWTEST_F(RSOcclusionHandlerTest, UpdateOcclusionCullingStatus_001, TestSize.Leve
  */
 HWTEST_F(RSOcclusionHandlerTest, TerminateOcclusionProcessing_001, TestSize.Level1)
 {
-    NodeId id = 0, keyOcclusionNodeId = 0;
+    NodeId id(0);
+    NodeId keyOcclusionNodeId(0);
     std::shared_ptr<RSOcclusionHandler> rsOcclusionHandler_ =
         std::make_shared<RSOcclusionHandler>(id, keyOcclusionNodeId);
     rsOcclusionHandler_->TerminateOcclusionProcessing();
@@ -95,9 +97,10 @@ HWTEST_F(RSOcclusionHandlerTest, TerminateOcclusionProcessing_001, TestSize.Leve
  */
 HWTEST_F(RSOcclusionHandlerTest, CollectNode_001, TestSize.Level1)
 {
-    NodeId nodeId = 1;
+    NodeId nodeId(1);
     RSRenderNode node = RSRenderNode(nodeId);
-    NodeId id = 0, keyOcclusionNodeId = 0;
+    NodeId id(0);
+    NodeId keyOcclusionNodeId(0);
     std::shared_ptr<RSOcclusionHandler> rsOcclusionHandler_ =
         std::make_shared<RSOcclusionHandler>(id, keyOcclusionNodeId);
     rsOcclusionHandler_->isOcclusionActive_ = false;
@@ -113,9 +116,10 @@ HWTEST_F(RSOcclusionHandlerTest, CollectNode_001, TestSize.Level1)
  */
 HWTEST_F(RSOcclusionHandlerTest, CollectNode_002, TestSize.Level1)
 {
-    NodeId nodeId = 1;
+    NodeId nodeId(1);
     RSRenderNode node = RSRenderNode(nodeId);
-    NodeId id = 0, keyOcclusionNodeId = 0;
+    NodeId id(0);
+    NodeId keyOcclusionNodeId(0);
     std::shared_ptr<RSOcclusionHandler> rsOcclusionHandler_ =
         std::make_shared<RSOcclusionHandler>(id, keyOcclusionNodeId);
     rsOcclusionHandler_->isOcclusionActive_ = true;
@@ -131,10 +135,11 @@ HWTEST_F(RSOcclusionHandlerTest, CollectNode_002, TestSize.Level1)
  */
 HWTEST_F(RSOcclusionHandlerTest, CollectNode_003, TestSize.Level1)
 {
-    NodeId nodeId = 1;
+    NodeId nodeId(1);
     RSRenderNode node(nodeId);
     node.instanceRootNodeId_ = nodeId;
-    NodeId id = 0, keyOcclusionNodeId = 0;
+    NodeId id(0);
+    NodeId keyOcclusionNodeId(0);
     std::shared_ptr<RSOcclusionHandler> rsOcclusionHandler_ =
         std::make_shared<RSOcclusionHandler>(id, keyOcclusionNodeId);
     rsOcclusionHandler_->isOcclusionActive_ = true;
@@ -151,16 +156,17 @@ HWTEST_F(RSOcclusionHandlerTest, CollectNode_003, TestSize.Level1)
  */
 HWTEST_F(RSOcclusionHandlerTest, CollectNode_004, TestSize.Level1)
 {
-    NodeId firstNodeId = 1;
+    NodeId firstNodeId(1);
     std::shared_ptr<RSRenderNode> nodePtr = std::make_shared<RSRenderNode>(firstNodeId);
     nodePtr->instanceRootNodeId_ = firstNodeId;
-    NodeId id = 0, keyOcclusionNodeId = 0;
+    NodeId id(0);
+    NodeId keyOcclusionNodeId(0);
     std::shared_ptr<RSOcclusionHandler> rsOcclusionHandler_ =
         std::make_shared<RSOcclusionHandler>(id, keyOcclusionNodeId);
     rsOcclusionHandler_->isOcclusionActive_ = true;
     rsOcclusionHandler_->rootNodeId_ = firstNodeId;
     rsOcclusionHandler_->CollectNode(*nodePtr);
-    NodeId secondNodeId = 2;
+    NodeId secondNodeId(2);
     std::shared_ptr<RSRenderNode> nodePtr2 = std::make_shared<RSRenderNode>(secondNodeId);
     nodePtr2->parent_ = nodePtr;
     nodePtr2->instanceRootNodeId_ = firstNodeId;
@@ -179,15 +185,16 @@ HWTEST_F(RSOcclusionHandlerTest, CollectNode_004, TestSize.Level1)
  */
 HWTEST_F(RSOcclusionHandlerTest, ProcessOffTreeNodes_001, TestSize.Level1)
 {
-    NodeId firstNodeId = 1;
+    NodeId firstNodeId(1);
     std::shared_ptr<RSRenderNode> nodePtr = std::make_shared<RSRenderNode>(firstNodeId);
-    NodeId id = 0, keyOcclusionNodeId = 0;
+    NodeId id(0);
+    NodeId keyOcclusionNodeId(0);
     std::shared_ptr<RSOcclusionHandler> rsOcclusionHandler_ =
         std::make_shared<RSOcclusionHandler>(id, keyOcclusionNodeId);
     rsOcclusionHandler_->isOcclusionActive_ = true;
     rsOcclusionHandler_->rootNodeId_ = firstNodeId;
     rsOcclusionHandler_->CollectNode(*nodePtr);
-    NodeId secondNodeId = 2;
+    NodeId secondNodeId(2);
     std::shared_ptr<RSRenderNode> nodePtr2 = std::make_shared<RSRenderNode>(secondNodeId);
     nodePtr2->parent_ = nodePtr;
     rsOcclusionHandler_->CollectNode(*nodePtr2);
@@ -205,10 +212,11 @@ HWTEST_F(RSOcclusionHandlerTest, ProcessOffTreeNodes_001, TestSize.Level1)
  */
 HWTEST_F(RSOcclusionHandlerTest, CollectSubTree_001, TestSize.Level1)
 {
-    NodeId firstNodeId = 1;
+    NodeId firstNodeId(1);
     std::shared_ptr<RSRenderNode> nodePtr = std::make_shared<RSRenderNode>(firstNodeId);
     nodePtr->instanceRootNodeId_ = firstNodeId;
-    NodeId id = 0, keyOcclusionNodeId = 0;
+    NodeId id(0);
+    NodeId keyOcclusionNodeId(0);
     std::shared_ptr<RSOcclusionHandler> rsOcclusionHandler_ =
         std::make_shared<RSOcclusionHandler>(id, keyOcclusionNodeId);
 
@@ -229,7 +237,7 @@ HWTEST_F(RSOcclusionHandlerTest, CollectSubTree_001, TestSize.Level1)
     rsOcclusionHandler_->isOcclusionActive_ = true;
     rsOcclusionHandler_->rootNodeId_ = firstNodeId;
     rsOcclusionHandler_->CollectNode(*nodePtr);
-    NodeId secondNodeId = 2;
+    NodeId secondNodeId(2);
     std::shared_ptr<RSRenderNode> nodePtr2 = std::make_shared<RSRenderNode>(secondNodeId);
     nodePtr2->parent_ = nodePtr;
     nodePtr2->instanceRootNodeId_ = firstNodeId;
@@ -255,9 +263,10 @@ HWTEST_F(RSOcclusionHandlerTest, CollectSubTree_001, TestSize.Level1)
  */
 HWTEST_F(RSOcclusionHandlerTest, UpdateChildrenOutOfRectInfo_001, TestSize.Level1)
 {
-    NodeId nodeId = 1;
+    NodeId nodeId(1);
     std::shared_ptr<RSRenderNode> nodePtr = std::make_shared<RSRenderNode>(nodeId);
-    NodeId id = 0, keyOcclusionNodeId = 0;
+    NodeId id(0);
+    NodeId keyOcclusionNodeId(0);
     std::shared_ptr<RSOcclusionHandler> rsOcclusionHandler_ =
         std::make_shared<RSOcclusionHandler>(id, keyOcclusionNodeId);
     nodePtr->instanceRootNodeId_ = nodeId;
@@ -281,16 +290,17 @@ HWTEST_F(RSOcclusionHandlerTest, UpdateChildrenOutOfRectInfo_001, TestSize.Level
  */
 HWTEST_F(RSOcclusionHandlerTest, UpdateSkippedSubTreeProp_001, TestSize.Level1)
 {
-    NodeId firstNodeId = 1;
+    NodeId firstNodeId(1);
     std::shared_ptr<RSRenderNode> nodePtr = std::make_shared<RSRenderNode>(firstNodeId);
-    NodeId id = 0, keyOcclusionNodeId = 0;
+    NodeId id(0);
+    NodeId keyOcclusionNodeId(0);
     std::shared_ptr<RSOcclusionHandler> rsOcclusionHandler_ =
         std::make_shared<RSOcclusionHandler>(id, keyOcclusionNodeId);
     nodePtr->instanceRootNodeId_ = firstNodeId;
     rsOcclusionHandler_->isOcclusionActive_ = true;
     rsOcclusionHandler_->rootNodeId_ = firstNodeId;
     rsOcclusionHandler_->CollectNode(*nodePtr);
-    NodeId secondNodeId = 2;
+    NodeId secondNodeId(2);
     std::shared_ptr<RSRenderNode> nodePtr2 = std::make_shared<RSRenderNode>(secondNodeId);
     nodePtr2->parent_ = nodePtr;
     nodePtr2->instanceRootNodeId_ = firstNodeId;
@@ -317,7 +327,8 @@ HWTEST_F(RSOcclusionHandlerTest, UpdateSkippedSubTreeProp_001, TestSize.Level1)
  */
 HWTEST_F(RSOcclusionHandlerTest, CalculateFrameOcclusion_001, TestSize.Level1)
 {
-    NodeId id = 0, keyOcclusionNodeId = 0;
+    NodeId id(0);
+    NodeId keyOcclusionNodeId(0);
     std::shared_ptr<RSOcclusionHandler> rsOcclusionHandler_ =
         std::make_shared<RSOcclusionHandler>(id, keyOcclusionNodeId);
     rsOcclusionHandler_->isOcclusionActive_ = true;
@@ -334,7 +345,8 @@ HWTEST_F(RSOcclusionHandlerTest, CalculateFrameOcclusion_001, TestSize.Level1)
  */
 HWTEST_F(RSOcclusionHandlerTest, GetRootNodeId_001, TestSize.Level1)
 {
-    NodeId id = 0, keyOcclusionNodeId = 0;
+    NodeId id(0);
+    NodeId keyOcclusionNodeId(0);
     std::shared_ptr<RSOcclusionHandler> rsOcclusionHandler_ =
         std::make_shared<RSOcclusionHandler>(id, keyOcclusionNodeId);
     EXPECT_EQ(rsOcclusionHandler_->GetRootNodeId(), id);
@@ -348,7 +360,8 @@ HWTEST_F(RSOcclusionHandlerTest, GetRootNodeId_001, TestSize.Level1)
  */
 HWTEST_F(RSOcclusionHandlerTest, UpdateKeyOcclusionNodeId_001, TestSize.Level1)
 {
-    NodeId id = 0, keyOcclusionNodeId = 0;
+    NodeId id(0);
+    NodeId keyOcclusionNodeId(0);
     std::shared_ptr<RSOcclusionHandler> rsOcclusionHandler_ =
         std::make_shared<RSOcclusionHandler>(id, keyOcclusionNodeId);
     keyOcclusionNodeId = 1;
@@ -364,7 +377,8 @@ HWTEST_F(RSOcclusionHandlerTest, UpdateKeyOcclusionNodeId_001, TestSize.Level1)
  */
 HWTEST_F(RSOcclusionHandlerTest, IsOcclusionActive_001, TestSize.Level1)
 {
-    NodeId id = 0, keyOcclusionNodeId = 0;
+    NodeId id(0);
+    NodeId keyOcclusionNodeId(0);
     std::shared_ptr<RSOcclusionHandler> rsOcclusionHandler_ =
         std::make_shared<RSOcclusionHandler>(id, keyOcclusionNodeId);
     rsOcclusionHandler_->isOcclusionActive_ = true;
