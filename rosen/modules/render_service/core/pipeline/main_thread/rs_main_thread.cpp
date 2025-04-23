@@ -2638,7 +2638,6 @@ void RSMainThread::Render()
         renderThreadParams_->SetActualTimestamp(hgmCore.GetActualTimestamp());
         renderThreadParams_->SetVsyncId(hgmCore.GetVsyncId());
         renderThreadParams_->SetForceRefreshFlag(isForceRefresh_);
-        renderThreadParams_->SetRequestNextVsyncFlag(needRequestNextVsyncAnimate_);
         renderThreadParams_->SetPendingScreenRefreshRate(hgmCore.GetPendingScreenRefreshRate());
         renderThreadParams_->SetPendingConstraintRelativeTime(hgmCore.GetPendingConstraintRelativeTime());
         renderThreadParams_->SetForceCommitLayer(GetForceCommitReason());
