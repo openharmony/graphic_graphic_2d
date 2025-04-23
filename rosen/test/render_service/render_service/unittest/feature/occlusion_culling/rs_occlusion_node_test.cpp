@@ -45,7 +45,7 @@ void RSOcclusionNodeTest::TearDown() {}
  * @tc.name: OcclusionNode_001
  * @tc.desc: Test OcclusionNode
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueIC2H2
  */
 HWTEST_F(RSOcclusionNodeTest, OcclusionNode_001, TestSize.Level1)
 {
@@ -59,7 +59,7 @@ HWTEST_F(RSOcclusionNodeTest, OcclusionNode_001, TestSize.Level1)
  * @tc.name: GetId_001
  * @tc.desc: Test GetId
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueIC2H2
  */
 HWTEST_F(RSOcclusionNodeTest, GetId_001, TestSize.Level1)
 {
@@ -72,7 +72,7 @@ HWTEST_F(RSOcclusionNodeTest, GetId_001, TestSize.Level1)
  * @tc.name: GetParentOcNode_001
  * @tc.desc: Test GetParentOcNode
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueIC2H2
  */
 HWTEST_F(RSOcclusionNodeTest, GetParentOcNode_001, TestSize.Level1)
 {
@@ -89,7 +89,7 @@ HWTEST_F(RSOcclusionNodeTest, GetParentOcNode_001, TestSize.Level1)
  * @tc.name: UpdateChildrenOutOfRectInfo_001
  * @tc.desc: Test UpdateChildrenOutOfRectInfo
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueIC2H2
  */
 HWTEST_F(RSOcclusionNodeTest, UpdateChildrenOutOfRectInfo_001, TestSize.Level1)
 {
@@ -105,7 +105,7 @@ HWTEST_F(RSOcclusionNodeTest, UpdateChildrenOutOfRectInfo_001, TestSize.Level1)
  * @tc.name: MarkAsRootOcclusionNode_001
  * @tc.desc: Test MarkAsRootOcclusionNode
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueIC2H2
  */
 HWTEST_F(RSOcclusionNodeTest, MarkAsRootOcclusionNode_001, TestSize.Level1)
 {
@@ -120,7 +120,7 @@ HWTEST_F(RSOcclusionNodeTest, MarkAsRootOcclusionNode_001, TestSize.Level1)
  * @tc.name: IsSubTreeIgnored_001
  * @tc.desc: Test IsSubTreeIgnored
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueIC2H2
  */
 HWTEST_F(RSOcclusionNodeTest, IsSubTreeIgnored_001, TestSize.Level1)
 {
@@ -136,7 +136,7 @@ HWTEST_F(RSOcclusionNodeTest, IsSubTreeIgnored_001, TestSize.Level1)
  * @tc.name: ForwardOrderInsert_001
  * @tc.desc: Test ForwardOrderInsert
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueIC2H2
  */
 HWTEST_F(RSOcclusionNodeTest, ForwardOrderInsert_001, TestSize.Level1)
 {
@@ -150,7 +150,7 @@ HWTEST_F(RSOcclusionNodeTest, ForwardOrderInsert_001, TestSize.Level1)
  * @tc.name: ForwardOrderInsert_002
  * @tc.desc: Test ForwardOrderInsert
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueIC2H2
  */
 HWTEST_F(RSOcclusionNodeTest, ForwardOrderInsert_002, TestSize.Level1)
 {
@@ -171,7 +171,7 @@ HWTEST_F(RSOcclusionNodeTest, ForwardOrderInsert_002, TestSize.Level1)
  * @tc.name: ForwardOrderInsert_003
  * @tc.desc: Test ForwardOrderInsert
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueIC2H2
  */
 HWTEST_F(RSOcclusionNodeTest, ForwardOrderInsert_003, TestSize.Level1)
 {
@@ -195,7 +195,7 @@ HWTEST_F(RSOcclusionNodeTest, ForwardOrderInsert_003, TestSize.Level1)
  * @tc.name: RemoveChild_001
  * @tc.desc: Test RemoveChild
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueIC2H2
  */
 HWTEST_F(RSOcclusionNodeTest, RemoveChild_001, TestSize.Level1)
 {
@@ -221,7 +221,7 @@ HWTEST_F(RSOcclusionNodeTest, RemoveChild_001, TestSize.Level1)
  * @tc.name: RemoveChild_002
  * @tc.desc: Test RemoveChild
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueIC2H2
  */
 HWTEST_F(RSOcclusionNodeTest, RemoveChild_002, TestSize.Level1)
 {
@@ -254,7 +254,7 @@ HWTEST_F(RSOcclusionNodeTest, RemoveChild_002, TestSize.Level1)
  * @tc.name: CollectNodeProperties_001
  * @tc.desc: Test CollectNodeProperties
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueIC2H2
  */
 HWTEST_F(RSOcclusionNodeTest, CollectNodeProperties_001, TestSize.Level1)
 {
@@ -283,7 +283,7 @@ HWTEST_F(RSOcclusionNodeTest, CollectNodeProperties_001, TestSize.Level1)
  * @tc.name: CollectNodeProperties_002
  * @tc.desc: Test CollectNodeProperties
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueIC2H2
  */
 HWTEST_F(RSOcclusionNodeTest, CollectNodeProperties_002, TestSize.Level1)
 {
@@ -307,7 +307,7 @@ HWTEST_F(RSOcclusionNodeTest, CollectNodeProperties_002, TestSize.Level1)
  * @tc.name: CollectNodeProperties_003
  * @tc.desc: Test CollectNodeProperties
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueIC2H2
  */
 HWTEST_F(RSOcclusionNodeTest, CollectNodeProperties_003, TestSize.Level1)
 {
@@ -333,7 +333,7 @@ HWTEST_F(RSOcclusionNodeTest, CollectNodeProperties_003, TestSize.Level1)
  * @tc.name: CollectNodeProperties_004
  * @tc.desc: Test CollectNodeProperties
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueIC2H2
  */
 HWTEST_F(RSOcclusionNodeTest, CollectNodeProperties_004, TestSize.Level1)
 {
@@ -368,7 +368,7 @@ HWTEST_F(RSOcclusionNodeTest, CollectNodeProperties_004, TestSize.Level1)
  * @tc.name: CalculateNodeAllBounds_001
  * @tc.desc: Test CalculateNodeAllBounds
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueIC2H2
  */
 HWTEST_F(RSOcclusionNodeTest, CalculateNodeAllBounds_001, TestSize.Level1)
 {
@@ -391,7 +391,7 @@ HWTEST_F(RSOcclusionNodeTest, CalculateNodeAllBounds_001, TestSize.Level1)
  * @tc.name: CalculateNodeAllBounds_002
  * @tc.desc: Test CalculateNodeAllBounds
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueIC2H2
  */
 HWTEST_F(RSOcclusionNodeTest, CalculateNodeAllBounds_002, TestSize.Level1)
 {
@@ -409,23 +409,27 @@ HWTEST_F(RSOcclusionNodeTest, CalculateNodeAllBounds_002, TestSize.Level1)
     rootNode->localPosition_ = { 60.0f, 110.0f };
     rootNode->drawRect_ = { 60.0f, 60.0f, 300.0f, 300.0f };
     rootNode->cornerRadius_ = { 5.0f, 5.0f, 5.0f, 5.0f };
-    // rootNode
     rootNode->CalculateNodeAllBounds();
-    EXPECT_EQ(rootNode->innerRect_.left_, 80);
-    EXPECT_EQ(rootNode->innerRect_.top_, 135);
-    EXPECT_EQ(rootNode->innerRect_.width_, 150);
-    EXPECT_EQ(rootNode->innerRect_.height_, 140);
-    EXPECT_EQ(rootNode->outerRect_.left_, 80);
-    EXPECT_EQ(rootNode->outerRect_.top_, 130);
-    EXPECT_EQ(rootNode->outerRect_.width_, 150);
-    EXPECT_EQ(rootNode->outerRect_.height_, 150);
+    // calculate the rootNode's scaled rect, offset it by the parent's absolute coordinates,
+    // and then take the intersection with the parent's clipping rect
+    RectI16 expectInnerRect = { 80, 135, 150, 140};
+    // the outer rect will be added with cornerRadius
+    RectI16 expectOuterRect = { 80, 130, 150, 150};
+    EXPECT_EQ(rootNode->innerRect_.left_, expectInnerRect.left_);
+    EXPECT_EQ(rootNode->innerRect_.top_, expectInnerRect.top_);
+    EXPECT_EQ(rootNode->innerRect_.width_, expectInnerRect.width_);
+    EXPECT_EQ(rootNode->innerRect_.height_, expectInnerRect.height_);
+    EXPECT_EQ(rootNode->outerRect_.left_, expectOuterRect.left_);
+    EXPECT_EQ(rootNode->outerRect_.top_, expectOuterRect.top_);
+    EXPECT_EQ(rootNode->outerRect_.width_, expectOuterRect.width_);
+    EXPECT_EQ(rootNode->outerRect_.height_, expectOuterRect.height_);
 }
 
 /*
  * @tc.name: UpdateClipRect_001
  * @tc.desc: Test UpdateClipRect
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueIC2H2
  */
 HWTEST_F(RSOcclusionNodeTest, UpdateClipRect_001, TestSize.Level1)
 {
@@ -437,21 +441,23 @@ HWTEST_F(RSOcclusionNodeTest, UpdateClipRect_001, TestSize.Level1)
     renderNode->renderContent_->renderProperties_.boundsGeo_->width_ = 100.0f;
     renderNode->renderContent_->renderProperties_.boundsGeo_->height_ = 200.0f;
     rootNode->UpdateClipRect(*renderNode);
-    EXPECT_EQ(rootNode->clipOuterRect_.left_, 0);
-    EXPECT_EQ(rootNode->clipOuterRect_.top_, 0);
-    EXPECT_EQ(rootNode->clipOuterRect_.width_, 100);
-    EXPECT_EQ(rootNode->clipOuterRect_.height_, 200);
-    EXPECT_EQ(rootNode->clipInnerRect_.left_, 0);
-    EXPECT_EQ(rootNode->clipInnerRect_.top_, 0);
-    EXPECT_EQ(rootNode->clipInnerRect_.width_, 100);
-    EXPECT_EQ(rootNode->clipInnerRect_.height_, 200);
+    int initLeft = 0 ;
+    int initTop = 0;
+    EXPECT_EQ(rootNode->clipOuterRect_.left_, initLeft);
+    EXPECT_EQ(rootNode->clipOuterRect_.top_, initTop);
+    EXPECT_EQ(rootNode->clipOuterRect_.width_, renderNode->renderContent_->renderProperties_.boundsGeo_->width_);
+    EXPECT_EQ(rootNode->clipOuterRect_.height_, renderNode->renderContent_->renderProperties_.boundsGeo_->height_);
+    EXPECT_EQ(rootNode->clipInnerRect_.left_, initLeft);
+    EXPECT_EQ(rootNode->clipInnerRect_.top_, initTop);
+    EXPECT_EQ(rootNode->clipInnerRect_.width_, renderNode->renderContent_->renderProperties_.boundsGeo_->width_);
+    EXPECT_EQ(rootNode->clipInnerRect_.height_, renderNode->renderContent_->renderProperties_.boundsGeo_->height_);
 }
 
 /*
  * @tc.name: UpdateSubTreeProp_001
  * @tc.desc: Test UpdateSubTreeProp
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueIC2H2
  */
 HWTEST_F(RSOcclusionNodeTest, UpdateSubTreeProp_001, TestSize.Level1)
 {
@@ -475,33 +481,35 @@ HWTEST_F(RSOcclusionNodeTest, UpdateSubTreeProp_001, TestSize.Level1)
     children->drawRect_ = { 40.0f, 40.0f, 400.0f, 400.0f };
     children->parentOcNode_ = rootNode;
     rootNode->cornerRadius_ = { 5.0f, 5.0f, 5.0f, 5.0f };
+    // It is actually just recursively calling the method CalculateNodeAllBounds
     rootNode->UpdateSubTreeProp();
-    EXPECT_EQ(rootNode->innerRect_.left_, 80);
-    EXPECT_EQ(rootNode->innerRect_.top_, 135);
-    EXPECT_EQ(rootNode->innerRect_.width_, 150);
-    EXPECT_EQ(rootNode->innerRect_.height_, 140);
-
-    EXPECT_EQ(rootNode->outerRect_.left_, 80);
-    EXPECT_EQ(rootNode->outerRect_.top_, 130);
-    EXPECT_EQ(rootNode->outerRect_.width_, 150);
-    EXPECT_EQ(rootNode->outerRect_.height_, 150);
-
-    EXPECT_EQ(children->innerRect_.left_, 100);
-    EXPECT_EQ(children->innerRect_.top_, 175);
-    EXPECT_EQ(children->innerRect_.width_, 200);
-    EXPECT_EQ(children->innerRect_.height_, 185);
-
-    EXPECT_EQ(children->outerRect_.left_, 100);
-    EXPECT_EQ(children->outerRect_.top_, 175);
-    EXPECT_EQ(children->outerRect_.width_, 200);
-    EXPECT_EQ(children->outerRect_.height_, 185);
+    RectI16 expectRootInnerRect = { 80, 135, 150, 140};
+    EXPECT_EQ(rootNode->innerRect_.left_, expectRootInnerRect.left_);
+    EXPECT_EQ(rootNode->innerRect_.top_, expectRootInnerRect.top_);
+    EXPECT_EQ(rootNode->innerRect_.width_, expectRootInnerRect.width_);
+    EXPECT_EQ(rootNode->innerRect_.height_, expectRootInnerRect.height_);
+    RectI16 expectRootOuterRect = { 80, 130, 150, 150};
+    EXPECT_EQ(rootNode->outerRect_.left_, expectRootOuterRect.left_);
+    EXPECT_EQ(rootNode->outerRect_.top_, expectRootOuterRect.top_);
+    EXPECT_EQ(rootNode->outerRect_.width_, expectRootOuterRect.width_);
+    EXPECT_EQ(rootNode->outerRect_.height_, expectRootOuterRect.height_);
+    RectI16 expectChildrenInnerRect = { 100, 175, 200, 185};
+    EXPECT_EQ(children->innerRect_.left_, expectChildrenInnerRect.left_);
+    EXPECT_EQ(children->innerRect_.top_, expectChildrenInnerRect.top_);
+    EXPECT_EQ(children->innerRect_.width_, expectChildrenInnerRect.width_);
+    EXPECT_EQ(children->innerRect_.height_, expectChildrenInnerRect.height_);
+    RectI16 expectChildrenOuterRect = { 100, 175, 200, 185};
+    EXPECT_EQ(children->outerRect_.left_, expectChildrenOuterRect.left_);
+    EXPECT_EQ(children->outerRect_.top_, expectChildrenOuterRect.top_);
+    EXPECT_EQ(children->outerRect_.width_, expectChildrenOuterRect.width_);
+    EXPECT_EQ(children->outerRect_.height_, expectChildrenOuterRect.height_);
 }
 
 /*
  * @tc.name: DetectOcclusion_001
  * @tc.desc: Test DetectOcclusion
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueIC2H2
  */
 HWTEST_F(RSOcclusionNodeTest, DetectOcclusion_001, TestSize.Level1)
 {
@@ -523,6 +531,7 @@ HWTEST_F(RSOcclusionNodeTest, DetectOcclusion_001, TestSize.Level1)
     std::unordered_set<NodeId> culledNodes;
     std::unordered_set<NodeId> offTreeNodes;
     rootNode->DetectOcclusion(culledNodes, offTreeNodes);
+    // the first node with isValidInCurrentFrame_ is false of the subtree will be collected into offTreeNodes
     int expectSize = 1;
     EXPECT_EQ(offTreeNodes.size(), expectSize);
 }
@@ -531,7 +540,7 @@ HWTEST_F(RSOcclusionNodeTest, DetectOcclusion_001, TestSize.Level1)
  * @tc.name: DetectOcclusion_002
  * @tc.desc: Test DetectOcclusion
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueIC2H2
  */
 HWTEST_F(RSOcclusionNodeTest, DetectOcclusion_002, TestSize.Level1)
 {
@@ -563,6 +572,7 @@ HWTEST_F(RSOcclusionNodeTest, DetectOcclusion_002, TestSize.Level1)
     std::unordered_set<NodeId> offTreeNodes;
     rootNode->DetectOcclusion(culledNodes, offTreeNodes);
     int expectSize = 3;
+    // node width isOutOfRootRect_ is true will be occluded
     EXPECT_EQ(culledNodes.size(), expectSize);
 }
 
@@ -570,7 +580,7 @@ HWTEST_F(RSOcclusionNodeTest, DetectOcclusion_002, TestSize.Level1)
  * @tc.name: DetectOcclusion_003
  * @tc.desc: Test DetectOcclusion
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueIC2H2
  */
 HWTEST_F(RSOcclusionNodeTest, DetectOcclusion_003, TestSize.Level1)
 {
@@ -601,6 +611,7 @@ HWTEST_F(RSOcclusionNodeTest, DetectOcclusion_003, TestSize.Level1)
     std::unordered_set<NodeId> culledNodes;
     std::unordered_set<NodeId> offTreeNodes;
     rootNode->DetectOcclusion(culledNodes, offTreeNodes);
+    // only CANVAS_NODE can be occluded
     int expectSize = 2;
     EXPECT_EQ(culledNodes.size(), expectSize);
 }
@@ -609,7 +620,7 @@ HWTEST_F(RSOcclusionNodeTest, DetectOcclusion_003, TestSize.Level1)
  * @tc.name: DetectOcclusion_004
  * @tc.desc: Test DetectOcclusion
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueIC2H2
  */
 HWTEST_F(RSOcclusionNodeTest, DetectOcclusion_004, TestSize.Level1)
 {
@@ -641,6 +652,7 @@ HWTEST_F(RSOcclusionNodeTest, DetectOcclusion_004, TestSize.Level1)
     std::unordered_set<NodeId> culledNodes;
     std::unordered_set<NodeId> offTreeNodes;
     rootNode->DetectOcclusion(culledNodes, offTreeNodes);
+    // node with isOutOfRootRect_ is true and isNeedClip_ is false will be occluded directly
     int expectSize = 2;
     EXPECT_EQ(culledNodes.size(), expectSize);
 }
@@ -649,7 +661,7 @@ HWTEST_F(RSOcclusionNodeTest, DetectOcclusion_004, TestSize.Level1)
  * @tc.name: DetectOcclusion_005
  * @tc.desc: Test DetectOcclusion
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueIC2H2
  */
 HWTEST_F(RSOcclusionNodeTest, DetectOcclusion_005, TestSize.Level1)
 {
@@ -688,15 +700,17 @@ HWTEST_F(RSOcclusionNodeTest, DetectOcclusion_005, TestSize.Level1)
     std::unordered_set<NodeId> culledNodes;
     std::unordered_set<NodeId> offTreeNodes;
     rootNode->DetectOcclusion(culledNodes, offTreeNodes);
-    // Do not consider multiple nodes occluding one node
-    EXPECT_EQ(culledNodes.size(), 0);
+    // nodes two and three combined can occlude the first node.
+    // but we do not consider multiple nodes occluding one node
+    int expectSize = 0;
+    EXPECT_EQ(culledNodes.size(), expectSize);
 }
 
 /*
  * @tc.name: DetectOcclusion_006
  * @tc.desc: Test DetectOcclusion
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueIC2H2
  */
 HWTEST_F(RSOcclusionNodeTest, DetectOcclusion_006, TestSize.Level1)
 {
@@ -730,7 +744,7 @@ HWTEST_F(RSOcclusionNodeTest, DetectOcclusion_006, TestSize.Level1)
     firstChild->outerRect_ = { 10, 10, 640, 780 };
     secondChild->innerRect_ = { 10, 10, 640, 390 };
     secondChild->outerRect_ = { 10, 10, 640, 390 };
-    // One pixel difference on the left
+    // the left side was off by 1 pixel and did not cover completely, so it was not occluded.
     thirdChild->innerRect_ = { 11, 10, 880, 1360 };
     thirdChild->outerRect_ = { 11, 10, 880, 1360 };
     std::unordered_set<NodeId> culledNodes;
@@ -744,7 +758,7 @@ HWTEST_F(RSOcclusionNodeTest, DetectOcclusion_006, TestSize.Level1)
  * @tc.name: DetectOcclusion_007
  * @tc.desc: Test DetectOcclusion
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueIC2H2
  */
 HWTEST_F(RSOcclusionNodeTest, DetectOcclusion_007, TestSize.Level1)
 {
@@ -782,7 +796,8 @@ HWTEST_F(RSOcclusionNodeTest, DetectOcclusion_007, TestSize.Level1)
     thirdChild->outerRect_ = { 10, 400, 640, 390 };
     std::unordered_set<NodeId> culledNodes;
     std::unordered_set<NodeId> offTreeNodes;
-    // Inner and outer
+    // occlude others using inner rect
+    // be occluded by others using outer rect
     rootNode->DetectOcclusion(culledNodes, offTreeNodes);
     int expectSize = 0;
     EXPECT_EQ(culledNodes.size(), expectSize);
@@ -792,7 +807,7 @@ HWTEST_F(RSOcclusionNodeTest, DetectOcclusion_007, TestSize.Level1)
  * @tc.name: DetectOcclusion_008
  * @tc.desc: Test DetectOcclusion
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueIC2H2
  */
 HWTEST_F(RSOcclusionNodeTest, DetectOcclusion_008, TestSize.Level1)
 {
@@ -830,7 +845,7 @@ HWTEST_F(RSOcclusionNodeTest, DetectOcclusion_008, TestSize.Level1)
     thirdChild->outerRect_ = { 9, 9, 641, 781 };
     std::unordered_set<NodeId> culledNodes;
     std::unordered_set<NodeId> offTreeNodes;
-    // normal
+    // first and second will be occludered by third
     rootNode->DetectOcclusion(culledNodes, offTreeNodes);
     int expectSize = 2;
     EXPECT_EQ(culledNodes.size(), expectSize);
