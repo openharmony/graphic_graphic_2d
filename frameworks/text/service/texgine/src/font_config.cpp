@@ -49,14 +49,17 @@ FontConfig::FontConfig(const char* fname)
 
 char* FontConfig::GetFileData(const char* fname, int& size)
 {
-    const char* realPath = fname;
-#ifdef BUILD_NON_SDK_VER
-    char real[PATH_MAX] = {0};
-    if (fname == nullptr || realpath(fname, real) == NULL) {
-        TEXT_LOGE("Invalid parameter");
+    char realPath[PATH_MAX] = {0};
+#ifdef _WIN32
+    if (fname == nullptr || _fullpath(realPath, fname, PATH_MAX) == nullptr) {
+        TEXT_LOGE("Path or realPath is nullptr");
         return nullptr;
     }
-    realPath = real;
+#else
+    if (fname == nullptr || realpath(fname, realPath) == nullptr) {
+        TEXT_LOGE("Path or realPath is nullptr");
+        return nullptr;
+    }
 #endif
     std::ifstream file(realPath);
     if (file.good()) {
@@ -91,7 +94,7 @@ char* FontConfig::GetFileData(const char* fname, int& size)
     return nullptr;
 }
 
-cJSON* FontConfig::CheckConfigFile(const char* fname) const
+cJSON* FontConfig::CheckConfigFile(const char* fname)
 {
     int size = 0;
     char* data = GetFileData(fname, size);
@@ -341,6 +344,52 @@ int FontConfigJson::ParseFontMap(const cJSON* root, const char* key)
 
 int FontConfigJson::ParseInstallFont(const cJSON* root, std::vector<std::string>& fontPathList)
 {
+    cJSON* rootObj = cJSON_GetObjectItem(root, "fontlist");
+    if (rootObj == nullptr) {
+        TEXT_LOGE("Failed to get json object");
+        return FAILED;
+    }
+    int size = cJSON_GetArraySize(rootObj);
+    if (size <= 0) {
+        TEXT_LOGE("Failed to get json array size");
+        return FAILED;
+    }
+    fontPathList.reserve(size);
+    for (int i = 0; i < size; i++) {
+        cJSON* item = cJSON_GetArrayItem(rootObj, i);
+        if (item == nullptr) {
+            TEXT_LOGE("Failed to get json item");
+            return FAILED;
+        }
+        cJSON* fullPath = cJSON_GetObjectItem(item, "fontfullpath");
+        if (!cJSON_IsString(fullPath)) {
+            TEXT_LOGE("Failed to get fullPath");
+            return FAILED;
+        }
+        fontPathList.emplace_back(std::string(fullPath->valuestring));
+    }
+    return SUCCESSED;
+}
+
+void FontConfigJson::ParseFullName(const cJSON* root, std::vector<std::string>& fullNameList)
+{
+    cJSON* fullname = cJSON_GetObjectItem(root, "fullname");
+    if (!cJSON_IsArray(fullname)) {
+        TEXT_LOGE("Failed to get key: fullname");
+        return;
+    }
+    int size = cJSON_GetArraySize(fullname);
+    for (int i = 0; i < size; i += 1) {
+        cJSON* item = cJSON_GetArrayItem(fullname, i);
+        if (!cJSON_IsString(item)) {
+            continue;
+        }
+        fullNameList.emplace_back(item->valuestring);
+    }
+}
+
+int FontConfigJson::ParseInstallFont(const cJSON* root, FontFileMap& fontPathList)
+{
     const char* tag = "fontlist";
     cJSON* rootObj = cJSON_GetObjectItem(root, tag);
     if (rootObj == nullptr) {
@@ -364,12 +413,17 @@ int FontConfigJson::ParseInstallFont(const cJSON* root, std::vector<std::string>
             TEXT_LOGE("Failed to get fullPath");
             return FAILED;
         }
-        fontPathList.emplace_back(std::string(fullPath->valuestring));
+        std::vector<std::string> fullNameList;
+        ParseFullName(item, fullNameList);
+        for (const auto& fullName: fullNameList) {
+            fontPathList.emplace(fullName, fullPath->valuestring);
+        }
     }
     return SUCCESSED;
 }
 
-int FontConfigJson::ParseInstallConfig(const char* fontPath, std::vector<std::string>& fontPathList)
+template<typename T>
+int FontConfigJson::ParseInstallConfig(const char* fontPath, T& fontPathList)
 {
     if (fontPath == nullptr) {
         TEXT_LOGE("Null font path");
@@ -388,6 +442,9 @@ int FontConfigJson::ParseInstallConfig(const char* fontPath, std::vector<std::st
     cJSON_Delete(root);
     return SUCCESSED;
 }
+
+template int FontConfigJson::ParseInstallConfig(const char *fontPath, FontFileMap& fontPathList);
+template int FontConfigJson::ParseInstallConfig(const char *fontPath, std::vector<std::string>& fontPathList);
 
 void FontConfigJson::DumpAlias(const AliasSet& aliasSet) const
 {
