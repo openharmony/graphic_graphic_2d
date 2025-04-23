@@ -48,7 +48,17 @@ namespace text {
   export class FontCollection {
     static { loadLibrary('text_engine_ani.z') }
     private nativeObj : long = 0;
-    native constructor();
+    private cleaner: Cleaner | null = null;
+
+    constructor() {
+      this.constructorNative();
+      this.registerCleaner(this.nativeObj);
+    };
+    native constructorNative(): void;
+    registerCleaner(ptr: long): void {
+      this.cleaner = new Cleaner("FontCollection", ptr);
+      destroyRegister.register(this, this.cleaner!, unregisterToken);
+    }
 
     public native static getGlobalInstance(): FontCollection;
 
@@ -70,6 +80,7 @@ namespace text {
     static { loadLibrary('text_engine_ani.z') }
     private nativeObj : long = 0;
     private cleaner: Cleaner | null = null;
+
     /**
      * Constructor ParagraphBuilder.
      * @param { ParagraphStyle } paragraphStyle - Paragraph style {@link ParagraphStyle}
@@ -127,7 +138,17 @@ namespace text {
   export class Paragraph {
     static { loadLibrary('text_engine_ani.z') }
     public nativeObj : long = 0;
-    native constructor();
+    private cleaner: Cleaner | null = null;
+    
+    constructor() {
+      this.constructorNative();
+      this.registerCleaner(this.nativeObj);
+    };
+    native constructorNative(): void;
+    registerCleaner(ptr: long): void {
+      this.cleaner = new Cleaner("Paragraph", ptr);
+      destroyRegister.register(this, this.cleaner!, unregisterToken);
+    }
     /**
      * Calculates the positioning of all the glyphs.
      * @param { number } width - Control how wide the text is allowed to be.

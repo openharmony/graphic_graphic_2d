@@ -23,7 +23,7 @@
 #include "ani_common.h"
 #include "utils/text_log.h"
 
-namespace OHOS::Rosen {
+namespace OHOS::Text::NAI {
 class AniTextUtils {
 public:
     template <typename T>
@@ -110,5 +110,5 @@ ani_status AniTextUtils::ReadOptionalArrayField(ani_env* env, ani_object obj, co
     }
     return ANI_OK;
 };
-} // namespace OHOS::Rosen
+} // namespace OHOS::Text::NAI
 #endif // OHOS_ANI_TEXT_UTILS_H

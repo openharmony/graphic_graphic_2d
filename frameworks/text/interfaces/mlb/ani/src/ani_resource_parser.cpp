@@ -18,7 +18,7 @@
 #include "ability.h"
 #include "ani_text_utils.h"
 
-namespace OHOS::Rosen {
+namespace OHOS::Text::NAI {
 namespace {
 std::vector<std::string> AniToStdVectorString(ani_env* env, ani_array array)
 {
@@ -100,4 +100,4 @@ bool AniResourceParser::ResolveResource(const AniResource& resource, size_t data
     return true;
 }
 
-} // namespace OHOS::Rosen
+} // namespace OHOS::Text::NAI

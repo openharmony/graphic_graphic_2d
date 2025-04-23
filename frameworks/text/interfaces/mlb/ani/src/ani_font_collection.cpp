@@ -24,7 +24,7 @@
 #include "ani_text_utils.h"
 #include "utils/text_log.h"
 
-namespace OHOS::Rosen {
+namespace OHOS::Text::NAI {
 
 AniFontCollection::AniFontCollection()
 {
@@ -129,7 +129,7 @@ ani_status AniFontCollection::AniInit(ani_vm* vm, uint32_t* result)
     std::string loadFontSync = "Lstd/core/String;Lstd/core/Object;:V";
 
     std::array methods = {
-        ani_native_function { "<ctor>", ":V", reinterpret_cast<void*>(Constructor) },
+        ani_native_function { "constructorNative", ":V", reinterpret_cast<void*>(Constructor) },
         ani_native_function { "getGlobalInstance", globalInstance.c_str(), reinterpret_cast<void*>(GetGlobalInstance) },
         ani_native_function { "loadFontSync", loadFontSync.c_str(), reinterpret_cast<void*>(LoadFontSync) },
         ani_native_function { "clearCaches", ":V", reinterpret_cast<void*>(ClearCaches) },
@@ -147,4 +147,4 @@ std::shared_ptr<FontCollection> AniFontCollection::GetFontCollection()
 {
     return fontCollection_;
 }
-} // namespace OHOS::Rosen
+} // namespace OHOS::Text::NAI

@@ -21,7 +21,7 @@
 #include "ani.h"
 #include "typography_style.h"
 
-namespace OHOS::Rosen {
+namespace OHOS::Text::NAI {
 
 ani_object AniTextUtils::CreateAniUndefined(ani_env* env)
 {
@@ -222,4 +222,4 @@ ani_status AniTextUtils::ReadOptionalBoolField(ani_env* env, ani_object obj, con
     }
     return result;
 }
-} // namespace OHOS::Rosen
+} // namespace OHOS::Text::NAI

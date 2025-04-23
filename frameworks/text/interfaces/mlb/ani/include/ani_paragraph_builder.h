@@ -20,7 +20,8 @@
 
 #include "typography_create.h"
 
-namespace OHOS::Rosen {
+namespace OHOS::Text::NAI {
+using namespace OHOS::Rosen;
 class AniParagraphBuilder final {
 public:
     AniParagraphBuilder();
@@ -35,5 +36,5 @@ private:
 
     std::unique_ptr<TypographyCreate> typographyCreate_ = nullptr;
 };
-} // namespace OHOS::Rosen
+} // namespace OHOS::Text::NAI
 #endif // OHOS_ROSEN_ANI_PARAGRAPH_BUILDER_H

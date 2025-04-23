@@ -19,8 +19,8 @@
 #include <ani.h>
 
 #include "typography_style.h"
-
-namespace OHOS::Rosen {
+namespace OHOS::Text::NAI {
+using namespace OHOS::Rosen;
 inline constexpr const char* NATIVE_OBJ = "nativeObj";
 inline constexpr const char* ANI_CLASS_CLEANER = "L@ohos/graphics/text/text/Cleaner;";
 inline constexpr const char* ANI_CLASS_PARAGRAPH = "L@ohos/graphics/text/text/Paragraph;";
@@ -41,5 +41,5 @@ public:
     static void SetParagraphStyleTab(ani_env* env, ani_object obj, std::unique_ptr<TypographyStyle>& paragraphStyle);
     static void SetFontFamilies(ani_env* env, ani_array_ref obj, std::vector<std::string>& paragraphStyle);
 };
-} // namespace OHOS::Rosen
+} // namespace OHOS::Text::NAI
 #endif // OHOS_ROSEN_ANI_COMMON_H

@@ -22,7 +22,7 @@
 #include "typography_types.h"
 #include "utils/text_log.h"
 
-namespace OHOS::Rosen {
+namespace OHOS::Text::NAI {
 std::unique_ptr<TypographyStyle> AniCommon::ParseParagraphStyle(ani_env* env, ani_object obj)
 {
     ani_class cls;
@@ -219,4 +219,4 @@ void AniCommon::ParseFontFeature(ani_env* env, ani_object obj, FontFeatures& fon
             return "";
         });
 }
-} // namespace OHOS::Rosen
+} // namespace OHOS::Text::NAI

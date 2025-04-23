@@ -24,7 +24,7 @@
 #include "typography_create.h"
 #include "utils/text_log.h"
 
-namespace OHOS::Rosen {
+namespace OHOS::Text::NAI {
 
 AniParagraph::AniParagraph()
 {
@@ -61,7 +61,7 @@ ani_status AniParagraph::AniInit(ani_vm* vm, uint32_t* result)
     }
 
     std::array methods = {
-        ani_native_function{"<ctor>", ":V", reinterpret_cast<void*>(Constructor)},
+        ani_native_function{"constructorNative", ":V", reinterpret_cast<void*>(Constructor)},
         ani_native_function{"layoutSync", "D:V", reinterpret_cast<void*>(LayoutSync)},
         ani_native_function{"getLongestLine", ":D", reinterpret_cast<void*>(GetLongestLine)},
         ani_native_function{"getLineMetrics", ":Lescompat/Array;", reinterpret_cast<void*>(GetLineMetrics)},
@@ -151,4 +151,4 @@ ani_object AniParagraph::GetLineMetricsAt(ani_env* env, ani_object object, ani_d
     }
     return AniConvertLineMetrics(env, lineMetrics);
 }
-} // namespace OHOS::Rosen
+} // namespace OHOS::Text::NAI

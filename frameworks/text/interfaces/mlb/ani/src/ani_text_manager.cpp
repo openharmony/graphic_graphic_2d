@@ -21,9 +21,7 @@
 #include "ani_text_utils.h"
 #include "utils/text_log.h"
 
-namespace {
-using namespace OHOS::Rosen;
-
+namespace OHOS::Text::NAI{
 #define STRUCT_LIST(...) using AniTypes = std::tuple<__VA_ARGS__>
 
 // add new struct in this macro
@@ -57,6 +55,12 @@ static void Clean(ani_env* env, ani_object object)
     if (familyName.find("ParagraphBuilder") != std::string::npos) {
         TEXT_LOGE("[ANI] clean ParagraphBuilder:%{public}lld", ptr);
         delete reinterpret_cast<AniParagraphBuilder*>(ptr);
+    } else if (familyName.find("Paragraph") != std::string::npos) {
+        TEXT_LOGE("[ANI] clean Paragraph:%{public}lld", ptr);
+        delete reinterpret_cast<AniParagraph*>(ptr);
+    } else if (familyName.find("FontCollection") != std::string::npos) {
+        TEXT_LOGE("[ANI] clean FontCollection:%{public}lld", ptr);
+        delete reinterpret_cast<AniFontCollection*>(ptr);
     }
 }
 
@@ -99,7 +103,7 @@ extern "C"
 {
     ANI_EXPORT ani_status ANI_Constructor(ani_vm* vm, uint32_t* result)
     {
-        ani_status status = Init(vm, result);
+        ani_status status = OHOS::Text::NAI::Init(vm, result);
         if (status == ANI_OK) {
             *result = ANI_VERSION_1;
         }

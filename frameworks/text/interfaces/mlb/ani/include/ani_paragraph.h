@@ -20,7 +20,8 @@
 
 #include "typography.h"
 
-namespace OHOS::Rosen {
+namespace OHOS::Text::NAI {
+using namespace OHOS::Rosen;
 class AniParagraph final {
 public:
     AniParagraph();
@@ -35,5 +36,5 @@ private:
     static ani_object GetLineMetricsAt(ani_env* env, ani_object object, ani_double lineNumber);
     std::shared_ptr<Typography> paragraph_ = nullptr;
 };
-} // namespace OHOS::Rosen
+} // namespace OHOS::Text::NAI
 #endif // OHOS_ROSEN_ANI_PARAGRAPH_H

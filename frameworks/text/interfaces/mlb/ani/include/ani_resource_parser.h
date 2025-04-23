@@ -19,7 +19,7 @@
 #include <ani.h>
 #include <string>
 
-namespace OHOS::Rosen {
+namespace OHOS::Text::NAI {
 struct AniResource {
     std::string bundleName;
     std::string moduleName;
@@ -32,5 +32,5 @@ public:
     static AniResource ParseResource(ani_env* env, ani_object obj);
     static bool ResolveResource(const AniResource& resource, size_t dataLen, std::unique_ptr<uint8_t[]>& data);
 };
-} // namespace OHOS::Rosen
+} // namespace OHOS::Text::NAI
 #endif // OHOS_ROSEN_ANI_RESOURCE_H

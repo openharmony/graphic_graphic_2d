@@ -27,7 +27,7 @@
 #include "font_collection.h"
 #include "text_style.h"
 
-namespace OHOS::Rosen {
+namespace OHOS::Text::NAI {
 
 AniParagraphBuilder::AniParagraphBuilder()
 {
@@ -146,4 +146,4 @@ ani_object AniParagraphBuilder::Build(ani_env* env, ani_object object)
     }
     return pargraphObj;
 }
-} // namespace OHOS::Rosen
+} // namespace OHOS::Text::NAI
