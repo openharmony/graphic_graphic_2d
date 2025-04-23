@@ -63,7 +63,7 @@ ohos_unittest("RSOcclusionHandlerTest") {
   module_out_path = module_output_path
   sources = [ "occlusion_culling/rs_occlusion_handler_test.cpp" ]
   deps = [ ":rs_test_common" ]
-  include_dirs = [ "../../../../../modules/render_service_base/include" ]
+  include_dirs = [ "$graphic_2d_root/rosen/modules/render_service_base/include" ]
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
