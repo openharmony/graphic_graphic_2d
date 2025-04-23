@@ -1121,24 +1121,11 @@ void RsSubThreadCache::DrawBehindWindowBeforeCache(RSPaintFilterCanvas& canvas,
         return;
     }
     filter->PreProcess(imageSnapshot);
-    std::shared_ptr<Drawing::Surface> offscreenSurface =
-        surface->MakeSurface(imageSnapshot->GetWidth(), imageSnapshot->GetHeight());
-    if (!offscreenSurface) {
-        RS_LOGE("RsSubThreadCache::DrawBehindWindowBeforeCache offscreenSurface is nullptr");
-        return;
-    }
-    RSPaintFilterCanvas offscreenCanvas(offscreenSurface.get());
-    auto clipBounds = Drawing::Rect(0, 0, imageRect.GetWidth(), imageRect.GetHeight());
-    auto imageSnapshotBounds = Drawing::Rect(0, 0, imageSnapshot->GetWidth(), imageSnapshot->GetHeight());
-    filter->DrawImageRect(offscreenCanvas, imageSnapshot, imageSnapshotBounds, clipBounds);
-    filter->PostProcess(offscreenCanvas);
-    auto imageCache = offscreenSurface->GetImageSnapshot();
-    if (!imageCache) {
-        RS_LOGE("RsSubThreadCache::DrawBehindWindowBeforeCache imageCache is nullptr");
-        return;
-    }
+    Drawing::Rect srcRect = Drawing::Rect(0, 0, imageSnapshot->GetWidth(), imageSnapshot->GetHeight());
+    Drawing::Rect dstRect = imageRect;
     canvas.ResetMatrix();
-    canvas.DrawImage(*imageCache, static_cast<float>(imageRect.GetLeft()), static_cast<float>(imageRect.GetTop()),
-        Drawing::SamplingOptions());
+    filter->DrawImageRect(canvas, imageSnapshot, srcRect, dstRect);
+    filter->PostProcess(canvas);
+    RS_TRACE_NAME_FMT("RsSubThreadCache::DrawBehindWindowBeforeCache imageRect:%s", imageRect.ToString().c_str());
 }
 } // namespace OHOS::Rosen

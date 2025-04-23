@@ -676,4 +676,41 @@ HWTEST_F(RSSubThreadCacheTest, DrawBehindWindowBeforeCacheTest, TestSize.Level1)
     auto rscanvas = RSPaintFilterCanvas(drawingCanvas_.get());
     surfaceDrawable_->GetRsSubThreadCache().DrawBehindWindowBeforeCache(rscanvas);
 }
+
+/**
+ * @tc.name: SetNodeIdTest
+ * @tc.desc: Test SetNodeId and GetNodeId
+ * @tc.type: FUNC
+ * @tc.require: issueIC3DK9
+ */
+HWTEST_F(RSSubThreadCacheTest, SetNodeIdTest, TestSize.Level1)
+{
+    RsSubThreadCache subCache;
+    NodeId id = 100;
+    subCache.SetNodeId(id);
+    ASSERT_EQ(subCache.GetNodeId(), id);
+}
+
+/**
+ * @tc.name: ResetUifirstTest
+ * @tc.desc: Test ResetUifirstTest
+ * @tc.type: FUNC
+ * @tc.require: issueIC3DK9
+ */
+HWTEST_F(RSSubThreadCacheTest, ResetUifirstTest, TestSize.Level1)
+{
+    RsSubThreadCache subCache;
+    subCache.cacheSurface_ = std::make_shared<Drawing::Surface>();
+    subCache.cacheCompletedSurface_ = std::make_shared<Drawing::Surface>();
+    // clear cache only
+    subCache.ResetUifirst(true);
+    ASSERT_EQ(subCache.cacheSurface_, nullptr);
+    ASSERT_NE(subCache.cacheCompletedSurface_, nullptr);
+
+    subCache.cacheSurface_ = std::make_shared<Drawing::Surface>();
+    // clear cache and complete cache
+    subCache.ResetUifirst(false);
+    ASSERT_EQ(subCache.cacheSurface_, nullptr);
+    ASSERT_EQ(subCache.cacheCompletedSurface_, nullptr);
+}
 }

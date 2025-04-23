@@ -242,13 +242,6 @@ private:
     bool IsToSubByAppAnimation() const;
     bool QuerySubAssignable(RSSurfaceRenderNode& node, bool isRotation);
     bool GetSubNodeIsTransparent(RSSurfaceRenderNode& node, std::string& dfxMsg);
-    inline bool IsTransparent(RSSurfaceRenderNode& node) const
-    {
-        const uint8_t opacity = 255;
-        return !(node.GetAbilityBgAlpha() == opacity && ROSEN_EQ(node.GetGlobalAlpha(), 1.0f)) ||
-            (node.IsEmptyAppWindow() && RSUniRenderJudgement::IsUniRender()) ||
-            (RSSystemProperties::GetUIFirstBehindWindowFilterEnabled() && node.NeedDrawBehindWindow());
-    }
 
     // starting
     void ProcessFirstFrameCache(RSSurfaceRenderNode& node, MultiThreadCacheType cacheType);

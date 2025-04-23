@@ -1516,10 +1516,18 @@ bool RSUifirstManager::GetSubNodeIsTransparent(RSSurfaceRenderNode& node, std::s
             if (childSurfaceNode == nullptr) {
                 continue;
             }
-            hasTransparent |= IsTransparent(*(childSurfaceNode.get()));
+            hasTransparent |= childSurfaceNode->IsAlphaTransparent() || (childSurfaceNode->NeedDrawBehindWindow() &&
+                !RSSystemProperties::GetUIFirstBehindWindowFilterEnabled());
+            if (hasTransparent) {
+                dfxMsg = "childSurfaceNode_NeedDrawBehindWindow: " +
+                    std::to_string(childSurfaceNode->NeedDrawBehindWindow());
+                break;
+            }
         }
     } else {
-        hasTransparent = IsTransparent(node);
+        hasTransparent = node.IsAlphaTransparent() || (node.NeedDrawBehindWindow() &&
+            !RSSystemProperties::GetUIFirstBehindWindowFilterEnabled());
+        dfxMsg = "NeedDrawBehindWindow: " + std::to_string(node.NeedDrawBehindWindow());
     }
     if (!hasTransparent || !IsToSubByAppAnimation()) {
         // if not transparent, no need to check IsToSubByAppAnimation;
