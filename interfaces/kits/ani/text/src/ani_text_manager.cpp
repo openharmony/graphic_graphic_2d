@@ -14,9 +14,12 @@
  */
 #include <ani.h>
 
+#include "ani_common.h"
 #include "ani_font_collection.h"
 #include "ani_paragraph.h"
 #include "ani_paragraph_builder.h"
+#include "ani_text_utils.h"
+#include "utils/text_log.h"
 
 namespace {
 using namespace OHOS::Rosen;
@@ -26,13 +29,13 @@ using namespace OHOS::Rosen;
 // add new struct in this macro
 STRUCT_LIST(AniFontCollection, AniParagraph, AniParagraphBuilder);
 
-template<typename T>
+template <typename T>
 static ani_status InitOneStruct(ani_vm* vm, uint32_t* result)
 {
     return T::AniInit(vm, result);
 }
 
-template<typename Tuple, size_t... Is>
+template <typename Tuple, size_t... Is>
 static ani_status InitAllStruct(ani_vm* vm, uint32_t* result, std::index_sequence<Is...>)
 {
     ani_status ret;
@@ -40,19 +43,66 @@ static ani_status InitAllStruct(ani_vm* vm, uint32_t* result, std::index_sequenc
     return ret;
 }
 
+static void Clean(ani_env* env, ani_object object)
+{
+    ani_long ptr;
+    if (ANI_OK != env->Object_GetFieldByName_Long(object, "ptr", &ptr)) {
+        return;
+    }
+    ani_ref stringRef = nullptr;
+    if (ANI_OK != env->Object_GetFieldByName_Ref(object, "className", &stringRef)) {
+        return;
+    }
+    std::string familyName = AniTextUtils::AniToStdStringUtf8(env, static_cast<ani_string>(stringRef));
+    if (familyName.find("ParagraphBuilder") != std::string::npos) {
+        TEXT_LOGE("[ANI] clean ParagraphBuilder:%{public}lld", ptr);
+        delete reinterpret_cast<AniParagraphBuilder*>(ptr);
+    }
+}
+
+static ani_status AniCleanerInit(ani_vm* vm)
+{
+    ani_env* env;
+    ani_status ret;
+    if ((ret = vm->GetEnv(ANI_VERSION_1, &env)) != ANI_OK) {
+        TEXT_LOGE("[ANI] AniCleaner null env:%{public}d", ret);
+        return ANI_NOT_FOUND;
+    }
+
+    ani_class cls = nullptr;
+    ret = env->FindClass(ANI_CLASS_CLEANER, &cls);
+    if (ret != ANI_OK) {
+        TEXT_LOGE("[ANI] AniCleaner can't find class:%{public}d", ret);
+        return ANI_NOT_FOUND;
+    }
+
+    std::array methods = {
+        ani_native_function{"clean", ":V", reinterpret_cast<void*>(Clean)},
+    };
+
+    ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
+    if (ret != ANI_OK) {
+        TEXT_LOGE("[ANI] AniCleaner bind methods fail:%{public}d", ret);
+        return ANI_NOT_FOUND;
+    }
+    return ANI_OK;
+}
+
 static ani_status Init(ani_vm* vm, uint32_t* result)
 {
+    AniCleanerInit(vm);
     return InitAllStruct<AniTypes>(vm, result, std::make_index_sequence<std::tuple_size_v<AniTypes>>());
 }
 } // namespace
 
-extern "C" {
-ANI_EXPORT ani_status ANI_Constructor(ani_vm* vm, uint32_t* result)
+extern "C"
 {
-    ani_status status = Init(vm, result);
-    if (status == ANI_OK) {
-        *result = ANI_VERSION_1;
+    ANI_EXPORT ani_status ANI_Constructor(ani_vm* vm, uint32_t* result)
+    {
+        ani_status status = Init(vm, result);
+        if (status == ANI_OK) {
+            *result = ANI_VERSION_1;
+        }
+        return status;
     }
-    return status;
-}
 }

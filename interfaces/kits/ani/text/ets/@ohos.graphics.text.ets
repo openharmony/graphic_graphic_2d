@@ -29,6 +29,23 @@ import { Resource } from 'global.resource';
  * @since 12
  */
 namespace text {
+  class Cleaner {
+    private ptr: long = 0;
+    private className: string;
+    constructor(className: string, ptr: long) {
+      this.ptr = ptr;
+      this.className = className;
+    }
+    natvie clean(): void;
+  }
+
+  function callback(cleaner: Cleaner): void {
+    cleaner.clean();
+  }
+
+  let destroyRegister = new FinalizationRegistry<Cleaner>(callback);
+  let unregisterToken = new object();
+
   export class FontCollection {
     static { loadLibrary('text_engine_ani.z') }
     private nativeObj : long = 0;
@@ -53,6 +70,7 @@ namespace text {
   export class ParagraphBuilder {
     static { loadLibrary('text_engine_ani.z') }
     private nativeObj : long = 0;
+    private cleaner: Cleaner | null = null;
     /**
      * Constructor ParagraphBuilder.
      * @param { ParagraphStyle } paragraphStyle - Paragraph style {@link ParagraphStyle}
@@ -60,7 +78,15 @@ namespace text {
      * @syscap SystemCapability.Graphics.Drawing
      * @since 12
      */
-    native constructor(paragraphStyle: ParagraphStyle, fontCollection: FontCollection);
+    constructor(paragraphStyle: ParagraphStyle, fontCollection: FontCollection) {
+      this.constructorNative(paragraphStyle, fontCollection);
+      this.registerCleaner(nativeObj);
+    };
+    native constructorNative(paragraphStyle: ParagraphStyle, fontCollection: FontCollection);
+    registerCleaner(ptr: long): void {
+      this.cleaner = new Cleaner("ParagraphBuilder", ptr);
+      destroyRegister.register(this, thi.cleaner!, unregisterToken);
+    }
 
     /**
      * Push a style to the stack.

@@ -26,7 +26,7 @@
 namespace OHOS::Rosen {
 class AniTextUtils {
 public:
-    template<typename T>
+    template <typename T>
     static T* GetNativeFromObj(ani_env* env, ani_object obj);
     static ani_object CreateAniUndefined(ani_env* env);
     static ani_object CreateAniObject(ani_env* env, const std::string name, const char* signature);
@@ -35,7 +35,7 @@ public:
     static std::u16string AniToStdStringUtf16(ani_env* env, ani_string str);
     static bool ReadFile(const std::string& filePath, size_t dataLen, std::unique_ptr<uint8_t[]>& data);
     static bool SplitAbsoluteFontPath(std::string& absolutePath);
-    static ani_status ReadOptionalField(ani_env* env, ani_object obj, const char* fieldName, ani_ref& ref);    
+    static ani_status ReadOptionalField(ani_env* env, ani_object obj, const char* fieldName, ani_ref& ref);
     static ani_status ReadOptionalDoubleField(ani_env* env, ani_object obj, const char* fieldName, double& value);
     static ani_status ReadOptionalStringField(ani_env* env, ani_object obj, const char* fieldName, std::string& str);
     static ani_status ReadOptionalU16StringField(ani_env* env, ani_object obj, const char* fieldName,

@@ -26,7 +26,9 @@
 
 namespace OHOS::Rosen {
 
-AniParagraph::AniParagraph() {}
+AniParagraph::AniParagraph()
+{
+}
 
 void AniParagraph::setTypography(std::unique_ptr<OHOS::Rosen::Typography>& typography)
 {

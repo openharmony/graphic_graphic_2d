@@ -38,7 +38,7 @@ void AniParagraphBuilder::Constructor(ani_env* env, ani_object object, ani_objec
 {
     AniParagraphBuilder* aniParagraphBuilder = new AniParagraphBuilder();
     if (ANI_OK
-        != env->Object_SetFieldByName_Long(object, "nativeObj", reinterpret_cast<ani_long>(aniParagraphBuilder))) {
+        != env->Object_SetFieldByName_Long(object, NATIVE_OBJ, reinterpret_cast<ani_long>(aniParagraphBuilder))) {
         TEXT_LOGE("Failed to create ani ParagraphBuilder obj");
         return;
     }
@@ -84,11 +84,11 @@ ani_status AniParagraphBuilder::AniInit(ani_vm* vm, uint32_t* result)
     std::string pushStyleSignature = std::string(ANI_CLASS_TEXT_STYLE) + ":V";
     std::string buildStyleSignature = ":" + std::string(ANI_CLASS_PARAGRAPH);
     std::array methods = {
-        ani_native_function{"<ctor>", ctorSignature.c_str(), reinterpret_cast<void*>(Constructor)},
-        ani_native_function{"pushStyle", pushStyleSignature.c_str(), reinterpret_cast<void*>(pushStyle)},
-        ani_native_function{"popStyle", ":V", reinterpret_cast<void*>(popStyle)},
-        ani_native_function{"addText", "Lstd/core/String;:V", reinterpret_cast<void*>(addText)},
-        ani_native_function{"build", buildStyleSignature.c_str(), reinterpret_cast<void*>(build)},
+        ani_native_function{"constructorNative", ctorSignature.c_str(), reinterpret_cast<void*>(Constructor)},
+        ani_native_function{"pushStyle", pushStyleSignature.c_str(), reinterpret_cast<void*>(PushStyle)},
+        ani_native_function{"popStyle", ":V", reinterpret_cast<void*>(PopStyle)},
+        ani_native_function{"addText", "Lstd/core/String;:V", reinterpret_cast<void*>(AddText)},
+        ani_native_function{"build", buildStyleSignature.c_str(), reinterpret_cast<void*>(Build)},
     };
 
     ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
@@ -99,7 +99,7 @@ ani_status AniParagraphBuilder::AniInit(ani_vm* vm, uint32_t* result)
     return ANI_OK;
 }
 
-void AniParagraphBuilder::pushStyle(ani_env* env, ani_object object, ani_object textStyle)
+void AniParagraphBuilder::PushStyle(ani_env* env, ani_object object, ani_object textStyle)
 {
     AniParagraphBuilder* aniParagraphBuilder = AniTextUtils::GetNativeFromObj<AniParagraphBuilder>(env, object);
     if (aniParagraphBuilder == nullptr || aniParagraphBuilder->typographyCreate_ == nullptr) {
@@ -108,7 +108,7 @@ void AniParagraphBuilder::pushStyle(ani_env* env, ani_object object, ani_object 
     }
 }
 
-void AniParagraphBuilder::popStyle(ani_env* env, ani_object object)
+void AniParagraphBuilder::PopStyle(ani_env* env, ani_object object)
 {
     AniParagraphBuilder* aniParagraphBuilder = AniTextUtils::GetNativeFromObj<AniParagraphBuilder>(env, object);
     if (aniParagraphBuilder == nullptr || aniParagraphBuilder->typographyCreate_ == nullptr) {
@@ -119,7 +119,7 @@ void AniParagraphBuilder::popStyle(ani_env* env, ani_object object)
     aniParagraphBuilder->typographyCreate_->PopStyle();
 }
 
-void AniParagraphBuilder::addText(ani_env* env, ani_object object, ani_string text)
+void AniParagraphBuilder::AddText(ani_env* env, ani_object object, ani_string text)
 {
     std::u16string textStr = AniTextUtils::AniToStdStringUtf16(env, text);
     AniParagraphBuilder* aniParagraphBuilder = AniTextUtils::GetNativeFromObj<AniParagraphBuilder>(env, object);
@@ -130,7 +130,7 @@ void AniParagraphBuilder::addText(ani_env* env, ani_object object, ani_string te
     aniParagraphBuilder->typographyCreate_->AppendText(textStr);
 }
 
-ani_object AniParagraphBuilder::build(ani_env* env, ani_object object)
+ani_object AniParagraphBuilder::Build(ani_env* env, ani_object object)
 {
     AniParagraphBuilder* aniParagraphBuilder = AniTextUtils::GetNativeFromObj<AniParagraphBuilder>(env, object);
     if (aniParagraphBuilder == nullptr || aniParagraphBuilder->typographyCreate_ == nullptr) {
@@ -141,7 +141,7 @@ ani_object AniParagraphBuilder::build(ani_env* env, ani_object object)
     ani_object pargraphObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_PARAGRAPH, ":V");
 
     AniParagraph* aniParagraph = AniTextUtils::GetNativeFromObj<AniParagraph>(env, pargraphObj);
-    if (aniParagraph!=nullptr) {
+    if (aniParagraph != nullptr) {
         aniParagraph->setTypography(typography);
     }
     return pargraphObj;

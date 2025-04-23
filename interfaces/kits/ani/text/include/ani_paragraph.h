@@ -26,6 +26,7 @@ public:
     AniParagraph();
     void setTypography(std::unique_ptr<OHOS::Rosen::Typography>& typography);
     static ani_status AniInit(ani_vm* vm, uint32_t* result);
+
 private:
     static void Constructor(ani_env* env, ani_object object);
     static void LayoutSync(ani_env* env, ani_object object, ani_double width);

@@ -116,7 +116,7 @@ std::u16string AniTextUtils::AniToStdStringUtf16(ani_env* env, ani_string str)
 
 bool AniTextUtils::ReadFile(const std::string& filePath, size_t dataLen, std::unique_ptr<uint8_t[]>& data)
 {
-    char realPath[PATH_MAX] = { 0 };
+    char realPath[PATH_MAX] = {0};
     if (realpath(filePath.c_str(), realPath) == nullptr) {
         TEXT_LOGE("Invalid filePath %{public}s", filePath.c_str());
         return false;

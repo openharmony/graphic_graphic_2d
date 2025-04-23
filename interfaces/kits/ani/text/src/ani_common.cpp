@@ -100,7 +100,7 @@ std::unique_ptr<TextStyle> AniCommon::ParseTextStyle(ani_env* env, ani_object ob
     AniTextUtils::ReadOptionalStringField(env, obj, "locale", textStyle->locale);
     AniTextUtils::ReadOptionalDoubleField(env, obj, "baselineShift", textStyle->baseLineShift);
     ParseFontFeature(env, obj, textStyle->fontFeatures);
-    
+
     return textStyle;
 }
 
