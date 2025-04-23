@@ -37,6 +37,9 @@ public:
     static std::unique_ptr<TextStyle> ParseTextStyle(ani_env* env, ani_object obj);
     static void ParseDrawingColor(ani_env* env, ani_object obj, Drawing::Color& color);
     static void ParseFontFeature(ani_env* env, ani_object obj, FontFeatures& fontFeatures);
+    static void SetParagraphStyleStrutStyle(ani_env* env, ani_object obj, std::unique_ptr<TypographyStyle>& paragraphStyle);
+    static void SetParagraphStyleTab(ani_env* env, ani_object obj, std::unique_ptr<TypographyStyle>& paragraphStyle);
+    static void SetFontFamilies(ani_env* env, ani_array_ref obj, std::vector<std::string>& paragraphStyle);
 };
 } // namespace OHOS::Rosen
 #endif // OHOS_ROSEN_ANI_COMMON_H

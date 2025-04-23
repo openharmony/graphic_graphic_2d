@@ -53,7 +53,69 @@ std::unique_ptr<TypographyStyle> AniCommon::ParseParagraphStyle(ani_env* env, an
         }
     }
 
+    AniTextUtils::ReadOptionalEnumField(env, obj, "textDirection", paragraphStyle->textDirection);
+    AniTextUtils::ReadOptionalEnumField(env, obj, "align", paragraphStyle->textAlign);
+    AniTextUtils::ReadOptionalEnumField(env, obj, "wordBreak", paragraphStyle->wordBreakType);
+    AniTextUtils::ReadOptionalEnumField(env, obj, "breakStrategy", paragraphStyle->breakStrategy);
+    AniTextUtils::ReadOptionalEnumField(env, obj, "textHeightBehavior", paragraphStyle->textHeightBehavior);
+
+    ani_ref strutStyleRef = nullptr;
+    if (AniTextUtils::ReadOptionalField(env, obj, "strutStyle", strutStyleRef) == ANI_OK && strutStyleRef != nullptr) {
+        SetParagraphStyleStrutStyle(env, static_cast<ani_object>(strutStyleRef), paragraphStyle);
+    }
+
+    ani_ref tabRef = nullptr;
+    if (AniTextUtils::ReadOptionalField(env, obj, "tab", tabRef) == ANI_OK && tabRef != nullptr) {
+        SetParagraphStyleTab(env, static_cast<ani_object>(tabRef), paragraphStyle);
+    }
+
     return paragraphStyle;
+}
+
+void AniCommon::SetParagraphStyleStrutStyle(ani_env* env, ani_object obj, std::unique_ptr<TypographyStyle>& paragraphStyle)
+{
+    AniTextUtils::ReadOptionalEnumField(env, obj, "fontStyle", paragraphStyle->lineStyleFontStyle);
+    AniTextUtils::ReadOptionalEnumField(env, obj, "fontWidth", paragraphStyle->lineStyleFontWidth);
+    AniTextUtils::ReadOptionalEnumField(env, obj, "fontWeight", paragraphStyle->lineStyleFontWeight);
+
+
+    AniTextUtils::ReadOptionalDoubleField(env, obj, "fontSize", paragraphStyle->lineStyleFontSize);
+    AniTextUtils::ReadOptionalDoubleField(env, obj, "height", paragraphStyle->lineStyleHeightScale);
+    AniTextUtils::ReadOptionalDoubleField(env, obj, "leading", paragraphStyle->lineStyleSpacingScale);
+
+    AniTextUtils::ReadOptionalBoolField(env, obj, "forceHeight", paragraphStyle->lineStyleOnly);
+    AniTextUtils::ReadOptionalBoolField(env, obj, "enabled", paragraphStyle->useLineStyle);
+    AniTextUtils::ReadOptionalBoolField(env, obj, "heightOverride", paragraphStyle->lineStyleHeightOnly);
+    AniTextUtils::ReadOptionalBoolField(env, obj, "halfLeading", paragraphStyle->lineStyleHalfLeading);
+
+    ani_ref aniFontFamilies = nullptr;
+    if (AniTextUtils::ReadOptionalField(env, obj, "fontFamilies", aniFontFamilies) == ANI_OK
+        && aniFontFamilies != nullptr) {
+        std::vector<std::string> fontFamilies;
+        SetFontFamilies(env, static_cast<ani_array_ref>(aniFontFamilies), fontFamilies);
+        paragraphStyle->lineStyleFontFamilies = fontFamilies;
+    }
+}
+
+void AniCommon::SetFontFamilies(ani_env* env, ani_array_ref obj, std::vector<std::string>& fontFamilies)
+{
+    ani_size arrayLength = 0;
+    env->Array_GetLength(obj, &arrayLength);
+    for (int i = 0; i < arrayLength; i++) {
+        ani_ref tempString = nullptr;
+        env->Array_Get_Ref(obj, i, &tempString);
+        ani_string aniTempString = static_cast<ani_string>(tempString);
+        std::string fontFamiliesString =AniTextUtils::AniToStdStringUtf8(env, aniTempString);
+        fontFamilies.push_back(fontFamiliesString);
+    }
+}
+
+void AniCommon::SetParagraphStyleTab(ani_env* env, ani_object obj, std::unique_ptr<TypographyStyle>& paragraphStyle)
+{
+    AniTextUtils::ReadOptionalEnumField(env, obj, "alignment", paragraphStyle->tab.alignment);
+    ani_double tempLocation;
+    env->Object_GetPropertyByName_Double(obj, "location", &tempLocation);
+    paragraphStyle->tab.location = static_cast<float>(tempLocation);
 }
 
 std::unique_ptr<TextStyle> AniCommon::ParseTextStyle(ani_env* env, ani_object obj)

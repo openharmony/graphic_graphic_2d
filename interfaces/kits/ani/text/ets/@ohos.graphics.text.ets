@@ -167,6 +167,372 @@ namespace text {
   }
 
   /**
+   * Enumeration of font width of text.
+   * @enum { number }
+   * @syscap SystemCapability.Graphics.Drawing
+   * @since 12
+   */
+  enum FontWidth {
+    /**
+     * Ultra condensed font width.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    ULTRA_CONDENSED = 1,
+
+    /**
+     * Extra condensed font width.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    EXTRA_CONDENSED = 2,
+
+    /**
+     * Condensed font width.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    CONDENSED = 3,
+
+    /**
+     * Semi condensed font width.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    SEMI_CONDENSED = 4,
+
+    /**
+     * Normal font width.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    NORMAL = 5,
+
+    /**
+     * Semi expanded font width.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    SEMI_EXPANDED = 6,
+
+    /**
+     * Expanded font width.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    EXPANDED = 7,
+
+    /**
+     * Extra expanded font width.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    EXTRA_EXPANDED = 8,
+
+    /**
+     * Ultra expanded font width.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    ULTRA_EXPANDED = 9,
+  }
+
+
+  /**
+   * Enumerates of height mode of text.
+   * @enum { number }
+   * @syscap SystemCapability.Graphics.Drawing
+   * @since 12
+   */
+  enum TextHeightBehavior {
+    /**
+     * Both ascend of first row and last row style.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    ALL = 0x0,
+
+    /**
+     * Forbidding ascend of first row style.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    DISABLE_FIRST_ASCENT = 0x1,
+
+    /**
+     * Forbidding ascend of last row style.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    DISABLE_LAST_ASCENT = 0x2,
+
+    /**
+     * Neither ascend of first row nor last row style.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    DISABLE_ALL = 0x1 | 0x2,
+  }
+
+  /**
+   * Refers to how to align the horizontal position of text when displaying text.
+   * @enum { number }
+   * @syscap SystemCapability.Graphics.Drawing
+   * @since 12
+   */
+  enum TextAlign {
+    /**
+     * Use the left side of the text as a reference line for alignment.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    LEFT = 0,
+
+    /**
+     * Use the right side of the text as a reference line for alignment.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    RIGHT = 1,
+
+    /**
+     * Use the midpoint line the text as a reference line for alignment.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    CENTER = 2,
+
+    /**
+     * Align the text at the start and end of the line.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    JUSTIFY = 3,
+
+    /**
+     * Align text from start, based on the direction of text, such as left-to-right or right-to-left.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    START = 4,
+
+    /**
+     * Align text from end, based on the direction of text, such as left-to-right or right-to-left, opposite to START.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    END = 5,
+  }
+
+  /**
+   * Enumerate text runs direction.
+   * @enum { number }
+   * @syscap SystemCapability.Graphics.Drawing
+   * @since 12
+   */
+  enum TextDirection {
+    /**
+     * The text is oriented from right to left.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    RTL,
+
+    /**
+     * The text is oriented from left to right.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    LTR,
+  }
+
+  /**
+   * Enumerate text segmentation strategy.
+   * @enum { number }
+   * @syscap SystemCapability.Graphics.Drawing
+   * @since 12
+   */
+  enum BreakStrategy {
+    /**
+     * The segmentation strategy is greedy.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    GREEDY,
+
+    /**
+     * The segmentation strategy is high quality.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    HIGH_QUALITY,
+
+    /**
+     * The segmentation strategy is balanced.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    BALANCED,
+  }
+
+  /**
+   * Enumerate word break strategy.
+   * @enum { number }
+   * @syscap SystemCapability.Graphics.Drawing
+   * @since 12
+   */
+  enum WordBreak {
+    /**
+     * Normal word break strategy.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    NORMAL,
+
+    /**
+     * Breaks word by character.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    BREAK_ALL,
+
+    /**
+     * Breaks word by phrase.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    BREAK_WORD,
+
+    /**
+     * Breaks word by hyphen.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 18
+     */
+    BREAK_HYPHEN,
+  }
+
+  /**
+   * Describes strut style.
+   * @typedef StrutStyle
+   * @syscap SystemCapability.Graphics.Drawing
+   * @since 12
+   */
+  interface StrutStyle {
+    /**
+     * The families of the font to use when calculating the strut.
+     * @type { ?Array<string> } fontfamily gather
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    fontFamilies?: Array<string>;
+
+    /**
+     * The font style to use when calculating the strut.
+     * @type { ?FontStyle } it is uint32_t type data
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    fontStyle?: FontStyle;
+
+    /**
+     * The font width to use when calculating the strut.
+     * @type { ?FontWidth } it is uint32_t type data
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    fontWidth?: FontWidth;
+
+    /**
+     * The font weight to use when calculating the strut.
+     * @type { ?FontWeight } it is uint32_t type data
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    fontWeight?: FontWeight;
+
+    /**
+     * The size of the ascent plus descent in logical pixels.
+     * @type { ?number } it is double type data
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    fontSize?: number;
+
+    /**
+     * The minimum height of the strut, as a multiple of fontSize.
+     * @type { ?number } it is double type data
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    height?: number;
+
+    /**
+     * The additional leading to apply to the strut as a multiple of Size.
+     * @type { ?number } it is double type data
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    leading?: number;
+
+    /**
+     * Whether the strut height should be forced.
+     * @type { ?boolean } it is boolean type data
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    forceHeight?: boolean;
+
+    /**
+     * Whether the strut style should be enable.
+     * @type { ?boolean } it is boolean type data
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    enabled?: boolean;
+
+    /**
+     * Whether the height is override.
+     * @type { ?boolean } it is boolean type data
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    heightOverride?: boolean;
+
+    /**
+     * Whether the half leading is enable.
+     * @type { ?boolean } it is boolean type data
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    halfLeading?: boolean;
+  }
+
+  /**
+   * Text tab contains alignment type and location in paragraph style.
+   * @typedef TextTab
+   * @syscap SystemCapability.Graphics.Drawing
+   * @since 18
+   */
+  interface TextTab {
+    /**
+     * The alignment of tab. Support left alignment right alignment center alignment,
+     * other enumeration values are left alignment effect.
+     * @type { TextAlign }
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 18
+     */
+    alignment: TextAlign;
+    
+    /**
+     * The position of the tab relative to the start of the line.
+     * @type { number }
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 18
+     */
+    location: number;
+  }
+
+  /**
    * Determines the configuration used by ParagraphBuilder to position lines within a Paragraph of text.
    * @typedef ParagraphStyle
    * @syscap SystemCapability.Graphics.Drawing
@@ -182,12 +548,71 @@ namespace text {
     textStyle?: TextStyle;
 
     /**
+     * Text runs direction.
+     * @type { ?TextDirection }
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    textDirection?: TextDirection;
+
+    /**
+     * Refers to how to align the horizontal position of text when displaying text.
+     * @type { ?TextAlign }
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    align?: TextAlign;
+
+    /**
+     * Word break strategy.
+     * @type { ?WordBreak }
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    wordBreak?: WordBreak;
+
+    /**
      * Maximum number of lines.
      * @type { ?number }
      * @syscap SystemCapability.Graphics.Drawing
      * @since 12
      */
     maxLines?: number;
+
+    /**
+     * text segmentation strategy.
+     * @type { ?BreakStrategy }
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    breakStrategy?: BreakStrategy;
+
+    /**
+     * Strut style of paragraph.
+     * @type { ?StrutStyle }
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    strutStyle?: StrutStyle;
+
+    /**
+     * Text height behavior of paragraph.
+     * @type { ?TextHeightBehavior }
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    textHeightBehavior?: TextHeightBehavior;
+
+    /**
+     * Text tab of paragraph. Tab alignment does not take effect when text alignment is also set, Or when the ellipsis
+     * style is configured. When the tab is not set or the tab's location property is less than or equal to 0,
+     * it is the default space effect. And all tabs in the paragraph after the setting are aligned
+     * according to this tab effect.
+     * @type { ?TextTab }
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 18
+     */
+    tab?: TextTab;
   }
 
   /**
