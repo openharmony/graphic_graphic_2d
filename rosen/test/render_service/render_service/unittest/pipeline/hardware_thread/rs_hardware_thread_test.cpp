@@ -778,4 +778,22 @@ HWTEST_F(RSHardwareThreadTest, Redraw001, TestSize.Level1)
 
     hardwareThread.Redraw(psurface, layers, screenId_);
 }
+
+/*
+ * @tc.name: EndCheck001
+ * @tc.desc: Test RSHardwareThreadTest.EndCheck
+ * @tc.type: FUNC
+ * @tc.require: issuesIC3DAI
+ */
+HWTEST_F(RSHardwareThreadTest, EndCheck001, TestSize.Level1)
+{
+    auto &hardwareThread = RSHardwareThread::Instance();
+    hardwareThread.hardwareCount_ = 0;
+    RSTimer timer("EndCheckTest", 800); // 800ms
+    hardwareThread.EndCheck(timer);
+    ASSERT_EQ(hardwareThread.hardwareCount_, 0); // timeout count 0
+    usleep(800 * 1000); // 800ms
+    hardwareThread.EndCheck(timer);
+    ASSERT_EQ(hardwareThread.hardwareCount_, 1); // timeout count 1
+}
 } // namespace OHOS::Rosen
