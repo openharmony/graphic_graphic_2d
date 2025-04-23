@@ -391,21 +391,52 @@ const std::shared_ptr<RSRenderNode> RSRenderNodeMap::GetAnimationFallbackNode() 
 
 std::vector<NodeId> RSRenderNodeMap::GetSelfDrawingNodeInProcess(pid_t pid)
 {
-    std::vector<NodeId> selfDrawingNodeVector;
+    std::vector<NodeId> selfDrawingNodes;
+    std::vector<NodeId> sortedSelfDrawingNodes;
+    std::map<NodeId, std::shared_ptr<RSBaseRenderNode>> instanceNodeMap;
     auto iter = renderNodeMap_.find(pid);
     std::shared_ptr<RSBaseRenderNode> instanceRootNode;
-    if (iter != renderNodeMap_.end()) {
-        for (auto subIter = iter->second.begin(); subIter != iter->second.end(); ++subIter) {
-            if (subIter->second && subIter->second->IsOnTheTree()) {
-                instanceRootNode = subIter->second->GetInstanceRootNode();
-                break;
+
+    if (iter == renderNodeMap_.end()) {
+        return selfDrawingNodes;
+    }
+    for (auto subIter = iter->second.begin(); subIter != iter->second.end(); ++subIter) {
+        if (!subIter->second) {
+            continue;
+        }
+        auto surfaceNode = subIter->second->ReinterpretCastTo<RSSurfaceRenderNode>();
+        if (surfaceNode && surfaceNode->IsSelfDrawingType() && surfaceNode->IsOnTheTree()) {
+            selfDrawingNodes.push_back(surfaceNode->GetId());
+            auto rootNode = surfaceNode->GetInstanceRootNode();
+            if (rootNode) {
+                instanceNodeMap.insert({ rootNode->GetId(), rootNode });
             }
         }
-        if (instanceRootNode) {
-            instanceRootNode->CollectSelfDrawingChild(instanceRootNode, selfDrawingNodeVector);
+    }
+
+    if (selfDrawingNodes.size() <= 1) {
+        return selfDrawingNodes;
+    }
+
+    std::vector<std::shared_ptr<RSSurfaceRenderNode>> instanceNodeVector;
+    for (const auto& pair : instanceNodeMap) {
+        auto node = pair.second->ReinterpretCastTo<RSSurfaceRenderNode>();
+        if (node && node->IsAppWindow()) {
+            instanceNodeVector.push_back(node);
+        } else {
+            return selfDrawingNodes;
         }
     }
-    return selfDrawingNodeVector;
+
+    std::stable_sort(
+        instanceNodeVector.begin(), instanceNodeVector.end(), [](const auto& first, const auto& second) -> bool {
+        return first->GetAppWindowZOrder() < second->GetAppWindowZOrder();
+    });
+
+    for (const auto& instanceNode : instanceNodeVector) {
+        instanceNode->CollectSelfDrawingChild(instanceNode, sortedSelfDrawingNodes);
+    }
+    return sortedSelfDrawingNodes;
 }
 
 const std::string RSRenderNodeMap::GetSelfDrawSurfaceNameByPid(pid_t nodePid) const

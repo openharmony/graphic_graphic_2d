@@ -494,6 +494,8 @@ private:
 
     // used in uifirst for checking whether leashwindow or its parent should paint or not
     bool globalShouldPaint_ = true;
+
+    int32_t appWindowZOrder_ = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

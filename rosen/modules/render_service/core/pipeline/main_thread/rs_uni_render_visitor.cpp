@@ -797,6 +797,7 @@ void RSUniRenderVisitor::QuickPrepareDisplayRenderNode(RSDisplayRenderNode& node
     globalShouldPaint_ = true;
     curAlpha_ = 1.0f;
     globalZOrder_ = 0.0f;
+    appWindowZOrder_ = 0;
     hasSkipLayer_ = false;
     curZorderForCalcHwcNodeEnableByFilter_ = 0;
     node.zOrderForCalcHwcNodeEnableByFilter_ = curZorderForCalcHwcNodeEnableByFilter_++;
@@ -990,6 +991,13 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
 
     if (PrepareForCloneNode(node)) {
         return;
+    }
+
+    // AppWindow is traversed in reverse order
+    // Prepare operation will be executed first when the node is at the top level
+    // The value of appWindowZOrder_ decreases from 0 to negative
+    if (node.IsAppWindow()) {
+        node.SetAppWindowZOrder(appWindowZOrder_--);
     }
 
     // avoid cross node subtree visited twice or more
