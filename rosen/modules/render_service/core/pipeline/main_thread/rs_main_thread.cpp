@@ -1693,7 +1693,7 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
 #endif
             // still have buffer(s) to consume.
             if (surfaceHandler->GetAvailableBufferCount() > 0) {
-                const auto& consumer = surfaceHandle->GetConsumer();
+                const auto& consumer = surfaceHandler->GetConsumer();
                 int64_t nextVsyncTime = 0;
                 GetFrontBufferDesiredPresentTimeStamp(consumer, nextVsyncTime);
                 if (requestNextVsyncTime_ == -1 || requestNextVsyncTime_ > nextVsyncTime) {
@@ -5199,13 +5199,13 @@ bool RSMainThread::CheckUIExtensionCallbackDataChanged() const
     return false;
 }
 
-void RSMainThread::RequestNextVsyncInner(VSyncReceiver::FrameCallback callback, const std::string& fromWhom,
+void RSMainThread::RequestNextVSyncInner(VSyncReceiver::FrameCallback callback, const std::string& fromWhom,
     int64_t lastVSyncTS, const int64_t& requestVsyncTime)
 {
     if (Rosen::RSSystemProperties::GetTimeVsyncDisabled()) {
-        receiver_->RequestNextVsync(callback, fromWhom, lastVSyncTS);
+        receiver_->RequestNextVSync(callback, fromWhom, lastVSyncTS);
     } else {
-        receiver_->RequestNextVsync(callback, fromWhom, lastVSyncTS,
+        receiver_->RequestNextVSync(callback, fromWhom, lastVSyncTS,
             requestVsyncTime < static_cast<int64_t>(timestamp_) ? 0 : requestVsyncTime);
     }
 }
