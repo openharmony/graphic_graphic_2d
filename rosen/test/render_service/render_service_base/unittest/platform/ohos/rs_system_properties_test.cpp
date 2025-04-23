@@ -829,6 +829,17 @@ HWTEST_F(RSSystemPropertiesTest, GetUIFirstDebugEnabled, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetUIFirstBehindWindowFilterEnabled
+ * @tc.desc: GetUIFirstBehindWindowFilterEnabled Test
+ * @tc.type:FUNC
+ * @tc.require: issuesIC0HM8
+ */
+HWTEST_F(RSSystemPropertiesTest, GetUIFirstBehindWindowFilterEnabled, TestSize.Level1)
+{
+    ASSERT_TRUE(RSSystemProperties::GetUIFirstBehindWindowFilterEnabled());
+}
+
+/**
  * @tc.name: GetDumpImgEnabled
  * @tc.desc: GetDumpImgEnabled Test
  * @tc.type:FUNC

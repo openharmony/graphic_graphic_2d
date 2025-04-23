@@ -1516,10 +1516,10 @@ bool RSUifirstManager::GetSubNodeIsTransparent(RSSurfaceRenderNode& node, std::s
             if (childSurfaceNode == nullptr) {
                 continue;
             }
-            hasTransparent |= childSurfaceNode->IsTransparent() && !childSurfaceNode->NeedDrawBehindWindow();
+            hasTransparent |= IsTransparent(*(childSurfaceNode.get()));
         }
     } else {
-        hasTransparent = node.IsTransparent() && !node.NeedDrawBehindWindow();
+        hasTransparent = IsTransparent(node);
     }
     if (!hasTransparent || !IsToSubByAppAnimation()) {
         // if not transparent, no need to check IsToSubByAppAnimation;

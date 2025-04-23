@@ -849,6 +849,14 @@ bool RSSystemProperties::GetUIFirstDirtyDebugEnabled()
     return ConvertToInt(enable, 1) != 0;
 }
 
+bool RSSystemProperties::GetUIFirstBehindWindowFilterEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.ui.first.behindWindowFilter.enabled", "1");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 1) != 0;
+}
+
 bool RSSystemProperties::GetSurfaceOffscreenEnadbled()
 {
     static CachedHandle g_Handle = CachedParameterCreate("persist.sys.graphic.surfaceOffscreenEnabled", "1");

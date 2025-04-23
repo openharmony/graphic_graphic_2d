@@ -273,6 +273,7 @@ public:
     static bool GetUIFirstDirtyEnabled();
     static bool GetUIFirstDirtyDebugEnabled();
     static bool GetTargetUIFirstDfxEnabled(std::vector<std::string>& SurfaceNames);
+    static bool GetUIFirstBehindWindowFilterEnabled();
     static bool GetWideColorSpaceEnabled();
     static bool GetSurfaceOffscreenEnadbled();
     static bool GetDebugTraceEnabled();
