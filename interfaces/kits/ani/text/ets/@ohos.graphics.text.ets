@@ -30,20 +30,19 @@ import { Resource } from 'global.resource';
  */
 namespace text {
   class Cleaner {
+    static { loadLibrary('text_engine_ani.z') }
     private ptr: long = 0;
     private className: string;
     constructor(className: string, ptr: long) {
       this.ptr = ptr;
       this.className = className;
     }
-    natvie clean(): void;
+    public native clean(): void;
   }
 
-  function callback(cleaner: Cleaner): void {
+  let destroyRegister = new FinalizationRegistry<Cleaner>((cleaner: Cleaner)=>{
     cleaner.clean();
-  }
-
-  let destroyRegister = new FinalizationRegistry<Cleaner>(callback);
+  });
   let unregisterToken = new object();
 
   export class FontCollection {
@@ -80,12 +79,12 @@ namespace text {
      */
     constructor(paragraphStyle: ParagraphStyle, fontCollection: FontCollection) {
       this.constructorNative(paragraphStyle, fontCollection);
-      this.registerCleaner(nativeObj);
+      this.registerCleaner(this.nativeObj);
     };
-    native constructorNative(paragraphStyle: ParagraphStyle, fontCollection: FontCollection);
+    native constructorNative(paragraphStyle: ParagraphStyle, fontCollection: FontCollection): void;
     registerCleaner(ptr: long): void {
       this.cleaner = new Cleaner("ParagraphBuilder", ptr);
-      destroyRegister.register(this, thi.cleaner!, unregisterToken);
+      destroyRegister.register(this, this.cleaner!, unregisterToken);
     }
 
     /**
