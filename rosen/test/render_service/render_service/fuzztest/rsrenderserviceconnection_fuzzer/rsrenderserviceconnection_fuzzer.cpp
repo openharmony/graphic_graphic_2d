@@ -974,7 +974,6 @@ bool DOSetVirtualScreenRefreshRate()
     uint64_t id = GetData<uint64_t>();
     uint32_t maxRefreshRate = GetData<uint32_t>();
     uint32_t actualRefreshRate = GetData<uint32_t>();
-    int32_t retVal = GetData<int32_t>();
     int32_t resCode;
     rsConn_->SetVirtualScreenRefreshRate(id, maxRefreshRate, actualRefreshRate, resCode);
     return true;
