@@ -158,10 +158,25 @@ SurfaceError SurfaceImage::UpdateSurfaceImage()
     sptr<SurfaceBuffer> buffer = nullptr;
     sptr<SyncFence> acquireFence = SyncFence::InvalidFence();
     int64_t timestamp = 0;
-    Rect damage;
-    ret = AcquireBuffer(buffer, acquireFence, timestamp, damage);
-    if (ret != SURFACE_ERROR_OK) {
-        return ret;
+    Rect damage = {0, 0, 0, 0};
+    if (!dropFrameMode_) {
+        ret = AcquireBuffer(buffer, acquireFence, timestamp, damage);
+        if (ret != SURFACE_ERROR_OK) {
+            return ret;
+        }
+    } else {
+        AcquireBufferReturnValue returnValue;
+        ret = AcquireBuffer(returnValue, INT64_MAX, true);
+        if (ret != SURFACE_ERROR_OK) {
+            BLOGE("AcquireBuffer falied: %{public}d, uniqueId: %{public}" PRIu64, ret, uniqueId_);
+            return ret;
+        }
+        buffer = returnValue.buffer;
+        acquireFence = returnValue.fence;
+        timestamp = returnValue.timestamp;
+        if (returnValue.damages.size() != 0) {
+            damage = returnValue.damages.at(0);
+        }
     }
 
     ret = UpdateEGLImageAndTexture(buffer);
@@ -526,5 +541,13 @@ SurfaceError SurfaceImage::SetDefaultSize(int32_t width, int32_t height)
             "height: %{public}d", ret, uniqueId_, width, height);
     }
     return ret;
+}
+
+SurfaceError SurfaceImage::SetDropBufferSwitch(bool isOpen)
+{
+    std::lock_guard<std::mutex> lockGuard(opMutex_);
+    BLOGI("SetDropBufferSwitch switch: %{public}d", isOpen);
+    dropFrameMode_ = isOpen;
+    return SURFACE_ERROR_OK;
 }
 } // namespace OHOS
