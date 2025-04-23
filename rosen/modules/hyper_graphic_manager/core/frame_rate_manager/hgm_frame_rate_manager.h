@@ -303,7 +303,7 @@ private:
     void EraseGameRateDiscountMap(pid_t pid);
     // Vrate
     void GetVRateMiniFPS(const std::shared_ptr<PolicyConfigData>& configData);
-    void CheckRefreshRateChange(uint32_t refreshRate);
+    void CheckNeedUpdateAppOffset(uint32_t refreshRate);
 
     std::atomic<uint32_t> currRefreshRate_ = 0;
     uint32_t controllerRate_ = 0;

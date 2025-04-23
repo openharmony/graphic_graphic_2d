@@ -2004,7 +2004,7 @@ void HgmFrameRateManager::NotifyPageName(pid_t pid, const std::string &packageNa
     appPageUrlStrategy_.NotifyPageName(pid, packageName, pageName, isEnter);
 }
 
-void HgmFrameRateManager::CheckRefreshRateChange(uint32_t refreshRate)
+void HgmFrameRateManager::CheckNeedUpdateAppOffset(uint32_t refreshRate)
 {
     if (refreshRate > OLED_60_HZ || isNeedUpdateAppOffset_) {
         return;
@@ -2022,7 +2022,7 @@ void HgmFrameRateManager::CheckRefreshRateChange(
 {
     // 当dvsync在连续延迟切帧阶段，使用dvsync内记录的刷新率判断是否变化
     CreateVSyncGenerator()->DVSyncRateChanged(controllerRate_, frameRateChanged);
-    CheckRefreshRateChange(refreshRate);
+    CheckNeedUpdateAppOffset(refreshRate);
     if (HgmCore::Instance().GetLtpoEnabled() && (frameRateChanged || isNeedUpdateAppOffset_)) {
         HandleFrameRateChangeForLTPO(timestamp_.load(), followRs);
         if (needChangeDssRefreshRate && changeDssRefreshRateCb_ != nullptr) {
