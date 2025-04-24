@@ -20,6 +20,7 @@
 
 #include "ani_common.h"
 #include "ani_text_utils.h"
+#include "draw/canvas.h"
 #include "font_collection.h"
 #include "typography_create.h"
 #include "utils/text_log.h"
@@ -60,9 +61,13 @@ ani_status AniParagraph::AniInit(ani_vm* vm, uint32_t* result)
         return ANI_NOT_FOUND;
     }
 
+    std::string paintSignature = std::string(ANI_CLASS_CANVAS) + "DD:V";
+    std::string paintOnPathSignature = std::string(ANI_CLASS_CANVAS) + std::string(ANI_CLASS_PATH) + "DD:V";
     std::array methods = {
         ani_native_function{"constructorNative", ":V", reinterpret_cast<void*>(Constructor)},
         ani_native_function{"layoutSync", "D:V", reinterpret_cast<void*>(LayoutSync)},
+        ani_native_function{"paint", paintSignature.c_str(), reinterpret_cast<void*>(Paint)},
+        ani_native_function{"paintOnPath", paintOnPathSignature.c_str(), reinterpret_cast<void*>(PaintOnPath)},
         ani_native_function{"getLongestLine", ":D", reinterpret_cast<void*>(GetLongestLine)},
         ani_native_function{"getLineMetrics", ":Lescompat/Array;", reinterpret_cast<void*>(GetLineMetrics)},
         ani_native_function{"nativeGetLineMetricsAt", "D:L@ohos/graphics/text/text/LineMetrics;",
@@ -85,6 +90,30 @@ void AniParagraph::LayoutSync(ani_env* env, ani_object object, ani_double width)
         return;
     }
     aniParagraph->paragraph_->Layout(width);
+}
+
+void AniParagraph::Paint(ani_env* env, ani_object object, ani_object canvas, ani_double x, ani_double y)
+{
+    AniParagraph* aniParagraph = AniTextUtils::GetNativeFromObj<AniParagraph>(env, object);
+    if (aniParagraph == nullptr || aniParagraph->paragraph_ == nullptr) {
+        TEXT_LOGE("paragraph is null");
+        return;
+    }
+    Drawing::Canvas* canvasI = nullptr;
+    aniParagraph->paragraph_->Paint(canvasI, x, y);
+}
+
+void AniParagraph::PaintOnPath(ani_env* env, ani_object object, ani_object canvas, ani_object path, ani_double hOffset,
+                               ani_double vOffset)
+{
+    AniParagraph* aniParagraph = AniTextUtils::GetNativeFromObj<AniParagraph>(env, object);
+    if (aniParagraph == nullptr || aniParagraph->paragraph_ == nullptr) {
+        TEXT_LOGE("paragraph is null");
+        return;
+    }
+    Drawing::Canvas* canvasI = nullptr;
+    Drawing::Path* pathI = nullptr;
+    aniParagraph->paragraph_->Paint(canvasI, pathI, hOffset, vOffset);
 }
 
 ani_double AniParagraph::GetLongestLine(ani_env* env, ani_object object)

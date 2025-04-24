@@ -45,6 +45,11 @@ namespace text {
   });
   let unregisterToken = new object();
 
+  /**
+   * Provides the basis for graphics.
+   * @syscap SystemCapability.Graphics.Drawing
+   * @since 12
+   */
   export class FontCollection {
     static { loadLibrary('text_engine_ani.z') }
     private nativeObj : long = 0;
@@ -60,15 +65,43 @@ namespace text {
       destroyRegister.register(this, this.cleaner!, unregisterToken);
     }
 
+    /**
+     * Get global FontCollection instance of the application.
+     * @returns { FontCollection } The FontCollection object.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
     public native static getGlobalInstance(): FontCollection;
 
+    /**
+     * Load font.
+     * @param { string } name - the font name.
+     * @param { string | Resource } path - the path of the font file.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
     public native loadFontSync(name: string, path: Resource | string): void;
 
-    public native clearCaches(): void;
-
+    /**
+     * Load font.
+     * @param { string } name - The font name.
+     * @param { string | Resource } path - The path of the font file.
+     * @returns { Promise<void> } The promise returned by the function.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 14
+     */
     public loadFont(name: string, path: Resource | string): void {
       this.loadFontSync(name, path);
     }
+
+    /**
+     * Clear font caches.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    public native clearCaches(): void;
   }
 
   /**
@@ -139,7 +172,7 @@ namespace text {
     static { loadLibrary('text_engine_ani.z') }
     public nativeObj : long = 0;
     private cleaner: Cleaner | null = null;
-    
+
     constructor() {
       this.constructorNative();
       this.registerCleaner(this.nativeObj);
@@ -156,6 +189,27 @@ namespace text {
      * @since 12
      */
     native layoutSync(width: number): void;
+
+    /**
+     * Paint the laid out text onto the supplied canvas at (x, y).
+     * @param { drawing.Canvas } canvas - Object
+     * @param { number } x - Represents the X-axis position on the canvas.
+     * @param { number } y - Represents the Y-axis position on the canvas.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    native paint(canvas: drawing.Canvas, x: number, y: number): void;
+
+    /**
+     * Draw the laid out text onto the supplied canvas along the path and offset.
+     * @param { drawing.Canvas } canvas - Canvas used to carry the drawn content and drawing status.
+     * @param { drawing.Path } path - Path used to determine the position of the text.
+     * @param { number } hOffset - Horizontal offset along the path.
+     * @param { number } vOffset - Vertical offset along the path.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    native paintOnPath(canvas: drawing.Canvas, path: drawing.Path, hOffset: number, vOffset: number): void;
 
     /**
      * Get the longest line of horizontal space this paragraph occupies.

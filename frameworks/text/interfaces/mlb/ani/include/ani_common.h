@@ -30,6 +30,8 @@ inline constexpr const char* ANI_CLASS_PARAGRAPH_STYLE = "L@ohos/graphics/text/t
 inline constexpr const char* ANI_CLASS_TEXT_STYLE = "L@ohos/graphics/text/text/TextStyle;";
 inline constexpr const char* ANI_CLASS_FONT_COLLECTION = "L@ohos/graphics/text/text/FontCollection;";
 inline constexpr const char* ANI_CLASS_FONTFEATURE = "L@ohos/graphics/text/text/FontFeature;";
+inline constexpr const char* ANI_CLASS_CANVAS = "L@ohos/graphics/drawing/drawing/Canvas;";
+inline constexpr const char* ANI_CLASS_PATH = "L@ohos/graphics/drawing/drawing/Path;";
 
 class AniCommon {
 public:
