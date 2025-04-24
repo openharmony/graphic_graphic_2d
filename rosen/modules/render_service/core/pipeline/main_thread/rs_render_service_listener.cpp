@@ -67,6 +67,14 @@ void RSRenderServiceListener::OnBufferAvailable()
         RSMainThread::Instance()->ForceRefreshForUni();
         return;
     }
+    if ((node->GetAncoFlags() & static_cast<uint32_t>(AncoFlags::FORCE_REFRESH)) != 0) {
+        node->SetAncoFlags(node->GetAncoFlags() & (~static_cast<uint32_t>(AncoFlags::FORCE_REFRESH)));
+        RS_TRACE_NAME_FMT("AncoForceRefresh id %lld", node->GetId());
+        RS_LOGD("AncoForceRefresh id %{public}" PRIu64 "", node->GetId());
+        RSMainThread::Instance()->ForceRefreshForUni();
+        return;
+    }
+
     if (auto consumer = surfaceHandler->GetConsumer()) {
         bool supportFastCompose = false;
         GSError ret =  consumer->GetBufferSupportFastCompose(supportFastCompose);
