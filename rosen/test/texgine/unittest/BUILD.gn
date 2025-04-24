@@ -43,11 +43,7 @@ config("texgine_test_config") {
 
 group("common_deps") {
   testonly = true
-  public_deps = [
-    "$graphic_2d_root/utils/test_header:test_header",
-    "//third_party/googletest:gmock",
-    "//third_party/googletest:gtest",
-  ]
+  public_deps = [ "$graphic_2d_root/utils/test_header:test_header" ]
 
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
     public_deps += [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics" ]
