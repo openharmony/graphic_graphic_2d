@@ -26,21 +26,30 @@ const std::string CLASS_NAME = "Matrix";
 
 static const napi_property_descriptor g_properties[] = {
     DECLARE_NAPI_FUNCTION("getValue", JsMatrix::GetValue),
+    DECLARE_NAPI_FUNCTION("postConcat", JsMatrix::PostConcat),
     DECLARE_NAPI_FUNCTION("postRotate", JsMatrix::PostRotate),
+    DECLARE_NAPI_FUNCTION("postSkew", JsMatrix::PostSkew),
     DECLARE_NAPI_FUNCTION("postTranslate", JsMatrix::PostTranslate),
     DECLARE_NAPI_FUNCTION("preRotate", JsMatrix::PreRotate),
     DECLARE_NAPI_FUNCTION("preScale", JsMatrix::PreScale),
+    DECLARE_NAPI_FUNCTION("preSkew", JsMatrix::PreSkew),
     DECLARE_NAPI_FUNCTION("preTranslate", JsMatrix::PreTranslate),
+    DECLARE_NAPI_FUNCTION("setConcat", JsMatrix::SetConcat),
     DECLARE_NAPI_FUNCTION("setRotation", JsMatrix::SetRotation),
     DECLARE_NAPI_FUNCTION("setScale", JsMatrix::SetScale),
+    DECLARE_NAPI_FUNCTION("setSinCos", JsMatrix::SetSinCos),
+    DECLARE_NAPI_FUNCTION("setSkew", JsMatrix::SetSkew),
     DECLARE_NAPI_FUNCTION("setTranslation", JsMatrix::SetTranslation),
     DECLARE_NAPI_FUNCTION("setMatrix", JsMatrix::SetMatrix),
     DECLARE_NAPI_FUNCTION("preConcat", JsMatrix::PreConcat),
+    DECLARE_NAPI_FUNCTION("isAffine", JsMatrix::IsAffine),
     DECLARE_NAPI_FUNCTION("isEqual", JsMatrix::IsEqual),
     DECLARE_NAPI_FUNCTION("invert", JsMatrix::Invert),
     DECLARE_NAPI_FUNCTION("isIdentity", JsMatrix::IsIdentity),
     DECLARE_NAPI_FUNCTION("mapPoints", JsMatrix::MapPoints),
+    DECLARE_NAPI_FUNCTION("mapRadius", JsMatrix::MapRadius),
     DECLARE_NAPI_FUNCTION("postScale", JsMatrix::PostScale),
+    DECLARE_NAPI_FUNCTION("rectStaysRect", JsMatrix::RectStaysRect),
     DECLARE_NAPI_FUNCTION("reset", JsMatrix::Reset),
     DECLARE_NAPI_FUNCTION("getAll", JsMatrix::GetAll),
     DECLARE_NAPI_FUNCTION("setPolyToPoly", JsMatrix::SetPolyToPoly),
@@ -75,16 +84,25 @@ napi_value JsMatrix::Init(napi_env env, napi_value exportObj)
 
 napi_value JsMatrix::Constructor(napi_env env, napi_callback_info info)
 {
-    size_t argCount = 0;
+    size_t argCount = ARGC_ONE;
+    napi_value argv[ARGC_ONE] = {nullptr};
     napi_value jsThis = nullptr;
-    napi_status status = napi_get_cb_info(env, info, &argCount, nullptr, &jsThis, nullptr);
+    napi_status status = napi_get_cb_info(env, info, &argCount, argv, &jsThis, nullptr);
     if (status != napi_ok) {
         ROSEN_LOGE("JsMatrix::Constructor failed to napi_get_cb_info");
         return nullptr;
     }
 
-    JsMatrix* jsMatrix = new JsMatrix(std::make_shared<Matrix>());
-
+    std::shared_ptr<Matrix> matrix = nullptr;
+    if (argCount == ARGC_ONE) {
+        JsMatrix* jsOther = nullptr;
+        GET_UNWRAP_PARAM(ARGC_ZERO, jsOther);
+        std::shared_ptr<Matrix> other = jsOther->GetMatrix();
+        matrix = other == nullptr ? std::make_shared<Matrix>() : std::make_shared<Matrix>(*other);
+    } else {
+        matrix = std::make_shared<Matrix>();
+    }
+    JsMatrix* jsMatrix = new JsMatrix(matrix);
     status = napi_wrap(env, jsThis, jsMatrix, JsMatrix::Destructor, nullptr, nullptr);
     if (status != napi_ok) {
         delete jsMatrix;
@@ -156,6 +174,34 @@ napi_value JsMatrix::OnGetValue(napi_env env, napi_callback_info info)
     return GetDoubleAndConvertToJsValue(env, value);
 }
 
+napi_value JsMatrix::PostConcat(napi_env env, napi_callback_info info)
+{
+    JsMatrix* me = CheckParamsAndGetThis<JsMatrix>(env, info);
+    return (me != nullptr) ? me->OnPostConcat(env, info) : nullptr;
+}
+
+napi_value JsMatrix::OnPostConcat(napi_env env, napi_callback_info info)
+{
+    if (m_matrix == nullptr) {
+        ROSEN_LOGE("JsMatrix::OnPostConcat matrix is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    napi_value argv[ARGC_ONE] = {nullptr};
+    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
+
+    JsMatrix* jsMatrix = nullptr;
+    GET_UNWRAP_PARAM(ARGC_ZERO, jsMatrix);
+
+    std::shared_ptr<Matrix> matrix = jsMatrix->GetMatrix();
+    if (matrix == nullptr) {
+        ROSEN_LOGE("JsMatrix::OnPostConcat matrix is nullptr");
+        return nullptr;
+    }
+    m_matrix->PostConcat(*matrix);
+    return nullptr;
+}
+
 napi_value JsMatrix::PostRotate(napi_env env, napi_callback_info info)
 {
     JsMatrix* me = CheckParamsAndGetThis<JsMatrix>(env, info);
@@ -181,6 +227,35 @@ napi_value JsMatrix::OnPostRotate(napi_env env, napi_callback_info info)
 
     JS_CALL_DRAWING_FUNC(m_matrix->PostRotate(degree, px, py));
 
+    return nullptr;
+}
+
+napi_value JsMatrix::PostSkew(napi_env env, napi_callback_info info)
+{
+    JsMatrix* me = CheckParamsAndGetThis<JsMatrix>(env, info);
+    return (me != nullptr) ? me->OnPostSkew(env, info) : nullptr;
+}
+
+napi_value JsMatrix::OnPostSkew(napi_env env, napi_callback_info info)
+{
+    if (m_matrix == nullptr) {
+        ROSEN_LOGE("JsMatrix::OnPostSkew matrix is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    napi_value argv[ARGC_FOUR] = {nullptr};
+    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_FOUR);
+
+    double kx = 0.0;
+    GET_DOUBLE_PARAM(ARGC_ZERO, kx);
+    double ky = 0.0;
+    GET_DOUBLE_PARAM(ARGC_ONE, ky);
+    double px = 0.0;
+    GET_DOUBLE_PARAM(ARGC_TWO, px);
+    double py = 0.0;
+    GET_DOUBLE_PARAM(ARGC_THREE, py);
+
+    m_matrix->PostSkew(kx, ky, px, py);
     return nullptr;
 }
 
@@ -267,6 +342,35 @@ napi_value JsMatrix::OnPreScale(napi_env env, napi_callback_info info)
     return nullptr;
 }
 
+napi_value JsMatrix::PreSkew(napi_env env, napi_callback_info info)
+{
+    JsMatrix* me = CheckParamsAndGetThis<JsMatrix>(env, info);
+    return (me != nullptr) ? me->OnPreSkew(env, info) : nullptr;
+}
+
+napi_value JsMatrix::OnPreSkew(napi_env env, napi_callback_info info)
+{
+    if (m_matrix == nullptr) {
+        ROSEN_LOGE("JsMatrix::OnPreSkew matrix is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    napi_value argv[ARGC_FOUR] = {nullptr};
+    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_FOUR);
+
+    double kx = 0.0;
+    GET_DOUBLE_PARAM(ARGC_ZERO, kx);
+    double ky = 0.0;
+    GET_DOUBLE_PARAM(ARGC_ONE, ky);
+    double px = 0.0;
+    GET_DOUBLE_PARAM(ARGC_TWO, px);
+    double py = 0.0;
+    GET_DOUBLE_PARAM(ARGC_THREE, py);
+
+    m_matrix->PreSkew(kx, ky, px, py);
+    return nullptr;
+}
+
 napi_value JsMatrix::PreTranslate(napi_env env, napi_callback_info info)
 {
     JsMatrix* me = CheckParamsAndGetThis<JsMatrix>(env, info);
@@ -290,6 +394,38 @@ napi_value JsMatrix::OnPreTranslate(napi_env env, napi_callback_info info)
 
     JS_CALL_DRAWING_FUNC(m_matrix->PreTranslate(dx, dy));
 
+    return nullptr;
+}
+
+napi_value JsMatrix::SetConcat(napi_env env, napi_callback_info info)
+{
+    JsMatrix* me = CheckParamsAndGetThis<JsMatrix>(env, info);
+    return (me != nullptr) ? me->OnSetConcat(env, info) : nullptr;
+}
+
+napi_value JsMatrix::OnSetConcat(napi_env env, napi_callback_info info)
+{
+    if (m_matrix == nullptr) {
+        ROSEN_LOGE("JsMatrix::OnSetConcat matrix is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    napi_value argv[ARGC_TWO] = {nullptr};
+    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_TWO);
+
+    JsMatrix* jsMatrix1 = nullptr;
+    GET_UNWRAP_PARAM(ARGC_ZERO, jsMatrix1);
+    JsMatrix* jsMatrix2 = nullptr;
+    GET_UNWRAP_PARAM(ARGC_ONE, jsMatrix2);
+
+    std::shared_ptr<Matrix> matrix1 = jsMatrix1->GetMatrix();
+    std::shared_ptr<Matrix> matrix2 = jsMatrix2->GetMatrix();
+    if (matrix1 == nullptr || matrix2 == nullptr) {
+        ROSEN_LOGE("JsMatrix::OnSetConcat matrix is nullptr");
+        return nullptr;
+    }
+
+    m_matrix->SetConcat(*matrix1, *matrix2);
     return nullptr;
 }
 
@@ -349,6 +485,64 @@ napi_value JsMatrix::OnSetScale(napi_env env, napi_callback_info info)
     return nullptr;
 }
 
+napi_value JsMatrix::SetSinCos(napi_env env, napi_callback_info info)
+{
+    JsMatrix* me = CheckParamsAndGetThis<JsMatrix>(env, info);
+    return (me != nullptr) ? me->OnSetSinCos(env, info) : nullptr;
+}
+
+napi_value JsMatrix::OnSetSinCos(napi_env env, napi_callback_info info)
+{
+    if (m_matrix == nullptr) {
+        ROSEN_LOGE("JsMatrix::OnSetSinCos matrix is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    napi_value argv[ARGC_FOUR] = {nullptr};
+    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_FOUR);
+
+    double sin = 0.0;
+    GET_DOUBLE_PARAM(ARGC_ZERO, sin);
+    double cos = 0.0;
+    GET_DOUBLE_PARAM(ARGC_ONE, cos);
+    double px = 0.0;
+    GET_DOUBLE_PARAM(ARGC_TWO, px);
+    double py = 0.0;
+    GET_DOUBLE_PARAM(ARGC_THREE, py);
+
+    m_matrix->SetSinCos(sin, cos, px, py);
+    return nullptr;
+}
+
+napi_value JsMatrix::SetSkew(napi_env env, napi_callback_info info)
+{
+    JsMatrix* me = CheckParamsAndGetThis<JsMatrix>(env, info);
+    return (me != nullptr) ? me->OnSetSkew(env, info) : nullptr;
+}
+
+napi_value JsMatrix::OnSetSkew(napi_env env, napi_callback_info info)
+{
+    if (m_matrix == nullptr) {
+        ROSEN_LOGE("JsMatrix::OnSetSkew matrix is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    napi_value argv[ARGC_FOUR] = {nullptr};
+    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_FOUR);
+
+    double kx = 0.0;
+    GET_DOUBLE_PARAM(ARGC_ZERO, kx);
+    double ky = 0.0;
+    GET_DOUBLE_PARAM(ARGC_ONE, ky);
+    double px = 0.0;
+    GET_DOUBLE_PARAM(ARGC_TWO, px);
+    double py = 0.0;
+    GET_DOUBLE_PARAM(ARGC_THREE, py);
+
+    m_matrix->SetSkew(kx, ky, px, py);
+    return nullptr;
+}
+
 napi_value JsMatrix::SetTranslation(napi_env env, napi_callback_info info)
 {
     JsMatrix* me = CheckParamsAndGetThis<JsMatrix>(env, info);
@@ -392,7 +586,17 @@ napi_value JsMatrix::OnSetMatrix(napi_env env, napi_callback_info info)
 
     uint32_t arrayLength = 0;
     if ((napi_get_array_length(env, argv[ARGC_ZERO], &arrayLength) != napi_ok)) {
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid array length params.");
+        JsMatrix* jsMatrix = nullptr;
+        GET_UNWRAP_PARAM(ARGC_ZERO, jsMatrix);
+
+        std::shared_ptr<Matrix> matrix = jsMatrix->GetMatrix();
+        if (matrix == nullptr) {
+            ROSEN_LOGE("JsMatrix::OnSetMatrix matrix is nullptr");
+            return nullptr;
+        }
+
+        *m_matrix = *matrix;
+        return nullptr;
     }
 
     if (arrayLength != ARGC_NINE) { // arrayLength must be an nine number
@@ -450,6 +654,22 @@ napi_value JsMatrix::OnPreConcat(napi_env env, napi_callback_info info)
 
     m_matrix->PreConcat(*jsMatrix->GetMatrix());
     return nullptr;
+}
+
+napi_value JsMatrix::IsAffine(napi_env env, napi_callback_info info)
+{
+    JsMatrix* me = CheckParamsAndGetThis<JsMatrix>(env, info);
+    return (me != nullptr) ? me->OnIsAffine(env, info) : nullptr;
+}
+
+napi_value JsMatrix::OnIsAffine(napi_env env, napi_callback_info info)
+{
+    if (m_matrix == nullptr) {
+        ROSEN_LOGE("JsMatrix::OnIsAffine matrix is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    return CreateJsValue(env, m_matrix->IsAffine());
 }
 
 napi_value JsMatrix::IsEqual(napi_env env, napi_callback_info info)
@@ -567,6 +787,28 @@ napi_value JsMatrix::OnMapPoints(napi_env env, napi_callback_info info)
     return resultArray;
 }
 
+napi_value JsMatrix::MapRadius(napi_env env, napi_callback_info info)
+{
+    JsMatrix* me = CheckParamsAndGetThis<JsMatrix>(env, info);
+    return (me != nullptr) ? me->OnMapRadius(env, info) : nullptr;
+}
+
+napi_value JsMatrix::OnMapRadius(napi_env env, napi_callback_info info)
+{
+    if (m_matrix == nullptr) {
+        ROSEN_LOGE("JsMatrix::OnMapRadius matrix is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    napi_value argv[ARGC_ONE] = {nullptr};
+    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
+
+    double radius = 0.0;
+    GET_DOUBLE_PARAM(ARGC_ZERO, radius);
+
+    return CreateJsNumber(env, m_matrix->MapRadius(radius));
+}
+
 napi_value JsMatrix::PostScale(napi_env env, napi_callback_info info)
 {
     JsMatrix* me = CheckParamsAndGetThis<JsMatrix>(env, info);
@@ -595,6 +837,22 @@ napi_value JsMatrix::OnPostScale(napi_env env, napi_callback_info info)
     JS_CALL_DRAWING_FUNC(m_matrix->PostScale(sx, sy, px, py));
 
     return nullptr;
+}
+
+napi_value JsMatrix::RectStaysRect(napi_env env, napi_callback_info info)
+{
+    JsMatrix* me = CheckParamsAndGetThis<JsMatrix>(env, info);
+    return (me != nullptr) ? me->OnRectStaysRect(env, info) : nullptr;
+}
+
+napi_value JsMatrix::OnRectStaysRect(napi_env env, napi_callback_info info)
+{
+    if (m_matrix == nullptr) {
+        ROSEN_LOGE("JsMatrix::OnRectStaysRect matrix is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    return CreateJsValue(env, m_matrix->RectStaysRect());
 }
 
 napi_value JsMatrix::Reset(napi_env env, napi_callback_info info)

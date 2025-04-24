@@ -55,6 +55,11 @@ void Matrix::SetSkew(scalar kx, scalar ky, scalar px, scalar py)
     matrixImplPtr->SetSkew(kx, ky, px, py);
 }
 
+void Matrix::SetConcat(const Matrix& a, const Matrix& b)
+{
+    matrixImplPtr->Multiply(a, b);
+}
+
 void Matrix::SetScale(scalar sx, scalar sy)
 {
     matrixImplPtr->SetScale(sx, sy);
@@ -63,6 +68,11 @@ void Matrix::SetScale(scalar sx, scalar sy)
 void Matrix::SetScaleTranslate(scalar sx, scalar sy, scalar dx, scalar dy)
 {
     matrixImplPtr->SetScaleTranslate(sx, sy, dx, dy);
+}
+
+void Matrix::SetSinCos(scalar sinValue, scalar cosValue, scalar px, scalar py)
+{
+    return matrixImplPtr->SetSinCos(sinValue, cosValue, px, py);
 }
 
 void Matrix::PreRotate(scalar degree)
@@ -177,6 +187,11 @@ void Matrix::MapPoints(std::vector<Point>& dst, const std::vector<Point>& src, u
     matrixImplPtr->MapPoints(dst, src, count);
 }
 
+scalar Matrix::MapRadius(scalar radius) const
+{
+    return matrixImplPtr->MapRadius(radius);
+}
+
 bool Matrix::MapRect(Rect& dst, const Rect& src) const
 {
     return matrixImplPtr->MapRect(dst, src);
@@ -212,6 +227,11 @@ bool Matrix::IsIdentity() const
     return matrixImplPtr->IsIdentity();
 }
 
+bool Matrix::IsAffine() const
+{
+    return matrixImplPtr->IsAffine();
+}
+
 void Matrix::PreRotate(scalar degree, scalar px, scalar py)
 {
     matrixImplPtr->PreRotate(degree, px, py);
@@ -220,6 +240,11 @@ void Matrix::PreRotate(scalar degree, scalar px, scalar py)
 void Matrix::PreScale(scalar sx, scalar sy, scalar px, scalar py)
 {
     matrixImplPtr->PreScale(sx, sy, px, py);
+}
+
+bool Matrix::RectStaysRect() const
+{
+    return matrixImplPtr->RectStaysRect();
 }
 
 void Matrix::Reset()
