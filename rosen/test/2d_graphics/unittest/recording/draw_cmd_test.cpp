@@ -918,9 +918,6 @@ HWTEST_F(DrawCmdTest, DrawTextBlobOpItem001, TestSize.Level1)
     textBlob->SetTextContrast(TextContrast::ENABLE_CONTRAST);
     opItem.Playback(recordingCanvas2.get(), &rect);
 
-    textBlob->SetTextContrast(TextContrast::ENABLE_CONTRAST);
-    opItem.Playback(recordingCanvas2.get(), &rect);
-
     DrawTextBlobOpItem::ConstructorHandle::GenerateCachedOpItem(*drawCmdList, nullptr, 0, 0, paint);
     DrawTextBlobOpItem::ConstructorHandle::GenerateCachedOpItem(*drawCmdList, textBlob.get(), 0, 0, paint);
     TextBlob textBlob2{nullptr};
