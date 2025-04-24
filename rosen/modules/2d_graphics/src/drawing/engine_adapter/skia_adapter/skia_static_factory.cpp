@@ -256,12 +256,14 @@ void SkiaStaticFactory::ResetPerfEventData()
 #endif
 }
 
-#ifndef USE_M133_SKIA
 std::map<std::string, std::vector<uint16_t>> SkiaStaticFactory::GetBlurStatsData()
 {
+#ifdef USE_M133_SKIA
+    return std::map<std::string, std::vector<uint16_t>> {};
+#else
     return GrPerfMonitorReporter::GetInstance().getBlurStatsData();
-}
 #endif
+}
 
 std::map<std::string, RsBlurEvent> SkiaStaticFactory::GetBlurPerfEventData()
 {

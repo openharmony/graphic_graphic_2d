@@ -15,9 +15,7 @@
 
 #include "skia_hm_symbol_config_ohos.h"
 
-#ifndef USE_M133_SKIA
 #include "src/ports/skia_ohos/HmSymbolConfig_ohos.h"
-#endif
 #include "utils/log.h"
 namespace OHOS {
 namespace Rosen {
@@ -25,7 +23,6 @@ namespace Drawing {
 
 DrawingSymbolLayersGroups SkiaHmSymbolConfigOhos::GetSymbolLayersGroups(uint16_t glyphId)
 {
-#ifndef USE_M133_SKIA
 #if !defined(CROSS_PLATFORM)
     SymbolLayersGroups groups = HmSymbolConfig_OHOS::GetInstance()->GetSymbolLayersGroups(glyphId);
 
@@ -56,14 +53,12 @@ DrawingSymbolLayersGroups SkiaHmSymbolConfigOhos::GetSymbolLayersGroups(uint16_t
     drawingGroups.renderModeGroups = drawingRenderModeGroups;
 
     return drawingGroups;
-#endif
 #else
     DrawingSymbolLayersGroups drawingGroups;
     return drawingGroups;
 #endif
 }
 
-#ifndef USE_M133_SKIA
 DrawingAnimationSetting SkiaHmSymbolConfigOhos::ConvertToDrawingAnimationSetting(AnimationSetting setting)
 {
     DrawingAnimationSetting drawingSetting;
@@ -146,8 +141,6 @@ std::vector<std::vector<DrawingPiecewiseParameter>> SkiaHmSymbolConfigOhos::GetG
     return parameters;
 }
 #endif
-#endif
-
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

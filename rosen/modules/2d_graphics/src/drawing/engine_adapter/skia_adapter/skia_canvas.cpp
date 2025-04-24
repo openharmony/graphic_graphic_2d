@@ -1291,7 +1291,6 @@ void SkiaCanvas::RoundRectCastToSkRRect(const RoundRect& roundRect, SkRRect& skR
     skRRect.setRectRadii(*outer, radii);
 }
 
-#ifndef USE_M133_SKIA
 bool SkiaCanvas::ConvertToHMSymbolData(const DrawingHMSymbolData& symbol, HMSymbolData& skSymbol)
 {
     Path path = symbol.path_;
@@ -1326,7 +1325,6 @@ bool SkiaCanvas::ConvertToHMSymbolData(const DrawingHMSymbolData& symbol, HMSymb
     skSymbol.symbolInfo_.renderGroups = groups;
     return true;
 }
-#endif
 
 void SkiaCanvas::BuildOverDraw(std::shared_ptr<Canvas> canvas)
 {
