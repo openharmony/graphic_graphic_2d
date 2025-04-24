@@ -2637,7 +2637,9 @@ void RSSurfaceRenderNode::SetHwcChildrenDisabledState()
         }
     };
     auto hwcNodes = GetChildHardwareEnabledNodes();
-    TraverseHwcNode(hwcNodes);
+    if (!hwcNodes.empty()) {
+        TraverseHwcNode(hwcNodes);
+    }
     std::vector<std::pair<NodeId, RSSurfaceRenderNode::WeakPtr>> allSubSurfaceNodes;
     GetAllSubSurfaceNodes(allSubSurfaceNodes);
     for (auto &node : allSubSurfaceNodes) {
