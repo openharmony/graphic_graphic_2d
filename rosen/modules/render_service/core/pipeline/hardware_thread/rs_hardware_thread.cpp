@@ -820,7 +820,11 @@ void RSHardwareThread::ChangeDssRefreshRate(ScreenId screenId, uint32_t refreshR
             return;
         }
         auto output = outputIter->second.lock();
-        if (output == nullptr || HgmCore::Instance().GetActiveScreenId() != screenId) {
+        if (output == nullptr) {
+            outputMap_.erase(screenId);
+            return;
+        }
+        if (HgmCore::Instance().GetActiveScreenId() != screenId) {
             return;
         }
         ExecuteSwitchRefreshRate(output, refreshRate);
