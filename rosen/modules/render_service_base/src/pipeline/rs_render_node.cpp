@@ -2626,7 +2626,8 @@ void RSRenderNode::RemoveModifier(const PropertyId& id)
         ROSEN_LOGI_IF(DEBUG_MODIFIER, "RSRenderNode::remove modifier, node id: %{public}" PRIu64 ", type: %{public}s",
             GetId(), (it->second) ? it->second->GetModifierTypeString().c_str() : "UNKNOWN");
         modifiers_.erase(it);
-        if (auto propertyIt = properties_.find(id) != properties_.end()) {
+        auto propertyIt = properties_.find(id);
+        if (propertyIt != properties_.end()) {
             properties_.erase(propertyIt);
         }
         return;
