@@ -259,6 +259,9 @@ std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> RSPointerWindowManager:
 
 void RSPointerWindowManager::CheckHardCursorValid(const RSSurfaceRenderNode& node)
 {
+    if (!node.GetHardCursorStatus()) {
+        return;
+    }
     // DSS Hardware don't support the synthesis of layers with length and width not larger than 2
     auto srcRect = node.GetSrcRect();
     if (srcRect.GetWidth() <= MIN_LAYER_WIDTH || srcRect.GetHeight() <= MIN_LAYER_WIDTH) {
