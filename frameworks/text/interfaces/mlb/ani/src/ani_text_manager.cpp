@@ -41,8 +41,17 @@ static ani_status InitAllStruct(ani_vm* vm, uint32_t* result, std::index_sequenc
     return ret;
 }
 
-static void Clean(ani_env* env, ani_object object)
+template <typename T>
+void SafeDelete(ani_long& ptr)
 {
+    if (ptr != 0) {
+        T* pointer = reinterpret_cast<T*>(ptr);
+        delete pointer;
+        pointer = nullptr;
+    }
+}
+
+static void Clean(ani_env* env, ani_object object) {
     ani_long ptr;
     if (ANI_OK != env->Object_GetFieldByName_Long(object, "ptr", &ptr)) {
         return;
@@ -51,18 +60,21 @@ static void Clean(ani_env* env, ani_object object)
     if (ANI_OK != env->Object_GetFieldByName_Ref(object, "className", &stringRef)) {
         return;
     }
+    
     std::string familyName = AniTextUtils::AniToStdStringUtf8(env, static_cast<ani_string>(stringRef));
-    if (familyName.find("ParagraphBuilder") != std::string::npos) {
-        TEXT_LOGE("[ANI] clean ParagraphBuilder:%{public}lld", ptr);
-        delete reinterpret_cast<AniParagraphBuilder*>(ptr);
-    } else if (familyName.find("Paragraph") != std::string::npos) {
-        TEXT_LOGE("[ANI] clean Paragraph:%{public}lld", ptr);
-        delete reinterpret_cast<AniParagraph*>(ptr);
-    } else if (familyName.find("FontCollection") != std::string::npos) {
-        TEXT_LOGE("[ANI] clean FontCollection:%{public}lld", ptr);
-        delete reinterpret_cast<AniFontCollection*>(ptr);
+    using DeleteFunc = void (*)(ani_long&);
+    static const std::unordered_map<std::string, DeleteFunc> deleteMap = {
+        {"ParagraphBuilder", SafeDelete<AniParagraphBuilder>},
+        {"Paragraph", SafeDelete<AniParagraph>},
+        {"FontCollection", SafeDelete<AniFontCollection>}
+    };
+
+    if (deleteMap.count(familyName)) {
+        TEXT_LOGE("[ANI] clean %{public}s", familyName.c_str());
+        deleteMap.at(familyName)(ptr);
     }
 }
+
 
 static ani_status AniCleanerInit(ani_vm* vm)
 {

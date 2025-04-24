@@ -954,7 +954,7 @@ namespace text {
      * @syscap SystemCapability.Graphics.Drawing
      * @since 12
      */
-    //runMetrics: Map<number, RunMetrics>;
+    runMetrics: Map<number, RunMetrics>;
   }
 
   export class LineMetricsInternal implements LineMetrics {
@@ -968,7 +968,7 @@ namespace text {
     baseline: number;
     lineNumber: number;
     topHeight: number;
-    //runMetrics: Map<number, RunMetrics>;
+    runMetrics: Map<number, RunMetrics>;
   }
 
   /**
@@ -1264,5 +1264,34 @@ namespace text {
      * @since 12
      */
     WAVY,
+  }
+
+  /**
+   * Describes the layout information and metrics for a continuous piece of text (a run) in a line of text.
+   * @typedef RunMetrics
+   * @syscap SystemCapability.Graphics.Drawing
+   * @since 12
+   */
+  export interface RunMetrics {
+    /**
+     * The metrics of an Font.
+     * @type { TextStyle }
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    textStyle: TextStyle;
+
+    /**
+     * Describes text style.
+     * @type { drawing.FontMetrics }
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    fontMetrics: drawing.FontMetrics;
+  }
+
+  export class RunMetricsInternal implements RunMetrics {
+    textStyle: TextStyle;
+    fontMetrics: drawing.FontMetrics;
   }
 }
