@@ -264,7 +264,7 @@ HWTEST_F(DrawCmdTest, GenerateCachedOpItem001, TestSize.Level1)
     uint64_t globalUniqueId = 0;
     PaintHandle paintHandle;
     DrawTextBlobOpItem::ConstructorHandle handle{opDataHandle,
-        globalUniqueId, 0, 0, paintHandle};
+        globalUniqueId, TextContrast::FOLLOW_SYSTEM, 0, 0, paintHandle};
     EXPECT_FALSE(player.GenerateCachedOpItem(DrawOpItem::TEXT_BLOB_OPITEM, &handle, 0));
     EXPECT_FALSE(player.GenerateCachedOpItem(DrawOpItem::PICTURE_OPITEM, &handle, 0));
 }
@@ -282,7 +282,8 @@ HWTEST_F(DrawCmdTest, PatchTypefaceIds001, TestSize.Level1)
     OpDataHandle opDataHandle;
     uint64_t globalUniqueId = 1;
     PaintHandle paintHandle;
-    DrawTextBlobOpItem::ConstructorHandle handle{opDataHandle, globalUniqueId, 0, 0, paintHandle};
+    DrawTextBlobOpItem::ConstructorHandle handle{opDataHandle, globalUniqueId,
+        TextContrast::FOLLOW_SYSTEM, 0, 0, paintHandle};
     GenerateCachedOpItemPlayer player{*drawCmdList, nullptr, nullptr};
     player.GenerateCachedOpItem(DrawOpItem::TEXT_BLOB_OPITEM, &handle, 0);
     drawCmdList->PatchTypefaceIds();
@@ -925,7 +926,8 @@ HWTEST_F(DrawCmdTest, DrawTextBlobOpItem001, TestSize.Level1)
     opDataHandle.size = 10;
     uint64_t globalUniqueId = 0;
     PaintHandle paintHandle;
-    DrawTextBlobOpItem::ConstructorHandle handler{opDataHandle, globalUniqueId, 10, 10, paintHandle}; // 10: x, y
+    DrawTextBlobOpItem::ConstructorHandle handler{opDataHandle, globalUniqueId,
+        TextContrast::FOLLOW_SYSTEM, 10, 10, paintHandle}; // 10: x, y
     handler.GenerateCachedOpItem(*drawCmdList, &canvas);
 }
 
