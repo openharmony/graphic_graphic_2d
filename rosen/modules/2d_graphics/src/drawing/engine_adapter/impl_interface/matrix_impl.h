@@ -43,6 +43,7 @@ public:
     virtual void Scale(scalar sx, scalar sy, scalar px, scalar py) = 0;
     virtual void SetScale(scalar sx, scalar sy) = 0;
     virtual void SetScaleTranslate(scalar sx, scalar sy, scalar dx, scalar dy) = 0;
+    virtual void SetSinCos(scalar sinValue, scalar cosValue, scalar px, scalar py);
     virtual void SetSkew(scalar kx, scalar ky) = 0;
     virtual void SetSkew(scalar kx, scalar ky, scalar px, scalar py) = 0;
 
@@ -70,16 +71,19 @@ public:
         scalar persp0, scalar persp1, scalar persp2) = 0;
     virtual bool SetRectToRect(const Rect& src, const Rect& dst, ScaleToFit stf);
     virtual void MapPoints(std::vector<Point>& dst, const std::vector<Point>& src, uint32_t count) const;
+    virtual scalar MapRadius(scalar radius) const;
     virtual bool MapRect(Rect& dst, const Rect& src) const;
     virtual bool SetPolyToPoly(const Point src[], const Point dst[], uint32_t count);
     virtual void Set(int index, scalar value);
     virtual scalar Get(int index) const = 0;
     virtual void GetAll(std::array<scalar, MATRIX_SIZE>& buffer) const = 0;
     virtual void SetAll(std::array<scalar, MATRIX_SIZE>& buffer) = 0;
+    virtual bool IsAffine() const = 0;
     virtual bool IsIdentity() const = 0;
     virtual void Clone(const Matrix&) = 0;
     virtual void PreRotate(scalar degree, scalar px, scalar py) = 0;
     virtual void PreScale(scalar sx, scalar sy, scalar px, scalar py) = 0;
+    virtual bool RectStaysRect() const = 0;
     virtual void Reset() = 0;
 
     virtual bool GetMinMaxScales(scalar scaleFactors[2]) = 0;

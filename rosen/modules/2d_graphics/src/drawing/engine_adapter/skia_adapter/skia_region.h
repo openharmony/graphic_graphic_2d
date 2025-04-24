@@ -35,15 +35,22 @@ public:
     }
 
     bool Contains(int32_t x, int32_t y) const override;
+    bool Equals(const Region& other) const override;
+    void SetEmpty() override;
     bool SetRect(const RectI& rectI) override;
+    bool SetRegion(const Region& region) override;
     bool SetPath(const Path& path, const Region& clip) override;
     bool GetBoundaryPath(Path* path) const override;
+    RectI GetBounds() const override;
+    bool IsComplex() const override;
     bool IsIntersects(const Region& other) const override;
     bool IsEmpty() const override;
     bool IsRect() const override;
     bool IsRegionContained(const Region& other) const override;
     bool Op(const Region& region, RegionOp op) override;
     bool QuickReject(const RectI& rectI) const override;
+    bool QuickReject(const Region& region) const override;
+    void Translate(int32_t x, int32_t y) override;
     void Clone(const Region& other) override;
     std::shared_ptr<Data> Serialize() const override;
     bool Deserialize(std::shared_ptr<Data> data) override;

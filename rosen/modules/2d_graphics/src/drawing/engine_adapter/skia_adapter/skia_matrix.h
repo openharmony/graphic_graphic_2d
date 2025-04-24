@@ -43,6 +43,7 @@ public:
     void Scale(scalar sx, scalar sy, scalar px, scalar py) override;
     void SetScale(scalar sx, scalar sy) override;
     void SetScaleTranslate(scalar sx, scalar sy, scalar dx, scalar dy) override;
+    void SetSinCos(scalar sinValue, scalar cosValue, scalar px, scalar py) override;
     void SetSkew(scalar kx, scalar ky) override;
     void SetSkew(scalar kx, scalar ky, scalar px, scalar py) override;
     const SkMatrix& ExportSkiaMatrix() const;
@@ -71,12 +72,14 @@ public:
         scalar persp0, scalar persp1, scalar persp2) override;
     bool SetRectToRect(const Rect& src, const Rect& dst, ScaleToFit stf) override;
     void MapPoints(std::vector<Point>& dst, const std::vector<Point>& src, uint32_t count) const override;
+    scalar MapRadius(scalar radius) const override;
     bool MapRect(Rect& dst, const Rect& src) const override;
     bool SetPolyToPoly(const Point src[], const Point dst[], uint32_t count) override;
     void Set(int index, scalar value) override;
     scalar Get(int index) const override;
     void GetAll(std::array<scalar, MatrixImpl::MATRIX_SIZE>& buffer) const override;
     void SetAll(std::array<scalar, MatrixImpl::MATRIX_SIZE>& buffer) override;
+    bool IsAffine() const override;
     bool IsIdentity() const override;
 
     void ImportMatrix(const SkMatrix& skMatrix);
@@ -85,6 +88,7 @@ public:
     void Clone(const Matrix& other) override;
     void PreRotate(scalar degree, scalar px, scalar py) override;
     void PreScale(scalar sx, scalar sy, scalar px, scalar py) override;
+    bool RectStaysRect() const override;
     void Reset() override;
 
     bool GetMinMaxScales(scalar scaleFactors[2]) override;

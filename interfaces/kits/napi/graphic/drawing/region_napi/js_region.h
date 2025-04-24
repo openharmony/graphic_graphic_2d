@@ -33,21 +33,39 @@ public:
     static napi_value Constructor(napi_env env, napi_callback_info info);
     static void Destructor(napi_env env, void* nativeObject, void* finalize);
 
+    static napi_value GetBoundaryPath(napi_env env, napi_callback_info info);
+    static napi_value GetBounds(napi_env env, napi_callback_info info);
+    static napi_value IsComplex(napi_env env, napi_callback_info info);
+    static napi_value IsEmpty(napi_env env, napi_callback_info info);
+    static napi_value IsEqual(napi_env env, napi_callback_info info);
     static napi_value IsPointContained(napi_env env, napi_callback_info info);
     static napi_value IsRegionContained(napi_env env, napi_callback_info info);
+    static napi_value Offset(napi_env env, napi_callback_info info);
     static napi_value Op(napi_env env, napi_callback_info info);
     static napi_value QuickReject(napi_env env, napi_callback_info info);
+    static napi_value QuickRejectRegion(napi_env env, napi_callback_info info);
+    static napi_value SetEmpty(napi_env env, napi_callback_info info);
     static napi_value SetRect(napi_env env, napi_callback_info info);
+    static napi_value SetRegion(napi_env env, napi_callback_info info);
     static napi_value SetPath(napi_env env, napi_callback_info info);
 
     Region* GetRegion();
 
 private:
+    napi_value OnGetBoundaryPath(napi_env env, napi_callback_info info);
+    napi_value OnGetBounds(napi_env env, napi_callback_info info);
+    napi_value OnIsComplex(napi_env env, napi_callback_info info);
+    napi_value OnIsEmpty(napi_env env, napi_callback_info info);
+    napi_value OnIsEqual(napi_env env, napi_callback_info info);
     napi_value OnIsPointContained(napi_env env, napi_callback_info info);
     napi_value OnIsRegionContained(napi_env env, napi_callback_info info);
+    napi_value OnOffset(napi_env env, napi_callback_info info);
     napi_value OnOp(napi_env env, napi_callback_info info);
     napi_value OnQuickReject(napi_env env, napi_callback_info info);
+    napi_value OnQuickRejectRegion(napi_env env, napi_callback_info info);
+    napi_value OnSetEmpty(napi_env env, napi_callback_info info);
     napi_value OnSetRect(napi_env env, napi_callback_info info);
+    napi_value OnSetRegion(napi_env env, napi_callback_info info);
     napi_value OnSetPath(napi_env env, napi_callback_info info);
 
     static thread_local napi_ref constructor_;
