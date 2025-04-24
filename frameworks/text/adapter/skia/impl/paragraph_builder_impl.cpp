@@ -185,6 +185,7 @@ skt::ParagraphStyle ParagraphBuilderImpl::TextStyleToSkStyle(const ParagraphStyl
     skStyle.setTextTab(ConvertToSkTextTab(txt.tab));
     skStyle.setParagraphSpacing(txt.paragraphSpacing);
     skStyle.setIsEndAddParagraphSpacing(txt.isEndAddParagraphSpacing);
+    skStyle.setTrailingSpaceOptimized(txt.isTrailingSpaceOptimized);
 
     return skStyle;
 }
