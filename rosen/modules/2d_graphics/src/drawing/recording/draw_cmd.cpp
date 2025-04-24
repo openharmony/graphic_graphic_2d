@@ -1617,7 +1617,8 @@ void DrawTextBlobOpItem::Playback(Canvas* canvas, const Rect* rect)
         }
         saveFlag = true;
     }
-    if (canvas->isHighContrastEnabled()) {
+    TextContrast customerEnableValue = textBlob_->GetTextContrast();
+    if (IsHighConstractEnable(canvas, customerEnableValue)) {
         LOGD("DrawTextBlobOpItem::Playback highContrastEnabled, %{public}s, %{public}d", __FUNCTION__, __LINE__);
         DrawHighContrastEnabled(canvas);
     } else {
@@ -1626,6 +1627,21 @@ void DrawTextBlobOpItem::Playback(Canvas* canvas, const Rect* rect)
     }
     if (saveFlag) {
         canvas->Restore();
+    }
+}
+
+bool DrawTextBlobOpItem::IsHighConstractEnable(Canvas* canvas, TextContrast value) const
+{
+    bool canvasHighConstractEnabled = canvas->isHighContrastEnabled();
+    switch (value) {
+        case TextContrast::FOLLOW_SYSTEM:
+            return canvasHighConstractEnabled;
+        case TextContrast::DISABLE_CONTRAST:
+            return false;
+        case TextContrast::ENABLE_CONTRAST:
+            return true;
+        default:
+            return canvasHighConstractEnabled;
     }
 }
 
