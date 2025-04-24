@@ -67,33 +67,17 @@ HWTEST_F(HwcParamTest, SetSolidColorLayerForApp, Function | SmallTest | Level1)
 }
 
 /**
- * @tc.name: SetHwcExpandingScreenEnabled
- * @tc.desc: Verify the SetHwcExpandingScreenEnabled function
+ * @tc.name: SetDisableHwcOnExpandScreen
+ * @tc.desc: Verify the SetDisableHwcOnExpandScreen function
  * @tc.type: FUNC
  * @tc.require: #IBOLM8
  */
-HWTEST_F(HwcParamTest, SetHwcExpandingScreenEnabled, Function | SmallTest | Level1)
+HWTEST_F(HwcParamTest, SetDisableHwcOnExpandScreen, Function | SmallTest | Level1)
 {
-    HWCParam hwcParam;
-    hwcParam.SetHwcExpandingScreenEnabled(true);
-    EXPECT_EQ(hwcParam.isHwcExpandingScreenEnabled_, true);
-    hwcParam.SetHwcExpandingScreenEnabled(false);
-    EXPECT_EQ(hwcParam.isHwcExpandingScreenEnabled_, false);
-}
-
-/**
- * @tc.name: IsHwcExpandingScreenEnabled
- * @tc.desc: Verify the IsHwcExpandingScreenEnabled function
- * @tc.type: FUNC
- * @tc.require: #IBOLM8
- */
-HWTEST_F(HwcParamTest, IsHwcExpandingScreenEnabled, Function | SmallTest | Level1)
-{
-    HWCParam hwcParam;
-    hwcParam.isHwcExpandingScreenEnabled_ = true;
-    EXPECT_TRUE(hwcParam.IsHwcExpandingScreenEnabled());
-    hwcParam.isHwcExpandingScreenEnabled_ = false;
-    EXPECT_FALSE(hwcParam.IsHwcExpandingScreenEnabled());
+    HWCParam::SetDisableHwcOnExpandScreen(true);
+    ASSERT_TRUE(HWCParam::IsDisableHwcOnExpandScreen());
+    HWCParam::SetDisableHwcOnExpandScreen(false);
+    ASSERT_FALSE(HWCParam::IsDisableHwcOnExpandScreen());
 }
 } // namespace Rosen
 } // namespace OHOS
