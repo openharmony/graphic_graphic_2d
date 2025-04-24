@@ -81,7 +81,7 @@ RSSurfaceRenderNodeDrawable::RSSurfaceRenderNodeDrawable(std::shared_ptr<const R
 #ifndef ROSEN_CROSS_PLATFORM
     consumerOnDraw_ = surfaceNode->GetRSSurfaceHandler()->GetConsumer();
 #endif
-    subThreadCache_.SetNodeId(GetId());
+    subThreadCache_.SetNodeId(surfaceNode->GetId());
 }
 
 RSRenderNodeDrawable::Ptr RSSurfaceRenderNodeDrawable::OnGenerate(std::shared_ptr<const RSRenderNode> node)

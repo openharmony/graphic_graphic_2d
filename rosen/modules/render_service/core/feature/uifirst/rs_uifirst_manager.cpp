@@ -133,6 +133,8 @@ void RSUifirstManager::ResetUifirstNode(std::shared_ptr<RSSurfaceRenderNode>& no
     RS_LOGI("ResetUifirstNode name:%{public}s,id:%{public}" PRIu64 ",isOnTheTree:%{public}d,"
         "toBeCaptured:%{public}d", nodePtr->GetName().c_str(), nodePtr->GetId(), nodePtr->IsOnTheTree(),
         nodePtr->IsNodeToBeCaptured());
+    pendingPostNodes_.erase(nodePtr->GetId());
+    pendingPostCardNodes_.erase(nodePtr->GetId());
     nodePtr->SetUifirstUseStarting(false);
     if (SetUifirstNodeEnableParam(*nodePtr, MultiThreadCacheType::NONE)) {
         // enable ->disable
