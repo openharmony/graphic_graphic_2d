@@ -86,6 +86,11 @@ ohos_source_set("rs_graphic_test_src") {
     "zlib:libz",
   ]
 
+  if (rosen_is_ohos && graphic_2d_feature_rs_enable_profiler &&
+      player_framework_enable) {
+    defines += [ "RS_PROFILER_ENABLED" ]
+  }
+
   part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
@@ -93,13 +98,9 @@ ohos_source_set("rs_graphic_test_src") {
 ohos_shared_library("rs_graphic_test") {
   testonly = true
 
-  public_deps = [
-    ":rs_graphic_test_src",
-  ]
+  public_deps = [ ":rs_graphic_test_src" ]
 
-  external_deps = [
-    "googletest:gtest_main",
-  ]
+  external_deps = [ "googletest:gtest_main" ]
 
   part_name = "graphic_2d"
   subsystem_name = "graphic"
