@@ -916,6 +916,9 @@ HWTEST_F(DrawCmdTest, DrawTextBlobOpItem001, TestSize.Level1)
     opItem.DrawHighContrast(&canvas);
     opItem.DrawHighContrastEnabled(&canvas);
 
+    textBlob->SetTextContrast(TextContrast::ENABLE_CONTRAST);
+    opItem.Playback(recordingCanvas2.get(), &rect);
+
     DrawTextBlobOpItem::ConstructorHandle::GenerateCachedOpItem(*drawCmdList, nullptr, 0, 0, paint);
     DrawTextBlobOpItem::ConstructorHandle::GenerateCachedOpItem(*drawCmdList, textBlob.get(), 0, 0, paint);
     TextBlob textBlob2{nullptr};
@@ -957,6 +960,31 @@ HWTEST_F(DrawCmdTest, DrawTextBlobOpItem002, TestSize.Level1)
     ASSERT_TRUE(canvers1.GetSurface() != nullptr);
     ret = opItem.GetOffScreenSurfaceAndCanvas(canvas, offScreenSurface, offScreenCanvas);
     ASSERT_TRUE(offScreenSurface == nullptr);
+}
+
+/**
+ * @tc.name: IsHighContrastEnableTest
+ * @tc.desc: Test functions for IsHighContrastEnableTest
+ * @tc.type: FUNC
+ * @tc.require: I9120P
+ */
+HWTEST_F(DrawCmdTest, IsHighContrastEnableTest, TestSize.Level1)
+{
+    Font font;
+    auto textBlob = TextBlob::MakeFromString("11", font, TextEncoding::UTF8);
+    Paint paint;
+    DrawTextBlobOpItem opItem{textBlob.get(), 0, 0, paint};
+
+    auto recordingCanvas = std::make_shared<RecordingCanvas>(1, 10);
+    TextContrast textContrast = TextContrast::FOLLOW_SYSTEM;
+    EXPECT_EQ(opItem.IsHighContrastEnable(recordingCanvas.get(), textContrast),
+        recordingCanvas.get()->isHighContrastEnabled());
+
+    textContrast = TextContrast::DISABLE_CONTRAST;
+    EXPECT_FALSE(opItem.IsHighContrastEnable(recordingCanvas.get(), textContrast));
+
+    textContrast = TextContrast::ENABLE_CONTRAST;
+    EXPECT_TRUE(opItem.IsHighContrastEnable(recordingCanvas.get(), textContrast));
 }
 
 /**
