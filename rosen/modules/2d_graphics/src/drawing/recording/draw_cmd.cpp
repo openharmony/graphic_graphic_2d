@@ -1567,7 +1567,9 @@ DrawTextBlobOpItem::DrawTextBlobOpItem(const DrawCmdList& cmdList, DrawTextBlobO
     : DrawWithPaintOpItem(cmdList, handle->paintHandle, TEXT_BLOB_OPITEM), x_(handle->x), y_(handle->y)
 {
     globalUniqueId_ = handle->globalUniqueId;
+    textContrast_ = handle->textContrast;
     textBlob_ = CmdListHelper::GetTextBlobFromCmdList(cmdList, handle->textBlob, handle->globalUniqueId);
+    textBlob_->SetTextContrast(textContrast_);
 }
 
 std::shared_ptr<DrawOpItem> DrawTextBlobOpItem::Unmarshalling(const DrawCmdList& cmdList, void* handle)
@@ -1588,7 +1590,8 @@ void DrawTextBlobOpItem::Marshalling(DrawCmdList& cmdList)
         globalUniqueId = (shiftedPid | typefaceId);
     }
 
-    cmdList.AddOp<ConstructorHandle>(textBlobHandle, globalUniqueId, x_, y_, paintHandle);
+    cmdList.AddOp<ConstructorHandle>(textBlobHandle,
+        globalUniqueId, textBlob_->GetTextContrast(), x_, y_, paintHandle);
 }
 
 uint64_t DrawTextBlobOpItem::GetTypefaceId()
@@ -1879,6 +1882,19 @@ void DrawTextBlobOpItem::DumpItems(std::string& out) const
     if (textBlob_ != nullptr) {
         out += " TextBlob[";
         out += "UniqueID:" + std::to_string(textBlob_->UniqueID());
+        switch (textBlob_ -> GetTextContrast()) {
+            case TextContrast::FOLLOW_SYSTEM:
+                out += "TextContrast: FOLLOW_SYSTEM";
+                break;
+            case TextContrast::DISABLE_CONTRAST:
+                out += "TextContrast: DISABLE_CONTRAST";
+                break;
+            case TextContrast::ENABLE_CONTRAST:
+                out += "TextContrast: ENABLE_CONTRAST";
+                break;
+            default:
+                break;
+        }
         auto bounds = textBlob_->Bounds();
         if (bounds != nullptr) {
             out += " Bounds";

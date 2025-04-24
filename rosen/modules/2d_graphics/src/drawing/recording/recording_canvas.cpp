@@ -425,7 +425,8 @@ void RecordingCanvas::DrawTextBlob(const TextBlob* blob, const scalar x, const s
         uint32_t typefaceId = ctx.GetTypeface()->GetUniqueID();
         globalUniqueId = (shiftedPid | typefaceId);
     }
-    AddDrawOpImmediate<DrawTextBlobOpItem::ConstructorHandle>(textBlobHandle, globalUniqueId, x, y);
+    AddDrawOpImmediate<DrawTextBlobOpItem::ConstructorHandle>(textBlobHandle,
+        globalUniqueId, blob->GetTextContrast(), x, y);
 }
 
 void RecordingCanvas::DrawSymbol(const DrawingHMSymbolData& symbol, Point locate)

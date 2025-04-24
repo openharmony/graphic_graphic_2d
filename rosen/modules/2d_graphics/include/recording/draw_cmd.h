@@ -889,14 +889,15 @@ class DrawTextBlobOpItem : public DrawWithPaintOpItem {
 public:
     struct ConstructorHandle : public OpItem {
         ConstructorHandle(const OpDataHandle& textBlob, const uint64_t& globalUniqueId,
-            scalar x, scalar y, const PaintHandle& paintHandle)
+            TextContrast textContrast, scalar x, scalar y, const PaintHandle& paintHandle)
             : OpItem(DrawOpItem::TEXT_BLOB_OPITEM), textBlob(textBlob), globalUniqueId(globalUniqueId),
-            x(x), y(y), paintHandle(paintHandle) {}
+            textContrast(textContrast), x(x), y(y), paintHandle(paintHandle) {}
         ~ConstructorHandle() override = default;
         static bool GenerateCachedOpItem(DrawCmdList& cmdList, const TextBlob* textBlob, scalar x, scalar y, Paint& p);
         bool GenerateCachedOpItem(DrawCmdList& cmdList, Canvas* canvas);
         OpDataHandle textBlob;
         uint64_t globalUniqueId;
+        TextContrast textContrast;
         scalar x;
         scalar y;
         PaintHandle paintHandle;
@@ -924,6 +925,7 @@ private:
     scalar y_;
     std::shared_ptr<TextBlob> textBlob_;
     uint64_t globalUniqueId_;
+    TextContrast textContrast_;
 };
 
 class DrawSymbolOpItem : public DrawWithPaintOpItem {
