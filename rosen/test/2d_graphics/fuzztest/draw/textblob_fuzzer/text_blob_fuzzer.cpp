@@ -25,6 +25,7 @@ namespace {
 constexpr size_t ENCODING_SIZE = 4;
 constexpr size_t MAX_SIZE = 5000;
 constexpr size_t TEXTUTF8_SIZE = 128;
+constexpr size_t TEXTCONTRAST_SIZE = 3;
 } // namespace
 namespace Drawing {
 /*
@@ -245,6 +246,26 @@ bool TextBlobFuzzTest005(const uint8_t* data, size_t size)
     }
     return true;
 }
+
+bool TextBlobFuzzTest006(const uint8_t* data, size_t size)
+{
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    Font font;
+    TextContrast textContrast = static_cast<TextContrast>(GetObject<uint32_t>() % TEXTCONTRAST_SIZE);
+    auto textBlob1 = TextBlob::MakeFromString("11", font, TextEncoding::UTF8);
+    textBlob1->GetTextContrast();
+    ProcessTextConstrast::Instance().SetTextContrast(textContrast);
+    auto textBlob2 = TextBlob::MakeFromString("11", font, TextEncoding::UTF8);
+    textBlob2->GetTextContrast();
+    ProcessTextConstrast::Instance().GetTextContrast();
+    textBlob2->SetTextContrast(textContrast);
+    textBlob2->GetTextContrast();
+    return true;
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
@@ -258,5 +279,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::Drawing::TextBlobFuzzTest003(data, size);
     OHOS::Rosen::Drawing::TextBlobFuzzTest004(data, size);
     OHOS::Rosen::Drawing::TextBlobFuzzTest005(data, size);
+    OHOS::Rosen::Drawing::TextBlobFuzzTest006(data, size);
     return 0;
 }
