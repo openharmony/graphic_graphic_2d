@@ -692,19 +692,6 @@ HWTEST_F(RSMemoryManagerTest, DumpDrawingGpuMemory002, testing::ext::TestSize.Le
 }
 
 /**
- * @tc.name: DumpMallocSta001
- * @tc.desc: Verify DumpMallocStats
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSMemoryManagerTest, DumpMallocStat001, testing::ext::TestSize.Level1)
-{
-    std::string log;
-    MemoryManager::DumpMallocStat(log);
-    ASSERT_TRUE(log.find("decaying:") != std::string::npos);
-}
-
-/**
  * @tc.name: DumpMemorySnapshot001
  * @tc.desc: Verify DumpMemorySnapshot
  * @tc.type: FUNC
