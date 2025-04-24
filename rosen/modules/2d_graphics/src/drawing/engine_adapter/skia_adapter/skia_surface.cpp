@@ -479,7 +479,6 @@ BackendTexture SkiaSurface::GetBackendTexture(BackendAccess access) const
 #endif
 }
 
-
 std::shared_ptr<Surface> SkiaSurface::MakeSurface(int width, int height) const
 {
     if (skSurface_ == nullptr) {

@@ -127,7 +127,6 @@ GrBackendTexture SkiaTextureInfo::ConvertToGrBackendTexture(const TextureInfo& i
             static_cast<skgpu::Mipmapped>(info.GetIsMipMapped()? skgpu::Mipmapped::kYes : skgpu::Mipmapped::kNo),
             grGLTextureInfo);
 #else
-        GrGLTextureInfo grGLTextureInfo = { info.GetTarget(), info.GetID(), info.GetFormat() };
         GrBackendTexture backendTexture(info.GetWidth(), info.GetHeight(),
             static_cast<GrMipMapped>(info.GetIsMipMapped()), grGLTextureInfo);
 #endif

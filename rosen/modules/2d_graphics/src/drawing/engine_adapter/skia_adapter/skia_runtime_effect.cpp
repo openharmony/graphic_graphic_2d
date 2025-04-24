@@ -65,7 +65,7 @@ void SkiaRuntimeEffect::InitForShader(const std::string& sl, const RuntimeEffect
 
     SkRuntimeEffect::Options skOptions;
 #ifdef USE_M133_SKIA
-    skOptions.forceUnoptimized=options.forceNoInline;
+    skOptions.forceUnoptimized = options.forceNoInline;
 #else
     skOptions.useAF = options.useAF;
     skOptions.forceNoInline = options.forceNoInline;

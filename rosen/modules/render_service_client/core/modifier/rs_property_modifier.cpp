@@ -17,6 +17,7 @@
 
 #include "modifier/rs_modifier_type.h"
 #include "modifier/rs_render_modifier.h"
+#include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -154,6 +155,23 @@ std::shared_ptr<RSRenderModifier> RSBehindWindowFilterMaskColorModifier::CreateR
 {
     auto renderProperty = GetRenderProperty();
     auto renderModifier = std::make_shared<RSBehindWindowFilterMaskColorRenderModifier>(renderProperty);
+    return renderModifier;
+}
+
+RSComplexShaderParamModifier::RSComplexShaderParamModifier(
+    const std::shared_ptr<RSPropertyBase>& property) : RSBackgroundModifier(property,
+    RSModifierType::COMPLEX_SHADER_PARAM)
+{}
+ 
+RSModifierType RSComplexShaderParamModifier::GetModifierType() const
+{
+    return RSModifierType::COMPLEX_SHADER_PARAM;
+}
+ 
+std::shared_ptr<RSRenderModifier> RSComplexShaderParamModifier::CreateRenderModifier() const
+{
+    auto renderProperty = GetRenderProperty();
+    auto renderModifier = std::make_shared<RSComplexShaderParamRenderModifier>(renderProperty);
     return renderModifier;
 }
 

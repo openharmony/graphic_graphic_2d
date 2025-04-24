@@ -232,11 +232,7 @@ std::shared_ptr<Typeface> SkiaTypeface::MakeFromFile(const char path[], const Fo
         LOGD("SkiaTypeface::MakeFromFile, skStream nullptr.");
         return nullptr;
     }
-#ifdef USE_M133_SKIA
-    auto skFontMgr = SkFontMgr::RefEmpty();
-#else
     auto skFontMgr = SkFontMgr::RefDefault();
-#endif
     if (skFontMgr == nullptr) {
         LOGD("SkiaTypeface::MakeFromFile, skFontMgr nullptr.");
         return nullptr;

@@ -15,6 +15,7 @@
 
 #include "render/rs_shader.h"
 #include "platform/common/rs_log.h"
+#include "render/rs_complex_shader.h"
 #include "render/rs_dot_matrix_shader.h"
 #include "render/rs_flow_light_sweep_shader.h"
 #include "ge_visual_effect_impl.h"
@@ -47,6 +48,10 @@ std::shared_ptr<RSShader> RSShader::CreateRSShader(const ShaderType& type)
         }
         case ShaderType::DRAWING: {
             shader = std::make_shared<RSShader>();
+            break;
+        }
+        case ShaderType::COMPLEX: {
+            shader = std::make_shared<RSComplexShader>();
             break;
         }
         default:

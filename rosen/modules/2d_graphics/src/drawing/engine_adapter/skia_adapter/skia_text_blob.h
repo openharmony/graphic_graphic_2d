@@ -20,7 +20,6 @@
 #include <memory>
 
 #include "include/core/SkTextBlob.h"
-#include "include/core/SkPaint.h"
 
 #include "impl_interface/text_blob_impl.h"
 #include "text/text_blob.h"

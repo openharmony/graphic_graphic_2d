@@ -34,14 +34,22 @@ public:
     static void Destructor(napi_env env, void* nativeObject, void* finalize);
     static napi_value CreateJsMatrix(napi_env env, const std::shared_ptr<Matrix> matrix);
     static napi_value GetValue(napi_env env, napi_callback_info info);
+    static napi_value PostConcat(napi_env env, napi_callback_info info);
     static napi_value PostRotate(napi_env env, napi_callback_info info);
+    static napi_value PostSkew(napi_env env, napi_callback_info info);
     static napi_value PostTranslate(napi_env env, napi_callback_info info);
     static napi_value PreRotate(napi_env env, napi_callback_info info);
     static napi_value PreScale(napi_env env, napi_callback_info info);
+    static napi_value PreSkew(napi_env env, napi_callback_info info);
     static napi_value PreTranslate(napi_env env, napi_callback_info info);
+    static napi_value SetConcat(napi_env env, napi_callback_info info);
     static napi_value SetRotation(napi_env env, napi_callback_info info);
+    static napi_value SetSinCos(napi_env env, napi_callback_info info);
+    static napi_value SetSkew(napi_env env, napi_callback_info info);
     static napi_value MapPoints(napi_env env, napi_callback_info info);
+    static napi_value MapRadius(napi_env env, napi_callback_info info);
     static napi_value PostScale(napi_env env, napi_callback_info info);
+    static napi_value RectStaysRect(napi_env env, napi_callback_info info);
     static napi_value Reset(napi_env env, napi_callback_info info);
     static napi_value SetPolyToPoly(napi_env env, napi_callback_info info);
     static napi_value SetRectToRect(napi_env env, napi_callback_info info);
@@ -51,6 +59,7 @@ public:
     static napi_value PreConcat(napi_env env, napi_callback_info info);
     static napi_value IsEqual(napi_env env, napi_callback_info info);
     static napi_value Invert(napi_env env, napi_callback_info info);
+    static napi_value IsAffine(napi_env env, napi_callback_info info);
     static napi_value IsIdentity(napi_env env, napi_callback_info info);
     static napi_value SetMatrix(napi_env env, napi_callback_info info);
 
@@ -59,14 +68,22 @@ public:
 private:
 
     napi_value OnGetValue(napi_env env, napi_callback_info info);
+    napi_value OnPostConcat(napi_env env, napi_callback_info info);
     napi_value OnPostRotate(napi_env env, napi_callback_info info);
+    napi_value OnPostSkew(napi_env env, napi_callback_info info);
     napi_value OnPostTranslate(napi_env env, napi_callback_info info);
     napi_value OnPreRotate(napi_env env, napi_callback_info info);
     napi_value OnPreScale(napi_env env, napi_callback_info info);
+    napi_value OnPreSkew(napi_env env, napi_callback_info info);
     napi_value OnPreTranslate(napi_env env, napi_callback_info info);
+    napi_value OnSetConcat(napi_env env, napi_callback_info info);
     napi_value OnSetRotation(napi_env env, napi_callback_info info);
+    napi_value OnSetSinCos(napi_env env, napi_callback_info info);
+    napi_value OnSetSkew(napi_env env, napi_callback_info info);
     napi_value OnMapPoints(napi_env env, napi_callback_info info);
+    napi_value OnMapRadius(napi_env env, napi_callback_info info);
     napi_value OnPostScale(napi_env env, napi_callback_info info);
+    napi_value OnRectStaysRect(napi_env env, napi_callback_info info);
     napi_value OnReset(napi_env env, napi_callback_info info);
     napi_value OnGetAll(napi_env env, napi_callback_info info);
     napi_value OnSetPolyToPoly(napi_env env, napi_callback_info info);
@@ -75,6 +92,7 @@ private:
     napi_value OnSetScale(napi_env env, napi_callback_info info);
     napi_value OnSetTranslation(napi_env env, napi_callback_info info);
     napi_value OnPreConcat(napi_env env, napi_callback_info info);
+    napi_value OnIsAffine(napi_env env, napi_callback_info info);
     napi_value OnIsEqual(napi_env env, napi_callback_info info);
     napi_value OnInvert(napi_env env, napi_callback_info info);
     napi_value OnIsIdentity(napi_env env, napi_callback_info info);
