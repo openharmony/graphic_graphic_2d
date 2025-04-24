@@ -1616,7 +1616,7 @@ void DrawTextBlobOpItem::Playback(Canvas* canvas, const Rect* rect)
         saveFlag = true;
     }
     TextContrast customerEnableValue = textBlob_->GetTextContrast();
-    if (IsHighConstractEnable(canvas, customerEnableValue)) {
+    if (IsHighContrastEnable(canvas, customerEnableValue)) {
         LOGD("DrawTextBlobOpItem::Playback highContrastEnabled, %{public}s, %{public}d", __FUNCTION__, __LINE__);
         DrawHighContrastEnabled(canvas);
     } else {
@@ -1628,18 +1628,18 @@ void DrawTextBlobOpItem::Playback(Canvas* canvas, const Rect* rect)
     }
 }
 
-bool DrawTextBlobOpItem::IsHighConstractEnable(Canvas* canvas, TextContrast value) const
+bool DrawTextBlobOpItem::IsHighContrastEnable(Canvas* canvas, TextContrast value) const
 {
-    bool canvasHighConstractEnabled = canvas->isHighContrastEnabled();
+    bool canvasHighContrastEnabled = canvas->isHighContrastEnabled();
     switch (value) {
         case TextContrast::FOLLOW_SYSTEM:
-            return canvasHighConstractEnabled;
+            return canvasHighContrastEnabled;
         case TextContrast::DISABLE_CONTRAST:
             return false;
         case TextContrast::ENABLE_CONTRAST:
             return true;
         default:
-            return canvasHighConstractEnabled;
+            return canvasHighContrastEnabled;
     }
 }
 
