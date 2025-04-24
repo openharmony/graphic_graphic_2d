@@ -87,6 +87,8 @@ bool RSScreenManager::Init() noexcept
         return false;
     }
 
+    composer_->InitLoadOptParams(loadOptParamsForScreen_.loadOptParamsForHdiBackend);
+
     if (composer_->RegScreenHotplug(&RSScreenManager::OnHotPlug, this) != 0) {
         RS_LOGE("%{public}s: Failed to register OnHotPlug Func to composer.", __func__);
         return false;
@@ -2411,6 +2413,11 @@ std::shared_ptr<OHOS::Rosen::RSScreen> RSScreenManager::GetScreen(ScreenId id) c
         return nullptr;
     }
     return iter->second;
+}
+
+void RSScreenManager::InitLoadOptParams(LoadOptParamsForScreen& loadOptParamsForScreen)
+{
+    loadOptParamsForScreen_ = loadOptParamsForScreen;
 }
 } // namespace impl
 

@@ -28,6 +28,10 @@ namespace Rosen {
 class RSMainThread;
 class RSRenderServiceConnection;
 
+struct LoadOptParams {
+    LoadOptParamsForScreen loadOptParamsForScreen;
+};
+
 class RSRenderService : public RSRenderServiceStub {
 public:
     RSRenderService();
@@ -79,6 +83,7 @@ private:
     void RegisterFpsFuncs();
     void RegisterGpuFuncs();
     void InitDVSyncParams(DVSyncFeatureParam &dvsyncParam);
+    void InitLoadOptParams(LoadOptParams& loadOptParams);
 
     // RS Filter CCM init
     void FilterCCMInit();
