@@ -924,6 +924,7 @@ private:
     scalar y_;
     std::shared_ptr<TextBlob> textBlob_;
     uint64_t globalUniqueId_;
+    bool IsHighConstractEnable(Canvas* canvas, TextContrast value) const;
 };
 
 class DrawSymbolOpItem : public DrawWithPaintOpItem {
