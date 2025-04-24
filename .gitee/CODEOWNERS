@@ -78,5 +78,5 @@ rosen/modules/render_service_base/include/common/rs_common_def.h @huang_kaixing
 rosen/modules/render_service_base/include/platform/ohos/rs_irender_service_connection_ipc_interface_code.h @huang_kaixing
 
 [HWC]
-rosen/modules/core/pipeline/hwc/ @whqwe
-rosen/modules/core/feature/hwc/ @whqwe
+rosen/modules/render_service/core/pipeline/hwc/ @whqwe
+rosen/modules/render_service/core/feature/hwc/ @whqwe
