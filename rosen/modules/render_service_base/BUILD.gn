@@ -399,7 +399,6 @@ ohos_source_set("render_service_base_src") {
       #memory
       "src/memory/rs_memory_graphic.cpp",
       "src/memory/rs_memory_track.cpp",
-      "src/memory/rs_tag_tracker.cpp",
 
       #pipeline
       "src/pipeline/rs_occlusion_config.cpp",
