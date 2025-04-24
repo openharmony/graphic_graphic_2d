@@ -2625,6 +2625,19 @@ const std::vector<std::weak_ptr<RSSurfaceRenderNode>>& RSSurfaceRenderNode::GetC
 
 void RSSurfaceRenderNode::SetHwcChildrenDisabledState()
 {
+    const auto TraverseHwcNode = [](auto hwcNodes) {
+        for (auto hwcNode : hwcNodes) {
+            auto hwcNodePtr = hwcNode.lock();
+            if (!hwcNodePtr || hwcNodePtr->IsHardwareForcedDisabled()) {
+                continue;-
+            }
+            hwcNodePtr->SetHardwareForcedDisabledState(true);
+            RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%" PRIu64 " disabled by parent",
+                GetName().c_str(), GetId());
+        }
+    };
+    auto hwcNodes = GetChildHardwareEnabledNodes();
+    TraverseHwcNode(hwcNodes);
     std::vector<std::pair<NodeId, RSSurfaceRenderNode::WeakPtr>> allSubSurfaceNodes;
     GetAllSubSurfaceNodes(allSubSurfaceNodes);
     for (auto &node : allSubSurfaceNodes) {
@@ -2634,15 +2647,7 @@ void RSSurfaceRenderNode::SetHwcChildrenDisabledState()
             if (hwcNodes.empty()) {
                 continue;
             }
-            for (auto hwcNode : hwcNodes) {
-                auto hwcNodePtr = hwcNode.lock();
-                if (!hwcNodePtr || hwcNodePtr->IsHardwareForcedDisabled()) {
-                    continue;
-                }
-                hwcNodePtr->SetHardwareForcedDisabledState(true);
-                RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%" PRIu64 " disabled by parent",
-                    GetName().c_str(), GetId());
-            }
+            TraverseHwcNode(hwcNodes);
         }
     }
 }
