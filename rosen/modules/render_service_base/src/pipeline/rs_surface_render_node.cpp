@@ -2625,8 +2625,8 @@ const std::vector<std::weak_ptr<RSSurfaceRenderNode>>& RSSurfaceRenderNode::GetC
 
 void RSSurfaceRenderNode::SetHwcChildrenDisabledState()
 {
-    std::vector<std::pair<NodeId, RSSurfaceRenderNode::WeekPtr>> allSubSurfaceNodes;
-    GetAllSubSurfaceNode(allSubSurfaceNodes);
+    std::vector<std::pair<NodeId, RSSurfaceRenderNode::WeakPtr>> allSubSurfaceNodes;
+    GetAllSubSurfaceNodes(allSubSurfaceNodes);
     for (auto &node : allSubSurfaceNodes) {
         auto surfaceNode = node.seconde.lock();
         if (surfaceNode != nullptr) {
