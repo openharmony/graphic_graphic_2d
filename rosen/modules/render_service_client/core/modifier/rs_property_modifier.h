@@ -272,6 +272,15 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+class RSC_EXPORT RSComplexShaderParamModifier : public RSBackgroundModifier {
+public:
+    explicit RSComplexShaderParamModifier(const std::shared_ptr<RSPropertyBase>& property);
+    virtual ~RSComplexShaderParamModifier() = default;
+protected:
+    RSModifierType GetModifierType() const override;
+    std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
+};
+
 class RSC_EXPORT RSUseShadowBatchingModifier : public RSBackgroundModifier {
 public:
     explicit RSUseShadowBatchingModifier(const std::shared_ptr<RSPropertyBase>& property);

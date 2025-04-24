@@ -164,25 +164,26 @@ enum class RSModifierType : int16_t {
     FG_BLUR_DISABLE_SYSTEM_ADAPTATION = 131,
     ATTRACTION_FRACTION = 132,
     ATTRACTION_DSTPOINT = 133,
-    CUSTOM = 134,
-    EXTENDED = 135,
-    TRANSITION = 136,
-    BACKGROUND_STYLE = 137,
-    CONTENT_STYLE = 138,
-    FOREGROUND_STYLE = 139,
-    OVERLAY_STYLE = 140,
-    NODE_MODIFIER = 141,
-    ENV_FOREGROUND_COLOR = 142,
-    ENV_FOREGROUND_COLOR_STRATEGY = 143,
-    GEOMETRYTRANS = 144,
-    CUSTOM_CLIP_TO_FRAME = 145,
-    HDR_BRIGHTNESS = 146,
-    BEHIND_WINDOW_FILTER_RADIUS = 147,
-    BEHIND_WINDOW_FILTER_SATURATION = 148,
-    BEHIND_WINDOW_FILTER_BRIGHTNESS = 149,
-    BEHIND_WINDOW_FILTER_MASK_COLOR = 150,
-    CHILDREN = 151, // PLACEHOLDER, no such modifier, but we need a dirty flag
-    MAX_RS_MODIFIER_TYPE = 152,
+    COMPLEX_SHADER_PARAM = 134,
+    CUSTOM = 135,
+    EXTENDED = 136,
+    TRANSITION = 137,
+    BACKGROUND_STYLE = 138,
+    CONTENT_STYLE = 139,
+    FOREGROUND_STYLE = 140,
+    OVERLAY_STYLE = 141,
+    NODE_MODIFIER = 142,
+    ENV_FOREGROUND_COLOR = 143,
+    ENV_FOREGROUND_COLOR_STRATEGY = 144,
+    GEOMETRYTRANS = 145,
+    CUSTOM_CLIP_TO_FRAME = 146,
+    HDR_BRIGHTNESS = 147,
+    BEHIND_WINDOW_FILTER_RADIUS = 148,
+    BEHIND_WINDOW_FILTER_SATURATION = 149,
+    BEHIND_WINDOW_FILTER_BRIGHTNESS = 150,
+    BEHIND_WINDOW_FILTER_MASK_COLOR = 151,
+    CHILDREN = 152, // PLACEHOLDER, no such modifier, but we need a dirty flag
+    MAX_RS_MODIFIER_TYPE = 153,
 };
 
 enum class RSPropertyModifierType : uint8_t {
@@ -204,6 +205,7 @@ enum class RSRenderPropertyType : int16_t {
     PROPERTY_MATRIX3F,
     PROPERTY_QUATERNION,
     PROPERTY_FILTER,
+    PROPERTY_SHADER_PARAM,
     PROPERTY_VECTOR2F,
     PROPERTY_VECTOR3F,
     PROPERTY_VECTOR4F,
@@ -250,6 +252,7 @@ public:
             case RSModifierType::FOREGROUND_COLOR: return "ForegroundColor";
             case RSModifierType::BACKGROUND_COLOR: return "BackgroundColor";
             case RSModifierType::BACKGROUND_SHADER: return "BackgroundShader";
+            case RSModifierType::COMPLEX_SHADER_PARAM: return "ComplexShaderParam";
             case RSModifierType::BACKGROUND_SHADER_PROGRESS: return "BackgroundShaderProgress";
             case RSModifierType::BG_IMAGE: return "BgImage";
             case RSModifierType::BG_IMAGE_INNER_RECT: return "BgImageInnerRect";

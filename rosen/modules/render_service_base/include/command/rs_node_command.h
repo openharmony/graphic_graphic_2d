@@ -56,6 +56,7 @@ enum RSNodeCommandType : uint16_t {
     UPDATE_MODIFIER_RRECT = 0x0115,
     UPDATE_MODIFIER_DRAW_CMD_LIST = 0x0116,
     UPDATE_MODIFIER_DRAWING_MATRIX = 0x0117,
+    UPDATE_MODIFIER_COMPLEX_SHADER_PARAM = 0X0118,
 
     SET_FREEZE = 0x0200,
     SET_DRAW_REGION = 0x0201,
@@ -271,6 +272,10 @@ ADD_COMMAND(RSUpdatePropertyDrawCmdList,
 ADD_COMMAND(RSUpdatePropertyDrawingMatrix,
     ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_DRAWING_MATRIX,
         RSNodeCommandHelper::UpdateModifier<Drawing::Matrix>, NodeId, Drawing::Matrix, PropertyId, PropertyUpdateType))
+ADD_COMMAND(RSUpdatePropertyComplexShaderParam,
+    ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_COMPLEX_SHADER_PARAM,
+        RSNodeCommandHelper::UpdateModifier<std::vector<float>>,
+        NodeId, std::vector<float>, PropertyId, PropertyUpdateType))
 
 ADD_COMMAND(RSSetFreeze,
     ARG(PERMISSION_APP, RS_NODE, SET_FREEZE,
