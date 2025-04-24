@@ -306,7 +306,7 @@ int RSVsyncRateReduceManager::GetRateByBalanceLevel(double vVal)
     if (vVal <= 0) {
         return INVISBLE_WINDOW_VSYNC_RATIO;
     }
-    if (vVal <= V_VAL_LEVEL_6) {
+    if (vVal <= V_VAL_LEVEL_6 && curRatesLevel_ != 0) {
         return V_VAL_LEVEL_6_WINDOW_VSYNC_RATIO;
     }
     if (vVal >= V_VAL_INTERVALS[0]) {

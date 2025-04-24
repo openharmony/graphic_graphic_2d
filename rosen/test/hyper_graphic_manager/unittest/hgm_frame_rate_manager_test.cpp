@@ -663,11 +663,11 @@ HWTEST_F(HgmFrameRateMgrTest, GetVRateMiniFPS, Function | SmallTest | Level2)
 
     configData->vRateControlList_.clear();
     mgr->GetVRateMiniFPS(configData);
-    ASSERT_EQ(mgr->vrateControlMinifpsValue_, 30);
+    ASSERT_EQ(mgr->vrateControlMinifpsValue_, 1);
 
     configData->vRateControlList_["minifps"] = "abc";
     mgr->GetVRateMiniFPS(configData);
-    ASSERT_EQ(mgr->vrateControlMinifpsValue_, 30);
+    ASSERT_EQ(mgr->vrateControlMinifpsValue_, 1);
 
     configData->vRateControlList_["minifps"] = "-1";
     ASSERT_EQ(configData->vRateControlList_["minifps"], "-1");

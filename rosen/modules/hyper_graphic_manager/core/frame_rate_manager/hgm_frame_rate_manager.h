@@ -390,8 +390,8 @@ private:
     long lastLtpoVoteTime_ = 0;
 
     // Vrate
-    //defalut value is 30, visiable lower than 10%.
-    int32_t vrateControlMinifpsValue_ = 30;
+    //defalut value is 1, visiable lower than 10%.
+    int32_t vrateControlMinifpsValue_ = 1;
 };
 } // namespace Rosen
 } // namespace OHOS
