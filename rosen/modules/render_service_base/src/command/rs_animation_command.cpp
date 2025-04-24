@@ -79,13 +79,10 @@ void AnimationCommandHelper::CreateAnimation(
     RsCommonHook::Instance().OnStartNewAnimation(animation->GetFrameRateRange().GetComponentName());
     node->GetAnimationManager().AddAnimation(animation);
     auto property = node->GetProperty(animation->GetPropertyId());
-    if (property != nullptr) {
+    if (auto property = node->GetProperty(animation->GetPropertyId())) {
         animation->AttachRenderProperty(property);
-    } else {
-        auto modifier = node->GetModifier(animation->GetPropertyId());
-        if (modifier != nullptr) {
-            animation->AttachRenderProperty(modifier->GetProperty());
-        }
+    } else if (auto modifier = node->GetModifier(animation->GetPropertyId())) {
+        animation->AttachRenderProperty(modifier->GetProperty());
     }
     auto currentTime = context.GetCurrentTimestamp();
     animation->SetStartTime(currentTime);

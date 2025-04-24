@@ -36,15 +36,15 @@ public:
     RSComplexShader(GexComlexShaderType type);
     ~RSComplexShader() = default;
 
-     void MakeDrawingShader(const RectF& rect, std::vector<float> params) override;
-     const std::shared_ptr<Drawing::ShaderEffect>& GetDrawingShader() const override;
+    void MakeDrawingShader(const RectF& rect, std::vector<float> params) override;
+    const std::shared_ptr<Drawing::ShaderEffect>& GetDrawingShader() const override;
   
     bool Marshalling(Parcel& parcel) override;
     bool Unmarshalling(Parcel& parcel, bool& needReset) override;
   
 private:
     std::shared_ptr<Drawing::ShaderEffect> GetShaderEffect(
-       const std::vector<float> &effectParam, const Drawing::RectF &rect);
+        const std::vector<float> &effectParam, const Drawing::RectF &rect);
     GexComlexShaderType GetShaderType() const;
     GexComlexShaderType shaderType_;
     std::shared_ptr<Drawing::ShaderEffect> shaderEffect_;
