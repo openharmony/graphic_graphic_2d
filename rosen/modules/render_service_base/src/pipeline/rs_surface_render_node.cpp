@@ -2629,7 +2629,7 @@ void RSSurfaceRenderNode::SetHwcChildrenDisabledState()
         for (auto hwcNode : hwcNodes) {
             auto hwcNodePtr = hwcNode.lock();
             if (!hwcNodePtr || hwcNodePtr->IsHardwareForcedDisabled()) {
-                continue;-
+                continue;
             }
             hwcNodePtr->SetHardwareForcedDisabledState(true);
             RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%" PRIu64 " disabled by parent",
