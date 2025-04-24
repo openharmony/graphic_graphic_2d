@@ -81,7 +81,6 @@ constexpr uint32_t CLEAR_TWO_APPS_TIME = 1000; // 1000ms
 constexpr const char* MEM_RS_TYPE = "renderservice";
 constexpr const char* MEM_CPU_TYPE = "cpu";
 constexpr const char* MEM_GPU_TYPE = "gpu";
-constexpr const char* MEM_JEMALLOC_TYPE = "jemalloc";
 constexpr const char* MEM_SNAPSHOT = "snapshot";
 constexpr int DUPM_STRING_BUF_SIZE = 4000;
 constexpr int KILL_PROCESS_TYPE = 301;
@@ -104,11 +103,6 @@ void MemoryManager::DumpMemoryUsage(DfxString& log, std::string& type)
     }
     if (type.empty() || type == MEM_GPU_TYPE) {
         RSUniRenderThread::Instance().DumpMem(log);
-    }
-    if (type.empty() || type == MEM_JEMALLOC_TYPE) {
-        std::string out;
-        DumpMallocStat(out);
-        log.AppendFormat("%s\n... detail dump at hilog\n", out.c_str());
     }
     if (type.empty() || type == MEM_SNAPSHOT) {
         DumpMemorySnapshot(log);
@@ -571,25 +565,6 @@ void ProcessJemallocString(std::string* sp, const char* str)
             break;
         }
     }
-}
-
-void MemoryManager::DumpMallocStat(std::string& log)
-{
-    log.append("malloc stats :\n");
-
-    malloc_stats_print(
-        [](void* fp, const char* str) {
-            if (!fp) {
-                RS_LOGE("DumpMallocStat fp is nullptr");
-                return;
-            }
-            std::string* sp = static_cast<std::string*>(fp);
-            if (str) {
-                ProcessJemallocString(sp, str);
-                RS_LOGW("[mallocstat]:%{public}s", str);
-            }
-        },
-        &log, nullptr);
 }
 
 void MemoryManager::DumpMemorySnapshot(DfxString& log)
