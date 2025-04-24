@@ -974,7 +974,7 @@ HWTEST_F(DrawCmdTest, IsHighContrastEnableTest, TestSize.Level1)
     DrawTextBlobOpItem opItem{textBlob.get(), 0, 0, paint};
 
     auto recordingCanvas = std::make_shared<RecordingCanvas>(1, 10);
-    textContrast = TextContrast::FOLLOW_SYSTEM;
+    TextContrast textContrast = TextContrast::FOLLOW_SYSTEM;
     EXPECT_EQ(opItem.IsHighContrastEnable(recordingCanvas.get(), textContrast),
         recordingCanvas.get()->isHighContrastEnabled());
 
