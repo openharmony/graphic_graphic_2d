@@ -2628,7 +2628,7 @@ void RSSurfaceRenderNode::SetHwcChildrenDisabledState()
     std::vector<std::pair<NodeId, RSSurfaceRenderNode::WeakPtr>> allSubSurfaceNodes;
     GetAllSubSurfaceNodes(allSubSurfaceNodes);
     for (auto &node : allSubSurfaceNodes) {
-        auto surfaceNode = node.seconde.lock();
+        auto surfaceNode = node.second.lock();
         if (surfaceNode != nullptr) {
             auto hwcNodes = surfaceNode->GetChildHardwareEnabledNodes();
             if (hwcNodes.empty()) {
