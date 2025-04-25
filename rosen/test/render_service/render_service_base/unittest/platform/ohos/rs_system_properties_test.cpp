@@ -1060,6 +1060,94 @@ HWTEST_F(RSSystemPropertiesTest, GetTimeVsyncDisabled001, TestSize.Level1)
     ASSERT_FALSE(RSSystemProperties::GetTimeVsyncDisabled());
 }
 
-
+/**
+ * @tc.name: GetHybridRenderEnabled
+ * @tc.desc: GetHybridRenderEnabled Test
+ * @tc.type:FUNC
+ * @tc.require:issuesIC3UZH
+*/
+HWTEST_F(RSSystemPropertiesTest, GetHybridRenderEnabled, TestSize.Level1)
+{
+    EXPECT_FALSE(RSSystemProperties::GetHybridRenderEnabled());
+}
+ 
+ 
+/**
+ * @tc.name: GetHybridRenderCcmEnabled
+ * @tc.desc: GetHybridRenderCcmEnabled Test
+ * @tc.type:FUNC
+ * @tc.require:issuesIC3UZH
+*/
+HWTEST_F(RSSystemPropertiesTest, GetHybridRenderCcmEnabled, TestSize.Level1)
+{
+    EXPECT_FALSE(RSSystemProperties::GetHybridRenderCcmEnabled());
+}
+ 
+/**
+ * @tc.name: GetHybridRenderSystemEnabled
+ * @tc.desc: GetHybridRenderSystemEnabled Test
+ * @tc.type:FUNC
+ * @tc.require:issuesIC3UZH
+*/
+HWTEST_F(RSSystemPropertiesTest, GetHybridRenderSystemEnabled, TestSize.Level1)
+{
+    EXPECT_FALSE(RSSystemProperties::GetHybridRenderSystemEnabled());
+}
+ 
+/**
+ * @tc.name: GetHybridRenderDfxEnabled
+ * @tc.desc: GetHybridRenderDfxEnabled Test
+ * @tc.type:FUNC
+ * @tc.require:issuesIC3UZH
+*/
+HWTEST_F(RSSystemPropertiesTest, GetHybridRenderDfxEnabled, TestSize.Level1)
+{
+    EXPECT_FALSE(RSSystemProperties::GetHybridRenderDfxEnabled());
+}
+ 
+/**
+ * @tc.name: GetHybridRenderTextBlobLenCount
+ * @tc.desc: GetHybridRenderTextBlobLenCount Test
+ * @tc.type:FUNC
+ * @tc.require:issuesIC3UZH
+*/
+HWTEST_F(RSSystemPropertiesTest, GetHybridRenderTextBlobLenCount, TestSize.Level1)
+{
+    int test_value = 9;
+    EXPECT_EQ(RSSystemProperties::GetHybridRenderTextBlobLenCount(), test_value);
+}
+ 
+/**
+ * @tc.name: GetHybridRenderParallelConvertEnabled
+ * @tc.desc: GetHybridRenderParallelConvertEnabled Test
+ * @tc.type:FUNC
+ * @tc.require:issuesIC3UZH
+*/
+HWTEST_F(RSSystemPropertiesTest, GetHybridRenderParallelConvertEnabled, TestSize.Level1)
+{
+    EXPECT_FALSE(RSSystemProperties::GetHybridRenderParallelConvertEnabled());
+}
+ 
+/**
+ * @tc.name: GetHybridRenderCanvasEnabled
+ * @tc.desc: GetHybridRenderCanvasEnabled Test
+ * @tc.type:FUNC
+ * @tc.require:issuesIC3UZH
+*/
+HWTEST_F(RSSystemPropertiesTest, GetHybridRenderCanvasEnabled, TestSize.Level1)
+{
+    EXPECT_FALSE(RSSystemProperties::GetHybridRenderCanvasEnabled());
+}
+ 
+/**
+ * @tc.name: GetHybridRenderMemeoryReleaseEnabled
+ * @tc.desc: GetHybridRenderMemeoryReleaseEnabled Test
+ * @tc.type:FUNC
+ * @tc.require:issuesIC3UZH
+*/
+HWTEST_F(RSSystemPropertiesTest, GetHybridRenderMemeoryReleaseEnabled, TestSize.Level1)
+{
+    EXPECT_FALSE(RSSystemProperties::GetHybridRenderMemeoryReleaseEnabled());
+}
 } // namespace Rosen
 } // namespace OHOS
