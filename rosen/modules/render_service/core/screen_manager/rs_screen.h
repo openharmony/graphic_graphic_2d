@@ -82,6 +82,7 @@ public:
     virtual bool GetAndResetVirtualSurfaceUpdateFlag() = 0;
     virtual void DisplayDump(int32_t screenIndex, std::string& dumpString) = 0;
     virtual void SurfaceDump(int32_t screenIndex, std::string& dumpString) = 0;
+    virtual void DumpCurrentFrameLayers() = 0;
     virtual void FpsDump(int32_t screenIndex, std::string& dumpString, std::string& arg) = 0;
     virtual void ClearFpsDump(int32_t screenIndex, std::string& dumpString, std::string& arg) = 0;
     virtual void HitchsDump(int32_t screenIndex, std::string& dumpString, std::string& arg) = 0;
@@ -195,6 +196,7 @@ public:
     bool GetAndResetVirtualSurfaceUpdateFlag() override;
     void DisplayDump(int32_t screenIndex, std::string& dumpString) override;
     void SurfaceDump(int32_t screenIndex, std::string& dumpString) override;
+    void DumpCurrentFrameLayers() override;
     void FpsDump(int32_t screenIndex, std::string& dumpString, std::string& arg) override;
     void ClearFpsDump(int32_t screenIndex, std::string& dumpString, std::string& arg) override;
     void HitchsDump(int32_t screenIndex, std::string& dumpString, std::string& arg) override;

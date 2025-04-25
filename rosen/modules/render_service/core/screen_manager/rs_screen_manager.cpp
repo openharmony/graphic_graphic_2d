@@ -1842,6 +1842,18 @@ void RSScreenManager::SurfaceDump(std::string& dumpString)
     }
 }
 
+void RSScreenManager::DumpCurrentFrameLayers()
+{
+    std::lock_guard<std::mutex> lock(screenMapmutex_);
+    for (const auto &[id, screen] : screens_) {
+        if (screen == nullptr) {
+            RS_LOGE("RSScreenManager %{public}s: screen %{public}" PRIu64 " not found.", __func__, id);
+            continue;
+        }
+        screen->DumpCurrentFrameLayers();
+    }
+}
+
 void RSScreenManager::FpsDump(std::string& dumpString, std::string& arg)
 {
     std::lock_guard<std::mutex> lock(screenMapmutex_);

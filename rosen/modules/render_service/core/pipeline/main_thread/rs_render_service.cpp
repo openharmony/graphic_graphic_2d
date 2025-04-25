@@ -703,6 +703,7 @@ void RSRenderService::RSGfxDumpInit()
     RegisterMemFuncs();
     RegisterFpsFuncs();
     RegisterGpuFuncs();
+    RegisterBufferFuncs();
 }
 
 void RSRenderService::RegisterRSGfxFuncs()
@@ -926,6 +927,20 @@ void RSRenderService::RegisterGpuFuncs()
 #ifdef RS_ENABLE_VK
         { RSDumpID::VK_TEXTURE_LIMIT, vktextureLimitFunc },
 #endif
+    };
+
+    RSDumpManager::GetInstance().Register(handers);
+}
+
+void RSRenderService::RegisterBufferFuncs()
+{
+    RSDumpFunc currentFrameBufferFunc = [this](const std::u16string &cmd, std::unordered_set<std::u16string> &argSets,
+                                               std::string &dumpString) -> void {
+        mainThread_->ScheduleTask([this]() { return screenManager_->DumpCurrentFrameLayers(); }).wait();
+    };
+
+    std::vector<RSDumpHander> handers = {
+        { RSDumpID::CURRENT_FRAME_BUFFER, currentFrameBufferFunc },
     };
 
     RSDumpManager::GetInstance().Register(handers);
