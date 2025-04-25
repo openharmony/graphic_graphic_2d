@@ -3505,7 +3505,7 @@ void OH_Drawing_TypographyHandlerAddEncodedText(
     OH_Drawing_TypographyCreate* handler, const void* text, size_t byteLength, OH_Drawing_TextEncoding textEncodingType)
 {
     if (!text || !handler || byteLength == 0) {
-        LOGE("null text");
+        LOGE("Null text");
         return;
     }
 
@@ -3519,7 +3519,7 @@ void OH_Drawing_TypographyHandlerAddEncodedText(
     } else if (textEncodingType == TEXT_ENCODING_UTF32) {
         wideText = Str32ToStr16ByIcu(static_cast<const int32_t*>(text), byteLength / sizeof(int32_t));
     } else {
-        LOGE("unknown text encoding type");
+        LOGE("Unknown text encoding type");
         return;
     }
 

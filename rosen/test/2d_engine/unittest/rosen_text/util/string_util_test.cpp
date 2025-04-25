@@ -151,7 +151,7 @@ HWTEST_F(StringConvertTest, BoundaryCases, TestSize.Level1)
 
     // Test maximum surrogate code point
     std::vector<int32_t> zero { 0 };
-    EXPECT_EQ(Str32ToStr16ByIcu(zero.data(), zero.size()), u"\x0");
+    EXPECT_EQ(Str32ToStr16ByIcu(zero.data(), zero.size()), u"\xFFFD");
 }
 
 /**

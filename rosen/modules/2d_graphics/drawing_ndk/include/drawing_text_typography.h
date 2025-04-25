@@ -958,6 +958,7 @@ void OH_Drawing_TypographyHandlerAddText(OH_Drawing_TypographyCreate*, const cha
  * @param text Indicates the pointer to the text content to set.
  * @param byteLength Set the byte length of the text content.
  * @param textEncodingType Indicates the text encoding type <b>OH_Drawing_TextEncoding</b>.
+ * Only support TEXT_ENCODING_UTF8, TEXT_ENCODING_UTF16, TEXT_ENCODING_UTF32
  * @since 20
  * @version 1.0
  */

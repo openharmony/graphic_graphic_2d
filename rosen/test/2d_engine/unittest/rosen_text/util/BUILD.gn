@@ -14,7 +14,7 @@
 import("//build/test.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
-ohos_unittest("string_convert_test") {
+ohos_unittest("text_util_test") {
   module_out_path = "graphic_2d/graphic_2d/text"
   sources = [ "string_util_test.cpp" ]
 
@@ -38,5 +38,5 @@ ohos_unittest("string_convert_test") {
 group("unittest") {
   testonly = true
 
-  deps = [ ":string_convert_test" ]
+  deps = [ ":text_util_test" ]
 }
