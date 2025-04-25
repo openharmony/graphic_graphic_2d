@@ -67,8 +67,6 @@ public:
 
     virtual void DumpAllResource(std::stringstream& dump) = 0;
 
-    virtual void DumpAllCoreTrace(std::stringstream& dump) = 0;
-
     virtual void ReleaseResourcesAndAbandonContext() = 0;
 
     virtual void PurgeUnlockedResources(bool scratchResourcesOnly) = 0;

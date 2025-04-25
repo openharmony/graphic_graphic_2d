@@ -37,7 +37,6 @@
 #include "src/core/SkTLazy.h"
 #include "src/core/SkMatrixPriv.h"
 
-#include "utils/graphic_coretrace.h"
 #include "utils/log.h"
 
 namespace OHOS {
@@ -433,8 +432,6 @@ void SkiaCanvasAutoCache::onDrawImageRect2(const SkImage* image, const SkRect& s
                                            const SkRect& dst, const SkSamplingOptions& sampling,
                                            const SkPaint* paint, SrcRectConstraint constraint)
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        GRAPHIC2D_SKIACANVASAUTOCACHE_ONDRAWIMAGERECT2);
     if (OpShouldRecord()) {
         SkPaint realPaint = ProcessPaintForImage(paint);
         if (!RecordDrawArea(dst, realPaint)) {

@@ -38,7 +38,6 @@
 #include "platform/common/rs_log.h"
 #include "rs_profiler.h"
 #include "rs_frame_report.h"
-#include "utils/graphic_coretrace.h"
 #include "utils/rect.h"
 #include "utils/region.h"
 #ifdef RS_ENABLE_VK
@@ -138,8 +137,6 @@ Drawing::Matrix RSSurfaceRenderNodeDrawable::GetGravityMatrix(float imgWidth, fl
 std::shared_ptr<Drawing::Image> RSSurfaceRenderNodeDrawable::GetCompletedImage(
     RSPaintFilterCanvas& canvas, uint32_t threadIndex, bool isUIFirst)
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        RS_RSSURFACERENDERNODEDRAWABLE_GETCOMPLETEDIMAGE);
     auto gpuContext = canvas.GetGPUContext();
     if (!gpuContext) {
         RS_LOGE("RSSurfaceRenderNodeDrawable::GetCompletedImage GetGPUContext nullptr");
@@ -230,8 +227,6 @@ std::shared_ptr<Drawing::Image> RSSurfaceRenderNodeDrawable::GetCompletedImage(
 bool RSSurfaceRenderNodeDrawable::DrawCacheSurface(RSPaintFilterCanvas& canvas, const Vector2f& boundSize,
     uint32_t threadIndex, bool isUIFirst)
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        RS_RSSURFACERENDERNODEDRAWABLE_DRAWCACHESURFACE);
     if (ROSEN_EQ(boundsWidth_, 0.f) || ROSEN_EQ(boundsHeight_, 0.f)) {
         RS_LOGE("RSSurfaceRenderNodeDrawable::DrawCacheSurface return %d", __LINE__);
         return false;
@@ -280,8 +275,6 @@ bool RSSurfaceRenderNodeDrawable::DrawCacheSurface(RSPaintFilterCanvas& canvas, 
 void RSSurfaceRenderNodeDrawable::InitCacheSurface(Drawing::GPUContext* gpuContext, ClearCacheSurfaceFunc func,
     uint32_t threadIndex, bool isNeedFP16)
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        RS_RSSURFACERENDERNODEDRAWABLE_INITCACHESURFACE);
     if (func) {
         cacheSurfaceThreadIndex_ = threadIndex;
         if (!clearCacheSurfaceFunc_) {
@@ -481,8 +474,6 @@ uint64_t RSSurfaceRenderNodeDrawable::GetTaskFrameCount() const
 
 void RSSurfaceRenderNodeDrawable::SubDraw(Drawing::Canvas& canvas)
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        RS_RSSURFACERENDERNODEDRAWABLE_SUBDRAW);
     const auto& uifirstParams = GetUifirstRenderParams();
     auto debugSize = uifirstParams ? uifirstParams->GetCacheSize() : Vector2f(0.f, 0.f);
     RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::SubDraw[%s] w%.1f h%.1f",
@@ -506,8 +497,6 @@ void RSSurfaceRenderNodeDrawable::SubDraw(Drawing::Canvas& canvas)
 
 bool RSSurfaceRenderNodeDrawable::DrawUIFirstCache(RSPaintFilterCanvas& rscanvas, bool canSkipWait)
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        RS_RSSURFACERENDERNODEDRAWABLE_DRAWUIFIRSTCACHE);
     RS_TRACE_NAME_FMT("DrawUIFirstCache_NOSTARTING");
     const auto& params = GetRenderParams();
     if (!params) {
@@ -542,8 +531,6 @@ bool RSSurfaceRenderNodeDrawable::DrawUIFirstCache(RSPaintFilterCanvas& rscanvas
 
 bool RSSurfaceRenderNodeDrawable::DrawUIFirstCacheWithStarting(RSPaintFilterCanvas& rscanvas, NodeId id)
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        RS_RSSURFACERENDERNODEDRAWABLE_DRAWUIFIRSTCACHEWITHSTARTING);
     RS_TRACE_NAME_FMT("DrawUIFirstCacheWithStarting %d, nodeID:%" PRIu64 "", HasCachedTexture(), id);
     bool ret = true;
     auto drawable = RSRenderNodeDrawableAdapter::GetDrawableById(id);
