@@ -939,7 +939,6 @@ void RSRenderServiceConnection::SyncFrameRateRange(FrameRateLinkerId id,
                 }
                 linker->UpdateNativeVSyncTimePoint();
             })
-            
         }).wait();
 }
 
