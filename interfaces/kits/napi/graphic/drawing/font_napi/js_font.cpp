@@ -725,7 +725,7 @@ napi_value JsFont::OnMeasureSingleCharacter(napi_env env, napi_callback_info inf
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
             "Parameter verification failed. Input parameter0 should be single character.");
     }
-    std::shared_ptr<Font> themeFont = MatchThemeFont(m_font, unicode);
+    std::shared_ptr<Font> themeFont = GetThemeFont(m_font);
     std::shared_ptr<Font> realFont = themeFont == nullptr ? m_font : themeFont;
     return GetDoubleAndConvertToJsValue(env, realFont->MeasureSingleCharacter(unicode));
 }

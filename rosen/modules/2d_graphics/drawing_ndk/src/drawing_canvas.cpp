@@ -602,7 +602,7 @@ OH_Drawing_ErrorCode OH_Drawing_CanvasDrawSingleCharacter(OH_Drawing_Canvas* cCa
     const char* currentStr = str;
     int32_t unicode = SkUTF::NextUTF8(&currentStr, currentStr + len);
     const Font* font = CastToFont(cFont);
-    std::shared_ptr<Font> themeFont = DrawingFontUtils::MatchThemeFont(font, unicode);
+    std::shared_ptr<Font> themeFont = DrawingFontUtils::GetThemeFont(font);
     if (themeFont != nullptr) {
         font = themeFont.get();
     }

@@ -254,12 +254,12 @@ OH_Drawing_ErrorCode OH_Drawing_FontMeasureSingleCharacter(const OH_Drawing_Font
         return OH_DRAWING_ERROR_INVALID_PARAMETER;
     }
     const Font* font = CastToFont(cFont);
-    const char* currentStr = str;
-    int32_t unicode = SkUTF::NextUTF8(&currentStr, currentStr + len);
-    std::shared_ptr<Font> themeFont = DrawingFontUtils::MatchThemeFont(font, unicode);
+    std::shared_ptr<Font> themeFont = DrawingFontUtils::GetThemeFont(font);
     if (themeFont != nullptr) {
         font = themeFont.get();
     }
+    const char* currentStr = str;
+    int32_t unicode = SkUTF::NextUTF8(&currentStr, currentStr + len);
     *textWidth = font->MeasureSingleCharacter(unicode);
     return OH_DRAWING_SUCCESS;
 }
