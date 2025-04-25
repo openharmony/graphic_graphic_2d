@@ -436,6 +436,14 @@ VsyncError VSyncGenerator::AddDVSyncListener(int64_t phase, const sptr<OHOS::Ros
     return VSYNC_ERROR_OK;
 }
 
+bool VSyncGenerator::IsUiDvsyncOn()
+{
+    if (rsVSyncDistributor_ != nullptr) {
+        return rsVSyncDistributor_->IsUiDvsyncOn();
+    }
+    return false;
+}
+
 VsyncError VSyncGenerator::RemoveDVSyncListener(const sptr<OHOS::Rosen::VSyncGenerator::Callback>& cb)
 {
     ScopedBytrace func("RemoveDVSyncListener");
