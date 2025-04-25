@@ -7966,4 +7966,18 @@ HWTEST_F(RSNodeTest, SetUIFirstSwitch, TestSize.Level1)
     rsNode->SetUIFirstSwitch(RSUIFirstSwitch::MODAL_WINDOW_CLOSE);
     EXPECT_EQ(rsNode->uiFirstSwitch_, RSUIFirstSwitch::MODAL_WINDOW_CLOSE);
 }
+
+/**
+ * @tc.name: GetIsDrawn
+ * @tc.desc: test results of GetIsDrawn
+ * @tc.type: FUNC
+ * @tc.require: issueIC3V9Q
+ */
+HWTEST_F(RSNodeTest, GetIsDrawn, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
+    auto res = rsNode->GetIsDrawn();
+    ASSERT_EQ(res, false);
+}
 } // namespace OHOS::Rosen
