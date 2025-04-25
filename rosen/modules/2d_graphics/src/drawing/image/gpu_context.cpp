@@ -203,16 +203,6 @@ void GPUContext::ResetContext()
     impl_->ResetContext();
 }
 
-void GPUContext::GenerateSubmitInfo(int seq)
-{
-    impl_->GenerateSubmitInfo(seq);
-}
-
-void GPUContext::FlushCommands()
-{
-    impl_->FlushCommands();
-}
-
 #ifdef RS_ENABLE_VK
 void GPUContext::StoreVkPipelineCacheData()
 {

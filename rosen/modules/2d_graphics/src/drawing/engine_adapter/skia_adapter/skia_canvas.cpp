@@ -124,10 +124,6 @@ RectI SkiaCanvas::GetDeviceClipBounds() const
     return RectI(iRect.fLeft, iRect.fTop, iRect.fRight, iRect.fBottom);
 }
 
-void SkiaCanvas::InheriteState(Canvas* canvas)
-{
-}
-
 RectI SkiaCanvas::GetRoundInDeviceClipBounds() const
 {
     if (skCanvas_ == nullptr) {
@@ -1317,10 +1313,6 @@ void SkiaCanvas::BuildNoDraw(int32_t width, int32_t height)
 {
     skiaCanvas_ = std::make_shared<SkNoDrawCanvas>(width, height);
     skCanvas_ = skiaCanvas_.get();
-}
-
-void SkiaCanvas::BuildStateInherite(int32_t width, int32_t height)
-{
 }
 
 void SkiaCanvas::Reset(int32_t width, int32_t height)
