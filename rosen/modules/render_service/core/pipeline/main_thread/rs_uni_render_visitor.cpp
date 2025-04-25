@@ -1885,12 +1885,13 @@ void RSUniRenderVisitor::UpdateHwcNodeInfoForAppNode(RSSurfaceRenderNode& node)
         }
         node.SetInFixedRotation(displayNodeRotationChanged_ || isScreenRotationAnimating_);
         if (!IsHardwareComposerEnabled() || !node.IsDynamicHardwareEnable() ||
-            curSurfaceNode_->GetVisibleRegion().IsEmpty() ||
+            rsUniHwcVisitor_->IsDisableHwcOnExpandScreen() || curSurfaceNode_->GetVisibleRegion().IsEmpty() ||
             !node.GetRSSurfaceHandler() || !node.GetRSSurfaceHandler()->GetBuffer()) {
             RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%" PRIu64 " disabled by param/invisible/no buffer, "
-                "IsHardwareComposerEnabled[%d], IsDynamicHardwareEnable[%d], IsVisibleRegionEmpty[%d], HasBuffer[%d]",
-                node.GetName().c_str(), node.GetId(), IsHardwareComposerEnabled(), node.IsDynamicHardwareEnable(),
-                curSurfaceNode_->GetVisibleRegion().IsEmpty(),
+                "IsHardwareComposerEnabled[%d], IsDynamicHardwareEnable[%d], IsDisableHwcOnExpandScreen[%d], "
+                "IsVisibleRegionEmpty[%d], HasBuffer[%d]", node.GetName().c_str(), node.GetId(),
+                IsHardwareComposerEnabled(), node.IsDynamicHardwareEnable(),
+                rsUniHwcVisitor_->IsDisableHwcOnExpandScreen(), curSurfaceNode_->GetVisibleRegion().IsEmpty(),
                 node.GetRSSurfaceHandler() && node.GetRSSurfaceHandler()->GetBuffer());
 #ifdef HIPERF_TRACE_ENABLE
             RS_LOGW("hiperf_surface: name:%s disabled by param/invisible/no buffer, "

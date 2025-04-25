@@ -25,6 +25,8 @@ public:
     explicit RSUniHwcVisitor(RSUniRenderVisitor& visitor);
     ~RSUniHwcVisitor();
 
+    bool IsDisableHwcOnExpandScreen() const;
+
 private:
     RSUniRenderVisitor& uniRenderVisitor_;
 };
