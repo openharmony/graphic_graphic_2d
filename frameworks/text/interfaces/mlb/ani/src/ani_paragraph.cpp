@@ -130,7 +130,7 @@ ani_double AniParagraph::GetLongestLine(ani_env* env, ani_object object)
 
 ani_object AniConvertTextStyle(ani_env* env, const TextStyle& textStyle)
 {
-    ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_TEXT_STYLE, ":V");
+    ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_TEXT_STYLE_I, ":V");
     //env->Object_SetPropertyByName_Ref(aniObj, "decoration", ani_double(textStyle));
     env->Object_SetPropertyByName_Double(aniObj, "color", ani_double(textStyle.color.CastToColorQuad()));
     env->Object_SetPropertyByName_Double(aniObj, "fontWeight", ani_double(textStyle.fontWeight));
