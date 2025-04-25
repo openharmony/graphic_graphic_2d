@@ -1907,7 +1907,9 @@ Rect DrawTextBlobOpItem::GetBounds() const
     if (bounds == nullptr || !bounds->IsValid()) {
         return {};
     }
-    return *bounds;
+    Rect rect = *bounds;
+    rect.Offset(x_, y_);
+    return rect;
 }
 
 /* DrawSymbolOpItem */

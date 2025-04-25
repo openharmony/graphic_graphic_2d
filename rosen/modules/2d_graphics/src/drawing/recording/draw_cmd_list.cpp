@@ -652,21 +652,13 @@ bool DrawCmdList::GetBounds(Rect& rect)
     if (!UnmarshallingDrawOpsSimple()) {
         return false;
     }
-    Rect tmpRect;
-    float width = 0.0f;
-    float height = 0.0f;
     for (auto op : drawOpItems_) {
         if (op == nullptr || op->GetType() != DrawOpItem::TEXT_BLOB_OPITEM) {
             continue;
         }
         DrawTextBlobOpItem* textBlobOp = static_cast<DrawTextBlobOpItem*>(op.get());
-        auto bounds = textBlobOp->GetBounds();
-        tmpRect.Join(bounds);
-        width = std::max(width, bounds.GetWidth());
-        height += bounds.GetHeight();
+        rect.Join(textBlobOp->GetBounds());
     }
-    // paragraph rect
-    rect = Rect(tmpRect.GetLeft(), tmpRect.GetTop(), tmpRect.GetLeft() + width, tmpRect.GetTop() + height);
     return true;
 }
 
