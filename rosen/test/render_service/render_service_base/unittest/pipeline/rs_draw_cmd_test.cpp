@@ -529,6 +529,7 @@ HWTEST_F(RSDrawCmdTest, CreateSamplingOptions, TestSize.Level1)
     ASSERT_EQ(samplingOptions.GetMipmapMode(), Drawing::MipmapMode::NONE);
 }
 
+#ifdef RS_ENABLE_VK
 /**
  * @tc.name: DrawHybridPixelMapOpItem_Unmarshalling
  * @tc.desc: test results of Unmarshalling
@@ -590,4 +591,5 @@ HWTEST_F(RSDrawCmdTest, Playback010, TestSize.Level1)
     drawHybridPixelMapOpItem.objectHandle_ = nullptr;
     drawHybridPixelMapOpItem.Playback(&canvas, &rect);
 }
+#endif
 } // namespace OHOS::Rosen
