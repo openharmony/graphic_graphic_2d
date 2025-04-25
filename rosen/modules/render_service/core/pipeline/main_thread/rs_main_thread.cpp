@@ -5154,9 +5154,10 @@ void RSMainThread::NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt)
     rsVSyncDistributor_->NotifyTouchEvent(touchStatus, touchCnt);
 }
 
-void RSMainThread::SetBufferInfo(std::string &name, int32_t bufferCount, int64_t lastFlushedTimeStamp)
+void RSMainThread::SetBufferInfo(uint64_t id, const std::string &name, uint32_t queueSize,
+    int32_t bufferCount, int64_t lastConsumeTime)
 {
-    rsVSyncDistributor_->SetBufferInfo(name, bufferCount, lastFlushedTimeStamp);
+    rsVSyncDistributor_->SetBufferInfo(id, name, queueSize, bufferCount, lastConsumeTime);
 }
 } // namespace Rosen
 } // namespace OHOS

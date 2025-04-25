@@ -155,7 +155,8 @@ public:
     void FirstRequestVsync();
     void NotifyPackageEvent(const std::vector<std::string>& packageList);
     void NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt);
-    void SetBufferInfo(std::string &name, int32_t bufferCount, int64_t lastFlushedTimeStamp);
+    void SetBufferInfo(uint64_t id, const std::string &name, uint32_t queueSize,
+        int32_t bufferCount, int64_t lastConsumeTime);
     bool AdaptiveDVSyncEnable(const std::string &nodeName, int64_t timeStamp, int32_t bufferCount, bool &needConsume);
 
     // used by V Rate
