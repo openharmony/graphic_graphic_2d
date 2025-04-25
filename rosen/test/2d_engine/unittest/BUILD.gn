@@ -16,6 +16,7 @@ group("unittest") {
 
   deps = [
     "rosen_text/adapter/skia_txt:unittest",
+    "rosen_text/adapter/global_config:unittest",
     "rosen_text/hm_symbol:hm_symbol_engine_test",
     "rosen_text/skia_test:unittest",
     "rosen_text/skia_txt:unittest",

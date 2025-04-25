@@ -21,7 +21,9 @@
 #include "paragraph_builder_napi/js_paragraph_builder.h"
 #include "paragraph_napi/js_paragraph.h"
 #include "run_napi/js_run.h"
+#include "text_global_napi/js_text_global.h"
 #include "text_line_napi/js_text_line.h"
+
 
 namespace OHOS::Rosen {
 napi_value TextInit(napi_env env, napi_value exportObj)
@@ -34,6 +36,7 @@ napi_value TextInit(napi_env env, napi_value exportObj)
     JsParagraphBuilder::Init(env, exportObj);
     JsFontDescriptor::Init(env, exportObj);
     JsLineTypeset::Init(env, exportObj);
+    JsTextGlobal::Init(env, exportObj);
     return exportObj;
 }
 } // namespace OHOS::Rosen
