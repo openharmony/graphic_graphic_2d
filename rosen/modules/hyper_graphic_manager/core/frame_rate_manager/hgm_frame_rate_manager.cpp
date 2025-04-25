@@ -392,7 +392,7 @@ void HgmFrameRateManager::UpdateSoftVSync(bool followRs)
         SetAceAnimatorVote(linker.second);
         auto expectedRange = linker.second->GetExpectedRange();
         if (expectedRange.type_ == OHOS::Rosen::NATIVE_VSYNC_FRAME_RATE_TYPE &&
-            linker.second->NativeVSyncIsTimeOut) {
+            linker.second->NativeVSyncIsTimeOut()) {
             continue;
         }
         if (!HgmEnergyConsumptionPolicy::Instance().GetUiIdleFps(expectedRange) &&

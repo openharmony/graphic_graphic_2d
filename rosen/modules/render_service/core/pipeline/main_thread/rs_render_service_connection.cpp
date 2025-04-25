@@ -926,7 +926,7 @@ void RSRenderServiceConnection::SyncFrameRateRange(FrameRateLinkerId id,
             if (range.type_ != OHOS::Rosen::NATIVE_VSYNC_FRAME_RATE_TYPE) {
                 return;
             }
-            auto appVSyncDistributor == connection->appVSyncDistributor_;
+            auto appVSyncDistributor = connection->appVSyncDistributor_;
             if (appVSyncDistributor == nullptr) {
                 return;
             }
