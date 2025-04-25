@@ -922,8 +922,6 @@ void RSUniRenderThread::PostReclaimMemoryTask(ClearMemoryMoment moment, bool isR
         if (UNLIKELY(!grContext)) {
             return;
         }
-        grContext->ReclaimResources();
-
         RS_LOGD("Clear memory cache %{public}d", moment);
         RS_TRACE_NAME_FMT("Reclaim Memory, cause the moment [%d] happen", moment);
         std::lock_guard<std::mutex> lock(clearMemoryMutex_);

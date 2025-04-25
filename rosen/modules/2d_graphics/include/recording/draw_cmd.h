@@ -913,7 +913,6 @@ public:
     virtual void DumpItems(std::string& out) const override;
 
     std::shared_ptr<DrawImageRectOpItem> GenerateCachedOpItem(Canvas* canvas);
-    uint64_t GetTypefaceId();
 protected:
     void DrawHighContrast(Canvas* canvas, bool offSreen = false) const;
     void DrawHighContrastEnabled(Canvas* canvas) const;
@@ -923,7 +922,6 @@ private:
     scalar x_;
     scalar y_;
     std::shared_ptr<TextBlob> textBlob_;
-    uint64_t globalUniqueId_;
 };
 
 class DrawSymbolOpItem : public DrawWithPaintOpItem {

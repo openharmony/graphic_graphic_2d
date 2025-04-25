@@ -185,11 +185,6 @@ public:
     void FreeGpuResources();
 
     /**
-     * @brief                   Deeply clean resources in Relcaim.
-     */
-    void ReclaimResources();
-
-    /**
      * @brief                   Dump GPU stats.
      * @param out               Dump GPU stat string.
      */
