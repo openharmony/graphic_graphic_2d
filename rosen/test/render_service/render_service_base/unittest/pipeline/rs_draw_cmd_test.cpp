@@ -528,4 +528,6 @@ HWTEST_F(RSDrawCmdTest, CreateSamplingOptions, TestSize.Level1)
     ASSERT_EQ(samplingOptions.GetFilterMode(), Drawing::FilterMode::LINEAR);
     ASSERT_EQ(samplingOptions.GetMipmapMode(), Drawing::MipmapMode::NONE);
 }
+
+
 } // namespace OHOS::Rosen

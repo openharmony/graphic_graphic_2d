@@ -1059,5 +1059,7 @@ HWTEST_F(RSSystemPropertiesTest, GetTimeVsyncDisabled001, TestSize.Level1)
 {
     ASSERT_FALSE(RSSystemProperties::GetTimeVsyncDisabled());
 }
+
+
 } // namespace Rosen
 } // namespace OHOS
