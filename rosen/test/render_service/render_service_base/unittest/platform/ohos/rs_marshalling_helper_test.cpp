@@ -1685,7 +1685,7 @@ HWTEST_F(RSMarshallingHelperTest, UnmarshallingTest046, TestSize.Level1)
 {
     Parcel parcel;
     AnnulusRegion region;
-    EXPECT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, region));
+    EXPECT_FALSE(RSMarshallingHelper::Unmarshalling(parcel, region));
 }
 
 } // namespace Rosen

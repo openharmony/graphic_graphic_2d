@@ -90,14 +90,14 @@ float ParticleNoiseField::CalculateDistanceToEllipseEdge(const Vector2f& directi
 
     float t = 0.0;
     float x = a * std::cos(t);
-    float y = a * std::sin(t);
+    float y = b * std::sin(t);
 
     for (int i = 0; i < 100; i++) {
         float fx = x * x / (a * a) + y * y / (b * b) - 1;
-        float dfx_dt = -2 * x * std::sin(t) + 2 * y * std::cos(t);
+        float dfx_dt = -2 * x * std::sin(t) / a + 2 * y * std::cos(t) / b;
         t -= fx / dfx_dt;
         x = a * std::cos(t);
-        y = a * std::sin(t);
+        y = b * std::sin(t);
     }
 
     return std::sqrt(std::pow(x - direction.x_, 2) + std::pow(y - direction.y_, 2));
