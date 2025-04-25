@@ -238,8 +238,9 @@ Drawing::RecordingCanvas::DrawFunc RSFilterDrawable::CreateDrawFunc() const
                 return;
             }
             auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
-            RS_TRACE_NAME_FMT("RSFilterDrawable::CreateDrawFunc DrawBehindWindow node[%llu], windowFreezeCapture[%d]",
-                ptr->renderNodeId_, paintFilterCanvas->GetIsWindowFreezeCapture());
+            RS_TRACE_NAME_FMT("RSFilterDrawable::CreateDrawFunc DrawBehindWindow node[%" PRIu64 "], "
+                "windowFreezeCapture[%d], DrawingCache[%d]", ptr->renderNodeId_,
+                paintFilterCanvas->GetIsWindowFreezeCapture(), paintFilterCanvas->GetIsDrawingCache());
             if (paintFilterCanvas->GetIsWindowFreezeCapture()) {
                 RS_LOGD("RSFilterDrawable::CreateDrawFunc DrawBehindWindow capture freeze surface, "
                     "no need to drawBehindWindow");
@@ -250,6 +251,13 @@ Drawing::RecordingCanvas::DrawFunc RSFilterDrawable::CreateDrawFunc() const
             Drawing::Rect absRect(0.0, 0.0, 0.0, 0.0);
             Drawing::Rect relativeBounds(ptr->drawBehindWindowRegion_.GetLeft(), ptr->drawBehindWindowRegion_.GetTop(),
                 ptr->drawBehindWindowRegion_.GetRight(), ptr->drawBehindWindowRegion_.GetBottom());
+            if (paintFilterCanvas->GetIsDrawingCache()) {
+                RS_OPTIONAL_TRACE_NAME_FMT("RSFilterDrawable::CreateDrawFunc DrawBehindWindow DrawingCache bounds:%s",
+                    relativeBounds.ToString().c_str());
+                auto data = std::make_shared<RSPaintFilterCanvas::CacheBehindWindowData>(ptr->filter_, relativeBounds);
+                paintFilterCanvas->SetCacheBehindWindowData(std::move(data));
+                return;
+            }
             canvas->GetTotalMatrix().MapRect(absRect, relativeBounds);
             Drawing::RectI bounds(std::ceil(absRect.GetLeft()), std::ceil(absRect.GetTop()),
                 std::ceil(absRect.GetRight()), std::ceil(absRect.GetBottom()));

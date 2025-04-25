@@ -694,9 +694,14 @@ Drawing::RecordingCanvas::DrawFunc RSUseEffectDrawable::CreateDrawFunc() const
         RSTagTracker tagTracker(paintFilterCanvas->GetGPUContext().get(),
             RSTagTracker::SOURCETYPE::SOURCE_RSUSEEFFECTDRAWABLE);
 #endif
-        if (ptr->useEffectType_ == UseEffectType::BEHIND_WINDOW && paintFilterCanvas->GetIsWindowFreezeCapture()) {
-            RS_OPTIONAL_TRACE_NAME_FMT("RSUseEffectDrawable::CreateDrawFunc drawBehindWindow in surface capturing");
-            RS_LOGD("RSUseEffectDrawable::CreateDrawFunc drawBehindWindow in surface capturing");
+        if (ptr->useEffectType_ == UseEffectType::BEHIND_WINDOW &&
+            (paintFilterCanvas->GetIsWindowFreezeCapture() || paintFilterCanvas->GetIsDrawingCache())) {
+            RS_TRACE_NAME_FMT("RSUseEffectDrawable::CreateDrawFunc drawBehindWindow WindowFreezeCapture:%d, "
+                "DrawingCache:%d, bounds:%s", paintFilterCanvas->GetIsWindowFreezeCapture(),
+                paintFilterCanvas->GetIsDrawingCache(), paintFilterCanvas->GetDeviceClipBounds().ToString().c_str());
+            RS_LOGD("RSUseEffectDrawable::CreateDrawFunc drawBehindWindow WindowFreezeCapture:%{public}d, "
+                "DrawingCache:%{public}d, bounds:%{public}s", paintFilterCanvas->GetIsWindowFreezeCapture(),
+                paintFilterCanvas->GetIsDrawingCache(), paintFilterCanvas->GetDeviceClipBounds().ToString().c_str());
             paintFilterCanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
             return;
         }

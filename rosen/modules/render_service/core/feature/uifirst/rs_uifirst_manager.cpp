@@ -1519,10 +1519,18 @@ bool RSUifirstManager::GetSubNodeIsTransparent(RSSurfaceRenderNode& node, std::s
             if (childSurfaceNode == nullptr) {
                 continue;
             }
-            hasTransparent |= childSurfaceNode->IsTransparent();
+            hasTransparent |= childSurfaceNode->IsAlphaTransparent() || (childSurfaceNode->NeedDrawBehindWindow() &&
+                !RSSystemProperties::GetUIFirstBehindWindowFilterEnabled());
+            if (hasTransparent) {
+                dfxMsg = "childSurfaceNode_NeedDrawBehindWindow: " +
+                    std::to_string(childSurfaceNode->NeedDrawBehindWindow());
+                break;
+            }
         }
     } else {
-        hasTransparent = node.IsTransparent();
+        hasTransparent = node.IsAlphaTransparent() || (node.NeedDrawBehindWindow() &&
+            !RSSystemProperties::GetUIFirstBehindWindowFilterEnabled());
+        dfxMsg = "NeedDrawBehindWindow: " + std::to_string(node.NeedDrawBehindWindow());
     }
     if (!hasTransparent || !IsToSubByAppAnimation()) {
         // if not transparent, no need to check IsToSubByAppAnimation;
@@ -1536,21 +1544,17 @@ bool RSUifirstManager::GetSubNodeIsTransparent(RSSurfaceRenderNode& node, std::s
             if (childSurfaceNode == nullptr) {
                 continue;
             }
-            const auto& properties = childSurfaceNode->GetRenderProperties();
-            if (properties.GetNeedDrawBehindWindow() || (childSurfaceNode->GetAbilityBgAlpha() < UINT8_MAX)) {
+            if (childSurfaceNode->GetAbilityBgAlpha() < UINT8_MAX) {
                 isAbilityBgColorTransparent = true;
-                dfxMsg = "AbBgAlpha: " + std::to_string(childSurfaceNode->GetAbilityBgAlpha()) + " behindWindow: " +
-                    std::to_string(properties.GetNeedDrawBehindWindow());
+                dfxMsg = "AbBgAlpha: " + std::to_string(childSurfaceNode->GetAbilityBgAlpha());
                 break;
             } else {
                 isAbilityBgColorTransparent = false;
             }
         }
     } else {
-        const auto& properties = node.GetRenderProperties();
-        isAbilityBgColorTransparent = properties.GetNeedDrawBehindWindow() || (node.GetAbilityBgAlpha() < UINT8_MAX);
-        dfxMsg = "AbBgAlpha: " + std::to_string(node.GetAbilityBgAlpha()) + " behindWindow: " +
-            std::to_string(properties.GetNeedDrawBehindWindow());
+        isAbilityBgColorTransparent = node.GetAbilityBgAlpha() < UINT8_MAX;
+        dfxMsg = "AbBgAlpha: " + std::to_string(node.GetAbilityBgAlpha());
     }
     return isAbilityBgColorTransparent;
 }

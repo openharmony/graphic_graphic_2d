@@ -905,11 +905,18 @@ public:
         return IsAppWindow() && (GetChildrenCount() == 0 || HasOnlyOneRootNode());
     }
 
-    inline bool IsTransparent() const
+    // Due to the BehindWindowFilter enabling ui-first, the condition is excluded.
+    // This condition is now only used by ui-first
+    inline bool IsAlphaTransparent() const
     {
         const uint8_t opacity = 255;
         return !(GetAbilityBgAlpha() == opacity && ROSEN_EQ(GetGlobalAlpha(), 1.0f)) ||
-            (IsEmptyAppWindow() && RSUniRenderJudgement::IsUniRender()) || NeedDrawBehindWindow();
+            (IsEmptyAppWindow() && RSUniRenderJudgement::IsUniRender());
+    }
+
+    inline bool IsTransparent() const
+    {
+        return IsAlphaTransparent() || NeedDrawBehindWindow();
     }
 
     inline bool IsCurrentNodeInTransparentRegion(const Occlusion::Rect& nodeRect) const

@@ -628,6 +628,46 @@ HWTEST_F(RSSubThreadCacheTest, SetSubThreadSkip001, TestSize.Level2)
 }
 
 /**
+ * @tc.name: CacheBehindWindowDataTest
+ * @tc.desc: Test CacheBehindWindowData
+ * @tc.type: FUNC
+ * @tc.require: issuesIC0HM8
+ */
+HWTEST_F(RSSubThreadCacheTest, CacheBehindWindowDataTest, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    auto data = std::make_shared<RSPaintFilterCanvas::CacheBehindWindowData>();
+    surfaceDrawable_->GetRsSubThreadCache().SetCacheBehindWindowData(data);
+    ASSERT_NE(surfaceDrawable_->GetRsSubThreadCache().cacheBehindWindowData_, nullptr);
+    surfaceDrawable_->GetRsSubThreadCache().ResetCacheBehindWindowData();
+    ASSERT_EQ(surfaceDrawable_->GetRsSubThreadCache().cacheBehindWindowData_, nullptr);
+    surfaceDrawable_->GetRsSubThreadCache().SetCacheCompletedBehindWindowData(data);
+    ASSERT_NE(surfaceDrawable_->GetRsSubThreadCache().cacheCompletedBehindWindowData_, nullptr);
+    surfaceDrawable_->GetRsSubThreadCache().ResetCacheCompletedBehindWindowData();
+    ASSERT_EQ(surfaceDrawable_->GetRsSubThreadCache().cacheCompletedBehindWindowData_, nullptr);
+}
+
+/**
+ * @tc.name: DrawBehindWindowBeforeCacheTest
+ * @tc.desc: Test DrawBehindWindowBeforeCache
+ * @tc.type: FUNC
+ * @tc.require: issuesIC0HM8
+ */
+HWTEST_F(RSSubThreadCacheTest, DrawBehindWindowBeforeCacheTest, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    auto data = std::make_shared<RSPaintFilterCanvas::CacheBehindWindowData>();
+    data->filter_ = RSFilter::CreateMaterialFilter(80.0f, 1.9f, 1.0f, 0xFFFFFFE5);
+    data->rect_ = {0, 0, 100, 100};
+    surfaceDrawable_->GetRsSubThreadCache().cacheCompletedBehindWindowData_ = data;
+    ASSERT_NE(surfaceDrawable_->GetRsSubThreadCache().cacheCompletedBehindWindowData_->filter_, nullptr);
+    ASSERT_TRUE(surfaceDrawable_->GetRsSubThreadCache().cacheCompletedBehindWindowData_->rect_.IsValid());
+    drawingCanvas_ = std::make_unique<Drawing::Canvas>(DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
+    auto rscanvas = RSPaintFilterCanvas(drawingCanvas_.get());
+    surfaceDrawable_->GetRsSubThreadCache().DrawBehindWindowBeforeCache(rscanvas);
+}
+
+/**
  * @tc.name: SetNodeIdTest
  * @tc.desc: Test SetNodeId and GetNodeId
  * @tc.type: FUNC

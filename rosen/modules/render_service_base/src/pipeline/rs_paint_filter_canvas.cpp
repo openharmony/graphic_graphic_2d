@@ -1657,5 +1657,29 @@ CoreCanvas& RSHybridRenderPaintFilterCanvas::AttachPaint(const Drawing::Paint& p
     return RSPaintFilterCanvas::AttachPaint(paint);
 }
 #endif
+bool RSPaintFilterCanvas::GetIsDrawingCache() const
+{
+    return isDrawingCache_;
+}
+
+void RSPaintFilterCanvas::SetIsDrawingCache(bool isDrawingCache)
+{
+    isDrawingCache_ = isDrawingCache;
+}
+
+RSPaintFilterCanvas::CacheBehindWindowData::CacheBehindWindowData(
+    std::shared_ptr<RSFilter> filter, const Drawing::Rect rect)
+    : filter_(filter), rect_(rect)
+{}
+
+void RSPaintFilterCanvas::SetCacheBehindWindowData(const std::shared_ptr<CacheBehindWindowData>& data)
+{
+    cacheBehindWindowData_ = data;
+}
+
+const std::shared_ptr<RSPaintFilterCanvas::CacheBehindWindowData>& RSPaintFilterCanvas::GetCacheBehindWindowData() const
+{
+    return cacheBehindWindowData_;
+}
 } // namespace Rosen
 } // namespace OHOS

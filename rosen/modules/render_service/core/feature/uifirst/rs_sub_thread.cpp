@@ -303,6 +303,7 @@ void RSSubThread::DrawableCacheWithSkImage(std::shared_ptr<DrawableV2::RSSurface
     rscanvas->SetScreenId(rsSubThreadCache.GetScreenId());
     rscanvas->SetTargetColorGamut(rsSubThreadCache.GetTargetColorGamut());
     rscanvas->SetHdrOn(rsSubThreadCache.GetHDRPresent());
+    rscanvas->SetIsDrawingCache(true);
     rscanvas->Save();
     rsSubThreadCache.SubDraw(nodeDrawable.get(), *rscanvas);
     rscanvas->Restore();
@@ -311,6 +312,7 @@ void RSSubThread::DrawableCacheWithSkImage(std::shared_ptr<DrawableV2::RSSurface
     RSUniRenderUtil::OptimizedFlushAndSubmit(cacheSurface, grContext_.get(), optFenceWait);
     rsSubThreadCache.UpdateCacheSurfaceInfo(nodeDrawable);
     rsSubThreadCache.UpdateBackendTexture();
+    rsSubThreadCache.SetCacheBehindWindowData(rscanvas->GetCacheBehindWindowData());
 
     // uifirst_debug dump img, run following commands to grant permissions before dump, otherwise dump maybe fail:
     // 1. hdc shell mount -o rw,remount /
