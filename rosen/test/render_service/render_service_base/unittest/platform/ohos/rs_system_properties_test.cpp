@@ -1060,6 +1060,7 @@ HWTEST_F(RSSystemPropertiesTest, GetTimeVsyncDisabled001, TestSize.Level1)
     ASSERT_FALSE(RSSystemProperties::GetTimeVsyncDisabled());
 }
 
+#ifdef RS_ENABLE_VK
 /**
  * @tc.name: GetHybridRenderEnabled
  * @tc.desc: GetHybridRenderEnabled Test
@@ -1193,5 +1194,6 @@ HWTEST_F(RSSystemPropertiesTest, GetHybridRenderSwitch, TestSize.Level1)
 {
     EXPECT_EQ(RSSystemProperties::GetHybridRenderSwitch(ComponentEnableSwitch::TEXTBLOB), 0);
 }
+#endif
 } // namespace Rosen
 } // namespace OHOS
