@@ -476,9 +476,10 @@ void SkiaSurface::Flush(FlushInfo *drawingflushInfo)
     RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
         GRAPHIC2D_SKIASURFACE_FLUSH);
     if (skSurface_ == nullptr) {
-        LOGD("skSurface is nullptr");
+        LOGE("skSurface is nullptr");
         // handle exception such as skia
         if (!drawingflushInfo) {
+            LOGE("drawingflushInfo is nullptr");
             return;
         }
         if (drawingflushInfo->submittedProc) {
