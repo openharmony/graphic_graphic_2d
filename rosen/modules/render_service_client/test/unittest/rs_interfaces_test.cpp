@@ -1203,7 +1203,7 @@ HWTEST_F(RSInterfacesTest, SetShowRefreshRateEnabled, Function | SmallTest | Lev
 HWTEST_F(RSInterfacesTest, GetRealtimeRefreshRate, Function | SmallTest | Level2)
 {
     ScreenId id = 0;
-    EXPECT_GE(rsInterfaces->SetShowRefreshRateEnabled(id), 0);
+    EXPECT_GE(rsInterfaces->GetRealtimeRefreshRate(id), 0);
 }
 
 /*
