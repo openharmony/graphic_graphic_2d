@@ -105,8 +105,9 @@ struct TypographyStyle {
     WordBreakType wordBreakType = WordBreakType::BREAK_WORD;
     EllipsisModal ellipsisModal = EllipsisModal::TAIL;
     float textSplitRatio = 0.5f;
-    float paragraphSpacing { 0.0f };
-    bool isEndAddParagraphSpacing { false };
+    float paragraphSpacing{0.0f};
+    bool isEndAddParagraphSpacing{false};
+    bool isTrailingSpaceOptimized{false};
 
     bool operator==(const TypographyStyle &rhs) const
     {
@@ -141,7 +142,10 @@ struct TypographyStyle {
             this->ellipsisModal == rhs.ellipsisModal &&
             skia::textlayout::nearlyEqual(this->textSplitRatio, rhs.textSplitRatio) &&
             this->defaultTextStyleUid == rhs.defaultTextStyleUid &&
-            this->tab == rhs.tab;
+            this->tab == rhs.tab &&
+            this->paragraphSpacing == rhs.paragraphSpacing &&
+            this->isEndAddParagraphSpacing == rhs.isEndAddParagraphSpacing &&
+            this->isTrailingSpaceOptimized == rhs.isTrailingSpaceOptimized;
     }
     TextStyle GetTextStyle() const;
     void SetTextStyle(TextStyle& textstyle);
@@ -159,7 +163,7 @@ struct TypographyStyle {
     TextTab tab;
     std::bitset<static_cast<size_t>(RelayoutParagraphStyleAttribute::PARAGRAPH_STYLE_ATTRIBUTE_BUTT)>
         relayoutChangeBitmap;
-    size_t defaultTextStyleUid { 0 };
+    size_t defaultTextStyleUid{0};
 };
 } // namespace Rosen
 } // namespace OHOS
