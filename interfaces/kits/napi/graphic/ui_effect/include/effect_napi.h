@@ -30,7 +30,7 @@ namespace OHOS {
 namespace Rosen {
 
 #undef LOG_DOMAIN
-#define LOG_DOMAIN 0xD001499
+#define LOG_DOMAIN 0xD001405
 
 #undef LOG_TAG
 #define LOG_TAG "UiEffect_Effect"
