@@ -55,6 +55,7 @@ struct DVSyncFeatureParam {
 
 class VSyncConnection : public VSyncConnectionStub {
 public:
+    using RequestNativeVSyncCallback = std::function<void()>;
     // id for LTPO, windowNodeId for vsync rate control
     VSyncConnection(const sptr<VSyncDistributor>& distributor, std::string name,
                     const sptr<IRemoteObject>& token = nullptr, uint64_t id = 0, uint64_t windowNodeId = 0);
@@ -74,6 +75,7 @@ public:
         gcNotifyTask_ = hook;
     }
     void RegisterDeathRecipient();
+    void RegisterRequestNativeVSyncCallback(const RequestNativeVSyncCallback &callback);
 
     int32_t rate_; // used for LTPS
     int32_t highPriorityRate_ = -1;
@@ -110,6 +112,7 @@ private:
     std::mutex postEventMutex_;
     bool isFirstRequestVsync_ = true;
     bool isFirstSendVsync_ = true;
+    RequestNativeVSyncCallback requestNativeVSyncCallback_ = nullptr;
 };
 
 class VSyncDistributor : public RefBase, public VSyncController::Callback {
@@ -132,6 +135,7 @@ public:
     VsyncError SetHighPriorityVSyncRate(int32_t highPriorityRate, const sptr<VSyncConnection>& connection);
     VsyncError SetQosVSyncRate(uint64_t windowNodeId, int32_t rate, bool isSystemAnimateScene = false);
     VsyncError SetQosVSyncRateByPidPublic(uint32_t pid, uint32_t rate, bool isSystemAnimateScene);
+    sptr<VSyncConnection> GetVSyncConnection(uint64_t id);
 
     // used by DVSync
     bool IsDVsyncOn();
