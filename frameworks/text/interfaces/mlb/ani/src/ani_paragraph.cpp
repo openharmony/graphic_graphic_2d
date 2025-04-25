@@ -155,7 +155,7 @@ ani_object AniConvertTextStyle(ani_env* env, const TextStyle& textStyle)
 
 ani_object AniConvertFontMetrics(ani_env* env, const Drawing::FontMetrics& fontMetrics)
 {
-    ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_RUNMETRICS_I, ":V");
+    ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_FONT_METRICS, ":V");
     env->Object_SetPropertyByName_Double(aniObj, "flags", ani_int(fontMetrics.fFlags));
     env->Object_SetPropertyByName_Double(aniObj, "top", ani_double(fontMetrics.fTop));
     env->Object_SetPropertyByName_Double(aniObj, "ascent", ani_double(fontMetrics.fAscent));
@@ -183,7 +183,7 @@ ani_object AniConvertRunMetrics(ani_env* env, const std::map<size_t, RunMetrics>
         if (runMetrics.textStyle != nullptr) {
             env->Object_SetPropertyByName_Ref(aniObj, "textStyle", AniConvertTextStyle(env, *runMetrics.textStyle));
         }
-        env->Object_SetPropertyByName_Ref(aniObj, "fontMetrics", AniConvertFontMetrics(env, runMetrics.fontMetrics));
+        //env->Object_SetPropertyByName_Ref(aniObj, "fontMetrics", AniConvertFontMetrics(env, runMetrics.fontMetrics));
         if (ANI_OK != env->Object_CallMethodByName_Void(mapAniObj, "$_set", ":V", static_cast<uint32_t>(key), aniObj)) {
             TEXT_LOGE("Object_CallMethodByName_Ref $_set failed");
             break;
@@ -214,12 +214,17 @@ ani_ref AniParagraph::GetLineMetrics(ani_env* env, ani_object object)
     ani_object arrayObj = AniTextUtils::CreateAniUndefined(env);
     AniParagraph* aniParagraph = AniTextUtils::GetNativeFromObj<AniParagraph>(env, object);
     if (aniParagraph == nullptr || aniParagraph->paragraph_ == nullptr) {
-        TEXT_LOGE("paragraph is null");
+        TEXT_LOGE("Paragraph is null");
         return arrayObj;
     }
     std::vector<LineMetrics> vectorLineMetrics = aniParagraph->paragraph_->GetLineMetrics();
     arrayObj = AniTextUtils::CreateAniArray(env, vectorLineMetrics.size());
-
+    ani_boolean isUndefined;
+    env->Reference_IsUndefined(arrayObj, &isUndefined);
+    if (!isUndefined) {
+        TEXT_LOGE("Create arrayObject failed");
+        return arrayObj;
+    }
     ani_size index = 0;
     for (auto lineMetrics : vectorLineMetrics) {
         ani_object aniObj = AniConvertLineMetrics(env, lineMetrics);
@@ -236,7 +241,7 @@ ani_object AniParagraph::GetLineMetricsAt(ani_env* env, ani_object object, ani_d
 {
     AniParagraph* aniParagraph = AniTextUtils::GetNativeFromObj<AniParagraph>(env, object);
     if (aniParagraph == nullptr || aniParagraph->paragraph_ == nullptr) {
-        TEXT_LOGE("paragraph is null");
+        TEXT_LOGE("Paragraph is null");
         return AniTextUtils::CreateAniUndefined(env);
     }
     LineMetrics lineMetrics;

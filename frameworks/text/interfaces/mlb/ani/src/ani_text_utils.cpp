@@ -52,11 +52,6 @@ ani_object AniTextUtils::CreateAniObject(ani_env* env, const std::string name, c
 
 ani_object AniTextUtils::CreateAniArray(ani_env* env, size_t size)
 {
-    return AniTextUtils::CreateAniObject(env, "Lescompat/Map", ":V");
-}
-
-ani_object AniTextUtils::CreateAniMap(ani_env* env)
-{
     ani_class arrayCls;
     if (env->FindClass("Lescompat/Array;", &arrayCls) != ANI_OK) {
         TEXT_LOGE("[ANI] FindClass Lescompat/Array; failed");
@@ -68,11 +63,16 @@ ani_object AniTextUtils::CreateAniMap(ani_env* env)
         return CreateAniUndefined(env);
     }
     ani_object arrayObj = nullptr;
-    if (env->Object_New(arrayCls, arrayCtor, &arrayObj) != ANI_OK) {
+    if (env->Object_New(arrayCls, arrayCtor, &arrayObj, size) != ANI_OK) {
         TEXT_LOGE("[ANI] Object_New Array Failed");
         return CreateAniUndefined(env);
     }
     return arrayObj;
+}
+
+ani_object AniTextUtils::CreateAniMap(ani_env* env)
+{
+    return AniTextUtils::CreateAniObject(env, "Lescompat/Map", ":V");
 }
 
 std::string AniTextUtils::AniToStdStringUtf8(ani_env* env, ani_string str)

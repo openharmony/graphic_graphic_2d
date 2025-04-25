@@ -33,6 +33,7 @@ inline constexpr const char* ANI_CLASS_FONT_COLLECTION = "L@ohos/graphics/text/t
 inline constexpr const char* ANI_CLASS_FONTFEATURE = "L@ohos/graphics/text/text/FontFeature;";
 inline constexpr const char* ANI_CLASS_CANVAS = "L@ohos/graphics/drawing/drawing/Canvas;";
 inline constexpr const char* ANI_CLASS_PATH = "L@ohos/graphics/drawing/drawing/Path;";
+inline constexpr const char* ANI_CLASS_FONT_METRICS = "L@ohos/graphics/drawing/drawing/FontMetrics;";
 
 class AniCommon {
 public:
