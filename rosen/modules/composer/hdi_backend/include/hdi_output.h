@@ -103,6 +103,8 @@ public:
     }
     void CleanLayerBufferBySurfaceId(uint64_t surfaceId);
 
+    void SetActiveRectSwitchStatus(bool flag);
+
 private:
     HdiDevice *device_ = nullptr;
     sptr<VSyncSampler> sampler_ = nullptr;
@@ -159,6 +161,8 @@ private:
 
     void ClearBufferCache();
     std::map<LayerInfoPtr, sptr<SyncFence>> GetLayersReleaseFenceLocked();
+
+    bool isActiveRectSwitching_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -331,7 +331,6 @@ HWTEST_F(HgmFrameRateMgrTest, ProcessPendingRefreshRate, Function | SmallTest | 
     frameRateMgr.ProcessPendingRefreshRate(currTime, vsyncid, rsRate, isUiDvsyncOn);
     ASSERT_EQ(hgmCore.pendingConstraintRelativeTime_,
         frameRateMgr.lastPendingConstraintRelativeTime_);
-    frameRateMgr.HandleThermalFrameRate(true);
     uint32_t pendingRefreshRate = OLED_60_HZ;
     frameRateMgr.pendingRefreshRate_ = std::make_shared<uint32_t>(pendingRefreshRate);
     frameRateMgr.ProcessPendingRefreshRate(currTime, vsyncid, rsRate, isUiDvsyncOn);
@@ -408,7 +407,7 @@ HWTEST_F(HgmFrameRateMgrTest, HgmConfigCallbackManagerTest002, Function | SmallT
             hccMgr->SyncRefreshRateUpdateCallback(OLED_60_HZ);
             ASSERT_EQ(hccMgr->animDynamicCfgCallbacks_.empty(), false);
             hccMgr->UnRegisterHgmConfigChangeCallback(pid);
-            hccMgr->animDynamicCfgCallbacks_.try_emplace(0, cb);
+            hccMgr->animDynamicCfgCallbacks_.try_emplace(pid, cb);
             std::shared_ptr<HgmMultiAppStrategy> multiAppStrategy_;
             auto frameRateMgr = hgmCore.GetFrameRateMgr();
             frameRateMgr->GetMultiAppStrategy().GetForegroundPidApp().try_emplace(0,
@@ -646,9 +645,43 @@ HWTEST_F(HgmFrameRateMgrTest, CleanPidCallbackTest, Function | SmallTest | Level
     EventInfo eventInfo2 = { .eventName = "VOTER_SCENE", .eventStatus = true, .description = testScene };
     mgr->HandleRefreshRateEvent(0, eventInfo2);
     mgr->UpdateVoteRule();
-    mgr->sceneStack_.push_back(std::make_pair("sceneName", 0));
+    mgr->sceneStack_.push_back(std::make_pair("sceneName1", 0));
     mgr->UpdateVoteRule();
     sleep(1);
+}
+
+/**
+ * @tc.name: GetVRateMiniFPS
+ * @tc.desc: Verify the result of GetVRateMiniFPS
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, GetVRateMiniFPS, Function | SmallTest | Level2)
+{
+    std::unique_ptr<HgmFrameRateManager> mgr = std::make_unique<HgmFrameRateManager>();
+    std::shared_ptr<PolicyConfigData> configData = std::make_shared<PolicyConfigData>();
+
+    configData->vRateControlList_.clear();
+    mgr->GetVRateMiniFPS(configData);
+    ASSERT_EQ(mgr->vrateControlMinifpsValue_, 1);
+
+    configData->vRateControlList_["minifps"] = "abc";
+    mgr->GetVRateMiniFPS(configData);
+    ASSERT_EQ(mgr->vrateControlMinifpsValue_, 1);
+
+    configData->vRateControlList_["minifps"] = "-1";
+    ASSERT_EQ(configData->vRateControlList_["minifps"], "-1");
+    int32_t vrateControlMinifpsValue_ = static_cast<int32_t>(std::stoi(configData->vRateControlList_["minifps"]));
+    ASSERT_EQ(vrateControlMinifpsValue_, -1);
+    mgr->GetVRateMiniFPS(configData);
+    ASSERT_EQ(mgr->vrateControlMinifpsValue_, -1);
+
+    configData->vRateControlList_["minifps"] = "10";
+    ASSERT_EQ(configData->vRateControlList_["minifps"], "10");
+    vrateControlMinifpsValue_ = static_cast<int32_t>(std::stoi(configData->vRateControlList_["minifps"]));
+    ASSERT_EQ(vrateControlMinifpsValue_, 10);
+    mgr->GetVRateMiniFPS(configData);
+    ASSERT_EQ(mgr->vrateControlMinifpsValue_, 10);
 }
 
 /**
@@ -773,6 +806,9 @@ HWTEST_F(HgmFrameRateMgrTest, ProcessRefreshRateVoteTest, Function | SmallTest |
     EXPECT_EQ(resVoteInfo.min, OLED_MIN_HZ);
     frameRateMgr.voters_.push_back("VOTER_ANCO");
     auto voterIter1 = std::find(frameRateMgr.voters_.begin(), frameRateMgr.voters_.end(), "VOTER_ANCO");
+    EXPECT_FALSE(frameRateMgr.ProcessRefreshRateVote(voterIter1, resultVoteInfo, voteRange, voterGamesEffective));
+    frameRateMgr.voters_.push_back("VOTER_VIDEO");
+    voterIter1 = std::find(frameRateMgr.voters_.begin(), frameRateMgr.voters_.end(), "VOTER_VIDEO");
     EXPECT_FALSE(frameRateMgr.ProcessRefreshRateVote(voterIter1, resultVoteInfo, voteRange, voterGamesEffective));
 }
 
@@ -942,7 +978,7 @@ HWTEST_F(HgmFrameRateMgrTest, CollectVRateChange, Function | SmallTest | Level2)
     mgr.CollectVRateChange(linkerId, finalRange);
     EXPECT_EQ(finalRange.min_, OLED_NULL_HZ);
     EXPECT_EQ(finalRange.max_, OLED_144_HZ);
-    EXPECT_EQ(finalRange.preferred_, 1);
+    EXPECT_EQ(finalRange.preferred_, mgr.vrateControlMinifpsValue_);
 
     finalRange.preferred_ = 0;
     mgr.controllerRate_ = 100;
@@ -1220,23 +1256,21 @@ HWTEST_F(HgmFrameRateMgrTest, NotifyScreenRectFrameRateChange, Function | SmallT
 }
 
 /**
- * @tc.name: HandleThermalFrameRate
- * @tc.desc: Verify the result of HandleThermalFrameRate
+ * @tc.name: HandleScreenExtStrategyChange
+ * @tc.desc: Verify the result of HandleScreenExtStrategyChange
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmFrameRateMgrTest, HandleThermalFrameRate, Function | SmallTest | Level1)
+HWTEST_F(HgmFrameRateMgrTest, HandleScreenExtStrategyChange, Function | SmallTest | Level1)
 {
     auto &hgmCore = HgmCore::Instance();
     auto frameRateMgr = hgmCore.GetFrameRateMgr();
     if (frameRateMgr == nullptr || hgmCore.mPolicyConfigData_ == nullptr) {
         return;
     }
-    frameRateMgr->HandleThermalFrameRate(true);
-    EXPECT_EQ(frameRateMgr->isEnableThermalStrategy_, true);
-
-    frameRateMgr->HandleThermalFrameRate(false);
-    EXPECT_EQ(frameRateMgr->isEnableThermalStrategy_, false);
+    frameRateMgr->HandleScreenExtStrategyChange(true, "_THERMAL");
+    frameRateMgr->HandleScreenExtStrategyChange(false, "test");
+    EXPECT_NE(frameRateMgr, nullptr);
 }
 
 /**

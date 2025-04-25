@@ -56,6 +56,9 @@ public:
 
     int32_t SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector);
 
+    // use surfaceNodeType to set black list
+    int32_t SetVirtualScreenTypeBlackList(ScreenId id, std::vector<NodeType>& typeBlackListVector);
+
     int32_t AddVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector);
 
     int32_t RemoveVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector);
@@ -178,6 +181,7 @@ public:
     uint32_t GetRealtimeRefreshRate(ScreenId id);
 
     std::string GetRefreshInfo(pid_t pid);
+    std::string GetRefreshInfoToSP(NodeId id);
 
 #ifndef ROSEN_ARKUI_X
     std::vector<RSScreenModeInfo> GetScreenSupportedModes(ScreenId id);
@@ -376,6 +380,9 @@ public:
 #endif
 
     void NotifyPageName(const std::string &packageName, const std::string &pageName, bool isEnter);
+
+    bool GetHighContrastTextState();
+
 private:
     RSInterfaces();
     ~RSInterfaces() noexcept;

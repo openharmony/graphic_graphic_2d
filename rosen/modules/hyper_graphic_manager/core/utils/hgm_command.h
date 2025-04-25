@@ -34,6 +34,14 @@ constexpr int32_t SWITCH_SCREEN_SCENE = 1;
 constexpr int32_t STRING_BUFFER_MAX_SIZE = 256;
 constexpr int64_t IDEAL_PULSE = 2777778; // 2.777778ms
 const std::string HGM_CONFIG_TYPE_THERMAL_SUFFIX = "_THERMAL";
+const std::string HGM_CONFIG_TYPE_DRAGSLIDE_SUFFIX = "_DRAGSLIDE";
+const std::string HGM_CONFIG_TYPE_THROWSLIDE_SUFFIX = "_THROWSLIDE";
+// {Suffix, {Priority, State}}
+const std::unordered_map<std::string, std::pair<int32_t, bool>> HGM_CONFIG_SCREENEXT_STRATEGY_MAP = {
+    {HGM_CONFIG_TYPE_THERMAL_SUFFIX, {1, false}},
+    {HGM_CONFIG_TYPE_DRAGSLIDE_SUFFIX, {2, false}},
+    {HGM_CONFIG_TYPE_THROWSLIDE_SUFFIX, {3, false}},
+};
 
 enum OledRefreshRate {
     OLED_NULL_HZ = 0,
@@ -213,6 +221,8 @@ public:
     bool videoFrameRateVoteSwitch_ = false;
     // <"pkgName", "1">
     std::unordered_map<std::string, std::string> videoFrameRateList_;
+    // vrate <"minifps", "1">
+    std::unordered_map<std::string, std::string> vRateControlList_;
 
     DynamicSettingMap GetAceSceneDynamicSettingMap(const std::string& screenType, const std::string& settingMode)
     {

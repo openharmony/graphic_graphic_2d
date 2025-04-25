@@ -121,7 +121,8 @@ bool RSAncoManager::AncoOptimizeDisplayNode(std::shared_ptr<RSSurfaceHandler>& s
         }
         if (static_cast<uint32_t>(layerInfo.w * layerInfo.h) >= minArea) {
             nodesCnt++;
-            if (surfaceNode->GetAncoFlags() == static_cast<uint32_t>(AncoFlags::ANCO_SFV_NODE)) {
+            if ((surfaceNode->GetAncoFlags() & static_cast<uint32_t>(AncoFlags::ANCO_SFV_NODE)) ==
+                static_cast<uint32_t>(AncoFlags::ANCO_SFV_NODE)) {
                 sfvNodesCnt++;
             }
         }

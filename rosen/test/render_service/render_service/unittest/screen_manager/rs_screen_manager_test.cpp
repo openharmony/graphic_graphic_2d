@@ -19,6 +19,7 @@
 #include <parameters.h>
 #include "param/sys_param.h"
 #include "screen_manager/rs_screen_manager.h"
+#include "screen_manager/rs_screen.h"
 #include "transaction/rs_interfaces.h"
 #include "mock_hdi_device.h"
 
@@ -36,7 +37,7 @@ public:
     static constexpr int SLEEP_TIME_US = 500;
     static constexpr uint32_t VIRTUAL_SCREEN_WIDTH = 480;
     static constexpr uint32_t VIRTUAL_SCREEN_HEIGHT = 320;
-    static constexpr uint32_t SLEEP_TIME_FOR_BACKGROUD = 1000000; //1000ms
+    static constexpr uint32_t SLEEP_TIME_FOR_DELAY = 1000000; // 1000ms
     static constexpr uint32_t LIGHT_LEVEL = 1;
     static constexpr uint64_t SCREEN_ID = 10;
     static inline ScreenId mockScreenId_;
@@ -795,7 +796,7 @@ HWTEST_F(RSScreenManagerTest, SetScreenActiveRect001, testing::ext::TestSize.Lev
         .w = 0,
         .h = 0,
     };
-    EXPECT_EQ(screenManager->SetScreenActiveRect(screenId, activeRect), StatusCode::HDI_ERROR);
+    EXPECT_EQ(screenManager->SetScreenActiveRect(screenId, activeRect), StatusCode::SUCCESS);
 }
 
 /*
@@ -1194,22 +1195,22 @@ HWTEST_F(RSScreenManagerTest, SetScreenPowerStatus_003, TestSize.Level1)
     OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
         static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
     screenManager->SetScreenPowerStatus(screenId, ScreenPowerStatus::POWER_STATUS_ON);
-    usleep(SLEEP_TIME_FOR_BACKGROUD);
+    usleep(SLEEP_TIME_FOR_DELAY);
     ASSERT_EQ(screenManagerImpl.screenPowerStatus_[screenId], POWER_STATUS_ON);
     screenManager->SetScreenPowerStatus(screenId, ScreenPowerStatus::POWER_STATUS_ON_ADVANCED);
-    usleep(SLEEP_TIME_FOR_BACKGROUD);
+    usleep(SLEEP_TIME_FOR_DELAY);
     ASSERT_EQ(screenManagerImpl.screenPowerStatus_[screenId], POWER_STATUS_ON_ADVANCED);
     screenManager->SetScreenPowerStatus(screenId, ScreenPowerStatus::POWER_STATUS_OFF);
-    usleep(SLEEP_TIME_FOR_BACKGROUD);
+    usleep(SLEEP_TIME_FOR_DELAY);
     ASSERT_EQ(screenManagerImpl.screenPowerStatus_[screenId], POWER_STATUS_OFF);
     screenManager->SetScreenPowerStatus(screenId, ScreenPowerStatus::POWER_STATUS_OFF_ADVANCED);
-    usleep(SLEEP_TIME_FOR_BACKGROUD);
+    usleep(SLEEP_TIME_FOR_DELAY);
     ASSERT_EQ(screenManagerImpl.screenPowerStatus_[screenId], POWER_STATUS_OFF_ADVANCED);
     screenManager->SetScreenPowerStatus(screenId, ScreenPowerStatus::POWER_STATUS_DOZE);
-    usleep(SLEEP_TIME_FOR_BACKGROUD);
+    usleep(SLEEP_TIME_FOR_DELAY);
     ASSERT_EQ(screenManagerImpl.screenPowerStatus_[screenId], POWER_STATUS_DOZE);
     screenManager->SetScreenPowerStatus(screenId, ScreenPowerStatus::POWER_STATUS_DOZE_SUSPEND);
-    usleep(SLEEP_TIME_FOR_BACKGROUD);
+    usleep(SLEEP_TIME_FOR_DELAY);
     ASSERT_EQ(screenManagerImpl.screenPowerStatus_[screenId], POWER_STATUS_DOZE_SUSPEND);
 }
 
@@ -2859,11 +2860,11 @@ HWTEST_F(RSScreenManagerTest, ReleaseScreenDmaBufferTest_001, TestSize.Level1)
         static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
 
     ScreenId screenId = SCREEN_ID;
-    impl::RSScreenManager::ReleaseScreenDmaBuffer(screenId);
+    screenManagerImpl.ReleaseScreenDmaBuffer(screenId);
     ASSERT_EQ(screenManagerImpl.GetOutput(screenId), nullptr);
 
     screenManagerImpl.screens_[SCREEN_ID] = std::make_shared<impl::RSScreen>(SCREEN_ID, false, nullptr, nullptr);
-    impl::RSScreenManager::ReleaseScreenDmaBuffer(screenId);
+    screenManagerImpl.ReleaseScreenDmaBuffer(screenId);
     ASSERT_EQ(screenManagerImpl.GetOutput(screenId), nullptr);
 }
 

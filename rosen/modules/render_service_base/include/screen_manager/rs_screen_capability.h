@@ -45,7 +45,7 @@ public:
     void SetSupportLayers(uint32_t supportLayers);
     void SetVirtualDispCount(uint32_t virtualDispCount);
     void SetSupportWriteBack(bool supportWriteBack);
-    void SetProps(const std::vector<RSScreenProps>& props);
+    void SetProps(std::vector<RSScreenProps> props);
 
     const std::string& GetName() const;
     ScreenInterfaceType GetType() const;

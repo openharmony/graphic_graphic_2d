@@ -190,7 +190,9 @@ RSExtendImageObject *RSExtendImageObject::Unmarshalling(Parcel &parcel)
         delete object;
         return nullptr;
     }
-    object->rsImage_->MarkPurgeable();
+    if (object->rsImage_) {
+        object->rsImage_->MarkPurgeable();
+    }
     return object;
 }
 
@@ -264,6 +266,9 @@ bool RSExtendImageObject::GetRsImageCache(Drawing::Canvas& canvas, const std::sh
     RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
         RS_RSEXTENDIMAGEOBJECT_GETRSIMAGECACHE);
     if (pixelMap == nullptr) {
+        return false;
+    }
+    if (rsImage_ == nullptr) {
         return false;
     }
     std::shared_ptr<Drawing::Image> imageCache = nullptr;

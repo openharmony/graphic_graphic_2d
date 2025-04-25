@@ -601,6 +601,23 @@ HWTEST_F(RSDisplayRenderNodeTest, HandleCurMainAndLeashSurfaceNodes005, TestSize
 }
 
 /**
+ * @tc.name: ForceCloseHdr
+ * @tc.desc: test results of Get and Set ForceCloseHdr
+ * @tc.type:FUNC
+ * @tc.require: issuesIB6QKS
+ */
+HWTEST_F(RSDisplayRenderNodeTest, ForceCloseHdrTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    ASSERT_NE(node, nullptr);
+    node->InitRenderParams();
+    node->SetForceCloseHdr(false);
+    EXPECT_EQ(node->GetForceCloseHdr(), false);
+    node->SetForceCloseHdr(true);
+    EXPECT_EQ(node->GetForceCloseHdr(), true);
+}
+
+/**
  * @tc.name: HasUniRenderHdrSurface
  * @tc.desc: test results of Get and Set HasUniRenderHdrSurface
  * @tc.type:FUNC

@@ -26,12 +26,18 @@ Document::Document(std::shared_ptr<DocumentImpl> documentImpl) noexcept : docume
 
 std::shared_ptr<Canvas> Document::BeginPage(float width, float height)
 {
+    if (documentImplPtr_ == nullptr) {
+        return nullptr;
+    }
     return documentImplPtr_->BeginPage(width, height);
 }
 
 void Document::EndPage()
 {
-    return documentImplPtr_->EndPage();
+    if (documentImplPtr_ == nullptr) {
+        return;
+    }
+    documentImplPtr_->EndPage();
 }
 
 std::shared_ptr<Document> Document::MakeMultiPictureDocument(FileWStream* fileStream,
@@ -42,7 +48,10 @@ std::shared_ptr<Document> Document::MakeMultiPictureDocument(FileWStream* fileSt
 
 void Document::Close()
 {
-    return documentImplPtr_->Close();
+    if (documentImplPtr_ == nullptr) {
+        return;
+    }
+    documentImplPtr_->Close();
 }
 } // namespace Drawing
 } // namespace Rosen

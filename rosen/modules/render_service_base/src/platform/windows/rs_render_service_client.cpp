@@ -266,6 +266,11 @@ std::string RSRenderServiceClient::GetRefreshInfo(pid_t pid)
     return "";
 }
 
+std::string RSRenderServiceClient::GetRefreshInfoToSP(NodeId id)
+{
+    return "";
+}
+
 int32_t RSRenderServiceClient::SetPhysicalScreenResolution(ScreenId id, uint32_t width, uint32_t height)
 {
     return 0;
@@ -770,6 +775,11 @@ int32_t SetOverlayDisplayMode(int32_t mode)
 void RSRenderServiceClient::NotifyPageName(const std::string &packageName,
     const std::string &pageName, bool isEnter)
 {
+}
+
+bool RSRenderServiceClient::GetHighContrastTextState()
+{
+    return false;
 }
 } // namespace Rosen
 } // namespace OHOS

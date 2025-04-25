@@ -186,6 +186,7 @@ public:
     void MarkPostNodesPriority();
     void RecordScreenRect(RSSurfaceRenderNode& node, RectI rect);
     void RecordDirtyRegionMatrix(RSSurfaceRenderNode& node, const Drawing::Matrix& matrix);
+    CacheProcessStatus GetCacheSurfaceProcessedStatus(const RSSurfaceRenderParams& surfaceParams);
 private:
     RSUifirstManager() = default;
     ~RSUifirstManager() = default;

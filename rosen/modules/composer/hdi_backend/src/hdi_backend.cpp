@@ -194,6 +194,7 @@ void HdiBackend::Repaint(const OutputPtr &output)
     bool needFlush = false;
     int32_t skipState = INT32_MAX;
     int32_t ret = output->PreProcessLayersComp();
+    output->SetActiveRectSwitchStatus(false);
     if (ret != GRAPHIC_DISPLAY_SUCCESS) {
         HLOGE("PreProcessLayersComp failed, ret is %{public}d", ret);
         return;

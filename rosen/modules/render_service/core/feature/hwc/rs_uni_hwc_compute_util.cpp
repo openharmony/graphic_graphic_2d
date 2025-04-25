@@ -56,7 +56,7 @@ bool RSUniHwcComputeUtil::IsHwcEnabledByGravity(RSSurfaceRenderNode& node, const
     // When renderfit mode is not Gravity::RESIZE or Gravity::TOP_LEFT,
     // we currently disable hardware composer.
     if (frameGravity != Gravity::RESIZE && frameGravity != Gravity::TOP_LEFT) {
-        RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%" PRIu64 "disabled by frameGravity[%d]",
+        RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 "disabled by frameGravity[%d]",
             node.GetName().c_str(), node.GetId(), static_cast<int>(frameGravity));
         node.SetHardwareForcedDisabledState(true);
         return false;
@@ -385,7 +385,7 @@ bool RSUniHwcComputeUtil::IsHwcEnabledByScalingMode(RSSurfaceRenderNode& node, c
 {
     // We temporarily disabled HWC when scalingMode is freeze or no_scale_crop
     if (scalingMode == ScalingMode::SCALING_MODE_FREEZE || scalingMode == ScalingMode::SCALING_MODE_NO_SCALE_CROP) {
-        RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%" PRIu64 "disabled by scalingMode[%d]",
+        RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 "disabled by scalingMode[%d]",
             node.GetName().c_str(), node.GetId(), static_cast<int>(scalingMode));
         node.SetHardwareForcedDisabledState(true);
         return false;
@@ -516,6 +516,216 @@ void RSUniHwcComputeUtil::UpdateRealSrcRect(RSSurfaceRenderNode& node, const Rec
     }
     auto newSrcRect = SrcRectRotateTransform(*buffer, bufferRotateTransformType, calibratedSrcRect);
     node.SetSrcRect(newSrcRect);
+}
+
+void RSUniHwcComputeUtil::UpdateHwcNodeProperty(std::shared_ptr<RSSurfaceRenderNode> hwcNode)
+{
+    if (hwcNode == nullptr) {
+        RS_LOGE("hwcNode is null.");
+        return;
+    }
+    auto hwcNodeGeo = hwcNode->GetRenderProperties().GetBoundsGeometry();
+    if (!hwcNodeGeo) {
+        RS_LOGE("hwcNode Geometry is not prepared.");
+        return;
+    }
+    bool hasCornerRadius = !hwcNode->GetRenderProperties().GetCornerRadius().IsZero();
+    std::vector<RectI> currIntersectedRoundCornerAABBs = {};
+    float alpha = hwcNode->GetRenderProperties().GetAlpha();
+    Drawing::Matrix totalMatrix = hwcNodeGeo->GetMatrix();
+    auto hwcNodeRect = hwcNodeGeo->GetAbsRect();
+    bool isNodeRenderByDrawingCache = false;
+    bool isNodeRenderBySaveLayer = false;
+    hwcNode->SetAbsRotation(hwcNode->GetRenderProperties().GetRotation());
+    RSUniHwcComputeUtil::TraverseParentNodeAndReduce(
+        hwcNode,
+        [&isNodeRenderByDrawingCache](std::shared_ptr<RSRenderNode> parent) {
+            if (isNodeRenderByDrawingCache) {
+                return;
+            }
+            // if the parent node of hwcNode is marked freeze or nodegroup, RS closes hardware composer of hwcNode.
+            isNodeRenderByDrawingCache = isNodeRenderByDrawingCache || parent->IsStaticCached() ||
+                (parent->GetNodeGroupType() != RSRenderNode::NodeGroupType::NONE);
+        },
+        [&alpha](std::shared_ptr<RSRenderNode> parent) {
+            auto& parentProperty = parent->GetRenderProperties();
+            alpha *= parentProperty.GetAlpha();
+        },
+        [&totalMatrix](std::shared_ptr<RSRenderNode> parent) {
+            if (auto opt = GetMatrix(parent)) {
+                totalMatrix.PostConcat(opt.value());
+            } else {
+                return;
+            }
+        },
+        [&currIntersectedRoundCornerAABBs, hwcNodeRect](std::shared_ptr<RSRenderNode> parent) {
+            auto& parentProperty = parent->GetRenderProperties();
+            auto cornerRadius = parentProperty.GetCornerRadius();
+            auto maxCornerRadius = *std::max_element(std::begin(cornerRadius.data_), std::end(cornerRadius.data_));
+            auto parentGeo = parentProperty.GetBoundsGeometry();
+            static const std::array offsetVecs {
+                UIPoint { 0, 0 },
+                UIPoint { 1, 0 },
+                UIPoint { 0, 1 },
+                UIPoint { 1, 1 }
+            };
+
+            // The logic here is to calculate whether the HWC Node affects
+            // the round corner property of the parent node.
+            // The method is calculating the rounded AABB of each HWC node
+            // with respect to all parent nodes above it and storing the results.
+            // When a HWC node is found below, the AABBs and the HWC node
+            // are checked for intersection. If there is an intersection,
+            // the node above it is disabled from taking the HWC pipeline.
+            auto checkIntersectWithRoundCorner = [&currIntersectedRoundCornerAABBs, hwcNodeRect](
+                const RectI& rect, float radiusX, float radiusY) {
+                if (radiusX <= 0 || radiusY <= 0) {
+                    return;
+                }
+                UIPoint offset { rect.GetWidth() - radiusX, rect.GetHeight() - radiusY };
+                UIPoint anchorPoint { rect.GetLeft(), rect.GetTop() };
+                std::for_each(std::begin(offsetVecs), std::end(offsetVecs),
+                    [&currIntersectedRoundCornerAABBs, hwcNodeRect, offset,
+                     radiusX, radiusY, anchorPoint](auto offsetVec) {
+                        auto res = anchorPoint + offset * offsetVec;
+                        auto roundCornerAABB = RectI(res.x_, res.y_, radiusX, radiusY);
+                        if (!roundCornerAABB.IntersectRect(hwcNodeRect).IsEmpty()) {
+                            currIntersectedRoundCornerAABBs.push_back(roundCornerAABB);
+                        }
+                    }
+                );
+            };
+            if (parentGeo) {
+                auto parentRect = parentGeo->GetAbsRect();
+                checkIntersectWithRoundCorner(parentRect, maxCornerRadius, maxCornerRadius);
+
+                if (parentProperty.GetClipToRRect()) {
+                    RRect parentClipRRect = parentProperty.GetClipRRect();
+                    RectI parentClipRect = parentGeo->MapAbsRect(parentClipRRect.rect_);
+                    float maxClipRRectCornerRadiusX = 0;
+                    float maxClipRRectCornerRadiusY = 0;
+                    constexpr size_t radiusVecSize = 4;
+                    for (size_t i = 0; i < radiusVecSize; ++i) {
+                        maxClipRRectCornerRadiusX = std::max(maxClipRRectCornerRadiusX, parentClipRRect.radius_[i].x_);
+                        maxClipRRectCornerRadiusY = std::max(maxClipRRectCornerRadiusY, parentClipRRect.radius_[i].y_);
+                    }
+                    checkIntersectWithRoundCorner(parentClipRect, maxClipRRectCornerRadiusX, maxClipRRectCornerRadiusY);
+                }
+            }
+        },
+        [hwcNode](std::shared_ptr<RSRenderNode> parent) {
+            hwcNode->SetAbsRotation(hwcNode->GetAbsRotation() + parent->GetRenderProperties().GetRotation());
+        },
+        [&isNodeRenderBySaveLayer](std::shared_ptr<RSRenderNode> parent) {
+            if (isNodeRenderBySaveLayer) {
+                return;
+            }
+            const auto& parentProperty = parent->GetRenderProperties();
+            isNodeRenderBySaveLayer = isNodeRenderBySaveLayer ||
+                (parentProperty.IsColorBlendApplyTypeOffscreen() && !parentProperty.IsColorBlendModeNone());
+        });
+    if (isNodeRenderByDrawingCache || isNodeRenderBySaveLayer) {
+        RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%" PRIu64 " disabled by drawing cache or save layer, "
+            "isNodeRenderByDrawingCache[%d], isNodeRenderBySaveLayer[%d]",
+            hwcNode->GetName().c_str(), hwcNode->GetId(), isNodeRenderByDrawingCache, isNodeRenderBySaveLayer);
+        hwcNode->SetHardwareForcedDisabledState(true);
+    }
+    hwcNode->SetTotalMatrix(totalMatrix);
+    hwcNode->SetGlobalAlpha(alpha);
+    hwcNode->SetIntersectedRoundCornerAABBs(std::move(currIntersectedRoundCornerAABBs));
+}
+
+bool RSUniHwcComputeUtil::HasNonZRotationTransform(Drawing::Matrix matrix)
+{
+    Drawing::Matrix::Buffer value;
+    matrix.GetAll(value);
+    if (!ROSEN_EQ(value[Drawing::Matrix::Index::PERSP_0], 0.f) ||
+        !ROSEN_EQ(value[Drawing::Matrix::Index::PERSP_1], 0.f)) {
+        return true;
+    }
+    int rotation = static_cast<int>(round(value[Drawing::Matrix::Index::SCALE_X] *
+        value[Drawing::Matrix::Index::SKEW_Y] +
+        value[Drawing::Matrix::Index::SCALE_Y] *
+        value[Drawing::Matrix::Index::SKEW_X]));
+    if (rotation != 0) {
+        return true;
+    }
+    int vectorZ = value[Drawing::Matrix::Index::SCALE_X] * value[Drawing::Matrix::Index::SCALE_Y] -
+        value[Drawing::Matrix::Index::SKEW_Y] * value[Drawing::Matrix::Index::SKEW_X];
+    return vectorZ < 0;
+}
+
+GraphicTransformType RSUniHwcComputeUtil::GetLayerTransform(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo)
+{
+    auto surfaceHandler = node.GetRSSurfaceHandler();
+    if (!surfaceHandler) {
+        return GraphicTransformType::GRAPHIC_ROTATE_NONE;
+    }
+    auto consumer = surfaceHandler->GetConsumer();
+    auto surfaceParams = node.GetStagingRenderParams() == nullptr
+                             ? nullptr
+                             : static_cast<RSSurfaceRenderParams*>(node.GetStagingRenderParams().get());
+    int32_t rotationDegree = RSBaseRenderUtil::GetScreenRotationOffset(surfaceParams);
+    int surfaceNodeRotation = 0;
+    if (node.GetFixRotationByUser()) {
+        surfaceNodeRotation = -1 * rotationDegree;
+    } else {
+        surfaceNodeRotation = RSUniRenderUtil::TransferToAntiClockwiseDegrees(
+                                static_cast<int>(round(node.GetAbsRotation())) % ROUND_ANGLE);
+    }
+    auto transformType = GraphicTransformType::GRAPHIC_ROTATE_NONE;
+    auto buffer = node.GetRSSurfaceHandler()->GetBuffer();
+    if (consumer != nullptr && buffer != nullptr) {
+        if (consumer->GetSurfaceBufferTransformType(buffer, &transformType) != GSERROR_OK) {
+            RS_LOGE("RSUniHwcComputeUtil::GetLayerTransform GetSurfaceBufferTransformType failed");
+        }
+    }
+    int consumerTransform = RSBaseRenderUtil::RotateEnumToInt(RSBaseRenderUtil::GetRotateTransform(transformType));
+    GraphicTransformType consumerFlip = RSBaseRenderUtil::GetFlipTransform(transformType);
+    int totalRotation =
+        (RSBaseRenderUtil::RotateEnumToInt(screenInfo.rotation) + surfaceNodeRotation + consumerTransform + 360) % 360;
+    GraphicTransformType rotateEnum = RSBaseRenderUtil::RotateEnumToInt(totalRotation, consumerFlip);
+
+    RS_OPTIONAL_TRACE_NAME_FMT("RSUniHwcComputeUtil::GetLayerTransform nodeId:[%llu] fixRotationByUser:[%s] "
+                               "surfaceNodeRotation:[%d] consumerTransform:[%d] rotateEnum:[%d]",
+                               node.GetId(), std::to_string(node.GetFixRotationByUser()).c_str(),
+                               surfaceNodeRotation, consumerTransform, rotateEnum);
+            
+    return rotateEnum;
+}
+
+std::optional<Drawing::Matrix> RSUniHwcComputeUtil::GetMatrix(
+    std::shared_ptr<RSRenderNode> hwcNode)
+{
+    if (!hwcNode) {
+        return std::nullopt;
+    }
+    const auto& property = hwcNode->GetRenderProperties();
+    auto geo = property.GetBoundsGeometry();
+    if (LIKELY(!property.GetSandBox().has_value())) {
+        return geo->GetMatrix();
+    } else {
+        auto parent = hwcNode->GetParent().lock();
+        if (!parent) {
+            return std::nullopt;
+        }
+        auto parentGeo = parent->GetRenderProperties().GetBoundsGeometry();
+        Drawing::Matrix invertAbsParentMatrix;
+        parentGeo->GetAbsMatrix().Invert(invertAbsParentMatrix);
+        Drawing::Matrix relativeMat = geo->GetAbsMatrix();
+        relativeMat.PostConcat(invertAbsParentMatrix);
+        return relativeMat;
+    }
+}
+
+void RSUniHwcComputeUtil::IntersectRect(Drawing::Rect& rect1, const Drawing::Rect& rect2)
+{
+    float left = std::max(rect1.left_, rect2.left_);
+    float top = std::max(rect1.top_, rect2.top_);
+    float right = std::min(rect1.right_, rect2.right_);
+    float bottom = std::min(rect1.bottom_, rect2.bottom_);
+    Drawing::Rect intersectedRect(left, top, right, bottom);
+    rect1 = intersectedRect.IsValid() ? intersectedRect : Drawing::Rect();
 }
 } // namespace Rosen
 } // namespace OHOS

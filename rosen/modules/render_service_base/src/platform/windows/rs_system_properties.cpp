@@ -322,6 +322,11 @@ bool RSSystemProperties::IsFoldScreenFlag()
     return false;
 }
 
+bool RSSystemProperties::IsSmallFoldDevice()
+{
+    return false;
+}
+
 int RSSystemProperties::GetFilterCacheSizeThreshold()
 {
     return 0;
@@ -624,6 +629,11 @@ bool RSSystemProperties::GetNodeGroupGroupedByUIEnabled()
     return false;
 }
 
+bool RSSystemProperties::GetTimeVsyncDisabled()
+{
+    return false;
+}
+
 #ifdef RS_ENABLE_VK
 bool RSSystemProperties::GetHybridRenderEnabled()
 {
@@ -690,6 +700,21 @@ int32_t RSSystemProperties::GetHybridRenderSwitch(ComponentEnableSwitch bitSeq)
     return 0;
 }
 #endif
+
+bool RSSystemProperties::GetVKImageUseEnabled()
+{
+    return false;
+}
+
+void RSSystemProperties::SetDebugFmtTraceEnabled(bool flag)
+{
+    debugFmtTraceEnable_ = flag;
+}
+
+bool RSSystemProperties::GetDebugFmtTraceEnabled()
+{
+    return GetDebugTraceEnabled();
+}
 
 } // namespace Rosen
 } // namespace OHOS

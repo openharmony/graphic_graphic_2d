@@ -355,6 +355,11 @@ HWTEST_F(RSPropertyDrawableUtilsTest, TransformativeShaderTest011, testing::ext:
     EXPECT_NE(rsPropertyDrawableUtilsTest4, nullptr);
     RSDynamicBrightnessPara params;
     EXPECT_NE(rsPropertyDrawableUtilsTest4->MakeDynamicBrightnessBlender(params), nullptr);
+
+    std::shared_ptr<RSPropertyDrawableUtils> rsPropertyDrawableUtilsTest5 = std::make_shared<RSPropertyDrawableUtils>();
+    EXPECT_NE(rsPropertyDrawableUtilsTest5, nullptr);
+    params.fraction_ = 0.0;
+    EXPECT_NE(rsPropertyDrawableUtilsTest5->MakeDynamicBrightnessBlender(params), nullptr);
 }
 /**
  * @tc.name: DrawBinarizationTest012

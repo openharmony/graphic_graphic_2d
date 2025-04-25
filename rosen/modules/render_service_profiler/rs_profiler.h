@@ -68,7 +68,9 @@
 #define RS_PROFILER_REPLAY_FIX_TRINDEX(curIndex, lastIndex) RSProfiler::ReplayFixTrIndex(curIndex, lastIndex)
 #define RS_PROFILER_PATCH_TYPEFACE_ID(parcel, val) RSProfiler::PatchTypefaceId(parcel, val)
 #define RS_PROFILER_DRAWING_NODE_ADD_CLEAROP(drawCmdList) RSProfiler::DrawingNodeAddClearOp(drawCmdList)
+#define RS_PROFILER_KEEP_DRAW_CMD(drawCmdListNeedSync) RSProfiler::KeepDrawCmd(drawCmdListNeedSync)
 #define RS_PROFILER_PROCESS_ADD_CHILD(parent, child, index) RSProfiler::ProcessAddChild(parent, child, index)
+#define RS_PROFILER_IF_NEED_TO_SKIP_DRAWCMD_SURFACE(parcel) RSProfiler::IfNeedToSkipDuringReplay(parcel)
 #else
 #define RS_PROFILER_INIT(renderSevice)
 #define RS_PROFILER_ON_FRAME_BEGIN(syncTime)
@@ -105,7 +107,9 @@
 #define RS_PROFILER_REPLAY_FIX_TRINDEX(curIndex, lastIndex)
 #define RS_PROFILER_PATCH_TYPEFACE_ID(parcel, val)
 #define RS_PROFILER_DRAWING_NODE_ADD_CLEAROP(drawCmdList) (drawCmdList)->ClearOp()
+#define RS_PROFILER_KEEP_DRAW_CMD(drawCmdListNeedSync) drawCmdListNeedSync = true
 #define RS_PROFILER_PROCESS_ADD_CHILD(parent, child, index) false
+#define RS_PROFILER_IF_NEED_TO_SKIP_DRAWCMD_SURFACE(parcel) false
 #endif
 
 #ifdef RS_PROFILER_ENABLED
@@ -236,12 +240,15 @@ public:
     RSB_EXPORT static bool IsWriteMode();
     RSB_EXPORT static bool IsWriteEmulationMode();
     RSB_EXPORT static bool IsSavingMode();
-
+    
     RSB_EXPORT static TextureRecordType GetTextureRecordType();
     RSB_EXPORT static void SetTextureRecordType(TextureRecordType type);
-
+    
     RSB_EXPORT static void DrawingNodeAddClearOp(const std::shared_ptr<Drawing::DrawCmdList>& drawCmdList);
     RSB_EXPORT static void SetDrawingCanvasNodeRedraw(bool enable);
+    RSB_EXPORT static void KeepDrawCmd(bool& drawCmdListNeedSync);
+    RSB_EXPORT static void SetRenderNodeKeepDrawCmd(bool enable);
+    RSB_EXPORT static bool IfNeedToSkipDuringReplay(Parcel& parcel);
 
 private:
     static const char* GetProcessNameByPid(int pid);
@@ -338,8 +345,9 @@ private:
 
     // JSON
     static void RenderServiceTreeDump(JsonWriter& out, pid_t pid);
+    RSB_EXPORT static void DumpOffscreen(RSContext& context, JsonWriter& rootOffscreen, bool useMockPid, pid_t pid);
     RSB_EXPORT static void DumpNode(const RSRenderNode& node, JsonWriter& out,
-        bool clearMockFlag = false, bool absRoot = false);
+        bool clearMockFlag = false, bool absRoot = false, bool isSorted = true);
     RSB_EXPORT static void DumpNodeAbsoluteProperties(const RSRenderNode& node, JsonWriter& out);
     RSB_EXPORT static void DumpNodeAnimations(const RSAnimationManager& animationManager, JsonWriter& out);
     RSB_EXPORT static void DumpNodeAnimation(const RSRenderAnimation& animation, JsonWriter& out);
@@ -450,8 +458,11 @@ private:
     static void FileVersion(const ArgList& args);
 
     static void SaveSkp(const ArgList& args);
+    static void SaveOffscreenSkp(const ArgList& args);
+    static void SaveComponentSkp(const ArgList& args);
     static void SaveRdc(const ArgList& args);
     static void DrawingCanvasRedrawEnable(const ArgList& args);
+    static void RenderNodeKeepDrawCmd(const ArgList& args);
     static void PlaybackSetSpeed(const ArgList& args);
     static void PlaybackSetImmediate(const ArgList& args);
 
@@ -496,6 +507,7 @@ private:
     // set to true in DT only
     RSB_EXPORT static bool testing_;
 
+    static RSContext* context_;
     // flag for enabling profiler
     RSB_EXPORT static bool enabled_;
     RSB_EXPORT static std::atomic_uint32_t mode_;
@@ -508,6 +520,7 @@ private:
     inline static const char SYS_KEY_BETARECORDING[] = "persist.graphic.profiler.betarecording";
     // flag for enabling DRAWING_CANVAS_NODE redrawing
     RSB_EXPORT static std::atomic_bool dcnRedraw_;
+    RSB_EXPORT static std::atomic_bool renderNodeKeepDrawCmdList_;
     RSB_EXPORT static std::atomic_bool recordAbortRequested_;
 
     RSB_EXPORT static std::vector<std::shared_ptr<RSRenderNode>> testTree_;

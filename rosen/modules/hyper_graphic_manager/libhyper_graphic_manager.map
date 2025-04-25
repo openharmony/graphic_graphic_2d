@@ -97,7 +97,7 @@
       *HgmFrameRateManager::HandleSceneEvent*;
       *HgmFrameRateManager::HandleScreenPowerStatus*;
       *HgmFrameRateManager::HandleScreenRectFrameRate*;
-      *HgmFrameRateManager::HandleThermalFrameRate*;
+      *HgmFrameRateManager::HandleScreenExtStrategyChange*;
       *HgmFrameRateManager::HandleTouchEvent*;
       *HgmFrameRateManager::HgmFrameRateManager*;
       *HgmFrameRateManager::Init*;
@@ -120,6 +120,7 @@
       *HgmFrameRateManager::SetVsyncRateDiscountLTPO*;
       *HgmFrameRateManager::EraseGameRateDiscountMap*;
       *HgmFrameRateManager::CollectGameRateDiscountChange*;
+      *HgmFrameRateManager::GetVRateMiniFPS*;
 
       *HgmHfbcConfig::HandleHfbcConfig*;
       *HgmHfbcConfig::SetHfbcConfigMap*;

@@ -296,4 +296,21 @@ HWTEST_F(RSDisplayRenderParamsTest, GetVirtualScreenMuteStatus, TestSize.Level1)
     params.virtualScreenMuteStatus_ = true;
     ASSERT_TRUE(params.GetVirtualScreenMuteStatus());
 }
+
+/**
+ * @tc.name: SetNeedForceUpdateHwcNodes
+ * @tc.desc: test result of SetNeedForceUpdateHwcNodes
+ * @tc.type: FUNC
+ * @tc.require: issueIC0AQO
+ */
+HWTEST_F(RSDisplayRenderParamsTest, SetNeedForceUpdateHwcNodes, TestSize.Level1)
+{
+    constexpr NodeId id = TestSrc::limitNumber::Uint64[0];
+    RSDisplayRenderParams params(id);
+    params.needForceUpdateHwcNodes_ = true;
+    params.SetNeedForceUpdateHwcNodes(true);
+    ASSERT_TRUE(params.needForceUpdateHwcNodes_);
+    params.SetNeedForceUpdateHwcNodes(false);
+    ASSERT_FALSE(params.needForceUpdateHwcNodes_);
+}
 } // namespace OHOS::Rosen

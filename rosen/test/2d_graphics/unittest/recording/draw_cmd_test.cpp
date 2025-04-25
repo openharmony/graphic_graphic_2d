@@ -1129,6 +1129,81 @@ HWTEST_F(DrawCmdTest, UpdateNodeIdToPicture001, TestSize.Level1)
     drawCmdList->UpdateNodeIdToPicture(nodeId);
 }
 
+#ifdef RS_ENABLE_VK
+/**
+ * @tc.name: HybridRenderType001
+ * @tc.desc: Test SetHybridRenderType and GetHybridRenderType
+ * @tc.type: FUNC
+ * @tc.require: IBWDR2
+ */
+HWTEST_F(DrawCmdTest, HybridRenderType001, TestSize.Level1)
+{
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    auto hybridRenderTypeGet = drawCmdList->GetHybridRenderType();
+    EXPECT_EQ(hybridRenderTypeGet, DrawCmdList::HybridRenderType::NONE);
+}
+
+/**
+ * @tc.name: HybridRenderType002
+ * @tc.desc: Test SetHybridRenderType and GetHybridRenderType
+ * @tc.type: FUNC
+ * @tc.require: IBWDR2
+ */
+HWTEST_F(DrawCmdTest, HybridRenderType002, TestSize.Level1)
+{
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    auto hybridRenderTypeSet = DrawCmdList::HybridRenderType::TEXT;
+    drawCmdList->SetHybridRenderType(hybridRenderTypeSet);
+    auto hybridRenderTypeGet = drawCmdList->GetHybridRenderType();
+    EXPECT_EQ(hybridRenderTypeGet, hybridRenderTypeSet);
+}
+
+/**
+ * @tc.name: HybridRenderType003
+ * @tc.desc: Test SetHybridRenderType and GetHybridRenderType
+ * @tc.type: FUNC
+ * @tc.require: IBWDR2
+ */
+HWTEST_F(DrawCmdTest, HybridRenderType003, TestSize.Level1)
+{
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    auto hybridRenderTypeSet = DrawCmdList::HybridRenderType::SVG;
+    drawCmdList->SetHybridRenderType(hybridRenderTypeSet);
+    auto hybridRenderTypeGet = drawCmdList->GetHybridRenderType();
+    EXPECT_EQ(hybridRenderTypeGet, hybridRenderTypeSet);
+}
+
+/**
+ * @tc.name: HybridRenderType004
+ * @tc.desc: Test SetHybridRenderType and GetHybridRenderType
+ * @tc.type: FUNC
+ * @tc.require: IBWDR2
+ */
+HWTEST_F(DrawCmdTest, HybridRenderType004, TestSize.Level1)
+{
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    auto hybridRenderTypeSet = DrawCmdList::HybridRenderType::HMSYMBOL;
+    drawCmdList->SetHybridRenderType(hybridRenderTypeSet);
+    auto hybridRenderTypeGet = drawCmdList->GetHybridRenderType();
+    EXPECT_EQ(hybridRenderTypeGet, hybridRenderTypeSet);
+}
+
+/**
+ * @tc.name: HybridRenderType005
+ * @tc.desc: Test SetHybridRenderType and GetHybridRenderType
+ * @tc.type: FUNC
+ * @tc.require: IBWDR2
+ */
+HWTEST_F(DrawCmdTest, HybridRenderType005, TestSize.Level1)
+{
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    auto hybridRenderTypeSet = DrawCmdList::HybridRenderType::CANVAS;
+    drawCmdList->SetHybridRenderType(hybridRenderTypeSet);
+    auto hybridRenderTypeGet = drawCmdList->GetHybridRenderType();
+    EXPECT_EQ(hybridRenderTypeGet, hybridRenderTypeSet);
+}
+#endif
+
 /**
  * @tc.name: MaskCmdList001
  * @tc.desc: Test functions for MaskCmdList

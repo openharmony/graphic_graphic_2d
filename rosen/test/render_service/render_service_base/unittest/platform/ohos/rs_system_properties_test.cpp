@@ -1059,5 +1059,16 @@ HWTEST_F(RSSystemPropertiesTest, GetOptimizeHwcComposeAreaEnabled, TestSize.Leve
 {
     ASSERT_TRUE(RSSystemProperties::GetOptimizeHwcComposeAreaEnabled());
 }
+
+/**
+ * @tc.name: GetTimeVsyncDisabled
+ * @tc.desc: GetTimeVsyncDisabled Test
+ * @tc.type:FUNC
+ * @tc.require: issuesIBIA3V
+ */
+HWTEST_F(RSSystemPropertiesTest, GetTimeVsyncDisabled001, TestSize.Level1)
+{
+    ASSERT_FALSE(RSSystemProperties::GetTimeVsyncDisabled());
+}
 } // namespace Rosen
 } // namespace OHOS

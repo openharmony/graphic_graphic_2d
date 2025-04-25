@@ -91,33 +91,14 @@ HWTEST_F(RSSubThreadCacheTest, GetCacheSurfaceTest, TestSize.Level1)
     if (surfaceDrawable_ == nullptr) {
         return;
     }
-    uint32_t threadIndex = 0;
-    bool needCheckThread = false;
-    bool releaseAfterGet = true;
-    auto result = surfaceDrawable_->GetRsSubThreadCache().GetCacheSurface(threadIndex, needCheckThread,
-        releaseAfterGet);
-    EXPECT_EQ(result, nullptr);
-    ASSERT_FALSE(surfaceDrawable_->GetRsSubThreadCache().cacheSurface_);
 
-    releaseAfterGet = false;
     surfaceDrawable_->GetRsSubThreadCache().cacheSurface_ = std::make_shared<Drawing::Surface>();
-    ASSERT_TRUE(surfaceDrawable_->GetRsSubThreadCache().cacheSurface_);
-    result = surfaceDrawable_->GetRsSubThreadCache().GetCacheSurface(threadIndex, needCheckThread, releaseAfterGet);
-    EXPECT_NE(result, nullptr);
+    uint32_t threadIndex = 0;
+    surfaceDrawable_->GetRsSubThreadCache().cacheSurfaceThreadIndex_ = 1;
+    EXPECT_EQ(surfaceDrawable_->GetRsSubThreadCache().GetCacheSurface(threadIndex), nullptr);
 
-    needCheckThread = true;
-    uint32_t index = surfaceDrawable_->GetRsSubThreadCache().cacheSurfaceThreadIndex_;
     surfaceDrawable_->GetRsSubThreadCache().cacheSurfaceThreadIndex_ = threadIndex;
-    result = surfaceDrawable_->GetRsSubThreadCache().GetCacheSurface(threadIndex, needCheckThread, releaseAfterGet);
-    EXPECT_NE(result, nullptr);
-    surfaceDrawable_->GetRsSubThreadCache().cacheSurfaceThreadIndex_ = index;
-    ASSERT_FALSE(surfaceDrawable_->GetRsSubThreadCache().cacheSurfaceThreadIndex_ == threadIndex);
-
-    result = surfaceDrawable_->GetRsSubThreadCache().GetCacheSurface(threadIndex, needCheckThread, releaseAfterGet);
-    EXPECT_EQ(result, nullptr);
-    surfaceDrawable_->GetRsSubThreadCache().cacheSurface_ = nullptr;
-    result = surfaceDrawable_->GetRsSubThreadCache().GetCacheSurface(threadIndex, needCheckThread, releaseAfterGet);
-    EXPECT_EQ(result, nullptr);
+    EXPECT_NE(surfaceDrawable_->GetRsSubThreadCache().GetCacheSurface(threadIndex), nullptr);
 }
 
 /**
@@ -149,7 +130,8 @@ HWTEST_F(RSSubThreadCacheTest, GetCompletedImageTest, TestSize.Level1)
 
 #ifdef RS_ENABLE_VK
     surfaceDrawable_->GetRsSubThreadCache().cacheCompletedSurface_ = std::make_shared<Drawing::Surface>();
-    auto cacheBackendTexture_ = RSUniRenderUtil::MakeBackendTexture(10, 10, VkFormat::VK_FORMAT_A1R5G5B5_UNORM_PACK16);
+    auto cacheBackendTexture_ = RSUniRenderUtil::MakeBackendTexture(
+        10, 10, 0, VkFormat::VK_FORMAT_A1R5G5B5_UNORM_PACK16);
     auto vkTextureInfo = cacheBackendTexture_.GetTextureInfo().GetVkTextureInfo();
     surfaceDrawable_->GetRsSubThreadCache().cacheCompletedCleanupHelper_ = new NativeBufferUtils::VulkanCleanupHelper(
         RsVulkanContext::GetSingleton, vkTextureInfo->vkImage, vkTextureInfo->vkAlloc.memory);
@@ -238,6 +220,14 @@ HWTEST_F(RSSubThreadCacheTest, UpdateCompletedCacheSurfaceTest, TestSize.Level1)
     uint32_t cacheSurfaceThreadIndex = 0;
     surfaceDrawable_->GetRsSubThreadCache().completedSurfaceThreadIndex_ = completedSurfaceThreadIndex;
     surfaceDrawable_->GetRsSubThreadCache().cacheSurfaceThreadIndex_ = cacheSurfaceThreadIndex;
+
+    surfaceDrawable_->GetRsSubThreadCache().cacheSurface_ = nullptr;
+    surfaceDrawable_->GetRsSubThreadCache().UpdateCompletedCacheSurface();
+    EXPECT_EQ(surfaceDrawable_->GetRsSubThreadCache().isCacheValid_, false);
+    EXPECT_NE(surfaceDrawable_->GetRsSubThreadCache().completedSurfaceThreadIndex_, cacheSurfaceThreadIndex);
+
+    surfaceDrawable_->GetRsSubThreadCache().cacheSurface_ = std::make_shared<Drawing::Surface>();
+    surfaceDrawable_->GetRsSubThreadCache().isCacheValid_ = true;
     surfaceDrawable_->GetRsSubThreadCache().UpdateCompletedCacheSurface();
     EXPECT_EQ(surfaceDrawable_->GetRsSubThreadCache().completedSurfaceThreadIndex_, cacheSurfaceThreadIndex);
 }
@@ -391,11 +381,11 @@ HWTEST_F(RSSubThreadCacheTest, DrawUIFirstCacheTest, TestSize.Level1)
     result = surfaceDrawable_->GetRsSubThreadCache().DrawUIFirstCache(surfaceDrawable_.get(), rscanvas, false);
     EXPECT_EQ(result, false);
 
-    surfaceDrawable_->GetRsSubThreadCache().isTextureValid_.store(true);
+    surfaceDrawable_->GetRsSubThreadCache().isCacheCompletedValid_ = true;
     ASSERT_TRUE(surfaceDrawable_->GetRsSubThreadCache().HasCachedTexture());
     result = surfaceDrawable_->GetRsSubThreadCache().DrawUIFirstCache(surfaceDrawable_.get(), rscanvas, false);
     EXPECT_EQ(result, false);
-    surfaceDrawable_->GetRsSubThreadCache().isTextureValid_.store(false);
+    surfaceDrawable_->GetRsSubThreadCache().isCacheCompletedValid_ = false;
 }
 
 /**
@@ -415,7 +405,7 @@ HWTEST_F(RSSubThreadCacheTest, DrawUIFirstCacheWithStartingTest, TestSize.Level1
     ASSERT_TRUE(result);
 
     id = 65535; // for test
-    surfaceDrawable_->GetRsSubThreadCache().isTextureValid_.store(true);
+    surfaceDrawable_->GetRsSubThreadCache().isCacheCompletedValid_ = true;
     result = surfaceDrawable_->GetRsSubThreadCache().DrawUIFirstCacheWithStarting(surfaceDrawable_.get(),
         *rscanvas, id);
     ASSERT_FALSE(result);

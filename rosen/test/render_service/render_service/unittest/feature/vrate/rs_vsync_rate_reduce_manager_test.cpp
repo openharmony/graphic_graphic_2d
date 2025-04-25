@@ -643,7 +643,7 @@ HWTEST_F(RSVsyncRateReduceManagerTest, CollectSurfaceVsyncInfo003, TestSize.Leve
 
     // IsHardwareEnabledTopSurface
     config.name = "pointer window";
-    config.nodeType = RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE;
+    config.nodeType = RSSurfaceNodeType::CURSOR_NODE;
     surfaceNode = std::make_shared<RSSurfaceRenderNode>(config, rsContext->weak_from_this());
     buildFunc(surfaceNode);
     rateReduceManager.CollectSurfaceVsyncInfo(screenInfo, *surfaceNode);

@@ -98,6 +98,7 @@ private:
     void CalculateDelayTime(OHOS::Rosen::HgmCore& hgmCore, RefreshRateParam param, uint32_t currentRate,
         int64_t currTime);
     std::shared_ptr<RSSurfaceOhos> CreateFrameBufferSurfaceOhos(const sptr<Surface>& surface);
+    void EndCheck(RSTimer timer);
 #ifdef RES_SCHED_ENABLE
     void SubScribeSystemAbility();
     sptr<VSyncSystemAbilityListener> saStatusChangeListener_ = nullptr;
@@ -137,11 +138,13 @@ private:
 
     bool needRetrySetRate_ = false;
 
-    std::unordered_map<ScreenId, OutputPtr> outputMap_;
+    std::unordered_map<ScreenId, std::weak_ptr<HdiOutput>> outputMap_;
     RefreshRateParam refreshRateParam_;
 
     friend class RSUniRenderThread;
     friend class RSUifirstManager;
+    int hardwareCount_ = 0;
+    ExceptionCheck exceptionCheck_;
 };
 }
 

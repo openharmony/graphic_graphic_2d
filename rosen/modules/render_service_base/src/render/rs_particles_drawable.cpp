@@ -103,7 +103,8 @@ void RSParticlesDrawable::CaculateImageAtlsArry(Drawing::Canvas& canvas,
         return;
     }
     auto pixelmap = image->GetPixelMap();
-    if (pixelmap == nullptr) {
+    auto drawImage = image->GetImage();
+    if (pixelmap == nullptr && drawImage == nullptr) {
         return;
     }
     auto imageIndex = particle->GetImageIndex();
@@ -124,10 +125,12 @@ void RSParticlesDrawable::CaculateImageAtlsArry(Drawing::Canvas& canvas,
         Color color = particle->GetColor();
         auto alpha = color.GetAlpha();
         color.SetAlpha(alpha * opacity);
+        auto width = pixelmap == nullptr ? drawImage->GetWidth() : pixelmap->GetWidth();
+        auto height = pixelmap == nullptr ? drawImage->GetHeight() : pixelmap->GetHeight();
         imageRsxform_[imageIndex].push_back(
-            MakeRSXform(Vector2f(pixelmap->GetWidth() / DOUBLE, pixelmap->GetHeight() / DOUBLE), position, spin,
-                image->GetDstRect().GetWidth() / pixelmap->GetWidth() * scale));
-        imageTex_[imageIndex].push_back(Drawing::Rect(0, 0, pixelmap->GetWidth(), pixelmap->GetHeight()));
+            MakeRSXform(Vector2f(width / DOUBLE, height / DOUBLE), position, spin,
+                image->GetDstRect().GetWidth() / width * scale));
+        imageTex_[imageIndex].push_back(Drawing::Rect(0, 0, width, height));
         imageColors_[imageIndex].push_back(Drawing::Color(color.AsArgbInt()).CastToColorQuad());
         count_[imageIndex]++;
     } else {
@@ -225,18 +228,33 @@ void RSParticlesDrawable::DrawCircle(Drawing::Canvas& canvas)
     canvas.DetachBrush();
 }
 
+bool RSParticlesDrawable::CheckImageNull(std::shared_ptr<Drawing::Image>& image,
+    const std::shared_ptr<Drawing::Image>& drawImage)
+{
+    if (image) {
+        return false;
+    }
+
+    if (drawImage) {
+        image = drawImage;
+        return false;
+    }
+
+    return true;
+}
+
 void RSParticlesDrawable::DrawImages(Drawing::Canvas& canvas)
 {
     while (imageCount_--) {
         if (imageVector_[imageCount_] != nullptr) {
+            std::shared_ptr<Drawing::Image> image = nullptr;
             auto pixelmap = imageVector_[imageCount_]->GetPixelMap();
-            if (!pixelmap) {
-                ROSEN_LOGE("RSParticlesDrawable::Draw !pixel");
-                return;
+            if (pixelmap) {
+                image = RSPixelMapUtil::ExtractDrawingImage(pixelmap);
             }
-            auto image = RSPixelMapUtil::ExtractDrawingImage(pixelmap);
-            if (!image) {
-                ROSEN_LOGE("RSParticlesDrawable::Draw !image");
+
+            if (CheckImageNull(image, imageVector_[imageCount_]->GetImage())) {
+                ROSEN_LOGE("RSParticlesDrawable::Draw !pixel and !image_");
                 return;
             }
             Drawing::Brush brush;

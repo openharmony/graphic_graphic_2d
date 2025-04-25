@@ -26,7 +26,7 @@ using namespace testing::ext;
 namespace OHOS::Rosen {
 class VsyncEnabledScreenIdTest : public testing::Test {
 public:
-    static constexpr uint32_t SLEEP_TIME_FOR_BACKGROUD = 1000000; //1000ms
+    static constexpr uint32_t SLEEP_TIME_FOR_DELAY = 1000000; // 1000ms
 
     impl::VSyncSampler* GetVSyncSamplerImplPtr();
     impl::RSScreenManager* GetRSScreenManagerImplPtr();
@@ -55,7 +55,7 @@ void VsyncEnabledScreenIdTest::SetScreenPowerStatusDelay(
     sptr<RSScreenManager> screenManager, ScreenId id, ScreenPowerStatus status)
 {
     screenManager->SetScreenPowerStatus(id, status);
-    usleep(SLEEP_TIME_FOR_BACKGROUD);
+    usleep(SLEEP_TIME_FOR_DELAY);
 }
 
 /*

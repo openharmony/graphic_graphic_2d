@@ -145,10 +145,8 @@ void MemorySnapshot::FillMemorySnapshot(std::unordered_map<pid_t, MemorySnapshot
         auto it = appMemorySnapshots_.find(*pPid);
         if (it != appMemorySnapshots_.end()) {
             it->second.bundleName = infoMap[it->first].bundleName;
-            pPid = dirtyMemorySnapshots_.erase(pPid);
-        } else {
-            ++pPid;
         }
+        pPid = dirtyMemorySnapshots_.erase(pPid);
     }
 }
 

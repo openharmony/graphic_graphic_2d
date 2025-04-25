@@ -523,7 +523,7 @@ int32_t HdiLayer::SetLayerMaskInfo()
     return device_->SetLayerMaskInfo(screenId_, layerId_, static_cast<uint32_t>(layerInfo_->GetLayerMaskInfo()));
 }
 
-int32_t HdiLayer::SetHdiLayerInfo()
+int32_t HdiLayer::SetHdiLayerInfo(bool isActiveRectSwitching)
 {
     /*
         Some hardware platforms may not support all layer settings.
@@ -537,7 +537,8 @@ int32_t HdiLayer::SetHdiLayerInfo()
     // All layer properities need to set to hwc when the layer is created firstly or the previous layer's composition
     // type is COMPOSITION_DEVICE for COMPOSITION_DEVICE can not reuse COMPOSITION_CLIENT layers info.
     doLayerInfoCompare_ = prevLayerInfo_ != nullptr &&
-                          prevLayerInfo_->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE;
+                          prevLayerInfo_->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE &&
+                          !isActiveRectSwitching;
 
     ret = SetLayerAlpha();
     CheckRet(ret, "SetLayerAlpha");

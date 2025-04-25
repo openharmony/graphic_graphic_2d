@@ -145,6 +145,22 @@ HWTEST_F(HdiLayerTest, GetReleaseFence001, Function | MediumTest| Level1)
 }
 
 /*
+* Function: SetHdiLayerInfo002
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetHdiLayerInfo002(true)
+*                  2. check ret
+*/
+HWTEST_F(HdiLayerTest, SetHdiLayerInfo002, Function | MediumTest| Level1)
+{
+    bool doLayerCompare = true;
+    ASSERT_EQ(HdiLayerTest::hdiLayer_->SetHdiLayerInfo(doLayerCompare), GRAPHIC_DISPLAY_SUCCESS);
+    hdiLayer_->SavePrevLayerInfo();
+    ASSERT_EQ(HdiLayerTest::hdiLayer_->SetHdiLayerInfo(doLayerCompare), GRAPHIC_DISPLAY_SUCCESS);
+}
+
+/*
 * Function: SetLayerTunnelHandle001
 * Type: Function
 * Rank: Important(3)

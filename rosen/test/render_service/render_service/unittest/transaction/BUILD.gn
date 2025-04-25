@@ -118,10 +118,6 @@ config("rs_test_common_public_config") {
     "$graphic_2d_root/rosen/modules/render_service_base/include",
     "$graphic_2d_root/rosen/modules/render_service_base/src",
     "$graphic_2d_root/rosen/test/include",
-    "$memmgr_plugin_root/interface/innerkits/include",
-    "$memmgr_plugin_root/services/memmgrservice/include/memory_level_manager",
-    "$memmgr_root/interface/innerkits/include",
-    "$memmgr_root/services/memmgrservice/include/memory_level_manager",
     "$graphic_2d_root/rosen/modules/render_service_base/include/platform/ohos/",
     "$graphic_2d_root/rosen/test/render_service/render_service/unittest/pipeline/mock",
   ]
@@ -182,6 +178,10 @@ ohos_static_library("rs_test_common") {
     "init:libbegetutil",
     "ipc:ipc_core",
   ]
+
+  if (use_memmgr_plugin || use_memmgr) {
+    public_external_deps += [ "memmgr:memmgrclient" ]
+  }
 
   subsystem_name = "graphic"
   part_name = "graphic_2d"

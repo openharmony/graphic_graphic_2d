@@ -36,7 +36,7 @@ if (!is_mingw && !is_mac && !is_cross_platform &&
 
   ohos_rust_static_ffi("particle_cxx_rust") {
     sources = [ "rust/src/lib.rs" ]
-    deps = [ "//third_party/rust/crates/cxx:lib" ]
+    external_deps = [ "rust_cxx:lib" ]
     part_name = "graphic_2d"
     subsystem_name = "graphic"
   }
@@ -56,7 +56,7 @@ if (!is_mingw && !is_mac && !is_cross_platform &&
       "//third_party/rust/crates/cxx/include/cxx.h",
       "//third_party/rust/crates/cxx/src/cxx.cc",
     ]
-    deps = [ "//third_party/rust/crates/cxx:lib" ]
+    external_deps = [ "rust_cxx:lib" ]
   }
 }
 
@@ -140,11 +140,13 @@ ohos_source_set("render_service_base_src") {
     "src/common/rs_color.cpp",
     "src/common/rs_common_def.cpp",
     "src/common/rs_common_tools.cpp",
+    "src/common/rs_exception_check.cpp",
     "src/common/rs_obj_abs_geometry.cpp",
     "src/common/rs_occlusion_region.cpp",
     "src/common/rs_occlusion_region_helper.cpp",
     "src/common/rs_rectangles_merger.cpp",
     "src/common/rs_special_layer_manager.cpp",
+    "src/common/rs_switching_thread.cpp",
     "src/common/rs_thread_handler_generic.cpp",
     "src/common/rs_thread_looper_generic.cpp",
     "src/common/rs_thread_looper_impl.cpp",
@@ -333,6 +335,7 @@ ohos_source_set("render_service_base_src") {
       "src/params/rs_rcd_render_params.cpp",
       "src/params/rs_render_params.cpp",
       "src/params/rs_render_thread_params.cpp",
+      "src/params/rs_root_render_params.cpp",
       "src/params/rs_surface_render_params.cpp",
     ]
   }
@@ -396,7 +399,6 @@ ohos_source_set("render_service_base_src") {
       #memory
       "src/memory/rs_memory_graphic.cpp",
       "src/memory/rs_memory_track.cpp",
-      "src/memory/rs_tag_tracker.cpp",
 
       #pipeline
       "src/pipeline/rs_occlusion_config.cpp",

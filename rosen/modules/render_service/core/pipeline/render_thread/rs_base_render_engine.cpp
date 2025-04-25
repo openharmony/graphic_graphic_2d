@@ -690,11 +690,11 @@ std::shared_ptr<Drawing::Image> RSBaseRenderEngine::CreateImageFromBuffer(RSPain
 #ifdef RS_ENABLE_VK
     if (RSSystemProperties::IsUseVulkan()) {
         auto imageCache = vkImageManager_->MapVkImageFromSurfaceBuffer(params.buffer,
-            params.acquireFence, params.threadIndex, params.screenId);
+            params.acquireFence, params.threadIndex);
         if (params.buffer != nullptr && params.buffer->GetBufferDeleteFromCacheFlag()) {
             RS_LOGD_IF(DEBUG_COMPOSER, "  - Buffer %{public}u marked for deletion from cache, unmapping",
                 params.buffer->GetSeqNum());
-            vkImageManager_->UnMapVkImageFromSurfaceBuffer(params.buffer->GetSeqNum(), true);
+            vkImageManager_->UnMapVkImageFromSurfaceBuffer(params.buffer->GetSeqNum());
         }
         auto bitmapFormat = RSBaseRenderUtil::GenerateDrawingBitmapFormat(params.buffer);
         RS_LOGD_IF(DEBUG_COMPOSER, "  - Generated bitmap format: colorType = %{public}d, alphaType = %{public}d",
@@ -931,7 +931,6 @@ void RSBaseRenderEngine::RegisterDeleteBufferListener(const sptr<IConsumerSurfac
     if (RSSystemProperties::IsUseVulkan()) {
         auto regUnMapVkImageFunc = [this, isForUniRedraw](int32_t bufferId) {
             RSMainThread::Instance()->AddToUnmappedCacheSet(bufferId);
-            RSMainThread::Instance()->AddToUnmappedMirrorCacheSet(bufferId);
         };
         if (consumer == nullptr ||
             (consumer->RegisterDeleteBufferListener(regUnMapVkImageFunc, isForUniRedraw) != GSERROR_OK)) {
@@ -990,14 +989,14 @@ void RSBaseRenderEngine::ShrinkCachesIfNeeded(bool isForUniRedraw)
 #endif // RS_ENABLE_EGLIMAGE
 }
 
-void RSBaseRenderEngine::ClearCacheSet(const std::set<uint32_t>& unmappedCache, bool isMatchVirtualScreen)
+void RSBaseRenderEngine::ClearCacheSet(const std::set<uint32_t>& unmappedCache)
 {
 #ifdef RS_ENABLE_VK
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
         RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
         if (vkImageManager_ != nullptr) {
             for (auto id : unmappedCache) {
-                vkImageManager_->UnMapVkImageFromSurfaceBuffer(id, isMatchVirtualScreen);
+                vkImageManager_->UnMapVkImageFromSurfaceBuffer(id);
             }
         }
     }
@@ -1010,18 +1009,6 @@ void RSBaseRenderEngine::ClearCacheSet(const std::set<uint32_t>& unmappedCache, 
         }
     }
 #endif // RS_ENABLE_EGLIMAGE
-}
-
-void RSBaseRenderEngine::ClearVirtualScreenCacheSet()
-{
-#ifdef RS_ENABLE_VK
-    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-        if (vkImageManager_ != nullptr) {
-            vkImageManager_->UnMapAllVkImageVirtualScreenCache();
-        }
-    }
-#endif // RS_ENABLE_VK
 }
 } // namespace Rosen
 } // namespace OHOS

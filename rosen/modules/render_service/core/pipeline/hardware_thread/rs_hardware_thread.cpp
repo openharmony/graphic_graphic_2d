@@ -27,6 +27,7 @@
 #include "rs_trace.h"
 #include "vsync_sampler.h"
 
+#include "common/rs_exception_check.h"
 #include "common/rs_optional_trace.h"
 #include "common/rs_singleton.h"
 #include "feature/round_corner_display/rs_round_corner_display_manager.h"
@@ -80,9 +81,17 @@ constexpr int64_t COMMIT_DELTA_TIME = 2; // 2ms
 constexpr int64_t MAX_DELAY_TIME = 100; // 100ms
 constexpr int64_t NS_MS_UNIT_CONVERSION = 1000000;
 constexpr int64_t UNI_RENDER_VSYNC_OFFSET_DELAY_MODE = 3300000; // 3.3ms
-constexpr uint32_t DELAY_TIME_OFFSET = 5; // 5ms
+constexpr uint32_t DELAY_TIME_OFFSET = 100; // 5ms
 constexpr uint32_t MAX_TOTAL_SURFACE_NAME_LENGTH = 320;
 constexpr uint32_t MAX_SINGLE_SURFACE_NAME_LENGTH = 20;
+// Threshold for abnormal time in the hardware pipeline
+constexpr int HARDWARE_TIMEOUT = 800;
+// The number of exceptions in the hardware pipeline required to achieve render_service reset
+constexpr int HARDWARE_TIMEOUT_ABORT_CNT = 30;
+// The number of exceptions in the hardware pipeline required to report hisysevent
+constexpr int HARDWARE_TIMEOUT_CNT = 15;
+const std::string PROCESS_NAME_FOR_HISYSEVENT = "/system/bin/render_service";
+const std::string HARDWARE_PIPELINE_TIMEOUT = "hardware_pipeline_timeout";
 }
 
 static int64_t SystemTime()
@@ -232,6 +241,7 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
         return;
     }
     delayTime_ = 0;
+    RSTimer timer("Hardware", HARDWARE_TIMEOUT);
     LayerComposeCollection::GetInstance().UpdateUniformOrOfflineComposeFrameNumberForDFX(layers.size());
     RefreshRateParam param = GetRefreshRateParam();
     refreshRateParam_ = param;
@@ -275,7 +285,8 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
         bool isScreenPoweringOff = false;
         auto screenManager = CreateOrGetScreenManager();
         if (screenManager) {
-            isScreenPoweringOff = screenManager->IsScreenPoweringOff(output->GetScreenId());
+            isScreenPoweringOff = RSSystemProperties::IsSmallFoldDevice() &&
+                screenManager->IsScreenPoweringOff(output->GetScreenId());
         }
 
         if (!isScreenPoweringOff) {
@@ -353,7 +364,34 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
         delayTime_ = 0;
     }
     lastCommitTime_ = currTime + delayTime_ * NS_MS_UNIT_CONVERSION;
+    EndCheck(timer);
     PostDelayTask(task, delayTime_);
+}
+
+void RSHardwareThread::EndCheck(RSTimer timer)
+{
+    exceptionCheck_.pid_ = getpid();
+    exceptionCheck_.uid_ = getuid();
+    exceptionCheck_.processName_ = PROCESS_NAME_FOR_HISYSEVENT;
+    exceptionCheck_.exceptionPoint_ = HARDWARE_PIPELINE_TIMEOUT;
+
+    if (timer.GetDuration() >= HARDWARE_TIMEOUT) {
+        if (++hardwareCount_ == HARDWARE_TIMEOUT_CNT) {
+            RS_LOGE("Hardware Thread Exception Count[%{public}d]", hardwareCount_);
+            exceptionCheck_.exceptionCnt_ = hardwareCount_;
+            exceptionCheck_.exceptionMoment_ = timer.GetSeconds();
+            exceptionCheck_.UploadRenderExceptionData();
+        }
+    } else {
+        hardwareCount_ = 0;
+    }
+    if (hardwareCount_ == HARDWARE_TIMEOUT_ABORT_CNT) {
+        exceptionCheck_.exceptionCnt_ = hardwareCount_;
+        exceptionCheck_.exceptionMoment_ = timer.GetSeconds();
+        exceptionCheck_.UploadRenderExceptionData();
+        sleep(1); // sleep 1s : abort will kill RS, sleep 1s for hisysevent report.
+        abort(); // The RS process needs to be restarted because 30 consecutive frames in hardware times out.
+    }
 }
 
 void RSHardwareThread::ChangeLayersForActiveRectOutside(std::vector<LayerInfoPtr>& layers, ScreenId screenId)
@@ -815,17 +853,22 @@ void RSHardwareThread::ChangeDssRefreshRate(ScreenId screenId, uint32_t refreshR
         PostDelayTask(task, period / NS_MS_UNIT_CONVERSION + delayTime_ + DELAY_TIME_OFFSET);
     } else {
         auto outputIter = outputMap_.find(screenId);
-        if (outputIter == outputMap_.end() || outputIter->second == nullptr) {
+        if (outputIter == outputMap_.end()) {
+            return;
+        }
+        auto output = outputIter->second.lock();
+        if (output == nullptr) {
+            outputMap_.erase(screenId);
             return;
         }
         if (HgmCore::Instance().GetActiveScreenId() != screenId) {
             return;
         }
-        ExecuteSwitchRefreshRate(outputIter->second, refreshRate);
+        ExecuteSwitchRefreshRate(output, refreshRate);
         PerformSetActiveMode(
-            outputIter->second, refreshRateParam_.frameTimestamp, refreshRateParam_.constraintRelativeTime);
-        if (outputIter->second->IsDeviceValid()) {
-            hdiBackend_->Repaint(outputIter->second);
+            output, refreshRateParam_.frameTimestamp, refreshRateParam_.constraintRelativeTime);
+        if (output->IsDeviceValid()) {
+            hdiBackend_->Repaint(output);
         }
     }
 }

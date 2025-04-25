@@ -116,6 +116,7 @@ public:
     void SetFrameRect(RectF frameRect);
     void SetFitMatrix(const Drawing::Matrix& matrix);
     Drawing::Matrix GetFitMatrix() const;
+    std::shared_ptr<Drawing::Image> GetImage() const;
 #ifdef ROSEN_OHOS
     bool Marshalling(Parcel& parcel) const override;
     [[nodiscard]] static RSImage* Unmarshalling(Parcel& parcel);

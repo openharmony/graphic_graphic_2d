@@ -864,6 +864,19 @@ HWTEST_F(CanvasTest, GetDrawingTypeTest002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetDrawingTypeTest003
+ * @tc.desc: Test for GetDrawingType functions.
+ * @tc.type: FUNC
+ * @tc.require: I719U5
+ */
+HWTEST_F(CanvasTest, GetDrawingTypeTest003, TestSize.Level1)
+{
+    std::shared_ptr<Drawing::StateInheriteCanvas> stateInheriteCanvas;
+    DrawingType type = stateInheriteCanvas->GetDrawingType();
+    ASSERT_TRUE(type == DrawingType::INHERITE_STATE);
+}
+
+/**
  * @tc.name: GetBounds001
  * @tc.desc: Test for geting the bounds of layer.
  * @tc.type: FUNC

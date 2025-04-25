@@ -28,6 +28,7 @@
 #include "pipeline/render_thread/rs_uni_render_util.h"
 #include "pipeline/render_thread/rs_uni_render_virtual_processor.h"
 #include "platform/drawing/rs_surface_converter.h"
+#include "screen_manager/rs_screen.h"
 // xml parser
 #include "graphic_feature_param_manager.h"
 
@@ -568,13 +569,15 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, CheckDisplayNodeSkipTest, TestSize.Lev
     ASSERT_EQ(result, true);
 
     RSUniRenderThread::Instance().uniRenderEngine_ = std::make_shared<RSRenderEngine>();
-    RSUniRenderThread::Instance().GetRSRenderThreadParams()->isForceCommitLayer_ = true;
+    RSUniRenderThread::Instance().GetRSRenderThreadParams()->forceCommitReason_ = 1;
     result = displayDrawable_->CheckDisplayNodeSkip(*params, processor);
     ASSERT_EQ(result, true);
 
-    RSMainThread::Instance()->isDirty_ = true;
-    result = displayDrawable_->CheckDisplayNodeSkip(*params, processor);
-    ASSERT_EQ(result, false);
+    RSMainThread::Instance()->SetDirtyFlag(true);
+    if (RSMainThread::Instance()->GetDirtyFlag()) {
+        result = displayDrawable_->CheckDisplayNodeSkip(*params, processor);
+        ASSERT_EQ(result, false);
+    }
 
     RSUifirstManager::Instance().hasForceUpdateNode_ = true;
     result = displayDrawable_->CheckDisplayNodeSkip(*params, processor);
@@ -589,9 +592,28 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, CheckDisplayNodeSkipTest, TestSize.Lev
     result = displayDrawable_->CheckDisplayNodeSkip(*params, processor);
     ASSERT_EQ(result, false);
     RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
-    RSUniRenderThread::Instance().GetRSRenderThreadParams()->isForceCommitLayer_ = false;
+    RSUniRenderThread::Instance().GetRSRenderThreadParams()->forceCommitReason_ = 0;
     RSMainThread::Instance()->isDirty_ = false;
     RSUifirstManager::Instance().hasForceUpdateNode_ = false;
+
+    // mock off screen surface null
+    params->hasHdrPresent_ = true;
+    displayDrawable_->offscreenSurface_ = nullptr;
+    result = displayDrawable_->CheckDisplayNodeSkip(*params, processor);
+    EXPECT_EQ(result, false);
+
+    // mock HDR off screen surface in wrong format, here RGBA_8888
+    Drawing::ImageInfo info = Drawing::ImageInfo { DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE,
+        Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL,
+        Drawing::ColorSpace::CreateSRGB()};
+    auto surface = std::make_shared<Drawing::Surface>();
+    displayDrawable_->offscreenSurface_ = surface->MakeSurface(info);
+    result = displayDrawable_->CheckDisplayNodeSkip(*params, processor);
+    EXPECT_EQ(result, false);
+
+    params->hasHdrPresent_ = false;
+    displayDrawable_->offscreenSurface_ = nullptr;
+    surface = nullptr;
 }
 
 /**

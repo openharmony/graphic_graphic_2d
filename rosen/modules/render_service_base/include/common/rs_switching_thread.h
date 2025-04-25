@@ -13,17 +13,27 @@
  * limitations under the License.
  */
 
-#include "stencil_pixel_occlusion_culling_param.h"
+#ifndef RS_SWITCHING_THREAD_H
+#define RS_SWITCHING_THREAD_H
+
+#include "event_handler.h"
+
+#include "common/rs_macros.h"
 
 namespace OHOS::Rosen {
+class RSB_EXPORT RSSwitchingThread final {
+public:
+    static RSSwitchingThread& Instance();
+    void PostTask(const std::function<void()>& task);
+    void PostSyncTask(const std::function<void()>& task);
 
-bool StencilPixelOcclusionCullingParam::IsStencilPixelOcclusionCullingEnable()
-{
-    return isStencilPixelOcclusionCullingEnable_;
-}
+private:
+    RSSwitchingThread();
+    ~RSSwitchingThread() = default;
 
-void StencilPixelOcclusionCullingParam::SetStencilPixelOcclusionCullingEnable(bool isEnable)
-{
-    isStencilPixelOcclusionCullingEnable_ = isEnable;
+    std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
+    std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
+};
 }
-} // namespace OHOS::Rosen
+#endif // RS_SWITCHING_THREAD_H
+ 

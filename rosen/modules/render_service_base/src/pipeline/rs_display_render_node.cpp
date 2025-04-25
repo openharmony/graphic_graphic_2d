@@ -247,6 +247,15 @@ void RSDisplayRenderNode::RecordMainAndLeashSurfaces(RSBaseRenderNode::SharedPtr
     curMainAndLeashSurfaceNodes_.push_back(surface);
 }
 
+Occlusion::Region RSDisplayRenderNode::GetTopSurfaceOpaqueRegion() const
+{
+    Occlusion::Region topSurfaceOpaqueRegion;
+    for (const auto& rect : topSurfaceOpaqueRects_) {
+        topSurfaceOpaqueRegion.OrSelf(rect);
+    }
+    return topSurfaceOpaqueRegion;
+}
+
 void RSDisplayRenderNode::RecordTopSurfaceOpaqueRects(Occlusion::Rect rect)
 {
     topSurfaceOpaqueRects_.push_back(rect);
@@ -452,6 +461,20 @@ void RSDisplayRenderNode::SetMainAndLeashSurfaceDirty(bool isDirty)
 #endif
 }
 
+void RSDisplayRenderNode::SetNeedForceUpdateHwcNodes(bool needForceUpdate, bool hasVisibleHwcNodes)
+{
+    auto displayParams = static_cast<RSDisplayRenderParams*>(stagingRenderParams_.get());
+    if (displayParams == nullptr) {
+        return;
+    }
+    needForceUpdateHwcNodes_ = needForceUpdate;
+    hasVisibleHwcNodes_ = hasVisibleHwcNodes;
+    displayParams->SetNeedForceUpdateHwcNodes(needForceUpdate);
+    if (stagingRenderParams_->NeedSync()) {
+        AddToPendingSyncList();
+    }
+}
+
 void RSDisplayRenderNode::SetFingerprint(bool hasFingerprint)
 {
 #ifdef RS_ENABLE_GPU
@@ -523,6 +546,16 @@ void RSDisplayRenderNode::SetColorSpace(const GraphicColorGamut& colorSpace)
 GraphicColorGamut RSDisplayRenderNode::GetColorSpace() const
 {
     return colorSpace_;
+}
+
+void RSDisplayRenderNode::SetForceCloseHdr(bool isForceCloseHdr)
+{
+    isForceCloseHdr_ = isForceCloseHdr;
+}
+
+bool RSDisplayRenderNode::GetForceCloseHdr() const
+{
+    return isForceCloseHdr_;
 }
 
 RSRenderNode::ChildrenListSharedPtr RSDisplayRenderNode::GetSortedChildren() const

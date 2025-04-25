@@ -33,6 +33,7 @@ namespace Rosen {
 namespace {
 constexpr uint32_t SURFACE_COLOR = 0xffffffff;
 constexpr int64_t LOAD_TREE_WAIT_TIME = 3;
+constexpr int PLAYBACK_PREPARE_WAIT_TIME = 5000;
 
 bool ShouldRunCurrentTest()
 {
@@ -169,7 +170,7 @@ bool RSGraphicTest::WaitOtherTest()
 void RSGraphicTest::TestCaseCapture(bool isScreenshot)
 {
     const ::testing::TestInfo* const testInfo =
-    ::testing::UnitTest::GetInstance()->current_test_info();
+        ::testing::UnitTest::GetInstance()->current_test_info();
     const auto& extInfo = ::OHOS::Rosen::TestDefManager::Instance().GetTestInfo(
         testInfo->test_case_name(), testInfo->name());
 
@@ -195,7 +196,8 @@ void RSGraphicTest::TestCaseCapture(bool isScreenshot)
 
 void RSGraphicTest::TearDown()
 {
-    if (!shouldRunTest_) {
+    if (!shouldRunTest_ || RSParameterParse::Instance().skipCapture_) {
+        GetRootNode()->ResetTestSurface();
         return;
     }
 
@@ -248,6 +250,9 @@ void RSGraphicTest::RegisterNode(std::shared_ptr<RSNode> node)
 
 void RSGraphicTest::AddFileRenderNodeTreeToNode(std::shared_ptr<RSNode> node, const std::string& filePath)
 {
+    if (!shouldRunTest_ || RSParameterParse::Instance().skipCapture_) {
+        return;
+    }
     //need flush client node to rs firstly
     RSGraphicTestDirector::Instance().FlushMessage();
     WaitTimeout(RSParameterParse::Instance().testCaseWaitTime);
@@ -261,13 +266,16 @@ void RSGraphicTest::AddFileRenderNodeTreeToNode(std::shared_ptr<RSNode> node, co
 
 void RSGraphicTest::PlaybackRecover(const std::string& filePath, float pauseTimeStamp)
 {
+    if (!shouldRunTest_ || RSParameterParse::Instance().skipCapture_) {
+        return;
+    }
     // playback prepare
     int64_t pid = 0;
     std::string command =
         "rsrecord_replay_prepare " + std::to_string(pid) + " " + std::to_string(pauseTimeStamp) + " " + filePath;
     std::cout << "Playback Prepare: " << command << std::endl;
     RSGraphicTestDirector::Instance().SendProfilerCommand(command);
-    WaitTimeout(RSParameterParse::Instance().testCaseWaitTime);
+    WaitTimeout(PLAYBACK_PREPARE_WAIT_TIME);
 
     // playback start
     command = "rsrecord_replay";

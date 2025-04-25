@@ -1547,6 +1547,13 @@
     "messageOption": "TF_SYNC"
   },
   {
+    "testCaseDesc": "GET_REFRESH_INFO_TO_SP_TEST_001",
+    "interfaceName": "GET_REFRESH_INFO_TO_SP",
+    "inputParams": "WriteUint64",
+    "writeInterfaceToken": true,
+    "messageOption": "TF_SYNC"
+  },
+  {
     "testCaseDesc": "MARK_POWER_OFF_NEED_PROCESS_ONE_FRAME_TEST_001",
     "interfaceName": "MARK_POWER_OFF_NEED_PROCESS_ONE_FRAME",
     "inputParams": "",

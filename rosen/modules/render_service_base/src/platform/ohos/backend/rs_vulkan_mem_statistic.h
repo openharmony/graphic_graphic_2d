@@ -31,12 +31,11 @@ public:
     RsVulkanMemStat() = default;
     ~RsVulkanMemStat() = default;
 
-    void InsertResource(const std::string& name, pid_t pid, RSTagTracker::TAGTYPE tag, const uint64_t size)
+    void InsertResource(const std::string& name, pid_t pid, const uint64_t size)
     {
         std::lock_guard<std::mutex> lock(mMutex);
         mResources[name] = {
             .size = size,
-            .tag = tag,
             .pid = pid,
         };
     }
@@ -60,41 +59,26 @@ public:
             uint64_t size = 0;
             uint64_t count = 0;
         };
-        std::unordered_map<pid_t, std::unordered_map<RSTagTracker::TAGTYPE, DumpInfo>> pidTagDumpInfoMap;
         std::unordered_map<pid_t, DumpInfo> pidDumpInfoMap;
         {
             std::lock_guard<std::mutex> lock(mMutex);
             totalCount = mResources.size();
             for (const auto& it : mResources) {
-                {
-                    auto& tagDumpInfoMap = pidTagDumpInfoMap[it.second.pid];
-                    auto& dumpInfo = tagDumpInfoMap[it.second.tag];
-                    dumpInfo.size += it.second.size;
-                    ++dumpInfo.count;
-                }
-                {
-                    auto& dumpInfo = pidDumpInfoMap[it.second.pid];
-                    dumpInfo.size += it.second.size;
-                    ++dumpInfo.count;
-                }
+                auto& dumpInfo = pidDumpInfoMap[it.second.pid];
+                dumpInfo.size += it.second.size;
+                ++dumpInfo.count;
                 totalSize += it.second.size;
             }
         }
         log.AppendFormat("\n------------\nVulkan Memory Statistics: Count: %lu, Size: %lu\n", totalCount, totalSize);
-        for (const auto& pidIt : pidTagDumpInfoMap) {
-            auto& dumpInfo = pidDumpInfoMap[pidIt.first];
-            log.AppendFormat("  pid: %d, count: %lu, size: %lu\n", pidIt.first, dumpInfo.count, dumpInfo.size);
-            for (const auto& tagIt : pidIt.second) {
-                log.AppendFormat("    tag: %s, count: %lu, size: %lu\n",
-                    RSTagTracker::TagType2String(tagIt.first).c_str(), tagIt.second.count, tagIt.second.size);
-            }
+        for (const auto& pidIt : pidDumpInfoMap) {
+            log.AppendFormat("  pid: %d, count: %lu, size: %lu\n", pidIt.first, pidIt.second.count, pidIt.second.size);
         }
     }
 
 private:
     struct MemoryInfo {
         uint64_t size = 0;
-        RSTagTracker::TAGTYPE tag = RSTagTracker::TAGTYPE::TAG_UNTAGGED;
         pid_t pid = 0;
     };
     std::unordered_map<std::string, MemoryInfo> mResources;

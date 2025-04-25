@@ -118,9 +118,7 @@ bool RSRenderServiceClient::GetTotalAppMemSize(float& cpuMemSize, float& gpuMemS
     if (renderService == nullptr) {
         return false;
     }
-    bool success;
-    renderService->GetTotalAppMemSize(cpuMemSize, gpuMemSize, success);
-    return success;
+    return renderService->GetTotalAppMemSize(cpuMemSize, gpuMemSize) == ERR_OK;
 }
 
 bool RSRenderServiceClient::CreateNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId)
@@ -408,7 +406,9 @@ ScreenId RSRenderServiceClient::GetDefaultScreenId()
         return INVALID_SCREEN_ID;
     }
 
-    return renderService->GetDefaultScreenId();
+    ScreenId screenId{INVALID_SCREEN_ID};
+    renderService->GetDefaultScreenId(screenId);
+    return screenId;
 }
 
 ScreenId RSRenderServiceClient::GetActiveScreenId()
@@ -418,7 +418,9 @@ ScreenId RSRenderServiceClient::GetActiveScreenId()
         return INVALID_SCREEN_ID;
     }
 
-    return renderService->GetActiveScreenId();
+    ScreenId screenId{INVALID_SCREEN_ID};
+    renderService->GetActiveScreenId(screenId);
+    return screenId;
 }
 
 std::vector<ScreenId> RSRenderServiceClient::GetAllScreenIds()
@@ -456,6 +458,17 @@ int32_t RSRenderServiceClient::SetVirtualScreenBlackList(ScreenId id, std::vecto
     }
 
     return renderService->SetVirtualScreenBlackList(id, blackListVector);
+}
+
+int32_t RSRenderServiceClient::SetVirtualScreenTypeBlackList(ScreenId id, std::vector<NodeType>& typeBlackListVector)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        return RENDER_SERVICE_NULL;
+    }
+    int32_t repCode;
+    renderService->SetVirtualScreenTypeBlackList(id, typeBlackListVector, repCode);
+    return repCode;
 }
 
 int32_t RSRenderServiceClient::AddVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector)
@@ -738,7 +751,9 @@ bool RSRenderServiceClient::GetShowRefreshRateEnabled()
         return false;
     }
 
-    return renderService->GetShowRefreshRateEnabled();
+    bool enable = false;
+    renderService->GetShowRefreshRateEnabled(enable);
+    return enable;
 }
 
 std::string RSRenderServiceClient::GetRefreshInfo(pid_t pid)
@@ -750,6 +765,18 @@ std::string RSRenderServiceClient::GetRefreshInfo(pid_t pid)
     }
     std::string enable;
     renderService->GetRefreshInfo(pid, enable);
+    return enable;
+}
+
+std::string RSRenderServiceClient::GetRefreshInfoToSP(NodeId id)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        ROSEN_LOGW("RSRenderServiceClient renderService == nullptr!");
+        return "";
+    }
+    std::string enable;
+    renderService->GetRefreshInfoToSP(id, enable);
     return enable;
 }
 
@@ -866,7 +893,9 @@ RSScreenModeInfo RSRenderServiceClient::GetScreenActiveMode(ScreenId id)
         return RSScreenModeInfo {}; // return empty RSScreenModeInfo.
     }
 
-    return renderService->GetScreenActiveMode(id);
+    RSScreenModeInfo screenModeInfo;
+    renderService->GetScreenActiveMode(id, screenModeInfo);
+    return screenModeInfo;
 }
 
 std::vector<RSScreenModeInfo> RSRenderServiceClient::GetScreenSupportedModes(ScreenId id)
@@ -895,8 +924,9 @@ ScreenPowerStatus RSRenderServiceClient::GetScreenPowerStatus(ScreenId id)
     if (renderService == nullptr) {
         return ScreenPowerStatus::INVALID_POWER_STATUS;
     }
-
-    return renderService->GetScreenPowerStatus(id);
+    uint32_t status {static_cast<int32_t>(ScreenPowerStatus::INVALID_POWER_STATUS)};
+    renderService->GetScreenPowerStatus(id, status);
+    return static_cast<ScreenPowerStatus>(status);
 }
 
 RSScreenData RSRenderServiceClient::GetScreenData(ScreenId id)
@@ -915,8 +945,9 @@ int32_t RSRenderServiceClient::GetScreenBacklight(ScreenId id)
     if (renderService == nullptr) {
         return INVALID_BACKLIGHT_VALUE;
     }
-
-    return renderService->GetScreenBacklight(id);
+    int32_t backLightLevel = INVALID_BACKLIGHT_VALUE;
+    renderService->GetScreenBacklight(id, backLightLevel);
+    return backLightLevel;
 }
 
 void RSRenderServiceClient::SetScreenBacklight(ScreenId id, uint32_t level)
@@ -1107,9 +1138,7 @@ bool RSRenderServiceClient::SetGlobalDarkColorMode(bool isDark)
         ROSEN_LOGE("RSRenderServiceClient::SetGlobalDarkColorMode: renderService is nullptr");
         return false;
     }
-    bool success;
-    renderService->SetGlobalDarkColorMode(isDark, success);
-    return success;
+    return renderService->SetGlobalDarkColorMode(isDark) == ERR_OK;
 }
 
 int32_t RSRenderServiceClient::GetScreenGamutMap(ScreenId id, ScreenGamutMap& mode)
@@ -1301,19 +1330,21 @@ int32_t RSRenderServiceClient::SetScreenSkipFrameInterval(ScreenId id, uint32_t 
     if (renderService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
-    return renderService->SetScreenSkipFrameInterval(id, skipFrameInterval);
+    int32_t statusCode = SUCCESS;
+    renderService->SetScreenSkipFrameInterval(id, skipFrameInterval, statusCode);
+    return statusCode;
 }
 
 int32_t RSRenderServiceClient::SetVirtualScreenRefreshRate(
     ScreenId id, uint32_t maxRefreshRate, uint32_t& actualRefreshRate)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    int32_t resCode = RENDER_SERVICE_NULL;
     if (renderService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
-    int32_t retVal = 0;
-    renderService->SetVirtualScreenRefreshRate(id, maxRefreshRate, actualRefreshRate, retVal);
-    return retVal;
+    renderService->SetVirtualScreenRefreshRate(id, maxRefreshRate, actualRefreshRate, resCode);
+    return resCode;
 }
 
 uint32_t RSRenderServiceClient::SetScreenActiveRect(ScreenId id, const Rect& activeRect)
@@ -2114,6 +2145,15 @@ void RSRenderServiceClient::NotifyPageName(const std::string &packageName,
         return;
     }
     renderService->NotifyPageName(packageName, pageName, isEnter);
+}
+
+bool RSRenderServiceClient::GetHighContrastTextState()
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService != nullptr) {
+        return renderService->GetHighContrastTextState();
+    }
+    return false;
 }
 } // namespace Rosen
 } // namespace OHOS

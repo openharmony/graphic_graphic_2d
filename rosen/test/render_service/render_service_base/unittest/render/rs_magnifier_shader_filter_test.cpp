@@ -45,7 +45,9 @@ HWTEST_F(RSMagnifierShaderFilterTest, GenerateGEVisualEffectTest, TestSize.Level
     auto para = std::make_shared<RSMagnifierParams>();
     auto rsMagnifierShaderFilter = std::make_shared<RSMagnifierShaderFilter>(para);
     auto visualEffectContainer = std::make_shared<Drawing::GEVisualEffectContainer>();
+    ASSERT_NE(rsMagnifierShaderFilter, nullptr);
     rsMagnifierShaderFilter->GenerateGEVisualEffect(visualEffectContainer);
+    ASSERT_NE(visualEffectContainer, nullptr);
     EXPECT_FALSE(visualEffectContainer->filterVec_.empty());
 }
 
@@ -60,7 +62,7 @@ HWTEST_F(RSMagnifierShaderFilterTest, SetMagnifierOffsetTest, TestSize.Level1)
     auto para = std::make_shared<RSMagnifierParams>();
     auto rsMagnifierShaderFilter = std::make_shared<RSMagnifierShaderFilter>(para);
     auto rsMagnifierShaderFilterNull = std::make_shared<RSMagnifierShaderFilter>(nullptr);
-
+    ASSERT_NE(rsMagnifierShaderFilter, nullptr);
     Drawing::Matrix matrix1;
     matrix1.PostRotate(90); // 90 degree
     rsMagnifierShaderFilter->SetMagnifierOffset(matrix1);
@@ -91,6 +93,7 @@ HWTEST_F(RSMagnifierShaderFilterTest, GetMagnifierOffsetTest, TestSize.Level1)
 {
     auto para = std::make_shared<RSMagnifierParams>();
     auto rsMagnifierShaderFilter = std::make_shared<RSMagnifierShaderFilter>(para);
+    ASSERT_NE(rsMagnifierShaderFilter, nullptr);
     EXPECT_EQ(rsMagnifierShaderFilter->GetMagnifierOffsetX(), 0.f);
     EXPECT_EQ(rsMagnifierShaderFilter->GetMagnifierOffsetY(), 0.f);
 }

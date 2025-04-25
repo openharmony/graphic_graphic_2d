@@ -48,6 +48,16 @@ public:
         std::atomic<bool> isNeedSubmitSubThread_ = true;
     };
 
+    void SetNodeId(NodeId nodeId)
+    {
+        nodeId_ = nodeId;
+    }
+
+    NodeId GetNodeId() const
+    {
+        return nodeId_;
+    }
+
     RSDrawWindowCache& GetRSDrawWindowCache()
     {
         return drawWindowCache_;
@@ -62,8 +72,7 @@ public:
     void ClearCacheSurfaceInThread();
     void ClearCacheSurfaceOnly();
     void UpdateCacheSurfaceInfo(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> nodeDrawable);
-    std::shared_ptr<Drawing::Surface> GetCacheSurface(uint32_t threadIndex, bool needCheckThread,
-        bool releaseAfterGet = false);
+    std::shared_ptr<Drawing::Surface> GetCacheSurface(uint32_t threadIndex);
     bool NeedInitCacheSurface(RSSurfaceRenderParams* surfaceParams);
     std::shared_ptr<Drawing::Image> GetCompletedImage(RSPaintFilterCanvas& canvas, uint32_t threadIndex,
         bool isUIFirst);
@@ -75,14 +84,7 @@ public:
         ClearCacheSurfaceFunc func = nullptr,
         uint32_t threadIndex = UNI_MAIN_THREAD_INDEX, bool isNeedFP16 = false);
 
-    void ResetUifirst(bool isNotClearCompleteCacheSurface)
-    {
-        if (isNotClearCompleteCacheSurface) {
-            ClearCacheSurfaceOnly();
-        } else {
-            ClearCacheSurfaceInThread();
-        }
-    }
+    void ResetUifirst(bool isOnlyClearCache = false);
 
     void ResetWindowCache()
     {
@@ -225,6 +227,8 @@ private:
         RSPaintFilterCanvas& rscanvas, NodeId id);
     void DrawUIFirstDfx(RSPaintFilterCanvas& canvas, MultiThreadCacheType enableType,
         RSSurfaceRenderParams& surfaceParams, bool drawCacheSuccess);
+
+    NodeId nodeId_ = 0;
     // Cache in RT
     RSDrawWindowCache drawWindowCache_;
 

@@ -346,16 +346,26 @@ public:
         return isHardwareForcedDisabled_;
     }
 
+    void SetLastFrameHasVisibleRegion(bool lastFrameHasVisibleRegion)
+    {
+        lastFrameHasVisibleRegion_ = lastFrameHasVisibleRegion;
+    }
+
+    bool GetLastFrameHasVisibleRegion() const
+    {
+        return lastFrameHasVisibleRegion_;
+    }
+
     bool IsLeashOrMainWindow() const
     {
-        return nodeType_ <= RSSurfaceNodeType::LEASH_WINDOW_NODE;
+        return nodeType_ <= RSSurfaceNodeType::LEASH_WINDOW_NODE || nodeType_ == RSSurfaceNodeType::CURSOR_NODE;
     }
 
     bool IsMainWindowType() const
     {
         // a mainWindowType surfacenode will not mounted under another mainWindowType surfacenode
         // including app main window, starting window, and selfdrawing window
-        return nodeType_ <= RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE;
+        return nodeType_ <= RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE || nodeType_ == RSSurfaceNodeType::CURSOR_NODE;
     }
 
     bool GetIsLastFrameHwcEnabled() const
@@ -398,7 +408,8 @@ public:
         // self drawing surfacenode has its own buffer, and rendered in its own progress/thread
         // such as surfaceview (web/videos) and self draw windows (such as mouse pointer and boot animation)
         return nodeType_ == RSSurfaceNodeType::SELF_DRAWING_NODE ||
-               nodeType_ == RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE;
+                nodeType_ == RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE ||
+                nodeType_ == RSSurfaceNodeType::CURSOR_NODE;
     }
 
     bool IsUIFirstSelfDrawCheck();
@@ -1016,7 +1027,6 @@ public:
     bool UpdateDirtyIfFrameBufferConsumed();
 
     void UpdateSrcRect(const Drawing::Canvas& canvas, const Drawing::RectI& dstRect, bool hasRotation = false);
-    void UpdateHwcDisabledBySrcRect(bool hasRotation);
 
     // if a surfacenode's dstrect is empty, its subnodes' prepare stage can be skipped
     bool ShouldPrepareSubnodes();
@@ -1504,6 +1514,16 @@ public:
         return isHardwareForcedDisabledBySrcRect_;
     }
 
+    void SetAppWindowZOrder(int32_t appWindowZOrder)
+    {
+        appWindowZOrder_ = appWindowZOrder;
+    }
+
+    int32_t GetAppWindowZOrder() const
+    {
+        return appWindowZOrder_;
+    }
+
 protected:
     void OnSync() override;
     void OnSkipSync() override;
@@ -1626,6 +1646,7 @@ private:
     bool isSubSurfaceNode_ = false;
     bool isNodeToBeCaptured_ = false;
     bool doDirectComposition_ = true;
+    bool lastFrameHasVisibleRegion_ = true;
     bool isSkipDraw_ = false;
     bool needHidePrivacyContent_ = false;
     bool isHardwareForcedByBackgroundAlpha_ = false;
@@ -1753,6 +1774,7 @@ private:
     // valid filter nodes within, including itself
     std::vector<std::shared_ptr<RSRenderNode>> filterNodes_;
     std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> drawingCacheNodes_;
+    int32_t appWindowZOrder_ = 0;
 
     /*
         ContainerWindow configs acquired from arkui, including container window state, screen density, container border

@@ -40,7 +40,7 @@ void RSPointerWindowManagerTest::TearDown() {}
 
 /**
  * @tc.name: UpdatePointerDirtyToGlobalDirty
- * @tc.desc: Test UpdatePointerDirtyToGlobalDirty, SELF_DRAWING_WINDOW_NODE
+ * @tc.desc: Test UpdatePointerDirtyToGlobalDirty, CURSOR_NODE
  * @tc.type: FUNC
  * @tc.require: issueI7UGLR
  */
@@ -54,7 +54,7 @@ HWTEST_F(RSPointerWindowManagerTest, UpdatePointerDirtyToGlobalDirtyTest, TestSi
     auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config, rsContext->weak_from_this());
     displayNode->InitRenderParams();
     auto node = RSTestUtil::CreateSurfaceNode();
-    node->nodeType_ = RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE;
+    node->nodeType_ = RSSurfaceNodeType::CURSOR_NODE;
     node->name_ = "pointer window";
     node->GetDirtyManager()->SetCurrentFrameDirtyRect(RectI{1, 1, 1, 1});
     // run
@@ -86,7 +86,7 @@ HWTEST_F(RSPointerWindowManagerTest, SetHardCursorNodeInfoTest001, TestSize.Leve
 HWTEST_F(RSPointerWindowManagerTest, SetHardCursorNodeInfoTest002, TestSize.Level2)
 {
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(1);
-    surfaceNode->nodeType_ = RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE;
+    surfaceNode->nodeType_ = RSSurfaceNodeType::CURSOR_NODE;
     surfaceNode->name_ = "pointer window";
     surfaceNode->isOnTheTree_ = true;
     auto& rsPointerWindowManager = RSPointerWindowManager::Instance();

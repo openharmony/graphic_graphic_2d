@@ -44,6 +44,10 @@ public:
     static bool GetHMSymbolEnable();
     static GpuApiType GetSystemGraphicGpuType();
 
+#ifdef ROSEN_OHOS
+    static bool IsVkImageDfxEnabled();
+#endif
+
 private:
     static const GpuApiType systemGpuApiType_;
 };

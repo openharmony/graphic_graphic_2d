@@ -83,23 +83,18 @@ void RsSubThreadCache::SetCacheSurfaceProcessedStatus(CacheProcessStatus cachePr
     }
 }
 
-std::shared_ptr<Drawing::Surface> RsSubThreadCache::GetCacheSurface(uint32_t threadIndex,
-    bool needCheckThread, bool releaseAfterGet)
+std::shared_ptr<Drawing::Surface> RsSubThreadCache::GetCacheSurface(uint32_t threadIndex)
 {
-    if (releaseAfterGet) {
-        return std::move(cacheSurface_);
-    }
-    if (!needCheckThread || cacheSurfaceThreadIndex_ == threadIndex || !cacheSurface_) {
+    if (cacheSurfaceThreadIndex_ == threadIndex) {
         return cacheSurface_;
     }
-
-    // freeze cache scene
-    ClearCacheSurfaceInThread();
     return nullptr;
 }
 
 void RsSubThreadCache::ClearCacheSurfaceInThread()
 {
+    RS_TRACE_NAME_FMT("ClearCacheSurfaceInThread id:%" PRIu64, GetNodeId());
+    RS_LOGI("ClearCacheSurfaceInThread id:%{public}" PRIu64, GetNodeId());
     std::scoped_lock<std::recursive_mutex> lock(completeResourceMutex_);
     if (clearCacheSurfaceFunc_) {
         clearCacheSurfaceFunc_(std::move(cacheSurface_), std::move(cacheCompletedSurface_),
@@ -110,7 +105,8 @@ void RsSubThreadCache::ClearCacheSurfaceInThread()
 
 void RsSubThreadCache::ClearCacheSurfaceOnly()
 {
-    RS_TRACE_NAME_FMT("ClearCacheSurfaceOnly");
+    RS_TRACE_NAME_FMT("ClearCacheSurfaceOnly id:%" PRIu64, GetNodeId());
+    RS_LOGI("ClearCacheSurfaceOnly id:%{public}" PRIu64, GetNodeId());
     if (cacheSurface_ == nullptr) {
         return;
     }
@@ -151,13 +147,12 @@ std::shared_ptr<Drawing::Image> RsSubThreadCache::GetCompletedImage(
         }
         auto vkTexture = cacheCompletedBackendTexture_.GetTextureInfo().GetVKTextureInfo();
         // When the colorType is FP16, the colorspace of the uifirst buffer must be sRGB
-        // In other cases, the colorspace follows the targetColorGamut_
+        // In other cases, ensure the image's color space matches the target surface's color profile.
         auto colorSpace = Drawing::ColorSpace::CreateSRGB();
         if (vkTexture != nullptr && vkTexture->format == VK_FORMAT_R16G16B16A16_SFLOAT) {
             colorType = Drawing::ColorType::COLORTYPE_RGBA_F16;
-        } else if (targetColorGamut_ != GRAPHIC_COLOR_GAMUT_SRGB) {
-            colorSpace =
-                Drawing::ColorSpace::CreateRGB(Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::DCIP3);
+        } else if (cacheCompletedSurface_) {
+            colorSpace = cacheCompletedSurface_->GetImageInfo().GetColorSpace();
         }
 #endif
         auto image = std::make_shared<Drawing::Image>();
@@ -337,15 +332,18 @@ void RsSubThreadCache::InitCacheSurface(Drawing::GPUContext* gpuContext,
         // When the colorType is FP16, the colorspace of the uifirst buffer must be sRGB
         // In other cases, the colorspace follows the targetColorGamut_
         auto colorSpace = Drawing::ColorSpace::CreateSRGB();
+        RS_LOGD("RsSubThreadCache::InitCacheSurface sub thread cache's targetColorGamut_ is [%{public}d]",
+            targetColorGamut_);
         if (isNeedFP16) {
             format = VK_FORMAT_R16G16B16A16_SFLOAT;
             colorType = Drawing::ColorType::COLORTYPE_RGBA_F16;
+            RS_LOGD("RsSubThreadCache::InitCacheSurface colorType is FP16, take colorspace to sRGB");
         } else if (targetColorGamut_ != GRAPHIC_COLOR_GAMUT_SRGB) {
             colorSpace =
                 Drawing::ColorSpace::CreateRGB(Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::DCIP3);
         }
-        cacheBackendTexture_ = RSUniRenderUtil::MakeBackendTexture(width, height, ExtractPid(nodeId_),
-            RSTagTracker::TAGTYPE::TAG_SUB_THREAD, format);
+        cacheBackendTexture_ = RSUniRenderUtil::MakeBackendTexture(
+            width, height, ExtractPid(nodeDrawable->nodeId_), format);
         auto vkTextureInfo = cacheBackendTexture_.GetTextureInfo().GetVKTextureInfo();
         if (!cacheBackendTexture_.IsValid() || !vkTextureInfo) {
             if (func) {
@@ -368,13 +366,20 @@ void RsSubThreadCache::InitCacheSurface(Drawing::GPUContext* gpuContext,
     cacheSurface_ = Drawing::Surface::MakeRasterN32Premul(width, height);
 #endif
 }
+
+void RsSubThreadCache::ResetUifirst(bool isOnlyClearCache)
+{
+    RS_LOGI("ResetUifirst id:%{public}" PRIu64 ", isOnlyClearCache:%{public}d", GetNodeId(), isOnlyClearCache);
+    if (isOnlyClearCache) {
+        ClearCacheSurfaceOnly();
+    } else {
+        ClearCacheSurfaceInThread();
+    }
+}
+
 bool RsSubThreadCache::HasCachedTexture() const
 {
-#if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
-    return isTextureValid_.load();
-#else
-    return true;
-#endif
+    return isCacheCompletedValid_;
 }
 
 bool RsSubThreadCache::IsCacheValid() const
@@ -419,6 +424,11 @@ void RsSubThreadCache::UpdateBackendTexture()
 void RsSubThreadCache::UpdateCompletedCacheSurface()
 {
     RS_TRACE_NAME_FMT("UpdateCompletedCacheSurface");
+    if (cacheSurface_ == nullptr || !IsCacheValid()) {
+        RS_LOGE("cacheSurface is nullptr, cache and completeCache swap failed");
+        isCacheValid_ = false;
+        return;
+    }
     // renderthread not use, subthread done not use
     std::swap(cacheSurface_, cacheCompletedSurface_);
     std::swap(cacheSurfaceThreadIndex_, completedSurfaceThreadIndex_);

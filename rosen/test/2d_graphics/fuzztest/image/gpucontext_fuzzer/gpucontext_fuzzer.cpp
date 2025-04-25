@@ -132,9 +132,8 @@ bool GPUContextFuzzTest002(const uint8_t* data, size_t size)
     uint32_t fPid = GetObject<uint32_t>();
     uint32_t fTid = GetObject<uint32_t>();
     uint32_t fWid = GetObject<uint32_t>();
-    uint32_t fCid = GetObject<uint32_t>();
     uint32_t fFid = GetObject<uint32_t>();
-    GPUResourceTag tag(fPid, fTid, fWid, fCid, fFid, str);
+    GPUResourceTag tag(fPid, fTid, fWid, fFid, str);
     gpuContext->PurgeUnlockedResourcesByTag(scratchResourcesOnly, tag);
     std::chrono::milliseconds msNotUsed = GetObject<std::chrono::milliseconds>();
     gpuContext->PerformDeferredCleanup(msNotUsed);
@@ -184,9 +183,8 @@ bool GPUContextFuzzTest003(const uint8_t* data, size_t size)
     uint32_t fPid = GetObject<uint32_t>();
     uint32_t fTid = GetObject<uint32_t>();
     uint32_t fWid = GetObject<uint32_t>();
-    uint32_t fCid = GetObject<uint32_t>();
     uint32_t fFid = GetObject<uint32_t>();
-    GPUResourceTag tag(fPid, fTid, fWid, fCid, fFid, str);
+    GPUResourceTag tag(fPid, fTid, fWid, fFid, str);
     gpuContext->DumpMemoryStatisticsByTag(&traceMemoryDump, tag);
     gpuContext->DumpMemoryStatistics(&traceMemoryDump);
     if (categoryKey != nullptr) {

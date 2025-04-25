@@ -325,6 +325,17 @@ public:
     void SetCacheBehindWindowData(const std::shared_ptr<CacheBehindWindowData>& data);
     const std::shared_ptr<CacheBehindWindowData>& GetCacheBehindWindowData() const;
 
+    // Set culled nodes for control-level occlusion culling
+    void SetCulledNodes(const std::unordered_set<NodeId>&& culledNodes)
+    {
+        culledNodes_ = std::move(culledNodes);
+    }
+    // Get culled nodes for control-level occlusion culling
+    const std::unordered_set<NodeId>& GetCulledNodes() const
+    {
+        return culledNodes_;
+    }
+
 protected:
     using Env = struct {
         Color envForegroundColor_;
@@ -380,6 +391,7 @@ private:
     Drawing::Surface* surface_ = nullptr;
     Drawing::Canvas* storeMainCanvas_ = nullptr; // store main canvas
     Drawing::Rect visibleRect_ = Drawing::Rect();
+    std::unordered_set<NodeId> culledNodes_; // store culled nodes for control-level occlusion culling
 
     std::stack<float> alphaStack_;
     std::stack<Env> envStack_;

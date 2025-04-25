@@ -61,6 +61,20 @@ bool RSDisplayRenderParams::GetMainAndLeashSurfaceDirty() const
     return isMainAndLeashSurfaceDirty_;
 }
 
+void RSDisplayRenderParams::SetNeedForceUpdateHwcNodes(bool needForceUpdateHwcNodes)
+{
+    if (needForceUpdateHwcNodes_ == needForceUpdateHwcNodes) {
+        return;
+    }
+    needForceUpdateHwcNodes_ = needForceUpdateHwcNodes;
+    needSync_ = true;
+}
+
+bool RSDisplayRenderParams::GetNeedForceUpdateHwcNodes() const
+{
+    return needForceUpdateHwcNodes_;
+}
+
 void RSDisplayRenderParams::SetRotationChanged(bool changed)
 {
     if (isRotationChanged_ == changed) {
@@ -236,6 +250,7 @@ void RSDisplayRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetDisplayParams->targetSurfaceRenderNodeDrawable_ = targetSurfaceRenderNodeDrawable_;
     targetDisplayParams->roundCornerSurfaceDrawables_ = roundCornerSurfaceDrawables_;
     targetDisplayParams->virtualScreenMuteStatus_ = virtualScreenMuteStatus_;
+    targetDisplayParams->needForceUpdateHwcNodes_ = needForceUpdateHwcNodes_;
     RSRenderParams::OnSync(target);
 }
 

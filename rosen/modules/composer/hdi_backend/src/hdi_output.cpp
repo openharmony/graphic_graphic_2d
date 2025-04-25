@@ -387,7 +387,7 @@ int32_t HdiOutput::PreProcessLayersComp()
     }
 
     for (const auto &[layerId, layer] : layerIdMap_) {
-        ret = layer->SetHdiLayerInfo();
+        ret = layer->SetHdiLayerInfo(isActiveRectSwitching_);
         if (ret != GRAPHIC_DISPLAY_SUCCESS) {
             HLOGE("Set hdi layer[id:%{public}d] info failed, ret %{public}d.", layer->GetLayerId(), ret);
             return GRAPHIC_DISPLAY_FAILURE;
@@ -946,6 +946,11 @@ void HdiOutput::ClearBufferCache()
         HLOGD("Call hdi ClearClientBuffer failed, ret is %{public}d", ret);
     }
     bufferCache_.clear();
+}
+
+void HdiOutput::SetActiveRectSwitchStatus(bool flag)
+{
+    isActiveRectSwitching_ = flag;
 }
 } // namespace Rosen
 } // namespace OHOS

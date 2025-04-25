@@ -56,7 +56,6 @@ void BootSoundPlayer::Play()
         usleep(SLEEP_TIME_US);
         LOGI("mediaPlayer is nullptr, try create again");
     }
-
     if (mediaPlayer_ == nullptr) {
         LOGI("mediaPlayer create fail");
         return;

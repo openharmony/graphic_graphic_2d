@@ -168,7 +168,9 @@ public:
     void HandleRefreshRateMode(int32_t refreshRateMode);
     void HandleScreenPowerStatus(ScreenId id, ScreenPowerStatus status);
     void HandleScreenRectFrameRate(ScreenId id, const GraphicIRect& activeRect);
-    void HandleThermalFrameRate(bool status);
+    void HandleScreenExtStrategyChange(bool status, const std::string& suffix);
+    std::string GetCurScreenExtStrategyId();
+    void UpdateScreenExtStrategyConfig(const PolicyConfigData::ScreenConfigMap& screenConfigs);
 
     // called by RSHardwareThread
     void HandleRsFrame();
@@ -290,7 +292,8 @@ private:
         std::lock_guard<std::mutex> lock(pendingMutex_);
         return curGameNodeName_;
     }
-    void CheckRefreshRateChange(bool followRs, bool frameRateChanged, uint32_t refreshRate);
+    void CheckRefreshRateChange(
+        bool followRs, bool frameRateChanged, uint32_t refreshRate, bool needChangeDssRefreshRate);
     void SetGameNodeName(std::string nodeName)
     {
         std::lock_guard<std::mutex> lock(pendingMutex_);
@@ -298,6 +301,9 @@ private:
     }
     void FrameRateReportTask(uint32_t leftRetryTimes);
     void EraseGameRateDiscountMap(pid_t pid);
+    // Vrate
+    void GetVRateMiniFPS(const std::shared_ptr<PolicyConfigData>& configData);
+    void CheckNeedUpdateAppOffset(uint32_t refreshRate);
 
     std::atomic<uint32_t> currRefreshRate_ = 0;
     uint32_t controllerRate_ = 0;
@@ -342,8 +348,9 @@ private:
     std::atomic<ScreenId> curScreenId_ = 0;
     std::atomic<ScreenId> lastCurScreenId_ = 0;
     std::string curScreenStrategyId_ = "LTPO-DEFAULT";
+    std::string curScreenDefaultStrategyId_ = "LTPO-DEFAULT";
     bool isLtpo_ = true;
-    bool isEnableThermalStrategy_ = false;
+    std::unordered_map<std::string, std::pair<int32_t, bool>> screenExtStrategyMap_ = HGM_CONFIG_SCREENEXT_STRATEGY_MAP;
     int32_t isAmbientStatus_ = 0;
     bool isAmbientEffect_ = false;
     int32_t stylusMode_ = -1;
@@ -382,6 +389,10 @@ private:
     bool isDragScene_ = false;
     uint32_t lastLtpoRefreshRate_ = 0;
     long lastLtpoVoteTime_ = 0;
+
+    // Vrate
+    //defalut value is 1, visiable lower than 10%.
+    int32_t vrateControlMinifpsValue_ = 1;
 };
 } // namespace Rosen
 } // namespace OHOS

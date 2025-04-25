@@ -32,6 +32,7 @@ ohos_unittest("RSRenderServiceBaseCommonTest") {
     "rs_rect_test.cpp",
     "rs_rectangles_merger_test.cpp",
     "rs_special_layer_manager_test.cpp",
+    "rs_switching_thread_test.cpp",
     "rs_thread_handler_generic_test.cpp",
     "rs_thread_looper_generic_test.cpp",
     "rs_thread_looper_impl_test.cpp",

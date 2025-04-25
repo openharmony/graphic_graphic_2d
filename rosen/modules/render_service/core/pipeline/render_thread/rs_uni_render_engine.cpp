@@ -201,7 +201,7 @@ void RSUniRenderEngine::DrawHdiLayerWithParams(RSPaintFilterCanvas& canvas, cons
         params.matrix.Get(Drawing::Matrix::PERSP_2));
     canvas.ConcatMatrix(params.matrix);
     if (!params.useCPU) {
-        RegisterDeleteBufferListener(layer->GetSurface(), true);
+        RegisterDeleteBufferListener(layer->GetSurface(), !RSSystemProperties::GetVKImageUseEnabled());
         DrawImage(canvas, params);
     } else {
         DrawBuffer(canvas, params);

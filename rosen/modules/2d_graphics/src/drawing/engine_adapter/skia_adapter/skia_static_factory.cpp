@@ -15,6 +15,8 @@
 
 #include "skia_static_factory.h"
 
+#include "include/gpu/vk/GrVulkanTrackerInterface.h"
+
 #include "skia_adapter/skia_blender.h"
 #include "skia_adapter/skia_convert_utils.h"
 #include "skia_adapter/skia_data.h"
@@ -293,6 +295,11 @@ bool SkiaStaticFactory::IsOpenPerf()
 int64_t SkiaStaticFactory::GetCurrentTime()
 {
     return GrPerfMonitorReporter::getCurrentTime();
+}
+
+void SkiaStaticFactory::SetCurrentNodeId(uint64_t nodeId)
+{
+    RECORD_GPU_RESOURCE_DRAWABLE_CALLER(nodeId);
 }
 
 void SkiaStaticFactory::GrTextureEventConvert2Rs(std::map<std::string, RsTextureEvent>& rsTextureEvent,

@@ -182,6 +182,8 @@ public:
 
     int32_t SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector);
 
+    int32_t SetVirtualScreenTypeBlackList(ScreenId id, std::vector<NodeType>& typeBlackListVector);
+
     int32_t AddVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector);
 
     int32_t RemoveVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector);
@@ -236,6 +238,7 @@ public:
     uint32_t GetRealtimeRefreshRate(ScreenId screenId);
 
     std::string GetRefreshInfo(pid_t pid);
+    std::string GetRefreshInfoToSP(NodeId id);
 
 #ifndef ROSEN_ARKUI_X
     int32_t SetPhysicalScreenResolution(ScreenId id, uint32_t width, uint32_t height);
@@ -448,6 +451,9 @@ public:
     int32_t RegisterSelfDrawingNodeRectChangeCallback(const SelfDrawingNodeRectChangeCallback& callback);
 
     void NotifyPageName(const std::string &packageName, const std::string &pageName, bool isEnter);
+
+    bool GetHighContrastTextState();
+
 private:
     void TriggerSurfaceCaptureCallback(NodeId id, const RSSurfaceCaptureConfig& captureConfig,
         std::shared_ptr<Media::PixelMap> pixelmap);

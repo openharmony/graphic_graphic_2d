@@ -51,10 +51,6 @@ ohos_unittest("texgine_unittest_part3") {
 
   public_configs = [ ":texgine_test_config" ]
   public_deps = [ ":common_deps" ]
-  external_deps = [
-    "googletest:gmock",
-    "googletest:gtest_main",
-  ]
 
   use_exceptions = true
 
@@ -69,10 +65,6 @@ ohos_unittest("texgine_unittest_part7") {
 
   public_configs = [ ":texgine_test_config" ]
   public_deps = [ ":common_deps" ]
-  external_deps = [
-    "googletest:gmock",
-    "googletest:gtest_main",
-  ]
 
   use_exceptions = true
 

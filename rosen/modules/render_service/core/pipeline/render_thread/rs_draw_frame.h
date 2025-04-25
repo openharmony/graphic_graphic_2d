@@ -22,6 +22,7 @@
 
 #include "system/rs_system_parameters.h"
 
+#include "common/rs_exception_check.h"
 #include "params/rs_render_thread_params.h"
 #include "pipeline/rs_render_node.h"
 #include "platform/ohos/rs_jank_stats.h"
@@ -55,6 +56,8 @@ private:
     void JankStatsRenderFrameAfterSync(bool doJankStats);
     void JankStatsRenderFrameEnd(bool doJankStats);
     bool CheckCanvasSkipSync(std::shared_ptr<RSRenderNode>);
+    void StartCheck();
+    void EndCheck();
 
     RSUniRenderThread& unirenderInstance_;
 
@@ -65,6 +68,9 @@ private:
     std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> stagingSyncCanvasDrawingNodes_;
     RsParallelType rsParallelType_;
     static bool debugTraceEnabled_;
+    std::shared_ptr<RSTimer> timer_ = nullptr;
+    int longFrameCount_ = 0;
+    ExceptionCheck exceptionCheck_;
 };
 } // namespace Rosen
 } // namespace OHOS

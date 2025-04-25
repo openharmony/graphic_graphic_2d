@@ -199,6 +199,8 @@ public:
     {
         return virtualScreenMuteStatus_;
     }
+    void SetNeedForceUpdateHwcNodes(bool needForceUpdateHwcNodes);
+    bool GetNeedForceUpdateHwcNodes() const;
 
     // dfx
     std::string ToString() const override;
@@ -231,6 +233,7 @@ private:
     bool isFirstVisitCrossNodeDisplay_ = false;
     bool hasChildCrossNode_ = false;
     bool isMainAndLeashSurfaceDirty_ = false;
+    bool needForceUpdateHwcNodes_ = false;
     bool needOffscreen_ = false;
     bool isRotationChanged_ = false;
     bool hasFingerprint_ = false;
