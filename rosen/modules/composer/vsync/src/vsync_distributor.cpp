@@ -152,6 +152,9 @@ VsyncError VSyncConnection::RequestNextVSync(
             distributor->FirstRequestVsync();
             VLOGI("First vsync is requested, name: %{public}s", info_.name_.c_str());
         }
+        if (requestNativeVSyncCallback_ != nullptr) {
+            requestNativeVSyncCallback_();
+        }
     }
     return distributor->RequestNextVSync(this, fromWhom, lastVSyncTS, requestVsyncTime);
 }
@@ -351,6 +354,12 @@ VsyncError VSyncConnection::SetUiDvsyncConfig(int32_t bufferCount)
     return distributor->SetUiDvsyncConfig(bufferCount);
 }
 
+void VSyncConnection::RegisterRequestNativeVSyncCallback(const RequestNativeVSyncCallback &callback)
+{
+    std::unique_lock<std::mutex> locker(mutex_);
+    requestNativeVSyncCallback_ = callback;
+}
+
 VSyncDistributor::VSyncDistributor(sptr<VSyncController> controller, std::string name, DVSyncFeatureParam dvsyncParam)
     : controller_(controller), mutex_(), con_(), connections_(),
     event_(), vsyncEnabled_(false), name_(name)
@@ -436,6 +445,17 @@ VsyncError VSyncDistributor::AddConnection(const sptr<VSyncConnection>& connecti
     }
     connection->RegisterDeathRecipient();
     return VSYNC_ERROR_OK;
+}
+
+sptr<VSyncConnection> VSyncDistributor::GetVSyncConnection(uint64_t id)
+{
+    std::lock_guard<std::mutex> locker(mutex_);
+    for (const auto& conn : connections_) {
+        if (conn != nullptr && conn->id_ == id) {
+            return conn;
+        }
+    }
+    return nullptr;
 }
 
 VsyncError VSyncDistributor::RemoveConnection(const sptr<VSyncConnection>& connection)

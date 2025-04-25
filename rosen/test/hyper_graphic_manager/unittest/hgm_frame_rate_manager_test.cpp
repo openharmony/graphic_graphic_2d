@@ -318,7 +318,12 @@ HWTEST_F(HgmFrameRateMgrTest, ProcessPendingRefreshRate, Function | SmallTest | 
     frameRateMgr.appFrameRateLinkers_.clear();
     frameRateMgr.appFrameRateLinkers_.try_emplace(id, nullptr);
     frameRateMgr.UpdateSoftVSync(true);
-    frameRateMgr.appFrameRateLinkers_.try_emplace(id, frameRateMgr.rsFrameRateLinker_);
+    frameRateMgr.appFrameRateLinkers_.insert_or_assign(id, frameRateMgr.rsFrameRateLinker_);
+    frameRateMgr.UpdateSoftVSync(true);
+    FrameRateRange range = {0, 120, 60, OHOS::Rosen::NATIVE_VSYNC_FRAME_RATE_TYPE};
+    frameRateMgr.rsFrameRateLinker_->SetExpectedRange(range);
+    frameRateMgr.rsFrameRateLinker_->UpdateNativeVSyncTimePoint();
+    sleep(1);
     frameRateMgr.UpdateSoftVSync(true);
     frameRateMgr.currRefreshRate_.store(OLED_90_HZ);
     frameRateMgr.UpdateSoftVSync(true);

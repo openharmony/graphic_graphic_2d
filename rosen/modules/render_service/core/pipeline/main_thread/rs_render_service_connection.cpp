@@ -942,6 +942,26 @@ void RSRenderServiceConnection::SyncFrameRateRange(FrameRateLinkerId id,
             }
             linker->SetExpectedRange(range);
             linker->SetAnimatorExpectedFrameRate(animatorExpectedFrameRate);
+            if (range.type_ != OHOS::Rosen::NATIVE_VSYNC_FRAME_RATE_TYPE) {
+                return;
+            }
+            auto appVSyncDistributor = connection->appVSyncDistributor_;
+            if (appVSyncDistributor == nullptr) {
+                return;
+            }
+            auto conn = appVSyncDistributor->GetVSyncConnection(id);
+            if (conn == nullptr) {
+                return;
+            }
+            std::weak_ptr<RSRenderFrameRateLinker> weakPtr = linker;
+            conn->RegisterRequestNativeVSyncCallback([weakPtr]() {
+                RS_TRACE_NAME("NativeVSync request frame, update timepoint");
+                auto linker = weakPtr.lock();
+                if (linker == nullptr) {
+                    return;
+                }
+                linker->UpdateNativeVSyncTimePoint();
+            });
         }).wait();
 }
 
