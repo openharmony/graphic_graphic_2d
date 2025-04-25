@@ -34,17 +34,8 @@ struct PostTable {
     OpenTypeBasicType::Uint32 maxMemType42;
     OpenTypeBasicType::Uint32 minMemType1;
     OpenTypeBasicType::Uint32 maxMemType1;
-};
 
-class PostTableParser {
-public:
-    PostTableParser(const char* data, int32_t size) : data_(data), size_(size) {}
-    static const struct PostTable* Parse(const char* data, int32_t size);
-    void Dump() const;
-
-private:
-    const char* data_ = nullptr;
-    int32_t size_ = 0;
+    static constexpr const char* tag = "post";
 };
 } // namespace TextEngine
 } // namespace Rosen
