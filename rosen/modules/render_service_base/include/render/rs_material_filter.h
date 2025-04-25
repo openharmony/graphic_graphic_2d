@@ -15,10 +15,7 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_RENDER_RS_MATERIAL_FILTER_H
 #define RENDER_SERVICE_CLIENT_CORE_RENDER_RS_MATERIAL_FILTER_H
 
-#ifdef NEW_SKIA
 #include "include/effects/SkRuntimeEffect.h"
-#endif
-
 #include "common/rs_color.h"
 #include "render/rs_hps_blur.h"
 #include "render/rs_skia_filter.h"

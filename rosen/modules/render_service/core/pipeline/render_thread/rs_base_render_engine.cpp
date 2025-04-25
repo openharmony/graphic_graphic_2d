@@ -18,7 +18,11 @@
 
 #include "v2_1/cm_color_space.h"
 #ifdef RS_ENABLE_EGLIMAGE
+#ifdef USE_M133_SKIA
+#include "src/gpu/ganesh/gl/GrGLDefines.h"
+#else
 #include "src/gpu/gl/GrGLDefines.h"
+#endif
 #endif
 
 #include "pipeline/render_thread/rs_divided_render_util.h"

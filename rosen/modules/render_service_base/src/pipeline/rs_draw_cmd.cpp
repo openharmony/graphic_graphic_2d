@@ -38,7 +38,11 @@
 #include "platform/ohos/backend/rs_vulkan_context.h"
 #endif
 
+#ifdef USE_M133_SKIA
+#include "include/gpu/ganesh/GrDirectContext.h"
+#else
 #include "include/gpu/GrDirectContext.h"
+#endif
 #include "utils/graphic_coretrace.h"
 
 namespace OHOS {

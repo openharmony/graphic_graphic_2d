@@ -36,6 +36,10 @@
 #include "utils/object_mgr.h"
 #include "utils/string_util.h"
 
+#ifdef USE_M133_SKIA
+#include "recording/recording_canvas.h"
+#endif
+
 using namespace OHOS::Rosen;
 
 namespace {

@@ -23,12 +23,8 @@
 #include "property/rs_properties_painter.h"
 #include "platform/common/rs_system_properties.h"
 
-#if defined(NEW_SKIA)
 #include "include/effects/SkImageFilters.h"
 #include "include/core/SkTileMode.h"
-#else
-#include "include/effects/SkBlurImageFilter.h"
-#endif
 
 #ifndef ENABLE_M133_SKIA
 #include "src/core/SkOpts.h"
@@ -132,11 +128,11 @@ RSMaterialFilter::RSMaterialFilter(MaterialParam materialParam, BLUR_COLOR_MODE 
 #else
     hash_ = SkChecksum::Hash32(&type_, sizeof(type_), 0);
     hash_ = SkChecksum::Hash32(&radiusForHash, sizeof(radiusForHash), hash_);
-    hash_ = SkChecksum::Hash32h(&saturationForHash, sizeof(saturationForHash), hash_);
+    hash_ = SkChecksum::Hash32(&saturationForHash, sizeof(saturationForHash), hash_);
     hash_ = SkChecksum::Hash32(&brightnessForHash, sizeof(brightnessForHash), hash_);
-    hash_ = SkChecksum::Hash32h(&maskColor_, sizeof(maskColor_), hash_);
+    hash_ = SkChecksum::Hash32(&maskColor_, sizeof(maskColor_), hash_);
     hash_ = SkChecksum::Hash32(&colorMode_, sizeof(colorMode_), hash_);
-    hash_ = SkChecksum::Hash32h(&disableSystemAdaptation_, sizeof(disableSystemAdaptation_), hash_);
+    hash_ = SkChecksum::Hash32(&disableSystemAdaptation_, sizeof(disableSystemAdaptation_), hash_);
 #endif
 }
 

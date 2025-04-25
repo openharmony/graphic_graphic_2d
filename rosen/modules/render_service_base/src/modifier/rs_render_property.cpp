@@ -599,7 +599,11 @@ void RSRenderProperty<ForegroundColorStrategyType>::Dump(std::string& out) const
 template<>
 void RSRenderProperty<SkMatrix>::Dump(std::string& out) const
 {
+#ifdef USE_M133_SKIA
+    (void)out; // todo 侵入式修改待合入
+#else
     Get().dump(out, 0);
+#endif
 }
 
 template<>
