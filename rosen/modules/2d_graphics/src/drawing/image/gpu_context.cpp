@@ -113,11 +113,6 @@ void GPUContext::FreeGpuResources()
     impl_->FreeGpuResources();
 }
 
-void GPUContext::ReclaimResources()
-{
-    impl_->ReclaimResources();
-}
-
 void GPUContext::DumpAllResource(std::stringstream& dump) const
 {
     impl_->DumpAllResource(dump);

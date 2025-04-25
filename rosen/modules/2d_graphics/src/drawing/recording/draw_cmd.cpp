@@ -1566,7 +1566,6 @@ void SimplifyPaint(ColorQuad colorQuad, Paint& paint)
 DrawTextBlobOpItem::DrawTextBlobOpItem(const DrawCmdList& cmdList, DrawTextBlobOpItem::ConstructorHandle* handle)
     : DrawWithPaintOpItem(cmdList, handle->paintHandle, TEXT_BLOB_OPITEM), x_(handle->x), y_(handle->y)
 {
-    globalUniqueId_ = handle->globalUniqueId;
     textBlob_ = CmdListHelper::GetTextBlobFromCmdList(cmdList, handle->textBlob, handle->globalUniqueId);
 }
 
@@ -1589,11 +1588,6 @@ void DrawTextBlobOpItem::Marshalling(DrawCmdList& cmdList)
     }
 
     cmdList.AddOp<ConstructorHandle>(textBlobHandle, globalUniqueId, x_, y_, paintHandle);
-}
-
-uint64_t DrawTextBlobOpItem::GetTypefaceId()
-{
-    return globalUniqueId_;
 }
 
 void DrawTextBlobOpItem::Playback(Canvas* canvas, const Rect* rect)

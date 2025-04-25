@@ -324,11 +324,9 @@ void DrawCmdList::UnmarshallingDrawOps(uint32_t* opItemCount)
     } while (offset != 0 && count <= MAX_OPITEMSIZE);
     lastOpGenSize_ = opAllocator_.GetSize();
 
-    opAllocator_.ClearData();
-    imageAllocator_.ClearData();
-    bitmapAllocator_.ClearData();
-    opAllocator_.Add(&width_, sizeof(int32_t));
-    opAllocator_.Add(&height_, sizeof(int32_t));
+    if ((int)imageAllocator_.GetSize() > 0) {
+        imageAllocator_.ClearData();
+    }
 
     if (performanceCaculateOpType_ != 0) {
         LOGI("Drawing Performance UnmarshallingDrawOps end %{public}lld", PerformanceCaculate::GetUpTime());
@@ -652,30 +650,10 @@ size_t DrawCmdList::CountTextBlobNum()
     return textBlobCnt;
 }
 
-void DrawCmdList::ProfilerTextBlob(void* handle, uint32_t count, bool takeIdFromList)
+void DrawCmdList::PatchTypefaceIds()
 {
-    if (!handle) {
-        return;
-    }
-    DrawTextBlobOpItem::ConstructorHandle* constructorHandle =
-        static_cast<DrawTextBlobOpItem::ConstructorHandle*>(handle);
-    if (takeIdFromList) {
-        if (count > 0 && count - 1 < drawOpItems_.size()) {
-            auto drawOpItem = drawOpItems_[count - 1];
-            if (drawOpItem && drawOpItem->GetType() == DrawOpItem::TEXT_BLOB_OPITEM) {
-                auto drawTextOpItem = static_cast<DrawTextBlobOpItem*>(drawOpItem.get());
-                constructorHandle->globalUniqueId = drawTextOpItem->GetTypefaceId();
-            }
-        }
-    } else if (constructorHandle->globalUniqueId) {
-        constexpr int bitNumber = 30 + 32;
-        uint64_t replayMask = (uint64_t)1 << bitNumber;
-        constructorHandle->globalUniqueId |= replayMask;
-    }
-}
-
-void DrawCmdList::PatchTypefaceIds(bool takeIdFromList)
-{
+    constexpr int bitNumber = 30 + 32;
+    uint64_t replayMask = (uint64_t)1 << bitNumber;
     size_t offset = offset_;
     size_t maxOffset = opAllocator_.GetSize();
     uint32_t count = 0;
@@ -690,7 +668,9 @@ void DrawCmdList::PatchTypefaceIds(bool takeIdFromList)
         if (type == DrawOpItem::TEXT_BLOB_OPITEM) {
             DrawTextBlobOpItem::ConstructorHandle* handle =
                 static_cast<DrawTextBlobOpItem::ConstructorHandle*>(curOpItemPtr);
-            ProfilerTextBlob(handle, count, takeIdFromList);
+            if (handle->globalUniqueId) {
+                handle->globalUniqueId |= replayMask;
+            }
         }
         if (curOpItemPtr->GetNextOpItemOffset() < offset + sizeof(OpItem)) {
             break;

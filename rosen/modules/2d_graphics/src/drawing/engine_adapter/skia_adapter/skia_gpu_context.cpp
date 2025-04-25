@@ -223,11 +223,6 @@ void SkiaGPUContext::FreeGpuResources()
     grContext_->freeGpuResources();
 }
 
-void SkiaGPUContext::ReclaimResources()
-{
-    //Skia Not Implement ReclaimResources.
-}
-
 void SkiaGPUContext::DumpGpuStats(std::string& out)
 {
     if (!grContext_) {
