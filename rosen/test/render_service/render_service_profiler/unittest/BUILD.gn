@@ -27,6 +27,15 @@ group("unittest") {
   ]
 }
 
+group("test") {
+  testonly = true
+  deps = [
+    "reliability/platform/ohos:unittest",
+    "standard/platform/ohos:unittest",
+    "standard/transaction:unittest",
+  ]
+}
+
 ###############################################################################
 config("render_test") {
   visibility = [ ":*" ]

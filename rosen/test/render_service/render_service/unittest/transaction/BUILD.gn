@@ -24,7 +24,6 @@ group("unittest") {
   deps = [
     ":RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest",
     ":RSIRenderServiceIpcInterfaceCodeAccessVerifierTest",
-    ":RSIRenderServiceIpcInterfaceCodeTest",
     ":RSRenderServiceConnectionStubTest",
     ":RSRenderServiceStubTest",
     ":RSUnmarshalThreadTest",
@@ -59,13 +58,6 @@ ohos_unittest("RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest") {
 ohos_unittest("RSIRenderServiceIpcInterfaceCodeAccessVerifierTest") {
   module_out_path = module_output_path
   sources = [ "rs_irender_service_ipc_interface_code_access_verifier_test.cpp" ]
-  deps = [ ":rs_test_common" ]
-}
-
-## Build RSIRenderServiceIpcInterfaceCodeTest
-ohos_unittest("RSIRenderServiceIpcInterfaceCodeTest") {
-  module_out_path = module_output_path
-  sources = [ "rs_irender_service_connection_ipc_interface_code_test.cpp" ]
   deps = [ ":rs_test_common" ]
 }
 

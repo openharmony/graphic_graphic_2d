@@ -410,42 +410,6 @@ HWTEST_F(RSAshmemHelperTest, ReadSafeFdTest005, TestSize.Level1)
 }
 
 /**
- * @tc.name: ReadSafeFdExactly24bytes
- * @tc.desc: ReadSafeFd read exactly 24 bytes
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSAshmemHelperTest, ReadSafeFdExactly24bytes, TestSize.Level1 | Reliability)
-{
-    AshmemFdContainer::SetIsUnmarshalThread(true);
-    AshmemFdContainer::Instance().Clear();
-
-    const size_t dataSize = 100;
-    const auto ashmemAllocator = AshmemAllocator::CreateAshmemAllocator(dataSize, PROT_READ | PROT_WRITE);
-    ASSERT_TRUE(ashmemAllocator);
-    const int fd = ashmemAllocator->GetFd();
-    EXPECT_TRUE(fd > 0);
-
-    const std::shared_ptr<MessageParcel> parcel = std::make_shared<MessageParcel>();
-    ASSERT_TRUE(parcel);
-    parcel->WriteFileDescriptor(fd);
-
-    const auto beforeRead = parcel->GetReadPosition();
-
-    const std::unordered_map<binder_size_t, int> fds = { {0, fd} };
-    AshmemFdContainer::Instance().Merge(fds);
-
-    const auto safeFd = AshmemFdContainer::Instance().ReadSafeFd(*parcel, readFdDefaultFunc);
-
-    const auto afterRead = parcel->GetReadPosition();
-
-    const auto bytesRead = 24;
-    EXPECT_TRUE(afterRead == bytesRead + beforeRead);
-
-    ::close(safeFd);
-}
-
-/**
  * @tc.name: MergeTest
  * @tc.desc: Verify function Merge
  * @tc.type: FUNC
