@@ -1190,8 +1190,10 @@ napi_value JsCanvas::OnDrawSingleCharacter(napi_env env, napi_callback_info info
         ROSEN_LOGE("JsCanvas::OnDrawSingleCharacter canvas is null");
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
+
     napi_value argv[ARGC_FOUR] = {nullptr};
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_FOUR);
+
     size_t len = 0;
     if (napi_get_value_string_utf8(env, argv[ARGC_ZERO], nullptr, 0, &len) != napi_ok) {
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect parameter0 type.");
@@ -1204,23 +1206,26 @@ napi_value JsCanvas::OnDrawSingleCharacter(napi_env env, napi_callback_info info
     if (napi_get_value_string_utf8(env, argv[ARGC_ZERO], str, len + 1, &len) != napi_ok) {
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect parameter0 type.");
     }
+
     JsFont* jsFont = nullptr;
     GET_UNWRAP_PARAM(ARGC_ONE, jsFont);
     double x = 0.0;
     GET_DOUBLE_PARAM(ARGC_TWO, x);
     double y = 0.0;
     GET_DOUBLE_PARAM(ARGC_THREE, y);
+
     std::shared_ptr<Font> font = jsFont->GetFont();
     if (font == nullptr) {
         ROSEN_LOGE("JsCanvas::OnDrawSingleCharacter font is nullptr");
         return nullptr;
     }
-    const char* currentStr = str;
-    int32_t unicode = SkUTF::NextUTF8(&currentStr, currentStr + len);
-    std::shared_ptr<Font> themeFont = MatchThemeFont(font, unicode);
+    std::shared_ptr<Font> themeFont = GetThemeFont(font);
     if (themeFont != nullptr) {
         font = themeFont;
     }
+
+    const char* currentStr = str;
+    int32_t unicode = SkUTF::NextUTF8(&currentStr, currentStr + len);
     size_t byteLen = currentStr - str;
     if (byteLen != len) {
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
