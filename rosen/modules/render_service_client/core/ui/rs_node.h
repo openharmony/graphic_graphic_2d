@@ -88,19 +88,19 @@ public:
     virtual void AddChild(SharedPtr child, int index = -1);
     void MoveChild(SharedPtr child, int index);
     virtual void RemoveChild(SharedPtr child);
-    void RemoveChildByNodeId(NodeId childId);
+    void RemoveChildByNodeSelf(WeakPtr child);
     void RemoveFromTree();
     virtual void ClearChildren();
-    const std::vector<NodeId>& GetChildren() const
+    const std::vector<WeakPtr>& GetChildren() const
     {
         return children_;
     }
     // ONLY support index in [0, childrenTotal) or index = -1, otherwise return std::nullopt
-    const std::optional<NodeId> GetChildIdByIndex(int index) const;
+    RSNode::SharedPtr GetChildByIndex(int index) const;
 
     // Add/RemoveCrossParentChild only used as: the child is under multiple parents(e.g. a window cross multi-screens)
     void AddCrossParentChild(SharedPtr child, int index);
-    void RemoveCrossParentChild(SharedPtr child, NodeId newParentId);
+    void RemoveCrossParentChild(SharedPtr child, SharedPtr newParent);
     void SetIsCrossNode(bool isCrossNode);
 
     // PC extend screen use this
@@ -558,6 +558,7 @@ public:
     {
         return rsUIContext_.lock();
     }
+    void SetUIContextToken();
     void SetRSUIContext(std::shared_ptr<RSUIContext> rsUIContext);
 
     void SetSkipCheckInMultiInstance(bool isSkipCheckInMultiInstance);
@@ -625,14 +626,14 @@ private:
     static NodeId GenerateId();
     static void InitUniRenderEnabled();
     NodeId id_;
-    NodeId parent_ = 0;
+    WeakPtr parent_;
     int32_t instanceId_ = INSTANCE_ID_UNDEFINED;
     int32_t frameNodeId_ = -1;
     std::string frameNodeTag_;
     std::string nodeName_ = "";
-    std::vector<NodeId> children_;
-    void SetParent(NodeId parent);
-    void RemoveChildById(NodeId childId);
+    std::vector<WeakPtr> children_;
+    void SetParent(WeakPtr parent);
+    void RemoveChildByNode(SharedPtr child);
     virtual void CreateRenderNodeForTextureExportSwitch() {};
 
     void SetBackgroundBlurRadius(float radius);

@@ -15,8 +15,6 @@
 
 #include "pipeline/rs_node_map_v2.h"
 
-#include <atomic>
-
 #include "pipeline/rs_node_map.h"
 #include "platform/common/rs_log.h"
 #include "ui/rs_base_node.h"
@@ -24,20 +22,14 @@
 namespace OHOS {
 namespace Rosen {
 
-namespace {
-static std::atomic_bool g_valid = false;
-}
-
 RSNodeMapV2::RSNodeMapV2()
 {
-    g_valid.store(true);
 }
 
 RSNodeMapV2::~RSNodeMapV2() noexcept
 {
     std::unique_lock<std::mutex> lock(mutex_);
     nodeMapNew_.clear();
-    g_valid.store(false);
 }
 
 bool RSNodeMapV2::RegisterNode(const RSBaseNode::SharedPtr& nodePtr)
@@ -56,9 +48,6 @@ bool RSNodeMapV2::RegisterNode(const RSBaseNode::SharedPtr& nodePtr)
 
 void RSNodeMapV2::UnregisterNode(NodeId id)
 {
-    if (!g_valid.load()) {
-        return;
-    }
     std::unique_lock<std::mutex> lock(mutex_);
     auto itr = nodeMapNew_.find(id);
     if (itr != nodeMapNew_.end()) {
@@ -71,9 +60,6 @@ void RSNodeMapV2::UnregisterNode(NodeId id)
 template<>
 const std::shared_ptr<RSBaseNode> RSNodeMapV2::GetNode<RSBaseNode>(NodeId id) const
 {
-    if (!g_valid.load()) {
-        return nullptr;
-    }
     std::unique_lock<std::mutex> lock(mutex_);
     auto itr = nodeMapNew_.find(id);
     if (itr == nodeMapNew_.end()) {

@@ -312,7 +312,7 @@ bool RSSymbolAnimation::CreateSymbolNode(
         UpdateSymbolGeometry(rsNode_->canvasNodesListMap_[symbolSpanId][nodeId], symbolBounds);
         return false;
     }
-    auto childNode = RSCanvasNode::Create();
+    auto childNode = RSCanvasNode::Create(false, false, rsNode_->GetRSUIContext());
     if (childNode == nullptr) {
         ROSEN_LOGD("[%{public}s] Failed to create CanvasNode", __func__);
         return false;

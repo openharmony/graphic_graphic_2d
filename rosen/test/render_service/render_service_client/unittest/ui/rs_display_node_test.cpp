@@ -197,9 +197,12 @@ HWTEST_F(RSDisplayNodeTest, ClearChildrenTest, TestSize.Level1)
     RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(config);
     displayNode->ClearChildren();
 
-    displayNode->children_.push_back(0);
-    displayNode->children_.push_back(1);
-    displayNode->children_.push_back(2);
+    std::weak_ptr<RSNode> child = std::make_shared<RSNode>(0);
+    displayNode->children_.push_back(child);
+    std::weak_ptr<RSNode> child1 = std::make_shared<RSNode>(1);
+    displayNode->children_.push_back(child1);
+    std::weak_ptr<RSNode> child2 = std::make_shared<RSNode>(2);
+    displayNode->children_.push_back(child2);
     displayNode->ClearChildren();
     EXPECT_TRUE(!displayNode->children_.empty());
 }

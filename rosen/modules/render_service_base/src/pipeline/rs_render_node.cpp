@@ -944,6 +944,11 @@ void RSRenderNode::DumpTree(int32_t depth, std::string& out) const
     
     DumpSubClassNode(out);
     out += ", Properties: " + GetRenderProperties().Dump();
+    if (uiContextToken_ > 0) {
+        out += ", RSUIContextToken: " + std::to_string(uiContextToken_);
+    } else {
+        out += ", RSUIContextToken: NO_RSUIContext";
+    }
     if (GetBootAnimation()) {
         out += ", GetBootAnimation: true";
     }
