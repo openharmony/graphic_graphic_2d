@@ -294,7 +294,7 @@ bool RSCanvasNode::ResetSurface(int width, int height)
     if (!IsHybridRenderCanvas()) {
         return false;
     }
-    return RSModifiersDraw::ResetSurfaceByNodeId(width, height, this->GetId(), true);
+    return RSModifiersDraw::ResetSurfaceByNodeId(width, height, GetId(), true);
 }
 #endif
 

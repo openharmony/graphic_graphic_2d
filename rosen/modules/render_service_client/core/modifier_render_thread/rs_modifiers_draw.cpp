@@ -94,6 +94,12 @@ void RSModifiersDraw::ConvertCmdListForCanvas(const std::shared_ptr<Drawing::Dra
     return;
 }
 
+void RSModifiersDraw::UpdateSize(const std::shared_ptr<Drawing::DrawCmdList>& cmdList,
+    int32_t& width, int32_t& height)
+{
+    return;
+}
+
 void RSModifiersDraw::ConvertCmdList(const std::shared_ptr<Drawing::DrawCmdList>& cmdList, NodeId nodeId)
 {
     return;

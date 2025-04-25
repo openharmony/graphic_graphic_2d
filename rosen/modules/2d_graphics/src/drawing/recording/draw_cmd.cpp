@@ -1898,6 +1898,20 @@ void DrawTextBlobOpItem::DumpItems(std::string& out) const
     }
 }
 
+Rect DrawTextBlobOpItem::GetBounds() const
+{
+    if (textBlob_ == nullptr) {
+        return {};
+    }
+    auto bounds = textBlob_->Bounds();
+    if (bounds == nullptr || !bounds->IsValid()) {
+        return {};
+    }
+    Rect rect = *bounds;
+    rect.Offset(x_, y_);
+    return rect;
+}
+
 /* DrawSymbolOpItem */
 UNMARSHALLING_REGISTER(DrawSymbol, DrawOpItem::SYMBOL_OPITEM,
     DrawSymbolOpItem::Unmarshalling, sizeof(DrawSymbolOpItem::ConstructorHandle));

@@ -634,7 +634,6 @@ bool RSSystemProperties::GetTimeVsyncDisabled()
     return false;
 }
 
-#ifdef RS_ENABLE_VK
 bool RSSystemProperties::GetHybridRenderEnabled()
 {
     return false;
@@ -699,7 +698,6 @@ int32_t RSSystemProperties::GetHybridRenderSwitch(ComponentEnableSwitch bitSeq)
 {
     return 0;
 }
-#endif
 
 bool RSSystemProperties::GetVKImageUseEnabled()
 {

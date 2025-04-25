@@ -144,7 +144,7 @@ void RSModifiersDrawThread::PostTask(const std::function<void()>&& task)
     }
 }
 
-bool RSModifiersDrawThread::TargetCommad(
+bool RSModifiersDrawThread::TargetCommand(
     Drawing::DrawCmdList::HybridRenderType hybridRenderType, uint16_t type, uint16_t subType, bool cmdListEmpty)
 {
     if (hybridRenderType == Drawing::DrawCmdList::HybridRenderType::NONE) {
@@ -191,7 +191,7 @@ std::unique_ptr<RSTransactionData>& RSModifiersDrawThread::ConvertTransaction(
             continue;
         }
         auto hybridRenderType = drawCmdList->GetHybridRenderType();
-        if (!TargetCommad(hybridRenderType, command->GetType(), command->GetSubType(), drawCmdList->IsEmpty())) {
+        if (!TargetCommand(hybridRenderType, command->GetType(), command->GetSubType(), drawCmdList->IsEmpty())) {
             continue;
         }
 

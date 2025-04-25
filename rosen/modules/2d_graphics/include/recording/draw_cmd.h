@@ -915,6 +915,7 @@ public:
 
     std::shared_ptr<DrawImageRectOpItem> GenerateCachedOpItem(Canvas* canvas);
     uint64_t GetTypefaceId();
+    Rect GetBounds() const;
 protected:
     void DrawHighContrast(Canvas* canvas, bool offSreen = false) const;
     void DrawHighContrastEnabled(Canvas* canvas) const;

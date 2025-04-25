@@ -134,7 +134,6 @@ enum class DdgrOpincDfxType {
     OPINC_DFX_AUTO,
 };
 
-#ifdef RS_ENABLE_VK
 enum class ComponentEnableSwitch {
     TEXTBLOB = 0,
     SVG,
@@ -146,7 +145,6 @@ struct GetComponentSwitch {
     ComponentEnableSwitch type;
     bool (*ComponentHybridSwitch)();
 };
-#endif
 
 using OnSystemPropertyChanged = void(*)(const char*, const char*, void*);
 
@@ -349,7 +347,6 @@ public:
     static void SetDebugFmtTraceEnabled(bool flag);
     static bool GetDebugFmtTraceEnabled();
 
-#ifdef RS_ENABLE_VK
     static bool GetHybridRenderEnabled();
     static bool GetHybridRenderDfxEnabled();
     static uint32_t GetHybridRenderTextBlobLenCount();
@@ -362,7 +359,7 @@ public:
     static bool GetHybridRenderTextBlobEnabled();
     static bool GetHybridRenderSvgEnabled();
     static bool GetHybridRenderHmsymbolEnabled();
-#endif
+
     static bool GetVKImageUseEnabled();
 
 private:

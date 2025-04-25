@@ -699,4 +699,17 @@ HWTEST_F(RSInterfacesTest, SetOverlayDisplayMode001, TestSize.Level1)
     EXPECT_EQ(res, SUCCESS);
 }
 #endif
+
+/**
+ * @tc.name: GetHighContrastTextState001
+ * @tc.desc: test results of GetHighContrastTextState
+ * @tc.type: FUNC
+ * @tc.require: issueIC3FUZ
+ */
+HWTEST_F(RSInterfacesTest, GetHighContrastTextState001, TestSize.Level1)
+{
+    RSInterfaces& instance = RSInterfaces::GetInstance();
+    instance.renderServiceClient_ = std::make_unique<RSRenderServiceClient>();
+    EXPECT_EQ(instance.GetHighContrastTextState(), false);
+}
 } // namespace OHOS::Rosen

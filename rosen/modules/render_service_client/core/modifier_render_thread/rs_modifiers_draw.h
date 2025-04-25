@@ -44,9 +44,9 @@ public:
 
     static void ClearOffTreeNodeMemory(NodeId nodeId);
 
-    static void InsertOffTreeNode(NodeId insatnceId, NodeId nodeId);
+    static void InsertOffTreeNode(NodeId instanceId, NodeId nodeId);
 
-    static void EraseOffTreeNode(NodeId insatnceId, NodeId nodeId);
+    static void EraseOffTreeNode(NodeId instanceId, NodeId nodeId);
 
     static void MergeOffTreeNodeSet();
 
@@ -95,6 +95,8 @@ private:
     static SurfaceEntry GetSurfaceEntryByNodeId(NodeId nodeId);
 
     static bool CheckNodeIsOffTree(NodeId nodeId);
+
+    static void UpdateSize(const std::shared_ptr<Drawing::DrawCmdList>& cmdList, int32_t& width, int32_t& height);
 
     static std::unordered_map<NodeId, SurfaceEntry> surfaceEntryMap_;
 

@@ -36,7 +36,6 @@ constexpr int DEFAULT_DIRTY_ALIGN_ENABLED_VALUE = 0;
 constexpr int DEFAULT_CORRECTION_MODE_VALUE = 999;
 constexpr int DEFAULT_SCALE_MODE = 2;
 constexpr const char* DEFAULT_CLIP_RECT_THRESHOLD = "0.7";
-#ifdef RS_ENABLE_VK
 constexpr int DEFAULT_TEXTBLOB_LINE_COUNT = 9;
 struct GetComponentSwitch ComponentSwitchTable[] = {
     {ComponentEnableSwitch::TEXTBLOB, RSSystemProperties::GetHybridRenderTextBlobEnabled},
@@ -44,7 +43,6 @@ struct GetComponentSwitch ComponentSwitchTable[] = {
     {ComponentEnableSwitch::HMSYMBOL, RSSystemProperties::GetHybridRenderHmsymbolEnabled},
     {ComponentEnableSwitch::CANVAS, RSSystemProperties::GetHybridRenderCanvasEnabled},
 };
-#endif
 }
 
 #if (defined (ACE_ENABLE_GL) && defined (ACE_ENABLE_VK)) || (defined (RS_ENABLE_GL) && defined (RS_ENABLE_VK))
@@ -1365,7 +1363,6 @@ bool RSSystemProperties::GetTimeVsyncDisabled()
     return timeVsyncDisabled;
 }
 
-#ifdef RS_ENABLE_VK
 bool RSSystemProperties::GetHybridRenderEnabled()
 {
     return GetHybridRenderSystemEnabled() || GetHybridRenderCcmEnabled();
@@ -1463,7 +1460,6 @@ int32_t RSSystemProperties::GetHybridRenderSwitch(ComponentEnableSwitch bitSeq)
         1 : (1 << static_cast<int>(bitSeq)) & hybridRenderFeatureSwitch)) ||
         hybridRenderSystemProperty[static_cast<int>(bitSeq)];
 }
-#endif
 
 bool RSSystemProperties::GetVKImageUseEnabled()
 {

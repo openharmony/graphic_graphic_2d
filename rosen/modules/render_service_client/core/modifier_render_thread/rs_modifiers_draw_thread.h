@@ -61,13 +61,13 @@ private:
 #ifdef ACCESSIBILITY_ENABLE
 class HighContrastObserver : public AccessibilityConfig::AccessibilityConfigObserver {
 public:
-    HighContrastObserver(bool& highContrast) : highContrast_(highContrast) {}
+    HighContrastObserver(bool& highContrast) : highContrastEnabled_(highContrast) {}
 
     void OnConfigChanged(const AccessibilityConfig::CONFIG_ID id, const AccessibilityConfig::ConfigValue& value)
     {
         // Non-system app, the first value is incorrect.
         if (!first_ || IsSystemApp()) {
-            highContrast_ = value.highContrastText;
+            highContrastEnabled_ = value.highContrastText;
         }
         first_ = false;
     }
@@ -86,7 +86,7 @@ public:
     }
 
 private:
-    bool highContrast_;
+    bool& highContrastEnabled_;
     bool first_ = true;
     std::optional<bool> isSystemApp_;
 };
@@ -122,7 +122,7 @@ private:
     RSModifiersDrawThread& operator=(const RSModifiersDrawThread&) = delete;
     RSModifiersDrawThread& operator=(const RSModifiersDrawThread&&) = delete;
 
-    static bool TargetCommad(
+    static bool TargetCommand(
         Drawing::DrawCmdList::HybridRenderType hybridRenderType, uint16_t type, uint16_t subType, bool cmdListEmpty);
 
 #ifdef ACCESSIBILITY_ENABLE

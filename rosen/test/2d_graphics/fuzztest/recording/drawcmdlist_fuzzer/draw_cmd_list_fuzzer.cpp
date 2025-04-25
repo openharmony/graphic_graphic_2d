@@ -108,6 +108,7 @@ void DrawCmdListFuzzTest001(const uint8_t* data, size_t size)
     drawCmdList->UpdateNodeIdToPicture(nodeId);
     std::vector<std::pair<size_t, size_t>> replacedOpList = drawCmdList->GetReplacedOpList();
     drawCmdList->SetReplacedOpList(replacedOpList);
+    drawCmdList->GetBounds(rect);
     drawCmdList->ClearOp();
     drawCmdList->ClearCache();
     std::string out;

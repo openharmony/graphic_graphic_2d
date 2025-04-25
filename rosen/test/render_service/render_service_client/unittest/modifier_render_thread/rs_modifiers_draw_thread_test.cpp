@@ -128,8 +128,8 @@ HWTEST_F(RSModifiersDrawThreadTest, TargetCommand001, TestSize.Level1)
     uint64_t propertyId = 1;
     auto cType = PropertyUpdateType::UPDATE_TYPE_OVERWRITE;
     auto cmd = std::make_unique<RSUpdatePropertyDrawCmdList>(nodeId, cmdList, propertyId, cType);
-    ASSERT_TRUE(RSModifiersDrawThread::TargetCommad(Drawing::DrawCmdList::HybridRenderType::SVG, cmd->GetType(),
-        cmd->GetSubType()), false);
+    ASSERT_TRUE(RSModifiersDrawThread::TargetCommand(Drawing::DrawCmdList::HybridRenderType::SVG, cmd->GetType(),
+        cmd->GetSubType(), false));
 }
 
 /**
@@ -142,14 +142,14 @@ HWTEST_F(RSModifiersDrawThreadTest, TargetCommand002, TestSize.Level1)
 {
     NodeId nodeId = 1;
     auto cmdList = std::make_shared<Drawing::DrawCmdList>();
-    cmdList->SetHybridRenderType(Drawing::DrawCmdList::HybridRenderType::None);
+    cmdList->SetHybridRenderType(Drawing::DrawCmdList::HybridRenderType::NONE);
     uint64_t propertyId = 1;
     auto cType = PropertyUpdateType::UPDATE_TYPE_INCREMENTAL;
     auto cmd = std::make_unique<RSUpdatePropertyDrawCmdList>(nodeId, cmdList, propertyId, cType);
-    ASSERT_FALSE(RSModifiersDrawThread::TargetCommad(Drawing::DrawCmdList::HybridRenderType::NONE, cmd->GetType(),
-        cmd->GetSubType()), false);
-    ASSERT_FALSE(RSModifiersDrawThread::TargetCommad(Drawing::DrawCmdList::HybridRenderType::NONE, cmd->GetType(),
-        cmd->GetSubType()), true);
+    ASSERT_FALSE(RSModifiersDrawThread::TargetCommand(Drawing::DrawCmdList::HybridRenderType::NONE, cmd->GetType(),
+        cmd->GetSubType(), false));
+    ASSERT_FALSE(RSModifiersDrawThread::TargetCommand(Drawing::DrawCmdList::HybridRenderType::NONE, cmd->GetType(),
+        cmd->GetSubType(), true));
 }
 
 /**

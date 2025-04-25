@@ -65,6 +65,10 @@ public:
     static SharedPtr Unmarshalling(Parcel& parcel);
 
 #ifdef RS_ENABLE_VK
+    void SetHybridRenderCanvas(bool hybridRenderCanvas) override
+    {
+        hybridRenderCanvas_ = hybridRenderCanvas;
+    }
     bool GetBitmap(Drawing::Bitmap& bitmap, std::shared_ptr<Drawing::DrawCmdList> drawCmdList = nullptr);
     bool GetPixelmap(std::shared_ptr<Media::PixelMap> pixelMap,
         std::shared_ptr<Drawing::DrawCmdList> drawCmdList = nullptr, const Drawing::Rect* rect = nullptr);
