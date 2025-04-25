@@ -4107,4 +4107,767 @@ HWTEST_F(RSMainThreadUnitTest, OnUniRenderDraw002, TestSize.Level2)
     mainThread->isUniRender_ = isUniRender;
     mainThread->doDirectComposition_ = doDirectComposition;
 }
+
+/**
+ * @tc.name: ProcessDataBySingleFrameComposer
+ * @tc.desc: test ProcessDataBySingleFrameComposer001, rsTransactionData != nullptr & isUniRender_ = ture & false
+ * @tc.type: FUNC
+ * @tc.require: issueIAIZ2Y
+ */
+HWTEST_F(RSMainThreadUnitTest, ProcessDataBySingleFrameComposer001, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    auto isUniRender = mainThread->isUniRender_;
+    auto rsTransactionData = std::make_unique<RSTransactionData>();
+    mainThread->isUniRender_ = false;
+    mainThread->ProcessDataBySingleFrameComposer(rsTransactionData);
+    mainThread->isUniRender_ = true;
+    mainThread->ProcessDataBySingleFrameComposer(rsTransactionData);
+    mainThread->isUniRender_ = isUniRender;
+}
+
+/**
+ * @tc.name: ProcessDataBySingleFrameComposer
+ * @tc.desc: test ProcessDataBySingleFrameComposer002, rsTransactionData = nullptr & isUniRender_ = ture & false
+ * @tc.type: FUNC
+ * @tc.require: issueIAIZ2Y
+ */
+HWTEST_F(RSMainThreadUnitTest, ProcessDataBySingleFrameComposer002, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    auto isUniRender = mainThread->isUniRender_;
+    std::unique_ptr<RSTransactionData> rsTransactionData = nullptr;
+    mainThread->isUniRender_ = false;
+    mainThread->ProcessDataBySingleFrameComposer(rsTransactionData);
+    mainThread->isUniRender_ = true;
+    mainThread->ProcessDataBySingleFrameComposer(rsTransactionData);
+    mainThread->isUniRender_ = isUniRender;
+}
+
+/**
+ * @tc.name: IsHardwareEnabledNodesNeedSync
+ * @tc.desc: test IsHardwareEnabledNodesNeedSync
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadUnitTest, IsHardwareEnabledNodesNeedSync, TestSize.Level2)
+{
+    NodeId id = 1;
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    mainThread->hardwareEnabledNodes_.emplace_back(nullptr);
+    ASSERT_EQ(mainThread->IsHardwareEnabledNodesNeedSync(), false);
+
+    mainThread->hardwareEnabledNodes_.clear();
+    mainThread->doDirectComposition_ = false;
+    auto node1 = std::make_shared<RSSurfaceRenderNode>(id, mainThread->context_);
+    node1->stagingRenderParams_ = nullptr;
+    mainThread->hardwareEnabledNodes_.emplace_back(node1);
+    ASSERT_EQ(mainThread->IsHardwareEnabledNodesNeedSync(), false);
+
+    mainThread->hardwareEnabledNodes_.clear();
+    mainThread->doDirectComposition_ = false;
+    auto node2 = std::make_shared<RSSurfaceRenderNode>(id + 1, mainThread->context_);
+    node2->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(id + 2);
+    node2->stagingRenderParams_->SetNeedSync(true);
+    mainThread->hardwareEnabledNodes_.emplace_back(node2);
+    ASSERT_EQ(mainThread->IsHardwareEnabledNodesNeedSync(), true);
+
+    mainThread->hardwareEnabledNodes_.clear();
+    mainThread->doDirectComposition_ = true;
+    auto node3 = std::make_shared<RSSurfaceRenderNode>(id + 3, mainThread->context_);
+    node3->SetHardwareForcedDisabledState(false);
+    RectI dstRect{0, 0, 400, 600};
+    node3->SetDstRect(dstRect);
+    mainThread->hardwareEnabledNodes_.emplace_back(node3);
+    ASSERT_EQ(mainThread->IsHardwareEnabledNodesNeedSync(), true);
+}
+
+/**
+ * @tc.name: IsSingleDisplay
+ * @tc.desc: test IsSingleDisplay, rootNode = nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueIAS924
+ */
+HWTEST_F(RSMainThreadUnitTest, IsSingleDisplay, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    ASSERT_NE(mainThread->context_, nullptr);
+    auto rootNode = mainThread->context_->globalRootRenderNode_;
+    ASSERT_EQ(mainThread->IsSingleDisplay(), true);
+    mainThread->context_->globalRootRenderNode_ = nullptr;
+    ASSERT_EQ(mainThread->IsSingleDisplay(), false);
+    mainThread->context_->globalRootRenderNode_ = rootNode;
+}
+
+/**
+ * @tc.name: HasMirrorDisplay
+ * @tc.desc: test HasMirrorDisplay001, rootNode = nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueIB5EAA
+ */
+HWTEST_F(RSMainThreadUnitTest, HasMirrorDisplay001, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    ASSERT_NE(mainThread->context_, nullptr);
+    auto rootNode = mainThread->context_->globalRootRenderNode_;
+    ASSERT_NE(rootNode, nullptr);
+    mainThread->context_->globalRootRenderNode_ = nullptr;
+    ASSERT_EQ(mainThread->HasMirrorDisplay(), false);
+    mainThread->context_->globalRootRenderNode_ = rootNode;
+}
+
+/**
+ * @tc.name: HasMirrorDisplay
+ * @tc.desc: test HasMirrorDisplay002, rootNode = nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueIB5EAA
+ */
+HWTEST_F(RSMainThreadUnitTest, HasMirrorDisplay002, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    ASSERT_NE(mainThread->context_, nullptr);
+    auto rootNode = mainThread->context_->globalRootRenderNode_;
+    NodeId id = 1;
+    auto node1 = std::make_shared<RSRenderNode>(id);
+    id++;
+    RSDisplayNodeConfig config;
+    auto displayNode1 = std::make_shared<RSDisplayRenderNode>(id, config);
+    id++;
+    node1->AddChild(displayNode1);
+    node1->GenerateFullChildrenList();
+    ASSERT_TRUE(node1->GetChildrenCount() <= 1);
+    mainThread->context_->globalRootRenderNode_ = node1;
+    ASSERT_EQ(mainThread->HasMirrorDisplay(), false);
+    auto displayNode2 = std::make_shared<RSDisplayRenderNode>(id, config);
+    id++;
+    auto mirrorSourceNode = std::make_shared<RSDisplayRenderNode>(id, config);
+    displayNode2->isMirroredDisplay_ = true;
+    displayNode2->SetMirrorSource(mirrorSourceNode);
+    node1->AddChild(displayNode2);
+    node1->GenerateFullChildrenList();
+    ASSERT_TRUE(node1->GetChildrenCount() > 1);
+    mainThread->context_->globalRootRenderNode_ = node1;
+    ASSERT_EQ(mainThread->HasMirrorDisplay(), true);
+    mainThread->context_->globalRootRenderNode_ = rootNode;
+}
+
+/**
+ * @tc.name: ResetAnimateNodeFlag
+ * @tc.desc: test ResetAnimateNodeFlag, context_ = nullptr & !nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueIAIZ2Y
+ */
+HWTEST_F(RSMainThreadUnitTest, ResetAnimateNodeFlag, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    ASSERT_NE(mainThread->context_, nullptr);
+    auto context = mainThread->context_;
+    mainThread->ResetAnimateNodeFlag();
+    mainThread->context_ = nullptr;
+    mainThread->ResetAnimateNodeFlag();
+    mainThread->context_ = context;
+}
+
+/**
+ * @tc.name: SendClientDumpNodeTreeCommands
+ * @tc.desc: test SendClientDumpNodeTreeCommands
+ * @tc.type: FUNC
+ * @tc.require: issueIAKME2
+ */
+HWTEST_F(RSMainThreadUnitTest, SendClientDumpNodeTreeCommands, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    ASSERT_NE(mainThread->context_, nullptr);
+    mainThread->nodeTreeDumpTasks_.clear();
+
+    NodeId testId = 1;
+    auto rootNode = mainThread->context_->globalRootRenderNode_;
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(testId++, RSDisplayNodeConfig {});
+    rootNode->AddChild(displayNode);
+    auto node1 = std::make_shared<RSRenderNode>(testId++);
+    displayNode->AddChild(node1);
+    rootNode->GenerateFullChildrenList();
+    displayNode->GenerateFullChildrenList();
+
+    auto node2 = std::make_shared<RSSurfaceRenderNode>(testId++, mainThread->context_);
+    node1->AddChild(node2);
+    auto node3 = std::make_shared<RSRootRenderNode>(testId++, mainThread->context_);
+    node2->AddChild(node3);
+    node1->GenerateFullChildrenList();
+    node2->GenerateFullChildrenList();
+    node3->SetIsOnTheTree(true);
+    mainThread->context_->GetMutableNodeMap().FilterNodeByPid(0);
+    mainThread->context_->GetMutableNodeMap().RegisterRenderNode(node3);
+
+    uint32_t taskId = 0;
+    sptr<ApplicationAgentImpl> agent = new ApplicationAgentImpl();
+    mainThread->RegisterApplicationAgent(0, agent);
+    mainThread->SendClientDumpNodeTreeCommands(taskId);
+    ASSERT_TRUE(!mainThread->nodeTreeDumpTasks_.empty());
+    ASSERT_TRUE(mainThread->nodeTreeDumpTasks_[taskId].count > 0);
+
+    mainThread->SendClientDumpNodeTreeCommands(taskId);
+    rootNode->RemoveChild(displayNode);
+}
+
+/**
+ * @tc.name: CollectClientNodeTreeResult
+ * @tc.desc: test CollectClientNodeTreeResult
+ * @tc.type: FUNC
+ * @tc.require: issueIAKME2
+ */
+HWTEST_F(RSMainThreadUnitTest, CollectClientNodeTreeResult, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->nodeTreeDumpTasks_.clear();
+
+    uint32_t taskId = 0;
+    auto& task = mainThread->nodeTreeDumpTasks_[taskId];
+    task.data[0] = "testData";
+    task.count++;
+
+    std::string out;
+    mainThread->CollectClientNodeTreeResult(taskId, out, 1);
+    ASSERT_TRUE(!out.empty());
+    ASSERT_TRUE(mainThread->nodeTreeDumpTasks_.empty());
+}
+
+/**
+ * @tc.name: OnDrawingCacheDfxSwitchCallback
+ * @tc.desc: test OnDrawingCacheDfxSwitchCallback
+ * @tc.type: FUNC
+ * @tc.require: issueIALU2Y
+ */
+HWTEST_F(RSMainThreadUnitTest, OnDrawingCacheDfxSwitchCallback, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    RSMainThread::OnDrawingCacheDfxSwitchCallback("persist", "1", nullptr);
+    RSMainThread::OnDrawingCacheDfxSwitchCallback("rosen.drawingCache.enabledDfx", "1", nullptr);
+}
+
+/**
+ * @tc.name: OnCommitDumpClientNodeTree
+ * @tc.desc: test OnCommitDumpClientNodeTree
+ * @tc.type: FUNC
+ * @tc.require: issueIAKME2
+ */
+HWTEST_F(RSMainThreadUnitTest, OnCommitDumpClientNodeTree, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->nodeTreeDumpTasks_.clear();
+
+    uint32_t taskId = 0;
+    mainThread->OnCommitDumpClientNodeTree(0, 0, taskId, "testData");
+    ASSERT_TRUE(mainThread->nodeTreeDumpTasks_.empty());
+
+    auto& task = mainThread->nodeTreeDumpTasks_[taskId];
+    task.count++;
+
+    mainThread->OnCommitDumpClientNodeTree(0, 0, taskId, "testData");
+    mainThread->OnCommitDumpClientNodeTree(0, 0, taskId, "testData");
+    ASSERT_TRUE(!mainThread->nodeTreeDumpTasks_.empty());
+    ASSERT_TRUE(!mainThread->nodeTreeDumpTasks_[taskId].data.empty());
+}
+
+/**
+ * @tc.name: TraverseCanvasDrawingNodesNotOnTree
+ * @tc.desc: test TraverseCanvasDrawingNodesNotOnTree
+ * @tc.type: FUNC
+ * @tc.require: issueIB56EL
+ */
+HWTEST_F(RSMainThreadUnitTest, TraverseCanvasDrawingNodesNotOnTree, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->TraverseCanvasDrawingNodesNotOnTree();
+}
+
+/**
+ * @tc.name: RenderServiceAllNodeDump01
+ * @tc.desc: RenderServiceAllNodeDump Test
+ * @tc.type: FUNC
+ * @tc.require: issueIB57QP
+ */
+HWTEST_F(RSMainThreadUnitTest, RenderServiceAllNodeDump01, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    NodeId id = 1;
+    MemoryInfo info = {sizeof(*this), ExtractPid(id), id, MEMORY_TYPE::MEM_RENDER_NODE};
+    MemoryTrack::Instance().AddNodeRecord(id, info);
+    DfxString log;
+    mainThread->RenderServiceAllNodeDump(log);
+}
+
+/**
+ * @tc.name: ConnectChipsetVsyncSer
+ * @tc.desc: test ConnectChipsetVsyncSer
+ * @tc.type: FUNC
+ * @tc.require:issuesIB6292
+ */
+#if defined(RS_ENABLE_CHIPSET_VSYNC)
+HWTEST_F(RSMainThreadUnitTest, ConnectChipsetVsyncSer, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->initVsyncServiceFlag_ = false;
+    mainThread->ConnectChipsetVsyncSer();
+    ASSERT_EQ(mainThread->initVsyncServiceFlag_, false);
+}
+#endif
+
+/**
+ * @tc.name: SetVsyncInfo
+ * @tc.desc: test SetVsyncInfo
+ * @tc.type: FUNC
+ * @tc.require:issuesIB6292
+ */
+#if defined(RS_ENABLE_CHIPSET_VSYNC)
+HWTEST_F(RSMainThreadUnitTest, SetVsyncInfo, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    ASSERT_NE(mainThread->context_, nullptr);
+    auto receiver = mainThread->receiver_;
+    if (mainThread->rsVSyncDistributor_ == nullptr) {
+        auto vsyncGenerator = CreateVSyncGenerator();
+        auto vsyncController = new VSyncController(vsyncGenerator, 0);
+        mainThread->rsVSyncDistributor_ = new VSyncDistributor(vsyncController, "rs");
+    }
+    sptr<VSyncConnection> conn = new VSyncConnection(mainThread->rsVSyncDistributor_, "rs");
+    mainThread->receiver_ = std::make_shared<VSyncReceiver>(conn);
+    mainThread->SetVsyncInfo(0);
+    mainThread->receiver_ = receiver;
+}
+#endif
+
+/**
+ * @tc.name: IsOcclusionNodesNeedSync001
+ * @tc.desc: test IsOcclusionNodesNeedSync001
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadUnitTest, IsOcclusionNodesNeedSync001, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->nodeTreeDumpTasks_.clear();
+    NodeId nodeId = 1;
+    std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(nodeId);
+    ASSERT_NE(node, nullptr);
+    node->isFullChildrenListValid_ = false;
+    RSRenderNodeMap& nodeMap = mainThread->GetContext().GetMutableNodeMap();
+    nodeMap.RegisterRenderNode(node);
+    ASSERT_TRUE(mainThread->IsOcclusionNodesNeedSync(nodeId, true));
+}
+
+/**
+ * @tc.name: IsOcclusionNodesNeedSync002
+ * @tc.desc: test IsOcclusionNodesNeedSync002
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadUnitTest, IsOcclusionNodesNeedSync002, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->nodeTreeDumpTasks_.clear();
+    NodeId nodeId = 1;
+    std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(nodeId);
+    ASSERT_NE(node, nullptr);
+    node->nodeType_ = RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE;
+    RSRenderNodeMap& nodeMap = mainThread->GetContext().GetMutableNodeMap();
+    nodeMap.RegisterRenderNode(node);
+    ASSERT_TRUE(mainThread->IsOcclusionNodesNeedSync(nodeId, true));
+}
+
+/**
+ * @tc.name: IsOcclusionNodesNeedSync003
+ * @tc.desc: test IsOcclusionNodesNeedSync003
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadUnitTest, IsOcclusionNodesNeedSync003, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->nodeTreeDumpTasks_.clear();
+    NodeId nodeId = 1;
+    ASSERT_FALSE(mainThread->IsOcclusionNodesNeedSync(nodeId, true));
+}
+
+/**
+ * @tc.name: IsOcclusionNodesNeedSync004
+ * @tc.desc: test IsOcclusionNodesNeedSync004
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadUnitTest, IsOcclusionNodesNeedSync004, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->nodeTreeDumpTasks_.clear();
+    NodeId nodeId = 1;
+    std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(nodeId);
+    ASSERT_NE(node, nullptr);
+    node->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
+    node->SetIsOnTheTree(true);
+    RSRenderNodeMap& nodeMap = mainThread->GetContext().GetMutableNodeMap();
+    nodeMap.RegisterRenderNode(node);
+    ASSERT_FALSE(mainThread->IsOcclusionNodesNeedSync(nodeId, false));
+}
+
+/**
+ * @tc.name: ProcessHgmFrameRate
+ * @tc.desc: test ProcessHgmFrameRate
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadUnitTest, ProcessHgmFrameRate, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    uint64_t timestamp = 0;
+    FrameRateLinkerId id = 0;
+    mainThread->rsFrameRateLinker_ = std::make_shared<RSRenderFrameRateLinker>(id);
+    mainThread->ProcessHgmFrameRate(timestamp);
+
+    auto vsyncGenerator = CreateVSyncGenerator();
+    auto vsyncController = new VSyncController(vsyncGenerator, 0);
+    mainThread->appVSyncDistributor_ = new VSyncDistributor(vsyncController, "WMVSyncConnection");
+    mainThread->ProcessHgmFrameRate(timestamp);
+
+    mainThread->rsVSyncDistributor_ = nullptr;
+    mainThread->ProcessHgmFrameRate(timestamp);
+    sleep(1);
+}
+
+/**
+ * @tc.name: SetCurtainScreenUsingStatus
+ * @tc.desc: test SetCurtainScreenUsingStatus
+ * @tc.type: FUNC
+ * @tc.require: issueIB5RAM
+ */
+HWTEST_F(RSMainThreadUnitTest, SetCurtainScreenUsingStatus001, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    auto isCurtainScreenOn = mainThread->isCurtainScreenOn_;
+
+    mainThread->isCurtainScreenOn_ = true;
+    mainThread->SetCurtainScreenUsingStatus(true);
+
+    mainThread->isCurtainScreenOn_ = false;
+    mainThread->SetCurtainScreenUsingStatus(true);
+    ASSERT_EQ(mainThread->isCurtainScreenOn_, true);
+
+    mainThread->SetCurtainScreenUsingStatus(isCurtainScreenOn);
+}
+
+/**
+ * @tc.name: CountMem
+ * @tc.desc: test CountMem
+ * @tc.type: FUNC
+ * @tc.require: issueIB5RAM
+ */
+HWTEST_F(RSMainThreadUnitTest, CountMem, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    ASSERT_NE(mainThread->context_, nullptr);
+    auto context = mainThread->context_;
+    mainThread->context_ = nullptr;
+    std::vector<MemoryGraphic> memoryGraphic;
+
+    mainThread->CountMem(memoryGraphic);
+    mainThread->context_ = context;
+}
+
+/**
+ * @tc.name: UpdateSubSurfaceCnt001
+ * @tc.desc: test UpdateSubSurfaceCnt when info empty
+ * @tc.type: FUNC
+ * @tc.require: issueIBBUDG
+ */
+HWTEST_F(RSMainThreadUnitTest, UpdateSubSurfaceCnt001, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->UpdateSubSurfaceCnt();
+}
+
+/**
+ * @tc.name: UpdateSubSurfaceCnt002
+ * @tc.desc: test UpdateSubSurfaceCnt when addChild
+ * @tc.type: FUNC
+ * @tc.require: issueIBBUDG
+ */
+HWTEST_F(RSMainThreadUnitTest, UpdateSubSurfaceCnt002, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    auto context = mainThread->context_;
+    ASSERT_NE(context, nullptr);
+    const int cnt = 0;
+    const int id = 100;
+    auto rootNode = std::make_shared<RSRenderNode>(id, context);
+
+    auto leashNode = std::make_shared<RSSurfaceRenderNode>(id + 1, context);
+    leashNode->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
+    rootNode->AddChild(leashNode);
+
+    auto appNode = std::make_shared<RSSurfaceRenderNode>(id + 2, context);
+    appNode->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
+    leashNode->AddChild(appNode);
+
+    context->nodeMap.RegisterRenderNode(rootNode);
+    context->nodeMap.RegisterRenderNode(leashNode);
+    context->nodeMap.RegisterRenderNode(appNode);
+
+    mainThread->UpdateSubSurfaceCnt();
+    // cnt + 2: rootNode contain 2 subSurfaceNodes(leash and app)
+    ASSERT_EQ(rootNode->subSurfaceCnt_, cnt + 2);
+}
+
+/**
+ * @tc.name: UpdateSubSurfaceCnt003
+ * @tc.desc: test UpdateSubSurfaceCnt when removeChild
+ * @tc.type: FUNC
+ * @tc.require: issueIBBUDG
+ */
+HWTEST_F(RSMainThreadUnitTest, UpdateSubSurfaceCnt003, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    auto context = mainThread->context_;
+    ASSERT_NE(context, nullptr);
+    const int cnt = 0;
+    const int id = 100;
+    auto rootNode = std::make_shared<RSRenderNode>(id, context);
+
+    auto leashNode = std::make_shared<RSSurfaceRenderNode>(id + 1, context);
+    leashNode->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
+    rootNode->AddChild(leashNode);
+
+    auto appNode = std::make_shared<RSSurfaceRenderNode>(id + 2, context);
+    appNode->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
+    leashNode->AddChild(appNode);
+
+    leashNode->RemoveChild(appNode);
+    rootNode->RemoveChild(leashNode);
+
+    context->nodeMap.RegisterRenderNode(rootNode);
+    context->nodeMap.RegisterRenderNode(leashNode);
+    context->nodeMap.RegisterRenderNode(appNode);
+
+    mainThread->UpdateSubSurfaceCnt();
+    ASSERT_EQ(rootNode->subSurfaceCnt_, cnt);
+}
+
+/**
+ * @tc.name: ClearMemoryCache
+ * @tc.desc: test ClearMemoryCache
+ * @tc.type: FUNC
+ * @tc.require: issueIB8HAQ
+ */
+HWTEST_F(RSMainThreadUnitTest, ClearMemoryCache, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    mainThread->ClearMemoryCache(PROCESS_EXIT, true, -1);
+}
+
+/**
+ * @tc.name: DoDirectComposition
+ * @tc.desc: Test DoDirectComposition
+ * @tc.type: FUNC
+ * @tc.require: issueIB8HAQ
+ */
+HWTEST_F(RSMainThreadUnitTest, DoDirectComposition001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    NodeId rootId = 0;
+    auto rootNode = std::make_shared<RSBaseRenderNode>(rootId);
+    NodeId displayId = 1;
+    RSDisplayNodeConfig config;
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(displayId, config);
+    rootNode->AddChild(displayNode);
+    rootNode->GenerateFullChildrenList();
+
+    bool doDirectComposition = mainThread->DoDirectComposition(rootNode, false);
+    ASSERT_FALSE(doDirectComposition);
+}
+
+/**
+ * @tc.name: DoDirectComposition
+ * @tc.desc: Test DoDirectComposition
+ * @tc.type: FUNC
+ * @tc.require: issueIB8HAQ
+ */
+HWTEST_F(RSMainThreadUnitTest, DoDirectComposition002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    NodeId rootId = 0;
+    auto rootNode = std::make_shared<RSBaseRenderNode>(rootId);
+    NodeId displayId = 1;
+    RSDisplayNodeConfig config;
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(displayId, config);
+    rootNode->AddChild(displayNode);
+    rootNode->GenerateFullChildrenList();
+    auto childNode = RSRenderNode::ReinterpretCast<RSDisplayRenderNode>(rootNode->GetChildren()->front());
+    childNode->SetCompositeType(RSDisplayRenderNode::CompositeType::UNI_RENDER_COMPOSITE);
+
+    bool doDirectComposition = mainThread->DoDirectComposition(rootNode, false);
+    ASSERT_FALSE(doDirectComposition);
+}
+
+/**
+ * @tc.name: MultiDisplayChangeTest
+ * @tc.desc: test MultiDisplayChangeTest
+ * @tc.type: FUNC
+ * @tc.require: issueIBF9OU
+ */
+HWTEST_F(RSMainThreadUnitTest, MultiDisplayChangeTest, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->isMultiDisplayPre_ = false;
+    auto getMultiDisplayStatus = mainThread->GetMultiDisplayStatus();
+    EXPECT_FALSE(getMultiDisplayStatus);
+    mainThread->isMultiDisplayChange_ = false;
+    EXPECT_FALSE(mainThread->GetMultiDisplayChange());
+    mainThread->MultiDisplayChange(getMultiDisplayStatus);
+}
+
+/**
+ * @tc.name: CheckFastCompose
+ * @tc.desc: test CheckFastCompose
+ * @tc.type: FUNC
+ * @tc.require: issueIBGV2W
+ */
+HWTEST_F(RSMainThreadUnitTest, CheckFastCompose001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    auto receiver = mainThread->receiver_;
+    if (mainThread->rsVSyncDistributor_ == nullptr) {
+        auto vsyncGenerator = CreateVSyncGenerator();
+        auto vsyncController = new VSyncController(vsyncGenerator, 0);
+        mainThread->rsVSyncDistributor_ = new VSyncDistributor(vsyncController, "rs");
+    }
+    sptr<VSyncConnection> conn = new VSyncConnection(mainThread->rsVSyncDistributor_, "rs");
+    mainThread->receiver_ = nullptr;
+    mainThread->CheckFastCompose(0);
+    mainThread->receiver_ = std::make_shared<VSyncReceiver>(conn);
+    mainThread->lastFastComposeTimeStamp_ = 0;
+    mainThread->CheckFastCompose(mainThread->timestamp_ - 1);
+    mainThread->lastFastComposeTimeStamp_ = mainThread->timestamp_;
+    mainThread->CheckFastCompose(mainThread->timestamp_ - 1);
+    ASSERT_NE(mainThread->requestNextVsyncNum_.load(), 0);
+    mainThread->receiver_ = receiver;
+}
+
+/**
+ * @tc.name: InitVulkanErrorCallback001Test
+ * @tc.desc: test InitVulkanErrorCallback001Test
+ * @tc.type: FUNC
+ * @tc.require: issueIBOLWU
+ */
+HWTEST_F(RSMainThreadUnitTest, InitVulkanErrorCallback001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    Drawing::GPUContext gpuContext;
+    mainThread->InitVulkanErrorCallback(&gpuContext);
+}
+
+/**
+ * @tc.name: RenderServiceAllSurafceDump01
+ * @tc.desc: RenderServiceAllSurafceDump Test
+ * @tc.type: FUNC
+ * @tc.require: issueIB57QP
+ */
+HWTEST_F(RSMainThreadUnitTest, RenderServiceAllSurafceDump01, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    //prepare nodemap
+    RSSurfaceRenderNodeConfig config;
+    config.id = 1;
+    auto node1 = std::make_shared<RSSurfaceRenderNode>(config);
+    node1->SetIsOnTheTree(true);
+    config.id = 2;
+    auto node2 = std::make_shared<RSSurfaceRenderNode>(config);
+    node2->SetIsOnTheTree(true);
+    mainThread->context_->GetMutableNodeMap().RegisterRenderNode(node1);
+    mainThread->context_->GetMutableNodeMap().RegisterRenderNode(node2);
+
+    DfxString log;
+    mainThread->RenderServiceAllSurafceDump(log);
+}
+
+/**
+ * @tc.name: ExistBufferIsVisibleAndUpdateTest
+ * @tc.desc: RenderServiceAllSurafceDump Test
+ * @tc.type: FUNC
+ * @tc.require: issueIC0AQO
+ */
+HWTEST_F(RSMainThreadUnitTest, ExistBufferIsVisibleAndUpdateTest, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    EXPECT_FALSE(mainThread->ExistBufferIsVisibleAndUpdate());
+    std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledNodes;
+    NodeId id = 0;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id, mainThread->context_);
+    sptr<SurfaceBuffer> preBuffer = SurfaceBuffer::Create();
+    sptr<SyncFence> acquireFence = SyncFence::InvalidFence();
+    Rect damageRect = {0, 0, 0, 0};
+    int64_t timestamp = 0;
+    ASSERT_NE(surfaceNode->surfaceHandler_, nullptr);
+    surfaceNode->surfaceHandler_->SetBuffer(preBuffer, acquireFence, damageRect, timestamp);
+    surfaceNode->surfaceHandler_->isCurrentFrameBufferConsumed_ = true;
+    surfaceNode->lastFrameHasVisibleRegion_ = true;
+    hardwareEnabledNodes.push_back(surfaceNode);
+    mainThread->hardwareEnabledNodes_ = hardwareEnabledNodes;
+    EXPECT_TRUE(mainThread->ExistBufferIsVisibleAndUpdate());
+}
+
+/**
+ * @tc.name: GetForceCommitReasonTest
+ * @tc.desc: GetForceCommitReasonTest
+ * @tc.type: FUNC
+ * @tc.require: issueIC0AQO
+ */
+HWTEST_F(RSMainThreadUnitTest, GetForceCommitReasonTest, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->isHardwareEnabledBufferUpdated_ = false;
+    mainThread->forceUpdateUniRenderFlag_ = false;
+    EXPECT_EQ(mainThread->GetForceCommitReason(), 0);
+    uint32_t forceCommitReason = 0;
+    forceCommitReason |= ForceCommitReason::FORCED_BY_HWC_UPDATE;
+    mainThread->isHardwareEnabledBufferUpdated_ = true;
+    EXPECT_EQ(mainThread->GetForceCommitReason(), forceCommitReason);
+    mainThread->forceUpdateUniRenderFlag_ = true;
+    forceCommitReason |= ForceCommitReason::FORCED_BY_UNI_RENDER_FLAG;
+    EXPECT_EQ(mainThread->GetForceCommitReason(), forceCommitReason);
+}
 } // namespace OHOS::Rosen
