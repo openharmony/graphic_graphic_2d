@@ -114,8 +114,7 @@
           "skia",
           "lz4",
           "faultloggerd",
-          "glslang",
-          "freeytype",
+          "freetype",
           "rust_cxx"
         ],
         "third_party": [
