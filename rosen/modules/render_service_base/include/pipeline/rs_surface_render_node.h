@@ -47,6 +47,9 @@
 #include "sync_fence.h"
 #endif
 #include "ipc_security/rs_ipc_interface_code_access_verifier_base.h"
+#ifdef ENABLE_FULL_SCREEN_RECONGNIZE
+#include "monitor/aps_monitor_impl.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -1551,6 +1554,10 @@ private:
     void UpdateChildHardwareEnabledNode(NodeId id, bool isOnTree);
     std::unordered_set<NodeId> GetAllSubSurfaceNodeIds() const;
     bool IsCurFrameSwitchToPaint();
+#ifdef ENABLE_FULL_SCREEN_RECONGNIZE
+    void SendSurfaceNodeTreeStatus(bool onTree);
+    void SendSurfaceNodeBoundChange();
+#endif
 
     RSSpecialLayerManager specialLayerManager_;
     bool specialLayerChanged_ = false;
@@ -1775,6 +1782,11 @@ private:
     std::vector<std::shared_ptr<RSRenderNode>> filterNodes_;
     std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> drawingCacheNodes_;
     int32_t appWindowZOrder_ = 0;
+    // previous self-Drawing Node Bound
+#ifdef ENABLE_FULL_SCREEN_RECONGNIZE
+    float prevSelfDrawHeight_ = 0.0f;
+    float prevSelfDrawWidth_ = 0.0f;
+#endif
 
     /*
         ContainerWindow configs acquired from arkui, including container window state, screen density, container border

@@ -51,6 +51,7 @@ declare_args() {
   graphic_2d_feature_bootanimation_ext_enable = "default"
   graphic_2d_support_access_token = true
   graphic_2d_feature_overlay_display_enable = false
+  enable_full_screen_recongnize = false
 
   if (defined(is_arkui_x) && is_arkui_x) {
     is_cross_platform = true
@@ -76,6 +77,10 @@ if (graphic_2d_feature_product == "phone" ||
     graphic_2d_feature_product == "tablet" ||
     graphic_2d_feature_product == "wearable") {
   graphic_2d_feature_enable_opinc = true
+}
+
+if (graphic_2d_feature_product == "tablet") {
+  enable_full_screen_recongnize = true
 }
 
 gpu_defines = []
