@@ -21,7 +21,7 @@
 
 namespace OHOS {
 namespace Rosen {
-const std::chrono::steady_clock::duration INTERVAL = 
+const std::chrono::steady_clock::duration INTERVAL =
     std::chrono::duration_cast<std::chrono::steady_clock::duration>(std::chrono::milliseconds(200));
 FrameRateLinkerId RSRenderFrameRateLinker::GenerateId()
 {

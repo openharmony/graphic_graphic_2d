@@ -404,7 +404,7 @@ VsyncError VSyncDistributor::AddConnection(const sptr<VSyncConnection>& connecti
     return VSYNC_ERROR_OK;
 }
 
-sptr<VSyncConnection> GetVSyncConnection(uint64_t id)
+sptr<VSyncConnection> VSyncDistributor::GetVSyncConnection(uint64_t id)
 {
     std::lock_guard<std::mutex> locker(mutex_);
     for (auto conn : connections_) {

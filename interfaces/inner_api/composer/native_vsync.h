@@ -51,8 +51,7 @@ typedef void (*OH_NativeVSync_FrameCallback)(long long timestamp, void *data);
  * @since 20
  * @version 1.0
  */
-
- typedef struct {
+typedef struct {
     /**The minimum frame rate of dynamical callback rate range */
     int32_t min;
     /**The maximum frame rate of dynamical callback rate range */
@@ -185,7 +184,7 @@ int OH_NativeVSync_DVSyncSwitch(OH_NativeVSync* nativeVsync, bool enable);
  * @version 1.0
  */
 
- int OH_NativeVSync_SetExpectedFrameRateRange(OH_NativeVSync* nativeVsync, OH_NativeVSync_ExpectedRateRange *range);
+int OH_NativeVSync_SetExpectedFrameRateRange(OH_NativeVSync* nativeVsync, OH_NativeVSync_ExpectedRateRange *range);
 #ifdef __cplusplus
 }
 #endif
