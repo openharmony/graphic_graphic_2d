@@ -129,8 +129,6 @@ public:
      */
     void Flush();
 
-    void FlushCommands();
-    void GenerateSubmitInfo(int seq);
     /**
      * @brief   Call to ensure all drawing to the context has been submitted to underlying 3D API.
      */

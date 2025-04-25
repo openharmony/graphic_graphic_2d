@@ -61,8 +61,6 @@ public:
 
     void Bind(const Bitmap& bitmap) override;
 
-    void InheriteState(Canvas* canvas) override;
-
     Matrix GetTotalMatrix() const override;
     Rect GetLocalClipBounds() const override;
     RectI GetDeviceClipBounds() const override;
@@ -174,8 +172,6 @@ public:
     void BuildOverDraw(std::shared_ptr<Canvas> canvas) override;
 
     void BuildNoDraw(int32_t width, int32_t height) override;
-
-    void BuildStateInherite(int32_t width, int32_t height) override;
 
     void Reset(int32_t width, int32_t height) override;
 
