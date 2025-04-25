@@ -980,6 +980,7 @@ HWTEST_F(RSScreenManagerTest, RSDump_001, testing::ext::TestSize.Level2)
     ASSERT_STRNE(dumpString.c_str(), empty.c_str());
     dumpString = "";
     screenManager->ClearFpsDump(dumpString, arg);
+    screenManager->DumpCurrentFrameLayers();
     screenManager->ClearFrameBufferIfNeed();
     ASSERT_STRNE(dumpString.c_str(), empty.c_str());
 }

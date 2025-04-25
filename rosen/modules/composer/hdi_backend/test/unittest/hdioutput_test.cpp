@@ -369,6 +369,25 @@ HWTEST_F(HdiOutputTest, DumpFps001, Function | MediumTest | Level1)
 }
 
 /*
+* Function: DumpCurrentFrameLayers001
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1.call DumpCurrentFrameLayers()
+*                  2.no crash
+*/
+HWTEST_F(HdiOutputTest, DumpCurrentFrameLayers001, Function | MediumTest | Level1)
+{
+    std::shared_ptr<HdiOutput> output = HdiOutput::CreateHdiOutput(0);
+    ASSERT_NE(output, nullptr);
+    for (size_t i = 0; i < 3; i++) {
+        output->surfaceIdMap_[i] = HdiLayer::CreateHdiLayer(i);
+        output->surfaceIdMap_[i]->UpdateLayerInfo(HdiLayerInfo::CreateHdiLayerInfo());
+    }
+    output->DumpCurrentFrameLayers();
+}
+
+/*
  * Function: DeletePrevLayersLocked001
  * Type: Function
  * Rank: Important(1)

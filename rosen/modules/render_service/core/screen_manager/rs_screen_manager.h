@@ -76,6 +76,7 @@ public:
 
     virtual void DisplayDump(std::string& dumpString) = 0;
     virtual void SurfaceDump(std::string& dumpString) = 0;
+    virtual void DumpCurrentFrameLayers() = 0;
     virtual void FpsDump(std::string& dumpString, std::string& arg) = 0;
     virtual void ClearFpsDump(std::string& dumpString, std::string& arg) = 0;
     virtual void HitchsDump(std::string& dumpString, std::string& arg) = 0;
@@ -245,6 +246,7 @@ public:
 
     void DisplayDump(std::string& dumpString) override;
     void SurfaceDump(std::string& dumpString) override;
+    void DumpCurrentFrameLayers() override;
     void FpsDump(std::string& dumpString, std::string& arg) override;
     void ClearFpsDump(std::string& dumpString, std::string& arg) override;
     void HitchsDump(std::string& dumpString, std::string& arg) override;

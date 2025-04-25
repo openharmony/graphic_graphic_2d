@@ -807,6 +807,23 @@ void HdiOutput::Dump(std::string &result) const
     CreateVSyncSampler()->Dump(result);
 }
 
+void HdiOutput::DumpCurrentFrameLayers() const
+{
+    std::vector<LayerDumpInfo> dumpLayerInfos;
+    std::unique_lock<std::mutex> lock(mutex_);
+    ReorderLayerInfoLocked(dumpLayerInfos);
+
+    for (const LayerDumpInfo &layerInfo : dumpLayerInfos) {
+        const LayerPtr &layer = layerInfo.layer;
+        if (layer == nullptr || layer->GetLayerInfo() == nullptr ||
+            layer->GetLayerInfo()->GetSurface() == nullptr) {
+            continue;
+        }
+        auto info = layer->GetLayerInfo();
+        info->DumpCurrentFrameLayer();
+    }
+}
+
 void HdiOutput::DumpFps(std::string &result, const std::string &arg) const
 {
     std::vector<LayerDumpInfo> dumpLayerInfos;
