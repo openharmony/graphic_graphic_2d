@@ -1113,8 +1113,8 @@ HWTEST_F(RSSystemPropertiesTest, GetHybridRenderDfxEnabled, TestSize.Level1)
 */
 HWTEST_F(RSSystemPropertiesTest, GetHybridRenderTextBlobLenCount, TestSize.Level1)
 {
-    int test_value = 9;
-    EXPECT_EQ(RSSystemProperties::GetHybridRenderTextBlobLenCount(), test_value);
+    int testValue = 9;
+    EXPECT_EQ(RSSystemProperties::GetHybridRenderTextBlobLenCount(), testValue);
 }
  
 /**
