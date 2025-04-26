@@ -890,26 +890,26 @@ namespace text {
   }
 
   export class TextStyleInternal implements TextStyle {
-    //decoration: Decoration;
-    color: common2D.Color;
-    fontWeight: FontWeight;
-    fontStyle: FontStyle;
-    baseline: TextBaseline;
-    fontFamilies: Array<string>;
-    fontSize: number;
-    letterSpacing: number;
-    wordSpacing: number;
-    heightScale: number;
-    halfLeading: boolean;
-    heightOnly: boolean;
-    ellipsis: string;
-    ellipsisMode: EllipsisMode;
-    locale: string;
-    baselineShift: number;
-    fontFeatures: Array<FontFeature>;
-    //textShadows: Array<TextShadow>;
-    //backgroundRect: RectStyle;
-    //fontVariations: Array<FontVariation>;
+    //decoration?: Decoration;
+    color?: common2D.Color;
+    fontWeight?: FontWeight;
+    fontStyle?: FontStyle;
+    baseline?: TextBaseline;
+    fontFamilies?: Array<string>;
+    fontSize?: number;
+    letterSpacing?: number;
+    wordSpacing?: number;
+    heightScale?: number;
+    halfLeading?: boolean;
+    heightOnly?: boolean;
+    ellipsis?: string;
+    ellipsisMode?: EllipsisMode;
+    locale?: string;
+    baselineShift?: number;
+    fontFeatures?: Array<FontFeature>;
+    //textShadows?: Array<TextShadow>;
+    //backgroundRect?: RectStyle;
+    //fontVariations?: Array<FontVariation>;
   }
 
 

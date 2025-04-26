@@ -132,8 +132,8 @@ ani_object AniConvertTextStyle(ani_env* env, const TextStyle& textStyle)
 {
     ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_TEXT_STYLE_I, ":V");
     //env->Object_SetPropertyByName_Ref(aniObj, "decoration", ani_double(textStyle));
-    env->Object_SetPropertyByName_Double(aniObj, "color", ani_double(textStyle.color.CastToColorQuad()));
-    env->Object_SetPropertyByName_Double(aniObj, "fontWeight", ani_double(textStyle.fontWeight));
+    env->Object_SetPropertyByName_Double(aniObj, "color", ani_int(textStyle.color.CastToColorQuad()));
+    env->Object_SetPropertyByName_Int(aniObj, "fontWeight", ani_size(textStyle.fontWeight));
     env->Object_SetPropertyByName_Double(aniObj, "fontStyle", ani_double(textStyle.fontStyle));
     env->Object_SetPropertyByName_Double(aniObj, "baseline", ani_double(textStyle.baseline));
     //env->Object_SetPropertyByName_Ref(aniObj, "fontFamilies", ani_double(textStyle.fontFamilies));
@@ -178,14 +178,18 @@ ani_object AniConvertFontMetrics(ani_env* env, const Drawing::FontMetrics& fontM
 ani_object AniConvertRunMetrics(ani_env* env, const std::map<size_t, RunMetrics>& map)
 {
     ani_object mapAniObj = AniTextUtils::CreateAniMap(env);
+    ani_ref mapRef = nullptr;
     for (const auto& [key, runMetrics] : map) {
         ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_RUNMETRICS_I, ":V");
         if (runMetrics.textStyle != nullptr) {
             env->Object_SetPropertyByName_Ref(aniObj, "textStyle", AniConvertTextStyle(env, *runMetrics.textStyle));
         }
         //env->Object_SetPropertyByName_Ref(aniObj, "fontMetrics", AniConvertFontMetrics(env, runMetrics.fontMetrics));
-        if (ANI_OK != env->Object_CallMethodByName_Void(mapAniObj, "$_set", ":V", static_cast<uint32_t>(key), aniObj)) {
-            TEXT_LOGE("Object_CallMethodByName_Ref $_set failed");
+        if (ANI_OK
+            != env->Object_CallMethodByName_Ref(mapAniObj, "set", "DLstd/core/Object:Lescompat/Map;", &mapRef,
+                                                AniTextUtils::CreateAniDouble(env, static_cast<ani_double>(key)),
+                                                aniObj)) {
+            TEXT_LOGE("Object_CallMethodByName_Ref set failed");
             break;
         };
     }
@@ -195,15 +199,15 @@ ani_object AniConvertRunMetrics(ani_env* env, const std::map<size_t, RunMetrics>
 ani_object AniConvertLineMetrics(ani_env* env, const LineMetrics& lineMetrics)
 {
     ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_LINEMETRICS_I, ":V");
-    env->Object_SetPropertyByName_Double(aniObj, "startIndex", ani_int(lineMetrics.startIndex));
-    env->Object_SetPropertyByName_Double(aniObj, "endIndex", ani_int(lineMetrics.endIndex));
+    env->Object_SetPropertyByName_Int(aniObj, "startIndex", ani_int(lineMetrics.startIndex));
+    env->Object_SetPropertyByName_Int(aniObj, "endIndex", ani_int(lineMetrics.endIndex));
     env->Object_SetPropertyByName_Double(aniObj, "ascent", ani_double(lineMetrics.ascender));
     env->Object_SetPropertyByName_Double(aniObj, "descent", ani_double(lineMetrics.descender));
     env->Object_SetPropertyByName_Double(aniObj, "height", ani_double(lineMetrics.height));
     env->Object_SetPropertyByName_Double(aniObj, "width", ani_double(lineMetrics.width));
     env->Object_SetPropertyByName_Double(aniObj, "left", ani_double(lineMetrics.x));
     env->Object_SetPropertyByName_Double(aniObj, "baseline", ani_double(lineMetrics.baseline));
-    env->Object_SetPropertyByName_Double(aniObj, "lineNumber", ani_int(lineMetrics.lineNumber));
+    env->Object_SetPropertyByName_Int(aniObj, "lineNumber", ani_int(lineMetrics.lineNumber));
     env->Object_SetPropertyByName_Double(aniObj, "topHeight", ani_double(lineMetrics.y));
     env->Object_SetPropertyByName_Ref(aniObj, "runMetrics", AniConvertRunMetrics(env, lineMetrics.runMetrics));
     return aniObj;
@@ -221,7 +225,7 @@ ani_ref AniParagraph::GetLineMetrics(ani_env* env, ani_object object)
     arrayObj = AniTextUtils::CreateAniArray(env, vectorLineMetrics.size());
     ani_boolean isUndefined;
     env->Reference_IsUndefined(arrayObj, &isUndefined);
-    if (!isUndefined) {
+    if (isUndefined) {
         TEXT_LOGE("Create arrayObject failed");
         return arrayObj;
     }
