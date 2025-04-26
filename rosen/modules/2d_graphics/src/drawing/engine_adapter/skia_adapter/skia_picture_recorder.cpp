@@ -38,7 +38,11 @@ std::shared_ptr<Canvas> SkiaPictureRecorder::BeginRecording(float width, float h
     }
     auto skCanvas = skPictureRecorder_->beginRecording(width, height);
     auto canvas = std::make_shared<Canvas>();
-    canvas->GetImpl<SkiaCanvas>()->ImportSkCanvas(skCanvas);
+    auto skiaCanvas = canvas->GetImpl<SkiaCanvas>();
+    if (skiaCanvas == nullptr) {
+        return nullptr;
+    }
+    skiaCanvas->ImportSkCanvas(skCanvas);
     return canvas;
 }
 
@@ -49,7 +53,11 @@ std::shared_ptr<Picture> SkiaPictureRecorder::FinishRecordingAsPicture()
     }
     auto skPicture = skPictureRecorder_->finishRecordingAsPicture();
     auto picture = std::make_shared<Picture>();
-    picture->GetImpl<SkiaPicture>()->SetSkPicture(skPicture);
+    auto skiaPicture = picture->GetImpl<SkiaPicture>();
+    if (skiaPicture == nullptr) {
+        return nullptr;
+    }
+    skiaPicture->SetSkPicture(skPicture);
     return picture;
 }
 } // namespace Drawing
