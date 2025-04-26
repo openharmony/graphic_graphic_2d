@@ -79,7 +79,7 @@ ani_object AniTextUtils::CreateAniMap(ani_env* env)
     return AniTextUtils::CreateAniObject(env, "Lescompat/Map;", ":V");
 }
 
-ani_object AniTextUtils::CreateAniDouble(ani_env* env, ani_double val)
+ani_object AniTextUtils::CreateAniDoubleObj(ani_env* env, ani_double val)
 {
     return AniTextUtils::CreateAniObject(env, "Lstd/core/Double;", "D:V", val);
 }

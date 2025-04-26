@@ -32,7 +32,7 @@ public:
     static ani_object CreateAniObject(ani_env* env, const std::string name, const char* signature, ...);
     static ani_object CreateAniArray(ani_env* env, size_t size);
     static ani_object CreateAniMap(ani_env* env);
-    static ani_object CreateAniDouble(ani_env* env, ani_double val);
+    static ani_object CreateAniDoubleObj(ani_env* env, ani_double val);
     static std::string AniToStdStringUtf8(ani_env* env, ani_string str);
     static std::u16string AniToStdStringUtf16(ani_env* env, ani_string str);
     static bool ReadFile(const std::string& filePath, size_t dataLen, std::unique_ptr<uint8_t[]>& data);
@@ -89,7 +89,6 @@ ani_status AniTextUtils::ReadOptionalArrayField(ani_env* env, ani_object obj, co
     ani_ref ref = nullptr;
     ani_status result = AniTextUtils::ReadOptionalField(env, obj, fieldName, ref);
     if (result != ANI_OK || ref == nullptr) {
-        TEXT_LOGE("[ANI] ReadOptionalField failed");
         return result;
     }
 
@@ -102,9 +101,9 @@ ani_status AniTextUtils::ReadOptionalArrayField(ani_env* env, ani_object obj, co
     }
 
     for (size_t i = 0; i < static_cast<size_t>(length); i++) {
-        ani_ref entryRef;
+        ani_ref entryRef = nullptr;
         result = env->Object_CallMethodByName_Ref(arrayObj, "$_get", "I:Lstd/core/Object;", &entryRef, i);
-        if (result != ANI_OK) {
+        if (result != ANI_OK || entryRef == nullptr) {
             TEXT_LOGE("[ANI] get array object failed");
             return result;
         }

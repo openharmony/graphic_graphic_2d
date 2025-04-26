@@ -186,9 +186,9 @@ ani_object AniConvertRunMetrics(ani_env* env, const std::map<size_t, RunMetrics>
         }
         //env->Object_SetPropertyByName_Ref(aniObj, "fontMetrics", AniConvertFontMetrics(env, runMetrics.fontMetrics));
         if (ANI_OK
-            != env->Object_CallMethodByName_Ref(mapAniObj, "set", "DLstd/core/Object:Lescompat/Map;", &mapRef,
-                                                AniTextUtils::CreateAniDouble(env, static_cast<ani_double>(key)),
-                                                aniObj)) {
+            != env->Object_CallMethodByName_Ref(
+                mapAniObj, "set", "Lstd/core/Object;Lstd/core/Object;:Lescompat/Map;", &mapRef,
+                AniTextUtils::CreateAniDoubleObj(env, static_cast<ani_double>(key)), aniObj)) {
             TEXT_LOGE("Object_CallMethodByName_Ref set failed");
             break;
         };

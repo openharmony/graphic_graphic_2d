@@ -741,7 +741,7 @@ namespace text {
      * @syscap SystemCapability.Graphics.Drawing
      * @since 12
      */
-    //color?: common2D.Color;
+    color?: common2D.Color;
 
     /**
      * Font weight of text.
@@ -878,7 +878,7 @@ namespace text {
      * @syscap SystemCapability.Graphics.Drawing
      * @since 12
      */
-    //backgroundRect?: RectStyle;
+    backgroundRect?: RectStyle;
 
     /**
      * Text Style available font variations.
@@ -886,11 +886,11 @@ namespace text {
      * @syscap SystemCapability.Graphics.Drawing
      * @since 12
      */
-    //fontVariations?: Array<FontVariation>;
+    fontVariations?: Array<FontVariation>;
   }
 
   export class TextStyleInternal implements TextStyle {
-    //decoration?: Decoration;
+    decoration?: Decoration;
     color?: common2D.Color;
     fontWeight?: FontWeight;
     fontStyle?: FontStyle;
@@ -907,9 +907,9 @@ namespace text {
     locale?: string;
     baselineShift?: number;
     fontFeatures?: Array<FontFeature>;
-    //textShadows?: Array<TextShadow>;
-    //backgroundRect?: RectStyle;
-    //fontVariations?: Array<FontVariation>;
+    textShadows?: Array<TextShadow>;
+    backgroundRect?: RectStyle;
+    fontVariations?: Array<FontVariation>;
   }
 
 
@@ -1347,5 +1347,76 @@ namespace text {
   export class RunMetricsInternal implements RunMetrics {
     textStyle: TextStyle;
     fontMetrics: drawing.FontMetrics;
+  }
+
+  /**
+   * Describes rect style of text.
+   * @typedef RectStyle
+   * @syscap SystemCapability.Graphics.Drawing
+   * @since 12
+   */
+  export interface RectStyle {
+    /**
+     * The color of rect style.
+     * @type { common2D.Color } The color of rect style
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    color: common2D.Color;
+
+    /**
+     * Radius in left top of rect style.
+     * @type { number } it is double type data
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    leftTopRadius: number;
+
+    /**
+     * Radius in right top of rect style.
+     * @type { number } it is double type data
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    rightTopRadius: number;
+
+    /**
+     * Radius in right bottom of rect style.
+     * @type { number } it is double type data
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    rightBottomRadius: number;
+
+    /**
+     * Radius in left bottom of rect style.
+     * @type { number } it is double type data
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    leftBottomRadius: number;
+  }
+
+  /**
+   * Describes font variation of text.
+   * @typedef FontVariation
+   * @syscap SystemCapability.Graphics.Drawing
+   * @since 12
+   */
+  export interface FontVariation {
+    /**
+     * The axis of font variation.
+     * @type { string } variation axis
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    axis: string;
+    /**
+     * The value of font variation.
+     * @type { number } variation value
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    value: number;
   }
 }

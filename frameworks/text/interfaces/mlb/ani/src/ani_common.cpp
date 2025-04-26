@@ -19,6 +19,7 @@
 #include "ani.h"
 #include "ani_common.h"
 #include "ani_text_utils.h"
+#include "text_style.h"
 #include "typography_types.h"
 #include "utils/text_log.h"
 
@@ -143,8 +144,6 @@ std::unique_ptr<TextStyle> AniCommon::ParseTextStyle(ani_env* env, ani_object ob
         SetTextColor(env, static_cast<ani_object>(decorationRef), "color", textStyle->decorationColor);
     }
 
-    ParseTextShadow(env, obj, textStyle->shadows);
-
     ani_ref colorRef = nullptr;
     if (AniTextUtils::ReadOptionalField(env, obj, "color", colorRef) == ANI_OK && colorRef != nullptr) {
         ParseDrawingColor(env, static_cast<ani_object>(colorRef), textStyle->color);
@@ -171,7 +170,15 @@ std::unique_ptr<TextStyle> AniCommon::ParseTextStyle(ani_env* env, ani_object ob
     AniTextUtils::ReadOptionalEnumField(env, obj, "ellipsisMode", textStyle->ellipsisModal);
     AniTextUtils::ReadOptionalStringField(env, obj, "locale", textStyle->locale);
     AniTextUtils::ReadOptionalDoubleField(env, obj, "baselineShift", textStyle->baseLineShift);
+    ParseTextShadow(env, obj, textStyle->shadows);
     ParseFontFeature(env, obj, textStyle->fontFeatures);
+    ParseFontVariation(env, obj, textStyle->fontVariations);
+
+    ani_ref backgroundRectRef = nullptr;
+    if (AniTextUtils::ReadOptionalField(env, obj, "backgroundRect", backgroundRectRef) == ANI_OK
+        && backgroundRectRef != nullptr) {
+        ParseRectStyle(env, static_cast<ani_object>(backgroundRectRef), textStyle->backgroundRect);
+    }
 
     return textStyle;
 }
@@ -306,7 +313,7 @@ void AniCommon::ParseFontFeature(ani_env* env, ani_object obj, FontFeatures& fon
                 return "";
             }
             ani_boolean isObj = false;
-            ret = env->Object_InstanceOf(static_cast<ani_object>(ref), cls, &isObj);
+            ret = env->Object_InstanceOf(obj, cls, &isObj);
             if (!isObj) {
                 TEXT_LOGE("[ANI] Object mismatch:%{public}d", ret);
                 return "";
@@ -319,13 +326,71 @@ void AniCommon::ParseFontFeature(ani_env* env, ani_object obj, FontFeatures& fon
             }
             std::string name = AniTextUtils::AniToStdStringUtf8(env, static_cast<ani_string>(nameRef));
             ani_double valueDouble;
-            ret = env->Object_GetFieldByName_Double(obj, "value", &valueDouble);
+            ret = env->Object_GetPropertyByName_Double(obj, "value", &valueDouble);
             if (ret != ANI_OK) {
-                TEXT_LOGE("[ANI] get filed name failed:%{public}d", ret);
+                TEXT_LOGE("[ANI] get filed value failed:%{public}d", ret);
                 return "";
             }
             fontFeatures.SetFeature(name, static_cast<int>(valueDouble));
             return "";
         });
+}
+
+void AniCommon::ParseFontVariation(ani_env* env, ani_object obj, FontVariations& fontVariations)
+{
+    std::vector<std::string> array;
+    AniTextUtils::ReadOptionalArrayField<std::string>(
+        env, obj, "fontVariations", array, [&fontVariations](ani_env* env, ani_ref ref) {
+            ani_object obj = static_cast<ani_object>(ref);
+            ani_class cls;
+            ani_status ret;
+            ret = env->FindClass(ANI_CLASS_FONT_VARIATION, &cls);
+            if (ret != ANI_OK) {
+                TEXT_LOGE("[ANI] can't find class:%{public}d", ret);
+                return "";
+            }
+            ani_boolean isObj = false;
+            ret = env->Object_InstanceOf(obj, cls, &isObj);
+            if (!isObj) {
+                TEXT_LOGE("[ANI] Object mismatch:%{public}d", ret);
+                return "";
+            }
+            ani_ref axisRef = nullptr;
+            ret = env->Object_GetPropertyByName_Ref(obj, "axis", &axisRef);
+            if (ret != ANI_OK) {
+                TEXT_LOGE("[ANI] get filed axis failed:%{public}d", ret);
+                return "";
+            }
+            std::string axis = AniTextUtils::AniToStdStringUtf8(env, static_cast<ani_string>(axisRef));
+            ani_double valueDouble;
+            ret = env->Object_GetPropertyByName_Double(obj, "value", &valueDouble);
+            if (ret != ANI_OK) {
+                TEXT_LOGE("[ANI] get filed value failed:%{public}d", ret);
+                return "";
+            }
+            fontVariations.SetAxisValue(axis, static_cast<int>(valueDouble));
+            return "";
+        });
+}
+
+void AniCommon::ParseRectStyle(ani_env* env, ani_object obj, RectStyle& rectStyle)
+{
+    ani_class cls;
+    ani_status ret;
+    ret = env->FindClass(ANI_CLASS_RECT_STYLE, &cls);
+    if (ret != ANI_OK) {
+        TEXT_LOGE("[ANI] can't find class:%{public}d", ret);
+        return;
+    }
+    ani_boolean isObj = false;
+    ret = env->Object_InstanceOf(obj, cls, &isObj);
+    if (!isObj) {
+        TEXT_LOGE("[ANI] Object mismatch:%{public}d", ret);
+        return;
+    }
+    env->Object_GetPropertyByName_Double(obj, "leftTopRadius", &rectStyle.leftTopRadius);
+    env->Object_GetPropertyByName_Double(obj, "rightTopRadius", &rectStyle.rightTopRadius);
+    env->Object_GetPropertyByName_Double(obj, "rightBottomRadius", &rectStyle.rightBottomRadius);
+    env->Object_GetPropertyByName_Double(obj, "leftBottomRadius", &rectStyle.leftBottomRadius);
 }
 } // namespace OHOS::Text::NAI

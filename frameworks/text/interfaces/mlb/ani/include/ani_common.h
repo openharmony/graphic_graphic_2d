@@ -18,6 +18,7 @@
 
 #include <ani.h>
 
+#include "text_style.h"
 #include "typography_style.h"
 namespace OHOS::Text::NAI {
 using namespace OHOS::Rosen;
@@ -32,10 +33,12 @@ inline constexpr const char* ANI_CLASS_TEXT_STYLE = "L@ohos/graphics/text/text/T
 inline constexpr const char* ANI_CLASS_TEXT_STYLE_I = "L@ohos/graphics/text/text/TextStyleInternal;";
 inline constexpr const char* ANI_CLASS_FONT_COLLECTION = "L@ohos/graphics/text/text/FontCollection;";
 inline constexpr const char* ANI_CLASS_FONTFEATURE = "L@ohos/graphics/text/text/FontFeature;";
+inline constexpr const char* ANI_CLASS_FONT_VARIATION = "L@ohos/graphics/text/text/FontVariation;";
 inline constexpr const char* ANI_CLASS_CANVAS = "L@ohos/graphics/drawing/drawing/Canvas;";
 inline constexpr const char* ANI_CLASS_PATH = "L@ohos/graphics/drawing/drawing/Path;";
 inline constexpr const char* ANI_CLASS_FONT_METRICS = "L@ohos/graphics/drawing/drawing/FontMetrics;";
 inline constexpr const char* ANI_CLASS_TEXTSHADOW = "L@ohos/graphics/text/text/TextShadow;";
+inline constexpr const char* ANI_CLASS_RECT_STYLE = "L@ohos/graphics/text/text/RectStyle;";
 
 class AniCommon {
 public:
@@ -43,11 +46,14 @@ public:
     static std::unique_ptr<TextStyle> ParseTextStyle(ani_env* env, ani_object obj);
     static void ParseDrawingColor(ani_env* env, ani_object obj, Drawing::Color& color);
     static void ParseFontFeature(ani_env* env, ani_object obj, FontFeatures& fontFeatures);
-    static void SetParagraphStyleStrutStyle(ani_env* env, ani_object obj, std::unique_ptr<TypographyStyle>& paragraphStyle);
+    static void ParseFontVariation(ani_env* env, ani_object obj, FontVariations& fontVariations);
+    static void SetParagraphStyleStrutStyle(ani_env* env, ani_object obj,
+                                            std::unique_ptr<TypographyStyle>& paragraphStyle);
     static void SetParagraphStyleTab(ani_env* env, ani_object obj, std::unique_ptr<TypographyStyle>& paragraphStyle);
     static void SetFontFamilies(ani_env* env, ani_array_ref obj, std::vector<std::string>& paragraphStyle);
     static void ParseTextShadow(ani_env* env, ani_object obj, std::vector<TextShadow>& textShadow);
     static void SetTextColor(ani_env* env, ani_object obj, const std::string& str, Drawing::Color& colorSrc);
+    static void ParseRectStyle(ani_env* env, ani_object obj, RectStyle& rectStyle);
 };
 } // namespace OHOS::Text::NAI
 #endif // OHOS_ROSEN_ANI_COMMON_H

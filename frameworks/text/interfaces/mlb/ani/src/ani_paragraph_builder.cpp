@@ -48,7 +48,6 @@ void AniParagraphBuilder::Constructor(ani_env* env, ani_object object, ani_objec
         TEXT_LOGE("Failed to parse typographyStyle");
         return;
     }
-    TEXT_LOGE("Print maxLine:%{public}zu", typographyStyleNative->maxLines);
     AniFontCollection* aniFontCollection = AniTextUtils::GetNativeFromObj<AniFontCollection>(env, fontCollection);
     if (aniFontCollection == nullptr || aniFontCollection->GetFontCollection() == nullptr) {
         TEXT_LOGE("FontCollection is null");
