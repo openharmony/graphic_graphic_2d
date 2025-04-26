@@ -134,6 +134,13 @@ std::unique_ptr<TextStyle> AniCommon::ParseTextStyle(ani_env* env, ani_object ob
         return nullptr;
     }
     std::unique_ptr<TextStyle> textStyle = std::make_unique<TextStyle>();
+    
+    ani_ref decorationRef = nullptr;
+    if (AniTextUtils::ReadOptionalField(env, obj, "decoration", decorationRef) == ANI_OK && decorationRef != nullptr) {
+        AniTextUtils::ReadOptionalEnumField(env, static_cast<ani_object>(decorationRef), "textDecoration", textStyle->decoration);
+    }
+
+    ParseTextShadow(env, obj, textStyle->shadows);
 
     ani_ref colorRef = nullptr;
     if (AniTextUtils::ReadOptionalField(env, obj, "color", colorRef) == ANI_OK && colorRef != nullptr) {
@@ -164,6 +171,109 @@ std::unique_ptr<TextStyle> AniCommon::ParseTextStyle(ani_env* env, ani_object ob
     ParseFontFeature(env, obj, textStyle->fontFeatures);
 
     return textStyle;
+}
+
+inline void GetPointXFromJsBumber(ani_env* env, ani_object argValue, Drawing::Point& point)
+{
+    ani_double objValue{0};
+    double targetX = 0;
+    ani_status ret;
+    ret = env->Object_GetPropertyByName_Double(argValue, "x", &objValue);
+    if (ret != ANI_OK) {
+        TEXT_LOGE("[ANI] The Parameter of number y about JsPoint is invalid:%{public}d", ret);
+        return;
+    }
+    targetX = static_cast<double>(objValue);
+    point.SetX(targetX);
+}
+
+inline void GetPointYFromJsBumber(ani_env* env, ani_object argValue, Drawing::Point& point)
+{
+    ani_double objValue{0};
+    double targetY = 0;
+    ani_status ret;
+    ret = env->Object_GetPropertyByName_Double(argValue, "y", &objValue);
+    if (ret != ANI_OK) {
+        TEXT_LOGE("[ANI] The Parameter of number y about JsPoint is invalid:%{public}d", ret);
+        return;
+    }
+    targetY = static_cast<double>(objValue);
+    point.SetY(targetY);
+}
+
+inline void GetTextShadowPoint(ani_env* env, ani_object obj, Drawing::Point& point)
+{
+    GetPointXFromJsBumber(env, obj, point);
+    GetPointYFromJsBumber(env, obj, point);
+}
+
+void AniCommon::ParseTextShadow(ani_env* env, ani_object obj, std::vector<TextShadow>& textShadow)
+{
+    std::vector<std::string> array;
+    AniTextUtils::ReadOptionalArrayField<std::string>(
+        env, obj, "textShadows", array, [&textShadow](ani_env* env, ani_ref ref) {
+            ani_object obj = static_cast<ani_object>(ref);
+            ani_class cls;
+            ani_status ret;
+            ret = env->FindClass(ANI_CLASS_TEXTSHADOW, &cls);
+            if(ret != ANI_OK) {
+                TEXT_LOGE("[ANI] can't find class:%{public}d", ret);
+                return "";
+            }
+            ani_boolean isObj = false;
+            ret = env->Object_InstanceOf(static_cast<ani_object>(ref), cls, &isObj);
+            if (!isObj) {
+                TEXT_LOGE("[ANI] Object mismatch:%{public}d", ret);
+                return "";
+            }
+
+            double runTimeRadius;
+            AniTextUtils::ReadOptionalDoubleField(env, obj, "blurRadius", runTimeRadius);
+            
+            Drawing::Color colorSrc = OHOS::Rosen::Drawing::Color::COLOR_BLACK;
+            SetTextShadowColor(env, obj, "color", colorSrc);
+
+            ani_ref pointValue = nullptr;
+            AniTextUtils::ReadOptionalField(env, obj, "point", pointValue);
+            Drawing::Point offset(0,0);
+            GetTextShadowPoint(env, static_cast<ani_object>(pointValue), offset);
+
+            textShadow.emplace_back(TextShadow(colorSrc, offset, runTimeRadius));
+            return "";
+        }
+    );
+}
+
+inline void ConvertClampFromJsValue(ani_env* env, ani_double jsValue, int32_t& value, int32_t lo, int32_t hi)
+{
+    value =static_cast<int32_t>(jsValue);
+    value = std::clamp(value, lo, hi);
+}
+
+void AniCommon::SetTextShadowColor(ani_env* env, ani_object obj, const std::string& str, Drawing::Color& colorSrc)
+{
+    ani_ref tempValue =nullptr;
+    ani_double tempValueChild{0};
+    env->Object_GetPropertyByName_Ref(obj, str.c_str(), &tempValue);
+    if (tempValue == nullptr) {
+        TEXT_LOGE("[ANI] set text shadow color faild");
+        return;//false
+    }
+    int32_t alpha = 0;
+    int32_t red = 0;
+    int32_t green = 0;
+    int32_t blue = 0;
+    env->Object_GetPropertyByName_Double(static_cast<ani_object>(tempValue), "alpha", &tempValueChild);
+    ConvertClampFromJsValue(env, tempValueChild, alpha, 0, Drawing::Color::RGB_MAX);
+    env->Object_GetPropertyByName_Double(static_cast<ani_object>(tempValue), "red", &tempValueChild);
+    ConvertClampFromJsValue(env, tempValueChild, red, 0, Drawing::Color::RGB_MAX);
+    env->Object_GetPropertyByName_Double(static_cast<ani_object>(tempValue), "green", &tempValueChild);
+    ConvertClampFromJsValue(env, tempValueChild, green, 0, Drawing::Color::RGB_MAX);
+    env->Object_GetPropertyByName_Double(static_cast<ani_object>(tempValue), "blue", &tempValueChild);
+    ConvertClampFromJsValue(env, tempValueChild, blue, 0, Drawing::Color::RGB_MAX);
+
+    Drawing::Color color(Drawing::Color::ColorQuadSetARGB(alpha, red, green, blue));
+    colorSrc = color;
 }
 
 void AniCommon::ParseDrawingColor(ani_env* env, ani_object obj, Drawing::Color& color)
