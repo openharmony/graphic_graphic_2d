@@ -405,6 +405,16 @@ void SkiaPath::SetPath(const SkPath& path)
     isChanged_ = true;
 }
 
+void SkiaPath::SetPath(const Path& path)
+{
+    auto skiaPathImpl = path.GetImpl<SkiaPath>();
+    if (skiaPathImpl == nullptr) {
+        return;
+    }
+    auto skPath = skiaPathImpl->GetPath();
+    path_ = skPath;
+}
+
 const SkPath& SkiaPath::GetPath() const
 {
     return path_;
@@ -472,6 +482,18 @@ bool SkiaPath::IsClosed(bool forceClosed)
 {
     PathMeasureUpdate(forceClosed);
     return pathMeasure_->isClosed();
+}
+
+bool SkiaPath::IsEmpty()
+{
+    return path_.isEmpty();
+}
+
+bool SkiaPath::IsRect(Rect* rect, bool* isClosed, PathDirection* direction)
+{
+    SkPathDirection* skDirection = reinterpret_cast<SkPathDirection*>(direction);
+    SkRect* skRect = reinterpret_cast<SkRect*>(rect);
+    return path_.isRect(skRect, isClosed, skDirection);
 }
 
 bool SkiaPath::GetMatrix(bool forceClosed, float distance, Matrix* matrix, PathMeasureMatrixFlags flag)

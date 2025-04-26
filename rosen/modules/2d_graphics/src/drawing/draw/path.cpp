@@ -290,6 +290,21 @@ bool Path::IsClosed(bool forceClosed) const
     return impl_->IsClosed(forceClosed);
 }
 
+bool Path::IsEmpty() const
+{
+    return impl_->IsEmpty();
+}
+
+bool Path::IsRect(Rect* rect, bool* isClosed, PathDirection* direction) const
+{
+    return impl_->IsRect(rect, isClosed, direction);
+}
+
+void Path::SetPath(const Path& path)
+{
+    return impl_->SetPath(path);
+}
+
 bool Path::GetMatrix(bool forceClosed, float distance, Matrix* matrix, PathMeasureMatrixFlags flag)
 {
     return impl_->GetMatrix(forceClosed, distance, matrix, flag);

@@ -515,6 +515,12 @@ public:
      */
     bool IsClosed(bool forceClosed) const;
 
+    bool IsEmpty() const;
+
+    void SetPath(const Path& path);
+
+    bool IsRect(Rect* rect, bool* isClosed = nullptr, PathDirection* direction = nullptr) const;
+
     bool GetMatrix(bool forceClosed, float distance, Matrix* matrix,
         PathMeasureMatrixFlags flags = PathMeasureMatrixFlags::GET_POS_AND_TAN_MATRIX);
 

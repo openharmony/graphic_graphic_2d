@@ -204,9 +204,15 @@ bool PathFuzzTest003(const uint8_t* data, size_t size)
     float right = GetObject<float>();
     float bottom = GetObject<float>();
     Rect rect { left, top, right, bottom };
+    bool isClosed = GetObject<bool>();
     uint32_t direction = GetObject<uint32_t>();
     path.AddRect(rect, static_cast<PathDirection>(direction % DIRECTION_SIZE));
     uint32_t start = GetObject<uint32_t>();
+    path.IsRect(&rect, nullptr, nullptr);
+    auto dir = static_cast<PathDirection>(direction % DIRECTION_SIZE);
+    path.IsRect(nullptr, &isClosed, &dir);
+    path.IsRect(&rect, &isClosed, &dir);
+    path.IsRect(&rect, &isClosed, nullptr);
     path.AddRect(rect, start, static_cast<PathDirection>(direction % DIRECTION_SIZE));
     path.AddRect(left, top, right, bottom, static_cast<PathDirection>(direction % DIRECTION_SIZE));
     path.AddOval(rect, static_cast<PathDirection>(direction % DIRECTION_SIZE));
@@ -354,6 +360,8 @@ bool PathFuzzTest006(const uint8_t* data, size_t size)
 /*
  * 测试以下 Path 接口：
  * 1. GetSegment(...)
+ * 2. IsEmpty()
+ * 3. SetPath(...)
  */
 bool PathFuzzTest007(const uint8_t* data, size_t size)
 {
@@ -367,12 +375,15 @@ bool PathFuzzTest007(const uint8_t* data, size_t size)
     g_pos = 0;
 
     Path path;
+    path.IsEmpty();
     path.MoveTo(GetObject<scalar>(), GetObject<scalar>());
     path.LineTo(GetObject<scalar>(), GetObject<scalar>());
     path.LineTo(GetObject<scalar>(), GetObject<scalar>());
+    path.IsEmpty();
     Path newPath;
     path.GetSegment(GetObject<scalar>(), GetObject<scalar>(), &newPath, GetObject<bool>(), GetObject<bool>());
     path.GetSegment(GetObject<scalar>(), GetObject<scalar>(), nullptr, GetObject<bool>(), GetObject<bool>());
+    newPath.SetPath(path);
     return true;
 }
 } // namespace Drawing

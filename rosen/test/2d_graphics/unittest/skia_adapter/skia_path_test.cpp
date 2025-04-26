@@ -212,12 +212,12 @@ HWTEST_F(SkiaPathTest, SkiaPathGetPositionAndTangent002, TestSize.Level1)
 }
 
 /**
- * @tc.name: SkiaPathIsClosed003
+ * @tc.name: SkiaPathIsClosed001
  * @tc.desc: Test IsClosed
  * @tc.type: FUNC
  * @tc.require: I8VQSW
  */
-HWTEST_F(SkiaPathTest, SkiaPathIsClosed003, TestSize.Level1)
+HWTEST_F(SkiaPathTest, SkiaPathIsClosed001, TestSize.Level1)
 {
     SkiaPath skiaPath;
     bool ret = false;
@@ -257,6 +257,51 @@ HWTEST_F(SkiaPathTest, SkiaPathGetMatrix004, TestSize.Level1)
     ret = skiaPath.GetMatrix(true, 10, &matrix, PathMeasureMatrixFlags::GET_POSITION_MATRIX); // 10: distance
     EXPECT_TRUE(ret);
 }
+
+/**
+ * @tc.name: SkiaPathIsEmpty001
+ * @tc.desc: Test IsEmpty
+ * @tc.type: FUNC
+ * @tc.require: I8VQSW
+ */
+HWTEST_F(SkiaPathTest, SkiaPathIsEmpty001, TestSize.Level1)
+{
+    SkiaPath skiaPath;
+    ASSERT_TRUE(skiaPath.IsEmpty());
+    SkiaPath skiaPath1;
+    skiaPath1.MoveTo(1.0f, 2.0f);
+    skiaPath1.LineTo(3.0f, 4.0f);
+    ASSERT_FALSE(skiaPath1.IsEmpty());
+}
+
+/**
+ * @tc.name: SkiaPathIsRect001
+ * @tc.desc: Test GetMatrix
+ * @tc.type: FUNC
+ * @tc.require: I8VQSW
+ */
+HWTEST_F(SkiaPathTest, SkiaPathIsRect001, TestSize.Level1)
+{
+    SkiaPath skiaPath1;
+    Rect rect;
+    bool isClosed = false;
+    PathDirection dir;
+    skiaPath1.MoveTo(1.0f, 2.0f);
+    skiaPath1.LineTo(2.0f, 2.0f);
+    skiaPath1.LineTo(2.0f, 3.0f);
+    skiaPath1.LineTo(1.0f, 3.0f);
+    skiaPath1.LineTo(1.0f, 2.0f);
+    ASSERT_TRUE(skiaPath1.IsRect(&rect, &isClosed, &dir));
+    SkiaPath skiaPath2;
+    skiaPath2.MoveTo(1.0f, 2.0f);
+    skiaPath2.LineTo(2.0f, 2.0f);
+    ASSERT_FALSE(skiaPath2.IsRect(&rect, nullptr, nullptr));
+    ASSERT_FALSE(skiaPath2.IsRect(&rect, &isClosed, nullptr));
+    ASSERT_FALSE(skiaPath2.IsRect(&rect, &isClosed, &dir));
+    ASSERT_FALSE(skiaPath2.IsRect(&rect, &isClosed, nullptr));
+    ASSERT_FALSE(skiaPath2.IsRect(&rect, nullptr, &dir));
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
