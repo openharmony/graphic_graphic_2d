@@ -47,7 +47,7 @@ public:
     static void SetParagraphStyleTab(ani_env* env, ani_object obj, std::unique_ptr<TypographyStyle>& paragraphStyle);
     static void SetFontFamilies(ani_env* env, ani_array_ref obj, std::vector<std::string>& paragraphStyle);
     static void ParseTextShadow(ani_env* env, ani_object obj, std::vector<TextShadow>& textShadow);
-    static void SetTextShadowColor(ani_env* env, ani_object obj, const std::string& str, Drawing::Color& colorSrc);
+    static void SetTextColor(ani_env* env, ani_object obj, const std::string& str, Drawing::Color& colorSrc);
 };
 } // namespace OHOS::Text::NAI
 #endif // OHOS_ROSEN_ANI_COMMON_H

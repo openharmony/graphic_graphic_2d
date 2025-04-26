@@ -138,6 +138,9 @@ std::unique_ptr<TextStyle> AniCommon::ParseTextStyle(ani_env* env, ani_object ob
     ani_ref decorationRef = nullptr;
     if (AniTextUtils::ReadOptionalField(env, obj, "decoration", decorationRef) == ANI_OK && decorationRef != nullptr) {
         AniTextUtils::ReadOptionalEnumField(env, static_cast<ani_object>(decorationRef), "textDecoration", textStyle->decoration);
+        AniTextUtils::ReadOptionalEnumField(env, static_cast<ani_object>(decorationRef), "decorationStyle", textStyle->decorationStyle);
+        AniTextUtils::ReadOptionalEnumField(env, static_cast<ani_object>(decorationRef), "decorationThicknessScale", textStyle->decorationThicknessScale);
+        SetTextColor(env, static_cast<ani_object>(decorationRef), "color", textStyle->decorationColor);
     }
 
     ParseTextShadow(env, obj, textStyle->shadows);
@@ -176,29 +179,25 @@ std::unique_ptr<TextStyle> AniCommon::ParseTextStyle(ani_env* env, ani_object ob
 inline void GetPointXFromJsBumber(ani_env* env, ani_object argValue, Drawing::Point& point)
 {
     ani_double objValue{0};
-    double targetX = 0;
     ani_status ret;
     ret = env->Object_GetPropertyByName_Double(argValue, "x", &objValue);
     if (ret != ANI_OK) {
         TEXT_LOGE("[ANI] The Parameter of number y about JsPoint is invalid:%{public}d", ret);
         return;
     }
-    targetX = static_cast<double>(objValue);
-    point.SetX(targetX);
+    point.SetX(objValue);
 }
 
 inline void GetPointYFromJsBumber(ani_env* env, ani_object argValue, Drawing::Point& point)
 {
     ani_double objValue{0};
-    double targetY = 0;
     ani_status ret;
     ret = env->Object_GetPropertyByName_Double(argValue, "y", &objValue);
     if (ret != ANI_OK) {
         TEXT_LOGE("[ANI] The Parameter of number y about JsPoint is invalid:%{public}d", ret);
         return;
     }
-    targetY = static_cast<double>(objValue);
-    point.SetY(targetY);
+    point.SetY(objValue);
 }
 
 inline void GetTextShadowPoint(ani_env* env, ani_object obj, Drawing::Point& point)
@@ -231,7 +230,7 @@ void AniCommon::ParseTextShadow(ani_env* env, ani_object obj, std::vector<TextSh
             AniTextUtils::ReadOptionalDoubleField(env, obj, "blurRadius", runTimeRadius);
             
             Drawing::Color colorSrc = OHOS::Rosen::Drawing::Color::COLOR_BLACK;
-            SetTextShadowColor(env, obj, "color", colorSrc);
+            SetTextColor(env, obj, "color", colorSrc);
 
             ani_ref pointValue = nullptr;
             AniTextUtils::ReadOptionalField(env, obj, "point", pointValue);
@@ -250,7 +249,7 @@ inline void ConvertClampFromJsValue(ani_env* env, ani_double jsValue, int32_t& v
     value = std::clamp(value, lo, hi);
 }
 
-void AniCommon::SetTextShadowColor(ani_env* env, ani_object obj, const std::string& str, Drawing::Color& colorSrc)
+void AniCommon::SetTextColor(ani_env* env, ani_object obj, const std::string& str, Drawing::Color& colorSrc)
 {
     ani_ref tempValue =nullptr;
     ani_double tempValueChild{0};
