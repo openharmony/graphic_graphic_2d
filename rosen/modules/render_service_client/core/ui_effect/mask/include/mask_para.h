@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -12,12 +12,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef OHOS_UIEFFECT_NATIVE_MODULE_OHOS_UI_EFFECT_H
-#define OHOS_UIEFFECT_NATIVE_MODULE_OHOS_UI_EFFECT_H
+#ifndef UIEFFECT_MASK_PARA_H
+#define UIEFFECT_MASK_PARA_H
 
-#include "effect_napi.h"
-#include "filter_napi.h"
-#include "mask_napi.h"
-#include "napi/native_node_api.h"
+namespace OHOS {
+namespace Rosen {
+class MaskPara {
+public:
+    enum class Type {
+        NONE,
+        RIPPLE_MASK,
+        RADIAL_GRADIENT_MASK,
+        PIXEL_MAK_MASK,
+    };
 
-#endif // OHOS_UIEFFECT_NATIVE_MODULE_OHOS_UI_EFFECT_H
+    MaskPara()  = default;
+    virtual ~MaskPara() = default;
+    MaskPara::Type GetMaskParaType()
+    {
+        return type_;
+    }
+
+protected:
+    MaskPara::Type type_ = MaskPara::Type::NONE;
+};
+} // namespace Rosen
+} // namespace OHOS
+#endif // UIEFFECT_MASK_PARA_H

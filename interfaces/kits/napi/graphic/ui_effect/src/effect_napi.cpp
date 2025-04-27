@@ -15,15 +15,10 @@
 #include "effect_napi.h"
 #include "ui_effect_napi_utils.h"
 
-namespace {
-    constexpr uint32_t NUM_1 = 1;
-    constexpr uint32_t NUM_3 = 3;
-    constexpr uint32_t NUM_8 = 8;
-    constexpr int32_t ERR_NOT_SYSTEM_APP = 202;
-}
-
 namespace OHOS {
 namespace Rosen {
+
+using namespace UIEffect;
 static const std::string CLASS_NAME = "VisualEffect";
  
 EffectNapi::EffectNapi()
@@ -228,28 +223,7 @@ static bool IsArrayForNapiValue(napi_env env, napi_value param, uint32_t &arrayS
     return true;
 }
  
-bool ParseJsDoubleValue(napi_value jsObject, napi_env env, const std::string& name, double& data)
-{
-    napi_value value = nullptr;
-    napi_get_named_property(env, jsObject, name.c_str(), &value);
-    if (value == nullptr) {
-        return false;
-    }
-    napi_valuetype valueType = napi_undefined;
-    napi_typeof(env, value, &valueType);
-    if (valueType != napi_undefined) {
-        if (napi_get_value_double(env, value, &data) != napi_ok) {
-            UIEFFECT_LOG_E("[NAPI]Failed to convert parameter to data: %{public}s", name.c_str());
-            return false;
-        }
-    } else {
-        UIEFFECT_LOG_E("[NAPI]no property with: %{public}s", name.c_str());
-        return false;
-    }
-    return true;
-}
- 
-bool ParseJsVec3Value(napi_value jsObject, napi_env env, const std::string& name, Vector3f& vecTmp)
+bool ParseJsVec3Value(napi_env env, napi_value jsObject, const std::string& name, Vector3f& vecTmp)
 {
     napi_value param = nullptr;
     napi_get_named_property(env, jsObject, name.c_str(), &param);
@@ -292,35 +266,35 @@ bool EffectNapi::ParseBrightnessBlender(napi_env env, napi_value jsObject, Brigh
     double val;
     Vector3f tmpVector3;
     int parseTimes = 0;
-    if (ParseJsDoubleValue(jsObject, env, "cubicRate", val)) {
+    if (ParseJsDoubleValue(env, jsObject, "cubicRate", val)) {
         blender->SetCubicRate(static_cast<float>(val));
         parseTimes++;
     }
-    if (ParseJsDoubleValue(jsObject, env, "quadraticRate", val)) {
+    if (ParseJsDoubleValue(env, jsObject, "quadraticRate", val)) {
         blender->SetQuadRate(static_cast<float>(val));
         parseTimes++;
     }
-    if (ParseJsDoubleValue(jsObject, env, "linearRate", val)) {
+    if (ParseJsDoubleValue(env, jsObject, "linearRate", val)) {
         blender->SetLinearRate(static_cast<float>(val));
         parseTimes++;
     }
-    if (ParseJsDoubleValue(jsObject, env, "degree", val)) {
+    if (ParseJsDoubleValue(env, jsObject, "degree", val)) {
         blender->SetDegree(static_cast<float>(val));
         parseTimes++;
     }
-    if (ParseJsDoubleValue(jsObject, env, "saturation", val)) {
+    if (ParseJsDoubleValue(env, jsObject, "saturation", val)) {
         blender->SetSaturation(static_cast<float>(val));
         parseTimes++;
     }
-    if (ParseJsDoubleValue(jsObject, env, "fraction", val)) {
+    if (ParseJsDoubleValue(env, jsObject, "fraction", val)) {
         blender->SetFraction(static_cast<float>(val));
         parseTimes++;
     }
-    if (ParseJsVec3Value(jsObject, env, "positiveCoefficient", tmpVector3)) {
+    if (ParseJsVec3Value(env, jsObject, "positiveCoefficient", tmpVector3)) {
         blender->SetPositiveCoeff(tmpVector3);
         parseTimes++;
     }
-    if (ParseJsVec3Value(jsObject, env, "negativeCoefficient", tmpVector3)) {
+    if (ParseJsVec3Value(env, jsObject, "negativeCoefficient", tmpVector3)) {
         blender->SetNegativeCoeff(tmpVector3);
         parseTimes++;
     }
