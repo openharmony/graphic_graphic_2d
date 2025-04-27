@@ -31,29 +31,6 @@ ani_object AniTextUtils::CreateAniUndefined(ani_env* env)
     return static_cast<ani_object>(aniRef);
 }
 
-ani_object AniTextUtils::CreateAniObject(ani_env* env, const std::string name, const char* signature, ...)
-{
-    va_list args;
-    va_start(args,signature);
-    ani_class cls;
-    if (env->FindClass(name.c_str(), &cls) != ANI_OK) {
-        TEXT_LOGE("[ANI] not found %{public}s", name.c_str());
-        return CreateAniUndefined(env);
-    }
-    ani_method ctor;
-    if (env->Class_FindMethod(cls, "<ctor>", signature, &ctor) != ANI_OK) {
-        TEXT_LOGE("[ANI] get ctor failed %{public}s", name.c_str());
-        return CreateAniUndefined(env);
-    }
-    ani_object obj = {};
-    if (env->Object_New(cls, ctor, &obj, args) != ANI_OK) {
-        TEXT_LOGE("[ANI] create object failed %{public}s", name.c_str());
-        return CreateAniUndefined(env);
-    }
-    va_end(args);
-    return obj;
-}
-
 ani_object AniTextUtils::CreateAniArray(ani_env* env, size_t size)
 {
     ani_class arrayCls;
@@ -79,9 +56,19 @@ ani_object AniTextUtils::CreateAniMap(ani_env* env)
     return AniTextUtils::CreateAniObject(env, "Lescompat/Map;", ":V");
 }
 
-ani_object AniTextUtils::CreateAniDoubleObj(ani_env* env, ani_double val)
+ani_object AniTextUtils::CreateAniDoubleObj(ani_env* env, double val)
 {
     return AniTextUtils::CreateAniObject(env, "Lstd/core/Double;", "D:V", val);
+}
+
+ani_object AniTextUtils::CreateAniBooleanObj(ani_env* env, bool val)
+{
+    return AniTextUtils::CreateAniObject(env, "Lstd/core/Boolean;", "I:V", val);
+}
+
+ani_string AniTextUtils::CreateAniStringObj(ani_env* env, std::string str)
+{
+    return nullptr;
 }
 
 std::string AniTextUtils::AniToStdStringUtf8(ani_env* env, ani_string str)
