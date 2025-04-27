@@ -547,6 +547,10 @@ void HgmFrameRateManager::CollectVRateChange(uint64_t linkerId, FrameRateRange& 
 
 void HgmFrameRateManager::ReportHiSysEvent(const VoteInfo& frameRateVoteInfo)
 {
+    static bool reportHiSysEventEnabled = system::GetParameter("const.logsystem.versiontype", "") == "beta";
+    if (!reportHiSysEventEnabled) {
+        return;
+    }
     if (frameRateVoteInfo.voterName.empty()) {
         return;
     }
