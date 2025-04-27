@@ -158,6 +158,11 @@ void GPUContext::RegisterVulkanErrorCallback(const std::function<void()>& vulkan
     impl_->RegisterVulkanErrorCallback(vulkanErrorCallback);
 }
 
+void GPUContext::RegisterDrawOpOverCallback(const std::function<void(int32_t drawOpCount)>& drawOpOverCallback)
+{
+    impl_->RegisterDrawOpOverCallback(drawOpOverCallback);
+}
+
 void GPUContext::PurgeUnlockAndSafeCacheGpuResources()
 {
     impl_->PurgeUnlockAndSafeCacheGpuResources();

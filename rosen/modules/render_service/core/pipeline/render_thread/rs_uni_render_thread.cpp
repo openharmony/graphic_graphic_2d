@@ -180,6 +180,9 @@ void RSUniRenderThread::InitGrContext()
         return;
     }
     RSMainThread::Instance()->InitVulkanErrorCallback(grContext);
+    if (RSSystemProperties::GetDrawOpLimitEnabled()) {
+        InitDrawOpOverCallback(grContext);
+    }
     MemoryManager::SetGpuCacheSuppressWindowSwitch(
         grContext, RSSystemProperties::GetGpuCacheSuppressWindowEnabled());
     MemoryManager::SetGpuMemoryAsyncReclaimerSwitch(
@@ -199,6 +202,21 @@ void RSUniRenderThread::Inittcache()
         // enable cache
         mallopt(M_SET_THREAD_CACHE, M_THREAD_CACHE_ENABLE);
     }
+}
+
+void RSUniRenderThread::InitDrawOpOverCallback(Drawing::GPUContext *gpuContext)
+{
+    gpuContext->RegisterDrawOpOverCallback([this](int32_t drawOpCount) {
+        ExceptionCheck exceptionCheck;
+        exceptionCheck.pid_ = getpid();
+        exceptionCheck.uid_ = getuid();
+        exceptionCheck.processName_ = "/system/bin/render_service";
+        exceptionCheck.exceptionCnt_ = drawOpCount;
+        exceptionCheck.exceptionMoment_ = RSTimer::GetSeconds();
+        exceptionCheck.exceptionPoint_ = "rs_drawOp_OverBudget";
+
+        exceptionCheck.UploadRenderExceptionData();
+    });
 }
 
 void RSUniRenderThread::Start()

@@ -161,6 +161,7 @@ public:
     static bool GetUniRenderEnabled();
     static bool GetRenderNodeTraceEnabled();
     static bool GetDrawOpTraceEnabled();
+    static bool GetDrawOpLimitEnabled();
     static bool GetAnimationTraceEnabled();
     static bool GetRSClientMultiInstanceEnabled();
     static bool GetRenderNodePurgeEnabled();
