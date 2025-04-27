@@ -402,6 +402,39 @@ HWTEST_F(RSRenderParticleAnimationTest, UpdateEmitter006, TestSize.Level1)
 }
 
 /**
+ * @tc.name: UpdateParamsIfChanged001
+ * @tc.desc: Verify the UpdateParamsIfChanged
+ * @tc.type:FUNC
+ * @tc.require: issueIA6IWR
+ */
+HWTEST_F(RSRenderParticleAnimationTest, UpdateParamsIfChanged001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderParticleAnimationTest UpdateParamsIfChanged001 start";
+    uint32_t emitterIndex = 0;
+    Vector2f position = Vector2f(0.f, 0.f);
+    Vector2f emitSize = Vector2f(10.f, 10.f);
+    int emitRate = 20;
+    auto para = std::make_shared<EmitterUpdater>(emitterIndex, position, emitSize, emitRate);
+    AnnulusRegion annulusRegion;
+    std::optional<AnnulusRegion> regionOpt;
+    regionOpt.emplace_back(regionOpt);
+    para->SetAnnulusRegion(regionOpt);
+    std::vector<std::shared_ptr<EmitterUpdater>> emitUpdate;
+    emitUpdate.push_back(para);
+    auto renderParticleAnimation =
+        std::make_shared<RSRenderParticleAnimation>(ANIMATION_ID, PROPERTY_ID, particlesRenderParams);
+    renderParticleAnimation->UpdateEmitter(emitUpdate);
+    auto particleSystem = renderParticleAnimation->GetParticleSystem();
+    para->annulusRegion->innerRadius_ = 10;
+    para->annulusRegion->outerRadius_ = 20;
+    auto configRegion = particlesRenderParams[emitterIndex]->emitterConfig_.annulusRegion_;
+    renderParticleAnimation->UpdateParamsIfChanged(para->annulusRegion_, configRegion);
+    EXPECT_TRUE(configRegion.innerRadius_ == 10);
+    EXPECT_TRUE(configRegion.outerRadius_ == 20);
+    GTEST_LOG_(INFO) << "RSRenderParticleAnimationTest UpdateParamsIfChanged001 end";
+}
+
+/**
  * @tc.name: UpdateNoiseField001
  * @tc.desc: Verify the UpdateNoiseField
  * @tc.type:FUNC
