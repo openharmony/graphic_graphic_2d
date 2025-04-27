@@ -510,6 +510,7 @@ ohos_source_set("render_service_base_src") {
   }
 
   external_deps = [
+    "eventhandler:libeventhandler",
     "graphic_surface:surface_headers",
     "graphics_effect:graphics_effect_core",
     "hilog:libhilog",

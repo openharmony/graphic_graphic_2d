@@ -508,7 +508,7 @@ ohos_executable("render_service_client_uni_render_demo") {
 ohos_executable("render_service_client_watermark_demo") {
   sources = [ "render_service_client_watermark_demo.cpp" ]
 
-  deps = [ "../../render_service_client:librender_service_client" ]
+  deps = [ "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client" ]
 
   public_external_deps = [ "skia:skia_canvaskit" ]
 

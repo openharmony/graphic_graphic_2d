@@ -23,8 +23,8 @@ ohos_fuzztest("VsyncReceiverConcurrentFuzzTest") {
   module_out_path = module_output_path
 
   include_dirs = [
-    "../../../../../../../interfaces/inner_api/common",
-    "../../../include",
+    "$graphic_2d_root/interfaces/inner_api/common",
+    "$graphic_2d_root/rosen/modules/composer/vsync/include",
   ]
   cflags = [
     "-g",
@@ -36,8 +36,8 @@ ohos_fuzztest("VsyncReceiverConcurrentFuzzTest") {
   ]
   sources = [ "vsyncreceiverconcurrent_fuzzer.cpp" ]
   deps = [
-    "../../../../../../../utils:socketpair",
-    "../../../../vsync:libvsync",
+    "$graphic_2d_root/utils:socketpair",
+    "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
   ]
   external_deps = [
     "c_utils:utils",
