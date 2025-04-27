@@ -69,7 +69,6 @@
 #include "platform/ohos/rs_jank_stats.h"
 #include "render/rs_typeface_cache.h"
 #include "transaction/rs_unmarshal_thread.h"
-#include "utils/graphic_coretrace.h"
 
 #ifdef TP_FEATURE_ENABLE
 #include "screen_manager/touch_screen.h"
@@ -601,8 +600,6 @@ ErrCode RSRenderServiceConnection::GetPixelMapByProcessId(
 ErrCode RSRenderServiceConnection::CreatePixelMapFromSurface(sptr<Surface> surface,
     const Rect &srcRect, std::shared_ptr<Media::PixelMap> &pixelMap)
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        RS_RSRENDERSERVICECONNECTION_CREATEPIXELMAPFROMSURFACE);
     OHOS::Media::Rect rect = {
         .left = srcRect.x,
         .top = srcRect.y,

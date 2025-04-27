@@ -39,7 +39,6 @@
 #endif
 
 #include "include/gpu/GrDirectContext.h"
-#include "utils/graphic_coretrace.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -198,8 +197,6 @@ RSExtendImageObject *RSExtendImageObject::Unmarshalling(Parcel &parcel)
 void RSExtendImageObject::PreProcessPixelMap(Drawing::Canvas& canvas, const std::shared_ptr<Media::PixelMap>& pixelMap,
     const Drawing::SamplingOptions& sampling)
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        RS_RSEXTENDIMAGEOBJECT_PREPROCESSPIXELMAP);
     if (!pixelMap || !rsImage_) {
         return;
     }
@@ -261,8 +258,6 @@ void RSExtendImageObject::PreProcessPixelMap(Drawing::Canvas& canvas, const std:
 bool RSExtendImageObject::GetRsImageCache(Drawing::Canvas& canvas, const std::shared_ptr<Media::PixelMap>& pixelMap,
     SurfaceBuffer *surfaceBuffer, const std::shared_ptr<Drawing::ColorSpace>& colorSpace)
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        RS_RSEXTENDIMAGEOBJECT_GETRSIMAGECACHE);
     if (pixelMap == nullptr) {
         return false;
     }
@@ -367,8 +362,6 @@ bool RSExtendImageObject::GetDrawingImageFromSurfaceBuffer(Drawing::Canvas& canv
 bool RSExtendImageObject::MakeFromTextureForVK(Drawing::Canvas& canvas, SurfaceBuffer *surfaceBuffer,
     const std::shared_ptr<Drawing::ColorSpace>& colorSpace)
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        RS_RSEXTENDIMAGEOBJECT_MAKEFROMTEXTUREFORVK);
     if (!RSSystemProperties::IsUseVulkan()) {
         return false;
     }
@@ -1293,8 +1286,6 @@ GLenum DrawSurfaceBufferOpItem::GetGLTextureFormatByBitmapFormat(Drawing::ColorT
 
 void DrawSurfaceBufferOpItem::DrawWithVulkan(Canvas* canvas)
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        RS_DRAWSURFACEBUFFEROPITEM_DRAWWITHVULKAN);
 #ifdef RS_ENABLE_VK
     if (surfaceBufferInfo_.acquireFence_) {
         RS_TRACE_NAME_FMT("DrawSurfaceBufferOpItem::DrawWithVulkan waitfence");

@@ -18,7 +18,6 @@
 #include "platform/common/rs_log.h"
 #include "render_context/render_context.h"
 #include "pipeline/sk_resource_manager.h"
-#include "utils/graphic_coretrace.h"
 
 namespace OHOS::Rosen {
 namespace NativeBufferUtils {
@@ -188,8 +187,6 @@ bool BindImageMemory(VkDevice device, RsVulkanContext& vkContext, VkImage& image
 bool MakeFromNativeWindowBuffer(std::shared_ptr<Drawing::GPUContext> skContext, NativeWindowBuffer* nativeWindowBuffer,
     NativeSurfaceInfo& nativeSurface, int width, int height, bool isProtected)
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        RS_NATIVEBUFFERUTILS_MAKEFROMNATIVEWINDOWBUFFER);
     OH_NativeBuffer* nativeBuffer = OH_NativeBufferFromNativeWindowBuffer(nativeWindowBuffer);
     if (nativeBuffer == nullptr) {
         ROSEN_LOGE("MakeFromNativeWindowBuffer: OH_NativeBufferFromNativeWindowBuffer failed");

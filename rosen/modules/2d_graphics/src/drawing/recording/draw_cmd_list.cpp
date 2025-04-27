@@ -20,7 +20,6 @@
 
 #include "recording/draw_cmd.h"
 #include "recording/recording_canvas.h"
-#include "utils/graphic_coretrace.h"
 #include "utils/log.h"
 #include "utils/performanceCaculate.h"
 
@@ -335,8 +334,6 @@ void DrawCmdList::UnmarshallingDrawOps(uint32_t* opItemCount)
 
 void DrawCmdList::Playback(Canvas& canvas, const Rect* rect)
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        GRAPHIC2D_DRAWCMDLIST_PLAYBACK);
     if (canvas.GetUICapture() && noNeedUICaptured_) {
         return;
     }
