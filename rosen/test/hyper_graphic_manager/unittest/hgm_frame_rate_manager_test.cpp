@@ -408,10 +408,6 @@ HWTEST_F(HgmFrameRateMgrTest, HgmConfigCallbackManagerTest002, Function | SmallT
             ASSERT_EQ(hccMgr->animDynamicCfgCallbacks_.empty(), false);
             hccMgr->UnRegisterHgmConfigChangeCallback(pid);
             hccMgr->animDynamicCfgCallbacks_.try_emplace(pid, cb);
-            std::shared_ptr<HgmMultiAppStrategy> multiAppStrategy_;
-            auto frameRateMgr = hgmCore.GetFrameRateMgr();
-            frameRateMgr->GetMultiAppStrategy().GetForegroundPidApp().try_emplace(0,
-                std::pair<int32_t, std::string>{0, "com.app10"});
             hccMgr->SyncHgmConfigChangeCallback();
             hccMgr->refreshRateUpdateCallbacks_.try_emplace(0, cb);
             hccMgr->SyncRefreshRateUpdateCallback(OLED_60_HZ);
@@ -419,6 +415,11 @@ HWTEST_F(HgmFrameRateMgrTest, HgmConfigCallbackManagerTest002, Function | SmallT
             hccMgr->refreshRateUpdateCallbacks_.clear();
             hccMgr->refreshRateUpdateCallbacks_.try_emplace(0, cb);
             hccMgr->SyncRefreshRateUpdateCallback(OLED_60_HZ);
+            std::unordered_map<pid_t, std::pair<int32_t, std::string>> foregroundPidAppMap;
+            foregroundPidAppMap.try_emplace(pid, std::pair<int32_t, std::string>{0, "com.app10"});
+            hccMgr->SyncHgmConfigChangeCallback(foregroundPidAppMap);
+            ASSERT_EQ(hccMgr->pendingAnimDynamicCfgCallbacks_.find(pid) ==
+                hccMgr->pendingAnimDynamicCfgCallbacks_.end(), true);
         }
     }
 }

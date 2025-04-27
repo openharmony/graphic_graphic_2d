@@ -1181,6 +1181,32 @@ HWTEST_F(RSInterfacesTest, SetScreenRefreshRate001, Function | SmallTest | Level
 }
 
 /*
+ * @tc.name: SetShowRefreshRateEnabled
+ * @tc.desc: Verify the function of SetShowRefreshRateEnabled
+ * @tc.type: FUNC
+ * @tc.require: I7EM2R
+ */
+HWTEST_F(RSInterfacesTest, SetShowRefreshRateEnabled, Function | SmallTest | Level2)
+{
+    bool enabled = true;
+    int32_t type = 0;
+    rsInterfaces->SetShowRefreshRateEnabled(enabled, type);
+    EXPECT_GE(rsInterfaces->GetShowRefreshRateEnabled(), 0);
+}
+
+/*
+ * @tc.name: GetRealtimeRefreshRate
+ * @tc.desc: Verify the function of GetRealtimeRefreshRate
+ * @tc.type: FUNC
+ * @tc.require: I7EM2R
+ */
+HWTEST_F(RSInterfacesTest, GetRealtimeRefreshRate, Function | SmallTest | Level2)
+{
+    ScreenId id = 0;
+    EXPECT_GE(rsInterfaces->GetRealtimeRefreshRate(id), 0);
+}
+
+/*
  * @tc.name: SetScreenRefreshRate002
  * @tc.desc: Verify the function of setting the refreshrate with a very high value
  * @tc.type: FUNC
