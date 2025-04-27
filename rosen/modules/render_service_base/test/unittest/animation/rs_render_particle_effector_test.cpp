@@ -613,7 +613,7 @@ HWTEST_F(RSRenderParticleEffectorTest, CalculateDistanceToRectangleEdge001, Test
  * @tc.name: CalculateDistanceToEllipseEdge001
  * @tc.desc: Verify the CalculateDistanceToEllipseEdge
  * @tc.type:FUNC
- * @tc.require: 
+ * @tc.require: issueIA6IWR
  */
 HWTEST_F(RSRenderParticleEffectorTest, CalculateDistanceToEllipseEdge001, TestSize.Level1)
 {
