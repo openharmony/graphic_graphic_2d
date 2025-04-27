@@ -360,6 +360,26 @@ HWTEST_F(SkiaTypefaceTest, MakeFromStream001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: MakeFromStream002
+ * @tc.desc: Test MakeFromStream
+ * @tc.type: FUNC
+ * @tc.require: I91EDT
+ */
+HWTEST_F(SkiaTypefaceTest, MakeFromStream002, TestSize.Level1)
+{
+    std::unique_ptr<MemoryStream> memoryStream = std::make_unique<MemoryStream>();
+    uint8_t fontData[] = "Mock font data";
+    size_t fontDataSize = sizeof(fontData);
+    memoryStream = std::make_unique<MemoryStream>(reinterpret_cast<const void*>(fontData), fontDataSize, true);
+    FontArguments args;
+    args.SetCollectionIndex(10);
+    std::shared_ptr<Typeface> typefaceWithData = SkiaTypeface::MakeFromStream(std::move(memoryStream), args);
+    ASSERT_EQ(typefaceWithData, nullptr);
+    std::shared_ptr<Typeface> typefaceEmptyStream = SkiaTypeface::MakeFromStream(nullptr, args);
+    ASSERT_EQ(typefaceEmptyStream, nullptr);
+}
+
+/**
  * @tc.name: DeserializeTypeface001
  * @tc.desc: Test DeserializeTypeface
  * @tc.type: FUNC
