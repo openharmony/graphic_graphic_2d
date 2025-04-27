@@ -407,8 +407,8 @@ VsyncError VSyncDistributor::AddConnection(const sptr<VSyncConnection>& connecti
 sptr<VSyncConnection> VSyncDistributor::GetVSyncConnection(uint64_t id)
 {
     std::lock_guard<std::mutex> locker(mutex_);
-    for (auto conn : connections_) {
-        if (conn->id_ == id) {
+    for (cosnt auto& conn : connections_) {
+        if (conn != nullptr && conn->id_ == id) {
             return conn;
         }
     }

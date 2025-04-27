@@ -161,7 +161,11 @@ int OH_NativeVSync_DVSyncSwitch(OH_NativeVSync* ohNativeVSync, bool enable)
 }
 
 bool IsInputRateRangeValid(OH_NativeVSync_ExpectedRateRange *range)
-{
+{   
+    if (range == nullptr) {
+        VLOGE("input range is nullptr, please check");
+        return false;
+    }
     return range->min <= range->expected && range->expected <= range->max &&
         range->min >= 0 && range->max <= RANGE_MAX_REFRESHRATE;
 }
@@ -182,8 +186,11 @@ int OH_NativeVSync_SetExpectedFrameRateRange(OH_NativeVSync* nativeVsync, OH_Nat
         VLOGE("ExpectedRateRange Error, please check.");
         return VSYNC_ERROR_INVALID_ARGUMENTS;
     }
-
-    if (nativeVSync->frameRateLinker_ && nativeVSync->frameRateLinker_->IsEnable()) {
+    if (nativeVSync->frameRateLinker_ == nullptr) {
+        VLOGE("FrameRateLinker is nullptr, please check.");
+        return VSYNC_ERROR_INVALID_ARGUMENTS;
+    }
+    if (nativeVSync->frameRateLinker_->IsEnable()) {
         nativeVSync->frameRateLinker_->UpdateFrameRateRangeImme(frameRateRange);
     }
     return VSYNC_ERROR_OK;
