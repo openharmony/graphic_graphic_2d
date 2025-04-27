@@ -47,6 +47,10 @@
 
 namespace OHOS {
 namespace Rosen {
+struct LoadOptParamsForScreen {
+    LoadOptParamsForHdiBackend loadOptParamsForHdiBackend;
+};
+
 class RSScreen;
 class RSScreenManager : public RefBase {
 public:
@@ -203,6 +207,8 @@ public:
     virtual bool IsVisibleRectSupportRotation(ScreenId id) = 0;
 
     virtual int32_t SetVirtualScreenRefreshRate(ScreenId id, uint32_t maxRefreshRate, uint32_t& actualRefreshRate) = 0;
+
+    virtual void InitLoadOptParams(LoadOptParamsForScreen& loadOptParamsForScreen) = 0;
 };
 
 sptr<RSScreenManager> CreateOrGetScreenManager();
@@ -372,6 +378,8 @@ public:
 
     int32_t SetVirtualScreenRefreshRate(ScreenId id, uint32_t maxRefreshRate, uint32_t& actualRefreshRate) override;
 
+    void InitLoadOptParams(LoadOptParamsForScreen& loadOptParamsForScreen) override;
+
 private:
     RSScreenManager() = default;
     ~RSScreenManager() override = default;
@@ -494,6 +502,8 @@ private:
         bool isPowerOn;
     };
     std::unordered_map<uint64_t, FoldScreenStatus> foldScreenIds_; // screenId, FoldScreenStatus
+
+    LoadOptParamsForScreen loadOptParamsForScreen_ = {};
 };
 } // namespace impl
 } // namespace Rosen

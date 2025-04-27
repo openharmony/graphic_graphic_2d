@@ -705,6 +705,24 @@ HWTEST_F(HdiOutputTest, CleanLayerBufferBySurfaceId_001, testing::ext::TestSize.
     // clean the nonexistent surface ID.
     output->CleanLayerBufferBySurfaceId(4);
 }
+
+/*
+ * Function: InitLoadOptParams001
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1.call InitLoadOptParams
+ *                  2.check ret
+ */
+HWTEST_F(HdiOutputTest, InitLoadOptParams001, Function | MediumTest | Level1)
+{
+    auto hdiOutput = HdiOutputTest::hdiOutput_;
+    LoadOptParamsForHdiOutput params;
+    params.switchParams[IS_MERGE_FENCE_SKIPPED] = true;
+
+    hdiOutput->InitLoadOptParams(params);
+    EXPECT_TRUE(hdiOutput->isMergeFenceSkipped_);
+}
 } // namespace
 } // namespace Rosen
 } // namespace OHOS

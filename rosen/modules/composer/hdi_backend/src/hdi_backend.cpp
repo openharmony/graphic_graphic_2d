@@ -335,6 +335,7 @@ void HdiBackend::OnHdiBackendConnected(uint32_t screenId, bool connected)
 void HdiBackend::CreateHdiOutput(uint32_t screenId)
 {
     OutputPtr newOutput = HdiOutput::CreateHdiOutput(screenId);
+    newOutput->InitLoadOptParams(loadOptParamsForHdiBackend_.loadOptParamsForHdiOutput);
     newOutput->Init();
     outputs_.emplace(screenId, newOutput);
 }
@@ -387,5 +388,9 @@ RosenError HdiBackend::SetHdiBackendDevice(HdiDevice* device)
     return ROSEN_ERROR_OK;
 }
 
+void HdiBackend::InitLoadOptParams(LoadOptParamsForHdiBackend& loadOptParamsForHdiBackend)
+{
+    loadOptParamsForHdiBackend_ = loadOptParamsForHdiBackend;
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -253,6 +253,22 @@ HWTEST_F(HdiBackendTest, StartSample001, Function | MediumTest | Level3)
     hdiBackend_->StartSample(output);
     EXPECT_TRUE(output->sampler_->GetHardwareVSyncStatus());
 }
+
+/*
+ * Function: InitLoadOptParams001
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call InitLoadOptParams()
+ *                  2. check ret
+ */
+HWTEST_F(HdiBackendTest, InitLoadOptParams001, Function | MediumTest | Level3)
+{
+    LoadOptParamsForHdiBackend params = {};
+
+    hdiBackend_->InitLoadOptParams(params);
+    EXPECT_EQ(hdiBackend_->loadOptParamsForHdiBackend_.loadOptParamsForHdiOutput.switchParams.size(), 0);
+}
 } // namespace
 } // namespace Rosen
 } // namespace OHOS
