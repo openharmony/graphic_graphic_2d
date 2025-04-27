@@ -772,7 +772,7 @@ bool PixelMapFromSurface::DrawImage(GrRecordingContext *context,
         ScopedBytrace trace3("flushAndSubmit");
 #ifdef USE_M133_SKIA
         GrDirectContext* directContext = GrAsDirectContext(surface->recordingContext());
-        if(directContext == nullptr) {
+        if (directContext == nullptr) {
             return false;
         }
         directContext->flushAndSubmit(GrSyncCpu::kYes);
