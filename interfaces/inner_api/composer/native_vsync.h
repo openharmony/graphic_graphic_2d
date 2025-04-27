@@ -178,12 +178,13 @@ int OH_NativeVSync_DVSyncSwitch(OH_NativeVSync* nativeVsync, bool enable);
  * @syscap SystemCapability.Graphic.Graphic2D.NativeVsync
  * @param nativeVsync Indicates the pointer to a NativeVsync
  * @param range Indicates the pointer to an expected rate range.
- *              Valid range is 0<=min<=expected<=max<=144.
- *              if min=max=expected=0 indicates cancle vote.
+ *              Valid range is 0 <= min <= expected <= max <= 144.
+ *              expected == 0 indicates cancle vote.
  *              This pointer needs to be released by developer.
  * @return {@link NATIVE_ERROR_OK}0 - Success.
  *      {@link NATIVE_ERROR_INVALID_ARGUMENTS} 40001000 - the parameter is NULL or range is invalid.
- *      {@link VSYNC_ERROR_NOT_SUPPORT} 50102000 - the nativeVSync's framelinker is NULL
+ *      {@link NATIVE_ERROR_NOT_SUPPORT} 50102000 - the object nativeVsync does not support this interface
+ *                                                  Verify the creation method of object nativeVsync.
  * @since 20
  * @version 1.0
  */
