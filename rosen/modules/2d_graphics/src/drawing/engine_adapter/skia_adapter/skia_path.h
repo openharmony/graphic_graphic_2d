@@ -94,6 +94,8 @@ public:
 
     bool IsValid() const override;
     void Reset() override;
+    void ReWind() override;
+    void SetLastPoint(scalar x, scalar y) override;
 
     void Close() override;
 

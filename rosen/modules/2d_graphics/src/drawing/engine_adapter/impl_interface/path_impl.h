@@ -95,7 +95,9 @@ public:
 
     virtual bool IsValid() const = 0;
     virtual void Reset() = 0;
+    virtual void ReWind() = 0;
 
+    virtual void SetLastPoint(scalar x, scalar y) = 0;
     virtual void Close() = 0;
 
     virtual scalar GetLength(bool forceClosed) = 0;
