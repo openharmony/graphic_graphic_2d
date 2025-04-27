@@ -18,9 +18,7 @@
 #include "platform/common/rs_system_properties.h"
 #include "pipeline/rs_task_dispatcher.h"
 #include "rs_trace.h"
-#ifdef NEW_SKIA
 #include "src/gpu/GrSurfaceProxy.h"
-#endif
 #if defined(RS_ENABLE_UNI_RENDER) && defined(RS_ENABLE_GL)
 #include "render_context/render_context.h"
 #endif

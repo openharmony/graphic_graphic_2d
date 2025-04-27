@@ -223,7 +223,7 @@ static_assert(g_propertyResetterLUT.back() != nullptr);
 } // namespace
 
 // Only enable filter cache when uni-render is enabled and filter cache is enabled
-#if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+#if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
 #ifndef ROSEN_ARKUI_X
 bool RSProperties::filterCacheEnabled_ =
     RSSystemProperties::GetFilterCacheEnabled() && RSUniRenderJudgement::IsUniRender();
@@ -4473,7 +4473,7 @@ std::string RSProperties::Dump() const
 }
 
 // planning: need to delete, cachemanager moved to filter drawable
-#if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+#if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
 void RSProperties::CreateFilterCacheManagerIfNeed()
 {
     if (!filterCacheEnabled_) {
@@ -4760,7 +4760,7 @@ bool RSProperties::GetHaveEffectRegion() const
 
 void RSProperties::SetHaveEffectRegion(bool haveEffectRegion)
 {
-#if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+#if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     // clear cache if new region is null or outside current region
     if (auto& manager = GetFilterCacheManager(false);
         manager && manager->IsCacheValid() && haveEffectRegion == false) {

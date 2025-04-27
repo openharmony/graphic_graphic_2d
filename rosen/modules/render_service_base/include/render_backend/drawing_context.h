@@ -16,12 +16,8 @@
 #ifndef DRAWING_CONTEXT_H
 #define DRAWING_CONTEXT_H
 
-#if defined(NEW_SKIA)
-#include <include/gpu/GrDirectContext.h>
-#else
-#include <include/gpu/GrContext.h>
-#endif
 
+#include <include/gpu/GrDirectContext.h>
 #include "rs_render_surface_frame.h"
 
 namespace OHOS {

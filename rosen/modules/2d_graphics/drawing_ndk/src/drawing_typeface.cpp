@@ -20,6 +20,9 @@
 #include <vector>
 
 #include "include/core/SkTypes.h"
+#ifdef USE_M133_SKIA
+#include "include/core/SkFourByteTag.h"
+#endif
 
 #include "drawing_canvas_utils.h"
 #include "drawing_font_utils.h"

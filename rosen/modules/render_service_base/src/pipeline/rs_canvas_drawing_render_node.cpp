@@ -19,7 +19,10 @@
 
 #include "include/core/SkCanvas.h"
 #include "src/image/SkImage_Base.h"
-#ifdef NEW_SKIA
+#ifdef USE_M133_SKIA
+#include "include/gpu/ganesh/GrBackendSurface.h"
+#include "include/gpu/ganesh/GrDirectContext.h"
+#else
 #include "include/gpu/GrBackendSurface.h"
 #include "include/gpu/GrDirectContext.h"
 #endif

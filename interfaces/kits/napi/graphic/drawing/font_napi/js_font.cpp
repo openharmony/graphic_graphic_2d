@@ -19,7 +19,11 @@
 #include "js_typeface.h"
 #include "native_value.h"
 #include "path_napi/js_path.h"
+#ifdef USE_M133_SKIA
+#include "src/base/SkUTF.h"
+#else
 #include "src/utils/SkUTF.h"
+#endif
 
 namespace OHOS::Rosen {
 namespace Drawing {

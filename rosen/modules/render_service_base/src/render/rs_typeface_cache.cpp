@@ -24,6 +24,10 @@
 #include <sstream>
 #include <algorithm>
 
+#ifdef USE_M133_SKIA
+#include "src/core/SkChecksum.h"
+#endif
+
 // after 5 vsync count, destory it
 #define DELAY_DESTROY_VSYNC_COUNT 5
 
@@ -118,7 +122,11 @@ void RSTypefaceCache::CacheDrawingTypeface(uint64_t uniqueId,
         }
         const void* stream = data->GetData();
         size_t size = data->GetSize();
+#ifdef USE_M133_SKIA
+        hash_value = SkChecksum::Hash32(stream, std::min(size, static_cast<size_t>(MAX_CHUNK_SIZE)));
+#else
         hash_value = SkOpts::hash_fn(stream, std::min(size, static_cast<size_t>(MAX_CHUNK_SIZE)), 0);
+#endif
     }
     typefaceHashCode_[uniqueId] = hash_value;
     pid_t pid = GetTypefacePid(uniqueId);

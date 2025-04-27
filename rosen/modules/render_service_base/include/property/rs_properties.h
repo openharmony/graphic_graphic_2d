@@ -570,7 +570,7 @@ public:
     void SetColorBlendApplyType(int colorBlendApplyType);
     int GetColorBlendApplyType() const;
 
-#if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+#if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     const std::unique_ptr<RSFilterCacheManager>& GetFilterCacheManager(bool isForeground) const;
     void ClearFilterCache();
 #endif
@@ -760,7 +760,7 @@ private:
     Drawing::Matrix prevAbsMatrix_;
     RSRenderParticleVector particles_;
 
-#if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+#if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     void CreateFilterCacheManagerIfNeed();
     std::unique_ptr<RSFilterCacheManager> backgroundFilterCacheManager_;
     std::unique_ptr<RSFilterCacheManager> foregroundFilterCacheManager_;

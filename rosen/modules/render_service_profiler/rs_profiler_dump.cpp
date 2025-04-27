@@ -279,7 +279,11 @@ void RSProfiler::DumpNodeDrawCmdModifier(
         auto propertyPtr = std::static_pointer_cast<RSRenderProperty<SkMatrix>>(modifier.GetProperty());
         if (propertyPtr) {
             std::string str;
+#ifdef USE_M133_SKIA
+            propertyPtr->Get(); // todo 侵入式修改待合入
+#else
             propertyPtr->Get().dump(str, 0);
+#endif
             out.PushObject();
             out["GEOMETRYTRANS"] = str;
             out.PopObject();
