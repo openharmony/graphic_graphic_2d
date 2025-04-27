@@ -2023,14 +2023,12 @@ void HgmFrameRateManager::CheckRefreshRateChange(
     // 当dvsync在连续延迟切帧阶段，使用dvsync内记录的刷新率判断是否变化
     CreateVSyncGenerator()->DVSyncRateChanged(controllerRate_, frameRateChanged);
     CheckNeedUpdateAppOffset(refreshRate);
-    bool lastIsNeedUpdateAppOffset = isNeedUpdateAppOffset_;
     bool appOffsetChange = isNeedUpdateAppOffset_;
     if (controller_ != nullptr) {
-        appOffsetChange = (isNeedUpdateAppOffset_ && controller_->GetPulseNum() != 0) ||
-            (!isNeedUpdateAppOffset_ && controller_->GetPulseNum() == 0);
+        appOffsetChange = isNeedUpdateAppOffset_ && controller_->GetPulseNum() != 0
     }
     if (HgmCore::Instance().GetLtpoEnabled() &&
-        (frameRateChanged || (appOffsetChange && !CreateVSyncGenerator()->IsUiDvsyncOn())) {
+        (frameRateChanged || (appOffsetChange && !CreateVSyncGenerator()->IsUiDvsyncOn()))) {
         HandleFrameRateChangeForLTPO(timestamp_.load(), followRs);
         if (needChangeDssRefreshRate && changeDssRefreshRateCb_ != nullptr) {
             changeDssRefreshRateCb_(curScreenId_.load(), refreshRate, true);
@@ -2042,11 +2040,10 @@ void HgmFrameRateManager::CheckRefreshRateChange(
             changeDssRefreshRateCb_(curScreenId_.load(), refreshRate, true);
         }
     }
-    if (HgmCore::Instance().GetLtpoEnabled() && appOffsetChange) {
-        if ((lastIsNeedUpdateAppOffset && isNeedUpdateAppOffset_)) {
-            HgmCore::Instance().SetHgmTaskFlag(true);
-        }
+    if (HgmCore::Instance().GetLtpoEnabled() && appOffsetChange && isNeedUpdateAppOffset_) {
+        HgmCore::Instance().SetHgmTaskFlag(true);
     }
+    isNeedUpdateAppOffset_ = false;
 }
 
 void HgmFrameRateManager::FrameRateReportTask(uint32_t leftRetryTimes)
