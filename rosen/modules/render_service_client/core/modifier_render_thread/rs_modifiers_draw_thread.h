@@ -102,7 +102,9 @@ public:
     bool GetHighContrast() const;
 #endif
 
-    void PostTask(const std::function<void()>&& task);
+    void PostTask(const std::function<void()>&& task, const std::string& name = std::string(), int64_t delayTime = 0);
+    void RemoveTask(const std::string& name);
+    bool GetIsStarted() const;
     template<typename Task, typename Return = std::invoke_result_t<Task>>
     std::future<Return> ScheduleTask(Task&& task)
     {
@@ -133,7 +135,7 @@ private:
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
     std::mutex mutex_;
-    bool isStarted_ = false;
+    std::atomic<bool> isStarted_ = false;
 
 #ifdef ACCESSIBILITY_ENABLE
     bool highContrast_ = false;

@@ -39,8 +39,13 @@ sptr<SurfaceBuffer> RSModifiersDraw::DmaMemAlloc(
     return nullptr;
 }
 
-std::shared_ptr<Drawing::Surface> RSModifiersDraw::CreateSurfaceFromGpuContext(
+sptr<SurfaceBuffer> RSModifiersDraw::CreateSurfaceBuffer(
     const std::unique_ptr<Media::PixelMap>& pixelMap, int32_t width, int32_t height)
+{
+    return nullptr;
+}
+
+std::shared_ptr<Drawing::Surface> RSModifiersDraw::CreateSurfaceFromGpuContext(sptr<SurfaceBuffer> surfaceBufferTmp)
 {
     return nullptr;
 }
@@ -52,7 +57,7 @@ std::shared_ptr<Drawing::Surface> RSModifiersDraw::CreateSurfaceFromCpuContext(
 }
 
 std::shared_ptr<Drawing::Surface> RSModifiersDraw::CreateSurface(std::unique_ptr<Media::PixelMap>& pixelMap,
-    int32_t width, int32_t height)
+    int32_t width, int32_t height, sptr<SurfaceBuffer> surfaceBufferTmp)
 {
     return nullptr;
 }

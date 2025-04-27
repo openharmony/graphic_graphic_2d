@@ -24,6 +24,8 @@ using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
+constexpr const int64_t DELAY_TIME = 1000;
+constexpr const char* TASK_NAME = "TaskName";
 class RSModifiersDrawThreadTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -188,5 +190,44 @@ HWTEST_F(RSModifiersDrawThreadTest, ConvertTransactionTest002, TestSize.Level1)
     transactionData->AddCommand(std::move(cmd), nodeId, FollowType::NONE);
     RSModifiersDrawThread::ConvertTransaction(transactionData);
     ASSERT_NE(transactionData, nullptr);
+}
+
+/**
+ * @tc.name: RemoveTask001
+ * @tc.desc: test results of remove task while handle is nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueIC3PRG
+ */
+HWTEST_F(RSModifiersDrawThreadTest, RemoveTask001, TestSize.Level1)
+{
+    bool tag = false;
+    auto task = [&tag] {
+        tag = true;
+    };
+    RSModifiersDrawThread::Instance().PostTask(task, TASK_NAME, DELAY_TIME);
+    RSModifiersDrawThread::Instance().handler_ = nullptr;
+    RSModifiersDrawThread::Instance().RemoveTask(TASK_NAME);
+    ASSERT_FALSE(tag);
+
+    // restore handle_
+    RSModifiersDrawThread::Instance().handler_ =
+        std::make_shared<AppExecFwk::EventHandler>(RSModifiersDrawThread::Instance().runner_);
+}
+
+/**
+ * @tc.name: RemoveTask002
+ * @tc.desc: test results of remove task while handle isn't nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueIC3PRG
+ */
+HWTEST_F(RSModifiersDrawThreadTest, RemoveTask002, TestSize.Level1)
+{
+    bool tag = false;
+    auto task = [&tag] {
+        tag = true;
+    };
+    RSModifiersDrawThread::Instance().PostTask(task, TASK_NAME, DELAY_TIME);
+    RSModifiersDrawThread::Instance().RemoveTask(TASK_NAME);
+    ASSERT_FALSE(tag);
 }
 } // namespace OHOS::Rosen

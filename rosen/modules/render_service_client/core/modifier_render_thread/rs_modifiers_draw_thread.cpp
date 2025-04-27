@@ -108,13 +108,17 @@ bool RSModifiersDrawThread::GetHighContrast() const
 }
 #endif
 
+bool RSModifiersDrawThread::GetIsStarted() const
+{
+    return isStarted_;
+}
+
 void RSModifiersDrawThread::Start()
 {
     std::lock_guard<std::mutex> lock(mutex_);
     if (isStarted_) {
         return;
     }
-    RsVulkanContext::SetHybridRender(true);
     runner_ = AppExecFwk::EventRunner::Create("ModifiersDraw");
     handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
     runner_->Run();
@@ -134,13 +138,20 @@ void RSModifiersDrawThread::Start()
     RS_LOGI("%{public}s RSModifiersDrawThread started", __func__);
 }
 
-void RSModifiersDrawThread::PostTask(const std::function<void()>&& task)
+void RSModifiersDrawThread::PostTask(const std::function<void()>&& task, const std::string& name, int64_t delayTime)
 {
     if (!isStarted_) {
         Start();
     }
     if (handler_ != nullptr) {
-        handler_->PostTask(task, AppExecFwk::EventQueue::Priority::IMMEDIATE);
+        handler_->PostTask(task, name, delayTime, AppExecFwk::EventQueue::Priority::IMMEDIATE);
+    }
+}
+
+void RSModifiersDrawThread::RemoveTask(const std::string& name)
+{
+    if (handler_) {
+        handler_->RemoveTask(name);
     }
 }
 
