@@ -425,8 +425,8 @@ HWTEST_F(RSRenderParticleAnimationTest, UpdateParamsIfChanged001, TestSize.Level
         std::make_shared<RSRenderParticleAnimation>(ANIMATION_ID, PROPERTY_ID, particlesRenderParams);
     renderParticleAnimation->UpdateEmitter(emitUpdate);
     auto particleSystem = renderParticleAnimation->GetParticleSystem();
-    para->annulusRegion->innerRadius_ = 10;
-    para->annulusRegion->outerRadius_ = 20;
+    para->annulusRegion_->innerRadius_ = 10;
+    para->annulusRegion_->outerRadius_ = 20;
     auto configRegion = particlesRenderParams[emitterIndex]->emitterConfig_.annulusRegion_;
     renderParticleAnimation->UpdateParamsIfChanged(para->annulusRegion_, configRegion);
     EXPECT_TRUE(configRegion.innerRadius_ == 10);
