@@ -188,7 +188,7 @@ int OH_NativeVSync_SetExpectedFrameRateRange(OH_NativeVSync* nativeVsync, OH_Nat
     }
     if (nativeVSync->frameRateLinker_ == nullptr) {
         VLOGE("FrameRateLinker is nullptr, please check.");
-        return VSYNC_ERROR_INVALID_ARGUMENTS;
+        return VSYNC_ERROR_NOT_SUPPORT;
     }
     if (nativeVSync->frameRateLinker_->IsEnable()) {
         nativeVSync->frameRateLinker_->UpdateFrameRateRangeImme(frameRateRange);

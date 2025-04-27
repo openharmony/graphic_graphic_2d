@@ -183,6 +183,7 @@ int OH_NativeVSync_DVSyncSwitch(OH_NativeVSync* nativeVsync, bool enable);
  *              This pointer needs to be released by developer.
  * @return {@link NATIVE_ERROR_OK}0 - Success.
  *      {@link NATIVE_ERROR_INVALID_ARGUMENTS} 40001000 - the parameter is NULL or range is invalid.
+ *      {@link VSYNC_ERROR_NOT_SUPPORT} 50102000 - the nativeVSync's framelinker is NULL
  * @since 20
  * @version 1.0
  */
