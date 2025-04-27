@@ -20,6 +20,7 @@ namespace Rosen {
 constexpr float EPSILON = 1e-3;
 constexpr float HALF = 0.5f;
 constexpr float FEATHERMAX = 100.f;
+constexpr int SQUARE_NUM = 2;
 bool ParticleNoiseField::IsPointInField(
     const Vector2f& point, const ShapeType& fieldShape, const Vector2f& fieldCenter, float width, float height)
 {
@@ -88,19 +89,11 @@ float ParticleNoiseField::CalculateDistanceToEllipseEdge(const Vector2f& directi
     float a = axes.x_ / 2;
     float b = axes.y_ / 2;
 
-    float t = 0.0;
+    float t = std::atan2(direction.y_, direction.x_);
     float x = a * std::cos(t);
     float y = b * std::sin(t);
 
-    for (int i = 0; i < 100; i++) {
-        float fx = x * x / (a * a) + y * y / (b * b) - 1;
-        float dfx_dt = -2 * x * std::sin(t) / a + 2 * y * std::cos(t) / b;
-        t -= fx / dfx_dt;
-        x = a * std::cos(t);
-        y = b * std::sin(t);
-    }
-
-    return std::sqrt(std::pow(x - direction.x_, 2) + std::pow(y - direction.y_, 2));
+    return std::sqrt(std::pow(x, SQUARE_NUM) + std::pow(y, SQUARE_NUM));
 }
 
 float ParticleNoiseField::CalculateFeatherEffect(float distanceToEdge, float featherWidth)
