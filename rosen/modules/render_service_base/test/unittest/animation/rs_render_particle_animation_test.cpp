@@ -417,7 +417,7 @@ HWTEST_F(RSRenderParticleAnimationTest, UpdateParamsIfChanged001, TestSize.Level
     auto para = std::make_shared<EmitterUpdater>(emitterIndex, position, emitSize, emitRate);
     AnnulusRegion annulusRegion;
     std::optional<AnnulusRegion> regionOpt;
-    regionOpt.emplace_back(regionOpt);
+    regionOpt.emplace(regionOpt);
     para->SetAnnulusRegion(regionOpt);
     std::vector<std::shared_ptr<EmitterUpdater>> emitUpdate;
     emitUpdate.push_back(para);
