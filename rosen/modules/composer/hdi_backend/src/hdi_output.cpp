@@ -25,7 +25,6 @@
 #include "vsync_sampler.h"
 // DISPLAYENGINE
 #include "syspara/parameters.h"
-#include "platform/common/rs_system_properties.h"
 
 using namespace OHOS::HDI::Display::Graphic::Common::V1_0;
 
@@ -42,7 +41,6 @@ namespace Rosen {
 static constexpr uint32_t NUMBER_OF_HISTORICAL_FRAMES = 2;
 static const std::string GENERIC_METADATA_KEY_ARSR_PRE_NEEDED = "ArsrDoEnhance";
 static int32_t SOLID_SURFACE_COUNT = 0;
-static int32_t g_enableMergeFence = OHOS::system::GetIntParameter<int32_t>("persist.sys.graphic.enableMergeFence", 0);
 
 std::shared_ptr<HdiOutput> HdiOutput::CreateHdiOutput(uint32_t screenId)
 {
@@ -698,7 +696,10 @@ std::map<LayerInfoPtr, sptr<SyncFence>> HdiOutput::GetLayersReleaseFenceLocked()
         }
 
         const LayerPtr &layer = iter->second;
-        if (RSSystemProperties::IsPhoneType() && g_enableMergeFence == 0) {
+        if (layer == nullptr || layer->GetLayerInfo() == nullptr) {
+            continue;
+        }
+        if (layer->GetLayerInfo()->GetUniRenderFlag()) {
             layer->SetReleaseFence(fences_[i]);
             res[layer->GetLayerInfo()] = fences_[i];
         } else {
