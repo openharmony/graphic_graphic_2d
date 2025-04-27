@@ -403,12 +403,15 @@ bool GetParagraphStyleFromJS(napi_env env, napi_value argValue, TypographyStyle&
     if (tempValue != nullptr && GetTextTabFromJS(env, tempValue, textTab)) {
         pographyStyle.tab = textTab;
     }
-
-    SetEnumValueFromJS(env, argValue, "textHeightBehavior", pographyStyle.textHeightBehavior);
-
-    SetBoolValueFromJS(env, argValue, "trailingSpaceOptimized", pographyStyle.isTrailingSpaceOptimized);
-
+    HandleAdditionalParagraphProperties(env, argValue, pographyStyle);
     return true;
+}
+
+void HandleAdditionalParagraphProperties(napi_env env, napi_value argValue, TypographyStyle& pographyStyle)
+{
+    SetEnumValueFromJS(env, argValue, "textHeightBehavior", pographyStyle.textHeightBehavior);
+    SetBoolValueFromJS(env, argValue, "trailingSpaceOptimized", pographyStyle.isTrailingSpaceOptimized);
+    SetBoolValueFromJS(env, argValue, "autoSpace", pographyStyle.enableAutoSpace);
 }
 
 bool GetPlaceholderSpanFromJS(napi_env env, napi_value argValue, PlaceholderSpan& placeholderSpan)

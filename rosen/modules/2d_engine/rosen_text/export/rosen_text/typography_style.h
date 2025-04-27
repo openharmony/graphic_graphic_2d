@@ -108,6 +108,7 @@ struct TypographyStyle {
     float paragraphSpacing{0.0f};
     bool isEndAddParagraphSpacing{false};
     bool isTrailingSpaceOptimized{false};
+    bool enableAutoSpace {false};
 
     bool operator==(const TypographyStyle &rhs) const
     {
@@ -145,7 +146,8 @@ struct TypographyStyle {
             this->tab == rhs.tab &&
             this->paragraphSpacing == rhs.paragraphSpacing &&
             this->isEndAddParagraphSpacing == rhs.isEndAddParagraphSpacing &&
-            this->isTrailingSpaceOptimized == rhs.isTrailingSpaceOptimized;
+            this->isTrailingSpaceOptimized == rhs.isTrailingSpaceOptimized &&
+            this->enableAutoSpace == rhs.enableAutoSpace;
     }
     TextStyle GetTextStyle() const;
     void SetTextStyle(TextStyle& textstyle);

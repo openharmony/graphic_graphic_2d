@@ -102,6 +102,7 @@ public:
     size_t defaultTextStyleUid{0};
     bool halfLeading{false};
     bool isTrailingSpaceOptimized{false};
+    bool enableAutoSpace {false};
 };
 } // namespace SPText
 } // namespace Rosen

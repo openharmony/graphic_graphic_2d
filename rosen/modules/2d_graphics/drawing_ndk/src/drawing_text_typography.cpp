@@ -3529,3 +3529,11 @@ void OH_Drawing_TypographyHandlerAddEncodedText(
 
     ConvertToOriginalText<TypographyCreate>(handler)->AppendText(wideText);
 }
+
+void OH_Drawing_SetTypographyTextAutoSpace(OH_Drawing_TypographyStyle* style, bool enableAutoSpace)
+{
+    if (style == nullptr || ConvertToOriginalText<TypographyStyle>(style) == nullptr) {
+        return;
+    }
+        ConvertToOriginalText<TypographyStyle>(style)->enableAutoSpace = enableAutoSpace;
+}
