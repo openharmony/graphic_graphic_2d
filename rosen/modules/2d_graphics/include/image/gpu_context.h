@@ -330,6 +330,8 @@ public:
 
     void RegisterPostFunc(const std::function<void(const std::function<void()>& task)>& func);
 
+    void RegisterDrawOpOverCallback(const std::function<void(int32_t drawOpCount)>& drawOpOverCallback);
+
     /**
      * @brief                   Defragment or clear Vma Cache if needed
      */

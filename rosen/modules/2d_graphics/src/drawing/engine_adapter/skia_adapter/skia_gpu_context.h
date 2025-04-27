@@ -97,6 +97,8 @@ public:
 
     void RegisterVulkanErrorCallback(const std::function<void()>& vulkanErrorCallback) override;
 
+    void RegisterDrawOpOverCallback(const std::function<void(int32_t drawOpCount)>& drawOpOverCallback) override;
+
     void PurgeUnlockAndSafeCacheGpuResources() override;
 
     void ReleaseByTag(const GPUResourceTag &tag) override;

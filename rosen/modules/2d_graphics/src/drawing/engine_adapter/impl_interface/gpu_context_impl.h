@@ -105,6 +105,8 @@ public:
 
     virtual void RegisterPostFunc(const std::function<void(const std::function<void()>& task)>& func) = 0;
 
+    virtual void RegisterDrawOpOverCallback(const std::function<void(int32_t drawOpCount)>& drawOpOverCallback) = 0;
+
     virtual void VmaDefragment() = 0;
 
     virtual void BeginFrame() = 0;
