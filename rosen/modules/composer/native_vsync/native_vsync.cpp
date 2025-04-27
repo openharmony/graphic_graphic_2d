@@ -161,7 +161,7 @@ int OH_NativeVSync_DVSyncSwitch(OH_NativeVSync* ohNativeVSync, bool enable)
 }
 
 bool IsInputRateRangeValid(OH_NativeVSync_ExpectedRateRange *range)
-{   
+{
     if (range == nullptr) {
         VLOGE("input range is nullptr, please check");
         return false;
