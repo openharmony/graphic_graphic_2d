@@ -27,6 +27,7 @@
 #include "params/rs_display_render_params.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
 #include "pipeline/rs_canvas_render_node.h"
+#include "pipeline/rs_root_render_node.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "platform/common/rs_log.h"
 
@@ -1339,6 +1340,7 @@ bool RSUifirstManager::EventsCanSkipFirstWait(std::vector<EventInfo>& events)
     return false;
 }
 
+// exit uifirst when leash has APP_LIST_FLING event.
 bool RSUifirstManager::CheckIfAppWindowHasAnimation(RSSurfaceRenderNode& node)
 {
     if (currentFrameEvent_.empty()) {
@@ -1404,6 +1406,68 @@ void RSUifirstManager::ProcessFirstFrameCache(RSSurfaceRenderNode& node, MultiTh
     }
 }
 
+bool RSUifirstManager::HasBgNodeBelowRootNode(RSSurfaceRenderNode& appNode) const
+{
+    auto appFirstChildren = appNode.GetFirstChild();
+    if (!appFirstChildren) {
+        return false;
+    }
+    auto rootNode = RSBaseRenderNode::ReinterpretCast<RSRootRenderNode>(appFirstChildren);
+    if (!rootNode) {
+        return false;
+    }
+    auto rootFirstChildren = rootNode->GetFirstChild();
+    if (!rootFirstChildren) {
+        return false;
+    }
+    auto bgColorNode = RSBaseRenderNode::ReinterpretCast<RSCanvasRenderNode>(rootFirstChildren);
+    if (!bgColorNode) {
+        return false;
+    }
+    auto backgroundColor =
+        static_castDrawing::ColorQuad(bgColorNode->GetRenderProperties().GetBackgroundColor().AsArgbInt());
+    if (Drawing::Color::ColorQuadGetA(backgroundColor) != Drawing::Color::COLOR_TRANSPARENT) {
+        return true;
+    }
+    return false;
+}
+
+bool RSUifirstManager::CheckHasTransAndFilter(RSSurfaceRenderNode& node)
+{
+    if (!node.IsLeashWindow()) {
+        return false;
+    }
+    bool childHasVisibleFilter = node.ChildHasVisibleFilter();
+    bool hasTransparent = false;
+    RectI mainAppSurfaceRect = {};
+    bool isMainAppSurface = false;
+    bool hasChildOutOfMainAppSurface = false;
+    for (auto &child : *node.GetSortedChildren()) {
+        auto childSurface = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(child);
+        if (childSurface == nullptr || hasChildOutOfMainAppSurface) {
+            continue;
+    }
+    if (!isMainAppSurface && childSurface->IsAppWindow()) {
+        bool isBgColorTrans = HasBgNodeBelowRootNode(*childSurface);
+        hasTransparent |= (childSurface->IsTransparent() && !isBgColorTrans);
+        mainAppSurfaceRect = childSurface->GetAbsDrawRect();
+        isMainAppSurface = true;
+        RS_OPTIONAL_TRACE_NAME_FMT("Id[%llu] name[%s] isTrans:%d isBgTrans:%d, hasTrans:%d", childSurface->GetId(),
+            childSurface->GetName().c_str(), childSurface->IsTransparent(), isBgColorTrans, hasTransparent);
+        continue;
+    }
+    if (!childSurface->GetAbsDrawRect().IsInsideOf(mainAppSurfaceRect)) {
+        RS_OPTIONAL_TRACE_NAME_FMT("Id[%llu] name[%s] absDrawRect is outof mainAppNode",
+            childSurface->GetId(), childSurface->GetName().c_str());
+        hasChildOutOfMainAppSurface = true;
+        }
+    }
+    hasTransparent |= hasChildOutOfMainAppSurface;
+    RS_TRACE_NAME_FMT("CheckHasTransAndFilter node:%" PRIu64 " hasTransparent: %d, childHasVisibleFilter: %d",
+        node.GetId(), hasTransparent, childHasVisibleFilter);
+    return hasTransparent && childHasVisibleFilter;
+}
+
 bool RSUifirstManager::IsArkTsCardCache(RSSurfaceRenderNode& node, bool animation) // maybe canvas node ?
 {
     bool flag = ((RSUifirstManager::Instance().GetUiFirstMode() == UiFirstModeType::SINGLE_WINDOW_MODE) &&
@@ -1424,6 +1488,10 @@ bool RSUifirstManager::IsLeashWindowCache(RSSurfaceRenderNode& node, bool animat
         (node.GetFirstLevelNodeId() != node.GetId()) ||
         (RSUifirstManager::Instance().NodeIsInCardWhiteList(node)) ||
         (RSUifirstManager::Instance().CheckIfAppWindowHasAnimation(node))) {
+        return false;
+    }
+    // check transparent and childHasVisibleFilter
+    if (RSUifirstManager::Instance().CheckHasTransAndFilter(node)) {
         return false;
     }
     if (node.IsLeashWindow()) {

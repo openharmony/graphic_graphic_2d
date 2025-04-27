@@ -243,6 +243,8 @@ private:
     bool IsToSubByAppAnimation() const;
     bool QuerySubAssignable(RSSurfaceRenderNode& node, bool isRotation);
     bool GetSubNodeIsTransparent(RSSurfaceRenderNode& node, std::string& dfxMsg);
+    bool CheckHasTransAndFilter(RSSurfaceRenderNode& node);
+    bool HasBgNodeBelowRootNode(RSSurfaceRenderNode& appNode) const;
 
     // starting
     void ProcessFirstFrameCache(RSSurfaceRenderNode& node, MultiThreadCacheType cacheType);
