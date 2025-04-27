@@ -170,7 +170,7 @@ bool IsInputRateRangeValid(OH_NativeVSync_ExpectedRateRange *range)
         range->min >= 0 && range->max <= RANGE_MAX_REFRESHRATE;
 }
 
-int OH_NativeVSync_SetExpectedFrameRateRange(OH_NativeVSync* nativeVsync, OH_NativeVSync_ExpectedRateRange *range)
+int OH_NativeVSync_SetExpectedFrameRateRange(OH_NativeVSync* nativeVsync, OH_NativeVSync_ExpectedRateRange* range)
 {
     NativeVSync* nativeVSync = OH_NativeVSync_OHNativeVSyncToNativeVSync(nativeVsync);
     if (nativeVSync == nullptr || range == nullptr) {

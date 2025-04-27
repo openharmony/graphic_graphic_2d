@@ -182,7 +182,7 @@ int OH_NativeVSync_DVSyncSwitch(OH_NativeVSync* nativeVsync, bool enable);
  *              if min=max=expected=0 indicates cancle vote.
  *              This pointer needs to be released by developer.
  * @return {@link NATIVE_ERROR_OK}0 - Success.
- *      {@link NATIVE_ERROR_INVALID_ARGUMENTS} 40001000 - the parameter is NULL.
+ *      {@link NATIVE_ERROR_INVALID_ARGUMENTS} 40001000 - the parameter is NULL or range is invalid.
  * @since 20
  * @version 1.0
  */
