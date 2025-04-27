@@ -16,6 +16,7 @@
 #include "rs_surface_ohos_vulkan.h"
 
 #include <memory>
+#include "common/rs_exception_check.h"
 #include "memory/rs_tag_tracker.h"
 #include "native_buffer_inner.h"
 #include "native_window.h"
@@ -39,33 +40,6 @@ namespace OHOS {
 namespace Rosen {
 
 static constexpr int64_t PROTECTEDBUFFERSIZE = 2;
-class RSTimer {
-public:
-    static inline int64_t GetNanoSeconds()
-    {
-        struct timespec ts {};
-        clock_gettime(CLOCK_REALTIME, &ts);
-        return ts.tv_sec * NANO + ts.tv_nsec;
-    }
-
-    explicit RSTimer(const char* tag): tag_(tag), timestamp_(GetNanoSeconds()) {}
-
-    ~RSTimer()
-    {
-        int64_t durationNS = GetNanoSeconds() - timestamp_;
-        int64_t durationMS = durationNS / MILLI;
-        if (durationMS > THRESHOLD) {
-            RS_LOGE("%{public}s task too long: %{public}" PRIu64" ms", tag_, durationMS);
-        }
-    }
-
-private:
-    const char* tag_;
-    const int64_t timestamp_;
-    static constexpr int64_t NANO = 1000000000LL;
-    static constexpr int64_t MILLI = 1000000LL;
-    static constexpr int64_t THRESHOLD = 50; //Jank 6
-};
 
 RSSurfaceOhosVulkan::RSSurfaceOhosVulkan(const sptr<Surface>& producer) : RSSurfaceOhos(producer)
 {
@@ -329,12 +303,12 @@ bool RSSurfaceOhosVulkan::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uin
     drawingFlushInfo.finishedContext = callbackInfo;
     {
         RS_TRACE_NAME("Flush");
-        RSTimer timer("Flush");
+        RSTimer timer("Flush", 50); // 50ms
         surface.drawingSurface->Flush(&drawingFlushInfo);
     }
     {
         RS_TRACE_NAME("Submit");
-        RSTimer timer("Submit");
+        RSTimer timer("Submit", 50); // 50ms
         mSkContext->Submit();
         mSkContext->EndFrame();
     }
