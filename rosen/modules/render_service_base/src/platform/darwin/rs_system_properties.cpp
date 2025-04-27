@@ -68,6 +68,11 @@ bool RSSystemProperties::GetDrawOpTraceEnabled()
     return false;
 }
 
+bool RSSystemProperties::GetDrawOpLimitEnabled()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetRenderNodeTraceEnabled()
 {
     return {};
