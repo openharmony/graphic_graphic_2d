@@ -114,13 +114,13 @@ napi_value JsImageFilter::CreateBlendImageFilter(napi_env env, napi_callback_inf
     GET_ENUM_PARAM(ARGC_ZERO, blendMode, 0, static_cast<int32_t>(BlendMode::LUMINOSITY));
 
     JsImageFilter* jsBackground = nullptr;
-    GET_UNWRAP_PARAM_OR_NULL(ARGC_ONE, jsBackground);
+    GET_UNWRAP_PARAM(ARGC_ONE, jsBackground);
 
     JsImageFilter* jsForeground = nullptr;
-    GET_UNWRAP_PARAM_OR_NULL(ARGC_TWO, jsForeground);
+    GET_UNWRAP_PARAM(ARGC_TWO, jsForeground);
 
-    std::shared_ptr<ImageFilter> background = (jsBackground == nullptr) ? nullptr : jsBackground->GetImageFilter();
-    std::shared_ptr<ImageFilter> foreground = (jsForeground == nullptr) ? nullptr : jsForeground->GetImageFilter();
+    std::shared_ptr<ImageFilter> background = jsBackground->GetImageFilter();
+    std::shared_ptr<ImageFilter> foreground = jsForeground->GetImageFilter();
 
     std::shared_ptr<ImageFilter> imgFilter = ImageFilter::CreateBlendImageFilter(static_cast<BlendMode>(blendMode),
         background, foreground);
