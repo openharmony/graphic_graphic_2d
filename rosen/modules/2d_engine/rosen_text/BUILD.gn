@@ -81,10 +81,18 @@ ohos_source_set("rosen_text_skia") {
   }
 
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
-    defines += [
-      "USE_ROSEN_DRAWING",
-      "USE_SKIA_TXT",
-    ]
+    if (use_new_skia) {
+      defines += [
+        "USE_ROSEN_DRAWING",
+        "ENABLE_DRAWING_ADAPTER",
+        "USE_M133_SKIA",
+      ]
+    } else {
+      defines += [
+        "USE_ROSEN_DRAWING",
+        "USE_SKIA_TXT",
+      ]
+    }
     if (rs_enable_gpu) {
       defines += [ "RS_ENABLE_GPU" ]
     }

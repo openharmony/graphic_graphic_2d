@@ -16,6 +16,8 @@ import("//foundation/graphic/graphic_2d/ace_platforms.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 import("$graphic_2d_root/rosen/modules/2d_engine/rosen_text/config.gni")
 
+import("//build/ohos_var.gni")
+
 config("skia_libtxt_config") {
   include_dirs = [
     "$graphic_2d_root/rosen/modules/2d_engine/rosen_text/export",
@@ -30,9 +32,15 @@ config("skia_libtxt_config") {
   ]
 }
 
+if (use_new_skia) {
+  skia_root = "//third_party/skia/m133"
+} else {
+  skia_root = "//third_party/skia"
+}
+
 txt_root = "$rosen_root/modules/2d_engine/rosen_text/skia_txt/"
-skunicode_root = "//third_party/skia/modules/skunicode"
-skshaper_root = "//third_party/skia/modules/skshaper"
+skunicode_root = "$skia_root/modules/skunicode"
+skshaper_root = "$skia_root/modules/skshaper"
 
 template("skia_libtxt") {
   forward_variables_from(invoker, "*")
@@ -97,17 +105,29 @@ template("skia_libtxt") {
       defines += [ "MODULE_TEXTING" ]
     }
 
-    defines += [ "OHOS_SUPPORT" ]
+    if (use_new_skia) {
+      defines += [ "ENABLE_TEXT_ENHANCE" ]
+    } else {
+      defines += [ "OHOS_SUPPORT" ]
+    }
 
     is_cross_platform =
         current_os == "mac" || current_os == "mingw" || current_os == "linux" ||
         current_os == "android" || current_os == "ios"
 
     if (defined(use_rosen_drawing) && use_rosen_drawing) {
-      defines += [
-        "USE_ROSEN_DRAWING",
-        "USE_SKIA_TXT",
-      ]
+      if (use_new_skia) {
+        defines += [
+          "USE_ROSEN_DRAWING",
+          "ENABLE_DRAWING_ADAPTER",
+          "USE_M133_SKIA",
+        ]
+      } else {
+        defines += [
+          "USE_ROSEN_DRAWING",
+          "USE_SKIA_TXT",
+        ]
+      }
       if (rs_enable_gpu) {
         defines += [ "RS_ENABLE_GPU" ]
       }
@@ -123,7 +143,7 @@ template("skia_libtxt") {
       deps += [
         "//third_party/bounds_checking_function:libsec_static",
         "//third_party/jsoncpp:jsoncpp_static",
-        "//third_party/skia:skia_$platform",
+        "$skia_root:skia_$platform",
       ]
     } else {
       external_deps += [
@@ -173,41 +193,53 @@ ohos_source_set("skia_paragraph") {
     "$graphic_2d_root/rosen/modules/2d_graphics/src",
     "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing",
     "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing/engine_adapter",
-    "//third_party/skia/modules/skparagraph",
+    "$skia_root/modules/skparagraph",
   ]
 
-  defines = [ "OHOS_SUPPORT" ]
+  if (use_new_skia) {
+    defines = [ "ENABLE_TEXT_ENHANCE" ]
+  } else {
+    defines = [ "OHOS_SUPPORT" ]
+  }
 
   sources = [
-    "//third_party/skia/modules/skparagraph/src/Decorations.cpp",
-    "//third_party/skia/modules/skparagraph/src/FontArguments.cpp",
-    "//third_party/skia/modules/skparagraph/src/FontCollection.cpp",
-    "//third_party/skia/modules/skparagraph/src/HyphenTrie.cpp",
-    "//third_party/skia/modules/skparagraph/src/Hyphenator.cpp",
-    "//third_party/skia/modules/skparagraph/src/OneLineShaper.cpp",
-    "//third_party/skia/modules/skparagraph/src/ParagraphBuilderImpl.cpp",
-    "//third_party/skia/modules/skparagraph/src/ParagraphCache.cpp",
-    "//third_party/skia/modules/skparagraph/src/ParagraphImpl.cpp",
-    "//third_party/skia/modules/skparagraph/src/ParagraphLineFetcherImpl.cpp",
-    "//third_party/skia/modules/skparagraph/src/ParagraphPainterImpl.cpp",
-    "//third_party/skia/modules/skparagraph/src/ParagraphStyle.cpp",
-    "//third_party/skia/modules/skparagraph/src/Run.cpp",
-    "//third_party/skia/modules/skparagraph/src/RunBaseImpl.cpp",
-    "//third_party/skia/modules/skparagraph/src/TextLine.cpp",
-    "//third_party/skia/modules/skparagraph/src/TextLineBaseImpl.cpp",
-    "//third_party/skia/modules/skparagraph/src/TextLineJustify.cpp",
-    "//third_party/skia/modules/skparagraph/src/TextShadow.cpp",
-    "//third_party/skia/modules/skparagraph/src/TextStyle.cpp",
-    "//third_party/skia/modules/skparagraph/src/TextTabAlign.cpp",
-    "//third_party/skia/modules/skparagraph/src/TextWrapper.cpp",
-    "//third_party/skia/modules/skparagraph/src/TypefaceFontProvider.cpp",
+    "$skia_root/modules/skparagraph/src/Decorations.cpp",
+    "$skia_root/modules/skparagraph/src/FontArguments.cpp",
+    "$skia_root/modules/skparagraph/src/FontCollection.cpp",
+    "$skia_root/modules/skparagraph/src/HyphenTrie.cpp",
+    "$skia_root/modules/skparagraph/src/Hyphenator.cpp",
+    "$skia_root/modules/skparagraph/src/OneLineShaper.cpp",
+    "$skia_root/modules/skparagraph/src/ParagraphBuilderImpl.cpp",
+    "$skia_root/modules/skparagraph/src/ParagraphCache.cpp",
+    "$skia_root/modules/skparagraph/src/ParagraphImpl.cpp",
+    "$skia_root/modules/skparagraph/src/ParagraphLineFetcherImpl.cpp",
+    "$skia_root/modules/skparagraph/src/ParagraphPainterImpl.cpp",
+    "$skia_root/modules/skparagraph/src/ParagraphStyle.cpp",
+    "$skia_root/modules/skparagraph/src/Run.cpp",
+    "$skia_root/modules/skparagraph/src/RunBaseImpl.cpp",
+    "$skia_root/modules/skparagraph/src/TextLine.cpp",
+    "$skia_root/modules/skparagraph/src/TextLineBaseImpl.cpp",
+    "$skia_root/modules/skparagraph/src/TextLineJustify.cpp",
+    "$skia_root/modules/skparagraph/src/TextShadow.cpp",
+    "$skia_root/modules/skparagraph/src/TextStyle.cpp",
+    "$skia_root/modules/skparagraph/src/TextTabAlign.cpp",
+    "$skia_root/modules/skparagraph/src/TextWrapper.cpp",
+    "$skia_root/modules/skparagraph/src/TypefaceFontProvider.cpp",
   ]
 
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
-    defines += [
-      "USE_ROSEN_DRAWING",
-      "USE_SKIA_TXT",
-    ]
+    if (use_new_skia) {
+      defines += [
+        "USE_ROSEN_DRAWING",
+        "ENABLE_DRAWING_ADAPTER",
+        "USE_M133_SKIA",
+      ]
+    } else {
+      defines += [
+        "USE_ROSEN_DRAWING",
+        "USE_SKIA_TXT",
+      ]
+    }
     if (rs_enable_gpu) {
       defines += [ "RS_ENABLE_GPU" ]
     }
@@ -227,7 +259,7 @@ ohos_source_set("skia_paragraph") {
       "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog_${target_os}",
       "//third_party/bounds_checking_function:libsec_static",
       "//third_party/icu/icu4c:static_icuuc",
-      "//third_party/skia:skia_$platform",
+      "$skia_root:skia_$platform",
     ]
   } else {
     external_deps = [
@@ -257,7 +289,13 @@ ohos_source_set("skia_unicode") {
 
   public_configs = [ ":skia_libtxt_config" ]
   include_dirs = []
-  defines = [ "OHOS_SUPPORT" ]
+
+  if (use_new_skia) {
+    defines = [ "ENABLE_TEXT_ENHANCE" ]
+  } else {
+    defines = [ "OHOS_SUPPORT" ]
+  }
+
   sources = []
 
   public = [ "$skunicode_root/include/SkUnicode.h" ]
@@ -300,10 +338,18 @@ ohos_source_set("skia_shaper") {
   defines = []
 
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
-    defines += [
-      "USE_ROSEN_DRAWING",
-      "USE_SKIA_TXT",
-    ]
+    if (use_new_skia) {
+      defines += [
+        "USE_ROSEN_DRAWING",
+        "ENABLE_DRAWING_ADAPTER",
+        "USE_M133_SKIA",
+      ]
+    } else {
+      defines += [
+        "USE_ROSEN_DRAWING",
+        "USE_SKIA_TXT",
+      ]
+    }
     if (rs_enable_gpu) {
       defines += [ "RS_ENABLE_GPU" ]
     }
@@ -325,7 +371,7 @@ ohos_source_set("skia_shaper") {
   if (is_arkui_x) {
     deps += [
       "//third_party/bounds_checking_function:libsec_static",
-      "//third_party/skia:skia_$platform",
+      "$skia_root:skia_$platform",
     ]
   } else {
     external_deps = [
