@@ -140,97 +140,6 @@ ani_double AniParagraph::GetLongestLine(ani_env* env, ani_object object)
     return aniParagraph->paragraph_->GetActualWidth();
 }
 
-ani_object AniConvertTextStyle(ani_env* env, const TextStyle& textStyle)
-{
-    ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_TEXT_STYLE_I, ":V");
-    //env->Object_SetPropertyByName_Ref(aniObj, "decoration", ani_double(textStyle));
-    //env->Object_SetPropertyByName_Ref(aniObj, "color", ani_int(textStyle.color.CastToColorQuad()));
-    //env->Object_SetPropertyByName_Ref(aniObj, "fontWeight",                                      AniTextUtils::CreateAniDoubleObj(env, textStyle.fontWeight));
-    //env->Object_SetPropertyByName_Ref(aniObj, "fontStyle", AniTextUtils::CreateAniDoubleObj(env, textStyle.fontStyle));
-    //env->Object_SetPropertyByName_Ref(aniObj, "baseline", AniTextUtils::CreateAniDoubleObj(env, textStyle.baseline));
-    //env->Object_SetPropertyByName_Ref(aniObj, "fontFamilies", AniTextUtils::CreateAniDoubleObj(env,textStyle.fontFamilies));
-    env->Object_SetPropertyByName_Ref(aniObj, "fontSize", AniTextUtils::CreateAniDoubleObj(env, textStyle.fontSize));
-    env->Object_SetPropertyByName_Ref(aniObj, "letterSpacing",
-                                      AniTextUtils::CreateAniDoubleObj(env, textStyle.letterSpacing));
-    env->Object_SetPropertyByName_Ref(aniObj, "wordSpacing",
-                                      AniTextUtils::CreateAniDoubleObj(env, textStyle.wordSpacing));
-    env->Object_SetPropertyByName_Ref(aniObj, "heightScale",
-                                      AniTextUtils::CreateAniDoubleObj(env, textStyle.heightScale));
-    env->Object_SetPropertyByName_Ref(aniObj, "halfLeading",
-                                      AniTextUtils::CreateAniBooleanObj(env, textStyle.halfLeading));
-    env->Object_SetPropertyByName_Ref(aniObj, "heightOnly",
-                                      AniTextUtils::CreateAniBooleanObj(env, textStyle.heightOnly));
-    //env->Object_SetPropertyByName_Ref(aniObj, "ellipsis", AniTextUtils::CreateAniStringObj(env,textStyle.ellipsis));
-    //env->Object_SetPropertyByName_Ref(aniObj, "ellipsisMode",                                      AniTextUtils::CreateAniDoubleObj(env, textStyle.ellipsisMode));
-    //env->Object_SetPropertyByName_Ref(aniObj, "locale", AniTextUtils::CreateAniDoubleObj(env,textStyle.locale));
-    env->Object_SetPropertyByName_Ref(aniObj, "baselineShift",
-                                      AniTextUtils::CreateAniDoubleObj(env, textStyle.baseLineShift));
-    //env->Object_SetPropertyByName_Ref(aniObj, "backgroundRect", AniTextUtils::CreateAniDoubleObj(env,textStyle.backgroundRect));
-    //env->Object_SetPropertyByName_Ref(aniObj, "textShadows", AniTextUtils::CreateAniDoubleObj(env,textStyle.shadows));
-    //env->Object_SetPropertyByName_Ref(aniObj, "fontFeatures", AniTextUtils::CreateAniDoubleObj(env,textStyle.fontFeatures));
-    return aniObj;
-}
-
-ani_object AniConvertFontMetrics(ani_env* env, const Drawing::FontMetrics& fontMetrics)
-{
-    ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_FONT_METRICS, ":V");
-    env->Object_SetPropertyByName_Double(aniObj, "flags", ani_int(fontMetrics.fFlags));
-    env->Object_SetPropertyByName_Double(aniObj, "top", ani_double(fontMetrics.fTop));
-    env->Object_SetPropertyByName_Double(aniObj, "ascent", ani_double(fontMetrics.fAscent));
-    env->Object_SetPropertyByName_Double(aniObj, "descent", ani_double(fontMetrics.fDescent));
-    env->Object_SetPropertyByName_Double(aniObj, "bottom", ani_double(fontMetrics.fBottom));
-    env->Object_SetPropertyByName_Double(aniObj, "leading", ani_double(fontMetrics.fLeading));
-    env->Object_SetPropertyByName_Double(aniObj, "avgCharWidth", ani_double(fontMetrics.fAvgCharWidth));
-    env->Object_SetPropertyByName_Double(aniObj, "maxCharWidth", ani_double(fontMetrics.fMaxCharWidth));
-    env->Object_SetPropertyByName_Double(aniObj, "xMin", ani_double(fontMetrics.fXMin));
-    env->Object_SetPropertyByName_Double(aniObj, "xMax", ani_double(fontMetrics.fXMax));
-    env->Object_SetPropertyByName_Double(aniObj, "xHeight", ani_double(fontMetrics.fXHeight));
-    env->Object_SetPropertyByName_Double(aniObj, "capHeight", ani_double(fontMetrics.fCapHeight));
-    env->Object_SetPropertyByName_Double(aniObj, "underlineThickness", ani_double(fontMetrics.fUnderlineThickness));
-    env->Object_SetPropertyByName_Double(aniObj, "underlinePosition", ani_double(fontMetrics.fUnderlinePosition));
-    env->Object_SetPropertyByName_Double(aniObj, "strikethroughThickness", ani_double(fontMetrics.fStrikeoutThickness));
-    env->Object_SetPropertyByName_Double(aniObj, "strikethroughPosition", ani_double(fontMetrics.fStrikeoutPosition));
-    return aniObj;
-}
-
-ani_object AniConvertRunMetrics(ani_env* env, const std::map<size_t, RunMetrics>& map)
-{
-    ani_object mapAniObj = AniTextUtils::CreateAniMap(env);
-    ani_ref mapRef = nullptr;
-    for (const auto& [key, runMetrics] : map) {
-        ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_RUNMETRICS_I, ":V");
-        if (runMetrics.textStyle != nullptr) {
-            env->Object_SetPropertyByName_Ref(aniObj, "textStyle", AniConvertTextStyle(env, *runMetrics.textStyle));
-        }
-        //env->Object_SetPropertyByName_Ref(aniObj, "fontMetrics", AniConvertFontMetrics(env, runMetrics.fontMetrics));
-        if (ANI_OK
-            != env->Object_CallMethodByName_Ref(
-                mapAniObj, "set", "Lstd/core/Object;Lstd/core/Object;:Lescompat/Map;", &mapRef,
-                AniTextUtils::CreateAniDoubleObj(env, static_cast<ani_double>(key)), aniObj)) {
-            TEXT_LOGE("Object_CallMethodByName_Ref set failed");
-            break;
-        };
-    }
-    return mapAniObj;
-}
-
-ani_object AniConvertLineMetrics(ani_env* env, const LineMetrics& lineMetrics)
-{
-    ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_LINEMETRICS_I, ":V");
-    env->Object_SetPropertyByName_Double(aniObj, "startIndex", ani_int(lineMetrics.startIndex));
-    env->Object_SetPropertyByName_Double(aniObj, "endIndex", ani_int(lineMetrics.endIndex));
-    env->Object_SetPropertyByName_Double(aniObj, "ascent", ani_double(lineMetrics.ascender));
-    env->Object_SetPropertyByName_Double(aniObj, "descent", ani_double(lineMetrics.descender));
-    env->Object_SetPropertyByName_Double(aniObj, "height", ani_double(lineMetrics.height));
-    env->Object_SetPropertyByName_Double(aniObj, "width", ani_double(lineMetrics.width));
-    env->Object_SetPropertyByName_Double(aniObj, "left", ani_double(lineMetrics.x));
-    env->Object_SetPropertyByName_Double(aniObj, "baseline", ani_double(lineMetrics.baseline));
-    env->Object_SetPropertyByName_Double(aniObj, "lineNumber", ani_int(lineMetrics.lineNumber));
-    env->Object_SetPropertyByName_Double(aniObj, "topHeight", ani_double(lineMetrics.y));
-    env->Object_SetPropertyByName_Ref(aniObj, "runMetrics", AniConvertRunMetrics(env, lineMetrics.runMetrics));
-    return aniObj;
-}
-
 ani_ref AniParagraph::GetLineMetrics(ani_env* env, ani_object object)
 {
     ani_object arrayObj = AniTextUtils::CreateAniUndefined(env);
@@ -249,7 +158,7 @@ ani_ref AniParagraph::GetLineMetrics(ani_env* env, ani_object object)
     }
     ani_size index = 0;
     for (auto lineMetrics : vectorLineMetrics) {
-        ani_object aniObj = AniConvertLineMetrics(env, lineMetrics);
+        ani_object aniObj = AniCommon::ParseLineMetricsToAni(env, lineMetrics);
         if (ANI_OK != env->Object_CallMethodByName_Void(arrayObj, "$_set", "ILstd/core/Object;:V", index, aniObj)) {
             TEXT_LOGE("Object_CallMethodByName_Void $_set failed");
             break;
@@ -271,6 +180,6 @@ ani_object AniParagraph::GetLineMetricsAt(ani_env* env, ani_object object, ani_d
         TEXT_LOGE("Failed to get line metrics");
         return AniTextUtils::CreateAniUndefined(env);
     }
-    return AniConvertLineMetrics(env, lineMetrics);
+    return AniCommon::ParseLineMetricsToAni(env, lineMetrics);
 }
 } // namespace OHOS::Text::NAI

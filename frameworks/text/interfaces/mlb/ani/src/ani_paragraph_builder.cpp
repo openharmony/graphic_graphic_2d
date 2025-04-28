@@ -43,7 +43,8 @@ void AniParagraphBuilder::Constructor(ani_env* env, ani_object object, ani_objec
         return;
     }
 
-    std::unique_ptr<TypographyStyle> typographyStyleNative = AniCommon::ParseParagraphStyle(env, paragraphStyle);
+    std::unique_ptr<TypographyStyle> typographyStyleNative =
+        AniCommon::ParseParagraphStyleToNative(env, paragraphStyle);
     if (typographyStyleNative == nullptr) {
         TEXT_LOGE("Failed to parse typographyStyle");
         return;

@@ -34,7 +34,7 @@ ani_object AniTextUtils::CreateAniUndefined(ani_env* env)
 ani_object AniTextUtils::CreateAniArray(ani_env* env, size_t size)
 {
     ani_class arrayCls;
-    if (env->FindClass("Lescompat/Array;", &arrayCls) != ANI_OK) {
+    if (env->FindClass(ANI_ARRAY, &arrayCls) != ANI_OK) {
         TEXT_LOGE("[ANI] FindClass Lescompat/Array; failed");
         return CreateAniUndefined(env);
     }
@@ -53,17 +53,17 @@ ani_object AniTextUtils::CreateAniArray(ani_env* env, size_t size)
 
 ani_object AniTextUtils::CreateAniMap(ani_env* env)
 {
-    return AniTextUtils::CreateAniObject(env, "Lescompat/Map;", ":V");
+    return AniTextUtils::CreateAniObject(env, ANI_MAP, ":V");
 }
 
 ani_object AniTextUtils::CreateAniDoubleObj(ani_env* env, double val)
 {
-    return AniTextUtils::CreateAniObject(env, "Lstd/core/Double;", "D:V", val);
+    return AniTextUtils::CreateAniObject(env, ANI_OBJECT, "D:V", val);
 }
 
 ani_object AniTextUtils::CreateAniBooleanObj(ani_env* env, bool val)
 {
-    return AniTextUtils::CreateAniObject(env, "Lstd/core/Boolean;", "Z:V", val);
+    return AniTextUtils::CreateAniObject(env, ANI_BOOLEAN, "Z:V", val);
 }
 
 ani_string AniTextUtils::CreateAniStringObj(ani_env* env, std::string str)

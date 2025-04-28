@@ -19,10 +19,17 @@
 #include <ani.h>
 
 #include "text_style.h"
+#include "text/font_metrics.h"
+#include "typography.h"
 #include "typography_style.h"
+
 namespace OHOS::Text::NAI {
 using namespace OHOS::Rosen;
 inline constexpr const char* NATIVE_OBJ = "nativeObj";
+inline constexpr const char* ANI_OBJECT = "Lstd/core/Double;";
+inline constexpr const char* ANI_BOOLEAN = "Lstd/core/Boolean;";
+inline constexpr const char* ANI_MAP = "Lescompat/Map;";
+inline constexpr const char* ANI_ARRAY = "Lescompat/Array;";
 inline constexpr const char* ANI_CLASS_CLEANER = "L@ohos/graphics/text/text/Cleaner;";
 inline constexpr const char* ANI_CLASS_PARAGRAPH = "L@ohos/graphics/text/text/Paragraph;";
 inline constexpr const char* ANI_CLASS_PARAGRAPH_BUILDER = "L@ohos/graphics/text/text/ParagraphBuilder;";
@@ -42,18 +49,23 @@ inline constexpr const char* ANI_CLASS_RECT_STYLE = "L@ohos/graphics/text/text/R
 
 class AniCommon {
 public:
-    static std::unique_ptr<TypographyStyle> ParseParagraphStyle(ani_env* env, ani_object obj);
-    static std::unique_ptr<TextStyle> ParseTextStyle(ani_env* env, ani_object obj);
-    static void ParseDrawingColor(ani_env* env, ani_object obj, Drawing::Color& color);
-    static void ParseFontFeature(ani_env* env, ani_object obj, FontFeatures& fontFeatures);
-    static void ParseFontVariation(ani_env* env, ani_object obj, FontVariations& fontVariations);
-    static void SetParagraphStyleStrutStyle(ani_env* env, ani_object obj,
-                                            std::unique_ptr<TypographyStyle>& paragraphStyle);
-    static void SetParagraphStyleTab(ani_env* env, ani_object obj, std::unique_ptr<TypographyStyle>& paragraphStyle);
-    static void SetFontFamilies(ani_env* env, ani_array_ref obj, std::vector<std::string>& paragraphStyle);
-    static void ParseTextShadow(ani_env* env, ani_object obj, std::vector<TextShadow>& textShadow);
-    static void SetTextColor(ani_env* env, ani_object obj, const std::string& str, Drawing::Color& colorSrc);
-    static void ParseRectStyle(ani_env* env, ani_object obj, RectStyle& rectStyle);
+    static std::unique_ptr<TypographyStyle> ParseParagraphStyleToNative(ani_env* env, ani_object obj);
+    static std::unique_ptr<TextStyle> ParseTextStyleToNative(ani_env* env, ani_object obj);
+    static void ParseParagraphStyleStrutStyleToNative(ani_env* env, ani_object obj,
+                                              std::unique_ptr<TypographyStyle>& paragraphStyle);
+    static void ParseDrawingColorToNative(ani_env* env, ani_object obj, Drawing::Color& color);
+    static void ParseFontFeatureToNative(ani_env* env, ani_object obj, FontFeatures& fontFeatures);
+    static void ParseFontVariationToNative(ani_env* env, ani_object obj, FontVariations& fontVariations);
+    static void ParseTextTabToNative(ani_env* env, ani_object obj, TextTab& textTab);
+    static void ParseFontFamiliesToNative(ani_env* env, ani_array_ref obj, std::vector<std::string>& fontFamilies);
+    static void ParseTextShadowToNative(ani_env* env, ani_object obj, std::vector<TextShadow>& textShadow);
+    static void ParseTextColorToNative(ani_env* env, ani_object obj, const std::string& str, Drawing::Color& colorSrc);
+    static void ParseRectStyleToNative(ani_env* env, ani_object obj, RectStyle& rectStyle);
+
+    static ani_object ParseTextStyleToAni(ani_env* env, const TextStyle& textStyle);
+    static ani_object ParseFontMetricsToAni(ani_env* env, const Drawing::FontMetrics& fontMetrics);
+    static ani_object ParseRunMetricsToAni(ani_env* env, const std::map<size_t, RunMetrics>& map);
+    static ani_object ParseLineMetricsToAni(ani_env* env, const LineMetrics& lineMetrics);
 };
 } // namespace OHOS::Text::NAI
 #endif // OHOS_ROSEN_ANI_COMMON_H
