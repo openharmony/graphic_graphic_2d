@@ -106,6 +106,10 @@ void AniParagraphBuilder::PushStyle(ani_env* env, ani_object object, ani_object 
         TEXT_LOGE("paragraphBuilder is null");
         return;
     }
+    std::unique_ptr<TextStyle> textStyleNative = AniCommon::ParseTextStyleToNative(env, textStyle);
+    if (textStyleNative != nullptr) {
+        aniParagraphBuilder->typographyCreate_->PushStyle(*textStyleNative);
+    }
 }
 
 void AniParagraphBuilder::PopStyle(ani_env* env, ani_object object)
