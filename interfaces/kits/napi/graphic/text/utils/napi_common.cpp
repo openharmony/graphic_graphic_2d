@@ -14,6 +14,7 @@
  */
 
 #include "napi_common.h"
+#include "text_style.h"
 
 namespace OHOS::Rosen {
 void BindNativeFunction(napi_env env, napi_value object, const char* name, const char* moduleName, napi_callback func)
@@ -288,7 +289,6 @@ void ParsePartTextStyle(napi_env env, napi_value argValue, TextStyle& textStyle)
     uint32_t fontStyle = 0;
     if (tempValue != nullptr && napi_get_value_uint32(env, tempValue, &fontStyle) == napi_ok) {
         textStyle.fontStyle = FontStyle(fontStyle);
-
         // Let OBLIQUE be equal to ITALIC, it's a temp modify.
         if (textStyle.fontStyle == FontStyle::OBLIQUE) {
             textStyle.fontStyle = FontStyle::ITALIC;
@@ -324,6 +324,11 @@ void ParsePartTextStyle(napi_env env, napi_value argValue, TextStyle& textStyle)
     std::string textLocale = "";
     if (tempValue != nullptr && ConvertFromJsValue(env, tempValue, textLocale)) {
         textStyle.locale = textLocale;
+    }
+    napi_get_named_property(env, argValue, "badgeType", &tempValue);
+    size_t textBadgeType = 0;
+    if (tempValue != nullptr && ConvertFromJsValue(env, tempValue, textBadgeType)) {
+        textStyle.badgeType = static_cast<TextBadgeType>(textBadgeType);
     }
 }
 

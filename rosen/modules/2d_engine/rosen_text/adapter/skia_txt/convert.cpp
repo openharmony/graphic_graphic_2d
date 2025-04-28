@@ -202,6 +202,7 @@ SPText::TextStyle Convert(const TextStyle& style)
     textStyle.baseLineShift = style.baseLineShift;
     textStyle.isPlaceholder = style.isPlaceholder;
     textStyle.relayoutChangeBitmap = style.relayoutChangeBitmap;
+    textStyle.badgeType = style.badgeType;
     SplitTextStyleConvert(textStyle, style);
 
     return textStyle;
@@ -282,6 +283,7 @@ TextStyle Convert(const SPText::TextStyle& style)
     textStyle.isSymbolGlyph = style.isSymbolGlyph;
     textStyle.baseLineShift = style.baseLineShift;
     textStyle.isPlaceholder = style.isPlaceholder;
+    textStyle.badgeType = style.badgeType;
     SplitTextStyleConvert(textStyle, style);
 
     return textStyle;
