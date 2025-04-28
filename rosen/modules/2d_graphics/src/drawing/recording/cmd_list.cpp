@@ -526,6 +526,12 @@ void CmdList::ProfilerPopAllocators(const std::string& data)
     }
 
     {
+        std::lock_guard<std::mutex> lock(imageObjectMutex_);
+        stream.read(reinterpret_cast<char*>(&size), sizeof(size));
+        imageObjectVec_.resize(size);
+    }
+
+    {
         std::lock_guard<std::mutex> lock(imageBaseObjMutex_);
         stream.read(reinterpret_cast<char*>(&size), sizeof(size));
         imageBaseObjVec_.resize(size);
