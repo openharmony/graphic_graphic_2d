@@ -3578,19 +3578,23 @@ void RSMainThread::RecvRSTransactionData(std::unique_ptr<RSTransactionData>& rsT
         cachedTransactionDataMap_[rsTransactionData->GetSendingPid()].emplace_back(std::move(rsTransactionData));
 #endif
     } else {
-        ClassifyRSTransactionData(rsTransactionData);
+        RSMainThread::Instance()->PostTask([this, transactionData = std::shared_ptr(std::move(rsTransactionData))]() {
+            if (!RSMainThread::Instance() || !(transactionData)) {
+                return;
+            }
+            RSMainThread::Instance()->ClassifyRSTransactionData(transactionData);
+        });
     }
     RequestNextVSync("UI", timestamp);
 }
 
-void RSMainThread::ClassifyRSTransactionData(std::unique_ptr<RSTransactionData>& rsTransactionData)
+void RSMainThread::ClassifyRSTransactionData(std::shared_ptr<RSTransactionData> rsTransactionData)
 {
     const auto& nodeMap = context_->GetNodeMap();
     std::lock_guard<std::mutex> lock(transitionDataMutex_);
-    std::unique_ptr<RSTransactionData> transactionData(std::move(rsTransactionData));
-    auto timestamp = transactionData->GetTimestamp();
+    auto timestamp = rsTransactionData->GetTimestamp();
     RS_LOGD("RSMainThread::RecvRSTransactionData timestamp = %{public}" PRIu64, timestamp);
-    for (auto& [nodeId, followType, command] : transactionData->GetPayload()) {
+    for (auto& [nodeId, followType, command] : rsTransactionData->GetPayload()) {
         if (nodeId == 0 || followType == FollowType::NONE) {
             pendingEffectiveCommands_[timestamp].emplace_back(std::move(command));
             continue;
