@@ -933,12 +933,12 @@ void RSRenderServiceConnection::SyncFrameRateRange(FrameRateLinkerId id,
             auto conn = appVSyncDistributor->GetVSyncConnection(id);
             std::weak_ptr<RSRenderFrameRateLinker> weakPtr = linker;
             conn->RegisterRequestNativeVSyncCallback([weakPtr]() {
+                RS_TRACE_NAME("NativeVSync request frame, update timepoint");
                 auto linker = weakPtr.lock();
                 if (linker == nullptr) {
                     return;
                 }
                 linker->UpdateNativeVSyncTimePoint();
-                RS_TRACE_NAME_FMT("NativeVSync request frame, update timepoint");
             });
         }).wait();
 }

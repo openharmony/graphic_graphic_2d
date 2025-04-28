@@ -316,6 +316,7 @@ VsyncError VSyncConnection::SetUiDvsyncConfig(int32_t bufferCount)
 
 void VSyncConnection::RegisterRequestNativeVSyncCallback(const RequestNativeVSyncCallback &callback)
 {
+    std::unique_lock<std::mutex> locker(mutex_);
     requestNativeVSyncCallback_ = callback;
 }
 
