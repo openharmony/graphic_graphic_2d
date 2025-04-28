@@ -98,7 +98,7 @@ private:
     // record nodes which has transparent dirty filter
     std::unordered_map<NodeId, std::vector<std::pair<NodeId, RectI>>> transparentHwcDirtyFilter_;
 
-    int32_t curZorderForCalcHwcNodeEnableByFilter_ = 0;
+    int32_t curZOrderForHwcEnableByFilter_ = 0;
 
     bool isOffscreen_ = false;
 
