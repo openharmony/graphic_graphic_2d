@@ -15,7 +15,7 @@
 
 #include "hdi_layer.h"
 #include "hdi_log.h"
-#include "rs_trace.h"
+#include "common/rs_optional_trace.h"
 #include <algorithm>
 #include <cstring>
 #include <securec.h>
@@ -282,10 +282,8 @@ bool HdiLayer::CheckAndUpdateLayerBufferCahce(uint32_t sequence, uint32_t& index
 
 int32_t HdiLayer::SetLayerBuffer()
 {
-    RS_TRACE_NAME_FMT("SetLayerBuffer(layerid=%u)", layerId_);
-    if (layerInfo_->GetBuffer() != nullptr) {
-        currBuffer_ = layerInfo_->GetBuffer();
-    }
+    RS_OPTIONAL_TRACE_NAME_FMT("SetLayerBuffer(layerid=%u)", layerId_);
+    currBuffer_ = layerInfo_->GetBuffer();
     if (currBuffer_ == nullptr) {
         return GRAPHIC_DISPLAY_SUCCESS;
     }
