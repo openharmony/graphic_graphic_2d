@@ -88,7 +88,6 @@ public:
     void DrawOval(const Rect& oval, const Paint& paint) override;
     void DrawCircle(const Point& centerPt, scalar radius, const Paint& paint) override;
     void DrawPath(const Path& path, const Paint& paint) override;
-    void DrawPathWithStencil(const Path& path, uint32_t stencilVal, const Paint& paint) override;
     void DrawBackground(const Brush& brush) override;
     void DrawShadow(const Path& path, const Point3& planeParams, const Point3& devLightPos, scalar lightRadius,
         Color ambientColor, Color spotColor, ShadowFlags flag) override;
@@ -116,8 +115,6 @@ public:
     void DrawBitmap(const Bitmap& bitmap, const scalar px, const scalar py, const Paint& paint) override;
     void DrawImage(const Image& image, const scalar px, const scalar py, const SamplingOptions& sampling,
         const Paint& paint) override;
-    void DrawImageWithStencil(const Image& image, const scalar px, const scalar py,
-            const SamplingOptions& sampling, uint32_t stencilVal, const Paint& paint) override;
     void DrawImageRect(const Image& image, const Rect& src, const Rect& dst, const SamplingOptions& sampling,
         SrcRectConstraint constraint, const Paint& paint) override;
     void DrawImageRect(const Image& image, const Rect& dst, const SamplingOptions& sampling,
@@ -131,9 +128,6 @@ public:
 
     // symbol
     void DrawSymbol(const DrawingHMSymbolData& symbol, Point locate, const Paint& paint) override;
-
-    // stencil culling
-    void ClearStencil(const RectI& rect, uint32_t stencilVal) override;
 
     // clip
     void ClipRect(const Rect& rect, ClipOp op, bool doAntiAlias) override;

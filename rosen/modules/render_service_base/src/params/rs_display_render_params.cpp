@@ -56,6 +56,11 @@ const std::vector<Occlusion::Rect>& RSDisplayRenderParams::GetTopSurfaceOpaqueRe
     return topSurfaceOpaqueRects_;
 }
 
+void RSDisplayRenderParams::SetTopSurfaceRects(std::vector<Occlusion::Rect>& topSurfaceOpaqueRects)
+{
+    std::swap(topSurfaceOpaqueRects_, topSurfaceOpaqueRects);
+}
+
 bool RSDisplayRenderParams::GetMainAndLeashSurfaceDirty() const
 {
     return isMainAndLeashSurfaceDirty_;

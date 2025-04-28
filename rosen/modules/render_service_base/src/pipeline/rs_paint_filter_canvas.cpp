@@ -246,21 +246,6 @@ void RSPaintFilterCanvasBase::DrawPath(const Path& path)
 #endif
 }
 
-void RSPaintFilterCanvasBase::DrawPathWithStencil(const Drawing::Path& path, uint32_t stencilVal)
-{
-#ifdef SKP_RECORDING_ENABLED
-    for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
-        if ((*iter) != nullptr && OnFilter()) {
-            (*iter)->DrawPathWithStencil(path, stencilVal);
-        }
-    }
-#else
-    if (canvas_ != nullptr && OnFilter()) {
-        canvas_->DrawPathWithStencil(path, stencilVal);
-    }
-#endif
-}
-
 void RSPaintFilterCanvasBase::DrawBackground(const Brush& brush)
 {
     Brush b(brush);
@@ -480,22 +465,6 @@ void RSPaintFilterCanvasBase::DrawImage(
 #endif
 }
 
-void RSPaintFilterCanvasBase::DrawImageWithStencil(const Drawing::Image& image, const Drawing::scalar px,
-    const Drawing::scalar py, const Drawing::SamplingOptions& sampling, uint32_t stencilVal)
-{
-#ifdef SKP_RECORDING_ENABLED
-    for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
-        if ((*iter) != nullptr && OnFilter()) {
-            (*iter)->DrawImageWithStencil(image, px, py, sampling, stencilVal);
-        }
-    }
-#else
-    if (canvas_ != nullptr && OnFilter()) {
-        canvas_->DrawImageWithStencil(image, px, py, sampling, stencilVal);
-    }
-#endif
-}
-
 void RSPaintFilterCanvasBase::DrawImageRect(const Image& image, const Rect& src, const Rect& dst,
     const SamplingOptions& sampling, SrcRectConstraint constraint)
 {
@@ -554,21 +523,6 @@ void RSPaintFilterCanvasBase::DrawTextBlob(
 #else
     if (canvas_ != nullptr && OnFilter()) {
         canvas_->DrawTextBlob(blob, x, y);
-    }
-#endif
-}
-
-void RSPaintFilterCanvasBase::ClearStencil(const Drawing::RectI& rect, uint32_t stencilVal)
-{
-#ifdef SKP_RECORDING_ENABLED
-    for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
-        if ((*iter) != nullptr) {
-            (*iter)->ClearStencil(rect, stencilVal);
-        }
-    }
-#else
-    if (canvas_ != nullptr) {
-        canvas_->ClearStencil(rect, stencilVal);
     }
 #endif
 }

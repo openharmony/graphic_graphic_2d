@@ -231,18 +231,6 @@ HWTEST_F(RSSystemPropertiesTest, GetUniPartialRenderEnabled, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetStencilPixelOcclusionCullingEnabled
- * @tc.desc: GetStencilPixelOcclusionCullingEnabled Test
- * @tc.type:FUNC
- * @tc.require: issueIBROZ2
- */
-HWTEST_F(RSSystemPropertiesTest, GetStencilPixelOcclusionCullingEnabled, TestSize.Level1)
-{
-    EXPECT_EQ(
-        RSSystemProperties::GetStencilPixelOcclusionCullingEnabled(), StencilPixelOcclusionCullingType::DEFAULT);
-}
-
-/**
  * @tc.name: GetReleaseResourceEnabled
  * @tc.desc: GetReleaseResourceEnabled Test
  * @tc.type:FUNC
