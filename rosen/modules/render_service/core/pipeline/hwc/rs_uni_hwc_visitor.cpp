@@ -1192,7 +1192,7 @@ void PrintHiperfLog(RSSurfaceRenderNode* node, const char* const disabledContext
         node->GetDstRect().GetTop(), node->GetDstRect().GetBottom());
 #endif
 }
-void PrintHiperfLog(std::shared_ptr<RSSurfaceRenderNode>& node, const char* const disabled disabledContext)
+void PrintHiperfLog(std::shared_ptr<RSSurfaceRenderNode>& node, const char* const disabledContext)
 {
 #ifdef HIPERF_TRACE_ENABLE
     RS_LOGW("hiperf_surface: name:%{public}s disabled by %{public}s "
