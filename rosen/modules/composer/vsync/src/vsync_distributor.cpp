@@ -317,9 +317,6 @@ VsyncError VSyncConnection::SetUiDvsyncConfig(int32_t bufferCount)
 void VSyncConnection::RegisterRequestNativeVSyncCallback(const RequestNativeVSyncCallback &callback)
 {
     requestNativeVSyncCallback_ = callback;
-    if (requestNativeVSyncCallback_ != nullptr) {
-        requestNativeVSyncCallback_();
-    }
 }
 
 VSyncDistributor::VSyncDistributor(sptr<VSyncController> controller, std::string name, DVSyncFeatureParam dvsyncParam)

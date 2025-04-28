@@ -938,6 +938,7 @@ void RSRenderServiceConnection::SyncFrameRateRange(FrameRateLinkerId id,
                     return;
                 }
                 linker->UpdateNativeVSyncTimePoint();
+                RS_TRACE_NAME_FMT("NativeVSync request frame, update timepoint");
             });
         }).wait();
 }

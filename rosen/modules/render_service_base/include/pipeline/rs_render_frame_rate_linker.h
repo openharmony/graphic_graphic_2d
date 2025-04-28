@@ -63,7 +63,7 @@ public:
 
     void RegisterExpectedFpsUpdateCallback(pid_t pid, sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback> callback);
     void UpdateNativeVSyncTimePoint();
-    bool NativeVSyncIsTimeOut();
+    bool NativeVSyncIsTimeOut() const;
 private:
     static FrameRateLinkerId GenerateId();
     void Copy(const RSRenderFrameRateLinker&& other);

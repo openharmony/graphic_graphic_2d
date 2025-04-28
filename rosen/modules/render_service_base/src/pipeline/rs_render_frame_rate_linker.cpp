@@ -161,7 +161,7 @@ void RSRenderFrameRateLinker::UpdateNativeVSyncTimePoint()
     nativeVSyncTimePoint_.store(std::chrono::steady_clock::now());
 }
 
-bool RSRenderFrameRateLinker::NativeVSyncIsTimeOut()
+bool RSRenderFrameRateLinker::NativeVSyncIsTimeOut() const
 {
     return std::chrono::steady_clock::now() - nativeVSyncTimePoint_.load() > INTERVAL;
 }

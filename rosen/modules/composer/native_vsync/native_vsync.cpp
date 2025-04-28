@@ -177,11 +177,6 @@ int OH_NativeVSync_SetExpectedFrameRateRange(OH_NativeVSync* nativeVsync, OH_Nat
         VLOGE("parameter is nullptr, please check");
         return VSYNC_ERROR_INVALID_ARGUMENTS;
     }
-
-    OHOS::Rosen::FrameRateRange frameRateRange(range->min, range->max, range->expected,
-        OHOS::Rosen::NATIVE_VSYNC_FRAME_RATE_TYPE);
-    VLOGI("NativeVsyncExpectedRateRange:{%{public}d, %{public}d, %{public}d}",
-        range->min, range->max, range->expected);
     if (!IsInputRateRangeValid(range)) {
         VLOGE("ExpectedRateRange Error, please check.");
         return VSYNC_ERROR_INVALID_ARGUMENTS;
@@ -190,6 +185,10 @@ int OH_NativeVSync_SetExpectedFrameRateRange(OH_NativeVSync* nativeVsync, OH_Nat
         VLOGE("FrameRateLinker is nullptr, please check.");
         return VSYNC_ERROR_NOT_SUPPORT;
     }
+    OHOS::Rosen::FrameRateRange frameRateRange(range->min, range->max, range->expected,
+        OHOS::Rosen::NATIVE_VSYNC_FRAME_RATE_TYPE);
+    VLOGI("NativeVsyncExpectedRateRange:{%{public}d, %{public}d, %{public}d}",
+        range->min, range->max, range->expected);
     if (nativeVSync->frameRateLinker_->IsEnable()) {
         nativeVSync->frameRateLinker_->UpdateFrameRateRangeImme(frameRateRange);
     }
