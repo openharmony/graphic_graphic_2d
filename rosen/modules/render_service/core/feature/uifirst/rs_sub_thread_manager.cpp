@@ -113,7 +113,7 @@ float RSSubThreadManager::GetAppGpuMemoryInMB()
 
 void RSSubThreadManager::WaitNodeTask(uint64_t nodeId)
 {
-    RS_TRACE_NAME_FMT("SSubThreadManager::WaitNodeTask for node %d", nodeId);
+    RS_TRACE_NAME_FMT("RSSubThreadManager::WaitNodeTask for node %" PRIu64, nodeId);
     std::unique_lock<std::mutex> lock(parallelRenderMutex_);
     cvParallelRender_.wait_for(lock, std::chrono::milliseconds(WAIT_NODE_TASK_TIMEOUT), [&]() {
         return !nodeTaskState_[nodeId];

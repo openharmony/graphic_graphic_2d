@@ -571,6 +571,9 @@ public:
     void SetForceUIFirst(bool forceUIFirst);
     bool GetForceUIFirst() const;
 
+    bool GetForceDrawWithSkipped() const;
+    void SetForceDrawWithSkipped(bool GetForceDrawWithSkipped);
+
     void SetUIFirstIsPurge(bool IsPurge)
     {
         UIFirstIsPurge_ = IsPurge;
@@ -1595,6 +1598,7 @@ private:
     bool needDrawFocusChange_ = false;
     bool forceUIFirstChanged_ = false;
     bool forceUIFirst_ = false;
+    bool uifirstForceDrawWithSkipped_ = false;
     bool hasTransparentSurface_ = false;
     bool isGpuOverDrawBufferOptimizeNode_ = false;
     bool isSubSurfaceNode_ = false;
