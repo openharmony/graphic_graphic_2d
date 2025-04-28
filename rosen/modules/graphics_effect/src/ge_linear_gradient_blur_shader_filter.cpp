@@ -424,6 +424,10 @@ std::shared_ptr<Drawing::Image> GELinearGradientBlurShaderFilter::BuildMeanLinea
 #else
         hBlurBuilder.MakeImage(nullptr, nullptr, scaledInfo, false));
 #endif
+    if (!tmpBlur) {
+        LOGE("GELinearGradientBlurShaderFilter::BuildMeanLinearGradientBlur fail to make horizontal blur image1");
+        return image;
+    }
 
     Drawing::RuntimeShaderBuilder vBlurBuilder(verticalMeanBlurShaderEffect_);
     vBlurBuilder.SetUniform("r", radius);
@@ -437,6 +441,10 @@ std::shared_ptr<Drawing::Image> GELinearGradientBlurShaderFilter::BuildMeanLinea
 #else
         vBlurBuilder.MakeImage(nullptr, nullptr, scaledInfo, false));
 #endif
+    if (!tmpBlur2) {
+        LOGE("GELinearGradientBlurShaderFilter::BuildMeanLinearGradientBlur fail to make vertical blur image1");
+        return image;
+    }
 
     auto tmpBlur2Shader = Drawing::ShaderEffect::CreateImageShader(
         *tmpBlur2, Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP, linear, m);
@@ -447,6 +455,10 @@ std::shared_ptr<Drawing::Image> GELinearGradientBlurShaderFilter::BuildMeanLinea
 #else
         hBlurBuilder.MakeImage(nullptr, nullptr, scaledInfo, false));
 #endif
+    if (!tmpBlur3) {
+        LOGE("GELinearGradientBlurShaderFilter::BuildMeanLinearGradientBlur fail to make horizontal blur image2");
+        return image;
+    }
 
     auto tmpBlur3Shader = Drawing::ShaderEffect::CreateImageShader(
         *tmpBlur3, Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP, linear, m);
@@ -457,6 +469,11 @@ std::shared_ptr<Drawing::Image> GELinearGradientBlurShaderFilter::BuildMeanLinea
 #else
         vBlurBuilder.MakeImage(nullptr, nullptr, scaledInfo, false));
 #endif
+    if (!tmpBlur4) {
+        LOGE("GELinearGradientBlurShaderFilter::BuildMeanLinearGradientBlur fail to make vertical blur image2");
+        return image;
+    }
+
     return tmpBlur4;
 }
 
