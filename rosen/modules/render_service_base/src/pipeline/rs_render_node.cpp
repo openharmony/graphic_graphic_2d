@@ -2283,9 +2283,6 @@ void RSRenderNode::MarkFilterCacheFlags(std::shared_ptr<DrawableV2::RSFilterDraw
 void RSRenderNode::CheckFilterCacheAndUpdateDirtySlots(
     std::shared_ptr<DrawableV2::RSFilterDrawable>& filterDrawable, RSDrawableSlot slot)
 {
-    if (filterDrawable == nullptr) {
-        return;
-    }
     filterDrawable->MarkNeedClearFilterCache();
     UpdateDirtySlotsAndPendingNodes(slot);
 }
