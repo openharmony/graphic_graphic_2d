@@ -1,4 +1,4 @@
-# Copyright (c) 2022 Huawei Device Co., Ltd.
+# Copyright (c) 2025 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -14,16 +14,27 @@
 #####################hydra-fuzz###################
 import("//build/config/features.gni")
 import("//build/test.gni")
-import("//foundation/graphic/graphic_2d/graphic_config.gni")
 module_output_path = "graphic_2d/graphic_2d"
 
 ##############################fuzztest##########################################
-ohos_fuzztest("RSAnimationBaseFuzzTest") {
-  fuzz_config_file = "$graphic_2d_root/rosen/modules/render_service_base/test/fuzztest/rsanimationbase_fuzzer"
+ohos_fuzztest("RSAnimationPathFuzzTest") {
   module_out_path = module_output_path
-
-  include_dirs =
-      [ "$graphic_2d_root/rosen/modules/render_service_base/include" ]
+  fuzz_config_file = "../../../../../test/render_service/render_service_base/fuzztest/rsanimationpath_fuzzer"
+  include_dirs = [
+    "../../../../../modules/render_service_base/src",
+    "../../../../../modules/2d_graphics/include",
+    "../../../../../modules/render_service_base/include",
+  ]
+  deps = [
+    "../../../../../modules/2d_graphics:2d_graphics",
+    "../../../../../modules/render_service:librender_service",
+    "../../../../../modules/render_service_base:librender_service_base",
+    "../../../../../modules/render_service_client:librender_service_client",
+  ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
   cflags = [
     "-g",
     "-O0",
@@ -32,17 +43,7 @@ ohos_fuzztest("RSAnimationBaseFuzzTest") {
     "-Dprivate=public",
     "-Dprotected=public",
   ]
-  sources = [ "rsanimationbase_fuzzer.cpp" ]
-  deps = [
-    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
-  ]
-
-  external_deps = [
-    "c_utils:utils",
-    "graphic_surface:sync_fence",
-    "hilog:libhilog",
-    "ipc:ipc_core",
-  ]
+  sources = [ "rsanimationpath_fuzzer.cpp" ]
 }
 
 ###############################################################################
@@ -51,7 +52,7 @@ group("fuzztest") {
   deps = []
   deps += [
     # deps file
-    ":RSAnimationBaseFuzzTest",
+    ":RSAnimationPathFuzzTest",
   ]
 }
 ###############################################################################
