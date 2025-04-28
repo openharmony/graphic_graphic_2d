@@ -324,9 +324,10 @@ BackendTexture SkiaImage::GetBackendTexture(bool flushPendingGrContextIO, Textur
         skBackendTexture =
             skiaImage_->getBackendTexture(flushPendingGrContextIO);
     } else {
-        GrSurfaceOrigin grOrigin = SkiaTextureInfo::ConvertToGrSurfaceOrigin(*origin);
+        GrSurfaceOrigin grOrigin;
         skBackendTexture =
             skiaImage_->getBackendTexture(flushPendingGrContextIO, &grOrigin);
+        *origin = static_cast<TextureOrigin>(grOrigin);
     }
     if (!skBackendTexture.isValid()) {
         LOGD("SkiaImage::GetBackendTexture, skBackendTexture is nullptr!");
