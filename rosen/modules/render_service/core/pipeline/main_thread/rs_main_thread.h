@@ -503,7 +503,7 @@ private:
 
     bool DoParallelComposition(std::shared_ptr<RSBaseRenderNode> rootNode);
 
-    void ClassifyRSTransactionData(std::unique_ptr<RSTransactionData>& rsTransactionData);
+    void ClassifyRSTransactionData(std::shared_ptr<RSTransactionData> rsTransactionData);
     void ProcessRSTransactionData(std::unique_ptr<RSTransactionData>& rsTransactionData, pid_t pid);
     void ProcessSyncRSTransactionData(std::unique_ptr<RSTransactionData>& rsTransactionData, pid_t pid);
     void ProcessSyncTransactionCount(std::unique_ptr<RSTransactionData>& rsTransactionData);

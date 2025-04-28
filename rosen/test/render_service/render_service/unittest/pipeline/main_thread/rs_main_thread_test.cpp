@@ -129,7 +129,7 @@ HWTEST_F(RSMainThreadTest, ProcessCommandForDividedRender002, TestSize.Level1)
     id = 1;
     rsTransactionData->payload_[id] = std::tuple<NodeId,
         FollowType, std::unique_ptr<RSCommand>>(id, FollowType::FOLLOW_TO_SELF, nullptr);
-    mainThread->ClassifyRSTransactionData(rsTransactionData);
+    mainThread->ClassifyRSTransactionData(std::shared_ptr(std::move(rsTransactionData)));
 
     auto node = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(node, nullptr);
@@ -642,7 +642,7 @@ HWTEST_F(RSMainThreadTest, ClassifyRSTransactionData001, TestSize.Level1)
     NodeId nodeId = 0;
     FollowType followType = FollowType::NONE;
     rsTransactionData->AddCommand(command, nodeId, followType);
-    mainThread->ClassifyRSTransactionData(rsTransactionData);
+    mainThread->ClassifyRSTransactionData(std::shared_ptr(std::move(rsTransactionData)));
     ASSERT_EQ(mainThread->pendingEffectiveCommands_.empty(), true);
 }
 
@@ -661,7 +661,7 @@ HWTEST_F(RSMainThreadTest, ClassifyRSTransactionData002, TestSize.Level1)
     NodeId nodeId = 1;
     FollowType followType = FollowType::NONE;
     rsTransactionData->AddCommand(command, nodeId, followType);
-    mainThread->ClassifyRSTransactionData(rsTransactionData);
+    mainThread->ClassifyRSTransactionData(std::shared_ptr(std::move(rsTransactionData)));
     ASSERT_EQ(mainThread->pendingEffectiveCommands_.empty(), true);
 }
 
@@ -680,7 +680,7 @@ HWTEST_F(RSMainThreadTest, ClassifyRSTransactionData003, TestSize.Level1)
     NodeId nodeId = 1;
     FollowType followType = FollowType::FOLLOW_TO_PARENT;
     rsTransactionData->AddCommand(command, nodeId, followType);
-    mainThread->ClassifyRSTransactionData(rsTransactionData);
+    mainThread->ClassifyRSTransactionData(std::shared_ptr(std::move(rsTransactionData)));
     ASSERT_EQ(mainThread->cachedCommands_[nodeId].empty(), true);
 }
 
@@ -711,7 +711,7 @@ HWTEST_F(RSMainThreadTest, ClassifyRSTransactionData004, TestSize.Level1)
     std::unique_ptr<RSCommand> command = nullptr;
     FollowType followType = FollowType::FOLLOW_TO_SELF;
     rsTransactionData->AddCommand(command, nodeId, followType);
-    mainThread->ClassifyRSTransactionData(rsTransactionData);
+    mainThread->ClassifyRSTransactionData(std::shared_ptr(std::move(rsTransactionData)));
     ASSERT_EQ(mainThread->cachedCommands_[nodeId].empty(), true);
 
     mainThread->cachedCommands_.clear();
@@ -719,7 +719,7 @@ HWTEST_F(RSMainThreadTest, ClassifyRSTransactionData004, TestSize.Level1)
     command = nullptr;
     followType = FollowType::FOLLOW_TO_PARENT;
     rsTransactionData->AddCommand(command, nodeId + 1, followType);
-    mainThread->ClassifyRSTransactionData(rsTransactionData);
+    mainThread->ClassifyRSTransactionData(std::shared_ptr(std::move(rsTransactionData)));
     ASSERT_EQ(mainThread->cachedCommands_[nodeId + 1].empty(), true);
 }
 
@@ -2401,7 +2401,7 @@ HWTEST_F(RSMainThreadTest, ClassifyRSTransactionData005, TestSize.Level1)
     id = 2;
     data->payload_[id] = std::tuple<NodeId,
         FollowType, std::unique_ptr<RSCommand>>(id, FollowType::FOLLOW_TO_PARENT, nullptr);
-    mainThread->ClassifyRSTransactionData(data);
+    mainThread->ClassifyRSTransactionData(std::shared_ptr(std::move(data)));
     mainThread->isUniRender_ = isUniRender;
 }
 
