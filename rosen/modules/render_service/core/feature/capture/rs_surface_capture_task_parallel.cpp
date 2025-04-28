@@ -244,7 +244,7 @@ bool RSSurfaceCaptureTaskParallel::Run(
     } else if (displayNodeDrawable_) {
         RSUniRenderThread::SetCaptureParam(CaptureParam(true, false, false));
         std::unordered_set<NodeId> blackList(captureConfig_.blackList.begin(), captureConfig_.blackList.end());
-        RSUniRenderThread::Instance().SetBlackList(std::move(blackList));
+        RSUniRenderThread::Instance().SetBlackList(blackList);
         displayNodeDrawable_->OnCapture(canvas);
         RSUniRenderThread::Instance().SetBlackList({});
     } else {

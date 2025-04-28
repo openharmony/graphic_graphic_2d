@@ -173,10 +173,10 @@ public:
     }
     void SetVmaCacheStatus(bool flag); // dynmic flag
 
-    void SetBlackList(std::unordered_set<NodeId> blackList)
+    void SetBlackList(const std::unordered_set<NodeId>& blackList)
     {
         std::lock_guard<std::mutex> lock(nodeListMutex_);
-        blackList_ = std::move(blackList);
+        blackList_ = blackList;
     }
 
     void SetTypeBlackList(const std::unordered_set<NodeType>& typeBlackList)
