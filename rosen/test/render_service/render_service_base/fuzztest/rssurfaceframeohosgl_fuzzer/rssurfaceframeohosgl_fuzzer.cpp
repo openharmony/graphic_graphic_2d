@@ -160,21 +160,20 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     }
     uint8_t tarPos = OHOS::Rosen::GetData<uint8_t>() % OHOS::Rosen::TARGET_SIZE;
     switch (tarPos) {
-        case DO_SET_DAMAGEREGION:
+        case OHOS::Rosen::DO_SET_DAMAGEREGION:
             OHOS::Rosen::DoSetDamageRegion(); // SetDamageRegion
             break;
-        case DO_GET_BUFFERAGE:
+        case OHOS::Rosen::DO_GET_BUFFERAGE:
             OHOS::Rosen::DoGetBufferAge();    // GetBufferAge
             break;
-        case DO_GET_RELEASEFENCE:
+        case OHOS::Rosen::DO_GET_RELEASEFENCE:
             OHOS::Rosen::DoGetReleaseFence(); // GetReleaseFence
             break;
-        case DO_SET_RELEASEFENCE:
+        case OHOS::Rosen::DO_SET_RELEASEFENCE:
             OHOS::Rosen::DoSetReleaseFence(); // SetReleaseFence
             break;
         default:
             return -1;
-
     }
     return 0;
 }

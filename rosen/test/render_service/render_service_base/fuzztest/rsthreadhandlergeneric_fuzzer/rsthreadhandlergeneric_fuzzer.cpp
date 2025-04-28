@@ -107,7 +107,6 @@ void DoCancelTask()
 void DoIsValid()
 {
     rsThreadHandlerGeneric->IsValid();
-
 }
 
 void DoCreate()
