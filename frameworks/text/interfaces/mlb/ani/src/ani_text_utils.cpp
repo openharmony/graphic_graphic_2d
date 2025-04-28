@@ -63,7 +63,7 @@ ani_object AniTextUtils::CreateAniDoubleObj(ani_env* env, double val)
 
 ani_object AniTextUtils::CreateAniBooleanObj(ani_env* env, bool val)
 {
-    return AniTextUtils::CreateAniObject(env, "Lstd/core/Boolean;", "I:V", val);
+    return AniTextUtils::CreateAniObject(env, "Lstd/core/Boolean;", "Z:V", val);
 }
 
 ani_string AniTextUtils::CreateAniStringObj(ani_env* env, std::string str)
@@ -215,10 +215,10 @@ ani_status AniTextUtils::ReadOptionalBoolField(ani_env* env, ani_object obj, con
     ani_ref ref = nullptr;
     ani_status result = AniTextUtils::ReadOptionalField(env, obj, fieldName, ref);
     if (result == ANI_OK && ref != nullptr) {
-        ani_boolean* aniBool = nullptr;
-        result = env->Object_CallMethodByName_Boolean(static_cast<ani_object>(ref), "isTrue", ":Z", aniBool);
-        if (result == ANI_OK && aniBool != nullptr) {
-            value = static_cast<bool>(*aniBool);
+        ani_boolean aniBool;
+        result = env->Object_CallMethodByName_Boolean(static_cast<ani_object>(ref), "isTrue", ":Z", &aniBool);
+        if (result == ANI_OK) {
+            value = static_cast<bool>(aniBool);
         }
     }
     return result;

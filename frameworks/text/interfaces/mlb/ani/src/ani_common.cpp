@@ -135,12 +135,15 @@ std::unique_ptr<TextStyle> AniCommon::ParseTextStyle(ani_env* env, ani_object ob
         return nullptr;
     }
     std::unique_ptr<TextStyle> textStyle = std::make_unique<TextStyle>();
-    
+
     ani_ref decorationRef = nullptr;
     if (AniTextUtils::ReadOptionalField(env, obj, "decoration", decorationRef) == ANI_OK && decorationRef != nullptr) {
-        AniTextUtils::ReadOptionalEnumField(env, static_cast<ani_object>(decorationRef), "textDecoration", textStyle->decoration);
-        AniTextUtils::ReadOptionalEnumField(env, static_cast<ani_object>(decorationRef), "decorationStyle", textStyle->decorationStyle);
-        AniTextUtils::ReadOptionalEnumField(env, static_cast<ani_object>(decorationRef), "decorationThicknessScale", textStyle->decorationThicknessScale);
+        AniTextUtils::ReadOptionalEnumField(env, static_cast<ani_object>(decorationRef), "textDecoration",
+                                            textStyle->decoration);
+        AniTextUtils::ReadOptionalEnumField(env, static_cast<ani_object>(decorationRef), "decorationStyle",
+                                            textStyle->decorationStyle);
+        AniTextUtils::ReadOptionalDoubleField(env, static_cast<ani_object>(decorationRef), "decorationThicknessScale",
+                                              textStyle->decorationThicknessScale);
         SetTextColor(env, static_cast<ani_object>(decorationRef), "color", textStyle->decorationColor);
     }
 
@@ -218,7 +221,7 @@ void AniCommon::ParseTextShadow(ani_env* env, ani_object obj, std::vector<TextSh
     std::vector<std::string> array;
     AniTextUtils::ReadOptionalArrayField<std::string>(
         env, obj, "textShadows", array, [&textShadow](ani_env* env, ani_ref ref) {
-            ani_object obj = static_cast<ani_object>(ref);
+            ani_object shadowObj = static_cast<ani_object>(ref);
             ani_class cls;
             ani_status ret;
             ret = env->FindClass(ANI_CLASS_TEXTSHADOW, &cls);
@@ -227,22 +230,24 @@ void AniCommon::ParseTextShadow(ani_env* env, ani_object obj, std::vector<TextSh
                 return "";
             }
             ani_boolean isObj = false;
-            ret = env->Object_InstanceOf(static_cast<ani_object>(ref), cls, &isObj);
+            ret = env->Object_InstanceOf(shadowObj, cls, &isObj);
             if (!isObj) {
                 TEXT_LOGE("[ANI] Object mismatch:%{public}d", ret);
                 return "";
             }
 
             double runTimeRadius;
-            AniTextUtils::ReadOptionalDoubleField(env, obj, "blurRadius", runTimeRadius);
+            AniTextUtils::ReadOptionalDoubleField(env, shadowObj, "blurRadius", runTimeRadius);
             
             Drawing::Color colorSrc = OHOS::Rosen::Drawing::Color::COLOR_BLACK;
-            SetTextColor(env, obj, "color", colorSrc);
+            SetTextColor(env, shadowObj, "color", colorSrc);
 
+            Drawing::Point offset(0, 0);
             ani_ref pointValue = nullptr;
-            AniTextUtils::ReadOptionalField(env, obj, "point", pointValue);
-            Drawing::Point offset(0,0);
-            GetTextShadowPoint(env, static_cast<ani_object>(pointValue), offset);
+            if (ANI_OK == AniTextUtils::ReadOptionalField(env, shadowObj, "point", pointValue)
+                && pointValue != nullptr) {
+                GetTextShadowPoint(env, static_cast<ani_object>(pointValue), offset);
+            }
 
             textShadow.emplace_back(TextShadow(colorSrc, offset, runTimeRadius));
             return "";
@@ -258,12 +263,12 @@ inline void ConvertClampFromJsValue(ani_env* env, ani_double jsValue, int32_t& v
 
 void AniCommon::SetTextColor(ani_env* env, ani_object obj, const std::string& str, Drawing::Color& colorSrc)
 {
-    ani_ref tempValue =nullptr;
+    ani_ref tempValue = nullptr;
     ani_double tempValueChild{0};
-    env->Object_GetPropertyByName_Ref(obj, str.c_str(), &tempValue);
-    if (tempValue == nullptr) {
-        TEXT_LOGE("[ANI] set text shadow color faild");
-        return;//false
+    ani_status result = env->Object_GetPropertyByName_Ref(obj, str.c_str(), &tempValue);
+    if (result != ANI_OK || tempValue == nullptr) {
+        TEXT_LOGD("[ANI] set color faild");
+        return; //false
     }
     int32_t alpha = 0;
     int32_t red = 0;

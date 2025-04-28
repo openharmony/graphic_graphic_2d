@@ -703,14 +703,14 @@ namespace text {
      * @syscap SystemCapability.Graphics.Drawing
      * @since 12
      */
-    color?: common2D.Color;
+    //color?: common2D.Color;
     /**
      * The value sets offset of text shadow that based on the original text.
      * @type { ?common2D.Point } The point of shadow
      * @syscap SystemCapability.Graphics.Drawing
      * @since 12
      */
-    point?: common2D.Point;
+    //point?: common2D.Point;
     /**
      * The value sets special effect radius of blurring text, it default is 0.
      * @type { ?number } The value about radius of blur, it type is "double"
@@ -741,7 +741,7 @@ namespace text {
      * @syscap SystemCapability.Graphics.Drawing
      * @since 12
      */
-    color?: common2D.Color;
+    //color?: common2D.Color;
 
     /**
      * Font weight of text.
@@ -891,7 +891,7 @@ namespace text {
 
   export class TextStyleInternal implements TextStyle {
     decoration?: Decoration;
-    color?: common2D.Color;
+    //color?: common2D.Color;
     fontWeight?: FontWeight;
     fontStyle?: FontStyle;
     baseline?: TextBaseline;
@@ -1199,7 +1199,7 @@ namespace text {
      * @syscap SystemCapability.Graphics.Drawing
      * @since 12
      */
-    color?: common2D.Color;
+    //color?: common2D.Color;
 
     /**
      * Text decoration style.
@@ -1362,7 +1362,7 @@ namespace text {
      * @syscap SystemCapability.Graphics.Drawing
      * @since 12
      */
-    color: common2D.Color;
+    //color: common2D.Color;
 
     /**
      * Radius in left top of rect style.
