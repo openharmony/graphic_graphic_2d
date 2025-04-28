@@ -30,6 +30,14 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
+const uint8_t DO_GET_CANVAS = 0;
+const uint8_t DO_GET_SURFACE = 1;
+const uint8_t DO_SET_DAMAGEREGION = 2;
+const uint8_t DO_GET_RELEASEFENCE = 3;
+const uint8_t DO_SET_RELEASEFENCE = 4;
+const uint8_t DO_GET_BUFFERAGE = 5;
+const uint8_t TARGET_SIZE = 6;
+
 const uint8_t* g_data = nullptr;
 size_t g_size = 0;
 size_t g_pos;
@@ -180,11 +188,31 @@ bool DoGetBufferAge(const uint8_t* data, size_t size)
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
-    OHOS::Rosen::DoGetCanvas(data, size);
-    OHOS::Rosen::DoGetSurface(data, size);
-    OHOS::Rosen::DoSetDamageRegion(data, size);
-    OHOS::Rosen::DoGetReleaseFence(data, size);
-    OHOS::Rosen::DoSetReleaseFence(data, size);
-    OHOS::Rosen::DoGetBufferAge(data, size);
+    if (!OHOS::Rosen::Init(data, size)) {
+        return 0;
+    }
+    uint8_t tarPos = OHOS::Rosen::GetData<uint8_t>() % OHOS::Rosen::TARGET_SIZE;
+    switch (tarPos) {
+        case OHOS::Rosen::DO_GET_CANVAS:
+            OHOS::Rosen::DoGetCanvas(data, size);
+            break;
+        case OHOS::Rosen::DO_GET_SURFACE:
+            OHOS::Rosen::DoGetSurface(data, size);
+            break;
+        case OHOS::Rosen::DO_SET_DAMAGEREGION:
+            OHOS::Rosen::DoSetDamageRegion(data, size);
+            break;
+        case OHOS::Rosen::DO_GET_RELEASEFENCE:
+            OHOS::Rosen::DoGetReleaseFence(data, size);
+            break;
+        case OHOS::Rosen::DO_SET_RELEASEFENCE:
+            OHOS::Rosen::DoSetReleaseFence(data, size);
+            break;
+        case OHOS::Rosen::DO_GET_BUFFERAGE:
+            OHOS::Rosen::DoGetBufferAge(data, size);
+            break;
+        default:
+            return -1;
+    }
     return 0;
 }
