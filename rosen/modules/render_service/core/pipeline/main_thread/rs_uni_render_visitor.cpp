@@ -794,9 +794,8 @@ void RSUniRenderVisitor::QuickPrepareDisplayRenderNode(RSDisplayRenderNode& node
     globalZOrder_ = 0.0f;
     appWindowZOrder_ = 0;
     hasSkipLayer_ = false;
-    hwcVisitor_->curZorderForCalcHwcNodeEnableByFilter_ = 0;
-    node.GetHwcRecorder().zOrderForCalcHwcNodeEnableByFilter_ =
-        hwcVisitor_->curZorderForCalcHwcNodeEnableByFilter_++;
+    hwcVisitor_->curZOrderForHwcEnableByFilter_ = 0;
+    node.GetHwcRecorder().SetZOrderForHwcEnableByFilter(hwcVisitor_->curZOrderForHwcEnableByFilter_++);
     node.UpdateRotation();
     if (!(RSMainThread::Instance()->IsRequestedNextVSync() || RSMainThread::Instance()->GetNextDVsyncAnimateFlag())) {
         RS_OPTIONAL_TRACE_NAME_FMT("do not request next vsync");
@@ -1621,8 +1620,7 @@ void RSUniRenderVisitor::QuickPrepareChildren(RSRenderNode& node)
             curDirty_ = child->IsDirty();
             curContainerDirty_ = curContainerDirty_ || child->IsDirty();
             child->SetFirstLevelCrossNode(node.IsFirstLevelCrossNode() || child->IsCrossNode());
-            child->GetHwcRecorder().zOrderForCalcHwcNodeEnableByFilter_ =
-                hwcVisitor_->curZorderForCalcHwcNodeEnableByFilter_++;
+            child->GetHwcRecorder().SetZOrderForHwcEnableByFilter(hwcVisitor_->curZOrderForHwcEnableByFilter_++);
             child->QuickPrepare(shared_from_this());
             curContainerDirty_ = containerDirty;
         });
@@ -1637,8 +1635,7 @@ void RSUniRenderVisitor::QuickPrepareChildren(RSRenderNode& node)
             rsDisplayNodeChildNum_++;
             curDirty_ = child->IsDirty();
             child->SetFirstLevelCrossNode(node.IsFirstLevelCrossNode() || child->IsCrossNode());
-            child->GetHwcRecorder().zOrderForCalcHwcNodeEnableByFilter_ =
-                hwcVisitor_->curZorderForCalcHwcNodeEnableByFilter_++;
+            child->GetHwcRecorder().SetZOrderForHwcEnableByFilter(hwcVisitor_->curZOrderForHwcEnableByFilter_++);
             child->QuickPrepare(shared_from_this());
         });
     }
@@ -2847,12 +2844,16 @@ CM_INLINE void RSUniRenderVisitor::PostPrepare(RSRenderNode& node, bool subTreeS
     if (!curDirtyManager) {
         return;
     }
-    auto isOccluded = curSurfaceNode_ ?
-        curSurfaceNode_->IsMainWindowType() && curSurfaceNode_->GetVisibleRegion().IsEmpty() : false;
-    if (subTreeSkipped && (!isOccluded || node.IsFirstLevelCrossNode())) {
-        hwcVisitor_->UpdateHwcNodeRectInSkippedSubTree(node);
-        CheckFilterNodeInSkippedSubTreeNeedClearCache(node, *curDirtyManager);
-        UpdateSubSurfaceNodeRectInSkippedSubTree(node);
+
+    if (subTreeSkipped) {
+        hwcVisitor_->QuickPrepareChildrenOnlyOrder(node);
+        auto isOccluded = curSurfaceNode_ ?
+            curSurfaceNode_->IsMainWindowType() && curSurfaceNode_->GetVisibleRegion().IsEmpty() : false;
+        if (!isOccluded || node.IsFirstLevelCrossNode()) {
+            hwcVisitor_->UpdateHwcNodeRectInSkippedSubTree(node);
+            CheckFilterNodeInSkippedSubTreeNeedClearCache(node, *curDirtyManager);
+            UpdateSubSurfaceNodeRectInSkippedSubTree(node);
+        }
     }
     if (node.NeedUpdateDrawableBehindWindow()) {
         node.GetMutableRenderProperties().SetNeedDrawBehindWindow(node.NeedDrawBehindWindow());
@@ -2867,8 +2868,8 @@ CM_INLINE void RSUniRenderVisitor::PostPrepare(RSRenderNode& node, bool subTreeS
     }
     if (node.GetRenderProperties().NeedFilter() || node.GetHwcRecorder().IsBlendWithBackground()) {
         hwcVisitor_->UpdateHwcNodeEnableByFilterRect(
-            curSurfaceNode_, node.GetOldDirtyInSurface(), node.GetId(), NeedPrepareChindrenInReverseOrder(node),
-            node.GetHwcRecorder().zOrderForCalcHwcNodeEnableByFilter_);
+            curSurfaceNode_, node, NeedPrepareChindrenInReverseOrder(node),
+            node.GetHwcRecorder().GetZOrderForHwcEnableByFilter());
         node.CalVisibleFilterRect(prepareClipRect_);
         node.MarkClearFilterCacheIfEffectChildrenChanged();
         CollectFilterInfoAndUpdateDirty(node, *curDirtyManager, globalFilterRect, globalHwcFilterRect);
@@ -2988,8 +2989,7 @@ void RSUniRenderVisitor::CheckFilterNodeInSkippedSubTreeNeedClearCache(
         }
         RectI filterRect;
         filterNode->UpdateFilterRegionInSkippedSubTree(dirtyManager, rootNode, filterRect, prepareClipRect_);
-        hwcVisitor_->UpdateHwcNodeEnableByFilterRect(curSurfaceNode_, filterNode->GetOldDirtyInSurface(),
-                                                     filterNode->GetId());
+        hwcVisitor_->UpdateHwcNodeEnableByFilterRect(curSurfaceNode_, *filterNode);
         CollectFilterInfoAndUpdateDirty(*filterNode, dirtyManager, filterRect, filterRect);
     }
 }
