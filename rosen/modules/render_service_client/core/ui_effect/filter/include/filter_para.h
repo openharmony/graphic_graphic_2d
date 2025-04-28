@@ -43,7 +43,7 @@ public:
         WATER_RIPPLE,
         FLY_OUT,
         DISTORT,
-        DISPLACENMENT_DISTORT,
+        DISPLACEMENT_DISTORT,
     };
 
     FilterPara()  = default;

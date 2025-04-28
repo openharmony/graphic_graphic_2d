@@ -62,7 +62,7 @@ public:
         values_ = values;
     }
 
-    const std::vector<Vector2f>& GettValues() const
+    const std::vector<Vector2f>& GetValues() const
     {
         return values_;
     }

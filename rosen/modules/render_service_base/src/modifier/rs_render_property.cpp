@@ -19,6 +19,7 @@
 
 #include "pipeline/rs_render_node.h"
 #include "platform/common/rs_log.h"
+#include "render/rs_render_filter.h"
 #include "rs_profiler.h"
 
 namespace OHOS {
@@ -198,7 +199,20 @@ bool RSRenderPropertyBase::Marshalling(Parcel& parcel, const std::shared_ptr<RSR
             }
             return flag;
         }
+        case RSRenderPropertyType::PROPERTY_UI_FILTER: {
+            auto property = std::static_pointer_cast<RSRenderProperty<std::shared_ptr<RSRenderFilter>>>(val);
+            if (property == nullptr) {
+                return false;
+            }
+            bool flag = parcel.WriteUint64(
+                property->GetId()) && RSMarshallingHelper::Marshalling(parcel, property->Get());
+            if (!flag) {
+                ROSEN_LOGE("RSRenderPropertyBase::Marshalling PROPERTY_UI_FILTER failed");
+            }
+            return flag;
+        }
         default: {
+            ROSEN_LOGE("RSRenderPropertyBase::Marshalling unknown type failed");
             return false;
         }
     }
@@ -310,7 +324,17 @@ bool RSRenderPropertyBase::Unmarshalling(Parcel& parcel, std::shared_ptr<RSRende
             val.reset(new RSRenderAnimatableProperty<RRect>(value, id, type, unit));
             break;
         }
+        case RSRenderPropertyType::PROPERTY_UI_FILTER: {
+            std::shared_ptr<RSRenderFilter> value;
+            if (!RSMarshallingHelper::Unmarshalling(parcel, value)) {
+                ROSEN_LOGE("RSRenderPropertyBase::Unmarshalling PROPERTY_UI_FILTER failed");
+                return false;
+            }
+            val = std::make_shared<RSRenderProperty<std::shared_ptr<RSRenderFilter>>>(value, id, type);
+            break;
+        }
         default: {
+            ROSEN_LOGE("RSRenderPropertyBase::Unmarshalling unknown type failed");
             return false;
         }
     }
@@ -939,6 +963,8 @@ template class RSRenderProperty<std::shared_ptr<RSMagnifierParams>>;
 template class RSRenderProperty<std::vector<std::shared_ptr<EmitterUpdater>>>;
 template class RSRenderProperty<std::shared_ptr<ParticleNoiseFields>>;
 template class RSRenderProperty<std::shared_ptr<RSMask>>;
+template class RSRenderProperty<std::shared_ptr<RSRenderFilter>>;
+template class RSRenderProperty<std::shared_ptr<RSRenderMaskPara>>;
 
 template class RSRenderAnimatableProperty<float>;
 template class RSRenderAnimatableProperty<Vector4f>;

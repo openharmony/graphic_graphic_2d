@@ -82,13 +82,17 @@ void RSNodeGetShowingPropertyAndCancelAnimation::Process(RSContext& context)
             "node [%{public}" PRIu64 "] or property is null!", targetId_);
         return;
     }
-    auto modifier = node->GetModifier(property_->GetId());
-    if (!modifier) {
-        success_ = false;
-        ROSEN_LOGE("RSNodeGetShowingPropertyAndCancelAnimation::Process, modifier is null!");
-        return;
+    if (auto property = node->GetProperty(property_->GetId())) {
+        property_ = property;
+    } else {
+        auto modifier = node->GetModifier(property_->GetId());
+        if (!modifier) {
+            success_ = false;
+            ROSEN_LOGE("RSNodeGetShowingPropertyAndCancelAnimation::Process, modifier is null!");
+            return;
+        }
+        property_ = modifier->GetProperty();
     }
-    property_ = modifier->GetProperty();
     success_ = (property_ != nullptr);
     if (success_) {
         auto& animationManager = node->GetAnimationManager();
@@ -170,8 +174,9 @@ void RSNodeGetShowingPropertiesAndCancelAnimation::Process(RSContext& context)
                 "node [%{public}" PRIu64 "] is null!", nodeId);
             continue;
         }
-        auto modifier = node->GetModifier(propertyId);
-        if (modifier) {
+        if (auto prop = node->GetProperty(propertyId)) {
+            property = prop;
+        } else if (auto modifier = node->GetModifier(propertyId)) {
             property = modifier->GetProperty();
         }
         node->GetAnimationManager().AttemptCancelAnimationByAnimationId(animations);
