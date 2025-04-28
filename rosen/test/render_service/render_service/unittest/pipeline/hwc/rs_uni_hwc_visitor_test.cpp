@@ -993,7 +993,7 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByFilterRect003, TestSize.Level
     RectI rect{left, top, width, height};
     surfaceNode2->SetDstRect(rect);
     surfaceNode2->renderContent_->renderProperties_.boundsGeo_->absRect_ = rect;
-    rsUniHwcVisitor->UpdateHwcNodeEnableByFilterRect(surfaceNode, *surfaceNode2, 1, false, 0);
+    rsUniHwcVisitor->UpdateHwcNodeEnableByFilterRect(surfaceNode, *surfaceNode2, false, 0);
 }
 
 /**
