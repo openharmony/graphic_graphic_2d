@@ -162,6 +162,12 @@ static const std::vector<struct JsEnumInt> g_textHighContrast = {
         static_cast<size_t>(SrvText::TextHighContrast::TEXT_APP_ENABLE_HIGH_CONTRAST)},
 };
 
+static const std::vector<struct JsEnumInt> TEXT_BADGE_TYPE = {
+    { "TEXT_BADGE_NONE", static_cast<uint32_t>(TextBadgeType::BADGE_NONE) },
+    { "TEXT_SUPERSCRIPT", static_cast<uint32_t>(TextBadgeType::SUPERSCRIPT) },
+    { "TEXT_SUBSCRIPT", static_cast<uint32_t>(TextBadgeType::SUBSCRIPT) },
+};
+
 const std::map<std::string_view, const std::vector<struct JsEnumInt>&> INT_ENUM_CLASS_MAP = {
     { "TextAlign", TEXT_ALIGN },
     { "TextDecorationStyle", TEXT_DECORATION_STYLE },
@@ -181,6 +187,7 @@ const std::map<std::string_view, const std::vector<struct JsEnumInt>&> INT_ENUM_
     { "TextHeightBehavior", TEXTHEIGHTBEHAVIOR },
     { "SystemFontType", g_systemFontType },
     { "TextHighContrast", g_textHighContrast},
+    { "TextBadgeType", TEXT_BADGE_TYPE},
 };
 
 napi_value JsEnum::JsEnumIntInit(napi_env env, napi_value exports)
