@@ -87,6 +87,10 @@ JANK_FRAME_RS:
   PROCESS_NAME: {type: STRING, desc: process name}
   VERSION_NAME: {type: STRING, desc: version name}
   VERSION_CODE: {type: INT32, desc: version code}
+  FILTER_TYPE: {type: INT32, desc: jank type}
+  SKIPPED_FRAME_TIME: {type: UINT64, desc: skipped frame time}
+  REAL_SKIPPED_FRAME_TIME: {type: UINT64, desc: real skipped frame time}
+  FRAME_REFRESH_RATE: {type: INT32, desc: frame refresh rate}
 
 INTERACTION_RESPONSE_LATENCY:
   __BASE: {type: BEHAVIOR, level: MINOR, tag: performance, desc: interaction response statistics}
