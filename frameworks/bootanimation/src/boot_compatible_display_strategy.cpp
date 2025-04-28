@@ -62,11 +62,9 @@ void BootCompatibleDisplayStrategy::Display(int32_t duration, std::vector<BootAn
             operator_->GetThread().join();
         }
 
-        bool needOtaCompile = CheckNeedOtaCompile();
-        bool needBundleScan = CheckNeedBundleScan();
-        if (needOtaCompile || needBundleScan) {
+        if (CheckNeedOtaCompile()) {
             bootCompileProgress_ = std::make_shared<BootCompileProgress>();
-            bootCompileProgress_->Init(config, needOtaCompile, needBundleScan);
+            bootCompileProgress_->Init(config);
         }
     }
 
