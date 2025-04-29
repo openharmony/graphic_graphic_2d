@@ -15,8 +15,8 @@ group("fuzztest") {
   testonly = true
 
   deps = [
-    "hm_symbol:fuzztest",
-    "ndk:fuzztest",
-    "typography:fuzztest",
+    "drawing_fuzzer:fuzztest",
+    "drawingrun_fuzzer:fuzztest",
+    "drawingtext_fuzzer:fuzztest",
   ]
 }
