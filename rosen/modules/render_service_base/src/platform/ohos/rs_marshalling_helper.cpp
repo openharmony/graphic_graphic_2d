@@ -916,14 +916,17 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSMagnif
 }
 
 // Particle
-bool RSMarshallingHelper::Marshalling(Parcel& parcel, const AnnulusRegion& val)
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<AnnulusRegion>& val)
 {
+    if (!val) {
+        return true;
+    }
     return Marshalling(parcel, val.center_.x_) && Marshalling(parcel, val.center_.y_) &&
         Marshalling(parcel, val.innerRadius_) && Marshalling(parcel, val.outerRadius_) &&
         Marshalling(parcel, val.startAngle_) && Marshalling(parcel, val.endAngle_);
 }
 
-bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, AnnulusRegion& val)
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<AnnulusRegion>& val)
 {
     float centerX = 0.f;
     float centerY = 0.f;
@@ -939,7 +942,38 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, AnnulusRegion& val)
     success &= Unmarshalling(parcel, endAngle);
     if (success) {
         Vector2f center(centerX, centerY);
-        val = AnnulusRegion(center, innerRadius, outerRadius, startAngle, endAngle);
+        val = std::make_shared<AnnulusRegion>(ShapeType::ANNULUS, center, innerRadius, outerRadius,
+            startAngle, endAngle);
+    }
+    return success;
+}
+
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Shape>& shape)
+{
+    if (!shape) {
+        return parcel.WriteInt32(-1);
+    }
+    ShapeType type = shape->GetShapeType();
+    bool success = parcel.WriteInt32(1) && Marshalling(parcel, type);
+    if (type == ShapeType::ANNULUS) {
+        auto annulusRegion = std::static_pointer_cast<AnnulusRegion>(shape);
+        success &= Marshalling(parcel, annulusRegion);
+    }
+    return success;
+}
+
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Shape>& shape)
+{
+    if (parcel.ReadInt32() == -1) {
+        shape = nullptr;
+        return true;
+    }
+    ShapeType type = ShapeType::RECT;
+    bool success = Marshalling(parcel, type);
+    if (type == ShapeType::ANNNULUS) {
+        std::shared_ptr<AnnulusRegion> annulusRegion = nullptr;
+        success &= Unmarshalling(parcel, annulusRegion);
+        shape = std::move(annulusRegion);
     }
     return success;
 }
@@ -958,7 +992,7 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Emit
     success &= Marshalling(parcel, val->position_);
     success &= Marshalling(parcel, val->emitSize_) ;
     success &= Marshalling(parcel, val->emitRate_);
-    success &= Marshalling(parcel, val->annulusRegion_);
+    success &= Marshalling(parcel, val->shape_);
     if (!success) {
         ROSEN_LOGE("RSMarshallingHelper::Marshalling EmitterUpdater failed");
     }
@@ -975,16 +1009,16 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<EmitterU
     std::optional<Vector2f> position = std::nullopt;
     std::optional<Vector2f> emitSize = std::nullopt;
     std::optional<int> emitRate = std::nullopt;
-    std::optional<AnnulusRegion> annulusRegion = std::nullopt;
+    std::shared_ptr<AnnulusRegion> shape = nullptr;
 
     bool success = Unmarshalling(parcel, emitterIndex);
     success &= Unmarshalling(parcel, position);
     success &= Unmarshalling(parcel, emitSize);
     success &= Unmarshalling(parcel, emitRate);
-    success &= Unmarshalling(parcel, annulusRegion);
+    success &= Unmarshalling(parcel, shape);
     if (success) {
         val = std::make_shared<EmitterUpdater>(emitterIndex, position, emitSize, emitRate);
-        val->SetAnnulusRegion(annulusRegion);
+        val->SetShape(shape);
     }
     return success;
 }
@@ -1140,7 +1174,7 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const EmitterConfig& val)
     success &= Marshalling(parcel, val.image_);
     success &= Marshalling(parcel, val.imageSize_.x_);
     success &= Marshalling(parcel, val.imageSize_.y_);
-    success &= Marshalling(parcel, val.annulusRegion_);
+    success &= Marshalling(parcel, val.shape_);
 
     return success;
 }
@@ -1179,13 +1213,13 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, EmitterConfig& val)
     success &= Unmarshalling(parcel, imageWidth);
     success &= Unmarshalling(parcel, imageHeight);
     Vector2f imageSize(imageWidth, imageHeight);
-    AnnulusRegion annulusRegion;
-    success &= Unmarshalling(parcel, annulusRegion);
+    std::shared_ptr<Shape> shape = nullptr;
+    success &= Unmarshalling(parcel, shape);
     if (success) {
         Range<int64_t> lifeTime(lifeTimeStart, lifeTimeEnd);
         val = EmitterConfig(
             emitRate, emitShape, position, emitSize, particleCount, lifeTime, particleType, radius, image, imageSize);
-        val.SetConfigAnnulusRegion(annulusRegion);
+        val.SetConfigShape(shape);
     }
     return success;
 }
@@ -2747,7 +2781,7 @@ MARSHALLING_AND_UNMARSHALLING(RSRenderAnimatableProperty)
     EXPLICIT_INSTANTIATION(TEMPLATE, RenderParticleColorParaType)                        \
     EXPLICIT_INSTANTIATION(TEMPLATE, RenderParticleParaType<float>)                      \
     EXPLICIT_INSTANTIATION(TEMPLATE, ParticleVelocity)                                   \
-    EXPLICIT_INSTANTIATION(TEMPLATE, AnnulusRegion)                                      \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<AnnulusRegion>)                     \
     EXPLICIT_INSTANTIATION(TEMPLATE, EmitterConfig)                                      \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector2f)                                           \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector3f)                                           \

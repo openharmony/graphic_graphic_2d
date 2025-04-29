@@ -87,7 +87,32 @@ public:
     ~RenderParticleParaType() = default;
 };
 
-class RSB_EXPORT AnnulusRegion {
+class RSB_EXPORT Shape {
+public:
+    ShapeType type_;
+    Shape() = default;
+    Shape(const ShapeType& type) : type_(type) {}
+    virtual void CalculatePosition(float& positionX, float& positionY) = 0;
+    virtual Shape& operator=(const Shape& shape) = default;
+    virtual bool operator==(const Shape& shape) const
+    {
+        return type_ = shape.type_;
+    }
+
+    virtual bool operator!=(const Shape& shape) const
+    {
+        return type_ != shape.type_;
+    }
+
+    virtual ShapeType GetShapeType() const
+    {
+        return type_;
+    }
+
+    virtual ~Shape() = default;
+}
+
+class RSB_EXPORT AnnulusRegion : public Shape {
 public:
     Vector2f center_ { Vector2f() };
     float innerRadius_ { 0.0 };
@@ -96,27 +121,34 @@ public:
     float endAngle_ { 0.0 };
 
     AnnulusRegion()
-        : center_(), innerRadius_(), outerRadius_(), startAngle_(), endAngle_()
+        : Shape(ShapeType::ANNULUS), center_(), innerRadius_(), outerRadius_(), startAngle_(), endAngle_()
     {}
-    AnnulusRegion(const Vector2f& center, const float& innerRadius, const float& outerRadius, const float & startAngle,
-        const float& endAngle)
-        : center_(center), innerRadius_(innerRadius), outerRadius_(outerRadius),
+    AnnulusRegion(const ShapeType& type, const Vector2f& center, const float& innerRadius, const float& outerRadius,
+        const float & startAngle, const float& endAngle)
+        : Shape(type), (center), innerRadius_(innerRadius), outerRadius_(outerRadius),
           startAngle_(startAngle), endAngle_(endAngle)
     {}
     AnnulusRegion(const AnnulusRegion& region) = default;
     AnnulusRegion& operator=(const AnnulusRegion& region) = default;
 
+    void CalculatePosition(float& positionX, float& positionY);
     bool operator==(const AnnulusRegion& annulusRegion) const
     {
-        return center_ == annulusRegion.center_ && innerRadius_ == annulusRegion.innerRadius_ &&
-               outerRadius_ == annulusRegion.outerRadius_ && startAngle_ == annulusRegion.startAngle_ &&
-               endAngle_ == annulusRegion.endAngle_;
+        return type_ == annulusRegion.type_ && == annulusRegion.center_ &&
+               innerRadius_ == annulusRegion.innerRadius_ && outerRadius_ == annulusRegion.outerRadius_ &&
+               startAngle_ == annulusRegion.startAngle_ && endAngle_ == annulusRegion.endAngle_;
     }
 
     bool operator!=(const AnnulusRegion& annulusRegion) const
     {
         return !(*this == annulusRegion);
     }
+
+    ShapeType GetShapeType() const
+    {
+        return ShapeType::ANNULUS;
+    }
+    
     ~AnnulusRegion() = default;
 };
 
@@ -132,11 +164,11 @@ public:
     float radius_ { 0.0 };
     std::shared_ptr<RSImage> image_;
     Vector2f imageSize_;
-    AnnulusRegion annulusRegion_;
+    std::shared_ptr<Shape> shape_;
 
     EmitterConfig()
         : emitRate_(), emitShape_(ShapeType::RECT), position_(), emitSize_(), particleCount_(), lifeTime_(),
-          type_(ParticleType::POINTS), radius_(), image_(), imageSize_(), annulusRegion_()
+          type_(ParticleType::POINTS), radius_(), image_(), imageSize_(), shape_()
     {}
     EmitterConfig(const int& emitRate, const ShapeType& emitShape, const Vector2f& position, const Vector2f& emitSize,
         const int32_t& particleCount, const Range<int64_t>& lifeTime, const ParticleType& type, const float& radius,
@@ -160,7 +192,7 @@ public:
     EmitterConfig& operator=(const EmitterConfig& config) = default;
     ~EmitterConfig() = default;
 
-    void SetConfigAnnulusRegion(const AnnulusRegion& annulusRegion);
+    void SetConfigShape(const std::shared_ptr<Shape>& shape);
 };
 
 class RSB_EXPORT EmitterUpdater {
@@ -169,7 +201,7 @@ public:
     std::optional<Vector2f> position_;
     std::optional<Vector2f> emitSize_;
     std::optional<int> emitRate_;
-    std::optional<AnnulusRegion> annulusRegion_;
+    std::shared_ptr<Shape> shape_;
 
     explicit EmitterUpdater(
         uint32_t emitterIndex,
@@ -183,7 +215,7 @@ public:
     ~EmitterUpdater() = default;
     
     void Dump(std::string& out) const;
-    void SetAnnulusRegion(const std::optional<AnnulusRegion>& annulusRegion);
+    void SetShape(const std::shared_ptr<Shape>& shape);
 };
 
 class RSB_EXPORT ParticleVelocity {
@@ -275,7 +307,7 @@ public:
     float GetParticleRadius() const;
     const std::shared_ptr<RSImage>& GetParticleImage();
     const Vector2f& GetImageSize() const;
-    const AnnulusRegion& GetAnnulusRegion() const;
+    const std::shared_ptr<Shape>& GetShape() const;
 
     float GetVelocityStartValue() const;
     float GetVelocityEndValue() const;
@@ -411,7 +443,7 @@ public:
     void SetColor();
     int GenerateColorComponent(double mean, double stddev);
     Vector2f CalculateParticlePosition(const ShapeType& emitShape, const Vector2f& position, const Vector2f& emitSize,
-        const AnnulusRegion& annulusRegion);
+        const std::shared_ptr<Shape>& shape);
     std::shared_ptr<ParticleRenderParams> particleParams_;
 
     bool operator==(const RSRenderParticle& rhs)

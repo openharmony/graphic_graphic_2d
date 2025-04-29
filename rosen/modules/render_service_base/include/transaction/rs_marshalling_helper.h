@@ -61,6 +61,7 @@ class ParticleNoiseFields;
 template<typename T>
 class RenderParticleParaType;
 class AnnulusRegion;
+class Shape;
 class EmitterConfig;
 class ParticleVelocity;
 class RenderParticleColorParaType;
@@ -265,7 +266,8 @@ public:
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSMask>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSImage>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSImageBase>)
-    DECLARE_FUNCTION_OVERLOAD(AnnulusRegion)
+    DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<AnnulusRegion>)
+    DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<Shape>)
     DECLARE_FUNCTION_OVERLOAD(EmitterConfig)
     DECLARE_FUNCTION_OVERLOAD(ParticleVelocity)
     DECLARE_FUNCTION_OVERLOAD(RenderParticleParaType<float>)

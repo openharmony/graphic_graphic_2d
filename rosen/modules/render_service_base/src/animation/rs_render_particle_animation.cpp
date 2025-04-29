@@ -96,8 +96,7 @@ void RSRenderParticleAnimation::UpdateEmitter(const std::vector<std::shared_ptr<
                 emitterUpdater->emitRate_.value() != particlesRenderParams_[index]->emitterConfig_.emitRate_) {
                 particlesRenderParams_[index]->emitterConfig_.emitRate_ = emitterUpdater->emitRate_.value();
             }
-            UpdateParamsIfChanged(emitterUpdater->annulusRegion_,
-                                  particlesRenderParams_[index]->emitterConfig_.annulusRegion_);
+            UpdateParamsIfChanged(emitterUpdater->shape_, particlesRenderParams_[index]->emitterConfig_.shape_);
         }
     }
     if (particleSystem_) {

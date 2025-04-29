@@ -52,10 +52,10 @@ public:
         return particleSystem_;
     }
     template <typename T>
-    void UpdateParamsIfChanged(const std::optional<T>& updaterValue, T& targetValue)
+    void UpdateParamsIfChanged(const std::shared_ptr<T>& updaterValue, std::shared_ptr<T>& targetValue)
     {
-        if (updaterValue.has_value() && updaterValue.value() != targetValue) {
-            targetValue = updaterValue.value();
+        if (updaterValue && updaterValue != targetValue) {
+            targetValue = updaterValue;
         }
     }
 

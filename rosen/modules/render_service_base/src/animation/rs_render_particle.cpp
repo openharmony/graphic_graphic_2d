@@ -88,9 +88,9 @@ const Vector2f& ParticleRenderParams::GetImageSize() const
     return emitterConfig_.imageSize_;
 }
 
-const AnnulusRegion& ParticleRenderParams::GetAnnulusRegion() const
+const std::shared_ptr<Shape>& ParticleRenderParams::GetShape() const
 {
-    return emitterConfig_.annulusRegion_;
+    return emitterConfig_.shape_;
 }
 
 float ParticleRenderParams::GetVelocityStartValue() const
@@ -625,7 +625,7 @@ void RSRenderParticle::InitProperty()
     }
     position_ = CalculateParticlePosition(
         particleParams_->GetEmitShape(), particleParams_->GetEmitPosition(), particleParams_->GetEmitSize(),
-        particleParams_->GetAnnulusRegion());
+        particleParams_->GetShape());
 
     float velocityValue =
         GetRandomValue(particleParams_->GetVelocityStartValue(), particleParams_->GetVelocityEndValue());
@@ -747,9 +747,17 @@ int RSRenderParticle::GenerateColorComponent(double mean, double stddev)
     return component;
 }
 
+void AnnulusRegion::CalculatePosition(float& positionX, float& postionY)
+{
+    float radius = GetRandomValue(innerRadius_, outerRadius_);
+    float theta = GetRandomValue(startAngle_, endAngle_) * DEGREE_TO_RADIAN;
+    positionX = center_.x_ + radius * cos(theta);
+    positionY = center_.y_ + radius * sin(theta);
+}
+
 Vector2f RSRenderParticle::CalculateParticlePosition(
     const ShapeType& emitShape, const Vector2f& position, const Vector2f& emitSize,
-    const AnnulusRegion& annulusRegion)
+    const std::shared_ptr<Shape>& shape)
 {
     float positionX = 0.f;
     float positionY = 0.f;
@@ -780,16 +788,7 @@ Vector2f RSRenderParticle::CalculateParticlePosition(
         }
     }
     if (emitShape == ShapeType::ANNULUS) {
-        Vector2f center = annulusRegion.center_;
-        float innerRadius = annulusRegion.innerRadius_;
-        float outerRadius = annulusRegion.outerRadius_;
-        float startAngle = annulusRegion.startAngle_;
-        float endAngle = annulusRegion.endAngle_;
-
-        float radius = GetRandomValue(innerRadius, outerRadius);
-        float theta = GetRandomValue(startAngle, endAngle) * DEGREE_TO_RADIAN;
-        positionX = center.x_ + radius * cos(theta);
-        positionY = center.y_ + radius * sin(theta);
+        shape->CalculatePosition(positionX, positionY);        
     }
     return Vector2f { positionX, positionY };
 }
@@ -811,14 +810,14 @@ void EmitterUpdater::Dump(std::string& out) const
     out += ']';
 }
 
-void EmitterConfig::SetConfigAnnulusRegion(const AnnulusRegion& annulusRegion)
+void EmitterConfig::SetConfigShape(const std::shared_ptr<Shape>& shape)
 {
-    annulusRegion_ = annulusRegion;
+    shape_ = shape;
 }
 
-void EmitterUpdater::SetAnnulusRegion(const std::optional<AnnulusRegion>& annulusRegion)
+void EmitterUpdater::SetShape(const std::shared_ptr<Shape>& shape)
 {
-    annulusRegion_ = annulusRegion;
+    shape_ = shape;
 }
 } // namespace Rosen
 } // namespace OHOS
