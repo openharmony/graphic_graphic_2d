@@ -955,7 +955,26 @@ void RSRenderService::RegisterBufferFuncs()
 {
     RSDumpFunc currentFrameBufferFunc = [this](const std::u16string &cmd, std::unordered_set<std::u16string> &argSets,
                                                std::string &dumpString) -> void {
-        mainThread_->ScheduleTask([this]() { return screenManager_->DumpCurrentFrameLayers(); }).wait();
+        RS_TRACE_NAME("mcc RSRenderService before mainThread_");
+        RS_LOGI("mcc RSRenderService before mainThread_");
+        auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
+        if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
+#ifdef RS_ENABLE_GPU
+            RSHardwareThread::Instance().ScheduleTask(
+                [this]() {
+                RS_TRACE_NAME("mcc RSRenderService dump current frame buffer");
+                RS_LOGI("mcc RSRenderService current frame buffer in RSHardwareThread");
+                return screenManager_->DumpCurrentFrameLayers();
+                }).wait();
+#endif
+        } else {
+            mainThread_->ScheduleTask(
+                [this]() {
+                RS_TRACE_NAME("mcc RSRenderService dump current frame buffer");
+                RS_LOGI("mcc RSRenderService current frame buffer in mainThread_");
+                return screenManager_->DumpCurrentFrameLayers();
+                }).wait();
+        }
     };
 
     std::vector<RSDumpHander> handers = {
