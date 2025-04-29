@@ -1020,7 +1020,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<EmitterU
     std::optional<Vector2f> position = std::nullopt;
     std::optional<Vector2f> emitSize = std::nullopt;
     std::optional<int> emitRate = std::nullopt;
-    std::shared_ptr<AnnulusRegion> shape = nullptr;
+    std::shared_ptr<Shape> shape = nullptr;
 
     bool success = Unmarshalling(parcel, emitterIndex);
     success &= Unmarshalling(parcel, position);
