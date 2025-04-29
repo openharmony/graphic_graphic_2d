@@ -280,15 +280,16 @@ bool RSCanvasNode::GetPixelmap(std::shared_ptr<Media::PixelMap> pixelMap,
         return false;
     }
     bool ret = false;
-    RSModifiersDrawThread::Instance().PostSyncTask([this, &pixelMap, &ret]() {
+    RSModifiersDrawThread::Instance().PostSyncTask([this, pixelMap, rect, &ret]() {
         auto srcPixelMap = RSModifiersDraw::GetPixelMapByNodeId(GetId(), false);
         if (srcPixelMap == nullptr) {
             RS_LOGE("RSCanvasNode::GetPixelmap get source pixelMap fail");
             return;
         }
         Media::Rect srcRect = { rect->GetLeft(), rect->GetTop(), rect->GetWidth(), rect->GetHeight() };
-        auto ret = srcPixelMap->ReadPixels(Media::RWPixelsOptions { static_cast<uint8_t*>(pixelMap->GetWritablePixels()),
-            pixelMap->GetByteCount(), 0, pixelMap->GetRowStride(), srcRect, Media::PixelFormat::RGBA_8888 });
+        auto ret =
+            srcPixelMap->ReadPixels(Media::RWPixelsOptions { static_cast<uint8_t*>(pixelMap->GetWritablePixels()),
+                pixelMap->GetByteCount(), 0, pixelMap->GetRowStride(), srcRect, Media::PixelFormat::RGBA_8888 });
         if (ret != Media::SUCCESS) {
             RS_LOGE("RSCanvasNode::GetPixelmap get pixelMap fail");
             return;
