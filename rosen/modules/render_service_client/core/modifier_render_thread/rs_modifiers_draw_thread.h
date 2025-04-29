@@ -103,6 +103,7 @@ public:
 #endif
 
     void PostTask(const std::function<void()>&& task, const std::string& name = std::string(), int64_t delayTime = 0);
+    void PostSyncTask(const std::function<void()>&& task);
     void RemoveTask(const std::string& name);
     bool GetIsStarted() const;
     template<typename Task, typename Return = std::invoke_result_t<Task>>

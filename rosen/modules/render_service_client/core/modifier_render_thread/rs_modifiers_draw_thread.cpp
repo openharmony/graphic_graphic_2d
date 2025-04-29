@@ -155,6 +155,16 @@ void RSModifiersDrawThread::RemoveTask(const std::string& name)
     }
 }
 
+void RSModifiersDrawThread::PostSyncTask(const std::function<void()>&& task)
+{
+    if (!isStarted_) {
+        Start();
+    }
+    if (handler_ != nullptr) {
+        handler_->PostSyncTask(task, AppExecFwk::EventQueue::Priority::IMMEDIATE);
+    }
+}
+
 bool RSModifiersDrawThread::TargetCommand(
     Drawing::DrawCmdList::HybridRenderType hybridRenderType, uint16_t type, uint16_t subType, bool cmdListEmpty)
 {
