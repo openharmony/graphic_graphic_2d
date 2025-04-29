@@ -35,6 +35,7 @@ static const int NUMBER_TWO = 2;
 static const int READ_SIZE = 8192;
 static const int MAX_FILE_NAME = 512;
 static const int SLEEP_TIME_US = 30000;
+static const int SLEEP_TIME_US_10 = 10000;
 static const int INVALID_VOLUME = -1;
 static const int MIN_VOLUME = 0;
 static const int MAX_VOLUME = 15;
