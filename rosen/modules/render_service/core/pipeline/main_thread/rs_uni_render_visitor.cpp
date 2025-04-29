@@ -786,7 +786,7 @@ void RSUniRenderVisitor::QuickPrepareDisplayRenderNode(RSDisplayRenderNode& node
     ancestorNodeHasAnimation_ = false;
     displayNodeRotationChanged_ = node.IsRotationChanged();
     dirtyFlag_ = isDirty_ || displayNodeRotationChanged_ || zoomStateChange_ ||
-        curDisplayDirtyManager_->IsActiveSurfaceRectChanged();
+        curDisplayDirtyManager_->IsActiveSurfaceRectChanged() || node.IsDirty();
     prepareClipRect_ = screenRect_;
     hasAccumulatedClip_ = false;
 
