@@ -1558,6 +1558,9 @@ private:
     void SendSurfaceNodeTreeStatus(bool onTree);
     void SendSurfaceNodeBoundChange();
 #endif
+#ifndef ROSEN_CROSS_PLATFORM
+    void UpdatePropertyFromConsumer();
+#endif
 
     RSSpecialLayerManager specialLayerManager_;
     bool specialLayerChanged_ = false;

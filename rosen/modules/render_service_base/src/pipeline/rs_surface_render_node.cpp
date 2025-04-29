@@ -3080,6 +3080,11 @@ void RSSurfaceRenderNode::UpdateRenderParams()
         return;
     }
     auto& properties = GetRenderProperties();
+#ifndef ROSEN_CROSS_PLATFORM
+    if (surfaceHandler_ && surfaceHandler_->GetConsumer()) {
+        UpdatePropertyFromConsumer();
+    }
+#endif
     surfaceParams->alpha_ = properties.GetAlpha();
     surfaceParams->isClonedNodeOnTheTree_ = isClonedNodeOnTheTree_;
     surfaceParams->isCrossNode_ = IsCrossNode();
@@ -3121,6 +3126,29 @@ void RSSurfaceRenderNode::UpdateRenderParams()
     RSRenderNode::UpdateRenderParams();
 #endif
 }
+
+#ifndef ROSEN_CROSS_PLATFORM
+void RSSurfaceRenderNode::UpdatePropertyFromConsumer()
+{
+    auto consumer = surfaceHandler_->GetConsumer();
+    int32_t gravity = -1;
+    consumer->GetFrameGravity(gravity);
+    if (gravity >= 0) {
+        GetMutableRenderProperties().SetFrameGravity(static_cast<Gravity>(gravity));
+        RS_LOGD("RSSurfaceRenderNode, update frame gravity to = %{public}d", gravity);
+    }
+
+    int32_t fixed = -1;
+    consumer->GetFixedRotation(fixed);
+    if (fixed >= 0) {
+        bool fixedRotation = (fixed == 1);
+        auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+        surfaceParams->SetFixRotationByUser(fixedRotation);
+        isFixRotationByUser_ = fixedRotation;
+        RS_LOGD("RSSurfaceRenderNode, update fixed rotation to = %{public}d", fixedRotation);
+    }
+}
+#endif
 
 void RSSurfaceRenderNode::SetNeedOffscreen(bool needOffscreen)
 {
