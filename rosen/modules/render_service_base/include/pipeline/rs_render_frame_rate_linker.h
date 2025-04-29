@@ -28,6 +28,7 @@ class RSIFrameRateLinkerExpectedFpsUpdateCallback;
 class RSB_EXPORT RSRenderFrameRateLinker : public std::enable_shared_from_this<RSRenderFrameRateLinker> {
 public:
     using ObserverType = std::function<void (const RSRenderFrameRateLinker&)>;
+    using TimePoint = std::atomic<std::chrono::steady_clock::time_point>;
     explicit RSRenderFrameRateLinker(FrameRateLinkerId id, ObserverType observer);
     explicit RSRenderFrameRateLinker(ObserverType observer);
     explicit RSRenderFrameRateLinker(FrameRateLinkerId id);
@@ -61,6 +62,8 @@ public:
     uint32_t GetFrameRate() const;
 
     void RegisterExpectedFpsUpdateCallback(pid_t pid, sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback> callback);
+    void UpdateNativeVSyncTimePoint();
+    bool NativeVSyncIsTimeOut() const;
 private:
     static FrameRateLinkerId GenerateId();
     void Copy(const RSRenderFrameRateLinker&& other);
@@ -73,6 +76,7 @@ private:
     int32_t animatorExpectedFrameRate_ = -1;
     std::string vsyncName_;
     mutable std::mutex mutex_;
+    TimePoint nativeVSyncTimePoint_ = std::chrono::steady_clock::time_point::min();
 
     std::unordered_map<pid_t, sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback>> expectedFpsChangeCallbacks_;
 };

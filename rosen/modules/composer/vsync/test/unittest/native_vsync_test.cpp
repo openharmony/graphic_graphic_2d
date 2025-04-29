@@ -254,6 +254,49 @@ HWTEST_F(NativeVsyncTest, OH_NativeVSync_DVSyncSwitch002, Function | MediumTest 
 }
 
 /*
+* Function: OH_NativeVSync_SetExpectedFrameRateRange
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. call OH_NativeVSync_SetExpectedFrameRateRange by abnormal input
+*                  2. check ret
+ */
+HWTEST_F(NativeVsyncTest, OH_NativeVSync_SetExpectedFrameRateRange001, Function | MediumTest | Level2)
+{
+    ASSERT_NE(OH_NativeVSync_SetExpectedFrameRateRange(nullptr, nullptr), 0);
+}
+ 
+/*
+* Function: OH_NativeVSync_SetExpectedFrameRateRange
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call OH_NativeVSync_SetExpectedFrameRateRange by abnormal input
+*                  2. check ret
+ */
+ HWTEST_F(NativeVsyncTest, OH_NativeVSync_SetExpectedFrameRateRange002, Function | MediumTest | Level2)
+{
+    OH_NativeVSync_ExpectedRateRange range = {60, 30, 0};
+    ASSERT_NE(OH_NativeVSync_SetExpectedFrameRateRange(native_vsync, &range), 0);
+}
+ 
+/*
+* Function: OH_NativeVSync_SetExpectedFrameRateRange
+* Type: Function
+* Rank: Important(3)
+* EnvConditions: N/A
+* CaseDescription: 1. call OH_NativeVSync_SetExpectedFrameRateRange
+*                  2. check ret and ltpo vote result
+*                  3. stop request nativeVSync to test fallback plan
+*                  4. check ltpo vote result
+ */
+ HWTEST_F(NativeVsyncTest, OH_NativeVSync_SetExpectedFrameRateRange003, Function | MediumTest | Level2)
+{
+    OH_NativeVSync_ExpectedRateRange range = {60, 120, 120};
+    ASSERT_EQ(OH_NativeVSync_SetExpectedFrameRateRange(native_vsync, &range), 0);
+}
+
+/*
 * Function: OH_NativeVSync_Destroy
 * Type: Function
 * Rank: Important(2)
