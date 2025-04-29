@@ -96,7 +96,7 @@ public:
     virtual Shape& operator=(const Shape& shape) = default;
     virtual bool operator==(const Shape& shape) const
     {
-        return type_ = shape.type_;
+        return type_ == shape.type_;
     }
 
     virtual bool operator!=(const Shape& shape) const
@@ -110,7 +110,7 @@ public:
     }
 
     virtual ~Shape() = default;
-}
+};
 
 class RSB_EXPORT AnnulusRegion : public Shape {
 public:
@@ -125,7 +125,7 @@ public:
     {}
     AnnulusRegion(const ShapeType& type, const Vector2f& center, const float& innerRadius, const float& outerRadius,
         const float & startAngle, const float& endAngle)
-        : Shape(type), (center), innerRadius_(innerRadius), outerRadius_(outerRadius),
+        : Shape(type), center_(center), innerRadius_(innerRadius), outerRadius_(outerRadius),
           startAngle_(startAngle), endAngle_(endAngle)
     {}
     AnnulusRegion(const AnnulusRegion& region) = default;
@@ -134,7 +134,7 @@ public:
     void CalculatePosition(float& positionX, float& positionY);
     bool operator==(const AnnulusRegion& annulusRegion) const
     {
-        return type_ == annulusRegion.type_ && == annulusRegion.center_ &&
+        return type_ == annulusRegion.type_ && center_ == annulusRegion.center_ &&
                innerRadius_ == annulusRegion.innerRadius_ && outerRadius_ == annulusRegion.outerRadius_ &&
                startAngle_ == annulusRegion.startAngle_ && endAngle_ == annulusRegion.endAngle_;
     }
@@ -148,7 +148,7 @@ public:
     {
         return ShapeType::ANNULUS;
     }
-    
+
     ~AnnulusRegion() = default;
 };
 

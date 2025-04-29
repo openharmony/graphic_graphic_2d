@@ -1697,7 +1697,7 @@ HWTEST_F(RSMarshallingHelperTest, UnmarshallingTest044, TestSize.Level1)
 HWTEST_F(RSMarshallingHelperTest, MarshallingTest045, TestSize.Level1)
 {
     Parcel parcel;
-    AnnulusRegion region;
+    std::shared_ptr<AnnulusRegion> region;
     EXPECT_TRUE(RSMarshallingHelper::Marshalling(parcel, region));
 }
 
@@ -1710,7 +1710,7 @@ HWTEST_F(RSMarshallingHelperTest, MarshallingTest045, TestSize.Level1)
 HWTEST_F(RSMarshallingHelperTest, UnmarshallingTest046, TestSize.Level1)
 {
     Parcel parcel;
-    AnnulusRegion region;
+    std::shared_ptr<AnnulusRegion> region;
     EXPECT_FALSE(RSMarshallingHelper::Unmarshalling(parcel, region));
 }
 

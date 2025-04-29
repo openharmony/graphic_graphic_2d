@@ -921,9 +921,9 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Annu
     if (!val) {
         return true;
     }
-    return Marshalling(parcel, val.center_.x_) && Marshalling(parcel, val.center_.y_) &&
-        Marshalling(parcel, val.innerRadius_) && Marshalling(parcel, val.outerRadius_) &&
-        Marshalling(parcel, val.startAngle_) && Marshalling(parcel, val.endAngle_);
+    return Marshalling(parcel, val->center_.x_) && Marshalling(parcel, val->center_.y_) &&
+        Marshalling(parcel, val->innerRadius_) && Marshalling(parcel, val->outerRadius_) &&
+        Marshalling(parcel, val->startAngle_) && Marshalling(parcel, val->endAngle_);
 }
 
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<AnnulusRegion>& val)
@@ -970,7 +970,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Shape>& 
     }
     ShapeType type = ShapeType::RECT;
     bool success = Marshalling(parcel, type);
-    if (type == ShapeType::ANNNULUS) {
+    if (type == ShapeType::ANNULUS) {
         std::shared_ptr<AnnulusRegion> annulusRegion = nullptr;
         success &= Unmarshalling(parcel, annulusRegion);
         shape = std::move(annulusRegion);
@@ -2782,6 +2782,7 @@ MARSHALLING_AND_UNMARSHALLING(RSRenderAnimatableProperty)
     EXPLICIT_INSTANTIATION(TEMPLATE, RenderParticleParaType<float>)                      \
     EXPLICIT_INSTANTIATION(TEMPLATE, ParticleVelocity)                                   \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<AnnulusRegion>)                     \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<Shape>)                             \
     EXPLICIT_INSTANTIATION(TEMPLATE, EmitterConfig)                                      \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector2f)                                           \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector3f)                                           \

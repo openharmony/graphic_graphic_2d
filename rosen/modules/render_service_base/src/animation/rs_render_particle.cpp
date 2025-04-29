@@ -747,10 +747,10 @@ int RSRenderParticle::GenerateColorComponent(double mean, double stddev)
     return component;
 }
 
-void AnnulusRegion::CalculatePosition(float& positionX, float& postionY)
+void AnnulusRegion::CalculatePosition(float& positionX, float& positionY)
 {
-    float radius = GetRandomValue(innerRadius_, outerRadius_);
-    float theta = GetRandomValue(startAngle_, endAngle_) * DEGREE_TO_RADIAN;
+    float radius = RSRenderParticle::GetRandomValue(innerRadius_, outerRadius_);
+    float theta = RSRenderParticle::GetRandomValue(startAngle_, endAngle_) * DEGREE_TO_RADIAN;
     positionX = center_.x_ + radius * cos(theta);
     positionY = center_.y_ + radius * sin(theta);
 }
