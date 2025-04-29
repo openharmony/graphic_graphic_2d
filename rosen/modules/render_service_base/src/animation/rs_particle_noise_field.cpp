@@ -121,7 +121,7 @@ Vector2f ParticleNoiseField::ApplyField(const Vector2f& position, float deltaTim
         float featherWidth = fieldSize_.x_ * (fieldFeather_ / FEATHERMAX);
         float edgeDistance = 0.f;
         if (fieldShape_ == ShapeType::CIRCLE) {
-            edgeDistance = fieldSize_.x_ - distance;
+            edgeDistance = fieldSize_.x_;
         } else if (fieldShape_ == ShapeType::ELLIPSE) {
             edgeDistance = CalculateDistanceToEllipseEdge(direction, fieldCenter_, fieldSize_);
         } else {

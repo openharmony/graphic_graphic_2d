@@ -1697,7 +1697,8 @@ HWTEST_F(RSMarshallingHelperTest, UnmarshallingTest044, TestSize.Level1)
 HWTEST_F(RSMarshallingHelperTest, MarshallingTest045, TestSize.Level1)
 {
     Parcel parcel;
-    std::shared_ptr<AnnulusRegion> region;
+    AnnulusRegion annulusRegion
+    std::shared_ptr<AnnulusRegion> region = std::make_shared<AnnulusRegion>(annulusRegion);
     EXPECT_TRUE(RSMarshallingHelper::Marshalling(parcel, region));
 }
 
@@ -1712,6 +1713,32 @@ HWTEST_F(RSMarshallingHelperTest, UnmarshallingTest046, TestSize.Level1)
     Parcel parcel;
     std::shared_ptr<AnnulusRegion> region;
     EXPECT_FALSE(RSMarshallingHelper::Unmarshalling(parcel, region));
+}
+
+/**
+ * @tc.name: MarshallingTest047
+ * @tc.desc: Verify function Marshalling
+ * @tc.type:FUNC
+ * @tc.require: issues
+ */
+HWTEST_F(RSMarshallingHelperTest, MarshallingTest047, TestSize.Level1)
+{
+    Parcel parcel;
+    std::shared_ptr<Shape> shape;
+    EXPECT_FALSE(RSMarshallingHelper::Marshalling(parcel, shape));
+}
+
+/**
+ * @tc.name: UnmarshallingTest048
+ * @tc.desc: Verify function Unmarshalling
+ * @tc.type:FUNC
+ * @tc.require: issues
+ */
+HWTEST_F(RSMarshallingHelperTest, UnmarshallingTest048, TestSize.Level1)
+{
+    Parcel parcel;
+    std::shared_ptr<Shape> shape;
+    EXPECT_FALSE(RSMarshallingHelper::Unmarshalling(parcel, shape));
 }
 
 } // namespace Rosen
