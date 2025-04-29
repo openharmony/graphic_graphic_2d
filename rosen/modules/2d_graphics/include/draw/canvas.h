@@ -48,8 +48,6 @@ private:
 
 class DRAWING_API Canvas : public CoreCanvas {
 public:
-    static constexpr int64_t INVALID_STENCIL_VAL{-1};
-
     Canvas() {}
     Canvas(DrawingType type) : CoreCanvas(type) {}
     Canvas(int32_t width, int32_t height) : CoreCanvas(width, height) {}
@@ -87,33 +85,11 @@ public:
     virtual void SetUICapture(bool isUICapture);
 
     virtual bool GetUICapture() const;
-
-    inline int64_t GetStencilVal() const noexcept
-    {
-        return stencilVal_;
-    }
-
-    inline void SetStencilVal(int64_t stencilVal) noexcept
-    {
-        stencilVal_ = stencilVal;
-    }
-
-    inline int64_t GetMaxStencilVal() const noexcept
-    {
-        return maxStencilVal_;
-    }
-
-    inline void SetMaxStencilVal(int64_t maxStencilVal) noexcept
-    {
-        maxStencilVal_ = maxStencilVal;
-    }
 protected:
     std::vector<Canvas*> pCanvasList_;
     bool recordingState_ = false;
     bool isOffscreen_ = false;
     bool isUICapture_ = false;
-    int64_t stencilVal_ = INVALID_STENCIL_VAL;
-    int64_t maxStencilVal_ = 0;
 };
 
 class DRAWING_API OverDrawCanvas : public Canvas {

@@ -925,38 +925,6 @@ HWTEST_F(CanvasTest, AutoCanvasRestoreTest001, TestSize.Level1)
     auto autoCanvasRestore = std::make_unique<AutoCanvasRestore>(canvas, doSave);
     ASSERT_TRUE(autoCanvasRestore != nullptr);
 }
-
-/**
- * @tc.name: GetStencilVal001
- * @tc.desc: Test for GetStencilVal
- * @tc.type: FUNC
- * @tc.require: IBROZ2
- */
-HWTEST_F(CanvasTest, GetStencilVal001, TestSize.Level1)
-{
-    Canvas canvas;
-    EXPECT_EQ(canvas.GetStencilVal(), Canvas::INVALID_STENCIL_VAL);
-
-    constexpr int64_t testStencilVal{1};
-    canvas.SetStencilVal(testStencilVal);
-    EXPECT_EQ(canvas.GetStencilVal(), testStencilVal);
-}
-
-/**
- * @tc.name: GetMaxStencilVal001
- * @tc.desc: Test for GetMaxStencilVal
- * @tc.type: FUNC
- * @tc.require: IBROZ2
- */
-HWTEST_F(CanvasTest, GetMaxStencilVal001, TestSize.Level1)
-{
-    Canvas canvas;
-    EXPECT_EQ(canvas.GetMaxStencilVal(), 0);
-
-    constexpr int64_t testStencilVal{1};
-    canvas.SetMaxStencilVal(testStencilVal);
-    EXPECT_EQ(canvas.GetMaxStencilVal(), testStencilVal);
-}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

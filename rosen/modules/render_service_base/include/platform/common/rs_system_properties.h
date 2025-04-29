@@ -70,12 +70,6 @@ enum class PartialRenderType {
     SET_DAMAGE_BUT_COMPLETE_RENDER,             // 5, set full screen dirty region and set damage
 };
 
-enum class StencilPixelOcclusionCullingType {
-    DEFAULT = -1, // follow the ccm configuration
-    DISABLED = 0,
-    ENABLED = 1
-};
-
 enum class AdvancedDirtyRegionType {
     DISABLED = 0,
     SET_ADVANCED_SURFACE_AND_DISPLAY,
@@ -171,7 +165,6 @@ public:
     static DirtyAlignType GetDirtyAlignEnabled();
     static PartialRenderType GetPartialRenderEnabled();
     static PartialRenderType GetUniPartialRenderEnabled();
-    static StencilPixelOcclusionCullingType GetStencilPixelOcclusionCullingEnabled();
     static float GetClipRectThreshold();
     static bool GetAllSurfaceVisibleDebugEnabled();
     static bool GetVirtualDirtyDebugEnabled();

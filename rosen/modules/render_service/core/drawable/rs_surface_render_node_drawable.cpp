@@ -137,12 +137,7 @@ void RSSurfaceRenderNodeDrawable::OnGeneralProcess(RSPaintFilterCanvas& canvas,
         "offsetX=%d offsetY=%d", __func__, curDisplayScreenId_, offsetX_, offsetY_);
 
     // 1. draw background
-    if (surfaceParams.IsLeashWindow()) {
-        DrawLeashWindowBackground(canvas, bounds,
-            uniParams.IsStencilPixelOcclusionCullingEnabled(), surfaceParams.GetStencilVal());
-    } else {
-        DrawBackground(canvas, bounds);
-    }
+    DrawBackground(canvas, bounds);
 
     // 2. draw self drawing node
     if (surfaceParams.GetBuffer() != nullptr) {
@@ -1225,14 +1220,7 @@ bool RSSurfaceRenderNodeDrawable::DealWithUIFirstCache(
             "offsetX=%{public}d offsetY=%{public}d", curDisplayScreenId_, offsetX_, offsetY_);
     }
 
-    auto stencilVal = surfaceParams.GetStencilVal();
-    if (surfaceParams.IsLeashWindow()) {
-        DrawLeashWindowBackground(canvas, bounds,
-            uniParams.IsStencilPixelOcclusionCullingEnabled(), stencilVal);
-    } else {
-        DrawBackground(canvas, bounds);
-    }
-    canvas.SetStencilVal(stencilVal);
+    DrawBackground(canvas, bounds);
     bool drawCacheSuccess = true;
     if (surfaceParams.GetUifirstUseStarting() != INVALID_NODEID) {
         drawCacheSuccess = DrawUIFirstCacheWithStarting(canvas, surfaceParams.GetUifirstUseStarting());
@@ -1241,7 +1229,6 @@ bool RSSurfaceRenderNodeDrawable::DealWithUIFirstCache(
             uniParams.GetUIFirstCurrentFrameCanSkipFirstWait();
         drawCacheSuccess = DrawUIFirstCache(canvas, canSkipFirstWait);
     }
-    canvas.SetStencilVal(Drawing::Canvas::INVALID_STENCIL_VAL);
     if (!drawCacheSuccess) {
         SetDrawSkipType(DrawSkipType::UI_FIRST_CACHE_FAIL);
         RS_TRACE_NAME_FMT("[%s] reuse failed!", name_.c_str());
