@@ -464,9 +464,11 @@ void RSJankStats::ReportSceneJankFrame(uint32_t dynamicRefreshRate)
     const float accumulatedTime = accumulatedBufferCount_ * S_TO_MS / dynamicRefreshRate;
 
     RS_TRACE_NAME("RSJankStats::ReportSceneJankFrame reportTime " + std::to_string(GetCurrentSystimeMs()) 
-        + ", skipped_frame_time: " + std::to_string(skipFrameTime) + ", frame_refresh_rate: " + std::to_string(dynamicRefreshRate));
+        + ", skipped_frame_time: " + std::to_string(skipFrameTime) 
+        + ", frame_refresh_rate: " + std::to_string(dynamicRefreshRate));
     const int64_t realSkipFrameTime = static_cast<int64_t>(std::max<float>(0.f, skipFrameTime - accumulatedTime));
-    RSBackgroundThread::Instance().PostTask([appInfo = appInfo_, skipFrameTime, realSkipFrameTime, dynamicRefreshRate]() {
+    RSBackgroundThread::Instance().PostTask([appInfo = appInfo_, skipFrameTime, realSkipFrameTime, dynamicRefreshRate]()
+    {
         RS_TRACE_NAME("RSJankStats::ReportSceneJankFrame in RSBackgroundThread");
         RSHiSysEvent::EventWrite(RSEventName::JANK_FRAME_RS, RSEventType::RS_FAULT,
             "PID", appInfo.pid, "BUNDLE_NAME", appInfo.bundleName,
