@@ -27,25 +27,32 @@ namespace {
 const std::string CLASS_NAME = "Paragraph";
 }
 
-std::unique_ptr<Typography> JsParagraph::g_Typography = nullptr;
 thread_local napi_ref JsParagraph::constructor_ = nullptr;
 
 napi_value JsParagraph::Constructor(napi_env env, napi_callback_info info)
 {
-    size_t argCount = 0;
     napi_value jsThis = nullptr;
-    napi_status status = napi_get_cb_info(env, info, &argCount, nullptr, &jsThis, nullptr);
+    size_t argc = ARGC_ONE;
+    napi_value argv[ARGC_ONE] = {nullptr};
+    napi_status status = napi_get_cb_info(env, info, &argc, argv, &jsThis, nullptr);
     if (status != napi_ok) {
         TEXT_LOGE("JsParagraph::Constructor failed to napi_get_cb_info");
         return nullptr;
     }
 
-    if (!g_Typography) {
-        TEXT_LOGE("Typography is null");
+    void* nativePointer = nullptr;
+    if (!(argv[0] != nullptr && napi_get_value_external(env, argv[0], &nativePointer) == napi_ok)) {
+        TEXT_LOGE("Failed to convert");
         return nullptr;
     }
 
-    JsParagraph *jsParagraph = new(std::nothrow) JsParagraph(std::move(g_Typography));
+    std::shared_ptr<Typography> typography(static_cast<Typography*>(nativePointer));
+    if (typography == nullptr) {
+        TEXT_LOGE("Null typography");
+        return nullptr;
+    }
+
+    JsParagraph* jsParagraph = new (std::nothrow) JsParagraph(typography);
     if (jsParagraph == nullptr) {
         return nullptr;
     }
@@ -686,8 +693,10 @@ napi_value JsParagraph::CreateJsTypography(napi_env env, std::unique_ptr<Typogra
     napi_value result = nullptr;
     napi_status status = napi_get_reference_value(env, constructor_, &constructor);
     if (status == napi_ok) {
-        g_Typography = std::move(typography);
-        status = napi_new_instance(env, constructor, 0, nullptr, &result);
+        napi_value argv = nullptr;
+        napi_create_external(
+            env, typography.release(), [](napi_env env, void* finalizeData, void* finalizeHint) {}, nullptr, &argv);
+        status = napi_new_instance(env, constructor, ARGC_ONE, &argv, &result);
         if (status == napi_ok) {
             return result;
         } else {
