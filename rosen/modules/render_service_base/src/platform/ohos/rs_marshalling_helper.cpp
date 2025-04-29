@@ -969,7 +969,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Shape>& 
         return true;
     }
     ShapeType type = ShapeType::RECT;
-    bool success = Marshalling(parcel, type);
+    bool success = Unmarshalling(parcel, type);
     if (type == ShapeType::ANNULUS) {
         std::shared_ptr<AnnulusRegion> annulusRegion = nullptr;
         success &= Unmarshalling(parcel, annulusRegion);
