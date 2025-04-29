@@ -1020,6 +1020,7 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
     globalShouldPaint_ &= node.ShouldPaint();
     node.SetSelfAndParentShouldPaint(globalShouldPaint_);
     CheckFilterCacheNeedForceClearOrSave(node);
+    MarkFilterInForegroundFilterAndCheckNeedForceClearCache(node);
     node.CheckContainerDirtyStatusAndUpdateDirty(curContainerDirty_);
     node.ClearCrossNodeSkipDisplayConversionMatrices();
     node.SetPreparedDisplayOffsetX(curDisplayNode_->GetDisplayOffsetX());
@@ -1413,6 +1414,7 @@ void RSUniRenderVisitor::QuickPrepareEffectRenderNode(RSEffectRenderNode& node)
     curAlpha_ *= std::clamp(node.GetRenderProperties().GetAlpha(), 0.f, 1.f);
     UpdateRotationStatusForEffectNode(node);
     CheckFilterCacheNeedForceClearOrSave(node);
+    MarkFilterInForegroundFilterAndCheckNeedForceClearCache(node);
     RectI prepareClipRect = prepareClipRect_;
     bool hasAccumulatedClip = hasAccumulatedClip_;
     dirtyFlag_ =
@@ -1433,6 +1435,22 @@ void RSUniRenderVisitor::QuickPrepareEffectRenderNode(RSEffectRenderNode& node)
     node.RenderTraceDebug();
 }
 
+void RSUniRenderVisitor::MarkFilterInForegroundFilterAndCheckNeedForceClearCache(RSRenderNode& node)
+{
+    node.MarkFilterInForegroundFilterAndCheckNeedForceClearCache(inForegroundFilter_);
+}
+
+void RSUniRenderVisitor::UpdateDrawingCacheInfoBeforeChildren(RSCanvasRenderNode& node)
+{
+    if (!isDrawingCacheEnabled_) {
+        return;
+    }
+    node.UpdateDrawingCacheInfoBeforeChildren(isScreenRotationAnimating_);
+    if (node.GetDrawingCacheType() == RSDrawingCacheType::FOREGROUND_FILTER_CACHE) {
+        inForegroundFilter_ = true;
+    }
+}
+
 void RSUniRenderVisitor::QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node)
 {
     UpdateCurFrameInfoDetail(node);
@@ -1446,17 +1464,16 @@ void RSUniRenderVisitor::QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node)
     auto preIsOffscreen = isOffscreen_;
     isOffscreen_ = isOffscreen_ || (property.IsColorBlendApplyTypeOffscreen() && !property.IsColorBlendModeNone());
     auto preGlobalShouldPaint = globalShouldPaint_;
+    auto preInForegroundFilter = inForegroundFilter_;
     globalShouldPaint_ &= node.ShouldPaint();
     CheckFilterCacheNeedForceClearOrSave(node);
     if (IsAccessibilityConfigChanged()) {
         node.SetIsAccessibilityConfigChanged(true);
     }
-    if (isDrawingCacheEnabled_) {
-        node.UpdateDrawingCacheInfoBeforeChildren(isScreenRotationAnimating_);
-    }
+    UpdateDrawingCacheInfoBeforeChildren(node);
+    MarkFilterInForegroundFilterAndCheckNeedForceClearCache(node);
     node.SetIsAccessibilityConfigChanged(false);
-    node.OpincQuickMarkStableNode(unchangeMarkInApp_, unchangeMarkEnable_,
-        IsAccessibilityConfigChanged());
+    node.OpincQuickMarkStableNode(unchangeMarkInApp_, unchangeMarkEnable_, IsAccessibilityConfigChanged());
     RectI prepareClipRect = prepareClipRect_;
     bool hasAccumulatedClip = hasAccumulatedClip_;
 
@@ -1489,6 +1506,7 @@ void RSUniRenderVisitor::QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node)
     curCornerRadius_ = curCornerRadius;
     node.OpincUpdateRootFlag(unchangeMarkEnable_);
     globalShouldPaint_ = preGlobalShouldPaint;
+    inForegroundFilter_ = preInForegroundFilter;
 
     // [Attention] Only used in PC window resize scene now
     NodeId linedRootNodeId = node.GetLinkedRootNodeId();

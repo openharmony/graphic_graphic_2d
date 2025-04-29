@@ -398,6 +398,14 @@ void RSFilterDrawable::MarkBlurIntersectWithDRM(bool intersectWithDRM, bool isDa
     stagingIsDarkColorMode_ = isDark;
 }
 
+void RSFilterDrawable::MarkInForegroundFilterAndCheckNeedForceClearCache(bool inForegroundFilter)
+{
+    if (stagingCacheManager_ == nullptr) {
+        return;
+    }
+    stagingCacheManager_->MarkInForegroundFilterAndCheckNeedForceClearCache(inForegroundFilter);
+}
+
 bool RSFilterDrawable::IsFilterCacheValid() const
 {
     if (stagingCacheManager_ == nullptr) {

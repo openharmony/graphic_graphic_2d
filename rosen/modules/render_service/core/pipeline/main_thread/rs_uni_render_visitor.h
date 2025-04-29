@@ -158,6 +158,10 @@ public:
 
     void UpdateCurFrameInfoDetail(RSRenderNode& node, bool subTreeSkipped = false, bool isPostPrepare = false);
 
+    void MarkFilterInForegroundFilterAndCheckNeedForceClearCache(RSRenderNode& node);
+
+    void UpdateDrawingCacheInfoBeforeChildren(RSCanvasRenderNode& node);
+
 private:
     /* Prepare relevant calculation */
     // considering occlusion info for app surface as well as widget
@@ -500,6 +504,9 @@ private:
     bool globalShouldPaint_ = true;
 
     int32_t appWindowZOrder_ = 0;
+
+    // in foregroundFilter subtree
+    bool inForegroundFilter_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS
