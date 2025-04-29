@@ -930,7 +930,12 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByFilterRect001, TestSize.Level
     surfaceNode2->SetDstRect(rect);
     surfaceNode1->AddChildHardwareEnabledNode(surfaceNode2);
 
-    rsUniHwcVisitor->UpdateHwcNodeEnableByFilterRect(surfaceNode1, *surfaceNode2, false, 0);
+    constexpr NodeId id = 1;
+    auto filterNode = std::make_shared<RSRenderNode>(id);
+    ASSERT_NE(filterNode, nullptr);
+    filterNode->SetOldDirtyInSurface(rect);
+
+    rsUniHwcVisitor->UpdateHwcNodeEnableByFilterRect(surfaceNode1, *filterNode, false, 0);
     ASSERT_TRUE(surfaceNode2->IsHardwareForcedDisabled());
 }
 
@@ -951,18 +956,19 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByFilterRect002, TestSize.Level
     surfaceConfig.id = 1;
     auto surfaceNode1 = std::make_shared<RSSurfaceRenderNode>(surfaceConfig);
     ASSERT_NE(surfaceNode1, nullptr);
-    surfaceConfig.id = 2;
-    auto surfaceNode2 = std::make_shared<RSSurfaceRenderNode>(surfaceConfig);
-    ASSERT_NE(surfaceNode2, nullptr);
 
     uint32_t left = 0;
     uint32_t top = 0;
     uint32_t width = 0;
     uint32_t height = 0;
     RectI rect{left, top, width, height};
-    surfaceNode2->SetDstRect(rect);
-    surfaceNode2->renderContent_->renderProperties_.boundsGeo_->absRect_ = rect;
-    rsUniHwcVisitor->UpdateHwcNodeEnableByFilterRect(surfaceNode1, *surfaceNode2, false, 0);
+
+    constexpr NodeId id = 1;
+    auto filterNode = std::make_shared<RSRenderNode>(id);
+    ASSERT_NE(filterNode, nullptr);
+    filterNode->SetOldDirtyInSurface(rect);
+
+    rsUniHwcVisitor->UpdateHwcNodeEnableByFilterRect(surfaceNode1, *filterNode, false, 0);
 }
 
 /**
@@ -982,18 +988,19 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByFilterRect003, TestSize.Level
     surfaceConfig.id = 1;
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceConfig);
     ASSERT_NE(surfaceNode, nullptr);
-    surfaceConfig.id = 2;
-    auto surfaceNode2 = std::make_shared<RSSurfaceRenderNode>(surfaceConfig);
-    ASSERT_NE(surfaceNode2, nullptr);
 
     uint32_t left = 0;
     uint32_t top = 0;
     uint32_t width = 300;
     uint32_t height = 300;
     RectI rect{left, top, width, height};
-    surfaceNode2->SetDstRect(rect);
-    surfaceNode2->renderContent_->renderProperties_.boundsGeo_->absRect_ = rect;
-    rsUniHwcVisitor->UpdateHwcNodeEnableByFilterRect(surfaceNode, *surfaceNode2, false, 0);
+
+    constexpr NodeId id = 1;
+    auto filterNode = std::make_shared<RSRenderNode>(id);
+    ASSERT_NE(filterNode, nullptr);
+    filterNode->SetOldDirtyInSurface(rect);
+
+    rsUniHwcVisitor->UpdateHwcNodeEnableByFilterRect(surfaceNode, *filterNode, false, 0);
 }
 
 /**
