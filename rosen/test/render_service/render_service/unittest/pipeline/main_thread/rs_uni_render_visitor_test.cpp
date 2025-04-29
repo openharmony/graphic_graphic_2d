@@ -44,6 +44,7 @@
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "pipeline/main_thread/rs_uni_render_visitor.h"
+#include "pipeline/hwc/rs_uni_hwc_visitor.h"
 #include "screen_manager/rs_screen.h"
 #include "feature/round_corner_display/rs_round_corner_display.h"
 #include "feature/round_corner_display/rs_round_corner_display_manager.h"
