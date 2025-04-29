@@ -91,7 +91,7 @@ ohos_unittest("hdioutput_unit_test") {
 
   deps = [
     ":hdibackend_test_common",
-    "../../../vsync:libvsync",
+    "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
   ]
 }
 

@@ -13,7 +13,7 @@
 
 import("//build/ohos.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
-import("../../../config.gni")
+import("//foundation/graphic/graphic_2d/rosen/modules/render_service_base/config.gni")
 
 group("ohos") {
   public_deps = [ ":rosen_ohos_sources" ]
