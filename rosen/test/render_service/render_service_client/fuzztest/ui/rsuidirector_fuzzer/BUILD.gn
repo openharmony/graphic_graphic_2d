@@ -14,6 +14,7 @@
 #####################hydra-fuzz###################
 import("//build/config/features.gni")
 import("//build/test.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
 module_output_path = "graphic_2d/graphic_2d"
 
 ##############################fuzztest##########################################
@@ -26,10 +27,10 @@ ohos_fuzztest("RSUiDirectorFuzzTest") {
 
   include_dirs = [ "../../../../../../modules/render_service_client/core" ]
   deps = [
-    "../../../../../../modules/2d_graphics:2d_graphics",
-    "../../../../../../modules/render_service:librender_service",
-    "../../../../../../modules/render_service_base:librender_service_base",
-    "../../../../../../modules/render_service_client:librender_service_client",
+    "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
+    "$graphic_2d_root/rosen/modules/render_service:librender_service",
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
   ]
   cflags = [
     "-g",

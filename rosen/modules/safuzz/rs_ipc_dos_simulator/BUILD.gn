@@ -108,7 +108,7 @@ ohos_fuzztest("RSIpcDosSimulator") {
     "access_token:libaccesstoken_sdk",
     "cJSON:cjson",
     "c_utils:utils",
-    "graphic_surface:surface",
+    "graphic_surface:surface_static",
     "graphics_effect:graphics_effect_core",
     "hilog:libhilog",
     "hitrace:hitrace_meter",
