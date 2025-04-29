@@ -1139,6 +1139,7 @@ void RSUniHwcVisitor::QuickPrepareChildrenOnlyOrder(RSRenderNode& node)
         std::for_each((*children).begin(), (*children).end(), orderFunc);
     }
 }
+
 void RSUniHwcVisitor::PrintHiperfCounterLog(const char* const counterContext, uint64_t counter)
 {
 #ifdef HIPERF_TRACE_ENABLE
