@@ -145,6 +145,10 @@ public:
         return DrawingType::COMMON;
     }
 
+    /**
+     * @brief inherite canvas status
+     * @param canvas canvas to be inherited
+     */
     void InheriteState(Canvas* canvas);
 
     /**
