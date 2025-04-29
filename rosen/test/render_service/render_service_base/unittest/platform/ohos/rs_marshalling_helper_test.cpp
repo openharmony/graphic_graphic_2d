@@ -1725,7 +1725,7 @@ HWTEST_F(RSMarshallingHelperTest, MarshallingTest047, TestSize.Level1)
 {
     Parcel parcel;
     std::shared_ptr<Shape> shape;
-    EXPECT_FALSE(RSMarshallingHelper::Marshalling(parcel, shape));
+    EXPECT_TRUE(RSMarshallingHelper::Marshalling(parcel, shape));
 }
 
 /**

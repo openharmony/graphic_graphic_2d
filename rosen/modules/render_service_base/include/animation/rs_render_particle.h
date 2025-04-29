@@ -93,7 +93,7 @@ public:
     Shape() = default;
     Shape(const ShapeType& type) : type_(type) {}
     virtual void CalculatePosition(float& positionX, float& positionY) = 0;
-    virtual Shape& operator=(const Shape& shape) = default;
+    
     virtual bool operator==(const Shape& shape) const
     {
         return type_ == shape.type_;
@@ -110,6 +110,12 @@ public:
     }
 
     virtual ~Shape() = default;
+
+protected:
+    Shape(const Shape& shape) = default;
+    Shape& operator=(const Shape& shape) = default;
+    Shape(Shape&&) = default;
+    Shape& operator=(Shape&&) = default;
 };
 
 class RSB_EXPORT AnnulusRegion : public Shape {
