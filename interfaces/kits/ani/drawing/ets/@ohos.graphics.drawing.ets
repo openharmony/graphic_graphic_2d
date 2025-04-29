@@ -29,6 +29,7 @@ import image from '@ohos.multimedia.image';
  * @since 11
  */
 namespace drawing {
+  loadLibrary("drawing_ani");
   /**
    * Enumerate blending modes for colors.
    * Blend is a operation that use 4 components(red, green, blue, alpha) to generate
@@ -339,6 +340,194 @@ namespace drawing {
      * @since 12
      */
     native reset(): void;
+  }
+
+  /**
+   * The Typeface class specifies the typeface and intrinsic style of a font.
+   *
+   * @syscap SystemCapability.Graphics.Drawing
+   * @since 11
+   */
+  export class Typeface {
+    static { loadLibrary("drawing_ani"); }
+    private nativeObj: long = 0;
+
+    /**
+     * Get the family name for this typeface.
+     * @returns { string } Family name.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 11
+     */
+    native getFamilyName(): string;
+
+    /**
+     * Generate typeface from file.
+     * @param { string } filePath - file path for typeface.
+     * @returns { Typeface } Typeface.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+     static native makeFromFile(filePath: string): Typeface;
+  }
+
+  /**
+   * Font controls options applied when drawing and measuring text.
+   *
+   * @syscap SystemCapability.Graphics.Drawing
+   * @since 11
+   */
+  export class Font {
+    static { loadLibrary("drawing_ani"); }
+    private nativeObj: long = 0;
+
+    /**
+     * Constructor for the Font.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 20
+     */
+    native constructor();
+
+    /**
+     * Sets text size in points. Has no effect if textSize is not greater than or equal to zero.
+     * @param { number } textSize - Typographic height of text. The height of the text must be greater than 0.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types; 3. Parameter verification failed.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 11
+     */
+    native setSize(textSize: number): void;
+
+    /**
+     * Obtains the text size.
+     * @returns { number } Text size.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 11
+     */
+    native getSize(): number;
+
+    /**
+     * Sets Typeface to font.
+     * @param { Typeface } typeface - Font and style used to draw text.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 11
+     */
+    native setTypeface(typeface: Typeface): void;
+
+    /**
+     * Get Typeface to font.
+     * @returns { Typeface } Typeface.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 11
+     */
+    native getTypeface(): Typeface;
+
+    /**
+     * Get fontMetrics associated with typeface.
+     * @returns { FontMetrics } The fontMetrics value returned to the caller.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 11
+     */
+    native getMetrics(): FontMetrics;
+  }
+
+  /**
+   * The metrics of an Font.
+   * @typedef FontMetrics
+   * @syscap SystemCapability.Graphics.Drawing
+   * @since 11
+   */
+  export interface FontMetrics {
+    /**
+     * Maximum range above the glyph bounding box.
+     * @type { number }
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 11
+     */
+    top: number;
+
+    /**
+     * Distance Retained Above Baseline.
+     * @type { number }
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 11
+     */
+    ascent: number;
+
+    /**
+     * The distance that remains below the baseline.
+     * @type { number }
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 11
+     */
+    descent: number;
+
+    /**
+     * Maximum range below the glyph bounding box.
+     * @type { number }
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 11
+     */
+    bottom: number;
+
+    /**
+     * Line Spacing.
+     * @type { number }
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 11
+     */
+    leading: number;
+  }
+
+  /**
+   * The metrics of an Font.
+   * @typedef FontMetrics
+   * @syscap SystemCapability.Graphics.Drawing
+   * @since 11
+   */
+  export class FontMetricsInner implements FontMetrics {
+    /**
+     * Maximum range above the glyph bounding box.
+     * @type { number }
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 11
+     */
+    top: number = 0;
+
+    /**
+     * Distance Retained Above Baseline.
+     * @type { number }
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 11
+     */
+    ascent: number = 0;
+
+    /**
+     * The distance that remains below the baseline.
+     * @type { number }
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 11
+     */
+    descent: number = 0;
+
+    /**
+     * Maximum range below the glyph bounding box.
+     * @type { number }
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 11
+     */
+    bottom: number = 0;
+
+    /**
+     * Line Spacing.
+     * @type { number }
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 11
+     */
+    leading: number = 0;
   }
 }
 

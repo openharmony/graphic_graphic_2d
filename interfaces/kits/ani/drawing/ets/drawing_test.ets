@@ -65,8 +65,50 @@ function testColorFilter() {
     console.log(`testColorFilter end`);
 }
 
+function testFont() {
+    console.log(`testFont start`);
+    let font : drawing.Font = new drawing.Font();
+    font.setSize(9);
+    console.log(`testFont font.getSize = ${font.getSize()}`);
+    let fontMetrics = font.getMetrics();
+    if (fontMetrics == null) {
+        console.error(`testFont fontMetrics == null`);
+        return;
+    }
+    console.log(`testFont fontMetrics = ${fontMetrics}`);
+    console.log(`testFont fontMetrics.top = ${fontMetrics.top}`);
+    console.log(`testFont fontMetrics.ascent = ${fontMetrics.ascent}`);
+
+    let typeface : drawing.Typeface = drawing.Typeface.makeFromFile('/system/fonts/HarmonyOS_Sans.ttf');
+    if (typeface == null) {
+        console.error(`testFont typeface == null`);
+        return;
+    };
+    font.setTypeface(typeface);
+    let typeface1 = font.getTypeface();
+    if (typeface1 == null) {
+        console.error(`testFont typeface1 == null`);
+        return;
+    }
+    console.log(`testFont typeface1.getFamilyName = ${typeface1.getFamilyName()}`);
+    console.log(`testFont end`);
+}
+
+function testTypeface() {
+    console.log(`testTypeface start`);
+    let typeface : drawing.Typeface = drawing.Typeface.makeFromFile('/system/fonts/HarmonyOS_Sans.ttf');
+    if (typeface == null) {
+        console.error(`testTypeface typeface == null`);
+        return;
+    }
+    console.log(`testTypeface typeface.getFamilyName = ${typeface.getFamilyName()}`);
+    console.log(`testTypeface end`);
+}
+
 function main() {
     testPen();
     testBrush();
     testColorFilter();
+    testFont();
+    testTypeface();
 }
