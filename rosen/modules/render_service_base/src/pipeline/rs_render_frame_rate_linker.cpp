@@ -21,7 +21,7 @@
 
 namespace OHOS {
 namespace Rosen {
-const std::chrono::steady_clock::duration INTERVAL =
+const std::chrono::steady_clock::duration NATIVEVSYNCFALLBACKINTERVAL =
     std::chrono::duration_cast<std::chrono::steady_clock::duration>(std::chrono::milliseconds(200));
 FrameRateLinkerId RSRenderFrameRateLinker::GenerateId()
 {
@@ -163,7 +163,7 @@ void RSRenderFrameRateLinker::UpdateNativeVSyncTimePoint()
 
 bool RSRenderFrameRateLinker::NativeVSyncIsTimeOut() const
 {
-    return std::chrono::steady_clock::now() - nativeVSyncTimePoint_.load() > INTERVAL;
+    return std::chrono::steady_clock::now() - nativeVSyncTimePoint_.load() > NATIVEVSYNCFALLBACKINTERVAL;
 }
 } // namespace Rosen
 } // namespace OHOS
