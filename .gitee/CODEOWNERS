@@ -80,3 +80,5 @@ rosen/modules/render_service_base/include/platform/ohos/rs_irender_service_conne
 [HWC]
 rosen/modules/render_service/core/pipeline/hwc/ @whqwe
 rosen/modules/render_service/core/feature/hwc/ @whqwe
+rosen/modules/render_service_base/include/hwc/ @whqwe
+rosen/modules/render_service_base/src/hwc/ @whqwe
