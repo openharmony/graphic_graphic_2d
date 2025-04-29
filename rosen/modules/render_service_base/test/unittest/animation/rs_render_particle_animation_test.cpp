@@ -416,21 +416,23 @@ HWTEST_F(RSRenderParticleAnimationTest, UpdateParamsIfChanged001, TestSize.Level
     int emitRate = 20;
     auto para = std::make_shared<EmitterUpdater>(emitterIndex, position, emitSize, emitRate);
     AnnulusRegion annulusRegion;
-    std::optional<AnnulusRegion> regionOpt;
-    regionOpt.emplace(annulusRegion);
-    para->SetAnnulusRegion(regionOpt);
+    std::shared_ptr<AnnulusRegion> region = std::make_shared<AnnulusRegion>(annulusRegion);
+    para->SetShape(region);
     std::vector<std::shared_ptr<EmitterUpdater>> emitUpdate;
     emitUpdate.push_back(para);
     auto renderParticleAnimation =
         std::make_shared<RSRenderParticleAnimation>(ANIMATION_ID, PROPERTY_ID, particlesRenderParams);
     renderParticleAnimation->UpdateEmitter(emitUpdate);
     auto particleSystem = renderParticleAnimation->GetParticleSystem();
-    para->annulusRegion_->innerRadius_ = 10;
-    para->annulusRegion_->outerRadius_ = 20;
-    auto configRegion = particlesRenderParams[emitterIndex]->emitterConfig_.annulusRegion_;
-    renderParticleAnimation->UpdateParamsIfChanged(para->annulusRegion_, configRegion);
-    EXPECT_TRUE(configRegion.innerRadius_ == 10);
-    EXPECT_TRUE(configRegion.outerRadius_ == 20);
+    auto shape = para->shape_;
+    auto annulusPtr = std::static_pointer_cast<AnnulusRegion>(shape);
+    annulusPtr->innerRadius_ = 10;
+    annulusPtr->outerRadius_ = 20;
+    auto configRegion = particlesRenderParams[emitterIndex]->emitterConfig_.shape_;
+    auto annulusRegionPtr = std::static_pointer_cast<AnnulusRegion>(configRegion);
+    renderParticleAnimation->UpdateParamsIfChanged(para->shape_, configRegion);
+    EXPECT_TRUE(annulusRegionPtr->innerRadius_ == 10);
+    EXPECT_TRUE(annulusRegionPtr->outerRadius_ == 20);
     GTEST_LOG_(INFO) << "RSRenderParticleAnimationTest UpdateParamsIfChanged001 end";
 }
 
