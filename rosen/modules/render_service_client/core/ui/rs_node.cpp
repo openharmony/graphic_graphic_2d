@@ -19,6 +19,7 @@
 #include <memory>
 #include <sstream>
 #include <string>
+#include <vector>
 
 #include "rs_trace.h"
 #include "sandbox_utils.h"
@@ -55,6 +56,7 @@
 #include "ui/rs_surface_node.h"
 #include "ui/rs_ui_context.h"
 #include "ui/rs_ui_director.h"
+#include "ui/rs_ui_patten_vec.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -86,6 +88,7 @@ static const std::unordered_map<RSUINodeType, std::string> RSUINodeTypeStrs = {
     {RSUINodeType::EFFECT_NODE,         "EffectNode"},
     {RSUINodeType::CANVAS_DRAWING_NODE, "CanvasDrawingNode"},
 };
+
 std::once_flag flag_;
 bool IsPathAnimatableModifier(const RSModifierType& type)
 {
@@ -273,6 +276,7 @@ void RSNode::SetFrameNodeInfo(int32_t id, std::string tag)
 {
     frameNodeId_ = id;
     frameNodeTag_ = tag;
+    MarkRepaintBoundary(tag);
 }
 
 int32_t RSNode::GetFrameNodeId()
@@ -2840,6 +2844,20 @@ void RSNode::MarkNodeSingleFrameComposer(bool isNodeSingleFrameComposer)
         std::unique_ptr<RSCommand> command =
             std::make_unique<RSMarkNodeSingleFrameComposer>(GetId(), isNodeSingleFrameComposer, GetRealPid());
         AddCommand(command, IsRenderServiceNode());
+    }
+}
+
+void RSNode::MarkRepaintBoundary(const std::string& tag)
+{
+    bool isRepaintBoundary = CheckRbPatten(tag);
+    if (isRepaintBoundary_ == isRepaintBoundary) {
+        return;
+    }
+    isRepaintBoundary_ = isRepaintBoundary;
+    std::unique_ptr<RSCommand> command = std::make_unique<RSMarkRepaintBoundary>(GetId(), isRepaintBoundary_);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, IsRenderServiceNode());
     }
 }
 

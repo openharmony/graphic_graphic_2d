@@ -457,6 +457,7 @@ public:
 
     void MarkNodeSingleFrameComposer(bool isNodeSingleFrameComposer);
 
+    void MarkRepaintBoundary(const std::string& tag);
     void SetGrayScale(float grayScale);
 
     void SetLightIntensity(float lightIntensity);
@@ -662,6 +663,7 @@ private:
     bool extendModifierIsDirty_ { false };
 
     bool isNodeGroup_ = false;
+    bool isRepaintBoundary_ = false;
 
     bool isNodeSingleFrameComposer_ = false;
 
