@@ -197,7 +197,10 @@ ohos_source_set("skia_paragraph") {
   ]
 
   if (use_new_skia) {
-    defines = [ "ENABLE_TEXT_ENHANCE" ]
+    defines = [
+      "ENABLE_TEXT_ENHANCE",
+      "SK_UNICODE_ICU_IMPLEMENTATION"
+    ]
   } else {
     defines = [ "OHOS_SUPPORT" ]
   }

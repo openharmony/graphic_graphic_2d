@@ -185,11 +185,7 @@ sk_sp<SkTypeface> SkiaTypeface::GetSkTypeface()
 
 std::shared_ptr<Typeface> SkiaTypeface::MakeDefault()
 {
-#ifdef USE_M133_SKIA
-    sk_sp<SkTypeface> skTypeface = SkTypeface::MakeEmpty();
-#else
     sk_sp<SkTypeface> skTypeface = SkTypeface::MakeDefault();
-#endif
     if (!skTypeface) {
         LOGD("skTypeface nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
         return nullptr;
@@ -254,7 +250,6 @@ std::shared_ptr<Typeface> SkiaTypeface::MakeFromFile(const char path[], const Fo
 std::vector<std::shared_ptr<Typeface>> SkiaTypeface::GetSystemFonts()
 {
     std::vector<std::shared_ptr<Typeface>> typefaces;
-#ifndef USE_M133_SKIA
     std::vector<sk_sp<SkTypeface>> skTypefaces = SkTypeface::GetSystemFonts();
     if (skTypefaces.empty()) {
         return {};
@@ -268,7 +263,6 @@ std::vector<std::shared_ptr<Typeface>> SkiaTypeface::GetSystemFonts()
         std::shared_ptr<TypefaceImpl> typefaceImpl = std::make_shared<SkiaTypeface>(item);
         typefaces.emplace_back(std::make_shared<Typeface>(typefaceImpl));
     }
-#endif
     return typefaces;
 }
 
@@ -284,7 +278,7 @@ std::shared_ptr<Typeface> SkiaTypeface::MakeFromStream(std::unique_ptr<MemoryStr
         return nullptr;
     }
 #ifdef USE_M133_SKIA
-    auto skFontMgr = SkFontMgr::RefEmpty();
+    auto skFontMgr = SkFontMgr::RefDefault();
     if (!skFontMgr) {
         LOGD("SkiaTypeface::MakeFromStream, skFontMgr is nullptr.");
         return nullptr;
@@ -343,7 +337,7 @@ std::shared_ptr<Typeface> SkiaTypeface::MakeFromName(const char familyName[], Fo
         LOGD("SkiaTypeface::MakeFromName, familyName is nullptr.");
         return nullptr;
     }
-    auto skFontMgr = SkFontMgr::RefEmpty();
+    auto skFontMgr = SkFontMgr::RefDefault();
     if (!skFontMgr) {
         LOGD("SkiaTypeface::MakeFromName, skFontMgr is nullptr.");
         return nullptr;
@@ -391,7 +385,7 @@ sk_sp<SkTypeface> SkiaTypeface::DeserializeTypeface(const void* data, size_t len
     if (textblobCtx == nullptr || textblobCtx->GetTypeface() == nullptr) {
         SkMemoryStream stream(data, length);
 #ifdef USE_M133_SKIA
-        auto skFontMgr = SkFontMgr::RefEmpty();
+        auto skFontMgr = SkFontMgr::RefDefault();
         if (!skFontMgr) {
             LOGD("SkiaTypeface::DeserializeTypeface, skFontMgr is nullptr.");
             return nullptr;
@@ -436,7 +430,7 @@ std::shared_ptr<Typeface> SkiaTypeface::Deserialize(const void* data, size_t siz
 {
     SkMemoryStream stream(data, size);
 #ifdef USE_M133_SKIA
-    auto skFontMgr = SkFontMgr::RefEmpty();
+    auto skFontMgr = SkFontMgr::RefDefault();
     if (!skFontMgr) {
         LOGD("SkiaTypeface::Deserialize, skFontMgr is nullptr.");
         return nullptr;
