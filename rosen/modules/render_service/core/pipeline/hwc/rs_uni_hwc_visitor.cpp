@@ -735,8 +735,16 @@ void RSUniHwcVisitor::CalcHwcNodeEnableByFilterRect(std::shared_ptr<RSSurfaceRen
     auto bound = node->GetRenderProperties().GetBoundsGeometry()->GetAbsRect();
     bool isIntersect = !bound.IntersectRect(filterNode.GetOldDirtyInSurface()).IsEmpty();
     if (isIntersect) {
-        RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " disabled by filter rect, filterId:%" PRIu64,
+        RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%" PRIu64 " disabled by filter rect, filterId:%" PRIu64,
             node->GetName().c_str(), node->GetId(), filterNode.GetId());
+#ifdef HIPERF_TRACE_ENABLE
+        RS_LOGW("hiperf_surface: name:%s disabled by filter rect, surfaceRect: [%d, %d, %d, %d]->[%d, %d, %d, %d]",
+            node->GetName().c_str(),
+            node->GetSrcRect().GetLeft(), node->GetSrcRect().GetRight(),
+            node->GetSrcRect().GetTop(), node->GetSrcRect().GetBottom(),
+            node->GetSrcRect().GetLeft(), node->GetSrcRect().GetRight(),
+            node->GetSrcRect().GetTop(), node->GetSrcRect().GetBottom());
+#endif
         PrintHiperfLog(node, "filter rect");
         node->SetIsHwcPendingDisabled(true);
         node->SetHardwareForcedDisabledState(true);
