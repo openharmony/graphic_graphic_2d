@@ -132,6 +132,7 @@ public:
     void MarkNodeIsOccluded(bool isOccluded);
     void MarkNeedClearFilterCache();
     void MarkBlurIntersectWithDRM(bool IsIntersectWithDRM, bool isDark);
+    void MarkInForegroundFilterAndCheckNeedForceClearCache(bool inForegroundFilter);
 
     bool IsFilterCacheValid() const;
     bool IsForceClearFilterCache() const;

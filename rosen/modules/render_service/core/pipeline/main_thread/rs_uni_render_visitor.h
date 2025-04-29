@@ -138,6 +138,10 @@ public:
 
     void ResetCrossNodesVisitedStatus();
 
+    void MarkFilterInForegroundFilterAndCheckNeedForceClearCache(RSRenderNode& node);
+
+    void UpdateDrawingCacheInfoBeforeChildren(RSCanvasRenderNode& node);
+
 private:
     /* Prepare relevant calculation */
     // considering occlusion info for app surface as well as widget
@@ -468,6 +472,9 @@ private:
 
     // Used for control-level occlusion culling.
     std::shared_ptr<RSOcclusionHandler> curOcclusionHandler_;
+
+    // in foregroundFilter subtree
+    bool inForegroundFilter_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS
