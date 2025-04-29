@@ -787,8 +787,8 @@ Vector2f RSRenderParticle::CalculateParticlePosition(
             positionY = y + ry * sin(theta);
         }
     }
-    if (emitShape == ShapeType::ANNULUS) {
-        shape->CalculatePosition(positionX, positionY);  
+    if (emitShape == ShapeType::ANNULUS && shape) {
+        shape->CalculatePosition(positionX, positionY);
     }
     return Vector2f { positionX, positionY };
 }
