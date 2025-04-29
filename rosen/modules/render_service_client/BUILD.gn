@@ -295,6 +295,14 @@ template("render_service_client_source_set") {
       }
     }
 
+    if (rosen_is_ohos && defined(enable_ipc_security) && enable_ipc_security) {
+      defines += [ "ENABLE_IPC_SECURITY" ]
+      external_deps += [
+        "access_token:libaccesstoken_sdk",
+        "ipc:ipc_core",
+      ]
+    }
+
     public_configs = [ ":render_service_client_config" ]
 
     part_name = "graphic_2d"
