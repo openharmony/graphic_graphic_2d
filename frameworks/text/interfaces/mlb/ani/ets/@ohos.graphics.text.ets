@@ -720,6 +720,12 @@ namespace text {
     blurRadius?: number;
   }
 
+  export class TextShadowInternal implements TextShadow {
+    //color?: common2D.Color;
+    //point?: common2D.Point;
+    blurRadius?: number;
+  }
+
   /**
    * Describes text style.
    * @typedef TextStyle
@@ -1218,6 +1224,13 @@ namespace text {
     decorationThicknessScale?: number;
   }
 
+  export class DecorationInternal interface Decoration {
+    textDecoration?: TextDecorationType;
+    //color?: common2D.Color;
+    decorationStyle?: TextDecorationStyle;
+    decorationThicknessScale?: number;
+  }
+
   /**
    * Describes font feature of text.
    * @typedef FontFeature
@@ -1240,7 +1253,12 @@ namespace text {
      */
     value: number;
   }
-
+  
+  export class FontFeatureInternal implements FontFeature {
+    name: string;
+    value: number;
+  }
+  
   /**
    * Enumerates decoration line for text.
    * @enum { number }
@@ -1417,6 +1435,11 @@ namespace text {
      * @syscap SystemCapability.Graphics.Drawing
      * @since 12
      */
+    value: number;
+  }
+
+  export class FontVariationInternal implements FontVariation {
+    axis: string;
     value: number;
   }
 }

@@ -157,7 +157,7 @@ ani_ref AniParagraph::GetLineMetrics(ani_env* env, ani_object object)
         return arrayObj;
     }
     ani_size index = 0;
-    for (auto lineMetrics : vectorLineMetrics) {
+    for (const auto& lineMetrics : vectorLineMetrics) {
         ani_object aniObj = AniCommon::ParseLineMetricsToAni(env, lineMetrics);
         if (ANI_OK != env->Object_CallMethodByName_Void(arrayObj, "$_set", "ILstd/core/Object;:V", index, aniObj)) {
             TEXT_LOGE("Object_CallMethodByName_Void $_set failed");

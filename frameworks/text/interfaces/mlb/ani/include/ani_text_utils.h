@@ -28,18 +28,26 @@ class AniTextUtils {
 public:
     template <typename T>
     static T* GetNativeFromObj(ani_env* env, ani_object obj);
+
     static ani_object CreateAniUndefined(ani_env* env);
     template <typename... Args>
     static ani_object CreateAniObject(ani_env* env, const std::string name, const char* signature, Args... params);
     static ani_object CreateAniArray(ani_env* env, size_t size);
+    template <typename T, typename Converter>
+    static ani_object CreateAniArrayAndInitData(ani_env* env, const std::vector<T>& t, size_t size, Converter convert);
     static ani_object CreateAniMap(ani_env* env);
+    static ani_enum_item CreateAniEnum(ani_env* env, const char* enum_descriptor, ani_size index);
     static ani_object CreateAniDoubleObj(ani_env* env, double val);
+    static ani_object CreateAniIntObj(ani_env* env, int val);
     static ani_object CreateAniBooleanObj(ani_env* env, bool val);
-    static ani_string CreateAniStringObj(ani_env* env, std::string str);
-    static std::string AniToStdStringUtf8(ani_env* env, ani_string str);
-    static std::u16string AniToStdStringUtf16(ani_env* env, ani_string str);
+    static ani_string CreateAniStringObj(ani_env* env, const std::string& str);
+    static ani_string CreateAniStringObj(ani_env* env, const std::u16string& str);
+
+    static std::string AniToStdStringUtf8(ani_env* env, const ani_string& str);
+    static std::u16string AniToStdStringUtf16(ani_env* env, const ani_string& str);
     static bool ReadFile(const std::string& filePath, size_t dataLen, std::unique_ptr<uint8_t[]>& data);
     static bool SplitAbsoluteFontPath(std::string& absolutePath);
+
     static ani_status ReadOptionalField(ani_env* env, ani_object obj, const char* fieldName, ani_ref& ref);
     static ani_status ReadOptionalDoubleField(ani_env* env, ani_object obj, const char* fieldName, double& value);
     static ani_status ReadOptionalStringField(ani_env* env, ani_object obj, const char* fieldName, std::string& str);
@@ -72,6 +80,23 @@ ani_object AniTextUtils::CreateAniObject(ani_env* env, const std::string name, c
         return CreateAniUndefined(env);
     }
     return obj;
+}
+
+template <typename T, typename Converter>
+ani_object AniTextUtils::CreateAniArrayAndInitData(ani_env* env, const std::vector<T>& t, size_t size,
+                                                   Converter convert)
+{
+    ani_object arrayObj = CreateAniArray(env, size);
+    ani_size index = 0;
+    for (const T& item : t) {
+        ani_object aniObj = convert(env, item);
+        if (ANI_OK != env->Object_CallMethodByName_Void(arrayObj, "$_set", "ILstd/core/Object;:V", index, aniObj)) {
+            TEXT_LOGE("Array $_set failed");
+            break;
+        }
+        index++;
+    }
+    return arrayObj;
 }
 
 template <typename T>

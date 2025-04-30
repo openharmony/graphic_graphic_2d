@@ -19,6 +19,7 @@
 #include <cstdint>
 #include <fstream>
 #include <sstream>
+#include <string>
 #include "ani.h"
 #include "typography_style.h"
 
@@ -56,9 +57,26 @@ ani_object AniTextUtils::CreateAniMap(ani_env* env)
     return AniTextUtils::CreateAniObject(env, ANI_MAP, ":V");
 }
 
+ani_enum_item AniTextUtils::CreateAniEnum(ani_env* env, const char* enum_descriptor, ani_size index)
+{
+    ani_enum enumType;
+    if (ANI_OK != env->FindEnum(enum_descriptor, &enumType)) {
+        TEXT_LOGE("[ANI] enum not found,%{public}s", enum_descriptor);
+        return nullptr;
+    }
+    ani_enum_item enumItem;
+    env->Enum_GetEnumItemByIndex(enumType, index, &enumItem);
+    return enumItem;
+}
+
 ani_object AniTextUtils::CreateAniDoubleObj(ani_env* env, double val)
 {
     return AniTextUtils::CreateAniObject(env, ANI_OBJECT, "D:V", val);
+}
+
+ani_object AniTextUtils::CreateAniIntObj(ani_env* env, int val)
+{
+    return AniTextUtils::CreateAniObject(env, ANI_INT, "I:V", val);
 }
 
 ani_object AniTextUtils::CreateAniBooleanObj(ani_env* env, bool val)
@@ -66,12 +84,21 @@ ani_object AniTextUtils::CreateAniBooleanObj(ani_env* env, bool val)
     return AniTextUtils::CreateAniObject(env, ANI_BOOLEAN, "Z:V", val);
 }
 
-ani_string AniTextUtils::CreateAniStringObj(ani_env* env, std::string str)
+ani_string AniTextUtils::CreateAniStringObj(ani_env* env, const std::string& str)
 {
-    return nullptr;
+    ani_string result_string{};
+    env->String_NewUTF8(str.c_str(), str.size(), &result_string);
+    return result_string;
 }
 
-std::string AniTextUtils::AniToStdStringUtf8(ani_env* env, ani_string str)
+ani_string AniTextUtils::CreateAniStringObj(ani_env* env, const std::u16string& str)
+{
+    ani_string result_string{};
+    env->String_NewUTF16(reinterpret_cast<const uint16_t*>(str.c_str()), str.size(), &result_string);
+    return result_string;
+}
+
+std::string AniTextUtils::AniToStdStringUtf8(ani_env* env, const ani_string& str)
 {
     ani_size strSize;
     if (ANI_OK != env->String_GetUTF8Size(str, &strSize)) {
@@ -93,7 +120,7 @@ std::string AniTextUtils::AniToStdStringUtf8(ani_env* env, ani_string str)
     return content;
 }
 
-std::u16string AniTextUtils::AniToStdStringUtf16(ani_env* env, ani_string str)
+std::u16string AniTextUtils::AniToStdStringUtf16(ani_env* env, const ani_string& str)
 {
     ani_size strSize;
     if (ANI_OK != env->String_GetUTF16Size(str, &strSize)) {
