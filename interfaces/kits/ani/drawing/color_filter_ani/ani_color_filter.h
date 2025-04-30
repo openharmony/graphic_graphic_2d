@@ -13,36 +13,28 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_ROSEN_ANI_PEN_H
-#define OHOS_ROSEN_ANI_PEN_H
+#ifndef OHOS_ROSEN_ANI_COLOR_FILTER_H
+#define OHOS_ROSEN_ANI_COLOR_FILTER_H
 
 #include "ani_drawing_utils.h"
-#include "draw/pen.h"
+#include "effect/color_filter.h"
 
 namespace OHOS::Rosen {
 namespace Drawing {
-class AniPen final {
+class AniColorFilter final {
 public:
-    AniPen() = default;
-    explicit AniPen(const Pen& pen) : pen_(pen) {}
-    ~AniPen() = default;
+    explicit AniColorFilter(std::shared_ptr<ColorFilter> colorFilter = nullptr) : m_ColorFilter(colorFilter) {}
+    ~AniColorFilter();
 
     static ani_status AniInit(ani_env *env);
 
-    static void Constructor(ani_env* env, ani_object obj);
-    static void ConstructorWithPen(ani_env* env, ani_object obj, ani_object aniPenObj);
+    static ani_object CreateBlendModeColorFilter(ani_env* env,
+        ani_object obj, ani_object objColor, ani_enum_item aniBlendMode);
 
-    static ani_double GetAlpha(ani_env* env, ani_object obj);
-    static void SetAlpha(ani_env* env, ani_object obj, ani_double alpha);
-    static void SetColorFilter(ani_env* env, ani_object obj, ani_object objColorFilter);
-    static void SetBlendMode(ani_env* env, ani_object obj, ani_enum_item aniBlendMode);
-    static void Reset(ani_env*  env, ani_object obj);
-
-    Pen& GetPen();
-
+    DRAWING_API std::shared_ptr<ColorFilter> GetColorFilter();
 private:
-    Pen pen_;
+    std::shared_ptr<ColorFilter> m_ColorFilter = nullptr;
 };
 } // namespace Drawing
 } // namespace OHOS::Rosen
-#endif // OHOS_ROSEN_ANI_PEN_H
+#endif // OHOS_ROSEN_ANI_COLOR_FILTER_H

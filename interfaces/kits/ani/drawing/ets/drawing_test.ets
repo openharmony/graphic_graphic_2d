@@ -13,7 +13,8 @@
  * limitations under the License.
  */
 
-import drawing from '@ohos.graphics.drawing';
+import drawing from './@ohos.graphics.drawing';
+import common2D from '@ohos.graphics.common2D';
 
 function testPen() {
     console.log(`testPen start`);
@@ -21,6 +22,11 @@ function testPen() {
     pen.setAlpha(157);
     console.log(`testPen pen.getAlpha = ${pen.getAlpha()}`);
     pen.reset();
+    console.log(`testPen pen.getAlpha = ${pen.getAlpha()}`);
+
+    pen.setBlendMode(drawing.BlendMode.CLEAR)
+    pen.setAlpha(179);
+    let pen2 : drawing.Pen = new drawing.Pen(pen);
     console.log(`testPen pen.getAlpha = ${pen.getAlpha()}`);
     console.log(`testPen end`);
 }
@@ -32,10 +38,35 @@ function testBrush() {
     console.log(`testBrush brush.getAlpha = ${brush.getAlpha()}`);
     brush.reset();
     console.log(`testBrush brush.getAlpha = ${brush.getAlpha()}`);
+
+    brush.setBlendMode(drawing.BlendMode.CLEAR)
+    brush.setAlpha(179);
+    let brush2 : drawing.Brush = new drawing.Brush(brush);
+    console.log(`testBrush brush.getAlpha = ${brush2.getAlpha()}`);
     console.log(`testBrush end`);
+}
+
+function testColorFilter() {
+    console.log(`testColorFilter start`);
+
+    let pen : drawing.Pen = new drawing.Pen();
+    let brush : drawing.Brush = new drawing.Brush();
+    let colorFilter1 : drawing.ColorFilter =
+        drawing.ColorFilter.createBlendModeColorFilter(0x85957, drawing.BlendMode.CLEAR)
+    brush.setColorFilter(colorFilter1)
+    pen.setColorFilter(colorFilter1)
+
+    let color: common2D.Color = { alpha: 255, red: 0, green: 255, blue: 0 };
+    let colorFilter2 : drawing.ColorFilter =
+        drawing.ColorFilter.createBlendModeColorFilter(color, drawing.BlendMode.CLEAR)
+    brush.setColorFilter(colorFilter2)
+    pen.setColorFilter(colorFilter2)
+
+    console.log(`testColorFilter end`);
 }
 
 function main() {
     testPen();
     testBrush();
+    testColorFilter();
 }

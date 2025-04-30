@@ -18,7 +18,10 @@
 
 #include <ani.h>
 #include <hilog/log.h>
+#include <iostream>
 #include <string>
+#include "effect/color_filter.h"
+#include "utils/rect.h"
 
 #ifdef ROSEN_OHOS
 
@@ -63,6 +66,16 @@ T* GetNativeFromObj(ani_env* env, ani_object obj)
 }
 
 ani_status AniThrowError(ani_env* env, const std::string& message);
+
+bool GetColorQuadFromParam(ani_env* env, ani_object obj, Drawing::ColorQuad &color);
+
+bool GetColorQuadFromColorObj(ani_env* env, ani_object obj, Drawing::ColorQuad &color);
+
+bool GetRectFromAniRectObj(ani_env* env, ani_object obj, Drawing::Rect& rect);
+
+ani_object CreateAniUndefined(ani_env* env);
+
+ani_object CreateAniObject(ani_env* env, const char* className, const char* methodSig);
 
 } // namespace Drawing
 } // namespace Rosen
