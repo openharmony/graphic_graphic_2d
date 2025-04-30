@@ -12,8 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 #include "ani_pen.h"
+#include "color_filter_ani/ani_color_filter.h"
 
 namespace OHOS::Rosen {
 namespace Drawing {
@@ -29,18 +29,16 @@ ani_status AniPen::AniInit(ani_env *env)
     }
 
     std::array methods = {
-        ani_native_function { "<ctor>", ":V",
-            reinterpret_cast<void*>(Constructor) },
-        ani_native_function { "<ctor>", "L@ohos/graphics/drawing/drawing/Pen;:V",
-            reinterpret_cast<void*>(ConstructorPen) },
-        ani_native_function { "getAlpha", ":D",
-            reinterpret_cast<void*>(GetAlpha) },
-        ani_native_function { "reset", ":V",
-            reinterpret_cast<void*>(Reset) },
-        ani_native_function { "setAlpha", "D:V",
-            reinterpret_cast<void*>(SetAlpha) },
+        ani_native_function { "nativeConstructor", ":V", reinterpret_cast<void*>(Constructor) },
+        ani_native_function { "nativeConstructorWithPen", "L@ohos/graphics/drawing/drawing/Pen;:V",
+            reinterpret_cast<void*>(ConstructorWithPen) },
+        ani_native_function { "getAlpha", ":D", reinterpret_cast<void*>(GetAlpha) },
+        ani_native_function { "reset", ":V", reinterpret_cast<void*>(Reset) },
+        ani_native_function { "setAlpha", "D:V", reinterpret_cast<void*>(SetAlpha) },
         ani_native_function { "setBlendMode", "L@ohos/graphics/drawing/drawing/BlendMode;:V",
             reinterpret_cast<void*>(SetBlendMode) },
+        ani_native_function { "setColorFilter", "L@ohos/graphics/drawing/drawing/ColorFilter;:V",
+            reinterpret_cast<void*>(SetColorFilter) },
     };
 
     ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
@@ -61,7 +59,7 @@ void AniPen::Constructor(ani_env* env, ani_object obj)
     }
 }
 
-void AniPen::ConstructorPen(ani_env* env, ani_object obj, ani_object aniPenObj)
+void AniPen::ConstructorWithPen(ani_env* env, ani_object obj, ani_object aniPenObj)
 {
     auto aniPen = GetNativeFromObj<AniPen>(env, aniPenObj);
     if (aniPen == nullptr) {
@@ -124,6 +122,27 @@ void AniPen::SetBlendMode(ani_env* env, ani_object obj, ani_enum_item aniBlendMo
     }
 
     aniPen->GetPen().SetBlendMode(static_cast<BlendMode>(blendMode));
+}
+
+
+void AniPen::SetColorFilter(ani_env* env, ani_object obj, ani_object objColorFilter)
+{
+    auto aniPen = GetNativeFromObj<AniPen>(env, obj);
+    if (aniPen == nullptr) {
+        AniThrowError(env, "Invalid params.");
+        return;
+    }
+
+    auto aniColorFilter = GetNativeFromObj<AniColorFilter>(env, objColorFilter);
+    if (aniColorFilter == nullptr || aniColorFilter->GetColorFilter() == nullptr) {
+        ROSEN_LOGE("AniPen::SetColorFilter colorFilter is nullptr");
+        AniThrowError(env, "Invalid params.");
+        return;
+    }
+
+    Filter filter = aniPen->GetPen().GetFilter();
+    filter.SetColorFilter(aniColorFilter->GetColorFilter());
+    aniPen->GetPen().SetFilter(filter);
 }
 
 Pen& AniPen::GetPen()

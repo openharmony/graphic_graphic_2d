@@ -14,6 +14,7 @@
  */
 
 #include "ani_brush.h"
+#include "color_filter_ani/ani_color_filter.h"
 
 namespace OHOS::Rosen {
 namespace Drawing {
@@ -29,18 +30,16 @@ ani_status AniBrush::AniInit(ani_env *env)
     }
 
     std::array methods = {
-        ani_native_function { "<ctor>", ":V",
-            reinterpret_cast<void*>(Constructor) },
-        ani_native_function { "<ctor>", "L@ohos/graphics/drawing/drawing/Brush;:V",
-            reinterpret_cast<void*>(ConstructorBrush) },
-        ani_native_function { "getAlpha", ":D",
-            reinterpret_cast<void*>(GetAlpha) },
-        ani_native_function { "reset", ":V",
-            reinterpret_cast<void*>(Reset) },
-        ani_native_function { "setAlpha", "D:V",
-            reinterpret_cast<void*>(SetAlpha) },
+        ani_native_function { "nativeConstructor", ":V", reinterpret_cast<void*>(Constructor) },
+        ani_native_function { "nativeConstructorWithBrush", "L@ohos/graphics/drawing/drawing/Brush;:V",
+            reinterpret_cast<void*>(ConstructorWithBrush) },
+        ani_native_function { "getAlpha", ":D", reinterpret_cast<void*>(GetAlpha) },
+        ani_native_function { "reset", ":V", reinterpret_cast<void*>(Reset) },
+        ani_native_function { "setAlpha", "D:V", reinterpret_cast<void*>(SetAlpha) },
         ani_native_function { "setBlendMode", "L@ohos/graphics/drawing/drawing/BlendMode;:V",
             reinterpret_cast<void*>(SetBlendMode) },
+        ani_native_function { "setColorFilter", "L@ohos/graphics/drawing/drawing/ColorFilter;:V",
+            reinterpret_cast<void*>(SetColorFilter) },
     };
 
     ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
@@ -61,7 +60,7 @@ void AniBrush::Constructor(ani_env* env, ani_object obj)
     }
 }
 
-void AniBrush::ConstructorBrush(ani_env* env, ani_object obj, ani_object aniBrushObj)
+void AniBrush::ConstructorWithBrush(ani_env* env, ani_object obj, ani_object aniBrushObj)
 {
     auto aniBrush = GetNativeFromObj<AniBrush>(env, aniBrushObj);
     if (aniBrush == nullptr) {
@@ -129,6 +128,26 @@ void AniBrush::SetBlendMode(ani_env* env, ani_object obj, ani_enum_item aniBlend
 Brush& AniBrush::GetBrush()
 {
     return brush_;
+}
+
+void AniBrush::SetColorFilter(ani_env* env, ani_object obj, ani_object objColorFilter)
+{
+    auto aniBrush = GetNativeFromObj<AniBrush>(env, obj);
+    if (aniBrush == nullptr) {
+        AniThrowError(env, "Invalid params.");
+        return;
+    }
+
+    auto aniColorFilter = GetNativeFromObj<AniColorFilter>(env, objColorFilter);
+    if (aniColorFilter == nullptr || aniColorFilter->GetColorFilter() == nullptr) {
+        ROSEN_LOGE("AniBrush::SetColorFilter colorFilter is nullptr");
+        AniThrowError(env, "Invalid params.");
+        return;
+    }
+
+    Filter filter = aniBrush->GetBrush().GetFilter();
+    filter.SetColorFilter(aniColorFilter->GetColorFilter());
+    aniBrush->GetBrush().SetFilter(filter);
 }
 } // namespace Drawing
 } // namespace OHOS::Rosen

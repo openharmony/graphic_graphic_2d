@@ -64,6 +64,7 @@ ohos_shared_library("drawing_ani") {
     "ani_drawing_module.cpp",
     "ani_drawing_utils.cpp",
     "brush_ani/ani_brush.cpp",
+    "color_filter_ani/ani_color_filter.cpp",
     "pen_ani/ani_pen.cpp",
   ]
 
@@ -86,7 +87,8 @@ ohos_shared_library("drawing_ani") {
 generate_static_abc("drawing") {
   base_url = "./ets"
   files = [
-    "ets/@ohos.graphics.drawing.ets"
+    "ets/@ohos.graphics.common2D.ets",
+    "ets/@ohos.graphics.drawing.ets",
   ]
   is_boot_abc = "True"
   device_dst_file = "/system/framework/drawing.abc"

@@ -17,7 +17,6 @@
 #define OHOS_ROSEN_ANI_BRUSH_H
 
 #include "ani_drawing_utils.h"
-
 #include "draw/brush.h"
 
 namespace OHOS::Rosen {
@@ -31,8 +30,8 @@ public:
     static ani_status AniInit(ani_env *env);
 
     static void Constructor(ani_env* env, ani_object obj);
-    static void ConstructorBrush(ani_env* env, ani_object obj, ani_object aniBrushObj);
-
+    static void ConstructorWithBrush(ani_env* env, ani_object obj, ani_object aniBrushObj);
+    static void SetColorFilter(ani_env* env, ani_object obj, ani_object objColorFilter);
     static ani_double GetAlpha(ani_env* env, ani_object obj);
     static void SetAlpha(ani_env* env, ani_object obj, ani_double alpha);
     static void SetBlendMode(ani_env* env, ani_object obj, ani_enum_item aniBlendMode);

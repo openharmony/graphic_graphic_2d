@@ -47,6 +47,121 @@ ani_status AniThrowError(ani_env* env, const std::string& message)
     return ANI_OK;
 }
 
+bool GetColorQuadFromColorObj(ani_env* env, ani_object obj, Drawing::ColorQuad &color)
+{
+    ani_class colorClass;
+    env->FindClass("L@ohos/graphics/common2D/common2D/Color;", &colorClass);
+    ani_boolean isColorClass;
+    env->Object_InstanceOf(obj, colorClass, &isColorClass);
+
+    if (!isColorClass) {
+        return false;
+    }
+    
+    ani_double alpha;
+    ani_double red;
+    ani_double green;
+    ani_double blue;
+
+    if ((env->Object_GetPropertyByName_Double(obj, "alpha", &alpha) != ANI_OK) ||
+        (env->Object_GetPropertyByName_Double(obj, "red", &red) != ANI_OK) ||
+        (env->Object_GetPropertyByName_Double(obj, "green", &green) != ANI_OK) ||
+        (env->Object_GetPropertyByName_Double(obj, "blue", &blue) != ANI_OK)) {
+        ROSEN_LOGE("GetColorQuadFromParam failed by Color class");
+        return false;
+    }
+
+    if (alpha < 0 || alpha > Color::RGB_MAX ||
+        red < 0 || red > Color::RGB_MAX ||
+        green < 0 || green > Color::RGB_MAX ||
+        blue < 0 || blue > Color::RGB_MAX) {
+        ROSEN_LOGE("GetColorQuadFromParam failed by Color class invaild value");
+        return false;
+    }
+
+    color = Color::ColorQuadSetARGB(static_cast<uint32_t>(alpha), static_cast<uint32_t>(red),
+        static_cast<uint32_t>(green), static_cast<uint32_t>(blue));
+    return true;
+}
+
+bool GetColorQuadFromParam(ani_env* env, ani_object obj, Drawing::ColorQuad &color)
+{
+    ani_class doubleClass;
+    env->FindClass("Lstd/core/Double;", &doubleClass);
+    
+    ani_boolean isNumber;
+    env->Object_InstanceOf(obj, doubleClass, &isNumber);
+    if (isNumber) {
+        ani_double aniColor;
+        if (ANI_OK != env->Object_CallMethodByName_Double(obj, "doubleValue", nullptr, &aniColor)) {
+            ROSEN_LOGE("GetColorQuadFromParam failed by double vaule");
+            return false;
+        }
+        color = static_cast<ColorQuad>(aniColor);
+        return true;
+    }
+
+    return GetColorQuadFromColorObj(env, obj, color);
+}
+
+bool GetRectFromAniRectObj(ani_env* env, ani_object obj, Drawing::Rect& rect)
+{
+    ani_class rectClass;
+    env->FindClass("L@ohos/graphics/common2D/common2D/Rect;", &rectClass);
+    ani_boolean isRectClass;
+    env->Object_InstanceOf(obj, rectClass, &isRectClass);
+
+    if (!isRectClass) {
+        return false;
+    }
+
+    ani_double left;
+    ani_double top;
+    ani_double right;
+    ani_double bottom;
+
+    if ((env->Object_GetPropertyByName_Double(obj, "left", &left) != ANI_OK) ||
+        (env->Object_GetPropertyByName_Double(obj, "top", &top) != ANI_OK) ||
+        (env->Object_GetPropertyByName_Double(obj, "right", &right) != ANI_OK) ||
+        (env->Object_GetPropertyByName_Double(obj, "bottom", &bottom) != ANI_OK)) {
+        ROSEN_LOGE("GetRectFromAniRectObj failed");
+        return false;
+    }
+
+    rect.SetLeft(left);
+    rect.SetTop(top);
+    rect.SetRight(right);
+    rect.SetBottom(bottom);
+    return true;
+}
+
+ani_object CreateAniUndefined(ani_env* env)
+{
+    ani_ref aniRef;
+    env->GetUndefined(&aniRef);
+    return static_cast<ani_object>(aniRef);
+}
+
+ani_object CreateAniObject(ani_env* env, const char* className, const char* methodSig)
+{
+    ani_class cls;
+    if (ANI_OK != env->FindClass(className, &cls)) {
+        ROSEN_LOGE("Failed to find ctor %{public}s %{public}s", className, methodSig);
+        return CreateAniUndefined(env);
+    }
+    ani_method ctor;
+    if (env->Class_FindMethod(cls, "<ctor>", methodSig, &ctor) != ANI_OK) {
+        ROSEN_LOGE("Failed to find ctor %{public}s %{public}s", className, methodSig);
+        return CreateAniUndefined(env);
+    };
+
+    ani_object obj;
+    if (env->Object_New(cls, ctor, &obj) != ANI_OK) {
+        ROSEN_LOGE("Failed to create object %{public}s %{public}s", className, methodSig);
+        return CreateAniUndefined(env);
+    };
+    return obj;
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

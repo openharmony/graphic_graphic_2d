@@ -14,8 +14,8 @@
  */
 
 #include "ani_drawing_utils.h"
-
 #include "brush_ani/ani_brush.h"
+#include "color_filter_ani/ani_color_filter.h"
 #include "pen_ani/ani_pen.h"
 
 extern "C" {
@@ -27,12 +27,10 @@ ANI_EXPORT ani_status ANI_Constructor(ani_vm* vm, uint32_t* result)
         return ANI_ERROR;
     }
 
-    if (OHOS::Rosen::Drawing::AniBrush::AniInit(env) != ANI_OK) {
-        ROSEN_LOGE("ANI_Constructor AniBrush failed");
-        return ANI_ERROR;
-    }
-    if (OHOS::Rosen::Drawing::AniPen::AniInit(env) != ANI_OK) {
-        ROSEN_LOGE("ANI_Constructor AniPen failed");
+    if (OHOS::Rosen::Drawing::AniBrush::AniInit(env) != ANI_OK ||
+        OHOS::Rosen::Drawing::AniColorFilter::AniInit(env) != ANI_OK ||
+        OHOS::Rosen::Drawing::AniPen::AniInit(env) != ANI_OK) {
+        ROSEN_LOGE("[ANI_Constructor] Init failed");
         return ANI_ERROR;
     }
 
