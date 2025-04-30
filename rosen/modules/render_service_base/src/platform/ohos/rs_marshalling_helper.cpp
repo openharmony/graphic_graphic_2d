@@ -919,7 +919,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSMagnif
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<AnnulusRegion>& val)
 {
     if (!val) {
-        return true;
+        return false;
     }
     return Marshalling(parcel, val->center_.x_) && Marshalling(parcel, val->center_.y_) &&
         Marshalling(parcel, val->innerRadius_) && Marshalling(parcel, val->outerRadius_) &&
@@ -942,7 +942,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<AnnulusR
     success &= Unmarshalling(parcel, endAngle);
     if (success) {
         Vector2f center(centerX, centerY);
-        val = std::make_shared<AnnulusRegion>(ShapeType::ANNULUS, center, innerRadius, outerRadius,
+        val = std::make_shared<AnnulusRegion>(center, innerRadius, outerRadius,
             startAngle, endAngle);
     }
     return success;
@@ -957,7 +957,7 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Shap
     bool success = parcel.WriteInt32(1) && Marshalling(parcel, type);
     if (type == ShapeType::ANNULUS) {
         auto annulusRegion = std::static_pointer_cast<AnnulusRegion>(shape);
-        success &= Marshalling(parcel, annulusRegion);
+        Marshalling(parcel, annulusRegion);
     }
     return success;
 }
@@ -972,7 +972,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Shape>& 
     bool success = Unmarshalling(parcel, type);
     if (type == ShapeType::ANNULUS) {
         std::shared_ptr<AnnulusRegion> annulusRegion = nullptr;
-        success &= Unmarshalling(parcel, annulusRegion);
+        Unmarshalling(parcel, annulusRegion);
         shape = std::move(annulusRegion);
     }
     return success;
@@ -2778,12 +2778,6 @@ MARSHALLING_AND_UNMARSHALLING(RSRenderAnimatableProperty)
     EXPLICIT_INSTANTIATION(TEMPLATE, std::vector<std::shared_ptr<ParticleRenderParams>>) \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<ParticleRenderParams>)              \
     EXPLICIT_INSTANTIATION(TEMPLATE, RSRenderParticleVector)                             \
-    EXPLICIT_INSTANTIATION(TEMPLATE, RenderParticleColorParaType)                        \
-    EXPLICIT_INSTANTIATION(TEMPLATE, RenderParticleParaType<float>)                      \
-    EXPLICIT_INSTANTIATION(TEMPLATE, ParticleVelocity)                                   \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<AnnulusRegion>)                     \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<Shape>)                             \
-    EXPLICIT_INSTANTIATION(TEMPLATE, EmitterConfig)                                      \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector2f)                                           \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector3f)                                           \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector4<uint32_t>)                                  \
