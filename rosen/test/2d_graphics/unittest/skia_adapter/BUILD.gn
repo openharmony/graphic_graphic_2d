@@ -22,8 +22,8 @@ if (!defined(graphic_2d_ext_feature_enable_ddgr) ||
     module_out_path = module_output_path
 
     sources = [
-      "../../../../modules/2d_graphics/src/drawing/engine_adapter/skia_adapter/skia_mask_filter.cpp",
-      "../../../../modules/2d_graphics/src/drawing/engine_adapter/skia_adapter/skia_picture.cpp",
+      "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing/engine_adapter/skia_adapter/skia_mask_filter.cpp",
+      "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing/engine_adapter/skia_adapter/skia_picture.cpp",
       "skia_bitmap_test.cpp",
       "skia_canvas_autocache_test.cpp",
       "skia_canvas_test.cpp",

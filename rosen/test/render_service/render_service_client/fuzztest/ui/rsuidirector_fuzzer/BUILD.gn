@@ -19,13 +19,13 @@ module_output_path = "graphic_2d/graphic_2d"
 
 ##############################fuzztest##########################################
 ohos_fuzztest("RSUiDirectorFuzzTest") {
-  fuzz_config_file = "../../../../../../test/render_service/render_service_client/fuzztest/ui/rsuidirector_fuzzer"
+  fuzz_config_file = "$graphic_2d_root/rosen/test/render_service/render_service_client/fuzztest/ui/rsuidirector_fuzzer"
   module_out_path = module_output_path
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
     defines = [ "USE_ROSEN_DRAWING" ]
   }
 
-  include_dirs = [ "../../../../../../modules/render_service_client/core" ]
+  include_dirs = [ "$graphic_2d_root/rosen/modules/render_service_client/core" ]
   deps = [
     "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
     "$graphic_2d_root/rosen/modules/render_service:librender_service",

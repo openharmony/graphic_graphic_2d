@@ -108,7 +108,7 @@ ohos_unittest("RSRenderServiceUnitTest") {
   sources = [ "rs_render_service_test.cpp" ]
   deps = [
     ":rs_test_common",
-    "../../../../../modules/render_service_base/src/platform:platform",
+    "$graphic_2d_root/rosen/modules/render_service_base/src/platform:platform",
   ]
   external_deps = [
     "c_utils:utils",
@@ -193,9 +193,9 @@ ohos_unittest("RSUniRenderThreadTest") {
 
   deps = [
     ":rs_test_common",
-    "../../../../../modules/render_service_base/src/platform:platform",
+    "$graphic_2d_root/rosen/modules/render_service_base/src/platform:platform",
   ]
-  include_dirs = [ "../../../../../modules/render_service_base/include" ]
+  include_dirs = [ "$graphic_2d_root/rosen/modules/render_service_base/include" ]
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
@@ -601,7 +601,7 @@ ohos_unittest("RSMainThreadTest") {
   sources = [ "main_thread/rs_main_thread_test.cpp" ]
   deps = [
     ":rs_test_common",
-    "../../../../../modules/render_service_base/src/platform:platform",
+    "$graphic_2d_root/rosen/modules/render_service_base/src/platform:platform",
   ]
   external_deps = [
     "c_utils:utils",

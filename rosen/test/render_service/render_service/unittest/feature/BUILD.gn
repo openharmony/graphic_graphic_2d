@@ -93,7 +93,7 @@ ohos_unittest("RSSurfaceCaptureParallelTaskTest") {
     "capture/rs_surface_capture_task_parallel_test.cpp",
   ]
   deps = [ ":rs_test_common" ]
-  include_dirs = [ "../../../../../modules/render_service_base/include" ]
+  include_dirs = [ "$graphic_2d_root/rosen/modules/render_service_base/include" ]
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
@@ -123,7 +123,7 @@ ohos_unittest("RSSurfaceCaptureTaskTest") {
     "capture/rs_surface_capture_task_test.cpp",
   ]
   deps = [ ":rs_test_common" ]
-  include_dirs = [ "../../../../../modules/render_service_base/include" ]
+  include_dirs = [ "$graphic_2d_root/rosen/modules/render_service_base/include" ]
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
@@ -180,7 +180,7 @@ ohos_unittest("RSUiCaptureTaskParallelTest") {
     "capture/rs_ui_capture_task_parallel_test.cpp",
   ]
   deps = [ ":rs_test_common" ]
-  include_dirs = [ "../../../../../modules/render_service_base/include" ]
+  include_dirs = [ "$graphic_2d_root/rosen/modules/render_service_base/include" ]
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
@@ -211,7 +211,7 @@ ohos_unittest("RSUniUiCaptureTest") {
   ]
   deps = [
     ":rs_test_common",
-    "../../../../../modules/render_service_base/src/platform:platform",
+    "$graphic_2d_root/rosen/modules/render_service_base/src/platform:platform",
   ]
   external_deps = [
     "c_utils:utils",
@@ -380,7 +380,7 @@ ohos_unittest("RSUniHwcPrevalidateUtilTest") {
   ]
   deps = [
     ":rs_test_common",
-    "../../../../../modules/render_service_base/src/platform:platform",
+    "$graphic_2d_root/rosen/modules/render_service_base/src/platform:platform",
   ]
   external_deps = [
     "c_utils:utils",
@@ -416,7 +416,7 @@ ohos_unittest("RSEglImageManagerTest") {
   ]
   deps = [
     ":rs_test_common",
-    "../../../../../modules/render_service_base/src/platform:platform",
+    "$graphic_2d_root/rosen/modules/render_service_base/src/platform:platform",
   ]
   external_deps = [
     "c_utils:utils",
@@ -529,7 +529,7 @@ ohos_unittest("OverlayDisplayTest") {
   sources = [ "overlay_display/overlay_display_test.cpp" ]
   deps = [
     ":rs_test_common",
-    "../../../../../modules/render_service_base/src/platform:platform",
+    "$graphic_2d_root/rosen/modules/render_service_base/src/platform:platform",
   ]
   external_deps = [
     "c_utils:utils",

@@ -139,7 +139,7 @@ ohos_static_library("rs_test_common") {
     "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
   ]
 
-  public_deps += [ "../../../../../modules/2d_graphics:2d_graphics" ]
+  public_deps += [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics" ]
 
   public_external_deps = [
     "c_utils:utils",
