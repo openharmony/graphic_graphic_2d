@@ -2366,7 +2366,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         && !isCachedSurfaceUpdated_ && pointerSkip) {
         doDirectComposition_ = isHardwareEnabledBufferUpdated_;
         if (isHardwareEnabledBufferUpdated_) {
-            needTraverseNodeTree = !DoDirectComposition(rootNode, !isLastFrameDirectComposition_);
+            needTraverseNodeTree = !DoDirectComposition(rootNode, !directComposeHelper_.isLastFrameDirectComposition_);
         } else if (forceUpdateUniRenderFlag_) {
             RS_TRACE_NAME("RSMainThread::UniRender ForceUpdateUniRender");
         } else if (!pendingUiCaptureTasks_.empty()) {
@@ -2755,7 +2755,8 @@ void RSMainThread::OnUniRenderDraw()
         return;
     }
     // To remove ClearMemoryTask for first frame of doDirectComposition or if needed
-    if ((doDirectComposition_ && !isLastFrameDirectComposition_) || isNeedResetClearMemoryTask_ || !needDrawFrame_) {
+    if ((doDirectComposition_ && !directComposeHelper_.isLastFrameDirectComposition_) ||
+        isNeedResetClearMemoryTask_ || !needDrawFrame_) {
         RSUniRenderThread::Instance().PostTask([] {
             RSUniRenderThread::Instance().ResetClearMemoryTask(true);
         });
@@ -4689,7 +4690,7 @@ void RSMainThread::ResetHardwareEnabledState(bool isUniRender)
     if (isUniRender) {
 #ifdef RS_ENABLE_GPU
         isHardwareForcedDisabled_ = !RSSystemProperties::GetHardwareComposerEnabled();
-        isLastFrameDirectComposition_ = doDirectComposition_;
+        directComposeHelper_.isLastFrameDirectComposition_ = doDirectComposition_;
         doDirectComposition_ = isHardwareForcedDisabled_ ? false : RSSystemProperties::GetDoDirectCompositionEnabled();
         isHardwareEnabledBufferUpdated_ = false;
         hasProtectedLayer_ = false;
