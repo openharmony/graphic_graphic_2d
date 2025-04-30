@@ -129,9 +129,9 @@ public:
     AnnulusRegion()
         : Shape(ShapeType::ANNULUS), center_(), innerRadius_(), outerRadius_(), startAngle_(), endAngle_()
     {}
-    AnnulusRegion(const ShapeType& type, const Vector2f& center, const float& innerRadius, const float& outerRadius,
+    AnnulusRegion(const Vector2f& center, const float& innerRadius, const float& outerRadius,
         const float & startAngle, const float& endAngle)
-        : Shape(type), center_(center), innerRadius_(innerRadius), outerRadius_(outerRadius),
+        : Shape(ShapeType::ANNULUS), center_(center), innerRadius_(innerRadius), outerRadius_(outerRadius),
           startAngle_(startAngle), endAngle_(endAngle)
     {}
     AnnulusRegion(const AnnulusRegion& region) = default;
