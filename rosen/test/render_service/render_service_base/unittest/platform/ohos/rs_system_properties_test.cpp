@@ -1080,7 +1080,7 @@ HWTEST_F(RSSystemPropertiesTest, GetTimeVsyncDisabled001, TestSize.Level1)
 */
 HWTEST_F(RSSystemPropertiesTest, GetHybridRenderEnabled, TestSize.Level1)
 {
-    EXPECT_FALSE(RSSystemProperties::GetHybridRenderEnabled());
+    EXPECT_TRUE(RSSystemProperties::GetHybridRenderEnabled());
 }
  
  
@@ -1103,7 +1103,7 @@ HWTEST_F(RSSystemPropertiesTest, GetHybridRenderCcmEnabled, TestSize.Level1)
 */
 HWTEST_F(RSSystemPropertiesTest, GetHybridRenderSystemEnabled, TestSize.Level1)
 {
-    EXPECT_FALSE(RSSystemProperties::GetHybridRenderSystemEnabled());
+    EXPECT_TRUE(RSSystemProperties::GetHybridRenderSystemEnabled());
 }
  
 /**
@@ -1137,7 +1137,7 @@ HWTEST_F(RSSystemPropertiesTest, GetHybridRenderTextBlobLenCount, TestSize.Level
 */
 HWTEST_F(RSSystemPropertiesTest, GetHybridRenderParallelConvertEnabled, TestSize.Level1)
 {
-    EXPECT_FALSE(RSSystemProperties::GetHybridRenderParallelConvertEnabled());
+    EXPECT_TRUE(RSSystemProperties::GetHybridRenderParallelConvertEnabled());
 }
  
 /**
@@ -1159,7 +1159,7 @@ HWTEST_F(RSSystemPropertiesTest, GetHybridRenderCanvasEnabled, TestSize.Level1)
 */
 HWTEST_F(RSSystemPropertiesTest, GetHybridRenderMemeoryReleaseEnabled, TestSize.Level1)
 {
-    EXPECT_FALSE(RSSystemProperties::GetHybridRenderMemeoryReleaseEnabled());
+    EXPECT_TRUE(RSSystemProperties::GetHybridRenderMemeoryReleaseEnabled());
 }
 
 /**
@@ -1170,7 +1170,7 @@ HWTEST_F(RSSystemPropertiesTest, GetHybridRenderMemeoryReleaseEnabled, TestSize.
 */
 HWTEST_F(RSSystemPropertiesTest, GetHybridRenderTextBlobEnabled, TestSize.Level1)
 {
-    EXPECT_FALSE(RSSystemProperties::GetHybridRenderTextBlobEnabled());
+    EXPECT_TRUE(RSSystemProperties::GetHybridRenderTextBlobEnabled());
 }
  
 /**
@@ -1181,7 +1181,7 @@ HWTEST_F(RSSystemPropertiesTest, GetHybridRenderTextBlobEnabled, TestSize.Level1
 */
 HWTEST_F(RSSystemPropertiesTest, GetHybridRenderSvgEnabled, TestSize.Level1)
 {
-    EXPECT_FALSE(RSSystemProperties::GetHybridRenderSvgEnabled());
+    EXPECT_TRUE(RSSystemProperties::GetHybridRenderSvgEnabled());
 }
  
 /**
@@ -1192,7 +1192,7 @@ HWTEST_F(RSSystemPropertiesTest, GetHybridRenderSvgEnabled, TestSize.Level1)
 */
 HWTEST_F(RSSystemPropertiesTest, GetHybridRenderHmsymbolEnabled, TestSize.Level1)
 {
-    EXPECT_FALSE(RSSystemProperties::GetHybridRenderHmsymbolEnabled());
+    EXPECT_TRUE(RSSystemProperties::GetHybridRenderHmsymbolEnabled());
 }
  
 /**
@@ -1203,7 +1203,7 @@ HWTEST_F(RSSystemPropertiesTest, GetHybridRenderHmsymbolEnabled, TestSize.Level1
 */
 HWTEST_F(RSSystemPropertiesTest, GetHybridRenderSwitch, TestSize.Level1)
 {
-    EXPECT_EQ(RSSystemProperties::GetHybridRenderSwitch(ComponentEnableSwitch::TEXTBLOB), 0);
+    EXPECT_NE(RSSystemProperties::GetHybridRenderSwitch(ComponentEnableSwitch::TEXTBLOB), 0);
 }
 #endif
 } // namespace Rosen
