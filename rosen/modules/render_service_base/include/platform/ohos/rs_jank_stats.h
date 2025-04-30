@@ -120,6 +120,7 @@ struct JankDurationParams {
     uint32_t refreshRate_ = 0;
     bool discardJankFrames_ = false;
     bool skipJankAnimatorFrame_ = false;
+    bool implicitAnimationEnd_ = false;
 };
 
 class RSJankStats {
@@ -134,8 +135,6 @@ public:
     void HandleDirectComposition(const JankDurationParams& rsParams, bool isReportTaskDelayed,
         std::function<void(const std::function<void()>&)> postTaskHandler = nullptr);
     void ReportJankStats();
-    void ReportSceneJankStats(const AppInfo& appInfo);
-    void ReportSceneJankFrame(uint32_t dynamicRefreshRate);
     void SetReportEventResponse(const DataBaseRs& info);
     void SetReportEventComplete(const DataBaseRs& info);
     void SetReportEventJankFrame(const DataBaseRs& info, bool isReportTaskDelayed);
@@ -155,6 +154,7 @@ private:
     void SetEndTimeInner(bool skipJankAnimatorFrame = false, bool discardJankFrames = false,
                          uint32_t dynamicRefreshRate = STANDARD_REFRESH_RATE,
                          bool doDirectComposition = false, bool isReportTaskDelayed = false);
+    void SetImplicitAnimationEndInner(bool isImplicitAnimationEnd);
     bool NeedPostTaskToUniRenderThread() const;
     void UpdateEndTime();
     void SetRSJankStats(bool skipJankStats, uint32_t dynamicRefreshRate);
@@ -173,6 +173,8 @@ private:
     void ReportEventHitchTimeRatioWithDelay(const JankFrames& jankFrames) const;
     void ReportEventFirstFrame();
     void ReportEventFirstFrameByPid(pid_t appPid) const;
+    void ReportSceneJankStats(const AppInfo& appInfo);
+    void ReportSceneJankFrame(uint32_t dynamicRefreshRate);
     void HandleImplicitAnimationEndInAdvance(JankFrames& jankFrames, bool isReportTaskDelayed);
     void RecordJankFrame(uint32_t dynamicRefreshRate);
     void RecordJankFrameSingle(int64_t missedFrames, JankFrameRecordStats& recordStats);

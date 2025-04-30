@@ -642,6 +642,8 @@ private:
     // for statistic of jank frames
     std::atomic_bool discardJankFrames_ = false;
     std::atomic_bool skipJankAnimatorFrame_ = false;
+    bool isImplicitAnimationEnd_ = false;
+
     pid_t lastCleanCachePid_ = -1;
     int32_t unmarshalFinishedCount_ = 0;
     uint32_t appWindowNum_ = 0;
