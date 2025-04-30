@@ -786,7 +786,8 @@ void RSUniRenderVisitor::QuickPrepareDisplayRenderNode(RSDisplayRenderNode& node
     ancestorNodeHasAnimation_ = false;
     displayNodeRotationChanged_ = node.IsRotationChanged();
     dirtyFlag_ = isDirty_ || displayNodeRotationChanged_ || zoomStateChange_ ||
-        curDisplayDirtyManager_->IsActiveSurfaceRectChanged() || node.IsDirty();
+        curDisplayDirtyManager_->IsActiveSurfaceRectChanged() ||
+        curDisplayDirtyManager_->IsSurfaceRectChanged() || node.IsDirty();
     prepareClipRect_ = screenRect_;
     hasAccumulatedClip_ = false;
 
@@ -841,6 +842,7 @@ void RSUniRenderVisitor::QuickPrepareDisplayRenderNode(RSDisplayRenderNode& node
     curSurfaceNoBelowDirtyFilter_.clear();
     curDisplayNode_->ResetMirroredDisplayChangedFlag();
     PrepareForMultiScreenViewDisplayNode(node);
+    node.ResetDirtyFlag();
 }
 
 void RSUniRenderVisitor::CheckFilterCacheNeedForceClearOrSave(RSRenderNode& node)
