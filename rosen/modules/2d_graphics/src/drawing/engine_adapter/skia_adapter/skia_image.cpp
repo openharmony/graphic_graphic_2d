@@ -293,17 +293,32 @@ bool SkiaImage::BuildFromTexture(GPUContext& gpuContext, const TextureInfo& info
             return false;
         }
         PostSkImgToTargetThread();
+#ifdef USE_M133_SKIA
+        skiaImage_ = SkImages::BorrowTextureFrom(grContext_.get(), backendTexture,
+            SkiaTextureInfo::ConvertToGrSurfaceOrigin(origin),
+            SkiaImageInfo::ConvertToSkColorType(bitmapFormat.colorType),
+            SkiaImageInfo::ConvertToSkAlphaType(bitmapFormat.alphaType), skColorSpace, deleteFunc, cleanupHelper);
+#else
         skiaImage_ = SkImage::MakeFromTexture(grContext_.get(), backendTexture,
             SkiaTextureInfo::ConvertToGrSurfaceOrigin(origin),
             SkiaImageInfo::ConvertToSkColorType(bitmapFormat.colorType),
             SkiaImageInfo::ConvertToSkAlphaType(bitmapFormat.alphaType), skColorSpace, deleteFunc, cleanupHelper);
+#endif
     } else {
         PostSkImgToTargetThread();
+#ifdef USE_M133_SKIA
+        skiaImage_ = SkImages::BorrowTextureFrom(grContext_.get(),
+            SkiaTextureInfo::ConvertToGrBackendTexture(info),
+            SkiaTextureInfo::ConvertToGrSurfaceOrigin(origin),
+            SkiaImageInfo::ConvertToSkColorType(bitmapFormat.colorType),
+            SkiaImageInfo::ConvertToSkAlphaType(bitmapFormat.alphaType), skColorSpace);
+#else
         skiaImage_ = SkImage::MakeFromTexture(grContext_.get(),
             SkiaTextureInfo::ConvertToGrBackendTexture(info),
             SkiaTextureInfo::ConvertToGrSurfaceOrigin(origin),
             SkiaImageInfo::ConvertToSkColorType(bitmapFormat.colorType),
             SkiaImageInfo::ConvertToSkAlphaType(bitmapFormat.alphaType), skColorSpace);
+#endif
     }
 #else
     PostSkImgToTargetThread();
