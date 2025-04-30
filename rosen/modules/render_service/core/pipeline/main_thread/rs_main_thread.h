@@ -700,6 +700,7 @@ private:
 
     int64_t requestNextVsyncTime_ = -1;
     bool isHdrSwitchChanged_ = false;
+    bool isColorTemperatureOn_ = false;
 
     /**
      * @brief A set to store buffer IDs of images that are about to be unmapped from GPU cache.

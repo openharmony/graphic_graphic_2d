@@ -25,11 +25,11 @@ ohos_fuzztest("RSSurfaceOhosFuzzTest") {
   module_out_path = module_output_path
   fuzz_config_file = "../rssurfaceohos_fuzzer"
   include_dirs = [
-    "../../../../../modules/2d_graphics/src",
-    "../../../../../modules/render_service_base/src",
-    "../../../../../modules/2d_graphics/include",
+    "$graphic_2d_root/rosen/modules/2d_graphics/src",
+    "$graphic_2d_root/rosen/modules/render_service_base/src",
+    "$graphic_2d_root/rosen/modules/2d_graphics/include",
   ]
-  deps = [ "../../../../../modules/render_service_base:librender_service_base" ]
+  deps = [ "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base" ]
   cflags = [
     "-g",
     "-O0",

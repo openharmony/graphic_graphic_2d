@@ -2120,4 +2120,31 @@ HWTEST_F(RSUifirstManagerTest, GetCacheSurfaceProcessedStatusTest, TestSize.Leve
     surfaceDrawable->GetRsSubThreadCache().SetCacheSurfaceProcessedStatus(CacheProcessStatus::WAITING);
     ASSERT_EQ(uifirstManager_.GetCacheSurfaceProcessedStatus(surfaceParams), CacheProcessStatus::WAITING);
 }
+
+/**
+ * @tc.name: CheckHasTransAndFilter
+ * @tc.desc: Test strategy with trans and blur scenes by uifirst.
+ * @tc.type: FUNC
+ * @tc.require: issueIC4F7H
+*/
+HWTEST_F(RSUifirstManagerTest, CheckHasTransAndFilter001, TestSize.Level1)
+{
+    auto parentNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(parentNode, nullptr);
+    parentNode->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
+    bool result = uifirstManager_.CheckHasTransAndFilter(*parentNode);
+    ASSERT_EQ(result, false);
+
+    parentNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
+    auto childNode1 = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(childNode1, nullptr);
+    childNode1->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
+    auto childNode2 = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(childNode2, nullptr);
+    childNode2->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
+    parentNode->AddChild(childNode2);
+    parentNode->GenerateFullChildrenList();
+    result = uifirstManager_.CheckHasTransAndFilter(*parentNode);
+    ASSERT_EQ(result, false);
+}
 }

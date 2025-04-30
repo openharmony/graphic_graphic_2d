@@ -40,6 +40,7 @@ thread_local VulkanInterfaceType RsVulkanContext::vulkanInterfaceType_ = VulkanI
 thread_local std::weak_ptr<Drawing::GPUContext> RsVulkanContext::drawingContext_;
 thread_local std::weak_ptr<Drawing::GPUContext> RsVulkanContext::protectedDrawingContext_;
 std::map<int, std::shared_ptr<Drawing::GPUContext>> RsVulkanContext::drawingContextMap_;
+std::map<int, std::shared_ptr<Drawing::GPUContext>> RsVulkanContext::protectedDrawingContextMap_;
 std::mutex RsVulkanContext::drawingContextMutex_;
 std::unique_ptr<RsVulkanContext> RsVulkanContext::recyclableSingleton_ = nullptr;
 std::mutex RsVulkanContext::recyclableSingletonMutex_;
@@ -601,6 +602,7 @@ void RsVulkanContext::ReleaseRecyclableSingleton()
     {
         std::lock_guard<std::mutex> lock(drawingContextMutex_);
         drawingContextMap_.clear();
+        protectedDrawingContextMap_.clear();
     }
     {
         std::lock_guard<std::mutex> lock(recyclableSingletonMutex_);
@@ -615,13 +617,18 @@ void RsVulkanContext::SaveNewDrawingContext(int tid, std::shared_ptr<Drawing::GP
         RsVulkanContext::CleanUpRecyclableDrawingContext(tid);
     };
     static thread_local auto drawContextHolder = std::make_shared<DrawContextHolder>(func);
-    drawingContextMap_[tid] = drawingContext;
+    if (isProtected_) {
+        protectedDrawingContextMap_[tid] = drawingContext;
+    } else {
+        drawingContextMap_[tid] = drawingContext;
+    }
 }
 
 void RsVulkanContext::CleanUpRecyclableDrawingContext(int tid)
 {
     std::lock_guard<std::mutex> lock(drawingContextMutex_);
     drawingContextMap_.erase(tid);
+    protectedDrawingContextMap_.erase(tid);
 }
 
 RsVulkanInterface& RsVulkanContext::GetRsVulkanInterface()

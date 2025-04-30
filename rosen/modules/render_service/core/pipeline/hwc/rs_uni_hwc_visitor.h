@@ -76,6 +76,10 @@ public:
 
     void UpdateHwcNodeInfo(RSSurfaceRenderNode& node, const Drawing::Matrix& absMatrix,
         bool subTreeSkipped = false);
+        
+    void PrintHiperfCounterLog(const char* const counterContext, uint64_t counter);
+    void PrintHiperfLog(RSSurfaceRenderNode* node, const char* const disabledContext);
+    void PrintHiperfLog(std::shared_ptr<RSSurfaceRenderNode>& node, const char* const disabledContext);
 
     // DFX
     HwcDisabledReasonCollection& Statistics() { return hwcDisabledReasonCollection_; }

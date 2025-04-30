@@ -48,14 +48,7 @@ void BootSoundPlayer::Play()
         return;
     }
 
-    int64_t startTime = GetSystemCurrentTime();
-    int64_t endTime = startTime;
-    while ((endTime - startTime) < MAX_WAIT_MEDIA_CREATE_TIME
-        && (mediaPlayer_ = Media::PlayerFactory::CreatePlayer()) == nullptr) {
-        endTime = GetSystemCurrentTime();
-        usleep(SLEEP_TIME_US);
-        LOGI("mediaPlayer is nullptr, try create again");
-    }
+    CheckAndCreateMedia();
     if (mediaPlayer_ == nullptr) {
         LOGI("mediaPlayer create fail");
         return;

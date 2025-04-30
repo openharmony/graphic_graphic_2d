@@ -247,6 +247,11 @@ bool RsSubThreadCache::DrawCacheSurface(DrawableV2::RSSurfaceRenderNodeDrawable*
         if (cacheImage->IsTextureBacked()) {
             RS_LOGI("RsSubThreadCache::DrawCacheSurface convert cacheImage from texture to raster image");
             cacheImage = cacheImage->MakeRasterImage();
+            if (!cacheImage) {
+                RS_LOGE("RsSubThreadCache::DrawCacheSurface: MakeRasterImage failed");
+                canvas.Restore();
+                return false;
+            }
         }
     }
     Drawing::Brush brush;

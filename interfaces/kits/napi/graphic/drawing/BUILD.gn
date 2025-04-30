@@ -154,7 +154,7 @@ if (is_arkui_x) {
         "init:libbegetutil",
         "resource_management:global_resmgr",
       ]
-      deps += [ "../../../../../utils:libgraphic_utils" ]
+      deps += [ "$graphic_2d_root/utils:libgraphic_utils" ]
       defines += [ "ROSEN_OHOS" ]
       cflags_cc = [ "-std=c++17" ]
     } else {

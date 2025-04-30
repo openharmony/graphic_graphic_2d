@@ -139,8 +139,10 @@ void RSUIDirector::SetFlushEmptyCallback(FlushEmptyCallback flushEmptyCallback)
 #ifdef RS_ENABLE_VK
 void RSUIDirector::InitHybridRender()
 {
-    if (RSSystemProperties::GetHybridRenderEnabled() && !cacheDir_.empty()) {
-        RSModifiersDrawThread::Instance().SetCacheDir(cacheDir_);
+    if (RSSystemProperties::GetHybridRenderEnabled()) {
+        if (!cacheDir_.empty()) {
+            RSModifiersDrawThread::Instance().SetCacheDir(cacheDir_);
+        }
         CommitTransactionCallback callback =
             [] (std::shared_ptr<RSIRenderClient> &renderServiceClient,
             std::unique_ptr<RSTransactionData>&& rsTransactionData, uint32_t& transactionDataIndex) {

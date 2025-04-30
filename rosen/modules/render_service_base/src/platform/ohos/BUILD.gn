@@ -13,7 +13,7 @@
 
 import("//build/ohos.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
-import("../../../config.gni")
+import("//foundation/graphic/graphic_2d/rosen/modules/render_service_base/config.gni")
 
 group("ohos") {
   public_deps = [ ":rosen_ohos_sources" ]
@@ -208,20 +208,25 @@ ohos_source_set("rosen_ohos_sources") {
           "-Wno-profile-instr-out-of-date",
           "-Wno-profile-instr-unprofiled",
         ]
-        ldflags = [
-          "-Wl,-plugin-opt=-split-machine-functions",
-          "-Wl,-mllvm",
-          "-Wl,-fixup-unconditional-branch-unsafely",
-          "-Wl,--no-create-thunks-introduced-by-mfs",
-          "-Wl,-mllvm",
-          "-Wl,-mfs-psi-cutoff=999500",
-          "-Wl,-z",
-          "-Wl,keep-text-section-prefix",
+        ldflags += [
+          "-Wl,--aarch64-inline-plt",
           "-Wl,--symbol-ordering-file=" + rebase_path(
                   "${graphic_2d_feature_pgo_path}/librender_service_base.txt",
                   root_build_dir),
           "-Wl,--no-warn-symbol-ordering",
         ]
+        if (graphic_2d_feature_enable_mfs) {
+          ldflags += [
+            "-Wl,-plugin-opt=-split-machine-functions",
+            "-Wl,-mllvm",
+            "-Wl,-fixup-unconditional-branch-unsafely",
+            "-Wl,--no-create-thunks-introduced-by-mfs",
+            "-Wl,-mllvm",
+            "-Wl,-mfs-psi-cutoff=999500",
+            "-Wl,-z",
+            "-Wl,keep-text-section-prefix",
+          ]
+        }
       }
       if (graphic_2d_feature_product == "pc" && target_cpu == "arm64") {
         cflags += [ "-moutline-atomics" ]

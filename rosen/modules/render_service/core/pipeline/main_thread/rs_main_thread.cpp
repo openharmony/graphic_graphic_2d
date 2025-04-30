@@ -1558,6 +1558,7 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
     RSDrmUtil::ClearDrmNodes();
     const auto& nodeMap = GetContext().GetNodeMap();
     isHdrSwitchChanged_ = RSLuminanceControl::Get().IsHdrPictureOn() != prevHdrSwitchStatus_;
+    isColorTemperatureOn_ = RSColorTemperature::Get().IsColorTemperatureOn();
     if (UNLIKELY(consumeAndUpdateNode_ == nullptr)) {
         consumeAndUpdateNode_ = [this](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) mutable {
             if (UNLIKELY(surfaceNode == nullptr)) {
@@ -1701,7 +1702,7 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
                 }
             }
             surfaceNode->SetVideoHdrStatus(RSHdrUtil::CheckIsHdrSurface(*surfaceNode));
-            if (surfaceNode->GetVideoHdrStatus() == HdrStatus::NO_HDR) {
+            if (isColorTemperatureOn_ && surfaceNode->GetVideoHdrStatus() == HdrStatus::NO_HDR) {
                 surfaceNode->SetSdrHasMetadata(RSHdrUtil::CheckIsSurfaceWithMetadata(*surfaceNode));
             }
         };

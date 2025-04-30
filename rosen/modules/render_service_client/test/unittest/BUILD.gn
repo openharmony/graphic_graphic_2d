@@ -98,7 +98,7 @@ ohos_unittest("RSTransactionsTest") {
   sources = [ "rs_transaction_controller_test.cpp" ]
   deps = [
     ":rs_client_test_common",
-    "../../../render_service_base:render_service_base_src",
+    "$graphic_2d_root/rosen/modules/render_service_base:render_service_base_src",
   ]
 }
 
@@ -136,7 +136,7 @@ ohos_unittest("RSRegionTest") {
   sources = [ "rs_region_test.cpp" ]
   deps = [
     ":rs_client_test_common",
-    "../../../render_service_base:render_service_base_src",
+    "$graphic_2d_root/rosen/modules/render_service_base:render_service_base_src",
   ]
 }
 

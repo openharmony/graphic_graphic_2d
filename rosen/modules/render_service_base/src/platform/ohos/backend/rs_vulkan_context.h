@@ -403,6 +403,7 @@ private:
     static thread_local std::weak_ptr<Drawing::GPUContext> drawingContext_;
     static thread_local std::weak_ptr<Drawing::GPUContext> protectedDrawingContext_;
     static std::map<int, std::shared_ptr<Drawing::GPUContext>> drawingContextMap_;
+    static std::map<int, std::shared_ptr<Drawing::GPUContext>> protectedDrawingContextMap_;
     static std::mutex drawingContextMutex_;
     // use for recyclable singleton
     static std::unique_ptr<RsVulkanContext> recyclableSingleton_;

@@ -50,6 +50,7 @@ void RSLuminanceControl::CloseLibrary()
         dlclose(extLibHandle_);
         extLibHandle_ = nullptr;
     }
+    initStatus_ = false;
     create_ = nullptr;
     destroy_ = nullptr;
 }
@@ -61,8 +62,8 @@ void RSLuminanceControl::Init()
         CloseLibrary();
     }
     if (create_ != nullptr) {
-        rSLumInterface_ = create_();
-        if (rSLumInterface_ == nullptr) {
+        rSLuminanceControlInterface_ = create_();
+        if (rSLuminanceControlInterface_ == nullptr) {
             CloseLibrary();
         }
     }
@@ -92,95 +93,106 @@ bool RSLuminanceControl::LoadLibrary()
     return true;
 }
 
-bool RSLuminanceControl::SetHdrStatus(ScreenId screenId, HdrStatus hdrstatus)
+bool RSLuminanceControl::SetHdrStatus(ScreenId screenId, HdrStatus hdrStatus)
 {
-    return (rSLumInterface_ != nullptr) ? rSLumInterface_->SetHdrStatus(screenId, hdrstatus) : false;
+    return (rSLuminanceControlInterface_ != nullptr) ?
+        rSLuminanceControlInterface_->SetHdrStatus(screenId, hdrStatus) : false;
 }
 
 bool RSLuminanceControl::IsHdrOn(ScreenId screenId)
 {
-    return (rSLumInterface_ != nullptr) ? rSLumInterface_->IsHdrOn(screenId) : false;
+    return (rSLuminanceControlInterface_ != nullptr) ?
+        rSLuminanceControlInterface_->IsHdrOn(screenId) : false;
 }
 
 bool RSLuminanceControl::IsDimmingOn(ScreenId screenId)
 {
-    return (rSLumInterface_ != nullptr) ? rSLumInterface_->IsDimmingOn(screenId) : false;
+    return (rSLuminanceControlInterface_ != nullptr) ?
+        rSLuminanceControlInterface_->IsDimmingOn(screenId) : false;
 }
 
 void RSLuminanceControl::DimmingIncrease(ScreenId screenId)
 {
-    if (rSLumInterface_ != nullptr) {
-        rSLumInterface_->DimmingIncrease(screenId);
+    if (rSLuminanceControlInterface_ != nullptr) {
+        rSLuminanceControlInterface_->DimmingIncrease(screenId);
     }
 }
 
 void RSLuminanceControl::SetSdrLuminance(ScreenId screenId, uint32_t level)
 {
-    if (rSLumInterface_ != nullptr) {
-        rSLumInterface_->SetSdrLuminance(screenId, level);
+    if (rSLuminanceControlInterface_ != nullptr) {
+        rSLuminanceControlInterface_->SetSdrLuminance(screenId, level);
     }
 }
 
 uint32_t RSLuminanceControl::GetNewHdrLuminance(ScreenId screenId)
 {
-    return (rSLumInterface_ != nullptr) ? rSLumInterface_->GetNewHdrLuminance(screenId) : DEFAULT_LEVEL;
+    return (rSLuminanceControlInterface_ != nullptr) ?
+        rSLuminanceControlInterface_->GetNewHdrLuminance(screenId) : DEFAULT_LEVEL;
 }
 
 void RSLuminanceControl::SetNowHdrLuminance(ScreenId screenId, uint32_t level)
 {
-    if (rSLumInterface_ != nullptr) {
-        rSLumInterface_->SetNowHdrLuminance(screenId, level);
+    if (rSLuminanceControlInterface_ != nullptr) {
+        rSLuminanceControlInterface_->SetNowHdrLuminance(screenId, level);
     }
 }
 
 bool RSLuminanceControl::IsNeedUpdateLuminance(ScreenId screenId)
 {
-    return (rSLumInterface_ != nullptr) ? rSLumInterface_->IsNeedUpdateLuminance(screenId) : false;
+    return (rSLuminanceControlInterface_ != nullptr) ?
+        rSLuminanceControlInterface_->IsNeedUpdateLuminance(screenId) : false;
 }
 
 float RSLuminanceControl::GetSdrDisplayNits(ScreenId screenId)
 {
-    return (rSLumInterface_ != nullptr) ? rSLumInterface_->GetSdrDisplayNits(screenId) : HDR_DEFAULT_TMO_NIT;
+    return (rSLuminanceControlInterface_ != nullptr) ?
+        rSLuminanceControlInterface_->GetSdrDisplayNits(screenId) : HDR_DEFAULT_TMO_NIT;
 }
 
 float RSLuminanceControl::GetDisplayNits(ScreenId screenId)
 {
-    return (rSLumInterface_ != nullptr) ? rSLumInterface_->GetDisplayNits(screenId) : HDR_DEFAULT_TMO_NIT;
+    return (rSLuminanceControlInterface_ != nullptr) ?
+        rSLuminanceControlInterface_->GetDisplayNits(screenId) : HDR_DEFAULT_TMO_NIT;
 }
 
-double RSLuminanceControl::GetHdrBrightnessRatio(ScreenId screenId, int32_t mode)
+double RSLuminanceControl::GetHdrBrightnessRatio(ScreenId screenId, uint32_t mode)
 {
-    return (rSLumInterface_ != nullptr) ? rSLumInterface_->GetNonlinearRatio(screenId, mode) : 1.0;
+    return (rSLuminanceControlInterface_ != nullptr) ?
+        rSLuminanceControlInterface_->GetNonlinearRatio(screenId, mode) : 1.0;
 }
 
-float RSLuminanceControl::CalScaler(const float& maxContentLightLevel, const std::vector<uint8_t>& dyMetadata,
-    const float& ratio)
+float RSLuminanceControl::CalScaler(const float& maxContentLightLevel,
+    const std::vector<uint8_t>& dynamicMetadata, const float& ratio)
 {
-    return (rSLumInterface_ != nullptr) ? rSLumInterface_->CalScaler(maxContentLightLevel, dyMetadata, ratio) :
-        HDR_DEFAULT_SCALER * ratio;
+    return (rSLuminanceControlInterface_ != nullptr) ?
+        rSLuminanceControlInterface_->CalScaler(maxContentLightLevel,
+            dynamicMetadata, ratio) : HDR_DEFAULT_SCALER * ratio;
 }
 
 bool RSLuminanceControl::IsHdrPictureOn()
 {
-    return (rSLumInterface_ != nullptr) ? rSLumInterface_->IsHdrPictureOn() : false;
+    return (rSLuminanceControlInterface_ != nullptr) ?
+        rSLuminanceControlInterface_->IsHdrPictureOn() : false;
 }
 
 bool RSLuminanceControl::IsForceCloseHdr()
 {
-    return (rSLumInterface_ != nullptr) ? rSLumInterface_->IsForceCloseHdr() : false;
+    return (rSLuminanceControlInterface_ != nullptr) ?
+        rSLuminanceControlInterface_->IsForceCloseHdr() : false;
 }
 
 void RSLuminanceControl::ForceCloseHdr(uint32_t closeHdrSceneId, bool forceCloseHdr)
 {
-    if (rSLumInterface_ != nullptr) {
-        rSLumInterface_->ForceCloseHdr(closeHdrSceneId, forceCloseHdr);
+    if (rSLuminanceControlInterface_ != nullptr) {
+        rSLuminanceControlInterface_->ForceCloseHdr(closeHdrSceneId, forceCloseHdr);
     }
 }
 
 bool RSLuminanceControl::IsCloseHardwareHdr()
 {
-    return (rSLumInterface_ != nullptr) ?
-        rSLumInterface_->IsCloseHardwareHdr() : false;
+    return (rSLuminanceControlInterface_ != nullptr) ?
+        rSLuminanceControlInterface_->IsCloseHardwareHdr() : false;
 }
 } // namespace Rosen
 } // namespace OHOS

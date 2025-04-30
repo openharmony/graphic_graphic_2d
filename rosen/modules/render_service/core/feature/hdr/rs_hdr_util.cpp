@@ -84,6 +84,9 @@ bool RSHdrUtil::CheckIsSurfaceWithMetadata(const RSSurfaceRenderNode& surfaceNod
     if (!surfaceNode.GetRSSurfaceHandler()) {
         return false;
     }
+    if (!surfaceNode.IsYUVBufferFormat()) {
+        return false;
+    }
     return CheckIsSurfaceBufferWithMetadata(surfaceNode.GetRSSurfaceHandler()->GetBuffer());
 }
 

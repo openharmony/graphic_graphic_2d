@@ -126,7 +126,7 @@ void RSUniRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vecto
             params.isHdrRedraw = true;
         }
 #endif
-        RS_TRACE_NAME_FMT("DrawLayerWithParams, surface name: %s ", layerSurface->GetName().c_str());
+        RS_TRACE_NAME_FMT("DrawLayerWithParams, surface name: %s", layerSurface->GetName().c_str());
         DrawHdiLayerWithParams(canvas, layer, params);
         // Dfx for redraw region
         auto dstRect = layer->GetLayerSize();

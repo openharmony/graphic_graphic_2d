@@ -27,19 +27,23 @@ config("render_service_link_config") {
     if (graphic_2d_feature_enable_pgo && enable_enhanced_opt) {
       ldflags += [
         "-Wl,--aarch64-inline-plt",
-        "-Wl,-plugin-opt=-split-machine-functions",
-        "-Wl,-mllvm",
-        "-Wl,-fixup-unconditional-branch-unsafely",
-        "-Wl,--no-create-thunks-introduced-by-mfs",
-        "-Wl,-mllvm",
-        "-Wl,-mfs-psi-cutoff=999500",
-        "-Wl,-z",
-        "-Wl,keep-text-section-prefix",
-        "-Wl,--symbol-ordering-file=" +
-            rebase_path("${graphic_2d_feature_pgo_path}/librender_service.txt",
-                        root_build_dir),
+        "-Wl,--symbol-ordering-file=" + rebase_path(
+                "${graphic_2d_feature_pgo_path}/librender_service_base.txt",
+                root_build_dir),
         "-Wl,--no-warn-symbol-ordering",
       ]
+      if (graphic_2d_feature_enable_mfs) {
+        ldflags += [
+          "-Wl,-plugin-opt=-split-machine-functions",
+          "-Wl,-mllvm",
+          "-Wl,-fixup-unconditional-branch-unsafely",
+          "-Wl,--no-create-thunks-introduced-by-mfs",
+          "-Wl,-mllvm",
+          "-Wl,-mfs-psi-cutoff=999500",
+          "-Wl,-z",
+          "-Wl,keep-text-section-prefix",
+        ]
+      }
     }
   }
 }

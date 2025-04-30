@@ -70,6 +70,9 @@
 #include "ressched_event_listener.h"
 #endif
 
+#undef LOG_TAG
+#define LOG_TAG "RSHardwareThread"
+
 namespace OHOS::Rosen {
 namespace {
 constexpr uint32_t HARDWARE_THREAD_TASK_NUM = 2;
@@ -109,7 +112,7 @@ RSHardwareThread& RSHardwareThread::Instance()
 
 void RSHardwareThread::Start()
 {
-    RS_LOGI("RSHardwareThread::Start()!");
+    RS_LOGI("Start()!");
     hdiBackend_ = HdiBackend::GetInstance();
     runner_ = AppExecFwk::EventRunner::Create("RSHardwareThread");
     handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
@@ -212,7 +215,7 @@ void RSHardwareThread::ClearRedrawGPUCompositionCache(const std::set<uint32_t>& 
 void RSHardwareThread::RefreshRateCounts(std::string& dumpString)
 {
     if (refreshRateCounts_.empty()) {
-        RS_LOGE("RSHardwareThread::RefreshData fail, refreshRateCounts_ is empty");
+        RS_LOGE("RefreshData fail, refreshRateCounts_ is empty");
         return;
     }
     std::map<uint32_t, uint64_t>::iterator iter;
@@ -220,24 +223,24 @@ void RSHardwareThread::RefreshRateCounts(std::string& dumpString)
         dumpString.append(
             "Refresh Rate:" + std::to_string(iter->first) + ", Count:" + std::to_string(iter->second) + ";\n");
     }
-    RS_LOGD("RSHardwareThread::RefreshRateCounts refresh rate counts info is displayed");
+    RS_LOGD("RefreshRateCounts refresh rate counts info is displayed");
 }
 
 void RSHardwareThread::ClearRefreshRateCounts(std::string& dumpString)
 {
     if (refreshRateCounts_.empty()) {
-        RS_LOGE("RSHardwareThread::ClearRefreshData fail, refreshRateCounts_ is empty");
+        RS_LOGE("ClearRefreshData fail, refreshRateCounts_ is empty");
         return;
     }
     refreshRateCounts_.clear();
     dumpString.append("The refresh rate counts info is cleared successfully!\n");
-    RS_LOGD("RSHardwareThread::RefreshRateCounts refresh rate counts info is cleared");
+    RS_LOGD("RefreshRateCounts refresh rate counts info is cleared");
 }
 
 void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vector<LayerInfoPtr>& layers)
 {
     if (!handler_) {
-        RS_LOGE("RSHardwareThread::CommitAndReleaseLayers handler is nullptr");
+        RS_LOGE("CommitAndReleaseLayers handler is nullptr");
         return;
     }
     delayTime_ = 0;
@@ -259,9 +262,9 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
 #endif
         int64_t startTime = GetCurTimeCount();
         std::string surfaceName = GetSurfaceNameInLayers(layers);
-        RS_LOGI_LIMIT("RSHardwareThread::CommitAndReleaseLayers task execute, %{public}s", surfaceName.c_str());
+        RS_LOGI_LIMIT("CommitAndReleaseLayers task execute, %{public}s", surfaceName.c_str());
         if (output == nullptr || hdiBackend_ == nullptr) {
-            RS_LOGI("RSHardwareThread::CommitAndReleaseLayers task return, %{public}s", surfaceName.c_str());
+            RS_LOGI("CommitAndReleaseLayers task return, %{public}s", surfaceName.c_str());
             return;
         }
         int64_t startTimeNs = 0;
@@ -269,7 +272,7 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
 
         RSFirstFrameNotifier::GetInstance().ExecIfFirstFrameCommit(output->GetScreenId());
 
-        RS_LOGI_IF(DEBUG_COMPOSER, "RSHardwareThread::CommitAndReleaseData hasGameScene is %{public}d %{public}s",
+        RS_LOGI_IF(DEBUG_COMPOSER, "CommitAndReleaseData hasGameScene is %{public}d %{public}s",
             hasGameScene, surfaceName.c_str());
         if (hasGameScene) {
             startTimeNs = std::chrono::duration_cast<std::chrono::nanoseconds>(
@@ -278,7 +281,7 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
         RS_TRACE_NAME_FMT("CommitLayers rate:%u,now:%" PRIu64 ",vsyncId:%" PRIu64 ",size:%zu,%s",
             currentRate, param.frameTimestamp, param.vsyncId, layers.size(),
             GetSurfaceNameInLayersForTrace(layers).c_str());
-        RS_LOGD_IF(DEBUG_COMPOSER, "RSHardwareThread::CommitAndReleaseLayers rate:%{public}u, " \
+        RS_LOGD_IF(DEBUG_COMPOSER, "CommitAndReleaseLayers rate:%{public}u, " \
             "now:%{public}" PRIu64 ", vsyncId:%{public}" PRIu64 ", size:%{public}zu, %{public}s",
             currentRate, param.frameTimestamp, param.vsyncId, layers.size(), surfaceName.c_str());
 
@@ -316,7 +319,7 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
         }
 
         unExecuteTaskNum_--;
-        RS_LOGD_IF(DEBUG_COMPOSER, "RSHardwareThread::CommitAndReleaseData unExecuteTaskNum_:%{public}d,"
+        RS_LOGD_IF(DEBUG_COMPOSER, "CommitAndReleaseData unExecuteTaskNum_:%{public}d,"
             " HARDWARE_THREAD_TASK_NUM:%{public}d, %{public}s",
             unExecuteTaskNum_.load(), HARDWARE_THREAD_TASK_NUM, surfaceName.c_str());
         if (unExecuteTaskNum_ <= HARDWARE_THREAD_TASK_NUM) {
@@ -328,7 +331,7 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
         uint16_t frameRate = currentRate;
         if (missedFrames >= HARD_JANK_TWO_TIME &&
             endTime - intervalTimePoints_ > REPORT_LOAD_WARNING_INTERVAL_TIME) {
-            RS_LOGI("RSHardwareThread::CommitAndReleaseLayers report load event frameTime: %{public}" PRIu64
+            RS_LOGI("CommitAndReleaseLayers report load event frameTime: %{public}" PRIu64
                 " missedFrame: %{public}" PRIu32 " frameRate:%{public}" PRIu16 " %{public}s",
                 frameTime, missedFrames, frameRate, surfaceName.c_str());
             intervalTimePoints_ = endTime;
@@ -340,8 +343,7 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
     RSBaseRenderUtil::IncAcquiredBufferCount();
     unExecuteTaskNum_++;
     RSMainThread::Instance()->SetHardwareTaskNum(unExecuteTaskNum_.load());
-    RS_LOGI_IF(DEBUG_COMPOSER,
-        "RSHardwareThread::CommitAndReleaseData hgmCore's LtpoEnabled is %{public}d", hgmCore.GetLtpoEnabled());
+    RS_LOGI_IF(DEBUG_COMPOSER, "CommitAndReleaseData hgmCore's LtpoEnabled is %{public}d", hgmCore.GetLtpoEnabled());
     int64_t currTime = SystemTime();
     if (IsDelayRequired(hgmCore, param, output, hasGameScene)) {
         CalculateDelayTime(hgmCore, param, currentRate, currTime);
@@ -354,7 +356,7 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
         delayTime_ = delayTime_ +
             std::round((lastCommitTime_ - currCommitTime) * 1.0f / NS_MS_UNIT_CONVERSION) +
             COMMIT_DELTA_TIME;
-        RS_LOGD("RSHardwareThread::CommitAndReleaseLayers vsyncId: %{public}" PRIu64 ", " \
+        RS_LOGD("CommitAndReleaseLayers vsyncId: %{public}" PRIu64 ", " \
             "update delayTime: %{public}" PRId64 ", currCommitTime: %{public}" PRId64 ", " \
             "lastCommitTime: %{public}" PRId64, param.vsyncId, delayTime_, currCommitTime, lastCommitTime_);
         RS_TRACE_NAME_FMT("update delayTime: %" PRId64 ", currCommitTime: %" PRId64 ", lastCommitTime: %" PRId64 "",
@@ -397,7 +399,7 @@ void RSHardwareThread::EndCheck(RSTimer timer)
 void RSHardwareThread::ChangeLayersForActiveRectOutside(std::vector<LayerInfoPtr>& layers, ScreenId screenId)
 {
 #ifdef ROSEN_EMULATOR
-    RS_LOGD("RSHardwareThread::emulator device do not need add layer");
+    RS_LOGD("emulator device do not need add layer");
     return;
 #endif
     if (!RSSystemProperties::IsSuperFoldDisplay() || layers.size() == 0) {
@@ -511,19 +513,19 @@ bool RSHardwareThread::IsDelayRequired(OHOS::Rosen::HgmCore& hgmCore, RefreshRat
     const OutputPtr& output, bool hasGameScene)
 {
     if (param.isForceRefresh) {
-        RS_LOGD("RSHardwareThread::CommitAndReleaseLayers in Force Refresh");
+        RS_LOGD("CommitAndReleaseLayers in Force Refresh");
         RS_TRACE_NAME("CommitAndReleaseLayers in Force Refresh");
         return false;
     }
 
     if (hgmCore.GetLtpoEnabled()) {
         if (AdaptiveModeStatus(output) == SupportASStatus::SUPPORT_AS) {
-            RS_LOGD("RSHardwareThread::CommitAndReleaseLayers in Adaptive Mode");
+            RS_LOGD("CommitAndReleaseLayers in Adaptive Mode");
             RS_TRACE_NAME("CommitAndReleaseLayers in Adaptive Mode");
             return false;
         }
         if (hasGameScene && AdaptiveModeStatus(output) == SupportASStatus::GAME_SCENE_SKIP) {
-            RS_LOGD("RSHardwareThread::CommitAndReleaseLayers skip delayTime Calculation");
+            RS_LOGD("CommitAndReleaseLayers skip delayTime Calculation");
             RS_TRACE_NAME("CommitAndReleaseLayers in Game Scene and skiped delayTime Calculation");
             return false;
         }
@@ -532,7 +534,7 @@ bool RSHardwareThread::IsDelayRequired(OHOS::Rosen::HgmCore& hgmCore, RefreshRat
             return false;
         }
         if (hasGameScene) {
-            RS_LOGD("RSHardwareThread::CommitAndReleaseLayers in Game Scene");
+            RS_LOGD("CommitAndReleaseLayers in Game Scene");
             RS_TRACE_NAME("CommitAndReleaseLayers in Game Scene");
             return false;
         }
@@ -585,8 +587,7 @@ void RSHardwareThread::CalculateDelayTime(OHOS::Rosen::HgmCore& hgmCore, Refresh
         pipelineOffset, param.actualTimestamp, expectCommitTime, currTime, diffTime, delayTime_,
         frameOffset, dvsyncOffset, vsyncOffset, idealPeriod, period,
         idealPipelineOffset, param.fastComposeTimeStampDiff);
-    RS_LOGD_IF(DEBUG_PIPELINE,
-        "RSHardwareThread::CalculateDelayTime period:%{public}" PRId64 " delayTime:%{public}" PRId64 "", period,
+    RS_LOGD_IF(DEBUG_PIPELINE, "CalculateDelayTime period:%{public}" PRId64 " delayTime:%{public}" PRId64 "", period,
         delayTime_);
 }
 
@@ -660,10 +661,10 @@ GraphicColorGamut RSHardwareThread::ComputeTargetColorGamut(const sptr<SurfaceBu
     using namespace HDI::Display::Graphic::Common::V1_0;
     CM_ColorSpaceInfo colorSpaceInfo;
     if (MetadataHelper::GetColorSpaceInfo(buffer, colorSpaceInfo) != GSERROR_OK) {
-        RS_LOGD("RSHardwareThread::PreAllocateProtectedBuffer Get color space failed");
+        RS_LOGD("PreAllocateProtectedBuffer Get color space failed");
     }
     if (colorSpaceInfo.primaries != COLORPRIMARIES_SRGB) {
-        RS_LOGD("RSHardwareThread::PreAllocateProtectedBuffer fail, primaries is %{public}d", colorSpaceInfo.primaries);
+        RS_LOGD("PreAllocateProtectedBuffer fail, primaries is %{public}d", colorSpaceInfo.primaries);
         colorGamut = GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
     }
 #endif
@@ -679,7 +680,7 @@ GraphicPixelFormat RSHardwareThread::ComputeTargetPixelFormat(const sptr<Surface
     if (bufferPixelFormat == GRAPHIC_PIXEL_FMT_RGBA_1010102 || bufferPixelFormat == GRAPHIC_PIXEL_FMT_YCBCR_P010 ||
         bufferPixelFormat == GRAPHIC_PIXEL_FMT_YCRCB_P010) {
         pixelFormat = GRAPHIC_PIXEL_FMT_RGBA_1010102;
-        RS_LOGD("RSHardwareThread::PreAllocateProtectedBuffer pixelformat is set to 1010102 for 10bit buffer");
+        RS_LOGD("PreAllocateProtectedBuffer pixelformat is set to 1010102 for 10bit buffer");
     }
 #endif
     return pixelFormat;
@@ -688,7 +689,7 @@ GraphicPixelFormat RSHardwareThread::ComputeTargetPixelFormat(const sptr<Surface
 int32_t RSHardwareThread::AdaptiveModeStatus(const OutputPtr &output)
 {
     if (hdiBackend_ == nullptr) {
-        RS_LOGE("RSHardwareThread::AdaptiveModeStatus hdiBackend_ is nullptr");
+        RS_LOGE("AdaptiveModeStatus hdiBackend_ is nullptr");
         return SupportASStatus::NOT_SUPPORT;
     }
 
@@ -698,7 +699,7 @@ int32_t RSHardwareThread::AdaptiveModeStatus(const OutputPtr &output)
     auto frameRateMgr = hgmCore.GetFrameRateMgr();
     if (frameRateMgr != nullptr) {
         int32_t adaptiveStatus = frameRateMgr->AdaptiveStatus();
-        RS_LOGD("RSHardwareThread::CommitAndReleaseLayers send layer adaptiveStatus: %{public}u", adaptiveStatus);
+        RS_LOGD("CommitAndReleaseLayers send layer adaptiveStatus: %{public}u", adaptiveStatus);
         if (adaptiveStatus == SupportASStatus::SUPPORT_AS) {
             return SupportASStatus::SUPPORT_AS;
         }
@@ -715,7 +716,7 @@ RefreshRateParam RSHardwareThread::GetRefreshRateParam()
     // Temporary sync the timestamp to fix the duplicate time stamp issue.
     auto& hgmCore = OHOS::Rosen::HgmCore::Instance();
     bool directComposition = hgmCore.GetDirectCompositionFlag();
-    RS_LOGI_IF(DEBUG_COMPOSER, "RSHardwareThread::GetRefreshRateData period is %{public}d", directComposition);
+    RS_LOGI_IF(DEBUG_COMPOSER, "GetRefreshRateData period is %{public}d", directComposition);
     if (directComposition) {
         hgmCore.SetDirectCompositionFlag(false);
     }
@@ -755,7 +756,7 @@ void RSHardwareThread::ExecuteSwitchRefreshRate(const OutputPtr& output, uint32_
 {
     static bool refreshRateSwitch = system::GetBoolParameter("persist.hgm.refreshrate.enabled", true);
     if (!refreshRateSwitch) {
-        RS_LOGD("RSHardwareThread: refreshRateSwitch is off, currRefreshRate is %{public}d", refreshRate);
+        RS_LOGD("refreshRateSwitch is off, currRefreshRate is %{public}d", refreshRate);
         return;
     }
 
@@ -780,7 +781,7 @@ void RSHardwareThread::ExecuteSwitchRefreshRate(const OutputPtr& output, uint32_
     hgmCore.SetScreenSwitchDssEnable(id, true);
     if (refreshRate != hgmCore.GetScreenCurrentRefreshRate(id) || lastCurScreenId != curScreenId ||
         needRetrySetRate_) {
-        RS_LOGD("RSHardwareThread::CommitAndReleaseLayers screenId %{public}d refreshRate %{public}d \
+        RS_LOGD("CommitAndReleaseLayers screenId %{public}d refreshRate %{public}d \
             needRetrySetRate %{public}d", static_cast<int>(id), refreshRate, needRetrySetRate_);
         int32_t sceneId = (lastCurScreenId != curScreenId || needRetrySetRate_) ? SWITCH_SCREEN_SCENE : 0;
         hgmCore.GetFrameRateMgr()->SetLastCurScreenId(curScreenId);
@@ -937,7 +938,7 @@ std::shared_ptr<RSSurfaceOhos> RSHardwareThread::CreateFrameBufferSurfaceOhos(co
         rsSurface = std::make_shared<RSSurfaceOhosVulkan>(surface);
     }
 #endif
-    RS_LOGD("RSHardwareThread::Redraw: CreateFrameBufferSurfaceOhos.");
+    RS_LOGD("Redraw: CreateFrameBufferSurfaceOhos.");
     return rsSurface;
 }
 
@@ -963,7 +964,7 @@ void RSHardwareThread::RedrawScreenRCD(RSPaintFilterCanvas& canvas, const std::v
                 continue;
             }
         } else {
-            RS_LOGE("RSHardwareThread::RedrawScreenRCD layerSurface is nullptr");
+            RS_LOGE("RedrawScreenRCD layerSurface is nullptr");
             continue;
         }
     }
@@ -979,11 +980,11 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
     std::unique_lock<std::mutex> lock(preAllocMutex_, std::try_to_lock);
     auto screenManager = CreateOrGetScreenManager();
     if (screenManager == nullptr) {
-        RS_LOGE("RSHardwareThread::Redraw: screenManager is null.");
+        RS_LOGE("Redraw: screenManager is null.");
         return;
     }
     if (surface == nullptr || uniRenderEngine_ == nullptr) {
-        RS_LOGE("RSHardwareThread::Redraw: surface or uniRenderEngine is null.");
+        RS_LOGE("Redraw: surface or uniRenderEngine is null.");
         return;
     }
     bool isProtected = false;
@@ -1010,14 +1011,14 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
     }
 #endif
 
-    RS_LOGD("RsDebug RSHardwareThread::Redraw flush frame buffer start");
+    RS_LOGD("RsDebug Redraw flush frame buffer start");
     bool forceCPU = RSBaseRenderEngine::NeedForceCPU(layers);
     auto screenInfo = screenManager->QueryScreenInfo(screenId);
     std::shared_ptr<Drawing::ColorSpace> drawingColorSpace = nullptr;
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     GraphicColorGamut colorGamut = ComputeTargetColorGamut(layers);
     GraphicPixelFormat pixelFormat = ComputeTargetPixelFormat(layers);
-    RS_LOGD("RSHardwareThread::Redraw computed target color gamut: %{public}d,"
+    RS_LOGD("Redraw computed target color gamut: %{public}d,"
         "pixel format: %{public}d, frame width: %{public}d, frame height: %{public}d",
         colorGamut, pixelFormat, screenInfo.phyWidth, screenInfo.phyHeight);
     auto renderFrameConfig = RSBaseRenderUtil::GetFrameBufferRequestConfig(screenInfo,
@@ -1028,7 +1029,7 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
     CM_ColorSpaceType colorSpace = CM_SRGB_FULL;
     if (ConvertColorGamutToSpaceType(colorGamut, colorSpace)) {
         if (surface->SetUserData("ATTRKEY_COLORSPACE_INFO", std::to_string(colorSpace)) != GSERROR_OK) {
-            RS_LOGD("RSHardwareThread::Redraw set user data failed");
+            RS_LOGD("Redraw set user data failed");
         }
     }
 #else
@@ -1057,12 +1058,12 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
     auto renderFrame = uniRenderEngine_->RequestFrame(frameBufferSurfaceOhos, renderFrameConfig,
         forceCPU, true, frameContextConfig);
     if (renderFrame == nullptr) {
-        RS_LOGE("RsDebug RSHardwareThread::Redraw failed to request frame.");
+        RS_LOGE("RsDebug Redraw failed to request frame.");
         return;
     }
     auto canvas = renderFrame->GetCanvas();
     if (canvas == nullptr) {
-        RS_LOGE("RsDebug RSHardwareThread::Redraw canvas is nullptr.");
+        RS_LOGE("RsDebug Redraw canvas is nullptr.");
         return;
     }
 #ifdef RS_ENABLE_VK
@@ -1078,14 +1079,14 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
 #endif
     RedrawScreenRCD(*canvas, layers);
     renderFrame->Flush();
-    RS_LOGD("RsDebug RSHardwareThread::Redraw flush frame buffer end");
+    RS_LOGD("RsDebug Redraw flush frame buffer end");
 }
 
 void RSHardwareThread::AddRefreshRateCount(const OutputPtr& output)
 {
     auto screenManager = CreateOrGetScreenManager();
     if (screenManager == nullptr) {
-        RS_LOGE("RSHardwareThread::AddRefreshRateCount screenManager is nullptr");
+        RS_LOGE("AddRefreshRateCount screenManager is nullptr");
         return;
     }
     ScreenId id = screenManager->GetDefaultScreenId();
@@ -1101,7 +1102,7 @@ void RSHardwareThread::AddRefreshRateCount(const OutputPtr& output)
     RSRealtimeRefreshRateManager::Instance().CountRealtimeFrame(output->GetScreenId());
     auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
     if (frameRateMgr == nullptr) {
-        RS_LOGE("RSHardwareThread::AddRefreshData fail, frameBufferSurfaceOhos_ is nullptr");
+        RS_LOGE("AddRefreshData fail, frameBufferSurfaceOhos_ is nullptr");
         return;
     }
     frameRateMgr->HandleRsFrame();
@@ -1145,23 +1146,23 @@ GraphicColorGamut RSHardwareThread::ComputeTargetColorGamut(const std::vector<La
     GraphicColorGamut colorGamut = GRAPHIC_COLOR_GAMUT_SRGB;
     for (auto& layer : layers) {
         if (layer == nullptr) {
-            RS_LOGE("RSHardwareThread::ComputeTargetColorGamut layer is nullptr");
+            RS_LOGE("ComputeTargetColorGamut layer is nullptr");
             continue;
         }
         auto buffer = layer->GetBuffer();
         if (buffer == nullptr) {
-            RS_LOGW("RSHardwareThread::ComputeTargetColorGamut The buffer of layer is nullptr");
+            RS_LOGW("ComputeTargetColorGamut The buffer of layer is nullptr");
             continue;
         }
 
         CM_ColorSpaceInfo colorSpaceInfo;
         if (MetadataHelper::GetColorSpaceInfo(buffer, colorSpaceInfo) != GSERROR_OK) {
-            RS_LOGD("RSHardwareThread::ComputeTargetColorGamut Get color space failed");
+            RS_LOGD("ComputeTargetColorGamut Get color space failed");
             continue;
         }
 
         if (colorSpaceInfo.primaries != COLORPRIMARIES_SRGB) {
-            RS_LOGD("RSHardwareThread::ComputeTargetColorData fail, primaries is %{public}d",
+            RS_LOGD("ComputeTargetColorData fail, primaries is %{public}d",
                 colorSpaceInfo.primaries);
             colorGamut = GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
             break;
@@ -1181,7 +1182,7 @@ GraphicPixelFormat RSHardwareThread::ComputeTargetPixelFormat(const std::vector<
         }
         auto buffer = layer->GetBuffer();
         if (buffer == nullptr) {
-            RS_LOGW("RSHardwareThread::ComputeTargetPixelFormat The buffer of layer is nullptr");
+            RS_LOGW("ComputeTargetPixelFormat The buffer of layer is nullptr");
             continue;
         }
 
@@ -1190,7 +1191,7 @@ GraphicPixelFormat RSHardwareThread::ComputeTargetPixelFormat(const std::vector<
             bufferPixelFormat == GRAPHIC_PIXEL_FMT_YCBCR_P010 ||
             bufferPixelFormat == GRAPHIC_PIXEL_FMT_YCRCB_P010) {
             pixelFormat = GRAPHIC_PIXEL_FMT_RGBA_1010102;
-            RS_LOGD("RSHardwareThread::ComputeTargetPixelFormat pixelformat is set to 1010102 for 10bit buffer");
+            RS_LOGD("ComputeTargetPixelFormat pixelformat is set to 1010102 for 10bit buffer");
             break;
         }
     }

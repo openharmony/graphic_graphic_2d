@@ -82,3 +82,10 @@ rosen/modules/render_service/core/pipeline/hwc/ @whqwe
 rosen/modules/render_service/core/feature/hwc/ @whqwe
 rosen/modules/render_service_base/include/hwc/ @whqwe
 rosen/modules/render_service_base/src/hwc/ @whqwe
+
+[screen manager]
+rosen/modules/render_service/core/screen_manager/ @pengquan1
+rosen/modules/render_service_base/include/screen_manager/ @pengquan1
+rosen/modules/render_service_base/src/screen_manager/ @pengquan1
+rosen/modules/render_service/core/pipeline/render_thread/rs_uni_render_virtual_processor.h @pengquan1
+rosen/modules/render_service/core/pipeline/render_thread/rs_uni_render_virtual_processor.cpp @pengquan1
