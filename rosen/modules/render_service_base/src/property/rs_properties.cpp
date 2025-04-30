@@ -215,6 +215,7 @@ constexpr static std::array<ResetPropertyFunc, static_cast<int>(RSModifierType::
     [](RSProperties* prop) { prop->SetAttractionFraction(0.f); },        // ATTRACTION_FRACTION
     [](RSProperties* prop) { prop->SetAttractionDstPoint({}); },         // ATTRACTION_DSTPOINT
     [](RSProperties* prop) { prop->SetComplexShaderParam({}); },         // COMPLEX_SHADER_PARAM
+    [](RSProperties* prop) { prop->SetBackgroundUIFilter({}); },         // BACKGROUND_UI_FILTER
 };
 
 // Check if g_propertyResetterLUT size match and is fully initialized (the last element should never be nullptr)
@@ -2487,6 +2488,20 @@ void RSProperties::SetMask(const std::shared_ptr<RSMask>& mask)
 std::shared_ptr<RSMask> RSProperties::GetMask() const
 {
     return mask_;
+}
+
+void RSProperties::SetBackgroundUIFilter(const std::shared_ptr<RSRenderFilter>& filterProp)
+{
+    backgroundRenderFilter_ = filterProp;
+    isDrawn_ = true;
+    filterNeedUpdate_ = true;
+    SetDirty();
+    contentDirty_ = true;
+}
+
+std::shared_ptr<RSRenderFilter> RSProperties::GetBackgroundUIFilter() const
+{
+    return backgroundRenderFilter_;
 }
 
 void RSProperties::SetSpherize(float spherizeDegree)

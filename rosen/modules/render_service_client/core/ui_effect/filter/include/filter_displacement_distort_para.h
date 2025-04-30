@@ -24,7 +24,7 @@ class DisplacementDistortPara : public FilterPara {
 public:
     DisplacementDistortPara()
     {
-        this->type_ = FilterPara::ParaType::DISPLACENMENT_DISTORT;
+        this->type_ = FilterPara::ParaType::DISPLACEMENT_DISTORT;
     }
     ~DisplacementDistortPara() override = default;
 

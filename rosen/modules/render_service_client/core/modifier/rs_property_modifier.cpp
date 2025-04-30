@@ -18,6 +18,7 @@
 #include "modifier/rs_modifier_type.h"
 #include "modifier/rs_render_modifier.h"
 #include "platform/common/rs_log.h"
+#include "ui_effect/property/include/rs_ui_filter.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -173,6 +174,98 @@ std::shared_ptr<RSRenderModifier> RSComplexShaderParamModifier::CreateRenderModi
     auto renderProperty = GetRenderProperty();
     auto renderModifier = std::make_shared<RSComplexShaderParamRenderModifier>(renderProperty);
     return renderModifier;
+}
+
+RSBackgroundUIFilterModifier::RSBackgroundUIFilterModifier(const std::shared_ptr<RSPropertyBase>& property)
+    : RSBackgroundModifier(property, RSModifierType::BACKGROUND_UI_FILTER)
+{}
+
+std::shared_ptr<RSRenderModifier> RSBackgroundUIFilterModifier::CreateRenderModifier() const
+{
+    auto stagingProperty = std::static_pointer_cast<RSProperty<std::shared_ptr<RSUIFilter>>>(property_);
+    if (!stagingProperty) {
+        return nullptr;
+    }
+    auto stagingValue = stagingProperty->Get();
+    if (!stagingValue) {
+        return nullptr;
+    }
+    auto id = stagingProperty->GetId();
+    auto renderProperty = stagingValue->CreateRenderProperty(id);
+    if (!renderProperty) {
+        return nullptr;
+    }
+    auto renderModifier = std::make_shared<RSBackgroundUIFilterRenderModifier>(renderProperty);
+    return renderModifier;
+}
+
+RSModifierType RSBackgroundUIFilterModifier::GetModifierType() const
+{
+    return RSModifierType::BACKGROUND_UI_FILTER;
+}
+
+void RSBackgroundUIFilterModifier::OnAttachToNode(const std::weak_ptr<RSNode>& target)
+{
+    auto property = std::static_pointer_cast<RSProperty<std::shared_ptr<RSUIFilter>>>(GetProperty());
+    if (!property) {
+        ROSEN_LOGW("RSBackgroundUIFilterModifier::OnAttachToNode, null property.");
+        return;
+    }
+    auto uiFilter = property->Get();
+    if (!uiFilter) {
+        ROSEN_LOGW("RSBackgroundUIFilterModifier::OnAttachToNode, null uiFilter.");
+        return;
+    }
+    auto node = target.lock();
+    if (!node) {
+        ROSEN_LOGW("RSBackgroundUIFilterModifier::OnAttachToNode, null target.");
+        return;
+    }
+    for (auto type : uiFilter->GetUIFilterTypes()) {
+        auto paraGroup = uiFilter->GetUIFilterPara(type);
+        if (!paraGroup) {
+            continue;
+        }
+        for (auto& prop : paraGroup->GetLeafProperties()) {
+            if (!prop) {
+                continue;
+            }
+            prop->target_ = target;
+            node->RegisterProperty(prop);
+        }
+    }
+}
+
+void RSBackgroundUIFilterModifier::OnDetachFromNode()
+{
+    auto property = std::static_pointer_cast<RSProperty<std::shared_ptr<RSUIFilter>>>(GetProperty());
+    if (!property) {
+        ROSEN_LOGW("RSBackgroundUIFilterModifier::OnDetachFromNode, null property.");
+        return;
+    }
+    auto uiFilter = property->Get();
+    if (!uiFilter) {
+        ROSEN_LOGW("RSBackgroundUIFilterModifier::OnDetachFromNode, null uiFilter.");
+        return;
+    }
+    auto node = GetTarget().lock();
+    if (!node) {
+        ROSEN_LOGW("RSBackgroundUIFilterModifier::OnDetachFromNode, null target.");
+        return;
+    }
+    for (auto type : uiFilter->GetUIFilterTypes()) {
+        auto paraGroup = uiFilter->GetUIFilterPara(type);
+        if (!paraGroup) {
+            continue;
+        }
+        for (auto& prop : paraGroup->GetLeafProperties()) {
+            if (!prop) {
+                continue;
+            }
+            prop->target_.reset();
+            node->UnRegisterProperty(prop->GetId());
+        }
+    }
 }
 
 void RSBoundsModifier::Apply(const std::shared_ptr<RSObjAbsGeometry>& geometry)

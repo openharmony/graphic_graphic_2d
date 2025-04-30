@@ -165,25 +165,26 @@ enum class RSModifierType : int16_t {
     ATTRACTION_FRACTION = 132,
     ATTRACTION_DSTPOINT = 133,
     COMPLEX_SHADER_PARAM = 134,
-    CUSTOM = 135,
-    EXTENDED = 136,
-    TRANSITION = 137,
-    BACKGROUND_STYLE = 138,
-    CONTENT_STYLE = 139,
-    FOREGROUND_STYLE = 140,
-    OVERLAY_STYLE = 141,
-    NODE_MODIFIER = 142,
-    ENV_FOREGROUND_COLOR = 143,
-    ENV_FOREGROUND_COLOR_STRATEGY = 144,
-    GEOMETRYTRANS = 145,
-    CUSTOM_CLIP_TO_FRAME = 146,
-    HDR_BRIGHTNESS = 147,
-    BEHIND_WINDOW_FILTER_RADIUS = 148,
-    BEHIND_WINDOW_FILTER_SATURATION = 149,
-    BEHIND_WINDOW_FILTER_BRIGHTNESS = 150,
-    BEHIND_WINDOW_FILTER_MASK_COLOR = 151,
-    CHILDREN = 152, // PLACEHOLDER, no such modifier, but we need a dirty flag
-    MAX_RS_MODIFIER_TYPE = 153,
+    BACKGROUND_UI_FILTER = 135,
+    CUSTOM = 136,
+    EXTENDED = 137,
+    TRANSITION = 138,
+    BACKGROUND_STYLE = 139,
+    CONTENT_STYLE = 140,
+    FOREGROUND_STYLE = 141,
+    OVERLAY_STYLE = 142,
+    NODE_MODIFIER = 143,
+    ENV_FOREGROUND_COLOR = 144,
+    ENV_FOREGROUND_COLOR_STRATEGY = 145,
+    GEOMETRYTRANS = 146,
+    CUSTOM_CLIP_TO_FRAME = 147,
+    HDR_BRIGHTNESS = 148,
+    BEHIND_WINDOW_FILTER_RADIUS = 149,
+    BEHIND_WINDOW_FILTER_SATURATION = 150,
+    BEHIND_WINDOW_FILTER_BRIGHTNESS = 151,
+    BEHIND_WINDOW_FILTER_MASK_COLOR = 152,
+    CHILDREN = 153, // PLACEHOLDER, no such modifier, but we need a dirty flag
+    MAX_RS_MODIFIER_TYPE = 154,
 };
 
 enum class RSPropertyModifierType : uint8_t {
@@ -205,6 +206,7 @@ enum class RSRenderPropertyType : int16_t {
     PROPERTY_MATRIX3F,
     PROPERTY_QUATERNION,
     PROPERTY_FILTER,
+    PROPERTY_UI_FILTER,
     PROPERTY_SHADER_PARAM,
     PROPERTY_VECTOR2F,
     PROPERTY_VECTOR3F,
@@ -268,6 +270,7 @@ public:
             case RSModifierType::BORDER_DASH_GAP: return "BorderDashGap";
             case RSModifierType::FILTER: return "Filter";
             case RSModifierType::BACKGROUND_FILTER: return "BackgroundFilter";
+            case RSModifierType::BACKGROUND_UI_FILTER: return "BackgroundUIFilter";
             case RSModifierType::LINEAR_GRADIENT_BLUR_PARA: return "LinearGradientBlurPara";
             case RSModifierType::DYNAMIC_LIGHT_UP_RATE: return "DynamicLightUpRate";
             case RSModifierType::DYNAMIC_LIGHT_UP_DEGREE: return "DynamicLightUpDegree";
