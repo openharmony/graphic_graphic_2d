@@ -13,6 +13,9 @@
  * limitations under the License.
  */
 
+#ifndef RSINTERFACES011_FUZZER_H
+#define RSINTERFACES011_FUZZER_H
+
 #include <cstdint>
 #include <unistd.h>
 #include <climits>
@@ -22,3 +25,4 @@
 
 #define FUZZ_PROJECT_NAME "rsinterfaces011_fuzzer"
 
+#endif // RSINTERFACES011_FUZZER_H
