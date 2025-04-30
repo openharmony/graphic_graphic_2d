@@ -2794,7 +2794,7 @@ CM_INLINE void RSRenderNode::ApplyModifiers()
         isFullChildrenListValid_, isChildrenSorted_, childrenHasSharedTransition_);
     if (pendingPurgeNodeIds_.count(GetId())) {
         SetDirty();
-        pendingPurgeNodeIds_.erase(GetId())
+        pendingPurgeNodeIds_.erase(GetId());
     }
     if (const auto& sharedTransitionParam = GetSharedTransitionParam()) {
         sharedTransitionParam->UpdateHierarchy(GetId());
