@@ -247,6 +247,9 @@ public:
         return startingWindowFlag_;
     }
 
+    bool IsRepaintBoundary() const;
+    void MarkRepaintBoundary(bool isRepaintBoundary);
+
     bool SetFirstLevelNode(NodeId firstLevelNodeId);
     NodeId GetFirstLevelNodeId() const;
     bool SetUiFirstRootNode(NodeId uifirstRootNodeId);
@@ -439,6 +442,7 @@ private:
     bool windowKeyframeEnabled_ = false;
     bool needSwapBuffer_ = false;
     Drawing::RectF cacheNodeFrameRect_;
+    bool isRepaintBoundary_ = false;
 };
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_PARAMS_RS_RENDER_PARAMS_H
