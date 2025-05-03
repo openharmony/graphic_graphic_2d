@@ -2335,7 +2335,7 @@ const std::vector<std::weak_ptr<RSSurfaceRenderNode>>& RSSurfaceRenderNode::GetC
 
 void RSSurfaceRenderNode::SetHwcChildrenDisabledStateByUifirst()
 {
-    const auto TraverseHwcNodes = [](const auto& hwcNodes){
+    const auto TraverseHwcNodes = [](const auto& hwcNodes) {
         for (const auto& hwcNdoe : hwcNodes) {
             auto hwcNodePtr = hwcNode.lock();
             if (!hwcNodePtr || hwcNodePtr->IsHardwareForcedDisabled()) {
