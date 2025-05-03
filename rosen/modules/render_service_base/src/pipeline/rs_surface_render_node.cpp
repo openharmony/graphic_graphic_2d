@@ -2335,7 +2335,7 @@ const std::vector<std::weak_ptr<RSSurfaceRenderNode>>& RSSurfaceRenderNode::GetC
 
 void RSSurfaceRenderNode::SetHwcChildrenDisabledStateByUifirst()
 {
-    const auto TraverseHwcNodes = [](){
+    const auto TraverseHwcNodes = [](const auto& hwcNodes){
         for (const auto& hwcNdoe : hwcNodes) {
             auto hwcNodePtr = hwcNode.lock();
             if (!hwcNodePtr || hwcNodePtr->IsHardwareForcedDisabled()) {
@@ -2347,9 +2347,9 @@ void RSSurfaceRenderNode::SetHwcChildrenDisabledStateByUifirst()
         }
     };
     TraverseHwcNodes(GetChildHardwareEnabledNodes());
-    std::vector<std::pair<NodeId, RSSUrfaceRenderNode::WeakPtr>> allSubSurfaceNodes;
+    std::vector<std::pair<NodeId, RSSurfaceRenderNode::WeakPtr>> allSubSurfaceNodes;
     GetAllSubSurfaceNodes(allSubSurfaceNodes);
-    for (const auto& [_, weekNode] : allSubSurfaceNodes) {
+    for (const auto& [_, weakNode] : allSubSurfaceNodes) {
         if (auto surfaceNode = weakNode.lock(); surfaceNode != nullptr) {
             TraverseHwcNodes(surfaceNode->GetChildHardwareEnabledNodes());
         }
