@@ -2335,25 +2335,23 @@ const std::vector<std::weak_ptr<RSSurfaceRenderNode>>& RSSurfaceRenderNode::GetC
 
 void RSSurfaceRenderNode::SetHwcChildrenDisabledStateByUifirst()
 {
-    if (IsAppWindow()) {
-        auto hwcNodes = GetChildHardwareEnabledNodes();
-        if (hwcNodes.empty()) {
-            return;
-        }
-        for (auto hwcNode : hwcNodes) {
+    const auto TraverseHwcNodes = [](){
+        for (const auto& hwcNdoe : hwcNodes) {
             auto hwcNodePtr = hwcNode.lock();
-            if (!hwcNodePtr || hwcNodePtr->IsHardwareForcedDisabled()) {
+            if  (!hwcNodePtr || hwcNodePtr->IsHardwareForcedDisabled()) {
                 continue;
             }
             hwcNodePtr->SetHardwareForcedDisabledState(true);
+            RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%" PRIu64 " disabled by parent",
+                hwcNodePtr->GetName().c_str(), hwcNodePtr->GetId());
         }
-    } else if (IsLeashWindow()) {
-        for (auto& child : *GetChildren()) {
-            auto surfaceNode = child->ReinterpretCastTo<RSSurfaceRenderNode>();
-            if (surfaceNode == nullptr) {
-                continue;
-            }
-            surfaceNode->SetHwcChildrenDisabledStateByUifirst();
+    };
+    TraverseHwcNodes(GetChildHardwareEnabledNodes());
+    std::vector<std::pair<NodeId, RSSUrfaceRenderNode::WeakPtr>> allSubSurfaceNodes;
+    GetAllSubSurfaceNodes(allSubSurfaceNodes);
+    for (const auto& [_, weekNode] : allSubSurfaceNodes) {
+        if (auto surfaceNode = weakNode.lock(); surfaceNode != nullptr) {
+            TraverseHwcNodes(surfaceNode->GetChildHardwareEnabledNodes());
         }
     }
 }
