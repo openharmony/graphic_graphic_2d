@@ -2338,7 +2338,7 @@ void RSSurfaceRenderNode::SetHwcChildrenDisabledStateByUifirst()
     const auto TraverseHwcNodes = [](){
         for (const auto& hwcNdoe : hwcNodes) {
             auto hwcNodePtr = hwcNode.lock();
-            if  (!hwcNodePtr || hwcNodePtr->IsHardwareForcedDisabled()) {
+            if (!hwcNodePtr || hwcNodePtr->IsHardwareForcedDisabled()) {
                 continue;
             }
             hwcNodePtr->SetHardwareForcedDisabledState(true);
