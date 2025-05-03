@@ -79,7 +79,7 @@ constexpr int64_t COMMIT_DELTA_TIME = 2; // 2ms
 constexpr int64_t MAX_DELAY_TIME = 100; // 100ms
 constexpr int64_t NS_MS_UNIT_CONVERSION = 1000000;
 constexpr int64_t UNI_RENDER_VSYNC_OFFSET_DELAY_MODE = 3300000; // 3.3ms
-constexpr uint32_t DELAY_TIME_OFFSET = 5; // 5ms
+constexpr uint32_t DELAY_TIME_OFFSET = 100; // 100ms
 }
 
 static int64_t SystemTime()

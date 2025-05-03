@@ -410,15 +410,17 @@ void HgmFrameRateManager::UpdateSoftVSync(bool followRs)
     // max used here
     finalRange = {lastVoteInfo_.max, lastVoteInfo_.max, lastVoteInfo_.max};
     RS_TRACE_NAME_FMT("VoteRes: %s[%d, %d]", lastVoteInfo_.voterName.c_str(), lastVoteInfo_.min, lastVoteInfo_.max);
+    bool needChangeDssRefreshRate = false;
     auto refreshRate = CalcRefreshRate(curScreenId_.load(), finalRange);
     if (currRefreshRate_.load() != refreshRate) {
         currRefreshRate_.store(refreshRate);
         schedulePreferredFpsChange_ = true;
+        needChangeDssRefreshRate = true;
         FrameRateReport();
     }
 
     bool frameRateChanged = CollectFrameRateChange(finalRange, rsFrameRateLinker_, appFrameRateLinkers_);
-    CheckRefreshRateChange(followRs, frameRateChanged, refreshRate);
+    CheckRefreshRateChange(followRs, frameRateChanged, refreshRate, needChangeDssRefreshRate);
     ReportHiSysEvent(lastVoteInfo_);
 }
 
@@ -1881,10 +1883,9 @@ void HgmFrameRateManager::NotifyPageName(pid_t pid, const std::string &packageNa
     appPageUrlStrategy_.NotifyPageName(pid, packageName, pageName, isEnter);
 }
 
-void HgmFrameRateManager::CheckRefreshRateChange(bool followRs, bool frameRateChanged, uint32_t refreshRate)
+void HgmFrameRateManager::CheckRefreshRateChange(
+    bool followRs, bool frameRateChanged, uint32_t refreshRate, bool needChangeDssRefreshRate)
 {
-    bool needChangeDssRefreshRate = currRefreshRate_.load() != refreshRate;
-    // 当dvsync在连续延迟切帧阶段，使用dvsync内记录的刷新率判断是否变化
     CreateVSyncGenerator()->DVSyncRateChanged(controllerRate_, frameRateChanged);
     if (HgmCore::Instance().GetLtpoEnabled() && frameRateChanged) {
         HandleFrameRateChangeForLTPO(timestamp_.load(), followRs);
