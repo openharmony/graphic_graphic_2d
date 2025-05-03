@@ -2027,7 +2027,7 @@ void HgmFrameRateManager::CheckRefreshRateChange(
     CheckNeedUpdateAppOffset(refreshRate);
     bool appOffsetChange = isNeedUpdateAppOffset_;
     if (controller_ != nullptr) {
-        appOffsetChange = isNeedUpdateAppOffset_ && controller_->GetPulseNum() != 0
+        appOffsetChange = isNeedUpdateAppOffset_ && controller_->GetPulseNum() != 0;
     }
     if (HgmCore::Instance().GetLtpoEnabled() &&
         (frameRateChanged || (appOffsetChange && !CreateVSyncGenerator()->IsUiDvsyncOn()))) {
