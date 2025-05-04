@@ -18,6 +18,7 @@
 
 #include <vector>
 #include <parcel.h>
+#include <message_parcel.h>
 
 #include "common/rs_macros.h"
 #include "platform/common/rs_log.h"
@@ -57,14 +58,28 @@ struct EventInfo {
         return true;
     }
 
-    static EventInfo Deserialize(MessageParcel& parcel) {
-        EventInfo info;
-        info.eventName = parcel.ReadString();
-        info.eventStatus = parcel.ReadBool();
-        info.minRefreshRate = parcel.ReadUint32();
-        info.maxRefreshRate = parcel.ReadUint32();
-        info.description = parcel.ReadString();
-        return info;
+    static bool EventInfo Deserialize(MessageParcel& parcel, EventInfo& info) {
+        if (!parcel.ReadString(&info.eventName)) {
+            ROSEN_LOGE("Deserialize EventInfo: ReadString eventName err.");
+            return false;
+        }
+        if (!parcel.ReadBool(&info.eventStatus)) {
+            ROSEN_LOGE("Deserialize EventInfo: ReadBool eventStatus err.");
+            return false;
+        }
+        if (!parcel.ReadUint32(&info.minRefreshRate)) {
+            ROSEN_LOGE("Deserialize EventInfo: ReadUint32 minRefreshRate err.");
+            return false;
+        }
+        if (!parcel.ReadUint32(&info.maxRefreshRate)) {
+            ROSEN_LOGE("Deserialize EventInfo: ReadUint32 maxRefreshRate err.");
+            return false;
+        }
+        if (!parcel.ReadString(&info.description)) {
+            ROSEN_LOGE("Deserialize EventInfo: ReadString description err.");
+            return false;
+        }
+        return true;
     }
 };
 

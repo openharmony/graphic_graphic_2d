@@ -172,7 +172,6 @@ public:
     void HandlePageUrlEvent();
     void NotifyPageName(pid_t pid, const std::string &packageName, const std::string &pageName, bool isEnter);
     HgmSoftVSyncManager& SoftVSyncMgrRef() { return softVSyncManager_; };
-    std::vector<std::pair<FrameRateLinkerId, uint32_t>> GetSoftppChangeData();
 private:
     void Reset();
     void UpdateAppSupportedState();

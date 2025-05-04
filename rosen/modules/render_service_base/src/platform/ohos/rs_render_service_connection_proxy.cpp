@@ -4073,7 +4073,7 @@ void RSRenderServiceConnectionProxy::NotifyAppStrategyConfigChangeEvent(const st
     }
 }
 
-void SetWindowExpectedRefreshRate(std::unordered_map<uint64_t, EventInfo>& eventInfos)
+void RSRenderServiceConnectionProxy::SetWindowExpectedRefreshRate(std::unordered_map<uint64_t, EventInfo>& eventInfos)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -4100,7 +4100,7 @@ void SetWindowExpectedRefreshRate(std::unordered_map<uint64_t, EventInfo>& event
     }
 }
 
-void SetWindowExpectedRefreshRate(std::unordered_map<std::string, EventInfo>& eventInfos)
+void RSRenderServiceConnectionProxy::SetWindowExpectedRefreshRate(std::unordered_map<std::string, EventInfo>& eventInfos)
 {
     MessageParcel data;
     MessageParcel reply;

@@ -90,7 +90,10 @@ void HgmSoftVSyncManager::HandleLinkers(const FrameRateLinkerMap& appFrameRateLi
     }
 }
 
-void HgmSoftVSyncManager::SetWindowExpectedRefreshRate(pid_t pid, const FrameRateLinkerMap& appFrameLinkers, const std::unordered_map<WindowId, EventInfo>& voters)
+void HgmSoftVSyncManager::SetWindowExpectedRefreshRate(pid_t pid,
+                                                       const FrameRateLinkerMap& appFrameLinkers,
+                                                       const std::unordered_map<WindowId,
+                                                       EventInfo>& voters)
 {
     HandleLinkers(appFrameLinkers);
     for (auto voter : voters) {
@@ -108,7 +111,10 @@ void HgmSoftVSyncManager::SetWindowExpectedRefreshRate(pid_t pid, const FrameRat
     }
 }
 
-void HgmSoftVSyncManager::SetWindowExpectedRefreshRate(pid_t pid, const FrameRateLinkerMap& appFrameLinkers, const std::unordered_map<VsyncName, EventInfo>& voters)
+void HgmSoftVSyncManager::SetWindowExpectedRefreshRate(pid_t pid,
+                                                       const FrameRateLinkerMap& appFrameLinkers,
+                                                       const std::unordered_map<VsyncName,
+                                                       EventInfo>& voters)
 {
     HandleLinkers(appFrameLinkers);
     for (auto voter : voters) {
@@ -171,7 +177,7 @@ bool HgmSoftVSyncManager::CollectFrameRateChange(FrameRateRange finalRange,
         if (!isChanged && appVoteData_.count(linker.first)) {
             expectedRange.preferred_ = appVoteData_[linker.first];
         }
-        auto appFrameRate = !isIdle_ && expectedRange.type_ != NATIVE_VSYNC_TYPE ?
+        auto appFrameRate = !isIdle_ && expectedRange.type_ != NATIVE_VSYNC_FRAME_RATE_TYPE ?
                             OLED_NULL_HZ : HgmSoftVSyncManager::GetDrawingFrameRate(currRefreshRate, expectedRange);
         if (appFrameRate != linker.second->GetFrameRate() || controllerRateChanged) {
             linker.second->SetFrameRate(appFrameRate);
