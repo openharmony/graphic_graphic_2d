@@ -132,10 +132,6 @@ bool HgmSoftVSyncManager::CollectFrameRateChange(FrameRateRange finalRange,
                                                  const FrameRateLinkerMap& appFrameRateLinkers,
                                                  const uint32_t currRefreshRate)
 {
-    if (controller_ == nullptr) {
-        HGM_LOGE("no valid controller, cannot work correctly, maybe Init() wasn't executed correctly.");
-        return false;
-    }
     auto sharedController = controller_.lock();
     if (sharedController == nullptr) {
         HGM_LOGE("no valid controller, cannot work correctly, maybe Init() wasn't executed correctly.");
@@ -162,8 +158,7 @@ bool HgmSoftVSyncManager::CollectFrameRateChange(FrameRateRange finalRange,
             continue;
         }
         auto expectedRange = linker.second->GetExpectedRange();
-        CalcAppFrameRate(linker, expectedRange);
-        
+        CalcAppFrameRate(linker, expectedRange, frameRateChanged, controllerRateChanged, currRefreshRate);
     }
     return frameRateChanged;
 }

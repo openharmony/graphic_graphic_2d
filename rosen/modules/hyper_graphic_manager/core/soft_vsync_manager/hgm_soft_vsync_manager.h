@@ -81,7 +81,7 @@ private:
     std::unordered_map<VsyncName, std::vector<FrameRateLinkerId>> vsyncLinkerMap_;
     std::unordered_map<FrameRateLinkerId, uint32_t> appVoteData_;
     std::unordered_map<FrameRateLinkerId, uint32_t> appChangeData_;
-    std::weak_ptr<HgmVSyncGeneratorController> controller_ = nullptr;
+    std::weak_ptr<HgmVSyncGeneratorController> controller_;
     // linkerid is key, vrate is value
     std::map<uint64_t, int> vRatesMap_;
     sptr<VSyncDistributor> appDistributor_ = nullptr;

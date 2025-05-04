@@ -2738,7 +2738,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                     break;
                 }
                 EventInfo eventInfo;
-                if (!EventInfo::Deserialize(data, &eventInfo)) {
+                if (!EventInfo::Deserialize(data, eventInfo)) {
                     RS_LOGE("RSRenderServiceConnectionStub::NOTIFY_WINDOW_EXPECTED_BY_WINDOW_ID Read parcel failed!");
                     ret = ERR_INVALID_DATA;
                     break;
@@ -2765,7 +2765,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                     break;
                 }
                 EventInfo eventInfo;
-                if (!EventInfo::Deserialize(data, &eventInfo)) {
+                if (!EventInfo::Deserialize(data, eventInfo)) {
                     RS_LOGE("RSRenderServiceConnectionStub::NOTIFY_WINDOW_EXPECTED_BY_VSYNC_NAME Read parcel failed!");
                     ret = ERR_INVALID_DATA;
                     break;

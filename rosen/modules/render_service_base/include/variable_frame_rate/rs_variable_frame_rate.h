@@ -61,23 +61,23 @@ struct EventInfo {
 
     static bool Deserialize(MessageParcel& parcel, EventInfo& info)
     {
-        if (!parcel.ReadString(&info.eventName)) {
+        if (!parcel.ReadString(info.eventName)) {
             ROSEN_LOGE("Deserialize EventInfo: ReadString eventName err.");
             return false;
         }
-        if (!parcel.ReadBool(&info.eventStatus)) {
+        if (!parcel.ReadBool(info.eventStatus)) {
             ROSEN_LOGE("Deserialize EventInfo: ReadBool eventStatus err.");
             return false;
         }
-        if (!parcel.ReadUint32(&info.minRefreshRate)) {
+        if (!parcel.ReadUint32(info.minRefreshRate)) {
             ROSEN_LOGE("Deserialize EventInfo: ReadUint32 minRefreshRate err.");
             return false;
         }
-        if (!parcel.ReadUint32(&info.maxRefreshRate)) {
+        if (!parcel.ReadUint32(info.maxRefreshRate)) {
             ROSEN_LOGE("Deserialize EventInfo: ReadUint32 maxRefreshRate err.");
             return false;
         }
-        if (!parcel.ReadString(&info.description)) {
+        if (!parcel.ReadString(info.description)) {
             ROSEN_LOGE("Deserialize EventInfo: ReadString description err.");
             return false;
         }

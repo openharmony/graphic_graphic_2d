@@ -2546,7 +2546,7 @@ void RSRenderServiceConnection::SetWindowExpectedRefreshRate(
 void RSRenderServiceConnection::SetWindowExpectedRefreshRate(
     const std::unordered_map<std::string, EventInfo>& eventInfos
 )
-{    
+{
     HgmTaskHandleThread::Instance().PostTask([pid = remotePid_, eventInfos]() {
         auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
         if (frameRateMgr != nullptr) {

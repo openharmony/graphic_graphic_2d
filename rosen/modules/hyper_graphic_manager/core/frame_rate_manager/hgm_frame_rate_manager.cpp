@@ -199,12 +199,12 @@ void HgmFrameRateManager::InitTouchManager()
     static std::once_flag createFlag;
     std::call_once(createFlag, [this]() {
         auto updateTouchToMultiAppStrategy = [this](TouchState newState) {
-            HgmMultiAppStrategy::TouchInfo touchInfo =
-                { .pkgName = touchManager_.GetPkgName(), .touchState = newState, };
+            HgmMultiAppStrategy::TouchInfo touchInfo = { .pkgName = touchManager_.GetPkgName(),
+                .touchState = newState, };
             HgmEnergyConsumptionPolicy::Instance().SetTouchState(newState);
             multiAppStrategy_.HandleTouchInfo(touchInfo);
             UpdateSoftVSync(false);
-        };  
+        };
         touchManager_.RegisterEnterStateCallback(TouchState::DOWN_STATE,
             [this, updateTouchToMultiAppStrategy] (TouchState lastState, TouchState newState) {
             updateTouchToMultiAppStrategy(newState);
