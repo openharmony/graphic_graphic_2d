@@ -2142,7 +2142,6 @@ bool DrawCmdFuzzTest051(const uint8_t* data, size_t size)
         delete [] dataText;
         dataText = nullptr;
     }
-    drawTextBlobOpItem.GetBounds();
     return true;
 }
 

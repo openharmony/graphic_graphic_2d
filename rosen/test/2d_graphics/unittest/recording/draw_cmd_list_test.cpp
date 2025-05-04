@@ -200,10 +200,7 @@ HWTEST_F(DrawCmdListTest, GetBounds003, TestSize.Level1)
     drawCmdList->lastOpGenSize_ = drawCmdList->opAllocator_.GetSize();
     Brush brush;
     drawCmdList->drawOpItems_.emplace_back(std::make_shared<DrawBackgroundOpItem>(brush));
-    Font font;
-    auto textBlob = TextBlob::MakeFromString("11", font, TextEncoding::UTF8);
-    Paint paint;
-    auto opItem = std::make_shared<DrawTextBlobOpItem>(textBlob.get(), 0, 0, paint);
+    auto opItem = std::make_shared<HybridRenderPixelMapSizeOpItem>(100.0f, 100.0f);
     drawCmdList->drawOpItems_.emplace_back(opItem);
     Rect rect;
     bool ret = drawCmdList->GetBounds(rect);

@@ -653,11 +653,11 @@ bool DrawCmdList::GetBounds(Rect& rect)
         return false;
     }
     for (auto op : drawOpItems_) {
-        if (op == nullptr || op->GetType() != DrawOpItem::TEXT_BLOB_OPITEM) {
+        if (op == nullptr || op->GetType() != DrawOpItem::HYBRID_RENDER_PIXELMAP_SIZE_OPITEM) {
             continue;
         }
-        DrawTextBlobOpItem* textBlobOp = static_cast<DrawTextBlobOpItem*>(op.get());
-        rect.Join(textBlobOp->GetBounds());
+        HybridRenderPixelMapSizeOpItem* sizeOp = static_cast<HybridRenderPixelMapSizeOpItem*>(op.get());
+        rect = RectF(0.0f, 0.0f, sizeOp->GetWidth(), sizeOp->GetHeight());
     }
     return true;
 }
