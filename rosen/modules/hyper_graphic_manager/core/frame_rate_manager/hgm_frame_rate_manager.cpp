@@ -378,7 +378,7 @@ void HgmFrameRateManager::UniProcessDataForLtpo(uint64_t timestamp,
     rsFrameRateLinker_ = rsFrameRateLinker;
     appFrameRateLinkers_ = appFrameRateLinkers;
 
-    softVSyncManager_.UniProcessDataForLtpo(vRatesMap);
+    softVSyncManager_.UniProcessDataForLtpo(vRatesMap, appFrameRateLinkers_);
     UpdateSoftVSync(true);
 }
 

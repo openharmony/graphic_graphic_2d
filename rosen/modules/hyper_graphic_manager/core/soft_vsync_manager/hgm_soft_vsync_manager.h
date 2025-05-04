@@ -48,7 +48,7 @@ public:
     std::vector<std::pair<FrameRateLinkerId, uint32_t>> GetSoftAppChangeData();
     void UniProcessDataForLtpo(const std::map<uint64_t, int>& vRatesMap,
                                const FrameRateLinkerMap& appFrameRateLinkers);
-    void InitController(std::weak_ptr<HgmVSyncGeneratorController>& controller,
+    void InitController(std::weak_ptr<HgmVSyncGeneratorController> controller,
                         sptr<VSyncDistributor> appDistributor);
     void ChangePerformanceFirst(bool isPerformanceFirst)
     {

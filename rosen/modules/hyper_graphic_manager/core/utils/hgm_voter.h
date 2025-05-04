@@ -86,7 +86,7 @@ public:
     ~HgmVoter() = default;
 
     bool DeliverVote(const VoteInfo& voteInfo, bool eventStatus);
-    VoteInfo ProcessVote() const ;
+    VoteInfo ProcessVote() const;
 private:
     static std::pair<bool, bool> MergeRangeByPriority(VoteRange& rangeRes, const VoteRange& curVoteRange);
     bool ProcessVote(std::vector<std::string>::iterator& voterIter, VoteInfo& resultVoteInfo, VoteRange& voteRange);

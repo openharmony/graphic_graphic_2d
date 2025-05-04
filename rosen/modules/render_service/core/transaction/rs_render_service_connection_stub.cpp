@@ -2726,20 +2726,20 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             
             uint32_t mapSize{0};
             if (!data.ReadUint32(mapSize)) {
-                RS_LOGE("RSRenderServiceConnectionStub::NOTIFY_WINDOW_EXPECTED_BY_VSYNC_NAME Read mapSize failed!");
+                RS_LOGE("RSRenderServiceConnectionStub::NOTIFY_WINDOW_EXPECTED_BY_WINDOW_ID Read mapSize failed!");
                 ret = ERR_INVALID_DATA;
                 break;
             }
             for (uint32_t i = 0; i < mapSize; ++i) {
                 uint64_t windowId{0};
                 if (!data.ReadUint64(windowId)) {
-                    RS_LOGE("RSRenderServiceConnectionStub::NOTIFY_WINDOW_EXPECTED_BY_VSYNC_NAME Read parcel failed!");
+                    RS_LOGE("RSRenderServiceConnectionStub::NOTIFY_WINDOW_EXPECTED_BY_WINDOW_ID Read parcel failed!");
                     ret = ERR_INVALID_DATA;
                     break;
                 }
                 EventInfo eventInfo;
                 if (!EventInfo::Deserialize(data, &eventInfo)) {
-                    RS_LOGE("RSRenderServiceConnectionStub::NOTIFY_WINDOW_EXPECTED_BY_VSYNC_NAME Read parcel failed!");
+                    RS_LOGE("RSRenderServiceConnectionStub::NOTIFY_WINDOW_EXPECTED_BY_WINDOW_ID Read parcel failed!");
                     ret = ERR_INVALID_DATA;
                     break;
                 }

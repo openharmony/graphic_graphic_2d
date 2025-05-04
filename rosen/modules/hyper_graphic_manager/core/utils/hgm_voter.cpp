@@ -22,7 +22,7 @@ HgmVoter::HgmVoter(const std::vector<std::string>& voters): voters_(voters)
     HGM_LOGI("Construction of HgmVoter");
 }
 
-VoteInfo HgmVoter::ProcessVote()
+VoteInfo HgmVoter::ProcessVote() const
 {
     VoteInfo resultVoteInfo;
     VoteRange voteRange = { OLED_MIN_HZ, OLED_MAX_HZ };

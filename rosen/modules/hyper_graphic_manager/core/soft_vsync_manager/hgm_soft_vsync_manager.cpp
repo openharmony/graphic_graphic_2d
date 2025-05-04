@@ -14,10 +14,10 @@
  */
 #include "hgm_soft_vsync_manager.h"
 
-#include "hgm_voter.h"
 #include "animation/rs_frame_rate_range.h"
-#include "hgm_core.h"
 #include "common/rs_optional_trace.h"
+#include "hgm_core.h"
+#include "hgm_voter.h"
 #include "rs_trace.h"
 
 namespace OHOS {
@@ -38,7 +38,7 @@ HgmSoftVSyncManager::HgmSoftVSyncManager()
     HGM_LOGI("Construction of HgmSoftVSyncManager");
 }
 
-void HgmSoftVSyncManager::InitController(std::weak_ptr<HgmVSyncGeneratorController>& controller,
+void HgmSoftVSyncManager::InitController(std::weak_ptr<HgmVSyncGeneratorController> controller,
                                          sptr<VSyncDistributor> appDistributor)
 {
     controller_ = controller;
