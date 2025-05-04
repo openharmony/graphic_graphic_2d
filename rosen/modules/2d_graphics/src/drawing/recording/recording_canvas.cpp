@@ -729,6 +729,18 @@ void RecordingCanvas::CheckForLazySave()
     }
 }
 
+void RecordingCanvas::ResetHybridRenderSize(float width, float height)
+{
+    if (cmdList_ == nullptr) {
+        return;
+    }
+    if (!addDrawOpImmediate_) {
+        cmdList_->AddDrawOp(std::make_shared<HybridRenderPixelMapSizeOpItem>(width, height));
+        return;
+    }
+    cmdList_->AddDrawOp<HybridRenderPixelMapSizeOpItem::ConstructorHandle>(width, height);
+}
+
 template<typename T, typename... Args>
 void RecordingCanvas::AddDrawOpImmediate(Args&&... args)
 {
