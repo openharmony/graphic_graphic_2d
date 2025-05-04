@@ -407,9 +407,7 @@ HWTEST_F(HgmFrameRateMgrTest, MultiThread001, Function | SmallTest | Level1)
     HgmFrameRateManager frameRateMgr;
     auto vsyncGenerator = CreateVSyncGenerator();
     sptr<Rosen::VSyncController> rsController = new VSyncController(vsyncGenerator, offset);
-    ASSERT_NE(rsController, nullptr);
     sptr<Rosen::VSyncController> appController = new VSyncController(vsyncGenerator, offset);
-    ASSERT_NE(appController, nullptr);
     sptr<VSyncDistributor> appDistributor = new VSyncDistributor(appController, "connection");
     frameRateMgr.Init(rsController, appController, vsyncGenerator, appDistributor);
     frameRateMgr.forceUpdateCallback_ = [](bool idleTimerExpired, bool forceUpdate) { return; };

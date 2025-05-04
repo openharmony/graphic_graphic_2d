@@ -121,7 +121,7 @@ void HgmSoftVSyncManager::SetWindowExpectedRefreshRate(pid_t pid,
                 DeliverSoftVote(
                     linkerId,
                     {eventInfo.eventName, eventInfo.minRefreshRate, eventInfo.maxRefreshRate, pid},
-                    eventInfo.eventStatus);         
+                    eventInfo.eventStatus);
             }
         }
     }
@@ -162,35 +162,46 @@ bool HgmSoftVSyncManager::CollectFrameRateChange(FrameRateRange finalRange,
             continue;
         }
         auto expectedRange = linker.second->GetExpectedRange();
-        bool isChanged = false;
-        if (HgmEnergyConsumptionPolicy::Instance().GetVideoCallFrameRate(
-            ExtractPid(linker.first), linker.second->GetVsyncName(), expectedRange)) {
-            isChanged = true;
-        }
-        if (CollectVRateChange(linker.first, expectedRange)) {
-            isChanged = true;
-        }
-        if (!isChanged && appVoteData_.count(linker.first)) {
-            expectedRange.preferred_ = appVoteData_[linker.first];
-        }
-        auto appFrameRate = !isPerformanceFirst_ && expectedRange.type_ != NATIVE_VSYNC_FRAME_RATE_TYPE ?
-                            OLED_NULL_HZ : HgmSoftVSyncManager::GetDrawingFrameRate(currRefreshRate, expectedRange);
-        if (appFrameRate != linker.second->GetFrameRate() || controllerRateChanged) {
-            linker.second->SetFrameRate(appFrameRate);
-            appChangeData_[linker.second->GetId()] = appFrameRate;
-            HGM_LOGD("HgmSoftVSyncManager: appChangeData linkerId = %{public}" PRIu64 ", %{public}d",
-                linker.second->GetId(), appFrameRate);
-            frameRateChanged = true;
-        }
-        if (expectedRange.min_ == OLED_NULL_HZ && expectedRange.preferred_ == OLED_NULL_HZ &&
-            (expectedRange.max_ == OLED_144_HZ || expectedRange.max_ == OLED_NULL_HZ)) {
-            continue;
-        }
-        RS_TRACE_NAME_FMT("HgmSoftVSyncManager::UniProcessData multiAppFrameRate: pid = %d, linkerId = %ld, "\
-            "appFrameRate = %d, appRange = (%d, %d, %d)", ExtractPid(linker.first), linker.second->GetId(),
-            appFrameRate, expectedRange.min_, expectedRange.max_, expectedRange.preferred_);
+        CalcAppFrameRate(linker, expectedRange);
+        
     }
     return frameRateChanged;
+}
+
+void HgmSoftVSyncManager::CalcAppFrameRate(
+    const std::pair<FrameRateLinkerId, std::shared_ptr<RSRenderFrameRateLinker>>& linker,
+    FrameRateRange& expectedRange,
+    bool& frameRateChanged,
+    bool controllerRateChanged,
+    const uint32_t currRefreshRate)
+{
+    bool isChanged = false;
+    if (HgmEnergyConsumptionPolicy::Instance().GetVideoCallFrameRate(
+        ExtractPid(linker.first), linker.second->GetVsyncName(), expectedRange)) {
+        isChanged = true;
+    }
+    if (CollectVRateChange(linker.first, expectedRange)) {
+        isChanged = true;
+    }
+    if (!isChanged && appVoteData_.count(linker.first)) {
+        expectedRange.preferred_ = appVoteData_[linker.first];
+    }
+    auto appFrameRate = !isPerformanceFirst_ && expectedRange.type_ != NATIVE_VSYNC_FRAME_RATE_TYPE ?
+                        OLED_NULL_HZ : HgmSoftVSyncManager::GetDrawingFrameRate(currRefreshRate, expectedRange);
+    if (appFrameRate != linker.second->GetFrameRate() || controllerRateChanged) {
+        linker.second->SetFrameRate(appFrameRate);
+        appChangeData_[linker.second->GetId()] = appFrameRate;
+        HGM_LOGD("HgmSoftVSyncManager: appChangeData linkerId = %{public}" PRIu64 ", %{public}d",
+            linker.second->GetId(), appFrameRate);
+        frameRateChanged = true;
+    }
+    if (expectedRange.min_ == OLED_NULL_HZ && expectedRange.preferred_ == OLED_NULL_HZ &&
+        (expectedRange.max_ == OLED_144_HZ || expectedRange.max_ == OLED_NULL_HZ)) {
+        return;
+    }
+    RS_TRACE_NAME_FMT("HgmSoftVSyncManager::UniProcessData multiAppFrameRate: pid = %d, linkerId = %ld, "\
+        "appFrameRate = %d, appRange = (%d, %d, %d)", ExtractPid(linker.first), linker.second->GetId(),
+        appFrameRate, expectedRange.min_, expectedRange.max_, expectedRange.preferred_);
 }
 
 uint32_t HgmSoftVSyncManager::GetDrawingFrameRate(const uint32_t refreshRate, const FrameRateRange& range)
@@ -282,7 +293,8 @@ void HgmSoftVSyncManager::UniProcessDataForLtpo(const std::map<uint64_t, int>& v
 }
 
 void HgmSoftVSyncManager::SetQosVSyncRate(const uint32_t currRefreshRate,
-                                          const FrameRateLinkerMap& appFrameRateLinkers) {
+                                          const FrameRateLinkerMap& appFrameRateLinkers)
+{
     for (const auto& data : appChangeData_) {
         auto linkerId = data.first;
         auto prefer = data.second;
@@ -291,9 +303,9 @@ void HgmSoftVSyncManager::SetQosVSyncRate(const uint32_t currRefreshRate,
         if (linker != appFrameRateLinkers.end()  && appDistributor_ != nullptr) {
             appDistributor_->SetQosVSyncRate(linker->second->GetWindowNodeId(),
                                              currRefreshRate/prefer,
-                                             false);   
+                                             false);
         }
     }
 }
 }
-}    
+}

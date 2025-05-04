@@ -122,7 +122,7 @@ HWTEST_F(HgmSoftVSyncManagerTest, SetWindowExpectedRefreshRate_window001, Functi
     EventInfo eventInfo4 =
         { .eventName = "VOTER_GAMEFRAMEINSERTION", .minRefreshRate = 60, .maxRefreshRate = 60, .eventStatus = true };
     EventInfo eventInfo5 =
-        { .eventName = "VOTER_VIDEOCALL", .minRefreshRate = 60, .maxRefreshRate = 60, .eventStatus = true };    
+        { .eventName = "VOTER_VIDEOCALL", .minRefreshRate = 60, .maxRefreshRate = 60, .eventStatus = true };
     std::unordered_map<WindowId, EventInfo> voters = {
         {windowId1, eventInfo1}, {windowId2, eventInfo2}, {windowId3, eventInfo3}, {windowId4, eventInfo4},
         {windowId5, eventInfo5},

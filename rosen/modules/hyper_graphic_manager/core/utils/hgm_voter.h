@@ -39,10 +39,10 @@ struct VoteInfo {
         this->extInfo = other.extInfo;
     }
 
-    void SetRange(uint32_t min, uint32_t max)
+    void SetRange(uint32_t minHZ, uint32_t maxHZ)
     {
-        this->min = min;
-        this->max = max;
+        this->min = minHZ;
+        this->max = maxHZ;
     }
 
     std::string ToString(uint64_t timestamp) const
@@ -93,6 +93,6 @@ private:
 
     std::unordered_map<std::string, std::pair<std::vector<VoteInfo>, bool>>  voteRecord_;
     std::vector<std::string> voters_;
-};    
+};
 }
 #endif // HGM_VOTER_H

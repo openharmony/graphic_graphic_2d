@@ -201,6 +201,7 @@ private:
     void HandlePointerTask(pid_t pid, int32_t pointerStatus, int32_t pointerCnt);
     void HandleScreenFrameRate(std::string curScreenName);
     void UpdateScreenFrameRate();
+    void RegisterUpTimeoutAndDownEvent();
 
     void GetLowBrightVec(const std::shared_ptr<PolicyConfigData>& configData);
     void GetStylusVec(const std::shared_ptr<PolicyConfigData>& configData);

@@ -199,23 +199,12 @@ void HgmFrameRateManager::InitTouchManager()
     static std::once_flag createFlag;
     std::call_once(createFlag, [this]() {
         auto updateTouchToMultiAppStrategy = [this](TouchState newState) {
-            HgmMultiAppStrategy::TouchInfo touchInfo = {
-                .pkgName = touchManager_.GetPkgName(),
-                .touchState = newState,
-            };
+            HgmMultiAppStrategy::TouchInfo touchInfo =
+                { .pkgName = touchManager_.GetPkgName(), .touchState = newState, };
             HgmEnergyConsumptionPolicy::Instance().SetTouchState(newState);
             multiAppStrategy_.HandleTouchInfo(touchInfo);
             UpdateSoftVSync(false);
-        };
-        touchManager_.RegisterEventCallback(TouchEvent::UP_TIMEOUT_EVENT, [this] (TouchEvent event) {
-            SetSchedulerPreferredFps(OLED_60_HZ);
-            SetIsNeedUpdateAppOffset(true);
-            touchManager_.ChangeState(TouchState::IDLE_STATE);
-        });
-        touchManager_.RegisterEventCallback(TouchEvent::DOWN_EVENT, [this] (TouchEvent event) {
-            SetSchedulerPreferredFps(OLED_120_HZ);
-            touchManager_.ChangeState(TouchState::DOWN_STATE);
-        });
+        };  
         touchManager_.RegisterEnterStateCallback(TouchState::DOWN_STATE,
             [this, updateTouchToMultiAppStrategy] (TouchState lastState, TouchState newState) {
             updateTouchToMultiAppStrategy(newState);
@@ -248,8 +237,24 @@ void HgmFrameRateManager::InitTouchManager()
             startCheck_.store(false);
         });
     });
+    RegisterUpTimeoutAndDownEvent();
 }
 
+void HgmFrameRateManager::RegisterUpTimeoutAndDownEvent()
+{
+    static std::once_flag registerFlag;
+    std::call_once(registerFlag, [this]() {
+        touchManager_.RegisterEventCallback(TouchEvent::UP_TIMEOUT_EVENT, [this] (TouchEvent event) {
+            SetSchedulerPreferredFps(OLED_60_HZ);
+            SetIsNeedUpdateAppOffset(true);
+            touchManager_.ChangeState(TouchState::IDLE_STATE);
+        });
+        touchManager_.RegisterEventCallback(TouchEvent::DOWN_EVENT, [this] (TouchEvent event) {
+            SetSchedulerPreferredFps(OLED_120_HZ);
+            touchManager_.ChangeState(TouchState::DOWN_STATE);
+        });
+    });
+}
 
 void HgmFrameRateManager::ProcessPendingRefreshRate(
     uint64_t timestamp, int64_t vsyncId, uint32_t rsRate, bool isUiDvsyncOn)
@@ -1173,9 +1178,9 @@ void HgmFrameRateManager::MarkVoteChange(const std::string& voter)
     bool frameRateChanged = false;
     if (rsFrameRateLinker_ != nullptr) {
         frameRateChanged = softVSyncManager_.CollectFrameRateChange(finalRange,
-                                                                         rsFrameRateLinker_,
-                                                                         appFrameRateLinkers_,
-                                                                         currRefreshRate_);
+            rsFrameRateLinker_,
+            appFrameRateLinkers_,
+            currRefreshRate_);
     }
     CheckRefreshRateChange(false, frameRateChanged, refreshRate);
     ReportHiSysEvent(resultVoteInfo);

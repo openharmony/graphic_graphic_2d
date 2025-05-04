@@ -34,7 +34,8 @@ struct EventInfo {
     uint32_t maxRefreshRate; // the desired max refresh rate, e.g.120
     std::string description; // the extend description for eventName，e.g."SCENE_APP_START_ANIMATION"
 
-    bool Serialize(MessageParcel& parcel) const {
+    bool Serialize(MessageParcel& parcel) const
+    {
         if (!parcel.WriteString(eventName)) {
             ROSEN_LOGE("Serialize EventInfo: WriteString eventName err.");
             return false;
@@ -58,7 +59,8 @@ struct EventInfo {
         return true;
     }
 
-    static bool EventInfo Deserialize(MessageParcel& parcel, EventInfo& info) {
+    static bool Deserialize(MessageParcel& parcel, EventInfo& info)
+    {
         if (!parcel.ReadString(&info.eventName)) {
             ROSEN_LOGE("Deserialize EventInfo: ReadString eventName err.");
             return false;

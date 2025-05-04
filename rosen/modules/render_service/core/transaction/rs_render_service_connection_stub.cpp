@@ -2774,7 +2774,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             }
             SetWindowExpectedRefreshRate(eventInfos);
             break;
-        }        
+        }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_SOFT_VSYNC_EVENT) : {
             uint32_t pid{0};
             uint32_t rateDiscount{0};

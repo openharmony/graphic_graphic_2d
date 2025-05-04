@@ -40,7 +40,7 @@ public:
     ~HgmSoftVSyncManager() = default;
 
     void SetWindowExpectedRefreshRate(pid_t pid,
-                                      const std::unordered_map<WindowId,EventInfo>& voters);
+                                      const std::unordered_map<WindowId, EventInfo>& voters);
     void SetWindowExpectedRefreshRate(pid_t pid,
                                       const std::unordered_map<VsyncName, EventInfo>& voters);
     bool CollectFrameRateChange(FrameRateRange finalRange, std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker,
@@ -68,6 +68,12 @@ private:
     // vrate voting to hgm linkerId means that frameLinkerid, appFrameRate means that vrate
     bool CollectVRateChange(uint64_t linkerId, FrameRateRange& appFrameRate);
     static uint32_t GetDrawingFrameRate(const uint32_t refreshRate, const FrameRateRange& range);
+    void CalcAppFrameRate(
+        const std::pair<FrameRateLinkerId, std::shared_ptr<RSRenderFrameRateLinker>>& linker,
+        FrameRateRange& expectedRange,
+        bool& frameRateChanged,
+        bool controllerRateChanged,
+        const uint32_t currRefreshRate)
 
     // FORMAT: "frameRateLinkerId, <voterName, <<pid, <min, max>>, effective>>"
     std::unordered_map<uint64_t, std::shared_ptr<HgmVoter>> linkerVoteMap_;

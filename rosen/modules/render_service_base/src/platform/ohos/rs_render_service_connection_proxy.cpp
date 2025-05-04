@@ -34,6 +34,8 @@ static constexpr int MAX_RETRY_COUNT = 20;
 static constexpr int RETRY_WAIT_TIME_US = 1000; // wait 1ms before retry SendRequest
 static constexpr int MAX_SECURITY_EXEMPTION_LIST_NUMBER = 1024; // securityExemptionList size not exceed 1024
 static constexpr uint32_t EDID_DATA_MAX_SIZE = 64 * 1024;
+static constexpr int MAX_VOTER_SIZE = 100; // SetWindowExpectedRefreshRate map size not exceed 100
+static constexpr int ZERO = 0; // empty map size
 }
 
 RSRenderServiceConnectionProxy::RSRenderServiceConnectionProxy(const sptr<IRemoteObject>& impl)
@@ -4078,7 +4080,7 @@ void RSRenderServiceConnectionProxy::SetWindowExpectedRefreshRate(
 )
 {
     auto mapSize = eventInfos.size();
-    if (mapSize<= 0 || mapSize > 100) {
+    if (mapSize <= ZERO || mapSize > MAX_VOTER_SIZE) {
         ROSEN_LOGE("SetWindowExpectedRefreshRate: map size err.");
         return;
     }
@@ -4104,7 +4106,8 @@ void RSRenderServiceConnectionProxy::SetWindowExpectedRefreshRate(
         }
     }
     option.SetFlags(MessageOption::TF_ASYNC);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_WINDOW_EXPECTED_BY_WINDOW_ID);
+    uint32_t code =
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_WINDOW_EXPECTED_BY_WINDOW_ID);
     int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSRenderServiceConnectionProxy::SetWindowExpectedRefreshRate: Send Request err.");
@@ -4117,7 +4120,7 @@ void RSRenderServiceConnectionProxy::SetWindowExpectedRefreshRate(
 )
 {
     auto mapSize = eventInfos.size();
-    if (mapSize<= 0 || mapSize > 100) {
+    if (mapSize <= ZERO || mapSize > MAX_VOTER_SIZE) {
         ROSEN_LOGE("SetWindowExpectedRefreshRate: map size err.");
         return;
     }
@@ -4143,7 +4146,8 @@ void RSRenderServiceConnectionProxy::SetWindowExpectedRefreshRate(
         }
     }
     option.SetFlags(MessageOption::TF_ASYNC);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_WINDOW_EXPECTED_BY_VSYNC_NAME);
+    uint32_t code =
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_WINDOW_EXPECTED_BY_VSYNC_NAME);
     int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSRenderServiceConnectionProxy::SetWindowExpectedRefreshRate: Send Request err.");
