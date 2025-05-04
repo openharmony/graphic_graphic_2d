@@ -20,6 +20,7 @@
 #include <parcel.h>
 
 #include "common/rs_macros.h"
+#include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -31,6 +32,40 @@ struct EventInfo {
     uint32_t minRefreshRate; // the desired min refresh rate, e.g.60
     uint32_t maxRefreshRate; // the desired max refresh rate, e.g.120
     std::string description; // the extend description for eventName，e.g."SCENE_APP_START_ANIMATION"
+
+    bool Serialize(MessageParcel& parcel) const {
+        if (!parcel.WriteString(eventName)) {
+            ROSEN_LOGE("Serialize EventInfo: WriteString eventName err.");
+            return false;
+        }
+        if (!parcel.WriteBool(eventStatus)) {
+            ROSEN_LOGE("Serialize EventInfo: WriteString eventStatus err.");
+            return false;
+        }
+        if (!parcel.WriteUint32(minRefreshRate)) {
+            ROSEN_LOGE("Serialize EventInfo: WriteString minRefreshRate err.");
+            return false;
+        }
+        if (!parcel.WriteUint32(maxRefreshRate)) {
+            ROSEN_LOGE("Serialize EventInfo: WriteString maxRefreshRate err.");
+            return false;
+        }
+        if (!parcel.WriteString(description)) {
+            ROSEN_LOGE("Serialize EventInfo: WriteString description err.");
+            return false;
+        }
+        return true;
+    }
+
+    static EventInfo Deserialize(MessageParcel& parcel) {
+        EventInfo info;
+        info.eventName = parcel.ReadString();
+        info.eventStatus = parcel.ReadBool();
+        info.minRefreshRate = parcel.ReadUint32();
+        info.maxRefreshRate = parcel.ReadUint32();
+        info.description = parcel.ReadString();
+        return info;
+    }
 };
 
 } // namespace Rosen

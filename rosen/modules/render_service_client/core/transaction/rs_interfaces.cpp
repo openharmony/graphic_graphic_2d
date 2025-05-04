@@ -832,6 +832,16 @@ void RSInterfaces::NotifyRefreshRateEvent(const EventInfo& eventInfo)
     renderServiceClient_->NotifyRefreshRateEvent(eventInfo);
 }
 
+void RSInterfaces::SetWindowExpectedRefreshRate(std::unordered_map<uint64_t, EventInfo>& eventInfos)
+{
+    renderServiceClient_->SetWindowExpectedRefreshRate(eventInfos);
+}
+
+void SetWindowExpectedRefreshRate(std::unordered_map<std::string, EventInfo>& eventInfos)
+{
+    renderServiceClient_->SetWindowExpectedRefreshRate(eventInfos);
+}
+
 void RSInterfaces::NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt)
 {
     if (!RSFrameRatePolicy::GetInstance()->GetTouchOrPointerAction(touchStatus)) {

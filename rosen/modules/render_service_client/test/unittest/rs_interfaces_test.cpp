@@ -1379,6 +1379,43 @@ HWTEST_F(RSInterfacesTest, NotifyRefreshRateEvent001, Function | SmallTest | Lev
 }
 
 /*
+ * @tc.name: SetWindowExpectedRefreshRate001
+ * @tc.desc: Set window expected soft refresh rate by windowId
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, SetWindowExpectedRefreshRate001, Function | SmallTest | Level2)
+{
+    constexpr int32_t maxFps = 1000;
+    constexpr int32_t minFps = 1;
+    ASSERT_NE(rsInterfaces, nullptr);
+    std::unordered_map<uint64_t, EventInfo> eventInfos addVote = {1, { "VOTER_VRATE", true, minFps, maxFps }};
+    std::unordered_map<uint64_t, EventInfo> eventInfos delVote = {2, { "VOTER_VRATE", false}};
+    rsInterfaces->SetWindowExpectedRefreshRate(addVote);
+    rsInterfaces->SetWindowExpectedRefreshRate(delVote);
+    ASSERT_NE(rsInterfaces, nullptr);
+}
+
+/*
+ * @tc.name: SetWindowExpectedRefreshRate002
+ * @tc.desc: Set window expected soft refresh rate by vsyncName
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, SetWindowExpectedRefreshRate002, Function | SmallTest | Level2)
+{
+    constexpr int32_t maxFps = 1000;
+    constexpr int32_t minFps = 1;
+    ASSERT_NE(rsInterfaces, nullptr);
+    std::unordered_map<std::string, EventInfo> eventInfos addVote =
+        {"vsync1", { "VOTER_VRATE", true, minFps, maxFps }};
+    std::unordered_map<std::string, EventInfo> eventInfos delVote = {"vsync1", { "VOTER_VRATE", false}};
+    rsInterfaces->SetWindowExpectedRefreshRate(addVote);
+    rsInterfaces->SetWindowExpectedRefreshRate(delVote);
+    ASSERT_NE(rsInterfaces, nullptr);
+}
+
+/*
  * @tc.name: NotifyTouchEvent001
  * @tc.desc: Notify touch event to hgm
  * @tc.type: FUNC

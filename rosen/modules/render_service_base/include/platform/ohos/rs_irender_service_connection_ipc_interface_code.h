@@ -195,6 +195,8 @@ enum class RSIRenderServiceConnectionInterfaceCode : CodeUnderlyingType {
     NOTIFY_APP_STRATEGY_CONFIG_CHANGE_EVENT = 1005,
     NOTIFY_HGMCONFIG_EVENT = 1006,
     NOTIFY_SCREEN_SWITCHED = 1007,
+    NOTIFY_WINDOW_EXPECTED_BY_WINDOW_ID = 1008,
+    NOTIFY_WINDOW_EXPECTED_BY_VSYNC_NAME = 1009,
 };
 } // namespace Rosen
 } // namespace OHOS

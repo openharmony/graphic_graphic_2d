@@ -148,8 +148,9 @@ void HgmFrameRateMgrTest::InitHgmFrameRateManager(HgmFrameRateManager &frameRate
     auto vsyncGenerator = CreateVSyncGenerator();
     sptr<Rosen::VSyncController> rsController = new VSyncController(vsyncGenerator, offset);
     sptr<Rosen::VSyncController> appController = new VSyncController(vsyncGenerator, offset);
-    frameRateMgr.Init(nullptr, nullptr, nullptr);
-    frameRateMgr.Init(rsController, appController, vsyncGenerator);
+    sptr<VSyncDistributor> appDistributor = new VSyncDistributor(appController, "connection");
+    frameRateMgr.Init(nullptr, nullptr, nullptr, nullptr);
+    frameRateMgr.Init(rsController, appController, vsyncGenerator, appDistributor);
 
     auto strategyConfigs = frameRateMgr.multiAppStrategy_.GetStrategyConfigs();
     auto screenSetting = frameRateMgr.multiAppStrategy_.GetScreenSetting();
@@ -409,12 +410,14 @@ HWTEST_F(HgmFrameRateMgrTest, MultiThread001, Function | SmallTest | Level1)
     ASSERT_NE(rsController, nullptr);
     sptr<Rosen::VSyncController> appController = new VSyncController(vsyncGenerator, offset);
     ASSERT_NE(appController, nullptr);
-    frameRateMgr.Init(rsController, appController, vsyncGenerator);
+    sptr<VSyncDistributor> appDistributor = new VSyncDistributor(appController, "connection");
+    frameRateMgr.Init(rsController, appController, vsyncGenerator, appDistributor);
     frameRateMgr.forceUpdateCallback_ = [](bool idleTimerExpired, bool forceUpdate) { return; };
 
     ASSERT_NE(vsyncGenerator, nullptr);
     ASSERT_NE(rsController, nullptr);
     ASSERT_NE(appController, nullptr);
+    ASSERT_NE(appDistributor, nullptr);
     HgmTaskHandleThread::Instance().PostTask([&]() {
         for (int i = 0; i < testThreadNum; i++) {
             // HandleLightFactorStatus
@@ -611,37 +614,6 @@ HWTEST_F(HgmFrameRateMgrTest, HandleEventTest, Function | SmallTest | Level2)
     mgr->HandleRefreshRateEvent(0, eventInfo2);
 }
 
-
-/**
- * @tc.name: GetDrawingFrameRateTest
- * @tc.desc: Verify the result of GetDrawingFrameRateTest
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(HgmFrameRateMgrTest, GetDrawingFrameRateTest, Function | SmallTest | Level2)
-{
-    std::unique_ptr<HgmFrameRateManager> mgr = std::make_unique<HgmFrameRateManager>();
-    uint32_t refreshRate_60 = 60;
-    uint32_t refreshRate_120 = 120;
-    FrameRateRange dynamic_120(0, 120, 120);
-    EXPECT_EQ(dynamic_120.IsDynamic(), true);
-    FrameRateRange static_120(120, 120, 120);
-    EXPECT_EQ(static_120.IsDynamic(), false);
-    auto &hgmCore = HgmCore::Instance();
-    HgmFrameRateManager frameRateMgr;
-    hgmCore.adaptiveSync_ = ADAPTIVE_SYNC_ENABLED;
-    frameRateMgr.isAdaptive_.store(true);
-    frameRateMgr.ProcessAdaptiveSync("VOTER_GAMES");
-    frameRateMgr.ProcessAdaptiveSync("VOTER_SCENE");
-    frameRateMgr.isAdaptive_.store(false);
-    frameRateMgr.ProcessAdaptiveSync("VOTER_GAMES");
-    EXPECT_EQ(mgr->GetDrawingFrameRate(refreshRate_60, dynamic_120), 60);
-    EXPECT_EQ(mgr->GetDrawingFrameRate(refreshRate_60, static_120), 60);
-    EXPECT_EQ(mgr->GetDrawingFrameRate(refreshRate_120, dynamic_120), 120);
-    EXPECT_EQ(mgr->GetDrawingFrameRate(refreshRate_120, static_120), 120);
-}
-
-
 /**
  * @tc.name: ProcessRefreshRateVoteTest
  * @tc.desc: Verify the result of ProcessRefreshRateVoteTest
@@ -767,86 +739,6 @@ HWTEST_F(HgmFrameRateMgrTest, FrameRateReportTest, Function | SmallTest | Level2
 }
 
 /**
- * @tc.name: CollectFrameRateChange
- * @tc.desc: Verify the result of CollectFrameRateChange
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(HgmFrameRateMgrTest, CollectFrameRateChange, Function | SmallTest | Level2)
-{
-    HgmFrameRateManager mgr;
-    InitHgmFrameRateManager(mgr);
-    FrameRateRange finalRange = {OLED_60_HZ, OLED_120_HZ, OLED_60_HZ};
-    FrameRateRange appExpectedRange = {OLED_60_HZ, OLED_120_HZ, OLED_72_HZ};
-    std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker = std::make_shared<RSRenderFrameRateLinker>();
-    std::shared_ptr<RSRenderFrameRateLinker> appFrameRateLinker = std::make_shared<RSRenderFrameRateLinker>();
-    appFrameRateLinker->SetExpectedRange(appExpectedRange);
-
-    FrameRateLinkerMap appFrameRateLinkers = {
-        {frameRateLinkerId1, nullptr},
-        {frameRateLinkerId2, appFrameRateLinker}
-    };
-    EXPECT_EQ(mgr.CollectFrameRateChange(finalRange, rsFrameRateLinker, appFrameRateLinkers), false);
-    mgr.controller_ = nullptr;
-    EXPECT_EQ(mgr.CollectFrameRateChange(finalRange, rsFrameRateLinker, appFrameRateLinkers), false);
-}
-
-/**
- * @tc.name: CollectVRateChange
- * @tc.desc: Verify the result of CollectVRateChange
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(HgmFrameRateMgrTest, CollectVRateChange, Function | SmallTest | Level2)
-{
-    HgmFrameRateManager mgr;
-    InitHgmFrameRateManager(mgr);
-    FrameRateRange finalRange = {OLED_60_HZ, OLED_120_HZ, OLED_60_HZ};
-    mgr.vRatesMap_ = {
-        {0, 0},
-        {1, 1},
-        {2, 2}
-    };
-    uint64_t linkerId = 2;
-    mgr.CollectVRateChange(linkerId, finalRange);
-    EXPECT_EQ(finalRange.min_, OLED_60_HZ);
-    EXPECT_EQ(finalRange.max_, OLED_120_HZ);
-    EXPECT_EQ(finalRange.preferred_, OLED_60_HZ);
-
-    linkerId = 0;
-    mgr.CollectVRateChange(linkerId, finalRange);
-    EXPECT_EQ(finalRange.min_, OLED_60_HZ);
-    EXPECT_EQ(finalRange.max_, OLED_120_HZ);
-    EXPECT_EQ(finalRange.preferred_, OLED_60_HZ);
-
-    linkerId = 1;
-    mgr.CollectVRateChange(linkerId, finalRange);
-    EXPECT_EQ(finalRange.min_, OLED_60_HZ);
-    EXPECT_EQ(finalRange.max_, OLED_120_HZ);
-    EXPECT_EQ(finalRange.preferred_, OLED_60_HZ);
-    
-    linkerId = 2;
-    mgr.CollectVRateChange(linkerId, finalRange);
-    EXPECT_EQ(finalRange.min_, OLED_60_HZ);
-    EXPECT_EQ(finalRange.max_, OLED_120_HZ);
-    EXPECT_EQ(finalRange.preferred_, OLED_60_HZ);
-
-    finalRange.preferred_ = 0;
-    mgr.controllerRate_ = 0;
-    mgr.CollectVRateChange(linkerId, finalRange);
-    EXPECT_EQ(finalRange.min_, OLED_NULL_HZ);
-    EXPECT_EQ(finalRange.max_, OLED_144_HZ);
-    EXPECT_EQ(finalRange.preferred_, 1);
-
-    finalRange.preferred_ = 0;
-    mgr.controllerRate_ = 100;
-    mgr.CollectVRateChange(linkerId, finalRange);
-    EXPECT_EQ(finalRange.min_, OLED_NULL_HZ);
-    EXPECT_EQ(finalRange.max_, OLED_144_HZ);
-    EXPECT_EQ(finalRange.preferred_, 50);
-}
-
-/**
  * @tc.name: HandleFrameRateChangeForLTPO
  * @tc.desc: Verify the result of HandleFrameRateChangeForLTPO
  * @tc.type: FUNC
@@ -946,31 +838,6 @@ HWTEST_F(HgmFrameRateMgrTest, GetStylusVec, Function | SmallTest | Level2)
         supportedModeConfig["StylusPen"] = expectedVec;
         mgr.GetStylusVec(configData);
         ASSERT_EQ(mgr.stylusVec_, expectedVec);
-    }
-}
-
-/**
- * @tc.name: GetDrawingFrameRate
- * @tc.desc: Verify the result of GetDrawingFrameRate
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(HgmFrameRateMgrTest, GetDrawingFrameRate, Function | SmallTest | Level2)
-{
-    std::vector<std::pair<std::pair<uint32_t, FrameRateRange>, uint32_t>> inputAndOutput = {
-        {{0, {0, 120, 60}}, 0},
-        {{60, {0, 120, 0}}, 0},
-        {{60, {0, 90, 120}}, 60},
-        {{60, {0, 120, 120}}, 60},
-        {{90, {0, 120, 30}}, 30},
-        {{80, {0, 120, 30}}, 40},
-        {{70, {0, 120, 30}}, 35},
-        {{60, {0, 120, 30}}, 30},
-        {{50, {0, 120, 30}}, 50}
-    };
-
-    for (const auto& [input, output] : inputAndOutput) {
-        EXPECT_EQ(HgmFrameRateManager::GetDrawingFrameRate(input.first, input.second), output);
     }
 }
 

@@ -111,7 +111,7 @@ HgmFrameRateManager::HgmFrameRateManager()
 }
 
 void HgmFrameRateManager::Init(sptr<VSyncController> rsController,
-    sptr<VSyncController> appController, sptr<VSyncGenerator> vsyncGenerator)
+    sptr<VSyncController> appController, sptr<VSyncGenerator> vsyncGenerator, sptr<VSyncDistributor> appDistributor)
 {
     auto& hgmCore = HgmCore::Instance();
     curRefreshRateMode_ = hgmCore.GetCurrentRefreshRateMode();
@@ -143,7 +143,7 @@ void HgmFrameRateManager::Init(sptr<VSyncController> rsController,
         HandleIdleEvent(ADD_VOTE);
     }
 
-    RegisterCoreCallbacksAndInitController(rsController, appController, vsyncGenerator);
+    RegisterCoreCallbacksAndInitController(rsController, appController, vsyncGenerator, appDistributor);
     multiAppStrategy_.RegisterStrategyChangeCallback([this] (const PolicyConfigData::StrategyConfig& strategy) {
         DeliverRefreshRateVote({"VOTER_PACKAGES", strategy.min, strategy.max}, ADD_VOTE);
         idleFps_ = strategy.idleFps;
@@ -160,7 +160,7 @@ void HgmFrameRateManager::Init(sptr<VSyncController> rsController,
 }
 
 void HgmFrameRateManager::RegisterCoreCallbacksAndInitController(sptr<VSyncController> rsController,
-    sptr<VSyncController> appController, sptr<VSyncGenerator> vsyncGenerator)
+    sptr<VSyncController> appController, sptr<VSyncGenerator> vsyncGenerator, sptr<VSyncDistributor> appDistributor)
 {
     if (rsController == nullptr || appController == nullptr) {
         HGM_LOGE("HgmFrameRateManager::rsController or appController is nullptr");
@@ -190,6 +190,7 @@ void HgmFrameRateManager::RegisterCoreCallbacksAndInitController(sptr<VSyncContr
     });
 
     controller_ = std::make_shared<HgmVSyncGeneratorController>(rsController, appController, vsyncGenerator);
+    softVSyncManager_.InitController(controller_, appDistributor);
 }
 
 void HgmFrameRateManager::InitTouchManager()
@@ -226,6 +227,11 @@ void HgmFrameRateManager::InitTouchManager()
             startCheck_.store(false);
             updateTouchToMultiAppStrategy(newState);
             voterTouchEffective_.store(false);
+            softVSyncManager_.ChangeIdleState(true);
+        });
+        touchManager_.RegisterExitStateCallback(TouchState::IDLE_STATE,
+            [this] (TouchState lastState, TouchState newState) {
+            softVSyncManager_.ChangeIdleState(false);
         });
         touchManager_.RegisterEnterStateCallback(TouchState::UP_STATE,
             [this, updateTouchToMultiAppStrategy] (TouchState lastState, TouchState newState) {
@@ -371,7 +377,7 @@ void HgmFrameRateManager::UniProcessDataForLtpo(uint64_t timestamp,
     rsFrameRateLinker_ = rsFrameRateLinker;
     appFrameRateLinkers_ = appFrameRateLinkers;
 
-    vRatesMap_ = vRatesMap;
+    softVSyncManager_.UniProcessDataForLtpo(vRatesMap);
     UpdateSoftVSync(true);
 }
 
@@ -380,7 +386,6 @@ void HgmFrameRateManager::UpdateSoftVSync(bool followRs)
     if (rsFrameRateLinker_ == nullptr) {
         return;
     }
-    Reset();
     FrameRateRange finalRange = rsFrameRateLinker_->GetExpectedRange();
     HgmEnergyConsumptionPolicy::Instance().GetAnimationIdleFps(finalRange);
     rsFrameRateLinker_->SetExpectedRange(finalRange);
@@ -421,50 +426,12 @@ void HgmFrameRateManager::UpdateSoftVSync(bool followRs)
         FrameRateReport();
     }
 
-    bool frameRateChanged = CollectFrameRateChange(finalRange, rsFrameRateLinker_, appFrameRateLinkers_);
-    CheckRefreshRateChange(followRs, frameRateChanged, refreshRate);
+    bool frameRateChanged = softVSyncManager_.CollectFrameRateChange(finalRange,
+                                                                     rsFrameRateLinker_,
+                                                                     appFrameRateLinkers_,
+                                                                     currRefreshRate_);
++   CheckRefreshRateChange(followRs, frameRateChanged, refreshRate);
     ReportHiSysEvent(lastVoteInfo_);
-}
-
-void HgmFrameRateManager::CollectVRateChange(uint64_t linkerId, FrameRateRange& finalRange)
-{
-    auto iter = vRatesMap_.find(linkerId);
-    if (iter == vRatesMap_.end()) {
-        RS_OPTIONAL_TRACE_NAME_FMT("CollectVRateChange not find pid = %d linkerId = %" PRIu64 " return",
-            ExtractPid(linkerId), linkerId);
-        HGM_LOGD("CollectVRateChange not find pid = %{public}d linkerId = %{public}" PRIu64 " return",
-            ExtractPid(linkerId), linkerId);
-        return;
-    }
-    if (iter->second == 1 || iter->second == 0) {
-        RS_OPTIONAL_TRACE_NAME_FMT("CollectVRateChange pid = %d , linkerId = %" PRIu64 ", vrate = %d return",
-            ExtractPid(linkerId), linkerId, iter->second);
-        HGM_LOGD("CollectVRateChange linkerId = %{public}" PRIu64 ",vrate = %{public}d return",
-                linkerId, iter->second);
-        return;
-    }
-    int32_t& appFrameRate = finalRange.preferred_;
-    // finalRange.preferred_ is 0 means that the appframerate want to be changed by self.
-    if (appFrameRate != 0) {
-        RS_OPTIONAL_TRACE_NAME_FMT("CollectVRateChange pid = %d , linkerId = %" PRIu64 ", vrate = %d "
-            "return because changed by self", ExtractPid(linkerId), linkerId, iter->second);
-        HGM_LOGD("CollectVRateChange linkerId = %{public}" PRIu64 ",vrate = %{public}d return because changed by self",
-                linkerId, iter->second);
-        return;
-    }
-
-    appFrameRate = static_cast<int>(controllerRate_) / iter->second;
-    // vrate is int::max means app need not refreshing
-    if (appFrameRate == 0) {
-        //appFrameRate value is 1  means that not refreshing.
-        appFrameRate = 1;
-    }
-    finalRange.min_ = OLED_NULL_HZ;
-    finalRange.max_ = OLED_144_HZ;
-    RS_TRACE_NAME_FMT("CollectVRateChange modification pid = %d , linkerIdS = %" PRIu64 ",appFrameRate = %d,"
-        " vrate = %d, rsFrameRate = %u", ExtractPid(linkerId), linkerId, appFrameRate, iter->second, controllerRate_);
-    HGM_LOGD("CollectVRateChange modification linkerId = %{public}" PRIu64 ",appFrameRate = %{public}d,"
-        " vrate = %{public}d, rsFrameRate = %{public}u", linkerId, appFrameRate, iter->second, controllerRate_);
 }
 
 void HgmFrameRateManager::ReportHiSysEvent(const VoteInfo& frameRateVoteInfo)
@@ -513,59 +480,6 @@ void HgmFrameRateManager::FrameRateReport()
     schedulePreferredFpsChange_ = false;
 }
 
-bool HgmFrameRateManager::CollectFrameRateChange(FrameRateRange finalRange,
-                                                 std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker,
-                                                 const FrameRateLinkerMap& appFrameRateLinkers)
-{
-    if (controller_ == nullptr) {
-        HGM_LOGE("no valid controller, cannot work correctly, maybe Init() wasn't executed correctly.");
-        return false;
-    }
-    bool frameRateChanged = false;
-    bool controllerRateChanged = false;
-    auto rsFrameRate = GetDrawingFrameRate(currRefreshRate_, finalRange);
-    controllerRate_ = rsFrameRate > 0 ? rsFrameRate : controller_->GetCurrentRate();
-    if (controllerRate_ != controller_->GetCurrentRate()) {
-        rsFrameRateLinker->SetFrameRate(controllerRate_);
-        controllerRateChanged = true;
-        frameRateChanged = true;
-    }
-
-    auto& hgmCore = HgmCore::Instance();
-    auto screenCurrentRefreshRate = hgmCore.GetScreenCurrentRefreshRate(hgmCore.GetActiveScreenId());
-    RS_TRACE_NAME_FMT("CollectFrameRateChange refreshRate: %d, rsFrameRate: %d, finalRange = (%d, %d, %d)",
-        screenCurrentRefreshRate, rsFrameRate, finalRange.min_, finalRange.max_, finalRange.preferred_);
-    RS_TRACE_INT("PreferredFrameRate", static_cast<int>(finalRange.preferred_));
-
-    appChangeData_.clear();
-    for (auto linker : appFrameRateLinkers) {
-        if (linker.second == nullptr) {
-            continue;
-        }
-        auto expectedRange = linker.second->GetExpectedRange();
-        HgmEnergyConsumptionPolicy::Instance().GetVideoCallFrameRate(
-            ExtractPid(linker.first), linker.second->GetVsyncName(), expectedRange);
-        CollectVRateChange(linker.first, expectedRange);
-        auto appFrameRate = touchManager_.GetState() == TouchState::IDLE_STATE ?
-                            GetDrawingFrameRate(currRefreshRate_, expectedRange) : OLED_NULL_HZ;
-        if (appFrameRate != linker.second->GetFrameRate() || controllerRateChanged) {
-            linker.second->SetFrameRate(appFrameRate);
-            appChangeData_.emplace_back(linker.second->GetId(), appFrameRate);
-            HGM_LOGD("HgmFrameRateManager: appChangeData linkerId = %{public}" PRIu64 ", %{public}d",
-                linker.second->GetId(), appFrameRate);
-            frameRateChanged = true;
-        }
-        if (expectedRange.min_ == OLED_NULL_HZ && expectedRange.preferred_ == OLED_NULL_HZ &&
-            (expectedRange.max_ == OLED_144_HZ || expectedRange.max_ == OLED_NULL_HZ)) {
-            continue;
-        }
-        RS_TRACE_NAME_FMT("HgmFrameRateManager::UniProcessData multiAppFrameRate: pid = %d, linkerId = %ld, "\
-            "appFrameRate = %d, appRange = (%d, %d, %d)", ExtractPid(linker.first), linker.second->GetId(),
-            appFrameRate, expectedRange.min_, expectedRange.max_, expectedRange.preferred_);
-    }
-    return frameRateChanged;
-}
-
 void HgmFrameRateManager::HandleFrameRateChangeForLTPO(uint64_t timestamp, bool followRs)
 {
     std::lock_guard<std::mutex> lock(pendingMutex_);
@@ -595,10 +509,10 @@ void HgmFrameRateManager::HandleFrameRateChangeForLTPO(uint64_t timestamp, bool 
     }
 
     // Start of DVSync
-    int64_t delayTime = CreateVSyncGenerator()->SetCurrentRefreshRate(controllerRate_, lastRefreshRate);
+    auto controllerRate = softVSyncManager_.GetControllerRate();
+    int64_t delayTime = CreateVSyncGenerator()->SetCurrentRefreshRate(controllerRate, lastRefreshRate);
+    std::vector<std::pair<FrameRateLinkerId, uint32_t>> appChangeData = softVSyncManager_.GetSoftAppChangeData();
     if (delayTime != 0) {
-        int64_t controllerRate = controllerRate_;
-        std::vector<std::pair<FrameRateLinkerId, uint32_t>> appChangeData = appChangeData_;
         bool needUpdate = isNeedUpdateAppOffset_;
         RSTaskMessage::RSTask task = [this, targetTime, controllerRate, appChangeData, needUpdate]() {
             if (controller_) {
@@ -610,7 +524,7 @@ void HgmFrameRateManager::HandleFrameRateChangeForLTPO(uint64_t timestamp, bool 
         HgmTaskHandleThread::Instance().PostTask(task, delayTime);
     } else if (controller_) {
         vsyncCountOfChangeGeneratorRate_ = controller_->ChangeGeneratorRate(
-            controllerRate_, appChangeData_, targetTime, isNeedUpdateAppOffset_);
+            controllerRate, appChangeData, targetTime, isNeedUpdateAppOffset_);
     }
     // End of DVSync
     isNeedUpdateAppOffset_ = false;
@@ -717,34 +631,6 @@ uint32_t HgmFrameRateManager::CalcRefreshRate(const ScreenId id, const FrameRate
         refreshRate = supportRefreshRateVec.back();
     }
     return refreshRate;
-}
-
-uint32_t HgmFrameRateManager::GetDrawingFrameRate(const uint32_t refreshRate, const FrameRateRange& range)
-{
-    if (refreshRate == 0 || range.preferred_ <= 0) {
-        return 0;
-    }
-
-    uint32_t preferredFps = static_cast<uint32_t>(range.preferred_);
-    if (!range.IsValid() || preferredFps > refreshRate) {
-        return refreshRate;
-    }
-
-    // find the smallest value in range of [preferredFps, refreshRate], which can exactly divide refreshRate
-    uint32_t divisor = refreshRate / preferredFps;
-    while (divisor > 1) {
-        if (refreshRate % divisor == 0) {
-            break;
-        }
-        divisor--;
-    }
-    return refreshRate / divisor;
-}
-
-void HgmFrameRateManager::Reset()
-{
-    controllerRate_ = 0;
-    appChangeData_.clear();
 }
 
 int32_t HgmFrameRateManager::GetExpectedFrameRate(const RSPropertyUnit unit, float velocityPx,
@@ -1254,7 +1140,6 @@ void HgmFrameRateManager::MarkVoteChange(const std::string& voter)
         voter != "" && (iter == voteRecord_.end() || !iter->second.second) && !voterTouchEffective_) {
         return;
     }
-    Reset();
 
     VoteInfo resultVoteInfo = ProcessRefreshRateVote();
     if (lastVoteInfo_ == resultVoteInfo) {
@@ -1286,24 +1171,12 @@ void HgmFrameRateManager::MarkVoteChange(const std::string& voter)
 
     bool frameRateChanged = false;
     if (rsFrameRateLinker_ != nullptr) {
-        frameRateChanged = CollectFrameRateChange(finalRange, rsFrameRateLinker_, appFrameRateLinkers_);
+        frameRateChanged = softVSyncManager_.CollectFrameRateChange(finalRange,
+                                                                         rsFrameRateLinker_,
+                                                                         appFrameRateLinkers_,
+                                                                         currRefreshRate_);
     }
-    // 当dvsync在连续延迟切帧阶段，使用dvsync内记录的刷新率判断是否变化
-    CreateVSyncGenerator()->DVSyncRateChanged(controllerRate_, frameRateChanged);
-    auto& hgmCore = HgmCore::Instance();
-    bool needForceUpdate = currRefreshRate_.load() != hgmCore.GetPendingScreenRefreshRate();
-    if (hgmCore.GetLtpoEnabled() && frameRateChanged) {
-        HandleFrameRateChangeForLTPO(timestamp_.load(), false);
-        if (needChangeDssRefreshRate && changeDssRefreshRateCb_ != nullptr) {
-            changeDssRefreshRateCb_(curScreenId_, refreshRate, true);
-        }
-    } else {
-        std::lock_guard<std::mutex> lock(pendingMutex_);
-        pendingRefreshRate_ = std::make_shared<uint32_t>(currRefreshRate_);
-        if (needChangeDssRefreshRate && changeDssRefreshRateCb_ != nullptr) {
-            changeDssRefreshRateCb_(curScreenId_, refreshRate, true);
-        }
-    }
+    CheckRefreshRateChange(false, frameRateChanged, refreshRate);
     ReportHiSysEvent(resultVoteInfo);
 }
 
@@ -1889,7 +1762,8 @@ void HgmFrameRateManager::CheckRefreshRateChange(bool followRs, bool frameRateCh
 {
     bool needChangeDssRefreshRate = currRefreshRate_.load() != refreshRate;
     // 当dvsync在连续延迟切帧阶段，使用dvsync内记录的刷新率判断是否变化
-    CreateVSyncGenerator()->DVSyncRateChanged(controllerRate_, frameRateChanged);
+    auto controllerRate = softVSyncManager_.GetControllerRate();
+    CreateVSyncGenerator()->DVSyncRateChanged(controllerRate, frameRateChanged);
     if (HgmCore::Instance().GetLtpoEnabled() && frameRateChanged) {
         HandleFrameRateChangeForLTPO(timestamp_.load(), followRs);
         if (needChangeDssRefreshRate && changeDssRefreshRateCb_ != nullptr) {
@@ -1900,6 +1774,9 @@ void HgmFrameRateManager::CheckRefreshRateChange(bool followRs, bool frameRateCh
         pendingRefreshRate_ = std::make_shared<uint32_t>(currRefreshRate_);
         if (needChangeDssRefreshRate && changeDssRefreshRateCb_ != nullptr) {
             changeDssRefreshRateCb_(curScreenId_.load(), refreshRate, true);
+        }
+        if (frameRateChanged) {
+            softVSyncManager_.SetQosVSyncRate(currRefreshRate_, appFrameRateLinkers_);
         }
     }
 }

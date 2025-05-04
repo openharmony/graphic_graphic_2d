@@ -169,6 +169,14 @@
       *HgmTouchManager::HgmTouchManager*;
       *HgmTouchManager::State2String*;
 
+      *HgmSoftVSyncManager::HgmSoftVSyncManager*;
+      *HgmSoftVSyncManager::InitController*;
+      *HgmSoftVSyncManager::SetWindowExpectedRefreshRate*;
+      *HgmSoftVSyncManager::CollectVRateChange*;
+      *HgmSoftVSyncManager::SetVsyncRateDiscountLTPO*;
+      *HgmSoftVSyncManager::GetDrawingFrameRate*;
+      *HgmSoftVSyncManager::CollectFrameRateChange*;
+
       *HgmPointerManager::CheckChangeStateValid*;
       *HgmPointerManager::HandleRsFrame*;
       *HgmPointerManager::HandleTimerReset*;

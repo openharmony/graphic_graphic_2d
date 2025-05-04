@@ -312,6 +312,10 @@ public:
 
     virtual void NotifyRefreshRateEvent(const EventInfo& eventInfo) = 0;
 
+    virtual void SetWindowExpectedRefreshRate(std::unordered_map<uint64_t, EventInfo>& eventInfos) = 0;
+
+    virtual void SetWindowExpectedRefreshRate(std::unordered_map<std::string, EventInfo>& eventInfos) = 0;
+
     virtual ErrCode NotifySoftVsyncEvent(uint32_t pid, uint32_t rateDiscount) = 0;
 
     virtual void NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt) = 0;

@@ -372,6 +372,10 @@ public:
 
     void NotifyRefreshRateEvent(const EventInfo& eventInfo);
 
+    void SetWindowExpectedRefreshRate(std::unordered_map<uint64_t, EventInfo>& eventInfos);
+
+    void SetWindowExpectedRefreshRate(std::unordered_map<std::string, EventInfo>& eventInfos);
+
     void NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt);
 
     void NotifyDynamicModeEvent(bool enableDynamicMode);
