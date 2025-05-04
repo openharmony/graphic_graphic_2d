@@ -15,6 +15,7 @@
 #include "platform/common/rs_log.h"
 #include "render/rs_render_blur_filter.h"
 #include "render/rs_render_displacement_distort_filter.h"
+#include "render/rs_render_edge_light_filter.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -36,6 +37,9 @@ std::shared_ptr<RSRenderFilterParaBase> RSRenderFilter::CreateRenderFilterPara(R
         }
         case RSUIFilterType::DISPLACEMENT_DISTORT : {
             return std::make_shared<RSRenderDispDistortFilterPara>(0);
+        }
+        case RSUIFilterType::EDGE_LIGHT : {
+            return std::make_shared<RSRenderEdgeLightFilterPara>(0);
         }
         default: {
             ROSEN_LOGE("RSRenderFilter::CreateRenderFilterPara null type %{public}d ",

@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 #include "filter_napi.h"
+#include "js_native_api.h"
+#include "js_native_api_types.h"
 #include "ui_effect_napi_utils.h"
 
 namespace OHOS {
@@ -149,6 +151,7 @@ napi_value FilterNapi::CreateFilter(napi_env env, napi_callback_info info)
         DECLARE_NAPI_FUNCTION("flyInFlyOutEffect", SetFlyOut),
         DECLARE_NAPI_FUNCTION("distort", SetDistort),
         DECLARE_NAPI_FUNCTION("displacementDistort", SetDisplacementDistort),
+        DECLARE_NAPI_FUNCTION("edgelight", SetEdgeLight),
     };
     status = napi_define_properties(env, object, sizeof(resultFuncs) / sizeof(resultFuncs[0]), resultFuncs);
     UIEFFECT_NAPI_CHECK_RET_DELETE_POINTER(status == napi_ok, nullptr, filterObj,
@@ -290,6 +293,16 @@ uint32_t FilterNapi::GetSpecialIntValue(napi_env env, napi_value argValue)
     if (UIEffectNapiUtils::GetType(env, argValue) == napi_number &&
         napi_get_value_uint32(env, argValue, &tmp) == napi_ok) {
             return tmp;
+    }
+    return tmp;
+}
+
+bool FilterNapi::GetSpecialBoolValue(napi_env env, napi_value argValue, bool defaultValue)
+{
+    bool tmp = defaultValue;
+    if (UIEffectNapiUtils::GetType(env, argValue) == napi_number &&
+        napi_get_value_bool(env, argValue, &tmp) == napi_ok) {
+        return tmp;
     }
     return tmp;
 }
@@ -461,6 +474,55 @@ napi_value FilterNapi::SetDisplacementDistort(napi_env env, napi_callback_info i
     status = napi_unwrap(env, thisVar, reinterpret_cast<void**>(&filterObj));
     UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && filterObj != nullptr, nullptr,
         FILTER_LOG_E("FilterNapi SetDisplacementDistort unwrap filterObj fail"));
+    filterObj->AddPara(para);
+    return thisVar;
+}
+
+napi_value FilterNapi::SetEdgeLight(napi_env env, napi_callback_info info)
+{
+    if (!UIEffectNapiUtils::IsSystemApp()) {
+        FILTER_LOG_E("SetEdgeLight failed");
+        napi_throw_error(env, std::to_string(ERR_NOT_SYSTEM_APP).c_str(),
+            "FilterNapi SetEdgeLight failed, is not system app");
+        return nullptr;
+    }
+    const size_t requireArgc = NUM_10;
+    size_t realArgc = NUM_10;
+    napi_value result = nullptr;
+    napi_get_undefined(env, &result);
+    napi_status status;
+    napi_value argv[requireArgc] = {0};
+    napi_value thisVar = nullptr;
+    UIEFFECT_JS_ARGS(env, info, status, realArgc, argv, thisVar);
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && realArgc == requireArgc, nullptr,
+        FILTER_LOG_E("FilterNapi SetEdgeLight parsing input fail"));
+
+    auto para = std::make_shared<EdgeLightPara>();
+    uint32_t detectColor = GetSpecialIntValue(env, argv[NUM_0]);
+    para->SetDetectColor(detectColor);
+    uint32_t color = GetSpecialIntValue(env, argv[NUM_1]);
+    para->SetColor(color);
+    float edgeThreshold = GetSpecialValue(env, argv[NUM_2]);
+    para->SetEdgeThreshold(edgeThreshold);
+    float edgeIntensity = GetSpecialValue(env, argv[NUM_3]);
+    para->SetEdgeIntensity(edgeIntensity);
+    float edgeSoftThreshold = GetSpecialValue(env, argv[NUM_4]);
+    para->SetEdgeSoftThreshold(edgeSoftThreshold);
+    int bloomLevel = GetSpecialIntValue(env, argv[NUM_5]);
+    para->SetBloomLevel(bloomLevel);
+    bool useRawColor = GetSpecialBoolValue(env, argv[NUM_6]);
+    para->SetUseRawColor(useRawColor);
+    bool gradient = GetSpecialBoolValue(env, argv[NUM_7]);
+    para->SetGradient(gradient);
+    float alphaProgress = GetSpecialValue(env, argv[NUM_8]);
+    para->SetAlphaProgress(alphaProgress);
+    bool addImage = GetSpecialBoolValue(env, argv[NUM_9]);
+    para->SetAddImage(addImage);
+
+    Filter* filterObj = nullptr;
+    status = napi_unwrap(env, thisVar, reinterpret_cast<void**>(&filterObj));
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && filterObj != nullptr, nullptr,
+        FILTER_LOG_E("FilterNapi SetEdgeLight unwrap filterObj fail"));
     filterObj->AddPara(para);
     return thisVar;
 }

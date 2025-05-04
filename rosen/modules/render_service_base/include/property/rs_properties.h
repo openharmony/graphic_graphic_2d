@@ -623,6 +623,8 @@ private:
     void GenerateWaterRippleFilter();
     void GenerateLinearGradientBlurFilter();
     void GenerateMagnifierFilter();
+    void GenerateRenderFilter();
+    void GenerateRenderFilterEdgeLight();
 
     bool NeedClip() const;
     bool NeedBlurFuzed();

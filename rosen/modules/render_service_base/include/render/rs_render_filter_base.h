@@ -25,6 +25,7 @@ enum class RSUIFilterType : int16_t {
     // filter type
     BLUR,
     DISPLACEMENT_DISTORT,
+    EDGE_LIGHT,
     // mask type
     RIPPLE_MASK,
     RADIAL_GRADIENT_MASK,
@@ -39,6 +40,18 @@ enum class RSUIFilterType : int16_t {
     RIPPLE_MASK_RADIUS, // float
     RIPPLE_MASK_WIDTH, // float
     DISPLACEMENT_DISTORT_FACTOR, // Vector2f
+
+    // edge light value type
+    EDGE_LIGHT_DETECT_COLOR, // uint32_t
+    EDGE_LIGHT_COLOR, // uint32_t
+    EDGE_LIGHT_EDGE_THRESHOLD, // float
+    EDGE_LIGHT_EDGE_INTENSITY, // float
+    EDGE_LIGHT_EDGE_SOFT_THRESHOLD, // float
+    EDGE_LIGHT_BLOOM_LEVEL, // int
+    EDGE_LIGHT_USE_RAW_COLOR, // bool
+    EDGE_LIGHT_GRADIENT, // bool
+    EDGE_LIGHT_ALPHA_PROGRESS, // float
+    EDGE_LIGHT_ADD_IMAGE, // bool
 };
 
 class RSB_EXPORT RSRenderFilterParaBase : public RSRenderPropertyBase,
