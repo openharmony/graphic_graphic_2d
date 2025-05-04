@@ -629,11 +629,11 @@ void RSRenderServiceClient::NotifyRefreshRateEvent(const EventInfo& eventInfo)
 {
 }
 
-void RSRenderServiceClient::SetWindowExpectedRefreshRate(std::unordered_map<uint64_t, EventInfo>& eventInfos)
+void RSRenderServiceClient::SetWindowExpectedRefreshRate(const std::unordered_map<uint64_t, EventInfo>& eventInfos)
 {
 }
 
-void RSRenderServiceClient::SetWindowExpectedRefreshRate(std::unordered_map<std::string, EventInfo>& eventInfos)
+void RSRenderServiceClient::SetWindowExpectedRefreshRate(const std::unordered_map<std::string, EventInfo>& eventInfos)
 {
 }
 

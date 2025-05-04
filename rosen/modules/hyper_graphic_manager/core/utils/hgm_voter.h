@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023~2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,9 +18,9 @@
 
 #include <cstdio>
 
+#include "animation/rs_frame_rate_range.h"
 #include "hgm_command.h"
 #include "hgm_log.h"
-#include "animation/rs_frame_rate_range.h"
 
 namespace OHOS::Rosen {
 using VoteRange = std::pair<uint32_t, uint32_t>;
@@ -82,13 +82,13 @@ struct VoteInfo {
 
 class HgmVoter {
 public:
-    HgmVoter(std::vector<std::string> voters);
+    explicit HgmVoter(const std::vector<std::string>& voters);
     ~HgmVoter() = default;
 
     bool DeliverVote(const VoteInfo& voteInfo, bool eventStatus);
-    VoteInfo ProcessVote();
+    VoteInfo ProcessVote() const ;
 private:
-    std::pair<bool, bool> MergeRangeByPriority(VoteRange& rangeRes, const VoteRange& curVoteRange);
+    static std::pair<bool, bool> MergeRangeByPriority(VoteRange& rangeRes, const VoteRange& curVoteRange);
     bool ProcessVote(std::vector<std::string>::iterator& voterIter, VoteInfo& resultVoteInfo, VoteRange& voteRange);
 
     std::unordered_map<std::string, std::pair<std::vector<VoteInfo>, bool>>  voteRecord_;

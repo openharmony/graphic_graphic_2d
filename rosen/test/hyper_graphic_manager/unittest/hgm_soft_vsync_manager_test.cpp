@@ -20,8 +20,8 @@
 #include "common/rs_common_def.h"
 #include "hgm_soft_vsync_manager.h"
 #include "hgm_test_base.h"
-#include "vsync_generator.h"
 #include "vsync_controller.h"
+#include "vsync_generator.h"
 
 using namespace testing;
 using namespace testing::ext;

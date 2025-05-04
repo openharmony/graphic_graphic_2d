@@ -2530,38 +2530,28 @@ void RSRenderServiceConnection::NotifyRefreshRateEvent(const EventInfo& eventInf
     });
 }
 
-void RSRenderServiceConnection::SetWindowExpectedRefreshRate(std::unordered_map<uint64_t, EventInfo>& eventInfos)
-{
-    if (!mainThread_) {
-        return;
-    }
-
-    auto& context = connection->mainThread_->GetContext();
-    auto& frameRateLinkers = context.GetMutableFrameRateLinkerMap().Get();
-    
-    HgmTaskHandleThread::Instance().PostTask([pid = remotePid_, eventInfos, &frameRateLinkers]() {
+void RSRenderServiceConnection::SetWindowExpectedRefreshRate(
+    const std::unordered_map<uint64_t, EventInfo>& eventInfos
+)
+{  
+    HgmTaskHandleThread::Instance().PostTask([pid = remotePid_, eventInfos]() {
         auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
         if (frameRateMgr != nullptr) {
             auto& softVsyncMgr = frameRateMgr->SoftVSyncMgrRef();
-            softVsyncMgr.SetWindowExpectedRefreshRate(pid, frameRateLinkers, eventInfos);
+            softVsyncMgr.SetWindowExpectedRefreshRate(pid, eventInfos);
         }
     });
 }
 
-void RSRenderServiceConnection::SetWindowExpectedRefreshRate(std::unordered_map<std::string, EventInfo>& eventInfos)
-{
-    if (!mainThread_) {
-        return;
-    }
-
-    auto& context = connection->mainThread_->GetContext();
-    auto& frameRateLinkers = context.GetMutableFrameRateLinkerMap().Get();
-    
-    HgmTaskHandleThread::Instance().PostTask([pid = remotePid_, eventInfos, &frameRateLinkers]() {
+void RSRenderServiceConnection::SetWindowExpectedRefreshRate(
+    const std::unordered_map<std::string, EventInfo>& eventInfos
+)
+{    
+    HgmTaskHandleThread::Instance().PostTask([pid = remotePid_, eventInfos]() {
         auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
         if (frameRateMgr != nullptr) {
             auto& softVsyncMgr = frameRateMgr->SoftVSyncMgrRef();
-            softVsyncMgr.SetWindowExpectedRefreshRate(pid, frameRateLinkers, eventInfos);
+            softVsyncMgr.SetWindowExpectedRefreshRate(pid, eventInfos);
         }
     });
 }

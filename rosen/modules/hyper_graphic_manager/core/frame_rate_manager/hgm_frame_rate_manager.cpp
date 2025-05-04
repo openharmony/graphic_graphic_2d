@@ -190,7 +190,8 @@ void HgmFrameRateManager::RegisterCoreCallbacksAndInitController(sptr<VSyncContr
     });
 
     controller_ = std::make_shared<HgmVSyncGeneratorController>(rsController, appController, vsyncGenerator);
-    softVSyncManager_.InitController(controller_, appDistributor);
+    std::weak_ptr<HgmVSyncGeneratorController> weakController(controller_);
+    softVSyncManager_.InitController(weakController, appDistributor);
 }
 
 void HgmFrameRateManager::InitTouchManager()
@@ -227,11 +228,11 @@ void HgmFrameRateManager::InitTouchManager()
             startCheck_.store(false);
             updateTouchToMultiAppStrategy(newState);
             voterTouchEffective_.store(false);
-            softVSyncManager_.ChangeIdleState(true);
+            softVSyncManager_.ChangePerformanceFirst(true);
         });
         touchManager_.RegisterExitStateCallback(TouchState::IDLE_STATE,
             [this] (TouchState lastState, TouchState newState) {
-            softVSyncManager_.ChangeIdleState(false);
+            softVSyncManager_.ChangePerformanceFirst(false);
         });
         touchManager_.RegisterEnterStateCallback(TouchState::UP_STATE,
             [this, updateTouchToMultiAppStrategy] (TouchState lastState, TouchState newState) {

@@ -4073,13 +4073,25 @@ void RSRenderServiceConnectionProxy::NotifyAppStrategyConfigChangeEvent(const st
     }
 }
 
-void RSRenderServiceConnectionProxy::SetWindowExpectedRefreshRate(std::unordered_map<uint64_t, EventInfo>& eventInfos)
+void RSRenderServiceConnectionProxy::SetWindowExpectedRefreshRate(
+    const std::unordered_map<uint64_t, EventInfo>& eventInfos
+)
 {
+    auto mapSize = eventInfos.size();
+    if (mapSize<= 0 || mapSize > 100) {
+        ROSEN_LOGE("SetWindowExpectedRefreshRate: map size err.");
+        return;
+    }
+
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
     if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
         ROSEN_LOGE("SetWindowExpectedRefreshRate: WriteInterfaceToken GetDescriptor err.");
+        return;
+    }
+    if (!data.WriteUint32(mapSize)) {
+        ROSEN_LOGE("SetWindowExpectedRefreshRate: WriteUint32 mapSize err.");
         return;
     }
     for (const auto& [key, eventInfo] : eventInfos) {
@@ -4100,13 +4112,25 @@ void RSRenderServiceConnectionProxy::SetWindowExpectedRefreshRate(std::unordered
     }
 }
 
-void RSRenderServiceConnectionProxy::SetWindowExpectedRefreshRate(std::unordered_map<std::string, EventInfo>& eventInfos)
+void RSRenderServiceConnectionProxy::SetWindowExpectedRefreshRate(
+    const std::unordered_map<std::string, EventInfo>& eventInfos
+)
 {
+    auto mapSize = eventInfos.size();
+    if (mapSize<= 0 || mapSize > 100) {
+        ROSEN_LOGE("SetWindowExpectedRefreshRate: map size err.");
+        return;
+    }
+
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
     if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
         ROSEN_LOGE("SetWindowExpectedRefreshRate: WriteInterfaceToken GetDescriptor err.");
+        return;
+    }
+    if (!data.WriteUint32(mapSize)) {
+        ROSEN_LOGE("SetWindowExpectedRefreshRate: WriteUint32 mapSize err.");
         return;
     }
     for (const auto& [key, eventInfo] : eventInfos) {

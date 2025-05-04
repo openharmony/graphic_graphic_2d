@@ -1726,7 +1726,7 @@ void RSRenderServiceClient::NotifyRefreshRateEvent(const EventInfo& eventInfo)
     }
 }
 
-void RSRenderServiceClient::SetWindowExpectedRefreshRate(std::unordered_map<uint64_t, EventInfo>& eventInfos)
+void RSRenderServiceClient::SetWindowExpectedRefreshRate(const std::unordered_map<uint64_t, EventInfo>& eventInfos)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService != nullptr) {
@@ -1734,7 +1734,7 @@ void RSRenderServiceClient::SetWindowExpectedRefreshRate(std::unordered_map<uint
     }
 }
 
-void RSRenderServiceClient::SetWindowExpectedRefreshRate(std::unordered_map<std::string, EventInfo>& eventInfos)
+void RSRenderServiceClient::SetWindowExpectedRefreshRate(const std::unordered_map<std::string, EventInfo>& eventInfos)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService != nullptr) {

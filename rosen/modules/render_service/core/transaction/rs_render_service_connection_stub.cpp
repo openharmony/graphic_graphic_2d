@@ -2723,11 +2723,26 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_WINDOW_EXPECTED_BY_WINDOW_ID) : {
             std::unordered_map<uint64_t, EventInfo> eventInfos;
-
-            uint32_t mapSize = data.ReadUint32();
+            
+            uint32_t mapSize{0};
+            if (!data.ReadUint32(mapSize)) {
+                RS_LOGE("RSRenderServiceConnectionStub::NOTIFY_WINDOW_EXPECTED_BY_VSYNC_NAME Read mapSize failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             for (uint32_t i = 0; i < mapSize; ++i) {
-                uint64_t windowId = data.ReadUint64();
-                EventInfo eventInfo = EventInfo::Deserialize(data);
+                uint64_t windowId{0};
+                if (!data.ReadUint64(windowId)) {
+                    RS_LOGE("RSRenderServiceConnectionStub::NOTIFY_WINDOW_EXPECTED_BY_VSYNC_NAME Read parcel failed!");
+                    ret = ERR_INVALID_DATA;
+                    break;
+                }
+                EventInfo eventInfo;
+                if (!EventInfo::Deserialize(data, &eventInfo)) {
+                    RS_LOGE("RSRenderServiceConnectionStub::NOTIFY_WINDOW_EXPECTED_BY_VSYNC_NAME Read parcel failed!");
+                    ret = ERR_INVALID_DATA;
+                    break;
+                }
                 eventInfos[windowId] = eventInfo;
             }
             SetWindowExpectedRefreshRate(eventInfos);
@@ -2736,10 +2751,25 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_WINDOW_EXPECTED_BY_VSYNC_NAME) : {
             std::unordered_map<std::string, EventInfo> eventInfos;
 
-            uint32_t mapSize = data.ReadUint32();
+            uint32_t mapSize{0};
+            if (!data.ReadUint32(mapSize)) {
+                RS_LOGE("RSRenderServiceConnectionStub::NOTIFY_WINDOW_EXPECTED_BY_VSYNC_NAME Read mapSize failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             for (uint32_t i = 0; i < mapSize; ++i) {
-                std::string vsyncName = data.ReadString();
-                EventInfo eventInfo = EventInfo::Deserialize(data);
+                std::string vsyncName;
+                if (!data.ReadString(vsyncName)) {
+                    RS_LOGE("RSRenderServiceConnectionStub::NOTIFY_WINDOW_EXPECTED_BY_VSYNC_NAME Read parcel failed!");
+                    ret = ERR_INVALID_DATA;
+                    break;
+                }
+                EventInfo eventInfo;
+                if (!EventInfo::Deserialize(data, &eventInfo)) {
+                    RS_LOGE("RSRenderServiceConnectionStub::NOTIFY_WINDOW_EXPECTED_BY_VSYNC_NAME Read parcel failed!");
+                    ret = ERR_INVALID_DATA;
+                    break;
+                }
                 eventInfos[vsyncName] = eventInfo;
             }
             SetWindowExpectedRefreshRate(eventInfos);

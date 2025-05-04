@@ -24,7 +24,7 @@
 #include "common/rs_common_def.h"
 #include "hgm_app_page_url_strategy.h"
 #include "hgm_command.h"
-#include "hgm_voter.h"
+
 #include "hgm_idle_detector.h"
 #include "hgm_multi_app_strategy.h"
 #include "hgm_soft_vsync_manager.h"
@@ -33,6 +33,7 @@
 #include "hgm_task_handle_thread.h"
 #include "hgm_touch_manager.h"
 #include "hgm_pointer_manager.h"
+#include "hgm_voter.h"
 #include "hgm_vsync_generator_controller.h"
 #include "vsync_distributor.h"
 #include "modifier/rs_modifier_type.h"

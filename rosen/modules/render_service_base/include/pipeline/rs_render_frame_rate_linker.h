@@ -61,7 +61,7 @@ public:
 
     void SetAnimatorExpectedFrameRate(int32_t animatorExpectedFrameRate);
     void SetVsyncName(const std::string &vsyncName);
-    void SetWindowNodeId(const uint64_t& windowNodeId);
+    void SetWindowNodeId(uint64_t windowNodeId);
     void SetExpectedRange(const FrameRateRange& range);
     const FrameRateRange& GetExpectedRange() const;
     void SetFrameRate(uint32_t rate);

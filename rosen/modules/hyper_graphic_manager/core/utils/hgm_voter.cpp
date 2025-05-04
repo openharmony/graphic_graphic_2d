@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,7 +17,7 @@
 
 namespace OHOS {
 namespace Rosen {
-HgmVoter::HgmVoter(std::vector<std::string> voters): voters_(voters)
+HgmVoter::HgmVoter(const std::vector<std::string>& voters): voters_(voters)
 {
     HGM_LOGI("Construction of HgmVoter");
 }
@@ -66,7 +66,8 @@ bool HgmVoter::ProcessVote(std::vector<std::string>::iterator& voterIter,
     }
     VoteInfo curVoteInfo = voteInfos.back();
 
-    auto [mergeVoteRange, mergeVoteInfo] = MergeRangeByPriority(voteRange, {curVoteInfo.min, curVoteInfo.max});
+    auto [mergeVoteRange, mergeVoteInfo] =
+        HgmVoter::MergeRangeByPriority(voteRange, {curVoteInfo.min, curVoteInfo.max});
     if (mergeVoteInfo) {
         resultVoteInfo.Merge(curVoteInfo);
     }

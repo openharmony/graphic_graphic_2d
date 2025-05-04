@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -23,7 +23,6 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-    // TODO 改成枚举
     const std::string VOTER_NAME[] = {
         "VOTER_VRATE",
         "VOTER_VIDEOCALL",
@@ -39,7 +38,7 @@ HgmSoftVSyncManager::HgmSoftVSyncManager()
     HGM_LOGI("Construction of HgmSoftVSyncManager");
 }
 
-void HgmSoftVSyncManager::InitController(std::shared_ptr<HgmVSyncGeneratorController>& controller,
+void HgmSoftVSyncManager::InitController(std::weak_ptr<HgmVSyncGeneratorController>& controller,
                                          sptr<VSyncDistributor> appDistributor)
 {
     controller_ = controller;
@@ -65,11 +64,11 @@ void HgmSoftVSyncManager::DeliverSoftVote(FrameRateLinkerId linkerId, const Vote
     }
 }
 
-void HgmSoftVSyncManager::HandleLinkers(const FrameRateLinkerMap& appFrameRateLinkers)
+void HgmSoftVSyncManager::HandleLinkers()
 {
     // Clear votes for non-existent linkers
     for (auto iter = linkerVoteMap_.begin(); iter != linkerVoteMap_.end();) {
-        if (appFrameRateLinkers.count(iter->first) == 0) {
+        if (appFrameRateLinkers_.count(iter->first) == 0) {
             iter = linkerVoteMap_.erase(iter);
         } else {
             ++iter;
@@ -78,7 +77,7 @@ void HgmSoftVSyncManager::HandleLinkers(const FrameRateLinkerMap& appFrameRateLi
 
     winLinkerMap_.clear();
     vsyncLinkerMap_.clear();
-    for (auto linker : appFrameRateLinkers) {
+    for (auto linker : appFrameRateLinkers_) {
         if (linker.second == nullptr) {
             continue;
         }
@@ -86,17 +85,14 @@ void HgmSoftVSyncManager::HandleLinkers(const FrameRateLinkerMap& appFrameRateLi
         winLinkerMap_[linker.second->GetWindowNodeId()] = linker.first;
 
         vsyncLinkerMap_.try_emplace(linker.second->GetVsyncName(), std::vector<FrameRateLinkerId>{});
-        vsyncLinkerMap_[linker.second->GetVsyncName()].push_back(linker.first);
+        vsyncLinkerMap_[linker.second->GetVsyncName()].emplace_back(linker.first);
     }
 }
 
 void HgmSoftVSyncManager::SetWindowExpectedRefreshRate(pid_t pid,
-                                                       const FrameRateLinkerMap& appFrameLinkers,
-                                                       const std::unordered_map<WindowId,
-                                                       EventInfo>& voters)
+                                                       const std::unordered_map<WindowId, EventInfo>& voters)
 {
-    HandleLinkers(appFrameLinkers);
-    for (auto voter : voters) {
+    for (const auto& voter : voters) {
         WindowId winId = voter.first;
         EventInfo eventInfo = voter.second;
 
@@ -112,12 +108,9 @@ void HgmSoftVSyncManager::SetWindowExpectedRefreshRate(pid_t pid,
 }
 
 void HgmSoftVSyncManager::SetWindowExpectedRefreshRate(pid_t pid,
-                                                       const FrameRateLinkerMap& appFrameLinkers,
-                                                       const std::unordered_map<VsyncName,
-                                                       EventInfo>& voters)
+                                                       const std::unordered_map<VsyncName, EventInfo>& voters)
 {
-    HandleLinkers(appFrameLinkers);
-    for (auto voter : voters) {
+    for (const auto& voter : voters) {
         VsyncName vsyncName = voter.first;
         EventInfo eventInfo = voter.second;
 
@@ -143,21 +136,24 @@ bool HgmSoftVSyncManager::CollectFrameRateChange(FrameRateRange finalRange,
         HGM_LOGE("no valid controller, cannot work correctly, maybe Init() wasn't executed correctly.");
         return false;
     }
+    auto sharedController = controller_.lock();
+    if (sharedController == nullptr) {
+        HGM_LOGE("no valid controller, cannot work correctly, maybe Init() wasn't executed correctly.");
+        return false;
+    }
     Reset();
     bool frameRateChanged = false;
     bool controllerRateChanged = false;
     auto rsFrameRate = HgmSoftVSyncManager::GetDrawingFrameRate(currRefreshRate, finalRange);
-    controllerRate_ = rsFrameRate > 0 ? rsFrameRate : controller_->GetCurrentRate();
-    if (controllerRate_ != controller_->GetCurrentRate()) {
+    controllerRate_ = rsFrameRate > 0 ? rsFrameRate : sharedController->GetCurrentRate();
+    if (controllerRate_ != sharedController->GetCurrentRate()) {
         rsFrameRateLinker->SetFrameRate(controllerRate_);
         controllerRateChanged = true;
         frameRateChanged = true;
     }
 
-    auto& hgmCore = HgmCore::Instance();
-    auto screenCurrentRefreshRate = hgmCore.GetScreenCurrentRefreshRate(hgmCore.GetActiveScreenId());
-    RS_TRACE_NAME_FMT("CollectFrameRateChange refreshRate: %d, rsFrameRate: %d, finalRange = (%d, %d, %d)",
-        screenCurrentRefreshRate, rsFrameRate, finalRange.min_, finalRange.max_, finalRange.preferred_);
+    RS_TRACE_NAME_FMT("CollectFrameRateChange rsFrameRate: %d, finalRange = (%d, %d, %d)",
+        rsFrameRate, finalRange.min_, finalRange.max_, finalRange.preferred_);
     RS_TRACE_INT("PreferredFrameRate", static_cast<int>(finalRange.preferred_));
 
     appChangeData_.clear();
@@ -177,7 +173,7 @@ bool HgmSoftVSyncManager::CollectFrameRateChange(FrameRateRange finalRange,
         if (!isChanged && appVoteData_.count(linker.first)) {
             expectedRange.preferred_ = appVoteData_[linker.first];
         }
-        auto appFrameRate = !isIdle_ && expectedRange.type_ != NATIVE_VSYNC_FRAME_RATE_TYPE ?
+        auto appFrameRate = !isPerformanceFirst_ && expectedRange.type_ != NATIVE_VSYNC_FRAME_RATE_TYPE ?
                             OLED_NULL_HZ : HgmSoftVSyncManager::GetDrawingFrameRate(currRefreshRate, expectedRange);
         if (appFrameRate != linker.second->GetFrameRate() || controllerRateChanged) {
             linker.second->SetFrameRate(appFrameRate);
@@ -277,9 +273,12 @@ void HgmSoftVSyncManager::Reset()
     appChangeData_.clear();
 }
 
-void HgmSoftVSyncManager::UniProcessDataForLtpo(const std::map<uint64_t, int>& vRatesMap)
+void HgmSoftVSyncManager::UniProcessDataForLtpo(const std::map<uint64_t, int>& vRatesMap,
+                                                const FrameRateLinkerMap& appFrameRateLinkers)
 {
     vRatesMap_ = vRatesMap;
+    appFrameRateLinkers_ = appFrameRateLinkers;
+    HandleLinkers();
 }
 
 void HgmSoftVSyncManager::SetQosVSyncRate(const uint32_t currRefreshRate,

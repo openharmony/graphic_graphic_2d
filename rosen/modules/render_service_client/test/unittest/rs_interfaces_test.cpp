@@ -1388,9 +1388,10 @@ HWTEST_F(RSInterfacesTest, SetWindowExpectedRefreshRate001, Function | SmallTest
 {
     constexpr int32_t maxFps = 1000;
     constexpr int32_t minFps = 1;
+    constexpr uint64_t windowId = 1;
     ASSERT_NE(rsInterfaces, nullptr);
-    std::unordered_map<uint64_t, EventInfo> eventInfos addVote = {1, { "VOTER_VRATE", true, minFps, maxFps }};
-    std::unordered_map<uint64_t, EventInfo> eventInfos delVote = {2, { "VOTER_VRATE", false}};
+    std::unordered_map<uint64_t, EventInfo> eventInfos addVote = {windowId, { "VOTER_VRATE", true, minFps, maxFps }};
+    std::unordered_map<uint64_t, EventInfo> eventInfos delVote = {windowId, { "VOTER_VRATE", false}};
     rsInterfaces->SetWindowExpectedRefreshRate(addVote);
     rsInterfaces->SetWindowExpectedRefreshRate(delVote);
     ASSERT_NE(rsInterfaces, nullptr);

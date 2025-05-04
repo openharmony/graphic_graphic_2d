@@ -19,13 +19,13 @@
 #include <unordered_map>
 #include <vector>
 
-#include "hgm_command.h"
-#include "hgm_voter.h"
 #include "common/rs_common_def.h"
-#include "variable_frame_rate/rs_variable_frame_rate.h"
-#include "pipeline/rs_render_frame_rate_linker.h"
-#include "hgm_vsync_generator_controller.h"
+#include "hgm_command.h"
 #include "hgm_energy_consumption_policy.h"
+#include "hgm_voter.h"
+#include "hgm_vsync_generator_controller.h"
+#include "pipeline/rs_render_frame_rate_linker.h"
+#include "variable_frame_rate/rs_variable_frame_rate.h"
 #include "vsync_distributor.h"
 
 namespace OHOS {
@@ -39,19 +39,22 @@ public:
     HgmSoftVSyncManager();
     ~HgmSoftVSyncManager() = default;
 
-    void SetWindowExpectedRefreshRate(pid_t pid, const FrameRateLinkerMap& appFrameLinkers, const std::unordered_map<WindowId, EventInfo>& voters);
-    void SetWindowExpectedRefreshRate(pid_t pid, const FrameRateLinkerMap& appFrameLinkers, const std::unordered_map<VsyncName, EventInfo>& voters);
+    void SetWindowExpectedRefreshRate(pid_t pid,
+                                      const std::unordered_map<WindowId,EventInfo>& voters);
+    void SetWindowExpectedRefreshRate(pid_t pid,
+                                      const std::unordered_map<VsyncName, EventInfo>& voters);
     bool CollectFrameRateChange(FrameRateRange finalRange, std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker,
         const FrameRateLinkerMap& appFrameRateLinkers, const uint32_t currRefreshRate);
     std::vector<std::pair<FrameRateLinkerId, uint32_t>> GetSoftAppChangeData();
-    void UniProcessDataForLtpo(const std::map<uint64_t, int>& vRatesMap);
-    void InitController(std::shared_ptr<HgmVSyncGeneratorController>& controller,
+    void UniProcessDataForLtpo(const std::map<uint64_t, int>& vRatesMap,
+                               const FrameRateLinkerMap& appFrameRateLinkers);
+    void InitController(std::weak_ptr<HgmVSyncGeneratorController>& controller,
                         sptr<VSyncDistributor> appDistributor);
-    void ChangeIdleState(bool isIdle)
+    void ChangePerformanceFirst(bool isPerformanceFirst)
     {
-        isIdle_.store(isIdle);
+        isPerformanceFirst_.store(isPerformanceFirst);
     }
-    uint32_t GetControllerRate()
+    uint32_t GetControllerRate() const
     {
         return controllerRate_;
     }
@@ -60,7 +63,7 @@ public:
     void SetQosVSyncRate(const uint32_t currRefreshRate, const FrameRateLinkerMap& appFrameRateLinkers);
 private:
     void Reset();
-    void HandleLinkers(const FrameRateLinkerMap& appFrameRateLinkers);
+    void HandleLinkers();
     void DeliverSoftVote(FrameRateLinkerId linkerId, const VoteInfo& voteInfo, bool eventStatus);
     // vrate voting to hgm linkerId means that frameLinkerid, appFrameRate means that vrate
     bool CollectVRateChange(uint64_t linkerId, FrameRateRange& appFrameRate);
@@ -72,14 +75,15 @@ private:
     std::unordered_map<VsyncName, std::vector<FrameRateLinkerId>> vsyncLinkerMap_;
     std::unordered_map<FrameRateLinkerId, uint32_t> appVoteData_;
     std::unordered_map<FrameRateLinkerId, uint32_t> appChangeData_;
-    std::shared_ptr<HgmVSyncGeneratorController> controller_ = nullptr;
+    std::weak_ptr<HgmVSyncGeneratorController> controller_ = nullptr;
     // linkerid is key, vrate is value
     std::map<uint64_t, int> vRatesMap_;
     sptr<VSyncDistributor> appDistributor_ = nullptr;
+    FrameRateLinkerMap appFrameRateLinkers_;
 
     uint32_t controllerRate_ = 0;
 
-    std::atomic<bool> isIdle_;
+    std::atomic<bool> isPerformanceFirst_;
 };
 } // namespace Rosen
 } // namespace OHOS

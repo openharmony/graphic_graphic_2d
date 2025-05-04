@@ -832,12 +832,12 @@ void RSInterfaces::NotifyRefreshRateEvent(const EventInfo& eventInfo)
     renderServiceClient_->NotifyRefreshRateEvent(eventInfo);
 }
 
-void RSInterfaces::SetWindowExpectedRefreshRate(std::unordered_map<uint64_t, EventInfo>& eventInfos)
+void RSInterfaces::SetWindowExpectedRefreshRate(const std::unordered_map<uint64_t, EventInfo>& eventInfos)
 {
     renderServiceClient_->SetWindowExpectedRefreshRate(eventInfos);
 }
 
-void SetWindowExpectedRefreshRate(std::unordered_map<std::string, EventInfo>& eventInfos)
+void RSInterfaces::SetWindowExpectedRefreshRate(const std::unordered_map<std::string, EventInfo>& eventInfos)
 {
     renderServiceClient_->SetWindowExpectedRefreshRate(eventInfos);
 }
