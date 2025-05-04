@@ -22,6 +22,11 @@ RSUIFilterType RSUIFilterParaBase::GetType() const
     return type_;
 }
 
+RSUIFilterType RSUIFilterParaBase::GetMaskType() const
+{
+    return maskType_;
+}
+
 bool RSUIFilterParaBase::IsValid() const
 {
 return type_ != RSUIFilterType::NONE;

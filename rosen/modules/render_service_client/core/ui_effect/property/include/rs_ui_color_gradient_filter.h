@@ -51,8 +51,6 @@ public:
 
 private:
     static std::shared_ptr<RSUIMaskPara> CreateMask(RSUIFilterType type);
-
-    RSUIFilterType maskType_ = RSUIFilterType::NONE;
 };
 
 } // namespace Rosen

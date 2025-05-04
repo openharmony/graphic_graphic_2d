@@ -60,6 +60,7 @@
 #include "ui_effect/mask/include/ripple_mask_para.h"
 #include "ui_effect/property/include/rs_ui_filter.h"
 #include "ui_effect/property/include/rs_ui_displacement_distort_filter.h"
+#include "ui_effect/property/include/rs_ui_edge_light_filter.h"
 
 #ifdef RS_ENABLE_VK
 #include "modifier_render_thread/rs_modifiers_draw.h"
@@ -1831,6 +1832,13 @@ void RSNode::SetUIBackgroundFilter(const OHOS::Rosen::Filter* backgroundFilter)
                 auto colorGradientProperty = std::make_shared<RSUIColorGradientFilterPara>();
                 colorGradientProperty->SetColorGradient(filterColorGradientPara);
                 uiFilter->Insert(colorGradientProperty);
+                break;
+            }
+            case FilterPara::EDGE_LIGHT: {
+                auto edgeLightProperty = std::make_shared<RSUIEdgeLightFilterPara>();
+                auto filterEdgeLightPara = std::static_pointer_cast<EdgeLightPara>(filterPara);
+                edgeLightProperty->SetEdgeLight(filterEdgeLightPara);
+                uiFilter->Insert(edgeLightProperty);
                 break;
             }
             default:

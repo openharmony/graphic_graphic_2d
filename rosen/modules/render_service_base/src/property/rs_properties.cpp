@@ -16,6 +16,8 @@
 #include "property/rs_properties.h"
 
 #include <algorithm>
+#include <memory>
+#include <optional>
 #include <securec.h>
 
 #include "animation/rs_render_particle_animation.h"
@@ -44,6 +46,9 @@
 #include "render/rs_maskcolor_shader_filter.h"
 #include "render/rs_render_color_gradient_filter.h"
 #include "render/rs_render_displacement_distort_filter.h"
+#include "render/rs_render_edge_light_filter.h"
+#include "render/rs_render_filter_base.h"
+#include "render/rs_shader_mask.h"
 #include "render/rs_spherize_effect_filter.h"
 #include "render/rs_attraction_effect_filter.h"
 #include "src/core/SkOpts.h"
@@ -51,6 +56,7 @@
 #include "render/rs_fly_out_shader_filter.h"
 #include "render/rs_distortion_shader_filter.h"
 #include "render/rs_sound_wave_filter.h"
+#include "render/rs_edge_light_shader_filter.h"
 #include "drawable/rs_property_drawable_utils.h"
 
 
@@ -3573,6 +3579,61 @@ void RSProperties::GenerateDisplacementDistortFilter()
     }
 }
 
+void RSProperties::GenerateRenderFilterEdgeLight()
+{
+    if (!backgroundRenderFilter_) {
+        ROSEN_LOGE("RSProperties::GenerateRenderFilterEdgeLight backgroundRenderFilter_ nullptr.");
+        return;
+    }
+    auto filterPara = backgroundRenderFilter_->GetRenderFilterPara(RSUIFilterType::EDGE_LIGHT);
+    if (!filterPara) {
+        ROSEN_LOGE("RSProperties::GenerateRenderFilterEdgeLight EDGE_LIGHT filter para not found.");
+        return;
+    }
+    auto edgeLightFilterPara = std::static_pointer_cast<RSRenderEdgeLightFilterPara>(filterPara);
+
+    // alpha
+    auto edgeLightAlpha = std::static_pointer_cast<RSRenderAnimatableProperty<float>>(
+        edgeLightFilterPara->GetRenderPropert(RSUIFilterType::EDGE_LIGHT_ALPHA));
+    if (!edgeLightAlpha) {
+        ROSEN_LOGE("RSProperties::GenerateRenderFilterEdgeLight alpha is null.");
+        return;
+    }
+    EdgeLightShaderFilterParams elParas;
+    elParas.alpha = edgeLightAlpha->Get();
+
+    // color
+    auto edgeLightColor = std::static_pointer_cast<RSRenderAnimatableProperty<Vector4f>>(
+        edgeLightFilterPara->GetRenderPropert(RSUIFilterType::EDGE_LIGHT_COLOR));
+    if (edgeLightColor != nullptr) {
+        elParas.color = edgeLightColor->Get();
+    }
+
+    // mask
+    if (edgeLightFilterPara->GetMaskType() != RSUIFilterType::NONE) {
+        auto edgeLightMask = std::static_pointer_cast<RSRenderMaskPara>(
+            edgeLightFilterPara->GetRenderPropert(edgeLightFilterPara->GetMaskType()));
+        if (edgeLightMask == nullptr) {
+            ROSEN_LOGE("RSProperties::GenerateRenderFilterEdgeLight mask is null, maskType: %{public}d.",
+                static_cast<int>(edgeLightFilterPara->GetMaskType()));
+            return;
+        }
+        elParas.mask = std::make_shared<RSShaderMask>(edgeLightMask);
+    }
+    std::shared_ptr<RSEdgeLightShaderFilter> elFilter = std::make_shared<RSEdgeLightShaderFilter>(elParas);
+
+    std::shared_ptr<RSDrawingFilter> originalFilter = std::make_shared<RSDrawingFilter>(elFilter);
+    if (!backgroundFilter_) {
+        backgroundFilter_ = originalFilter;
+        backgroundFilter_->SetFilterType(RSFilter::EDGE_LIGHT);
+    } else {
+        auto backgroundDrawingFilter = std::static_pointer_cast<RSDrawingFilter>(backgroundFilter_);
+        backgroundDrawingFilter = backgroundDrawingFilter->Compose(elFilter);
+        backgroundDrawingFilter->SetFilterType(RSFilter::COMPOUND_EFFECT);
+        backgroundFilter_ = backgroundDrawingFilter;
+    }
+}
+
 void RSProperties::GenerateRenderFilter()
 {
     for (auto type : backgroundRenderFilter_->GetUIFilterTypes()) {
@@ -3587,6 +3648,10 @@ void RSProperties::GenerateRenderFilter()
             }
             case RSUIFilterType::SOUND_WAVE : {
                 GenerateSoundWaveFilter();
+                break;
+            }
+            case RSUIFilterType::EDGE_LIGHT : {
+                GenerateRenderFilterEdgeLight();
                 break;
             }
             default:
@@ -3610,12 +3675,13 @@ void RSProperties::GenerateBackgroundFilter()
     } else {
         backgroundFilter_ = nullptr;
     }
-    if (IsWaterRippleValid()) {
-        GenerateWaterRippleFilter();
-    }
 
     if (backgroundRenderFilter_) {
         GenerateRenderFilter();
+    }
+
+    if (IsWaterRippleValid()) {
+        GenerateWaterRippleFilter();
     }
 
     if (alwaysSnapshot_ && backgroundFilter_ == nullptr) {

@@ -78,6 +78,9 @@ HWTEST_F(RSRenderFilterTest, CreateRenderFilterPara001, TestSize.Level1)
 
     auto soundWavePara = RSRenderFilter::CreateRenderFilterPara(RSUIFilterType::SOUND_WAVE);
     EXPECT_NE(soundWavePara, nullptr);
+
+    auto edgeLightPara = RSRenderFilter::CreateRenderFilterPara(RSUIFilterType::EDGE_LIGHT);
+    EXPECT_NE(edgeLightPara, nullptr);
 }
 
 /**

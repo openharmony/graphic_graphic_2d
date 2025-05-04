@@ -1,0 +1,189 @@
+/*
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+#include <memory>
+#include "modifier/rs_render_property.h"
+#include "platform/common/rs_log.h"
+#include "render/rs_render_edge_light_filter.h"
+#include "render/rs_render_filter_base.h"
+#include "transaction/rs_marshalling_helper.h"
+
+namespace OHOS {
+namespace Rosen {
+static const std::vector<RSUIFilterType> FILTER_TYPE_WITHOUT_MASK = {
+    RSUIFilterType::EDGE_LIGHT_ALPHA,
+    RSUIFilterType::EDGE_LIGHT_COLOR,
+};
+
+void RSRenderEdgeLightFilterPara::GetDescription(std::string& out) const
+{
+    out += "RSRenderEdgeLightFilterPara::[maskType_:" + std::to_string(static_cast<int>(maskType_)) + "]";
+}
+
+std::shared_ptr<RSRenderPropertyBase> RSRenderEdgeLightFilterPara::CreateRenderProperty(RSUIFilterType type)
+{
+    switch (type) {
+        case RSUIFilterType::EDGE_LIGHT_ALPHA : {
+            return std::make_shared<RSRenderAnimatableProperty<float>>(
+                0.f, 0, RSRenderPropertyType::PROPERTY_FLOAT);
+        }
+        case RSUIFilterType::EDGE_LIGHT_COLOR : {
+            return std::make_shared<RSRenderAnimatableProperty<Vector4f>>(
+                Vector4f(), 0, RSRenderPropertyType::PROPERTY_VECTOR4F);
+        }
+        case RSUIFilterType::RIPPLE_MASK : {
+            return std::make_shared<RSRenderRippleMaskPara>(0);
+        }
+        default: {
+            ROSEN_LOGD("RSRenderEdgeLightFilterPara::CreateRenderPropert nullptr");
+            return nullptr;
+        }
+    }
+}
+
+bool RSRenderEdgeLightFilterPara::WriteToParcel(Parcel& parcel)
+{
+    ROSEN_LOGD("RSRenderEdgeLightFilterPara::WriteToParcel %{public}d %{public}d %{public}d",
+        static_cast<int>(id_), static_cast<int>(type_), static_cast<int>(modifierType_));
+    if (!RSMarshallingHelper::Marshalling(parcel, id_) ||
+        !RSMarshallingHelper::Marshalling(parcel, type_) ||
+        !RSMarshallingHelper::Marshalling(parcel, modifierType_) ||
+        !RSMarshallingHelper::Marshalling(parcel, maskType_)) {
+        ROSEN_LOGE("RSRenderEdgeLightFilterPara::WriteToParcel Error");
+        return false;
+    }
+
+    size_t size = properties_.size();
+    if (!parcel.WriteUint32(size)) {
+        ROSEN_LOGE("RSRenderEdgeLightFilterPara::WriteToParcel properties size Error");
+        return false;
+    }
+
+    for (const auto& [key, value] : properties_) {
+        if (key == maskType_) {
+            continue;
+        }
+        if (!RSMarshallingHelper::Marshalling(parcel, key) ||
+            !RSMarshallingHelper::Marshalling(parcel, value)) {
+            ROSEN_LOGE("RSRenderEdgeLightFilterPara::WriteToParcel Marshalling failed. key: %{public}d",
+                static_cast<int>(key));
+            return false;
+        }
+    }
+
+    if (maskType_ == RSUIFilterType::NONE) {
+        return true;
+    }
+
+    auto maskProperty = GetRenderPropert(maskType_);
+    if (maskProperty == nullptr) {
+        ROSEN_LOGE("RSRenderEdgeLightFilterPara::WriteToParcel empty mask, maskType: %{public}d",
+            static_cast<int>(maskType_));
+        return false;
+    }
+    auto mask = std::static_pointer_cast<RSRenderMaskPara>(maskProperty);
+    if (mask == nullptr || !mask->WriteToParcel(parcel)) {
+        ROSEN_LOGE("RSRenderEdgeLightFilterPara::WriteToParcel mask error, maskType: %{public}d",
+            static_cast<int>(maskType_));
+        return false;
+    }
+    return true;
+}
+
+bool RSRenderEdgeLightFilterPara::ReadFromParcel(Parcel& parcel)
+{   
+    ROSEN_LOGD("RSRenderEdgeLightFilterPara::ReadFromParcel %{public}d %{public}d %{public}d",
+        static_cast<int>(id_), static_cast<int>(type_), static_cast<int>(modifierType_));
+    if (!RSMarshallingHelper::Unmarshalling(parcel, id_) ||
+        !RSMarshallingHelper::Unmarshalling(parcel, type_) ||
+        !RSMarshallingHelper::Unmarshalling(parcel, modifierType_) ||
+        !RSMarshallingHelper::Unmarshalling(parcel, maskType_)) {
+        ROSEN_LOGE("RSRenderEdgeLightFilterPara::ReadFromParcel Error");
+        return false;
+    }
+
+    size_t size = 0;
+    if (!RSMarshallingHelper::Unmarshalling(parcel, size)) {
+        ROSEN_LOGE("RSRenderEdgeLightFilterPara::ReadFromParcel properties size Error");
+        return false;
+    }
+
+    if (size > static_cast<size_t>(RSMarshallingHelper::UNMARSHALLING_MAX_VECTOR_SIZE)) {
+        ROSEN_LOGE("RSRenderEdgeLightFilterPara::ReadFromParcel properties size exceed");
+        return false;
+    }
+
+    properties_.clear();
+    for (size_t i = (maskType_ == RSUIFilterType::NONE ? 0 : 1); i < size; ++i) {
+        RSUIFilterType key;
+        if (!RSMarshallingHelper::Unmarshalling(parcel, key)) {
+            ROSEN_LOGE("RSRenderEdgeLightFilterPara::ReadFromParcel unmarshal key failed, filterType: %{public}d",
+                static_cast<int>(key));
+            return false;
+        }
+
+        std::shared_ptr<RSRenderPropertyBase> value = CreateRenderProperty(key);
+        if (!RSMarshallingHelper::Unmarshalling(parcel, value)) {
+            ROSEN_LOGE("RSRenderEdgeLightFilterPara::ReadFromParcel unmarshall value failed, filterType: %{public}d",
+                static_cast<int>(key));
+            return false;
+        }
+        Setter(key, value);
+    }
+
+    if (maskType_ == RSUIFilterType::NONE) {
+        return true;
+    }
+
+    auto property = CreateRenderProperty(maskType_);
+    if (property == nullptr) {
+        ROSEN_LOGE("RSRenderEdgeLightFilterPara::ReadFromParcel empty mask property, maskType: %{public}d",
+            static_cast<int>(maskType_));
+        return false;
+    }
+
+    std::shared_ptr<RSRenderFilterParaBase> maskProperty =
+        std::static_pointer_cast<RSRenderFilterParaBase>(property);
+    if (maskProperty == nullptr || !maskProperty->ReadFromParcel(parcel)) {
+        ROSEN_LOGE("RSRenderEdgeLightFilterPara::ReadFromParcel mask error, maskType: %{public}d",
+            static_cast<int>(maskType_));
+        return false;
+    }
+    Setter(maskType_, maskProperty);
+    return true;
+}
+
+std::vector<std::shared_ptr<RSRenderPropertyBase>> RSRenderEdgeLightFilterPara::GetLeafRenderProperties()
+{
+    std::vector<std::shared_ptr<RSRenderPropertyBase>> out;
+    if (maskType_ != RSUIFilterType::NONE) {
+        auto mask = std::static_pointer_cast<RSRenderMaskPara>(GetRenderPropert(maskType_));
+        if (mask == nullptr) {
+            ROSEN_LOGE("RSRenderEdgeLightFilterPara::GetLeafRenderProperties mask not found, maskType: %{public}d",
+                static_cast<int>(maskType_));
+            return {};
+        }
+        out = mask->GetLeafRenderProperties();
+    }
+    for (const auto& filterType : FILTER_TYPE_WITHOUT_MASK) {
+        auto value = GetRenderPropert(filterType);
+        if (value == nullptr) {
+            continue;
+        }
+        out.emplace_back(value);
+    }
+    return out;
+}
+} // namespace Rosen
+} // namespace OHOS

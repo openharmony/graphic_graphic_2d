@@ -29,6 +29,15 @@ bool RSUIColorGradientFilterPara::Equals(const std::shared_ptr<RSUIFilterParaBas
         return false;
     }
 
+    if (other->GetMaskType() != maskType_) {
+        return false;
+    }
+
+    auto mask = other->GetRSProperty(maskType_);
+    auto oldMask = GetRSProperty(maskType_);
+    if ((oldMask == nullptr) != (mask == nullptr)) {
+        return false;
+    }
     return true;
 }
 

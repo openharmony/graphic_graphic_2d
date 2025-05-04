@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 #include "filter_napi.h"
+#include "js_native_api.h"
+#include "js_native_api_types.h"
 #include "ui_effect_napi_utils.h"
 
 namespace OHOS {
@@ -163,6 +165,7 @@ napi_value FilterNapi::CreateFilter(napi_env env, napi_callback_info info)
         DECLARE_NAPI_FUNCTION("distort", SetDistort),
         DECLARE_NAPI_FUNCTION("radiusGradientBlur", SetRadiusGradientBlurPara),
         DECLARE_NAPI_FUNCTION("displacementDistort", SetDisplacementDistort),
+        DECLARE_NAPI_FUNCTION("edgeLight", SetEdgeLight),
     };
     status = napi_define_properties(env, object, sizeof(resultFuncs) / sizeof(resultFuncs[0]), resultFuncs);
     UIEFFECT_NAPI_CHECK_RET_DELETE_POINTER(status == napi_ok, nullptr, filterObj,
@@ -690,6 +693,49 @@ napi_value FilterNapi::SetDisplacementDistort(napi_env env, napi_callback_info i
     status = napi_unwrap(env, thisVar, reinterpret_cast<void**>(&filterObj));
     UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && filterObj != nullptr, nullptr,
         FILTER_LOG_E("FilterNapi SetDisplacementDistort unwrap filterObj fail"));
+    filterObj->AddPara(para);
+    return thisVar;
+}
+
+napi_value FilterNapi::SetEdgeLight(napi_env env, napi_callback_info info)
+{
+    if (!UIEffectNapiUtils::IsSystemApp()) {
+        FILTER_LOG_E("SetEdgeLight failed, is not system app");
+        napi_throw_error(env, std::to_string(ERR_NOT_SYSTEM_APP).c_str(),
+            "FilterNapi SetEdgeLight failed, is not system app");
+        return nullptr;
+    }
+    static const size_t maxArgc = NUM_3;
+    static const size_t minArgc = NUM_1;
+    size_t realArgc = maxArgc;
+    napi_value result = nullptr;
+    napi_get_undefined(env, &result);
+    napi_status status;
+    napi_value argv[maxArgc] = {0};
+    napi_value thisVar = nullptr;
+    UIEFFECT_JS_ARGS(env, info, status, realArgc, argv, thisVar);
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && minArgc <= realArgc && realArgc <= maxArgc, nullptr,
+        FILTER_LOG_E("FilterNapi SetEdgeLight parsing input fail"));
+
+    auto para = std::make_shared<EdgeLightPara>();
+    float alpha = GetSpecialValue(env, argv[NUM_0]);
+    para->SetAlpha(std::clamp(alpha, 0.f, 1.f));
+
+    Vector4f color;
+    if (realArgc >= NUM_2 && ParseJsRGBAColor(env, argv[NUM_1], color)) {
+        para->SetColor(color);
+    }
+
+    Mask* mask = nullptr;
+    if (realArgc >= NUM_3 &&
+        napi_unwrap(env, argv[NUM_2], reinterpret_cast<void**>(&mask)) == napi_ok) {
+        para->SetMask(mask->GetMaskPara());
+    }
+
+    Filter* filterObj = nullptr;
+    status = napi_unwrap(env, thisVar, reinterpret_cast<void**>(&filterObj));
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && filterObj != nullptr, nullptr,
+        FILTER_LOG_E("FilterNapi SetEdgeLight unwrap filterObj fail"));
     filterObj->AddPara(para);
     return thisVar;
 }

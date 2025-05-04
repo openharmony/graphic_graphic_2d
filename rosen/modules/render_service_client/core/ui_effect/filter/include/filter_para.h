@@ -47,6 +47,7 @@ public:
         COLOR_GRADIENT,
         DISPLACEMENT_DISTORT,
         SOUND_WAVE,
+        EDGE_LIGHT,
     };
 
     FilterPara()  = default;

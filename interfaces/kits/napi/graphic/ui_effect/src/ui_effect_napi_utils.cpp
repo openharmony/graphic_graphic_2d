@@ -14,6 +14,7 @@
  */
 
 #include "ui_effect_napi_utils.h"
+#include "common/rs_vector4.h"
 #ifdef ENABLE_IPC_SECURITY
 #include "accesstoken_kit.h"
 #include "ipc_skeleton.h"
@@ -24,6 +25,7 @@ namespace Rosen {
 namespace UIEffect {
 
 constexpr const char* POINT_STRING[2] = { "x", "y" };
+constexpr const char* COLOR_STRING[4] = {"red", "green", "blue", "alpha"};
 
 bool ConvertDoubleValueFromJsElement(napi_env env, napi_value jsObject, uint32_t idx, double& data)
 {
@@ -101,6 +103,20 @@ bool ConvertFromJsPoint(napi_env env, napi_value jsObject, double* point, size_t
         if (napi_get_value_double(env, tmpValue, curEdge) != napi_ok) {
             return false;
         }
+    }
+    return true;
+}
+
+bool ParseJsRGBAColor(napi_env env, napi_value jsValue, Vector4f& rgba)
+{
+    for (size_t idx = 0; idx < NUM_4; idx++) {
+        napi_value tempValue = nullptr;
+        napi_get_named_property(env, jsValue, COLOR_STRING[idx], &tempValue);
+        double value = 0.0;
+        if (tempValue == nullptr || napi_get_value_double(env, tempValue, &value) != napi_ok) {
+            return false;
+        }
+        rgba[idx] = static_cast<float>(value);
     }
     return true;
 }

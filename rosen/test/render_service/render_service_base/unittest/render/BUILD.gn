@@ -718,6 +718,7 @@ ohos_unittest("RSMaterialFilterTest") {
     "rs_pixel_map_shader_test.cpp",
     "rs_render_blur_filter_test.cpp",
     "rs_render_displacement_distort_filter_test.cpp",
+    "rs_render_edge_light_filter_test.cpp",
     "rs_render_filter_test.cpp",
     "rs_render_filter_base_test.cpp",
     "rs_render_ripple_mask_test.cpp",

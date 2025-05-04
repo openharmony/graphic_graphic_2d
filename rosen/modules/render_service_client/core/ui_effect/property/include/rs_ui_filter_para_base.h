@@ -29,6 +29,8 @@ public:
 
     RSUIFilterType GetType() const;
 
+    RSUIFilterType GetMaskType() const;
+
     virtual bool IsValid() const;
 
     virtual void GetDescription(std::string& out) const {}
@@ -81,6 +83,7 @@ public:
 protected:
     std::weak_ptr<RSNode> node_;
     RSUIFilterType type_;
+    RSUIFilterType maskType_ = RSUIFilterType::NONE;
     std::map<RSUIFilterType, std::shared_ptr<RSPropertyBase>> properties_;
 };
 } // namespace Rosen

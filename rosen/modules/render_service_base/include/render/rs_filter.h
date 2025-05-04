@@ -76,6 +76,7 @@ public:
         DISPLACEMENT_DISTORT,
         COLOR_GRADIENT,
         SOUND_WAVE,
+        EDGE_LIGHT,
     };
     FilterType GetFilterType() const
     {

@@ -22,7 +22,7 @@ namespace Rosen {
 
 bool RSUIDispDistortFilterPara::Equals(const std::shared_ptr<RSUIFilterParaBase>& other)
 {
-    if (other == nullptr || other->GetType() != RSUIFilterType::DISPLACEMENT_DISTORT) {
+    if (other == nullptr || other->GetType() != GetType()) {
         ROSEN_LOGW("RSUIDispDistortFilterPara::Equals type NG %{public}d!",
             other == nullptr ? -1 : static_cast<int>(other->GetType()));
         return false;
@@ -49,7 +49,7 @@ void RSUIDispDistortFilterPara::Dump(std::string& out) const
 
 void RSUIDispDistortFilterPara::SetProperty(const std::shared_ptr<RSUIFilterParaBase>& other)
 {
-    if (other == nullptr || other->GetType() != RSUIFilterType::DISPLACEMENT_DISTORT) {
+    if (other == nullptr || other->GetType() != GetType()) {
         ROSEN_LOGW("RSUIDispDistortFilterPara::SetProperty type NG %{public}d!",
             other == nullptr ? -1 : static_cast<int>(other->GetType()));
         return;
