@@ -92,7 +92,7 @@ ani_object AniFont::GetMetrics(ani_env* env, ani_object obj)
 {
     auto aniFont = GetNativeFromObj<AniFont>(env, obj);
     if (aniFont == nullptr) {
-        AniThrowError(env, "Invalid params.");
+        AniThrowError(env, "Invalid params. "); // message length must be a multiple of 4, for example 16, 20, etc
         return ani_object{};
     }
 
@@ -105,7 +105,7 @@ ani_double AniFont::GetSize(ani_env* env, ani_object obj)
 {
     auto aniFont = GetNativeFromObj<AniFont>(env, obj);
     if (aniFont == nullptr) {
-        AniThrowError(env, "Invalid params.");
+        AniThrowError(env, "Invalid params. "); // message length must be a multiple of 4, for example 16, 20, etc
         return -1;
     }
 
@@ -116,7 +116,7 @@ ani_object AniFont::GetTypeface(ani_env* env, ani_object obj)
 {
     auto aniFont = GetNativeFromObj<AniFont>(env, obj);
     if (aniFont == nullptr) {
-        AniThrowError(env, "Invalid params.");
+        AniThrowError(env, "Invalid params. "); // message length must be a multiple of 4, for example 16, 20, etc
         return ani_object{};
     }
 
@@ -129,7 +129,7 @@ void AniFont::SetSize(ani_env* env, ani_object obj, ani_double size)
 {
     auto aniFont = GetNativeFromObj<AniFont>(env, obj);
     if (aniFont == nullptr) {
-        AniThrowError(env, "Invalid params.");
+        AniThrowError(env, "Invalid params. "); // message length must be a multiple of 4, for example 16, 20, etc
         return;
     }
 
@@ -140,13 +140,13 @@ void AniFont::SetTypeface(ani_env* env, ani_object obj, ani_object typeface)
 {
     auto aniFont = GetNativeFromObj<AniFont>(env, obj);
     if (aniFont == nullptr) {
-        AniThrowError(env, "Invalid params.");
+        AniThrowError(env, "Invalid params. "); // message length must be a multiple of 4, for example 16, 20, etc
         return;
     }
 
     auto aniTypeface = GetNativeFromObj<AniTypeface>(env, typeface);
     if (aniTypeface == nullptr) {
-        AniThrowError(env, "Invalid params.");
+        AniThrowError(env, "Invalid params. "); // message length must be a multiple of 4, for example 16, 20, etc
         return;
     }
 

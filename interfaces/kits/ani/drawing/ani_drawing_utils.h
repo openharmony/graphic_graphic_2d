@@ -52,7 +52,7 @@ constexpr char NATIVE_OBJ[] = "nativeObj";
 
 ani_status AniThrowError(ani_env* env, const std::string& message);
 
-inline ani_string CreateAniString(ani_env* env, std::string stdStr)
+inline ani_string CreateAniString(ani_env* env, const std::string& stdStr)
 {
     ani_string aniString;
     env->String_NewUTF8(stdStr.c_str(), stdStr.size(), &aniString);
@@ -116,6 +116,11 @@ bool GetRectFromAniRectObj(ani_env* env, ani_object obj, Drawing::Rect& rect);
 ani_object CreateAniUndefined(ani_env* env);
 
 ani_object CreateAniObject(ani_env* env, const char* className, const char* methodSig);
+
+inline bool CheckDoubleOutOfRange(ani_double val, double lowerBound, double upperBound)
+{
+    return val < lowerBound || val > upperBound;
+}
 
 } // namespace Drawing
 } // namespace Rosen
