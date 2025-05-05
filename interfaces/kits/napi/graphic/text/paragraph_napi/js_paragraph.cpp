@@ -23,6 +23,8 @@
 #include "path_napi/js_path.h"
 #include "recording/recording_canvas.h"
 #include "text_line_napi/js_text_line.h"
+#include "text_style.h"
+#include "typography_style.h"
 #include "utils/text_log.h"
 
 namespace OHOS::Rosen {
@@ -99,6 +101,8 @@ napi_value JsParagraph::Init(napi_env env, napi_value exportObj)
         DECLARE_NAPI_FUNCTION("getLineFontMetrics", JsParagraph::GetLineFontMetrics),
         DECLARE_NAPI_FUNCTION("layout", JsParagraph::LayoutAsync),
         DECLARE_NAPI_FUNCTION("isStrutStyleEqual", JsParagraph::IsStrutStyleEqual),
+        DECLARE_NAPI_FUNCTION("updateColor", JsParagraph::UpdateColor),
+        DECLARE_NAPI_FUNCTION("updateDecoration", JsParagraph::UpdateDecoration),
     };
     napi_value constructor = nullptr;
     napi_status status = napi_define_class(env, CLASS_NAME.c_str(), NAPI_AUTO_LENGTH, Constructor, nullptr,
@@ -871,6 +875,61 @@ napi_value JsParagraph::OnLayoutAsync(napi_env env, napi_callback_info info)
         output = NapiGetUndefined(env);
     };
     return NapiAsyncWork::Enqueue(env, context, "onLayoutAsync", executor, complete);
+}
+
+napi_value JsParagraph::UpdateColor(napi_env env, napi_callback_info info)
+{
+    JsParagraph* me = CheckParamsAndGetThis<JsParagraph>(env, info);
+    return (me != nullptr) ? me->OnUpdateColor(env, info) : nullptr;
+}
+
+napi_value JsParagraph::OnUpdateColor(napi_env env, napi_callback_info info)
+{
+    NAPI_CHECK_AND_THROW_ERROR(paragraph_ != nullptr, TextErrorCode::ERROR_INVALID_PARAM, "Paragraph is null");
+
+    size_t argc = ARGC_ONE;
+    napi_value argv[ARGC_ONE] = {nullptr};
+    napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+    if (status != napi_ok || argc < ARGC_ONE) {
+        TEXT_LOGE("Failed to get parameter, argc %{public}zu, ret %{public}d", argc, status);
+        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+    TextStyle textStyle;
+    if (!SetColorFromJS(env, argv[0], textStyle.color)) {
+        TEXT_LOGE("Invalid argv[0]");
+        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params");
+    }
+    textStyle.relayoutChangeBitmap.set(static_cast<size_t>(RelayoutTextStyleAttribute::FONT_COLOR));
+    std::vector<TextStyle> relayoutTextStyles;
+    relayoutTextStyles.push_back(textStyle);
+    paragraph_->ApplyTextStyleChanges(relayoutTextStyles);
+    return NapiGetUndefined(env);
+}
+
+napi_value JsParagraph::UpdateDecoration(napi_env env, napi_callback_info info)
+{
+    JsParagraph* me = CheckParamsAndGetThis<JsParagraph>(env, info);
+    return (me != nullptr) ? me->OnUpdateDecoration(env, info) : nullptr;
+}
+
+napi_value JsParagraph::OnUpdateDecoration(napi_env env, napi_callback_info info)
+{
+    NAPI_CHECK_AND_THROW_ERROR(paragraph_ != nullptr, TextErrorCode::ERROR_INVALID_PARAM, "Paragraph is null");
+
+    size_t argc = ARGC_ONE;
+    napi_value argv[ARGC_ONE] = {nullptr};
+    napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+    if (status != napi_ok || argc < ARGC_ONE) {
+        TEXT_LOGE("Failed to get parameter, argc %{public}zu, ret %{public}d", argc, status);
+        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    TextStyle textStyle;
+    GetDecorationFromJSForRelayout(env, argv[0], textStyle);
+    std::vector<TextStyle> relayoutTextStyles;
+    relayoutTextStyles.push_back(textStyle);
+    paragraph_->ApplyTextStyleChanges(relayoutTextStyles);
+    return NapiGetUndefined(env);
 }
 
 napi_value JsParagraph::IsStrutStyleEqual(napi_env env, napi_callback_info info)
