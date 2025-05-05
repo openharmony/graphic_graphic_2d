@@ -21,7 +21,6 @@
 #include <message_parcel.h>
 
 #include "common/rs_macros.h"
-#include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -37,23 +36,18 @@ struct EventInfo {
     bool Serialize(MessageParcel& parcel) const
     {
         if (!parcel.WriteString(eventName)) {
-            ROSEN_LOGE("Serialize EventInfo: WriteString eventName err.");
             return false;
         }
         if (!parcel.WriteBool(eventStatus)) {
-            ROSEN_LOGE("Serialize EventInfo: WriteString eventStatus err.");
             return false;
         }
         if (!parcel.WriteUint32(minRefreshRate)) {
-            ROSEN_LOGE("Serialize EventInfo: WriteString minRefreshRate err.");
             return false;
         }
         if (!parcel.WriteUint32(maxRefreshRate)) {
-            ROSEN_LOGE("Serialize EventInfo: WriteString maxRefreshRate err.");
             return false;
         }
         if (!parcel.WriteString(description)) {
-            ROSEN_LOGE("Serialize EventInfo: WriteString description err.");
             return false;
         }
         return true;
@@ -62,23 +56,18 @@ struct EventInfo {
     static bool Deserialize(MessageParcel& parcel, EventInfo& info)
     {
         if (!parcel.ReadString(info.eventName)) {
-            ROSEN_LOGE("Deserialize EventInfo: ReadString eventName err.");
             return false;
         }
         if (!parcel.ReadBool(info.eventStatus)) {
-            ROSEN_LOGE("Deserialize EventInfo: ReadBool eventStatus err.");
             return false;
         }
         if (!parcel.ReadUint32(info.minRefreshRate)) {
-            ROSEN_LOGE("Deserialize EventInfo: ReadUint32 minRefreshRate err.");
             return false;
         }
         if (!parcel.ReadUint32(info.maxRefreshRate)) {
-            ROSEN_LOGE("Deserialize EventInfo: ReadUint32 maxRefreshRate err.");
             return false;
         }
         if (!parcel.ReadString(info.description)) {
-            ROSEN_LOGE("Deserialize EventInfo: ReadString description err.");
             return false;
         }
         return true;

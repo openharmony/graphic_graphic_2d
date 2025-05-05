@@ -534,7 +534,8 @@ ErrCode RSRenderServiceConnection::CreateVSyncConnection(sptr<IVSyncConnection>&
                 HgmCore::Instance().SetHgmTaskFlag(true);
             }
         };
-        mainThread_->ScheduleTask([weakThis = wptr<RSRenderServiceConnection>(this), id, observer, name]() {
+        mainThread_->ScheduleTask([weakThis = wptr<RSRenderServiceConnection>(this),
+            id, observer, name, windowNodeId]() {
             sptr<RSRenderServiceConnection> connection = weakThis.promote();
             if (connection == nullptr || connection->mainThread_ == nullptr) {
                 return;

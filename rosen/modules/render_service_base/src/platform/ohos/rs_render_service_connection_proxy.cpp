@@ -4102,6 +4102,7 @@ void RSRenderServiceConnectionProxy::SetWindowExpectedRefreshRate(
             return;
         }
         if (!eventInfo.Serialize(data)) {
+            ROSEN_LOGE("SetWindowExpectedRefreshRate: Write eventInfo err.");
             return;
         }
     }
@@ -4142,6 +4143,7 @@ void RSRenderServiceConnectionProxy::SetWindowExpectedRefreshRate(
             return;
         }
         if (!eventInfo.Serialize(data)) {
+            ROSEN_LOGE("SetWindowExpectedRefreshRate: Write eventInfo err.");
             return;
         }
     }
