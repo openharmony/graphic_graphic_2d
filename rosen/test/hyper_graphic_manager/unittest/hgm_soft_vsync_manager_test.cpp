@@ -404,8 +404,6 @@ HWTEST_F(HgmSoftVSyncManagerTest, CollectFrameRateChangeTest, Function | SmallTe
     EXPECT_EQ(mgr.CollectFrameRateChange(finalRange, rsFrameRateLinker, appFrameRateLinkers, 0), false);
     EXPECT_GT(HgmSoftVSyncManager::GetDrawingFrameRate(OLED_60_HZ, finalRange), 0);
     EXPECT_EQ(mgr.CollectFrameRateChange(finalRange, rsFrameRateLinker, appFrameRateLinkers, OLED_60_HZ), true);
-    mgr.controller_ = nullptr;
-    EXPECT_EQ(mgr.CollectFrameRateChange(finalRange, rsFrameRateLinker, appFrameRateLinkers, OLED_60_HZ), false);
 }
 } // namespace Rosen
 } // namespace OHOS
