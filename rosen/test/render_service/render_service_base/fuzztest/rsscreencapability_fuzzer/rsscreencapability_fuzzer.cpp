@@ -234,8 +234,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
         return 0;
     }    
     /* Run your code on data */
-    uint8_t = OHOS::Rosen::GetData<uint8_t>() % OHOS::Rosen::TARGET_SIZE;
-    switch() {
+    uint8_t tarpos = OHOS::Rosen::GetData<uint8_t>() % OHOS::Rosen::TARGET_SIZE;
+    switch (tarpos) {
         case OHOS::Rosen::MARSHALLING:
 		    OHOS::Rosen::DoMarshalling();
             break;
