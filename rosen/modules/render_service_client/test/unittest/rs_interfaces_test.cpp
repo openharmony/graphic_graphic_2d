@@ -1390,10 +1390,14 @@ HWTEST_F(RSInterfacesTest, SetWindowExpectedRefreshRate001, Function | SmallTest
     constexpr int32_t minFps = 1;
     constexpr uint64_t windowId = 1;
     ASSERT_NE(rsInterfaces, nullptr);
-    std::unordered_map<uint64_t, EventInfo> eventInfos addVote = {windowId, { "VOTER_VRATE", true, minFps, maxFps }};
-    std::unordered_map<uint64_t, EventInfo> eventInfos delVote = {windowId, { "VOTER_VRATE", false}};
-    rsInterfaces->SetWindowExpectedRefreshRate(addVote);
-    rsInterfaces->SetWindowExpectedRefreshRate(delVote);
+    EventInfo addVote = { "VOTER_VRATE", true, minFps, maxFps };
+    EventInfo delVote = { "VOTER_VRATE", false};
+    std::unordered_map<uint64_t, EventInfo> addVotes;
+    addVotes.insert({ windowId, addVote });
+    std::unordered_map<uint64_t, EventInfo> delVotes;
+    delVotes.insert({ windowId, delVote });
+    rsInterfaces->SetWindowExpectedRefreshRate(addVotes);
+    rsInterfaces->SetWindowExpectedRefreshRate(delVotes);
     ASSERT_NE(rsInterfaces, nullptr);
 }
 
@@ -1408,11 +1412,14 @@ HWTEST_F(RSInterfacesTest, SetWindowExpectedRefreshRate002, Function | SmallTest
     constexpr int32_t maxFps = 1000;
     constexpr int32_t minFps = 1;
     ASSERT_NE(rsInterfaces, nullptr);
-    std::unordered_map<std::string, EventInfo> eventInfos addVote =
-        {"vsync1", { "VOTER_VRATE", true, minFps, maxFps }};
-    std::unordered_map<std::string, EventInfo> eventInfos delVote = {"vsync1", { "VOTER_VRATE", false}};
-    rsInterfaces->SetWindowExpectedRefreshRate(addVote);
-    rsInterfaces->SetWindowExpectedRefreshRate(delVote);
+    EventInfo addVote = { "VOTER_VRATE", true, minFps, maxFps };
+    EventInfo delVote = { "VOTER_VRATE", false};
+    std::unordered_map<std::string, EventInfo> addVotes;
+    addVotes.insert({ "vsync1", addVote });
+    std::unordered_map<std::string, EventInfo> delVotes;
+    delVotes.insert({ "vsync1", delVote });
+    rsInterfaces->SetWindowExpectedRefreshRate(addVotes);
+    rsInterfaces->SetWindowExpectedRefreshRate(delVotes);
     ASSERT_NE(rsInterfaces, nullptr);
 }
 

@@ -19,7 +19,6 @@
 
 #include "common/rs_common_def.h"
 #include "hgm_soft_vsync_manager.h"
-#include "hgm_test_base.h"
 #include "vsync_controller.h"
 #include "vsync_generator.h"
 
@@ -47,12 +46,9 @@ namespace {
     constexpr int32_t OLED_72_HZ = 72;
 }
 
-class HgmSoftVSyncManagerTest : public HgmTestBase {
+class HgmSoftVSyncManagerTest : public testing::Test {
 public:
-    static void SetUpTestCase()
-    {
-        HgmTestBase::SetUpTestCase();
-    }
+    static void SetUpTestCase() {}
     static void TearDownTestCase() {}
     void SetUp() {}
     void TearDown() {}
@@ -127,7 +123,8 @@ HWTEST_F(HgmSoftVSyncManagerTest, SetWindowExpectedRefreshRate_window001, Functi
         {windowId1, eventInfo1}, {windowId2, eventInfo2}, {windowId3, eventInfo3}, {windowId4, eventInfo4},
         {windowId5, eventInfo5},
     };
-    softVSyncManager.SetWindowExpectedRefreshRate(0, appFrameRateLinkers, voters);
+    softVSyncManager.appFrameRateLinkers_ = appFrameRateLinkers;
+    softVSyncManager.SetWindowExpectedRefreshRate(0, voters);
     EXPECT_EQ(appVoteData.size(), 5);
     EXPECT_EQ(appVoteData[frameRateLinkerId1], 60);
     EXPECT_EQ(appVoteData[frameRateLinkerId2], 60);
@@ -149,7 +146,7 @@ HWTEST_F(HgmSoftVSyncManagerTest, SetWindowExpectedRefreshRate_window001, Functi
         {windowId1, eventInfo1}, {windowId2, eventInfo2}, {windowId3, eventInfo3}, {windowId4, eventInfo4},
         {windowId5, eventInfo5},
     };
-    softVSyncManager.SetWindowExpectedRefreshRate(0, appFrameRateLinkers, voters);
+    softVSyncManager.SetWindowExpectedRefreshRate(0, voters);
     EXPECT_EQ(appVoteData.size(), 5);
     EXPECT_EQ(appVoteData[frameRateLinkerId1], 90);
     EXPECT_EQ(appVoteData[frameRateLinkerId2], 90);
@@ -173,19 +170,20 @@ HWTEST_F(HgmSoftVSyncManagerTest, SetWindowExpectedRefreshRate_window002, Functi
     EventInfo eventInfo =
         { .eventName = "VOTER_LOW", .minRefreshRate = 60, .maxRefreshRate = 60, .eventStatus = true };
     std::unordered_map<WindowId, EventInfo> voters = { {windowId1, eventInfo} };
-    softVSyncManager.SetWindowExpectedRefreshRate(0, appFrameRateLinkers, voters);
+    softVSyncManager.appFrameRateLinkers_ = appFrameRateLinkers;
+    softVSyncManager.SetWindowExpectedRefreshRate(0, voters);
     EXPECT_EQ(appVoteData.size(), 1);
     EXPECT_EQ(appVoteData[frameRateLinkerId1], 60);
 
     eventInfo =
         { .eventName = "VOTER_MID", .minRefreshRate = 90, .maxRefreshRate = 90, .eventStatus = true };
     voters = { {windowId1, eventInfo} };
-    softVSyncManager.SetWindowExpectedRefreshRate(0, appFrameRateLinkers, voters);
+    softVSyncManager.SetWindowExpectedRefreshRate(0, voters);
     EXPECT_EQ(appVoteData.size(), 1);
     EXPECT_EQ(appVoteData[frameRateLinkerId1], 90);
 
     voters[windowId1].eventStatus = false;
-    softVSyncManager.SetWindowExpectedRefreshRate(0, appFrameRateLinkers, voters);
+    softVSyncManager.SetWindowExpectedRefreshRate(0, voters);
     EXPECT_EQ(appVoteData.size(), 1);
     EXPECT_EQ(appVoteData[frameRateLinkerId1], 60);
 }
@@ -217,7 +215,8 @@ HWTEST_F(HgmSoftVSyncManagerTest, SetWindowExpectedRefreshWindowIdRateTest_vsync
         {vsyncName1, eventInfo1}, {vsyncName2, eventInfo2}, {vsyncName3, eventInfo3}, {vsyncName4, eventInfo4},
         {vsyncName5, eventInfo5},
     };
-    softVSyncManager.SetWindowExpectedRefreshRate(0, appFrameRateLinkers, voters);
+    softVSyncManager.appFrameRateLinkers_ = appFrameRateLinkers;
+    softVSyncManager.SetWindowExpectedRefreshRate(0, voters);
     EXPECT_EQ(appVoteData.size(), 5);
     EXPECT_EQ(appVoteData[frameRateLinkerId1], 60);
     EXPECT_EQ(appVoteData[frameRateLinkerId2], 60);
@@ -239,7 +238,7 @@ HWTEST_F(HgmSoftVSyncManagerTest, SetWindowExpectedRefreshWindowIdRateTest_vsync
         {vsyncName1, eventInfo1}, {vsyncName2, eventInfo2}, {vsyncName3, eventInfo3}, {vsyncName4, eventInfo4},
         {vsyncName5, eventInfo5},
     };
-    softVSyncManager.SetWindowExpectedRefreshRate(0, appFrameRateLinkers, voters);
+    softVSyncManager.SetWindowExpectedRefreshRate(0, voters);
     EXPECT_EQ(appVoteData.size(), 5);
     EXPECT_EQ(appVoteData[frameRateLinkerId1], 90);
     EXPECT_EQ(appVoteData[frameRateLinkerId2], 90);
@@ -263,19 +262,20 @@ HWTEST_F(HgmSoftVSyncManagerTest, SetWindowExpectedRefreshRate_vsync002, Functio
     EventInfo eventInfo =
         { .eventName = "VOTER_LOW", .minRefreshRate = 60, .maxRefreshRate = 60, .eventStatus = true };
     std::unordered_map<VsyncName, EventInfo> voters = { {vsyncName1, eventInfo} };
-    softVSyncManager.SetWindowExpectedRefreshRate(0, appFrameRateLinkers, voters);
+    softVSyncManager.appFrameRateLinkers_ = appFrameRateLinkers;
+    softVSyncManager.SetWindowExpectedRefreshRate(0, voters);
     EXPECT_EQ(appVoteData.size(), 1);
     EXPECT_EQ(appVoteData[frameRateLinkerId1], 60);
 
     eventInfo =
         { .eventName = "VOTER_MID", .minRefreshRate = 90, .maxRefreshRate = 90, .eventStatus = true };
     voters = { {vsyncName1, eventInfo} };
-    softVSyncManager.SetWindowExpectedRefreshRate(0, appFrameRateLinkers, voters);
+    softVSyncManager.SetWindowExpectedRefreshRate(0, voters);
     EXPECT_EQ(appVoteData.size(), 1);
     EXPECT_EQ(appVoteData[frameRateLinkerId1], 90);
 
     voters[vsyncName1].eventStatus = false;
-    softVSyncManager.SetWindowExpectedRefreshRate(0, appFrameRateLinkers, voters);
+    softVSyncManager.SetWindowExpectedRefreshRate(0, voters);
     EXPECT_EQ(appVoteData.size(), 1);
     EXPECT_EQ(appVoteData[frameRateLinkerId1], 60);
 }
