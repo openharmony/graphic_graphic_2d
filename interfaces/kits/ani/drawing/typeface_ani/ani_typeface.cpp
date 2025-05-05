@@ -48,13 +48,13 @@ ani_string AniTypeface::GetFamilyName(ani_env* env, ani_object obj)
 {
     auto aniTypeface = GetNativeFromObj<AniTypeface>(env, obj);
     if (aniTypeface == nullptr) {
-        AniThrowError(env, "Invalid params.");
+        AniThrowError(env, "Invalid params. "); // message length must be a multiple of 4, for example 16, 20, etc
         return ani_string{};
     }
 
     std::shared_ptr<Typeface> typeface = aniTypeface->GetTypeface();
     if (typeface == nullptr) {
-        AniThrowError(env, "Invalid params.");
+        AniThrowError(env, "Invalid params. "); // message length must be a multiple of 4, for example 16, 20, etc
         return ani_string{};
     }
     return CreateAniString(env, typeface->GetFamilyName());

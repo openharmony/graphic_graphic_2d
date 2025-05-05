@@ -64,7 +64,7 @@ void AniBrush::ConstructorWithBrush(ani_env* env, ani_object obj, ani_object ani
 {
     auto aniBrush = GetNativeFromObj<AniBrush>(env, aniBrushObj);
     if (aniBrush == nullptr) {
-        AniThrowError(env, "Invalid params.");
+        AniThrowError(env, "Invalid params. "); // message length must be a multiple of 4, for example 16, 20, etc
         return;
     }
 
@@ -79,7 +79,7 @@ ani_double AniBrush::GetAlpha(ani_env* env, ani_object obj)
 {
     auto aniBrush = GetNativeFromObj<AniBrush>(env, obj);
     if (aniBrush == nullptr) {
-        AniThrowError(env, "Invalid params.");
+        AniThrowError(env, "Invalid params. "); // message length must be a multiple of 4, for example 16, 20, etc
         return -1;
     }
 
@@ -90,7 +90,7 @@ void AniBrush::Reset(ani_env* env, ani_object obj)
 {
     auto aniBrush = GetNativeFromObj<AniBrush>(env, obj);
     if (aniBrush == nullptr) {
-        AniThrowError(env, "Invalid params.");
+        AniThrowError(env, "Invalid params. "); // message length must be a multiple of 4, for example 16, 20, etc
         return;
     }
 
@@ -101,7 +101,12 @@ void AniBrush::SetAlpha(ani_env* env, ani_object obj, ani_double alpha)
 {
     auto aniBrush = GetNativeFromObj<AniBrush>(env, obj);
     if (aniBrush == nullptr) {
-        AniThrowError(env, "Invalid params.");
+        AniThrowError(env, "Invalid params. "); // message length must be a multiple of 4, for example 16, 20, etc
+        return;
+    }
+
+    if (CheckDoubleOutOfRange(alpha, 0, Color::RGB_MAX)) {
+        AniThrowError(env, "alpha out of range. "); // message length must be a multiple of 4, for example 16, 20, etc
         return;
     }
 
@@ -112,13 +117,13 @@ void AniBrush::SetBlendMode(ani_env* env, ani_object obj, ani_enum_item aniBlend
 {
     auto aniBrush = GetNativeFromObj<AniBrush>(env, obj);
     if (aniBrush == nullptr) {
-        AniThrowError(env, "Invalid params.");
+        AniThrowError(env, "Invalid params. "); // message length must be a multiple of 4, for example 16, 20, etc
         return;
     }
 
     ani_int blendMode;
     if (ANI_OK != env->EnumItem_GetValue_Int(aniBlendMode, &blendMode)) {
-        AniThrowError(env, "Invalid params.");
+        AniThrowError(env, "Invalid params. "); // message length must be a multiple of 4, for example 16, 20, etc
         return;
     }
 
@@ -134,14 +139,14 @@ void AniBrush::SetColorFilter(ani_env* env, ani_object obj, ani_object objColorF
 {
     auto aniBrush = GetNativeFromObj<AniBrush>(env, obj);
     if (aniBrush == nullptr) {
-        AniThrowError(env, "Invalid params.");
+        AniThrowError(env, "Invalid params. "); // message length must be a multiple of 4, for example 16, 20, etc
         return;
     }
 
     auto aniColorFilter = GetNativeFromObj<AniColorFilter>(env, objColorFilter);
     if (aniColorFilter == nullptr || aniColorFilter->GetColorFilter() == nullptr) {
         ROSEN_LOGE("AniBrush::SetColorFilter colorFilter is nullptr");
-        AniThrowError(env, "Invalid params.");
+        AniThrowError(env, "Invalid params. "); // message length must be a multiple of 4, for example 16, 20, etc
         return;
     }
 

@@ -28,22 +28,19 @@ ani_status AniThrowError(ani_env* env, const std::string& message)
         return ANI_ERROR;
     }
 
-    ani_object errObj;
     ani_method errCtor;
     if (ANI_OK != env->Class_FindMethod(errCls, "<ctor>", "Lstd/core/String;Lescompat/ErrorOptions;:V", &errCtor)) {
         ROSEN_LOGE("get errCtor Failed %{public}s", className);
         return ANI_ERROR;
     }
 
-    ani_string result_string{};
-    env->String_NewUTF8(message.c_str(), message.size(), &result_string);
-
-    if (ANI_OK != env->Object_New(errCls, errCtor, &errObj, result_string)) {
-        ROSEN_LOGE("Create Object Failedd %{public}s", className);
+    ani_object errObj;
+    if (ANI_OK != env->Object_New(errCls, errCtor, &errObj, CreateAniString(env, message))) {
+        ROSEN_LOGE("Create Object Failed %{public}s", className);
         return ANI_ERROR;
     }
-    env->ThrowError(static_cast<ani_error>(errObj));
 
+    env->ThrowError(static_cast<ani_error>(errObj));
     return ANI_OK;
 }
 

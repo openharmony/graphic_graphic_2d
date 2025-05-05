@@ -105,10 +105,38 @@ function testTypeface() {
     console.log(`testTypeface end`);
 }
 
+function testErrorCode() {
+    console.log(`testErrorCode start`);
+    let pen : drawing.Pen = new drawing.Pen();
+    try {
+        pen.setAlpha(157);
+        console.log(`testErrorCode pen.setAlpha(157) success`);
+    } catch (e: Error) {
+        console.log(`testErrorCode pen.setAlpha(157) failed, err.msg = ${e.message}`);
+    }
+    console.log(`testErrorCode pen.getAlpha = ${pen.getAlpha()}`);
+    try {
+        pen.setAlpha(-10);
+        console.log(`testErrorCode pen.setAlpha(-10) success`);
+    } catch (e: Error) {
+        console.log(`testErrorCode pen.setAlpha(-10) failed, err.msg = ${e.message}`);
+    }
+    console.log(`testErrorCode pen.getAlpha = ${pen.getAlpha()}`);
+    try {
+        pen.setAlpha(321);
+        console.log(`testErrorCode pen.setAlpha(321) success`);
+    } catch (e: Error) {
+        console.log(`testErrorCode pen.setAlpha(321) failed, err.msg = ${e.message}`);
+    }
+    console.log(`testErrorCode pen.getAlpha = ${pen.getAlpha()}`);
+    console.log(`testErrorCode end`);
+}
+
 function main() {
     testPen();
     testBrush();
     testColorFilter();
     testFont();
     testTypeface();
+    testErrorCode();
 }
