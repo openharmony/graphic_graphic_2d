@@ -27,6 +27,7 @@ ohos_fuzztest("RSRenderServiceConnectionStubFuzzTest") {
     "../../../../../modules/hyper_graphic_manager/core/config",
     "../../../../../modules/hyper_graphic_manager/core/frame_rate_manager",
     "../../../../../modules/hyper_graphic_manager/core/hgm_screen_manager",
+    "../../../../../modules/hyper_graphic_manager/core/soft_vsync_manager",
     "../../../../../modules/hyper_graphic_manager/core/utils",
     "../../../../../modules/render_service/core",
     "../../../../../modules/render_service/core/feature_cfg",

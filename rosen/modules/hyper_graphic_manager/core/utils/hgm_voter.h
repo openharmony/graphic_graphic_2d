@@ -16,7 +16,7 @@
 #ifndef HGM_VOTER_H
 #define HGM_VOTER_H
 
-#include <cstdio>
+#include "securec.h"
 
 #include "animation/rs_frame_rate_range.h"
 #include "hgm_command.h"
