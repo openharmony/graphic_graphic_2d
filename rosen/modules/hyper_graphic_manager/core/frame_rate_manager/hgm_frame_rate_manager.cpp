@@ -436,7 +436,7 @@ void HgmFrameRateManager::UpdateSoftVSync(bool followRs)
                                                                      rsFrameRateLinker_,
                                                                      appFrameRateLinkers_,
                                                                      currRefreshRate_);
-+   CheckRefreshRateChange(followRs, frameRateChanged, refreshRate);
+    CheckRefreshRateChange(followRs, frameRateChanged, refreshRate);
     ReportHiSysEvent(lastVoteInfo_);
 }
 
