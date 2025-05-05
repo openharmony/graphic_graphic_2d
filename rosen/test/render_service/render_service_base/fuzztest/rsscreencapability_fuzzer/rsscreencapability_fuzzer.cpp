@@ -64,7 +64,7 @@ T GetData()
     return object;
 }
 
-bool Init(const uint8_t* _t size) {
+bool Init(const uint8_t* data, size_t size) {
     if (data == nullptr) {
         return false;
     }
