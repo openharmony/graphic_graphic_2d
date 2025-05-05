@@ -507,7 +507,11 @@ bool OnMakeFontFamilies(napi_env& env, napi_value jsValue, std::vector<std::stri
 
 bool SetColorFromJS(napi_env env, napi_value argValue, const std::string& str, Drawing::Color& colorSrc);
 
+bool SetColorFromJS(napi_env env, napi_value argValue, Drawing::Color& colorSrc);
+
 bool GetDecorationFromJS(napi_env env, napi_value argValue, TextStyle& textStyle);
+
+bool GetDecorationFromJSForRelayout(napi_env env, napi_value argValue, TextStyle& textStyle);
 
 bool GetTextStyleFromJS(napi_env env, napi_value argValue, TextStyle& textStyle);
 
