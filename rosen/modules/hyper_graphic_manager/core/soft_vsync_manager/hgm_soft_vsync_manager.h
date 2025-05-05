@@ -73,8 +73,7 @@ private:
         FrameRateRange& expectedRange,
         bool& frameRateChanged,
         bool controllerRateChanged,
-        const uint32_t currRefreshRate)
-
+        const uint32_t currRefreshRate);
     // FORMAT: "frameRateLinkerId, <voterName, <<pid, <min, max>>, effective>>"
     std::unordered_map<uint64_t, std::shared_ptr<HgmVoter>> linkerVoteMap_;
     std::unordered_map<WindowId, FrameRateLinkerId> winLinkerMap_;
