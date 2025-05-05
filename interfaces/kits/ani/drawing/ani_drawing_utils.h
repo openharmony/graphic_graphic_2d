@@ -19,6 +19,7 @@
 #include <ani.h>
 #include <hilog/log.h>
 #include <iostream>
+#include <memory>
 #include <string>
 #include "effect/color_filter.h"
 #include "utils/rect.h"
@@ -49,6 +50,26 @@ namespace Drawing {
 
 constexpr char NATIVE_OBJ[] = "nativeObj";
 
+ani_status AniThrowError(ani_env* env, const std::string& message);
+
+inline ani_string CreateAniString(ani_env* env, std::string stdStr)
+{
+    ani_string aniString;
+    env->String_NewUTF8(stdStr.c_str(), stdStr.size(), &aniString);
+    return aniString;
+}
+
+inline std::string CreateStdString(ani_env* env, ani_string aniStr)
+{
+    ani_size aniStrSize = 0;
+    env->String_GetUTF8Size(aniStr, &aniStrSize);
+    std::unique_ptr<char[]> buffer = std::make_unique<char[]>(aniStrSize + 1);
+    ani_size byteSize = 0;
+    env->String_GetUTF8(aniStr, buffer.get(), aniStrSize + 1, &byteSize);
+    buffer[byteSize] = '\0';
+    return std::string(buffer.get());
+}
+
 template<typename T>
 T* GetNativeFromObj(ani_env* env, ani_object obj)
 {
@@ -65,7 +86,26 @@ T* GetNativeFromObj(ani_env* env, ani_object obj)
     return object;
 }
 
-ani_status AniThrowError(ani_env* env, const std::string& message);
+inline ani_object CreateAniObject(ani_env* env, const char* className, void* aniObj)
+{
+    ani_class aniClass;
+    if (env->FindClass(className, &aniClass) != ANI_OK) {
+        return {};
+    }
+
+    ani_method aniConstructor;
+    if (env->Class_FindMethod(aniClass, "<ctor>", nullptr, &aniConstructor) != ANI_OK) {
+        return {};
+    }
+
+    ani_object aniObject;
+    if (env->Object_New(aniClass, aniConstructor, &aniObject) != ANI_OK) {
+        return {};
+    }
+
+    env->Object_SetFieldByName_Long(aniObject, "nativeObj", reinterpret_cast<ani_long>(aniObj));
+    return aniObject;
+}
 
 bool GetColorQuadFromParam(ani_env* env, ani_object obj, Drawing::ColorQuad &color);
 

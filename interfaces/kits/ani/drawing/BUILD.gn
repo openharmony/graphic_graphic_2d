@@ -65,7 +65,9 @@ ohos_shared_library("drawing_ani") {
     "ani_drawing_utils.cpp",
     "brush_ani/ani_brush.cpp",
     "color_filter_ani/ani_color_filter.cpp",
+    "font_ani/ani_font.cpp",
     "pen_ani/ani_pen.cpp",
+    "typeface_ani/ani_typeface.cpp",
   ]
 
   deps = [
