@@ -42,5 +42,25 @@ function main() {
   } else {
     console.log("backgroundColorBlender SUCCEED");
   }
+  let filter: uiEffect.Filter = uiEffect.createFilter();
+  if (filter == undefined) {
+    console.log('createFilter failed');
+  } else {
+    console.log('createFilter succ');
+  }
+  let blurResult: uiEffect.Filter = filter.blur(0.5);
+  if (blurResult == undefined) {
+    console.log('blur failed');
+  } else {
+    console.log('blur succ');
+  }
+
+  let pixelStretchResult: uiEffect.Filter = filter.pixelStretch([0.2, 0.2, 0.2, 0.2], uiEffect.TileMode.CLAMP);
+  if (pixelStretchResult == undefined) {
+    console.log('pixelStretch failed');
+  } else {
+    console.log('pixelStretch succ');
+  }
+
   console.log('Test uiEffect end');
 }

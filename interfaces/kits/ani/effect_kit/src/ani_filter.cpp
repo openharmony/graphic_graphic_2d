@@ -78,6 +78,21 @@ ani_object AniFilter::Blur(ani_env* env, ani_object obj, ani_double param)
         env, className, methodSig, reinterpret_cast<ani_long>(aniFilter));
 }
 
+ani_object AniFilter::Grayscale(ani_env* env, ani_object obj)
+{
+    AniFilter* aniFilter = AniEffectKitUtils::GetFilterFromEnv(env, obj);
+    if (aniFilter == nullptr) {
+        EFFECT_LOG_E("GetFilterFromEnv failed");
+        return AniEffectKitUtils::CreateAniUndefined(env);
+    }
+    auto grayscale = Rosen::SKImageFilterFactory::Grayscale();
+    aniFilter->AddNextFilter(grayscale);
+
+    static const char* className = ANI_CLASS_FILTER.c_str();
+    return AniEffectKitUtils::CreateAniObject(
+        env, className, nullptr, reinterpret_cast<ani_long>(aniFilter));
+}
+
 ani_object AniFilter::GetEffectPixelMap(ani_env* env, ani_object obj)
 {
     AniFilter* thisFilter = AniEffectKitUtils::GetFilterFromEnv(env, obj);
@@ -121,6 +136,8 @@ ani_status AniFilter::Init(ani_env* env)
     std::array methods = {
         ani_native_function { "blurNative", "D:L@ohos/effectKit/effectKit/Filter;",
             reinterpret_cast<void*>(OHOS::Rosen::AniFilter::Blur) },
+        ani_native_function { "grayscaleNative", ":L@ohos/effectKit/effectKit/Filter;",
+            reinterpret_cast<void*>(OHOS::Rosen::AniFilter::Grayscale) },
         ani_native_function { "getEffectPixelMapNative", ":L@ohos/multimedia/image/image/PixelMap;",
             reinterpret_cast<void*>(OHOS::Rosen::AniFilter::GetEffectPixelMap) },
     };

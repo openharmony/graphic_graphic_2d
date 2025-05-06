@@ -52,6 +52,30 @@ namespace effectKit {
     blur(radius: number): Filter;
 
     /**
+    * A Grayscale effect is added to the image.
+    * @returns { Filter } Filters for the current effect have been added.
+    * @syscap SystemCapability.Multimedia.Image.Core
+    * @since 9
+    */
+    /**
+    * A Grayscale effect is added to the image.
+    * @returns { Filter } Filters for the current effect have been added.
+    * @syscap SystemCapability.Multimedia.Image.Core
+    * @form
+    * @atomicservice
+    * @since 12
+    */
+    /**
+    * A Grayscale effect is added to the image.
+    * @returns { Filter } Filters for the current effect have been added.
+    * @syscap SystemCapability.Multimedia.Image.Core
+    * @form
+    * @atomicservice
+    * @since 14
+    */
+    grayscale(): Filter;
+
+    /**
     * Gets the PixelMap where all filter effects have been added to the image.
     * @returns { Promise<image.PixelMap> } - returns the PixelMap generated.
     * @syscap SystemCapability.Multimedia.Image.Core
@@ -79,10 +103,16 @@ namespace effectKit {
 
     public native blurNative(radius: double): Filter;
 
+    public native grayscaleNative(): Filter;
+
     public native getEffectPixelMapNative(): image.PixelMap;
 
     public blur(radius: number): Filter {
       return this.blurNative(radius);
+    }
+
+    public grayscale(): Filter {
+      return this.grayscaleNative();
     }
 
     public getEffectPixelMap(): Promise<image.PixelMap> {

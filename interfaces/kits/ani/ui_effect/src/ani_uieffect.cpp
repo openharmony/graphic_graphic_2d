@@ -16,6 +16,50 @@
 #include "ani_uieffect.h"
 namespace OHOS {
 namespace Rosen {
+ani_status AniEffect::BindVisualEffectMethod(ani_env* env)
+{
+    static const char* visualEffectClassName = "L@ohos/graphics/uiEffect/uiEffect/VisualEffectInternal;";
+    ani_class visualEffectClass;
+    if (env->FindClass(visualEffectClassName, &visualEffectClass) != ANI_OK) {
+        UIEFFECT_LOG_E("Not found %{public}s", visualEffectClassName);
+        return ANI_NOT_FOUND;
+    };
+    std::array visualEffectMethods = {
+        ani_native_function { "backgroundColorBlenderNative",
+            "L@ohos/graphics/uiEffect/uiEffect/BrightnessBlender;:L@ohos/graphics/uiEffect/uiEffect/VisualEffect;",
+            reinterpret_cast<void*>(OHOS::Rosen::AniEffect::BackgroundColorBlender) },
+    };
+    ani_status ret = env->Class_BindNativeMethods(visualEffectClass,
+        visualEffectMethods.data(), visualEffectMethods.size());
+    if (ret != ANI_OK) {
+        UIEFFECT_LOG_E("Class_BindNativeMethods failed: %{public}d", ret);
+        return ANI_ERROR;
+    };
+    return ret;
+}
+
+ani_status AniEffect::BindFilterMethod(ani_env* env)
+{
+    static const char* filterClassName = "L@ohos/graphics/uiEffect/uiEffect/FilterInternal;";
+    ani_class filterClass;
+    if (env->FindClass(filterClassName, &filterClass) != ANI_OK) {
+        UIEFFECT_LOG_E("Not found %{public}s", filterClassName);
+        return ANI_NOT_FOUND;
+    };
+    std::array filterMethods = {
+        ani_native_function { "pixelStretchNative", nullptr,
+            reinterpret_cast<void*>(OHOS::Rosen::AniEffect::PixelStretch) },
+        ani_native_function { "blurNative", nullptr,
+            reinterpret_cast<void*>(OHOS::Rosen::AniEffect::Blur) },
+    };
+    ani_status ret = env->Class_BindNativeMethods(filterClass, filterMethods.data(), filterMethods.size());
+    if (ret != ANI_OK) {
+        UIEFFECT_LOG_E("Class_BindNativeMethods failed: %{public}d", ret);
+        return ANI_ERROR;
+    };
+    return ret;
+}
+
 ani_object AniEffect::CreateAniObject(ani_env* env, std::string name, const char* signature, ani_long addr)
 {
     ani_class cls;
@@ -164,6 +208,76 @@ ani_object AniEffect::BackgroundColorBlender(ani_env* env, ani_object obj, ani_o
     retVal = CreateAniObject(env, ANI_UIEFFECT_VISUAL_EFFECT, nullptr, reinterpret_cast<ani_long>(effectObj));
     return retVal;
 }
+
+ani_object AniEffect::CreateFilter(ani_env* env)
+{
+    ani_object retVal {};
+    auto filterObj = std::make_unique<Filter>();
+    retVal = CreateAniObject(env, ANI_UIEFFECT_FILTER, nullptr, reinterpret_cast<ani_long>(filterObj.release()));
+    return retVal;
+}
+
+ani_object AniEffect::PixelStretch(ani_env* env, ani_object obj, ani_object arrayObj, ani_enum_item enumItem)
+{
+    ani_object retVal {};
+
+    ani_size enumIndex;
+    env->EnumItem_GetIndex(enumItem, &enumIndex);
+    Drawing::TileMode tileMode = static_cast<Drawing::TileMode>(enumIndex);
+
+    auto pixelStretchPara = std::make_shared<PixelStretchPara>();
+    pixelStretchPara->SetTileMode(tileMode);
+
+    ani_double length;
+    if (ANI_OK != env->Object_GetPropertyByName_Double(arrayObj, "length", &length)) {
+        UIEFFECT_LOG_E("get stretchSizes length failed");
+        return retVal;
+    }
+
+    Vector4f stretchPercent;
+    // 4 mean Vector4f length
+    int vectorLen = 4;
+    for (int i = 0; i < int(length) && i < vectorLen; i++) {
+        ani_float floatValue;
+        if (ANI_OK != env->Object_CallMethodByName_Float(arrayObj, "$_get", "I:F", &floatValue, (ani_int)i)) {
+            UIEFFECT_LOG_E("stretchSizes Object_CallMethodByName_Float_A failed");
+            return retVal;
+        }
+        stretchPercent[i] = static_cast<float>(floatValue);
+    }
+    pixelStretchPara->SetStretchPercent(stretchPercent);
+
+    ani_long nativeObj;
+    if (ANI_OK != env->Object_GetFieldByName_Long(obj, "filterNativeObj", &nativeObj)) {
+        UIEFFECT_LOG_E("get generator filterNativeObj failed");
+        return retVal;
+    }
+
+    Filter* filterObj = reinterpret_cast<Filter*>(nativeObj);
+    filterObj->AddPara(pixelStretchPara);
+    retVal = CreateAniObject(env, ANI_UIEFFECT_FILTER, nullptr, reinterpret_cast<ani_long>(filterObj));
+
+    return retVal;
+}
+
+ani_object AniEffect::Blur(ani_env* env, ani_object obj, ani_double radius)
+{
+    ani_object retVal {};
+    auto filterBlurPara = std::make_shared<FilterBlurPara>();
+    filterBlurPara->SetRadius(static_cast<float>(radius));
+
+    ani_long nativeObj;
+    if (ANI_OK != env->Object_GetFieldByName_Long(obj, "filterNativeObj", &nativeObj)) {
+        UIEFFECT_LOG_E("get generator filterNativeObj failed");
+        return retVal;
+    }
+
+    Filter* filterObj = reinterpret_cast<Filter*>(nativeObj);
+    filterObj->AddPara(filterBlurPara);
+    retVal = CreateAniObject(env, ANI_UIEFFECT_FILTER, nullptr, reinterpret_cast<ani_long>(filterObj));
+
+    return retVal;
+}
 } // namespace Rosen
 } // namespace OHOS
 
@@ -185,28 +299,23 @@ ANI_EXPORT ani_status ANI_Constructor(ani_vm* vm, uint32_t* result)
         ani_native_function { "createEffect", nullptr, reinterpret_cast<void*>(OHOS::Rosen::AniEffect::CreateEffect) },
         ani_native_function { "createBrightnessBlender", nullptr,
             reinterpret_cast<void*>(OHOS::Rosen::AniEffect::CreateBrightnessBlender) },
+        ani_native_function { "createFilter", nullptr, reinterpret_cast<void*>(OHOS::Rosen::AniEffect::CreateFilter) },
     };
     if (env->Namespace_BindNativeFunctions(uiEffectNamespace, staticMethods.data(), staticMethods.size()) != ANI_OK) {
         UIEFFECT_LOG_E("[ANI_Constructor] Namespace_BindNativeFunctions failed");
         return ANI_ERROR;
     };
-    static const std::string ani_class_VisualEffect = "L@ohos/graphics/uiEffect/uiEffect/VisualEffectInternal;";
-    static const char* className = ani_class_VisualEffect.c_str();
-    ani_class cls;
-    if (env->FindClass(className, &cls) != ANI_OK) {
-        UIEFFECT_LOG_E("Not found L@ohos/graphics/uiEffect/uiEffect/VisualEffectInternal;");
-        return ANI_NOT_FOUND;
-    };
-    std::array methods = {
-        ani_native_function { "backgroundColorBlenderNative",
-            "L@ohos/graphics/uiEffect/uiEffect/BrightnessBlender;:L@ohos/graphics/uiEffect/uiEffect/VisualEffect;",
-            reinterpret_cast<void*>(OHOS::Rosen::AniEffect::BackgroundColorBlender) },
-    };
-    ani_status ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
-    if (ret != ANI_OK) {
-        UIEFFECT_LOG_E("Class_BindNativeMethods failed: %{public}d", ret);
-        return ANI_ERROR;
-    };
+
+    ani_status status = OHOS::Rosen::AniEffect::BindVisualEffectMethod(env);
+    if (status != ANI_OK) {
+        return status;
+    }
+
+    status = OHOS::Rosen::AniEffect::BindFilterMethod(env);
+    if (status != ANI_OK) {
+        return status;
+    }
+
     *result = ANI_VERSION_1;
     return ANI_OK;
 }
