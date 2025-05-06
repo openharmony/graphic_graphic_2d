@@ -42,9 +42,9 @@ private:
 };
 } // namespace Rosen
 
-namespace Mdeia {
+namespace Media {
 namespace VideoProcessingEngine {
-class VpeVideoCallbackImpl : public vpeVideoCallback {
+class VpeVideoCallbackImpl : public VpeVideoCallback {
 public:
     VpeVideoCallbackImpl() = default;
     ~VpeVideoCallbackImpl() override = default;
