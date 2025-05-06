@@ -65,7 +65,14 @@ ani_object AniTypeface::MakeFromFile(ani_env* env, ani_object obj, ani_string an
     std::string filePath = CreateStdString(env, aniFilePath);
     std::shared_ptr<Typeface> typeface = Typeface::MakeFromFile(filePath.c_str());
     AniTypeface* aniTypeface = new AniTypeface(typeface);
-    return CreateAniObject(env, "L@ohos/graphics/drawing/drawing/Typeface;", aniTypeface);
+    ani_object aniObj = CreateAniObject(env, "L@ohos/graphics/drawing/drawing/Typeface;", nullptr);
+    if (ANI_OK != env->Object_SetFieldByName_Long(aniObj,
+        NATIVE_OBJ, reinterpret_cast<ani_long>(aniTypeface))) {
+        ROSEN_LOGE("AniTypeface::MakeFromFile failed cause by Object_SetFieldByName_Long");
+        delete aniTypeface;
+        return CreateAniUndefined(env);
+    }
+    return aniObj;
 }
 
 std::shared_ptr<Typeface> AniTypeface::GetTypeface()

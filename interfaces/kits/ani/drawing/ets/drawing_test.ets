@@ -15,6 +15,7 @@
 
 import drawing from './@ohos.graphics.drawing';
 import common2D from '@ohos.graphics.common2D';
+import image from '@ohos.multimedia.image';
 
 function testPen() {
     console.log(`testPen start`);
@@ -132,6 +133,90 @@ function testErrorCode() {
     console.log(`testErrorCode end`);
 }
 
+function testSaveRestore(canvas: drawing.Canvas) {
+  let count: number = canvas.save();
+  let saveCount: number = canvas.getSaveCount();
+  console.log(`testSaveRestore save: ${count} getSaveCount: ${saveCount}`);
+
+  let sacveLayerCount: number = canvas.saveLayer();
+  console.log(`testSaveRestore sacveLayerCount: ${sacveLayerCount}`);
+  canvas.restore();
+
+  let rect: common2D.Rect = { left: 10, top: 10, right: 100, bottom: 100 };
+  saveCount = canvas.saveLayer(rect);
+  console.log(`testSaveRestore sacveLayerCount: ${sacveLayerCount}`);
+  canvas.restore();
+
+  let brush : drawing.Brush = new drawing.Brush();
+  saveCount = canvas.saveLayer(rect, brush);
+  console.log(`testSaveRestore sacveLayerCount: ${sacveLayerCount}`);
+  canvas.restore();
+
+  saveCount = canvas.saveLayer(null, null);
+  saveCount = canvas.saveLayer(null, brush);
+  saveCount = canvas.saveLayer(rect, null);
+  console.log(`testSaveRestore sacveLayerCount: ${sacveLayerCount}`);
+  canvas.restore();
+  canvas.restore();
+  canvas.restore();
+
+  canvas.restore();
+  saveCount = canvas.getSaveCount();
+  console.log(`testSaveRestore getSaveCount: ${saveCount}`);
+}
+
+function testDrawImage(canvas: drawing.Canvas) {
+  const opts: image.InitializationOptions = {
+    size: { width: 100, height: 100 },
+    editable: true,
+    pixelFormat: image.PixelMapFormat.BGRA_8888,
+  };
+  let pixelMap: image.PixelMap = image.createPixelMapSync(opts);
+  let rect: common2D.Rect = { left: 50, top: 50, right: 150, bottom: 150 };
+  canvas.drawImageRect(pixelMap, rect)
+  let samplingOptions = new drawing.SamplingOptions(drawing.FilterMode.FILTER_MODE_LINEAR);
+  canvas.drawImageRect(pixelMap, rect, samplingOptions)
+
+  let verts: Array<number> = [100, 100, 200, 100, 150, 200, 200, 200];
+  let colors: Array<number> = [0x00ff0088, 0x00ff0088, 0x00ff0088, 0x00ff0088];
+  canvas.drawPixelMapMesh(pixelMap, 1, 1, verts, 0, colors, 0);
+}
+
+function testCanvas() {
+  console.log(`testCanvas start`);
+  const opts: image.InitializationOptions = {
+    size: { width: 480, height: 360 },
+    editable: true,
+    pixelFormat: image.PixelMapFormat.BGRA_8888,
+  };
+  let pixelMap: image.PixelMap = image.createPixelMapSync(opts);
+  if (pixelMap == undefined) {
+    console.log('Create image.createPixelMapSync failed');
+    return;
+  }
+  console.log('Create image.createPixelMapSync success');
+
+  let canvas: drawing.Canvas = new drawing.Canvas(pixelMap)
+  testSaveRestore(canvas)
+
+  let pen: drawing.Pen = new drawing.Pen()
+  let brush : drawing.Brush = new drawing.Brush();
+  canvas.attachPen(pen)
+  canvas.attachBrush(brush)
+
+  let rect: common2D.Rect = { left: 10, top: 10, right: 100, bottom: 100 };
+  canvas.drawRect(rect)
+  canvas.drawRect(100, 100, 120, 150)
+
+  canvas.rotate(60, 10, 10)
+
+  testDrawImage(canvas)
+
+  canvas.detachPen()
+  canvas.detachBrush()
+  console.log(`testCanvas end`);
+}
+
 function main() {
     testPen();
     testBrush();
@@ -139,4 +224,5 @@ function main() {
     testFont();
     testTypeface();
     testErrorCode();
+    testCanvas();
 }

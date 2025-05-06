@@ -67,12 +67,13 @@ ani_object AniColorFilter::CreateBlendModeColorFilter(
         return CreateAniUndefined(env);
     }
 
-    std::unique_ptr<AniColorFilter> colorFilter = std::make_unique<AniColorFilter>(
+    AniColorFilter* colorFilter = new AniColorFilter(
         ColorFilter::CreateBlendModeColorFilter(color, static_cast<BlendMode>(blendMode)));
     ani_object aniObj = CreateAniObject(env, ANI_CLASS_COLORFILTER_NAME, nullptr);
     if (ANI_OK != env->Object_SetFieldByName_Long(aniObj,
-        NATIVE_OBJ, reinterpret_cast<ani_long>(colorFilter.release()))) {
+        NATIVE_OBJ, reinterpret_cast<ani_long>(colorFilter))) {
         ROSEN_LOGE("AniColorFilter::CreateBlendModeColorFilter failed cause by Object_SetFieldByName_Long");
+        delete colorFilter;
         return CreateAniUndefined(env);
     }
     return aniObj;

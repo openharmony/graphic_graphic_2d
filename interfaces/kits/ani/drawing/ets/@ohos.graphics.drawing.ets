@@ -217,6 +217,291 @@ namespace drawing {
   }
 
   /**
+   * Enumerates of operations when two paths are combined.
+   * @enum { number }
+   * @syscap SystemCapability.Graphics.Drawing
+   * @since 12
+   */
+  export enum PathOp {
+    /**
+     * Difference operation.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    DIFFERENCE = 0,
+
+    /**
+     * Intersect operation.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    INTERSECT = 1,
+
+    /**
+     * Union operation.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    UNION = 2,
+
+    /**
+     * Xor operation.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    XOR = 3,
+
+    /**
+     * Reverse difference operation.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    REVERSE_DIFFERENCE = 4,
+  }
+
+  /**
+   * Enumerates storage filter mode.
+   * @enum { number }
+   * @syscap SystemCapability.Graphics.Drawing
+   * @since 12
+   */
+  export enum FilterMode {
+    /**
+     * Single sample point (nearest neighbor).
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    FILTER_MODE_NEAREST = 0,
+
+    /**
+     * Interpolate between 2x2 sample points (bilinear interpolation).
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    FILTER_MODE_LINEAR = 1,
+  }
+
+  /**
+   * Provides an interface to the drawing, and samplingOptions used when sampling from the image.
+   * @syscap SystemCapability.Graphics.Drawing
+   * @since 12
+   */
+  export class SamplingOptions {
+    static { loadLibrary("drawing_ani"); }
+    private nativeObj : long = 0;
+    /**
+     * Constructor for the samplingOptions.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    native constructor();
+    /**
+     * Constructor for the samplingOptions with filter mode.
+     * @param { FilterMode } filterMode - Storage filter mode.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    native constructor(filterMode: FilterMode);
+  }
+
+  export class Canvas {
+    static { loadLibrary("drawing_ani"); }
+    private nativeObj : long = 0;
+    /**
+     * Constructor for the Canvas.
+     * @param { image.PixelMap } pixelmap - PixelMap.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 11
+     */
+    native constructor(pixelmap: image.PixelMap);
+
+    /**
+     * If rectangle is stroked, use pen to stroke width describes the line thickness,
+     * else use brush to fill the rectangle.
+     * @param { common2D.Rect } rect - Rectangle to draw.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 11
+     */
+    native drawRect(rect: common2D.Rect): void;
+
+    /**
+     * If rectangle is stroked, use pen to stroke width describes the line thickness,
+     * else use brush to fill the rectangle.
+     * @param { number } left - Indicates the left position of the rectangle.
+     * @param { number } top - Indicates the top position of the rectangle.
+     * @param { number } right - Indicates the right position of the rectangle.
+     * @param { number } bottom - Indicates the bottom position of the rectangle.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    native drawRect(left: number, top: number, right: number, bottom: number): void;
+
+    /**
+     * Draws the specified source image onto the canvas,
+     * scaled and translated to the destination rectangle.
+     * @param { image.PixelMap } pixelmap - The source image.
+     * @param { common2D.Rect } dstRect - The area of destination canvas.
+     * @param { SamplingOptions } samplingOptions - SamplingOptions used to describe the sampling mode.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    native drawImageRect(pixelmap: image.PixelMap, dstRect: common2D.Rect, samplingOptions?: SamplingOptions): void;
+
+    /**
+     * Draws the pixelmap base on the mesh which is evenly distributed across the pixelmap.
+     * @param { image.PixelMap } pixelmap - The pixelmap to draw using the mesh.
+     * @param { number } meshWidth - The number of columns in the mesh.
+     * @param { number } meshHeight - The number of rows in the mesh.
+     * @param { Array<number> } vertices - Array of vertices, specifying where the mesh should be drawn.
+     * @param { number } vertOffset - Number of vert elements to skip before drawing.
+     * @param { Array<number> } colors - Array of colors, specifying a color at each vertex.
+     * @param { number } colorOffset - Number of color elements to skip before drawing.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    native drawPixelMapMesh(pixelmap: image.PixelMap, meshWidth: number, meshHeight: number,
+      vertices: Array<number>, vertOffset: number, colors: Array<number>, colorOffset: number): void;
+
+    /**
+     * Set pen to a canvas.
+     * @param { Pen } pen - object.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 11
+     */
+    native attachPen(pen: Pen): void;
+
+    /**
+     * Set brush to a canvas.
+     * @param { Brush } brush - Object.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 11
+     */
+    native attachBrush(brush: Brush): void;
+
+    /**
+     * Unset pen to a canvas.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 11
+     */
+    native detachPen(): void;
+
+    /**
+     * Unset brush to a canvas.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 11
+     */
+    native detachBrush(): void;
+
+    /**
+     * Saves the current canvas status (canvas matrix) to the top of the stack.
+     * @returns { number } Return the number of saved states.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    native save(): number;
+
+    /**
+     * Saves matrix and clip, and allocates a bitmap for subsequent drawing.
+     * Calling restore discards changes to matrix and clip, and draws the bitmap.
+     * @param { common2D.Rect | null} rect - Optional layer size. The default value is null.
+     * @param { Brush | null} brush - Optional brush effect used to draw the layer. The default value is null.
+     * @returns { number } Return the number of saved states before this call.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: Mandatory parameters are left unspecified.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    native saveLayer(rect?: common2D.Rect | null, brush?: Brush | null): number;
+
+    /**
+     * Restores the canvas status (canvas matrix) saved on the top of the stack.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    native restore(): void;
+
+    /**
+     * Gets the number of the canvas status (canvas matrix) saved in the stack.
+     * @returns { number } Return represent depth of save state stack.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    native getSaveCount(): number;
+
+    /**
+     * Rotates by degrees, positive degrees rotates clockwise.
+     * @param { number } degrees - Indicates the amount to rotate, in degrees.
+     * @param { number } sx - Indicates the x-axis value of the point to rotate about.
+     * @param { number } sy - Indicates the y-axis value of the point to rotate about.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    native rotate(degrees: number, sx: number, sy: number) : void;
+  }
+
+  /**
+   * Enumerates clip operations.
+   *
+   * @enum { number }
+   * @syscap SystemCapability.Graphics.Drawing
+   * @since 12
+   */
+  export enum ClipOp {
+    /**
+     * Clips with difference.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    DIFFERENCE = 0,
+    /**
+     * Clips with intersection.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    INTERSECT = 1,
+  }
+
+  /**
+   * ColorFilters are optional objects in the drawing pipeline.
+   *
+   * @syscap SystemCapability.Graphics.Drawing
+   * @since 11
+   */
+  export class ColorFilter {
+    static { loadLibrary("drawing_ani"); }
+    private nativeObj : long = 0;
+    /**
+     * Makes a color filter with the give n ARGB color of hexadecimal format and blend mode.
+     * @param { common2D.Color | number } color - Number must be ARGB color of hexadecimal format.
+     * @param { BlendMode } mode - BlendMode.
+     * @returns { ColorFilter } Colorfilter object.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types; 3. Parameter verification failed.
+     * @static
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 18
+     */
+    static native createBlendModeColorFilter(color: common2D.Color | number, mode: BlendMode): ColorFilter;
+  }
+
+  /**
    * Provides settings for strokes during drawing.
    * @syscap SystemCapability.Graphics.Drawing
    * @since 11
@@ -260,6 +545,17 @@ namespace drawing {
      * @since 12
      */
     native getAlpha(): number;
+
+    /**
+    * Sets ColorFilter to pen
+    *
+    * @param { ColorFilter } filter - ColorFilter to apply to subsequent draw.
+    * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+    * <br>2. Incorrect parameter types.
+    * @syscap SystemCapability.Graphics.Drawing
+    * @since 11
+    */
+    native setColorFilter(filter: ColorFilter): void;
 
     /**
     * Sets a blender that implements the specified blendmode enum.
@@ -323,6 +619,16 @@ namespace drawing {
      * @since 12
      */
     native getAlpha(): number;
+
+    /**
+     * Sets ColorFilter to brush
+     * @param { ColorFilter } filter - ColorFilter to apply to subsequent draw.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 11
+     */
+    native setColorFilter(filter: ColorFilter): void;
 
     /**
      * Sets a blender that implements the specified blendmode enum.
@@ -528,6 +834,56 @@ namespace drawing {
      * @since 11
      */
     leading: number = 0;
+  }
+
+   /**
+   * Enumerates of operations when two regions are combined.
+   * @enum { number }
+   * @syscap SystemCapability.Graphics.Drawing
+   * @since 12
+   */
+  export enum RegionOp {
+    /**
+     * Difference operation.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    DIFFERENCE = 0,
+
+    /**
+     * Intersect operation.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    INTERSECT = 1,
+
+    /**
+     * Union operation.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    UNION = 2,
+
+    /**
+     * Xor operation.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    XOR = 3,
+
+    /**
+     * Reverse difference operation.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    REVERSE_DIFFERENCE = 4,
+
+    /**
+     * Replace operation.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    REPLACE = 5
   }
 }
 

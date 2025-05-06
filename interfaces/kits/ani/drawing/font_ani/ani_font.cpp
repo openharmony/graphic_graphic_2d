@@ -122,7 +122,14 @@ ani_object AniFont::GetTypeface(ani_env* env, ani_object obj)
 
     std::shared_ptr<Typeface> typeface = aniFont->GetFont().GetTypeface();
     AniTypeface* aniTypeface = new AniTypeface(typeface);
-    return CreateAniObject(env, "L@ohos/graphics/drawing/drawing/Typeface;", aniTypeface);
+    ani_object aniObj = CreateAniObject(env, "L@ohos/graphics/drawing/drawing/Typeface;", nullptr);
+    if (ANI_OK != env->Object_SetFieldByName_Long(aniObj,
+        NATIVE_OBJ, reinterpret_cast<ani_long>(aniTypeface))) {
+        ROSEN_LOGE("AniFont::GetTypeface failed cause by Object_SetFieldByName_Long");
+        delete aniTypeface;
+        return CreateAniUndefined(env);
+    }
+    return aniObj;
 }
 
 void AniFont::SetSize(ani_env* env, ani_object obj, ani_double size)

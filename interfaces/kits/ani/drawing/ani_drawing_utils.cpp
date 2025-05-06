@@ -138,27 +138,6 @@ ani_object CreateAniUndefined(ani_env* env)
     env->GetUndefined(&aniRef);
     return static_cast<ani_object>(aniRef);
 }
-
-ani_object CreateAniObject(ani_env* env, const char* className, const char* methodSig)
-{
-    ani_class cls;
-    if (ANI_OK != env->FindClass(className, &cls)) {
-        ROSEN_LOGE("Failed to find ctor %{public}s %{public}s", className, methodSig);
-        return CreateAniUndefined(env);
-    }
-    ani_method ctor;
-    if (env->Class_FindMethod(cls, "<ctor>", methodSig, &ctor) != ANI_OK) {
-        ROSEN_LOGE("Failed to find ctor %{public}s %{public}s", className, methodSig);
-        return CreateAniUndefined(env);
-    };
-
-    ani_object obj;
-    if (env->Object_New(cls, ctor, &obj) != ANI_OK) {
-        ROSEN_LOGE("Failed to create object %{public}s %{public}s", className, methodSig);
-        return CreateAniUndefined(env);
-    };
-    return obj;
-}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
