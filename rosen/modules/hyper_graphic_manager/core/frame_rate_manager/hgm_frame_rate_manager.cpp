@@ -2009,7 +2009,8 @@ void HgmFrameRateManager::NotifyPageName(pid_t pid, const std::string &packageNa
 
 void HgmFrameRateManager::CheckNeedUpdateAppOffset(uint32_t refreshRate)
 {
-    if (refreshRate > OLED_60_HZ || isNeedUpdateAppOffset_) {
+    if (refreshRate > OLED_60_HZ || isNeedUpdateAppOffset_ ||
+        !HgmCore::Instance().CheckNeedUpdateAppOffsetRefreshRate(controllerRate_)) {
         return;
     }
     if (auto iter = voteRecord_.find("VOTER_THERMAL");
@@ -2024,9 +2025,9 @@ void HgmFrameRateManager::CheckRefreshRateChange(
     bool followRs, bool frameRateChanged, uint32_t refreshRate, bool needChangeDssRefreshRate)
 {
     CreateVSyncGenerator()->DVSyncRateChanged(controllerRate_, frameRateChanged);
-    CheckNeedUpdateAppOffset(refreshRate);
-    bool appOffsetChange = isNeedUpdateAppOffset_;
+    bool appOffsetChange = false;
     if (controller_ != nullptr) {
+        CheckNeedUpdateAppOffset(refreshRate);
         appOffsetChange = isNeedUpdateAppOffset_ && controller_->GetPulseNum() != 0;
     }
     if (HgmCore::Instance().GetLtpoEnabled() &&

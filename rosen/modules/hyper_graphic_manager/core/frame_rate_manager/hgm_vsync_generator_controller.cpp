@@ -87,7 +87,7 @@ int64_t HgmVSyncGeneratorController::ChangeGeneratorRate(const uint32_t controll
     if (auto configPluseNum = HgmCore::Instance().GetPluseNum(); configPluseNum != -1) {
         pulseNum_ = configPluseNum;
     } else {
-        if (isNeedUpdateAppOffset && controllerRate == OLED_60_HZ) {
+        if (isNeedUpdateAppOffset && HgmCore::Instance().CheckNeedUpdateAppOffsetRefreshRate(controllerRate)) {
             pulseNum_ = 0;
         } else {
             pulseNum_ = GetAppOffset(controllerRate);
