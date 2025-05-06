@@ -23,14 +23,14 @@
 
 namespace OHOS {
 namespace Rosen {
-const OHOS::Rosen::DO_MARSHALLING = 0;
-const OHOS::Rosen::DO_UNMARSHALLING = 1;
-const OHOS::Rosen::DO_SET_MAXLUM = 2;
-const OHOS::Rosen::DO_SET_MINLUM = 3;
-const OHOS::Rosen::DO_SET_MAXAVERAGELUM = 4;
-const OHOS::Rosen::DO_SET_HDRFORMATS = 5;
-const OHOS::Rosen::DO_WRITEVECTOR = 6;
-const OHOS::Rosen::DO_READVECTOR = 7;
+const uint8_t DO_MARSHALLING = 0;
+const uint8_t DO_UNMARSHALLING = 1;
+const uint8_t DO_SET_MAXLUM = 2;
+const uint8_t DO_SET_MINLUM = 3;
+const uint8_t DO_SET_MAXAVERAGELUM = 4;
+const uint8_t DO_SET_HDRFORMATS = 5;
+const uint8_t DO_WRITEVECTOR = 6;
+const uint8_t DO_READVECTOR = 7;
 const uint8_t TARGET_SIZE = 8;
 const uint8_t SCREEN_HDR_FORMAT_SIZE = 8;
 const float PROPORTION = 0.1f;
