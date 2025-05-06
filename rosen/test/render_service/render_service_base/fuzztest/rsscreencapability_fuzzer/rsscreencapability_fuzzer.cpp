@@ -147,7 +147,7 @@ bool DoSetType()
     RSScreenCapability capability;
     ScreenInterfaceType type = GetData<ScreenInterfaceType>();
     capability.SetType(type);
-    capability.getType();
+    capability.GetType();
     return true;
 }
 
@@ -209,7 +209,8 @@ bool DoSetProps()
 bool DoWriteVector()
 {
     RSScreenCapability capability;
-    std::vector<RSScreenProps> props InitProps(props);
+    std::vector<RSScreenProps> props;
+    InitProps(props);
     Parcel parcel;
     capability.WriteVector(props, parcel);
     return true;
@@ -219,9 +220,11 @@ bool DoReadVector()
 {
     uint32_t unmarPropCount = GetData<uint32_t>();
     RSScreenCapability capability;
-    std::vector<RSScreenProps> unmarProps InitProps(unmarProps);
+    std::vector<RSScreenProps> props;
+    InitProps(props);
     Parcel parcel;
     capability.WriteVector(props, parcel);
+    std::vector<RSScreenProps>& unmarProps = props;
     RSScreenCapability::ReadVector(unmarProps, unmarPropCount, parcel);
     return true;
 }
