@@ -53,9 +53,6 @@ public:
     // for mirror display, call this function twice will introduce additional dirtyhistory in dirtymanager
     static void MergeDirtyHistoryForDrawable(DrawableV2::RSDisplayRenderNodeDrawable& drawable, int32_t bufferAge,
         RSDisplayRenderParams& params, bool useAlignedDirtyRegion = false);
-    static void SetAllSurfaceDrawableGlobalDirtyRegion(
-        std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& allSurfaceDrawables,
-        const Occlusion::Region& globalDirtyRegion);
     static void SetDrawRegionForQuickReject(
         std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& allSurfaceDrawables,
         const Occlusion::Region mergedDirtyRects);
@@ -76,12 +73,6 @@ public:
     static Occlusion::Region MergeVisibleDirtyRegionInVirtual(
         std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& allSurfaceNodeDrawables,
         RSDisplayRenderParams& displayParams, bool isSecScreen = false);
-    static std::vector<RectI> GetCurrentFrameVisibleDirty(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable,
-        ScreenInfo& screenInfo, RSDisplayRenderParams& params);
-    static std::vector<RectI> ScreenIntersectDirtyRects(const Occlusion::Region &region, ScreenInfo& screenInfo);
-    static std::vector<RectI> GetFilpDirtyRects(const std::vector<RectI>& srcRects, const ScreenInfo& screenInfo);
-    static std::vector<RectI> FilpRects(const std::vector<RectI>& srcRects, const ScreenInfo& screenInfo);
-    static GraphicIRect IntersectRect(const GraphicIRect& first, const GraphicIRect& second);
     // This is used for calculate matrix from buffer coordinate to window's relative coordinate
     static Drawing::Matrix GetMatrixOfBufferToRelRect(const RSSurfaceRenderNode& node);
     static void SrcRectScaleDown(BufferDrawParam& params, const sptr<SurfaceBuffer>& buffer,

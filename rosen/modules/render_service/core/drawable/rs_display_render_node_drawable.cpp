@@ -37,6 +37,7 @@
 #include "params/rs_display_render_params.h"
 #include "params/rs_surface_render_params.h"
 #include "feature/anco_manager/rs_anco_manager.h"
+#include "feature/dirty/rs_uni_dirty_compute_util.h"
 #include "feature/drm/rs_drm_util.h"
 #include "feature/round_corner_display/rs_rcd_surface_render_node.h"
 #include "feature/round_corner_display/rs_rcd_surface_render_node_drawable.h"
@@ -773,7 +774,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     if (uniParam->IsPartialRenderEnabled()) {
         damageRegionrects = RSUniRenderUtil::MergeDirtyHistory(
             *this, renderFrame->GetBufferAge(), screenInfo, rsDirtyRectsDfx, *params);
-        curFrameVisibleRegionRects = RSUniRenderUtil::GetCurrentFrameVisibleDirty(*this, screenInfo, *params);
+        curFrameVisibleRegionRects = RSUniDirtyComputeUtil::GetCurrentFrameVisibleDirty(*this, screenInfo, *params);
         uniParam->Reset();
         clipRegion = GetFlippedRegion(damageRegionrects, screenInfo);
         RS_TRACE_NAME_FMT("SetDamageRegion damageRegionrects num: %zu, info: %s",
@@ -894,7 +895,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
                     "clear extra area to black", dirtyManager->GetDirtyRegion().ToString().c_str(),
                     activeRect.ToString().c_str());
                 curCanvas_->Save();
-                auto activeRegion = RSUniRenderUtil::ScreenIntersectDirtyRects(
+                auto activeRegion = RSUniDirtyComputeUtil::ScreenIntersectDirtyRects(
                     Occlusion::Region(activeRect), screenInfo);
                 curCanvas_->ClipRegion(GetFlippedRegion(activeRegion, screenInfo), Drawing::ClipOp::DIFFERENCE);
                 curCanvas_->Clear(Drawing::Color::COLOR_BLACK);

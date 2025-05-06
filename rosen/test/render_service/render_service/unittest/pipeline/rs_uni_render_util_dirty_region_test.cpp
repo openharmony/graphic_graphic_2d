@@ -189,71 +189,6 @@ HWTEST_F(RSUniRenderUtilDirtyRegionTest, MergeVisibleDirtyRegionInVirtualTest003
 }
 
 /*
- * @tc.name: SetAllSurfaceDrawableGlobalDirtyRegionTest001
- * @tc.desc: Verify function SetAllSurfaceDrawableGlobalDirtyRegion while drawable is not Main Window
- * @tc.type: FUNC
- * @tc.require: issueIAE6P0
-*/
-HWTEST_F(RSUniRenderUtilDirtyRegionTest, SetAllSurfaceDrawableGlobalDirtyRegionTest001, Function | SmallTest | Level2)
-{
-    NodeId nodeId = 1;
-    std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> allSurfaceDrawables;
-    Occlusion::Region globalDirtyRegion;
-    auto node = std::make_shared<RSSurfaceRenderNode>(nodeId);
-    auto drawable = std::make_shared<DrawableV2::RSSurfaceRenderNodeDrawable>(node);
-    auto param = std::make_unique<RSSurfaceRenderParams>(drawable->nodeId_);
-    param->isMainWindowType_ = false;
-    param->isLeashWindow_ = false;
-    param->isAppWindow_ = false;
-    drawable->renderParams_ = std::move(param);
-    allSurfaceDrawables.push_back(drawable);
-    RSUniRenderUtil::SetAllSurfaceDrawableGlobalDirtyRegion(allSurfaceDrawables, globalDirtyRegion);
-    ASSERT_NE(drawable->renderParams_, nullptr);
-}
-
-/*
- * @tc.name: SetAllSurfaceDrawableGlobalDirtyRegionTest002
- * @tc.desc: Verify function SetAllSurfaceDrawableGlobalDirtyRegion while drawable is Main Window
- * @tc.type: FUNC
- * @tc.require: issueIAE6P0
-*/
-HWTEST_F(RSUniRenderUtilDirtyRegionTest, SetAllSurfaceDrawableGlobalDirtyRegionTest002, Function | SmallTest | Level2)
-{
-    NodeId nodeId = 1;
-    std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> allSurfaceDrawables;
-    Occlusion::Region globalDirtyRegion;
-    auto node = std::make_shared<RSSurfaceRenderNode>(nodeId);
-    auto drawable = std::make_shared<DrawableV2::RSSurfaceRenderNodeDrawable>(node);
-    auto param = std::make_unique<RSSurfaceRenderParams>(drawable->nodeId_);
-    param->isMainWindowType_ = true;
-    param->isLeashWindow_ = false;
-    param->isAppWindow_ = false;
-    drawable->renderParams_ = std::move(param);
-    allSurfaceDrawables.push_back(nullptr);
-    allSurfaceDrawables.push_back(drawable);
-    RSUniRenderUtil::SetAllSurfaceDrawableGlobalDirtyRegion(allSurfaceDrawables, globalDirtyRegion);
-    ASSERT_NE(drawable->renderParams_, nullptr);
-}
-
-/*
- * @tc.name: SetAllSurfaceDrawableGlobalDirtyRegionTest003
- * @tc.desc: Verify function SetAllSurfaceDrawableGlobalDirtyRegion while drawable has no param
- * @tc.type: FUNC
- * @tc.require: issueIAE6P0
-*/
-HWTEST_F(RSUniRenderUtilDirtyRegionTest, SetAllSurfaceDrawableGlobalDirtyRegionTest003, Function | SmallTest | Level2)
-{
-    NodeId nodeId = 1;
-    std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> allSurfaceDrawables;
-    Occlusion::Region globalDirtyRegion;
-    auto node = std::make_shared<RSSurfaceRenderNode>(nodeId);
-    auto drawable = std::make_shared<DrawableV2::RSSurfaceRenderNodeDrawable>(node);
-    allSurfaceDrawables.push_back(drawable);
-    RSUniRenderUtil::SetAllSurfaceDrawableGlobalDirtyRegion(allSurfaceDrawables, globalDirtyRegion);
-    ASSERT_EQ(drawable->renderParams_, nullptr);
-}
-
-/*
  * @tc.name: AlignedDirtyRegion_001
  * @tc.desc: Verify function AlignedDirtyRegion while alignedBits equals zero.
  * @tc.type: FUNC
@@ -764,19 +699,6 @@ HWTEST_F(RSUniRenderUtilDirtyRegionTest, MergeDirtyHistoryInVirtual006, Function
     ScreenInfo screenInfo;
     RSUniRenderUtil::MergeDirtyHistoryInVirtual(displayNodeDrawable, 0, screenInfo);
     ASSERT_NE(displayNodeDrawable.renderParams_, nullptr);
-}
-
-/**
- * @tc.name: ScreenIntersectDirtyRectsTest
- * @tc.desc: Verify function ScreenIntersectDirtyRects
- * @tc.type:FUNC
- * @tc.require:issuesI9KRF1
- */
-HWTEST_F(RSUniRenderUtilDirtyRegionTest, ScreenIntersectDirtyRectsTest, Function | SmallTest | Level2)
-{
-    Occlusion::Region region;
-    ScreenInfo screenInfo;
-    EXPECT_TRUE(RSUniRenderUtil::ScreenIntersectDirtyRects(region, screenInfo).empty());
 }
 
 /**

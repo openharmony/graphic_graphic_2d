@@ -28,6 +28,7 @@
 #include "display_engine/rs_luminance_control.h"
 #include "drawable/rs_display_render_node_drawable.h"
 #include "drawable/rs_surface_render_node_drawable.h"
+#include "feature/dirty/rs_uni_dirty_compute_util.h"
 #include "params/rs_display_render_params.h"
 #include "params/rs_surface_render_params.h"
 #include "feature/round_corner_display/rs_rcd_surface_render_node.h"
@@ -281,7 +282,7 @@ LayerInfoPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, s
         const auto& bufferDamage = params.GetBufferDamage();
         GraphicIRect dirtyRect = params.GetIsBufferFlushed() ? GraphicIRect { bufferDamage.x, bufferDamage.y,
             bufferDamage.w, bufferDamage.h } : GraphicIRect { 0, 0, 0, 0 };
-        auto intersectRect = RSUniRenderUtil::IntersectRect(layerInfo.srcRect, dirtyRect);
+        auto intersectRect = RSUniDirtyComputeUtil::IntersectRect(layerInfo.srcRect, dirtyRect);
         RS_OPTIONAL_TRACE_NAME_FMT("intersectRect:[%d, %d, %d, %d]",
             intersectRect.x, intersectRect.y, intersectRect.w, intersectRect.h);
         dirtyRegions.emplace_back(intersectRect);
