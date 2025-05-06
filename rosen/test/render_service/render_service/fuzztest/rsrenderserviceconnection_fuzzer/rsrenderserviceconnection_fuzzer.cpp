@@ -608,8 +608,8 @@ bool DoTakeSurfaceCapture()
     uint8_t type = GetData<uint8_t>();
     captureConfig.captureType = (SurfaceCaptureType)type;
     captureConfig.isSync = GetData<bool>();
-    uint16_t listSize = GetData<uint16_t>();
-    for (uint16_t i = 0; i < listSize; ++i) {
+    uint8_t listSize = GetData<uint8_t>();
+    for (uint8_t i = 0; i < listSize; ++i) {
         uint64_t nodeid = GetData<uint64_t>();
         captureConfig.blackList.push_back(nodeid);
     }
