@@ -610,7 +610,7 @@ void RSRenderNodeDrawable::InitCachedSurface(Drawing::GPUContext* gpuContext, co
             format = VK_FORMAT_R16G16B16A16_SFLOAT;
             colorSpace = Drawing::ColorSpace::CreateSRGB();
         }
-        cachedBackendTexture_ = RSUniRenderUtil::MakeBackendTexture(width, height, ExtractPid(nodeId_), format);
+        cachedBackendTexture_ = NativeBufferUtils::MakeBackendTexture(width, height, ExtractPid(nodeId_), format);
         auto vkTextureInfo = cachedBackendTexture_.GetTextureInfo().GetVKTextureInfo();
         if (!cachedBackendTexture_.IsValid() || !vkTextureInfo) {
             return;

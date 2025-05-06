@@ -130,7 +130,7 @@ HWTEST_F(RSSubThreadCacheTest, GetCompletedImageTest, TestSize.Level1)
 
 #ifdef RS_ENABLE_VK
     surfaceDrawable_->GetRsSubThreadCache().cacheCompletedSurface_ = std::make_shared<Drawing::Surface>();
-    auto cacheBackendTexture_ = RSUniRenderUtil::MakeBackendTexture(
+    auto cacheBackendTexture_ = NativeBufferUtils::MakeBackendTexture(
         10, 10, 0, VkFormat::VK_FORMAT_A1R5G5B5_UNORM_PACK16);
     auto vkTextureInfo = cacheBackendTexture_.GetTextureInfo().GetVkTextureInfo();
     surfaceDrawable_->GetRsSubThreadCache().cacheCompletedCleanupHelper_ = new NativeBufferUtils::VulkanCleanupHelper(

@@ -112,13 +112,6 @@ public:
     static void ClearNodeCacheSurface(std::shared_ptr<Drawing::Surface>&& cacheSurface,
         std::shared_ptr<Drawing::Surface>&& cacheCompletedSurface,
         uint32_t cacheSurfaceThreadIndex, uint32_t completedSurfaceThreadIndex);
-#ifdef RS_ENABLE_VK
-    static uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
-    static void SetVkImageInfo(std::shared_ptr<OHOS::Rosen::Drawing::VKTextureInfo> vkImageInfo,
-        const VkImageCreateInfo& imageInfo);
-    static Drawing::BackendTexture MakeBackendTexture(uint32_t width, uint32_t height, pid_t pid,
-        VkFormat format = VK_FORMAT_R8G8B8A8_UNORM);
-#endif
     static void OptimizedFlushAndSubmit(std::shared_ptr<Drawing::Surface>& surface,
         Drawing::GPUContext* const grContext, bool optFenceWait = true);
     static SecRectInfo GenerateSecRectInfoFromNode(RSRenderNode& node, RectI rect);
