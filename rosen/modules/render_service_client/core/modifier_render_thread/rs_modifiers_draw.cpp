@@ -84,11 +84,6 @@ void RSModifiersDraw::AddPixelMapDrawOp(const std::shared_ptr<Drawing::DrawCmdLi
     return;
 }
 
-void RSModifiersDraw::InvalidateSurfaceCache(const std::shared_ptr<Media::PixelMap>& pixelMap)
-{
-    return;
-}
-
 void RSModifiersDraw::DrawSnapshot(std::shared_ptr<Drawing::Canvas>& canvas, std::shared_ptr<Drawing::Image>& snapshot)
 {
     return;
@@ -140,7 +135,8 @@ void RSModifiersDraw::RemoveSurfaceByNodeId(NodeId nodeId, bool postTask)
     return;
 }
 
-bool RSModifiersDraw::ResetSurfaceByNodeId(int32_t width, int32_t height, NodeId nodeId, bool postTask)
+bool RSModifiersDraw::ResetSurfaceByNodeId(
+    int32_t width, int32_t height, NodeId nodeId, bool needResetMatrix, bool postTask)
 {
     return false;
 }
