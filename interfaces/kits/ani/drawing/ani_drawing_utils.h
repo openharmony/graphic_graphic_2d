@@ -86,24 +86,28 @@ T* GetNativeFromObj(ani_env* env, ani_object obj)
     return object;
 }
 
-inline ani_object CreateAniObject(ani_env* env, const char* className, void* aniObj)
+ani_object CreateAniUndefined(ani_env* env);
+
+inline ani_object CreateAniObject(ani_env* env, const char* className, const char* methodSig)
 {
     ani_class aniClass;
     if (env->FindClass(className, &aniClass) != ANI_OK) {
-        return {};
+        ROSEN_LOGE("[Drawing] CreateAniObject FindClass failed");
+        return CreateAniUndefined(env);
     }
 
     ani_method aniConstructor;
-    if (env->Class_FindMethod(aniClass, "<ctor>", nullptr, &aniConstructor) != ANI_OK) {
-        return {};
+    if (env->Class_FindMethod(aniClass, "<ctor>", methodSig, &aniConstructor) != ANI_OK) {
+        ROSEN_LOGE("[Drawing] CreateAniObject Class_FindMethod failed");
+        return CreateAniUndefined(env);
     }
 
     ani_object aniObject;
     if (env->Object_New(aniClass, aniConstructor, &aniObject) != ANI_OK) {
-        return {};
+        ROSEN_LOGE("[Drawing] CreateAniObject Object_New failed");
+        return CreateAniUndefined(env);
     }
 
-    env->Object_SetFieldByName_Long(aniObject, "nativeObj", reinterpret_cast<ani_long>(aniObj));
     return aniObject;
 }
 
@@ -112,10 +116,6 @@ bool GetColorQuadFromParam(ani_env* env, ani_object obj, Drawing::ColorQuad &col
 bool GetColorQuadFromColorObj(ani_env* env, ani_object obj, Drawing::ColorQuad &color);
 
 bool GetRectFromAniRectObj(ani_env* env, ani_object obj, Drawing::Rect& rect);
-
-ani_object CreateAniUndefined(ani_env* env);
-
-ani_object CreateAniObject(ani_env* env, const char* className, const char* methodSig);
 
 inline bool CheckDoubleOutOfRange(ani_double val, double lowerBound, double upperBound)
 {
