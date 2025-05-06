@@ -64,7 +64,8 @@ T GetData()
     return object;
 }
 
-bool Init(const uint8_t* data, size_t size) {
+bool Init(const uint8_t* data, size_t size)
+{
     if (data == nullptr) {
         return false;
     }
@@ -74,47 +75,49 @@ bool Init(const uint8_t* data, size_t size) {
     return true;
 }
 
-void initRSScreenCapabilityAndParcel(RSScreenCapability& capability, Parcel& parcel) {
-    uint32_t phyWidth = GetData(uint32_t);
+void initRSScreenCapabilityAndParcel(RSScreenCapability& capability, Parcel& parcel)
+{
+    uint32_t phyWidth = GetData<uint32_t>();
     capability.SetPhyWidth(phyWidth);
-    uint32_t phyHight = GetData(uint32_t);
+    uint32_t phyHight = GetData<uint32_t>();
     capability.SetPhyHeight(phyHight);
-    uint32_t supportLayers= GetData(uint32_t);
+    uint32_t supportLayers = GetData<uint32_t>();
     capability.SetSupportLayers(supportLayers);
-    uint32_t virtualDispCount = GetData(uint32_t);
+    uint32_t virtualDispCount = GetData<uint32_t>();
     capability.SetVirtualDispCount(virtualDispCount);
-    ScreenInterfaceType type =static_cast<ScreenInterfaceType>(GetData<uint32_t>() % SCREEN_INTERFACE_TYPE_SIZE);
+    ScreenInterfaceType type = static_cast<ScreenInterfaceType>(GetData<uint32_t>() % SCREEN_INTERFACE_TYPE_SIZE);
     capability.SetType(type);
-    std::string name(STRING_LEN,GetData<char>());
+    std::string name(STRING_LEN, GetData<char>());
     capability.SetName(name);
     bool supportWriteBack = GetData<bool>();
     capability.SetSupportWriteBack(supportWriteBack);
     std::vector<RSScreenProps> props;
-    initProps(props);
+    InitProps(props);
     capability.SetProps(props);
 }
 
-bool initProps(std::vector<RSScreenProps> & props) {
+bool InitProps(std::vector<RSScreenProps>& props)
+{
     uint32_t propId = GetData<uint32_t>();
-    uint64_t value= GetData<uint64_t>();
+    uint64_t value = GetData<uint64_t>();
     std::string capName(STRING_LEN, GetData<char>());
-    RSScreenProps prop= RSScreenProps(capName, propId, value);
-    props ={prop};
-} 
+    RSScreenProps prop = RSScreenProps(capName, propId, value);
+    props = { prop };
+}
 
 bool DoMarshalling()
 {
-    uint32_t phyWidth = GetData(uint32_t);
-    uint32_t phyHeight = GetData(uint32_t);
-    uint32_t supportLayers= GetData(uint32_t);   
-    uint32_t virtualDispCount = GetData(uint32_t);
-    ScreenInterfaceType type =static_cast<ScreenInterfaceType>(GetData<uint32_t>() % SCREEN_INTERFACE_TYPE_SIZE);  
-    bool supportWriteBack = GetData<bool>(); 
-    std::string name(STRING_LEN,GetData<char>());    
+    uint32_t phyWidth = GetData<uint32_t>();
+    uint32_t phyHeight = GetData<uint32_t>();
+    uint32_t supportLayers = GetData<uint32_t>();
+    uint32_t virtualDispCount = GetData<uint32_t>();
+    ScreenInterfaceType type = static_cast<ScreenInterfaceType>(GetData<uint32_t>() % SCREEN_INTERFACE_TYPE_SIZE);
+    bool supportWriteBack = GetData<bool>();
+    std::string name(STRING_LEN, GetData<char>());
     std::vector<RSScreenProps> props;
-    initProps(props);
-    RSScreenCapability *capability = new RSScreenCapability(name, type, phyWidth, phyHeight, supportLayers, virtualDispCount,
-        supportWriteBack, props); 
+    InitProps(props);
+    RSScreenCapability* capability = new RSScreenCapability(
+        name, type, phyWidth, phyHeight, supportLayers, virtualDispCount, supportWriteBack, props);
     Parcel parcel;
     capability->Marshalling(parcel);
     return true;
@@ -197,7 +200,7 @@ bool DoSetProps()
 {
     RSScreenCapability capability;
     std::vector<RSScreenProps> props;
-    initProps(props); 
+    InitProps(props);
     capability.SetProps(props);
     capability.GetProps();
     return true;
@@ -206,8 +209,7 @@ bool DoSetProps()
 bool DoWriteVector()
 {
     RSScreenCapability capability;
-    std::vector<RSScreenProps> props
-    initProps(props);  
+    std::vector<RSScreenProps> props InitProps(props);
     Parcel parcel;
     capability.WriteVector(props, parcel);
     return true;
@@ -217,8 +219,7 @@ bool DoReadVector()
 {
     uint32_t unmarPropCount = GetData<uint32_t>();
     RSScreenCapability capability;
-    std::vector<RSScreenProps> unmarProps
-    initProps(unmarProps);  
+    std::vector<RSScreenProps> unmarProps InitProps(unmarProps);
     Parcel parcel;
     capability.WriteVector(props, parcel);
     RSScreenCapability::ReadVector(unmarProps, unmarPropCount, parcel);
@@ -230,14 +231,14 @@ bool DoReadVector()
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
-    if(!OHOS::Rosen::Init(data,size)) {
+    if (!OHOS::Rosen::Init(data, size)) {
         return 0;
-    }    
+    }
     /* Run your code on data */
     uint8_t tarpos = OHOS::Rosen::GetData<uint8_t>() % OHOS::Rosen::TARGET_SIZE;
     switch (tarpos) {
         case OHOS::Rosen::MARSHALLING:
-		    OHOS::Rosen::DoMarshalling();
+            OHOS::Rosen::DoMarshalling();
             break;
         case OHOS::Rosen::UNMARSHALLING:
             OHOS::Rosen::DoUnmarshalling();
