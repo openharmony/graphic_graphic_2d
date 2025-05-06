@@ -23,7 +23,7 @@ namespace OHOS::Rosen {
 napi_value JsTextGlobal::Init(napi_env env, napi_value exportObj)
 {
     napi_property_descriptor properties[] = {
-        DECLARE_NAPI_STATIC_FUNCTION("SetTextHighContrast", JsTextGlobal::SetTextHighContrast),
+        DECLARE_NAPI_STATIC_FUNCTION("setTextHighContrast", JsTextGlobal::SetTextHighContrast),
     };
     napi_status status = napi_define_properties(env, exportObj, sizeof(properties) / sizeof(properties[0]), properties);
     if (status != napi_ok) {
