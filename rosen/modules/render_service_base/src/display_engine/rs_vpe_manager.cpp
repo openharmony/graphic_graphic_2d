@@ -65,7 +65,7 @@ void RSVpeManager::ReleaseVpeVideo(uint64_t nodeId)
 std::shared_ptr<VpeVideo> RSVpeManager::GetVpeVideo(uint32_t type, const RSSurfaceRenderNodeConfig& config)
 {
     ReleaseVpeVideo(config.id);
-    return VpeVideo::Creat(type);
+    return VpeVideo::Create(type);
 }
 
 sptr<Surface> RSVpeManager::GetVpeVideoSurface(uint32_t type, const sptr<Surface>& RSSurface,
@@ -81,14 +81,14 @@ sptr<Surface> RSVpeManager::GetVpeVideoSurface(uint32_t type, const sptr<Surface
         return RSSurface;
     }
 
-    std::shared_ptr<vpeVideoCallback> cb = std::make_shared<VpeVideoCallbackImpl>(VpeVideo);
-    int32_t ret = VpeVideo->RegisterCallback(cb);
+    std::shared_ptr<VpeVideoCallback> cb = std::make_shared<VpeVideoCallbackImpl>(vpeVideo);
+    int32_t ret = vpeVideo->RegisterCallback(cb);
     if (ret != 0) {
         RS_LOGE("RegisterCallback failed");
         return RSSurface;
     }
 
-    if (type == VIDEO_TYPE_EDTAIL_ENHANCER) {
+    if (type == VIDEO_TYPE_DETAIL_ENHANCER) {
         Media::Format param{};
         param.PutIntValue(ParameterKey::DETAIL_ENHANCER_QUALITY_LEVEL, DETAIL_ENHANCER_LEVEL_HIGH);
         if (vpeVideo->SetParameter(param) != 0) {
@@ -109,7 +109,7 @@ sptr<Surface> RSVpeManager::GetVpeVideoSurface(uint32_t type, const sptr<Surface
         return RSSurface;
     }
 
-    ret = vpeVideo->start();
+    ret = vpeVideo->Start();
     if (ret != 0) {
         RS_LOGE("start failed");
         return RSSurface;
@@ -120,8 +120,8 @@ sptr<Surface> RSVpeManager::GetVpeVideoSurface(uint32_t type, const sptr<Surface
         allVpeVideo_[config.id] = vpeVideo;
         mapSize = allVpeVideo_.size();
     }
-    RS_LOGD("type:%{public}u vepSF:%{public}lu RSSF:%{public}lu nodeId:%{public}lu mapSize:%{public}u",
-        type, vpeSurface->GetUniquedId(), RSSurface->GetUniquedId(), config.id, mapSize);
+    RS_LOGD("type:%{public}u vepSF:%{public}llu RSSF:%{public}llu nodeId:%{public}llu mapSize:%{public}u",
+        type, vpeSurface->GetUniqueId(), RSSurface->GetUniqueId(), config.id, mapSize);
     return vpeSurface;
 }
 
@@ -129,7 +129,7 @@ sptr<Surface> RSVpeManager::CheckAndGetSurface(const sptr<Surface>& surface, con
 {
     Media::Format parameter{};
     sptr<Surface> vpeSurface = surface;
-    std::vector<uint32_t> supportTypes = { VIDEO_TYPE_DETAIL_ENHANCEER, VIDEO_TYPE_AIHDR_ENHANCER };
+    std::vector<uint32_t> supportTypes = { VIDEO_TYPE_DETAIL_ENHANCER, VIDEO_TYPE_AIHDR_ENHANCER };
     for (auto& type : supportTypes) {
         if (VpeVideo::IsSupported(type, parameter)) {
             vpeSurface = GetVpeVideoSurface(type, vpeSurface, config);
