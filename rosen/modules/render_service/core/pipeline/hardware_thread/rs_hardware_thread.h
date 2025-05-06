@@ -99,6 +99,7 @@ private:
         int64_t currTime);
     std::shared_ptr<RSSurfaceOhos> CreateFrameBufferSurfaceOhos(const sptr<Surface>& surface);
     void EndCheck(RSTimer timer);
+    bool IsDropDirtyFrame(OutputPtr output);
 #ifdef RES_SCHED_ENABLE
     void SubScribeSystemAbility();
     sptr<VSyncSystemAbilityListener> saStatusChangeListener_ = nullptr;

@@ -1420,6 +1420,7 @@ LayerInfoPtr RSUniRenderComposerAdapter::CreateLayer(DrawableV2::RSDisplayRender
     }
     LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
     layer->SetUniRenderFlag(true);
+    layer->SetDisplayNodeFlag(true);
     SetComposeInfoToLayer(layer, info, surfaceHandler->GetConsumer());
     // do not crop or scale down for displayNode's layer.
     return layer;
@@ -1469,6 +1470,7 @@ LayerInfoPtr RSUniRenderComposerAdapter::CreateLayer(RSDisplayRenderNode& node)
     LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
     layer->SetNodeId(node.GetId());
     layer->SetUniRenderFlag(true);
+    layer->SetDisplayNodeFlag(true);
     SetComposeInfoToLayer(layer, info, surfaceHandler->GetConsumer());
     LayerRotate(layer, *displayDrawable);
     // do not crop or scale down for displayNode's layer.
