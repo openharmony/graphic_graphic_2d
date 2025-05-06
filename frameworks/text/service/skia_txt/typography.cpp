@@ -20,6 +20,7 @@
 
 #include "convert.h"
 #include "impl/paragraph_impl.h"
+#include "modules/skparagraph/include/TextStyle.h"
 #include "skia_adapter/skia_canvas.h"
 #include "skia_adapter/skia_convert_utils.h"
 #include "text_line_base.h"
@@ -136,7 +137,7 @@ void Typography::Relayout(double width, const TypographyStyle &typograhyStyle, c
         return style.relayoutChangeBitmap.any() || style.symbol.GetSymbolBitmap().any();
     });
     if (!typograhyStyle.relayoutChangeBitmap.any() && !isTextStyleChange) {
-        if (width >= paragraph_->GetLongestLineWithIndent() && width <= paragraph_->GetMaxWidth()) {
+        if (skt::nearlyEqual(paragraph_->GetMaxWidth(), width)) {
             TEXT_LOGI_LIMIT3_MIN("No relayout required");
             return;
         }
