@@ -74,6 +74,7 @@ public:
     static void ParseDrawingColorToNative(ani_env* env, ani_object obj, const std::string& str,
                                           Drawing::Color& colorSrc);
     static void ParseRectStyleToNative(ani_env* env, ani_object obj, RectStyle& rectStyle);
+    static void ParseDecorationToNative(ani_env* env, ani_object obj, TextStyle& textStyle);
 
     static ani_object ParseTextStyleToAni(ani_env* env, const TextStyle& textStyle);
     static ani_object ParseFontMetricsToAni(ani_env* env, const Drawing::FontMetrics& fontMetrics);

@@ -21,7 +21,7 @@
 #include "ani_text_utils.h"
 #include "utils/text_log.h"
 
-namespace OHOS::Text::NAI{
+namespace OHOS::Text::NAI {
 #define STRUCT_LIST(...) using AniTypes = std::tuple<__VA_ARGS__>
 
 // add new struct in this macro
@@ -51,7 +51,8 @@ void SafeDelete(ani_long& ptr)
     }
 }
 
-static void Clean(ani_env* env, ani_object object) {
+static void Clean(ani_env* env, ani_object object)
+{
     ani_long ptr;
     if (ANI_OK != env->Object_GetFieldByName_Long(object, "ptr", &ptr)) {
         return;
@@ -60,21 +61,19 @@ static void Clean(ani_env* env, ani_object object) {
     if (ANI_OK != env->Object_GetFieldByName_Ref(object, "className", &stringRef)) {
         return;
     }
-    
+
     std::string familyName = AniTextUtils::AniToStdStringUtf8(env, static_cast<ani_string>(stringRef));
     using DeleteFunc = void (*)(ani_long&);
     static const std::unordered_map<std::string, DeleteFunc> deleteMap = {
         {"ParagraphBuilder", SafeDelete<AniParagraphBuilder>},
         {"Paragraph", SafeDelete<AniParagraph>},
-        {"FontCollection", SafeDelete<AniFontCollection>}
-    };
+        {"FontCollection", SafeDelete<AniFontCollection>}};
 
     if (deleteMap.count(familyName)) {
         TEXT_LOGE("[ANI] clean %{public}s", familyName.c_str());
         deleteMap.at(familyName)(ptr);
     }
 }
-
 
 static ani_status AniCleanerInit(ani_vm* vm)
 {
@@ -109,7 +108,7 @@ static ani_status Init(ani_vm* vm, uint32_t* result)
     AniCleanerInit(vm);
     return InitAllStruct<AniTypes>(vm, result, std::make_index_sequence<std::tuple_size_v<AniTypes>>());
 }
-} // namespace
+} // namespace OHOS::Text::NAI
 
 extern "C"
 {
