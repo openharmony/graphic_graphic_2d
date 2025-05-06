@@ -93,17 +93,6 @@ public:
     Shape() = default;
     Shape(const ShapeType& type) : type_(type) {}
     virtual void CalculatePosition(float& positionX, float& positionY) = 0;
-    
-    virtual bool operator==(const Shape& shape) const
-    {
-        return type_ == shape.type_;
-    }
-
-    virtual bool operator!=(const Shape& shape) const
-    {
-        return type_ != shape.type_;
-    }
-
     virtual ShapeType GetShapeType() const
     {
         return type_;
@@ -136,20 +125,7 @@ public:
     {}
     AnnulusRegion(const AnnulusRegion& region) = default;
     AnnulusRegion& operator=(const AnnulusRegion& region) = default;
-
     void CalculatePosition(float& positionX, float& positionY);
-    bool operator==(const AnnulusRegion& annulusRegion) const
-    {
-        return type_ == annulusRegion.type_ && center_ == annulusRegion.center_ &&
-               innerRadius_ == annulusRegion.innerRadius_ && outerRadius_ == annulusRegion.outerRadius_ &&
-               startAngle_ == annulusRegion.startAngle_ && endAngle_ == annulusRegion.endAngle_;
-    }
-
-    bool operator!=(const AnnulusRegion& annulusRegion) const
-    {
-        return !(*this == annulusRegion);
-    }
-
     ShapeType GetShapeType() const
     {
         return ShapeType::ANNULUS;
