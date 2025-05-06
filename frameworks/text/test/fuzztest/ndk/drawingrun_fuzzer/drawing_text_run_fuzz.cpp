@@ -15,20 +15,22 @@
  */
 
 #include <cstddef>
+#include <fuzzer/FuzzedDataProvider.h>
 #include <iostream>
 #include <memory>
 
 #include "drawing_run_fuzzer.h"
 #include "drawing_text_run.h"
-#include "get_object.h"
+
 namespace OHOS::Rosen::Drawing {
-void OHDrawingRunTest(OH_Drawing_Array* runs, OH_Drawing_Canvas* canvas)
+void OHDrawingRunTest(OH_Drawing_Array* runs, OH_Drawing_Canvas* canvas, const uint8_t* data, size_t size)
 {
+    FuzzedDataProvider fdp(data, size);
     OH_Drawing_GetDrawingArraySize(runs);
     OH_Drawing_Run* run = OH_Drawing_GetRunByIndex(runs, 0);
     uint32_t count = OH_Drawing_GetRunGlyphCount(run);
-    uint64_t location = GetObject<uint64_t>() % DATA_MAX_RANDOM;
-    uint64_t length = GetObject<uint64_t>() % DATA_MAX_RANDOM;
+    uint64_t location = fdp.ConsumeIntegral<uint64_t>() % DATA_MAX_RANDOM;
+    uint64_t length = fdp.ConsumeIntegral<uint64_t>() % DATA_MAX_RANDOM;
     OH_Drawing_GetRunStringRange(run, nullptr, nullptr);
     OH_Drawing_GetRunStringRange(run, &location, &length);
     OH_Drawing_GetRunStringIndices(run, 0, 0);
@@ -58,16 +60,10 @@ void OHDrawingRunTest(OH_Drawing_Array* runs, OH_Drawing_Canvas* canvas)
     OH_Drawing_DestroyRunPositions(positions);
     OH_Drawing_RunPaint(canvas, run, 0, 0);
 }
+
 void OHDrawingTextRunTest(const uint8_t* data, size_t size)
 {
-    if (data == nullptr || size < DATA_MIN_SIZE) {
-        return;
-    }
-
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
+    FuzzedDataProvider fdp(data, size);
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     UpdateTypographyStyle(typoStyle);
     OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
@@ -86,8 +82,8 @@ void OHDrawingTextRunTest(const uint8_t* data, size_t size)
     OH_Drawing_TextLine* textLine = OH_Drawing_GetTextLineByIndex(textLines, 0);
     OH_Drawing_Array* runs = OH_Drawing_TextLineGetGlyphRuns(textLine);
     // 针对每个run
-    OHDrawingRunTest(runs, canvas);
-    OHDrawingRunTest(nullptr, canvas);
+    OHDrawingRunTest(runs, canvas, data, size);
+    OHDrawingRunTest(nullptr, canvas, data, size);
     OH_Drawing_DestroyRuns(runs);
     OH_Drawing_DestroyTextLine(textLine);
     OH_Drawing_DestroyTextLines(textLines);

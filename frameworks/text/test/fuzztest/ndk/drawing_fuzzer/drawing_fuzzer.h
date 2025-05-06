@@ -16,39 +16,6 @@
 #ifndef TEST_FUZZTEST_DRAWING_FUZZER_H
 #define TEST_FUZZTEST_DRAWING_FUZZER_H
 
-#include <climits>
-#include <cstdint>
-#include <cstdio>
-#include <cstdlib>
-#include <memory>
-
-#include "drawing_bitmap.h"
-#include "drawing_brush.h"
-#include "drawing_canvas.h"
-#include "drawing_color.h"
-#include "drawing_font_collection.h"
-#include "drawing_path.h"
-#include "drawing_pen.h"
-#include "drawing_point.h"
-#include "drawing_text_declaration.h"
-#include "drawing_text_line.h"
-#include "drawing_text_lineTypography.h"
-#include "drawing_text_typography.h"
-#include "drawing_types.h"
-#include "get_object.h"
-
 #define FUZZ_PROJECT_NAME "drawing_fuzzer"
-
-namespace OHOS::Rosen::Drawing {
-constexpr inline size_t DATA_MIN_SIZE = 8;
-constexpr inline size_t DATA_MAX_ENUM_SIZE1 = 3;
-constexpr inline size_t DATA_MAX_ENUM_SIZE2 = 4;
-constexpr inline size_t DATA_MAX_ENUM_SIZE3 = 5;
-constexpr inline size_t DATA_MAX_ENUM_SIZE4 = 8;
-constexpr inline size_t DATA_MAX_ENUM_SIZE5 = 11;
-constexpr inline size_t DATA_MAX_ENUM_FONTSIZE = 40;
-constexpr inline size_t DATA_MAX_LAYOUT_WIDTH = 100;
-constexpr inline size_t DATA_MAX_RANDOM = 500;
-} // namespace OHOS::Rosen::Drawing
 
 #endif // TEST_FUZZTEST_DRAWING_FUZZER_H
