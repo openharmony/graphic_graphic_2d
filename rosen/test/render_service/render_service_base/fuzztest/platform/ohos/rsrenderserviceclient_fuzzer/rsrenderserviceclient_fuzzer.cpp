@@ -337,7 +337,7 @@ bool DoTakeSurfaceCapture(const uint8_t* data, size_t size)
     uint16_t listSize = GetData<uint16_t>();
     for (uint16_t i = 0; i < listSize; ++i) {
         uint64_t nodeid = GetData<uint64_t>();
-        captureConfig.blacklist.push_back(nodeid);
+        captureConfig.blackList.push_back(nodeid);
     }
     captureConfig.mainScreenRect.left_ = GetData<float>();
     captureConfig.mainScreenRect.top_ = GetData<float>();

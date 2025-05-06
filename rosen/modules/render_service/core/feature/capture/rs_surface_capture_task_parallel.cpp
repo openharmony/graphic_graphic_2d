@@ -244,8 +244,8 @@ bool RSSurfaceCaptureTaskParallel::Run(
     } else if (displayNodeDrawable_) {
         RSUniRenderThread::SetCaptureParam(CaptureParam(true, false, false));
         // Screenshot blacklist, exclude surfaceNode in blacklist while capturing displaynode
-        std::unordered_set<NodeId> blacklist(captureConfig_.blacklist.begin(), captureConfig_.blacklist.end());
-        RSUniRenderThread::Instance().SetBlackList(blacklist);
+        std::unordered_set<NodeId> blackList(captureConfig_.blackList.begin(), captureConfig_.blackList.end());
+        RSUniRenderThread::Instance().SetBlackList(blackList);
         displayNodeDrawable_->OnCapture(canvas);
         RSUniRenderThread::Instance().SetBlackList({});
     } else {

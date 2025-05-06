@@ -1867,7 +1867,7 @@ bool RSRenderServiceConnectionProxy::WriteSurfaceCaptureConfig(
         !data.WriteFloat(captureConfig.mainScreenRect.top_) ||
         !data.WriteFloat(captureConfig.mainScreenRect.right_) ||
         !data.WriteFloat(captureConfig.mainScreenRect.bottom_) ||
-        !data.WriteUInt64Vector(captureConfig.blacklist)) {
+        !data.WriteUInt64Vector(captureConfig.blackList)) {
         ROSEN_LOGE("WriteSurfaceCaptureConfig: WriteSurfaceCaptureConfig captureConfig err.");
         return false;
     }
