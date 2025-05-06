@@ -71,7 +71,7 @@ bool Init(const uint8_t* data, size_t size)
     return true;
 }
 
-void initRSScreenHDRCapabilityAndParcel(RSScreenHDRCapability& capability, Parcel& parcel)
+void InitRSScreenHDRCapabilityAndParcel(RSScreenHDRCapability& capability, Parcel& parcel)
 {
     uint32_t unit32MaxLum = GetData<uint32_t>();
     float maxLum = static_cast<float>(unit32MaxLum) * OHOS::Rosen::PROPORTION;
@@ -94,7 +94,7 @@ bool DoMarshalling()
 {
     RSScreenHDRCapability capability;
     Parcel parcel;
-    initRSScreenHDRCapabilityAndParcel(capability, parcel);
+    InitRSScreenHDRCapabilityAndParcel(capability, parcel);
     capability.Marshalling(parcel);
     return true;
 }
@@ -103,7 +103,7 @@ bool DoUnmarshalling()
 {
     RSScreenHDRCapability capability;
     Parcel parcel;
-    initRSScreenHDRCapabilityAndParcel(capability, parcel);
+    InitRSScreenHDRCapabilityAndParcel(capability, parcel);
     capability.Marshalling(parcel);
     capability.Unmarshalling(parcel);
     return true;
