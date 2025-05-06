@@ -737,7 +737,7 @@ void RSUniHwcVisitor::CalcHwcNodeEnableByFilterRect(std::shared_ptr<RSSurfaceRen
     bool isIntersect = !bound.IntersectRect(filterNode.GetOldDirtyInSurface()).IsEmpty();
     if (isIntersect) {
         auto parent = node->GetParent().lock();
-        RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%" PRIu64 " parentId:%" PRIu64 " disabled by "
+        RS_OPTIONAL_TRACE_NAME_FMT("hwcNode debug: name:%s id:%" PRIu64 " parentId:%" PRIu64 " disabled by "
             "filter rect, filterId:%" PRIu64, node->GetName().c_str(), node->GetId(),
             parent? parent->GetId() : -1, filterNode.GetId());
         PrintHiperfLog(node, "filter rect");
