@@ -198,6 +198,10 @@ ohos_unittest("RSUiCaptureTaskParallelTest") {
     external_deps += [
       "drivers_interface_display:libdisplay_commontype_proxy_1.0",
       "video_processing_engine:videoprocessingengine",
+      "media_foundation:media_foundation",
+    ]
+    sources += [
+      "$graphic_2d_root/rosen/modules/render_service_basesrc/display_engine/rs_vpe_manager.cpp"
     ]
   }
 }
@@ -375,12 +379,12 @@ ohos_unittest("RSVsyncRateReduceManagerTest") {
 ohos_unittest("RSUniHwcPrevalidateUtilTest") {
   module_out_path = module_output_path
   sources = [
-    "$graphic_2d_root/rosen/modules/render_service_base/src/pipeline/rs_canvas_render_node.cpp",
     "hwc/rs_uni_hwc_prevalidate_util_test.cpp",
   ]
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/render_service_base/src/platform:platform",
+    "$graphic_2d_root/rosen/modules/render_service_base:render_service_base_src",
   ]
   external_deps = [
     "c_utils:utils",
@@ -411,12 +415,12 @@ ohos_unittest("RSUniHwcPrevalidateUtilTest") {
 ohos_unittest("RSEglImageManagerTest") {
   module_out_path = module_output_path
   sources = [
-    "$graphic_2d_root/rosen/modules/render_service_base/src/pipeline/rs_canvas_render_node.cpp",
     "gpuComposition/rs_egl_image_manager_test.cpp",
   ]
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/render_service_base/src/platform:platform",
+    "$graphic_2d_root/rosen/modules/render_service_base:render_service_base_src",
   ]
   external_deps = [
     "c_utils:utils",
@@ -530,6 +534,7 @@ ohos_unittest("OverlayDisplayTest") {
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/render_service_base/src/platform:platform",
+    "$graphic_2d_root/rosen/modules/render_service_base:render_service_base_src",
   ]
   external_deps = [
     "c_utils:utils",

@@ -222,6 +222,13 @@ template("render_service_client_source_set") {
         "qos_manager:qos",
       ]
 
+      if (use_video_processing_engine) {
+        defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
+        external_deps += [
+          "video_processing_engine:videoprocessingengine",
+          "media_foundation:media_foundation",
+        ]
+      }
       defines += [ "RES_CLINET_SCHED_ENABLE" ]
 
       if (accessibility_enable) {
@@ -264,7 +271,10 @@ template("render_service_client_source_set") {
     if (is_static_lib) {
       public_deps += [ "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base_static" ]
     } else {
-      public_deps += [ "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base" ]
+      public_deps += [
+        "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+        "$graphic_2d_root/rosen/modules/render_service_base:render_service_base_src",
+        ]
       deps += [ "$rosen_root/modules/platform:eventhandler" ]
     }
 

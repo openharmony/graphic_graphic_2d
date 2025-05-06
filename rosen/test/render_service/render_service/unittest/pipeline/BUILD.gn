@@ -109,6 +109,7 @@ ohos_unittest("RSRenderServiceUnitTest") {
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/render_service_base/src/platform:platform",
+    "$graphic_2d_root/rosen/modules/render_service_base:render_service_base_src",
   ]
   external_deps = [
     "c_utils:utils",
@@ -194,6 +195,7 @@ ohos_unittest("RSUniRenderThreadTest") {
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/render_service_base/src/platform:platform",
+    "$graphic_2d_root/rosen/modules/render_service_base:render_service_base_src",
   ]
   include_dirs = [ "$graphic_2d_root/rosen/modules/render_service_base/include" ]
   external_deps = [
@@ -602,6 +604,7 @@ ohos_unittest("RSMainThreadTest") {
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/render_service_base/src/platform:platform",
+    "$graphic_2d_root/rosen/modules/render_service_base:render_service_base_src",
   ]
   external_deps = [
     "c_utils:utils",
