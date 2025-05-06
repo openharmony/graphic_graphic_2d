@@ -265,9 +265,21 @@ HWTEST_F(HgmIdleDetectorTest, UpdateAndGetAceAnimatorExpectedFrameRate001, Funct
         STEP("2. update ace animator expected frame rate") {
             // verify out of range conditions
             idleDetector->UpdateAceAnimatorExpectedFrameRate(-2);
-        }
-        STEP("3. get ace animator expected frame rate") {
             STEP_ASSERT_EQ(idleDetector->aceAnimatorExpectedFrameRate_, HgmIdleDetector::ANIMATOR_NOT_RUNNING);
+
+            idleDetector->UpdateAceAnimatorExpectedFrameRate(0);
+            STEP_ASSERT_EQ(idleDetector->aceAnimatorExpectedFrameRate_, 0);
+            idleDetector->UpdateAceAnimatorExpectedFrameRate(60);
+            STEP_ASSERT_EQ(idleDetector->aceAnimatorExpectedFrameRate_, 0);
+
+            idleDetector->ResetAceAnimatorExpectedFrameRate();
+            STEP_ASSERT_EQ(idleDetector->aceAnimatorExpectedFrameRate_, HgmIdleDetector::ANIMATOR_NOT_RUNNING);
+            idleDetector->UpdateAceAnimatorExpectedFrameRate(90);
+            STEP_ASSERT_EQ(idleDetector->aceAnimatorExpectedFrameRate_, 90);
+            idleDetector->UpdateAceAnimatorExpectedFrameRate(60);
+            STEP_ASSERT_EQ(idleDetector->aceAnimatorExpectedFrameRate_, 90);
+            idleDetector->UpdateAceAnimatorExpectedFrameRate(0);
+            STEP_ASSERT_EQ(idleDetector->aceAnimatorExpectedFrameRate_, 0);
         }
     }
 }
