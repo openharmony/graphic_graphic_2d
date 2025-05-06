@@ -16,6 +16,7 @@
 
 #include "common/rs_common_def.h"
 #include "display_engine/rs_vpe_manager.h"
+#include "platform/common/rs_log.h"
 
 using namespace OHOS::Media::VideoProcessingEngine;
 
@@ -33,22 +34,22 @@ void VpeVideoCallbackImpl::OnOutputBufferAvailable(uint32_t index, VpeBufferFlag
 }
 namespace OHOS {
 namespace Rosen {
-RSVpemanager& RSVpemanager::GetInstance()
+RSVpeManager& RSVpeManager::GetInstance()
 {
-    static RSVpemanager instance{};
-    return instance{};
+    static RSVpeManager instance{};
+    return instance;
 }
 
-void RSVpemanager::ReleaseVpeVideo(uint64_t nodeId)
+void RSVpeManager::ReleaseVpeVideo(uint64_t nodeId)
 {
     std::lock_guard<std::mutex> locak(vpeVideoLock_);
-    auto it = allVpevideo_.find(nodeId);
-    if (it == allVpevideo_.end()) {
+    auto it = allVpeVideo_.find(nodeId);
+    if (it == allVpeVideo_.end()) {
         return;
     }
     std::shared_ptr<VpeVideo> vpeVideoImp = it->second;
     if (vpeVideoImp != nullptr) {
-        int32_t ret = vpeVideoImp->stop();
+        int32_t ret = vpeVideoImp->Stop();
         if (ret != 0) {
             RS_LOGE("vpeVideo stop failed nodeId:%{public}lu, ret:%{public}lu", nodeId, ret);
         }
@@ -61,13 +62,13 @@ void RSVpemanager::ReleaseVpeVideo(uint64_t nodeId)
     return;
 }
 
-std::shared_ptr<:VpeVideo> RSVpemanager::GetVpeVideo(uint32_t type, const RSSurfaceRenderNodeConfig& config)
+std::shared_ptr<:VpeVideo> RSVpeManager::GetVpeVideo(uint32_t type, const RSSurfaceRenderNodeConfig& config)
 {
     ReleaseVpeVideo(config.id);
     return VpeVideo::Creat(type);
 }
 
-sptr<Surface> RSVpemanager::GetVpeVideoSurface(uint32_t type, const sptr<Surface>& RSSurface,
+sptr<Surface> RSVpeManager::GetVpeVideoSurface(uint32_t type, const sptr<Surface>& RSSurface,
         const RSSurfaceRenderNodeConfig& config)
 {
     if (config.nodeType != OHOS::Rosen::RSSurfaceNodeType::SELF_DRAWING_NODE) {
@@ -124,7 +125,7 @@ sptr<Surface> RSVpemanager::GetVpeVideoSurface(uint32_t type, const sptr<Surface
     return vpeSurface;
 }
 
-sptr<Surface> RSVpemanager::CheckAndGetSurface(const sptr<Surface>& surface, const RSSurfaceRenderNodeConfig& config)
+sptr<Surface> RSVpeManager::CheckAndGetSurface(const sptr<Surface>& surface, const RSSurfaceRenderNodeConfig& config)
 {
     Media::Format parameter{};
     sptr<Surface> vpeSurface = surface;
