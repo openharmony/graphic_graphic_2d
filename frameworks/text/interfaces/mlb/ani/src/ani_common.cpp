@@ -144,13 +144,10 @@ std::unique_ptr<TextStyle> AniCommon::ParseTextStyleToNative(ani_env* env, ani_o
                                             textStyle->decorationStyle);
         AniTextUtils::ReadOptionalDoubleField(env, static_cast<ani_object>(decorationRef), "decorationThicknessScale",
                                               textStyle->decorationThicknessScale);
-        ParseTextColorToNative(env, static_cast<ani_object>(decorationRef), "color", textStyle->decorationColor);
+        ParseDrawingColorToNative(env, static_cast<ani_object>(decorationRef), "color", textStyle->decorationColor);
     }
 
-    ani_ref colorRef = nullptr;
-    if (AniTextUtils::ReadOptionalField(env, obj, "color", colorRef) == ANI_OK && colorRef != nullptr) {
-        ParseDrawingColorToNative(env, static_cast<ani_object>(colorRef), textStyle->color);
-    }
+    ParseDrawingColorToNative(env, obj, "color", textStyle->color);
 
     AniTextUtils::ReadOptionalEnumField(env, obj, "fontWeight", textStyle->fontWeight);
     AniTextUtils::ReadOptionalEnumField(env, obj, "fontStyle", textStyle->fontStyle);
@@ -240,7 +237,7 @@ void AniCommon::ParseTextShadowToNative(ani_env* env, ani_object obj, std::vecto
             AniTextUtils::ReadOptionalDoubleField(env, shadowObj, "blurRadius", runTimeRadius);
 
             Drawing::Color colorSrc = OHOS::Rosen::Drawing::Color::COLOR_BLACK;
-            ParseTextColorToNative(env, shadowObj, "color", colorSrc);
+            ParseDrawingColorToNative(env, shadowObj, "color", colorSrc);
 
             Drawing::Point offset(0, 0);
             ani_ref pointValue = nullptr;
@@ -260,7 +257,8 @@ inline void ConvertClampFromJsValue(ani_env* env, ani_double jsValue, int32_t& v
     value = std::clamp(value, lo, hi);
 }
 
-void AniCommon::ParseTextColorToNative(ani_env* env, ani_object obj, const std::string& str, Drawing::Color& colorSrc)
+void AniCommon::ParseDrawingColorToNative(ani_env* env, ani_object obj, const std::string& str,
+                                          Drawing::Color& colorSrc)
 {
     ani_ref tempValue = nullptr;
     ani_double tempValueChild{0};
@@ -284,23 +282,6 @@ void AniCommon::ParseTextColorToNative(ani_env* env, ani_object obj, const std::
 
     Drawing::Color color(Drawing::Color::ColorQuadSetARGB(alpha, red, green, blue));
     colorSrc = color;
-}
-
-void AniCommon::ParseDrawingColorToNative(ani_env* env, ani_object obj, Drawing::Color& color)
-{
-    ani_class cls;
-    ani_status ret;
-    ret = env->FindClass(ANI_CLASS_TEXT_STYLE, &cls);
-    if (ret != ANI_OK) {
-        TEXT_LOGE("[ANI] can't find class:%{public}d", ret);
-        return;
-    }
-    ani_boolean isObj = false;
-    ret = env->Object_InstanceOf(obj, cls, &isObj);
-    if (!isObj) {
-        TEXT_LOGE("[ANI] Object mismatch:%{public}d", ret);
-        return;
-    }
 }
 
 void AniCommon::ParseFontFeatureToNative(ani_env* env, ani_object obj, FontFeatures& fontFeatures)
@@ -445,7 +426,7 @@ ani_object AniCommon::ParseTextStyleToAni(ani_env* env, const TextStyle& textSty
         [](ani_env* env, const TextShadow& item) { return AniCommon::ParseTextShadowToAni(env, item); });
     env->Object_SetPropertyByName_Ref(aniObj, "textShadows", shadowsAniObj);
 
-    env->Object_SetPropertyByName_Ref(aniObj, "fontFeatures", ParseFontFeaturesToAni(env,textStyle.fontFeatures));
+    env->Object_SetPropertyByName_Ref(aniObj, "fontFeatures", ParseFontFeaturesToAni(env, textStyle.fontFeatures));
     return aniObj;
 }
 

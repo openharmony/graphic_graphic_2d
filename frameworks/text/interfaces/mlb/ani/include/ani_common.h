@@ -65,14 +65,14 @@ public:
     static std::unique_ptr<TypographyStyle> ParseParagraphStyleToNative(ani_env* env, ani_object obj);
     static std::unique_ptr<TextStyle> ParseTextStyleToNative(ani_env* env, ani_object obj);
     static void ParseParagraphStyleStrutStyleToNative(ani_env* env, ani_object obj,
-                                              std::unique_ptr<TypographyStyle>& paragraphStyle);
-    static void ParseDrawingColorToNative(ani_env* env, ani_object obj, Drawing::Color& color);
+                                                      std::unique_ptr<TypographyStyle>& paragraphStyle);
     static void ParseFontFeatureToNative(ani_env* env, ani_object obj, FontFeatures& fontFeatures);
     static void ParseFontVariationToNative(ani_env* env, ani_object obj, FontVariations& fontVariations);
     static void ParseTextTabToNative(ani_env* env, ani_object obj, TextTab& textTab);
     static void ParseFontFamiliesToNative(ani_env* env, ani_array_ref obj, std::vector<std::string>& fontFamilies);
     static void ParseTextShadowToNative(ani_env* env, ani_object obj, std::vector<TextShadow>& textShadow);
-    static void ParseTextColorToNative(ani_env* env, ani_object obj, const std::string& str, Drawing::Color& colorSrc);
+    static void ParseDrawingColorToNative(ani_env* env, ani_object obj, const std::string& str,
+                                          Drawing::Color& colorSrc);
     static void ParseRectStyleToNative(ani_env* env, ani_object obj, RectStyle& rectStyle);
 
     static ani_object ParseTextStyleToAni(ani_env* env, const TextStyle& textStyle);

@@ -703,14 +703,14 @@ namespace text {
      * @syscap SystemCapability.Graphics.Drawing
      * @since 12
      */
-    //color?: common2D.Color;
+    color?: common2D.Color;
     /**
      * The value sets offset of text shadow that based on the original text.
      * @type { ?common2D.Point } The point of shadow
      * @syscap SystemCapability.Graphics.Drawing
      * @since 12
      */
-    //point?: common2D.Point;
+    point?: common2D.Point;
     /**
      * The value sets special effect radius of blurring text, it default is 0.
      * @type { ?number } The value about radius of blur, it type is "double"
@@ -721,8 +721,8 @@ namespace text {
   }
 
   export class TextShadowInternal implements TextShadow {
-    //color?: common2D.Color;
-    //point?: common2D.Point;
+    color?: common2D.Color;
+    point?: common2D.Point;
     blurRadius?: number;
   }
 
@@ -747,7 +747,7 @@ namespace text {
      * @syscap SystemCapability.Graphics.Drawing
      * @since 12
      */
-    //color?: common2D.Color;
+    color?: common2D.Color;
 
     /**
      * Font weight of text.
@@ -897,7 +897,7 @@ namespace text {
 
   export class TextStyleInternal implements TextStyle {
     decoration?: Decoration;
-    //color?: common2D.Color;
+    color?: common2D.Color;
     fontWeight?: FontWeight;
     fontStyle?: FontStyle;
     baseline?: TextBaseline;
@@ -1205,7 +1205,7 @@ namespace text {
      * @syscap SystemCapability.Graphics.Drawing
      * @since 12
      */
-    //color?: common2D.Color;
+    color?: common2D.Color;
 
     /**
      * Text decoration style.
@@ -1224,9 +1224,9 @@ namespace text {
     decorationThicknessScale?: number;
   }
 
-  export class DecorationInternal interface Decoration {
+  export class DecorationInternal implements Decoration {
     textDecoration?: TextDecorationType;
-    //color?: common2D.Color;
+    color?: common2D.Color;
     decorationStyle?: TextDecorationStyle;
     decorationThicknessScale?: number;
   }
@@ -1380,7 +1380,7 @@ namespace text {
      * @syscap SystemCapability.Graphics.Drawing
      * @since 12
      */
-    //color: common2D.Color;
+    color: common2D.Color;
 
     /**
      * Radius in left top of rect style.
@@ -1412,6 +1412,14 @@ namespace text {
      * @syscap SystemCapability.Graphics.Drawing
      * @since 12
      */
+    leftBottomRadius: number;
+  }
+
+  export class RectStyleInternal implements RectStyle {
+    color: common2D.Color;
+    leftTopRadius: number;
+    rightTopRadius: number;
+    rightBottomRadius: number;
     leftBottomRadius: number;
   }
 
