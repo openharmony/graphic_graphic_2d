@@ -74,6 +74,14 @@ bool Init(const uint8_t* data, size_t size)
     g_pos = 0;
     return true;
 }
+bool InitProps(std::vector<RSScreenProps>& props)
+{
+    uint32_t propId = GetData<uint32_t>();
+    uint64_t value = GetData<uint64_t>();
+    std::string capName(STRING_LEN, GetData<char>());
+    RSScreenProps prop = RSScreenProps(capName, propId, value);
+    props = { prop };
+}
 
 void initRSScreenCapabilityAndParcel(RSScreenCapability& capability, Parcel& parcel)
 {
@@ -94,15 +102,6 @@ void initRSScreenCapabilityAndParcel(RSScreenCapability& capability, Parcel& par
     std::vector<RSScreenProps> props;
     InitProps(props);
     capability.SetProps(props);
-}
-
-bool InitProps(std::vector<RSScreenProps>& props)
-{
-    uint32_t propId = GetData<uint32_t>();
-    uint64_t value = GetData<uint64_t>();
-    std::string capName(STRING_LEN, GetData<char>());
-    RSScreenProps prop = RSScreenProps(capName, propId, value);
-    props = { prop };
 }
 
 bool DoMarshalling()
