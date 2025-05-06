@@ -51,7 +51,7 @@ public:
     void CheckOnlyVideoCallExist();
     // called by RSMainThread
     bool GetVideoCallVsyncChange();
-    void GetVideoCallFrameRate(pid_t pid, const std::string &vsyncName, FrameRateRange &finalRange);
+    bool GetVideoCallFrameRate(pid_t pid, const std::string &vsyncName, FrameRateRange &finalRange);
     void SetCurrentPkgName(const std::vector<std::string> &pkgs);
 
 private:

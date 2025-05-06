@@ -709,7 +709,7 @@ void RSMainThread::Init()
                 RSMainThread::Instance()->RequestNextVSync("ltpoForceUpdate");
             });
         });
-        frameRateMgr->Init(rsVSyncController_, appVSyncController_, vsyncGenerator_);
+        frameRateMgr->Init(rsVSyncController_, appVSyncController_, vsyncGenerator_, appVSyncDistributor_);
     });
     SubscribeAppState();
     PrintCurrentStatus();

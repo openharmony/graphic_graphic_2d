@@ -128,6 +128,11 @@ void RSRenderFrameRateLinker::SetVsyncName(const std::string& vsyncName)
     vsyncName_ = vsyncName;
 }
 
+void RSRenderFrameRateLinker::SetWindowNodeId(uint64_t windowNodeId)
+{
+    windowNodeId_ = windowNodeId;
+}
+
 void RSRenderFrameRateLinker::Copy(const RSRenderFrameRateLinker&& other)
 {
     id_ = other.id_;

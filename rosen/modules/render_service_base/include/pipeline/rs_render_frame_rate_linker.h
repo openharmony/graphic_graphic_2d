@@ -54,8 +54,14 @@ public:
         return vsyncName_;
     }
 
+    inline uint64_t GetWindowNodeId()
+    {
+        return windowNodeId_;
+    }
+
     void SetAnimatorExpectedFrameRate(int32_t animatorExpectedFrameRate);
     void SetVsyncName(const std::string &vsyncName);
+    void SetWindowNodeId(uint64_t windowNodeId);
     void SetExpectedRange(const FrameRateRange& range);
     const FrameRateRange& GetExpectedRange() const;
     void SetFrameRate(uint32_t rate);
@@ -75,6 +81,7 @@ private:
     uint32_t frameRate_ = 0;
     int32_t animatorExpectedFrameRate_ = -1;
     std::string vsyncName_;
+    uint64_t windowNodeId_;
     mutable std::mutex mutex_;
     TimePoint nativeVSyncTimePoint_ = std::chrono::steady_clock::time_point::min();
 

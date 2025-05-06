@@ -285,6 +285,10 @@ public:
 
     void NotifyRefreshRateEvent(const EventInfo& eventInfo) override;
 
+    void SetWindowExpectedRefreshRate(const std::unordered_map<uint64_t, EventInfo>& eventInfos) override;
+
+    void SetWindowExpectedRefreshRate(const std::unordered_map<std::string, EventInfo>& eventInfos) override;
+
     ErrCode NotifySoftVsyncEvent(uint32_t pid, uint32_t rateDiscount) override;
 
     void NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt) override;
