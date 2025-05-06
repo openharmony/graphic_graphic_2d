@@ -284,7 +284,8 @@ private:
         std::lock_guard<std::mutex> lock(pendingMutex_);
         return curGameNodeName_;
     }
-    void CheckRefreshRateChange(bool followRs, bool frameRateChanged, uint32_t refreshRate);
+    void CheckRefreshRateChange(
+        bool followRs, bool frameRateChanged, uint32_t refreshRate, bool needChangeDssRefreshRate);
     void SetGameNodeName(std::string nodeName)
     {
         std::lock_guard<std::mutex> lock(pendingMutex_);
