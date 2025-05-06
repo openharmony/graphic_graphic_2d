@@ -575,7 +575,7 @@ HWTEST_F(RSRenderParticleEffectorTest, CalculateDistanceToRectangleEdge001, Test
 {
     GTEST_LOG_(INFO) << "RSRenderParticleEffectorTest CalculateDistanceToRectangleEdge001 start";
     int fieldStrength = 10;
-    ShapeType fieldShape = ShapeType::CIRCLE;
+    ShapeType fieldShape = ShapeType::RECT;
     Vector2f fieldSize = { 10.f, 10.f };
     Vector2f fieldCenter = { 5.f, 5.f };
     uint16_t fieldFeather = 50;
@@ -605,6 +605,43 @@ HWTEST_F(RSRenderParticleEffectorTest, CalculateDistanceToRectangleEdge001, Test
 
     deltaTime = 0.f;
     force = noiseField->ApplyField(position, deltaTime);
+    EXPECT_TRUE(ROSEN_EQ(force.x_, 0.f) && ROSEN_EQ(force.y_, 0.f));
+    GTEST_LOG_(INFO) << "RSRenderParticleEffectorTest CalculateDistanceToRectangleEdge001 end";
+}
+
+/**
+ * @tc.name: CalculateDistanceToEllipseEdge001
+ * @tc.desc: Verify the CalculateDistanceToEllipseEdge
+ * @tc.type:FUNC
+ * @tc.require: issueIA6IWR
+ */
+HWTEST_F(RSRenderParticleEffectorTest, CalculateDistanceToEllipseEdge001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderParticleEffectorTest CalculateDistanceToEllipseEdge001 start";
+    int fieldStrength = 600;
+    ShapeType fieldShape = ShapeType::RECT;
+    Vector2f fieldSize = { 10.f, 20.f };
+    Vector2f fieldCenter = { 5.f, 5.f };
+    uint16_t fieldFeather = 50;
+    float noiseScale = 8.f;
+    float noiseFrequency = 2.f;
+    float noiseAmplitude = 4.f;
+    auto noiseField = std::make_shared<ParticleNoiseField>(
+        fieldStrength, fieldShape, fieldSize, fieldCenter, fieldFeather, noiseScale, noiseFrequency, noiseAmplitude);
+
+    Vector2f position = { 5.f, 5.f };
+    Vector2f direction = { 0.f, 0.f };
+    float distance = noiseField->CalculateDistanceToEllipseEdge(direction, fieldCenter, fieldSize);
+    EXPECT_TRUE(ROSEN_EQ(distance, 0.f));
+    direction = { 1.f, 0.f };
+    distance = noiseField->CalculateDistanceToEllipseEdge(direction, fieldCenter, fieldSize);
+    EXPECT_TRUE(ROSEN_EQ(distance, 5.f));
+    direction = { 0.f, 1.f };
+    distance = noiseField->CalculateDistanceToEllipseEdge(direction, fieldCenter, fieldSize);
+    EXPECT_TRUE(ROSEN_EQ(distance, 10.f));
+
+    float deltaTime = 10.f;
+    Vector2f force = noiseField->ApplyField(position, deltaTime);
     EXPECT_TRUE(ROSEN_EQ(force.x_, 0.f) && ROSEN_EQ(force.y_, 0.f));
     GTEST_LOG_(INFO) << "RSRenderParticleEffectorTest CalculateDistanceToRectangleEdge001 end";
 }

@@ -51,6 +51,13 @@ public:
     {
         return particleSystem_;
     }
+    template <typename T>
+    void UpdateParamsIfChanged(const std::shared_ptr<T>& updaterValue, std::shared_ptr<T>& targetValue)
+    {
+        if (updaterValue && updaterValue != targetValue) {
+            targetValue = updaterValue;
+        }
+    }
 
 protected:
     void OnAttach() override;
