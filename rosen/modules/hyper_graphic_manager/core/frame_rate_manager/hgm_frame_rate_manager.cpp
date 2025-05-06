@@ -631,7 +631,7 @@ bool HgmFrameRateManager::CollectFrameRateChange(FrameRateRange finalRange,
         auto appFrameRate = touchManager_.GetState() == TouchState::IDLE_STATE ?
                             GetDrawingFrameRate(currRefreshRate_, expectedRange) : OLED_NULL_HZ;
         if (CollectGameRateDiscountChange(linker.first, expectedRange)) {
-            appFrameRate = expectedRange.preferred_;
+            appFrameRate = static_cast<uint32_t>(expectedRange.preferred_);
         }
         if (appFrameRate != linker.second->GetFrameRate() || controllerRateChanged) {
             linker.second->SetFrameRate(appFrameRate);
@@ -2095,7 +2095,7 @@ bool HgmFrameRateManager::CollectGameRateDiscountChange(uint64_t linkerId, Frame
     int32_t tmpMin = expectedRange.min_;
     int32_t tmpMax = expectedRange.max_;
     if (expectedRange.preferred_ == 0) {
-        expectedRange.preferred_ = currRefreshRate_ / static_cast<int32_t>(iter->second);
+        expectedRange.preferred_ = static_cast<int32_t>(currRefreshRate_) / static_cast<int32_t>(iter->second);
     } else {
         expectedRange.preferred_ = std::min(expectedRange.preferred_, static_cast<int32_t>(currRefreshRate_)) /
             static_cast<int32_t>(iter->second);
@@ -2103,7 +2103,7 @@ bool HgmFrameRateManager::CollectGameRateDiscountChange(uint64_t linkerId, Frame
     expectedRange.min_ = expectedRange.preferred_;
     expectedRange.max_ = expectedRange.preferred_;
 
-    int32_t drawingFrameRate = GetDrawingFrameRate(currRefreshRate_, expectedRange);
+    int32_t drawingFrameRate = static_cast<int32_t>(GetDrawingFrameRate(currRefreshRate_, expectedRange));
     if (drawingFrameRate != expectedRange.preferred_) {
         RS_TRACE_NAME_FMT("CollectGameRateDiscountChange failed, linkerId=%" PRIu64
             ", rateDiscount=%d, preferred=%d drawingFrameRate=%d currRefreshRate=%d",

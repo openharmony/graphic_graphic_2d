@@ -374,6 +374,8 @@ public:
 
     void NotifyRefreshRateEvent(const EventInfo& eventInfo);
 
+    bool NotifySoftVsyncRateDiscountEvent(uint32_t pid, const std::string &name, uint32_t rateDiscount);
+
     void NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt);
 
     void NotifyDynamicModeEvent(bool enableDynamicMode);

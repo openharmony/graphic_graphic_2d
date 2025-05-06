@@ -1656,6 +1656,25 @@ bool DoNotifyRefreshRateEvent(const uint8_t* data, size_t size)
     return true;
 }
 
+bool DoNotifySoftVsyncRateDiscountEvent(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
+    uint32_t pid = GetData<uint32_t>();
+    std::string name = "fuzztest";
+    uint32_t rateDiscount = GetData<uint32_t>();
+    client->NotifySoftVsyncRateDiscountEvent(pid, name, rateDiscount);
+    return true;
+}
+
 bool DoNotifyTouchEvent(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -2521,6 +2540,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoNotifyPackageEvent(data, size);
     OHOS::Rosen::DONotifyAppStrategyConfigChangeEvent(data, size);
     OHOS::Rosen::DoNotifyRefreshRateEvent(data, size);
+    OHOS::Rosen::DoNotifySoftVsyncRateDiscountEvent(data, size);
     OHOS::Rosen::DoNotifyTouchEvent(data, size);
     OHOS::Rosen::DoSetCacheEnabledForRotation(data, size);
     OHOS::Rosen::DoNotifyHgmConfigEvent(data, size);

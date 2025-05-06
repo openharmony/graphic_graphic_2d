@@ -1048,6 +1048,10 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, SetCacheEnabledForRotation, TestSiz
     proxy->NotifyAppStrategyConfigChangeEvent("test", 1, newConfig);
     EventInfo eventInfo;
     proxy->NotifyRefreshRateEvent(eventInfo);
+    uint32_t pid = 1U;
+    std::string name = "test";
+    uint32_t rateDiscount = 1U;
+    proxy->NotifySoftVsyncRateDiscountEvent(pid, name, rateDiscount);
     int32_t touchStatus = 1;
     int32_t touchCnt = 0;
     proxy->NotifyTouchEvent(touchStatus, touchCnt);

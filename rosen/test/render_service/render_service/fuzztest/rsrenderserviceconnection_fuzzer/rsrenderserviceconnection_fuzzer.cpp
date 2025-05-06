@@ -1484,6 +1484,7 @@ void DoFuzzerTest3()
     DoSetOverlayDisplayMode();
 #endif
     DoRegisterFirstFrameCommitCallback();
+    DoNotifySoftVsyncRateDiscountEvent();
 }
 } // namespace Rosen
 } // namespace OHOS

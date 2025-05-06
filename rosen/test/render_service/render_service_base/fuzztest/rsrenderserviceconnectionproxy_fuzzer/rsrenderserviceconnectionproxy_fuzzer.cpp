@@ -271,6 +271,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     rsRenderServiceConnectionProxy.NotifyLightFactorStatus(1);
     rsRenderServiceConnectionProxy.NotifyPackageEvent(width, packageList);
     rsRenderServiceConnectionProxy.NotifyRefreshRateEvent(eventInfo);
+    rsRenderServiceConnectionProxy.NotifySoftVsyncRateDiscountEvent(1, name, 1);
     rsRenderServiceConnectionProxy.NotifyTouchEvent(pid1, uid);
     rsRenderServiceConnectionProxy.NotifyDynamicModeEvent(true);
     rsRenderServiceConnectionProxy.NotifyHgmConfigEvent(name, true);
