@@ -1126,7 +1126,7 @@ HWTEST_F(VSyncGeneratorTest, IsUiDvsyncOnTest001, Function | MediumTest| Level0)
     auto rsVSyncDistributor = vsyncGeneratorImpl->rsVSyncDistributor_;
     vsyncGeneratorImpl->rsVSyncDistributor_ = nullptr;
     bool ret = vsyncGeneratorImpl->IsUiDvsyncOn();
-    vsyncGeneratorImpl.rsVSyncDistributor_ = rsVSyncDistributor;
+    vsyncGeneratorImpl->rsVSyncDistributor_ = rsVSyncDistributor;
     ASSERT_EQ(ret, false);
 }
 } // namespace
