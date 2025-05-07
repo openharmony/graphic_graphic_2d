@@ -69,6 +69,7 @@ Note: If the text contains special characters, please escape them according to t
                 <filteritem type="filename" name="cursor.raw" desc="cursor"/>
                 <filteritem type="filename" name="bootsound.wav" desc="bootanimation sound file"/>
                 <filteritem type="filename" name="bootvideo.mp4" desc="bootanimation video file"/>
+                <filteritem type="filename" name="*.fuzz" desc="fuzz seed file"/>
             </filefilter>
         </filefilterlist>
     </oatconfig>
