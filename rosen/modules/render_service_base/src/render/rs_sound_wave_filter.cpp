@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "rs_sound_wave_filter.h"
+#include "render/rs_sound_wave_filter.h"
 
 #include "common/rs_color.h"
 #include "pipeline/rs_paint_filter_canvas.h"
