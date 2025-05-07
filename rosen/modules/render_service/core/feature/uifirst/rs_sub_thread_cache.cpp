@@ -347,7 +347,7 @@ void RsSubThreadCache::InitCacheSurface(Drawing::GPUContext* gpuContext,
             colorSpace =
                 Drawing::ColorSpace::CreateRGB(Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::DCIP3);
         }
-        cacheBackendTexture_ = RSUniRenderUtil::MakeBackendTexture(
+        cacheBackendTexture_ = NativeBufferUtils::MakeBackendTexture(
             width, height, ExtractPid(nodeDrawable->nodeId_), format);
         auto vkTextureInfo = cacheBackendTexture_.GetTextureInfo().GetVKTextureInfo();
         if (!cacheBackendTexture_.IsValid() || !vkTextureInfo) {

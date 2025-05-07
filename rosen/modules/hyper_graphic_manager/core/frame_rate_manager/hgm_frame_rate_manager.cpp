@@ -168,6 +168,8 @@ void HgmFrameRateManager::Init(sptr<VSyncController> rsController,
         std::string strategy, const bool isAddVoter) {
         ProcessPageUrlVote(pid, strategy, isAddVoter);
     });
+    HgmHfbcConfig& hfbcConfig = hgmCore.GetHfbcConfig();
+    hfbcConfig.HandleHfbcConfig({""});
     FrameRateReportTask(FRAME_RATE_REPORT_MAX_RETRY_TIMES);
 }
 
@@ -631,7 +633,7 @@ bool HgmFrameRateManager::CollectFrameRateChange(FrameRateRange finalRange,
         auto appFrameRate = touchManager_.GetState() == TouchState::IDLE_STATE ?
                             GetDrawingFrameRate(currRefreshRate_, expectedRange) : OLED_NULL_HZ;
         if (CollectGameRateDiscountChange(linker.first, expectedRange)) {
-            appFrameRate = expectedRange.preferred_;
+            appFrameRate = static_cast<uint32_t>(expectedRange.preferred_);
         }
         if (appFrameRate != linker.second->GetFrameRate() || controllerRateChanged) {
             linker.second->SetFrameRate(appFrameRate);
@@ -651,7 +653,7 @@ bool HgmFrameRateManager::CollectFrameRateChange(FrameRateRange finalRange,
     return frameRateChanged;
 }
 
-void HgmFrameRateManager::HandleFrameRateChangeForLTPO(uint64_t timestamp, bool followRs)
+void HgmFrameRateManager::HandleFrameRateChangeForLTPO(uint64_t timestamp, bool followRs, bool frameRateChange)
 {
     std::lock_guard<std::mutex> lock(pendingMutex_);
     auto& hgmCore = HgmCore::Instance();
@@ -680,7 +682,10 @@ void HgmFrameRateManager::HandleFrameRateChangeForLTPO(uint64_t timestamp, bool 
     }
 
     // Start of DVSync
-    int64_t delayTime = CreateVSyncGenerator()->SetCurrentRefreshRate(controllerRate_, lastRefreshRate);
+    int64_t delayTime = 0;
+    if (frameRateChange) {
+        delayTime = CreateVSyncGenerator()->SetCurrentRefreshRate(controllerRate_, lastRefreshRate);
+    }
     if (delayTime != 0) {
         DVSyncTaskProcessor(delayTime, targetTime);
     } else if (controller_) {
@@ -2010,7 +2015,8 @@ void HgmFrameRateManager::NotifyPageName(pid_t pid, const std::string &packageNa
 
 void HgmFrameRateManager::CheckNeedUpdateAppOffset(uint32_t refreshRate)
 {
-    if (refreshRate > OLED_60_HZ || isNeedUpdateAppOffset_) {
+    if (refreshRate > OLED_60_HZ || isNeedUpdateAppOffset_ ||
+        !HgmCore::Instance().CheckNeedUpdateAppOffsetRefreshRate(controllerRate_)) {
         return;
     }
     if (auto iter = voteRecord_.find("VOTER_THERMAL");
@@ -2024,11 +2030,15 @@ void HgmFrameRateManager::CheckNeedUpdateAppOffset(uint32_t refreshRate)
 void HgmFrameRateManager::CheckRefreshRateChange(
     bool followRs, bool frameRateChanged, uint32_t refreshRate, bool needChangeDssRefreshRate)
 {
-    // 当dvsync在连续延迟切帧阶段，使用dvsync内记录的刷新率判断是否变化
     CreateVSyncGenerator()->DVSyncRateChanged(controllerRate_, frameRateChanged);
-    CheckNeedUpdateAppOffset(refreshRate);
-    if (HgmCore::Instance().GetLtpoEnabled() && (frameRateChanged || isNeedUpdateAppOffset_)) {
-        HandleFrameRateChangeForLTPO(timestamp_.load(), followRs);
+    bool appOffsetChange = false;
+    if (controller_ != nullptr) {
+        CheckNeedUpdateAppOffset(refreshRate);
+        appOffsetChange = isNeedUpdateAppOffset_ && controller_->GetPulseNum() != 0;
+    }
+    if (HgmCore::Instance().GetLtpoEnabled() &&
+        (frameRateChanged || (appOffsetChange && !CreateVSyncGenerator()->IsUiDvsyncOn()))) {
+        HandleFrameRateChangeForLTPO(timestamp_.load(), followRs, frameRateChanged);
         if (needChangeDssRefreshRate && changeDssRefreshRateCb_ != nullptr) {
             changeDssRefreshRateCb_(curScreenId_.load(), refreshRate, true);
         }
@@ -2039,6 +2049,10 @@ void HgmFrameRateManager::CheckRefreshRateChange(
             changeDssRefreshRateCb_(curScreenId_.load(), refreshRate, true);
         }
     }
+    if (HgmCore::Instance().GetLtpoEnabled() && appOffsetChange && isNeedUpdateAppOffset_) {
+        HgmCore::Instance().SetHgmTaskFlag(true);
+    }
+    isNeedUpdateAppOffset_ = false;
 }
 
 void HgmFrameRateManager::FrameRateReportTask(uint32_t leftRetryTimes)
@@ -2095,7 +2109,7 @@ bool HgmFrameRateManager::CollectGameRateDiscountChange(uint64_t linkerId, Frame
     int32_t tmpMin = expectedRange.min_;
     int32_t tmpMax = expectedRange.max_;
     if (expectedRange.preferred_ == 0) {
-        expectedRange.preferred_ = currRefreshRate_ / static_cast<int32_t>(iter->second);
+        expectedRange.preferred_ = static_cast<int32_t>(currRefreshRate_) / static_cast<int32_t>(iter->second);
     } else {
         expectedRange.preferred_ = std::min(expectedRange.preferred_, static_cast<int32_t>(currRefreshRate_)) /
             static_cast<int32_t>(iter->second);
@@ -2103,7 +2117,7 @@ bool HgmFrameRateManager::CollectGameRateDiscountChange(uint64_t linkerId, Frame
     expectedRange.min_ = expectedRange.preferred_;
     expectedRange.max_ = expectedRange.preferred_;
 
-    int32_t drawingFrameRate = GetDrawingFrameRate(currRefreshRate_, expectedRange);
+    int32_t drawingFrameRate = static_cast<int32_t>(GetDrawingFrameRate(currRefreshRate_, expectedRange));
     if (drawingFrameRate != expectedRange.preferred_) {
         RS_TRACE_NAME_FMT("CollectGameRateDiscountChange failed, linkerId=%" PRIu64
             ", rateDiscount=%d, preferred=%d drawingFrameRate=%d currRefreshRate=%d",

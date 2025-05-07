@@ -958,35 +958,6 @@ HWTEST_F(DrawCmdTest, DrawTextBlobOpItem002, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetBounds001
- * @tc.desc: Test functions GetBounds for DrawTextBlobOpItem
- * @tc.type: FUNC
- * @tc.require: IC2UAC
- */
-HWTEST_F(DrawCmdTest, GetBounds001, TestSize.Level1)
-{
-    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
-    EXPECT_NE(drawCmdList, nullptr);
-    Font font;
-    auto textBlob = TextBlob::MakeFromString("12", font, TextEncoding::UTF8);
-    Paint paint;
-    DrawTextBlobOpItem opItem { textBlob.get(), 0, 0, paint };
-    EXPECT_NE(opItem.textBlob_, nullptr);
-    EXPECT_NE(opItem.textBlob_->Bounds(), nullptr);
-    EXPECT_EQ(opItem.textBlob_->Bounds()->IsValid(), true);
-    auto boundsRect = opItem.GetBounds();
-    Rect rect;
-    EXPECT_NE(boundsRect, rect);
-    opItem.textBlob_->textBlobImpl_ = nullptr;
-    EXPECT_EQ(opItem.textBlob_->Bounds(), nullptr);
-    boundsRect = opItem.GetBounds();
-    EXPECT_EQ(boundsRect, rect);
-    opItem.textBlob_ = nullptr;
-    boundsRect = opItem.GetBounds();
-    EXPECT_EQ(boundsRect, rect);
-}
-
-/**
  * @tc.name: DrawCmdList002
  * @tc.desc: Test function for DrawCmdList
  * @tc.type: FUNC

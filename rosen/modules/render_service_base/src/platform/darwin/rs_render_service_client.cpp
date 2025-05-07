@@ -634,6 +634,12 @@ void RSRenderServiceClient::NotifyRefreshRateEvent(const EventInfo& eventInfo)
 {
 }
 
+bool RSRenderServiceClient::NotifySoftVsyncRateDiscountEvent(uint32_t pid,
+    const std::string &name, uint32_t rateDiscount)
+{
+    return {};
+}
+
 void RSRenderServiceClient::NotifyHgmConfigEvent(const std::string &eventName, bool state)
 {
 }

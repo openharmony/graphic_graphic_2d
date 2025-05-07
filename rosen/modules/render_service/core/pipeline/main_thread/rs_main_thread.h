@@ -44,6 +44,7 @@
 #include "params/rs_render_thread_params.h"
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_uni_render_judgement.h"
+#include "pipeline/hwc/rs_direct_composition_helper.h"
 #include "feature/vrate/rs_vsync_rate_reduce_manager.h"
 #include "platform/common/rs_event_manager.h"
 #include "platform/drawing/rs_vsync_client.h"
@@ -644,6 +645,8 @@ private:
     // for statistic of jank frames
     std::atomic_bool discardJankFrames_ = false;
     std::atomic_bool skipJankAnimatorFrame_ = false;
+    bool isImplicitAnimationEnd_ = false;
+
     pid_t lastCleanCachePid_ = -1;
     int32_t unmarshalFinishedCount_ = 0;
     uint32_t appWindowNum_ = 0;
@@ -770,8 +773,8 @@ private:
     bool isHardwareEnabledBufferUpdated_ = false;
     bool isHardwareForcedDisabled_ = false; // if app node has shadow or filter, disable hardware composer for all
     bool doDirectComposition_ = true;
-    bool isLastFrameDirectComposition_ = false;
     bool lastAnimateNeedRequestNextVsync_ = false;
+    RSDirectCompositionHelper directComposeHelper_;
 
     // for client node tree dump
     struct NodeTreeDumpTask {

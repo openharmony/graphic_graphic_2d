@@ -210,6 +210,7 @@ void RSJankStats::HandleDirectComposition(const JankDurationParams& rsParams, bo
         rtEndTimeSteadyFloat_ = rsParams.timeEndSteadyFloat_;
     }
     SetStartTimeInner(true);
+    SetImplicitAnimationEndInner(rsParams.implicitAnimationEnd_);
     if (postTaskHandler == nullptr || !NeedPostTaskToUniRenderThread()) {
         SetEndTimeInner(rsParams.skipJankAnimatorFrame_, rsParams.discardJankFrames_, rsParams.refreshRate_, true,
             isReportTaskDelayed);
@@ -612,6 +613,11 @@ void RSJankStats::SetAppFirstFrame(pid_t appPid)
 void RSJankStats::SetImplicitAnimationEnd(bool isImplicitAnimationEnd)
 {
     std::lock_guard<std::mutex> lock(mutex_);
+    SetImplicitAnimationEndInner(isImplicitAnimationEnd);
+}
+
+void RSJankStats::SetImplicitAnimationEndInner(bool isImplicitAnimationEnd)
+{
     if (!isImplicitAnimationEnd) {
         return;
     }

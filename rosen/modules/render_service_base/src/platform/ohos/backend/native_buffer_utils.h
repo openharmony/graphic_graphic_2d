@@ -113,6 +113,16 @@ Drawing::BackendTexture MakeBackendTextureFromNativeBuffer(NativeWindowBuffer* n
 
 std::shared_ptr<Drawing::Surface> CreateFromNativeWindowBuffer(Drawing::GPUContext* gpuContext,
     const Drawing::ImageInfo& imageInfo, NativeSurfaceInfo& nativeSurface);
+
+#ifdef RS_ENABLE_VK
+uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
+void SetVkImageInfo(std::shared_ptr<OHOS::Rosen::Drawing::VKTextureInfo> vkImageInfo,
+    const VkImageCreateInfo& imageInfo);
+Drawing::BackendTexture MakeBackendTexture(
+    uint32_t width, uint32_t height, pid_t pid, VkFormat format = VK_FORMAT_R8G8B8A8_UNORM);
+Drawing::BackendTexture SetBackendTexture(RsVulkanInterface& vkContext, VkDevice device, VkImage image,
+    uint32_t width, uint32_t height, VkDeviceMemory memory, VkImageCreateInfo imageInfo, pid_t pid);
+#endif
 }
 } // OHOS::Rosen
 #endif

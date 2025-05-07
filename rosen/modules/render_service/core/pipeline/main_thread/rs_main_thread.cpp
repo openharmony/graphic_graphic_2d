@@ -2366,7 +2366,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         && !isCachedSurfaceUpdated_ && pointerSkip) {
         doDirectComposition_ = isHardwareEnabledBufferUpdated_;
         if (isHardwareEnabledBufferUpdated_) {
-            needTraverseNodeTree = !DoDirectComposition(rootNode, !isLastFrameDirectComposition_);
+            needTraverseNodeTree = !DoDirectComposition(rootNode, !directComposeHelper_.isLastFrameDirectComposition_);
         } else if (forceUpdateUniRenderFlag_) {
             RS_TRACE_NAME("RSMainThread::UniRender ForceUpdateUniRender");
         } else if (!pendingUiCaptureTasks_.empty()) {
@@ -2755,7 +2755,8 @@ void RSMainThread::OnUniRenderDraw()
         return;
     }
     // To remove ClearMemoryTask for first frame of doDirectComposition or if needed
-    if ((doDirectComposition_ && !isLastFrameDirectComposition_) || isNeedResetClearMemoryTask_ || !needDrawFrame_) {
+    if ((doDirectComposition_ && !directComposeHelper_.isLastFrameDirectComposition_) ||
+        isNeedResetClearMemoryTask_ || !needDrawFrame_) {
         RSUniRenderThread::Instance().PostTask([] {
             RSUniRenderThread::Instance().ResetClearMemoryTask(true);
         });
@@ -3380,6 +3381,7 @@ void RSMainThread::RSJankStatsOnVsyncStart(int64_t onVsyncStartTime, int64_t onV
         renderThreadParams_->SetOnVsyncStartTimeSteady(onVsyncStartTimeSteady);
         renderThreadParams_->SetOnVsyncStartTimeSteadyFloat(onVsyncStartTimeSteadyFloat);
         SetSkipJankAnimatorFrame(false);
+        isImplicitAnimationEnd_ = false;
 #endif
     }
 }
@@ -3412,7 +3414,8 @@ void RSMainThread::RSJankStatsOnVsyncEnd(int64_t onVsyncStartTime, int64_t onVsy
                                               .timeEndSteadyFloat_ = GetCurrentSteadyTimeMsFloat(),
                                               .refreshRate_ = GetDynamicRefreshRate(),
                                               .discardJankFrames_ = GetDiscardJankFrames(),
-                                              .skipJankAnimatorFrame_ = GetSkipJankAnimatorFrame() };
+                                              .skipJankAnimatorFrame_ = GetSkipJankAnimatorFrame(),
+                                              .implicitAnimationEnd_ = isImplicitAnimationEnd_ };
         // optimize jank load when 1) global optimization flag is true, 2) at least two consecutive frames do direct
         // composition, 3) refresh rate of current frame does not overstep a preset threshold
         bool optimizeLoad = RSSystemProperties::GetJankLoadOptimizeEnabled() && !isLastFrameNeedPostAndWait_ &&
@@ -3556,6 +3559,7 @@ void RSMainThread::Animate(uint64_t timestamp)
         RequestNextVSync("animate", timestamp_);
     } else if (isUniRender_) {
 #ifdef RS_ENABLE_GPU
+        isImplicitAnimationEnd_ = true;
         renderThreadParams_->SetImplicitAnimationEnd(true);
 #endif
     }
@@ -4689,7 +4693,7 @@ void RSMainThread::ResetHardwareEnabledState(bool isUniRender)
     if (isUniRender) {
 #ifdef RS_ENABLE_GPU
         isHardwareForcedDisabled_ = !RSSystemProperties::GetHardwareComposerEnabled();
-        isLastFrameDirectComposition_ = doDirectComposition_;
+        directComposeHelper_.isLastFrameDirectComposition_ = doDirectComposition_;
         doDirectComposition_ = isHardwareForcedDisabled_ ? false : RSSystemProperties::GetDoDirectCompositionEnabled();
         isHardwareEnabledBufferUpdated_ = false;
         hasProtectedLayer_ = false;

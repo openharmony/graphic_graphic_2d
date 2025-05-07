@@ -875,6 +875,11 @@ void RSInterfaces::NotifyRefreshRateEvent(const EventInfo& eventInfo)
     renderServiceClient_->NotifyRefreshRateEvent(eventInfo);
 }
 
+bool RSInterfaces::NotifySoftVsyncRateDiscountEvent(uint32_t pid, const std::string &name, uint32_t rateDiscount)
+{
+    return renderServiceClient_->NotifySoftVsyncRateDiscountEvent(pid, name, rateDiscount);
+}
+
 void RSInterfaces::NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt)
 {
     if (!RSFrameRatePolicy::GetInstance()->GetTouchOrPointerAction(touchStatus)) {

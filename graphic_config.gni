@@ -15,7 +15,7 @@ import("//build/config/components/multimodalinput/cursor_config.gni")
 declare_args() {
   graphic_2d_feature_product = "default"
   graphic_2d_feature_enable_pgo = false
-  graphic_2d_feature_enable_mfs = false
+  graphic_2d_feature_enable_codemerge = false
   graphic_2d_feature_pgo_path = ""
   graphic_2d_feature_bootanimation_enable = true
   graphic_2d_feature_ace_enable_gpu = true

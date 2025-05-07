@@ -335,6 +335,11 @@ public:
     {
         return hfbcConfig_;
     }
+
+    bool CheckNeedUpdateAppOffsetRefreshRate(uint32_t refreshRate)
+    {
+        return refreshRate == OLED_60_HZ;
+    }
 private:
     HgmCore();
     ~HgmCore() = default;

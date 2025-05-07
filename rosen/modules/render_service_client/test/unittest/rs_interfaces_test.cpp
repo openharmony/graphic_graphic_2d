@@ -1439,6 +1439,22 @@ HWTEST_F(RSInterfacesTest, NotifyRefreshRateEvent001, Function | SmallTest | Lev
 }
 
 /*
+ * @tc.name: NotifySoftVsyncRateDiscountEvent001
+ * @tc.desc: Notify rateDiscount event to hgm to modify rateDiscount
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, NotifySoftVsyncRateDiscountEvent001, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    uint32_t pid = 1;
+    std::string name = "test";
+    uint32_t rateDiscount = 1;
+    rsInterfaces->NotifySoftVsyncRateDiscountEvent(pid, name, rateDiscount);
+    ASSERT_NE(rsInterfaces, nullptr);
+}
+
+/*
  * @tc.name: NotifyTouchEvent001
  * @tc.desc: Notify touch event to hgm
  * @tc.type: FUNC

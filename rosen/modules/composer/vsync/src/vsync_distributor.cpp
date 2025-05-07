@@ -153,7 +153,7 @@ VsyncError VSyncConnection::RequestNextVSync(
             VLOGI("First vsync is requested, name: %{public}s", info_.name_.c_str());
         }
     }
-    return distributor->RequestNextVSync(this, fromWhom, lastVSyncTS);
+    return distributor->RequestNextVSync(this, fromWhom, lastVSyncTS, requestVsyncTime);
 }
 
 VsyncError VSyncConnection::GetReceiveFd(int32_t &fd)
@@ -283,10 +283,10 @@ bool VSyncConnection::NeedTriggeredVsync(const int64_t& currentTime)
     if (requestVsyncTimestamp_.size() == 0) {
         return false;
     }
-    auto isNeedTriggered = *(requestVsyncTimestamp_.begin()) - VSYNC_TIME_TOLERANCE_THRESHOLD <= currentTime;
+    int64_t timesDiff = *(requestVsyncTimestamp_.begin()) - currentTime;
+    auto isNeedTriggered = timesDiff <= VSYNC_TIME_TOLERANCE_THRESHOLD;
     if (!isNeedTriggered) {
-        RS_TRACE_NAME_FMT("Skip Vsync, name: %s, trigger time: %lld", info_.name_.c_str(),
-            *(requestVsyncTimestamp_.begin()) - currentTime);
+        RS_TRACE_NAME_FMT("Skip Vsync, name: %s, trigger time: %lld", info_.name_.c_str(), timesDiff);
     }
     return isNeedTriggered;
 }
