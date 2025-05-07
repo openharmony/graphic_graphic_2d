@@ -35,7 +35,6 @@
 #include "drawing_text_lineTypography.h"
 #include "drawing_text_typography.h"
 #include "drawing_types.h"
-#include "get_object.h"
 
 #define FUZZ_PROJECT_NAME "drawing_run_fuzzer"
 #endif // TEST_FUZZTEST_DRAWING_RUN_FUZZER_H

@@ -31,10 +31,7 @@ ohos_fuzztest("HmSymbolTxtFuzzTest") {
     "../",
   ]
 
-  sources = [
-    "get_object.h",
-    "hm_symbol_txt_fuzzer.cpp",
-  ]
+  sources = [ "hm_symbol_txt_fuzzer.cpp" ]
 
   cflags = [
     "-g",
