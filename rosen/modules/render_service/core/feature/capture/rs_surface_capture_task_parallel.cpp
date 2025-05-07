@@ -367,10 +367,10 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTaskParallel::CreatePixelMapByD
         " origin pixelmap size: [%{public}u, %{public}u],"
         " scale: [%{public}f, %{public}f],"
         " ScreenRect: [%{public}f, %{public}f, %{public}f, %{public}f],"
-        " useDma: [%{public}d], screenRotation: [%{public}d], screenCorrection: [%{public}d]",
+        " useDma: [%{public}d], screenRotation: [%{public}d], screenCorrection: [%{public}d], blackList: [%{public}d]",
         node->GetId(), pixmapWidth, pixmapHeight, captureConfig_.scaleX, captureConfig_.scaleY,
         rect.GetLeft(), rect.GetTop(), rect.GetWidth(), rect.GetHeight(),
-        captureConfig_.useDma, screenRotation_, screenCorrection_);
+        captureConfig_.useDma, screenRotation_, screenCorrection_, captureConfig_.blackList.size());
     std::unique_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(opts);
     if (pixelMap) {
         GraphicColorGamut windowColorGamut = node->GetColorSpace();
