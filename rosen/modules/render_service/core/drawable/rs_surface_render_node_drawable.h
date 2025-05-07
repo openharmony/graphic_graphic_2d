@@ -21,6 +21,7 @@
 #include <iconsumer_surface.h>
 #include <surface.h>
 #endif
+#include <mutex>
 #include "platform/drawing/rs_surface.h"
 
 #include "common/rs_common_def.h"
@@ -261,6 +262,7 @@ public:
 #endif
 
     bool IsHardwareEnabledTopSurface() const;
+    void UpdateSurfaceDirtyRegion(std::shared_ptr<RSPaintFilterCanvas>& canvas);
 
     inline bool CheckCacheSurface()
     {
@@ -276,8 +278,10 @@ private:
         RSRenderThreadParams& uniParams, bool isSelfDrawingSurface);
     void CaptureSurface(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams);
 
-    Drawing::Region CalculateVisibleDirtyRegion(RSRenderThreadParams& uniParam, RSSurfaceRenderParams& surfaceParams,
+    Drawing::Region CalculateVisibleDirtyRegion(RSSurfaceRenderParams& surfaceParams,
         RSSurfaceRenderNodeDrawable& surfaceDrawable, bool isOffscreen) const;
+    Drawing::Region GetSurfaceDrawRegion() const;
+    void SetSurfaceDrawRegion(const Drawing::Region& region);
     void CrossDisplaySurfaceDirtyRegionConversion(
         const RSRenderThreadParams& uniParam, const RSSurfaceRenderParams& surfaceParam, RectI& surfaceDirtyRect) const;
     bool HasCornerRadius(const RSSurfaceRenderParams& surfaceParams) const;
@@ -403,6 +407,9 @@ private:
 
     static inline bool isInRotationFixed_ = false;
     bool lastGlobalPositionEnabled_ = false;
+
+    Drawing::Region curSurfaceDrawRegion_ {};
+    mutable std::mutex drawRegionMutex_;
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen
