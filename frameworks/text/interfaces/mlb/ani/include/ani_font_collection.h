@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_ROSEN_ANI_FONT_COLLECTION_H
-#define OHOS_ROSEN_ANI_FONT_COLLECTION_H
+#ifndef OHOS_TEXT_ANI_FONT_COLLECTION_H
+#define OHOS_TEXT_ANI_FONT_COLLECTION_H
 
 #include <ani.h>
 #include <memory>
@@ -38,4 +38,4 @@ private:
     std::shared_ptr<FontCollection> fontCollection_ = nullptr;
 };
 } // namespace OHOS::Text::NAI
-#endif // OHOS_ROSEN_ANI_FONT_COLLECTION_H
+#endif // OHOS_TEXT_ANI_FONT_COLLECTION_H

@@ -13,24 +13,21 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_TEXT_ANI_RESOURCE_H
-#define OHOS_TEXT_ANI_RESOURCE_H
+#ifndef OHOS_TEXT_ANI_LINE_METRICS_CONVERTER_H
+#define OHOS_TEXT_ANI_LINE_METRICS_CONVERTER_H
 
 #include <ani.h>
-#include <string>
+
+#include "text/font_metrics.h"
+#include "typography.h"
 
 namespace OHOS::Text::NAI {
-struct AniResource {
-    std::string bundleName;
-    std::string moduleName;
-    uint32_t id;
-    std::vector<std::string> params;
-    uint32_t type;
-};
-class AniResourceParser {
+using namespace OHOS::Rosen;
+class LineMetricsConverter {
 public:
-    static AniResource ParseResource(ani_env* env, ani_object obj);
-    static bool ResolveResource(const AniResource& resource, size_t dataLen, std::unique_ptr<uint8_t[]>& data);
+    static ani_object ParseFontMetricsToAni(ani_env* env, const Drawing::FontMetrics& fontMetrics);
+    static ani_object ParseRunMetricsToAni(ani_env* env, const std::map<size_t, RunMetrics>& map);
+    static ani_object ParseLineMetricsToAni(ani_env* env, const LineMetrics& lineMetrics);
 };
 } // namespace OHOS::Text::NAI
-#endif // OHOS_TEXT_ANI_RESOURCE_H
+#endif // OHOS_TEXT_ANI_LINE_METRICS_CONVERTER_H

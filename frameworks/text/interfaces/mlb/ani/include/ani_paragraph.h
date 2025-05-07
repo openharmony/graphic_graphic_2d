@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_ROSEN_ANI_PARAGRAPH_H
-#define OHOS_ROSEN_ANI_PARAGRAPH_H
+#ifndef OHOS_TEXT_ANI_PARAGRAPH_H
+#define OHOS_TEXT_ANI_PARAGRAPH_H
 
 #include <ani.h>
 
@@ -40,4 +40,4 @@ private:
     std::shared_ptr<Typography> paragraph_ = nullptr;
 };
 } // namespace OHOS::Text::NAI
-#endif // OHOS_ROSEN_ANI_PARAGRAPH_H
+#endif // OHOS_TEXT_ANI_PARAGRAPH_H

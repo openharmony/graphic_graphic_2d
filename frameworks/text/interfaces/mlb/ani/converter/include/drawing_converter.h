@@ -13,24 +13,19 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_TEXT_ANI_RESOURCE_H
-#define OHOS_TEXT_ANI_RESOURCE_H
+#ifndef OHOS_TEXT_ANI_DRAWING_CONVERTER_H
+#define OHOS_TEXT_ANI_DRAWING_CONVERTER_H
 
 #include <ani.h>
-#include <string>
+
+#include "draw/color.h"
 
 namespace OHOS::Text::NAI {
-struct AniResource {
-    std::string bundleName;
-    std::string moduleName;
-    uint32_t id;
-    std::vector<std::string> params;
-    uint32_t type;
-};
-class AniResourceParser {
+using namespace OHOS::Rosen;
+class DrawingConverter {
 public:
-    static AniResource ParseResource(ani_env* env, ani_object obj);
-    static bool ResolveResource(const AniResource& resource, size_t dataLen, std::unique_ptr<uint8_t[]>& data);
+    static void ParseDrawingColorToNative(ani_env* env, ani_object obj, const std::string& str,
+                                          Drawing::Color& colorSrc);
 };
 } // namespace OHOS::Text::NAI
-#endif // OHOS_TEXT_ANI_RESOURCE_H
+#endif // OHOS_TEXT_ANI_DRAWING_CONVERTER_H

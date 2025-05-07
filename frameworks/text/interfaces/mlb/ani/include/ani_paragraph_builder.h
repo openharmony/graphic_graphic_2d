@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_ROSEN_ANI_PARAGRAPH_BUILDER_H
-#define OHOS_ROSEN_ANI_PARAGRAPH_BUILDER_H
+#ifndef OHOS_TEXT_ANI_PARAGRAPH_BUILDER_H
+#define OHOS_TEXT_ANI_PARAGRAPH_BUILDER_H
 
 #include <ani.h>
 
@@ -37,4 +37,4 @@ private:
     std::unique_ptr<TypographyCreate> typographyCreate_ = nullptr;
 };
 } // namespace OHOS::Text::NAI
-#endif // OHOS_ROSEN_ANI_PARAGRAPH_BUILDER_H
+#endif // OHOS_TEXT_ANI_PARAGRAPH_BUILDER_H

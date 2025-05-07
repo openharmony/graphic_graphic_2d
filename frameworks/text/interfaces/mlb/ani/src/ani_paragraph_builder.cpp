@@ -25,6 +25,8 @@
 #include "ani_text_utils.h"
 #include "utils/text_log.h"
 #include "font_collection.h"
+#include "text_style_converter.h"
+#include "paragraph_style_converter.h"
 #include "text_style.h"
 
 namespace OHOS::Text::NAI {
@@ -45,7 +47,7 @@ void AniParagraphBuilder::Constructor(ani_env* env, ani_object object, ani_objec
     }
 
     std::unique_ptr<TypographyStyle> typographyStyleNative =
-        AniCommon::ParseParagraphStyleToNative(env, paragraphStyle);
+        ParagraphStyleConverter::ParseParagraphStyleToNative(env, paragraphStyle);
     if (typographyStyleNative == nullptr) {
         TEXT_LOGE("Failed to parse typographyStyle");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
@@ -111,7 +113,7 @@ void AniParagraphBuilder::PushStyle(ani_env* env, ani_object object, ani_object 
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return;
     }
-    std::unique_ptr<TextStyle> textStyleNative = AniCommon::ParseTextStyleToNative(env, textStyle);
+    std::unique_ptr<TextStyle> textStyleNative = TextStyleConverter::ParseTextStyleToNative(env, textStyle);
     if (textStyleNative != nullptr) {
         aniParagraphBuilder->typographyCreate_->PushStyle(*textStyleNative);
     }

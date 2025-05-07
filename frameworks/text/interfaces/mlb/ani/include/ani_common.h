@@ -12,19 +12,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <cstdint>
 
-#ifndef OHOS_ROSEN_ANI_COMMON_H
-#define OHOS_ROSEN_ANI_COMMON_H
-
-#include <ani.h>
-
-#include "text_style.h"
-#include "text/font_metrics.h"
-#include "typography.h"
-#include "typography_style.h"
+#ifndef OHOS_TEXT_ANI_COMMON_H
+#define OHOS_TEXT_ANI_COMMON_H
 
 namespace OHOS::Text::NAI {
-using namespace OHOS::Rosen;
 inline constexpr const char* NATIVE_OBJ = "nativeObj";
 inline constexpr const char* ANI_OBJECT = "Lstd/core/Double;";
 inline constexpr const char* ANI_INT = "Lstd/core/Int;";
@@ -63,39 +56,11 @@ inline constexpr const char* ANI_ENUM_TEXT_DECORATION_STYLE = "L@ohos/graphics/t
 enum class TextErrorCode : int32_t {
     ERROR = -1,
     OK = 0,
-    ERROR_NO_PERMISSION = 201, // the value do not change. It is defined on all system
-    ERROR_INVALID_PARAM = 401, // the value do not change. It is defined on all system
-    ERROR_DEVICE_NOT_SUPPORT = 801, // the value do not change. It is defined on all system
+    ERROR_NO_PERMISSION = 201,             // the value do not change. It is defined on all system
+    ERROR_INVALID_PARAM = 401,             // the value do not change. It is defined on all system
+    ERROR_DEVICE_NOT_SUPPORT = 801,        // the value do not change. It is defined on all system
     ERROR_ABNORMAL_PARAM_VALUE = 18600001, // the value do not change. It is defined on color manager system
-    ERROR_NO_MEMORY = 8800100, // no memory
-};
-
-
-class AniCommon {
-public:
-    static std::unique_ptr<TypographyStyle> ParseParagraphStyleToNative(ani_env* env, ani_object obj);
-    static std::unique_ptr<TextStyle> ParseTextStyleToNative(ani_env* env, ani_object obj);
-    static void ParseParagraphStyleStrutStyleToNative(ani_env* env, ani_object obj,
-                                                      std::unique_ptr<TypographyStyle>& paragraphStyle);
-    static void ParseFontFeatureToNative(ani_env* env, ani_object obj, FontFeatures& fontFeatures);
-    static void ParseFontVariationToNative(ani_env* env, ani_object obj, FontVariations& fontVariations);
-    static void ParseTextTabToNative(ani_env* env, ani_object obj, TextTab& textTab);
-    static void ParseFontFamiliesToNative(ani_env* env, ani_array_ref obj, std::vector<std::string>& fontFamilies);
-    static void ParseTextShadowToNative(ani_env* env, ani_object obj, std::vector<TextShadow>& textShadow);
-    static void ParseDrawingColorToNative(ani_env* env, ani_object obj, const std::string& str,
-                                          Drawing::Color& colorSrc);
-    static void ParseRectStyleToNative(ani_env* env, ani_object obj, RectStyle& rectStyle);
-    static void ParseDecorationToNative(ani_env* env, ani_object obj, TextStyle& textStyle);
-
-    static ani_object ParseTextStyleToAni(ani_env* env, const TextStyle& textStyle);
-    static ani_object ParseFontMetricsToAni(ani_env* env, const Drawing::FontMetrics& fontMetrics);
-    static ani_object ParseRunMetricsToAni(ani_env* env, const std::map<size_t, RunMetrics>& map);
-    static ani_object ParseLineMetricsToAni(ani_env* env, const LineMetrics& lineMetrics);
-    static ani_object ParseTextShadowToAni(ani_env* env, const TextShadow& textShadow);
-    static ani_object ParseDecorationToAni(ani_env* env, const TextStyle& textStyle);
-    static ani_object ParseRectStyleToAni(ani_env* env, const RectStyle& rectStyle);
-    static ani_object ParseFontFeaturesToAni(ani_env* env, const FontFeatures& fontFeatures);
-    static ani_object ParseFontVariationsToAni(ani_env* env, const FontVariations& fontVariations);
+    ERROR_NO_MEMORY = 8800100,             // no memory
 };
 } // namespace OHOS::Text::NAI
-#endif // OHOS_ROSEN_ANI_COMMON_H
+#endif // OHOS_TEXT_ANI_COMMON_H

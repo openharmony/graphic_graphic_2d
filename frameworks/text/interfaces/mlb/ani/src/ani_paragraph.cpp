@@ -23,6 +23,7 @@
 #include "ani_text_utils.h"
 #include "draw/canvas.h"
 #include "font_collection.h"
+#include "line_metrics_converter.h"
 #include "typography_create.h"
 #include "text/font_metrics.h"
 #include "utils/text_log.h"
@@ -166,7 +167,7 @@ ani_ref AniParagraph::GetLineMetrics(ani_env* env, ani_object object)
     }
     ani_size index = 0;
     for (const auto& lineMetrics : vectorLineMetrics) {
-        ani_object aniObj = AniCommon::ParseLineMetricsToAni(env, lineMetrics);
+        ani_object aniObj = LineMetricsConverter::ParseLineMetricsToAni(env, lineMetrics);
         if (ANI_OK != env->Object_CallMethodByName_Void(arrayObj, "$_set", "ILstd/core/Object;:V", index, aniObj)) {
             TEXT_LOGE("Object_CallMethodByName_Void $_set failed");
             break;
@@ -189,6 +190,6 @@ ani_object AniParagraph::GetLineMetricsAt(ani_env* env, ani_object object, ani_d
         TEXT_LOGE("Failed to get line metrics");
         return AniTextUtils::CreateAniUndefined(env);
     }
-    return AniCommon::ParseLineMetricsToAni(env, lineMetrics);
+    return LineMetricsConverter::ParseLineMetricsToAni(env, lineMetrics);
 }
 } // namespace OHOS::Text::NAI
