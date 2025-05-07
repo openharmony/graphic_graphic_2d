@@ -36,7 +36,7 @@ public:
 
     virtual bool ReadFromParcel(Parcel& parcel) override;
 
-    static std::shared_ptr<RSRenderPropertyBase> CreateRenderPropert(RSUIFilterType type);
+    static std::shared_ptr<RSRenderPropertyBase> CreateRenderProperty(RSUIFilterType type);
 
     virtual std::vector<std::shared_ptr<RSRenderPropertyBase>> GetLeafRenderProperties() override;
 };
