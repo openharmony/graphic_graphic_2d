@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+#include <cstdint>
+
 #include "napi_common.h"
 #include "text_style.h"
 
@@ -221,6 +223,34 @@ void SetTextStyleBaseType(napi_env env, napi_value argValue, TextStyle& textStyl
     textStyle.heightScale = textStyle.heightScale < 0 ? 0 : textStyle.heightScale;
 }
 
+void SetTextStyleFontType(napi_env env, napi_value argValue, TextStyle& textStyle)
+{
+    napi_value tempValue = nullptr;
+    napi_get_named_property(env, argValue, "fontWeight", &tempValue);
+    uint32_t fontWeight = 0;
+    if (tempValue != nullptr && napi_get_value_uint32(env, tempValue, &fontWeight) == napi_ok) {
+        textStyle.fontWeight = FontWeight(fontWeight);
+    }
+
+    napi_get_named_property(env, argValue, "fontStyle", &tempValue);
+    uint32_t fontStyle = 0;
+    if (tempValue != nullptr && napi_get_value_uint32(env, tempValue, &fontStyle) == napi_ok) {
+        textStyle.fontStyle = FontStyle(fontStyle);
+        // Let OBLIQUE be equal to ITALIC, it's a temp modify.
+        if (textStyle.fontStyle == FontStyle::OBLIQUE) {
+            textStyle.fontStyle = FontStyle::ITALIC;
+        }
+    }
+
+    SetDoubleValueFromJS(env, argValue, "fontSize", textStyle.fontSize);
+
+    std::vector<std::string> fontFamilies;
+    napi_get_named_property(env, argValue, "fontFamilies", &tempValue);
+    if (tempValue != nullptr && OnMakeFontFamilies(env, tempValue, fontFamilies)) {
+        textStyle.fontFamilies = fontFamilies;
+    }
+}
+
 void ScanShadowValue(napi_env env, napi_value allShadowValue, uint32_t arrayLength, TextStyle& textStyle)
 {
     textStyle.shadows.clear();
@@ -280,34 +310,15 @@ void SetTextShadowProperty(napi_env env, napi_value argValue, TextStyle& textSty
 void ParsePartTextStyle(napi_env env, napi_value argValue, TextStyle& textStyle)
 {
     napi_value tempValue = nullptr;
-    napi_get_named_property(env, argValue, "fontWeight", &tempValue);
-    uint32_t fontWeight = 0;
-    if (tempValue != nullptr && napi_get_value_uint32(env, tempValue, &fontWeight) == napi_ok) {
-        textStyle.fontWeight = FontWeight(fontWeight);
-    }
-    napi_get_named_property(env, argValue, "fontStyle", &tempValue);
-    uint32_t fontStyle = 0;
-    if (tempValue != nullptr && napi_get_value_uint32(env, tempValue, &fontStyle) == napi_ok) {
-        textStyle.fontStyle = FontStyle(fontStyle);
-        // Let OBLIQUE be equal to ITALIC, it's a temp modify.
-        if (textStyle.fontStyle == FontStyle::OBLIQUE) {
-            textStyle.fontStyle = FontStyle::ITALIC;
-        }
-    }
     napi_get_named_property(env, argValue, "baseline", &tempValue);
     uint32_t baseline = 0;
     if (tempValue != nullptr && napi_get_value_uint32(env, tempValue, &baseline) == napi_ok) {
         textStyle.baseline = TextBaseline(baseline);
     }
-    SetDoubleValueFromJS(env, argValue, "fontSize", textStyle.fontSize);
 
-    std::vector<std::string> fontFamilies;
-    napi_get_named_property(env, argValue, "fontFamilies", &tempValue);
-    if (tempValue != nullptr && OnMakeFontFamilies(env, tempValue, fontFamilies)) {
-        textStyle.fontFamilies = fontFamilies;
-    }
     GetDecorationFromJS(env, argValue, "decoration", textStyle);
     SetTextStyleBaseType(env, argValue, textStyle);
+    SetTextStyleFontType(env, argValue, textStyle);
     ReceiveFontFeature(env, argValue, textStyle);
     ReceiveFontVariation(env, argValue, textStyle);
     napi_get_named_property(env, argValue, "ellipsis", &tempValue);
@@ -716,6 +727,8 @@ napi_value CreateTextStyleJsValue(napi_env env, TextStyle textStyle)
         napi_set_named_property(env, objValue, "textShadows", CreateShadowArrayJsValue(env, textStyle.shadows));
         napi_set_named_property(
             env, objValue, "fontFeatures", CreateFontFeatureArrayJsValue(env, textStyle.fontFeatures));
+        napi_set_named_property(env, objValue, "badgeType", CreateJsNumber(
+            env, static_cast<uint32_t>(textStyle.badgeType)));
     }
     return objValue;
 }
