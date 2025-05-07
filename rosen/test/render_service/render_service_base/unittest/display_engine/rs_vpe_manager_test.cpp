@@ -28,7 +28,7 @@ using namespace testing::ext;
 using namespace OHOS::Media::VideoProcessingEngine;
 using namespace OHOS::Rosen;
 
-bool isSupportReset = fase;
+bool isSupportReset = false;
 
 namespace OHOS {
 namespace Media {
@@ -36,7 +36,7 @@ namespace VideoProcessingEngine {
 class MockVpeVideo : public VpeVideo {
 public:
     MOCK_METHOD(std::shared_ptr<VpeVideo>, Create, (uint32_t type));
-    MOCK_METHOD(VPEAlgoErrCode, RegisterCallback, (const std::share_ptr<VpeVideoCallback>), (override));
+    MOCK_METHOD(VPEAlgoErrCode, RegisterCallback, (const std::shared_ptr<VpeVideoCallback>), (override));
     MOCK_METHOD(sptr<OHOS::Surface>, GetInputSurface, (), (override));
     MOCK_METHOD(VPEAlgoErrCode, SetParameter, (const Format& parameter), (override));
     MOCK_METHOD(VPEAlgoErrCode, GetParameter, (Format& parameter), (override));
@@ -45,14 +45,14 @@ public:
     MOCK_METHOD(VPEAlgoErrCode, Release, (), (override));
     MOCK_METHOD(VPEAlgoErrCode, Enable, (), (override));
     MOCK_METHOD(VPEAlgoErrCode, NotifyEos, (), (override));
-    MOCK_METHOD(VPEAlgoErrCode, ReleaseOutPutBuffer, (uint32 index, bool render), (override));
-    MOCK_METHOD(VPEAlgoErrCode, IsSupported, (uint32 type, const Format& parameter));
+    MOCK_METHOD(VPEAlgoErrCode, ReleaseOutPutBuffer, (uint32_t index, bool render), (override));
+    MOCK_METHOD(VPEAlgoErrCode, IsSupported, (uint32_t type, const Format& parameter));
 
     virtual ~MockVpeVideo()
     {}
 };
 
-bool VpeVideo::IsSupported(uint32 type, [[maybe_unused]] const Format& parameter)
+bool VpeVideo::IsSupported(uint32_t type, [[maybe_unused]] const Format& parameter)
 {
     (void) type;
     return isSupportReset;
