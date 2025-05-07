@@ -22,24 +22,24 @@ namespace OHOS {
 namespace Rosen {
     void RSRenderSoundWaveFilterPara::GetDescription(std::string& out) const
     {
-        out += "RSRenderSoundWaveFilterPara"
+        out += "RSRenderSoundWaveFilterPara";
     }
 
-    bool RSRenderSoundWaveFilterPara::WriteToParcel(parcel& parcel)
+    bool RSRenderSoundWaveFilterPara::WriteToParcel(Parcel& parcel)
     {
-        if (!RSMarshallingHelper::Marshalling(parcel, id_) || !RSMarshallingHelper::Marshalling(parcel, color_) ||
+        if (!RSMarshallingHelper::Marshalling(parcel, id_) ||
             !RSMarshallingHelper::Marshalling(parcel, static_cast<int16_t>(type_)) ||
             !RSMarshallingHelper::Marshalling(parcel, static_cast<int16_t>(modifierType_))) {
-                ROSEN_LOGD("RSRenderSoundWaveFilterPara::WriteToParcel typr Error");
-                return false;
+            ROSEN_LOGE("RSRenderSoundWaveFilterPara::WriteToParcel typr Error");
+            return false;
         }
         if (!parcel.WriteUint32(properties_.size())) {
-            ROSEN_LOGD("RSRenderSoundWaveFilterPara::WriteToParcel size Error");
+            ROSEN_LOGE("RSRenderSoundWaveFilterPara::WriteToParcel size Error");
             return false;
         }
         for (const auto& [key, value] : properties_) {
             if (!RSMarshallingHelper::Marshalling(parcel, key) ||
-                !RSMarshallingHelper::Marshalling(parcel, value)) {
+                !RSRenderPropertyBase::Marshalling(parcel, value)) {
                 return false;
             }
             ROSEN_LOGD("RSRenderSoundWaveFilterPara::WriteToParcel type %{public}d", static_cast<int>(key));
@@ -52,33 +52,33 @@ namespace Rosen {
         int16_t type = 0;
         int16_t modifierType = 0;
         if (!RSMarshallingHelper::Unmarshalling(parcel, id_) ||
-            !RSMarshallingHelper::Unmarshalling(parcel, type)||
+            !RSMarshallingHelper::Unmarshalling(parcel, type) ||
             !RSMarshallingHelper::Unmarshalling(parcel, modifierType)) {
-                ROSEN_LOGD("RSRenderSoundWaveFilterPara::ReadFromParcel type Error");
-                return false;
+            ROSEN_LOGE("RSRenderSoundWaveFilterPara::ReadFromParcel type Error");
+            return false;
         }
         type_ = static_cast<RSUIFilterType>(type);
         modifierType_ = static_cast<RSModifierType>(modifierType);
 
         uint32_t size = 0;
         if (!RSMarshallingHelper::Unmarshalling(parcel, size)) {
-            ROSEN_LOGD("RSRenderSoundWaveFilterPara::ReadFromParcel size Error");
+            ROSEN_LOGE("RSRenderSoundWaveFilterPara::ReadFromParcel size Error");
             return false;
         }
-        if (size >static_cast<size_t>(RSMarshallingHelper::UNMARSHALLING_MAX_VECTOR_SIZE)) {
-            ROSEN_LOGD("RSRenderSoundWaveFilterPara::ReadFromParcel size large Error");
+        if (size > static_cast<size_t>(RSMarshallingHelper::UNMARSHALLING_MAX_VECTOR_SIZE)) {
+            ROSEN_LOGE("RSRenderSoundWaveFilterPara::ReadFromParcel size large Error");
             return false;
         }
         properties_.clear();
         for (uint32_t i = 0; i < size; ++i) {
             RSUIFilterType key;
             if (!RSMarshallingHelper::Unmarshalling(parcel, key)) {
-                ROSEN_LOGD("RSRenderSoundWaveFilterPara::ReadFromPracel valuue %{public}d", static_cast<int>(key));
+                ROSEN_LOGE("RSRenderSoundWaveFilterPara::ReadFromParcel type %{public}d", static_cast<int>(key));
                 return false;
             }
             std::shared_ptr<RSRenderPropertyBase> value = CreateRenderProperty(key);
-            if (!RSRenderPropertyBase::Unmarshalling(parcel, *value)) {
-                ROSEN_LOGD("RSRenderSoundWaveFilterPara::ReadFromPracel valuue %{public}d", static_cast<int>(key));
+            if (!RSRenderPropertyBase::Unmarshalling(parcel, value)) {
+                ROSEN_LOGE("RSRenderSoundWaveFilterPara::ReadFromParcel value %{public}d", static_cast<int>(key));
                 return false;
             }
             Setter(key, value);
@@ -123,13 +123,13 @@ namespace Rosen {
             }
             case RSUIFilterType::SHOCK_WAVE_PROGRESS_ONE : {
                 return std::make_shared<RSRenderAnimatableProperty<float>>(
-                    1.f, 0, RSRenderPropertyType::PROPERTY_FLOAT);
+                    0.f, 0, RSRenderPropertyType::PROPERTY_FLOAT);
             }
             case RSUIFilterType::SHOCK_WAVE_PROGRESS_TWO : {
                 return std::make_shared<RSRenderAnimatableProperty<float>>(
                     0.f, 0, RSRenderPropertyType::PROPERTY_FLOAT);
             }
-            default:{
+            default: {
                 ROSEN_LOGD("RSRenderSoundWaveFilterPara::CreateRenderProperty mask nullptr");
                 return nullptr;
             }

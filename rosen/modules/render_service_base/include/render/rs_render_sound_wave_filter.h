@@ -23,7 +23,7 @@ class RSB_EXPORT RSRenderSoundWaveFilterPara : public RSRenderFilterParaBase {
 
 public:
     RSRenderSoundWaveFilterPara(PropertyId id)
-    :RSRenderFilterParaBase(RSUIFilterType::DISPLACEMENT_DISTORT)
+    :RSRenderFilterParaBase(RSUIFilterType::SOUND_WAVE)
     {
         id_ = id;
     }
@@ -36,7 +36,7 @@ public:
 
     virtual bool ReadFromParcel(Parcel& parcel) override;
 
-    static std::shared_ptr<RSRenderMaskPara> CreateRenderPropert(RSUIFilterType type);
+    static std::shared_ptr<RSRenderPropertyBase> CreateRenderPropert(RSUIFilterType type);
 
     virtual std::vector<std::shared_ptr<RSRenderPropertyBase>> GetLeafRenderProperties() override;
 };

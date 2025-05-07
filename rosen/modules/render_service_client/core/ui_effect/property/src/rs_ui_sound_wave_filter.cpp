@@ -217,7 +217,7 @@ std::shared_ptr<RSRenderFilterParaBase> RSUISoundWaveFilterPara::CreateRSRenderF
     return frProperty;
 }
 
-std::vector<std::shared_ptr<RSPropertyBase>> RSUIBlurFilterPara::GetLeafProperties()
+std::vector<std::shared_ptr<RSPropertyBase>> RSUISoundWaveFilterPara::GetLeafProperties()
 {
     std::vector<std::shared_ptr<RSPropertyBase>> out;
     for (auto& [k, v] : properties_) {

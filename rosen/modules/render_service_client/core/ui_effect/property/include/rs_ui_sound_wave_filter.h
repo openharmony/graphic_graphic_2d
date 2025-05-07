@@ -35,14 +35,14 @@ public:
 
     virtual void SetProperty(const std::shared_ptr<RSUIFilterParaBase>& other) override;
 
-    void RSUISoundWaveFilterPara::SetColors(RSColor colorOne, RSColor colorTwo, RSColor colorThree);
-    void RSUISoundWaveFilterPara::SetColorProgress(float progress);
-    void RSUISoundWaveFilterPara::SetCenterBrightness(float value);
-    void RSUISoundWaveFilterPara::SetSoundIntensity(float intensity);
-    void RSUISoundWaveFilterPara::SetShockWaveAlphaOne(float alpha);
-    void RSUISoundWaveFilterPara::SetShockWaveAlphaTwo(float alpha);
-    void RSUISoundWaveFilterPara::SetShockWaveProgressOne(float progress);
-    void RSUISoundWaveFilterPara::SetShockWaveProgressTwo(float progress);
+    void SetColors(RSColor colorOne, RSColor colorTwo, RSColor colorThree);
+    void SetColorProgress(float progress);
+    void SetCenterBrightness(float value);
+    void SetSoundIntensity(float intensity);
+    void SetShockWaveAlphaOne(float alpha);
+    void SetShockWaveAlphaTwo(float alpha);
+    void SetShockWaveProgressOne(float progress);
+    void SetShockWaveProgressTwo(float progress);
 
     virtual std::shared_ptr<RSRenderFilterParaBase> CreateRSRenderFilter() override;
 

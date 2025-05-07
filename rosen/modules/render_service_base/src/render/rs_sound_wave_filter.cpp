@@ -14,7 +14,7 @@
  */
 #include "rs_sound_wave_filter.h"
 
-#include "common/rs_log.h"
+#include "common/rs_color.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 
 
@@ -26,21 +26,21 @@ RSSoundWaveFilter::RSSoundWaveFilter(RSColor colorOne, RSColor colorTwo, RSColor
                                      float shockWaveAlphaOne, float shockWaveAlphaTwo,
                                      float shockWaveProgressOne, float shockWaveProgressTwo)
     : colorOne_(colorOne), colorTwo_(colorTwo), colorThree_(colorThree),
-      colorProgress_(colorProgress), centerBrightness_(centerBrightness), soundIntensity_(soundIntensity),
-      shockWaveAlphaOne_(shockWaveAlphaOne), shockWaveAlphaTwo_(shockWaveAlphaTwo),
-      shockWaveProgressOne_(shockWaveProgressOne), shockWaveProgressTwo_(shockWaveProgressTwo)
+    colorProgress_(colorProgress), centerBrightness_(centerBrightness), soundIntensity_(soundIntensity),
+    shockWaveAlphaOne_(shockWaveAlphaOne), shockWaveAlphaTwo_(shockWaveAlphaTwo),
+    shockWaveProgressOne_(shockWaveProgressOne), shockWaveProgressTwo_(shockWaveProgressTwo)
 {
     type_ = ShaderFilterType::SOUND_WAVE;
-    hash = SkOpts::hash(&colorOne_, sizeof(colorOne_), hash_);
-    hash = SkOpts::hash(&colorTwo_, sizeof(colorTwo_), hash_);
-    hash = SkOpts::hash(&colorThree_, sizeof(colorThree_), hash_);
-    hash = SkOpts::hash(&colorProgress_, sizeof(colorProgress_), hash_);
-    hash = SkOpts::hash(&centerBrightness_, sizeof(centerBrightness_), hash_);
-    hash = SkOpts::hash(&soundIntensity_, sizeof(soundIntensity_), hash_);
-    hash = SkOpts::hash(&shockWaveAlphaOne_, sizeof(shockWaveAlphaOne_), hash_);
-    hash = SkOpts::hash(&shockWaveAlphaTwo_, sizeof(shockWaveAlphaTwo_), hash_);
-    hash = SkOpts::hash(&shockWaveProgressOne_, sizeof(shockWaveProgressOne_), hash_);
-    hash = SkOpts::hash(&shockWaveProgressTwo_, sizeof(shockWaveProgressTwo_), hash_);
+    hash_ = SkOpts::hash(&colorOne_, sizeof(colorOne_), hash_);
+    hash_ = SkOpts::hash(&colorTwo_, sizeof(colorTwo_), hash_);
+    hash_ = SkOpts::hash(&colorThree_, sizeof(colorThree_), hash_);
+    hash_ = SkOpts::hash(&colorProgress_, sizeof(colorProgress_), hash_);
+    hash_ = SkOpts::hash(&centerBrightness_, sizeof(centerBrightness_), hash_);
+    hash_ = SkOpts::hash(&soundIntensity_, sizeof(soundIntensity_), hash_);
+    hash_ = SkOpts::hash(&shockWaveAlphaOne_, sizeof(shockWaveAlphaOne_), hash_);
+    hash_ = SkOpts::hash(&shockWaveAlphaTwo_, sizeof(shockWaveAlphaTwo_), hash_);
+    hash_ = SkOpts::hash(&shockWaveProgressOne_, sizeof(shockWaveProgressOne_), hash_);
+    hash_ = SkOpts::hash(&shockWaveProgressTwo_, sizeof(shockWaveProgressTwo_), hash_);
 }
 
 RSSoundWaveFilter::~RSSoundWaveFilter() {}
@@ -95,7 +95,7 @@ void RSSoundWaveFilter::GenerateGEVisualEffect(
     soundWaveFilter->SetParam(GE_FILTER_SOUND_WAVE_SHOCKWAVEALPHATWO, shockWaveAlphaTwo_);
     soundWaveFilter->SetParam(GE_FILTER_SOUND_WAVE_SHOCKWAVEPROGRESSONE, shockWaveProgressOne_);
     soundWaveFilter->SetParam(GE_FILTER_SOUND_WAVE_SHOCKWAVEPROGRESSTWO, shockWaveProgressTwo_);
-    visualEffectContainer->AddVisualEffect(soundWaveFilter);
+    visualEffectContainer->AddToChainedFilter(soundWaveFilter);
 }
 } // namespace Rosen
 } // namespace OHOS

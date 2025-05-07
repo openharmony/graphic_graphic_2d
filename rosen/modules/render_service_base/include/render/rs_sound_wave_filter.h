@@ -29,7 +29,7 @@ public:
                       float shockWaveProgressOne, float shockWaveProgressTwo);
     RSSoundWaveFilter(const RSSoundWaveFilter&) = delete;
     RSSoundWaveFilter operator=(const RSSoundWaveFilter&) = delete;
-    ~RSSoundWaveFilter() override = default;
+    ~RSSoundWaveFilter() override;
 
     float GetColorProgress() const;
     float GetCenterBrightness() const;
@@ -52,7 +52,7 @@ private:
     static constexpr char GE_FILTER_SOUND_WAVE_SHOCKWAVEALPHATWO[] = "SHOCKWAVEALPHATWO";
     static constexpr char GE_FILTER_SOUND_WAVE_SHOCKWAVEPROGRESSONE[] = "SHOCKWAVEPROGRESSONE";
     static constexpr char GE_FILTER_SOUND_WAVE_SHOCKWAVEPROGRESSTWO[] = "SHOCKWAVEPROGRESSTWO";
-    //sound wave
+    // sound wave
     RSColor colorOne_ = RSColor(0xFFFFFFFF);
     RSColor colorTwo_ = RSColor(0xFFFFFFFF);
     RSColor colorThree_ = RSColor(0xFFFFFFFF);
@@ -61,13 +61,13 @@ private:
     float centerBrightness_ = 1.0f;
     float soundIntensity_ = 0.0f;
 
-    //shock wave
+    // shock wave
     float shockWaveAlphaOne_ = 1.0f;
     float shockWaveAlphaTwo_ = 1.0f;
     float shockWaveProgressOne_ = 0.0f;
     float shockWaveProgressTwo_ = 0.0f;
 };
-} // Rosen
-} // OHOS
+} // namespace Rosen
+} // namespace OHOS
 
 #endif // RENDER_SERVICE_BASE_RENDER_RS_SOUND_WAVE_FILTER_H
