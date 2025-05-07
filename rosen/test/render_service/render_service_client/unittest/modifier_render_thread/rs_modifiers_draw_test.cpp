@@ -109,7 +109,7 @@ HWTEST_F(RSModifiersDrawTest, PlaybackTest001, TestSize.Level1)
     NodeId nodeId = 1;
     int32_t width = 100;
     int32_t height = 100;
-    RSModifiersDraw::ResetSurfaceByNodeId(width, height, nodeId, false);
+    RSModifiersDraw::ResetSurfaceByNodeId(width, height, nodeId, false, false);
     auto surfaceEntry = RSModifiersDraw::GetSurfaceEntryByNodeId(nodeId);
     auto surface = surfaceEntry.surface;
     auto cmdList = std::make_shared<Drawing::DrawCmdList>();
@@ -134,19 +134,6 @@ HWTEST_F(RSModifiersDrawTest, AddPixelMapDrawOpTest001, TestSize.Level1)
     int32_t height = 100;
     RSModifiersDraw::AddPixelMapDrawOp(cmdList, pixelMap, width, height, false);
     ASSERT_NE(cmdList, nullptr);
-}
-
-/**
- * @tc.name: InvalidateSurfaceCacheTest001
- * @tc.desc: test results of InvalidateSurfaceCache
- * @tc.type: FUNC
- * @tc.require: issueIBWDR2
- */
-HWTEST_F(RSModifiersDrawTest, InvalidateSurfaceCacheTest001, TestSize.Level1)
-{
-    std::shared_ptr<Media::PixelMap> pixelMap = nullptr;
-    RSModifiersDraw::InvalidateSurfaceCache(pixelMap);
-    ASSERT_EQ(pixelMap, nullptr);
 }
 
 /**
@@ -251,7 +238,7 @@ HWTEST_F(RSModifiersDrawTest, ResetSurfaceByNodeIdTest001, TestSize.Level1)
     int32_t width = 0;
     int32_t height = 0;
     bool postTask = false;
-    ASSERT_FALSE(RSModifiersDraw::ResetSurfaceByNodeId(width, height, nodeId, postTask));
+    ASSERT_FALSE(RSModifiersDraw::ResetSurfaceByNodeId(width, height, nodeId, false, postTask));
 }
 
 /**
