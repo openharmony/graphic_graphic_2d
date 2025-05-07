@@ -1747,9 +1747,9 @@ void RSDisplayRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
             params->GetId());
         RS_TRACE_NAME_FMT("Process RSDisplayRenderNodeDrawable screenId: [%{public}" PRIu64 "]"
             " Not using UniRender buffer. specialLayer: %d, noBuffer: %d, "
-            "isSamplingOn: %d, isMirror: %d, isRenderSkipIfScreenOff: %d, blackList: %d", params->GetScreenId(),
+            "isSamplingOn: %d, isRenderSkipIfScreenOff: %d, blackList: %lu", params->GetScreenId(),
             specialLayerType_ != NO_SPECIAL_LAYER, noBuffer, params->GetScreenInfo().isSamplingOn,
-            RSUniRenderThread::GetCaptureParam().isMirror_, isRenderSkipIfScreenOff_, currentBlackList.size());
+            isRenderSkipIfScreenOff_, currentBlackList.size());
 
         // Adding matrix affine transformation logic
         if (!UNLIKELY(RSUniRenderThread::GetCaptureParam().isMirror_)) {
