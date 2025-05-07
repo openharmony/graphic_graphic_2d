@@ -3535,5 +3535,5 @@ void OH_Drawing_SetTypographyTextAutoSpace(OH_Drawing_TypographyStyle* style, bo
     if (style == nullptr || ConvertToOriginalText<TypographyStyle>(style) == nullptr) {
         return;
     }
-        ConvertToOriginalText<TypographyStyle>(style)->enableAutoSpace = enableAutoSpace;
+    ConvertToOriginalText<TypographyStyle>(style)->enableAutoSpace = enableAutoSpace;
 }

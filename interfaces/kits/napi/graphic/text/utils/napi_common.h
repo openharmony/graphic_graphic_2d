@@ -513,7 +513,7 @@ bool GetTextStyleFromJS(napi_env env, napi_value argValue, TextStyle& textStyle)
 
 bool GetParagraphStyleFromJS(napi_env env, napi_value argValue, TypographyStyle& pographyStyle);
 
-void HandleAdditionalParagraphProperties(napi_env env, napi_value argValue, TypographyStyle& pographyStyle);
+void HandleExtentParagraphStyleProperties(napi_env env, napi_value argValue, TypographyStyle& pographyStyle);
 
 bool GetPlaceholderSpanFromJS(napi_env env, napi_value argValue, PlaceholderSpan& placeholderSpan);
 

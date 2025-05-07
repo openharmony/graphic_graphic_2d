@@ -403,11 +403,11 @@ bool GetParagraphStyleFromJS(napi_env env, napi_value argValue, TypographyStyle&
     if (tempValue != nullptr && GetTextTabFromJS(env, tempValue, textTab)) {
         pographyStyle.tab = textTab;
     }
-    HandleAdditionalParagraphProperties(env, argValue, pographyStyle);
+    HandleExtentParagraphStyleProperties(env, argValue, pographyStyle);
     return true;
 }
 
-void HandleAdditionalParagraphProperties(napi_env env, napi_value argValue, TypographyStyle& pographyStyle)
+void HandleExtentParagraphStyleProperties(napi_env env, napi_value argValue, TypographyStyle& pographyStyle)
 {
     SetEnumValueFromJS(env, argValue, "textHeightBehavior", pographyStyle.textHeightBehavior);
     SetBoolValueFromJS(env, argValue, "trailingSpaceOptimized", pographyStyle.isTrailingSpaceOptimized);
