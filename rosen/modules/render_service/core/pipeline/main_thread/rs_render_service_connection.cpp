@@ -73,7 +73,7 @@
 #include "pixel_map_from_surface.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
-#include "platform/ohos/rs_jank_stats.h"
+#include "platform/ohos/rs_jank_stats_helper.h"
 #include "render/rs_typeface_cache.h"
 #include "transaction/rs_unmarshal_thread.h"
 #include "utils/graphic_coretrace.h"
@@ -1169,7 +1169,7 @@ void RSRenderServiceConnection::SetScreenPowerStatus(ScreenId id, ScreenPowerSta
             screenManager_->SetScreenPowerStatus(id, status);
         }).wait();
         mainThread_->SetDiscardJankFrames(true);
-        renderThread_.SetDiscardJankFrames(true);
+        RSJankStatsRenderFrameHelper::GetInstance().SetDiscardJankFrames(true);
         HgmTaskHandleThread::Instance().PostTask([id, status]() {
             OHOS::Rosen::HgmCore::Instance().NotifyScreenPowerStatus(id, status);
         });

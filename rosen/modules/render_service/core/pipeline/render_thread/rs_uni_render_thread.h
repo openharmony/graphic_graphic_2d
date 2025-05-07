@@ -139,24 +139,6 @@ public:
     {
         mainLooping_.store(isMainLooping);
     }
-    bool GetDiscardJankFrames() const
-    {
-        return discardJankFrames_.load();
-    }
-    void SetDiscardJankFrames(bool discardJankFrames)
-    {
-        if (discardJankFrames_.load() != discardJankFrames) {
-            discardJankFrames_.store(discardJankFrames);
-        }
-    }
-    bool GetSkipJankAnimatorFrame() const
-    {
-        return skipJankAnimatorFrame_.load();
-    }
-    void SetSkipJankAnimatorFrame(bool skipJankAnimatorFrame)
-    {
-        skipJankAnimatorFrame_.store(skipJankAnimatorFrame);
-    }
     void UpdateDisplayNodeScreenId();
     uint32_t GetDynamicRefreshRate() const;
     pid_t GetTid() const
@@ -243,8 +225,6 @@ private:
     bool vmaOptimizeFlag_ = false; // enable/disable vma cache, global flag
     // for statistic of jank frames
     std::atomic_bool mainLooping_ = false;
-    std::atomic_bool discardJankFrames_ = false;
-    std::atomic_bool skipJankAnimatorFrame_ = false;
     std::atomic_bool enableVisiableRect_ = false;
     pid_t tid_ = 0;
     ClearMemoryMoment clearMoment_;

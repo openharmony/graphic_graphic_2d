@@ -120,6 +120,7 @@ struct JankDurationParams {
     uint32_t refreshRate_ = 0;
     bool discardJankFrames_ = false;
     bool skipJankAnimatorFrame_ = false;
+    bool implicitAnimationEnd_ = false;
 };
 
 class RSJankStats {
@@ -133,8 +134,6 @@ public:
                     bool doDirectComposition = false, bool isReportTaskDelayed = false);
     void HandleDirectComposition(const JankDurationParams& rsParams, bool isReportTaskDelayed);
     void ReportJankStats();
-    void ReportSceneJankStats(const AppInfo& appInfo);
-    void ReportSceneJankFrame(uint32_t dynamicRefreshRate);
     void SetReportEventResponse(const DataBaseRs& info);
     void SetReportEventComplete(const DataBaseRs& info);
     void SetReportEventJankFrame(const DataBaseRs& info, bool isReportTaskDelayed);
@@ -151,6 +150,7 @@ private:
     DISALLOW_COPY_AND_MOVE(RSJankStats);
 
     void UpdateEndTime();
+    void SetImplicitAnimationEndInner(bool isImplicitAnimationEnd);
     void SetRSJankStats(bool skipJankStats, uint32_t dynamicRefreshRate);
     size_t GetJankRangeType(int64_t missedVsync) const;
     void UpdateJankFrame(JankFrames& jankFrames, bool skipJankStats, uint32_t dynamicRefreshRate);
@@ -167,6 +167,8 @@ private:
     void ReportEventHitchTimeRatioWithDelay(const JankFrames& jankFrames) const;
     void ReportEventFirstFrame();
     void ReportEventFirstFrameByPid(pid_t appPid) const;
+    void ReportSceneJankStats(const AppInfo& appInfo);
+    void ReportSceneJankFrame(uint32_t dynamicRefreshRate);
     void HandleImplicitAnimationEndInAdvance(JankFrames& jankFrames, bool isReportTaskDelayed);
     void RecordJankFrame(uint32_t dynamicRefreshRate);
     void RecordJankFrameSingle(int64_t missedFrames, JankFrameRecordStats& recordStats);

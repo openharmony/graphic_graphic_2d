@@ -59,7 +59,7 @@
 #include "pipeline/magic_pointer_render/rs_magic_pointer_render_manager.h"
 #endif
 #include "platform/common/rs_log.h"
-#include "platform/ohos/rs_jank_stats.h"
+#include "platform/ohos/rs_jank_stats_helper.h"
 #include "property/rs_point_light_manager.h"
 #include "render/rs_pixel_map_util.h"
 #include "screen_manager/rs_screen_manager.h"
@@ -391,7 +391,7 @@ bool RSDisplayRenderNodeDrawable::CheckDisplayNodeSkip(
     RS_TRACE_NAME("DisplayNode skip");
     GpuDirtyRegionCollection::GetInstance().AddSkipProcessFramesNumberForDFX(RSBaseRenderUtil::GetLastSendingPid());
 #ifdef OHOS_PLATFORM
-    RSUniRenderThread::Instance().SetSkipJankAnimatorFrame(true);
+    RSJankStatsRenderFrameHelper::GetInstance().SetSkipJankAnimatorFrame(true);
 #endif
     auto isHardCursor = HardCursorCreateLayer(processor);
     RS_TRACE_NAME_FMT("DisplayNode skip, isForceCommitLayer: %d, isHardCursor: %d",
