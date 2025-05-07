@@ -383,39 +383,6 @@ HWTEST_F(RSUniRenderUtilTest, HasNonZRotationTransform_003, Function | SmallTest
 }
 
 /*
- * @tc.name: ClearCacheSurface
- * @tc.desc: Test ClearCacheSurface when threadIndex = 0
- * @tc.type: FUNC
- * @tc.require: issueIAKA4Y
- */
-HWTEST_F(RSUniRenderUtilTest, ClearCacheSurface, Function | SmallTest | Level2)
-{
-    NodeId id = 1;
-    std::shared_ptr<RSRenderNode> node = std::make_shared<RSRenderNode>(id);
-    ASSERT_NE(node, nullptr);
-    uint32_t threadIndex = 0;
-    RSUniRenderUtil::ClearCacheSurface(*node, threadIndex);
-}
-
-/*
- * @tc.name: ClearCacheSurface002
- * @tc.desc: Test ClearCacheSurface reset cacheSurfaceThreadIndex_ and completedSurfaceThreadIndex_
- * @tc.type: FUNC
- * @tc.require: issueIAKA4Y
- */
-HWTEST_F(RSUniRenderUtilTest, ClearCacheSurface002, Function | SmallTest | Level2)
-{
-    NodeId id = 1;
-    std::shared_ptr<RSRenderNode> node = std::make_shared<RSRenderNode>(id);
-    ASSERT_NE(node, nullptr);
-    uint32_t threadIndex = UNI_MAIN_THREAD_INDEX;
-    RSUniRenderUtil::ClearCacheSurface(*node, threadIndex);
-    node->cacheSurfaceThreadIndex_ = UNI_RENDER_THREAD_INDEX;
-    node->completedSurfaceThreadIndex_ = UNI_RENDER_THREAD_INDEX;
-    RSUniRenderUtil::ClearCacheSurface(*node, threadIndex);
-}
-
-/*
  * @tc.name: PostReleaseSurfaceTask001
  * @tc.desc: Test PostReleaseSurfaceTask when surface is not nullptr
  * @tc.type: FUNC
@@ -476,43 +443,6 @@ HWTEST_F(RSUniRenderUtilTest, ClearNodeCacheSurface, Function | SmallTest | Leve
     auto cacheSurface1 = node->GetCacheSurface(threadIndex, false);
     auto completedSurface1= node->GetCompletedCacheSurface(0, true);
     RSUniRenderUtil::ClearNodeCacheSurface(std::move(cacheSurface1), std::move(completedSurface1), threadIndex, 0);
-}
-
-/**
- * @tc.name: IsNeedClientsTest
- * @tc.desc: Verify function IsNeedClient
- * @tc.type:FUNC
- * @tc.require:issuesI9KRF1
- */
-HWTEST_F(RSUniRenderUtilTest, IsNeedClientsTest, Function | SmallTest | Level2)
-{
-    auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNode();
-    ASSERT_NE(rsSurfaceRenderNode, nullptr);
-    RSSurfaceRenderNode& node = static_cast<RSSurfaceRenderNode&>(*(rsSurfaceRenderNode.get()));
-    ComposeInfo info;
-    EXPECT_FALSE(RSUniRenderUtil::IsNeedClient(node, info));
-}
-
-/**
- * @tc.name: IsNeedClientTest002
- * @tc.desc: Test IsNeedClient with modify params such as Rotation
- * @tc.type:FUNC
- * @tc.require: issueIAJOWI
- */
-HWTEST_F(RSUniRenderUtilTest, IsNeedClientTest002, Function | SmallTest | Level2)
-{
-    std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(1);
-    ASSERT_NE(node, nullptr);
-    ComposeInfo info;
-    node->renderContent_->renderProperties_.SetRotation(1.0f);
-    EXPECT_TRUE(RSUniRenderUtil::IsNeedClient(*node, info));
-    node->renderContent_->renderProperties_.SetRotationX(1.0f);
-    EXPECT_TRUE(RSUniRenderUtil::IsNeedClient(*node, info));
-    node->renderContent_->renderProperties_.SetRotationY(1.0f);
-    EXPECT_TRUE(RSUniRenderUtil::IsNeedClient(*node, info));
-    Quaternion quaternion(90.0f, 90.0f, 90.0f, 90.0f);
-    node->renderContent_->renderProperties_.SetQuaternion(quaternion);
-    EXPECT_TRUE(RSUniRenderUtil::IsNeedClient(*node, info));
 }
 
 /*
@@ -1019,69 +949,6 @@ HWTEST_F(RSUniRenderUtilTest, CalcSrcRectBufferFlipTest, Function | SmallTest | 
 }
 
 /*
- * @tc.name: HandleHardwareNodeTest
- * @tc.desc: Verify function HandleHardwareNode
- * @tc.type: FUNC
- * @tc.require: issuesI9KRF1
- */
-HWTEST_F(RSUniRenderUtilTest, HandleHardwareNodeTest, Function | SmallTest | Level2)
-{
-    NodeId id = 0;
-    auto node = std::make_shared<RSSurfaceRenderNode>(id);
-    RSUniRenderUtil::HandleHardwareNode(node);
-    node->hasHardwareNode_ = true;
-    RSUniRenderUtil::HandleHardwareNode(node);
-    node->children_.emplace_back(std::make_shared<RSRenderNode>(id));
-    node->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
-    RSUniRenderUtil::HandleHardwareNode(node);
-    EXPECT_FALSE(node->GetRSSurfaceHandler()->GetBuffer());
-}
-
-/*
- * @tc.name: HandleHardwareNodeTest002
- * @tc.desc: Test HandleHardwareNode add child to node
- * @tc.type: FUNC
- * @tc.require: issueIAJOWI
- */
-HWTEST_F(RSUniRenderUtilTest, HandleHardwareNodeTest002, Function | SmallTest | Level2)
-{
-    NodeId id = 1;
-    auto node = std::make_shared<RSSurfaceRenderNode>(id);
-    ASSERT_NE(node, nullptr);
-    node->hasHardwareNode_ = true;
-    id = 2;
-    auto child = std::make_shared<RSSurfaceRenderNode>(id);
-    ASSERT_NE(child, nullptr);
-    node->AddChild(child);
-    RSUniRenderUtil::HandleHardwareNode(node);
-}
-
-/*
- * @tc.name: HandleHardwareNodeTest003
- * @tc.desc: Test HandleHardwareNode add childHardwareEnabledNodes_ to node
- * @tc.type: FUNC
- * @tc.require: issueIAKA4Y
- */
-HWTEST_F(RSUniRenderUtilTest, HandleHardwareNodeTest003, Function | SmallTest | Level2)
-{
-    NodeId id = 1;
-    auto node = std::make_shared<RSSurfaceRenderNode>(id);
-    ASSERT_NE(node, nullptr);
-    node->hasHardwareNode_ = true;
-    id = 2;
-    auto child = std::make_shared<RSSurfaceRenderNode>(id);
-    ASSERT_NE(child, nullptr);
-    node->AddChild(child);
-
-    std::shared_ptr<RSSurfaceRenderNode> rsNode = nullptr;
-    std::weak_ptr<RSSurfaceRenderNode> rsNodeF = rsNode;
-    std::weak_ptr<RSSurfaceRenderNode> rsNodeT = std::make_shared<RSSurfaceRenderNode>(1);
-    node->childHardwareEnabledNodes_.emplace_back(rsNodeF);
-    node->childHardwareEnabledNodes_.emplace_back(rsNodeT);
-    RSUniRenderUtil::HandleHardwareNode(node);
-}
-
-/*
  * @tc.name: UpdateRealSrcRectTest
  * @tc.desc: Verify function UpdateRealSrcRect
  * @tc.type: FUNC
@@ -1170,106 +1037,6 @@ HWTEST_F(RSUniRenderUtilTest, CheckForceHardwareAndUpdateDstRectTest002, Functio
     node.GetRSSurfaceHandler()->consumer_ = IConsumerSurface::Create();
     RSUniRenderUtil::CheckForceHardwareAndUpdateDstRect(node);
     EXPECT_TRUE(node.GetOriginalDstRect().IsEmpty());
-}
-
-/*
- * @tc.name: SortSubThreadNodesTest
- * @tc.desc: Verify function SortSubThreadNodes
- * @tc.type: FUNC
- * @tc.require: issuesI9KRF1
- */
-HWTEST_F(RSUniRenderUtilTest, SortSubThreadNodesTest, TestSize.Level1)
-{
-    RSUniRenderUtil rsUniRenderUtil;
-    std::list<std::shared_ptr<RSSurfaceRenderNode>> subThreadNodes;
-    std::shared_ptr<RSSurfaceRenderNode> nodeTest1 = std::make_shared<RSSurfaceRenderNode>(0);
-    EXPECT_TRUE(nodeTest1);
-    std::shared_ptr<RSSurfaceRenderNode> nodeTest2 = std::make_shared<RSSurfaceRenderNode>(0);
-    EXPECT_TRUE(nodeTest2);
-    std::shared_ptr<RSSurfaceRenderNode> nodeTest3 = std::make_shared<RSSurfaceRenderNode>(0);
-    EXPECT_TRUE(nodeTest3);
-    std::shared_ptr<RSSurfaceRenderNode> nodeTest4 = nullptr;
-
-    nodeTest1->SetPriority(NodePriorityType::SUB_FOCUSNODE_PRIORITY);
-    nodeTest1->renderContent_->renderProperties_.SetPositionZ(1.0f);
-    nodeTest2->SetPriority(NodePriorityType::MAIN_PRIORITY);
-    // for test
-    nodeTest2->renderContent_->renderProperties_.SetPositionZ(2.0f);
-    nodeTest3->SetPriority(NodePriorityType::MAIN_PRIORITY);
-    nodeTest3->renderContent_->renderProperties_.SetPositionZ(1.0f);
-
-    subThreadNodes.push_back(nodeTest1);
-    subThreadNodes.push_back(nodeTest2);
-    subThreadNodes.push_back(nodeTest3);
-    // node4 is nullptr
-    subThreadNodes.push_back(nodeTest4);
-
-    rsUniRenderUtil.SortSubThreadNodes(subThreadNodes);
-    auto it = subThreadNodes.begin();
-    EXPECT_EQ((*it)->GetPriority(), NodePriorityType::MAIN_PRIORITY);
-    ++it;
-    EXPECT_EQ((*it)->GetPriority(), NodePriorityType::MAIN_PRIORITY);
-    ++it;
-    EXPECT_EQ((*it)->GetPriority(), NodePriorityType::SUB_FOCUSNODE_PRIORITY);
-    // for test
-    EXPECT_EQ(subThreadNodes.size(), 4);
-}
-
-/*
- * @tc.name: CacheSubThreadNodesTest
- * @tc.desc: Verify function CacheSubThreadNodes
- * @tc.type: FUNC
- * @tc.require: issuesI9KRF1
- */
-HWTEST_F(RSUniRenderUtilTest, CacheSubThreadNodesTest, TestSize.Level1)
-{
-    RSUniRenderUtil rsUniRenderUtil;
-
-    std::list<std::shared_ptr<RSSurfaceRenderNode>> subThreadNodes;
-    std::list<std::shared_ptr<RSSurfaceRenderNode>> oldSubThreadNodes;
-
-    std::shared_ptr<RSSurfaceRenderNode> nodeTest1 = std::make_shared<RSSurfaceRenderNode>(0);
-    EXPECT_TRUE(nodeTest1);
-    std::shared_ptr<RSSurfaceRenderNode> nodeTest2 = std::make_shared<RSSurfaceRenderNode>(1);
-    EXPECT_TRUE(nodeTest2);
-    std::shared_ptr<RSSurfaceRenderNode> nodeTest3 = std::make_shared<RSSurfaceRenderNode>(0);
-    nodeTest3->cacheProcessStatus_ = CacheProcessStatus::DOING;
-    EXPECT_TRUE(nodeTest3);
-    std::shared_ptr<RSSurfaceRenderNode> nodeTest4 = std::make_shared<RSSurfaceRenderNode>(1);
-    EXPECT_TRUE(nodeTest4);
-
-    subThreadNodes.push_back(nodeTest1);
-    subThreadNodes.push_back(nodeTest2);
-    oldSubThreadNodes.push_back(nodeTest3);
-    oldSubThreadNodes.push_back(nodeTest4);
-
-    rsUniRenderUtil.CacheSubThreadNodes(oldSubThreadNodes, subThreadNodes);
-    // fot test
-    EXPECT_EQ(oldSubThreadNodes.size(), 3);
-}
-
-/*
- * @tc.name: CacheSubThreadNodesTest002
- * @tc.desc: CacheSubThreadNodes add the same node to oldSubThreadNodes and oldSubThreadNodes
- * @tc.type: FUNC
- * @tc.require: issueIAKA4Y
- */
-HWTEST_F(RSUniRenderUtilTest, CacheSubThreadNodesTest002, TestSize.Level1)
-{
-    RSUniRenderUtil rsUniRenderUtil;
-    std::list<std::shared_ptr<RSSurfaceRenderNode>> subThreadNodes;
-    std::list<std::shared_ptr<RSSurfaceRenderNode>> oldSubThreadNodes;
-    std::shared_ptr<RSSurfaceRenderNode> node1 = std::make_shared<RSSurfaceRenderNode>(1);
-    ASSERT_NE(node1, nullptr);
-    std::shared_ptr<RSSurfaceRenderNode> node2 = std::make_shared<RSSurfaceRenderNode>(2);
-    ASSERT_NE(node2, nullptr);
-
-    subThreadNodes.push_back(node1);
-    subThreadNodes.push_back(node2);
-    oldSubThreadNodes.push_back(node1);
-    oldSubThreadNodes.push_back(node2);
-    rsUniRenderUtil.CacheSubThreadNodes(oldSubThreadNodes, subThreadNodes);
-    EXPECT_EQ(oldSubThreadNodes.size(), 2);
 }
 
 /*
@@ -1429,67 +1196,6 @@ HWTEST_F(RSUniRenderUtilTest, TraverseAndCollectUIExtensionInfo004, TestSize.Lev
     UIExtensionCallbackData callbackData1;
     rsUniRenderUtil.TraverseAndCollectUIExtensionInfo(node, parentMatrix, hostId, callbackData1, true);
     ASSERT_EQ(callbackData1.size() == 1, true);
-}
-
-/*
- * @tc.name: AccumulateMatrixAndAlpha001
- * @tc.desc: AccumulateMatrixAndAlpha test when hwcNode is nullptr
- * @tc.type: FUNC
- * @tc.require: issueIAJBBO
- */
-HWTEST_F(RSUniRenderUtilTest, AccumulateMatrixAndAlpha001, TestSize.Level2)
-{
-    RSUniRenderUtil rsUniRenderUtil;
-    std::shared_ptr<RSSurfaceRenderNode> hwcNode = nullptr;
-    ASSERT_EQ(hwcNode, nullptr);
-    Drawing::Matrix matrix = Drawing::Matrix();
-    matrix.SetMatrix(1, 0, 0, 0, 1, 0, 0, 0, 1);
-    float alpha = 1.0f;
-
-    rsUniRenderUtil.AccumulateMatrixAndAlpha(hwcNode, matrix, alpha);
-}
-
-/*
- * @tc.name: AccumulateMatrixAndAlpha002
- * @tc.desc: AccumulateMatrixAndAlpha test when parent is not nullptr
- * @tc.type: FUNC
- * @tc.require: issueIAJBBO
- */
-HWTEST_F(RSUniRenderUtilTest, AccumulateMatrixAndAlpha002, TestSize.Level2)
-{
-    RSUniRenderUtil rsUniRenderUtil;
-    std::shared_ptr<RSSurfaceRenderNode> hwcNode = std::make_shared<RSSurfaceRenderNode>(0);
-    ASSERT_NE(hwcNode, nullptr);
-    std::shared_ptr<RSSurfaceRenderNode> parent = std::make_shared<RSSurfaceRenderNode>(1);
-    ASSERT_NE(parent, nullptr);
-    parent->AddChild(hwcNode, 0);
-
-    Drawing::Matrix matrix = Drawing::Matrix();
-    matrix.SetMatrix(1, 0, 0, 0, 1, 0, 0, 0, 1);
-    float alpha = 1.0f;
-
-    rsUniRenderUtil.AccumulateMatrixAndAlpha(hwcNode, matrix, alpha);
-}
-
-/*
- * @tc.name: AccumulateMatrixAndAlpha003
- * @tc.desc: AccumulateMatrixAndAlpha test when alpha != 1.f
- * @tc.type: FUNC
- * @tc.require: issueIAKA4Y
- */
-HWTEST_F(RSUniRenderUtilTest, AccumulateMatrixAndAlpha003, TestSize.Level2)
-{
-    RSUniRenderUtil rsUniRenderUtil;
-    std::shared_ptr<RSSurfaceRenderNode> hwcNode = std::make_shared<RSSurfaceRenderNode>(1);
-    ASSERT_NE(hwcNode, nullptr);
-    std::shared_ptr<RSSurfaceRenderNode> parent = std::make_shared<RSSurfaceRenderNode>(2);
-    ASSERT_NE(parent, nullptr);
-    parent->AddChild(hwcNode, 0);
-
-    Drawing::Matrix matrix = Drawing::Matrix();
-    matrix.SetMatrix(1, 0, 0, 0, 1, 0, 0, 0, 1);
-    float alpha = 0.8f;
-    rsUniRenderUtil.AccumulateMatrixAndAlpha(hwcNode, matrix, alpha);
 }
 
 /*

@@ -102,38 +102,6 @@ void RSBaseRenderEngine::Init(bool independentContext)
 #endif
 }
 
-void RSBaseRenderEngine::InitCapture(bool independentContext)
-{
-#ifdef RS_ENABLE_GPU
-    (void)independentContext;
-    if (captureRenderContext_) {
-        return;
-    }
-#endif
-
-#if (defined RS_ENABLE_GL) || (defined RS_ENABLE_VK)
-    captureRenderContext_ = std::make_shared<RenderContext>();
-#ifdef RS_ENABLE_GL
-    if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
-        captureRenderContext_->InitializeEglContext();
-    }
-#endif
-    if (RSUniRenderJudgement::IsUniRender()) {
-        captureRenderContext_->SetUniRenderMode(true);
-    }
-#if defined(RS_ENABLE_VK)
-    if (RSSystemProperties::IsUseVulkan()) {
-        captureSkContext_ = RsVulkanContext::GetSingleton().CreateDrawingContext();
-        captureRenderContext_->SetUpGpuContext(captureSkContext_);
-    } else {
-        captureRenderContext_->SetUpGpuContext();
-    }
-#else
-    captureRenderContext_->SetUpGpuContext();
-#endif
-#endif // RS_ENABLE_GL || RS_ENABLE_VK
-}
-
 void RSBaseRenderEngine::ResetCurrentContext()
 {
 #ifdef RS_ENABLE_GPU
@@ -145,18 +113,12 @@ void RSBaseRenderEngine::ResetCurrentContext()
 #if (defined RS_ENABLE_GL)
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
         renderContext_->ShareMakeCurrentNoSurface(EGL_NO_CONTEXT);
-        if (captureRenderContext_) {
-            captureRenderContext_->ShareMakeCurrentNoSurface(EGL_NO_CONTEXT);
-        }
     }
 #endif
 
 #if defined(RS_ENABLE_VK) // end RS_ENABLE_GL and enter RS_ENABLE_VK
     if (RSSystemProperties::IsUseVulkan()) {
         renderContext_->AbandonContext();
-        if (captureRenderContext_) {
-            captureRenderContext_->AbandonContext();
-        }
     }
 #endif // end RS_ENABLE_GL and RS_ENABLE_VK
 }

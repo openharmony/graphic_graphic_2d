@@ -1036,21 +1036,6 @@ BufferDrawParam RSUniRenderUtil::CreateLayerBufferDrawParam(const LayerInfoPtr& 
     return params;
 }
 
-bool RSUniRenderUtil::IsNeedClient(RSSurfaceRenderNode& node, const ComposeInfo& info)
-{
-    if (RSSystemProperties::IsForceClient()) {
-        RS_LOGD("RSUniRenderUtil::IsNeedClient: force client.");
-        return true;
-    }
-    const auto& property = node.GetRenderProperties();
-    if (!ROSEN_EQ(property.GetRotation(), 0.f) || !ROSEN_EQ(property.GetRotationX(), 0.f) ||
-        !ROSEN_EQ(property.GetRotationY(), 0.f) || property.GetQuaternion() != Quaternion()) {
-        RS_LOGD("RSUniRenderUtil::IsNeedClient need client with RSSurfaceRenderNode rotation");
-        return true;
-    }
-    return false;
-}
-
 Occlusion::Region RSUniRenderUtil::AlignedDirtyRegion(const Occlusion::Region& dirtyRegion, int32_t alignedBits)
 {
     Occlusion::Region alignedRegion;
@@ -1124,82 +1109,6 @@ bool RSUniRenderUtil::HasNonZRotationTransform(Drawing::Matrix matrix)
     int vectorZ = value[Drawing::Matrix::Index::SCALE_X] * value[Drawing::Matrix::Index::SCALE_Y] -
         value[Drawing::Matrix::Index::SKEW_Y] * value[Drawing::Matrix::Index::SKEW_X];
     return vectorZ < 0;
-}
-
-void RSUniRenderUtil::SortSubThreadNodes(std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes)
-{
-    // sort subThreadNodes by priority and z-order
-    subThreadNodes.sort([](const auto& first, const auto& second) -> bool {
-        auto node1 = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(first);
-        auto node2 = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(second);
-        if (node1 == nullptr || node2 == nullptr) {
-            ROSEN_LOGE(
-                "RSUniRenderUtil::SortSubThreadNodes sort nullptr found in subThreadNodes, this should not happen");
-            return false;
-        }
-        if (node1->GetPriority() == node2->GetPriority()) {
-            return node2->GetRenderProperties().GetPositionZ() < node1->GetRenderProperties().GetPositionZ();
-        } else {
-            return node1->GetPriority() < node2->GetPriority();
-        }
-    });
-}
-
-void RSUniRenderUtil::CacheSubThreadNodes(std::list<std::shared_ptr<RSSurfaceRenderNode>>& oldSubThreadNodes,
-    std::list<std::shared_ptr<RSSurfaceRenderNode>>& subThreadNodes)
-{
-    std::unordered_set<std::shared_ptr<RSSurfaceRenderNode>> nodes(subThreadNodes.begin(), subThreadNodes.end());
-    for (auto node : oldSubThreadNodes) {
-        if (nodes.count(node) > 0) {
-            continue;
-        }
-        // The node being processed by sub thread may have been removed.
-        if (node->GetCacheSurfaceProcessedStatus() == CacheProcessStatus::DOING) {
-            subThreadNodes.emplace_back(node);
-        }
-    }
-    oldSubThreadNodes.clear();
-    oldSubThreadNodes = subThreadNodes;
-}
-
-void RSUniRenderUtil::HandleHardwareNode(const std::shared_ptr<RSSurfaceRenderNode>& node)
-{
-    if (node == nullptr || !node->HasHardwareNode()) {
-        return;
-    }
-    auto appWindow = node;
-    if (node->IsLeashWindow()) {
-        for (auto& child : *node->GetSortedChildren()) {
-            auto surfaceNodePtr = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(child);
-            if (surfaceNodePtr && surfaceNodePtr->IsAppWindow()) {
-                appWindow = surfaceNodePtr;
-                break;
-            }
-        }
-    }
-    auto hardwareEnabledNodes = appWindow->GetChildHardwareEnabledNodes();
-    for (auto& hardwareEnabledNode : hardwareEnabledNodes) {
-        auto hardwareEnabledNodePtr = hardwareEnabledNode.lock();
-        if (hardwareEnabledNodePtr) {
-            hardwareEnabledNodePtr->SetHardwareDisabledByCache(false);
-        }
-    }
-}
-
-void RSUniRenderUtil::ClearCacheSurface(RSRenderNode& node, uint32_t threadIndex, bool isClearCompletedCacheSurface)
-{
-    RS_LOGD("ClearCacheSurface node: [%{public}" PRIu64 "]", node.GetId());
-    uint32_t cacheSurfaceThreadIndex = node.GetCacheSurfaceThreadIndex();
-    uint32_t completedSurfaceThreadIndex = node.GetCompletedSurfaceThreadIndex();
-    if (cacheSurfaceThreadIndex == threadIndex && completedSurfaceThreadIndex == threadIndex) {
-        node.ClearCacheSurface(isClearCompletedCacheSurface);
-        return;
-    }
-    std::shared_ptr<Drawing::Surface> completedCacheSurface = isClearCompletedCacheSurface ?
-        node.GetCompletedCacheSurface(threadIndex, false, true) : nullptr;
-    ClearNodeCacheSurface(node.GetCacheSurface(threadIndex, false, true),
-        std::move(completedCacheSurface), cacheSurfaceThreadIndex, completedSurfaceThreadIndex);
-    node.ClearCacheSurface(isClearCompletedCacheSurface);
 }
 
 void RSUniRenderUtil::ClearNodeCacheSurface(std::shared_ptr<Drawing::Surface>&& cacheSurface,
@@ -1960,30 +1869,6 @@ void RSUniRenderUtil::OptimizedFlushAndSubmit(std::shared_ptr<Drawing::Surface>&
 #else
     surface->FlushAndSubmit(true);
 #endif
-}
-
-void RSUniRenderUtil::AccumulateMatrixAndAlpha(std::shared_ptr<RSSurfaceRenderNode>& hwcNode,
-    Drawing::Matrix& matrix, float& alpha)
-{
-    if (hwcNode == nullptr) {
-        return;
-    }
-    const auto& property = hwcNode->GetRenderProperties();
-    alpha = property.GetAlpha();
-    matrix = property.GetBoundsGeometry()->GetMatrix();
-    auto parent = hwcNode->GetParent().lock();
-    while (parent && parent->GetType() != RSRenderNodeType::DISPLAY_NODE) {
-        const auto& curProperty = parent->GetRenderProperties();
-        alpha *= curProperty.GetAlpha();
-        matrix.PostConcat(curProperty.GetBoundsGeometry()->GetMatrix());
-        parent = parent->GetParent().lock();
-    }
-    if (!parent) {
-        return;
-    }
-    const auto& parentProperty = parent->GetRenderProperties();
-    alpha *= parentProperty.GetAlpha();
-    matrix.PostConcat(parentProperty.GetBoundsGeometry()->GetMatrix());
 }
 
 SecRectInfo RSUniRenderUtil::GenerateSecRectInfoFromNode(RSRenderNode& node, RectI rect)
