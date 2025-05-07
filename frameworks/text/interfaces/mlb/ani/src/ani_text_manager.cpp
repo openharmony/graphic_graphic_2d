@@ -62,7 +62,10 @@ static void Clean(ani_env* env, ani_object object)
         return;
     }
 
-    std::string familyName = AniTextUtils::AniToStdStringUtf8(env, static_cast<ani_string>(stringRef));
+    std::string familyName;
+    if (ANI_OK != AniTextUtils::AniToStdStringUtf8(env, static_cast<ani_string>(stringRef), familyName)) {
+        return;
+    }
     using DeleteFunc = void (*)(ani_long&);
     static const std::unordered_map<std::string, DeleteFunc> deleteMap = {
         {"ParagraphBuilder", SafeDelete<AniParagraphBuilder>},

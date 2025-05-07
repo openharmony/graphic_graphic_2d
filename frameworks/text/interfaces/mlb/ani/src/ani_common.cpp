@@ -106,8 +106,10 @@ void AniCommon::ParseFontFamiliesToNative(ani_env* env, ani_array_ref obj, std::
         ani_ref tempString = nullptr;
         env->Array_Get_Ref(obj, i, &tempString);
         ani_string aniTempString = static_cast<ani_string>(tempString);
-        std::string fontFamiliesString = AniTextUtils::AniToStdStringUtf8(env, aniTempString);
-        fontFamilies.push_back(fontFamiliesString);
+        std::string fontFamiliesString;
+        if (ANI_OK == AniTextUtils::AniToStdStringUtf8(env, aniTempString, fontFamiliesString)) {
+            fontFamilies.push_back(fontFamiliesString);
+        }
     }
 }
 
@@ -146,9 +148,11 @@ std::unique_ptr<TextStyle> AniCommon::ParseTextStyleToNative(ani_env* env, ani_o
     AniTextUtils::ReadOptionalEnumField(env, obj, "baseline", textStyle->baseline);
 
     AniTextUtils::ReadOptionalArrayField<std::string>(
-        env, obj, "fontFamilies", textStyle->fontFamilies,
-        [](ani_env* env, ani_ref ref) { return AniTextUtils::AniToStdStringUtf8(env, static_cast<ani_string>(ref)); });
-
+        env, obj, "fontFamilies", textStyle->fontFamilies, [](ani_env* env, ani_ref ref) {
+            std::string utf8Str;
+            AniTextUtils::AniToStdStringUtf8(env, static_cast<ani_string>(ref), utf8Str);
+            return utf8Str;
+        });
     AniTextUtils::ReadOptionalDoubleField(env, obj, "fontSize", textStyle->fontSize);
     AniTextUtils::ReadOptionalDoubleField(env, obj, "letterSpacing", textStyle->letterSpacing);
     AniTextUtils::ReadOptionalDoubleField(env, obj, "wordSpacing", textStyle->wordSpacing);
@@ -308,7 +312,11 @@ void AniCommon::ParseFontFeatureToNative(ani_env* env, ani_object obj, FontFeatu
                 TEXT_LOGE("[ANI] get filed name failed:%{public}d", ret);
                 return "";
             }
-            std::string name = AniTextUtils::AniToStdStringUtf8(env, static_cast<ani_string>(nameRef));
+            std::string name;
+            if (ANI_OK != AniTextUtils::AniToStdStringUtf8(env, static_cast<ani_string>(nameRef), name)) {
+                return "";
+            }
+
             ani_double valueDouble;
             ret = env->Object_GetPropertyByName_Double(obj, "value", &valueDouble);
             if (ret != ANI_OK) {
@@ -344,7 +352,10 @@ void AniCommon::ParseFontVariationToNative(ani_env* env, ani_object obj, FontVar
                 TEXT_LOGE("[ANI] get filed axis failed:%{public}d", ret);
                 return "";
             }
-            std::string axis = AniTextUtils::AniToStdStringUtf8(env, static_cast<ani_string>(axisRef));
+            std::string axis;
+            if (ANI_OK != AniTextUtils::AniToStdStringUtf8(env, static_cast<ani_string>(axisRef), axis)) {
+                return "";
+            }
             ani_double valueDouble;
             ret = env->Object_GetPropertyByName_Double(obj, "value", &valueDouble);
             if (ret != ANI_OK) {

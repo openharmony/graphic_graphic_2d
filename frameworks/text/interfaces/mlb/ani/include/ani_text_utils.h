@@ -26,6 +26,8 @@
 namespace OHOS::Text::NAI {
 class AniTextUtils {
 public:
+    static ani_status ThrowBusinessError(ani_env* env, TextErrorCode errorCode, const char* message);
+    static ani_status CreateBusinessError(ani_env* env, int32_t error, const char* message, ani_object& err);
     template <typename T>
     static T* GetNativeFromObj(ani_env* env, ani_object obj);
 
@@ -43,8 +45,8 @@ public:
     static ani_string CreateAniStringObj(ani_env* env, const std::string& str);
     static ani_string CreateAniStringObj(ani_env* env, const std::u16string& str);
 
-    static std::string AniToStdStringUtf8(ani_env* env, const ani_string& str);
-    static std::u16string AniToStdStringUtf16(ani_env* env, const ani_string& str);
+    static ani_status AniToStdStringUtf8(ani_env* env, const ani_string& str, std::string& utf8Str);
+    static ani_status AniToStdStringUtf16(ani_env* env, const ani_string& str, std::u16string& utf16Str);
     static bool ReadFile(const std::string& filePath, size_t dataLen, std::unique_ptr<uint8_t[]>& data);
     static bool SplitAbsoluteFontPath(std::string& absolutePath);
 

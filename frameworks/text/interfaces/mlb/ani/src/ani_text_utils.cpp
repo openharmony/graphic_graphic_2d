@@ -25,6 +25,50 @@
 
 namespace OHOS::Text::NAI {
 
+ani_status AniTextUtils::ThrowBusinessError(ani_env* env, TextErrorCode errorCode, const char* message)
+{
+    ani_object aniError;
+    ani_status status = AniTextUtils::CreateBusinessError(env, static_cast<int32_t>(errorCode), message, aniError);
+    if (status != ANI_OK) {
+        TEXT_LOGE("[ANI] create business error fail, status:%{public}d", static_cast<int32_t>(status));
+        return status;
+    }
+    status = env->ThrowError(static_cast<ani_error>(aniError));
+    if (status != ANI_OK) {
+        TEXT_LOGE("[ANI] fail to throw err, status:%{public}d", static_cast<int32_t>(status));
+        return status;
+    }
+    return ANI_OK;
+}
+
+ani_status AniTextUtils::CreateBusinessError(ani_env* env, int32_t error, const char* message, ani_object& err)
+{
+    ani_class aniClass;
+    ani_status status = env->FindClass("L@ohos/display/BusinessError;", &aniClass);
+    if (status != ANI_OK) {
+        TEXT_LOGE( "[ANI] class not found, status:%{public}d", static_cast<int32_t>(status));
+        return status;
+    }
+    ani_method aniCtor;
+    status = env->Class_FindMethod(aniClass, "<ctor>", "Lstd/core/String;Lescompat/ErrorOptions;:V", &aniCtor);
+    if (status != ANI_OK) {
+        TEXT_LOGE( "[ANI] ctor not found, status:%{public}d", static_cast<int32_t>(status));
+        return status;
+    }
+    ani_string aniMsg= AniTextUtils::CreateAniStringObj(env, message);
+    status = env->Object_New(aniClass, aniCtor, &err, aniMsg, AniTextUtils::CreateAniUndefined(env));
+    if (status != ANI_OK) {
+        TEXT_LOGE( "[ANI] fail to new err, status:%{public}d", static_cast<int32_t>(status));
+        return status;
+    }
+    status = env->Object_SetFieldByName_Int(err, "<property>code", static_cast<ani_int>(error));
+    if (status != ANI_OK) {
+        TEXT_LOGE( "[ANI] fail to set code, status:%{public}d", static_cast<int32_t>(status));
+        return status;
+    }
+    return ANI_OK;
+}
+
 ani_object AniTextUtils::CreateAniUndefined(ani_env* env)
 {
     ani_ref aniRef;
@@ -98,34 +142,37 @@ ani_string AniTextUtils::CreateAniStringObj(ani_env* env, const std::u16string& 
     return result_string;
 }
 
-std::string AniTextUtils::AniToStdStringUtf8(ani_env* env, const ani_string& str)
+ani_status AniTextUtils::AniToStdStringUtf8(ani_env* env, const ani_string& str, std::string& utf8Str)
 {
     ani_size strSize;
-    if (ANI_OK != env->String_GetUTF8Size(str, &strSize)) {
+    ani_status status = env->String_GetUTF8Size(str, &strSize);
+    if (ANI_OK != status) {
         TEXT_LOGE("[ANI] String_GetUTF8Size Failed");
-        return "";
+        return status;
     }
 
     std::vector<char> buffer(strSize + 1);
     char* utf8Buffer = buffer.data();
 
     ani_size bytesWritten = 0;
-    if (ANI_OK != env->String_GetUTF8(str, utf8Buffer, strSize + 1, &bytesWritten)) {
+    status = env->String_GetUTF8(str, utf8Buffer, strSize + 1, &bytesWritten);
+    if (ANI_OK != status) {
         TEXT_LOGE("[ANI] String_GetUTF8 Failed");
-        return "";
+        return status;
     }
 
     utf8Buffer[bytesWritten] = '\0';
-    std::string content = std::string(utf8Buffer);
-    return content;
+    utf8Str = std::string(utf8Buffer);
+    return ANI_OK;
 }
 
-std::u16string AniTextUtils::AniToStdStringUtf16(ani_env* env, const ani_string& str)
+ani_status AniTextUtils::AniToStdStringUtf16(ani_env* env, const ani_string& str, std::u16string& utf16Str)
 {
     ani_size strSize;
-    if (ANI_OK != env->String_GetUTF16Size(str, &strSize)) {
+    ani_status status = env->String_GetUTF16Size(str, &strSize);
+    if (ANI_OK != status) {
         TEXT_LOGE("[ANI] String_GetUTF8Size Failed");
-        return u"";
+        return status;
     }
 
     strSize++;
@@ -133,13 +180,14 @@ std::u16string AniTextUtils::AniToStdStringUtf16(ani_env* env, const ani_string&
     uint16_t* utf16Buffer = buffer.data();
 
     ani_size bytesWritten = 0;
-    if (ANI_OK != env->String_GetUTF16(str, utf16Buffer, strSize, &bytesWritten)) {
+    status = env->String_GetUTF16(str, utf16Buffer, strSize, &bytesWritten);
+    if (ANI_OK != status) {
         TEXT_LOGE("[ANI] String_GetUTF16 Failed");
-        return u"";
+        return status;
     }
     utf16Buffer[bytesWritten] = '\0';
-    std::u16string content(reinterpret_cast<const char16_t*>(utf16Buffer), strSize);
-    return content;
+    utf16Str = std::u16string(reinterpret_cast<const char16_t*>(utf16Buffer), strSize);
+    return ANI_OK;
 }
 
 bool AniTextUtils::ReadFile(const std::string& filePath, size_t dataLen, std::unique_ptr<uint8_t[]>& data)
@@ -220,7 +268,10 @@ ani_status AniTextUtils::ReadOptionalStringField(ani_env* env, ani_object obj, c
     ani_ref ref = nullptr;
     ani_status result = AniTextUtils::ReadOptionalField(env, obj, fieldName, ref);
     if (result == ANI_OK && ref != nullptr) {
-        str = AniTextUtils::AniToStdStringUtf8(env, static_cast<ani_string>(ref));
+        std::string familyName;
+        if (ANI_OK != AniTextUtils::AniToStdStringUtf8(env, static_cast<ani_string>(ref), str)) {
+            return result;
+        }
     }
     return result;
 }
@@ -231,7 +282,7 @@ ani_status AniTextUtils::ReadOptionalU16StringField(ani_env* env, ani_object obj
     ani_ref ref = nullptr;
     ani_status result = AniTextUtils::ReadOptionalField(env, obj, fieldName, ref);
     if (result == ANI_OK && ref != nullptr) {
-        str = AniTextUtils::AniToStdStringUtf16(env, static_cast<ani_string>(ref));
+        result = AniTextUtils::AniToStdStringUtf16(env, static_cast<ani_string>(ref), str);
     }
     return result;
 }

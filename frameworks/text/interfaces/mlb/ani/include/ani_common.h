@@ -60,6 +60,17 @@ inline constexpr const char* ANI_ENUM_ELLIPSIS_MODE = "L@ohos/graphics/text/text
 inline constexpr const char* ANI_ENUM_TEXT_DECORATION_TYPE = "L@ohos/graphics/text/text/TextDecorationType;";
 inline constexpr const char* ANI_ENUM_TEXT_DECORATION_STYLE = "L@ohos/graphics/text/text/TextDecorationStyle;";
 
+enum class TextErrorCode : int32_t {
+    ERROR = -1,
+    OK = 0,
+    ERROR_NO_PERMISSION = 201, // the value do not change. It is defined on all system
+    ERROR_INVALID_PARAM = 401, // the value do not change. It is defined on all system
+    ERROR_DEVICE_NOT_SUPPORT = 801, // the value do not change. It is defined on all system
+    ERROR_ABNORMAL_PARAM_VALUE = 18600001, // the value do not change. It is defined on color manager system
+    ERROR_NO_MEMORY = 8800100, // no memory
+};
+
+
 class AniCommon {
 public:
     static std::unique_ptr<TypographyStyle> ParseParagraphStyleToNative(ani_env* env, ani_object obj);

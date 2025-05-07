@@ -89,6 +89,7 @@ void AniParagraph::LayoutSync(ani_env* env, ani_object object, ani_double width)
     AniParagraph* aniParagraph = AniTextUtils::GetNativeFromObj<AniParagraph>(env, object);
     if (aniParagraph == nullptr || aniParagraph->paragraph_ == nullptr) {
         TEXT_LOGE("paragraph is null");
+        AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return;
     }
     aniParagraph->paragraph_->Layout(width);
@@ -99,11 +100,13 @@ void AniParagraph::Paint(ani_env* env, ani_object object, ani_object canvas, ani
     AniParagraph* aniParagraph = AniTextUtils::GetNativeFromObj<AniParagraph>(env, object);
     if (aniParagraph == nullptr || aniParagraph->paragraph_ == nullptr) {
         TEXT_LOGE("paragraph is null");
+        AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return;
     }
     Drawing::Canvas* canvasI = AniTextUtils::GetNativeFromObj<Drawing::Canvas>(env, canvas);
     if (canvasI == nullptr) {
         TEXT_LOGE("canvas is null");
+        AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "canvas unavailable.");
         return;
     }
     aniParagraph->paragraph_->Paint(canvasI, x, y);
@@ -115,16 +118,19 @@ void AniParagraph::PaintOnPath(ani_env* env, ani_object object, ani_object canva
     AniParagraph* aniParagraph = AniTextUtils::GetNativeFromObj<AniParagraph>(env, object);
     if (aniParagraph == nullptr || aniParagraph->paragraph_ == nullptr) {
         TEXT_LOGE("paragraph is null");
+        AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return;
     }
     Drawing::Canvas* canvasI = AniTextUtils::GetNativeFromObj<Drawing::Canvas>(env, canvas);
     if (canvasI == nullptr) {
         TEXT_LOGE("canvas is null");
+        AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Canvas unavailable.");
         return;
     }
     Drawing::Path* pathI = AniTextUtils::GetNativeFromObj<Drawing::Path>(env, canvas);
     if (pathI == nullptr) {
         TEXT_LOGE("Path is null");
+        AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Path unavailable.");
         return;
     }
     aniParagraph->paragraph_->Paint(canvasI, pathI, hOffset, vOffset);
@@ -135,6 +141,7 @@ ani_double AniParagraph::GetLongestLine(ani_env* env, ani_object object)
     AniParagraph* aniParagraph = AniTextUtils::GetNativeFromObj<AniParagraph>(env, object);
     if (aniParagraph == nullptr || aniParagraph->paragraph_ == nullptr) {
         TEXT_LOGE("paragraph is null");
+        AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return 0;
     }
     return aniParagraph->paragraph_->GetActualWidth();
@@ -146,6 +153,7 @@ ani_ref AniParagraph::GetLineMetrics(ani_env* env, ani_object object)
     AniParagraph* aniParagraph = AniTextUtils::GetNativeFromObj<AniParagraph>(env, object);
     if (aniParagraph == nullptr || aniParagraph->paragraph_ == nullptr) {
         TEXT_LOGE("Paragraph is null");
+        AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return arrayObj;
     }
     std::vector<LineMetrics> vectorLineMetrics = aniParagraph->paragraph_->GetLineMetrics();
@@ -173,6 +181,7 @@ ani_object AniParagraph::GetLineMetricsAt(ani_env* env, ani_object object, ani_d
     AniParagraph* aniParagraph = AniTextUtils::GetNativeFromObj<AniParagraph>(env, object);
     if (aniParagraph == nullptr || aniParagraph->paragraph_ == nullptr) {
         TEXT_LOGE("Paragraph is null");
+        AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return AniTextUtils::CreateAniUndefined(env);
     }
     LineMetrics lineMetrics;

@@ -34,7 +34,12 @@ std::vector<std::string> AniToStdVectorString(ani_env* env, ani_array array)
             TEXT_LOGE("Failed to get array element %{public}zu", i);
             continue;
         }
-        result.push_back(AniTextUtils::AniToStdStringUtf8(env, static_cast<ani_string>(aniString)));
+        std::string utf8Str;
+        if (ANI_OK != AniTextUtils::AniToStdStringUtf8(env, static_cast<ani_string>(aniString), utf8Str)) {
+            TEXT_LOGE("Failed to get str %{public}zu", i);
+            continue;
+        }
+        result.push_back(utf8Str);
     }
 
     return result;
@@ -57,8 +62,9 @@ AniResource AniResourceParser::ParseResource(ani_env* env, ani_object obj)
 
     result.type = static_cast<int32_t>(aniType);
     result.id = static_cast<int32_t>(aniId);
-    result.bundleName = AniTextUtils::AniToStdStringUtf8(env, static_cast<ani_string>(aniBundleName));
-    result.moduleName = AniTextUtils::AniToStdStringUtf8(env, static_cast<ani_string>(aniModuleName));
+
+    AniTextUtils::AniToStdStringUtf8(env, static_cast<ani_string>(aniBundleName), result.bundleName);
+    AniTextUtils::AniToStdStringUtf8(env, static_cast<ani_string>(aniModuleName), result.moduleName);
     result.params = AniToStdVectorString(env, static_cast<ani_array>(aniParams));
 
     return result;

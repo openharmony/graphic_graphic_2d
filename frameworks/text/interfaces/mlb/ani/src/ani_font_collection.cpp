@@ -58,7 +58,10 @@ ani_object AniFontCollection::GetGlobalInstance(ani_env* env, ani_class cls)
 
 void AniFontCollection::LoadFontSync(ani_env* env, ani_object obj, ani_string name, ani_object path)
 {
-    std::string familyName = AniTextUtils::AniToStdStringUtf8(env, name);
+    std::string familyName;
+    if (ANI_OK != AniTextUtils::AniToStdStringUtf8(env, name, familyName)) {
+        return;
+    }
     auto aniFontCollection = AniTextUtils::GetNativeFromObj<AniFontCollection>(env, obj);
     if (aniFontCollection == nullptr || aniFontCollection->fontCollection_ == nullptr) {
         TEXT_LOGE("Null font collection");
@@ -73,7 +76,10 @@ void AniFontCollection::LoadFontSync(ani_env* env, ani_object obj, ani_string na
     env->Object_InstanceOf(path, stringClass, &isString);
 
     if (isString) {
-        std::string pathStr = AniTextUtils::AniToStdStringUtf8(env, static_cast<ani_string>(path));
+        std::string pathStr;
+        if (ANI_OK != AniTextUtils::AniToStdStringUtf8(env, static_cast<ani_string>(path), pathStr)) {
+            return;
+        }
         if (!AniTextUtils::SplitAbsoluteFontPath(pathStr) || !AniTextUtils::ReadFile(pathStr, dataLen, data)) {
             TEXT_LOGE("Failed to split absolute font path");
             return;
