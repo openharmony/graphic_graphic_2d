@@ -55,15 +55,15 @@ public:
     VpeVideoCallbackImpl(const VpeVideoCallbackImpl&) = delete;
     VpeVideoCallbackImpl& operator=(const VpeVideoCallbackImpl&) = delete;
     VpeVideoCallbackImpl(VpeVideoCallbackImpl&&) = delete;
-    VpeVideoCallbackImpl& operator=(const VpeVideoCallbackImpl&&) = delete;
+    VpeVideoCallbackImpl& operator=(VpeVideoCallbackImpl&&) = delete;
 
     void OnOutputBufferAvailable(uint32_t index, VpeBufferFlag flag) override;
 
 private:
     std::weak_ptr<VpeVideo> videoFilter_;
 };
-} // namespace VideoProcessingEngin 
-} // namespace Mdeia 
+} // namespace VideoProcessingEngine
+} // namespace Media 
 } // namespace OHOS 
 
 #endif

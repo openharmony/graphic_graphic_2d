@@ -28,7 +28,8 @@ void VpeVideoCallbackImpl::OnOutputBufferAvailable(uint32_t index, VpeBufferFlag
     }
     std::shared_ptr<VpeVideo> video = videoFilter_.lock();
     if (video == nullptr) {
-        RS_LOGE("video is null");
+        RS_LOGE("video is nullptr");
+        return;
     }
     video->ReleaseOutputBuffer(index, true);
 }
@@ -42,7 +43,7 @@ RSVpeManager& RSVpeManager::GetInstance()
 
 void RSVpeManager::ReleaseVpeVideo(uint64_t nodeId)
 {
-    std::lock_guard<std::mutex> locak(vpeVideoLock_);
+    std::lock_guard<std::mutex> lock(vpeVideoLock_);
     auto it = allVpeVideo_.find(nodeId);
     if (it == allVpeVideo_.end()) {
         return;
@@ -116,7 +117,7 @@ sptr<Surface> RSVpeManager::GetVpeVideoSurface(uint32_t type, const sptr<Surface
     }
     uint32_t mapSize = 0;
     {
-        std::lock_guard<std::mutex> locak(vpeVideoLock_);
+        std::lock_guard<std::mutex> lock(vpeVideoLock_);
         allVpeVideo_[config.id] = vpeVideo;
         mapSize = allVpeVideo_.size();
     }

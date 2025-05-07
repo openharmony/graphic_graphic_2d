@@ -632,7 +632,7 @@ RSSurfaceNode::~RSSurfaceNode()
     if (renderServiceClient != nullptr) {
         renderServiceClient->UnregisterBufferAvailableListener(GetId());
 #ifdef USE_VIDEO_PROCESSING_ENGINE
-    RSVpeManager::GetInstance().ReleaseVpeVideo(GetId());
+        RSVpeManager::GetInstance().ReleaseVpeVideo(GetId());
 #endif
     }
 
