@@ -889,6 +889,7 @@ public:
 
     // Enable HWCompose
     RSHwcRecorder& GetHwcRecorder() { return hwcRecorder_; }
+    RSHwcSurfaceRecorder& GetHwcSurfaceRecoder() { return hwcSurfaceRecorder_; }
 
     // Determines node opaque and occlusion culling participation for control-level occlusion
     void GetOcclusionInfo(const std::unordered_set<RSModifierType>& opaqueModifiers,
@@ -993,6 +994,7 @@ protected:
 
     // Enable HWCompose
     RSHwcRecorder hwcRecorder_;
+    RSHwcSurfaceRecorder hwcSurfaceRecorder_;
 
 private:
     // mark cross node in physical extended screen model

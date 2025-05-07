@@ -37,6 +37,16 @@ struct RSHwcRecorder {
     }
     int32_t GetZOrderForHwcEnableByFilter() const { return zOrderForHwcEnableByFilter_; }
 
+    bool GetNeedForceUpdateHwcNodes() const { return needForceUpdateHwcNodes_; }
+    bool SetNeedForceUpdateHwcNodes(bool needForceUpdateHwcNodes)
+    {
+        needForceUpdateHwcNodes_ = needForceUpdateHwcNodes;
+    }
+    bool HasVisibleHwcNodes() const { return hasVisibleHwcNodes_; }
+
+    bool needForceUpdateHwcNodes_ = false;
+    bool hasVisibleHwcNodes_ = false;
+
     bool isBlendWithBackground_ = false;
 
     int32_t zOrderForHwcEnableByFilter_ = 0;
@@ -50,6 +60,18 @@ struct RSHwcSurfaceRecorder {
     RSHwcSurfaceRecorder(RSHwcSurfaceRecorder&&) = delete;
     RSHwcSurfaceRecorder& operator=(const RSHwcSurfaceRecorder&) = delete;
     RSHwcSurfaceRecorder& operator=(RSHwcSurfaceRecorder&&) = delete;
+
+    void SetLastFrameHasVisibleRegion(bool lastFrameHasVisibleRegion)
+    {
+        lastFrameHasVisibleRegion_ = lastFrameHasVisibleRegion;
+    }
+
+    bool GetLastFrameHasVisibleRegion() const
+    {
+        return lastFrameHasVisibleRegion_;
+    }
+
+    bool lastFrameHasVisibleRegion_ = true;
 };
 
 } // namespace Rosen

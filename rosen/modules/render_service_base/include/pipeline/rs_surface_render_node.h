@@ -349,16 +349,6 @@ public:
         return isHardwareForcedDisabled_;
     }
 
-    void SetLastFrameHasVisibleRegion(bool lastFrameHasVisibleRegion)
-    {
-        lastFrameHasVisibleRegion_ = lastFrameHasVisibleRegion;
-    }
-
-    bool GetLastFrameHasVisibleRegion() const
-    {
-        return lastFrameHasVisibleRegion_;
-    }
-
     bool IsLeashOrMainWindow() const
     {
         return nodeType_ <= RSSurfaceNodeType::LEASH_WINDOW_NODE || nodeType_ == RSSurfaceNodeType::CURSOR_NODE;
@@ -1656,7 +1646,6 @@ private:
     bool isSubSurfaceNode_ = false;
     bool isNodeToBeCaptured_ = false;
     bool doDirectComposition_ = true;
-    bool lastFrameHasVisibleRegion_ = true;
     bool isSkipDraw_ = false;
     bool needHidePrivacyContent_ = false;
     bool isHardwareForcedByBackgroundAlpha_ = false;

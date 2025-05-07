@@ -2286,7 +2286,7 @@ void RSUniRenderVisitor::UpdateHwcNodesIfVisibleForApp(std::shared_ptr<RSSurface
         }
         Occlusion::Rect dstRect(hwcNodePtr->GetDstRect());
         if (surfaceNode->GetVisibleRegion().IsIntersectWith(dstRect)) {
-            hwcNodePtr->SetLastFrameHasVisibleRegion(true); // visible Region
+            hwcNodePtr->GetHwcSurfaceRecoder().SetLastFrameHasVisibleRegion(true); // visible Region
             hasVisibleHwcNodes = true;
             if (hwcNodePtr->GetRSSurfaceHandler() == nullptr) {
                 continue;
@@ -2295,7 +2295,7 @@ void RSUniRenderVisitor::UpdateHwcNodesIfVisibleForApp(std::shared_ptr<RSSurface
                 needForceUpdateHwcNodes = true;
             }
         } else {
-            hwcNodePtr->SetLastFrameHasVisibleRegion(false); // invisible Region
+            hwcNodePtr->GetHwcSurfaceRecoder().SetLastFrameHasVisibleRegion(false); // invisible Region
         }
     }
 }
