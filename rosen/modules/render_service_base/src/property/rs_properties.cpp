@@ -44,6 +44,7 @@
 #include "render/rs_water_ripple_shader_filter.h"
 #include "render/rs_fly_out_shader_filter.h"
 #include "render/rs_distortion_shader_filter.h"
+#include "render/rs_edge_light_shader_filter.h"
 #include "drawable/rs_property_drawable_utils.h"
 
 #ifndef ENABLE_M133_SKIA
@@ -3386,6 +3387,80 @@ void RSProperties::GenerateWaterRippleFilter()
     }
 }
 
+void RSProperties::GenerateRenderFilterEdgeLight()
+{
+    if (!backgroundRenderFilter_) {
+        ROSEN_LOGE("RSProperties::GenerateRenderFilterEdgeLight get backgroundRenderFilter_ nullptr.");
+        return;
+    }
+    auto edgeLightFilterPara = backgroundRenderFilter_->GetRenderFilterPara(RSUIFilterType::EDGE_LIGHT);
+    if (!edgeLightFilterPara) {
+        ROSEN_LOGE("RSProperties::GenerateRenderFilterEdgeLight get edgeLightFilterPara nullptr.");
+        return;
+    }
+
+    auto edgeLightDetectColor = std::static_pointer_cast<RSRenderProperty<Color>>(
+        edgeLightFilterPara->GetRenderPropert(RSUIFilterType::EDGE_LIGHT_DETECT_COLOR));
+    auto edgeLightColor = std::static_pointer_cast<RSRenderProperty<Color>>(
+        edgeLightFilterPara->GetRenderPropert(RSUIFilterType::EDGE_LIGHT_COLOR));
+    auto edgeLightThreshold = std::static_pointer_cast<RSRenderProperty<float>>(
+        edgeLightFilterPara->GetRenderPropert(RSUIFilterType::EDGE_LIGHT_EDGE_THRESHOLD));
+    auto edgeLightIntensity = std::static_pointer_cast<RSRenderAnimatableProperty<float>>(
+        edgeLightFilterPara->GetRenderPropert(RSUIFilterType::EDGE_LIGHT_EDGE_INTENSITY));
+    auto edgeLightSoftThreshold = std::static_pointer_cast<RSRenderProperty<float>>(
+        edgeLightFilterPara->GetRenderPropert(RSUIFilterType::EDGE_LIGHT_EDGE_SOFT_THRESHOLD));
+    auto edgeLightBloomLevel = std::static_pointer_cast<RSRenderProperty<float>>(
+        edgeLightFilterPara->GetRenderPropert(RSUIFilterType::EDGE_LIGHT_BLOOM_LEVEL));
+    auto edgeLightUseRawColor = std::static_pointer_cast<RSRenderProperty<bool>>(
+        edgeLightFilterPara->GetRenderPropert(RSUIFilterType::EDGE_LIGHT_USE_RAW_COLOR));
+    auto edgeLightGradient = std::static_pointer_cast<RSRenderProperty<bool>>(
+        edgeLightFilterPara->GetRenderPropert(RSUIFilterType::EDGE_LIGHT_GRADIENT));
+    auto edgeLightAlphaProgress = std::static_pointer_cast<RSRenderAnimatableProperty<bool>>(
+        edgeLightFilterPara->GetRenderPropert(RSUIFilterType::EDGE_LIGHT_ALPHA_PROGRESS));
+    auto edgeLightAddImage = std::static_pointer_cast<RSRenderProperty<float>>(
+        edgeLightFilterPara->GetRenderPropert(RSUIFilterType::EDGE_LIGHT_ADD_IMAGE));
+    if (!edgeLightDetectColor || !edgeLightColor || !edgeLightThreshold || !edgeLightIntensity ||
+        !edgeLightSoftThreshold || !edgeLightBloomLevel || !edgeLightUseRawColor ||
+        !edgeLightGradient || !edgeLightAlphaProgress || !edgeLightAddImage) {
+        ROSEN_LOGE("RSProperties::GenerateRenderFilterEdgeLight GetRenderPropert has some nullptr.");
+        return;
+    }
+    EdgeLightShaderFilterParams elParas = {
+        edgeLightDetectColor->Get(), edgeLightColor->Get(), edgeLightThreshold->Get(),
+        edgeLightIntensity->Get(), edgeLightSoftThreshold->Get(), edgeLightBloomLevel->Get(),
+        edgeLightUseRawColor->Get(), edgeLightGradient->Get(), edgeLightAlphaProgress->Get(),
+        edgeLightAddImage->Get()};
+    std::shared_ptr<RSEdgeLightShaderFilter> elFilter = std::make_shared<RSEdgeLightShaderFilter>(elParas);
+
+    std::shared_ptr<RSDrawingFilter> originalFilter = std::make_shared<RSDrawingFilter>(elFilter);
+    if (!backgroundFilter_) {
+        backgroundFilter_ = originalFilter;
+        backgroundFilter_->SetFilterType(RSFilter::EDGE_LIGHT);
+    } else {
+        auto backgroundDrawingFilter = std::static_pointer_cast<RSDrawingFilter>(backgroundFilter_);
+        backgroundDrawingFilter->Compose(elFilter);
+        backgroundDrawingFilter->SetFilterType(RSFilter::COMPOUND_EFFECT);
+        backgroundFilter_ = backgroundDrawingFilter;
+    }
+}
+
+void RSProperties::GenerateRenderFilter()
+{
+    for (auto type : backgroundRenderFilter_->GetUIFilterTypes()) {
+        switch (type) {
+            case RSUIFilterType::EDGE_LIGHT : {
+                GenerateRenderFilterEdgeLight();
+                break;
+            }
+            default:
+                ROSEN_LOGE("RSProperties::GenerateRenderFilter NULL.");
+                break;
+        }
+        ROSEN_LOGD("RSProperties::GenerateRenderFilter type %{public}d finished.", static_cast<int>(type));
+    }
+}
+
+
 void RSProperties::GenerateBackgroundFilter()
 {
     if (aiInvert_.has_value() || systemBarEffect_) {
@@ -3399,6 +3474,11 @@ void RSProperties::GenerateBackgroundFilter()
     } else {
         backgroundFilter_ = nullptr;
     }
+
+    if (backgroundRenderFilter_) {
+        GenerateRenderFilter();
+    }
+
     if (IsWaterRippleValid()) {
         GenerateWaterRippleFilter();
     }

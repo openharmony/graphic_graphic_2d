@@ -59,6 +59,7 @@
 #include "ui/rs_ui_patten_vec.h"
 #include "ui_effect/property/include/rs_ui_filter.h"
 #include "ui_effect/property/include/rs_ui_displacement_distort_filter.h"
+#include "ui_effect/property/include/rs_ui_edge_light_filter.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -1814,6 +1815,13 @@ void RSNode::SetUIBackgroundFilter(const OHOS::Rosen::Filter* backgroundFilter)
                 auto filterDistortPara = std::static_pointer_cast<DisplacementDistortPara>(filterPara);
                 distortProperty->SetDisplacementDistort(filterDistortPara);
                 uiFilter->Insert(distortProperty->GetType(), distortProperty);
+                break;
+            }
+            case FilterPara::EDGE_LIGHT: {
+                auto edgeLightProperty = std::make_shared<RSUIEdgeLightFilterPara>();
+                auto filterEdgeLightPara = std::static_pointer_cast<EdgeLightPara>(filterPara);
+                edgeLightProperty->SetEdgeLight(filterEdgeLightPara);
+                uiFilter->Insert(edgeLightProperty->GetType(), edgeLightProperty);
                 break;
             }
             default:

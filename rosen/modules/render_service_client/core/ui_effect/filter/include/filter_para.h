@@ -44,6 +44,7 @@ public:
         FLY_OUT,
         DISTORT,
         DISPLACEMENT_DISTORT,
+        EDGE_LIGHT,
     };
 
     FilterPara()  = default;

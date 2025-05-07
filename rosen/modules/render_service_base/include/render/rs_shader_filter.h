@@ -44,6 +44,7 @@ public:
         MAGNIFIER,
         LIGHT_BLUR,
         DISPLACEMENT_DISTORT,
+        EDGE_LIGHT,
     };
 
     ShaderFilterType GetShaderFilterType() const

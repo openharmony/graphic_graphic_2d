@@ -78,7 +78,11 @@ constexpr uint32_t NUM_2 = 2;
 constexpr uint32_t NUM_3 = 3;
 constexpr uint32_t NUM_4 = 4;
 constexpr uint32_t NUM_5 = 5;
+constexpr uint32_t NUM_6 = 6;
+constexpr uint32_t NUM_7 = 7;
 constexpr uint32_t NUM_8 = 8;
+constexpr uint32_t NUM_9 = 9;
+constexpr uint32_t NUM_10 = 10;
 constexpr int32_t ERR_NOT_SYSTEM_APP = 202;
 
 bool ConvertDoubleValueFromJsElement(napi_env env, napi_value jsObject, uint32_t idx, double& data);

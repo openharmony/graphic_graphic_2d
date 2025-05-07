@@ -77,6 +77,7 @@ public:
         MAGNIFIER,
         FLY_OUT,
         DISTORT,
+        EDGE_LIGHT,
     };
     FilterType GetFilterType() const
     {
