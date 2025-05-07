@@ -543,6 +543,27 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSUseEffectDrawable004, TestSize.Level1)
 }
 
 /**
+ * @tc.name: RSUseEffectDrawable005
+ * @tc.desc: Test CreateDrawFunc
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRSBinarizationDrawableTest, RSUseEffectDrawable005, TestSize.Level1)
+{
+    auto canvas = std::make_shared<Drawing::Canvas>();
+    auto filterCanvas = std::make_shared<RSPaintFilterCanvas>(canvas.get());
+    filterCanvas->SetEffectIntersectWithDRM(true);
+    ASSERT_TRUE(filterCanvas->GetEffectIntersectWithDRM());
+    auto rect = std::make_shared<Drawing::Rect>();
+    auto drawable = std::make_shared<DrawableV2::RSUseEffectDrawable>();
+    auto drawFunc = drawable->CreateDrawFunc();
+    drawFunc(filterCanvas.get(), rect.get());
+    ASSERT_TRUE(true);
+    drawFunc(nullptr, nullptr);
+    ASSERT_TRUE(true);
+}
+
+/**
  * @tc.name: RSDynamicLightUpDrawable001
  * @tc.desc: Test OnSync
  * @tc.type:FUNC

@@ -2960,6 +2960,12 @@ void RSUniRenderVisitor::MarkBlurIntersectWithDRM(std::shared_ptr<RSRenderNode> 
     if (appWindowNode == nullptr) {
         return;
     }
+    if (node->IsInstanceOf<RSEffectRenderNode>()) {
+        if (auto effectNode = node->ReinterpretCastTo<RSEffectRenderNode>()) {
+            effectNode->SetEffectIntersectWithDRM(false);
+            effectNode->SetDarkColorMode(RSMainThread::Instance()->GetGlobalDarkColorMode());
+        }
+    }
     for (const auto& win : drmKeyWins) {
         if (appWindowNode->GetName().find(win) == std::string::npos) {
             continue;
@@ -2973,6 +2979,12 @@ void RSUniRenderVisitor::MarkBlurIntersectWithDRM(std::shared_ptr<RSRenderNode> 
                 drmNodePtr->GetRenderProperties().GetBoundsGeometry()->GetAbsRect().Intersect(node->GetFilterRegion());
             if (isIntersect) {
                 node->MarkBlurIntersectWithDRM(true, RSMainThread::Instance()->GetGlobalDarkColorMode());
+                if (node->IsInstanceOf<RSEffectRenderNode>()) {
+                    if (auto effectNode = node->ReinterpretCastTo<RSEffectRenderNode>()) {
+                        effectNode->SetEffectIntersectWithDRM(true);
+                        effectNode->SetDarkColorMode(RSMainThread::Instance()->GetGlobalDarkColorMode());
+                    }
+                }
             }
         }
     }
