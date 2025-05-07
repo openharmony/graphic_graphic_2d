@@ -3444,12 +3444,66 @@ void RSProperties::GenerateRenderFilterEdgeLight()
     }
 }
 
+void RSProperties::GenerateSoundWaveFilter()
+{
+    if (!backgroundRenderFilter_) {
+        ROSEN_LOGE("RSProperties::GenerateSoundWaveFilter get backgroundRenderFilter_ nullptr.");
+        return;
+    }
+    auto soundWaveFilterPara = backgroundRenderFilter_->GetRenderFilterPara(RSUIFilterType::SOUND_WAVE);
+    if (!soundWaveFilterPara) {
+        ROSEN_LOGE("RSProperties::GenerateSoundWaveFilter get soundWaveFilterPara nullptr.");
+        return;
+    }
+
+    auto waveColorOne = std::static_pointer_cast<RSRenderProperty<Color>>(
+        soundWaveFilterPara->GetRenderPropert(RSUIFilterType::SOUND_WAVE_COLOR_ONE));
+    auto waveColorTwo = std::static_pointer_cast<RSRenderProperty<Color>>(
+        soundWaveFilterPara->GetRenderPropert(RSUIFilterType::SOUND_WAVE_COLOR_TWO));
+    auto waveColorThree = std::static_pointer_cast<RSRenderProperty<Color>>(
+        soundWaveFilterPara->GetRenderPropert(RSUIFilterType::SOUND_WAVE_COLOR_THREE));
+    auto waveColorProgress = std::static_pointer_cast<RSRenderAnimatableProperty<float>>(
+        soundWaveFilterPara->GetRenderPropert(RSUIFilterType::SOUND_WAVE_COLOR_PROGRESS));
+    auto wavecenterBrightness = std::static_pointer_cast<RSRenderProperty<float>>(
+        soundWaveFilterPara->GetRenderPropert(RSUIFilterType::SOUND_WAVE_CENTER_BRIGHTNESS));
+    auto soundIntensity = std::static_pointer_cast<RSRenderAnimatableProperty<float>>(
+        soundWaveFilterPara->GetRenderPropert(RSUIFilterType::SOUND_INTENSITY));
+    auto shockWaveAlphaOne = std::static_pointer_cast<RSRenderAnimatableProperty<float>>(
+        soundWaveFilterPara->GetRenderPropert(RSUIFilterType::SHOCK_WAVE_ALPHA_ONE));
+    auto shockWaveAlphaTwo = std::static_pointer_cast<RSRenderAnimatableProperty<float>>(
+        soundWaveFilterPara->GetRenderPropert(RSUIFilterType::SHOCK_WAVE_ALPHA_TWO));
+    auto shockWaveProgress = std::static_pointer_cast<RSRenderAnimatableProperty<float>>(
+        soundWaveFilterPara->GetRenderPropert(RSUIFilterType::SHOCK_WAVE_PROGRESS_ONE));
+    auto shockWaveProgressTwo = std::static_pointer_cast<RSRenderAnimatableProperty<float>>(
+        soundWaveFilterPara->GetRenderPropert(RSUIFilterType::SHOCK_WAVE_PROGRESS_TWO));
+    std::shared_ptr<RSSoundWaveFilter> soundWaveFilter =
+        std::make_shared<RSSoundWaveFilter>(waveColorOne->Get(), waveColorTwo->Get(), waveColorThree->Get(),
+                                            waveColorProgress->Get(), wavecenterBrightness->Get(),
+                                            soundIntensity->Get(), shockWaveAlphaOne->Get(),
+                                            shockWaveAlphaTwo->Get(), shockWaveProgress->Get(),
+                                            shockWaveProgressTwo->Get());
+    std::shared_ptr<RSDrawingFilter> originalFilter = std::make_shared<RSDrawingFilter>(soundWaveFilter);
+    if (!backgroundFilter_) {
+        backgroundFilter_ = originalFilter;
+        backgroundFilter_->SetFilterType(RSFilter::SOUND_WAVE);
+    } else {
+        auto backgroundDrawingFilter = std::static_pointer_cast<RSDrawingFilter>(backgroundFilter_);
+        backgroundDrawingFilter->Compose(soundWaveFilter);
+        backgroundDrawingFilter->SetFilterType(RSFilter::COMPOUND_EFFECT);
+        backgroundFilter_ = backgroundDrawingFilter;
+    }
+}
+
 void RSProperties::GenerateRenderFilter()
 {
     for (auto type : backgroundRenderFilter_->GetUIFilterTypes()) {
         switch (type) {
             case RSUIFilterType::EDGE_LIGHT : {
                 GenerateRenderFilterEdgeLight();
+                break;
+            }
+            case RSUIFilterType::SOUND_WAVE : {
+                GenerateSoundWaveFilter();
                 break;
             }
             default:

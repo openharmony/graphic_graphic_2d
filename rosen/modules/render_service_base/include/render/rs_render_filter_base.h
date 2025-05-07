@@ -26,6 +26,7 @@ enum class RSUIFilterType : int16_t {
     BLUR,
     DISPLACEMENT_DISTORT,
     EDGE_LIGHT,
+    SOUND_WAVE,
     // mask type
     RIPPLE_MASK,
     RADIAL_GRADIENT_MASK,
@@ -52,6 +53,18 @@ enum class RSUIFilterType : int16_t {
     EDGE_LIGHT_GRADIENT, // bool
     EDGE_LIGHT_ALPHA_PROGRESS, // float
     EDGE_LIGHT_ADD_IMAGE, // bool
+
+    //value type
+    SOUND_WAVE_COLOR_ONE, //RSCOLOR
+    SOUND_WAVE_COLOR_TWO, //RSCOLOR
+    SOUND_WAVE_COLOR_THREE, //RSCOLOR
+    SOUND_WAVE_COLOR_PROGRESS, //float
+    SOUND_WAVE_CENTER_BRIGHTNESS, //float
+    SOUND_INTENSITY, //float
+    SHOCK_WAVE_ALPHA_ONE, //float
+    SHOCK_WAVE_ALPHA_TWO, //float
+    SHOCK_WAVE_PROGRESS_ONE, //float
+    SHOCK_WAVE_PROGRESS_TWO, //float
 };
 
 class RSB_EXPORT RSRenderFilterParaBase : public RSRenderPropertyBase,

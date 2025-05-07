@@ -1814,14 +1814,14 @@ void RSNode::SetUIBackgroundFilter(const OHOS::Rosen::Filter* backgroundFilter)
                 auto distortProperty = std::make_shared<RSUIDispDistortFilterPara>();
                 auto filterDistortPara = std::static_pointer_cast<DisplacementDistortPara>(filterPara);
                 distortProperty->SetDisplacementDistort(filterDistortPara);
-                uiFilter->Insert(distortProperty->GetType(), distortProperty);
+                uiFilter->Insert(distortProperty);
                 break;
             }
             case FilterPara::EDGE_LIGHT: {
                 auto edgeLightProperty = std::make_shared<RSUIEdgeLightFilterPara>();
                 auto filterEdgeLightPara = std::static_pointer_cast<EdgeLightPara>(filterPara);
                 edgeLightProperty->SetEdgeLight(filterEdgeLightPara);
-                uiFilter->Insert(edgeLightProperty->GetType(), edgeLightProperty);
+                uiFilter->Insert(edgeLightProperty);
                 break;
             }
             default:

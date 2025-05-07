@@ -20,7 +20,7 @@
 #include "render/rs_render_filter.h"
 namespace OHOS {
 namespace Rosen {
-class  RSUIFilter {
+class RSC_EXPORT RSUIFilter {
 public:
     RSUIFilter() = default;
     virtual ~RSUIFilter() = default;
@@ -39,7 +39,7 @@ public:
 
     std::shared_ptr<RSRenderPropertyBase> CreateRenderProperty(const PropertyId& id);
 
-    void Insert(RSUIFilterType type, const std::shared_ptr<RSUIFilterParaBase>& value);
+    void Insert(const std::shared_ptr<RSUIFilterParaBase>& value);
 
     bool IsStructureSame(const std::shared_ptr<RSUIFilter>& other) const;
 
