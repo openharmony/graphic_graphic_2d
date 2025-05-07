@@ -23,7 +23,11 @@ RSDisplacementDistortFilter::RSDisplacementDistortFilter(std::shared_ptr<RSShade
     : mask_(mask), factor_(factor)
 {
     type_ = ShaderFilterType::DISPLACEMENT_DISTORT;
+#ifndef ENABLE_M133_SKIA
     hash_ = SkOpts::hash(&factor_, sizeof(factor_), hash_);
+#else
+    hash_ = SkChecksum::Hash32(&factor_, sizeof(factor_), hash_);
+#endif
 }
 
 void RSDisplacementDistortFilter::GenerateGEVisualEffect(

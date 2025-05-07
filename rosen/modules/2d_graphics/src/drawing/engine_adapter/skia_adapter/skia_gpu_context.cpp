@@ -348,7 +348,9 @@ void SkiaGPUContext::RegisterDrawOpOverCallback(const std::function<void(int32_t
         LOGD("SkiaGPUContext::RegisterDrawOpOverCallback, grContext_ is nullptr");
         return;
     }
+#ifndef USE_M133_SKIA
     grContext_->registerDrawOpOverCallback(drawOpOverCallback);
+#endif
 }
 
 void SkiaGPUContext::PurgeUnlockAndSafeCacheGpuResources()
