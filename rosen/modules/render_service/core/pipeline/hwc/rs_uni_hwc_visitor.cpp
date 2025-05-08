@@ -727,11 +727,6 @@ void RSUniHwcVisitor::CalcHwcNodeEnableByFilterRect(std::shared_ptr<RSSurfaceRen
     if (!node) {
         return;
     }
-    if (filterNode.GetRenderProperties().GetBackgroundFilter() != nullptr && filterZOrder != 0 &&
-        node->GetHwcRecorder().GetZOrderForHwcEnableByFilter() != 0 &&
-        node->GetHwcRecorder().GetZOrderForHwcEnableByFilter() > filterZOrder) {
-        return;
-    }
     auto bound = node->GetRenderProperties().GetBoundsGeometry()->GetAbsRect();
     bool isIntersect = !bound.IntersectRect(filterNode.GetOldDirtyInSurface()).IsEmpty();
     if (isIntersect) {
