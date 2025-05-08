@@ -568,6 +568,21 @@ enum OH_Drawing_FontWidth {
 };
 
 /**
+ * @brief Type of badge.
+ *
+ * @since 20
+ * @version 1.0
+ */
+typedef enum OH_Drawing_TextBadgeType {
+    /* No badge */
+    TEXT_BADGE_NONE,
+    /* Super badge */
+    TEXT_SUPERSCRIPT,
+    /* Sub badge */
+    TEXT_SUBSCRIPT,
+} OH_Drawing_TextBadgeType;
+
+/**
  * @brief Defines the font style struct.
  *
  * @since 12
@@ -2899,6 +2914,17 @@ void OH_Drawing_SetTypographyTextTrailingSpaceOptimized(OH_Drawing_TypographySty
  * @since 20
  */
 void OH_Drawing_SetTypographyTextAutoSpace(OH_Drawing_TypographyStyle* style, bool enableAutoSpace);
+
+/**
+ * @brief Set text badge type.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param style Indicates the pointer to an <b>OH_Drawing_TextStyle</b> object.
+ * @param textBageType The type of text badge.
+ * @since 20
+ * @version 1.0
+ */
+void OH_Drawing_SetTextStyleBadgeType(OH_Drawing_TextStyle* style, OH_Drawing_TextBadgeType textBageType);
 
 #ifdef __cplusplus
 }

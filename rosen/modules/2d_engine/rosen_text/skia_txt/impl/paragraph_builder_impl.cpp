@@ -252,6 +252,8 @@ skt::TextStyle ParagraphBuilderImpl::ConvertTextStyleToSkStyle(const TextStyle& 
         skStyle.setCustomSymbol(true);
     }
 
+    skStyle.setTextBadgeType(static_cast<skt::TextBadgeType>(txt.badgeType));
+
     return skStyle;
 }
 

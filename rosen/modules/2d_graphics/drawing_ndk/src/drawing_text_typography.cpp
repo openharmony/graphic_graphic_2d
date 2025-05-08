@@ -27,6 +27,7 @@
 #include "font_config.h"
 #include "font_parser.h"
 #include "font_utils.h"
+#include "txt/text_bundle_config_parser.h"
 #include "rosen_text/font_collection.h"
 #include "rosen_text/typography.h"
 #include "rosen_text/typography_create.h"
@@ -3632,4 +3633,9 @@ void OH_Drawing_SetTypographyTextAutoSpace(OH_Drawing_TypographyStyle* style, bo
         return;
     }
     ConvertToOriginalText<TypographyStyle>(style)->enableAutoSpace = enableAutoSpace;
+}
+
+void OH_Drawing_SetTextStyleBadgeType(OH_Drawing_TextStyle* style, OH_Drawing_TextBadgeType textBageType)
+{
+    ConvertToOriginalText<TextStyle>(style)->badgeType = static_cast<TextBadgeType>(textBageType);
 }
