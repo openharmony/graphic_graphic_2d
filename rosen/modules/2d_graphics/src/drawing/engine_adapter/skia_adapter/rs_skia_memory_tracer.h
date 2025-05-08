@@ -72,7 +72,7 @@ private:
         int count;
     };
 
-    static std::string SourceType2String(SOURCETYPE type);
+    static std::string SourceType2String(RSTagTracker::SOURCETYPE type);
     const char* MapName(const char* resourceName);
     void ProcessElement();
     TraceValue ConvertUnits(const TraceValue& value);

@@ -60,11 +60,11 @@ public:
         SOURCE_INITCACHEDSURFACE,
         SOURCE_DRAWRENDERCONTENT
     };
-    RSTagTracker(std::shared_ptr<Drawing::GPUContext> gpuContext, RSTagTracker::TAGTYPE tagType);
-    RSTagTracker(std::shared_ptr<Drawing::GPUContext> gpuContext, RSTagTracker::SOURCETYPE sourceType);
-    RSTagTracker(std::shared_ptr<Drawing::GPUContext> gpuContext, NodeId nodeId,
+    RSTagTracker(const std::shared_ptr<Drawing::GPUContext>& gpuContext, RSTagTracker::TAGTYPE tagType);
+    RSTagTracker(const std::shared_ptr<Drawing::GPUContext>& gpuContext, RSTagTracker::SOURCETYPE sourceType);
+    RSTagTracker(const std::shared_ptr<Drawing::GPUContext>& gpuContext, NodeId nodeId,
         RSTagTracker::TAGTYPE tagType, const std::string& name);
-    RSTagTracker(std::shared_ptr<Drawing::GPUContext> gpuContext, Drawing::GPUResourceTag& tag);
+    RSTagTracker(const std::shared_ptr<Drawing::GPUContext>& gpuContext, Drawing::GPUResourceTag& tag);
     void SetTagEnd();
     ~RSTagTracker();
     static void UpdateReleaseResourceEnabled(bool releaseResEnabled);

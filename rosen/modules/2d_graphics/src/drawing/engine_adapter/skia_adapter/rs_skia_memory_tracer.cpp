@@ -142,8 +142,8 @@ void SkiaMemoryTracer::ProcessElement()
         std::string sourceType;
         auto sourceIdResult = currentValues_.find("source");
         if (sourceIdResult != currentValues_.end()) {
-            sourceType =
-                SourceType2String(static_cast<SOURCETYPE>(static_cast<uint32_t>(sourceIdResult->second.value)));
+            sourceType = SourceType2String(
+                static_cast<RSTagTracker::SOURCETYPE>(static_cast<uint32_t>(sourceIdResult->second.value)));
         } else if (itemizeType_) {
             sourceType = "source_other";
         } else {
