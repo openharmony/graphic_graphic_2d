@@ -1517,6 +1517,9 @@ public:
         return appWindowZOrder_;
     }
 
+    // Enable HWCompose
+    RSHwcSurfaceRecorder& GetHwcSurfaceRecoder() { return hwcSurfaceRecorder_; }
+
 protected:
     void OnSync() override;
     void OnSkipSync() override;
@@ -1774,7 +1777,7 @@ private:
     std::vector<std::shared_ptr<RSRenderNode>> filterNodes_;
     std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> drawingCacheNodes_;
     int32_t appWindowZOrder_ = 0;
-    
+
     // Enable HWCompose
     RSHwcSurfaceRecorder hwcSurfaceRecorder_;
 
