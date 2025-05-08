@@ -48,6 +48,7 @@ void SafeDelete(ani_long& ptr)
         T* pointer = reinterpret_cast<T*>(ptr);
         delete pointer;
         pointer = nullptr;
+        ptr = 0;
     }
 }
 
