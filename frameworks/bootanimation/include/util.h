@@ -35,6 +35,7 @@ static const int NUMBER_TWO = 2;
 static const int READ_SIZE = 8192;
 static const int MAX_FILE_NAME = 512;
 static const int SLEEP_TIME_US = 30000;
+static const int SLEEP_TIME_US_10 = 10000;
 constexpr const float MAX_ZORDER = 100000.0f;
 
 constexpr const char* FILE_PREFIX = "file:/";
@@ -161,6 +162,8 @@ bool CheckImageData(const std::string& fileName, std::shared_ptr<ImageStruct> im
 bool CloseZipFile(const unzFile zipFile, bool ret);
 
 int32_t TransalteVp2Pixel(const int32_t sideLen, const int32_t vp);
+
+int64_t GetSystemCurrentTime();
 } // namespace OHOS
 
 #endif // FRAMEWORKS_BOOTANIMATION_INCLUDE_UTIL_H
