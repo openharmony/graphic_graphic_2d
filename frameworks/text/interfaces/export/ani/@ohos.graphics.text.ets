@@ -65,10 +65,6 @@ namespace text {
       destroyRegister.register(this, this.cleaner!, unregisterToken);
     }
 
-    constructor(globalNativeObj : long) {
-      this.nativeObj = globalNativeObj;
-    };
-
     /**
      * Get global FontCollection instance of the application.
      * @returns { FontCollection } The FontCollection object.
