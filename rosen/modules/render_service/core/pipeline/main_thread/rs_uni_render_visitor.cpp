@@ -28,6 +28,7 @@
 #include "common/rs_optional_trace.h"
 #include "common/rs_singleton.h"
 #include "common/rs_special_layer_manager.h"
+#include "feature/hwc/rs_uni_hwc_compute_util.h"
 #include "feature/opinc/rs_opinc_manager.h"
 #include "feature/hdr/rs_hdr_util.h"
 #include "feature/uifirst/rs_sub_thread_manager.h"
@@ -1938,8 +1939,8 @@ void RSUniRenderVisitor::UpdateSrcRect(RSSurfaceRenderNode& node, const Drawing:
     const auto boundsHeight = property.GetBoundsHeight();
     const auto frameGravity = Gravity::RESIZE;
     const GraphicTransformType consumerTransformType = node.GetFixRotationByUser() ?
-        RSUniRenderUtil::GetRotateTransformForRotationFixed(node, consumer) :
-        RSUniRenderUtil::GetConsumerTransform(node, buffer, consumer);
+        RSUniHwcComputeUtil::GetRotateTransformForRotationFixed(node, consumer) :
+        RSUniHwcComputeUtil::GetConsumerTransform(node, buffer, consumer);
     const auto dstRect = node.GetDstRect();
     Drawing::Rect dst(dstRect.left_, dstRect.top_, dstRect.GetRight(), dstRect.GetBottom());
     if (consumerTransformType == GraphicTransformType::GRAPHIC_ROTATE_90 ||
@@ -1963,7 +1964,7 @@ void RSUniRenderVisitor::UpdateSrcRect(RSSurfaceRenderNode& node, const Drawing:
         std::swap(srcRect.left_, srcRect.top_);
         std::swap(srcRect.right_, srcRect.bottom_);
     }
-    srcRect = RSUniRenderUtil::CalcSrcRectByBufferRotation(*buffer, consumerTransformType, srcRect);
+    srcRect = RSUniHwcComputeUtil::CalcSrcRectByBufferRotation(*buffer, consumerTransformType, srcRect);
     node.SetSrcRect({srcRect.GetLeft(), srcRect.GetTop(), srcRect.GetWidth(), srcRect.GetHeight()});
 }
 
@@ -2008,12 +2009,12 @@ void RSUniRenderVisitor::UpdateHwcNodeByTransform(RSSurfaceRenderNode& node, con
     node.SetInFixedRotation(displayNodeRotationChanged_ || isScreenRotationAnimating_);
     const uint32_t apiCompatibleVersion = node.GetApiCompatibleVersion();
     (apiCompatibleVersion != INVALID_API_COMPATIBLE_VERSION && apiCompatibleVersion < API18) ?
-        RSUniRenderUtil::DealWithNodeGravityOldVersion(node, screenInfo_) :
-        RSUniRenderUtil::DealWithNodeGravity(node, totalMatrix);
-    RSUniRenderUtil::DealWithScalingMode(node, totalMatrix);
-    RSUniRenderUtil::LayerRotate(node, screenInfo_);
-    RSUniRenderUtil::LayerCrop(node, screenInfo_);
-    RSUniRenderUtil::CalcSrcRectByBufferFlip(node, screenInfo_);
+        RSUniHwcComputeUtil::DealWithNodeGravityOldVersion(node, screenInfo_) :
+        RSUniHwcComputeUtil::DealWithNodeGravity(node, totalMatrix);
+    RSUniHwcComputeUtil::DealWithScalingMode(node, totalMatrix);
+    RSUniHwcComputeUtil::LayerRotate(node, screenInfo_);
+    RSUniHwcComputeUtil::LayerCrop(node, screenInfo_);
+    RSUniHwcComputeUtil::CalcSrcRectByBufferFlip(node, screenInfo_);
     node.SetCalcRectInPrepare(true);
 }
 
