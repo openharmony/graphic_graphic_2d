@@ -77,7 +77,6 @@ public:
         }
     }
 #endif
-
 };
 } // namespace OHOS
 
