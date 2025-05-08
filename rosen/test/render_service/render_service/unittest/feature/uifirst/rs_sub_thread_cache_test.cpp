@@ -45,7 +45,12 @@ public:
     void TearDown() override;
 };
 
-void RSSubThreadCacheTest::SetUpTestCase() {}
+void RSSubThreadCacheTest::SetUpTestCase()
+{
+#ifdef RS_ENABLE_VK
+    RsVulkanContext::SetRecyclable(false);
+#endif
+}
 void RSSubThreadCacheTest::TearDownTestCase() {}
 void RSSubThreadCacheTest::SetUp()
 {

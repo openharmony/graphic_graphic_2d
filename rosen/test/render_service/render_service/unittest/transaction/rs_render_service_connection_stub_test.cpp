@@ -69,6 +69,9 @@ sptr<RSRenderServiceConnectionStub> RSRenderServiceConnectionStubTest::connectio
 
 void RSRenderServiceConnectionStubTest::SetUpTestCase()
 {
+#ifdef RS_ENABLE_VK
+    RsVulkanContext::SetRecyclable(false);
+#endif
     hdiOutput_ = HdiOutput::CreateHdiOutput(screenId_);
     auto rsScreen = std::make_shared<impl::RSScreen>(screenId_, true, hdiOutput_, nullptr);
     screenManager_ = CreateOrGetScreenManager();

@@ -33,7 +33,12 @@ public:
     void TearDown() override;
 };
 
-void RsSubThreadTest::SetUpTestCase() {}
+void RsSubThreadTest::SetUpTestCase()
+{
+#ifdef RS_ENABLE_VK
+    RsVulkanContext::SetRecyclable(false);
+#endif
+}
 void RsSubThreadTest::TearDownTestCase() {}
 void RsSubThreadTest::SetUp() {}
 void RsSubThreadTest::TearDown() {}

@@ -25,6 +25,10 @@
 #include "image/gpu_context.h"
 #include "utils/log.h"
 
+#ifdef RS_ENABLE_VK
+#include "platform/ohos/backend/rs_vulkan_context.h"
+#endif
+
 using namespace testing;
 using namespace testing::ext;
 
@@ -62,6 +66,9 @@ EGLContext GpuContextTest::eglContext_ = EGL_NO_CONTEXT;
 
 void GpuContextTest::SetUpTestCase()
 {
+#ifdef RS_ENABLE_VK
+    RsVulkanContext::SetRecyclable(false);
+#endif
     InitEGL();
 }
 

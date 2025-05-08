@@ -18,6 +18,10 @@
 #include "drawing_shader_effect.h"
 #include "gtest/gtest.h"
 
+#ifdef RS_ENABLE_VK
+#include "platform/ohos/backend/rs_vulkan_context.h"
+#endif
+
 using namespace testing;
 using namespace testing::ext;
 
@@ -33,7 +37,12 @@ public:
 };
 
 
-void NativeDrawingSamplingOptionsTest::SetUpTestCase() {}
+void NativeDrawingSamplingOptionsTest::SetUpTestCase()
+{
+#ifdef RS_ENABLE_VK
+    RsVulkanContext::SetRecyclable(false);
+#endif
+}
 void NativeDrawingSamplingOptionsTest::TearDownTestCase() {}
 void NativeDrawingSamplingOptionsTest::SetUp() {}
 void NativeDrawingSamplingOptionsTest::TearDown() {}

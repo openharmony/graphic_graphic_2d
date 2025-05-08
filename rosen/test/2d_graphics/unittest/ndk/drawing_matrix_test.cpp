@@ -20,6 +20,10 @@
 #include "drawing_rect.h"
 #include "utils/scalar.h"
 
+#ifdef RS_ENABLE_VK
+#include "platform/ohos/backend/rs_vulkan_context.h"
+#endif
+
 using namespace testing;
 using namespace testing::ext;
 
@@ -39,7 +43,12 @@ constexpr int32_t NEGATIVE_ONE = -1;
 constexpr uint32_t MAPPOINTS_SIZE = 5;
 constexpr uint32_t MAPPOINTS_COUNT = 2;
 
-void NativeDrawingMatrixTest::SetUpTestCase() {}
+void NativeDrawingMatrixTest::SetUpTestCase()
+{
+#ifdef RS_ENABLE_VK
+    RsVulkanContext::SetRecyclable(false);
+#endif
+}
 void NativeDrawingMatrixTest::TearDownTestCase() {}
 void NativeDrawingMatrixTest::SetUp() {}
 void NativeDrawingMatrixTest::TearDown() {}

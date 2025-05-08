@@ -23,6 +23,10 @@
 #include "gtest/gtest.h"
 #include "string"
 
+#ifdef RS_ENABLE_VK
+#include "platform/ohos/backend/rs_vulkan_context.h"
+#endif
+
 using namespace testing;
 using namespace testing::ext;
 
@@ -33,7 +37,12 @@ constexpr static float FLOAT_DATA_EPSILON = 1e-6f;
 
 class NativeDrawingRunTest : public testing::Test {
 public:
-    static void SetUpTestCase() {}
+    static void SetUpTestCase()
+    {
+#ifdef RS_ENABLE_VK
+        Rosen::RsVulkanContext::SetRecyclable(false);
+#endif
+    }
     static void TearDownTestCase() {}
     void SetUp() override {};
     void TearDown() override;

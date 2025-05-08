@@ -32,6 +32,10 @@
 #include "drawing_rect.h"
 #include "drawing_matrix.h"
 
+#ifdef RS_ENABLE_VK
+#include "platform/ohos/backend/rs_vulkan_context.h"
+#endif
+
 using namespace testing;
 using namespace testing::ext;
 
@@ -46,7 +50,12 @@ public:
     void TearDown() override;
 };
 
-void NativeDrawingPenTest::SetUpTestCase() {}
+void NativeDrawingPenTest::SetUpTestCase()
+{
+#ifdef RS_ENABLE_VK
+    RsVulkanContext::SetRecyclable(false);
+#endif
+}
 void NativeDrawingPenTest::TearDownTestCase() {}
 void NativeDrawingPenTest::SetUp() {}
 void NativeDrawingPenTest::TearDown() {}
