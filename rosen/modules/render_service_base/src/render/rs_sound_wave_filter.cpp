@@ -85,9 +85,9 @@ void RSSoundWaveFilter::GenerateGEVisualEffect(
 {
     auto soundWaveFilter = std::make_shared<Drawing::GEVisualEffect>("SOUND_WAVE",
         Drawing::DrawingPaintType::BRUSH);
-    soundWaveFilter->SetParam(GE_FILTER_SOUND_WAVE_COLORA, colorA_.AsRgbaInt());
-    soundWaveFilter->SetParam(GE_FILTER_SOUND_WAVE_COLORB, colorB_.AsRgbaInt());
-    soundWaveFilter->SetParam(GE_FILTER_SOUND_WAVE_COLORC, colorC_.AsRgbaInt());
+    soundWaveFilter->SetParam(GE_FILTER_SOUND_WAVE_COLOR_A, colorA_.AsRgbaInt());
+    soundWaveFilter->SetParam(GE_FILTER_SOUND_WAVE_COLOR_B, colorB_.AsRgbaInt());
+    soundWaveFilter->SetParam(GE_FILTER_SOUND_WAVE_COLOR_C, colorC_.AsRgbaInt());
     soundWaveFilter->SetParam(GE_FILTER_SOUND_WAVE_COLORPROGRESS, colorProgress_);
     soundWaveFilter->SetParam(GE_FILTER_SOUND_WAVE_CENTERBRIGHTNESS, centerBrightness_);
     soundWaveFilter->SetParam(GE_FILTER_SOUND_WAVE_SOUNDINTENSITY, soundIntensity_);
@@ -98,4 +98,5 @@ void RSSoundWaveFilter::GenerateGEVisualEffect(
     visualEffectContainer->AddToChainedFilter(soundWaveFilter);
 }
 } // namespace Rosen
+
 } // namespace OHOS
