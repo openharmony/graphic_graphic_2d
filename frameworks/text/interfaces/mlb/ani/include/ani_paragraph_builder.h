@@ -17,7 +17,6 @@
 #define OHOS_TEXT_ANI_PARAGRAPH_BUILDER_H
 
 #include <ani.h>
-
 #include <memory>
 
 #include "typography_create.h"
@@ -35,7 +34,7 @@ private:
     static void AddText(ani_env* env, ani_object object, ani_string text);
     static ani_object Build(ani_env* env, ani_object object);
 
-    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate_ = nullptr;
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate_{nullptr};
 };
 } // namespace OHOS::Text::NAI
 #endif // OHOS_TEXT_ANI_PARAGRAPH_BUILDER_H

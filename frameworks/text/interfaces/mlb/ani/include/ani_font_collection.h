@@ -17,7 +17,6 @@
 #define OHOS_TEXT_ANI_FONT_COLLECTION_H
 
 #include <ani.h>
-
 #include <memory>
 
 #include "font_collection.h"
@@ -36,7 +35,7 @@ public:
     std::shared_ptr<OHOS::Rosen::FontCollection> GetFontCollection();
 
 private:
-    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection_ = nullptr;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection_{nullptr};
 };
 } // namespace OHOS::Text::NAI
 #endif // OHOS_TEXT_ANI_FONT_COLLECTION_H

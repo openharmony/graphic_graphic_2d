@@ -17,7 +17,6 @@
 #define OHOS_TEXT_ANI_PARAGRAPH_STYLE_CONVERTER_H
 
 #include <ani.h>
-
 #include <memory>
 #include <vector>
 

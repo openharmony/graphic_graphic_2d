@@ -17,7 +17,6 @@
 #define OHOS_TEXT_ANI_LINE_METRICS_CONVERTER_H
 
 #include <ani.h>
-
 #include <map>
 
 #include "typography.h"

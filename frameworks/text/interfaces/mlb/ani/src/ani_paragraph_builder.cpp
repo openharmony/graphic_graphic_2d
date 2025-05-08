@@ -113,9 +113,10 @@ void AniParagraphBuilder::PushStyle(ani_env* env, ani_object object, ani_object 
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return;
     }
-    std::unique_ptr<TextStyle> textStyleNative = TextStyleConverter::ParseTextStyleToNative(env, textStyle);
-    if (textStyleNative != nullptr) {
-        aniParagraphBuilder->typographyCreate_->PushStyle(*textStyleNative);
+    TextStyle textStyleNative;
+    ani_status status = TextStyleConverter::ParseTextStyleToNative(env, textStyle, textStyleNative);
+    if (status == ANI_OK) {
+        aniParagraphBuilder->typographyCreate_->PushStyle(textStyleNative);
     }
 }
 

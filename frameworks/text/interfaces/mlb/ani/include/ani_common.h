@@ -12,46 +12,54 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <cstdint>
-
 #ifndef OHOS_TEXT_ANI_COMMON_H
 #define OHOS_TEXT_ANI_COMMON_H
 
-namespace OHOS::Text::NAI {
-inline constexpr const char* NATIVE_OBJ = "nativeObj";
-inline constexpr const char* ANI_OBJECT = "Lstd/core/Double;";
-inline constexpr const char* ANI_INT = "Lstd/core/Int;";
-inline constexpr const char* ANI_BOOLEAN = "Lstd/core/Boolean;";
-inline constexpr const char* ANI_MAP = "Lescompat/Map;";
-inline constexpr const char* ANI_ARRAY = "Lescompat/Array;";
-inline constexpr const char* ANI_CLASS_CLEANER = "L@ohos/graphics/text/text/Cleaner;";
-inline constexpr const char* ANI_CLASS_PARAGRAPH = "L@ohos/graphics/text/text/Paragraph;";
-inline constexpr const char* ANI_CLASS_PARAGRAPH_BUILDER = "L@ohos/graphics/text/text/ParagraphBuilder;";
-inline constexpr const char* ANI_CLASS_LINEMETRICS_I = "L@ohos/graphics/text/text/LineMetricsInternal;";
-inline constexpr const char* ANI_CLASS_RUNMETRICS_I = "L@ohos/graphics/text/text/RunMetricsInternal;";
-inline constexpr const char* ANI_CLASS_PARAGRAPH_STYLE = "L@ohos/graphics/text/text/ParagraphStyle;";
-inline constexpr const char* ANI_CLASS_TEXT_STYLE = "L@ohos/graphics/text/text/TextStyle;";
-inline constexpr const char* ANI_CLASS_TEXT_STYLE_I = "L@ohos/graphics/text/text/TextStyleInternal;";
-inline constexpr const char* ANI_CLASS_FONT_COLLECTION = "L@ohos/graphics/text/text/FontCollection;";
-inline constexpr const char* ANI_CLASS_FONT_FEATURE = "L@ohos/graphics/text/text/FontFeature;";
-inline constexpr const char* ANI_CLASS_FONT_FEATURE_I = "L@ohos/graphics/text/text/FontFeatureInternal;";
-inline constexpr const char* ANI_CLASS_FONT_VARIATION = "L@ohos/graphics/text/text/FontVariation;";
-inline constexpr const char* ANI_CLASS_FONT_VARIATION_I = "L@ohos/graphics/text/text/FontVariationInternal;";
-inline constexpr const char* ANI_CLASS_CANVAS = "L@ohos/graphics/drawing/drawing/Canvas;";
-inline constexpr const char* ANI_CLASS_PATH = "L@ohos/graphics/drawing/drawing/Path;";
-inline constexpr const char* ANI_CLASS_FONT_METRICS_I = "L@ohos/graphics/drawing/drawing/FontMetricsInner;";
-inline constexpr const char* ANI_CLASS_TEXTSHADOW = "L@ohos/graphics/text/text/TextShadow;";
-inline constexpr const char* ANI_CLASS_TEXTSHADOW_I = "L@ohos/graphics/text/text/TextShadowInternal;";
-inline constexpr const char* ANI_CLASS_RECT_STYLE = "L@ohos/graphics/text/text/RectStyle;";
-inline constexpr const char* ANI_CLASS_RECT_STYLE_I = "L@ohos/graphics/text/text/RectStyleInternal;";
-inline constexpr const char* ANI_CLASS_DECORATION_I = "L@ohos/graphics/text/text/DecorationInternal;";
+#include <cstdint>
 
-inline constexpr const char* ANI_ENUM_FONT_WEIGHT = "L@ohos/graphics/text/text/FontWeight;";
-inline constexpr const char* ANI_ENUM_FONT_STYLE = "L@ohos/graphics/text/text/FontStyle;";
-inline constexpr const char* ANI_ENUM_TEXT_BASELINE = "L@ohos/graphics/text/text/TextBaseline;";
-inline constexpr const char* ANI_ENUM_ELLIPSIS_MODE = "L@ohos/graphics/text/text/EllipsisMode;";
-inline constexpr const char* ANI_ENUM_TEXT_DECORATION_TYPE = "L@ohos/graphics/text/text/TextDecorationType;";
-inline constexpr const char* ANI_ENUM_TEXT_DECORATION_STYLE = "L@ohos/graphics/text/text/TextDecorationStyle;";
+namespace OHOS::Text::NAI {
+/**
+ * define ani
+ */
+constexpr const char* NATIVE_OBJ = "nativeObj";
+constexpr const char* ANI_OBJECT = "Lstd/core/Double;";
+constexpr const char* ANI_INT = "Lstd/core/Int;";
+constexpr const char* ANI_BOOLEAN = "Lstd/core/Boolean;";
+constexpr const char* ANI_MAP = "Lescompat/Map;";
+constexpr const char* ANI_ARRAY = "Lescompat/Array;";
+/**
+ * define class
+ */
+constexpr const char* ANI_CLASS_CLEANER = "L@ohos/graphics/text/text/Cleaner;";
+constexpr const char* ANI_CLASS_PARAGRAPH = "L@ohos/graphics/text/text/Paragraph;";
+constexpr const char* ANI_CLASS_PARAGRAPH_BUILDER = "L@ohos/graphics/text/text/ParagraphBuilder;";
+constexpr const char* ANI_CLASS_LINEMETRICS_I = "L@ohos/graphics/text/text/LineMetricsInternal;";
+constexpr const char* ANI_CLASS_RUNMETRICS_I = "L@ohos/graphics/text/text/RunMetricsInternal;";
+constexpr const char* ANI_CLASS_PARAGRAPH_STYLE = "L@ohos/graphics/text/text/ParagraphStyle;";
+constexpr const char* ANI_CLASS_TEXT_STYLE = "L@ohos/graphics/text/text/TextStyle;";
+constexpr const char* ANI_CLASS_TEXT_STYLE_I = "L@ohos/graphics/text/text/TextStyleInternal;";
+constexpr const char* ANI_CLASS_FONT_COLLECTION = "L@ohos/graphics/text/text/FontCollection;";
+constexpr const char* ANI_CLASS_FONT_FEATURE = "L@ohos/graphics/text/text/FontFeature;";
+constexpr const char* ANI_CLASS_FONT_FEATURE_I = "L@ohos/graphics/text/text/FontFeatureInternal;";
+constexpr const char* ANI_CLASS_FONT_VARIATION = "L@ohos/graphics/text/text/FontVariation;";
+constexpr const char* ANI_CLASS_FONT_VARIATION_I = "L@ohos/graphics/text/text/FontVariationInternal;";
+constexpr const char* ANI_CLASS_CANVAS = "L@ohos/graphics/drawing/drawing/Canvas;";
+constexpr const char* ANI_CLASS_PATH = "L@ohos/graphics/drawing/drawing/Path;";
+constexpr const char* ANI_CLASS_FONT_METRICS_I = "L@ohos/graphics/drawing/drawing/FontMetricsInner;";
+constexpr const char* ANI_CLASS_TEXTSHADOW = "L@ohos/graphics/text/text/TextShadow;";
+constexpr const char* ANI_CLASS_TEXTSHADOW_I = "L@ohos/graphics/text/text/TextShadowInternal;";
+constexpr const char* ANI_CLASS_RECT_STYLE = "L@ohos/graphics/text/text/RectStyle;";
+constexpr const char* ANI_CLASS_RECT_STYLE_I = "L@ohos/graphics/text/text/RectStyleInternal;";
+constexpr const char* ANI_CLASS_DECORATION_I = "L@ohos/graphics/text/text/DecorationInternal;";
+/**
+ * define enum
+ */
+constexpr const char* ANI_ENUM_FONT_WEIGHT = "L@ohos/graphics/text/text/FontWeight;";
+constexpr const char* ANI_ENUM_FONT_STYLE = "L@ohos/graphics/text/text/FontStyle;";
+constexpr const char* ANI_ENUM_TEXT_BASELINE = "L@ohos/graphics/text/text/TextBaseline;";
+constexpr const char* ANI_ENUM_ELLIPSIS_MODE = "L@ohos/graphics/text/text/EllipsisMode;";
+constexpr const char* ANI_ENUM_TEXT_DECORATION_TYPE = "L@ohos/graphics/text/text/TextDecorationType;";
+constexpr const char* ANI_ENUM_TEXT_DECORATION_STYLE = "L@ohos/graphics/text/text/TextDecorationStyle;";
 
 enum class TextErrorCode : int32_t {
     ERROR = -1,

@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 
-#include "ani.h"
 #include "ani_common.h"
 #include "ani_text_utils.h"
 #include "drawing_converter.h"
@@ -34,10 +33,11 @@ ani_object RunMetricsConverter::ParseRunMetricsToAni(ani_env* env, const std::ma
             env->Object_SetPropertyByName_Ref(
                 aniObj, "fontMetrics", DrawingConverter::ParseFontMetricsToAni(env, runMetrics.fontMetrics));
         }
-        if (ANI_OK
-            != env->Object_CallMethodByName_Ref(mapAniObj, "set", "Lstd/core/Object;Lstd/core/Object;:Lescompat/Map;",
-                &mapRef, AniTextUtils::CreateAniDoubleObj(env, static_cast<ani_double>(key)), aniObj)) {
-            TEXT_LOGE("Failed to set run metrics map");
+        ani_status status =
+            env->Object_CallMethodByName_Ref(mapAniObj, "set", "Lstd/core/Object;Lstd/core/Object;:Lescompat/Map;",
+                &mapRef, AniTextUtils::CreateAniDoubleObj(env, static_cast<ani_double>(key)), aniObj);
+        if (ANI_OK != status) {
+            TEXT_LOGE("Failed to set run metrics map,%{public}d", status);
             break;
         };
     }

@@ -17,7 +17,6 @@
 #define OHOS_TEXT_ANI_PARAGRAPH_H
 
 #include <ani.h>
-
 #include <memory>
 
 #include "typography.h"
@@ -38,7 +37,8 @@ private:
     static ani_double GetLongestLine(ani_env* env, ani_object object);
     static ani_ref GetLineMetrics(ani_env* env, ani_object object);
     static ani_object GetLineMetricsAt(ani_env* env, ani_object object, ani_double lineNumber);
-    std::shared_ptr<OHOS::Rosen::Typography> paragraph_ = nullptr;
+
+    std::shared_ptr<OHOS::Rosen::Typography> paragraph_{nullptr};
 };
 } // namespace OHOS::Text::NAI
 #endif // OHOS_TEXT_ANI_PARAGRAPH_H

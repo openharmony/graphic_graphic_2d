@@ -23,11 +23,9 @@
 
 namespace OHOS::Text::NAI {
 
-inline int32_t ConvertClampFromJsValue(ani_double jsValue, int32_t lo, int32_t hi)
+inline int32_t ConvertClampFromJsValue(ani_double jsValue, int32_t low, int32_t high)
 {
-    int32_t value = static_cast<int32_t>(jsValue);
-    value = std::clamp(value, lo, hi);
-    return value;
+    return std::clamp(static_cast<int32_t>(jsValue), low, high);
 }
 
 class DrawingConverter {

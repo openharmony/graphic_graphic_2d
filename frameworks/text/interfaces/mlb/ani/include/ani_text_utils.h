@@ -15,12 +15,11 @@
 
 #ifndef OHOS_ANI_TEXT_UTILS_H
 #define OHOS_ANI_TEXT_UTILS_H
-
+#include <ani.h>
 #include <memory>
 #include <string>
 #include <vector>
 
-#include "ani.h"
 #include "ani_common.h"
 #include "utils/text_log.h"
 

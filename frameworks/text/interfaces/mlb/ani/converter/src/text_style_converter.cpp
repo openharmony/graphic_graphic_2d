@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 
-#include "ani.h"
 #include "ani_common.h"
 #include "ani_text_utils.h"
 #include "drawing_converter.h"
@@ -240,7 +239,7 @@ void TextStyleConverter::ParseRectStyleToNative(ani_env* env, ani_object obj, Re
     ani_class cls;
     ani_status ret = env->FindClass(ANI_CLASS_RECT_STYLE, &cls);
     if (ret != ANI_OK) {
-        TEXT_LOGE("Failed to  find class:%{public}d", ret);
+        TEXT_LOGE("Failed to find class:%{public}d", ret);
         return;
     }
     ani_boolean isObj = false;
@@ -265,12 +264,10 @@ ani_object TextStyleConverter::ParseTextStyleToAni(ani_env* env, const TextStyle
         AniTextUtils::CreateAniEnum(env, ANI_ENUM_FONT_STYLE, static_cast<int>(textStyle.fontStyle)));
     env->Object_SetPropertyByName_Ref(aniObj, "baseline",
         AniTextUtils::CreateAniEnum(env, ANI_ENUM_TEXT_BASELINE, static_cast<int>(textStyle.baseline)));
-
     ani_object fontFamiliesAniObj =
         AniTextUtils::CreateAniArrayAndInitData(env, textStyle.fontFamilies, textStyle.fontFamilies.size(),
             [](ani_env* env, const std::string& item) { return AniTextUtils::CreateAniStringObj(env, item); });
     env->Object_SetPropertyByName_Ref(aniObj, "fontFamilies", fontFamiliesAniObj);
-
     env->Object_SetPropertyByName_Ref(aniObj, "fontSize", AniTextUtils::CreateAniDoubleObj(env, textStyle.fontSize));
     env->Object_SetPropertyByName_Ref(
         aniObj, "letterSpacing", AniTextUtils::CreateAniDoubleObj(env, textStyle.letterSpacing));
@@ -288,14 +285,11 @@ ani_object TextStyleConverter::ParseTextStyleToAni(ani_env* env, const TextStyle
     env->Object_SetPropertyByName_Ref(aniObj, "locale", AniTextUtils::CreateAniStringObj(env, textStyle.locale));
     env->Object_SetPropertyByName_Ref(
         aniObj, "baselineShift", AniTextUtils::CreateAniDoubleObj(env, textStyle.baseLineShift));
-
     env->Object_SetPropertyByName_Ref(
         aniObj, "backgroundRect", TextStyleConverter::ParseRectStyleToAni(env, textStyle.backgroundRect));
-
     ani_object shadowsAniObj = AniTextUtils::CreateAniArrayAndInitData(env, textStyle.shadows, textStyle.shadows.size(),
         [](ani_env* env, const TextShadow& item) { return TextStyleConverter::ParseTextShadowToAni(env, item); });
     env->Object_SetPropertyByName_Ref(aniObj, "textShadows", shadowsAniObj);
-
     env->Object_SetPropertyByName_Ref(aniObj, "fontFeatures", ParseFontFeaturesToAni(env, textStyle.fontFeatures));
     return aniObj;
 }
