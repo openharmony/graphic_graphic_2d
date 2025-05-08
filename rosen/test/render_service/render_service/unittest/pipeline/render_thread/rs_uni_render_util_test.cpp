@@ -635,6 +635,40 @@ HWTEST_F(RSUniRenderUtilTest, CreateBufferDrawParam001, TestSize.Level2)
 }
 
 /*
+ * @tc.name: CreateBufferDrawParam011
+ * @tc.desc: test CreateBufferDrawParam with surfaceRenderNode
+ * @tc.type: FUNC
+ * @tc.require: issueIAJOWI
+ */
+HWTEST_F(RSUniRenderUtilTest, CreateBufferDrawParam011, TestSize.Level2)
+{
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    bool forceCPU = true;
+    BufferDrawParam params = RSUniRenderUtil::CreateBufferDrawParam(*surfaceNode, forceCPU);
+    ASSERT_EQ(params.buffer, nullptr);
+
+    surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    params = RSUniRenderUtil::CreateBufferDrawParam(*surfaceNode, forceCPU);
+    ASSERT_NE(params.buffer, nullptr);
+}
+
+/*
+ * @tc.name: DealWithRotationAndGravityForRotationFixed
+ * @tc.desc: test DealWithRotationAndGravityForRotationFixed
+ * @tc.type: FUNC
+ * @tc.require: issueIAJOWI
+ */
+HWTEST_F(RSUniRenderUtilTest, DealWithRotationAndGravityForRotationFixedTest, TestSize.Level2)
+{
+    GraphicTransformType transform = GraphicTransformType::GRAPHIC_ROTATE_NONE;
+    Gravity gravity = Gravity::CENTER;
+    RectF localBounds;
+    BufferDrawParam params;
+    RSUniRenderUtil::DealWithRotationAndGravityForRotationFixed(transform, gravity, localBounds, params);
+    ASSERT_EQ(params.dstRect.GetWidth(), 0);
+}
+
+/*
  * @tc.name: GetMatrixOfBufferToRelRect_003
  * @tc.desc: test GetMatrixOfBufferToRelRect with surfaceNode without consumer
  * @tc.type: FUNC
@@ -1334,5 +1368,43 @@ HWTEST_F(RSUniRenderUtilTest, MergeDirtyHistoryInVirtual001, TestSize.Level1)
     auto rects = RSUniRenderUtil::MergeDirtyHistoryInVirtual(*displayDrawable, bufferAge, screenInfo);
     EXPECT_EQ(rects.empty(), true);
     displayDrawable = nullptr;
+}
+
+/**
+ * @tc.name: FrameAwareTraceBoostTest
+ * @tc.desc: test FrameAwareTraceBoost
+ * @tc.type: FUNC
+ * @tc.require: #IBIA3V
+ */
+HWTEST_F(RSUniRenderUtilTest, FrameAwareTraceBoostTest, TestSize.Level1)
+{
+    size_t layerNum = 10;
+    auto res = RSUniRenderUtil::FrameAwareTraceBoost(layerNum);
+    ASSERT_EQ(res, false);
+
+    layerNum = 11;
+    res = RSUniRenderUtil::FrameAwareTraceBoost(layerNum);
+    ASSERT_EQ(res, false);
+}
+
+/**
+ * @tc.name: GetImageRegionsTest
+ * @tc.desc: test GetImageRegions
+ * @tc.type: FUNC
+ * @tc.require: #IBIA3V
+ */
+HWTEST_F(RSUniRenderUtilTest, GetImageRegionsTest, TestSize.Level1)
+{
+    float screenWidth = 100.0f;
+    float screenHeight = 100.0f;
+    float realImageWidth = 0.0f;
+    float realImageHeight = 0.0f;
+    auto regions = RSUniRenderUtil::GetImageRegions(screenHeight, screenWidth, realImageHeight, realImageWidth);
+    ASSERT_EQ(regions.GetHeight(), 100);
+
+    realImageWidth = 10.0f;
+    realImageHeight = 10.0f;
+    regions = RSUniRenderUtil::GetImageRegions(screenHeight, screenWidth, realImageHeight, realImageWidth);
+    ASSERT_EQ(regions.GetHeight(), 100);
 }
 } // namespace OHOS::Rosen
