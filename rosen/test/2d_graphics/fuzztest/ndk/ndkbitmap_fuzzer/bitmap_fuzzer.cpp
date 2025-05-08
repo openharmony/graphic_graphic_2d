@@ -89,6 +89,7 @@ void BitmapFuzzTest001(const uint8_t* data, size_t size)
     }
     uint32_t rowBytes = GetObject<uint32_t>();
     OH_Drawing_Bitmap*  bitmap1 = OH_Drawing_BitmapCreateFromPixels(nullptr, nullptr, rowBytes);
+    rowBytes = GetObject<uint32_t>();
     bitmap1 = OH_Drawing_BitmapCreateFromPixels(&imageInfo, pixels, rowBytes);
     if (pixels != nullptr) {
         delete[]  pixels;
@@ -124,7 +125,10 @@ void BitmapFuzzTest002(const uint8_t* data, size_t size)
     for (size_t i = 0; i < size_pix; i++) {
         pixels1[i] = GetObject<uint32_t>();
     }
+
     OH_Drawing_BitmapReadPixels(nullptr, nullptr, nullptr, width * PATH_FOUR, width1, height1);
+    width1 = GetObject<int32_t>() % width;
+    height1 = GetObject<int32_t>() % height;
     OH_Drawing_BitmapReadPixels(bitmap, &imageInfo, pixels1, width * PATH_FOUR, width1, height1);
     if (pixels1 != nullptr) {
         delete[]  pixels1;

@@ -106,6 +106,9 @@ bool ColorFilterFuzzTest002(const uint8_t* data, size_t size)
     ColorFilter colorFilter = ColorFilter(static_cast<ColorFilter::FilterType>(type % FILTERTYPE_SIZE), colorQuad,
         static_cast<BlendMode>(mode % BLENDMODE_SIZE));
     ColorMatrix matrix;
+    mode = GetObject<uint32_t>();
+    type = GetObject<uint32_t>();
+    colorQuad = GetObject<ColorQuad>();
     ColorFilter colorFilterOne = ColorFilter(static_cast<ColorFilter::FilterType>(type % FILTERTYPE_SIZE), matrix);
     std::shared_ptr<ColorFilter> colorFilterTwo = ColorFilter::CreateBlendModeColorFilter(colorQuad,
         static_cast<BlendMode>(mode % BLENDMODE_SIZE));

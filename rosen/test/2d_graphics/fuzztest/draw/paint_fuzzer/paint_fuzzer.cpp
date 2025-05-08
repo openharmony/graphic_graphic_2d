@@ -41,20 +41,6 @@ namespace Drawing {
  * 8. GetStyle()
  * 9. IsValid()
  * 10. HasStrokeStyle()
- * 11. SetColor(...)
- * 12. SetARGB(...)
- * 13. SetColor(...)
- * 14. GetColor()
- * 15. GetColor4f()
- * 16. GetColorSpace()
- * 17. SetAlpha(...)
- * 18. SetAlphaF(...)
- * 19. GetAlpha()
- * 20. GetAlphaF()
- * 21. SetWidth(...)
- * 22. GetWidth()
- * 23. SetMiterLimit(...)
- * 24. GetMiterLimit()
  */
 bool PaintFuzzTest001(const uint8_t* data, size_t size)
 {
@@ -83,31 +69,6 @@ bool PaintFuzzTest001(const uint8_t* data, size_t size)
     paint.GetStyle();
     paint.IsValid();
     paint.HasStrokeStyle();
-
-    paint.SetColor(color);
-    int a = GetObject<int>();
-    int r = GetObject<int>();
-    int g = GetObject<int>();
-    int b = GetObject<int>();
-    paint.SetARGB(a, r, g, b);
-    Color4f cf {GetObject<scalar>(), GetObject<scalar>(), GetObject<scalar>(), GetObject<scalar>()};
-    paint.SetColor(cf, colorSpace);
-    paint.GetColor();
-    paint.GetColor4f();
-    paint.GetColorSpace();
-
-    paint.SetAlpha(a);
-    scalar f = GetObject<scalar>();
-    paint.SetAlphaF(f);
-    paint.GetAlpha();
-    paint.GetAlphaF();
-
-    scalar width = GetObject<scalar>();
-    paint.SetWidth(width);
-    paint.GetWidth();
-    scalar limit = GetObject<scalar>();
-    paint.SetMiterLimit(limit);
-    paint.GetMiterLimit();
     return true;
 }
 
@@ -123,14 +84,6 @@ bool PaintFuzzTest001(const uint8_t* data, size_t size)
  * 8. SetFilter(...)
  * 9. GetFilter()
  * 10. HasFilter()
- * 11. SetShaderEffect(...)
- * 12. GetShaderEffect()
- * 13. SetPathEffect(...)
- * 14. GetPathEffect()
- * 15. SetBlender(...)
- * 16. GetBlender()
- * 17. SetLooper(...)
- * 18. GetLooper()
  */
 bool PaintFuzzTest002(const uint8_t* data, size_t size)
 {
@@ -147,6 +100,7 @@ bool PaintFuzzTest002(const uint8_t* data, size_t size)
     uint32_t style = GetObject<uint32_t>();
     paint.SetCapStyle(static_cast<Pen::CapStyle>(style));
     paint.GetCapStyle();
+    style = GetObject<uint32_t>();
     paint.SetJoinStyle(static_cast<Pen::JoinStyle>(style));
     paint.GetJoinStyle();
     uint32_t mode = GetObject<uint32_t>();
@@ -156,24 +110,6 @@ bool PaintFuzzTest002(const uint8_t* data, size_t size)
     paint.SetFilter(filter);
     paint.GetFilter();
     paint.HasFilter();
-    ColorQuad color = GetObject<ColorQuad>();
-    std::shared_ptr<ShaderEffect> shaderEffect = ShaderEffect::CreateColorShader(color);
-    paint.SetShaderEffect(shaderEffect);
-    paint.GetShaderEffect();
-    scalar radius = GetObject<scalar>();
-    std::shared_ptr<PathEffect> pathEffect = PathEffect::CreateCornerPathEffect(radius);
-    paint.SetPathEffect(pathEffect);
-    paint.GetPathEffect();
-
-    std::shared_ptr<Blender> blender = Blender::CreateWithBlendMode(static_cast<BlendMode>(mode));
-    paint.SetBlender(blender);
-    paint.GetBlender();
-    float blurRadius = GetObject<float>();
-    scalar dx = GetObject<scalar>();
-    scalar dy = GetObject<scalar>();
-    std::shared_ptr<BlurDrawLooper> blurDrawLooper = BlurDrawLooper::CreateBlurDrawLooper(blurRadius, dx, dy, color);
-    paint.SetLooper(blurDrawLooper);
-    paint.GetLooper();
     return true;
 }
 
@@ -211,6 +147,109 @@ bool PaintFuzzTest003(const uint8_t* data, size_t size)
     return true;
 }
 
+/*
+ * 测试以下 Paint 接口：
+ * 1. SetColor(...)
+ * 2. SetARGB(...)
+ * 3. SetColor(...)
+ * 4. GetColor()
+ * 5. GetColor4f()
+ * 6. GetColorSpace()
+ * 7. SetAlpha(...)
+ * 8. SetAlphaF(...)
+ * 9. GetAlpha()
+ * 10. GetAlphaF()
+ * 11. SetWidth(...)
+ * 12. GetWidth()
+ * 13. SetMiterLimit(...)
+ * 14. GetMiterLimit()
+ */
+bool PaintFuzzTest004(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    Paint paint = Paint();
+    Color color;
+    std::shared_ptr<ColorSpace> colorSpace = ColorSpace::CreateSRGB();
+
+    paint.SetColor(color);
+    int a = GetObject<int>();
+    int r = GetObject<int>();
+    int g = GetObject<int>();
+    int b = GetObject<int>();
+    paint.SetARGB(a, r, g, b);
+    Color4f cf {GetObject<scalar>(), GetObject<scalar>(), GetObject<scalar>(), GetObject<scalar>()};
+    paint.SetColor(cf, colorSpace);
+    paint.GetColor();
+    paint.GetColor4f();
+    paint.GetColorSpace();
+
+    a = GetObject<int>();
+    paint.SetAlpha(a);
+    scalar f = GetObject<scalar>();
+    paint.SetAlphaF(f);
+    paint.GetAlpha();
+    paint.GetAlphaF();
+
+    scalar width = GetObject<scalar>();
+    paint.SetWidth(width);
+    paint.GetWidth();
+    scalar limit = GetObject<scalar>();
+    paint.SetMiterLimit(limit);
+    paint.GetMiterLimit();
+    return true;
+}
+
+/*
+ * 测试以下 Paint 接口：
+ * 1. SetShaderEffect(...)
+ * 2. GetShaderEffect()
+ * 3. SetPathEffect(...)
+ * 4. GetPathEffect()
+ * 5. SetBlender(...)
+ * 6. GetBlender()
+ * 7. SetLooper(...)
+ * 8. GetLooper()
+ */
+bool PaintFuzzTest005(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+    
+    Paint paint = Paint();
+    ColorQuad color = GetObject<ColorQuad>();
+    std::shared_ptr<ShaderEffect> shaderEffect = ShaderEffect::CreateColorShader(color);
+    paint.SetShaderEffect(shaderEffect);
+    paint.GetShaderEffect();
+    scalar radius = GetObject<scalar>();
+    std::shared_ptr<PathEffect> pathEffect = PathEffect::CreateCornerPathEffect(radius);
+    paint.SetPathEffect(pathEffect);
+    paint.GetPathEffect();
+    uint32_t mode = GetObject<uint32_t>();
+    std::shared_ptr<Blender> blender = Blender::CreateWithBlendMode(static_cast<BlendMode>(mode));
+    paint.SetBlender(blender);
+    paint.GetBlender();
+    float blurRadius = GetObject<float>();
+    scalar dx = GetObject<scalar>();
+    scalar dy = GetObject<scalar>();
+    std::shared_ptr<BlurDrawLooper> blurDrawLooper = BlurDrawLooper::CreateBlurDrawLooper(blurRadius, dx, dy, color);
+    paint.SetLooper(blurDrawLooper);
+    paint.GetLooper();
+    return true;
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
@@ -222,5 +261,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::Drawing::PaintFuzzTest001(data, size);
     OHOS::Rosen::Drawing::PaintFuzzTest002(data, size);
     OHOS::Rosen::Drawing::PaintFuzzTest003(data, size);
+    OHOS::Rosen::Drawing::PaintFuzzTest004(data, size);
+    OHOS::Rosen::Drawing::PaintFuzzTest005(data, size);
     return 0;
 }
