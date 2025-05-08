@@ -25,8 +25,6 @@
 namespace OHOS::Text::ANI {
 class AniFontCollection final {
 public:
-    AniFontCollection();
-    AniFontCollection(std::shared_ptr<OHOS::Rosen::FontCollection> fc);
     static ani_object GetGlobalInstance(ani_env* env, ani_class cls);
     static void LoadFontSync(ani_env* env, ani_object obj, ani_string name, ani_object path);
     static void ClearCaches(ani_env* env, ani_object obj);

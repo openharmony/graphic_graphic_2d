@@ -65,6 +65,10 @@ namespace text {
       destroyRegister.register(this, this.cleaner!, unregisterToken);
     }
 
+    constructor(globalNativeObj : long) {
+      this.nativeObj = globalNativeObj;
+    };
+
     /**
      * Get global FontCollection instance of the application.
      * @returns { FontCollection } The FontCollection object.
@@ -174,10 +178,8 @@ namespace text {
     private cleaner: Cleaner | null = null;
 
     constructor() {
-      this.constructorNative();
       this.registerCleaner(this.nativeObj);
     };
-    native constructorNative(): void;
     registerCleaner(ptr: long): void {
       this.cleaner = new Cleaner("Paragraph", ptr);
       destroyRegister.register(this, this.cleaner!, unregisterToken);

@@ -19,31 +19,28 @@
 #include "ani_common.h"
 #include "ani_paragraph.h"
 #include "ani_text_utils.h"
+#include "converter_line_metrics.h"
 #include "draw/canvas.h"
 #include "font_collection.h"
-#include "converter_line_metrics.h"
 #include "text/font_metrics.h"
+#include "typography.h"
 #include "typography_create.h"
 #include "utils/text_log.h"
 
 namespace OHOS::Text::ANI {
 using namespace OHOS::Rosen;
-AniParagraph::AniParagraph()
+ani_object AniParagraph::setTypography(ani_env* env, std::unique_ptr<OHOS::Rosen::Typography>& typography)
 {
-}
-
-void AniParagraph::setTypography(std::unique_ptr<OHOS::Rosen::Typography>& typography)
-{
-    paragraph_ = std::move(typography);
-}
-
-void AniParagraph::Constructor(ani_env* env, ani_object object)
-{
-    AniParagraph* aniParagraph = new AniParagraph();
-    if (ANI_OK != env->Object_SetFieldByName_Long(object, "nativeObj", reinterpret_cast<ani_long>(aniParagraph))) {
+    ani_object pargraphObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_PARAGRAPH, ":V");
+    Typography* typographyPtr = typography.release();
+    if (ANI_OK
+        != env->Object_SetFieldByName_Long(pargraphObj, "nativeObj", reinterpret_cast<ani_long>(typographyPtr))) {
         TEXT_LOGE("Failed to create ani Paragraph obj");
-        return;
+        delete typographyPtr;
+        typographyPtr = nullptr;
+        return AniTextUtils::CreateAniUndefined(env);
     }
+    return pargraphObj;
 }
 
 ani_status AniParagraph::AniInit(ani_vm* vm, uint32_t* result)
@@ -65,7 +62,6 @@ ani_status AniParagraph::AniInit(ani_vm* vm, uint32_t* result)
     std::string paintSignature = std::string(ANI_CLASS_CANVAS) + "DD:V";
     std::string paintOnPathSignature = std::string(ANI_CLASS_CANVAS) + std::string(ANI_CLASS_PATH) + "DD:V";
     std::array methods = {
-        ani_native_function{"constructorNative", ":V", reinterpret_cast<void*>(Constructor)},
         ani_native_function{"layoutSync", "D:V", reinterpret_cast<void*>(LayoutSync)},
         ani_native_function{"paint", paintSignature.c_str(), reinterpret_cast<void*>(Paint)},
         ani_native_function{"paintOnPath", paintOnPathSignature.c_str(), reinterpret_cast<void*>(PaintOnPath)},
@@ -85,19 +81,19 @@ ani_status AniParagraph::AniInit(ani_vm* vm, uint32_t* result)
 
 void AniParagraph::LayoutSync(ani_env* env, ani_object object, ani_double width)
 {
-    AniParagraph* aniParagraph = AniTextUtils::GetNativeFromObj<AniParagraph>(env, object);
-    if (aniParagraph == nullptr || aniParagraph->paragraph_ == nullptr) {
+    Typography* typography = AniTextUtils::GetNativeFromObj<Typography>(env, object);
+    if (typography == nullptr) {
         TEXT_LOGE("Paragraph is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return;
     }
-    aniParagraph->paragraph_->Layout(width);
+    typography->Layout(width);
 }
 
 void AniParagraph::Paint(ani_env* env, ani_object object, ani_object canvas, ani_double x, ani_double y)
 {
-    AniParagraph* aniParagraph = AniTextUtils::GetNativeFromObj<AniParagraph>(env, object);
-    if (aniParagraph == nullptr || aniParagraph->paragraph_ == nullptr) {
+    Typography* typography = AniTextUtils::GetNativeFromObj<Typography>(env, object);
+    if (typography == nullptr) {
         TEXT_LOGE("Paragraph is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return;
@@ -108,14 +104,14 @@ void AniParagraph::Paint(ani_env* env, ani_object object, ani_object canvas, ani
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "canvas unavailable.");
         return;
     }
-    aniParagraph->paragraph_->Paint(canvasI, x, y);
+    typography->Paint(canvasI, x, y);
 }
 
 void AniParagraph::PaintOnPath(
     ani_env* env, ani_object object, ani_object canvas, ani_object path, ani_double hOffset, ani_double vOffset)
 {
-    AniParagraph* aniParagraph = AniTextUtils::GetNativeFromObj<AniParagraph>(env, object);
-    if (aniParagraph == nullptr || aniParagraph->paragraph_ == nullptr) {
+    Typography* typography = AniTextUtils::GetNativeFromObj<Typography>(env, object);
+    if (typography == nullptr) {
         TEXT_LOGE("Paragraph is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return;
@@ -126,36 +122,36 @@ void AniParagraph::PaintOnPath(
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Canvas unavailable.");
         return;
     }
-    Drawing::Path* pathI = AniTextUtils::GetNativeFromObj<Drawing::Path>(env, canvas);
+    Drawing::Path* pathI = AniTextUtils::GetNativeFromObj<Drawing::Path>(env, path);
     if (pathI == nullptr) {
         TEXT_LOGE("Path is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Path unavailable.");
         return;
     }
-    aniParagraph->paragraph_->Paint(canvasI, pathI, hOffset, vOffset);
+    typography->Paint(canvasI, pathI, hOffset, vOffset);
 }
 
 ani_double AniParagraph::GetLongestLine(ani_env* env, ani_object object)
 {
-    AniParagraph* aniParagraph = AniTextUtils::GetNativeFromObj<AniParagraph>(env, object);
-    if (aniParagraph == nullptr || aniParagraph->paragraph_ == nullptr) {
+    Typography* typography = AniTextUtils::GetNativeFromObj<Typography>(env, object);
+    if (typography == nullptr) {
         TEXT_LOGE("Paragraph is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return 0;
     }
-    return aniParagraph->paragraph_->GetActualWidth();
+    return typography->GetActualWidth();
 }
 
 ani_ref AniParagraph::GetLineMetrics(ani_env* env, ani_object object)
 {
     ani_object arrayObj = AniTextUtils::CreateAniUndefined(env);
-    AniParagraph* aniParagraph = AniTextUtils::GetNativeFromObj<AniParagraph>(env, object);
-    if (aniParagraph == nullptr || aniParagraph->paragraph_ == nullptr) {
+    Typography* typography = AniTextUtils::GetNativeFromObj<Typography>(env, object);
+    if (typography == nullptr) {
         TEXT_LOGE("Paragraph is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return arrayObj;
     }
-    std::vector<LineMetrics> vectorLineMetrics = aniParagraph->paragraph_->GetLineMetrics();
+    std::vector<LineMetrics> vectorLineMetrics = typography->GetLineMetrics();
     arrayObj = AniTextUtils::CreateAniArray(env, vectorLineMetrics.size());
     ani_boolean isUndefined;
     env->Reference_IsUndefined(arrayObj, &isUndefined);
@@ -177,14 +173,14 @@ ani_ref AniParagraph::GetLineMetrics(ani_env* env, ani_object object)
 
 ani_object AniParagraph::GetLineMetricsAt(ani_env* env, ani_object object, ani_double lineNumber)
 {
-    AniParagraph* aniParagraph = AniTextUtils::GetNativeFromObj<AniParagraph>(env, object);
-    if (aniParagraph == nullptr || aniParagraph->paragraph_ == nullptr) {
+    Typography* typography = AniTextUtils::GetNativeFromObj<Typography>(env, object);
+    if (typography == nullptr) {
         TEXT_LOGE("Paragraph is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return AniTextUtils::CreateAniUndefined(env);
     }
     LineMetrics lineMetrics;
-    if (!aniParagraph->paragraph_->GetLineMetricsAt(lineNumber, &lineMetrics)) {
+    if (!typography->GetLineMetricsAt(lineNumber, &lineMetrics)) {
         TEXT_LOGE("Failed to get line metrics");
         return AniTextUtils::CreateAniUndefined(env);
     }

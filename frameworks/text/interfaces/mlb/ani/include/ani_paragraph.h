@@ -24,12 +24,10 @@
 namespace OHOS::Text::ANI {
 class AniParagraph final {
 public:
-    AniParagraph();
-    void setTypography(std::unique_ptr<OHOS::Rosen::Typography>& typography);
+    static ani_object setTypography(ani_env* env, std::unique_ptr<OHOS::Rosen::Typography>& typography);
     static ani_status AniInit(ani_vm* vm, uint32_t* result);
 
 private:
-    static void Constructor(ani_env* env, ani_object object);
     static void LayoutSync(ani_env* env, ani_object object, ani_double width);
     static void Paint(ani_env* env, ani_object object, ani_object canvas, ani_double x, ani_double y);
     static void PaintOnPath(
@@ -37,8 +35,6 @@ private:
     static ani_double GetLongestLine(ani_env* env, ani_object object);
     static ani_ref GetLineMetrics(ani_env* env, ani_object object);
     static ani_object GetLineMetricsAt(ani_env* env, ani_object object, ani_double lineNumber);
-
-    std::shared_ptr<OHOS::Rosen::Typography> paragraph_{nullptr};
 };
 } // namespace OHOS::Text::ANI
 #endif // OHOS_TEXT_ANI_PARAGRAPH_H

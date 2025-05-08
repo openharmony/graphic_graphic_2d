@@ -247,6 +247,7 @@ ani_status AniTextUtils::ReadOptionalField(ani_env* env, ani_object obj, const c
     }
 
     if (isUndefined) {
+        ref = nullptr;
         return ret;
     }
     return ret;

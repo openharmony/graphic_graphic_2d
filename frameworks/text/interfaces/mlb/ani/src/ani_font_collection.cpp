@@ -13,10 +13,9 @@
  * limitations under the License.
  */
 
-#include <sys/stat.h>
-
 #include <codecvt>
 #include <cstdint>
+#include <sys/stat.h>
 
 #include "ani_common.h"
 #include "ani_font_collection.h"
@@ -26,34 +25,31 @@
 
 namespace OHOS::Text::ANI {
 using namespace OHOS::Rosen;
-AniFontCollection::AniFontCollection()
-{
-    fontCollection_ = FontCollection::From(nullptr);
-}
-
-AniFontCollection::AniFontCollection(std::shared_ptr<FontCollection> fc)
-{
-    fontCollection_ = fc;
-}
-
 void AniFontCollection::Constructor(ani_env* env, ani_object object)
 {
-    AniFontCollection* aniFontCollection = new AniFontCollection();
-    if (ANI_OK != env->Object_SetFieldByName_Long(object, NATIVE_OBJ, reinterpret_cast<ani_long>(aniFontCollection))) {
-        TEXT_LOGE("Failed to create ani FontCollection obj");
-        return;
+    std::shared_ptr<FontCollection> fontCollection = FontCollection::From(nullptr);
+    if (fontCollection != nullptr) {
+        FontCollection* fontCollectionPtr = fontCollection.get();
+        fontCollection.reset();
+        if (ANI_OK
+            != env->Object_SetFieldByName_Long(object, NATIVE_OBJ, reinterpret_cast<ani_long>(fontCollectionPtr))) {
+            TEXT_LOGE("Failed to create ani FontCollection obj");
+            delete fontCollectionPtr;
+            fontCollectionPtr = nullptr;
+            return;
+        }
     }
 }
 
 ani_object AniFontCollection::GetGlobalInstance(ani_env* env, ani_class cls)
 {
-    static AniFontCollection aniFontCollection = AniFontCollection(FontCollection::Create());
-
-    ani_object obj = AniTextUtils::CreateAniObject(env, ANI_CLASS_FONT_COLLECTION, ":V");
-    if (ANI_OK != env->Object_SetFieldByName_Long(obj, NATIVE_OBJ, reinterpret_cast<ani_long>(&aniFontCollection))) {
-        TEXT_LOGE("Failed to create ani FontCollection obj");
+    std::shared_ptr<FontCollection> fontCollection = FontCollection::Create();
+    if (fontCollection == nullptr) {
+        TEXT_LOGE("Failed to create global font colletion");
+        return AniTextUtils::CreateAniUndefined(env);
     }
-    return obj;
+    return AniTextUtils::CreateAniObject(
+        env, ANI_CLASS_FONT_COLLECTION, "J:V", reinterpret_cast<ani_long>(fontCollection.get()));
 }
 
 void AniFontCollection::LoadFontSync(ani_env* env, ani_object obj, ani_string name, ani_object path)
@@ -62,8 +58,8 @@ void AniFontCollection::LoadFontSync(ani_env* env, ani_object obj, ani_string na
     if (ANI_OK != AniTextUtils::AniToStdStringUtf8(env, name, familyName)) {
         return;
     }
-    auto aniFontCollection = AniTextUtils::GetNativeFromObj<AniFontCollection>(env, obj);
-    if (aniFontCollection == nullptr || aniFontCollection->fontCollection_ == nullptr) {
+    FontCollection* fontCollection = AniTextUtils::GetNativeFromObj<FontCollection>(env, obj);
+    if (fontCollection == nullptr) {
         TEXT_LOGE("Null font collection");
         return;
     }
@@ -84,7 +80,7 @@ void AniFontCollection::LoadFontSync(ani_env* env, ani_object obj, ani_string na
             TEXT_LOGE("Failed to split absolute font path");
             return;
         }
-        aniFontCollection->fontCollection_->LoadFont(familyName, data.get(), dataLen);
+        fontCollection->LoadFont(familyName, data.get(), dataLen);
         return;
     }
 
@@ -99,19 +95,19 @@ void AniFontCollection::LoadFontSync(ani_env* env, ani_object obj, ani_string na
             TEXT_LOGE("Failed to resolve resource");
             return;
         }
-        aniFontCollection->fontCollection_->LoadFont(familyName, data.get(), dataLen);
+        fontCollection->LoadFont(familyName, data.get(), dataLen);
         return;
     }
 }
 
 void AniFontCollection::ClearCaches(ani_env* env, ani_object obj)
 {
-    auto aniFontCollection = AniTextUtils::GetNativeFromObj<AniFontCollection>(env, obj);
-    if (aniFontCollection == nullptr || aniFontCollection->fontCollection_ == nullptr) {
+    FontCollection* fontCollection = AniTextUtils::GetNativeFromObj<FontCollection>(env, obj);
+    if (fontCollection == nullptr) {
         TEXT_LOGE("Null font collection");
         return;
     }
-    aniFontCollection->fontCollection_->ClearCaches();
+    fontCollection->ClearCaches();
 }
 
 ani_status AniFontCollection::AniInit(ani_vm* vm, uint32_t* result)
