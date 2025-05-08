@@ -37,7 +37,6 @@ ohos_unittest("2d_graphics_recording_test") {
   if (graphic_2d_feature_enable_vulkan) {
     defines += [ "RS_ENABLE_VK" ]
   }
-  deps = [ "//third_party/googletest:gtest_main" ]
 
   external_deps = [
     "c_utils:utils",
