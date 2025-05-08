@@ -1427,7 +1427,8 @@ void RSRenderNode::UpdateDisplaySyncRange()
     }
 }
 
-std::tuple<bool, bool, bool> RSRenderNode::Animate(int64_t timestamp, int64_t period, bool isDisplaySyncEnabled)
+std::tuple<bool, bool, bool> RSRenderNode::Animate(
+    int64_t timestamp, int64_t& minLeftDelayTime, int64_t period, bool isDisplaySyncEnabled)
 {
     if (displaySync_ && displaySync_->OnFrameSkip(timestamp, period, isDisplaySyncEnabled)) {
         return displaySync_->GetAnimateResult();
@@ -1442,7 +1443,7 @@ std::tuple<bool, bool, bool> RSRenderNode::Animate(int64_t timestamp, int64_t pe
         }
     }
 
-    auto animateResult = animationManager_.Animate(timestamp, IsOnTheTree(), abilityState);
+    auto animateResult = animationManager_.Animate(timestamp, minLeftDelayTime, IsOnTheTree(), abilityState);
     if (displaySync_) {
         displaySync_->SetAnimateResult(animateResult);
     }

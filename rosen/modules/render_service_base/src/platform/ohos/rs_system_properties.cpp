@@ -15,6 +15,7 @@
 
 #include "platform/common/rs_system_properties.h"
 
+#include <charconv>
 #include <cstdlib>
 #include <parameter.h>
 #include <parameters.h>
@@ -57,8 +58,18 @@ const GpuApiType RSSystemProperties::systemGpuApiType_ = GpuApiType::VULKAN;
 
 int ConvertToInt(const char *originValue, int defaultValue)
 {
-    return originValue == nullptr ? defaultValue : std::atoi(originValue);
+    if (originValue == nullptr) {
+        return defaultValue;
+    }
+    int value;
+    auto result = std::from_chars(originValue, originValue + std::strlen(originValue), value);
+    if (result.ec == std::errc()) {
+        return value;
+    } else {
+        return defaultValue;
+    }
 }
+
 static void ParseDfxSurfaceNamesString(const std::string& paramsStr,
     std::vector<std::string>& splitStrs, const std::string& seperator)
 {
@@ -205,6 +216,14 @@ bool RSSystemProperties::GetAnimationTraceEnabled()
 {
     static bool isNeedTrace = system::GetParameter("persist.rosen.animationtrace.enabled", "0") != "0";
     return isNeedTrace;
+}
+
+bool RSSystemProperties::GetAnimationDelayOptimizeEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.animationdelay.optimize.enabled", "1");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 1) != 0;
 }
 
 bool RSSystemProperties::GetRSClientMultiInstanceEnabled()

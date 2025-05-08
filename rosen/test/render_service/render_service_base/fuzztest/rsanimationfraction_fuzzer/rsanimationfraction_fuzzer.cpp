@@ -61,6 +61,7 @@ void RSAnimationFractionFuzzerTest()
     float animationScale = GetData<float>();
     int64_t time = GetData<int64_t>();
     bool isInStartDelay = GetData<bool>();
+    int64_t delaytime = GetData<int64_t>();
     bool isFinished = GetData<bool>();
     bool isRepeatFinished = GetData<bool>();
     bool isEnable = GetData<bool>();
@@ -74,7 +75,8 @@ void RSAnimationFractionFuzzerTest()
     RSAnimationFraction::GetAnimationScale();
     RSAnimationFraction::SetAnimationScale(animationScale);
     auto animationFraction = std::make_shared<RSAnimationFraction>();
-    std::tie(fraction, isInStartDelay, isFinished, isRepeatFinished) = animationFraction->GetAnimationFraction(time);
+    std::tie(fraction, isInStartDelay, isFinished, isRepeatFinished) =
+        animationFraction->GetAnimationFraction(time, delaytime);
     animationFraction->UpdateRemainTimeFraction(fraction, remainTime);
     animationFraction->GetRemainingRepeatCount();
     animationFraction->GetStartFraction();
@@ -87,6 +89,7 @@ void RSAnimationFractionFuzzerTest()
     animationFraction->SetRepeatCallbackEnable(isEnable);
     animationFraction->GetRepeatCallbackEnable();
     animationFraction->ResetFraction();
+    animationFraction->GetRunningTime();
 }
 
 void RSAnimationFractionFuzzerTest1()
@@ -94,6 +97,7 @@ void RSAnimationFractionFuzzerTest1()
     // get data
     float animationScale = GetData<float>();
     int64_t time = GetData<int64_t>();
+    int64_t delayTime = GetData<int64_t>();
     int64_t startDelayNs = GetData<int64_t>();
 
     // test
@@ -102,7 +106,7 @@ void RSAnimationFractionFuzzerTest1()
     RSAnimationFraction::SetAnimationScale(animationScale);
     RSAnimationFraction::OnAnimationScaleChangedCallback("persist.sys.graphic.animationscale", "0", nullptr);
     RSAnimationFraction fraction;
-    fraction.GetAnimationFraction(time);
+    fraction.GetAnimationFraction(time, delayTime);
     fraction.UpdateRemainTimeFraction(animationScale);
     fraction.GetStartFraction();
     fraction.GetEndFraction();
@@ -118,6 +122,7 @@ void RSAnimationFractionFuzzerTest1()
     fraction.IsFinished();
     fraction.UpdateReverseState(true);
     fraction.IsStartRunning(time, startDelayNs);
+    fraction.CalculateLeftDelayTime(startDelayNs);
 }
 
 bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)

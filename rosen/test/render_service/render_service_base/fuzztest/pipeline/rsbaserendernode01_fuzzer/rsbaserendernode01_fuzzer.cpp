@@ -93,6 +93,7 @@ bool RSBaseRenderNode01FuzzTest(const uint8_t* data, size_t size)
     std::vector<RSBaseRenderNode::SharedPtr> vec = { child, childOne, childTwo };
     bool isUniRender = GetData<bool>();
     int64_t timestamp = GetData<int64_t>();
+    int64_t delayTime = GetData<int64_t>();
     bool flag = GetData<bool>();
     bool recursive = GetData<bool>();
     bool change = GetData<bool>();
@@ -119,7 +120,7 @@ bool RSBaseRenderNode01FuzzTest(const uint8_t* data, size_t size)
     node->AddCrossParentChild(child, indexChild);
     node->SetContainBootAnimation(isContainBootAnimation);
     node->SetBootAnimation(isBootAnimation);
-    node->Animate(timestamp);
+    node->Animate(timestamp, delayTime);
     node->HasDisappearingTransition(recursive);
     node->SetTunnelHandleChange(change);
     node->UpdateChildrenOutOfRectFlag(flag);

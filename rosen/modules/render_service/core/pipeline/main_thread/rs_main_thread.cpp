@@ -3486,6 +3486,7 @@ void RSMainThread::Animate(uint64_t timestamp)
     bool isRateDeciderEnabled = (context_->animatingNodeList_.size() <= CAL_NODE_PREFERRED_FPS_LIMIT);
     bool isDisplaySyncEnabled = true;
     int64_t period = 0;
+    int64_t minLeftDelayTime = RSSystemProperties::GetAnimationDelayOptimizeEnabled() ? INT64_MAX : 0;
     if (receiver_) {
         receiver_->GetVSyncPeriod(period);
     }
@@ -3497,7 +3498,7 @@ void RSMainThread::Animate(uint64_t timestamp)
     // iterate and animate all animating nodes, remove if animation finished
     EraseIf(context_->animatingNodeList_,
         [this, timestamp, period, isDisplaySyncEnabled, isRateDeciderEnabled, &totalAnimationSize,
-        &curWinAnim, &needRequestNextVsync, &isCalculateAnimationValue, &needPrintAnimationDFX,
+        &curWinAnim, &needRequestNextVsync, &isCalculateAnimationValue, &needPrintAnimationDFX, &minLeftDelayTime,
         &animationPids](const auto& iter) -> bool {
         auto node = iter.second.lock();
         if (node == nullptr) {
@@ -3520,7 +3521,7 @@ void RSMainThread::Animate(uint64_t timestamp)
         };
         node->animationManager_.SetRateDeciderEnable(isRateDeciderEnabled, frameRateGetFunc);
         auto [hasRunningAnimation, nodeNeedRequestNextVsync, nodeCalculateAnimationValue] =
-            node->Animate(timestamp, period, isDisplaySyncEnabled);
+            node->Animate(timestamp, minLeftDelayTime, period, isDisplaySyncEnabled);
         if (!hasRunningAnimation) {
             node->InActivateDisplaySync();
             RS_LOGD("RSMainThread::Animate removing finished animating node %{public}" PRIu64, node->GetId());
@@ -3561,9 +3562,25 @@ void RSMainThread::Animate(uint64_t timestamp)
     doWindowAnimate_ = curWinAnim;
     RS_LOGD("RSMainThread::Animate end, animating nodes remains, has window animation: %{public}d", curWinAnim);
 
+    // Greater than one frame time (16.6 ms)
+    constexpr int64_t oneFrameTimeInFPS60 = 17;
     if (needRequestNextVsync) {
         HgmEnergyConsumptionPolicy::Instance().StatisticAnimationTime(timestamp / NS_PER_MS);
-        RequestNextVSync("animate", timestamp_);
+        if (minLeftDelayTime > oneFrameTimeInFPS60) {
+            // If the input parameter delayTime for PostTask is a very large int64 value, it can lead to overflow and
+            // crash because delayTime is specified in milliseconds, and thus it should be limited to the maximum value
+            // of int32.
+            minLeftDelayTime = std::min<int64_t>(minLeftDelayTime, INT32_MAX);
+            auto RequestNextVSyncTask = [this]() {
+                RS_TRACE_NAME("Animate with delay RequestNextVSync");
+                RequestNextVSync("animate", timestamp_);
+            };
+            RS_TRACE_NAME_FMT("Animate minLeftDelayTime: %ld", minLeftDelayTime);
+            PostTask(RequestNextVSyncTask, "animate_request_next_vsync", minLeftDelayTime - oneFrameTimeInFPS60,
+                AppExecFwk::EventQueue::Priority::IMMEDIATE);
+        } else {
+            RequestNextVSync("animate", timestamp_);
+        }
     } else if (isUniRender_) {
 #ifdef RS_ENABLE_GPU
         isImplicitAnimationEnd_ = true;
