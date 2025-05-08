@@ -57,6 +57,8 @@ constexpr const char* BOOT_ANIMATION_READY = "bootevent.bootanimation.ready";
 constexpr const char* BOOT_ANIMATION_FINISHED = "bootevent.bootanimation.finished";
 constexpr const char* BOOT_COMPLETED = "bootevent.boot.completed";
 constexpr const char* BOOT_SOUND = "const.bootanimation.bootsound";
+const std::string DEVICE_TYPE_PHONE = "phone";
+const std::string DEVICE_TYPE_WEARABLE = "wearable";
 
 enum class BootStrategyType {
     ASSOCIATIVE,
@@ -168,6 +170,8 @@ std::string ReadFile(const std::string &filePath);
 std::string GetHingeStatus();
 
 int64_t GetSystemCurrentTime();
+
+std::string GetDeviceType();
 } // namespace OHOS
 
 #endif // FRAMEWORKS_BOOTANIMATION_INCLUDE_UTIL_H

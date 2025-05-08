@@ -62,7 +62,7 @@ void BootCompatibleDisplayStrategy::Display(int32_t duration, std::vector<BootAn
             operator_->GetThread().join();
         }
 
-        if (CheckNeedOtaCompile()) {
+        if (IsOtaUpdate()) {
             bootCompileProgress_ = std::make_shared<BootCompileProgress>();
             bootCompileProgress_->Init(config);
         }

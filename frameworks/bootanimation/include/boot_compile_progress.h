@@ -43,6 +43,8 @@ private:
     bool CreateCanvasNode();
     bool RegisterVsyncCallback();
     Rosen::Drawing::Brush DrawProgressPoint(int32_t idx, int32_t frameNum);
+    bool IsBmsBundleReady();
+    void DrawMaginBrush(Rosen::Drawing::RecordingCanvas* canvas);
 
     int32_t windowWidth_ = 0;
     int32_t windowHeight_ = 0;
@@ -58,6 +60,8 @@ private:
 
     bool isBmsCompileDone_ = false;
     volatile bool isUpdateOptEnd_ = false;
+    bool isWearable_ = false;
+    bool isOther_ = false;
 
     std::shared_ptr<Rosen::RSSurfaceNode> rsSurfaceNode_;
     std::shared_ptr<Rosen::RSCanvasNode> rsCanvasNode_;

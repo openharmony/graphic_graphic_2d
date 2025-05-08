@@ -46,7 +46,7 @@ void BootIndependentDisplayStrategy::Display(int32_t duration, std::vector<BootA
         }
     }
 
-    if (CheckNeedOtaCompile()) {
+    if (IsOtaUpdate()) {
         bootCompileProgress_ = std::make_shared<BootCompileProgress>();
         bootCompileProgress_->Init(screenConfig);
     }
