@@ -320,12 +320,13 @@ static bool GetLinearFractionStops(napi_env env, napi_value param, std::shared_p
         FILTER_LOG_E("GetLinearFractionStops get args fail, not array");
         return false;
     }
-    if (arraySize < NUM_2 && arraySize > NUM_1000) {
+    if (arraySize < NUM_2 || arraySize > NUM_1000) {
         FILTER_LOG_E("GetLinearFractionStops fractionStops num less than 2 or greater than 1000");
         return false;
     }
 
     std::vector<std::pair<float, float>> tmpPercent;
+    float lastPos = 0.0f;
     for (size_t i = 0; i < arraySize; i++) {
         napi_value jsValue;
         if ((napi_get_element(env, param, i, &jsValue)) != napi_ok) {
@@ -345,6 +346,12 @@ static bool GetLinearFractionStops(napi_env env, napi_value param, std::shared_p
             napi_get_value_double(env, temp2, &value2) != napi_ok) {
             FILTER_LOG_E("GetLinearFractionStops region coordinates not double");
             return false;
+        }
+        if (value2 < lastPos) {
+            FILTER_LOG_E("GetLinearFractionStops is not increasing");
+            return false;
+        } else {
+            lastPos = value2;
         }
         tmpPercent.push_back(std::pair(value1, value2));
     }
