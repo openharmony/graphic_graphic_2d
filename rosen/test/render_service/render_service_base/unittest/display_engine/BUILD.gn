@@ -51,7 +51,7 @@ ohos_unittest("RSRenderServiceBaseDisplayEngineTest") {
   external_deps = [
     "c_utils:utils",
     "googletest:gtest_main",
-    "googletest:gmock",
+    "googletest:gmock_main",
     "graphic_surface:surface",
     "image_framework:image_native",
     "init:libbegetutil",
