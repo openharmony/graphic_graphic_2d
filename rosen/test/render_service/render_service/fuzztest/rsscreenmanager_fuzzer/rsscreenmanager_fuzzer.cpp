@@ -47,7 +47,6 @@ constexpr uint8_t POST_FORCE_REFRESHTASK = 4;
 constexpr uint8_t REMOVE_FORCE_REFRESHTASK = 5;
 constexpr uint8_t TRY_SIMPLEPROCESS_HOTPLUGEVENTS = 6;
 constexpr uint8_t PROCESS_SCREENHOTPLUGEVENTS = 7;
-constexpr uint8_t PROCESS_PENDINGCONNECTIONS = 8;
 constexpr uint8_t SET_DEFAULTSCREENID = 9;
 constexpr uint8_t GET_VIRTUAL_SCREENRESOLUTION = 10;
 constexpr uint8_t GET_SCREENACTIVEMODE = 11;
@@ -175,7 +174,7 @@ bool GetActiveScreenId()
 bool SetVirtualScreenRefreshRate()
 {
     // get data
-    Rosen::ScreenId screenId = GetData<Rosen::ScreenId>();
+    ScreenId screenId = GetData<Rosen::ScreenId>();
     uint32_t maxRefreshRate = GetData<uint32_t>();
     uint32_t actualRefreshRate = GetData<uint32_t>();
     CreateOrGetScreenManager()->SetVirtualScreenRefreshRate(screenId, maxRefreshRate, actualRefreshRate);
@@ -209,12 +208,6 @@ bool TrySimpleProcessHotPlugEvents()
 bool ProcessScreenHotPlugEvents()
 {
     CreateOrGetScreenManager()->ProcessScreenHotPlugEvents();
-    return true;
-}
-
-bool ProcessPendingConnections()
-{
-    CreateOrGetScreenManager()->ProcessPendingConnections();
     return true;
 }
 
@@ -288,7 +281,7 @@ bool CreateVirtualScreen()
     uint32_t height = GetData<uint32_t>();
     sptr<Surface> surface;
     ScreenId mirrorId = GetData<Rosen::ScreenId>();
-    int32_t flags = GetData<bool>();
+    int32_t flags = GetData<int32_t>();
     NodeId nodeId = GetData<NodeId>();
     std::vector<NodeId> whiteList = { nodeId };
     CreateOrGetScreenManager()->CreateVirtualScreen(name, width, height, surface, mirrorId, flags, whiteList);
@@ -808,7 +801,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     if (!OHOS::Rosen::Init(data, size)) {
         return 0;
     }
-    std::map<uint8_t, FunctionPtr> funcMap = { { OHOS::Rosen::INIT_SCREENMANGER, OHOS::Rosen::InitScreenManger },
+    std::map<uint8_t, FunctionPtr> funcMap = {
+        { OHOS::Rosen::INIT_SCREENMANGER, OHOS::Rosen::InitScreenManger },
         { OHOS::Rosen::GET_ACTIVESCREENID, OHOS::Rosen::GetActiveScreenId },
         { OHOS::Rosen::SET_VIRTUAL_SCREENREFRESHRATE, OHOS::Rosen::SetVirtualScreenRefreshRate },
         { OHOS::Rosen::IS_ALLSCREENSPOWEROFF, OHOS::Rosen::IsAllScreensPowerOff },
@@ -816,7 +810,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
         { OHOS::Rosen::REMOVE_FORCE_REFRESHTASK, OHOS::Rosen::RemoveForceRefreshTask },
         { OHOS::Rosen::TRY_SIMPLEPROCESS_HOTPLUGEVENTS, OHOS::Rosen::TrySimpleProcessHotPlugEvents },
         { OHOS::Rosen::PROCESS_SCREENHOTPLUGEVENTS, OHOS::Rosen::ProcessScreenHotPlugEvents },
-        { OHOS::Rosen::PROCESS_PENDINGCONNECTIONS, OHOS::Rosen::ProcessPendingConnections },
         { OHOS::Rosen::SET_DEFAULTSCREENID, OHOS::Rosen::SetDefaultScreenId },
         { OHOS::Rosen::GET_VIRTUAL_SCREENRESOLUTION, OHOS::Rosen::GetVirtualScreenResolution },
         { OHOS::Rosen::GET_SCREENACTIVEMODE, OHOS::Rosen::GetScreenActiveMode },
@@ -888,7 +881,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
         { OHOS::Rosen::DIS_ABLEPOWEROFFRENDERCONTROL, OHOS::Rosen::DisablePowerOffRenderControl },
         { OHOS::Rosen::GET_DIS_PLAYPROPERTYFORHARDCURSOR, OHOS::Rosen::GetDisplayPropertyForHardCursor },
         { OHOS::Rosen::SET_SCREENHASPROTECTEDLAYER, OHOS::Rosen::SetScreenHasProtectedLayer },
-        { OHOS::Rosen::IS_VIS_IBLERECTSUPPORTROTATION, OHOS::Rosen::IsVisibleRectSupportRotation } };
+        { OHOS::Rosen::IS_VIS_IBLERECTSUPPORTROTATION, OHOS::Rosen::IsVisibleRectSupportRotation } 
+    };
     /* Run your code on data */
     uint8_t tarpos = OHOS::Rosen::GetData<uint8_t>() % OHOS::Rosen::TARGET_SIZE;
     if (funcMap.find(tarpos) != funcMap.end()) {
