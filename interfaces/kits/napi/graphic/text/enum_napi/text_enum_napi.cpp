@@ -161,8 +161,8 @@ static const std::vector<struct JsEnumInt> g_textHighContrast = {
 
 static const std::vector<struct JsEnumInt> TEXT_BADGE_TYPE = {
     { "TEXT_BADGE_NONE", static_cast<uint32_t>(TextBadgeType::BADGE_NONE) },
-    { "TEXT_SUPER_SCRIPT", static_cast<uint32_t>(TextBadgeType::SUPER_SCRIPT) },
-    { "TEXT_SUB_SCRIPT", static_cast<uint32_t>(TextBadgeType::SUB_SCRIPT) },
+    { "TEXT_SUPERSCRIPT", static_cast<uint32_t>(TextBadgeType::SUPERSCRIPT) },
+    { "TEXT_SUBSCRIPT", static_cast<uint32_t>(TextBadgeType::SUBSCRIPT) },
 };
 
 const std::map<std::string_view, const std::vector<struct JsEnumInt>&> INT_ENUM_CLASS_MAP = {

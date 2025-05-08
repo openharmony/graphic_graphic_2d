@@ -36,8 +36,8 @@ namespace OHOS {
 namespace Rosen {
 enum class TextBadgeType {
     BADGE_NONE,
-    SUPER_SCRIPT,
-    SUB_SCRIPT,
+    SUPERSCRIPT,
+    SUBSCRIPT,
 };
 
 enum class RelayoutTextStyleAttribute {

@@ -577,9 +577,9 @@ typedef enum OH_Drawing_TextBadgeType {
     /* No badge */
     TEXT_BADGE_NONE,
     /* Super badge */
-    TEXT_SUPER_SCRIPT,
+    TEXT_SUPERSCRIPT,
     /* Sub badge */
-    TEXT_SUB_SCRIPT,
+    TEXT_SUBSCRIPT,
 } OH_Drawing_TextBadgeType;
 
 /**
