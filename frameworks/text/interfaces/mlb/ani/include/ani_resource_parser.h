@@ -17,7 +17,10 @@
 #define OHOS_TEXT_ANI_RESOURCE_H
 
 #include <ani.h>
+
+#include <memory>
 #include <string>
+#include <vector>
 
 namespace OHOS::Text::NAI {
 struct AniResource {

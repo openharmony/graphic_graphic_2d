@@ -17,25 +17,26 @@
 #define OHOS_TEXT_ANI_FONT_COLLECTION_H
 
 #include <ani.h>
+
 #include <memory>
 
 #include "font_collection.h"
 #include "resource_manager.h"
 
 namespace OHOS::Text::NAI {
-using namespace OHOS::Rosen;
 class AniFontCollection final {
 public:
     AniFontCollection();
-    AniFontCollection(std::shared_ptr<FontCollection> fc);
+    AniFontCollection(std::shared_ptr<OHOS::Rosen::FontCollection> fc);
     static ani_object GetGlobalInstance(ani_env* env, ani_class cls);
     static void LoadFontSync(ani_env* env, ani_object obj, ani_string name, ani_object path);
     static void ClearCaches(ani_env* env, ani_object obj);
     static void Constructor(ani_env* env, ani_object object);
     static ani_status AniInit(ani_vm* vm, uint32_t* result);
-    std::shared_ptr<FontCollection> GetFontCollection();
+    std::shared_ptr<OHOS::Rosen::FontCollection> GetFontCollection();
+
 private:
-    std::shared_ptr<FontCollection> fontCollection_ = nullptr;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection_ = nullptr;
 };
 } // namespace OHOS::Text::NAI
 #endif // OHOS_TEXT_ANI_FONT_COLLECTION_H

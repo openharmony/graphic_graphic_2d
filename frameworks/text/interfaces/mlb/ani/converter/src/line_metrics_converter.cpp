@@ -17,52 +17,10 @@
 #include "ani_common.h"
 #include "ani_text_utils.h"
 #include "line_metrics_converter.h"
-#include "text_style_converter.h"
+#include "run_metrics_converter.h"
 
 namespace OHOS::Text::NAI {
-ani_object LineMetricsConverter::ParseFontMetricsToAni(ani_env* env, const Drawing::FontMetrics& fontMetrics)
-{
-    ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_FONT_METRICS, ":V");
-    env->Object_SetPropertyByName_Double(aniObj, "flags", ani_int(fontMetrics.fFlags));
-    env->Object_SetPropertyByName_Double(aniObj, "top", ani_double(fontMetrics.fTop));
-    env->Object_SetPropertyByName_Double(aniObj, "ascent", ani_double(fontMetrics.fAscent));
-    env->Object_SetPropertyByName_Double(aniObj, "descent", ani_double(fontMetrics.fDescent));
-    env->Object_SetPropertyByName_Double(aniObj, "bottom", ani_double(fontMetrics.fBottom));
-    env->Object_SetPropertyByName_Double(aniObj, "leading", ani_double(fontMetrics.fLeading));
-    env->Object_SetPropertyByName_Double(aniObj, "avgCharWidth", ani_double(fontMetrics.fAvgCharWidth));
-    env->Object_SetPropertyByName_Double(aniObj, "maxCharWidth", ani_double(fontMetrics.fMaxCharWidth));
-    env->Object_SetPropertyByName_Double(aniObj, "xMin", ani_double(fontMetrics.fXMin));
-    env->Object_SetPropertyByName_Double(aniObj, "xMax", ani_double(fontMetrics.fXMax));
-    env->Object_SetPropertyByName_Double(aniObj, "xHeight", ani_double(fontMetrics.fXHeight));
-    env->Object_SetPropertyByName_Double(aniObj, "capHeight", ani_double(fontMetrics.fCapHeight));
-    env->Object_SetPropertyByName_Double(aniObj, "underlineThickness", ani_double(fontMetrics.fUnderlineThickness));
-    env->Object_SetPropertyByName_Double(aniObj, "underlinePosition", ani_double(fontMetrics.fUnderlinePosition));
-    env->Object_SetPropertyByName_Double(aniObj, "strikethroughThickness", ani_double(fontMetrics.fStrikeoutThickness));
-    env->Object_SetPropertyByName_Double(aniObj, "strikethroughPosition", ani_double(fontMetrics.fStrikeoutPosition));
-    return aniObj;
-}
-
-ani_object LineMetricsConverter::ParseRunMetricsToAni(ani_env* env, const std::map<size_t, RunMetrics>& map)
-{
-    ani_object mapAniObj = AniTextUtils::CreateAniMap(env);
-    ani_ref mapRef = nullptr;
-    for (const auto& [key, runMetrics] : map) {
-        ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_RUNMETRICS_I, ":V");
-        if (runMetrics.textStyle != nullptr) {
-            env->Object_SetPropertyByName_Ref(aniObj, "textStyle",
-                                              TextStyleConverter::ParseTextStyleToAni(env, *runMetrics.textStyle));
-        }
-        if (ANI_OK
-            != env->Object_CallMethodByName_Ref(
-                mapAniObj, "set", "Lstd/core/Object;Lstd/core/Object;:Lescompat/Map;", &mapRef,
-                AniTextUtils::CreateAniDoubleObj(env, static_cast<ani_double>(key)), aniObj)) {
-            TEXT_LOGE("Object_CallMethodByName_Ref set failed");
-            break;
-        };
-    }
-    return mapAniObj;
-}
-
+using namespace OHOS::Rosen;
 ani_object LineMetricsConverter::ParseLineMetricsToAni(ani_env* env, const LineMetrics& lineMetrics)
 {
     ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_LINEMETRICS_I, ":V");
@@ -76,7 +34,8 @@ ani_object LineMetricsConverter::ParseLineMetricsToAni(ani_env* env, const LineM
     env->Object_SetPropertyByName_Double(aniObj, "baseline", ani_double(lineMetrics.baseline));
     env->Object_SetPropertyByName_Double(aniObj, "lineNumber", ani_int(lineMetrics.lineNumber));
     env->Object_SetPropertyByName_Double(aniObj, "topHeight", ani_double(lineMetrics.y));
-    env->Object_SetPropertyByName_Ref(aniObj, "runMetrics", ParseRunMetricsToAni(env, lineMetrics.runMetrics));
+    env->Object_SetPropertyByName_Ref(
+        aniObj, "runMetrics", RunMetricsConverter::ParseRunMetricsToAni(env, lineMetrics.runMetrics));
     return aniObj;
 }
 } // namespace OHOS::Text::NAI

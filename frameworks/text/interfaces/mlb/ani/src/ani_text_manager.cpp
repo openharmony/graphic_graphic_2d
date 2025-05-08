@@ -68,8 +68,7 @@ static void Clean(ani_env* env, ani_object object)
     }
     using DeleteFunc = void (*)(ani_long&);
     static const std::unordered_map<std::string, DeleteFunc> deleteMap = {
-        {"ParagraphBuilder", SafeDelete<AniParagraphBuilder>},
-        {"Paragraph", SafeDelete<AniParagraph>},
+        {"ParagraphBuilder", SafeDelete<AniParagraphBuilder>}, {"Paragraph", SafeDelete<AniParagraph>},
         {"FontCollection", SafeDelete<AniFontCollection>}};
 
     if (deleteMap.count(familyName)) {

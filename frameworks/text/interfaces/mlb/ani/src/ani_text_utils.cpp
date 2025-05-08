@@ -13,14 +13,14 @@
  * limitations under the License.
  */
 
-#include "ani_text_utils.h"
-
 #include <cstdarg>
 #include <cstdint>
 #include <fstream>
 #include <sstream>
 #include <string>
+
 #include "ani.h"
+#include "ani_text_utils.h"
 #include "typography_style.h"
 
 namespace OHOS::Text::NAI {
@@ -30,12 +30,12 @@ ani_status AniTextUtils::ThrowBusinessError(ani_env* env, TextErrorCode errorCod
     ani_object aniError;
     ani_status status = AniTextUtils::CreateBusinessError(env, static_cast<int32_t>(errorCode), message, aniError);
     if (status != ANI_OK) {
-        TEXT_LOGE("[ANI] create business error fail, status:%{public}d", static_cast<int32_t>(status));
+        TEXT_LOGE("Failed to create business, status:%{public}d", static_cast<int32_t>(status));
         return status;
     }
     status = env->ThrowError(static_cast<ani_error>(aniError));
     if (status != ANI_OK) {
-        TEXT_LOGE("[ANI] fail to throw err, status:%{public}d", static_cast<int32_t>(status));
+        TEXT_LOGE("Fail to throw err, status:%{public}d", static_cast<int32_t>(status));
         return status;
     }
     return ANI_OK;
@@ -46,24 +46,24 @@ ani_status AniTextUtils::CreateBusinessError(ani_env* env, int32_t error, const 
     ani_class aniClass;
     ani_status status = env->FindClass("L@ohos/base/BusinessError;", &aniClass);
     if (status != ANI_OK) {
-        TEXT_LOGE("[ANI] class not found, status:%{public}d", static_cast<int32_t>(status));
+        TEXT_LOGE("Failed to find class, status:%{public}d", static_cast<int32_t>(status));
         return status;
     }
     ani_method aniCtor;
     status = env->Class_FindMethod(aniClass, "<ctor>", "Lstd/core/String;Lescompat/ErrorOptions;:V", &aniCtor);
     if (status != ANI_OK) {
-        TEXT_LOGE("[ANI] ctor not found, status:%{public}d", static_cast<int32_t>(status));
+        TEXT_LOGE("Failed to find ctor, status:%{public}d", static_cast<int32_t>(status));
         return status;
     }
     ani_string aniMsg = AniTextUtils::CreateAniStringObj(env, message);
     status = env->Object_New(aniClass, aniCtor, &err, aniMsg, AniTextUtils::CreateAniUndefined(env));
     if (status != ANI_OK) {
-        TEXT_LOGE("[ANI] fail to new err, status:%{public}d", static_cast<int32_t>(status));
+        TEXT_LOGE("Failed to new err, status:%{public}d", static_cast<int32_t>(status));
         return status;
     }
     status = env->Object_SetPropertyByName_Double(err, "code", static_cast<ani_int>(error));
     if (status != ANI_OK) {
-        TEXT_LOGE("[ANI] fail to set code, status:%{public}d", static_cast<int32_t>(status));
+        TEXT_LOGE("Failed to set code, status:%{public}d", static_cast<int32_t>(status));
         return status;
     }
     return ANI_OK;
@@ -80,17 +80,17 @@ ani_object AniTextUtils::CreateAniArray(ani_env* env, size_t size)
 {
     ani_class arrayCls;
     if (env->FindClass(ANI_ARRAY, &arrayCls) != ANI_OK) {
-        TEXT_LOGE("[ANI] FindClass Lescompat/Array; failed");
+        TEXT_LOGE("Failed to findClass Lescompat/Array;");
         return CreateAniUndefined(env);
     }
     ani_method arrayCtor;
     if (env->Class_FindMethod(arrayCls, "<ctor>", "I:V", &arrayCtor) != ANI_OK) {
-        TEXT_LOGE("[ANI] Class_FindMethod <ctor> Failed");
+        TEXT_LOGE("Failed to find <ctor>");
         return CreateAniUndefined(env);
     }
     ani_object arrayObj = nullptr;
     if (env->Object_New(arrayCls, arrayCtor, &arrayObj, size) != ANI_OK) {
-        TEXT_LOGE("[ANI] Object_New Array Failed");
+        TEXT_LOGE("Failed to create object Array");
         return CreateAniUndefined(env);
     }
     return arrayObj;
@@ -105,7 +105,7 @@ ani_enum_item AniTextUtils::CreateAniEnum(ani_env* env, const char* enum_descrip
 {
     ani_enum enumType;
     if (ANI_OK != env->FindEnum(enum_descriptor, &enumType)) {
-        TEXT_LOGE("[ANI] enum not found,%{public}s", enum_descriptor);
+        TEXT_LOGE("Failed to find enum,%{public}s", enum_descriptor);
         return nullptr;
     }
     ani_enum_item enumItem;
@@ -147,7 +147,7 @@ ani_status AniTextUtils::AniToStdStringUtf8(ani_env* env, const ani_string& str,
     ani_size strSize;
     ani_status status = env->String_GetUTF8Size(str, &strSize);
     if (ANI_OK != status) {
-        TEXT_LOGE("[ANI] String_GetUTF8Size Failed");
+        TEXT_LOGE("Failed to get utf8 str size");
         return status;
     }
 
@@ -157,7 +157,7 @@ ani_status AniTextUtils::AniToStdStringUtf8(ani_env* env, const ani_string& str,
     ani_size bytesWritten = 0;
     status = env->String_GetUTF8(str, utf8Buffer, strSize + 1, &bytesWritten);
     if (ANI_OK != status) {
-        TEXT_LOGE("[ANI] String_GetUTF8 Failed");
+        TEXT_LOGE("Failed to get utf8 str");
         return status;
     }
 
@@ -171,7 +171,7 @@ ani_status AniTextUtils::AniToStdStringUtf16(ani_env* env, const ani_string& str
     ani_size strSize;
     ani_status status = env->String_GetUTF16Size(str, &strSize);
     if (ANI_OK != status) {
-        TEXT_LOGE("[ANI] String_GetUTF8Size Failed");
+        TEXT_LOGE("Failed to get utf16 str size");
         return status;
     }
 
@@ -182,7 +182,7 @@ ani_status AniTextUtils::AniToStdStringUtf16(ani_env* env, const ani_string& str
     ani_size bytesWritten = 0;
     status = env->String_GetUTF16(str, utf16Buffer, strSize, &bytesWritten);
     if (ANI_OK != status) {
-        TEXT_LOGE("[ANI] String_GetUTF16 Failed");
+        TEXT_LOGE("Failed to get utf16 str");
         return status;
     }
     utf16Buffer[bytesWritten] = '\0';
@@ -237,13 +237,13 @@ ani_status AniTextUtils::ReadOptionalField(ani_env* env, ani_object obj, const c
 {
     ani_status ret = env->Object_GetPropertyByName_Ref(obj, fieldName, &ref);
     if (ret != ANI_OK) {
-        TEXT_LOGE("[ANI] Object_GetPropertyByName_Ref failed:%{public}d", ret);
+        TEXT_LOGE("Failed to get property %{public}s:%{public}d", fieldName, ret);
         return ret;
     }
     ani_boolean isUndefined;
     ret = env->Reference_IsUndefined(ref, &isUndefined);
     if (ret != ANI_OK) {
-        TEXT_LOGE("[ANI] check ref is undefined failed:%{public}d", ret);
+        TEXT_LOGE("Failed to check ref is undefined:%{public}d", ret);
         return ret;
     }
 
@@ -276,8 +276,8 @@ ani_status AniTextUtils::ReadOptionalStringField(ani_env* env, ani_object obj, c
     return result;
 }
 
-ani_status AniTextUtils::ReadOptionalU16StringField(ani_env* env, ani_object obj, const char* fieldName,
-                                                    std::u16string& str)
+ani_status AniTextUtils::ReadOptionalU16StringField(
+    ani_env* env, ani_object obj, const char* fieldName, std::u16string& str)
 {
     ani_ref ref = nullptr;
     ani_status result = AniTextUtils::ReadOptionalField(env, obj, fieldName, ref);

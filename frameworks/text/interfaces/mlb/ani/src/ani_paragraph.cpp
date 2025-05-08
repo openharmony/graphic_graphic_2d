@@ -13,23 +13,22 @@
  * limitations under the License.
  */
 
-#include "ani_paragraph.h"
-
 #include <codecvt>
 #include <cstdint>
 
 #include "ani.h"
 #include "ani_common.h"
+#include "ani_paragraph.h"
 #include "ani_text_utils.h"
 #include "draw/canvas.h"
 #include "font_collection.h"
 #include "line_metrics_converter.h"
-#include "typography_create.h"
 #include "text/font_metrics.h"
+#include "typography_create.h"
 #include "utils/text_log.h"
 
 namespace OHOS::Text::NAI {
-
+using namespace OHOS::Rosen;
 AniParagraph::AniParagraph()
 {
 }
@@ -74,7 +73,7 @@ ani_status AniParagraph::AniInit(ani_vm* vm, uint32_t* result)
         ani_native_function{"getLongestLine", ":D", reinterpret_cast<void*>(GetLongestLine)},
         ani_native_function{"getLineMetrics", ":Lescompat/Array;", reinterpret_cast<void*>(GetLineMetrics)},
         ani_native_function{"nativeGetLineMetricsAt", "D:L@ohos/graphics/text/text/LineMetrics;",
-                            reinterpret_cast<void*>(GetLineMetricsAt)},
+            reinterpret_cast<void*>(GetLineMetricsAt)},
     };
 
     ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
@@ -89,7 +88,7 @@ void AniParagraph::LayoutSync(ani_env* env, ani_object object, ani_double width)
 {
     AniParagraph* aniParagraph = AniTextUtils::GetNativeFromObj<AniParagraph>(env, object);
     if (aniParagraph == nullptr || aniParagraph->paragraph_ == nullptr) {
-        TEXT_LOGE("paragraph is null");
+        TEXT_LOGE("Paragraph is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return;
     }
@@ -100,31 +99,31 @@ void AniParagraph::Paint(ani_env* env, ani_object object, ani_object canvas, ani
 {
     AniParagraph* aniParagraph = AniTextUtils::GetNativeFromObj<AniParagraph>(env, object);
     if (aniParagraph == nullptr || aniParagraph->paragraph_ == nullptr) {
-        TEXT_LOGE("paragraph is null");
+        TEXT_LOGE("Paragraph is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return;
     }
     Drawing::Canvas* canvasI = AniTextUtils::GetNativeFromObj<Drawing::Canvas>(env, canvas);
     if (canvasI == nullptr) {
-        TEXT_LOGE("canvas is null");
+        TEXT_LOGE("Canvas is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "canvas unavailable.");
         return;
     }
     aniParagraph->paragraph_->Paint(canvasI, x, y);
 }
 
-void AniParagraph::PaintOnPath(ani_env* env, ani_object object, ani_object canvas, ani_object path, ani_double hOffset,
-                               ani_double vOffset)
+void AniParagraph::PaintOnPath(
+    ani_env* env, ani_object object, ani_object canvas, ani_object path, ani_double hOffset, ani_double vOffset)
 {
     AniParagraph* aniParagraph = AniTextUtils::GetNativeFromObj<AniParagraph>(env, object);
     if (aniParagraph == nullptr || aniParagraph->paragraph_ == nullptr) {
-        TEXT_LOGE("paragraph is null");
+        TEXT_LOGE("Paragraph is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return;
     }
     Drawing::Canvas* canvasI = AniTextUtils::GetNativeFromObj<Drawing::Canvas>(env, canvas);
     if (canvasI == nullptr) {
-        TEXT_LOGE("canvas is null");
+        TEXT_LOGE("Canvas is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Canvas unavailable.");
         return;
     }
@@ -141,7 +140,7 @@ ani_double AniParagraph::GetLongestLine(ani_env* env, ani_object object)
 {
     AniParagraph* aniParagraph = AniTextUtils::GetNativeFromObj<AniParagraph>(env, object);
     if (aniParagraph == nullptr || aniParagraph->paragraph_ == nullptr) {
-        TEXT_LOGE("paragraph is null");
+        TEXT_LOGE("Paragraph is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return 0;
     }
@@ -162,14 +161,14 @@ ani_ref AniParagraph::GetLineMetrics(ani_env* env, ani_object object)
     ani_boolean isUndefined;
     env->Reference_IsUndefined(arrayObj, &isUndefined);
     if (isUndefined) {
-        TEXT_LOGE("Create arrayObject failed");
+        TEXT_LOGE("Failed to Create arrayObject");
         return arrayObj;
     }
     ani_size index = 0;
     for (const auto& lineMetrics : vectorLineMetrics) {
         ani_object aniObj = LineMetricsConverter::ParseLineMetricsToAni(env, lineMetrics);
         if (ANI_OK != env->Object_CallMethodByName_Void(arrayObj, "$_set", "ILstd/core/Object;:V", index, aniObj)) {
-            TEXT_LOGE("Object_CallMethodByName_Void $_set failed");
+            TEXT_LOGE("Failed to set lineMetrics item");
             break;
         }
         index++;

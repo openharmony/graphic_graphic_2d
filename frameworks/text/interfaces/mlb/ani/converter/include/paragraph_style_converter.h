@@ -18,17 +18,19 @@
 
 #include <ani.h>
 
+#include <memory>
+#include <vector>
+
 #include "typography.h"
 #include "typography_style.h"
 
 namespace OHOS::Text::NAI {
-using namespace OHOS::Rosen;
 class ParagraphStyleConverter {
 public:
-    static std::unique_ptr<TypographyStyle> ParseParagraphStyleToNative(ani_env* env, ani_object obj);
-    static void ParseParagraphStyleStrutStyleToNative(ani_env* env, ani_object obj,
-                                                      std::unique_ptr<TypographyStyle>& paragraphStyle);
-    static void ParseTextTabToNative(ani_env* env, ani_object obj, TextTab& textTab);
+    static std::unique_ptr<OHOS::Rosen::TypographyStyle> ParseParagraphStyleToNative(ani_env* env, ani_object obj);
+    static void ParseParagraphStyleStrutStyleToNative(
+        ani_env* env, ani_object obj, std::unique_ptr<OHOS::Rosen::TypographyStyle>& paragraphStyle);
+    static void ParseTextTabToNative(ani_env* env, ani_object obj, OHOS::Rosen::TextTab& textTab);
     static void ParseFontFamiliesToNative(ani_env* env, ani_array_ref obj, std::vector<std::string>& fontFamilies);
 };
 } // namespace OHOS::Text::NAI

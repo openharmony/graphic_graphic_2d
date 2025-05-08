@@ -19,13 +19,23 @@
 #include <ani.h>
 
 #include "draw/color.h"
+#include "text/font_metrics.h"
 
 namespace OHOS::Text::NAI {
-using namespace OHOS::Rosen;
+
+inline int32_t ConvertClampFromJsValue(ani_double jsValue, int32_t lo, int32_t hi)
+{
+    int32_t value = static_cast<int32_t>(jsValue);
+    value = std::clamp(value, lo, hi);
+    return value;
+}
+
 class DrawingConverter {
 public:
-    static void ParseDrawingColorToNative(ani_env* env, ani_object obj, const std::string& str,
-                                          Drawing::Color& colorSrc);
+    static void ParseDrawingColorToNative(
+        ani_env* env, ani_object obj, const std::string& str, OHOS::Rosen::Drawing::Color& colorSrc);
+
+    static ani_object ParseFontMetricsToAni(ani_env* env, const OHOS::Rosen::Drawing::FontMetrics& fontMetrics);
 };
 } // namespace OHOS::Text::NAI
 #endif // OHOS_TEXT_ANI_DRAWING_CONVERTER_H

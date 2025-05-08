@@ -16,6 +16,7 @@
 #ifndef OHOS_ANI_TEXT_UTILS_H
 #define OHOS_ANI_TEXT_UTILS_H
 
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -53,14 +54,14 @@ public:
     static ani_status ReadOptionalField(ani_env* env, ani_object obj, const char* fieldName, ani_ref& ref);
     static ani_status ReadOptionalDoubleField(ani_env* env, ani_object obj, const char* fieldName, double& value);
     static ani_status ReadOptionalStringField(ani_env* env, ani_object obj, const char* fieldName, std::string& str);
-    static ani_status ReadOptionalU16StringField(ani_env* env, ani_object obj, const char* fieldName,
-                                                 std::u16string& str);
+    static ani_status ReadOptionalU16StringField(
+        ani_env* env, ani_object obj, const char* fieldName, std::u16string& str);
     static ani_status ReadOptionalBoolField(ani_env* env, ani_object obj, const char* fieldName, bool& value);
     template <typename EnumType>
     static ani_status ReadOptionalEnumField(ani_env* env, ani_object obj, const char* fieldName, EnumType& value);
     template <typename T, typename Converter>
-    static ani_status ReadOptionalArrayField(ani_env* env, ani_object obj, const char* fieldName, std::vector<T>& array,
-                                             Converter convert);
+    static ani_status ReadOptionalArrayField(
+        ani_env* env, ani_object obj, const char* fieldName, std::vector<T>& array, Converter convert);
 };
 
 template <typename... Args>
@@ -85,8 +86,8 @@ ani_object AniTextUtils::CreateAniObject(ani_env* env, const std::string name, c
 }
 
 template <typename T, typename Converter>
-ani_object AniTextUtils::CreateAniArrayAndInitData(ani_env* env, const std::vector<T>& t, size_t size,
-                                                   Converter convert)
+ani_object AniTextUtils::CreateAniArrayAndInitData(
+    ani_env* env, const std::vector<T>& t, size_t size, Converter convert)
 {
     ani_object arrayObj = CreateAniArray(env, size);
     ani_size index = 0;
@@ -134,8 +135,8 @@ ani_status AniTextUtils::ReadOptionalEnumField(ani_env* env, ani_object obj, con
 };
 
 template <typename T, typename Converter>
-ani_status AniTextUtils::ReadOptionalArrayField(ani_env* env, ani_object obj, const char* fieldName,
-                                                std::vector<T>& array, Converter convert)
+ani_status AniTextUtils::ReadOptionalArrayField(
+    ani_env* env, ani_object obj, const char* fieldName, std::vector<T>& array, Converter convert)
 {
     ani_ref ref = nullptr;
     ani_status result = AniTextUtils::ReadOptionalField(env, obj, fieldName, ref);

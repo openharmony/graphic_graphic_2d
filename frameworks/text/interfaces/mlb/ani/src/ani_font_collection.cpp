@@ -13,19 +13,19 @@
  * limitations under the License.
  */
 
-#include "ani_font_collection.h"
+#include <sys/stat.h>
 
 #include <codecvt>
 #include <cstdint>
-#include <sys/stat.h>
 
 #include "ani_common.h"
+#include "ani_font_collection.h"
 #include "ani_resource_parser.h"
 #include "ani_text_utils.h"
 #include "utils/text_log.h"
 
 namespace OHOS::Text::NAI {
-
+using namespace OHOS::Rosen;
 AniFontCollection::AniFontCollection()
 {
     fontCollection_ = FontCollection::From(nullptr);
@@ -134,10 +134,10 @@ ani_status AniFontCollection::AniInit(ani_vm* vm, uint32_t* result)
     std::string loadFontSync = "Lstd/core/String;Lstd/core/Object;:V";
 
     std::array methods = {
-        ani_native_function { "constructorNative", ":V", reinterpret_cast<void*>(Constructor) },
-        ani_native_function { "getGlobalInstance", globalInstance.c_str(), reinterpret_cast<void*>(GetGlobalInstance) },
-        ani_native_function { "loadFontSync", loadFontSync.c_str(), reinterpret_cast<void*>(LoadFontSync) },
-        ani_native_function { "clearCaches", ":V", reinterpret_cast<void*>(ClearCaches) },
+        ani_native_function{"constructorNative", ":V", reinterpret_cast<void*>(Constructor)},
+        ani_native_function{"getGlobalInstance", globalInstance.c_str(), reinterpret_cast<void*>(GetGlobalInstance)},
+        ani_native_function{"loadFontSync", loadFontSync.c_str(), reinterpret_cast<void*>(LoadFontSync)},
+        ani_native_function{"clearCaches", ":V", reinterpret_cast<void*>(ClearCaches)},
     };
 
     ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());

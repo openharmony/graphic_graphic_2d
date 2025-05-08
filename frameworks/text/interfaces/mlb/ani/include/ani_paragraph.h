@@ -18,10 +18,11 @@
 
 #include <ani.h>
 
+#include <memory>
+
 #include "typography.h"
 
 namespace OHOS::Text::NAI {
-using namespace OHOS::Rosen;
 class AniParagraph final {
 public:
     AniParagraph();
@@ -32,12 +33,12 @@ private:
     static void Constructor(ani_env* env, ani_object object);
     static void LayoutSync(ani_env* env, ani_object object, ani_double width);
     static void Paint(ani_env* env, ani_object object, ani_object canvas, ani_double x, ani_double y);
-    static void PaintOnPath(ani_env* env, ani_object object, ani_object canvas, ani_object path, ani_double hOffset,
-                            ani_double vOffset);
+    static void PaintOnPath(
+        ani_env* env, ani_object object, ani_object canvas, ani_object path, ani_double hOffset, ani_double vOffset);
     static ani_double GetLongestLine(ani_env* env, ani_object object);
     static ani_ref GetLineMetrics(ani_env* env, ani_object object);
     static ani_object GetLineMetricsAt(ani_env* env, ani_object object, ani_double lineNumber);
-    std::shared_ptr<Typography> paragraph_ = nullptr;
+    std::shared_ptr<OHOS::Rosen::Typography> paragraph_ = nullptr;
 };
 } // namespace OHOS::Text::NAI
 #endif // OHOS_TEXT_ANI_PARAGRAPH_H

@@ -19,11 +19,7 @@
 #include "drawing_converter.h"
 
 namespace OHOS::Text::NAI {
-inline void ConvertClampFromJsValue(ani_env* env, ani_double jsValue, int32_t& value, int32_t lo, int32_t hi)
-{
-    value = static_cast<int32_t>(jsValue);
-    value = std::clamp(value, lo, hi);
-}
+using namespace OHOS::Rosen;
 
 void DrawingConverter::ParseDrawingColorToNative(ani_env* env, ani_object obj, const std::string& str,
                                                  Drawing::Color& colorSrc)
@@ -32,23 +28,41 @@ void DrawingConverter::ParseDrawingColorToNative(ani_env* env, ani_object obj, c
     ani_double tempValueChild{0};
     ani_status result = env->Object_GetPropertyByName_Ref(obj, str.c_str(), &tempValue);
     if (result != ANI_OK || tempValue == nullptr) {
-        TEXT_LOGD("[ANI] set color faild");
+        TEXT_LOGD("Failed to set color");
         return;
     }
-    int32_t alpha = 0;
-    int32_t red = 0;
-    int32_t green = 0;
-    int32_t blue = 0;
-    env->Object_GetPropertyByName_Double(static_cast<ani_object>(tempValue), "alpha", &tempValueChild);
-    ConvertClampFromJsValue(env, tempValueChild, alpha, 0, Drawing::Color::RGB_MAX);
-    env->Object_GetPropertyByName_Double(static_cast<ani_object>(tempValue), "red", &tempValueChild);
-    ConvertClampFromJsValue(env, tempValueChild, red, 0, Drawing::Color::RGB_MAX);
-    env->Object_GetPropertyByName_Double(static_cast<ani_object>(tempValue), "green", &tempValueChild);
-    ConvertClampFromJsValue(env, tempValueChild, green, 0, Drawing::Color::RGB_MAX);
-    env->Object_GetPropertyByName_Double(static_cast<ani_object>(tempValue), "blue", &tempValueChild);
-    ConvertClampFromJsValue(env, tempValueChild, blue, 0, Drawing::Color::RGB_MAX);
 
-    Drawing::Color color(Drawing::Color::ColorQuadSetARGB(alpha, red, green, blue));
-    colorSrc = color;
+    env->Object_GetPropertyByName_Double(static_cast<ani_object>(tempValue), "alpha", &tempValueChild);
+    int32_t alpha = ConvertClampFromJsValue(tempValueChild, 0, Drawing::Color::RGB_MAX);
+    env->Object_GetPropertyByName_Double(static_cast<ani_object>(tempValue), "red", &tempValueChild);
+    int32_t red = ConvertClampFromJsValue(tempValueChild, 0, Drawing::Color::RGB_MAX);
+    env->Object_GetPropertyByName_Double(static_cast<ani_object>(tempValue), "green", &tempValueChild);
+    int32_t green = ConvertClampFromJsValue(tempValueChild, 0, Drawing::Color::RGB_MAX);
+    env->Object_GetPropertyByName_Double(static_cast<ani_object>(tempValue), "blue", &tempValueChild);
+    int32_t blue = ConvertClampFromJsValue(tempValueChild, 0, Drawing::Color::RGB_MAX);
+
+    colorSrc = Drawing::Color(Drawing::Color::ColorQuadSetARGB(alpha, red, green, blue));
+}
+
+ani_object DrawingConverter::ParseFontMetricsToAni(ani_env* env, const Drawing::FontMetrics& fontMetrics)
+{
+    ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_FONT_METRICS_I, ":V");
+    env->Object_SetPropertyByName_Double(aniObj, "flags", ani_int(fontMetrics.fFlags));
+    env->Object_SetPropertyByName_Double(aniObj, "top", ani_double(fontMetrics.fTop));
+    env->Object_SetPropertyByName_Double(aniObj, "ascent", ani_double(fontMetrics.fAscent));
+    env->Object_SetPropertyByName_Double(aniObj, "descent", ani_double(fontMetrics.fDescent));
+    env->Object_SetPropertyByName_Double(aniObj, "bottom", ani_double(fontMetrics.fBottom));
+    env->Object_SetPropertyByName_Double(aniObj, "leading", ani_double(fontMetrics.fLeading));
+    env->Object_SetPropertyByName_Double(aniObj, "avgCharWidth", ani_double(fontMetrics.fAvgCharWidth));
+    env->Object_SetPropertyByName_Double(aniObj, "maxCharWidth", ani_double(fontMetrics.fMaxCharWidth));
+    env->Object_SetPropertyByName_Double(aniObj, "xMin", ani_double(fontMetrics.fXMin));
+    env->Object_SetPropertyByName_Double(aniObj, "xMax", ani_double(fontMetrics.fXMax));
+    env->Object_SetPropertyByName_Double(aniObj, "xHeight", ani_double(fontMetrics.fXHeight));
+    env->Object_SetPropertyByName_Double(aniObj, "capHeight", ani_double(fontMetrics.fCapHeight));
+    env->Object_SetPropertyByName_Double(aniObj, "underlineThickness", ani_double(fontMetrics.fUnderlineThickness));
+    env->Object_SetPropertyByName_Double(aniObj, "underlinePosition", ani_double(fontMetrics.fUnderlinePosition));
+    env->Object_SetPropertyByName_Double(aniObj, "strikethroughThickness", ani_double(fontMetrics.fStrikeoutThickness));
+    env->Object_SetPropertyByName_Double(aniObj, "strikethroughPosition", ani_double(fontMetrics.fStrikeoutPosition));
+    return aniObj;
 }
 } // namespace OHOS::Text::NAI
