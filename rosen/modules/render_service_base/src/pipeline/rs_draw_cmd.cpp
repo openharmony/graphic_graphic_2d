@@ -99,6 +99,7 @@ RSExtendImageObject::RSExtendImageObject(const std::shared_ptr<Drawing::Image>& 
     rsImage_->SetScale(imageInfo.scale);
     rsImage_->SetDynamicRangeMode(imageInfo.dynamicRangeMode);
     rsImage_->SetFitMatrix(imageInfo.fitMatrix);
+    rsImage_->SetOrientationFit(imageInfo.orientationNum);
     imageInfo_ = imageInfo;
 }
 
@@ -126,6 +127,7 @@ RSExtendImageObject::RSExtendImageObject(const std::shared_ptr<Media::PixelMap>&
                         imageInfo.frameRect.GetBottom());
         rsImage_->SetFrameRect(frameRect);
         rsImage_->SetFitMatrix(imageInfo.fitMatrix);
+        rsImage_->SetOrientationFit(imageInfo.orientationNum);
     }
 }
 
