@@ -106,6 +106,8 @@ HWTEST_F(RSDrawFrameTest, CheckCanvasSkipSyncTest, TestSize.Level1)
 HWTEST_F(RSDrawFrameTest, SyncTest, TestSize.Level1)
 {
     RSDrawFrame drawFrame_;
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(200);
+    drawFrame_.stagingSyncCanvasDrawingNodes_.emplace(node->GetId(), node);
     drawFrame_.Sync();
     ASSERT_EQ(drawFrame_.stagingSyncCanvasDrawingNodes_.size(), 0);
     ASSERT_EQ(RSMainThread::Instance()->GetContext().pendingSyncNodes_.size(), 0);

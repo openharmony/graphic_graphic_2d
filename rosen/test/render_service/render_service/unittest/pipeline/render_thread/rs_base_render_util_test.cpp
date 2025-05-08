@@ -503,11 +503,15 @@ HWTEST_F(RSBaseRenderUtilTest, IsColorFilterModeValid_002, TestSize.Level2)
  */
 HWTEST_F(RSBaseRenderUtilTest, WriteSurfaceRenderNodeToPng_001, TestSize.Level2)
 {
-    OHOS::system::SetParameter("rosen.dumpsurfacetype.enabled", "3");
-    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    auto param = OHOS::system::GetParameter("rosen.dumpsurfacetype.enabled", "1");
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
     bool result = RSBaseRenderUtil::WriteSurfaceRenderNodeToPng(*surfaceNode);
     ASSERT_EQ(false, result);
-    OHOS::system::SetParameter("rosen.dumpsurfacetype.enabled", "0");
+
+    OHOS::system::SetParameter("rosen.dumpsurfacetype.enabled", "2");
+    result = RSBaseRenderUtil::WriteSurfaceRenderNodeToPng(*surfaceNode);
+    ASSERT_EQ(true, result);
+    OHOS::system::SetParameter("rosen.dumpsurfacetype.enabled", param);
 }
 
 /*
