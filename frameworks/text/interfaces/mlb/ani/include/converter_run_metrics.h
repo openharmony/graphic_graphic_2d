@@ -21,10 +21,10 @@
 
 #include "typography.h"
 
-namespace OHOS::Text::NAI {
-class RunMetricsConverter {
+namespace OHOS::Text::ANI {
+class ConverterRunMetrics {
 public:
     static ani_object ParseRunMetricsToAni(ani_env* env, const std::map<size_t, OHOS::Rosen::RunMetrics>& map);
 };
-} // namespace OHOS::Text::NAI
+} // namespace OHOS::Text::ANI
 #endif // OHOS_TEXT_ANI_RUN_METRICS_CONVERTER_H

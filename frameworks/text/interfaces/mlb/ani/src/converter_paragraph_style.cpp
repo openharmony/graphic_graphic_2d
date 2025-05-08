@@ -14,13 +14,13 @@
  */
 #include "ani_common.h"
 #include "ani_text_utils.h"
-#include "paragraph_style_converter.h"
-#include "text_style_converter.h"
+#include "converter_paragraph_style.h"
+#include "converter_text_style.h"
 #include "utils/text_log.h"
 
-namespace OHOS::Text::NAI {
+namespace OHOS::Text::ANI {
 using namespace OHOS::Rosen;
-std::unique_ptr<TypographyStyle> ParagraphStyleConverter::ParseParagraphStyleToNative(ani_env* env, ani_object obj)
+std::unique_ptr<TypographyStyle> ConverterParagraphStyle::ParseParagraphStyleToNative(ani_env* env, ani_object obj)
 {
     ani_class cls;
     ani_status ret = env->FindClass(ANI_CLASS_PARAGRAPH_STYLE, &cls);
@@ -43,7 +43,7 @@ std::unique_ptr<TypographyStyle> ParagraphStyleConverter::ParseParagraphStyleToN
 
     ani_ref textStyleRef = nullptr;
     if (AniTextUtils::ReadOptionalField(env, obj, "textStyle", textStyleRef) == ANI_OK && textStyleRef != nullptr) {
-        ret = TextStyleConverter::ParseTextStyleToNative(env, static_cast<ani_object>(textStyleRef), textStyle);
+        ret = ConverterTextStyle::ParseTextStyleToNative(env, static_cast<ani_object>(textStyleRef), textStyle);
         if (ret == ANI_OK) {
             paragraphStyle->SetTextStyle(textStyle);
         }
@@ -71,7 +71,7 @@ std::unique_ptr<TypographyStyle> ParagraphStyleConverter::ParseParagraphStyleToN
     return paragraphStyle;
 }
 
-void ParagraphStyleConverter::ParseParagraphStyleStrutStyleToNative(
+void ConverterParagraphStyle::ParseParagraphStyleStrutStyleToNative(
     ani_env* env, ani_object obj, std::unique_ptr<TypographyStyle>& paragraphStyle)
 {
     AniTextUtils::ReadOptionalEnumField(env, obj, "fontStyle", paragraphStyle->lineStyleFontStyle);
@@ -96,7 +96,7 @@ void ParagraphStyleConverter::ParseParagraphStyleStrutStyleToNative(
     }
 }
 
-void ParagraphStyleConverter::ParseTextTabToNative(ani_env* env, ani_object obj, TextTab& textTab)
+void ConverterParagraphStyle::ParseTextTabToNative(ani_env* env, ani_object obj, TextTab& textTab)
 {
     AniTextUtils::ReadOptionalEnumField(env, obj, "alignment", textTab.alignment);
     ani_double tempLocation;
@@ -104,7 +104,7 @@ void ParagraphStyleConverter::ParseTextTabToNative(ani_env* env, ani_object obj,
     textTab.location = static_cast<float>(tempLocation);
 }
 
-void ParagraphStyleConverter::ParseFontFamiliesToNative(
+void ConverterParagraphStyle::ParseFontFamiliesToNative(
     ani_env* env, ani_array_ref obj, std::vector<std::string>& fontFamilies)
 {
     ani_size arrayLength = 0;
@@ -119,4 +119,4 @@ void ParagraphStyleConverter::ParseFontFamiliesToNative(
         }
     }
 }
-} // namespace OHOS::Text::NAI
+} // namespace OHOS::Text::ANI

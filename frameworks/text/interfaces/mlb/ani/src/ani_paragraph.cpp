@@ -21,12 +21,12 @@
 #include "ani_text_utils.h"
 #include "draw/canvas.h"
 #include "font_collection.h"
-#include "line_metrics_converter.h"
+#include "converter_line_metrics.h"
 #include "text/font_metrics.h"
 #include "typography_create.h"
 #include "utils/text_log.h"
 
-namespace OHOS::Text::NAI {
+namespace OHOS::Text::ANI {
 using namespace OHOS::Rosen;
 AniParagraph::AniParagraph()
 {
@@ -165,7 +165,7 @@ ani_ref AniParagraph::GetLineMetrics(ani_env* env, ani_object object)
     }
     ani_size index = 0;
     for (const auto& lineMetrics : vectorLineMetrics) {
-        ani_object aniObj = LineMetricsConverter::ParseLineMetricsToAni(env, lineMetrics);
+        ani_object aniObj = ConverterLineMetrics::ParseLineMetricsToAni(env, lineMetrics);
         if (ANI_OK != env->Object_CallMethodByName_Void(arrayObj, "$_set", "ILstd/core/Object;:V", index, aniObj)) {
             TEXT_LOGE("Failed to set lineMetrics item");
             break;
@@ -188,6 +188,6 @@ ani_object AniParagraph::GetLineMetricsAt(ani_env* env, ani_object object, ani_d
         TEXT_LOGE("Failed to get line metrics");
         return AniTextUtils::CreateAniUndefined(env);
     }
-    return LineMetricsConverter::ParseLineMetricsToAni(env, lineMetrics);
+    return ConverterLineMetrics::ParseLineMetricsToAni(env, lineMetrics);
 }
-} // namespace OHOS::Text::NAI
+} // namespace OHOS::Text::ANI

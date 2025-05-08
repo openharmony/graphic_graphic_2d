@@ -21,7 +21,7 @@
 #include "ani_text_utils.h"
 #include "utils/text_log.h"
 
-namespace OHOS::Text::NAI {
+namespace OHOS::Text::ANI {
 #define STRUCT_LIST(...) using AniTypes = std::tuple<__VA_ARGS__>
 
 // add new struct in this macro
@@ -110,13 +110,13 @@ static ani_status Init(ani_vm* vm, uint32_t* result)
     AniCleanerInit(vm);
     return InitAllStruct<AniTypes>(vm, result, std::make_index_sequence<std::tuple_size_v<AniTypes>>());
 }
-} // namespace OHOS::Text::NAI
+} // namespace OHOS::Text::ANI
 
 extern "C"
 {
     ANI_EXPORT ani_status ANI_Constructor(ani_vm* vm, uint32_t* result)
     {
-        ani_status status = OHOS::Text::NAI::Init(vm, result);
+        ani_status status = OHOS::Text::ANI::Init(vm, result);
         if (status == ANI_OK) {
             *result = ANI_VERSION_1;
         }

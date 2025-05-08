@@ -22,8 +22,8 @@
 
 #include "text_style.h"
 
-namespace OHOS::Text::NAI {
-class TextStyleConverter {
+namespace OHOS::Text::ANI {
+class ConverterTextStyle {
 public:
     static ani_status ParseTextStyleToNative(ani_env* env, ani_object obj, OHOS::Rosen::TextStyle& textStyle);
     static void ParseFontFeatureToNative(ani_env* env, ani_object obj, OHOS::Rosen::FontFeatures& fontFeatures);
@@ -39,5 +39,5 @@ public:
     static ani_object ParseFontFeaturesToAni(ani_env* env, const OHOS::Rosen::FontFeatures& fontFeatures);
     static ani_object ParseFontVariationsToAni(ani_env* env, const OHOS::Rosen::FontVariations& fontVariations);
 };
-} // namespace OHOS::Text::NAI
+} // namespace OHOS::Text::ANI
 #endif // OHOS_TEXT_ANI_TEXT_STYLE_CONVERTER_H

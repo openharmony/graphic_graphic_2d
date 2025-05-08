@@ -17,7 +17,7 @@
 #include "ani_resource_parser.h"
 #include "ani_text_utils.h"
 
-namespace OHOS::Text::NAI {
+namespace OHOS::Text::ANI {
 namespace {
 std::vector<std::string> AniToStdVectorString(ani_env* env, ani_array array)
 {
@@ -105,4 +105,4 @@ bool AniResourceParser::ResolveResource(const AniResource& resource, size_t data
     return true;
 }
 
-} // namespace OHOS::Text::NAI
+} // namespace OHOS::Text::ANI

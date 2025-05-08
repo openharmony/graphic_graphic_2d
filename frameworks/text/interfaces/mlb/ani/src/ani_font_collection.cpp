@@ -24,7 +24,7 @@
 #include "ani_text_utils.h"
 #include "utils/text_log.h"
 
-namespace OHOS::Text::NAI {
+namespace OHOS::Text::ANI {
 using namespace OHOS::Rosen;
 AniFontCollection::AniFontCollection()
 {
@@ -152,4 +152,4 @@ std::shared_ptr<FontCollection> AniFontCollection::GetFontCollection()
 {
     return fontCollection_;
 }
-} // namespace OHOS::Text::NAI
+} // namespace OHOS::Text::ANI

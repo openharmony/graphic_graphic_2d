@@ -15,12 +15,12 @@
 
 #include "ani_common.h"
 #include "ani_text_utils.h"
-#include "drawing_converter.h"
+#include "converter_drawing.h"
 
-namespace OHOS::Text::NAI {
+namespace OHOS::Text::ANI {
 using namespace OHOS::Rosen;
 
-void DrawingConverter::ParseDrawingColorToNative(
+void ConverterDrawing::ParseDrawingColorToNative(
     ani_env* env, ani_object obj, const std::string& str, Drawing::Color& colorSrc)
 {
     ani_ref tempValue = nullptr;
@@ -63,7 +63,7 @@ void DrawingConverter::ParseDrawingColorToNative(
     }
 }
 
-ani_object DrawingConverter::ParseFontMetricsToAni(ani_env* env, const Drawing::FontMetrics& fontMetrics)
+ani_object ConverterDrawing::ParseFontMetricsToAni(ani_env* env, const Drawing::FontMetrics& fontMetrics)
 {
     ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_FONT_METRICS_I, ":V");
     env->Object_SetPropertyByName_Double(aniObj, "flags", ani_int(fontMetrics.fFlags));
@@ -84,4 +84,4 @@ ani_object DrawingConverter::ParseFontMetricsToAni(ani_env* env, const Drawing::
     env->Object_SetPropertyByName_Double(aniObj, "strikethroughPosition", ani_double(fontMetrics.fStrikeoutPosition));
     return aniObj;
 }
-} // namespace OHOS::Text::NAI
+} // namespace OHOS::Text::ANI

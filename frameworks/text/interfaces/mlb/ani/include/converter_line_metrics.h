@@ -21,10 +21,10 @@
 
 #include "typography.h"
 
-namespace OHOS::Text::NAI {
-class LineMetricsConverter {
+namespace OHOS::Text::ANI {
+class ConverterLineMetrics {
 public:
     static ani_object ParseLineMetricsToAni(ani_env* env, const OHOS::Rosen::LineMetrics& lineMetrics);
 };
-} // namespace OHOS::Text::NAI
+} // namespace OHOS::Text::ANI
 #endif // OHOS_TEXT_ANI_LINE_METRICS_CONVERTER_H

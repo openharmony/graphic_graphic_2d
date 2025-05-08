@@ -24,12 +24,12 @@
 #include "ani_paragraph_builder.h"
 #include "ani_text_utils.h"
 #include "font_collection.h"
-#include "paragraph_style_converter.h"
+#include "converter_paragraph_style.h"
 #include "text_style.h"
-#include "text_style_converter.h"
+#include "converter_text_style.h"
 #include "utils/text_log.h"
 
-namespace OHOS::Text::NAI {
+namespace OHOS::Text::ANI {
 using namespace OHOS::Rosen;
 AniParagraphBuilder::AniParagraphBuilder()
 {
@@ -47,7 +47,7 @@ void AniParagraphBuilder::Constructor(
     }
 
     std::unique_ptr<TypographyStyle> typographyStyleNative =
-        ParagraphStyleConverter::ParseParagraphStyleToNative(env, paragraphStyle);
+        ConverterParagraphStyle::ParseParagraphStyleToNative(env, paragraphStyle);
     if (typographyStyleNative == nullptr) {
         TEXT_LOGE("Failed to parse typographyStyle");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
@@ -114,7 +114,7 @@ void AniParagraphBuilder::PushStyle(ani_env* env, ani_object object, ani_object 
         return;
     }
     TextStyle textStyleNative;
-    ani_status status = TextStyleConverter::ParseTextStyleToNative(env, textStyle, textStyleNative);
+    ani_status status = ConverterTextStyle::ParseTextStyleToNative(env, textStyle, textStyleNative);
     if (status == ANI_OK) {
         aniParagraphBuilder->typographyCreate_->PushStyle(textStyleNative);
     }
@@ -166,4 +166,4 @@ ani_object AniParagraphBuilder::Build(ani_env* env, ani_object object)
     }
     return pargraphObj;
 }
-} // namespace OHOS::Text::NAI
+} // namespace OHOS::Text::ANI

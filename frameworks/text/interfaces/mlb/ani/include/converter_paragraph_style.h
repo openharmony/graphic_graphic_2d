@@ -23,8 +23,8 @@
 #include "typography.h"
 #include "typography_style.h"
 
-namespace OHOS::Text::NAI {
-class ParagraphStyleConverter {
+namespace OHOS::Text::ANI {
+class ConverterParagraphStyle {
 public:
     static std::unique_ptr<OHOS::Rosen::TypographyStyle> ParseParagraphStyleToNative(ani_env* env, ani_object obj);
     static void ParseParagraphStyleStrutStyleToNative(
@@ -32,5 +32,5 @@ public:
     static void ParseTextTabToNative(ani_env* env, ani_object obj, OHOS::Rosen::TextTab& textTab);
     static void ParseFontFamiliesToNative(ani_env* env, ani_array_ref obj, std::vector<std::string>& fontFamilies);
 };
-} // namespace OHOS::Text::NAI
+} // namespace OHOS::Text::ANI
 #endif // OHOS_TEXT_ANI_PARAGRAPH_STYLE_CONVERTER_H

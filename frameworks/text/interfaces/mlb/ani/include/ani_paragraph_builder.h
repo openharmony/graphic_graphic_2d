@@ -21,7 +21,7 @@
 
 #include "typography_create.h"
 
-namespace OHOS::Text::NAI {
+namespace OHOS::Text::ANI {
 class AniParagraphBuilder final {
 public:
     AniParagraphBuilder();
@@ -36,5 +36,5 @@ private:
 
     std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate_{nullptr};
 };
-} // namespace OHOS::Text::NAI
+} // namespace OHOS::Text::ANI
 #endif // OHOS_TEXT_ANI_PARAGRAPH_BUILDER_H

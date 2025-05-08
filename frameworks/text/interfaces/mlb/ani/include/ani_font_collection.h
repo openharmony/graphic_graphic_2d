@@ -22,7 +22,7 @@
 #include "font_collection.h"
 #include "resource_manager.h"
 
-namespace OHOS::Text::NAI {
+namespace OHOS::Text::ANI {
 class AniFontCollection final {
 public:
     AniFontCollection();
@@ -37,5 +37,5 @@ public:
 private:
     std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection_{nullptr};
 };
-} // namespace OHOS::Text::NAI
+} // namespace OHOS::Text::ANI
 #endif // OHOS_TEXT_ANI_FONT_COLLECTION_H

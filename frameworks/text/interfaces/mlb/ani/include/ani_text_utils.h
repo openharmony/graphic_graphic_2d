@@ -23,7 +23,7 @@
 #include "ani_common.h"
 #include "utils/text_log.h"
 
-namespace OHOS::Text::NAI {
+namespace OHOS::Text::ANI {
 class AniTextUtils {
 public:
     static ani_status ThrowBusinessError(ani_env* env, TextErrorCode errorCode, const char* message);
@@ -162,5 +162,5 @@ ani_status AniTextUtils::ReadOptionalArrayField(
     }
     return ANI_OK;
 };
-} // namespace OHOS::Text::NAI
+} // namespace OHOS::Text::ANI
 #endif // OHOS_ANI_TEXT_UTILS_H

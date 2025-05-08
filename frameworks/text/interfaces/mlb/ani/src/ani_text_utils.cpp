@@ -22,7 +22,7 @@
 #include "ani_text_utils.h"
 #include "typography_style.h"
 
-namespace OHOS::Text::NAI {
+namespace OHOS::Text::ANI {
 
 ani_status AniTextUtils::ThrowBusinessError(ani_env* env, TextErrorCode errorCode, const char* message)
 {
@@ -299,4 +299,4 @@ ani_status AniTextUtils::ReadOptionalBoolField(ani_env* env, ani_object obj, con
     }
     return result;
 }
-} // namespace OHOS::Text::NAI
+} // namespace OHOS::Text::ANI

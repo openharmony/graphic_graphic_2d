@@ -21,7 +21,7 @@
 
 #include "typography.h"
 
-namespace OHOS::Text::NAI {
+namespace OHOS::Text::ANI {
 class AniParagraph final {
 public:
     AniParagraph();
@@ -40,5 +40,5 @@ private:
 
     std::shared_ptr<OHOS::Rosen::Typography> paragraph_{nullptr};
 };
-} // namespace OHOS::Text::NAI
+} // namespace OHOS::Text::ANI
 #endif // OHOS_TEXT_ANI_PARAGRAPH_H

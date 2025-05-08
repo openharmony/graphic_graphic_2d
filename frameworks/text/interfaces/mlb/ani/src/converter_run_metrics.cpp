@@ -15,13 +15,13 @@
 
 #include "ani_common.h"
 #include "ani_text_utils.h"
-#include "drawing_converter.h"
-#include "run_metrics_converter.h"
-#include "text_style_converter.h"
+#include "converter_drawing.h"
+#include "converter_run_metrics.h"
+#include "converter_text_style.h"
 
-namespace OHOS::Text::NAI {
+namespace OHOS::Text::ANI {
 using namespace OHOS::Rosen;
-ani_object RunMetricsConverter::ParseRunMetricsToAni(ani_env* env, const std::map<size_t, RunMetrics>& map)
+ani_object ConverterRunMetrics::ParseRunMetricsToAni(ani_env* env, const std::map<size_t, RunMetrics>& map)
 {
     ani_object mapAniObj = AniTextUtils::CreateAniMap(env);
     ani_ref mapRef = nullptr;
@@ -29,9 +29,9 @@ ani_object RunMetricsConverter::ParseRunMetricsToAni(ani_env* env, const std::ma
         ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_RUNMETRICS_I, ":V");
         if (runMetrics.textStyle != nullptr) {
             env->Object_SetPropertyByName_Ref(
-                aniObj, "textStyle", TextStyleConverter::ParseTextStyleToAni(env, *runMetrics.textStyle));
+                aniObj, "textStyle", ConverterTextStyle::ParseTextStyleToAni(env, *runMetrics.textStyle));
             env->Object_SetPropertyByName_Ref(
-                aniObj, "fontMetrics", DrawingConverter::ParseFontMetricsToAni(env, runMetrics.fontMetrics));
+                aniObj, "fontMetrics", ConverterDrawing::ParseFontMetricsToAni(env, runMetrics.fontMetrics));
         }
         ani_status status =
             env->Object_CallMethodByName_Ref(mapAniObj, "set", "Lstd/core/Object;Lstd/core/Object;:Lescompat/Map;",
@@ -43,4 +43,4 @@ ani_object RunMetricsConverter::ParseRunMetricsToAni(ani_env* env, const std::ma
     }
     return mapAniObj;
 }
-} // namespace OHOS::Text::NAI
+} // namespace OHOS::Text::ANI
