@@ -20,6 +20,10 @@
 #include "drawing_gpu_context.h"
 #include "drawing_gpu_context_manager.h"
 
+#ifdef RS_ENABLE_VK
+#include "platform/ohos/backend/rs_vulkan_context.h"
+#endif
+
 using namespace testing;
 using namespace testing::ext;
 
@@ -40,7 +44,12 @@ protected:
     OH_Drawing_GpuContext* gpuContext_ = nullptr;
 };
 
-void NativeDrawingGpuContextTest::SetUpTestCase() {}
+void NativeDrawingGpuContextTest::SetUpTestCase()
+{
+#ifdef RS_ENABLE_VK
+    RsVulkanContext::SetRecyclable(false);
+#endif
+}
 void NativeDrawingGpuContextTest::TearDownTestCase() {}
 void NativeDrawingGpuContextTest::SetUp()
 {

@@ -36,7 +36,12 @@ public:
     void TearDown() override;
 };
 
-void RSModifiersDrawTest::SetUpTestCase() {}
+void RSModifiersDrawTest::SetUpTestCase()
+{
+#ifdef RS_ENABLE_VK
+    RsVulkanContext::SetRecyclable(false);
+#endif
+}
 void RSModifiersDrawTest::TearDownTestCase() {}
 void RSModifiersDrawTest::SetUp() {}
 void RSModifiersDrawTest::TearDown() {}

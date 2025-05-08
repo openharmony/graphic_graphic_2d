@@ -34,7 +34,12 @@ public:
     void TearDown() override;
 };
 
-void RSPhysicalScreenProcessorTest::SetUpTestCase() {}
+void RSPhysicalScreenProcessorTest::SetUpTestCase()
+{
+#ifdef RS_ENABLE_VK
+    RsVulkanContext::SetRecyclable(false);
+#endif
+}
 void RSPhysicalScreenProcessorTest::TearDownTestCase() {}
 void RSPhysicalScreenProcessorTest::SetUp() {}
 void RSPhysicalScreenProcessorTest::TearDown() {}

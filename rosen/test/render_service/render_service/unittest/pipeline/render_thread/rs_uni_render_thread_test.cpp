@@ -43,6 +43,9 @@ public:
 
 void RSUniRenderThreadTest::SetUpTestCase()
 {
+#ifdef RS_ENABLE_VK
+    RsVulkanContext::SetRecyclable(false);
+#endif
     uniRenderThread.runner_ = AppExecFwk::EventRunner::Create("RSUniRenderThread");
     if (!uniRenderThread.runner_) {
         RS_LOGE("RSUniRenderThread Start runner null");

@@ -21,6 +21,10 @@
 
 #include "utils/memory_stream.h"
 
+#ifdef RS_ENABLE_VK
+#include "platform/ohos/backend/rs_vulkan_context.h"
+#endif
+
 using namespace testing;
 using namespace testing::ext;
 
@@ -35,7 +39,12 @@ public:
     void TearDown() override;
 };
 
-void NativeDrawingMemoryStreamTest::SetUpTestCase() {}
+void NativeDrawingMemoryStreamTest::SetUpTestCase()
+{
+#ifdef RS_ENABLE_VK
+    RsVulkanContext::SetRecyclable(false);
+#endif
+}
 void NativeDrawingMemoryStreamTest::TearDownTestCase() {}
 void NativeDrawingMemoryStreamTest::SetUp() {}
 void NativeDrawingMemoryStreamTest::TearDown() {}
