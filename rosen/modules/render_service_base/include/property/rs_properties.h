@@ -625,6 +625,7 @@ private:
     void GenerateMagnifierFilter();
     void GenerateRenderFilter();
     void GenerateRenderFilterEdgeLight();
+    void GenerateSoundWaveFilter();
 
     bool NeedClip() const;
     bool NeedBlurFuzed();

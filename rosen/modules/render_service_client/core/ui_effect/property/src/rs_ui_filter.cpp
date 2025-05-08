@@ -56,8 +56,9 @@ std::shared_ptr<RSRenderPropertyBase> RSUIFilter::CreateRenderProperty(const Pro
     return renderProperty;
 }
 
-void RSUIFilter::Insert(RSUIFilterType type, const std::shared_ptr<RSUIFilterParaBase>& value)
+void RSUIFilter::Insert(const std::shared_ptr<RSUIFilterParaBase>& value)
 {
+    auto type = value->GetType();
     auto it = paras_.find(type);
     if (it != paras_.end()) {
         paras_[type] = value;

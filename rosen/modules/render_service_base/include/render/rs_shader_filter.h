@@ -45,6 +45,7 @@ public:
         LIGHT_BLUR,
         DISPLACEMENT_DISTORT,
         EDGE_LIGHT,
+        SOUND_WAVE,
     };
 
     ShaderFilterType GetShaderFilterType() const

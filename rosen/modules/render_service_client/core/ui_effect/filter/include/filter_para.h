@@ -45,6 +45,7 @@ public:
         DISTORT,
         DISPLACEMENT_DISTORT,
         EDGE_LIGHT,
+        SOUND_WAVE,
     };
 
     FilterPara()  = default;

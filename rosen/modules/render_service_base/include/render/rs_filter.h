@@ -78,6 +78,7 @@ public:
         FLY_OUT,
         DISTORT,
         EDGE_LIGHT,
+        SOUND_WAVE,
     };
     FilterType GetFilterType() const
     {
