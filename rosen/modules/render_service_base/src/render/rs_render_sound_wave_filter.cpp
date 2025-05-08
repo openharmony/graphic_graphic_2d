@@ -89,15 +89,15 @@ namespace Rosen {
     std::shared_ptr<RSRenderPropertyBase> RSRenderSoundWaveFilterPara::CreateRenderProperty(RSUIFilterType type)
     {
         switch (type) {
-            case RSUIFilterType::SOUND_WAVE_COLOR_ONE : {
+            case RSUIFilterType::SOUND_WAVE_COLOR_A : {
                 return std::make_shared<RSRenderProperty<Color>>(
                     RgbPalette::White(), 0, RSRenderPropertyType::PROPERTY_COLOR);
             }
-            case RSUIFilterType::SOUND_WAVE_COLOR_TWO : {
+            case RSUIFilterType::SOUND_WAVE_COLOR_B : {
                 return std::make_shared<RSRenderProperty<Color>>(
                     RgbPalette::White(), 0, RSRenderPropertyType::PROPERTY_COLOR);
             }
-            case RSUIFilterType::SOUND_WAVE_COLOR_THREE : {
+            case RSUIFilterType::SOUND_WAVE_COLOR_C : {
                 return std::make_shared<RSRenderProperty<Color>>(
                     RgbPalette::White(), 0, RSRenderPropertyType::PROPERTY_COLOR);
             }
@@ -113,19 +113,19 @@ namespace Rosen {
                 return std::make_shared<RSRenderProperty<float>>(
                     1.f, 0, RSRenderPropertyType::PROPERTY_FLOAT);
             }
-            case RSUIFilterType::SHOCK_WAVE_ALPHA_ONE : {
+            case RSUIFilterType::SHOCK_WAVE_ALPHA_A : {
                 return std::make_shared<RSRenderAnimatableProperty<float>>(
                     1.f, 0, RSRenderPropertyType::PROPERTY_FLOAT);
             }
-            case RSUIFilterType::SHOCK_WAVE_ALPHA_TWO : {
+            case RSUIFilterType::SHOCK_WAVE_ALPHA_B : {
                 return std::make_shared<RSRenderAnimatableProperty<float>>(
                     1.f, 0, RSRenderPropertyType::PROPERTY_FLOAT);
             }
-            case RSUIFilterType::SHOCK_WAVE_PROGRESS_ONE : {
+            case RSUIFilterType::SHOCK_WAVE_PROGRESS_A : {
                 return std::make_shared<RSRenderAnimatableProperty<float>>(
                     0.f, 0, RSRenderPropertyType::PROPERTY_FLOAT);
             }
-            case RSUIFilterType::SHOCK_WAVE_PROGRESS_TWO : {
+            case RSUIFilterType::SHOCK_WAVE_PROGRESS_B : {
                 return std::make_shared<RSRenderAnimatableProperty<float>>(
                     0.f, 0, RSRenderPropertyType::PROPERTY_FLOAT);
             }

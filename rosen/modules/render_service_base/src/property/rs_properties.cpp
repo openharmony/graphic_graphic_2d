@@ -3457,32 +3457,32 @@ void RSProperties::GenerateSoundWaveFilter()
         return;
     }
 
-    auto waveColorOne = std::static_pointer_cast<RSRenderProperty<Color>>(
-        soundWaveFilterPara->GetRenderPropert(RSUIFilterType::SOUND_WAVE_COLOR_ONE));
-    auto waveColorTwo = std::static_pointer_cast<RSRenderProperty<Color>>(
-        soundWaveFilterPara->GetRenderPropert(RSUIFilterType::SOUND_WAVE_COLOR_TWO));
-    auto waveColorThree = std::static_pointer_cast<RSRenderProperty<Color>>(
-        soundWaveFilterPara->GetRenderPropert(RSUIFilterType::SOUND_WAVE_COLOR_THREE));
+    auto waveColorA = std::static_pointer_cast<RSRenderProperty<Color>>(
+        soundWaveFilterPara->GetRenderPropert(RSUIFilterType::SOUND_WAVE_COLOR_A));
+    auto waveColorB = std::static_pointer_cast<RSRenderProperty<Color>>(
+        soundWaveFilterPara->GetRenderPropert(RSUIFilterType::SOUND_WAVE_COLOR_B));
+    auto waveColorC = std::static_pointer_cast<RSRenderProperty<Color>>(
+        soundWaveFilterPara->GetRenderPropert(RSUIFilterType::SOUND_WAVE_COLOR_C));
     auto waveColorProgress = std::static_pointer_cast<RSRenderAnimatableProperty<float>>(
         soundWaveFilterPara->GetRenderPropert(RSUIFilterType::SOUND_WAVE_COLOR_PROGRESS));
     auto wavecenterBrightness = std::static_pointer_cast<RSRenderProperty<float>>(
         soundWaveFilterPara->GetRenderPropert(RSUIFilterType::SOUND_WAVE_CENTER_BRIGHTNESS));
     auto soundIntensity = std::static_pointer_cast<RSRenderAnimatableProperty<float>>(
         soundWaveFilterPara->GetRenderPropert(RSUIFilterType::SOUND_INTENSITY));
-    auto shockWaveAlphaOne = std::static_pointer_cast<RSRenderAnimatableProperty<float>>(
-        soundWaveFilterPara->GetRenderPropert(RSUIFilterType::SHOCK_WAVE_ALPHA_ONE));
-    auto shockWaveAlphaTwo = std::static_pointer_cast<RSRenderAnimatableProperty<float>>(
-        soundWaveFilterPara->GetRenderPropert(RSUIFilterType::SHOCK_WAVE_ALPHA_TWO));
-    auto shockWaveProgress = std::static_pointer_cast<RSRenderAnimatableProperty<float>>(
-        soundWaveFilterPara->GetRenderPropert(RSUIFilterType::SHOCK_WAVE_PROGRESS_ONE));
-    auto shockWaveProgressTwo = std::static_pointer_cast<RSRenderAnimatableProperty<float>>(
-        soundWaveFilterPara->GetRenderPropert(RSUIFilterType::SHOCK_WAVE_PROGRESS_TWO));
+    auto shockWaveAlphaA = std::static_pointer_cast<RSRenderAnimatableProperty<float>>(
+        soundWaveFilterPara->GetRenderPropert(RSUIFilterType::SHOCK_WAVE_ALPHA_A));
+    auto shockWaveAlphaB = std::static_pointer_cast<RSRenderAnimatableProperty<float>>(
+        soundWaveFilterPara->GetRenderPropert(RSUIFilterType::SHOCK_WAVE_ALPHA_B));
+    auto shockWaveProgressA = std::static_pointer_cast<RSRenderAnimatableProperty<float>>(
+        soundWaveFilterPara->GetRenderPropert(RSUIFilterType::SHOCK_WAVE_PROGRESS_A));
+    auto shockWaveProgressB = std::static_pointer_cast<RSRenderAnimatableProperty<float>>(
+        soundWaveFilterPara->GetRenderPropert(RSUIFilterType::SHOCK_WAVE_PROGRESS_B));
     std::shared_ptr<RSSoundWaveFilter> soundWaveFilter =
-        std::make_shared<RSSoundWaveFilter>(waveColorOne->Get(), waveColorTwo->Get(), waveColorThree->Get(),
+        std::make_shared<RSSoundWaveFilter>(waveColorA->Get(), waveColorB->Get(), waveColorC->Get(),
                                             waveColorProgress->Get(), wavecenterBrightness->Get(),
-                                            soundIntensity->Get(), shockWaveAlphaOne->Get(),
-                                            shockWaveAlphaTwo->Get(), shockWaveProgress->Get(),
-                                            shockWaveProgressTwo->Get());
+                                            soundIntensity->Get(), shockWaveAlphaA->Get(),
+                                            shockWaveAlphaB->Get(), shockWaveProgressA->Get(),
+                                            shockWaveProgressB->Get());
     std::shared_ptr<RSDrawingFilter> originalFilter = std::make_shared<RSDrawingFilter>(soundWaveFilter);
     if (!backgroundFilter_) {
         backgroundFilter_ = originalFilter;

@@ -23,10 +23,10 @@ namespace OHOS {
 namespace Rosen {
 class RSB_EXPORT RSSoundWaveFilter : public RSShaderFilter {
 public:
-    RSSoundWaveFilter(RSColor colorOne, RSColor colorTwo, RSColor colorThree,
+    RSSoundWaveFilter(RSColor colorA, RSColor colorB, RSColor colorC,
                       float colorProgress, float centerBrightness, float soundIntensity,
-                      float shockWaveAlphaOne, float shockWaveAlphaTwo,
-                      float shockWaveProgressOne, float shockWaveProgressTwo);
+                      float shockWaveAlphaA, float shockWaveAlphaB,
+                      float shockWaveProgressA, float shockWaveProgressB);
     RSSoundWaveFilter(const RSSoundWaveFilter&) = delete;
     RSSoundWaveFilter operator=(const RSSoundWaveFilter&) = delete;
     ~RSSoundWaveFilter() override;
@@ -34,38 +34,38 @@ public:
     float GetColorProgress() const;
     float GetCenterBrightness() const;
     float GetSoundIntensity() const;
-    float GetShockWaveAlphaOne() const;
-    float GetShockWaveAlphaTwo() const;
-    float GetShockWaveProgressOne() const;
-    float GetShockWaveProgressTwo() const;
+    float GetShockWaveAlphaA() const;
+    float GetShockWaveAlphaB() const;
+    float GetShockWaveProgressA() const;
+    float GetShockWaveProgressB() const;
 
     void GenerateGEVisualEffect(std::shared_ptr<Drawing::GEVisualEffectContainer> visualEffectContainer) override;
 
 private:
-    static constexpr char GE_FILTER_SOUND_WAVE_COLORONE[] = "COLORONE";
-    static constexpr char GE_FILTER_SOUND_WAVE_COLORTWO[] = "COLORTWO";
-    static constexpr char GE_FILTER_SOUND_WAVE_COLORTHREE[] = "COLORTHREE";
+    static constexpr char GE_FILTER_SOUND_WAVE_COLOR_A[] = "COLORA";
+    static constexpr char GE_FILTER_SOUND_WAVE_COLOR_B[] = "COLORB";
+    static constexpr char GE_FILTER_SOUND_WAVE_COLOR_C[] = "COLORC";
     static constexpr char GE_FILTER_SOUND_WAVE_COLORPROGRESS[] = "COLORPROGRESS";
     static constexpr char GE_FILTER_SOUND_WAVE_CENTERBRIGHTNESS[] = "CENTERBRIGHTNESS";
     static constexpr char GE_FILTER_SOUND_WAVE_SOUNDINTENSITY[] = "SOUNDINTENSITY";
-    static constexpr char GE_FILTER_SOUND_WAVE_SHOCKWAVEALPHAONE[] = "SHOCKWAVEALPHAONE";
-    static constexpr char GE_FILTER_SOUND_WAVE_SHOCKWAVEALPHATWO[] = "SHOCKWAVEALPHATWO";
-    static constexpr char GE_FILTER_SOUND_WAVE_SHOCKWAVEPROGRESSONE[] = "SHOCKWAVEPROGRESSONE";
-    static constexpr char GE_FILTER_SOUND_WAVE_SHOCKWAVEPROGRESSTWO[] = "SHOCKWAVEPROGRESSTWO";
+    static constexpr char GE_FILTER_SOUND_WAVE_SHOCKWAVEALPHA_A[] = "SHOCKWAVEALPHAA";
+    static constexpr char GE_FILTER_SOUND_WAVE_SHOCKWAVEALPHA_B[] = "SHOCKWAVEALPHAB";
+    static constexpr char GE_FILTER_SOUND_WAVE_SHOCKWAVEPROGRESS_A[] = "SHOCKWAVEPROGRESSA";
+    static constexpr char GE_FILTER_SOUND_WAVE_SHOCKWAVEPROGRESS_B[] = "SHOCKWAVEPROGRESSB";
     // sound wave
-    RSColor colorOne_ = RSColor(0xFFFFFFFF);
-    RSColor colorTwo_ = RSColor(0xFFFFFFFF);
-    RSColor colorThree_ = RSColor(0xFFFFFFFF);
+    RSColor colorA_ = RSColor(0xFFFFFFFF);
+    RSColor colorB_ = RSColor(0xFFFFFFFF);
+    RSColor colorC_ = RSColor(0xFFFFFFFF);
 
     float colorProgress_ = 0.0f;
     float centerBrightness_ = 1.0f;
     float soundIntensity_ = 0.0f;
 
     // shock wave
-    float shockWaveAlphaOne_ = 1.0f;
-    float shockWaveAlphaTwo_ = 1.0f;
-    float shockWaveProgressOne_ = 0.0f;
-    float shockWaveProgressTwo_ = 0.0f;
+    float shockWaveAlphaA_ = 1.0f;
+    float shockWaveAlphaB_ = 1.0f;
+    float shockWaveProgressA_ = 0.0f;
+    float shockWaveProgressB_ = 0.0f;
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -21,26 +21,26 @@
 namespace OHOS {
 namespace Rosen {
 
-RSSoundWaveFilter::RSSoundWaveFilter(RSColor colorOne, RSColor colorTwo, RSColor colorThree,
+RSSoundWaveFilter::RSSoundWaveFilter(RSColor colorA, RSColor colorB, RSColor colorC,
                                      float colorProgress, float centerBrightness, float soundIntensity,
-                                     float shockWaveAlphaOne, float shockWaveAlphaTwo,
-                                     float shockWaveProgressOne, float shockWaveProgressTwo)
-    : colorOne_(colorOne), colorTwo_(colorTwo), colorThree_(colorThree),
+                                     float shockWaveAlphaA, float shockWaveAlphaB,
+                                     float shockWaveProgressA, float shockWaveProgressB)
+    : colorA_(colorA), colorB_(colorB), colorC_(colorC),
     colorProgress_(colorProgress), centerBrightness_(centerBrightness), soundIntensity_(soundIntensity),
-    shockWaveAlphaOne_(shockWaveAlphaOne), shockWaveAlphaTwo_(shockWaveAlphaTwo),
-    shockWaveProgressOne_(shockWaveProgressOne), shockWaveProgressTwo_(shockWaveProgressTwo)
+    shockWaveAlphaA_(shockWaveAlphaA), shockWaveAlphaB_(shockWaveAlphaB),
+    shockWaveProgressA_(shockWaveProgressA), shockWaveProgressB_(shockWaveProgressB)
 {
     type_ = ShaderFilterType::SOUND_WAVE;
-    hash_ = SkOpts::hash(&colorOne_, sizeof(colorOne_), hash_);
-    hash_ = SkOpts::hash(&colorTwo_, sizeof(colorTwo_), hash_);
-    hash_ = SkOpts::hash(&colorThree_, sizeof(colorThree_), hash_);
+    hash_ = SkOpts::hash(&colorA_, sizeof(colorA_), hash_);
+    hash_ = SkOpts::hash(&colorB_, sizeof(colorB_), hash_);
+    hash_ = SkOpts::hash(&colorC_, sizeof(colorC_), hash_);
     hash_ = SkOpts::hash(&colorProgress_, sizeof(colorProgress_), hash_);
     hash_ = SkOpts::hash(&centerBrightness_, sizeof(centerBrightness_), hash_);
     hash_ = SkOpts::hash(&soundIntensity_, sizeof(soundIntensity_), hash_);
-    hash_ = SkOpts::hash(&shockWaveAlphaOne_, sizeof(shockWaveAlphaOne_), hash_);
-    hash_ = SkOpts::hash(&shockWaveAlphaTwo_, sizeof(shockWaveAlphaTwo_), hash_);
-    hash_ = SkOpts::hash(&shockWaveProgressOne_, sizeof(shockWaveProgressOne_), hash_);
-    hash_ = SkOpts::hash(&shockWaveProgressTwo_, sizeof(shockWaveProgressTwo_), hash_);
+    hash_ = SkOpts::hash(&shockWaveAlphaA_, sizeof(shockWaveAlphaA_), hash_);
+    hash_ = SkOpts::hash(&shockWaveAlphaB_, sizeof(shockWaveAlphaB_), hash_);
+    hash_ = SkOpts::hash(&shockWaveProgressA_, sizeof(shockWaveProgressA_), hash_);
+    hash_ = SkOpts::hash(&shockWaveProgressB_, sizeof(shockWaveProgressB_), hash_);
 }
 
 RSSoundWaveFilter::~RSSoundWaveFilter() {}
@@ -60,24 +60,24 @@ float RSSoundWaveFilter::GetSoundIntensity() const
     return soundIntensity_;
 }
 
-float RSSoundWaveFilter::GetShockWaveAlphaOne() const
+float RSSoundWaveFilter::GetShockWaveAlphaA() const
 {
-    return shockWaveAlphaOne_;
+    return shockWaveAlphaA_;
 }
 
-float RSSoundWaveFilter::GetShockWaveAlphaTwo() const
+float RSSoundWaveFilter::GetShockWaveAlphaB() const
 {
-    return shockWaveAlphaTwo_;
+    return shockWaveAlphaB_;
 }
 
-float RSSoundWaveFilter::GetShockWaveProgressOne() const
+float RSSoundWaveFilter::GetShockWaveProgressA() const
 {
-    return shockWaveProgressOne_;
+    return shockWaveProgressA_;
 }
 
-float RSSoundWaveFilter::GetShockWaveProgressTwo() const
+float RSSoundWaveFilter::GetShockWaveProgressB() const
 {
-    return shockWaveProgressTwo_;
+    return shockWaveProgressB_;
 }
 
 void RSSoundWaveFilter::GenerateGEVisualEffect(
@@ -85,16 +85,16 @@ void RSSoundWaveFilter::GenerateGEVisualEffect(
 {
     auto soundWaveFilter = std::make_shared<Drawing::GEVisualEffect>("SOUND_WAVE",
         Drawing::DrawingPaintType::BRUSH);
-    soundWaveFilter->SetParam(GE_FILTER_SOUND_WAVE_COLORONE, colorOne_.AsRgbaInt());
-    soundWaveFilter->SetParam(GE_FILTER_SOUND_WAVE_COLORTWO, colorTwo_.AsRgbaInt());
-    soundWaveFilter->SetParam(GE_FILTER_SOUND_WAVE_COLORTHREE, colorThree_.AsRgbaInt());
+    soundWaveFilter->SetParam(GE_FILTER_SOUND_WAVE_COLORA, colorA_.AsRgbaInt());
+    soundWaveFilter->SetParam(GE_FILTER_SOUND_WAVE_COLORB, colorB_.AsRgbaInt());
+    soundWaveFilter->SetParam(GE_FILTER_SOUND_WAVE_COLORC, colorC_.AsRgbaInt());
     soundWaveFilter->SetParam(GE_FILTER_SOUND_WAVE_COLORPROGRESS, colorProgress_);
     soundWaveFilter->SetParam(GE_FILTER_SOUND_WAVE_CENTERBRIGHTNESS, centerBrightness_);
     soundWaveFilter->SetParam(GE_FILTER_SOUND_WAVE_SOUNDINTENSITY, soundIntensity_);
-    soundWaveFilter->SetParam(GE_FILTER_SOUND_WAVE_SHOCKWAVEALPHAONE, shockWaveAlphaOne_);
-    soundWaveFilter->SetParam(GE_FILTER_SOUND_WAVE_SHOCKWAVEALPHATWO, shockWaveAlphaTwo_);
-    soundWaveFilter->SetParam(GE_FILTER_SOUND_WAVE_SHOCKWAVEPROGRESSONE, shockWaveProgressOne_);
-    soundWaveFilter->SetParam(GE_FILTER_SOUND_WAVE_SHOCKWAVEPROGRESSTWO, shockWaveProgressTwo_);
+    soundWaveFilter->SetParam(GE_FILTER_SOUND_WAVE_SHOCKWAVEALPHA_A, shockWaveAlphaA_);
+    soundWaveFilter->SetParam(GE_FILTER_SOUND_WAVE_SHOCKWAVEALPHA_B, shockWaveAlphaB_);
+    soundWaveFilter->SetParam(GE_FILTER_SOUND_WAVE_SHOCKWAVEPROGRESS_A, shockWaveProgressA_);
+    soundWaveFilter->SetParam(GE_FILTER_SOUND_WAVE_SHOCKWAVEPROGRESS_B, shockWaveProgressB_);
     visualEffectContainer->AddToChainedFilter(soundWaveFilter);
 }
 } // namespace Rosen
