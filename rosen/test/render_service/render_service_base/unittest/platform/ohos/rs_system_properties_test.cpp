@@ -1205,6 +1205,17 @@ HWTEST_F(RSSystemPropertiesTest, GetHybridRenderSwitch, TestSize.Level1)
 {
     EXPECT_NE(RSSystemProperties::GetHybridRenderSwitch(ComponentEnableSwitch::TEXTBLOB), 0);
 }
+
+/**
+ * @tc.name: GetHybridRenderSwitch2
+ * @tc.desc: GetHybridRenderSwitch Test
+ * @tc.type:FUNC
+ * @tc.require:issuesIC3UZH
+*/
+HWTEST_F(RSSystemPropertiesTest, GetHybridRenderSwitch2, TestSize.Level1)
+{
+    EXPECT_NE(RSSystemProperties::GetHybridRenderSwitch(ComponentEnableSwitch::SVG), 0);
+}
 #endif
 } // namespace Rosen
 } // namespace OHOS
