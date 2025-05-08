@@ -178,8 +178,6 @@ bool SetVirtualScreenRefreshRate()
     Rosen::ScreenId screenId = GetData<Rosen::ScreenId>();
     uint32_t maxRefreshRate = GetData<uint32_t>();
     uint32_t actualRefreshRate = GetData<uint32_t>();
-
-    // test
     CreateOrGetScreenManager()->SetVirtualScreenRefreshRate(screenId, maxRefreshRate, actualRefreshRate);
     return true;
 }
@@ -253,7 +251,7 @@ bool GetScreenSupportedModes()
 bool GetScreenCapability()
 {
     ScreenId screenId = GetData<Rosen::ScreenId>();
-    CreateOrGetScreenManager()->GetScreenCapability();
+    CreateOrGetScreenManager()->GetScreenCapability(screenId);
     return true;
 }
 
@@ -289,7 +287,7 @@ bool CreateVirtualScreen()
     uint32_t width = GetData<uint32_t>();
     uint32_t height = GetData<uint32_t>();
     sptr<Surface> surface;
-    ScreenId mirrorId == GetData<Rosen::ScreenId>();
+    ScreenId mirrorId = GetData<Rosen::ScreenId>();
     int32_t flags = GetData<bool>();
     NodeId nodeId = GetData<NodeId>();
     std::vector<NodeId> whiteList = { nodeId };
@@ -300,8 +298,8 @@ bool CreateVirtualScreen()
 bool SetVirtualScreenBlackList()
 {
     ScreenId screenId = GetData<Rosen::ScreenId>();
-    NodeId nodeId = GetData<NodeId>();
-    std::vector<uint64_t> blocklist = { nodeId };
+    uint64_t id = GetData<uint64_t>();
+    std::vector<uint64_t> blocklist = { id };
     CreateOrGetScreenManager()->SetVirtualScreenBlackList(screenId, blocklist);
     return true;
 }
@@ -309,8 +307,8 @@ bool SetVirtualScreenBlackList()
 bool SetVirtualScreenTypeBlackList()
 {
     ScreenId screenId = GetData<Rosen::ScreenId>();
-    NodeId nodeId = GetData<NodeId>();
-    std::vector<uint64_t> typeBlackList = { nodeId };
+    uint8_t id = GetData<uint8_t>();
+    std::vector<uint8_t> typeBlackList = { id };
     CreateOrGetScreenManager()->SetVirtualScreenTypeBlackList(screenId, typeBlackList);
     return true;
 }
@@ -390,8 +388,8 @@ bool GetVirtualScreenBlackList()
 bool GetVirtualScreenTypeBlackList()
 {
     ScreenId screenId = GetData<Rosen::ScreenId>();
-        CreateOrGetScreenManager()->GetVirtualScreenTypeBlackListscreenId);
-        return true;
+    CreateOrGetScreenManager()->GetVirtualScreenTypeBlackList(screenId);
+    return true;
 }
 
 bool GetAllBlackList()
@@ -457,14 +455,14 @@ bool SetRogScreenResolution()
     ScreenId screenId = GetData<Rosen::ScreenId>();
     uint32_t width = GetData<uint32_t>();
     uint32_t height = GetData<uint32_t>();
-    CreateOrGetScreenManager()->SetRogScreenResolution();
+    CreateOrGetScreenManager()->SetRogScreenResolution(screenId, width, height);
     return true;
 }
 
 bool SetScreenPowerStatus()
 {
     ScreenId screenId = GetData<Rosen::ScreenId>();
-    ScreenPowerStatus status = static_cast<ScreenPowerStatus>(GetData<uint32_t>()) % SCREEN_POWER_STATUS_SIZE;
+    ScreenPowerStatus status = static_cast<ScreenPowerStatus>(GetData<uint32_t>() % SCREEN_POWER_STATUS_SIZE);
     CreateOrGetScreenManager()->SetScreenPowerStatus(screenId, status);
     return true;
 }
@@ -575,7 +573,7 @@ bool DisplayDump()
 bool SurfaceDump()
 {
     std::string dumpString(STRING_LEN, GetData<char>());
-    CreateOrGetScreenManager()->GetScreenCapability(dumpString);
+    CreateOrGetScreenManager()->SurfaceDump(dumpString);
     return true;
 }
 
@@ -583,7 +581,7 @@ bool FpsDump()
 {
     std::string dumpString(STRING_LEN, GetData<char>());
     std::string arg(STRING_LEN, GetData<char>());
-    CreateOrGetScreenManager()->GetScreenCapability(dumpString, arg);
+    CreateOrGetScreenManager()->FpsDump(dumpString, arg);
     return true;
 }
 
@@ -633,7 +631,7 @@ bool GetScreenColorGamut()
 bool SetScreenColorGamut()
 {
     ScreenId screenId = GetData<Rosen::ScreenId>();
-    int32_t modeIdx = getdata<int32_t>();
+    int32_t modeIdx = GetData<int32_t>();
     CreateOrGetScreenManager()->SetScreenColorGamut(screenId, modeIdx);
     return true;
 }
@@ -658,7 +656,7 @@ bool GetScreenGamutMap()
 {
     ScreenId screenId = GetData<Rosen::ScreenId>();
     ScreenGamutMap mode = static_cast<ScreenGamutMap>(GetData<uint8_t>() % SCREEN_GAMUT_MAP_SIZE);
-    CreateOrGetScreenManager()->GetScreenCapability(screenId, mode);
+    CreateOrGetScreenManager()->GetScreenGamutMap(screenId, mode);
     return true;
 }
 
@@ -674,7 +672,7 @@ bool GetScreenType()
 {
     ScreenId screenId = GetData<Rosen::ScreenId>();
     RSScreenType type = static_cast<RSScreenType>(GetData<uint8_t>() % SCREEN_SCREEN_TYPE_SIZE);
-    CreateOrGetScreenManager()->GetScreenCapability();
+    CreateOrGetScreenManager()->GetScreenType(screenId, type);
     return true;
 }
 
@@ -708,8 +706,8 @@ bool SetPixelFormat()
 {
     ScreenId screenId = GetData<Rosen::ScreenId>();
     GraphicPixelFormat pixelFormat = static_cast<GraphicPixelFormat>(GetData<uint8_t>() % GRAPHIC_PIXEL_FORMAT_SIZE);
-    CreateOrGetScreenManager()->SetPixelFormat(screenId, PixelMapInfo);
-    CreateOrGetScreenManager()->GetPixelFormat(screenId, PixelMapInfo);
+    CreateOrGetScreenManager()->SetPixelFormat(screenId, pixelFormat);
+    CreateOrGetScreenManager()->GetPixelFormat(screenId, pixelFormat);
     return true;
 }
 
@@ -717,7 +715,7 @@ bool SetScreenHDRFormat()
 {
     ScreenId screenId = GetData<Rosen::ScreenId>();
     int32_t modeIdx = GetData<int32_t>();
-    CreateOrGetScreenManager()->SetScreenHDRFormat(id, modeIdx);
+    CreateOrGetScreenManager()->SetScreenHDRFormat(screenId, modeIdx);
     return true;
 }
 
@@ -810,8 +808,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     if (!OHOS::Rosen::Init(data, size)) {
         return 0;
     }
-    std::map<uint8_t, FunctionPtr> funcMap = {
-        { OHOS::Rosen::INIT_SCREENMANGER, OHOS::Rosen::InitScreenManger },
+    std::map<uint8_t, FunctionPtr> funcMap = { { OHOS::Rosen::INIT_SCREENMANGER, OHOS::Rosen::InitScreenManger },
         { OHOS::Rosen::GET_ACTIVESCREENID, OHOS::Rosen::GetActiveScreenId },
         { OHOS::Rosen::SET_VIRTUAL_SCREENREFRESHRATE, OHOS::Rosen::SetVirtualScreenRefreshRate },
         { OHOS::Rosen::IS_ALLSCREENSPOWEROFF, OHOS::Rosen::IsAllScreensPowerOff },
@@ -891,8 +888,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
         { OHOS::Rosen::DIS_ABLEPOWEROFFRENDERCONTROL, OHOS::Rosen::DisablePowerOffRenderControl },
         { OHOS::Rosen::GET_DIS_PLAYPROPERTYFORHARDCURSOR, OHOS::Rosen::GetDisplayPropertyForHardCursor },
         { OHOS::Rosen::SET_SCREENHASPROTECTEDLAYER, OHOS::Rosen::SetScreenHasProtectedLayer },
-        { OHOS::Rosen::IS_VIS_IBLERECTSUPPORTROTATION, OHOS::Rosen::IsVisibleRectSupportRotation } 
-    };
+        { OHOS::Rosen::IS_VIS_IBLERECTSUPPORTROTATION, OHOS::Rosen::IsVisibleRectSupportRotation } };
     /* Run your code on data */
     uint8_t tarpos = OHOS::Rosen::GetData<uint8_t>() % OHOS::Rosen::TARGET_SIZE;
     if (funcMap.find(tarpos) != funcMap.end()) {
