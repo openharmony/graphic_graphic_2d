@@ -2181,6 +2181,102 @@ void OH_Drawing_TypographyUpdateFontSize(OH_Drawing_Typography* typography, size
     ConvertToOriginalText<Typography>(typography)->UpdateFontSize(from, to, fontSize);
 }
 
+void OH_Drawing_TypographyUpdateFontColor(OH_Drawing_Typography* typography, uint32_t color)
+{
+    if (typography == nullptr) {
+        return;
+    }
+
+    double maxWidth = ConvertToOriginalText<Typography>(typography)->GetMaxWidth();
+    TypographyStyle typographstyle;
+    TextStyle textStyle;
+    textStyle.relayoutChangeBitmap.set(static_cast<size_t>(RelayoutTextStyleAttribute::FONT_COLOR));
+    textStyle.color = color;
+    std::vector<TextStyle> relayoutTextStyles;
+    relayoutTextStyles.push_back(textStyle);
+    ConvertToOriginalText<Typography>(typography)->Relayout(maxWidth, typographstyle, relayoutTextStyles);
+}
+
+void OH_Drawing_TypographyUpdateDecoration(OH_Drawing_Typography* typography, OH_Drawing_TextDecoration decoration)
+{
+    if (typography == nullptr || (decoration & (~(TextDecoration::UNDERLINE | TextDecoration::OVERLINE |
+        TextDecoration::LINE_THROUGH)))) {
+        LOGE("Invalid Decoration type: %{public}d", decoration);
+        return;
+    }
+
+    double maxWidth = ConvertToOriginalText<Typography>(typography)->GetMaxWidth();
+    TypographyStyle typographstyle;
+    TextStyle textStyle;
+    textStyle.relayoutChangeBitmap.set(static_cast<size_t>(RelayoutTextStyleAttribute::DECORATION));
+    textStyle.decoration = static_cast<TextDecoration>(decoration);
+    std::vector<TextStyle> relayoutTextStyles;
+    relayoutTextStyles.push_back(textStyle);
+    ConvertToOriginalText<Typography>(typography)->Relayout(maxWidth, typographstyle, relayoutTextStyles);
+}
+
+void OH_Drawing_TypographyUpdateDecorationThicknessScale(OH_Drawing_Typography* typography,
+    double decorationThicknessScale)
+{
+    if (typography == nullptr) {
+        return;
+    }
+
+    double maxWidth = ConvertToOriginalText<Typography>(typography)->GetMaxWidth();
+    TypographyStyle typographstyle;
+    TextStyle textStyle;
+    textStyle.relayoutChangeBitmap.set(static_cast<size_t>(RelayoutTextStyleAttribute::DECORATION_THICKNESS_SCALE));
+    textStyle.decorationThicknessScale = decorationThicknessScale;
+    std::vector<TextStyle> relayoutTextStyles;
+    relayoutTextStyles.push_back(textStyle);
+    ConvertToOriginalText<Typography>(typography)->Relayout(maxWidth, typographstyle, relayoutTextStyles);
+}
+
+void OH_Drawing_TypographyUpdateDecorationStyle(OH_Drawing_Typography* typography,
+    OH_Drawing_TextDecorationStyle decorationStyle)
+{
+    if (typography == nullptr) {
+        return;
+    }
+
+    TextDecorationStyle rosenDecorationStyle;
+    switch (decorationStyle) {
+        case TEXT_DECORATION_STYLE_SOLID: {
+            rosenDecorationStyle = TextDecorationStyle::SOLID;
+            break;
+        }
+        case TEXT_DECORATION_STYLE_DOUBLE: {
+            rosenDecorationStyle = TextDecorationStyle::DOUBLE;
+            break;
+        }
+        case TEXT_DECORATION_STYLE_DOTTED: {
+            rosenDecorationStyle = TextDecorationStyle::DOTTED;
+            break;
+        }
+        case TEXT_DECORATION_STYLE_DASHED: {
+            rosenDecorationStyle = TextDecorationStyle::DASHED;
+            break;
+        }
+        case TEXT_DECORATION_STYLE_WAVY: {
+            rosenDecorationStyle = TextDecorationStyle::WAVY;
+            break;
+        }
+        default: {
+            LOGE("Invalid Decoration style type: %{public}d", decorationStyle);
+            return;
+        }
+    }
+
+    double maxWidth = ConvertToOriginalText<Typography>(typography)->GetMaxWidth();
+    TypographyStyle typographstyle;
+    TextStyle textStyle;
+    textStyle.relayoutChangeBitmap.set(static_cast<size_t>(RelayoutTextStyleAttribute::DECORATION_STYLE));
+    textStyle.decorationStyle = rosenDecorationStyle;
+    std::vector<TextStyle> relayoutTextStyles;
+    relayoutTextStyles.push_back(textStyle);
+    ConvertToOriginalText<Typography>(typography)->Relayout(maxWidth, typographstyle, relayoutTextStyles);
+}
+
 bool OH_Drawing_TypographyTextGetLineStyle(OH_Drawing_TypographyStyle* style)
 {
     if (style == nullptr || ConvertToOriginalText<TypographyStyle>(style) == nullptr) {
