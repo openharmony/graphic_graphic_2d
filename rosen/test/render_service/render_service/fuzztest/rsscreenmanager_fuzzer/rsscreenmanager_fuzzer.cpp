@@ -616,8 +616,7 @@ bool GetScreenColorGamut()
 {
     ScreenId screenId = GetData<Rosen::ScreenId>();
     ScreenColorGamut type = static_cast<ScreenColorGamut>(GetData<uint8_t>() % SCREEN_COLOR_GAMUT_SIZE);
-    std::vector<ScreenColorGamut> mode = { type };
-    CreateOrGetScreenManager()->GetScreenColorGamut(screenId, mode);
+    CreateOrGetScreenManager()->GetScreenColorGamut(screenId, type);
     return true;
 }
 
