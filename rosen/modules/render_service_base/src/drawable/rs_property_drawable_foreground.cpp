@@ -540,8 +540,9 @@ void RSPointLightDrawable::DrawLight(Drawing::Canvas* canvas) const
     }
     if (illuminatedType_ == IlluminatedType::FEATHERING_BORDER) {
         phongShaderBuilder = GetFeatheringBoardLightShaderBuilder();
-        phongShaderBuilder->SetUniform("iResolution",
-            borderRRect_.GetRect().GetWidth(), borderRRect_.GetRect().GetHeight());
+        float rectWidth = borderRRect_.GetRect().GetWidth() + borderWidth_;
+        float rectHeight = borderRRect_.GetRect().GetHeight() + borderWidth_;
+        phongShaderBuilder->SetUniform("iResolution", rectWidth, rectHeight);
         phongShaderBuilder->SetUniform("borderRadius",
             borderRRect_.GetCornerRadius(Drawing::RoundRect::CornerPos::TOP_LEFT_POS).GetX());
     }
