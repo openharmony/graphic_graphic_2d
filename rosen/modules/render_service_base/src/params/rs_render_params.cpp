@@ -64,10 +64,11 @@ void RSRenderParams::SetMatrix(const Drawing::Matrix& matrix)
     needSync_ = true;
     dirtyType_.set(RSRenderParamsDirtyType::MATRIX_DIRTY);
 }
+
 const Drawing::Matrix& RSRenderParams::GetMatrix() const
 {
     return matrix_;
-}\
+}
 
 bool RSRenderParams::HasUnobscuredUEC() const
 {

@@ -14,6 +14,7 @@
  */
 
 #include "hm_symbol_txt.h"
+#include "modules/skparagraph/include/Paragraph.h"
 #include "paragraph_impl.h"
 
 #include <algorithm>
@@ -267,6 +268,22 @@ namespace {
         [](skt::Paragraph& paragraph, const ParagraphStyle& style, skt::InternalState& state) {
             paragraph.updateTextAlign(static_cast<skt::TextAlign>(style.textAlign));
             state = std::min(skt::InternalState::kShaped, state);
+        },
+
+        [](skt::Paragraph& paragraph, const ParagraphStyle& style, skt::InternalState& state) {
+            paragraph.getParagraphStyle().setParagraphSpacing(style.paragraphSpacing);
+            state = std::min(skt::InternalState::kShaped, state);
+        },
+
+        [](skt::Paragraph& paragraph, const ParagraphStyle& style, skt::InternalState& state) {
+            paragraph.getParagraphStyle().setIsEndAddParagraphSpacing(style.isEndAddParagraphSpacing);
+            state = std::min(skt::InternalState::kShaped, state);
+        },
+
+        [](skt::Paragraph& paragraph, const ParagraphStyle& style, skt::InternalState& state) {
+            paragraph.getParagraphStyle().setTextHeightBehavior(
+                static_cast<skt::TextHeightBehavior>(style.textHeightBehavior));
+            state = std::min(skt::InternalState::kIndexed, state);
         }
     };
 
@@ -402,7 +419,7 @@ namespace {
 
         [](Paragraph& paragraph, skt::Block& skiaBlock, const TextStyle& spTextStyle, skt::InternalState& state) {
             skt::TextRange textRange = skiaBlock.fRange;
-            paragraph.UpdateColor(textRange.start, textRange.end, spTextStyle.color, true);
+            paragraph.UpdateColor(textRange.start, textRange.end, spTextStyle.color, skt::UtfEncodeType::kUtf16);
             state = std::min(skt::InternalState::kFormatted, state);
         },
 

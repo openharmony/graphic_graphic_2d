@@ -44,9 +44,36 @@ void MEMParamTest::TearDown() {}
  */
 HWTEST_F(MEMParamTest, SetRSWatchPoint, Function | SmallTest | Level1)
 {
+    MEMParam::SetRSWatchPoint("RsWatchPoint");
+    EXPECT_EQ(MEMParam::GetRSWatchPoint(), "RsWatchPoint");
+}
+
+/**
+ * @tc.name: SetDeeplyRelGpuResEnable
+ * @tc.desc: Verify the SetDeeplyRelGpuResEnable function
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(MEMParamTest, SetDeeplyRelGpuResEnable, Function | SmallTest | Level1)
+{
+    MEMParam::SetDeeplyRelGpuResEnable(true);
+    EXPECT_EQ(MEMParam::IsDeeplyRelGpuResEnable(), true);
+    MEMParam::SetDeeplyRelGpuResEnable(false);
+    EXPECT_EQ(MEMParam::IsDeeplyRelGpuResEnable(), false);
+}
+
+/**
+ * @tc.name: SetRSCacheLimitsResourceSize
+ * @tc.desc: Verify the SetRSCacheLimitsResourceSize function
+ * @tc.type: FUNC
+ * @tc.require: #IBIE4T
+ */
+HWTEST_F(MEMParamTest, SetRSCacheLimitsResourceSize, Function | SmallTest | Level1)
+{
+    int cacheLimitResourceSize = 33220204;
     MEMParam memParam;
-    memParam.SetRSWatchPoint("RsWatchPoint");
-    EXPECT_EQ(memParam.GetRSWatchPoint(), "RsWatchPoint");
+    memParam.SetRSCacheLimitsResourceSize(cacheLimitResourceSize);
+    EXPECT_EQ(memParam.GetRSCacheLimitsResourceSize(), cacheLimitResourceSize);
 }
 } // namespace Rosen
 } // namespace OHOS

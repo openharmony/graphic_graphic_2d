@@ -37,6 +37,7 @@
 #include "hdi_device.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_hisysevent.h"
+#include "vsync_sampler.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -53,6 +54,7 @@ namespace {
     constexpr uint32_t VOTER_SCENE_PRIORITY_BEFORE_PACKAGES = 1;
     constexpr uint32_t VOTER_LTPO_PRIORITY_BEFORE_PACKAGES = 2;
     constexpr uint64_t BUFFER_IDLE_TIME_OUT = 200000000; // 200ms
+    constexpr long DRAG_SCENE_CHANGE_RATE_TIMEOUT = 100; // 100ms
     const static std::string UP_TIME_OUT_TASK_ID = "UP_TIME_OUT_TASK_ID";
     const static std::string S_UP_TIMEOUT_MS = "up_timeout_ms";
     const static std::string S_RS_IDLE_TIMEOUT_MS = "rs_idle_timeout_ms";
@@ -86,12 +88,14 @@ namespace {
     constexpr int32_t STYLUS_NO_LINK = 0;
     constexpr int32_t STYLUS_LINK_UNUSED = 1;
     constexpr int32_t STYLUS_LINK_WRITE = 2;
+    constexpr int32_t VIRTUAL_KEYBOARD_FINGERS_MIN_CNT = 8;
     const std::unordered_map<std::string, int32_t> STYLUS_STATUS_MAP = {
         {"STYLUS_NO_LINK", STYLUS_NO_LINK},
         {"STYLUS_LINK_UNUSED", STYLUS_LINK_UNUSED},
         {"STYLUS_LINK_WRITE", STYLUS_LINK_WRITE}};
     constexpr uint32_t FRAME_RATE_REPORT_MAX_RETRY_TIMES = 3;
     constexpr uint32_t FRAME_RATE_REPORT_DELAY_TIME = 20000;
+    const std::string VRATE_CONTROL_MINIFPS = "minifps";
 }
 
 HgmFrameRateManager::HgmFrameRateManager()
@@ -135,6 +139,7 @@ void HgmFrameRateManager::Init(sptr<VSyncController> rsController,
         if (curScreenStrategyId_.empty()) {
             curScreenStrategyId_ = "LTPO-DEFAULT";
         }
+        curScreenDefaultStrategyId_ = curScreenStrategyId_;
         if (curRefreshRateMode_ != HGM_REFRESHRATE_MODE_AUTO && configData->xmlCompatibleMode_) {
             curRefreshRateMode_ = configData->SettingModeId2XmlModeId(curRefreshRateMode_);
         }
@@ -145,11 +150,14 @@ void HgmFrameRateManager::Init(sptr<VSyncController> rsController,
         UpdateEnergyConsumptionConfig();
         multiAppStrategy_.CalcVote();
         HandleIdleEvent(ADD_VOTE);
+        UpdateScreenExtStrategyConfig(configData->screenConfigs_);
+        GetVRateMiniFPS(configData);
     }
 
     RegisterCoreCallbacksAndInitController(rsController, appController, vsyncGenerator);
     multiAppStrategy_.RegisterStrategyChangeCallback([this] (const PolicyConfigData::StrategyConfig& strategy) {
         DeliverRefreshRateVote({"VOTER_PACKAGES", strategy.min, strategy.max}, ADD_VOTE);
+        touchManager_.SetUpTimeout(strategy.upTimeOut);
         idleFps_ = strategy.idleFps;
         HandleIdleEvent(true);
     });
@@ -160,6 +168,8 @@ void HgmFrameRateManager::Init(sptr<VSyncController> rsController,
         std::string strategy, const bool isAddVoter) {
         ProcessPageUrlVote(pid, strategy, isAddVoter);
     });
+    HgmHfbcConfig& hfbcConfig = hgmCore.GetHfbcConfig();
+    hfbcConfig.HandleHfbcConfig({""});
     FrameRateReportTask(FRAME_RATE_REPORT_MAX_RETRY_TIMES);
 }
 
@@ -234,11 +244,6 @@ void HgmFrameRateManager::InitTouchManager()
             multiAppStrategy_.HandleTouchInfo(touchInfo);
             UpdateSoftVSync(false);
         };
-        touchManager_.RegisterEventCallback(TouchEvent::UP_TIMEOUT_EVENT, [this] (TouchEvent event) {
-            SetSchedulerPreferredFps(OLED_60_HZ);
-            SetIsNeedUpdateAppOffset(true);
-            touchManager_.ChangeState(TouchState::IDLE_STATE);
-        });
         touchManager_.RegisterEventCallback(TouchEvent::DOWN_EVENT, [this] (TouchEvent event) {
             SetSchedulerPreferredFps(OLED_120_HZ);
             touchManager_.ChangeState(TouchState::DOWN_STATE);
@@ -252,6 +257,8 @@ void HgmFrameRateManager::InitTouchManager()
         });
         touchManager_.RegisterEnterStateCallback(TouchState::IDLE_STATE,
             [this, updateTouchToMultiAppStrategy] (TouchState lastState, TouchState newState) {
+            SetSchedulerPreferredFps(OLED_60_HZ);
+            SetIsNeedUpdateAppOffset(true);
             startCheck_.store(false);
             updateTouchToMultiAppStrategy(newState);
             voterTouchEffective_.store(false);
@@ -382,13 +389,33 @@ void HgmFrameRateManager::UpdateGuaranteedPlanVote(uint64_t timestamp)
 
 void HgmFrameRateManager::ProcessLtpoVote(const FrameRateRange& finalRange)
 {
+    isDragScene_ = finalRange.type_ == DRAG_SCENE_FRAME_RATE_TYPE;
     if (finalRange.IsValid()) {
-        auto refreshRate = CalcRefreshRate(curScreenId_.load(), finalRange);
+        auto refreshRate = AvoidChangeRateFrequent(CalcRefreshRate(curScreenId_.load(), finalRange));
+        RS_TRACE_NAME_FMT("ProcessLtpoVote isDragScene_: [%d], refreshRate: [%d], lastLtpoRefreshRate_: [%d]",
+            isDragScene_, refreshRate, lastLtpoRefreshRate_);
         DeliverRefreshRateVote(
             {"VOTER_LTPO", refreshRate, refreshRate, DEFAULT_PID, finalRange.GetExtInfo()}, ADD_VOTE);
     } else {
         DeliverRefreshRateVote({.voterName = "VOTER_LTPO"}, REMOVE_VOTE);
     }
+}
+
+uint32_t HgmFrameRateManager::AvoidChangeRateFrequent(uint32_t refreshRate)
+{
+    if (!isDragScene_) {
+        return refreshRate;
+    }
+
+    auto curTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now()
+                    .time_since_epoch()).count();
+    if (refreshRate < lastLtpoRefreshRate_ && curTime - lastLtpoVoteTime_ < DRAG_SCENE_CHANGE_RATE_TIMEOUT) {
+        return lastLtpoRefreshRate_;
+    }
+
+    lastLtpoRefreshRate_ = refreshRate;
+    lastLtpoVoteTime_ = curTime;
+    return refreshRate;
 }
 
 void HgmFrameRateManager::UniProcessDataForLtpo(uint64_t timestamp,
@@ -439,16 +466,37 @@ void HgmFrameRateManager::UpdateSoftVSync(bool followRs)
     // max used here
     finalRange = {lastVoteInfo_.max, lastVoteInfo_.max, lastVoteInfo_.max};
     RS_TRACE_NAME_FMT("VoteRes: %s[%d, %d]", lastVoteInfo_.voterName.c_str(), lastVoteInfo_.min, lastVoteInfo_.max);
+    bool needChangeDssRefreshRate = false;
     auto refreshRate = CalcRefreshRate(curScreenId_.load(), finalRange);
     if (currRefreshRate_.load() != refreshRate) {
         currRefreshRate_.store(refreshRate);
         schedulePreferredFpsChange_ = true;
+        needChangeDssRefreshRate = true;
         FrameRateReport();
     }
 
     bool frameRateChanged = CollectFrameRateChange(finalRange, rsFrameRateLinker_, appFrameRateLinkers_);
-    CheckRefreshRateChange(followRs, frameRateChanged, refreshRate);
+    CheckRefreshRateChange(followRs, frameRateChanged, refreshRate, needChangeDssRefreshRate);
     ReportHiSysEvent(lastVoteInfo_);
+}
+
+void HgmFrameRateManager::GetVRateMiniFPS(const std::shared_ptr<PolicyConfigData>& configData)
+{
+    if (configData == nullptr) {
+        HGM_LOGE("GetVRateMiniFPS configData is nullptr use dafault value");
+        return;
+    }
+    if (configData->vRateControlList_.find(VRATE_CONTROL_MINIFPS) == configData->vRateControlList_.end()) {
+        HGM_LOGE("GetVRateMiniFPS VRATE_CONTROL_MINIFPS config is invalid use dafault value");
+        return;
+    }
+    if (!XMLParser::IsNumber(configData->vRateControlList_[VRATE_CONTROL_MINIFPS])) {
+        HGM_LOGE("GetVRateMiniFPS VRATE_CONTROL_MINIFPS config is Is Not Number use dafault value");
+        return;
+    }
+
+    vrateControlMinifpsValue_ = static_cast<int32_t>(std::stoi(configData->vRateControlList_[VRATE_CONTROL_MINIFPS]));
+    HGM_LOGI("GetVRateMiniFPS vrateControlMinifpsValue:%{public}d", vrateControlMinifpsValue_);
 }
 
 void HgmFrameRateManager::CollectVRateChange(uint64_t linkerId, FrameRateRange& finalRange)
@@ -481,11 +529,16 @@ void HgmFrameRateManager::CollectVRateChange(uint64_t linkerId, FrameRateRange& 
     }
 
     appFrameRate = static_cast<int>(controllerRate_) / iter->second;
-    // vrate is int::max means app need not refreshing
-    if (appFrameRate == 0) {
-        //appFrameRate value is 1  means that not refreshing.
+    if (iter->second == std::numeric_limits<int>::max()) {
+        // invisible window 1 means app need not refreshing
         appFrameRate = 1;
     }
+
+    // vrate is int::max means app need not refreshing
+    if (appFrameRate == 0 && vrateControlMinifpsValue_ >= 0) {
+        appFrameRate = vrateControlMinifpsValue_;
+    }
+
     finalRange.min_ = OLED_NULL_HZ;
     finalRange.max_ = OLED_144_HZ;
     RS_TRACE_NAME_FMT("CollectVRateChange modification pid = %d , linkerIdS = %" PRIu64 ",appFrameRate = %d,"
@@ -496,6 +549,10 @@ void HgmFrameRateManager::CollectVRateChange(uint64_t linkerId, FrameRateRange& 
 
 void HgmFrameRateManager::ReportHiSysEvent(const VoteInfo& frameRateVoteInfo)
 {
+    static bool reportHiSysEventEnabled = system::GetParameter("const.logsystem.versiontype", "") == "beta";
+    if (!reportHiSysEventEnabled) {
+        return;
+    }
     if (frameRateVoteInfo.voterName.empty()) {
         return;
     }
@@ -575,6 +632,9 @@ bool HgmFrameRateManager::CollectFrameRateChange(FrameRateRange finalRange,
         CollectVRateChange(linker.first, expectedRange);
         auto appFrameRate = touchManager_.GetState() == TouchState::IDLE_STATE ?
                             GetDrawingFrameRate(currRefreshRate_, expectedRange) : OLED_NULL_HZ;
+        if (CollectGameRateDiscountChange(linker.first, expectedRange)) {
+            appFrameRate = static_cast<uint32_t>(expectedRange.preferred_);
+        }
         if (appFrameRate != linker.second->GetFrameRate() || controllerRateChanged) {
             linker.second->SetFrameRate(appFrameRate);
             appChangeData_.emplace_back(linker.second->GetId(), appFrameRate);
@@ -593,7 +653,7 @@ bool HgmFrameRateManager::CollectFrameRateChange(FrameRateRange finalRange,
     return frameRateChanged;
 }
 
-void HgmFrameRateManager::HandleFrameRateChangeForLTPO(uint64_t timestamp, bool followRs)
+void HgmFrameRateManager::HandleFrameRateChangeForLTPO(uint64_t timestamp, bool followRs, bool frameRateChange)
 {
     std::lock_guard<std::mutex> lock(pendingMutex_);
     auto& hgmCore = HgmCore::Instance();
@@ -622,19 +682,12 @@ void HgmFrameRateManager::HandleFrameRateChangeForLTPO(uint64_t timestamp, bool 
     }
 
     // Start of DVSync
-    int64_t delayTime = CreateVSyncGenerator()->SetCurrentRefreshRate(controllerRate_, lastRefreshRate);
+    int64_t delayTime = 0;
+    if (frameRateChange) {
+        delayTime = CreateVSyncGenerator()->SetCurrentRefreshRate(controllerRate_, lastRefreshRate);
+    }
     if (delayTime != 0) {
-        int64_t controllerRate = controllerRate_;
-        std::vector<std::pair<FrameRateLinkerId, uint32_t>> appChangeData = appChangeData_;
-        bool needUpdate = isNeedUpdateAppOffset_;
-        RSTaskMessage::RSTask task = [this, targetTime, controllerRate, appChangeData, needUpdate]() {
-            if (controller_) {
-                vsyncCountOfChangeGeneratorRate_ = controller_->ChangeGeneratorRate(controllerRate,
-                    appChangeData, targetTime, needUpdate);
-            }
-            CreateVSyncGenerator()->SetCurrentRefreshRate(0, 0);
-        };
-        HgmTaskHandleThread::Instance().PostTask(task, delayTime);
+        DVSyncTaskProcessor(delayTime, targetTime);
     } else if (controller_) {
         vsyncCountOfChangeGeneratorRate_ = controller_->ChangeGeneratorRate(
             controllerRate_, appChangeData_, targetTime, isNeedUpdateAppOffset_);
@@ -643,6 +696,21 @@ void HgmFrameRateManager::HandleFrameRateChangeForLTPO(uint64_t timestamp, bool 
     isNeedUpdateAppOffset_ = false;
     pendingRefreshRate_ = std::make_shared<uint32_t>(currRefreshRate_);
     SetChangeGeneratorRateValid(false);
+}
+
+void HgmFrameRateManager::DVSyncTaskProcessor(int64_t delayTime, uint64_t targetTime)
+{
+    int64_t controllerRate = controllerRate_;
+    std::vector<std::pair<FrameRateLinkerId, uint32_t>> appChangeData = appChangeData_;
+    bool needUpdate = isNeedUpdateAppOffset_;
+    RSTaskMessage::RSTask task = [this, targetTime, controllerRate, appChangeData, needUpdate]() {
+        if (controller_) {
+            vsyncCountOfChangeGeneratorRate_ = controller_->ChangeGeneratorRate(controllerRate,
+                appChangeData, targetTime, needUpdate);
+        }
+        CreateVSyncGenerator()->SetCurrentRefreshRate(0, 0);
+    };
+    HgmTaskHandleThread::Instance().PostTask(task, delayTime);
 }
 
 void HgmFrameRateManager::GetLowBrightVec(const std::shared_ptr<PolicyConfigData>& configData)
@@ -882,7 +950,8 @@ void HgmFrameRateManager::HandlePackageEvent(pid_t pid, const std::vector<std::s
         cleanPidCallback_[pid].insert(CleanPidCallbackType::PACKAGE_EVENT);
     }
     // check whether to enable HFBC
-    HgmHfbcConfig::HandleHfbcConfig(packageList);
+    HgmHfbcConfig& hfbcConfig = HgmCore::Instance().GetHfbcConfig();
+    hfbcConfig.HandleHfbcConfig(packageList);
     if (multiAppStrategy_.HandlePkgsEvent(packageList) == EXEC_SUCCESS) {
         auto sceneListConfig = multiAppStrategy_.GetScreenSetting().sceneList;
         for (auto scenePid = sceneStack_.begin(); scenePid != sceneStack_.end();) {
@@ -970,6 +1039,9 @@ void HgmFrameRateManager::HandleTouchTask(pid_t pid, int32_t touchStatus, int32_
             HGM_LOGD("[touch manager] up");
             touchManager_.HandleTouchEvent(TouchEvent::UP_EVENT, "");
         }
+    } else if (touchStatus == TOUCH_CANCEL && touchCnt >= VIRTUAL_KEYBOARD_FINGERS_MIN_CNT) {
+        HGM_LOGD("[touch manager] cancel");
+        touchManager_.HandleTouchEvent(TouchEvent::UP_EVENT, "");
     } else {
         HGM_LOGD("[touch manager] other touch status not support");
     }
@@ -1097,42 +1169,68 @@ void HgmFrameRateManager::HandleScreenFrameRate(std::string curScreenName)
     } else {
         curScreenStrategyId_ = "LTPO-DEFAULT";
     }
+    curScreenDefaultStrategyId_ = curScreenStrategyId_;
 
-    if (isEnableThermalStrategy_ && configData->screenConfigs_.find(
-        curScreenStrategyId_ + HGM_CONFIG_TYPE_THERMAL_SUFFIX) != configData->screenConfigs_.end()) {
-        curScreenStrategyId_ += HGM_CONFIG_TYPE_THERMAL_SUFFIX;
-    }
-
+    curScreenStrategyId_ = GetCurScreenExtStrategyId();
     UpdateScreenFrameRate();
 }
 
-void HgmFrameRateManager::HandleThermalFrameRate(bool status)
+void HgmFrameRateManager::HandleScreenExtStrategyChange(bool status, const std::string& suffix)
+{
+    if (screenExtStrategyMap_.find(suffix) == screenExtStrategyMap_.end()) {
+        return;
+    }
+    screenExtStrategyMap_[suffix].second = status;
+
+    std::string curScreenStrategyId = GetCurScreenExtStrategyId();
+    if (curScreenStrategyId != curScreenStrategyId_) {
+        RS_TRACE_NAME_FMT("HgmFrameRateManager::HandleScreenExtStrategyChange type:%s, status:%d",
+            curScreenStrategyId.c_str(), status);
+        HGM_LOGI("HgmFrameRateManager::HandleScreenExtStrategyChange type:%{public}s, status:%{public}d",
+            curScreenStrategyId.c_str(), status);
+        curScreenStrategyId_ = curScreenStrategyId;
+        UpdateScreenFrameRate();
+    }
+}
+
+std::string HgmFrameRateManager::GetCurScreenExtStrategyId()
 {
     auto& hgmCore = HgmCore::Instance();
     auto configData = hgmCore.GetPolicyConfigData();
     if (configData == nullptr) {
-        return;
+        return curScreenDefaultStrategyId_;
     }
 
-    if (isEnableThermalStrategy_ == status) {
-        return;
+    std::string suffix;
+    for (const auto& [key, value] : screenExtStrategyMap_) {
+        if (value.second && (screenExtStrategyMap_.find(suffix) == screenExtStrategyMap_.end() ||
+            value.first > screenExtStrategyMap_[suffix].first)) {
+            suffix = key;
+        }
     }
-    isEnableThermalStrategy_ = status;
-    std::string curScreenStrategyId;
-    if (isEnableThermalStrategy_) {
-        curScreenStrategyId = curScreenStrategyId_ + HGM_CONFIG_TYPE_THERMAL_SUFFIX;
-    } else {
-        curScreenStrategyId = curScreenStrategyId_.substr(
-            0, curScreenStrategyId_.length() - std::string(HGM_CONFIG_TYPE_THERMAL_SUFFIX).length());
-    }
+    std::string curScreenStrategyId = curScreenDefaultStrategyId_ + suffix;
     if (configData->screenConfigs_.find(curScreenStrategyId) == configData->screenConfigs_.end()) {
-        HGM_LOGE("HgmFrameRateManager::HandleThermalFrameRate not support thermal config");
-        return;
+        HGM_LOGE("HgmFrameRateManager::HandleScreenExtStrategyChange not support %{public}s config", suffix.c_str());
+        return curScreenDefaultStrategyId_;
     }
-    RS_TRACE_NAME_FMT("HgmFrameRateManager::HandleThermalFrameRate type:%s, status:%d", curScreenStrategyId.c_str(),
-        status);
-    curScreenStrategyId_ = curScreenStrategyId;
-    UpdateScreenFrameRate();
+    return curScreenStrategyId;
+}
+
+void HgmFrameRateManager::UpdateScreenExtStrategyConfig(const PolicyConfigData::ScreenConfigMap& screenConfigs)
+{
+    std::unordered_set<std::string> screenConfigKeys;
+    for (const auto& config : screenConfigs) {
+        screenConfigKeys.insert(config.first);
+    }
+
+    for (auto it = screenExtStrategyMap_.begin(); it != screenExtStrategyMap_.end();) {
+        if (std::find_if(screenConfigKeys.begin(), screenConfigKeys.end(),
+            [&](const auto &item) {return item.find(it->first) != std::string::npos; }) == screenConfigKeys.end()) {
+            it = screenExtStrategyMap_.erase(it);
+        } else {
+            ++it;
+        }
+    }
 }
 
 void HgmFrameRateManager::UpdateScreenFrameRate()
@@ -1315,22 +1413,8 @@ void HgmFrameRateManager::MarkVoteChange(const std::string& voter)
     if (rsFrameRateLinker_ != nullptr) {
         frameRateChanged = CollectFrameRateChange(finalRange, rsFrameRateLinker_, appFrameRateLinkers_);
     }
-    // 当dvsync在连续延迟切帧阶段，使用dvsync内记录的刷新率判断是否变化
-    CreateVSyncGenerator()->DVSyncRateChanged(controllerRate_, frameRateChanged);
-    auto& hgmCore = HgmCore::Instance();
-    bool needForceUpdate = currRefreshRate_.load() != hgmCore.GetPendingScreenRefreshRate();
-    if (hgmCore.GetLtpoEnabled() && frameRateChanged) {
-        HandleFrameRateChangeForLTPO(timestamp_.load(), false);
-        if (needChangeDssRefreshRate && changeDssRefreshRateCb_ != nullptr) {
-            changeDssRefreshRateCb_(curScreenId_, refreshRate, true);
-        }
-    } else {
-        std::lock_guard<std::mutex> lock(pendingMutex_);
-        pendingRefreshRate_ = std::make_shared<uint32_t>(currRefreshRate_);
-        if (needChangeDssRefreshRate && changeDssRefreshRateCb_ != nullptr) {
-            changeDssRefreshRateCb_(curScreenId_, refreshRate, true);
-        }
-    }
+
+    CheckRefreshRateChange(false, frameRateChanged, refreshRate, needChangeDssRefreshRate);
     ReportHiSysEvent(resultVoteInfo);
 }
 
@@ -1452,6 +1536,9 @@ bool HgmFrameRateManager::MergeLtpo2IdleVote(
                 continue;
             }
         }
+        if (isDragScene_ && curVoteInfo.voterName == "VOTER_TOUCH") {
+            continue;
+        }
         ProcessVoteLog(curVoteInfo, false);
         if (mergeSuccess) {
             mergedVoteRange.first = mergedVoteRange.first > curVoteInfo.min ? mergedVoteRange.first : curVoteInfo.min;
@@ -1530,6 +1617,8 @@ void HgmFrameRateManager::CheckAncoVoter(const std::string& voter, VoteInfo& cur
             min = static_cast<uint32_t>(configData->strategyConfigs_[ancoSceneIt->second.strategy].min);
             max = static_cast<uint32_t>(configData->strategyConfigs_[ancoSceneIt->second.strategy].max);
         }
+        min = std::max(min, curVoteInfo.min);
+        max = std::max(min, max);
         curVoteInfo.SetRange(min, max);
     }
 }
@@ -1617,6 +1706,9 @@ VoteInfo HgmFrameRateManager::ProcessRefreshRateVote()
         curScreenStrategyId_.c_str(), static_cast<int>(curScreenId_.load()), curRefreshRateMode_, min, max);
     SetResultVoteInfo(resultVoteInfo, min, max);
     ProcessAdaptiveSync(resultVoteInfo.voterName);
+
+    auto sampler = CreateVSyncSampler();
+    sampler->SetAdaptive(isAdaptive_.load() == SupportASStatus::SUPPORT_AS);
     return resultVoteInfo;
 }
 
@@ -1736,6 +1828,8 @@ void HgmFrameRateManager::CleanVote(pid_t pid)
         iter->second.clear();
     }
 
+    EraseGameRateDiscountMap(pid);
+
     if (pidRecord_.count(pid) == 0) {
         return;
     }
@@ -1749,9 +1843,8 @@ void HgmFrameRateManager::CleanVote(pid_t pid)
                 iter = voterInfo.first.erase(iter);
                 MarkVoteChange(voter);
                 break;
-            } else {
-                ++iter;
             }
+            ++iter;
         }
     }
 }
@@ -1835,20 +1928,31 @@ bool HgmFrameRateManager::UpdateUIFrameworkDirtyNodes(
     return true;
 }
 
-void HgmFrameRateManager::HandleGameNode(const RSRenderNodeMap& nodeMap)
+bool HgmFrameRateManager::HandleGameNode(const RSRenderNodeMap& nodeMap)
 {
     bool isGameSelfNodeOnTree = false;
+    bool isOtherSelfNodeOnTree = false;
     std::string gameNodeName = GetGameNodeName();
     nodeMap.TraverseSurfaceNodes(
-        [this, &isGameSelfNodeOnTree, &gameNodeName]
+        [this, &isGameSelfNodeOnTree, &gameNodeName, &isOtherSelfNodeOnTree]
         (const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) mutable {
-            if (surfaceNode->IsOnTheTree() && gameNodeName == surfaceNode->GetName()) {
-                isGameSelfNodeOnTree = true;
+            if (surfaceNode == nullptr) {
+                return;
+            }
+            if (surfaceNode->IsOnTheTree() &&
+                surfaceNode->GetSurfaceNodeType() == RSSurfaceNodeType::SELF_DRAWING_NODE) {
+                if (gameNodeName == surfaceNode->GetName()) {
+                    isGameSelfNodeOnTree = true;
+                } else {
+                    isOtherSelfNodeOnTree = true;
+                }
             }
         }
     );
-    RS_TRACE_NAME_FMT("HgmFrameRateManager::HandleGameNode, game node on tree: %d", isGameSelfNodeOnTree);
-    isGameNodeOnTree_.store(isGameSelfNodeOnTree);
+    RS_TRACE_NAME_FMT("HgmFrameRateManager::HandleGameNode, game node on tree: %d, other node no tree: %d",
+                      isGameSelfNodeOnTree, isOtherSelfNodeOnTree);
+    isGameNodeOnTree_.store(isGameSelfNodeOnTree && !isOtherSelfNodeOnTree);
+    return isGameSelfNodeOnTree && !isOtherSelfNodeOnTree;
 }
 
 void HgmFrameRateManager::HandleAppStrategyConfigEvent(pid_t pid, const std::string& pkgName,
@@ -1909,13 +2013,32 @@ void HgmFrameRateManager::NotifyPageName(pid_t pid, const std::string &packageNa
     appPageUrlStrategy_.NotifyPageName(pid, packageName, pageName, isEnter);
 }
 
-void HgmFrameRateManager::CheckRefreshRateChange(bool followRs, bool frameRateChanged, uint32_t refreshRate)
+void HgmFrameRateManager::CheckNeedUpdateAppOffset(uint32_t refreshRate)
 {
-    bool needChangeDssRefreshRate = currRefreshRate_.load() != refreshRate;
-    // 当dvsync在连续延迟切帧阶段，使用dvsync内记录的刷新率判断是否变化
+    if (refreshRate > OLED_60_HZ || isNeedUpdateAppOffset_ ||
+        !HgmCore::Instance().CheckNeedUpdateAppOffsetRefreshRate(controllerRate_)) {
+        return;
+    }
+    if (auto iter = voteRecord_.find("VOTER_THERMAL");
+        iter != voteRecord_.end() && !iter->second.first.empty() &&
+        iter->second.first.back().max > 0 && iter->second.first.back().max <= OLED_60_HZ) {
+        isNeedUpdateAppOffset_ = true;
+        return;
+    }
+}
+
+void HgmFrameRateManager::CheckRefreshRateChange(
+    bool followRs, bool frameRateChanged, uint32_t refreshRate, bool needChangeDssRefreshRate)
+{
     CreateVSyncGenerator()->DVSyncRateChanged(controllerRate_, frameRateChanged);
-    if (HgmCore::Instance().GetLtpoEnabled() && frameRateChanged) {
-        HandleFrameRateChangeForLTPO(timestamp_.load(), followRs);
+    bool appOffsetChange = false;
+    if (controller_ != nullptr) {
+        CheckNeedUpdateAppOffset(refreshRate);
+        appOffsetChange = isNeedUpdateAppOffset_ && controller_->GetPulseNum() != 0;
+    }
+    if (HgmCore::Instance().GetLtpoEnabled() &&
+        (frameRateChanged || (appOffsetChange && !CreateVSyncGenerator()->IsUiDvsyncOn()))) {
+        HandleFrameRateChangeForLTPO(timestamp_.load(), followRs, frameRateChanged);
         if (needChangeDssRefreshRate && changeDssRefreshRateCb_ != nullptr) {
             changeDssRefreshRateCb_(curScreenId_.load(), refreshRate, true);
         }
@@ -1926,6 +2049,10 @@ void HgmFrameRateManager::CheckRefreshRateChange(bool followRs, bool frameRateCh
             changeDssRefreshRateCb_(curScreenId_.load(), refreshRate, true);
         }
     }
+    if (HgmCore::Instance().GetLtpoEnabled() && appOffsetChange && isNeedUpdateAppOffset_) {
+        HgmCore::Instance().SetHgmTaskFlag(true);
+    }
+    isNeedUpdateAppOffset_ = false;
 }
 
 void HgmFrameRateManager::FrameRateReportTask(uint32_t leftRetryTimes)
@@ -1943,6 +2070,73 @@ void HgmFrameRateManager::FrameRateReportTask(uint32_t leftRetryTimes)
             }
         },
         FRAME_RATE_REPORT_DELAY_TIME);
+}
+
+bool HgmFrameRateManager::SetVsyncRateDiscountLTPO(const std::vector<uint64_t>& linkerIds, uint32_t rateDiscount)
+{
+    HgmTaskHandleThread::Instance().PostTask([this, linkerIds, rateDiscount] () {
+        for (auto linkerId : linkerIds) {
+            gameRateDiscountMap_[linkerId] = rateDiscount;
+        }
+        UpdateSoftVSync(false);
+    });
+    return true;
+}
+
+void HgmFrameRateManager::EraseGameRateDiscountMap(pid_t pid)
+{
+    for (auto iter = gameRateDiscountMap_.begin(); iter != gameRateDiscountMap_.end(); ++iter) {
+        if (ExtractPid(iter->first) == pid) {
+            gameRateDiscountMap_.erase(iter);
+            break;
+        }
+    }
+}
+
+bool HgmFrameRateManager::CollectGameRateDiscountChange(uint64_t linkerId, FrameRateRange& expectedRange)
+{
+    auto iter = gameRateDiscountMap_.find(linkerId);
+    if (iter == gameRateDiscountMap_.end()) {
+        return false;
+    }
+    if (iter->second == 1 || iter->second == 0) {
+        return false;
+    }
+    if (expectedRange.preferred_ == 0 && currRefreshRate_ == 0) {
+        return false;
+    }
+    int32_t tmpPreferred = expectedRange.preferred_;
+    int32_t tmpMin = expectedRange.min_;
+    int32_t tmpMax = expectedRange.max_;
+    if (expectedRange.preferred_ == 0) {
+        expectedRange.preferred_ = static_cast<int32_t>(currRefreshRate_) / static_cast<int32_t>(iter->second);
+    } else {
+        expectedRange.preferred_ = std::min(expectedRange.preferred_, static_cast<int32_t>(currRefreshRate_)) /
+            static_cast<int32_t>(iter->second);
+    }
+    expectedRange.min_ = expectedRange.preferred_;
+    expectedRange.max_ = expectedRange.preferred_;
+
+    int32_t drawingFrameRate = static_cast<int32_t>(GetDrawingFrameRate(currRefreshRate_, expectedRange));
+    if (drawingFrameRate != expectedRange.preferred_) {
+        RS_TRACE_NAME_FMT("CollectGameRateDiscountChange failed, linkerId=%" PRIu64
+            ", rateDiscount=%d, preferred=%d drawingFrameRate=%d currRefreshRate=%d",
+            linkerId, iter->second, expectedRange.preferred_, drawingFrameRate, static_cast<int32_t>(currRefreshRate_));
+        HGM_LOGD("CollectGameRateDiscountChange failed, linkerId=%{public}" PRIu64
+            ", rateDiscount=%{public}d, preferred=%{public}d drawingFrameRate=%{public}d currRefreshRate=%{public}d",
+            linkerId, iter->second, expectedRange.preferred_, drawingFrameRate, static_cast<int32_t>(currRefreshRate_));
+        expectedRange.preferred_ = tmpPreferred;
+        expectedRange.min_ = tmpMin;
+        expectedRange.max_ = tmpMax;
+        return false;
+    }
+    RS_TRACE_NAME_FMT("CollectGameRateDiscountChange linkerId=%" PRIu64
+        ", rateDiscount=%d, preferred=%d currRefreshRate=%d",
+        linkerId, iter->second, expectedRange.preferred_, static_cast<int32_t>(currRefreshRate_));
+    HGM_LOGD("CollectGameRateDiscountChange succeed, linkerId=%{public}" PRIu64
+        ", rateDiscount=%{public}d, preferred=%{public}d currRefreshRate=%{public}d",
+        linkerId, iter->second, expectedRange.preferred_, static_cast<int32_t>(currRefreshRate_));
+    return true;
 }
 } // namespace Rosen
 } // namespace OHOS

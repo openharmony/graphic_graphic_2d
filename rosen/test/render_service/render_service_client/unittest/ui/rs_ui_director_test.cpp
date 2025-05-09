@@ -139,6 +139,25 @@ HWTEST_F(RSUIDirectorTest, PlatformInit001, TestSize.Level1)
     director->Init(false);
 }
 
+#ifdef RS_ENABLE_VK
+/**
+ * @tc.name: Init001
+ * @tc.desc: Test Init
+ * @tc.type: FUNC
+ * @tc.require: issueIBWDR2
+ */
+HWTEST_F(RSUIDirectorTest, Init001, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    EXPECT_EQ(director->cacheDir_.empty(), true);
+    director->Init(false);
+    std::string cacheDir = "test";
+    director->SetCacheDir(cacheDir);
+    EXPECT_EQ(director->cacheDir_.empty(), false);
+    director->Init(false);
+}
+#endif
+
 /**
  * @tc.name: SetUITaskRunner001
  * @tc.desc:

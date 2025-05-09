@@ -432,6 +432,16 @@ void DrawCmdList::SetReplacedOpList(std::vector<std::pair<size_t, size_t>> repla
     replacedOpListForBuffer_ = replacedOpList;
 }
 
+DrawCmdList::HybridRenderType DrawCmdList::GetHybridRenderType() const
+{
+    return hybridRenderType_;
+}
+
+void DrawCmdList::SetHybridRenderType(DrawCmdList::HybridRenderType hybridRenderType)
+{
+    hybridRenderType_ = hybridRenderType;
+}
+
 void DrawCmdList::UpdateNodeIdToPicture(NodeId nodeId)
 {
     if (drawOpItems_.size() == 0) {
@@ -586,10 +596,10 @@ void DrawCmdList::PlaybackByVector(Canvas& canvas, const Rect* rect)
     canvas.DetachPaint();
 }
 
-void DrawCmdList::PlaybackByBuffer(Canvas& canvas, const Rect* rect)
+bool DrawCmdList::UnmarshallingDrawOpsSimple()
 {
     if (opAllocator_.GetSize() <= offset_) {
-        return;
+        return false;
     }
     size_t offset = offset_;
     if (lastOpGenSize_ != opAllocator_.GetSize()) {
@@ -614,6 +624,14 @@ void DrawCmdList::PlaybackByBuffer(Canvas& canvas, const Rect* rect)
         } while (offset != 0 && count <= MAX_OPITEMSIZE);
         lastOpGenSize_ = opAllocator_.GetSize();
     }
+    return true;
+}
+
+void DrawCmdList::PlaybackByBuffer(Canvas& canvas, const Rect* rect)
+{
+    if (!UnmarshallingDrawOpsSimple()) {
+        return;
+    }
     uint32_t opCount = 0;
     for (auto op : drawOpItems_) {
         if (isCanvasDrawingOpLimitEnabled_ && opCount > DRAWCMDLIST_OPSIZE_COUNT_LIMIT) {
@@ -628,31 +646,20 @@ void DrawCmdList::PlaybackByBuffer(Canvas& canvas, const Rect* rect)
     canvas.DetachPaint();
 }
 
-size_t DrawCmdList::CountTextBlobNum()
+bool DrawCmdList::GetBounds(Rect& rect)
 {
-    size_t textBlobCnt = 0;
-    if (mode_ == DrawCmdList::UnmarshalMode::IMMEDIATE) {
-        size_t offset = offset_;
-        size_t maxOffset = opAllocator_.GetSize();
-        uint32_t count = 0;
-        do {
-            count++;
-            void* itemPtr = opAllocator_.OffsetToAddr(offset, sizeof(OpItem));
-            auto* curOpItemPtr = static_cast<OpItem*>(itemPtr);
-            if (curOpItemPtr == nullptr) {
-                break;
-            }
-            uint32_t type = curOpItemPtr->GetType();
-            if (type == DrawOpItem::TEXT_BLOB_OPITEM) {
-                textBlobCnt++;
-            }
-            if (curOpItemPtr->GetNextOpItemOffset() < offset + sizeof(OpItem)) {
-                break;
-            }
-            offset = curOpItemPtr->GetNextOpItemOffset();
-        } while (offset != 0 && offset < maxOffset && count <= MAX_OPITEMSIZE);
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
+    if (!UnmarshallingDrawOpsSimple()) {
+        return false;
     }
-    return textBlobCnt;
+    for (auto op : drawOpItems_) {
+        if (op == nullptr || op->GetType() != DrawOpItem::HYBRID_RENDER_PIXELMAP_SIZE_OPITEM) {
+            continue;
+        }
+        HybridRenderPixelMapSizeOpItem* sizeOp = static_cast<HybridRenderPixelMapSizeOpItem*>(op.get());
+        rect = RectF(0.0f, 0.0f, sizeOp->GetWidth(), sizeOp->GetHeight());
+    }
+    return true;
 }
 
 void DrawCmdList::ProfilerTextBlob(void* handle, uint32_t count, std::shared_ptr<Drawing::DrawCmdList> refDrawCmdList)

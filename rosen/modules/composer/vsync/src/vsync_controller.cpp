@@ -29,6 +29,19 @@ VSyncController::~VSyncController()
 {
 }
 
+bool VSyncController::NeedPreexecuteAndUpdateTs(int64_t& timestamp, int64_t& period)
+{
+    if (generator_ == nullptr) {
+        return false;
+    }
+    const sptr<VSyncGenerator> generator = generator_.promote();
+    if (generator == nullptr) {
+        return false;
+    }
+
+    return generator->NeedPreexecuteAndUpdateTs(timestamp, period, lastVsyncTime_);
+}
+
 VsyncError VSyncController::SetEnable(bool enable, bool& isGeneratorEnable)
 {
     if (generator_ == nullptr) {
@@ -102,6 +115,7 @@ void VSyncController::OnVSyncEvent(int64_t now, int64_t period,
         cb = callback_;
     }
     if (cb != nullptr) {
+        lastVsyncTime_ = now;
         cb->OnVSyncEvent(now, period, refreshRate, vsyncMode, vsyncMaxRefreshRate);
     }
 }

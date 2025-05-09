@@ -493,6 +493,20 @@ HWTEST_F(RSScreenTest, SurfaceDumpTest, testing::ext::TestSize.Level1)
 }
 
 /*
+ * @tc.name: DumpCurrentFrameLayersTest
+ * @tc.desc: DumpCurrentFrameLayers Test
+ * @tc.type: FUNC
+ * @tc.require: issueIAXTPS
+ */
+HWTEST_F(RSScreenTest, DumpCurrentFrameLayersTest, testing::ext::TestSize.Level1)
+{
+    ScreenId id = 0;
+    auto rsScreen = std::make_shared<impl::RSScreen>(id, false, HdiOutput::CreateHdiOutput(id), nullptr);
+    ASSERT_NE(nullptr, rsScreen);
+    rsScreen->DumpCurrentFrameLayers();
+}
+
+/*
  * @tc.name: FpsDumpTest
  * @tc.desc: FpsDump Test
  * @tc.type: FUNC
@@ -855,7 +869,7 @@ HWTEST_F(RSScreenTest, SetScreenActiveRect001, testing::ext::TestSize.Level1)
         .w = 0,
         .h = 0,
     };
-    EXPECT_EQ(rsScreen->SetScreenActiveRect(activeRect), StatusCode::HDI_ERROR);
+    EXPECT_EQ(rsScreen->SetScreenActiveRect(activeRect), StatusCode::INVALID_ARGUMENTS);
 }
 
 /*

@@ -194,6 +194,7 @@ void HdiBackend::Repaint(const OutputPtr &output)
     bool needFlush = false;
     int32_t skipState = INT32_MAX;
     int32_t ret = output->PreProcessLayersComp();
+    output->SetActiveRectSwitchStatus(false);
     if (ret != GRAPHIC_DISPLAY_SUCCESS) {
         HLOGE("PreProcessLayersComp failed, ret is %{public}d", ret);
         return;
@@ -334,6 +335,7 @@ void HdiBackend::OnHdiBackendConnected(uint32_t screenId, bool connected)
 void HdiBackend::CreateHdiOutput(uint32_t screenId)
 {
     OutputPtr newOutput = HdiOutput::CreateHdiOutput(screenId);
+    newOutput->InitLoadOptParams(loadOptParamsForHdiBackend_.loadOptParamsForHdiOutput);
     newOutput->Init();
     outputs_.emplace(screenId, newOutput);
 }
@@ -386,5 +388,9 @@ RosenError HdiBackend::SetHdiBackendDevice(HdiDevice* device)
     return ROSEN_ERROR_OK;
 }
 
+void HdiBackend::InitLoadOptParams(LoadOptParamsForHdiBackend& loadOptParamsForHdiBackend)
+{
+    loadOptParamsForHdiBackend_ = loadOptParamsForHdiBackend;
+}
 } // namespace Rosen
 } // namespace OHOS

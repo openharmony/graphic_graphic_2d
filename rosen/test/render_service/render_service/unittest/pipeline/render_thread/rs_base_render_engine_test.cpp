@@ -34,11 +34,30 @@ public:
 
 void RSBaseRenderEngineUnitTest::SetUpTestCase()
 {
+#ifdef RS_ENABLE_VK
+    RsVulkanContext::SetRecyclable(false);
+#endif
     RSTestUtil::InitRenderNodeGC();
 }
 void RSBaseRenderEngineUnitTest::TearDownTestCase() {}
 void RSBaseRenderEngineUnitTest::SetUp() {}
 void RSBaseRenderEngineUnitTest::TearDown() {}
+
+/**
+ * @tc.name: ResetCurrentContextTest
+ * @tc.desc: Test ResetCurrentContext
+ * @tc.type: FUNC
+ * @tc.require: issueI6GJ1Z
+ */
+HWTEST_F(RSBaseRenderEngineUnitTest, ResetCurrentContextTest, TestSize.Level1)
+{
+    auto renderEngine = std::make_shared<RSRenderEngine>();
+    renderEngine->ResetCurrentContext();
+    ASSERT_EQ(renderEngine->renderContext_, nullptr);
+    renderEngine->renderContext_ = std::make_shared<RenderContext>();
+    renderEngine->ResetCurrentContext();
+    ASSERT_NE(renderEngine->renderContext_, nullptr);
+}
 
 /**
  * @tc.name: SetHighContrast_001
@@ -167,19 +186,15 @@ HWTEST_F(RSBaseRenderEngineUnitTest, DrawDisplayNodeWithParams001, TestSize.Leve
  */
 HWTEST_F(RSBaseRenderEngineUnitTest, CreateEglImageFromBuffer001, TestSize.Level1)
 {
-    if (!RSSystemProperties::IsUseVulkan()) {
-        auto renderEngine = std::make_shared<RSRenderEngine>();
-        renderEngine->Init();
-        auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
-        std::unique_ptr<Drawing::Canvas> drawingCanvas = std::make_unique<Drawing::Canvas>(10, 10);
-        std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
-        auto img = renderEngine->CreateEglImageFromBuffer(*canvas, nullptr, nullptr);
-        ASSERT_EQ(nullptr, img);
-        [[maybe_unused]] auto grContext = canvas->GetGPUContext();
-        grContext = nullptr;
-        img = renderEngine->CreateEglImageFromBuffer(*canvas, node->GetRSSurfaceHandler()->GetBuffer(), nullptr);
-        ASSERT_EQ(nullptr, img);
-    }
+    auto renderEngine = std::make_shared<RSRenderEngine>();
+    renderEngine->Init();
+    auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    std::unique_ptr<Drawing::Canvas> drawingCanvas = std::make_unique<Drawing::Canvas>(10, 10);
+    std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
+    EGLDisplay display;
+    renderEngine->eglImageManager_ = std::make_shared<RSEglImageManager>(display);
+    auto img = renderEngine->CreateEglImageFromBuffer(*canvas, node->GetRSSurfaceHandler()->GetBuffer(), nullptr);
+    ASSERT_EQ(nullptr, img);
 }
 
 HWTEST_F(RSBaseRenderEngineUnitTest, DrawImageRect, TestSize.Level1)
@@ -348,5 +363,58 @@ HWTEST_F(RSBaseRenderEngineUnitTest, NeedBilinearInterpolation, TestSize.Level1)
     matrix.Set(Drawing::Matrix::SCALE_X, 0);
     matrix.Set(Drawing::Matrix::SCALE_Y, 1);
     ASSERT_TRUE(RSRenderEngine::NeedBilinearInterpolation(params, matrix));
+}
+
+/**
+ * @tc.name: SetColorSpaceConverterDisplayParameterTest
+ * @tc.desc: Test SetColorSpaceConverterDisplayParameter
+ * @tc.type: FUNC
+ * @tc.require:issueIC1RNF
+ */
+HWTEST_F(RSBaseRenderEngineUnitTest, SetColorSpaceConverterDisplayParameterTest, TestSize.Level1)
+{
+    auto renderEngine = std::make_shared<RSRenderEngine>();
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    BufferDrawParam params;
+    params.buffer = surfaceNode->GetRSSurfaceHandler()->GetBuffer();
+    Media::VideoProcessingEngine::ColorSpaceConverterDisplayParameter parameter;
+    ASSERT_EQ(renderEngine->SetColorSpaceConverterDisplayParameter(params, parameter), true);
+}
+
+/**
+ * @tc.name: ConvertColorSpaceNameToDrawingColorSpaceTest
+ * @tc.desc: Test ConvertColorSpaceNameToDrawingColorSpace
+ * @tc.type: FUNC
+ * @tc.require:issueIC1RNF
+ */
+HWTEST_F(RSBaseRenderEngineUnitTest, ConvertColorSpaceNameToDrawingColorSpaceTest, TestSize.Level1)
+{
+    auto renderEngine = std::make_shared<RSRenderEngine>();
+    OHOS::ColorManager::ColorSpaceName colorSpaceName = OHOS::ColorManager::ColorSpaceName::NONE;
+    std::shared_ptr<Drawing::ColorSpace> colorSpace = nullptr;
+    colorSpace = renderEngine->ConvertColorSpaceNameToDrawingColorSpace(colorSpaceName);
+    auto colorSpaceType = colorSpace->GetType();
+    ASSERT_EQ(colorSpaceType, Drawing::ColorSpace::ColorSpaceType::SRGB);
+
+    colorSpaceName = OHOS::ColorManager::ColorSpaceName::DISPLAY_P3;
+    colorSpace = renderEngine->ConvertColorSpaceNameToDrawingColorSpace(colorSpaceName);
+    colorSpaceType = colorSpace->GetType();
+    ASSERT_EQ(colorSpaceType, Drawing::ColorSpace::ColorSpaceType::RGB);
+}
+
+/**
+ * @tc.name: ShrinkCachesIfNeededTest
+ * @tc.desc: Test ShrinkCachesIfNeeded
+ * @tc.type: FUNC
+ * @tc.require:issueIC1RNF
+ */
+HWTEST_F(RSBaseRenderEngineUnitTest, ShrinkCachesIfNeededTest, TestSize.Level1)
+{
+    auto renderEngine = std::make_shared<RSRenderEngine>();
+#ifdef RS_ENABLE_VK
+    renderEngine->vkImageManager_ = std::make_shared<RSVkImageManager>();
+    renderEngine->ShrinkCachesIfNeeded();
+    ASSERT_EQ(renderEngine->vkImageManager_->cacheQueue_.size(), 0);
+#endif
 }
 }

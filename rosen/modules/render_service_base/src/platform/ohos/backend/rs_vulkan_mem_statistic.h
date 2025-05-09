@@ -19,25 +19,24 @@
 #include <mutex>
 #include <string>
 
-#include "image/trace_memory_dump.h"
+#include "memory/rs_dfx_string.h"
+#include "memory/rs_tag_tracker.h"
 #include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
-
-inline const char* RESOURCE_CATEGORY = "Image";
-inline const char* RESOURCE_TYPE = "RS_VULKAN_IMG";
 
 class RsVulkanMemStat {
 public:
     RsVulkanMemStat() = default;
     ~RsVulkanMemStat() = default;
 
-    void InsertResource(const std::string& name, const uint64_t size)
+    void InsertResource(const std::string& name, pid_t pid, const uint64_t size)
     {
         std::lock_guard<std::mutex> lock(mMutex);
         mResources[name] = {
             .size = size,
+            .pid = pid,
         };
     }
 
@@ -52,22 +51,35 @@ public:
         }
     }
 
-    void DumpMemoryStatistics(Drawing::TraceMemoryDump *memoryDump)
+    void DumpMemoryStatistics(DfxString& log)
     {
-        std::lock_guard<std::mutex> lock(mMutex);
-        if (!memoryDump) {
-            return;
+        uint64_t totalSize = 0;
+        uint64_t totalCount = 0;
+        struct DumpInfo {
+            uint64_t size = 0;
+            uint64_t count = 0;
+        };
+        std::unordered_map<pid_t, DumpInfo> pidDumpInfoMap;
+        {
+            std::lock_guard<std::mutex> lock(mMutex);
+            totalCount = mResources.size();
+            for (const auto& it : mResources) {
+                auto& dumpInfo = pidDumpInfoMap[it.second.pid];
+                dumpInfo.size += it.second.size;
+                ++dumpInfo.count;
+                totalSize += it.second.size;
+            }
         }
-        for (auto it = mResources.begin(); it != mResources.end(); it++) {
-            memoryDump->DumpNumericValue(it->first.c_str(), "size", "bytes", it->second.size);
-            memoryDump->DumpStringValue(it->first.c_str(), "type", RESOURCE_TYPE);
-            memoryDump->DumpStringValue(it->first.c_str(), "category", RESOURCE_CATEGORY);
+        log.AppendFormat("\n------------\nVulkan Memory Statistics: Count: %lu, Size: %lu\n", totalCount, totalSize);
+        for (const auto& pidIt : pidDumpInfoMap) {
+            log.AppendFormat("  pid: %d, count: %lu, size: %lu\n", pidIt.first, pidIt.second.count, pidIt.second.size);
         }
     }
 
 private:
     struct MemoryInfo {
-        uint64_t size;
+        uint64_t size = 0;
+        pid_t pid = 0;
     };
     std::unordered_map<std::string, MemoryInfo> mResources;
     std::mutex mMutex;

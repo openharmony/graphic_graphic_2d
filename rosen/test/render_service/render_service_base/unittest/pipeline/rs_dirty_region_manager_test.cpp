@@ -255,6 +255,7 @@ HWTEST_F(RSDirtyRegionManagerTest, UpdateDirtyInvalid, Function | SmallTest | Le
     RectI curDirtyRect = RectI();
 
     for (int i = 0; i < invalidRects.size(); ++i) {
+        rsDirtyManager->SetAdvancedDirtyRegionType(AdvancedDirtyRegionType::SET_ADVANCED_SURFACE_AND_DISPLAY);
         rsDirtyManager->Clear();
         rsDirtyManager->SetBufferAge(i + 1);
         auto invalidRect = invalidRects[i];
@@ -291,6 +292,7 @@ HWTEST_F(RSDirtyRegionManagerTest, UpdateDirtyValid, Function | SmallTest | Leve
     std::vector<int> advancedDirtyRegionArea = {129600, 145800, 154800};
 
     for (int i = 0; i < validRects.size(); ++i) {
+        rsDirtyManager->SetAdvancedDirtyRegionType(AdvancedDirtyRegionType::SET_ADVANCED_SURFACE_AND_DISPLAY);
         rsDirtyManager->Clear();
         rsDirtyManager->SetBufferAge(i + 1);
         auto validRect = validRects[i];

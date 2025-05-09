@@ -47,6 +47,7 @@ void RSLinearGradientBlurShaderFilter::GenerateGEVisualEffect(
     gelinearGradientBlurFilter->SetParam("FRACTIONSTOPS", linearGradientBlurPara_->fractionStops_);
     gelinearGradientBlurFilter->SetParam("DIRECTION", (int)linearGradientBlurPara_->direction_);
     gelinearGradientBlurFilter->SetParam("ISOFFSCREEN", isOffscreenCanvas_);
+    gelinearGradientBlurFilter->SetParam("ISRADIUSGRADIENT", linearGradientBlurPara_->isRadiusGradient_);
 
     visualEffectContainer->AddToChainedFilter(gelinearGradientBlurFilter);
 }

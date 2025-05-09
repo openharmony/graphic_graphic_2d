@@ -232,6 +232,10 @@ private:
     }
     bool isOpincMarkCached_ = false;
     bool IsOpincNodeInScreenRect(RSRenderParams& params);
+    friend class RsSubThreadCache;
+
+    // Used to skip nodes that were culled by the control-level occlusion.
+    bool SkipCulledNodeAndDrawChildren(Drawing::Canvas& canvas, Drawing::Rect& bounds);
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

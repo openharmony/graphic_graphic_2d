@@ -5024,6 +5024,22 @@ HWTEST_F(RSNodeTest, SetColorBlendMode, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetIsCrossNode
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSNodeTest, SetIsCrossNode, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    EXPECT_NE(RSTransactionProxy::instance_, nullptr);
+    RSTransactionProxy::instance_ = nullptr;
+    rsNode->SetIsCrossNode(false);
+    EXPECT_EQ(RSTransactionProxy::instance_, nullptr);
+    RSTransactionProxy::instance_ = transactionProxy;
+}
+
+/**
  * @tc.name: SetTextureExport
  * @tc.desc:
  * @tc.type:FUNC
@@ -5239,6 +5255,22 @@ HWTEST_F(RSNodeTest, AddKeyFrame, TestSize.Level1)
     PropertyCallback propertyCallback = []() {};
     rsNode->AddKeyFrame(1.f, timingCurve, propertyCallback);
     rsNode->AddKeyFrame(1.f, propertyCallback);
+}
+
+/**
+ * @tc.name: AddKeyFrame02
+ * @tc.desc: test results of AddKeyFrame02
+ * @tc.type: FUNC
+ * @tc.require: issueI9KAZH
+ */
+HWTEST_F(RSNodeTest, AddKeyFrame02, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
+    RSAnimationTimingCurve timingCurve;
+    PropertyCallback propertyCallback = []() {};
+    rsNode->AddKeyFrame(nullptr, 1.f, timingCurve, propertyCallback);
+    rsNode->AddKeyFrame(nullptr, 1.f, propertyCallback);
 }
 
 /**
@@ -6396,6 +6428,47 @@ HWTEST_F(RSNodeTest, SetNodeName, TestSize.Level1)
     EXPECT_EQ(name, nodeName);
     EXPECT_NE(RSTransactionProxy::instance_, nullptr);
 }
+
+#ifdef RS_ENABLE_VK
+/**
+ * @tc.name: HybridRender001
+ * @tc.desc: Test SetHybridRenderCanvas and IsHybridRenderCanvas
+ * @tc.type: FUNC
+ * @tc.require: IBFOIN
+ */
+HWTEST_F(RSNodeTest, HybridRender001, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    auto ret = rsNode->IsHybridRenderCanvas();
+    EXPECT_EQ(ret, false);
+
+    rsNode->SetHybridRenderCanvas(true);
+    ret = rsNode->IsHybridRenderCanvas();
+    EXPECT_EQ(ret, true);
+}
+
+/**
+ * @tc.name: Dump001
+ * @tc.desc: Test Dump
+ * @tc.type: FUNC
+ * @tc.require: IBFOIN
+ */
+HWTEST_F(RSNodeTest, Dump001, TestSize.Level1)
+{
+    RSSurfaceNodeConfig config = {
+        .SurfaceNodeName = "testNode"
+    };
+    RSSurfaceNode::SharedPtr rsNode = RSSurfaceNode::Create(config);
+    string out1;
+    rsNode->Dump(out1);
+    ASSERT_TRUE(!out1.empty());
+
+    rsNode->SetHybridRenderCanvas(true);
+    string out2;
+    rsNode->Dump(out2);
+    ASSERT_TRUE(!out2.empty());
+}
+#endif
 
 /**
  * @tc.name: SetTakeSurfaceForUIFlag
@@ -7804,6 +7877,52 @@ HWTEST_F(RSNodeTest, Dump, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetIsOnTheTree001
+ * @tc.desc: test results of SetIsOnTheTree while init
+ * @tc.type: FUNC
+ * @tc.require: issueIBYM26
+ */
+HWTEST_F(RSNodeTest, SetIsOnTheTree001, TestSize.Level2)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetIsOnTheTree(false);
+    ASSERT_EQ(rsNode->isOnTheTree_, false);
+}
+
+/**
+ * @tc.name: SetIsOnTheTree002
+ * @tc.desc: test results of SetIsOnTheTree while flag change
+ * @tc.type: FUNC
+ * @tc.require: issueIBYM26
+ */
+HWTEST_F(RSNodeTest, SetIsOnTheTree002, TestSize.Level2)
+{
+    auto uiContext = std::make_shared<RSUIContext>();
+    auto rsNode = RSCanvasNode::Create(false, false, uiContext);
+    rsNode->SetIsOnTheTree(false);
+    rsNode->SetIsOnTheTree(true);
+    ASSERT_EQ(rsNode->isOnTheTree_, true);
+}
+
+/**
+ * @tc.name: SetIsOnTheTree003
+ * @tc.desc: test results of SetIsOnTheTree while has child
+ * @tc.type: FUNC
+ * @tc.require: issueIBYM26
+ */
+HWTEST_F(RSNodeTest, SetIsOnTheTree003, TestSize.Level2)
+{
+    auto parent = RSCanvasNode::Create(false, false);
+    auto child = RSCanvasNode::Create(false, false);
+    RSNodeMap::MutableInstance().RegisterNode(parent);
+    RSNodeMap::MutableInstance().RegisterNode(child);
+
+    parent->children_.push_back(child->id_);
+    parent->SetIsOnTheTree(true);
+    ASSERT_EQ(child->isOnTheTree_, true);
+}
+
+/**
  * @tc.name: MarkUifirstNode
  * @tc.desc: test results of MarkUifirstNode
  * @tc.type: FUNC
@@ -7846,5 +7965,19 @@ HWTEST_F(RSNodeTest, SetUIFirstSwitch, TestSize.Level1)
 
     rsNode->SetUIFirstSwitch(RSUIFirstSwitch::MODAL_WINDOW_CLOSE);
     EXPECT_EQ(rsNode->uiFirstSwitch_, RSUIFirstSwitch::MODAL_WINDOW_CLOSE);
+}
+
+/**
+ * @tc.name: GetIsDrawn
+ * @tc.desc: test results of GetIsDrawn
+ * @tc.type: FUNC
+ * @tc.require: issueIC3V9Q
+ */
+HWTEST_F(RSNodeTest, GetIsDrawn, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
+    auto res = rsNode->GetIsDrawn();
+    ASSERT_EQ(res, false);
 }
 } // namespace OHOS::Rosen

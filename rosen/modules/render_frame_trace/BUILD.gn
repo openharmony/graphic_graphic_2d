@@ -33,11 +33,6 @@ ohos_source_set("render_frame_trace") {
     }
   }
   external_deps = []
-  if (is_arkui_x) {
-    deps = [ "//third_party/jsoncpp:jsoncpp_static" ]
-  } else {
-    external_deps += [ "jsoncpp:jsoncpp" ]
-  }
   if (!defined(defines)) {
     defines = []
   }

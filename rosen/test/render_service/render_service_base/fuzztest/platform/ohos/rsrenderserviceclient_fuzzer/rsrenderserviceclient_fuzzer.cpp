@@ -232,6 +232,25 @@ bool DoCreateRSSurface(const uint8_t* data, size_t size)
     return true;
 }
 
+#ifdef ACE_ENABLE_GL
+bool DoCreateRSSurface02(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
+    sptr<Surface> surfaceOpengl;
+    client->CreateRSSurface(surfaceOpengl);
+    return true;
+}
+#endif
+
 bool DoCreateVSyncReceiver(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -356,8 +375,13 @@ bool DoSetFocusAppInfo(const uint8_t* data, size_t size)
     std::string bundleName = "bundleName";
     std::string abilityName = "abilityName";
     uint64_t focusNodeId = GetData<uint64_t>();
-
-    client->SetFocusAppInfo(pid, uid, bundleName, abilityName, focusNodeId);
+    FocusAppInfo info = {
+        .pid = pid,
+        .uid = uid,
+        .bundleName = bundleName,
+        .abilityName = abilityName,
+        .focusNodeId = focusNodeId};
+    client->SetFocusAppInfo(info);
     return true;
 }
 
@@ -761,6 +785,23 @@ bool DoGetRefreshInfo(const uint8_t* data, size_t size)
     std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
     pid_t pid = GetData<pid_t>();
     client->GetRefreshInfo(pid);
+    return true;
+}
+
+bool DoGetRefreshInfoToSP(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
+    NodeId id = GetData<NodeId>();
+    client->GetRefreshInfoToSP(id);
     return true;
 }
 
@@ -1634,6 +1675,25 @@ bool DoNotifyRefreshRateEvent(const uint8_t* data, size_t size)
     return true;
 }
 
+bool DoNotifySoftVsyncRateDiscountEvent(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
+    uint32_t pid = GetData<uint32_t>();
+    std::string name = "fuzztest";
+    uint32_t rateDiscount = GetData<uint32_t>();
+    client->NotifySoftVsyncRateDiscountEvent(pid, name, rateDiscount);
+    return true;
+}
+
 bool DoNotifyTouchEvent(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -2041,7 +2101,13 @@ bool DoSetFocusAppInfo002(const uint8_t *data, size_t size)
     uint64_t focusNodeId = GetData<uint64_t>();
 
     RSRenderServiceConnectHub::GetInstance()->Destroy();
-    client->SetFocusAppInfo(pid, uid, bundleName, abilityName, focusNodeId);
+    FocusAppInfo info = {
+        .pid = pid,
+        .uid = uid,
+        .bundleName = bundleName,
+        .abilityName = abilityName,
+        .focusNodeId = focusNodeId};
+    client->SetFocusAppInfo(info);
     client->GetDefaultScreenId();
     client->GetActiveScreenId();
     client->GetAllScreenIds();
@@ -2450,6 +2516,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoGetScreenSupportedRefreshRates(data, size);
     OHOS::Rosen::DoGetShowRefreshRateEnabled(data, size);
     OHOS::Rosen::DoGetRefreshInfo(data, size);
+    OHOS::Rosen::DoGetRefreshInfoToSP(data, size);
     OHOS::Rosen::DoSetShowRefreshRateEnabled(data, size);
     OHOS::Rosen::DoGetRealtimeRefreshRate(data, size);
     OHOS::Rosen::DoSetPhysicalScreenResolution(data, size);
@@ -2492,6 +2559,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoNotifyPackageEvent(data, size);
     OHOS::Rosen::DONotifyAppStrategyConfigChangeEvent(data, size);
     OHOS::Rosen::DoNotifyRefreshRateEvent(data, size);
+    OHOS::Rosen::DoNotifySoftVsyncRateDiscountEvent(data, size);
     OHOS::Rosen::DoNotifyTouchEvent(data, size);
     OHOS::Rosen::DoSetCacheEnabledForRotation(data, size);
     OHOS::Rosen::DoNotifyHgmConfigEvent(data, size);

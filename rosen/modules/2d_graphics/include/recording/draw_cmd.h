@@ -99,6 +99,8 @@ public:
         SURFACEBUFFER_OPITEM,
         DRAW_FUNC_OPITEM,
         RECORD_CMD_OPITEM,
+        HYBRID_RENDER_PIXELMAP_OPITEM,
+        HYBRID_RENDER_PIXELMAP_SIZE_OPITEM,
     };
 
     static void BrushHandleToBrush(const BrushHandle& brushHandle, const DrawCmdList& cmdList, Brush& brush);
@@ -1343,6 +1345,30 @@ public:
 private:
     std::vector<Point> radiusData_;
 };
+
+class HybridRenderPixelMapSizeOpItem : public DrawOpItem {
+    public:
+        struct ConstructorHandle : public OpItem {
+            ConstructorHandle(float width, float height)
+                : OpItem(DrawOpItem::HYBRID_RENDER_PIXELMAP_SIZE_OPITEM), width(width), height(height) {}
+            ~ConstructorHandle() override = default;
+            float width;
+            float height;
+        };
+        explicit HybridRenderPixelMapSizeOpItem(ConstructorHandle* handle);
+        explicit HybridRenderPixelMapSizeOpItem(float width, float height)
+            : DrawOpItem(DrawOpItem::HYBRID_RENDER_PIXELMAP_SIZE_OPITEM), width_(width), height_(height) {}
+        ~HybridRenderPixelMapSizeOpItem() override = default;
+        static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
+        void Marshalling(DrawCmdList& cmdList) override;
+        void Playback(Canvas* canvas, const Rect* rect) override;
+        void Dump(std::string& out) const override;
+        float GetWidth() const;
+        float GetHeight() const;
+    private:
+        float width_;
+        float height_;
+    };
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

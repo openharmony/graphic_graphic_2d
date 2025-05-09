@@ -270,6 +270,27 @@ HWTEST_F(SkiaGPUContextTest, SetCurrentGpuResourceTag001, TestSize.Level1)
     GPUResourceTag gPUResourceTag;
     gpuContext->SetCurrentGpuResourceTag(gPUResourceTag);
 }
+
+/**
+ * @tc.name: GetCurrentGpuResourceTag001
+ * @tc.desc: Test GetCurrentGpuResourceTag
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(SkiaGPUContextTest, GetCurrentGpuResourceTag001, TestSize.Level1)
+{
+    auto gpuContext = std::make_shared<SkiaGPUContext>();
+    ASSERT_TRUE(gpuContext != nullptr);
+    GPUResourceTag gPUResourceTag;
+    gpuContext->SetCurrentGpuResourceTag(gPUResourceTag);
+    GPUResourceTag tagGet = gpuContext->GetCurrentGpuResourceTag();
+    ASSERT_TRUE(tagGet.fPid == gPUResourceTag.fPid);
+    ASSERT_TRUE(tagGet.fTid == gPUResourceTag.fTid);
+    ASSERT_TRUE(tagGet.fWid == gPUResourceTag.fWid);
+    ASSERT_TRUE(tagGet.fFid == gPUResourceTag.fFid);
+    ASSERT_TRUE(tagGet.fSid == gPUResourceTag.fSid);
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

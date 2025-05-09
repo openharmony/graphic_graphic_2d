@@ -17,13 +17,13 @@
 
 namespace OHOS::Rosen {
 
-bool ColorGamutParam::IsSLRCloseP3()
+bool ColorGamutParam::IsWiredExtendScreenCloseP3()
 {
-    return isSLRCloseP3_;
+    return isWiredExtendScreenCloseP3_;
 }
 
-void ColorGamutParam::SetSLRCloseP3(bool isEnable)
+void ColorGamutParam::SetWiredExtendScreenCloseP3(bool isEnable)
 {
-    isSLRCloseP3_ = isEnable;
+    isWiredExtendScreenCloseP3_ = isEnable;
 }
 } // namespace OHOS::Rosen

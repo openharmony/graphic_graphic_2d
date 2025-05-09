@@ -26,6 +26,10 @@
 #include "drawing_surface.h"
 #include "drawing_surface_utils.h"
 
+#ifdef RS_ENABLE_VK
+#include "platform/ohos/backend/rs_vulkan_context.h"
+#endif
+
 using namespace testing;
 using namespace testing::ext;
 
@@ -54,7 +58,12 @@ protected:
     std::shared_ptr<RSSurfaceNode> surfaceNode = nullptr;
 };
 
-void NativeDrawingSurfaceTest::SetUpTestCase() {}
+void NativeDrawingSurfaceTest::SetUpTestCase()
+{
+#ifdef RS_ENABLE_VK
+    RsVulkanContext::SetRecyclable(false);
+#endif
+}
 void NativeDrawingSurfaceTest::TearDownTestCase() {}
 void NativeDrawingSurfaceTest::SetUp()
 {

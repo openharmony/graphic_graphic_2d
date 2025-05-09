@@ -33,15 +33,16 @@
 namespace OHOS {
 namespace Rosen {
 namespace TextEngine {
-#define SUCCESSED 0
-#define FAILED 1
-
 #define FONT_CONFIG_FILE  "/system/fonts/visibility_list.json"
 #define FONT_CONFIG_PROD_FILE "/sys_prod/fonts/visibility_list.json"
 #define SYSTEM_FONT_PATH "/system/fonts/"
 #define SYS_PROD_FONT_PATH "/sys_prod/fonts/"
 
-#define HALF(a) ((a) / 2)
+constexpr uint32_t HB_TAG(uint32_t c1, uint32_t c2, uint32_t c3, uint32_t c4)
+{
+    // 24 means 32-24 bit, 16 means 24-16 bit, 8 means 16-8 bit, 0 means 8-0 bit, 0xFF means only 8 bit
+    return ((c1 & 0xFF) << 24) | ((c2 & 0xFF) << 16) | ((c3 & 0xFF) << 8) | (c4 & 0xFF);
+}
 
 FontParser::FontParser()
 {
@@ -56,7 +57,7 @@ FontParser::FontParser()
     fontSet_.insert(fontSet_.end(), prodFonts.begin(), prodFonts.end());
 }
 
-void FontParser::ProcessCmapTable(const struct CmapTables* cmapTable, FontParser::FontDescriptor& fontDescriptor)
+void FontParser::ProcessTable(const CmapTables* cmapTable, FontParser::FontDescriptor& fontDescriptor)
 {
     for (auto i = 0; i < cmapTable->numTables.Get(); ++i) {
         const auto& record = cmapTable->encodingRecords[i];
@@ -119,11 +120,11 @@ void FontParser::SetNameString(FontParser::FontDescriptor& fontDescriptor, std::
     }
 }
 
-int FontParser::ProcessNameTable(const struct NameTable* nameTable, FontParser::FontDescriptor& fontDescriptor) const
+void FontParser::ProcessTable(const NameTable* nameTable, FontParser::FontDescriptor& fontDescriptor)
 {
     auto count = nameTable->count.Get();
     auto storageOffset = nameTable->storageOffset.Get();
-    auto stringStorage = data_ + storageOffset;
+    const char* stringStorage = reinterpret_cast<const char*>(nameTable) + storageOffset;
     for (int i = 0; i < count; ++i) {
         if (nameTable->nameRecord[i].stringOffset.Get() == 0 && nameTable->nameRecord[i].length.Get() == 0) {
             continue;
@@ -155,11 +156,9 @@ int FontParser::ProcessNameTable(const struct NameTable* nameTable, FontParser::
             GetStringFromNameId(nameId, languageId, nameString, fontDescriptor);
         }
     }
-
-    return SUCCESSED;
 }
 
-void FontParser::ProcessPostTable(const struct PostTable* postTable, FontParser::FontDescriptor& fontDescriptor)
+void FontParser::ProcessTable(const PostTable* postTable, FontParser::FontDescriptor& fontDescriptor)
 {
     if (postTable->italicAngle.Get() != 0) {
         fontDescriptor.italic = 1; // means support italics
@@ -171,123 +170,42 @@ void FontParser::ProcessPostTable(const struct PostTable* postTable, FontParser:
     }
 }
 
-int FontParser::ParseCmapTable(std::shared_ptr<Drawing::Typeface> typeface, FontParser::FontDescriptor& fontDescriptor)
+template<typename T>
+bool FontParser::ParseOneTable(std::shared_ptr<Drawing::Typeface> typeface, FontParser::FontDescriptor& fontDescriptor)
 {
-    auto tag = HB_TAG('c', 'm', 'a', 'p');
+    // get tag by a four bytes string
+    uint32_t tag = HB_TAG(T::tag[0], T::tag[1], T::tag[2], T::tag[3]);
     auto size = typeface->GetTableSize(tag);
-    if (size <= 0) {
-        TEXT_LOGE("No cmap");
-        return FAILED;
+    if (size < sizeof(T)) {
+        TEXT_LOGE("No table");
+        return false;
     }
-    std::unique_ptr<char[]> tableData = nullptr;
-    tableData = std::make_unique<char[]>(size);
-    auto retTableData = typeface->GetTableData(tag, 0, size, tableData.get());
-    if (size != retTableData) {
-        TEXT_LOGE("Failed to get table, size %{public}zu, ret %{public}zu", size, retTableData);
-        return FAILED;
+    std::unique_ptr<char[]> tableData = std::make_unique<char[]>(size);
+    auto readSize = typeface->GetTableData(tag, 0, size, tableData.get());
+    if (size != readSize) {
+        TEXT_LOGE("Failed to get table, size %{public}zu, ret %{public}zu", size, readSize);
+        return false;
     }
-    hb_blob_t* hblob = nullptr;
-    hblob = hb_blob_create(
-        reinterpret_cast<const char*>(tableData.get()), size, HB_MEMORY_MODE_WRITABLE, tableData.get(), nullptr);
-    if (hblob == nullptr) {
-        TEXT_LOGE("Null blob");
-        return FAILED;
-    }
-    data_ = hb_blob_get_data(hblob, nullptr);
-    length_ = hb_blob_get_length(hblob);
-    auto parseCmap = std::make_shared<CmapTableParser>(data_, length_);
-    auto cmapTable = parseCmap->Parse(data_, length_);
-    ProcessCmapTable(cmapTable, fontDescriptor);
-    hb_blob_destroy(hblob);
-    return SUCCESSED;
+    ProcessTable(reinterpret_cast<T*>(tableData.get()), fontDescriptor);
+    return true;
 }
 
-int FontParser::ParseNameTable(std::shared_ptr<Drawing::Typeface> typeface, FontParser::FontDescriptor& fontDescriptor)
+using TableTypes = std::tuple<CmapTables, NameTable, PostTable>;
+
+template<typename Tuple, size_t... Is>
+bool FontParser::ParseAllTables(
+    std::shared_ptr<Drawing::Typeface> typeface, FontParser::FontDescriptor& fontDescriptor, std::index_sequence<Is...>)
 {
-    auto tag = HB_TAG('n', 'a', 'm', 'e');
-    auto size = typeface->GetTableSize(tag);
-    if (size <= 0) {
-        TEXT_LOGE("No name table");
-        return FAILED;
-    }
-    std::unique_ptr<char[]> tableData = nullptr;
-    tableData = std::make_unique<char[]>(size);
-    auto retTableData = typeface->GetTableData(tag, 0, size, tableData.get());
-    if (size != retTableData) {
-        TEXT_LOGE("Failed to get table, size %{public}zu, ret %{public}zu", size, retTableData);
-        return FAILED;
-    }
-    hb_blob_t* hblob = nullptr;
-    hblob = hb_blob_create(
-        reinterpret_cast<const char*>(tableData.get()), size, HB_MEMORY_MODE_WRITABLE, tableData.get(), nullptr);
-    if (hblob == nullptr) {
-        TEXT_LOGE("Null blob");
-        return FAILED;
-    }
-    data_ = hb_blob_get_data(hblob, nullptr);
-    length_ = hb_blob_get_length(hblob);
-    auto parseName = std::make_shared<NameTableParser>(data_, length_);
-    auto nameTable = parseName->Parse(data_, length_);
-    int ret = ProcessNameTable(nameTable, fontDescriptor);
-    if (ret != SUCCESSED) {
-        TEXT_LOGE("Failed to process name table");
-        hb_blob_destroy(hblob);
-        return FAILED;
-    }
-    hb_blob_destroy(hblob);
-    return SUCCESSED;
+    return (ParseOneTable<std::tuple_element_t<Is, Tuple>>(typeface, fontDescriptor) && ...);
 }
 
-int FontParser::ParsePostTable(std::shared_ptr<Drawing::Typeface> typeface, FontParser::FontDescriptor& fontDescriptor)
+bool FontParser::ParseTable(std::shared_ptr<Drawing::Typeface> typeface, FontParser::FontDescriptor& fontDescriptor)
 {
-    auto tag = HB_TAG('p', 'o', 's', 't');
-    auto size = typeface->GetTableSize(tag);
-    if (size <= 0) {
-        TEXT_LOGE("No post table");
-        return FAILED;
-    }
-    std::unique_ptr<char[]> tableData = nullptr;
-    tableData = std::make_unique<char[]>(size);
-    auto retTableData = typeface->GetTableData(tag, 0, size, tableData.get());
-    if (size != retTableData) {
-        TEXT_LOGE("Failed to get table, size %{public}zu, ret %{public}zu", size, retTableData);
-        return FAILED;
-    }
-    hb_blob_t* hblob = nullptr;
-    hblob = hb_blob_create(
-        reinterpret_cast<const char*>(tableData.get()), size, HB_MEMORY_MODE_WRITABLE, tableData.get(), nullptr);
-    if (hblob == nullptr) {
-        TEXT_LOGE("Null blob");
-        return FAILED;
-    }
-    data_ = hb_blob_get_data(hblob, nullptr);
-    length_ = hb_blob_get_length(hblob);
-    auto parsePost = std::make_shared<PostTableParser>(data_, length_);
-    auto postTable = parsePost->Parse(data_, length_);
-    ProcessPostTable(postTable, fontDescriptor);
-    hb_blob_destroy(hblob);
-    return SUCCESSED;
+    return ParseAllTables<TableTypes>(
+        typeface, fontDescriptor, std::make_index_sequence<std::tuple_size_v<TableTypes>>());
 }
 
-int FontParser::ParseTable(std::shared_ptr<Drawing::Typeface> typeface, FontParser::FontDescriptor& fontDescriptor)
-{
-    if (ParseCmapTable(typeface, fontDescriptor) != SUCCESSED) {
-        TEXT_LOGE("Failed to parse cmap");
-        return FAILED;
-    }
-    if (ParseNameTable(typeface, fontDescriptor) != SUCCESSED) {
-        TEXT_LOGE("Failed to parse name");
-        return FAILED;
-    }
-    if (ParsePostTable(typeface, fontDescriptor) != SUCCESSED) {
-        TEXT_LOGE("Failed to parse post");
-        return FAILED;
-    }
-
-    return SUCCESSED;
-}
-
-int FontParser::SetFontDescriptor(const unsigned int languageId)
+bool FontParser::SetFontDescriptor(const unsigned int languageId)
 {
         visibilityFonts_.clear();
     std::list<std::string> fontSetCache;
@@ -304,9 +222,9 @@ int FontParser::SetFontDescriptor(const unsigned int languageId)
         auto fontStyle = typeface->GetFontStyle();
         fontDescriptor.weight = fontStyle.GetWeight();
         fontDescriptor.width = fontStyle.GetWidth();
-        if (ParseTable(typeface, fontDescriptor) !=  SUCCESSED) {
+        if (!ParseTable(typeface, fontDescriptor)) {
             TEXT_LOGE("Failed to parse table");
-            return FAILED;
+            return false;
         }
         size_t idx = fontSet_[i].rfind('/');
         std::string fontName = fontSet_[i].substr(idx + 1, fontSet_[i].size() - idx - 1);
@@ -316,7 +234,7 @@ int FontParser::SetFontDescriptor(const unsigned int languageId)
         }
     }
 
-    return SUCCESSED;
+    return true;
 }
 
 #ifdef BUILD_NON_SDK_VER
@@ -345,7 +263,7 @@ std::string FontParser::ConvertToString(const std::string& src, const std::strin
 
 std::vector<FontParser::FontDescriptor> FontParser::GetVisibilityFonts(const std::string &locale)
 {
-    if (SetFontDescriptor(GetLanguageId(locale)) != SUCCESSED) {
+    if (!SetFontDescriptor(GetLanguageId(locale))) {
         TEXT_LOGE("Failed to set visibility font descriptor");
     }
 
@@ -427,7 +345,7 @@ std::vector<std::shared_ptr<FontParser::FontDescriptor>> FontParser::CreateFontD
         auto fontStyle = item->GetFontStyle();
         desc.weight = fontStyle.GetWeight();
         desc.width = fontStyle.GetWidth();
-        if (ParseTable(item, desc) != SUCCESSED) {
+        if (!ParseTable(item, desc)) {
             continue;
         }
         descriptors.emplace_back(std::make_shared<FontDescriptor>(desc));
@@ -469,7 +387,7 @@ std::unique_ptr<FontParser::FontDescriptor> FontParser::ParseFontDescriptor(cons
     fontDescriptor.weight = fontStyle.GetWeight();
     fontDescriptor.width = fontStyle.GetWidth();
 
-    if (ParseTable(typeface, fontDescriptor) !=  SUCCESSED) {
+    if (!ParseTable(typeface, fontDescriptor)) {
         TEXT_LOGE("Failed to parse table");
         return nullptr;
     }

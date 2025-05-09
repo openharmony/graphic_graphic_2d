@@ -13,6 +13,7 @@
 
 import("//build/test.gni")
 import("//foundation/graphic/graphic_2d/ace_platforms.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 module_output_path = "graphic_2d/graphic_2d/screen_manager"
 
@@ -29,21 +30,17 @@ ohos_unittest("RSRenderServiceBaseScreenMangerTest") {
 
   configs = [
     ":transaction_test",
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:export_config",
+    "$graphic_2d_root/rosen/modules/render_service_base:export_config",
   ]
 
   include_dirs = [
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/include",
-    "//foundation/graphic/graphic_2d/rosen/include",
-    "//foundation/graphic/graphic_2d/rosen/test/include",
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
+    "$graphic_2d_root/rosen/include",
+    "$graphic_2d_root/rosen/test/include",
   ]
 
-  deps = [
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
-    "//third_party/googletest:gtest_main",
-  ]
+  deps = [ "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base" ]
 
-  include_dirs += [ "//third_party/skia/src" ]
   external_deps = [
     "c_utils:utils",
     "init:libbegetutil",
@@ -59,7 +56,7 @@ config("transaction_test") {
   visibility = [ ":*" ]
   include_dirs = [
     "$ace_root",
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_base",
   ]
 }
 

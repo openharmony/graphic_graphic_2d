@@ -49,9 +49,8 @@ bool CheckColorSpaceTypeRange(napi_env env, const ApiColorSpaceType csType)
     }
     if (csType == ApiColorSpaceType::UNKNOWN || csType == ApiColorSpaceType::CUSTOM) {
         CMLOGE("[NAPI]ColorSpaceType is invalid: %{public}u", csType);
-        std::string errMsg = "Parameter value is abnormal. Cannot create color"
-            " manager object using ApiColorSpaceType " +
-            std::to_string(static_cast<int32_t>(ApiColorSpaceType::CUSTOM));
+        std::string errMsg = "Invalid parameter value. Possible cause:"
+            " Used UNKNOWN or CUSTOM color space type enum values to directly create a colorSpaceManager object.";
         napi_throw(env,
             CreateJsError(env, static_cast<int>(JS_TO_ERROR_CODE_MAP.at(CMError::CM_ERROR_INVALID_ENUM_USAGE)),
             errMsg));

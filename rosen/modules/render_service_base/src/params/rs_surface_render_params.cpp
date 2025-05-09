@@ -406,22 +406,22 @@ bool RSSurfaceRenderParams::GetGlobalPositionEnabled() const
     return isGlobalPositionEnabled_;
 }
 
-void RSSurfaceRenderParams::SetDRMGlobalPositionEnabled(bool isEnabled)
+void RSSurfaceRenderParams::SetHwcGlobalPositionEnabled(bool isEnabled)
 {
-    isDRMGlobalPositionEnabled_ = isEnabled;
+    isHwcGlobalPositionEnabled_ = isEnabled;
 }
-bool RSSurfaceRenderParams::GetDRMGlobalPositionEnabled() const
+bool RSSurfaceRenderParams::GetHwcGlobalPositionEnabled() const
 {
-    return isDRMGlobalPositionEnabled_;
+    return isHwcGlobalPositionEnabled_;
 }
 
-void RSSurfaceRenderParams::SetDRMCrossNode(bool isCrossNode)
+void RSSurfaceRenderParams::SetHwcCrossNode(bool isCrossNode)
 {
-    isDRMCrossNode_ = isCrossNode;
+    isHwcCrossNode_ = isCrossNode;
 }
 bool RSSurfaceRenderParams::IsDRMCrossNode() const
 {
-    return isDRMCrossNode_;
+    return isHwcCrossNode_;
 }
 
 void RSSurfaceRenderParams::SetIsNodeToBeCaptured(bool isNodeToBeCaptured)
@@ -493,6 +493,17 @@ void RSSurfaceRenderParams::RecordScreenRect(RectI rect)
 {
     screenRect_ = rect;
     needSync_ = true;
+}
+
+void RSSurfaceRenderParams::RecordDirtyRegionMatrix(const Drawing::Matrix& matrix)
+{
+    dirtyRegionMatrix_ = matrix;
+    needSync_ = true;
+}
+
+const Drawing::Matrix& RSSurfaceRenderParams::GetDirtyRegionMatrix()
+{
+    return dirtyRegionMatrix_;
 }
 
 void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
@@ -576,8 +587,8 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->isSubSurfaceNode_ = isSubSurfaceNode_;
     targetSurfaceParams->isGlobalPositionEnabled_ = isGlobalPositionEnabled_;
     targetSurfaceParams->isNodeToBeCaptured_ = isNodeToBeCaptured_;
-    targetSurfaceParams->isDRMGlobalPositionEnabled_ = isDRMGlobalPositionEnabled_;
-    targetSurfaceParams->isDRMCrossNode_ = isDRMCrossNode_;
+    targetSurfaceParams->isHwcGlobalPositionEnabled_ = isHwcGlobalPositionEnabled_;
+    targetSurfaceParams->isHwcCrossNode_ = isHwcCrossNode_;
     targetSurfaceParams->dstRect_ = dstRect_;
     targetSurfaceParams->isSkipDraw_ = isSkipDraw_;
     targetSurfaceParams->isLayerTop_ = isLayerTop_;
@@ -603,6 +614,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->watermarkHandles_ = watermarkHandles_;
     targetSurfaceParams->needCacheSurface_ = needCacheSurface_;
     targetSurfaceParams->isHwcEnabledBySolidLayer_ = isHwcEnabledBySolidLayer_;
+    targetSurfaceParams->solidLayerColor_ = solidLayerColor_;
     targetSurfaceParams->hasSubSurfaceNodes_ = hasSubSurfaceNodes_;
     targetSurfaceParams->allSubSurfaceNodeIds_ = allSubSurfaceNodeIds_;
     targetSurfaceParams->crossNodeSkipDisplayConversionMatrices_ = crossNodeSkipDisplayConversionMatrices_;
@@ -610,6 +622,8 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->isBufferFlushed_ = isBufferFlushed_;
     targetSurfaceParams->colorFollow_ = colorFollow_;
     targetSurfaceParams->screenRect_ = screenRect_;
+    targetSurfaceParams->dirtyRegionMatrix_ = dirtyRegionMatrix_;
+    targetSurfaceParams->uiFirstFrameGravity_ = uiFirstFrameGravity_;
     RSRenderParams::OnSync(target);
 }
 

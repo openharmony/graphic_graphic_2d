@@ -84,6 +84,9 @@ bool RSHdrUtil::CheckIsSurfaceWithMetadata(const RSSurfaceRenderNode& surfaceNod
     if (!surfaceNode.GetRSSurfaceHandler()) {
         return false;
     }
+    if (!surfaceNode.IsYUVBufferFormat()) {
+        return false;
+    }
     return CheckIsSurfaceBufferWithMetadata(surfaceNode.GetRSSurfaceHandler()->GetBuffer());
 }
 
@@ -105,9 +108,9 @@ bool RSHdrUtil::CheckIsSurfaceBufferWithMetadata(const sptr<SurfaceBuffer> surfa
         return false;
     }
 #ifdef USE_VIDEO_PROCESSING_ENGINE
-    std::vector<uint8_t> dynamicMetadata{};
-    if (MetadataHelper::GetHDRDynamicMetadata(surfaceBuffer, dynamicMetadata) ==
-        GSERROR_OK && dynamicMetadata.size() > 0) {
+    std::vector<uint8_t> videoDynamicMetadata{};
+    if (MetadataHelper::GetVideoDynamicMetadata(surfaceBuffer, videoDynamicMetadata) ==
+        GSERROR_OK && videoDynamicMetadata.size() > 0) {
         return true;
     }
 #endif
@@ -190,13 +193,17 @@ void RSHdrUtil::UpdateSurfaceNodeLayerLinearMatrix(RSSurfaceRenderNode& surfaceN
     if (MetadataHelper::GetColorSpaceInfo(surfaceBuffer, srcColorSpaceInfo) == GSERROR_OK) {
         srcColorMatrix = srcColorSpaceInfo.matrix;
     }
-    std::vector<uint8_t> hdrDynamicMetadataVec;
+    std::vector<uint8_t> dynamicMetadataVec;
     GSError ret = GSERROR_OK;
 #ifdef USE_VIDEO_PROCESSING_ENGINE
-    RSColorSpaceConvert::Instance().GetHDRDynamicMetadata(surfaceBuffer, hdrDynamicMetadataVec, ret);
+    if (srcColorMatrix == CM_Matrix::MATRIX_BT2020) {
+        RSColorSpaceConvert::Instance().GetHDRDynamicMetadata(surfaceBuffer, dynamicMetadataVec, ret);
+    } else {
+        RSColorSpaceConvert::Instance().GetVideoDynamicMetadata(surfaceBuffer, dynamicMetadataVec, ret);
+    }
 #endif
     std::vector<float> layerLinearMatrix = RSColorTemperature::Get().GetLayerLinearCct(screenId,
-        ret == GSERROR_OK ? hdrDynamicMetadataVec : std::vector<uint8_t>(), srcColorMatrix);
+        ret == GSERROR_OK ? dynamicMetadataVec : std::vector<uint8_t>(), srcColorMatrix);
     surfaceNode.SetLayerLinearMatrix(layerLinearMatrix);
     if (layerLinearMatrix.size() >= MATRIX_SIZE) {
         // main diagonal indices of a 3x3 matrix are 0, 4 and 8
@@ -238,6 +245,11 @@ void RSHdrUtil::CheckPixelFormatWithSelfDrawingNode(RSSurfaceRenderNode& surface
     displayNode.CollectHdrStatus(surfaceNode.GetVideoHdrStatus());
     if (RSLuminanceControl::Get().IsForceCloseHdr()) {
         RS_LOGD("RSHdrUtil::CheckPixelFormatWithSelfDrawingNode node(%{public}s) forceCloseHdr.",
+            surfaceNode.GetName().c_str());
+        return;
+    }
+    if (displayNode.GetForceCloseHdr()) {
+        RS_LOGD("RSHdrUtil::CheckPixelFormatWithSelfDrawingNode node(%{public}s) forceclosehdr.",
             surfaceNode.GetName().c_str());
         return;
     }

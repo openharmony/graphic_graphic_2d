@@ -33,10 +33,20 @@ namespace OHOS {
 namespace Rosen {
 auto rsThreadHandlerGeneric = std::make_shared<RSThreadHandlerGeneric>();
 namespace {
+const uint8_t DO_CREATE_TASK = 0;
+const uint8_t DO_POST_TASK = 1;
+const uint8_t DO_POST_TASK_DELAY = 2;
+const uint8_t DO_CANCEL_TASK = 3;
+const uint8_t DO_ISVALID = 4;
+const uint8_t DO_CREATE = 5;
+const uint8_t DO_STATIC_CREATE_TASK = 6;
+const uint8_t DO_GENERIC_MESSAGE_HANDLER = 7;
+const uint8_t DO_GENERIC_THREA_DMESSAGE = 8;
+const uint8_t TARGET_SIZE = 9;
+
 const uint8_t* g_data = nullptr;
 size_t g_size = 0;
 size_t g_pos;
-} // namespace
 
 template<class T>
 T GetData()
@@ -53,140 +63,76 @@ T GetData()
     g_pos += objectSize;
     return object;
 }
-bool DoCreateTask(const uint8_t* data, size_t size)
+
+bool Init(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
         return false;
     }
 
-    // initialize
     g_data = data;
     g_size = size;
     g_pos = 0;
-
-    RSTaskMessage::RSTask task = []() {};
-    rsThreadHandlerGeneric->CreateTask(task);
     return true;
 }
-bool DoPostTask(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
+} // namespace
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
+void DoCreateTask()
+{
+    RSTaskMessage::RSTask task = []() {};
+    rsThreadHandlerGeneric->CreateTask(task);
+}
+
+void DoPostTask()
+{
     int param = GetData<int>();
     auto taskHandle = std::make_shared<RSTaskMessage>();
     rsThreadHandlerGeneric->PostTask(taskHandle, param);
-    return true;
 }
-bool DoPostTaskDelay(const uint8_t* data, size_t size)
+
+void DoPostTaskDelay()
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     int nsecs = GetData<int>();
     int param = GetData<int>();
     auto taskHandle = std::make_shared<RSTaskMessage>();
     rsThreadHandlerGeneric->PostTaskDelay(taskHandle, nsecs, param);
-    return true;
 }
-bool DoCancelTask(const uint8_t* data, size_t size)
+
+void DoCancelTask()
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     auto taskHandle = std::make_shared<RSTaskMessage>();
     rsThreadHandlerGeneric->CancelTask(taskHandle);
-    return true;
 }
-bool DoIsValid(const uint8_t* data, size_t size)
+
+void DoIsValid()
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     rsThreadHandlerGeneric->IsValid();
-    return true;
 }
-bool DoCreate(const uint8_t* data, size_t size)
+
+void DoCreate()
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     RSThreadHandler::Create();
-    return true;
 }
-bool DoStaticCreateTask(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
+void DoStaticCreateTask()
+{
     RSTaskMessage::RSTask task = []() {};
     RSThreadHandler::StaticCreateTask(task);
-    return true;
 }
-bool DoGenericMessageHandler(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
+void DoGenericMessageHandler()
+{
     RSTaskMessage::RSTask task = []() {};
     int param = GetData<int>();
     GenericMessageHandler genericMessageHandler(task);
     genericMessageHandler.Process(param);
-    return true;
 }
-bool DoGenericThreadMessage(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
+void DoGenericThreadMessage()
+{
     RSTaskMessage::RSTask task = []() {};
     GenericThreadMessage genericThreadMessage(task);
     genericThreadMessage.GetMessageHandler();
-    return true;
 }
 } // namespace Rosen
 } // namespace OHOS
@@ -195,14 +141,40 @@ bool DoGenericThreadMessage(const uint8_t* data, size_t size)
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
-    OHOS::Rosen::DoCreateTask(data, size);            // CreateTask
-    OHOS::Rosen::DoPostTask(data, size);              // PostTask
-    OHOS::Rosen::DoPostTaskDelay(data, size);         // PostTaskDelay
-    OHOS::Rosen::DoCancelTask(data, size);            // CancelTask
-    OHOS::Rosen::DoIsValid(data, size);               // IsValid
-    OHOS::Rosen::DoCreate(data, size);                // Create
-    OHOS::Rosen::DoStaticCreateTask(data, size);      // StaticCreateTask
-    OHOS::Rosen::DoGenericMessageHandler(data, size); // GenericMessageHandler
-    OHOS::Rosen::DoGenericThreadMessage(data, size);  // GenericThreadMessage
+    if (!OHOS::Rosen::Init(data, size)) {
+        return -1;
+    }
+    uint8_t tarPos = OHOS::Rosen::GetData<uint8_t>() % OHOS::Rosen::TARGET_SIZE;
+    switch (tarPos) {
+        case OHOS::Rosen::DO_CREATE_TASK:
+            OHOS::Rosen::DoCreateTask();            // CreateTask
+            break;
+        case OHOS::Rosen::DO_POST_TASK:
+            OHOS::Rosen::DoPostTask();              // PostTask
+            break;
+        case OHOS::Rosen::DO_POST_TASK_DELAY:
+            OHOS::Rosen::DoPostTaskDelay();         // PostTaskDelay
+            break;
+        case OHOS::Rosen::DO_CANCEL_TASK:
+            OHOS::Rosen::DoCancelTask();            // CancelTask
+            break;
+        case OHOS::Rosen::DO_ISVALID:
+            OHOS::Rosen::DoIsValid();               // IsValid
+            break;
+        case OHOS::Rosen::DO_CREATE:
+            OHOS::Rosen::DoCreate();                // Create
+            break;
+        case OHOS::Rosen::DO_STATIC_CREATE_TASK:
+            OHOS::Rosen::DoStaticCreateTask();      // StaticCreateTask
+            break;
+        case OHOS::Rosen::DO_GENERIC_MESSAGE_HANDLER:
+            OHOS::Rosen::DoGenericMessageHandler(); // GenericMessageHandler
+            break;
+        case OHOS::Rosen::DO_GENERIC_THREA_DMESSAGE:
+            OHOS::Rosen::DoGenericThreadMessage();  // GenericThreadMessage
+            break;
+        default:
+            return -1;
+    }
     return 0;
 }

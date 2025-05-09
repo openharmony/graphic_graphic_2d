@@ -28,7 +28,7 @@ public:
     int32_t ParseFeatureParam(FeatureParamMapType &featureMap, xmlNode &node) override;
 
 private:
-    int32_t ParseHfbcInternal(FeatureParamMapType &featureMap, xmlNode &node);
+    int32_t ParseHfbcInternal(xmlNode &node);
     int32_t ParseFeatureMultiParamForApp(xmlNode &node, std::string &name);
     std::shared_ptr<HFBCParam> hfbcParam_;
 };

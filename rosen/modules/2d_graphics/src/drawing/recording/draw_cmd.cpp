@@ -98,6 +98,8 @@ std::unordered_map<uint32_t, std::string> typeOpDes = {
     { DrawOpItem::IMAGE_SNAPSHOT_OPITEM,    "IMAGE_SNAPSHOT_OPITEM" },
     { DrawOpItem::SURFACEBUFFER_OPITEM,     "SURFACEBUFFER_OPITEM"},
     { DrawOpItem::DRAW_FUNC_OPITEM,         "DRAW_FUNC_OPITEM"},
+    { DrawOpItem::HYBRID_RENDER_PIXELMAP_OPITEM, "HYBRID_RENDER_PIXELMAP_OPITEM"},
+    { DrawOpItem::HYBRID_RENDER_PIXELMAP_SIZE_OPITEM, "HYBRID_RENDER_PIXELMAP_SIZE_OPITEM"},
 };
 
 namespace {
@@ -2589,6 +2591,45 @@ void ClipAdaptiveRoundRectOpItem::Dump(std::string& out) const
         out += "]";
     });
     out += "]";
+}
+
+/* HybridRenderPixelMapSizeOpItem */
+UNMARSHALLING_REGISTER(ResetHybridRenderSize, DrawOpItem::HYBRID_RENDER_PIXELMAP_SIZE_OPITEM,
+    HybridRenderPixelMapSizeOpItem::Unmarshalling, sizeof(HybridRenderPixelMapSizeOpItem::ConstructorHandle));
+
+HybridRenderPixelMapSizeOpItem::HybridRenderPixelMapSizeOpItem(
+    HybridRenderPixelMapSizeOpItem::ConstructorHandle* handle)
+    : DrawOpItem(HYBRID_RENDER_PIXELMAP_SIZE_OPITEM), width_(handle->width), height_(handle->height) {}
+
+std::shared_ptr<DrawOpItem> HybridRenderPixelMapSizeOpItem::Unmarshalling(const DrawCmdList& cmdList, void* handle)
+{
+    return std::make_shared<HybridRenderPixelMapSizeOpItem>(
+        static_cast<HybridRenderPixelMapSizeOpItem::ConstructorHandle*>(handle));
+}
+
+void HybridRenderPixelMapSizeOpItem::Marshalling(DrawCmdList& cmdList)
+{
+    cmdList.AddOp<ConstructorHandle>(width_, height_);
+}
+
+void HybridRenderPixelMapSizeOpItem::Playback(Canvas* canvas, const Rect* rect)
+{
+    return;
+}
+
+void HybridRenderPixelMapSizeOpItem::Dump(std::string& out) const
+{
+    out += GetOpDesc();
+}
+
+float HybridRenderPixelMapSizeOpItem::GetWidth() const
+{
+    return width_;
+}
+
+float HybridRenderPixelMapSizeOpItem::GetHeight() const
+{
+    return height_;
 }
 } // namespace Drawing
 } // namespace Rosen

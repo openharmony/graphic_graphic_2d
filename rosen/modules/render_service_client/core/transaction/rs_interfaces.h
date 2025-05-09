@@ -28,21 +28,13 @@
 namespace OHOS {
 namespace Rosen {
 
-struct FocusAppInfo {
-    int32_t pid = -1;
-    int32_t uid = -1;
-    std::string bundleName;
-    std::string abilityName;
-    uint64_t focusNodeId;
-};
-
 class RSC_EXPORT RSInterfaces {
 public:
     static RSInterfaces &GetInstance();
     RSInterfaces(const RSInterfaces &) = delete;
     void operator=(const RSInterfaces &) = delete;
 
-    int32_t SetFocusAppInfo(FocusAppInfo& info);
+    int32_t SetFocusAppInfo(const FocusAppInfo& info);
 
     ScreenId GetDefaultScreenId();
 
@@ -63,6 +55,9 @@ public:
         std::vector<NodeId> whiteList = {});
 
     int32_t SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector);
+
+    // use surfaceNodeType to set black list
+    int32_t SetVirtualScreenTypeBlackList(ScreenId id, std::vector<NodeType>& typeBlackListVector);
 
     int32_t AddVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector);
 
@@ -114,6 +109,10 @@ public:
     bool TakeSurfaceCaptureForUI(std::shared_ptr<RSNode> node,
         std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX = 1.f, float scaleY = 1.f,
         bool isSync = false, const Drawing::Rect& specifiedAreaRect = Drawing::Rect(0.f, 0.f, 0.f, 0.f));
+
+    bool TakeSurfaceCaptureForUIWithConfig(std::shared_ptr<RSNode> node,
+        std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig = {},
+        const Drawing::Rect& specifiedAreaRect = Drawing::Rect(0.f, 0.f, 0.f, 0.f));
 
     bool TakeSelfSurfaceCapture(std::shared_ptr<RSSurfaceNode> node, std::shared_ptr<SurfaceCaptureCallback> callback,
         RSSurfaceCaptureConfig captureConfig = {});
@@ -182,6 +181,7 @@ public:
     uint32_t GetRealtimeRefreshRate(ScreenId id);
 
     std::string GetRefreshInfo(pid_t pid);
+    std::string GetRefreshInfoToSP(NodeId id);
 
 #ifndef ROSEN_ARKUI_X
     std::vector<RSScreenModeInfo> GetScreenSupportedModes(ScreenId id);
@@ -303,6 +303,8 @@ public:
 
     void NotifyRefreshRateEvent(const EventInfo& eventInfo);
 
+    bool NotifySoftVsyncRateDiscountEvent(uint32_t pid, const std::string &name, uint32_t rateDiscount);
+
     void NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt);
 
     void NotifyDynamicModeEvent(bool enableDynamicMode);
@@ -365,6 +367,8 @@ public:
     // Make this node(nodeIdStr) should do DSS composition and set the layer to top. otherwise do GPU composition.
     void SetLayerTop(const std::string &nodeIdStr, bool isTop);
 
+    void SetColorFollow(const std::string &nodeIdStr, bool isColorFollow);
+
     void NotifyScreenSwitched();
 
     void ForceRefreshOneFrameWithNextVSync();
@@ -379,7 +383,8 @@ public:
 
     void NotifyPageName(const std::string &packageName, const std::string &pageName, bool isEnter);
 
-    void TestLoadFileSubTreeToNode(NodeId nodeId, const std::string &filePath);
+    bool GetHighContrastTextState();
+
 private:
     RSInterfaces();
     ~RSInterfaces() noexcept;

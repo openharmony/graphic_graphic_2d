@@ -141,7 +141,7 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, CaptureSurface001, TestSize.Level1)
     surfaceParams->isSpherizeValid_ = false;
     surfaceParams->isAttractionValid_ = false;
     surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
-    surfaceDrawable_->hasHdrPresent_ = true;
+    surfaceDrawable_->GetRsSubThreadCache().hasHdrPresent_ = true;
     surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
     ASSERT_TRUE(!surfaceParams->IsAttractionValid());
 
@@ -473,23 +473,6 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, PrepareOffscreenRenderTest002, TestSiz
 }
 
 /**
- * @tc.name: BufferFormatNeedUpdate
- * @tc.desc: Test BufferFormatNeedUpdate
- * @tc.type: FUNC
- * @tc.require: issueIAEDYI
- */
-HWTEST_F(RSSurfaceRenderNodeDrawableTest, BufferFormatNeedUpdateTest, TestSize.Level1)
-{
-    ASSERT_NE(surfaceDrawable_, nullptr);
-    std::shared_ptr<Drawing::Surface> surface = Drawing::Surface::MakeRasterN32Premul(100, 100);
-    ASSERT_NE(surface, nullptr);
-    RSPaintFilterCanvas paintFilterCanvas(surface.get());
-    surfaceDrawable_->curCanvas_ = &paintFilterCanvas;
-    EXPECT_TRUE(surfaceDrawable_->BufferFormatNeedUpdate(surface, true));
-    EXPECT_FALSE(surfaceDrawable_->BufferFormatNeedUpdate(surface, false));
-}
-
-/**
  * @tc.name: IsHardwareEnabled
  * @tc.desc: Test IsHardwareEnabled
  * @tc.type: FUNC
@@ -540,26 +523,6 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, FinishOffscreenRender, TestSize.Level1
     surfaceDrawable_->offscreenSurface_ = Drawing::Surface::MakeRasterN32Premul(100, 100);
     surfaceDrawable_->FinishOffscreenRender(samping);
     ASSERT_NE(surfaceDrawable_->curCanvas_, nullptr);
-}
-
-/**
- * @tc.name: DrawUIFirstDfx
- * @tc.desc: Test DrawUIFirstDfx
- * @tc.type: FUNC
- * @tc.require: #IA940V
- */
-HWTEST_F(RSSurfaceRenderNodeDrawableTest, DrawUIFirstDfx, TestSize.Level1)
-{
-    ASSERT_NE(surfaceDrawable_, nullptr);
-    Drawing::Canvas canvas;
-    RSPaintFilterCanvas paintFilterCanvas(&canvas);
-
-    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable_->renderParams_.get());
-    ASSERT_NE(surfaceParams, nullptr);
-
-    surfaceDrawable_->DrawUIFirstDfx(paintFilterCanvas, MultiThreadCacheType::ARKTS_CARD, *surfaceParams, true);
-    surfaceDrawable_->DrawUIFirstDfx(paintFilterCanvas, MultiThreadCacheType::LEASH_WINDOW, *surfaceParams, true);
-    surfaceDrawable_->DrawUIFirstDfx(paintFilterCanvas, MultiThreadCacheType::LEASH_WINDOW, *surfaceParams, false);
 }
 
 /**
@@ -773,28 +736,6 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, EnableGpuOverDrawDrawBufferOptimizatio
 }
 
 /**
- * @tc.name: DrawUIFirstDfx
- * @tc.desc: Test DrawUIFirstDfx
- * @tc.type: FUNC
- * @tc.require: #I9NVOG
- */
-HWTEST_F(RSSurfaceRenderNodeDrawableTest, DrawUIFirstDfxTest, TestSize.Level1)
-{
-    ASSERT_NE(surfaceDrawable_, nullptr);
-    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable_->renderParams_.get());
-    ASSERT_NE(surfaceParams, nullptr);
-    Drawing::Canvas drawingCanvas;
-    RSPaintFilterCanvas canvas(&drawingCanvas);
-
-    MultiThreadCacheType enableType = MultiThreadCacheType::ARKTS_CARD;
-    surfaceDrawable_->DrawUIFirstDfx(canvas, enableType, *surfaceParams, true);
-
-    enableType = MultiThreadCacheType::LEASH_WINDOW;
-    surfaceDrawable_->DrawUIFirstDfx(canvas, enableType, *surfaceParams, true);
-    surfaceDrawable_->DrawUIFirstDfx(canvas, enableType, *surfaceParams, false);
-}
-
-/**
  * @tc.name: HasCornerRadius
  * @tc.desc: Test HasCornerRadius
  * @tc.type: FUNC
@@ -815,48 +756,6 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, HasCornerRadiusTest, TestSize.Level1)
     surfaceParams->rrect_.radius_[0].x_ = 0.f;
     const auto params03 = surfaceParams;
     ASSERT_TRUE(surfaceDrawable_->HasCornerRadius(*params03));
-}
-
-/**
- * @tc.name: DealWithUIFirstCache
- * @tc.desc: Test DealWithUIFirstCache
- * @tc.type: FUNC
- * @tc.require: issueIAEDYI
- */
-HWTEST_F(RSSurfaceRenderNodeDrawableTest, DealWithUIFirstCacheTest, TestSize.Level1)
-{
-    ASSERT_NE(surfaceDrawable_, nullptr);
-    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable_->renderParams_.get());
-    ASSERT_NE(surfaceParams, nullptr);
-    auto uniParams = std::make_shared<RSRenderThreadParams>();
-    ASSERT_FALSE(surfaceDrawable_->DealWithUIFirstCache(*canvas_, *surfaceParams, *uniParams));
-
-    surfaceParams->uiFirstFlag_ = MultiThreadCacheType::ARKTS_CARD;
-    ASSERT_TRUE(surfaceDrawable_->DealWithUIFirstCache(*canvas_, *surfaceParams, *uniParams));
-
-    RSUniRenderThread::GetCaptureParam().isSnapshot_ = false;
-    uniParams->isUIFirstDebugEnable_ = true;
-    ASSERT_TRUE(surfaceDrawable_->DealWithUIFirstCache(*canvas_, *surfaceParams, *uniParams));
-
-    surfaceParams->uifirstUseStarting_ = 1;
-    ASSERT_TRUE(surfaceDrawable_->DealWithUIFirstCache(*canvas_, *surfaceParams, *uniParams));
-}
-
-/**
- * @tc.name: DealWithUIFirstCache001
- * @tc.desc: Test DealWithUIFirstCache while capture but don't has cache texture
- * @tc.type: FUNC
- * @tc.require: issueIANDBE
- */
-HWTEST_F(RSSurfaceRenderNodeDrawableTest, DealWithUIFirstCache002, TestSize.Level2)
-{
-    ASSERT_NE(surfaceDrawable_, nullptr);
-    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->renderParams_.get());
-    ASSERT_NE(surfaceParams, nullptr);
-    auto uniParams = std::make_shared<RSRenderThreadParams>();
-    
-    RSUniRenderThread::GetCaptureParam().isSnapshot_ = true;
-    ASSERT_FALSE(surfaceDrawable_->DealWithUIFirstCache(*canvas_, *surfaceParams, *uniParams));
 }
 
 /**
@@ -1053,20 +952,6 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, ResetVirtualScreenWhiteListRootId001, 
 }
 
 /**
- * @tc.name: SetSubThreadSkip001
- * @tc.desc: Test SetSubThreadSkip
- * @tc.type: FUNC
- * @tc.require: issueIANDBE
- */
-HWTEST_F(RSSurfaceRenderNodeDrawableTest, SetSubThreadSkip001, TestSize.Level2)
-{
-    ASSERT_NE(surfaceDrawable_, nullptr);
-    
-    surfaceDrawable_->SetSubThreadSkip(true);
-    ASSERT_TRUE(surfaceDrawable_->IsSubThreadSkip());
-}
-
-/**
  * @tc.name: SetAndGet
  * @tc.desc: Test SetAndGet
  * @tc.type: FUNC
@@ -1173,7 +1058,7 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, DealWithSelfDrawingNodeBufferTest001, 
     surfaceParams->isLayerTop_ = true;
     surfaceDrawable_->DealWithSelfDrawingNodeBuffer(canvas, *surfaceParams);
     ASSERT_TRUE(surfaceParams->IsLayerTop());
-    surfaceDrawable_->surfaceNodeType_ = RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE;
+    surfaceDrawable_->surfaceNodeType_ = RSSurfaceNodeType::CURSOR_NODE;
     surfaceDrawable_->name_ = "pointer window";
     surfaceDrawable_->DealWithSelfDrawingNodeBuffer(canvas, *surfaceParams);
 }
@@ -1273,6 +1158,7 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, OnGeneralProcessAndCache, TestSize.Lev
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->GetRenderParams().get());
     ASSERT_NE(surfaceParams, nullptr);
     surfaceParams->SetFrameRect({0, 0, DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE});
+    surfaceParams->SetBoundsRect({0, 0, DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE});
     surfaceParams->SetNeedCacheSurface(true);
     std::shared_ptr<Drawing::Surface> surface =
         Drawing::Surface::MakeRasterN32Premul(DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
@@ -1281,7 +1167,7 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, OnGeneralProcessAndCache, TestSize.Lev
     auto uniParams = std::make_shared<RSRenderThreadParams>();
     ASSERT_NE(uniParams, nullptr);
     surfaceDrawable_->OnGeneralProcess(canvas, *surfaceParams, *uniParams, false);
-    ASSERT_TRUE(surfaceDrawable_->drawWindowCache_.HasCache());
+    ASSERT_TRUE(surfaceDrawable_->GetRsSubThreadCache().GetRSDrawWindowCache().HasCache());
 }
 
 /**
@@ -1335,5 +1221,84 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, DrawCacheImageForMultiScreenView003, T
     displayRenderNodeDrawable->cacheImgForMultiScreenView_ = cacheImgForMultiScreenView;
     surfaceParams->sourceDisplayRenderNodeDrawable_ = displayRenderNodeDrawable;
     ASSERT_TRUE(surfaceDrawable_->DrawCacheImageForMultiScreenView(*canvas_, *surfaceParams));
+}
+
+/**
+ * @tc.name: GetGravityMatrix
+ * @tc.desc: Test If GetGravityMatrix Can Run
+ * @tc.type: FUNC
+ * @tc.require: issueIAH6OI
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, GetGravityMatrixTest, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    Drawing::Matrix res = surfaceDrawable_->GetGravityMatrix(1.f, 1.f);
+    ASSERT_EQ(res, Drawing::Matrix());
+    surfaceDrawable_->renderParams_ = std::make_unique<RSSurfaceRenderParams>(DEFAULT_ID);
+    surfaceDrawable_->renderParams_->SetCacheSize(Vector2f(100, 100));
+    auto surfaceparams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->renderParams_.get());
+    ASSERT_NE(surfaceparams, nullptr);
+    surfaceparams->SetUIFirstFrameGravity(Gravity::TOP_LEFT);
+    Drawing::Matrix matrix = surfaceDrawable_->GetGravityMatrix(100, 100);
+    ASSERT_EQ(matrix.Get(Drawing::Matrix::TRANS_X), 0);
+    ASSERT_EQ(matrix.Get(Drawing::Matrix::TRANS_Y), 0);
+}
+
+/**
+ * @tc.name: IsVisibleRegionEqualOnPhysicalAndVirtualTest
+ * @tc.desc: test if visible region and virtual visible region equals.
+ * @tc.type: FUNC
+ * @tc.require: issueIBZ8K3
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, IsVisibleRegionEqualOnPhysicalAndVirtualTest, TestSize.Level1)
+{
+    Occlusion::Region emptyRegion;
+    NodeId leashId = 1;
+    auto leashWindow = std::make_shared<RSSurfaceRenderNode>(leashId);
+    auto leashDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(leashWindow));
+    ASSERT_NE(leashDrawable, nullptr);
+    auto leashParams = static_cast<RSSurfaceRenderParams*>(leashDrawable->GetRenderParams().get());
+    ASSERT_NE(leashParams, nullptr);
+    leashParams->isLeashWindow_ = true;
+    leashParams->SetVisibleRegion(emptyRegion);
+    leashParams->SetVisibleRegionInVirtual(emptyRegion);
+
+    NodeId appId = 2;
+    auto appWindow = std::make_shared<RSSurfaceRenderNode>(appId);
+    auto appDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(appWindow));
+    ASSERT_NE(appDrawable, nullptr);
+    auto appParams = static_cast<RSSurfaceRenderParams*>(appDrawable->GetRenderParams().get());
+    ASSERT_NE(appParams, nullptr);
+    leashParams->isAppWindow_ = true;
+    leashParams->allSubSurfaceNodeIds_.insert(appId);
+
+    // all empty
+    appParams->SetVisibleRegion(emptyRegion);
+    appParams->SetVisibleRegionInVirtual(emptyRegion);
+    ASSERT_TRUE(leashDrawable->IsVisibleRegionEqualOnPhysicalAndVirtual(*leashParams));
+
+    // region has one area
+    Occlusion::Region region({ 100, 100, 1000, 1000 });
+    appParams->SetVisibleRegion(region);
+    appParams->SetVisibleRegionInVirtual(region);
+    ASSERT_TRUE(leashDrawable->IsVisibleRegionEqualOnPhysicalAndVirtual(*leashParams));
+
+    // region has multi area
+    Occlusion::Region region2({ 100, 1200, 1000, 1500 });
+    auto multiAreaRegion = region.Or(region2);
+    appParams->SetVisibleRegion(multiAreaRegion);
+    appParams->SetVisibleRegionInVirtual(multiAreaRegion);
+    ASSERT_TRUE(leashDrawable->IsVisibleRegionEqualOnPhysicalAndVirtual(*leashParams));
+
+    appParams->SetVisibleRegion(region);
+    appParams->SetVisibleRegionInVirtual(multiAreaRegion);
+    ASSERT_FALSE(leashDrawable->IsVisibleRegionEqualOnPhysicalAndVirtual(*leashParams));
+
+    // one region is empty
+    appParams->SetVisibleRegion(emptyRegion);
+    appParams->SetVisibleRegionInVirtual(region);
+    ASSERT_FALSE(leashDrawable->IsVisibleRegionEqualOnPhysicalAndVirtual(*leashParams));
 }
 }

@@ -30,21 +30,21 @@ public:
     std::vector<std::shared_ptr<RSRenderNode>> Build(RSContext& context, NodeId topId, bool withDisplay);
 
 private:
-    static const int startX = 200;
-    static const int startY = 1200;
-    static const int width = 900;
-    static const int height = 900;
-    static const int width13 = width / 3;
-    static const int width23 = 2 * width / 3;
-    static const int height13 = height / 3;
-    static const int height23 = 2 * height / 3;
-    static const int zero = 0;
-    static const int one = 1;
-    static const int two = 2;
-    static const int three = 3;
-    static const int four = 4;
-    static const int five = 5;
-    static const int visibleZPosition = 5000;
+    inline static const int startX = 200;
+    inline static const int startY = 1200;
+    inline static const int width = 900;
+    inline static const int height = 900;
+    inline static const int width13 = width / 3;
+    inline static const int width23 = 2 * width / 3;
+    inline static const int height13 = height / 3;
+    inline static const int height23 = 2 * height / 3;
+    inline static const int zero = 0;
+    inline static const int one = 1;
+    inline static const int two = 2;
+    inline static const int three = 3;
+    inline static const int four = 4;
+    inline static const int five = 5;
+    inline static const int visibleZPosition = 5000;
     const Color almostWhite_ = Color(240, 240, 240, 255);
     std::mt19937 mt_;
     std::uniform_int_distribution<uint8_t> distribution_;

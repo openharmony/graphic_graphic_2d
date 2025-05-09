@@ -14,7 +14,7 @@
 import("//build/test.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
-module_out_path = "graphic_2d/surfaceimage"
+module_out_path = "graphic_2d/graphic_2d/surfaceimage"
 
 group("unittest") {
   testonly = true
@@ -58,7 +58,6 @@ ohos_static_library("surface_test_common") {
   public_deps = [
     "$graphic_2d_root:libnative_image",
     "$graphic_2d_root/utils:libgraphic_utils",
-    "//third_party/googletest:gtest_main",
   ]
 
   public_external_deps = [

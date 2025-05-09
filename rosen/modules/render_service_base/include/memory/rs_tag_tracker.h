@@ -35,17 +35,43 @@ public:
         TAG_UNTAGGED,
         TAG_CAPTURE,
     };
-    RSTagTracker(Drawing::GPUContext* gpuContext, RSTagTracker::TAGTYPE tagType);
-    RSTagTracker(Drawing::GPUContext* gpuContext, NodeId nodeId,
+    enum SOURCETYPE : uint32_t {
+        SOURCE_OTHER,
+        SOURCE_RSCUSTOMMODIFIERDRAWABLE,
+        SOURCE_RSBEGINBLENDERDRAWABLE,
+        SOURCE_RSSHADOWDRAWABLE,
+        SOURCE_RSBACKGROUNDIMAGEDRAWABLE,
+        SOURCE_RSBACKGROUNDEFFECTDRAWABLE,
+        SOURCE_RSUSEEFFECTDRAWABLE,
+        SOURCE_RSDYNAMICLIGHTUPDRAWABLE,
+        SOURCE_RSBINARIZATIONDRAWABLE,
+        SOURCE_RSCOLORFILTERDRAWABLE,
+        SOURCE_RSLIGHTUPEFFECTDRAWABLE,
+        SOURCE_RSDYNAMICDIMDRAWABLE,
+        SOURCE_RSFOREGROUNDFILTERDRAWABLE,
+        SOURCE_RSFOREGROUNDFILTERRESTOREDRAWABLE,
+        SOURCE_RSPIXELSTRETCHDRAWABLE,
+        SOURCE_RSPOINTLIGHTDRAWABLE,
+        SOURCE_RSPROPERTYDRAWABLE,
+        SOURCE_RSFILTERDRAWABLE,
+        SOURCE_FINISHOFFSCREENRENDER,
+        SOURCE_DRAWSELFDRAWINGNODEBUFFER,
+        SOURCE_ONCAPTURE,
+        SOURCE_INITCACHEDSURFACE,
+        SOURCE_DRAWRENDERCONTENT
+    };
+    RSTagTracker(const std::shared_ptr<Drawing::GPUContext>& gpuContext, RSTagTracker::TAGTYPE tagType);
+    RSTagTracker(const std::shared_ptr<Drawing::GPUContext>& gpuContext, RSTagTracker::SOURCETYPE sourceType);
+    RSTagTracker(const std::shared_ptr<Drawing::GPUContext>& gpuContext, NodeId nodeId,
         RSTagTracker::TAGTYPE tagType, const std::string& name);
-    RSTagTracker(Drawing::GPUContext* gpuContext, Drawing::GPUResourceTag& tag);
+    RSTagTracker(const std::shared_ptr<Drawing::GPUContext>& gpuContext, Drawing::GPUResourceTag& tag);
     void SetTagEnd();
     ~RSTagTracker();
     static void UpdateReleaseResourceEnabled(bool releaseResEnabled);
     static std::string TagType2String(TAGTYPE type);
 private:
     bool isSetTagEnd_ = false;
-    Drawing::GPUContext* gpuContext_ = nullptr;
+    std::shared_ptr<Drawing::GPUContext> gpuContext_ = nullptr;
 };
 } // namespace Rosen
 } // namespace OHOS

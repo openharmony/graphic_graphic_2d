@@ -21,6 +21,10 @@
 #include "drawing_rect.h"
 #include "drawing_typeface.h"
 
+#ifdef RS_ENABLE_VK
+#include "platform/ohos/backend/rs_vulkan_context.h"
+#endif
+
 using namespace testing;
 using namespace testing::ext;
 
@@ -39,7 +43,12 @@ public:
     void TearDown() override;
 };
 
-void NativeFontTest::SetUpTestCase() {}
+void NativeFontTest::SetUpTestCase()
+{
+#ifdef RS_ENABLE_VK
+    RsVulkanContext::SetRecyclable(false);
+#endif
+}
 void NativeFontTest::TearDownTestCase() {}
 void NativeFontTest::SetUp() {}
 void NativeFontTest::TearDown() {}

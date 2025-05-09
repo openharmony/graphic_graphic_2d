@@ -59,7 +59,9 @@ bool DoDrawPoint(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-
+    std::shared_ptr<Drawing::Canvas> canvasTest = std::make_shared<Drawing::Canvas>();
+    std::shared_ptr<Drawing::OverDrawCanvas> overdrawCanvas = std::make_shared<Drawing::OverDrawCanvas>(canvasTest);
+    rsGpu->overdrawCanvas_ = overdrawCanvas;
     float x = GetData<float>();
     float y = GetData<float>();
     Drawing::Point point(x, y);
@@ -72,7 +74,9 @@ bool DoDrawLine(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-
+    std::shared_ptr<Drawing::Canvas> canvasTest = std::make_shared<Drawing::Canvas>();
+    std::shared_ptr<Drawing::OverDrawCanvas> overdrawCanvas = std::make_shared<Drawing::OverDrawCanvas>(canvasTest);
+    rsGpu->overdrawCanvas_ = overdrawCanvas;
     float x = GetData<float>();
     float y = GetData<float>();
     Drawing::Point startPt(x, y);
@@ -90,7 +94,9 @@ bool DoRect(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-
+    std::shared_ptr<Drawing::Canvas> canvasTest = std::make_shared<Drawing::Canvas>();
+    std::shared_ptr<Drawing::OverDrawCanvas> overdrawCanvas = std::make_shared<Drawing::OverDrawCanvas>(canvasTest);
+    rsGpu->overdrawCanvas_ = overdrawCanvas;
     float left = GetData<float>();
     float right = GetData<float>();
     float top = GetData<float>();
@@ -105,7 +111,9 @@ bool DoDrawRoundRect(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-
+    std::shared_ptr<Drawing::Canvas> canvasTest = std::make_shared<Drawing::Canvas>();
+    std::shared_ptr<Drawing::OverDrawCanvas> overdrawCanvas = std::make_shared<Drawing::OverDrawCanvas>(canvasTest);
+    rsGpu->overdrawCanvas_ = overdrawCanvas;
     float left = GetData<float>();
     float right = GetData<float>();
     float top = GetData<float>();
@@ -125,7 +133,9 @@ bool DoDrawNestedRoundRect(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-
+    std::shared_ptr<Drawing::Canvas> canvasTest = std::make_shared<Drawing::Canvas>();
+    std::shared_ptr<Drawing::OverDrawCanvas> overdrawCanvas = std::make_shared<Drawing::OverDrawCanvas>(canvasTest);
+    rsGpu->overdrawCanvas_ = overdrawCanvas;
     float left = GetData<float>();
     float right = GetData<float>();
     float top = GetData<float>();
@@ -155,7 +165,9 @@ bool DoDrawArc(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-
+    std::shared_ptr<Drawing::Canvas> canvasTest = std::make_shared<Drawing::Canvas>();
+    std::shared_ptr<Drawing::OverDrawCanvas> overdrawCanvas = std::make_shared<Drawing::OverDrawCanvas>(canvasTest);
+    rsGpu->overdrawCanvas_ = overdrawCanvas;
     float left = GetData<float>();
     float right = GetData<float>();
     float top = GetData<float>();
@@ -174,7 +186,9 @@ bool DoDrawPie(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-
+    std::shared_ptr<Drawing::Canvas> canvasTest = std::make_shared<Drawing::Canvas>();
+    std::shared_ptr<Drawing::OverDrawCanvas> overdrawCanvas = std::make_shared<Drawing::OverDrawCanvas>(canvasTest);
+    rsGpu->overdrawCanvas_ = overdrawCanvas;
     float left = GetData<float>();
     float right = GetData<float>();
     float top = GetData<float>();
@@ -193,7 +207,9 @@ bool DoDrawOval(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-
+    std::shared_ptr<Drawing::Canvas> canvasTest = std::make_shared<Drawing::Canvas>();
+    std::shared_ptr<Drawing::OverDrawCanvas> overdrawCanvas = std::make_shared<Drawing::OverDrawCanvas>(canvasTest);
+    rsGpu->overdrawCanvas_ = overdrawCanvas;
     float left = GetData<float>();
     float right = GetData<float>();
     float top = GetData<float>();
@@ -209,7 +225,9 @@ bool DoDrawCircle(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-
+    std::shared_ptr<Drawing::Canvas> canvasTest = std::make_shared<Drawing::Canvas>();
+    std::shared_ptr<Drawing::OverDrawCanvas> overdrawCanvas = std::make_shared<Drawing::OverDrawCanvas>(canvasTest);
+    rsGpu->overdrawCanvas_ = overdrawCanvas;
     float x = GetData<float>();
     float y = GetData<float>();
     Drawing::Point point(x, y);
@@ -224,7 +242,9 @@ bool DoDrawBackground(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-
+    std::shared_ptr<Drawing::Canvas> canvasTest = std::make_shared<Drawing::Canvas>();
+    std::shared_ptr<Drawing::OverDrawCanvas> overdrawCanvas = std::make_shared<Drawing::OverDrawCanvas>(canvasTest);
+    rsGpu->overdrawCanvas_ = overdrawCanvas;
     int rgba = GetData<int>();
     Drawing::Brush brush(rgba);
     rsGpu->DrawBackground(brush);
@@ -236,7 +256,9 @@ bool DoDrawShadow(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-
+    std::shared_ptr<Drawing::Canvas> canvasTest = std::make_shared<Drawing::Canvas>();
+    std::shared_ptr<Drawing::OverDrawCanvas> overdrawCanvas = std::make_shared<Drawing::OverDrawCanvas>(canvasTest);
+    rsGpu->overdrawCanvas_ = overdrawCanvas;
     Drawing::Path path;
 
     float x = GetData<float>();
@@ -275,7 +297,9 @@ bool DoDrawBitmap(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-
+    std::shared_ptr<Drawing::Canvas> canvasTest = std::make_shared<Drawing::Canvas>();
+    std::shared_ptr<Drawing::OverDrawCanvas> overdrawCanvas = std::make_shared<Drawing::OverDrawCanvas>(canvasTest);
+    rsGpu->overdrawCanvas_ = overdrawCanvas;
     Drawing::Bitmap bitmap;
     float x = GetData<float>();
     float y = GetData<float>();
@@ -288,7 +312,9 @@ bool DoDrawImage(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-
+    std::shared_ptr<Drawing::Canvas> canvasTest = std::make_shared<Drawing::Canvas>();
+    std::shared_ptr<Drawing::OverDrawCanvas> overdrawCanvas = std::make_shared<Drawing::OverDrawCanvas>(canvasTest);
+    rsGpu->overdrawCanvas_ = overdrawCanvas;
     Drawing::Image image;
     Drawing::SamplingOptions sampling;
 
@@ -303,7 +329,9 @@ bool DoDrawImageRect(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-
+    std::shared_ptr<Drawing::Canvas> canvasTest = std::make_shared<Drawing::Canvas>();
+    std::shared_ptr<Drawing::OverDrawCanvas> overdrawCanvas = std::make_shared<Drawing::OverDrawCanvas>(canvasTest);
+    rsGpu->overdrawCanvas_ = overdrawCanvas;
     Drawing::Image image;
 
     float left = GetData<float>();
@@ -330,7 +358,9 @@ bool DoClear(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-
+    std::shared_ptr<Drawing::Canvas> canvasTest = std::make_shared<Drawing::Canvas>();
+    std::shared_ptr<Drawing::OverDrawCanvas> overdrawCanvas = std::make_shared<Drawing::OverDrawCanvas>(canvasTest);
+    rsGpu->overdrawCanvas_ = overdrawCanvas;
     uint32_t color = GetData<uint32_t>();
     rsGpu->Clear(color);
     return true;
@@ -341,7 +371,9 @@ bool DoAttachPen(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-
+    std::shared_ptr<Drawing::Canvas> canvasTest = std::make_shared<Drawing::Canvas>();
+    std::shared_ptr<Drawing::OverDrawCanvas> overdrawCanvas = std::make_shared<Drawing::OverDrawCanvas>(canvasTest);
+    rsGpu->overdrawCanvas_ = overdrawCanvas;
     uint32_t r = GetData<uint32_t>();
     uint32_t g = GetData<uint32_t>();
     uint32_t b = GetData<uint32_t>();
@@ -361,12 +393,122 @@ bool DoAttachBrush(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return false;
     }
-
+    std::shared_ptr<Drawing::Canvas> canvasTest = std::make_shared<Drawing::Canvas>();
+    std::shared_ptr<Drawing::OverDrawCanvas> overdrawCanvas = std::make_shared<Drawing::OverDrawCanvas>(canvasTest);
+    rsGpu->overdrawCanvas_ = overdrawCanvas;
     int rgba = GetData<int>();
     Drawing::Brush brush(rgba);
     rsGpu->AttachBrush(brush);
     return true;
 }
+
+bool DoDrawPath(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    Drawing::Canvas canvas(SCREEN_WIDTH, SCREEN_HEIGHT);
+    auto rsGpu = std::make_shared<RSGPUOverdrawCanvasListener>(canvas);
+    if (!rsGpu) {
+        return false;
+    }
+    Drawing::Path path;
+    rsGpu->DrawPath(path);
+    std::shared_ptr<Drawing::Canvas> canvasTest = std::make_shared<Drawing::Canvas>();
+    std::shared_ptr<Drawing::OverDrawCanvas> overdrawCanvas = std::make_shared<Drawing::OverDrawCanvas>(canvasTest);
+    rsGpu->overdrawCanvas_ = overdrawCanvas;
+    rsGpu->DrawPath(path);
+    return true;
+}
+
+bool DoDrawShadowStyle(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    Drawing::Canvas canvas(SCREEN_WIDTH, SCREEN_HEIGHT);
+    auto rsGpu = std::make_shared<RSGPUOverdrawCanvasListener>(canvas);
+    if (!rsGpu) {
+        return false;
+    }
+    std::shared_ptr<Drawing::Canvas> canvasTest = std::make_shared<Drawing::Canvas>();
+    std::shared_ptr<Drawing::OverDrawCanvas> overdrawCanvas = std::make_shared<Drawing::OverDrawCanvas>(canvasTest);
+    rsGpu->overdrawCanvas_ = overdrawCanvas;
+    Drawing::Path path;
+
+    float x = GetData<float>();
+    float y = GetData<float>();
+    float z = GetData<float>();
+    float x1 = GetData<float>();
+    float y1 = GetData<float>();
+    float z1 = GetData<float>();
+    Drawing::Point3 planeParams(x, y, z);
+    Drawing::Point3 devLightPos(x1, y1, z1);
+
+    float lightRadius = GetData<float>();
+    uint32_t r = GetData<uint32_t>();
+    uint32_t g = GetData<uint32_t>();
+    uint32_t b = GetData<uint32_t>();
+    uint32_t a = GetData<uint32_t>();
+    uint32_t r1 = GetData<uint32_t>();
+    uint32_t g1 = GetData<uint32_t>();
+    uint32_t b1 = GetData<uint32_t>();
+    uint32_t a1 = GetData<uint32_t>();
+    Drawing::Color ambientColor(r, g, b, a);
+    Drawing::Color spotColor(r1, g1, b1, a1);
+
+    bool isLimitElevation = GetData<bool>();
+    int value = GetData<int>();
+    auto flag = (Drawing::ShadowFlags)value;
+    
+    rsGpu->DrawShadowStyle(path, planeParams, devLightPos,
+        lightRadius, ambientColor, spotColor, flag, isLimitElevation);
+    return true;
+}
+
+bool DoDrawRegion(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    Drawing::Canvas canvas(SCREEN_WIDTH, SCREEN_HEIGHT);
+    auto rsGpu = std::make_shared<RSGPUOverdrawCanvasListener>(canvas);
+    if (!rsGpu) {
+        return false;
+    }
+    std::shared_ptr<Drawing::Canvas> canvasTest = std::make_shared<Drawing::Canvas>();
+    std::shared_ptr<Drawing::OverDrawCanvas> overdrawCanvas = std::make_shared<Drawing::OverDrawCanvas>(canvasTest);
+    rsGpu->overdrawCanvas_ = overdrawCanvas;
+
+    Drawing::Path path;
+    rsGpu->DrawPath(path);
+
+    Drawing::Region region;
+    rsGpu->DrawRegion(region);
+
+    Drawing::Picture picture;
+    rsGpu->DrawPicture(picture);
+    return true;
+}
+
 } // namespace Rosen
 } // namespace OHOS
 /* Fuzzer entry point */
@@ -392,6 +534,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoDrawImageRect(data, size);
     OHOS::Rosen::DoClear(data, size);
     OHOS::Rosen::DoAttachPen(data, size);
-    OHOS::Rosen::DoAttachBrush(data, size);
+    OHOS::Rosen::DoDrawPath(data, size);
+    OHOS::Rosen::DoDrawShadowStyle(data, size);
+    OHOS::Rosen::DoDrawRegion(data, size);
     return 0;
 }

@@ -524,7 +524,7 @@ bool RSMarshallingHelper::ReadColorSpaceFromParcel(Parcel& parcel, std::shared_p
 bool RSMarshallingHelper::UnmarshallingNoLazyGeneratedImage(Parcel& parcel,
     std::shared_ptr<Drawing::Image>& val, void*& imagepixelAddr)
 {
-    size_t pixmapSize{0};
+    uint32_t pixmapSize{0};
     if (!parcel.ReadUint32(pixmapSize)) {
         ROSEN_LOGE("RSMarshallingHelper::UnmarshallingNoLazyGeneratedImage Read pixmapSize failed");
         return false;
@@ -536,14 +536,14 @@ bool RSMarshallingHelper::UnmarshallingNoLazyGeneratedImage(Parcel& parcel,
         return false;
     }
 
-    size_t rb{0};
+    uint32_t rb{0};
     int width{0};
     int height{0};
     if (!parcel.ReadUint32(rb) || !parcel.ReadInt32(width) || !parcel.ReadInt32(height)) {
         ROSEN_LOGE("RSMarshallingHelper::UnmarshallingNoLazyGeneratedImage Read ImageInfo failed");
         return false;
     }
-    size_t ct{0};
+    uint32_t ct{0};
     if (!parcel.ReadUint32(ct)) {
         ROSEN_LOGE("RSMarshallingHelper::UnmarshallingNoLazyGeneratedImage Read ct failed");
         return false;
@@ -552,7 +552,7 @@ bool RSMarshallingHelper::UnmarshallingNoLazyGeneratedImage(Parcel& parcel,
     if (ct >= Drawing::ColorType::COLORTYPE_ALPHA_8 && ct <= Drawing::ColorType::COLORTYPE_RGB_888X) {
         colorType = static_cast<Drawing::ColorType>(ct);
     }
-    size_t at{0};
+    uint32_t at{0};
     if (!parcel.ReadUint32(at)) {
         ROSEN_LOGE("RSMarshallingHelper::UnmarshallingNoLazyGeneratedImage Read at failed");
         return false;
@@ -636,7 +636,7 @@ bool RSMarshallingHelper::SkipImage(Parcel& parcel)
         ROSEN_LOGD("RSMarshallingHelper::SkipImage lazy");
         return SkipData(parcel);
     } else {
-        size_t pixmapSize{0};
+        uint32_t pixmapSize{0};
         if (!parcel.ReadUint32(pixmapSize)) {
             ROSEN_LOGE("RSMarshallingHelper::SkipImage Read pixmapSize failed");
             return false;
@@ -751,6 +751,7 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSLi
         return flag;
     }
     bool success = parcel.WriteInt32(1) && Marshalling(parcel, val->blurRadius_);
+    success &= Marshalling(parcel, val->isRadiusGradient_);
     success &= parcel.WriteUint32(static_cast<uint32_t>(val->fractionStops_.size()));
     for (size_t i = 0; i < val->fractionStops_.size(); i++) {
         success &= Marshalling(parcel, val->fractionStops_[i].first);
@@ -770,9 +771,11 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSLinear
         return true;
     }
     float blurRadius;
+    bool isRadiusGradient = false;
     std::vector<std::pair<float, float>> fractionStops;
     GradientDirection direction = GradientDirection::NONE;
     bool success = Unmarshalling(parcel, blurRadius);
+    success &= Unmarshalling(parcel, isRadiusGradient);
     uint32_t fractionStopsSize{0};
     if (!parcel.ReadUint32(fractionStopsSize)) {
         ROSEN_LOGE("RSMarshallingHelper::Unmarshalling RSLinearGradientBlurPara Read fractionStopsSize failed");
@@ -800,6 +803,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSLinear
     success &= Unmarshalling(parcel, direction);
     if (success) {
         val = std::make_shared<RSLinearGradientBlurPara>(blurRadius, fractionStops, direction);
+        val->isRadiusGradient_ = isRadiusGradient;
     }
     return success;
 }
@@ -1945,8 +1949,13 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Draw
             }
             auto surfaceBuffer = object->surfaceBuffer_;
             MessageParcel* parcelSurfaceBuffer =  static_cast<MessageParcel*>(&parcel);
-            WriteSurfaceBufferImpl(
-                *parcelSurfaceBuffer, surfaceBuffer->GetSeqNum(), surfaceBuffer);
+            if (surfaceBuffer) {
+                parcel.WriteBool(true);
+                WriteSurfaceBufferImpl(
+                    *parcelSurfaceBuffer, surfaceBuffer->GetSeqNum(), surfaceBuffer);
+            } else {
+                parcel.WriteBool(false);
+            }
             auto acquireFence = object->acquireFence_;
             if (acquireFence) {
                 parcel.WriteBool(true);
@@ -2202,13 +2211,24 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
         };
         std::vector<std::shared_ptr<Drawing::SurfaceBufferEntry>> surfaceBufferEntryVec;
         for (uint32_t i = 0; i < surfaceBufferEntrySize; ++i) {
-            sptr<SurfaceBuffer> surfaceBuffer;
-            MessageParcel* parcelSurfaceBuffer = static_cast<MessageParcel*>(&parcel);
-            uint32_t sequence = 0U;
-            GSError retCode = ReadSurfaceBufferImpl(*parcelSurfaceBuffer, sequence, surfaceBuffer, readSafeFdFunc);
-            if (retCode != GSERROR_OK) {
-                ROSEN_LOGE("RSMarshallingHelper::Unmarshalling DrawCmdList failed read surfaceBuffer: %{public}d %{public}d", i, retCode);
+            if (RS_PROFILER_IF_NEED_TO_SKIP_DRAWCMD_SURFACE(parcel)) {
+                continue;
+            }
+            sptr<SurfaceBuffer> surfaceBuffer = nullptr;
+            bool hasSurfaceBuffer{false};
+            if (!parcel.ReadBool(hasSurfaceBuffer)) {
+                ROSEN_LOGE("RSMarshallingHelper::Unmarshalling DrawCmdList Read hasSurfaceBuffer failed");
                 return false;
+            }
+            MessageParcel* parcelSurfaceBuffer = static_cast<MessageParcel*>(&parcel);
+            if (hasSurfaceBuffer) {
+                uint32_t sequence = 0U;
+                GSError retCode = ReadSurfaceBufferImpl(*parcelSurfaceBuffer, sequence, surfaceBuffer, readSafeFdFunc);
+                if (retCode != GSERROR_OK) {
+                    ROSEN_LOGE("RSMarshallingHelper::Unmarshalling "
+                        "DrawCmdList failed read surfaceBuffer: %{public}d %{public}d", i, retCode);
+                    return false;
+                }
             }
             sptr<SyncFence> acquireFence = nullptr;
             bool hasAcquireFence{false};

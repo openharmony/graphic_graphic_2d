@@ -1754,5 +1754,37 @@ HWTEST_F(RSPaintFilterCanvasTest, IsWindowFreezeCaptureTest, TestSize.Level1)
     paintFilterCanvas_->SetIsWindowFreezeCapture(true);
     EXPECT_EQ(paintFilterCanvas_->GetIsWindowFreezeCapture(), true);
 }
+
+/**
+ * @tc.name: IsDrawingCacheTest
+ * @tc.desc: GetIsDrawingCache/SetIsDrawingCache
+ * @tc.type:FUNC
+ * @tc.require:issuesIC0HM8
+ */
+HWTEST_F(RSPaintFilterCanvasTest, IsDrawingCacheTest, TestSize.Level1)
+{
+    ASSERT_NE(paintFilterCanvas_, nullptr);
+    paintFilterCanvas_->SetIsDrawingCache(false);
+    EXPECT_EQ(paintFilterCanvas_->isDrawingCache_, false);
+    paintFilterCanvas_->SetIsDrawingCache(true);
+    EXPECT_EQ(paintFilterCanvas_->isDrawingCache_, true);
+    EXPECT_EQ(paintFilterCanvas_->GetIsDrawingCache(), true);
+}
+
+/**
+ * @tc.name: CacheBehindWindowDataTest
+ * @tc.desc: GetCacheBehindWindowData/SetCacheBehindWindowData
+ * @tc.type:FUNC
+ * @tc.require:issuesIC0HM8
+ */
+HWTEST_F(RSPaintFilterCanvasTest, CacheBehindWindowDataTest, TestSize.Level1)
+{
+    auto data = std::make_shared<RSPaintFilterCanvas::CacheBehindWindowData>();
+    data->filter_ = RSFilter::RSFilter::CreateMaterialFilter(80.0f, 1.9f, 1.0f, 0xFFFFFFE5);
+    paintFilterCanvas_->SetCacheBehindWindowData(data);
+    ASSERT_NE(paintFilterCanvas_->cacheBehindWindowData_, nullptr);
+    ASSERT_NE(paintFilterCanvas_->GetCacheBehindWindowData(), nullptr);
+    paintFilterCanvas_->cacheBehindWindowData_ = nullptr;
+}
 } // namespace Rosen
 } // namespace OHOS

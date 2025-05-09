@@ -26,6 +26,23 @@ class DrawOpItem;
 class DRAWING_API DrawCmdList : public CmdList {
 public:
     /**
+     * @brief   there are five enable type for Hybrid Render
+     * @param   NONE       default type, not enable Hybrid Render
+     * @param   TEXT       text type
+     * @param   SVG        svg type
+     * @param   HMSYMBOL   HMSymbol type
+     * @param   CANVAS     canvasDrawingNode type
+     * @detail  enable type for Hybrid Render
+     */
+    enum class HybridRenderType : uint32_t {
+        NONE,
+        TEXT,
+        SVG,
+        HMSYMBOL,
+        CANVAS
+    };
+
+    /**
      * @brief   there are two mode for DrawCmdList to add new op
      * @param   IMMEDIATE   add op to continouns buffer immediately, overload will benefit from this
      * @param   DEFERRED    add op to vector and then add to contiguous buffer if needed
@@ -201,9 +218,11 @@ public:
 
     void SetReplacedOpList(std::vector<std::pair<size_t, size_t>> replacedOpList);
 
-    void UpdateNodeIdToPicture(NodeId nodeId);
+    DrawCmdList::HybridRenderType GetHybridRenderType() const;
 
-    size_t CountTextBlobNum();
+    void SetHybridRenderType(DrawCmdList::HybridRenderType hybridRenderType);
+
+    void UpdateNodeIdToPicture(NodeId nodeId);
 
     void Dump(std::string& out);
 
@@ -215,6 +234,8 @@ public:
 
     void SetCanvasDrawingOpLimitEnable(bool isEnable);
 
+    bool GetBounds(Rect& rect);
+
 private:
     void ClearCache();
     void GenerateCacheByVector(Canvas* canvas, const Rect* rect);
@@ -222,6 +243,7 @@ private:
 
     void PlaybackToDrawCmdList(std::shared_ptr<DrawCmdList> drawCmdList);
     void PlaybackByVector(Canvas& canvas, const Rect* rect = nullptr);
+    bool UnmarshallingDrawOpsSimple();
     void PlaybackByBuffer(Canvas& canvas, const Rect* rect = nullptr);
     void CaculatePerformanceOpType();
 
@@ -242,6 +264,8 @@ private:
     bool isNeedUnmarshalOnDestruct_ = false;
     bool noNeedUICaptured_ = false;
     bool isCanvasDrawingOpLimitEnabled_ = false;
+
+    DrawCmdList::HybridRenderType hybridRenderType_ = DrawCmdList::HybridRenderType::NONE;
 };
 
 using DrawCmdListPtr = std::shared_ptr<DrawCmdList>;

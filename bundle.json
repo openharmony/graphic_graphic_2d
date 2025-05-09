@@ -33,6 +33,7 @@
       "features": [
         "graphic_2d_feature_product",
         "graphic_2d_feature_enable_pgo",
+        "graphic_2d_feature_enable_codemerge",
         "graphic_2d_feature_pgo_path",
         "graphic_2d_feature_bootanimation_enable",
         "graphic_2d_feature_ace_enable_gpu",
@@ -116,8 +117,9 @@
           "skia",
           "lz4",
           "faultloggerd",
-          "glslang",
-          "freeytype"
+          "freetype",
+          "rust_cxx",
+          "media_foundation"
         ],
         "third_party": [
           "skia"

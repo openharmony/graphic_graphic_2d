@@ -64,8 +64,8 @@ ohos_unittest("2d_graphics_ndk_test") {
     "$graphic_2d_root/rosen/modules/2d_graphics/src",
     "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing/engine_adapter",
     "$graphic_2d_root/rosen/modules/render_service_client",
+    "$graphic_2d_root/rosen/modules/render_service_base/src",
     "$rosen_text_root/service/texgine/src",
-    "//third_party/googletest/googletest/include",
   ]
 
   cflags_cc = [
@@ -79,7 +79,6 @@ ohos_unittest("2d_graphics_ndk_test") {
       "$rosen_text_root/interface/export",
       "$rosen_text_root/adapter/skia",
       "$graphic_2d_root/rosen/modules/render_service_base/include",
-      "//third_party/skia",
     ]
     defines += [ "USE_GRAPHIC_TEXT_GINE" ]
   } else {
@@ -94,7 +93,6 @@ ohos_unittest("2d_graphics_ndk_test") {
     "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
     "$graphic_2d_root/rosen/modules/2d_graphics/drawing_ndk:native_drawing_ndk",
     "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
-    "//third_party/googletest:gtest_main",
   ]
 
   subsystem_name = "graphic"

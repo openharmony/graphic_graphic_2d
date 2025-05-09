@@ -14,24 +14,25 @@
 #####################hydra-fuzz###################
 import("//build/config/features.gni")
 import("//build/test.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
 module_output_path = "graphic_2d/graphic_2d"
 
 ##############################fuzztest##########################################
 ohos_fuzztest("RSMarshallingHelperFuzzTest") {
   module_out_path = module_output_path
-  fuzz_config_file = "../../../../../test/render_service/render_service_base/fuzztest/rsmarshallinghelper_fuzzer"
+  fuzz_config_file = "$graphic_2d_root/rosen/test/render_service/render_service_base/fuzztest/rsmarshallinghelper_fuzzer"
   include_dirs = [
-    "../../../../../modules/render_service_base/include",
-    "../../../../../modules/render_service_base/render_service_base/src",
-    "../../../../../modules/render_service_profiler",
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
+    "$graphic_2d_root/rosen/modules/render_service_base/render_service_base/src",
+    "$graphic_2d_root/rosen/modules/render_service_profiler",
   ]
 
   deps = [
-    "../../../../../modules/2d_graphics:2d_graphics",
-    "../../../../../modules/render_service:librender_service",
-    "../../../../../modules/render_service_base:librender_service_base",
-    "../../../../../modules/render_service_client:librender_service_client",
-    "../../../../../modules/render_service_client:render_service_client_src",
+    "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
+    "$graphic_2d_root/rosen/modules/render_service:librender_service",
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
+    "$graphic_2d_root/rosen/modules/render_service_client:render_service_client_src",
   ]
   cflags = [
     "-g",

@@ -12,6 +12,7 @@
 # limitations under the License.
 
 import("//build/test.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 module_out_path = "graphic_2d/graphic_2d/utils/socketpair"
 
@@ -47,10 +48,9 @@ ohos_static_library("socketpair_test_common") {
   testonly = true
   public_configs = [ ":socketpair_test_config" ]
 
-  public_deps = [
-    "//foundation/graphic/graphic_2d/utils/socketpair:socketpair",
-    "//third_party/googletest:gtest_main",
-  ]
+  public_deps =
+      [ "$graphic_2d_root/utils/socketpair:socketpair" ]
+  external_deps = [ "googletest:gtest_main" ]
   subsystem_name = "graphic"
   part_name = "graphic_2d"
 }

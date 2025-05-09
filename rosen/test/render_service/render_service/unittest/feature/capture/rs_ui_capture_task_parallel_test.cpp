@@ -91,6 +91,9 @@ class RSUiCaptureTaskParallelTest : public testing::Test {
 public:
     static void SetUpTestCase()
     {
+#ifdef RS_ENABLE_VK
+        RsVulkanContext::SetRecyclable(false);
+#endif
         rsInterfaces_ = &RSInterfaces::GetInstance();
 
         RSTestUtil::InitRenderNodeGC();
@@ -281,8 +284,8 @@ HWTEST_F(RSUiCaptureTaskParallelTest, TakeSurfaceCaptureForUiCanvasNode001, Func
 HWTEST_F(RSUiCaptureTaskParallelTest, TakeSurfaceCaptureForUiCanvasNode002, Function | SmallTest | Level2)
 {
     auto canvasNode = RSCanvasNode::Create();
-    canvasNode->SetBounds(0.0f, 0.0f, 10000, 10000);
-    canvasNode->SetFrame(0.0f, 0.0f, 10000, 10000);
+    canvasNode->SetBounds(0.0f, 0.0f, 30000, 30000);
+    canvasNode->SetFrame(0.0f, 0.0f, 30000, 30000);
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
 
@@ -548,17 +551,10 @@ HWTEST_F(RSUiCaptureTaskParallelTest, CreateResources003, Function | SmallTest |
     auto parent3 = std::make_shared<RSSurfaceRenderNode>(parentNodeId, std::make_shared<RSContext>(), true);
     parent3->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
     parent3->hasSubNodeShouldPaint_ = true;
-    parent3->lastFrameUifirstFlag_ = MultiThreadCacheType::LEASH_WINDOW;
+    parent3->lastFrameUifirstFlag_ = MultiThreadCacheType::NONFOCUS_WINDOW;
+    parent3->renderContent_->renderProperties_.SetBoundsWidth(1024.0f);
+    parent3->renderContent_->renderProperties_.SetBoundsHeight(1024.0f);
     renderNode->parent_ = parent3;
-    ASSERT_EQ(renderNodeHandle->CreateResources(specifiedAreaRect), false);
-
-    auto parent4 = std::make_shared<RSSurfaceRenderNode>(parentNodeId, std::make_shared<RSContext>(), true);
-    parent4->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
-    parent4->hasSubNodeShouldPaint_ = true;
-    parent4->lastFrameUifirstFlag_ = MultiThreadCacheType::NONFOCUS_WINDOW;
-    parent4->renderContent_->renderProperties_.SetBoundsWidth(1024.0f);
-    parent4->renderContent_->renderProperties_.SetBoundsHeight(1024.0f);
-    renderNode->parent_ = parent4;
     ASSERT_EQ(renderNodeHandle->CreateResources(specifiedAreaRect), true);
 }
 

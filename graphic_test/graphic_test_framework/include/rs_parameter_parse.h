@@ -27,8 +27,9 @@ private:
     RSParameterParse() {}
 
 public:
-    static const RSParameterParse& Instance();
+    static RSParameterParse& Instance();
     static void Parse(int argc, char **argv);
+    void SetSkipCapture(bool isSkip);
 
     std::string imageSavePath = "/data/local/graphic_test/";
     int testCaseWaitTime = 1000; //ms
@@ -37,6 +38,7 @@ public:
     std::unordered_set<RSGraphicTestType> filterTestTypes = {};
     RSGraphicTestMode runTestMode = RSGraphicTestMode::ALL;
     int32_t vsyncRate = 1;
+    bool skipCapture_ = false;
 };
 
 } // namespace Rosen

@@ -87,7 +87,7 @@ void RSVideoFrameRateVote::SendDelayTask()
 void RSVideoFrameRateVote::CancelDelayTask()
 {
     std::lock_guard<ffrt::mutex> autoLock(ffrtMutex_);
-    if (taskHandler_) {
+    if (ffrtQueue_ && taskHandler_) {
         ffrtQueue_->cancel(taskHandler_);
         taskHandler_ = nullptr;
     }

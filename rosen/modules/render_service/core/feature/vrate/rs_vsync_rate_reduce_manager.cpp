@@ -44,10 +44,15 @@ constexpr int VSYNC_RATE_TABLE[][4] = {
 constexpr float V_VAL_MIN = 0.0f;
 constexpr float V_VAL_MAX = 1.0f;
 constexpr float WORKLOAD_TIMES[] = {1.0f, 1.5f, 2.0f, 2.5f};
+// WORKLOAD_TIMES + LEVEL_RANGE_UP, LEVEL_RANGE_UP is 0.0f;
+constexpr float WORKLOAD_TIMES_UP[] = {1.0f, 1.5f, 2.0f, 2.5f};
+// WORKLOAD_TIMES - LEVEL_RANGE_DOWN, LEVEL_RANGE_DOWN is 0.2f;
+constexpr float WORKLOAD_TIMES_DOWN[] = {0.8f, 1.3f, 1.8f, 2.3f};
 constexpr float V_VAL_INTERVALS[] = {V_VAL_MAX, 0.75f, 0.5f, 0.25f, V_VAL_MIN};
 constexpr int BALANCE_FRAME_COUNT = 3;
 constexpr int WORKLOAD_TIMES_SIZE = sizeof(WORKLOAD_TIMES) / sizeof(WORKLOAD_TIMES[0]);
 constexpr int WORKLOAD_LEVEL_COUNT = sizeof(VSYNC_RATE_TABLE) / sizeof(VSYNC_RATE_TABLE[0]);
+
 // v_val of the v-rate result
 constexpr float V_VAL_LEVEL_1 = 1.0f;
 constexpr float V_VAL_LEVEL_2 = 0.8f;
@@ -189,11 +194,32 @@ int RSVsyncRateReduceManager::UpdateRatesLevel()
         }
         frameDurations_.pop_front();
     }
-    int plusLevel = -1;
-    for (int i = WORKLOAD_TIMES_SIZE; i > 0; --i) {
-        if (totalDuration > static_cast<float>(BALANCE_FRAME_COUNT) * WORKLOAD_TIMES[i - 1]) {
-            plusLevel = i;
+    // stale rate
+    int plusLevel = 0;
+    // 1: level up
+    auto lastRatesLevel = curRatesLevel_;
+    int newLevel = -1;
+    for (int i = WORKLOAD_TIMES_SIZE - 1; i >= lastRatesLevel; --i) {
+        if (totalDuration > static_cast<float>(BALANCE_FRAME_COUNT) * WORKLOAD_TIMES_UP[i]) {
+            newLevel = i + 1;
             break;
+        }
+    }
+    if (newLevel > lastRatesLevel) {
+        plusLevel = newLevel;
+    }
+
+    // 2: level down
+    if (newLevel <= 0) {
+        newLevel = lastRatesLevel;
+        for (int i = 0; i <= lastRatesLevel; ++i) {
+            if (totalDuration < static_cast<float>(BALANCE_FRAME_COUNT) * WORKLOAD_TIMES_DOWN[i]) {
+                newLevel = i;
+                break;
+            }
+        }
+        if (newLevel < lastRatesLevel) {
+            plusLevel = -1; // only down one level
         }
     }
     int tempLevel = plusLevel > 0 ? plusLevel : (curRatesLevel_ + plusLevel);
@@ -280,7 +306,7 @@ int RSVsyncRateReduceManager::GetRateByBalanceLevel(double vVal)
     if (vVal <= 0) {
         return INVISBLE_WINDOW_VSYNC_RATIO;
     }
-    if (vVal <= V_VAL_LEVEL_6) {
+    if (vVal <= V_VAL_LEVEL_6 && curRatesLevel_ != 0) {
         return V_VAL_LEVEL_6_WINDOW_VSYNC_RATIO;
     }
     if (vVal >= V_VAL_INTERVALS[0]) {

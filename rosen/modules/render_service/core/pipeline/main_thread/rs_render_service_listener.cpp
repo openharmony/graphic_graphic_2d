@@ -67,6 +67,14 @@ void RSRenderServiceListener::OnBufferAvailable()
         RSMainThread::Instance()->ForceRefreshForUni();
         return;
     }
+    if ((node->GetAncoFlags() & static_cast<uint32_t>(AncoFlags::FORCE_REFRESH)) != 0) {
+        node->SetAncoFlags(node->GetAncoFlags() & (~static_cast<uint32_t>(AncoFlags::FORCE_REFRESH)));
+        RS_TRACE_NAME_FMT("AncoForceRefresh id %lld", node->GetId());
+        RS_LOGD("AncoForceRefresh id %{public}" PRIu64 "", node->GetId());
+        RSMainThread::Instance()->ForceRefreshForUni();
+        return;
+    }
+
     if (auto consumer = surfaceHandler->GetConsumer()) {
         bool supportFastCompose = false;
         GSError ret =  consumer->GetBufferSupportFastCompose(supportFastCompose);
@@ -81,20 +89,29 @@ void RSRenderServiceListener::OnBufferAvailable()
             }
         }
     }
+    if (RSMainThread::Instance()->CheckAdaptiveCompose()) {
+        return;
+    }
     SetBufferInfoAndRequest(node, surfaceHandler, surfaceHandler->GetConsumer());
 }
 
 void RSRenderServiceListener::SetBufferInfoAndRequest(std::shared_ptr<RSSurfaceRenderNode> &node,
     std::shared_ptr<RSSurfaceHandler> &surfaceHandler, const sptr<IConsumerSurface> &consumer)
 {
-    int64_t lastFlushedTimeStamp = 0;
-    if (consumer) {
-        consumer->GetLastFlushedDesiredPresentTimeStamp(lastFlushedTimeStamp);
+    uint64_t id = 0;
+    int64_t lastConsumeTime = 0;
+    uint32_t queueSize = 0;
+    if (consumer != nullptr) {
+        consumer->GetLastConsumeTime(lastConsumeTime);
+        id = consumer->GetUniqueId();
+        queueSize = consumer->GetQueueSize();
     }
     int32_t bufferCount = surfaceHandler->GetAvailableBufferCount();
     std::string name = node->GetName();
-    RSMainThread::Instance()->SetBufferInfo(name, bufferCount, lastFlushedTimeStamp);
-    RSMainThread::Instance()->RequestNextVSync("selfdrawing");
+    RSMainThread::Instance()->SetBufferInfo(id, name, queueSize, bufferCount, lastConsumeTime);
+    int64_t desiredPresentTimestamp = 0;
+    RSMainThread::Instance()->GetFrontBufferDesiredPresentTimeStamp(consumer, desiredPresentTimestamp);
+    RSMainThread::Instance()->RequestNextVSync("selfdrawing", 0, desiredPresentTimestamp);
 }
 
 void RSRenderServiceListener::OnTunnelHandleChange()
@@ -129,8 +146,8 @@ void RSRenderServiceListener::OnCleanCache(uint32_t *bufSeqNum)
         if (curBuffer && bufSeqNum) {
             *bufSeqNum = curBuffer->GetSeqNum();
         }
+        surfaceHandler->ResetBufferAvailableCount();
     }
-    surfaceHandler->ResetBufferAvailableCount();
     std::weak_ptr<RSSurfaceRenderNode> surfaceNode = surfaceRenderNode_;
     RSMainThread::Instance()->PostTask([surfaceNode]() {
         auto node = surfaceNode.lock();

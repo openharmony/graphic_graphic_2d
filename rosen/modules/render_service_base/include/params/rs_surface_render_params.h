@@ -48,6 +48,7 @@ struct RSLayerInfo {
     GraphicLayerType layerType = GraphicLayerType::GRAPHIC_LAYER_TYPE_GRAPHIC;
     int32_t layerSource;
     bool arsrTag = true;
+    bool copybitTag = false;
     bool operator==(const RSLayerInfo& layerInfo) const
     {
         return (srcRect == layerInfo.srcRect) && (dstRect == layerInfo.dstRect) &&
@@ -55,7 +56,7 @@ struct RSLayerInfo {
             (zOrder == layerInfo.zOrder) && (blendType == layerInfo.blendType) &&
             (transformType == layerInfo.transformType) && (ROSEN_EQ(alpha, layerInfo.alpha)) &&
             (layerSource == layerInfo.layerSource) && (layerType == layerInfo.layerType) &&
-            (arsrTag == layerInfo.arsrTag);
+            (arsrTag == layerInfo.arsrTag) && (copybitTag == layerInfo.copybitTag);
     }
 #endif
 };
@@ -314,6 +315,8 @@ public:
 
     RectI GetScreenRect() const;
     void RecordScreenRect(RectI rect);
+    void RecordDirtyRegionMatrix(const Drawing::Matrix& matrix);
+    const Drawing::Matrix& GetDirtyRegionMatrix();
 
     void SetOcclusionVisible(bool visible);
     bool GetOcclusionVisible() const override;
@@ -375,10 +378,10 @@ public:
     void SetGlobalPositionEnabled(bool isEnabled);
     bool GetGlobalPositionEnabled() const;
 
-    void SetDRMGlobalPositionEnabled(bool isEnabled);
-    bool GetDRMGlobalPositionEnabled() const;
+    void SetHwcGlobalPositionEnabled(bool isEnabled);
+    bool GetHwcGlobalPositionEnabled() const;
 
-    void SetDRMCrossNode(bool isCrossNode);
+    void SetHwcCrossNode(bool isCrossNode);
     bool IsDRMCrossNode() const;
 
     void SetIsNodeToBeCaptured(bool isNodeToBeCaptured);
@@ -611,7 +614,7 @@ public:
     // [Attention] The function only used for unlocking screen for PC currently
     bool IsCloneNode() const;
 
-    bool GetIsHwcEnabledBySolidLayer()
+    bool GetIsHwcEnabledBySolidLayer() const
     {
         return isHwcEnabledBySolidLayer_;
     }
@@ -620,6 +623,9 @@ public:
     {
         isHwcEnabledBySolidLayer_ = isHwcEnabledBySolidLayer;
     }
+
+    Color GetSolidLayerColor() const { return solidLayerColor_; }
+    void SetSolidLayerColor(const Color& solidLayerColor) { solidLayerColor_ = solidLayerColor; }
 
     void SetNeedCacheSurface(bool needCacheSurface);
     bool GetNeedCacheSurface() const;
@@ -720,6 +726,8 @@ private:
     Color backgroundColor_ = RgbPalette::Transparent();
     bool isHwcEnabledBySolidLayer_ = false;
     RectI screenRect_;
+    Drawing::Matrix dirtyRegionMatrix_;
+    Color solidLayerColor_ = RgbPalette::Transparent();
 
     RectI dstRect_;
     RectI oldDirtyInSurface_;
@@ -791,8 +799,8 @@ private:
     int32_t offsetX_ = 0;
     int32_t offsetY_ = 0;
     float rogWidthRatio_ = 1.0f;
-    bool isDRMGlobalPositionEnabled_ = false;
-    bool isDRMCrossNode_ = false;
+    bool isHwcGlobalPositionEnabled_ = false;
+    bool isHwcCrossNode_ = false;
 
     Drawing::Matrix totalMatrix_;
     float globalAlpha_ = 1.0f;

@@ -53,7 +53,6 @@ public:
     void AddPendingPostNode(NodeId id, std::shared_ptr<RSSurfaceRenderNode>& node,
         MultiThreadCacheType cacheType);
     void AddPendingResetNode(NodeId id, std::shared_ptr<RSSurfaceRenderNode>& node);
-    void AddReuseNode(NodeId id);
 
     bool NeedNextDrawForSkippedNode();
 
@@ -186,6 +185,8 @@ public:
     void MarkSubHighPriorityType(RSSurfaceRenderNode& node);
     void MarkPostNodesPriority();
     void RecordScreenRect(RSSurfaceRenderNode& node, RectI rect);
+    void RecordDirtyRegionMatrix(RSSurfaceRenderNode& node, const Drawing::Matrix& matrix);
+    CacheProcessStatus GetCacheSurfaceProcessedStatus(const RSSurfaceRenderParams& surfaceParams);
 private:
     RSUifirstManager() = default;
     ~RSUifirstManager() = default;
@@ -242,6 +243,11 @@ private:
     bool IsToSubByAppAnimation() const;
     bool QuerySubAssignable(RSSurfaceRenderNode& node, bool isRotation);
     bool GetSubNodeIsTransparent(RSSurfaceRenderNode& node, std::string& dfxMsg);
+    bool CheckHasTransAndFilter(RSSurfaceRenderNode& node);
+    bool HasBgNodeBelowRootNode(RSSurfaceRenderNode& appNode) const;
+
+    // starting
+    void ProcessFirstFrameCache(RSSurfaceRenderNode& node, MultiThreadCacheType cacheType);
 
     bool rotationChanged_ = false;
     bool isUiFirstOn_ = false;
@@ -294,7 +300,6 @@ private:
     std::list<NodeId> sortedSubThreadNodeIds_;
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> pendingResetWindowCachedNodes_;
 
-    std::set<NodeId> reuseNodes_;
     std::set<NodeId> collectedCardNodes_;
     // event list
     std::mutex globalFrameEventMutex_;

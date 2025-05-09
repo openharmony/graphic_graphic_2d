@@ -154,16 +154,57 @@ HWTEST_F(DrawCmdListTest, GenerateCacheByBuffer006, TestSize.Level1)
 }
 
 /**
- * @tc.name: CountTextBlobNum007
- * @tc.desc: Test the CountTextBlobNum function.
+ * @tc.name: GetBounds001
+ * @tc.desc: Test the GetBounds function.
  * @tc.type: FUNC
- * @tc.require: IBJ4VQ
+ * @tc.require: IC2UAC
  */
-HWTEST_F(DrawCmdListTest, CountTextBlobNum007, TestSize.Level1)
+HWTEST_F(DrawCmdListTest, GetBounds001, TestSize.Level1)
 {
     auto drawCmdList = new DrawCmdList(DrawCmdList::UnmarshalMode::IMMEDIATE);
-    size_t textBlobCnt = drawCmdList->CountTextBlobNum();
-    EXPECT_TRUE(textBlobCnt == 0);
+    EXPECT_TRUE(drawCmdList->opAllocator_.GetSize() <= drawCmdList->offset_);
+    Rect rect;
+    bool ret = drawCmdList->GetBounds(rect);
+    EXPECT_FALSE(ret);
+    delete drawCmdList;
+}
+
+/**
+ * @tc.name: GetBounds002
+ * @tc.desc: Test the GetBounds function.
+ * @tc.type: FUNC
+ * @tc.require: IC2UAC
+ */
+HWTEST_F(DrawCmdListTest, GetBounds002, TestSize.Level1)
+{
+    auto drawCmdList = new DrawCmdList(DrawCmdList::UnmarshalMode::IMMEDIATE);
+    drawCmdList->opAllocator_.size_ = drawCmdList->offset_ + 1;
+    EXPECT_TRUE(drawCmdList->opAllocator_.GetSize() > drawCmdList->offset_);
+    Rect rect;
+    bool ret = drawCmdList->GetBounds(rect);
+    EXPECT_TRUE(ret);
+    delete drawCmdList;
+}
+
+/**
+ * @tc.name: GetBounds003
+ * @tc.desc: Test the GetBounds function.
+ * @tc.type: FUNC
+ * @tc.require: IC2UAC
+ */
+HWTEST_F(DrawCmdListTest, GetBounds003, TestSize.Level1)
+{
+    auto drawCmdList = new DrawCmdList(DrawCmdList::UnmarshalMode::IMMEDIATE);
+    drawCmdList->opAllocator_.size_ = drawCmdList->offset_ + 1;
+    EXPECT_TRUE(drawCmdList->opAllocator_.GetSize() > drawCmdList->offset_);
+    drawCmdList->lastOpGenSize_ = drawCmdList->opAllocator_.GetSize();
+    Brush brush;
+    drawCmdList->drawOpItems_.emplace_back(std::make_shared<DrawBackgroundOpItem>(brush));
+    auto opItem = std::make_shared<HybridRenderPixelMapSizeOpItem>(100.0f, 100.0f);
+    drawCmdList->drawOpItems_.emplace_back(opItem);
+    Rect rect;
+    bool ret = drawCmdList->GetBounds(rect);
+    EXPECT_TRUE(ret);
     delete drawCmdList;
 }
 } // namespace Drawing

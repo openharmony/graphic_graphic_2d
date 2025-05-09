@@ -33,7 +33,12 @@ public:
     void TearDown() override;
 };
 
-void RsSubThreadTest::SetUpTestCase() {}
+void RsSubThreadTest::SetUpTestCase()
+{
+#ifdef RS_ENABLE_VK
+    RsVulkanContext::SetRecyclable(false);
+#endif
+}
 void RsSubThreadTest::TearDownTestCase() {}
 void RsSubThreadTest::SetUp() {}
 void RsSubThreadTest::TearDown() {}
@@ -283,9 +288,9 @@ HWTEST_F(RsSubThreadTest, DrawableCache001, TestSize.Level1)
     curThread->DrawableCache(nodeDrawable);
     EXPECT_TRUE(nodeDrawable->GetRenderParams());
 
-    nodeDrawable->SetTaskFrameCount(1);
+    nodeDrawable->GetRsSubThreadCache().SetTaskFrameCount(1);
     curThread->DrawableCache(nodeDrawable);
-    EXPECT_TRUE(nodeDrawable->GetTaskFrameCount());
+    EXPECT_TRUE(nodeDrawable->GetRsSubThreadCache().GetTaskFrameCount());
 }
 
 /**
@@ -303,20 +308,20 @@ HWTEST_F(RsSubThreadTest, DrawableCache002, TestSize.Level1)
     auto node = std::make_shared<const RSSurfaceRenderNode>(0);
     auto nodeDrawable = std::make_shared<DrawableV2::RSSurfaceRenderNodeDrawable>(std::move(node));
     nodeDrawable->renderParams_ = std::make_unique<RSSurfaceRenderParams>(0);
-    nodeDrawable->isTextureValid_ = true;
+    nodeDrawable->GetRsSubThreadCache().isCacheCompletedValid_ = true;
 
     // test task done
-    nodeDrawable->SetTaskFrameCount(1);
+    nodeDrawable->GetRsSubThreadCache().SetTaskFrameCount(1);
     RSUniRenderThread::Instance().IncreaseFrameCount();
     curThread->DrawableCache(nodeDrawable);
-    EXPECT_FALSE(nodeDrawable->IsSubThreadSkip());
-    EXPECT_EQ(nodeDrawable->GetCacheSurfaceProcessedStatus(), CacheProcessStatus::DONE);
+    EXPECT_FALSE(nodeDrawable->GetRsSubThreadCache().IsSubThreadSkip());
+    EXPECT_EQ(nodeDrawable->GetRsSubThreadCache().GetCacheSurfaceProcessedStatus(), CacheProcessStatus::DONE);
 
     // test task skipped
     RSUniRenderThread::Instance().IncreaseFrameCount();
     curThread->DrawableCache(nodeDrawable);
-    EXPECT_TRUE(nodeDrawable->IsSubThreadSkip());
-    EXPECT_EQ(nodeDrawable->GetCacheSurfaceProcessedStatus(), CacheProcessStatus::SKIPPED);
+    EXPECT_TRUE(nodeDrawable->GetRsSubThreadCache().IsSubThreadSkip());
+    EXPECT_EQ(nodeDrawable->GetRsSubThreadCache().GetCacheSurfaceProcessedStatus(), CacheProcessStatus::SKIPPED);
 }
 
 /**

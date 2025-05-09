@@ -41,6 +41,9 @@ std::shared_ptr<RSEglImageManager> RSEglImageManagerTest::eglImageManager_ = nul
 
 void RSEglImageManagerTest::SetUpTestCase()
 {
+#ifdef RS_ENABLE_VK
+    RsVulkanContext::SetRecyclable(false);
+#endif
     renderContext_->InitializeEglContext();
     renderContext_->SetUpGpuContext();
     eglImageManager_ = std::make_shared<RSEglImageManager>(renderContext_->GetEGLDisplay());

@@ -42,7 +42,7 @@ public:
     void SetMaxLum(float maxLum);
     void SetMinLum(float minLum);
     void SetMaxAverageLum(float maxAverageLum);
-    void SetHdrFormats(const std::vector<ScreenHDRFormat>& formats);
+    void SetHdrFormats(std::vector<ScreenHDRFormat> formats);
 
 private:
     bool WriteVector(const std::vector<ScreenHDRFormat>& formats, Parcel &parcel) const;

@@ -21,7 +21,6 @@
 #include <fcntl.h>
 #include <fstream>
 #include <sys/stat.h>
-#include <unicode/brkiter.h>
 #include <unistd.h>
 
 #include "font_config.h"
@@ -138,19 +137,21 @@ bool FontDescriptorCache::ParserInstallFontsPathList(std::vector<std::string>& f
     return ret == Drawing::FontCheckCode::SUCCESSED;
 }
 
+bool FontDescriptorCache::ParserInstallFontsPathList(std::unordered_map<std::string, std::string>& fontPathList)
+{
+    return TextEngine::FontConfigJson::ParseInstallConfig(INSTALL_FONT_CONFIG_FILE, fontPathList) == 0;
+}
+
 std::unordered_set<std::string> FontDescriptorCache::GetInstallFontList()
 {
     std::unordered_set<std::string> fullNameList;
-    std::vector<std::string> fontPathList;
-    if (!ParserInstallFontsPathList(fontPathList)) {
+    TextEngine::FontFileMap fullNameToPath;
+    if (!ParserInstallFontsPathList(fullNameToPath)) {
         TEXT_LOGE("Failed to parser install fonts path list");
         return fullNameList;
     }
-    for (const auto& path : fontPathList) {
-        std::vector<FontDescSharedPtr> descriptors = parser_.ParserFontDescriptorsFromPath(path);
-        for (const auto& item : descriptors) {
-            fullNameList.emplace(item->fullName);
-        }
+    for (const auto& item : fullNameToPath) {
+        fullNameList.emplace(item.first);
     }
     return fullNameList;
 }
@@ -241,19 +242,17 @@ void FontDescriptorCache::GetSystemFontFullNamesByType(
 
 bool FontDescriptorCache::ParseInstallFontDescSharedPtrByName(const std::string& fullName, FontDescSharedPtr& result)
 {
-    std::vector<std::string> fontPathList;
-    if (!ParserInstallFontsPathList(fontPathList)) {
+    TextEngine::FontFileMap fullNameToPath;
+    if (!ParserInstallFontsPathList(fullNameToPath)) {
         TEXT_LOGE("Failed to parser install fonts path list");
         return false;
     }
-    for (const auto& path : fontPathList) {
-        std::vector<FontDescSharedPtr> descriptors = parser_.ParserFontDescriptorsFromPath(path);
-        for (const auto& item : descriptors) {
-            if (item->fullName == fullName) {
-                item->weight = WeightAlignment(item->weight);
-                result = item;
-                return true;
-            }
+    std::vector<FontDescSharedPtr> descriptors = parser_.ParserFontDescriptorsFromPath(fullNameToPath[fullName]);
+    for (const auto& item : descriptors) {
+        if (item->fullName == fullName) {
+            item->weight = WeightAlignment(item->weight);
+            result = item;
+            return true;
         }
     }
     TEXT_LOGE_LIMIT3_MIN("Failed to parser installed font descriptor by full name: %{public}s", fullName.c_str());

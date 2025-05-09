@@ -902,7 +902,9 @@ GSError RSBaseRenderUtil::DropFrameProcess(RSSurfaceHandler& surfaceHandler, uin
     }
     // maxDirtyListSize > 1 means QueueSize >3 too
     if (maxDirtyListSize > 1 && availableBufferCnt >= maxDirtyListSize) {
-        RS_TRACE_NAME("DropFrame");
+        if (IsTagEnabled(HITRACE_TAG_GRAPHIC_AGP)) {
+            RS_TRACE_NAME("DropFrame");
+        }
         IConsumerSurface::AcquireBufferReturnValue returnValue;
         returnValue.fence = SyncFence::InvalidFence();
         int32_t ret = surfaceConsumer->AcquireBuffer(returnValue, static_cast<int64_t>(presentWhen), false);
@@ -955,7 +957,16 @@ Rect RSBaseRenderUtil::MergeBufferDamages(const std::vector<Rect>& damages)
     return {damage.left_, damage.top_, damage.width_, damage.height_};
 }
 
-bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler,
+void RSBaseRenderUtil::MergeBufferDamages(Rect& surfaceDamage, const std::vector<Rect>& damages)
+{
+    RectI damage;
+    std::for_each(damages.begin(), damages.end(), [&damage](const Rect& damageRect) {
+        damage = damage.JoinRect(RectI(damageRect.x, damageRect.y, damageRect.w, damageRect.h));
+    });
+    surfaceDamage = { damage.left_, damage.top_, damage.width_, damage.height_ };
+}
+
+CM_INLINE bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler,
     uint64_t presentWhen, bool dropFrameByPidEnable, bool adaptiveDVSyncEnable, bool needConsume)
 {
     if (surfaceHandler.GetAvailableBufferCount() <= 0) {
@@ -1006,13 +1017,15 @@ bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler,
             "RsDebug surfaceHandler(id: %{public}" PRIu64 ") AcquireBuffer success, acquireTimeStamp = "
             "%{public}" PRIu64 ", buffer timestamp = %{public}" PRId64 ", seq = %{public}" PRIu32 ".",
             surfaceHandler.GetNodeId(), acquireTimeStamp, surfaceBuffer->timestamp, surfaceBuffer->buffer->GetSeqNum());
-        RS_TRACE_NAME_FMT("RsDebug surfaceHandler(id: %" PRIu64 ") AcquireBuffer success, acquireTimeStamp = "
-            "%" PRIu64 ", buffer timestamp = %" PRId64 ", seq = %" PRIu32 ".",
-            surfaceHandler.GetNodeId(), acquireTimeStamp, surfaceBuffer->timestamp,
-            surfaceBuffer->buffer->GetSeqNum());
+        if (IsTagEnabled(HITRACE_TAG_GRAPHIC_AGP)) {
+            RS_TRACE_NAME_FMT("RsDebug surfaceHandler(id: %" PRIu64 ") AcquireBuffer success, acquireTimeStamp = "
+                              "%" PRIu64 ", buffer timestamp = %" PRId64 ", seq = %" PRIu32 ".",
+                surfaceHandler.GetNodeId(), acquireTimeStamp, surfaceBuffer->timestamp,
+                surfaceBuffer->buffer->GetSeqNum());
+        }
         // The damages of buffer will be merged here, only single damage is supported so far
-        Rect damageAfterMerge = MergeBufferDamages(returnValue.damages);
-        if (damageAfterMerge.h <= 0 || damageAfterMerge.w <= 0) {
+        MergeBufferDamages(surfaceBuffer->damageRect, returnValue.damages);
+        if (surfaceBuffer->damageRect.h <= 0 || surfaceBuffer->damageRect.w <= 0) {
             RS_LOGW("RsDebug surfaceHandler(id: %{public}" PRIu64 ") buffer damage is invalid",
                 surfaceHandler.GetNodeId());
         }
@@ -1020,8 +1033,8 @@ bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler,
         // but the damages is specified relative to the top-left in rs.
         // The damages in vk is also transformed to the same as gl now.
         // [planning]: Unify the damage's coordinate systems of vk and gl.
-        damageAfterMerge.y = surfaceBuffer->buffer->GetHeight() - damageAfterMerge.y - damageAfterMerge.h;
-        surfaceBuffer->damageRect = damageAfterMerge;
+        surfaceBuffer->damageRect.y =
+            surfaceBuffer->buffer->GetHeight() - surfaceBuffer->damageRect.y - surfaceBuffer->damageRect.h;
         if (consumer->IsBufferHold()) {
             surfaceHandler.SetHoldBuffer(surfaceBuffer);
             surfaceBuffer = nullptr;
@@ -1581,44 +1594,6 @@ bool RSBaseRenderUtil::WriteSurfaceRenderNodeToPng(const RSSurfaceRenderNode& no
     return WriteToPng(filename, param);
 }
 
-bool RSBaseRenderUtil::WriteCacheRenderNodeToPng(const RSRenderNode& node)
-{
-    auto type = RSSystemProperties::GetDumpSurfaceType();
-    if (type != DumpSurfaceType::SINGLESURFACE && type != DumpSurfaceType::ALLSURFACES) {
-        return false;
-    }
-    uint64_t id = static_cast<uint64_t>(RSSystemProperties::GetDumpSurfaceId());
-    if (type == DumpSurfaceType::SINGLESURFACE && !ROSEN_EQ(node.GetId(), id)) {
-        return false;
-    }
-    std::shared_ptr<Drawing::Surface> surface = node.GetCacheSurface();
-    if (!surface) {
-        return false;
-    }
-
-    int64_t nowVal = GenerateCurrentTimeStamp();
-    std::string filename = "/data/CacheRenderNode_" +
-        std::to_string(node.GetId()) + "_" +
-        std::to_string(nowVal) + ".png";
-    WriteToPngParam param;
-
-    auto image = surface->GetImageSnapshot();
-    if (!image) {
-        return false;
-    }
-    Drawing::BitmapFormat format = { Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_PREMUL };
-    Drawing::Bitmap bitmap;
-    bitmap.Build(image->GetWidth(), image->GetHeight(), format);
-    image->ReadPixels(bitmap, 0, 0);
-    param.width = static_cast<uint32_t>(image->GetWidth());
-    param.height = static_cast<uint32_t>(image->GetHeight());
-    param.data = static_cast<uint8_t *>(bitmap.GetPixels());
-    param.stride = static_cast<uint32_t>(bitmap.GetRowBytes());
-    param.bitDepth = Detail::BITMAP_DEPTH;
-
-    return WriteToPng(filename, param);
-}
-
 bool RSBaseRenderUtil::WriteCacheImageRenderNodeToPng(std::shared_ptr<Drawing::Surface> surface, std::string debugInfo)
 {
     if (!RSSystemProperties::GetDumpImgEnabled()) {
@@ -1882,33 +1857,6 @@ GraphicTransformType RSBaseRenderUtil::GetFlipTransform(GraphicTransformType tra
     }
 }
 
-GraphicTransformType RSBaseRenderUtil::ClockwiseToAntiClockwiseTransform(GraphicTransformType transform)
-{
-    switch (transform) {
-        case GraphicTransformType::GRAPHIC_ROTATE_90: {
-            return GraphicTransformType::GRAPHIC_ROTATE_270;
-        }
-        case GraphicTransformType::GRAPHIC_ROTATE_270: {
-            return GraphicTransformType::GRAPHIC_ROTATE_90;
-        }
-        case GraphicTransformType::GRAPHIC_FLIP_H_ROT90: {
-            return GraphicTransformType::GRAPHIC_FLIP_V_ROT90;
-        }
-        case GraphicTransformType::GRAPHIC_FLIP_H_ROT270: {
-            return GraphicTransformType::GRAPHIC_FLIP_V_ROT270;
-        }
-        case GraphicTransformType::GRAPHIC_FLIP_V_ROT90: {
-            return GraphicTransformType::GRAPHIC_FLIP_H_ROT90;
-        }
-        case GraphicTransformType::GRAPHIC_FLIP_V_ROT270: {
-            return GraphicTransformType::GRAPHIC_FLIP_H_ROT270;
-        }
-        default: {
-            return transform;
-        }
-    }
-}
-
 int RSBaseRenderUtil::RotateEnumToInt(ScreenRotation rotation)
 {
     static const std::map<ScreenRotation, int> screenRotationEnumToIntMap = {
@@ -1974,5 +1922,9 @@ pid_t RSBaseRenderUtil::GetLastSendingPid()
     return lastSendingPid_;
 }
 
+bool RSBaseRenderUtil::PortraitAngle(int angle)
+{
+    return angle == RS_ROTATION_90 || angle == RS_ROTATION_270;
+}
 } // namespace Rosen
 } // namespace OHOS

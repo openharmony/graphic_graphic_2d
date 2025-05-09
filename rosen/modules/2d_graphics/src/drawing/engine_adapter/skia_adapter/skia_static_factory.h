@@ -105,6 +105,7 @@ public:
     static int16_t GetSplitRange(int64_t duration);
     static bool IsOpenPerf();
     static int64_t GetCurrentTime();
+    static void SetCurrentNodeId(uint64_t nodeId);
     static void GrTextureEventConvert2Rs(std::map<std::string, RsTextureEvent>& rsTextureEvent,
        const std::map<std::string, TextureEvent>& grTextureEvent);
     static void GrBlurEventConvert2Rs(std::map<std::string, RsBlurEvent>& rsBlurEvent,

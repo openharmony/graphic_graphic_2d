@@ -829,6 +829,17 @@ HWTEST_F(RSSystemPropertiesTest, GetUIFirstDebugEnabled, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetUIFirstBehindWindowFilterEnabled
+ * @tc.desc: GetUIFirstBehindWindowFilterEnabled Test
+ * @tc.type:FUNC
+ * @tc.require: issuesIC0HM8
+ */
+HWTEST_F(RSSystemPropertiesTest, GetUIFirstBehindWindowFilterEnabled, TestSize.Level1)
+{
+    ASSERT_TRUE(RSSystemProperties::GetUIFirstBehindWindowFilterEnabled());
+}
+
+/**
  * @tc.name: GetDumpImgEnabled
  * @tc.desc: GetDumpImgEnabled Test
  * @tc.type:FUNC
@@ -938,7 +949,7 @@ HWTEST_F(RSSystemPropertiesTest, GetImageGpuResourceCacheEnable, TestSize.Level1
  */
 HWTEST_F(RSSystemPropertiesTest, GetBoolSystemProperty, TestSize.Level1)
 {
-    ASSERT_TRUE(RSSystemProperties::GetBoolSystemProperty(std::string("noName").c_str(), true));
+    EXPECT_FALSE(RSSystemProperties::GetBoolSystemProperty(std::string("noName").c_str(), false));
 }
 
 /**
@@ -1048,5 +1059,163 @@ HWTEST_F(RSSystemPropertiesTest, GetOptimizeHwcComposeAreaEnabled, TestSize.Leve
 {
     ASSERT_TRUE(RSSystemProperties::GetOptimizeHwcComposeAreaEnabled());
 }
+
+/**
+ * @tc.name: GetTimeVsyncDisabled
+ * @tc.desc: GetTimeVsyncDisabled Test
+ * @tc.type:FUNC
+ * @tc.require: issuesIBIA3V
+ */
+HWTEST_F(RSSystemPropertiesTest, GetTimeVsyncDisabled001, TestSize.Level1)
+{
+    ASSERT_FALSE(RSSystemProperties::GetTimeVsyncDisabled());
+}
+
+#ifdef RS_ENABLE_VK
+/**
+ * @tc.name: GetHybridRenderEnabled
+ * @tc.desc: GetHybridRenderEnabled Test
+ * @tc.type:FUNC
+ * @tc.require:issuesIC3UZH
+*/
+HWTEST_F(RSSystemPropertiesTest, GetHybridRenderEnabled, TestSize.Level1)
+{
+    EXPECT_TRUE(RSSystemProperties::GetHybridRenderEnabled());
+}
+ 
+ 
+/**
+ * @tc.name: GetHybridRenderCcmEnabled
+ * @tc.desc: GetHybridRenderCcmEnabled Test
+ * @tc.type:FUNC
+ * @tc.require:issuesIC3UZH
+*/
+HWTEST_F(RSSystemPropertiesTest, GetHybridRenderCcmEnabled, TestSize.Level1)
+{
+    EXPECT_FALSE(RSSystemProperties::GetHybridRenderCcmEnabled());
+}
+ 
+/**
+ * @tc.name: GetHybridRenderSystemEnabled
+ * @tc.desc: GetHybridRenderSystemEnabled Test
+ * @tc.type:FUNC
+ * @tc.require:issuesIC3UZH
+*/
+HWTEST_F(RSSystemPropertiesTest, GetHybridRenderSystemEnabled, TestSize.Level1)
+{
+    EXPECT_TRUE(RSSystemProperties::GetHybridRenderSystemEnabled());
+}
+ 
+/**
+ * @tc.name: GetHybridRenderDfxEnabled
+ * @tc.desc: GetHybridRenderDfxEnabled Test
+ * @tc.type:FUNC
+ * @tc.require:issuesIC3UZH
+*/
+HWTEST_F(RSSystemPropertiesTest, GetHybridRenderDfxEnabled, TestSize.Level1)
+{
+    EXPECT_FALSE(RSSystemProperties::GetHybridRenderDfxEnabled());
+}
+ 
+/**
+ * @tc.name: GetHybridRenderTextBlobLenCount
+ * @tc.desc: GetHybridRenderTextBlobLenCount Test
+ * @tc.type:FUNC
+ * @tc.require:issuesIC3UZH
+*/
+HWTEST_F(RSSystemPropertiesTest, GetHybridRenderTextBlobLenCount, TestSize.Level1)
+{
+    int testValue = 9;
+    EXPECT_EQ(RSSystemProperties::GetHybridRenderTextBlobLenCount(), testValue);
+}
+ 
+/**
+ * @tc.name: GetHybridRenderParallelConvertEnabled
+ * @tc.desc: GetHybridRenderParallelConvertEnabled Test
+ * @tc.type:FUNC
+ * @tc.require:issuesIC3UZH
+*/
+HWTEST_F(RSSystemPropertiesTest, GetHybridRenderParallelConvertEnabled, TestSize.Level1)
+{
+    EXPECT_TRUE(RSSystemProperties::GetHybridRenderParallelConvertEnabled());
+}
+ 
+/**
+ * @tc.name: GetHybridRenderCanvasEnabled
+ * @tc.desc: GetHybridRenderCanvasEnabled Test
+ * @tc.type:FUNC
+ * @tc.require:issuesIC3UZH
+*/
+HWTEST_F(RSSystemPropertiesTest, GetHybridRenderCanvasEnabled, TestSize.Level1)
+{
+    EXPECT_FALSE(RSSystemProperties::GetHybridRenderCanvasEnabled());
+}
+ 
+/**
+ * @tc.name: GetHybridRenderMemeoryReleaseEnabled
+ * @tc.desc: GetHybridRenderMemeoryReleaseEnabled Test
+ * @tc.type:FUNC
+ * @tc.require:issuesIC3UZH
+*/
+HWTEST_F(RSSystemPropertiesTest, GetHybridRenderMemeoryReleaseEnabled, TestSize.Level1)
+{
+    EXPECT_TRUE(RSSystemProperties::GetHybridRenderMemeoryReleaseEnabled());
+}
+
+/**
+ * @tc.name: GetHybridRenderTextBlobEnabled
+ * @tc.desc: GetHybridRenderTextBlobEnabled Test
+ * @tc.type:FUNC
+ * @tc.require:issuesIC3UZH
+*/
+HWTEST_F(RSSystemPropertiesTest, GetHybridRenderTextBlobEnabled, TestSize.Level1)
+{
+    EXPECT_TRUE(RSSystemProperties::GetHybridRenderTextBlobEnabled());
+}
+ 
+/**
+ * @tc.name: GetHybridRenderSvgEnabled
+ * @tc.desc: GetHybridRenderSvgEnabled Test
+ * @tc.type:FUNC
+ * @tc.require:issuesIC3UZH
+*/
+HWTEST_F(RSSystemPropertiesTest, GetHybridRenderSvgEnabled, TestSize.Level1)
+{
+    EXPECT_TRUE(RSSystemProperties::GetHybridRenderSvgEnabled());
+}
+ 
+/**
+ * @tc.name: GetHybridRenderHmsymbolEnabled
+ * @tc.desc: GetHybridRenderHmsymbolEnabled Test
+ * @tc.type:FUNC
+ * @tc.require:issuesIC3UZH
+*/
+HWTEST_F(RSSystemPropertiesTest, GetHybridRenderHmsymbolEnabled, TestSize.Level1)
+{
+    EXPECT_TRUE(RSSystemProperties::GetHybridRenderHmsymbolEnabled());
+}
+ 
+/**
+ * @tc.name: GetHybridRenderSwitch
+ * @tc.desc: GetHybridRenderSwitch Test
+ * @tc.type:FUNC
+ * @tc.require:issuesIC3UZH
+*/
+HWTEST_F(RSSystemPropertiesTest, GetHybridRenderSwitch, TestSize.Level1)
+{
+    EXPECT_NE(RSSystemProperties::GetHybridRenderSwitch(ComponentEnableSwitch::TEXTBLOB), 0);
+}
+
+/**
+ * @tc.name: GetHybridRenderSwitch2
+ * @tc.desc: GetHybridRenderSwitch Test
+ * @tc.type:FUNC
+ * @tc.require:issuesIC3UZH
+*/
+HWTEST_F(RSSystemPropertiesTest, GetHybridRenderSwitch2, TestSize.Level1)
+{
+    EXPECT_NE(RSSystemProperties::GetHybridRenderSwitch(ComponentEnableSwitch::SVG), 0);
+}
+#endif
 } // namespace Rosen
 } // namespace OHOS

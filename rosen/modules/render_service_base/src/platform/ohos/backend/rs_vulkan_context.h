@@ -25,6 +25,7 @@
 #include "include/gpu/vk/GrVkExtensions.h"
 #include "vulkan/vulkan_core.h"
 #include "vulkan/vulkan_xeg.h"
+#include "platform/ohos/backend/rs_vulkan_header_ext.h"
 
 #define VK_NO_PROTOTYPES 1
 
@@ -38,7 +39,7 @@
 namespace OHOS {
 namespace Rosen {
 enum class VulkanInterfaceType : uint32_t {
-    UNI_RENDER = 0,
+    BASIC_RENDER = 0,
     PROTECTED_REDRAW,
     UNPROTECTED_REDRAW,
     MAX_INTERFACE_TYPE,
@@ -208,6 +209,7 @@ public:
     DEFINE_FUNC(ImportSemaphoreFdKHR);
     DEFINE_FUNC(GetPhysicalDeviceFeatures2);
     DEFINE_FUNC(SetFreqAdjustEnable);
+    DEFINE_FUNC(GetSemaphoreFdKHR);
 #undef DEFINE_FUNC
 
     VkPhysicalDevice GetPhysicalDevice() const
@@ -257,7 +259,7 @@ private:
     std::mutex hGraphicsQueueMutex_;
     static void* handle_;
     bool acquiredMandatoryProcAddresses_ = false;
-    VkInstance instance_ = VK_NULL_HANDLE;
+    static VkInstance instance_;
     VkPhysicalDevice physicalDevice_ = VK_NULL_HANDLE;
     uint32_t graphicsQueueFamilyIndex_ = UINT32_MAX;
     VkDevice device_ = VK_NULL_HANDLE;
@@ -265,12 +267,13 @@ private:
     VkPhysicalDeviceFeatures2 physicalDeviceFeatures2_;
     VkPhysicalDeviceProtectedMemoryFeatures* protectedMemoryFeatures_ = nullptr;
     VkPhysicalDeviceSamplerYcbcrConversionFeatures ycbcrFeature_;
+    VkDeviceMemoryExclusiveThresholdHUAWEI deviceMemoryExclusiveThreshold_;
     GrVkExtensions skVkExtensions_;
     RsVulkanMemStat mVkMemStat;
 
     // static thread_local GrVkBackendContext backendContext_;
     GrVkBackendContext backendContext_;
-    VulkanInterfaceType interfaceType_ = VulkanInterfaceType::UNI_RENDER;
+    VulkanInterfaceType interfaceType_ = VulkanInterfaceType::BASIC_RENDER;
     RsVulkanInterface(const RsVulkanInterface &) = delete;
     RsVulkanInterface &operator=(const RsVulkanInterface &) = delete;
 
@@ -298,9 +301,29 @@ private:
 
 class RsVulkanContext {
 public:
+    class DrawContextHolder {
+    public:
+        DrawContextHolder(std::function<void()> callback) : destructCallback_(std::move(callback)) {}
+
+        ~DrawContextHolder()
+        {
+            destructCallback_();
+        }
+    private:
+        std::function<void()> destructCallback_;
+    };
     static RsVulkanContext& GetSingleton(const std::string& cacheDir = "");
+    static RsVulkanContext& GetRecyclableSingleton(const std::string& cacheDir = "");
+    static void ReleaseRecyclableSingleton();
     explicit RsVulkanContext(std::string cacheDir = "");
-    ~RsVulkanContext() {};
+    void InitVulkanContextForHybridRender(const std::string& cacheDir);
+    void InitVulkanContextForUniRender(const std::string& cacheDir);
+    ~RsVulkanContext()
+    {
+        std::lock_guard<std::mutex> lock(drawingContextMutex_);
+        drawingContextMap_.clear();
+        protectedDrawingContextMap_.clear();
+    }
 
     RsVulkanContext(const RsVulkanContext&) = delete;
     RsVulkanContext &operator=(const RsVulkanContext&) = delete;
@@ -368,17 +391,30 @@ public:
         return GetRsVulkanInterface().GetMemoryHandler();
     }
 
-    bool GetIsProtected() const
-    {
-        return isProtected_;
-    }
+    bool GetIsProtected() const;
+
+    static bool IsRecyclable();
+
+    static void SetRecyclable(bool isRecyclable);
+
+    static void SaveNewDrawingContext(int tid, std::shared_ptr<Drawing::GPUContext> drawingContext);
+
+    static void CleanUpRecyclableDrawingContext(int tid);
 
 private:
     static thread_local bool isProtected_;
     static thread_local VulkanInterfaceType vulkanInterfaceType_;
-    std::vector<std::shared_ptr<RsVulkanInterface>> vulkanInterfaceVec;
-    static thread_local std::shared_ptr<Drawing::GPUContext> drawingContext_;
-    static thread_local std::shared_ptr<Drawing::GPUContext> protectedDrawingContext_;
+    std::vector<std::shared_ptr<RsVulkanInterface>> vulkanInterfaceVec_;
+    // drawing context
+    static thread_local std::weak_ptr<Drawing::GPUContext> drawingContext_;
+    static thread_local std::weak_ptr<Drawing::GPUContext> protectedDrawingContext_;
+    static std::map<int, std::shared_ptr<Drawing::GPUContext>> drawingContextMap_;
+    static std::map<int, std::shared_ptr<Drawing::GPUContext>> protectedDrawingContextMap_;
+    static std::mutex drawingContextMutex_;
+    // use for recyclable singleton
+    static std::unique_ptr<RsVulkanContext> recyclableSingleton_;
+    static std::mutex recyclableSingletonMutex_;
+    static bool isRecyclable_;
 };
 
 } // namespace Rosen

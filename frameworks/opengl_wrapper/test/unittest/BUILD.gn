@@ -14,7 +14,7 @@
 import("//build/test.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
-module_out_path = "graphic_2d/opengl_wrapper"
+module_out_path = "graphic_2d/graphic_2d/opengl_wrapper"
 
 group("unittest") {
   testonly = true
@@ -42,14 +42,14 @@ ohos_unittest("opengl_wrapper_unit_test") {
 
   deps = [
     "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
-    "//third_party/googletest:gmock",
-    "//third_party/googletest:gtest_main",
   ]
 
   external_deps = [
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
+    "googletest:gmock",
+    "googletest:gtest_main",
     "hilog:libhilog",
   ]
 }

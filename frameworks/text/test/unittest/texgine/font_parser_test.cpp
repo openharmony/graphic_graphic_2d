@@ -15,14 +15,12 @@
 
 #include <fstream>
 #include <gtest/gtest.h>
-#include <gmock/gmock.h>
 
 #include "font_config.h"
 #include "font_parser.h"
 #include "cmap_table_parser.h"
 #include "name_table_parser.h"
 #include "post_table_parser.h"
-#include "ranges.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -33,12 +31,6 @@ namespace TextEngine {
 static const std::string FILE_NAME = "/system/fonts/visibility_list.json";
 
 class FontParserTest : public testing::Test {
-};
-
-class MockCmapTableParser : public CmapTableParser {
-public:
-    MockCmapTableParser() {}
-    MOCK_METHOD0(Dump, void());
 };
 
 std::vector<std::string> GetFontSet(const char* fname)
@@ -137,99 +129,6 @@ HWTEST_F(FontParserTest, FontConfigTest2, TestSize.Level1)
 }
 
 /**
- * @tc.name: CmapTableParserTest1
- * @tc.desc: opentype parser test
- * @tc.type:FUNC
- */
-HWTEST_F(FontParserTest, CmapTableParserTest1, TestSize.Level1)
-{
-    MockCmapTableParser mockCmapTableParser;
-    CmapTableParser cmapTableParser_default;
-    char* data = new char[sizeof(CmapTables) + sizeof(EncodingRecord)];
-    CmapTables* p = reinterpret_cast<CmapTables*>(data);
-    p->version = { 0 };
-    p->numTables = { 1 };
-    p->encodingRecords[0].platformID = { 0 };
-    p->encodingRecords[0].encodingID = { 0 };
-    p->encodingRecords[0].subtableOffset = { 0 };
-    CmapTableParser cmapTableParser(data, sizeof(CmapTables) + sizeof(EncodingRecord));
-    cmapTableParser.Dump();
-    struct NameRecord nameRecord;
-    struct NameTable nameTable;
-    nameRecord.encodingId = nameTable.count;
-    EXPECT_EQ(CmapTableParser::Parse(nullptr, 0), nullptr);
-    EXPECT_CALL(mockCmapTableParser, Dump()).Times(1);
-    mockCmapTableParser.Dump();
-}
-
-/**
- * @tc.name: NameTableParserTest1
- * @tc.desc: opentype parser test
- * @tc.type:FUNC
- */
-HWTEST_F(FontParserTest, NameTableParserTest1, TestSize.Level1)
-{
-    NameTableParser nameTableParser(nullptr, 0);
-    struct NameRecord nameRecord;
-    struct NameTable nameTable;
-    nameRecord.encodingId = nameTable.count;
-    EXPECT_EQ(NameTableParser::Parse(nullptr, 0), nullptr);
-    nameTableParser.Dump();
-}
-
-/**
- * @tc.name: NameTableParserTest2
- * @tc.desc: opentype parser test
- * @tc.type:FUNC
- */
-HWTEST_F(FontParserTest, NameTableParserTest2, TestSize.Level1)
-{
-    auto typeface = Drawing::Typeface::MakeDefault();
-    ASSERT_NE(typeface, nullptr);
-    auto tag = HB_TAG('n', 'a', 'm', 'e');
-    auto size = typeface->GetTableSize(tag);
-    ASSERT_GT(size, 0);
-    std::unique_ptr<char[]> tableData = nullptr;
-    tableData = std::make_unique<char[]>(size);
-    auto retTableData = typeface->GetTableData(tag, 0, size, tableData.get());
-    ASSERT_EQ(size, retTableData);
-    hb_blob_t* hblob = nullptr;
-    hblob = hb_blob_create(
-            reinterpret_cast<const char *>(tableData.get()), size, HB_MEMORY_MODE_WRITABLE, tableData.get(), nullptr);
-    ASSERT_NE(hblob, nullptr);
-    const char* data = nullptr;
-    unsigned int length = 0;
-    data = hb_blob_get_data(hblob, nullptr);
-    length = hb_blob_get_length(hblob);
-    auto parseName = std::make_shared<NameTableParser>(data, length);
-    auto nameTable = parseName->Parse(data, length);
-    parseName->Dump();
-    hb_blob_destroy(hblob);
-    EXPECT_NE(nameTable, nullptr);
-}
-
-/**
- * @tc.name: PostTableParserTest1
- * @tc.desc: opentype parser test
- * @tc.type:FUNC
- */
-HWTEST_F(FontParserTest, PostTableParserTest1, TestSize.Level1)
-{
-    PostTable postTable;
-    PostTableParser postTableParser(reinterpret_cast<char*>(&postTable), sizeof(postTable));
-    const PostTable* res = postTableParser.Parse(reinterpret_cast<char*>(&postTable), sizeof(postTable));
-    EXPECT_EQ(res->version.Get(), postTable.version.Get());
-    EXPECT_EQ(res->italicAngle.Get(), postTable.italicAngle.Get());
-    EXPECT_EQ(res->underlinePosition.Get(), postTable.underlinePosition.Get());
-    EXPECT_EQ(res->underlineThickness.Get(), postTable.underlineThickness.Get());
-    EXPECT_EQ(res->isFixedPitch.Get(), postTable.isFixedPitch.Get());
-    EXPECT_EQ(res->minMemType42.Get(), postTable.minMemType42.Get());
-    EXPECT_EQ(res->maxMemType42.Get(), postTable.maxMemType42.Get());
-    EXPECT_EQ(res->minMemType1.Get(), postTable.minMemType1.Get());
-    postTableParser.Dump();
-}
-
-/**
  * @tc.name: OpenTypeBasicTypeTest1
  * @tc.desc: opentype parser test
  * @tc.type:FUNC
@@ -251,24 +150,6 @@ HWTEST_F(FontParserTest, OpenTypeBasicTypeTest1, TestSize.Level1)
     EXPECT_EQ(fixed.Get(), 0);
     std::copy(test, test + sizeof(tag.tags), tag.tags);
     EXPECT_EQ(tag.Get(), test);
-}
-
-/**
- * @tc.name: RangesTest1
- * @tc.desc: opentype parser test
- * @tc.type:FUNC
- */
-HWTEST_F(FontParserTest, RangesTest1, TestSize.Level1)
-{
-    Ranges ranges;
-    struct Ranges::Range range = { 0, 2, 1 };
-    ranges.AddRange(range);
-    struct Ranges::Range range2 = { 4, 5, 2 };
-    ranges.AddRange(range2);
-    EXPECT_EQ(ranges.GetGlyphId(3), Ranges::INVALID_GLYPH_ID);
-    EXPECT_EQ(ranges.GetGlyphId(0), 1);
-    EXPECT_EQ(ranges.GetGlyphId(4), 6);
-    ranges.Dump();
 }
 } // namespace TextEngine
 } // namespace Rosen

@@ -56,7 +56,7 @@ ohos_unittest("RSRenderServiceBaseIpcCallBacksTest") {
 
   configs = [
     ":render_test",
-    "../../../../../modules/render_service_base:export_config",
+    "$graphic_2d_root/rosen/modules/render_service_base:export_config",
   ]
 
   include_dirs = [
@@ -72,8 +72,7 @@ ohos_unittest("RSRenderServiceBaseIpcCallBacksTest") {
   deps = [
     "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
     "$graphic_2d_root/rosen/modules/render_service_client:render_service_client_src",
-    "../../../../../modules/render_service_base:render_service_base_src",
-    "//third_party/googletest:gtest_main",
+    "$graphic_2d_root/rosen/modules/render_service_base:render_service_base_src",
   ]
 
   external_deps = [

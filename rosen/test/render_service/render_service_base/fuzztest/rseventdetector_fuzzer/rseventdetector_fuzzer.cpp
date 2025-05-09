@@ -70,6 +70,8 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     int32_t focusAppUid = GetData<int32_t>();
     OHOS::Rosen::RSBaseEventDetector::EventReportCallback eventCallback = [](const RSSysEventMsg& eventMsg) {};
     RSTimeOutDetector rsTimeOutDetector(timeOutThresholdMs, detectorStringId);
+    rsTimeOutDetector.startTimeStampMs_ = GetData<uint64_t>();
+    rsTimeOutDetector.timeOutThresholdMs_ = GetData<int>();
     rsTimeOutDetector.SetParam(key, value);
     rsTimeOutDetector.SetLoopStartTag();
     rsTimeOutDetector.SetLoopFinishTag(focusAppPid, focusAppUid, key, value);

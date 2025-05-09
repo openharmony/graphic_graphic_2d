@@ -199,9 +199,6 @@ int32_t OH_NativeImage_ReleaseNativeWindowBuffer(OH_NativeImage* image,
     OHNativeWindowBuffer* nativeWindowBuffer, int32_t fenceFd)
 {
     if (image == nullptr || image->consumer == nullptr) {
-        if (fenceFd >= 0) {
-            close(fenceFd);
-        }
         BLOGE("parameter error");
         return SURFACE_ERROR_INVALID_PARAM;
     }
@@ -225,4 +222,13 @@ int32_t OH_ConsumerSurface_SetDefaultSize(OH_NativeImage* image, int32_t width, 
         return SURFACE_ERROR_INVALID_PARAM;
     }
     return image->consumer->SetDefaultSize(width, height);
+}
+
+int32_t OH_NativeImage_SetDropBufferMode(OH_NativeImage* image, bool isOpen)
+{
+    if (image == nullptr || image->consumer == nullptr) {
+        BLOGE("parameter error");
+        return SURFACE_ERROR_INVALID_PARAM;
+    }
+    return image->consumer->SetDropBufferSwitch(isOpen);
 }

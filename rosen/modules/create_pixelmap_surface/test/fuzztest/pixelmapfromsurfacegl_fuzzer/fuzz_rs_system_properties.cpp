@@ -485,11 +485,6 @@ uint32_t RSSystemProperties::GetBlurEffectTerminateLimit()
     return 0;
 }
 
-bool RSSystemProperties::GetTextBlobAsPixelMap()
-{
-    return false;
-}
-
 bool RSSystemProperties::GetUnmarshParallelFlag()
 {
     return false;

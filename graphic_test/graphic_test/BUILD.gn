@@ -14,7 +14,7 @@
 import("//build/test.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
-module_output_path = "graphic_2d/graphic_test/graphic_test"
+module_output_path = "graphic_2d/graphic_2d/graphic_test"
 
 drawing_engine_sources = []
 hardware_manager_sources = []
@@ -58,7 +58,9 @@ rs_display_effect_sources = [
   "rs_display_effect/property_display/geom_skew_test.cpp",
   "rs_display_effect/property_display/geom_transform_test.cpp",
   "rs_display_effect/property_display/geom_translation_test.cpp",
+  "rs_display_effect/restore_playback_display/playback_recover_test.cpp",
   "rs_display_effect/restore_tree_display/load_render_node_tree_file_test.cpp",
+  "rs_display_effect/restore_tree_display/restore_node_tree_file_test.cpp",
 ]
 rs_framework_sources = []
 rs_func_feature_sources = [ "rs_func_feature/component_capture/demo.cpp" ]

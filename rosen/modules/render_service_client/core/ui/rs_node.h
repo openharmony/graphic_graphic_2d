@@ -42,6 +42,8 @@
 #include "ui_effect/filter/include/filter_water_ripple_para.h"
 #include "ui_effect/filter/include/filter_fly_out_para.h"
 #include "ui_effect/filter/include/filter_distort_para.h"
+#include "ui_effect/filter/include/filter_radius_gradient_blur_para.h"
+
 #include "transaction/rs_transaction_handler.h"
 #include "transaction/rs_sync_transaction_handler.h"
 #include "recording/recording_canvas.h"
@@ -559,11 +561,25 @@ public:
     void SetRSUIContext(std::shared_ptr<RSUIContext> rsUIContext);
 
     void SetSkipCheckInMultiInstance(bool isSkipCheckInMultiInstance);
+
+#ifdef RS_ENABLE_VK
+    bool IsHybridRenderCanvas() const
+    {
+        return hybridRenderCanvas_;
+    }
+    virtual void SetHybridRenderCanvas(bool hybridRenderCanvas) {};
+#endif
+
+    bool GetIsOnTheTree()
+    {
+        return isOnTheTree_;
+    }
 protected:
     explicit RSNode(
-        bool isRenderServiceNode, bool isTextureExportNode = false, std::shared_ptr<RSUIContext> rsUIContext = nullptr);
+        bool isRenderServiceNode, bool isTextureExportNode = false, std::shared_ptr<RSUIContext> rsUIContext = nullptr,
+        bool isOnTheTree = false);
     explicit RSNode(bool isRenderServiceNode, NodeId id, bool isTextureExportNode = false,
-        std::shared_ptr<RSUIContext> rsUIContext = nullptr);
+        std::shared_ptr<RSUIContext> rsUIContext = nullptr, bool isOnTheTree = false);
 
     bool isRenderServiceNode_;
     bool isTextureExportNode_ = false;
@@ -575,6 +591,10 @@ protected:
     bool hasCreateRenderNodeInRS_ = false;
 
     bool drawContentLast_ = false;
+
+#ifdef RS_ENABLE_VK
+    bool hybridRenderCanvas_ = false;
+#endif
 
     virtual void OnAddChildren();
     virtual void OnRemoveChildren();
@@ -599,6 +619,7 @@ protected:
     std::shared_ptr<RSTransactionHandler> GetRSTransaction() const;
     bool AddCommand(std::unique_ptr<RSCommand>& command, bool isRenderServiceCommand = false,
         FollowType followType = FollowType::NONE, NodeId nodeId = 0) const;
+    void SetIsOnTheTree(bool flag);
 
 private:
     static NodeId GenerateId();
@@ -690,6 +711,9 @@ private:
 
     std::recursive_mutex animationMutex_;
     mutable std::recursive_mutex propertyMutex_;
+
+    bool isOnTheTree_ = false;
+    bool isOnTheTreeInit_ = false;
 
     friend class RSUIDirector;
     friend class RSTransition;

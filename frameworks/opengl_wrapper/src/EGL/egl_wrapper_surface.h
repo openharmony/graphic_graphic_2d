@@ -28,7 +28,6 @@ class EglWrapperDisplay;
 
 class EglWrapperSurface : public EglWrapperObject {
 public:
-    std::recursive_mutex refLockMutex_;
     EglWrapperSurface(EglWrapperDisplay *disp, EGLSurface surf,
                       NativeWindowType window = nullptr, EGLint colorSpace = EGL_UNKNOWN);
     static EglWrapperSurface *GetWrapperSurface(EGLSurface surf);

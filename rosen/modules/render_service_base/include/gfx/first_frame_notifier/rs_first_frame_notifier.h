@@ -16,9 +16,10 @@
 #ifndef RENDER_SERVICE_BASE_GFX_FIRST_FRAME_NOTIFIER_RS_FIRST_FRAME_NOTIFIER_H
 #define RENDER_SERVICE_BASE_GFX_FIRST_FRAME_NOTIFIER_RS_FIRST_FRAME_NOTIFIER_H
 
-#include <string>
-#include <shared_mutex>
 #include <array>
+#include <mutex>
+#include <shared_mutex>
+#include <string>
 
 #include "common/rs_common_def.h"
 #include "ipc_callbacks/rs_ifirst_frame_commit_callback.h"
@@ -40,9 +41,11 @@ private:
     RSFirstFrameNotifier& operator=(const RSFirstFrameNotifier&) = delete;
     RSFirstFrameNotifier& operator=(const RSFirstFrameNotifier&&) = delete;
 
+    std::mutex screensMutex_;
     std::unordered_set<ScreenId> firstFrameCommitScreens_;
+
+    std::shared_mutex callbacksMutex_;
     std::unordered_map<pid_t, sptr<RSIFirstFrameCommitCallback>> firstFrameCommitCallbacks_;
-    std::shared_mutex smtx;
 };
 }
 #endif

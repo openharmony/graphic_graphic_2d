@@ -137,11 +137,21 @@ static int FilterTestUnit(int argc, char **argv)
     return RUN_ALL_TESTS();
 }
 
+static int RunAllTest(int argc, char **argv)
+{
+    int argcTemp = ARGS_ONE;
+    RSGraphicTestDirector::Instance().Run();
+    testing::GTEST_FLAG(output) = "xml:./";
+    testing::InitGoogleTest(&argcTemp, argv);
+    return RUN_ALL_TESTS();
+}
+
 int main(int argc, char **argv)
 {
     GraphicTestCommandTb funcTbl[] = {
         { "-list", DisplayAllCaseInfo },
-        { "-unit", FilterTestUnit }
+        { "-unit", FilterTestUnit },
+        { "-all", RunAllTest }
     };
 
     if (argc >= ARGS_TWO) {
@@ -153,6 +163,7 @@ int main(int argc, char **argv)
         }
     }
 
+    RSParameterParse::Instance().SetSkipCapture(true);
     RSGraphicTestDirector::Instance().Run();
     testing::GTEST_FLAG(output) = "xml:./";
     testing::InitGoogleTest(&argc, argv);

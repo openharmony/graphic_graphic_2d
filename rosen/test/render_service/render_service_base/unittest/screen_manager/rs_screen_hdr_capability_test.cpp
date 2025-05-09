@@ -37,9 +37,71 @@ void RSScreenHDRCapabilityTest::SetUp() {}
 void RSScreenHDRCapabilityTest::TearDown() {}
 
 /**
+ * @tc.name: SetMaxLumTest
+ * @tc.desc: test SetMaxLum
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenHDRCapabilityTest, SetMaxLumTest, TestSize.Level1)
+{
+    RSScreenHDRCapability capability;
+    capability.SetMaxLum(1.f);
+    ASSERT_EQ(1.f, capability.GetMaxLum());
+
+    capability.SetMaxLum(0.f);
+    ASSERT_EQ(0.f, capability.GetMaxLum());
+}
+
+/**
+ * @tc.name: SetMinLumTest
+ * @tc.desc: test SetMinLum
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenHDRCapabilityTest, SetMinLumTest, TestSize.Level1)
+{
+    RSScreenHDRCapability capability;
+    capability.SetMinLum(1.f);
+    ASSERT_EQ(1.f, capability.GetMinLum());
+
+    capability.SetMinLum(0.f);
+    ASSERT_EQ(0.f, capability.GetMinLum());
+}
+
+/**
+ * @tc.name: SetMaxAverageLumTest
+ * @tc.desc: test SetMaxAverageLum
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenHDRCapabilityTest, SetMaxAverageLumTest, TestSize.Level1)
+{
+    RSScreenHDRCapability capability;
+    capability.SetMaxAverageLum(1.f);
+    ASSERT_EQ(1.f, capability.GetMaxAverageLum());
+
+    capability.SetMaxAverageLum(0.f);
+    ASSERT_EQ(0.f, capability.GetMaxAverageLum());
+}
+
+/**
+ * @tc.name: SetHdrFormatsTest
+ * @tc.desc: test SetHdrFormats
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenHDRCapabilityTest, SetHdrFormatsTest, TestSize.Level1)
+{
+    RSScreenHDRCapability capability;
+    std::vector<ScreenHDRFormat> formats { ScreenHDRFormat::VIDEO_HDR_VIVID };
+    capability.SetHdrFormats(formats);
+    ASSERT_EQ(formats, capability.GetHdrFormats());
+}
+
+/**
  * @tc.name: Marshalling001
  * @tc.desc: test
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require:
  */
 HWTEST_F(RSScreenHDRCapabilityTest, Marshalling001, TestSize.Level1)
@@ -52,7 +114,7 @@ HWTEST_F(RSScreenHDRCapabilityTest, Marshalling001, TestSize.Level1)
 /**
  * @tc.name: Unmarshalling001
  * @tc.desc: test
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require:
  */
 HWTEST_F(RSScreenHDRCapabilityTest, Unmarshalling001, TestSize.Level1)
@@ -67,7 +129,7 @@ HWTEST_F(RSScreenHDRCapabilityTest, Unmarshalling001, TestSize.Level1)
 /**
  * @tc.name: marshallingAndUnmarshallling001
  * @tc.desc: test
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require:
  */
 HWTEST_F(RSScreenHDRCapabilityTest, marshallingAndUnmarshallling001, TestSize.Level1)

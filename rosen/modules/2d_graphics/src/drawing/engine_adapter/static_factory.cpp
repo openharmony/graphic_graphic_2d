@@ -512,6 +512,16 @@ int64_t StaticFactory::GetCurrentTime()
 #endif
     return EngineStaticFactory::GetCurrentTime();
 }
+
+void StaticFactory::SetCurrentNodeId(uint64_t nodeId)
+{
+#ifdef ENABLE_DDGR_OPTIMIZE
+    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return DDGRStaticFactory::SetCurrentNodeId(nodeId);
+    }
+#endif
+    return EngineStaticFactory::SetCurrentNodeId(nodeId);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

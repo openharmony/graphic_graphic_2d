@@ -17,6 +17,31 @@
 #include <numeric>
 namespace OHOS::Rosen {
 constexpr uint32_t MEMUNIT_RATE = 1024;
+static const std::unordered_map<RSTagTracker::SOURCETYPE, std::string> sourceToStringMap = {
+    {RSTagTracker::SOURCE_OTHER, "source_other"},
+    {RSTagTracker::SOURCE_RSCUSTOMMODIFIERDRAWABLE, "source_rscustommodifierdrawable"},
+    {RSTagTracker::SOURCE_RSBEGINBLENDERDRAWABLE, "source_rsbeginblenderdrawable"},
+    {RSTagTracker::SOURCE_RSSHADOWDRAWABLE, "source_rsshadowdrawable"},
+    {RSTagTracker::SOURCE_RSBACKGROUNDIMAGEDRAWABLE, "source_rsbackgroundimagedrawable"},
+    {RSTagTracker::SOURCE_RSBACKGROUNDEFFECTDRAWABLE, "source_rsbackgroundeffectdrawable"},
+    {RSTagTracker::SOURCE_RSUSEEFFECTDRAWABLE, "source_rsuseeffectdrawable"},
+    {RSTagTracker::SOURCE_RSDYNAMICLIGHTUPDRAWABLE, "source_rsdynamiclightupdrawable"},
+    {RSTagTracker::SOURCE_RSBINARIZATIONDRAWABLE, "source_rsbinarizationdrawable"},
+    {RSTagTracker::SOURCE_RSCOLORFILTERDRAWABLE, "source_rscolorfilterdrawable"},
+    {RSTagTracker::SOURCE_RSLIGHTUPEFFECTDRAWABLE, "source_rslightupeffectdrawable"},
+    {RSTagTracker::SOURCE_RSDYNAMICDIMDRAWABLE, "source_rsdynamicdimdrawable"},
+    {RSTagTracker::SOURCE_RSFOREGROUNDFILTERDRAWABLE, "source_rsforegroundfilterdrawable"},
+    {RSTagTracker::SOURCE_RSFOREGROUNDFILTERRESTOREDRAWABLE, "source_rsforegroundfilterrestoredrawable"},
+    {RSTagTracker::SOURCE_RSPIXELSTRETCHDRAWABLE, "source_rspixelstretchdrawable"},
+    {RSTagTracker::SOURCE_RSPOINTLIGHTDRAWABLE, "source_rspointlightdrawable"},
+    {RSTagTracker::SOURCE_RSPROPERTYDRAWABLE, "source_rspropertydrawable"},
+    {RSTagTracker::SOURCE_RSFILTERDRAWABLE, "source_rsfilterdrawable"},
+    {RSTagTracker::SOURCE_FINISHOFFSCREENRENDER, "source_finishoffscreenrender"},
+    {RSTagTracker::SOURCE_DRAWSELFDRAWINGNODEBUFFER, "source_drawselfdrawingnodebuffer"},
+    {RSTagTracker::SOURCE_ONCAPTURE, "source_oncapture"},
+    {RSTagTracker::SOURCE_INITCACHEDSURFACE, "source_initcachedsurface"},
+    {RSTagTracker::SOURCE_DRAWRENDERCONTENT, "source_drawrendercontent"},
+};
 
 SkiaMemoryTracer::SkiaMemoryTracer(const std::vector<ResourcePair>& resourceMap, bool itemizeType)
     : resourceMap_(resourceMap), itemizeType_(itemizeType), totalSize_("bytes", 0), purgeableSize_("bytes", 0)
@@ -25,6 +50,15 @@ SkiaMemoryTracer::SkiaMemoryTracer(const std::vector<ResourcePair>& resourceMap,
 SkiaMemoryTracer::SkiaMemoryTracer(const char* categoryKey, bool itemizeType)
     : categoryKey_(categoryKey), itemizeType_(itemizeType), totalSize_("bytes", 0), purgeableSize_("bytes", 0)
 {}
+
+std::string SkiaMemoryTracer::SourceType2String(RSTagTracker::SOURCETYPE type)
+{
+    auto it = sourceToStringMap.find(type);
+    if (it != sourceToStringMap.end()) {
+        return it->second;
+    }
+    return "";
+}
 
 const char* SkiaMemoryTracer::MapName(const char* resourceName)
 {
@@ -91,9 +125,8 @@ void SkiaMemoryTracer::ProcessElement()
         if (result == results_.end()) {
             std::string strResourceName = resourceName;
             TraceValue sizeValue = sizeResult->second;
-            currentValues_.clear();
-            currentValues_.insert({ key, sizeValue });
-            results_.insert({ strResourceName, currentValues_ });
+            std::unordered_map<std::string, TraceValue> typeItem{{key, sizeValue}};
+            results_.insert({ strResourceName, typeItem });
         } else {
             auto& resourceValues = result->second;
             typeResult = resourceValues.find(key);
@@ -102,6 +135,44 @@ void SkiaMemoryTracer::ProcessElement()
             } else {
                 typeResult->second.value += sizeResult->second.value;
                 typeResult->second.count++;
+            }
+        }
+
+        // find the source if one exists
+        std::string sourceType;
+        auto sourceIdResult = currentValues_.find("source");
+        if (sourceIdResult != currentValues_.end()) {
+            sourceType = SourceType2String(
+                static_cast<RSTagTracker::SOURCETYPE>(static_cast<uint32_t>(sourceIdResult->second.value)));
+        } else if (itemizeType_) {
+            sourceType = "source_other";
+        } else {
+            sourceType = "";
+        }
+
+        std::string strResourceName = resourceName; // current tag
+        TraceValue sizeValue = sizeResult->second; // current size info
+        auto sourceResult = sourceTagResults_.find(sourceType);
+        if (sourceResult == sourceTagResults_.end()) { // 1. add new source item
+            std::unordered_map<std::string, TraceValue> typeItem{{key, sizeValue}};
+            std::unordered_map<std::string,
+                std::unordered_map<std::string, TraceValue>> tagItem{{strResourceName, typeItem}};
+            sourceTagResults_.insert({sourceType, tagItem});
+        } else { // 2.update source item
+            auto& sourceValues = sourceResult->second;
+            auto tagResult = sourceValues.find(strResourceName);
+            if (tagResult == sourceValues.end()) { // 2.1 add new tag item in current source
+                std::unordered_map<std::string, TraceValue> typeItem{{key, sizeValue}};
+                sourceResult->second.insert({strResourceName, typeItem});
+            } else { // 2.2 update tag item in current source
+                auto& typeValues = tagResult->second;
+                typeResult = typeValues.find(key);
+                if (typeResult == typeValues.end()) { // 2.2.1 add new type item in current tag
+                    typeValues.insert({key, sizeValue});
+                } else { // 2.2.2 update type item in current tag
+                    typeResult->second.value += sizeValue.value;
+                    typeResult->second.count++;
+                }
             }
         }
     }
@@ -124,22 +195,27 @@ void SkiaMemoryTracer::LogOutput(DfxString& log)
     // process any remaining elements
     ProcessElement();
 
-    for (const auto& namedItem : results_) {
+    for (const auto& sourceItem: sourceTagResults_) {
         if (itemizeType_) {
-            log.AppendFormat("  %s:\n", namedItem.first.c_str()); // skia/sk_glyph_cache
-            for (const auto& typedValue : namedItem.second) {
-                TraceValue traceValue = ConvertUnits(typedValue.second);
-                const char* entry = (traceValue.count > 1) ? "entries" : "entry";
-                log.AppendFormat("    %s: %.2f %s (%d %s)\n", typedValue.first.c_str(), traceValue.value,
-                    traceValue.units.c_str(), traceValue.count, entry);
+            log.AppendFormat("  %s:\n", sourceItem.first.c_str()); // source_xx
+            for (const auto& tagItem: sourceItem.second) {
+                log.AppendFormat("    %s:\n", tagItem.first.c_str()); // skia/sk_glyph_cache
+                for (const auto& typeItem: tagItem.second) {
+                    TraceValue traceValue = ConvertUnits(typeItem.second);
+                    const char* entry = (traceValue.count > 1) ? "entries" : "entry";
+                    log.AppendFormat("      %s: %.2f %s (%d %s)\n", typeItem.first.c_str(), traceValue.value,
+                        traceValue.units.c_str(), traceValue.count, entry);
+                }
             }
         } else {
-            auto result = namedItem.second.find("size");
-            if (result != namedItem.second.end()) {
-                TraceValue traceValue = ConvertUnits(result->second);
-                const char* entry = (traceValue.count > 1) ? "entries" : "entry";
-                log.AppendFormat("  %s: %.2f %s (%d %s)\n", namedItem.first.c_str(), traceValue.value,
-                    traceValue.units.c_str(), traceValue.count, entry);
+            for (const auto& tagItem: sourceItem.second) {
+                auto result = tagItem.second.find("size");
+                if (result != tagItem.second.end()) {
+                    TraceValue traceValue = ConvertUnits(result->second);
+                    const char* entry = (traceValue.count > 1) ? "entries" : "entry";
+                    log.AppendFormat("  %s: %.2f %s (%d %s)\n", tagItem.first.c_str(), traceValue.value,
+                        traceValue.units.c_str(), traceValue.count, entry);
+                }
             }
         }
     }

@@ -491,8 +491,10 @@ void RSUniRenderVirtualProcessor::UniScale(RSPaintFilterCanvas& canvas,
                 slrManager_->CheckOrRefreshScreen(virtualScreenWidth_, virtualScreenHeight_,
                     mirroredScreenWidth_, mirroredScreenHeight_);
             }
+            slrManager_->CheckOrRefreshColorSpace(renderFrameConfig_.colorGamut);
             slrManager_->CanvasScale(canvas);
-            RS_LOGD("RSUniRenderVirtualProcessor::UniScale: Scale With SLR.");
+            RS_LOGD("RSUniRenderVirtualProcessor::UniScale: Scale With SLR, color is %{public}d.",
+                renderFrameConfig_.colorGamut);
             return;
         }
 
@@ -538,11 +540,14 @@ void RSUniRenderVirtualProcessor::CanvasClipRegionForUniscaleMode()
     }
     if (scaleMode_ == ScreenScaleMode::UNISCALE_MODE) {
         Drawing::Rect rect(0, 0, mirroredScreenWidth_, mirroredScreenHeight_);
-        canvas_->GetTotalMatrix().MapRect(rect, rect);
+        auto matrix = EnableSlrScale() && slrManager_ ? slrManager_->GetScaleMatrix() : canvas_->GetTotalMatrix();
+        matrix.MapRect(rect, rect);
         Drawing::RectI rectI = {rect.GetLeft(), rect.GetTop(), rect.GetRight(), rect.GetBottom()};
         Drawing::Region clipRegion;
         clipRegion.SetRect(rectI);
         canvas_->ClipRegion(clipRegion);
+        RS_LOGD("RSUniRenderVirtualProcessor::CanvasClipRegionForUniscaleMode, clipRect: %{public}s",
+            rectI.ToString().c_str());
     }
 }
 

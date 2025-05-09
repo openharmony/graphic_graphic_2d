@@ -50,12 +50,10 @@ int32_t ColorGamutParamParse::ParseColorGamutInternal(xmlNode &node)
     auto val = ExtractPropertyValue("value", *currNode);
     if (xmlParamType == PARSE_XML_FEATURE_SWITCH) {
         bool isEnabled = ParseFeatureSwitch(val);
-        if (name == "SLRCloseP3") {
-            ColorGamutParam::SetSLRCloseP3(isEnabled);
-            RS_LOGI("ColorGamutParamParse parse SLRCloseP3 %{public}d", ColorGamutParam::IsSLRCloseP3());
-        } else {
-            RS_LOGE("ColorGamutParamParse parse %{public}s is not support", name.c_str());
-            return PARSE_ERROR;
+        if (name == "WiredExtendScreenCloseP3") {
+            ColorGamutParam::SetWiredExtendScreenCloseP3(isEnabled);
+            RS_LOGI("ColorGamutParamParse parse WiredExtendScreenCloseP3 %{public}d",
+                ColorGamutParam::IsWiredExtendScreenCloseP3());
         }
     }
 

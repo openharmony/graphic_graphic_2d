@@ -1394,6 +1394,21 @@ HWTEST_F(RSSurfaceNodeTest, ResetContextAlpha, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetClonedNodeInfo Test
+ * @tc.desc: test results of SetClonedNodeInfo
+ * @tc.type: FUNC
+ * @tc.require:issueIBX8OW
+ */
+HWTEST_F(RSSurfaceNodeTest, SetClonedNodeInfo, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->SetClonedNodeInfo(INVALID_NODEID + 1);
+    ASSERT_NE(RSTransactionProxy::GetInstance()->implicitRemoteTransactionData_, nullptr);
+}
+
+/**
  * @tc.name: SetForeground Test
  * @tc.desc: SetForeground and SetForceUIFirst and SetAncoFlags and SetHDRPresent
  * @tc.type: FUNC
@@ -1735,7 +1750,6 @@ HWTEST_F(RSSurfaceNodeTest, DetachFromWindowContainer, TestSize.Level1)
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
     ScreenId id = {};
     surfaceNode->DetachFromWindowContainer(id);
-    bool res = true;
-    ASSERT_EQ(true, res);
+    ASSERT_NE(surfaceNode, nullptr);
 }
 } // namespace OHOS::Rosen

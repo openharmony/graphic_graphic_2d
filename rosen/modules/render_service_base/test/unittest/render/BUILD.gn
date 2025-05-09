@@ -14,8 +14,7 @@
 import("//build/test.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
-module_output_path = "graphic_2d/rosen/modules/render_service_base"
-third_party_path = "//third_party"
+module_output_path = "graphic_2d/graphic_2d/rosen/modules/render_service_base"
 
 ohos_unittest("RSRenderTest") {
   module_out_path = module_output_path
@@ -27,8 +26,6 @@ ohos_unittest("RSRenderTest") {
   deps = [
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
     "$graphic_2d_root/rosen/modules/render_service_base:render_service_base_src",
-    "$third_party_path/googletest:gtest_main",
-    "$window_base_path/wm:libwm",
   ]
 
   external_deps = [

@@ -19,6 +19,10 @@
 #include "drawing_path_effect.h"
 #include "drawing_pen.h"
 
+#ifdef RS_ENABLE_VK
+#include "platform/ohos/backend/rs_vulkan_context.h"
+#endif
+
 using namespace testing;
 using namespace testing::ext;
 
@@ -33,7 +37,12 @@ public:
     void TearDown() override;
 };
 
-void NativeDrawingPathEffectTest::SetUpTestCase() {}
+void NativeDrawingPathEffectTest::SetUpTestCase()
+{
+#ifdef RS_ENABLE_VK
+    RsVulkanContext::SetRecyclable(false);
+#endif
+}
 void NativeDrawingPathEffectTest::TearDownTestCase() {}
 void NativeDrawingPathEffectTest::SetUp() {}
 void NativeDrawingPathEffectTest::TearDown() {}

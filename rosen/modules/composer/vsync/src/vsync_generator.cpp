@@ -60,6 +60,9 @@ constexpr int64_t DEFAULT_SOFT_VSYNC_PERIOD = 16000000; // 16000000ns == 16ms
 constexpr int64_t REMAINING_TIME_THRESHOLD = 100000; // 100000ns == 0.1ms
 constexpr uint32_t MAX_LISTENERS_AMOUNT = 2;
 
+// minimum ratio of dvsync thread
+constexpr double DVSYNC_PERIOD_MIN_INTERVAL = 0.6;
+
 static void SetThreadHighPriority()
 {
     setpriority(PRIO_PROCESS, 0, THREAD_PRIORTY);
@@ -415,6 +418,12 @@ int64_t VSyncGenerator::ComputeDVSyncListenerNextVSyncTimeStamp(const Listener &
     int64_t numPeriod = now / period;
     int64_t nextTime = (numPeriod + 1) * period + phase;
     nextTime += referenceTime;
+    int64_t threshold = static_cast<int64_t>(DVSYNC_PERIOD_MIN_INTERVAL * static_cast<double>(period));
+    if (nextTime - listener.lastTime_ < threshold) {
+        RS_TRACE_NAME_FMT("VSyncGenerator::ComputeDVSyncListenerNextVSyncTimeStamp "
+            "add one more period:%ld, threshold:%ld", period, threshold);
+        nextTime += period;
+    }
     nextTime -= wakeupDelay_;
     return nextTime;
 }
@@ -434,6 +443,14 @@ VsyncError VSyncGenerator::AddDVSyncListener(int64_t phase, const sptr<OHOS::Ros
     con_.notify_all();
     WaitForTimeoutConNotifyLocked();
     return VSYNC_ERROR_OK;
+}
+
+bool VSyncGenerator::IsUiDvsyncOn()
+{
+    if (rsVSyncDistributor_ != nullptr) {
+        return rsVSyncDistributor_->IsUiDvsyncOn();
+    }
+    return false;
 }
 
 VsyncError VSyncGenerator::RemoveDVSyncListener(const sptr<OHOS::Rosen::VSyncGenerator::Callback>& cb)
@@ -674,6 +691,22 @@ VsyncError VSyncGenerator::UpdateMode(int64_t period, int64_t phase, int64_t ref
     startRefresh_ = false;
     con_.notify_all();
     return VSYNC_ERROR_OK;
+}
+
+bool VSyncGenerator::NeedPreexecuteAndUpdateTs(int64_t& timestamp, int64_t& period, int64_t lastVsyncTime)
+{
+    std::lock_guard<std::mutex> locker(mutex_);
+    int64_t now = SystemTime();
+    int64_t offset = (now - lastVsyncTime) % period_;
+    if (period_ - offset > PERIOD_CHECK_THRESHOLD) {
+        timestamp = now;
+        period = period_;
+        referenceTime_ = referenceTime_ + offset - wakeupDelay_;
+        RS_TRACE_NAME_FMT("NeedPreexecuteAndUpdateTs, new referenceTime:%ld, timestamp:%ld, period:%ld,",
+            referenceTime_, timestamp, period);
+        return true;
+    }
+    return false;
 }
 
 VsyncError VSyncGenerator::AddListener(int64_t phase, const sptr<OHOS::Rosen::VSyncGenerator::Callback>& cb)
@@ -1105,6 +1138,12 @@ void VSyncGenerator::Dump(std::string &result)
     result += "\nreferenceTime:" + std::to_string(referenceTime_);
     result += "\nvsyncMode:" + std::to_string(vsyncMode_);
     result += "\nperiodCheckCounter_:" + std::to_string(periodCheckCounter_);
+}
+
+bool VSyncGenerator::CheckSampleIsAdaptive(int64_t hardwareVsyncInterval)
+{
+    std::unique_lock<std::mutex> lock(mutex_);
+    return hardwareVsyncInterval > period_ + PERIOD_CHECK_THRESHOLD;
 }
 
 void VSyncGenerator::PrintGeneratorStatus()

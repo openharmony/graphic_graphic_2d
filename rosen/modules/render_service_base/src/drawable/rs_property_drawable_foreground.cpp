@@ -17,6 +17,7 @@
 
 #include "common/rs_obj_abs_geometry.h"
 #include "drawable/rs_property_drawable_utils.h"
+#include "memory/rs_tag_tracker.h"
 #include "pipeline/rs_recording_canvas.h"
 #include "pipeline/rs_render_node.h"
 #include "platform/common/rs_log.h"
@@ -64,6 +65,10 @@ Drawing::RecordingCanvas::DrawFunc RSBinarizationDrawable::CreateDrawFunc() cons
 {
     auto ptr = std::static_pointer_cast<const RSBinarizationDrawable>(shared_from_this());
     return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
+#ifdef RS_ENABLE_GPU
+        RSTagTracker tagTracker(canvas ? canvas->GetGPUContext() : nullptr,
+            RSTagTracker::SOURCETYPE::SOURCE_RSBINARIZATIONDRAWABLE);
+#endif
         RSPropertyDrawableUtils::DrawBinarization(canvas, ptr->aiInvert_);
     };
 }
@@ -100,6 +105,10 @@ Drawing::RecordingCanvas::DrawFunc RSColorFilterDrawable::CreateDrawFunc() const
 {
     auto ptr = std::static_pointer_cast<const RSColorFilterDrawable>(shared_from_this());
     return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
+#ifdef RS_ENABLE_GPU
+        RSTagTracker tagTracker(canvas ? canvas->GetGPUContext() : nullptr,
+            RSTagTracker::SOURCETYPE::SOURCE_RSCOLORFILTERDRAWABLE);
+#endif
         RSPropertyDrawableUtils::DrawColorFilter(canvas, ptr->filter_);
     };
 }
@@ -135,6 +144,10 @@ Drawing::RecordingCanvas::DrawFunc RSLightUpEffectDrawable::CreateDrawFunc() con
 {
     auto ptr = std::static_pointer_cast<const RSLightUpEffectDrawable>(shared_from_this());
     return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
+#ifdef RS_ENABLE_GPU
+        RSTagTracker tagTracker(canvas ? canvas->GetGPUContext() : nullptr,
+            RSTagTracker::SOURCETYPE::SOURCE_RSLIGHTUPEFFECTDRAWABLE);
+#endif
         RSPropertyDrawableUtils::DrawLightUpEffect(canvas, ptr->lightUpEffectDegree_);
     };
 }
@@ -170,6 +183,10 @@ Drawing::RecordingCanvas::DrawFunc RSDynamicDimDrawable::CreateDrawFunc() const
 {
     auto ptr = std::static_pointer_cast<const RSDynamicDimDrawable>(shared_from_this());
     return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
+#ifdef RS_ENABLE_GPU
+        RSTagTracker tagTracker(canvas ? canvas->GetGPUContext() : nullptr,
+            RSTagTracker::SOURCETYPE::SOURCE_RSDYNAMICDIMDRAWABLE);
+#endif
         RSPropertyDrawableUtils::DrawDynamicDim(canvas, ptr->dynamicDimDegree_);
     };
 }
@@ -257,6 +274,10 @@ Drawing::RecordingCanvas::DrawFunc RSForegroundFilterDrawable::CreateDrawFunc() 
     auto ptr = std::static_pointer_cast<const RSForegroundFilterDrawable>(shared_from_this());
     return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
         auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
+#ifdef RS_ENABLE_GPU
+        RSTagTracker tagTracker(paintFilterCanvas ? paintFilterCanvas->GetGPUContext() : nullptr,
+            RSTagTracker::SOURCETYPE::SOURCE_RSFOREGROUNDFILTERDRAWABLE);
+#endif
         RSPropertyDrawableUtils::BeginForegroundFilter(*paintFilterCanvas, ptr->boundsRect_);
     };
 }
@@ -304,6 +325,10 @@ Drawing::RecordingCanvas::DrawFunc RSForegroundFilterRestoreDrawable::CreateDraw
     auto ptr = std::static_pointer_cast<const RSForegroundFilterRestoreDrawable>(shared_from_this());
     return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
         auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
+#ifdef RS_ENABLE_GPU
+        RSTagTracker tagTracker(paintFilterCanvas ? paintFilterCanvas->GetGPUContext() : nullptr,
+            RSTagTracker::SOURCETYPE::SOURCE_RSFOREGROUNDFILTERRESTOREDRAWABLE);
+#endif
         RSPropertyDrawableUtils::DrawForegroundFilter(*paintFilterCanvas, ptr->foregroundFilter_);
     };
 }
@@ -363,6 +388,10 @@ Drawing::RecordingCanvas::DrawFunc RSPixelStretchDrawable::CreateDrawFunc() cons
 {
     auto ptr = std::static_pointer_cast<const RSPixelStretchDrawable>(shared_from_this());
     return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
+#ifdef RS_ENABLE_GPU
+        RSTagTracker tagTracker(canvas ? canvas->GetGPUContext() : nullptr,
+            RSTagTracker::SOURCETYPE::SOURCE_RSPIXELSTRETCHDRAWABLE);
+#endif
         RSPropertyDrawableUtils::DrawPixelStretch(canvas, ptr->pixelStretch_, ptr->boundsRect_, ptr->boundsGeoValid_,
             static_cast<Drawing::TileMode>(ptr->pixelStretchTileMode_));
     };
@@ -475,6 +504,10 @@ Drawing::RecordingCanvas::DrawFunc RSPointLightDrawable::CreateDrawFunc() const
 {
     auto ptr = std::static_pointer_cast<const RSPointLightDrawable>(shared_from_this());
     return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
+#ifdef RS_ENABLE_GPU
+        RSTagTracker tagTracker(canvas ? canvas->GetGPUContext() : nullptr,
+            RSTagTracker::SOURCETYPE::SOURCE_RSPOINTLIGHTDRAWABLE);
+#endif
         ptr->DrawLight(canvas);
     };
 }

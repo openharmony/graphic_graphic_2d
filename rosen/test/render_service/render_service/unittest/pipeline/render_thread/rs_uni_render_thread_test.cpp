@@ -43,6 +43,9 @@ public:
 
 void RSUniRenderThreadTest::SetUpTestCase()
 {
+#ifdef RS_ENABLE_VK
+    RsVulkanContext::SetRecyclable(false);
+#endif
     uniRenderThread.runner_ = AppExecFwk::EventRunner::Create("RSUniRenderThread");
     if (!uniRenderThread.runner_) {
         RS_LOGE("RSUniRenderThread Start runner null");
@@ -52,7 +55,12 @@ void RSUniRenderThreadTest::SetUpTestCase()
     uniRenderThread.runner_->Run();
 }
 
-void RSUniRenderThreadTest::TearDownTestCase() {}
+void RSUniRenderThreadTest::TearDownTestCase()
+{
+    uniRenderThread.uniRenderEngine_->renderContext_ = std::make_shared<RenderContext>();
+    uniRenderThread.uniRenderEngine_->renderContext_->drGPUContext_ = std::make_shared<Drawing::GPUContext>();
+}
+
 void RSUniRenderThreadTest::SetUp() {}
 void RSUniRenderThreadTest::TearDown() {}
 
@@ -306,29 +314,40 @@ HWTEST_F(RSUniRenderThreadTest, SubScribeSystemAbility001, TestSize.Level1)
 HWTEST_F(RSUniRenderThreadTest, TrimMem001, TestSize.Level1)
 {
     RSUniRenderThread& instance = RSUniRenderThread::Instance();
-    std::string dumpString = "";
-    std::string type = "";
     instance.uniRenderEngine_ = std::make_shared<RSRenderEngine>();
     instance.uniRenderEngine_->renderContext_ = std::make_shared<RenderContext>();
     instance.uniRenderEngine_->renderContext_->drGPUContext_ = std::make_shared<Drawing::GPUContext>();
+    std::string dumpString = "";
+    std::string type = "";
     instance.TrimMem(dumpString, type);
     EXPECT_TRUE(type.empty());
 
+    dumpString = "";
     type = "cpu";
     instance.TrimMem(dumpString, type);
+    dumpString = "";
     type = "gpu";
     instance.TrimMem(dumpString, type);
     EXPECT_FALSE(type.empty());
 
+    dumpString = "";
     type = "uihidden";
     instance.TrimMem(dumpString, type);
+    dumpString = "";
     type = "unlock";
     instance.TrimMem(dumpString, type);
     EXPECT_FALSE(type.empty());
 
+    dumpString = "";
     type = "shader";
     instance.TrimMem(dumpString, type);
+    dumpString = "";
     type = "flushcache";
+    instance.TrimMem(dumpString, type);
+    EXPECT_FALSE(type.empty());
+
+    dumpString = "";
+    type = "setgpulimit";
     instance.TrimMem(dumpString, type);
     EXPECT_FALSE(type.empty());
 }
@@ -470,6 +489,7 @@ HWTEST_F(RSUniRenderThreadTest, WaitUntilDisplayNodeBufferReleased001, TestSize.
 
     displayNodeDrawable->surfaceHandler_ = std::make_shared<RSSurfaceHandler>(0);
     displayNodeDrawable->surfaceHandler_->consumer_ = IConsumerSurface::Create();
+    displayNodeDrawable->surfaceCreated_ = true;
     res = instance.WaitUntilDisplayNodeBufferReleased(*displayNodeDrawable);
     EXPECT_TRUE(res);
 }
