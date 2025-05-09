@@ -2620,7 +2620,7 @@ bool RSMainThread::ExistBufferIsVisibleAndUpdate()
             continue;
         }
         if (surfaceNode->GetRSSurfaceHandler()->IsCurrentFrameBufferConsumed() &&
-            surfaceNode->GetHwcSurfaceRecoder().GetLastFrameHasVisibleRegion()) {
+            surfaceNode->HwcSurfaceRecorder().GetLastFrameHasVisibleRegion()) {
             bufferNeedUpdate = true;
             break;
         }

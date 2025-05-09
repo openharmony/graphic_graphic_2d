@@ -1518,7 +1518,7 @@ public:
     }
 
     // Enable HWCompose
-    RSHwcSurfaceRecorder& GetHwcSurfaceRecoder() { return hwcSurfaceRecorder_; }
+    RSHwcSurfaceRecorder& HwcSurfaceRecorder() { return hwcSurfaceRecorder_; }
 
 protected:
     void OnSync() override;
