@@ -1538,6 +1538,11 @@ void RSUniRenderVisitor::QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node)
     UpdateDrawingCacheInfoBeforeChildren(node);
     MarkFilterInForegroundFilterAndCheckNeedForceClearCache(node);
     node.SetIsAccessibilityConfigChanged(false);
+    // The opinc state needs to be reset in the following cases:
+    // 1. subtree is dirty
+    // 2. content is dirty
+    // 3. the node is marked as a node group
+    // 4. the node is marked as a root node of opinc and the high-contrast state change
     auto isSelfDirty = node.IsSubTreeDirty() || node.IsContentDirty() ||
         node.GetNodeGroupType() > RSRenderNode::NodeGroupType::NONE ||
         (node.GetOpincCache().OpincGetRootFlag() && IsAccessibilityConfigChanged());

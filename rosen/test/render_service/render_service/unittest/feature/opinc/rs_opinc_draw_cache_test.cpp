@@ -52,6 +52,7 @@ HWTEST_F(RSOpincDrawCacheTest, OpincCalculateBefore, TestSize.Level1)
     RSRenderParams params(id);
     bool isOpincDropNodeExt = true;
     opincDrawCache.OpincCalculateBefore(canvas, params, isOpincDropNodeExt);
+    ASSERT_TRUE(isOpincDropNodeExt);
 
     opincDrawCache.rootNodeStragyType_ = NodeStrategyType::OPINC_AUTOCACHE;
     opincDrawCache.recordState_ = NodeRecordState::RECORD_CALCULATE;
@@ -71,6 +72,7 @@ HWTEST_F(RSOpincDrawCacheTest, OpincCalculateAfter, TestSize.Level1)
     Drawing::Canvas canvas;
     bool isOpincDropNodeExt = true;
     opincDrawCache.OpincCalculateAfter(canvas, isOpincDropNodeExt);
+    ASSERT_FALSE(opincDrawCache.isOpincCaculateStart_);
 
     opincDrawCache.isOpincCaculateStart_ = true;
     opincDrawCache.OpincCalculateAfter(canvas, isOpincDropNodeExt);
@@ -255,6 +257,7 @@ HWTEST_F(RSOpincDrawCacheTest, BeforeDrawCacheFindRootNode, TestSize.Level1)
     RSRenderParams params(id);
     bool isOpincDropNodeExt = true;
     opincDrawCache.BeforeDrawCacheFindRootNode(paintFilterCanvas, params, isOpincDropNodeExt);
+    ASSERT_TRUE(opincDrawCache.recordState_ != NodeRecordState::RECORD_CALCULATE);
 
     params.isOpincRootFlag_ = true;
     params.SetCacheSize({100, 100});

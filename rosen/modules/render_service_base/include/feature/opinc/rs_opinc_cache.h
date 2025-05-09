@@ -16,7 +16,6 @@
 #ifndef RS_OPINC_CACHE_H
 #define RS_OPINC_CACHE_H
 
-#include <string>
 #include "common/rs_common_def.h"
 #include "common/rs_macros.h"
 

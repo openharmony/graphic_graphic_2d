@@ -3728,6 +3728,8 @@ void RSRenderNode::MarkSuggestOpincNode(bool isOpincNode, bool isNeedCalculate)
 // mark support node
 void RSRenderNode::OpincUpdateNodeSupportFlag(bool supportFlag)
 {
+    // supportFlag is obtained from isOpincNodeSupportFlag_ of the child node.
+    // IsMarkedRenderGroup make sure current node is the bottom of the node marked by arkui.
     isOpincNodeSupportFlag_ = isOpincNodeSupportFlag_ && supportFlag &&
         (!opincCache_.IsMarkedRenderGroup(nodeGroupType_ > RSRenderNode::NodeGroupType::NONE));
 }
@@ -3745,8 +3747,10 @@ std::string RSRenderNode::QuickGetNodeDebugInfo()
 
 void RSRenderNode::UpdateOpincParam()
 {
-    stagingRenderParams_->OpincSetCacheChangeFlag(opincCache_.GetCacheChangeFlag(), lastFrameSynced_);
-    stagingRenderParams_->OpincUpdateRootFlag(opincCache_.OpincGetRootFlag());
+    if (stagingRenderParams_) {
+        stagingRenderParams_->OpincSetCacheChangeFlag(opincCache_.GetCacheChangeFlag(), lastFrameSynced_);
+        stagingRenderParams_->OpincUpdateRootFlag(opincCache_.OpincGetRootFlag());
+    }
 }
 
 void RSRenderNode::CheckDrawingCacheType()

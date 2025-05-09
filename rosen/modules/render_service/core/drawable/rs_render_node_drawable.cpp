@@ -992,7 +992,7 @@ std::string RSRenderNodeDrawable::GetNodeDebugInfo()
         opincDrawCache_.GetRecordState(), opincDrawCache_.GetRootNodeStrategyType(), opincDrawCache_.IsOpCanCache(),
         opincDrawCache_.GetDrawAreaEnableState(), GetOpDropped(), isOpincDropNodeExt_);
     auto& info = opincDrawCache_.GetOpListHandle().GetOpInfo();
-    AppendFormat(ret, " opNum%d", info.num, info.percent);
+    AppendFormat(ret, " opNum:%d opPercent:%d", info.num, info.percent);
     auto bounds = params->GetBounds();
     AppendFormat(ret, ", rr{%.1f %.1f %.1f %.1f}",
         0.f, 0.f, bounds.GetWidth(), bounds.GetHeight());

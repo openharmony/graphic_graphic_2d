@@ -92,8 +92,9 @@ bool RSOpincCache::OpincForcePrepareSubTree(bool autoCacheEnable, bool isDirty, 
     if (!autoCacheEnable) {
         return false;
     }
-    bool flag = (!isDirty) && IsSuggestOpincNode() && supportFlag && !isOpincRootFlag_;
-    return flag;
+    // Non-root nodes that support opinc and are marked by arkui need to forcibly prepare subtrees
+    // until they are marked as root
+    return (!isDirty) && IsSuggestOpincNode() && supportFlag && !isOpincRootFlag_;
 }
 
 bool RSOpincCache::OpincGetRootFlag() const

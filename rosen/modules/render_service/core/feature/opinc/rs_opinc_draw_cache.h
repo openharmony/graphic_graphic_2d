@@ -36,6 +36,21 @@ public:
         return autoCacheEnable_;
     }
 
+    static void SetScreenRectInfo(RectI info)
+    {
+        screenRectInfo_ = info;
+    }
+
+    static NodeStrategyType& GetNodeCacheType()
+    {
+        return nodeCacheType_;
+    }
+
+    static void SetNodeCacheType(NodeStrategyType type)
+    {
+        nodeCacheType_ = type;
+    }
+
     // opinc switch
     bool IsAutoCacheDebugEnable();
 
@@ -85,21 +100,6 @@ public:
         return isDrawAreaEnable_;
     }
 
-    static void SetScreenRectInfo(RectI info)
-    {
-        screenRectInfo_ = info;
-    }
-
-    static NodeStrategyType& GetNodeCacheType()
-    {
-        return nodeCacheType_;
-    }
-
-    static void SetNodeCacheType(NodeStrategyType type)
-    {
-        nodeCacheType_ = type;
-    }
-
     bool OpincGetCachedMark() const
     {
         return isOpincMarkCached_;
@@ -129,6 +129,8 @@ private:
     void NodeCacheStateDisable();
     bool BeforeDrawCacheProcessChildNode(RSRenderParams& params);
     void BeforeDrawCacheFindRootNode(Drawing::Canvas& canvas, const RSRenderParams& params, bool& isOpincDropNodeExt);
+    bool IsOpincNodeInScreenRect(RSRenderParams& params);
+
     NodeRecordState recordState_ = NodeRecordState::RECORD_NONE;
     NodeStrategyType rootNodeStragyType_ = NodeStrategyType::CACHE_NONE;
     NodeStrategyType temNodeStragyType_ = NodeStrategyType::CACHE_NONE;
@@ -140,7 +142,6 @@ private:
     bool isOpincDropNodeExtTemp_ = true;
     bool isOpincCaculateStart_ = false;
     bool isOpincMarkCached_ = false;
-    bool IsOpincNodeInScreenRect(RSRenderParams& params);
 }; // RSOpincDrawCache
 }
 }
