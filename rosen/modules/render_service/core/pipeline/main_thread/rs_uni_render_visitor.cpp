@@ -2859,7 +2859,6 @@ CM_INLINE void RSUniRenderVisitor::PostPrepare(RSRenderNode& node, bool subTreeS
     }
 
     if (subTreeSkipped) {
-        hwcVisitor_->QuickPrepareChildrenOnlyOrder(node);
         auto isOccluded = curSurfaceNode_ ?
             curSurfaceNode_->IsMainWindowType() && curSurfaceNode_->GetVisibleRegion().IsEmpty() : false;
         if (!isOccluded || node.IsFirstLevelCrossNode()) {
