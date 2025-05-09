@@ -466,4 +466,21 @@ HWTEST_F(RSPropertyModifierTest, RSBehindWindowFilterMaskColorModifierTest, Test
     EXPECT_EQ(ModifierType, RSModifierType::BEHIND_WINDOW_FILTER_MASK_COLOR);
     ASSERT_NE(modifier->CreateRenderModifier(), nullptr);
 }
+
+/**
+ * @tc.name: RSBackgroundUIFilterModifierTest
+ * @tc.desc: RSBackgroundUIFilterModifierTest
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertyModifierTest, RSBackgroundUIFilterModifierTest, TestSize.Level1)
+{
+    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSPropertyBase>();
+    ASSERT_NE(property, nullptr);
+    std::shared_ptr<RSBackgroundUIFilterModifier> modifier =
+        std::make_shared<RSBackgroundUIFilterModifier>(property);
+    ASSERT_NE(modifier, nullptr);
+    RSModifierType ModifierType = modifier->GetModifierType();
+    EXPECT_EQ(ModifierType, RSModifierType::BACKGROUND_UI_FILTER);
+}
 } // namespace OHOS::Rosen
