@@ -23,7 +23,7 @@
 #include "typography_style.h"
 
 namespace OHOS::Text::ANI {
-
+constexpr size_t FILE_HEAD_LENGTH = 7; // 7 is the size of "file://"
 ani_status AniTextUtils::ThrowBusinessError(ani_env* env, TextErrorCode errorCode, const char* message)
 {
     ani_object aniError;
@@ -189,7 +189,7 @@ ani_status AniTextUtils::AniToStdStringUtf16(ani_env* env, const ani_string& str
     return ANI_OK;
 }
 
-bool AniTextUtils::ReadFile(const std::string& filePath, size_t dataLen, std::unique_ptr<uint8_t[]>& data)
+bool AniTextUtils::ReadFile(const std::string& filePath, size_t& dataLen, std::unique_ptr<uint8_t[]>& data)
 {
     char realPath[PATH_MAX] = {0};
     if (realpath(filePath.c_str(), realPath) == nullptr) {
@@ -225,7 +225,7 @@ bool AniTextUtils::SplitAbsoluteFontPath(std::string& absolutePath)
         return false;
     }
     std::string head = absolutePath.substr(0, iter);
-    if ((head == "file" && absolutePath.size() > sizeof("file://") - 1)) {
+    if ((head == "file" && absolutePath.size() > FILE_HEAD_LENGTH)) {
         absolutePath = absolutePath.substr(iter + 3); // 3 means skip "://"
         // the file format is like "file://system/fonts...",
         return true;

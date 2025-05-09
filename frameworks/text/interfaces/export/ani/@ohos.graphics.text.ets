@@ -92,8 +92,16 @@ namespace text {
      * @syscap SystemCapability.Graphics.Drawing
      * @since 14
      */
-    public loadFont(name: string, path: Resource | string): void {
-      this.loadFontSync(name, path);
+    public loadFont(name: string, path: string | Resource): Promise<void> {
+      return new Promise<void>((resolve, reject) => {
+        try {
+          taskpool.execute((): void => {
+            this.loadFontSync(name, path);
+          })
+        } catch (err) {
+          reject(err as BusinessError);
+        }
+      });
     }
 
     /**

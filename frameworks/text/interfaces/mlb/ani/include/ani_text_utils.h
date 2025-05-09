@@ -47,7 +47,7 @@ public:
 
     static ani_status AniToStdStringUtf8(ani_env* env, const ani_string& str, std::string& utf8Str);
     static ani_status AniToStdStringUtf16(ani_env* env, const ani_string& str, std::u16string& utf16Str);
-    static bool ReadFile(const std::string& filePath, size_t dataLen, std::unique_ptr<uint8_t[]>& data);
+    static bool ReadFile(const std::string& filePath, size_t& dataLen, std::unique_ptr<uint8_t[]>& data);
     static bool SplitAbsoluteFontPath(std::string& absolutePath);
 
     static ani_status ReadOptionalField(ani_env* env, ani_object obj, const char* fieldName, ani_ref& ref);

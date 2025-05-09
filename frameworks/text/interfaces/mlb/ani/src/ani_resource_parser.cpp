@@ -74,7 +74,7 @@ AniResource AniResourceParser::ParseResource(ani_env* env, ani_object obj)
     return result;
 }
 
-bool AniResourceParser::ResolveResource(const AniResource& resource, size_t dataLen, std::unique_ptr<uint8_t[]>& data)
+bool AniResourceParser::ResolveResource(const AniResource& resource, size_t& dataLen, std::unique_ptr<uint8_t[]>& data)
 {
     auto context = AbilityRuntime::ApplicationContext::GetApplicationContext();
     TEXT_ERROR_CHECK(context != nullptr, return false, "Failed to get application context");
