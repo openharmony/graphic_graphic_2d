@@ -469,8 +469,13 @@ ErrCode RSRenderServiceConnection::CreateNodeAndSurface(const RSSurfaceRenderNod
     RSMainThread* mainThread = mainThread_;
     std::function<void()> registerNode = [node, mainThread]() -> void {
         if (auto preNode = mainThread->GetContext().GetNodeMap().GetRenderNode(node->GetId())) {
-            RS_LOGE("CreateNodeAndSurface same id node:%{public}" PRIu64 ", type:%d",
-                node->GetId(), preNode->GetType());
+            if (auto preSurfaceNode = node->ReinterpretCastTo<RSSurfaceRenderNode>()) {
+                RS_LOGE("CreateNodeAndSurface same id node:%{public}" PRIu64 ", name:%{public}s, type:%{public}d",
+                    node->GetId(), preSurfaceNode->GetName().c_str(), preNode->GetType());
+            } else {
+                RS_LOGE("CreateNodeAndSurface same id node:%{public}" PRIu64 ", type:%{public}d", node->GetId(),
+                    preNode->GetType());
+            }
             usleep(SLEEP_TIME_US);
         }
         RS_LOGI("CreateNodeAndSurface RegisterRenderNode id:%{public}" PRIu64 ", name:%{public}s", node->GetId(),
