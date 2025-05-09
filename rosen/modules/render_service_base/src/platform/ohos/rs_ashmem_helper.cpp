@@ -232,6 +232,15 @@ int AshmemFdContainer::ReadSafeFd(Parcel &parcel, std::function<int(Parcel&)> re
             parcelFd, containerFd);
     }
 
+    if (parcelFd >= 0 && containerFd < 0) {
+        int fd = dup(parcelFd);
+        if (fd < 0) {
+            ROSEN_LOGE("AshmemFdContainer::ReadSafeFd dup failed: parcelFd = %{public}d, errno = %{public}d",
+                parcelFd, errno);
+        }
+        return fd;
+    }
+
     if (containerFd < 0) {
         return INVALID_FD;
     }
@@ -251,6 +260,7 @@ void AshmemFdContainer::Merge(const std::unordered_map<binder_size_t, int>& fds)
     }
     isUseFdContainer_ = true;
     fds_ = fds;
+    ROSEN_LOGI_IF(DEBUG_IPC, "AshmemFdContainer::Merge fds_ = %{public}s", PrintFds().c_str());
 }
 
 void AshmemFdContainer::Clear()
@@ -278,6 +288,8 @@ std::string AshmemFdContainer::PrintFds() const
     return ret;
 }
 
+AshmemFdWorker::AshmemFdWorker(const pid_t callingPid) : callingPid_(callingPid) {}
+
 AshmemFdWorker::~AshmemFdWorker()
 {
     if (needManualCloseFds_) {
@@ -299,6 +311,8 @@ void AshmemFdWorker::InsertFdWithOffset(int fd, binder_size_t offset, bool shoul
         fdsToBeClosed_.insert(fd);
     }
     if (isFdContainerUpdated_) {
+        ROSEN_LOGE("AshmemFdWorker::InsertFdWithOffset fd container has been updated, skip fd %{public}d with "
+            "offset %{public}" PRIu64, fd, static_cast<uint64_t>(offset));
         return;
     }
     auto [it, isNewElement] = fds_.try_emplace(offset, fd);
@@ -313,8 +327,11 @@ void AshmemFdWorker::InsertFdWithOffset(int fd, binder_size_t offset, bool shoul
 void AshmemFdWorker::PushFdsToContainer()
 {
     if (isFdContainerUpdated_) {
+        ROSEN_LOGE("AshmemFdWorker::PushFdsToContainer fd container has been updated, skip push operation");
         return;
     }
+    ROSEN_LOGI_IF(DEBUG_IPC, "AshmemFdWorker::PushFdsToContainer from callingPid %{public}d",
+        static_cast<int>(callingPid_));
     AshmemFdContainer::Instance().Merge(fds_);
     isFdContainerUpdated_ = true;
 }
@@ -341,9 +358,9 @@ void RSAshmemHelper::CopyFileDescriptor(
 }
 
 void RSAshmemHelper::InjectFileDescriptor(std::shared_ptr<MessageParcel>& dataParcel, MessageParcel* ashmemParcel,
-    std::unique_ptr<AshmemFdWorker>& ashmemFdWorker)
+    std::unique_ptr<AshmemFdWorker>& ashmemFdWorker, pid_t callingPid)
 {
-    ashmemFdWorker = std::make_unique<AshmemFdWorker>();
+    ashmemFdWorker = std::make_unique<AshmemFdWorker>(callingPid);
     binder_size_t* object = reinterpret_cast<binder_size_t*>(dataParcel->GetObjectOffsets());
     size_t objectNum = dataParcel->GetOffsetsSize();
     uintptr_t data = dataParcel->GetData();
@@ -445,7 +462,7 @@ std::shared_ptr<MessageParcel> RSAshmemHelper::ParseFromAshmemParcel(MessageParc
         // restore array that record the offsets of all fds
         dataParcel->InjectOffsets(reinterpret_cast<binder_size_t>(offsets), offsetSize);
         // restore all fds
-        InjectFileDescriptor(dataParcel, ashmemParcel, ashmemFdWorker);
+        InjectFileDescriptor(dataParcel, ashmemParcel, ashmemFdWorker, callingPid);
     }
 
     if (dataParcel->ReadInt32() != 0) { // identify normal parcel
