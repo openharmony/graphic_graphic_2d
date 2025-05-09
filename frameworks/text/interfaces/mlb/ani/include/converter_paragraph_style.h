@@ -18,6 +18,7 @@
 
 #include <ani.h>
 #include <memory>
+#include <string>
 #include <vector>
 
 #include "typography.h"

@@ -24,7 +24,7 @@
 namespace OHOS::Text::ANI {
 class ConverterRunMetrics {
 public:
-    static ani_object ParseRunMetricsToAni(ani_env* env, const std::map<size_t, OHOS::Rosen::RunMetrics>& map);
+    static ani_object ParseRunMetricsToAni(ani_env* env, const std::map<size_t, OHOS::Rosen::RunMetrics>& runMetrics);
 };
 } // namespace OHOS::Text::ANI
 #endif // OHOS_TEXT_ANI_RUN_METRICS_CONVERTER_H

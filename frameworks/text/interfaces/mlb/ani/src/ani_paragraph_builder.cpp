@@ -17,7 +17,6 @@
 #include <codecvt>
 #include <cstdint>
 
-#include "ani.h"
 #include "ani_common.h"
 #include "ani_font_collection.h"
 #include "ani_paragraph.h"

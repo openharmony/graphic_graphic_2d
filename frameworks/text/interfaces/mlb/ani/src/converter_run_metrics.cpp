@@ -21,11 +21,11 @@
 
 namespace OHOS::Text::ANI {
 using namespace OHOS::Rosen;
-ani_object ConverterRunMetrics::ParseRunMetricsToAni(ani_env* env, const std::map<size_t, RunMetrics>& map)
+ani_object ConverterRunMetrics::ParseRunMetricsToAni(ani_env* env, const std::map<size_t, RunMetrics>& runMetrics)
 {
     ani_object mapAniObj = AniTextUtils::CreateAniMap(env);
     ani_ref mapRef = nullptr;
-    for (const auto& [key, runMetrics] : map) {
+    for (const auto& [key, runMetrics] : runMetrics) {
         ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_RUNMETRICS_I, ":V");
         if (runMetrics.textStyle != nullptr) {
             env->Object_SetPropertyByName_Ref(

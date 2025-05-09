@@ -40,6 +40,8 @@ void AniFontCollection::Constructor(ani_env* env, ani_object object)
     AniFontCollection* aniFontCollection = new AniFontCollection();
     if (ANI_OK != env->Object_SetFieldByName_Long(object, NATIVE_OBJ, reinterpret_cast<ani_long>(aniFontCollection))) {
         TEXT_LOGE("Failed to create ani FontCollection obj");
+        delete aniFontCollection;
+        aniFontCollection = nullptr;
         return;
     }
 }
@@ -56,6 +58,37 @@ ani_object AniFontCollection::GetGlobalInstance(ani_env* env, ani_class cls)
     return obj;
 }
 
+void loadString(
+    ani_env* env, ani_object path, std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection, std::string familyName)
+{
+    std::unique_ptr<uint8_t[]> data;
+    size_t dataLen = 0;
+
+    std::string pathStr;
+    if (ANI_OK != AniTextUtils::AniToStdStringUtf8(env, static_cast<ani_string>(path), pathStr)) {
+        return;
+    }
+    if (!AniTextUtils::SplitAbsoluteFontPath(pathStr) || !AniTextUtils::ReadFile(pathStr, dataLen, data)) {
+        TEXT_LOGE("Failed to split absolute font path");
+        return;
+    }
+    fontCollection->LoadFont(familyName, data.get(), dataLen);
+}
+
+void loadResource(
+    ani_env* env, ani_object path, std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection, std::string familyName)
+{
+    std::unique_ptr<uint8_t[]> data;
+    size_t dataLen = 0;
+
+    AniResource resource = AniResourceParser::ParseResource(env, path);
+    if (!AniResourceParser::ResolveResource(resource, dataLen, data)) {
+        TEXT_LOGE("Failed to resolve resource");
+        return;
+    }
+    fontCollection->LoadFont(familyName, data.get(), dataLen);
+}
+
 void AniFontCollection::LoadFontSync(ani_env* env, ani_object obj, ani_string name, ani_object path)
 {
     std::string familyName;
@@ -67,8 +100,6 @@ void AniFontCollection::LoadFontSync(ani_env* env, ani_object obj, ani_string na
         TEXT_LOGE("Null font collection");
         return;
     }
-    std::unique_ptr<uint8_t[]> data;
-    size_t dataLen = 0;
 
     ani_class stringClass;
     env->FindClass("Lstd/core/String;", &stringClass);
@@ -76,31 +107,15 @@ void AniFontCollection::LoadFontSync(ani_env* env, ani_object obj, ani_string na
     env->Object_InstanceOf(path, stringClass, &isString);
 
     if (isString) {
-        std::string pathStr;
-        if (ANI_OK != AniTextUtils::AniToStdStringUtf8(env, static_cast<ani_string>(path), pathStr)) {
-            return;
-        }
-        if (!AniTextUtils::SplitAbsoluteFontPath(pathStr) || !AniTextUtils::ReadFile(pathStr, dataLen, data)) {
-            TEXT_LOGE("Failed to split absolute font path");
-            return;
-        }
-        aniFontCollection->fontCollection_->LoadFont(familyName, data.get(), dataLen);
-        return;
+        return loadString(env, path, aniFontCollection->fontCollection_, familyName);
     }
 
     ani_class resourceClass;
     env->FindClass("Lglobal/resource/Resource", &resourceClass);
     ani_boolean isResource = false;
     env->Object_InstanceOf(path, resourceClass, &isResource);
-
     if (isResource) {
-        AniResource resource = AniResourceParser::ParseResource(env, path);
-        if (!AniResourceParser::ResolveResource(resource, dataLen, data)) {
-            TEXT_LOGE("Failed to resolve resource");
-            return;
-        }
-        aniFontCollection->fontCollection_->LoadFont(familyName, data.get(), dataLen);
-        return;
+        return loadResource(env, path, aniFontCollection->fontCollection_, familyName);
     }
 }
 
