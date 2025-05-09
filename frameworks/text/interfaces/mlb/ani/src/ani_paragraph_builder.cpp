@@ -43,12 +43,17 @@ void AniParagraphBuilder::Constructor(
     }
 
     AniFontCollection* aniFontCollection = AniTextUtils::GetNativeFromObj<AniFontCollection>(env, fontCollection);
-    if (aniFontCollection == nullptr || aniFontCollection->GetFontCollection() == nullptr) {
+    if (aniFontCollection == nullptr) {
         TEXT_LOGE("FontCollection is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return;
     }
     std::shared_ptr<FontCollection> fontCollectionNative = aniFontCollection->GetFontCollection();
+        if (fontCollectionNative == nullptr) {
+        TEXT_LOGE("Failed to get font collection");
+        AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return;
+    }
     
     std::unique_ptr<TypographyCreate> typographyCreateNative =
         TypographyCreate::Create(*typographyStyleNative, fontCollectionNative);

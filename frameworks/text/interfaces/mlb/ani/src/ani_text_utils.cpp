@@ -206,12 +206,14 @@ bool AniTextUtils::ReadFile(const std::string& filePath, size_t dataLen, std::un
     int length = file.tellg();
     if (length == -1) {
         TEXT_LOGE("Failed to get file length:%{public}s", filePath.c_str());
+        file.close();
         return false;
     }
     dataLen = static_cast<size_t>(length);
     data = std::make_unique<uint8_t[]>(dataLen);
     file.seekg(0, std::ios::beg);
     file.read(reinterpret_cast<char*>(data.get()), dataLen);
+    file.close();
     return true;
 }
 

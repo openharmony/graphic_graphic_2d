@@ -49,9 +49,9 @@ AniResource AniResourceParser::ParseResource(ani_env* env, ani_object obj)
 {
     AniResource result;
     ani_double aniId{0};
-    ani_ref aniBundleName;
-    ani_ref aniModuleName;
-    ani_ref aniParams;
+    ani_ref aniBundleName{nullptr};
+    ani_ref aniModuleName{nullptr};
+    ani_ref aniParams{nullptr};
     ani_double aniType{0};
     env->Object_GetPropertyByName_Double(obj, "id", &aniId);
     env->Object_GetPropertyByName_Ref(obj, "bundleName", &aniBundleName);
@@ -61,10 +61,15 @@ AniResource AniResourceParser::ParseResource(ani_env* env, ani_object obj)
 
     result.type = static_cast<int32_t>(aniType);
     result.id = static_cast<int32_t>(aniId);
-
-    AniTextUtils::AniToStdStringUtf8(env, static_cast<ani_string>(aniBundleName), result.bundleName);
-    AniTextUtils::AniToStdStringUtf8(env, static_cast<ani_string>(aniModuleName), result.moduleName);
-    result.params = AniToStdVectorString(env, static_cast<ani_array>(aniParams));
+    if (aniBundleName != nullptr) {
+        AniTextUtils::AniToStdStringUtf8(env, static_cast<ani_string>(aniBundleName), result.bundleName);
+    }
+    if (aniModuleName != nullptr) {
+        AniTextUtils::AniToStdStringUtf8(env, static_cast<ani_string>(aniModuleName), result.moduleName);
+    }
+    if (aniParams != nullptr) {
+        result.params = AniToStdVectorString(env, static_cast<ani_array>(aniParams));
+    }
 
     return result;
 }
