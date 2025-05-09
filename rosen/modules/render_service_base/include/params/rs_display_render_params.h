@@ -155,6 +155,9 @@ public:
     void SetHDRPresent(bool hasHdrPresent);
     bool GetHDRPresent() const;
 
+    void SetHDRStatusChanged(bool isHDRStatusChanged);
+    bool IsHDRStatusChanged() const;
+
     void SetBrightnessRatio (float brightnessRatio);
     float GetBrightnessRatio() const;
 
@@ -238,6 +241,7 @@ private:
     bool isRotationChanged_ = false;
     bool hasFingerprint_ = false;
     bool hasHdrPresent_ = false;
+    bool isHDRStatusChanged_ = false;
     bool virtualScreenMuteStatus_ = false;
     float brightnessRatio_ = 1.0f;
     float zOrder_ = 0.0f;
