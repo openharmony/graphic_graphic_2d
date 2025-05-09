@@ -128,6 +128,20 @@ bool RSDisplayRenderParams::GetHDRPresent() const
     return hasHdrPresent_;
 }
 
+void RSDisplayRenderParams::SetHDRStatusChanged(bool isHDRStatusChanged)
+{
+    if (isHDRStatusChanged_ == isHDRStatusChanged) {
+        return;
+    }
+    isHDRStatusChanged_ = isHDRStatusChanged;
+    needSync_ = true;
+}
+
+bool RSDisplayRenderParams::IsHDRStatusChanged() const
+{
+    return isHDRStatusChanged_;
+}
+
 void RSDisplayRenderParams::SetBrightnessRatio (float brightnessRatio)
 {
     if (ROSEN_EQ(brightnessRatio_, brightnessRatio)) {
@@ -244,6 +258,7 @@ void RSDisplayRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetDisplayParams->newColorSpace_ = newColorSpace_;
     targetDisplayParams->newPixelFormat_ = newPixelFormat_;
     targetDisplayParams->hasHdrPresent_ = hasHdrPresent_;
+    targetDisplayParams->isHDRStatusChanged_ = isHDRStatusChanged_;
     targetDisplayParams->brightnessRatio_ = brightnessRatio_;
     targetDisplayParams->zOrder_ = zOrder_;
     targetDisplayParams->isZoomed_ = isZoomed_;

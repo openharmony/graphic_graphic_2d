@@ -354,9 +354,8 @@ bool RSDisplayRenderNodeDrawable::CheckDisplayNodeSkip(
         RSMainThread::Instance()->GetDirtyFlag()) {
         return false;
     }
-    if (params.GetHDRPresent() && (offscreenSurface_ == nullptr ||
-        offscreenSurface_->GetImageInfo().GetColorType() != Drawing::ColorType::COLORTYPE_RGBA_F16)) {
-        RS_LOGD("RSDisplayRenderNodeDrawable::CheckDisplayNodeSkip prepare buffer type not fp16");
+    if (params.IsHDRStatusChanged()) {
+        RS_LOGD("RSDisplayRenderNodeDrawable::CheckDisplayNodeSkip IsHDRStatusChanged");
         return false;
     }
 
