@@ -1155,6 +1155,7 @@ HWTEST_F(RSImageTest, ApplyImageOrientationTest, TestSize.Level1)
 
     Drawing::Matrix mat2 = Drawing::Matrix();
     mat2.SetScaleTranslate(1, -1, 0, 100);
+    rsImage->SetOrientationFit(1);
     drawingCanvas.Save();
     rsImage->ApplyImageOrientation(drawingCanvas);
     EXPECT_EQ(drawingCanvas.GetTotalMatrix(), mat2);
@@ -1162,6 +1163,7 @@ HWTEST_F(RSImageTest, ApplyImageOrientationTest, TestSize.Level1)
 
     Drawing::Matrix mat3 = Drawing::Matrix();
     mat3.SetScaleTranslate(-1, 1, 100, 0);
+    rsImage->SetOrientationFit(2);
     drawingCanvas.Save();
     rsImage->ApplyImageOrientation(drawingCanvas);
     EXPECT_EQ(drawingCanvas.GetTotalMatrix(), mat3);
