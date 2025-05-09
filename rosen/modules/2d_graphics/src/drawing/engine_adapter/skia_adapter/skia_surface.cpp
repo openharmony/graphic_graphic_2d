@@ -27,6 +27,11 @@
 #include "include/gpu/ganesh/SkSurfaceGanesh.h"
 #include "include/gpu/ganesh/GrBackendSemaphore.h"
 #include "include/gpu/ganesh/gl/GrGLBackendSurface.h"
+#ifdef RS_ENABLE_VK
+#include "include/gpu/ganesh/vk/GrVkTypes.h"
+#include "include/gpu/ganesh/vk/GrVkBackendSurface.h"
+#include "include/gpu/ganesh/vk/GrVkBackendSemaphore.h"
+#endif
 #else
 #include "include/gpu/GrBackendSemaphore.h"
 #endif
@@ -226,8 +231,14 @@ std::shared_ptr<Surface> SkiaSurface::MakeFromBackendRenderTarget(GPUContext* gp
         }
     }
     GrVkImageInfo image_info;
+#ifdef USE_M133_SKIA
+    GrBackendTextures::GetVkImageInfo(SkiaTextureInfo::ConvertToGrBackendTexture(info), &image_info);
+    GrBackendRenderTarget backendRenderTarget = GrBackendRenderTargets::MakeVk(
+        info.GetWidth(), info.GetHeight(), image_info);
+#else
     SkiaTextureInfo::ConvertToGrBackendTexture(info).getVkImageInfo(&image_info);
     GrBackendRenderTarget backendRenderTarget(info.GetWidth(), info.GetHeight(), 0, image_info);
+#endif
     SkSurfaceProps surfaceProps(0, SkPixelGeometry::kUnknown_SkPixelGeometry);
 
     sk_sp<SkColorSpace> skColorSpace = nullptr;
@@ -238,11 +249,19 @@ std::shared_ptr<Surface> SkiaSurface::MakeFromBackendRenderTarget(GPUContext* gp
         skColorSpace = SkColorSpace::MakeSRGB();
     }
 
+#ifdef USE_M133_SKIA
+    sk_sp<SkSurface> skSurface =
+        SkSurfaces::WrapBackendRenderTarget(grContext.get(),
+        backendRenderTarget, SkiaTextureInfo::ConvertToGrSurfaceOrigin(origin),
+        SkiaImageInfo::ConvertToSkColorType(colorType),
+        skColorSpace, &surfaceProps, deleteVkImage, cleanHelper);
+#else
     sk_sp<SkSurface> skSurface =
         SkSurface::MakeFromBackendRenderTarget(grContext.get(),
         backendRenderTarget, SkiaTextureInfo::ConvertToGrSurfaceOrigin(origin),
         SkiaImageInfo::ConvertToSkColorType(colorType),
         skColorSpace, &surfaceProps, deleteVkImage, cleanHelper);
+#endif
     if (skSurface == nullptr) {
         return nullptr;
     }
@@ -278,12 +297,22 @@ std::shared_ptr<Surface> SkiaSurface::MakeFromBackendTexture(GPUContext* gpuCont
 #ifdef RS_ENABLE_VK
     if (SystemProperties::GetGpuApiType() == GpuApiType::VULKAN) {
         GrVkImageInfo image_info;
+#ifdef USE_M133_SKIA
+        GrBackendTextures::GetVkImageInfo(SkiaTextureInfo::ConvertToGrBackendTexture(info), &image_info);
+        GrBackendTexture backendRenderTarget = GrBackendTextures::MakeVk(
+            info.GetWidth(), info.GetHeight(), image_info);
+        skSurface = SkSurfaces::WrapBackendTexture(grContext.get(),
+            backendRenderTarget, SkiaTextureInfo::ConvertToGrSurfaceOrigin(origin),
+            sampleCnt, SkiaImageInfo::ConvertToSkColorType(colorType),
+            skColorSpace, &surfaceProps, deleteVkImage, cleanHelper);
+#else
         SkiaTextureInfo::ConvertToGrBackendTexture(info).getVkImageInfo(&image_info);
         GrBackendTexture backendRenderTarget(info.GetWidth(), info.GetHeight(), image_info);
         skSurface = SkSurface::MakeFromBackendTexture(grContext.get(),
             backendRenderTarget, SkiaTextureInfo::ConvertToGrSurfaceOrigin(origin),
             sampleCnt, SkiaImageInfo::ConvertToSkColorType(colorType),
             skColorSpace, &surfaceProps, deleteVkImage, cleanHelper);
+#endif
     }
 #endif
 #ifdef RS_ENABLE_GL
@@ -632,7 +661,11 @@ void SkiaSurface::Wait(int32_t time, const VkSemaphore& semaphore)
         return;
     }
     GrBackendSemaphore backendSemaphore;
+#ifdef USE_M133_SKIA
+    backendSemaphore = GrBackendSemaphores::MakeVk(semaphore);
+#else
     backendSemaphore.initVulkan(semaphore);
+#endif
     skSurface_->wait(time, &backendSemaphore);
 }
 

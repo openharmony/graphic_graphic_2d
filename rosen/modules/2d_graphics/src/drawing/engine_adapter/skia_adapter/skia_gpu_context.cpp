@@ -17,6 +17,9 @@
 #ifdef USE_M133_SKIA
 #include "include/gpu/ganesh/gl/GrGLInterface.h"
 #include "src/gpu/ganesh/GrDirectContextPriv.h"
+#ifdef RS_ENABLE_VK
+#include "include/gpu/ganesh/vk/GrVkDirectContext.h"
+#endif
 #else
 #include "include/gpu/gl/GrGLInterface.h"
 #include "src/gpu/GrDirectContextPriv.h"
@@ -116,18 +119,30 @@ bool SkiaGPUContext::BuildFromGL(const GPUContextOptions& options)
 }
 
 #ifdef RS_ENABLE_VK
+#ifdef USE_M133_SKIA
+bool SkiaGPUContext::BuildFromVK(const skgpu::VulkanBackendContext& context)
+#else
 bool SkiaGPUContext::BuildFromVK(const GrVkBackendContext& context)
+#endif
 {
     if (!SystemProperties::IsUseVulkan()) {
         return false;
     }
     GrContextOptions grOptions;
     grOptions.fExecutor = &g_defaultExecutor;
+#ifdef USE_M133_SKIA
+    grContext_ = GrDirectContexts::MakeVulkan(context, grOptions);
+#else
     grContext_ = GrDirectContext::MakeVulkan(context, grOptions);
+#endif
     return grContext_ != nullptr;
 }
 
+#ifdef USE_M133_SKIA
+bool SkiaGPUContext::BuildFromVK(const skgpu::VulkanBackendContext& context, const GPUContextOptions& options)
+#else
 bool SkiaGPUContext::BuildFromVK(const GrVkBackendContext& context, const GPUContextOptions& options)
+#endif
 {
     if (!SystemProperties::IsUseVulkan()) {
         return false;
@@ -148,7 +163,11 @@ bool SkiaGPUContext::BuildFromVK(const GrVkBackendContext& context, const GPUCon
     grOptions.fRuntimeProgramCacheSize =
         std::atoi(OHOS::system::GetParameter("persist.sys.graphics.skiapipelinelimit", "512").c_str());
 #endif
+#ifdef USE_M133_SKIA
+    grContext_ = GrDirectContexts::MakeVulkan(context, grOptions);
+#else
     grContext_ = GrDirectContext::MakeVulkan(context, grOptions);
+#endif
     return grContext_ != nullptr;
 }
 #endif
