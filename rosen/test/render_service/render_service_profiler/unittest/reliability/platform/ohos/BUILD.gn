@@ -43,7 +43,6 @@ ohos_unittest("RSMarshallingHelperReliabilityTest") {
     "$graphic_2d_root/rosen/test/include",
     "$graphic_2d_root/rosen/test/render_service/render_service_profiler/unittest/reliability/utils/include",
     "$graphic_2d_root/prebuilts/librarys/gpu/include",
-    "//drivers/peripheral/display/interfaces/include/",
     "$graphic_2d_root/rosen/modules/render_service_client/core",
     "$graphic_2d_root/utils/log",
   ]
