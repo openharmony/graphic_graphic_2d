@@ -35,6 +35,7 @@ rosen/modules/render_service/core/pipeline/rs_render_service_connection.cpp @chu
 rosen/modules/render_service_base/src/platform/ohos/rs_marshalling_helper.cpp @chuchengcheng
 rosen/modules/render_service_base/src/platform/ohos/rs_render_service_connection_proxy.h @chuchengcheng
 rosen/modules/render_service_base/src/platform/ohos/rs_render_service_connection_proxy.cpp @chuchengcheng
+etc/graphic.para.dac @chuchengcheng
 rosen/modules/safuzz/ @siyuan_zhou
 
 [animation]
