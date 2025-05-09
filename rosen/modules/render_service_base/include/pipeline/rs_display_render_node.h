@@ -705,7 +705,7 @@ private:
     std::shared_ptr<RSBaseRenderNode> windowContainer_;
 
     // Enable HWCompose
-    HwcDisplayRecorder hwcDisplayRecorder_;
+    RSHwcDisplayRecorder hwcDisplayRecorder_;
 };
 } // namespace Rosen
 } // namespace OHOS

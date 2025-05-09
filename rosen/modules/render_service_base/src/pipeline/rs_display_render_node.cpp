@@ -467,9 +467,9 @@ void RSDisplayRenderNode::SetNeedForceUpdateHwcNodes(bool needForceUpdate, bool 
     if (displayParams == nullptr) {
         return;
     }
-    auto& recorder = GetHwcRecorder();
-    recorder.SetNeedForceUpdateHwcNodes(needForceUpdate);
-    recorder.SetHasVisibleHwcNodes(hasVisibleHwcNodes);
+    auto& hwcDisplayRecorder = HwcDisplayRecorder();
+    hwcDisplayRecorder.SetNeedForceUpdateHwcNodes(needForceUpdate);
+    hwcDisplayRecorder.SetHasVisibleHwcNodes(hasVisibleHwcNodes);
     displayParams->SetNeedForceUpdateHwcNodes(needForceUpdate);
     if (stagingRenderParams_->NeedSync()) {
         AddToPendingSyncList();
