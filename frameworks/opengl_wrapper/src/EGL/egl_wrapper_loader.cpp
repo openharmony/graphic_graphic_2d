@@ -316,7 +316,7 @@ void *EglWrapperLoader::GetProcAddrFromDriver(const char *name)
     if (!func && dlGlHandle1_) {
         func = dlsym(dlGlHandle1_, name);
     }
-    return func;
     
+    return func;
 }
 } // namespace OHOS
