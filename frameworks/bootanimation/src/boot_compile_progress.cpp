@@ -56,7 +56,7 @@ namespace {
     constexpr const int HEIGHT_WEARABLE = FONT_SIZE_WEARABLE + RADIUS_WEARABLE * 2 + MAGIN_WEARABLE;
     constexpr const int32_t MAX_RETRY_TIMES = 5;
     constexpr const int32_t WAIT_MS = 500;
-    constexpr const int32_t WAITING_BMS_TIMEOUT = 30;
+    constexpr const int32_t WAITING_BMS_TIMEOUT = 5;
     constexpr const int32_t LOADING_FPS = 30;
     constexpr const int32_t PERIOD_FPS = 10;
     constexpr const int32_t CHANGE_FREQ = 4;
@@ -203,9 +203,7 @@ bool BootCompileProgress::RegisterVsyncCallback()
 
 bool BootCompileProgress::IsBmsBundleReady()
 {
-    bool isReady = system::GetBoolParameter(BOOTEVENT_BMS_MAIN_BUNDLES_READY, false);
-    LOGI("is bms ready: %{public}d", isReady);
-    return isReady;
+    return system::GetBoolParameter(BOOTEVENT_BMS_MAIN_BUNDLES_READY, false);
 }
 
 bool BootCompileProgress::WaitBmsStartIfNeeded()
