@@ -547,8 +547,14 @@ ohos_source_set("render_service_base_src") {
 
   if (use_video_processing_engine) {
     defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
-    external_deps += [ "video_processing_engine:videoprocessingengine" ]
-    sources += [ "src/render/rs_colorspace_convert.cpp" ]
+    external_deps += [
+      "video_processing_engine:videoprocessingengine",
+      "media_foundation:media_foundation",
+    ]
+    sources += [
+      "src/render/rs_colorspace_convert.cpp",
+      "src/display_engine/rs_vpe_manager.cpp",
+    ]
   }
 
   if (rosen_is_ohos && defined(enable_ipc_security) && enable_ipc_security) {

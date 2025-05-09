@@ -116,7 +116,8 @@
           "lz4",
           "faultloggerd",
           "freetype",
-          "rust_cxx"
+          "rust_cxx",
+          "media_foundation"
         ],
         "third_party": [
           "skia"
