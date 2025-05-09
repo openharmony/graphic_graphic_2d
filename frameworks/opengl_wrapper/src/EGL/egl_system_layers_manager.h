@@ -46,9 +46,9 @@ public:
     ~EglSystemLayersManager() = default;
 
     std::vector<std::string> GetSystemLayers();
+    static bool GetProcessName(pid_t pid, char *pname, int len);
 
 private:
-    static bool GetProcessName(pid_t pid, char *pname, int len);
     bool GetJsonConfig(Json::Value &configData);
     bool GetDefaultJsonConfig(Json::Value &configData);
     std::vector<std::string> GetSystemLayersFromConfig(Json::Value &appModeSection,

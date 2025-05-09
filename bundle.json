@@ -17,6 +17,7 @@
         "SystemCapability.Graphic.Graphic2D.EGL",
         "SystemCapability.Graphic.Graphic2D.GLES2",
         "SystemCapability.Graphic.Graphic2D.GLES3",
+        "SystemCapability.Graphic.Graphic2D.GL4",
         "SystemCapability.Graphic.Graphic2D.HyperGraphicManager",
         "SystemCapability.Graphic.Graphic2D.NativeBuffer",
         "SystemCapability.Graphic.Graphic2D.NativeDrawing",
@@ -56,7 +57,8 @@
         "graphic_2d_feature_use_igraphics_extend_hooks",
         "graphic_2d_feature_vkqueue_priority_enable",
         "graphic_2d_feature_bootanimation_ext_enable",
-        "graphic_2d_feature_overlay_display_enable"
+        "graphic_2d_feature_overlay_display_enable",
+        "graphic_2d_feature_enable_opengl"
       ],
       "rom": "10000KB",
       "ram": "10000KB",
@@ -137,6 +139,7 @@
             "//foundation/graphic/graphic_2d/frameworks/opengl_wrapper:EGL",
             "//foundation/graphic/graphic_2d/frameworks/opengl_wrapper:GLESv2",
             "//foundation/graphic/graphic_2d/frameworks/opengl_wrapper:GLESv3",
+            "//foundation/graphic/graphic_2d/frameworks/opengl_wrapper:GLv4",
             "//foundation/graphic/graphic_2d/rosen/modules/effect/egl:libegl_effect",
             "//foundation/graphic/graphic_2d/frameworks/vulkan_layers:vulkan_swapchain_layer",
             "//foundation/graphic/graphic_2d/frameworks/vulkan_layers:vulkan_swapchain_layer_json",
@@ -209,6 +212,16 @@
           {
             "type": "so",
             "name": "//foundation/graphic/graphic_2d/frameworks/opengl_wrapper:GLESv3",
+            "header": {
+              "header_files": [
+              ],
+              "header_base": [
+              ]
+            }
+          },
+          {
+            "type": "so",
+            "name": "//foundation/graphic/graphic_2d/frameworks/opengl_wrapper:GLv4",
             "header": {
               "header_files": [
               ],

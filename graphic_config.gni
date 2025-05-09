@@ -51,6 +51,7 @@ declare_args() {
   graphic_2d_feature_bootanimation_ext_enable = "default"
   graphic_2d_support_access_token = true
   graphic_2d_feature_overlay_display_enable = false
+  graphic_2d_feature_enable_opengl = false
 
   if (defined(is_arkui_x) && is_arkui_x) {
     is_cross_platform = true
