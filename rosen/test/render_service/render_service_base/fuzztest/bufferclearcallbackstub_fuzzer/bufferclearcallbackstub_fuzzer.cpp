@@ -34,6 +34,7 @@ namespace {
 const uint8_t* g_data = nullptr;
 size_t g_size = 0;
 size_t g_pos;
+const uint8_t TARGET_SIZE = 4;
 } // namespace
 
 template<class T>
@@ -71,6 +72,10 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
         void OnBufferClear() override {}
     };
     MyBufferClearCallbackStub myBufferClearCallbackStub;
+    // Set a token that matchees GetDescriptor（）
+    if (code % TARGET_SIZE) {
+        messageParcel.WriteInterfaceToken(RSIBufferClearCallback::GetDescriptor());
+    }
     myBufferClearCallbackStub.OnRemoteRequest(code, messageParcel, reply, option);
     return true;
 }
