@@ -37,7 +37,7 @@ namespace text {
       this.ptr = ptr;
       this.className = className;
     }
-    public native clean(): void;
+    native clean(): void;
   }
 
   let destroyRegister = new FinalizationRegistry<Cleaner>((cleaner: Cleaner)=>{
@@ -71,7 +71,7 @@ namespace text {
      * @syscap SystemCapability.Graphics.Drawing
      * @since 12
      */
-    public native static getGlobalInstance(): FontCollection;
+    native static getGlobalInstance(): FontCollection;
 
     /**
      * Load font.
@@ -80,7 +80,7 @@ namespace text {
      * @syscap SystemCapability.Graphics.Drawing
      * @since 12
      */
-    public native loadFontSync(name: string, path: Resource | string): void;
+    native loadFontSync(name: string, path: Resource | string): void;
 
     /**
      * Load font.
@@ -92,7 +92,7 @@ namespace text {
      * @syscap SystemCapability.Graphics.Drawing
      * @since 14
      */
-    public loadFont(name: string, path: string | Resource): Promise<void> {
+    loadFont(name: string, path: string | Resource): Promise<void> {
       return new Promise<void>((resolve, reject) => {
         try {
           taskpool.execute((): void => {
@@ -109,7 +109,7 @@ namespace text {
      * @syscap SystemCapability.Graphics.Drawing
      * @since 12
      */
-    public native clearCaches(): void;
+    native clearCaches(): void;
   }
 
   /**
@@ -188,6 +188,7 @@ namespace text {
       this.cleaner = new Cleaner("Paragraph", ptr);
       destroyRegister.register(this, this.cleaner!, unregisterToken);
     }
+
     /**
      * Calculates the positioning of all the glyphs.
      * @param { number } width - Control how wide the text is allowed to be.
@@ -710,6 +711,7 @@ namespace text {
      * @since 12
      */
     color?: common2D.Color;
+
     /**
      * The value sets offset of text shadow that based on the original text.
      * @type { ?common2D.Point } The point of shadow
@@ -717,6 +719,7 @@ namespace text {
      * @since 12
      */
     point?: common2D.Point;
+
     /**
      * The value sets special effect radius of blurring text, it default is 0.
      * @type { ?number } The value about radius of blur, it type is "double"
@@ -1251,6 +1254,7 @@ namespace text {
      * @since 12
      */
     name: string;
+
     /**
      * The value of font feature.
      * @type { number } feature value
@@ -1443,6 +1447,7 @@ namespace text {
      * @since 12
      */
     axis: string;
+    
     /**
      * The value of font variation.
      * @type { number } variation value
