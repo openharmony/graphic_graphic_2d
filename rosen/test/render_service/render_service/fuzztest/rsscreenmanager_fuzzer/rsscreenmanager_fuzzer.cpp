@@ -65,7 +65,7 @@ T GetData()
     return object;
 }
 
-boolean Init(const uint8_t* data, size_t size)
+bool Init(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
         return false;
@@ -293,6 +293,7 @@ void RemoveVirtualScreen()
     ScreenId screenId = GetData<Rosen::ScreenId>();
     CreateOrGetScreenManager()->RemoveVirtualScreen(screenId);
 }
+
 void SetScreenActiveMode()
 {
     ScreenId screenId = GetData<Rosen::ScreenId>();
@@ -721,11 +722,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     };
 
     /* Run your code on data */
-    uint8_t tarpos = OHOS::Rosen::GetData<uint8_t>();
-    uint8_t funcVectorSize = funcVector.size();
-    if (tarpos > funcVectorSize) {
-        tarpos = tarpos % funcVectorSize;
-    }
-    funcVector[tarpos]();
+    uint8_t pos = OHOS::Rosen::GetData<uint8_t>() % funcVector.size();
+    funcVector[pos]();
     return 0;
 }
