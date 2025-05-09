@@ -23,6 +23,7 @@
 namespace OHOS {
 namespace {
     constexpr const char* DUE_UPDATE_TYPE_PARAM = "persist.dupdate_engine.update_type";
+    constexpr const char* HMOS_UPDATE_PARAM = "persist.update.hmos_to_next_flag";
     const std::string DUE_UPDATE_TYPE_MANUAL = "manual";
     const std::string DUE_UPDATE_TYPE_NIGHT = "night";
 }
@@ -80,6 +81,9 @@ bool BootAnimationStrategy::IsOtaUpdate() const
 {
     std::string dueUpdateType = system::GetParameter(DUE_UPDATE_TYPE_PARAM, "");
     LOGI("dueUpdateType is: %{public}s", dueUpdateType.c_str());
-    return dueUpdateType == DUE_UPDATE_TYPE_MANUAL || dueUpdateType == DUE_UPDATE_TYPE_NIGHT;
+    bool isSingleUpdate = dueUpdateType == DUE_UPDATE_TYPE_MANUAL || dueUpdateType == DUE_UPDATE_TYPE_NIGHT;
+    bool isHmosUpdate = system::GetIntParameter(HMOS_UPDATE_PARAM, -1) == 1;
+    LOGI("isSingleUpdate: %{public}d, isHmosUpdate: %{public}d", isSingleUpdate, isHmosUpdate);
+    return isSingleUpdate || isHmosUpdate;
 }
 } // namespace OHOS
