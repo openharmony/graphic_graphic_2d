@@ -41,6 +41,7 @@ public:
 private:
     void FontDescriptorScatter(FontDescSharedPtr desc);
     bool ParserInstallFontsPathList(std::vector<std::string>& fontPathList);
+    bool ParserInstallFontsPathList(std::unordered_map<std::string, std::string>& fontPathList);
     bool ProcessSystemFontType(const int32_t& systemFontType, int32_t& fontType);
     bool ParseInstallFontDescSharedPtrByName(const std::string& fullName, FontDescSharedPtr& result);
     std::unordered_set<std::string> GetInstallFontList();
