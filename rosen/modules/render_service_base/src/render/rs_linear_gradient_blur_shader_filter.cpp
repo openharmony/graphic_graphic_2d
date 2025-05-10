@@ -21,10 +21,8 @@ namespace OHOS {
 namespace Rosen {
 RSLinearGradientBlurShaderFilter::RSLinearGradientBlurShaderFilter(
     const std::shared_ptr<RSLinearGradientBlurPara>& para, const float geoWidth, const float geoHeight)
+    : linearGradientBlurPara_(para)
 {
-    if (para != nullptr) {
-        linearGradientBlurPara_ = para;
-    }
     type_ = ShaderFilterType::LINEAR_GRADIENT_BLUR;
     geoWidth_ = geoWidth;
     geoHeight_ = geoHeight;

@@ -4125,7 +4125,7 @@ HWTEST_F(RSNodeTest, SetUICompositingFilter001, TestSize.Level1)
 HWTEST_F(RSNodeTest, SetUICompositingFilter002, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
-    Filter* filterObj = new(std::nothrow) Filter();
+    auto filterObj = std::make_unique<Filter>();
     std::shared_ptr<PixelStretchPara> para = std::make_shared<PixelStretchPara>();
     
     Vector4f tmpPercent{ 0.0f, 0.25f, 0.75f, 1.0f };
@@ -4141,11 +4141,6 @@ HWTEST_F(RSNodeTest, SetUICompositingFilter002, TestSize.Level1)
     iter = rsNode->propertyModifiers_.find(RSModifierType::PIXEL_STRETCH_TILE_MODE);
     auto property2 = std::static_pointer_cast<RSProperty<int>>(iter->second->GetProperty());
     EXPECT_EQ(property2->Get(), static_cast<int>(tileMode));
-
-    if (filterObj != nullptr) {
-        delete filterObj;
-        filterObj = nullptr;
-    }
 }
 
 /**
@@ -4156,7 +4151,7 @@ HWTEST_F(RSNodeTest, SetUICompositingFilter002, TestSize.Level1)
 HWTEST_F(RSNodeTest, SetUICompositingFilter003, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
-    Filter* filterObj = new(std::nothrow) Filter();
+    auto filterObj = std::make_unique<Filter>();
     auto radiusGradientBlurPara = std::make_shared<RadiusGradientBlurPara>();
     std::vector<std::pair<float, float>> fractionStops = {
         {0.0f, 0.0f},
@@ -4180,10 +4175,6 @@ HWTEST_F(RSNodeTest, SetUICompositingFilter003, TestSize.Level1)
     EXPECT_EQ(linearGradientBlurPara->blurRadius_, floatData[1]);
     EXPECT_EQ(linearGradientBlurPara->fractionStops_, fractionStops);
     EXPECT_EQ(linearGradientBlurPara->direction_, direction);
-    if (filterObj != nullptr) {
-        delete filterObj;
-        filterObj = nullptr;
-    }
 }
 
 /**
@@ -4194,7 +4185,7 @@ HWTEST_F(RSNodeTest, SetUICompositingFilter003, TestSize.Level1)
 HWTEST_F(RSNodeTest, SetUICompositingFilter004, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
-    Filter* filterObj = new(std::nothrow) Filter();
+    auto filterObj = std::make_unique<Filter>();
 
     auto filterBlurPara = std::make_shared<FilterBlurPara>();
     filterBlurPara->SetRadius(floatData[1]);
@@ -4223,10 +4214,6 @@ HWTEST_F(RSNodeTest, SetUICompositingFilter004, TestSize.Level1)
     rsNode->SetUICompositingFilter(filterObj);
 
     EXPECT_NE(rsNode->propertyModifiers_.size(), 3);
-    if (filterObj != nullptr) {
-        delete filterObj;
-        filterObj = nullptr;
-    }
 }
 
 /**
