@@ -22,32 +22,35 @@ namespace OHOS::Text::ANI {
 using namespace OHOS::Rosen;
 std::unique_ptr<TypographyStyle> ConverterParagraphStyle::ParseParagraphStyleToNative(ani_env* env, ani_object obj)
 {
-    ani_class cls;
+    ani_class cls = nullptr;
     ani_status ret = env->FindClass(ANI_CLASS_PARAGRAPH_STYLE, &cls);
     if (ret != ANI_OK) {
-        TEXT_LOGE("Failed to find class:%{public}d", ret);
+        TEXT_LOGE("Failed to find class,status %{public}d", ret);
         return nullptr;
     }
     ani_boolean isObj = false;
     ret = env->Object_InstanceOf(obj, cls, &isObj);
     if (!isObj) {
-        TEXT_LOGE("Object mismatch:%{public}d", ret);
+        TEXT_LOGE("Object mismatch,status %{public}d", ret);
         return nullptr;
     }
     std::unique_ptr<TypographyStyle> paragraphStyle = std::make_unique<TypographyStyle>();
-    TextStyle textStyle;
+    
     double maxLines;
     if (AniTextUtils::ReadOptionalDoubleField(env, obj, "maxLines", maxLines) == ANI_OK) {
         paragraphStyle->maxLines = static_cast<size_t>(maxLines);
     }
 
     ani_ref textStyleRef = nullptr;
+    TextStyle textStyle;
     if (AniTextUtils::ReadOptionalField(env, obj, "textStyle", textStyleRef) == ANI_OK && textStyleRef != nullptr) {
         ret = ConverterTextStyle::ParseTextStyleToNative(env, static_cast<ani_object>(textStyleRef), textStyle);
         if (ret == ANI_OK) {
             paragraphStyle->SetTextStyle(textStyle);
         }
     }
+    paragraphStyle->ellipsis = textStyle.ellipsis;
+    paragraphStyle->ellipsisModal = textStyle.ellipsisModal;
 
     AniTextUtils::ReadOptionalEnumField(env, obj, "textDirection", paragraphStyle->textDirection);
     AniTextUtils::ReadOptionalEnumField(env, obj, "align", paragraphStyle->textAlign);
@@ -64,9 +67,6 @@ std::unique_ptr<TypographyStyle> ConverterParagraphStyle::ParseParagraphStyleToN
     if (AniTextUtils::ReadOptionalField(env, obj, "tab", tabRef) == ANI_OK && tabRef != nullptr) {
         ParseTextTabToNative(env, static_cast<ani_object>(tabRef), paragraphStyle->tab);
     }
-
-    paragraphStyle->ellipsis = textStyle.ellipsis;
-    paragraphStyle->ellipsisModal = textStyle.ellipsisModal;
 
     return paragraphStyle;
 }

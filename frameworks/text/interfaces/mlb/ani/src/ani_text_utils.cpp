@@ -238,19 +238,19 @@ ani_status AniTextUtils::ReadOptionalField(ani_env* env, ani_object obj, const c
 {
     ani_status ret = env->Object_GetPropertyByName_Ref(obj, fieldName, &ref);
     if (ret != ANI_OK) {
-        TEXT_LOGE("Failed to get property %{public}s:%{public}d", fieldName, ret);
+        TEXT_LOGE("Failed to get property %{public}s,status %{public}d", fieldName, ret);
         return ret;
     }
     ani_boolean isUndefined;
     ret = env->Reference_IsUndefined(ref, &isUndefined);
     if (ret != ANI_OK) {
-        TEXT_LOGE("Failed to check ref is undefined:%{public}d", ret);
+        TEXT_LOGE("Failed to check ref is undefined,status %{public}d", ret);
+        ref = nullptr;
         return ret;
     }
 
     if (isUndefined) {
         ref = nullptr;
-        return ret;
     }
     return ret;
 }

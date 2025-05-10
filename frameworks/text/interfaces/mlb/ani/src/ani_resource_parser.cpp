@@ -28,7 +28,7 @@ std::vector<std::string> AniToStdVectorString(ani_env* env, ani_array array)
         return result;
     }
     for (ani_size i = 0; i < length; i++) {
-        ani_ref aniString;
+        ani_ref aniString = nullptr;
         if (ANI_OK != env->Array_Get_Ref(static_cast<ani_array_ref>(array), i, &aniString)) {
             TEXT_LOGE("Failed to get array element %{public}zu", i);
             continue;

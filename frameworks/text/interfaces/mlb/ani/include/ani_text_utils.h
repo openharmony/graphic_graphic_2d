@@ -66,7 +66,7 @@ public:
 template <typename... Args>
 ani_object AniTextUtils::CreateAniObject(ani_env* env, const std::string name, const char* signature, Args... params)
 {
-    ani_class cls;
+    ani_class cls = nullptr;
     if (env->FindClass(name.c_str(), &cls) != ANI_OK) {
         TEXT_LOGE("[ANI] not found %{public}s", name.c_str());
         return CreateAniUndefined(env);

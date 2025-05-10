@@ -24,16 +24,17 @@ void ConverterDrawing::ParseDrawingColorToNative(
     ani_env* env, ani_object obj, const std::string& str, Drawing::Color& colorSrc)
 {
     ani_ref tempValue = nullptr;
-    ani_double tempValueChild{0};
     ani_status result = env->Object_GetPropertyByName_Ref(obj, str.c_str(), &tempValue);
     if (result != ANI_OK || tempValue == nullptr) {
-        TEXT_LOGD("Failed to find param color");
+        TEXT_LOGD("Failed to find param color,status %{public}d", result);
         return;
     }
+
     int32_t alpha = 0;
     int32_t red = 0;
     int32_t green = 0;
     int32_t blue = 0;
+    ani_double tempValueChild{0};
 
     ani_status isAlphaOk =
         env->Object_GetPropertyByName_Double(static_cast<ani_object>(tempValue), "alpha", &tempValueChild);

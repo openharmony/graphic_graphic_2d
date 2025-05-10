@@ -39,7 +39,7 @@ void AniFontCollection::Constructor(ani_env* env, ani_object object)
 {
     AniFontCollection* aniFontCollection = new AniFontCollection();
     if (ANI_OK != env->Object_SetFieldByName_Long(object, NATIVE_OBJ, reinterpret_cast<ani_long>(aniFontCollection))) {
-        TEXT_LOGE("Failed to create ani FontCollection obj");
+        TEXT_LOGE("Failed to create ani font collection obj");
         delete aniFontCollection;
         aniFontCollection = nullptr;
         return;
@@ -52,7 +52,7 @@ ani_object AniFontCollection::GetGlobalInstance(ani_env* env, ani_class cls)
 
     ani_object obj = AniTextUtils::CreateAniObject(env, ANI_CLASS_FONT_COLLECTION, ":V");
     if (ANI_OK != env->Object_SetFieldByName_Long(obj, NATIVE_OBJ, reinterpret_cast<ani_long>(&aniFontCollection))) {
-        TEXT_LOGE("Failed to create ani FontCollection obj");
+        TEXT_LOGE("Failed to create ani font collection obj");
         return nullptr;
     }
     return obj;

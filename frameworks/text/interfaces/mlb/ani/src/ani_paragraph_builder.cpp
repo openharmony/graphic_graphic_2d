@@ -77,14 +77,14 @@ ani_status AniParagraphBuilder::AniInit(ani_vm* vm, uint32_t* result)
     ani_env* env;
     ani_status ret;
     if ((ret = vm->GetEnv(ANI_VERSION_1, &env)) != ANI_OK) {
-        TEXT_LOGE("[ANI] AniParagraphBuilder null env:%{public}d", ret);
+        TEXT_LOGE("[ANI] AniParagraphBuilder null env,status %{public}d", ret);
         return ANI_NOT_FOUND;
     }
 
     ani_class cls = nullptr;
     ret = env->FindClass(ANI_CLASS_PARAGRAPH_BUILDER, &cls);
     if (ret != ANI_OK) {
-        TEXT_LOGE("[ANI] AniParagraphBuilder can't find class:%{public}d", ret);
+        TEXT_LOGE("[ANI] AniParagraphBuilder can't find class,status %{public}d", ret);
         return ANI_NOT_FOUND;
     }
 
@@ -101,7 +101,7 @@ ani_status AniParagraphBuilder::AniInit(ani_vm* vm, uint32_t* result)
 
     ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
     if (ret != ANI_OK) {
-        TEXT_LOGE("[ANI] AniParagraphBuilder bind methods fail:%{public}d", ret);
+        TEXT_LOGE("[ANI] AniParagraphBuilder bind methods fail,status %{public}d", ret);
         return ANI_NOT_FOUND;
     }
     return ANI_OK;

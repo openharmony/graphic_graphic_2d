@@ -17,6 +17,7 @@
  * @file
  * @kit ArkGraphics2D
  */
+import { BusinessError } from '@ohos.base';
 import type drawing from '@ohos.graphics.drawing';
 import type common2D from '@ohos.graphics.common2D';
 import { Resource } from 'global.resource';
@@ -92,11 +93,13 @@ namespace text {
      * @syscap SystemCapability.Graphics.Drawing
      * @since 14
      */
-    loadFont(name: string, path: string | Resource): Promise<void> {
-      return new Promise<void>((resolve, reject) => {
+    async loadFont(name: string, path: string | Resource): Promise<void> {
+      await new Promise<void>((resolve, reject) => {
         try {
           taskpool.execute((): void => {
             this.loadFontSync(name, path);
+          }).then(() => {
+            resolve(undefined);
           })
         } catch (err) {
           reject(err as BusinessError);
@@ -1447,7 +1450,7 @@ namespace text {
      * @since 12
      */
     axis: string;
-    
+
     /**
      * The value of font variation.
      * @type { number } variation value

@@ -83,14 +83,14 @@ static ani_status AniCleanerInit(ani_vm* vm)
     ani_env* env;
     ani_status ret;
     if ((ret = vm->GetEnv(ANI_VERSION_1, &env)) != ANI_OK) {
-        TEXT_LOGE("[ANI] AniCleaner null env:%{public}d", ret);
+        TEXT_LOGE("[ANI] AniCleaner null env,status %{public}d", ret);
         return ANI_NOT_FOUND;
     }
 
     ani_class cls = nullptr;
     ret = env->FindClass(ANI_CLASS_CLEANER, &cls);
     if (ret != ANI_OK) {
-        TEXT_LOGE("[ANI] AniCleaner can't find class:%{public}d", ret);
+        TEXT_LOGE("[ANI] AniCleaner can't find class,status %{public}d", ret);
         return ANI_NOT_FOUND;
     }
 
@@ -100,7 +100,7 @@ static ani_status AniCleanerInit(ani_vm* vm)
 
     ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
     if (ret != ANI_OK) {
-        TEXT_LOGE("[ANI] AniCleaner bind methods fail:%{public}d", ret);
+        TEXT_LOGE("[ANI] AniCleaner bind methods fail,status %{public}d", ret);
         return ANI_NOT_FOUND;
     }
     return ANI_OK;
