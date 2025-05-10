@@ -301,9 +301,8 @@ napi_value FilterNapi::SetPixelStretch(napi_env env, napi_callback_info info)
 GradientDirection FilterNapi::ParserGradientDirection(napi_env env, napi_value argv)
 {
     if (UIEffectNapiUtils::GetType(env, argv) == napi_number) {
-        double tmp = 0.0;
-        if (napi_get_value_double(env, argv, &tmp) == napi_ok) {
-            int32_t direction = static_cast<int32_t>(tmp);
+        int32_t direction = 0;
+        if (napi_get_value_int32(env, argv, &direction) == napi_ok) {
             auto iter = INDEX_TO_DIRECTION.find(direction);
             if (iter != INDEX_TO_DIRECTION.end()) {
                 return iter->second;

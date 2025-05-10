@@ -23,7 +23,7 @@ RSLinearGradientBlurShaderFilter::RSLinearGradientBlurShaderFilter(
     const std::shared_ptr<RSLinearGradientBlurPara>& para, const float geoWidth, const float geoHeight)
 {
     if (para != nullptr) {
-        linearGradientBlurPara_ = para
+        linearGradientBlurPara_ = para;
     }
     type_ = ShaderFilterType::LINEAR_GRADIENT_BLUR;
     geoWidth_ = geoWidth;
