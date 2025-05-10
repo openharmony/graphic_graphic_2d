@@ -40,12 +40,12 @@ public:
         return blurRadius_;
     }
 
-    void SetFractionStops(std::vector<std::pair<float, float>> fractionStops)
+    void SetFractionStops(const std::vector<std::pair<float, float>>& fractionStops)
     {
         fractionStops_ = fractionStops;
     }
 
-    std::vector<std::pair<float, float>> GetFractionStops() const
+    const std::vector<std::pair<float, float>>& GetFractionStops() const
     {
         return fractionStops_;
     }

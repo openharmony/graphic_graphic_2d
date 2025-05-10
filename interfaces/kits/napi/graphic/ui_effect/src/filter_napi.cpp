@@ -301,9 +301,8 @@ napi_value FilterNapi::SetPixelStretch(napi_env env, napi_callback_info info)
 GradientDirection FilterNapi::ParserGradientDirection(napi_env env, napi_value argv)
 {
     if (UIEffectNapiUtils::GetType(env, argv) == napi_number) {
-        double tmp = 0.0;
-        if (napi_get_value_double(env, argv, &tmp) == napi_ok) {
-            int32_t direction = static_cast<int32_t>(tmp);
+        int32_t direction = 0;
+        if (napi_get_value_int32(env, argv, &direction) == napi_ok) {
             auto iter = INDEX_TO_DIRECTION.find(direction);
             if (iter != INDEX_TO_DIRECTION.end()) {
                 return iter->second;
@@ -320,33 +319,40 @@ static bool GetLinearFractionStops(napi_env env, napi_value param, std::shared_p
         FILTER_LOG_E("GetLinearFractionStops get args fail, not array");
         return false;
     }
-    if (arraySize < NUM_2 && arraySize > NUM_1000) {
+    if (arraySize < NUM_2 || arraySize > NUM_1000) {
         FILTER_LOG_E("GetLinearFractionStops fractionStops num less than 2 or greater than 1000");
         return false;
     }
 
     std::vector<std::pair<float, float>> tmpPercent;
+    float lastPos = 0.0f;
     for (size_t i = 0; i < arraySize; i++) {
         napi_value jsValue;
         if ((napi_get_element(env, param, i, &jsValue)) != napi_ok) {
             FILTER_LOG_E("GetLinearFractionStops get args fail");
             return false;
         }
-        napi_value temp1;
-        napi_value temp2;
-        if (napi_get_element(env, jsValue, 0, &temp1) != napi_ok ||
-            napi_get_element(env, jsValue, 1, &temp2) != napi_ok) {
+        napi_value napiBlurPercent;
+        napi_value napiBlurPosition;
+        if (napi_get_element(env, jsValue, 0, &napiBlurPercent) != napi_ok ||
+            napi_get_element(env, jsValue, 1, &napiBlurPosition) != napi_ok) {
             FILTER_LOG_E("GetLinearFractionStops get args fail");
             return false;
         }
-        double value1 = 0.0;
-        double value2 = 0.0;
-        if (napi_get_value_double(env, temp1, &value1) != napi_ok ||
-            napi_get_value_double(env, temp2, &value2) != napi_ok) {
+        double blurPercent = 0.0;
+        double blurPosition = 0.0;
+        if (napi_get_value_double(env, napiBlurPercent, &blurPercent) != napi_ok ||
+            napi_get_value_double(env, napiBlurPosition, &blurPosition) != napi_ok) {
             FILTER_LOG_E("GetLinearFractionStops region coordinates not double");
             return false;
         }
-        tmpPercent.push_back(std::pair(value1, value2));
+        if (blurPosition < lastPos) {
+            FILTER_LOG_E("GetLinearFractionStops is not increasing");
+            return false;
+        } else {
+            lastPos = blurPosition;
+        }
+        tmpPercent.push_back(std::pair(blurPercent, blurPosition));
     }
     para->SetFractionStops(tmpPercent);
     return true;

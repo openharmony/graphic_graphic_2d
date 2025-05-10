@@ -366,7 +366,15 @@ HWTEST_F(RSMarshallingHelperTest, MarshallingTest007, TestSize.Level1)
     fractionStop.second = 0.0f;
     fractionStops.push_back(fractionStop);
     auto val = std::make_shared<RSLinearGradientBlurPara>(blurRadius, fractionStops, GradientDirection::LEFT);
+    val->isRadiusGradient_ = true;
     EXPECT_TRUE(RSMarshallingHelper::Marshalling(parcel, val));
+    EXPECT_TRUE(val->isRadiusGradient_);
+
+    Parcel parcel1;
+    bool success = parcel1.WriteInt32(1) && RSMarshallingHelper::Marshalling(parcel1, val->blurRadius_);
+    EXPECT_TRUE(success);
+    success &= RSMarshallingHelper::Marshalling(parcel1, val->isRadiusGradient_);
+    EXPECT_TRUE(success);
 }
 
 /**
@@ -377,13 +385,31 @@ HWTEST_F(RSMarshallingHelperTest, MarshallingTest007, TestSize.Level1)
  */
 HWTEST_F(RSMarshallingHelperTest, UnmarshallingTest008, TestSize.Level1)
 {
+    float blurRadius = 0.0f;
+    std::vector<std::pair<float, float>> fractionStops;
+    std::pair<float, float> fractionStop;
+    fractionStop.first = 0.0f;
+    fractionStop.second = 0.0f;
+    fractionStops.push_back(fractionStop);
+    auto val1 = std::make_shared<RSLinearGradientBlurPara>(blurRadius, fractionStops, GradientDirection::LEFT);
+    val1->isRadiusGradient_ = true;
     Parcel parcel;
-    std::shared_ptr<RSLinearGradientBlurPara> val;
-    EXPECT_FALSE(RSMarshallingHelper::Unmarshalling(parcel, val));
-    parcel.WriteInt32(1);
-    EXPECT_FALSE(RSMarshallingHelper::Unmarshalling(parcel, val));
-    parcel.WriteInt32(RSMarshallingHelper::MIN_DATA_SIZE);
-    EXPECT_FALSE(RSMarshallingHelper::Unmarshalling(parcel, val));
+    RSMarshallingHelper::Marshalling(parcel, val1);
+    auto val2 = std::make_shared<RSLinearGradientBlurPara>(blurRadius, fractionStops, GradientDirection::RIGHT);
+    EXPECT_FALSE(val2->isRadiusGradient_);
+    EXPECT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, val2));
+    EXPECT_TRUE(val2->isRadiusGradient_);
+
+    Parcel parcel1;
+    RSMarshallingHelper::Marshalling(parcel1, val1);
+    int tempRet = parcel1.ReadInt32();
+    EXPECT_NE(tempRet, -1);
+    bool success = RSMarshallingHelper::Unmarshalling(parcel1, blurRadius);
+    EXPECT_TRUE(success);
+    bool isRadiusGradient = false;
+    success &= RSMarshallingHelper::Unmarshalling(parcel1, isRadiusGradient);
+    EXPECT_TRUE(success);
+    EXPECT_TRUE(isRadiusGradient);
 }
 
 /**
