@@ -36,7 +36,7 @@ ani_object AniParagraph::setTypography(ani_env* env, std::unique_ptr<OHOS::Rosen
     Typography* typographyPtr = typography.release();
     ani_status ret =
         env->Object_SetFieldByName_Long(pargraphObj, "nativeObj", reinterpret_cast<ani_long>(typographyPtr));
-    if (ANI_OK != ret) {
+    if (ret != ANI_OK) {
         TEXT_LOGE("Failed to create ani Paragraph obj");
         delete typographyPtr;
         typographyPtr = nullptr;
@@ -164,7 +164,8 @@ ani_ref AniParagraph::GetLineMetrics(ani_env* env, ani_object object)
     ani_size index = 0;
     for (const auto& lineMetrics : vectorLineMetrics) {
         ani_object aniObj = AniLineMetricsConverter::ParseLineMetricsToAni(env, lineMetrics);
-        if (ANI_OK != env->Object_CallMethodByName_Void(arrayObj, "$_set", "ILstd/core/Object;:V", index, aniObj)) {
+        ani_status ret = env->Object_CallMethodByName_Void(arrayObj, "$_set", "ILstd/core/Object;:V", index, aniObj);
+        if (ret != ANI_OK) {
             TEXT_LOGE("Failed to set lineMetrics item");
             break;
         }

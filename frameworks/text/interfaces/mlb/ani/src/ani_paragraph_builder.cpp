@@ -17,6 +17,7 @@
 #include <codecvt>
 #include <cstdint>
 
+#include "ani.h"
 #include "ani_common.h"
 #include "ani_font_collection.h"
 #include "ani_paragraph.h"
@@ -63,7 +64,8 @@ void AniParagraphBuilder::Constructor(
     }
 
     TypographyCreate* typographyCreate = typographyCreateNative.release();
-    if (ANI_OK != env->Object_SetFieldByName_Long(object, NATIVE_OBJ, reinterpret_cast<ani_long>(typographyCreate))) {
+    ani_status ret = env->Object_SetFieldByName_Long(object, NATIVE_OBJ, reinterpret_cast<ani_long>(typographyCreate));
+    if (ret != ANI_OK) {
         TEXT_LOGE("Failed to create ani ParagraphBuilder obj");
         delete typographyCreate;
         typographyCreate = nullptr;
@@ -138,7 +140,7 @@ void AniParagraphBuilder::AddText(ani_env* env, ani_object object, ani_string te
 {
     std::u16string textStr;
     ani_status status = AniTextUtils::AniToStdStringUtf16(env, text, textStr);
-    if (ANI_OK != status) {
+    if (status != ANI_OK) {
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Fail get utf16.");
         return;
     }

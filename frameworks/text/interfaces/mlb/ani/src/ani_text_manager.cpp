@@ -55,16 +55,19 @@ void SafeDelete(ani_long& ptr)
 static void Clean(ani_env* env, ani_object object)
 {
     ani_long ptr;
-    if (ANI_OK != env->Object_GetFieldByName_Long(object, "ptr", &ptr)) {
+    ani_status ret = env->Object_GetFieldByName_Long(object, "ptr", &ptr);
+    if (ret != ANI_OK) {
         return;
     }
     ani_ref stringRef = nullptr;
-    if (ANI_OK != env->Object_GetFieldByName_Ref(object, "className", &stringRef)) {
+    ret = env->Object_GetFieldByName_Ref(object, "className", &stringRef);
+    if (ret != ANI_OK) {
         return;
     }
 
     std::string familyName;
-    if (ANI_OK != AniTextUtils::AniToStdStringUtf8(env, reinterpret_cast<ani_string>(stringRef), familyName)) {
+    ret = AniTextUtils::AniToStdStringUtf8(env, reinterpret_cast<ani_string>(stringRef), familyName);
+    if (ret != ANI_OK) {
         return;
     }
     using DeleteFunc = void (*)(ani_long&);

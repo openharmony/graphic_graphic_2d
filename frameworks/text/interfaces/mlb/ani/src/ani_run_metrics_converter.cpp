@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include "ani.h"
 #include "ani_common.h"
 #include "ani_drawing_converter.h"
 #include "ani_run_metrics_converter.h"
@@ -36,7 +37,7 @@ ani_object AniRunMetricsConverter::ParseRunMetricsToAni(ani_env* env, const std:
         ani_status status =
             env->Object_CallMethodByName_Ref(mapAniObj, "set", "Lstd/core/Object;Lstd/core/Object;:Lescompat/Map;",
                 &mapRef, AniTextUtils::CreateAniDoubleObj(env, static_cast<ani_double>(key)), aniObj);
-        if (ANI_OK != status) {
+        if (status != ANI_OK) {
             TEXT_LOGE("Failed to set run metrics map, ret %{public}d", status);
             break;
         };

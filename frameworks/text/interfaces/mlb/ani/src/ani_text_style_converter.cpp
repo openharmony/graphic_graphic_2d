@@ -145,8 +145,8 @@ void AniTextStyleConverter::ParseTextShadowToNative(ani_env* env, ani_object obj
 
             Drawing::Point offset(0, 0);
             ani_ref pointValue = nullptr;
-            if (ANI_OK == AniTextUtils::ReadOptionalField(env, shadowObj, "point", pointValue)
-                && pointValue != nullptr) {
+            ret = AniTextUtils::ReadOptionalField(env, shadowObj, "point", pointValue);
+            if (ret == ANI_OK && pointValue != nullptr) {
                 GetTextShadowPoint(env, reinterpret_cast<ani_object>(pointValue), offset);
             }
 
@@ -180,7 +180,8 @@ void AniTextStyleConverter::ParseFontFeatureToNative(ani_env* env, ani_object ob
                 return "";
             }
             std::string name;
-            if (ANI_OK != AniTextUtils::AniToStdStringUtf8(env, reinterpret_cast<ani_string>(nameRef), name)) {
+            ret = AniTextUtils::AniToStdStringUtf8(env, reinterpret_cast<ani_string>(nameRef), name);
+            if (ret != ANI_OK) {
                 return "";
             }
 
@@ -221,7 +222,7 @@ void AniTextStyleConverter::ParseFontVariationToNative(ani_env* env, ani_object 
             }
             std::string axis;
             ret = AniTextUtils::AniToStdStringUtf8(env, static_cast<ani_string>(axisRef), axis);
-            if (ANI_OK != ret) {
+            if (ret != ANI_OK) {
                 TEXT_LOGE("Failed to parse string filed axis, ret %{public}d", ret);
                 return "";
             }

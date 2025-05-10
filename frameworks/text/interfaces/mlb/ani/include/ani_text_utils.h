@@ -92,8 +92,9 @@ ani_object AniTextUtils::CreateAniArrayAndInitData(
     ani_size index = 0;
     for (const T& item : t) {
         ani_object aniObj = convert(env, item);
-        if (ANI_OK != env->Object_CallMethodByName_Void(arrayObj, "$_set", "ILstd/core/Object;:V", index, aniObj)) {
-            TEXT_LOGE("Array $_set failed");
+        ani_status ret = env->Object_CallMethodByName_Void(arrayObj, "$_set", "ILstd/core/Object;:V", index, aniObj);
+        if (ret != ANI_OK) {
+            TEXT_LOGE("Array $_set failed, ret:%{public}d", ret);
             break;
         }
         index++;

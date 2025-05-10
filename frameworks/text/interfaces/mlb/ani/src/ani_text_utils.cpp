@@ -19,6 +19,7 @@
 #include <sstream>
 #include <string>
 
+#include "ani.h"
 #include "ani_text_utils.h"
 #include "typography_style.h"
 
@@ -103,7 +104,8 @@ ani_object AniTextUtils::CreateAniMap(ani_env* env)
 ani_enum_item AniTextUtils::CreateAniEnum(ani_env* env, const char* enum_descriptor, ani_size index)
 {
     ani_enum enumType;
-    if (ANI_OK != env->FindEnum(enum_descriptor, &enumType)) {
+    ani_status ret = env->FindEnum(enum_descriptor, &enumType);
+    if (ret != ANI_OK) {
         TEXT_LOGE("Failed to find enum,%{public}s", enum_descriptor);
         return nullptr;
     }
@@ -145,7 +147,7 @@ ani_status AniTextUtils::AniToStdStringUtf8(ani_env* env, const ani_string& str,
 {
     ani_size strSize;
     ani_status status = env->String_GetUTF8Size(str, &strSize);
-    if (ANI_OK != status) {
+    if (status != ANI_OK) {
         TEXT_LOGE("Failed to get utf8 str size");
         return status;
     }
@@ -155,7 +157,7 @@ ani_status AniTextUtils::AniToStdStringUtf8(ani_env* env, const ani_string& str,
 
     ani_size bytesWritten = 0;
     status = env->String_GetUTF8(str, utf8Buffer, strSize + 1, &bytesWritten);
-    if (ANI_OK != status) {
+    if (status != ANI_OK) {
         TEXT_LOGE("Failed to get utf8 str");
         return status;
     }
@@ -169,7 +171,7 @@ ani_status AniTextUtils::AniToStdStringUtf16(ani_env* env, const ani_string& str
 {
     ani_size strSize;
     ani_status status = env->String_GetUTF16Size(str, &strSize);
-    if (ANI_OK != status) {
+    if (status != ANI_OK) {
         TEXT_LOGE("Failed to get utf16 str size");
         return status;
     }
@@ -180,7 +182,7 @@ ani_status AniTextUtils::AniToStdStringUtf16(ani_env* env, const ani_string& str
 
     ani_size bytesWritten = 0;
     status = env->String_GetUTF16(str, utf16Buffer, strSize, &bytesWritten);
-    if (ANI_OK != status) {
+    if (status != ANI_OK) {
         TEXT_LOGE("Failed to get utf16 str");
         return status;
     }
@@ -271,7 +273,8 @@ ani_status AniTextUtils::ReadOptionalStringField(ani_env* env, ani_object obj, c
     ani_status result = AniTextUtils::ReadOptionalField(env, obj, fieldName, ref);
     if (result == ANI_OK && ref != nullptr) {
         std::string familyName;
-        if (ANI_OK != AniTextUtils::AniToStdStringUtf8(env, reinterpret_cast<ani_string>(ref), str)) {
+        ani_status ret = AniTextUtils::AniToStdStringUtf8(env, reinterpret_cast<ani_string>(ref), str);
+        if (ret != ANI_OK) {
             return result;
         }
     }

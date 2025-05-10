@@ -14,6 +14,7 @@
  */
 
 #include "ability.h"
+#include "ani.h"
 #include "ani_resource_parser.h"
 #include "ani_text_utils.h"
 
@@ -24,17 +25,20 @@ std::vector<std::string> AniToStdVectorString(ani_env* env, ani_array array)
     std::vector<std::string> result;
 
     ani_size length;
-    if (ANI_OK != env->Array_GetLength(array, &length)) {
+    ani_status ret = env->Array_GetLength(array, &length);
+    if (ret != ANI_OK) {
         return result;
     }
     for (ani_size i = 0; i < length; i++) {
         ani_ref aniString = nullptr;
-        if (ANI_OK != env->Array_Get_Ref(reinterpret_cast<ani_array_ref>(array), i, &aniString)) {
+        ret = env->Array_Get_Ref(reinterpret_cast<ani_array_ref>(array), i, &aniString);
+        if (ret != ANI_OK) {
             TEXT_LOGE("Failed to get array element %{public}zu", i);
             continue;
         }
         std::string utf8Str;
-        if (ANI_OK != AniTextUtils::AniToStdStringUtf8(env, reinterpret_cast<ani_string>(aniString), utf8Str)) {
+        ret = AniTextUtils::AniToStdStringUtf8(env, reinterpret_cast<ani_string>(aniString), utf8Str);
+        if (ret != ANI_OK) {
             TEXT_LOGE("Failed to get str %{public}zu", i);
             continue;
         }

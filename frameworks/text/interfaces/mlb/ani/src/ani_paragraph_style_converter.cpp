@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include "ani.h"
 #include "ani_common.h"
 #include "ani_paragraph_style_converter.h"
 #include "ani_text_style_converter.h"
@@ -114,7 +115,8 @@ void AniParagraphStyleConverter::ParseFontFamiliesToNative(
         env->Array_Get_Ref(obj, i, &tempString);
         ani_string aniTempString = reinterpret_cast<ani_string>(tempString);
         std::string fontFamiliesString;
-        if (ANI_OK == AniTextUtils::AniToStdStringUtf8(env, aniTempString, fontFamiliesString)) {
+        ani_status ret = AniTextUtils::AniToStdStringUtf8(env, aniTempString, fontFamiliesString);
+        if (ret == ANI_OK) {
             fontFamilies.push_back(fontFamiliesString);
         }
     }
