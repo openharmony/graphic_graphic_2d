@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 #include "ani_common.h"
-#include "ani_text_utils.h"
 #include "ani_paragraph_style_converter.h"
 #include "ani_text_style_converter.h"
+#include "ani_text_utils.h"
 #include "utils/text_log.h"
 
 namespace OHOS::Text::ANI {
@@ -25,17 +25,17 @@ std::unique_ptr<TypographyStyle> AniParagraphStyleConverter::ParseParagraphStyle
     ani_class cls = nullptr;
     ani_status ret = env->FindClass(ANI_CLASS_PARAGRAPH_STYLE, &cls);
     if (ret != ANI_OK) {
-        TEXT_LOGE("Failed to find class,status %{public}d", ret);
+        TEXT_LOGE("Failed to find class, ret %{public}d", ret);
         return nullptr;
     }
     ani_boolean isObj = false;
     ret = env->Object_InstanceOf(obj, cls, &isObj);
     if (!isObj) {
-        TEXT_LOGE("Object mismatch,status %{public}d", ret);
+        TEXT_LOGE("Object mismatch, ret %{public}d", ret);
         return nullptr;
     }
     std::unique_ptr<TypographyStyle> paragraphStyle = std::make_unique<TypographyStyle>();
-    
+
     double maxLines;
     if (AniTextUtils::ReadOptionalDoubleField(env, obj, "maxLines", maxLines) == ANI_OK) {
         paragraphStyle->maxLines = static_cast<size_t>(maxLines);
@@ -44,7 +44,7 @@ std::unique_ptr<TypographyStyle> AniParagraphStyleConverter::ParseParagraphStyle
     ani_ref textStyleRef = nullptr;
     TextStyle textStyle;
     if (AniTextUtils::ReadOptionalField(env, obj, "textStyle", textStyleRef) == ANI_OK && textStyleRef != nullptr) {
-        ret = AniTextStyleConverter::ParseTextStyleToNative(env, static_cast<ani_object>(textStyleRef), textStyle);
+        ret = AniTextStyleConverter::ParseTextStyleToNative(env, reinterpret_cast<ani_object>(textStyleRef), textStyle);
         if (ret == ANI_OK) {
             paragraphStyle->SetTextStyle(textStyle);
         }
@@ -60,12 +60,12 @@ std::unique_ptr<TypographyStyle> AniParagraphStyleConverter::ParseParagraphStyle
 
     ani_ref strutStyleRef = nullptr;
     if (AniTextUtils::ReadOptionalField(env, obj, "strutStyle", strutStyleRef) == ANI_OK && strutStyleRef != nullptr) {
-        ParseParagraphStyleStrutStyleToNative(env, static_cast<ani_object>(strutStyleRef), paragraphStyle);
+        ParseParagraphStyleStrutStyleToNative(env, reinterpret_cast<ani_object>(strutStyleRef), paragraphStyle);
     }
 
     ani_ref tabRef = nullptr;
     if (AniTextUtils::ReadOptionalField(env, obj, "tab", tabRef) == ANI_OK && tabRef != nullptr) {
-        ParseTextTabToNative(env, static_cast<ani_object>(tabRef), paragraphStyle->tab);
+        ParseTextTabToNative(env, reinterpret_cast<ani_object>(tabRef), paragraphStyle->tab);
     }
 
     return paragraphStyle;
@@ -91,7 +91,7 @@ void AniParagraphStyleConverter::ParseParagraphStyleStrutStyleToNative(
     if (AniTextUtils::ReadOptionalField(env, obj, "fontFamilies", aniFontFamilies) == ANI_OK
         && aniFontFamilies != nullptr) {
         std::vector<std::string> fontFamilies;
-        ParseFontFamiliesToNative(env, static_cast<ani_array_ref>(aniFontFamilies), fontFamilies);
+        ParseFontFamiliesToNative(env, reinterpret_cast<ani_array_ref>(aniFontFamilies), fontFamilies);
         paragraphStyle->lineStyleFontFamilies = fontFamilies;
     }
 }
@@ -112,7 +112,7 @@ void AniParagraphStyleConverter::ParseFontFamiliesToNative(
     for (size_t i = 0; i < arrayLength; i++) {
         ani_ref tempString = nullptr;
         env->Array_Get_Ref(obj, i, &tempString);
-        ani_string aniTempString = static_cast<ani_string>(tempString);
+        ani_string aniTempString = reinterpret_cast<ani_string>(tempString);
         std::string fontFamiliesString;
         if (ANI_OK == AniTextUtils::AniToStdStringUtf8(env, aniTempString, fontFamiliesString)) {
             fontFamilies.push_back(fontFamiliesString);

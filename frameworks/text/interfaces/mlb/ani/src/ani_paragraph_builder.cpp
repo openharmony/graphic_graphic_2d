@@ -21,9 +21,9 @@
 #include "ani_font_collection.h"
 #include "ani_paragraph.h"
 #include "ani_paragraph_builder.h"
-#include "ani_text_utils.h"
 #include "ani_paragraph_style_converter.h"
 #include "ani_text_style_converter.h"
+#include "ani_text_utils.h"
 #include "font_collection.h"
 #include "text_style.h"
 #include "utils/text_log.h"
@@ -48,12 +48,12 @@ void AniParagraphBuilder::Constructor(
         return;
     }
     std::shared_ptr<FontCollection> fontCollectionNative = aniFontCollection->GetFontCollection();
-        if (fontCollectionNative == nullptr) {
+    if (fontCollectionNative == nullptr) {
         TEXT_LOGE("Failed to get font collection");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return;
     }
-    
+
     std::unique_ptr<TypographyCreate> typographyCreateNative =
         TypographyCreate::Create(*typographyStyleNative, fontCollectionNative);
     if (typographyCreateNative == nullptr) {
@@ -75,16 +75,16 @@ void AniParagraphBuilder::Constructor(
 ani_status AniParagraphBuilder::AniInit(ani_vm* vm, uint32_t* result)
 {
     ani_env* env;
-    ani_status ret;
-    if ((ret = vm->GetEnv(ANI_VERSION_1, &env)) != ANI_OK) {
-        TEXT_LOGE("[ANI] AniParagraphBuilder null env,status %{public}d", ret);
+    ani_status ret = vm->GetEnv(ANI_VERSION_1, &env);
+    if (ret != ANI_OK) {
+        TEXT_LOGE("[ANI] AniParagraphBuilder null env, ret %{public}d", ret);
         return ANI_NOT_FOUND;
     }
 
     ani_class cls = nullptr;
     ret = env->FindClass(ANI_CLASS_PARAGRAPH_BUILDER, &cls);
     if (ret != ANI_OK) {
-        TEXT_LOGE("[ANI] AniParagraphBuilder can't find class,status %{public}d", ret);
+        TEXT_LOGE("[ANI] AniParagraphBuilder can't find class, ret %{public}d", ret);
         return ANI_NOT_FOUND;
     }
 
@@ -101,7 +101,7 @@ ani_status AniParagraphBuilder::AniInit(ani_vm* vm, uint32_t* result)
 
     ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
     if (ret != ANI_OK) {
-        TEXT_LOGE("[ANI] AniParagraphBuilder bind methods fail,status %{public}d", ret);
+        TEXT_LOGE("[ANI] AniParagraphBuilder bind methods fail, ret %{public}d", ret);
         return ANI_NOT_FOUND;
     }
     return ANI_OK;

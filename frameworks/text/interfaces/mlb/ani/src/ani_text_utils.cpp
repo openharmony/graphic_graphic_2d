@@ -72,7 +72,7 @@ ani_object AniTextUtils::CreateAniUndefined(ani_env* env)
 {
     ani_ref aniRef;
     env->GetUndefined(&aniRef);
-    return static_cast<ani_object>(aniRef);
+    return reinterpret_cast<ani_object>(aniRef);
 }
 
 ani_object AniTextUtils::CreateAniArray(ani_env* env, size_t size)
@@ -238,13 +238,13 @@ ani_status AniTextUtils::ReadOptionalField(ani_env* env, ani_object obj, const c
 {
     ani_status ret = env->Object_GetPropertyByName_Ref(obj, fieldName, &ref);
     if (ret != ANI_OK) {
-        TEXT_LOGE("Failed to get property %{public}s,status %{public}d", fieldName, ret);
+        TEXT_LOGE("Failed to get property %{public}s, ret %{public}d", fieldName, ret);
         return ret;
     }
     ani_boolean isUndefined;
     ret = env->Reference_IsUndefined(ref, &isUndefined);
     if (ret != ANI_OK) {
-        TEXT_LOGE("Failed to check ref is undefined,status %{public}d", ret);
+        TEXT_LOGE("Failed to check ref is undefined, ret %{public}d", ret);
         ref = nullptr;
         return ret;
     }
@@ -260,7 +260,7 @@ ani_status AniTextUtils::ReadOptionalDoubleField(ani_env* env, ani_object obj, c
     ani_ref ref = nullptr;
     ani_status result = AniTextUtils::ReadOptionalField(env, obj, fieldName, ref);
     if (result == ANI_OK && ref != nullptr) {
-        env->Object_CallMethodByName_Double(static_cast<ani_object>(ref), "doubleValue", ":D", &value);
+        env->Object_CallMethodByName_Double(reinterpret_cast<ani_object>(ref), "doubleValue", ":D", &value);
     }
     return result;
 }
@@ -271,7 +271,7 @@ ani_status AniTextUtils::ReadOptionalStringField(ani_env* env, ani_object obj, c
     ani_status result = AniTextUtils::ReadOptionalField(env, obj, fieldName, ref);
     if (result == ANI_OK && ref != nullptr) {
         std::string familyName;
-        if (ANI_OK != AniTextUtils::AniToStdStringUtf8(env, static_cast<ani_string>(ref), str)) {
+        if (ANI_OK != AniTextUtils::AniToStdStringUtf8(env, reinterpret_cast<ani_string>(ref), str)) {
             return result;
         }
     }
@@ -284,7 +284,7 @@ ani_status AniTextUtils::ReadOptionalU16StringField(
     ani_ref ref = nullptr;
     ani_status result = AniTextUtils::ReadOptionalField(env, obj, fieldName, ref);
     if (result == ANI_OK && ref != nullptr) {
-        result = AniTextUtils::AniToStdStringUtf16(env, static_cast<ani_string>(ref), str);
+        result = AniTextUtils::AniToStdStringUtf16(env, reinterpret_cast<ani_string>(ref), str);
     }
     return result;
 }
@@ -295,7 +295,7 @@ ani_status AniTextUtils::ReadOptionalBoolField(ani_env* env, ani_object obj, con
     ani_status result = AniTextUtils::ReadOptionalField(env, obj, fieldName, ref);
     if (result == ANI_OK && ref != nullptr) {
         ani_boolean aniBool;
-        result = env->Object_CallMethodByName_Boolean(static_cast<ani_object>(ref), "isTrue", ":Z", &aniBool);
+        result = env->Object_CallMethodByName_Boolean(reinterpret_cast<ani_object>(ref), "isTrue", ":Z", &aniBool);
         if (result == ANI_OK) {
             value = static_cast<bool>(aniBool);
         }

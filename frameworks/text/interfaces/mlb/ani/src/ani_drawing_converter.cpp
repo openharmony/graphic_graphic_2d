@@ -14,8 +14,8 @@
  */
 
 #include "ani_common.h"
-#include "ani_text_utils.h"
 #include "ani_drawing_converter.h"
+#include "ani_text_utils.h"
 
 namespace OHOS::Text::ANI {
 using namespace OHOS::Rosen;
@@ -26,7 +26,7 @@ void AniDrawingConverter::ParseDrawingColorToNative(
     ani_ref tempValue = nullptr;
     ani_status result = env->Object_GetPropertyByName_Ref(obj, str.c_str(), &tempValue);
     if (result != ANI_OK || tempValue == nullptr) {
-        TEXT_LOGD("Failed to find param color,status %{public}d", result);
+        TEXT_LOGD("Failed to find param color, ret %{public}d", result);
         return;
     }
 
@@ -37,25 +37,25 @@ void AniDrawingConverter::ParseDrawingColorToNative(
     ani_double tempValueChild{0};
 
     ani_status isAlphaOk =
-        env->Object_GetPropertyByName_Double(static_cast<ani_object>(tempValue), "alpha", &tempValueChild);
+        env->Object_GetPropertyByName_Double(reinterpret_cast<ani_object>(tempValue), "alpha", &tempValueChild);
     if (isAlphaOk == ANI_OK) {
         alpha = ConvertClampFromJsValue(tempValueChild, 0, Drawing::Color::RGB_MAX);
     }
 
     ani_status isRedOk =
-        env->Object_GetPropertyByName_Double(static_cast<ani_object>(tempValue), "red", &tempValueChild);
+        env->Object_GetPropertyByName_Double(reinterpret_cast<ani_object>(tempValue), "red", &tempValueChild);
     if (isRedOk == ANI_OK) {
         red = ConvertClampFromJsValue(tempValueChild, 0, Drawing::Color::RGB_MAX);
     }
 
     ani_status isGreenOk =
-        env->Object_GetPropertyByName_Double(static_cast<ani_object>(tempValue), "green", &tempValueChild);
+        env->Object_GetPropertyByName_Double(reinterpret_cast<ani_object>(tempValue), "green", &tempValueChild);
     if (isGreenOk == ANI_OK) {
         green = ConvertClampFromJsValue(tempValueChild, 0, Drawing::Color::RGB_MAX);
     }
 
     ani_status isBlueOk =
-        env->Object_GetPropertyByName_Double(static_cast<ani_object>(tempValue), "blue", &tempValueChild);
+        env->Object_GetPropertyByName_Double(reinterpret_cast<ani_object>(tempValue), "blue", &tempValueChild);
     if (isBlueOk == ANI_OK) {
         blue = ConvertClampFromJsValue(tempValueChild, 0, Drawing::Color::RGB_MAX);
     }

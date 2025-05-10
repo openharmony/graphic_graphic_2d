@@ -65,7 +65,7 @@ void loadString(
     size_t dataLen = 0;
 
     std::string pathStr;
-    if (ANI_OK != AniTextUtils::AniToStdStringUtf8(env, static_cast<ani_string>(path), pathStr)) {
+    if (ANI_OK != AniTextUtils::AniToStdStringUtf8(env, reinterpret_cast<ani_string>(path), pathStr)) {
         return;
     }
     if (!AniTextUtils::SplitAbsoluteFontPath(pathStr) || !AniTextUtils::ReadFile(pathStr, dataLen, data)) {
@@ -107,7 +107,8 @@ void AniFontCollection::LoadFontSync(ani_env* env, ani_object obj, ani_string na
     env->Object_InstanceOf(path, stringClass, &isString);
 
     if (isString) {
-        return loadString(env, path, aniFontCollection->fontCollection_, familyName);
+        loadString(env, path, aniFontCollection->fontCollection_, familyName);
+        return;
     }
 
     ani_class resourceClass;
@@ -115,7 +116,8 @@ void AniFontCollection::LoadFontSync(ani_env* env, ani_object obj, ani_string na
     ani_boolean isResource = false;
     env->Object_InstanceOf(path, resourceClass, &isResource);
     if (isResource) {
-        return loadResource(env, path, aniFontCollection->fontCollection_, familyName);
+        loadResource(env, path, aniFontCollection->fontCollection_, familyName);
+        return;
     }
 }
 
@@ -132,8 +134,8 @@ void AniFontCollection::ClearCaches(ani_env* env, ani_object obj)
 ani_status AniFontCollection::AniInit(ani_vm* vm, uint32_t* result)
 {
     ani_env* env;
-    ani_status ret;
-    if ((ret = vm->GetEnv(ANI_VERSION_1, &env)) != ANI_OK) {
+    ani_status ret = vm->GetEnv(ANI_VERSION_1, &env);
+    if (ret != ANI_OK) {
         TEXT_LOGE("[ANI] null env");
         return ANI_NOT_FOUND;
     }

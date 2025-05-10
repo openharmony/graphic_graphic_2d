@@ -16,10 +16,11 @@
 #include <codecvt>
 #include <cstdint>
 
+#include "ani.h"
 #include "ani_common.h"
+#include "ani_line_metrics_converter.h"
 #include "ani_paragraph.h"
 #include "ani_text_utils.h"
-#include "ani_line_metrics_converter.h"
 #include "draw/canvas.h"
 #include "font_collection.h"
 #include "text/font_metrics.h"
@@ -33,8 +34,9 @@ ani_object AniParagraph::setTypography(ani_env* env, std::unique_ptr<OHOS::Rosen
 {
     ani_object pargraphObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_PARAGRAPH, ":V");
     Typography* typographyPtr = typography.release();
-    if (ANI_OK
-        != env->Object_SetFieldByName_Long(pargraphObj, "nativeObj", reinterpret_cast<ani_long>(typographyPtr))) {
+    ani_status ret =
+        env->Object_SetFieldByName_Long(pargraphObj, "nativeObj", reinterpret_cast<ani_long>(typographyPtr));
+    if (ANI_OK != ret) {
         TEXT_LOGE("Failed to create ani Paragraph obj");
         delete typographyPtr;
         typographyPtr = nullptr;
@@ -46,16 +48,16 @@ ani_object AniParagraph::setTypography(ani_env* env, std::unique_ptr<OHOS::Rosen
 ani_status AniParagraph::AniInit(ani_vm* vm, uint32_t* result)
 {
     ani_env* env;
-    ani_status ret;
-    if ((ret = vm->GetEnv(ANI_VERSION_1, &env)) != ANI_OK) {
-        TEXT_LOGE("[ANI] AniParagraph null env,status %{public}d", ret);
+    ani_status ret = vm->GetEnv(ANI_VERSION_1, &env);
+    if (ret != ANI_OK) {
+        TEXT_LOGE("[ANI] AniParagraph null env, ret %{public}d", ret);
         return ANI_NOT_FOUND;
     }
 
     ani_class cls = nullptr;
     ret = env->FindClass(ANI_CLASS_PARAGRAPH, &cls);
     if (ret != ANI_OK) {
-        TEXT_LOGE("[ANI] AniParagraph can't find class,status %{public}d", ret);
+        TEXT_LOGE("[ANI] AniParagraph can't find class, ret %{public}d", ret);
         return ANI_NOT_FOUND;
     }
 
@@ -73,7 +75,7 @@ ani_status AniParagraph::AniInit(ani_vm* vm, uint32_t* result)
 
     ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
     if (ret != ANI_OK) {
-        TEXT_LOGE("[ANI] AniParagraph bind methods fail:,status %{public}d", ret);
+        TEXT_LOGE("[ANI] AniParagraph bind methods fail:, ret %{public}d", ret);
         return ANI_NOT_FOUND;
     }
     return ANI_OK;
@@ -98,13 +100,13 @@ void AniParagraph::Paint(ani_env* env, ani_object object, ani_object canvas, ani
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return;
     }
-    Drawing::Canvas* canvasI = AniTextUtils::GetNativeFromObj<Drawing::Canvas>(env, canvas);
-    if (canvasI == nullptr) {
+    Drawing::Canvas* canvasInternal = AniTextUtils::GetNativeFromObj<Drawing::Canvas>(env, canvas);
+    if (canvasInternal == nullptr) {
         TEXT_LOGE("Canvas is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "canvas unavailable.");
         return;
     }
-    typography->Paint(canvasI, x, y);
+    typography->Paint(canvasInternal, x, y);
 }
 
 void AniParagraph::PaintOnPath(
@@ -116,19 +118,19 @@ void AniParagraph::PaintOnPath(
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return;
     }
-    Drawing::Canvas* canvasI = AniTextUtils::GetNativeFromObj<Drawing::Canvas>(env, canvas);
-    if (canvasI == nullptr) {
+    Drawing::Canvas* canvasInternal = AniTextUtils::GetNativeFromObj<Drawing::Canvas>(env, canvas);
+    if (canvasInternal == nullptr) {
         TEXT_LOGE("Canvas is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Canvas unavailable.");
         return;
     }
-    Drawing::Path* pathI = AniTextUtils::GetNativeFromObj<Drawing::Path>(env, path);
-    if (pathI == nullptr) {
+    Drawing::Path* pathInternal = AniTextUtils::GetNativeFromObj<Drawing::Path>(env, path);
+    if (pathInternal == nullptr) {
         TEXT_LOGE("Path is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Path unavailable.");
         return;
     }
-    typography->Paint(canvasI, pathI, hOffset, vOffset);
+    typography->Paint(canvasInternal, pathInternal, hOffset, vOffset);
 }
 
 ani_double AniParagraph::GetLongestLine(ani_env* env, ani_object object)

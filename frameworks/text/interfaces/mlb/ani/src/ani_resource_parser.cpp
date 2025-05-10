@@ -29,12 +29,12 @@ std::vector<std::string> AniToStdVectorString(ani_env* env, ani_array array)
     }
     for (ani_size i = 0; i < length; i++) {
         ani_ref aniString = nullptr;
-        if (ANI_OK != env->Array_Get_Ref(static_cast<ani_array_ref>(array), i, &aniString)) {
+        if (ANI_OK != env->Array_Get_Ref(reinterpret_cast<ani_array_ref>(array), i, &aniString)) {
             TEXT_LOGE("Failed to get array element %{public}zu", i);
             continue;
         }
         std::string utf8Str;
-        if (ANI_OK != AniTextUtils::AniToStdStringUtf8(env, static_cast<ani_string>(aniString), utf8Str)) {
+        if (ANI_OK != AniTextUtils::AniToStdStringUtf8(env, reinterpret_cast<ani_string>(aniString), utf8Str)) {
             TEXT_LOGE("Failed to get str %{public}zu", i);
             continue;
         }
@@ -62,13 +62,13 @@ AniResource AniResourceParser::ParseResource(ani_env* env, ani_object obj)
     result.type = static_cast<int32_t>(aniType);
     result.id = static_cast<int32_t>(aniId);
     if (aniBundleName != nullptr) {
-        AniTextUtils::AniToStdStringUtf8(env, static_cast<ani_string>(aniBundleName), result.bundleName);
+        AniTextUtils::AniToStdStringUtf8(env, reinterpret_cast<ani_string>(aniBundleName), result.bundleName);
     }
     if (aniModuleName != nullptr) {
-        AniTextUtils::AniToStdStringUtf8(env, static_cast<ani_string>(aniModuleName), result.moduleName);
+        AniTextUtils::AniToStdStringUtf8(env, reinterpret_cast<ani_string>(aniModuleName), result.moduleName);
     }
     if (aniParams != nullptr) {
-        result.params = AniToStdVectorString(env, static_cast<ani_array>(aniParams));
+        result.params = AniToStdVectorString(env, reinterpret_cast<ani_array>(aniParams));
     }
 
     return result;
@@ -109,5 +109,4 @@ bool AniResourceParser::ResolveResource(const AniResource& resource, size_t& dat
 
     return true;
 }
-
 } // namespace OHOS::Text::ANI

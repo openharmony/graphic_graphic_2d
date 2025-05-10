@@ -125,7 +125,7 @@ ani_status AniTextUtils::ReadOptionalEnumField(ani_env* env, ani_object obj, con
     ani_status result = AniTextUtils::ReadOptionalField(env, obj, fieldName, ref);
     if (result == ANI_OK && ref != nullptr) {
         ani_size index;
-        result = env->EnumItem_GetIndex(static_cast<ani_enum_item>(ref), &index);
+        result = env->EnumItem_GetIndex(reinterpret_cast<ani_enum_item>(ref), &index);
         if (result == ANI_OK) {
             value = static_cast<EnumType>(index);
         }
@@ -143,7 +143,7 @@ ani_status AniTextUtils::ReadOptionalArrayField(
         return result;
     }
 
-    ani_object arrayObj = static_cast<ani_object>(ref);
+    ani_object arrayObj = reinterpret_cast<ani_object>(ref);
     ani_double length;
     result = env->Object_GetPropertyByName_Double(arrayObj, "length", &length);
     if (result != ANI_OK) {
