@@ -21,7 +21,7 @@
 #include "typography.h"
 
 namespace OHOS::Text::ANI {
-class AniLineMetricsConverter {
+class AniLineMetricsConverter final {
 public:
     static ani_object ParseLineMetricsToAni(ani_env* env, const OHOS::Rosen::LineMetrics& lineMetrics);
 };

@@ -24,7 +24,7 @@
 #include "utils/text_log.h"
 
 namespace OHOS::Text::ANI {
-class AniTextUtils {
+class AniTextUtils final {
 public:
     static ani_status ThrowBusinessError(ani_env* env, TextErrorCode errorCode, const char* message);
     static ani_status CreateBusinessError(ani_env* env, int32_t error, const char* message, ani_object& err);

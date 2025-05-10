@@ -25,7 +25,7 @@
 #include "typography_style.h"
 
 namespace OHOS::Text::ANI {
-class AniParagraphStyleConverter {
+class AniParagraphStyleConverter final {
 public:
     static std::unique_ptr<OHOS::Rosen::TypographyStyle> ParseParagraphStyleToNative(ani_env* env, ani_object obj);
     static void ParseParagraphStyleStrutStyleToNative(

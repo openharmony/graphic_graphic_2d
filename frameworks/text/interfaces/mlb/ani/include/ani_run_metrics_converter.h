@@ -22,7 +22,7 @@
 #include "typography.h"
 
 namespace OHOS::Text::ANI {
-class AniRunMetricsConverter {
+class AniRunMetricsConverter final {
 public:
     static ani_object ParseRunMetricsToAni(ani_env* env, const std::map<size_t, OHOS::Rosen::RunMetrics>& runMetrics);
 };

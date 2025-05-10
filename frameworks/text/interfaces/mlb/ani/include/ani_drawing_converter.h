@@ -28,7 +28,7 @@ inline int32_t ConvertClampFromJsValue(ani_double jsValue, int32_t low, int32_t 
     return std::clamp(static_cast<int32_t>(jsValue), low, high);
 }
 
-class AniDrawingConverter {
+class AniDrawingConverter final {
 public:
     static void ParseDrawingColorToNative(
         ani_env* env, ani_object obj, const std::string& str, OHOS::Rosen::Drawing::Color& colorSrc);

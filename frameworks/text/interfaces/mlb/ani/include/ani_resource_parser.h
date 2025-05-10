@@ -29,7 +29,7 @@ struct AniResource {
     std::vector<std::string> params;
     uint32_t type{0};
 };
-class AniResourceParser {
+class AniResourceParser final {
 public:
     static AniResource ParseResource(ani_env* env, ani_object obj);
     static bool ResolveResource(const AniResource& resource, size_t& dataLen, std::unique_ptr<uint8_t[]>& data);
