@@ -111,7 +111,7 @@ template("skia_libtxt") {
         "//third_party/bounds_checking_function:libsec_static",
         "//third_party/jsoncpp:jsoncpp_static",
         "//third_party/skia:skia_$platform",
-        "//third_party/skia:skia_paragraph_ohos",
+        "//third_party/skia/modules/skparagraph:skia_paragraph_ohos",
       ]
     } else {
       external_deps += [
