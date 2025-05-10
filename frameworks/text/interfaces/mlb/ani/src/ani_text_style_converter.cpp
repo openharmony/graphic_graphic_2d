@@ -24,7 +24,7 @@ using namespace OHOS::Rosen;
 ani_status AniTextStyleConverter::ParseTextStyleToNative(ani_env* env, ani_object obj, TextStyle& textStyle)
 {
     ani_class cls = nullptr;
-    ani_status ret = env->FindClass(ANI_CLASS_TEXT_STYLE, &cls);
+    ani_status ret = env->FindClass(ANI_INTERFACE_TEXT_STYLE, &cls);
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to find class, ret %{public}d", ret);
         return ret;
@@ -125,7 +125,7 @@ void AniTextStyleConverter::ParseTextShadowToNative(ani_env* env, ani_object obj
         env, obj, "textShadows", array, [&textShadow](ani_env* env, ani_ref ref) {
             ani_object shadowObj = reinterpret_cast<ani_object>(ref);
             ani_class cls = nullptr;
-            ani_status ret = env->FindClass(ANI_CLASS_TEXTSHADOW, &cls);
+            ani_status ret = env->FindClass(ANI_INTERFACE_TEXTSHADOW, &cls);
             if (ret != ANI_OK) {
                 TEXT_LOGE("Failed to find class, ret %{public}d", ret);
                 return "";
@@ -162,7 +162,7 @@ void AniTextStyleConverter::ParseFontFeatureToNative(ani_env* env, ani_object ob
         env, obj, "fontFeatures", array, [&fontFeatures](ani_env* env, ani_ref ref) {
             ani_object obj = reinterpret_cast<ani_object>(ref);
             ani_class cls = nullptr;
-            ani_status ret = env->FindClass(ANI_CLASS_FONT_FEATURE, &cls);
+            ani_status ret = env->FindClass(ANI_INTERFACE_FONT_FEATURE, &cls);
             if (ret != ANI_OK) {
                 TEXT_LOGE("Failed to find class, ret %{public}d", ret);
                 return "";
@@ -203,7 +203,7 @@ void AniTextStyleConverter::ParseFontVariationToNative(ani_env* env, ani_object 
         env, obj, "fontVariations", array, [&fontVariations](ani_env* env, ani_ref ref) {
             ani_object obj = reinterpret_cast<ani_object>(ref);
             ani_class cls = nullptr;
-            ani_status ret = env->FindClass(ANI_CLASS_FONT_VARIATION, &cls);
+            ani_status ret = env->FindClass(ANI_INTERFACE_FONT_VARIATION, &cls);
             if (ret != ANI_OK) {
                 TEXT_LOGE("Failed to find class, ret %{public}d", ret);
                 return "";
@@ -240,7 +240,7 @@ void AniTextStyleConverter::ParseFontVariationToNative(ani_env* env, ani_object 
 void AniTextStyleConverter::ParseRectStyleToNative(ani_env* env, ani_object obj, RectStyle& rectStyle)
 {
     ani_class cls = nullptr;
-    ani_status ret = env->FindClass(ANI_CLASS_RECT_STYLE, &cls);
+    ani_status ret = env->FindClass(ANI_INTERFACE_RECT_STYLE, &cls);
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to find class, ret %{public}d", ret);
         return;
@@ -259,7 +259,7 @@ void AniTextStyleConverter::ParseRectStyleToNative(ani_env* env, ani_object obj,
 
 ani_object AniTextStyleConverter::ParseTextStyleToAni(ani_env* env, const TextStyle& textStyle)
 {
-    ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_TEXT_STYLE_I, ":V");
+    ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_TEXT_STYLE, ":V");
     env->Object_SetPropertyByName_Ref(
         aniObj, "decoration", AniTextStyleConverter::ParseDecorationToAni(env, textStyle));
     env->Object_SetPropertyByName_Ref(aniObj, "fontWeight",
@@ -300,14 +300,14 @@ ani_object AniTextStyleConverter::ParseTextStyleToAni(ani_env* env, const TextSt
 
 ani_object AniTextStyleConverter::ParseTextShadowToAni(ani_env* env, const TextShadow& textShadow)
 {
-    ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_TEXTSHADOW_I, ":V");
+    ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_TEXTSHADOW, ":V");
     env->Object_SetPropertyByName_Double(aniObj, "blurRadius", ani_double(textShadow.blurRadius));
     return aniObj;
 }
 
 ani_object AniTextStyleConverter::ParseDecorationToAni(ani_env* env, const TextStyle& textStyle)
 {
-    ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_DECORATION_I, ":V");
+    ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_DECORATION, ":V");
     env->Object_SetPropertyByName_Ref(aniObj, "textDecoration",
         AniTextUtils::CreateAniEnum(env, ANI_ENUM_TEXT_DECORATION_TYPE, static_cast<int>(textStyle.decoration)));
     env->Object_SetPropertyByName_Ref(aniObj, "decorationStyle",
@@ -318,7 +318,7 @@ ani_object AniTextStyleConverter::ParseDecorationToAni(ani_env* env, const TextS
 
 ani_object AniTextStyleConverter::ParseRectStyleToAni(ani_env* env, const RectStyle& rectStyle)
 {
-    ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_RECT_STYLE_I, ":V");
+    ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_RECT_STYLE, ":V");
     env->Object_SetPropertyByName_Double(aniObj, "leftTopRadius", rectStyle.leftTopRadius);
     env->Object_SetPropertyByName_Double(aniObj, "rightTopRadius", rectStyle.rightTopRadius);
     env->Object_SetPropertyByName_Double(aniObj, "rightBottomRadius", rectStyle.rightBottomRadius);
@@ -331,7 +331,7 @@ ani_object AniTextStyleConverter::ParseFontFeaturesToAni(ani_env* env, const Fon
     const std::vector<std::pair<std::string, int>> featureSet = fontFeatures.GetFontFeatures();
     ani_object arrayObj = AniTextUtils::CreateAniArrayAndInitData(
         env, featureSet, featureSet.size(), [](ani_env* env, const std::pair<std::string, int>& feature) {
-            ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_FONT_FEATURE_I, ":V");
+            ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_FONT_FEATURE, ":V");
             env->Object_SetPropertyByName_Ref(aniObj, "name", AniTextUtils::CreateAniStringObj(env, feature.first));
             env->Object_SetPropertyByName_Double(aniObj, "value", feature.second);
             return aniObj;
@@ -341,7 +341,7 @@ ani_object AniTextStyleConverter::ParseFontFeaturesToAni(ani_env* env, const Fon
 
 ani_object AniTextStyleConverter::ParseFontVariationsToAni(ani_env* env, const FontVariations& fontVariations)
 {
-    ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_FONT_VARIATION_I, ":V");
+    ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_FONT_VARIATION, ":V");
     return aniObj;
 }
 } // namespace OHOS::Text::ANI

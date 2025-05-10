@@ -28,29 +28,32 @@ constexpr const char* ANI_BOOLEAN = "Lstd/core/Boolean;";
 constexpr const char* ANI_MAP = "Lescompat/Map;";
 constexpr const char* ANI_ARRAY = "Lescompat/Array;";
 /**
+ * define interface
+ */
+constexpr const char* ANI_INTERFACE_PARAGRAPH_STYLE = "L@ohos/graphics/text/text/ParagraphStyle;";
+constexpr const char* ANI_INTERFACE_TEXT_STYLE = "L@ohos/graphics/text/text/TextStyle;";
+constexpr const char* ANI_INTERFACE_FONT_FEATURE = "L@ohos/graphics/text/text/FontFeature;";
+constexpr const char* ANI_INTERFACE_FONT_VARIATION = "L@ohos/graphics/text/text/FontVariation;";
+constexpr const char* ANI_INTERFACE_TEXTSHADOW = "L@ohos/graphics/text/text/TextShadow;";
+constexpr const char* ANI_INTERFACE_RECT_STYLE = "L@ohos/graphics/text/text/RectStyle;";
+/**
  * define class
  */
 constexpr const char* ANI_CLASS_CLEANER = "L@ohos/graphics/text/text/Cleaner;";
 constexpr const char* ANI_CLASS_PARAGRAPH = "L@ohos/graphics/text/text/Paragraph;";
 constexpr const char* ANI_CLASS_PARAGRAPH_BUILDER = "L@ohos/graphics/text/text/ParagraphBuilder;";
-constexpr const char* ANI_CLASS_LINEMETRICS_I = "L@ohos/graphics/text/text/LineMetricsInternal;";
-constexpr const char* ANI_CLASS_RUNMETRICS_I = "L@ohos/graphics/text/text/RunMetricsInternal;";
-constexpr const char* ANI_CLASS_PARAGRAPH_STYLE = "L@ohos/graphics/text/text/ParagraphStyle;";
-constexpr const char* ANI_CLASS_TEXT_STYLE = "L@ohos/graphics/text/text/TextStyle;";
-constexpr const char* ANI_CLASS_TEXT_STYLE_I = "L@ohos/graphics/text/text/TextStyleInternal;";
+constexpr const char* ANI_CLASS_LINEMETRICS = "L@ohos/graphics/text/text/LineMetricsInternal;";
+constexpr const char* ANI_CLASS_RUNMETRICS = "L@ohos/graphics/text/text/RunMetricsInternal;";
+constexpr const char* ANI_CLASS_TEXT_STYLE = "L@ohos/graphics/text/text/TextStyleInternal;";
 constexpr const char* ANI_CLASS_FONT_COLLECTION = "L@ohos/graphics/text/text/FontCollection;";
-constexpr const char* ANI_CLASS_FONT_FEATURE = "L@ohos/graphics/text/text/FontFeature;";
-constexpr const char* ANI_CLASS_FONT_FEATURE_I = "L@ohos/graphics/text/text/FontFeatureInternal;";
-constexpr const char* ANI_CLASS_FONT_VARIATION = "L@ohos/graphics/text/text/FontVariation;";
-constexpr const char* ANI_CLASS_FONT_VARIATION_I = "L@ohos/graphics/text/text/FontVariationInternal;";
+constexpr const char* ANI_CLASS_FONT_FEATURE = "L@ohos/graphics/text/text/FontFeatureInternal;";
+constexpr const char* ANI_CLASS_FONT_VARIATION = "L@ohos/graphics/text/text/FontVariationInternal;";
 constexpr const char* ANI_CLASS_CANVAS = "L@ohos/graphics/drawing/drawing/Canvas;";
 constexpr const char* ANI_CLASS_PATH = "L@ohos/graphics/drawing/drawing/Path;";
-constexpr const char* ANI_CLASS_FONT_METRICS_I = "L@ohos/graphics/drawing/drawing/FontMetricsInner;";
-constexpr const char* ANI_CLASS_TEXTSHADOW = "L@ohos/graphics/text/text/TextShadow;";
-constexpr const char* ANI_CLASS_TEXTSHADOW_I = "L@ohos/graphics/text/text/TextShadowInternal;";
-constexpr const char* ANI_CLASS_RECT_STYLE = "L@ohos/graphics/text/text/RectStyle;";
-constexpr const char* ANI_CLASS_RECT_STYLE_I = "L@ohos/graphics/text/text/RectStyleInternal;";
-constexpr const char* ANI_CLASS_DECORATION_I = "L@ohos/graphics/text/text/DecorationInternal;";
+constexpr const char* ANI_CLASS_FONT_METRICS = "L@ohos/graphics/drawing/drawing/FontMetricsInner;";
+constexpr const char* ANI_CLASS_TEXTSHADOW = "L@ohos/graphics/text/text/TextShadowInternal;";
+constexpr const char* ANI_CLASS_RECT_STYLE = "L@ohos/graphics/text/text/RectStyleInternal;";
+constexpr const char* ANI_CLASS_DECORATION = "L@ohos/graphics/text/text/DecorationInternal;";
 /**
  * define enum
  */

@@ -23,7 +23,7 @@ using namespace OHOS::Rosen;
 std::unique_ptr<TypographyStyle> AniParagraphStyleConverter::ParseParagraphStyleToNative(ani_env* env, ani_object obj)
 {
     ani_class cls = nullptr;
-    ani_status ret = env->FindClass(ANI_CLASS_PARAGRAPH_STYLE, &cls);
+    ani_status ret = env->FindClass(ANI_INTERFACE_PARAGRAPH_STYLE, &cls);
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to find class, ret %{public}d", ret);
         return nullptr;

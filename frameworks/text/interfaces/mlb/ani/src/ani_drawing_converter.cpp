@@ -66,7 +66,7 @@ void AniDrawingConverter::ParseDrawingColorToNative(
 
 ani_object AniDrawingConverter::ParseFontMetricsToAni(ani_env* env, const Drawing::FontMetrics& fontMetrics)
 {
-    ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_FONT_METRICS_I, ":V");
+    ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_FONT_METRICS, ":V");
     env->Object_SetPropertyByName_Double(aniObj, "flags", ani_int(fontMetrics.fFlags));
     env->Object_SetPropertyByName_Double(aniObj, "top", ani_double(fontMetrics.fTop));
     env->Object_SetPropertyByName_Double(aniObj, "ascent", ani_double(fontMetrics.fAscent));

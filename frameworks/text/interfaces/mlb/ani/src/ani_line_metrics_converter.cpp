@@ -22,7 +22,7 @@ namespace OHOS::Text::ANI {
 using namespace OHOS::Rosen;
 ani_object AniLineMetricsConverter::ParseLineMetricsToAni(ani_env* env, const LineMetrics& lineMetrics)
 {
-    ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_LINEMETRICS_I, ":V");
+    ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_LINEMETRICS, ":V");
     env->Object_SetPropertyByName_Double(aniObj, "startIndex", ani_int(lineMetrics.startIndex));
     env->Object_SetPropertyByName_Double(aniObj, "endIndex", ani_int(lineMetrics.endIndex));
     env->Object_SetPropertyByName_Double(aniObj, "ascent", ani_double(lineMetrics.ascender));

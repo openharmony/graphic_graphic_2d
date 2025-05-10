@@ -26,7 +26,7 @@ ani_object AniRunMetricsConverter::ParseRunMetricsToAni(ani_env* env, const std:
     ani_object mapAniObj = AniTextUtils::CreateAniMap(env);
     ani_ref mapRef = nullptr;
     for (const auto& [key, runMetrics] : runMetrics) {
-        ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_RUNMETRICS_I, ":V");
+        ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_RUNMETRICS, ":V");
         if (runMetrics.textStyle != nullptr) {
             env->Object_SetPropertyByName_Ref(
                 aniObj, "textStyle", AniTextStyleConverter::ParseTextStyleToAni(env, *runMetrics.textStyle));
