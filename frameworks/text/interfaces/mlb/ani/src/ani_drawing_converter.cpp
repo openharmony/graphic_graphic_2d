@@ -14,7 +14,7 @@
  */
 
 #include <cstdint>
-#include "ani.h"
+
 #include "ani_common.h"
 #include "ani_drawing_converter.h"
 #include "ani_text_utils.h"
