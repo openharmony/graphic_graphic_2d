@@ -14,7 +14,6 @@
  */
 
 #include "ability.h"
-#include "ani.h"
 #include "ani_resource_parser.h"
 #include "ani_text_utils.h"
 

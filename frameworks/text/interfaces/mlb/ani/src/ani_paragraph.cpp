@@ -16,7 +16,6 @@
 #include <codecvt>
 #include <cstdint>
 
-#include "ani.h"
 #include "ani_common.h"
 #include "ani_line_metrics_converter.h"
 #include "ani_paragraph.h"

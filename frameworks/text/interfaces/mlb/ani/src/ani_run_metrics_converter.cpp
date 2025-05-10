@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 
-#include "ani.h"
 #include "ani_common.h"
 #include "ani_drawing_converter.h"
 #include "ani_run_metrics_converter.h"

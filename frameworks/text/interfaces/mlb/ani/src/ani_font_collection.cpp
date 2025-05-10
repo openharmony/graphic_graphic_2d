@@ -17,7 +17,6 @@
 #include <cstdint>
 #include <sys/stat.h>
 
-#include "ani.h"
 #include "ani_common.h"
 #include "ani_font_collection.h"
 #include "ani_resource_parser.h"

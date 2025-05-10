@@ -19,7 +19,6 @@
 #include <sstream>
 #include <string>
 
-#include "ani.h"
 #include "ani_text_utils.h"
 #include "typography_style.h"
 
