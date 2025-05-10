@@ -4140,7 +4140,7 @@ HWTEST_F(RSNodeTest, SetUICompositingFilter002, TestSize.Level1)
     EXPECT_EQ(property1->Get(), tmpPercent);
     iter = rsNode->propertyModifiers_.find(RSModifierType::PIXEL_STRETCH_TILE_MODE);
     auto property2 = std::static_pointer_cast<RSProperty<int>>(iter->second->GetProperty());
-    EXPECT_EQ(property22->Get(), static_cast<int>(tileMode));
+    EXPECT_EQ(property2->Get(), static_cast<int>(tileMode));
 
     if (filterObj != nullptr) {
         delete filterObj;
@@ -4178,8 +4178,8 @@ HWTEST_F(RSNodeTest, SetUICompositingFilter003, TestSize.Level1)
 
     EXPECT_TRUE(linearGradientBlurPara->isRadiusGradient_);
     EXPECT_EQ(linearGradientBlurPara->blurRadius_, floatData[1]);
-    EXPECT_EQ(linearGradientBlurPara->fractionStops_ fractionStops);
-    EXPECT_EQ(linearGradientBlurPara->direction_ direction);
+    EXPECT_EQ(linearGradientBlurPara->fractionStops_, fractionStops);
+    EXPECT_EQ(linearGradientBlurPara->direction_, direction);
     if (filterObj != nullptr) {
         delete filterObj;
         filterObj = nullptr;

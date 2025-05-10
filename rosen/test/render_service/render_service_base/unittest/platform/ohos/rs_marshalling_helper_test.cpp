@@ -371,9 +371,9 @@ HWTEST_F(RSMarshallingHelperTest, MarshallingTest007, TestSize.Level1)
     EXPECT_TRUE(val->isRadiusGradient_);
 
     Parcel parcel1;
-    bool success = parcel1.WriteInt32(1) && RSMarshallingHelper::Marshalling(parcel, val->blurRadius_);
+    bool success = parcel1.WriteInt32(1) && RSMarshallingHelper::Marshalling(parcel1, val->blurRadius_);
     EXPECT_TRUE(success);
-    success &= RSMarshallingHelper::Marshalling(parcel, val->isRadiusGradient_);
+    success &= RSMarshallingHelper::Marshalling(parcel1, val->isRadiusGradient_);
     EXPECT_TRUE(success);
 }
 
@@ -390,14 +390,14 @@ HWTEST_F(RSMarshallingHelperTest, UnmarshallingTest008, TestSize.Level1)
     std::pair<float, float> fractionStop;
     fractionStop.first = 0.0f;
     fractionStop.second = 0.0f;
-    fractionStop.push_back(fractionStop);
+    fractionStops.push_back(fractionStop);
     auto val1 = std::make_shared<RSLinearGradientBlurPara>(blurRadius, fractionStops, GradientDirection::LEFT);
     val1->isRadiusGradient_ = true;
     Parcel parcel;
     RSMarshallingHelper::Marshalling(parcel, val1);
     auto val2 = std::make_shared<RSLinearGradientBlurPara>(blurRadius, fractionStops, GradientDirection::RIGHT);
     EXPECT_FALSE(val2->isRadiusGradient_);
-    EXPECT_TRUE(RSMarshallingHelper::Marshalling(parcel, val2));
+    EXPECT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, val2));
     EXPECT_TRUE(val2->isRadiusGradient_);
 
     Parcel parcel1;
