@@ -13,27 +13,17 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_TEXT_ANI_DRAWING_CONVERTER_H
-#define OHOS_TEXT_ANI_DRAWING_CONVERTER_H
+#ifndef OHOS_TEXT_ANI_LINE_METRICS_CONVERTER_H
+#define OHOS_TEXT_ANI_LINE_METRICS_CONVERTER_H
 
 #include <ani.h>
 
-#include "draw/color.h"
-#include "text/font_metrics.h"
+#include "typography.h"
 
 namespace OHOS::Text::ANI {
-
-inline int32_t ConvertClampFromJsValue(ani_double jsValue, int32_t low, int32_t high)
-{
-    return std::clamp(static_cast<int32_t>(jsValue), low, high);
-}
-
-class ConverterDrawing {
+class AniLineMetricsConverter {
 public:
-    static void ParseDrawingColorToNative(
-        ani_env* env, ani_object obj, const std::string& str, OHOS::Rosen::Drawing::Color& colorSrc);
-
-    static ani_object ParseFontMetricsToAni(ani_env* env, const OHOS::Rosen::Drawing::FontMetrics& fontMetrics);
+    static ani_object ParseLineMetricsToAni(ani_env* env, const OHOS::Rosen::LineMetrics& lineMetrics);
 };
 } // namespace OHOS::Text::ANI
-#endif // OHOS_TEXT_ANI_DRAWING_CONVERTER_H
+#endif // OHOS_TEXT_ANI_LINE_METRICS_CONVERTER_H

@@ -15,13 +15,13 @@
 
 #include "ani_common.h"
 #include "ani_text_utils.h"
-#include "converter_drawing.h"
-#include "converter_text_style.h"
+#include "ani_drawing_converter.h"
+#include "ani_text_style_converter.h"
 #include "utils/text_log.h"
 
 namespace OHOS::Text::ANI {
 using namespace OHOS::Rosen;
-ani_status ConverterTextStyle::ParseTextStyleToNative(ani_env* env, ani_object obj, TextStyle& textStyle)
+ani_status AniTextStyleConverter::ParseTextStyleToNative(ani_env* env, ani_object obj, TextStyle& textStyle)
 {
     ani_class cls = nullptr;
     ani_status ret = env->FindClass(ANI_CLASS_TEXT_STYLE, &cls);
@@ -37,7 +37,7 @@ ani_status ConverterTextStyle::ParseTextStyleToNative(ani_env* env, ani_object o
     }
 
     ParseDecorationToNative(env, obj, textStyle);
-    ConverterDrawing::ParseDrawingColorToNative(env, obj, "color", textStyle.color);
+    AniDrawingConverter::ParseDrawingColorToNative(env, obj, "color", textStyle.color);
 
     AniTextUtils::ReadOptionalEnumField(env, obj, "fontWeight", textStyle.fontWeight);
     AniTextUtils::ReadOptionalEnumField(env, obj, "fontStyle", textStyle.fontStyle);
@@ -75,7 +75,7 @@ ani_status ConverterTextStyle::ParseTextStyleToNative(ani_env* env, ani_object o
     return ANI_OK;
 }
 
-void ConverterTextStyle::ParseDecorationToNative(ani_env* env, ani_object obj, TextStyle& textStyle)
+void AniTextStyleConverter::ParseDecorationToNative(ani_env* env, ani_object obj, TextStyle& textStyle)
 {
     ani_ref decorationRef = nullptr;
     if (AniTextUtils::ReadOptionalField(env, obj, "decoration", decorationRef) == ANI_OK && decorationRef != nullptr) {
@@ -85,7 +85,7 @@ void ConverterTextStyle::ParseDecorationToNative(ani_env* env, ani_object obj, T
             env, static_cast<ani_object>(decorationRef), "decorationStyle", textStyle.decorationStyle);
         AniTextUtils::ReadOptionalDoubleField(env, static_cast<ani_object>(decorationRef), "decorationThicknessScale",
             textStyle.decorationThicknessScale);
-        ConverterDrawing::ParseDrawingColorToNative(
+        AniDrawingConverter::ParseDrawingColorToNative(
             env, static_cast<ani_object>(decorationRef), "color", textStyle.decorationColor);
     }
 }
@@ -118,7 +118,7 @@ inline void GetTextShadowPoint(ani_env* env, ani_object obj, Drawing::Point& poi
     GetPointYFromJsBumber(env, obj, point);
 }
 
-void ConverterTextStyle::ParseTextShadowToNative(ani_env* env, ani_object obj, std::vector<TextShadow>& textShadow)
+void AniTextStyleConverter::ParseTextShadowToNative(ani_env* env, ani_object obj, std::vector<TextShadow>& textShadow)
 {
     std::vector<std::string> array;
     AniTextUtils::ReadOptionalArrayField<std::string>(
@@ -141,7 +141,7 @@ void ConverterTextStyle::ParseTextShadowToNative(ani_env* env, ani_object obj, s
             AniTextUtils::ReadOptionalDoubleField(env, shadowObj, "blurRadius", runTimeRadius);
 
             Drawing::Color colorSrc = OHOS::Rosen::Drawing::Color::COLOR_BLACK;
-            ConverterDrawing::ParseDrawingColorToNative(env, shadowObj, "color", colorSrc);
+            AniDrawingConverter::ParseDrawingColorToNative(env, shadowObj, "color", colorSrc);
 
             Drawing::Point offset(0, 0);
             ani_ref pointValue = nullptr;
@@ -155,7 +155,7 @@ void ConverterTextStyle::ParseTextShadowToNative(ani_env* env, ani_object obj, s
         });
 }
 
-void ConverterTextStyle::ParseFontFeatureToNative(ani_env* env, ani_object obj, FontFeatures& fontFeatures)
+void AniTextStyleConverter::ParseFontFeatureToNative(ani_env* env, ani_object obj, FontFeatures& fontFeatures)
 {
     std::vector<std::string> array;
     AniTextUtils::ReadOptionalArrayField<std::string>(
@@ -195,7 +195,7 @@ void ConverterTextStyle::ParseFontFeatureToNative(ani_env* env, ani_object obj, 
         });
 }
 
-void ConverterTextStyle::ParseFontVariationToNative(ani_env* env, ani_object obj, FontVariations& fontVariations)
+void AniTextStyleConverter::ParseFontVariationToNative(ani_env* env, ani_object obj, FontVariations& fontVariations)
 {
     std::vector<std::string> array;
     AniTextUtils::ReadOptionalArrayField<std::string>(
@@ -236,7 +236,7 @@ void ConverterTextStyle::ParseFontVariationToNative(ani_env* env, ani_object obj
         });
 }
 
-void ConverterTextStyle::ParseRectStyleToNative(ani_env* env, ani_object obj, RectStyle& rectStyle)
+void AniTextStyleConverter::ParseRectStyleToNative(ani_env* env, ani_object obj, RectStyle& rectStyle)
 {
     ani_class cls = nullptr;
     ani_status ret = env->FindClass(ANI_CLASS_RECT_STYLE, &cls);
@@ -256,10 +256,10 @@ void ConverterTextStyle::ParseRectStyleToNative(ani_env* env, ani_object obj, Re
     env->Object_GetPropertyByName_Double(obj, "leftBottomRadius", &rectStyle.leftBottomRadius);
 }
 
-ani_object ConverterTextStyle::ParseTextStyleToAni(ani_env* env, const TextStyle& textStyle)
+ani_object AniTextStyleConverter::ParseTextStyleToAni(ani_env* env, const TextStyle& textStyle)
 {
     ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_TEXT_STYLE_I, ":V");
-    env->Object_SetPropertyByName_Ref(aniObj, "decoration", ConverterTextStyle::ParseDecorationToAni(env, textStyle));
+    env->Object_SetPropertyByName_Ref(aniObj, "decoration", AniTextStyleConverter::ParseDecorationToAni(env, textStyle));
     env->Object_SetPropertyByName_Ref(aniObj, "fontWeight",
         AniTextUtils::CreateAniEnum(env, ANI_ENUM_FONT_WEIGHT, static_cast<int>(textStyle.fontWeight)));
     env->Object_SetPropertyByName_Ref(aniObj, "fontStyle",
@@ -288,22 +288,22 @@ ani_object ConverterTextStyle::ParseTextStyleToAni(ani_env* env, const TextStyle
     env->Object_SetPropertyByName_Ref(
         aniObj, "baselineShift", AniTextUtils::CreateAniDoubleObj(env, textStyle.baseLineShift));
     env->Object_SetPropertyByName_Ref(
-        aniObj, "backgroundRect", ConverterTextStyle::ParseRectStyleToAni(env, textStyle.backgroundRect));
+        aniObj, "backgroundRect", AniTextStyleConverter::ParseRectStyleToAni(env, textStyle.backgroundRect));
     ani_object shadowsAniObj = AniTextUtils::CreateAniArrayAndInitData(env, textStyle.shadows, textStyle.shadows.size(),
-        [](ani_env* env, const TextShadow& item) { return ConverterTextStyle::ParseTextShadowToAni(env, item); });
+        [](ani_env* env, const TextShadow& item) { return AniTextStyleConverter::ParseTextShadowToAni(env, item); });
     env->Object_SetPropertyByName_Ref(aniObj, "textShadows", shadowsAniObj);
     env->Object_SetPropertyByName_Ref(aniObj, "fontFeatures", ParseFontFeaturesToAni(env, textStyle.fontFeatures));
     return aniObj;
 }
 
-ani_object ConverterTextStyle::ParseTextShadowToAni(ani_env* env, const TextShadow& textShadow)
+ani_object AniTextStyleConverter::ParseTextShadowToAni(ani_env* env, const TextShadow& textShadow)
 {
     ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_TEXTSHADOW_I, ":V");
     env->Object_SetPropertyByName_Double(aniObj, "blurRadius", ani_double(textShadow.blurRadius));
     return aniObj;
 }
 
-ani_object ConverterTextStyle::ParseDecorationToAni(ani_env* env, const TextStyle& textStyle)
+ani_object AniTextStyleConverter::ParseDecorationToAni(ani_env* env, const TextStyle& textStyle)
 {
     ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_DECORATION_I, ":V");
     env->Object_SetPropertyByName_Ref(aniObj, "textDecoration",
@@ -314,7 +314,7 @@ ani_object ConverterTextStyle::ParseDecorationToAni(ani_env* env, const TextStyl
     return aniObj;
 }
 
-ani_object ConverterTextStyle::ParseRectStyleToAni(ani_env* env, const RectStyle& rectStyle)
+ani_object AniTextStyleConverter::ParseRectStyleToAni(ani_env* env, const RectStyle& rectStyle)
 {
     ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_RECT_STYLE_I, ":V");
     env->Object_SetPropertyByName_Double(aniObj, "leftTopRadius", rectStyle.leftTopRadius);
@@ -324,7 +324,7 @@ ani_object ConverterTextStyle::ParseRectStyleToAni(ani_env* env, const RectStyle
     return aniObj;
 }
 
-ani_object ConverterTextStyle::ParseFontFeaturesToAni(ani_env* env, const FontFeatures& fontFeatures)
+ani_object AniTextStyleConverter::ParseFontFeaturesToAni(ani_env* env, const FontFeatures& fontFeatures)
 {
     const std::vector<std::pair<std::string, int>> featureSet = fontFeatures.GetFontFeatures();
     ani_object arrayObj = AniTextUtils::CreateAniArrayAndInitData(
@@ -337,7 +337,7 @@ ani_object ConverterTextStyle::ParseFontFeaturesToAni(ani_env* env, const FontFe
     return arrayObj;
 }
 
-ani_object ConverterTextStyle::ParseFontVariationsToAni(ani_env* env, const FontVariations& fontVariations)
+ani_object AniTextStyleConverter::ParseFontVariationsToAni(ani_env* env, const FontVariations& fontVariations)
 {
     ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_FONT_VARIATION_I, ":V");
     return aniObj;

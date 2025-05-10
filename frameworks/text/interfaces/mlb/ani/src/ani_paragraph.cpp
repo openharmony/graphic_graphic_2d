@@ -19,7 +19,7 @@
 #include "ani_common.h"
 #include "ani_paragraph.h"
 #include "ani_text_utils.h"
-#include "converter_line_metrics.h"
+#include "ani_line_metrics_converter.h"
 #include "draw/canvas.h"
 #include "font_collection.h"
 #include "text/font_metrics.h"
@@ -161,7 +161,7 @@ ani_ref AniParagraph::GetLineMetrics(ani_env* env, ani_object object)
     }
     ani_size index = 0;
     for (const auto& lineMetrics : vectorLineMetrics) {
-        ani_object aniObj = ConverterLineMetrics::ParseLineMetricsToAni(env, lineMetrics);
+        ani_object aniObj = AniLineMetricsConverter::ParseLineMetricsToAni(env, lineMetrics);
         if (ANI_OK != env->Object_CallMethodByName_Void(arrayObj, "$_set", "ILstd/core/Object;:V", index, aniObj)) {
             TEXT_LOGE("Failed to set lineMetrics item");
             break;
@@ -184,6 +184,6 @@ ani_object AniParagraph::GetLineMetricsAt(ani_env* env, ani_object object, ani_d
         TEXT_LOGE("Failed to get line metrics");
         return AniTextUtils::CreateAniUndefined(env);
     }
-    return ConverterLineMetrics::ParseLineMetricsToAni(env, lineMetrics);
+    return AniLineMetricsConverter::ParseLineMetricsToAni(env, lineMetrics);
 }
 } // namespace OHOS::Text::ANI

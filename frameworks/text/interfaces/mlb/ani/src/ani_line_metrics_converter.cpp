@@ -15,12 +15,12 @@
 
 #include "ani_common.h"
 #include "ani_text_utils.h"
-#include "converter_line_metrics.h"
-#include "converter_run_metrics.h"
+#include "ani_line_metrics_converter.h"
+#include "ani_run_metrics_converter.h"
 
 namespace OHOS::Text::ANI {
 using namespace OHOS::Rosen;
-ani_object ConverterLineMetrics::ParseLineMetricsToAni(ani_env* env, const LineMetrics& lineMetrics)
+ani_object AniLineMetricsConverter::ParseLineMetricsToAni(ani_env* env, const LineMetrics& lineMetrics)
 {
     ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_LINEMETRICS_I, ":V");
     env->Object_SetPropertyByName_Double(aniObj, "startIndex", ani_int(lineMetrics.startIndex));
@@ -34,7 +34,7 @@ ani_object ConverterLineMetrics::ParseLineMetricsToAni(ani_env* env, const LineM
     env->Object_SetPropertyByName_Double(aniObj, "lineNumber", ani_int(lineMetrics.lineNumber));
     env->Object_SetPropertyByName_Double(aniObj, "topHeight", ani_double(lineMetrics.y));
     env->Object_SetPropertyByName_Ref(
-        aniObj, "runMetrics", ConverterRunMetrics::ParseRunMetricsToAni(env, lineMetrics.runMetrics));
+        aniObj, "runMetrics", AniRunMetricsConverter::ParseRunMetricsToAni(env, lineMetrics.runMetrics));
     return aniObj;
 }
 } // namespace OHOS::Text::ANI

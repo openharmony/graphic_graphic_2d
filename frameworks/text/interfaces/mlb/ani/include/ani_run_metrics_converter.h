@@ -13,17 +13,18 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_TEXT_ANI_LINE_METRICS_CONVERTER_H
-#define OHOS_TEXT_ANI_LINE_METRICS_CONVERTER_H
+#ifndef OHOS_TEXT_ANI_RUN_METRICS_CONVERTER_H
+#define OHOS_TEXT_ANI_RUN_METRICS_CONVERTER_H
 
 #include <ani.h>
+#include <map>
 
 #include "typography.h"
 
 namespace OHOS::Text::ANI {
-class ConverterLineMetrics {
+class AniRunMetricsConverter {
 public:
-    static ani_object ParseLineMetricsToAni(ani_env* env, const OHOS::Rosen::LineMetrics& lineMetrics);
+    static ani_object ParseRunMetricsToAni(ani_env* env, const std::map<size_t, OHOS::Rosen::RunMetrics>& runMetrics);
 };
 } // namespace OHOS::Text::ANI
-#endif // OHOS_TEXT_ANI_LINE_METRICS_CONVERTER_H
+#endif // OHOS_TEXT_ANI_RUN_METRICS_CONVERTER_H

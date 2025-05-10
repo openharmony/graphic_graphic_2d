@@ -41,11 +41,11 @@ ohos_shared_library("text_engine_ani") {
     "./src/ani_resource_parser.cpp",
     "./src/ani_text_manager.cpp",
     "./src/ani_text_utils.cpp",
-    "./src/converter_drawing.cpp",
-    "./src/converter_line_metrics.cpp",
-    "./src/converter_paragraph_style.cpp",
-    "./src/converter_run_metrics.cpp",
-    "./src/converter_text_style.cpp",
+    "./src/ani_drawing_converter.cpp",
+    "./src/ani_line_metrics_converter.cpp",
+    "./src/ani_paragraph_style_converter.cpp",
+    "./src/ani_run_metrics_converter.cpp",
+    "./src/ani_text_style_converter.cpp",
   ]
 
   configs = [ ":text_config" ]

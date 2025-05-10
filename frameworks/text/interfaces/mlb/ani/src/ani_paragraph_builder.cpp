@@ -22,8 +22,8 @@
 #include "ani_paragraph.h"
 #include "ani_paragraph_builder.h"
 #include "ani_text_utils.h"
-#include "converter_paragraph_style.h"
-#include "converter_text_style.h"
+#include "ani_paragraph_style_converter.h"
+#include "ani_text_style_converter.h"
 #include "font_collection.h"
 #include "text_style.h"
 #include "utils/text_log.h"
@@ -34,7 +34,7 @@ void AniParagraphBuilder::Constructor(
     ani_env* env, ani_object object, ani_object paragraphStyle, ani_object fontCollection)
 {
     std::unique_ptr<TypographyStyle> typographyStyleNative =
-        ConverterParagraphStyle::ParseParagraphStyleToNative(env, paragraphStyle);
+        AniParagraphStyleConverter::ParseParagraphStyleToNative(env, paragraphStyle);
     if (typographyStyleNative == nullptr) {
         TEXT_LOGE("Failed to parse typographyStyle");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
@@ -116,7 +116,7 @@ void AniParagraphBuilder::PushStyle(ani_env* env, ani_object object, ani_object 
         return;
     }
     TextStyle textStyleNative;
-    ani_status status = ConverterTextStyle::ParseTextStyleToNative(env, textStyle, textStyleNative);
+    ani_status status = AniTextStyleConverter::ParseTextStyleToNative(env, textStyle, textStyleNative);
     if (status == ANI_OK) {
         typographyCreate->PushStyle(textStyleNative);
     }

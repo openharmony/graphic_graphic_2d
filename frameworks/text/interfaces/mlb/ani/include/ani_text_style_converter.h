@@ -23,7 +23,7 @@
 #include "text_style.h"
 
 namespace OHOS::Text::ANI {
-class ConverterTextStyle {
+class AniTextStyleConverter {
 public:
     static ani_status ParseTextStyleToNative(ani_env* env, ani_object obj, OHOS::Rosen::TextStyle& textStyle);
     static void ParseFontFeatureToNative(ani_env* env, ani_object obj, OHOS::Rosen::FontFeatures& fontFeatures);
