@@ -30,30 +30,30 @@ void AniDrawingConverter::ParseDrawingColorToNative(
         return;
     }
 
-    int32_t alpha = 0;
-    int32_t red = 0;
-    int32_t green = 0;
-    int32_t blue = 0;
     ani_double tempValueChild{0};
 
+    int32_t alpha = 0;
     ani_status isAlphaOk =
         env->Object_GetPropertyByName_Double(reinterpret_cast<ani_object>(tempValue), "alpha", &tempValueChild);
     if (isAlphaOk == ANI_OK) {
         alpha = ConvertClampFromJsValue(tempValueChild, 0, Drawing::Color::RGB_MAX);
     }
 
+    int32_t red = 0;
     ani_status isRedOk =
         env->Object_GetPropertyByName_Double(reinterpret_cast<ani_object>(tempValue), "red", &tempValueChild);
     if (isRedOk == ANI_OK) {
         red = ConvertClampFromJsValue(tempValueChild, 0, Drawing::Color::RGB_MAX);
     }
 
+    int32_t green = 0;
     ani_status isGreenOk =
         env->Object_GetPropertyByName_Double(reinterpret_cast<ani_object>(tempValue), "green", &tempValueChild);
     if (isGreenOk == ANI_OK) {
         green = ConvertClampFromJsValue(tempValueChild, 0, Drawing::Color::RGB_MAX);
     }
 
+    int32_t blue = 0;
     ani_status isBlueOk =
         env->Object_GetPropertyByName_Double(reinterpret_cast<ani_object>(tempValue), "blue", &tempValueChild);
     if (isBlueOk == ANI_OK) {

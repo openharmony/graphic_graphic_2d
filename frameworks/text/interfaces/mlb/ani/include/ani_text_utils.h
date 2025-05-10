@@ -68,17 +68,17 @@ ani_object AniTextUtils::CreateAniObject(ani_env* env, const std::string name, c
 {
     ani_class cls = nullptr;
     if (env->FindClass(name.c_str(), &cls) != ANI_OK) {
-        TEXT_LOGE("[ANI] not found %{public}s", name.c_str());
+        TEXT_LOGE("Failed to found %{public}s", name.c_str());
         return CreateAniUndefined(env);
     }
     ani_method ctor;
     if (env->Class_FindMethod(cls, "<ctor>", signature, &ctor) != ANI_OK) {
-        TEXT_LOGE("[ANI] get ctor failed %{public}s", name.c_str());
+        TEXT_LOGE("Failed to get ctor %{public}s", name.c_str());
         return CreateAniUndefined(env);
     }
     ani_object obj = {};
     if (env->Object_New(cls, ctor, &obj, params...) != ANI_OK) {
-        TEXT_LOGE("[ANI] create object failed %{public}s", name.c_str());
+        TEXT_LOGE("Failed to create object %{public}s", name.c_str());
         return CreateAniUndefined(env);
     }
     return obj;
@@ -108,12 +108,12 @@ T* AniTextUtils::GetNativeFromObj(ani_env* env, ani_object obj)
     ani_status ret;
     ani_long nativeObj{};
     if ((ret = env->Object_GetFieldByName_Long(obj, NATIVE_OBJ, &nativeObj)) != ANI_OK) {
-        TEXT_LOGE("[ANI] Object_GetField_Long fetch failed");
+        TEXT_LOGE("Failed to get native obj");
         return nullptr;
     }
     T* object = reinterpret_cast<T*>(nativeObj);
     if (!object) {
-        TEXT_LOGE("[ANI] object is null");
+        TEXT_LOGE("object is null");
         return nullptr;
     }
     return object;
@@ -148,7 +148,7 @@ ani_status AniTextUtils::ReadOptionalArrayField(
     ani_double length;
     result = env->Object_GetPropertyByName_Double(arrayObj, "length", &length);
     if (result != ANI_OK) {
-        TEXT_LOGE("[ANI] get length failed,%{public}s", fieldName);
+        TEXT_LOGE("Failed to get length,%{public}s", fieldName);
         return result;
     }
 
@@ -156,7 +156,7 @@ ani_status AniTextUtils::ReadOptionalArrayField(
         ani_ref entryRef = nullptr;
         result = env->Object_CallMethodByName_Ref(arrayObj, "$_get", "I:Lstd/core/Object;", &entryRef, i);
         if (result != ANI_OK || entryRef == nullptr) {
-            TEXT_LOGE("[ANI] get array object failed,%{public}s", fieldName);
+            TEXT_LOGE("Failed to get array object,%{public}s", fieldName);
             continue;
         }
         array.emplace_back(convert(env, entryRef));

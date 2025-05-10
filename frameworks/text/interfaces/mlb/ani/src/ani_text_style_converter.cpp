@@ -176,7 +176,7 @@ void AniTextStyleConverter::ParseFontFeatureToNative(ani_env* env, ani_object ob
             ani_ref nameRef = nullptr;
             ret = env->Object_GetPropertyByName_Ref(obj, "name", &nameRef);
             if (ret != ANI_OK) {
-                TEXT_LOGE("Failed to get filed name, ret %{public}d", ret);
+                TEXT_LOGE("Failed to get name, ret %{public}d", ret);
                 return "";
             }
             std::string name;
@@ -188,7 +188,7 @@ void AniTextStyleConverter::ParseFontFeatureToNative(ani_env* env, ani_object ob
             ani_double valueDouble;
             ret = env->Object_GetPropertyByName_Double(obj, "value", &valueDouble);
             if (ret != ANI_OK) {
-                TEXT_LOGE("Failed to get filed name, ret %{public}d", ret);
+                TEXT_LOGE("Failed to get value, ret %{public}d", ret);
                 return "";
             }
             fontFeatures.SetFeature(name, static_cast<int>(valueDouble));

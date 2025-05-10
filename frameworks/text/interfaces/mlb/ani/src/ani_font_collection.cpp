@@ -143,14 +143,14 @@ ani_status AniFontCollection::AniInit(ani_vm* vm, uint32_t* result)
     ani_env* env;
     ani_status ret = vm->GetEnv(ANI_VERSION_1, &env);
     if (ret != ANI_OK) {
-        TEXT_LOGE("[ANI] null env");
+        TEXT_LOGE("null env");
         return ANI_NOT_FOUND;
     }
 
     ani_class cls = nullptr;
     ret = env->FindClass(ANI_CLASS_FONT_COLLECTION, &cls);
     if (ret != ANI_OK) {
-        TEXT_LOGE("[ANI] can't find class: %{public}s", ANI_CLASS_FONT_COLLECTION);
+        TEXT_LOGE("Failed to find class: %{public}s", ANI_CLASS_FONT_COLLECTION);
         return ANI_NOT_FOUND;
     }
 
@@ -166,7 +166,7 @@ ani_status AniFontCollection::AniInit(ani_vm* vm, uint32_t* result)
 
     ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
     if (ret != ANI_OK) {
-        TEXT_LOGE("[ANI] bind methods fail: %{public}s", ANI_CLASS_FONT_COLLECTION);
+        TEXT_LOGE("Failed to bind methods: %{public}s", ANI_CLASS_FONT_COLLECTION);
         return ANI_NOT_FOUND;
     }
     return ANI_OK;

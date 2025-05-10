@@ -65,8 +65,8 @@ static void Clean(ani_env* env, ani_object object)
         return;
     }
 
-    std::string familyName;
-    ret = AniTextUtils::AniToStdStringUtf8(env, reinterpret_cast<ani_string>(stringRef), familyName);
+    std::string className;
+    ret = AniTextUtils::AniToStdStringUtf8(env, reinterpret_cast<ani_string>(stringRef), className);
     if (ret != ANI_OK) {
         return;
     }
@@ -75,9 +75,8 @@ static void Clean(ani_env* env, ani_object object)
         {"ParagraphBuilder", SafeDelete<AniParagraphBuilder>}, {"Paragraph", SafeDelete<AniParagraph>},
         {"FontCollection", SafeDelete<AniFontCollection>}};
 
-    if (deleteMap.count(familyName)) {
-        TEXT_LOGE("[ANI] clean %{public}s", familyName.c_str());
-        deleteMap.at(familyName)(ptr);
+    if (deleteMap.count(className)) {
+        deleteMap.at(className)(ptr);
     }
 }
 
@@ -86,14 +85,14 @@ static ani_status AniCleanerInit(ani_vm* vm)
     ani_env* env;
     ani_status ret = vm->GetEnv(ANI_VERSION_1, &env);
     if (ret != ANI_OK) {
-        TEXT_LOGE("[ANI] AniCleaner null env, ret %{public}d", ret);
+        TEXT_LOGE("null env, ret %{public}d", ret);
         return ANI_NOT_FOUND;
     }
 
     ani_class cls = nullptr;
     ret = env->FindClass(ANI_CLASS_CLEANER, &cls);
     if (ret != ANI_OK) {
-        TEXT_LOGE("[ANI] AniCleaner can't find class, ret %{public}d", ret);
+        TEXT_LOGE("Failed to find class, ret %{public}d", ret);
         return ANI_NOT_FOUND;
     }
 
@@ -103,7 +102,7 @@ static ani_status AniCleanerInit(ani_vm* vm)
 
     ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
     if (ret != ANI_OK) {
-        TEXT_LOGE("[ANI] AniCleaner bind methods fail, ret %{public}d", ret);
+        TEXT_LOGE("Failed to bind methods, ret %{public}d", ret);
         return ANI_NOT_FOUND;
     }
     return ANI_OK;
