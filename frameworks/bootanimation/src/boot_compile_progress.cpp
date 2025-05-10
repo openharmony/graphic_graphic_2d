@@ -40,6 +40,11 @@ namespace {
     const std::string OTA_COMPILE_DISPLAY_INFO_OVERSEA = "Optimizing Apps";
     constexpr const char* REGION_PARA_STR_CUST = "const.cust.region";
     constexpr const char* CHINA_REGION = "cn";
+    constexpr const char* OTA_BMS_COMPILE_SWITCH = "const.bms.optimizing_apps.switch";
+    const std::string OTA_BMS_COMPILE_SWITCH_OFF = "off";
+    const std::string OTA_BMS_COMPILE_SWITCH_ON = "on";
+    constexpr const char* BMS_COMPILE_STATUS = "bms.optimizing_apps.status";
+    const std::string BMS_COMPILE_STATUS_END = "1";
     constexpr const int32_t ONE_HUNDRED_PERCENT = 100;
     constexpr const int32_t SEC_MS = 1000;
     constexpr const int32_t CIRCLE_NUM = 3;
@@ -56,7 +61,6 @@ namespace {
     constexpr const int HEIGHT_WEARABLE = FONT_SIZE_WEARABLE + RADIUS_WEARABLE * 2 + MAGIN_WEARABLE;
     constexpr const int32_t MAX_RETRY_TIMES = 5;
     constexpr const int32_t WAIT_MS = 500;
-    constexpr const int32_t WAITING_BMS_TIMEOUT = 5;
     constexpr const int32_t LOADING_FPS = 30;
     constexpr const int32_t PERIOD_FPS = 10;
     constexpr const int32_t CHANGE_FREQ = 4;
@@ -152,13 +156,13 @@ bool BootCompileProgress::CreateCanvasNode()
 
 bool BootCompileProgress::RegisterVsyncCallback()
 {
-    if (system::GetParameter(BMS_COMPILE_STATUS, "-1") == BMS_COMPILE_STATUS_END && IsBmsBundleReady()) {
-        LOGI("bms compile is already done.");
-        compileRunner_->Stop();
-        return false;
+    std::string otaCompileSwitch = system::GetParameter(OTA_BMS_COMPILE_SWITCH, OTA_BMS_COMPILE_SWITCH_OFF);
+    if (otaCompileSwitch == OTA_BMS_COMPILE_SWITCH_ON) {
+        isSupportBmsCompile_ = true;
+        LOGI("isSupportBmsCompile: %{public}d", isSupportBmsCompile_);
     }
-
-    if (!WaitBmsStartIfNeeded() && IsBmsBundleReady()) {
+    if (IsEndFlag()) {
+        LOGI("bms compile and bundle is already done.");
         compileRunner_->Stop();
         return false;
     }
@@ -206,13 +210,11 @@ bool BootCompileProgress::IsBmsBundleReady()
     return system::GetBoolParameter(BOOTEVENT_BMS_MAIN_BUNDLES_READY, false);
 }
 
-bool BootCompileProgress::WaitBmsStartIfNeeded()
+bool BootCompileProgress::IsEndFlag()
 {
-    if (WaitParameter(BMS_COMPILE_STATUS, BMS_COMPILE_STATUS_BEGIN.c_str(), WAITING_BMS_TIMEOUT) != 0) {
-        LOGE("waiting bms start oat compile failed.");
-        return false;
-    }
-    return true;
+    bool isBmsCompileEnd = (isSupportBmsCompile_ && system::GetParameter(BMS_COMPILE_STATUS, "-1")
+        == BMS_COMPILE_STATUS_END) || !isSupportBmsCompile_;
+    return isBmsCompileEnd && IsBmsBundleReady();
 }
 
 void BootCompileProgress::OnVsync()
@@ -299,7 +301,7 @@ void BootCompileProgress::DrawMaginBrush(Rosen::Drawing::RecordingCanvas* canvas
 
 void BootCompileProgress::UpdateCompileProgress()
 {
-    if (!isBmsCompileDone_ || !IsBmsBundleReady()) {
+    if (!IsEndFlag()) {
         isBmsCompileDone_ = system::GetParameter(BMS_COMPILE_STATUS, "-1") == BMS_COMPILE_STATUS_END;
         int64_t now =
             std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch())
