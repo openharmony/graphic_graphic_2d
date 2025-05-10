@@ -38,7 +38,7 @@ ani_object AniRunMetricsConverter::ParseRunMetricsToAni(ani_env* env, const std:
                 &mapRef, AniTextUtils::CreateAniDoubleObj(env, static_cast<ani_double>(key)), aniObj);
         if (status != ANI_OK) {
             TEXT_LOGE("Failed to set run metrics map, ret %{public}d", status);
-            break;
+            continue;
         };
     }
     return mapAniObj;

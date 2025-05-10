@@ -151,11 +151,12 @@ ani_status AniTextUtils::AniToStdStringUtf8(ani_env* env, const ani_string& str,
         return status;
     }
 
-    std::vector<char> buffer(strSize + 1);
+    strSize++;
+    std::vector<char> buffer(strSize);
     char* utf8Buffer = buffer.data();
 
     ani_size bytesWritten = 0;
-    status = env->String_GetUTF8(str, utf8Buffer, strSize + 1, &bytesWritten);
+    status = env->String_GetUTF8(str, utf8Buffer, strSize, &bytesWritten);
     if (status != ANI_OK) {
         TEXT_LOGE("Failed to get utf8 str");
         return status;

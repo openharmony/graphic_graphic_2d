@@ -95,7 +95,7 @@ ani_object AniTextUtils::CreateAniArrayAndInitData(
         ani_status ret = env->Object_CallMethodByName_Void(arrayObj, "$_set", "ILstd/core/Object;:V", index, aniObj);
         if (ret != ANI_OK) {
             TEXT_LOGE("Array $_set failed, ret:%{public}d", ret);
-            break;
+            continue;
         }
         index++;
     }
@@ -112,7 +112,7 @@ T* AniTextUtils::GetNativeFromObj(ani_env* env, ani_object obj)
         return nullptr;
     }
     T* object = reinterpret_cast<T*>(nativeObj);
-    if (!object) {
+    if (object == nullptr) {
         TEXT_LOGE("object is null");
         return nullptr;
     }

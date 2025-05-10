@@ -161,6 +161,6 @@ ani_object AniParagraphBuilder::Build(ani_env* env, ani_object object)
         return AniTextUtils::CreateAniUndefined(env);
     }
     std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
-    return AniParagraph::setTypography(env, typography);
+    return AniParagraph::SetTypography(env, typography);
 }
 } // namespace OHOS::Text::ANI

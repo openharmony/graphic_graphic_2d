@@ -29,7 +29,7 @@
 
 namespace OHOS::Text::ANI {
 using namespace OHOS::Rosen;
-ani_object AniParagraph::setTypography(ani_env* env, std::unique_ptr<OHOS::Rosen::Typography>& typography)
+ani_object AniParagraph::SetTypography(ani_env* env, std::unique_ptr<OHOS::Rosen::Typography>& typography)
 {
     ani_object pargraphObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_PARAGRAPH, ":V");
     Typography* typographyPtr = typography.release();
@@ -166,7 +166,7 @@ ani_ref AniParagraph::GetLineMetrics(ani_env* env, ani_object object)
         ani_status ret = env->Object_CallMethodByName_Void(arrayObj, "$_set", "ILstd/core/Object;:V", index, aniObj);
         if (ret != ANI_OK) {
             TEXT_LOGE("Failed to set lineMetrics item");
-            break;
+            continue;
         }
         index++;
     }

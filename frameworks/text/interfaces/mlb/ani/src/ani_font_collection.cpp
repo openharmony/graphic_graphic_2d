@@ -27,7 +27,7 @@ namespace OHOS::Text::ANI {
 using namespace OHOS::Rosen;
 
 namespace {
-void loadString(
+void LoadString(
     ani_env* env, ani_object path, std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection, std::string familyName)
 {
     std::unique_ptr<uint8_t[]> data;
@@ -45,7 +45,7 @@ void loadString(
     fontCollection->LoadFont(familyName, data.get(), dataLen);
 }
 
-void loadResource(
+void LoadResource(
     ani_env* env, ani_object path, std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection, std::string familyName)
 {
     std::unique_ptr<uint8_t[]> data;
@@ -114,7 +114,7 @@ void AniFontCollection::LoadFontSync(ani_env* env, ani_object obj, ani_string na
     env->Object_InstanceOf(path, stringClass, &isString);
 
     if (isString) {
-        loadString(env, path, aniFontCollection->fontCollection_, familyName);
+        LoadString(env, path, aniFontCollection->fontCollection_, familyName);
         return;
     }
 
@@ -123,7 +123,7 @@ void AniFontCollection::LoadFontSync(ani_env* env, ani_object obj, ani_string na
     ani_boolean isResource = false;
     env->Object_InstanceOf(path, resourceClass, &isResource);
     if (isResource) {
-        loadResource(env, path, aniFontCollection->fontCollection_, familyName);
+        LoadResource(env, path, aniFontCollection->fontCollection_, familyName);
         return;
     }
 }
