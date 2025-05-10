@@ -47,9 +47,6 @@ const std::string BOOT_VIDEO_PATH = "file://system/etc/graphic/bootvideo.mp4";
 const std::string TYPE_VIDEO = "video";
 const std::string TYPE_SOUND = "sound";
 
-constexpr const char* BMS_COMPILE_STATUS = "bms.optimizing_apps.status";
-const std::string BMS_COMPILE_STATUS_BEGIN = "0";
-const std::string BMS_COMPILE_STATUS_END = "1";
 const std::string HING_STATUS_INFO_PATH = "/sys/class/sensors/hinge_sensor/hinge_status_info";
 
 constexpr const char* BOOT_ANIMATION_STARTED = "bootevent.bootanimation.started";
