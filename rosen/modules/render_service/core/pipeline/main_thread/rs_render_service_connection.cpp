@@ -37,6 +37,7 @@
 #include "feature/capture/rs_uni_ui_capture.h"
 #include "feature/capture/rs_surface_capture_task.h"
 #include "feature/capture/rs_ui_capture_task_parallel.h"
+#include "feature/capture/rs_ui_capture_solo_task_parallel.h"
 #include "feature/capture/rs_surface_capture_task_parallel.h"
 #include "gfx/fps_info/rs_surface_fps_manager.h"
 #include "gfx/first_frame_notifier/rs_first_frame_notifier.h"
@@ -1310,6 +1311,15 @@ void RSRenderServiceConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCap
         }
     };
     mainThread_->PostTask(captureTask);
+}
+
+std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>> RSRenderServiceConnection::TakeSurfaceCaptureSoloNode(
+    NodeId id, const RSSurfaceCaptureConfig& captureConfig)
+{
+    RS_LOGI("RSRenderServiceConnection::TakeSurfaceCaptureSoloNode nodeId:[%{public}" PRIu64 "]", id);
+    std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>> pixelMapIdPairVector =
+        RSUiCaptureSoloTaskParallel::CaptureSoloNode(id, captureConfig);
+    return pixelMapIdPairVector;
 }
 
 void RSRenderServiceConnection::TakeSelfSurfaceCapture(

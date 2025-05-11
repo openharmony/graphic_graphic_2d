@@ -91,7 +91,9 @@ void RSRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
     DrawContent(canvas, bounds);
 
-    DrawChildren(canvas, bounds);
+    if (!RSUniRenderThread::GetCaptureParam().isSoloNodeUiCapture_) {
+        DrawChildren(canvas, bounds);
+    }
 
     DrawForeground(canvas, bounds);
 }
