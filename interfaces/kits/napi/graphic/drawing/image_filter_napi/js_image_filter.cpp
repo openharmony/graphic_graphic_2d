@@ -111,7 +111,7 @@ napi_value JsImageFilter::CreateBlendImageFilter(napi_env env, napi_callback_inf
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_THREE);
 
     int32_t blendMode = 0;
-    GET_ENUM_PARAM(ARGC_ZERO, blendMode, 0, static_cast<int32_t>(BlendMode::LUMINOSITY));
+    GET_ENUM_PARAM_RANGE(ARGC_ZERO, blendMode, 0, static_cast<int32_t>(BlendMode::LUMINOSITY));
 
     JsImageFilter* jsBackground = nullptr;
     GET_UNWRAP_PARAM(ARGC_ONE, jsBackground);

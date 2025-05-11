@@ -183,6 +183,15 @@ private:
         }                                                                                                              \
     } while (0)
 
+    #define GET_ENUM_PARAM_RANGE(argc, value, lo, hi)                                                                  \
+    do {                                                                                                               \
+        GET_INT32_PARAM(argc, value);                                                                                  \
+        if (value < lo || value > hi) {                                                                                \
+            return NapiThrowError(env, DrawingErrorCode::ERROR_PARAM_VERIFICATION_FAILED,                              \
+                std::string("Incorrect ") + __FUNCTION__ + " parameter" + std::to_string(argc) + " range.");           \
+        }                                                                                                              \
+    } while (0)
+
 namespace Drawing {
 constexpr char THEME_FONT[] = "OhosThemeFont";
 constexpr size_t ARGC_ZERO = 0;
