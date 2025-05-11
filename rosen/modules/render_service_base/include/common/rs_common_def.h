@@ -225,6 +225,7 @@ struct RSSurfaceCaptureConfig {
     SurfaceCaptureType captureType = SurfaceCaptureType::DEFAULT_CAPTURE;
     bool isSync = false;
     Drawing::Rect mainScreenRect = {};
+    bool isSoloNodeUiCapture = false;
     bool operator==(const RSSurfaceCaptureConfig& config) const
     {
         return mainScreenRect == config.mainScreenRect;

@@ -176,6 +176,9 @@ private:
         const Drawing::Rect& specifiedAreaRect = Drawing::Rect(0.f, 0.f, 0.f, 0.f),
         RSSurfaceCapturePermissions permissions = RSSurfaceCapturePermissions()) override;
 
+    std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>> TakeSurfaceCaptureSoloNode(
+        NodeId id, const RSSurfaceCaptureConfig& captureConfig) override;
+
     void TakeSelfSurfaceCapture(
         NodeId id, sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig) override;
 
