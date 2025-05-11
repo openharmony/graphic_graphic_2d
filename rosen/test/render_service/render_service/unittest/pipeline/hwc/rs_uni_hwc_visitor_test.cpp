@@ -624,6 +624,83 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByRotateAndAlpha001, TestSize.L
 }
 
 /**
+ * @tc.name: UpdateHardwareStateByBoundNEDstRectInApps001
+ * @tc.desc: Test RSUniHwcVisitorTest.UpdateHardwareStateByBoundNEDstRectInApps001
+ * @tc.type: FUNC
+ * @tc.require: IAHFXD
+ */
+HWTEST_F(RSUniHwcVisitorTest, UpdateHardwareStateByBoundNEDstRectInApps001, TestSize.Level1)
+{
+    std::vector<RectI> abovedBounds;
+
+    RSSurfaceRenderNodeConfig surfaceConfig;
+    surfaceConfig.id = 1;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceConfig);
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->SetHardwareForcedDisabledState(false);
+    surfaceNode->GetRenderProperties().GetBoundsGeometry()->absRect_ = RectI{0, 0, 200, 200};
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto rsUniHwcVisitor = std::make_shared<RSUniHwcVisitor>(*rsUniRenderVisitor);
+    ASSERT_NE(rsUniHwcVisitor, nullptr);
+
+    std::vector<std::weak_ptr<RSSurfaceRenderNode>> hwcNodes;
+    // test hwcNodes is empty
+    rsUniHwcVisitor->UpdateHardwareStateByBoundNEDstRectInApps(hwcNodes, abovedBounds);
+
+    // test hwcNodes is not empty, and abovedBounds is empty
+    hwcNodes.push_back(std::weak_ptr<RSSurfaceRenderNode>(surfaceNode));
+    rsUniHwcVisitor->UpdateHardwareStateByBoundNEDstRectInApps(hwcNodes, abovedBounds);
+
+    surfaceNode->SetHardwareForcedDisabledState(true);
+    rsUniHwcVisitor->UpdateHardwareStateByBoundNEDstRectInApps(hwcNodes, abovedBounds);
+
+    // test hwcNodes is not empty, and abovedBounds is not empty
+    abovedBounds.emplace_back(RectI{0, 0, 200, 200});
+    rsUniHwcVisitor->UpdateHardwareStateByBoundNEDstRectInApps(hwcNodes, abovedBounds);
+}
+
+/**
+ * @tc.name: UpdateHardwareStateByBoundNEDstRectInApps002
+ * @tc.desc: Test RSUniHwcVisitorTest.UpdateHardwareStateByBoundNEDstRectInApps002
+ * @tc.type: FUNC
+ * @tc.require: IAHFXD
+ */
+HWTEST_F(RSUniHwcVisitorTest, UpdateHardwareStateByBoundNEDstRectInApps002, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto rsUniHwcVisitor = std::make_shared<RSUniHwcVisitor>(*rsUniRenderVisitor);
+    ASSERT_NE(rsUniHwcVisitor, nullptr);
+
+    std::vector<RectI> abovedBounds;
+    RSSurfaceRenderNodeConfig surfaceConfig;
+    surfaceConfig.id = 1;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceConfig);
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->GetRenderProperties().GetBoundsGeometry()->absRect_ = RectI{0, 0, 200, 200};
+    // abovedRect is inside of Bounds and equal to bound.
+    surfaceNode->SetDstRect({0, 0, 200, 200});
+
+    std::vector<std::weak_ptr<RSSurfaceRenderNode>> hwcNodes;
+    auto surfaceNode2 = std::make_shared<RSSurfaceRenderNode>(surfaceConfig);
+    ASSERT_NE(surfaceNode2, nullptr);
+    surfaceNode2->GetRenderProperties().GetBoundsGeometry()->absRect_ = RectI{0, 0, 200, 200};
+    // reverse push
+    hwcNodes.push_back(std::weak_ptr<RSSurfaceRenderNode>(surfaceNode2));
+    hwcNodes.push_back(std::weak_ptr<RSSurfaceRenderNode>(surfaceNode));
+    surfaceNode2->SetDstRect({0, 0, 200, 200});
+    rsUniHwcVisitor->UpdateHardwareStateByBoundNEDstRectInApps(hwcNodes, abovedBounds);
+    ASSERT_FALSE(surfaceNode2->IsHardwareForcedDisabled());
+
+    // abovedRect is inside of Bounds and not equal to bound.
+    surfaceNode->SetDstRect({0, 0, 200, 100});
+    rsUniHwcVisitor->UpdateHardwareStateByBoundNEDstRectInApps(hwcNodes, abovedBounds);
+    ASSERT_TRUE(surfaceNode2->IsHardwareForcedDisabled());
+}
+
+/**
  * @tc.name: UpdateHardwareStateByHwcNodeBackgroundAlpha001
  * @tc.desc: Test RSUniHwcVisitorTest.UpdateHardwareStateByHwcNodeBackgroundAlpha
  * @tc.type: FUNC

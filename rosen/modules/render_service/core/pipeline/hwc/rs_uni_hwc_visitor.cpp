@@ -562,8 +562,10 @@ void RSUniHwcVisitor::UpdateHwcNodeEnableByNodeBelow()
     std::vector<RectI> hwcRects;
     RectI backgroundAlphaRect;
     bool isHardwareEnableByBackgroundAlpha = false;
+    std::vector<RectI> abovedBounds;
+    // Top-Down
     std::for_each(curMainAndLeashSurfaces.begin(), curMainAndLeashSurfaces.end(),
-        [this, &backgroundAlphaRect, &isHardwareEnableByBackgroundAlpha]
+        [this, &backgroundAlphaRect, &isHardwareEnableByBackgroundAlpha, &abovedBounds]
         (RSBaseRenderNode::SharedPtr& nodePtr) {
         auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(nodePtr);
         if (!surfaceNode) {
@@ -572,6 +574,7 @@ void RSUniHwcVisitor::UpdateHwcNodeEnableByNodeBelow()
         }
         // use in temporary scheme to realize DSS
         auto& hwcNodes = surfaceNode->GetChildHardwareEnabledNodes();
+        UpdateHardwareStateByBoundNEDstRectInApps(hwcNodes, abovedBounds);
         if (!hwcNodes.empty() && RsCommonHook::Instance().GetHardwareEnabledByBackgroundAlphaFlag() &&
             RsCommonHook::Instance().GetHardwareEnabledByHwcnodeBelowSelfInAppFlag()) {
             UpdateHardwareStateByHwcNodeBackgroundAlpha(hwcNodes, backgroundAlphaRect,
@@ -580,7 +583,7 @@ void RSUniHwcVisitor::UpdateHwcNodeEnableByNodeBelow()
             UpdateTransparentHwcNodeEnable(hwcNodes);
         }
     });
-
+    // Down-Top
     std::for_each(curMainAndLeashSurfaces.rbegin(), curMainAndLeashSurfaces.rend(),
         [this, &hwcRects](RSBaseRenderNode::SharedPtr& nodePtr) {
         auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(nodePtr);
@@ -685,6 +688,37 @@ void RSUniHwcVisitor::UpdateHwcNodeEnableByHwcNodeBelowSelf(std::vector<RectI>& 
         }
     }
     hwcRects.emplace_back(absBound);
+}
+
+// called by windows from Top to Down
+void RSUniHwcVisitor::UpdateHardwareStateByBoundNEDstRectInApps(
+    const std::vector<std::weak_ptr<RSSurfaceRenderNode>>& hwcNodes, std::vector<RectI>& abovedBounds)
+{
+    // Traverse hwcNodes in a app from Top to Down.
+    for (auto reverseIter = hwcNodes.rbegin(); reverseIter != hwcNodes.rend(); ++reverseIter) {
+        auto hwcNodePtr = reverseIter->lock();
+        if (!hwcNodePtr || hwcNodePtr->IsHardwareForcedDisabled()) {
+            continue;
+        }
+
+        RectI boundRect = hwcNodePtr->GetRenderProperties().GetBoundsGeometry()->GetAbsRect();
+        RectI dstRect = hwcNodePtr->GetDstRect();
+        if (!abovedBounds.empty()) {
+            bool intersectWithAbovedRect = std::any_of(abovedBounds.begin(), abovedBounds.end(),
+                [&boundRect](RectI& abovedBound) { return !abovedBound.IntersectRect(boundRect).IsEmpty(); });
+            if (intersectWithAbovedRect) {
+                hwcNodePtr->SetHardwareForcedDisabledState(true);
+                RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " disabled by aboved BoundNEDstRect hwcNode",
+                    hwcNodePtr->GetName().c_str(), hwcNodePtr->GetId());
+                continue;
+            }
+        }
+
+        // Check if the hwcNode's DstRect is inside of BoundRect, and not equal each other.
+        if (dstRect.IsInsideOf(boundRect) && dstRect != boundRect) {
+            abovedBounds.emplace_back(boundRect);
+        }
+    }
 }
 
 void RSUniHwcVisitor::UpdateHardwareStateByHwcNodeBackgroundAlpha(
