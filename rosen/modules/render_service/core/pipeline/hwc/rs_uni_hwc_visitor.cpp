@@ -138,9 +138,10 @@ void RSUniHwcVisitor::UpdateHwcNodeByTransform(RSSurfaceRenderNode& node, const 
     node.SetInFixedRotation(uniRenderVisitor_.displayNodeRotationChanged_ ||
         uniRenderVisitor_.isScreenRotationAnimating_);
     const uint32_t apiCompatibleVersion = node.GetApiCompatibleVersion();
-    (apiCompatibleVersion != INVALID_API_COMPATIBLE_VERSION && apiCompatibleVersion < API18) ?
-        RSUniHwcComputeUtil::DealWithNodeGravityOldVersion(node, uniRenderVisitor_.screenInfo_) :
-        RSUniHwcComputeUtil::DealWithNodeGravity(node, totalMatrix);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams *>(node.GetStagingRenderParams().get());
+    ((surfaceParams != nullptr && surfaceParams->GetIsHwcEnabledBySolidLayer()) || apiCompatibleVersion >= API18) ?
+        RSUniHwcComputeUtil::DealWithNodeGravity(node, totalMatrix) :
+        RSUniHwcComputeUtil::DealWithNodeGravityOldVersion(node, uniRenderVisitor_.screenInfo_);
     RSUniHwcComputeUtil::DealWithScalingMode(node, totalMatrix);
     RSUniHwcComputeUtil::LayerRotate(node, uniRenderVisitor_.screenInfo_);
     RSUniHwcComputeUtil::LayerCrop(node, uniRenderVisitor_.screenInfo_);
@@ -262,10 +263,10 @@ Color RSUniHwcVisitor::FindAppBackgroundColor(RSSurfaceRenderNode& node)
         if (iter == (*sortedChildren).end()) {
             return RgbPalette::Transparent();
         }
-        size_t index = std::distance((*sortedChildren).begin(), iter);
+        int32_t index = static_cast<int32_t>(std::distance((*sortedChildren).begin(), iter));
         // Check branches from near to far
         std::stack<Color> validBgColors;
-        for (size_t i = 1; i <= index; i++) {
+        for (int32_t i = 1; i <= index; i++) {
             const auto& child = sortedChildren->at(index - i);
             if (child == nullptr) {
                 continue;
@@ -376,6 +377,10 @@ void RSUniHwcVisitor::ProcessSolidLayerEnabled(RSSurfaceRenderNode& node)
         node.GetName().c_str(), node.GetId(), appBackgroundColor.AsArgbInt());
     RS_LOGD("solidLayer: Set solid layer color:%{public}08x", appBackgroundColor.AsArgbInt());
     auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams *>(node.GetStagingRenderParams().get());
+    if (!stagingSurfaceParams) {
+        node.SetHardwareForcedDisabledState(true);
+        return;
+    }
     stagingSurfaceParams->SetIsHwcEnabledBySolidLayer(true);
     stagingSurfaceParams->SetSolidLayerColor(appBackgroundColor);
 }
@@ -1149,8 +1154,8 @@ void RSUniHwcVisitor::UpdateHwcNodeInfo(RSSurfaceRenderNode& node,
         }
     }
     UpdateSrcRect(node, absMatrix);
-    UpdateHwcNodeByTransform(node, absMatrix);
     UpdateHwcNodeEnableByBackgroundAlpha(node);
+    UpdateHwcNodeByTransform(node, absMatrix);
     UpdateHwcNodeEnableByBufferSize(node);
 }
 
