@@ -144,8 +144,14 @@ public:
         if (rect.IsEmpty()) {
             return false;
         }
+        lastSurfaceRect_ = surfaceRect_;
         surfaceRect_ = rect;
         return true;
+    }
+
+    bool IsSurfaceRectChanged() const
+    {
+        return lastSurfaceRect_ != surfaceRect_;
     }
 
     bool SetSurfaceSize(const int32_t width, const int32_t height)
@@ -222,6 +228,7 @@ private:
 
     RectI lastActiveSurfaceRect_;   // active rect of the canvas surface in the last frame
     RectI activeSurfaceRect_;       // active rect of the canvas surface
+    RectI lastSurfaceRect_;         // rect of the canvas surface in the last frame
     RectI surfaceRect_;             // rect of the canvas surface
     RectI dirtyRegion_;             // dirtyregion after merge history
     RectI currentFrameDirtyRegion_; // dirtyRegion in current frame
