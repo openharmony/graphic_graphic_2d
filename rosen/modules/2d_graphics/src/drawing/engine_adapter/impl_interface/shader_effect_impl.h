@@ -68,6 +68,8 @@ public:
     virtual void InitWithSweepGradient(const Point& centerPt, const std::vector<ColorQuad>& colors,
         const std::vector<scalar>& pos, TileMode mode, scalar startAngle, scalar endAngle, const Matrix *matrix) = 0;
 
+    virtual void InitWithLightUp(const float& lightUpDeg, const ShaderEffect& imageShader) = 0;
+
     virtual void InitWithSdf(const SDFShapeBase& shape) = 0;
 
     virtual std::shared_ptr<Data> Serialize() const = 0;

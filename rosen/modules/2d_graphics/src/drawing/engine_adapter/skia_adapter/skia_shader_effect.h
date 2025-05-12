@@ -62,6 +62,8 @@ public:
         const std::vector<scalar>& pos, TileMode mode, scalar startAngle, scalar endAngle,
         const Matrix *matrix) override;
 
+    void InitWithLightUp(const float& lightUpDeg, const ShaderEffect& imageShader) override;
+
     void InitWithSdf(const SDFShapeBase& shape) override;
 
     sk_sp<SkShader> GetShader() const;

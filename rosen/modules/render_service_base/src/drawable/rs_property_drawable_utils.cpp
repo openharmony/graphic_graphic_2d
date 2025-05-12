@@ -44,7 +44,6 @@ std::shared_ptr<Drawing::RuntimeEffect> RSPropertyDrawableUtils::binarizationSha
 std::shared_ptr<Drawing::RuntimeEffect> RSPropertyDrawableUtils::dynamicDimShaderEffect_ = nullptr;
 std::shared_ptr<Drawing::RuntimeEffect> RSPropertyDrawableUtils::dynamicBrightnessBlenderEffect_ = nullptr;
 std::shared_ptr<Drawing::RuntimeEffect> RSPropertyDrawableUtils::dynamicBrightnessLinearBlenderEffect_ = nullptr;
-std::shared_ptr<Drawing::RuntimeEffect> RSPropertyDrawableUtils::lightUpEffectBlender_ = nullptr;
 
 Drawing::RoundRect RSPropertyDrawableUtils::RRect2DrawingRRect(const RRect& rr)
 {
@@ -542,51 +541,22 @@ void RSPropertyDrawableUtils::DrawLightUpEffect(Drawing::Canvas* canvas, const f
         return;
     }
 
-    auto blender = MakeLightUpEffectBlender(lightUpEffectDegree);
-    Drawing::Brush brush;
-    brush.SetBlender(blender);
-    canvas->DrawBackground(brush);
-}
-
-std::shared_ptr<Drawing::Blender> RSPropertyDrawableUtils::MakeLightUpEffectBlender(const float lightUpDeg)
-{
-    static constexpr char prog[] = R"(
-        uniform half lightUpDeg;
-
-        vec3 rgb2hsv(in vec3 c)
-        {
-            vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
-            vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));
-            vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));
-            float d = q.x - min(q.w, q.y);
-            float e = 1.0e-10;
-            return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);
-        }
-        vec3 hsv2rgb(in vec3 c)
-        {
-            vec3 rgb = clamp(abs(mod(c.x * 6.0 + vec3(0.0, 4.0, 2.0), 6.0) - 3.0) - 1.0, 0.0, 1.0);
-            return c.z * mix(vec3(1.0), rgb, c.y);
-        }
-        vec4 main(vec4 drawing_src, vec4 drawing_dst) {
-            drawing_dst = max(drawing_dst, 0.0);
-            vec3 c = vec3(drawing_dst.r, drawing_dst.g, drawing_dst.b);
-            vec3 hsv = rgb2hsv(c);
-            float satUpper = clamp(hsv.y * 1.2, 0.0, 1.0);
-            hsv.y = mix(satUpper, hsv.y, lightUpDeg);
-            hsv.z += lightUpDeg - 1.0;
-            hsv.z = max(hsv.z, 0.0);
-            return vec4(hsv2rgb(hsv), drawing_dst.a);
-        }
-    )";
-    if (lightUpEffectBlender_ == nullptr) {
-        lightUpEffectBlender_ = Drawing::RuntimeEffect::CreateForBlender(prog);
-        if (lightUpEffectBlender_ == nullptr) {
-            return nullptr;
-        }
+    auto clipBounds = canvas->GetDeviceClipBounds();
+    auto image = surface->GetImageSnapshot(clipBounds, false);
+    if (image == nullptr) {
+        ROSEN_LOGE("RSPropertyDrawableUtils::DrawLightUpEffect image is null");
+        return;
     }
-    auto builder = std::make_shared<Drawing::RuntimeBlenderBuilder>(lightUpEffectBlender_);
-    builder->SetUniform("lightUpDeg", lightUpDeg);
-    return builder->MakeBlender();
+    Drawing::Matrix scaleMat;
+    auto imageShader = Drawing::ShaderEffect::CreateImageShader(*image, Drawing::TileMode::CLAMP,
+        Drawing::TileMode::CLAMP, Drawing::SamplingOptions(Drawing::FilterMode::LINEAR), scaleMat);
+    auto shader = Drawing::ShaderEffect::CreateLightUp(lightUpEffectDegree, *imageShader);
+    Drawing::Brush brush;
+    brush.SetShaderEffect(shader);
+    Drawing::AutoCanvasRestore acr(*canvas, true);
+    canvas->ResetMatrix();
+    canvas->Translate(clipBounds.GetLeft(), clipBounds.GetTop());
+    canvas->DrawBackground(brush);
 }
 
 void RSPropertyDrawableUtils::DrawDynamicDim(Drawing::Canvas* canvas, const float dynamicDimDegree)
