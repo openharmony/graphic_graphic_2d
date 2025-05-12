@@ -119,7 +119,8 @@
           "faultloggerd",
           "freetype",
           "rust_cxx",
-          "media_foundation"
+          "media_foundation",
+          "mesa3d"
         ],
         "third_party": [
           "skia"

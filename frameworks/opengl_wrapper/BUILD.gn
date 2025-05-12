@@ -298,7 +298,10 @@ if (current_os != "ohos" || !graphic_2d_feature_enable_opengl_to_vulkan) {
       "opengles:libGLES",
     ]
 
-    external_deps = [ "hilog:libhilog" ]
+    external_deps = [
+      "hilog:libhilog",
+      "mesa3d:zink_opengl",
+    ]
 
     output_name = "GLv4"
     output_extension = "so"
