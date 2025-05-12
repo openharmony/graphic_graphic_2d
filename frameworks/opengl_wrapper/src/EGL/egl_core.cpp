@@ -41,7 +41,8 @@ bool CheckIfWhiteAPP()
     }
 
     return processName == std::string("com.zwsoft.zwcad.PE")
-        || processName == std::string("com.gstarcad.hmos.gcad");
+        || processName == std::string("com.gstarcad.hmos.gcad")
+        || processName == std::string("glcts");
 }
 #endif
 }
