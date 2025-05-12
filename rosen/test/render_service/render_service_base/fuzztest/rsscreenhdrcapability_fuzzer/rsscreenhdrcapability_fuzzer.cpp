@@ -173,7 +173,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 
     /* Run your code on data */
     using FunctionPtr = bool (*)();
-    std::vector<FunctionPtr> funcVector = { 
+    std::vector<FunctionPtr> funcVector = {
         OHOS::Rosen::DoMarshalling,
         OHOS::Rosen::DoUnmarshalling,
         OHOS::Rosen::DoSetMaxLum,

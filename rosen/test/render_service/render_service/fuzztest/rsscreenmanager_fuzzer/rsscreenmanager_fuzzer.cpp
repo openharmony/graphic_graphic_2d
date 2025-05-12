@@ -700,7 +700,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     if (!OHOS::Rosen::Init(data, size)) {
         return 0;
     }
-    std::vector<FunctionPtr> funcVector = { 
+    std::vector<FunctionPtr> funcVector = {
         OHOS::Rosen::InitScreenManger,
         OHOS::Rosen::GetActiveScreenId,
         OHOS::Rosen::SetVirtualScreenRefreshRate,
