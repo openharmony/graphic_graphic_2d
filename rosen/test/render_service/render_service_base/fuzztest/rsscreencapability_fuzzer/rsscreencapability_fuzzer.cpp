@@ -225,7 +225,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
         return 0;
     }
     /* Run your code on data */
-    using FunctionPtr = bool (*)();   
+    using FunctionPtr = bool (*)();  
     std::vector<FunctionPtr> funcVector = { 
         OHOS::Rosen::DoMarshalling,
         OHOS::Rosen::DoUnmarshalling,
@@ -239,7 +239,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
         OHOS::Rosen::DoSetProps,
         OHOS::Rosen::DoWriteVector,
         OHOS::Rosen::DoReadVector
-    }
+    };
 
     uint8_t pos = OHOS::Rosen::GetData<uint8_t>() % funcVector.size();
     funcVector[pos]();

@@ -26,6 +26,8 @@
 
 #include "screen_manager/rs_screen_manager.h"
 
+using FunctionPtr = void (*)();
+
 namespace OHOS {
 namespace Rosen {
 namespace {
@@ -630,13 +632,74 @@ void IsVisibleRectSupportRotation()
 } // namespace Rosen
 } // namespace OHOS
 
+void InitFuncVectorPartOne(std::vector<FunctionPtr> &funcVector ) {
+    funcVector.push_back(OHOS::Rosen::SetCastScreenEnableSkipWindow);
+    funcVector.push_back(OHOS::Rosen::GetVirtualScreenBlackList);
+    funcVector.push_back(OHOS::Rosen::GetVirtualScreenTypeBlackList);
+    funcVector.push_back(OHOS::Rosen::GetAllBlackList);
+	funcVector.push_back(OHOS::Rosen::GetAllWhiteList);
+	funcVector.push_back(OHOS::Rosen::GetAndResetVirtualSurfaceUpdateFlag);
+	funcVector.push_back(OHOS::Rosen::RemoveVirtualScreen);
+	funcVector.push_back(OHOS::Rosen::SetScreenActiveMode);
+	funcVector.push_back(OHOS::Rosen::SetScreenActiveRect);
+	funcVector.push_back(OHOS::Rosen::SetPhysicalScreenResolution);
+	funcVector.push_back(OHOS::Rosen::SetVirtualScreenResolution);
+	funcVector.push_back(OHOS::Rosen::SetRogScreenResolution);
+	funcVector.push_back(OHOS::Rosen::SetScreenPowerStatus);
+	funcVector.push_back(OHOS::Rosen::IsScreenPoweringOff);
+	funcVector.push_back(OHOS::Rosen::SetVirtualMirrorScreenCanvasRotation);
+	funcVector.push_back(OHOS::Rosen::SetVirtualMirrorScreenScaleMode);
+	funcVector.push_back(OHOS::Rosen::ReleaseScreenDmaBuffer);
+	funcVector.push_back(OHOS::Rosen::GetScreenData);
+	funcVector.push_back(OHOS::Rosen::ResizeVirtualScreen);
+	funcVector.push_back(OHOS::Rosen::GetScreenBacklight);
+	funcVector.push_back(OHOS::Rosen::SetScreenBacklight);
+	funcVector.push_back(OHOS::Rosen::QueryScreenInfo);
+	funcVector.push_back(OHOS::Rosen::GetCanvasRotation);
+	funcVector.push_back(OHOS::Rosen::GetScaleMode);
+	funcVector.push_back(OHOS::Rosen::GetProducerSurface);
+	funcVector.push_back(OHOS::Rosen::GetOutput);
+	funcVector.push_back(OHOS::Rosen::DisplayDump);
+	funcVector.push_back(OHOS::Rosen::SurfaceDump);
+	funcVector.push_back(OHOS::Rosen::FpsDump);
+}
+
+void InitFuncVectorPartTwo(std::vector<FunctionPtr> &funcVector ) {
+	funcVector.push_back(OHOS::Rosen::ClearFpsDump);
+	funcVector.push_back(OHOS::Rosen::HitchsDump);
+	funcVector.push_back(OHOS::Rosen::SetScreenConstraint);
+	funcVector.push_back(OHOS::Rosen::GetScreenSupportedColorGamuts);
+	funcVector.push_back(OHOS::Rosen::GetScreenColorGamut);
+	funcVector.push_back(OHOS::Rosen::SetScreenColorGamut);
+	funcVector.push_back(OHOS::Rosen::SetScreenGamutMap);
+	funcVector.push_back(OHOS::Rosen::SetScreenCorrection);
+	funcVector.push_back(OHOS::Rosen::GetScreenGamutMap);
+	funcVector.push_back(OHOS::Rosen::GetScreenHDRCapability);
+	funcVector.push_back(OHOS::Rosen::GetScreenType);
+	funcVector.push_back(OHOS::Rosen::SetScreenSkipFrameInterval);
+	funcVector.push_back(OHOS::Rosen::SetEqualVsyncPeriod);
+	funcVector.push_back(OHOS::Rosen::GetDisplayIdentificationData);
+	funcVector.push_back(OHOS::Rosen::SetPixelFormat);
+	funcVector.push_back(OHOS::Rosen::SetScreenHDRFormat);
+	funcVector.push_back(OHOS::Rosen::GetScreenHDRFormat);
+	funcVector.push_back(OHOS::Rosen::GetScreenSupportedHDRFormats);
+	funcVector.push_back(OHOS::Rosen::GetScreenColorSpace);
+	funcVector.push_back(OHOS::Rosen::SetScreenColorSpace);
+	funcVector.push_back(OHOS::Rosen::GetScreenSupportedColorSpaces);
+	funcVector.push_back(OHOS::Rosen::IsScreenPowerOff);
+	funcVector.push_back(OHOS::Rosen::DisablePowerOffRenderControl);
+	funcVector.push_back(OHOS::Rosen::GetDisplayPropertyForHardCursor);
+	funcVector.push_back(OHOS::Rosen::SetScreenHasProtectedLayer);
+	funcVector.push_back(OHOS::Rosen::IsVisibleRectSupportRotation);
+}
+
+
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     if (!OHOS::Rosen::Init(data, size)) {
         return 0;
     }
-    using FunctionPtr = void (*)();
     std::vector<FunctionPtr> funcVector = { 
         OHOS::Rosen::InitScreenManger,
         OHOS::Rosen::GetActiveScreenId,
@@ -664,64 +727,10 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
         OHOS::Rosen::GetVirtualScreenSecurityExemptionList,
         OHOS::Rosen::GetScreenSecurityMask,
         OHOS::Rosen::SetMirrorScreenVisibleRect,
-        OHOS::Rosen::GetMirrorScreenVisibleRect,
-        OHOS::Rosen::SetCastScreenEnableSkipWindow,
-        OHOS::Rosen::GetVirtualScreenBlackList,
-        OHOS::Rosen::GetVirtualScreenTypeBlackList,
-        OHOS::Rosen::GetAllBlackList,
-        OHOS::Rosen::GetAllWhiteList,
-        OHOS::Rosen::GetAndResetVirtualSurfaceUpdateFlag,
-        OHOS::Rosen::RemoveVirtualScreen,
-        OHOS::Rosen::SetScreenActiveMode,
-        OHOS::Rosen::SetScreenActiveRect,
-        OHOS::Rosen::SetPhysicalScreenResolution,
-        OHOS::Rosen::SetVirtualScreenResolution,
-        OHOS::Rosen::SetRogScreenResolution,
-        OHOS::Rosen::SetScreenPowerStatus,
-        OHOS::Rosen::IsScreenPoweringOff,
-        OHOS::Rosen::SetVirtualMirrorScreenCanvasRotation,
-        OHOS::Rosen::SetVirtualMirrorScreenScaleMode,
-        OHOS::Rosen::ReleaseScreenDmaBuffer,
-        OHOS::Rosen::GetScreenData,
-        OHOS::Rosen::ResizeVirtualScreen,
-        OHOS::Rosen::GetScreenBacklight,
-        OHOS::Rosen::SetScreenBacklight,
-        OHOS::Rosen::QueryScreenInfo,
-        OHOS::Rosen::GetCanvasRotation,
-        OHOS::Rosen::GetScaleMode,
-        OHOS::Rosen::GetProducerSurface,
-        OHOS::Rosen::GetOutput,
-        OHOS::Rosen::DisplayDump,
-        OHOS::Rosen::SurfaceDump,
-        OHOS::Rosen::FpsDump,
-        OHOS::Rosen::ClearFpsDump,
-        OHOS::Rosen::HitchsDump,
-        OHOS::Rosen::SetScreenConstraint,
-        OHOS::Rosen::GetScreenSupportedColorGamuts,
-        OHOS::Rosen::GetScreenColorGamut,
-        OHOS::Rosen::SetScreenColorGamut,
-        OHOS::Rosen::SetScreenGamutMap,
-        OHOS::Rosen::SetScreenCorrection,
-        OHOS::Rosen::GetScreenGamutMap,
-        OHOS::Rosen::GetScreenHDRCapability,
-        OHOS::Rosen::GetScreenType,
-        OHOS::Rosen::SetScreenSkipFrameInterval,
-        OHOS::Rosen::SetEqualVsyncPeriod,
-        OHOS::Rosen::GetDisplayIdentificationData,
-        OHOS::Rosen::SetPixelFormat,
-        OHOS::Rosen::SetScreenHDRFormat,
-        OHOS::Rosen::GetScreenHDRFormat,
-        OHOS::Rosen::GetScreenSupportedHDRFormats,
-        OHOS::Rosen::GetScreenColorSpace,
-        OHOS::Rosen::SetScreenColorSpace,
-        OHOS::Rosen::GetScreenSupportedColorSpaces,
-        OHOS::Rosen::IsScreenPowerOff,
-        OHOS::Rosen::DisablePowerOffRenderControl,
-        OHOS::Rosen::GetDisplayPropertyForHardCursor,
-        OHOS::Rosen::SetScreenHasProtectedLayer,
-        OHOS::Rosen::IsVisibleRectSupportRotation
+        OHOS::Rosen::GetMirrorScreenVisibleRect       
     };
-
+    InitFuncVectorPartOne(funcVector);
+    InitFuncVectorPartTwo(funcVector);
     /* Run your code on data */
     uint8_t pos = OHOS::Rosen::GetData<uint8_t>() % funcVector.size();
     funcVector[pos]();
