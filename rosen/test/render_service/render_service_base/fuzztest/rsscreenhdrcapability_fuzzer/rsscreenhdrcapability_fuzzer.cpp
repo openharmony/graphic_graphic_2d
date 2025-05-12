@@ -20,7 +20,7 @@
 #include <securec.h>
 
 #include "screen_manager/rs_screen_hdr_capability.h"
-using FunctionPtr = bool (*)(); 
+
 namespace OHOS {
 namespace Rosen {
 namespace {
@@ -172,6 +172,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     }
 
     /* Run your code on data */
+    using FunctionPtr = bool (*)(); 
     std::vector<FunctionPtr> funcVector = { 
         OHOS::Rosen::DoMarshalling,
         OHOS::Rosen::DoUnmarshalling,

@@ -25,7 +25,7 @@
 #include "securec.h"
 
 #include "screen_manager/rs_screen_manager.h"
-using FunctionPtr = void (*)();
+
 namespace OHOS {
 namespace Rosen {
 namespace {
@@ -636,6 +636,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     if (!OHOS::Rosen::Init(data, size)) {
         return 0;
     }
+    using FunctionPtr = void (*)();
     std::vector<FunctionPtr> funcVector = { 
         OHOS::Rosen::InitScreenManger,
         OHOS::Rosen::GetActiveScreenId,
