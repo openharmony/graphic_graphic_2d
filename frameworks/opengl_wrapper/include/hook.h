@@ -25,8 +25,8 @@
 #include <GLES/gl.h>
 #include <GLES/glext.h>
 #ifdef OPENGL_WRAPPER_ENABLE_GL4
-#include <GL/glcorearb.h>
 #include <GL/gl.h>
+#include <GL/glcorearb.h>
 #include <GL/glext.h>
 #endif
 
