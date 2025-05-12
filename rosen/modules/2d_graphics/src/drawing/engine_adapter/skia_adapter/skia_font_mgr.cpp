@@ -232,8 +232,13 @@ Typeface* SkiaFontMgr::MatchFamilyStyleCharacter(const char familyName[], const 
     }
     SkFontStyle skFontStyle;
     SkiaConvertUtils::DrawingFontStyleCastToSkFontStyle(fontStyle, skFontStyle);
+#ifdef USE_M133_SKIA
+    sk_sp<SkTypeface> skTypeface =
+        skFontMgr_->matchFamilyStyleCharacter(familyName, skFontStyle, bcp47, bcp47Count, character);
+#else
     SkTypeface* skTypeface =
         skFontMgr_->matchFamilyStyleCharacter(familyName, skFontStyle, bcp47, bcp47Count, character);
+#endif
     if (!skTypeface) {
         return nullptr;
     }
@@ -247,7 +252,11 @@ FontStyleSet* SkiaFontMgr::MatchFamily(const char familyName[]) const
         LOGD("SkiaFontMgr::LoadThemeFont, dynamicFontMgr nullptr");
         return nullptr;
     }
+#ifdef USE_M133_SKIA
+    sk_sp<SkFontStyleSet> skFontStyleSetPtr = skFontMgr_->matchFamily(familyName);
+#else
     SkFontStyleSet* skFontStyleSetPtr = skFontMgr_->matchFamily(familyName);
+#endif
     if (!skFontStyleSetPtr) {
         return nullptr;
     }
@@ -264,8 +273,13 @@ Typeface* SkiaFontMgr::MatchFamilyStyle(const char familyName[], const FontStyle
     }
     SkFontStyle skFontStyle;
     SkiaConvertUtils::DrawingFontStyleCastToSkFontStyle(fontStyle, skFontStyle);
+#ifdef USE_M133_SKIA
+    sk_sp<SkTypeface> skTypeface =
+        skFontMgr_->matchFamilyStyle(familyName, skFontStyle);
+#else
     SkTypeface* skTypeface =
         skFontMgr_->matchFamilyStyle(familyName, skFontStyle);
+#endif
     if (!skTypeface) {
         return nullptr;
     }
@@ -296,7 +310,11 @@ FontStyleSet* SkiaFontMgr::CreateStyleSet(int index) const
     if (index < 0 || skFontMgr_ == nullptr) {
         return nullptr;
     }
+#ifdef USE_M133_SKIA
+    sk_sp<SkFontStyleSet> skFontStyleSetPtr = skFontMgr_->createStyleSet(index);
+#else
     SkFontStyleSet* skFontStyleSetPtr = skFontMgr_->createStyleSet(index);
+#endif
     if (!skFontStyleSetPtr) {
         return nullptr;
     }

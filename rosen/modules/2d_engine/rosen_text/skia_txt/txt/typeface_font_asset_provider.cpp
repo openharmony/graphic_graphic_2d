@@ -130,6 +130,15 @@ void TypefaceFontStyleSet::getStyle(int index, SkFontStyle* style, SkString* nam
     }
 }
 
+#ifdef USE_M133_SKIA
+sk_sp<SkTypeface> TypefaceFontStyleSet::createTypeface(int index)
+{
+    if (index < static_cast<int>(typefaces_.size())) {
+        return typefaces_[index];
+    }
+    return nullptr;
+}
+#else
 SkTypeface* TypefaceFontStyleSet::createTypeface(int index)
 {
     if (index < static_cast<int>(typefaces_.size())) {
@@ -137,8 +146,13 @@ SkTypeface* TypefaceFontStyleSet::createTypeface(int index)
     }
     return nullptr;
 }
+#endif
 
+#ifdef USE_M133_SKIA
+sk_sp<SkTypeface> TypefaceFontStyleSet::matchStyle(const SkFontStyle& pattern)
+#else
 SkTypeface* TypefaceFontStyleSet::matchStyle(const SkFontStyle& pattern)
+#endif
 {
     return matchStyleCSS3(pattern);
 }

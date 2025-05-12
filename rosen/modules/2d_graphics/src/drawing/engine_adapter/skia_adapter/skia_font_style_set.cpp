@@ -35,7 +35,11 @@ Typeface* SkiaFontStyleSet::CreateTypeface(int index)
         LOGD("SkiaFontStyleSet::CreateTypeface, skFontStyleSet_ nullptr");
         return nullptr;
     }
+#ifdef USE_M133_SKIA
+    sk_sp<SkTypeface> skTypeface = skFontStyleSet_->createTypeface(index);
+#else
     SkTypeface* skTypeface = skFontStyleSet_->createTypeface(index);
+#endif
     if (!skTypeface) {
         return nullptr;
     }
@@ -74,7 +78,12 @@ Typeface* SkiaFontStyleSet::MatchStyle(const FontStyle& pattern)
     }
     SkFontStyle skFontStyle;
     SkiaConvertUtils::DrawingFontStyleCastToSkFontStyle(pattern, skFontStyle);
+
+#ifdef USE_M133_SKIA
+    sk_sp<SkTypeface> skTypeface = skFontStyleSet_->matchStyle(skFontStyle);
+#else
     SkTypeface* skTypeface = skFontStyleSet_->matchStyle(skFontStyle);
+#endif
     if (!skTypeface) {
         return nullptr;
     }
