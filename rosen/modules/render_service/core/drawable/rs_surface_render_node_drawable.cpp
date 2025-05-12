@@ -216,7 +216,7 @@ void RSSurfaceRenderNodeDrawable::DrawWatermark(RSPaintFilterCanvas& canvas, con
     }
 }
 
-Drawing::Region RSSurfaceRenderNodeDrawable::CalculateVisibleDirtyRegion(RSRenderThreadParams& uniParam,
+Drawing::Region RSSurfaceRenderNodeDrawable::CalculateVisibleDirtyRegion(
     RSSurfaceRenderParams& surfaceParams, RSSurfaceRenderNodeDrawable& surfaceDrawable, bool isOffscreen) const
 {
     Drawing::Region resultRegion;
@@ -232,7 +232,11 @@ Drawing::Region RSSurfaceRenderNodeDrawable::CalculateVisibleDirtyRegion(RSRende
     }
 
     auto visibleRegion = surfaceParams.GetVisibleRegion();
-    if (uniParam.IsOcclusionEnabled() && visibleRegion.IsEmpty() && !surfaceParams.IsFirstLevelCrossNode()) {
+    auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+    if (!uniParam) {
+        return resultRegion;
+    }
+    if (uniParam->IsOcclusionEnabled() && visibleRegion.IsEmpty() && !surfaceParams.IsFirstLevelCrossNode()) {
         return resultRegion;
     }
     // The region is dirty region of this SurfaceNode.
@@ -500,7 +504,8 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         return;
     }
 
-    Drawing::Region curSurfaceDrawRegion = CalculateVisibleDirtyRegion(*uniParam, *surfaceParams, *this, isUiFirstNode);
+    Drawing::Region curSurfaceDrawRegion =
+        surfaceParams->IsMainWindowType() ? GetSurfaceDrawRegion() : Drawing::Region();
 
     if (!isUiFirstNode) {
         if (uniParam->IsOpDropped() && surfaceParams->IsVisibleDirtyRegionEmpty(curSurfaceDrawRegion)) {
@@ -695,6 +700,36 @@ void RSSurfaceRenderNodeDrawable::CrossDisplaySurfaceDirtyRegionConversion(
         std::shared_ptr<RSObjAbsGeometry> geoPtr = std::make_shared<RSObjAbsGeometry>();
         surfaceDirtyRect = geoPtr->MapRect(surfaceDirtyRect.ConvertTo<float>(), curConversionMatrix->second);
     }
+}
+
+void RSSurfaceRenderNodeDrawable::UpdateSurfaceDirtyRegion(std::shared_ptr<RSPaintFilterCanvas>& canvas)
+{
+    if (!ShouldPaint()) {
+        return;
+    }
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(GetRenderParams().get());
+    if (!surfaceParams) {
+        RS_LOGE("RSSurfaceRenderParams is nullptr");
+        return;
+    }
+    if (surfaceParams->GetSkipDraw()) {
+        return;
+    }
+    Drawing::Region curSurfaceDrawRegion = CalculateVisibleDirtyRegion(
+        *surfaceParams, *this, canvas->GetIsParallelCanvas());
+    SetSurfaceDrawRegion(curSurfaceDrawRegion);
+}
+
+Drawing::Region RSSurfaceRenderNodeDrawable::GetSurfaceDrawRegion() const
+{
+    std::lock_guard<std::mutex> lock(drawRegionMutex_);
+    return curSurfaceDrawRegion_;
+}
+
+void RSSurfaceRenderNodeDrawable::SetSurfaceDrawRegion(const Drawing::Region& region)
+{
+    std::lock_guard<std::mutex> lock(drawRegionMutex_);
+    curSurfaceDrawRegion_.Clone(region);
 }
 
 void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
