@@ -116,7 +116,7 @@ Drawing::RecordingCanvas::DrawFunc RSShadowDrawable::CreateDrawFunc() const
             return;
         }
 #ifdef RS_ENABLE_GPU
-        RSTagTracker tagTracker(canvas ? canvas->GetGPUContext().get() : nullptr,
+        RSTagTracker tagTracker(canvas ? canvas->GetGPUContext() : nullptr,
             RSTagTracker::SOURCETYPE::SOURCE_RSSHADOWDRAWABLE);
 #endif
         Drawing::Path path = ptr->path_;
@@ -476,7 +476,7 @@ Drawing::RecordingCanvas::DrawFunc RSBackgroundImageDrawable::CreateDrawFunc() c
             return;
         }
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
-        RSTagTracker tagTracker(canvas->GetGPUContext().get(),
+        RSTagTracker tagTracker(canvas->GetGPUContext(),
             RSTagTracker::SOURCETYPE::SOURCE_RSBACKGROUNDIMAGEDRAWABLE);
         if (bgImage->GetPixelMap() && !bgImage->GetPixelMap()->IsAstc() &&
             bgImage->GetPixelMap()->GetAllocatorType() == Media::AllocatorType::DMA_ALLOC) {
@@ -624,8 +624,8 @@ Drawing::RecordingCanvas::DrawFunc RSBackgroundEffectDrawable::CreateDrawFunc() 
             return;
         }
 #ifdef RS_ENABLE_GPU
-        RSTagTracker tagTracker(canvas->GetGPUContext().get(),
-            RSTagTracker::SOURCETYPE::SOURCE_RSBACKGROUNDIMAGEDRAWABLE);
+        RSTagTracker tagTracker(canvas->GetGPUContext(),
+            RSTagTracker::SOURCETYPE::SOURCE_RSBACKGROUNDEFFECTDRAWABLE);
 #endif
         RectI deviceRect(0, 0, surface->Width(), surface->Height());
         RectI bounds(std::ceil(absRect.GetLeft()), std::ceil(absRect.GetTop()), std::ceil(absRect.GetWidth()),
@@ -691,7 +691,7 @@ Drawing::RecordingCanvas::DrawFunc RSUseEffectDrawable::CreateDrawFunc() const
             return;
         }
 #ifdef RS_ENABLE_GPU
-        RSTagTracker tagTracker(paintFilterCanvas->GetGPUContext().get(),
+        RSTagTracker tagTracker(paintFilterCanvas->GetGPUContext(),
             RSTagTracker::SOURCETYPE::SOURCE_RSUSEEFFECTDRAWABLE);
 #endif
         if (ptr->useEffectType_ == UseEffectType::BEHIND_WINDOW &&
@@ -771,7 +771,7 @@ Drawing::RecordingCanvas::DrawFunc RSDynamicLightUpDrawable::CreateDrawFunc() co
         }
         auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
 #ifdef RS_ENABLE_GPU
-        RSTagTracker tagTracker(paintFilterCanvas->GetGPUContext().get(),
+        RSTagTracker tagTracker(paintFilterCanvas->GetGPUContext(),
             RSTagTracker::SOURCETYPE::SOURCE_RSDYNAMICLIGHTUPDRAWABLE);
 #endif
         auto alpha = paintFilterCanvas->GetAlpha();

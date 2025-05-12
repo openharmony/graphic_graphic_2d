@@ -25,9 +25,10 @@
 #include <securec.h>
 #include <unistd.h>
 
+#include "pixel_map.h"
+
 #include "common/rs_common_hook.h"
 #include "common/rs_common_tools.h"
-#include "pixel_map.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -110,6 +111,26 @@ bool DoSetHardwareEnabledByBackgroundAlphaFlag(const uint8_t* data, size_t size)
     RsCommonHook::Instance().SetComponentPowerFpsFunc(callback);
     FrameRateRange range;
     RsCommonHook::Instance().GetComponentPowerFps(range);
+    return true;
+}
+
+bool DoSetSurfaceCloseP3Node(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    DATA = data;
+    g_size = size;
+    g_pos = 0;
+
+    bool p3NodeCountFlag = GetData<bool>();
+    bool isCoveredSurfaceCloseP3 = GetData<bool>();
+    RsCommonHook::Instance().SetP3NodeCountFlag(p3NodeCountFlag);
+    RsCommonHook::Instance().GetP3NodeCountFlag();
+    RsCommonHook::Instance().SetIsCoveredSurfaceCloseP3(isCoveredSurfaceCloseP3);
+    RsCommonHook::Instance().GetIsCoveredSurfaceCloseP3();
     return true;
 }
 

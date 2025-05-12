@@ -37,6 +37,7 @@
 #include "params/rs_display_render_params.h"
 #include "params/rs_surface_render_params.h"
 #include "feature/anco_manager/rs_anco_manager.h"
+#include "feature/dirty/rs_uni_dirty_compute_util.h"
 #include "feature/drm/rs_drm_util.h"
 #include "feature/round_corner_display/rs_rcd_surface_render_node.h"
 #include "feature/round_corner_display/rs_rcd_surface_render_node_drawable.h"
@@ -353,9 +354,8 @@ bool RSDisplayRenderNodeDrawable::CheckDisplayNodeSkip(
         RSMainThread::Instance()->GetDirtyFlag()) {
         return false;
     }
-    if (params.GetHDRPresent() && (offscreenSurface_ == nullptr ||
-        offscreenSurface_->GetImageInfo().GetColorType() != Drawing::ColorType::COLORTYPE_RGBA_F16)) {
-        RS_LOGD("RSDisplayRenderNodeDrawable::CheckDisplayNodeSkip prepare buffer type not fp16");
+    if (params.IsHDRStatusChanged()) {
+        RS_LOGD("RSDisplayRenderNodeDrawable::CheckDisplayNodeSkip IsHDRStatusChanged");
         return false;
     }
 
@@ -536,7 +536,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     } else {
         gpuContext = RSSubThreadManager::Instance()->GetGrContextFromSubThread(realTid);
     }
-    RSTagTracker tagTracker(gpuContext.get(), RSTagTracker::TAGTYPE::TAG_UNTAGGED);
+    RSTagTracker tagTracker(gpuContext, RSTagTracker::TAGTYPE::TAG_UNTAGGED);
     SetDrawSkipType(DrawSkipType::NONE);
     // canvas will generate in every request frame
     (void)canvas;
@@ -773,7 +773,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     if (uniParam->IsPartialRenderEnabled()) {
         damageRegionrects = RSUniRenderUtil::MergeDirtyHistory(
             *this, renderFrame->GetBufferAge(), screenInfo, rsDirtyRectsDfx, *params);
-        curFrameVisibleRegionRects = RSUniRenderUtil::GetCurrentFrameVisibleDirty(*this, screenInfo, *params);
+        curFrameVisibleRegionRects = RSUniDirtyComputeUtil::GetCurrentFrameVisibleDirty(*this, screenInfo, *params);
         uniParam->Reset();
         clipRegion = GetFlippedRegion(damageRegionrects, screenInfo);
         RS_TRACE_NAME_FMT("SetDamageRegion damageRegionrects num: %zu, info: %s",
@@ -894,7 +894,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
                     "clear extra area to black", dirtyManager->GetDirtyRegion().ToString().c_str(),
                     activeRect.ToString().c_str());
                 curCanvas_->Save();
-                auto activeRegion = RSUniRenderUtil::ScreenIntersectDirtyRects(
+                auto activeRegion = RSUniDirtyComputeUtil::ScreenIntersectDirtyRects(
                     Occlusion::Region(activeRect), screenInfo);
                 curCanvas_->ClipRegion(GetFlippedRegion(activeRegion, screenInfo), Drawing::ClipOp::DIFFERENCE);
                 curCanvas_->Clear(Drawing::Color::COLOR_BLACK);
@@ -1916,7 +1916,7 @@ void RSDisplayRenderNodeDrawable::SwitchColorFilter(RSPaintFilterCanvas& canvas,
     RSBaseRenderUtil::SetColorFilterModeToPaint(colorFilterMode, brush, hdrBrightnessRatio);
 #if defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK)
     RSTagTracker tagTracker(
-        renderEngine->GetRenderContext()->GetDrGPUContext(),
+        renderEngine->GetRenderContext()->GetSharedDrGPUContext(),
         RSTagTracker::TAG_SAVELAYER_COLOR_FILTER);
 #endif
     Drawing::SaveLayerOps slr(nullptr, &brush, Drawing::SaveLayerOps::INIT_WITH_PREVIOUS);
@@ -2335,6 +2335,7 @@ void RSDisplayRenderNodeDrawable::FinishOffscreenRender(
         auto shader = MakeBrightnessAdjustmentShader(image, sampling, hdrBrightnessRatio);
         if (shader) {
             paint.SetShaderEffect(shader);
+            RS_LOGI("paint SetShaderEffect Func:%s, Line:%d", __FUNCTION__, __LINE__);
             isUseCustomShader = true;
         } else {
             FinishHdrDraw(paint, hdrBrightnessRatio);

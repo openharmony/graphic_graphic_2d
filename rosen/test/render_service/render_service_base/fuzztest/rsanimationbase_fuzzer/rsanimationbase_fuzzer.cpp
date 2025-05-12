@@ -15,7 +15,6 @@
 
 #include "rsanimationbase_fuzzer.h"
 
-
 #include <securec.h>
 
 #include "animation/rs_animation_fraction.h"

@@ -977,6 +977,7 @@ bool RSUniRenderVisitor::CheckSkipAndPrepareForCrossNode(RSSurfaceRenderNode& no
     if (node.IsCloneCrossNode()) {
         isSwitchToSourceCrossNodePrepare_ = true;
         sourceNode->SetCurCloneNodeParent(node.GetParent().lock());
+        sourceNode->SetFirstLevelCrossNode(true);
         sourceNode->QuickPrepare(shared_from_this());
         sourceNode->SetCurCloneNodeParent(nullptr);
         isSwitchToSourceCrossNodePrepare_ = false;
@@ -2859,7 +2860,6 @@ CM_INLINE void RSUniRenderVisitor::PostPrepare(RSRenderNode& node, bool subTreeS
     }
 
     if (subTreeSkipped) {
-        hwcVisitor_->QuickPrepareChildrenOnlyOrder(node);
         auto isOccluded = curSurfaceNode_ ?
             curSurfaceNode_->IsMainWindowType() && curSurfaceNode_->GetVisibleRegion().IsEmpty() : false;
         if (!isOccluded || node.IsFirstLevelCrossNode()) {

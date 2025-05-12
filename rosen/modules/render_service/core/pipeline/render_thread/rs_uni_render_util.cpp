@@ -30,6 +30,7 @@
 #include "drawable/dfx/rs_dirty_rects_dfx.h"
 #include "drawable/rs_display_render_node_drawable.h"
 #include "drawable/rs_surface_render_node_drawable.h"
+#include "feature/dirty/rs_uni_dirty_compute_util.h"
 #include "feature/uifirst/rs_sub_thread_manager.h"
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
 #include "feature/overlay_display/rs_overlay_display_manager.h"
@@ -153,7 +154,7 @@ std::vector<RectI> RSUniRenderUtil::MergeDirtyHistory(DrawableV2::RSDisplayRende
     }
     RSUniRenderUtil::SetDrawRegionForQuickReject(curAllSurfaceDrawables, drawnRegion);
     rsDirtyRectsDfx.SetDirtyRegion(drawnRegion);
-    auto damageRegionRects = RSUniRenderUtil::ScreenIntersectDirtyRects(damageRegion, screenInfo);
+    auto damageRegionRects = RSUniDirtyComputeUtil::ScreenIntersectDirtyRects(damageRegion, screenInfo);
     if (damageRegionRects.empty()) {
         // When damageRegionRects is empty, SetDamageRegion function will not take effect and buffer will
         // full screen refresh. Therefore, we need to insert an empty rect into the damageRegionRects array
@@ -178,7 +179,7 @@ std::vector<RectI> RSUniRenderUtil::MergeDirtyHistoryInVirtual(
         curAllSurfaceDrawables, *params, isSecScreen);
 
     RectI rect = dirtyManager->GetRectFlipWithinSurface(dirtyManager->GetDirtyRegionInVirtual());
-    auto rects = RSUniRenderUtil::ScreenIntersectDirtyRects(dirtyRegion, screenInfo);
+    auto rects = RSUniDirtyComputeUtil::ScreenIntersectDirtyRects(dirtyRegion, screenInfo);
     if (!rect.IsEmpty()) {
         rects.emplace_back(rect);
     }
@@ -440,154 +441,6 @@ Occlusion::Region RSUniRenderUtil::MergeVisibleDirtyRegionInVirtual(
         allSurfaceVisibleDirtyRegion = allSurfaceVisibleDirtyRegion.Or(surfaceVisibleDirtyRegion);
     }
     return allSurfaceVisibleDirtyRegion;
-}
-
-std::vector<RectI> RSUniRenderUtil::GetCurrentFrameVisibleDirty(
-    DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable, ScreenInfo& screenInfo, RSDisplayRenderParams& params)
-{
-    Occlusion::Region damageRegions;
-    auto& curAllSurfaceDrawables = params.GetAllMainAndLeashSurfaceDrawables();
-    // update all child surfacenode history
-    for (auto it = curAllSurfaceDrawables.rbegin(); it != curAllSurfaceDrawables.rend(); ++it) {
-        auto surfaceNodeDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(*it);
-        if (surfaceNodeDrawable == nullptr) {
-            RS_LOGI("GetCurrentFrameVisibleDirty surfaceNodeDrawable is nullptr");
-            continue;
-        }
-        auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceNodeDrawable->GetRenderParams().get());
-        auto surfaceDirtyManager = surfaceNodeDrawable->GetSyncDirtyManager();
-        if (!surfaceParams || !surfaceDirtyManager) {
-            RS_LOGI("RSUniRenderUtil::GetCurrentFrameVisibleDirty node(%{public}" PRIu64") params or "
-                "dirty manager is nullptr", surfaceNodeDrawable->GetId());
-            continue;
-        }
-        if (!surfaceParams->IsAppWindow() || surfaceParams->GetDstRect().IsEmpty()) {
-            continue;
-        }
-        // for cross-display surface, only consider the dirty region on the first display (use global dirty for others).
-        if (surfaceParams->IsFirstLevelCrossNode() &&
-            !RSUniRenderThread::Instance().GetRSRenderThreadParams()->IsFirstVisitCrossNodeDisplay()) {
-            continue;
-        }
-        auto visibleRegion = surfaceParams->GetVisibleRegion();
-        auto surfaceCurrentFrameDirtyRegion = surfaceDirtyManager->GetCurrentFrameDirtyRegion();
-        Occlusion::Region currentFrameDirtyRegion { Occlusion::Rect {
-            surfaceCurrentFrameDirtyRegion.left_, surfaceCurrentFrameDirtyRegion.top_,
-            surfaceCurrentFrameDirtyRegion.GetRight(), surfaceCurrentFrameDirtyRegion.GetBottom() } };
-        Occlusion::Region damageRegion = currentFrameDirtyRegion.And(visibleRegion);
-        damageRegions.OrSelf(damageRegion);
-    }
-    auto rects = RSUniRenderUtil::ScreenIntersectDirtyRects(damageRegions, screenInfo);
-    RectI rect = displayDrawable.GetSyncDirtyManager()->GetDirtyRegionFlipWithinSurface();
-    if (!rect.IsEmpty()) {
-        rects.emplace_back(rect);
-    }
-    return rects;
-}
-
-void RSUniRenderUtil::SetAllSurfaceDrawableGlobalDirtyRegion(
-    std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& allSurfaceDrawables,
-    const Occlusion::Region& globalDirtyRegion)
-{
-    // Set Surface Global Dirty Region
-    for (auto it = allSurfaceDrawables.rbegin(); it != allSurfaceDrawables.rend(); ++it) {
-        auto surfaceNodeDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(*it);
-        if (surfaceNodeDrawable == nullptr) {
-            continue;
-        }
-        auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceNodeDrawable->GetRenderParams().get());
-        if (!surfaceParams) {
-            RS_LOGW("RSUniRenderUtil::MergeVisibleDirtyRegion surface params is nullptr");
-            continue;
-        }
-        if (!surfaceParams->IsMainWindowType()) {
-            continue;
-        }
-        // set display dirty region to surfaceNodeDrawable
-        surfaceNodeDrawable->SetGlobalDirtyRegion(globalDirtyRegion);
-        surfaceNodeDrawable->SetDirtyRegionAlignedEnable(false);
-    }
-    Occlusion::Region curVisibleDirtyRegion;
-    for (auto& it : allSurfaceDrawables) {
-        auto surfaceNodeDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(it);
-        if (surfaceNodeDrawable == nullptr) {
-            continue;
-        }
-        auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceNodeDrawable->GetRenderParams().get());
-        if (!surfaceParams) {
-            RS_LOGE("RSUniRenderUtil::MergeVisibleDirtyRegion surface params is nullptr");
-            continue;
-        }
-        if (!surfaceParams->IsMainWindowType()) {
-            continue;
-        }
-        // set display dirty region to surfaceNodeDrawable
-        surfaceNodeDrawable->SetDirtyRegionBelowCurrentLayer(curVisibleDirtyRegion);
-        auto visibleDirtyRegion = surfaceNodeDrawable->GetVisibleDirtyRegion();
-        curVisibleDirtyRegion = curVisibleDirtyRegion.Or(visibleDirtyRegion);
-    }
-}
-
-std::vector<RectI> RSUniRenderUtil::ScreenIntersectDirtyRects(const Occlusion::Region &region, ScreenInfo& screenInfo)
-{
-    const std::vector<Occlusion::Rect>& rects = region.GetRegionRects();
-    std::vector<RectI> retRects;
-    for (const Occlusion::Rect& rect : rects) {
-        // origin transformation
-#ifdef RS_ENABLE_VK
-        if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-            RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-            retRects.emplace_back(RectI(rect.left_, rect.top_,
-                rect.right_ - rect.left_, rect.bottom_ - rect.top_));
-        } else {
-            retRects.emplace_back(RectI(rect.left_, screenInfo.GetRotatedHeight() - rect.bottom_,
-                rect.right_ - rect.left_, rect.bottom_ - rect.top_));
-        }
-#else
-        retRects.emplace_back(RectI(rect.left_, screenInfo.GetRotatedHeight() - rect.bottom_,
-            rect.right_ - rect.left_, rect.bottom_ - rect.top_));
-#endif
-    }
-    RS_LOGD("ScreenIntersectDirtyRects size %{public}d %{public}s", region.GetSize(), region.GetRegionInfo().c_str());
-    return retRects;
-}
-
-std::vector<RectI> RSUniRenderUtil::GetFilpDirtyRects(const std::vector<RectI>& srcRects, const ScreenInfo& screenInfo)
-{
-#ifdef RS_ENABLE_VK
-    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-        return srcRects;
-    }
-#endif
-
-    return FilpRects(srcRects, screenInfo);
-}
-
-std::vector<RectI> RSUniRenderUtil::FilpRects(const std::vector<RectI>& srcRects, const ScreenInfo& screenInfo)
-{
-    std::vector<RectI> retRects;
-    for (const RectI& rect : srcRects) {
-        retRects.emplace_back(RectI(rect.left_, screenInfo.GetRotatedHeight() - rect.top_ - rect.height_,
-            rect.width_, rect.height_));
-    }
-    return retRects;
-}
-
-GraphicIRect RSUniRenderUtil::IntersectRect(const GraphicIRect& first, const GraphicIRect& second)
-{
-    int left = std::max(first.x, second.x);
-    int top = std::max(first.y, second.y);
-    int right = std::min(first.x + first.w, second.x + second.w);
-    int bottom = std::min(first.y + first.h, second.y + second.h);
-    int width = right - left;
-    int height = bottom - top;
-
-    if (width <= 0 || height <= 0) {
-        return GraphicIRect { 0, 0, 0, 0 };
-    } else {
-        return GraphicIRect { left, top, width, height };
-    }
 }
 
 void RSUniRenderUtil::SrcRectScaleFit(BufferDrawParam& params, const sptr<SurfaceBuffer>& buffer,

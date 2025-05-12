@@ -24,6 +24,10 @@
 #include "utils/round_rect.h"
 #include "utils/scalar.h"
 
+#ifdef RS_ENABLE_VK
+#include "platform/ohos/backend/rs_vulkan_context.h"
+#endif
+
 using namespace testing;
 using namespace testing::ext;
 
@@ -38,7 +42,12 @@ public:
     void TearDown() override;
 };
 
-void NativeDrawingRoundRectTest::SetUpTestCase() {}
+void NativeDrawingRoundRectTest::SetUpTestCase()
+{
+#ifdef RS_ENABLE_VK
+    RsVulkanContext::SetRecyclable(false);
+#endif
+}
 void NativeDrawingRoundRectTest::TearDownTestCase() {}
 void NativeDrawingRoundRectTest::SetUp() {}
 void NativeDrawingRoundRectTest::TearDown() {}

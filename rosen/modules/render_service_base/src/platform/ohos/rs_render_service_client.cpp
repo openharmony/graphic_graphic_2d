@@ -23,7 +23,9 @@
 #ifdef RS_ENABLE_VK
 #include "backend/rs_surface_ohos_vulkan.h"
 #endif
-
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+#include "display_engine/rs_vpe_manager.h"
+#endif
 #include "command/rs_command.h"
 #include "command/rs_node_showing_command.h"
 #include "common/rs_xcollie.h"
@@ -157,6 +159,13 @@ std::shared_ptr<RSSurface> RSRenderServiceClient::CreateNodeAndSurface(const RSS
         ROSEN_LOGE("RSRenderServiceClient::CreateNodeAndSurface surface is nullptr.");
         return nullptr;
     }
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+    surface = RSVpeManager::GetInstance().CheckAndGetSurface(surface, config);
+    if (surface == nullptr) {
+        ROSEN_LOGE("RSVpeManager::CheckAndGetSurface surface is nullptr.");
+        return nullptr;
+    }
+#endif
     return CreateRSSurface(surface);
 }
 

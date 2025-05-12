@@ -24,7 +24,6 @@ ohos_fuzztest("EGLWrapperEntryFuzzTest") {
 
   include_dirs = [
     "//foundation/graphic/graphic_2d/frameworks/opengl_wrapper/src/EGL",
-    "$drivers_display_interface/include",
   ]
   cflags = [
     "-g",

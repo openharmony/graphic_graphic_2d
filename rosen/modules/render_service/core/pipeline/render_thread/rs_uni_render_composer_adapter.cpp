@@ -22,6 +22,7 @@
 #include "drawable/rs_display_render_node_drawable.h"
 #include "drawable/rs_render_node_drawable_adapter.h"
 #include "drawable/rs_surface_render_node_drawable.h"
+#include "feature/dirty/rs_uni_dirty_compute_util.h"
 #include "params/rs_render_params.h"
 #include "pipeline/render_thread/rs_divided_render_util.h"
 #include "pipeline/main_thread/rs_uni_render_listener.h"
@@ -142,7 +143,7 @@ ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(DrawableV2::RSDisplayRe
     std::vector<GraphicIRect> dirtyRects;
     // layer damage always relative to the top-left, no matter gl or vk
     std::vector<RectI> flipDirtyRects =
-        RSUniRenderUtil::GetFilpDirtyRects(dirtyRegion, screenInfo_);
+        RSUniDirtyComputeUtil::GetFilpDirtyRects(dirtyRegion, screenInfo_);
     for (const auto& rect : flipDirtyRects) {
         dirtyRects.emplace_back(GraphicIRect {rect.left_, rect.top_, rect.width_, rect.height_});
     }
@@ -317,7 +318,7 @@ void RSUniRenderComposerAdapter::SetComposeInfoToLayer(
     if (RSSystemProperties::GetHwcDirtyRegionEnabled()) {
         // Make sure the dirty region does not exceed layer src range.
         for (const auto& rect : info.dirtyRects) {
-            dirtyRegions.emplace_back(RSUniRenderUtil::IntersectRect(info.srcRect, rect));
+            dirtyRegions.emplace_back(RSUniDirtyComputeUtil::IntersectRect(info.srcRect, rect));
         }
     } else {
         dirtyRegions.emplace_back(info.srcRect);

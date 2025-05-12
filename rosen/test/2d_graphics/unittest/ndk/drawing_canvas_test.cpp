@@ -45,6 +45,10 @@
 #include "recording/recording_canvas.h"
 #include "image/pixelmap_native.h"
 
+#ifdef RS_ENABLE_VK
+#include "platform/ohos/backend/rs_vulkan_context.h"
+#endif
+
 using namespace testing;
 using namespace testing::ext;
 
@@ -67,7 +71,12 @@ constexpr uint32_t COLOR_PARAMETER = 3;
 constexpr uint32_t INTNUM_TEN = 10;
 constexpr int32_t NEGATIVE_ONE = -1;
 
-void NativeDrawingCanvasTest::SetUpTestCase() {}
+void NativeDrawingCanvasTest::SetUpTestCase()
+{
+#ifdef RS_ENABLE_VK
+    RsVulkanContext::SetRecyclable(false);
+#endif
+}
 void NativeDrawingCanvasTest::TearDownTestCase() {}
 void NativeDrawingCanvasTest::SetUp()
 {

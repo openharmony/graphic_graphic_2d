@@ -240,7 +240,7 @@ private:
     bool CollectFrameRateChange(FrameRateRange finalRange, std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker,
         const FrameRateLinkerMap& appFrameRateLinkers);
     bool CollectGameRateDiscountChange(uint64_t linkerId, FrameRateRange& expectedRange);
-    void HandleFrameRateChangeForLTPO(uint64_t timestamp, bool followRs);
+    void HandleFrameRateChangeForLTPO(uint64_t timestamp, bool followRs, bool frameRateChange);
     void DVSyncTaskProcessor(int64_t delayTime, uint64_t targetTime);
     void UpdateSoftVSync(bool followRs);
     void SetChangeGeneratorRateValid(bool valid);

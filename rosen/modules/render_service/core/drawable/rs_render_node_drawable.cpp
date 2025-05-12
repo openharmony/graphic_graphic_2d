@@ -20,7 +20,6 @@
 #include "display_engine/rs_luminance_control.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
 #include "gfx/performance/rs_perfmonitor_reporter.h"
-#include "memory/rs_tag_tracker.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
 #include "pipeline/rs_paint_filter_canvas.h"
@@ -576,7 +575,6 @@ void RSRenderNodeDrawable::InitCachedSurface(Drawing::GPUContext* gpuContext, co
     if (gpuContext == nullptr) {
         return;
     }
-    RSTagTracker tagTracker(gpuContext, RSTagTracker::SOURCETYPE::SOURCE_INITCACHEDSURFACE);
     ClearCachedSurface();
     cacheThreadId_ = threadId;
     int32_t width = 0;

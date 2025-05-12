@@ -116,7 +116,8 @@
           "lz4",
           "faultloggerd",
           "freetype",
-          "rust_cxx"
+          "rust_cxx",
+          "media_foundation"
         ],
         "third_party": [
           "skia"
@@ -424,6 +425,14 @@
             "header": {
               "header_files": [],
               "header_base": "//foundation/graphic/graphic_2d/rosen/modules/2d_engine/ddgr"
+            }
+          },
+          {
+            "type": "so",
+            "name": "//foundation/graphic/graphic_2d/frameworks/text:rosen_text",
+            "header": {
+              "header_files": [],
+              "header_base": "//foundation/graphic/graphic_2d/frameworks/text/interface/export"
             }
           }
         ],

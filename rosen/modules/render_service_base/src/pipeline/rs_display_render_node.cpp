@@ -503,6 +503,7 @@ void RSDisplayRenderNode::SetHDRPresent(bool hdrPresent)
         RS_LOGE("%{public}s displayParams is nullptr", __func__);
         return;
     }
+    displayParams->SetHDRStatusChanged(displayParams->GetHDRPresent() != hdrPresent);
     displayParams->SetHDRPresent(hdrPresent);
     if (stagingRenderParams_->NeedSync()) {
         AddToPendingSyncList();

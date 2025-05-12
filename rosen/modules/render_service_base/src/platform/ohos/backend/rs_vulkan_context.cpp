@@ -366,6 +366,7 @@ bool RsVulkanInterface::SetupDeviceProcAddresses(VkDevice device)
     ACQUIRE_PROC(QueueSignalReleaseImageOHOS, device_);
     ACQUIRE_PROC(ImportSemaphoreFdKHR, device_);
     ACQUIRE_PROC(SetFreqAdjustEnable, device_);
+    ACQUIRE_PROC(GetSemaphoreFdKHR, device_);
 
     return true;
 }

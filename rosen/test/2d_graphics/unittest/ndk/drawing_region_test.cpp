@@ -20,6 +20,10 @@
 #include "drawing_region.h"
 #include "drawing_path.h"
 
+#ifdef RS_ENABLE_VK
+#include "platform/ohos/backend/rs_vulkan_context.h"
+#endif
+
 using namespace testing;
 using namespace testing::ext;
 
@@ -34,7 +38,12 @@ public:
     void TearDown() override;
 };
 
-void NativeDrawingRegionTest::SetUpTestCase() {}
+void NativeDrawingRegionTest::SetUpTestCase()
+{
+#ifdef RS_ENABLE_VK
+    RsVulkanContext::SetRecyclable(false);
+#endif
+}
 void NativeDrawingRegionTest::TearDownTestCase() {}
 void NativeDrawingRegionTest::SetUp() {}
 void NativeDrawingRegionTest::TearDown() {}

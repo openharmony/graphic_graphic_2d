@@ -17,6 +17,7 @@ import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 ohos_unittest("rosen_text_skia_txt_test") {
   module_out_path = text_test_out_path
+  configs = [ "$rosen_text_root/adapter/skia:skia_libtxt_config" ]
   sources = [
     "asset_font_manager_test.cpp",
     "drawing_painter_impl_test.cpp",
@@ -40,8 +41,6 @@ ohos_unittest("rosen_text_skia_txt_test") {
     "$rosen_root/modules/render_service_base/include",
     "$rosen_root/modules/2d_graphics/include/recording",
     "$rosen_root/modules/2d_graphics/include/text",
-    "$skia_root_new",
-    "$skia_root_new/modules/skparagraph",
   ]
 
   cflags_cc = [
@@ -52,19 +51,18 @@ ohos_unittest("rosen_text_skia_txt_test") {
 
   deps = [
     "$rosen_root/modules/2d_graphics:2d_graphics",
-    "$rosen_text_root/adapter/skia:skia_libtxt_$platform",
+    "$rosen_text_root:rosen_text",
   ]
 
   external_deps = [ "hilog:libhilog" ]
 
-  if (platform == "ohos" || platform == "ohos_ng") {
+  if (platform_is_ohos) {
     external_deps += [
       "bundle_framework:appexecfwk_base",
       "bundle_framework:appexecfwk_core",
       "c_utils:utils",
-      "googletest:gtest_main",
-      "ipc:ipc_core",
       "samgr:samgr_proxy",
+      "skia:skia_paragraph_ohos",
     ]
     defines = [ "OHOS_TEXT_ENABLE" ]
   }

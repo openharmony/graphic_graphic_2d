@@ -64,6 +64,7 @@ ohos_unittest("2d_graphics_ndk_test") {
     "$graphic_2d_root/rosen/modules/2d_graphics/src",
     "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing/engine_adapter",
     "$graphic_2d_root/rosen/modules/render_service_client",
+    "$graphic_2d_root/rosen/modules/render_service_base/src",
     "$rosen_text_root/service/texgine/src",
   ]
 
@@ -92,6 +93,7 @@ ohos_unittest("2d_graphics_ndk_test") {
     "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
     "$graphic_2d_root/rosen/modules/2d_graphics/drawing_ndk:native_drawing_ndk",
     "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
+    "$rosen_text_root:rosen_text",
   ]
 
   subsystem_name = "graphic"

@@ -32,6 +32,10 @@
 #include "utils/matrix.h"
 #include "utils/size.h"
 
+#ifdef RS_ENABLE_VK
+#include "platform/ohos/backend/rs_vulkan_context.h"
+#endif
+
 using namespace testing;
 using namespace testing::ext;
 
@@ -46,7 +50,12 @@ public:
     void TearDown() override;
 };
 
-void ImageTest::SetUpTestCase() {}
+void ImageTest::SetUpTestCase()
+{
+#ifdef RS_ENABLE_VK
+    RsVulkanContext::SetRecyclable(false);
+#endif
+}
 void ImageTest::TearDownTestCase() {}
 void ImageTest::SetUp() {}
 void ImageTest::TearDown() {}

@@ -188,6 +188,9 @@ void RSCanvasDrawingRenderNodeDrawable::DrawRenderContent(Drawing::Canvas& canva
     if (params == nullptr) {
         return;
     }
+#ifdef RS_ENABLE_GPU
+    RSTagTracker tagTracker(canvas.GetGPUContext(), RSTagTracker::SOURCETYPE::SOURCE_DRAWRENDERCONTENT);
+#endif
     auto& frameRect = params->GetFrameRect();
     if (RSPropertiesPainter::GetGravityMatrix(params->GetFrameGravity(),
         { frameRect.GetLeft(), frameRect.GetTop(), frameRect.GetWidth(), frameRect.GetHeight() },

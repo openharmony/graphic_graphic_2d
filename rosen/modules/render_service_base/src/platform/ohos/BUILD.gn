@@ -163,6 +163,14 @@ ohos_source_set("rosen_ohos_sources") {
     "window_manager:libwsutils",
   ]
 
+  if (defined(use_video_processing_engine) && use_video_processing_engine) {
+    defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
+    external_deps += [
+      "video_processing_engine:videoprocessingengine",
+      "media_foundation:media_foundation",
+    ]
+  }
+
   if (!build_ohos_sdk && !is_arkui_x) {
     if (defined(defines)) {
       defines += [ "NOT_BUILD_FOR_OHOS_SDK" ]

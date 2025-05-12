@@ -23,6 +23,17 @@
 
 namespace OHOS {
 namespace Rosen {
+const uint8_t DO_MARSHALLING = 0;
+const uint8_t DO_UNMARSHALLING = 1;
+const uint8_t DO_SET_MAXLUM = 2;
+const uint8_t DO_SET_MINLUM = 3;
+const uint8_t DO_SET_MAXAVERAGELUM = 4;
+const uint8_t DO_SET_HDRFORMATS = 5;
+const uint8_t DO_WRITEVECTOR = 6;
+const uint8_t DO_READVECTOR = 7;
+const uint8_t TARGET_SIZE = 8;
+const uint8_t SCREEN_HDR_FORMAT_SIZE = 8;
+const float PROPORTION = 0.1f;
 namespace {
 const uint8_t* g_data = nullptr;
 size_t g_size = 0;
@@ -49,215 +60,114 @@ T GetData()
     return object;
 }
 
-bool DoMarshalling(const uint8_t* data, size_t size)
+bool Init(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
         return false;
     }
-
-    // initialize
     g_data = data;
     g_size = size;
     g_pos = 0;
+    return true;
+}
 
-    // test
+void InitRSScreenHDRCapabilityAndParcel(RSScreenHDRCapability& capability, Parcel& parcel)
+{
+    uint32_t unit32MaxLum = GetData<uint32_t>();
+    float maxLum = static_cast<float>(unit32MaxLum) * OHOS::Rosen::PROPORTION;
+    capability.SetMaxLum(maxLum);
+
+    uint32_t unit32MinLum = GetData<uint32_t>();
+    float minLum = static_cast<float>(unit32MinLum) * OHOS::Rosen::PROPORTION;
+    capability.SetMinLum(minLum);
+
+    uint32_t unit32MaxAverageLum = GetData<uint32_t>();
+    float maxAverageLum = static_cast<float>(unit32MaxAverageLum) * OHOS::Rosen::PROPORTION;
+    capability.SetMaxAverageLum(maxAverageLum);
+
+    ScreenHDRFormat screenHDRFormat = static_cast<ScreenHDRFormat>(GetData<uint32_t>() % SCREEN_HDR_FORMAT_SIZE);
+    std::vector<ScreenHDRFormat> hdrFormats = { screenHDRFormat };
+    capability.SetHdrFormats(hdrFormats);
+}
+
+bool DoMarshalling()
+{
     RSScreenHDRCapability capability;
     Parcel parcel;
+    InitRSScreenHDRCapabilityAndParcel(capability, parcel);
     capability.Marshalling(parcel);
     return true;
 }
 
-bool DoUnmarshalling(const uint8_t* data, size_t size)
+bool DoUnmarshalling()
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    // test
     RSScreenHDRCapability capability;
     Parcel parcel;
+    InitRSScreenHDRCapabilityAndParcel(capability, parcel);
+    capability.Marshalling(parcel);
     capability.Unmarshalling(parcel);
     return true;
 }
 
-bool DoGetMaxLum(const uint8_t* data, size_t size)
+bool DoSetMaxLum()
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    // test
     RSScreenHDRCapability capability;
+    uint32_t unit32MaxLum = GetData<uint32_t>();
+    float maxLum = static_cast<float>(unit32MaxLum) * OHOS::Rosen::PROPORTION;
+    capability.SetMaxLum(maxLum);
     capability.GetMaxLum();
     return true;
 }
 
-bool DoGetMinLum(const uint8_t* data, size_t size)
+bool DoSetMinLum()
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    // test
     RSScreenHDRCapability capability;
+    uint32_t unit32MinLum = GetData<uint32_t>();
+    float minLum = static_cast<float>(unit32MinLum) * OHOS::Rosen::PROPORTION;
+    capability.SetMinLum(minLum);
     capability.GetMinLum();
     return true;
 }
 
-bool DoGetMaxAverageLum(const uint8_t* data, size_t size)
+bool DoSetMaxAverageLum()
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    // test
     RSScreenHDRCapability capability;
+    uint32_t unit32MaxAverageLum = GetData<uint32_t>();
+    float maxAverageLum = static_cast<float>(unit32MaxAverageLum) * OHOS::Rosen::PROPORTION;
+    capability.SetMaxAverageLum(maxAverageLum);
     capability.GetMaxAverageLum();
     return true;
 }
 
-bool DoGetHdrFormats(const uint8_t* data, size_t size)
+bool DoSetHdrFormats()
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    // test
     RSScreenHDRCapability capability;
+    ScreenHDRFormat screenHDRFormat = static_cast<ScreenHDRFormat>(GetData<uint32_t>() % SCREEN_HDR_FORMAT_SIZE);
+    std::vector<ScreenHDRFormat> hdrFormats = { screenHDRFormat };
+    capability.SetHdrFormats(hdrFormats);
     capability.GetHdrFormats();
     return true;
 }
 
-bool DoSetMaxLum(const uint8_t* data, size_t size)
+bool DoWriteVector()
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    // test
     RSScreenHDRCapability capability;
-    float maxLum = GetData<float>();
-    capability.SetMaxLum(maxLum);
-    return true;
-}
-
-bool DoSetMinLum(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    // test
-    RSScreenHDRCapability capability;
-    float minLum = GetData<float>();
-    capability.SetMinLum(minLum);
-    return true;
-}
-
-bool DoSetMaxAverageLum(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    // test
-    RSScreenHDRCapability capability;
-    float maxAverageLum = GetData<float>();
-    capability.SetMaxAverageLum(maxAverageLum);
-    return true;
-}
-
-bool DoSetHdrFormats(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    // test
-    RSScreenHDRCapability capability;
-    std::vector<ScreenHDRFormat> hdrFormats = { GetData<ScreenHDRFormat>() };
-    capability.SetHdrFormats(hdrFormats);
-    return true;
-}
-
-bool DoWriteVector(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    // test
-    RSScreenHDRCapability capability;
-    std::vector<ScreenHDRFormat> hdrFormats = { GetData<ScreenHDRFormat>() };
+    ScreenHDRFormat screenHDRFormat = static_cast<ScreenHDRFormat>(GetData<uint32_t>() % SCREEN_HDR_FORMAT_SIZE);
+    std::vector<ScreenHDRFormat> hdrFormats = { screenHDRFormat };
     Parcel parcel;
     capability.WriteVector(hdrFormats, parcel);
     return true;
 }
 
-bool DoReadVector(const uint8_t* data, size_t size)
+bool DoReadVector()
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    // test
-    std::vector<ScreenHDRFormat> unmarFormats = { GetData<ScreenHDRFormat>() };
+    RSScreenHDRCapability capability;
+    ScreenHDRFormat screenHDRFormat = static_cast<ScreenHDRFormat>(GetData<uint32_t>() % SCREEN_HDR_FORMAT_SIZE);
+    std::vector<ScreenHDRFormat> hdrFormats = { screenHDRFormat };
+    ScreenHDRFormat newScreenHDRFormat = static_cast<ScreenHDRFormat>(GetData<uint32_t>() % SCREEN_HDR_FORMAT_SIZE);
+    std::vector<ScreenHDRFormat> unmarFormats = { newScreenHDRFormat };
     Parcel parcel;
+    capability.WriteVector(hdrFormats, parcel);
     RSScreenHDRCapability::ReadVector(unmarFormats, parcel);
     return true;
 }
@@ -267,19 +177,38 @@ bool DoReadVector(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    if (!OHOS::Rosen::Init(data, size)) {
+        return 0;
+    }
     /* Run your code on data */
-    OHOS::Rosen::DoMarshalling(data, size);
-    OHOS::Rosen::DoUnmarshalling(data, size);
-    OHOS::Rosen::DoGetMaxLum(data, size);
-    OHOS::Rosen::DoGetMinLum(data, size);
-    OHOS::Rosen::DoGetMaxAverageLum(data, size);
-    OHOS::Rosen::DoGetHdrFormats(data, size);
-    OHOS::Rosen::DoSetMaxLum(data, size);
-    OHOS::Rosen::DoSetMinLum(data, size);
-    OHOS::Rosen::DoSetMaxAverageLum(data, size);
-    OHOS::Rosen::DoSetHdrFormats(data, size);
-    OHOS::Rosen::DoWriteVector(data, size);
-    OHOS::Rosen::DoReadVector(data, size);
+    uint8_t tarpos = OHOS::Rosen::GetData<uint8_t>() % OHOS::Rosen::TARGET_SIZE;
+    switch (tarpos) {
+        case OHOS::Rosen::DO_MARSHALLING:
+            OHOS::Rosen::DoMarshalling();
+            break;
+        case OHOS::Rosen::DO_UNMARSHALLING:
+            OHOS::Rosen::DoUnmarshalling();
+            break;
+        case OHOS::Rosen::DO_SET_MAXLUM:
+            OHOS::Rosen::DoSetMaxLum();
+            break;
+        case OHOS::Rosen::DO_SET_MINLUM:
+            OHOS::Rosen::DoSetMinLum();
+            break;
+        case OHOS::Rosen::DO_SET_MAXAVERAGELUM:
+            OHOS::Rosen::DoSetMaxAverageLum();
+            break;
+        case OHOS::Rosen::DO_SET_HDRFORMATS:
+            OHOS::Rosen::DoSetHdrFormats();
+            break;
+        case OHOS::Rosen::DO_WRITEVECTOR:
+            OHOS::Rosen::DoWriteVector();
+            break;
+        case OHOS::Rosen::DO_READVECTOR:
+            OHOS::Rosen::DoReadVector();
+            break;
+        default:
+            return 0;
+    }
     return 0;
 }
-

@@ -36,6 +36,7 @@
 #include "rs_profiler_test_tree.h"
 
 #include "common/rs_common_def.h"
+#include "feature/dirty/rs_uni_dirty_compute_util.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
 #include "params/rs_display_render_params.h"
 #include "pipeline/main_thread/rs_main_thread.h"
@@ -179,7 +180,7 @@ void RSProfiler::SetDirtyRegion(const Occlusion::Region& dirtyRegion)
     auto screenInfo = params->GetScreenInfo();
     const uint64_t displayArea = static_cast<uint64_t>(screenInfo.width * screenInfo.height);
 
-    auto rects = RSUniRenderUtil::ScreenIntersectDirtyRects(dirtyRegion, screenInfo);
+    auto rects = RSUniDirtyComputeUtil::ScreenIntersectDirtyRects(dirtyRegion, screenInfo);
     uint64_t dirtyRegionArea = 0;
     g_dirtyRegionList.str("");
     for (const auto& rect : rects) {

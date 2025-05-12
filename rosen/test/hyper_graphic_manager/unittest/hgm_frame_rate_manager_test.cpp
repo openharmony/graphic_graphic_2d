@@ -1002,13 +1002,13 @@ HWTEST_F(HgmFrameRateMgrTest, HandleFrameRateChangeForLTPO, Function | SmallTest
     hgmCore.SetPendingScreenRefreshRate(OLED_30_HZ);
     frameRateMgr->currRefreshRate_ = OLED_120_HZ;
     hgmCore.lowRateToHighQuickSwitch_.store(false);
-    frameRateMgr->HandleFrameRateChangeForLTPO(0, false);
+    frameRateMgr->HandleFrameRateChangeForLTPO(0, false, true);
     hgmCore.lowRateToHighQuickSwitch_.store(true);
-    frameRateMgr->HandleFrameRateChangeForLTPO(0, false);
+    frameRateMgr->HandleFrameRateChangeForLTPO(0, false, true);
     frameRateMgr->forceUpdateCallback_ = nullptr;
-    frameRateMgr->HandleFrameRateChangeForLTPO(0, false);
+    frameRateMgr->HandleFrameRateChangeForLTPO(0, false, true);
     frameRateMgr->forceUpdateCallback_ = [](bool idleTimerExpired, bool forceUpdate) { return; };
-    frameRateMgr->HandleFrameRateChangeForLTPO(0, false);
+    frameRateMgr->HandleFrameRateChangeForLTPO(0, false, true);
     EXPECT_EQ(frameRateMgr->GetPreferredFps("translate", errorVelocity, 0, 0), 0);
     hgmCore.lowRateToHighQuickSwitch_.store(true);
     VSyncController* rsController;
@@ -1016,7 +1016,7 @@ HWTEST_F(HgmFrameRateMgrTest, HandleFrameRateChangeForLTPO, Function | SmallTest
     VSyncGenerator* vsyncGenerator;
     frameRateMgr->controller_ = std::make_shared<HgmVSyncGeneratorController>(rsController,
         appController, vsyncGenerator);
-    frameRateMgr->HandleFrameRateChangeForLTPO(0, false);
+    frameRateMgr->HandleFrameRateChangeForLTPO(0, false, true);
 }
 
 /**

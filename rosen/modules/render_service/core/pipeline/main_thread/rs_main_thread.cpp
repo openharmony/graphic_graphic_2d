@@ -1587,7 +1587,11 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
                 }
                 auto name = surfaceNode->GetName().empty() ? DEFAULT_SURFACE_NODE_NAME : surfaceNode->GetName();
                 auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
-                if (LIKELY(frameRateMgr != nullptr)) {
+                const auto& consumer = surfaceHandler->GetConsumer();
+                if (LIKELY(frameRateMgr != nullptr) && consumer != nullptr &&
+                    consumer->GetSurfaceSourceType() != OH_SURFACE_SOURCE_GAME &&
+                    consumer->GetSurfaceSourceType() != OH_SURFACE_SOURCE_CAMERA &&
+                    consumer->GetSurfaceSourceType() != OH_SURFACE_SOURCE_VIDEO) {
                     frameRateMgr->UpdateSurfaceTime(name, ExtractPid(surfaceNode->GetId()), UIFWKType::FROM_SURFACE);
                 }
             }

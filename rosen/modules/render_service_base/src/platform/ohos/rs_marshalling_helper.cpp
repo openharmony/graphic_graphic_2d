@@ -1949,8 +1949,13 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Draw
             }
             auto surfaceBuffer = object->surfaceBuffer_;
             MessageParcel* parcelSurfaceBuffer =  static_cast<MessageParcel*>(&parcel);
-            WriteSurfaceBufferImpl(
-                *parcelSurfaceBuffer, surfaceBuffer->GetSeqNum(), surfaceBuffer);
+            if (surfaceBuffer) {
+                parcel.WriteBool(true);
+                WriteSurfaceBufferImpl(
+                    *parcelSurfaceBuffer, surfaceBuffer->GetSeqNum(), surfaceBuffer);
+            } else {
+                parcel.WriteBool(false);
+            }
             auto acquireFence = object->acquireFence_;
             if (acquireFence) {
                 parcel.WriteBool(true);
@@ -2209,13 +2214,21 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
             if (RS_PROFILER_IF_NEED_TO_SKIP_DRAWCMD_SURFACE(parcel)) {
                 continue;
             }
-            sptr<SurfaceBuffer> surfaceBuffer;
-            MessageParcel* parcelSurfaceBuffer = static_cast<MessageParcel*>(&parcel);
-            uint32_t sequence = 0U;
-            GSError retCode = ReadSurfaceBufferImpl(*parcelSurfaceBuffer, sequence, surfaceBuffer, readSafeFdFunc);
-            if (retCode != GSERROR_OK) {
-                ROSEN_LOGE("RSMarshallingHelper::Unmarshalling DrawCmdList failed read surfaceBuffer: %{public}d %{public}d", i, retCode);
+            sptr<SurfaceBuffer> surfaceBuffer = nullptr;
+            bool hasSurfaceBuffer{false};
+            if (!parcel.ReadBool(hasSurfaceBuffer)) {
+                ROSEN_LOGE("RSMarshallingHelper::Unmarshalling DrawCmdList Read hasSurfaceBuffer failed");
                 return false;
+            }
+            MessageParcel* parcelSurfaceBuffer = static_cast<MessageParcel*>(&parcel);
+            if (hasSurfaceBuffer) {
+                uint32_t sequence = 0U;
+                GSError retCode = ReadSurfaceBufferImpl(*parcelSurfaceBuffer, sequence, surfaceBuffer, readSafeFdFunc);
+                if (retCode != GSERROR_OK) {
+                    ROSEN_LOGE("RSMarshallingHelper::Unmarshalling "
+                        "DrawCmdList failed read surfaceBuffer: %{public}d %{public}d", i, retCode);
+                    return false;
+                }
             }
             sptr<SyncFence> acquireFence = nullptr;
             bool hasAcquireFence{false};

@@ -209,6 +209,7 @@ public:
     DEFINE_FUNC(ImportSemaphoreFdKHR);
     DEFINE_FUNC(GetPhysicalDeviceFeatures2);
     DEFINE_FUNC(SetFreqAdjustEnable);
+    DEFINE_FUNC(GetSemaphoreFdKHR);
 #undef DEFINE_FUNC
 
     VkPhysicalDevice GetPhysicalDevice() const
@@ -317,7 +318,12 @@ public:
     explicit RsVulkanContext(std::string cacheDir = "");
     void InitVulkanContextForHybridRender(const std::string& cacheDir);
     void InitVulkanContextForUniRender(const std::string& cacheDir);
-    ~RsVulkanContext() {};
+    ~RsVulkanContext()
+    {
+        std::lock_guard<std::mutex> lock(drawingContextMutex_);
+        drawingContextMap_.clear();
+        protectedDrawingContextMap_.clear();
+    }
 
     RsVulkanContext(const RsVulkanContext&) = delete;
     RsVulkanContext &operator=(const RsVulkanContext&) = delete;

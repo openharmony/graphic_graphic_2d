@@ -104,6 +104,7 @@ ohos_shared_library("librender_service") {
   sources = [
     "core/feature/anco_manager/rs_anco_manager.cpp",
     "core/feature/capture/rs_surface_capture_task.cpp",
+    "core/feature/dirty/rs_uni_dirty_compute_util.cpp",
     "core/feature/drm/rs_drm_util.cpp",
     "core/feature/hdr/rs_hdr_util.cpp",
     "core/feature/hwc/rs_uni_hwc_compute_util.cpp",

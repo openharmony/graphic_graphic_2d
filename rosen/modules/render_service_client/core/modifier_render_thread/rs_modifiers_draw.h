@@ -36,7 +36,8 @@ public:
 
     static void RemoveSurfaceByNodeId(NodeId nodeId, bool postTask = false);
 
-    static bool ResetSurfaceByNodeId(int32_t width, int32_t height, NodeId nodeId, bool postTask = false);
+    static bool ResetSurfaceByNodeId(
+        int32_t width, int32_t height, NodeId nodeId, bool needResetMatrix = false, bool postTask = false);
 
     static std::unique_ptr<Media::PixelMap> GetPixelMapByNodeId(NodeId nodeId, bool useDMA = false);
 
@@ -68,6 +69,7 @@ private:
         sptr<SurfaceBuffer> currentSurfaceBuffer = nullptr;
         sptr<SurfaceBuffer> preAllocSurfaceBuffer = nullptr;
         bool isNeedGenSnapshot = false;
+        std::optional<Drawing::Matrix> matrix;
     };
 
     static sptr<SurfaceBuffer> DmaMemAlloc(
@@ -85,15 +87,19 @@ private:
         int32_t width, int32_t height, sptr<SurfaceBuffer> surfaceBufferTmp);
 
     static bool Playback(const std::shared_ptr<Drawing::Surface>& surface,
-        const std::shared_ptr<Drawing::DrawCmdList>& cmdList, bool isCanvasType);
+        const std::shared_ptr<Drawing::DrawCmdList>& cmdList, bool isCanvasType, int32_t& fence);
 
-    static void InvalidateSurfaceCache(const std::shared_ptr<Media::PixelMap>& pixelMap);
+    static void FlushSurfaceWithFence(const std::shared_ptr<Drawing::Surface>& surface,
+        VkSemaphore& semaphore, int32_t& fence);
 
     static void DrawSnapshot(std::shared_ptr<Drawing::Canvas>& canvas, std::shared_ptr<Drawing::Image>& snapshot);
 
+    static bool CheckAndDrawSnapshot(SurfaceEntry& surfaceEntry,
+        const std::shared_ptr<Drawing::DrawCmdList>& cmdList, NodeId nodeId);
+
     static void AddPixelMapDrawOp(const std::shared_ptr<Drawing::DrawCmdList>& cmdList,
         const std::shared_ptr<Media::PixelMap>& pixelMap, int32_t width, int32_t height,
-        bool isRenderWithForegroundColor);
+        bool isRenderWithForegroundColor, sptr<SyncFence> fence = SyncFence::INVALID_FENCE);
 
     static std::unique_ptr<Media::PixelMap> CreatePixelMap(int32_t width, int32_t height, bool useDMA = true);
 

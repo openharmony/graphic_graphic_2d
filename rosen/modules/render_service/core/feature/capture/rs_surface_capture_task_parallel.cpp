@@ -208,7 +208,7 @@ bool RSSurfaceCaptureTaskParallel::Run(
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     SetupGpuContext();
     std::string nodeName("RSSurfaceCaptureTaskParallel");
-    RSTagTracker tagTracker(gpuContext_.get(), nodeId_, RSTagTracker::TAGTYPE::TAG_CAPTURE, nodeName);
+    RSTagTracker tagTracker(gpuContext_, nodeId_, RSTagTracker::TAGTYPE::TAG_CAPTURE, nodeName);
 #endif
     auto surface = CreateSurface(pixelMap_);
     if (surface == nullptr) {

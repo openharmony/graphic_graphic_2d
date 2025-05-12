@@ -222,6 +222,13 @@ template("render_service_client_source_set") {
         "qos_manager:qos",
       ]
 
+      if (defined(use_video_processing_engine) && use_video_processing_engine) {
+        defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
+        external_deps += [
+          "video_processing_engine:videoprocessingengine",
+          "media_foundation:media_foundation",
+        ]
+      }
       defines += [ "RES_CLINET_SCHED_ENABLE" ]
 
       if (accessibility_enable) {

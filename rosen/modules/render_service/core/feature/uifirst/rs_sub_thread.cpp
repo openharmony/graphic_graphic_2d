@@ -177,7 +177,7 @@ void RSSubThread::DrawableCache(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeD
     rsSubThreadCache.SetSubThreadSkip(false);
 
     RS_TRACE_NAME_FMT("RSSubThread::DrawableCache [%s] id:[%" PRIu64 "]", nodeDrawable->GetName().c_str(), nodeId);
-    RSTagTracker tagTracker(grContext_.get(), nodeId, RSTagTracker::TAGTYPE::TAG_SUB_THREAD, nodeDrawable->GetName());
+    RSTagTracker tagTracker(grContext_, nodeId, RSTagTracker::TAGTYPE::TAG_SUB_THREAD, nodeDrawable->GetName());
 
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(nodeDrawable->GetRenderParams().get());
     if (UNLIKELY(!surfaceParams)) {

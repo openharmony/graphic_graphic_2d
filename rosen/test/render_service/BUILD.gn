@@ -36,9 +36,13 @@ group("test") {
     "render_service_base/fuzztest/gfx/fps_info/rssurfacefps_fuzzer:fuzztest",
     "render_service_base/fuzztest/gfx/fps_info/rssurfacefpsmanager_fuzzer:fuzztest",
     "render_service_base/fuzztest/hgmconfigchangecallbackproxy_fuzzer:fuzztest",
+    "render_service_base/fuzztest/pipeline/rsbaserendernode01_fuzzer:fuzztest",
+    "render_service_base/fuzztest/pipeline/rscrossrendernode01_fuzzer:fuzztest",
+    "render_service_base/fuzztest/pipeline/rscanvasrendernode01_fuzzer:fuzztest",
     "render_service_base/fuzztest/pipeline/rspipelinerender_fuzzer:fuzztest",
     "render_service_base/fuzztest/pipeline/rsrendernode_fuzzer:fuzztest",
     "render_service_base/fuzztest/platform/ohos/rsrenderserviceclient_fuzzer:fuzztest",
+    "render_service_base/fuzztest/platform/ohos/rsrenderserviceclient02_fuzzer:fuzztest",
     "render_service_base/fuzztest/render/rspixelmapshader_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsaibarshaderfilter_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsanimationbase_fuzzer:fuzztest",
@@ -163,6 +167,9 @@ group("test") {
     "render_service_client/unittest/render_thread/jank_detector:unittest",
     "render_service_client/unittest/transaction:unittest",
     "render_service_client/unittest/ui:unittest",
+    "render_service_base/fuzztest/rsanimationfractionstandard_fuzzer:fuzztest",
+    "render_service_base/fuzztest/rsanimationratedeciderstandard_fuzzer:fuzztest",
+    "render_service_base/fuzztest/rsspringmodelstandard_fuzzer:fuzztest",
   ]
 
   if (graphic_2d_feature_enable_vulkan) {

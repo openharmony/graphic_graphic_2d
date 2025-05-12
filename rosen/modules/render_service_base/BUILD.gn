@@ -52,11 +52,6 @@ if (!is_mingw && !is_mac && !is_cross_platform &&
     part_name = "graphic_2d"
     subsystem_name = "graphic"
     defines += [ "RUST_CXX_NO_EXCEPTIONS" ]
-    sources = [
-      "//third_party/rust/crates/cxx/include/cxx.h",
-      "//third_party/rust/crates/cxx/src/cxx.cc",
-    ]
-    external_deps = [ "rust_cxx:lib" ]
   }
 }
 
@@ -534,21 +529,28 @@ ohos_source_set("render_service_base_src") {
       !(host_os == "linux" && host_cpu == "arm64")) {
     defines += [ "ENABLE_RUST" ]
     sources += get_target_outputs(":particle_cxx_gen")
-    include_dirs += [
-      "//third_party/rust/crates/cxx/include",
-      "${target_gen_dir}/rust/src",
-    ]
+    include_dirs += [ "${target_gen_dir}/rust/src" ]
     deps += [
       ":particle_cxx_cppdeps",
       ":particle_cxx_gen",
       ":particle_cxx_rust",
     ]
+    external_deps += [
+      "rust_cxx:cxx_cppdeps",
+      "rust_cxx:lib",
+    ]
   }
 
   if (use_video_processing_engine) {
     defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
-    external_deps += [ "video_processing_engine:videoprocessingengine" ]
-    sources += [ "src/render/rs_colorspace_convert.cpp" ]
+    external_deps += [
+      "video_processing_engine:videoprocessingengine",
+      "media_foundation:media_foundation",
+    ]
+    sources += [
+      "src/render/rs_colorspace_convert.cpp",
+      "src/display_engine/rs_vpe_manager.cpp",
+    ]
   }
 
   if (rosen_is_ohos && defined(enable_ipc_security) && enable_ipc_security) {

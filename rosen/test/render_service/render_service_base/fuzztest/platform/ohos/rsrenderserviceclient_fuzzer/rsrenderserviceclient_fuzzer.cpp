@@ -232,6 +232,25 @@ bool DoCreateRSSurface(const uint8_t* data, size_t size)
     return true;
 }
 
+#ifdef ACE_ENABLE_GL
+bool DoCreateRSSurface02(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
+    sptr<Surface> surfaceOpengl;
+    client->CreateRSSurface(surfaceOpengl);
+    return true;
+}
+#endif
+
 bool DoCreateVSyncReceiver(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {

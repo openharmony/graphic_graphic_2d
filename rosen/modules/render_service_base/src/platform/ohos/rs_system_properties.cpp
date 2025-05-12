@@ -18,6 +18,7 @@
 #include <cstdlib>
 #include <parameter.h>
 #include <parameters.h>
+#include <unistd.h>
 #include "param/sys_param.h"
 #include "platform/common/rs_log.h"
 #include "transaction/rs_render_service_client.h"
@@ -36,6 +37,7 @@ constexpr int DEFAULT_DIRTY_ALIGN_ENABLED_VALUE = 0;
 constexpr int DEFAULT_CORRECTION_MODE_VALUE = 999;
 constexpr int DEFAULT_SCALE_MODE = 2;
 constexpr const char* DEFAULT_CLIP_RECT_THRESHOLD = "0.7";
+constexpr const char* VULKAN_CONFIG_FILE_PATH = "/vendor/etc/vulkan/icd.d";
 constexpr int DEFAULT_TEXTBLOB_LINE_COUNT = 9;
 struct GetComponentSwitch ComponentSwitchTable[] = {
     {ComponentEnableSwitch::TEXTBLOB, RSSystemProperties::GetHybridRenderTextBlobEnabled},
@@ -1453,6 +1455,11 @@ bool RSSystemProperties::GetHybridRenderHmsymbolEnabled()
 
 int32_t RSSystemProperties::GetHybridRenderSwitch(ComponentEnableSwitch bitSeq)
 {
+    static int isAccessToVulkanConfigFile = access(VULKAN_CONFIG_FILE_PATH, F_OK);
+    if (isAccessToVulkanConfigFile == -1) {
+        ROSEN_LOGD("GetHybridRenderSwitch access to [%{public}s] is denied", VULKAN_CONFIG_FILE_PATH);
+        return 0;
+    }
     static int32_t hybridRenderFeatureSwitch =
         std::stol((system::GetParameter("const.graphics.hybridrenderfeatureswitch", "0x00")).c_str(), nullptr, 16);
     static std::vector<int> hybridRenderSystemProperty(std::size(ComponentSwitchTable));
