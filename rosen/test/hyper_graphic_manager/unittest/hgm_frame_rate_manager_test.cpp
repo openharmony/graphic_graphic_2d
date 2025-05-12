@@ -1150,7 +1150,7 @@ HWTEST_F(HgmFrameRateMgrTest, CheckAncoVoterStatus, Function | SmallTest | Level
     testParams({LightFactorStatus::NORMAL_LOW, true, true, {},
         "VOTER_ANCO", {{.voterName = "VOTER_ANCO"}}, true}, false);
     testParams({LightFactorStatus::NORMAL_LOW, true, true, {OLED_90_HZ},
-        "VOTER_ANCO", {}， true}, false);
+        "VOTER_ANCO", {}, true}, false);
     testParams({LightFactorStatus::NORMAL_LOW, true, true, {OLED_90_HZ},
         "VOTER_ANCO", {{.voterName = "VOTER_ANCO"}}, false}, false);
 }
