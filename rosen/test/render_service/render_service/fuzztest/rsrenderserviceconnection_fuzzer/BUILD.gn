@@ -49,6 +49,7 @@ ohos_fuzztest("RSRenderServiceConnectionFuzzTest") {
   deps = [
     "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
     "$graphic_2d_root/rosen/modules/composer:libcomposer",
+    "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
     "$graphic_2d_root/rosen/modules/render_service:librender_service",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
     "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
@@ -79,6 +80,7 @@ ohos_fuzztest("RSRenderServiceConnectionFuzzTest") {
     "common_event_service:cesfwk_core",
     "common_event_service:cesfwk_innerkits",
     "hilog:libhilog",
+    "hisysevent:libhisysevent",
     "hitrace:hitrace_meter",
     "ipc:ipc_core",
     "safwk:system_ability_fwk",

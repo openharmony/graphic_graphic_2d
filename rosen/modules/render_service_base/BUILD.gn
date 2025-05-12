@@ -13,6 +13,7 @@
 
 import("//build/ohos.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
+import("//foundation/graphic/graphic_2d/rosen/modules/platform/config.gni")
 import(
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/config.gni")
 
@@ -25,6 +26,9 @@ config("export_config") {
 
   defines = rs_common_define
   defines += gpu_defines
+  if (rs_enable_gpu) {
+    defines += [ "RS_ENABLE_GPU" ]
+  }
 }
 
 if (!is_mingw && !is_mac && !is_cross_platform &&
@@ -574,12 +578,12 @@ ohos_source_set("render_service_base_src") {
   if (use_video_processing_engine) {
     defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
     external_deps += [
-      "video_processing_engine:videoprocessingengine",
       "media_foundation:media_foundation",
+      "video_processing_engine:videoprocessingengine",
     ]
     sources += [
-      "src/render/rs_colorspace_convert.cpp",
       "src/display_engine/rs_vpe_manager.cpp",
+      "src/render/rs_colorspace_convert.cpp",
     ]
   }
 
@@ -623,6 +627,7 @@ ohos_source_set("render_service_base_src") {
   } else {
     external_deps += [
       "drivers_interface_display:display_commontype_idl_headers",
+      "eventhandler:libeventhandler",
       "hitrace:hitrace_meter",
     ]
   }
@@ -727,25 +732,30 @@ ohos_shared_library("librender_service_base") {
 
   sources = [ "src/common/rs_common_hook.cpp" ]
 
-  public_configs = [ ":render_service_base_all_deps_config" ]
-
+  public_configs = [
+    ":render_service_base_all_deps_config",
+    ":export_config",
+  ]
   if (enhanced_opt) {
     configs = [ ":render_service_base_link_config" ]
   }
 
   deps = [
+    ":render_service_base_src",
     "$rosen_root/modules/platform:eventhandler",
     "src/platform:platform",
   ]
 
-  public_deps = [ ":render_service_base_src" ]
-
   external_deps = [ "hilog:libhilog" ]
 
-  public_external_deps = []
+  public_external_deps = [
+    "egl:libEGL",
+    "opengles:libGLES",
+  ]
   if (rosen_is_ohos) {
     external_deps += [ "hisysevent:libhisysevent" ]
     public_external_deps += [
+      "c_utils:utils",
       "graphic_surface:sync_fence",
       "image_framework:image_native",
     ]
@@ -753,6 +763,41 @@ ohos_shared_library("librender_service_base") {
 
   if (rs_enable_gpu) {
     public_external_deps += [ "openssl:libcrypto_shared" ]
+  }
+
+  # build sdk
+  if (rosen_is_win || current_os == "linux") {
+    deps += [
+      "$rosen_root/modules/platform:ace_skia",
+      "$rosen_root/modules/platform:impl_eventhandler",
+      "$rosen_root/modules/platform:ipc_core",
+      "$rosen_root/modules/platform:utils",
+      "$rosen_root/modules/render_service_base/src/platform/windows:windows",
+    ]
+    public_external_deps += [ "skia:skia_canvaskit" ]
+    public_configs += [
+      "$rosen_root/modules/composer:composer_public_config",
+      "$rosen_root/modules/platform:eventhandler_config",
+      "$rosen_root/modules/platform:utils_config",
+      "$rosen_root/modules/platform:ipc_core_config",
+      "$rosen_root/modules/platform:image_native_config",
+    ]
+  } else if (rosen_is_mac) {
+    deps += [
+      "$rosen_root/modules/platform:ace_skia",
+      "$rosen_root/modules/platform:impl_eventhandler",
+      "$rosen_root/modules/platform:ipc_core",
+      "$rosen_root/modules/platform:utils",
+      "$rosen_root/modules/render_service_base/src/platform/darwin:darwin",
+    ]
+    public_external_deps += [ "skia:skia_canvaskit" ]
+    public_configs += [
+      "$rosen_root/modules/composer:composer_public_config",
+      "$rosen_root/modules/platform:eventhandler_config",
+      "$rosen_root/modules/platform:utils_config",
+      "$rosen_root/modules/platform:ipc_core_config",
+      "$rosen_root/modules/platform:image_native_config",
+    ]
   }
 
   part_name = "graphic_2d"

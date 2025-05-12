@@ -509,6 +509,7 @@ ohos_unittest("RSJankStatsHelperTest") {
   ]
 
   deps = [
+    "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
     "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
   ]
@@ -641,6 +642,7 @@ ohos_unittest("RSMarshallingHelperTest") {
   ]
 
   deps = [
+    "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
     "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
   ]
@@ -908,6 +910,7 @@ ohos_unittest("RSRenderServiceConnectionProxyTest") {
   ]
 
   deps = [
+    "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
     "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
   ]
@@ -1294,8 +1297,8 @@ group("unittest") {
     ":RSEventMgrTest",
     ":RSHiSysEventTest",
     ":RSInnovationTest",
-    ":RSJankStatsTest",
     ":RSJankStatsHelperTest",
+    ":RSJankStatsTest",
     ":RSLogTest",
     ":RSMarshallingHelperTest",
     ":RSNodeStatsTest",
