@@ -2453,14 +2453,6 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         if (RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
             WaitUntilUploadTextureTaskFinished(isUniRender_);
         }
-        if (false) { // planning: move to prepare
-            auto displayNode = RSBaseRenderNode::ReinterpretCast<RSDisplayRenderNode>(
-                rootNode->GetFirstChild());
-            std::list<std::shared_ptr<RSSurfaceRenderNode>> mainThreadNodes;
-            std::list<std::shared_ptr<RSSurfaceRenderNode>> subThreadNodes;
-            const auto& nodeMap = context_->GetNodeMap();
-            RSUniRenderUtil::CacheSubThreadNodes(subThreadNodes_, subThreadNodes);
-        }
         lastWatermarkFlag_ = watermarkFlag_;
         isPartialRenderEnabledOfLastFrame_ = uniVisitor->GetIsPartialRenderEnabled();
         isRegionDebugEnabledOfLastFrame_ = uniVisitor->GetIsRegionDebugEnabled();
@@ -3344,6 +3336,7 @@ void RSMainThread::RSJankStatsOnVsyncStart(int64_t onVsyncStartTime, int64_t onV
         renderThreadParams_->SetOnVsyncStartTimeSteady(onVsyncStartTimeSteady);
         renderThreadParams_->SetOnVsyncStartTimeSteadyFloat(onVsyncStartTimeSteadyFloat);
         SetSkipJankAnimatorFrame(false);
+        isImplicitAnimationEnd_ = false;
 #endif
     }
 }
@@ -3381,7 +3374,8 @@ void RSMainThread::RSJankStatsOnVsyncEnd(int64_t onVsyncStartTime, int64_t onVsy
                                               .timeEndSteadyFloat_ = GetCurrentSteadyTimeMsFloat(),
                                               .refreshRate_ = GetDynamicRefreshRate(),
                                               .discardJankFrames_ = GetDiscardJankFrames(),
-                                              .skipJankAnimatorFrame_ = GetSkipJankAnimatorFrame() };
+                                              .skipJankAnimatorFrame_ = GetSkipJankAnimatorFrame(),
+                                              .implicitAnimationEnd_ = isImplicitAnimationEnd_ };
         drawFrame_.PostDirectCompositionJankStats(rsParams);
     }
     if (isUniRender_) {
@@ -3522,6 +3516,7 @@ void RSMainThread::Animate(uint64_t timestamp)
         RequestNextVSync("animate", timestamp_);
     } else if (isUniRender_) {
 #ifdef RS_ENABLE_GPU
+        isImplicitAnimationEnd_ = true;
         renderThreadParams_->SetImplicitAnimationEnd(true);
 #endif
     }

@@ -172,7 +172,6 @@ public:
     static bool IsColorFilterModeValid(ColorFilterMode mode);
 
     static bool WriteSurfaceRenderNodeToPng(const RSSurfaceRenderNode& node);
-    static bool WriteCacheRenderNodeToPng(const RSRenderNode& node);
     static bool WriteSurfaceBufferToPng(sptr<SurfaceBuffer>& buffer, uint64_t id = 0);
 
     static bool WritePixelMapToPng(Media::PixelMap& pixelMap);
@@ -187,9 +186,6 @@ public:
     static GraphicTransformType GetRotateTransform(GraphicTransformType transform);
     static GraphicTransformType GetFlipTransform(GraphicTransformType transform);
 
-    // GraphicTransformType from hdi layer info is clockwise, for surface and surface node is anti-clockwise
-    // need conversion here
-    static GraphicTransformType ClockwiseToAntiClockwiseTransform(GraphicTransformType transform);
     static int RotateEnumToInt(ScreenRotation rotation);
     static int RotateEnumToInt(GraphicTransformType rotation);
     static GraphicTransformType RotateEnumToInt(int angle,

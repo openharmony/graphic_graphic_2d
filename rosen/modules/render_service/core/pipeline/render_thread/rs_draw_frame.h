@@ -25,7 +25,7 @@
 #include "common/rs_exception_check.h"
 #include "params/rs_render_thread_params.h"
 #include "pipeline/rs_render_node.h"
-#include "platform/ohos/rs_jank_stats.h"
+#include "platform/ohos/rs_jank_stats_helper.h"
 #include "rs_uni_render_thread.h"
 
 namespace OHOS {
@@ -50,11 +50,7 @@ private:
     void Sync();
     void Render();
     void ReleaseSelfDrawingNodeBuffer();
-    void JankStatsRenderFrameStart();
-    bool IsUniRenderAndOnVsync() const;
     void NotifyClearGpuCache();
-    void JankStatsRenderFrameAfterSync(bool doJankStats);
-    void JankStatsRenderFrameEnd(bool doJankStats);
     bool CheckCanvasSkipSync(std::shared_ptr<RSRenderNode>);
     void StartCheck();
     void EndCheck();

@@ -107,41 +107,6 @@ HWTEST_F(RSDrawFrameTest, UnlockMainThreadTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: IsUniRenderAndOnVsyncTest
- * @tc.desc: test IsUniRenderAndOnVsync
- * @tc.type: FUNC
- * @tc.require: issueI6QM6E
- */
-HWTEST_F(RSDrawFrameTest, IsUniRenderAndOnVsyncTest, TestSize.Level1)
-{
-    RSDrawFrame drawFrame_;
-    ASSERT_FALSE(drawFrame_.IsUniRenderAndOnVsync());
-    auto renderThreadParams = std::make_unique<RSRenderThreadParams>();
-    RSRenderThreadParamsManager::Instance().SetRSRenderThreadParams(move(renderThreadParams));
-    ASSERT_FALSE(drawFrame_.IsUniRenderAndOnVsync());
-    RSRenderThreadParamsManager::Instance().SetRSRenderThreadParams(nullptr);
-}
-
-/**
- * @tc.name: JankStatsRenderFrameEndTest
- * @tc.desc: test JankStatsRenderFrameEnd
- * @tc.type: FUNC
- * @tc.require: issueI6QM6E
- */
-HWTEST_F(RSDrawFrameTest, JankStatsRenderFrameEndTest, TestSize.Level1)
-{
-    RSDrawFrame drawFrame_;
-    drawFrame_.JankStatsRenderFrameEnd(false);
-    ASSERT_FALSE(drawFrame_.unirenderInstance_.discardJankFrames_);
-
-    auto renderThreadParams = std::make_unique<RSRenderThreadParams>();
-    RSRenderThreadParamsManager::Instance().SetRSRenderThreadParams(move(renderThreadParams));
-    ASSERT_NE(drawFrame_.unirenderInstance_.GetRSRenderThreadParams(), nullptr);
-    drawFrame_.JankStatsRenderFrameEnd(true);
-    ASSERT_FALSE(drawFrame_.unirenderInstance_.discardJankFrames_);
-}
-
-/**
  * @tc.name: EndCheck
  * @tc.desc: test EndCheck
  * @tc.type: FUNC
