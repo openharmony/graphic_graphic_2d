@@ -20,24 +20,12 @@
 #include <securec.h>
 
 #include "screen_manager/rs_screen_capability.h"
+using FunctionPtr = bool (*)();   
 
 namespace OHOS {
 namespace Rosen {
-const uint8_t MARSHALLING = 0;
-const uint8_t UNMARSHALLING = 1;
-const uint8_t SET_NAME = 2;
-const uint8_t SET_TYPE = 3;
-const uint8_t SET_PHYWIDTH = 4;
-const uint8_t SET_PHYHEIGHT = 5;
-const uint8_t SET_SUPPORTLAYERS = 6;
-const uint8_t SET_VIRTUALDISPCOUNT = 7;
-const uint8_t SET_SUPPORTWRITEBACK = 8;
-const uint8_t SET_PROPS = 9;
-const uint8_t WRITEVECTOR = 10;
-const uint8_t READVECTOR = 11;
-const uint8_t TARGET_SIZE = 12;
-const uint8_t SCREEN_INTERFACE_TYPE_SIZE = 13;
 namespace {
+const uint8_t SCREEN_INTERFACE_TYPE_SIZE = 13;
 const uint8_t* g_data = nullptr;
 size_t g_size = 0;
 size_t g_pos;
@@ -84,7 +72,7 @@ void InitProps(std::vector<RSScreenProps>& props)
     props.push_back(prop);
 }
 
-void initRSScreenCapabilityAndParcel(RSScreenCapability& capability, Parcel& parcel)
+void InitRSScreenCapabilityAndParcel(RSScreenCapability& capability, Parcel& parcel)
 {
     uint32_t phyWidth = GetData<uint32_t>();
     capability.SetPhyWidth(phyWidth);
@@ -127,7 +115,7 @@ bool DoUnmarshalling()
 {
     RSScreenCapability capability;
     Parcel parcel;
-    initRSScreenCapabilityAndParcel(capability, parcel);
+    InitRSScreenCapabilityAndParcel(capability, parcel);
     capability.Marshalling(parcel);
     (void)capability.Unmarshalling(parcel);
     return true;
@@ -218,13 +206,13 @@ bool DoWriteVector()
 
 bool DoReadVector()
 {
-    uint32_t unmarPropCount = GetData<uint32_t>();
     RSScreenCapability capability;
     std::vector<RSScreenProps> props;
     InitProps(props);
     Parcel parcel;
     capability.WriteVector(props, parcel);
-    std::vector<RSScreenProps>& unmarProps = props;
+    uint32_t unmarPropCount = static_cast<uint32_t>(parcel.GetDataSize());
+    std::vector<RSScreenProps> unmarProps;
     RSScreenCapability::ReadVector(unmarProps, unmarPropCount, parcel);
     return true;
 }
@@ -238,46 +226,22 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
         return 0;
     }
     /* Run your code on data */
-    uint8_t tarpos = OHOS::Rosen::GetData<uint8_t>() % OHOS::Rosen::TARGET_SIZE;
-    switch (tarpos) {
-        case OHOS::Rosen::MARSHALLING:
-            OHOS::Rosen::DoMarshalling();
-            break;
-        case OHOS::Rosen::UNMARSHALLING:
-            OHOS::Rosen::DoUnmarshalling();
-            break;
-        case OHOS::Rosen::SET_NAME:
-            OHOS::Rosen::DoSetName();
-            break;
-        case OHOS::Rosen::SET_TYPE:
-            OHOS::Rosen::DoSetType();
-            break;
-        case OHOS::Rosen::SET_PHYWIDTH:
-            OHOS::Rosen::DoSetPhyWidth();
-            break;
-        case OHOS::Rosen::SET_PHYHEIGHT:
-            OHOS::Rosen::DoSetPhyHeight();
-            break;
-        case OHOS::Rosen::SET_SUPPORTLAYERS:
-            OHOS::Rosen::DoSetSupportLayers();
-            break;
-        case OHOS::Rosen::SET_VIRTUALDISPCOUNT:
-            OHOS::Rosen::DoSetVirtualDispCount();
-            break;
-        case OHOS::Rosen::SET_SUPPORTWRITEBACK:
-            OHOS::Rosen::DoSetSupportWriteBack();
-            break;
-        case OHOS::Rosen::SET_PROPS:
-            OHOS::Rosen::DoSetProps();
-            break;
-        case OHOS::Rosen::WRITEVECTOR:
-            OHOS::Rosen::DoWriteVector();
-            break;
-        case OHOS::Rosen::READVECTOR:
-            OHOS::Rosen::DoReadVector();
-            break;
-        default:
-            return 0;
+    std::vector<FunctionPtr> funcVector = { 
+        OHOS::Rosen::DoMarshalling,
+        OHOS::Rosen::DoUnmarshalling,
+        OHOS::Rosen::DoSetName,
+        OHOS::Rosen::DoSetType,
+        OHOS::Rosen::DoSetPhyWidth,
+        OHOS::Rosen::DoSetPhyHeight,
+        OHOS::Rosen::DoSetSupportLayers,
+        OHOS::Rosen::DoSetVirtualDispCount,
+        OHOS::Rosen::DoSetSupportWriteBack,
+        OHOS::Rosen::DoSetProps,
+        OHOS::Rosen::DoWriteVector,
+        OHOS::Rosen::DoReadVector
     }
+
+    uint8_t pos = OHOS::Rosen::GetData<uint8_t>() % funcVector.size();
+    funcVector[pos]();
     return 0;
 }
