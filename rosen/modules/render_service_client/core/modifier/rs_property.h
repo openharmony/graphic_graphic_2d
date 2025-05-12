@@ -768,8 +768,11 @@ RSC_EXPORT void RSProperty<Vector4<Color>>::UpdateToRender(
 template<>
 RSC_EXPORT void RSProperty<Vector4f>::UpdateToRender(const Vector4f& value, PropertyUpdateType type) const;
 template<>
+RSC_EXPORT void RSProperty<RRect>::UpdateToRender(const RRect& value, PropertyUpdateType type) const;
+template<>
 RSC_EXPORT void RSProperty<std::shared_ptr<RSUIFilter>>::UpdateToRender(
     const std::shared_ptr<RSUIFilter>& value, PropertyUpdateType type) const;
+
 template<>
 RSC_EXPORT bool RSProperty<float>::IsValid(const float& value);
 template<>
