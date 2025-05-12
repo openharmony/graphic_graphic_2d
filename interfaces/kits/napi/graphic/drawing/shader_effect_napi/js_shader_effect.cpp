@@ -383,7 +383,7 @@ napi_value JsShaderEffect::CreateComposeShader(napi_env env, napi_callback_info 
     }
 
     int32_t jsBlendMode = 0;
-    GET_ENUM_PARAM(ARGC_TWO, jsBlendMode, static_cast<int32_t>(BlendMode::CLEAR),
+    GET_ENUM_PARAM_RANGE(ARGC_TWO, jsBlendMode, static_cast<int32_t>(BlendMode::CLEAR),
         static_cast<int32_t>(BlendMode::LUMINOSITY));
 
     std::shared_ptr<ShaderEffect> effectShader = ShaderEffect::CreateBlendShader(*dstJsShaderEffect->GetShaderEffect(),
@@ -506,8 +506,8 @@ napi_value JsShaderEffect::CreateImageShader(napi_env env, napi_callback_info in
     }
     int32_t jsTileModeX = 0;
     int32_t jsTileModeY = 0;
-    GET_ENUM_PARAM(ARGC_ONE, jsTileModeX, 0, static_cast<int32_t>(TileMode::DECAL));
-    GET_ENUM_PARAM(ARGC_TWO, jsTileModeY, 0, static_cast<int32_t>(TileMode::DECAL));
+    GET_ENUM_PARAM_RANGE(ARGC_ONE, jsTileModeX, 0, static_cast<int32_t>(TileMode::DECAL));
+    GET_ENUM_PARAM_RANGE(ARGC_TWO, jsTileModeY, 0, static_cast<int32_t>(TileMode::DECAL));
     JsSamplingOptions* jsSamplingOptions = nullptr;
     GET_UNWRAP_PARAM(ARGC_THREE, jsSamplingOptions);
     std::shared_ptr<SamplingOptions> samplingOptions = jsSamplingOptions->GetSamplingOptions();
