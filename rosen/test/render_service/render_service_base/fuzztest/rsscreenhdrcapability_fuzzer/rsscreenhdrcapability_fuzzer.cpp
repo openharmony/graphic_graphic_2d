@@ -25,7 +25,6 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 const uint8_t SCREEN_HDR_FORMAT_SIZE = 8;
-const float PROPORTION = 0.1f;
 const uint8_t* g_data = nullptr;
 size_t g_size = 0;
 size_t g_pos;
@@ -64,16 +63,13 @@ bool Init(const uint8_t* data, size_t size)
 
 void InitRSScreenHDRCapabilityAndParcel(RSScreenHDRCapability& capability, Parcel& parcel)
 {
-    uint32_t unit32MaxLum = GetData<uint32_t>();
-    float maxLum = static_cast<float>(unit32MaxLum) * OHOS::Rosen::PROPORTION;
+    float maxLum = GetData<float>();
     capability.SetMaxLum(maxLum);
 
-    uint32_t unit32MinLum = GetData<uint32_t>();
-    float minLum = static_cast<float>(unit32MinLum) * OHOS::Rosen::PROPORTION;
+    float minLum = GetData<float>();
     capability.SetMinLum(minLum);
 
-    uint32_t unit32MaxAverageLum = GetData<uint32_t>();
-    float maxAverageLum = static_cast<float>(unit32MaxAverageLum) * OHOS::Rosen::PROPORTION;
+    float maxAverageLum = GetData<float>();
     capability.SetMaxAverageLum(maxAverageLum);
 
     ScreenHDRFormat screenHDRFormat = static_cast<ScreenHDRFormat>(GetData<uint32_t>() % SCREEN_HDR_FORMAT_SIZE);
@@ -103,8 +99,7 @@ bool DoUnmarshalling()
 bool DoSetMaxLum()
 {
     RSScreenHDRCapability capability;
-    uint32_t unit32MaxLum = GetData<uint32_t>();
-    float maxLum = static_cast<float>(unit32MaxLum) * OHOS::Rosen::PROPORTION;
+    float maxLum = GetData<float>();
     capability.SetMaxLum(maxLum);
     capability.GetMaxLum();
     return true;
@@ -113,8 +108,7 @@ bool DoSetMaxLum()
 bool DoSetMinLum()
 {
     RSScreenHDRCapability capability;
-    uint32_t unit32MinLum = GetData<uint32_t>();
-    float minLum = static_cast<float>(unit32MinLum) * OHOS::Rosen::PROPORTION;
+    float minLum = GetData<float>();
     capability.SetMinLum(minLum);
     capability.GetMinLum();
     return true;
@@ -123,8 +117,7 @@ bool DoSetMinLum()
 bool DoSetMaxAverageLum()
 {
     RSScreenHDRCapability capability;
-    uint32_t unit32MaxAverageLum = GetData<uint32_t>();
-    float maxAverageLum = static_cast<float>(unit32MaxAverageLum) * OHOS::Rosen::PROPORTION;
+    float maxAverageLum = GetData<float>();
     capability.SetMaxAverageLum(maxAverageLum);
     capability.GetMaxAverageLum();
     return true;
@@ -155,9 +148,9 @@ bool DoReadVector()
     RSScreenHDRCapability capability;
     ScreenHDRFormat screenHDRFormat = static_cast<ScreenHDRFormat>(GetData<uint32_t>() % SCREEN_HDR_FORMAT_SIZE);
     std::vector<ScreenHDRFormat> hdrFormats = { screenHDRFormat };
-    std::vector<ScreenHDRFormat> unmarFormats;
     Parcel parcel;
     capability.WriteVector(hdrFormats, parcel);
+    std::vector<ScreenHDRFormat> unmarFormats;
     RSScreenHDRCapability::ReadVector(unmarFormats, parcel);
     return true;
 }
