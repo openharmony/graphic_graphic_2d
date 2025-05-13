@@ -88,11 +88,15 @@ namespace {
     constexpr int32_t STYLUS_NO_LINK = 0;
     constexpr int32_t STYLUS_LINK_UNUSED = 1;
     constexpr int32_t STYLUS_LINK_WRITE = 2;
+    constexpr int32_t STYLUS_SLEEP = 3;
+    constexpr int32_t STYLUS_WAKEUP = 4;
     constexpr int32_t VIRTUAL_KEYBOARD_FINGERS_MIN_CNT = 8;
     const std::unordered_map<std::string, int32_t> STYLUS_STATUS_MAP = {
         {"STYLUS_NO_LINK", STYLUS_NO_LINK},
         {"STYLUS_LINK_UNUSED", STYLUS_LINK_UNUSED},
-        {"STYLUS_LINK_WRITE", STYLUS_LINK_WRITE}};
+        {"STYLUS_LINK_WRITE", STYLUS_LINK_WRITE},
+        {"STYLUS_SLEEP", STYLUS_SLEEP},
+        {"STYLUS_WAKEUP", STYLUS_WAKEUP}};
     constexpr uint32_t FRAME_RATE_REPORT_MAX_RETRY_TIMES = 3;
     constexpr uint32_t FRAME_RATE_REPORT_DELAY_TIME = 20000;
     const std::string VRATE_CONTROL_MINIFPS = "minifps";
@@ -780,7 +784,7 @@ uint32_t HgmFrameRateManager::CalcRefreshRate(const ScreenId id, const FrameRate
     // of current screen are {30, 60, 90}, the result will be 90.
     uint32_t refreshRate = currRefreshRate_;
     std::vector<uint32_t> supportRefreshRateVec;
-    bool stylusFlag = (stylusMode_ == STYLUS_LINK_WRITE && !stylusVec_.empty());
+    bool stylusFlag = (stylusMode_ == STYLUS_WAKEUP && !stylusVec_.empty());
     if ((isLtpo_ && isAmbientStatus_ == LightFactorStatus::NORMAL_LOW && isAmbientEffect_) ||
         (!isLtpo_ && isAmbientEffect_ && isAmbientStatus_ != LightFactorStatus::HIGH_LEVEL)) {
         supportRefreshRateVec = lowBrightVec_;
