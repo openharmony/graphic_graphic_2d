@@ -722,7 +722,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
         return 0;
     }
     /* Run your code on data */
-    uint8_t pos = OHOS::Rosen::GetData<uint8_t>() % funcVector.size();
+    uint8_t pos = OHOS::Rosen::GetData<uint8_t>() % g_funcVector.size();
     OHOS::Rosen::g_funcVector[pos]();
     return 0;
 }
