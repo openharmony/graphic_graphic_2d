@@ -627,6 +627,7 @@ void IsVisibleRectSupportRotation()
     ScreenId screenId = GetData<Rosen::ScreenId>();
     CreateOrGetScreenManager()->IsVisibleRectSupportRotation(screenId);
 }
+
 using FunctionPtr = void (*)();
 std::vector<FunctionPtr> g_funcVector = {
     OHOS::Rosen::InitScreenManger,
