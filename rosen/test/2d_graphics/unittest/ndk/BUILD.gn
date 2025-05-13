@@ -49,6 +49,7 @@ ohos_unittest("2d_graphics_ndk_test") {
     "drawing_shader_effect_test.cpp",
     "drawing_surface_test.cpp",
     "drawing_text_font_descriptor_test.cpp",
+    "drawing_text_global_test.cpp",
     "drawing_text_lineTypography_test.cpp",
     "drawing_text_line_test.cpp",
     "drawing_text_run_test.cpp",
@@ -58,6 +59,7 @@ ohos_unittest("2d_graphics_ndk_test") {
   ]
 
   include_dirs = [
+    "$graphic_2d_root/rosen/frameworks/text/service",
     "$graphic_2d_root/rosen/modules/2d_graphics/drawing_ndk/drawing_utils",
     "$graphic_2d_root/rosen/modules/2d_graphics/drawing_ndk/include",
     "$graphic_2d_root/rosen/modules/2d_graphics/drawing_ndk/src",
