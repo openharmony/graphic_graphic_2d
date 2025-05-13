@@ -628,7 +628,7 @@ void IsVisibleRectSupportRotation()
     CreateOrGetScreenManager()->IsVisibleRectSupportRotation(screenId);
 }
 using FunctionPtr = void (*)();
-std::vector<FunctionPtr> funcVector = {
+std::vector<FunctionPtr> g_funcVector = {
     OHOS::Rosen::InitScreenManger,
     OHOS::Rosen::GetActiveScreenId,
     OHOS::Rosen::SetVirtualScreenRefreshRate,
@@ -723,6 +723,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     }
     /* Run your code on data */
     uint8_t pos = OHOS::Rosen::GetData<uint8_t>() % funcVector.size();
-    OHOS::Rosen::funcVector[pos]();
+    OHOS::Rosen::g_funcVector[pos]();
     return 0;
 }
