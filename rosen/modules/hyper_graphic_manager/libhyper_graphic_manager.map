@@ -130,6 +130,7 @@
       *HgmIdleDetector::GetTouchUpExpectedFPS*;
       *HgmIdleDetector::SetAceAnimatorIdleState*;
       *HgmIdleDetector::SetAppSupportedState*;
+      *HgmIdleDetector::UpdateAceAnimatorExpectedFrameRate*;
       *HgmIdleDetector::UpdateSurfaceTime*;
       *HgmIdleDetector::UpdateSurfaceState*;
 
