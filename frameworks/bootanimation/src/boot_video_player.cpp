@@ -41,13 +41,7 @@ void BootVideoPlayer::Play()
 {
 #ifdef PLAYER_FRAMEWORK_ENABLE
     LOGI("PlayVideo begin");
-    int waitMediaCreateTime = 0;
-    while ((mediaPlayer_ = Media::PlayerFactory::CreatePlayer()) == nullptr
-        && waitMediaCreateTime < MAX_WAIT_MEDIA_CREATE_TIME) {
-        LOGI("mediaPlayer is nullptr, try create again");
-        usleep(SLEEP_TIME_US);
-        waitMediaCreateTime += SLEEP_TIME_US;
-    }
+    CheckAndCreateMedia();
 
     if (mediaPlayer_ == nullptr) {
         LOGI("mediaPlayer create fail");
