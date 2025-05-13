@@ -1395,14 +1395,17 @@ void RSMainThread::ProcessCommandForUniRender()
     if (transactionDataEffective != nullptr && !transactionDataEffective->empty()) {
         for (auto& rsTransactionElem : *transactionDataEffective) {
             for (auto& rsTransaction : rsTransactionElem.second) {
+                if (!rsTransaction) {
+                    continue;
+                }
                 RS_TRACE_NAME_FMT("[pid:%d, index:%d]", rsTransactionElem.first, rsTransaction->GetIndex());
                 // If this transaction is marked as requiring synchronization and the SyncId for synchronization is not
                 // 0, or if there have been previous transactions of this process considered as synchronous, then all
                 // subsequent transactions of this process will be synchronized.
-                if (rsTransaction && ((rsTransaction->IsNeedSync() && rsTransaction->GetSyncId() > 0) ||
-                    syncTransactionData_.count(rsTransactionElem.first) > 0)) {
+                if ((rsTransaction->IsNeedSync() && rsTransaction->GetSyncId() > 0) ||
+                    syncTransactionData_.count(rsTransactionElem.first) > 0) {
                     ProcessSyncRSTransactionData(rsTransaction, rsTransactionElem.first);
-                } else if (rsTransaction) {
+                } else {
                     ProcessRSTransactionData(rsTransaction, rsTransactionElem.first);
                 }
             }
