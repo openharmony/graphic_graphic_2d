@@ -300,6 +300,8 @@ private:
     RSB_EXPORT static void TimePauseClear();
     RSB_EXPORT static uint64_t TimePauseGet();
 
+    RSB_EXPORT static bool IsSecureScreen();
+
     RSB_EXPORT static std::shared_ptr<RSDisplayRenderNode> GetDisplayNode(const RSContext& context);
     RSB_EXPORT static Vector4f GetScreenRect(const RSContext& context);
 

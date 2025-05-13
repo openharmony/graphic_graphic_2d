@@ -119,6 +119,13 @@ void RSProfiler::BetaRecordOnFrameBegin()
     if (IsBetaRecordStarted() && IsBetaRecordEnabled()) {
         g_mutexBetaRecording.lock();
         g_mutexBetaRecordingLocked = true;
+        if (!IsNoneMode() && IsSecureScreen()) {
+            // don't record secure screens
+            std::vector<std::string> argList;
+            argList.push_back("REMOVELAST");
+            RecordStop(ArgList(argList));
+            EnableBetaRecord();
+        }
     } else {
         g_mutexBetaRecordingLocked = false;
     }
@@ -141,8 +148,10 @@ void RSProfiler::StartBetaRecord()
         LaunchBetaRecordNotificationThread();
         LaunchBetaRecordMetricsUpdateThread();
 
-        // Start recording for the first file
-        RecordStart(ArgList());
+        if (!IsSecureScreen()) {
+            // Start recording for the first file
+            RecordStart(ArgList());
+        }
 
         g_started = true;
 
@@ -171,6 +180,11 @@ void RSProfiler::BetaRecordSetLastParcelTime()
 
 void RSProfiler::SaveBetaRecord()
 {
+    if (!RSUniRenderThread::Instance().IsTaskQueueEmpty()) {
+        // rendering thread works
+        return;
+    }
+
     constexpr double recordMinLengthSeconds = 30.0;
     constexpr double recordMaxLengthSeconds = 50.0;
     const auto recordLength = Now() - g_recordsTimestamp;
@@ -184,7 +198,12 @@ void RSProfiler::SaveBetaRecord()
 
     if (IsNoneMode()) {
         std::unique_lock<std::mutex> lock(g_mutexBetaRecording);
-        RecordStart(ArgList());
+        if (!IsSecureScreen()) {
+            if (RSUniRenderThread::Instance().IsTaskQueueEmpty()) {
+                // rendering thread doesn't work
+                RecordStart(ArgList());
+            }
+        }
         return;
     }
 

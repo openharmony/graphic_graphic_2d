@@ -187,19 +187,16 @@ void DrawCmdList::Dump(std::string& out)
     }
 }
 
-void DrawCmdList::MarshallingDrawOps(Drawing::DrawCmdList *cmdlist)
+void DrawCmdList::MarshallingDrawOps()
 {
     if (mode_ == DrawCmdList::UnmarshalMode::IMMEDIATE) {
         return;
-    }
-    if (!cmdlist) {
-        cmdlist = this;
     }
     std::lock_guard<std::recursive_mutex> lock(mutex_);
     if (replacedOpListForVector_.empty()) {
         for (auto& op : drawOpItems_) {
             if (op) {
-                op->Marshalling(*cmdlist);
+                op->Marshalling(*this);
             }
         }
         return;
@@ -211,7 +208,7 @@ void DrawCmdList::MarshallingDrawOps(Drawing::DrawCmdList *cmdlist)
     uint32_t opReplaceIndex = 0;
     for (auto index = 0u; index < drawOpItems_.size(); ++index) {
         if (drawOpItems_[index]) {
-            drawOpItems_[index]->Marshalling(*cmdlist);
+            drawOpItems_[index]->Marshalling(*this);
         }
         if (index == static_cast<size_t>(replacedOpListForVector_[opReplaceIndex].first)) {
             opIndexForCache[opReplaceIndex] = lastOpItemOffset_.value();
@@ -220,9 +217,36 @@ void DrawCmdList::MarshallingDrawOps(Drawing::DrawCmdList *cmdlist)
     }
     for (auto index = 0u; index < replacedOpListForVector_.size(); ++index) {
         if (replacedOpListForVector_[index].second) {
-            replacedOpListForVector_[index].second->Marshalling(*cmdlist);
+            replacedOpListForVector_[index].second->Marshalling(*this);
         }
         replacedOpListForBuffer_.emplace_back(opIndexForCache[index], lastOpItemOffset_.value());
+    }
+}
+
+void DrawCmdList::ProfilerMarshallingDrawOps(Drawing::DrawCmdList *cmdlist)
+{
+    if (mode_ == DrawCmdList::UnmarshalMode::IMMEDIATE) {
+        return;
+    }
+    if (!cmdlist) {
+        return;
+    }
+
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
+    for (auto& op : drawOpItems_) {
+        if (!op) {
+            continue;
+        }
+        if (op->GetType() == DrawOpItem::IMAGE_WITH_PARM_OPITEM) {
+            continue;
+        }
+        if (op->GetType() == DrawOpItem::IMAGE_OPITEM) {
+            continue;
+        }
+        if (op->GetType() == DrawOpItem::IMAGE_RECT_OPITEM) {
+            continue;
+        }
+        op->Marshalling(*cmdlist);
     }
 }
 

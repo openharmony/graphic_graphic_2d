@@ -758,4 +758,16 @@ HWTEST_F(RSUniRenderThreadTest, GetFastComposeTimeStampDiff, TestSize.Level1)
         EXPECT_EQ(fastComposeTimeStampDiff, 0);
     }
 }
+
+/**
+ * @tc.name: IsTaskQueueEmpty
+ * @tc.desc: Test IsTaskQueueEmpty
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniRenderThreadTest, IsTaskQueueEmpty, TestSize.Level1)
+{
+    auto& instance = RSUniRenderThread::Instance();
+    EXPECT_TRUE(instance.IsTaskQueueEmpty());
+}
 }

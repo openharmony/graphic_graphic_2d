@@ -203,6 +203,14 @@ public:
         return visibleRect_;
     }
 
+    bool IsTaskQueueEmpty() const
+    {
+        if (!handler_) {
+            return true;
+        }
+        return handler_->IsIdle();
+    }
+
     void SetEnableVisiableRect(bool enableVisiableRect)
     {
         enableVisiableRect_.store(enableVisiableRect);
