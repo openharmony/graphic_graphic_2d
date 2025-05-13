@@ -288,6 +288,12 @@ public:
     void UpdateCurCornerRadius(Vector4f& curCornerRadius);
     void SetDirty(bool forceAddToActiveList = false);
 
+    void ResetDirtyFlag()
+    {
+        SetClean();
+        GetMutableRenderProperties().ResetDirty();
+    }
+
     virtual void AddDirtyType(RSModifierType type)
     {
         dirtyTypes_.set(static_cast<int>(type), true);
