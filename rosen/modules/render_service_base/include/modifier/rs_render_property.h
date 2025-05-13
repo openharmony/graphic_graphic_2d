@@ -371,6 +371,8 @@ template<>
 RSB_EXPORT float RSRenderAnimatableProperty<Quaternion>::ToFloat() const;
 template<>
 RSB_EXPORT float RSRenderAnimatableProperty<Vector2f>::ToFloat() const;
+template<>
+RSB_EXPORT float RSRenderAnimatableProperty<Vector3f>::ToFloat() const;
 
 template<>
 RSB_EXPORT void RSRenderProperty<bool>::Dump(std::string& out) const;
@@ -386,6 +388,8 @@ template<>
 RSB_EXPORT void RSRenderProperty<Quaternion>::Dump(std::string& out) const;
 template<>
 RSB_EXPORT void RSRenderProperty<Vector2f>::Dump(std::string& out) const;
+template<>
+RSB_EXPORT void RSRenderProperty<Vector3f>::Dump(std::string& out) const;
 template<>
 RSB_EXPORT void RSRenderProperty<Matrix3f>::Dump(std::string& out) const;
 template<>
@@ -438,6 +442,9 @@ template<>
 RSB_EXPORT bool RSRenderAnimatableProperty<Vector2f>::IsNearEqual(
     const std::shared_ptr<RSRenderPropertyBase>& value, float zeroThreshold) const;
 template<>
+RSB_EXPORT bool RSRenderAnimatableProperty<Vector3f>::IsNearEqual(
+    const std::shared_ptr<RSRenderPropertyBase>& value, float zeroThreshold) const;
+template<>
 RSB_EXPORT bool RSRenderAnimatableProperty<Matrix3f>::IsNearEqual(
     const std::shared_ptr<RSRenderPropertyBase>& value, float zeroThreshold) const;
 template<>
@@ -467,6 +474,7 @@ extern template class RSRenderProperty<Vector4<uint32_t>>;
 extern template class RSRenderProperty<Vector4f>;
 extern template class RSRenderProperty<Quaternion>;
 extern template class RSRenderProperty<Vector2f>;
+extern template class RSRenderProperty<Vector3f>;
 extern template class RSRenderProperty<Matrix3f>;
 extern template class RSRenderProperty<Color>;
 extern template class RSRenderProperty<std::shared_ptr<RSFilter>>;
@@ -491,6 +499,7 @@ extern template class RSRenderAnimatableProperty<float>;
 extern template class RSRenderAnimatableProperty<Vector4f>;
 extern template class RSRenderAnimatableProperty<Quaternion>;
 extern template class RSRenderAnimatableProperty<Vector2f>;
+extern template class RSRenderAnimatableProperty<Vector3f>;
 extern template class RSRenderAnimatableProperty<RRect>;
 extern template class RSRenderAnimatableProperty<Matrix3f>;
 extern template class RSRenderAnimatableProperty<Color>;

@@ -15,6 +15,7 @@
 
 #include "gtest/gtest.h"
 #include "common/rs_obj_abs_geometry.h"
+#include "platform/common/rs_system_properties.h"
 #include "utils/matrix.h"
 
 using namespace testing;
@@ -862,11 +863,21 @@ HWTEST_F(RSObjAbsGeometryTest, UpdateAbsMatrix3DAdvancedTest008, TestSize.Level1
     EXPECT_TRUE(rsObjAbsGeometry->trans_.has_value());
 
     Drawing::Matrix44 matrix44;
-    matrix44.SetMatrix44RowMajor(
-        {86.466026f, 69.5442811f, 11.759384f, 313.943756f,
-        678.053528f, 536.117981f, 92.536613f, 2539.443848f,
-        11.823421f, 9.067585f, 1.857958f, 45.481251f,
-        2.107348f, 1.666657f, 0.288878f, 7.887500f});
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        matrix44.SetMatrix44RowMajor(
+            {86.466026f, 69.5442887f, 11.759384f, 313.943756f,
+            678.053528f, 536.1180419f, 92.536613f, 2539.4436035f,
+            11.823421f, 9.067585f, 1.857958f, 45.481251f,
+            2.107348f, 1.666657f, 0.288878f, 7.887500f});
+    }
+    else {
+        matrix44.SetMatrix44RowMajor(
+            {86.466026f, 69.5442810f, 11.759384f, 313.943756f,
+            678.053528f, 536.1179809f, 92.536613f, 2539.4438476f,
+            11.823421f, 9.067585f, 1.857958f, 45.481251f,
+            2.107348f, 1.666657f, 0.288878f, 7.887500f});
+    }
+
     Drawing::Matrix expectedMatrix;
     expectedMatrix.Reset();
     expectedMatrix.PreConcat(matrix44);
