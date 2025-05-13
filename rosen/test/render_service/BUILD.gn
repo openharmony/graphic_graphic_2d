@@ -102,6 +102,7 @@ group("test") {
     "render_service_base/fuzztest/rsscreenmodeinfo_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsshadow_fuzzer:fuzztest",
     "render_service_base/fuzztest/rssingleframecomposer_fuzzer:fuzztest",
+    "render_service_base/fuzztest/rsspeciallayermanager_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsspringmodel_fuzzer:fuzztest",
     "render_service_base/fuzztest/rssurfaceframeohosgl_fuzzer:fuzztest",
     "render_service_base/fuzztest/rssurfaceframeohosvulkan_fuzzer:fuzztest",

@@ -64,6 +64,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
 
     uint32_t code = GetData<uint32_t>();
     MessageParcel messageParcel;
+    messageParcel.WriteFloat(GetData<float>());
     MessageParcel reply;
     MessageOption option;
     class MySurfaceOcclusionChangeCallbackStub : public OHOS::Rosen::RSSurfaceOcclusionChangeCallbackStub {
