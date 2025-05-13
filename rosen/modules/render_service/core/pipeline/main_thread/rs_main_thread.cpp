@@ -115,6 +115,7 @@
 
 #ifdef RS_ENABLE_GPU
 #include "feature/capture/rs_ui_capture_task_parallel.h"
+#include "feature/capture/rs_ui_capture_solo_task_parallel.h"
 #include "feature/uifirst/rs_sub_thread_manager.h"
 #include "feature/round_corner_display/rs_rcd_surface_render_node.h"
 #include "feature/round_corner_display/rs_round_corner_display_manager.h"

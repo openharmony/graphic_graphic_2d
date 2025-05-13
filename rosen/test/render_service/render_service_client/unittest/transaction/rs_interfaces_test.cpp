@@ -205,6 +205,21 @@ HWTEST_F(RSInterfacesTest, TakeSurfaceCaptureForUIWithConfig003, TestSize.Level1
 }
 
 /**
+ * @tc.name: TakeSurfaceCaptureSoloNodeList001
+ * @tc.desc: test results of TakeSurfaceCaptureSoloNodeList
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, TakeSurfaceCaptureSoloNodeList001, TestSize.Level1)
+{
+    std::shared_ptr<RSNode> node = nullptr;
+    RSInterfaces& instance = RSInterfaces::GetInstance();
+    std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>> res =
+        instance.TakeSurfaceCaptureSoloNodeList(node);
+    EXPECT_TRUE(res.size() == 0);
+}
+
+/**
  * @tc.name: SetHwcNodeBoundsTest
  * @tc.desc: test results of SetHwcNodeBounds
  * @tc.type: FUNC

@@ -693,6 +693,10 @@ void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
 {
     RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
         RS_RSSURFACERENDERNODEDRAWABLE_ONCAPTURE);
+    if (RSUniRenderThread::GetCaptureParam().isSoloNodeUiCapture_) {
+        RSRenderNodeDrawable::OnDraw(canvas);
+        return;
+    }
     if (!ShouldPaint()) {
         return;
     }

@@ -37,6 +37,7 @@
 #include "feature/capture/rs_uni_ui_capture.h"
 #include "feature/capture/rs_surface_capture_task.h"
 #include "feature/capture/rs_ui_capture_task_parallel.h"
+#include "feature/capture/rs_ui_capture_solo_task_parallel.h"
 #include "feature/capture/rs_surface_capture_task_parallel.h"
 #include "gfx/fps_info/rs_surface_fps_manager.h"
 #include "gfx/first_frame_notifier/rs_first_frame_notifier.h"
@@ -1354,6 +1355,31 @@ void RSRenderServiceConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCap
         }
     };
     mainThread_->PostTask(captureTask);
+}
+
+std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>> RSRenderServiceConnection::TakeSurfaceCaptureSoloNode(
+    NodeId id, const RSSurfaceCaptureConfig& captureConfig, RSSurfaceCapturePermissions permissions)
+{
+    RS_LOGI("RSRenderServiceConnection::TakeSurfaceCaptureSoloNode nodeId:[%{public}" PRIu64 "]", id);
+    std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>> pixelMapIdPairVector;
+    std::function<void()> captureTask = [id, captureConfig, &pixelMapIdPairVector,
+        isSystemCalling = permissions.isSystemCalling,
+        selfCapture = permissions.selfCapture]() {
+        RS_TRACE_NAME_FMT("RSRenderServiceConnection::TakeSurfaceCaptureSoloNode captureTask"
+            " nodeId:[%" PRIu64 "]", id);
+        RS_LOGI("RSRenderServiceConnection::TakeSurfaceCaptureSoloNode captureTask begin "
+            "nodeId:[%{public}" PRIu64 "]", id);
+        auto uiCaptureHasPermission = selfCapture || isSystemCalling;
+        if (!uiCaptureHasPermission) {
+            RS_LOGE("RSRenderServiceConnection::TakeSurfaceCaptureSoloNode "
+                "uicapturesolo failed, nodeId:[%{public}" PRIu64
+                "], isSystemCalling: %{public}u, selfCapture: %{public}u", id, isSystemCalling, selfCapture);
+            return;
+        }
+        pixelMapIdPairVector = RSUiCaptureSoloTaskParallel::CaptureSoloNode(id, captureConfig);
+    };
+    RSMainThread::Instance()->PostSyncTask(captureTask);
+    return pixelMapIdPairVector;
 }
 
 void RSRenderServiceConnection::TakeSelfSurfaceCapture(

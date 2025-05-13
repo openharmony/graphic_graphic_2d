@@ -421,6 +421,32 @@ bool RSInterfaces::TakeSurfaceCaptureForUIWithConfig(std::shared_ptr<RSNode> nod
     }
 }
 
+std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>>
+    RSInterfaces::TakeSurfaceCaptureSoloNodeList(std::shared_ptr<RSNode> node)
+{
+    std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>> pixelMapIdPairVector;
+    if (!node) {
+        ROSEN_LOGW("RSInterfaces::TakeSurfaceCaptureSoloNodeList rsnode is nullpter return");
+        return pixelMapIdPairVector;
+    }
+    if (!((node->GetType() == RSUINodeType::ROOT_NODE) ||
+          (node->GetType() == RSUINodeType::CANVAS_NODE) ||
+          (node->GetType() == RSUINodeType::CANVAS_DRAWING_NODE) ||
+          (node->GetType() == RSUINodeType::SURFACE_NODE))) {
+        ROSEN_LOGE("RSInterfaces::TakeSurfaceCaptureSoloNodeList unsupported node type return");
+        return pixelMapIdPairVector;
+    }
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.isSoloNodeUiCapture = true;
+    if (RSSystemProperties::GetUniRenderEnabled()) {
+        pixelMapIdPairVector = renderServiceClient_->TakeSurfaceCaptureSoloNode(node->GetId(), captureConfig);
+        return pixelMapIdPairVector;
+    } else {
+        ROSEN_LOGE("RSInterfaces::TakeSurfaceCaptureSoloNodeList UniRender is not enabled return");
+        return pixelMapIdPairVector;
+    }
+}
+
 bool RSInterfaces::RegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface)
 {
     static std::function<std::shared_ptr<Drawing::Typeface> (uint64_t)> customTypefaceQueryfunc =

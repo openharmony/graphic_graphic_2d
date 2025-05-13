@@ -122,6 +122,10 @@ void RSCanvasRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
     RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
         RS_RSCANVASRENDERNODEDRAWABLE_ONCAPTURE);
 #ifdef RS_ENABLE_GPU
+    if (RSUniRenderThread::GetCaptureParam().isSoloNodeUiCapture_) {
+        RSRenderNodeDrawable::OnDraw(canvas);
+        return;
+    }
     if (!ShouldPaint()) {
         return;
     }

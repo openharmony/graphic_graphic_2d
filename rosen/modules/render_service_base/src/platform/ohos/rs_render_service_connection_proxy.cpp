@@ -1781,6 +1781,34 @@ void RSRenderServiceConnectionProxy::TakeSurfaceCapture(NodeId id, sptr<RSISurfa
     }
 }
 
+std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>> RSRenderServiceConnectionProxy::TakeSurfaceCaptureSoloNode(
+    NodeId id, const RSSurfaceCaptureConfig& captureConfig, RSSurfaceCapturePermissions)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>> pixelMapIdPairVector;
+    option.SetFlags(MessageOption::TF_SYNC);
+    if (!data.WriteUint64(id)) {
+        ROSEN_LOGE("%{public}s write id failed", __func__);
+        return pixelMapIdPairVector;
+    }
+    if (!WriteSurfaceCaptureConfig(captureConfig, data)) {
+        ROSEN_LOGE("%{public}s write captureConfig failed", __func__);
+        return pixelMapIdPairVector;
+    }
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::TAKE_SURFACE_CAPTURE_SOLO);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("%{public}s SendRequest() error[%{public}d]", __func__, err);
+        return pixelMapIdPairVector;
+    }
+    if (!RSMarshallingHelper::UnmarshallingVec(reply, pixelMapIdPairVector)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::TakeSurfaceCaptureSoloNode UnmarshallingVec failed");
+    }
+    return pixelMapIdPairVector;
+}
+
 void RSRenderServiceConnectionProxy::TakeSelfSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
     const RSSurfaceCaptureConfig& captureConfig)
 {

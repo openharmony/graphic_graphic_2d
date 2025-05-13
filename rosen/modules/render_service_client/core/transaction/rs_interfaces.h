@@ -114,6 +114,9 @@ public:
         std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig = {},
         const Drawing::Rect& specifiedAreaRect = Drawing::Rect(0.f, 0.f, 0.f, 0.f));
 
+    std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>>
+        TakeSurfaceCaptureSoloNodeList(std::shared_ptr<RSNode> node);
+        
     bool TakeSelfSurfaceCapture(std::shared_ptr<RSSurfaceNode> node, std::shared_ptr<SurfaceCaptureCallback> callback,
         RSSurfaceCaptureConfig captureConfig = {});
 

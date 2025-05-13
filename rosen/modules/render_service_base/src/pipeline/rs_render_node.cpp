@@ -3858,6 +3858,19 @@ RSRenderNode::ChildrenListSharedPtr RSRenderNode::GetSortedChildren() const
     return std::atomic_load_explicit(&fullChildrenList_, std::memory_order_acquire);
 }
 
+void RSRenderNode::CollectAllChildren(
+    const std::shared_ptr<RSBaseRenderNode>& node, std::vector<NodeId>& vec)
+{
+    if (!node) {
+        ROSEN_LOGD("RSRenderNode::CollectAllChildren node is nullptr");
+        return;
+    }
+    vec.push_back(node->GetId());
+    for (auto& child : *node->GetSortedChildren()) {
+        child->CollectAllChildren(child, vec);
+    }
+}
+
 std::shared_ptr<RSRenderNode> RSRenderNode::GetFirstChild() const
 {
     return children_.empty() ? nullptr : children_.front().lock();

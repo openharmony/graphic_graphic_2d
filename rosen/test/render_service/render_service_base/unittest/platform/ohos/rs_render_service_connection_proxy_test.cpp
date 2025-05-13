@@ -557,6 +557,25 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, TakeSurfaceCapture, TestSize.Level1
 }
 
 /**
+ * @tc.name: TakeSurfaceCaptureSoloNode Test
+ * @tc.desc: TakeSurfaceCaptureSoloNode Test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderServiceConnectionProxyTest, TakeSurfaceCaptureSoloNode, TestSize.Level1)
+{
+    NodeId id = 1;
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.scaleX = 1.0f;
+    captureConfig.scaleY = 1.0f;
+    captureConfig.useDma = false;
+    captureConfig.captureType = SurfaceCaptureType::UICAPTURE;
+    captureConfig.isSync = false;
+    proxy->TakeSurfaceCaptureSoloNode(id, captureConfig);
+    EXPECT_NE(proxy->transactionDataIndex_, 5);
+}
+
+/**
  * @tc.name: SetHwcNodeBounds Test
  * @tc.desc: SetHwcNodeBounds Test
  * @tc.type:FUNC

@@ -230,6 +230,7 @@ ohos_shared_library("librender_service") {
       "core/drawable/rs_root_render_node_drawable.cpp",
       "core/drawable/rs_surface_render_node_drawable.cpp",
       "core/feature/capture/rs_surface_capture_task_parallel.cpp",
+      "core/feature/capture/rs_ui_capture_solo_task_parallel.cpp",
       "core/feature/capture/rs_ui_capture_task_parallel.cpp",
       "core/feature/capture/rs_uni_ui_capture.cpp",
       "core/feature/hwc/rs_uni_hwc_prevalidate_util.cpp",

@@ -138,8 +138,10 @@ void RSCanvasDrawingRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     //if you want to dump canvas_drawing_node as a png
     DumpCanvasDrawing();
 
-    // 3. Draw children of this drawing node by the main canvas.
-    DrawChildren(canvas, bounds);
+    if (!RSUniRenderThread::GetCaptureParam().isSoloNodeUiCapture_) {
+        // 3. Draw children of this drawing node by the main canvas.
+        DrawChildren(canvas, bounds);
+    }
 
     // 4. Draw foreground of this drawing node by the main canvas.
     DrawForeground(canvas, bounds);

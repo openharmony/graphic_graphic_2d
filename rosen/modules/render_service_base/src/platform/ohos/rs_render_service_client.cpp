@@ -318,6 +318,19 @@ bool RSRenderServiceClient::TakeSurfaceCapture(NodeId id, std::shared_ptr<Surfac
     return true;
 }
 
+std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>> RSRenderServiceClient::TakeSurfaceCaptureSoloNode(
+    NodeId id, const RSSurfaceCaptureConfig& captureConfig)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>> pixelMapIdPairVector;
+    if (renderService == nullptr) {
+        ROSEN_LOGE("RSRenderServiceClient::TakeSurfaceCaptureSoloNode renderService == nullptr!");
+        return pixelMapIdPairVector;
+    }
+    pixelMapIdPairVector = renderService->TakeSurfaceCaptureSoloNode(id, captureConfig);
+    return pixelMapIdPairVector;
+}
+
 bool RSRenderServiceClient::TakeSelfSurfaceCapture(NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback,
     const RSSurfaceCaptureConfig& captureConfig)
 {

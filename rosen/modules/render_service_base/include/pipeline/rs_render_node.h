@@ -229,6 +229,7 @@ public:
     ChildrenListSharedPtr GetChildren() const;
     // return children and disappeared children, sorted by z-index
     virtual ChildrenListSharedPtr GetSortedChildren() const;
+    void CollectAllChildren(const std::shared_ptr<RSRenderNode>& node, std::vector<NodeId>& vec);
     uint32_t GetChildrenCount() const;
     std::shared_ptr<RSRenderNode> GetFirstChild() const;
     std::list<WeakPtr> GetChildrenList() const;
