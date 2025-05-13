@@ -64,6 +64,21 @@ private:
 
     void InitSupportAnimationTable();
 
+    // set text flip animation
+    bool SetTextFlipAnimation(const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig);
+    void SetFlipDisappear(
+        const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig,
+        std::shared_ptr<RSNode>& rsNode);
+    bool SetFlipAppear(
+        const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig,
+        std::shared_ptr<RSNode>& rsNode, bool isStartAnimation);
+    
+    std::vector<Drawing::DrawingPiecewiseParameter> UpdateParamtersDelay(
+        const std::vector<Drawing::DrawingPiecewiseParameter>& parameters, int delay);
+
+    // Create a node that is the same as the original node
+    void CreateSameNode(uint64_t symbolId, std::shared_ptr<RSNode>& rsNode);
+    
     // to start animations for one path group
     void GroupAnimationStart(
         const std::shared_ptr<RSNode>& rsNode, std::vector<std::shared_ptr<RSAnimation>>& animations);
@@ -86,6 +101,16 @@ private:
         const Drawing::DrawingPiecewiseParameter& alphaParamter,
         std::vector<std::shared_ptr<RSAnimation>>& animations);
 
+    void TranslateAnimationBase(const std::shared_ptr<RSNode>& rsNode,
+        std::shared_ptr<RSAnimatableProperty<Vector2f>>& property,
+        const Drawing::DrawingPiecewiseParameter& paramter,
+        std::vector<std::shared_ptr<RSAnimation>>& animations);
+
+    void BlurAnimationBase(const std::shared_ptr<RSNode>& rsNode,
+        std::shared_ptr<RSAnimatableProperty<float>>& property,
+        const Drawing::DrawingPiecewiseParameter& paramter,
+        std::vector<std::shared_ptr<RSAnimation>>& animations);
+
     // drawing a path group : symbol drawing or path drawing
     void GroupDrawing(const std::shared_ptr<RSCanvasNode>& canvasNode, TextEngine::SymbolNode& symbolNode,
         const Vector4f& offsets);
@@ -96,6 +121,11 @@ private:
 
     void DrawPathOnCanvas(
         ExtendRecordingCanvas* recordingCanvas, TextEngine::SymbolNode& symbolNode, const Vector4f& offsets);
+    
+    void DrawPathOnCanvas(ExtendRecordingCanvas* recordingCanvas,
+        const TextEngine::TextEffectElement& effectNode,
+        const Drawing::Color& color, const Drawing::Point& offset);
+    
     bool CalcTimePercents(std::vector<float>& timePercents, const uint32_t totalDuration,
         const std::vector<Drawing::DrawingPiecewiseParameter>& oneGroupParas);
 
@@ -125,6 +155,8 @@ private:
         const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig);
     // pop invalid node before replace animation, replace animation have special rsnode lifecycle.
     void PopNodeFromReplaceList(uint64_t symbolSpanId);
+
+    void PopNodeFromFlipList(uint64_t symbolSpanId);
 
     std::shared_ptr<RSNode> rsNode_ = nullptr;
     // scale symbol animation
