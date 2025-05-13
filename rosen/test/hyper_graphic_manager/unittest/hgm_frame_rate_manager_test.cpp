@@ -1137,7 +1137,7 @@ HWTEST_F(HgmFrameRateMgrTest, CheckAncoVoterStatus, Function | SmallTest | Level
         mgr.ancoLowBrightVec_ = params.ancoLowBrightVec;
         mgr.voteRecord_[params.voteRecordKey] = std::make_pair(params.voteRecordFirst, params.voteRecordSecond);
         EXPECT_EQ(mgr.CheckAncoVoterStatus(), expected);
-    }
+    };
 
     testParams({LightFactorStatus::NORMAL_LOW, true, true, {OLED_90_HZ},
         "VOTER_ANCO", {{.voterName = "VOTER_ANCO"}}, true}, true);
