@@ -452,6 +452,16 @@ void RSRenderParams::SetCanvasDrawingSurfaceChanged(bool changeFlag)
     canvasDrawingNodeSurfaceChanged_ = changeFlag;
 }
 
+bool RSRenderParams::IsRepaintBoundary() const
+{
+    return isRepaintBoundary_;
+}
+
+void RSRenderParams::MarkRepaintBoundary(bool isRepaintBoundary)
+{
+    isRepaintBoundary_ = isRepaintBoundary;
+}
+
 const std::shared_ptr<RSFilter>& RSRenderParams::GetForegroundFilterCache() const
 {
     return foregroundFilterCache_;
@@ -505,6 +515,7 @@ void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     target->shadowRect_ = shadowRect_;
     target->drawingCacheIncludeProperty_ = drawingCacheIncludeProperty_;
     target->dirtyRegionInfoForDFX_ = dirtyRegionInfoForDFX_;
+    target->isRepaintBoundary_ = isRepaintBoundary_;
     target->alphaOffScreen_ = alphaOffScreen_;
     target->hdrBrightness_ = hdrBrightness_;
     target->needFilter_ = needFilter_;

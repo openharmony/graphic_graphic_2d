@@ -79,6 +79,14 @@ void RSNodeCommandHelper::MarkNodeGroup(RSContext& context, NodeId nodeId, bool 
     }
 }
 
+void RSNodeCommandHelper::MarkRepaintBoundary(RSContext& context, NodeId nodeId, bool isRepaintBoundary)
+{
+    auto& nodeMap = context.GetNodeMap();
+    if (auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId)) {
+        node->MarkRepaintBoundary(isRepaintBoundary);
+    }
+}
+
 void RSNodeCommandHelper::MarkNodeSingleFrameComposer(RSContext& context,
     NodeId nodeId, bool isNodeSingleFrameComposer, pid_t pid)
 {

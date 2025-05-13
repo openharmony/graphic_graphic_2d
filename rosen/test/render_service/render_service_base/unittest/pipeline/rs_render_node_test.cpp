@@ -3068,5 +3068,19 @@ HWTEST_F(RSRenderNodeTest, GetIsFullChildrenListValid, TestSize.Level1)
     ASSERT_FALSE(renderNode->GetIsFullChildrenListValid());
 }
 
+/**
+ * @tc.name: RepaintBoundary
+ * @tc.desc: Test function MarkRepaintBoundary and IsRepaintBoundary
+ * @tc.type: FUNC
+ * @tc.require: issuesIC50OX
+ */
+HWTEST_F(RSRenderNodeTest, RepaintBoundary, TestSize.Level1)
+{
+    auto renderNode = std::make_shared<RSRenderNode>(1);
+    ASSERT_NE(renderNode, nullptr);
+    renderNode->MarkRepaintBoundary(true);
+    ASSERT_EQ(renderNode->IsRepaintBoundary(), true);
+}
+
 } // namespace Rosen
 } // namespace OHOS

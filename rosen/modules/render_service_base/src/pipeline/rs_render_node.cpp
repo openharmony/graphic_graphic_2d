@@ -875,6 +875,9 @@ void RSRenderNode::DumpTree(int32_t depth, std::string& out) const
     if (drawableVecStatus_ != 0) {
         out += ", drawableVecStatus: " + std::to_string(drawableVecStatus_);
     }
+    if (isRepaintBoundary_) {
+        out += ", RB: true";
+    }
     DumpDrawCmdModifiers(out);
     DumpModifiers(out);
     animationManager_.DumpAnimations(out);
@@ -4561,6 +4564,7 @@ void RSRenderNode::UpdateRenderParams()
     if (cloneSourceNode) {
         stagingRenderParams_->SetCloneSourceDrawable(cloneSourceNode->GetRenderDrawable());
     }
+    stagingRenderParams_->MarkRepaintBoundary(isRepaintBoundary_);
 #endif
 }
 

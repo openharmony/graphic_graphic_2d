@@ -7234,6 +7234,29 @@ HWTEST_F(RSNodeTest, MarkNodeGroup, TestSize.Level1)
 }
 
 /**
+ * @tc.name: MarkRepaintBoundary
+ * @tc.desc: test results of MarkRepaintBoundary
+ * @tc.type: FUNC
+ * @tc.require: issuesIC50OX
+ */
+HWTEST_F(RSNodeTest, MarkRepaintBoundary, TestSize.Level1)
+{
+    auto rbRsNode = RSCanvasNode::Create();
+    rbRsNode->MarkRepaintBoundary("GridItem");
+    EXPECT_TRUE(rbRsNode->isRepaintBoundary_);
+
+    rbRsNode->MarkRepaintBoundary("Grid");
+    EXPECT_TRUE(rbRsNode->isRepaintBoundary_);
+
+    auto rsNode = RSCanvasNode::Create(true, false);
+    rsNode->MarkRepaintBoundary("IsolatedComponent");
+    EXPECT_TRUE(!rsNode->isRepaintBoundary_);
+
+    rsNode->MarkRepaintBoundary("FlowItem");
+    EXPECT_TRUE(rsNode->isRepaintBoundary_);
+}
+
+/**
  * @tc.name: MarkNodeSingleFrameComposer
  * @tc.desc: test results of MarkNodeSingleFrameComposer
  * @tc.type: FUNC

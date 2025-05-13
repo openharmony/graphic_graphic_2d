@@ -82,6 +82,8 @@ enum RSNodeCommandType : uint16_t {
 
     DUMP_CLIENT_NODE_TREE = 0x0700,
     COMMIT_DUMP_CLIENT_NODE_TREE = 0x0701,
+
+    MARK_REPAINT_BOUNDARY = 0x0800,
 };
 
 class RSB_EXPORT RSNodeCommandHelper {
@@ -142,6 +144,7 @@ public:
     static void SetNodeName(RSContext& context, NodeId nodeId, std::string& nodeName);
     static void MarkNodeGroup(RSContext& context, NodeId nodeId, bool isNodeGroup, bool isForced,
         bool includeProperty);
+    static void MarkRepaintBoundary(RSContext& context, NodeId nodeId, bool isRepaintBoundary);
     static void MarkNodeSingleFrameComposer(RSContext& context, NodeId nodeId, bool isNodeFasterDraw, pid_t pid);
     static void MarkSuggestOpincNode(RSContext& context, NodeId nodeId, bool isOpincNode, bool isNeedCalculate);
 
@@ -281,6 +284,9 @@ ADD_COMMAND(RSSetNodeName,
 ADD_COMMAND(RSMarkNodeGroup,
     ARG(PERMISSION_APP, RS_NODE, MARK_NODE_GROUP,
         RSNodeCommandHelper::MarkNodeGroup, NodeId, bool, bool, bool))
+ADD_COMMAND(RSMarkRepaintBoundary,
+    ARG(PERMISSION_APP, RS_NODE, MARK_REPAINT_BOUNDARY,
+        RSNodeCommandHelper::MarkRepaintBoundary, NodeId, bool))
 ADD_COMMAND(RSMarkNodeSingleFrameComposer,
     ARG(PERMISSION_APP, RS_NODE, MARK_NODE_SINGLE_FRAME_COMPOSER,
         RSNodeCommandHelper::MarkNodeSingleFrameComposer, NodeId, bool, pid_t))
