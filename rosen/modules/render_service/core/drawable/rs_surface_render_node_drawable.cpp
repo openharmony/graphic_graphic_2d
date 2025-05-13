@@ -61,6 +61,9 @@
 #ifdef USE_VIDEO_PROCESSING_ENGINE
 #include "metadata_helper.h"
 #endif
+
+#include "rs_profiler.h"
+
 namespace {
 constexpr int32_t CORNER_SIZE = 4;
 constexpr float GAMMA2_2 = 2.2f;
@@ -542,6 +545,7 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     auto cacheState = RSUifirstManager::Instance().GetCacheSurfaceProcessedStatus(*surfaceParams);
     auto useNodeMatchOptimize = rscanvas->GetIsParallelCanvas() &&
         (cacheState == CacheProcessStatus::WAITING || cacheState == CacheProcessStatus::DOING);
+    RS_PROFILER_SURFACE_ON_DRAW_MATCH_OPTIMIZE(useNodeMatchOptimize);
     if (!RSUiFirstProcessStateCheckerHelper::CheckMatchAndWaitNotify(*surfaceParams, useNodeMatchOptimize)) {
         SetDrawSkipType(DrawSkipType::CHECK_MATCH_AND_WAIT_NOTIFY_FAIL);
         RS_LOGE("RSSurfaceRenderNodeDrawable::OnDraw CheckMatchAndWaitNotify failed");

@@ -1526,4 +1526,14 @@ bool RSProfiler::IfNeedToSkipDuringReplay(Parcel& parcel)
     return false;
 }
 
+void RSProfiler::SurfaceOnDrawMatchOptimize(bool& useNodeMatchOptimize)
+{
+    if (!IsEnabled()) {
+        return;
+    }
+    if (IsReadEmulationMode() || IsReadMode()) {
+        useNodeMatchOptimize = true;
+    }
+}
+
 } // namespace OHOS::Rosen
