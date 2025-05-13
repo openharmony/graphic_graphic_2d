@@ -638,7 +638,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
         return 0;
     }
     using FunctionPtr = void (*)();
-    std::vector<FunctionPtr> g_funcVector = {
+    std::vector<FunctionPtr> funcVector = {
         OHOS::Rosen::InitScreenManger,
         OHOS::Rosen::GetActiveScreenId,
         OHOS::Rosen::SetVirtualScreenRefreshRate,
@@ -723,7 +723,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
         OHOS::Rosen::IsVisibleRectSupportRotation
     }; 
     /* Run your code on data */
-    uint8_t pos = OHOS::Rosen::GetData<uint8_t>() % g_funcVector.size();
-    g_funcVector[pos]();
+    uint8_t pos = OHOS::Rosen::GetData<uint8_t>() % funcVector.size();
+    funcVector[pos]();
     return 0;
 }
