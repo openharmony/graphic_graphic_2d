@@ -594,6 +594,7 @@ void RSMainThread::Init()
 #endif
     }
 
+    RS_LOGI("thread init");
     runner_ = AppExecFwk::EventRunner::Create(false);
     handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
     uint32_t timeForWatchDog = WATCHDOG_TIMEVAL;
@@ -605,6 +606,7 @@ void RSMainThread::Init()
     SubScribeSystemAbility();
 #endif
     InitRSEventDetector();
+    RS_LOGI("VSync init");
     sptr<VSyncIConnectionToken> token = new IRemoteStub<VSyncIConnectionToken>();
     sptr<VSyncConnection> conn = new VSyncConnection(rsVSyncDistributor_, "rs", token->AsObject());
     rsFrameRateLinker_ = std::make_shared<RSRenderFrameRateLinker>([this] (const RSRenderFrameRateLinker& linker) {
@@ -650,13 +652,16 @@ void RSMainThread::Init()
         }
     }
 #endif // RS_ENABLE_GL
+    RS_LOGI("OpenInnovationSo");
     RSInnovation::OpenInnovationSo();
 #if defined(RS_ENABLE_UNI_RENDER)
+    RS_LOGI("InitRenderContext");
     /* move to render thread ? */
     RSBackgroundThread::Instance().InitRenderContext(GetRenderEngine()->GetRenderContext().get());
 #endif
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
 #if defined (RS_ENABLE_VK)
+    RS_LOGI("RSMagicPointerRenderManager init");
     RSMagicPointerRenderManager::InitInstance(GetRenderEngine()->GetVkImageManager());
 #endif
 
@@ -674,6 +679,7 @@ void RSMainThread::Init()
 #endif
 
 #if defined(ACCESSIBILITY_ENABLE)
+    RS_LOGI("AccessibilityConfig init");
     accessibilityObserver_ = std::make_shared<AccessibilityObserver>();
     auto &config = OHOS::AccessibilityConfig::AccessibilityConfig::GetInstance();
     config.InitializeContext();
@@ -709,8 +715,10 @@ void RSMainThread::Init()
             RequestNextVSync("OverDrawUpdate");
         });
     });
+    RS_LOGI("RSOverdrawController init");
     RSOverdrawController::GetInstance().SetDelegate(delegate);
 
+    RS_LOGI("HgmTaskHandleThread init");
     HgmTaskHandleThread::Instance().PostSyncTask([this] () {
         auto frameRateMgr = OHOS::Rosen::HgmCore::Instance().GetFrameRateMgr();
         if (frameRateMgr == nullptr) {
@@ -729,8 +737,11 @@ void RSMainThread::Init()
     });
     SubscribeAppState();
     PrintCurrentStatus();
+    RS_LOGI("UpdateGpuContextCacheSize");
     UpdateGpuContextCacheSize();
+    RS_LOGI("RSLuminanceControl init");
     RSLuminanceControl::Get().Init();
+    RS_LOGI("RSColorTemperature init");
     RSColorTemperature::Get().Init();
     // used to force refresh screen when cct is updated
     std::function<void()> refreshFunc = []() {
