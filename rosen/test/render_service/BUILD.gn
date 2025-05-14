@@ -72,6 +72,7 @@ group("test") {
     "render_service_base/fuzztest/rsframereport_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsfunctionaldelegate_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsgpuoverdrawcanvaslistener_fuzzer:fuzztest",
+    "render_service_base/fuzztest/rshgmconfigdata_fuzzer:fuzztest",
     "render_service_base/fuzztest/rslineargradientblurshaderfilter_fuzzer:fuzztest",
     "render_service_base/fuzztest/rslog_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsmarshallinghelper_fuzzer:fuzztest",
