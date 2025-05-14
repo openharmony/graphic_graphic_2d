@@ -105,7 +105,30 @@ bool RSAnimationFraction::IsStartRunning(const int64_t deltaTime, const int64_t 
     return runningTime_ > startDelayNs;
 }
 
-std::tuple<float, bool, bool, bool> RSAnimationFraction::GetAnimationFraction(int64_t time)
+int64_t RSAnimationFraction::CalculateLeftDelayTime(const int64_t startDelayNs)
+{
+    if (ROSEN_LE(speed_, 0.0f)) {
+        return 0;
+    }
+    if (runningTime_ > startDelayNs) {
+        return 0;
+    }
+    float animationScale = GetAnimationScale();
+    int64_t leftDelayTimeOrigin;
+    if (direction_ == ForwardDirection::NORMAL) {
+        leftDelayTimeOrigin = startDelayNs - runningTime_;
+    } else {
+        leftDelayTimeOrigin = runningTime_;
+    }
+
+    double ret = static_cast<double>(leftDelayTimeOrigin) / MS_TO_NS / speed_ * animationScale;
+    if (ret > static_cast<double>(INT64_MAX) || ret < static_cast<double>(INT64_MIN)) {
+        return 0;
+    }
+    return static_cast<int64_t>(ret);
+}
+
+std::tuple<float, bool, bool, bool> RSAnimationFraction::GetAnimationFraction(int64_t time, int64_t& minLeftDelayTime)
 {
     int64_t durationNs = duration_ * MS_TO_NS;
     int64_t startDelayNs = startDelay_ * MS_TO_NS;
@@ -125,14 +148,22 @@ std::tuple<float, bool, bool, bool> RSAnimationFraction::GetAnimationFraction(in
 
     if (durationNs <= 0 || (repeatCount_ <= 0 && repeatCount_ != INFINITE)) {
         isFinished = true;
-        return { GetEndFraction(), isInStartDelay, isFinished, isRepeatFinished};
+        minLeftDelayTime = 0;
+        return { GetEndFraction(), isInStartDelay, isFinished, isRepeatFinished };
     }
     // 1. Calculates the total running fraction of animation
     if (!IsStartRunning(deltaTime, startDelayNs)) {
-        isFinished = IsFinished();
-        isInStartDelay = isFinished ? false : true;
-        return { GetStartFraction(), isInStartDelay, isFinished, isRepeatFinished };
+        if (IsFinished()) {
+            minLeftDelayTime = 0;
+            return { GetStartFraction(), isInStartDelay, true, isRepeatFinished };
+        }
+        isInStartDelay = true;
+        if (minLeftDelayTime > 0) {
+            minLeftDelayTime = std::min(CalculateLeftDelayTime(startDelayNs), minLeftDelayTime);
+        }
+        return { GetStartFraction(), isInStartDelay, false, isRepeatFinished };
     }
+    minLeftDelayTime = 0;
 
     // 2. Calculate the running time of the current cycle animation.
     int64_t realPlayTime = runningTime_ - startDelayNs - (currentRepeatCount_ * durationNs);
@@ -158,7 +189,7 @@ std::tuple<float, bool, bool, bool> RSAnimationFraction::GetAnimationFraction(in
 
     // 5. get final animation fraction
     if (isFinished) {
-        return { GetEndFraction(), isInStartDelay, isFinished, isRepeatCallbackEnable_};
+        return { GetEndFraction(), isInStartDelay, isFinished, isRepeatCallbackEnable_ };
     }
     currentTimeFraction_ = static_cast<float>(playTime_) / durationNs;
     currentTimeFraction_ = currentIsReverseCycle_ ? (1.0f - currentTimeFraction_) : currentTimeFraction_;

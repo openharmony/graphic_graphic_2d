@@ -342,7 +342,8 @@ public:
         dirtyTypes_.set(static_cast<int>(type), true);
     }
 
-    std::tuple<bool, bool, bool> Animate(int64_t timestamp, int64_t period = 0, bool isDisplaySyncEnabled = false);
+    std::tuple<bool, bool, bool> Animate(
+        int64_t timestamp, int64_t& minLeftDelayTime, int64_t period = 0, bool isDisplaySyncEnabled = false);
 
     bool IsClipBound() const;
     // clipRect has value in UniRender when calling PrepareCanvasRenderNode, else it is nullopt

@@ -38,8 +38,12 @@ public:
     static void SetAnimationScale(float animationScale);
     static void OnAnimationScaleChangedCallback(const char *key, const char *value, void *context);
 
-    // return <fraction, isInStartDelay, isFinished, isRepeatFinished> as tuple
-    std::tuple<float, bool, bool, bool> GetAnimationFraction(int64_t time);
+    /**
+     * @brief Normalize the animation time percentage into a fraction
+     * @param time Vsync time
+     * @return tuple<fraction, isInStartDelay, isFinished, isRepeatFinished>
+     */
+    std::tuple<float, bool, bool, bool> GetAnimationFraction(int64_t time, int64_t& minLeftDelayTime);
     void UpdateRemainTimeFraction(float fraction, int remainTime = 0);
     float GetStartFraction() const;
     float GetEndFraction() const;
@@ -64,11 +68,17 @@ public:
         return isRepeatCallbackEnable_;
     }
 
+    int64_t GetRunningTime() const
+    {
+        return runningTime_;
+    }
+
 private:
     bool IsInRepeat() const;
     bool IsFinished() const;
     void UpdateReverseState(bool finish);
     bool IsStartRunning(const int64_t deltaTime, const int64_t startDelayNs);
+    int64_t CalculateLeftDelayTime(const int64_t startDelayNs);
 
     static std::atomic<float> animationScale_;
     static std::atomic<bool> isInitialized_;
@@ -77,6 +87,7 @@ private:
     int64_t playTime_ { 0 };
     float currentTimeFraction_ { 0.0f };
     int currentRepeatCount_ { 0 };
+    // the animation's running duration: Unit in ns
     int64_t runningTime_ { 0 };
     bool currentIsReverseCycle_ { false };
     int64_t lastFrameTime_ { -1 };

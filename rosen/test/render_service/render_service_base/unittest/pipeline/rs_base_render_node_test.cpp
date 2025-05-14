@@ -1205,10 +1205,11 @@ HWTEST_F(RSBaseRenderNodeTest, Animate, TestSize.Level1)
     int64_t timestamp = 4;
     int64_t period = 2;
     bool isDisplaySyncEnabled = true;
-    node->Animate(timestamp, period, isDisplaySyncEnabled);
+    int64_t leftDelayTime = 0;
+    node->Animate(timestamp, leftDelayTime, period, isDisplaySyncEnabled);
 
     node->displaySync_ = std::make_shared<RSRenderDisplaySync>(1);
-    node->Animate(timestamp, period, isDisplaySyncEnabled);
+    node->Animate(timestamp, leftDelayTime, period, isDisplaySyncEnabled);
     ASSERT_TRUE(true);
 }
 

@@ -131,6 +131,7 @@ void RSRenderAnimation2FuzzerTest()
     float fraction = GetData<float>();
     bool isReversed = GetData<bool>();
     auto time = GetData<int64_t>();
+    auto delayTime = GetData<int64_t>();
     auto animation1 = std::make_shared<RSRenderAnimation>(animationId);
 
     // status error
@@ -142,7 +143,7 @@ void RSRenderAnimation2FuzzerTest()
     animation1->SetFraction(fraction);
     animation1->SetReversedAndContinue();
     animation1->SetReversed(isReversed);
-    animation1->Animate(time);
+    animation1->Animate(time, delayTime);
 
     // status normal
     animation1->Start();
@@ -150,11 +151,11 @@ void RSRenderAnimation2FuzzerTest()
     animation1->SetFraction(fraction);
     animation1->SetReversed(isReversed);
     animation1->SetReversedAndContinue();
-    animation1->Animate(time);
+    animation1->Animate(time, delayTime);
     animation1->SetStartTime(time);
-    animation1->Animate(time);
+    animation1->Animate(time, delayTime);
     animation1->animationFraction_.SetLastFrameTime(time);
-    animation1->Animate(time);
+    animation1->Animate(time, delayTime);
     animation1->FinishOnPosition(pos);
     animation1->Start();
 

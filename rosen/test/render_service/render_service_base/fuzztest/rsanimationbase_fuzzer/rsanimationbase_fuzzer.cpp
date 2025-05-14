@@ -91,6 +91,7 @@ void RSAnimationManagerFuzzerTest()
     AnimationId id = GetData<AnimationId>();
     pid_t pid = GetData<pid_t>();
     int64_t time = GetData<int64_t>();
+    int64_t delayTime = GetData<int64_t>();
     bool nodeIsOnTheTree = GetData<bool>();
     RSSurfaceNodeAbilityState abilityState = GetData<RSSurfaceNodeAbilityState>();
     bool isEnable = GetData<bool>();
@@ -111,7 +112,7 @@ void RSAnimationManagerFuzzerTest()
     animationManager->FilterAnimationByPid(pid);
     animationManager->GetAnimationsSize();
     animationManager->GetAnimationPid();
-    animationManager->Animate(time, nodeIsOnTheTree, abilityState);
+    animationManager->Animate(time, delayTime, nodeIsOnTheTree, abilityState);
     animationManager->RegisterSpringAnimation(propertyId, animId);
     animationManager->UnregisterSpringAnimation(propertyId, animId);
     animationManager->QuerySpringAnimation(propertyId);
