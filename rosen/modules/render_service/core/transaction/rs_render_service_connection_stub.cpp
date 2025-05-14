@@ -289,7 +289,7 @@ bool CheckCreateNodeAndSurface(pid_t pid, RSSurfaceNodeType nodeType, SurfaceWin
     constexpr int windowTypeMax = static_cast<int>(SurfaceWindowType::SCB_DROPDOWN_PANEL);
 
     int windowTypeNum = static_cast<int>(windowType);
-    if (windowTypeNum < windowTypeMin && windowTypeNum > windowTypeMax) {
+    if (windowTypeNum < windowTypeMin || windowTypeNum > windowTypeMax) {
         RS_LOGW("CREATE_NODE_AND_SURFACE invalid SurfaceWindowType");
         return false;
     }

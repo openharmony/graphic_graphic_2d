@@ -83,6 +83,11 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, CreateSurfaceRenderNodeDrawable, TestS
     auto renderNode = std::make_shared<RSSurfaceRenderNode>(id);
     auto drawable = RSSurfaceRenderNodeDrawable::OnGenerate(renderNode);
     ASSERT_NE(drawable, nullptr);
+
+    const RSSurfaceRenderNodeConfig config = {.id = id, .surfaceWindowType = SurfaceWindowType::SCB_SCREEN_LOCK};
+    renderNode = std::make_shared<RSSurfaceRenderNode>(config);
+    drawable = RSSurfaceRenderNodeDrawable::OnGenerate(renderNode);
+    ASSERT_NE(drawable, nullptr);
 }
 
 /**
@@ -101,6 +106,34 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, OnDraw, TestSize.Level1)
     drawable_->renderParams_->shouldPaint_ = true;
     drawable_->renderParams_->contentEmpty_ = false;
     surfaceDrawable_->OnDraw(*drawingCanvas_);
+
+    surfaceDrawable_->surfaceWindowType_ = SurfaceWindowType::DEFAULT_WINDOW;
+    surfaceDrawable_->OnDraw(*drawingCanvas_);
+    ASSERT_EQ(surfaceDrawable_->IsScbWindowType(), false);
+
+    surfaceDrawable_->surfaceWindowType_ = SurfaceWindowType::SYSTEM_SCB_WINDOW;
+    surfaceDrawable_->OnDraw(*drawingCanvas_);
+    ASSERT_EQ(surfaceDrawable_->IsScbWindowType(), true);
+
+    surfaceDrawable_->surfaceWindowType_ = SurfaceWindowType::SCB_DESKTOP;
+    surfaceDrawable_->OnDraw(*drawingCanvas_);
+    ASSERT_EQ(surfaceDrawable_->IsScbWindowType(), true);
+
+    surfaceDrawable_->surfaceWindowType_ = SurfaceWindowType::SCB_WALLPAPER;
+    surfaceDrawable_->OnDraw(*drawingCanvas_);
+    ASSERT_EQ(surfaceDrawable_->IsScbWindowType(), true);
+
+    surfaceDrawable_->surfaceWindowType_ = SurfaceWindowType::SCB_SCREEN_LOCK;
+    surfaceDrawable_->OnDraw(*drawingCanvas_);
+    ASSERT_EQ(surfaceDrawable_->IsScbWindowType(), true);
+
+    surfaceDrawable_->surfaceWindowType_ = SurfaceWindowType::SCB_NEGATIVE_SCREEN;
+    surfaceDrawable_->OnDraw(*drawingCanvas_);
+    ASSERT_EQ(surfaceDrawable_->IsScbWindowType(), true);
+
+    surfaceDrawable_->surfaceWindowType_ = SurfaceWindowType::SCB_DROPDOWN_PANEL;
+    surfaceDrawable_->OnDraw(*drawingCanvas_);
+    ASSERT_EQ(surfaceDrawable_->IsScbWindowType(), true);
 }
 
 /**
