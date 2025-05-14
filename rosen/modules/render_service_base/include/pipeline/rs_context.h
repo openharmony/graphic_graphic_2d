@@ -247,7 +247,7 @@ private:
     std::vector<SubSurfaceCntUpdateInfo> subSurfaceCntUpdateInfo_;
 
     std::unique_ptr<RSUiCaptureHelper> uiCaptureHelper_;
-    std::atmoic<uint32_t> visibleleashWindowCount_ = 0;
+    std::atmoic<uint32_t> visibleLeashWindowCount_ = 0;
 
     friend class RSRenderThread;
     friend class RSMainThread;
