@@ -211,6 +211,7 @@ CM_INLINE void RSRenderNodeDrawable::GenerateCacheIfNeed(
         RSRenderNodeDrawableAdapter* root = curDrawingCacheRoot_;
         curDrawingCacheRoot_ = this;
         hasSkipCacheLayer_ = false;
+        hasChildInBlackList_ = false;
         UpdateCacheSurface(canvas, params);
         curDrawingCacheRoot_ = root;
         return;
@@ -229,6 +230,7 @@ CM_INLINE void RSRenderNodeDrawable::GenerateCacheIfNeed(
         RSRenderNodeDrawableAdapter* root = curDrawingCacheRoot_;
         curDrawingCacheRoot_ = this;
         hasSkipCacheLayer_ = false;
+        hasChildInBlackList_ = false;
         UpdateCacheSurface(canvas, params);
         // if this NodeGroup contains other nodeGroup with filter, we should reset the isOffScreenWithClipHole_
         isOffScreenWithClipHole_ = isOffScreenWithClipHole;
@@ -362,6 +364,13 @@ void RSRenderNodeDrawable::DrawWithNodeGroupCache(Drawing::Canvas& canvas, const
     if (hasSkipCacheLayer_ && curDrawingCacheRoot_) {
         curDrawingCacheRoot_->SetSkipCacheLayer(true);
     }
+    const auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+    if (uniParam && uniParam->IsMirrorScreen() && hasChildInBlackList_) {
+        RS_LOGD("RSRenderNodeDrawable::DrawWithNodeGroupCache do not DrawCachedImage on mirror screen if node is in "
+                "blacklist");
+        return;
+    }
+
     auto curCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
     if (!curCanvas) {
         RS_LOGD("RSRenderNodeDrawable::DrawWithNodeGroupCache curCanvas is null");
