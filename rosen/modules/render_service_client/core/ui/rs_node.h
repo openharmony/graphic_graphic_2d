@@ -418,6 +418,7 @@ public:
 
     void SetUseEffect(bool useEffect);
     void SetUseEffectType(UseEffectType useEffectType);
+    void SetAlwaysSnapshot(bool enable);
 
     void SetUseShadowBatching(bool useShadowBatching);
 

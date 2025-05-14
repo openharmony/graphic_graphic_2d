@@ -35,6 +35,7 @@
 #include "common/rs_common_def.h"
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_vector4.h"
+#include "feature/hyper_graphic_manager/rs_frame_rate_policy.h"
 #include "modifier/rs_modifier.h"
 #include "modifier/rs_modifier_manager_map.h"
 #include "modifier/rs_property.h"
@@ -49,7 +50,7 @@
 #include "ui/rs_canvas_drawing_node.h"
 #include "ui/rs_canvas_node.h"
 #include "ui/rs_display_node.h"
-#include "feature/hyper_graphic_manager/rs_frame_rate_policy.h"
+#include "ui/rs_effect_node.h"
 #include "ui/rs_proxy_node.h"
 #include "ui/rs_root_node.h"
 #include "ui/rs_surface_node.h"
@@ -2247,6 +2248,12 @@ void RSNode::SetUseEffectType(UseEffectType useEffectType)
         RSModifierType::USE_EFFECT_TYPE, static_cast<int>(useEffectType));
 }
 
+void RSNode::SetAlwaysSnapshot(bool enable)
+{
+    SetProperty<RSAlwaysSnapshotModifier, RSProperty<bool>>(
+        RSModifierType::ALWAYS_SNAPSHOT, static_cast<bool>(enable));
+}
+
 void RSNode::SetUseShadowBatching(bool useShadowBatching)
 {
     SetProperty<RSUseShadowBatchingModifier, RSProperty<bool>>(RSModifierType::USE_SHADOW_BATCHING, useShadowBatching);
@@ -3561,6 +3568,7 @@ template bool RSNode::IsInstanceOf<RSProxyNode>() const;
 template bool RSNode::IsInstanceOf<RSCanvasNode>() const;
 template bool RSNode::IsInstanceOf<RSRootNode>() const;
 template bool RSNode::IsInstanceOf<RSCanvasDrawingNode>() const;
+template bool RSNode::IsInstanceOf<RSEffectNode>() const;
 
 void RSNode::SetInstanceId(int32_t instanceId)
 {

@@ -29,6 +29,7 @@
 #include "property/rs_point_light_manager.h"
 #include "property/rs_properties_def.h"
 #include "render/rs_aibar_shader_filter.h"
+#include "render/rs_always_snapshot_shader_filter.h"
 #include "render/rs_colorful_shadow_filter.h"
 #include "render/rs_filter.h"
 #include "render/rs_foreground_effect_filter.h"
@@ -264,6 +265,8 @@ static const std::unordered_map<RSModifierType, ResetPropertyFunc> g_propertyRes
                                                                 prop->SetAttractionFraction(0.f); }},
     { RSModifierType::ATTRACTION_DSTPOINT,                  [](RSProperties* prop) {
                                                                 prop->SetAttractionDstPoint({}); }},
+    { RSModifierType::ALWAYS_SNAPSHOT,                      [](RSProperties* prop) {
+                                                                prop->SetAlwaysSnapshot(false); }},                                                            
 };
 
 } // namespace
@@ -2950,6 +2953,20 @@ bool RSProperties::GetFgBlurDisableSystemAdaptation() const
     return fgBlurDisableSystemAdaptation;
 }
 
+void RSProperties::SetAlwaysSnapshot(bool enable)
+{
+    alwaysSnapshot_ = enable;
+    isDrawn_ = true;
+    filterNeedUpdate_ = true;
+    SetDirty();
+    contentDirty_ = true;
+}
+
+bool RSProperties::GetAlwaysSnapshot() const
+{
+    return alwaysSnapshot_;
+}
+
 bool RSProperties::IsBackgroundMaterialFilterValid() const
 {
     return IsBackgroundBlurRadiusValid() || IsBackgroundBlurBrightnessValid() || IsBackgroundBlurSaturationValid();
@@ -3364,6 +3381,15 @@ void RSProperties::GenerateWaterRippleFilter()
     }
 }
 
+void RSProperties::GenerateAlwaysSnapshotFilter()
+{
+    std::shared_ptr<RSAlwaysSnapshotShaderFilter> alwaysSnapshotFilter =
+        std::make_shared<RSAlwaysSnapshotShaderFilter>();
+    std::shared_ptr<RSDrawingFilter> originalFilter = std::make_shared<RSDrawingFilter>(alwaysSnapshotFilter);
+    backgroundFilter_ = originalFilter;
+    backgroundFilter_->SetFilterType(RSFilter::ALWAYS_SNAPSHOT);
+}
+
 void RSProperties::GenerateBackgroundFilter()
 {
     if (aiInvert_.has_value() || systemBarEffect_) {
@@ -3379,6 +3405,9 @@ void RSProperties::GenerateBackgroundFilter()
     }
     if (IsWaterRippleValid()) {
         GenerateWaterRippleFilter();
+    }
+    if (alwaysSnapshot_ && backgroundFilter_ == nullptr) {
+        GenerateAlwaysSnapshotFilter();
     }
     if (backgroundFilter_ == nullptr) {
         ROSEN_LOGD("RSProperties::GenerateBackgroundFilter failed");
@@ -4349,6 +4378,9 @@ std::string RSProperties::Dump() const
     // UseEffect
     if (GetUseEffect()) {
         dumpInfo.append(", GetUseEffect[true]");
+    }
+    if (GetAlwaysSnapshot()) {
+        dumpInfo.append(", AlwaysSnapshot[true]");
     }
 
     // Gray Scale

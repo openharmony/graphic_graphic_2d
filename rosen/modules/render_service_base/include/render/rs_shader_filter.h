@@ -43,6 +43,7 @@ public:
         WATER_RIPPLE,
         MAGNIFIER,
         LIGHT_BLUR,
+        ALWAYS_SNAPSHOT,
     };
 
     ShaderFilterType GetShaderFilterType() const

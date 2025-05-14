@@ -8079,4 +8079,21 @@ HWTEST_F(RSNodeTest, GetIsDrawn, TestSize.Level1)
     auto res = rsNode->GetIsDrawn();
     ASSERT_EQ(res, false);
 }
+
+/**
+ * @tc.name: SetAlwaysSnapshot
+ * @tc.desc: test results of SetAlwaysSnapshot
+ * @tc.type: FUNC
+ * @tc.require: issueIC5TKO
+ */
+HWTEST_F(RSNodeTest, SetAlwaysSnapshot, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
+    // Default value is false.
+    EXPECT_EQ(rsNode->GetStagingProperties().GetAlwaysSnapshot(), false);
+
+    rsNode->SetAlwaysSnapshot(true);
+    EXPECT_EQ(rsNode->GetStagingProperties().GetAlwaysSnapshot(), true);
+}
 } // namespace OHOS::Rosen

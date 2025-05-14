@@ -426,6 +426,11 @@ bool RSModifierExtractor::GetBgBlurDisableSystemAdaptation() const
     GET_PROPERTY_FROM_MODIFIERS(bool, BG_BLUR_DISABLE_SYSTEM_ADAPTATION, true, =);
 }
 
+bool RSModifierExtractor::GetAlwaysSnapshot() const
+{
+    GET_PROPERTY_FROM_MODIFIERS(bool, ALWAYS_SNAPSHOT, false, =);
+}
+
 float RSModifierExtractor::GetForegroundBlurRadius() const
 {
     GET_PROPERTY_FROM_MODIFIERS(float, FOREGROUND_BLUR_RADIUS, 0.f, =);

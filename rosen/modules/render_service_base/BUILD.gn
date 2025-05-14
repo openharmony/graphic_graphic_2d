@@ -277,6 +277,7 @@ ohos_source_set("render_service_base_src") {
     "src/render/rs_spherize_effect_filter.cpp",
     "src/render/rs_typeface_cache.cpp",
     "src/render/rs_water_ripple_shader_filter.cpp",
+    "src/render/rs_always_snapshot_shader_filter.cpp",
 
     #transaction
     "src/transaction/rs_hgm_config_data.cpp",
