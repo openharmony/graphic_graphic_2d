@@ -88,6 +88,7 @@ public:
     void SetPaint(Drawing::Paint paint) override;
     void Purge() override;
     bool IsValid() override;
+    void Dump(std::string& dump) override;
 protected:
     std::shared_ptr<RSImage> rsImage_ = nullptr;
 private:
