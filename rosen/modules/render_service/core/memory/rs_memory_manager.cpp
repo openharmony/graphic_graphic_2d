@@ -22,6 +22,7 @@
 #include <sys/prctl.h>
 #include "include/core/SkGraphics.h"
 #include "rs_trace.h"
+#include "static_factory.h"
 #include "third_party/cJSON/cJSON.h"
 
 #include "memory/rs_dfx_string.h"
@@ -96,6 +97,11 @@ uint32_t MemoryManager::frameCount_ = 0;
 uint64_t MemoryManager::memoryWarning_ = UINT64_MAX;
 uint64_t MemoryManager::gpuMemoryControl_ = UINT64_MAX;
 uint64_t MemoryManager::totalMemoryReportTime_ = 0;
+
+// vma cache
+bool MemoryManager::vmaOptimizeFlag_ = false;  // enable/disable vma cache, global flag
+std::mutex MemoryManager::vmaCacheCountMutex_;
+uint32_t MemoryManager::vmaCacheCount_ = 0;
 
 void MemoryManager::DumpMemoryUsage(DfxString& log, std::string& type)
 {
@@ -831,8 +837,25 @@ void MemoryManager::ErasePidInfo(const std::set<pid_t>& exitedPidSet)
     }
 }
 
+void MemoryManager::OnRenderSetDrawingVmaCacheStatus()
+{
+    if (!vmaOptimizeFlag_) { // render this frame with vma cache on/off
+        return;
+    }
+    std::lock_guard<std::mutex> lock(vmaCacheCountMutex_);
+    if (vmaCacheCount_ > 0) {
+        vmaCacheCount_--;
+        Drawing::StaticFactory::SetVmaCacheStatus(true);
+    } else {
+        Drawing::StaticFactory::SetVmaCacheStatus(false);
+    }
+}
+
 void MemoryManager::VmaDefragment(Drawing::GPUContext* gpuContext)
 {
+    if (!vmaOptimizeFlag_) {
+        return;
+    }
 #if defined(RS_ENABLE_VK)
     if (!gpuContext) {
         RS_LOGE("VmaDefragment fail, gpuContext is nullptr");
@@ -841,6 +864,28 @@ void MemoryManager::VmaDefragment(Drawing::GPUContext* gpuContext)
     RS_TRACE_NAME_FMT("VmaDefragment");
     gpuContext->VmaDefragment();
 #endif
+}
+
+// vma cache
+bool MemoryManager::GetVmaOptimizeFlag()
+{
+    return vmaOptimizeFlag_; // global flag
+}
+
+void MemoryManager::SetDrawingVmaCacheStatus(bool flag)
+{
+    Drawing::StaticFactory::SetVmaCacheStatus(flag);  // render this frame with vma cache on/off
+}
+
+void MemoryManager::SetVmaCacheStatusWithCount(bool flag)
+{
+    static constexpr int MAX_VMA_CACHE_COUNT = 600;
+    RS_LOGD("RSUniRenderThread::SetVmaCacheStatus(): %d, %d", vmaOptimizeFlag_, flag);
+    if (!vmaOptimizeFlag_) {
+        return;
+    }
+    std::lock_guard<std::mutex> lock(vmaCacheCountMutex_);
+    vmaCacheCount_ = flag ? MAX_VMA_CACHE_COUNT : 0;
 }
 
 void MemoryManager::DumpExitPidMem(std::string& log, int pid)

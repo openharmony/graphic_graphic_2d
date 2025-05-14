@@ -53,7 +53,6 @@
 #include "rs_trace.h"
 #include "rs_uni_render_engine.h"
 #include "rs_uni_render_util.h"
-#include "static_factory.h"
 #include "surface.h"
 #include "sync_fence.h"
 #include "system/rs_system_parameters.h"
@@ -171,7 +170,7 @@ void RSUniRenderThread::InitGrContext()
     if (Drawing::SystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
         Drawing::SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
         if (RSSystemProperties::IsFoldScreenFlag()) {
-            vmaOptimizeFlag_ = true;
+            MemoryManager::SetDrawingVmaCacheStatus(true);
         }
     }
 #endif
@@ -368,15 +367,7 @@ void RSUniRenderThread::Render()
     if (!rootNodeDrawable_) {
         RS_LOGE("rootNodeDrawable is nullptr");
     }
-    if (vmaOptimizeFlag_) { // render this frame with vma cache on/off
-        std::lock_guard<std::mutex> lock(vmaCacheCountMutex_);
-        if (vmaCacheCount_ > 0) {
-            vmaCacheCount_--;
-            Drawing::StaticFactory::SetVmaCacheStatus(true);
-        } else {
-            Drawing::StaticFactory::SetVmaCacheStatus(false);
-        }
-    }
+    MemoryManager::OnRenderSetDrawingVmaCacheStatus();
     Drawing::Canvas canvas;
     RSNodeStats::GetInstance().ClearNodeStats();
     rootNodeDrawable_->OnDraw(canvas);
@@ -886,9 +877,7 @@ void RSUniRenderThread::PostClearMemoryTask(ClearMemoryMoment moment, bool deepl
         auto screenManager_ = CreateOrGetScreenManager();
         screenManager_->ClearFrameBufferIfNeed();
         grContext->FlushAndSubmit(true);
-        if (this->vmaOptimizeFlag_) {
-            MemoryManager::VmaDefragment(grContext);
-        }
+        MemoryManager::VmaDefragment(grContext);
         if (!isDefaultClean) {
             this->clearMemoryFinished_ = true;
         } else {
@@ -1174,17 +1163,6 @@ uint32_t RSUniRenderThread::GetDynamicRefreshRate() const
 void RSUniRenderThread::SetAcquireFence(sptr<SyncFence> acquireFence)
 {
     acquireFence_ = acquireFence;
-}
-
-void RSUniRenderThread::SetVmaCacheStatus(bool flag)
-{
-    static constexpr int MAX_VMA_CACHE_COUNT = 600;
-    RS_LOGD("RSUniRenderThread::SetVmaCacheStatus(): %d, %d", vmaOptimizeFlag_, flag);
-    if (!vmaOptimizeFlag_) {
-        return;
-    }
-    std::lock_guard<std::mutex> lock(vmaCacheCountMutex_);
-    vmaCacheCount_ = flag ? MAX_VMA_CACHE_COUNT : 0;
 }
 
 void RSUniRenderThread::DumpVkImageInfo(std::string &dumpString)
