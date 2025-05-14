@@ -32,6 +32,7 @@ using namespace testing::ext;
 namespace OHOS {
 namespace Rosen {
 static constexpr uint32_t SET_REFRESHRATE_SLEEP_US = 50000;  // wait for refreshrate change
+static constexpr uint32_t SET_OPERATION_SLEEP_US = 50000;  // wait for set-operation change
 static constexpr uint64_t TEST_ID = 123;
 class RSClientTest : public testing::Test {
 public:
@@ -1028,6 +1029,24 @@ HWTEST_F(RSClientTest, GetPixelMapByProcessIdTest, TestSize.Level1)
     std::vector<PixelMapInfo> pixelMapInfoVector;
     int32_t res = rsClient->GetPixelMapByProcessId(pixelMapInfoVector, pid);
     ASSERT_EQ(res, SUCCESS);
+}
+
+/**
+ * @tc.name: BehindWindowFilterEnabledTest
+ * @tc.desc: BehindWindowFilterEnabledTest
+ * @tc.type:FUNC
+ * @tc.require: issuesIC5OEB
+ */
+HWTEST_F(RSClientTest, BehindWindowFilterEnabledTest, TestSize.Level1)
+{
+    rsClient->SetBehindWindowFilterEnabled(true);
+    usleep(SET_OPERATION_SLEEP_US);
+    bool enabled = rsClient->GetBehindWindowFilterEnabled();
+    EXPECT_EQ(enabled, true);
+    rsClient->SetBehindWindowFilterEnabled(false);
+    usleep(SET_OPERATION_SLEEP_US);
+    bool enabled = rsClient->GetBehindWindowFilterEnabled();
+    EXPECT_EQ(enabled, false);
 }
 } // namespace Rosen
 } // namespace OHOS

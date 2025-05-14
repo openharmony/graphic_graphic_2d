@@ -1070,5 +1070,17 @@ HWTEST_F(RSSystemPropertiesTest, GetTimeVsyncDisabled001, TestSize.Level1)
 {
     ASSERT_FALSE(RSSystemProperties::GetTimeVsyncDisabled());
 }
+
+/**
+ * @tc.name: BehindWindowFilterEnabledTest
+ * @tc.desc: BehindWindowFilterEnabledTest
+ * @tc.type:FUNC
+ * @tc.require: issuesIC5OEB
+ */
+HWTEST_F(RSSystemPropertiesTest, BehindWindowFilterEnabledTest, TestSize.Level1)
+{
+    RSSystemProperties::SetBehindWindowFilterEnabled(true);
+    EXPECT_TRUE(RSSystemProperties::GetBehindWindowFilterEnabled(), true);
+}
 } // namespace Rosen
 } // namespace OHOS

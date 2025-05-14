@@ -26,6 +26,7 @@ using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
+static constexpr uint32_t SET_OPERATION_SLEEP_US = 50000;  // wait for set-operation change
 class RSInterfacesTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -726,5 +727,24 @@ HWTEST_F(RSInterfacesTest, GetHighContrastTextState001, TestSize.Level1)
     RSInterfaces& instance = RSInterfaces::GetInstance();
     instance.renderServiceClient_ = std::make_unique<RSRenderServiceClient>();
     EXPECT_EQ(instance.GetHighContrastTextState(), false);
+}
+
+/**
+ * @tc.name: BehindWindowFilterEnabledTest
+ * @tc.desc: test results of BehindWindowFilterEnabled
+ * @tc.type: FUNC
+ * @tc.require: issuesIC5OEB
+ */
+HWTEST_F(RSInterfacesTest, BehindWindowFilterEnabledTest, TestSize.Level1)
+{
+    RSInterfaces& instance = RSInterfaces::GetInstance();
+    instance.SetBehindWindowFilterEnabled(false);
+    usleep(SET_OPERATION_SLEEP_US);
+    auto res = instance.GetBehindWindowFilterEnabled();
+    EXPECT_EQ(res, false);
+    instance.SetBehindWindowFilterEnabled(true);
+    usleep(SET_OPERATION_SLEEP_US);
+    res = instance.GetBehindWindowFilterEnabled();
+    EXPECT_EQ(res, true);
 }
 } // namespace OHOS::Rosen

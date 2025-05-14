@@ -3473,7 +3473,8 @@ void RSSurfaceRenderNode::SetOldNeedDrawBehindWindow(bool val)
 
 bool RSSurfaceRenderNode::NeedDrawBehindWindow() const
 {
-    return !GetRenderProperties().GetBackgroundFilter() && !childrenBlurBehindWindow_.empty();
+    return RSSystemProperties::GetBehindWindowFilterEnabled() && !GetRenderProperties().GetBackgroundFilter() &&
+        !childrenBlurBehindWindow_.empty();
 }
 
 void RSSurfaceRenderNode::AddChildBlurBehindWindow(NodeId id)

@@ -3169,5 +3169,47 @@ bool RSRenderServiceConnection::GetHighContrastTextState()
     return RSBaseRenderEngine::IsHighContrastEnabled();
 }
 
+ErrCode RSRenderServiceConnection::SetBehindWindowFilterEnabled(bool enabled)
+{
+    if (!mainThread_) {
+        RS_LOGE("RSRenderServiceConnection::SetBehindWindowFilterEnabled mainThread_ is nullptr.");
+        return ERR_INVALID_VALUE;
+    }
+    auto task = [weakThis = wptr<RSRenderServiceConnection>(this), enabled]() -> void {
+        sptr<RSRenderServiceConnection> connection = weakThis.promote();
+        if (connection == nullptr || connection->mainThread_ == nullptr) {
+            return;
+        }
+        if (RSSystemProperties::GetBehindWindowFilterEnabled() == enabled) {
+            return;
+        }
+        RSSystemProperties::SetBehindWindowFilterEnabled(enabled);
+        auto& nodeMap = connection->mainThread_->GetContext().GetNodeMap();
+        bool needRequestNextVSync = false;
+        nodeMap.TraverseSurfaceNodes(
+            [&needRequestNextVSync](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) mutable {
+                if (!surfaceNode) {
+                    return;
+                }
+                if (!surfaceNode->NeedUpdateDrawableBehindWindow()) {
+                    return;
+                }
+                surfaceNode->SetContentDirty();
+                needRequestNextVSync = true;
+            });
+        if (needRequestNextVSync) {
+            connection->mainThread_->RequestNextVSync();
+            connection->mainThread_->SetForceUpdateUniRenderFlag(true);
+        }
+    };
+    mainThread_->PostTask(task);
+    return ERR_OK;
+}
+
+ErrCode RSRenderServiceConnection::GetBehindWindowFilterEnabled(bool& enabled)
+{
+    enabled = RSSystemProperties::GetBehindWindowFilterEnabled();
+    return ERR_OK;
+}
 } // namespace Rosen
 } // namespace OHOS

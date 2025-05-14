@@ -459,6 +459,9 @@ public:
 
     bool GetHighContrastTextState();
 
+    void SetBehindWindowFilterEnabled(bool enabled);
+
+    bool GetBehindWindowFilterEnabled();
 private:
     void TriggerSurfaceCaptureCallback(NodeId id, const RSSurfaceCaptureConfig& captureConfig,
         std::shared_ptr<Media::PixelMap> pixelmap);

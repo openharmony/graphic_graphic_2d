@@ -24,6 +24,7 @@
 
 #include "feature/capture/rs_ui_capture.h"
 #include "platform/ohos/rs_render_service_connection_proxy.h"
+#include "platform/ohos/rs_render_service_connect_hub.h"
 #include "command/rs_animation_command.h"
 #include "command/rs_node_showing_command.h"
 #include "iconsumer_surface.h"
@@ -1247,6 +1248,33 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, GetPixelMapByProcessIdTest, TestSiz
     int32_t repCode;
     ASSERT_EQ(proxy->GetPixelMapByProcessId(pixelMapInfoVector, pid, repCode), ERR_INVALID_VALUE);
     ASSERT_EQ(repCode, RS_CONNECTION_ERROR);
+}
+
+/**
+ * @tc.name: SetBehindWindowFilterEnabledTest
+ * @tc.desc: SetBehindWindowFilterEnabledTest
+ * @tc.type: FUNC
+ * @tc.require: issuesIC5OEB
+ */
+HWTEST_F(RSRenderServiceConnectionProxyTest, SetBehindWindowFilterEnabledTest, TestSize.Level1)
+{
+    auto connectionProxy = RSRenderServiceConnectHub::GetRenderService();
+    auto res = connectionProxy->SetBehindWindowFilterEnabled(true);
+    EXPECT_EQ(res, ERR_OK);
+}
+
+/**
+ * @tc.name: GetBehindWindowFilterEnabledTest
+ * @tc.desc: GetBehindWindowFilterEnabledTest
+ * @tc.type: FUNC
+ * @tc.require: issuesIC5OEB
+ */
+HWTEST_F(RSRenderServiceConnectionProxyTest, GetBehindWindowFilterEnabledTest, TestSize.Level1)
+{
+    bool enabled = true;
+    auto connectionProxy = RSRenderServiceConnectHub::GetRenderService();
+    auto res = connectionProxy->GetBehindWindowFilterEnabled(enabled);
+    EXPECT_EQ(res, ERR_OK);
 }
 } // namespace Rosen
 } // namespace OHOS
