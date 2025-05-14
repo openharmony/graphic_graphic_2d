@@ -378,6 +378,7 @@ HWTEST_F(RSPropertyDrawableTest, RSFilterDrawableTest013, TestSize.Level1)
     ASSERT_TRUE(drawable->stagingDrawBehindWindowRegion_ == region);
 }
 
+/**
  * @tc.name: RSFilterDrawableTest014
  * @tc.desc: Test RSFilterDrawable needDrawBehindWindow DrawCache
  * @tc.type:FUNC
@@ -418,6 +419,5 @@ HWTEST_F(RSPropertyDrawableTest, IsPendingPurgeTest, TestSize.Level1)
 
     filterDrawable->stagingCacheManager_ = nullptr;
     EXPECT_FALSE(filterDrawable->IsPendingPurge());
-
 }
 } // namespace OHOS::Rosen
