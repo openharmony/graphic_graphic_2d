@@ -16,7 +16,7 @@
 #ifndef GRAPHIC_RS_TRACE_H
 #define GRAPHIC_RS_TRACE_H
 
-#ifndef ROSEN_TRACE_DISABLE
+#if !defined(ROSEN_TRACE_DISABLE) || defined(CROSS_PLATFORM)
 #include "hitrace_meter.h"
 #define ROSEN_TRACE_BEGIN(tag, name) StartTrace(tag, name)
 #define RS_TRACE_BEGIN(name) ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP | HITRACE_TAG_COMMERCIAL, name)
