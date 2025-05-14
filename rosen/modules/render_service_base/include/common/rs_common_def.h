@@ -334,6 +334,7 @@ enum class RSSurfaceNodeType : uint8_t {
     UI_EXTENSION_COMMON_NODE, // uiextension node
     UI_EXTENSION_SECURE_NODE, // uiextension node that requires info callback
     CURSOR_NODE,              // cursor node created by MMI
+    ABILITY_MAGNIFICATION_NODE, // local magnification
     NODE_MAX,
 };
 

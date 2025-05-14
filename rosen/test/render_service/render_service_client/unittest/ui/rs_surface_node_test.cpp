@@ -1754,6 +1754,21 @@ HWTEST_F(RSSurfaceNodeTest, DetachFromWindowContainer, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetRegionToBeMagnified
+ * @tc.desc: Test function SetRegionToBeMagnified
+ * @tc.type: FUNC
+ * @tc.require: issueIBIK1X
+ */
+HWTEST_F(RSSurfaceNodeTest, SetRegionToBeMagnified, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    Vector4f regionToBeMagnified = {0.0, 0.0, 200.0, 200.0};
+    surfaceNode->SetRegionToBeMagnified(regionToBeMagnified);
+    ASSERT_NE(surfaceNode, nullptr);
+}
+
+/**
  * @tc.name: SetFrameGravityNewVersionEnabledTest
  * @tc.desc: SetFrameGravityNewVersionEnabled and GetFrameGravityNewVersionEnabled
  * @tc.type: FUNC

@@ -613,6 +613,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->screenRect_ = screenRect_;
     targetSurfaceParams->dirtyRegionMatrix_ = dirtyRegionMatrix_;
     targetSurfaceParams->uiFirstFrameGravity_ = uiFirstFrameGravity_;
+    targetSurfaceParams->regionToBeMagnified_ = regionToBeMagnified_;
     targetSurfaceParams->isFrameGravityNewVersionEnabled_ = isFrameGravityNewVersionEnabled_;
     RSRenderParams::OnSync(target);
 }

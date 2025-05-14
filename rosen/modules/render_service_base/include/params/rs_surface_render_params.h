@@ -697,6 +697,16 @@ public:
         return sourceDisplayRenderNodeDrawable_;
     }
 
+    bool IsAbilityMagnificationNode()
+    {
+        return rsSurfaceNodeType_ == RSSurfaceNodeType::ABILITY_MAGNIFICATION_NODE;
+    }
+
+    const Vector4f& GetRegionToBeMagnified() const
+    {
+        return regionToBeMagnified_;
+    }
+
     void SetFrameGravityNewVersionEnabled(bool isEnabled);
     bool GetFrameGravityNewVersionEnabled() const;
 
@@ -734,6 +744,7 @@ private:
     RectI childrenDirtyRect_;
     RectI absDrawRect_;
     RRect rrect_;
+    Vector4f regionToBeMagnified_;
     NodeId uifirstUseStarting_ = INVALID_NODEID;
     Occlusion::Region transparentRegion_;
     Occlusion::Region roundedCornerRegion_;

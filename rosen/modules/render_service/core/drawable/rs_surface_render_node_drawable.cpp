@@ -144,6 +144,11 @@ void RSSurfaceRenderNodeDrawable::OnGeneralProcess(RSPaintFilterCanvas& canvas,
         DrawBackground(canvas, bounds);
     }
 
+    /* draw local magnification region */
+    if (surfaceParams.IsAbilityMagnificationNode()) {
+        DrawMagnificationRegion(canvas, surfaceParams);
+    }
+
     // 2. draw self drawing node
     if (surfaceParams.GetBuffer() != nullptr) {
         DealWithSelfDrawingNodeBuffer(canvas, surfaceParams);
@@ -175,6 +180,51 @@ void RSSurfaceRenderNodeDrawable::OnGeneralProcess(RSPaintFilterCanvas& canvas,
         Drawing::Color color(0, 128, 128, 128);
         subThreadCache_.GetRSDrawWindowCache().DrawCrossNodeOffscreenDFX(canvas, surfaceParams, uniParams, color);
     }
+}
+
+void RSSurfaceRenderNodeDrawable::DrawMagnificationRegion(
+    RSPaintFilterCanvas& canvas, const RSSurfaceRenderParams& surfaceParams)
+{
+    Drawing::Surface* drawingSurface = canvas.GetSurface();
+    if (drawingSurface == nullptr) {
+        ROSEN_LOGE("RSSurfaceRenderNodeDrawable::DrawMagnificationRegion, drawingSurface is nullptr");
+        return;
+    }
+
+    /* Get Region to be magnified */
+    auto regionToBeMagnified = surfaceParams.GetRegionToBeMagnified();
+    RectI magnifingRectI(std::ceil(regionToBeMagnified.x_), std::ceil(regionToBeMagnified.y_),
+        std::floor(regionToBeMagnified.z_), std::floor(regionToBeMagnified.w_));
+    if (magnifingRectI.IsEmpty()) {
+        ROSEN_LOGE("RSSurfaceRenderNodeDrawable::DrawMagnificationRegion, regionToBeMagnified is empty");
+        return;
+    }
+
+    /* Capture a screenshot of the region to be magnified */
+    RectI deviceRect(0, 0, drawingSurface->Width(), drawingSurface->Height());
+    magnifingRectI = magnifingRectI.IntersectRect(deviceRect);
+    if (UNLIKELY(magnifingRectI.IsEmpty())) {
+        return;
+    }
+    Drawing::RectI imageRect(
+        magnifingRectI.GetLeft(), magnifingRectI.GetTop(), magnifingRectI.GetRight(), magnifingRectI.GetBottom());
+    auto imageSnapshot = drawingSurface->GetImageSnapshot(imageRect);
+    if (UNLIKELY(imageSnapshot == nullptr)) {
+        return;
+    }
+
+    /* Optimization */
+    Drawing::SamplingOptions samplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::LINEAR);
+    Drawing::Brush paint;
+    paint.SetAntiAlias(true);
+    canvas.AttachBrush(paint);
+
+    /* Magnify */
+    auto frame = surfaceParams.GetFrameRect();
+    canvas.DrawImageRect(*imageSnapshot, frame, Drawing::SamplingOptions());
+    canvas.DetachBrush();
+
+    return ;
 }
 
 void RSSurfaceRenderNodeDrawable::DrawWatermark(RSPaintFilterCanvas& canvas, const RSSurfaceRenderParams& params)

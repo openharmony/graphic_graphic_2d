@@ -737,6 +737,22 @@ HWTEST_F(RSSurfaceNodeCommandTest, DetachFromWindowContainer, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetRegionToBeMagnified
+ * @tc.desc: Verify function SetRegionToBeMagnified
+ * @tc.type:FUNC
+ * @tc.require: issueIBIK1X
+ */
+HWTEST_F(RSSurfaceNodeCommandTest, SetRegionToBeMagnified, TestSize.Level1)
+{
+    RSContext context;
+    NodeId nodeId = 1;
+    Vector4f regionToBeMagnified = {0.0, 0.0, 200.0, 200.0};
+    SurfaceNodeCommandHelper::Create(context, nodeId);
+    SurfaceNodeCommandHelper::SetRegionToBeMagnified(context, nodeId, regionToBeMagnified);
+    EXPECT_TRUE(context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId) != nullptr);
+}
+
+/**
  * @tc.name: SetFrameGravityNewVersionEnabledTest
  * @tc.desc: Verify function SetFrameGravityNewVersionEnabled
  * @tc.type: FUNC

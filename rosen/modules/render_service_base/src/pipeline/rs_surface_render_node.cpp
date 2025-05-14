@@ -3110,6 +3110,7 @@ void RSSurfaceRenderNode::UpdateRenderParams()
     surfaceParams->hasSubSurfaceNodes_ = HasSubSurfaceNodes();
     surfaceParams->allSubSurfaceNodeIds_ = GetAllSubSurfaceNodeIds();
     surfaceParams->crossNodeSkipDisplayConversionMatrices_ = crossNodeSkipDisplayConversionMatrices_;
+    surfaceParams->regionToBeMagnified_ = regionToBeMagnified_;
     surfaceParams->SetNeedSync(true);
 
     RSRenderNode::UpdateRenderParams();

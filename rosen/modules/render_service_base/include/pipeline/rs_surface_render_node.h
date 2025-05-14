@@ -371,14 +371,17 @@ public:
 
     bool IsLeashOrMainWindow() const
     {
-        return nodeType_ <= RSSurfaceNodeType::LEASH_WINDOW_NODE || nodeType_ == RSSurfaceNodeType::CURSOR_NODE;
+        return nodeType_ <= RSSurfaceNodeType::LEASH_WINDOW_NODE || nodeType_ == RSSurfaceNodeType::CURSOR_NODE ||
+               nodeType_ == RSSurfaceNodeType::ABILITY_MAGNIFICATION_NODE;
     }
 
     bool IsMainWindowType() const
     {
         // a mainWindowType surfacenode will not mounted under another mainWindowType surfacenode
         // including app main window, starting window, and selfdrawing window
-        return nodeType_ <= RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE || nodeType_ == RSSurfaceNodeType::CURSOR_NODE;
+        return nodeType_ <= RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE ||
+               nodeType_ == RSSurfaceNodeType::CURSOR_NODE ||
+               nodeType_ == RSSurfaceNodeType::ABILITY_MAGNIFICATION_NODE;
     }
 
     bool GetIsLastFrameHwcEnabled() const
@@ -678,6 +681,11 @@ public:
     void SetDstRectWithoutRenderFit(const RectI& rect)
     {
         dstRectWithoutRenderFit_ = Drawing::Rect(rect.left_, rect.top_, rect.GetRight(), rect.GetBottom());
+    }
+
+    void SetRegionToBeMagnified(Vector4f regionToBeMagnified)
+    {
+        regionToBeMagnified_ = regionToBeMagnified;
     }
 
     Drawing::Rect GetDstRectWithoutRenderFit() const
@@ -1725,6 +1733,7 @@ private:
     RectI srcRect_;
     RectI originalDstRect_;
     RectI originalSrcRect_;
+    Vector4f regionToBeMagnified_;
     Drawing::Rect dstRectWithoutRenderFit_;
     RectI historyUnSubmittedOccludedDirtyRegion_;
     Vector4f overDrawBufferNodeCornerRadius_;
