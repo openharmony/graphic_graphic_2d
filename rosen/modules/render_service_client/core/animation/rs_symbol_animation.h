@@ -73,7 +73,7 @@ private:
         const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig,
         std::shared_ptr<RSNode>& rsNode, bool isStartAnimation);
     
-    std::vector<Drawing::DrawingPiecewiseParameter> UpdateParamtersDelay(
+    std::vector<Drawing::DrawingPiecewiseParameter> UpdateParametersDelay(
         const std::vector<Drawing::DrawingPiecewiseParameter>& parameters, int delay);
 
     // Create a node that is the same as the original node
@@ -98,17 +98,17 @@ private:
 
     void AlphaAnimationBase(const std::shared_ptr<RSNode>& rsNode,
         std::shared_ptr<RSAnimatableProperty<float>>& alphaProperty,
-        const Drawing::DrawingPiecewiseParameter& alphaParamter,
+        const Drawing::DrawingPiecewiseParameter& alphaParameter,
         std::vector<std::shared_ptr<RSAnimation>>& animations);
 
     void TranslateAnimationBase(const std::shared_ptr<RSNode>& rsNode,
         std::shared_ptr<RSAnimatableProperty<Vector2f>>& property,
-        const Drawing::DrawingPiecewiseParameter& paramter,
+        const Drawing::DrawingPiecewiseParameter& parameter,
         std::vector<std::shared_ptr<RSAnimation>>& animations);
 
     void BlurAnimationBase(const std::shared_ptr<RSNode>& rsNode,
         std::shared_ptr<RSAnimatableProperty<float>>& property,
-        const Drawing::DrawingPiecewiseParameter& paramter,
+        const Drawing::DrawingPiecewiseParameter& parameter,
         std::vector<std::shared_ptr<RSAnimation>>& animations);
 
     // drawing a path group : symbol drawing or path drawing

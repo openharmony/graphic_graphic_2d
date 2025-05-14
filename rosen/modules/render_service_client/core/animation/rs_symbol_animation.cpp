@@ -142,15 +142,14 @@ bool RSSymbolAnimation::SetSymbolAnimation(
 
     InitSupportAnimationTable();
 
-    if (symbolAnimationConfig->effectStrategy == Drawing::DrawingEffectStrategy::REPLACE_APPEAR) {
-        return SetReplaceAnimation(symbolAnimationConfig);
+    switch (symbolAnimationConfig->effectStrategy) {
+        case Drawing::DrawingEffectStrategy::REPLACE_APPEAR:
+            return SetReplaceAnimation(symbolAnimationConfig);
+        case Drawing::DrawingEffectStrategy::TEXT_FLIP:
+            return SetTextFlipAnimation(symbolAnimationConfig);
+        default:
+            return SetPublicAnimation(symbolAnimationConfig);
     }
-
-    if (symbolAnimationConfig->effectStrategy == Drawing::DrawingEffectStrategy::TEXT_FLIP) {
-        return SetTextFlipAnimation(symbolAnimationConfig);
-    }
-
-    return SetPublicAnimation(symbolAnimationConfig);
 }
 
 void RSSymbolAnimation::NodeProcessBeforeAnimation(
@@ -176,12 +175,12 @@ void RSSymbolAnimation::PopNodeFromReplaceList(uint64_t symbolSpanId)
 void RSSymbolAnimation::PopNodeFromFlipList(uint64_t symbolSpanId)
 {
     std::lock_guard<std::mutex> lock(rsNode_->childrenNodeLock_);
-    if (rsNode_->canvasNodesListMap_.count(symbolSpanId) == 0) {
-        rsNode_->canvasNodesListMap_[symbolSpanId] = {};
+    auto it = rsNode_->canvasNodesListMap_.find(symbolSpanId);
+    if (it == rsNode_->canvasNodesListMap_.end()) {
+        it = rsNode_->canvasNodesListMap_.insert({symbolSpanId,
+            std::unordered_map<NodeId, std::shared_ptr<RSNode>>()}).first;
     }
-    if (rsNode_->canvasNodesListMap_[symbolSpanId].count(INVALID_STATUS) > 0) {
-        rsNode_->canvasNodesListMap_[symbolSpanId].erase(INVALID_STATUS);
-    }
+    it->second.erase(INVALID_STATUS);
 }
 
 /**
@@ -496,9 +495,9 @@ void RSSymbolAnimation::SetFlipDisappear(
         return;
     }
     auto& canvasNode = rsNode->canvasNodesListMap_[symbolId][APPEAR_STATUS];
-    auto paramter = UpdateParamtersDelay(symbolAnimationConfig->parameters[0],
+    auto parameter = UpdateParametersDelay(symbolAnimationConfig->parameters[0],
         symbolAnimationConfig->effectElement.delay);
-    SpliceAnimation(canvasNode, paramter);
+    SpliceAnimation(canvasNode, parameter);
     {
         std::lock_guard<std::mutex> lock(rsNode->childrenNodeLock_);
         rsNode->canvasNodesListMap_[symbolId].insert({INVALID_STATUS, canvasNode});
@@ -550,13 +549,13 @@ bool RSSymbolAnimation::SetFlipAppear(
     DrawPathOnCanvas(recordingCanvas, effectNode, symbolAnimationConfig->color, {offsets[0], offsets[1]});
     canvasNode->FinishRecording();
     if (isStartAnimation) {
-        auto parameter = UpdateParamtersDelay(symbolAnimationConfig->parameters[1], effectNode.delay);
+        auto parameter = UpdateParametersDelay(symbolAnimationConfig->parameters[1], effectNode.delay);
         SpliceAnimation(canvasNode, parameter);
     }
     return true;
 }
 
-std::vector<Drawing::DrawingPiecewiseParameter> RSSymbolAnimation::UpdateParamtersDelay(
+std::vector<Drawing::DrawingPiecewiseParameter> RSSymbolAnimation::UpdateParametersDelay(
     const std::vector<Drawing::DrawingPiecewiseParameter>& parameters, int delay)
 {
     std::vector<Drawing::DrawingPiecewiseParameter> outParameters = parameters;
@@ -969,11 +968,11 @@ void RSSymbolAnimation::AlphaAnimationBase(const std::shared_ptr<RSNode>& rsNode
 
 void RSSymbolAnimation::TranslateAnimationBase(const std::shared_ptr<RSNode>& rsNode,
     std::shared_ptr<RSAnimatableProperty<Vector2f>>& property,
-    const Drawing::DrawingPiecewiseParameter& paramter,
+    const Drawing::DrawingPiecewiseParameter& parameter,
     std::vector<std::shared_ptr<RSAnimation>>& animations)
 {
-    const auto& properties = paramter.properties;
-    bool isInvalid = properties.count(TRANSLATE_PROP_X) <= 0 || properties.count(TRANSLATE_PROP_Y) <= 0 ||
+    const auto& properties = parameter.properties;
+    bool isInvalid = !properties.count(TRANSLATE_PROP_X) || !properties.count(TRANSLATE_PROP_Y) ||
         properties.at(TRANSLATE_PROP_X).size() < PROPERTIES ||
         properties.at(TRANSLATE_PROP_Y).size() < PROPERTIES;
     if (isInvalid) {
@@ -993,12 +992,12 @@ void RSSymbolAnimation::TranslateAnimationBase(const std::shared_ptr<RSNode>& rs
 
     // set animation curve and protocol
     RSAnimationTimingCurve timeCurve;
-    SymbolAnimation::CreateAnimationTimingCurve(paramter.curveType, paramter.curveArgs, timeCurve);
+    SymbolAnimation::CreateAnimationTimingCurve(parameter.curveType, parameter.curveArgs, timeCurve);
 
     RSAnimationTimingProtocol protocol;
-    protocol.SetStartDelay(paramter.delay);
-    if (paramter.duration > 0) {
-        protocol.SetDuration(paramter.duration);
+    protocol.SetStartDelay(parameter.delay);
+    if (parameter.duration > 0) {
+        protocol.SetDuration(parameter.duration);
     }
 
     // set animation
@@ -1012,11 +1011,11 @@ void RSSymbolAnimation::TranslateAnimationBase(const std::shared_ptr<RSNode>& rs
 
 void RSSymbolAnimation::BlurAnimationBase(const std::shared_ptr<RSNode>& rsNode,
     std::shared_ptr<RSAnimatableProperty<float>>& property,
-    const Drawing::DrawingPiecewiseParameter& paramter,
+    const Drawing::DrawingPiecewiseParameter& parameter,
     std::vector<std::shared_ptr<RSAnimation>>& animations)
 {
-    const auto& properties = paramter.properties;
-    bool isInValid = properties.count(BLUR_PROP) <= 0 || properties.at(BLUR_PROP).size() < PROPERTIES;
+    const auto& properties = parameter.properties;
+    bool isInValid = !properties.count(BLUR_PROP) || properties.at(BLUR_PROP).size() < PROPERTIES;
     if (isInValid) {
         ROSEN_LOGD("Invalid parameter input of blur.");
         return;
@@ -1033,12 +1032,12 @@ void RSSymbolAnimation::BlurAnimationBase(const std::shared_ptr<RSNode>& rsNode,
 
     // set animation curve and protocol
     RSAnimationTimingCurve timeCurve;
-    SymbolAnimation::CreateAnimationTimingCurve(paramter.curveType, paramter.curveArgs, timeCurve);
+    SymbolAnimation::CreateAnimationTimingCurve(parameter.curveType, parameter.curveArgs, timeCurve);
 
     RSAnimationTimingProtocol protocol;
-    protocol.SetStartDelay(paramter.delay);
-    if (paramter.duration > 0) {
-        protocol.SetDuration(paramter.duration);
+    protocol.SetStartDelay(parameter.delay);
+    if (parameter.duration > 0) {
+        protocol.SetDuration(parameter.duration);
     }
 
     // set animation
