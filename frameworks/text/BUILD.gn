@@ -13,18 +13,27 @@
 
 import("//build/ohos.gni")
 
-ohos_shared_library("rosen_text") {
-  sanitize = {
-    cfi = true
-    cfi_cross_dso = true
-    cfi_no_nvcall = true
-    debug = false
+if (is_arkui_x) {
+  ohos_source_set("rosen_text") {
+    deps = [ "service:rosen_text_skia" ]
+
+    part_name = "graphic_2d"
+    subsystem_name = "graphic"
   }
+} else {
+  ohos_shared_library("rosen_text") {
+    sanitize = {
+      cfi = true
+      cfi_cross_dso = true
+      cfi_no_nvcall = true
+      debug = false
+    }
 
-  deps = [ "service:rosen_text_skia" ]
+    deps = [ "service:rosen_text_skia" ]
 
-  external_deps = [ "hilog:libhilog" ]
+    external_deps = [ "hilog:libhilog" ]
 
-  part_name = "graphic_2d"
-  subsystem_name = "graphic"
+    part_name = "graphic_2d"
+    subsystem_name = "graphic"
+  }
 }
