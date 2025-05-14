@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,31 +14,32 @@
  */
 #include "rsroundcornerdisplay_fuzzer.h"
 
+#include <climits>
 #include <cstddef>
 #include <cstdint>
-#include <unistd.h>
-#include <climits>
 #include <cstdio>
 #include <cstdlib>
 #include <fcntl.h>
-#include "securec.h"
-#include "common/rs_singleton.h"
-#include "feature/round_corner_display/rs_round_corner_display_manager.h"
-#include "feature/round_corner_display/rs_round_corner_config.h"
+#include <unistd.h>
 
+#include "feature/round_corner_display/rs_round_corner_config.h"
+#include "feature/round_corner_display/rs_round_corner_display_manager.h"
+#include "securec.h"
+
+#include "common/rs_singleton.h"
 
 namespace OHOS {
 namespace {
-    const uint8_t* g_data = nullptr;
-    size_t g_size = 0;
-    size_t g_pos = 0;
-}
+const uint8_t* g_data = nullptr;
+size_t g_size = 0;
+size_t g_pos = 0;
+} // namespace
 
 // must greater than 0
-constexpr uint8_t STATUS_FUZZ_BOUNDS  = 3;
-constexpr Rosen::NodeId ID_FUZZ_BOUNDS  = 10;
+constexpr uint8_t STATUS_FUZZ_BOUNDS = 3;
+constexpr Rosen::NodeId ID_FUZZ_BOUNDS = 10;
 
-template <class T>
+template<class T>
 T GetData()
 {
     T object {};
@@ -73,14 +74,14 @@ bool RSRoundCornerDisplayTest(const uint8_t* data, size_t size)
     auto& rcdCfg = OHOS::Rosen::RSSingleton<OHOS::Rosen::rs_rcd::RCDConfig>::GetInstance();
 
     rcdCfg.Load(randomConfig);
-    rcdCfg.GetLcdModel(std::string (reinterpret_cast<const char*>(data),size));
+    rcdCfg.GetLcdModel(std::string(reinterpret_cast<const char*>(data), size));
 
     rcdCfg.Load(std::string(OHOS::Rosen::rs_rcd::PATH_CONFIG_FILE));
     auto Lcd = rcdCfg.GetLcdModel(OHOS::Rosen::rs_rcd::ATTR_DEFAULT);
     rcdCfg.IsDataLoaded();
 
-    if(Lcd != nullptr) {
-        Lcd->GetRog(w,h);
+    if (Lcd != nullptr) {
+        Lcd->GetRog(w, h);
     }
 
     OHOS::Rosen::rs_rcd::RCDConfig::PrintParseRog(nullptr);
@@ -109,18 +110,18 @@ bool RSRoundCornerDisplayTest(const uint8_t* data, size_t size)
     rawRotation = rawRotation % (static_cast<uint32_t>(Rosen::ScreenRotation::INVALID_SCREEN_ROTATION) + 1);
     auto rotation = static_cast<Rosen::ScreenRotation>(rawRotation);
 
-    auto rawPrepared = GetData<uint8_t>();   
+    auto rawPrepared = GetData<uint8_t>();
     auto rawNotchStatus = GetData<uint8_t>();
 
-    bool prepared = (rawPrepared % 2) != 0; 
-    bool notchStatus = (rawNotchStatus % 2) != 0;  
-   
+    bool prepared = (rawPrepared % 2) != 0;
+    bool notchStatus = (rawNotchStatus % 2) != 0;
+
     using RCDLayerType = Rosen::RoundCornerDisplayManager::RCDLayerType;
     auto rawLayerType = GetData<uint32_t>();
     rawLayerType = rawLayerType % (static_cast<uint32_t>(RCDLayerType::BOTTOM) + 1);
     auto layerType = static_cast<RCDLayerType>(rawLayerType);
-   
-    std::function<void()> task = []() {std::string stub;};
+
+    std::function<void()> task = []() { std::string stub; };
     Rosen::RectI dirtyRect;
 
     std::string layerName1(reinterpret_cast<const char*>(data), size);
@@ -152,7 +153,7 @@ bool RSRoundCornerDisplayTest(const uint8_t* data, size_t size)
     renderTargetNodeInfoList1.emplace_back(id, RCDLayerType::INVALID);
     renderTargetNodeInfoList1.emplace_back(id, RCDLayerType::TOP);
     renderTargetNodeInfoList1.emplace_back(id, RCDLayerType::BOTTOM);
-    
+
     auto baseCanvas1 = std::make_shared<Rosen::Drawing::Canvas>();
     auto canvas1 = std::make_shared<Rosen::RSPaintFilterCanvas>(baseCanvas1.get(), 1.0f);
     manager.DrawRoundCorner(renderTargetNodeInfoList1, canvas1.get());
@@ -162,7 +163,7 @@ bool RSRoundCornerDisplayTest(const uint8_t* data, size_t size)
     manager.RemoveRCDResource(id);
     manager.RemoveRCDResource(id);
 
-    //wrong ID
+    // wrong ID
     manager.UpdateDisplayParameter(idWrong, u32_1, u32_2, u32_3, u32_4);
     manager.UpdateNotchStatus(idWrong, status);
     manager.UpdateOrientationStatus(idWrong, rotation);
@@ -180,13 +181,13 @@ bool RSRoundCornerDisplayTest(const uint8_t* data, size_t size)
     renderTargetNodeInfoList2.emplace_back(idWrong, RCDLayerType::INVALID);
     renderTargetNodeInfoList2.emplace_back(idWrong, RCDLayerType::TOP);
     renderTargetNodeInfoList2.emplace_back(idWrong, RCDLayerType::BOTTOM);
-    
+
     auto baseCanvas2 = std::make_shared<Rosen::Drawing::Canvas>();
     auto canvas2 = std::make_shared<Rosen::RSPaintFilterCanvas>(baseCanvas2.get(), 1.0f);
     manager.DrawRoundCorner(renderTargetNodeInfoList2, canvas2.get());
 
     manager.RemoveRCDResource(idWrong);
- 
+
     return true;
 }
 } // namespace OHOS
