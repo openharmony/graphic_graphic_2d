@@ -33,6 +33,7 @@ class Surface;
 
 namespace Rosen {
 using AnimationId = uint64_t;
+using NodeType = uint8_t;
 using NodeId = uint64_t;
 using PropertyId = uint64_t;
 using FrameRateLinkerId = uint64_t;
@@ -47,6 +48,7 @@ constexpr uint32_t RGBA_MAX = 255;
 constexpr uint64_t INVALID_LEASH_PERSISTENTID = 0;
 constexpr uint8_t TOP_OCCLUSION_SURFACES_NUM = 3;
 constexpr uint8_t OCCLUSION_ENABLE_SCENE_NUM = 2;
+constexpr int16_t DEFAULT_OCCLUSION_SURFACE_ORDER = -1;
 
 // types in the same layer should be 0/1/2/4/8
 // types for UINode
@@ -239,6 +241,7 @@ struct RSSurfaceCaptureConfig {
     SurfaceCaptureType captureType = SurfaceCaptureType::DEFAULT_CAPTURE;
     bool isSync = false;
     Drawing::Rect mainScreenRect = {};
+    bool isSoloNodeUiCapture = false;
     bool operator==(const RSSurfaceCaptureConfig& config) const
     {
         return mainScreenRect == config.mainScreenRect;
@@ -321,7 +324,7 @@ enum class RSSurfaceNodeType : uint8_t {
     DEFAULT,
     APP_WINDOW_NODE,          // surfacenode created as app main window
     STARTING_WINDOW_NODE,     // starting window, surfacenode created by wms
-    SELF_DRAWING_WINDOW_NODE, // create by wms, such as pointer window and bootanimation
+    SELF_DRAWING_WINDOW_NODE, // create by wms, such as bootanimation
     LEASH_WINDOW_NODE,        // leashwindow
     ABILITY_COMPONENT_NODE,   // surfacenode created as ability component
     SELF_DRAWING_NODE,        // surfacenode created by arkui component (except ability component)
@@ -330,6 +333,8 @@ enum class RSSurfaceNodeType : uint8_t {
     SCB_SCREEN_NODE,          // surfacenode created as sceneboard
     UI_EXTENSION_COMMON_NODE, // uiextension node
     UI_EXTENSION_SECURE_NODE, // uiextension node that requires info callback
+    CURSOR_NODE,              // cursor node created by MMI
+    NODE_MAX,
 };
 
 enum class MultiThreadCacheType : uint8_t {
@@ -556,7 +561,8 @@ inline typename Container::size_type EraseIf(Container& container, Predicate pre
 
 enum class AncoFlags : uint32_t {
     IS_ANCO_NODE = 0x0001,
-    ANCO_SFV_NODE = 0x0011
+    ANCO_SFV_NODE = 0x0011,
+    FORCE_REFRESH = 0x0100
 };
 
 enum class AncoHebcStatus : int32_t {

@@ -251,7 +251,7 @@ Region Region::GetAlignedRegion(int alignmentSize) const
     return alignedRegion;
 }
 
-void Region::RegionOp(Region& r1, Region& r2, Region& res, Region::OP op)
+void Region::RegionOp(Region& r1, const Region& r2, Region& res, Region::OP op)
 {
     if (r1.IsEmpty()) {
         if (op == Region::OP::AND || op == Region::OP::SUB) {
@@ -322,7 +322,7 @@ void Region::RegionOpLocal(Region& r1, Region& r2, Region& res, Region::OP op)
     res.MakeBound();
 }
 
-void Region::RegionOpAccelate(Region& r1, Region& r2, Region& res, Region::OP op)
+void Region::RegionOpAccelate(Region& r1, const Region& r2, Region& res, Region::OP op)
 {
     RectsPtr lhs(r1.CBegin(), r1.Size());
     RectsPtr rhs(r2.CBegin(), r2.Size());
@@ -350,55 +350,55 @@ void Region::RegionOpAccelate(Region& r1, Region& r2, Region& res, Region::OP op
     return;
 }
 
-Region& Region::OperationSelf(Region& r, Region::OP op)
+Region& Region::OperationSelf(const Region& r, Region::OP op)
 {
     Region r1(*this);
     RegionOp(r1, r, *this, op);
     return *this;
 }
 
-Region& Region::AndSelf(Region& r)
+Region& Region::AndSelf(const Region& r)
 {
     return OperationSelf(r, Region::OP::AND);
 }
 
-Region& Region::OrSelf(Region& r)
+Region& Region::OrSelf(const Region& r)
 {
     return OperationSelf(r, Region::OP::OR);
 }
 
-Region& Region::XOrSelf(Region& r)
+Region& Region::XOrSelf(const Region& r)
 {
     return OperationSelf(r, Region::OP::XOR);
 }
 
-Region& Region::SubSelf(Region& r)
+Region& Region::SubSelf(const Region& r)
 {
     return OperationSelf(r, Region::OP::SUB);
 }
 
-Region Region::And(Region& r)
+Region Region::And(const Region& r)
 {
     Region res;
     RegionOp(*this, r, res, Region::OP::AND);
     return res;
 }
 
-Region Region::Or(Region& r)
+Region Region::Or(const Region& r)
 {
     Region res;
     RegionOp(*this, r, res, Region::OP::OR);
     return res;
 }
 
-Region Region::Xor(Region& r)
+Region Region::Xor(const Region& r)
 {
     Region res;
     RegionOp(*this, r, res, Region::OP::XOR);
     return res;
 }
 
-Region Region::Sub(Region& r)
+Region Region::Sub(const Region& r)
 {
     Region res;
     RegionOp(*this, r, res, Region::OP::SUB);

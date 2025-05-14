@@ -15,9 +15,9 @@
 
 #include "rsbasecommon_fuzzer.h"
 
-#include <securec.h>
 #include <cstddef>
 #include <cstdint>
+#include <securec.h>
 
 #ifdef NEW_SKIA
 #include "include/core/SkM44.h"
@@ -40,6 +40,7 @@ namespace {
 const uint8_t* g_data = nullptr;
 size_t g_size = 0;
 size_t g_pos;
+constexpr int32_t DATA_LENGTH = 200;
 } // namespace
 
 /*
@@ -91,25 +92,42 @@ bool RSColorFuzzTest(const uint8_t* data, size_t size)
     g_pos = 0;
 
     // getdata
-    uint32_t rgba1 = GetData<uint32_t>();
-    float alpha1 = GetData<float>();
+    uint32_t argbInt = GetData<uint32_t>();
+    uint32_t rgbaInt = GetData<uint32_t>();
+    uint32_t brgaInt = GetData<uint32_t>();
     int16_t blue = GetData<int16_t>();
     int16_t green = GetData<int16_t>();
     int16_t red = GetData<int16_t>();
+    int16_t alpha = GetData<int16_t>();
+    int16_t blue1 = GetData<int16_t>();
+    int16_t green1 = GetData<int16_t>();
+    int16_t red1 = GetData<int16_t>();
+    int16_t alpha1 = GetData<int16_t>();
+    int16_t blue2 = GetData<int16_t>();
+    int16_t green2 = GetData<int16_t>();
+    int16_t red2 = GetData<int16_t>();
     int16_t alpha2 = GetData<int16_t>();
+    int16_t alpha3 = GetData<int16_t>();
+    int16_t alpha4 = GetData<int16_t>();
+
+    int16_t threshold = GetData<int16_t>();
+    std::string out = GetStringFromData(DATA_LENGTH);
 
     // Test
-    RSColor rscolor = RSColor(red, green, blue);
+    RSColor rscolor = RSColor(red, green, blue, alpha);
+    RSColor rsAcolor = RSColor(red1, green1, blue1, alpha1);
+    RSColor rsBcolor = RSColor(red2, green2, blue2, alpha2);
 
-    (void)rscolor.FromArgbInt(rgba1);
-    (void)rscolor.FromRgbaInt(rgba1);
-    (void)rscolor.FromBgraInt(rgba1);
+    (void)rscolor.FromArgbInt(argbInt);
+    (void)rscolor.FromRgbaInt(rgbaInt);
+    (void)rscolor.FromBgraInt(brgaInt);
+    (void)rscolor.Dump(out);
     rscolor.SetBlue(blue);
-    rscolor.SetAlpha(alpha2);
+    rscolor.SetAlpha(alpha3);
     rscolor.SetGreen(green);
     rscolor.SetRed(red);
-    rscolor.MultiplyAlpha(alpha1);
-
+    rscolor.MultiplyAlpha(alpha4);
+    (void)rsBcolor.IsNearEqual(rsAcolor, threshold);
     return true;
 }
 

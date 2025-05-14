@@ -17,6 +17,7 @@
 
 #include <cstdarg>
 #include <cstdio>
+#include <climits>
 #include <securec.h>
 #include <hilog/log.h>
 #ifdef NOT_BUILD_FOR_OHOS_SDK
@@ -60,12 +61,34 @@ void RSLogOutput(RSLog::Tag tag, RSLog::Level level, const char* format, ...)
     va_end(args);
 }
 
+bool ConvertToLongUint(const std::string& str, unsigned long& value, int8_t base = 10)
+{
+    char* end;
+    errno = 0;
+    value = std::strtoul(str.c_str(), &end, base);
+    if (end == str.c_str()) {
+        return false;
+    }
+    if (errno == ERANGE && value == ULONG_MAX) {
+        return false;
+    }
+    if (*end != '\0') {
+        return false;
+    }
+    return true;
+}
+
 RSLogManager::RSLogManager()
 {
 #ifdef NOT_BUILD_FOR_OHOS_SDK
     std::string flag = OHOS::system::GetParameter(DEBUG_GRAPHIC_LOG_FLAG, "0X0");
     if (IsFlagValid(flag)) {
-        logFlag_ = static_cast<uint32_t>(std::stoul(flag.substr(INPUT_FLAG_MIN_LENGTH), nullptr, NUMERICAL_BASE));
+        unsigned long value = 0;
+        std::string subFlag = flag.substr(INPUT_FLAG_MIN_LENGTH);
+        if (ConvertToLongUint(subFlag, value, NUMERICAL_BASE)) {
+            RS_LOGD("RSLogManager %{public}s ConvertToLongUint failed", subFlag.c_str());
+        }
+        logFlag_ = static_cast<uint32_t>(value);
         RS_LOGI("RSLogManager init log flag: 0x%{public}X(%{public}u)", logFlag_, logFlag_);
     }
 #endif
@@ -83,7 +106,12 @@ bool RSLogManager::SetRSLogFlag(std::string& flag)
 #ifdef NOT_BUILD_FOR_OHOS_SDK
         OHOS::system::SetParameter(DEBUG_GRAPHIC_LOG_FLAG, flag);
 #endif
-        logFlag_ = static_cast<uint32_t>(std::stoul(flag.substr(INPUT_FLAG_MIN_LENGTH), nullptr, NUMERICAL_BASE));
+        unsigned long value = 0;
+        std::string subFlag = flag.substr(INPUT_FLAG_MIN_LENGTH);
+        if (ConvertToLongUint(subFlag, value, NUMERICAL_BASE)) {
+            RS_LOGD("RSLogManager %{public}s ConvertToLongUint failed", subFlag.c_str());
+        }
+        logFlag_ = static_cast<uint32_t>(value);
         RS_LOGI("RSLogManager set log flag: 0x%{public}X(%{public}u)", logFlag_, logFlag_);
         return true;
     }

@@ -84,6 +84,13 @@ void DisplayNodeCommandHelper::SetRogSize(RSContext& context, NodeId id, uint32_
     }
 }
 
+void DisplayNodeCommandHelper::SetForceCloseHdr(RSContext& context, NodeId id, bool isForceCloseHdr)
+{
+    if (auto node = context.GetNodeMap().GetRenderNode<RSDisplayRenderNode>(id)) {
+        node->SetForceCloseHdr(isForceCloseHdr);
+    }
+}
+
 void DisplayNodeCommandHelper::SetDisplayOffset(RSContext& context, NodeId id, int32_t offsetX, int32_t offsetY)
 {
     if (auto node = context.GetNodeMap().GetRenderNode<RSDisplayRenderNode>(id)) {

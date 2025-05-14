@@ -120,6 +120,7 @@
       *HgmFrameRateManager::SetVsyncRateDiscountLTPO*;
       *HgmFrameRateManager::EraseGameRateDiscountMap*;
       *HgmFrameRateManager::CollectGameRateDiscountChange*;
+      *HgmFrameRateManager::GetVRateMiniFPS*;
 
       *HgmHfbcConfig::HandleHfbcConfig*;
       *HgmHfbcConfig::SetHfbcConfigMap*;
@@ -129,6 +130,7 @@
       *HgmIdleDetector::GetTouchUpExpectedFPS*;
       *HgmIdleDetector::SetAceAnimatorIdleState*;
       *HgmIdleDetector::SetAppSupportedState*;
+      *HgmIdleDetector::UpdateAceAnimatorExpectedFrameRate*;
       *HgmIdleDetector::UpdateSurfaceTime*;
       *HgmIdleDetector::UpdateSurfaceState*;
 

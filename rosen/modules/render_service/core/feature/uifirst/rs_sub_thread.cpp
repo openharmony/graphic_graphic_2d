@@ -177,8 +177,7 @@ void RSSubThread::DrawableCache(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeD
     rsSubThreadCache.SetSubThreadSkip(false);
 
     RS_TRACE_NAME_FMT("RSSubThread::DrawableCache [%s] id:[%" PRIu64 "]", nodeDrawable->GetName().c_str(), nodeId);
-    RSTagTracker tagTracker(
-        grContext_.get(), nodeId, nodeId, RSTagTracker::TAGTYPE::TAG_SUB_THREAD, nodeDrawable->GetName());
+    RSTagTracker tagTracker(grContext_, nodeId, RSTagTracker::TAGTYPE::TAG_SUB_THREAD, nodeDrawable->GetName());
 
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(nodeDrawable->GetRenderParams().get());
     if (UNLIKELY(!surfaceParams)) {
@@ -271,7 +270,7 @@ void RSSubThread::DrawableCacheWithSkImage(std::shared_ptr<DrawableV2::RSSurface
         return;
     }
     auto& rsSubThreadCache = nodeDrawable->GetRsSubThreadCache();
-    auto cacheSurface = rsSubThreadCache.GetCacheSurface(threadIndex_, true);
+    auto cacheSurface = rsSubThreadCache.GetCacheSurface(threadIndex_);
     bool isHdrSurface = false;
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(nodeDrawable->GetRenderParams().get());
     if (surfaceParams != nullptr) {
@@ -284,7 +283,7 @@ void RSSubThread::DrawableCacheWithSkImage(std::shared_ptr<DrawableV2::RSSurface
     if (!cacheSurface || rsSubThreadCache.NeedInitCacheSurface(surfaceParams) || bufferFormatNeedUpdate) {
         DrawableV2::RsSubThreadCache::ClearCacheSurfaceFunc func = &RSUniRenderUtil::ClearNodeCacheSurface;
         rsSubThreadCache.InitCacheSurface(grContext_.get(), nodeDrawable, func, threadIndex_, isNeedFP16);
-        cacheSurface = rsSubThreadCache.GetCacheSurface(threadIndex_, true);
+        cacheSurface = rsSubThreadCache.GetCacheSurface(threadIndex_);
     }
 
     if (!cacheSurface) {
@@ -304,6 +303,7 @@ void RSSubThread::DrawableCacheWithSkImage(std::shared_ptr<DrawableV2::RSSurface
     rscanvas->SetScreenId(rsSubThreadCache.GetScreenId());
     rscanvas->SetTargetColorGamut(rsSubThreadCache.GetTargetColorGamut());
     rscanvas->SetHdrOn(rsSubThreadCache.GetHDRPresent());
+    rscanvas->SetIsDrawingCache(true);
     rscanvas->Save();
     rsSubThreadCache.SubDraw(nodeDrawable.get(), *rscanvas);
     rscanvas->Restore();
@@ -312,6 +312,7 @@ void RSSubThread::DrawableCacheWithSkImage(std::shared_ptr<DrawableV2::RSSurface
     RSUniRenderUtil::OptimizedFlushAndSubmit(cacheSurface, grContext_.get(), optFenceWait);
     rsSubThreadCache.UpdateCacheSurfaceInfo(nodeDrawable);
     rsSubThreadCache.UpdateBackendTexture();
+    rsSubThreadCache.SetCacheBehindWindowData(rscanvas->GetCacheBehindWindowData());
 
     // uifirst_debug dump img, run following commands to grant permissions before dump, otherwise dump maybe fail:
     // 1. hdc shell mount -o rw,remount /
@@ -372,6 +373,9 @@ void RSSubThread::ReleaseCacheSurfaceOnly(std::shared_ptr<DrawableV2::RSSurfaceR
     if (!param) {
         return;
     }
+    NodeId nodeId = nodeDrawable->GetId();
+    RS_TRACE_NAME_FMT("ReleaseCacheSurfaceOnly id:" PRIu64, nodeId);
+    RS_LOGI("ReleaseCacheSurfaceOnly id:%{public}" PRIu64, nodeId);
     nodeDrawable->GetRsSubThreadCache().ClearCacheSurfaceOnly();
 }
 

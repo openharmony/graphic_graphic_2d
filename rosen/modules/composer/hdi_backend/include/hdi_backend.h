@@ -38,6 +38,10 @@ struct PrepareCompleteParam {
     uint32_t screenId;
 };
 
+struct LoadOptParamsForHdiBackend {
+    LoadOptParamsForHdiOutput loadOptParamsForHdiOutput;
+};
+
 using OnScreenHotplugFunc = std::function<void(OutputPtr &output, bool connected, void* data)>;
 using OnScreenRefreshFunc = std::function<void(uint32_t deviceId, void* data)>;
 using OnPrepareCompleteFunc = std::function<void(sptr<Surface>& surface,
@@ -54,6 +58,7 @@ public:
     RosenError RegScreenVBlankIdleCallback(OnVBlankIdleCallback func, void* data);
     void Repaint(const OutputPtr &output);
     void ResetDevice();
+    void InitLoadOptParams(LoadOptParamsForHdiBackend& loadOptParamsForHdiBackend);
     /* for RS end */
 
     /* only used for mock tests */
@@ -80,6 +85,7 @@ private:
     OnScreenRefreshFunc onScreenRefreshCb_ = nullptr;
     OnPrepareCompleteFunc onPrepareCompleteCb_ = nullptr;
     std::unordered_map<uint32_t, OutputPtr> outputs_;
+    LoadOptParamsForHdiBackend loadOptParamsForHdiBackend_ = {};
 
     static void OnHdiBackendHotPlugEvent(uint32_t deviceId, bool connected, void *data);
     static void OnHdiBackendRefreshEvent(uint32_t deviceId, void *data);

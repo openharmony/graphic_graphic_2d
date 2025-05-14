@@ -30,6 +30,7 @@ namespace OHOS {
 namespace Rosen {
 class RSGraphicTestProfilerThread {
 public:
+#ifdef RS_PROFILER_ENABLED
     ~RSGraphicTestProfilerThread();
 
     void Start();
@@ -47,6 +48,11 @@ private:
     bool runnig_ = false;
     std::mutex queue_mutex_;
     std::condition_variable cv_;
+#else
+    void Start() {}
+    void Stop() {}
+    void SendCommand(const std::string command) {}
+#endif
 };
 
 } // namespace Rosen

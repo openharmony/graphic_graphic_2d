@@ -50,21 +50,6 @@ T GetData()
     g_pos += objectSize;
     return object;
 }
-bool DoGetId(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-    uint64_t id = GetData<uint64_t>();
-    RSRenderFrameRateLinker rsRenderFrameRateLinker(id);
-    rsRenderFrameRateLinker.GetId();
-    return true;
-}
 bool DoSetExpectedRange(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -82,20 +67,6 @@ bool DoSetExpectedRange(const uint8_t* data, size_t size)
     FrameRateRange range(min, max, preferred);
     RSRenderFrameRateLinker rsRenderFrameRateLinker(id);
     rsRenderFrameRateLinker.SetExpectedRange(range);
-    return true;
-}
-bool DoGetExpectedRange(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-    uint64_t id = GetData<uint64_t>();
-    RSRenderFrameRateLinker rsRenderFrameRateLinker(id);
     rsRenderFrameRateLinker.GetExpectedRange();
     return true;
 }
@@ -113,20 +84,6 @@ bool DoSetFrameRate(const uint8_t* data, size_t size)
     uint32_t rate = GetData<uint32_t>();
     RSRenderFrameRateLinker rsRenderFrameRateLinker(id);
     rsRenderFrameRateLinker.SetFrameRate(rate);
-    return true;
-}
-bool DoGetFrameRate(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-    uint64_t id = GetData<uint64_t>();
-    RSRenderFrameRateLinker rsRenderFrameRateLinker(id);
     rsRenderFrameRateLinker.GetFrameRate();
     return true;
 }
@@ -145,19 +102,6 @@ bool DoSetAnimatorExpectedFrameRate(const uint8_t* data, size_t size)
     rsRenderFrameRateLinker.SetAnimatorExpectedFrameRate(animatorExpectedFrameRate);
     return true;
 }
-bool DoGenerateId(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-    RSRenderFrameRateLinker::GenerateId();
-    return true;
-}
 } // namespace Rosen
 } // namespace OHOS
 
@@ -165,12 +109,8 @@ bool DoGenerateId(const uint8_t* data, size_t size)
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
-    OHOS::Rosen::DoGetId(data, size);
     OHOS::Rosen::DoSetExpectedRange(data, size);
-    OHOS::Rosen::DoGetExpectedRange(data, size);
     OHOS::Rosen::DoSetFrameRate(data, size);
-    OHOS::Rosen::DoGetFrameRate(data, size);
-    OHOS::Rosen::DoGenerateId(data, size);
     OHOS::Rosen::DoSetAnimatorExpectedFrameRate(data, size);
     return 0;
 }

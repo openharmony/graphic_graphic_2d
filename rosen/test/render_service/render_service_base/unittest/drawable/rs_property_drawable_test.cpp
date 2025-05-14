@@ -352,6 +352,9 @@ HWTEST_F(RSPropertyDrawableTest, RSFilterDrawableTest012, TestSize.Level1)
     ASSERT_NE(drawable, nullptr);
     auto canvas = std::make_shared<Drawing::Canvas>();
     auto filterCanvas = std::make_shared<RSPaintFilterCanvas>(canvas.get());
+    Drawing::Surface surface;
+    filterCanvas->surface_ = &surface;
+    drawable->needDrawBehindWindow_ = true;
     Drawing::Rect rect(0.0f, 0.0f, 1.0f, 1.0f);
     auto drawFunc = drawable->CreateDrawFunc();
     drawFunc(filterCanvas.get(), &rect);
@@ -373,6 +376,29 @@ HWTEST_F(RSPropertyDrawableTest, RSFilterDrawableTest013, TestSize.Level1)
     RectI region(0, 0, 1, 1);
     drawable->SetDrawBehindWindowRegion(region);
     ASSERT_TRUE(drawable->stagingDrawBehindWindowRegion_ == region);
+}
+
+ * @tc.name: RSFilterDrawableTest014
+ * @tc.desc: Test RSFilterDrawable needDrawBehindWindow DrawCache
+ * @tc.type:FUNC
+ * @tc.require:issuesIC0HM8
+ */
+HWTEST_F(RSPropertyDrawableTest, RSFilterDrawableTest014, TestSize.Level1)
+{
+    auto drawable = std::make_shared<DrawableV2::RSFilterDrawable>();
+    ASSERT_NE(drawable, nullptr);
+    auto canvas = std::make_shared<Drawing::Canvas>();
+    auto filterCanvas = std::make_shared<RSPaintFilterCanvas>(canvas.get());
+    Drawing::Surface surface;
+    filterCanvas->surface_ = &surface;
+    drawable->needDrawBehindWindow_ = true;
+    filterCanvas->SetIsDrawingCache(true);
+    Drawing::Rect rect(0.0f, 0.0f, 1.0f, 1.0f);
+    drawable->filter_ = RSPropertyDrawableUtils::GenerateBehindWindowFilter(80.0f, 1.9f, 1.0f, RSColor(0xFFFFFFE5));
+    EXPECT_NE(drawable->filter_, nullptr);
+    auto drawFunc = drawable->CreateDrawFunc();
+    drawFunc(filterCanvas.get(), &rect);
+    EXPECT_NE(filterCanvas->cacheBehindWindowData_, nullptr);
 }
 
 /**

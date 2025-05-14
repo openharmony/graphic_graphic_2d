@@ -143,7 +143,7 @@ void RSNodeCommandHelper::SetOutOfParent(RSContext& context, NodeId nodeId, OutO
 
 void RSNodeCommandHelper::SetTakeSurfaceForUIFlag(RSContext& context, NodeId nodeId)
 {
-    context.InsertUiCaptureCmdsExecutedFlag(nodeId, true);
+    context.GetUiCaptureHelper().InsertUiCaptureCmdsExecutedFlag(nodeId, true);
 }
 
 void RSNodeCommandHelper::RegisterGeometryTransitionPair(RSContext& context, NodeId inNodeId, NodeId outNodeId,

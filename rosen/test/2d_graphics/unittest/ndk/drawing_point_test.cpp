@@ -17,6 +17,10 @@
 #include "gtest/gtest.h"
 #include "utils/scalar.h"
 
+#ifdef RS_ENABLE_VK
+#include "platform/ohos/backend/rs_vulkan_context.h"
+#endif
+
 using namespace testing;
 using namespace testing::ext;
 
@@ -31,7 +35,12 @@ public:
     void TearDown() override;
 };
 
-void NativeDrawingPointTest::SetUpTestCase() {}
+void NativeDrawingPointTest::SetUpTestCase()
+{
+#ifdef RS_ENABLE_VK
+    RsVulkanContext::SetRecyclable(false);
+#endif
+}
 void NativeDrawingPointTest::TearDownTestCase() {}
 void NativeDrawingPointTest::SetUp() {}
 void NativeDrawingPointTest::TearDown() {}

@@ -28,6 +28,7 @@
 #include "display_engine/rs_luminance_control.h"
 #include "drawable/rs_display_render_node_drawable.h"
 #include "drawable/rs_surface_render_node_drawable.h"
+#include "feature/dirty/rs_uni_dirty_compute_util.h"
 #include "params/rs_display_render_params.h"
 #include "params/rs_surface_render_params.h"
 #include "feature/round_corner_display/rs_rcd_surface_render_node.h"
@@ -86,23 +87,6 @@ void RSUniRenderProcessor::CreateLayer(const RSSurfaceRenderNode& node, RSSurfac
     }
     auto& layerInfo = params.GetLayerInfo();
     const Rect& dirtyRect = params.GetBufferDamage();
-    RS_OPTIONAL_TRACE_NAME_FMT(
-        "CreateLayer name:%s zorder:%d src:[%d, %d, %d, %d] dst:[%d, %d, %d, %d] dirty:[%d, %d, %d, %d] "
-        "buffer:[%d, %d] alpha:[%f] type:[%d]",
-        node.GetName().c_str(), layerInfo.zOrder,
-        layerInfo.srcRect.x, layerInfo.srcRect.y, layerInfo.srcRect.w, layerInfo.srcRect.h,
-        layerInfo.dstRect.x, layerInfo.dstRect.y, layerInfo.dstRect.w, layerInfo.dstRect.h,
-        dirtyRect.x, dirtyRect.y, dirtyRect.w, dirtyRect.h,
-        buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight(), layerInfo.alpha, layerInfo.layerType);
-    RS_LOGD_IF(DEBUG_PIPELINE,
-        "CreateLayer name:%{public}s zorder:%{public}d src:[%{public}d, %{public}d, %{public}d, %{public}d] "
-        "dst:[%{public}d, %{public}d, %{public}d, %{public}d] "
-        "drity:[%{public}d, %{public}d, %{public}d, %{public}d] "
-        "buffer:[%{public}d, %{public}d] alpha:[%{public}f]",
-        node.GetName().c_str(), layerInfo.zOrder, layerInfo.srcRect.x, layerInfo.srcRect.y, layerInfo.srcRect.w,
-        layerInfo.srcRect.h, layerInfo.dstRect.x, layerInfo.dstRect.y, layerInfo.dstRect.w, layerInfo.dstRect.h,
-        dirtyRect.x, dirtyRect.y, dirtyRect.w, dirtyRect.h, buffer->GetSurfaceBufferWidth(),
-        buffer->GetSurfaceBufferHeight(), layerInfo.alpha);
     auto preBuffer = params.GetPreBuffer();
     LayerInfoPtr layer = GetLayerInfo(
         params, buffer, preBuffer, surfaceHandler->GetConsumer(), params.GetAcquireFence());
@@ -113,6 +97,25 @@ void RSUniRenderProcessor::CreateLayer(const RSSurfaceRenderNode& node, RSSurfac
 
     uniComposerAdapter_->SetMetaDataInfoToLayer(layer, params.GetBuffer(), surfaceHandler->GetConsumer());
     CreateSolidColorLayer(layer, params);
+    auto& layerRect = layer->GetLayerSize();
+    auto& cropRect = layer->GetCropRect();
+    RS_OPTIONAL_TRACE_NAME_FMT(
+        "CreateLayer name:%s ScreenId:%llu zorder:%d layerRect:[%d, %d, %d, %d] cropRect:[%d, %d, %d, %d]"
+        "dirty:[%d, %d, %d, %d] buffer:[%d, %d] alpha:[%f] type:[%d] transform:[%d]",
+        node.GetName().c_str(), screenInfo_.id, layerInfo.zOrder,
+        layerRect.x, layerRect.y, layerRect.w, layerRect.h,
+        cropRect.x, cropRect.y, cropRect.w, cropRect.h,
+        dirtyRect.x, dirtyRect.y, dirtyRect.w, dirtyRect.h, buffer->GetSurfaceBufferWidth(),
+        buffer->GetSurfaceBufferHeight(), layerInfo.alpha, layerInfo.layerType, layer->GetTransformType());
+    RS_LOGD_IF(DEBUG_PIPELINE,
+        "CreateLayer name:%{public}s ScreenId:%{public}" PRIu64 " zorder:%{public}d layerRect:[%{public}d, %{public}d, "
+        "%{public}d, %{public}d] cropRect:[%{public}d, %{public}d, %{public}d, %{public}d] "
+        "drity:[%{public}d, %{public}d, %{public}d, %{public}d] "
+        "buffer:[%{public}d, %{public}d] alpha:[%{public}f] transform:[%{public}d]",
+        node.GetName().c_str(), screenInfo_.id, layerInfo.zOrder, layerRect.x, layerRect.y, layerRect.w, layerRect.h,
+        cropRect.x, cropRect.y, cropRect.w, cropRect.h,
+        dirtyRect.x, dirtyRect.y, dirtyRect.w, dirtyRect.h, buffer->GetSurfaceBufferWidth(),
+        buffer->GetSurfaceBufferHeight(), layerInfo.alpha, layer->GetTransformType());
     layers_.emplace_back(layer);
     params.SetLayerCreated(true);
 }
@@ -279,7 +282,7 @@ LayerInfoPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, s
         const auto& bufferDamage = params.GetBufferDamage();
         GraphicIRect dirtyRect = params.GetIsBufferFlushed() ? GraphicIRect { bufferDamage.x, bufferDamage.y,
             bufferDamage.w, bufferDamage.h } : GraphicIRect { 0, 0, 0, 0 };
-        auto intersectRect = RSUniRenderUtil::IntersectRect(layerInfo.srcRect, dirtyRect);
+        auto intersectRect = RSUniDirtyComputeUtil::IntersectRect(layerInfo.srcRect, dirtyRect);
         RS_OPTIONAL_TRACE_NAME_FMT("intersectRect:[%d, %d, %d, %d]",
             intersectRect.x, intersectRect.y, intersectRect.w, intersectRect.h);
         dirtyRegions.emplace_back(intersectRect);

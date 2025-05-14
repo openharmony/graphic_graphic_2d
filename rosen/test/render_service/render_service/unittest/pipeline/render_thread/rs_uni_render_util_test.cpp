@@ -635,6 +635,40 @@ HWTEST_F(RSUniRenderUtilTest, CreateBufferDrawParam001, TestSize.Level2)
 }
 
 /*
+ * @tc.name: CreateBufferDrawParam011
+ * @tc.desc: test CreateBufferDrawParam with surfaceRenderNode
+ * @tc.type: FUNC
+ * @tc.require: issueIAJOWI
+ */
+HWTEST_F(RSUniRenderUtilTest, CreateBufferDrawParam011, TestSize.Level2)
+{
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    bool forceCPU = true;
+    BufferDrawParam params = RSUniRenderUtil::CreateBufferDrawParam(*surfaceNode, forceCPU);
+    ASSERT_EQ(params.buffer, nullptr);
+
+    surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    params = RSUniRenderUtil::CreateBufferDrawParam(*surfaceNode, forceCPU);
+    ASSERT_NE(params.buffer, nullptr);
+}
+
+/*
+ * @tc.name: DealWithRotationAndGravityForRotationFixed
+ * @tc.desc: test DealWithRotationAndGravityForRotationFixed
+ * @tc.type: FUNC
+ * @tc.require: issueIAJOWI
+ */
+HWTEST_F(RSUniRenderUtilTest, DealWithRotationAndGravityForRotationFixedTest, TestSize.Level2)
+{
+    GraphicTransformType transform = GraphicTransformType::GRAPHIC_ROTATE_NONE;
+    Gravity gravity = Gravity::CENTER;
+    RectF localBounds;
+    BufferDrawParam params;
+    RSUniRenderUtil::DealWithRotationAndGravityForRotationFixed(transform, gravity, localBounds, params);
+    ASSERT_EQ(params.dstRect.GetWidth(), 0);
+}
+
+/*
  * @tc.name: GetMatrixOfBufferToRelRect_003
  * @tc.desc: test GetMatrixOfBufferToRelRect with surfaceNode without consumer
  * @tc.type: FUNC
@@ -944,48 +978,6 @@ HWTEST_F(RSUniRenderUtilTest, FlushDmaSurfaceBuffer002, TestSize.Level2)
     sptr<SurfaceBuffer> surFaceBuffer = dmaMem.DmaMemAlloc(info, pixelMap);
     RSUniRenderUtil::FlushDmaSurfaceBuffer(pixelMap.get());
 #endif
-}
-
-/*
- * @tc.name: IntersectRect
- * @tc.desc: test GraphicIRect intersect with GraphicIRect
- * @tc.type: FUNC
- * @tc.require: issueIARLU9
- */
-HWTEST_F(RSUniRenderUtilTest, IntersectRect, TestSize.Level2)
-{
-    GraphicIRect srcRect = { 0, 0, 1080, 1920 };
-    GraphicIRect emptyRect = { 0, 0, 0, 0 };
-
-    GraphicIRect rect = emptyRect; // no intersect
-    GraphicIRect result = RSUniRenderUtil::IntersectRect(srcRect, rect);
-    ASSERT_EQ(result, emptyRect);
-
-    rect = { -500, -500, -100, -100 }; // no intersect
-    result = RSUniRenderUtil::IntersectRect(srcRect, rect);
-    ASSERT_EQ(result, emptyRect);
-
-    rect = { 1100, 0, 100, 100 }; // no intersect
-    result = RSUniRenderUtil::IntersectRect(srcRect, rect);
-    ASSERT_EQ(result, emptyRect);
-
-    rect = { 200, 200, 800, 800 }; // all intersect
-    result = RSUniRenderUtil::IntersectRect(srcRect, rect);
-    ASSERT_EQ(result, rect);
-
-    rect = { -100, -100, 3000, 3000 }; // src rect
-    result = RSUniRenderUtil::IntersectRect(srcRect, rect);
-    ASSERT_EQ(result, srcRect);
-
-    rect = { -100, -100, 1000, 1000 }; // partial intersect
-    result = RSUniRenderUtil::IntersectRect(srcRect, rect);
-    GraphicIRect expect = { 0, 0, 900, 900 };
-    ASSERT_EQ(result, expect);
-
-    rect = { 500, 500, 2000, 2000 }; // partial intersect
-    result = RSUniRenderUtil::IntersectRect(srcRect, rect);
-    expect = { 500, 500, 580, 1420 };
-    ASSERT_EQ(result, expect);
 }
 
 /**
@@ -1379,31 +1371,40 @@ HWTEST_F(RSUniRenderUtilTest, MergeDirtyHistoryInVirtual001, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetCurrentFrameVisibleDirty001
- * @tc.desc: test GetCurrentFrameVisibleDirty
+ * @tc.name: FrameAwareTraceBoostTest
+ * @tc.desc: test FrameAwareTraceBoost
  * @tc.type: FUNC
  * @tc.require: #IBIA3V
  */
-HWTEST_F(RSUniRenderUtilTest, GetCurrentFrameVisibleDirty001, TestSize.Level1)
+HWTEST_F(RSUniRenderUtilTest, FrameAwareTraceBoostTest, TestSize.Level1)
 {
-    NodeId defaultDisplayId = 5;
-    RSDisplayNodeConfig config;
-    RSDisplayRenderNodeDrawable* displayDrawable = GenerateDisplayDrawableById(defaultDisplayId, config);
-    ASSERT_NE(displayDrawable, nullptr);
-    std::unique_ptr<RSDisplayRenderParams> params = std::make_unique<RSDisplayRenderParams>(defaultDisplayId);
-    params->isFirstVisitCrossNodeDisplay_ = false;
-    std::vector<std::shared_ptr<RSRenderNodeDrawableAdapter>> surfaceAdapters{nullptr};
+    size_t layerNum = 10;
+    auto res = RSUniRenderUtil::FrameAwareTraceBoost(layerNum);
+    ASSERT_EQ(res, false);
 
-    NodeId defaultSurfaceId = 10;
-    std::shared_ptr<RSSurfaceRenderNode> renderNode = std::make_shared<RSSurfaceRenderNode>(defaultSurfaceId);
-    auto surfaceAdapter = RSSurfaceRenderNodeDrawable::OnGenerate(renderNode);
-    // default surface
-    surfaceAdapters.emplace_back(surfaceAdapter);
-    
-    params->SetAllMainAndLeashSurfaceDrawables(surfaceAdapters);
-    ScreenInfo screenInfo;
-    auto rects = RSUniRenderUtil::GetCurrentFrameVisibleDirty(*displayDrawable, screenInfo, *params);
-    EXPECT_EQ(rects.empty(), true);
-    displayDrawable = nullptr;
+    layerNum = 11;
+    res = RSUniRenderUtil::FrameAwareTraceBoost(layerNum);
+    ASSERT_EQ(res, false);
+}
+
+/**
+ * @tc.name: GetImageRegionsTest
+ * @tc.desc: test GetImageRegions
+ * @tc.type: FUNC
+ * @tc.require: #IBIA3V
+ */
+HWTEST_F(RSUniRenderUtilTest, GetImageRegionsTest, TestSize.Level1)
+{
+    float screenWidth = 100.0f;
+    float screenHeight = 100.0f;
+    float realImageWidth = 0.0f;
+    float realImageHeight = 0.0f;
+    auto regions = RSUniRenderUtil::GetImageRegions(screenHeight, screenWidth, realImageHeight, realImageWidth);
+    ASSERT_EQ(regions.GetHeight(), 100);
+
+    realImageWidth = 10.0f;
+    realImageHeight = 10.0f;
+    regions = RSUniRenderUtil::GetImageRegions(screenHeight, screenWidth, realImageHeight, realImageWidth);
+    ASSERT_EQ(regions.GetHeight(), 100);
 }
 } // namespace OHOS::Rosen

@@ -229,6 +229,57 @@ void SkiaShaderEffect::InitWithSweepGradient(const Point& centerPt, const std::v
         static_cast<SkTileMode>(mode), startAngle, endAngle, 0, skMatrix);
 }
 
+void SkiaShaderEffect::InitWithLightUp(const float& lightUpDeg, const ShaderEffect& imageShader)
+{
+    static constexpr char prog[] = R"(
+        uniform half lightUpDeg;
+        uniform shader imageShader;
+        vec3 rgb2hsv(in vec3 c)
+        {
+            vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
+            vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));
+            vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));
+            float d = q.x - min(q.w, q.y);
+            float e = 1.0e-10;
+            return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);
+        }
+        vec3 hsv2rgb(in vec3 c)
+        {
+            vec3 rgb = clamp(abs(mod(c.x * 6.0 + vec3(0.0, 4.0, 2.0), 6.0) - 3.0) - 1.0, 0.0, 1.0);
+            return c.z * mix(vec3(1.0), rgb, c.y);
+        }
+        half4 main(float2 coord)
+        {
+            vec3 color = imageShader.eval(coord).rgb;
+            vec3 rgb = max(color, 0.0);
+            vec3 hsv = rgb2hsv(rgb);
+            float satUpper = clamp(hsv.y * 1.2, 0.0, 1.0);
+            hsv.y = mix(satUpper, hsv.y, lightUpDeg);
+            hsv.z += lightUpDeg - 1.0;
+            hsv.z = max(hsv.z, 0.0);
+            return vec4(hsv2rgb(hsv), imageShader.eval(coord).a);
+        }
+    )";
+    static sk_sp<SkRuntimeEffect> effect = nullptr;
+    if (effect == nullptr) {
+        auto result = SkRuntimeEffect::MakeForShader(SkString(prog));
+        if (result.effect == nullptr) {
+            LOGE("SkiaShaderEffect::InitWithLightUp: effect is nullptr");
+            return;
+        }
+        effect = result.effect;
+    }
+    auto imageShaderImpl_ = imageShader.GetImpl<SkiaShaderEffect>();
+    if (imageShaderImpl_ != nullptr) {
+        sk_sp<SkShader> children[] = {imageShaderImpl_->GetShader()};
+        size_t childCount = 1;
+        shader_ = effect->makeShader(SkData::MakeWithCopy(
+            &lightUpDeg, sizeof(lightUpDeg)), children, childCount, nullptr, false);
+    } else {
+        LOGE("SkiaShaderEffect::InitWithLightUp: imageShader is nullptr");
+    }
+}
+
 void SkiaShaderEffect::InitWithSdf(const SDFShapeBase& shape)
 {
     sk_sp<SkShader> skShader = shape.Build<sk_sp<SkShader>>();

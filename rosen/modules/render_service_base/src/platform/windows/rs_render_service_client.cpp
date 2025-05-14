@@ -140,6 +140,13 @@ bool RSRenderServiceClient::TakeSurfaceCapture(NodeId id, std::shared_ptr<Surfac
     return false;
 }
 
+std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>> RSRenderServiceClient::TakeSurfaceCaptureSoloNode(
+    NodeId id, const RSSurfaceCaptureConfig& captureConfig)
+{
+    std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>> result;
+    return result;
+}
+
 bool RSRenderServiceClient::TakeSelfSurfaceCapture(NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback,
     const RSSurfaceCaptureConfig& captureConfig)
 {
@@ -262,6 +269,11 @@ uint32_t RSRenderServiceClient::GetRealtimeRefreshRate(ScreenId id)
 }
 
 std::string RSRenderServiceClient::GetRefreshInfo(pid_t pid)
+{
+    return "";
+}
+
+std::string RSRenderServiceClient::GetRefreshInfoToSP(NodeId id)
 {
     return "";
 }
@@ -636,6 +648,12 @@ void RSRenderServiceClient::NotifyAppStrategyConfigChangeEvent(const std::string
 
 void RSRenderServiceClient::NotifyRefreshRateEvent(const EventInfo& eventInfo)
 {
+}
+
+bool RSRenderServiceClient::NotifySoftVsyncRateDiscountEvent(uint32_t pid,
+    const std::string &name, uint32_t rateDiscount)
+{
+    return {};
 }
 
 void RSRenderServiceClient::NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt)

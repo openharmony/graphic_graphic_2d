@@ -364,13 +364,12 @@ void RSUniRenderThread::Render()
     PerfForBlurIfNeeded();
 }
 
-void RSUniRenderThread::ReleaseSelfDrawingNodeBuffer()
+void RSUniRenderThread::CollectReleaseTasks(std::vector<std::function<void()>>& releaseTasks)
 {
     auto& renderThreadParams = GetRSRenderThreadParams();
     if (!renderThreadParams) {
         return;
     }
-    std::vector<std::function<void()>> releaseTasks;
     for (const auto& drawable : renderThreadParams->GetSelfDrawables()) {
         if (UNLIKELY(!drawable)) {
             continue;
@@ -384,9 +383,15 @@ void RSUniRenderThread::ReleaseSelfDrawingNodeBuffer()
         if (UNLIKELY(!surfaceParams)) {
             continue;
         }
-        bool needRelease = !surfaceParams->GetHardwareEnabled() || !surfaceParams->GetLayerCreated();
-        if (needRelease && surfaceParams->GetLastFrameHardwareEnabled()) {
+        auto curHardWareEnabled = surfaceParams->GetHardwareEnabled();
+        auto lastHardWareEnabled = surfaceParams->GetLastFrameHardwareEnabled();
+        bool needRelease = !curHardWareEnabled || !surfaceParams->GetLayerCreated();
+        if (needRelease && lastHardWareEnabled) {
             surfaceParams->releaseInHardwareThreadTaskNum_ = RELEASE_IN_HARDWARE_THREAD_TASK_NUM;
+        }
+        if (curHardWareEnabled != lastHardWareEnabled) {
+            RS_LOGI("name:%{public}s id:%{public}" PRIu64" hwcEnabled changed to:%{public}d needRelease:%{public}d",
+                surfaceDrawable->GetName().c_str(), surfaceDrawable->GetId(), curHardWareEnabled, needRelease);
         }
         if (needRelease) {
             auto preBuffer = params->GetPreBuffer();
@@ -397,7 +402,7 @@ void RSUniRenderThread::ReleaseSelfDrawingNodeBuffer()
                 continue;
             }
             auto releaseTask = [buffer = preBuffer, consumer = surfaceDrawable->GetConsumerOnDraw(),
-                                   useReleaseFence = surfaceParams->GetLastFrameHardwareEnabled(),
+                                   useReleaseFence = lastHardWareEnabled,
                                    acquireFence = acquireFence_]() mutable {
                 if (consumer == nullptr) {
                     RS_LOGE("ReleaseSelfDrawingNodeBuffer failed consumer nullptr");
@@ -418,6 +423,12 @@ void RSUniRenderThread::ReleaseSelfDrawingNodeBuffer()
             }
         }
     }
+}
+
+void RSUniRenderThread::ReleaseSelfDrawingNodeBuffer()
+{
+    std::vector<std::function<void()>> releaseTasks;
+    CollectReleaseTasks(releaseTasks);
     if (releaseTasks.empty()) {
         return;
     }
@@ -772,7 +783,7 @@ void RSUniRenderThread::TrimMem(std::string& dumpString, std::string& type)
             TrimMemGpuLimitType(gpuContext, dumpString, type, typeGpuLimit);
         } else {
             uint32_t pid = static_cast<uint32_t>(std::atoi(type.c_str()));
-            Drawing::GPUResourceTag tag(pid, 0, 0, 0, 0, "TrimMem");
+            Drawing::GPUResourceTag tag(pid, 0, 0, 0, "TrimMem");
             MemoryManager::ReleaseAllGpuResource(gpuContext, tag);
         }
         dumpString.append("trimMem: " + type + "\n");

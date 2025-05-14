@@ -22,6 +22,7 @@
 #include "common/rs_common_def.h"
 #include "common/rs_macros.h"
 #include "platform/common/rs_log.h"
+#include "platform/common/rs_system_properties.h"
 #ifndef ROSEN_CROSS_PLATFORM
 #include <iconsumer_surface.h>
 #include <surface.h>
@@ -53,14 +54,16 @@ public:
             }
         }
 #endif
-        void Reset()
+        void Reset(bool needBufferDeleteCb = true)
         {
 #ifndef ROSEN_CROSS_PLATFORM
             if (buffer == nullptr) {
                 return;
             }
             if (bufferDeleteCb_) {
-                bufferDeleteCb_(buffer->GetSeqNum());
+                if (!RSSystemProperties::IsUseVulkan() || needBufferDeleteCb) {
+                    bufferDeleteCb_(buffer->GetSeqNum());
+                }
             }
             buffer = nullptr;
             acquireFence = SyncFence::InvalidFence();

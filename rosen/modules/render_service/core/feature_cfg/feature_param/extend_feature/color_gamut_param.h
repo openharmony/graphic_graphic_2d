@@ -24,13 +24,13 @@ public:
     ColorGamutParam() = default;
     ~ColorGamutParam() = default;
 
-    static bool IsSLRCloseP3();
+    static bool IsWiredExtendScreenCloseP3();
 
 protected:
-    static void SetSLRCloseP3(bool isEnable);
+    static void SetWiredExtendScreenCloseP3(bool isEnable);
 
 private:
-    inline static bool isSLRCloseP3_ = true;
+    inline static bool isWiredExtendScreenCloseP3_ = false;
 
     friend class ColorGamutParamParse;
 };

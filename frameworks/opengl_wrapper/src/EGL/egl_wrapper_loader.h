@@ -35,6 +35,9 @@ private:
     EglWrapperLoader() : dlEglHandle_(nullptr), dlGlHandle1_(nullptr),
         dlGlHandle2_(nullptr), dlGlHandle3_(nullptr) {};
     bool LoadEgl(const char *libName, EglHookTable *table);
+#ifdef OPENGL_WRAPPER_ENABLE_GL4
+    bool LoadGlFromMesa(char const * const *glName, FunctionPointerType *entry);
+#endif
     void *LoadGl(const char *libName, char const * const *glName, FunctionPointerType *entry);
     bool LoadVendorDriver(EglWrapperDispatchTable *table);
     void *dlEglHandle_;

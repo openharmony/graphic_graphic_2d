@@ -73,6 +73,7 @@ public:
 
     virtual void DisplayDump(int32_t screenIndex, std::string& dumpString) = 0;
     virtual void SurfaceDump(int32_t screenIndex, std::string& dumpString) = 0;
+    virtual void DumpCurrentFrameLayers() = 0;
     virtual void FpsDump(int32_t screenIndex, std::string& dumpString, std::string& arg) = 0;
     virtual void ClearFpsDump(int32_t screenIndex, std::string& dumpString, std::string& arg) = 0;
     virtual void HitchsDump(int32_t screenIndex, std::string& dumpString, std::string& arg) = 0;
@@ -154,9 +155,11 @@ public:
     virtual void SetCastScreenEnableSkipWindow(bool enable) = 0;
     virtual bool GetCastScreenEnableSkipWindow() = 0;
     virtual void SetBlackList(const std::unordered_set<uint64_t>& blackList) = 0;
+    virtual void SetTypeBlackList(const std::unordered_set<uint8_t>& typeBlackList) = 0;
     virtual void AddBlackList(const std::vector<uint64_t>& blackList) = 0;
     virtual void RemoveBlackList(const std::vector<uint64_t>& blackList) = 0;
     virtual const std::unordered_set<uint64_t> GetBlackList() const = 0;
+    virtual const std::unordered_set<uint8_t> GetTypeBlackList() const = 0;
     virtual const std::unordered_set<uint64_t>& GetWhiteList() const = 0;
 
     virtual void SetSecurityExemptionList(const std::vector<uint64_t>& securityExemptionList) = 0;
@@ -207,6 +210,7 @@ public:
 
     void DisplayDump(int32_t screenIndex, std::string& dumpString) override;
     void SurfaceDump(int32_t screenIndex, std::string& dumpString) override;
+    void DumpCurrentFrameLayers() override;
     void FpsDump(int32_t screenIndex, std::string& dumpString, std::string& arg) override;
     void ClearFpsDump(int32_t screenIndex, std::string& dumpString, std::string& arg) override;
     void HitchsDump(int32_t screenIndex, std::string& dumpString, std::string& arg) override;
@@ -288,9 +292,11 @@ public:
     void SetCastScreenEnableSkipWindow(bool enable) override;
     bool GetCastScreenEnableSkipWindow() override;
     void SetBlackList(const std::unordered_set<uint64_t>& blackList) override;
+    void SetTypeBlackList(const std::unordered_set<uint8_t>& typeBlackList) override;
     void AddBlackList(const std::vector<uint64_t>& blackList) override;
     void RemoveBlackList(const std::vector<uint64_t>& blackList) override;
     const std::unordered_set<uint64_t> GetBlackList() const override;
+    const std::unordered_set<uint8_t> GetTypeBlackList() const override;
     const std::unordered_set<uint64_t>& GetWhiteList() const override;
 
     void SetSecurityExemptionList(const std::vector<uint64_t>& securityExemptionList) override;
@@ -366,8 +372,8 @@ private:
     std::atomic<int32_t> currentVirtualColorGamutIdx_ = 0;
     std::atomic<int32_t> currentPhysicalColorGamutIdx_ = 0;
     std::atomic<ScreenGamutMap> currentVirtualGamutMap_ = GAMUT_MAP_CONSTANT;
-    int32_t currentVirtualHDRFormatIdx_ = 0;
-    int32_t currentPhysicalHDRFormatIdx_ = 0;
+    std::atomic<int32_t> currentVirtualHDRFormatIdx_ = 0;
+    std::atomic<int32_t> currentPhysicalHDRFormatIdx_ = 0;
     std::vector<ScreenHDRFormat> supportedVirtualHDRFormats_ = {
         NOT_SUPPORT_HDR };
     std::vector<ScreenHDRFormat> supportedPhysicalHDRFormats_;
@@ -390,6 +396,9 @@ private:
 
     mutable std::mutex blackListMutex_;
     std::unordered_set<uint64_t> blackList_ = {};
+
+    mutable std::mutex typeBlackListMutex_;
+    std::unordered_set<uint8_t> typeBlackList_ = {};
 
     mutable std::mutex securityExemptionMutex_;
     std::vector<uint64_t> securityExemptionList_ = {};

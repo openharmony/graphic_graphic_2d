@@ -540,11 +540,14 @@ void RSUniRenderVirtualProcessor::CanvasClipRegionForUniscaleMode()
     }
     if (scaleMode_ == ScreenScaleMode::UNISCALE_MODE) {
         Drawing::Rect rect(0, 0, mirroredScreenWidth_, mirroredScreenHeight_);
-        canvas_->GetTotalMatrix().MapRect(rect, rect);
+        auto matrix = EnableSlrScale() && slrManager_ ? slrManager_->GetScaleMatrix() : canvas_->GetTotalMatrix();
+        matrix.MapRect(rect, rect);
         Drawing::RectI rectI = {rect.GetLeft(), rect.GetTop(), rect.GetRight(), rect.GetBottom()};
         Drawing::Region clipRegion;
         clipRegion.SetRect(rectI);
         canvas_->ClipRegion(clipRegion);
+        RS_LOGD("RSUniRenderVirtualProcessor::CanvasClipRegionForUniscaleMode, clipRect: %{public}s",
+            rectI.ToString().c_str());
     }
 }
 

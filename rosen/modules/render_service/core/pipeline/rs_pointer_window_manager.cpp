@@ -24,6 +24,10 @@
 #endif
 namespace OHOS {
 namespace Rosen {
+namespace {
+constexpr int MIN_LAYER_WIDTH = 2;
+constexpr int MIN_LAYER_HEIGHT = 2;
+}
 RSPointerWindowManager& RSPointerWindowManager::Instance()
 {
     static RSPointerWindowManager instance;
@@ -171,7 +175,6 @@ void RSPointerWindowManager::HardCursorCreateLayerForDirect(std::shared_ptr<RSPr
                 params->SetPreBuffer(nullptr);
                 hardCursorNode->AddToPendingSyncList();
             }
-            RS_OPTIONAL_TRACE_NAME("HardCursorCreateLayerForDirect create layer");
             processor->CreateLayer(*hardCursorNode, *params);
         }
     }
@@ -222,6 +225,58 @@ void RSPointerWindowManager::CollectAllHardCursor(
         if (surfaceNodeDrawable && hardCursorNode.IsOnTheTree()) {
             hardCursorDrawableMap_.emplace(curDisplayNode->GetId(), hardCursorNode.GetRenderDrawable());
         }
+    }
+}
+
+std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> RSPointerWindowManager::GetHardCursorDrawable(NodeId id)
+{
+    auto& renderThreadParams = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+    if (!renderThreadParams) {
+        return nullptr;
+    }
+    auto& hardCursorDrawables = renderThreadParams->GetHardCursorDrawables();
+    if (hardCursorDrawables.empty()) {
+        return nullptr;
+    }
+    auto iter = hardCursorDrawables.find(id);
+    if (iter == hardCursorDrawables.end()) {
+        return nullptr;
+    }
+    auto& hardCursorDrawable = iter->second;
+    if (!hardCursorDrawable) {
+        return nullptr;
+    }
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(hardCursorDrawable->GetRenderParams().get());
+    if (!surfaceParams) {
+        return nullptr;
+    }
+    auto surfaceDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(hardCursorDrawable);
+    if (surfaceDrawable && surfaceParams->GetHardCursorStatus()) {
+        return std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(surfaceDrawable);
+    }
+    return nullptr;
+}
+
+void RSPointerWindowManager::CheckHardCursorValid(const RSSurfaceRenderNode& node)
+{
+    if (!node.GetHardCursorStatus()) {
+        return;
+    }
+    // DSS Hardware don't support the synthesis of layers with length and width not larger than 2
+    auto srcRect = node.GetSrcRect();
+    if (srcRect.GetWidth() <= MIN_LAYER_WIDTH || srcRect.GetHeight() <= MIN_LAYER_WIDTH) {
+        const auto& property = node.GetRenderProperties();
+        auto buffer = node.GetRSSurfaceHandler()->GetBuffer();
+        if (buffer == nullptr) {
+            RS_LOGE("RSPointerWindowManager::CheckHardCursorValid: buffer is nullptr");
+            return;
+        }
+        auto bufferWidth = buffer->GetSurfaceBufferWidth();
+        auto bufferHeight = buffer->GetSurfaceBufferHeight();
+        const auto boundsWidth = property.GetBoundsWidth();
+        const auto boundsHeight = property.GetBoundsHeight();
+        RS_LOGE("hardcursor srcRect error, %{public}d, %{public}d, %{public}f, %{public}f",
+            bufferWidth, bufferHeight, boundsWidth, boundsHeight);
     }
 }
 } // namespace Rosen

@@ -157,6 +157,9 @@ public:
         const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam = {},
         const Drawing::Rect& specifiedAreaRect = Drawing::Rect(0.f, 0.f, 0.f, 0.f));
 
+    std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>> TakeSurfaceCaptureSoloNode(
+        NodeId id, const RSSurfaceCaptureConfig& captureConfig);
+
     bool TakeSelfSurfaceCapture(NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback,
         const RSSurfaceCaptureConfig& captureConfig);
 
@@ -181,6 +184,8 @@ public:
     int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface);
 
     int32_t SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector);
+
+    int32_t SetVirtualScreenTypeBlackList(ScreenId id, std::vector<NodeType>& typeBlackListVector);
 
     int32_t AddVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector);
 
@@ -236,6 +241,7 @@ public:
     uint32_t GetRealtimeRefreshRate(ScreenId screenId);
 
     std::string GetRefreshInfo(pid_t pid);
+    std::string GetRefreshInfoToSP(NodeId id);
 
 #ifndef ROSEN_ARKUI_X
     int32_t SetPhysicalScreenResolution(ScreenId id, uint32_t width, uint32_t height);
@@ -370,6 +376,8 @@ public:
         const std::vector<std::pair<std::string, std::string>>& newConfig);
 
     void NotifyRefreshRateEvent(const EventInfo& eventInfo);
+
+    bool NotifySoftVsyncRateDiscountEvent(uint32_t pid, const std::string &name, uint32_t rateDiscount);
 
     void NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt);
 

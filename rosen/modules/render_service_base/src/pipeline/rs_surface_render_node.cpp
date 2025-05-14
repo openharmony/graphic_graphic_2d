@@ -152,6 +152,10 @@ void RSSurfaceRenderNode::SetConsumer(const sptr<IConsumerSurface>& consumer)
 void RSSurfaceRenderNode::UpdateSrcRect(const Drawing::Canvas& canvas, const Drawing::RectI& dstRect,
     bool hasRotation)
 {
+    // if surfaceNode bound change, send message to aps
+#ifdef ENABLE_FULL_SCREEN_RECONGNIZE
+    SendSurfaceNodeBoundChange();
+#endif
     auto localClipRect = RSPaintFilterCanvas::GetLocalClipBounds(canvas, &dstRect).value_or(Drawing::Rect());
     const RSProperties& properties = GetRenderProperties();
     int left = std::clamp<int>(localClipRect.GetLeft(), 0, properties.GetBoundsWidth());
@@ -202,7 +206,7 @@ void RSSurfaceRenderNode::UpdateInfoForClonedNode(NodeId nodeId)
     if (isClonedNode && IsMainWindowType() && clonedSourceNodeNeedOffscreen_) {
         SetNeedCacheSurface(true);
         SetHwcChildrenDisabledState();
-        RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%" PRIu64 " children disabled by isCloneNode",
+        RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " children disabled by isCloneNode",
             GetName().c_str(), GetId());
     }
     SetIsCloned(isClonedNode);
@@ -396,7 +400,7 @@ void RSSurfaceRenderNode::OnTreeStateChanged()
                 context->MarkNeedPurge(ClearMemoryMoment::SCENEBOARD_SURFACE_NODE_HIDE, RSContext::PurgeType::STRONGLY);
             }
         }
-    } else if (GetName() == "pointer window") {
+    } else if (GetSurfaceNodeType() == RSSurfaceNodeType::CURSOR_NODE) {
         FindScreenId();
     }
 #endif
@@ -697,7 +701,8 @@ void RSSurfaceRenderNode::SetSurfaceNodeType(RSSurfaceNodeType nodeType)
 {
     if (nodeType_ == RSSurfaceNodeType::ABILITY_COMPONENT_NODE ||
         nodeType_ == RSSurfaceNodeType::UI_EXTENSION_COMMON_NODE ||
-        nodeType_ == RSSurfaceNodeType::UI_EXTENSION_SECURE_NODE) {
+        nodeType_ == RSSurfaceNodeType::UI_EXTENSION_SECURE_NODE ||
+        nodeType_ == RSSurfaceNodeType::CURSOR_NODE) {
         return;
     }
     if (nodeType == RSSurfaceNodeType::UI_EXTENSION_COMMON_NODE ||
@@ -1275,8 +1280,7 @@ void RSSurfaceRenderNode::SetLayerTop(bool isTop)
 
 bool RSSurfaceRenderNode::IsHardwareEnabledTopSurface() const
 {
-    return nodeType_ == RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE &&
-        GetName() == "pointer window" && RSSystemProperties::GetHardCursorEnabled();
+    return GetSurfaceNodeType() == RSSurfaceNodeType::CURSOR_NODE && RSSystemProperties::GetHardCursorEnabled();
 }
 
 void RSSurfaceRenderNode::SetHardCursorStatus(bool status)
@@ -2625,27 +2629,23 @@ const std::vector<std::weak_ptr<RSSurfaceRenderNode>>& RSSurfaceRenderNode::GetC
 
 void RSSurfaceRenderNode::SetHwcChildrenDisabledState()
 {
-    if (IsAppWindow()) {
-        auto hwcNodes = GetChildHardwareEnabledNodes();
-        if (hwcNodes.empty()) {
-            return;
-        }
-        for (auto hwcNode : hwcNodes) {
+    const auto TraverseHwcNodes = [](const auto& hwcNodes) {
+        for (const auto& hwcNode : hwcNodes) {
             auto hwcNodePtr = hwcNode.lock();
             if (!hwcNodePtr || hwcNodePtr->IsHardwareForcedDisabled()) {
                 continue;
             }
             hwcNodePtr->SetHardwareForcedDisabledState(true);
             RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%" PRIu64 " disabled by parent",
-                GetName().c_str(), GetId());
+                hwcNodePtr->GetName().c_str(), hwcNodePtr->GetId());
         }
-    } else if (IsLeashWindow()) {
-        for (auto& child : *GetChildren()) {
-            auto surfaceNode = child->ReinterpretCastTo<RSSurfaceRenderNode>();
-            if (surfaceNode == nullptr) {
-                continue;
-            }
-            surfaceNode->SetHwcChildrenDisabledState();
+    };
+    TraverseHwcNodes(GetChildHardwareEnabledNodes());
+    std::vector<std::pair<NodeId, RSSurfaceRenderNode::WeakPtr>> allSubSurfaceNodes;
+    GetAllSubSurfaceNodes(allSubSurfaceNodes);
+    for (const auto& [_, weakNode] : allSubSurfaceNodes) {
+        if (auto surfaceNode = weakNode.lock(); surfaceNode != nullptr) {
+            TraverseHwcNodes(surfaceNode->GetChildHardwareEnabledNodes());
         }
     }
 }
@@ -2789,7 +2789,7 @@ void RSSurfaceRenderNode::UpdateCacheSurfaceDirtyManager(int bufferAge)
 void RSSurfaceRenderNode::SetIsOnTheTree(bool onTree, NodeId instanceRootNodeId, NodeId firstLevelNodeId,
     NodeId cacheNodeId, NodeId uifirstRootNodeId, NodeId displayNodeId)
 {
-    if (strcmp(GetName().c_str(), "pointer window") != 0) {
+    if (GetSurfaceNodeType() == RSSurfaceNodeType::CURSOR_NODE) {
         std::string uniqueIdStr = "null";
 #ifndef ROSEN_CROSS_PLATFORM
         uniqueIdStr = GetRSSurfaceHandler() != nullptr && GetRSSurfaceHandler()->GetConsumer() != nullptr ?
@@ -2799,6 +2799,9 @@ void RSSurfaceRenderNode::SetIsOnTheTree(bool onTree, NodeId instanceRootNodeId,
             "on tree: %{public}d, nodeType: %{public}d, uniqueId: %{public}s, displayNodeId: %{public}" PRIu64,
             GetName().c_str(), GetId(), onTree, static_cast<int>(nodeType_), uniqueIdStr.c_str(), displayNodeId);
     }
+#ifdef ENABLE_FULL_SCREEN_RECONGNIZE
+    SendSurfaceNodeTreeStatus(onTree);
+#endif
     RS_TRACE_NAME_FMT("RSSurfaceRenderNode:SetIsOnTheTree, node:[name: %s, id: %" PRIu64 "], "
         "on tree: %d, nodeType: %d", GetName().c_str(), GetId(), onTree, static_cast<int>(nodeType_));
     instanceRootNodeId = IsLeashOrMainWindow() ? GetId() : instanceRootNodeId;
@@ -2836,6 +2839,30 @@ void RSSurfaceRenderNode::SetIsOnTheTree(bool onTree, NodeId instanceRootNodeId,
     RSBaseRenderNode::SetIsOnTheTree(onTree, instanceRootNodeId, firstLevelNodeId, cacheNodeId,
         INVALID_NODEID, displayNodeId);
 }
+
+#ifdef ENABLE_FULL_SCREEN_RECONGNIZE
+void RSSurfaceRenderNode::SendSurfaceNodeTreeStatus(bool onTree)
+{
+    if (nodeType_ == RSSurfaceNodeType::SELF_DRAWING_NODE && !onTree) {
+        std::shared_ptr<ApsMonitorImpl> apsMonitor = std::make_shared<ApsMonitorImpl>();
+        apsMonitor->SetApsSurfaceDestroyedInfo(std::to_string(GetId()));
+        prevSelfDrawHeight_ = 0.0f;
+        prevSelfDrawWidth_ = 0.0f;
+    }
+}
+
+void RSSurfaceRenderNode::SendSurfaceNodeBoundChange()
+{
+    if (nodeType_ == RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE && prevSelfDrawHeight_ != properties.GetBoundHeight()
+        && prevSelfDrawWidth_ != properties.GetBoundsWidth()) {
+        prevSelfDrawHeight_ = properties.GetBoundHeight();
+        prevSelfDrawWidth_ = properties.GetBoundsWidth();
+        std::shared_ptr<ApsMonitorImpl> apsMonitor_ = std::make_shared<ApsMonitorImpl>();
+        apsMonitor_->SetApsSurfaceBoundChange(std::to_string(prevSelfDrawHeight_), std::to_string(prevSelfDrawWidth_),
+            std::to_string((uint64_t)GetId()));
+    }
+}
+#endif
 
 void RSSurfaceRenderNode::SetUIExtensionUnobscured(bool obscured)
 {
@@ -3053,6 +3080,11 @@ void RSSurfaceRenderNode::UpdateRenderParams()
         return;
     }
     auto& properties = GetRenderProperties();
+#ifndef ROSEN_CROSS_PLATFORM
+    if (surfaceHandler_ && surfaceHandler_->GetConsumer()) {
+        UpdatePropertyFromConsumer();
+    }
+#endif
     surfaceParams->alpha_ = properties.GetAlpha();
     surfaceParams->isClonedNodeOnTheTree_ = isClonedNodeOnTheTree_;
     surfaceParams->isCrossNode_ = IsCrossNode();
@@ -3094,6 +3126,29 @@ void RSSurfaceRenderNode::UpdateRenderParams()
     RSRenderNode::UpdateRenderParams();
 #endif
 }
+
+#ifndef ROSEN_CROSS_PLATFORM
+void RSSurfaceRenderNode::UpdatePropertyFromConsumer()
+{
+    auto consumer = surfaceHandler_->GetConsumer();
+    int32_t gravity = -1;
+    consumer->GetFrameGravity(gravity);
+    if (gravity >= 0) {
+        GetMutableRenderProperties().SetFrameGravity(static_cast<Gravity>(gravity));
+        RS_LOGD("RSSurfaceRenderNode, update frame gravity to = %{public}d", gravity);
+    }
+
+    int32_t fixed = -1;
+    consumer->GetFixedRotation(fixed);
+    if (fixed >= 0) {
+        bool fixedRotation = (fixed == 1);
+        auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+        surfaceParams->SetFixRotationByUser(fixedRotation);
+        isFixRotationByUser_ = fixedRotation;
+        RS_LOGD("RSSurfaceRenderNode, update fixed rotation to = %{public}d", fixedRotation);
+    }
+}
+#endif
 
 void RSSurfaceRenderNode::SetNeedOffscreen(bool needOffscreen)
 {

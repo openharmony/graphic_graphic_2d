@@ -27,7 +27,6 @@ group("unittest") {
     ":RSEffectRenderNodeDrawableTest",
     ":RSRcdSurfaceRenderNodeDrawableTest",
     ":RSRenderNodeDrawableAdapterTest",
-    ":RSRenderNodeDrawableAutoCacheTest",
     ":RSRenderNodeDrawableTest",
     ":RSRootRenderNodeDrawableTest",
     ":RSSkpCaptureDFXTest",
@@ -117,20 +116,6 @@ ohos_unittest("RSRcdSurfaceRenderNodeDrawableTest") {
 ohos_unittest("RSRenderNodeDrawableAdapterTest") {
   module_out_path = module_output_path
   sources = [ "rs_render_node_drawable_adapter_test.cpp" ]
-  deps = [ ":rs_test_common" ]
-  external_deps = [
-    "c_utils:utils",
-    "hilog:libhilog",
-  ]
-  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
-    external_deps += [ "sensor:sensor_interface_native" ]
-  }
-}
-
-## Build RSRenderNodeDrawableAutoCacheTest
-ohos_unittest("RSRenderNodeDrawableAutoCacheTest") {
-  module_out_path = module_output_path
-  sources = [ "rs_render_node_drawable_autocache_test.cpp" ]
   deps = [ ":rs_test_common" ]
   external_deps = [
     "c_utils:utils",

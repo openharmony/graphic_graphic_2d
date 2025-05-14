@@ -28,6 +28,7 @@
 #include "pipeline/render_thread/rs_uni_render_util.h"
 #include "pipeline/render_thread/rs_uni_render_virtual_processor.h"
 #include "platform/drawing/rs_surface_converter.h"
+#include "screen_manager/rs_screen.h"
 // xml parser
 #include "graphic_feature_param_manager.h"
 
@@ -63,7 +64,12 @@ public:
     static inline NodeId id = DEFAULT_ID;
 };
 
-void RSDisplayRenderNodeDrawableTest::SetUpTestCase() {}
+void RSDisplayRenderNodeDrawableTest::SetUpTestCase()
+{
+#ifdef RS_ENABLE_VK
+    RsVulkanContext::SetRecyclable(false);
+#endif
+}
 void RSDisplayRenderNodeDrawableTest::TearDownTestCase() {}
 void RSDisplayRenderNodeDrawableTest::SetUp()
 {
@@ -568,13 +574,15 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, CheckDisplayNodeSkipTest, TestSize.Lev
     ASSERT_EQ(result, true);
 
     RSUniRenderThread::Instance().uniRenderEngine_ = std::make_shared<RSRenderEngine>();
-    RSUniRenderThread::Instance().GetRSRenderThreadParams()->isForceCommitLayer_ = true;
+    RSUniRenderThread::Instance().GetRSRenderThreadParams()->forceCommitReason_ = 1;
     result = displayDrawable_->CheckDisplayNodeSkip(*params, processor);
     ASSERT_EQ(result, true);
 
-    RSMainThread::Instance()->isDirty_ = true;
-    result = displayDrawable_->CheckDisplayNodeSkip(*params, processor);
-    ASSERT_EQ(result, false);
+    RSMainThread::Instance()->SetDirtyFlag(true);
+    if (RSMainThread::Instance()->GetDirtyFlag()) {
+        result = displayDrawable_->CheckDisplayNodeSkip(*params, processor);
+        ASSERT_EQ(result, false);
+    }
 
     RSUifirstManager::Instance().hasForceUpdateNode_ = true;
     result = displayDrawable_->CheckDisplayNodeSkip(*params, processor);
@@ -589,9 +597,13 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, CheckDisplayNodeSkipTest, TestSize.Lev
     result = displayDrawable_->CheckDisplayNodeSkip(*params, processor);
     ASSERT_EQ(result, false);
     RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
-    RSUniRenderThread::Instance().GetRSRenderThreadParams()->isForceCommitLayer_ = false;
+    RSUniRenderThread::Instance().GetRSRenderThreadParams()->forceCommitReason_ = 0;
     RSMainThread::Instance()->isDirty_ = false;
     RSUifirstManager::Instance().hasForceUpdateNode_ = false;
+
+    params->isHDRStatusChanged_ = true;
+    result = displayDrawable_->CheckDisplayNodeSkip(*params, processor);
+    EXPECT_EQ(result, false);
 }
 
 /**

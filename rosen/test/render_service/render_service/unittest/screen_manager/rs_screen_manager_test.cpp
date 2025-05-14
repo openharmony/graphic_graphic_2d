@@ -19,6 +19,7 @@
 #include <parameters.h>
 #include "param/sys_param.h"
 #include "screen_manager/rs_screen_manager.h"
+#include "screen_manager/rs_screen.h"
 #include "transaction/rs_interfaces.h"
 #include "mock_hdi_device.h"
 
@@ -795,7 +796,7 @@ HWTEST_F(RSScreenManagerTest, SetScreenActiveRect001, testing::ext::TestSize.Lev
         .w = 0,
         .h = 0,
     };
-    EXPECT_EQ(screenManager->SetScreenActiveRect(screenId, activeRect), StatusCode::HDI_ERROR);
+    EXPECT_EQ(screenManager->SetScreenActiveRect(screenId, activeRect), StatusCode::SUCCESS);
 }
 
 /*
@@ -979,6 +980,7 @@ HWTEST_F(RSScreenManagerTest, RSDump_001, testing::ext::TestSize.Level2)
     ASSERT_STRNE(dumpString.c_str(), empty.c_str());
     dumpString = "";
     screenManager->ClearFpsDump(dumpString, arg);
+    screenManager->DumpCurrentFrameLayers();
     screenManager->ClearFrameBufferIfNeed();
     ASSERT_STRNE(dumpString.c_str(), empty.c_str());
 }
@@ -2859,11 +2861,11 @@ HWTEST_F(RSScreenManagerTest, ReleaseScreenDmaBufferTest_001, TestSize.Level1)
         static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
 
     ScreenId screenId = SCREEN_ID;
-    impl::RSScreenManager::ReleaseScreenDmaBuffer(screenId);
+    screenManagerImpl.ReleaseScreenDmaBuffer(screenId);
     ASSERT_EQ(screenManagerImpl.GetOutput(screenId), nullptr);
 
     screenManagerImpl.screens_[SCREEN_ID] = std::make_shared<impl::RSScreen>(SCREEN_ID, false, nullptr, nullptr);
-    impl::RSScreenManager::ReleaseScreenDmaBuffer(screenId);
+    screenManagerImpl.ReleaseScreenDmaBuffer(screenId);
     ASSERT_EQ(screenManagerImpl.GetOutput(screenId), nullptr);
 }
 
@@ -4010,5 +4012,22 @@ HWTEST_F(RSScreenManagerTest, OnRefresh, TestSize.Level1)
     screenManagerImpl->RSScreenManager::OnRefresh(sId, nullptr);
     screenManagerImpl->RSScreenManager::OnRefresh(sId, screenManager);
     EXPECT_NE(screenManager, nullptr);
+}
+
+/*
+ * @tc.name: InitLoadOptParams001
+ * @tc.desc: Test InitLoadOptParams
+ * @tc.type: FUNC
+ * @tc.require: issueIC2UGT
+ */
+HWTEST_F(RSScreenManagerTest, InitLoadOptParams001, TestSize.Level1)
+{
+    sptr<OHOS::Rosen::impl::RSScreenManager> screenManagerImpl = sptr<OHOS::Rosen::impl::RSScreenManager>::MakeSptr();
+    EXPECT_NE(screenManagerImpl, nullptr);
+
+    LoadOptParamsForScreen params = {};
+    screenManagerImpl->RSScreenManager::InitLoadOptParams(params);
+    EXPECT_EQ(screenManagerImpl->loadOptParamsForScreen_.loadOptParamsForHdiBackend.loadOptParamsForHdiOutput
+                  .switchParams.size(), 0);
 }
 } // namespace OHOS::Rosen

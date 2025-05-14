@@ -160,21 +160,6 @@ bool DoUnRegisterExpectedFpsUpdateCallbackByListener(const uint8_t* data, size_t
 
     return true;
 }
-bool DoGet(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-
-    RSRenderFrameRateLinkerMap rsRenderFrameRateLinkerMap;
-    rsRenderFrameRateLinkerMap.Get();
-    return true;
-}
 } // namespace Rosen
 } // namespace OHOS
 
@@ -188,6 +173,5 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoGetFrameRateLinker(data, size);
     OHOS::Rosen::DoRegisterFrameRateLinkerExpectedFpsUpdateCallback(data, size);
     OHOS::Rosen::DoUnRegisterExpectedFpsUpdateCallbackByListener(data, size);
-    OHOS::Rosen::DoGet(data, size);
     return 0;
 }

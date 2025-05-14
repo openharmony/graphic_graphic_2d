@@ -17,6 +17,10 @@
 
 #include "image/trace_memory_dump.h"
 
+#ifdef RS_ENABLE_VK
+#include "platform/ohos/backend/rs_vulkan_context.h"
+#endif
+
 using namespace testing;
 using namespace testing::ext;
 
@@ -31,7 +35,12 @@ public:
     void TearDown() override;
 };
 
-void TraceMemoryDumpTest::SetUpTestCase() {}
+void TraceMemoryDumpTest::SetUpTestCase()
+{
+#ifdef RS_ENABLE_VK
+    RsVulkanContext::SetRecyclable(false);
+#endif
+}
 void TraceMemoryDumpTest::TearDownTestCase() {}
 void TraceMemoryDumpTest::SetUp() {}
 void TraceMemoryDumpTest::TearDown() {}

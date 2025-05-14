@@ -21,6 +21,7 @@
 #include "foundation/graphic/graphic_2d/rosen/test/render_service/render_service/unittest/pipeline/rs_test_util.h"
 #include "foundation/graphic/graphic_2d/rosen/test/render_service/render_service/unittest/pipeline/mock/mock_hdi_device.h"
 #include "screen_manager/rs_screen_manager.h"
+#include "screen_manager/rs_screen.h"
 #include "transaction/rs_interfaces.h"
 #include "surface_buffer_impl.h"
 

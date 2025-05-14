@@ -23,6 +23,16 @@ group("unittest") {
     ":RSProfilerPacketTest",
     ":RSProfilerSocketTest",
     ":RSProfilerUtilsTest",
+    "standard:test",
+  ]
+}
+
+group("test") {
+  testonly = true
+  deps = [
+    "reliability/platform/ohos:unittest",
+    "standard/platform/ohos:unittest",
+    "standard/transaction:unittest",
   ]
 }
 

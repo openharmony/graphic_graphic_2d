@@ -209,6 +209,7 @@ public:
     DEFINE_FUNC(ImportSemaphoreFdKHR);
     DEFINE_FUNC(GetPhysicalDeviceFeatures2);
     DEFINE_FUNC(SetFreqAdjustEnable);
+    DEFINE_FUNC(GetSemaphoreFdKHR);
 #undef DEFINE_FUNC
 
     VkPhysicalDevice GetPhysicalDevice() const
@@ -300,11 +301,29 @@ private:
 
 class RsVulkanContext {
 public:
+    class DrawContextHolder {
+    public:
+        DrawContextHolder(std::function<void()> callback) : destructCallback_(std::move(callback)) {}
+
+        ~DrawContextHolder()
+        {
+            destructCallback_();
+        }
+    private:
+        std::function<void()> destructCallback_;
+    };
     static RsVulkanContext& GetSingleton(const std::string& cacheDir = "");
+    static RsVulkanContext& GetRecyclableSingleton(const std::string& cacheDir = "");
+    static void ReleaseRecyclableSingleton();
     explicit RsVulkanContext(std::string cacheDir = "");
     void InitVulkanContextForHybridRender(const std::string& cacheDir);
     void InitVulkanContextForUniRender(const std::string& cacheDir);
-    ~RsVulkanContext() {};
+    ~RsVulkanContext()
+    {
+        std::lock_guard<std::mutex> lock(drawingContextMutex_);
+        drawingContextMap_.clear();
+        protectedDrawingContextMap_.clear();
+    }
 
     RsVulkanContext(const RsVulkanContext&) = delete;
     RsVulkanContext &operator=(const RsVulkanContext&) = delete;
@@ -372,28 +391,30 @@ public:
         return GetRsVulkanInterface().GetMemoryHandler();
     }
 
-    bool GetIsProtected() const
-    {
-        return isProtected_;
-    }
+    bool GetIsProtected() const;
 
-    static bool IsHybridRender()
-    {
-        return isHybridRender_;
-    }
+    static bool IsRecyclable();
 
-    static void SetHybridRender(bool isHybridRender)
-    {
-        isHybridRender_ = isHybridRender;
-    }
+    static void SetRecyclable(bool isRecyclable);
+
+    static void SaveNewDrawingContext(int tid, std::shared_ptr<Drawing::GPUContext> drawingContext);
+
+    static void CleanUpRecyclableDrawingContext(int tid);
 
 private:
     static thread_local bool isProtected_;
-    static bool isHybridRender_;
     static thread_local VulkanInterfaceType vulkanInterfaceType_;
     std::vector<std::shared_ptr<RsVulkanInterface>> vulkanInterfaceVec_;
-    static thread_local std::shared_ptr<Drawing::GPUContext> drawingContext_;
-    static thread_local std::shared_ptr<Drawing::GPUContext> protectedDrawingContext_;
+    // drawing context
+    static thread_local std::weak_ptr<Drawing::GPUContext> drawingContext_;
+    static thread_local std::weak_ptr<Drawing::GPUContext> protectedDrawingContext_;
+    static std::map<int, std::shared_ptr<Drawing::GPUContext>> drawingContextMap_;
+    static std::map<int, std::shared_ptr<Drawing::GPUContext>> protectedDrawingContextMap_;
+    static std::mutex drawingContextMutex_;
+    // use for recyclable singleton
+    static std::unique_ptr<RsVulkanContext> recyclableSingleton_;
+    static std::mutex recyclableSingletonMutex_;
+    static bool isRecyclable_;
 };
 
 } // namespace Rosen

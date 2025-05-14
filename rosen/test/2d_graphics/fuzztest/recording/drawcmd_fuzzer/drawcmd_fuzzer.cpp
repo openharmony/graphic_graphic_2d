@@ -32,6 +32,7 @@ constexpr size_t MAX_SIZE = 5000;
 constexpr size_t MATRIX_SIZE = 9;
 constexpr size_t PIONTMODE_SIZE = 3;
 constexpr size_t PAINTSTYLE_SIZE = 4;
+constexpr size_t TEXTCONTRAST_SIZE = 3;
 } // namespace
 namespace Drawing {
 bool DrawCmdFuzzTest001(const uint8_t* data, size_t size)
@@ -2128,7 +2129,7 @@ bool DrawCmdFuzzTest051(const uint8_t* data, size_t size)
     paintHandle.width = GetObject<scalar>();
     paintHandle.miterLimit = GetObject<scalar>();
     DrawTextBlobOpItem::ConstructorHandle constructorHandle = DrawTextBlobOpItem::ConstructorHandle(textBlob,
-        globalUniqueId, x, y, paintHandle);
+        globalUniqueId, static_cast<TextContrast>(GetObject<uint32_t>() % TEXTCONTRAST_SIZE), x, y, paintHandle);
     int32_t width = GetObject<int32_t>();
     int32_t height = GetObject<int32_t>();
     Canvas canvas = Canvas(width, height);

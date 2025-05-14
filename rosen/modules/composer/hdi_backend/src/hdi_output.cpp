@@ -41,7 +41,6 @@ namespace Rosen {
 static constexpr uint32_t NUMBER_OF_HISTORICAL_FRAMES = 2;
 static const std::string GENERIC_METADATA_KEY_ARSR_PRE_NEEDED = "ArsrDoEnhance";
 static const std::string GENERIC_METADATA_KEY_COPYBIT_NEEDED = "TryToDoCopybit";
-static int32_t g_enableMergeFence = OHOS::system::GetIntParameter<int32_t>("persist.sys.graphic.enableMergeFence", 1);
 
 std::shared_ptr<HdiOutput> HdiOutput::CreateHdiOutput(uint32_t screenId)
 {
@@ -54,6 +53,9 @@ HdiOutput::HdiOutput(uint32_t screenId) : screenId_(screenId)
     arsrPreEnabled_ = system::GetBoolParameter("const.display.enable_arsr_pre", true);
     arsrPreEnabledForVm_ = system::GetBoolParameter("const.display.enable_arsr_pre_for_vm", false);
     vmArsrWhiteList_ = system::GetParameter("const.display.vmlayer.whitelist", "unknown");
+
+    // LOAD OPTIMIZATION FLAG
+    isMergeFenceSkippedDfx_ = system::GetBoolParameter("persist.sys.graphic.enableSkipMergeFence", true);
 }
 
 HdiOutput::~HdiOutput()
@@ -131,8 +133,8 @@ RosenError HdiOutput::SetHdiOutputDevice(HdiDevice* device)
 
 void HdiOutput::SetLayerInfo(const std::vector<LayerInfoPtr> &layerInfos)
 {
-    std::unique_lock<std::mutex> lock(mutex_);
     uint32_t solidLayerCount = 0;
+    std::unique_lock<std::mutex> lock(mutex_);
     for (auto &layerInfo : layerInfos) {
         if (layerInfo == nullptr) {
             HLOGE("current layerInfo is null");
@@ -156,7 +158,7 @@ void HdiOutput::SetLayerInfo(const std::vector<LayerInfoPtr> &layerInfos)
         uint64_t surfaceId = layerInfo->GetSurface()->GetUniqueId();
         auto iter = surfaceIdMap_.find(surfaceId);
         if (iter != surfaceIdMap_.end()) {
-            const LayerPtr &layer = iter->second;
+            const LayerPtr& layer = iter->second;
             layer->UpdateLayerInfo(layerInfo);
             continue;
         }
@@ -187,17 +189,17 @@ void HdiOutput::CleanLayerBufferBySurfaceId(uint64_t surfaceId)
 
 void HdiOutput::DeletePrevLayersLocked()
 {
-    auto surfaceIter = solidSurfaceIdMap_.begin();
-    while (surfaceIter != solidSurfaceIdMap_.end()) {
-        const LayerPtr &layer = surfaceIter->second;
+    auto solidSurfaceIter = solidSurfaceIdMap_.begin();
+    while (solidSurfaceIter != solidSurfaceIdMap_.end()) {
+        const LayerPtr& layer = solidSurfaceIter->second;
         if (!layer->GetLayerStatus()) {
-            solidSurfaceIdMap_.erase(surfaceIter++);
+            solidSurfaceIdMap_.erase(solidSurfaceIter++);
         } else {
-            ++surfaceIter;
+            ++solidSurfaceIter;
         }
     }
 
-    surfaceIter = surfaceIdMap_.begin();
+    auto surfaceIter = surfaceIdMap_.begin();
     while (surfaceIter != surfaceIdMap_.end()) {
         const LayerPtr &layer = surfaceIter->second;
         if (!layer->GetLayerStatus()) {
@@ -387,7 +389,7 @@ int32_t HdiOutput::PreProcessLayersComp()
     }
 
     for (const auto &[layerId, layer] : layerIdMap_) {
-        ret = layer->SetHdiLayerInfo();
+        ret = layer->SetHdiLayerInfo(isActiveRectSwitching_);
         if (ret != GRAPHIC_DISPLAY_SUCCESS) {
             HLOGE("Set hdi layer[id:%{public}d] info failed, ret %{public}d.", layer->GetLayerId(), ret);
             return GRAPHIC_DISPLAY_FAILURE;
@@ -741,7 +743,7 @@ std::map<LayerInfoPtr, sptr<SyncFence>> HdiOutput::GetLayersReleaseFenceLocked()
         }
 
         const LayerPtr &layer = iter->second;
-        if (g_enableMergeFence == 0) {
+        if (isMergeFenceSkipped_ && isMergeFenceSkippedDfx_) {
             layer->SetReleaseFence(fences_[i]);
             res[layer->GetLayerInfo()] = fences_[i];
         } else {
@@ -805,6 +807,23 @@ void HdiOutput::Dump(std::string &result) const
     }
     CreateVSyncGenerator()->Dump(result);
     CreateVSyncSampler()->Dump(result);
+}
+
+void HdiOutput::DumpCurrentFrameLayers() const
+{
+    std::vector<LayerDumpInfo> dumpLayerInfos;
+    std::unique_lock<std::mutex> lock(mutex_);
+    ReorderLayerInfoLocked(dumpLayerInfos);
+
+    for (const LayerDumpInfo &layerInfo : dumpLayerInfos) {
+        const LayerPtr &layer = layerInfo.layer;
+        if (layer == nullptr || layer->GetLayerInfo() == nullptr ||
+            layer->GetLayerInfo()->GetSurface() == nullptr) {
+            continue;
+        }
+        auto info = layer->GetLayerInfo();
+        info->DumpCurrentFrameLayer();
+    }
 }
 
 void HdiOutput::DumpFps(std::string &result, const std::string &arg) const
@@ -903,26 +922,26 @@ static inline bool Cmp(const LayerDumpInfo &layer1, const LayerDumpInfo &layer2)
 
 void HdiOutput::ReorderLayerInfoLocked(std::vector<LayerDumpInfo> &dumpLayerInfos) const
 {
-    for (auto iter = surfaceIdMap_.begin(); iter != surfaceIdMap_.end(); ++iter) {
-        if (iter->second == nullptr || iter->second->GetLayerInfo() == nullptr) {
+    for (const auto& [surfaceId, layer] : surfaceIdMap_) {
+        if (layer == nullptr || layer->GetLayerInfo() == nullptr) {
             continue;
         }
         struct LayerDumpInfo layerInfo = {
-            .nodeId = iter->second->GetLayerInfo()->GetNodeId(),
-            .surfaceId = iter->first,
-            .layer = iter->second,
+            .nodeId = layer->GetLayerInfo()->GetNodeId(),
+            .surfaceId = surfaceId,
+            .layer = layer,
         };
         dumpLayerInfos.emplace_back(layerInfo);
     }
 
-    for (auto iter = solidSurfaceIdMap_.begin(); iter != solidSurfaceIdMap_.end(); ++iter) {
-        if (iter->second == nullptr || iter->second->GetLayerInfo() == nullptr) {
+    for (const auto& [solidSurfaceId, solidLayer] : solidSurfaceIdMap_) {
+        if (solidLayer == nullptr || solidLayer->GetLayerInfo() == nullptr) {
             continue;
         }
         struct LayerDumpInfo layerInfo = {
-            .nodeId = iter->second->GetLayerInfo()->GetNodeId(),
-            .surfaceId = iter->first,
-            .layer = iter->second,
+            .nodeId = solidLayer->GetLayerInfo()->GetNodeId(),
+            .surfaceId = solidSurfaceId,
+            .layer = solidLayer,
         };
 
         dumpLayerInfos.emplace_back(layerInfo);
@@ -946,6 +965,22 @@ void HdiOutput::ClearBufferCache()
         HLOGD("Call hdi ClearClientBuffer failed, ret is %{public}d", ret);
     }
     bufferCache_.clear();
+}
+
+void HdiOutput::SetActiveRectSwitchStatus(bool flag)
+{
+    isActiveRectSwitching_ = flag;
+}
+
+void HdiOutput::InitLoadOptParams(LoadOptParamsForHdiOutput& loadOptParamsForHdiOutput)
+{
+    loadOptParamsForHdiOutput_ = loadOptParamsForHdiOutput;
+    auto switchParams = loadOptParamsForHdiOutput_.switchParams;
+
+    isMergeFenceSkipped_ = (switchParams.find(IS_MERGE_FENCE_SKIPPED) != switchParams.end())
+                               ? switchParams.at(IS_MERGE_FENCE_SKIPPED)
+                               : false;
+    HLOGD("[%{public}s] %{public}s is %{public}d", __func__, IS_MERGE_FENCE_SKIPPED.c_str(), isMergeFenceSkipped_);
 }
 } // namespace Rosen
 } // namespace OHOS

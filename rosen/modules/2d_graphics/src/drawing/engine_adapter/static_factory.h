@@ -104,6 +104,7 @@ public:
     static int16_t GetSplitRange(int64_t duration);
     static bool IsOpenPerf();
     static int64_t GetCurrentTime();
+    static void SetCurrentNodeId(uint64_t nodeId);
 };
 } // namespace Drawing
 } // namespace Rosen

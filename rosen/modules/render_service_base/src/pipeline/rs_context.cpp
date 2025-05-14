@@ -87,34 +87,4 @@ void RSContext::AddSyncFinishAnimationList(NodeId nodeId, AnimationId animationI
 {
     needSyncFinishAnimationList_.push_back({nodeId, animationId, token});
 }
-
-void RSContext::InsertUiCaptureCmdsExecutedFlag(NodeId nodeId, bool flag)
-{
-    std::lock_guard<std::mutex> lock(uiCaptureCmdsExecutedMutex_);
-    if (!flag) {
-        auto iter = uiCaptureCmdsExecutedFlag_.find(nodeId);
-        if (iter == uiCaptureCmdsExecutedFlag_.end()) {
-            uiCaptureCmdsExecutedFlag_[nodeId] = false;
-        }
-        return;
-    }
-    uiCaptureCmdsExecutedFlag_[nodeId] = flag;
-}
-
-void RSContext::EraseUiCaptureCmdsExecutedFlag(NodeId nodeId)
-{
-    std::lock_guard<std::mutex> lock(uiCaptureCmdsExecutedMutex_);
-    uiCaptureCmdsExecutedFlag_.erase(nodeId);
-}
-
-bool RSContext::GetUiCaptureCmdsExecutedFlag(NodeId nodeId)
-{
-    std::lock_guard<std::mutex> lock(uiCaptureCmdsExecutedMutex_);
-    auto iter = uiCaptureCmdsExecutedFlag_.find(nodeId);
-    if (iter != uiCaptureCmdsExecutedFlag_.end()) {
-        return iter->second;
-    } else {
-        return true;
-    }
-}
 } // namespace OHOS::Rosen

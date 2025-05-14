@@ -38,17 +38,8 @@ struct NameTable {
     OpenTypeBasicType::Uint16 count;
     OpenTypeBasicType::Uint16 storageOffset;
     struct NameRecord nameRecord[];
-};
 
-class NameTableParser {
-public:
-    NameTableParser(const char* data, int32_t size) : data_(data), size_(size) {}
-    static const struct NameTable* Parse(const char* data, int32_t size);
-    void Dump() const;
-
-private:
-    const char* data_ = nullptr;
-    int32_t size_ = 0;
+    static constexpr const char* tag = "name";
 };
 } // namespace TextEngine
 } // namespace Rosen

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -20,7 +20,6 @@
 #include "display_engine/rs_luminance_control.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
 #include "gfx/performance/rs_perfmonitor_reporter.h"
-#include "memory/rs_tag_tracker.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
 #include "pipeline/rs_paint_filter_canvas.h"
@@ -28,6 +27,7 @@
 #include "platform/common/rs_log.h"
 #include "rs_trace.h"
 #include "system/rs_system_parameters.h"
+#include "string_utils.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "utils/graphic_coretrace.h"
 
@@ -81,9 +81,13 @@ void RSRenderNodeDrawable::Draw(Drawing::Canvas& canvas)
  */
 void RSRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 {
-    RSTagTracker tagTracker(canvas.GetGPUContext().get(), 0, GetId(), RSTagTracker::TAGTYPE::TAG_DRAW_RENDER_NODE);
+    Drawing::GPUResourceTag::SetCurrentNodeId(GetId());
     RSRenderNodeDrawable::TotalProcessedNodeCountInc();
     Drawing::Rect bounds = GetRenderParams() ? GetRenderParams()->GetFrameRect() : Drawing::Rect(0, 0, 0, 0);
+    // Skip nodes that were culled by the control-level occlusion.
+    if (SkipCulledNodeAndDrawChildren(canvas, bounds)) {
+        return;
+    }
 
     DrawBackground(canvas, bounds);
 
@@ -91,9 +95,29 @@ void RSRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
     DrawContent(canvas, bounds);
 
-    DrawChildren(canvas, bounds);
+    if (!RSUniRenderThread::GetCaptureParam().isSoloNodeUiCapture_) {
+        DrawChildren(canvas, bounds);
+    }
 
     DrawForeground(canvas, bounds);
+}
+
+bool RSRenderNodeDrawable::SkipCulledNodeAndDrawChildren(Drawing::Canvas& canvas, Drawing::Rect& bounds)
+{
+    auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
+    auto id = GetId();
+    // Control-level occlusion culling, active exclusively in the uni render thread and
+    // disabled during capture or off-screen rendering.
+    if (id != 0 && paintFilterCanvas->GetParallelThreadIdx() == UNI_RENDER_THREAD_INDEX &&
+        LIKELY(!RSUniRenderThread::IsInCaptureProcess()) && GetOpDropped()) {
+        if (paintFilterCanvas->GetCulledNodes().count(id) > 0) {
+            RS_OPTIONAL_TRACE_NAME_FMT("RSRenderNodeDrawable::SkipCulledNode id: %lu culled success", id);
+            CollectInfoForUnobscuredUEC(canvas);
+            DrawChildren(canvas, bounds);
+            return true;
+        }
+    }
+    return false;
 }
 
 /*
@@ -122,7 +146,7 @@ CM_INLINE void RSRenderNodeDrawable::GenerateCacheIfNeed(
 
     RS_LOGI_IF(DEBUG_NODE, "RSRenderNodeDrawable::GenerateCacheCondition drawingCacheType:%{public}d"
         " RSFreezeFlag:%{public}d OpincGetCachedMark:%{public}d", params.GetDrawingCacheType(),
-        params.GetRSFreezeFlag(), OpincGetCachedMark());
+        params.GetRSFreezeFlag(), GetOpincDrawCache().OpincGetCachedMark());
     if (params.GetRSFreezeFlag()) {
         RS_OPTIONAL_TRACE_NAME_FMT("RSCanvasRenderNodeDrawable::GenerateCacheIfNeed id:%llu"
                                    " GetRSFreezeFlag:%d hasFilter:%d",
@@ -130,8 +154,8 @@ CM_INLINE void RSRenderNodeDrawable::GenerateCacheIfNeed(
     }
 
     // check drawing cache type (disabled: clear cache)
-    if ((params.GetDrawingCacheType() == RSDrawingCacheType::DISABLED_CACHE && !OpincGetCachedMark()) &&
-        !params.GetRSFreezeFlag()) {
+    if ((params.GetDrawingCacheType() == RSDrawingCacheType::DISABLED_CACHE &&
+        !GetOpincDrawCache().OpincGetCachedMark()) && !params.GetRSFreezeFlag()) {
         ClearCachedSurface();
         ClearDrawingCacheDataMap();
         ClearDrawingCacheContiUpdateTimeMap();
@@ -175,7 +199,7 @@ CM_INLINE void RSRenderNodeDrawable::GenerateCacheIfNeed(
     params.SetDrawingCacheChanged(false, true);
     bool hasFilter = params.ChildHasVisibleFilter() || params.ChildHasVisibleEffect();
     if ((params.GetDrawingCacheType() == RSDrawingCacheType::DISABLED_CACHE || (!needUpdateCache && !hasFilter))
-        && !OpincGetCachedMark() && !params.GetRSFreezeFlag()) {
+        && !GetOpincDrawCache().OpincGetCachedMark() && !params.GetRSFreezeFlag()) {
         return;
     }
 
@@ -495,7 +519,7 @@ void RSRenderNodeDrawable::InitDfxForCacheInfo()
     }
 
 #ifdef DDGR_ENABLE_FEATURE_OPINC
-    autoCacheDrawingEnable_ = RSSystemProperties::GetAutoCacheDebugEnabled() && autoCacheEnable_;
+    autoCacheDrawingEnable_ = RSSystemProperties::GetAutoCacheDebugEnabled() && RSOpincDrawCache::IsAutoCacheEnable();
     autoCacheRenderNodeInfos_.clear();
     opincRootTotalCount_ = 0;
     isOpincDropNodeExt_ = true;
@@ -558,8 +582,8 @@ void RSRenderNodeDrawable::InitCachedSurface(Drawing::GPUContext* gpuContext, co
     cacheThreadId_ = threadId;
     int32_t width = 0;
     int32_t height = 0;
-    if (IsComputeDrawAreaSucc()) {
-        auto& unionRect = GetOpListUnionArea();
+    if (GetOpincDrawCache().IsComputeDrawAreaSucc()) {
+        auto& unionRect = GetOpincDrawCache().GetOpListUnionArea();
         width = static_cast<int32_t>(unionRect.GetWidth());
         height = static_cast<int32_t>(unionRect.GetHeight());
     } else {
@@ -587,8 +611,7 @@ void RSRenderNodeDrawable::InitCachedSurface(Drawing::GPUContext* gpuContext, co
             format = VK_FORMAT_R16G16B16A16_SFLOAT;
             colorSpace = Drawing::ColorSpace::CreateSRGB();
         }
-        cachedBackendTexture_ = RSUniRenderUtil::MakeBackendTexture(width, height, ExtractPid(nodeId_),
-            RSTagTracker::TAGTYPE::TAG_DRAW_RENDER_NODE, format);
+        cachedBackendTexture_ = NativeBufferUtils::MakeBackendTexture(width, height, ExtractPid(nodeId_), format);
         auto vkTextureInfo = cachedBackendTexture_.GetTextureInfo().GetVKTextureInfo();
         if (!cachedBackendTexture_.IsValid() || !vkTextureInfo) {
             return;
@@ -610,8 +633,8 @@ bool RSRenderNodeDrawable::NeedInitCachedSurface(const Vector2f& newSize)
 {
     auto width = static_cast<int32_t>(newSize.x_);
     auto height = static_cast<int32_t>(newSize.y_);
-    if (IsComputeDrawAreaSucc()) {
-        auto& unionRect = GetOpListUnionArea();
+    if (GetOpincDrawCache().IsComputeDrawAreaSucc()) {
+        auto& unionRect = GetOpincDrawCache().GetOpListUnionArea();
         width = static_cast<int32_t>(unionRect.GetWidth());
         height = static_cast<int32_t>(unionRect.GetHeight());
     }
@@ -734,8 +757,8 @@ void RSRenderNodeDrawable::DrawCachedImage(RSPaintFilterCanvas& canvas, const Ve
     }
     float scaleX = boundSize.x_ / static_cast<float>(cacheImage->GetWidth());
     float scaleY = boundSize.y_ / static_cast<float>(cacheImage->GetHeight());
-    if (IsComputeDrawAreaSucc()) {
-        auto& unionRect = GetOpListUnionArea();
+    if (GetOpincDrawCache().IsComputeDrawAreaSucc()) {
+        auto& unionRect = GetOpincDrawCache().GetOpListUnionArea();
         scaleX = unionRect.GetWidth() / static_cast<float>(cacheImage->GetWidth());
         scaleY = unionRect.GetHeight() / static_cast<float>(cacheImage->GetHeight());
     }
@@ -745,10 +768,10 @@ void RSRenderNodeDrawable::DrawCachedImage(RSPaintFilterCanvas& canvas, const Ve
     Drawing::Brush brush;
     canvas.AttachBrush(brush);
     auto samplingOptions = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
-    if (IsComputeDrawAreaSucc() && DrawAutoCache(canvas, *cacheImage,
+    if (GetOpincDrawCache().IsComputeDrawAreaSucc() && GetOpincDrawCache().DrawAutoCache(canvas, *cacheImage,
         samplingOptions, Drawing::SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT)) {
         canvas.DetachBrush();
-        DrawAutoCacheDfx(canvas, autoCacheRenderNodeInfos_);
+        GetOpincDrawCache().DrawAutoCacheDfx(canvas, autoCacheRenderNodeInfos_);
         return;
     }
     if (rsFilter != nullptr) {
@@ -865,7 +888,7 @@ void RSRenderNodeDrawable::UpdateCacheSurface(Drawing::Canvas& canvas, const RSR
     Drawing::AutoCanvasRestore arc(*cacheCanvas, true);
     cacheCanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
 
-    OpincCanvasUnionTranslate(*cacheCanvas);
+    GetOpincDrawCache().OpincCanvasUnionTranslate(*cacheCanvas);
     if (params.GetRSFreezeFlag()) {
         cacheCanvas->SetDisableFilterCache(true);
     }
@@ -880,7 +903,7 @@ void RSRenderNodeDrawable::UpdateCacheSurface(Drawing::Canvas& canvas, const RSR
     } else {
         DrawCacheWithProperty(*cacheCanvas, bounds);
     }
-    ResumeOpincCanvasTranslate(*cacheCanvas);
+    GetOpincDrawCache().ResumeOpincCanvasTranslate(*cacheCanvas);
 
     isOpDropped_ = isOpDropped;
 
@@ -947,5 +970,35 @@ void RSRenderNodeDrawable::ProcessedNodeCountInc()
 void RSRenderNodeDrawable::ClearProcessedNodeCount()
 {
     processedNodeCount_ = 0;
+}
+
+bool RSRenderNodeDrawable::ShouldPaint() const
+{
+    return LIKELY(renderParams_ != nullptr) && renderParams_->GetShouldPaint();
+}
+
+// opinc dfx
+std::string RSRenderNodeDrawable::GetNodeDebugInfo()
+{
+    std::string ret("");
+#ifdef DDGR_ENABLE_FEATURE_OPINC_DFX
+    const auto& params = GetRenderParams();
+    if (!params) {
+        return ret;
+    }
+    auto& unionRect = opincDrawCache_.GetOpListUnionArea();
+    AppendFormat(ret, "%llx, rootF:%d record:%d rootS:%d opCan:%d isRD:%d, GetOpDropped:%d, isOpincDropNodeExt:%d",
+        params->GetId(), params->OpincGetRootFlag(),
+        opincDrawCache_.GetRecordState(), opincDrawCache_.GetRootNodeStrategyType(), opincDrawCache_.IsOpCanCache(),
+        opincDrawCache_.GetDrawAreaEnableState(), GetOpDropped(), isOpincDropNodeExt_);
+    auto& info = opincDrawCache_.GetOpListHandle().GetOpInfo();
+    AppendFormat(ret, " opNum:%d opPercent:%d", info.num, info.percent);
+    auto bounds = params->GetBounds();
+    AppendFormat(ret, ", rr{%.1f %.1f %.1f %.1f}",
+        0.f, 0.f, bounds.GetWidth(), bounds.GetHeight());
+    AppendFormat(ret, ", ur{%.1f %.1f %.1f %.1f}",
+        unionRect.GetLeft(), unionRect.GetTop(), unionRect.GetWidth(), unionRect.GetHeight());
+#endif
+    return ret;
 }
 } // namespace OHOS::Rosen::DrawableV2

@@ -63,6 +63,7 @@ void RSDrawWindowCache::DrawAndCacheWindowContent(DrawableV2::RSSurfaceRenderNod
     // copy current canvas properties into offscreen canvas
     windowCanvas->CopyConfigurationToOffscreenCanvas(canvas);
     windowCanvas->SetDisableFilterCache(true);
+    windowCanvas->SetIsDrawingCache(true);
     auto acr = std::make_unique<RSAutoCanvasRestore>(windowCanvas, RSPaintFilterCanvas::SaveType::kCanvasAndAlpha);
     windowCanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
 #ifdef RS_ENABLE_GPU
@@ -84,6 +85,8 @@ void RSDrawWindowCache::DrawAndCacheWindowContent(DrawableV2::RSSurfaceRenderNod
         RS_LOGE("RSDrawWindowCache::DrawAndCacheWindowContent snapshot nullptr.");
         return;
     }
+    surfaceDrawable->GetRsSubThreadCache().SetCacheCompletedBehindWindowData(windowCanvas->GetCacheBehindWindowData());
+    surfaceDrawable->GetRsSubThreadCache().DrawBehindWindowBeforeCache(canvas);
     Drawing::Brush paint;
     paint.SetAntiAlias(true);
     canvas.AttachBrush(paint);
@@ -151,6 +154,8 @@ bool RSDrawWindowCache::DealWithCachedWindow(DrawableV2::RSSurfaceRenderNodeDraw
     auto samplingOptions = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
     auto translateX = gravityMatrix.Get(Drawing::Matrix::TRANS_X);
     auto translateY = gravityMatrix.Get(Drawing::Matrix::TRANS_Y);
+    // draw BehindWindowFilter
+    surfaceDrawable->GetRsSubThreadCache().DrawBehindWindowBeforeCache(canvas, translateX, translateY);
     // draw content/children
     canvas.DrawImage(*image_, translateX, translateY, samplingOptions);
     canvas.DetachBrush();

@@ -1831,6 +1831,15 @@ void RSNode::SetUICompositingFilter(const OHOS::Rosen::Filter* compositingFilter
             auto stretchPercent = pixelStretchPara->GetStretchPercent();
             SetPixelStretchPercent(stretchPercent, pixelStretchPara->GetTileMode());
         }
+        if (filterPara->GetParaType() == FilterPara::RADIUS_GRADIENT_BLUR) {
+            auto radiusGradientBlurPara = std::static_pointer_cast<RadiusGradientBlurPara>(filterPara);
+            auto rsLinearGradientBlurPara = std::make_shared<RSLinearGradientBlurPara>(
+                radiusGradientBlurPara->GetBlurRadius(),
+                radiusGradientBlurPara->GetFractionStops(),
+                radiusGradientBlurPara->GetDirection());
+            rsLinearGradientBlurPara->isRadiusGradient_ = true;
+            SetLinearGradientBlurPara(rsLinearGradientBlurPara);
+        }
     }
 }
 
@@ -3438,18 +3447,6 @@ RSNode::SharedPtr RSNode::GetParent()
     return rsUIContext_.lock() ? rsUIContext_.lock()->GetNodeMap().GetNode(parent_)
                                : RSNodeMap::Instance().GetNode(parent_);
 }
-
-#ifdef RS_ENABLE_VK
-bool RSNode::IsHybridRenderCanvas() const
-{
-    return hybridRenderCanvas_;
-}
-
-void RSNode::SetHybridRenderCanvas(bool hybridRenderCanvas)
-{
-    hybridRenderCanvas_ = hybridRenderCanvas;
-}
-#endif
 
 void RSNode::DumpTree(int depth, std::string& out) const
 {

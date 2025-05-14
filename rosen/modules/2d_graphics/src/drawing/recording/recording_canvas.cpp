@@ -425,7 +425,8 @@ void RecordingCanvas::DrawTextBlob(const TextBlob* blob, const scalar x, const s
         uint32_t typefaceId = ctx.GetTypeface()->GetUniqueID();
         globalUniqueId = (shiftedPid | typefaceId);
     }
-    AddDrawOpImmediate<DrawTextBlobOpItem::ConstructorHandle>(textBlobHandle, globalUniqueId, x, y);
+    AddDrawOpImmediate<DrawTextBlobOpItem::ConstructorHandle>(textBlobHandle,
+        globalUniqueId, blob->GetTextContrast(), x, y);
 }
 
 void RecordingCanvas::DrawSymbol(const DrawingHMSymbolData& symbol, Point locate)
@@ -727,6 +728,18 @@ void RecordingCanvas::CheckForLazySave()
         }
         saveOpStateStack_.top() = RealSaveOp;
     }
+}
+
+void RecordingCanvas::ResetHybridRenderSize(float width, float height)
+{
+    if (cmdList_ == nullptr) {
+        return;
+    }
+    if (!addDrawOpImmediate_) {
+        cmdList_->AddDrawOp(std::make_shared<HybridRenderPixelMapSizeOpItem>(width, height));
+        return;
+    }
+    cmdList_->AddDrawOp<HybridRenderPixelMapSizeOpItem::ConstructorHandle>(width, height);
 }
 
 template<typename T, typename... Args>

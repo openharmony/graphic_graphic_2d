@@ -64,12 +64,13 @@ void RSDrawFrame::RenderFrame()
     // The destructor of GPUCompositonCacheGuard, a memory release check will be performed
     RSMainThread::GPUCompositonCacheGuard guard;
     RsFrameReport::GetInstance().UniRenderStart();
-    JankStatsRenderFrameStart();
+    RSJankStatsRenderFrameHelper::GetInstance().JankStatsStart();
     unirenderInstance_.IncreaseFrameCount();
     RSUifirstManager::Instance().ProcessSubDoneNode();
     Sync();
-    const bool doJankStats = IsUniRenderAndOnVsync();
-    JankStatsRenderFrameAfterSync(doJankStats);
+    RSJankStatsRenderFrameHelper::GetInstance().JankStatsAfterSync(unirenderInstance_.GetRSRenderThreadParams(),
+        RSBaseRenderUtil::GetAccumulatedBufferCount());
+    unirenderInstance_.UpdateDisplayNodeScreenId();
     RSMainThread::Instance()->ProcessUiCaptureTasks();
     RSUifirstManager::Instance().PostUifistSubTasks();
     UnblockMainThread();
@@ -85,7 +86,7 @@ void RSDrawFrame::RenderFrame()
     unirenderInstance_.MemoryManagementBetweenFrames();
     unirenderInstance_.PurgeShaderCacheAfterAnimate();
     MemoryManager::MemoryOverCheck(unirenderInstance_.GetRenderEngine()->GetRenderContext()->GetDrGPUContext());
-    JankStatsRenderFrameEnd(doJankStats);
+    RSJankStatsRenderFrameHelper::GetInstance().JankStatsEnd(unirenderInstance_.GetDynamicRefreshRate());
     RSPerfMonitorReporter::GetInstance().ReportAtRsFrameEnd();
     RsFrameReport::GetInstance().UniRenderEnd();
     EndCheck();
@@ -98,26 +99,25 @@ void RSDrawFrame::StartCheck()
 
 void RSDrawFrame::EndCheck()
 {
-    ExceptionCheck exceptionCheck;
-    exceptionCheck.pid_ = getpid();
-    exceptionCheck.uid_ = getuid();
-    exceptionCheck.processName_ = "/system/bin/render_service";
-    exceptionCheck.exceptionPoint_ = "render_pipeline_timeout";
+    exceptionCheck_.pid_ = getpid();
+    exceptionCheck_.uid_ = getuid();
+    exceptionCheck_.processName_ = "/system/bin/render_service";
+    exceptionCheck_.exceptionPoint_ = "render_pipeline_timeout";
 
     if (timer_->GetDuration() >= RENDER_TIMEOUT) {
         if (++longFrameCount_ == 6) { // 6: render 6 consecutive frames are too long
             RS_LOGE("Render Six consecutive frames are too long.");
-            exceptionCheck.exceptionCnt_ = longFrameCount_;
-            exceptionCheck.exceptionMoment_ = timer_->GetSeconds();
-            exceptionCheck.UploadRenderExceptionData();
+            exceptionCheck_.exceptionCnt_ = longFrameCount_;
+            exceptionCheck_.exceptionMoment_ = timer_->GetSeconds();
+            exceptionCheck_.UploadRenderExceptionData();
         }
     } else {
         longFrameCount_ = 0;
     }
     if (longFrameCount_ == RENDER_TIMEOUT_ABORT) {
-        exceptionCheck.exceptionCnt_ = longFrameCount_;
-        exceptionCheck.exceptionMoment_ = timer_->GetSeconds();
-        exceptionCheck.UploadRenderExceptionData();
+        exceptionCheck_.exceptionCnt_ = longFrameCount_;
+        exceptionCheck_.exceptionMoment_ = timer_->GetSeconds();
+        exceptionCheck_.UploadRenderExceptionData();
         sleep(1); // sleep 1s : abort will kill RS, sleep 1s for hisysevent report.
         abort(); // The RS process needs to be restarted because 12 consecutive frames times out.
     }
@@ -267,52 +267,6 @@ void RSDrawFrame::Render()
 {
     RS_TRACE_NAME_FMT("Render vsyncId: %" PRIu64 "", unirenderInstance_.GetVsyncId());
     unirenderInstance_.Render();
-}
-
-void RSDrawFrame::JankStatsRenderFrameStart()
-{
-    unirenderInstance_.SetSkipJankAnimatorFrame(false);
-}
-
-bool RSDrawFrame::IsUniRenderAndOnVsync() const
-{
-    const auto& renderThreadParams = unirenderInstance_.GetRSRenderThreadParams();
-    if (!renderThreadParams) {
-        return false;
-    }
-    return renderThreadParams->IsUniRenderAndOnVsync();
-}
-
-void RSDrawFrame::JankStatsRenderFrameAfterSync(bool doJankStats)
-{
-    if (!doJankStats) {
-        return;
-    }
-    RSJankStats::GetInstance().SetStartTime();
-    RSJankStats::GetInstance().SetAccumulatedBufferCount(RSBaseRenderUtil::GetAccumulatedBufferCount());
-    unirenderInstance_.UpdateDisplayNodeScreenId();
-}
-
-void RSDrawFrame::JankStatsRenderFrameEnd(bool doJankStats)
-{
-    if (!doJankStats) {
-        unirenderInstance_.SetDiscardJankFrames(false);
-        return;
-    }
-    const auto& renderThreadParams = unirenderInstance_.GetRSRenderThreadParams();
-    if (renderThreadParams == nullptr) {
-        return;
-    }
-    RSJankStats::GetInstance().SetOnVsyncStartTime(
-        renderThreadParams->GetOnVsyncStartTime(),
-        renderThreadParams->GetOnVsyncStartTimeSteady(),
-        renderThreadParams->GetOnVsyncStartTimeSteadyFloat());
-    RSJankStats::GetInstance().SetImplicitAnimationEnd(renderThreadParams->GetImplicitAnimationEnd());
-    RSJankStats::GetInstance().SetEndTime(
-        unirenderInstance_.GetSkipJankAnimatorFrame(),
-        unirenderInstance_.GetDiscardJankFrames() || renderThreadParams->GetDiscardJankFrames(),
-        unirenderInstance_.GetDynamicRefreshRate());
-    unirenderInstance_.SetDiscardJankFrames(false);
 }
 } // namespace Rosen
 } // namespace OHOS

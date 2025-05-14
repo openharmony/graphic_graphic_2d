@@ -37,17 +37,17 @@ void ColorGamutParamTest::SetUp() {}
 void ColorGamutParamTest::TearDown() {}
 
 /**
- * @tc.name: SetSLRCloseP3 IsSLRCloseP3
- * @tc.desc: Verify the SetSLRCloseP3 IsSLRCloseP3 function
+ * @tc.name: SetWiredExtendScreenCloseP3 IsWiredExtendScreenCloseP3
+ * @tc.desc: Verify the SetWiredExtendScreenCloseP3 IsWiredExtendScreenCloseP3 function
  * @tc.type: FUNC
  * @tc.require: #IBIE4T
  */
-HWTEST_F(ColorGamutParamTest, SLRCloseP3, Function | SmallTest | Level1)
+HWTEST_F(ColorGamutParamTest, WiredExtendScreenCloseP3, Function | SmallTest | Level1)
 {
-    ColorGamutParam::SetSLRCloseP3(true);
-    EXPECT_EQ(ColorGamutParam::IsSLRCloseP3(), true);
-    ColorGamutParam::SetSLRCloseP3(false);
-    EXPECT_EQ(ColorGamutParam::IsSLRCloseP3(), false);
+    ColorGamutParam::SetWiredExtendScreenCloseP3(true);
+    EXPECT_EQ(ColorGamutParam::IsWiredExtendScreenCloseP3(), true);
+    ColorGamutParam::SetWiredExtendScreenCloseP3(false);
+    EXPECT_EQ(ColorGamutParam::IsWiredExtendScreenCloseP3(), false);
 }
 
 } // namespace Rosen

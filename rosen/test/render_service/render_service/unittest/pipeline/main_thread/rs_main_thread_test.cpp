@@ -21,6 +21,7 @@
 #include "gtest/gtest.h"
 #include "limit_number.h"
 #include "pipeline/rs_test_util.h"
+#include "consumer_surface.h"
 
 #include "command/rs_base_node_command.h"
 #include "memory/rs_memory_track.h"
@@ -129,7 +130,7 @@ HWTEST_F(RSMainThreadTest, ProcessCommandForDividedRender002, TestSize.Level1)
     id = 1;
     rsTransactionData->payload_[id] = std::tuple<NodeId,
         FollowType, std::unique_ptr<RSCommand>>(id, FollowType::FOLLOW_TO_SELF, nullptr);
-    mainThread->ClassifyRSTransactionData(rsTransactionData);
+    mainThread->ClassifyRSTransactionData(std::shared_ptr(std::move(rsTransactionData)));
 
     auto node = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(node, nullptr);
@@ -655,7 +656,7 @@ HWTEST_F(RSMainThreadTest, ClassifyRSTransactionData001, TestSize.Level1)
     NodeId nodeId = 0;
     FollowType followType = FollowType::NONE;
     rsTransactionData->AddCommand(command, nodeId, followType);
-    mainThread->ClassifyRSTransactionData(rsTransactionData);
+    mainThread->ClassifyRSTransactionData(std::shared_ptr(std::move(rsTransactionData)));
     ASSERT_EQ(mainThread->pendingEffectiveCommands_.empty(), true);
 }
 
@@ -674,7 +675,7 @@ HWTEST_F(RSMainThreadTest, ClassifyRSTransactionData002, TestSize.Level1)
     NodeId nodeId = 1;
     FollowType followType = FollowType::NONE;
     rsTransactionData->AddCommand(command, nodeId, followType);
-    mainThread->ClassifyRSTransactionData(rsTransactionData);
+    mainThread->ClassifyRSTransactionData(std::shared_ptr(std::move(rsTransactionData)));
     ASSERT_EQ(mainThread->pendingEffectiveCommands_.empty(), true);
 }
 
@@ -693,7 +694,7 @@ HWTEST_F(RSMainThreadTest, ClassifyRSTransactionData003, TestSize.Level1)
     NodeId nodeId = 1;
     FollowType followType = FollowType::FOLLOW_TO_PARENT;
     rsTransactionData->AddCommand(command, nodeId, followType);
-    mainThread->ClassifyRSTransactionData(rsTransactionData);
+    mainThread->ClassifyRSTransactionData(std::shared_ptr(std::move(rsTransactionData)));
     ASSERT_EQ(mainThread->cachedCommands_[nodeId].empty(), true);
 }
 
@@ -724,7 +725,7 @@ HWTEST_F(RSMainThreadTest, ClassifyRSTransactionData004, TestSize.Level1)
     std::unique_ptr<RSCommand> command = nullptr;
     FollowType followType = FollowType::FOLLOW_TO_SELF;
     rsTransactionData->AddCommand(command, nodeId, followType);
-    mainThread->ClassifyRSTransactionData(rsTransactionData);
+    mainThread->ClassifyRSTransactionData(std::shared_ptr(std::move(rsTransactionData)));
     ASSERT_EQ(mainThread->cachedCommands_[nodeId].empty(), true);
 
     mainThread->cachedCommands_.clear();
@@ -732,7 +733,7 @@ HWTEST_F(RSMainThreadTest, ClassifyRSTransactionData004, TestSize.Level1)
     command = nullptr;
     followType = FollowType::FOLLOW_TO_PARENT;
     rsTransactionData->AddCommand(command, nodeId + 1, followType);
-    mainThread->ClassifyRSTransactionData(rsTransactionData);
+    mainThread->ClassifyRSTransactionData(std::shared_ptr(std::move(rsTransactionData)));
     ASSERT_EQ(mainThread->cachedCommands_[nodeId + 1].empty(), true);
 }
 
@@ -1686,6 +1687,46 @@ HWTEST_F(RSMainThreadTest, IsFirstFrameOfOverdrawSwitch, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetFrontBufferDesiredPresentTimeStamp
+ * @tc.desc: test GetFrontBufferDesiredPresentTimeStamp
+ * @tc.type: FUNC
+ * @tc.require: issueIAKQC3
+ */
+HWTEST_F(RSMainThreadTest, GetFrontBufferDesiredPresentTimeStamp001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    const sptr<ConsumerSurface> consumer = new ConsumerSurface("test1");
+    consumer->Init();
+    int64_t resultValue = 100;
+    int64_t desiredPresentTimestamp = resultValue;
+    mainThread->GetFrontBufferDesiredPresentTimeStamp(consumer, desiredPresentTimestamp);
+    ASSERT_EQ(desiredPresentTimestamp, 0);
+}
+
+/**
+ * @tc.name: GetFrontBufferDesiredPresentTimeStamp
+ * @tc.desc: test GetFrontBufferDesiredPresentTimeStamp
+ * @tc.type: FUNC
+ * @tc.require: issueIAKQC3
+ */
+HWTEST_F(RSMainThreadTest, GetFrontBufferDesiredPresentTimeStamp002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    const sptr<ConsumerSurface> consumer = new ConsumerSurface("test2");
+    consumer->Init();
+    int64_t resultValue = 100;
+    int64_t desiredPresentTimestamp = resultValue;
+    uint32_t seqId = 1;
+    consumer->consumer_->bufferQueue_->dirtyList_.clear();
+    consumer->consumer_->bufferQueue_->dirtyList_.push_back(seqId);
+    consumer->consumer_->bufferQueue_->bufferQueueCache_[seqId].isAutoTimestamp = true;
+    mainThread->GetFrontBufferDesiredPresentTimeStamp(consumer, desiredPresentTimestamp);
+    ASSERT_EQ(desiredPresentTimestamp, 0);
+}
+
+/**
  * @tc.name: GetRealTimeOffsetOfDvsync
  * @tc.desc: test GetRealTimeOffsetOfDvsync
  * @tc.type: FUNC
@@ -2431,7 +2472,7 @@ HWTEST_F(RSMainThreadTest, ClassifyRSTransactionData005, TestSize.Level1)
     id = 2;
     data->payload_[id] = std::tuple<NodeId,
         FollowType, std::unique_ptr<RSCommand>>(id, FollowType::FOLLOW_TO_PARENT, nullptr);
-    mainThread->ClassifyRSTransactionData(data);
+    mainThread->ClassifyRSTransactionData(std::shared_ptr(std::move(data)));
     mainThread->isUniRender_ = isUniRender;
 }
 
@@ -4903,4 +4944,52 @@ HWTEST_F(RSMainThreadTest, RenderServiceAllSurafceDump01, TestSize.Level1)
     mainThread->RenderServiceAllSurafceDump(log);
 }
 
+/**
+ * @tc.name: ExistBufferIsVisibleAndUpdateTest
+ * @tc.desc: RenderServiceAllSurafceDump Test
+ * @tc.type: FUNC
+ * @tc.require: issueIC0AQO
+ */
+HWTEST_F(RSMainThreadTest, ExistBufferIsVisibleAndUpdateTest, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    EXPECT_FALSE(mainThread->ExistBufferIsVisibleAndUpdate());
+    std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledNodes;
+    NodeId id = 0;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id, mainThread->context_);
+    sptr<SurfaceBuffer> preBuffer = SurfaceBuffer::Create();
+    sptr<SyncFence> acquireFence = SyncFence::InvalidFence();
+    Rect damageRect = {0, 0, 0, 0};
+    int64_t timestamp = 0;
+    ASSERT_NE(surfaceNode->surfaceHandler_, nullptr);
+    surfaceNode->surfaceHandler_->SetBuffer(preBuffer, acquireFence, damageRect, timestamp);
+    surfaceNode->surfaceHandler_->isCurrentFrameBufferConsumed_ = true;
+    surfaceNode->lastFrameHasVisibleRegion_ = true;
+    hardwareEnabledNodes.push_back(surfaceNode);
+    mainThread->hardwareEnabledNodes_ = hardwareEnabledNodes;
+    EXPECT_TRUE(mainThread->ExistBufferIsVisibleAndUpdate());
+}
+
+/**
+ * @tc.name: GetForceCommitReasonTest
+ * @tc.desc: GetForceCommitReasonTest
+ * @tc.type: FUNC
+ * @tc.require: issueIC0AQO
+ */
+HWTEST_F(RSMainThreadTest, GetForceCommitReasonTest, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->isHardwareEnabledBufferUpdated_ = false;
+    mainThread->forceUpdateUniRenderFlag_ = false;
+    EXPECT_EQ(mainThread->GetForceCommitReason(), 0);
+    uint32_t forceCommitReason = 0;
+    forceCommitReason |= ForceCommitReason::FORCED_BY_HWC_UPDATE;
+    mainThread->isHardwareEnabledBufferUpdated_ = true;
+    EXPECT_EQ(mainThread->GetForceCommitReason(), forceCommitReason);
+    mainThread->forceUpdateUniRenderFlag_ = true;
+    forceCommitReason |= ForceCommitReason::FORCED_BY_UNI_RENDER_FLAG;
+    EXPECT_EQ(mainThread->GetForceCommitReason(), forceCommitReason);
+}
 } // namespace OHOS::Rosen

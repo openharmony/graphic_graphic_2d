@@ -580,6 +580,14 @@ public:
             ", brightnessRatio = " + std::to_string(brightnessRatio_) + ", ";
     }
 
+    void DumpCurrentFrameLayer() const
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        if (cSurface_ != nullptr) {
+            cSurface_->DumpCurrentFrameLayer();
+        }
+    }
+
     RosenError SetLayerMaskInfo(LayerMask mask)
     {
         switch (mask) {

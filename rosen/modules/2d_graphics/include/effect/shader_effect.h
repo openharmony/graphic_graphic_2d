@@ -85,6 +85,8 @@ public:
         const std::vector<ColorQuad>& colors, const std::vector<scalar>& pos, TileMode mode, scalar startAngle,
         scalar endAngle, const Matrix* matrix = nullptr);
 
+    static std::shared_ptr<ShaderEffect> CreateLightUp(const float& lightUpDeg, ShaderEffect& imageShader);
+
     static std::shared_ptr<ShaderEffect> CreateExtendShader(std::shared_ptr<ExtendObject>);
 
     static std::shared_ptr<ShaderEffect> CreateSdfShader(const SDFShapeBase& shape);

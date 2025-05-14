@@ -201,9 +201,10 @@ bool DoGetScreenBacklight()
         return false;
     }
     ScreenId id = GetData<uint64_t>();
-    uint32_t level = GetData<uint32_t>();
-    rsConn_->SetScreenBacklight(id, level);
-    rsConn_->GetScreenBacklight(id);
+    uint32_t setLevel = GetData<uint32_t>();
+    rsConn_->SetScreenBacklight(id, setLevel);
+    int32_t getLevel = GetData<int32_t>();
+    rsConn_->GetScreenBacklight(id, getLevel);
     return true;
 }
 
@@ -238,7 +239,8 @@ bool DoSetScreenSkipFrameInterval()
     }
     ScreenId id = GetData<uint64_t>();
     uint32_t skipFrameInterval = GetData<uint32_t>();
-    rsConn_->SetScreenSkipFrameInterval(id, skipFrameInterval);
+    int32_t resCode;
+    rsConn_->SetScreenSkipFrameInterval(id, skipFrameInterval, resCode);
     return true;
 }
 
@@ -311,7 +313,7 @@ bool DoSetScreenPowerStatus()
     ScreenId id = GetData<uint64_t>();
     uint32_t status = GetData<uint32_t>();
     rsConn_->SetScreenPowerStatus(id, static_cast<ScreenPowerStatus>(status));
-    rsConn_->GetScreenPowerStatus(id);
+    rsConn_->GetScreenPowerStatus(id, status);
     return true;
 }
 
@@ -423,7 +425,8 @@ bool DoSetScreenActiveMode()
     ScreenId id = GetData<uint64_t>();
     uint32_t modeId = GetData<uint32_t>();
     rsConn_->SetScreenActiveMode(id, modeId);
-    rsConn_->GetScreenActiveMode(id);
+    RSScreenModeInfo screenModeInfo;
+    rsConn_->GetScreenActiveMode(id, screenModeInfo);
     return true;
 }
 
@@ -485,7 +488,7 @@ bool DoSetScreenRefreshRate()
     rsConn_->GetScreenCurrentRefreshRate(id);
     rsConn_->GetScreenSupportedRefreshRates(id);
     rsConn_->GetCurrentRefreshRateMode();
-    rsConn_->GetShowRefreshRateEnabled();
+    rsConn_->GetShowRefreshRateEnabled(enabled);
     rsConn_->SetShowRefreshRateEnabled(enabled, type);
     rsConn_->GetRealtimeRefreshRate(id);
     return true;
@@ -763,7 +766,8 @@ bool DoGetDefaultScreenId()
     if (rsConn_ == nullptr) {
         return false;
     }
-    rsConn_->GetDefaultScreenId();
+    uint64_t screenId = GetData<uint64_t>();
+    rsConn_->GetDefaultScreenId(screenId);
     return true;
 }
 
@@ -772,7 +776,8 @@ bool DoGetActiveScreenId()
     if (rsConn_ == nullptr) {
         return false;
     }
-    rsConn_->GetActiveScreenId();
+    uint64_t screenId = GetData<uint64_t>();
+    rsConn_->GetActiveScreenId(screenId);
     return true;
 }
 
@@ -792,8 +797,7 @@ bool DoGetTotalAppMemSize()
     }
     float cpuMemSize = GetData<float>();
     float gpuMemSize = GetData<float>();
-    bool success;
-    rsConn_->GetTotalAppMemSize(cpuMemSize, gpuMemSize, success);
+    rsConn_->GetTotalAppMemSize(cpuMemSize, gpuMemSize);
     return true;
 }
 
@@ -914,8 +918,7 @@ bool DoSetGlobalDarkColorMode()
         return false;
     }
     bool isDark = GetData<bool>();
-    bool success = GetData<bool>();
-    rsConn_->SetGlobalDarkColorMode(isDark, success);
+    rsConn_->SetGlobalDarkColorMode(isDark);
     return true;
 }
 
@@ -971,8 +974,8 @@ bool DOSetVirtualScreenRefreshRate()
     uint64_t id = GetData<uint64_t>();
     uint32_t maxRefreshRate = GetData<uint32_t>();
     uint32_t actualRefreshRate = GetData<uint32_t>();
-    int32_t retVal = GetData<int32_t>();
-    rsConn_->SetVirtualScreenRefreshRate(id, maxRefreshRate, actualRefreshRate, retVal);
+    int32_t resCode;
+    rsConn_->SetVirtualScreenRefreshRate(id, maxRefreshRate, actualRefreshRate, resCode);
     return true;
 }
 
@@ -1481,6 +1484,7 @@ void DoFuzzerTest3()
     DoSetOverlayDisplayMode();
 #endif
     DoRegisterFirstFrameCommitCallback();
+    DoNotifySoftVsyncRateDiscountEvent();
 }
 } // namespace Rosen
 } // namespace OHOS

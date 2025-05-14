@@ -380,9 +380,9 @@ int32_t HgmEnergyConsumptionPolicy::GetComponentEnergyConsumptionConfig(const st
     }
     const auto settingMode = std::to_string(currentRefreshMode_);
     const auto curScreenStrategyId = curScreenStrategyId_;
-    if (configData->screenConfigs_.count(curScreenStrategyId_) &&
-        configData->screenConfigs_[curScreenStrategyId_].count(settingMode)) {
-        auto& screenConfig = configData->screenConfigs_[curScreenStrategyId_][settingMode];
+    if (configData->screenConfigs_.count(curScreenStrategyId) &&
+        configData->screenConfigs_[curScreenStrategyId].count(settingMode)) {
+        auto& screenConfig = configData->screenConfigs_[curScreenStrategyId][settingMode];
         auto idleFps = UNKNOWN_IDLE_FPS;
         if (screenConfig.componentPowerConfig.count(componentName)) {
             idleFps = screenConfig.componentPowerConfig[componentName];

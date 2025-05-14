@@ -12,6 +12,7 @@
 # limitations under the License.
 
 import("//build/test.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 module_out_path = "graphic_2d/graphic_2d/vulkan_layers"
 
@@ -36,10 +37,10 @@ ohos_static_library("vulkan_loader_test_common") {
   testonly = true
 
   public_deps = [
-    "../../../../rosen/modules/2d_graphics:2d_graphics",
-    "../../../../rosen/modules/render_service_base:librender_service_base",
-    "../../../../rosen/modules/render_service_client:librender_service_client",
-    "../../../../utils:libgraphic_utils",
+    "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
+    "$graphic_2d_root/utils:libgraphic_utils",
   ]
   public_external_deps = [
     "vulkan-headers:vulkan_headers",

@@ -410,42 +410,6 @@ HWTEST_F(RSAshmemHelperTest, ReadSafeFdTest005, TestSize.Level1)
 }
 
 /**
- * @tc.name: ReadSafeFdExactly24bytes
- * @tc.desc: ReadSafeFd read exactly 24 bytes
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSAshmemHelperTest, ReadSafeFdExactly24bytes, TestSize.Level1 | Reliability)
-{
-    AshmemFdContainer::SetIsUnmarshalThread(true);
-    AshmemFdContainer::Instance().Clear();
-
-    const size_t dataSize = 100;
-    const auto ashmemAllocator = AshmemAllocator::CreateAshmemAllocator(dataSize, PROT_READ | PROT_WRITE);
-    ASSERT_TRUE(ashmemAllocator);
-    const int fd = ashmemAllocator->GetFd();
-    EXPECT_TRUE(fd > 0);
-
-    const std::shared_ptr<MessageParcel> parcel = std::make_shared<MessageParcel>();
-    ASSERT_TRUE(parcel);
-    parcel->WriteFileDescriptor(fd);
-
-    const auto beforeRead = parcel->GetReadPosition();
-
-    const std::unordered_map<binder_size_t, int> fds = { {0, fd} };
-    AshmemFdContainer::Instance().Merge(fds);
-
-    const auto safeFd = AshmemFdContainer::Instance().ReadSafeFd(*parcel, readFdDefaultFunc);
-
-    const auto afterRead = parcel->GetReadPosition();
-
-    const auto bytesRead = 24;
-    EXPECT_TRUE(afterRead == bytesRead + beforeRead);
-
-    ::close(safeFd);
-}
-
-/**
  * @tc.name: MergeTest
  * @tc.desc: Verify function Merge
  * @tc.type: FUNC
@@ -518,7 +482,8 @@ HWTEST_F(RSAshmemHelperTest, InsertFdWithOffsetTest, TestSize.Level1)
     AshmemFdContainer::SetIsUnmarshalThread(true);
     AshmemFdContainer::Instance().Clear();
 
-    auto ashmemFdWorker = std::make_unique<AshmemFdWorker>();
+    pid_t callingPid = 0;
+    auto ashmemFdWorker = std::make_unique<AshmemFdWorker>(callingPid);
     ASSERT_TRUE(ashmemFdWorker);
     ashmemFdWorker->isFdContainerUpdated_ = true;
     ashmemFdWorker->InsertFdWithOffset(1, 2, false);
@@ -543,7 +508,8 @@ HWTEST_F(RSAshmemHelperTest, PushFdsToContainerTest, TestSize.Level1)
     AshmemFdContainer::SetIsUnmarshalThread(true);
     AshmemFdContainer::Instance().Clear();
 
-    auto ashmemFdWorker = std::make_unique<AshmemFdWorker>();
+    pid_t callingPid = 0;
+    auto ashmemFdWorker = std::make_unique<AshmemFdWorker>(callingPid);
     ASSERT_TRUE(ashmemFdWorker);
     ashmemFdWorker->isFdContainerUpdated_ = false;
     ashmemFdWorker->InsertFdWithOffset(1, 2, true);
@@ -569,7 +535,8 @@ HWTEST_F(RSAshmemHelperTest, EnableManualCloseFdsTest, TestSize.Level1)
     AshmemFdContainer::SetIsUnmarshalThread(true);
     AshmemFdContainer::Instance().Clear();
 
-    auto ashmemFdWorker = std::make_unique<AshmemFdWorker>();
+    pid_t callingPid = 0;
+    auto ashmemFdWorker = std::make_unique<AshmemFdWorker>(callingPid);
     ASSERT_TRUE(ashmemFdWorker);
     ashmemFdWorker->InsertFdWithOffset(-1, 1, true);
     ashmemFdWorker->InsertFdWithOffset(INT_MAX, 2, true);

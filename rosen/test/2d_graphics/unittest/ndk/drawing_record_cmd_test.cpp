@@ -18,6 +18,11 @@
 #include "drawing_canvas.h"
 #include "drawing_error_code.h"
 #include "drawing_record_cmd.h"
+
+#ifdef RS_ENABLE_VK
+#include "platform/ohos/backend/rs_vulkan_context.h"
+#endif
+
 using namespace testing;
 using namespace testing::ext;
 
@@ -32,7 +37,12 @@ public:
     void TearDown() override;
 };
 
-void NativeDrawingRecordCmdTest::SetUpTestCase() {}
+void NativeDrawingRecordCmdTest::SetUpTestCase()
+{
+#ifdef RS_ENABLE_VK
+    RsVulkanContext::SetRecyclable(false);
+#endif
+}
 void NativeDrawingRecordCmdTest::TearDownTestCase() {}
 void NativeDrawingRecordCmdTest::SetUp() {}
 void NativeDrawingRecordCmdTest::TearDown() {}

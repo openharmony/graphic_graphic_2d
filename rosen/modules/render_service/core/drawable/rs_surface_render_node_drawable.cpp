@@ -81,6 +81,7 @@ RSSurfaceRenderNodeDrawable::RSSurfaceRenderNodeDrawable(std::shared_ptr<const R
 #ifndef ROSEN_CROSS_PLATFORM
     consumerOnDraw_ = surfaceNode->GetRSSurfaceHandler()->GetConsumer();
 #endif
+    subThreadCache_.SetNodeId(surfaceNode->GetId());
 }
 
 RSRenderNodeDrawable::Ptr RSSurfaceRenderNodeDrawable::OnGenerate(std::shared_ptr<const RSRenderNode> node)
@@ -321,6 +322,10 @@ void RSSurfaceRenderNodeDrawable::FinishOffscreenRender(const Drawing::SamplingO
         RS_LOGE("RSSurfaceRenderNodeDrawable::FinishOffscreenRender, Surface::GetImageSnapshot is nullptr");
         return;
     }
+#ifdef RS_ENABLE_GPU
+    RSTagTracker tagTracker(canvasBackup_->GetGPUContext(),
+        RSTagTracker::SOURCETYPE::SOURCE_FINISHOFFSCREENRENDER);
+#endif
     // draw offscreen surface to current canvas
     Drawing::Brush paint;
     paint.SetAntiAlias(true);
@@ -350,8 +355,7 @@ bool RSSurfaceRenderNodeDrawable::IsHardwareEnabled()
 
 bool RSSurfaceRenderNodeDrawable::IsHardwareEnabledTopSurface() const
 {
-    return surfaceNodeType_ == RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE &&
-        GetName() == "pointer window" && RSSystemProperties::GetHardCursorEnabled();
+    return surfaceNodeType_ == RSSurfaceNodeType::CURSOR_NODE && RSSystemProperties::GetHardCursorEnabled();
 }
 
 void RSSurfaceRenderNodeDrawable::PreprocessUnobscuredUEC(RSPaintFilterCanvas& canvas)
@@ -408,6 +412,7 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     if (vmaCacheOff_) {
         Drawing::StaticFactory::SetVmaCacheStatus(false); // render this frame with vma cache off
     }
+    Drawing::GPUResourceTag::SetCurrentNodeId(GetId());
     auto rscanvas = reinterpret_cast<RSPaintFilterCanvas*>(&canvas);
     if (!rscanvas) {
         SetDrawSkipType(DrawSkipType::CANVAS_NULL);
@@ -465,8 +470,8 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         RS_LOGE("RSSurfaceRenderNodeDrawable::OnDraw renderEngine is nullptr");
         return;
     }
-    if (autoCacheEnable_) {
-        nodeCacheType_ = NodeStrategyType::CACHE_NONE;
+    if (RSOpincDrawCache::IsAutoCacheEnable()) {
+        RSOpincDrawCache::SetNodeCacheType(NodeStrategyType::CACHE_NONE);
     }
     // syncDirtyManager_ is not null
     const RectI& currentFrameDirty = syncDirtyManager_->GetCurrentFrameDirtyRegion();
@@ -522,12 +527,6 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
     RSUiFirstProcessStateCheckerHelper stateCheckerHelper(
         surfaceParams->GetFirstLevelNodeId(), surfaceParams->GetUifirstRootNodeId(), nodeId_);
-    if (!RSUiFirstProcessStateCheckerHelper::CheckMatchAndWaitNotify(*surfaceParams)) {
-        SetDrawSkipType(DrawSkipType::CHECK_MATCH_AND_WAIT_NOTIFY_FAIL);
-        RS_LOGE("RSSurfaceRenderNodeDrawable::OnDraw CheckMatchAndWaitNotify failed");
-        return;
-    }
-
     // Regional screen recording does not enable uifirst.
     bool enableVisiableRect = RSUniRenderThread::Instance().GetEnableVisiableRect();
     if (!enableVisiableRect) {
@@ -539,8 +538,10 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         }
     }
 
-    auto cacheState = subThreadCache_.GetCacheSurfaceProcessedStatus();
-    auto useNodeMatchOptimize = cacheState != CacheProcessStatus::WAITING && cacheState != CacheProcessStatus::DOING;
+    // can't use NodeMatchOptimize if leash window is on draw
+    auto cacheState = RSUifirstManager::Instance().GetCacheSurfaceProcessedStatus(*surfaceParams);
+    auto useNodeMatchOptimize = rscanvas->GetIsParallelCanvas() &&
+        (cacheState == CacheProcessStatus::WAITING || cacheState == CacheProcessStatus::DOING);
     if (!RSUiFirstProcessStateCheckerHelper::CheckMatchAndWaitNotify(*surfaceParams, useNodeMatchOptimize)) {
         SetDrawSkipType(DrawSkipType::CHECK_MATCH_AND_WAIT_NOTIFY_FAIL);
         RS_LOGE("RSSurfaceRenderNodeDrawable::OnDraw CheckMatchAndWaitNotify failed");
@@ -565,7 +566,7 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     } else {
         gpuContext = RSSubThreadManager::Instance()->GetGrContextFromSubThread(realTid);
     }
-    RSTagTracker tagTracker(gpuContext.get(), surfaceParams->GetId(), surfaceParams->GetId(),
+    RSTagTracker tagTracker(gpuContext, surfaceParams->GetId(),
         RSTagTracker::TAGTYPE::TAG_DRAW_SURFACENODE, surfaceParams->GetName());
 
     // Draw base pipeline start
@@ -692,6 +693,10 @@ void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
 {
     RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
         RS_RSSURFACERENDERNODEDRAWABLE_ONCAPTURE);
+    if (RSUniRenderThread::GetCaptureParam().isSoloNodeUiCapture_) {
+        RSRenderNodeDrawable::OnDraw(canvas);
+        return;
+    }
     if (!ShouldPaint()) {
         return;
     }
@@ -738,6 +743,10 @@ void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
         RS_LOGE("RSSurfaceRenderNodeDrawable::OnCapture, rscanvas us nullptr");
         return;
     }
+
+#ifdef RS_ENABLE_GPU
+    RSTagTracker tagTracker(rscanvas->GetGPUContext(), RSTagTracker::SOURCETYPE::SOURCE_ONCAPTURE);
+#endif
 
     if (DrawCloneNode(*rscanvas, *uniParam, *surfaceParams, true)) {
         return;
@@ -808,6 +817,14 @@ bool RSSurfaceRenderNodeDrawable::CheckIfSurfaceSkipInMirror(const RSSurfaceRend
     if (blackList.find(surfaceParams.GetId()) != blackList.end()) {
         RS_LOGD("RSSurfaceRenderNodeDrawable::CheckIfSurfaceSkipInMirror: \
             (surfaceParamsId:[%{public}" PRIu64 "]) is in black list", surfaceParams.GetId());
+        return true;
+    }
+    // Check type black list.
+    const auto& typeBlackList = RSUniRenderThread::Instance().GetTypeBlackList();
+    NodeType nodeType = static_cast<NodeType>(surfaceParams.GetSurfaceNodeType());
+    if (typeBlackList.find(nodeType) != typeBlackList.end()) {
+        RS_LOGD("RSSurfaceRenderNodeDrawable::CheckIfSurfaceSkipInMirror: "
+            "(surfaceNodeType:[%{public}u]) is in type black list", nodeType);
         return true;
     }
     // Check white list.
@@ -1068,9 +1085,6 @@ void RSSurfaceRenderNodeDrawable::DealWithSelfDrawingNodeBuffer(
     pid_t threadId = gettid();
     auto params = RSUniRenderUtil::CreateBufferDrawParam(*this, false, threadId);
     params.targetColorGamut = GetAncestorDisplayColorGamut(surfaceParams);
-    if (threadId == RSUniRenderThread::Instance().GetTid()) {
-        params.screenId = RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetScreenInfo().id;
-    }
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     params.sdrNits = surfaceParams.GetSdrNit();
     params.tmoNits = surfaceParams.GetDisplayNit();
@@ -1174,12 +1188,19 @@ void RSSurfaceRenderNodeDrawable::DrawSelfDrawingNodeBuffer(
 {
     RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
         RS_RSSURFACERENDERNODEDRAWABLE_DRAWSELFDRAWINGNODEBUFFER);
+#ifdef RS_ENABLE_GPU
+    RSTagTracker tagTracker(canvas.GetGPUContext(), RSTagTracker::SOURCETYPE::SOURCE_DRAWSELFDRAWINGNODEBUFFER);
+#endif
     if (params.buffer == nullptr) {
         RS_LOGE("RSSurfaceRenderNodeDrawable::DrawSelfDrawingNodeBuffer params.buffer is nullptr");
     } else {
         RecordTimestamp(surfaceParams.GetId(), params.buffer->GetSeqNum());
     }
     auto bgColor = surfaceParams.GetBackgroundColor();
+    if (surfaceParams.GetHardwareEnabled() && surfaceParams.GetIsHwcEnabledBySolidLayer()) {
+        bgColor = surfaceParams.GetSolidLayerColor();
+        RS_LOGD("solidLayer enabled, %{public}s, brush set color: %{public}08x", __func__, bgColor.AsArgbInt());
+    }
     auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
     if ((surfaceParams.GetSelfDrawingNodeType() != SelfDrawingNodeType::VIDEO) &&
         (bgColor != RgbPalette::Transparent())) {

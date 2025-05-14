@@ -125,6 +125,35 @@ HWTEST_F(RSSurfaceRenderNodeFourTest, UpdateSurfaceDefaultSize, TestSize.Level2)
 }
 
 /**
+ * @tc.name: UpdatePropertyFromConsumer
+ * @tc.desc: test results of UpdatePropertyFromConsumer
+ * @tc.type:FUNC UpdatePropertyFromConsumer
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderNodeFourTest, UpdatePropertyFromConsumer, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, rsContext, true);
+    node->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(id + 1);
+    Gravity defaultGravity = node->GetMutableRenderProperties().GetFrameGravity();
+    bool defaultFixRotation = node->isFixRotationByUser_;
+
+    node->GetRSSurfaceHandler()->consumer_ = IConsumerSurface::Create();
+    sptr<IBufferProducer> producer = node->GetRSSurfaceHandler()->consumer_->GetProducer();
+    producer->SetFixedRotation(-1);
+    producer->SetFrameGravity(-1);
+    node->UpdatePropertyFromConsumer();
+    ASSERT_EQ(node->GetMutableRenderProperties().GetFrameGravity(), defaultGravity);
+    ASSERT_EQ(node->isFixRotationByUser_, defaultFixRotation);
+
+    producer->SetFixedRotation(1);
+    producer->SetFrameGravity(1);
+    node->UpdatePropertyFromConsumer();
+    ASSERT_EQ(node->GetMutableRenderProperties().GetFrameGravity(), Gravity::TOP);
+    ASSERT_EQ(node->isFixRotationByUser_, true);
+}
+
+/**
  * @tc.name: RegisterBufferAvailableListener
  * @tc.desc: test results of RegisterBufferAvailableListener
  * @tc.type:FUNC RegisterBufferAvailableListener
@@ -409,6 +438,19 @@ HWTEST_F(RSSurfaceRenderNodeFourTest, GetBehindWindowRegionTest, TestSize.Level1
     ASSERT_EQ(surfaceNode->GetBehindWindowRegion(), region);
     auto node = std::make_shared<RSRenderNode>(1, rsContext);
     ASSERT_NE(node->GetBehindWindowRegion(), region);
+}
+
+/**
+ * @tc.name: SetAndGetAppWindowZOrderTest
+ * @tc.desc: Test SetAppWindowZOrder and GetAppWindowZOrder api
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceRenderNodeFourTest, SetAndGetAppWindowZOrderTest, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(0, rsContext);
+    surfaceNode->SetAppWindowZOrder(1);
+    ASSERT_EQ(surfaceNode->GetAppWindowZOrder(), 1);
 }
 } // namespace Rosen
 } // namespace OHOS

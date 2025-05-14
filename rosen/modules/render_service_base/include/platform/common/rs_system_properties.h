@@ -134,7 +134,6 @@ enum class DdgrOpincDfxType {
     OPINC_DFX_AUTO,
 };
 
-#ifdef RS_ENABLE_VK
 enum class ComponentEnableSwitch {
     TEXTBLOB = 0,
     SVG,
@@ -146,7 +145,6 @@ struct GetComponentSwitch {
     ComponentEnableSwitch type;
     bool (*ComponentHybridSwitch)();
 };
-#endif
 
 using OnSystemPropertyChanged = void(*)(const char*, const char*, void*);
 
@@ -273,6 +271,7 @@ public:
     static bool GetUIFirstDirtyEnabled();
     static bool GetUIFirstDirtyDebugEnabled();
     static bool GetTargetUIFirstDfxEnabled(std::vector<std::string>& SurfaceNames);
+    static bool GetUIFirstBehindWindowFilterEnabled();
     static bool GetWideColorSpaceEnabled();
     static bool GetSurfaceOffscreenEnadbled();
     static bool GetDebugTraceEnabled();
@@ -345,8 +344,10 @@ public:
     static bool GetOptimizeHwcComposeAreaEnabled();
     static bool GetWindowKeyFrameEnabled();
     static bool GetNodeGroupGroupedByUIEnabled();
+    static bool GetTimeVsyncDisabled();
+    static void SetDebugFmtTraceEnabled(bool flag);
+    static bool GetDebugFmtTraceEnabled();
 
-#ifdef RS_ENABLE_VK
     static bool GetHybridRenderEnabled();
     static bool GetHybridRenderDfxEnabled();
     static uint32_t GetHybridRenderTextBlobLenCount();
@@ -359,7 +360,8 @@ public:
     static bool GetHybridRenderTextBlobEnabled();
     static bool GetHybridRenderSvgEnabled();
     static bool GetHybridRenderHmsymbolEnabled();
-#endif
+
+    static bool GetVKImageUseEnabled();
 
 private:
     RSSystemProperties() = default;
@@ -368,6 +370,7 @@ private:
     inline static bool isDrawTextAsBitmap_ = false;
     inline static bool cacheEnabledForRotation_ = false;
     static inline bool forceHpsBlurDisabled_ = false;
+    static inline bool debugFmtTraceEnable_ = false;
     static const GpuApiType systemGpuApiType_;
     static const DdgrOpincType ddgrOpincType_;
     static const DdgrOpincDfxType ddgrOpincDfxType_;

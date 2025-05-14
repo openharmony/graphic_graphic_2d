@@ -30,10 +30,18 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
+const uint8_t DO_GET_CANVAS = 0;
+const uint8_t DO_GET_SURFACE = 1;
+const uint8_t DO_GET_BUFFER = 2;
+const uint8_t DO_SET_DAMAGEREGION = 3;
+const uint8_t DO_GET_BUFFERAGE = 4;
+const uint8_t DO_GET_RELEASEFENCE = 5;
+const uint8_t DO_SET_RELEASEFENCE = 6;
+const uint8_t TARGET_SIZE = 7;
+
 const uint8_t* g_data = nullptr;
 size_t g_size = 0;
 size_t g_pos;
-} // namespace
 
 template<class T>
 T GetData()
@@ -50,69 +58,46 @@ T GetData()
     g_pos += objectSize;
     return object;
 }
-bool DoGetCanvas(const uint8_t* data, size_t size)
+
+bool Init(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
         return false;
     }
 
-    // initialize
     g_data = data;
     g_size = size;
     g_pos = 0;
+    return true;
+}
+} // namespace
 
+void DoGetCanvas()
+{
     int32_t width = GetData<int32_t>();
     int32_t height = GetData<int32_t>();
     auto rsSurfaceFrameOhosRaster = std::make_shared<RSSurfaceFrameOhosRaster>(width, height);
     rsSurfaceFrameOhosRaster->GetCanvas();
-    return true;
 }
-bool DoGetSurface(const uint8_t* data, size_t size)
+
+void DoGetSurface()
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     int32_t width = GetData<int32_t>();
     int32_t height = GetData<int32_t>();
     auto rsSurfaceFrameOhosRaster = std::make_shared<RSSurfaceFrameOhosRaster>(width, height);
     rsSurfaceFrameOhosRaster->GetSurface();
-    return true;
 }
-bool DoGetBuffer(const uint8_t* data, size_t size)
+
+void DoGetBuffer()
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     int32_t width = GetData<int32_t>();
     int32_t height = GetData<int32_t>();
     auto rsSurfaceFrameOhosRaster = std::make_shared<RSSurfaceFrameOhosRaster>(width, height);
     rsSurfaceFrameOhosRaster->GetBuffer();
-    return true;
 }
 
-bool DoSetDamageRegion(const uint8_t* data, size_t size)
+void DoSetDamageRegion()
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     int32_t width = GetData<int32_t>();
     int32_t height = GetData<int32_t>();
     auto rsSurfaceFrameOhosRaster = std::make_shared<RSSurfaceFrameOhosRaster>(width, height);
@@ -126,59 +111,31 @@ bool DoSetDamageRegion(const uint8_t* data, size_t size)
 
     std::vector<RectI> rects;
     rsSurfaceFrameOhosRaster->SetDamageRegion(rects);
-    return true;
 }
-bool DoGetBufferAge(const uint8_t* data, size_t size)
+
+void DoGetBufferAge()
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     int32_t width = GetData<int32_t>();
     int32_t height = GetData<int32_t>();
     auto rsSurfaceFrameOhosRaster = std::make_shared<RSSurfaceFrameOhosRaster>(width, height);
     rsSurfaceFrameOhosRaster->GetBufferAge();
-    return true;
 }
-bool DoGetReleaseFence(const uint8_t* data, size_t size)
+
+void DoGetReleaseFence()
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     int32_t width = GetData<int32_t>();
     int32_t height = GetData<int32_t>();
     auto rsSurfaceFrameOhosRaster = std::make_shared<RSSurfaceFrameOhosRaster>(width, height);
     rsSurfaceFrameOhosRaster->GetReleaseFence();
-    return true;
 }
-bool DoSetReleaseFence(const uint8_t* data, size_t size)
+
+void DoSetReleaseFence()
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     int32_t width = GetData<int32_t>();
     int32_t height = GetData<int32_t>();
     auto rsSurfaceFrameOhosRaster = std::make_shared<RSSurfaceFrameOhosRaster>(width, height);
     int32_t fence = GetData<int32_t>();
     rsSurfaceFrameOhosRaster->SetReleaseFence(fence);
-    return true;
 }
 } // namespace Rosen
 } // namespace OHOS
@@ -187,12 +144,34 @@ bool DoSetReleaseFence(const uint8_t* data, size_t size)
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
-    OHOS::Rosen::DoGetCanvas(data, size);
-    OHOS::Rosen::DoGetSurface(data, size);      // GetSurface
-    OHOS::Rosen::DoGetBuffer(data, size);       // GetBuffer
-    OHOS::Rosen::DoSetDamageRegion(data, size); // SetDamageRegion
-    OHOS::Rosen::DoGetBufferAge(data, size);    // GetBufferAge
-    OHOS::Rosen::DoGetReleaseFence(data, size); // GetReleaseFence
-    OHOS::Rosen::DoSetReleaseFence(data, size); // SetReleaseFence
+    if (!OHOS::Rosen::Init(data, size)) {
+        return -1;
+    }
+    uint8_t tarPos = OHOS::Rosen::GetData<uint8_t>() % OHOS::Rosen::TARGET_SIZE;
+    switch (tarPos) {
+        case OHOS::Rosen::DO_GET_CANVAS:
+            OHOS::Rosen::DoGetCanvas();
+            break;
+        case OHOS::Rosen::DO_GET_SURFACE:
+            OHOS::Rosen::DoGetSurface();
+            break;
+        case OHOS::Rosen::DO_GET_BUFFER:
+            OHOS::Rosen::DoGetBuffer();
+            break;
+        case OHOS::Rosen::DO_SET_DAMAGEREGION:
+            OHOS::Rosen::DoSetDamageRegion();
+            break;
+        case OHOS::Rosen::DO_GET_BUFFERAGE:
+            OHOS::Rosen::DoGetBufferAge();
+            break;
+        case OHOS::Rosen::DO_GET_RELEASEFENCE:
+            OHOS::Rosen::DoGetReleaseFence();
+            break;
+        case OHOS::Rosen::DO_SET_RELEASEFENCE:
+            OHOS::Rosen::DoSetReleaseFence();
+            break;
+        default:
+            return -1;
+    }
     return 0;
 }

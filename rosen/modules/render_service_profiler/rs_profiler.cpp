@@ -36,6 +36,7 @@
 #include "rs_profiler_test_tree.h"
 
 #include "common/rs_common_def.h"
+#include "feature/dirty/rs_uni_dirty_compute_util.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
 #include "params/rs_display_render_params.h"
 #include "pipeline/main_thread/rs_main_thread.h"
@@ -47,7 +48,7 @@ namespace OHOS::Rosen {
 
 // (user): Move to RSProfiler
 static RSRenderService* g_renderService = nullptr;
-static RSContext* g_context = nullptr;
+RSContext* RSProfiler::context_ = nullptr;
 static RSMainThread* g_mainThread = nullptr;
 static std::atomic<int32_t> g_renderServiceCpuId = 0;
 static std::atomic<int32_t> g_renderServiceRenderCpuId = 0;
@@ -163,10 +164,10 @@ void RSProfiler::SetDirtyRegion(const Occlusion::Region& dirtyRegion)
     const double maxPercentValue = 100.0;
     g_dirtyRegionPercentage = maxPercentValue;
 
-    if (!g_context) {
+    if (!context_) {
         return;
     }
-    std::shared_ptr<RSDisplayRenderNode> displayNode = GetDisplayNode(*g_context);
+    std::shared_ptr<RSDisplayRenderNode> displayNode = GetDisplayNode(*context_);
     if (!displayNode) {
         return;
     }
@@ -179,7 +180,7 @@ void RSProfiler::SetDirtyRegion(const Occlusion::Region& dirtyRegion)
     auto screenInfo = params->GetScreenInfo();
     const uint64_t displayArea = static_cast<uint64_t>(screenInfo.width * screenInfo.height);
 
-    auto rects = RSUniRenderUtil::ScreenIntersectDirtyRects(dirtyRegion, screenInfo);
+    auto rects = RSUniDirtyComputeUtil::ScreenIntersectDirtyRects(dirtyRegion, screenInfo);
     uint64_t dirtyRegionArea = 0;
     g_dirtyRegionList.str("");
     for (const auto& rect : rects) {
@@ -208,7 +209,7 @@ void RSProfiler::Init(RSRenderService* renderService)
 {
     g_renderService = renderService;
     g_mainThread = g_renderService ? g_renderService->mainThread_ : nullptr;
-    g_context = g_mainThread ? g_mainThread->context_.get() : nullptr;
+    context_ = g_mainThread ? g_mainThread->context_.get() : nullptr;
 
     RSSystemProperties::SetProfilerDisabled();
     RSSystemProperties::WatchSystemProperty(SYS_KEY_ENABLED, OnFlagChangedCallback, nullptr);
@@ -484,6 +485,9 @@ void RSProfiler::OnRenderBegin()
     RS_TRACE_NAME("Profiler OnRenderBegin");
     HRPD("OnRenderBegin()");
     g_renderServiceCpuId = Utils::GetCpuId();
+
+    ProcessCommands();
+    ProcessSendingRdc();
 }
 
 void RSProfiler::OnRenderEnd()
@@ -604,13 +608,11 @@ void RSProfiler::OnFrameEnd()
 
     RS_TRACE_NAME("Profiler OnFrameEnd");
     g_renderServiceCpuId = Utils::GetCpuId();
-    ProcessCommands();
-    ProcessSendingRdc();
     RecordUpdate();
 
     UpdateDirtyRegionBetaRecord(g_dirtyRegionPercentage);
-    if (g_context) {
-        UpdateBetaRecord(*g_context);
+    if (context_) {
+        UpdateBetaRecord(*context_);
     }
     BlinkNodeUpdate();
     CalcPerfNodeUpdate();
@@ -680,7 +682,7 @@ void RSProfiler::RenderServiceTreeDump(JsonWriter& out, pid_t pid)
 {
     RS_TRACE_NAME("GetDumpTreeJSON");
 
-    if (!g_context) {
+    if (!context_) {
         return;
     }
 
@@ -691,7 +693,7 @@ void RSProfiler::RenderServiceTreeDump(JsonWriter& out, pid_t pid)
 
     auto& animation = out["Animation Node"];
     animation.PushArray();
-    for (auto& [nodeId, _] : g_context->animatingNodeList_) {
+    for (auto& [nodeId, _] : context_->animatingNodeList_) {
         if (!pid) {
             animation.Append(nodeId);
         } else if (pid == Utils::ExtractPid(nodeId)) {
@@ -700,15 +702,12 @@ void RSProfiler::RenderServiceTreeDump(JsonWriter& out, pid_t pid)
     }
     animation.PopArray();
 
-    auto rootNode = g_context->GetGlobalRootRenderNode();
+    auto rootNode = context_->GetGlobalRootRenderNode();
     if (pid) {
         rootNode = nullptr;
         auto& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
         nodeMap.TraversalNodes([&rootNode, pid](const std::shared_ptr<RSBaseRenderNode>& node) {
-            if (node == nullptr) {
-                return;
-            }
-            if (!node->GetSortedChildren()) {
+            if (!node || !node->GetSortedChildren()) {
                 return;
             }
             auto parentPtr = node->GetParent().lock();
@@ -728,6 +727,11 @@ void RSProfiler::RenderServiceTreeDump(JsonWriter& out, pid_t pid)
         Respond("rootNode not found");
         root.PushObject();
         root.PopObject();
+    }
+
+    if (context_) {
+        auto& rootOffscreen = out["Offscreen node"];
+        DumpOffscreen(*context_, rootOffscreen, useMockPid, pid);
     }
 }
 
@@ -787,14 +791,14 @@ void RSProfiler::AwakeRenderServiceThread()
 
 void RSProfiler::ResetAnimationStamp()
 {
-    if (g_mainThread && g_context) {
-        g_mainThread->lastAnimateTimestamp_ = g_context->GetCurrentTimestamp();
+    if (g_mainThread && context_) {
+        g_mainThread->lastAnimateTimestamp_ = context_->GetCurrentTimestamp();
     }
 }
 
 std::shared_ptr<RSRenderNode> RSProfiler::GetRenderNode(uint64_t id)
 {
-    return g_context ? g_context->GetMutableNodeMap().GetRenderNode(id) : nullptr;
+    return context_ ? context_->GetMutableNodeMap().GetRenderNode(id) : nullptr;
 }
 
 bool RSProfiler::IsLoadSaveFirstScreenInProgress()
@@ -804,7 +808,7 @@ bool RSProfiler::IsLoadSaveFirstScreenInProgress()
 
 std::string RSProfiler::FirstFrameMarshalling(uint32_t fileVersion)
 {
-    if (!g_context) {
+    if (!context_) {
         return "";
     }
 
@@ -818,7 +822,7 @@ std::string RSProfiler::FirstFrameMarshalling(uint32_t fileVersion)
 
     SetMode(Mode::WRITE_EMUL);
     DisableSharedMemory();
-    MarshalNodes(*g_context, stream, fileVersion);
+    MarshalNodes(*context_, stream, fileVersion);
     if (!stream.good()) {
         HRPD("strstream error with marshalling nodes");
     }
@@ -865,7 +869,7 @@ std::string RSProfiler::FirstFrameUnmarshalling(const std::string& data, uint32_
     SetMode(Mode::READ_EMUL);
 
     DisableSharedMemory();
-    errReason = UnmarshalNodes(*g_context, stream, fileVersion);
+    errReason = UnmarshalNodes(*context_, stream, fileVersion);
     EnableSharedMemory();
 
     SetMode(Mode::NONE);
@@ -954,7 +958,7 @@ void RSProfiler::HiddenSpaceTurnOn()
         HiddenSpaceTurnOff();
     }
 
-    const auto& rootRenderNode = g_context->GetGlobalRootRenderNode();
+    const auto& rootRenderNode = context_->GetGlobalRootRenderNode();
     if (rootRenderNode == nullptr) {
         HRPE("RSProfiler::HiddenSpaceTurnOn rootRenderNode is nullptr");
         return;
@@ -978,7 +982,7 @@ void RSProfiler::HiddenSpaceTurnOn()
 
 void RSProfiler::HiddenSpaceTurnOff()
 {
-    const auto& rootRenderNode = g_context->GetGlobalRootRenderNode();
+    const auto& rootRenderNode = context_->GetGlobalRootRenderNode();
     if (rootRenderNode == nullptr) {
         HRPE("RSProfiler::HiddenSpaceTurnOff rootRenderNode is nullptr");
         return;
@@ -999,7 +1003,7 @@ void RSProfiler::HiddenSpaceTurnOff()
             }
         }
         listPostponed.clear();
-        FilterMockNode(*g_context);
+        FilterMockNode(*context_);
         RSTypefaceCache::Instance().ReplayClear();
         g_childOfDisplayNodes.clear();
     }
@@ -1189,10 +1193,10 @@ void RSProfiler::DumpConnections(const ArgList& args)
 
 void RSProfiler::DumpDrawingCanvasNodes(const ArgList& args)
 {
-    if (!g_context) {
+    if (!context_) {
         return;
     }
-    const auto& map = const_cast<RSContext&>(*g_context).GetMutableNodeMap();
+    const auto& map = const_cast<RSContext&>(*context_).GetMutableNodeMap();
     for (const auto& [_, subMap] : map.renderNodeMap_) {
         for (const auto& [_, node] : subMap) {
             if (node->GetType() == RSRenderNodeType::CANVAS_DRAWING_NODE) {
@@ -1210,14 +1214,14 @@ void RSProfiler::PlaybackSetImmediate(const ArgList& args)
 
 void RSProfiler::DumpTree(const ArgList& args)
 {
-    if (!g_context) {
+    if (!context_) {
         return;
     }
 
     std::map<std::string, std::tuple<NodeId, std::string>> list;
-    GetSurfacesTrees(*g_context, list);
+    GetSurfacesTrees(*context_, list);
 
-    std::string out = "Tree: count=" + std::to_string(static_cast<int>(GetRenderNodeCount(*g_context))) +
+    std::string out = "Tree: count=" + std::to_string(static_cast<int>(GetRenderNodeCount(*context_))) +
                       " time=" + std::to_string(Now()) + "\n";
 
     const std::string& node = args.String();
@@ -1234,7 +1238,7 @@ void RSProfiler::DumpTree(const ArgList& args)
 
 void RSProfiler::DumpTreeToJson(const ArgList& args)
 {
-    if (!g_context || !g_mainThread) {
+    if (!context_ || !g_mainThread) {
         return;
     }
 
@@ -1244,7 +1248,7 @@ void RSProfiler::DumpTreeToJson(const ArgList& args)
     RenderServiceTreeDump(json, pid);
 
     auto& display = json["Display"];
-    auto displayNode = GetDisplayNode(*g_context);
+    auto displayNode = GetDisplayNode(*context_);
     auto dirtyManager = displayNode ? displayNode->GetDirtyManager() : nullptr;
     if (dirtyManager) {
         const auto displayRect = dirtyManager->GetSurfaceRect();
@@ -1260,17 +1264,19 @@ void RSProfiler::DumpTreeToJson(const ArgList& args)
     json.PopObject();
     Network::SendRSTreeDumpJSON(json.GetDumpString());
 
-    Respond(json.GetDumpString());
+    if (args.String() != "NOLOG") {
+        Network::SendMessage(json.GetDumpString());
+    }
 }
 
 void RSProfiler::DumpSurfaces(const ArgList& args)
 {
-    if (!g_context) {
+    if (!context_) {
         return;
     }
 
     std::map<NodeId, std::string> surfaces;
-    GetSurfacesTrees(*g_context, args.Pid(), surfaces);
+    GetSurfacesTrees(*context_, args.Pid(), surfaces);
 
     std::string out;
     for (const auto& item : surfaces) {
@@ -1278,7 +1284,7 @@ void RSProfiler::DumpSurfaces(const ArgList& args)
                " lowId=" + std::to_string(Utils::ExtractNodeId(item.first)) + "\n" + item.second + "\n";
     }
 
-    out += "TREE: count=" + std::to_string(static_cast<int32_t>(GetRenderNodeCount(*g_context))) +
+    out += "TREE: count=" + std::to_string(static_cast<int32_t>(GetRenderNodeCount(*context_))) +
            " time=" + std::to_string(Now()) + "\n";
 
     Respond(out);
@@ -1300,7 +1306,7 @@ void RSProfiler::PatchNode(const ArgList& args)
         return;
     }
 
-    const Vector4f screenRect = GetScreenRect(*g_context);
+    const Vector4f screenRect = GetScreenRect(*context_);
 
     auto surfaceNode = static_cast<RSSurfaceRenderNode*>(node.get());
     {
@@ -1351,7 +1357,7 @@ void RSProfiler::KillPid(const ArgList& args)
         const std::string out =
             "parentPid=" + std::to_string(GetPid(parent)) + " parentNode=" + std::to_string(GetNodeId(parent));
 
-        g_context->GetMutableNodeMap().FilterNodeByPid(pid);
+        context_->GetMutableNodeMap().FilterNodeByPid(pid);
         AwakeRenderServiceThread();
         Respond(out);
     }
@@ -1359,14 +1365,14 @@ void RSProfiler::KillPid(const ArgList& args)
 
 void RSProfiler::GetRoot(const ArgList& args)
 {
-    if (!g_context) {
+    if (!context_) {
         return;
     }
 
     std::string out;
 
-    const RSRenderNodeMap& map = g_context->GetMutableNodeMap();
-    std::shared_ptr<RSRenderNode> node = map.GetRenderNode<RSRenderNode>(GetRandomSurfaceNode(*g_context));
+    const RSRenderNodeMap& map = context_->GetMutableNodeMap();
+    std::shared_ptr<RSRenderNode> node = map.GetRenderNode<RSRenderNode>(GetRandomSurfaceNode(*context_));
     while (node && (node->GetId() != 0)) {
         std::string type;
         const RSRenderNodeType nodeType = node->GetType();
@@ -1401,7 +1407,7 @@ void RSProfiler::GetRoot(const ArgList& args)
 
 void RSProfiler::GetPerfTree(const ArgList& args)
 {
-    if (!g_context) {
+    if (!context_) {
         return;
     }
 
@@ -1417,7 +1423,7 @@ void RSProfiler::GetPerfTree(const ArgList& args)
     PerfTreeFlatten(rootNode, g_nodeListPerf, g_mapNode2Count, 0);
 
     std::string outString;
-    auto& nodeMap = g_context->GetMutableNodeMap();
+    auto& nodeMap = context_->GetMutableNodeMap();
     for (auto it = g_nodeListPerf.begin(); it != g_nodeListPerf.end(); it++) {
         auto node = nodeMap.GetRenderNode(it->first);
         if (!node) {
@@ -1617,7 +1623,7 @@ void RSProfiler::TestSwitch(const ArgList& args)
 
 void RSProfiler::BuildTestTree(const ArgList& args)
 {
-    if (!g_context || !g_mainThread) {
+    if (!context_ || !g_mainThread) {
         return;
     }
 
@@ -1632,7 +1638,7 @@ void RSProfiler::BuildTestTree(const ArgList& args)
 
     auto testTreeBuilder = TestTreeBuilder();
 
-    RSProfiler::testTree_ = testTreeBuilder.Build(*g_context, topId, withDisplay);
+    RSProfiler::testTree_ = testTreeBuilder.Build(*context_, topId, withDisplay);
 
     SendMessage("Build test tree");
 }
@@ -1670,7 +1676,7 @@ void RSProfiler::RecordStart(const ArgList& args)
 
     g_recordFile.AddLayer(); // add 0 layer
 
-    FilterMockNode(*g_context);
+    FilterMockNode(*context_);
     RSTypefaceCache::Instance().ReplayClear();
 
     g_recordFile.AddHeaderFirstFrame(FirstFrameMarshalling(g_recordFile.GetVersion()));
@@ -1781,7 +1787,7 @@ void RSProfiler::PlaybackPrepareFirstFrame(const ArgList& args)
     std::string errReason = FirstFrameUnmarshalling(dataFirstFrame, g_playbackFile.GetVersion());
     if (errReason.size()) {
         Respond("Can't open file: " + errReason);
-        FilterMockNode(*g_context);
+        FilterMockNode(*context_);
         g_playbackFile.Close();
         return;
     }
@@ -1883,7 +1889,7 @@ void RSProfiler::PlaybackStop(const ArgList& args)
         g_playbackShouldBeTerminated = true;
         HiddenSpaceTurnOff();
     }
-    FilterMockNode(*g_context);
+    FilterMockNode(*context_);
     constexpr int maxCountForSecurity = 1000;
     for (int i = 0; !RSRenderNodeGC::Instance().IsBucketQueueEmpty() && i < maxCountForSecurity; i++) {
         RSRenderNodeGC::Instance().ReleaseNodeBucket();
@@ -1960,7 +1966,7 @@ double RSProfiler::PlaybackUpdate(double deltaTime)
 void RSProfiler::PlaybackPrepare(const ArgList& args)
 {
     const pid_t pid = args.Pid();
-    if (!g_context || (pid == 0)) {
+    if (!context_ || (pid == 0)) {
         return;
     }
 
@@ -2137,7 +2143,7 @@ void RSProfiler::TestSaveSubTree(const ArgList& args)
     }
 
     std::stringstream stream;
-    MarshalSubTree(*g_context, stream, *node, RSFILE_VERSION_LATEST);
+    MarshalSubTree(*context_, stream, *node, RSFILE_VERSION_LATEST);
     std::string testDataSubTree = stream.str();
 
     Respond("Save SubTree Size: " + std::to_string(testDataSubTree.size()));
@@ -2179,7 +2185,7 @@ void RSProfiler::TestLoadSubTree(const ArgList& args)
     std::stringstream stream;
     stream << file.rdbuf();
     file.close();
-    std::string errorReason = UnmarshalSubTree(*g_context, stream, *node, RSFILE_VERSION_LATEST);
+    std::string errorReason = UnmarshalSubTree(*context_, stream, *node, RSFILE_VERSION_LATEST);
     if (errorReason.size()) {
         RS_LOGE("RSProfiler::TestLoadSubTree failed: %{public}s", errorReason.c_str());
         Respond("RSProfiler::TestLoadSubTree failed: " + errorReason);
@@ -2189,7 +2195,7 @@ void RSProfiler::TestLoadSubTree(const ArgList& args)
 
 void RSProfiler::TestClearSubTree(const ArgList& args)
 {
-    FilterMockNode(*g_context);
+    FilterMockNode(*context_);
     constexpr int maxCountForSecurity = 1000;
     for (int i = 0; !RSRenderNodeGC::Instance().IsBucketQueueEmpty() && i < maxCountForSecurity; i++) {
         RSRenderNodeGC::Instance().ReleaseNodeBucket();

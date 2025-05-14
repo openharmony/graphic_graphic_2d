@@ -22,6 +22,10 @@ namespace {
     constexpr uint32_t NUM_3 = 3;
     constexpr uint32_t NUM_4 = 4;
     constexpr uint32_t NUM_5 = 5;
+    constexpr uint32_t NUM_6 = 6;
+    constexpr uint32_t NUM_7 = 7;
+    constexpr uint32_t NUM_8 = 8;
+    constexpr uint32_t NUM_1000 = 1000;
     constexpr int32_t ERR_NOT_SYSTEM_APP = 202;
 }
 
@@ -33,6 +37,18 @@ std::map<int32_t, Drawing::TileMode> INDEX_TO_TILEMODE = {
     { NUM_1, Drawing::TileMode::REPEAT },
     { NUM_2, Drawing::TileMode::MIRROR },
     { NUM_3, Drawing::TileMode::DECAL },
+};
+
+std::map<int32_t, GradientDirection> INDEX_TO_DIRECTION = {
+    { NUM_0, GradientDirection::LEFT },
+    { NUM_1, GradientDirection::TOP },
+    { NUM_2, GradientDirection::RIGHT },
+    { NUM_3, GradientDirection::BOTTOM },
+    { NUM_4, GradientDirection::LEFT_TOP },
+    { NUM_5, GradientDirection::LEFT_BOTTOM },
+    { NUM_6, GradientDirection::RIGHT_TOP },
+    { NUM_7, GradientDirection::RIGHT_BOTTOM },
+    { NUM_8, GradientDirection::NONE },
 };
 
 static const std::string CLASS_NAME = "Filter";
@@ -156,6 +172,7 @@ napi_value FilterNapi::CreateFilter(napi_env env, napi_callback_info info)
         DECLARE_NAPI_FUNCTION("waterRipple", SetWaterRipple),
         DECLARE_NAPI_FUNCTION("flyInFlyOutEffect", SetFlyOut),
         DECLARE_NAPI_FUNCTION("distort", SetDistort),
+        DECLARE_NAPI_FUNCTION("radiusGradientBlur", SetRadiusGradientBlurPara),
     };
     status = napi_define_properties(env, object, sizeof(resultFuncs) / sizeof(resultFuncs[0]), resultFuncs);
     UIEFFECT_NAPI_CHECK_RET_DELETE_POINTER(status == napi_ok, nullptr, filterObj,
@@ -280,6 +297,117 @@ napi_value FilterNapi::SetPixelStretch(napi_env env, napi_callback_info info)
 
     return thisVar;
 }
+
+GradientDirection FilterNapi::ParserGradientDirection(napi_env env, napi_value argv)
+{
+    if (UIEffectNapiUtils::GetType(env, argv) == napi_number) {
+        int32_t direction = 0;
+        if (napi_get_value_int32(env, argv, &direction) == napi_ok) {
+            auto iter = INDEX_TO_DIRECTION.find(direction);
+            if (iter != INDEX_TO_DIRECTION.end()) {
+                return iter->second;
+            }
+        }
+    }
+    return GradientDirection::NONE;
+}
+
+static bool GetLinearFractionStops(napi_env env, napi_value param, std::shared_ptr<RadiusGradientBlurPara>& para)
+{
+    uint32_t arraySize = 0;
+    if (!IsArrayForNapiValue(env, param, arraySize)) {
+        FILTER_LOG_E("GetLinearFractionStops get args fail, not array");
+        return false;
+    }
+    if (arraySize < NUM_2 || arraySize > NUM_1000) {
+        FILTER_LOG_E("GetLinearFractionStops fractionStops num less than 2 or greater than 1000");
+        return false;
+    }
+
+    std::vector<std::pair<float, float>> tmpPercent;
+    float lastPos = 0.0f;
+    for (size_t i = 0; i < arraySize; i++) {
+        napi_value jsValue;
+        if ((napi_get_element(env, param, i, &jsValue)) != napi_ok) {
+            FILTER_LOG_E("GetLinearFractionStops get args fail");
+            return false;
+        }
+        napi_value napiBlurPercent;
+        napi_value napiBlurPosition;
+        if (napi_get_element(env, jsValue, 0, &napiBlurPercent) != napi_ok ||
+            napi_get_element(env, jsValue, 1, &napiBlurPosition) != napi_ok) {
+            FILTER_LOG_E("GetLinearFractionStops get args fail");
+            return false;
+        }
+        double blurPercent = 0.0;
+        double blurPosition = 0.0;
+        if (napi_get_value_double(env, napiBlurPercent, &blurPercent) != napi_ok ||
+            napi_get_value_double(env, napiBlurPosition, &blurPosition) != napi_ok) {
+            FILTER_LOG_E("GetLinearFractionStops region coordinates not double");
+            return false;
+        }
+        if (blurPosition < lastPos) {
+            FILTER_LOG_E("GetLinearFractionStops is not increasing");
+            return false;
+        } else {
+            lastPos = blurPosition;
+        }
+        tmpPercent.push_back(std::pair(blurPercent, blurPosition));
+    }
+    para->SetFractionStops(tmpPercent);
+    return true;
+}
+
+napi_value FilterNapi::SetRadiusGradientBlurPara(napi_env env, napi_callback_info info)
+{
+    if (!UIEffectNapiUtils::IsSystemApp()) {
+        FILTER_LOG_E("SetRadiusGradientBlurPara failed");
+        napi_throw_error(env, std::to_string(ERR_NOT_SYSTEM_APP).c_str(),
+            "FilterNapi SetRadiusGradientBlurPara failed, is not system app");
+        return nullptr;
+    }
+    napi_value result = nullptr;
+    napi_get_undefined(env, &result);
+    napi_status status;
+    napi_value thisVar = nullptr;
+
+    napi_value argValue[NUM_2] = {0};
+    size_t argCount = NUM_2;
+    UIEFFECT_JS_ARGS(env, info, status, argCount, argValue, thisVar);
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok, nullptr,
+        FILTER_LOG_E("FilterNapi SetRadiusGradientBlurPara parsing input fail"));
+
+    std::shared_ptr<RadiusGradientBlurPara> para = std::make_shared<RadiusGradientBlurPara>();
+    UIEFFECT_NAPI_CHECK_RET_D(para != nullptr, nullptr,
+        FILTER_LOG_E("FilterNapi SetRadiusGradientBlurPara para is nullptr"));
+
+    if (argCount != NUM_2) {
+        FILTER_LOG_E("Args number less than 2");
+    }
+
+    float blurRadius = GetSpecialValue(env, argValue[NUM_0]);
+    para->SetBlurRadius(blurRadius);
+
+    napi_value fractionValue;
+    napi_get_named_property(env, argValue[NUM_1], "fractionStops", &fractionValue);
+    UIEFFECT_NAPI_CHECK_RET_D(GetLinearFractionStops(env, fractionValue, para), nullptr,
+        FILTER_LOG_E("FilterNapi SetRadiusGradientBlurPara parsing coordinates fail"));
+
+    GradientDirection direction = GradientDirection::NONE;
+    napi_value directionValue;
+    napi_get_named_property(env, argValue[NUM_1], "direction", &directionValue);
+    direction = ParserGradientDirection(env, directionValue);
+    para->SetDirection(direction);
+
+    Filter* filterObj = nullptr;
+    status = napi_unwrap(env, thisVar, reinterpret_cast<void**>(&filterObj));
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && filterObj != nullptr, nullptr,
+        FILTER_LOG_E("FilterNapi SetRadiusGradientBlurPara napi_unwrap fail"));
+    filterObj->AddPara(para);
+    
+    return thisVar;
+}
+
 
 float FilterNapi::GetSpecialValue(napi_env env, napi_value argValue)
 {

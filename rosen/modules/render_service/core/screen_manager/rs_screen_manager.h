@@ -22,6 +22,7 @@
 #include <memory>
 #include <mutex>
 #include <queue>
+#include <shared_mutex>
 #include <unordered_map>
 #include <unordered_set>
 
@@ -43,10 +44,14 @@
 #include <screen_manager/screen_types.h>
 #include <screen_manager/rs_virtual_screen_resolution.h>
 #include <screen_manager/rs_screen_info.h>
-#include <screen_manager/rs_screen.h>
 
 namespace OHOS {
 namespace Rosen {
+struct LoadOptParamsForScreen {
+    LoadOptParamsForHdiBackend loadOptParamsForHdiBackend;
+};
+
+class RSScreen;
 class RSScreenManager : public RefBase {
 public:
     RSScreenManager() = default;
@@ -75,6 +80,7 @@ public:
 
     virtual void DisplayDump(std::string& dumpString) = 0;
     virtual void SurfaceDump(std::string& dumpString) = 0;
+    virtual void DumpCurrentFrameLayers() = 0;
     virtual void FpsDump(std::string& dumpString, std::string& arg) = 0;
     virtual void ClearFpsDump(std::string& dumpString, std::string& arg) = 0;
     virtual void HitchsDump(std::string& dumpString, std::string& arg) = 0;
@@ -85,9 +91,10 @@ public:
     virtual void RemoveForceRefreshTask() = 0;
 
     virtual void ClearFrameBufferIfNeed() = 0;
+    virtual void ReleaseScreenDmaBuffer(ScreenId id) = 0;
 
     /* only used for mock tests */
-    virtual void MockHdiScreenConnected(std::shared_ptr<impl::RSScreen> rsScreen) = 0;
+    virtual void MockHdiScreenConnected(std::shared_ptr<RSScreen> rsScreen) = 0;
 
     // physical screen
     virtual std::shared_ptr<HdiOutput> GetOutput(ScreenId id) const = 0;
@@ -179,9 +186,11 @@ public:
 
     virtual int32_t SetCastScreenEnableSkipWindow(ScreenId id, bool enable) = 0;
     virtual int32_t SetVirtualScreenBlackList(ScreenId id, const std::vector<uint64_t>& blackList) = 0;
+    virtual int32_t SetVirtualScreenTypeBlackList(ScreenId id, const std::vector<uint8_t>& typeBlackList) = 0;
     virtual int32_t AddVirtualScreenBlackList(ScreenId id, const std::vector<uint64_t>& blackList) = 0;
     virtual int32_t RemoveVirtualScreenBlackList(ScreenId id, const std::vector<uint64_t>& blackList) = 0;
     virtual const std::unordered_set<uint64_t> GetVirtualScreenBlackList(ScreenId id) const = 0;
+    virtual const std::unordered_set<uint8_t> GetVirtualScreenTypeBlackList(ScreenId id) const = 0;
     virtual std::unordered_set<uint64_t> GetAllBlackList() const = 0;
     virtual std::unordered_set<uint64_t> GetAllWhiteList() const = 0;
 
@@ -195,9 +204,11 @@ public:
     virtual int32_t SetMirrorScreenVisibleRect(
         ScreenId id, const Rect& mainScreenRect, bool supportRotation = false) = 0;
     virtual Rect GetMirrorScreenVisibleRect(ScreenId id) const = 0;
-    virtual bool IsVisibleRectSupportRotation(ScreenId id) const = 0;
+    virtual bool IsVisibleRectSupportRotation(ScreenId id) = 0;
 
     virtual int32_t SetVirtualScreenRefreshRate(ScreenId id, uint32_t maxRefreshRate, uint32_t& actualRefreshRate) = 0;
+
+    virtual void InitLoadOptParams(LoadOptParamsForScreen& loadOptParamsForScreen) = 0;
 };
 
 sptr<RSScreenManager> CreateOrGetScreenManager();
@@ -241,6 +252,7 @@ public:
 
     void DisplayDump(std::string& dumpString) override;
     void SurfaceDump(std::string& dumpString) override;
+    void DumpCurrentFrameLayers() override;
     void FpsDump(std::string& dumpString, std::string& arg) override;
     void ClearFpsDump(std::string& dumpString, std::string& arg) override;
     void HitchsDump(std::string& dumpString, std::string& arg) override;
@@ -251,16 +263,10 @@ public:
     void RemoveForceRefreshTask() override;
 
     void ClearFrameBufferIfNeed() override;
-    static void ReleaseScreenDmaBuffer(uint64_t screenId);
+    void ReleaseScreenDmaBuffer(ScreenId screenId) override;
 
     /* only used for mock tests */
-    void MockHdiScreenConnected(std::shared_ptr<impl::RSScreen> rsScreen) override
-    {
-        if (rsScreen == nullptr) {
-            return;
-        }
-        screens_[rsScreen->Id()] = rsScreen;
-    }
+    void MockHdiScreenConnected(std::shared_ptr<OHOS::Rosen::RSScreen> rsScreen) override;
 
     // physical screen
     std::shared_ptr<HdiOutput> GetOutput(ScreenId id) const override;
@@ -351,9 +357,11 @@ public:
 
     int32_t SetCastScreenEnableSkipWindow(ScreenId id, bool enable) override;
     int32_t SetVirtualScreenBlackList(ScreenId id, const std::vector<uint64_t>& blackList) override;
+    int32_t SetVirtualScreenTypeBlackList(ScreenId id, const std::vector<uint8_t>& typeBlackList) override;
     int32_t AddVirtualScreenBlackList(ScreenId id, const std::vector<uint64_t>& blackList) override;
     int32_t RemoveVirtualScreenBlackList(ScreenId id, const std::vector<uint64_t>& blackList) override;
     const std::unordered_set<uint64_t> GetVirtualScreenBlackList(ScreenId id) const override;
+    const std::unordered_set<uint8_t> GetVirtualScreenTypeBlackList(ScreenId id) const override;
     std::unordered_set<uint64_t> GetAllBlackList() const override;
     std::unordered_set<uint64_t> GetAllWhiteList() const override;
 
@@ -366,9 +374,11 @@ public:
 
     int32_t SetMirrorScreenVisibleRect(ScreenId id, const Rect& mainScreenRect, bool supportRotation = false) override;
     Rect GetMirrorScreenVisibleRect(ScreenId id) const override;
-    bool IsVisibleRectSupportRotation(ScreenId id) const override;
+    bool IsVisibleRectSupportRotation(ScreenId id) override;
 
     int32_t SetVirtualScreenRefreshRate(ScreenId id, uint32_t maxRefreshRate, uint32_t& actualRefreshRate) override;
+
+    void InitLoadOptParams(LoadOptParamsForScreen& loadOptParamsForScreen) override;
 
 private:
     RSScreenManager() = default;
@@ -460,6 +470,9 @@ private:
     mutable std::mutex blackListMutex_;
     std::unordered_set<uint64_t> castScreenBlackList_ = {};
 
+    mutable std::mutex typeBlackListMutex_;
+    std::unordered_set<uint8_t> castScreenTypeBlackList_ = {};
+
     uint64_t frameId_ = 0; // only used by SetScreenConstraint, called in hardware thread per frame
 
     static std::once_flag createFlag_;
@@ -489,6 +502,8 @@ private:
         bool isPowerOn;
     };
     std::unordered_map<uint64_t, FoldScreenStatus> foldScreenIds_; // screenId, FoldScreenStatus
+
+    LoadOptParamsForScreen loadOptParamsForScreen_ = {};
 };
 } // namespace impl
 } // namespace Rosen

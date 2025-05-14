@@ -29,7 +29,6 @@
 #include "feature/window_keyframe/rs_window_keyframe_node_info.h"
 #include "common/rs_special_layer_manager.h"
 #include "params/rs_render_thread_params.h"
-#include "pipeline/hwc/rs_uni_hwc_visitor.h"
 #include "pipeline/rs_dirty_region_manager.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_pointer_window_manager.h"
@@ -43,6 +42,7 @@ namespace OHOS {
 namespace Rosen {
 class RSPaintFilterCanvas;
 class RSUniHwcVisitor;
+class RSOcclusionHandler;
 class RSUniRenderVisitor : public RSNodeVisitor {
 public:
     using SurfaceDirtyMgrPair = std::pair<std::shared_ptr<RSSurfaceRenderNode>, std::shared_ptr<RSSurfaceRenderNode>>;
@@ -137,6 +137,10 @@ public:
 
     void ResetCrossNodesVisitedStatus();
 
+    void MarkFilterInForegroundFilterAndCheckNeedForceClearCache(RSRenderNode& node);
+
+    void UpdateDrawingCacheInfoBeforeChildren(RSCanvasRenderNode& node);
+
 private:
     /* Prepare relevant calculation */
     // considering occlusion info for app surface as well as widget
@@ -147,6 +151,7 @@ private:
     void CalculateOpaqueAndTransparentRegion(RSSurfaceRenderNode& node);
 
     void CheckFilterCacheNeedForceClearOrSave(RSRenderNode& node);
+    Occlusion::Region GetSurfaceTransparentFilterRegion(NodeId surfaceNodeId) const;
     void CollectTopOcclusionSurfacesInfo(RSSurfaceRenderNode& node, bool isParticipateInOcclusion);
     void UpdateOccludedStatusWithFilterNode(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) const;
     void PartialRenderOptionInit();
@@ -211,6 +216,10 @@ private:
     void UpdateCornerRadiusInfoForDRM(std::shared_ptr<RSSurfaceRenderNode> hwcNode, std::vector<RectI>& hwcRects);
     bool CheckIfRoundCornerIntersectDRM(const float& ratio, std::vector<float>& ratioVector,
         const Vector4f& instanceCornerRadius, const RectI& instanceAbsRect, const RectI& hwcAbsRect);
+    void UpdateIfHwcNodesHaveVisibleRegion(std::vector<RSBaseRenderNode::SharedPtr>& curMainAndLeashSurfaces);
+    void UpdateHwcNodesIfVisibleForApp(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode,
+        const std::vector<std::weak_ptr<RSSurfaceRenderNode>>& hwcNodes,
+        bool& hasVisibleHwcNodes, bool& needForceUpdateHwcNodes);
     void PrevalidateHwcNode();
     bool PrepareForCloneNode(RSSurfaceRenderNode& node);
     void PrepareForCrossNode(RSSurfaceRenderNode& node);
@@ -306,6 +315,16 @@ private:
 
     void CollectSelfDrawingNodeRectInfo(RSSurfaceRenderNode& node);
 
+    // Used to collect prepared subtree into the control-level occlusion culling handler.
+    // For the root node, trigger occlusion detection.
+    void CollectSubTreeAndProcessOcclusion(RSRenderNode& node, bool subTreeSkipped);
+
+    // Used to collect prepared node into the control-level occlusion culling handler.
+    void CollectNodeForOcclusion(RSRenderNode& node);
+
+    // Used to initialize the handler of control-level occlusion culling.
+    void InitializeOcclusionHandler(RSRootRenderNode& node);
+
     friend class RSUniHwcVisitor;
     std::unique_ptr<RSUniHwcVisitor> hwcVisitor_;
 
@@ -336,7 +355,7 @@ private:
     std::unordered_map<NodeId, std::vector<std::pair<NodeId, RectI>>> transparentDirtyFilter_;
     // record DRM nodes
     std::vector<std::weak_ptr<RSSurfaceRenderNode>> drmNodes_;
-    int16_t occlusionSurfaceOrder_ = -1;
+    int16_t occlusionSurfaceOrder_ = DEFAULT_OCCLUSION_SURFACE_ORDER;
     sptr<RSScreenManager> screenManager_;
     ScreenInfo screenInfo_;
     RectI screenRect_;
@@ -447,6 +466,14 @@ private:
     bool globalShouldPaint_ = true;
 
     int32_t rsDisplayNodeChildNum_ = 0;
+
+    int32_t appWindowZOrder_ = 0;
+
+    // Used for control-level occlusion culling.
+    std::shared_ptr<RSOcclusionHandler> curOcclusionHandler_;
+
+    // in foregroundFilter subtree
+    bool inForegroundFilter_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

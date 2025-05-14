@@ -14,22 +14,23 @@
 #####################hydra-fuzz###################
 import("//build/config/features.gni")
 import("//build/test.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
 module_output_path = "graphic_2d/graphic_2d"
 
 ##############################fuzztest##########################################
 ohos_fuzztest("RSPointLightManagerFuzzTest") {
   module_out_path = module_output_path
-  fuzz_config_file = "../../../../../test/render_service/render_service_base/fuzztest/rspointlightmanager_fuzzer"
+  fuzz_config_file = "$graphic_2d_root/rosen/test/render_service/render_service_base/fuzztest/rspointlightmanager_fuzzer"
   include_dirs = [
-    "../../../../../modules/render_service_base/src",
-    "../../../../../modules/2d_graphics/include",
-    "../../../../../modules/render_service_base/include",
+    "$graphic_2d_root/rosen/modules/render_service_base/src",
+    "$graphic_2d_root/rosen/modules/2d_graphics/include",
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
   ]
   deps = [
-    "../../../../../modules/2d_graphics:2d_graphics",
-    "../../../../../modules/render_service:librender_service",
-    "../../../../../modules/render_service_base:librender_service_base",
-    "../../../../../modules/render_service_client:librender_service_client",
+    "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
+    "$graphic_2d_root/rosen/modules/render_service:librender_service",
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
   ]
 
   cflags = [

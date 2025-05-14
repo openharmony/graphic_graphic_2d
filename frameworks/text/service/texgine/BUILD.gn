@@ -22,7 +22,6 @@ config("libtexgine_config") {
   cflags = [
     "-Wall",
     "-Werror",
-    "-g3",
     "-std=c++17",
   ]
 
@@ -58,11 +57,7 @@ ohos_source_set("libtexgine_source") {
     "src/font_descriptor_cache.cpp",
     "src/font_descriptor_mgr.cpp",
     "src/font_parser.cpp",
-    "src/opentype_parser/cmap_table_parser.cpp",
-    "src/opentype_parser/name_table_parser.cpp",
     "src/opentype_parser/opentype_basic_type.cpp",
-    "src/opentype_parser/post_table_parser.cpp",
-    "src/opentype_parser/ranges.cpp",
   ]
 
   configs = [
@@ -80,7 +75,6 @@ ohos_source_set("libtexgine_source") {
     defines += [ "RS_ENABLE_GPU" ]
   }
   if (is_arkui_x) {
-    defines += [ "CROSS_PLATFORM" ]
     public_deps += [
       "//third_party/jsoncpp:jsoncpp_static",
       "//third_party/skia:skia_$platform",
@@ -91,13 +85,13 @@ ohos_source_set("libtexgine_source") {
     ]
   } else {
     external_deps = [
-      "bounds_checking_function:libsec_static",
-      "cJSON:cjson_static",
+      "bounds_checking_function:libsec_shared",
+      "cJSON:cjson",
       "skia:skia_canvaskit",
     ]
   }
 
-  if (platform == "ohos") {
+  if (platform_is_ohos) {
     defines += [
       "BUILD_NON_SDK_VER",
       "OHOS_TEXT_ENABLE",

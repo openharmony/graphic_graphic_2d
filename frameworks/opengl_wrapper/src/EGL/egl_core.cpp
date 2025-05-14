@@ -25,6 +25,28 @@
 #endif
 #include "wrapper_log.h"
 
+namespace {
+#ifdef OPENGL_WRAPPER_ENABLE_GL4
+bool CheckIfWhiteAPP()
+{
+    std::string processName;
+    constexpr int pnameLen = 512;
+    char pname[pnameLen + 1] = {0};
+    bool ret = OHOS::EglSystemLayersManager::GetProcessName(getpid(), pname, pnameLen);
+    if (!ret) {
+        WLOGE("Failed to get the process name");
+        return false;
+    } else {
+        processName = pname;
+    }
+
+    return processName == std::string("com.zwsoft.zwcad.PE")
+        || processName == std::string("com.gstarcad.hmos.gcad")
+        || processName == std::string("glcts");
+}
+#endif
+}
+
 namespace OHOS {
 EglWrapperDispatchTable gWrapperHook;
 GlHookTable gGlHookNoContext;
@@ -52,21 +74,26 @@ char const * const gEglApiNames[EGL_API_NUM] = {
     nullptr
 };
 
-char const * const gGlApiNames1[GL_API_NUM] = {
+char const * const gGlApiNames1[GLES_API_NUM] = {
 #include "gl1_hook_entries.in"
     nullptr
 };
 
-char const * const gGlApiNames2[GL_API_NUM] = {
+char const * const gGlApiNames2[GLES_API_NUM] = {
 #include "gl2_hook_entries.in"
     nullptr
 };
 
-char const * const gGlApiNames3[GL_API_NUM] = {
+char const * const gGlApiNames3[GLES_API_NUM] = {
 #include "gl3_hook_entries.in"
     nullptr
 };
-
+#ifdef OPENGL_WRAPPER_ENABLE_GL4
+char const * const gGlApiNames4[OPENGL_API_NUM] = {
+#include "gl4_hook_entries.in"
+    nullptr
+};
+#endif
 using namespace OHOS;
 
 static std::mutex gInitMutex;
@@ -100,6 +127,19 @@ bool EglCoreInit()
         WLOGE("preInit Error.");
         return false;
     }
+
+#ifdef OPENGL_WRAPPER_ENABLE_GL4
+    gWrapperHook.useMesa = CheckIfWhiteAPP();
+    if (gWrapperHook.useMesa) {
+        ThreadPrivateDataCtl::SetGlHookTable(&OHOS::gWrapperHook.gl);
+        EglWrapperLoader& loader(EglWrapperLoader::GetInstance());
+        if (!loader.Load(&gWrapperHook)) {
+            WLOGE("EglWrapperLoader Load Failed.");
+            return false;
+        }
+        return true;
+    }
+#endif
 
     WrapperHookTableInit();
     EglWrapperLoader& loader(EglWrapperLoader::GetInstance());

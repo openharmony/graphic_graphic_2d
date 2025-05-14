@@ -183,7 +183,7 @@ void SymbolConfigParser::ParseRenderModes(const Json::Value& root,
             if (!root[i][MODE].isString()) {
                 continue;
             }
-            std::string modeValue = root[i][MODE].asCString();
+            std::string modeValue = root[i][MODE].asString();
             if (RENDER_STRATEGY.count(modeValue) == 0) {
                 continue;
             }
@@ -213,10 +213,10 @@ void SymbolConfigParser::ParseRenderGroups(const Json::Value& root, std::vector<
             ParseGroupIndexes(root[i][GROUP_INDEXES], renderGroup.groupInfos);
         }
         if (root[i].isMember(DEFAULT_COLOR) && root[i][DEFAULT_COLOR].isString()) {
-            ParseDefaultColor(root[i][DEFAULT_COLOR].asCString(), renderGroup);
+            ParseDefaultColor(root[i][DEFAULT_COLOR].asString().c_str(), renderGroup);
         }
         if (root[i].isMember(FIX_ALPHA) && root[i][FIX_ALPHA].isDouble()) {
-            renderGroup.color.a = root[i][FIX_ALPHA].asFloat();
+            renderGroup.color.a = root[i][FIX_ALPHA].asDouble();
         }
         renderGroups.push_back(renderGroup);
     }
@@ -314,7 +314,7 @@ void SymbolConfigParser::ParseAnimationTypes(const Json::Value& root, std::vecto
         if (!root[i].isString()) {
             continue;
         }
-        const std::string animationTypeStr = root[i].asCString();
+        const std::string animationTypeStr = root[i].asString();
         RSAnimationType animationType;
         ParseAnimationType(animationTypeStr, animationType);
         animationTypes.push_back(animationType);
@@ -410,7 +410,7 @@ void SymbolConfigParser::ParseSymbolAnimations(const Json::Value& root,
         if (!root[i][ANIMATION_TYPE].isString()) {
             continue;
         }
-        const std::string animationType = root[i][ANIMATION_TYPE].asCString();
+        const std::string animationType = root[i][ANIMATION_TYPE].asString();
         ParseAnimationType(animationType, animationInfo.animationType);
 
         if (!root[i][ANIMATION_PARAMETERS].isArray()) {
@@ -469,7 +469,7 @@ void SymbolConfigParser::ParseSymbolCommonSubType(const char* key, const Json::V
         return;
     }
 
-    std::string subTypeStr = root[key].asCString();
+    std::string subTypeStr = root[key].asString();
     if (SYMBOL_ANIMATION_DIRECTION.count(subTypeStr) == 0) {
         return;
     }
@@ -529,7 +529,7 @@ void SymbolConfigParser::PiecewiseParaCurveCase(const char* key, const Json::Val
     if (!root[key].isString()) {
         return;
     }
-    const std::string curveTypeStr = root[key].asCString();
+    const std::string curveTypeStr = root[key].asString();
     if (CURVE_TYPES.count(curveTypeStr) == 0) {
         return;
     }
@@ -539,7 +539,7 @@ void SymbolConfigParser::PiecewiseParaCurveCase(const char* key, const Json::Val
 void SymbolConfigParser::PiecewiseParaDurationCase(const char* key, const Json::Value& root,
     RSPiecewiseParameter& piecewiseParameter)
 {
-    if (!root[key].isNumeric()) {
+    if (!root[key].isDouble()) {
         return;
     }
     piecewiseParameter.duration = static_cast<uint32_t>(root[key].asDouble());
@@ -548,7 +548,7 @@ void SymbolConfigParser::PiecewiseParaDurationCase(const char* key, const Json::
 void SymbolConfigParser::PiecewiseParaDelayCase(const char* key, const Json::Value& root,
     RSPiecewiseParameter& piecewiseParameter)
 {
-    if (!root[key].isNumeric()) {
+    if (!root[key].isDouble()) {
         return;
     }
     piecewiseParameter.delay = static_cast<int>(root[key].asDouble());
@@ -564,10 +564,10 @@ void SymbolConfigParser::ParseSymbolCurveArgs(const char* key, const Json::Value
     for (Json::Value::const_iterator iter = root[key].begin(); iter != root[key].end(); ++iter) {
         std::string name = iter.name();
         const char* memberName = name.c_str();
-        if (!root[key][memberName].isNumeric()) {
+        if (!root[key][memberName].isDouble()) {
             continue;
         }
-        piecewiseParameter.curveArgs.emplace(std::string(memberName), root[key][memberName].asFloat());
+        piecewiseParameter.curveArgs.emplace(std::string(memberName), root[key][memberName].asDouble());
     }
 }
 

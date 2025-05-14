@@ -2987,11 +2987,11 @@ bool RSProperties::NeedLightBlur(bool disableSystemAdaptation)
 std::shared_ptr<RSFilter> RSProperties::GenerateLightBlurFilter(float radius)
 {
     std::shared_ptr<RSDrawingFilter> originalFilter = nullptr;
+    // Lightblur does not take effect when using grayscale
     if (greyCoef_.has_value()) {
-        std::shared_ptr<RSGreyShaderFilter> greyShaderFilter =
-            std::make_shared<RSGreyShaderFilter>(greyCoef_->x_, greyCoef_->y_);
-        originalFilter = std::make_shared<RSDrawingFilter>(greyShaderFilter);
+        ROSEN_LOGD("RSProperties::GenerateLightBlurFilter: Lightblur does not take effect when using grayscale");
     }
+
     std::shared_ptr<RSLightBlurShaderFilter> lightBlurShaderFilter = std::make_shared<RSLightBlurShaderFilter>(radius);
     if (originalFilter == nullptr) {
         originalFilter = std::make_shared<RSDrawingFilter>(lightBlurShaderFilter);
@@ -3008,12 +3008,11 @@ std::shared_ptr<RSFilter> RSProperties::GenerateMaterialLightBlurFilter(
     int colorMode, const RSColor& color)
 {
     std::shared_ptr<RSDrawingFilter> originalFilter = nullptr;
+    // Lightblur does not take effect when using grayscale
     if (greyCoef_.has_value()) {
-        std::shared_ptr<RSGreyShaderFilter> greyShaderFilter =
-            std::make_shared<RSGreyShaderFilter>(greyCoef_->x_, greyCoef_->y_);
-        originalFilter = std::make_shared<RSDrawingFilter>(greyShaderFilter);
+        ROSEN_LOGD("RSProperties::GenerateMaterialLightBlurFilter: "
+           "Lightblur does not take effect when using grayscale");
     }
-
     auto colorImageFilter = Drawing::ImageFilter::CreateColorFilterImageFilter(*colorFilter, nullptr);
     if (originalFilter == nullptr) {
         originalFilter = std::make_shared<RSDrawingFilter>(colorImageFilter, hash);

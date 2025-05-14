@@ -26,6 +26,7 @@
 #include "message_parcel.h"
 #include "rs_profiler.h"
 #include "rs_profiler_cache.h"
+#include "rs_profiler_capture_recorder.h"
 #include "rs_profiler_file.h"
 #include "rs_profiler_log.h"
 #include "rs_profiler_network.h"
@@ -78,6 +79,7 @@ bool RSProfiler::enabled_ = RSSystemProperties::GetProfilerEnabled();
 bool RSProfiler::betaRecordingEnabled_ = RSSystemProperties::GetBetaRecordingMode() != 0;
 int8_t RSProfiler::signalFlagChanged_ = 0;
 std::atomic_bool RSProfiler::dcnRedraw_ = false;
+std::atomic_bool RSProfiler::renderNodeKeepDrawCmdList_ = false;
 std::vector<RSRenderNode::WeakPtr> g_childOfDisplayNodesPostponed;
 
 static TextureRecordType g_textureRecordType = TextureRecordType::LZ4;
@@ -321,7 +323,7 @@ void RSProfiler::TimePauseResume(uint64_t curTime)
 {
     if (g_pauseAfterTime > 0) {
         if (curTime > g_pauseAfterTime) {
-            g_pauseCumulativeTime += curTime - g_pauseAfterTime;
+            g_pauseCumulativeTime += static_cast<int64_t>(curTime - g_pauseAfterTime);
         }
     }
     g_pauseAfterTime = 0;
@@ -1215,6 +1217,16 @@ void RSProfiler::DrawingNodeAddClearOp(const std::shared_ptr<Drawing::DrawCmdLis
     drawCmdList->ClearOp();
 }
 
+void RSProfiler::SetRenderNodeKeepDrawCmd(bool enable)
+{
+    renderNodeKeepDrawCmdList_ = enable && IsEnabled();
+}
+
+void RSProfiler::KeepDrawCmd(bool& drawCmdListNeedSync)
+{
+    drawCmdListNeedSync = !renderNodeKeepDrawCmdList_;
+}
+
 static uint64_t NewAshmemDataCacheId()
 {
     static std::atomic_uint32_t id = 0u;
@@ -1496,6 +1508,22 @@ TextureRecordType RSProfiler::GetTextureRecordType()
 void RSProfiler::SetTextureRecordType(TextureRecordType type)
 {
     g_textureRecordType = type;
+}
+
+bool RSProfiler::IfNeedToSkipDuringReplay(Parcel& parcel)
+{
+    if (!IsEnabled()) {
+        return false;
+    }
+    if (!IsParcelMock(parcel)) {
+        return false;
+    }
+    if (IsReadEmulationMode() || IsReadMode()) {
+        constexpr size_t skipBytes = 388;
+        parcel.SkipBytes(skipBytes);
+        return true;
+    }
+    return false;
 }
 
 } // namespace OHOS::Rosen

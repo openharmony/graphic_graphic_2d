@@ -35,6 +35,23 @@ public:
     static std::shared_ptr<RSNode> Create(bool isRenderServiceNode = false, bool isTextureExportNode = false,
         std::shared_ptr<RSUIContext> rsUIContext = nullptr);
 
+    /**
+     * @brief Enables/disables control-level occlusion culling for the node's subtree
+     *
+     * When enabled, this node and its entire subtree will participate in
+     * control-level occlusion culling. The specified key occlusion node acts as the primary
+     * occluder within the subtree.
+     *
+     * @param enable
+     *     - true: Enables occlusion culling for this node and its subtree
+     *     - false: Disables occlusion culling for this node and its subtree
+     * @param keyOcclusionNodeId
+     *     The ID of the key occluding node within the subtree. This node will be treated as
+     *     the primary occlusion source when determining visibility of other nodes in the subtree.
+     *     Pass INVALID_NODE_ID if no specific occluder is designated.
+     */
+    void UpdateOcclusionCullingStatus(bool enable, NodeId keyOcclusionNodeId);
+
 protected:
     void AttachRSSurfaceNode(std::shared_ptr<RSSurfaceNode> surfaceNode);
     void SetEnableRender(bool flag) const;

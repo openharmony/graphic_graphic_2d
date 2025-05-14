@@ -43,6 +43,7 @@ public:
         WATER_RIPPLE,
         FLY_OUT,
         DISTORT,
+        RADIUS_GRADIENT_BLUR,
     };
 
     FilterPara()  = default;

@@ -67,11 +67,9 @@ void BootAssociativeDisplayStrategy::Display(int32_t duration, std::vector<BootA
             operator_->GetThread().join();
         }
 
-        bool needOtaCompile = CheckNeedOtaCompile();
-        bool needBundleScan = CheckNeedBundleScan();
-        if (needOtaCompile || needBundleScan) {
+        if (CheckNeedOtaCompile()) {
             bootCompileProgress_ = std::make_shared<BootCompileProgress>();
-            bootCompileProgress_->Init(config, needOtaCompile, needBundleScan);
+            bootCompileProgress_->Init(config);
         }
 
         while (!CheckExitAnimation()) {

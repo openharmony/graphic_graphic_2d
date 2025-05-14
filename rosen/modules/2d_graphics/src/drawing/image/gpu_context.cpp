@@ -16,6 +16,7 @@
 #include "image/gpu_context.h"
 
 #include "impl_factory.h"
+#include "static_factory.h"
 #ifdef RS_ENABLE_VK
 #include "include/gpu/vk/GrVkBackendContext.h"
 #endif
@@ -24,6 +25,16 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
+
+void GPUResourceTag::SetCurrentNodeId(uint64_t nodeId)
+{
+#ifdef ROSEN_OHOS
+    if (SystemProperties::IsVkImageDfxEnabled()) {
+        StaticFactory::SetCurrentNodeId(nodeId);
+    }
+#endif
+}
+
 GPUContext::GPUContext() : impl_(ImplFactory::CreateGPUContextImpl()) {}
 
 bool GPUContext::BuildFromGL(const GPUContextOptions& options)
@@ -120,7 +131,11 @@ void GPUContext::ReclaimResources()
 
 void GPUContext::DumpAllResource(std::stringstream& dump) const
 {
-    impl_->DumpAllResource(dump);
+#ifdef ROSEN_OHOS
+    if (SystemProperties::IsVkImageDfxEnabled()) {
+        impl_->DumpAllResource(dump);
+    }
+#endif
 }
 
 void GPUContext::DumpAllCoreTrace(std::stringstream& dump) const
@@ -186,6 +201,11 @@ void GPUContext::DumpMemoryStatistics(TraceMemoryDump* traceMemoryDump) const
 void GPUContext::SetCurrentGpuResourceTag(const GPUResourceTag &tag)
 {
     impl_->SetCurrentGpuResourceTag(tag);
+}
+
+GPUResourceTag GPUContext::GetCurrentGpuResourceTag() const
+{
+    return impl_->GetCurrentGpuResourceTag();
 }
 
 void GPUContext::GetUpdatedMemoryMap(std::unordered_map<pid_t, size_t> &out)

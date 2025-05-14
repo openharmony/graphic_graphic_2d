@@ -25,11 +25,6 @@ class RSB_EXPORT RSTagTracker {
 public:
     enum TAGTYPE : uint32_t {
         TAG_DRAW_SURFACENODE = 1, // don't change head and tail, insert the middle if u add data.
-        TAG_DRAW_CANVAS_NODE,
-        TAG_DRAW_CANVAS_DRAWING_NODE,
-        TAG_DRAW_EFFECT_NODE,
-        TAG_DRAW_RENDER_NODE,
-        TAG_DRAW_DISPLAY_NODE,
         TAG_SUB_THREAD,
         TAG_SAVELAYER_DRAW_NODE,
         TAG_RESTORELAYER_DRAW_NODE,
@@ -39,20 +34,44 @@ public:
         TAG_RENDER_FRAME,
         TAG_UNTAGGED,
         TAG_CAPTURE,
-        TAG_MAX
     };
-    RSTagTracker(Drawing::GPUContext* gpuContext, RSTagTracker::TAGTYPE tagType);
-    RSTagTracker(Drawing::GPUContext* gpuContext, uint64_t wid, uint64_t cid, RSTagTracker::TAGTYPE tagType);
-    RSTagTracker(Drawing::GPUContext* gpuContext, uint64_t wid, uint64_t cid,
+    enum SOURCETYPE : uint32_t {
+        SOURCE_OTHER,
+        SOURCE_RSCUSTOMMODIFIERDRAWABLE,
+        SOURCE_RSBEGINBLENDERDRAWABLE,
+        SOURCE_RSSHADOWDRAWABLE,
+        SOURCE_RSBACKGROUNDIMAGEDRAWABLE,
+        SOURCE_RSBACKGROUNDEFFECTDRAWABLE,
+        SOURCE_RSUSEEFFECTDRAWABLE,
+        SOURCE_RSDYNAMICLIGHTUPDRAWABLE,
+        SOURCE_RSBINARIZATIONDRAWABLE,
+        SOURCE_RSCOLORFILTERDRAWABLE,
+        SOURCE_RSLIGHTUPEFFECTDRAWABLE,
+        SOURCE_RSDYNAMICDIMDRAWABLE,
+        SOURCE_RSFOREGROUNDFILTERDRAWABLE,
+        SOURCE_RSFOREGROUNDFILTERRESTOREDRAWABLE,
+        SOURCE_RSPIXELSTRETCHDRAWABLE,
+        SOURCE_RSPOINTLIGHTDRAWABLE,
+        SOURCE_RSPROPERTYDRAWABLE,
+        SOURCE_RSFILTERDRAWABLE,
+        SOURCE_FINISHOFFSCREENRENDER,
+        SOURCE_DRAWSELFDRAWINGNODEBUFFER,
+        SOURCE_ONCAPTURE,
+        SOURCE_INITCACHEDSURFACE,
+        SOURCE_DRAWRENDERCONTENT
+    };
+    RSTagTracker(const std::shared_ptr<Drawing::GPUContext>& gpuContext, RSTagTracker::TAGTYPE tagType);
+    RSTagTracker(const std::shared_ptr<Drawing::GPUContext>& gpuContext, RSTagTracker::SOURCETYPE sourceType);
+    RSTagTracker(const std::shared_ptr<Drawing::GPUContext>& gpuContext, NodeId nodeId,
         RSTagTracker::TAGTYPE tagType, const std::string& name);
-    RSTagTracker(Drawing::GPUContext* gpuContext, Drawing::GPUResourceTag& tag);
+    RSTagTracker(const std::shared_ptr<Drawing::GPUContext>& gpuContext, Drawing::GPUResourceTag& tag);
     void SetTagEnd();
     ~RSTagTracker();
     static void UpdateReleaseResourceEnabled(bool releaseResEnabled);
     static std::string TagType2String(TAGTYPE type);
 private:
     bool isSetTagEnd_ = false;
-    Drawing::GPUContext* gpuContext_ = nullptr;
+    std::shared_ptr<Drawing::GPUContext> gpuContext_ = nullptr;
 };
 } // namespace Rosen
 } // namespace OHOS

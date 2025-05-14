@@ -82,6 +82,7 @@ public:
     
     SurfaceError SetDefaultUsage(uint64_t usage);
     SurfaceError SetDefaultSize(int32_t width, int32_t height);
+    SurfaceError SetDropBufferSwitch(bool isOpen);
 private:
     void UpdateBasicInfo(const sptr<SurfaceBuffer>& buffer, int64_t timestamp);
     Rect GetBufferCropRegion(const sptr<OHOS::SurfaceBuffer>& buffer);
@@ -113,6 +114,7 @@ private:
     float currentTransformMatrixV2_[TRANSFORM_MATRIX_ELE_COUNT] = {0.0};
     float currentBufferMatrix_[TRANSFORM_MATRIX_ELE_COUNT] = {0.0};
     uint64_t uniqueId_ = 0;
+    bool dropFrameMode_ = false;
 
     /**
      * @brief Represents the properties of a graphics buffer frame

@@ -84,6 +84,9 @@ bool RSHdrUtil::CheckIsSurfaceWithMetadata(const RSSurfaceRenderNode& surfaceNod
     if (!surfaceNode.GetRSSurfaceHandler()) {
         return false;
     }
+    if (!surfaceNode.IsYUVBufferFormat()) {
+        return false;
+    }
     return CheckIsSurfaceBufferWithMetadata(surfaceNode.GetRSSurfaceHandler()->GetBuffer());
 }
 
@@ -242,6 +245,11 @@ void RSHdrUtil::CheckPixelFormatWithSelfDrawingNode(RSSurfaceRenderNode& surface
     displayNode.CollectHdrStatus(surfaceNode.GetVideoHdrStatus());
     if (RSLuminanceControl::Get().IsForceCloseHdr()) {
         RS_LOGD("RSHdrUtil::CheckPixelFormatWithSelfDrawingNode node(%{public}s) forceCloseHdr.",
+            surfaceNode.GetName().c_str());
+        return;
+    }
+    if (displayNode.GetForceCloseHdr()) {
+        RS_LOGD("RSHdrUtil::CheckPixelFormatWithSelfDrawingNode node(%{public}s) forceclosehdr.",
             surfaceNode.GetName().c_str());
         return;
     }

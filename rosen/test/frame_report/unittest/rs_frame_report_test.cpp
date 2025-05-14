@@ -46,9 +46,8 @@ HWTEST_F(RsFrameReportTest, GetEnable001, TestSize.Level1)
 {
     RsFrameReport& fr = RsFrameReport::GetInstance();
     fr.LoadLibrary();
-    fr.CloseLibrary();
     fr.GetEnable();
-    EXPECT_EQ(fr.GetEnable(), 0);
+    EXPECT_EQ(fr.GetEnable(), 1);
 }
 
 /**
@@ -90,11 +89,8 @@ HWTEST_F(RsFrameReportTest, SetFrameParam001, TestSize.Level1)
 HWTEST_F(RsFrameReportTest, LoadLibrary001, TestSize.Level1)
 {
     RsFrameReport& fr = RsFrameReport::GetInstance();
-    fr.CloseLibrary();
-    EXPECT_FALSE(fr.frameSchedSoLoaded_);
     fr.LoadLibrary();
     EXPECT_TRUE(fr.frameSchedSoLoaded_);
-    fr.CloseLibrary();
 }
 
 /**
@@ -106,13 +102,10 @@ HWTEST_F(RsFrameReportTest, LoadLibrary001, TestSize.Level1)
 HWTEST_F(RsFrameReportTest, LoadSymbol001, TestSize.Level1)
 {
     RsFrameReport& fr = RsFrameReport::GetInstance();
-    fr.CloseLibrary();
-    EXPECT_FALSE(fr.frameSchedSoLoaded_);
     fr.LoadSymbol("function");
     fr.LoadLibrary();
-    EXPECT_TRUE(fr.frameSchedSoLoaded_);
     fr.LoadSymbol("function");
-    fr.CloseLibrary();
+    EXPECT_TRUE(fr.frameSchedSoLoaded_);
 }
 
 /**

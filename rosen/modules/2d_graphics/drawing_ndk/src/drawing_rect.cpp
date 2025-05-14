@@ -188,7 +188,7 @@ OH_Drawing_Array* OH_Drawing_RectCreateArray(size_t size)
     if ((size == 0) || (size > (std::numeric_limits<uint16_t>::max() + 1))) {
         return nullptr;
     }
-    ObjectArray *obj = new ObjectArray();
+    ObjectArray *obj = new(std::nothrow) ObjectArray();
     if (obj == nullptr) {
         return nullptr;
     }

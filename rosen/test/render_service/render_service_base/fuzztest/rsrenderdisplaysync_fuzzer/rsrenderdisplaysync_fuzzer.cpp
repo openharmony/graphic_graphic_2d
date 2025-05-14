@@ -50,23 +50,6 @@ T GetData()
     g_pos += objectSize;
     return object;
 }
-bool DoGetId(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-
-    uint64_t id = GetData<uint64_t>();
-    RSRenderDisplaySync rsRenderDisplaySync(id);
-    rsRenderDisplaySync.GetId();
-
-    return true;
-}
 bool DoOnFrameSkip(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -105,21 +88,6 @@ bool DoSetExpectedFrameRateRange(const uint8_t* data, size_t size)
     FrameRateRange range(min, max, preferred);
     RSRenderDisplaySync rsRenderDisplaySync(id);
     rsRenderDisplaySync.SetExpectedFrameRateRange(range);
-    return true;
-}
-bool DoGetExpectedFrameRange(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-
-    uint64_t id = GetData<uint64_t>();
-    RSRenderDisplaySync rsRenderDisplaySync(id);
     rsRenderDisplaySync.GetExpectedFrameRange();
     return true;
 }
@@ -142,21 +110,6 @@ bool DoSetAnimateResult(const uint8_t* data, size_t size)
     bool flag3 = GetData<bool>();
     std::tuple<bool, bool, bool> result(flag1, flag2, flag3);
     rsRenderDisplaySync.SetAnimateResult(result);
-    return true;
-}
-bool DoGetAnimateResult(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-
-    uint64_t id = GetData<uint64_t>();
-    RSRenderDisplaySync rsRenderDisplaySync(id);
     rsRenderDisplaySync.GetAnimateResult();
     return true;
 }
@@ -204,12 +157,9 @@ bool DoGetNearestFrameRate(const uint8_t* data, size_t size)
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
-    OHOS::Rosen::DoGetId(data, size);
     OHOS::Rosen::DoOnFrameSkip(data, size);
     OHOS::Rosen::DoSetExpectedFrameRateRange(data, size);
-    OHOS::Rosen::DoGetExpectedFrameRange(data, size);
     OHOS::Rosen::DoSetAnimateResult(data, size);
-    OHOS::Rosen::DoGetAnimateResult(data, size);
     OHOS::Rosen::DoCalcSkipRateCount(data, size);
     OHOS::Rosen::DoGetNearestFrameRate(data, size);
     return 0;

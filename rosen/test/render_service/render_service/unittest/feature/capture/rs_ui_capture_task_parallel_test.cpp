@@ -91,6 +91,9 @@ class RSUiCaptureTaskParallelTest : public testing::Test {
 public:
     static void SetUpTestCase()
     {
+#ifdef RS_ENABLE_VK
+        RsVulkanContext::SetRecyclable(false);
+#endif
         rsInterfaces_ = &RSInterfaces::GetInstance();
 
         RSTestUtil::InitRenderNodeGC();

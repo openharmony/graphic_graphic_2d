@@ -39,8 +39,13 @@ sptr<SurfaceBuffer> RSModifiersDraw::DmaMemAlloc(
     return nullptr;
 }
 
-std::shared_ptr<Drawing::Surface> RSModifiersDraw::CreateSurfaceFromGpuContext(
+sptr<SurfaceBuffer> RSModifiersDraw::CreateSurfaceBuffer(
     const std::unique_ptr<Media::PixelMap>& pixelMap, int32_t width, int32_t height)
+{
+    return nullptr;
+}
+
+std::shared_ptr<Drawing::Surface> RSModifiersDraw::CreateSurfaceFromGpuContext(sptr<SurfaceBuffer> surfaceBufferTmp)
 {
     return nullptr;
 }
@@ -52,7 +57,7 @@ std::shared_ptr<Drawing::Surface> RSModifiersDraw::CreateSurfaceFromCpuContext(
 }
 
 std::shared_ptr<Drawing::Surface> RSModifiersDraw::CreateSurface(std::unique_ptr<Media::PixelMap>& pixelMap,
-    int32_t width, int32_t height)
+    int32_t width, int32_t height, sptr<SurfaceBuffer> surfaceBufferTmp)
 {
     return nullptr;
 }
@@ -68,18 +73,20 @@ RSModifiersDraw::SurfaceEntry RSModifiersDraw::GetSurfaceEntryByNodeId(NodeId no
 }
 
 bool RSModifiersDraw::Playback(const std::shared_ptr<Drawing::Surface>& surface,
-    const std::shared_ptr<Drawing::DrawCmdList>& cmdList, bool isCanvasType)
+    const std::shared_ptr<Drawing::DrawCmdList>& cmdList, bool isCanvasType, int32_t& fence)
 {
     return false;
 }
 
-void RSModifiersDraw::AddPixelMapDrawOp(const std::shared_ptr<Drawing::DrawCmdList>& cmdList,
-    const std::shared_ptr<Media::PixelMap>& pixelMap, int32_t width, int32_t height, bool isRenderWithForegroundColor)
+static void FlushSurfaceWithFence(const std::shared_ptr<Drawing::Surface>& surface,
+    VkSemaphore& semaphore, int32_t& fence)
 {
     return;
 }
 
-void RSModifiersDraw::InvalidateSurfaceCache(const std::shared_ptr<Media::PixelMap>& pixelMap)
+void RSModifiersDraw::AddPixelMapDrawOp(const std::shared_ptr<Drawing::DrawCmdList>& cmdList,
+    const std::shared_ptr<Media::PixelMap>& pixelMap, int32_t width, int32_t height, bool isRenderWithForegroundColor,
+    sptr<SyncFence> fence)
 {
     return;
 }
@@ -90,6 +97,18 @@ void RSModifiersDraw::DrawSnapshot(std::shared_ptr<Drawing::Canvas>& canvas, std
 }
 
 void RSModifiersDraw::ConvertCmdListForCanvas(const std::shared_ptr<Drawing::DrawCmdList>& cmdList, NodeId nodeId)
+{
+    return;
+}
+
+bool RSModifiersDraw::CheckAndDrawSnapshot(SurfaceEntry& surfaceEntry,
+    const std::shared_ptr<Drawing::DrawCmdList>& cmdList, NodeId nodeId)
+{
+    return false;
+}
+
+void RSModifiersDraw::UpdateSize(const std::shared_ptr<Drawing::DrawCmdList>& cmdList,
+    int32_t& width, int32_t& height)
 {
     return;
 }
@@ -129,7 +148,8 @@ void RSModifiersDraw::RemoveSurfaceByNodeId(NodeId nodeId, bool postTask)
     return;
 }
 
-bool RSModifiersDraw::ResetSurfaceByNodeId(int32_t width, int32_t height, NodeId nodeId, bool postTask)
+bool RSModifiersDraw::ResetSurfaceByNodeId(
+    int32_t width, int32_t height, NodeId nodeId, bool needResetMatrix, bool postTask)
 {
     return false;
 }

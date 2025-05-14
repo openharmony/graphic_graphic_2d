@@ -65,6 +65,7 @@ struct RSB_EXPORT ExceptionCheck {
     uint32_t exceptionCnt_ = 0;
     uint64_t exceptionMoment_ = 0;
     std::string exceptionPoint_;
+    bool isUpload_ = true;
 };
 
 } // namespace Rosen

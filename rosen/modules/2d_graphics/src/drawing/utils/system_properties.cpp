@@ -35,6 +35,15 @@ const GpuApiType SystemProperties::systemGpuApiType_ = GpuApiType::OPENGL;
 #else
 const GpuApiType SystemProperties::systemGpuApiType_ = GpuApiType::VULKAN;
 #endif
+
+#ifdef ROSEN_OHOS
+bool SystemProperties::IsVkImageDfxEnabled()
+{
+    static const bool dfxEnabled =
+        std::atoi(OHOS::system::GetParameter("persist.sys.graphic.openVkImageMemoryDfx", "0").c_str()) != 0;
+    return dfxEnabled;
+}
+#endif
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

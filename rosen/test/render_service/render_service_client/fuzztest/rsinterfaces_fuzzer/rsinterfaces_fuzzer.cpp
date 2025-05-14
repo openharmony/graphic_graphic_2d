@@ -90,6 +90,7 @@ bool RSPhysicalScreenFuzzTest(const uint8_t* data, size_t size)
 
     // get data
     uint64_t id = GetData<uint64_t>();
+    uint8_t type = GetData<uint8_t>();
     uint32_t modeId = GetData<uint32_t>();
     uint32_t status = GetData<uint32_t>();
     uint32_t level = GetData<uint32_t>();
@@ -160,7 +161,10 @@ bool RSPhysicalScreenFuzzTest(const uint8_t* data, size_t size)
     rsInterfaces.SetGlobalDarkColorMode(GetData<bool>());
     std::vector<NodeId> blackListVector = {};
     blackListVector.push_back(id);
+    std::vector<NodeType> typeBlackListVector = {};
+    typeBlackListVector.push_back(type);
     rsInterfaces.SetVirtualScreenBlackList(static_cast<ScreenId>(id), blackListVector);
+    rsInterfaces.SetVirtualScreenTypeBlackList(static_cast<ScreenId>(id), typeBlackListVector);
     rsInterfaces.AddVirtualScreenBlackList(static_cast<ScreenId>(id), blackListVector);
     rsInterfaces.RemoveVirtualScreenBlackList(static_cast<ScreenId>(id), blackListVector);
     rsInterfaces.SetScreenSecurityMask(static_cast<ScreenId>(id), nullptr);
@@ -317,6 +321,23 @@ bool DoSetOverlayDisplayModeFuzzTest(const uint8_t* data, size_t size)
     return true;
 }
 #endif
+
+bool DoGetHighContrastTextState(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    // test
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.GetHighContrastTextState();
+    return true;
+}
 } // namespace Rosen
 } // namespace OHOS
 
@@ -333,5 +354,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
     OHOS::Rosen::DoSetOverlayDisplayModeFuzzTest(data, size);
 #endif
+    OHOS::Rosen::DoGetHighContrastTextState(data, size);
     return 0;
 }

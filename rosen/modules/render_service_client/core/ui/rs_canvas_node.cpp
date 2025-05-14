@@ -29,6 +29,7 @@
 #include "ui/rs_ui_context.h"
 #ifdef RS_ENABLE_VK
 #include "modifier_render_thread/rs_modifiers_draw.h"
+#include "modifier_render_thread/rs_modifiers_draw_thread.h"
 #include "media_errors.h"
 #endif
 
@@ -108,6 +109,7 @@ ExtendRecordingCanvas* RSCanvasNode::BeginRecording(int width, int height)
     if (recordingCanvas_) {
         delete recordingCanvas_;
         recordingCanvas_ = nullptr;
+        RS_LOGE("RSCanvasNode::BeginRecording last beginRecording without finishRecording");
     }
 
     recordingCanvas_ = new ExtendRecordingCanvas(width, height);
@@ -249,18 +251,22 @@ bool RSCanvasNode::GetBitmap(Drawing::Bitmap& bitmap, std::shared_ptr<Drawing::D
     if (!IsHybridRenderCanvas()) {
         return false;
     }
-    auto pixelMap = RSModifiersDraw::GetPixelMapByNodeId(GetId(), false);
-    if (pixelMap == nullptr) {
-        RS_LOGE("RSCanvasNode::GetBitmap pixelMap is nullptr");
-        return false;
-    }
-    Drawing::ImageInfo info(pixelMap->GetWidth(), pixelMap->GetHeight(),
-        Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL);
-    if (!bitmap.InstallPixels(info, pixelMap->GetWritablePixels(), pixelMap->GetRowBytes())) {
-        RS_LOGE("RSCanvasNode::GetBitmap get bitmap fail");
-        return false;
-    }
-    return true;
+    bool ret = false;
+    RSModifiersDrawThread::Instance().PostSyncTask([this, &bitmap, &ret]() {
+        auto pixelMap = RSModifiersDraw::GetPixelMapByNodeId(GetId(), false);
+        if (pixelMap == nullptr) {
+            RS_LOGE("RSCanvasNode::GetBitmap pixelMap is nullptr");
+            return;
+        }
+        Drawing::ImageInfo info(
+            pixelMap->GetWidth(), pixelMap->GetHeight(), Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL);
+        if (!bitmap.InstallPixels(info, pixelMap->GetWritablePixels(), pixelMap->GetRowBytes())) {
+            RS_LOGE("RSCanvasNode::GetBitmap get bitmap fail");
+            return;
+        }
+        ret = true;
+    });
+    return ret;
 }
 
 bool RSCanvasNode::GetPixelmap(std::shared_ptr<Media::PixelMap> pixelMap,
@@ -273,19 +279,24 @@ bool RSCanvasNode::GetPixelmap(std::shared_ptr<Media::PixelMap> pixelMap,
         RS_LOGE("RSCanvasNode::GetPixelmap pixelMap or rect is nullptr");
         return false;
     }
-    auto srcPixelMap = RSModifiersDraw::GetPixelMapByNodeId(GetId(), false);
-    if (srcPixelMap == nullptr) {
-        RS_LOGE("RSCanvasNode::GetPixelmap get source pixelMap fail");
-        return false;
-    }
-    Media::Rect srcRect = { rect->GetLeft(), rect->GetTop(), rect->GetWidth(), rect->GetHeight() };
-    auto ret = srcPixelMap->ReadPixels(Media::RWPixelsOptions { static_cast<uint8_t*>(pixelMap->GetWritablePixels()),
-        pixelMap->GetByteCount(), 0, pixelMap->GetRowStride(), srcRect, Media::PixelFormat::RGBA_8888 });
-    if (ret != Media::SUCCESS) {
-        RS_LOGE("RSCanvasNode::GetPixelmap get pixelMap fail");
-        return false;
-    }
-    return true;
+    bool ret = false;
+    RSModifiersDrawThread::Instance().PostSyncTask([this, pixelMap, rect, &ret]() {
+        auto srcPixelMap = RSModifiersDraw::GetPixelMapByNodeId(GetId(), false);
+        if (srcPixelMap == nullptr) {
+            RS_LOGE("RSCanvasNode::GetPixelmap get source pixelMap fail");
+            return;
+        }
+        Media::Rect srcRect = { rect->GetLeft(), rect->GetTop(), rect->GetWidth(), rect->GetHeight() };
+        auto ret =
+            srcPixelMap->ReadPixels(Media::RWPixelsOptions { static_cast<uint8_t*>(pixelMap->GetWritablePixels()),
+                pixelMap->GetByteCount(), 0, pixelMap->GetRowStride(), srcRect, Media::PixelFormat::RGBA_8888 });
+        if (ret != Media::SUCCESS) {
+            RS_LOGE("RSCanvasNode::GetPixelmap get pixelMap fail");
+            return;
+        }
+        ret = true;
+    });
+    return ret;
 }
 
 bool RSCanvasNode::ResetSurface(int width, int height)
@@ -293,7 +304,7 @@ bool RSCanvasNode::ResetSurface(int width, int height)
     if (!IsHybridRenderCanvas()) {
         return false;
     }
-    return RSModifiersDraw::ResetSurfaceByNodeId(width, height, this->GetId(), true);
+    return RSModifiersDraw::ResetSurfaceByNodeId(width, height, GetId(), true, true);
 }
 #endif
 

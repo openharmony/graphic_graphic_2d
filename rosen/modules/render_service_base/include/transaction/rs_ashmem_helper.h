@@ -71,7 +71,7 @@ private:
 
 class RSB_EXPORT AshmemFdWorker {
 public:
-    AshmemFdWorker() = default;
+    explicit AshmemFdWorker(const pid_t callingPid);
     ~AshmemFdWorker();
 
     void InsertFdWithOffset(int fd, binder_size_t offset, bool shouldCloseFd);
@@ -80,6 +80,8 @@ public:
 
 private:
     DISALLOW_COPY_AND_MOVE(AshmemFdWorker);
+
+    const pid_t callingPid_;
 
     std::unordered_map<binder_size_t, int> fds_;
     std::unordered_set<int> fdsToBeClosed_;
@@ -97,7 +99,7 @@ public:
     static void CopyFileDescriptor(
         MessageParcel* ashmemParcel, std::shared_ptr<MessageParcel>& dataParcel);
     static void InjectFileDescriptor(std::shared_ptr<MessageParcel>& dataParcel, MessageParcel* ashmemParcel,
-        std::unique_ptr<AshmemFdWorker>& ashmemFdWorker);
+        std::unique_ptr<AshmemFdWorker>& ashmemFdWorker, pid_t callingPid = 0);
 };
 } // namespace Rosen
 } // namespace OHOS

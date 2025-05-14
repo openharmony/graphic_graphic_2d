@@ -15,6 +15,7 @@
 
 #include "gtest/gtest.h"
 #include "limit_number.h"
+#include "parameters.h"
 #include "pipeline/render_thread/rs_base_render_util.h"
 #include "foundation/graphic/graphic_2d/rosen/test/render_service/render_service/unittest/pipeline/rs_test_util.h"
 #include "surface_buffer_impl.h"
@@ -187,6 +188,26 @@ HWTEST_F(RSBaseRenderUtilTest, DropFrameProcess_001, TestSize.Level2)
     NodeId id = 0;
     RSSurfaceHandler surfaceHandler(id);
     ASSERT_EQ(OHOS::GSERROR_NO_CONSUMER, RSBaseRenderUtil::DropFrameProcess(surfaceHandler));
+}
+
+/**
+ * @tc.name: GetColorTypeFromBufferFormatTest
+ * @tc.desc: Test GetColorTypeFromBufferFormat
+ * @tc.type: FUNC
+ * @tc.require:issueIC1RNF
+ */
+HWTEST_F(RSBaseRenderUtilTest, GetColorTypeFromBufferFormatTest, TestSize.Level2)
+{
+    auto colorType = RSBaseRenderUtil::GetColorTypeFromBufferFormat(12);
+    ASSERT_EQ(colorType, Drawing::ColorType::COLORTYPE_RGBA_8888);
+    colorType = RSBaseRenderUtil::GetColorTypeFromBufferFormat(11);
+    ASSERT_EQ(colorType, Drawing::ColorType::COLORTYPE_RGB_888X);
+    colorType = RSBaseRenderUtil::GetColorTypeFromBufferFormat(20);
+    ASSERT_EQ(colorType, Drawing::ColorType::COLORTYPE_BGRA_8888);
+    colorType = RSBaseRenderUtil::GetColorTypeFromBufferFormat(3);
+    ASSERT_EQ(colorType, Drawing::ColorType::COLORTYPE_RGB_565);
+    colorType = RSBaseRenderUtil::GetColorTypeFromBufferFormat(36);
+    ASSERT_EQ(colorType, Drawing::ColorType::COLORTYPE_RGBA_1010102);
 }
 
 /*
@@ -449,6 +470,20 @@ HWTEST_F(RSBaseRenderUtilTest, IsColorFilterModeValid_001, TestSize.Level2)
 }
 
 /*
+ * @tc.name: GetScreenIdFromSurfaceRenderParamsTest
+ * @tc.desc: Test GetScreenIdFromSurfaceRenderParams
+ * @tc.type: FUNC
+ * @tc.require: issueI605F4
+ */
+HWTEST_F(RSBaseRenderUtilTest, GetScreenIdFromSurfaceRenderParamsTest, TestSize.Level2)
+{
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceNode->stagingRenderParams_.get());
+    auto screenId = RSBaseRenderUtil::GetScreenIdFromSurfaceRenderParams(surfaceParams);
+    ASSERT_EQ(screenId, 0);
+}
+
+/*
  * @tc.name: IsColorFilterModeValid_002
  * @tc.desc: Test IsColorFilterModeValid
  * @tc.type: FUNC
@@ -468,10 +503,15 @@ HWTEST_F(RSBaseRenderUtilTest, IsColorFilterModeValid_002, TestSize.Level2)
  */
 HWTEST_F(RSBaseRenderUtilTest, WriteSurfaceRenderNodeToPng_001, TestSize.Level2)
 {
-    RSSurfaceRenderNodeConfig config;
-    std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(config);
-    bool result = RSBaseRenderUtil::WriteSurfaceRenderNodeToPng(*node);
+    auto param = OHOS::system::GetParameter("rosen.dumpsurfacetype.enabled", "1");
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    bool result = RSBaseRenderUtil::WriteSurfaceRenderNodeToPng(*surfaceNode);
     ASSERT_EQ(false, result);
+
+    OHOS::system::SetParameter("rosen.dumpsurfacetype.enabled", "2");
+    result = RSBaseRenderUtil::WriteSurfaceRenderNodeToPng(*surfaceNode);
+    ASSERT_EQ(true, result);
+    OHOS::system::SetParameter("rosen.dumpsurfacetype.enabled", param);
 }
 
 /*

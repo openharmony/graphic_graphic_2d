@@ -89,15 +89,6 @@ HWTEST_F(RSHdrUtilTest, CheckIsHdrSurfaceBufferTest, TestSize.Level1)
     buffer->GetBufferHandle()->format = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_YCBCR_P010;
     ret = RSHdrUtil::CheckIsHdrSurfaceBuffer(buffer);
     ASSERT_EQ(ret, HdrStatus::NO_HDR);
-#ifdef USE_VIDEO_PROCESSING_ENGINE
-    uint32_t hdrType = HDI::Display::Graphic::Common::V2_1::CM_VIDEO_AI_HDR;
-    std::vector<uint8_t> metadataType;
-    metadataType.resize(sizeof(hdrType));
-    memcpy_s(metadataType.data(), metadataType.size(), &hdrType, sizeof(hdrType));
-    buffer->SetMetadata(Media::VideoProcessingEngine::ATTRKEY_HDR_METADATA_TYPE, metadataType);
-    ret = RSHdrUtil::CheckIsHdrSurfaceBuffer(buffer);
-    ASSERT_EQ(ret, HdrStatus::AI_HDR_VIDEO);
-#endif
 }
 
 /**
@@ -142,18 +133,6 @@ HWTEST_F(RSHdrUtilTest, CheckIsSurfaceBufferWithMetadataTest, TestSize.Level1)
     }
     bool ret = RSHdrUtil::CheckIsSurfaceBufferWithMetadata(buffer);
     ASSERT_EQ(ret, false);
-#ifdef USE_VIDEO_PROCESSING_ENGINE
-    using namespace OHOS::HDI::Display::Graphic::Common::V1_0;
-    CM_ColorSpaceInfo infoSet = {
-        .primaries = COLORPRIMARIES_P3_D65,
-    };
-    auto retSet = MetadataHelper::SetColorSpaceInfo(buffer, infoSet);
-    EXPECT_EQ(retSet, GSERROR_OK);
-    std::vector<uint8_t> metadata = {1.0f, 1.0f, 1.0f};
-    buffer->SetMetadata(Media::VideoProcessingEngine::ATTRKEY_HDR_DYNAMIC_METADATA, metadata);
-    ret = RSHdrUtil::CheckIsSurfaceBufferWithMetadata(buffer);
-    ASSERT_EQ(ret, true);
-#endif
 }
 
 /**

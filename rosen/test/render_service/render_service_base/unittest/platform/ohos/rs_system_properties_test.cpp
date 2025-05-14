@@ -829,6 +829,17 @@ HWTEST_F(RSSystemPropertiesTest, GetUIFirstDebugEnabled, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetUIFirstBehindWindowFilterEnabled
+ * @tc.desc: GetUIFirstBehindWindowFilterEnabled Test
+ * @tc.type:FUNC
+ * @tc.require: issuesIC0HM8
+ */
+HWTEST_F(RSSystemPropertiesTest, GetUIFirstBehindWindowFilterEnabled, TestSize.Level1)
+{
+    ASSERT_TRUE(RSSystemProperties::GetUIFirstBehindWindowFilterEnabled());
+}
+
+/**
  * @tc.name: GetDumpImgEnabled
  * @tc.desc: GetDumpImgEnabled Test
  * @tc.type:FUNC
@@ -1047,6 +1058,17 @@ HWTEST_F(RSSystemPropertiesTest, GetOptimizeParentNodeRegionEnabled, TestSize.Le
 HWTEST_F(RSSystemPropertiesTest, GetOptimizeHwcComposeAreaEnabled, TestSize.Level1)
 {
     ASSERT_TRUE(RSSystemProperties::GetOptimizeHwcComposeAreaEnabled());
+}
+
+/**
+ * @tc.name: GetTimeVsyncDisabled
+ * @tc.desc: GetTimeVsyncDisabled Test
+ * @tc.type:FUNC
+ * @tc.require: issuesIBIA3V
+ */
+HWTEST_F(RSSystemPropertiesTest, GetTimeVsyncDisabled001, TestSize.Level1)
+{
+    ASSERT_FALSE(RSSystemProperties::GetTimeVsyncDisabled());
 }
 } // namespace Rosen
 } // namespace OHOS

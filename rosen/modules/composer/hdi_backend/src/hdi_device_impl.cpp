@@ -371,6 +371,7 @@ int32_t HdiDeviceImpl::GetHDRCapabilityInfos(uint32_t screenId, GraphicHDRCapabi
     uint32_t formatCount = hdiInfo.formatCount;
     info.formats.clear();
     info.formats.reserve(formatCount);
+    info.formatCount = formatCount;
     for (uint32_t i = 0; i < formatCount; i++) {
         info.formats.emplace_back(static_cast<GraphicHDRFormat>(hdiInfo.formats[i]));
     }

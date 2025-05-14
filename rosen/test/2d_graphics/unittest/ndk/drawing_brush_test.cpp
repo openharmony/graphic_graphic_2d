@@ -26,6 +26,10 @@
 #include "effect/color_filter.h"
 #include "effect/filter.h"
 
+#ifdef RS_ENABLE_VK
+#include "platform/ohos/backend/rs_vulkan_context.h"
+#endif
+
 using namespace testing;
 using namespace testing::ext;
 
@@ -40,7 +44,12 @@ public:
     void TearDown() override;
 };
 
-void NativeDrawingBrushTest::SetUpTestCase() {}
+void NativeDrawingBrushTest::SetUpTestCase()
+{
+#ifdef RS_ENABLE_VK
+    RsVulkanContext::SetRecyclable(false);
+#endif
+}
 void NativeDrawingBrushTest::TearDownTestCase() {}
 void NativeDrawingBrushTest::SetUp() {}
 void NativeDrawingBrushTest::TearDown() {}

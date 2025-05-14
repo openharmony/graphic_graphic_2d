@@ -30,6 +30,7 @@ using ImageData = std::vector<uint8_t>;
 
 struct ImageProperties {
     explicit ImageProperties(PixelMap& map);
+    explicit ImageProperties(const ImageInfo& info);
 
     Media::PixelFormat format;
 
@@ -74,8 +75,8 @@ private:
     static void PushDmaMemory(uint64_t id, const ImageInfo& info, const PixelMemInfo& memory, size_t skipBytes);
     static void PushDmaMemory(uint64_t id, PixelMap& map);
 
-    static void PushImage(uint64_t id, const ImageData& data, size_t skipBytes, BufferHandle* buffer = nullptr,
-                            const ImageProperties* properties = nullptr);
+    static void PushImage(AllocatorType allocType, uint64_t id, const ImageData& data, size_t skipBytes,
+        BufferHandle* buffer = nullptr, const ImageProperties* properties = nullptr);
 
     static bool IsSharedMemory(const PixelMap& map);
     static bool IsSharedMemory(const PixelMemInfo& memory);
@@ -83,6 +84,12 @@ private:
     static bool IsDmaMemory(const PixelMap& map);
     static bool IsDmaMemory(const PixelMemInfo& memory);
     static bool IsDmaMemory(AllocatorType type);
+
+    static bool PullHeapMemory(uint64_t id, const ImageInfo& info, PixelMemInfo& memory, size_t& skipBytes);
+    static void PushHeapMemory(uint64_t id, const ImageInfo& info, const PixelMemInfo& memory, size_t skipBytes);
+    static void PushHeapMemory(uint64_t id, PixelMap& map);
+
+    static bool DefaultHeapMemory(uint64_t id, const ImageInfo& info, PixelMemInfo& memory, size_t& skipBytes);
 
     static EncodedType TryEncodeTexture(const ImageProperties* properties, const ImageData& data, Image& image);
 

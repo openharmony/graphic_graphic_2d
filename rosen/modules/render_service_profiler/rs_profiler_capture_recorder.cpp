@@ -66,6 +66,11 @@ void RSCaptureRecorder::SetDrawingCanvasNodeId(uint64_t nodeId)
     drawingCanvasNodeId_ = nodeId;
 }
 
+void RSCaptureRecorder::SetComponentScreenshotFlag(bool flag)
+{
+    isComponentScreenshot_ = flag;
+}
+
 Drawing::Canvas* RSCaptureRecorder::TryInstantCapture(float width, float height)
 {
     if (!IsRecordingEnabled()) {
@@ -135,6 +140,40 @@ void RSCaptureRecorder::EndDrawingCanvasCapture()
     }
     recordingTriggeredDrawingCanvas_ = false;
     EndInstantCaptureSKP();
+}
+
+Drawing::Canvas* RSCaptureRecorder::TryOffscreenCanvasCapture(float width, float height)
+{
+    recordingTriggeredOffscreenCanvas_ = true;
+    return TryInstantCaptureSKP(width, height);
+}
+
+void RSCaptureRecorder::EndOffscreenCanvasCapture()
+{
+    if (!recordingTriggeredOffscreenCanvas_) {
+        return;
+    }
+    recordingTriggeredOffscreenCanvas_ = false;
+    EndInstantCaptureSKP();
+}
+
+Drawing::Canvas* RSCaptureRecorder::TryComponentScreenshotCapture(float width, float height)
+{
+    if (!isComponentScreenshot_) {
+        return nullptr;
+    }
+    recordingTriggeredComponentScreenshot_ = true;
+    return TryInstantCaptureSKP(width, height);
+}
+
+void RSCaptureRecorder::EndComponentScreenshotCapture()
+{
+    if (!recordingTriggeredComponentScreenshot_) {
+        return;
+    }
+    recordingTriggeredComponentScreenshot_ = false;
+    EndInstantCaptureSKP();
+    SetComponentScreenshotFlag(false);
 }
 
 std::pair<uint32_t, uint32_t> RSCaptureRecorder::GetDirtyRect(uint32_t displayWidth, uint32_t displayHeight)

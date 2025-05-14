@@ -34,18 +34,8 @@ struct CmapTables {
     OpenTypeBasicType::Uint16 version;
     OpenTypeBasicType::Uint16 numTables;
     struct EncodingRecord encodingRecords[];
-};
 
-class CmapTableParser {
-public:
-    CmapTableParser() {}
-    CmapTableParser(const char* data, int32_t size) : data_(data), size_(size) {}
-    static const struct CmapTables* Parse(const char* data, int32_t size);
-    void Dump() const;
-
-private:
-    const char* data_ = nullptr;
-    int32_t size_ = 0;
+    static constexpr const char* tag = "cmap";
 };
 } // namespace TextEngine
 } // namespace Rosen

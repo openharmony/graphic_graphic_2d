@@ -29,6 +29,7 @@ namespace {
 const uint8_t* DATA = nullptr;
 size_t g_size = 0;
 size_t g_pos;
+constexpr size_t STR_LEN = 10;
 } // namespace
 
 /*
@@ -51,38 +52,22 @@ T GetData()
     return object;
 }
 
-bool DoGetInstance(const uint8_t* data, size_t size)
+std::string GetStringFromData(int strlen)
 {
-    if (data == nullptr) {
-        return false;
+    if (strlen <= 0) {
+        return "fuzz";
     }
-
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-
-    // test
-    auto instance = RSFrameRatePolicy::GetInstance();
-    instance->RegisterHgmConfigChangeCallback();
-    return true;
-}
-
-bool DoRegisterHgmConfigChangeCallback(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
+    char cstr[strlen];
+    cstr[strlen - 1] = '\0';
+    for (int i = 0; i < strlen - 1; i++) {
+        char tmp = GetData<char>();
+        if (tmp == '\0') {
+            tmp = '1';
+        }
+        cstr[i] = tmp;
     }
-
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-
-    // test
-    RSFrameRatePolicy* instance = RSFrameRatePolicy::GetInstance();
-    instance->RegisterHgmConfigChangeCallback();
-    return true;
+    std::string str(cstr);
+    return str;
 }
 
 bool DoGetPreferredFps(const uint8_t* data, size_t size)
@@ -98,13 +83,41 @@ bool DoGetPreferredFps(const uint8_t* data, size_t size)
 
     // test
     RSFrameRatePolicy* instance = RSFrameRatePolicy::GetInstance();
-    std::string scene = "test scene";
+    std::shared_ptr<RSHgmConfigData> rsHgmConfigData = std::make_shared<RSHgmConfigData>();
+
+    float ppi = GetData<float>();
+    float xDpi = GetData<float>();
+    float yDpi = GetData<float>();
+
+    rsHgmConfigData->GetConfigData();
+    rsHgmConfigData->GetPpi();
+    rsHgmConfigData->GetXDpi();
+    rsHgmConfigData->GetYDpi();
+
+    rsHgmConfigData->SetPpi(ppi);
+    rsHgmConfigData->SetXDpi(xDpi);
+    rsHgmConfigData->SetYDpi(yDpi);
+
+    AnimDynamicItem item;
+    item.animType = GetStringFromData(STR_LEN);
+    item.animName = GetStringFromData(STR_LEN);
+    item.minSpeed = GetData<int32_t>();
+    item.maxSpeed = GetData<int32_t>();
+    item.preferredFps = GetData<int32_t>();
+    rsHgmConfigData->AddAnimDynamicItem(item);
+    std::string pageName = GetStringFromData(STR_LEN);
+    rsHgmConfigData->AddPageName(pageName);
+    instance->HgmConfigChangeCallback(rsHgmConfigData);
+    std::string scene = item.animType;
     float speed = GetData<float>();
+    instance->GetPreferredFps(scene, speed);
+    scene = GetStringFromData(STR_LEN);
+    speed = GetData<float>();
     instance->GetPreferredFps(scene, speed);
     return true;
 }
 
-bool DoGetRefreshRateModeName(const uint8_t* data, size_t size)
+bool DoGetExpectedFrameRate(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
         return false;
@@ -117,119 +130,18 @@ bool DoGetRefreshRateModeName(const uint8_t* data, size_t size)
 
     // test
     RSFrameRatePolicy* instance = RSFrameRatePolicy::GetInstance();
-    instance->GetRefreshRateModeName();
-    return true;
-}
+    std::vector<RSPropertyUnit> units = {
+        RSPropertyUnit::UNKNOWN,
+        RSPropertyUnit::PIXEL_POSITION,
+        RSPropertyUnit::PIXEL_SIZE,
+        RSPropertyUnit::RATIO_SCALE,
+        RSPropertyUnit::ANGLE_ROTATION,
+    };
 
-bool DoGetExpectedFrameRate001(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
+    for (const auto& unit : units) {
+        instance->GetExpectedFrameRate(unit, 1.f);
     }
 
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-
-    // test
-    RSFrameRatePolicy* instance = RSFrameRatePolicy::GetInstance();
-    RSPropertyUnit unit = RSPropertyUnit::PIXEL_POSITION;
-    instance->GetExpectedFrameRate(unit, 1.f);
-    return true;
-}
-
-bool DoGetExpectedFrameRate002(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-
-    // test
-    RSFrameRatePolicy* instance = RSFrameRatePolicy::GetInstance();
-    RSPropertyUnit unit = RSPropertyUnit::PIXEL_SIZE;
-    instance->GetExpectedFrameRate(unit, 1.f);
-    return true;
-}
-
-bool DoGetExpectedFrameRate003(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-
-    // test
-    RSFrameRatePolicy* instance = RSFrameRatePolicy::GetInstance();
-    RSPropertyUnit unit = RSPropertyUnit::RATIO_SCALE;
-    instance->GetExpectedFrameRate(unit, 1.f);
-    return true;
-}
-
-bool DoGetExpectedFrameRate004(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-
-    // test
-    RSFrameRatePolicy* instance = RSFrameRatePolicy::GetInstance();
-    RSPropertyUnit unit = RSPropertyUnit::ANGLE_ROTATION;
-    instance->GetExpectedFrameRate(unit, 1.f);
-    return true;
-}
-
-bool DoGetExpectedFrameRate005(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-
-    // test
-    RSFrameRatePolicy* instance = RSFrameRatePolicy::GetInstance();
-    RSPropertyUnit unit = RSPropertyUnit::UNKNOWN;
-    instance->GetExpectedFrameRate(unit, 1.f);
-    return true;
-}
-
-bool DoHgmConfigChangeCallback(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-
-    // test
-    RSFrameRatePolicy* instance = RSFrameRatePolicy::GetInstance();
-    std::shared_ptr<RSHgmConfigData> configData = std::make_shared<RSHgmConfigData>();
-    AnimDynamicItem item;
-    item.animType = "animType";
-    item.animName = "animName";
-    configData->AddAnimDynamicItem(item);
-    instance->HgmConfigChangeCallback(configData);
     return true;
 }
 
@@ -248,6 +160,7 @@ bool DoHgmRefreshRateModeChangeCallback(const uint8_t* data, size_t size)
     RSFrameRatePolicy* instance = RSFrameRatePolicy::GetInstance();
     int32_t refreshRateMode = GetData<int32_t>();
     instance->HgmRefreshRateModeChangeCallback(refreshRateMode);
+    instance->GetRefreshRateModeName();
     return true;
 }
 } // namespace Rosen
@@ -257,16 +170,8 @@ bool DoHgmRefreshRateModeChangeCallback(const uint8_t* data, size_t size)
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
-    OHOS::Rosen::DoGetInstance(data, size);
-    OHOS::Rosen::DoRegisterHgmConfigChangeCallback(data, size);
     OHOS::Rosen::DoGetPreferredFps(data, size);
-    OHOS::Rosen::DoGetRefreshRateModeName(data, size);
-    OHOS::Rosen::DoGetExpectedFrameRate001(data, size);
-    OHOS::Rosen::DoGetExpectedFrameRate002(data, size);
-    OHOS::Rosen::DoGetExpectedFrameRate003(data, size);
-    OHOS::Rosen::DoGetExpectedFrameRate004(data, size);
-    OHOS::Rosen::DoGetExpectedFrameRate005(data, size);
-    OHOS::Rosen::DoHgmConfigChangeCallback(data, size);
+    OHOS::Rosen::DoGetExpectedFrameRate(data, size);
     OHOS::Rosen::DoHgmRefreshRateModeChangeCallback(data, size);
     return 0;
 }

@@ -31,7 +31,7 @@
 namespace OHOS {
 namespace Rosen {
 class RSPaintFilterCanvas;
-class RSDrawingFilter : public RSFilter {
+class RSB_EXPORT RSDrawingFilter : public RSFilter {
 public:
     RSDrawingFilter(std::shared_ptr<Drawing::ImageFilter> imageFilter, uint32_t hash);
     RSDrawingFilter(std::shared_ptr<RSShaderFilter> shaderFilter);

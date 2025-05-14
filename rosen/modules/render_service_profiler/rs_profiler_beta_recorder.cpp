@@ -171,8 +171,14 @@ void RSProfiler::BetaRecordSetLastParcelTime()
 
 void RSProfiler::SaveBetaRecord()
 {
-    if (g_animationCount) {
-        // doesn't start beta record during animations
+    constexpr double recordMinLengthSeconds = 30.0;
+    constexpr double recordMaxLengthSeconds = 50.0;
+    const auto recordLength = Now() - g_recordsTimestamp;
+    bool saveShouldBeDone = recordLength > recordMinLengthSeconds;
+    bool saveMustBeDone = recordLength > recordMaxLengthSeconds;
+    
+    if (g_animationCount && !saveMustBeDone) {
+        // avoid start beta recording during animations
         return;
     }
 
@@ -182,10 +188,8 @@ void RSProfiler::SaveBetaRecord()
         return;
     }
 
-    constexpr double recordMaxLengthSeconds = 30.0;
-    const auto recordLength = Now() - g_recordsTimestamp;
-    if (!IsBetaRecordSavingTriggered() && (recordLength <= recordMaxLengthSeconds)) {
-        // start new beta-record file every recordMaxLengthSeconds
+    if (!IsBetaRecordSavingTriggered() && !saveShouldBeDone) {
+        // start new beta-record file every recordMinLengthSeconds
         return;
     }
 
@@ -210,6 +214,7 @@ bool RSProfiler::OpenBetaRecordFile(RSFile& file)
     }
 
     const auto path = "RECORD_IN_MEMORY";
+    Utils::FileDelete(path);
     file.SetVersion(RSFILE_VERSION_LATEST);
     file.Create(path);
 

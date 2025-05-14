@@ -41,6 +41,7 @@ RsFrameReport& RsFrameReport::GetInstance()
 
 RsFrameReport::RsFrameReport()
 {
+    LOGI("RsFrameReport:[Init] LoadLibrary");
     int ret = LoadLibrary();
     if (!ret) {
         LOGE("RsFrameReport:[Init] dlopen libframe_ui_intf.so failed!");
@@ -50,16 +51,15 @@ RsFrameReport::RsFrameReport()
     initFunc_ = (InitFunc)LoadSymbol("Init");
     if (initFunc_ != nullptr) {
         initFunc_();
+        LOGI("RsFrameReport:[Init] Init success");
     }
 }
 
-RsFrameReport::~RsFrameReport()
-{
-    CloseLibrary();
-}
+RsFrameReport::~RsFrameReport() {}
 
 void RsFrameReport::Init()
 {
+    LOGI("RsFrameReport init");
     ReportSchedEvent(FrameSchedEvent::INIT, {});
 }
 

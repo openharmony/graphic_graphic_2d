@@ -42,6 +42,8 @@
 #include "ui_effect/filter/include/filter_water_ripple_para.h"
 #include "ui_effect/filter/include/filter_fly_out_para.h"
 #include "ui_effect/filter/include/filter_distort_para.h"
+#include "ui_effect/filter/include/filter_radius_gradient_blur_para.h"
+
 #include "transaction/rs_transaction_handler.h"
 #include "transaction/rs_sync_transaction_handler.h"
 #include "recording/recording_canvas.h"
@@ -561,8 +563,11 @@ public:
     void SetSkipCheckInMultiInstance(bool isSkipCheckInMultiInstance);
 
 #ifdef RS_ENABLE_VK
-    bool IsHybridRenderCanvas() const;
-    void SetHybridRenderCanvas(bool hybridRenderCanvas);
+    bool IsHybridRenderCanvas() const
+    {
+        return hybridRenderCanvas_;
+    }
+    virtual void SetHybridRenderCanvas(bool hybridRenderCanvas) {};
 #endif
 
     bool GetIsOnTheTree()
@@ -586,6 +591,10 @@ protected:
     bool hasCreateRenderNodeInRS_ = false;
 
     bool drawContentLast_ = false;
+
+#ifdef RS_ENABLE_VK
+    bool hybridRenderCanvas_ = false;
+#endif
 
     virtual void OnAddChildren();
     virtual void OnRemoveChildren();
@@ -703,9 +712,6 @@ private:
     std::recursive_mutex animationMutex_;
     mutable std::recursive_mutex propertyMutex_;
 
-#ifdef RS_ENABLE_VK
-    bool hybridRenderCanvas_ = false;
-#endif
     bool isOnTheTree_ = false;
     bool isOnTheTreeInit_ = false;
 

@@ -47,6 +47,9 @@
 #include "sync_fence.h"
 #endif
 #include "ipc_security/rs_ipc_interface_code_access_verifier_base.h"
+#ifdef ENABLE_FULL_SCREEN_RECONGNIZE
+#include "monitor/aps_monitor_impl.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -346,16 +349,26 @@ public:
         return isHardwareForcedDisabled_;
     }
 
+    void SetLastFrameHasVisibleRegion(bool lastFrameHasVisibleRegion)
+    {
+        lastFrameHasVisibleRegion_ = lastFrameHasVisibleRegion;
+    }
+
+    bool GetLastFrameHasVisibleRegion() const
+    {
+        return lastFrameHasVisibleRegion_;
+    }
+
     bool IsLeashOrMainWindow() const
     {
-        return nodeType_ <= RSSurfaceNodeType::LEASH_WINDOW_NODE;
+        return nodeType_ <= RSSurfaceNodeType::LEASH_WINDOW_NODE || nodeType_ == RSSurfaceNodeType::CURSOR_NODE;
     }
 
     bool IsMainWindowType() const
     {
         // a mainWindowType surfacenode will not mounted under another mainWindowType surfacenode
         // including app main window, starting window, and selfdrawing window
-        return nodeType_ <= RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE;
+        return nodeType_ <= RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE || nodeType_ == RSSurfaceNodeType::CURSOR_NODE;
     }
 
     bool GetIsLastFrameHwcEnabled() const
@@ -398,7 +411,8 @@ public:
         // self drawing surfacenode has its own buffer, and rendered in its own progress/thread
         // such as surfaceview (web/videos) and self draw windows (such as mouse pointer and boot animation)
         return nodeType_ == RSSurfaceNodeType::SELF_DRAWING_NODE ||
-               nodeType_ == RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE;
+                nodeType_ == RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE ||
+                nodeType_ == RSSurfaceNodeType::CURSOR_NODE;
     }
 
     bool IsUIFirstSelfDrawCheck();
@@ -894,11 +908,18 @@ public:
         return IsAppWindow() && (GetChildrenCount() == 0 || HasOnlyOneRootNode());
     }
 
-    inline bool IsTransparent() const
+    // Due to the BehindWindowFilter enabling ui-first, the condition is excluded.
+    // This condition is now only used by ui-first
+    inline bool IsAlphaTransparent() const
     {
         const uint8_t opacity = 255;
         return !(GetAbilityBgAlpha() == opacity && ROSEN_EQ(GetGlobalAlpha(), 1.0f)) ||
-            (IsEmptyAppWindow() && RSUniRenderJudgement::IsUniRender()) || NeedDrawBehindWindow();
+            (IsEmptyAppWindow() && RSUniRenderJudgement::IsUniRender());
+    }
+
+    inline bool IsTransparent() const
+    {
+        return IsAlphaTransparent() || NeedDrawBehindWindow();
     }
 
     inline bool IsCurrentNodeInTransparentRegion(const Occlusion::Rect& nodeRect) const
@@ -1496,6 +1517,16 @@ public:
         return isHardwareForcedDisabledBySrcRect_;
     }
 
+    void SetAppWindowZOrder(int32_t appWindowZOrder)
+    {
+        appWindowZOrder_ = appWindowZOrder;
+    }
+
+    int32_t GetAppWindowZOrder() const
+    {
+        return appWindowZOrder_;
+    }
+
 protected:
     void OnSync() override;
     void OnSkipSync() override;
@@ -1523,6 +1554,13 @@ private:
     void UpdateChildHardwareEnabledNode(NodeId id, bool isOnTree);
     std::unordered_set<NodeId> GetAllSubSurfaceNodeIds() const;
     bool IsCurFrameSwitchToPaint();
+#ifdef ENABLE_FULL_SCREEN_RECONGNIZE
+    void SendSurfaceNodeTreeStatus(bool onTree);
+    void SendSurfaceNodeBoundChange();
+#endif
+#ifndef ROSEN_CROSS_PLATFORM
+    void UpdatePropertyFromConsumer();
+#endif
 
     RSSpecialLayerManager specialLayerManager_;
     bool specialLayerChanged_ = false;
@@ -1618,6 +1656,7 @@ private:
     bool isSubSurfaceNode_ = false;
     bool isNodeToBeCaptured_ = false;
     bool doDirectComposition_ = true;
+    bool lastFrameHasVisibleRegion_ = true;
     bool isSkipDraw_ = false;
     bool needHidePrivacyContent_ = false;
     bool isHardwareForcedByBackgroundAlpha_ = false;
@@ -1745,6 +1784,12 @@ private:
     // valid filter nodes within, including itself
     std::vector<std::shared_ptr<RSRenderNode>> filterNodes_;
     std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> drawingCacheNodes_;
+    int32_t appWindowZOrder_ = 0;
+    // previous self-Drawing Node Bound
+#ifdef ENABLE_FULL_SCREEN_RECONGNIZE
+    float prevSelfDrawHeight_ = 0.0f;
+    float prevSelfDrawWidth_ = 0.0f;
+#endif
 
     /*
         ContainerWindow configs acquired from arkui, including container window state, screen density, container border
@@ -1822,6 +1867,7 @@ private:
     friend class RSUniRenderVisitor;
     friend class RSRenderNode;
     friend class RSRenderService;
+    friend class RSHdrUtil;
 #ifdef RS_PROFILER_ENABLED
     friend class RSProfiler;
 #endif

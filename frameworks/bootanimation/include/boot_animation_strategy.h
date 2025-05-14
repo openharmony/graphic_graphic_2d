@@ -31,7 +31,6 @@ public:
     bool CheckExitAnimation();
 
     bool CheckNeedOtaCompile() const;
-    bool CheckNeedBundleScan() const;
 
 public:
     std::shared_ptr<BootCompileProgress> bootCompileProgress_;

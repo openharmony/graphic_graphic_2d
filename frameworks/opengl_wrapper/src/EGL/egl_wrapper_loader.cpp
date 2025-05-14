@@ -37,6 +37,9 @@ constexpr const char *LIB_EGL_NAME = "libEGL_impl.so";
 constexpr const char *LIB_GLESV1_NAME = "libGLESv1_impl.so";
 constexpr const char *LIB_GLESV2_NAME = "libGLESv2_impl.so";
 constexpr const char *LIB_GLESV3_NAME = "libGLESv3_impl.so";
+#ifdef OPENGL_WRAPPER_ENABLE_GL4
+constexpr const char *LIB_EGL_MESA_NAME = "libEGL_mesa.so";
+#endif
 }
 
 EglWrapperLoader& EglWrapperLoader::GetInstance()
@@ -104,6 +107,36 @@ bool EglWrapperLoader::LoadEgl(const char* libName, EglHookTable* table)
     return true;
 }
 
+#ifdef OPENGL_WRAPPER_ENABLE_GL4
+bool EglWrapperLoader::LoadGlFromMesa(char const * const *glName, FunctionPointerType *entry)
+{
+    if (!dlEglHandle_ || !gWrapperHook.useMesa || !glName || !entry) {
+        return false;
+    }
+
+    GetProcAddressType getProcAddr =
+        (GetProcAddressType)dlsym(dlEglHandle_, "eglGetProcAddress");
+    if (getProcAddr == nullptr) {
+        WLOGE("can't find eglGetProcAddress() in EGL_mesa driver library.");
+        return false;
+    }
+
+    FunctionPointerType *current = entry;
+    char const * const *api = glName;
+    while (*api) {
+        char const *name = *api;
+        FunctionPointerType func = getProcAddr(name);
+        if (func == nullptr) {
+            WLOGD("couldn't find the entry-point: %{public}s.", name);
+        }
+        *current++ = func;
+        api++;
+    }
+
+    return true;
+}
+#endif
+
 void *EglWrapperLoader::LoadGl(const char *libName, char const * const *glName, FunctionPointerType *entry)
 {
     WLOGD("");
@@ -158,6 +191,25 @@ void *EglWrapperLoader::LoadGl(const char *libName, char const * const *glName, 
 
 bool EglWrapperLoader::LoadVendorDriver(EglWrapperDispatchTable *table)
 {
+#ifdef OPENGL_WRAPPER_ENABLE_GL4
+    if (gWrapperHook.useMesa) {
+        WLOGD("EGL (mesa)");
+        if (!LoadEgl(LIB_EGL_MESA_NAME, &table->egl)) {
+            WLOGE("LoadEgl_mesa Failed.");
+            return false;
+        }
+
+        WLOGD("GL/GLES (mesa)");
+        if (!LoadGlFromMesa(gGlApiNames1, (FunctionPointerType *)&table->gl.table1) ||
+            !LoadGlFromMesa(gGlApiNames2, (FunctionPointerType *)&table->gl.table2) ||
+            !LoadGlFromMesa(gGlApiNames3, (FunctionPointerType *)&table->gl.table3) ||
+            !LoadGlFromMesa(gGlApiNames4, (FunctionPointerType *)&table->gl.table4)) {
+            return false;
+        }
+        return true;
+    }
+#endif
+
     WLOGD("EGL");
     if (!LoadEgl(LIB_EGL_NAME, &table->egl)) {
         WLOGE("LoadEgl Failed.");

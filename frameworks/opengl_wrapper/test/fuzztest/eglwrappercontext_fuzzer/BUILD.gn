@@ -24,7 +24,6 @@ ohos_fuzztest("EGLWrapperContextFuzzTest") {
 
   include_dirs = [
     "//foundation/graphic/graphic_2d/frameworks/opengl_wrapper/src/EGL",
-    "$drivers_display_interface/include",
   ]
   cflags = [
     "-g",
@@ -33,7 +32,7 @@ ohos_fuzztest("EGLWrapperContextFuzzTest") {
     "-fno-omit-frame-pointer",
   ]
   sources = [ "eglwrappercontext_fuzzer.cpp" ]
-  deps = [ "../../../../opengl_wrapper:EGL" ]
+  deps = [ "$graphic_2d_root/frameworks/opengl_wrapper:EGL" ]
   external_deps = [ "c_utils:utils" ]
 }
 

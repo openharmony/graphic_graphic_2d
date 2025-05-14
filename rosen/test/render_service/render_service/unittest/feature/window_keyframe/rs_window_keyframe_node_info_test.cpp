@@ -46,18 +46,53 @@ void RSWindowKeyframeNodeInfoTest::TearDown() {}
  * @tc.type: FUNC
  * @tc.require: #IBPVN9
  */
- HWTEST_F(RSWindowKeyframeNodeInfoTest, UpdateLinkedNodeId, TestSize.Level2)
- {
-     auto info = std::make_shared<RSWindowKeyframeNodeInfo>();
-     ASSERT_NE(info, nullptr);
+HWTEST_F(RSWindowKeyframeNodeInfoTest, UpdateLinkedNodeId, TestSize.Level2)
+{
+    auto info = std::make_shared<RSWindowKeyframeNodeInfo>();
+    ASSERT_NE(info, nullptr);
+
+    NodeId rootNodeId = INVALID_NODEID;
+    NodeId canvasNodeId = INVALID_NODEID;
+    info->UpdateLinkedNodeId(canvasNodeId, rootNodeId);
+    EXPECT_EQ(info->GetLinkedNodeCount(), 0);
  
-     NodeId rootNodeId = static_cast<NodeId>(1);
-     NodeId canvasNodeId = static_cast<NodeId>(2);
-     info->UpdateLinkedNodeId(canvasNodeId, rootNodeId);
-     EXPECT_EQ(info->GetLinkedNodeCount(), 1);
-     info->ClearLinkedNodeInfo();
-     EXPECT_EQ(info->GetLinkedNodeCount(), 0);
- }
+    rootNodeId = static_cast<NodeId>(1);
+    canvasNodeId = static_cast<NodeId>(2);
+    info->UpdateLinkedNodeId(canvasNodeId, rootNodeId);
+    EXPECT_EQ(info->GetLinkedNodeCount(), 1);
+    info->ClearLinkedNodeInfo();
+    EXPECT_EQ(info->GetLinkedNodeCount(), 0);
+}
+
+/**
+ * @tc.name: ClearLinkedNodeInfo
+ * @tc.desc: Test ClearLinkedNodeInfo
+ * @tc.type: FUNC
+ * @tc.require: #IC1LJK
+ */
+HWTEST_F(RSWindowKeyframeNodeInfoTest, ClearLinkedNodeInfo, TestSize.Level2)
+{
+    RSWindowKeyframeNodeInfo info;
+    EXPECT_EQ(info.GetLinkedNodeCount(), 0);
+    info.linkedNodeMap_[1] = 1;
+    EXPECT_EQ(info.GetLinkedNodeCount(), 1);
+    info.ClearLinkedNodeInfo();
+    EXPECT_EQ(info.GetLinkedNodeCount(), 0);
+}
+
+/**
+ * @tc.name: GetLinkedNodeCount
+ * @tc.desc: Test GetLinkedNodeCount
+ * @tc.type: FUNC
+ * @tc.require: #IC1LJK
+ */
+HWTEST_F(RSWindowKeyframeNodeInfoTest, GetLinkedNodeCount, TestSize.Level2)
+{
+    RSWindowKeyframeNodeInfo info;
+    EXPECT_EQ(info.GetLinkedNodeCount(), 0);
+    info.linkedNodeMap_[1] = 1;
+    EXPECT_EQ(info.GetLinkedNodeCount(), 1);
+}
 
 /*
  * @tc.name: PrepareRootNodeOffscreen
@@ -76,6 +111,9 @@ HWTEST_F(RSWindowKeyframeNodeInfoTest, PrepareRootNodeOffscreen, TestSize.Level2
     ASSERT_NE(info, nullptr);
     EXPECT_FALSE(info->PrepareRootNodeOffscreen(*appNode));
 
+    info->linkedNodeMap_[1] = 1;
+    EXPECT_TRUE(info->PrepareRootNodeOffscreen(*appNode));
+
     NodeId rootNodeId = static_cast<NodeId>(1);
     auto rootNode = std::make_shared<RSRootRenderNode>(rootNodeId, rsContext->weak_from_this());
     ASSERT_NE(rootNode, nullptr);
@@ -87,6 +125,17 @@ HWTEST_F(RSWindowKeyframeNodeInfoTest, PrepareRootNodeOffscreen, TestSize.Level2
 
     RSMainThread::Instance()->GetContext().GetMutableNodeMap().RegisterRenderNode(canvasNode);
     info->UpdateLinkedNodeId(canvasNodeId, rootNodeId);
+    EXPECT_TRUE(info->PrepareRootNodeOffscreen(*appNode));
+
+    rootNode->parent_ = appNode;
+    rootNode->renderDrawable_ = nullptr;
+    rootNode->stagingRenderParams_ = nullptr;
+    canvasNode->stagingRenderParams_ = nullptr;
+    EXPECT_TRUE(info->PrepareRootNodeOffscreen(*appNode));
+
+    rootNode->renderDrawable_ = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(rootNode);
+    rootNode->stagingRenderParams_ = std::make_unique<RSRenderParams>(rootNodeId);
+    canvasNode->stagingRenderParams_ = std::make_unique<RSRenderParams>(canvasNodeId);
     EXPECT_TRUE(info->PrepareRootNodeOffscreen(*appNode));
 }
 

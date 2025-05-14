@@ -158,7 +158,7 @@ public:
     */
     void CloseVsyncReceiverFd();
     virtual VsyncError RequestNextVSync(FrameCallback callback, const std::string &fromWhom,
-                                        int64_t lastVSyncTS);
+                                        int64_t lastVSyncTS, const int64_t &requestVsyncTime = 0);
     virtual bool IsRequestedNextVSync();
     virtual VsyncError SetVsyncCallBackForEveryFrame(FrameCallback callback, bool isOpen);
     virtual VsyncError SetUiDvsyncSwitch(bool dvsyncSwitch);

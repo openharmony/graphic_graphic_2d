@@ -44,6 +44,8 @@
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "pipeline/main_thread/rs_uni_render_visitor.h"
+#include "pipeline/hwc/rs_uni_hwc_visitor.h"
+#include "screen_manager/rs_screen.h"
 #include "feature/round_corner_display/rs_round_corner_display.h"
 #include "feature/round_corner_display/rs_round_corner_display_manager.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
@@ -867,6 +869,86 @@ HWTEST_F(RSUniRenderVisitorTest, CollectTopOcclusionSurfacesInfo001, TestSize.Le
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
     rsUniRenderVisitor->CollectTopOcclusionSurfacesInfo(*rsSurfaceRenderNode, false);
+}
+
+/**
+ * @tc.name: CollectTopOcclusionSurfacesInfo002
+ * @tc.desc: test CollectTopOcclusionSurfacesInfo
+ * @tc.type:FUNC
+ * @tc.require:issuesIC13ZS
+ */
+HWTEST_F(RSUniRenderVisitorTest, CollectTopOcclusionSurfacesInfo002, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    NodeId id = 0;
+    RSDisplayNodeConfig displayConfig;
+    rsUniRenderVisitor->curDisplayNode_ = std::make_shared<RSDisplayRenderNode>(id, displayConfig);
+    rsUniRenderVisitor->isStencilPixelOcclusionCullingEnabled_ = true;
+    rsUniRenderVisitor->occlusionSurfaceOrder_ = TOP_OCCLUSION_SURFACES_NUM;
+
+    RSSurfaceRenderNodeConfig config;
+    ++id;
+    config.id = id;
+    config.nodeType = RSSurfaceNodeType::APP_WINDOW_NODE;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(config);
+    ++id;
+    config.id = id;
+    config.nodeType = RSSurfaceNodeType::LEASH_WINDOW_NODE;
+    auto parentSurfaceNode = std::make_shared<RSSurfaceRenderNode>(config);
+    surfaceNode->SetParent(parentSurfaceNode);
+    
+    rsUniRenderVisitor->CollectTopOcclusionSurfacesInfo(*surfaceNode, false);
+    EXPECT_EQ(parentSurfaceNode->stencilVal_, TOP_OCCLUSION_SURFACES_NUM * OCCLUSION_ENABLE_SCENE_NUM + 1);
+}
+
+/**
+ * @tc.name: CollectTopOcclusionSurfacesInfo003
+ * @tc.desc: test CollectTopOcclusionSurfacesInfo
+ * @tc.type:FUNC
+ * @tc.require:issuesIC13ZS
+ */
+HWTEST_F(RSUniRenderVisitorTest, CollectTopOcclusionSurfacesInfo003, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    NodeId id = 0;
+    RSDisplayNodeConfig displayConfig;
+    rsUniRenderVisitor->curDisplayNode_ = std::make_shared<RSDisplayRenderNode>(id, displayConfig);
+    rsUniRenderVisitor->isStencilPixelOcclusionCullingEnabled_ = true;
+    rsUniRenderVisitor->occlusionSurfaceOrder_ = TOP_OCCLUSION_SURFACES_NUM;
+    constexpr int defaultRegionSize{100};
+    Occlusion::Region defaultRegion(Occlusion::Rect(0, 0, defaultRegionSize, defaultRegionSize));
+
+    RSSurfaceRenderNodeConfig config;
+    ++id;
+    config.id = id;
+    config.nodeType = RSSurfaceNodeType::APP_WINDOW_NODE;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(config);
+    ++id;
+    config.id = id;
+    config.nodeType = RSSurfaceNodeType::LEASH_WINDOW_NODE;
+    auto parentSurfaceNode = std::make_shared<RSSurfaceRenderNode>(config);
+    surfaceNode->SetParent(parentSurfaceNode);
+    surfaceNode->GetOpaqueRegion() = defaultRegion;
+
+    rsUniRenderVisitor->CollectTopOcclusionSurfacesInfo(*surfaceNode, true);
+    EXPECT_EQ(parentSurfaceNode->stencilVal_, TOP_OCCLUSION_SURFACES_NUM * OCCLUSION_ENABLE_SCENE_NUM);
+    EXPECT_EQ(rsUniRenderVisitor->occlusionSurfaceOrder_, TOP_OCCLUSION_SURFACES_NUM - 1);
+
+    ++id;
+    config.id = id;
+    config.nodeType = RSSurfaceNodeType::APP_WINDOW_NODE;
+    auto surfaceNode2 = std::make_shared<RSSurfaceRenderNode>(config);
+    ++id;
+    config.id = id;
+    config.nodeType = RSSurfaceNodeType::LEASH_WINDOW_NODE;
+    auto parentSurfaceNode2 = std::make_shared<RSSurfaceRenderNode>(config);
+    surfaceNode2->SetParent(parentSurfaceNode2);
+    rsUniRenderVisitor->transparentCleanFilter_[surfaceNode2->GetId()].emplace_back(
+        surfaceNode2->GetId(), RectI(0, 0, defaultRegionSize, defaultRegionSize));
+
+    rsUniRenderVisitor->CollectTopOcclusionSurfacesInfo(*surfaceNode2, false);
+    EXPECT_EQ(parentSurfaceNode2->stencilVal_, (TOP_OCCLUSION_SURFACES_NUM - 1) * OCCLUSION_ENABLE_SCENE_NUM + 1);
+    EXPECT_EQ(rsUniRenderVisitor->occlusionSurfaceOrder_, DEFAULT_OCCLUSION_SURFACE_ORDER);
 }
 
 /*
@@ -3260,6 +3342,7 @@ HWTEST_F(RSUniRenderVisitorTest, MergeRemovedChildDirtyRegion002, TestSize.Level
     auto dirtyManager = surfaceNode->GetDirtyManager();
     ASSERT_NE(dirtyManager, nullptr);
     surfaceNode->hasRemovedChild_ = true;
+    surfaceNode->childrenRect_ = DEFAULT_RECT;
     surfaceNode->removedChildrenRect_ = DEFAULT_RECT;
 
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
@@ -3281,6 +3364,7 @@ HWTEST_F(RSUniRenderVisitorTest, MergeRemovedChildDirtyRegion003, TestSize.Level
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
     ASSERT_NE(surfaceNode, nullptr);
     surfaceNode->hasRemovedChild_ = true;
+    surfaceNode->childrenRect_ = DEFAULT_RECT;
     surfaceNode->removedChildrenRect_ = DEFAULT_RECT;
 
     RSDisplayNodeConfig config;
@@ -3311,6 +3395,7 @@ HWTEST_F(RSUniRenderVisitorTest, MergeRemovedChildDirtyRegion004, TestSize.Level
     auto dirtyManager = surfaceNode->GetDirtyManager();
     ASSERT_NE(dirtyManager, nullptr);
     surfaceNode->hasRemovedChild_ = true;
+    surfaceNode->childrenRect_ = DEFAULT_RECT;
     surfaceNode->removedChildrenRect_ = DEFAULT_RECT;
     surfaceNode->oldClipRect_ = DEFAULT_RECT;
 
@@ -3335,6 +3420,7 @@ HWTEST_F(RSUniRenderVisitorTest, MergeRemovedChildDirtyRegion005, TestSize.Level
     auto dirtyManager = surfaceNode->GetDirtyManager();
     ASSERT_NE(dirtyManager, nullptr);
     surfaceNode->hasRemovedChild_ = true;
+    surfaceNode->childrenRect_ = DEFAULT_RECT;
     surfaceNode->removedChildrenRect_ = DEFAULT_RECT;
     surfaceNode->oldClipRect_ = DEFAULT_RECT;
     surfaceNode->GetMutableRenderProperties().boundsGeo_ = nullptr;
@@ -3360,6 +3446,7 @@ HWTEST_F(RSUniRenderVisitorTest, MergeRemovedChildDirtyRegion006, TestSize.Level
     auto dirtyManager = surfaceNode->GetDirtyManager();
     ASSERT_NE(dirtyManager, nullptr);
     surfaceNode->hasRemovedChild_ = true;
+    surfaceNode->childrenRect_ = DEFAULT_RECT;
     surfaceNode->removedChildrenRect_ = DEFAULT_RECT;
     surfaceNode->oldClipRect_ = DEFAULT_RECT;
     surfaceNode->GetDirtyManager()->MarkAsTargetForDfx();
@@ -4336,7 +4423,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdatePointWindowDirtyStatus001, TestSize.Level
     ASSERT_NE(rsUniRenderVisitor, nullptr);
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(0);
     surfaceNode->InitRenderParams();
-    surfaceNode->nodeType_ = RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE;
+    surfaceNode->nodeType_ = RSSurfaceNodeType::CURSOR_NODE;
     surfaceNode->name_ = "pointer window";
 
     // globalZOrder_ + 2 is displayNode layer
@@ -4715,5 +4802,41 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateAncoPrepareClip001, TestSize.Level1)
     rsUniRenderVisitor->UpdateAncoPrepareClip(*hwcNodePtr);
     hwcNodePtr->SetAncoFlags(static_cast<uint32_t>(AncoFlags::IS_ANCO_NODE));
     rsUniRenderVisitor->UpdateAncoPrepareClip(*hwcNodePtr);
+}
+
+/*
+ * @tc.name: UpdateHwcNodesIfVisibleForAppTest
+ * @tc.desc: Test UpdateHwcNodesIfVisibleForAppTest;
+ * @tc.type: FUNC
+ * @tc.require: issueIC0AQO
+ */
+HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodesIfVisibleForAppTest, TestSize.Level2)
+{
+    bool hasVisibleHwcNodes = false;
+    bool needForceUpdateHwcNodes = false;
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+
+    RSSurfaceRenderNodeConfig surfaceConfig;
+    surfaceConfig.id = 1;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceConfig);
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceConfig.id = 2;
+    auto opacitySurfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceConfig);
+    ASSERT_NE(opacitySurfaceNode, nullptr);
+
+    surfaceNode->SetNodeHasBackgroundColorAlpha(true);
+    surfaceNode->SetHardwareEnableHint(true);
+    surfaceNode->SetDstRect({0, 0, 100, 100});
+    opacitySurfaceNode->SetDstRect({100, 0, 100, 100});
+    opacitySurfaceNode->SetHardwareForcedDisabledState(true);
+
+    std::vector<std::weak_ptr<RSSurfaceRenderNode>> hwcNodes;
+    hwcNodes.push_back(std::weak_ptr<RSSurfaceRenderNode>(opacitySurfaceNode));
+    hwcNodes.push_back(std::weak_ptr<RSSurfaceRenderNode>(surfaceNode));
+    rsUniRenderVisitor->UpdateHwcNodesIfVisibleForApp(surfaceNode, hwcNodes, hasVisibleHwcNodes,
+        needForceUpdateHwcNodes);
+    EXPECT_FALSE(hasVisibleHwcNodes);
+    EXPECT_FALSE(needForceUpdateHwcNodes);
 }
 } // OHOS::Rosen

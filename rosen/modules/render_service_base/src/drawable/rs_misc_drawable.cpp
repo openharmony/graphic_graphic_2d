@@ -19,6 +19,7 @@
 #include "common/rs_optional_trace.h"
 #include "drawable/rs_property_drawable_utils.h"
 #include "drawable/rs_render_node_drawable_adapter.h"
+#include "memory/rs_tag_tracker.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_render_node.h"
 
@@ -229,6 +230,10 @@ Drawing::RecordingCanvas::DrawFunc RSCustomModifierDrawable::CreateDrawFunc() co
         RS_RSCUSTOMMODIFIERDRAWABLE_CREATEDRAWFUNC);
     auto ptr = std::static_pointer_cast<const RSCustomModifierDrawable>(shared_from_this());
     return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
+#ifdef RS_ENABLE_GPU
+    RSTagTracker tagTracker(canvas ? canvas->GetGPUContext() : nullptr,
+        RSTagTracker::SOURCETYPE::SOURCE_RSCUSTOMMODIFIERDRAWABLE);
+#endif
         for (size_t i = 0; i < ptr->drawCmdListVec_.size(); i++) {
 #ifdef RS_ENABLE_PREFETCH
             size_t prefetchIndex = i + 2;
@@ -355,6 +360,10 @@ Drawing::RecordingCanvas::DrawFunc RSBeginBlenderDrawable::CreateDrawFunc() cons
         if (paintFilterCanvas == nullptr) {
             return;
         }
+#ifdef RS_ENABLE_GPU
+        RSTagTracker tagTracker(paintFilterCanvas->GetGPUContext(),
+            RSTagTracker::SOURCETYPE::SOURCE_RSBEGINBLENDERDRAWABLE);
+#endif
         RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(TRACE_LEVEL_TWO, "RSBeginBlenderDrawable:: %s, bounds: %s",
             ptr->propertyDescription_.c_str(), rect->ToString().c_str());
         RSPropertyDrawableUtils::BeginBlender(*paintFilterCanvas, ptr->blender_, ptr->blendApplyType_,

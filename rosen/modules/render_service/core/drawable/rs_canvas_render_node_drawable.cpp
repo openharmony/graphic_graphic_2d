@@ -18,7 +18,6 @@
 #include "rs_trace.h"
 
 #include "common/rs_optional_trace.h"
-#include "memory/rs_tag_tracker.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_paint_filter_canvas.h"
@@ -59,7 +58,7 @@ void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         SetDrawSkipType(DrawSkipType::RENDER_PARAMS_NULL);
         return;
     }
-    RSTagTracker tagTracker(canvas.GetGPUContext().get(), 0, GetId(), RSTagTracker::TAGTYPE::TAG_DRAW_CANVAS_NODE);
+    Drawing::GPUResourceTag::SetCurrentNodeId(GetId());
     auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
     if (params->GetStartingWindowFlag() && paintFilterCanvas) { // do not draw startingwindows in subthread
         if (paintFilterCanvas->GetIsParallelCanvas()) {
@@ -70,7 +69,7 @@ void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
     auto linkedDrawable = std::static_pointer_cast<RSRootRenderNodeDrawable>(
         params->GetLinkedRootNodeDrawable().lock());
-    auto isOpincDraw = PreDrawableCacheState(*params, isOpincDropNodeExt_);
+    auto isOpincDraw = GetOpincDrawCache().PreDrawableCacheState(*params, isOpincDropNodeExt_);
     RSAutoCanvasRestore acr(paintFilterCanvas, RSPaintFilterCanvas::SaveType::kCanvasAndAlpha);
     params->ApplyAlphaAndMatrixToCanvas(*paintFilterCanvas);
     float hdrBrightness = paintFilterCanvas->GetHDRBrightness();
@@ -101,12 +100,12 @@ void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     }
 
     if (LIKELY(isDrawingCacheEnabled_)) {
-        BeforeDrawCache(nodeCacheType_, canvas, *params, isOpincDropNodeExt_);
+        GetOpincDrawCache().BeforeDrawCache(canvas, *params, isOpincDropNodeExt_);
         if (!drawBlurForCache_) {
             GenerateCacheIfNeed(canvas, *params);
         }
         CheckCacheTypeAndDraw(canvas, *params);
-        AfterDrawCache(nodeCacheType_, canvas, *params, isOpincDropNodeExt_, opincRootTotalCount_);
+        GetOpincDrawCache().AfterDrawCache(canvas, *params, isOpincDropNodeExt_, opincRootTotalCount_);
     } else {
         RSRenderNodeDrawable::OnDraw(canvas);
     }
@@ -123,6 +122,10 @@ void RSCanvasRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
     RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
         RS_RSCANVASRENDERNODEDRAWABLE_ONCAPTURE);
 #ifdef RS_ENABLE_GPU
+    if (RSUniRenderThread::GetCaptureParam().isSoloNodeUiCapture_) {
+        RSRenderNodeDrawable::OnDraw(canvas);
+        return;
+    }
     if (!ShouldPaint()) {
         return;
     }

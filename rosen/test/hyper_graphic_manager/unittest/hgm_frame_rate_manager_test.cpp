@@ -408,10 +408,6 @@ HWTEST_F(HgmFrameRateMgrTest, HgmConfigCallbackManagerTest002, Function | SmallT
             ASSERT_EQ(hccMgr->animDynamicCfgCallbacks_.empty(), false);
             hccMgr->UnRegisterHgmConfigChangeCallback(pid);
             hccMgr->animDynamicCfgCallbacks_.try_emplace(pid, cb);
-            std::shared_ptr<HgmMultiAppStrategy> multiAppStrategy_;
-            auto frameRateMgr = hgmCore.GetFrameRateMgr();
-            frameRateMgr->GetMultiAppStrategy().GetForegroundPidApp().try_emplace(0,
-                std::pair<int32_t, std::string>{0, "com.app10"});
             hccMgr->SyncHgmConfigChangeCallback();
             hccMgr->refreshRateUpdateCallbacks_.try_emplace(0, cb);
             hccMgr->SyncRefreshRateUpdateCallback(OLED_60_HZ);
@@ -419,6 +415,11 @@ HWTEST_F(HgmFrameRateMgrTest, HgmConfigCallbackManagerTest002, Function | SmallT
             hccMgr->refreshRateUpdateCallbacks_.clear();
             hccMgr->refreshRateUpdateCallbacks_.try_emplace(0, cb);
             hccMgr->SyncRefreshRateUpdateCallback(OLED_60_HZ);
+            std::unordered_map<pid_t, std::pair<int32_t, std::string>> foregroundPidAppMap;
+            foregroundPidAppMap.try_emplace(pid, std::pair<int32_t, std::string>{0, "com.app10"});
+            hccMgr->SyncHgmConfigChangeCallback(foregroundPidAppMap);
+            ASSERT_EQ(hccMgr->pendingAnimDynamicCfgCallbacks_.find(pid) ==
+                hccMgr->pendingAnimDynamicCfgCallbacks_.end(), true);
         }
     }
 }
@@ -648,6 +649,40 @@ HWTEST_F(HgmFrameRateMgrTest, CleanPidCallbackTest, Function | SmallTest | Level
     mgr->sceneStack_.push_back(std::make_pair("sceneName1", 0));
     mgr->UpdateVoteRule();
     sleep(1);
+}
+
+/**
+ * @tc.name: GetVRateMiniFPS
+ * @tc.desc: Verify the result of GetVRateMiniFPS
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, GetVRateMiniFPS, Function | SmallTest | Level2)
+{
+    std::unique_ptr<HgmFrameRateManager> mgr = std::make_unique<HgmFrameRateManager>();
+    std::shared_ptr<PolicyConfigData> configData = std::make_shared<PolicyConfigData>();
+
+    configData->vRateControlList_.clear();
+    mgr->GetVRateMiniFPS(configData);
+    ASSERT_EQ(mgr->vrateControlMinifpsValue_, 1);
+
+    configData->vRateControlList_["minifps"] = "abc";
+    mgr->GetVRateMiniFPS(configData);
+    ASSERT_EQ(mgr->vrateControlMinifpsValue_, 1);
+
+    configData->vRateControlList_["minifps"] = "-1";
+    ASSERT_EQ(configData->vRateControlList_["minifps"], "-1");
+    int32_t vrateControlMinifpsValue_ = static_cast<int32_t>(std::stoi(configData->vRateControlList_["minifps"]));
+    ASSERT_EQ(vrateControlMinifpsValue_, -1);
+    mgr->GetVRateMiniFPS(configData);
+    ASSERT_EQ(mgr->vrateControlMinifpsValue_, -1);
+
+    configData->vRateControlList_["minifps"] = "10";
+    ASSERT_EQ(configData->vRateControlList_["minifps"], "10");
+    vrateControlMinifpsValue_ = static_cast<int32_t>(std::stoi(configData->vRateControlList_["minifps"]));
+    ASSERT_EQ(vrateControlMinifpsValue_, 10);
+    mgr->GetVRateMiniFPS(configData);
+    ASSERT_EQ(mgr->vrateControlMinifpsValue_, 10);
 }
 
 /**
@@ -944,7 +979,7 @@ HWTEST_F(HgmFrameRateMgrTest, CollectVRateChange, Function | SmallTest | Level2)
     mgr.CollectVRateChange(linkerId, finalRange);
     EXPECT_EQ(finalRange.min_, OLED_NULL_HZ);
     EXPECT_EQ(finalRange.max_, OLED_144_HZ);
-    EXPECT_EQ(finalRange.preferred_, 1);
+    EXPECT_EQ(finalRange.preferred_, mgr.vrateControlMinifpsValue_);
 
     finalRange.preferred_ = 0;
     mgr.controllerRate_ = 100;
@@ -967,13 +1002,13 @@ HWTEST_F(HgmFrameRateMgrTest, HandleFrameRateChangeForLTPO, Function | SmallTest
     hgmCore.SetPendingScreenRefreshRate(OLED_30_HZ);
     frameRateMgr->currRefreshRate_ = OLED_120_HZ;
     hgmCore.lowRateToHighQuickSwitch_.store(false);
-    frameRateMgr->HandleFrameRateChangeForLTPO(0, false);
+    frameRateMgr->HandleFrameRateChangeForLTPO(0, false, true);
     hgmCore.lowRateToHighQuickSwitch_.store(true);
-    frameRateMgr->HandleFrameRateChangeForLTPO(0, false);
+    frameRateMgr->HandleFrameRateChangeForLTPO(0, false, true);
     frameRateMgr->forceUpdateCallback_ = nullptr;
-    frameRateMgr->HandleFrameRateChangeForLTPO(0, false);
+    frameRateMgr->HandleFrameRateChangeForLTPO(0, false, true);
     frameRateMgr->forceUpdateCallback_ = [](bool idleTimerExpired, bool forceUpdate) { return; };
-    frameRateMgr->HandleFrameRateChangeForLTPO(0, false);
+    frameRateMgr->HandleFrameRateChangeForLTPO(0, false, true);
     EXPECT_EQ(frameRateMgr->GetPreferredFps("translate", errorVelocity, 0, 0), 0);
     hgmCore.lowRateToHighQuickSwitch_.store(true);
     VSyncController* rsController;
@@ -981,7 +1016,7 @@ HWTEST_F(HgmFrameRateMgrTest, HandleFrameRateChangeForLTPO, Function | SmallTest
     VSyncGenerator* vsyncGenerator;
     frameRateMgr->controller_ = std::make_shared<HgmVSyncGeneratorController>(rsController,
         appController, vsyncGenerator);
-    frameRateMgr->HandleFrameRateChangeForLTPO(0, false);
+    frameRateMgr->HandleFrameRateChangeForLTPO(0, false, true);
 }
 
 /**

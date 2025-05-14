@@ -16,7 +16,6 @@
 #ifndef ROSEN_MODULES_TEXGINE_SRC_FONT_PARSER_H
 #define ROSEN_MODULES_TEXGINE_SRC_FONT_PARSER_H
 
-#include <hb.h>
 #include <string>
 #include <vector>
 
@@ -110,16 +109,18 @@ public:
 private:
     static void GetStringFromNameId(NameId nameId, unsigned int languageId, const std::string& nameString,
         FontDescriptor& fontDescriptor);
-    static void ProcessCmapTable(const struct CmapTables* cmapTable, FontDescriptor& fontDescriptor);
-    int ProcessNameTable(const struct NameTable* nameTable, FontDescriptor& fontDescriptor) const;
-    static void ProcessPostTable(const struct PostTable* postTable, FontDescriptor& fontDescriptor);
-    int ParseCmapTable(std::shared_ptr<Drawing::Typeface> typeface, FontDescriptor& fontDescriptor);
-    int ParseNameTable(std::shared_ptr<Drawing::Typeface> typeface, FontDescriptor& fontDescriptor);
-    int ParsePostTable(std::shared_ptr<Drawing::Typeface> typeface, FontDescriptor& fontDescriptor);
-    int ParseTable(std::shared_ptr<Drawing::Typeface> typeface, FontDescriptor& fontDescriptor);
-    int SetFontDescriptor(const unsigned int languageId);
-    std::unique_ptr<FontParser::FontDescriptor> ParseFontDescriptor(const std::string& fontName,
-        const unsigned int languageId);
+    static void ProcessTable(const CmapTables* cmapTable, FontDescriptor& fontDescriptor);
+    static void ProcessTable(const NameTable* nameTable, FontDescriptor& fontDescriptor);
+    static void ProcessTable(const PostTable* postTable, FontDescriptor& fontDescriptor);
+    template<typename T>
+    static bool ParseOneTable(std::shared_ptr<Drawing::Typeface> typeface, FontParser::FontDescriptor& fontDescriptor);
+    template<typename Tuple, size_t... Is>
+    bool ParseAllTables(
+        std::shared_ptr<Drawing::Typeface> typeface, FontDescriptor& fontDescriptor, std::index_sequence<Is...>);
+    bool ParseTable(std::shared_ptr<Drawing::Typeface> typeface, FontDescriptor& fontDescriptor);
+    bool SetFontDescriptor(const unsigned int languageId);
+    std::unique_ptr<FontParser::FontDescriptor> ParseFontDescriptor(
+        const std::string& fontName, const unsigned int languageId);
     static void SetNameString(FontParser::FontDescriptor& fontDescriptor, std::string& field, unsigned int& fieldLid,
         unsigned int languageId, const std::string& nameString);
     int GetLanguageId(const std::string& locale)

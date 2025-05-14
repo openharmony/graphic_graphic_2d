@@ -139,24 +139,6 @@ public:
     {
         mainLooping_.store(isMainLooping);
     }
-    bool GetDiscardJankFrames() const
-    {
-        return discardJankFrames_.load();
-    }
-    void SetDiscardJankFrames(bool discardJankFrames)
-    {
-        if (discardJankFrames_.load() != discardJankFrames) {
-            discardJankFrames_.store(discardJankFrames);
-        }
-    }
-    bool GetSkipJankAnimatorFrame() const
-    {
-        return skipJankAnimatorFrame_.load();
-    }
-    void SetSkipJankAnimatorFrame(bool skipJankAnimatorFrame)
-    {
-        skipJankAnimatorFrame_.store(skipJankAnimatorFrame);
-    }
     void UpdateDisplayNodeScreenId();
     uint32_t GetDynamicRefreshRate() const;
     pid_t GetTid() const
@@ -179,10 +161,22 @@ public:
         blackList_ = blackList;
     }
 
+    void SetTypeBlackList(const std::unordered_set<NodeType>& typeBlackList)
+    {
+        std::lock_guard<std::mutex> lock(nodeListMutex_);
+        typeBlackList_ = typeBlackList;
+    }
+
     const std::unordered_set<NodeId> GetBlackList() const
     {
         std::lock_guard<std::mutex> lock(nodeListMutex_);
         return blackList_;
+    }
+
+    const std::unordered_set<NodeType> GetTypeBlackList() const
+    {
+        std::lock_guard<std::mutex> lock(nodeListMutex_);
+        return typeBlackList_;
     }
 
     void SetWhiteList(const std::unordered_set<NodeId>& whiteList)
@@ -226,6 +220,7 @@ private:
     void Inittcache();
     void PerfForBlurIfNeeded();
     void PostReclaimMemoryTask(ClearMemoryMoment moment, bool isReclaim);
+    void CollectReleaseTasks(std::vector<std::function<void()>>& releaseTasks);
 
     bool displayNodeBufferReleased_ = false;
     // Those variable is used to manage memory.
@@ -241,8 +236,6 @@ private:
     bool vmaOptimizeFlag_ = false; // enable/disable vma cache, global flag
     // for statistic of jank frames
     std::atomic_bool mainLooping_ = false;
-    std::atomic_bool discardJankFrames_ = false;
-    std::atomic_bool skipJankAnimatorFrame_ = false;
     std::atomic_bool enableVisiableRect_ = false;
     pid_t tid_ = 0;
     ClearMemoryMoment clearMoment_;
@@ -276,6 +269,7 @@ private:
 
     mutable std::mutex nodeListMutex_;
     std::unordered_set<NodeId> blackList_ = {};
+    std::unordered_set<NodeType> typeBlackList_ = {};
     std::unordered_set<NodeId> whiteList_ = {};
     Drawing::RectI visibleRect_;
 
