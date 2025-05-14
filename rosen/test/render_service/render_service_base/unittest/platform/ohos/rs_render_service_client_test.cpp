@@ -1039,14 +1039,14 @@ HWTEST_F(RSClientTest, GetPixelMapByProcessIdTest, TestSize.Level1)
  */
 HWTEST_F(RSClientTest, BehindWindowFilterEnabledTest, TestSize.Level1)
 {
-    rsClient->SetBehindWindowFilterEnabled(true);
-    usleep(SET_OPERATION_SLEEP_US);
-    bool enabled = rsClient->GetBehindWindowFilterEnabled();
-    EXPECT_EQ(enabled, true);
     rsClient->SetBehindWindowFilterEnabled(false);
     usleep(SET_OPERATION_SLEEP_US);
     bool enabled = rsClient->GetBehindWindowFilterEnabled();
     EXPECT_EQ(enabled, false);
+    rsClient->SetBehindWindowFilterEnabled(true);
+    usleep(SET_OPERATION_SLEEP_US);
+    enabled = rsClient->GetBehindWindowFilterEnabled();
+    EXPECT_EQ(enabled, true);
 }
 } // namespace Rosen
 } // namespace OHOS

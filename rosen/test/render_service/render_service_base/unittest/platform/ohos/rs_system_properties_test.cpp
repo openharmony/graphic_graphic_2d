@@ -1079,8 +1079,10 @@ HWTEST_F(RSSystemPropertiesTest, GetTimeVsyncDisabled001, TestSize.Level1)
  */
 HWTEST_F(RSSystemPropertiesTest, BehindWindowFilterEnabledTest, TestSize.Level1)
 {
-    RSSystemProperties::SetBehindWindowFilterEnabled(true);
-    EXPECT_TRUE(RSSystemProperties::GetBehindWindowFilterEnabled(), true);
+    bool enabled = RSSystemProperties::GetBehindWindowFilterEnabled();
+    RSSystemProperties::SetBehindWindowFilterEnabled(!enabled);
+    EXPECT_EQ(RSSystemProperties::GetBehindWindowFilterEnabled(), !enabled);
+    RSSystemProperties::SetBehindWindowFilterEnabled(enabled);
 }
 } // namespace Rosen
 } // namespace OHOS
