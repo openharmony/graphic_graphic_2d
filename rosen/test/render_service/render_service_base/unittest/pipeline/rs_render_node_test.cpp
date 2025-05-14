@@ -169,7 +169,7 @@ HWTEST_F(RSRenderNodeTest, ProcessTransitionBeforeChildrenTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: ProcessTransitionBeforeChildrenTest
+ * @tc.name: AddModifierTest
  * @tc.desc: test
  * @tc.type:FUNC
  * @tc.require:
@@ -180,6 +180,19 @@ HWTEST_F(RSRenderNodeTest, AddModifierTest, TestSize.Level1)
     RSRenderNode node(id, context);
     node.AddModifier(modifier);
     ASSERT_FALSE(node.IsDirty());
+}
+
+/**
+ * @tc.name: GetPropertyTest
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest, GetPropertyTest, TestSize.Level1)
+{
+    RSRenderNode node(id, context);
+    auto rsRenderPropertyBase = node.GetProperty(id);
+    EXPECT_EQ(rsRenderPropertyBase, nullptr);
 }
 
 /**
