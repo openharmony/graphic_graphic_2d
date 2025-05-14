@@ -350,10 +350,10 @@ template("graphics2d_source_set") {
 
       defines += [ "USE_GRAPHIC_TEXT_GINE" ]
     }
-    if (enable_text_gine) {
+    if (enable_text_gine && !is_arkui_x) {
       deps += [ "$rosen_text_root/adapter/skia:font_asset" ]
-      include_dirs += [ "$rosen_text_root/adapter/skia" ]
     }
+    include_dirs += [ "$rosen_text_root/adapter/skia" ]
     if (rosen_is_ohos) {
       defines += gpu_defines
       if (rs_enable_gpu) {

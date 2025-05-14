@@ -111,7 +111,7 @@ template("skia_libtxt") {
         "//third_party/bounds_checking_function:libsec_static",
         "//third_party/jsoncpp:jsoncpp_static",
         "//third_party/skia:skia_$platform",
-        "//third_party/skia:skia_paragraph_ohos",
+        "//third_party/skia/modules/skparagraph:skia_paragraph_ohos",
       ]
     } else {
       external_deps += [
@@ -153,12 +153,21 @@ ohos_static_library("font_asset") {
 
   public_configs = [ ":skia_libtxt_config" ]
   defines = []
-  external_deps = [
-    "bounds_checking_function:libsec_shared",
-    "cJSON:cjson",
-    "hilog:libhilog",
-    "skia:skia_canvaskit",
-  ]
+  if (is_arkui_x) {
+    deps = [
+      "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog_${target_os}",
+      "//third_party/bounds_checking_function:libsec_static",
+      "//third_party/cJSON:cjson_static",
+      "//third_party/skia:skia_$platform",
+    ]
+  } else {
+    external_deps = [
+      "bounds_checking_function:libsec_shared",
+      "cJSON:cjson",
+      "hilog:libhilog",
+      "skia:skia_canvaskit",
+    ]
+  }
 
   include_dirs = [
     "$rosen_text_root/service/skia_txt",
