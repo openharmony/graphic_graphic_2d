@@ -2777,7 +2777,7 @@ ErrCode RSRenderServiceConnection::GetHdrOnDuration(int64_t& hdrOnDuration)
 ErrCode RSRenderServiceConnection::SetVmaCacheStatus(bool flag)
 {
 #ifdef RS_ENABLE_GPU
-    renderThread_.SetVmaCacheStatus(flag);
+    MemoryManager::SetVmaCacheStatusWithCount(flag);
 #endif
     return ERR_OK;
 }

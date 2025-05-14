@@ -53,13 +53,18 @@ public:
     static void MemoryOverCheck(Drawing::GPUContext* gpuContext);
     static void MemoryOverflow(pid_t pid, size_t overflowMemory, bool isGpu);
     static void CheckIsClearApp();
-    static void VmaDefragment(Drawing::GPUContext* gpuContext);
     static void SetGpuCacheSuppressWindowSwitch(Drawing::GPUContext* gpuContext, bool enabled);
     static void SetGpuMemoryAsyncReclaimerSwitch(
         Drawing::GPUContext* gpuContext, bool enabled, const std::function<void()>& setThreadPriority);
     static void FlushGpuMemoryInWaitQueue(Drawing::GPUContext* gpuContext);
     static void SuppressGpuCacheBelowCertainRatio(
         Drawing::GPUContext* gpuContext, const std::function<bool(void)>& nextFrameHasArrived);
+    // vma cache
+    static void OnRenderSetDrawingVmaCacheStatus();
+    static void VmaDefragment(Drawing::GPUContext* gpuContext);
+    static bool GetVmaOptimizeFlag();
+    static void SetDrawingVmaCacheStatus(bool flag);
+    static void SetVmaCacheStatusWithCount(bool flag);
 private:
     // rs memory = rs + skia cpu + skia gpu
     static void DumpRenderServiceMemory(DfxString& log);
@@ -83,6 +88,10 @@ private:
     static uint64_t memoryWarning_;
     static uint64_t gpuMemoryControl_;
     static uint64_t totalMemoryReportTime_;
+    // vma cache
+    static bool vmaOptimizeFlag_;  // enable/disable vma cache, global flag
+    static std::mutex vmaCacheCountMutex_;
+    static uint32_t vmaCacheCount_;
 };
 
 class RSB_EXPORT RSReclaimMemoryManager {

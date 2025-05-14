@@ -148,13 +148,6 @@ public:
 
     void SetAcquireFence(sptr<SyncFence> acquireFence);
 
-    // vma cache
-    bool GetVmaOptimizeFlag() const
-    {
-        return vmaOptimizeFlag_; // global flag
-    }
-    void SetVmaCacheStatus(bool flag); // dynmic flag
-
     void SetBlackList(const std::unordered_set<NodeId>& blackList)
     {
         std::lock_guard<std::mutex> lock(nodeListMutex_);
@@ -221,15 +214,12 @@ private:
     bool postImageReleaseTaskFlag_ = false;
     bool isReclaimMemoryFinished_ = true;
     std::atomic<bool> isTimeToReclaim_ {false};
-    // vma cache
-    bool vmaOptimizeFlag_ = false; // enable/disable vma cache, global flag
     // for statistic of jank frames
     std::atomic_bool mainLooping_ = false;
     std::atomic_bool enableVisiableRect_ = false;
     pid_t tid_ = 0;
     ClearMemoryMoment clearMoment_;
     int imageReleaseCount_ = 0;
-    uint32_t vmaCacheCount_ = 0;
     ScreenId displayNodeScreenId_ = 0;
     std::atomic<uint64_t> frameCount_ = 0;
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
@@ -260,8 +250,6 @@ private:
     std::unordered_set<NodeId> blackList_ = {};
     std::unordered_set<NodeId> whiteList_ = {};
     Drawing::RectI visibleRect_;
-
-    std::mutex vmaCacheCountMutex_;
 
 #ifdef RES_SCHED_ENABLE
     void SubScribeSystemAbility();

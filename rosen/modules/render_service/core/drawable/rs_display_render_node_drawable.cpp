@@ -34,6 +34,7 @@
 #include "feature/overlay_display/rs_overlay_display_manager.h"
 #endif
 #include "hgm_core.h"
+#include "memory/rs_memory_manager.h"
 #include "memory/rs_tag_tracker.h"
 #include "params/rs_display_render_params.h"
 #include "params/rs_surface_render_params.h"
@@ -2211,9 +2212,7 @@ void RSDisplayRenderNodeDrawable::PrepareOffscreenRender(const RSDisplayRenderNo
         offscreenTranslateY_ = 0;
     }
     if (params->IsRotationChanged()) {
-        if (RSUniRenderThread::Instance().GetVmaOptimizeFlag()) {
-            Drawing::StaticFactory::SetVmaCacheStatus(true); // render this frame with vma cache on
-        }
+        MemoryManager::SetDrawingVmaCacheStatus(true);  // render this frame with vma cache on
     }
 
     if (offscreenWidth <= 0 || offscreenHeight <= 0) {

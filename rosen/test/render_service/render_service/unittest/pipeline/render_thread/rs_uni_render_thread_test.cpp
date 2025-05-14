@@ -276,10 +276,7 @@ HWTEST_F(RSUniRenderThreadTest, Render001, TestSize.Level1)
     instance.rootNodeDrawable_ = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(ptr);
     instance.Render();
     EXPECT_TRUE(instance.rootNodeDrawable_);
-    instance.vmaOptimizeFlag_ = true;
-    instance.vmaCacheCount_ = 1;
     instance.Render();
-    ASSERT_EQ(instance.vmaCacheCount_, 0);
 }
 
 #ifdef RES_SCHED_ENABLE
