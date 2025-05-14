@@ -2382,7 +2382,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         RS_OPTIONAL_TRACE_NAME_FMT("rs debug: %s HardwareForcedDisabled is true", __func__);
     }
     // need draw skipped node at cur frame
-    doDirectComposition_ &= LIKELY(!RSUifirstManager::Instance().NeedNextDrawForSkippedNode());
+    doDirectComposition_ &= !RSUifirstManager::Instance().NeedNextDrawForSkippedNode();
     bool needTraverseNodeTree = true;
     needDrawFrame_ = true;
     bool pointerSkip = !RSPointerWindowManager::Instance().IsPointerCanSkipFrameCompareChange(false, true);
