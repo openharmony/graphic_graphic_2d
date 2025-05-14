@@ -43,6 +43,7 @@ ohos_source_set("rs_graphic_test_src") {
     "src/rs_graphic_test_ext.cpp",
     "src/rs_graphic_test_img.cpp",
     "src/rs_graphic_test_profiler_thread.cpp",
+    "src/rs_graphic_test_profiler.cpp",
     "src/rs_graphic_test_text.cpp",
     "src/rs_graphic_test_utils.cpp",
     "src/rs_parameter_parse.cpp",

@@ -15,6 +15,7 @@
 
 #include "rs_graphic_test.h"
 #include "rs_graphic_test_director.h"
+#include "rs_graphic_test_profiler.h"
 #include "rs_parameter_parse.h"
 #include "rs_graphic_test_ext.h"
 
@@ -146,12 +147,21 @@ static int RunAllTest(int argc, char **argv)
     return RUN_ALL_TESTS();
 }
 
+static int RunNodeTreeProfilerTest(int argc, char **argv)
+{
+    RSGraphicTestDirector::Instance().Run();
+    std::string path = argv[ARGS_TWO];
+    RSGraphicTestProfiler engine;
+    return engine.RunNodeTreeTest(path);
+}
+
 int main(int argc, char **argv)
 {
     GraphicTestCommandTb funcTbl[] = {
         { "-list", DisplayAllCaseInfo },
         { "-unit", FilterTestUnit },
-        { "-all", RunAllTest }
+        { "-all", RunAllTest },
+        { "-nodetree", RunNodeTreeProfilerTest }
     };
 
     if (argc >= ARGS_TWO) {
