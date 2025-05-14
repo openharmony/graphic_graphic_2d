@@ -248,6 +248,7 @@ private:
 
     std::unique_ptr<RSUiCaptureHelper> uiCaptureHelper_;
     std::atmoic<uint32_t> visibleleashWindowCount_ = 0;
+
     friend class RSRenderThread;
     friend class RSMainThread;
 #ifdef RS_ENABLE_GPU
