@@ -202,6 +202,16 @@ public:
         return uiCaptureCmdsExecutedFlag_;
     }
 
+    uint32_t GetUnirenderVisibleLeashWindowCount()
+    {
+        return visibleLeashWindowCount_.load();
+    }
+
+    uint32_t SetUnirenderVisibleLeashWindowCount(uint32_t count)
+    {
+        visibleLeashWindowCount_.store(count);
+    }
+
     void InsertUiCaptureCmdsExecutedFlag(NodeId nodeId, bool flag);
     bool GetUiCaptureCmdsExecutedFlag(NodeId nodeId);
     void EraseUiCaptureCmdsExecutedFlag(NodeId nodeId);
@@ -239,6 +249,7 @@ private:
 
     std::unordered_map<NodeId, bool> uiCaptureCmdsExecutedFlag_;
     mutable std::mutex uiCaptureCmdsExecutedMutex_;
+    std::atmoic<uint32_t> visibleleashWindowCount_ = 0;
 
     friend class RSRenderThread;
     friend class RSMainThread;
