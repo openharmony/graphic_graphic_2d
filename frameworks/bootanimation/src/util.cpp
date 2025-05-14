@@ -349,11 +349,4 @@ int32_t TransalteVp2Pixel(const int32_t sideLen, const int32_t vp)
 {
     return static_cast<int32_t>(std::ceil(sideLen * HALF / RADIO) / HALF * vp);
 }
-
-int64_t GetSystemCurrentTime()
-{
-    auto currentTime = std::chrono::duration_cast<std::chrono::milliseconds>
-        (std::chrono::system_clock::now().time_since_epoch()).count();
-    return currentTime;
-}
 } // namespace OHOS

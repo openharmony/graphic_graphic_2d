@@ -21,11 +21,9 @@
 #endif
 #include "transaction/rs_interfaces.h"
 #include "util.h"
-#include <system_ability_definition.h>
-#include <iservice_registry.h>
 
 namespace OHOS {
-static const int MAX_WAIT_MEDIA_CREATE_TIME = 5000; // 5S
+static const int MAX_WAIT_MEDIA_CREATE_TIME = 5000000; // 5S
 
 class BootPlayer {
 public:
@@ -45,38 +43,6 @@ public:
     std::string resPath_;
     bool isSoundEnabled_ = false;
     std::shared_ptr<Media::Player> mediaPlayer_;
-
-#ifdef PLAYER_FRAMEWORK_ENABLE
-    void CheckAndCreateMedia()
-    {
-        sptr<ISystemAbilityManager> samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-        if (samgr == nullptr) {
-            LOGE("samgr is nullptr");
-            return;
-        }
-        int64_t startTime = GetSystemCurrentTime();
-        int64_t endTime = startTime;
-        while ((endTime - startTime) < MAX_WAIT_MEDIA_CREATE_TIME
-            && samgr->CheckSystemAbility(OHOS::PLAYER_DISTRIBUTED_SERVICE_ID) == nullptr) {
-            usleep(SLEEP_TIME_US_10);
-            endTime = GetSystemCurrentTime();
-        }
-        if (samgr->CheckSystemAbility(OHOS::PLAYER_DISTRIBUTED_SERVICE_ID) == nullptr) {
-            LOGE("CheckMediaSA fail");
-            return;
-        }
-        LOGI("CheckMediaSA success");
-
-        startTime = GetSystemCurrentTime();
-        endTime = startTime;
-        while ((endTime - startTime) < MAX_WAIT_MEDIA_CREATE_TIME
-            && (mediaPlayer_ = Media::PlayerFactory::CreatePlayer()) == nullptr) {
-            usleep(SLEEP_TIME_US);
-            endTime = GetSystemCurrentTime();
-            LOGI("mediaPlayer is nullptr, try create again");
-        }
-    }
-#endif
 };
 } // namespace OHOS
 
