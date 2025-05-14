@@ -83,7 +83,7 @@ bool DoGetPreferredFps(const uint8_t* data, size_t size)
 
     // test
     RSFrameRatePolicy* instance = RSFrameRatePolicy::GetInstance();
-    std::shared<RSHgmConfigData> rsHgmConfigData = std::make_shared<RSHgmConfigData>();
+    std::shared_ptr<RSHgmConfigData> rsHgmConfigData = std::make_shared<RSHgmConfigData>();
 
     float ppi = GetData<float>();
     float xDpi = GetData<float>();
