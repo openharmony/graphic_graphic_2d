@@ -37,7 +37,7 @@ size_t g_pos = 0;
 
 // must greater than 0
 constexpr uint8_t STATUS_FUZZ_BOUNDS = 3;
-constexpr Rosen::NodeId ID_FUZZ_BOUNDS = 10;
+using RCDLayerType = Rosen::RoundCornerDisplayManager::RCDLayerType;
 
 template<class T>
 T GetData()
@@ -55,50 +55,147 @@ T GetData()
     return object;
 }
 
-bool RSRoundCornerDisplayTest(const uint8_t* data, size_t size)
+bool RSRoundCornerDisplayLoadCfgTest(const uint8_t* data, size_t size)
 {
-    // prepare data
     if (data == nullptr || size == 0) {
         return false;
     }
 
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    // test rcd_config
+    auto& rcdCfg = OHOS::Rosen::RSSingleton<OHOS::Rosen::rs_rcd::RCDConfig>::GetInstance();
     std::string randomConfig(reinterpret_cast<const char*>(data), size);
+    rcdCfg.Load(randomConfig);
+    rcdCfg.IsDataLoaded();
+    return true;
+}
+
+bool RSRoundCornerDisplayGetLcdModelTest(const uint8_t* data, size_t size)
+{
+    if (data == nullptr || size == 0) {
+        return false;
+    }
+    auto& rcdCfg = OHOS::Rosen::RSSingleton<OHOS::Rosen::rs_rcd::RCDConfig>::GetInstance();
+    rcdCfg.Load(std::string(OHOS::Rosen::rs_rcd::PATH_CONFIG_FILE));
+    rcdCfg.GetLcdModel(std::string(reinterpret_cast<const char*>(data), size));
+    return true;
+}
+
+void RSRoundCornerDisplayGetRogTest()
+{
     auto w = GetData<int>();
     auto h = GetData<int>();
 
     auto& rcdCfg = OHOS::Rosen::RSSingleton<OHOS::Rosen::rs_rcd::RCDConfig>::GetInstance();
-
-    rcdCfg.Load(randomConfig);
-    rcdCfg.GetLcdModel(std::string(reinterpret_cast<const char*>(data), size));
-
     rcdCfg.Load(std::string(OHOS::Rosen::rs_rcd::PATH_CONFIG_FILE));
     auto Lcd = rcdCfg.GetLcdModel(OHOS::Rosen::rs_rcd::ATTR_DEFAULT);
-    rcdCfg.IsDataLoaded();
 
     if (Lcd != nullptr) {
         Lcd->GetRog(w, h);
     }
+}
 
-    OHOS::Rosen::rs_rcd::RCDConfig::PrintParseRog(nullptr);
+bool RSRoundCornerDisplayPrintParseRogTest(const uint8_t* data, size_t size)
+{
+    if (data == nullptr || size == 0) {
+        return false;
+    }
+
+    auto& rcdCfg = OHOS::Rosen::RSSingleton<OHOS::Rosen::rs_rcd::RCDConfig>::GetInstance();
+    rcdCfg.Load(std::string(OHOS::Rosen::rs_rcd::PATH_CONFIG_FILE));
+
     OHOS::Rosen::rs_rcd::ROGSetting rog;
     rog.width = GetData<int>();
     rog.height = GetData<int>();
-    OHOS::Rosen::rs_rcd::RogPortrait rp;
-    OHOS::Rosen::rs_rcd::RogLandscape rl;
-    rog.portraitMap["a"] = rp;
-    rog.landscapeMap["b"] = rl;
-    OHOS::Rosen::rs_rcd::RCDConfig::PrintParseRog(&rog);
 
-    // test rcd_display_manager
+    auto keya = std::string(reinterpret_cast<const char*>(data), size / 2);
+    auto keyb = std::string(reinterpret_cast<const char*>(data), size / 3);
+
+    OHOS::Rosen::rs_rcd::RogPortrait rp{};
+    OHOS::Rosen::rs_rcd::RogLandscape rl{};
+    rog.portraitMap[keya] = rp;
+    rog.landscapeMap[keyb] = rl;
+
+    OHOS::Rosen::rs_rcd::RCDConfig::PrintParseRog(nullptr);
+    OHOS::Rosen::rs_rcd::RCDConfig::PrintParseRog(&rog);
+    return true;
+}
+
+bool RSRoundCornerDisplayCfgTest(const uint8_t* data, size_t size)
+{
+    if (data == nullptr || size == 0) {
+        return false;
+    }
+
+    RSRoundCornerDisplayLoadCfgTest(data, size);
+    ;
+    RSRoundCornerDisplayGetLcdModelTest(data, size);
+    RSRoundCornerDisplayGetRogTest();
+    RSRoundCornerDisplayPrintParseRogTest(data, size);
+    return true;
+}
+
+void RSRoundCornerDisplayAddRoundCornerDisplayTest()
+{
     auto& manager = Rosen::RSSingleton<Rosen::RoundCornerDisplayManager>::GetInstance();
 
-    Rosen::NodeId id = GetData<Rosen::NodeId>() % ID_FUZZ_BOUNDS;
-    Rosen::NodeId idWrong = GetData<Rosen::NodeId>() % ID_FUZZ_BOUNDS;
+    Rosen::NodeId id = GetData<Rosen::NodeId>();
+    manager.AddRoundCornerDisplay(id);
+
+    manager.RemoveRCDResource(id);
+}
+
+bool RSRoundCornerDisplayAddLayerTest(const uint8_t* data, size_t size)
+{
+    if (data == nullptr || size == 0) {
+        return false;
+    }
+
+    auto& manager = Rosen::RSSingleton<Rosen::RoundCornerDisplayManager>::GetInstance();
+
+    Rosen::NodeId id = GetData<Rosen::NodeId>();
+    std::string layerName(reinterpret_cast<const char*>(data), size);
+
+    auto rawLayerType = GetData<uint32_t>();
+    auto layerType = static_cast<RCDLayerType>(rawLayerType);
+
+    manager.AddLayer(layerName, id, layerType);
+
+    manager.RemoveRCDResource(id);
+    return true;
+}
+
+void RSRoundCornerDisplayRemoveRCDResourceTest()
+{
+    auto& manager = Rosen::RSSingleton<Rosen::RoundCornerDisplayManager>::GetInstance();
+
+    Rosen::NodeId id = GetData<Rosen::NodeId>();
+
+    manager.RemoveRCDResource(id);
+}
+
+bool RSRoundCornerDisplayManagerAPIsTest(
+    const uint8_t* data, size_t size, Rosen::NodeId lid, RCDLayerType lType, std::string lName, bool isRCDSet = false)
+{
+    Rosen::NodeId id {};
+    RCDLayerType layerType {};
+    std::string layerName {};
+
+    if (isRCDSet) {
+        id = lid;
+        layerType = lType;
+        layerName = lName;
+    } else if (data == nullptr || size == 0) {
+        return false;
+    } else {
+        id = GetData<Rosen::NodeId>();
+        layerName = std::string(reinterpret_cast<const char*>(data), size);
+
+        auto rawLayerType = GetData<uint32_t>();
+        rawLayerType = rawLayerType % (static_cast<uint32_t>(RCDLayerType::BOTTOM) + 1);
+        layerType = static_cast<RCDLayerType>(rawLayerType);
+    }
+
+    auto& manager = Rosen::RSSingleton<Rosen::RoundCornerDisplayManager>::GetInstance();
+
     uint32_t u32_1 = GetData<uint32_t>();
     uint32_t u32_2 = GetData<uint32_t>();
     uint32_t u32_3 = GetData<uint32_t>();
@@ -116,22 +213,10 @@ bool RSRoundCornerDisplayTest(const uint8_t* data, size_t size)
     bool prepared = (rawPrepared % 2) != 0;
     bool notchStatus = (rawNotchStatus % 2) != 0;
 
-    using RCDLayerType = Rosen::RoundCornerDisplayManager::RCDLayerType;
-    auto rawLayerType = GetData<uint32_t>();
-    rawLayerType = rawLayerType % (static_cast<uint32_t>(RCDLayerType::BOTTOM) + 1);
-    auto layerType = static_cast<RCDLayerType>(rawLayerType);
-
     std::function<void()> task = []() { std::string stub; };
     Rosen::RectI dirtyRect;
 
-    std::string layerName1(reinterpret_cast<const char*>(data), size);
-    std::string layerName2(reinterpret_cast<const char*>(data), size / 2);
-
     manager.RegisterRcdMsg();
-
-    manager.AddRoundCornerDisplay(id);
-    manager.AddLayer(layerName1, id, layerType);
-
     manager.UpdateDisplayParameter(id, u32_1, u32_2, u32_3, u32_4);
     manager.UpdateNotchStatus(id, status);
     manager.UpdateOrientationStatus(id, rotation);
@@ -143,53 +228,71 @@ bool RSRoundCornerDisplayTest(const uint8_t* data, size_t size)
     manager.IsNotchNeedUpdate(id, notchStatus);
     manager.RunHardwareTask(id, task);
     manager.HandleRoundCornerDirtyRect(id, dirtyRect, layerType);
-
-    manager.GetLayerPair(layerName1);
-    manager.CheckLayerIsRCD(layerName1);
-    manager.GetLayerPair(layerName2);
-    manager.CheckLayerIsRCD(layerName2);
-
-    std::vector<std::pair<Rosen::NodeId, RCDLayerType>> renderTargetNodeInfoList1;
-    renderTargetNodeInfoList1.emplace_back(id, RCDLayerType::INVALID);
-    renderTargetNodeInfoList1.emplace_back(id, RCDLayerType::TOP);
-    renderTargetNodeInfoList1.emplace_back(id, RCDLayerType::BOTTOM);
-
-    auto baseCanvas1 = std::make_shared<Rosen::Drawing::Canvas>();
-    auto canvas1 = std::make_shared<Rosen::RSPaintFilterCanvas>(baseCanvas1.get(), 1.0f);
-    manager.DrawRoundCorner(renderTargetNodeInfoList1, canvas1.get());
-
     manager.GetRcdEnable();
 
+    manager.GetLayerPair(layerName);
+    manager.CheckLayerIsRCD(layerName);
+
+    std::vector<std::pair<Rosen::NodeId, RCDLayerType>> renderTargetNodeInfoList;
+    renderTargetNodeInfoList.emplace_back(id, RCDLayerType::INVALID);
+    renderTargetNodeInfoList.emplace_back(id, RCDLayerType::TOP);
+    renderTargetNodeInfoList.emplace_back(id, RCDLayerType::BOTTOM);
+
+    auto baseCanvas = std::make_shared<Rosen::Drawing::Canvas>();
+    auto canvas = std::make_shared<Rosen::RSPaintFilterCanvas>(baseCanvas.get(), 1.0f);
+    manager.DrawRoundCorner(renderTargetNodeInfoList, canvas.get());
+
     manager.RemoveRCDResource(id);
-    manager.RemoveRCDResource(id);
-
-    // wrong ID
-    manager.UpdateDisplayParameter(idWrong, u32_1, u32_2, u32_3, u32_4);
-    manager.UpdateNotchStatus(idWrong, status);
-    manager.UpdateOrientationStatus(idWrong, rotation);
-    manager.UpdateHardwareResourcePrepared(idWrong, prepared);
-    manager.RefreshFlagAndUpdateResource(idWrong);
-    manager.GetHardwareInfo(idWrong);
-    manager.PrepareHardwareInfo(idWrong);
-    manager.IsNotchNeedUpdate(idWrong, notchStatus);
-    manager.RunHardwareTask(idWrong, task);
-    manager.HandleRoundCornerDirtyRect(idWrong, dirtyRect, layerType);
-
-    manager.AddLayer(layerName1, idWrong, layerType);
-
-    std::vector<std::pair<Rosen::NodeId, RCDLayerType>> renderTargetNodeInfoList2;
-    renderTargetNodeInfoList2.emplace_back(idWrong, RCDLayerType::INVALID);
-    renderTargetNodeInfoList2.emplace_back(idWrong, RCDLayerType::TOP);
-    renderTargetNodeInfoList2.emplace_back(idWrong, RCDLayerType::BOTTOM);
-
-    auto baseCanvas2 = std::make_shared<Rosen::Drawing::Canvas>();
-    auto canvas2 = std::make_shared<Rosen::RSPaintFilterCanvas>(baseCanvas2.get(), 1.0f);
-    manager.DrawRoundCorner(renderTargetNodeInfoList2, canvas2.get());
-
-    manager.RemoveRCDResource(idWrong);
 
     return true;
 }
+
+bool RSRoundCornerDisplayManagerTest(const uint8_t* data, size_t size)
+{
+    if (data == nullptr || size == 0) {
+        return false;
+    }
+
+    Rosen::NodeId randomId = GetData<Rosen::NodeId>();
+    std::string layerName(reinterpret_cast<const char*>(data), size);
+
+    auto rawLayerType = GetData<uint32_t>();
+    rawLayerType = rawLayerType % (static_cast<uint32_t>(RCDLayerType::BOTTOM) + 1);
+    auto layerType = static_cast<RCDLayerType>(rawLayerType);
+
+    auto& manager = Rosen::RSSingleton<Rosen::RoundCornerDisplayManager>::GetInstance();
+
+    RSRoundCornerDisplayAddRoundCornerDisplayTest();
+    RSRoundCornerDisplayAddLayerTest(data, size);
+    RSRoundCornerDisplayRemoveRCDResourceTest();
+
+    // test manager APIs without add rcd
+    RSRoundCornerDisplayManagerAPIsTest(data, size, randomId, layerType, layerName);
+
+    manager.AddRoundCornerDisplay(randomId);
+    manager.AddLayer(layerName, randomId, layerType);
+    RSRoundCornerDisplayManagerAPIsTest(data, size, randomId, layerType, layerName, true);
+
+    return true;
+}
+
+bool RSRoundCornerDisplayTest(const uint8_t* data, size_t size)
+{
+    // prepare data
+    if (data == nullptr || size == 0) {
+        return false;
+    }
+
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    RSRoundCornerDisplayCfgTest(data, size);
+    RSRoundCornerDisplayManagerTest(data, size);
+
+    return true;
+}
+
 } // namespace OHOS
 
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
