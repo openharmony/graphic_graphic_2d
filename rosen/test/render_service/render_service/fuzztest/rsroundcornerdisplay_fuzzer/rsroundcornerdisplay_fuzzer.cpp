@@ -55,11 +55,16 @@ T GetData()
     return object;
 }
 
-bool RSRoundCornerDisplayLoadCfgTest(const uint8_t* data, size_t size)
+bool RSRoundCornerDisplayLoadCfgFuzzTest(const uint8_t* data, size_t size)
 {
     if (data == nullptr || size == 0) {
         return false;
     }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
 
     auto& rcdCfg = OHOS::Rosen::RSSingleton<OHOS::Rosen::rs_rcd::RCDConfig>::GetInstance();
     std::string randomConfig(reinterpret_cast<const char*>(data), size);
@@ -68,19 +73,34 @@ bool RSRoundCornerDisplayLoadCfgTest(const uint8_t* data, size_t size)
     return true;
 }
 
-bool RSRoundCornerDisplayGetLcdModelTest(const uint8_t* data, size_t size)
+bool RSRoundCornerDisplayGetLcdModelFuzzTest(const uint8_t* data, size_t size)
 {
     if (data == nullptr || size == 0) {
         return false;
     }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
     auto& rcdCfg = OHOS::Rosen::RSSingleton<OHOS::Rosen::rs_rcd::RCDConfig>::GetInstance();
     rcdCfg.Load(std::string(OHOS::Rosen::rs_rcd::PATH_CONFIG_FILE));
     rcdCfg.GetLcdModel(std::string(reinterpret_cast<const char*>(data), size));
     return true;
 }
 
-void RSRoundCornerDisplayGetRogTest()
+bool RSRoundCornerDisplayGetRogFuzzTest(const uint8_t* data, size_t size)
 {
+    if (data == nullptr || size == 0) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
     auto w = GetData<int>();
     auto h = GetData<int>();
 
@@ -91,13 +111,20 @@ void RSRoundCornerDisplayGetRogTest()
     if (Lcd != nullptr) {
         Lcd->GetRog(w, h);
     }
+
+    return true;
 }
 
-bool RSRoundCornerDisplayPrintParseRogTest(const uint8_t* data, size_t size)
+bool RSRoundCornerDisplayPrintParseRogFuzzTest(const uint8_t* data, size_t size)
 {
     if (data == nullptr || size == 0) {
         return false;
     }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
 
     auto& rcdCfg = OHOS::Rosen::RSSingleton<OHOS::Rosen::rs_rcd::RCDConfig>::GetInstance();
     rcdCfg.Load(std::string(OHOS::Rosen::rs_rcd::PATH_CONFIG_FILE));
@@ -109,8 +136,8 @@ bool RSRoundCornerDisplayPrintParseRogTest(const uint8_t* data, size_t size)
     auto keya = std::string(reinterpret_cast<const char*>(data), size / 2);
     auto keyb = std::string(reinterpret_cast<const char*>(data), size / 3);
 
-    OHOS::Rosen::rs_rcd::RogPortrait rp{};
-    OHOS::Rosen::rs_rcd::RogLandscape rl{};
+    OHOS::Rosen::rs_rcd::RogPortrait rp {};
+    OHOS::Rosen::rs_rcd::RogLandscape rl {};
     rog.portraitMap[keya] = rp;
     rog.landscapeMap[keyb] = rl;
 
@@ -119,35 +146,37 @@ bool RSRoundCornerDisplayPrintParseRogTest(const uint8_t* data, size_t size)
     return true;
 }
 
-bool RSRoundCornerDisplayCfgTest(const uint8_t* data, size_t size)
+bool RSRoundCornerDisplayAddRoundCornerDisplayFuzzTest(const uint8_t* data, size_t size)
 {
     if (data == nullptr || size == 0) {
         return false;
     }
 
-    RSRoundCornerDisplayLoadCfgTest(data, size);
-    ;
-    RSRoundCornerDisplayGetLcdModelTest(data, size);
-    RSRoundCornerDisplayGetRogTest();
-    RSRoundCornerDisplayPrintParseRogTest(data, size);
-    return true;
-}
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
 
-void RSRoundCornerDisplayAddRoundCornerDisplayTest()
-{
     auto& manager = Rosen::RSSingleton<Rosen::RoundCornerDisplayManager>::GetInstance();
 
     Rosen::NodeId id = GetData<Rosen::NodeId>();
     manager.AddRoundCornerDisplay(id);
 
     manager.RemoveRCDResource(id);
+
+    return true;
 }
 
-bool RSRoundCornerDisplayAddLayerTest(const uint8_t* data, size_t size)
+bool RSRoundCornerDisplayAddLayerFuzzTest(const uint8_t* data, size_t size)
 {
     if (data == nullptr || size == 0) {
         return false;
     }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
 
     auto& manager = Rosen::RSSingleton<Rosen::RoundCornerDisplayManager>::GetInstance();
 
@@ -163,18 +192,38 @@ bool RSRoundCornerDisplayAddLayerTest(const uint8_t* data, size_t size)
     return true;
 }
 
-void RSRoundCornerDisplayRemoveRCDResourceTest()
+bool RSRoundCornerDisplayRemoveRCDResourceFuzzTest(const uint8_t* data, size_t size)
 {
+    if (data == nullptr || size == 0) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
     auto& manager = Rosen::RSSingleton<Rosen::RoundCornerDisplayManager>::GetInstance();
 
     Rosen::NodeId id = GetData<Rosen::NodeId>();
 
     manager.RemoveRCDResource(id);
+
+    return true;
 }
 
 bool RSRoundCornerDisplayManagerAPIsTest(
     const uint8_t* data, size_t size, Rosen::NodeId lid, RCDLayerType lType, std::string lName, bool isRCDSet = false)
 {
+    if (data == nullptr || size == 0) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
     Rosen::NodeId id {};
     RCDLayerType layerType {};
     std::string layerName {};
@@ -183,8 +232,6 @@ bool RSRoundCornerDisplayManagerAPIsTest(
         id = lid;
         layerType = lType;
         layerName = lName;
-    } else if (data == nullptr || size == 0) {
-        return false;
     } else {
         id = GetData<Rosen::NodeId>();
         layerName = std::string(reinterpret_cast<const char*>(data), size);
@@ -247,12 +294,18 @@ bool RSRoundCornerDisplayManagerAPIsTest(
     return true;
 }
 
-bool RSRoundCornerDisplayManagerTest(const uint8_t* data, size_t size)
+bool RSRoundCornerDisplayManagerAPIsFuzzTest(const uint8_t* data, size_t size)
 {
     if (data == nullptr || size == 0) {
         return false;
     }
 
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    // rcd stub
     Rosen::NodeId randomId = GetData<Rosen::NodeId>();
     std::string layerName(reinterpret_cast<const char*>(data), size);
 
@@ -262,13 +315,10 @@ bool RSRoundCornerDisplayManagerTest(const uint8_t* data, size_t size)
 
     auto& manager = Rosen::RSSingleton<Rosen::RoundCornerDisplayManager>::GetInstance();
 
-    RSRoundCornerDisplayAddRoundCornerDisplayTest();
-    RSRoundCornerDisplayAddLayerTest(data, size);
-    RSRoundCornerDisplayRemoveRCDResourceTest();
-
     // test manager APIs without add rcd
     RSRoundCornerDisplayManagerAPIsTest(data, size, randomId, layerType, layerName);
 
+    // test manager APIs with add rcd
     manager.AddRoundCornerDisplay(randomId);
     manager.AddLayer(layerName, randomId, layerType);
     RSRoundCornerDisplayManagerAPIsTest(data, size, randomId, layerType, layerName, true);
@@ -276,19 +326,21 @@ bool RSRoundCornerDisplayManagerTest(const uint8_t* data, size_t size)
     return true;
 }
 
-bool RSRoundCornerDisplayTest(const uint8_t* data, size_t size)
+bool RSRoundCornerDisplayFuzzTest(const uint8_t* data, size_t size)
 {
-    // prepare data
     if (data == nullptr || size == 0) {
         return false;
     }
 
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
+    RSRoundCornerDisplayLoadCfgFuzzTest(data, size);
+    RSRoundCornerDisplayGetLcdModelFuzzTest(data, size);
+    RSRoundCornerDisplayGetRogFuzzTest(data, size);
+    RSRoundCornerDisplayPrintParseRogFuzzTest(data, size);
 
-    RSRoundCornerDisplayCfgTest(data, size);
-    RSRoundCornerDisplayManagerTest(data, size);
+    RSRoundCornerDisplayAddRoundCornerDisplayFuzzTest(data, size);
+    RSRoundCornerDisplayAddLayerFuzzTest(data, size);
+    RSRoundCornerDisplayRemoveRCDResourceFuzzTest(data, size);
+    RSRoundCornerDisplayManagerAPIsFuzzTest(data, size);
 
     return true;
 }
@@ -297,6 +349,6 @@ bool RSRoundCornerDisplayTest(const uint8_t* data, size_t size)
 
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
-    OHOS::RSRoundCornerDisplayTest(data, size);
+    OHOS::RSRoundCornerDisplayFuzzTest(data, size);
     return 0;
 }
