@@ -38,8 +38,10 @@ bool BlurDrawLooperFuzzTest(const uint8_t* data, size_t size)
     float dy = GetObject<float>();
     Color color = Color(GetObject<uint32_t>(), GetObject<uint32_t>(), GetObject<uint32_t>(), GetObject<uint32_t>());
     std::shared_ptr<BlurDrawLooper> blurDrawLooper = BlurDrawLooper::CreateBlurDrawLooper(blurRadius, dx, dy, color);
-    BlurDrawLooper blurDrawLooperTwo = BlurDrawLooper(blurRadius, dx, dy, color);
-    BlurDrawLooper blurDrawLooperThree = BlurDrawLooper(blurRadius, dx, dy, color);
+    BlurDrawLooper blurDrawLooperTwo = BlurDrawLooper(GetObject<float>(), GetObject<float>(), GetObject<float>(),
+        color);
+    BlurDrawLooper blurDrawLooperThree = BlurDrawLooper(GetObject<float>(), GetObject<float>(), GetObject<float>(),
+        color);
     blurDrawLooper->GetRadius();
     blurDrawLooper->GetXOffset();
     blurDrawLooper->GetYOffset();

@@ -121,14 +121,6 @@ bool PathFuzzTest001(const uint8_t* data, size_t size)
  * 6. CubicTo(...)
  * 7. QuadTo(...)
  * 8. QuadTo(...)
- * 9. ConicTo(...)
- * 10. RMoveTo(...)
- * 11. RLineTo(...)
- * 12. RArcTo(...)
- * 13. RCubicTo(...)
- * 14. RQuadTo(...)
- * 15. RConicTo(...)
- * 16. GetPositionAndTangent(...)
  */
 bool PathFuzzTest002(const uint8_t* data, size_t size)
 {
@@ -161,16 +153,6 @@ bool PathFuzzTest002(const uint8_t* data, size_t size)
     path.CubicTo(ptOne, ptTwo, ptEnd);
     path.QuadTo(ptOneX, ptOneY, endPtX, endPtY);
     path.QuadTo(ptOne, ptEnd);
-    path.ConicTo(ptOneX, ptOneY, endPtX, endPtY, sweepAngle);
-    path.RMoveTo(ptOneX, ptOneY);
-    path.RLineTo(ptOneX, ptOneY);
-    path.RArcTo(ptOneX, ptOneY, startAngle, static_cast<PathDirection>(direction % DIRECTION_SIZE), ptTwoX, ptTwoY);
-    path.RCubicTo(ptOneX, ptOneY, ptTwoX, ptTwoY, endPtX, endPtY);
-    path.RQuadTo(ptOneX, ptOneY, ptTwoX, ptTwoY);
-    path.RConicTo(ptOneX, ptOneY, endPtX, endPtY, sweepAngle);
-    scalar distance = GetObject<scalar>();
-    bool forceClosed = GetObject<bool>();
-    path.GetPositionAndTangent(distance, ptOne, ptTwo, forceClosed);
     return true;
 }
 
@@ -237,15 +219,6 @@ bool PathFuzzTest003(const uint8_t* data, size_t size)
  * 8. SetFillStyle(...)
  * 9. BuildFromInterpolate(...)
  * 10. Transform(...)
- * 11. TransformWithPerspectiveClip(...)
- * 12. Offset(...)
- * 13. Offset(...)
- * 14. IsValid()
- * 15. GetLength(...)
- * 16. IsClosed(...)
- * 17. GetMatrix(...)
- * 18. Serialize()
- * 19. Deserialize(...)
  */
 bool PathFuzzTest004(const uint8_t* data, size_t size)
 {
@@ -276,19 +249,6 @@ bool PathFuzzTest004(const uint8_t* data, size_t size)
     path.SetFillStyle(static_cast<PathFillType>(fillstyle % FILLTYPE_SIZE));
     path.BuildFromInterpolate(src, ending, weight);
     path.Transform(matrix);
-    bool applyPerspectiveClip = GetObject<bool>();
-    path.TransformWithPerspectiveClip(matrix, &src, applyPerspectiveClip);
-    path.Offset(ptx, pty);
-    path.Offset(&src, ptx, pty);
-    path.IsValid();
-    bool forceClosed = GetObject<bool>();
-    path.GetLength(forceClosed);
-    path.IsClosed(forceClosed);
-    float distance = GetObject<float>();
-    uint32_t flags = GetObject<uint32_t>();
-    path.GetMatrix(forceClosed, distance, &matrix, static_cast<PathMeasureMatrixFlags>(flags % MATRIXFLAG_SIZE));
-    path.Serialize();
-    path.Deserialize(nullptr);
     return true;
 }
 
@@ -375,6 +335,108 @@ bool PathFuzzTest007(const uint8_t* data, size_t size)
     path.GetSegment(GetObject<scalar>(), GetObject<scalar>(), nullptr, GetObject<bool>(), GetObject<bool>());
     return true;
 }
+
+/*
+ * 测试以下 Path 接口：
+ * 1. Path()
+ * 2. ConicTo(...)
+ * 3. RMoveTo(...)
+ * 4. RLineTo(...)
+ * 5. RArcTo(...)
+ * 6. RCubicTo(...)
+ * 7. RQuadTo(...)
+ * 8. RConicTo(...)
+ * 9. GetPositionAndTangent(...)
+ */
+bool PathFuzzTest008(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    Path path;
+    scalar ptOneX = GetObject<scalar>();
+    scalar ptOneY = GetObject<scalar>();
+    scalar sweepAngle = GetObject<scalar>();
+    scalar endPtX = GetObject<scalar>();
+    scalar endPtY = GetObject<scalar>();
+
+    path.ConicTo(ptOneX, ptOneY, endPtX, endPtY, sweepAngle);
+    path.RMoveTo(GetObject<scalar>(), GetObject<scalar>());
+    path.RLineTo(GetObject<scalar>(), GetObject<scalar>());
+    uint32_t direction = GetObject<uint32_t>();
+    path.RArcTo(GetObject<scalar>(), GetObject<scalar>(), GetObject<scalar>(),
+        static_cast<PathDirection>(direction % DIRECTION_SIZE), GetObject<scalar>(), GetObject<scalar>());
+    path.RCubicTo(GetObject<scalar>(), GetObject<scalar>(), GetObject<scalar>(), GetObject<scalar>(),
+        GetObject<scalar>(), GetObject<scalar>());
+    path.RQuadTo(GetObject<scalar>(), GetObject<scalar>(), GetObject<scalar>(), GetObject<scalar>());
+    path.RConicTo(GetObject<scalar>(), GetObject<scalar>(), GetObject<scalar>(), GetObject<scalar>(),
+        GetObject<scalar>());
+    scalar distance = GetObject<scalar>();
+    bool forceClosed = GetObject<bool>();
+    ptOneX = GetObject<scalar>();
+    ptOneY = GetObject<scalar>();
+    scalar ptTwoX = GetObject<scalar>();
+    scalar ptTwoY = GetObject<scalar>();
+    Point ptOne {ptOneX, ptOneY};
+    Point ptTwo {ptTwoX, ptTwoY};
+    path.GetPositionAndTangent(distance, ptOne, ptTwo, forceClosed);
+    return true;
+}
+
+/*
+ * 测试以下 Path 接口：
+ * 1. Path()
+ * 2. TransformWithPerspectiveClip(...)
+ * 3. Offset(...)
+ * 4. Offset(...)
+ * 5. IsValid()
+ * 6. GetLength(...)
+ * 7. IsClosed(...)
+ * 8. GetMatrix(...)
+ * 9. Serialize()
+ * 10. Deserialize(...)
+ */
+bool PathFuzzTest009(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    Path path;
+    Path src;
+    Path ending;
+    scalar ptx = GetObject<scalar>();
+    scalar pty = GetObject<scalar>();
+    Matrix matrix;
+    bool applyPerspectiveClip = GetObject<bool>();
+    path.TransformWithPerspectiveClip(matrix, &src, applyPerspectiveClip);
+    path.Offset(ptx, pty);
+    ptx = GetObject<scalar>();
+    pty = GetObject<scalar>();
+    path.Offset(&src, ptx, pty);
+    path.IsValid();
+    bool forceClosed = GetObject<bool>();
+    path.GetLength(forceClosed);
+    path.IsClosed(forceClosed);
+    float distance = GetObject<float>();
+    uint32_t flags = GetObject<uint32_t>();
+    path.GetMatrix(forceClosed, distance, &matrix, static_cast<PathMeasureMatrixFlags>(flags % MATRIXFLAG_SIZE));
+    path.Serialize();
+    path.Deserialize(nullptr);
+    return true;
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
@@ -392,5 +454,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::Drawing::PathFuzzTest005(data, size);
     OHOS::Rosen::Drawing::PathFuzzTest006(data, size);
     OHOS::Rosen::Drawing::PathFuzzTest007(data, size);
+    OHOS::Rosen::Drawing::PathFuzzTest008(data, size);
+    OHOS::Rosen::Drawing::PathFuzzTest009(data, size);
     return 0;
 }

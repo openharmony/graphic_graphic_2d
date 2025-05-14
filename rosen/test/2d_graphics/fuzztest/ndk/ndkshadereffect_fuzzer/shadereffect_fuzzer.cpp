@@ -55,7 +55,7 @@ void NativeShaderEffectTest001(const uint8_t* data, size_t size)
     float x = GetObject<float>();
     float y = GetObject<float>();
     OH_Drawing_Point* startPt = OH_Drawing_PointCreate(x, y);
-    OH_Drawing_Point* endPt = OH_Drawing_PointCreate(x, y);
+    OH_Drawing_Point* endPt = OH_Drawing_PointCreate(GetObject<float>(), GetObject<float>());
     uint32_t format = GetObject<uint32_t>() % MAX_ARRAY_SIZE;
     uint32_t* colors = new uint32_t[format];
     for (size_t i = 0; i < format; i++) {
@@ -111,7 +111,8 @@ void NativeShaderEffectTest002(const uint8_t* data, size_t size)
     OH_Drawing_ShaderEffect* shaderEffectThree = OH_Drawing_ShaderEffectCreateLinearGradientWithLocalMatrix(&startPoint,
         &endPoint, colors, pos, format, static_cast<OH_Drawing_TileMode>(tileMode % TILE_MODE_ENUM_SIZE), matrix);
     OH_Drawing_ShaderEffect* shaderEffectFour = OH_Drawing_ShaderEffectCreateLinearGradientWithLocalMatrix(nullptr,
-        &endPoint, colors, pos, format, static_cast<OH_Drawing_TileMode>(tileMode % TILE_MODE_ENUM_SIZE), matrix);
+        &endPoint, colors, pos, format, static_cast<OH_Drawing_TileMode>(GetObject<uint32_t>() % TILE_MODE_ENUM_SIZE),
+        matrix);
     OH_Drawing_MatrixDestroy(matrix);
     OH_Drawing_ShaderEffectDestroy(shaderEffectThree);
     OH_Drawing_ShaderEffectDestroy(shaderEffectFour);
@@ -156,11 +157,11 @@ void NativeShaderEffectTest003(const uint8_t* data, size_t size)
     OH_Drawing_ShaderEffect* shaderEffectFour = OH_Drawing_ShaderEffectCreateRadialGradient(centerPt, radius,
         colors, pos, format, static_cast<OH_Drawing_TileMode>(tileMode % TILE_MODE_ENUM_SIZE));
     OH_Drawing_ShaderEffect* shaderEffectFive = OH_Drawing_ShaderEffectCreateRadialGradient(nullptr, radius,
-        colors, pos, format, static_cast<OH_Drawing_TileMode>(tileMode % TILE_MODE_ENUM_SIZE));
+        colors, pos, format, static_cast<OH_Drawing_TileMode>(GetObject<uint32_t>() % TILE_MODE_ENUM_SIZE));
     OH_Drawing_ShaderEffect* shaderEffectSix = OH_Drawing_ShaderEffectCreateSweepGradient(centerPt, colors,
-        pos, format, static_cast<OH_Drawing_TileMode>(tileMode % TILE_MODE_ENUM_SIZE));
+        pos, format, static_cast<OH_Drawing_TileMode>(GetObject<uint32_t>() % TILE_MODE_ENUM_SIZE));
     OH_Drawing_ShaderEffect* shaderEffectSeven = OH_Drawing_ShaderEffectCreateSweepGradient(nullptr, colors,
-        pos, format, static_cast<OH_Drawing_TileMode>(tileMode % TILE_MODE_ENUM_SIZE));
+        pos, format, static_cast<OH_Drawing_TileMode>(GetObject<uint32_t>() % TILE_MODE_ENUM_SIZE));
     if (colors != nullptr) {
         delete[] colors;
         colors = nullptr;
@@ -202,7 +203,8 @@ void NativeShaderEffectTest004(const uint8_t* data, size_t size)
     OH_Drawing_ShaderEffect* shaderEffectFive = OH_Drawing_ShaderEffectCreateRadialGradientWithLocalMatrix(&centerPoint,
         radius, colors, pos, format, static_cast<OH_Drawing_TileMode>(tileMode % TILE_MODE_ENUM_SIZE), matrix);
     OH_Drawing_ShaderEffect* shaderEffectSix = OH_Drawing_ShaderEffectCreateRadialGradientWithLocalMatrix(nullptr,
-        radius, colors, pos, format, static_cast<OH_Drawing_TileMode>(tileMode % TILE_MODE_ENUM_SIZE), matrix);
+        radius, colors, pos, format, static_cast<OH_Drawing_TileMode>(GetObject<uint32_t>() % TILE_MODE_ENUM_SIZE),
+        matrix);
     OH_Drawing_Image* image = OH_Drawing_ImageCreate();
     uint32_t filterMode = GetObject<uint32_t>();
     uint32_t mipmapMode = GetObject<uint32_t>();
@@ -210,14 +212,14 @@ void NativeShaderEffectTest004(const uint8_t* data, size_t size)
         static_cast<OH_Drawing_FilterMode>(filterMode % FILTER_MODE_ENUM_SIZE),
         static_cast<OH_Drawing_MipmapMode>(mipmapMode % MIP_MAP_MODE_ENUM_SIZE));
     OH_Drawing_ShaderEffect* shaderEffectSeven = OH_Drawing_ShaderEffectCreateImageShader(image,
-        static_cast<OH_Drawing_TileMode>(tileMode % TILE_MODE_ENUM_SIZE),
-        static_cast<OH_Drawing_TileMode>(tileMode % TILE_MODE_ENUM_SIZE), samplingOptions, matrix);
+        static_cast<OH_Drawing_TileMode>(GetObject<uint32_t>() % TILE_MODE_ENUM_SIZE),
+        static_cast<OH_Drawing_TileMode>(GetObject<uint32_t>() % TILE_MODE_ENUM_SIZE), samplingOptions, matrix);
     OH_Drawing_ShaderEffect* shaderEffectEight = OH_Drawing_ShaderEffectCreateImageShader(nullptr,
-        static_cast<OH_Drawing_TileMode>(tileMode % TILE_MODE_ENUM_SIZE),
-        static_cast<OH_Drawing_TileMode>(tileMode % TILE_MODE_ENUM_SIZE), samplingOptions, matrix);
+        static_cast<OH_Drawing_TileMode>(GetObject<uint32_t>() % TILE_MODE_ENUM_SIZE),
+        static_cast<OH_Drawing_TileMode>(GetObject<uint32_t>() % TILE_MODE_ENUM_SIZE), samplingOptions, matrix);
     OH_Drawing_ShaderEffect* shaderEffectNine = OH_Drawing_ShaderEffectCreateImageShader(image,
-        static_cast<OH_Drawing_TileMode>(tileMode % TILE_MODE_ENUM_SIZE),
-        static_cast<OH_Drawing_TileMode>(tileMode % TILE_MODE_ENUM_SIZE), samplingOptions, nullptr);
+        static_cast<OH_Drawing_TileMode>(GetObject<uint32_t>() % TILE_MODE_ENUM_SIZE),
+        static_cast<OH_Drawing_TileMode>(GetObject<uint32_t>() % TILE_MODE_ENUM_SIZE), samplingOptions, nullptr);
     if (colors != nullptr) {
         delete[] colors;
         colors = nullptr;

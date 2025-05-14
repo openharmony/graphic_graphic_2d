@@ -20,6 +20,7 @@
 #include "get_object.h"
 
 #include "drawing_error_code.h"
+#include "drawing_path.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -38,7 +39,15 @@ void NativeErrorCodeTest(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
 
+    OH_Drawing_ErrorCodeReset();
+    float x = GetObject<float>();
+    float y = GetObject<float>();
+    OH_Drawing_PathLineTo(nullptr, x, y);
     OH_Drawing_ErrorCodeGet();
+    OH_Drawing_Path* path = OH_Drawing_PathCreate();
+    OH_Drawing_PathLineTo(path, GetObject<float>(), GetObject<float>());
+    OH_Drawing_ErrorCodeGet();
+    OH_Drawing_PathDestroy(path);
 }
 
 } // namespace Drawing
