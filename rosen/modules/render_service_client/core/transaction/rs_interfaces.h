@@ -306,6 +306,18 @@ public:
 
     void NotifyRefreshRateEvent(const EventInfo& eventInfo);
 
+    /*
+    * @brief Support setting softVsync frame rate through windowId
+    * @param eventInfos a map,key is windowId, value is eventInfo
+    */
+    void SetWindowExpectedRefreshRate(const std::unordered_map<uint64_t, EventInfo>& eventInfos);
+
+    /*
+    * @brief Support setting softVsync frame rate through vsyncName
+    * @param eventInfos a map,key is vsyncName, value is eventInfo
+    */
+    void SetWindowExpectedRefreshRate(const std::unordered_map<std::string, EventInfo>& eventInfos);
+
     bool NotifySoftVsyncRateDiscountEvent(uint32_t pid, const std::string &name, uint32_t rateDiscount);
 
     void NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt);

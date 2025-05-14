@@ -18,6 +18,7 @@
 
 #include <vector>
 #include <parcel.h>
+#include <message_parcel.h>
 
 #include "common/rs_macros.h"
 
@@ -31,6 +32,46 @@ struct EventInfo {
     uint32_t minRefreshRate; // the desired min refresh rate, e.g.60
     uint32_t maxRefreshRate; // the desired max refresh rate, e.g.120
     std::string description; // the extend description for eventName，e.g."SCENE_APP_START_ANIMATION"
+
+    bool Serialize(MessageParcel& parcel) const
+    {
+        if (!parcel.WriteString(eventName)) {
+            return false;
+        }
+        if (!parcel.WriteBool(eventStatus)) {
+            return false;
+        }
+        if (!parcel.WriteUint32(minRefreshRate)) {
+            return false;
+        }
+        if (!parcel.WriteUint32(maxRefreshRate)) {
+            return false;
+        }
+        if (!parcel.WriteString(description)) {
+            return false;
+        }
+        return true;
+    }
+
+    static bool Deserialize(MessageParcel& parcel, EventInfo& info)
+    {
+        if (!parcel.ReadString(info.eventName)) {
+            return false;
+        }
+        if (!parcel.ReadBool(info.eventStatus)) {
+            return false;
+        }
+        if (!parcel.ReadUint32(info.minRefreshRate)) {
+            return false;
+        }
+        if (!parcel.ReadUint32(info.maxRefreshRate)) {
+            return false;
+        }
+        if (!parcel.ReadString(info.description)) {
+            return false;
+        }
+        return true;
+    }
 };
 
 } // namespace Rosen

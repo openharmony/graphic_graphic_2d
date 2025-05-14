@@ -901,6 +901,16 @@ void RSInterfaces::NotifyRefreshRateEvent(const EventInfo& eventInfo)
     renderServiceClient_->NotifyRefreshRateEvent(eventInfo);
 }
 
+void RSInterfaces::SetWindowExpectedRefreshRate(const std::unordered_map<uint64_t, EventInfo>& eventInfos)
+{
+    renderServiceClient_->SetWindowExpectedRefreshRate(eventInfos);
+}
+
+void RSInterfaces::SetWindowExpectedRefreshRate(const std::unordered_map<std::string, EventInfo>& eventInfos)
+{
+    renderServiceClient_->SetWindowExpectedRefreshRate(eventInfos);
+}
+
 bool RSInterfaces::NotifySoftVsyncRateDiscountEvent(uint32_t pid, const std::string &name, uint32_t rateDiscount)
 {
     return renderServiceClient_->NotifySoftVsyncRateDiscountEvent(pid, name, rateDiscount);

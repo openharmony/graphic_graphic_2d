@@ -410,6 +410,7 @@ VsyncError VSyncDistributor::AddConnection(const sptr<VSyncConnection>& connecti
     }
     RS_TRACE_NAME_FMT("Add VSyncConnection: %s", connection->info_.name_.c_str());
     connections_.push_back(connection);
+    connMap_[connection->id_] = connection;
     // Start of DVSync
     DVSyncAddConnection(connection);
     // End of DVSync
@@ -451,6 +452,7 @@ VsyncError VSyncDistributor::RemoveConnection(const sptr<VSyncConnection>& conne
     }
     RS_TRACE_NAME_FMT("Remove VSyncConnection: %s", connection->info_.name_.c_str());
     connections_.erase(it);
+    connMap_.erase(connection->id_);
     connectionCounter_[proxyPid]--;
     if (connectionCounter_[proxyPid] == 0) {
         connectionCounter_.erase(proxyPid);
@@ -1215,6 +1217,8 @@ VsyncError VSyncDistributor::SetQosVSyncRateByPid(uint32_t pid, int32_t rate, bo
         if (connection->highPriorityRate_ != rate) {
             connection->highPriorityRate_ = rate;
             connection->highPriorityState_ = true;
+            RS_TRACE_NAME_FMT("VSyncDistributor::SetQosVSyncRateByPid pid:%u, rate:%d, connName:%s",
+                pid, rate, connection->info_.name_.c_str());
             VLOGD("in, conn name:%{public}s, highPriorityRate:%{public}d", connection->info_.name_.c_str(),
                 connection->highPriorityRate_);
             isNeedNotify = true;
@@ -1323,6 +1327,37 @@ VsyncError VSyncDistributor::SetVsyncRateDiscountLTPS(uint32_t pid, const std::s
     return VSYNC_ERROR_OK;
 }
 
+VsyncError VSyncDistributor::SetQosVSyncRateByConnId(uint64_t connId, int32_t rate)
+{
+    std::lock_guard<std::mutex> locker(mutex_);
+    auto conn = connMap_.find(connId);
+    bool isNeedNotify = false;
+    if (conn != connMap_.end()) {
+        auto connection = conn->second;
+
+        if (connection != nullptr && connection->highPriorityRate_ != rate) {
+            connection->highPriorityRate_ = rate;
+            connection->highPriorityState_ = rate != 1;
+            RS_TRACE_NAME_FMT("VSyncDistributor::SetQosVSyncRateByConnId connId:%lu, rate:%d, connName:%s",
+                connId, rate, connection->info_.name_.c_str());
+            VLOGD("in, conn name:%{public}s, highPriorityRate:%{public}d", connection->info_.name_.c_str(),
+                connection->highPriorityRate_);
+            isNeedNotify = true;
+        }
+    }
+    if (isNeedNotify) {
+#if defined(RS_ENABLE_DVSYNC)
+        if (dvsync_->IsFeatureEnabled()) {
+            con_.notify_all();
+        } else
+#endif
+        {
+            EnableVSync();
+        }
+    }
+    return VSYNC_ERROR_OK;
+}
+
 VsyncError VSyncDistributor::SetQosVSyncRate(uint64_t windowNodeId, int32_t rate, bool isSystemAnimateScene)
 {
     std::lock_guard<std::mutex> locker(mutex_);
@@ -1336,6 +1371,8 @@ VsyncError VSyncDistributor::SetQosVSyncRate(uint64_t windowNodeId, int32_t rate
         if (connection != nullptr && connection->highPriorityRate_ != rate) {
             connection->highPriorityRate_ = rate;
             connection->highPriorityState_ = true;
+            RS_TRACE_NAME_FMT("VSyncDistributor::SetQosVSyncRateByWindowId windowNodeId:%lu, rate:%d, connName:%s",
+                windowNodeId, rate, connection->info_.name_.c_str());
             VLOGD("in, conn name:%{public}s, highPriorityRate:%{public}d", connection->info_.name_.c_str(),
                 connection->highPriorityRate_);
             isNeedNotify = true;

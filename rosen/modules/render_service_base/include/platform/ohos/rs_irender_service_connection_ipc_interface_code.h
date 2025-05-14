@@ -199,6 +199,8 @@ enum class RSIRenderServiceConnectionInterfaceCode : CodeUnderlyingType {
     NOTIFY_HGMCONFIG_EVENT = 1006,
     NOTIFY_SCREEN_SWITCHED = 1007,
     NOTIFY_SOFT_VSYNC_RATE_DISCOUNT_EVENT = 1010,
+    NOTIFY_WINDOW_EXPECTED_BY_WINDOW_ID = 1011,
+    NOTIFY_WINDOW_EXPECTED_BY_VSYNC_NAME = 1012,
 };
 } // namespace Rosen
 } // namespace OHOS

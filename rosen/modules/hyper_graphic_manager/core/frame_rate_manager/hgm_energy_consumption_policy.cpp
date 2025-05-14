@@ -339,15 +339,16 @@ bool HgmEnergyConsumptionPolicy::GetVideoCallVsyncChange()
     return result;
 }
 
-void HgmEnergyConsumptionPolicy::GetVideoCallFrameRate(
+bool HgmEnergyConsumptionPolicy::GetVideoCallFrameRate(
     pid_t pid, const std::string& vsyncName, FrameRateRange& finalRange)
 {
     if (!isEnableVideoCall_.load() || pid != videoCallPid_.load() || vsyncName != videoCallVsyncName_ ||
         !isOnlyVideoCallExist_.load() || videoCallMaxFrameRate_ == 0) {
-        return;
+        return false;
     }
     finalRange.Merge({ OLED_NULL_HZ, OLED_144_HZ, videoCallMaxFrameRate_ });
     RS_TRACE_NAME_FMT("GetVideoCallFrameRate limit video call frame rate %d", finalRange.preferred_);
+    return true;
 }
 
 void HgmEnergyConsumptionPolicy::SetCurrentPkgName(const std::vector<std::string>& pkgs)

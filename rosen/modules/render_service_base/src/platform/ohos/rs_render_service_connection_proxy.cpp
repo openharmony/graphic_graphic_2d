@@ -34,6 +34,8 @@ static constexpr int MAX_RETRY_COUNT = 20;
 static constexpr int RETRY_WAIT_TIME_US = 1000; // wait 1ms before retry SendRequest
 static constexpr int MAX_SECURITY_EXEMPTION_LIST_NUMBER = 1024; // securityExemptionList size not exceed 1024
 static constexpr uint32_t EDID_DATA_MAX_SIZE = 64 * 1024;
+static constexpr int MAX_VOTER_SIZE = 100; // SetWindowExpectedRefreshRate map size not exceed 100
+static constexpr int ZERO = 0; // empty map size
 }
 
 RSRenderServiceConnectionProxy::RSRenderServiceConnectionProxy(const sptr<IRemoteObject>& impl)
@@ -4197,6 +4199,88 @@ void RSRenderServiceConnectionProxy::NotifyAppStrategyConfigChangeEvent(const st
     int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSRenderServiceConnectionProxy::NotifyAppStrategyConfigChangeEvent: Send Request err.");
+        return;
+    }
+}
+
+void RSRenderServiceConnectionProxy::SetWindowExpectedRefreshRate(
+    const std::unordered_map<uint64_t, EventInfo>& eventInfos
+)
+{
+    auto mapSize = eventInfos.size();
+    if (mapSize <= ZERO || mapSize > MAX_VOTER_SIZE) {
+        ROSEN_LOGE("SetWindowExpectedRefreshRate: map size err.");
+        return;
+    }
+
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("SetWindowExpectedRefreshRate: WriteInterfaceToken GetDescriptor err.");
+        return;
+    }
+    if (!data.WriteUint32(mapSize)) {
+        ROSEN_LOGE("SetWindowExpectedRefreshRate: WriteUint32 mapSize err.");
+        return;
+    }
+    for (const auto& [key, eventInfo] : eventInfos) {
+        if (!data.WriteUint64(key)) {
+            ROSEN_LOGE("SetWindowExpectedRefreshRate: WriteUint64 key err.");
+            return;
+        }
+        if (!eventInfo.Serialize(data)) {
+            ROSEN_LOGE("SetWindowExpectedRefreshRate: Write eventInfo err.");
+            return;
+        }
+    }
+    option.SetFlags(MessageOption::TF_ASYNC);
+    uint32_t code =
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_WINDOW_EXPECTED_BY_WINDOW_ID);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::SetWindowExpectedRefreshRate: Send Request err.");
+        return;
+    }
+}
+
+void RSRenderServiceConnectionProxy::SetWindowExpectedRefreshRate(
+    const std::unordered_map<std::string, EventInfo>& eventInfos
+)
+{
+    auto mapSize = eventInfos.size();
+    if (mapSize <= ZERO || mapSize > MAX_VOTER_SIZE) {
+        ROSEN_LOGE("SetWindowExpectedRefreshRate: map size err.");
+        return;
+    }
+
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("SetWindowExpectedRefreshRate: WriteInterfaceToken GetDescriptor err.");
+        return;
+    }
+    if (!data.WriteUint32(mapSize)) {
+        ROSEN_LOGE("SetWindowExpectedRefreshRate: WriteUint32 mapSize err.");
+        return;
+    }
+    for (const auto& [key, eventInfo] : eventInfos) {
+        if (!data.WriteString(key)) {
+            ROSEN_LOGE("SetWindowExpectedRefreshRate: WriteString key err.");
+            return;
+        }
+        if (!eventInfo.Serialize(data)) {
+            ROSEN_LOGE("SetWindowExpectedRefreshRate: Write eventInfo err.");
+            return;
+        }
+    }
+    option.SetFlags(MessageOption::TF_ASYNC);
+    uint32_t code =
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_WINDOW_EXPECTED_BY_VSYNC_NAME);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::SetWindowExpectedRefreshRate: Send Request err.");
         return;
     }
 }
