@@ -275,6 +275,7 @@ std::unique_ptr<RSTransactionData>& RSModifiersDrawThread::ConvertTransaction(
                     handles.emplace_back(queue->submit_h(
                         [cmdList = std::move(drawCmdList), nodeId = command->GetNodeId()]() {
                         RSModifiersDraw::ConvertCmdList(cmdList, nodeId);
+                        RSModifiersDraw::PurgeContextResource();
                     }));
                 } else {
                     RSModifiersDraw::ConvertCmdList(drawCmdList, command->GetNodeId());
@@ -290,6 +291,7 @@ std::unique_ptr<RSTransactionData>& RSModifiersDrawThread::ConvertTransaction(
     for (auto& handle : handles) {
         queue->wait(handle);
     }
+    RSModifiersDraw::PurgeContextResource();
 
     return transactionData;
 }

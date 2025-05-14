@@ -27,6 +27,10 @@
 #include "ui/rs_root_node.h"
 #include "ui/rs_ui_director.h"
 
+#ifdef RS_ENABLE_VK
+#include "platform/ohos/backend/rs_vulkan_context.h"
+#endif
+
 using namespace testing;
 using namespace testing::ext;
 
@@ -52,7 +56,12 @@ public:
     void TearDown() override;
 };
 
-void RSUIDirectorTest::SetUpTestCase() {}
+void RSUIDirectorTest::SetUpTestCase()
+{
+#ifdef RS_ENABLE_VK
+    RsVulkanContext::SetRecyclable(false);
+#endif
+}
 void RSUIDirectorTest::TearDownTestCase()
 {
     RSRenderThread::Instance().renderContext_ = nullptr;

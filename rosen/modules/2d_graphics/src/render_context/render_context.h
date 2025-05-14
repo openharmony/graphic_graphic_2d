@@ -55,6 +55,11 @@ public:
         return drGPUContext_;
     }
 
+    void ClearDrGPUContext()
+    {
+        drGPUContext_ = nullptr;
+    }
+
     std::shared_ptr<Drawing::Surface> GetSurface() const
     {
         return surface_;
