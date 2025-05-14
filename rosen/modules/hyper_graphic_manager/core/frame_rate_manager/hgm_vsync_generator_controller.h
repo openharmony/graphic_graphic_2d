@@ -40,7 +40,7 @@ public:
     uint32_t GetCurrentRate() const { return currentRate_; }
     int64_t GetCurrentOffset() const { return currentOffset_; }
     int32_t GetPulseNum() const { return pulseNum_; }
-    bool CheckNeedUpdateAppOffsetRefreshRate(uint32_t refreshRate);
+    static bool CheckNeedUpdateAppOffsetRefreshRate(uint32_t refreshRate);
 private:
     sptr<VSyncController> rsController_;
     sptr<VSyncController> appController_;
