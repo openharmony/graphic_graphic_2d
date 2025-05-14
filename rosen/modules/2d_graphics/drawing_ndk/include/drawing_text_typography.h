@@ -964,7 +964,6 @@ void OH_Drawing_TypographyHandlerAddText(OH_Drawing_TypographyCreate*, const cha
 void OH_Drawing_TypographyHandlerAddEncodedText(OH_Drawing_TypographyCreate* handler, const void* text,
     size_t byteLength, OH_Drawing_TextEncoding textEncodingType);
 
-
 /**
  * @brief Removes the topmost style in the stack, leaving the remaining styles in effect.
  *

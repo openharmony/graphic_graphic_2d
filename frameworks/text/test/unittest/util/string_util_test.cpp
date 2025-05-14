@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -148,6 +148,12 @@ HWTEST_F(StringConvertTest, BoundaryCases, TestSize.Level1)
     // Test maximum surrogate code point
     std::vector<int32_t> maxSurrogate { 0xDFFF };
     EXPECT_EQ(Str32ToStr16ByIcu(maxSurrogate.data(), maxSurrogate.size()), u"\xFFFD");
+
+    // Test minimum code point
+    std::vector<int32_t> zero { 0x0000 };
+    std::u16string result = u"\x00";
+    result.resize(1);
+    EXPECT_EQ(Str32ToStr16ByIcu(zero.data(), zero.size()), result);
 }
 
 /**
@@ -207,7 +213,7 @@ HWTEST_F(StringConvertTest, SingleLowSurrogate, TestSize.Level1)
 HWTEST_F(StringConvertTest, ValidSurrogatePair, TestSize.Level1)
 {
     std::u16string input = u"\xD800\xDC00"; // Valid surrogate pair
-    std::u16string expected = input;
+    std::u16string expected = u"\xD800\xDC00";
     SPText::Utf16Utils::HandleIncompleteSurrogatePairs(input);
     EXPECT_EQ(input, expected);
 }
