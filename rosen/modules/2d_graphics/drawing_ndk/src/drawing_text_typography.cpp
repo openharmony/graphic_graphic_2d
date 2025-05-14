@@ -23,13 +23,14 @@
 #include <vector>
 
 #include "array_mgr.h"
+#include "common_utils/string_util.h"
 #include "font_config.h"
 #include "font_parser.h"
 #include "font_utils.h"
-#include "txt/text_bundle_config_parser.h"
 #include "rosen_text/font_collection.h"
 #include "rosen_text/typography.h"
 #include "rosen_text/typography_create.h"
+#include "txt/text_bundle_config_parser.h"
 #include "unicode/putil.h"
 
 #include "utils/log.h"
@@ -449,6 +450,31 @@ void OH_Drawing_TypographyHandlerAddText(OH_Drawing_TypographyCreate* handler, c
             return;
         }
         wideText = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}.from_bytes(text);
+    }
+
+    ConvertToOriginalText<TypographyCreate>(handler)->AppendText(wideText);
+}
+
+void OH_Drawing_TypographyHandlerAddEncodedText(
+    OH_Drawing_TypographyCreate* handler, const void* text, size_t byteLength, OH_Drawing_TextEncoding textEncodingType)
+{
+    if (!text || !handler || byteLength == 0) {
+        LOGE("null text");
+        return;
+    }
+
+    std::u16string wideText;
+    if (textEncodingType == TEXT_ENCODING_UTF8) {
+        std::string str(static_cast<const char*>(text), byteLength);
+        wideText = Str8ToStr16ByIcu(str);
+    } else if (textEncodingType == TEXT_ENCODING_UTF16) {
+        wideText = std::u16string(static_cast<const char16_t*>(text), byteLength / sizeof(char16_t));
+        SPText::Utf16Utils::HandleIncompleteSurrogatePairs(wideText);
+    } else if (textEncodingType == TEXT_ENCODING_UTF32) {
+        wideText = Str32ToStr16ByIcu(static_cast<const int32_t*>(text), byteLength / sizeof(int32_t));
+    } else {
+        LOGE("unknown text encoding type");
+        return;
     }
 
     ConvertToOriginalText<TypographyCreate>(handler)->AppendText(wideText);

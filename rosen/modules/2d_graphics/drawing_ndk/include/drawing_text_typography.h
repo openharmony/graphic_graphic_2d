@@ -951,6 +951,20 @@ void OH_Drawing_TypographyHandlerPushTextStyle(OH_Drawing_TypographyCreate*, OH_
 void OH_Drawing_TypographyHandlerAddText(OH_Drawing_TypographyCreate*, const char*);
 
 /**
+ * @brief Sets the text content. The content supports UTF-8, UTF-16, and UTF-32 formats.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param handler Indicates the pointer to an <b>OH_Drawing_TypographyCreate</b> object.
+ * @param text Indicates the pointer to the text content to set.
+ * @param byteLength Set the byte length of the text content.
+ * @param textEncodingType Indicates the text encoding type <b>OH_Drawing_TextEncoding</b>.
+ * @since 20
+ * @version 1.0
+ */
+void OH_Drawing_TypographyHandlerAddEncodedText(OH_Drawing_TypographyCreate* handler, const void* text,
+    size_t byteLength, OH_Drawing_TextEncoding textEncodingType);
+
+/**
  * @brief Removes the topmost style in the stack, leaving the remaining styles in effect.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
