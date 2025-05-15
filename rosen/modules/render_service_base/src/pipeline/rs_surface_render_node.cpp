@@ -1686,7 +1686,8 @@ Occlusion::Rect RSSurfaceRenderNode::GetSurfaceOcclusionRect(bool isUniRender)
 {
     Occlusion::Rect occlusionRect;
     if (isUniRender) {
-        occlusionRect = Occlusion::Rect {GetOldDirtyInSurface()};
+        occlusionRect =
+            IsFirstLevelCrossNode() ? Occlusion::Rect {GetAbsDrawRect()} : Occlusion::Rect {GetOldDirtyInSurface()};
     } else {
         occlusionRect = Occlusion::Rect {GetDstRect()};
     }
