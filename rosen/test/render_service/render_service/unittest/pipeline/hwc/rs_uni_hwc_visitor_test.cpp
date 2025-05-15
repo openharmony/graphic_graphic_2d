@@ -2293,4 +2293,24 @@ HWTEST_F(RSUniHwcVisitorTest, IsDisableHwcOnExpandScreen, TestSize.Level2)
     bool result2 = rsUniHwcVisitor->IsDisableHwcOnExpandScreen();
     EXPECT_FALSE(result2);
 }
+
+/**
+ * @tc.name: UpdateCroseInfoForProtectedHwcNode001
+ * @tc.desc: Test UpdateCroseInfoForProtectedHwcNode
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniHwcVisitorTest, UpdateCroseInfoForProtectedHwcNode001, TestSize.level2)
+{
+    auto hwcNode = std::make_shared<RSSurfaceRenderNode>();
+    auto firstLevelNode = std::make_shared<RSSurfaceRenderNode>();
+
+    EXPECT_CALL(*hwcNode, GetSpecialLayerMgr().Find(SpecialLayerType::PROTECTED)).WillOnce(Return(true));
+    EXPECT_CALL(*hwcNode, GetFirstLevelNode()).WillOnce(Return(firstLevelNode));
+    EXPECT_CALL(*firstLevenNode, GetGlobalPositionEnabled()).WillOnce(Return(true));
+    EXPECT_CALL(*firstLevenNode, IsFirstLevelCrossNode()).WillOnce(Return(true));
+    UpdateCroseInfoForProtectedHwcNode(hwcNode);
+    EXPECT_TRUE(hwcNode->IsHwcGlobalPositionEnabled());
+    EXPECT_TRUE(hwcNode->IsHwcCrossNode());
+}
 }

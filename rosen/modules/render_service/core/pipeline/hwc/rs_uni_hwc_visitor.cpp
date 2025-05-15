@@ -950,7 +950,9 @@ void RSUniHwcVisitor::UpdateHwcNodeRectInSkippedSubTree(const RSRenderNode& root
         auto matrix = Drawing::Matrix();
         auto parent = hwcNodePtr->GetCurCloneNodeParent().lock();
         if (parent == nullptr) {
-            parent = hwcNodePtr->GetParent().lock();
+            parent = hwcNodePtr->GetParent().lock();.0
+
+            
         }
         if (!FindRootAndUpdateMatrix(parent, matrix, rootNode)) {
             continue;
