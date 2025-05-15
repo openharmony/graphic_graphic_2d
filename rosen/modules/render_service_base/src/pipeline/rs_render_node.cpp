@@ -65,7 +65,7 @@ namespace OHOS {
 namespace Rosen {
 
 std::unordered_map<pid_t, size_t> RSRenderNode::blurEffectCounter_ = {};
-
+std::unordered_set<NodeId> RSRenderNode::pendingPurgeNodeIds_;
 void RSRenderNode::UpdateBlurEffectCounter(int deltaCount)
 {
     if (LIKELY(deltaCount == 0)) {
@@ -2434,6 +2434,9 @@ void RSRenderNode::CheckFilterCacheAndUpdateDirtySlots(
         return;
     }
     filterDrawable->MarkNeedClearFilterCache();
+    if (filterDrawable->IsPendingPurge()) {
+        pendingPurgeNodeIds_.insert(GetId());
+    }
     UpdateDirtySlotsAndPendingNodes(slot);
 }
 #endif
@@ -2719,6 +2722,10 @@ CM_INLINE void RSRenderNode::ApplyModifiers()
     RS_LOGI_IF(DEBUG_NODE, "RSRenderNode::apply modifiers isFullChildrenListValid_:%{public}d"
         " isChildrenSorted_:%{public}d childrenHasSharedTransition_:%{public}d",
         isFullChildrenListValid_, isChildrenSorted_, childrenHasSharedTransition_);
+    if (pendingPurgeNodeIds_.count(GetId())) {
+        SetDirty();
+        pendingPurgeNodeIds_.erase(GetId());
+    }
     if (const auto& sharedTransitionParam = GetSharedTransitionParam()) {
         sharedTransitionParam->UpdateHierarchy(GetId());
         SharedTransitionParam::UpdateUnpairedSharedTransitionMap(sharedTransitionParam);

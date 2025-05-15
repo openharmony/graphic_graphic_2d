@@ -401,4 +401,23 @@ HWTEST_F(RSPropertyDrawableTest, RSFilterDrawableTest014, TestSize.Level1)
     drawFunc(filterCanvas.get(), &rect);
     EXPECT_NE(filterCanvas->cacheBehindWindowData_, nullptr);
 }
+
+/**
+ * @tc.name: IsPendingPurgeTest
+ * @tc.desc: class RSFilterDrawable IsPendingPurge test
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyDrawableTest, IsPendingPurgeTest, TestSize.Level1)
+{
+    std::shared_ptr<DrawableV2::RSFilterDrawable> filterDrawable = std::make_shared<DrawableV2::RSFilterDrawable>();
+    EXPECT_NE(filterDrawable, nullptr);
+    EXPECT_NE(filterDrawable->stagingCacheManager_, nullptr);
+    EXPECT_FALSE(filterDrawable->IsPendingPurge());
+
+    filterDrawable->stagingCacheManager_->pendingPurge_ = true;
+    EXPECT_TRUE(filterDrawable->IsPendingPurge());
+
+    filterDrawable->stagingCacheManager_ = nullptr;
+    EXPECT_FALSE(filterDrawable->IsPendingPurge());
+}
 } // namespace OHOS::Rosen
