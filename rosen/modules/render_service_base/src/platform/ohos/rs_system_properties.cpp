@@ -1421,8 +1421,8 @@ bool RSSystemProperties::GetHybridRenderDfxEnabled()
 
 uint32_t RSSystemProperties::GetHybridRenderTextBlobLenCount()
 {
-    static uint32_t textBlobLenCount =
-        system::GetIntParameter("persist.sys.graphic.hybrid_render_text_blob_len_count", DEFAULT_TEXTBLOB_LINE_COUNT);
+    static uint32_t textBlobLenCount = static_cast<uint32_t>(
+        system::GetIntParameter("persist.sys.graphic.hybrid_render_text_blob_len_count", DEFAULT_TEXTBLOB_LINE_COUNT));
     return textBlobLenCount;
 }
 
@@ -1479,20 +1479,20 @@ int32_t RSSystemProperties::GetHybridRenderSwitch(ComponentEnableSwitch bitSeq)
         ROSEN_LOGD("GetHybridRenderSwitch access to [%{public}s] is denied", VULKAN_CONFIG_FILE_PATH);
         return 0;
     }
-    static int32_t hybridRenderFeatureSwitch =
-        std::stol((system::GetParameter("const.graphics.hybridrenderfeatureswitch", "0x00")).c_str(), nullptr, 16);
+    static uint32_t hybridRenderFeatureSwitch =
+        std::stoul((system::GetParameter("const.graphics.hybridrenderfeatureswitch", "0x00")).c_str(), nullptr, 16);
     static std::vector<int> hybridRenderSystemProperty(std::size(ComponentSwitchTable));
 
     if (!GetHybridRenderEnabled()) {
         return 0;
     }
 
-    hybridRenderSystemProperty[static_cast<int>(bitSeq)] =
-        ComponentSwitchTable[static_cast<int>(bitSeq)].ComponentHybridSwitch();
+    hybridRenderSystemProperty[static_cast<uint32_t>(bitSeq)] =
+        ComponentSwitchTable[static_cast<uint32_t>(bitSeq)].ComponentHybridSwitch();
 
-    return (GetHybridRenderCcmEnabled() && (!hybridRenderFeatureSwitch ?
-        1 : (1 << static_cast<int>(bitSeq)) & hybridRenderFeatureSwitch)) ||
-        hybridRenderSystemProperty[static_cast<int>(bitSeq)];
+    return (GetHybridRenderCcmEnabled() && (hybridRenderFeatureSwitch != 0 ?
+        1 : (1 << static_cast<uint32_t>(bitSeq)) & hybridRenderFeatureSwitch)) ||
+        hybridRenderSystemProperty[static_cast<uint32_t>(bitSeq)];
 }
 
 bool RSSystemProperties::GetVKImageUseEnabled()
@@ -1513,5 +1513,14 @@ bool RSSystemProperties::GetDebugFmtTraceEnabled()
     return GetDebugTraceEnabled() || debugFmtTraceEnable_;
 }
 
+void RSSystemProperties::SetBehindWindowFilterEnabled(bool enabled)
+{
+    isBehindWindowFilterEnabled_ = enabled;
+}
+
+bool RSSystemProperties::GetBehindWindowFilterEnabled()
+{
+    return isBehindWindowFilterEnabled_;
+}
 } // namespace Rosen
 } // namespace OHOS

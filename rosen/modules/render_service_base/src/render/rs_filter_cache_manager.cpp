@@ -594,6 +594,11 @@ bool RSFilterCacheManager::NeedPendingPurge() const
     return !stagingFilterInteractWithDirty_ && pendingPurge_;
 }
 
+bool RSFilterCacheManager::IsPendingPurge() const
+{
+    return pendingPurge_;
+}
+
 void RSFilterCacheManager::ClearFilterCache()
 {
     // 1. clear memory when region changed and is not the first time occured.

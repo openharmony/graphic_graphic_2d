@@ -88,6 +88,11 @@ const Vector2f& ParticleRenderParams::GetImageSize() const
     return emitterConfig_.imageSize_;
 }
 
+const std::shared_ptr<Shape>& ParticleRenderParams::GetShape() const
+{
+    return emitterConfig_.shape_;
+}
+
 float ParticleRenderParams::GetVelocityStartValue() const
 {
     return velocity_.velocityValue_.start_;
@@ -619,7 +624,8 @@ void RSRenderParticle::InitProperty()
         return;
     }
     position_ = CalculateParticlePosition(
-        particleParams_->GetEmitShape(), particleParams_->GetEmitPosition(), particleParams_->GetEmitSize());
+        particleParams_->GetEmitShape(), particleParams_->GetEmitPosition(), particleParams_->GetEmitSize(),
+        particleParams_->GetShape());
 
     float velocityValue =
         GetRandomValue(particleParams_->GetVelocityStartValue(), particleParams_->GetVelocityEndValue());
@@ -741,8 +747,17 @@ int RSRenderParticle::GenerateColorComponent(double mean, double stddev)
     return component;
 }
 
+void AnnulusRegion::CalculatePosition(float& positionX, float& positionY)
+{
+    float radius = RSRenderParticle::GetRandomValue(innerRadius_, outerRadius_);
+    float theta = RSRenderParticle::GetRandomValue(startAngle_, endAngle_) * DEGREE_TO_RADIAN;
+    positionX = center_.x_ + radius * cos(theta);
+    positionY = center_.y_ + radius * sin(theta);
+}
+
 Vector2f RSRenderParticle::CalculateParticlePosition(
-    const ShapeType& emitShape, const Vector2f& position, const Vector2f& emitSize)
+    const ShapeType& emitShape, const Vector2f& position, const Vector2f& emitSize,
+    const std::shared_ptr<Shape>& shape)
 {
     float positionX = 0.f;
     float positionY = 0.f;
@@ -772,6 +787,9 @@ Vector2f RSRenderParticle::CalculateParticlePosition(
             positionY = y + ry * sin(theta);
         }
     }
+    if (shape && emitShape == ShapeType::ANNULUS) {
+        shape->CalculatePosition(positionX, positionY);
+    }
     return Vector2f { positionX, positionY };
 }
 
@@ -790,6 +808,16 @@ void EmitterUpdater::Dump(std::string& out) const
         out += " emitRate:" + std::to_string(emitRate_.value());
     }
     out += ']';
+}
+
+void EmitterConfig::SetConfigShape(const std::shared_ptr<Shape>& shape)
+{
+    shape_ = shape;
+}
+
+void EmitterUpdater::SetShape(const std::shared_ptr<Shape>& shape)
+{
+    shape_ = shape;
 }
 } // namespace Rosen
 } // namespace OHOS

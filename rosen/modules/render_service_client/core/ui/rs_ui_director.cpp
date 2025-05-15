@@ -202,9 +202,7 @@ void RSUIDirector::GoForeground(bool isTextureExport)
             RSRenderThread::Instance().UpdateWindowStatus(true);
         }
         isActive_ = true;
-        auto rsUIContext = rsUIContext_;
-        auto node = rsUIContext ? rsUIContext->GetNodeMap().GetNode<RSRootNode>(root_)
-                                 : RSNodeMap::Instance().GetNode<RSRootNode>(root_);
+        auto node = rootNode_.lock();
         if (node) {
             node->SetEnableRender(true);
         }
@@ -227,9 +225,7 @@ void RSUIDirector::GoBackground(bool isTextureExport)
             RSRenderThread::Instance().UpdateWindowStatus(false);
         }
         isActive_ = false;
-        auto rsUIContext = rsUIContext_;
-        auto node = rsUIContext ? rsUIContext->GetNodeMap().GetNode<RSRootNode>(root_)
-                                 : RSNodeMap::Instance().GetNode<RSRootNode>(root_);
+        auto node = rootNode_.lock();
         if (node) {
             node->SetEnableRender(false);
         }
@@ -276,16 +272,11 @@ void RSUIDirector::GoBackground(bool isTextureExport)
 
 void RSUIDirector::Destroy(bool isTextureExport)
 {
-    if (root_ != 0) {
+    if (auto node = rootNode_.lock()) {
         if (!isUniRenderEnabled_ || isTextureExport) {
-            auto rsUIContext = rsUIContext_;
-            auto node = rsUIContext ? rsUIContext->GetNodeMap().GetNode<RSRootNode>(root_)
-                                 : RSNodeMap::Instance().GetNode<RSRootNode>(root_);
-            if (node) {
-                node->RemoveFromTree();
-            }
+            node->RemoveFromTree();
         }
-        root_ = 0;
+        rootNode_.reset();
     }
     GoBackground(isTextureExport);
     if (rsUIContext_ != nullptr) {
@@ -300,6 +291,11 @@ void RSUIDirector::SetRSSurfaceNode(std::shared_ptr<RSSurfaceNode> surfaceNode)
 {
     surfaceNode_ = surfaceNode;
     AttachSurface();
+}
+
+std::shared_ptr<RSSurfaceNode> RSUIDirector::GetRSSurfaceNode() const
+{
+    return surfaceNode_.lock();
 }
 
 void RSUIDirector::SetAbilityBGAlpha(uint8_t alpha)
@@ -339,16 +335,23 @@ void RSUIDirector::SetRoot(NodeId root)
 
 void RSUIDirector::AttachSurface()
 {
-    auto rsUIContext = rsUIContext_;
-    auto node = rsUIContext ? rsUIContext->GetNodeMap().GetNode<RSRootNode>(root_)
-                                 : RSNodeMap::Instance().GetNode<RSRootNode>(root_);
     auto surfaceNode = surfaceNode_.lock();
+    auto node = rootNode_.lock();
     if (node != nullptr && surfaceNode != nullptr) {
         node->AttachRSSurfaceNode(surfaceNode);
         ROSEN_LOGD("RSUIDirector::AttachSurface [%{public}" PRIu64, surfaceNode->GetId());
     } else {
         ROSEN_LOGD("RSUIDirector::AttachSurface not ready");
     }
+}
+
+void RSUIDirector::SetRSRootNode(std::shared_ptr<RSRootNode> rootNode)
+{
+    if (rootNode_.lock() == rootNode) {
+        return;
+    }
+    rootNode_ = rootNode;
+    AttachSurface();
 }
 
 void RSUIDirector::SetAppFreeze(bool isAppFreeze)
@@ -467,8 +470,8 @@ void RSUIDirector::SetUITaskRunner(const TaskRunner& uiTaskRunner, int32_t insta
 
 void RSUIDirector::SendMessages()
 {
-    ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "SendCommands");
     if (rsUIContext_) {
+        RS_TRACE_NAME_FMT("multi-intance SendCommands, rsUIContext_:%lu", rsUIContext_->GetToken());
         auto transaction = rsUIContext_->GetRSTransaction();
         if (transaction != nullptr) {
             transaction->FlushImplicitTransaction(timeStamp_, abilityName_);
@@ -477,6 +480,7 @@ void RSUIDirector::SendMessages()
             RS_LOGE_LIMIT(__func__, __line__, "RSUIDirector::SendMessages failed, transaction is nullptr");
         }
     } else {
+        ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "SendCommands");
         auto transactionProxy = RSTransactionProxy::GetInstance();
         if (transactionProxy != nullptr) {
             transactionProxy->FlushImplicitTransaction(timeStamp_, abilityName_);
@@ -484,8 +488,8 @@ void RSUIDirector::SendMessages()
         } else {
             RS_LOGE_LIMIT(__func__, __line__, "RSUIDirector::SendMessages failed, transactionProxy is nullptr");
         }
+        ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
     }
-    ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
 }
 
 uint32_t RSUIDirector::GetIndex() const

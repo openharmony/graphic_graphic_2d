@@ -109,6 +109,8 @@ enum DrawingEffectStrategy {
     PULSE = 6,
     REPLACE_APPEAR = 7,
     REPLACE_DISAPPEAR = 8,
+
+    TEXT_FLIP = 100, // text type start from 100
 };
 
 struct DrawingSymbolLayers {

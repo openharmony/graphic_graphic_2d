@@ -192,4 +192,20 @@ HWTEST_F(RSContextTest, GetAnimatingNodeListTest001, TestSize.Level1)
     rSContext.UnregisterAnimatingRenderNode(1);
     EXPECT_TRUE(rSContext.GetAnimatingNodeList().empty());
 }
+
+/**
+ * @tc.name: GetSetUnirenderVisibleLeashWindowCountTest001
+ * @tc.desc: GetSetUnirenderVisibleLeashWindowCount test.
+ * @tc.type: FUNC
+ * @tc.require: IC7SLW
+ */
+HWTEST_F(RSContextTest, GetSetUnirenderVisibleLeashWindowCountTest001, TestSize.Level1)
+{
+    RSContext rSContext;
+    uint32_t testCount = 1;
+    uint32_t testReturn = 0;
+    rSContext.SetUnirenderVisibleLeashWindowCount(testCount);
+    testReturn = rSContext.GetUnirenderVisibleLeashWindowCount();
+    EXPECT_EQ(testReturn, testCount);
+}
 } // namespace OHOS::Rosen

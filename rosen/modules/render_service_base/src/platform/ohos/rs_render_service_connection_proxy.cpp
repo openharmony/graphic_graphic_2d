@@ -5165,5 +5165,51 @@ ErrCode RSRenderServiceConnectionProxy::NotifyPageName(const std::string &packag
     }
     return ERR_OK;
 }
+
+ErrCode RSRenderServiceConnectionProxy::SetBehindWindowFilterEnabled(bool enabled)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::SetBehindWindowFilterEnabled WriteInterfaceToken err.");
+        return ERR_INVALID_VALUE;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    if (!data.WriteBool(enabled)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::SetBehindWindowFilterEnabled WriteBool err.");
+        return ERR_INVALID_VALUE;
+    }
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_BEHIND_WINDOW_FILTER_ENABLED);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::SetBehindWindowFilterEnabled sendrequest error : %{public}d", err);
+        return ERR_INVALID_VALUE;
+    }
+    return ERR_OK;
+}
+
+ErrCode RSRenderServiceConnectionProxy::GetBehindWindowFilterEnabled(bool& enabled)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::GetBehindWindowFilterEnabled WriteInterfaceToken err.");
+        return ERR_INVALID_VALUE;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_BEHIND_WINDOW_FILTER_ENABLED);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::GetBehindWindowFilterEnabled sendrequest error : %{public}d", err);
+        return ERR_INVALID_VALUE;
+    }
+    if (!reply.ReadBool(enabled)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::SetBehindWindowFilterEnabled ReadBool err.");
+        return ERR_INVALID_VALUE;
+    }
+    return ERR_OK;
+}
 } // namespace Rosen
 } // namespace OHOS

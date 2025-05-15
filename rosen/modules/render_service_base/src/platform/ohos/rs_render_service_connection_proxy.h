@@ -372,6 +372,10 @@ public:
 
     bool GetHighContrastTextState() override;
 
+    ErrCode SetBehindWindowFilterEnabled(bool enabled) override;
+
+    ErrCode GetBehindWindowFilterEnabled(bool& enabled) override;
+
 private:
     bool FillParcelWithTransactionData(
         std::unique_ptr<RSTransactionData>& transactionData, std::shared_ptr<MessageParcel>& data);

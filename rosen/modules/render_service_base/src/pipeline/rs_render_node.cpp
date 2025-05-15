@@ -65,7 +65,7 @@ namespace OHOS {
 namespace Rosen {
 
 std::unordered_map<pid_t, size_t> RSRenderNode::blurEffectCounter_ = {};
-
+std::unordered_set<NodeId> RSRenderNode::pendingPurgeNodeIds_;
 void RSRenderNode::UpdateBlurEffectCounter(int deltaCount)
 {
     if (LIKELY(deltaCount == 0)) {
@@ -831,6 +831,11 @@ void RSRenderNode::DumpTree(int32_t depth, std::string& out) const
     
     DumpSubClassNode(out);
     out += ", Properties: " + GetRenderProperties().Dump();
+    if (uiContextToken_ > 0) {
+        out += ", RSUIContextToken: " + std::to_string(uiContextToken_);
+    } else {
+        out += ", RSUIContextToken: NO_RSUIContext";
+    }
     if (GetBootAnimation()) {
         out += ", GetBootAnimation: true";
     }
@@ -2434,6 +2439,9 @@ void RSRenderNode::CheckFilterCacheAndUpdateDirtySlots(
         return;
     }
     filterDrawable->MarkNeedClearFilterCache();
+    if (filterDrawable->IsPendingPurge()) {
+        pendingPurgeNodeIds_.insert(GetId());
+    }
     UpdateDirtySlotsAndPendingNodes(slot);
 }
 #endif
@@ -2719,6 +2727,10 @@ CM_INLINE void RSRenderNode::ApplyModifiers()
     RS_LOGI_IF(DEBUG_NODE, "RSRenderNode::apply modifiers isFullChildrenListValid_:%{public}d"
         " isChildrenSorted_:%{public}d childrenHasSharedTransition_:%{public}d",
         isFullChildrenListValid_, isChildrenSorted_, childrenHasSharedTransition_);
+    if (pendingPurgeNodeIds_.count(GetId())) {
+        SetDirty();
+        pendingPurgeNodeIds_.erase(GetId());
+    }
     if (const auto& sharedTransitionParam = GetSharedTransitionParam()) {
         sharedTransitionParam->UpdateHierarchy(GetId());
         SharedTransitionParam::UpdateUnpairedSharedTransitionMap(sharedTransitionParam);

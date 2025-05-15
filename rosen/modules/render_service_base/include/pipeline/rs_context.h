@@ -206,6 +206,15 @@ public:
         return *uiCaptureHelper_;
     }
 
+    uint32_t GetUnirenderVisibleLeashWindowCount()
+    {
+        return visibleLeashWindowCount_.load();
+    }
+
+    void SetUnirenderVisibleLeashWindowCount(uint32_t count)
+    {
+        visibleLeashWindowCount_.store(count);
+    }
 private:
     // This function is used for initialization, should be called once after constructor.
     void Initialize();
@@ -238,6 +247,7 @@ private:
     std::vector<SubSurfaceCntUpdateInfo> subSurfaceCntUpdateInfo_;
 
     std::unique_ptr<RSUiCaptureHelper> uiCaptureHelper_;
+    std::atomic<uint32_t> visibleLeashWindowCount_ = 0;
 
     friend class RSRenderThread;
     friend class RSMainThread;
