@@ -734,7 +734,13 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     bool isHdrOn = params->GetHDRPresent();
     // 0 means defalut hdrBrightnessRatio
     float hdrBrightnessRatio = RSLuminanceControl::Get().GetHdrBrightnessRatio(paramScreenId, 0);
-#ifdef RS_ENABLE_OVERLAY_DISPLAY
+#ifdef RS_ENABLE_OVERLAY_DISPLAY // only for TV
+    /*
+     * Force hdrBrightnessRatio to be set to 1.0 when overlay_display display enabled.
+     * Do not change pixel value; the pixel value is encoded when overlay display enabled.
+     * If hdrBrightnessRatio is not equal 1.0, DSS will change the pixel value, so the
+     * decoded pixels is wrong and display is abnormal.
+     */
     if (RSOverlayDisplayManager::Instance().IsOverlayDisplayEnableForCurrentVsync()) {
         hdrBrightnessRatio = 1.0f;
     }
