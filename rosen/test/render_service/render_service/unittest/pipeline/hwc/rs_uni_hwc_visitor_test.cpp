@@ -2153,7 +2153,7 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeClipRect, TestSize.Level2)
     NodeId configId = 1;
     RSRenderNode rootNode(configId);
     RectI clipRect;
-    rsUniHwcVisitor->UpdateHWCNodeClipRect(node, clipRect,rootNode);
+    rsUniHwcVisitor->UpdateHwcNodeClipRect(node, clipRect,rootNode);
     RectI expectRect = {0, 0, 0, 0};
     EXPECT_TRUE(clipRect == expectRect);
 }
