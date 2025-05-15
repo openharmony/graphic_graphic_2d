@@ -257,7 +257,6 @@ void HgmFrameRateManager::InitTouchManager()
         touchManager_.RegisterEnterStateCallback(TouchState::IDLE_STATE,
             [this, updateTouchToMultiAppStrategy] (TouchState lastState, TouchState newState) {
             SetSchedulerPreferredFps(OLED_60_HZ);
-            SetIsNeedUpdateAppOffset(true);
             startCheck_.store(false);
             softVSyncManager_.ChangePerformanceFirst(false);
             updateTouchToMultiAppStrategy(newState);
@@ -1884,8 +1883,12 @@ void HgmFrameRateManager::NotifyPageName(pid_t pid, const std::string &packageNa
 
 void HgmFrameRateManager::CheckNeedUpdateAppOffset(uint32_t refreshRate, uint32_t controllerRate)
 {
-    if (refreshRate > OLED_60_HZ || isNeedUpdateAppOffset_ ||
-        !HgmCore::Instance().CheckNeedUpdateAppOffsetRefreshRate(controllerRate)) {
+    if (controller_ == nullptr || refreshRate > OLED_60_HZ || isNeedUpdateAppOffset_ ||
+        !controller_->CheckNeedUpdateAppOffsetRefreshRate(controllerRate)) {
+        return;
+    }
+    if (touchManager_.GetState() == TouchState::IDLE_STATE) {
+        isNeedUpdateAppOffset_ = true;
         return;
     }
     if (auto iter = voteRecord_.find("VOTER_THERMAL");

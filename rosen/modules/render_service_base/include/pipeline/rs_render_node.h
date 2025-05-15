@@ -104,6 +104,10 @@ public:
     void MoveChild(SharedPtr child, int index);
     void RemoveChild(SharedPtr child, bool skipTransition = false);
     void ClearChildren();
+    void SetUIContextToken(uint64_t token)
+    {
+        uiContextToken_ = token;
+    }
     void RemoveFromTree(bool skipTransition = false);
 
     // Add/RemoveCrossParentChild only used as: the child is under multiple parents(e.g. a window cross multi-screens)
@@ -1088,6 +1092,7 @@ private:
     float boundsWidth_ = 0.0f;
     float boundsHeight_ = 0.0f;
     pid_t appPid_ = 0;
+    uint64_t uiContextToken_ = 0;
     NodeId id_;
     NodeId instanceRootNodeId_ = INVALID_NODEID;
     NodeId firstLevelNodeId_ = INVALID_NODEID;
@@ -1152,6 +1157,7 @@ private:
     std::vector<Drawing::RecordingCanvas::DrawFunc> stagingDrawCmdList_;
     std::vector<NodeId> visibleFilterChild_;
     std::unordered_set<NodeId> visibleEffectChild_;
+    static std::unordered_set<NodeId> pendingPurgeNodeIds_;
     Drawing::Matrix oldAbsMatrix_;
     RSDrawable::Vec drawableVec_;
     RSAnimationManager animationManager_;

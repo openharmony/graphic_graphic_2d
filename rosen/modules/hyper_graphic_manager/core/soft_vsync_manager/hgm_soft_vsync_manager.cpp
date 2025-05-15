@@ -328,8 +328,8 @@ void HgmSoftVSyncManager::SetQosVSyncRate(const uint32_t currRefreshRate,
         auto linker = appFrameRateLinkers.find(linkerId);
         if (linker != appFrameRateLinkers.end()  && appDistributor_ != nullptr && linker->second != nullptr) {
             // perfer equals 0 means keeping the original rhythm without skipping, just pass 1
-            appDistributor_->SetQosVSyncRateByConnId(linker->second->GetId(),
-                prefer == 0 ? 1 : currRefreshRate / prefer);
+            // appDistributor_->SetQosVSyncRateByConnId(linker->second->GetId(),
+            //     prefer == 0 ? 1 : currRefreshRate / prefer);
         }
     }
 }

@@ -2475,8 +2475,6 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         isAccessibilityConfigChanged_ = false;
         isCurtainScreenUsingStatusChanged_ = false;
         RSPointLightManager::Instance()->PrepareLight();
-        vsyncControlEnabled_ = rsVsyncRateReduceManager_.GetVRateDeviceSupport()
-                               && RSSystemParameters::GetVSyncControlEnabled();
         systemAnimatedScenesEnabled_ = RSSystemParameters::GetSystemAnimatedScenesEnabled();
         if (RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
             WaitUntilUploadTextureTaskFinished(isUniRender_);
@@ -2498,6 +2496,9 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
     screenPowerOnChanged_ = false;
     forceUpdateUniRenderFlag_ = false;
     idleTimerExpiredFlag_ = false;
+    if (context_) {
+        context_->SetUnirenderVisibleLeashWindowCount(context_->GetNodeMap().GetVisibleLeashWindowCount());
+    }
 #endif
 }
 
@@ -2946,6 +2947,8 @@ void RSMainThread::CalcOcclusionImplementation(const std::shared_ptr<RSDisplayRe
     bool hasFilterCacheOcclusion = false;
     bool filterCacheOcclusionEnabled = RSSystemParameters::GetFilterCacheOcculusionEnabled();
 
+    vsyncControlEnabled_ = rsVsyncRateReduceManager_.GetVRateDeviceSupport() &&
+                           RSSystemParameters::GetVSyncControlEnabled();
     auto calculator = [this, &displayNode, &occlusionSurfaces, &accumulatedRegion, &curVisVec, &visMapForVsyncRate,
         &hasFilterCacheOcclusion, filterCacheOcclusionEnabled] (std::shared_ptr<RSSurfaceRenderNode>& curSurface,
         bool needSetVisibleRegion) {
@@ -4435,7 +4438,7 @@ void RSMainThread::CheckFastCompose(int64_t lastFlushedDesiredPresentTimeStamp)
         "" PRIu64 "earlyFastCompose = %d", unsignedNowTime, lastVsyncTime, timestamp_, earlyFastComposeFlag);
     // ignore animation scenario and mult-window scenario
     bool isNeedSingleFrameCompose = context_->GetAnimatingNodeList().empty() &&
-        context_->GetNodeMap().GetVisibleLeashWindowCount() < MULTI_WINDOW_PERF_START_NUM;
+        context_->GetUnirenderVisibleLeashWindowCount() < MULTI_WINDOW_PERF_START_NUM;
     // 1/2 vsync period to support continunous fastcompose
     if (isNeedSingleFrameCompose && unsignedNowTime - timestamp_ > unsignedVsyncPeriod / 2 &&
         unsignedLastFlushedDesiredPresentTimeStamp < lastVsyncTime &&

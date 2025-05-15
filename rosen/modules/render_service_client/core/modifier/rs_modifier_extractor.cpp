@@ -515,6 +515,20 @@ std::string RSModifierExtractor::Dump() const
 {
     std::string dumpInfo;
     char buffer[UINT8_MAX] = { 0 };
+    if (sprintf_s(buffer, UINT8_MAX, "modifierExtractor rsUIContext token is %lu",
+                  rsUIContext_.lock() ? rsUIContext_.lock()->GetToken() : -1) != -1) {
+        dumpInfo.append(buffer);
+    }
+
+    if (rsUIContext_.lock()) {
+        if (rsUIContext_.lock()->GetNodeMap().GetNode<RSNode>(id_) != nullptr) {
+            sprintf_s(buffer, UINT8_MAX, "node Is %d ", 1);
+        } else {
+            sprintf_s(buffer, UINT8_MAX, "node Is %d ", 0);
+        }
+        dumpInfo.append(buffer);
+    }
+
     auto bounds = GetBounds();
     auto frame = GetFrame();
     if (sprintf_s(buffer, UINT8_MAX, "Bounds[%.1f %.1f %.1f %.1f] Frame[%.1f %.1f %.1f %.1f]",

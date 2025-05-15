@@ -47,6 +47,7 @@ RSCanvasDrawingNode::SharedPtr RSCanvasDrawingNode::Create(
     std::unique_ptr<RSCommand> command =
         std::make_unique<RSCanvasDrawingNodeCreate>(node->GetId(), isTextureExportNode);
     node->AddCommand(command, node->IsRenderServiceNode());
+    node->SetUIContextToken();
     return node;
 }
 

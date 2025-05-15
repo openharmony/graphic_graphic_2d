@@ -411,6 +411,10 @@ public:
     virtual ErrCode NotifyPageName(const std::string &packageName, const std::string &pageName, bool isEnter) = 0;
 
     virtual bool GetHighContrastTextState() = 0;
+
+    virtual ErrCode SetBehindWindowFilterEnabled(bool enabled) = 0;
+
+    virtual ErrCode GetBehindWindowFilterEnabled(bool& enabled) = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

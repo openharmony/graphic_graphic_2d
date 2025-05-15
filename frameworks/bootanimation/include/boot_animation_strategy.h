@@ -32,6 +32,8 @@ public:
 
     bool CheckNeedOtaCompile() const;
 
+    bool IsOtaUpdate() const;
+
 public:
     std::shared_ptr<BootCompileProgress> bootCompileProgress_;
 

@@ -399,6 +399,10 @@ private:
 
     bool GetHighContrastTextState() override;
 
+    ErrCode SetBehindWindowFilterEnabled(bool enabled) override;
+
+    ErrCode GetBehindWindowFilterEnabled(bool& enabled) override;
+
     pid_t remotePid_;
     wptr<RSRenderService> renderService_;
     RSMainThread* mainThread_ = nullptr;

@@ -178,6 +178,7 @@ public:
     DEFINE_FUNC(DestroySwapchainKHR);
     DEFINE_FUNC(DeviceWaitIdle);
     DEFINE_FUNC(EndCommandBuffer);
+    DEFINE_FUNC(EnumerateDeviceExtensionProperties);
     DEFINE_FUNC(EnumerateDeviceLayerProperties);
     DEFINE_FUNC(EnumerateInstanceExtensionProperties);
     DEFINE_FUNC(EnumerateInstanceLayerProperties);
@@ -267,6 +268,10 @@ private:
     VkPhysicalDeviceFeatures2 physicalDeviceFeatures2_;
     VkPhysicalDeviceProtectedMemoryFeatures* protectedMemoryFeatures_ = nullptr;
     VkPhysicalDeviceSamplerYcbcrConversionFeatures ycbcrFeature_;
+    VkPhysicalDeviceSynchronization2Features sync2Feature_;
+    VkPhysicalDeviceDescriptorIndexingFeatures bindlessFeature_;
+    VkPhysicalDeviceTimelineSemaphoreFeatures timelineFeature_;
+    std::vector<const char*> deviceExtensions_;
     VkDeviceMemoryExclusiveThresholdHUAWEI deviceMemoryExclusiveThreshold_;
     GrVkExtensions skVkExtensions_;
     RsVulkanMemStat mVkMemStat;
@@ -284,6 +289,8 @@ private:
     bool SetupLoaderProcAddresses();
     bool CloseLibraryHandle();
     bool SetupDeviceProcAddresses(VkDevice device);
+    void ConfigureFeatures(bool isProtected);
+    void ConfigureExtensions();
     PFN_vkVoidFunction AcquireProc(
         const char* proc_name,
         const VkInstance& instance) const;

@@ -103,6 +103,28 @@ HWTEST_F(RSSymbolAnimationTest, SetSymbolAnimation002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetSymbolAnimation003
+ * @tc.desc: SetSymbolAnimation of RSSymbolAnimationTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSymbolAnimationTest, SetSymbolAnimation003, TestSize.Level1)
+{
+    /**
+     * @tc.steps: step1. init data
+     */
+    auto symbolAnimation = RSSymbolAnimation();
+    symbolAnimation.SetNode(rootNode);
+    auto symbolAnimationConfig = std::make_shared<TextEngine::SymbolAnimationConfig>();
+    symbolAnimationConfig->symbolSpanId = 1996; // the 1996 is the unique ID of a symbol
+    /**
+     * @tc.steps: step2.1 test TEXT FLip animation
+     */
+    symbolAnimationConfig->effectStrategy = Drawing::DrawingEffectStrategy::TEXT_FLIP;
+    bool flag1 = symbolAnimation.SetSymbolAnimation(symbolAnimationConfig);
+    EXPECT_FALSE(flag1);
+}
+
+/**
  * @tc.name: SetPublicAnimation001
  * @tc.desc: SetPublicAnimation of RSSymbolAnimationTest
  * @tc.type: FUNC
@@ -1275,6 +1297,273 @@ HWTEST_F(RSSymbolAnimationTest, GroupAnimationStart001, TestSize.Level1)
     symbolAnimation.GroupAnimationStart(newCanvasNode, animations);
     EXPECT_FALSE(animations.empty());
     GTEST_LOG_(INFO) << "RSSymbolAnimationTest GroupAnimationStart001 end";
+}
+
+/**
+ * @tc.name: PopNodeFromFlipListTest001
+ * @tc.desc: Verify PopNode From Replace list map
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSymbolAnimationTest, PopNodeFromFlipListTest001, TestSize.Level1)
+{
+    /**
+     * @tc.steps: step1 init data
+     */
+    auto symbolAnimation = RSSymbolAnimation();
+    symbolAnimation.SetNode(rootNode);
+    uint64_t symbolSpanId = 111; // the 111 is the unique ID of a symbol
+    /**
+     * @tc.steps: step1 if symbolSpanId not in canvasNodesListMap
+     */
+    symbolAnimation.PopNodeFromFlipList(symbolSpanId);
+    /**
+     * @tc.steps: step2 if symbolSpanId in canvasNodesListMap
+     */
+    rootNode->canvasNodesListMap_[symbolSpanId] = {{INVALID_STATUS, canvasNode}};
+    symbolAnimation.PopNodeFromFlipList(symbolSpanId);
+    EXPECT_TRUE(rootNode->canvasNodesListMap_[symbolSpanId].empty());
+}
+
+/**
+ * @tc.name: SetTextFlipAnimation001
+ * @tc.desc: test text filp animation
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSymbolAnimationTest, SetTextFlipAnimation001, TestSize.Level1)
+{
+    /**
+     * @tc.steps: step1. init data
+     */
+    auto symbolAnimation = RSSymbolAnimation();
+    symbolAnimation.SetNode(rootNode);
+    auto symbolAnimationConfig = std::make_shared<TextEngine::SymbolAnimationConfig>();
+    symbolAnimationConfig->symbolSpanId = 1; // the 1996 is the unique ID of a symbol
+    /**
+     * @tc.steps: step2.1 test Text FLip animation with Invalid animation parameters
+     */
+    symbolAnimationConfig->effectStrategy = Drawing::DrawingEffectStrategy::TEXT_FLIP;
+    bool flag = symbolAnimation.SetTextFlipAnimation(symbolAnimationConfig);
+    EXPECT_FALSE(flag);
+
+    /**
+     * @tc.steps: step2.2 test Text FLip animation with valid animation parameters
+     */
+    std::vector<std::vector<Drawing::DrawingPiecewiseParameter>> parameters;
+    parameters.push_back({DISAPPEAR_FIRST_PHASE_PARAS, DISAPPEAR_SECOND_PHASE_PARAS});
+    parameters.push_back({APPEAR_FIRST_PHASE_PARAS, APPEAR_SECOND_PHASE_PARAS});
+    symbolAnimationConfig->effectStrategy = Drawing::DrawingEffectStrategy::TEXT_FLIP;
+    symbolAnimationConfig->parameters = parameters;
+    bool flag1 = symbolAnimation.SetTextFlipAnimation(symbolAnimationConfig);
+    EXPECT_TRUE(flag1);
+
+    symbolAnimationConfig->currentAnimationHasPlayed = true;
+    bool flag2 = symbolAnimation.SetTextFlipAnimation(symbolAnimationConfig);
+    EXPECT_TRUE(flag2);
+}
+
+/**
+ * @tc.name: SetTextFlipAnimation002
+ * @tc.desc: test text filp animation
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSymbolAnimationTest, SetTextFlipAnimation002, TestSize.Level1)
+{
+    /**
+     * @tc.steps: step1. init data
+     */
+    std::vector<std::vector<Drawing::DrawingPiecewiseParameter>> parameters;
+    parameters.push_back({DISAPPEAR_FIRST_PHASE_PARAS, DISAPPEAR_SECOND_PHASE_PARAS});
+    parameters.push_back({APPEAR_FIRST_PHASE_PARAS, APPEAR_SECOND_PHASE_PARAS});
+    auto symbolAnimation = RSSymbolAnimation();
+    symbolAnimation.SetNode(rootNode);
+    auto symbolAnimationConfig = std::make_shared<TextEngine::SymbolAnimationConfig>();
+    uint64_t symbolSpanId = 1995; // the 1995 is the unique ID of a symbol
+    symbolAnimationConfig->parameters = parameters;
+    symbolAnimationConfig->symbolSpanId = symbolSpanId;
+    // setEffectelement
+    Drawing::Point offset = {100, 100}; // 100, 100 is the offset
+    Drawing::Path path;
+    path.AddCircle(100, 100, 40); // 100 x, 100, 40 radius
+    symbolAnimationConfig->effectElement.width = 40; // 40 width of path
+    symbolAnimationConfig->effectElement.height = 40; // 40 height of path
+    symbolAnimationConfig->effectElement.path = path;
+    symbolAnimationConfig-> effectElement.offset = offset;
+    /**
+     * @tc.steps: step2.1 test Text FLip animation with nullptr node
+     */
+    rootNode->canvasNodesListMap_[symbolSpanId] = {{APPEAR_STATUS, nullptr}};
+    symbolAnimationConfig->currentAnimationHasPlayed = true;
+    bool flag1 = symbolAnimation.SetTextFlipAnimation(symbolAnimationConfig);
+    EXPECT_FALSE(flag1);
+    /**
+     * @tc.steps: step2.2 test Text FLip animation with 
+     */
+    rootNode->canvasNodesListMap_.erase(symbolSpanId);
+    symbolAnimationConfig->currentAnimationHasPlayed = false;
+    bool flag2 = symbolAnimation.SetTextFlipAnimation(symbolAnimationConfig);
+    EXPECT_TRUE(flag2);
+    symbolAnimation.PopNodeFromFlipList(symbolSpanId);
+    bool flag3 = symbolAnimation.SetTextFlipAnimation(symbolAnimationConfig);
+    EXPECT_TRUE(flag3);
+    NotifyStartAnimation();
+}
+
+/**
+ * @tc.name: SetFlipAppear001
+ * @tc.desc: test text filp animation
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSymbolAnimationTest, SetFlipAppear001, TestSize.Level1)
+{
+    /**
+     * @tc.steps: step1. init data
+     */
+    std::vector<std::vector<Drawing::DrawingPiecewiseParameter>> parameters;
+    parameters.push_back({DISAPPEAR_FIRST_PHASE_PARAS, DISAPPEAR_SECOND_PHASE_PARAS});
+    parameters.push_back({APPEAR_FIRST_PHASE_PARAS, APPEAR_SECOND_PHASE_PARAS});
+    auto symbolAnimation = RSSymbolAnimation();
+    symbolAnimation.SetNode(rootNode);
+    auto symbolAnimationConfig = std::make_shared<TextEngine::SymbolAnimationConfig>();
+    symbolAnimationConfig->symbolSpanId = 199; // the 199 is the unique ID of a symbol
+    symbolAnimationConfig->parameters = parameters;
+    // setEffectelement
+    Drawing::Point offset = {100, 100}; // 100, 100 is the offset
+    Drawing::Path path;
+    path.AddCircle(100, 100, 40); // 100 x, 100, 40 radius
+    TextEngine::TextEffectElement effectElement;
+    effectElement.width = 40; // 40 width of path
+    effectElement.height = 40; // 40 height of path
+    symbolAnimationConfig->effectElement = effectElement;
+    /**
+     * @tc.steps: step2.1 test Text FLip animation
+     */
+    bool flag1 = symbolAnimation.SetFlipAppear(symbolAnimationConfig, rootNode, true);
+    EXPECT_TRUE(flag1);
+    symbolAnimationConfig->effectElement.path = path;
+    symbolAnimationConfig-> effectElement.offset = offset;
+    bool flag2 = symbolAnimation.SetFlipAppear(symbolAnimationConfig, rootNode, true);
+    EXPECT_TRUE(flag2);
+}
+
+/**
+ * @tc.name: DrawPathOnCanvas002
+ * @tc.desc: test text filp animation
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSymbolAnimationTest, DrawPathOnCanvas002, TestSize.Level1)
+{
+    /**
+     * @tc.steps: step1. init data for effectElement
+     */
+    Drawing::Point offset = {50, 50}; // 50, 50 is the offset
+    Drawing::Path path;
+    path.AddCircle(100, 100, 40); // 100 x, 100, 40 radius
+    TextEngine::TextEffectElement effectElement;
+    effectElement.path = path;
+    effectElement.offset = offset;
+    Drawing::Color color = Drawing::Color(255, 0, 255, 255); // set color r 255, g 0, b 255, a 255
+    auto recordingCanvas = canvasNode->BeginRecording(CANVAS_NODE_BOUNDS_WIDTH,
+                                                      CANVAS_NODE_BOUNDS_HEIGHT);
+    auto symbolAnimation = RSSymbolAnimation();
+    /**
+     * @tc.steps: step2. Test whether the program will crash when nullptr pointer are input
+     */
+    symbolAnimation.DrawPathOnCanvas(nullptr, effectElement, color, offset);
+    /**
+     * @tc.steps: step3. Test whether the program can ren normally without crashing
+     */
+    symbolAnimation.DrawPathOnCanvas(recordingCanvas, effectElement, color, offset);
+    EXPECT_FALSE(symbolAnimation.rsNode_);
+}
+
+/**
+ * @tc.name: SpliceAnimation002
+ * @tc.desc: implement animation according to type
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSymbolAnimationTest, SpliceAnimation002, TestSize.Level1)
+{
+    /**
+     * @tc.steps: step1. init data about various type
+     */
+    auto symbolAnimation = RSSymbolAnimation();
+    std::vector<Drawing::DrawingPiecewiseParameter> parameters = {TRANSITION_FIRST_PARAS, BLUR_FIRST_PARAS};
+    /**
+     * @tc.steps: step2. Test whether the program can ren normally without crashing
+     */
+    symbolAnimation.SpliceAnimation(canvasNode, parameters);
+    EXPECT_FALSE(symbolAnimation.rsNode_);
+    NotifyStartAnimation();
+}
+
+/**
+ * @tc.name: TranslateAnimationBase
+ * @tc.desc: implement animation according to type
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSymbolAnimationTest, TranslateAnimationBase, TestSize.Level1)
+{
+    /**
+     * @tc.steps: step1. init data about various type
+     */
+    auto symbolAnimation = RSSymbolAnimation();
+    std::shared_ptr<RSAnimatableProperty<Vector2f>> translateProperty = nullptr;
+    std::vector<std::shared_ptr<RSAnimation>> groupAnimation = {};
+    /**
+     * @tc.steps: step2. Test invalid parameter input of translate.
+     */
+    Drawing::DrawingPiecewiseParameter flipParameter = TRANSITION_FIRST_PARAS;
+    flipParameter.properties["ty"] = {};
+    symbolAnimation.TranslateAnimationBase(canvasNode, translateProperty, flipParameter, groupAnimation);
+    EXPECT_TRUE(groupAnimation.empty());
+    /**
+     * @tc.steps: step2. Test valid parameter input of translate.
+     */
+    symbolAnimation.TranslateAnimationBase(canvasNode, translateProperty, TRANSITION_FIRST_PARAS, groupAnimation);
+    symbolAnimation.TranslateAnimationBase(canvasNode, translateProperty, TRANSITION_SECOND_PARAS, groupAnimation);
+    EXPECT_FALSE(groupAnimation.empty());
+
+    Drawing::DrawingPiecewiseParameter flipParameter1 = TRANSITION_FIRST_PARAS;
+    flipParameter1.duration = 0;
+    flipParameter1.delay = 300; // 300 is animation delay
+    symbolAnimation.TranslateAnimationBase(canvasNode, translateProperty, flipParameter1, groupAnimation);
+    EXPECT_FALSE(groupAnimation.empty());
+    NotifyStartAnimation();
+}
+
+/**
+ * @tc.name: BlurAnimationBase
+ * @tc.desc: implement animation according to type
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSymbolAnimationTest, BlurAnimationBase, TestSize.Level1)
+{
+    /**
+     * @tc.steps: step1. init data about various type
+     */
+    auto symbolAnimation = RSSymbolAnimation();
+    std::shared_ptr<RSAnimatableProperty<float>> blurProperty = nullptr;
+    std::vector<std::shared_ptr<RSAnimation>> groupAnimation = {};
+    /**
+     * @tc.steps: step2. Test invalid parameter input of blur
+     */
+    Drawing::DrawingPiecewiseParameter flipParameter = BLUR_FIRST_PARAS;
+    flipParameter.properties["blur"] = {0};
+    symbolAnimation.BlurAnimationBase(canvasNode, blurProperty, flipParameter, groupAnimation);
+    EXPECT_TRUE(groupAnimation.empty());
+    /**
+     * @tc.steps: step2. Test valid parameter input of blur
+     */
+    symbolAnimation.BlurAnimationBase(canvasNode, blurProperty, BLUR_FIRST_PARAS, groupAnimation);
+    symbolAnimation.BlurAnimationBase(canvasNode, blurProperty, BLUR_SECOND_PARAS, groupAnimation);
+    EXPECT_FALSE(groupAnimation.empty());
+
+    Drawing::DrawingPiecewiseParameter flipParameter1 = BLUR_FIRST_PARAS;
+    flipParameter1.duration = 0;
+    flipParameter1.delay = 300; // 300 is animation delay
+    symbolAnimation.BlurAnimationBase(canvasNode, blurProperty, flipParameter1, groupAnimation);
+    EXPECT_FALSE(groupAnimation.empty());
+    NotifyStartAnimation();
 }
 } // namespace Rosen
 } // namespace OHOS

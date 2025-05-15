@@ -795,5 +795,15 @@ bool RSRenderServiceClient::GetHighContrastTextState()
 {
     return false;
 }
+
+bool RSRenderServiceClient::SetBehindWindowFilterEnabled(bool enabled)
+{
+    return false;
+}
+
+bool RSRenderServiceClient::GetBehindWindowFilterEnabled(bool& enabled)
+{
+    return false;
+}
 } // namespace Rosen
 } // namespace OHOS
