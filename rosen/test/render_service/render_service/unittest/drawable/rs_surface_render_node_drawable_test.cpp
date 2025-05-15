@@ -420,32 +420,28 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, CalculateVisibleDirtyRegion, TestSize.
     ASSERT_NE(surfaceDrawable_, nullptr);
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable_->renderParams_.get());
     ASSERT_NE(surfaceParams, nullptr);
-    auto uniParams = std::make_shared<RSRenderThreadParams>();
 
     surfaceParams->isMainWindowType_ = false;
     surfaceParams->isLeashWindow_ = true;
     surfaceParams->isAppWindow_ = false;
-    Drawing::Region result = surfaceDrawable_->CalculateVisibleDirtyRegion(*uniParams,
-        *surfaceParams, *surfaceDrawable_, true);
+    Drawing::Region result = surfaceDrawable_->CalculateVisibleDirtyRegion(*surfaceParams, *surfaceDrawable_, true);
     ASSERT_TRUE(result.IsEmpty());
 
     surfaceParams->isMainWindowType_ = true;
     surfaceParams->isLeashWindow_ = false;
     surfaceParams->isAppWindow_ = false;
-    result = surfaceDrawable_->CalculateVisibleDirtyRegion(*uniParams, *surfaceParams, *surfaceDrawable_, true);
+    result = surfaceDrawable_->CalculateVisibleDirtyRegion(*surfaceParams, *surfaceDrawable_, true);
     ASSERT_FALSE(result.IsEmpty());
 
-    uniParams->SetOcclusionEnabled(true);
     Occlusion::Region region;
     surfaceParams->SetVisibleRegion(region);
-    result = surfaceDrawable_->CalculateVisibleDirtyRegion(*uniParams, *surfaceParams, *surfaceDrawable_, false);
+    result = surfaceDrawable_->CalculateVisibleDirtyRegion(*surfaceParams, *surfaceDrawable_, false);
     ASSERT_TRUE(result.IsEmpty());
 
     Occlusion::Region region1(DEFAULT_RECT);
     surfaceParams->SetVisibleRegion(region1);
-    uniParams->SetOcclusionEnabled(false);
     surfaceDrawable_->globalDirtyRegion_ = region1;
-    surfaceDrawable_->CalculateVisibleDirtyRegion(*uniParams, *surfaceParams, *surfaceDrawable_, false);
+    surfaceDrawable_->CalculateVisibleDirtyRegion(*surfaceParams, *surfaceDrawable_, false);
 }
 
 /**
@@ -1333,5 +1329,25 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, IsVisibleRegionEqualOnPhysicalAndVirtu
     appParams->SetVisibleRegion(emptyRegion);
     appParams->SetVisibleRegionInVirtual(region);
     ASSERT_FALSE(leashDrawable->IsVisibleRegionEqualOnPhysicalAndVirtual(*leashParams));
+}
+
+/**
+ * @tc.name: UpdateSurfaceDirtyRegion
+ * @tc.desc: Test UpdateSurfaceDirtyRegion
+ * @tc.type: FUNC
+ * @tc.require: #IA940V
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, UpdateSurfaceDirtyRegion, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    drawingCanvas_ = std::make_unique<Drawing::Canvas>(DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
+    canvas_ = std::make_shared<RSPaintFilterCanvas>(drawingCanvas_.get());
+    surfaceDrawable_->UpdateSurfaceDirtyRegion(canvas_);
+    drawable_->renderParams_->shouldPaint_ = true;
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable_->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+    surfaceDrawable_->UpdateSurfaceDirtyRegion(canvas_);
+    Drawing::Region region = surfaceDrawable_->GetSurfaceDrawRegion();
+    EXPECT_TRUE(region.IsEmpty());
 }
 }
