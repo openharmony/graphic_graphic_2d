@@ -1285,7 +1285,8 @@ Occlusion::Region RSUniRenderVisitor::GetSurfaceTransparentFilterRegion(NodeId s
 
 void RSUniRenderVisitor::CollectTopOcclusionSurfacesInfo(RSSurfaceRenderNode& node, bool isParticipateInOcclusion)
 {
-    if (!isStencilPixelOcclusionCullingEnabled_ || occlusionSurfaceOrder_ <= DEFAULT_OCCLUSION_SURFACE_ORDER) {
+    if (!isStencilPixelOcclusionCullingEnabled_ || occlusionSurfaceOrder_ <= DEFAULT_OCCLUSION_SURFACE_ORDER ||
+        node.IsFirstLevelCrossNode()) {
         return;
     }
     if (curDisplayNode_ == nullptr) {
@@ -1297,19 +1298,21 @@ void RSUniRenderVisitor::CollectTopOcclusionSurfacesInfo(RSSurfaceRenderNode& no
         return;
     }
     auto stencilVal = occlusionSurfaceOrder_ * OCCLUSION_ENABLE_SCENE_NUM;
+    // When the transparent blur region overlaps with the collected opaque regions,
+    // the underlying applications beneath the transparent blur cannot participate in occlusion culling.
+    if (occlusionSurfaceOrder_ < TOP_OCCLUSION_SURFACES_NUM && node.IsTransparent() &&
+        !GetSurfaceTransparentFilterRegion(node.GetId()).And(
+            curDisplayNode_->GetTopSurfaceOpaqueRegion()).IsEmpty()) {
+        RS_OPTIONAL_TRACE_NAME_FMT("%s: %s's transparent filter terminate spoc, current occlusion surface "
+            "order: %" PRId16 "", __func__, node.GetName().c_str(), occlusionSurfaceOrder_);
+        occlusionSurfaceOrder_ = DEFAULT_OCCLUSION_SURFACE_ORDER;
+    }
     auto opaqueRegionRects = node.GetOpaqueRegion().GetRegionRects();
     if (!isParticipateInOcclusion || opaqueRegionRects.empty()) {
         ++stencilVal;
         RS_OPTIONAL_TRACE_NAME_FMT("%s: %s set stencil[%d]", __func__,
             node.GetName().c_str(), static_cast<int>(stencilVal));
         parent->SetStencilVal(stencilVal);
-        if (occlusionSurfaceOrder_ < TOP_OCCLUSION_SURFACES_NUM &&
-            !GetSurfaceTransparentFilterRegion(node.GetId()).And(
-                curDisplayNode_->GetTopSurfaceOpaqueRegion()).IsEmpty()) {
-            RS_OPTIONAL_TRACE_NAME_FMT("%s: %s's transparent filter terminate spoc, current occlusion surface "
-                "order: %" PRId16 "", __func__, node.GetName().c_str(), occlusionSurfaceOrder_);
-            occlusionSurfaceOrder_ = DEFAULT_OCCLUSION_SURFACE_ORDER;
-        }
         return;
     }
     parent->SetStencilVal(stencilVal);
