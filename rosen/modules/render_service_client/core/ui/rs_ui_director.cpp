@@ -150,6 +150,8 @@ void RSUIDirector::InitHybridRender()
                 &transactionDataIndex]() mutable {
                 renderServiceClient->CommitTransaction(RSModifiersDrawThread::ConvertTransaction(transactionData));
                 transactionDataIndex = transactionData->GetIndex();
+                // destroy semaphore after commitTransaction for which syncFence was duped
+                RSModifiersDraw::DestroySemaphore();
             };
             RSModifiersDrawThread::Instance().ScheduleTask(task);
         };
