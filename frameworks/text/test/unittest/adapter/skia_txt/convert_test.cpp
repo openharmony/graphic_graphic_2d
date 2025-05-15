@@ -157,6 +157,7 @@ HWTEST_F(OHDrawingConvertTest, OHDrawingConvertTest007, TestSize.Level1)
     EXPECT_EQ(paragraphStyle.fontSize, typographyStyle.fontSize);
     EXPECT_EQ(paragraphStyle.paragraphSpacing, typographyStyle.paragraphSpacing);
     EXPECT_EQ(paragraphStyle.isEndAddParagraphSpacing, typographyStyle.isEndAddParagraphSpacing);
+    EXPECT_EQ(paragraphStyle.isTrailingSpaceOptimized, typographyStyle.isTrailingSpaceOptimized);
 }
 
 /*

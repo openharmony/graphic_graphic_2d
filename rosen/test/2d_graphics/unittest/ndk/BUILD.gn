@@ -52,6 +52,7 @@ ohos_unittest("2d_graphics_ndk_test") {
     "drawing_text_lineTypography_test.cpp",
     "drawing_text_line_test.cpp",
     "drawing_text_run_test.cpp",
+    "drawing_text_typography_alignment_test.cpp",
     "drawing_text_typography_strut_style_test.cpp",
     "drawing_text_typography_test.cpp",
     "drawing_typeface_test.cpp",
