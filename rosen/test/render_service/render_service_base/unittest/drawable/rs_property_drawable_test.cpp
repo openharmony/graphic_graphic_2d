@@ -404,7 +404,7 @@ HWTEST_F(RSPropertyDrawableTest, RSFilterDrawableTest014, TestSize.Level1)
 
 /**
  * @tc.name: IsPendingPurgeTest
- * @tc.desc: Test RSFilterDrawable IsPendingPurgeTest
+ * @tc.desc: class RSFilterDrawable IsPendingPurge test
  * @tc.type: FUNC
  */
 HWTEST_F(RSPropertyDrawableTest, IsPendingPurgeTest, TestSize.Level1)
