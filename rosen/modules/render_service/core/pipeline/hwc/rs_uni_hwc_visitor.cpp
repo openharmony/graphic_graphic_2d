@@ -1198,7 +1198,7 @@ void RSUniHwcVisitor::PrintHiperfLog(RSSurfaceRenderNode* node, const char* cons
         node->GetName().c_str(), disabledContext,
         node->GetSrcRect().GetLeft(), node->GetSrcRect().GetRight(),
         node->GetSrcRect().GetTop(), node->GetSrcRect().GetBottom(),
-        node->GetDstRect().GetLeft(), node->GetDstRect().GetRight()
+        node->GetDstRect().GetLeft(), node->GetDstRect().GetRight(),
         node->GetDstRect().GetTop(), node->GetDstRect().GetBottom());
 #endif
 }
@@ -1212,7 +1212,7 @@ void RSUniHwcVisitor::PrintHiperfLog(std::shared_ptr<RSSurfaceRenderNode>& node,
         node->GetName().c_str(), disabledContext,
         node->GetSrcRect().GetLeft(), node->GetSrcRect().GetRight(),
         node->GetSrcRect().GetTop(), node->GetSrcRect().GetBottom(),
-        node->GetDstRect().GetLeft(), node->GetDstRect().GetRight()
+        node->GetDstRect().GetLeft(), node->GetDstRect().GetRight(),
         node->GetDstRect().GetTop(), node->GetDstRect().GetBottom());
 #endif
 }

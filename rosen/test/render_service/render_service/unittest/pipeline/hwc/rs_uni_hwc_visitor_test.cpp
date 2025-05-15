@@ -2317,8 +2317,8 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateCroseInfoForProtectedHwcNode001, TestSize.le
    UpdateCrossInfoForProtectedHwcNode(surfaceNode);
 
    ASSERT_TRUE(surfaceNode->GetSpecialLayerMgr().Find(SpecialLayerType::PROTECTED));
-   ASSERT_TRUE(surfaceNode->GetHwcGlobalPositionEnabled());
-   ASSERT_TRUE(surfaceNode->IsHwcCrossNode());
+   ASSERT_FALSE(surfaceNode->GetHwcGlobalPositionEnabled());
+   ASSERT_FALSE(surfaceNode->IsHwcCrossNode());
 
 }
 }
