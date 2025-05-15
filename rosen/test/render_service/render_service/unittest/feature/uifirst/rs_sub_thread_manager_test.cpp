@@ -341,4 +341,24 @@ HWTEST_F(RsSubThreadManagerTest, ScheduleReleaseCacheSurfaceOnlyTest, TestSize.L
     rsSubThreadManager->ScheduleReleaseCacheSurfaceOnly(drawable);
     EXPECT_FALSE(drawable);
 }
+
+/**
+ * @tc.name: GetGpuMemoryForReportTest
+ * @tc.desc: Test RsSubThreadManagerTest.GetGpuMemoryForReportTest
+ * @tc.type: FUNC
+ * @tc.require: issueIAE59W
+ */
+HWTEST_F(RsSubThreadManagerTest, GetGpuMemoryForReportTest, TestSize.Level1)
+{
+    auto rsSubThreadManager = RSSubThreadManager::Instance();
+    pid_t pid = 123;
+    size_t size = 2048;
+    auto renderContext = std::make_shared<RenderContext>();
+    auto thread = std::make_shared<RSSubThread>(renderContext.get(), 0);
+    thread->gpuMemoryOfPid_.insert(std::make_pair(pid, size));
+    rsSubThreadManager->threadList_.push_back(thread);
+    std::unordered_map<pid_t, size_t> totalGpuMemOfPid;
+    rsSubThreadManager->GetGpuMemoryForReport(totalGpuMemOfPid);
+    EXPECT_TRUE(totalGpuMemOfPid[pid] == size);
+}
 } // namespace OHOS::Rosen

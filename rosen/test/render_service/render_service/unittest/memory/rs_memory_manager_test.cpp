@@ -752,4 +752,24 @@ HWTEST_F(RSMemoryManagerTest, InterruptReclaimTaskTest001, testing::ext::TestSiz
     ASSERT_FALSE(RSReclaimMemoryManager::Instance().IsReclaimInterrupt());
     RSReclaimMemoryManager::Instance().SetReclaimInterrupt(false);
 }
+
+/**
+ * @tc.name: MemoryOverForReportTest00
+ * @tc.desc: memory over report
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryManagerTest, MemoryOverForReportTest001, testing::ext::TestSize.Level1)
+{
+    std::unordered_map<pid_t, MemorySnapshotInfo> infoMap;
+    pid_t pid = 123;
+    MemorySnapshotInfo info;
+    info.cpuMemory = 1;
+    info.gpuMemory = 2048;
+    infoMap.insert(std::make_pair(pid, info));
+    MemoryManager::memoryWarning_ = 800;
+    MemoryManager::gpuMemoryControl_ = 2000;
+    MemoryManager::MemoryOverForReport(infoMap, false);
+    ASSERT_TRUE(MemoryManager::processKillReportPidSet_.count(pid));
+}
 } // namespace OHOS::Rosen

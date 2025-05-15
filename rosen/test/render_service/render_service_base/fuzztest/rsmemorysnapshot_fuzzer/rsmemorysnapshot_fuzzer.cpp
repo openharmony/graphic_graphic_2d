@@ -67,9 +67,12 @@ bool RSMemorySnapshotFuzzTest(const uint8_t* data, size_t size)
     std::unordered_map<pid_t, size_t> gpuInfo;
     gpuInfo.emplace(GetData<pid_t>(), GetData<size_t>());
     gpuInfo.emplace(tempPid, GetData<size_t>());
+    std::unordered_map<pid_t, size_t> subThreadGpuInfo;
+    subThreadGpuInfo.emplace(GetData<pid_t>(), GetData<size_t>());
+    subThreadGpuInfo.emplace(tempPid, GetData<size_t>());
     std::unordered_map<pid_t, MemorySnapshotInfo> pidInfo;
     bool isTotalOver = GetData<bool>();
-    instance.UpdateGpuMemoryInfo(gpuInfo, pidInfo, isTotalOver);
+    instance.UpdateGpuMemoryInfo(gpuInfo, subThreadGpuInfo, pidInfo, isTotalOver);
     instance.GetMemorySnapshot(pidInfo);
     
     instance.RemoveCpuMemory(GetData<pid_t>(), GetData<size_t>());

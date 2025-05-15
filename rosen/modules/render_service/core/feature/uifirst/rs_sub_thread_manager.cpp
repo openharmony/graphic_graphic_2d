@@ -352,4 +352,23 @@ void RSSubThreadManager::ScheduleReleaseCacheSurfaceOnly(
     auto subThread = threadList_[nowIdx];
     subThread->PostTask([subThread, nodeDrawable]() { subThread->ReleaseCacheSurfaceOnly(nodeDrawable); });
 }
+
+void RSSubThreadManager::GetGpuMemoryForReport(std::unordered_map<pid_t, size_t>& gpuMemoryOfPid)
+{
+    if (OHOS::Rosen::RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return;
+    }
+    for (auto& subThread : threadList_) {
+        if (!subThread) {
+            continue;
+        }
+        std::unordered_map<pid_t, size_t> gpuMemOfPid = subThread->GetGpuMemoryOfPid();
+        for (auto& [pid, memSize] : gpuMemOfPid) {
+            gpuMemoryOfPid[pid] += memSize;
+            if (memSize == 0) {
+                subThread->ErasePidOfGpuMemory(pid);
+            }
+        }
+    }
+}
 } // namespace OHOS::Rosen
