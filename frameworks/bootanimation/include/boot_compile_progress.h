@@ -45,6 +45,8 @@ private:
     bool IsBmsBundleReady();
     void DrawMaginBrush(Rosen::Drawing::RecordingCanvas* canvas);
     bool IsEndFlag();
+    void RecordDeviceType();
+    void SetFrame();
 
     int32_t windowWidth_ = 0;
     int32_t windowHeight_ = 0;
