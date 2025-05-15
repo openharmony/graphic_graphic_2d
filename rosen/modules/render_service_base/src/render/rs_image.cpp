@@ -492,8 +492,8 @@ std::string RSImage::PixelSamplingDump() const
     Media::Position pos;
     uint32_t pixel;
 
-    int32_t widthStep = std::max(( w / 2) - 1, 1);
-    int32_t heightStep = std::max(( h / 2) - 1, 1);
+    int32_t widthStep = std::max((w / 2) - 1, 1);
+    int32_t heightStep = std::max((h / 2) - 1, 1);
 
     for (int32_t i = 1; i < w; i += widthStep) {
         for (int32_t j = 1; j < h; j += heightStep) {
@@ -505,7 +505,7 @@ std::string RSImage::PixelSamplingDump() const
 #endif
     oss << ']';
 
-    return  oss.str().c_str();    
+    return oss.str().c_str();
 }
 
 #if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
