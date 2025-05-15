@@ -18,7 +18,6 @@
 #include <cstddef>
 #include <cstdint>
 #include <securec.h>
-#include <memory>
 
 #include "screen_manager/rs_screen_capability.h"
 
@@ -104,8 +103,7 @@ bool DoMarshalling()
     std::string name(STRING_LEN, GetData<char>());
     std::vector<RSScreenProps> props;
     InitProps(props);
-    std::shared_ptr<RSScreenCapability> capability = std::make_shared<RSScreenCapability>(name, type, phyWidth, phyHeight, 
-        supportLayers, virtualDispCount, supportWriteBack, props);
+    auto capability = std::make_shared<RSScreenCapability>(name, type, phyWidth, phyHeight, supportLayers, virtualDispCount, supportWriteBack, props);
     Parcel parcel;
     capability->Marshalling(parcel);
     return true;
