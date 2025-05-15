@@ -81,6 +81,9 @@ public:
     void PrintHiperfLog(RSSurfaceRenderNode* node, const char* const disabledContext);
     void PrintHiperfLog(std::shared_ptr<RSSurfaceRenderNode>& node, const char* const disabledContext);
 
+    //drm
+    void UpdateCrossInfoForProtectedHwcNode(const std::shared_ptr<RSSurfaceRenderNode>& hwcNode);
+
     // DFX
     HwcDisabledReasonCollection& Statistics() { return hwcDisabledReasonCollection_; }
 
