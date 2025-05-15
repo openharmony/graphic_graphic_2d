@@ -62,6 +62,8 @@ private:
         const Vector2f& point, const ShapeType& fieldShape, const Vector2f& fieldCenter, float width, float height);
     float CalculateDistanceToRectangleEdge(
         const Vector2f& position, const Vector2f& direction, const Vector2f& center, const Vector2f& size);
+    float CalculateDistanceToEllipseEdge(
+        const Vector2f& direction, const Vector2f& center, const Vector2f& axes);
 };
 
 class RSB_EXPORT PerlinNoise2D {
