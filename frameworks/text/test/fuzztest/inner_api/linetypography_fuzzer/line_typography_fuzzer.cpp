@@ -14,12 +14,14 @@
  */
 
 #include "line_typography_fuzzer.h"
+
 #include <codecvt>
 #include <cstddef>
+#include <fuzzer/FuzzedDataProvider.h>
 #include <iostream>
 #include <locale>
 #include <string>
-#include "get_object.h"
+
 #include "line_typography.h"
 #include "typography_create.h"
 
@@ -28,13 +30,10 @@ namespace Rosen {
 namespace Drawing {
 void OHLineTypographyFuzz1(const uint8_t* data, size_t size)
 {
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
+    FuzzedDataProvider fdp(data, size);
     std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection = OHOS::Rosen::FontCollection::Create();
     OHOS::Rosen::TypographyStyle typographyStyle;
-    typographyStyle.fontSize = std::fabs(GetObject<double>() + 1);
+    typographyStyle.fontSize = std::fabs(fdp.ConsumeFloatingPoint<double>() + 1);
     std::unique_ptr<TypographyCreate> handler = TypographyCreate::Create(typographyStyle, fontCollection);
     std::string text = "world";
     std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> convert;
@@ -44,7 +43,7 @@ void OHLineTypographyFuzz1(const uint8_t* data, size_t size)
     if (lineTypography == nullptr) {
         return;
     }
-    size_t count = lineTypography->GetLineBreak(0, GetObject<uint32_t>() + 1);
+    size_t count = lineTypography->GetLineBreak(0, fdp.ConsumeIntegral<uint32_t>() + 1);
     lineTypography->CreateLine(0, count);
     lineTypography->GetTempTypography();
 }

@@ -13,48 +13,26 @@
  * limitations under the License.
  */
 
-#include "drawing_fuzzer.h"
+#include "drawing_text_fuzzer.h"
 
-#include <cstddef>
-#include <cstdint>
+#include <fuzzer/FuzzedDataProvider.h>
 
-#include "drawing_bitmap.h"
-#include "drawing_brush.h"
-#include "drawing_canvas.h"
-#include "drawing_color.h"
 #include "drawing_font_collection.h"
-#include "drawing_path.h"
-#include "drawing_pen.h"
 #include "drawing_point.h"
 #include "drawing_rect.h"
-#include "drawing_shadow_layer.h"
-#include "drawing_text_declaration.h"
 #include "drawing_text_line.h"
 #include "drawing_text_lineTypography.h"
 #include "drawing_text_typography.h"
-#include "drawing_types.h"
-#include "get_object.h"
-#include "rosen_text/typography.h"
-#include "rosen_text/typography_create.h"
 
-#include "draw/brush.h"
-
+constexpr size_t DATA_MAX_LAYOUT_WIDTH = 100;
+constexpr size_t DATA_MAX_FONTSIZE = 40;
 namespace OHOS::Rosen::Drawing {
-
-template<typename T>
-static T GetRandomNum()
-{
-    return GetObject<T>() % DATA_MAX_RANDOM;
-}
-
 void OHDrawingTextLineArray(OH_Drawing_Array* linesArray, const uint8_t* data, size_t size)
 {
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
+    FuzzedDataProvider fdp(data, size);
     size_t linesSize = OH_Drawing_GetDrawingArraySize(linesArray);
     OH_Drawing_GetTextLineByIndex(nullptr, linesSize - 1);
-    OH_Drawing_TextLine* line = OH_Drawing_GetTextLineByIndex(linesArray, linesSize - 1);
+    OH_Drawing_TextLine* line = OH_Drawing_GetTextLineByIndex(linesArray, fdp.ConsumeIntegral<size_t>());
     OH_Drawing_TextLineGetGlyphCount(nullptr);
     OH_Drawing_TextLineGetGlyphCount(line);
     size_t start = 0;
@@ -63,14 +41,14 @@ void OHDrawingTextLineArray(OH_Drawing_Array* linesArray, const uint8_t* data, s
     OH_Drawing_TextLineGetTextRange(line, &start, &end);
     OH_Drawing_TextLineGetGlyphRuns(nullptr);
     OH_Drawing_Array* runs = OH_Drawing_TextLineGetGlyphRuns(line);
-    OH_Drawing_GetRunByIndex(runs, 0);
-    OH_Drawing_GetRunByIndex(nullptr, GetRandomNum<size_t>());
+    OH_Drawing_GetRunByIndex(runs, fdp.ConsumeIntegral<size_t>());
+    OH_Drawing_GetRunByIndex(nullptr, 0);
     OH_Drawing_GetDrawingArraySize(nullptr);
     OH_Drawing_GetDrawingArraySize(runs);
     OH_Drawing_DestroyRuns(runs);
-    OH_Drawing_TextLinePaint(nullptr, nullptr, GetRandomNum<uint32_t>(), GetRandomNum<uint32_t>());
+    OH_Drawing_TextLinePaint(nullptr, nullptr, fdp.ConsumeIntegral<uint32_t>(), fdp.ConsumeIntegral<uint32_t>());
     auto canvas = OH_Drawing_CanvasCreate();
-    OH_Drawing_TextLinePaint(line, canvas, GetRandomNum<uint32_t>(), GetRandomNum<uint32_t>());
+    OH_Drawing_TextLinePaint(line, canvas, fdp.ConsumeIntegral<uint32_t>(), fdp.ConsumeIntegral<uint32_t>());
     OH_Drawing_CanvasDestroy(canvas);
     double ascent = 0.0;
     double descent = 0.0;
@@ -86,7 +64,7 @@ void OHDrawingTextLineArray(OH_Drawing_Array* linesArray, const uint8_t* data, s
     OH_Drawing_TextLine* truncatedLine =
         OH_Drawing_TextLineCreateTruncatedLine(line, DATA_MAX_LAYOUT_WIDTH, 0, ellipsis);
     OH_Drawing_DestroyTextLine(truncatedLine);
-    OH_Drawing_Point* point = OH_Drawing_PointCreate(GetRandomNum<uint32_t>(), GetRandomNum<uint32_t>());
+    OH_Drawing_Point* point = OH_Drawing_PointCreate(fdp.ConsumeIntegral<uint32_t>(), fdp.ConsumeIntegral<uint32_t>());
     int32_t index = OH_Drawing_TextLineGetStringIndexForPosition(line, point);
     int32_t index1 = OH_Drawing_TextLineGetStringIndexForPosition(nullptr, point);
     OH_Drawing_PointDestroy(point);
@@ -94,26 +72,20 @@ void OHDrawingTextLineArray(OH_Drawing_Array* linesArray, const uint8_t* data, s
     OH_Drawing_TextLineGetOffsetForStringIndex(nullptr, index1);
     OH_Drawing_TextLineEnumerateCaretOffsets(line, [](double, int, bool) { return false; });
     OH_Drawing_TextLineEnumerateCaretOffsets(line, nullptr);
-    OH_Drawing_TextLineGetAlignmentOffset(line, GetRandomNum<uint32_t>(), DATA_MAX_LAYOUT_WIDTH);
-    OH_Drawing_TextLineGetAlignmentOffset(nullptr, GetRandomNum<uint32_t>(), DATA_MAX_LAYOUT_WIDTH);
+    OH_Drawing_TextLineGetAlignmentOffset(line, fdp.ConsumeIntegral<uint32_t>(), DATA_MAX_LAYOUT_WIDTH);
+    OH_Drawing_TextLineGetAlignmentOffset(nullptr, fdp.ConsumeIntegral<uint32_t>(), DATA_MAX_LAYOUT_WIDTH);
     OH_Drawing_DestroyTextLine(line);
 }
 
 void OHDrawTextLineTest(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return;
-    }
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    uint32_t width = GetRandomNum<uint32_t>();
-    uint32_t red = GetRandomNum<uint32_t>();
-    uint32_t gree = GetRandomNum<uint32_t>();
-    uint32_t blue = GetRandomNum<uint32_t>();
-    uint32_t alpha = GetRandomNum<uint32_t>();
-    uint32_t fontSize = GetRandomNum<uint32_t>();
+    FuzzedDataProvider fdp(data, size);
+    uint32_t width = fdp.ConsumeIntegral<uint32_t>();
+    uint32_t red = fdp.ConsumeIntegral<uint32_t>();
+    uint32_t gree = fdp.ConsumeIntegral<uint32_t>();
+    uint32_t blue = fdp.ConsumeIntegral<uint32_t>();
+    uint32_t alpha = fdp.ConsumeIntegral<uint32_t>();
+    uint32_t fontSize = fdp.ConsumeIntegral<uint32_t>();
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
     OH_Drawing_FontCollection* fontCollection = OH_Drawing_CreateFontCollection();
@@ -144,25 +116,18 @@ void OHDrawTextLineTest(const uint8_t* data, size_t size)
 
 void OHDrawingLineTypographyTest(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return;
-    }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    uint32_t red = GetRandomNum<uint32_t>();
-    uint32_t gree = GetRandomNum<uint32_t>();
-    uint32_t blue = GetRandomNum<uint32_t>();
-    uint32_t alpha = GetRandomNum<uint32_t>();
+    FuzzedDataProvider fdp(data, size);
+    uint32_t red = fdp.ConsumeIntegral<uint32_t>();
+    uint32_t gree = fdp.ConsumeIntegral<uint32_t>();
+    uint32_t blue = fdp.ConsumeIntegral<uint32_t>();
+    uint32_t alpha = fdp.ConsumeIntegral<uint32_t>();
     OH_Drawing_TypographyStyle* typographStyle = OH_Drawing_CreateTypographyStyle();
     OH_Drawing_TextStyle* textStyle = OH_Drawing_CreateTextStyle();
     OH_Drawing_FontCollection* fontCollection = OH_Drawing_CreateFontCollection();
     OH_Drawing_TypographyCreate* createHandler = OH_Drawing_CreateTypographyHandler(typographStyle, fontCollection);
     OH_Drawing_DestroyFontCollection(fontCollection);
     OH_Drawing_SetTextStyleColor(textStyle, OH_Drawing_ColorSetArgb(alpha, red, gree, blue));
-    OH_Drawing_SetTextStyleFontSize(textStyle, DATA_MAX_ENUM_FONTSIZE);
+    OH_Drawing_SetTextStyleFontSize(textStyle, DATA_MAX_FONTSIZE);
     OH_Drawing_SetTextStyleFontWeight(textStyle, FONT_WEIGHT_400);
     OH_Drawing_SetTextStyleBaseLine(textStyle, TEXT_BASELINE_ALPHABETIC);
     const char* fontFamilies[] = { "Roboto" };
@@ -176,10 +141,7 @@ void OHDrawingLineTypographyTest(const uint8_t* data, size_t size)
     OH_Drawing_TypographyGetTextLines(nullptr);
     OH_Drawing_LineTypography* lineTypography = OH_Drawing_CreateLineTypography(createHandler);
     OH_Drawing_CreateLineTypography(nullptr);
-    if (lineTypography == nullptr) {
-        return;
-    }
-    size_t startIndex = GetRandomNum<size_t>();
+    size_t startIndex = fdp.ConsumeIntegral<size_t>();
     auto count = OH_Drawing_LineTypographyGetLineBreak(lineTypography, startIndex, DATA_MAX_LAYOUT_WIDTH);
     OH_Drawing_TextLine* line = OH_Drawing_LineTypographyCreateLine(lineTypography, startIndex, count);
     OH_Drawing_DestroyTextLine(line);
@@ -192,20 +154,10 @@ void OHDrawingLineTypographyTest(const uint8_t* data, size_t size)
 
 void NativeDrawingTextStyleDecorationTest(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return;
-    }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
+    FuzzedDataProvider fdp(data, size);
     OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
-    if (txtStyle == nullptr) {
-        return;
-    }
-    uint32_t decorationA = GetRandomNum<uint32_t>();
-    uint32_t decorationB = GetRandomNum<uint32_t>();
+    uint32_t decorationA = fdp.ConsumeIntegral<uint32_t>();
+    uint32_t decorationB = fdp.ConsumeIntegral<uint32_t>();
     OH_Drawing_AddTextStyleDecoration(txtStyle, decorationA);
     OH_Drawing_AddTextStyleDecoration(txtStyle, decorationB);
     OH_Drawing_RemoveTextStyleDecoration(txtStyle, decorationA);
@@ -215,15 +167,8 @@ void NativeDrawingTextStyleDecorationTest(const uint8_t* data, size_t size)
 
 void OHDrawingTextTabTest(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return;
-    }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    uint32_t location = GetRandomNum<uint32_t>();
+    FuzzedDataProvider fdp(data, size);
+    uint32_t location = fdp.ConsumeIntegral<uint32_t>();
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     OH_Drawing_TextTab* tab = OH_Drawing_CreateTextTab(OH_Drawing_TextAlign::TEXT_ALIGN_LEFT, location);
     OH_Drawing_GetTextTabAlignment(tab);
@@ -234,15 +179,7 @@ void OHDrawingTextTabTest(const uint8_t* data, size_t size)
 }
 void OHDrawingCreateSharedFontCollectionTest(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return;
-    }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    // initialize
+    FuzzedDataProvider fdp(data, size);
     OH_Drawing_DisableFontCollectionFallback(nullptr);
     OH_Drawing_DestroyFontCollection(nullptr);
     OH_Drawing_DisableFontCollectionSystemFont(nullptr);
@@ -256,15 +193,7 @@ void OHDrawingCreateSharedFontCollectionTest(const uint8_t* data, size_t size)
 
 void OHDrawingCreateFontCollectionGlobalInstanceTest(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return;
-    }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    // initialize
+    FuzzedDataProvider fdp(data, size);
     OH_Drawing_FontCollection* fontCollection = OH_Drawing_GetFontCollectionGlobalInstance();
     OH_Drawing_DisableFontCollectionFallback(fontCollection);
     OH_Drawing_DisableFontCollectionSystemFont(fontCollection);
@@ -282,5 +211,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::Drawing::NativeDrawingTextStyleDecorationTest(data, size);
     OHOS::Rosen::Drawing::OHDrawingTextTabTest(data, size);
     OHOS::Rosen::Drawing::OHDrawingCreateSharedFontCollectionTest(data, size);
+    OHOS::Rosen::Drawing::OHDrawingCreateFontCollectionGlobalInstanceTest(data, size);
     return 0;
 }

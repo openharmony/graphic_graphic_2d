@@ -16,9 +16,9 @@
 #include "convert_fuzzer.h"
 
 #include <cstddef>
+#include <fuzzer/FuzzedDataProvider.h>
 
 #include "convert.h"
-#include "get_object.h"
 #include "rosen_text/text_style.h"
 
 namespace OHOS {
@@ -26,51 +26,44 @@ namespace Rosen {
 namespace Drawing {
 void OHDrawingConvert1(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return;
-    }
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
+    FuzzedDataProvider fdp(data, size);
     std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection = OHOS::Rosen::FontCollection::Create();
     std::shared_ptr<OHOS::Rosen::AdapterTxt::FontCollection> adapterFontCollection =
         AdapterTxt::Convert(fontCollection);
 
-    const SPText::PositionWithAffinity zeroAndUpstream = { GetObject<int>() % DATA_MAX_ENUM_SIZE1,
+    const SPText::PositionWithAffinity zeroAndUpstream = { fdp.ConsumeIntegral<int>(),
         SPText::Affinity(DATA_MAX_ENUM_SIZE1) };
     AdapterTxt::Convert(zeroAndUpstream);
 
-    SPText::Range<size_t> range(GetObject<int>(), GetObject<int>());
+    SPText::Range<size_t> range(fdp.ConsumeIntegral<int>(), fdp.ConsumeIntegral<int>());
     AdapterTxt::Convert(range);
 
     SkRect skRect = SkRect::MakeEmpty();
-    const SPText::TextBox box(skRect, SPText::TextDirection(GetObject<int>() % DATA_MAX_ENUM_SIZE1));
+    const SPText::TextBox box(skRect, SPText::TextDirection(fdp.ConsumeIntegral<int>()));
     AdapterTxt::Convert(box);
 
-    TextRectHeightStyle textRectHeightStyle = TextRectHeightStyle(GetObject<int>() % DATA_MAX_ENUM_SIZE3);
+    TextRectHeightStyle textRectHeightStyle = TextRectHeightStyle(fdp.ConsumeIntegral<int>() % DATA_MAX_ENUM_SIZE3);
     AdapterTxt::Convert(textRectHeightStyle);
 
-    TextRectWidthStyle textRectWidthStyle = TextRectWidthStyle(GetObject<int>() % DATA_MAX_ENUM_SIZE1);
+    TextRectWidthStyle textRectWidthStyle = TextRectWidthStyle(fdp.ConsumeIntegral<int>());
     AdapterTxt::Convert(textRectWidthStyle);
 
     PlaceholderSpan placeholderSpan;
-    placeholderSpan.alignment = PlaceholderVerticalAlignment(GetObject<int>() % DATA_MAX_ENUM_SIZE3);
+    placeholderSpan.alignment = PlaceholderVerticalAlignment(fdp.ConsumeIntegral<int>() % DATA_MAX_ENUM_SIZE3);
     AdapterTxt::Convert(placeholderSpan);
 }
 
 void OHDrawingConvert2(const uint8_t* data, size_t size)
 {
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-    uint32_t red = GetObject<uint32_t>();
-    uint32_t gree = GetObject<uint32_t>();
-    uint32_t blue = GetObject<uint32_t>();
-    uint32_t alpha = GetObject<uint32_t>();
+    FuzzedDataProvider fdp(data, size);
+    uint32_t red = fdp.ConsumeIntegral<uint32_t>();
+    uint32_t gree = fdp.ConsumeIntegral<uint32_t>();
+    uint32_t blue = fdp.ConsumeIntegral<uint32_t>();
+    uint32_t alpha = fdp.ConsumeIntegral<uint32_t>();
     TextStyle textStyle;
-    textStyle.symbol.SetVisualMode(VisualMode(GetObject<int>() % DATA_MAX_ENUM_SIZE2));
-    textStyle.fontFeatures.SetFeature("tag", GetObject<int>());
-    textStyle.fontVariations.SetAxisValue("tag", GetObject<float>());
+    textStyle.symbol.SetVisualMode(VisualMode(fdp.ConsumeIntegral<int>() % DATA_MAX_ENUM_SIZE2));
+    textStyle.fontFeatures.SetFeature("tag", fdp.ConsumeIntegral<int>());
+    textStyle.fontVariations.SetAxisValue("tag", fdp.ConsumeFloatingPoint<float>());
     textStyle.backgroundBrush = Drawing::Brush(Drawing::Color::ColorQuadSetARGB(alpha, red, gree, blue));
     textStyle.foregroundBrush = Drawing::Brush(Drawing::Color::ColorQuadSetARGB(alpha, red, gree, blue));
     textStyle.backgroundPen = Drawing::Pen(Drawing::Color::ColorQuadSetARGB(alpha, red, gree, blue));
@@ -79,9 +72,9 @@ void OHDrawingConvert2(const uint8_t* data, size_t size)
     SPText::TextStyle sptextStyle = AdapterTxt::Convert(textStyle);
 
     SPText::TextStyle sptextStyle2;
-    sptextStyle.fontFeatures.SetFeature("tag", GetObject<float>());
-    sptextStyle.fontVariations.SetAxisValue("tag", GetObject<int>());
-    sptextStyle.isSymbolGlyph = GetObject<bool>();
+    sptextStyle.fontFeatures.SetFeature("tag", fdp.ConsumeFloatingPoint<float>());
+    sptextStyle.fontVariations.SetAxisValue("tag", fdp.ConsumeIntegral<int>());
+    sptextStyle.isSymbolGlyph = fdp.ConsumeBool();
     sptextStyle.background =
         SPText::PaintRecord(Drawing::Brush(Drawing::Color::ColorQuadSetARGB(alpha, red, gree, blue)), Drawing::Pen());
     sptextStyle.foreground =

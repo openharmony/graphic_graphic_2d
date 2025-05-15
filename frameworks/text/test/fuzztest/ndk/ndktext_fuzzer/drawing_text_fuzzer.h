@@ -12,11 +12,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "drawing_run_fuzzer.h"
- /* Fuzzer entry point */
-extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
-{
-    /* Run your code on data */
-    OHOS::Rosen::Drawing::OHDrawingTextRunTest(data, size);
-    return 0;
-}
+
+#ifndef TEST_FUZZTEST_DRAWING_FUZZER_H
+#define TEST_FUZZTEST_DRAWING_FUZZER_H
+
+#define FUZZ_PROJECT_NAME "drawing_fuzzer"
+
+#endif // TEST_FUZZTEST_DRAWING_FUZZER_H

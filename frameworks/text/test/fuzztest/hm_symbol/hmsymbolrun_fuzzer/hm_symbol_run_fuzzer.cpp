@@ -14,37 +14,31 @@
  */
 
 #include "hm_symbol_run_fuzzer.h"
+
 #include <cstddef>
-#include "get_object.h"
+#include <fuzzer/FuzzedDataProvider.h>
+
 #include "symbol_engine/hm_symbol_run.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace SPText {
-bool DrawSymbolFuzzTest(const uint8_t* data, size_t size)
+void DrawSymbolFuzzTest(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
+    FuzzedDataProvider fdp(data, size);
     std::shared_ptr<RSCanvas> rsCanvas = std::make_shared<RSCanvas>();
     const char* str1 = "A";
     Drawing::Font font;
     auto textblob1 = Drawing::TextBlob::MakeFromText(str1, strlen(str1), font, Drawing::TextEncoding::UTF8);
 
-    float offsetX = SPText::GetObject<float>();
-    float offsety = SPText::GetObject<float>();
-    RSPoint paint = {offsetX, offsety};
-    RSEffectStrategy effectStrategy = SPText::GetObject<RSEffectStrategy>();
+    float offsetX = fdp.ConsumeFloatingPoint<float>();
+    float offsety = fdp.ConsumeFloatingPoint<float>();
+    RSPoint paint = { offsetX, offsety };
+    RSEffectStrategy effectStrategy = static_cast<RSEffectStrategy>(fdp.ConsumeIntegral<uint8_t>());
     HMSymbolTxt symbolTxt;
     symbolTxt.SetSymbolEffect(effectStrategy);
 
-    std::function<bool(const std::shared_ptr<OHOS::Rosen::TextEngine::SymbolAnimationConfig>&)>
-        animationFunc = nullptr;
+    std::function<bool(const std::shared_ptr<OHOS::Rosen::TextEngine::SymbolAnimationConfig>&)> animationFunc = nullptr;
     HMSymbolRun hmSymbolRun = HMSymbolRun(0, symbolTxt, textblob1, animationFunc);
     hmSymbolRun.DrawSymbol(rsCanvas.get(), paint);
 
@@ -57,7 +51,6 @@ bool DrawSymbolFuzzTest(const uint8_t* data, size_t size)
     auto textblob2 = Drawing::TextBlob::MakeFromText(str2, strlen(str2), font, Drawing::TextEncoding::UTF8);
     HMSymbolRun hmSymbolRun1 = HMSymbolRun(1, symbolTxt, textblob2, animationFunc);
     hmSymbolRun1.DrawSymbol(rsCanvas.get(), paint);
-    return true;
 }
 } // namespace SPText
 } // namespace Rosen

@@ -16,7 +16,9 @@ group("fuzztest") {
 
   deps = [
     "convert_fuzzer:fuzztest",
+    "fontcollection_fuzzer:fuzztest",
     "linetypography_fuzzer:fuzztest",
+    "run_fuzzer:fuzztest",
     "textlinebase_fuzzer:fuzztest",
   ]
 }

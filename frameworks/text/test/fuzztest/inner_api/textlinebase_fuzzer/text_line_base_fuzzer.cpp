@@ -14,8 +14,10 @@
  */
 
 #include "text_line_base_fuzzer.h"
+
 #include <cstddef>
-#include "get_object.h"
+#include <fuzzer/FuzzedDataProvider.h>
+
 #include "text_line_base.h"
 #include "typography.h"
 #include "typography_create.h"
@@ -24,38 +26,38 @@ namespace Rosen {
 namespace Drawing {
 void OHTextLineBaseFuzz1(const uint8_t* data, size_t size)
 {
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
+    FuzzedDataProvider fdp(data, size);
     TypographyStyle typographyStyle;
-    typographyStyle.maxLines = std::abs(GetObject<int>() + 1);
+    typographyStyle.maxLines = std::abs(fdp.ConsumeIntegral<int>() + 1);
     std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
         OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
     std::shared_ptr<TypographyCreate> typographyCreate = TypographyCreate::Create(typographyStyle, fontCollection);
     typographyCreate->AppendText(u"Hello World!");
     std::unique_ptr<Typography> typography_ = typographyCreate->CreateTypography();
-    typography_->Layout(std::abs(GetObject<int>()) + 1);
+    typography_->Layout(std::abs(fdp.ConsumeIntegral<int>()) + 1);
     std::vector<std::unique_ptr<TextLineBase>> textLine_ = typography_->GetTextLines();
 
     if (textLine_.size() != 0) {
         textLine_.at(0)->GetGlyphCount();
         textLine_.at(0)->GetTextRange();
         Drawing::Canvas canvas;
-        textLine_.at(0)->Paint(&canvas, std::fabs(GetObject<double>()), std::fabs(GetObject<double>()));
+        textLine_.at(0)->Paint(
+            &canvas, std::fabs(fdp.ConsumeFloatingPoint<double>()), std::fabs(fdp.ConsumeFloatingPoint<double>()));
         textLine_.at(0)->GetGlyphRuns();
         std::string ellipsisStr;
-        EllipsisModal myEllipsisModal = OHOS::Rosen::EllipsisModal(GetObject<int>() % DATA_MAX_ENUM_SIZE1);
+        EllipsisModal myEllipsisModal = OHOS::Rosen::EllipsisModal(fdp.ConsumeIntegral<int>() % DATA_MAX_ENUM_SIZE1);
         textLine_.at(0)->CreateTruncatedLine(
-            std::fabs(GetObject<double>()), static_cast<OHOS::Rosen::EllipsisModal>(-1), ellipsisStr);
-        textLine_.at(0)->CreateTruncatedLine(std::fabs(GetObject<double>()), myEllipsisModal, ellipsisStr);
-        double ascent = GetObject<double>();
-        double descent = GetObject<double>();
-        double leading = GetObject<double>();
+            std::fabs(fdp.ConsumeFloatingPoint<double>()), static_cast<OHOS::Rosen::EllipsisModal>(-1), ellipsisStr);
+        textLine_.at(0)->CreateTruncatedLine(
+            std::fabs(fdp.ConsumeFloatingPoint<double>()), myEllipsisModal, ellipsisStr);
+        double ascent = fdp.ConsumeFloatingPoint<double>();
+        double descent = fdp.ConsumeFloatingPoint<double>();
+        double leading = fdp.ConsumeFloatingPoint<double>();
         textLine_.at(0)->GetTypographicBounds(&ascent, &descent, &leading);
         textLine_.at(0)->GetImageBounds();
         textLine_.at(0)->GetTrailingSpaceWidth();
         textLine_.at(0)->GetImageBounds();
-        bool isHardBreak = GetObject<bool>();
+        bool isHardBreak = fdp.ConsumeBool();
         textLine_.at(0)->GetIndexAndOffsets(isHardBreak);
         textLine_.at(0)->GetOffsetForStringIndex(0);
     }
