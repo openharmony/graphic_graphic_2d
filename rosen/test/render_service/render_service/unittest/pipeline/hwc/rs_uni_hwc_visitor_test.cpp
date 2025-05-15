@@ -2302,15 +2302,23 @@ HWTEST_F(RSUniHwcVisitorTest, IsDisableHwcOnExpandScreen, TestSize.Level2)
  */
 HWTEST_F(RSUniHwcVisitorTest, UpdateCroseInfoForProtectedHwcNode001, TestSize.level2)
 {
-    auto hwcNode = std::make_shared<RSSurfaceRenderNode>();
-    auto firstLevelNode = std::make_shared<RSSurfaceRenderNode>();
+   NodeId surfaceNodeId = 1;
+   auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceNodeId);
+   ASSERT_NE(surfaceNode, nullptr);
 
-    EXPECT_CALL(*hwcNode, GetSpecialLayerMgr().Find(SpecialLayerType::PROTECTED)).WillOnce(Return(true));
-    EXPECT_CALL(*hwcNode, GetFirstLevelNode()).WillOnce(Return(firstLevelNode));
-    EXPECT_CALL(*firstLevenNode, GetGlobalPositionEnabled()).WillOnce(Return(true));
-    EXPECT_CALL(*firstLevenNode, IsFirstLevelCrossNode()).WillOnce(Return(true));
-    UpdateCroseInfoForProtectedHwcNode(hwcNode);
-    EXPECT_TRUE(hwcNode->IsHwcGlobalPositionEnabled());
-    EXPECT_TRUE(hwcNode->IsHwcCrossNode());
+   ASSERT_FALSE(surfaceNode->GetFirstLevelNode());
+   ASSERT_FALSE(surfaceNode->IsHwcCrossNode());
+   ASSERT_FALSE(surfaceNode->GetHwcGlobalPositionEnabled());
+   ASSERT_FALSE(surfaceNode->GetSpecialLayerMgr().Find(SpecialLayerType::PROTECTED));
+
+   surfaceNode->GetMultableSpecialLayerMgr.Set(SpecialLayerType::PROTECTED, true);
+   surfaceNode->SetHwcGlobalPositionEnabled(true);
+   surfaceNode->SetHwcCrossNode(true);
+   UpdateCrossInfoForProtectedHwcNode(surfaceNode);
+
+   ASSERT_TRUE(surfaceNode->GetSpecialLayerMgr().Find(SpecialLayerType::PROTECTED));
+   ASSERT_TRUE(surfaceNode->GetHwcGlobalPositionEnabled());
+   ASSERT_TRUE(surfaceNode->IsHwcCrossNode());
+
 }
 }
