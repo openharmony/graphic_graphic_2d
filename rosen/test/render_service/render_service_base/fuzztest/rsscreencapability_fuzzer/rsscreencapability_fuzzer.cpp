@@ -115,7 +115,8 @@ bool DoUnmarshalling()
     Parcel parcel;
     InitRSScreenCapabilityAndParcel(capability, parcel);
     capability.Marshalling(parcel);
-    (void)capability.Unmarshalling(parcel);
+    RSScreenCapability* resultPtr = capability.Unmarshalling(parcel);
+    delete resultPtr;
     return true;
 }
 
