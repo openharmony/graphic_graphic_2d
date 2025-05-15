@@ -79,13 +79,7 @@ namespace {
 void BootCompileProgress::Init(const BootAnimationConfig& config)
 {
     LOGI("ota compile, screenId: " BPUBU64 "", config.screenId);
-    std::string deviceType = GetDeviceType();
-    LOGI("deviceType: %{public}s", deviceType.c_str());
-    if (deviceType == DEVICE_TYPE_WEARABLE) {
-        isWearable_ = true;
-    } else if (deviceType != DEVICE_TYPE_PHONE) {
-        isOther_ = true;
-    }
+    RecordDeviceType();
     screenId_ = config.screenId;
     rotateDegree_ = config.rotateDegree;
     Rosen::RSInterfaces& interface = Rosen::RSInterfaces::GetInstance();
@@ -139,13 +133,7 @@ bool BootCompileProgress::CreateCanvasNode()
 
     rsCanvasNode_ = Rosen::RSCanvasNode::Create(true, false, rsUIContext);
     rsCanvasNode_->SetBounds(0, 0, windowWidth_, windowHeight_);
-    if (isWearable_) {
-        rsCanvasNode_->SetFrame(0, windowHeight_ - OFFSET_Y_WEARABLE - HEIGHT_WEARABLE, windowWidth_, HEIGHT_WEARABLE);
-    } else {
-        int32_t maxLength = std::max(windowWidth_, windowHeight_);
-        rsCanvasNode_->SetFrame(0, windowHeight_ - maxLength * OFFSET_Y_PERCENT, windowWidth_,
-            maxLength * HEIGHT_PERCENT);
-    }
+    SetFrame();
     rsCanvasNode_->SetBackgroundColor(Rosen::Drawing::Color::COLOR_TRANSPARENT);
     rsCanvasNode_->SetPositionZ(positionZ);
     rsSurfaceNode_->AddChild(rsCanvasNode_, 0);
@@ -338,5 +326,27 @@ Rosen::Drawing::Brush BootCompileProgress::DrawProgressPoint(int32_t idx, int32_
     brush.SetAntiAlias(true);
     brush.SetAlphaF(opacity);
     return brush;
+}
+
+void BootCompileProgress::RecordDeviceType()
+{
+    std::string deviceType = GetDeviceType();
+    LOGI("deviceType: %{public}s", deviceType.c_str());
+    if (deviceType == DEVICE_TYPE_WEARABLE) {
+        isWearable_ = true;
+    } else if (deviceType != DEVICE_TYPE_PHONE) {
+        isOther_ = true;
+    }
+}
+
+void BootCompileProgress::SetFrame()
+{
+    if (isWearable_) {
+        rsCanvasNode_->SetFrame(0, windowHeight_ - OFFSET_Y_WEARABLE - HEIGHT_WEARABLE, windowWidth_, HEIGHT_WEARABLE);
+    } else {
+        int32_t maxLength = std::max(windowWidth_, windowHeight_);
+        rsCanvasNode_->SetFrame(0, windowHeight_ - maxLength * OFFSET_Y_PERCENT, windowWidth_,
+            maxLength * HEIGHT_PERCENT);
+    }
 }
 } // namespace OHOS
