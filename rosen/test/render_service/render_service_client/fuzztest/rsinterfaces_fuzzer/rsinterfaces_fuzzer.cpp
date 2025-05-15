@@ -338,6 +338,46 @@ bool DoGetHighContrastTextState(const uint8_t* data, size_t size)
     rsInterfaces.GetHighContrastTextState();
     return true;
 }
+
+bool DoSetBehindWindowFilterEnabled(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    // get data
+    bool enabled = GetData<bool>();
+
+    // test
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.SetBehindWindowFilterEnabled(enabled);
+    return true;
+}
+
+bool DoGetBehindWindowFilterEnabled(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    // data
+    bool enabled = GetData<bool>();
+
+    // test
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.GetBehindWindowFilterEnabled(enabled);
+    return true;
+}
 } // namespace Rosen
 } // namespace OHOS
 
@@ -355,5 +395,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoSetOverlayDisplayModeFuzzTest(data, size);
 #endif
     OHOS::Rosen::DoGetHighContrastTextState(data, size);
+    OHOS::Rosen::DoSetBehindWindowFilterEnabled(data, size);
+    OHOS::Rosen::DoGetBehindWindowFilterEnabled(data, size);
     return 0;
 }

@@ -353,6 +353,30 @@ bool DoSetOverlayDisplayModeFuzzTest(const uint8_t* data, size_t size)
     return true;
 }
 #endif
+
+bool DoBehindWindowFilterEnabled(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    // get data
+    bool enabled = GetData<bool>();
+    bool res = GetData<bool>();
+
+    // test
+    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
+    RSRenderServiceConnectionProxy rsRenderServiceConnectionProxy(remoteObject);
+    rsRenderServiceConnectionProxy.SetBehindWindowFilterEnabled(enabled);
+    rsRenderServiceConnectionProxy.GetBehindWindowFilterEnabled(res);
+    return true;
+}
 } // namespace Rosen
 } // namespace OHOS
 
@@ -367,5 +391,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
     OHOS::Rosen::DoSetOverlayDisplayModeFuzzTest(data, size);
 #endif
+    OHOS::Rosen::DoBehindWindowFilterEnabled(data, size);
     return 0;
 }

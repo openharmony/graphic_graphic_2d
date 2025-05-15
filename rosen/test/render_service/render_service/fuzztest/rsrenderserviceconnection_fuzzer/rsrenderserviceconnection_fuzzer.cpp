@@ -1346,6 +1346,26 @@ bool DoSetOverlayDisplayMode()
 }
 #endif
 
+bool DoSetBehindWindowFilterEnabled()
+{
+    if (rsConn_ == nullptr) {
+        return false;
+    }
+    bool enabled = GetData<bool>();
+    rsConn_->SetBehindWindowFilterEnabled(enabled);
+    return true;
+}
+
+bool DoGetBehindWindowFilterEnabled()
+{
+    if (rsConn_ == nullptr) {
+        return false;
+    }
+    bool res = true;
+    rsConn_->GetBehindWindowFilterEnabled(res);
+    return true;
+}
+
 class CustomFirstFrameCommitCallback : public RSFirstFrameCommitCallbackStub {
 public:
     explicit CustomFirstFrameCommitCallback(const FirstFrameCommitCallback& callback) : cb_(callback) {}
@@ -1485,6 +1505,8 @@ void DoFuzzerTest3()
 #endif
     DoRegisterFirstFrameCommitCallback();
     DoNotifySoftVsyncRateDiscountEvent();
+    DoSetBehindWindowFilterEnabled();
+    DoGetBehindWindowFilterEnabled();
 }
 } // namespace Rosen
 } // namespace OHOS
