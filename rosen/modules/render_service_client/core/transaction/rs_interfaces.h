@@ -388,9 +388,9 @@ public:
 
     bool GetHighContrastTextState();
 
-    void SetBehindWindowFilterEnabled(bool enabled);
+    bool SetBehindWindowFilterEnabled(bool enabled);
 
-    bool GetBehindWindowFilterEnabled();
+    bool GetBehindWindowFilterEnabled(bool& enabled);
 private:
     RSInterfaces();
     ~RSInterfaces() noexcept;

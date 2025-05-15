@@ -1032,21 +1032,29 @@ HWTEST_F(RSClientTest, GetPixelMapByProcessIdTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: BehindWindowFilterEnabledTest
- * @tc.desc: BehindWindowFilterEnabledTest
+ * @tc.name: SetBehindWindowFilterEnabledTest
+ * @tc.desc: SetBehindWindowFilterEnabledTest
  * @tc.type:FUNC
  * @tc.require: issuesIC5OEB
  */
-HWTEST_F(RSClientTest, BehindWindowFilterEnabledTest, TestSize.Level1)
+HWTEST_F(RSClientTest, SetBehindWindowFilterEnabledTest, TestSize.Level1)
 {
-    rsClient->SetBehindWindowFilterEnabled(false);
+    auto res = rsClient->SetBehindWindowFilterEnabled(true);
     usleep(SET_OPERATION_SLEEP_US);
-    bool enabled = rsClient->GetBehindWindowFilterEnabled();
-    EXPECT_EQ(enabled, false);
-    rsClient->SetBehindWindowFilterEnabled(true);
-    usleep(SET_OPERATION_SLEEP_US);
-    enabled = rsClient->GetBehindWindowFilterEnabled();
-    EXPECT_EQ(enabled, true);
+    EXPECT_EQ(res, true);
+}
+
+/**
+ * @tc.name: GetBehindWindowFilterEnabledTest
+ * @tc.desc: GetBehindWindowFilterEnabledTest
+ * @tc.type:FUNC
+ * @tc.require: issuesIC5OEB
+ */
+HWTEST_F(RSClientTest, GetBehindWindowFilterEnabledTest, TestSize.Level1)
+{
+    auto enabled = false;
+    auto res = rsClient->GetBehindWindowFilterEnabled(enabled);
+    EXPECT_EQ(res, true);
 }
 } // namespace Rosen
 } // namespace OHOS

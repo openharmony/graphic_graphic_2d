@@ -2509,7 +2509,8 @@ bool DoGetBehindWindowFilterEnabled(const uint8_t *data, size_t size)
 
     std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
     RSRenderServiceConnectHub::GetInstance()->Destroy();
-    client->GetBehindWindowFilterEnabled();
+    bool enabled = GetData<bool>();
+    client->GetBehindWindowFilterEnabled(enabled);
     return true;
 }
 } // namespace Rosen

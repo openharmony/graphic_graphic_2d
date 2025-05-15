@@ -370,9 +370,12 @@ bool DoGetBehindWindowFilterEnabled(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
 
+    // data
+    bool enabled = GetData<bool>();
+
     // test
     auto& rsInterfaces = RSInterfaces::GetInstance();
-    rsInterfaces.GetBehindWindowFilterEnabled();
+    rsInterfaces.GetBehindWindowFilterEnabled(enabled);
     return true;
 }
 } // namespace Rosen

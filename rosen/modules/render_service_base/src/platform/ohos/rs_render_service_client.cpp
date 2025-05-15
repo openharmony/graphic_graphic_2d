@@ -2188,31 +2188,32 @@ bool RSRenderServiceClient::GetHighContrastTextState()
     return false;
 }
 
-void RSRenderServiceClient::SetBehindWindowFilterEnabled(bool enabled)
+bool RSRenderServiceClient::SetBehindWindowFilterEnabled(bool enabled)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (!renderService) {
-        return;
+        return false;
     }
     auto ret = renderService->SetBehindWindowFilterEnabled(enabled);
     if (ret != ERR_OK) {
         ROSEN_LOGE("RSRenderServiceClient::SetBehindWindowFilterEnabled fail, ret[%{public}d]", ret);
+        return false;
     }
+    return true;
 }
 
-bool RSRenderServiceClient::GetBehindWindowFilterEnabled()
+bool RSRenderServiceClient::GetBehindWindowFilterEnabled(bool& enabled)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (!renderService) {
-        return true;
+        return false;
     }
-    bool enabled = true;
     auto ret = renderService->GetBehindWindowFilterEnabled(enabled);
     if (ret != ERR_OK) {
         ROSEN_LOGE("RSRenderServiceClient::GetBehindWindowFilterEnabled fail, ret[%{public}d]", ret);
-        return true;
+        return false;
     }
-    return enabled;
+    return true;
 }
 } // namespace Rosen
 } // namespace OHOS

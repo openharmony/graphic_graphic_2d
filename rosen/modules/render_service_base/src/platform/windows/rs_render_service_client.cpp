@@ -795,11 +795,12 @@ bool RSRenderServiceClient::GetHighContrastTextState()
     return false;
 }
 
-void RSRenderServiceClient::SetBehindWindowFilterEnabled(bool enabled)
+bool RSRenderServiceClient::SetBehindWindowFilterEnabled(bool enabled)
 {
+    return false;
 }
 
-bool RSRenderServiceClient::GetBehindWindowFilterEnabled()
+bool RSRenderServiceClient::GetBehindWindowFilterEnabled(bool& enabled)
 {
     return false;
 }

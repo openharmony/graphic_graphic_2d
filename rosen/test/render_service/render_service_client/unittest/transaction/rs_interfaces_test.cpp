@@ -730,21 +730,30 @@ HWTEST_F(RSInterfacesTest, GetHighContrastTextState001, TestSize.Level1)
 }
 
 /**
- * @tc.name: BehindWindowFilterEnabledTest
- * @tc.desc: test results of BehindWindowFilterEnabled
+ * @tc.name: SetBehindWindowFilterEnabledTest
+ * @tc.desc: test results of SetBehindWindowFilterEnabledTest
  * @tc.type: FUNC
  * @tc.require: issuesIC5OEB
  */
-HWTEST_F(RSInterfacesTest, BehindWindowFilterEnabledTest, TestSize.Level1)
+HWTEST_F(RSInterfacesTest, SetBehindWindowFilterEnabledTest, TestSize.Level1)
 {
     RSInterfaces& instance = RSInterfaces::GetInstance();
-    instance.SetBehindWindowFilterEnabled(false);
+    auto res = instance.SetBehindWindowFilterEnabled(true);
     usleep(SET_OPERATION_SLEEP_US);
-    auto res = instance.GetBehindWindowFilterEnabled();
-    EXPECT_EQ(res, false);
-    instance.SetBehindWindowFilterEnabled(true);
-    usleep(SET_OPERATION_SLEEP_US);
-    res = instance.GetBehindWindowFilterEnabled();
+    EXPECT_EQ(res, true);
+}
+
+/**
+ * @tc.name: GetBehindWindowFilterEnabledTest
+ * @tc.desc: test results of GetBehindWindowFilterEnabledTest
+ * @tc.type: FUNC
+ * @tc.require: issuesIC5OEB
+ */
+HWTEST_F(RSInterfacesTest, GetBehindWindowFilterEnabledTest, TestSize.Level1)
+{
+    RSInterfaces& instance = RSInterfaces::GetInstance();
+    bool enabled = false;
+    auto res = instance.GetBehindWindowFilterEnabled(enabled);
     EXPECT_EQ(res, true);
 }
 } // namespace OHOS::Rosen

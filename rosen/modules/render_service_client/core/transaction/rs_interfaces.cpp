@@ -1090,14 +1090,14 @@ bool RSInterfaces::GetHighContrastTextState()
     return renderServiceClient_->GetHighContrastTextState();
 }
 
-void RSInterfaces::SetBehindWindowFilterEnabled(bool enabled)
+bool RSInterfaces::SetBehindWindowFilterEnabled(bool enabled)
 {
-    renderServiceClient_->SetBehindWindowFilterEnabled(enabled);
+    return renderServiceClient_->SetBehindWindowFilterEnabled(enabled);
 }
 
-bool RSInterfaces::GetBehindWindowFilterEnabled()
+bool RSInterfaces::GetBehindWindowFilterEnabled(bool& enabled)
 {
-    return renderServiceClient_->GetBehindWindowFilterEnabled();
+    return renderServiceClient_->GetBehindWindowFilterEnabled(enabled);
 }
 } // namespace Rosen
 } // namespace OHOS
