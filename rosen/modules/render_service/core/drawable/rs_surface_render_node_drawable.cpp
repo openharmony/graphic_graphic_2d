@@ -795,6 +795,7 @@ void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
 
     CaptureSurface(*rscanvas, *surfaceParams);
     ResetVirtualScreenWhiteListRootId(surfaceParams->GetLeashPersistentId());
+    RSRenderNodeDrawable::SnapshotProcessedNodeCountInc();
 }
 
 bool RSSurfaceRenderNodeDrawable::CheckIfSurfaceSkipInMirror(const RSSurfaceRenderParams& surfaceParams)
@@ -962,10 +963,9 @@ void RSSurfaceRenderNodeDrawable::CaptureSurface(RSPaintFilterCanvas& canvas, RS
     bool enableVisiableRect = RSUniRenderThread::Instance().GetEnableVisiableRect();
     if (!(specialLayerManager.Find(HAS_GENERAL_SPECIAL) || surfaceParams.GetHDRPresent() || hasHidePrivacyContent ||
         enableVisiableRect || !IsVisibleRegionEqualOnPhysicalAndVirtual(surfaceParams))) {
-        if (subThreadCache_.DealWithUIFirstCache(this, canvas, surfaceParams, *uniParams)) {
-            if (RSUniRenderThread::GetCaptureParam().isSingleSurface_) {
-                RS_LOGI("%{public}s DealWithUIFirstCache", __func__);
-            }
+        //Window screenshot does not enable uifirst.
+        if (!RSUniRenderThread::GetCaptureParam().isSingleSurface_ &&
+            subThreadCache_.DealWithUIFirstCache(this, canvas, surfaceParams, *uniParams)) {
             return;
         }
     }

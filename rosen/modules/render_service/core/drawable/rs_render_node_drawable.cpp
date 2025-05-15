@@ -970,6 +970,23 @@ void RSRenderNodeDrawable::ClearProcessedNodeCount()
     processedNodeCount_ = 0;
 }
 
+int RSRenderNodeDrawable::GetSnapshotProcessedNodeCount()
+{
+    return snapshotProcessedNodeCount_;
+}
+
+void RSRenderNodeDrawable::SnapshotProcessedNodeCountInc()
+{
+    if (RSUniRenderThread::GetCaptureParam().isSingleSurface_) {
+        ++snapshotProcessedNodeCount_;
+    }
+}
+
+void RSRenderNodeDrawable::ClearSnapshotProcessedNodeCount()
+{
+    snapshotProcessedNodeCount_ = 0;
+}
+
 bool RSRenderNodeDrawable::ShouldPaint() const
 {
     return LIKELY(renderParams_ != nullptr) && renderParams_->GetShouldPaint();
