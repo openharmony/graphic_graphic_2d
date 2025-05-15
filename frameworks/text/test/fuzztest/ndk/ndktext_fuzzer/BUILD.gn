@@ -37,7 +37,7 @@ ohos_fuzztest("DrawingFuzzTest") {
     "-fno-omit-frame-pointer",
     "-std=c++17",
   ]
-  sources = [ "drawing_fuzzer.cpp" ]
+  sources = [ "drawing_text_fuzzer.cpp" ]
 
   deps = [
     "$graphic_2d_root/rosen/modules/2d_graphics/drawing_ndk:native_drawing_ndk",

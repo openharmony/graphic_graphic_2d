@@ -15,8 +15,9 @@ group("fuzztest") {
   testonly = true
 
   deps = [
-    "drawing_fuzzer:fuzztest",
-    "drawingrun_fuzzer:fuzztest",
-    "drawingtext_fuzzer:fuzztest",
+    "ndkaddtext_fuzzer:fuzztest",
+    "ndkrun_fuzzer:fuzztest",
+    "ndktext_fuzzer:fuzztest",
+    "ndktypography_fuzzer:fuzztest",
   ]
 }

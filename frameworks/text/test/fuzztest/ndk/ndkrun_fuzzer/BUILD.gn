@@ -18,7 +18,7 @@ import("//foundation/graphic/graphic_2d/frameworks/text/config.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 ##############################fuzztest##########################################
-ohos_fuzztest("DrawingTextFuzzTest") {
+ohos_fuzztest("DrawingRunFuzzTest") {
   module_out_path = text_test_out_path
   fuzz_config_file = "."
 
@@ -37,7 +37,7 @@ ohos_fuzztest("DrawingTextFuzzTest") {
     "-fno-omit-frame-pointer",
     "-std=c++17",
   ]
-  sources = [ "drawing_text_fuzzer.cpp" ]
+  sources = [ "drawing_text_run_fuzzer.cpp" ]
 
   deps = [
     "$graphic_2d_root/rosen/modules/2d_graphics/drawing_ndk:native_drawing_ndk",
@@ -53,7 +53,7 @@ group("fuzztest") {
   deps = []
   deps += [
     # deps file
-    ":DrawingTextFuzzTest",
+    ":DrawingRunFuzzTest",
   ]
 }
 ###############################################################################

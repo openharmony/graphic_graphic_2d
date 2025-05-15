@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "drawing_fuzzer.h"
+#include "drawing_text_fuzzer.h"
 
 #include <fuzzer/FuzzedDataProvider.h>
 

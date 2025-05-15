@@ -16,7 +16,7 @@ group("fuzztest") {
 
   deps = [
     "hm_symbol:fuzztest",
+    "inner_api:fuzztest",
     "ndk:fuzztest",
-    "typography:fuzztest",
   ]
 }

@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "drawing_text_fuzzer.h"
+#include "drawing_text_typography_fuzzer.h"
 
 #include <cstddef>
 #include <fuzzer/FuzzedDataProvider.h>
