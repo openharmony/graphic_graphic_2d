@@ -87,7 +87,7 @@ int64_t HgmVSyncGeneratorController::ChangeGeneratorRate(const uint32_t controll
     if (auto configPluseNum = HgmCore::Instance().GetPluseNum(); configPluseNum != -1) {
         pulseNum_ = configPluseNum;
     } else {
-        if (isNeedUpdateAppOffset && HgmCore::Instance().CheckNeedUpdateAppOffsetRefreshRate(controllerRate)) {
+        if (isNeedUpdateAppOffset && CheckNeedUpdateAppOffsetRefreshRate(controllerRate)) {
             pulseNum_ = 0;
         } else {
             pulseNum_ = GetAppOffset(controllerRate);
@@ -117,6 +117,10 @@ int64_t HgmVSyncGeneratorController::ChangeGeneratorRate(const uint32_t controll
         vsyncGenerator_->ChangeGeneratorRefreshRateModel(listenerRate, listenerPhase, controllerRate, vsyncCount);
     }
     return vsyncCount;
+}
+bool HgmVSyncGeneratorController::CheckNeedUpdateAppOffsetRefreshRate(uint32_t refreshRate)
+{
+    return refreshRate <= OLED_60_HZ;
 }
 } // namespace Rosen
 } // namespace OHOS
