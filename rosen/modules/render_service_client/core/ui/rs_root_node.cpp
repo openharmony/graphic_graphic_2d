@@ -91,6 +91,7 @@ std::shared_ptr<RSNode> RSRootNode::Create(
         std::unique_ptr<RSCommand> command = std::make_unique<RSRootNodeCreate>(node->GetId(), isTextureExportNode);
         transactionProxy->AddCommand(command, node->IsRenderServiceNode());
     }
+    node->SetUIContextToken();
     return node;
 }
 

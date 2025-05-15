@@ -44,6 +44,7 @@ RSEffectNode::SharedPtr RSEffectNode::Create(
         return node;
     }
     transaction->AddCommand(command, node->IsRenderServiceNode());
+    node->SetUIContextToken();
     return node;
 }
 

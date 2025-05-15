@@ -82,6 +82,8 @@ enum RSNodeCommandType : uint16_t {
 
     DUMP_CLIENT_NODE_TREE = 0x0700,
     COMMIT_DUMP_CLIENT_NODE_TREE = 0x0701,
+
+    SET_UICONTEXT_TOKEN = 0x0800,
 };
 
 class RSB_EXPORT RSNodeCommandHelper {
@@ -164,6 +166,7 @@ public:
     static void CommitDumpClientNodeTree(RSContext& context, NodeId nodeId, pid_t pid, uint32_t taskId,
         const std::string& result);
     static RSB_EXPORT void SetCommitDumpNodeTreeProcessor(CommitDumpNodeTreeProcessor processor);
+    static void SetUIToken(RSContext& context, NodeId nodeId, uint64_t token);
 };
 
 ADD_COMMAND(RSAddModifier,
@@ -278,6 +281,9 @@ ADD_COMMAND(RSSetFreeze,
 ADD_COMMAND(RSSetNodeName,
     ARG(PERMISSION_APP, RS_NODE, SET_NODE_NAME,
         RSNodeCommandHelper::SetNodeName, NodeId, std::string))
+ADD_COMMAND(RSSetUIContextToken,
+    ARG(PERMISSION_APP, BASE_NODE, SET_UICONTEXT_TOKEN,
+        RSNodeCommandHelper::SetUIToken, NodeId, uint64_t))
 ADD_COMMAND(RSMarkNodeGroup,
     ARG(PERMISSION_APP, RS_NODE, MARK_NODE_GROUP,
         RSNodeCommandHelper::MarkNodeGroup, NodeId, bool, bool, bool))
