@@ -381,6 +381,7 @@ enum class SurfaceWindowType : uint8_t {
     SCB_SCREEN_LOCK = 4,
     SCB_NEGATIVE_SCREEN = 5,
     SCB_DROPDOWN_PANEL = 6,
+    NODE_MAX,
 };
 
 enum class SurfaceHwcNodeType : uint8_t {
