@@ -135,6 +135,8 @@ public:
 
     void SetIsRecordCmd(bool isRecordCmd);
 
+    void ResetHybridRenderSize(float width, float height);
+
     using DrawFunc = std::function<void(Drawing::Canvas* canvas, const Drawing::Rect* rect)>;
 protected:
     bool addDrawOpImmediate_ = true;

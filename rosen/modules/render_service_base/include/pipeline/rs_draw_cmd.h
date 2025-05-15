@@ -84,8 +84,10 @@ public:
         SurfaceBuffer *surfaceBuffer, const std::shared_ptr<Drawing::ColorSpace>& colorSpace = nullptr);
 #endif
     void SetNodeId(NodeId id) override;
+    NodeId GetNodeId() const override;
     void SetPaint(Drawing::Paint paint) override;
     void Purge() override;
+    bool IsValid() override;
 protected:
     std::shared_ptr<RSImage> rsImage_ = nullptr;
 private:
@@ -105,6 +107,7 @@ private:
 #endif
     std::shared_ptr<Drawing::Image> image_;
     Drawing::AdaptiveImageInfo imageInfo_;
+    NodeId nodeId_ = INVALID_NODEID;
 };
 
 class RSB_EXPORT RSExtendImageBaseObj : public Drawing::ExtendImageBaseObj {
@@ -231,13 +234,15 @@ class RSB_EXPORT DrawHybridPixelMapOpItem : public DrawWithPaintOpItem {
 public:
     struct ConstructorHandle : public OpItem {
         ConstructorHandle(const OpDataHandle& objectHandle, const SamplingOptions& sampling,
-            const PaintHandle& paintHandle)
+            const PaintHandle& paintHandle, uint32_t entryId, bool isRenderForeground)
             : OpItem(DrawOpItem::HYBRID_RENDER_PIXELMAP_OPITEM), objectHandle(objectHandle), sampling(sampling),
-              paintHandle(paintHandle) {}
+              paintHandle(paintHandle), entryId(entryId), isRenderForeground(isRenderForeground) {}
         ~ConstructorHandle() override = default;
         OpDataHandle objectHandle;
         SamplingOptions sampling;
         PaintHandle paintHandle;
+        uint32_t entryId;
+        bool isRenderForeground;
     };
     DrawHybridPixelMapOpItem(const DrawCmdList& cmdList, ConstructorHandle* handle);
     DrawHybridPixelMapOpItem(const std::shared_ptr<Media::PixelMap>& pixelMap,
@@ -258,6 +263,8 @@ public:
 private:
     SamplingOptions sampling_;
     std::shared_ptr<ExtendImageObject> objectHandle_;
+    bool isRenderForeground_ = false;
+    sptr<SyncFence> fence_ = nullptr;
 };
 #endif
 

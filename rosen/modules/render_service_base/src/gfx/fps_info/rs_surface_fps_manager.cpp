@@ -14,6 +14,9 @@
  */
 
 #include <memory>
+#include <string>
+#include <codecvt>
+#include <locale>
 
 #include "common/rs_common_def.h"
 #include "gfx/fps_info/rs_surface_fps_manager.h"
@@ -23,6 +26,23 @@ RSSurfaceFpsManager& RSSurfaceFpsManager::GetInstance()
 {
     static RSSurfaceFpsManager instance;
     return instance;
+}
+
+bool ConvertToLongLongUint(const std::string& str, uint64_t& value, int8_t base = 10)
+{
+    char* end;
+    errno = 0;
+    value = std::strtoull(str.c_str(), &end, base);
+    if (end == str.c_str()) {
+        return false;
+    }
+    if (errno == ERANGE && value == ULLONG_MAX) {
+        return false;
+    }
+    if (*end != '\0') {
+        return false;
+    }
+    return true;
 }
 
 bool RSSurfaceFpsManager::RegisterSurfaceFps(NodeId id, const std::string& name)
@@ -156,6 +176,69 @@ void RSSurfaceFpsManager::ClearDumpByPid(std::string& result, pid_t pid)
     }
     result += " The fps info of surface [" + surfaceFps->GetName() + "] is cleared.\n";
     surfaceFps->ClearDump();
+}
+
+void RSSurfaceFpsManager::ProcessParam(
+    const std::unordered_set<std::u16string>& argSets, std::string& option, std::string& argStr)
+{
+    if (argSets.size() == 1) {
+        option = PARAM_NAME;
+    }
+    for (const std::u16string& arg : argSets) {
+        std::string str = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}
+            .to_bytes(arg);
+        if (options.find(str) != options.end()) {
+            option = str;
+        } else {
+            argStr = str;
+        }
+    }
+    return ;
+}
+
+bool RSSurfaceFpsManager::IsSurface(const std::string& option, const std::string& argStr)
+{
+    return option == PARAM_ID || uniRenderArgs.find(argStr) == uniRenderArgs.end();
+}
+
+void RSSurfaceFpsManager::DumpSurfaceNodeFps(
+    std::string& dumpString, const std::string& option, const std::string& arg)
+{
+    dumpString += "\n-- The recently fps records info of screens:\n";
+    if (option == PARAM_NAME) {
+        Dump(dumpString, arg);
+    } else if (option == PARAM_ID) {
+        NodeId nodeId = 0;
+        if (!ConvertToLongLongUint(arg, nodeId)) {
+            dumpString = "The input nodeId is invalid, please re-enter";
+            return ;
+        } else {
+            Dump(dumpString, nodeId);
+        }
+    } else {
+        dumpString = "The input option must be \"-name\" or \"-id\", please re-enter";
+        return ;
+    }
+}
+
+void RSSurfaceFpsManager::ClearSurfaceNodeFps(
+    std::string& dumpString, const std::string& option, const std::string& arg)
+{
+    dumpString += "\n-- Clear fps records info of screens:\n";
+    if (option == PARAM_NAME) {
+        ClearDump(dumpString, arg);
+    } else if (option == PARAM_ID) {
+        NodeId nodeId = 0;
+        if (!ConvertToLongLongUint(arg, nodeId)) {
+            dumpString = "The input nodeId is invalid, please re-enter";
+            return ;
+        } else {
+            ClearDump(dumpString, nodeId);
+        }
+    } else {
+        dumpString = "The input option must be \"-name\" or \"-id\", please re-enter";
+        return ;
+    }
 }
 
 std::unordered_map<NodeId, std::shared_ptr<RSSurfaceFps>> RSSurfaceFpsManager::GetSurfaceFpsMap() const

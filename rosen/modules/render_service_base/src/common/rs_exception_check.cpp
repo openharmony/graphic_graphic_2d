@@ -29,10 +29,12 @@ int64_t RSTimer::GetDuration()
 void ExceptionCheck::UploadRenderExceptionData()
 {
 #ifdef ROSEN_OHOS
-    RSHiSysEvent::EventWrite(RSEventName::RS_RENDER_EXCEPTION, RSEventType::RS_FAULT,
-        "PID", pid_, "UID", uid_, "PROCESS_NAME", processName_,
-        "EXCEPTION_CNT", exceptionCnt_, "EXCEPTION_TIME", exceptionMoment_,
-        "EXCEPTION_POINT", exceptionPoint_);
+    if (isUpload_) {
+        RSHiSysEvent::EventWrite(RSEventName::RS_RENDER_EXCEPTION, RSEventType::RS_FAULT,
+            "PID", pid_, "UID", uid_, "PROCESS_NAME", processName_,
+            "EXCEPTION_CNT", exceptionCnt_, "EXCEPTION_TIME", exceptionMoment_,
+            "EXCEPTION_POINT", exceptionPoint_);
+    }
 #endif
 }
 } // namespace Rosen

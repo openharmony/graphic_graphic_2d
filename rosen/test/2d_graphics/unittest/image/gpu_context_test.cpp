@@ -25,6 +25,10 @@
 #include "image/gpu_context.h"
 #include "utils/log.h"
 
+#ifdef RS_ENABLE_VK
+#include "platform/ohos/backend/rs_vulkan_context.h"
+#endif
+
 using namespace testing;
 using namespace testing::ext;
 
@@ -62,6 +66,9 @@ EGLContext GpuContextTest::eglContext_ = EGL_NO_CONTEXT;
 
 void GpuContextTest::SetUpTestCase()
 {
+#ifdef RS_ENABLE_VK
+    RsVulkanContext::SetRecyclable(false);
+#endif
     InitEGL();
 }
 
@@ -340,7 +347,7 @@ HWTEST_F(GpuContextTest, PurgeUnlockedResourcesByTagTest001, TestSize.Level1)
 {
     std::unique_ptr<GPUContext> gpuContext = std::make_unique<GPUContext>();
     ASSERT_TRUE(gpuContext != nullptr);
-    GPUResourceTag tag(0, 0, 0, 0, 0, "PurgeUnlockedResourcesByTagTest001");
+    GPUResourceTag tag(0, 0, 0, 0, "PurgeUnlockedResourcesByTagTest001");
     gpuContext->PurgeUnlockedResourcesByTag(true, tag);
 }
 
@@ -354,7 +361,7 @@ HWTEST_F(GpuContextTest, ReleaseByTagTest001, TestSize.Level1)
 {
     std::unique_ptr<GPUContext> gpuContext = std::make_unique<GPUContext>();
     ASSERT_TRUE(gpuContext != nullptr);
-    GPUResourceTag tag(0, 0, 0, 0, 0, "ReleaseByTagTest001");
+    GPUResourceTag tag(0, 0, 0, 0, "ReleaseByTagTest001");
     gpuContext->ReleaseByTag(tag);
 }
 
@@ -469,7 +476,7 @@ HWTEST_F(GpuContextTest, DumpMemoryStatisticsByTagTest001, TestSize.Level1)
     std::unique_ptr<GPUContext> gpuContext = std::make_unique<GPUContext>();
     ASSERT_TRUE(gpuContext != nullptr);
     TraceMemoryDump traceMemoryDump("category", true);
-    GPUResourceTag tag(0, 0, 0, 0, 0, "tag");
+    GPUResourceTag tag(0, 0, 0, 0, "tag");
     gpuContext->DumpMemoryStatisticsByTag(&traceMemoryDump, tag);
     gpuContext->DumpMemoryStatisticsByTag(nullptr, tag);
 }

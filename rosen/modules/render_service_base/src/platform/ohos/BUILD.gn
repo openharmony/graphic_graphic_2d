@@ -13,7 +13,8 @@
 
 import("//build/ohos.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
-import("../../../config.gni")
+import(
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/config.gni")
 
 group("ohos") {
   public_deps = [ ":rosen_ohos_sources" ]
@@ -53,6 +54,7 @@ ohos_source_set("rosen_ohos_sources") {
     "rs_hisysevent.cpp",
     "rs_innovation.cpp",
     "rs_jank_stats.cpp",
+    "rs_jank_stats_helper.cpp",
     "rs_log.cpp",
     "rs_marshalling_helper.cpp",
     "rs_node_stats.cpp",
@@ -161,6 +163,14 @@ ohos_source_set("rosen_ohos_sources") {
     "window_manager:libwsutils",
   ]
 
+  if (defined(use_video_processing_engine) && use_video_processing_engine) {
+    defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
+    external_deps += [
+      "video_processing_engine:videoprocessingengine",
+      "media_foundation:media_foundation",
+    ]
+  }
+
   if (!build_ohos_sdk && !is_arkui_x) {
     if (defined(defines)) {
       defines += [ "NOT_BUILD_FOR_OHOS_SDK" ]
@@ -199,7 +209,9 @@ ohos_source_set("rosen_ohos_sources") {
       }
       if (graphic_2d_feature_enable_pgo &&
           graphic_2d_feature_product != "default") {
-        defines += [ "CM_FEATURE_ENABLE" ]
+        if (graphic_2d_feature_enable_codemerge) {
+          defines += [ "CM_FEATURE_ENABLE" ]
+        }
         cflags += [
           "-fprofile-use=" + rebase_path(
                   "${graphic_2d_feature_pgo_path}/librender_service_base.profdata",
@@ -207,21 +219,29 @@ ohos_source_set("rosen_ohos_sources") {
           "-Wno-error=backend-plugin",
           "-Wno-profile-instr-out-of-date",
           "-Wno-profile-instr-unprofiled",
+          "-mllvm",
+          "-enable-partial-inlining",
         ]
-        ldflags = [
-          "-Wl,-plugin-opt=-split-machine-functions",
-          "-Wl,-mllvm",
-          "-Wl,-fixup-unconditional-branch-unsafely",
-          "-Wl,--no-create-thunks-introduced-by-mfs",
-          "-Wl,-mllvm",
-          "-Wl,-mfs-psi-cutoff=999500",
-          "-Wl,-z",
-          "-Wl,keep-text-section-prefix",
-          "-Wl,--symbol-ordering-file=" + rebase_path(
-                  "${graphic_2d_feature_pgo_path}/librender_service_base.txt",
-                  root_build_dir),
-          "-Wl,--no-warn-symbol-ordering",
+        ldflags += [
+          "-Wl,--aarch64-inline-plt",
+          "-Wl,-mllvm,-enable-partial-inlining",
         ]
+        if (graphic_2d_feature_enable_codemerge) {
+          ldflags += [
+            "-Wl,-plugin-opt=-split-machine-functions",
+            "-Wl,-mllvm",
+            "-Wl,-fixup-unconditional-branch-unsafely",
+            "-Wl,--no-create-thunks-introduced-by-mfs",
+            "-Wl,-mllvm",
+            "-Wl,-mfs-psi-cutoff=999500",
+            "-Wl,-z",
+            "-Wl,keep-text-section-prefix",
+            "-Wl,--symbol-ordering-file=" + rebase_path(
+                    "${graphic_2d_feature_pgo_path}/librender_service_base.txt",
+                    root_build_dir),
+            "-Wl,--no-warn-symbol-ordering",
+          ]
+        }
       }
       if (graphic_2d_feature_product == "pc" && target_cpu == "arm64") {
         cflags += [ "-moutline-atomics" ]

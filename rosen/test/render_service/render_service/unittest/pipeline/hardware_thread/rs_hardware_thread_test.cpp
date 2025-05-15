@@ -69,6 +69,9 @@ public:
 
 void RSHardwareThreadTest::SetUpTestCase()
 {
+#ifdef RS_ENABLE_VK
+    RsVulkanContext::SetRecyclable(false);
+#endif
     hdiDeviceMock_ = Mock::HdiDeviceMock::GetInstance();
     EXPECT_CALL(*hdiDeviceMock_, RegHotPlugCallback(_, _)).WillRepeatedly(testing::Return(0));
     EXPECT_CALL(*hdiDeviceMock_, RegHwcDeadCallback(_, _)).WillRepeatedly(testing::Return(false));
@@ -777,5 +780,23 @@ HWTEST_F(RSHardwareThreadTest, Redraw001, TestSize.Level1)
     EXPECT_NE(layers.size(), 0);
 
     hardwareThread.Redraw(psurface, layers, screenId_);
+}
+
+/*
+ * @tc.name: EndCheck001
+ * @tc.desc: Test RSHardwareThreadTest.EndCheck
+ * @tc.type: FUNC
+ * @tc.require: issuesIC3DAI
+ */
+HWTEST_F(RSHardwareThreadTest, EndCheck001, TestSize.Level1)
+{
+    auto &hardwareThread = RSHardwareThread::Instance();
+    hardwareThread.hardwareCount_ = 0;
+    RSTimer timer("EndCheckTest", 800); // 800ms
+    hardwareThread.EndCheck(timer);
+    ASSERT_EQ(hardwareThread.hardwareCount_, 0); // timeout count 0
+    usleep(800 * 1000); // 800ms
+    hardwareThread.EndCheck(timer);
+    ASSERT_EQ(hardwareThread.hardwareCount_, 1); // timeout count 1
 }
 } // namespace OHOS::Rosen

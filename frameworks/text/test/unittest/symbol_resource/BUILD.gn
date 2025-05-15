@@ -17,6 +17,7 @@ import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 ohos_unittest("symbol_resource_test") {
   module_out_path = text_test_out_path
+  configs = [ "$rosen_text_root/adapter/skia:skia_libtxt_config" ]
   sources = [ "symbol_config_parser_test.cpp" ]
   include_dirs = [
     "$rosen_text_root",
@@ -32,10 +33,12 @@ ohos_unittest("symbol_resource_test") {
     "-std=c++17",
   ]
 
-  deps = [ "$rosen_root/modules/2d_graphics:2d_graphics" ]
+  deps = [
+    "$rosen_root/modules/2d_graphics:2d_graphics",
+    "$rosen_text_root:rosen_text",
+  ]
 
   external_deps = [
-    "googletest:gtest_main",
     "hilog:libhilog",
     "jsoncpp:jsoncpp",
     "skia:skia_canvaskit",

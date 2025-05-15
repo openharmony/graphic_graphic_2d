@@ -218,11 +218,9 @@ public:
 
     void SetReplacedOpList(std::vector<std::pair<size_t, size_t>> replacedOpList);
 
-#ifdef RS_ENABLE_VK
     DrawCmdList::HybridRenderType GetHybridRenderType() const;
 
     void SetHybridRenderType(DrawCmdList::HybridRenderType hybridRenderType);
-#endif
 
     void UpdateNodeIdToPicture(NodeId nodeId);
 
@@ -236,6 +234,8 @@ public:
 
     void SetCanvasDrawingOpLimitEnable(bool isEnable);
 
+    bool GetBounds(Rect& rect);
+
 private:
     void ClearCache();
     void GenerateCacheByVector(Canvas* canvas, const Rect* rect);
@@ -243,6 +243,7 @@ private:
 
     void PlaybackToDrawCmdList(std::shared_ptr<DrawCmdList> drawCmdList);
     void PlaybackByVector(Canvas& canvas, const Rect* rect = nullptr);
+    bool UnmarshallingDrawOpsSimple();
     void PlaybackByBuffer(Canvas& canvas, const Rect* rect = nullptr);
     void CaculatePerformanceOpType();
 
@@ -264,9 +265,7 @@ private:
     bool noNeedUICaptured_ = false;
     bool isCanvasDrawingOpLimitEnabled_ = false;
 
-#ifdef RS_ENABLE_VK
     DrawCmdList::HybridRenderType hybridRenderType_ = DrawCmdList::HybridRenderType::NONE;
-#endif
 };
 
 using DrawCmdListPtr = std::shared_ptr<DrawCmdList>;

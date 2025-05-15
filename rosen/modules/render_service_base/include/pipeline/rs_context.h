@@ -24,6 +24,7 @@
 #include "sync_fence.h"
 #endif
 #include "animation/rs_render_interactive_implict_animator_map.h"
+#include "feature/capture/rs_ui_capture_helper.h"
 #include "pipeline/rs_render_node_map.h"
 #include "pipeline/rs_render_frame_rate_linker_map.h"
 
@@ -197,14 +198,13 @@ public:
         subSurfaceCntUpdateInfo_.emplace_back(info);
     }
 
-    std::unordered_map<NodeId, bool>& GetUiCaptureCmdsExecutedFlagMap()
+    RSUiCaptureHelper& GetUiCaptureHelper()
     {
-        return uiCaptureCmdsExecutedFlag_;
+        if (!uiCaptureHelper_) {
+            uiCaptureHelper_ = std::make_unique<RSUiCaptureHelper>();
+        }
+        return *uiCaptureHelper_;
     }
-
-    void InsertUiCaptureCmdsExecutedFlag(NodeId nodeId, bool flag);
-    bool GetUiCaptureCmdsExecutedFlag(NodeId nodeId);
-    void EraseUiCaptureCmdsExecutedFlag(NodeId nodeId);
 
 private:
     // This function is used for initialization, should be called once after constructor.
@@ -237,8 +237,7 @@ private:
     std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> pendingSyncNodes_;
     std::vector<SubSurfaceCntUpdateInfo> subSurfaceCntUpdateInfo_;
 
-    std::unordered_map<NodeId, bool> uiCaptureCmdsExecutedFlag_;
-    mutable std::mutex uiCaptureCmdsExecutedMutex_;
+    std::unique_ptr<RSUiCaptureHelper> uiCaptureHelper_;
 
     friend class RSRenderThread;
     friend class RSMainThread;

@@ -240,7 +240,7 @@ private:
     bool CollectFrameRateChange(FrameRateRange finalRange, std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker,
         const FrameRateLinkerMap& appFrameRateLinkers);
     bool CollectGameRateDiscountChange(uint64_t linkerId, FrameRateRange& expectedRange);
-    void HandleFrameRateChangeForLTPO(uint64_t timestamp, bool followRs);
+    void HandleFrameRateChangeForLTPO(uint64_t timestamp, bool followRs, bool frameRateChange);
     void DVSyncTaskProcessor(int64_t delayTime, uint64_t targetTime);
     void UpdateSoftVSync(bool followRs);
     void SetChangeGeneratorRateValid(bool valid);
@@ -292,7 +292,8 @@ private:
         std::lock_guard<std::mutex> lock(pendingMutex_);
         return curGameNodeName_;
     }
-    void CheckRefreshRateChange(bool followRs, bool frameRateChanged, uint32_t refreshRate);
+    void CheckRefreshRateChange(
+        bool followRs, bool frameRateChanged, uint32_t refreshRate, bool needChangeDssRefreshRate);
     void SetGameNodeName(std::string nodeName)
     {
         std::lock_guard<std::mutex> lock(pendingMutex_);
@@ -300,6 +301,9 @@ private:
     }
     void FrameRateReportTask(uint32_t leftRetryTimes);
     void EraseGameRateDiscountMap(pid_t pid);
+    // Vrate
+    void GetVRateMiniFPS(const std::shared_ptr<PolicyConfigData>& configData);
+    void CheckNeedUpdateAppOffset(uint32_t refreshRate);
 
     std::atomic<uint32_t> currRefreshRate_ = 0;
     uint32_t controllerRate_ = 0;
@@ -385,6 +389,10 @@ private:
     bool isDragScene_ = false;
     uint32_t lastLtpoRefreshRate_ = 0;
     long lastLtpoVoteTime_ = 0;
+
+    // Vrate
+    //defalut value is 1, visiable lower than 10%.
+    int32_t vrateControlMinifpsValue_ = 1;
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -247,6 +247,15 @@ void RSDisplayRenderNode::RecordMainAndLeashSurfaces(RSBaseRenderNode::SharedPtr
     curMainAndLeashSurfaceNodes_.push_back(surface);
 }
 
+Occlusion::Region RSDisplayRenderNode::GetTopSurfaceOpaqueRegion() const
+{
+    Occlusion::Region topSurfaceOpaqueRegion;
+    for (const auto& rect : topSurfaceOpaqueRects_) {
+        topSurfaceOpaqueRegion.OrSelf(rect);
+    }
+    return topSurfaceOpaqueRegion;
+}
+
 void RSDisplayRenderNode::RecordTopSurfaceOpaqueRects(Occlusion::Rect rect)
 {
     topSurfaceOpaqueRects_.push_back(rect);
@@ -452,6 +461,20 @@ void RSDisplayRenderNode::SetMainAndLeashSurfaceDirty(bool isDirty)
 #endif
 }
 
+void RSDisplayRenderNode::SetNeedForceUpdateHwcNodes(bool needForceUpdate, bool hasVisibleHwcNodes)
+{
+    auto displayParams = static_cast<RSDisplayRenderParams*>(stagingRenderParams_.get());
+    if (displayParams == nullptr) {
+        return;
+    }
+    needForceUpdateHwcNodes_ = needForceUpdate;
+    hasVisibleHwcNodes_ = hasVisibleHwcNodes;
+    displayParams->SetNeedForceUpdateHwcNodes(needForceUpdate);
+    if (stagingRenderParams_->NeedSync()) {
+        AddToPendingSyncList();
+    }
+}
+
 void RSDisplayRenderNode::SetFingerprint(bool hasFingerprint)
 {
 #ifdef RS_ENABLE_GPU
@@ -479,6 +502,7 @@ void RSDisplayRenderNode::SetHDRPresent(bool hdrPresent)
         RS_LOGE("%{public}s displayParams is nullptr", __func__);
         return;
     }
+    displayParams->SetHDRStatusChanged(displayParams->GetHDRPresent() != hdrPresent);
     displayParams->SetHDRPresent(hdrPresent);
     if (stagingRenderParams_->NeedSync()) {
         AddToPendingSyncList();

@@ -26,6 +26,7 @@ constexpr float THIRTY_THREE_INTERVAL_IN_MS = 33.f;
 constexpr float SIXTEEN_INTERVAL_IN_MS = 16.67f;
 constexpr float FPS_TO_MS = 1000000.f;
 constexpr size_t MATRIX_SIZE = 9;
+static const std::vector<float> DEFAULT_MATRIX = { 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f };
 const std::string GENERIC_METADATA_KEY_SDR_NIT = "SDRBrightnessNit";
 const std::string GENERIC_METADATA_KEY_SDR_RATIO = "SDRBrightnessRatio";
 const std::string GENERIC_METADATA_KEY_BRIGHTNESS_NIT = "BrightnessNit";
@@ -523,7 +524,7 @@ int32_t HdiLayer::SetLayerMaskInfo()
     return device_->SetLayerMaskInfo(screenId_, layerId_, static_cast<uint32_t>(layerInfo_->GetLayerMaskInfo()));
 }
 
-int32_t HdiLayer::SetHdiLayerInfo()
+int32_t HdiLayer::SetHdiLayerInfo(bool isActiveRectSwitching)
 {
     /*
         Some hardware platforms may not support all layer settings.
@@ -537,7 +538,8 @@ int32_t HdiLayer::SetHdiLayerInfo()
     // All layer properities need to set to hwc when the layer is created firstly or the previous layer's composition
     // type is COMPOSITION_DEVICE for COMPOSITION_DEVICE can not reuse COMPOSITION_CLIENT layers info.
     doLayerInfoCompare_ = prevLayerInfo_ != nullptr &&
-                          prevLayerInfo_->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE;
+                          prevLayerInfo_->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE &&
+                          !isActiveRectSwitching;
 
     ret = SetLayerAlpha();
     CheckRet(ret, "SetLayerAlpha");
@@ -855,6 +857,10 @@ int32_t HdiLayer::SetPerFrameLayerLinearMatrix()
 {
     if (prevLayerInfo_ != nullptr) {
         if (layerInfo_->GetLayerLinearMatrix() == prevLayerInfo_->GetLayerLinearMatrix()) {
+            return GRAPHIC_DISPLAY_SUCCESS;
+        }
+    } else {
+        if (layerInfo_->GetLayerLinearMatrix().empty() || layerInfo_->GetLayerLinearMatrix() == DEFAULT_MATRIX) {
             return GRAPHIC_DISPLAY_SUCCESS;
         }
     }

@@ -40,6 +40,12 @@ struct LayerDumpInfo {
     LayerPtr layer;
 };
 
+// Load Optimization Param
+const std::string IS_MERGE_FENCE_SKIPPED = "isMergeFenceSkipped";
+struct LoadOptParamsForHdiOutput {
+    std::unordered_map<std::string, bool> switchParams;
+};
+
 class HdiOutput {
 public:
     HdiOutput(uint32_t screenId);
@@ -60,6 +66,7 @@ public:
     {
         return device_ != nullptr;
     }
+    void InitLoadOptParams(LoadOptParamsForHdiOutput& loadOptParamsForHdiOutput);
     /* for RS end */
 
     static std::shared_ptr<HdiOutput> CreateHdiOutput(uint32_t screenId);
@@ -70,6 +77,7 @@ public:
     sptr<Surface> GetFrameBufferSurface();
     std::unique_ptr<FrameBufferEntry> GetFramebuffer();
     void Dump(std::string &result) const;
+    void DumpCurrentFrameLayers() const;
     void DumpFps(std::string &result, const std::string &arg) const;
     void DumpHitchs(std::string &result, const std::string &arg) const;
     void ClearFpsDump(std::string &result, const std::string &arg);
@@ -102,6 +110,8 @@ public:
         return isProtectedBufferAllocated_.load();
     }
     void CleanLayerBufferBySurfaceId(uint64_t surfaceId);
+
+    void SetActiveRectSwitchStatus(bool flag);
 
 private:
     HdiDevice *device_ = nullptr;
@@ -141,6 +151,11 @@ private:
     // Protected framebuffer is allocated in advance
     std::atomic<bool> isProtectedBufferAllocated_ = false;
 
+    // Load Optimization Params
+    LoadOptParamsForHdiOutput loadOptParamsForHdiOutput_ = {};
+    bool isMergeFenceSkipped_ = false;
+    bool isMergeFenceSkippedDfx_ = true;
+
     int32_t CreateLayerLocked(uint64_t surfaceId, const LayerInfoPtr &layerInfo);
     void DeletePrevLayersLocked();
     void ResetLayerStatusLocked();
@@ -159,6 +174,8 @@ private:
 
     void ClearBufferCache();
     std::map<LayerInfoPtr, sptr<SyncFence>> GetLayersReleaseFenceLocked();
+
+    bool isActiveRectSwitching_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

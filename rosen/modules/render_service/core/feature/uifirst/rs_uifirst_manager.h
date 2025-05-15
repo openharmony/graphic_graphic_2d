@@ -186,6 +186,7 @@ public:
     void MarkPostNodesPriority();
     void RecordScreenRect(RSSurfaceRenderNode& node, RectI rect);
     void RecordDirtyRegionMatrix(RSSurfaceRenderNode& node, const Drawing::Matrix& matrix);
+    CacheProcessStatus GetCacheSurfaceProcessedStatus(const RSSurfaceRenderParams& surfaceParams);
 private:
     RSUifirstManager() = default;
     ~RSUifirstManager() = default;
@@ -242,6 +243,8 @@ private:
     bool IsToSubByAppAnimation() const;
     bool QuerySubAssignable(RSSurfaceRenderNode& node, bool isRotation);
     bool GetSubNodeIsTransparent(RSSurfaceRenderNode& node, std::string& dfxMsg);
+    bool CheckHasTransAndFilter(RSSurfaceRenderNode& node);
+    bool HasBgNodeBelowRootNode(RSSurfaceRenderNode& appNode) const;
 
     // starting
     void ProcessFirstFrameCache(RSSurfaceRenderNode& node, MultiThreadCacheType cacheType);

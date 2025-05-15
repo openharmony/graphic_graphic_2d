@@ -210,6 +210,7 @@ void RSJankStats::HandleDirectComposition(const JankDurationParams& rsParams, bo
         rtEndTimeSteadyFloat_ = rsParams.timeEndSteadyFloat_;
     }
     SetStartTimeInner(true);
+    SetImplicitAnimationEndInner(rsParams.implicitAnimationEnd_);
     if (postTaskHandler == nullptr || !NeedPostTaskToUniRenderThread()) {
         SetEndTimeInner(rsParams.skipJankAnimatorFrame_, rsParams.discardJankFrames_, rsParams.refreshRate_, true,
             isReportTaskDelayed);
@@ -463,16 +464,20 @@ void RSJankStats::ReportSceneJankFrame(uint32_t dynamicRefreshRate)
     }
     const float accumulatedTime = accumulatedBufferCount_ * S_TO_MS / dynamicRefreshRate;
 
-    RS_TRACE_NAME("RSJankStats::ReportSceneJankFrame reportTime " + std::to_string(GetCurrentSystimeMs()));
+    RS_TRACE_NAME("RSJankStats::ReportSceneJankFrame reportTime " + std::to_string(GetCurrentSystimeMs())
+        + ", skipped_frame_time: " + std::to_string(skipFrameTime)
+        + ", frame_refresh_rate: " + std::to_string(dynamicRefreshRate));
     const int64_t realSkipFrameTime = static_cast<int64_t>(std::max<float>(0.f, skipFrameTime - accumulatedTime));
-    RSBackgroundThread::Instance().PostTask([appInfo = appInfo_, skipFrameTime, realSkipFrameTime]() {
-        RS_TRACE_NAME("RSJankStats::ReportSceneJankFrame in RSBackgroundThread");
-        RSHiSysEvent::EventWrite(RSEventName::JANK_FRAME_RS, RSEventType::RS_FAULT,
-            "PID", appInfo.pid, "BUNDLE_NAME", appInfo.bundleName,
-            "PROCESS_NAME", appInfo.processName, "VERSION_NAME", appInfo.versionName,
-            "VERSION_CODE", appInfo.versionCode, "FILTER_TYPE", FILTER_TYPE,
-            "SKIPPED_FRAME_TIME", skipFrameTime, "REAL_SKIPPED_FRAME_TIME", realSkipFrameTime);
-    });
+    RSBackgroundThread::Instance().PostTask(
+        [appInfo = appInfo_, skipFrameTime, realSkipFrameTime, dynamicRefreshRate]() {
+            RS_TRACE_NAME("RSJankStats::ReportSceneJankFrame in RSBackgroundThread");
+            RSHiSysEvent::EventWrite(RSEventName::JANK_FRAME_RS, RSEventType::RS_FAULT,
+                "PID", appInfo.pid, "BUNDLE_NAME", appInfo.bundleName,
+                "PROCESS_NAME", appInfo.processName, "VERSION_NAME", appInfo.versionName,
+                "VERSION_CODE", appInfo.versionCode, "FILTER_TYPE", FILTER_TYPE,
+                "SKIPPED_FRAME_TIME", skipFrameTime, "REAL_SKIPPED_FRAME_TIME", realSkipFrameTime,
+                "FRAME_REFRESH_RATE", static_cast<int32_t>(dynamicRefreshRate));
+        });
 }
 
 void RSJankStats::SetReportEventResponse(const DataBaseRs& info)
@@ -608,6 +613,11 @@ void RSJankStats::SetAppFirstFrame(pid_t appPid)
 void RSJankStats::SetImplicitAnimationEnd(bool isImplicitAnimationEnd)
 {
     std::lock_guard<std::mutex> lock(mutex_);
+    SetImplicitAnimationEndInner(isImplicitAnimationEnd);
+}
+
+void RSJankStats::SetImplicitAnimationEndInner(bool isImplicitAnimationEnd)
+{
     if (!isImplicitAnimationEnd) {
         return;
     }

@@ -33,7 +33,7 @@ RSLuminanceControl::~RSLuminanceControl()
     // destructor
 }
 
-bool RSLuminanceControl::SetHdrStatus(ScreenId screenId, HdrStatus hdrstatus)
+bool RSLuminanceControl::SetHdrStatus(ScreenId screenId, HdrStatus hdrStatus)
 {
     // Update HDR status in order to determine brightness.
     return false;
@@ -84,13 +84,13 @@ float RSLuminanceControl::GetDisplayNits(ScreenId screenId)
     return HDR_DEFAULT_TMO_NIT;
 }
 
-double RSLuminanceControl::GetHdrBrightnessRatio(ScreenId screenId, int mode)
+double RSLuminanceControl::GetHdrBrightnessRatio(ScreenId screenId, uint32_t mode)
 {
     return 1.0; // 1.0 refers to default value, no need to process.
 }
 
-float RSLuminanceControl::CalScaler(const float& maxContentLightLevel, const std::vector<uint8_t>& dynamicMetadata,
-    const float& ratio)
+float RSLuminanceControl::CalScaler(const float& maxContentLightLevel,
+    const std::vector<uint8_t>& dynamicMetadata, const float& ratio)
 {
     return HDR_DEFAULT_SCALER;
 }

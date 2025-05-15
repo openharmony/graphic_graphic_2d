@@ -64,7 +64,12 @@ public:
     static inline NodeId id = DEFAULT_ID;
 };
 
-void RSDisplayRenderNodeDrawableTest::SetUpTestCase() {}
+void RSDisplayRenderNodeDrawableTest::SetUpTestCase()
+{
+#ifdef RS_ENABLE_VK
+    RsVulkanContext::SetRecyclable(false);
+#endif
+}
 void RSDisplayRenderNodeDrawableTest::TearDownTestCase() {}
 void RSDisplayRenderNodeDrawableTest::SetUp()
 {
@@ -569,7 +574,7 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, CheckDisplayNodeSkipTest, TestSize.Lev
     ASSERT_EQ(result, true);
 
     RSUniRenderThread::Instance().uniRenderEngine_ = std::make_shared<RSRenderEngine>();
-    RSUniRenderThread::Instance().GetRSRenderThreadParams()->isForceCommitLayer_ = true;
+    RSUniRenderThread::Instance().GetRSRenderThreadParams()->forceCommitReason_ = 1;
     result = displayDrawable_->CheckDisplayNodeSkip(*params, processor);
     ASSERT_EQ(result, true);
 
@@ -592,28 +597,13 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, CheckDisplayNodeSkipTest, TestSize.Lev
     result = displayDrawable_->CheckDisplayNodeSkip(*params, processor);
     ASSERT_EQ(result, false);
     RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
-    RSUniRenderThread::Instance().GetRSRenderThreadParams()->isForceCommitLayer_ = false;
+    RSUniRenderThread::Instance().GetRSRenderThreadParams()->forceCommitReason_ = 0;
     RSMainThread::Instance()->isDirty_ = false;
     RSUifirstManager::Instance().hasForceUpdateNode_ = false;
 
-    // mock off screen surface null
-    params->hasHdrPresent_ = true;
-    displayDrawable_->offscreenSurface_ = nullptr;
+    params->isHDRStatusChanged_ = true;
     result = displayDrawable_->CheckDisplayNodeSkip(*params, processor);
     EXPECT_EQ(result, false);
-
-    // mock HDR off screen surface in wrong format, here RGBA_8888
-    Drawing::ImageInfo info = Drawing::ImageInfo { DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE,
-        Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL,
-        Drawing::ColorSpace::CreateSRGB()};
-    auto surface = std::make_shared<Drawing::Surface>();
-    displayDrawable_->offscreenSurface_ = surface->MakeSurface(info);
-    result = displayDrawable_->CheckDisplayNodeSkip(*params, processor);
-    EXPECT_EQ(result, false);
-
-    params->hasHdrPresent_ = false;
-    displayDrawable_->offscreenSurface_ = nullptr;
-    surface = nullptr;
 }
 
 /**

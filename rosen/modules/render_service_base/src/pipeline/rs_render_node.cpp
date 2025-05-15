@@ -31,7 +31,6 @@
 #include "drawable/rs_misc_drawable.h"
 #include "drawable/rs_property_drawable_foreground.h"
 #include "drawable/rs_render_node_drawable_adapter.h"
-#include "memory/rs_tag_tracker.h"
 #include "modifier/rs_modifier_type.h"
 #include "offscreen_render/rs_offscreen_render_thread.h"
 #include "params/rs_render_params.h"
@@ -54,125 +53,12 @@
 #include "visitor/rs_node_visitor.h"
 #include "rs_profiler.h"
 #include "sandbox_utils.h"
+#include "string_utils.h"
 
 #ifdef RS_ENABLE_VK
 #include "include/gpu/GrBackendSurface.h"
 #include "platform/ohos/backend/native_buffer_utils.h"
 #include "platform/ohos/backend/rs_vulkan_context.h"
-#endif
-
-#ifdef RS_ENABLE_VK
-namespace {
-uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
-{
-    if (OHOS::Rosen::RSSystemProperties::GetGpuApiType() != OHOS::Rosen::GpuApiType::VULKAN &&
-        OHOS::Rosen::RSSystemProperties::GetGpuApiType() != OHOS::Rosen::GpuApiType::DDGR) {
-        return UINT32_MAX;
-    }
-    auto& vkContext = OHOS::Rosen::RsVulkanContext::GetSingleton().GetRsVulkanInterface();
-    VkPhysicalDevice physicalDevice = vkContext.GetPhysicalDevice();
-
-    VkPhysicalDeviceMemoryProperties memProperties;
-    vkContext.vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memProperties);
-
-    for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
-        if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties) {
-            return i;
-        }
-    }
-
-    return UINT32_MAX;
-}
-
-void SetVkImageInfo(std::shared_ptr<OHOS::Rosen::Drawing::VKTextureInfo> vkImageInfo,
-    const VkImageCreateInfo& imageInfo)
-{
-    vkImageInfo->imageTiling = imageInfo.tiling;
-    vkImageInfo->imageLayout = imageInfo.initialLayout;
-    vkImageInfo->format = imageInfo.format;
-    vkImageInfo->imageUsageFlags = imageInfo.usage;
-    vkImageInfo->levelCount = imageInfo.mipLevels;
-    vkImageInfo->currentQueueFamily = VK_QUEUE_FAMILY_EXTERNAL;
-    vkImageInfo->ycbcrConversionInfo = {};
-    vkImageInfo->sharingMode = imageInfo.sharingMode;
-}
-
-OHOS::Rosen::Drawing::BackendTexture MakeBackendTexture(uint32_t width, uint32_t height, pid_t pid,
-    OHOS::Rosen::RSTagTracker::TAGTYPE tag, VkFormat format = VK_FORMAT_R8G8B8A8_UNORM)
-{
-    VkImageTiling tiling = VK_IMAGE_TILING_OPTIMAL;
-    VkImageUsageFlags usage = VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT |
-        VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-    VkImageCreateInfo imageInfo {
-        .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
-        .pNext = nullptr,
-        .flags = 0,
-        .imageType = VK_IMAGE_TYPE_2D,
-        .format = format,
-        .extent = {width, height, 1},
-        .mipLevels = 1,
-        .arrayLayers = 1,
-        .samples = VK_SAMPLE_COUNT_1_BIT,
-        .tiling = tiling,
-        .usage = usage,
-        .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
-        .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED
-    };
-
-    auto& vkContext = OHOS::Rosen::RsVulkanContext::GetSingleton().GetRsVulkanInterface();
-    VkDevice device = vkContext.GetDevice();
-    VkImage image = VK_NULL_HANDLE;
-    VkDeviceMemory memory = VK_NULL_HANDLE;
-
-    if (height != 0 && width > OHOS::Rosen::NativeBufferUtils::VKIMAGE_LIMIT_SIZE / height) {
-        ROSEN_LOGE("NativeBufferUtils: vkCreateImag failed, image is too large, width:%{public}u, height::%{public}u",
-            width, height);
-        return {};
-    }
-
-    if (vkContext.vkCreateImage(device, &imageInfo, nullptr, &image) != VK_SUCCESS) {
-        return {};
-    }
-
-    VkMemoryRequirements memRequirements;
-    vkContext.vkGetImageMemoryRequirements(device, image, &memRequirements);
-
-    VkMemoryAllocateInfo allocInfo{};
-    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-    allocInfo.allocationSize = memRequirements.size;
-    allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-    if (allocInfo.memoryTypeIndex == UINT32_MAX) {
-        return {};
-    }
-
-    if (vkContext.vkAllocateMemory(device, &allocInfo, nullptr, &memory) != VK_SUCCESS) {
-        return {};
-    }
-
-    vkContext.vkBindImageMemory(device, image, memory, 0);
-
-    OHOS::Rosen::RsVulkanMemStat& memStat = vkContext.GetRsVkMemStat();
-    auto time = std::chrono::time_point_cast<std::chrono::microseconds>(std::chrono::system_clock::now());
-    std::string timeStamp = std::to_string(static_cast<uint64_t>(time.time_since_epoch().count()));
-    memStat.InsertResource(timeStamp, pid, tag, static_cast<uint64_t>(memRequirements.size));
-    OHOS::Rosen::Drawing::BackendTexture backendTexture(true);
-    OHOS::Rosen::Drawing::TextureInfo textureInfo;
-    textureInfo.SetWidth(width);
-    textureInfo.SetHeight(height);
-
-    std::shared_ptr<OHOS::Rosen::Drawing::VKTextureInfo> vkImageInfo =
-        std::make_shared<OHOS::Rosen::Drawing::VKTextureInfo>();
-    vkImageInfo->vkImage = image;
-    vkImageInfo->vkAlloc.memory = memory;
-    vkImageInfo->vkAlloc.size = memRequirements.size;
-    vkImageInfo->vkAlloc.statName = timeStamp;
-
-    SetVkImageInfo(vkImageInfo, imageInfo);
-    textureInfo.SetVKTextureInfo(vkImageInfo);
-    backendTexture.SetTextureInfo(textureInfo);
-    return backendTexture;
-}
-} // un-named
 #endif
 
 namespace OHOS {
@@ -939,7 +825,7 @@ void RSRenderNode::DumpTree(int32_t depth, std::string& out) const
         out += ", VsyncId: " + std::to_string(curFrameInfoDetail_.curFrameVsyncId);
         out += ", IsSubTreeSkipped: " + std::to_string(curFrameInfoDetail_.curFrameSubTreeSkipped);
         out += ", ReverseChildren: " + std::to_string(curFrameInfoDetail_.curFrameReverseChildren);
-        out += ", zOrder: " + std::to_string(hwcRecorder_.zOrderForCalcHwcNodeEnableByFilter_);
+        out += ", zOrder: " + std::to_string(hwcRecorder_.GetZOrderForHwcEnableByFilter());
     }
 #endif
     
@@ -1410,13 +1296,15 @@ void RSRenderNode::UpdateDrawingCacheInfoBeforeChildren(bool isScreenRotation)
 #endif
 }
 
-void RSRenderNode::UpdateDrawingCacheInfoAfterChildren()
+void RSRenderNode::UpdateDrawingCacheInfoAfterChildren(bool isInBlackList)
 {
     RS_LOGI_IF(DEBUG_NODE, "RSRenderNode::UpdateDrawingCacheInfoAC uifirstArkTsCardNode:%{public}d"
         " startingWindowFlag_:%{public}d HasChildrenOutOfRect:%{public}d drawingCacheType:%{public}d",
         IsUifirstArkTsCardNode(), startingWindowFlag_, HasChildrenOutOfRect(), GetDrawingCacheType());
     if (IsUifirstArkTsCardNode() || startingWindowFlag_) {
         SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
+    } else if (isInBlackList) {
+        stagingRenderParams_->SetInBlackList(true);
     }
     if (HasChildrenOutOfRect() && GetDrawingCacheType() == RSDrawingCacheType::TARGETED_CACHE) {
         RS_OPTIONAL_TRACE_NAME_FMT("DrawingCacheInfoAfter ChildrenOutOfRect id:%llu", GetId());
@@ -1541,7 +1429,8 @@ void RSRenderNode::UpdateDisplaySyncRange()
     }
 }
 
-std::tuple<bool, bool, bool> RSRenderNode::Animate(int64_t timestamp, int64_t period, bool isDisplaySyncEnabled)
+std::tuple<bool, bool, bool> RSRenderNode::Animate(
+    int64_t timestamp, int64_t& minLeftDelayTime, int64_t period, bool isDisplaySyncEnabled)
 {
     if (displaySync_ && displaySync_->OnFrameSkip(timestamp, period, isDisplaySyncEnabled)) {
         return displaySync_->GetAnimateResult();
@@ -1556,7 +1445,7 @@ std::tuple<bool, bool, bool> RSRenderNode::Animate(int64_t timestamp, int64_t pe
         }
     }
 
-    auto animateResult = animationManager_.Animate(timestamp, IsOnTheTree(), abilityState);
+    auto animateResult = animationManager_.Animate(timestamp, minLeftDelayTime, IsOnTheTree(), abilityState);
     if (displaySync_) {
         displaySync_->SetAnimateResult(animateResult);
     }
@@ -2339,6 +2228,27 @@ void RSRenderNode::CheckBlurFilterCacheNeedForceClearOrSave(bool rotationChanged
     }
 #endif
 }
+
+void RSRenderNode::MarkFilterInForegroundFilterAndCheckNeedForceClearCache(bool inForegroundFilter)
+{
+#ifdef RS_ENABLE_GPU
+    const auto& properties = GetRenderProperties();
+    if (properties.GetBackgroundFilter()) {
+        auto filterDrawable = GetFilterDrawable(false);
+        if (filterDrawable != nullptr) {
+            filterDrawable->MarkInForegroundFilterAndCheckNeedForceClearCache(inForegroundFilter);
+        }
+    }
+
+    if (properties.GetFilter()) {
+        auto filterDrawable = GetFilterDrawable(true);
+        if (filterDrawable != nullptr) {
+            filterDrawable->MarkInForegroundFilterAndCheckNeedForceClearCache(inForegroundFilter);
+        }
+    }
+#endif
+}
+
 #ifdef RS_ENABLE_GPU
 bool RSRenderNode::IsForceClearOrUseFilterCache(std::shared_ptr<DrawableV2::RSFilterDrawable>& filterDrawable)
 {
@@ -3335,8 +3245,7 @@ void RSRenderNode::InitCacheSurface(Drawing::GPUContext* gpuContext, ClearCacheS
 #ifdef RS_ENABLE_VK
     if (OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::VULKAN ||
         OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::DDGR) {
-        auto initCacheBackendTexture = MakeBackendTexture(
-            width, height, ExtractPid(GetId()), RSTagTracker::TAGTYPE::TAG_DRAW_RENDER_NODE);
+        auto initCacheBackendTexture = NativeBufferUtils::MakeBackendTexture(width, height, ExtractPid(GetId()));
         auto vkTextureInfo = initCacheBackendTexture.GetTextureInfo().GetVKTextureInfo();
         if (!initCacheBackendTexture.IsValid() || !vkTextureInfo) {
             if (func) {
@@ -3697,6 +3606,42 @@ bool RSRenderNode::GetNodeIsSingleFrameComposer() const
     return isNodeSingleFrameComposer_;
 }
 
+// arkui mark
+void RSRenderNode::MarkSuggestOpincNode(bool isOpincNode, bool isNeedCalculate)
+{
+    RS_TRACE_NAME_FMT("mark opinc %llx, isopinc:%d. isCal:%d", GetId(), isOpincNode, isNeedCalculate);
+    opincCache_.MarkSuggestOpincNode(isOpincNode, isNeedCalculate);
+    SetDirty();
+}
+
+// mark support node
+void RSRenderNode::OpincUpdateNodeSupportFlag(bool supportFlag)
+{
+    // supportFlag is obtained from isOpincNodeSupportFlag_ of the child node.
+    // IsMarkedRenderGroup make sure current node is the bottom of the node marked by arkui.
+    isOpincNodeSupportFlag_ = isOpincNodeSupportFlag_ && supportFlag &&
+        (!opincCache_.IsMarkedRenderGroup(nodeGroupType_ > RSRenderNode::NodeGroupType::NONE));
+}
+
+std::string RSRenderNode::QuickGetNodeDebugInfo()
+{
+    std::string ret("");
+#ifdef DDGR_ENABLE_FEATURE_OPINC_DFX
+    AppendFormat(ret, "%llx, IsSTD:%d s:%d uc:%d suggest:%d support:%d rootF:%d",
+        GetId(), IsSubTreeDirty(), opincCache_.GetNodeCacheState(), opincCache_.GetUnchangeCount(),
+        opincCache_.IsSuggestOpincNode(), OpincGetNodeSupportFlag(), opincCache_.OpincGetRootFlag());
+#endif
+    return ret;
+}
+
+void RSRenderNode::UpdateOpincParam()
+{
+    if (stagingRenderParams_) {
+        stagingRenderParams_->OpincSetCacheChangeFlag(opincCache_.GetCacheChangeFlag(), lastFrameSynced_);
+        stagingRenderParams_->OpincUpdateRootFlag(opincCache_.OpincGetRootFlag());
+    }
+}
+
 void RSRenderNode::CheckDrawingCacheType()
 {
     if (nodeGroupType_ == NodeGroupType::NONE) {
@@ -3916,6 +3861,19 @@ RSRenderNode::ChildrenListSharedPtr RSRenderNode::GetSortedChildren() const
     return std::atomic_load_explicit(&fullChildrenList_, std::memory_order_acquire);
 }
 
+void RSRenderNode::CollectAllChildren(
+    const std::shared_ptr<RSBaseRenderNode>& node, std::vector<NodeId>& vec)
+{
+    if (!node) {
+        ROSEN_LOGD("RSRenderNode::CollectAllChildren node is nullptr");
+        return;
+    }
+    vec.push_back(node->GetId());
+    for (auto& child : *node->GetSortedChildren()) {
+        child->CollectAllChildren(child, vec);
+    }
+}
+
 std::shared_ptr<RSRenderNode> RSRenderNode::GetFirstChild() const
 {
     return children_.empty() ? nullptr : children_.front().lock();
@@ -4022,6 +3980,11 @@ void RSRenderNode::ResortChildren()
 uint32_t RSRenderNode::GetChildrenCount() const
 {
     return children_.size();
+}
+
+std::list<RSRenderNode::WeakPtr> RSRenderNode::GetChildrenList() const
+{
+    return children_;
 }
 
 float RSRenderNode::GetHDRBrightness() const
@@ -4798,7 +4761,8 @@ void RSRenderNode::OnSkipSync()
 bool RSRenderNode::ShouldClearSurface()
 {
 #ifdef RS_ENABLE_GPU
-    bool renderGroupFlag = GetDrawingCacheType() != RSDrawingCacheType::DISABLED_CACHE || isOpincRootFlag_;
+    bool renderGroupFlag = GetDrawingCacheType() != RSDrawingCacheType::DISABLED_CACHE ||
+        opincCache_.OpincGetRootFlag();
     bool freezeFlag = stagingRenderParams_->GetRSFreezeFlag();
     return (renderGroupFlag || freezeFlag || nodeGroupType_ == static_cast<uint8_t>(NodeGroupType::NONE)) &&
         needClearSurface_;

@@ -769,7 +769,7 @@ HWTEST_F(RSUifirstManagerTest, UpdateUifirstNodesPhone002, TestSize.Level1)
     uifirstManager_.negativeScreenNodeId_ = 1;
     surfaceNode3->instanceRootNodeId_ = 1;
     surfaceNode3->shouldPaint_ = true;
-    surfaceNode1->SetSubThreadAssignable(true);
+    surfaceNode3->SetSubThreadAssignable(true);
     uifirstManager_.UpdateUifirstNodes(*surfaceNode3, false);
     ASSERT_EQ(surfaceNode3->lastFrameUifirstFlag_, MultiThreadCacheType::ARKTS_CARD);
 }
@@ -1813,8 +1813,14 @@ HWTEST_F(RSUifirstManagerTest, UpdateCompletedSurface, TestSize.Level1)
     uifirstManager_.subthreadProcessingNode_.clear();
     uifirstManager_.subthreadProcessingNode_.insert(std::make_pair(surfaceNode->GetId(), surfaceDrawable));
 
+    surfaceDrawable->GetRsSubThreadCache().cacheSurface_ = nullptr;
     uifirstManager_.UpdateCompletedSurface(surfaceNode->GetId());
-    ASSERT_TRUE(surfaceDrawable->GetRsSubThreadCache().isTextureValid_);
+    ASSERT_FALSE(surfaceDrawable->GetRsSubThreadCache().isCacheValid_);
+
+    surfaceDrawable->GetRsSubThreadCache().cacheSurface_ = std::make_shared<Drawing::Surface>();
+    surfaceDrawable->GetRsSubThreadCache().isCacheValid_ = true;
+    uifirstManager_.UpdateCompletedSurface(surfaceNode->GetId());
+    ASSERT_TRUE(surfaceDrawable->GetRsSubThreadCache().isCacheCompletedValid_);
 }
 
 /**
@@ -2087,5 +2093,58 @@ HWTEST_F(RSUifirstManagerTest, MarkSubHighPriorityType, TestSize.Level1)
     uifirstManager_.SetUiFirstType((int)UiFirstCcmType::MULTI);
     uifirstManager_.MarkSubHighPriorityType(*surfaceNode);
     ASSERT_FALSE(surfaceParams->GetPreSubHighPriorityType());
+}
+
+/**
+ * @tc.name: GetCacheSurfaceProcessedStatusTest
+ * @tc.desc: Test GetCacheSurfaceProcessedStatus
+ * @tc.type: FUNC
+ * @tc.require: issueIC3DK9
+ */
+HWTEST_F(RSUifirstManagerTest, GetCacheSurfaceProcessedStatusTest, TestSize.Level1)
+{
+    NodeId nodeId = 100;
+    RSSurfaceRenderParams surfaceParams(nodeId);
+    ASSERT_EQ(uifirstManager_.GetCacheSurfaceProcessedStatus(surfaceParams), CacheProcessStatus::UNKNOWN);
+
+    surfaceParams.SetUiFirstRootNode(nodeId);
+    surfaceParams.SetFirstLevelNode(nodeId);
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(nodeId);
+    auto surfaceDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode));
+    surfaceDrawable->GetRsSubThreadCache().SetCacheSurfaceProcessedStatus(CacheProcessStatus::DOING);
+    ASSERT_EQ(uifirstManager_.GetCacheSurfaceProcessedStatus(surfaceParams), CacheProcessStatus::DOING);
+
+    surfaceParams.SetUiFirstRootNode(0);
+    surfaceParams.SetFirstLevelNode(nodeId);
+    surfaceDrawable->GetRsSubThreadCache().SetCacheSurfaceProcessedStatus(CacheProcessStatus::WAITING);
+    ASSERT_EQ(uifirstManager_.GetCacheSurfaceProcessedStatus(surfaceParams), CacheProcessStatus::WAITING);
+}
+
+/**
+ * @tc.name: CheckHasTransAndFilter
+ * @tc.desc: Test strategy with trans and blur scenes by uifirst.
+ * @tc.type: FUNC
+ * @tc.require: issueIC4F7H
+*/
+HWTEST_F(RSUifirstManagerTest, CheckHasTransAndFilter001, TestSize.Level1)
+{
+    auto parentNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(parentNode, nullptr);
+    parentNode->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
+    bool result = uifirstManager_.CheckHasTransAndFilter(*parentNode);
+    ASSERT_EQ(result, false);
+
+    parentNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
+    auto childNode1 = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(childNode1, nullptr);
+    childNode1->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
+    auto childNode2 = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(childNode2, nullptr);
+    childNode2->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
+    parentNode->AddChild(childNode2);
+    parentNode->GenerateFullChildrenList();
+    result = uifirstManager_.CheckHasTransAndFilter(*parentNode);
+    ASSERT_EQ(result, false);
 }
 }

@@ -35,6 +35,7 @@ rosen/modules/render_service/core/pipeline/rs_render_service_connection.cpp @chu
 rosen/modules/render_service_base/src/platform/ohos/rs_marshalling_helper.cpp @chuchengcheng
 rosen/modules/render_service_base/src/platform/ohos/rs_render_service_connection_proxy.h @chuchengcheng
 rosen/modules/render_service_base/src/platform/ohos/rs_render_service_connection_proxy.cpp @chuchengcheng
+etc/graphic.para.dac @chuchengcheng
 rosen/modules/safuzz/ @siyuan_zhou
 
 [animation]
@@ -76,3 +77,16 @@ rosen/test/render_service/render_service_profiler/unittest/ @huang_kaixing
 rosen/modules/render_service_base/include/command/ @huang_kaixing
 rosen/modules/render_service_base/include/common/rs_common_def.h @huang_kaixing
 rosen/modules/render_service_base/include/platform/ohos/rs_irender_service_connection_ipc_interface_code.h @huang_kaixing
+
+[HWC]
+rosen/modules/render_service/core/pipeline/hwc/ @whqwe
+rosen/modules/render_service/core/feature/hwc/ @whqwe
+rosen/modules/render_service_base/include/hwc/ @whqwe
+rosen/modules/render_service_base/src/hwc/ @whqwe
+
+[screen manager]
+rosen/modules/render_service/core/screen_manager/ @pengquan1
+rosen/modules/render_service_base/include/screen_manager/ @pengquan1
+rosen/modules/render_service_base/src/screen_manager/ @pengquan1
+rosen/modules/render_service/core/pipeline/render_thread/rs_uni_render_virtual_processor.h @pengquan1
+rosen/modules/render_service/core/pipeline/render_thread/rs_uni_render_virtual_processor.cpp @pengquan1

@@ -42,6 +42,10 @@
 #include "surface_utils.h"
 #endif
 
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+#include "display_engine/rs_vpe_manager.h"
+#endif
+
 namespace OHOS {
 namespace Rosen {
 #ifdef ROSEN_OHOS
@@ -627,6 +631,9 @@ RSSurfaceNode::~RSSurfaceNode()
         std::static_pointer_cast<RSRenderServiceClient>(RSIRenderClient::CreateRenderServiceClient());
     if (renderServiceClient != nullptr) {
         renderServiceClient->UnregisterBufferAvailableListener(GetId());
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+        RSVpeManager::GetInstance().ReleaseVpeVideo(GetId());
+#endif
     }
 
     // For abilityComponent and remote window, we should destroy the corresponding render node in RenderThread
@@ -837,7 +844,7 @@ void RSSurfaceNode::SetForeground(bool isForeground)
 void RSSurfaceNode::SetClonedNodeInfo(NodeId nodeId, bool needOffscreen)
 {
     std::unique_ptr<RSCommand> command =
-        std::make_unique<RSSurfaceNodeSetClonedNodeInfo>(GetId(), nodeId, needOffscreen);
+        std::make_unique<RSSurfaceNodeSetClonedNodeId>(GetId(), nodeId, needOffscreen);
     AddCommand(command, true);
 }
 

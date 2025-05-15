@@ -14,12 +14,12 @@
  */
 
 #include "gtest/gtest.h"
-#include "rs_test_util.h"
 
 #include "drawable/rs_surface_render_node_drawable.h"
+#include "feature/uifirst/rs_draw_window_cache.h"
 #include "params/rs_render_thread_params.h"
 #include "pipeline/rs_context.h"
-#include "feature/uifirst/rs_draw_window_cache.h"
+#include "pipeline/rs_test_util.h"
 #include "pipeline/rs_surface_render_node.h"
 
 using namespace testing;
@@ -92,7 +92,6 @@ HWTEST_F(RSDrawWindowCacheTest, DealWithCachedWindow, TestSize.Level1)
     ASSERT_NE(drawable, nullptr);
     surfaceDrawable = static_cast<DrawableV2::RSSurfaceRenderNodeDrawable*>(drawable);
     ASSERT_NE(surfaceDrawable, nullptr);
-    surfaceDrawable->surfaceHandlerUiFirst_ = std::make_shared<RSSurfaceHandler>(1);
 
     Drawing::Bitmap bmp;
     Drawing::BitmapFormat format { Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
@@ -129,7 +128,6 @@ HWTEST_F(RSDrawWindowCacheTest, DrawAndCacheWindowContent, TestSize.Level1)
     ASSERT_NE(drawable, nullptr);
     surfaceDrawable = static_cast<DrawableV2::RSSurfaceRenderNodeDrawable*>(drawable);
     ASSERT_NE(surfaceDrawable, nullptr);
-    surfaceDrawable->surfaceHandlerUiFirst_ = std::make_shared<RSSurfaceHandler>(1);
 
     Drawing::Bitmap bmp;
     Drawing::BitmapFormat format { Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };

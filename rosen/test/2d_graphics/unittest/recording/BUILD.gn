@@ -12,6 +12,7 @@
 # limitations under the License.
 
 import("//build/test.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 module_output_path = "graphic_2d/graphic_2d/rosen/modules/2d_graphics/recording"
 
@@ -33,6 +34,9 @@ ohos_unittest("2d_graphics_recording_test") {
     "ROSEN_OHOS",
     "SUPPORT_OHOS_PIXMAP",
   ]
+  if (graphic_2d_feature_enable_vulkan) {
+    defines += [ "RS_ENABLE_VK" ]
+  }
 
   external_deps = [
     "c_utils:utils",

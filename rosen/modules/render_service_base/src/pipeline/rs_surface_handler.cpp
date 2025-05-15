@@ -18,6 +18,7 @@
 #include "metadata_helper.h"
 #endif
 #include "rs_trace.h"
+#include "platform/common/rs_system_properties.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -79,7 +80,7 @@ void RSSurfaceHandler::UpdateBuffer(
     const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence, const Rect& damage, const int64_t timestamp)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    preBuffer_.Reset();
+    preBuffer_.Reset(!RSSystemProperties::GetVKImageUseEnabled());
     preBuffer_ = buffer_;
     buffer_.buffer = buffer;
     if (buffer != nullptr) {

@@ -35,6 +35,7 @@
 #include "common/rs_common_def.h"
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_vector4.h"
+#include "feature/hyper_graphic_manager/rs_frame_rate_policy.h"
 #include "modifier/rs_modifier.h"
 #include "modifier/rs_modifier_manager_map.h"
 #include "modifier/rs_property.h"
@@ -49,7 +50,7 @@
 #include "ui/rs_canvas_drawing_node.h"
 #include "ui/rs_canvas_node.h"
 #include "ui/rs_display_node.h"
-#include "feature/hyper_graphic_manager/rs_frame_rate_policy.h"
+#include "ui/rs_effect_node.h"
 #include "ui/rs_proxy_node.h"
 #include "ui/rs_root_node.h"
 #include "ui/rs_surface_node.h"
@@ -1832,11 +1833,13 @@ void RSNode::SetUICompositingFilter(const OHOS::Rosen::Filter* compositingFilter
             SetPixelStretchPercent(stretchPercent, pixelStretchPara->GetTileMode());
         }
         if (filterPara->GetParaType() == FilterPara::RADIUS_GRADIENT_BLUR) {
-            auto para = std::static_pointer_cast<RadiusGradientBlurPara>(filterPara);
-            auto linearGradientBlurPara = std::make_shared<RSLinearGradientBlurPara>(para->GetBlurRadius(),
-                para->GetFractionStops(), para->GetDirection());
-            linearGradientBlurPara->isRadiusGradient_ = true;
-            SetLinearGradientBlurPara(linearGradientBlurPara);
+            auto radiusGradientBlurPara = std::static_pointer_cast<RadiusGradientBlurPara>(filterPara);
+            auto rsLinearGradientBlurPara = std::make_shared<RSLinearGradientBlurPara>(
+                radiusGradientBlurPara->GetBlurRadius(),
+                radiusGradientBlurPara->GetFractionStops(),
+                radiusGradientBlurPara->GetDirection());
+            rsLinearGradientBlurPara->isRadiusGradient_ = true;
+            SetLinearGradientBlurPara(rsLinearGradientBlurPara);
         }
     }
 }
@@ -2243,6 +2246,12 @@ void RSNode::SetUseEffectType(UseEffectType useEffectType)
 {
     SetProperty<RSUseEffectTypeModifier, RSProperty<int>>(
         RSModifierType::USE_EFFECT_TYPE, static_cast<int>(useEffectType));
+}
+
+void RSNode::SetAlwaysSnapshot(bool enable)
+{
+    SetProperty<RSAlwaysSnapshotModifier, RSProperty<bool>>(
+        RSModifierType::ALWAYS_SNAPSHOT, static_cast<bool>(enable));
 }
 
 void RSNode::SetUseShadowBatching(bool useShadowBatching)
@@ -3446,18 +3455,6 @@ RSNode::SharedPtr RSNode::GetParent()
                                : RSNodeMap::Instance().GetNode(parent_);
 }
 
-#ifdef RS_ENABLE_VK
-bool RSNode::IsHybridRenderCanvas() const
-{
-    return hybridRenderCanvas_;
-}
-
-void RSNode::SetHybridRenderCanvas(bool hybridRenderCanvas)
-{
-    hybridRenderCanvas_ = hybridRenderCanvas;
-}
-#endif
-
 void RSNode::DumpTree(int depth, std::string& out) const
 {
     for (int i = 0; i < depth; i++) {
@@ -3571,6 +3568,7 @@ template bool RSNode::IsInstanceOf<RSProxyNode>() const;
 template bool RSNode::IsInstanceOf<RSCanvasNode>() const;
 template bool RSNode::IsInstanceOf<RSRootNode>() const;
 template bool RSNode::IsInstanceOf<RSCanvasDrawingNode>() const;
+template bool RSNode::IsInstanceOf<RSEffectNode>() const;
 
 void RSNode::SetInstanceId(int32_t instanceId)
 {

@@ -32,13 +32,13 @@ public:
 protected:
     void SetSourceTuningForApp(std::string appName, std::string val);
     void SetSolidColorLayerForApp(std::string appName, std::string val);
+    static void SetSolidLayerEnable(bool isEnable);
     static void SetDisableHwcOnExpandScreen(bool isEnable);
     void MoveDataToHgmCore();
-    static void SetSolidLayerEnable(bool isEnable);
 
 private:
-    inline static bool isDisableHwcOnExpandScreen_ = false;
     inline static bool isSolidLayerEnable_ = false;
+    inline static bool isDisableHwcOnExpandScreen_ = false;
     std::unordered_map<std::string, std::string> sourceTuningMap_;
     std::unordered_map<std::string, std::string> solidColorLayerMap_;
 

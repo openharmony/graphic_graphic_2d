@@ -88,8 +88,7 @@ void RSCanvasDrawingRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         ResetSurface();
         params->SetCanvasDrawingSurfaceChanged(false);
     }
-    RSTagTracker tagTracker(
-        canvas.GetGPUContext().get(), 0, GetId(), RSTagTracker::TAGTYPE::TAG_DRAW_CANVAS_DRAWING_NODE);
+    Drawing::GPUResourceTag::SetCurrentNodeId(GetId());
     auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
     RSAutoCanvasRestore acr(paintFilterCanvas, RSPaintFilterCanvas::SaveType::kCanvasAndAlpha);
     if (!canvas.GetRecordingState()) {
@@ -139,8 +138,10 @@ void RSCanvasDrawingRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     //if you want to dump canvas_drawing_node as a png
     DumpCanvasDrawing();
 
-    // 3. Draw children of this drawing node by the main canvas.
-    DrawChildren(canvas, bounds);
+    if (!RSUniRenderThread::GetCaptureParam().isSoloNodeUiCapture_) {
+        // 3. Draw children of this drawing node by the main canvas.
+        DrawChildren(canvas, bounds);
+    }
 
     // 4. Draw foreground of this drawing node by the main canvas.
     DrawForeground(canvas, bounds);
@@ -189,6 +190,9 @@ void RSCanvasDrawingRenderNodeDrawable::DrawRenderContent(Drawing::Canvas& canva
     if (params == nullptr) {
         return;
     }
+#ifdef RS_ENABLE_GPU
+    RSTagTracker tagTracker(canvas.GetGPUContext(), RSTagTracker::SOURCETYPE::SOURCE_DRAWRENDERCONTENT);
+#endif
     auto& frameRect = params->GetFrameRect();
     if (RSPropertiesPainter::GetGravityMatrix(params->GetFrameGravity(),
         { frameRect.GetLeft(), frameRect.GetTop(), frameRect.GetWidth(), frameRect.GetHeight() },
@@ -449,9 +453,7 @@ void RSCanvasDrawingRenderNodeDrawable::ProcessCPURenderInBackgroundThread(std::
         if (!cmds || cmds->IsEmpty() || !surface || !ctx || !drawable) {
             return;
         }
-        RSTagTracker tagTracker(
-            surface->GetCanvas() ? surface->GetCanvas()->GetGPUContext().get() : nullptr,
-            0, nodeId, RSTagTracker::TAGTYPE::TAG_DRAW_CANVAS_DRAWING_NODE);
+        Drawing::GPUResourceTag::SetCurrentNodeId(nodeId);
         auto canvasDrawingDrawable = std::static_pointer_cast<DrawableV2::RSCanvasDrawingRenderNodeDrawable>(drawable);
         std::shared_ptr<Drawing::Canvas> canvas = nullptr;
         {
@@ -526,7 +528,7 @@ Drawing::Bitmap RSCanvasDrawingRenderNodeDrawable::GetBitmap(Drawing::GPUContext
         return bitmap;
     }
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
-    RSTagTracker tagTracker(grContext, 0, GetId(), RSTagTracker::TAGTYPE::TAG_DRAW_CANVAS_DRAWING_NODE);
+    Drawing::GPUResourceTag::SetCurrentNodeId(GetId());
     Drawing::TextureOrigin origin = GetTextureOrigin();
     Drawing::BitmapFormat info = Drawing::BitmapFormat{ image_->GetColorType(), image_->GetAlphaType() };
     auto image = std::make_shared<Drawing::Image>();
@@ -570,11 +572,11 @@ bool RSCanvasDrawingRenderNodeDrawable::GetPixelmap(const std::shared_ptr<Media:
     std::shared_ptr<Drawing::Image> image;
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     std::shared_ptr<Drawing::GPUContext> grContext;
+    Drawing::GPUResourceTag::SetCurrentNodeId(GetId());
     if (!GetCurrentContextAndImage(grContext, image, tid)) {
         RS_LOGE("RSCanvasDrawingRenderNodeDrawable::GetPixelmap: GetCurrentContextAndImage failed");
         return false;
     }
-    RSTagTracker tagTracker(grContext.get(), 0, GetId(), RSTagTracker::TAGTYPE::TAG_DRAW_CANVAS_DRAWING_NODE);
 #endif
 
     if (image == nullptr) {
@@ -684,8 +686,7 @@ void RSCanvasDrawingRenderNodeDrawable::DrawCaptureImage(RSPaintFilterCanvas& ca
 bool RSCanvasDrawingRenderNodeDrawable::ReleaseSurfaceVK(int width, int height)
 {
     if (!backendTexture_.IsValid() || !backendTexture_.GetTextureInfo().GetVKTextureInfo()) {
-        backendTexture_ = RSUniRenderUtil::MakeBackendTexture(
-            width, height, ExtractPid(nodeId_), RSTagTracker::TAGTYPE::TAG_DRAW_CANVAS_DRAWING_NODE);
+        backendTexture_ = NativeBufferUtils::MakeBackendTexture(width, height, ExtractPid(nodeId_));
         if (!backendTexture_.IsValid()) {
             surface_ = nullptr;
             recordingCanvas_ = nullptr;
@@ -992,7 +993,6 @@ bool RSCanvasDrawingRenderNodeDrawable::GetCurrentContextAndImage(std::shared_pt
         if (!grContext || !backendTexture_.IsValid()) {
             return false;
         }
-        RSTagTracker tagTracker(grContext.get(), 0, GetId(), RSTagTracker::TAGTYPE::TAG_DRAW_CANVAS_DRAWING_NODE);
         Drawing::TextureOrigin origin = GetTextureOrigin();
         Drawing::BitmapFormat info = Drawing::BitmapFormat{ image_->GetColorType(), image_->GetAlphaType() };
         image = std::make_shared<Drawing::Image>();

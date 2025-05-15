@@ -22,7 +22,6 @@ config("libtexgine_config") {
   cflags = [
     "-Wall",
     "-Werror",
-    "-g3",
     "-std=c++17",
   ]
 
@@ -76,20 +75,23 @@ ohos_source_set("libtexgine_source") {
     defines += [ "RS_ENABLE_GPU" ]
   }
   if (is_arkui_x) {
-    defines += [ "CROSS_PLATFORM" ]
-    public_deps += [ "//third_party/jsoncpp:jsoncpp_static" ]
+    public_deps += [
+      "//third_party/jsoncpp:jsoncpp_static",
+      "//third_party/skia:skia_$platform",
+    ]
     deps = [
       "//third_party/bounds_checking_function:libsec_static",
       "//third_party/cJSON:cjson_static",
     ]
   } else {
     external_deps = [
-      "bounds_checking_function:libsec_static",
-      "cJSON:cjson_static",
+      "bounds_checking_function:libsec_shared",
+      "cJSON:cjson",
+      "skia:skia_canvaskit",
     ]
   }
 
-  if (platform == "ohos") {
+  if (platform_is_ohos) {
     defines += [
       "BUILD_NON_SDK_VER",
       "OHOS_TEXT_ENABLE",

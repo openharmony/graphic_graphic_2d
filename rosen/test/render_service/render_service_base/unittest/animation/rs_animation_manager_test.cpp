@@ -158,8 +158,9 @@ HWTEST_F(RSAnimationManagerTest, AnimateTest001, TestSize.Level1)
     RSAnimationManager rsAnimationManager;
     int64_t time = 10;
     bool nodeIsOnTheTree = false;
+    int64_t leftDelayTime = 0;
     RSSurfaceNodeAbilityState abilityState = RSSurfaceNodeAbilityState::FOREGROUND;
-    rsAnimationManager.Animate(time, nodeIsOnTheTree, abilityState);
+    rsAnimationManager.Animate(time, leftDelayTime, nodeIsOnTheTree, abilityState);
     ASSERT_NE(time, 0);
 }
 

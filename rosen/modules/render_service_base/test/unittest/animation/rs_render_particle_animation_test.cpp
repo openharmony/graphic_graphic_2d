@@ -109,7 +109,8 @@ HWTEST_F(RSRenderParticleAnimationTest, Animate001, TestSize.Level1)
     auto renderParticleAnimation =
         std::make_shared<RSRenderParticleAnimation>(ANIMATION_ID, PROPERTY_ID, particlesRenderParams);
     ASSERT_TRUE(renderParticleAnimation != nullptr);
-    auto particleAnimate = renderParticleAnimation->Animate(NS_TO_S);
+    int64_t leftDelayTime = 0;
+    auto particleAnimate = renderParticleAnimation->Animate(NS_TO_S, leftDelayTime);
     EXPECT_TRUE(particleAnimate);
 
     particleSystem_ = std::make_shared<RSRenderParticleSystem>(particlesRenderParams);
@@ -192,10 +193,11 @@ HWTEST_F(RSRenderParticleAnimationTest, Animate003, TestSize.Level1)
     auto property = std::make_shared<RSRenderProperty<RSRenderParticleVector>>(particles, PROPERTY_ID);
     ASSERT_TRUE(animation != nullptr);
     animation->AttachRenderProperty(property);
-    EXPECT_TRUE(animation->Animate(NS_TO_S));
+    int64_t leftDelayTime = 0;
+    EXPECT_TRUE(animation->Animate(NS_TO_S, leftDelayTime));
     animation->particleSystem_ = nullptr;
     animation->SetPropertyValue(nullptr);
-    EXPECT_TRUE(animation->Animate(NS_TO_S));
+    EXPECT_TRUE(animation->Animate(NS_TO_S, leftDelayTime));
     GTEST_LOG_(INFO) << "RSRenderParticleAnimationTest Animate003 end";
 }
 

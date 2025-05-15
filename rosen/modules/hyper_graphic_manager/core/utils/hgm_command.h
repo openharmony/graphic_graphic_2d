@@ -221,6 +221,8 @@ public:
     bool videoFrameRateVoteSwitch_ = false;
     // <"pkgName", "1">
     std::unordered_map<std::string, std::string> videoFrameRateList_;
+    // vrate <"minifps", "1">
+    std::unordered_map<std::string, std::string> vRateControlList_;
 
     DynamicSettingMap GetAceSceneDynamicSettingMap(const std::string& screenType, const std::string& settingMode)
     {

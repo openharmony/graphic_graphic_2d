@@ -221,9 +221,9 @@ uint32_t TypefaceWithAlias::GetHash() const
 
 uint32_t TypefaceWithAlias::Hasher::operator()(const TypefaceWithAlias& ta) const
 {
-    uint32_t hashS = std::hash<std::string>()(ta.alias_);
+    uint32_t hashS = static_cast<uint32_t>(std::hash<std::string>()(ta.alias_));
     uint32_t hashT = ta.typeface_ == nullptr ? 0 : ta.typeface_->GetHash();
-    ta.hash_ = std::hash<uint32_t>()(hashS ^ hashT);
+    ta.hash_ = static_cast<uint32_t>(std::hash<uint32_t>()(hashS ^ hashT));
     return ta.hash_;
 }
 

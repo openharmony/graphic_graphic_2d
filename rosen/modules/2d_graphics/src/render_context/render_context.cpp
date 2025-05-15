@@ -365,7 +365,7 @@ std::shared_ptr<Drawing::Surface> RenderContext::AcquireSurface(int width, int h
             break;
     }
 
-    RSTagTracker tagTracker(GetDrGPUContext(), RSTagTracker::TAGTYPE::TAG_ACQUIRE_SURFACE);
+    RSTagTracker tagTracker(GetSharedDrGPUContext(), RSTagTracker::TAGTYPE::TAG_ACQUIRE_SURFACE);
 
     struct Drawing::FrameBuffer bufferInfo;
     bufferInfo.width = width;
@@ -398,7 +398,7 @@ void RenderContext::RenderFrame()
     // flush commands
     if (surface_ != nullptr && surface_->GetCanvas() != nullptr) {
         LOGD("RenderFrame: Canvas");
-        RSTagTracker tagTracker(GetDrGPUContext(), RSTagTracker::TAGTYPE::TAG_RENDER_FRAME);
+        RSTagTracker tagTracker(GetSharedDrGPUContext(), RSTagTracker::TAGTYPE::TAG_RENDER_FRAME);
         surface_->GetCanvas()->Flush();
     } else {
         LOGW("canvas is nullptr!!!");

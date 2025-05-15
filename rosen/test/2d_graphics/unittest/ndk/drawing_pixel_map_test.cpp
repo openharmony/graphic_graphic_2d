@@ -17,6 +17,10 @@
 
 #include "drawing_pixel_map.h"
 
+#ifdef RS_ENABLE_VK
+#include "platform/ohos/backend/rs_vulkan_context.h"
+#endif
+
 using namespace testing;
 using namespace testing::ext;
 
@@ -31,7 +35,12 @@ public:
     void TearDown() override;
 };
 
-void NativeDrawingPixelMapTest::SetUpTestCase() {}
+void NativeDrawingPixelMapTest::SetUpTestCase()
+{
+#ifdef RS_ENABLE_VK
+    RsVulkanContext::SetRecyclable(false);
+#endif
+}
 void NativeDrawingPixelMapTest::TearDownTestCase() {}
 void NativeDrawingPixelMapTest::SetUp() {}
 void NativeDrawingPixelMapTest::TearDown() {}

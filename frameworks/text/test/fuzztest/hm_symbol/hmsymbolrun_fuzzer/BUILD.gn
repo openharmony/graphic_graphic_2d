@@ -22,6 +22,8 @@ ohos_fuzztest("HmSymbolRunFuzzTest") {
   module_out_path = text_test_out_path
   fuzz_config_file = "."
 
+  configs = [ "$rosen_text_root/adapter/skia:skia_libtxt_config" ]
+
   include_dirs = [
     "$rosen_text_root/interface/export",
     "$rosen_text_root/interface/export/rosen_test",
@@ -42,7 +44,10 @@ ohos_fuzztest("HmSymbolRunFuzzTest") {
     "-fno-omit-frame-pointer",
   ]
 
-  deps = [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics" ]
+  deps = [
+    "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
+    "$rosen_text_root:rosen_text",
+  ]
 
   part_name = "graphic_2d"
   subsystem_name = "graphic"

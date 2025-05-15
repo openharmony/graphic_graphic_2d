@@ -343,6 +343,7 @@ public:
     void UpdatePartialRenderParams();
     void UpdateScreenRenderParams(ScreenRenderParams& screenRenderParams);
     void UpdateOffscreenRenderParams(bool needOffscreen);
+    Occlusion::Region GetTopSurfaceOpaqueRegion() const;
     void RecordTopSurfaceOpaqueRects(Occlusion::Rect rect);
     void RecordMainAndLeashSurfaces(RSBaseRenderNode::SharedPtr surface);
     std::vector<RSBaseRenderNode::SharedPtr>& GetAllMainAndLeashSurfaces() { return curMainAndLeashSurfaceNodes_;}
@@ -586,6 +587,11 @@ public:
     void SetWindowContainer(std::shared_ptr<RSBaseRenderNode> container);
     std::shared_ptr<RSBaseRenderNode> GetWindowContainer() const;
 
+    void SetNeedForceUpdateHwcNodes(bool needForceUpdate, bool hasVisibleHwcNodes);
+    bool GetNeedForceUpdateHwcNodes() const { return needForceUpdateHwcNodes_; }
+
+    bool HasVisibleHwcNodes() const { return hasVisibleHwcNodes_; }
+
     void SetTargetSurfaceRenderNodeId(NodeId nodeId)
     {
         targetSurfaceRenderNodeId_ = nodeId;
@@ -644,6 +650,8 @@ private:
     // Use in MultiLayersPerf
     size_t surfaceCountForMultiLayersPerf_ = 0;
     int64_t lastRefreshTime_ = 0;
+    bool needForceUpdateHwcNodes_ = false;
+    bool hasVisibleHwcNodes_ = false;
     static ReleaseDmaBufferTask releaseScreenDmaBufferTask_;
     std::shared_ptr<RSDirtyRegionManager> dirtyManager_ = nullptr;
     // Use in screen recording optimization

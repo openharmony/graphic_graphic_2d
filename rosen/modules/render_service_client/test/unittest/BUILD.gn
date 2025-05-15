@@ -43,6 +43,9 @@ ohos_unittest("RSVirtualScreenRefreshRateTest") {
   sources = [ "rs_virtual_screen_refresh_rate_test.cpp" ]
   deps = [ ":rs_client_test_common" ]
   external_deps = [
+    "access_token:libaccesstoken_sdk",
+    "access_token:libnativetoken",
+    "access_token:libtoken_setproc",
     "c_utils:utils",
     "hilog:libhilog",
   ]
@@ -54,6 +57,9 @@ ohos_unittest("RSScreenSkipFrameTest") {
   sources = [ "rs_screen_skipframe_test.cpp" ]
   deps = [ ":rs_client_test_common" ]
   external_deps = [
+    "access_token:libaccesstoken_sdk",
+    "access_token:libnativetoken",
+    "access_token:libtoken_setproc",
     "c_utils:utils",
     "hilog:libhilog",
   ]
@@ -78,7 +84,12 @@ ohos_unittest("RSInterfacesTest") {
     defines = [ "OHOS_BUILD_ENABLE_MAGICCURSOR" ]
   }
   deps = [ ":rs_client_test_common" ]
-  external_deps = [ "graphic_surface:surface" ]
+  external_deps = [
+    "access_token:libaccesstoken_sdk",
+    "access_token:libnativetoken",
+    "access_token:libtoken_setproc",
+    "graphic_surface:surface",
+  ]
 }
 
 ## Build RSTransactionsTest
@@ -87,7 +98,7 @@ ohos_unittest("RSTransactionsTest") {
   sources = [ "rs_transaction_controller_test.cpp" ]
   deps = [
     ":rs_client_test_common",
-    "../../../render_service_base:render_service_base_src",
+    "$graphic_2d_root/rosen/modules/render_service_base:render_service_base_src",
   ]
 }
 
@@ -125,7 +136,7 @@ ohos_unittest("RSRegionTest") {
   sources = [ "rs_region_test.cpp" ]
   deps = [
     ":rs_client_test_common",
-    "../../../render_service_base:render_service_base_src",
+    "$graphic_2d_root/rosen/modules/render_service_base:render_service_base_src",
   ]
 }
 

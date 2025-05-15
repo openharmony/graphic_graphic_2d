@@ -205,6 +205,21 @@ HWTEST_F(RSInterfacesTest, TakeSurfaceCaptureForUIWithConfig003, TestSize.Level1
 }
 
 /**
+ * @tc.name: TakeSurfaceCaptureSoloNodeList001
+ * @tc.desc: test results of TakeSurfaceCaptureSoloNodeList
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, TakeSurfaceCaptureSoloNodeList001, TestSize.Level1)
+{
+    std::shared_ptr<RSNode> node = nullptr;
+    RSInterfaces& instance = RSInterfaces::GetInstance();
+    std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>> res =
+        instance.TakeSurfaceCaptureSoloNodeList(node);
+    EXPECT_TRUE(res.size() == 0);
+}
+
+/**
  * @tc.name: SetHwcNodeBoundsTest
  * @tc.desc: test results of SetHwcNodeBounds
  * @tc.type: FUNC
@@ -524,6 +539,20 @@ HWTEST_F(RSInterfacesTest, GetRefreshInfo001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetRefreshInfoToSP001
+ * @tc.desc: test results of GetRefreshInfoToSP
+ * @tc.type: FUNC
+ * @tc.require: issueI97N4E
+ */
+HWTEST_F(RSInterfacesTest, GetRefreshInfoToSP001, TestSize.Level1)
+{
+    RSInterfaces& instance = RSInterfaces::GetInstance();
+    NodeId id = 0;
+    std::string str = instance.GetRefreshInfoToSP(id);
+    EXPECT_TRUE(str == "");
+}
+
+/**
  * @tc.name: SetWatermark001
  * @tc.desc: test results of SetWatermark
  * @tc.type: FUNC
@@ -685,4 +714,17 @@ HWTEST_F(RSInterfacesTest, SetOverlayDisplayMode001, TestSize.Level1)
     EXPECT_EQ(res, SUCCESS);
 }
 #endif
+
+/**
+ * @tc.name: GetHighContrastTextState001
+ * @tc.desc: test results of GetHighContrastTextState
+ * @tc.type: FUNC
+ * @tc.require: issueIC3FUZ
+ */
+HWTEST_F(RSInterfacesTest, GetHighContrastTextState001, TestSize.Level1)
+{
+    RSInterfaces& instance = RSInterfaces::GetInstance();
+    instance.renderServiceClient_ = std::make_unique<RSRenderServiceClient>();
+    EXPECT_EQ(instance.GetHighContrastTextState(), false);
+}
 } // namespace OHOS::Rosen

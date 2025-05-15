@@ -25,6 +25,7 @@
 
 #include "common/rs_color.h"
 #include "common/rs_macros.h"
+#include "render/rs_filter.h"
 #include "screen_manager/screen_types.h"
 #include "surface_type.h"
 #include "utils/region.h"
@@ -311,6 +312,18 @@ public:
     void SetHdrOn(bool isHdrOn);
     bool GetIsWindowFreezeCapture() const;
     void SetIsWindowFreezeCapture(bool isWindowFreezeCapture);
+    bool GetIsDrawingCache() const;
+    void SetIsDrawingCache(bool isDrawingCache);
+
+    struct CacheBehindWindowData {
+        CacheBehindWindowData() = default;
+        CacheBehindWindowData(std::shared_ptr<RSFilter> filter, const Drawing::Rect rect);
+        ~CacheBehindWindowData() = default;
+        std::shared_ptr<RSFilter> filter_ = nullptr;
+        Drawing::Rect rect_ = {};
+    };
+    void SetCacheBehindWindowData(const std::shared_ptr<CacheBehindWindowData>& data);
+    const std::shared_ptr<CacheBehindWindowData>& GetCacheBehindWindowData() const;
 
     // Set culled nodes for control-level occlusion culling
     void SetCulledNodes(const std::unordered_set<NodeId>&& culledNodes)
@@ -366,6 +379,8 @@ private:
     bool multipleScreen_ = false;
     bool isHdrOn_ = false;
     bool isWindowFreezeCapture_ = false;
+    // Drawing window cache or uifirst cache
+    bool isDrawingCache_ = false;
     CacheType cacheType_ { RSPaintFilterCanvas::CacheType::UNDEFINED };
     std::atomic_bool isHighContrastEnabled_ { false };
     GraphicColorGamut targetColorGamut_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
@@ -392,6 +407,8 @@ private:
     std::stack<OffscreenData> offscreenDataList_; // store offscreen canvas & surface
     std::stack<Drawing::Surface*> storeMainScreenSurface_; // store surface_
     std::stack<Drawing::Canvas*> storeMainScreenCanvas_; // store canvas_
+
+    std::shared_ptr<CacheBehindWindowData> cacheBehindWindowData_ = nullptr;
 };
 
 #ifdef RS_ENABLE_VK

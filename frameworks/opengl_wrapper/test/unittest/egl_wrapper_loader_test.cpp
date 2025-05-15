@@ -225,4 +225,35 @@ HWTEST_F(EglWrapperLoaderTest, LoadGl003, Level2)
 
     ASSERT_NE(nullptr, ret);
 }
+
+#ifdef OPENGL_WRAPPER_ENABLE_GL4
+/**
+ * @tc.name: LoadGlFromMesa001
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(EglWrapperLoaderTest, LoadGlFromMesa001, Level1)
+{
+    gWrapperHook.useMesa = false;
+    EglWrapperDispatchTable table;
+    std::string eglPath = std::string("libEGL_mesa.so");
+    auto loader = EglWrapperLoader::GetInstance();
+    loader.LoadEgl(eglPath.c_str(), &table.egl);
+    auto result = loader.LoadGlFromMesa(gGlApiNames3, (FunctionPointerType *)&table.gl.table3);
+    ASSERT_FALSE(result);
+}
+
+/**
+ * @tc.name: LoadVendorDriver001
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(EglWrapperLoaderTest, LoadVendorDriver001, Level1)
+{
+    EglWrapperDispatchTable table;
+    gWrapperHook.useMesa = true;
+    auto result = EglWrapperLoader::GetInstance().LoadVendorDriver(&table);
+    ASSERT_TRUE(result);
+}
+#endif
 } // OHOS::Rosen

@@ -33,18 +33,19 @@ namespace Rosen {
 using namespace OHOS::HDI::Display::Graphic::Common::V1_0;
 #endif
 
-class RSCctInterface {
+class RSColorTemperatureInterface {
 public:
-    virtual ~RSCctInterface() = default;
+    virtual ~RSColorTemperatureInterface() = default;
     virtual bool Init() = 0;
-    virtual void RegisterRefresh(std::function<void()>&&) = 0;
-    virtual void UpdateScreenStatus(ScreenId, ScreenPowerStatus) = 0;
-    virtual bool IsDimmingOn(ScreenId) = 0;
-    virtual void DimmingIncrease(ScreenId) = 0;
-    virtual std::vector<float> GetNewLinearCct(ScreenId) = 0;
+    virtual void RegisterRefresh(std::function<void()>&& refreshFunc) = 0;
+    virtual void UpdateScreenStatus(ScreenId screenId, ScreenPowerStatus powerStatus) = 0;
+    virtual bool IsDimmingOn(ScreenId screenId) = 0;
+    virtual void DimmingIncrease(ScreenId screenId) = 0;
+    virtual bool IsColorTemperatureOn() const = 0;
+    virtual std::vector<float> GetNewLinearCct(ScreenId screenId) = 0;
 #ifndef ROSEN_CROSS_PLATFORM
-    virtual std::vector<float> GetLayerLinearCct(ScreenId, const std::vector<uint8_t>&,
-        const CM_Matrix srcColorMatrix) = 0;
+    virtual std::vector<float> GetLayerLinearCct(ScreenId screenId,
+        const std::vector<uint8_t>& dynamicMetadata, const CM_Matrix srcColorMatrix) = 0;
 #endif
 };
 
@@ -59,13 +60,14 @@ public:
     RSB_EXPORT void Init();
 
     RSB_EXPORT void RegisterRefresh(std::function<void()>&& refreshFunc);
-    RSB_EXPORT void UpdateScreenStatus(ScreenId screenId, ScreenPowerStatus status);
+    RSB_EXPORT void UpdateScreenStatus(ScreenId screenId, ScreenPowerStatus powerStatus);
     RSB_EXPORT bool IsDimmingOn(ScreenId screenId);
     RSB_EXPORT void DimmingIncrease(ScreenId screenId);
+    RSB_EXPORT bool IsColorTemperatureOn() const;
     RSB_EXPORT std::vector<float> GetNewLinearCct(ScreenId screenId);
 #ifndef ROSEN_CROSS_PLATFORM
-    RSB_EXPORT std::vector<float> GetLayerLinearCct(ScreenId, const std::vector<uint8_t>& metadata,
-        const CM_Matrix srcColorMatrix = CM_Matrix::MATRIX_P3);
+    RSB_EXPORT std::vector<float> GetLayerLinearCct(ScreenId screenId,
+        const std::vector<uint8_t>& dynamicMetadata, const CM_Matrix srcColorMatrix = CM_Matrix::MATRIX_P3);
 #endif
 
 private:
@@ -78,9 +80,9 @@ private:
 
     bool initStatus_{false};
     void *extLibHandle_{nullptr};
-    RSCctInterface* rSCctInterface_{nullptr};
+    RSColorTemperatureInterface* rSColorTemperatureInterface_{nullptr};
 
-    using CreateFunc = RSCctInterface*(*)();
+    using CreateFunc = RSColorTemperatureInterface*(*)();
     using DestroyFunc = void(*)();
 
     CreateFunc create_{nullptr};

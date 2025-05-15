@@ -75,6 +75,59 @@ ohos_unittest("RSAibarShaderFilterTest") {
 }
 
 ##############################  RSRenderServiceBaseRenderTest  ##################################
+ohos_unittest("RSAlwaysSnapshotShaderFilterTest") {
+  module_out_path = module_output_path
+
+  sources = [
+    "rs_always_snapshot_shader_filter_test.cpp",
+  ]
+
+  cflags = [
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+
+  configs = [
+    ":render_test",
+    "$graphic_2d_root/rosen/modules/render_service_base:export_config",
+  ]
+
+  include_dirs = [
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
+    "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing/engine_adapter/skia_adapter/",
+    "$graphic_2d_root/rosen/include",
+    "$graphic_2d_root/rosen/test/include",
+    "$graphic_2d_root/rosen/modules/platform/eventhandler",
+    "$graphic_2d_root/utils/log",
+  ]
+
+  deps = [
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_base:render_service_base_src",
+  ]
+  external_deps = [
+    "c_utils:utils",
+    "googletest:gmock",
+    "googletest:gtest_main",
+    "graphic_surface:surface",
+    "graphics_effect:graphics_effect_core",
+    "hilog:libhilog",
+    "image_framework:image_native",
+    "init:libbegetutil",
+    "skia:skia_canvaskit",
+  ]
+
+  if (use_video_processing_engine) {
+    external_deps +=
+        [ "drivers_interface_display:display_commontype_idl_headers" ]
+    defines = [ "USE_VIDEO_PROCESSING_ENGINE" ]
+    external_deps += [ "video_processing_engine:videoprocessingengine" ]
+  }
+
+  subsystem_name = "graphic"
+}
+
+##############################  RSRenderServiceBaseRenderTest  ##################################
 ohos_unittest("RSBorderTest") {
   module_out_path = module_output_path
 
@@ -206,6 +259,7 @@ ohos_unittest("RSColorfulShadowFilterTest") {
 
   include_dirs = [
     "$graphic_2d_root/rosen/modules/render_service_base/include",
+    "$graphic_2d_root/rosen/modules/render_service_base/src",
     "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing/engine_adapter/skia_adapter/",
     "$graphic_2d_root/rosen/include",
     "$graphic_2d_root/rosen/test/include",

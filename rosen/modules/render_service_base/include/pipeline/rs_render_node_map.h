@@ -17,6 +17,7 @@
 
 #include <mutex>
 #include <unordered_map>
+#include <unordered_set>
 
 #include "common/rs_common_def.h"
 #include "common/rs_macros.h"
@@ -33,6 +34,9 @@ public:
     bool RegisterRenderNode(const std::shared_ptr<RSBaseRenderNode>& nodePtr);
     bool RegisterDisplayRenderNode(const std::shared_ptr<RSDisplayRenderNode>& nodePtr);
     void UnregisterRenderNode(NodeId id);
+
+    void RegisterUnTreeNode(NodeId id);
+    bool UnRegisterUnTreeNode(NodeId id);
 
     // Get RenderNode with type T, return nullptr if not found or type mismatch
     template<typename T = RSBaseRenderNode>
@@ -100,6 +104,7 @@ private:
     std::unordered_map<NodeId, bool> purgeableNodeMap_;
     std::unordered_map<pid_t, std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>>>
         selfDrawingNodeInProcess_;
+    std::unordered_set<NodeId> unInTreeNodeSet_;
 
     void Initialize(const std::weak_ptr<RSContext>& context);
 

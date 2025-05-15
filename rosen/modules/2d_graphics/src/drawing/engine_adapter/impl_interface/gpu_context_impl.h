@@ -95,6 +95,8 @@ public:
 
     virtual void SetCurrentGpuResourceTag(const GPUResourceTag &tag) = 0;
 
+    virtual GPUResourceTag GetCurrentGpuResourceTag() const = 0;
+
     virtual void GetUpdatedMemoryMap(std::unordered_map<pid_t, size_t> &out) = 0;
 
     virtual void InitGpuMemoryLimit(MemoryOverflowCalllback callback, uint64_t size) = 0;

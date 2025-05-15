@@ -321,6 +321,23 @@ bool DoSetOverlayDisplayModeFuzzTest(const uint8_t* data, size_t size)
     return true;
 }
 #endif
+
+bool DoGetHighContrastTextState(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    // test
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.GetHighContrastTextState();
+    return true;
+}
 } // namespace Rosen
 } // namespace OHOS
 
@@ -337,5 +354,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
     OHOS::Rosen::DoSetOverlayDisplayModeFuzzTest(data, size);
 #endif
+    OHOS::Rosen::DoGetHighContrastTextState(data, size);
     return 0;
 }

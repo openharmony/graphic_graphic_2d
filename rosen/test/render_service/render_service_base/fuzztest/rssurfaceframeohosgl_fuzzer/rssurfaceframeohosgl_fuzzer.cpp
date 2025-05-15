@@ -32,12 +32,17 @@ namespace OHOS {
 namespace Rosen {
 
 namespace {
+const uint8_t DO_SET_DAMAGEREGION = 0;
+const uint8_t DO_GET_BUFFERAGE = 1;
+const uint8_t DO_GET_RELEASEFENCE = 2;
+const uint8_t DO_SET_RELEASEFENCE = 3;
+const uint8_t TARGET_SIZE = 4;
+
 auto g_rsSurfaceFrameOhosGl = std::make_shared<RSSurfaceFrameOhosGl>(1, 1);
 std::shared_ptr<RenderContext> g_context;
 const uint8_t* g_data = nullptr;
 size_t g_size = 0;
 size_t g_pos;
-} // namespace
 
 template<class T>
 T GetData()
@@ -54,72 +59,19 @@ T GetData()
     g_pos += objectSize;
     return object;
 }
-bool DoSetDamageRegion(const uint8_t* data, size_t size)
+
+bool Init(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
         return false;
     }
 
-    // initialize
     g_data = data;
     g_size = size;
     g_pos = 0;
-
-    int32_t left = GetData<int32_t>();
-    int32_t top = GetData<int32_t>();
-    int32_t width1 = GetData<int32_t>();
-    int32_t height1 = GetData<int32_t>();
-
-    g_rsSurfaceFrameOhosGl->SetDamageRegion(left, top, width1, height1);
-
-    std::vector<RectI> rects;
-    g_rsSurfaceFrameOhosGl->SetDamageRegion(rects);
-
     return true;
 }
-bool DoGetBufferAge(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
 
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    g_rsSurfaceFrameOhosGl->GetBufferAge();
-    return true;
-}
-bool DoGetReleaseFence(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    g_rsSurfaceFrameOhosGl->GetReleaseFence();
-    return true;
-}
-bool DoSetReleaseFence(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    int32_t fence = GetData<int32_t>();
-    g_rsSurfaceFrameOhosGl->SetReleaseFence(fence);
-    return true;
-}
 void InitRenderContext()
 {
     g_context = std::make_shared<RenderContext>();
@@ -143,6 +95,7 @@ void InitRenderContext()
 #endif // RS_ENABLE_GL || RS_ENABLE_VK
     g_rsSurfaceFrameOhosGl->SetRenderContext(g_context.get());
 }
+
 void ReleaseRenderContext()
 {
     g_rsSurfaceFrameOhosGl->SetRenderContext(nullptr);
@@ -156,21 +109,71 @@ void ReleaseRenderContext()
 #endif
     g_context = nullptr;
 }
+} // namespace
+
+void DoSetDamageRegion()
+{
+    OHOS::Rosen::InitRenderContext();
+
+    int32_t left = GetData<int32_t>();
+    int32_t top = GetData<int32_t>();
+    int32_t width1 = GetData<int32_t>();
+    int32_t height1 = GetData<int32_t>();
+    g_rsSurfaceFrameOhosGl->SetDamageRegion(left, top, width1, height1);
+
+    std::vector<RectI> rects;
+    g_rsSurfaceFrameOhosGl->SetDamageRegion(rects);
+
+    OHOS::Rosen::ReleaseRenderContext();
+}
+
+void DoGetBufferAge()
+{
+    OHOS::Rosen::InitRenderContext();
+    g_rsSurfaceFrameOhosGl->GetBufferAge();
+    OHOS::Rosen::ReleaseRenderContext();
+}
+
+void DoGetReleaseFence()
+{
+    OHOS::Rosen::InitRenderContext();
+    g_rsSurfaceFrameOhosGl->GetReleaseFence();
+    OHOS::Rosen::ReleaseRenderContext();
+}
+
+void DoSetReleaseFence()
+{
+    OHOS::Rosen::InitRenderContext();
+    int32_t fence = GetData<int32_t>();
+    g_rsSurfaceFrameOhosGl->SetReleaseFence(fence);
+    OHOS::Rosen::ReleaseRenderContext();
+}
 } // namespace Rosen
 } // namespace OHOS
 
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
-    OHOS::Rosen::InitRenderContext();
-
     /* Run your code on data */
-    OHOS::Rosen::DoSetDamageRegion(data, size); // SetDamageRegion
-    OHOS::Rosen::DoGetBufferAge(data, size);    // GetBufferAge
-    OHOS::Rosen::DoGetReleaseFence(data, size); // GetReleaseFence
-    OHOS::Rosen::DoSetReleaseFence(data, size); // SetReleaseFence
-
-    OHOS::Rosen::ReleaseRenderContext();
-
+    if (!OHOS::Rosen::Init(data, size)) {
+        return -1;
+    }
+    uint8_t tarPos = OHOS::Rosen::GetData<uint8_t>() % OHOS::Rosen::TARGET_SIZE;
+    switch (tarPos) {
+        case OHOS::Rosen::DO_SET_DAMAGEREGION:
+            OHOS::Rosen::DoSetDamageRegion(); // SetDamageRegion
+            break;
+        case OHOS::Rosen::DO_GET_BUFFERAGE:
+            OHOS::Rosen::DoGetBufferAge();    // GetBufferAge
+            break;
+        case OHOS::Rosen::DO_GET_RELEASEFENCE:
+            OHOS::Rosen::DoGetReleaseFence(); // GetReleaseFence
+            break;
+        case OHOS::Rosen::DO_SET_RELEASEFENCE:
+            OHOS::Rosen::DoSetReleaseFence(); // SetReleaseFence
+            break;
+        default:
+            return -1;
+    }
     return 0;
 }

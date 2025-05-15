@@ -72,6 +72,7 @@ public:
         MAGNIFIER,
         FLY_OUT,
         DISTORT,
+        ALWAYS_SNAPSHOT,
     };
     FilterType GetFilterType() const
     {

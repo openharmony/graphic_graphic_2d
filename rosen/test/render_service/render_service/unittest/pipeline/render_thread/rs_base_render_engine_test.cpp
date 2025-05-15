@@ -34,6 +34,9 @@ public:
 
 void RSBaseRenderEngineUnitTest::SetUpTestCase()
 {
+#ifdef RS_ENABLE_VK
+    RsVulkanContext::SetRecyclable(false);
+#endif
     RSTestUtil::InitRenderNodeGC();
 }
 void RSBaseRenderEngineUnitTest::TearDownTestCase() {}
@@ -360,5 +363,58 @@ HWTEST_F(RSBaseRenderEngineUnitTest, NeedBilinearInterpolation, TestSize.Level1)
     matrix.Set(Drawing::Matrix::SCALE_X, 0);
     matrix.Set(Drawing::Matrix::SCALE_Y, 1);
     ASSERT_TRUE(RSRenderEngine::NeedBilinearInterpolation(params, matrix));
+}
+
+/**
+ * @tc.name: SetColorSpaceConverterDisplayParameterTest
+ * @tc.desc: Test SetColorSpaceConverterDisplayParameter
+ * @tc.type: FUNC
+ * @tc.require:issueIC1RNF
+ */
+HWTEST_F(RSBaseRenderEngineUnitTest, SetColorSpaceConverterDisplayParameterTest, TestSize.Level1)
+{
+    auto renderEngine = std::make_shared<RSRenderEngine>();
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    BufferDrawParam params;
+    params.buffer = surfaceNode->GetRSSurfaceHandler()->GetBuffer();
+    Media::VideoProcessingEngine::ColorSpaceConverterDisplayParameter parameter;
+    ASSERT_EQ(renderEngine->SetColorSpaceConverterDisplayParameter(params, parameter), true);
+}
+
+/**
+ * @tc.name: ConvertColorSpaceNameToDrawingColorSpaceTest
+ * @tc.desc: Test ConvertColorSpaceNameToDrawingColorSpace
+ * @tc.type: FUNC
+ * @tc.require:issueIC1RNF
+ */
+HWTEST_F(RSBaseRenderEngineUnitTest, ConvertColorSpaceNameToDrawingColorSpaceTest, TestSize.Level1)
+{
+    auto renderEngine = std::make_shared<RSRenderEngine>();
+    OHOS::ColorManager::ColorSpaceName colorSpaceName = OHOS::ColorManager::ColorSpaceName::NONE;
+    std::shared_ptr<Drawing::ColorSpace> colorSpace = nullptr;
+    colorSpace = renderEngine->ConvertColorSpaceNameToDrawingColorSpace(colorSpaceName);
+    auto colorSpaceType = colorSpace->GetType();
+    ASSERT_EQ(colorSpaceType, Drawing::ColorSpace::ColorSpaceType::SRGB);
+
+    colorSpaceName = OHOS::ColorManager::ColorSpaceName::DISPLAY_P3;
+    colorSpace = renderEngine->ConvertColorSpaceNameToDrawingColorSpace(colorSpaceName);
+    colorSpaceType = colorSpace->GetType();
+    ASSERT_EQ(colorSpaceType, Drawing::ColorSpace::ColorSpaceType::RGB);
+}
+
+/**
+ * @tc.name: ShrinkCachesIfNeededTest
+ * @tc.desc: Test ShrinkCachesIfNeeded
+ * @tc.type: FUNC
+ * @tc.require:issueIC1RNF
+ */
+HWTEST_F(RSBaseRenderEngineUnitTest, ShrinkCachesIfNeededTest, TestSize.Level1)
+{
+    auto renderEngine = std::make_shared<RSRenderEngine>();
+#ifdef RS_ENABLE_VK
+    renderEngine->vkImageManager_ = std::make_shared<RSVkImageManager>();
+    renderEngine->ShrinkCachesIfNeeded();
+    ASSERT_EQ(renderEngine->vkImageManager_->cacheQueue_.size(), 0);
+#endif
 }
 }

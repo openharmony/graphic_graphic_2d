@@ -796,7 +796,7 @@ HWTEST_F(RSScreenManagerTest, SetScreenActiveRect001, testing::ext::TestSize.Lev
         .w = 0,
         .h = 0,
     };
-    EXPECT_EQ(screenManager->SetScreenActiveRect(screenId, activeRect), StatusCode::HDI_ERROR);
+    EXPECT_EQ(screenManager->SetScreenActiveRect(screenId, activeRect), StatusCode::SUCCESS);
 }
 
 /*
@@ -980,6 +980,7 @@ HWTEST_F(RSScreenManagerTest, RSDump_001, testing::ext::TestSize.Level2)
     ASSERT_STRNE(dumpString.c_str(), empty.c_str());
     dumpString = "";
     screenManager->ClearFpsDump(dumpString, arg);
+    screenManager->DumpCurrentFrameLayers();
     screenManager->ClearFrameBufferIfNeed();
     ASSERT_STRNE(dumpString.c_str(), empty.c_str());
 }
@@ -4011,5 +4012,22 @@ HWTEST_F(RSScreenManagerTest, OnRefresh, TestSize.Level1)
     screenManagerImpl->RSScreenManager::OnRefresh(sId, nullptr);
     screenManagerImpl->RSScreenManager::OnRefresh(sId, screenManager);
     EXPECT_NE(screenManager, nullptr);
+}
+
+/*
+ * @tc.name: InitLoadOptParams001
+ * @tc.desc: Test InitLoadOptParams
+ * @tc.type: FUNC
+ * @tc.require: issueIC2UGT
+ */
+HWTEST_F(RSScreenManagerTest, InitLoadOptParams001, TestSize.Level1)
+{
+    sptr<OHOS::Rosen::impl::RSScreenManager> screenManagerImpl = sptr<OHOS::Rosen::impl::RSScreenManager>::MakeSptr();
+    EXPECT_NE(screenManagerImpl, nullptr);
+
+    LoadOptParamsForScreen params = {};
+    screenManagerImpl->RSScreenManager::InitLoadOptParams(params);
+    EXPECT_EQ(screenManagerImpl->loadOptParamsForScreen_.loadOptParamsForHdiBackend.loadOptParamsForHdiOutput
+                  .switchParams.size(), 0);
 }
 } // namespace OHOS::Rosen

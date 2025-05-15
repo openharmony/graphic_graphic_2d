@@ -38,7 +38,7 @@ public:
 protected:
     int ParseConfig(const char* fname);
     int ParseFont(const cJSON* root);
-    cJSON* CheckConfigFile(const char* fname) const;
+    static cJSON* CheckConfigFile(const char* fname);
     static char* GetFileData(const char* fname, int& size);
 
 private:
@@ -83,14 +83,15 @@ typedef struct FontConfigJsonInfo {
     FallbackGroupSet fallbackGroupSet;
 } FontConfigJsonInfo;
 
-using FontFileMap = std::map<std::string, std::string>;
+using FontFileMap = std::unordered_map<std::string, std::string>;
 
 class FontConfigJson : public FontConfig {
 public:
     FontConfigJson() = default;
     int ParseFile(const char* fname = nullptr);
     int ParseFontFileMap(const char* fname = nullptr);
-    int ParseInstallConfig(const char* fontPath, std::vector<std::string>& fontPathList);
+    template<typename T>
+    static int ParseInstallConfig(const char* fontPath, T& fontPathList);
     std::shared_ptr<FontConfigJsonInfo> GetFontConfigJsonInfo()
     {
         return fontPtr;
@@ -109,7 +110,9 @@ private:
     int ParseDir(const cJSON* root);
     int ParseFonts(const cJSON* root);
     void AnalyseFont(const cJSON* root);
-    int ParseInstallFont(const cJSON* root, std::vector<std::string>& fontPathList);
+    static int ParseInstallFont(const cJSON* root, std::vector<std::string>& fontPathList);
+    static int ParseInstallFont(const cJSON* root, FontFileMap& fontPathList);
+    static void ParseFullName(const cJSON* root, std::vector<std::string>& fullNameList);
     void DumpFontDir() const;
     void DumpGeneric() const;
     void DumpForbak() const;

@@ -27,13 +27,15 @@ RSColorTemperature::~RSColorTemperature() {}
 
 void RSColorTemperature::Init() {}
 
-void RSColorTemperature::RegisterRefresh(std::function<void()>&& refresh) {}
+void RSColorTemperature::RegisterRefresh(std::function<void()>&& refreshFunc) {}
 
-void RSColorTemperature::UpdateScreenStatus(ScreenId screenId, ScreenPowerStatus status) {}
+void RSColorTemperature::UpdateScreenStatus(ScreenId screenId, ScreenPowerStatus powerStatus) {}
 
 bool RSColorTemperature::IsDimmingOn(ScreenId screenId) { return false; }
 
 void RSColorTemperature::DimmingIncrease(ScreenId screenId) {}
+
+bool RSColorTemperature::IsColorTemperatureOn() const { return false; }
 
 std::vector<float> RSColorTemperature::GetNewLinearCct(ScreenId screenId) { return {}; }
 

@@ -87,6 +87,8 @@ bool RSScreenManager::Init() noexcept
         return false;
     }
 
+    composer_->InitLoadOptParams(loadOptParamsForScreen_.loadOptParamsForHdiBackend);
+
     if (composer_->RegScreenHotplug(&RSScreenManager::OnHotPlug, this) != 0) {
         RS_LOGE("%{public}s: Failed to register OnHotPlug Func to composer.", __func__);
         return false;
@@ -943,7 +945,7 @@ RSScreenCapability RSScreenManager::GetScreenCapability(ScreenId id) const
     }
 
     const auto& capability = screen->GetCapability();
-    std::vector<RSScreenProps> props(capability.propertyCount);
+    std::vector<RSScreenProps> props(capability.props.size());
     std::transform(capability.props.cbegin(), capability.props.cend(), props.begin(), [](const auto& node) {
         return RSScreenProps(node.name, node.propId, node.value);
     });
@@ -1452,9 +1454,17 @@ uint32_t RSScreenManager::SetScreenActiveRect(ScreenId id, const GraphicIRect& a
         return StatusCode::SCREEN_NOT_FOUND;
     }
 
-    RSHardwareThread::Instance().ScheduleTask([screen, activeRect]() {
+    RSHardwareThread::Instance().ScheduleTask([screen, activeRect, id]() {
         if (screen->SetScreenActiveRect(activeRect) != StatusCode::SUCCESS) {
             RS_LOGW("%{public}s: Invalid param", __func__);
+            return;
+        }
+        auto screenManager = CreateOrGetScreenManager();
+        if (screenManager) {
+            auto output = screenManager->GetOutput(id);
+            if (output) {
+                output->SetActiveRectSwitchStatus(true);
+            }
         }
     }).wait();
     return StatusCode::SUCCESS;
@@ -1903,6 +1913,18 @@ void RSScreenManager::SurfaceDump(std::string& dumpString)
     }
 }
 
+void RSScreenManager::DumpCurrentFrameLayers()
+{
+    std::lock_guard<std::mutex> lock(screenMapMutex_);
+    for (const auto &[id, screen] : screens_) {
+        if (screen == nullptr) {
+            RS_LOGE("RSScreenManager %{public}s: screen %{public}" PRIu64 " not found.", __func__, id);
+            continue;
+        }
+        screen->DumpCurrentFrameLayers();
+    }
+}
+
 void RSScreenManager::FpsDump(std::string& dumpString, std::string& arg)
 {
     std::lock_guard<std::mutex> lock(screenMapMutex_);
@@ -2068,7 +2090,7 @@ int32_t RSScreenManager::GetScreenHDRCapability(ScreenId id, RSScreenHDRCapabili
     }
 
     GraphicHDRCapability hdrCapability = screen->GetHDRCapability();
-    std::vector<ScreenHDRFormat> hdrFormats(hdrCapability.formatCount);
+    std::vector<ScreenHDRFormat> hdrFormats(hdrCapability.formats.size());
     std::transform(hdrCapability.formats.cbegin(), hdrCapability.formats.cend(), hdrFormats.begin(),
         [](const auto& node) { return static_cast<ScreenHDRFormat>(node); }
     );
@@ -2370,7 +2392,7 @@ int32_t RSScreenManager::SetScreenLinearMatrix(ScreenId id, const std::vector<fl
     return StatusCode::SUCCESS;
 }
 
-bool RSScreenManager::IsVisibleRectSupportRotation(ScreenId id) const
+bool RSScreenManager::IsVisibleRectSupportRotation(ScreenId id)
 {
     auto screen = GetScreen(id);
     if (screen == nullptr) {
@@ -2403,6 +2425,11 @@ std::shared_ptr<OHOS::Rosen::RSScreen> RSScreenManager::GetScreen(ScreenId id) c
         return nullptr;
     }
     return iter->second;
+}
+
+void RSScreenManager::InitLoadOptParams(LoadOptParamsForScreen& loadOptParamsForScreen)
+{
+    loadOptParamsForScreen_ = loadOptParamsForScreen;
 }
 } // namespace impl
 

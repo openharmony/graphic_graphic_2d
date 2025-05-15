@@ -1292,6 +1292,50 @@ HWTEST_F(RecordingCanvasTest, ClipAdaptiveRoundRect001, TestSize.Level1)
     drawCmdList1->Playback(canvas, &rect);
     drawCmdList2->Playback(canvas, &rect);
 }
+
+/**
+ * @tc.name: ResetHybridRenderSize001
+ * @tc.desc: Test the ResetHybridRenderSize function.
+ * @tc.type: FUNC
+ * @tc.require: IC5FR3
+ */
+HWTEST_F(RecordingCanvasTest, ResetHybridRenderSize001, TestSize.Level1)
+{
+    auto recordingCanvas = std::make_shared<RecordingCanvas>(CANAS_WIDTH, CANAS_HEIGHT);
+    EXPECT_TRUE(recordingCanvas != nullptr);
+    recordingCanvas->cmdList_ = nullptr;
+    recordingCanvas->ResetHybridRenderSize(CANAS_WIDTH, CANAS_HEIGHT);
+}
+
+/**
+ * @tc.name: ResetHybridRenderSize002
+ * @tc.desc: Test the ResetHybridRenderSize function.
+ * @tc.type: FUNC
+ * @tc.require: IC5FR3
+ */
+HWTEST_F(RecordingCanvasTest, ResetHybridRenderSize002, TestSize.Level1)
+{
+    auto recordingCanvas = std::make_shared<RecordingCanvas>(CANAS_WIDTH, CANAS_HEIGHT);
+    EXPECT_TRUE(recordingCanvas != nullptr);
+    auto drawCmdList = recordingCanvas->GetDrawCmdList();
+    EXPECT_TRUE(drawCmdList != nullptr);
+    recordingCanvas->ResetHybridRenderSize(CANAS_WIDTH, CANAS_HEIGHT);
+}
+
+/**
+ * @tc.name: ResetHybridRenderSize003
+ * @tc.desc: Test the ResetHybridRenderSize function.
+ * @tc.type: FUNC
+ * @tc.require: IC5FR3
+ */
+HWTEST_F(RecordingCanvasTest, ResetHybridRenderSize003, TestSize.Level1)
+{
+    auto recordingCanvas = std::make_shared<RecordingCanvas>(CANAS_WIDTH, CANAS_HEIGHT, false);
+    EXPECT_TRUE(recordingCanvas != nullptr);
+    auto drawCmdList = recordingCanvas->GetDrawCmdList();
+    EXPECT_TRUE(drawCmdList != nullptr);
+    recordingCanvas->ResetHybridRenderSize(CANAS_WIDTH, CANAS_HEIGHT);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

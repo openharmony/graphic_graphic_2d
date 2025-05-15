@@ -30,47 +30,83 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-const uint8_t* g_data = nullptr;
+const uint8_t* DATA = nullptr;
 size_t g_size = 0;
 size_t g_pos;
 } // namespace
 
+/*
+ * describe: get data from outside untrusted data(DATA) which size is according to sizeof(T)
+ * tips: only support basic type
+ */
 template<class T>
 T GetData()
 {
     T object {};
     size_t objectSize = sizeof(object);
-    if (g_data == nullptr || objectSize > g_size - g_pos) {
+    if (DATA == nullptr || objectSize > g_size - g_pos) {
         return object;
     }
-    errno_t ret = memcpy_s(&object, objectSize, g_data + g_pos, objectSize);
+    errno_t ret = memcpy_s(&object, objectSize, DATA + g_pos, objectSize);
     if (ret != EOK) {
         return {};
     }
     g_pos += objectSize;
     return object;
 }
-bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
+
+void RSAnimationFractionFuzzerTest()
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
+    // get data
     float animationScale = GetData<float>();
     int64_t time = GetData<int64_t>();
+    bool isInStartDelay = GetData<bool>();
+    int64_t delaytime = GetData<int64_t>();
+    bool isFinished = GetData<bool>();
+    bool isRepeatFinished = GetData<bool>();
+    bool isEnable = GetData<bool>();
+    float fraction = GetData<float>();
+    int remainTime = GetData<int>();
+    ForwardDirection direction = GetData<ForwardDirection>();
+    int64_t lastFrameTime = GetData<int64_t>();
+
+    // test
+    RSAnimationFraction::Init();
+    RSAnimationFraction::GetAnimationScale();
+    RSAnimationFraction::SetAnimationScale(animationScale);
+    auto animationFraction = std::make_shared<RSAnimationFraction>();
+    std::tie(fraction, isInStartDelay, isFinished, isRepeatFinished) =
+        animationFraction->GetAnimationFraction(time, delaytime);
+    animationFraction->UpdateRemainTimeFraction(fraction, remainTime);
+    animationFraction->GetRemainingRepeatCount();
+    animationFraction->GetStartFraction();
+    animationFraction->GetEndFraction();
+    animationFraction->SetDirectionAfterStart(direction);
+    animationFraction->SetLastFrameTime(lastFrameTime);
+    animationFraction->GetLastFrameTime();
+    animationFraction->GetCurrentIsReverseCycle();
+    animationFraction->GetCurrentTimeFraction();
+    animationFraction->SetRepeatCallbackEnable(isEnable);
+    animationFraction->GetRepeatCallbackEnable();
+    animationFraction->ResetFraction();
+    animationFraction->GetRunningTime();
+}
+
+void RSAnimationFractionFuzzerTest1()
+{
+    // get data
+    float animationScale = GetData<float>();
+    int64_t time = GetData<int64_t>();
+    int64_t delayTime = GetData<int64_t>();
     int64_t startDelayNs = GetData<int64_t>();
 
+    // test
     RSAnimationFraction::Init();
     RSAnimationFraction::GetAnimationScale();
     RSAnimationFraction::SetAnimationScale(animationScale);
     RSAnimationFraction::OnAnimationScaleChangedCallback("persist.sys.graphic.animationscale", "0", nullptr);
     RSAnimationFraction fraction;
-    fraction.GetAnimationFraction(time);
+    fraction.GetAnimationFraction(time, delayTime);
     fraction.UpdateRemainTimeFraction(animationScale);
     fraction.GetStartFraction();
     fraction.GetEndFraction();
@@ -86,6 +122,22 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     fraction.IsFinished();
     fraction.UpdateReverseState(true);
     fraction.IsStartRunning(time, startDelayNs);
+    fraction.CalculateLeftDelayTime(startDelayNs);
+}
+
+bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    DATA = data;
+    g_size = size;
+    g_pos = 0;
+
+    RSAnimationFractionFuzzerTest();
+    RSAnimationFractionFuzzerTest1();
     return true;
 }
 } // namespace Rosen

@@ -24,7 +24,7 @@ namespace Rosen {
 bool IsUtf8(const char* text, int len);
 
 std::u16string Str8ToStr16ByIcu(const std::string& str);
-
+std::u16string Str32ToStr16ByIcu(const int32_t* data, size_t len);
 }
 } // namespace OHOS
 

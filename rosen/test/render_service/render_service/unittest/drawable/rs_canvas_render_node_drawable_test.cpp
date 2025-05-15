@@ -75,7 +75,7 @@ HWTEST(RSCanvasRenderNodeDrawableTest, OnDrawTest, TestSize.Level1)
 
     drawable->isOpDropped_ = false;
     drawable->isDrawingCacheEnabled_ = true;
-    drawable->autoCacheEnable_ = false;
+    drawable->GetOpincDrawCache().autoCacheEnable_ = false;
     drawable->drawBlurForCache_ = false;
     drawable->OnDraw(canvas);
     ASSERT_TRUE(drawable->isDrawingCacheEnabled_);

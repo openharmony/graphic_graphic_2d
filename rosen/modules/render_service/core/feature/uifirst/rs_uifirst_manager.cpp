@@ -27,6 +27,7 @@
 #include "params/rs_display_render_params.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
 #include "pipeline/rs_canvas_render_node.h"
+#include "pipeline/rs_root_render_node.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "platform/common/rs_log.h"
 
@@ -127,9 +128,14 @@ void RSUifirstManager::ResetUifirstNode(std::shared_ptr<RSSurfaceRenderNode>& no
     if (!nodePtr) {
         return;
     }
-    RS_LOGD("uifirst ResetUifirstNode name:%{public}s,id:%{public}" PRIu64 ",isOnTheTree:%{public}d,"
+    RS_TRACE_NAME_FMT("ResetUifirstNode name:%s,id:%" PRIu64 ",isOnTheTree:%d,"
+        "toBeCaptured:%d", nodePtr->GetName().c_str(), nodePtr->GetId(), nodePtr->IsOnTheTree(),
+        nodePtr->IsNodeToBeCaptured());
+    RS_LOGI("ResetUifirstNode name:%{public}s,id:%{public}" PRIu64 ",isOnTheTree:%{public}d,"
         "toBeCaptured:%{public}d", nodePtr->GetName().c_str(), nodePtr->GetId(), nodePtr->IsOnTheTree(),
         nodePtr->IsNodeToBeCaptured());
+    pendingPostNodes_.erase(nodePtr->GetId());
+    pendingPostCardNodes_.erase(nodePtr->GetId());
     nodePtr->SetUifirstUseStarting(false);
     if (SetUifirstNodeEnableParam(*nodePtr, MultiThreadCacheType::NONE)) {
         // enable ->disable
@@ -149,13 +155,13 @@ void RSUifirstManager::ResetUifirstNode(std::shared_ptr<RSSurfaceRenderNode>& no
             auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable->GetRenderParams().get());
             if (surfaceParams && surfaceParams->GetUifirstNodeEnableParam() == MultiThreadCacheType::NONE) {
                 RS_TRACE_NAME_FMT("ResetUifirstNode clearCache id:%llu", surfaceParams->GetId());
-                drawable->GetRsSubThreadCache().ResetUifirst(false);
+                drawable->GetRsSubThreadCache().ResetUifirst();
             }
         };
         RSUniRenderThread::Instance().PostTask(releaseTask, taskName, CLEAR_CACHE_DELAY);
     } else {
         nodePtr->SetIsNodeToBeCaptured(false);
-        rsSubThreadCache.ResetUifirst(false);
+        rsSubThreadCache.ResetUifirst();
     }
 }
 
@@ -1088,7 +1094,7 @@ void RSUifirstManager::AddPendingPostNode(NodeId id, std::shared_ptr<RSSurfaceRe
     // process for uifirst node
     UpdateChildrenDirtyRect(*node);
     node->SetHwcChildrenDisabledState();
-    RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%" PRIu64 " children disabled by uifirst",
+    RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " children disabled by uifirst",
         node->GetName().c_str(), node->GetId());
     node->AddToPendingSyncList();
 
@@ -1336,6 +1342,7 @@ bool RSUifirstManager::EventsCanSkipFirstWait(std::vector<EventInfo>& events)
     return false;
 }
 
+// exit uifirst when leash has APP_LIST_FLING event.
 bool RSUifirstManager::CheckIfAppWindowHasAnimation(RSSurfaceRenderNode& node)
 {
     if (currentFrameEvent_.empty()) {
@@ -1390,7 +1397,7 @@ void RSUifirstManager::ProcessFirstFrameCache(RSSurfaceRenderNode& node, MultiTh
             node.SetSubThreadAssignable(true); // mark as assignable to uifirst next frame
             node.SetNeedCacheSurface(true); // mark as that needs cache win in RT
             node.SetHwcChildrenDisabledState();
-            RS_OPTIONAL_TRACE_NAME_FMT("name:%s id:%" PRIu64 " children disabled by uifirst first frame",
+            RS_OPTIONAL_TRACE_FMT("name:%s id:%" PRIu64 " children disabled by uifirst first frame",
                 node.GetName().c_str(), node.GetId());
             // delte caches when node is not on the tree.
             auto func = &RSUifirstManager::ProcessTreeStateChange;
@@ -1399,6 +1406,69 @@ void RSUifirstManager::ProcessFirstFrameCache(RSSurfaceRenderNode& node, MultiTh
     } else {
         UifirstStateChange(node, cacheType);
     }
+}
+
+bool RSUifirstManager::HasBgNodeBelowRootNode(RSSurfaceRenderNode& appNode) const
+{
+    auto appFirstChildren = appNode.GetFirstChild();
+    if (!appFirstChildren) {
+        return false;
+    }
+    auto rootNode = RSBaseRenderNode::ReinterpretCast<RSRootRenderNode>(appFirstChildren);
+    if (!rootNode) {
+        return false;
+    }
+    auto rootFirstChildren = rootNode->GetFirstChild();
+    if (!rootFirstChildren) {
+        return false;
+    }
+    auto bgColorNode = RSBaseRenderNode::ReinterpretCast<RSCanvasRenderNode>(rootFirstChildren);
+    if (!bgColorNode) {
+        return false;
+    }
+    auto backgroundColor =
+        static_cast<Drawing::ColorQuad>(bgColorNode->GetRenderProperties().GetBackgroundColor().AsArgbInt());
+    if (Drawing::Color::ColorQuadGetA(backgroundColor) != Drawing::Color::COLOR_TRANSPARENT) {
+        return true;
+    }
+    return false;
+}
+
+bool RSUifirstManager::CheckHasTransAndFilter(RSSurfaceRenderNode& node)
+{
+    if (!node.IsLeashWindow()) {
+        return false;
+    }
+    bool childHasVisibleFilter = node.ChildHasVisibleFilter();
+    bool hasTransparent = false;
+    RectI mainAppSurfaceRect = {};
+    bool isMainAppSurface = false;
+    bool hasChildOutOfMainAppSurface = false;
+    for (auto &child : *node.GetSortedChildren()) {
+        auto childSurface = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(child);
+        if (childSurface == nullptr || hasChildOutOfMainAppSurface) {
+            continue;
+        }
+        if (!isMainAppSurface && childSurface->IsAppWindow()) {
+            bool isBgColorTrans = HasBgNodeBelowRootNode(*childSurface);
+            hasTransparent |= (childSurface->IsTransparent() && !isBgColorTrans);
+            mainAppSurfaceRect = childSurface->GetAbsDrawRect();
+            isMainAppSurface = true;
+            RS_OPTIONAL_TRACE_NAME_FMT("Id:%" PRIu64 " name[%s] isTrans:%d isBgTrans:%d, hasTrans:%d",
+                childSurface->GetId(), childSurface->GetName().c_str(),
+                childSurface->IsTransparent(), isBgColorTrans, hasTransparent);
+            continue;
+        }
+        if (!childSurface->GetAbsDrawRect().IsInsideOf(mainAppSurfaceRect)) {
+            RS_OPTIONAL_TRACE_NAME_FMT("Id:%" PRIu64 " name[%s] absDrawRect is outof mainAppNode",
+                childSurface->GetId(), childSurface->GetName().c_str());
+            hasChildOutOfMainAppSurface = true;
+        }
+    }
+    hasTransparent |= hasChildOutOfMainAppSurface;
+    RS_TRACE_NAME_FMT("CheckHasTransAndFilter node:%" PRIu64 " hasTransparent: %d, childHasVisibleFilter: %d",
+        node.GetId(), hasTransparent, childHasVisibleFilter);
+    return hasTransparent && childHasVisibleFilter;
 }
 
 bool RSUifirstManager::IsArkTsCardCache(RSSurfaceRenderNode& node, bool animation) // maybe canvas node ?
@@ -1421,6 +1491,10 @@ bool RSUifirstManager::IsLeashWindowCache(RSSurfaceRenderNode& node, bool animat
         (node.GetFirstLevelNodeId() != node.GetId()) ||
         (RSUifirstManager::Instance().NodeIsInCardWhiteList(node)) ||
         (RSUifirstManager::Instance().CheckIfAppWindowHasAnimation(node))) {
+        return false;
+    }
+    // check transparent and childHasVisibleFilter
+    if (RSUifirstManager::Instance().CheckHasTransAndFilter(node)) {
         return false;
     }
     if (node.IsLeashWindow()) {
@@ -1516,10 +1590,18 @@ bool RSUifirstManager::GetSubNodeIsTransparent(RSSurfaceRenderNode& node, std::s
             if (childSurfaceNode == nullptr) {
                 continue;
             }
-            hasTransparent |= childSurfaceNode->IsTransparent();
+            hasTransparent |= childSurfaceNode->IsAlphaTransparent() || (childSurfaceNode->NeedDrawBehindWindow() &&
+                !RSSystemProperties::GetUIFirstBehindWindowFilterEnabled());
+            if (hasTransparent) {
+                dfxMsg = "childSurfaceNode_NeedDrawBehindWindow: " +
+                    std::to_string(childSurfaceNode->NeedDrawBehindWindow());
+                break;
+            }
         }
     } else {
-        hasTransparent = node.IsTransparent();
+        hasTransparent = node.IsAlphaTransparent() || (node.NeedDrawBehindWindow() &&
+            !RSSystemProperties::GetUIFirstBehindWindowFilterEnabled());
+        dfxMsg = "NeedDrawBehindWindow: " + std::to_string(node.NeedDrawBehindWindow());
     }
     if (!hasTransparent || !IsToSubByAppAnimation()) {
         // if not transparent, no need to check IsToSubByAppAnimation;
@@ -1533,21 +1615,17 @@ bool RSUifirstManager::GetSubNodeIsTransparent(RSSurfaceRenderNode& node, std::s
             if (childSurfaceNode == nullptr) {
                 continue;
             }
-            const auto& properties = childSurfaceNode->GetRenderProperties();
-            if (properties.GetNeedDrawBehindWindow() || (childSurfaceNode->GetAbilityBgAlpha() < UINT8_MAX)) {
+            if (childSurfaceNode->GetAbilityBgAlpha() < UINT8_MAX) {
                 isAbilityBgColorTransparent = true;
-                dfxMsg = "AbBgAlpha: " + std::to_string(childSurfaceNode->GetAbilityBgAlpha()) + " behindWindow: " +
-                    std::to_string(properties.GetNeedDrawBehindWindow());
+                dfxMsg = "AbBgAlpha: " + std::to_string(childSurfaceNode->GetAbilityBgAlpha());
                 break;
             } else {
                 isAbilityBgColorTransparent = false;
             }
         }
     } else {
-        const auto& properties = node.GetRenderProperties();
-        isAbilityBgColorTransparent = properties.GetNeedDrawBehindWindow() || (node.GetAbilityBgAlpha() < UINT8_MAX);
-        dfxMsg = "AbBgAlpha: " + std::to_string(node.GetAbilityBgAlpha()) + " behindWindow: " +
-            std::to_string(properties.GetNeedDrawBehindWindow());
+        isAbilityBgColorTransparent = node.GetAbilityBgAlpha() < UINT8_MAX;
+        dfxMsg = "AbBgAlpha: " + std::to_string(node.GetAbilityBgAlpha());
     }
     return isAbilityBgColorTransparent;
 }
@@ -1884,6 +1962,19 @@ bool RSUiFirstProcessStateCheckerHelper::IsCurFirstLevelMatch(const RSRenderPara
         return true;
     }
     return false;
+}
+
+CacheProcessStatus RSUifirstManager::GetCacheSurfaceProcessedStatus(const RSSurfaceRenderParams& surfaceParams)
+{
+    CacheProcessStatus curRootIdState = CacheProcessStatus::UNKNOWN;
+    auto uifirstRootId = surfaceParams.GetUifirstRootNodeId() != INVALID_NODEID ?
+        surfaceParams.GetUifirstRootNodeId() : surfaceParams.GetFirstLevelNodeId();
+    auto uifirstRootNodeDrawable = DrawableV2::RSRenderNodeDrawableAdapter::GetDrawableById(uifirstRootId);
+    if (uifirstRootNodeDrawable && uifirstRootNodeDrawable->GetNodeType() == RSRenderNodeType::SURFACE_NODE) {
+        auto drawableNode = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(uifirstRootNodeDrawable);
+        curRootIdState = drawableNode->GetRsSubThreadCache().GetCacheSurfaceProcessedStatus();
+    }
+    return curRootIdState;
 }
 
 bool RSUifirstManager::IsSubTreeNeedPrepareForSnapshot(RSSurfaceRenderNode& node)

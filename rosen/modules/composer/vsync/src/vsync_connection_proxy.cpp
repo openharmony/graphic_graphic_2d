@@ -29,7 +29,8 @@ VsyncError VSyncConnectionProxy::RequestNextVSync()
     return RequestNextVSync("unknown", 0);
 }
 
-VsyncError VSyncConnectionProxy::RequestNextVSync(const std::string& fromWhom, int64_t lastVSyncTS)
+VsyncError VSyncConnectionProxy::RequestNextVSync(
+    const std::string& fromWhom, int64_t lastVSyncTS, const int64_t& requestVsyncTime)
 {
     MessageOption opt(MessageOption::TF_ASYNC);
     MessageParcel arg;

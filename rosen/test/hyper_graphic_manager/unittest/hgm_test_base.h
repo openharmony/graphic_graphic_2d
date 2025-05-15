@@ -62,6 +62,10 @@ const std::string TEST_XML_CONTENT = (R"(<?xml version="1.0" encoding="UTF-8" st
         <Strategy name="screen0_LTPO" type="LTPO-DEFAULT"/>
     </Params>
     <Params name="screen_config" type="LTPO-DEFAULT">
+        <Category name="supported_mode">
+        <Mode name="aaa" value="1 2 3"/>
+        <Mode name="bbb" value="1 2"/>
+        </Category>
         <Setting id="-1" strategy="8">
         <Category name="LTPO_config">
             <Ltpo name="switch" value="1"/>
@@ -144,6 +148,9 @@ const std::string TEST_XML_CONTENT = (R"(<?xml version="1.0" encoding="UTF-8" st
     </Params>
     <Params name="xxx">
         <App name="aaa" value="1"/>
+    </Params>
+    <Params name="vrate_control_config">
+        <Vrate name="aaa" value="1"/>
     </Params>
     </HgmConfig>)");
 

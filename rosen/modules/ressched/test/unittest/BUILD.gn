@@ -26,12 +26,12 @@ ohos_unittest("graphic_ressched_test") {
   module_out_path = module_out_path
 
   include_dirs = [
-    "../../include",
+    "$graphic_2d_root/rosen/modules/ressched/include",
     "$graphic_2d_root/utils/log",
   ]
 
   sources = [
-    "../../src/ressched_event_listener.cpp",
+    "$graphic_2d_root/rosen/modules/ressched/src/ressched_event_listener.cpp",
     "ressched_event_listener_test.cpp",
   ]
 

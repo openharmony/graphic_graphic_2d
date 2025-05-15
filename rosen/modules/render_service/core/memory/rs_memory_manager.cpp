@@ -81,7 +81,6 @@ constexpr uint32_t CLEAR_TWO_APPS_TIME = 1000; // 1000ms
 constexpr const char* MEM_RS_TYPE = "renderservice";
 constexpr const char* MEM_CPU_TYPE = "cpu";
 constexpr const char* MEM_GPU_TYPE = "gpu";
-constexpr const char* MEM_JEMALLOC_TYPE = "jemalloc";
 constexpr const char* MEM_SNAPSHOT = "snapshot";
 constexpr int DUPM_STRING_BUF_SIZE = 4000;
 constexpr int KILL_PROCESS_TYPE = 301;
@@ -105,11 +104,6 @@ void MemoryManager::DumpMemoryUsage(DfxString& log, std::string& type)
     if (type.empty() || type == MEM_GPU_TYPE) {
         RSUniRenderThread::Instance().DumpMem(log);
     }
-    if (type.empty() || type == MEM_JEMALLOC_TYPE) {
-        std::string out;
-        DumpMallocStat(out);
-        log.AppendFormat("%s\n... detail dump at hilog\n", out.c_str());
-    }
     if (type.empty() || type == MEM_SNAPSHOT) {
         DumpMemorySnapshot(log);
     }
@@ -131,7 +125,7 @@ void MemoryManager::ReleaseAllGpuResource(Drawing::GPUContext* gpuContext, Drawi
 void MemoryManager::ReleaseAllGpuResource(Drawing::GPUContext* gpuContext, pid_t pid)
 {
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
-    Drawing::GPUResourceTag tag(pid, 0, 0, 0, 0, "ReleaseAllGpuResource");
+    Drawing::GPUResourceTag tag(pid, 0, 0, 0, "ReleaseAllGpuResource");
     ReleaseAllGpuResource(gpuContext, tag);
 #endif
 }
@@ -178,7 +172,7 @@ void MemoryManager::PurgeCacheBetweenFrames(Drawing::GPUContext* gpuContext, boo
 void MemoryManager::ReleaseUnlockGpuResource(Drawing::GPUContext* grContext, NodeId surfaceNodeId)
 {
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
-    Drawing::GPUResourceTag tag(ExtractPid(surfaceNodeId), 0, 0, 0, 0, "ReleaseUnlockGpuResource");
+    Drawing::GPUResourceTag tag(ExtractPid(surfaceNodeId), 0, 0, 0, "ReleaseUnlockGpuResource");
     ReleaseUnlockGpuResource(grContext, tag);
 #endif
 }
@@ -186,7 +180,7 @@ void MemoryManager::ReleaseUnlockGpuResource(Drawing::GPUContext* grContext, Nod
 void MemoryManager::ReleaseUnlockGpuResource(Drawing::GPUContext* grContext, pid_t pid)
 {
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
-    Drawing::GPUResourceTag tag(pid, 0, 0, 0, 0, "ReleaseUnlockGpuResource");
+    Drawing::GPUResourceTag tag(pid, 0, 0, 0, "ReleaseUnlockGpuResource");
     ReleaseUnlockGpuResource(grContext, tag); // clear gpu resource by pid
 #endif
 }
@@ -271,8 +265,8 @@ float MemoryManager::GetAppGpuMemoryInMB(Drawing::GPUContext* gpuContext)
     gpuContext->DumpMemoryStatistics(&trace);
     auto total = trace.GetGpuMemorySizeInMB();
     float rsMemSize = 0.f;
-    for (uint32_t tagtype = RSTagTracker::TAG_SAVELAYER_DRAW_NODE; tagtype < RSTagTracker::TAG_MAX; tagtype++) {
-        Drawing::GPUResourceTag resourceTag(0, 0, 0, 0, tagtype,
+    for (uint32_t tagtype = RSTagTracker::TAG_SAVELAYER_DRAW_NODE; tagtype <= RSTagTracker::TAG_CAPTURE; tagtype++) {
+        Drawing::GPUResourceTag resourceTag(0, 0, 0, tagtype,
             RSTagTracker::TagType2String(static_cast<RSTagTracker::TAGTYPE>(tagtype)));
         Drawing::TraceMemoryDump gpuTrace("category", true);
         gpuContext->DumpMemoryStatisticsByTag(&gpuTrace, resourceTag);
@@ -303,7 +297,7 @@ MemoryGraphic MemoryManager::CountPidMemory(int pid, const Drawing::GPUContext* 
     // Count mem of Skia GPU
     if (gpuContext) {
         Drawing::TraceMemoryDump gpuTracer("category", true);
-        Drawing::GPUResourceTag tag(pid, 0, 0, 0, 0, "ReleaseUnlockGpuResource");
+        Drawing::GPUResourceTag tag(pid, 0, 0, 0, "ReleaseUnlockGpuResource");
         gpuContext->DumpMemoryStatisticsByTag(&gpuTracer, tag);
         float gpuMem = gpuTracer.GetGLMemorySize();
         totalMemGraphic.IncreaseGpuMemory(gpuMem);
@@ -364,7 +358,8 @@ void MemoryManager::DumpRenderServiceMemory(DfxString& log)
     RSMainThread::Instance()->RenderServiceAllNodeDump(log);
     RSMainThread::Instance()->RenderServiceAllSurafceDump(log);
 #ifdef RS_ENABLE_VK
-    RsVulkanContext::GetSingleton().GetRsVkMemStat().DumpMemoryStatistics(log);
+    RsVulkanMemStat& memStat = RsVulkanContext::GetSingleton().GetRsVkMemStat();
+    memStat.DumpMemoryStatistics(&gpuTracer);
 #endif
 }
 
@@ -437,7 +432,7 @@ void MemoryManager::DumpAllGpuInfo(DfxString& log, const Drawing::GPUContext* gp
     }
 #if defined (RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     for (auto& nodeTag : nodeTags) {
-        Drawing::GPUResourceTag tag(ExtractPid(nodeTag.first), 0, nodeTag.first, 0, 0, nodeTag.second);
+        Drawing::GPUResourceTag tag(ExtractPid(nodeTag.first), 0, nodeTag.first, 0, nodeTag.second);
         DumpGpuCache(log, gpuContext, &tag, nodeTag.second);
     }
 #endif
@@ -464,9 +459,9 @@ void MemoryManager::DumpDrawingGpuMemory(DfxString& log, const Drawing::GPUConte
     DumpGpuCache(log, gpuContext, nullptr, gpuInfo);
     // Get memory of window by tag
     DumpAllGpuInfo(log, gpuContext, nodeTags);
-    for (uint32_t tagtype = RSTagTracker::TAG_SAVELAYER_DRAW_NODE; tagtype < RSTagTracker::TAG_MAX; tagtype++) {
+    for (uint32_t tagtype = RSTagTracker::TAG_SAVELAYER_DRAW_NODE; tagtype <= RSTagTracker::TAG_CAPTURE; tagtype++) {
         std::string tagTypeName = RSTagTracker::TagType2String(static_cast<RSTagTracker::TAGTYPE>(tagtype));
-        Drawing::GPUResourceTag tag(0, 0, 0, 0, tagtype, tagTypeName);
+        Drawing::GPUResourceTag tag(0, 0, 0, tagtype, tagTypeName);
         DumpGpuCache(log, gpuContext, &tag, tagTypeName);
     }
     // cache limit
@@ -506,7 +501,7 @@ void MemoryManager::DumpGpuStats(DfxString& log, const Drawing::GPUContext* gpuC
     }
     log.AppendFormat("\ndumpGpuStats end\n---------------\n");
 #if defined (SK_VULKAN) && defined (SKIA_DFX_FOR_RECORD_VKIMAGE)
-    if (ParallelDebug::IsVkImageDfxEnabled()) {
+    {
         static thread_local int tid = gettid();
         log.AppendFormat("\n------------------\n[%s:%d] dumpAllResource:\n", GetThreadName(), tid);
         std::stringstream allResources;
@@ -570,25 +565,6 @@ void ProcessJemallocString(std::string* sp, const char* str)
             break;
         }
     }
-}
-
-void MemoryManager::DumpMallocStat(std::string& log)
-{
-    log.append("malloc stats :\n");
-
-    malloc_stats_print(
-        [](void* fp, const char* str) {
-            if (!fp) {
-                RS_LOGE("DumpMallocStat fp is nullptr");
-                return;
-            }
-            std::string* sp = static_cast<std::string*>(fp);
-            if (str) {
-                ProcessJemallocString(sp, str);
-                RS_LOGW("[mallocstat]:%{public}s", str);
-            }
-        },
-        &log, nullptr);
 }
 
 void MemoryManager::DumpMemorySnapshot(DfxString& log)

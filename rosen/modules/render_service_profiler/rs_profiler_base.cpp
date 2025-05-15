@@ -1510,4 +1510,20 @@ void RSProfiler::SetTextureRecordType(TextureRecordType type)
     g_textureRecordType = type;
 }
 
+bool RSProfiler::IfNeedToSkipDuringReplay(Parcel& parcel)
+{
+    if (!IsEnabled()) {
+        return false;
+    }
+    if (!IsParcelMock(parcel)) {
+        return false;
+    }
+    if (IsReadEmulationMode() || IsReadMode()) {
+        constexpr size_t skipBytes = 388;
+        parcel.SkipBytes(skipBytes);
+        return true;
+    }
+    return false;
+}
+
 } // namespace OHOS::Rosen

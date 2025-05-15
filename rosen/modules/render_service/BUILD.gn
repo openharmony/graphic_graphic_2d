@@ -27,19 +27,24 @@ config("render_service_link_config") {
     if (graphic_2d_feature_enable_pgo && enable_enhanced_opt) {
       ldflags += [
         "-Wl,--aarch64-inline-plt",
-        "-Wl,-plugin-opt=-split-machine-functions",
-        "-Wl,-mllvm",
-        "-Wl,-fixup-unconditional-branch-unsafely",
-        "-Wl,--no-create-thunks-introduced-by-mfs",
-        "-Wl,-mllvm",
-        "-Wl,-mfs-psi-cutoff=999500",
-        "-Wl,-z",
-        "-Wl,keep-text-section-prefix",
-        "-Wl,--symbol-ordering-file=" +
-            rebase_path("${graphic_2d_feature_pgo_path}/librender_service.txt",
-                        root_build_dir),
-        "-Wl,--no-warn-symbol-ordering",
+        "-Wl,-mllvm,-enable-partial-inlining",
       ]
+      if (graphic_2d_feature_enable_codemerge) {
+        ldflags += [
+          "-Wl,-plugin-opt=-split-machine-functions",
+          "-Wl,-mllvm",
+          "-Wl,-fixup-unconditional-branch-unsafely",
+          "-Wl,--no-create-thunks-introduced-by-mfs",
+          "-Wl,-mllvm",
+          "-Wl,-mfs-psi-cutoff=999500",
+          "-Wl,-z",
+          "-Wl,keep-text-section-prefix",
+          "-Wl,--symbol-ordering-file=" + rebase_path(
+                  "${graphic_2d_feature_pgo_path}/librender_service_base.txt",
+                  root_build_dir),
+          "-Wl,--no-warn-symbol-ordering",
+        ]
+      }
     }
   }
 }
@@ -81,7 +86,9 @@ ohos_shared_library("librender_service") {
       }
       if (graphic_2d_feature_enable_pgo &&
           graphic_2d_feature_product != "default") {
-        defines += [ "CM_FEATURE_ENABLE" ]
+        if (graphic_2d_feature_enable_codemerge) {
+          defines += [ "CM_FEATURE_ENABLE" ]
+        }
         cflags += [
           "-fprofile-use=" + rebase_path(
                   "${graphic_2d_feature_pgo_path}/librender_service.profdata",
@@ -89,6 +96,8 @@ ohos_shared_library("librender_service") {
           "-Wno-error=backend-plugin",
           "-Wno-profile-instr-out-of-date",
           "-Wno-profile-instr-unprofiled",
+          "-mllvm",
+          "-enable-partial-inlining",
         ]
       }
       if (graphic_2d_feature_product == "pc" && target_cpu == "arm64") {
@@ -100,10 +109,12 @@ ohos_shared_library("librender_service") {
   sources = [
     "core/feature/anco_manager/rs_anco_manager.cpp",
     "core/feature/capture/rs_surface_capture_task.cpp",
+    "core/feature/dirty/rs_uni_dirty_compute_util.cpp",
     "core/feature/drm/rs_drm_util.cpp",
     "core/feature/hdr/rs_hdr_util.cpp",
     "core/feature/hwc/rs_uni_hwc_compute_util.cpp",
     "core/feature/hyper_graphic_manager/rs_vblank_idle_corrector.cpp",
+    "core/feature/opinc/rs_opinc_draw_cache.cpp",
     "core/feature/occlusion_culling/rs_occlusion_handler.cpp",
     "core/feature/occlusion_culling/rs_occlusion_node.cpp",
     "core/feature/vrate/rs_vsync_rate_reduce_manager.cpp",
@@ -157,6 +168,7 @@ ohos_shared_library("librender_service") {
     "core/feature_cfg/feature_param/performance_feature/filter_param.cpp",
     "core/feature_cfg/feature_param/performance_feature/hard_cursor_param.cpp",
     "core/feature_cfg/feature_param/performance_feature/hwc_param.cpp",
+    "core/feature_cfg/feature_param/performance_feature/loadoptimization_param.cpp",
     "core/feature_cfg/feature_param/performance_feature/occlusion_culling_param.cpp",
     "core/feature_cfg/feature_param/performance_feature/opinc_param.cpp",
     "core/feature_cfg/feature_param/performance_feature/prevalidate_param.cpp",
@@ -180,6 +192,7 @@ ohos_shared_library("librender_service") {
     "core/feature_cfg/xml_parser/performance_feature_parser/filter_param_parse.cpp",
     "core/feature_cfg/xml_parser/performance_feature_parser/hard_cursor_param_parse.cpp",
     "core/feature_cfg/xml_parser/performance_feature_parser/hwc_param_parse.cpp",
+    "core/feature_cfg/xml_parser/performance_feature_parser/loadoptimization_param_parse.cpp",
     "core/feature_cfg/xml_parser/performance_feature_parser/occlusion_culling_param_parse.cpp",
     "core/feature_cfg/xml_parser/performance_feature_parser/opinc_param_parse.cpp",
     "core/feature_cfg/xml_parser/performance_feature_parser/prevalidate_param_parse.cpp",
@@ -214,10 +227,10 @@ ohos_shared_library("librender_service") {
       "core/drawable/rs_display_render_node_drawable.cpp",
       "core/drawable/rs_effect_render_node_drawable.cpp",
       "core/drawable/rs_render_node_drawable.cpp",
-      "core/drawable/rs_render_node_drawable_autocache.cpp",
       "core/drawable/rs_root_render_node_drawable.cpp",
       "core/drawable/rs_surface_render_node_drawable.cpp",
       "core/feature/capture/rs_surface_capture_task_parallel.cpp",
+      "core/feature/capture/rs_ui_capture_solo_task_parallel.cpp",
       "core/feature/capture/rs_ui_capture_task_parallel.cpp",
       "core/feature/capture/rs_uni_ui_capture.cpp",
       "core/feature/hwc/rs_uni_hwc_prevalidate_util.cpp",

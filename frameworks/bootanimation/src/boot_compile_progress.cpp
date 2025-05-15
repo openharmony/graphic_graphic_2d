@@ -60,22 +60,11 @@ namespace {
         { { 0.5f, 0.2f }, { 0.2f, 1.0f }, { 1.0f, 0.5f } },
         { { 1.0f, 0.5f }, { 0.5f, 0.2f }, { 0.2f, 1.0f } },
     };
-    constexpr const char* BUNDLE_SCAN_PARAM_NAME = "bms.scanning_apps.status";
-    constexpr const int BUNDLE_SCAN_WAITING_TIMEOUT = 3;
 }
 
-void BootCompileProgress::Init(const BootAnimationConfig& config, bool needOtaCompile, bool needBundleScan)
+void BootCompileProgress::Init(const BootAnimationConfig& config)
 {
     LOGI("ota compile, screenId: " BPUBU64 "", config.screenId);
-    needOtaCompile_ = needOtaCompile;
-    needBundleScan_ = needBundleScan;
-    paramNeeded_.clear();
-    if (needOtaCompile_) {
-        paramNeeded_.insert(BMS_COMPILE_STATUS);
-    }
-    if (needBundleScan_) {
-        paramNeeded_.insert(BUNDLE_SCAN_PARAM_NAME);
-    }
     screenId_ = config.screenId;
     rotateDegree_ = config.rotateDegree;
     Rosen::RSInterfaces& interface = Rosen::RSInterfaces::GetInstance();
@@ -136,13 +125,13 @@ bool BootCompileProgress::CreateCanvasNode()
 
 bool BootCompileProgress::RegisterVsyncCallback()
 {
-    if (CheckParams()) {
-        LOGI("all param status are COMPLETED");
+    if (system::GetParameter(BMS_COMPILE_STATUS, "-1") == BMS_COMPILE_STATUS_END) {
+        LOGI("bms compile is already done.");
         compileRunner_->Stop();
         return false;
     }
-    if (!WaitParamsIfNeeded()) {
-        LOGI("no param is ready, progress bar stop");
+
+    if (!WaitBmsStartIfNeeded()) {
         compileRunner_->Stop();
         return false;
     }
@@ -185,70 +174,9 @@ bool BootCompileProgress::RegisterVsyncCallback()
     return true;
 }
 
-bool BootCompileProgress::CheckParams()
-{
-    bool check1 = CheckBmsStartParam();
-    bool check2 = CheckBundleScanParam();
-    if (check1 && check2) {
-        return true;
-    }
-    return false;
-}
-
-bool BootCompileProgress::CheckBundleScanParam()
-{
-    if (!needBundleScan_) {
-        return true;
-    }
-    if (system::GetParameter(BUNDLE_SCAN_PARAM_NAME, "-1") == "1") {
-        paramNeeded_.erase(BUNDLE_SCAN_PARAM_NAME);
-        return true;
-    }
-    return false;
-}
-
-bool BootCompileProgress::CheckBmsStartParam()
-{
-    if (!needOtaCompile_) {
-        return true;
-    }
-    if (system::GetParameter(BMS_COMPILE_STATUS, "-1") == BMS_COMPILE_STATUS_END) {
-        paramNeeded_.erase(BMS_COMPILE_STATUS);
-        return true;
-    }
-    return false;
-}
-
-bool BootCompileProgress::WaitParamsIfNeeded()
-{
-    bool wait1 = WaitBmsStartIfNeeded();
-    bool wait2 = WaitBundleScanIfNeeded();
-    if (!wait1 && !wait2) {
-        return false;
-    }
-    return true;
-}
-
-bool BootCompileProgress::WaitBundleScanIfNeeded()
-{
-    if (!needBundleScan_) {
-        return true;
-    }
-    if (WaitParameter(BUNDLE_SCAN_PARAM_NAME, "0", BUNDLE_SCAN_WAITING_TIMEOUT) != 0) {
-        paramNeeded_.erase(BUNDLE_SCAN_PARAM_NAME);
-        LOGE("waiting bundle scan failed.");
-        return false;
-    }
-    return true;
-}
-
 bool BootCompileProgress::WaitBmsStartIfNeeded()
 {
-    if (!needOtaCompile_) {
-        return true;
-    }
     if (WaitParameter(BMS_COMPILE_STATUS, BMS_COMPILE_STATUS_BEGIN.c_str(), WAITING_BMS_TIMEOUT) != 0) {
-        paramNeeded_.erase(BMS_COMPILE_STATUS);
         LOGE("waiting bms start oat compile failed.");
         return false;
     }
@@ -326,8 +254,8 @@ void BootCompileProgress::DrawCompileProgress()
 
 void BootCompileProgress::UpdateCompileProgress()
 {
-    (void)CheckParams();
-    if (paramNeeded_.size() > 0) {
+    if (!isBmsCompileDone_) {
+        isBmsCompileDone_ = system::GetParameter(BMS_COMPILE_STATUS, "-1") == BMS_COMPILE_STATUS_END;
         int64_t now =
             std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch())
             .count();

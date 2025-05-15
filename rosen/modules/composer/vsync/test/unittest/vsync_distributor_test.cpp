@@ -29,6 +29,7 @@ public:
     static inline sptr<VSyncController> vsyncController = nullptr;
     static inline sptr<VSyncDistributor> vsyncDistributor = nullptr;
     static inline sptr<VSyncGenerator> vsyncGenerator = nullptr;
+    static inline sptr<VSyncConnection> vsyncConnection = nullptr;
 };
 
 void VSyncDistributorTest::SetUpTestCase()
@@ -36,6 +37,7 @@ void VSyncDistributorTest::SetUpTestCase()
     vsyncGenerator = CreateVSyncGenerator();
     vsyncController = new VSyncController(vsyncGenerator, 0);
     vsyncDistributor = new VSyncDistributor(vsyncController, "VSyncConnection");
+    vsyncConnection = new VSyncConnection(vsyncDistributor, "VSyncConnection");
 }
 
 void VSyncDistributorTest::TearDownTestCase()
@@ -44,6 +46,7 @@ void VSyncDistributorTest::TearDownTestCase()
     DestroyVSyncGenerator();
     vsyncController = nullptr;
     vsyncDistributor = nullptr;
+    vsyncConnection = nullptr;
 }
 
 namespace {
@@ -836,10 +839,10 @@ HWTEST_F(VSyncDistributorTest, SetQosVSyncRateByPidPublicTest001, Function | Med
 HWTEST_F(VSyncDistributorTest, TriggerNextConnPostEventTest001, Function | MediumTest| Level3)
 {
     sptr<VSyncConnection> conn = new VSyncConnection(vsyncDistributor, "test");
-    conn->triggerThisTime_ = false;
+    conn->requestVsyncTimestamp_.clear();
     vsyncDistributor->TriggerNext(conn);
     vsyncDistributor->ConnPostEvent(conn, 10000000, 8333333, 1);
-    ASSERT_EQ(conn->triggerThisTime_, true);
+    ASSERT_EQ(conn->requestVsyncTimestamp_.size() != 0, true);
 }
 
 /*
@@ -1085,6 +1088,54 @@ HWTEST_F(VSyncDistributorTest, SetVsyncRateDiscountLTPSTest001, Function | Mediu
     ASSERT_EQ(vsyncDistributor->SetVsyncRateDiscountLTPS(1, name, 1), VSYNC_ERROR_OK);
     ASSERT_EQ(vsyncDistributor->SetVsyncRateDiscountLTPS(1, name, 2), VSYNC_ERROR_OK);
     ASSERT_EQ(vsyncDistributor->RemoveConnection(conn), VSYNC_ERROR_OK);
+}
+
+/*
+ * Function: AddRequestVsyncTimestamp001
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. test AddRequestVsyncTimestamp001
+ */
+HWTEST_F(VSyncDistributorTest, AddRequestVsyncTimestamp001, Function | MediumTest | Level3)
+{
+    vsyncConnection->requestVsyncTimestamp_.clear();
+    int64_t timestamp = 1;
+    vsyncConnection->AddRequestVsyncTimestamp(timestamp);
+    ASSERT_EQ(vsyncConnection->requestVsyncTimestamp_.size(), 1);
+}
+
+/*
+ * Function: RemoveTriggeredVsync001
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. test RemoveTriggeredVsync
+ */
+HWTEST_F(VSyncDistributorTest, RemoveTriggeredVsync001, Function | MediumTest | Level3)
+{
+    vsyncConnection->requestVsyncTimestamp_.clear();
+    vsyncConnection->requestVsyncTimestamp_.insert(100);
+    int64_t currentTime = 1000;
+    vsyncConnection->RemoveTriggeredVsync(currentTime);
+    ASSERT_EQ(vsyncConnection->requestVsyncTimestamp_.size(), 0);
+}
+
+/*
+ * Function: NeedTriggeredVsync001
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. test NeedTriggeredVsync
+ */
+HWTEST_F(VSyncDistributorTest, NeedTriggeredVsync001, Function | MediumTest | Level3)
+{
+    vsyncConnection->requestVsyncTimestamp_.clear();
+    vsyncConnection->requestVsyncTimestamp_.insert(100);
+    int64_t currentTime = 1000;
+    ASSERT_TRUE(vsyncConnection->NeedTriggeredVsync(currentTime));
+    currentTime = 10;
+    ASSERT_TRUE(vsyncConnection->NeedTriggeredVsync(currentTime));
 }
 } // namespace
 } // namespace Rosen

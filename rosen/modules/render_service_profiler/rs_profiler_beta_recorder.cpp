@@ -214,6 +214,7 @@ bool RSProfiler::OpenBetaRecordFile(RSFile& file)
     }
 
     const auto path = "RECORD_IN_MEMORY";
+    Utils::FileDelete(path);
     file.SetVersion(RSFILE_VERSION_LATEST);
     file.Create(path);
 

@@ -348,6 +348,11 @@ std::string RSInterfaces::GetRefreshInfo(pid_t pid)
     return renderServiceClient_->GetRefreshInfo(pid);
 }
 
+std::string RSInterfaces::GetRefreshInfoToSP(NodeId id)
+{
+    return renderServiceClient_->GetRefreshInfoToSP(id);
+}
+
 bool RSInterfaces::TakeSurfaceCaptureForUI(std::shared_ptr<RSNode> node,
     std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY,
     bool isSync, const Drawing::Rect& specifiedAreaRect)
@@ -413,6 +418,32 @@ bool RSInterfaces::TakeSurfaceCaptureForUIWithConfig(std::shared_ptr<RSNode> nod
         return renderServiceClient_->TakeSurfaceCapture(node->GetId(), callback, captureConfig, {}, specifiedAreaRect);
     } else {
         return TakeSurfaceCaptureForUIWithoutUni(node->GetId(), callback, captureConfig.scaleX, captureConfig.scaleY);
+    }
+}
+
+std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>>
+    RSInterfaces::TakeSurfaceCaptureSoloNodeList(std::shared_ptr<RSNode> node)
+{
+    std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>> pixelMapIdPairVector;
+    if (!node) {
+        ROSEN_LOGW("RSInterfaces::TakeSurfaceCaptureSoloNodeList rsnode is nullpter return");
+        return pixelMapIdPairVector;
+    }
+    if (!((node->GetType() == RSUINodeType::ROOT_NODE) ||
+          (node->GetType() == RSUINodeType::CANVAS_NODE) ||
+          (node->GetType() == RSUINodeType::CANVAS_DRAWING_NODE) ||
+          (node->GetType() == RSUINodeType::SURFACE_NODE))) {
+        ROSEN_LOGE("RSInterfaces::TakeSurfaceCaptureSoloNodeList unsupported node type return");
+        return pixelMapIdPairVector;
+    }
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.isSoloNodeUiCapture = true;
+    if (RSSystemProperties::GetUniRenderEnabled()) {
+        pixelMapIdPairVector = renderServiceClient_->TakeSurfaceCaptureSoloNode(node->GetId(), captureConfig);
+        return pixelMapIdPairVector;
+    } else {
+        ROSEN_LOGE("RSInterfaces::TakeSurfaceCaptureSoloNodeList UniRender is not enabled return");
+        return pixelMapIdPairVector;
     }
 }
 
@@ -868,6 +899,11 @@ void RSInterfaces::NotifyAppStrategyConfigChangeEvent(const std::string& pkgName
 void RSInterfaces::NotifyRefreshRateEvent(const EventInfo& eventInfo)
 {
     renderServiceClient_->NotifyRefreshRateEvent(eventInfo);
+}
+
+bool RSInterfaces::NotifySoftVsyncRateDiscountEvent(uint32_t pid, const std::string &name, uint32_t rateDiscount)
+{
+    return renderServiceClient_->NotifySoftVsyncRateDiscountEvent(pid, name, rateDiscount);
 }
 
 void RSInterfaces::NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt)

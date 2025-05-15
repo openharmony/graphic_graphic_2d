@@ -228,8 +228,40 @@ void RSPointerWindowManager::CollectAllHardCursor(
     }
 }
 
+std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> RSPointerWindowManager::GetHardCursorDrawable(NodeId id)
+{
+    auto& renderThreadParams = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+    if (!renderThreadParams) {
+        return nullptr;
+    }
+    auto& hardCursorDrawables = renderThreadParams->GetHardCursorDrawables();
+    if (hardCursorDrawables.empty()) {
+        return nullptr;
+    }
+    auto iter = hardCursorDrawables.find(id);
+    if (iter == hardCursorDrawables.end()) {
+        return nullptr;
+    }
+    auto& hardCursorDrawable = iter->second;
+    if (!hardCursorDrawable) {
+        return nullptr;
+    }
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(hardCursorDrawable->GetRenderParams().get());
+    if (!surfaceParams) {
+        return nullptr;
+    }
+    auto surfaceDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(hardCursorDrawable);
+    if (surfaceDrawable && surfaceParams->GetHardCursorStatus()) {
+        return std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(surfaceDrawable);
+    }
+    return nullptr;
+}
+
 void RSPointerWindowManager::CheckHardCursorValid(const RSSurfaceRenderNode& node)
 {
+    if (!node.GetHardCursorStatus()) {
+        return;
+    }
     // DSS Hardware don't support the synthesis of layers with length and width not larger than 2
     auto srcRect = node.GetSrcRect();
     if (srcRect.GetWidth() <= MIN_LAYER_WIDTH || srcRect.GetHeight() <= MIN_LAYER_WIDTH) {

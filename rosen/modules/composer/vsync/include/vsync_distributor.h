@@ -21,6 +21,7 @@
 
 #include <mutex>
 #include <vector>
+#include <set>
 #include <thread>
 #include <condition_variable>
 
@@ -61,13 +62,17 @@ public:
     ~VSyncConnection();
 
     virtual VsyncError RequestNextVSync() override;
-    virtual VsyncError RequestNextVSync(const std::string &fromWhom, int64_t lastVSyncTS) override;
+    virtual VsyncError RequestNextVSync(
+        const std::string &fromWhom, int64_t lastVSyncTS, const int64_t& requestVsyncTime = 0) override;
     virtual VsyncError GetReceiveFd(int32_t &fd) override;
     virtual VsyncError SetVSyncRate(int32_t rate) override;
     virtual VsyncError Destroy() override;
     virtual VsyncError SetUiDvsyncSwitch(bool vsyncSwitch) override;
     virtual VsyncError SetUiDvsyncConfig(int32_t bufferCount) override;
     virtual VsyncError SetNativeDVSyncSwitch(bool dvsyncSwitch) override;
+    void AddRequestVsyncTimestamp(const int64_t& timestamp);
+    void RemoveTriggeredVsync(const int64_t &currentTime);
+    bool NeedTriggeredVsync(const int64_t& currentTime);
     int32_t PostEvent(int64_t now, int64_t period, int64_t vsyncCount);
     inline void SetGCNotifyTask(GCNotifyTask hook)
     {
@@ -79,7 +84,6 @@ public:
     int32_t highPriorityRate_ = -1;
     bool highPriorityState_ = false;
     ConnectionInfo info_;
-    bool triggerThisTime_ = false; // used for LTPO
     uint64_t id_ = 0;
     uint64_t windowNodeId_ = 0;
     uint32_t vsyncPulseFreq_ = 1;
@@ -105,9 +109,11 @@ private:
     // Circular reference， need check
     wptr<VSyncDistributor> distributor_;
     sptr<LocalSocketPair> socketPair_;
+    std::set<int64_t> requestVsyncTimestamp_;
     bool isDead_;
     std::mutex mutex_;
     std::mutex postEventMutex_;
+    std::recursive_mutex vsyncTimeMutex_;
     bool isFirstRequestVsync_ = true;
     bool isFirstSendVsync_ = true;
 };
@@ -127,7 +133,7 @@ public:
     // fromWhom indicates whether the source is animate or non-animate
     // lastVSyncTS indicates last vsync time, 0 when non-animate
     VsyncError RequestNextVSync(const sptr<VSyncConnection> &connection, const std::string &fromWhom = "unknown",
-                                int64_t lastVSyncTS = 0);
+                                int64_t lastVSyncTS = 0, const int64_t& requestVsyncTime = 0);
     VsyncError SetVSyncRate(int32_t rate, const sptr<VSyncConnection>& connection);
     VsyncError SetHighPriorityVSyncRate(int32_t highPriorityRate, const sptr<VSyncConnection>& connection);
     VsyncError SetQosVSyncRate(uint64_t windowNodeId, int32_t rate, bool isSystemAnimateScene = false);

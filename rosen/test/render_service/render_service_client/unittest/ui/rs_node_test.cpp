@@ -4097,11 +4097,11 @@ HWTEST_F(RSNodeTest, SetUIBackgroundFilter, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetUICompositingFilter
+ * @tc.name: SetUICompositingFilter001
  * @tc.desc: test results of SetUICompositingFilter
  * @tc.type: FUNC
  */
-HWTEST_F(RSNodeTest, SetUICompositingFilter, TestSize.Level1)
+HWTEST_F(RSNodeTest, SetUICompositingFilter001, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
     Filter* filterObj = new(std::nothrow) Filter();
@@ -4115,6 +4115,105 @@ HWTEST_F(RSNodeTest, SetUICompositingFilter, TestSize.Level1)
         delete filterObj;
         filterObj = nullptr;
     }
+}
+
+/**
+ * @tc.name: SetUICompositingFilter002
+ * @tc.desc: test results of SetUICompositingFilter
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest, SetUICompositingFilter002, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    auto filterObj = std::make_unique<Filter>();
+    std::shared_ptr<PixelStretchPara> para = std::make_shared<PixelStretchPara>();
+    
+    Vector4f tmpPercent{ 0.0f, 0.25f, 0.75f, 1.0f };
+    para->SetStretchPercent(tmpPercent);
+    auto tileMode = Drawing::TileMode::CLAMP;
+    para->SetTileMode(tileMode);
+
+    filterObj->AddPara(para);
+    rsNode->SetUICompositingFilter(filterObj.get());
+    auto iter = rsNode->propertyModifiers_.find(RSModifierType::PIXEL_STRETCH_PERCENT);
+    auto property1 = std::static_pointer_cast<RSAnimatableProperty<Vector4f>>(iter->second->GetProperty());
+    EXPECT_EQ(property1->Get(), tmpPercent);
+    iter = rsNode->propertyModifiers_.find(RSModifierType::PIXEL_STRETCH_TILE_MODE);
+    auto property2 = std::static_pointer_cast<RSProperty<int>>(iter->second->GetProperty());
+    EXPECT_EQ(property2->Get(), static_cast<int>(tileMode));
+}
+
+/**
+ * @tc.name: SetUICompositingFilter003
+ * @tc.desc: test results of SetUICompositingFilter
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest, SetUICompositingFilter003, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    auto filterObj = std::make_unique<Filter>();
+    auto radiusGradientBlurPara = std::make_shared<RadiusGradientBlurPara>();
+    std::vector<std::pair<float, float>> fractionStops = {
+        {0.0f, 0.0f},
+        {0.5f, 0.5f},
+        {1.0f, 1.0f}
+    };
+    GradientDirection direction = GradientDirection::LEFT;
+
+    radiusGradientBlurPara->SetBlurRadius(floatData[1]);
+    radiusGradientBlurPara->SetFractionStops(fractionStops);
+    radiusGradientBlurPara->SetDirection(direction);
+
+    filterObj->AddPara(radiusGradientBlurPara);
+    rsNode->SetUICompositingFilter(filterObj.get());
+    auto iter = rsNode->propertyModifiers_.find(RSModifierType::LINEAR_GRADIENT_BLUR_PARA);
+    auto property = std::static_pointer_cast<RSProperty<std::shared_ptr<RSLinearGradientBlurPara>>>
+                        (iter->second->GetProperty());
+    auto linearGradientBlurPara = property->Get();
+
+    EXPECT_TRUE(linearGradientBlurPara->isRadiusGradient_);
+    EXPECT_EQ(linearGradientBlurPara->blurRadius_, floatData[1]);
+    EXPECT_EQ(linearGradientBlurPara->fractionStops_, fractionStops);
+    EXPECT_EQ(linearGradientBlurPara->direction_, direction);
+}
+
+/**
+ * @tc.name: SetUICompositingFilter004
+ * @tc.desc: test results of SetUICompositingFilter
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest, SetUICompositingFilter004, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    auto filterObj = std::make_unique<Filter>();
+
+    auto filterBlurPara = std::make_shared<FilterBlurPara>();
+    filterBlurPara->SetRadius(floatData[1]);
+    filterObj->AddPara(filterBlurPara);
+
+    auto pixelStretchPara = std::make_shared<PixelStretchPara>();
+    Vector4f tmpPercent{ 0.0f, 0.25f, 0.75f, 1.0f };
+    pixelStretchPara->SetStretchPercent(tmpPercent);
+    auto tileMode = Drawing::TileMode::CLAMP;
+    pixelStretchPara->SetTileMode(tileMode);
+    filterObj->AddPara(pixelStretchPara);
+
+    auto radiusGradientBlurPara = std::make_shared<RadiusGradientBlurPara>();
+    std::vector<std::pair<float, float>> fractionStops = {
+        {0.0f, 0.0f},
+        {0.5f, 0.5f},
+        {1.0f, 1.0f}
+    };
+    GradientDirection direction = GradientDirection::LEFT;
+
+    radiusGradientBlurPara->SetBlurRadius(floatData[1]);
+    radiusGradientBlurPara->SetFractionStops(fractionStops);
+    radiusGradientBlurPara->SetDirection(direction);
+
+    filterObj->AddPara(radiusGradientBlurPara);
+    rsNode->SetUICompositingFilter(filterObj.get());
+
+    EXPECT_NE(rsNode->propertyModifiers_.size(), 3);
 }
 
 /**
@@ -7965,5 +8064,36 @@ HWTEST_F(RSNodeTest, SetUIFirstSwitch, TestSize.Level1)
 
     rsNode->SetUIFirstSwitch(RSUIFirstSwitch::MODAL_WINDOW_CLOSE);
     EXPECT_EQ(rsNode->uiFirstSwitch_, RSUIFirstSwitch::MODAL_WINDOW_CLOSE);
+}
+
+/**
+ * @tc.name: GetIsDrawn
+ * @tc.desc: test results of GetIsDrawn
+ * @tc.type: FUNC
+ * @tc.require: issueIC3V9Q
+ */
+HWTEST_F(RSNodeTest, GetIsDrawn, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
+    auto res = rsNode->GetIsDrawn();
+    ASSERT_EQ(res, false);
+}
+
+/**
+ * @tc.name: SetAlwaysSnapshot
+ * @tc.desc: test results of SetAlwaysSnapshot
+ * @tc.type: FUNC
+ * @tc.require: issueIC5TKO
+ */
+HWTEST_F(RSNodeTest, SetAlwaysSnapshot, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
+    // Default value is false.
+    EXPECT_EQ(rsNode->GetStagingProperties().GetAlwaysSnapshot(), false);
+
+    rsNode->SetAlwaysSnapshot(true);
+    EXPECT_EQ(rsNode->GetStagingProperties().GetAlwaysSnapshot(), true);
 }
 } // namespace OHOS::Rosen

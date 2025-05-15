@@ -1125,5 +1125,124 @@ HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest027, TestSize.Le
     typography->Relayout(maxWidth, typographyStyle, relayoutTextStyles);
     EXPECT_TRUE(skia::textlayout::nearlyEqual(typography->GetHeight(), 37558));
 }
+
+/*
+ * @tc.name: OHDrawingTypographyRelayoutTest028
+ * @tc.desc: Test for multiple textStyle when changing for font color
+ * @tc.type: FUNC
+ */
+HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest028, TestSize.Level1)
+{
+    double maxWidth = LAYOUT_WIDTH;
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    OHOS::Rosen::TextStyle textStyle;
+    textStyle.textStyleUid = UNIQUEID;
+    textStyle.color = Drawing::Color::ColorQuadSetARGB(255, 200, 0, 0);
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    typographyCreate->PushStyle(textStyle);
+    std::u16string text = u"你好世界";
+    typographyCreate->AppendText(text);
+    OHOS::Rosen::TextStyle textStyleExtra;
+    textStyleExtra.fontSize = 50;
+    textStyleExtra.textStyleUid = UNIQUEID + 1;
+    textStyleExtra.color = Drawing::Color::ColorQuadSetARGB(255, 255, 0, 0);
+    typographyCreate->PushStyle(textStyleExtra);
+    typographyCreate->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
+    typography->Layout(maxWidth);
+
+    textStyleExtra.color = Drawing::Color::ColorQuadSetARGB(255, 255, 255, 0);
+    std::bitset<static_cast<size_t>(RelayoutTextStyleAttribute::TEXT_STYLE_ATTRIBUTE_BUTT)> styleBitset;
+    textStyle.relayoutChangeBitmap = styleBitset;
+    styleBitset.set(static_cast<size_t>(RelayoutTextStyleAttribute::FONT_COLOR));
+    textStyleExtra.relayoutChangeBitmap = styleBitset;
+    std::vector<OHOS::Rosen::TextStyle> relayoutTextStyles;
+    relayoutTextStyles.push_back(textStyle);
+    relayoutTextStyles.push_back(textStyleExtra);
+    typography->Relayout(maxWidth, typographyStyle, relayoutTextStyles);
+    auto paragraphImpl = reinterpret_cast<OHOS::Rosen::SPText::ParagraphImpl*>(typography->GetParagraph());
+    auto skiaTextStyles = paragraphImpl->paragraph_->exportTextStyles();
+    EXPECT_EQ(skiaTextStyles[0].fStyle.getColor(), Drawing::Color::ColorQuadSetARGB(255, 200, 0, 0));
+    EXPECT_EQ(skiaTextStyles[1].fStyle.getColor(), Drawing::Color::ColorQuadSetARGB(255, 255, 255, 0));
+}
+
+/*
+ * @tc.name: OHDrawingTypographyRelayoutTest029
+ * @tc.desc: Test for paragraph's paints when changing for font color
+ * @tc.type: FUNC
+ */
+HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest029, TestSize.Level1)
+{
+    double maxWidth = LAYOUT_WIDTH;
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    OHOS::Rosen::TextStyle textStyle;
+    textStyle.color = Drawing::Color::ColorQuadSetARGB(255, 200, 0, 0);
+    textStyle.textStyleUid = UNIQUEID;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    typographyCreate->PushStyle(textStyle);
+    std::u16string text = u"中文你好世界";
+    typographyCreate->AppendText(text);
+    OHOS::Rosen::TextStyle textStyleExtra;
+    textStyleExtra.fontSize = 50;
+    textStyleExtra.textStyleUid = UNIQUEID + 1;
+    textStyleExtra.color = Drawing::Color::ColorQuadSetARGB(255, 255, 0, 0);
+    typographyCreate->PushStyle(textStyleExtra);
+    typographyCreate->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
+    typography->Layout(maxWidth);
+
+    textStyleExtra.color = Drawing::Color::ColorQuadSetARGB(255, 255, 255, 0);
+    std::bitset<static_cast<size_t>(RelayoutTextStyleAttribute::TEXT_STYLE_ATTRIBUTE_BUTT)> styleBitset;
+    textStyle.relayoutChangeBitmap = styleBitset;
+    styleBitset.set(static_cast<size_t>(RelayoutTextStyleAttribute::FONT_COLOR));
+    textStyleExtra.relayoutChangeBitmap = styleBitset;
+    std::vector<OHOS::Rosen::TextStyle> relayoutTextStyles;
+    relayoutTextStyles.push_back(textStyle);
+    relayoutTextStyles.push_back(textStyleExtra);
+    typography->Relayout(maxWidth, typographyStyle, relayoutTextStyles);
+    auto paragraphImpl = reinterpret_cast<OHOS::Rosen::SPText::ParagraphImpl*>(typography->GetParagraph());
+    auto paints = paragraphImpl->paints_;
+    EXPECT_EQ(paints[1].color, Drawing::Color::ColorQuadSetARGB(255, 200, 0, 0));
+    EXPECT_EQ(paints[2].color, Drawing::Color::ColorQuadSetARGB(255, 255, 255, 0));
+}
+
+/*
+ * @tc.name: OHDrawingTypographyRelayoutTest030
+ * @tc.desc: Test for paragraph's paints when changing for relayout width mutil
+ * @tc.type: FUNC
+ */
+HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest030, TestSize.Level1)
+{
+    double maxWidth = LAYOUT_WIDTH;
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    typographyStyle.textAlign = TextAlign::RIGHT;
+    OHOS::Rosen::TextStyle textStyle;
+    textStyle.textStyleUid = UNIQUEID;
+    textStyle.fontSize = 50;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    textStyle.color = Drawing::Color::ColorQuadSetARGB(255, 200, 0, 0);
+    typographyCreate->PushStyle(textStyle);
+    std::u16string text = u"中文你好世界";
+    typographyCreate->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
+    typography->Layout(maxWidth);
+
+    std::bitset<static_cast<size_t>(RelayoutTextStyleAttribute::TEXT_STYLE_ATTRIBUTE_BUTT)> styleBitset;
+    textStyle.relayoutChangeBitmap = styleBitset;
+    std::vector<OHOS::Rosen::TextStyle> relayoutTextStyles;
+    relayoutTextStyles.push_back(textStyle);
+    typography->Relayout(maxWidth, typographyStyle, relayoutTextStyles);
+    typography->Relayout(maxWidth / 2, typographyStyle, relayoutTextStyles);
+    EXPECT_TRUE(skia::textlayout::nearlyEqual(typography->GetMaxWidth(), maxWidth / 2));
+}
 } // namespace Rosen
 } // namespace OHOS

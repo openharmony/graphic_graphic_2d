@@ -367,6 +367,7 @@ HWTEST_F(MotionBlurFilterTest, OutputOriginalImage001, TestSize.Level1)
     EXPECT_TRUE(para != nullptr);
 
     image = std::make_shared<Drawing::Image>();
+    ASSERT_NE(image, nullptr);
     Drawing::ImageInfo imageInfo(1, 1, Drawing::ColorType::COLORTYPE_ALPHA_8, Drawing::AlphaType::ALPHATYPE_OPAQUE);
     auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
     int addr1 = 1;
@@ -380,6 +381,1059 @@ HWTEST_F(MotionBlurFilterTest, OutputOriginalImage001, TestSize.Level1)
     motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
     EXPECT_TRUE(image->GetWidth() != 0);
     EXPECT_TRUE(image->GetHeight() != 0);
+}
+
+/**
+ * @tc.name: OutputOriginalImageCOLORTYPE_UNKNOWN
+ * @tc.desc: test results of OutputOriginalImage
+ * @tc.type: FUNC
+ * @tc.require: issuesI9PH4G
+ */
+HWTEST_F(MotionBlurFilterTest, OutputOriginalImageCOLORTYPE_UNKNOWN, TestSize.Level1)
+{
+    Vector2f s = { 1.f, 1.f };
+    Drawing::Canvas canvas;
+    auto image = std::make_shared<Drawing::Image>();
+    Drawing::Rect src;
+    Drawing::Rect dst;
+    auto para = std::make_shared<MotionBlurParam>(1.f, s);
+    RSMotionBlurFilter motionBlurFilter(para);
+    motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
+    EXPECT_TRUE(para != nullptr);
+
+    image = std::make_shared<Drawing::Image>();
+    ASSERT_NE(image, nullptr);
+    Drawing::ImageInfo imageInfo(1, 1, Drawing::ColorType::COLORTYPE_UNKNOWN, Drawing::AlphaType::ALPHATYPE_OPAQUE);
+    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    int addr1 = 1;
+    int* addr = &addr1;
+    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
+    Drawing::ReleaseContext releaseContext = nullptr;
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+    auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
+    image->imageImplPtr = skiaImage;
+    motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth() != 0);
+    EXPECT_FALSE(image->GetHeight() != 0);
+}
+
+/**
+ * @tc.name: OutputOriginalImageCOLORTYPE_RGB_565
+ * @tc.desc: test results of OutputOriginalImage
+ * @tc.type: FUNC
+ * @tc.require: issuesI9PH4G
+ */
+HWTEST_F(MotionBlurFilterTest, OutputOriginalImageCOLORTYPE_RGB_565, TestSize.Level1)
+{
+    Vector2f s = { 1.f, 1.f };
+    Drawing::Canvas canvas;
+    auto image = std::make_shared<Drawing::Image>();
+    Drawing::Rect src;
+    Drawing::Rect dst;
+    auto para = std::make_shared<MotionBlurParam>(1.f, s);
+    RSMotionBlurFilter motionBlurFilter(para);
+    motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
+    EXPECT_TRUE(para != nullptr);
+
+    image = std::make_shared<Drawing::Image>();
+    ASSERT_NE(image, nullptr);
+    Drawing::ImageInfo imageInfo(1, 1, Drawing::ColorType::COLORTYPE_RGB_565, Drawing::AlphaType::ALPHATYPE_OPAQUE);
+    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    int addr1 = 1;
+    int* addr = &addr1;
+    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
+    Drawing::ReleaseContext releaseContext = nullptr;
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+    auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
+    image->imageImplPtr = skiaImage;
+    motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth() != 0);
+    EXPECT_FALSE(image->GetHeight() != 0);
+}
+
+/**
+ * @tc.name: OutputOriginalImageCOLORTYPE_ARGB_4444
+ * @tc.desc: test results of OutputOriginalImage
+ * @tc.type: FUNC
+ * @tc.require: issuesI9PH4G
+ */
+HWTEST_F(MotionBlurFilterTest, OutputOriginalImageCOLORTYPE_ARGB_4444, TestSize.Level1)
+{
+    Vector2f s = { 1.f, 1.f };
+    Drawing::Canvas canvas;
+    auto image = std::make_shared<Drawing::Image>();
+    Drawing::Rect src;
+    Drawing::Rect dst;
+    auto para = std::make_shared<MotionBlurParam>(1.f, s);
+    RSMotionBlurFilter motionBlurFilter(para);
+    motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
+    EXPECT_TRUE(para != nullptr);
+
+    image = std::make_shared<Drawing::Image>();
+    ASSERT_NE(image, nullptr);
+    Drawing::ImageInfo imageInfo(1, 1, Drawing::ColorType::COLORTYPE_ARGB_4444, Drawing::AlphaType::ALPHATYPE_OPAQUE);
+    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    int addr1 = 1;
+    int* addr = &addr1;
+    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
+    Drawing::ReleaseContext releaseContext = nullptr;
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+    auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
+    image->imageImplPtr = skiaImage;
+    motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth() != 0);
+    EXPECT_FALSE(image->GetHeight() != 0);
+}
+
+/**
+ * @tc.name: OutputOriginalImageCOLORTYPE_RGBA_8888
+ * @tc.desc: test results of OutputOriginalImage
+ * @tc.type: FUNC
+ * @tc.require: issuesI9PH4G
+ */
+HWTEST_F(MotionBlurFilterTest, OutputOriginalImageCOLORTYPE_RGBA_8888, TestSize.Level1)
+{
+    Vector2f s = { 1.f, 1.f };
+    Drawing::Canvas canvas;
+    auto image = std::make_shared<Drawing::Image>();
+    Drawing::Rect src;
+    Drawing::Rect dst;
+    auto para = std::make_shared<MotionBlurParam>(1.f, s);
+    RSMotionBlurFilter motionBlurFilter(para);
+    motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
+    EXPECT_TRUE(para != nullptr);
+
+    image = std::make_shared<Drawing::Image>();
+    ASSERT_NE(image, nullptr);
+    Drawing::ImageInfo imageInfo(1, 1, Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_OPAQUE);
+    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    int addr1 = 1;
+    int* addr = &addr1;
+    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
+    Drawing::ReleaseContext releaseContext = nullptr;
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+    auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
+    image->imageImplPtr = skiaImage;
+    motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth() != 0);
+    EXPECT_FALSE(image->GetHeight() != 0);
+}
+
+/**
+ * @tc.name: OutputOriginalImageCOLORTYPE_BGRA_8888
+ * @tc.desc: test results of OutputOriginalImage
+ * @tc.type: FUNC
+ * @tc.require: issuesI9PH4G
+ */
+HWTEST_F(MotionBlurFilterTest, OutputOriginalImageCOLORTYPE_BGRA_8888, TestSize.Level1)
+{
+    Vector2f s = { 1.f, 1.f };
+    Drawing::Canvas canvas;
+    auto image = std::make_shared<Drawing::Image>();
+    Drawing::Rect src;
+    Drawing::Rect dst;
+    auto para = std::make_shared<MotionBlurParam>(1.f, s);
+    RSMotionBlurFilter motionBlurFilter(para);
+    motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
+    EXPECT_TRUE(para != nullptr);
+
+    image = std::make_shared<Drawing::Image>();
+    ASSERT_NE(image, nullptr);
+    Drawing::ImageInfo imageInfo(1, 1, Drawing::ColorType::COLORTYPE_BGRA_8888, Drawing::AlphaType::ALPHATYPE_OPAQUE);
+    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    int addr1 = 1;
+    int* addr = &addr1;
+    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
+    Drawing::ReleaseContext releaseContext = nullptr;
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+    auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
+    image->imageImplPtr = skiaImage;
+    motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth() != 0);
+    EXPECT_FALSE(image->GetHeight() != 0);
+}
+
+/**
+ * @tc.name: OutputOriginalImageCOLORTYPE_RGBA_F16
+ * @tc.desc: test results of OutputOriginalImage
+ * @tc.type: FUNC
+ * @tc.require: issuesI9PH4G
+ */
+HWTEST_F(MotionBlurFilterTest, OutputOriginalImageCOLORTYPE_RGBA_F16, TestSize.Level1)
+{
+    Vector2f s = { 1.f, 1.f };
+    Drawing::Canvas canvas;
+    auto image = std::make_shared<Drawing::Image>();
+    Drawing::Rect src;
+    Drawing::Rect dst;
+    auto para = std::make_shared<MotionBlurParam>(1.f, s);
+    RSMotionBlurFilter motionBlurFilter(para);
+    motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
+    EXPECT_TRUE(para != nullptr);
+
+    image = std::make_shared<Drawing::Image>();
+    ASSERT_NE(image, nullptr);
+    Drawing::ImageInfo imageInfo(1, 1, Drawing::ColorType::COLORTYPE_RGBA_F16, Drawing::AlphaType::ALPHATYPE_OPAQUE);
+    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    int addr1 = 1;
+    int* addr = &addr1;
+    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
+    Drawing::ReleaseContext releaseContext = nullptr;
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+    auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
+    image->imageImplPtr = skiaImage;
+    motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth() != 0);
+    EXPECT_FALSE(image->GetHeight() != 0);
+}
+
+/**
+ * @tc.name: OutputOriginalImageCOLORTYPE_N32
+ * @tc.desc: test results of OutputOriginalImage
+ * @tc.type: FUNC
+ * @tc.require: issuesI9PH4G
+ */
+HWTEST_F(MotionBlurFilterTest, OutputOriginalImageCOLORTYPE_N32, TestSize.Level1)
+{
+    Vector2f s = { 1.f, 1.f };
+    Drawing::Canvas canvas;
+    auto image = std::make_shared<Drawing::Image>();
+    Drawing::Rect src;
+    Drawing::Rect dst;
+    auto para = std::make_shared<MotionBlurParam>(1.f, s);
+    RSMotionBlurFilter motionBlurFilter(para);
+    motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
+    EXPECT_TRUE(para != nullptr);
+
+    image = std::make_shared<Drawing::Image>();
+    ASSERT_NE(image, nullptr);
+    Drawing::ImageInfo imageInfo(1, 1, Drawing::ColorType::COLORTYPE_N32, Drawing::AlphaType::ALPHATYPE_OPAQUE);
+    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    int addr1 = 1;
+    int* addr = &addr1;
+    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
+    Drawing::ReleaseContext releaseContext = nullptr;
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+    auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
+    image->imageImplPtr = skiaImage;
+    motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth() != 0);
+    EXPECT_FALSE(image->GetHeight() != 0);
+}
+
+/**
+ * @tc.name: OutputOriginalImageCOLORTYPE_RGBA_1010102
+ * @tc.desc: test results of OutputOriginalImage
+ * @tc.type: FUNC
+ * @tc.require: issuesI9PH4G
+ */
+HWTEST_F(MotionBlurFilterTest, OutputOriginalImageCOLORTYPE_RGBA_1010102, TestSize.Level1)
+{
+    Vector2f s = { 1.f, 1.f };
+    Drawing::Canvas canvas;
+    auto image = std::make_shared<Drawing::Image>();
+    Drawing::Rect src;
+    Drawing::Rect dst;
+    auto para = std::make_shared<MotionBlurParam>(1.f, s);
+    RSMotionBlurFilter motionBlurFilter(para);
+    motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
+    EXPECT_TRUE(para != nullptr);
+
+    image = std::make_shared<Drawing::Image>();
+    ASSERT_NE(image, nullptr);
+    Drawing::ImageInfo imageInfo(
+        1, 1, Drawing::ColorType::COLORTYPE_RGBA_1010102, Drawing::AlphaType::ALPHATYPE_OPAQUE);
+    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    int addr1 = 1;
+    int* addr = &addr1;
+    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
+    Drawing::ReleaseContext releaseContext = nullptr;
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+    auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
+    image->imageImplPtr = skiaImage;
+    motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth() != 0);
+    EXPECT_FALSE(image->GetHeight() != 0);
+}
+
+/**
+ * @tc.name: OutputOriginalImageCOLORTYPE_GRAY_8
+ * @tc.desc: test results of OutputOriginalImage
+ * @tc.type: FUNC
+ * @tc.require: issuesI9PH4G
+ */
+HWTEST_F(MotionBlurFilterTest, OutputOriginalImageCOLORTYPE_GRAY_8, TestSize.Level1)
+{
+    Vector2f s = { 1.f, 1.f };
+    Drawing::Canvas canvas;
+    auto image = std::make_shared<Drawing::Image>();
+    Drawing::Rect src;
+    Drawing::Rect dst;
+    auto para = std::make_shared<MotionBlurParam>(1.f, s);
+    RSMotionBlurFilter motionBlurFilter(para);
+    motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
+    EXPECT_TRUE(para != nullptr);
+
+    image = std::make_shared<Drawing::Image>();
+    ASSERT_NE(image, nullptr);
+    Drawing::ImageInfo imageInfo(1, 1, Drawing::ColorType::COLORTYPE_GRAY_8, Drawing::AlphaType::ALPHATYPE_OPAQUE);
+    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    int addr1 = 1;
+    int* addr = &addr1;
+    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
+    Drawing::ReleaseContext releaseContext = nullptr;
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+    auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
+    image->imageImplPtr = skiaImage;
+    motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
+    EXPECT_TRUE(image->GetWidth() != 0);
+    EXPECT_TRUE(image->GetHeight() != 0);
+}
+
+/**
+ * @tc.name: OutputOriginalImageCOLORTYPE_RGB_888X
+ * @tc.desc: test results of OutputOriginalImage
+ * @tc.type: FUNC
+ * @tc.require: issuesI9PH4G
+ */
+HWTEST_F(MotionBlurFilterTest, OutputOriginalImageCOLORTYPE_RGB_888X, TestSize.Level1)
+{
+    Vector2f s = { 1.f, 1.f };
+    Drawing::Canvas canvas;
+    auto image = std::make_shared<Drawing::Image>();
+    Drawing::Rect src;
+    Drawing::Rect dst;
+    auto para = std::make_shared<MotionBlurParam>(1.f, s);
+    RSMotionBlurFilter motionBlurFilter(para);
+    motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
+    EXPECT_TRUE(para != nullptr);
+
+    image = std::make_shared<Drawing::Image>();
+    ASSERT_NE(image, nullptr);
+    Drawing::ImageInfo imageInfo(1, 1, Drawing::ColorType::COLORTYPE_RGB_888X, Drawing::AlphaType::ALPHATYPE_OPAQUE);
+    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    int addr1 = 1;
+    int* addr = &addr1;
+    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
+    Drawing::ReleaseContext releaseContext = nullptr;
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+    auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
+    image->imageImplPtr = skiaImage;
+    motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth() != 0);
+    EXPECT_FALSE(image->GetHeight() != 0);
+}
+
+/**
+ * @tc.name: OutputOriginalImageCOLORTYPE_UNKNOWNALPHATYPE_PREMUL
+ * @tc.desc: test results of OutputOriginalImage
+ * @tc.type: FUNC
+ * @tc.require: issuesI9PH4G
+ */
+HWTEST_F(MotionBlurFilterTest, OutputOriginalImageCOLORTYPE_UNKNOWNALPHATYPE_PREMUL, TestSize.Level1)
+{
+    Vector2f s = { 1.f, 1.f };
+    Drawing::Canvas canvas;
+    auto image = std::make_shared<Drawing::Image>();
+    Drawing::Rect src;
+    Drawing::Rect dst;
+    auto para = std::make_shared<MotionBlurParam>(1.f, s);
+    RSMotionBlurFilter motionBlurFilter(para);
+    motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
+    EXPECT_TRUE(para != nullptr);
+
+    image = std::make_shared<Drawing::Image>();
+    ASSERT_NE(image, nullptr);
+    Drawing::ImageInfo imageInfo(1, 1, Drawing::ColorType::COLORTYPE_UNKNOWN, Drawing::AlphaType::ALPHATYPE_PREMUL);
+    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    int addr1 = 1;
+    int* addr = &addr1;
+    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
+    Drawing::ReleaseContext releaseContext = nullptr;
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+    auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
+    image->imageImplPtr = skiaImage;
+    motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth() != 0);
+    EXPECT_FALSE(image->GetHeight() != 0);
+}
+
+/**
+ * @tc.name: OutputOriginalImageCOLORTYPE_RGB_565ALPHATYPE_PREMUL
+ * @tc.desc: test results of OutputOriginalImage
+ * @tc.type: FUNC
+ * @tc.require: issuesI9PH4G
+ */
+HWTEST_F(MotionBlurFilterTest, OutputOriginalImageCOLORTYPE_RGB_565ALPHATYPE_PREMUL, TestSize.Level1)
+{
+    Vector2f s = { 1.f, 1.f };
+    Drawing::Canvas canvas;
+    auto image = std::make_shared<Drawing::Image>();
+    Drawing::Rect src;
+    Drawing::Rect dst;
+    auto para = std::make_shared<MotionBlurParam>(1.f, s);
+    RSMotionBlurFilter motionBlurFilter(para);
+    motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
+    EXPECT_TRUE(para != nullptr);
+
+    image = std::make_shared<Drawing::Image>();
+    ASSERT_NE(image, nullptr);
+    Drawing::ImageInfo imageInfo(1, 1, Drawing::ColorType::COLORTYPE_RGB_565, Drawing::AlphaType::ALPHATYPE_PREMUL);
+    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    int addr1 = 1;
+    int* addr = &addr1;
+    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
+    Drawing::ReleaseContext releaseContext = nullptr;
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+    auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
+    image->imageImplPtr = skiaImage;
+    motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth() != 0);
+    EXPECT_FALSE(image->GetHeight() != 0);
+}
+
+/**
+ * @tc.name: OutputOriginalImageCOLORTYPE_ARGB_4444ALPHATYPE_PREMUL
+ * @tc.desc: test results of OutputOriginalImage
+ * @tc.type: FUNC
+ * @tc.require: issuesI9PH4G
+ */
+HWTEST_F(MotionBlurFilterTest, OutputOriginalImageCOLORTYPE_ARGB_4444ALPHATYPE_PREMUL, TestSize.Level1)
+{
+    Vector2f s = { 1.f, 1.f };
+    Drawing::Canvas canvas;
+    auto image = std::make_shared<Drawing::Image>();
+    Drawing::Rect src;
+    Drawing::Rect dst;
+    auto para = std::make_shared<MotionBlurParam>(1.f, s);
+    RSMotionBlurFilter motionBlurFilter(para);
+    motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
+    EXPECT_TRUE(para != nullptr);
+
+    image = std::make_shared<Drawing::Image>();
+    ASSERT_NE(image, nullptr);
+    Drawing::ImageInfo imageInfo(1, 1, Drawing::ColorType::COLORTYPE_ARGB_4444, Drawing::AlphaType::ALPHATYPE_PREMUL);
+    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    int addr1 = 1;
+    int* addr = &addr1;
+    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
+    Drawing::ReleaseContext releaseContext = nullptr;
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+    auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
+    image->imageImplPtr = skiaImage;
+    motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth() != 0);
+    EXPECT_FALSE(image->GetHeight() != 0);
+}
+
+/**
+ * @tc.name: OutputOriginalImageCOLORTYPE_RGBA_8888ALPHATYPE_PREMUL
+ * @tc.desc: test results of OutputOriginalImage
+ * @tc.type: FUNC
+ * @tc.require: issuesI9PH4G
+ */
+HWTEST_F(MotionBlurFilterTest, OutputOriginalImageCOLORTYPE_RGBA_8888ALPHATYPE_PREMUL, TestSize.Level1)
+{
+    Vector2f s = { 1.f, 1.f };
+    Drawing::Canvas canvas;
+    auto image = std::make_shared<Drawing::Image>();
+    Drawing::Rect src;
+    Drawing::Rect dst;
+    auto para = std::make_shared<MotionBlurParam>(1.f, s);
+    RSMotionBlurFilter motionBlurFilter(para);
+    motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
+    EXPECT_TRUE(para != nullptr);
+
+    image = std::make_shared<Drawing::Image>();
+    ASSERT_NE(image, nullptr);
+    Drawing::ImageInfo imageInfo(1, 1, Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_PREMUL);
+    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    int addr1 = 1;
+    int* addr = &addr1;
+    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
+    Drawing::ReleaseContext releaseContext = nullptr;
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+    auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
+    image->imageImplPtr = skiaImage;
+    motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth() != 0);
+    EXPECT_FALSE(image->GetHeight() != 0);
+}
+
+/**
+ * @tc.name: OutputOriginalImageCOLORTYPE_BGRA_8888ALPHATYPE_PREMUL
+ * @tc.desc: test results of OutputOriginalImage
+ * @tc.type: FUNC
+ * @tc.require: issuesI9PH4G
+ */
+HWTEST_F(MotionBlurFilterTest, OutputOriginalImageCOLORTYPE_BGRA_8888ALPHATYPE_PREMUL, TestSize.Level1)
+{
+    Vector2f s = { 1.f, 1.f };
+    Drawing::Canvas canvas;
+    auto image = std::make_shared<Drawing::Image>();
+    Drawing::Rect src;
+    Drawing::Rect dst;
+    auto para = std::make_shared<MotionBlurParam>(1.f, s);
+    RSMotionBlurFilter motionBlurFilter(para);
+    motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
+    EXPECT_TRUE(para != nullptr);
+
+    image = std::make_shared<Drawing::Image>();
+    ASSERT_NE(image, nullptr);
+    Drawing::ImageInfo imageInfo(1, 1, Drawing::ColorType::COLORTYPE_BGRA_8888, Drawing::AlphaType::ALPHATYPE_PREMUL);
+    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    int addr1 = 1;
+    int* addr = &addr1;
+    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
+    Drawing::ReleaseContext releaseContext = nullptr;
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+    auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
+    image->imageImplPtr = skiaImage;
+    motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth() != 0);
+    EXPECT_FALSE(image->GetHeight() != 0);
+}
+
+/**
+ * @tc.name: OutputOriginalImageCOLORTYPE_RGBA_F16ALPHATYPE_PREMUL
+ * @tc.desc: test results of OutputOriginalImage
+ * @tc.type: FUNC
+ * @tc.require: issuesI9PH4G
+ */
+HWTEST_F(MotionBlurFilterTest, OutputOriginalImageCOLORTYPE_RGBA_F16ALPHATYPE_PREMUL, TestSize.Level1)
+{
+    Vector2f s = { 1.f, 1.f };
+    Drawing::Canvas canvas;
+    auto image = std::make_shared<Drawing::Image>();
+    Drawing::Rect src;
+    Drawing::Rect dst;
+    auto para = std::make_shared<MotionBlurParam>(1.f, s);
+    RSMotionBlurFilter motionBlurFilter(para);
+    motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
+    EXPECT_TRUE(para != nullptr);
+
+    image = std::make_shared<Drawing::Image>();
+    ASSERT_NE(image, nullptr);
+    Drawing::ImageInfo imageInfo(1, 1, Drawing::ColorType::COLORTYPE_RGBA_F16, Drawing::AlphaType::ALPHATYPE_PREMUL);
+    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    int addr1 = 1;
+    int* addr = &addr1;
+    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
+    Drawing::ReleaseContext releaseContext = nullptr;
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+    auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
+    image->imageImplPtr = skiaImage;
+    motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth() != 0);
+    EXPECT_FALSE(image->GetHeight() != 0);
+}
+
+/**
+ * @tc.name: OutputOriginalImageCOLORTYPE_N32ALPHATYPE_PREMUL
+ * @tc.desc: test results of OutputOriginalImage
+ * @tc.type: FUNC
+ * @tc.require: issuesI9PH4G
+ */
+HWTEST_F(MotionBlurFilterTest, OutputOriginalImageCOLORTYPE_N32ALPHATYPE_PREMUL, TestSize.Level1)
+{
+    Vector2f s = { 1.f, 1.f };
+    Drawing::Canvas canvas;
+    auto image = std::make_shared<Drawing::Image>();
+    Drawing::Rect src;
+    Drawing::Rect dst;
+    auto para = std::make_shared<MotionBlurParam>(1.f, s);
+    RSMotionBlurFilter motionBlurFilter(para);
+    motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
+    EXPECT_TRUE(para != nullptr);
+
+    image = std::make_shared<Drawing::Image>();
+    ASSERT_NE(image, nullptr);
+    Drawing::ImageInfo imageInfo(1, 1, Drawing::ColorType::COLORTYPE_N32, Drawing::AlphaType::ALPHATYPE_PREMUL);
+    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    int addr1 = 1;
+    int* addr = &addr1;
+    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
+    Drawing::ReleaseContext releaseContext = nullptr;
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+    auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
+    image->imageImplPtr = skiaImage;
+    motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth() != 0);
+    EXPECT_FALSE(image->GetHeight() != 0);
+}
+
+/**
+ * @tc.name: OutputOriginalImageCOLORTYPE_RGBA_1010102ALPHATYPE_PREMUL
+ * @tc.desc: test results of OutputOriginalImage
+ * @tc.type: FUNC
+ * @tc.require: issuesI9PH4G
+ */
+HWTEST_F(MotionBlurFilterTest, OutputOriginalImageCOLORTYPE_RGBA_1010102ALPHATYPE_PREMUL, TestSize.Level1)
+{
+    Vector2f s = { 1.f, 1.f };
+    Drawing::Canvas canvas;
+    auto image = std::make_shared<Drawing::Image>();
+    Drawing::Rect src;
+    Drawing::Rect dst;
+    auto para = std::make_shared<MotionBlurParam>(1.f, s);
+    RSMotionBlurFilter motionBlurFilter(para);
+    motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
+    EXPECT_TRUE(para != nullptr);
+
+    image = std::make_shared<Drawing::Image>();
+    ASSERT_NE(image, nullptr);
+    Drawing::ImageInfo imageInfo(
+        1, 1, Drawing::ColorType::COLORTYPE_RGBA_1010102, Drawing::AlphaType::ALPHATYPE_PREMUL);
+    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    int addr1 = 1;
+    int* addr = &addr1;
+    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
+    Drawing::ReleaseContext releaseContext = nullptr;
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+    auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
+    image->imageImplPtr = skiaImage;
+    motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth() != 0);
+    EXPECT_FALSE(image->GetHeight() != 0);
+}
+
+/**
+ * @tc.name: OutputOriginalImageCOLORTYPE_GRAY_8ALPHATYPE_PREMUL
+ * @tc.desc: test results of OutputOriginalImage
+ * @tc.type: FUNC
+ * @tc.require: issuesI9PH4G
+ */
+HWTEST_F(MotionBlurFilterTest, OutputOriginalImageCOLORTYPE_GRAY_8ALPHATYPE_PREMUL, TestSize.Level1)
+{
+    Vector2f s = { 1.f, 1.f };
+    Drawing::Canvas canvas;
+    auto image = std::make_shared<Drawing::Image>();
+    Drawing::Rect src;
+    Drawing::Rect dst;
+    auto para = std::make_shared<MotionBlurParam>(1.f, s);
+    RSMotionBlurFilter motionBlurFilter(para);
+    motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
+    EXPECT_TRUE(para != nullptr);
+
+    image = std::make_shared<Drawing::Image>();
+    ASSERT_NE(image, nullptr);
+    Drawing::ImageInfo imageInfo(1, 1, Drawing::ColorType::COLORTYPE_GRAY_8, Drawing::AlphaType::ALPHATYPE_PREMUL);
+    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    int addr1 = 1;
+    int* addr = &addr1;
+    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
+    Drawing::ReleaseContext releaseContext = nullptr;
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+    auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
+    image->imageImplPtr = skiaImage;
+    motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
+    EXPECT_TRUE(image->GetWidth() != 0);
+    EXPECT_TRUE(image->GetHeight() != 0);
+}
+
+/**
+ * @tc.name: OutputOriginalImageCOLORTYPE_RGB_888XALPHATYPE_PREMUL
+ * @tc.desc: test results of OutputOriginalImage
+ * @tc.type: FUNC
+ * @tc.require: issuesI9PH4G
+ */
+HWTEST_F(MotionBlurFilterTest, OutputOriginalImageCOLORTYPE_RGB_888XALPHATYPE_PREMUL, TestSize.Level1)
+{
+    Vector2f s = { 1.f, 1.f };
+    Drawing::Canvas canvas;
+    auto image = std::make_shared<Drawing::Image>();
+    Drawing::Rect src;
+    Drawing::Rect dst;
+    auto para = std::make_shared<MotionBlurParam>(1.f, s);
+    RSMotionBlurFilter motionBlurFilter(para);
+    motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
+    EXPECT_TRUE(para != nullptr);
+
+    image = std::make_shared<Drawing::Image>();
+    ASSERT_NE(image, nullptr);
+    Drawing::ImageInfo imageInfo(1, 1, Drawing::ColorType::COLORTYPE_RGB_888X, Drawing::AlphaType::ALPHATYPE_PREMUL);
+    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    int addr1 = 1;
+    int* addr = &addr1;
+    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
+    Drawing::ReleaseContext releaseContext = nullptr;
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+    auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
+    image->imageImplPtr = skiaImage;
+    motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth() != 0);
+    EXPECT_FALSE(image->GetHeight() != 0);
+}
+
+/**
+ * @tc.name: OutputOriginalImageCOLORTYPE_UNKNOWNALPHATYPE_UNPREMUL
+ * @tc.desc: test results of OutputOriginalImage
+ * @tc.type: FUNC
+ * @tc.require: issuesI9PH4G
+ */
+HWTEST_F(MotionBlurFilterTest, OutputOriginalImageCOLORTYPE_UNKNOWNALPHATYPE_UNPREMUL, TestSize.Level1)
+{
+    Vector2f s = { 1.f, 1.f };
+    Drawing::Canvas canvas;
+    auto image = std::make_shared<Drawing::Image>();
+    Drawing::Rect src;
+    Drawing::Rect dst;
+    auto para = std::make_shared<MotionBlurParam>(1.f, s);
+    RSMotionBlurFilter motionBlurFilter(para);
+    motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
+    EXPECT_TRUE(para != nullptr);
+
+    image = std::make_shared<Drawing::Image>();
+    ASSERT_NE(image, nullptr);
+    Drawing::ImageInfo imageInfo(1, 1, Drawing::ColorType::COLORTYPE_UNKNOWN, Drawing::AlphaType::ALPHATYPE_UNPREMUL);
+    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    int addr1 = 1;
+    int* addr = &addr1;
+    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
+    Drawing::ReleaseContext releaseContext = nullptr;
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+    auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
+    image->imageImplPtr = skiaImage;
+    motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth() != 0);
+    EXPECT_FALSE(image->GetHeight() != 0);
+}
+
+/**
+ * @tc.name: OutputOriginalImageCOLORTYPE_RGB_565ALPHATYPE_UNPREMUL
+ * @tc.desc: test results of OutputOriginalImage
+ * @tc.type: FUNC
+ * @tc.require: issuesI9PH4G
+ */
+HWTEST_F(MotionBlurFilterTest, OutputOriginalImageCOLORTYPE_RGB_565ALPHATYPE_UNPREMUL, TestSize.Level1)
+{
+    Vector2f s = { 1.f, 1.f };
+    Drawing::Canvas canvas;
+    auto image = std::make_shared<Drawing::Image>();
+    Drawing::Rect src;
+    Drawing::Rect dst;
+    auto para = std::make_shared<MotionBlurParam>(1.f, s);
+    RSMotionBlurFilter motionBlurFilter(para);
+    motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
+    EXPECT_TRUE(para != nullptr);
+
+    image = std::make_shared<Drawing::Image>();
+    ASSERT_NE(image, nullptr);
+    Drawing::ImageInfo imageInfo(1, 1, Drawing::ColorType::COLORTYPE_RGB_565, Drawing::AlphaType::ALPHATYPE_UNPREMUL);
+    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    int addr1 = 1;
+    int* addr = &addr1;
+    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
+    Drawing::ReleaseContext releaseContext = nullptr;
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+    auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
+    image->imageImplPtr = skiaImage;
+    motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth() != 0);
+    EXPECT_FALSE(image->GetHeight() != 0);
+}
+
+/**
+ * @tc.name: OutputOriginalImageCOLORTYPE_ARGB_4444ALPHATYPE_UNPREMUL
+ * @tc.desc: test results of OutputOriginalImage
+ * @tc.type: FUNC
+ * @tc.require: issuesI9PH4G
+ */
+HWTEST_F(MotionBlurFilterTest, OutputOriginalImageCOLORTYPE_ARGB_4444ALPHATYPE_UNPREMUL, TestSize.Level1)
+{
+    Vector2f s = { 1.f, 1.f };
+    Drawing::Canvas canvas;
+    auto image = std::make_shared<Drawing::Image>();
+    Drawing::Rect src;
+    Drawing::Rect dst;
+    auto para = std::make_shared<MotionBlurParam>(1.f, s);
+    RSMotionBlurFilter motionBlurFilter(para);
+    motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
+    EXPECT_TRUE(para != nullptr);
+
+    image = std::make_shared<Drawing::Image>();
+    ASSERT_NE(image, nullptr);
+    Drawing::ImageInfo imageInfo(1, 1, Drawing::ColorType::COLORTYPE_ARGB_4444, Drawing::AlphaType::ALPHATYPE_UNPREMUL);
+    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    int addr1 = 1;
+    int* addr = &addr1;
+    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
+    Drawing::ReleaseContext releaseContext = nullptr;
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+    auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
+    image->imageImplPtr = skiaImage;
+    motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth() != 0);
+    EXPECT_FALSE(image->GetHeight() != 0);
+}
+
+/**
+ * @tc.name: OutputOriginalImageCOLORTYPE_RGBA_8888ALPHATYPE_UNPREMUL
+ * @tc.desc: test results of OutputOriginalImage
+ * @tc.type: FUNC
+ * @tc.require: issuesI9PH4G
+ */
+HWTEST_F(MotionBlurFilterTest, OutputOriginalImageCOLORTYPE_RGBA_8888ALPHATYPE_UNPREMUL, TestSize.Level1)
+{
+    Vector2f s = { 1.f, 1.f };
+    Drawing::Canvas canvas;
+    auto image = std::make_shared<Drawing::Image>();
+    Drawing::Rect src;
+    Drawing::Rect dst;
+    auto para = std::make_shared<MotionBlurParam>(1.f, s);
+    RSMotionBlurFilter motionBlurFilter(para);
+    motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
+    EXPECT_TRUE(para != nullptr);
+
+    image = std::make_shared<Drawing::Image>();
+    ASSERT_NE(image, nullptr);
+    Drawing::ImageInfo imageInfo(1, 1, Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_UNPREMUL);
+    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    int addr1 = 1;
+    int* addr = &addr1;
+    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
+    Drawing::ReleaseContext releaseContext = nullptr;
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+    auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
+    image->imageImplPtr = skiaImage;
+    motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth() != 0);
+    EXPECT_FALSE(image->GetHeight() != 0);
+}
+
+/**
+ * @tc.name: OutputOriginalImageCOLORTYPE_BGRA_8888ALPHATYPE_UNPREMUL
+ * @tc.desc: test results of OutputOriginalImage
+ * @tc.type: FUNC
+ * @tc.require: issuesI9PH4G
+ */
+HWTEST_F(MotionBlurFilterTest, OutputOriginalImageCOLORTYPE_BGRA_8888ALPHATYPE_UNPREMUL, TestSize.Level1)
+{
+    Vector2f s = { 1.f, 1.f };
+    Drawing::Canvas canvas;
+    auto image = std::make_shared<Drawing::Image>();
+    Drawing::Rect src;
+    Drawing::Rect dst;
+    auto para = std::make_shared<MotionBlurParam>(1.f, s);
+    RSMotionBlurFilter motionBlurFilter(para);
+    motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
+    EXPECT_TRUE(para != nullptr);
+
+    image = std::make_shared<Drawing::Image>();
+    ASSERT_NE(image, nullptr);
+    Drawing::ImageInfo imageInfo(1, 1, Drawing::ColorType::COLORTYPE_BGRA_8888, Drawing::AlphaType::ALPHATYPE_UNPREMUL);
+    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    int addr1 = 1;
+    int* addr = &addr1;
+    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
+    Drawing::ReleaseContext releaseContext = nullptr;
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+    auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
+    image->imageImplPtr = skiaImage;
+    motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth() != 0);
+    EXPECT_FALSE(image->GetHeight() != 0);
+}
+
+/**
+ * @tc.name: OutputOriginalImageCOLORTYPE_RGBA_F16ALPHATYPE_UNPREMUL
+ * @tc.desc: test results of OutputOriginalImage
+ * @tc.type: FUNC
+ * @tc.require: issuesI9PH4G
+ */
+HWTEST_F(MotionBlurFilterTest, OutputOriginalImageCOLORTYPE_RGBA_F16ALPHATYPE_UNPREMUL, TestSize.Level1)
+{
+    Vector2f s = { 1.f, 1.f };
+    Drawing::Canvas canvas;
+    auto image = std::make_shared<Drawing::Image>();
+    Drawing::Rect src;
+    Drawing::Rect dst;
+    auto para = std::make_shared<MotionBlurParam>(1.f, s);
+    RSMotionBlurFilter motionBlurFilter(para);
+    motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
+    EXPECT_TRUE(para != nullptr);
+
+    image = std::make_shared<Drawing::Image>();
+    ASSERT_NE(image, nullptr);
+    Drawing::ImageInfo imageInfo(1, 1, Drawing::ColorType::COLORTYPE_RGBA_F16, Drawing::AlphaType::ALPHATYPE_UNPREMUL);
+    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    int addr1 = 1;
+    int* addr = &addr1;
+    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
+    Drawing::ReleaseContext releaseContext = nullptr;
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+    auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
+    image->imageImplPtr = skiaImage;
+    motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth() != 0);
+    EXPECT_FALSE(image->GetHeight() != 0);
+}
+
+/**
+ * @tc.name: OutputOriginalImageCOLORTYPE_N32ALPHATYPE_UNPREMUL
+ * @tc.desc: test results of OutputOriginalImage
+ * @tc.type: FUNC
+ * @tc.require: issuesI9PH4G
+ */
+HWTEST_F(MotionBlurFilterTest, OutputOriginalImageCOLORTYPE_N32ALPHATYPE_UNPREMUL, TestSize.Level1)
+{
+    Vector2f s = { 1.f, 1.f };
+    Drawing::Canvas canvas;
+    auto image = std::make_shared<Drawing::Image>();
+    Drawing::Rect src;
+    Drawing::Rect dst;
+    auto para = std::make_shared<MotionBlurParam>(1.f, s);
+    RSMotionBlurFilter motionBlurFilter(para);
+    motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
+    EXPECT_TRUE(para != nullptr);
+
+    image = std::make_shared<Drawing::Image>();
+    ASSERT_NE(image, nullptr);
+    Drawing::ImageInfo imageInfo(1, 1, Drawing::ColorType::COLORTYPE_N32, Drawing::AlphaType::ALPHATYPE_UNPREMUL);
+    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    int addr1 = 1;
+    int* addr = &addr1;
+    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
+    Drawing::ReleaseContext releaseContext = nullptr;
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+    auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
+    image->imageImplPtr = skiaImage;
+    motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth() != 0);
+    EXPECT_FALSE(image->GetHeight() != 0);
+}
+
+/**
+ * @tc.name: OutputOriginalImageCOLORTYPE_RGBA_1010102AALPHATYPE_UNPREMUL
+ * @tc.desc: test results of OutputOriginalImage
+ * @tc.type: FUNC
+ * @tc.require: issuesI9PH4G
+ */
+HWTEST_F(MotionBlurFilterTest, OutputOriginalImageCOLORTYPE_RGBA_1010102ALPHATYPE_UNPREMUL, TestSize.Level1)
+{
+    Vector2f s = { 1.f, 1.f };
+    Drawing::Canvas canvas;
+    auto image = std::make_shared<Drawing::Image>();
+    Drawing::Rect src;
+    Drawing::Rect dst;
+    auto para = std::make_shared<MotionBlurParam>(1.f, s);
+    RSMotionBlurFilter motionBlurFilter(para);
+    motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
+    EXPECT_TRUE(para != nullptr);
+
+    image = std::make_shared<Drawing::Image>();
+    ASSERT_NE(image, nullptr);
+    Drawing::ImageInfo imageInfo(
+        1, 1, Drawing::ColorType::COLORTYPE_RGBA_1010102, Drawing::AlphaType::ALPHATYPE_UNPREMUL);
+    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    int addr1 = 1;
+    int* addr = &addr1;
+    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
+    Drawing::ReleaseContext releaseContext = nullptr;
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+    auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
+    image->imageImplPtr = skiaImage;
+    motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth() != 0);
+    EXPECT_FALSE(image->GetHeight() != 0);
+}
+
+/**
+ * @tc.name: OutputOriginalImageCOLORTYPE_GRAY_8ALPHATYPE_UNPREMUL
+ * @tc.desc: test results of OutputOriginalImage
+ * @tc.type: FUNC
+ * @tc.require: issuesI9PH4G
+ */
+HWTEST_F(MotionBlurFilterTest, OutputOriginalImageCOLORTYPE_GRAY_8ALPHATYPE_UNPREMUL, TestSize.Level1)
+{
+    Vector2f s = { 1.f, 1.f };
+    Drawing::Canvas canvas;
+    auto image = std::make_shared<Drawing::Image>();
+    Drawing::Rect src;
+    Drawing::Rect dst;
+    auto para = std::make_shared<MotionBlurParam>(1.f, s);
+    RSMotionBlurFilter motionBlurFilter(para);
+    motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
+    EXPECT_TRUE(para != nullptr);
+
+    image = std::make_shared<Drawing::Image>();
+    ASSERT_NE(image, nullptr);
+    Drawing::ImageInfo imageInfo(1, 1, Drawing::ColorType::COLORTYPE_GRAY_8, Drawing::AlphaType::ALPHATYPE_UNPREMUL);
+    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    int addr1 = 1;
+    int* addr = &addr1;
+    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
+    Drawing::ReleaseContext releaseContext = nullptr;
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+    auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
+    image->imageImplPtr = skiaImage;
+    motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
+    EXPECT_TRUE(image->GetWidth() != 0);
+    EXPECT_TRUE(image->GetHeight() != 0);
+}
+
+/**
+ * @tc.name: OutputOriginalImageCOLORTYPE_RGB_888XALPHATYPE_UNPREMUL
+ * @tc.desc: test results of OutputOriginalImage
+ * @tc.type: FUNC
+ * @tc.require: issuesI9PH4G
+ */
+HWTEST_F(MotionBlurFilterTest, OutputOriginalImageCOLORTYPE_RGB_888XALPHATYPE_UNPREMUL, TestSize.Level1)
+{
+    Vector2f s = { 1.f, 1.f };
+    Drawing::Canvas canvas;
+    auto image = std::make_shared<Drawing::Image>();
+    Drawing::Rect src;
+    Drawing::Rect dst;
+    auto para = std::make_shared<MotionBlurParam>(1.f, s);
+    RSMotionBlurFilter motionBlurFilter(para);
+    motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
+    EXPECT_TRUE(para != nullptr);
+
+    image = std::make_shared<Drawing::Image>();
+    ASSERT_NE(image, nullptr);
+    Drawing::ImageInfo imageInfo(1, 1, Drawing::ColorType::COLORTYPE_RGB_888X, Drawing::AlphaType::ALPHATYPE_UNPREMUL);
+    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    int addr1 = 1;
+    int* addr = &addr1;
+    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
+    Drawing::ReleaseContext releaseContext = nullptr;
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+    auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
+    image->imageImplPtr = skiaImage;
+    motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth() != 0);
+    EXPECT_FALSE(image->GetHeight() != 0);
 }
 
 /**

@@ -36,6 +36,7 @@
 #include "rs_profiler_test_tree.h"
 
 #include "common/rs_common_def.h"
+#include "feature/dirty/rs_uni_dirty_compute_util.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
 #include "params/rs_display_render_params.h"
 #include "pipeline/main_thread/rs_main_thread.h"
@@ -179,7 +180,7 @@ void RSProfiler::SetDirtyRegion(const Occlusion::Region& dirtyRegion)
     auto screenInfo = params->GetScreenInfo();
     const uint64_t displayArea = static_cast<uint64_t>(screenInfo.width * screenInfo.height);
 
-    auto rects = RSUniRenderUtil::ScreenIntersectDirtyRects(dirtyRegion, screenInfo);
+    auto rects = RSUniDirtyComputeUtil::ScreenIntersectDirtyRects(dirtyRegion, screenInfo);
     uint64_t dirtyRegionArea = 0;
     g_dirtyRegionList.str("");
     for (const auto& rect : rects) {
@@ -484,6 +485,9 @@ void RSProfiler::OnRenderBegin()
     RS_TRACE_NAME("Profiler OnRenderBegin");
     HRPD("OnRenderBegin()");
     g_renderServiceCpuId = Utils::GetCpuId();
+
+    ProcessCommands();
+    ProcessSendingRdc();
 }
 
 void RSProfiler::OnRenderEnd()
@@ -604,8 +608,6 @@ void RSProfiler::OnFrameEnd()
 
     RS_TRACE_NAME("Profiler OnFrameEnd");
     g_renderServiceCpuId = Utils::GetCpuId();
-    ProcessCommands();
-    ProcessSendingRdc();
     RecordUpdate();
 
     UpdateDirtyRegionBetaRecord(g_dirtyRegionPercentage);
@@ -705,10 +707,7 @@ void RSProfiler::RenderServiceTreeDump(JsonWriter& out, pid_t pid)
         rootNode = nullptr;
         auto& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
         nodeMap.TraversalNodes([&rootNode, pid](const std::shared_ptr<RSBaseRenderNode>& node) {
-            if (node == nullptr) {
-                return;
-            }
-            if (!node->GetSortedChildren()) {
+            if (!node || !node->GetSortedChildren()) {
                 return;
             }
             auto parentPtr = node->GetParent().lock();
@@ -728,6 +727,11 @@ void RSProfiler::RenderServiceTreeDump(JsonWriter& out, pid_t pid)
         Respond("rootNode not found");
         root.PushObject();
         root.PopObject();
+    }
+
+    if (context_) {
+        auto& rootOffscreen = out["Offscreen node"];
+        DumpOffscreen(*context_, rootOffscreen, useMockPid, pid);
     }
 }
 
@@ -1260,7 +1264,9 @@ void RSProfiler::DumpTreeToJson(const ArgList& args)
     json.PopObject();
     Network::SendRSTreeDumpJSON(json.GetDumpString());
 
-    Respond(json.GetDumpString());
+    if (args.String() != "NOLOG") {
+        Network::SendMessage(json.GetDumpString());
+    }
 }
 
 void RSProfiler::DumpSurfaces(const ArgList& args)

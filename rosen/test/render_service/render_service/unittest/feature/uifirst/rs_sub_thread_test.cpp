@@ -33,7 +33,12 @@ public:
     void TearDown() override;
 };
 
-void RsSubThreadTest::SetUpTestCase() {}
+void RsSubThreadTest::SetUpTestCase()
+{
+#ifdef RS_ENABLE_VK
+    RsVulkanContext::SetRecyclable(false);
+#endif
+}
 void RsSubThreadTest::TearDownTestCase() {}
 void RsSubThreadTest::SetUp() {}
 void RsSubThreadTest::TearDown() {}
@@ -303,7 +308,7 @@ HWTEST_F(RsSubThreadTest, DrawableCache002, TestSize.Level1)
     auto node = std::make_shared<const RSSurfaceRenderNode>(0);
     auto nodeDrawable = std::make_shared<DrawableV2::RSSurfaceRenderNodeDrawable>(std::move(node));
     nodeDrawable->renderParams_ = std::make_unique<RSSurfaceRenderParams>(0);
-    nodeDrawable->GetRsSubThreadCache().isTextureValid_ = true;
+    nodeDrawable->GetRsSubThreadCache().isCacheCompletedValid_ = true;
 
     // test task done
     nodeDrawable->GetRsSubThreadCache().SetTaskFrameCount(1);

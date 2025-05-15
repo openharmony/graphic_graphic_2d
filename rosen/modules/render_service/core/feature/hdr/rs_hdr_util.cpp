@@ -32,6 +32,7 @@ constexpr float DEFAULT_HDR_RATIO = 1.0f;
 constexpr float DEFAULT_SCALER = 1000.0f / 203.0f;
 constexpr float GAMMA2_2 = 2.2f;
 constexpr size_t MATRIX_SIZE = 9;
+static const std::vector<float> DEFAULT_MATRIX = { 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f };
 
 HdrStatus RSHdrUtil::CheckIsHdrSurface(const RSSurfaceRenderNode& surfaceNode)
 {
@@ -84,6 +85,9 @@ bool RSHdrUtil::CheckIsSurfaceWithMetadata(const RSSurfaceRenderNode& surfaceNod
     if (!surfaceNode.GetRSSurfaceHandler()) {
         return false;
     }
+    if (!surfaceNode.IsYUVBufferFormat()) {
+        return false;
+    }
     return CheckIsSurfaceBufferWithMetadata(surfaceNode.GetRSSurfaceHandler()->GetBuffer());
 }
 
@@ -130,6 +134,7 @@ void RSHdrUtil::UpdateSurfaceNodeNit(RSSurfaceRenderNode& surfaceNode, ScreenId 
         surfaceNode.SetDisplayNit(rsLuminance.GetSdrDisplayNits(screenId));
         surfaceNode.SetSdrNit(rsLuminance.GetSdrDisplayNits(screenId));
         surfaceNode.SetBrightnessRatio(rsLuminance.GetHdrBrightnessRatio(screenId, 0));
+        surfaceNode.SetLayerLinearMatrix(DEFAULT_MATRIX);
         // color temperature
         if (surfaceNode.GetSdrHasMetadata()) {
             UpdateSurfaceNodeLayerLinearMatrix(surfaceNode, screenId);

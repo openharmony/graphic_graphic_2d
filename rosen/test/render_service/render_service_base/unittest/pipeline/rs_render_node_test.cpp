@@ -1265,7 +1265,7 @@ HWTEST_F(RSRenderNodeTest, OnSyncTest, TestSize.Level1)
     node->stagingRenderParams_->freezeFlag_ = true;
     node->needClearSurface_ = true;
     std::function<void()> clearTask = []() { printf("ClearSurfaceTask CallBack\n"); };
-    node->isOpincRootFlag_ = true;
+    node->GetOpincCache().isOpincRootFlag_ = true;
     node->OnSync();
     EXPECT_TRUE(node->dirtySlots_.empty());
     EXPECT_FALSE(node->drawCmdListNeedSync_);

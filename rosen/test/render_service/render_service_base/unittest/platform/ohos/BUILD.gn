@@ -480,6 +480,72 @@ ohos_unittest("RSJankStatsTest") {
   subsystem_name = "graphic"
 }
 
+##############################  RSJankStatsHelperTest  ##################################
+ohos_unittest("RSJankStatsHelperTest") {
+  module_out_path = module_output_path
+
+  sources = [ "rs_jank_stats_helper_test.cpp" ]
+
+  cflags = [
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+
+  configs = [
+    ":render_test",
+    "$graphic_2d_root/rosen/modules/render_service_base:export_config",
+  ]
+
+  include_dirs = [
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
+    "$graphic_2d_root/rosen/modules/render_service_base/src",
+    "$graphic_2d_root/rosen/modules/render_service_client/core",
+    "$graphic_2d_root/rosen/include",
+    "$graphic_2d_root/rosen/test/include",
+
+    "$graphic_2d_root/prebuilts/librarys/gpu/include",
+    "$graphic_2d_root/rosen/modules/render_service_client/core",
+    "$graphic_2d_root/utils/log",
+  ]
+
+  deps = [
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
+  ]
+
+  public_deps = [ "$graphic_2d_root/rosen/modules/composer/vsync:libvsync" ]
+  public_external_deps = [
+    "graphic_surface:sync_fence",
+    "skia:skia_canvaskit",
+  ]
+
+  if (defined(input_ext_feature_magiccursor) && input_ext_feature_magiccursor) {
+    defines = [ "OHOS_BUILD_ENABLE_MAGICCURSOR" ]
+  }
+
+  if (rs_enable_gpu) {
+    public_deps += [
+      "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
+      "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
+    ]
+    public_external_deps += [ "openssl:libcrypto_shared" ]
+  }
+
+  external_deps = [
+    "c_utils:utils",
+    "eventhandler:libeventhandler",
+    "hilog:libhilog",
+    "hisysevent:libhisysevent",
+    "hitrace:hitrace_meter",
+    "init:libbegetutil",
+    "ipc:ipc_core",
+    "samgr:samgr_proxy",
+    "skia:skia_canvaskit",
+  ]
+
+  subsystem_name = "graphic"
+}
+
 ##############################  RSLogTest  ##################################
 ohos_unittest("RSLogTest") {
   module_out_path = module_output_path
@@ -730,6 +796,9 @@ ohos_unittest("RSClientTest") {
   }
 
   external_deps = [
+    "access_token:libaccesstoken_sdk",
+    "access_token:libnativetoken",
+    "access_token:libtoken_setproc",
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "hilog:libhilog",
@@ -1226,6 +1295,7 @@ group("unittest") {
     ":RSHiSysEventTest",
     ":RSInnovationTest",
     ":RSJankStatsTest",
+    ":RSJankStatsHelperTest",
     ":RSLogTest",
     ":RSMarshallingHelperTest",
     ":RSNodeStatsTest",

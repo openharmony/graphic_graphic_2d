@@ -24,6 +24,11 @@
 #include <GLES2/gl2ext.h>
 #include <GLES/gl.h>
 #include <GLES/glext.h>
+#ifdef OPENGL_WRAPPER_ENABLE_GL4
+#include <GL/gl.h>
+#include <GL/glcorearb.h>
+#include <GL/glext.h>
+#endif
 
 namespace OHOS {
 #undef CALL_HOOK_API
@@ -34,7 +39,10 @@ namespace OHOS {
 #define HOOK_API_ENTRY(r, api, ...) r (*(api))(__VA_ARGS__);
 
 constexpr int32_t EGL_API_NUM = 100;
-constexpr int32_t GL_API_NUM = 1000;
+constexpr int32_t GLES_API_NUM = 1000;
+#ifdef OPENGL_WRAPPER_ENABLE_GL4
+constexpr int32_t OPENGL_API_NUM = 3000;
+#endif
 
 // for compatibility, if xxx_entries.in file modified, the value of g_entriesFilesVersion must be increased by 1.
 constexpr uint64_t ENTRIES_FILES_VERSION = 1;
@@ -59,10 +67,20 @@ struct GlHookTable3 {
     #include "gl3_hook_entries.in"
 };
 
+#ifdef OPENGL_WRAPPER_ENABLE_GL4
+struct GlHookTable4 {
+    #include "gl4_hook_entries.in"
+};
+#endif
+
+
 struct GlHookTable {
     GlHookTable1 table1;
     GlHookTable2 table2;
     GlHookTable3 table3;
+#ifdef OPENGL_WRAPPER_ENABLE_GL4
+    GlHookTable4 table4;
+#endif
 };
 } // namespace OHOS
 #endif // FRAMEWORKS_OPENGL_WRAPPER_HOOK_H

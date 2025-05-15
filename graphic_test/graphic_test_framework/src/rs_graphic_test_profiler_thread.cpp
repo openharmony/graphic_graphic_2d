@@ -20,10 +20,13 @@
 #include <unistd.h>
 
 #include "rs_graphic_test_utils.h"
+#ifdef RS_PROFILER_ENABLED
 #include "rs_profiler_packet.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
+#ifdef RS_PROFILER_ENABLED
 constexpr int64_t INIT_WAIT_TIME = 50;
 constexpr int64_t SOCKET_REFRESH_TIME = 20;
 constexpr int SOCKET_CONNECT_MAX_NUM = 10000;
@@ -43,6 +46,7 @@ void RSGraphicTestProfilerThread::Start()
 
 void RSGraphicTestProfilerThread::Stop()
 {
+    system("param set persist.graphic.profiler.enabled 0");
     if (runnig_) {
         runnig_ = false;
         cv_.notify_all();
@@ -186,6 +190,6 @@ bool RSGraphicTestProfilerThread::RecieveHeader(void* data, size_t& size)
     }
     return true;
 }
-
+#endif
 } // namespace Rosen
 } // namespace OHOS

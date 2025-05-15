@@ -32,30 +32,6 @@
 
 namespace OHOS {
 namespace Rosen {
-struct DestroySemaphoreInfo {
-    PFN_vkDestroySemaphore mDestroyFunction;
-    VkDevice mDevice;
-    VkSemaphore mSemaphore;
-
-    int mRefs = 2;
-    DestroySemaphoreInfo(PFN_vkDestroySemaphore destroyFunction, VkDevice device,
-                        VkSemaphore semaphore)
-        : mDestroyFunction(destroyFunction), mDevice(device), mSemaphore(semaphore) {}
-
-    static void DestroySemaphore(void *context)
-    {
-        if (context == nullptr) {
-            return;
-        }
-        DestroySemaphoreInfo* info = reinterpret_cast<DestroySemaphoreInfo*>(context);
-        --info->mRefs;
-        if (!info->mRefs) {
-            info->mDestroyFunction(info->mDevice, info->mSemaphore, nullptr);
-            delete info;
-        }
-    }
-};
-
 class RSSurfaceOhosVulkan : public RSSurfaceOhos {
 public:
     explicit RSSurfaceOhosVulkan(const sptr<Surface>& producer);

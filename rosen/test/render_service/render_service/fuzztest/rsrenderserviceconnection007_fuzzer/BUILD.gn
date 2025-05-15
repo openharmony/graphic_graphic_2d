@@ -1,0 +1,114 @@
+# Copyright (c) 2022-2025 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+#####################hydra-fuzz###################
+import("//build/config/features.gni")
+import("//build/test.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
+module_output_path = "graphic_2d/graphic_2d"
+
+##############################fuzztest##########################################
+ohos_fuzztest("RSRenderServiceConnection007FuzzTest") {
+  module_out_path = module_output_path
+  fuzz_config_file = "//foundation/graphic/graphic_2d/rosen/test/render_service/render_service/fuzztest/rsrenderserviceconnection007_fuzzer"
+
+  include_dirs = [
+    "$graphic_2d_root/rosen/modules/platform/ipc_core",
+    "$graphic_2d_root/rosen/modules/platform",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/config",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/frame_rate_manager",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/hgm_screen_manager",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/utils",
+    "$graphic_2d_root/rosen/modules/render_service/core",
+    "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg",
+    "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/feature_param",
+    "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/feature_param/extend_feature",
+    "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/feature_param/performance_feature",
+    "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/xml_parser",
+    "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/xml_parser/extend_feature_parser",
+    "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/xml_parser/performance_feature_parser",
+    "$graphic_2d_root/rosen/modules/render_service_base/src",
+    "$graphic_2d_root/rosen/test/include",
+    "../../../../../../../../../../base/account/os_account/services/accountmgr/test/mock/app_account",
+    "../../../../../../../../../../base/security/access_token/interfaces/innerkits/nativetoken/include",
+    "../../../../../../../../../../base/security/access_token/interfaces/innerkits/token_sptproc/include",
+    "$graphic_2d_root/frameworks/surface/include",
+  ]
+
+  deps = [
+    "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
+    "$graphic_2d_root/rosen/modules/composer:libcomposer",
+    "$graphic_2d_root/rosen/modules/render_service:librender_service",
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
+  ]
+
+  cflags = [
+    "-g",
+    "-O0",
+    "-Wno-unused-variable",
+    "-fno-omit-frame-pointer",
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+
+  if (defined(input_ext_feature_magiccursor) && input_ext_feature_magiccursor) {
+    defines = [ "OHOS_BUILD_ENABLE_MAGICCURSOR" ]
+  }
+
+  sources = [ "rsrenderserviceconnection007_fuzzer.cpp" ]
+
+  external_deps = [
+    "ability_base:base",
+    "ability_base:want",
+    "ability_runtime:abilitykit_native",
+    "ability_runtime:app_manager",
+    "access_token:libaccesstoken_sdk",
+    "c_utils:utils",
+    "common_event_service:cesfwk_core",
+    "common_event_service:cesfwk_innerkits",
+    "hilog:libhilog",
+    "hitrace:hitrace_meter",
+    "ipc:ipc_core",
+    "safwk:system_ability_fwk",
+    "samgr:samgr_proxy",
+  ]
+
+  if (use_memmgr_plugin || use_memmgr) {
+    external_deps += [ "memmgr:memmgrclient" ]
+  }
+
+  defines = []
+  if (graphic_2d_support_access_token) {
+    external_deps += [
+      "access_token:libnativetoken",
+      "access_token:libtoken_setproc",
+    ]
+    defines += [ "SUPPORT_ACCESS_TOKEN" ]
+  }
+
+  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
+    external_deps += [ "sensor:sensor_interface_native" ]
+  }
+}
+
+###############################################################################
+group("fuzztest") {
+  testonly = true
+  deps = []
+  deps += [
+    # deps file
+    ":RSRenderServiceConnection007FuzzTest",
+  ]
+}
+###############################################################################

@@ -343,6 +343,10 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_REFRESH_INFO");
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_REFRESH_INFO_TO_SP): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_REFRESH_INFO_TO_SP");
+            break;
+        }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_SCREEN_POWER_STATUS): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_SCREEN_POWER_STATUS");
             break;

@@ -245,7 +245,14 @@ bool ShaderEffectFuzzTest004(const uint8_t* data, size_t size)
         scalarNumbers, static_cast<TileMode>(tileMode % TILEMODE_SIZE), &matrix);
     ShaderEffect::CreateSweepGradient(startPt, colorQuad, scalarNumbers,
         static_cast<TileMode>(tileMode % TILEMODE_SIZE), GetObject<scalar>(), GetObject<scalar>(), &matrix);
+    uint32_t color = GetObject<uint32_t>();
+    uint32_t t = GetObject<uint32_t>();
+    float lightUpDeg = GetObject<float>();
+    ShaderEffect shaderEffect = ShaderEffect(static_cast<ShaderEffect::ShaderEffectType>(t % SHADEREFFECTTYPE_SIZE),
+        color);
+    ShaderEffect::CreateLightUp(lightUpDeg, shaderEffect);
     ShaderEffect::CreateExtendShader(nullptr);
+    shaderEffect.GetType();
     return true;
 }
 

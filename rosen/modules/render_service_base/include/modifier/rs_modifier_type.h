@@ -167,6 +167,7 @@ enum class RSModifierType : int16_t {
     FG_BLUR_DISABLE_SYSTEM_ADAPTATION = 131,
     ATTRACTION_FRACTION = 132,
     ATTRACTION_DSTPOINT = 133,
+    ALWAYS_SNAPSHOT = 134,
 
     CUSTOM = 200,
     EXTENDED = 201,
@@ -178,13 +179,13 @@ enum class RSModifierType : int16_t {
     NODE_MODIFIER = 207,
     ENV_FOREGROUND_COLOR = 208,
     ENV_FOREGROUND_COLOR_STRATEGY = 209,
-    GEOMETRYTRANS = 211,
-    CUSTOM_CLIP_TO_FRAME = 212,
-    HDR_BRIGHTNESS = 213,
-    BEHIND_WINDOW_FILTER_RADIUS = 214,
-    BEHIND_WINDOW_FILTER_SATURATION = 215,
-    BEHIND_WINDOW_FILTER_BRIGHTNESS = 216,
-    BEHIND_WINDOW_FILTER_MASK_COLOR = 217,
+    GEOMETRYTRANS = 210,
+    CUSTOM_CLIP_TO_FRAME = 211,
+    HDR_BRIGHTNESS = 212,
+    BEHIND_WINDOW_FILTER_RADIUS = 213,
+    BEHIND_WINDOW_FILTER_SATURATION = 214,
+    BEHIND_WINDOW_FILTER_BRIGHTNESS = 215,
+    BEHIND_WINDOW_FILTER_MASK_COLOR = 216,
 
     CHILDREN = 240, // PLACEHOLDER, no such modifier, but we need a dirty flag
     
@@ -358,6 +359,7 @@ public:
             case RSModifierType::FOREGROUND_BLUR_RADIUS_X: return "ForegroundBlurRadiusX";
             case RSModifierType::FOREGROUND_BLUR_RADIUS_Y: return "ForegroundBlurRadiusY";
             case RSModifierType::FG_BLUR_DISABLE_SYSTEM_ADAPTATION: return "FgBlurDisableSystemAdaptation";
+            case RSModifierType::ALWAYS_SNAPSHOT: return "AlwaysSnapshot";
             case RSModifierType::CUSTOM: return "Custom";
             case RSModifierType::EXTENDED: return "Extended";
             case RSModifierType::TRANSITION: return "Transition";

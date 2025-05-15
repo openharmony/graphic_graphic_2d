@@ -418,6 +418,7 @@ public:
 
     void SetUseEffect(bool useEffect);
     void SetUseEffectType(UseEffectType useEffectType);
+    void SetAlwaysSnapshot(bool enable);
 
     void SetUseShadowBatching(bool useShadowBatching);
 
@@ -563,8 +564,11 @@ public:
     void SetSkipCheckInMultiInstance(bool isSkipCheckInMultiInstance);
 
 #ifdef RS_ENABLE_VK
-    bool IsHybridRenderCanvas() const;
-    void SetHybridRenderCanvas(bool hybridRenderCanvas);
+    bool IsHybridRenderCanvas() const
+    {
+        return hybridRenderCanvas_;
+    }
+    virtual void SetHybridRenderCanvas(bool hybridRenderCanvas) {};
 #endif
 
     bool GetIsOnTheTree()
@@ -588,6 +592,10 @@ protected:
     bool hasCreateRenderNodeInRS_ = false;
 
     bool drawContentLast_ = false;
+
+#ifdef RS_ENABLE_VK
+    bool hybridRenderCanvas_ = false;
+#endif
 
     virtual void OnAddChildren();
     virtual void OnRemoveChildren();
@@ -705,9 +713,6 @@ private:
     std::recursive_mutex animationMutex_;
     mutable std::recursive_mutex propertyMutex_;
 
-#ifdef RS_ENABLE_VK
-    bool hybridRenderCanvas_ = false;
-#endif
     bool isOnTheTree_ = false;
     bool isOnTheTreeInit_ = false;
 

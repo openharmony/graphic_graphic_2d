@@ -69,6 +69,8 @@ void RecordingCanvasFuzzTest000(const uint8_t* data, size_t size)
     Point point1(ex, ey);
     recordcanvas.DrawLine(point, point1);
     recordcanvas1.DrawLine(point, point1);
+    recordcanvas.ResetHybridRenderSize(width, height);
+    recordcanvas1.ResetHybridRenderSize(width, height);
 }
 
 void RecordingCanvasFuzzTest001(const uint8_t* data, size_t size)

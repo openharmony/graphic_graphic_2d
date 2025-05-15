@@ -44,15 +44,17 @@ enum class PathRenderers : uint32_t {
 
 struct GPUResourceTag {
     GPUResourceTag()
-        : fPid(0), fTid(0), fWid(0), fCid(0), fFid(0) {}
-    GPUResourceTag(uint32_t pid, uint32_t tid, uint64_t wid, uint64_t cid, uint32_t fid, const std::string& name)
-        : fPid(pid), fTid(tid), fWid(wid), fCid(cid), fFid(fid), fName(name) {}
+        : fPid(0), fTid(0), fWid(0), fFid(0) {}
+    GPUResourceTag(uint32_t pid, uint32_t tid, uint64_t wid, uint32_t fid, const std::string& name)
+        : fPid(pid), fTid(tid), fWid(wid), fFid(fid), fName(name) {}
     uint32_t fPid;  // id of process
     uint32_t fTid;  // id of thread
     uint64_t fWid;  // id of window
-    uint64_t fCid;  // id of component, a window may have many components
     uint32_t fFid;  // id of type
+    uint32_t fSid{0}; // id of source type in ondraw phase
     std::string fName;
+
+    static void SetCurrentNodeId(uint64_t nodeId);
 };
 
 /**
@@ -285,6 +287,12 @@ public:
      * @param tag               GPU resource tag used to set current GPU resource tag.
      */
     void SetCurrentGpuResourceTag(const GPUResourceTag &tag);
+
+    /**
+     * @brief                   Get current resource tag for gpu cache recycle.
+     * @return                  Current GPU resource tag used to set current GPU resource tag.
+     */
+    GPUResourceTag GetCurrentGpuResourceTag() const;
 
     /**
      * @brief                   Get updated memory map.

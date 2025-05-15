@@ -92,4 +92,16 @@ HWTEST_F(RSColorTemperatureTest, ColorTemperature004, TestSize.Level1)
     std::vector<float> res = {1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f};
     ASSERT_EQ(colorTemp.GetLayerLinearCct(0, data), res);
 }
+
+/**
+ * @tc.name: ColorTemperature005
+ * @tc.desc: Test ColorTemperature class members
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSColorTemperatureTest, ColorTemperature005, TestSize.Level1)
+{
+    auto& colorTemp = RSColorTemperature::Get();
+    ASSERT_EQ(colorTemp.IsColorTemperatureOn(), false);
+}
 } // namespace OHOS::Rosen

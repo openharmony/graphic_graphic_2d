@@ -47,6 +47,10 @@
 
 namespace OHOS {
 namespace Rosen {
+struct LoadOptParamsForScreen {
+    LoadOptParamsForHdiBackend loadOptParamsForHdiBackend;
+};
+
 class RSScreen;
 class RSScreenManager : public RefBase {
 public:
@@ -76,6 +80,7 @@ public:
 
     virtual void DisplayDump(std::string& dumpString) = 0;
     virtual void SurfaceDump(std::string& dumpString) = 0;
+    virtual void DumpCurrentFrameLayers() = 0;
     virtual void FpsDump(std::string& dumpString, std::string& arg) = 0;
     virtual void ClearFpsDump(std::string& dumpString, std::string& arg) = 0;
     virtual void HitchsDump(std::string& dumpString, std::string& arg) = 0;
@@ -199,9 +204,11 @@ public:
     virtual int32_t SetMirrorScreenVisibleRect(
         ScreenId id, const Rect& mainScreenRect, bool supportRotation = false) = 0;
     virtual Rect GetMirrorScreenVisibleRect(ScreenId id) const = 0;
-    virtual bool IsVisibleRectSupportRotation(ScreenId id) const = 0;
+    virtual bool IsVisibleRectSupportRotation(ScreenId id) = 0;
 
     virtual int32_t SetVirtualScreenRefreshRate(ScreenId id, uint32_t maxRefreshRate, uint32_t& actualRefreshRate) = 0;
+
+    virtual void InitLoadOptParams(LoadOptParamsForScreen& loadOptParamsForScreen) = 0;
 };
 
 sptr<RSScreenManager> CreateOrGetScreenManager();
@@ -245,6 +252,7 @@ public:
 
     void DisplayDump(std::string& dumpString) override;
     void SurfaceDump(std::string& dumpString) override;
+    void DumpCurrentFrameLayers() override;
     void FpsDump(std::string& dumpString, std::string& arg) override;
     void ClearFpsDump(std::string& dumpString, std::string& arg) override;
     void HitchsDump(std::string& dumpString, std::string& arg) override;
@@ -366,9 +374,11 @@ public:
 
     int32_t SetMirrorScreenVisibleRect(ScreenId id, const Rect& mainScreenRect, bool supportRotation = false) override;
     Rect GetMirrorScreenVisibleRect(ScreenId id) const override;
-    bool IsVisibleRectSupportRotation(ScreenId id) const override;
+    bool IsVisibleRectSupportRotation(ScreenId id) override;
 
     int32_t SetVirtualScreenRefreshRate(ScreenId id, uint32_t maxRefreshRate, uint32_t& actualRefreshRate) override;
+
+    void InitLoadOptParams(LoadOptParamsForScreen& loadOptParamsForScreen) override;
 
 private:
     RSScreenManager() = default;
@@ -492,6 +502,8 @@ private:
         bool isPowerOn;
     };
     std::unordered_map<uint64_t, FoldScreenStatus> foldScreenIds_; // screenId, FoldScreenStatus
+
+    LoadOptParamsForScreen loadOptParamsForScreen_ = {};
 };
 } // namespace impl
 } // namespace Rosen

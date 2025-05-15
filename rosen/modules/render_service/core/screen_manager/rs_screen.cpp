@@ -800,6 +800,15 @@ void RSScreen::SurfaceDump(int32_t screenIndex, std::string& dumpString)
     hdiOutput_->Dump(dumpString);
 }
 
+void RSScreen::DumpCurrentFrameLayers()
+{
+    if (hdiOutput_ == nullptr) {
+        RS_LOGW("RSScreen %{public}s: hdiOutput_ is nullptr.", __func__);
+        return;
+    }
+    hdiOutput_->DumpCurrentFrameLayers();
+}
+
 void RSScreen::FpsDump(int32_t screenIndex, std::string& dumpString, std::string& arg)
 {
     if (hdiOutput_ == nullptr) {

@@ -197,8 +197,7 @@ HWTEST_F(RSVulkanContextTest, CreateSkiaGetProc001, TestSize.Level1)
     auto ret = rsVulkanInterface.CreateSkiaGetProc();
     EXPECT_TRUE(ret == nullptr);
 
-    rsVulkanInterface.instance_ = (VkInstance)2;
-    rsVulkanInterface.device_ = (VkDevice)2;
+    rsVulkanInterface.Init(VulkanInterfaceType::BASIC_RENDER);
     ret = rsVulkanInterface.CreateSkiaGetProc();
     EXPECT_TRUE(ret != nullptr);
 }
@@ -214,6 +213,118 @@ HWTEST_F(RSVulkanContextTest, CreateDrawingContext001, TestSize.Level1)
     RsVulkanInterface rsVulkanInterface;
     auto ret = rsVulkanInterface.CreateDrawingContext();
     EXPECT_TRUE(ret != nullptr);
+}
+
+/**
+ * @tc.name: GetRecyclableSingleton001
+ * @tc.desc: test GetRecyclableSingleton
+ * @tc.type:FUNC
+ * @tc.require: issueIC3PRG
+ */
+HWTEST_F(RSVulkanContextTest, GetRecyclableSingleton001, TestSize.Level2)
+{
+    RsVulkanContext::SetRecyclable(true);
+    RsVulkanContext::GetRecyclableSingleton();
+    ASSERT_NE(RsVulkanContext::recyclableSingleton_, nullptr);
+
+    // reset recyclable singleton
+    RsVulkanContext::ReleaseRecyclableSingleton();
+}
+
+/**
+ * @tc.name: GetRecyclableSingleton002
+ * @tc.desc: test GetRecyclableSingleton repeatedly
+ * @tc.type:FUNC
+ * @tc.require: issueIC3PRG
+ */
+HWTEST_F(RSVulkanContextTest, GetRecyclableSingleton002, TestSize.Level2)
+{
+    RsVulkanContext::SetRecyclable(true);
+
+    // get recyclable singleton repeatedly
+    RsVulkanContext::GetRecyclableSingleton();
+    RsVulkanContext::GetRecyclableSingleton();
+    ASSERT_NE(RsVulkanContext::recyclableSingleton_, nullptr);
+    
+    // reset recyclable singleton
+    RsVulkanContext::ReleaseRecyclableSingleton();
+}
+
+/**
+ * @tc.name: ReleaseRecyclableSingleton001
+ * @tc.desc: test ReleaseRecyclableSingleton while vulkan context is recyclable
+ * @tc.type:FUNC
+ * @tc.require: issueIC3PRG
+ */
+HWTEST_F(RSVulkanContextTest, ReleaseRecyclableSingleton001, TestSize.Level2)
+{
+    RsVulkanContext::SetRecyclable(true);
+
+    RsVulkanContext::GetRecyclableSingleton();
+    RsVulkanContext::ReleaseRecyclableSingleton();
+    ASSERT_EQ(RsVulkanContext::recyclableSingleton_, nullptr);
+}
+
+
+/**
+ * @tc.name: ReleaseRecyclableSingleton002
+ * @tc.desc: test ReleaseRecyclableSingleton while vulkan context isn't recyclable
+ * @tc.type:FUNC
+ * @tc.require: issueIC3PRG
+ */
+HWTEST_F(RSVulkanContextTest, ReleaseRecyclableSingleton002, TestSize.Level2)
+{
+    RsVulkanContext::SetRecyclable(true);
+    RsVulkanContext::GetRecyclableSingleton();
+
+    RsVulkanContext::SetRecyclable(false);
+    RsVulkanContext::ReleaseRecyclableSingleton();
+    ASSERT_NE(RsVulkanContext::recyclableSingleton_, nullptr);
+
+    // restore
+    RsVulkanContext::SetRecyclable(true);
+    RsVulkanContext::ReleaseRecyclableSingleton();
+    RsVulkanContext::SetRecyclable(false);
+}
+
+/**
+ * @tc.name: SaveNewDrawingContext001
+ * @tc.desc: test SaveNewDrawingContext
+ * @tc.type:FUNC
+ * @tc.require: issueIC3PRG
+ */
+HWTEST_F(RSVulkanContextTest, SaveNewDrawingContext001, TestSize.Level2)
+{
+    auto gpuContext = std::make_shared<Drawing::GPUContext>();
+    RsVulkanContext::SaveNewDrawingContext(gettid(), gpuContext);
+    ASSERT_FALSE(RsVulkanContext::drawingContextMap_.empty());
+}
+
+/**
+ * @tc.name: CleanUpRecyclableDrawingContext001
+ * @tc.desc: test CleanUpRecyclableDrawingContext
+ * @tc.type:FUNC
+ * @tc.require: issueIC3PRG
+ */
+HWTEST_F(RSVulkanContextTest, CleanUpRecyclableDrawingContext001, TestSize.Level2)
+{
+    auto gpuContext = std::make_shared<Drawing::GPUContext>();
+    RsVulkanContext::SaveNewDrawingContext(gettid(), gpuContext);
+
+    RsVulkanContext::CleanUpRecyclableDrawingContext(gettid());
+    ASSERT_TRUE(RsVulkanContext::drawingContextMap_.empty());
+}
+
+/**
+ * @tc.name: SetAndGetRecyclable
+ * @tc.desc: test set and get recyclable
+ * @tc.type:FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(RSVulkanContextTest, SetAndGetRecyclable, TestSize.Level2)
+{
+    RsVulkanContext::SetRecyclable(false);
+    ASSERT_FALSE(RsVulkanContext::IsRecyclable());
 }
 } // namespace Rosen
 } // namespace OHOS

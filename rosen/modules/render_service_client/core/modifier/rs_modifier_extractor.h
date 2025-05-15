@@ -113,6 +113,7 @@ public:
     float GetBackgroundBlurRadiusX() const;
     float GetBackgroundBlurRadiusY() const;
     bool GetBgBlurDisableSystemAdaptation() const;
+    bool GetAlwaysSnapshot() const;
 
     float GetForegroundBlurRadius() const;
     float GetForegroundBlurSaturation() const;

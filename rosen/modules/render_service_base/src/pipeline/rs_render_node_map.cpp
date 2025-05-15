@@ -157,6 +157,7 @@ bool RSRenderNodeMap::RegisterRenderNode(const std::shared_ptr<RSBaseRenderNode>
     NodeId id = nodePtr->GetId();
     pid_t pid = ExtractPid(id);
     if (!(renderNodeMap_[pid].insert({ id, nodePtr })).second) {
+        ROSEN_LOGE("RegisterRenderNode insert to Map failed, pid:%{public}d, nodeId:%{public}" PRIu64 " ", static_cast<int32_t>(pid), id);
         return false;
     }
     nodePtr->OnRegister(context_);
@@ -177,6 +178,21 @@ bool RSRenderNodeMap::RegisterRenderNode(const std::shared_ptr<RSBaseRenderNode>
         canvasDrawingNodeMap_.emplace(id, canvasDrawingNode);
     }
     return true;
+}
+
+void RSRenderNodeMap::RegisterUnTreeNode(NodeId id)
+{
+    unInTreeNodeSet_.emplace(id);
+}
+
+bool RSRenderNodeMap::UnRegisterUnTreeNode(NodeId id)
+{
+    auto iter = unInTreeNodeSet_.find(id);
+    if (iter != unInTreeNodeSet_.end()) {
+        unInTreeNodeSet_.erase(iter);
+        return true;
+    }
+    return false;
 }
 
 bool RSRenderNodeMap::RegisterDisplayRenderNode(const std::shared_ptr<RSDisplayRenderNode>& nodePtr)
@@ -295,6 +311,10 @@ void RSRenderNodeMap::FilterNodeByPid(pid_t pid)
             pair.second->FilterModifiersByPid(pid);
         }
         return ExtractPid(pair.first) == pid;
+    });
+
+    EraseIf(unInTreeNodeSet_, [pid](const auto& nodeId) -> bool {
+        return ExtractPid(nodeId) == pid;
     });
 
     if (auto fallbackNode = GetAnimationFallbackNode()) {

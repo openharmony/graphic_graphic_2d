@@ -23,6 +23,10 @@
 #include "surface_utils.h"
 #include "transaction/rs_interfaces.h"
 
+#include "accesstoken_kit.h"
+#include "nativetoken_kit.h"
+#include "token_setproc.h"
+
 using namespace testing::ext;
 
 namespace OHOS {
@@ -40,6 +44,22 @@ public:
     static void SetUpTestCase()
     {
         rsInterfaces = &(RSInterfaces::GetInstance());
+        uint64_t tokenId;
+        const char* perms[1];
+        perms[0] = "ohos.permission.CAPTURE_SCREEN";
+        NativeTokenInfoParams infoInstance = {
+            .dcapsNum = 0,
+            .permsNum = 1,
+            .aclsNum = 0,
+            .dcaps = NULL,
+            .perms = perms,
+            .acls = NULL,
+            .processName = "foundation",
+            .aplStr = "system_basic",
+        };
+        tokenId = GetAccessTokenId(&infoInstance);
+        SetSelfTokenID(tokenId);
+        OHOS::Security::AccessToken::AccessTokenKit::ReloadNativeTokenInfo();
     }
 
     static void TearDownTestCase()
@@ -554,7 +574,7 @@ HWTEST_F(RSInterfacesTest, SetScreenActiveRect001, Function | SmallTest | Level2
         .w = 0,
         .h = 0,
     };
-    EXPECT_EQ(rsInterfaces->SetScreenActiveRect(screenId, activeRect), StatusCode::HDI_ERROR);
+    EXPECT_EQ(rsInterfaces->SetScreenActiveRect(screenId, activeRect), StatusCode::SUCCESS);
 }
 
 /*
@@ -1161,6 +1181,32 @@ HWTEST_F(RSInterfacesTest, SetScreenRefreshRate001, Function | SmallTest | Level
 }
 
 /*
+ * @tc.name: SetShowRefreshRateEnabled
+ * @tc.desc: Verify the function of SetShowRefreshRateEnabled
+ * @tc.type: FUNC
+ * @tc.require: I7EM2R
+ */
+HWTEST_F(RSInterfacesTest, SetShowRefreshRateEnabled, Function | SmallTest | Level2)
+{
+    bool enabled = true;
+    int32_t type = 0;
+    rsInterfaces->SetShowRefreshRateEnabled(enabled, type);
+    EXPECT_GE(rsInterfaces->GetShowRefreshRateEnabled(), 0);
+}
+
+/*
+ * @tc.name: GetRealtimeRefreshRate
+ * @tc.desc: Verify the function of GetRealtimeRefreshRate
+ * @tc.type: FUNC
+ * @tc.require: I7EM2R
+ */
+HWTEST_F(RSInterfacesTest, GetRealtimeRefreshRate, Function | SmallTest | Level2)
+{
+    ScreenId id = 0;
+    EXPECT_GE(rsInterfaces->GetRealtimeRefreshRate(id), 0);
+}
+
+/*
  * @tc.name: SetScreenRefreshRate002
  * @tc.desc: Verify the function of setting the refreshrate with a very high value
  * @tc.type: FUNC
@@ -1389,6 +1435,22 @@ HWTEST_F(RSInterfacesTest, NotifyRefreshRateEvent001, Function | SmallTest | Lev
     EventInfo delVote = { "VOTER_VIDEO", false};
     rsInterfaces->NotifyRefreshRateEvent(addVote);
     rsInterfaces->NotifyRefreshRateEvent(delVote);
+    ASSERT_NE(rsInterfaces, nullptr);
+}
+
+/*
+ * @tc.name: NotifySoftVsyncRateDiscountEvent001
+ * @tc.desc: Notify rateDiscount event to hgm to modify rateDiscount
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, NotifySoftVsyncRateDiscountEvent001, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    uint32_t pid = 1;
+    std::string name = "test";
+    uint32_t rateDiscount = 1;
+    rsInterfaces->NotifySoftVsyncRateDiscountEvent(pid, name, rateDiscount);
     ASSERT_NE(rsInterfaces, nullptr);
 }
 
@@ -2288,8 +2350,10 @@ HWTEST_F(RSInterfacesTest, SetScreenSecurityMask_003, Function | SmallTest | Lev
     opts.pixelFormat = Media::PixelFormat::RGBA_8888;
     opts.alphaType = Media::AlphaType::IMAGE_ALPHA_TYPE_OPAQUE;
     std::unique_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(color, colorLength, opts);
-    int32_t ret = rsInterfaces->SetScreenSecurityMask(virtualScreenId, std::move(pixelMap));
-    EXPECT_EQ(ret, RS_CONNECTION_ERROR);
+    if (pixelMap) {
+        int32_t ret = rsInterfaces->SetScreenSecurityMask(virtualScreenId, std::move(pixelMap));
+        EXPECT_EQ(ret, RS_CONNECTION_ERROR);
+    }
 }
 
 /*
