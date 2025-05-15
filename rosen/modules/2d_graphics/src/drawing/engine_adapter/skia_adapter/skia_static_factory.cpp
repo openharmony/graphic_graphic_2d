@@ -217,11 +217,7 @@ DrawingSymbolLayersGroups SkiaStaticFactory::GetSymbolLayersGroups(uint16_t glyp
 std::vector<std::vector<DrawingPiecewiseParameter>> SkiaStaticFactory::GetGroupParameters(
     DrawingAnimationType type, uint16_t groupSum, uint16_t animationMode, DrawingCommonSubType commonSubType)
 {
-#if !defined(CROSS_PLATFORM)
     return SkiaHmSymbolConfigOhos::GetGroupParameters(type, groupSum, animationMode, commonSubType);
-#endif
-    std::vector<std::vector<DrawingPiecewiseParameter>> parameters;
-    return parameters;
 }
 
 std::shared_ptr<Blender> SkiaStaticFactory::CreateWithBlendMode(BlendMode mode)
