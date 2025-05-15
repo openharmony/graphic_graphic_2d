@@ -2019,6 +2019,24 @@ HWTEST_F(RSPropertiesTest, NeedFilterNClip001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: NeedHwcFilter001
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesTest, NeedHwcFilter001, TestSize.Level1)
+{
+    RSProperties properties;
+    EXPECT_FALSE(properties.NeedHwcFilter());
+
+    properties.needHwcFilter_ = true;
+    EXPECT_TRUE(properties.NeedHwcFilter());
+
+    properties.needHwcFilter_ = false;
+    EXPECT_FALSE(properties.NeedHwcFilter());
+}
+
+/**
  * @tc.name: NeedBlurFuzed001
  * @tc.desc: test results of NeedBlurFuzed
  * @tc.type:FUNC
