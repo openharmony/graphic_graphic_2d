@@ -268,4 +268,18 @@ HWTEST_F(ParagraphBuilderTest, ParagraphBuilderTest014, TestSize.Level1)
      EXPECT_EQ(skStyle.getParagraphSpacing(), txt.paragraphSpacing);
      EXPECT_EQ(skStyle.getIsEndAddParagraphSpacing(), txt.isEndAddParagraphSpacing);
  }
+
+/*
+ * @tc.name: ParagraphBuilderTest016
+ * @tc.desc: test for TextStyleToSkStyle AutoSpace
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParagraphBuilderTest, ParagraphBuilderTest016, TestSize.Level1)
+{
+     skia::textlayout::ParagraphStyle skStyle;
+     ParagraphStyle txt;
+     txt.enableAutoSpace = true;
+     skStyle.setEnableAutoSpace(txt.enableAutoSpace);
+     EXPECT_EQ(skStyle.getEnableAutoSpace(), txt.enableAutoSpace);
+}
 } // namespace txt

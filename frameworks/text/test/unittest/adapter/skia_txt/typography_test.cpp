@@ -788,5 +788,87 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest021, TestSize.Level
         EXPECT_EQ(item.second.textStyle->baseLineShift, 10);
     }
 }
+
+/*
+ * @tc.name: OH_Drawing_TypographyTest022
+ * @tc.desc: test for multi-run and multi-line paragraph width with autospace
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest022, TestSize.Level1)
+{
+    OHOS::Rosen::TextStyle style;
+    style.fontSize = 40;
+
+    // Init: Create a multi runs and lines paragraph width without autospace. Use its width as baseline.
+    OHOS::Rosen::TypographyStyle typographyStyle0;
+    typographyStyle0.enableAutoSpace = false;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection0 =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate0 =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle0, fontCollection0);
+    typographyCreate0->PushStyle(style);
+    std::u16string text = u"版权所有©2002-2001叉叉公司保留一切权利。";
+    typographyCreate0->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography0 = typographyCreate0->CreateTypography();
+    double maxWidth = 1500;
+    typography0->Layout(maxWidth);
+
+    // Test the scenario of setting autospace for text containing multiple runs and lines paragraph.
+    OHOS::Rosen::TypographyStyle typographyStyle1;
+    typographyStyle1.enableAutoSpace = true;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection1 =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate1 =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle1, fontCollection1);
+    typographyCreate1->PushStyle(style);
+    typographyCreate1->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography1 = typographyCreate1->CreateTypography();
+    typography1->Layout(maxWidth);
+
+    EXPECT_NEAR(typography0->GetLineWidth(0) + style.fontSize / 8 * 3, typography1->GetLineWidth(0), 1e-6f);
+    EXPECT_NEAR(typography0->GetLongestLineWithIndent() + style.fontSize / 8 * 3,
+        typography1->GetLongestLineWithIndent(), 1e-6f);
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographyTest023
+ * @tc.desc: test for single-run and one-line paragraph width with autospace
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest023, TestSize.Level1)
+{
+    OHOS::Rosen::TextStyle style;
+    style.fontSize = 40;
+
+    // Init: Create a single-run and one-line paragraph width without autospace. Use its width as baseline.
+    OHOS::Rosen::TypographyStyle typographyStyle0;
+    typographyStyle0.enableAutoSpace = false;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection0 =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate0 =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle0, fontCollection0);
+    typographyCreate0->PushStyle(style);
+    std::u16string text = u"SingRun©2002-2001";
+    typographyCreate0->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography0 = typographyCreate0->CreateTypography();
+    double maxWidth = 1500;
+    typography0->Layout(maxWidth);
+
+    // Test the scenario of setting autospace for text containing multiple runs and lines paragraph.
+    OHOS::Rosen::TypographyStyle typographyStyle1;
+    typographyStyle1.enableAutoSpace = true;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection1 =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate1 =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle1, fontCollection1);
+    typographyCreate1->PushStyle(style);
+    typographyCreate1->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography1 = typographyCreate1->CreateTypography();
+    typography1->Layout(maxWidth);
+
+    EXPECT_NEAR(typography0->GetLineWidth(0) + style.fontSize / 8 * 2, typography1->GetLineWidth(0), 1e-6f);
+    EXPECT_NEAR(typography0->GetLongestLineWithIndent() + style.fontSize / 8 * 2,
+        typography1->GetLongestLineWithIndent(), 1e-6f);
+}
 } // namespace Rosen
 } // namespace OHOS

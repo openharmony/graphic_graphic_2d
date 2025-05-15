@@ -100,6 +100,7 @@ public:
         relayoutChangeBitmap;
     size_t defaultTextStyleUid { 0 };
     bool halfLeading { false };
+    bool enableAutoSpace{false};
 };
 } // namespace SPText
 } // namespace Rosen
