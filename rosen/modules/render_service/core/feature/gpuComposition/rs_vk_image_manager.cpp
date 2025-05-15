@@ -176,6 +176,7 @@ void RSVkImageManager::UnMapVkImageFromSurfaceBuffer(uint32_t seqNum)
         if (iter == imageCacheSeqs_.end()) {
             return;
         }
+        RS_TRACE_NAME_FMT("RSVkImageManagerDfx: unmap image, bufferId=%u", seqNum);
         imageCacheSeqs_.erase(iter);
         DFX_LOGD(ENABLE_VKIMAGE_DFX, "RSVkImageManagerDfx: UnmapImage, bufferId=%{public}u, "
             "cacheSeq=[%{public}lu]",
