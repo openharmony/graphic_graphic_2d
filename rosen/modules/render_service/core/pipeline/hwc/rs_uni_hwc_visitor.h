@@ -35,6 +35,8 @@ public:
     bool UpdateIsOffscreen(RSCanvasRenderNode& node);
     void RestoreIsOffscreen(bool isOffscreen) { isOffscreen_ = isOffscreen; }
 
+    void UpdateForegroundColorValid(RSCanvasRenderNode& node);
+
     Color FindAppBackgroundColor(RSSurfaceRenderNode& node);
     bool CheckNodeOcclusion(const std::shared_ptr<RSRenderNode>& node,
         const RectI& nodeAbsRect, Color& nodeBgColor);
@@ -91,8 +93,8 @@ private:
     // Functions
     bool FindRootAndUpdateMatrix(std::shared_ptr<RSRenderNode>& parent, Drawing::Matrix& matrix,
         const RSRenderNode& rootNode);
-    void UpdateHWCNodeClipRect(std::shared_ptr<RSSurfaceRenderNode>& hwcNodePtr, RectI& clipRect,
-        const RSRenderNode& rootNode);
+    void UpdateHwcNodeClipRect(const std::shared_ptr<RSSurfaceRenderNode>& hwcNodePtr,
+        RectI& clipRect, const RSRenderNode& rootNode);
 
     // indicates if hardware composer is totally disabled
     bool isHardwareForcedDisabled_ = false;

@@ -162,13 +162,19 @@ bool RSUniHwcVisitor::UpdateIsOffscreen(RSCanvasRenderNode& node)
 {
     const auto& property = node.GetRenderProperties();
     bool isCurrOffscreen = isOffscreen_;
-    isOffscreen_ |= property.IsColorBlendApplyTypeOffscreen() && !property.IsColorBlendModeNone();
+    isOffscreen_ |= (property.IsColorBlendApplyTypeOffscreen() && !property.IsColorBlendModeNone()) ||
+        RSUniHwcComputeUtil::IsDangerousBlendMode(property.GetColorBlendMode(), property.GetColorBlendApplyType());
     // The meaning of first prepared offscreen node is either its colorBlendApplyType is not FAST or
     // its colorBlendMode is NONE.
     // Node will classified as blendWithBackground if it is the first prepared offscreen node and
     // its colorBlendMode is neither NONE nor SRC_OVER.
-    node.GetHwcRecorder().SetBlendWithBackground(!isCurrOffscreen && isOffscreen_ && property.IsColorBlendModeValid());
+    node.GetHwcRecorder().SetBlendWithBackground(!isCurrOffscreen && property.IsColorBlendModeValid());
     return isCurrOffscreen;
+}
+
+void RSUniHwcVisitor::UpdateForegroundColorValid(RSCanvasRenderNode& node)
+{
+    node.GetHwcRecorder().SetForegroundColorValid(RSUniHwcComputeUtil::IsForegroundColorStrategyValid(node));
 }
 
 bool RSUniHwcVisitor::CheckNodeOcclusion(const std::shared_ptr<RSRenderNode>& node,
@@ -962,7 +968,7 @@ void RSUniHwcVisitor::UpdateHwcNodeRectInSkippedSubTree(const RSRenderNode& root
             }
         }
         RectI clipRect;
-        UpdateHWCNodeClipRect(hwcNodePtr, clipRect, rootNode);
+        UpdateHwcNodeClipRect(hwcNodePtr, clipRect, rootNode);
         auto surfaceHandler = hwcNodePtr->GetMutableRSSurfaceHandler();
         auto& properties = hwcNodePtr->GetMutableRenderProperties();
         auto offset = std::nullopt;
@@ -1011,8 +1017,8 @@ bool RSUniHwcVisitor::FindRootAndUpdateMatrix(std::shared_ptr<RSRenderNode>& par
     return findInRoot;
 }
 
-void RSUniHwcVisitor::UpdateHWCNodeClipRect(std::shared_ptr<RSSurfaceRenderNode>& hwcNodePtr, RectI& clipRect,
-    const RSRenderNode& rootNode)
+void RSUniHwcVisitor::UpdateHwcNodeClipRect(const std::shared_ptr<RSSurfaceRenderNode>& hwcNodePtr,
+    RectI& clipRect, const RSRenderNode& rootNode)
 {
     // The value here represents an imaginary plane of infinite width and infinite height,
     // using values summarized empirically.

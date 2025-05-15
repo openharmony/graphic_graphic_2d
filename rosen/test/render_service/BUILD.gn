@@ -125,6 +125,7 @@ group("test") {
     "render_service_base/unittest/drawable:unittest",
     "render_service_base/unittest/feature:unittest",
     "render_service_base/unittest/gfx:unittest",
+    "render_service_base/unittest/hwc:unittest",
     "render_service_base/unittest/ipc_callbacks:unittest",
     "render_service_base/unittest/memory:unittest",
     "render_service_base/unittest/modifier:unittest",
