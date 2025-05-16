@@ -84,6 +84,8 @@ enum RSNodeCommandType : uint16_t {
     COMMIT_DUMP_CLIENT_NODE_TREE = 0x0701,
 
     SET_UICONTEXT_TOKEN = 0x0800,
+
+    SET_DRAW_NODE_TYPE = 0x0900,
 };
 
 class RSB_EXPORT RSNodeCommandHelper {
@@ -167,6 +169,7 @@ public:
         const std::string& result);
     static RSB_EXPORT void SetCommitDumpNodeTreeProcessor(CommitDumpNodeTreeProcessor processor);
     static void SetUIToken(RSContext& context, NodeId nodeId, uint64_t token);
+    static void SetDrawNodeType(RSContext& context, NodeId nodeId, DrawNodeType nodeType);
 };
 
 ADD_COMMAND(RSAddModifier,
@@ -333,6 +336,9 @@ ADD_COMMAND(RSDumpClientNodeTree,
 ADD_COMMAND(RSCommitDumpClientNodeTree,
     ARG(PERMISSION_APP, RS_NODE, COMMIT_DUMP_CLIENT_NODE_TREE,
         RSNodeCommandHelper::CommitDumpClientNodeTree, NodeId, pid_t, uint32_t, std::string))
+ADD_COMMAND(RSSetDrawNodeType,
+    ARG(PERMISSION_APP, RS_NODE, SET_DRAW_NODE_TYPE,
+        RSNodeCommandHelper::SetDrawNodeType, NodeId, DrawNodeType))
 } // namespace Rosen
 } // namespace OHOS
 

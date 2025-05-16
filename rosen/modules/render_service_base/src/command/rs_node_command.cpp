@@ -205,5 +205,14 @@ void RSNodeCommandHelper::SetUIToken(RSContext& context, NodeId nodeId, uint64_t
         node->SetUIContextToken(token);
     }
 }
+
+void RSNodeCommandHelper::SetDrawNodeType(RSContext& context, NodeId nodeId, DrawNodeType nodeType)
+{
+    auto& nodeMap = context.GetNodeMap();
+    auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId);
+    if (node) {
+        node->SetDrawNodeType(nodeType);
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

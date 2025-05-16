@@ -440,6 +440,8 @@ public:
     bool NeedInitCacheCompletedSurface();
     bool IsPureContainer() const;
     bool IsContentNode() const;
+    void SetDrawNodeType(DrawNodeType nodeType);
+    DrawNodeType GetDrawNodeType() const;
 
     inline const RSRenderContent::DrawCmdContainer& GetDrawCmdModifiers() const
     {
@@ -1071,6 +1073,7 @@ private:
     bool childrenHasUIExtension_ = false;
     bool isAccessibilityConfigChanged_ = false;
     const bool isPurgeable_;
+    DrawNodeType drawNodeType_ = DrawNodeType::PureContainerType;
     std::atomic<bool> isTunnelHandleChange_ = false;
     std::atomic<bool> isCacheSurfaceNeedUpdate_ = false;
     std::atomic<bool> commandExecuted_ = false;

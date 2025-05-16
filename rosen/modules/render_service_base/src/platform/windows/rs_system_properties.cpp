@@ -665,6 +665,11 @@ uint32_t RSSystemProperties::GetHybridRenderTextBlobLenCount()
     return 0;
 }
 
+bool RSSystemProperties::ViewDrawNodeType()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetHybridRenderParallelConvertEnabled()
 {
     return false;

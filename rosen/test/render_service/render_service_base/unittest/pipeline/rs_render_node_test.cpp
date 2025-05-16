@@ -246,6 +246,33 @@ HWTEST_F(RSRenderNodeTest, SetDrawingCacheTypeTest, TestSize.Level2)
     ASSERT_EQ(node.GetDrawingCacheType(), RSDrawingCacheType::TARGETED_CACHE);
 }
 
+
+/**
+ * @tc.name: SetDrawNodeType
+ * @tc.desc: test results of SetDrawNodeType
+ * @tc.type: FUNC
+ * @tc.require: IC8BLE
+ */
+HWTEST_F(RSRenderNodeTest, SetDrawNodeType001, TestSize.Level1)
+{
+    RSRenderNode rsNode(id, context);
+    rsNode.SetDrawNodeType(DrawNodeType::PureContainerType);
+    ASSERT_EQ(rsNode.drawNodeType_, DrawNodeType::PureContainerType);
+}
+
+/**
+ * @tc.name: GetDrawNodeType
+ * @tc.desc: test results of GetDrawNodeType
+ * @tc.type: FUNC
+ * @tc.require: IC8BLE
+ */
+HWTEST_F(RSRenderNodeTest, SetDrawNodeType002, TestSize.Level1)
+{
+    RSRenderNode rsNode(id, context);
+    rsNode.SetDrawNodeType(DrawNodeType::GeometryPropertyType);
+    ASSERT_EQ(rsNode.GetDrawNodeType(), DrawNodeType::GeometryPropertyType);
+}
+
 /**
  * @tc.name: ResetFilterRectsInCacheTest
  * @tc.desc: test ResetFilterRectsInCache api

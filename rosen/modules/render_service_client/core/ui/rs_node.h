@@ -79,6 +79,13 @@ public:
     RSNode& operator=(const RSNode&&) = delete;
     virtual ~RSNode();
 
+    /*
+    * <important>
+    * If you want to add a draw interface to RSNode, decide whether to set the draw node type, otherwise,
+    * RSNode will be removed because there is no draw properties.
+    */
+    void SetDrawNodeType(DrawNodeType nodeType);
+
     // this id is ONLY used in hierarchy operation commands, this may differ from id_ when the node is a proxy node.
     virtual NodeId GetHierarchyCommandNodeId() const
     {
@@ -554,6 +561,8 @@ public:
     static void SetDrawNodeChangeCallback(DrawNodeChangeCallback callback);
     bool GetIsDrawn();
     void SetDrawNode();
+    DrawNodeType GetDrawNodeType() const;
+    void SyncDrawNodeType(DrawNodeType nodeType);
 
     std::shared_ptr<RSUIContext> GetRSUIContext()
     {
@@ -690,6 +699,8 @@ private:
 
     bool isSuggestOpincNode_ = false;
     bool isDrawNode_ = false;
+    // Used to identify whether the node has real drawing property
+    DrawNodeType drawNodeType_ = DrawNodeType::PureContainerType;
 
     bool isUifirstNode_ = true;
     bool isForceFlag_ = false;

@@ -705,6 +705,11 @@ int32_t RSSystemProperties::GetHybridRenderSwitch(ComponentEnableSwitch bitSeq)
     return 0;
 }
 
+bool RSSystemProperties::ViewDrawNodeType()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetVKImageUseEnabled()
 {
     return false;

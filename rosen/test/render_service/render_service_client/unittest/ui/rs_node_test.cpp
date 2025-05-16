@@ -7945,6 +7945,48 @@ HWTEST_F(RSNodeTest, SetSkipCheckInMultiInstance, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetDrawNodeType
+ * @tc.desc: test results of SetDrawNodeType
+ * @tc.type: FUNC
+ * @tc.require: IC8BLE
+ */
+HWTEST_F(RSNodeTest, SetDrawNodeType001, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetNodeName("testNode");
+    rsNode->SetDrawNodeType(DrawNodeType::PureContainerType);
+    ASSERT_EQ(rsNode->drawNodeType_, DrawNodeType::PureContainerType);
+}
+
+/**
+ * @tc.name: GetDrawNodeType
+ * @tc.desc: test results of GetDrawNodeType
+ * @tc.type: FUNC
+ * @tc.require: IC8BLE
+ */
+HWTEST_F(RSNodeTest, SetDrawNodeType002, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetNodeName("testNode");
+    rsNode->SetDrawNodeType(DrawNodeType::GeometryPropertyType);
+    ASSERT_EQ(rsNode->GetDrawNodeType(), DrawNodeType::GeometryPropertyType);
+}
+
+/**
+ * @tc.name: SyncDrawNodeType
+ * @tc.desc: test results of SyncDrawNodeType
+ * @tc.type: FUNC
+ * @tc.require: IC8BLE
+ */
+HWTEST_F(RSNodeTest, SyncDrawNodeType, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetNodeName("testNode");
+    rsNode->SyncDrawNodeType(DrawNodeType::PureContainerType);
+    ASSERT_EQ(rsNode->drawNodeType_, DrawNodeType::PureContainerType);
+}
+
+/**
  * @tc.name: DumpTree
  * @tc.desc: test results of DumpTree
  * @tc.type: FUNC

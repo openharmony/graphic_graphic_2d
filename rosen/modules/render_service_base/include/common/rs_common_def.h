@@ -592,6 +592,14 @@ struct VSyncConnParam {
     NodeId windowNodeId = 0;
     bool fromXcomponent = false;
 };
+
+enum DrawNodeType : uint32_t {
+    PureContainerType = 0,
+    MergeableType,
+    DrawPropertyType,
+    GeometryPropertyType
+};
+
 } // namespace Rosen
 } // namespace OHOS
 #endif // RENDER_SERVICE_CLIENT_CORE_COMMON_RS_COMMON_DEF_H

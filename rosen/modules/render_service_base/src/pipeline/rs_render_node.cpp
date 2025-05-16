@@ -97,6 +97,28 @@ bool RSRenderNode::IsPureContainer() const
     return (drawCmdModifiers_.empty() && !GetRenderProperties().isDrawn_ && !GetRenderProperties().alphaNeedApply_);
 }
 
+void RSRenderNode::SetDrawNodeType(DrawNodeType nodeType)
+{
+    drawNodeType_ = nodeType;
+}
+
+DrawNodeType RSRenderNode::GetDrawNodeType() const
+{
+    return drawNodeType_;
+}
+
+std::string DrawNodeTypeToString(DrawNodeType nodeType)
+{
+    // Corresponding to DrawNodeType
+    const std::string typeMap[] = {
+        "PureContainerType",
+        "MergeableType",
+        "DrawPropertyType",
+        "GeometryPropertyType"
+    };
+    return typeMap[nodeType];
+}
+
 bool RSRenderNode::IsContentNode() const
 {
     auto& drawCmdModifiers_ = renderContent_->drawCmdModifiers_;
@@ -853,6 +875,9 @@ void RSRenderNode::DumpTree(int32_t depth, std::string& out) const
     }
     if (IsPureContainer()) {
         out += ", IsPureContainer: true";
+    }
+    if (RSSystemProperties::ViewDrawNodeType() && GetType() == RSRenderNodeType::CANVAS_NODE) {
+        out += "DrawNodeType: " + DrawNodeTypeToString(GetDrawNodeType());
     }
     if (!oldDirty_.IsEmpty()) {
         out += ", oldDirty: " + oldDirty_.ToString();

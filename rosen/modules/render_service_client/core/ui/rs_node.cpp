@@ -615,6 +615,7 @@ void RSNode::AddAnimationInner(const std::shared_ptr<RSAnimation>& animation)
     animations_.emplace(animation->GetId(), animation);
     animatingPropertyNum_[animation->GetPropertyId()]++;
     SetDrawNode();
+    SetDrawNodeType(DrawNodeType::DrawPropertyType);
 }
 
 void RSNode::RemoveAnimationInner(const std::shared_ptr<RSAnimation>& animation)
@@ -874,6 +875,7 @@ void RSNode::SetAlpha(float alpha)
     SetProperty<RSAlphaModifier, RSAnimatableProperty<float>>(RSModifierType::ALPHA, alpha);
     if (alpha < 1) {
         SetDrawNode();
+        SetDrawNodeType(DrawNodeType::DrawPropertyType);
     }
 }
 
@@ -889,6 +891,7 @@ void RSNode::SetBounds(const Vector4f& bounds)
     OnBoundsSizeChanged();
     if (bounds.x_ != 0 || bounds.y_ != 0) {
         SetDrawNode();
+        SetDrawNodeType(DrawNodeType::MergeableType);
     }
 }
 
@@ -949,6 +952,7 @@ void RSNode::SetFrame(const Vector4f& bounds)
     SetProperty<RSFrameModifier, RSAnimatableProperty<Vector4f>>(RSModifierType::FRAME, bounds);
     if (bounds.x_ != 0 || bounds.y_ != 0) {
         SetDrawNode();
+        SetDrawNodeType(DrawNodeType::MergeableType);
     }
 }
 
@@ -978,6 +982,7 @@ void RSNode::SetFramePositionX(float positionX)
     frame.x_ = positionX;
     property->Set(frame);
     SetDrawNode();
+    SetDrawNodeType(DrawNodeType::MergeableType);
 }
 
 void RSNode::SetFramePositionY(float positionY)
@@ -1001,6 +1006,7 @@ void RSNode::SetFramePositionY(float positionY)
     frame.y_ = positionY;
     property->Set(frame);
     SetDrawNode();
+    SetDrawNodeType(DrawNodeType::MergeableType);
 }
 
 void RSNode::SetSandBox(std::optional<Vector2f> parentPosition)
@@ -1036,11 +1042,13 @@ void RSNode::SetPositionZApplicableCamera3D(bool isApplicable)
 void RSNode::SetPivot(const Vector2f& pivot)
 {
     SetProperty<RSPivotModifier, RSAnimatableProperty<Vector2f>>(RSModifierType::PIVOT, pivot);
+    SetDrawNodeType(DrawNodeType::GeometryPropertyType);
 }
 
 void RSNode::SetPivot(float pivotX, float pivotY)
 {
     SetPivot({ pivotX, pivotY });
+    SetDrawNodeType(DrawNodeType::GeometryPropertyType);
 }
 
 void RSNode::SetPivotX(float pivotX)
@@ -1063,6 +1071,7 @@ void RSNode::SetPivotX(float pivotX)
     auto pivot = property->Get();
     pivot.x_ = pivotX;
     property->Set(pivot);
+    SetDrawNodeType(DrawNodeType::GeometryPropertyType);
 }
 
 void RSNode::SetPivotY(float pivotY)
@@ -1085,11 +1094,13 @@ void RSNode::SetPivotY(float pivotY)
     auto pivot = property->Get();
     pivot.y_ = pivotY;
     property->Set(pivot);
+    SetDrawNodeType(DrawNodeType::GeometryPropertyType);
 }
 
 void RSNode::SetPivotZ(const float pivotZ)
 {
     SetProperty<RSPivotZModifier, RSAnimatableProperty<float>>(RSModifierType::PIVOT_Z, pivotZ);
+    SetDrawNodeType(DrawNodeType::GeometryPropertyType);
 }
 
 void RSNode::SetCornerRadius(float cornerRadius)
@@ -1106,11 +1117,13 @@ void RSNode::SetCornerRadius(const Vector4f& cornerRadius)
 void RSNode::SetRotation(const Quaternion& quaternion)
 {
     SetProperty<RSQuaternionModifier, RSAnimatableProperty<Quaternion>>(RSModifierType::QUATERNION, quaternion);
+    SetDrawNodeType(DrawNodeType::GeometryPropertyType);
 }
 
 void RSNode::SetRotation(float degree)
 {
     SetProperty<RSRotationModifier, RSAnimatableProperty<float>>(RSModifierType::ROTATION, degree);
+    SetDrawNodeType(DrawNodeType::GeometryPropertyType);
 }
 
 void RSNode::SetRotation(float degreeX, float degreeY, float degreeZ)
@@ -1118,16 +1131,19 @@ void RSNode::SetRotation(float degreeX, float degreeY, float degreeZ)
     SetRotationX(degreeX);
     SetRotationY(degreeY);
     SetRotation(degreeZ);
+    SetDrawNodeType(DrawNodeType::GeometryPropertyType);
 }
 
 void RSNode::SetRotationX(float degree)
 {
     SetProperty<RSRotationXModifier, RSAnimatableProperty<float>>(RSModifierType::ROTATION_X, degree);
+    SetDrawNodeType(DrawNodeType::GeometryPropertyType);
 }
 
 void RSNode::SetRotationY(float degree)
 {
     SetProperty<RSRotationYModifier, RSAnimatableProperty<float>>(RSModifierType::ROTATION_Y, degree);
+    SetDrawNodeType(DrawNodeType::GeometryPropertyType);
 }
 
 void RSNode::SetCameraDistance(float cameraDistance)
@@ -1138,12 +1154,14 @@ void RSNode::SetCameraDistance(float cameraDistance)
 void RSNode::SetTranslate(const Vector2f& translate)
 {
     SetProperty<RSTranslateModifier, RSAnimatableProperty<Vector2f>>(RSModifierType::TRANSLATE, translate);
+    SetDrawNodeType(DrawNodeType::GeometryPropertyType);
 }
 
 void RSNode::SetTranslate(float translateX, float translateY, float translateZ)
 {
     SetTranslate({ translateX, translateY });
     SetTranslateZ(translateZ);
+    SetDrawNodeType(DrawNodeType::GeometryPropertyType);
 }
 
 void RSNode::SetTranslateX(float translate)
@@ -1166,6 +1184,7 @@ void RSNode::SetTranslateX(float translate)
     auto trans = property->Get();
     trans.x_ = translate;
     property->Set(trans);
+    SetDrawNodeType(DrawNodeType::GeometryPropertyType);
 }
 
 void RSNode::SetTranslateY(float translate)
@@ -1188,26 +1207,31 @@ void RSNode::SetTranslateY(float translate)
     auto trans = property->Get();
     trans.y_ = translate;
     property->Set(trans);
+    SetDrawNodeType(DrawNodeType::GeometryPropertyType);
 }
 
 void RSNode::SetTranslateZ(float translate)
 {
     SetProperty<RSTranslateZModifier, RSAnimatableProperty<float>>(RSModifierType::TRANSLATE_Z, translate);
+    SetDrawNodeType(DrawNodeType::GeometryPropertyType);
 }
 
 void RSNode::SetScale(float scale)
 {
     SetScale({ scale, scale });
+    SetDrawNodeType(DrawNodeType::GeometryPropertyType);
 }
 
 void RSNode::SetScale(float scaleX, float scaleY)
 {
     SetScale({ scaleX, scaleY });
+    SetDrawNodeType(DrawNodeType::GeometryPropertyType);
 }
 
 void RSNode::SetScale(const Vector2f& scale)
 {
     SetProperty<RSScaleModifier, RSAnimatableProperty<Vector2f>>(RSModifierType::SCALE, scale);
+    SetDrawNodeType(DrawNodeType::GeometryPropertyType);
 }
 
 void RSNode::SetScaleX(float scaleX)
@@ -1230,6 +1254,7 @@ void RSNode::SetScaleX(float scaleX)
     auto scale = property->Get();
     scale.x_ = scaleX;
     property->Set(scale);
+    SetDrawNodeType(DrawNodeType::GeometryPropertyType);
 }
 
 void RSNode::SetScaleY(float scaleY)
@@ -1252,31 +1277,37 @@ void RSNode::SetScaleY(float scaleY)
     auto scale = property->Get();
     scale.y_ = scaleY;
     property->Set(scale);
+    SetDrawNodeType(DrawNodeType::GeometryPropertyType);
 }
 
 void RSNode::SetScaleZ(const float& scaleZ)
 {
     SetProperty<RSScaleZModifier, RSAnimatableProperty<float>>(RSModifierType::SCALE_Z, scaleZ);
+    SetDrawNodeType(DrawNodeType::GeometryPropertyType);
 }
 
 void RSNode::SetSkew(float skew)
 {
     SetSkew({ skew, skew, skew });
+    SetDrawNodeType(DrawNodeType::GeometryPropertyType);
 }
 
 void RSNode::SetSkew(float skewX, float skewY)
 {
     SetSkew({ skewX, skewY, 0.f });
+    SetDrawNodeType(DrawNodeType::GeometryPropertyType);
 }
 
 void RSNode::SetSkew(float skewX, float skewY, float skewZ)
 {
     SetSkew({ skewX, skewY, skewZ });
+    SetDrawNodeType(DrawNodeType::GeometryPropertyType);
 }
 
 void RSNode::SetSkew(const Vector3f& skew)
 {
     SetProperty<RSSkewModifier, RSAnimatableProperty<Vector3f>>(RSModifierType::SKEW, skew);
+    SetDrawNodeType(DrawNodeType::GeometryPropertyType);
 }
 
 void RSNode::SetSkewX(float skewX)
@@ -1296,6 +1327,7 @@ void RSNode::SetSkewX(float skewX)
     auto skew = property->Get();
     skew.x_ = skewX;
     property->Set(skew);
+    SetDrawNodeType(DrawNodeType::GeometryPropertyType);
 }
 
 void RSNode::SetSkewY(float skewY)
@@ -1315,6 +1347,7 @@ void RSNode::SetSkewY(float skewY)
     auto skew = property->Get();
     skew.y_ = skewY;
     property->Set(skew);
+    SetDrawNodeType(DrawNodeType::GeometryPropertyType);
 }
 
 void RSNode::SetRSUIContext(std::shared_ptr<RSUIContext> rsUIContext)
@@ -1368,26 +1401,31 @@ void RSNode::SetSkewZ(float skewZ)
     auto skew = property->Get();
     skew.z_ = skewZ;
     property->Set(skew);
+    SetDrawNodeType(DrawNodeType::GeometryPropertyType);
 }
 
 void RSNode::SetPersp(float persp)
 {
     SetPersp({ persp, persp, 0.f, 1.f });
+    SetDrawNodeType(DrawNodeType::GeometryPropertyType);
 }
 
 void RSNode::SetPersp(float perspX, float perspY)
 {
     SetPersp({ perspX, perspY, 0.f, 1.f });
+    SetDrawNodeType(DrawNodeType::GeometryPropertyType);
 }
 
 void RSNode::SetPersp(float perspX, float perspY, float perspZ, float perspW)
 {
     SetPersp({ perspX, perspY, perspZ, perspW });
+    SetDrawNodeType(DrawNodeType::GeometryPropertyType);
 }
 
 void RSNode::SetPersp(const Vector4f& persp)
 {
     SetProperty<RSPerspModifier, RSAnimatableProperty<Vector4f>>(RSModifierType::PERSP, persp);
+    SetDrawNodeType(DrawNodeType::GeometryPropertyType);
 }
 
 void RSNode::SetPerspX(float perspX)
@@ -1407,6 +1445,7 @@ void RSNode::SetPerspX(float perspX)
     auto persp = property->Get();
     persp.x_ = perspX;
     property->Set(persp);
+    SetDrawNodeType(DrawNodeType::GeometryPropertyType);
 }
 
 void RSNode::SetPerspY(float perspY)
@@ -1426,6 +1465,7 @@ void RSNode::SetPerspY(float perspY)
     auto persp = property->Get();
     persp.y_ = perspY;
     property->Set(persp);
+    SetDrawNodeType(DrawNodeType::GeometryPropertyType);
 }
 
 void RSNode::SetPerspZ(float perspZ)
@@ -1444,6 +1484,7 @@ void RSNode::SetPerspZ(float perspZ)
     auto persp = property->Get();
     persp.z_ = perspZ;
     property->Set(persp);
+    SetDrawNodeType(DrawNodeType::GeometryPropertyType);
 }
 
 void RSNode::SetPerspW(float perspW)
@@ -1462,6 +1503,7 @@ void RSNode::SetPerspW(float perspW)
     auto persp = property->Get();
     persp.w_ = perspW;
     property->Set(persp);
+    SetDrawNodeType(DrawNodeType::GeometryPropertyType);
 }
 
 // Set the foreground color of the control
@@ -1585,6 +1627,7 @@ void RSNode::SetBackgroundColor(uint32_t colorValue)
     SetProperty<RSBackgroundColorModifier, RSAnimatableProperty<Color>>(RSModifierType::BACKGROUND_COLOR, color);
     if (color.GetAlpha() > 0) {
         SetDrawNode();
+        SetDrawNodeType(DrawNodeType::DrawPropertyType);
     }
 }
 
@@ -2588,6 +2631,7 @@ void RSNode::AddModifier(const std::shared_ptr<RSModifier> modifier)
         modifier->GetModifierType() != RSModifierType::ALPHA &&
         modifier->GetModifierType() != RSModifierType::CORNER_RADIUS) {
         SetDrawNode();
+        SetDrawNodeType(DrawNodeType::DrawPropertyType);
     }
     std::unique_ptr<RSCommand> command = std::make_unique<RSAddModifier>(GetId(), modifier->CreateRenderModifier());
     AddCommand(command, IsRenderServiceNode(), GetFollowType(), GetId());
@@ -2925,6 +2969,43 @@ void RSNode::SetDrawNode()
 bool RSNode::GetIsDrawn()
 {
     return isDrawNode_;
+}
+
+
+/**
+ * @brief Sets the drawing type of RSnode
+ * 
+ * This function is used to set the corresponding draw type when
+ * adding draw properties to RSnode, so that it is easy to identify
+ * which draw nodes are really needed.
+ * 
+ * @param nodeType The type of node that needs to be set.
+ *
+*/
+void RSNode::SetDrawNodeType(DrawNodeType nodeType)
+{
+    // Assign values according to the priority rules
+    if (nodeType <= drawNodeType_) {
+        return;
+    }
+    drawNodeType_ = nodeType;
+    if (RSSystemProperties::ViewDrawNodeType()) {
+        SyncDrawNodeType(nodeType);
+    }
+}
+
+DrawNodeType RSNode::GetDrawNodeType() const
+{
+    return drawNodeType_;
+}
+
+void RSNode::SyncDrawNodeType(DrawNodeType nodeType)
+{
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSSetDrawNodeType>(GetId(), nodeType);
+    if (AddCommand(command, true)) {
+        ROSEN_LOGD("RSNode::SyncDrawNodeType nodeType: %{public}d", nodeType);
+    }
 }
 
 void RSNode::SetUIFirstSwitch(RSUIFirstSwitch uiFirstSwitch)

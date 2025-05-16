@@ -335,6 +335,7 @@ public:
         return RSSystemProperties::GetGpuApiType() != GpuApiType::OPENGL;
     }
 
+    static bool ViewDrawNodeType();
     static bool GetJankLoadOptimizeEnabled();
     static int GetRSNodeLimit();
     static std::string GetVersionType();

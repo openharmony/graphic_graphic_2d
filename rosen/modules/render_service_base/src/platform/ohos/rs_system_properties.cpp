@@ -1426,6 +1426,13 @@ uint32_t RSSystemProperties::GetHybridRenderTextBlobLenCount()
     return textBlobLenCount;
 }
 
+bool RSSystemProperties::ViewDrawNodeType()
+{
+    static CachedHandle handle = CachedParameterCreate("persist.graphic.ViewDrawNodeType", "0");
+    int32_t changed = 0;
+    return ConvertToInt(CachedParameterGetChanged(handle, &changed), 0) != 0;
+}
+
 bool RSSystemProperties::GetHybridRenderParallelConvertEnabled()
 {
     static bool paraConvertEnabled = GetHybridRenderSystemEnabled() &&
