@@ -889,11 +889,6 @@ public:
     // Enable HWCompose
     RSHwcRecorder& GetHwcRecorder() { return hwcRecorder_; }
 
-    // Determines node opaque and occlusion culling participation for control-level occlusion
-    void GetOcclusionInfo(const std::unordered_set<RSModifierType>& opaqueModifiers,
-        const std::unordered_set<RSModifierType>& occluderModifiers,
-        bool& isOpaque, bool& isSubTreeIgnored) const;
-
     RSOpincCache& GetOpincCache()
     {
         return opincCache_;
