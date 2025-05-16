@@ -1125,7 +1125,6 @@ bool RSUniHwcVisitor::IsDisableHwcOnExpandScreen() const
 void RSUniHwcVisitor::UpdateHwcNodeInfo(RSSurfaceRenderNode& node,
     const Drawing::Matrix& absMatrix, bool subTreeSkipped)
 {
-
     node.SetHardwareForcedDisabledState(node.GetIsHwcPendingDisabled());
     if (node.GetIsHwcPendingDisabled()) {
         RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " disabled by IsHwcPendingDisabled",
