@@ -2814,6 +2814,11 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
+            const uint32_t MAX_VOTER_SIZE = 100;
+            if (mapSize > MAX_VOTER_SIZE) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
             bool shouldBreak = false;
             for (uint32_t i = 0; i < mapSize; ++i) {
                 uint64_t windowId{0};
@@ -2844,6 +2849,11 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             if (!data.ReadUint32(mapSize)) {
                 RS_LOGE("RSRenderServiceConnectionStub::NOTIFY_WINDOW_EXPECTED_BY_VSYNC_NAME Read mapSize failed!");
                 ret = ERR_INVALID_DATA;
+                break;
+            }
+            const uint32_t MAX_VOTER_SIZE = 100;
+            if (mapSize > MAX_VOTER_SIZE) {
+                ret = ERR_INVALID_STATE;
                 break;
             }
             bool shouldBreak = false;
