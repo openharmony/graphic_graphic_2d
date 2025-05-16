@@ -343,6 +343,8 @@ void RSUniHwcVisitor::ProcessSolidLayerEnabled(RSSurfaceRenderNode& node)
     if (!GetSolidLayerEnabled()) {
         RS_LOGD("solidLayer: solidLayer enabling condition is met, but the switch is disabled! name: %{public}s",
             node.GetName().c_str());
+        RS_OPTIONAL_TRACE_NAME_FMT("solidLayer: name:%s id:%" PRIu64 " solidLayer enabling condition is met.",
+            node.GetName().c_str(), node.GetId());
         node.SetHardwareForcedDisabledState(true);
         return;
     }
@@ -742,9 +744,9 @@ void RSUniHwcVisitor::UpdateHardwareStateByHwcNodeBackgroundAlpha(
             ).IsEmpty();
         if (isHardwareEnableByBackgroundAlpha && !hwcNodePtr->IsHardwareForcedDisabled() && isIntersect) {
             hwcNodePtr->SetHardwareForcedDisabledState(true);
-            RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " disabled by above uncovered transparent hwc node",
+            RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " disabled by uncovered above transparent hwc node",
                 hwcNodePtr->GetName().c_str(), hwcNodePtr->GetId());
-            continue;
+            continue;00
         }
 
         if (!hwcNodePtr->IsNodeHasBackgroundColorAlpha() && !hwcNodePtr->IsHardwareForcedDisabled()) {
