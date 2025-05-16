@@ -1004,11 +1004,6 @@ bool RsSubThreadCache::DealWithUIFirstCache(DrawableV2::RSSurfaceRenderNodeDrawa
         (RSUniRenderThread::GetCaptureParam().isSnapshot_ && !HasCachedTexture())) {
         return false;
     }
-    if (RSUniRenderThread::GetCaptureParam().isSnapshot_) {
-        RS_LOGI("%{public}s name:%{public}s surfaceCount:%{public}d nodeCount:%{public}d alpha:%{public}f",
-            __func__, surfaceDrawable->GetName().c_str(), cacheCompletedSurfaceInfo_.processedSurfaceCount,
-            cacheCompletedSurfaceInfo_.processedNodeCount, cacheCompletedSurfaceInfo_.alpha);
-    }
     RS_TRACE_NAME_FMT("DrawUIFirstCache [%s] %" PRIu64 ", type %d, cacheState:%d",
         surfaceParams.GetName().c_str(), surfaceParams.GetId(), enableType, cacheState);
     Drawing::Rect bounds = surfaceParams.GetBounds();

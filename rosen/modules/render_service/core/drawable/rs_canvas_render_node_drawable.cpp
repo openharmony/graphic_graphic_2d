@@ -149,6 +149,7 @@ void RSCanvasRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
     } else {
         RSRenderNodeDrawable::OnDraw(canvas);
     }
+    RSRenderNodeDrawable::SnapshotProcessedNodeCountInc();
 #endif
 }
 } // namespace OHOS::Rosen::DrawableV2

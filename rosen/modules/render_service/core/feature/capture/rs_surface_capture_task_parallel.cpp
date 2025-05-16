@@ -235,6 +235,9 @@ bool RSSurfaceCaptureTaskParallel::Run(
             captureParam.isSelfCapture, captureParam.blurParam.isNeedBlur));
         canvas.SetIsWindowFreezeCapture(captureParam.isFreeze);
         surfaceNodeDrawable_->OnCapture(canvas);
+        RS_LOGI("RSSurfaceCaptureTaskParallel::Run: the number of total processedNodes: %{public}d",
+            DrawableV2::RSRenderNodeDrawable::GetSnapshotProcessedNodeCount());
+        DrawableV2::RSRenderNodeDrawable::ClearSnapshotProcessedNodeCount();
         if (captureParam.isFreeze) {
             surfaceNodeDrawable_->SetCacheImageByCapture(surface->GetImageSnapshot());
         }

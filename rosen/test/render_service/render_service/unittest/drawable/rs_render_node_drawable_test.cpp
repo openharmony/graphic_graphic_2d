@@ -554,15 +554,23 @@ HWTEST_F(RSRenderNodeDrawableTest, ProcessedNodeCountTest, TestSize.Level1)
     auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
 
     drawable->ClearTotalProcessedNodeCount();
+    drawable->ClearSnapshotProcessedNodeCount();
     drawable->ClearProcessedNodeCount();
     drawable->TotalProcessedNodeCountInc();
+    CaptureParam param;
+    param.isSingleSurface_ = true;
+    RSUniRenderThread::SetCaptureParam(param);
+    drawable->SnapshotProcessedNodeCountInc();
     drawable->ProcessedNodeCountInc();
     ASSERT_EQ(drawable->GetTotalProcessedNodeCount(), 1);
+    ASSERT_EQ(drawable->GetSnapshotProcessedNodeCount(), 1);
     ASSERT_EQ(drawable->GetProcessedNodeCount(), 1);
 
     drawable->ClearTotalProcessedNodeCount();
+    drawable->ClearSnapshotProcessedNodeCount();
     drawable->ClearProcessedNodeCount();
     ASSERT_EQ(drawable->GetTotalProcessedNodeCount(), 0);
+    ASSERT_EQ(drawable->GetSnapshotProcessedNodeCount(), 0);
     ASSERT_EQ(drawable->GetProcessedNodeCount(), 0);
 }
 }
