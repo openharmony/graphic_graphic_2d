@@ -792,7 +792,7 @@ void DrawPixelMapWithParmOpItem::DumpItems(std::string& out) const
     sampling_.Dump(out);
 
     if (objectHandle_ == nullptr) {
-        out += " objectHandle_ is nullptr";   
+        out += " objectHandle_ is nullptr";
     } else {
         objectHandle_->Dump(out);
     }
