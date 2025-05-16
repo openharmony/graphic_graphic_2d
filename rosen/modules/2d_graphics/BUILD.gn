@@ -184,6 +184,7 @@ template("graphics2d_source_set") {
       "$drawing_core_src_dir/utils/sharing_serial_context.cpp",
       "$drawing_core_src_dir/utils/string_util.cpp",
       "$drawing_core_src_dir/utils/vertices.cpp",
+      "$drawing_core_src_dir/utils/canvas_utils.cpp",
     ]
 
     if (platform == "ohos" || platform == "ohos_ng") {

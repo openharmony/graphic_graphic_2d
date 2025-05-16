@@ -32,6 +32,7 @@ ohos_unittest("2d_graphics_utils_test") {
     "sampling_options_test.cpp",
     "size_test.cpp",
     "vertices_test.cpp",
+    "canvas_utils_test.cpp",
   ]
 
   include_dirs = [
@@ -39,7 +40,10 @@ ohos_unittest("2d_graphics_utils_test") {
     "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/src",
   ]
 
-  deps = [ "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics:2d_graphics" ]
+  deps = [
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
+    "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics:2d_graphics",
+  ]
 
   cflags = [
     "-Dprivate=public",
