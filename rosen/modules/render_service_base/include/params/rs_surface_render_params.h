@@ -384,9 +384,6 @@ public:
     void SetHwcCrossNode(bool isCrossNode);
     bool IsDRMCrossNode() const;
 
-    void SetIsNodeToBeCaptured(bool isNodeToBeCaptured);
-    bool IsNodeToBeCaptured() const;
-
     void SetSkipDraw(bool skip);
     bool GetSkipDraw() const;
 
@@ -777,7 +774,6 @@ private:
     bool isSubSurfaceNode_ = false;
     bool isGlobalPositionEnabled_ = false;
     Gravity uiFirstFrameGravity_ = Gravity::TOP_LEFT;
-    bool isNodeToBeCaptured_ = false;
     RSSpecialLayerManager specialLayerManager_;
     std::set<NodeId> privacyContentLayerIds_ = {};
     std::set<int32_t> bufferCacheSet_ = {};
