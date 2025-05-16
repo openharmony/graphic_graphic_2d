@@ -152,7 +152,8 @@ HWTEST_F(RSUniHwcComputeUtilTest, CalcSrcRectByBufferRotationTest_002, Function 
     int width = 1;
     int height = 1;
     Drawing::Rect srcRect(left, top, left + width, top + height);
-    Drawing::Rect newSrcRect = RSUniHwcComputeUtil::CalcSrcRectByBufferRotation(*surfaceBuffer, consumerTransformType, srcRect);
+    Drawing::Rect newSrcRect = RSUniHwcComputeUtil::CalcSrcRectByBufferRotation(
+        *surfaceBuffer, consumerTransformType, srcRect);
     Drawing::Rect expectedSrcRect(798.0f, 1.0f, 799.0f, 2.0f);
     ASSERT_EQ(newSrcRect, expectedSrcRect);
 }
@@ -176,7 +177,8 @@ HWTEST_F(RSUniHwcComputeUtilTest, CalcSrcRectByBufferRotationTest_003, Function 
     int width = 1;
     int height = 1;
     Drawing::Rect srcRect(left, top, left + width, top + height);
-    Drawing::Rect newSrcRect = RSUniHwcComputeUtil::CalcSrcRectByBufferRotation(*surfaceBuffer, consumerTransformType, srcRect);
+    Drawing::Rect newSrcRect = RSUniHwcComputeUtil::CalcSrcRectByBufferRotation(
+        *surfaceBuffer, consumerTransformType, srcRect);
     Drawing::Rect expectedSrcRect(798.0f, 598.0f, 799.0f, 599.0f);
     ASSERT_EQ(newSrcRect, expectedSrcRect);
 }
@@ -200,7 +202,8 @@ HWTEST_F(RSUniHwcComputeUtilTest, CalcSrcRectByBufferRotationTest_004, Function 
     int width = 1;
     int height = 1;
     Drawing::Rect srcRect(left, top, left + width, top + height);
-    Drawing::Rect newSrcRect = RSUniHwcComputeUtil::CalcSrcRectByBufferRotation(*surfaceBuffer, consumerTransformType, srcRect);
+    Drawing::Rect newSrcRect = RSUniHwcComputeUtil::CalcSrcRectByBufferRotation(
+        *surfaceBuffer, consumerTransformType, srcRect);
     Drawing::Rect expectedSrcRect(1.0f, 598.0f, 2.0f, 599.0f);
     ASSERT_EQ(newSrcRect, expectedSrcRect);
 }

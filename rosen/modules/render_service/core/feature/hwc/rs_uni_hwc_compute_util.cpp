@@ -768,7 +768,8 @@ bool RSUniHwcComputeUtil::IsBlendNeedChildNode(RSRenderNode& node)
 }
 
 template<typename T>
-std::shared_ptr<RSRenderProperty<T>> RSUniHwcComputeUtil::GetPropertyFromModifier(const RSRenderNode& node, RSModifierType type)
+std::shared_ptr<RSRenderProperty<T>> RSUniHwcComputeUtil::GetPropertyFromModifier(
+    const RSRenderNode& node, RSModifierType type)
 {
     auto& drawCmdModifiers = node.GetDrawCmdModifiers();
     auto itr = drawCmdModifiers.find(type);
@@ -781,7 +782,8 @@ std::shared_ptr<RSRenderProperty<T>> RSUniHwcComputeUtil::GetPropertyFromModifie
 
 bool RSUniHwcComputeUtil::IsForegroundColorStrategyValid(RSRenderNode& node)
 {
-    auto property = GetPropertyFromModifier<ForegroundColorStrategyType>(node, RSModifierType::ENV_FOREGROUND_COLOR_STRATEGY);
+    auto property = GetPropertyFromModifier<ForegroundColorStrategyType>(
+        node, RSModifierType::ENV_FOREGROUND_COLOR_STRATEGY);
     return (property == nullptr) ? false : property->Get() != ForegroundColorStrategyType::INVALID;
 }
 
