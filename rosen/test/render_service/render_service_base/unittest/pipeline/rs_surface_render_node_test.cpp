@@ -2535,5 +2535,21 @@ HWTEST_F(RSSurfaceRenderNodeTest, IsScbWindowType, TestSize.Level1)
     node = std::make_shared<RSSurfaceRenderNode>(c);
     ASSERT_EQ(node->IsScbWindowType(), true);
 }
+
+/**
+ * @tc.name: SetFrameGravityNewVersionEnabledTest
+ * @tc.desc: SetFrameGravityNewVersionEnabled and GetFrameGravityNewVersionEnabled
+ * @tc.type: FUNC
+ * @tc.require: issueIC8CDF
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SetFrameGravityNewVersionEnabledTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    node->stagingRenderParams_ = std::make_unique<RSRenderParams>(id);
+    node->SetFrameGravityNewVersionEnabled(true);
+    ASSERT_EQ(node->GetFrameGravityNewVersionEnabled(), true);
+    node->SetFrameGravityNewVersionEnabled(false);
+    ASSERT_FALSE(node->GetFrameGravityNewVersionEnabled());
+}
 } // namespace Rosen
 } // namespace OHOS

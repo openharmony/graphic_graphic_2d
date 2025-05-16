@@ -735,4 +735,19 @@ HWTEST_F(RSSurfaceNodeCommandTest, DetachFromWindowContainer, TestSize.Level1)
     SurfaceNodeCommandHelper::DetachFromWindowContainer(context, nodeId, screenId);
     EXPECT_TRUE(context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId) != nullptr);
 }
+
+/**
+ * @tc.name: SetFrameGravityNewVersionEnabledTest
+ * @tc.desc: Verify function SetFrameGravityNewVersionEnabled
+ * @tc.type: FUNC
+ * @tc.require: issueIC8CDF
+ */
+HWTEST_F(RSSurfaceNodeCommandTest, SetFrameGravityNewVersionEnabledTest, TestSize.Level1)
+{
+    RSContext context;
+    NodeId nodeId = 1;
+    SurfaceNodeCommandHelper::Create(context, nodeId);
+    SurfaceNodeCommandHelper::SetFrameGravityNewVersionEnabled(context, nodeId, true);
+    EXPECT_TRUE(context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId) != nullptr);
+}
 } // namespace OHOS::Rosen

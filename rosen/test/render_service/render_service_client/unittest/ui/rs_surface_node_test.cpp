@@ -1752,4 +1752,20 @@ HWTEST_F(RSSurfaceNodeTest, DetachFromWindowContainer, TestSize.Level1)
     surfaceNode->DetachFromWindowContainer(id);
     ASSERT_NE(surfaceNode, nullptr);
 }
+
+/**
+ * @tc.name: SetFrameGravityNewVersionEnabledTest
+ * @tc.desc: SetFrameGravityNewVersionEnabled and GetFrameGravityNewVersionEnabled
+ * @tc.type: FUNC
+ * @tc.require: issueIC8CDF
+ */
+HWTEST_F(RSSurfaceNodeTest, SetFrameGravityNewVersionEnabledTest, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    surfaceNode->SetFrameGravityNewVersionEnabled(true);
+    ASSERT_EQ(true, surfaceNode->GetFrameGravityNewVersionEnabled());
+    surfaceNode->SetFrameGravityNewVersionEnabled(false);
+    ASSERT_EQ(false, surfaceNode->GetFrameGravityNewVersionEnabled());
+}
 } // namespace OHOS::Rosen
