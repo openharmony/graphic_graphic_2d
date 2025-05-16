@@ -312,7 +312,7 @@ template("graphics2d_source_set") {
         "skia:skia_canvaskit",
       ]
 
-      defines += [ "OHOS_TEXT_ENABLE" ]
+      defines += [ "ENABLE_OHOS_ENHANCE" ]
       deps = []
       defines += [
         "SUPPORT_OHOS_PIXMAP",

@@ -94,7 +94,7 @@ ohos_source_set("libtexgine_source") {
   if (platform_is_ohos) {
     defines += [
       "BUILD_NON_SDK_VER",
-      "OHOS_TEXT_ENABLE",
+      "ENABLE_OHOS_ENHANCE",
     ]
 
     external_deps += [

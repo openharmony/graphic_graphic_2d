@@ -110,7 +110,7 @@ ohos_unittest("2d_graphics_ndk_test") {
 
   platform = current_os
   if (platform == "ohos" || platform == "ohos_ng") {
-    defines += [ "OHOS_TEXT_ENABLE" ]
+    defines += [ "ENABLE_OHOS_ENHANCE" ]
   }
 }
 

@@ -100,7 +100,7 @@ template("skia_libtxt") {
         "samgr:samgr_proxy",
       ]
       defines += [
-        "OHOS_TEXT_ENABLE",
+        "ENABLE_OHOS_ENHANCE",
         "HM_SYMBOL_TXT_ENABLE",
       ]
     } else {
@@ -182,7 +182,7 @@ ohos_static_library("font_asset") {
     defines += [
       "HM_SYMBOL_TXT_ENABLE",
       "BUILD_NON_SDK_VER",
-      "OHOS_TEXT_ENABLE",
+      "ENABLE_OHOS_ENHANCE",
     ]
   } else {
     defines += [ "MODULE_FONT" ]
