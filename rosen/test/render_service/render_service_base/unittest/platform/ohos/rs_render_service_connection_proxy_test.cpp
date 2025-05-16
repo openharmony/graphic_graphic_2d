@@ -401,6 +401,8 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, SyncFrameRateRange, TestSize.Level1
     FrameRateLinkerId id = 1;
     FrameRateRange range;
     proxy->SyncFrameRateRange(id, range, 0);
+    range = {0, 120, 60, OHOS::Rosen::NATIVE_VSYNC_FRAME_RATE_TYPE};
+    proxy->SyncFrameRateRange(id, range, 0);
     ASSERT_EQ(proxy->transactionDataIndex_, 0);
 }
 
