@@ -173,7 +173,7 @@ HWTEST_F(OhDrawingTypographyStyleTest, OH_Drawing_SetTypographyTextAutoSpaceTest
     ASSERT_NE(handler2_, nullptr);
     OH_Drawing_TypographyHandlerPushTextStyle(handler2_, txtStyle_);
     OH_Drawing_TypographyHandlerAddText(handler2_, text.c_str());
-    OH_Drawing_Typography* typography2_ = OH_Drawing_CreateTypography(handler2_);
+    typography2_ = OH_Drawing_CreateTypography(handler2_);
     ASSERT_NE(typography2_, nullptr);
     OH_Drawing_TypographyLayout(typography2_, layoutWidth);
     double longestLineFalse2 = OH_Drawing_TypographyGetLongestLine(typography2_);
