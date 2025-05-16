@@ -324,11 +324,11 @@ HWTEST_F(ParagraphTest, ParagraphTest014, TestSize.Level1)
 }
 
 /*
- * @tc.name: ParagraphTest015
- * @tc.desc: test for text add hyphen
+ * @tc.name: ParagraphHyphenTest001
+ * @tc.desc: test for text add hyphen 01
  * @tc.type: FUNC
  */
-HWTEST_F(ParagraphTest, ParagraphTest015, TestSize.Level1)
+HWTEST_F(ParagraphTest, ParagraphHyphenTest001, TestSize.Level1)
 {
     OHOS::Rosen::SPText::TextStyle style;
     style.fontSize = 50;
@@ -354,6 +354,43 @@ HWTEST_F(ParagraphTest, ParagraphTest015, TestSize.Level1)
     //and the last charater of each line to have a hyphen glyphid of 800
     size_t breakArr[3] = {2, 3, 4};
     for (std::size_t i = 0; i < 3; i++) {
+        ASSERT_NE(textLines.at(breakArr[i]), nullptr);
+        std::vector<std::unique_ptr<SPText::Run>> runs = textLines.at(breakArr[i])->GetGlyphRuns();
+        ASSERT_NE(runs.back(), nullptr);
+        std::vector<uint16_t> glyphs = runs.back()->GetGlyphs();
+        EXPECT_EQ(glyphs.back(), 800);
+    }
+}
+
+/*
+ * @tc.name: ParagraphHyphenTest002
+ * @tc.desc: test for text add hyphen 02
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParagraphTest, ParagraphHyphenTest002, TestSize.Level1)
+{
+    ParagraphStyle paragraphStyle;
+    paragraphStyle.maxLines = 10;
+    paragraphStyle.fontSize = 72;
+    paragraphStyle.locale = "en-gb";
+    paragraphStyle.breakStrategy = OHOS::Rosen::SPText::BreakStrategy::HIGH_QUALITY;
+    paragraphStyle.wordBreakType = OHOS::Rosen::SPText::WordBreakType::BREAK_HYPHEN;
+    std::shared_ptr<FontCollection> fontCollection = std::make_shared<FontCollection>();
+    ASSERT_NE(fontCollection, nullptr);
+    fontCollection->SetupDefaultFontManager();
+    std::shared_ptr<ParagraphBuilder> paragraphBuilder = ParagraphBuilder::Create(paragraphStyle, fontCollection);
+    ASSERT_NE(paragraphBuilder, nullptr);
+    std::u16string text = u"Special character =========== Special character a---------- Special character ab,,,,,,,,,,";
+    paragraphBuilder->AddText(text);
+    std::shared_ptr<Paragraph> paragraph = paragraphBuilder->Build();
+    ASSERT_NE(paragraph, nullptr);
+    paragraph->Layout(519);
+    std::vector<std::unique_ptr<SPText::TextLineBase>> textLines = paragraph->GetTextLines();
+    ASSERT_EQ(textLines.size(), 8);
+    //expect lines 0,3,6 to have hyphenation breakpoints,
+    //and the last charater of each line to have a hyphen glyphid of 800
+    size_t breakArr[3] = {0, 3, 6};
+    for (size_t i = 0; i < 3; i++) {
         ASSERT_NE(textLines.at(breakArr[i]), nullptr);
         std::vector<std::unique_ptr<SPText::Run>> runs = textLines.at(breakArr[i])->GetGlyphRuns();
         ASSERT_NE(runs.back(), nullptr);
