@@ -27,7 +27,7 @@ using namespace testing::ext;
 
 namespace OHOS::Rosen {
 namespace {
-    const RectI DEFAULT_RECT = {0, 0, 100, 100};
+const RectI DEFAULT_RECT = {0, 0, 100, 100};
 } // namespace
 
 class RSHwcRecorderTest : public testing::Test {
@@ -98,4 +98,4 @@ HWTEST_F(RSHwcRecorderTest, IsForegroundColorValid_001, TestSize.Level1)
     node.GetHwcRecorder().SetForegroundColorValid(true);
     ASSERT_TRUE(node.GetHwcRecorder().IsForegroundColorValid());
 }
-} //namespace OHOS::Rosen
+} //namespace OHOS::Rosen

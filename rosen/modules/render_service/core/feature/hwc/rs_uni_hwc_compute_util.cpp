@@ -641,7 +641,7 @@ void RSUniHwcComputeUtil::UpdateHwcNodeProperty(std::shared_ptr<RSSurfaceRenderN
     hwcNode->SetIntersectedRoundCornerAABBs(std::move(currIntersectedRoundCornerAABBs));
 }
 
-bool RSUniHwcComputeUtil::HasNonZRotationTransform(Drawing::Matrix matrix)
+bool RSUniHwcComputeUtil::HasNonZRotationTransform(const Drawing::Matrix& matrix)
 {
     Drawing::Matrix::Buffer value;
     matrix.GetAll(value);
@@ -701,7 +701,7 @@ GraphicTransformType RSUniHwcComputeUtil::GetLayerTransform(RSSurfaceRenderNode&
 }
 
 std::optional<Drawing::Matrix> RSUniHwcComputeUtil::GetMatrix(
-    std::shared_ptr<RSRenderNode> hwcNode)
+    const std::shared_ptr<RSRenderNode>& hwcNode)
 {
     if (!hwcNode) {
         return std::nullopt;
@@ -768,9 +768,9 @@ bool RSUniHwcComputeUtil::IsBlendNeedChildNode(RSRenderNode& node)
 }
 
 template<typename T>
-std::shared_ptr<RSRenderProperty<T>> RSUniHwcComputeUtil::GetModifier(const RSRenderNode& node, RSModifierType type)
+std::shared_ptr<RSRenderProperty<T>> RSUniHwcComputeUtil::GetPropertyFromModifier(const RSRenderNode& node, RSModifierType type)
 {
-    auto& drawCmdModifiers = const_cast<RSRenderContent::DrawCmdContainer&>(node.GetDrawCmdModifiers());
+    auto& drawCmdModifiers = node.GetDrawCmdModifiers();
     auto itr = drawCmdModifiers.find(type);
     if (itr == drawCmdModifiers.end() || itr->second.empty()) {
         return nullptr;
@@ -781,17 +781,18 @@ std::shared_ptr<RSRenderProperty<T>> RSUniHwcComputeUtil::GetModifier(const RSRe
 
 bool RSUniHwcComputeUtil::IsForegroundColorStrategyValid(RSRenderNode& node)
 {
-    auto property = GetModifier<ForegroundColorStrategyType>(node, RSModifierType::ENV_FOREGROUND_COLOR_STRATEGY);
+    auto property = GetPropertyFromModifier<ForegroundColorStrategyType>(node, RSModifierType::ENV_FOREGROUND_COLOR_STRATEGY);
     return (property == nullptr) ? false : property->Get() != ForegroundColorStrategyType::INVALID;
 }
 
-bool RSUniHwcComputeUtil::IsDangerousBlendMode(int blendMode, int blendApplyType)
+bool RSUniHwcComputeUtil::IsDangerousBlendMode(int32_t blendMode, int32_t blendApplyType)
 {
     if (blendMode == 0) {
         return false;
     }
     return RSPropertiesPainter::IsDangerousBlendMode(blendMode - 1, blendApplyType);
 }
+
 #undef CHECK_NULL_VOID
 } // namespace Rosen
 } // namespace OHOS

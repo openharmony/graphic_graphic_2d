@@ -94,7 +94,7 @@ private:
     bool FindRootAndUpdateMatrix(std::shared_ptr<RSRenderNode>& parent, Drawing::Matrix& matrix,
         const RSRenderNode& rootNode);
     void UpdateHwcNodeClipRect(const std::shared_ptr<RSSurfaceRenderNode>& hwcNodePtr,
-        RectI& clipRect, const RSRenderNode& rootNode);
+        const RSRenderNode& rootNode, RectI& clipRect);
 
     // indicates if hardware composer is totally disabled
     bool isHardwareForcedDisabled_ = false;

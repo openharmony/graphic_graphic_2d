@@ -44,14 +44,14 @@ public:
     static GraphicTransformType GetRotateTransformForRotationFixed(RSSurfaceRenderNode& node,
         sptr<IConsumerSurface> consumer);
     static void UpdateHwcNodeProperty(std::shared_ptr<RSSurfaceRenderNode> hwcNode);
-    static bool HasNonZRotationTransform(Drawing::Matrix matrix);
+    static bool HasNonZRotationTransform(const Drawing::Matrix& matrix);
     static GraphicTransformType GetLayerTransform(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo);
-    static std::optional<Drawing::Matrix> GetMatrix(std::shared_ptr<RSRenderNode> hwcNode);
+    static std::optional<Drawing::Matrix> GetMatrix(const std::shared_ptr<RSRenderNode>& hwcNode);
     static void IntersectRect(Drawing::Rect& rect1, const Drawing::Rect& rect2);
     static bool IsBlendNeedFilter(RSRenderNode& node);
     static bool IsBlendNeedBackground(RSRenderNode& node);
     static bool IsBlendNeedChildNode(RSRenderNode& node);
-    static bool IsDangerousBlendMode(int blendMode, int blendApplyType);
+    static bool IsDangerousBlendMode(int32_t blendMode, int32_t blendApplyType);
     static bool IsForegroundColorStrategyValid(RSRenderNode& node);
 
 private:
@@ -90,7 +90,7 @@ private:
         }
     }
     template<typename T>
-    static std::shared_ptr<RSRenderProperty<T>> GetModifier(const RSRenderNode& node, RSModifierType type);
+    static std::shared_ptr<RSRenderProperty<T>> GetPropertyFromModifier(const RSRenderNode& node, RSModifierType type);
     static void CheckForceHardwareAndUpdateDstRect(RSSurfaceRenderNode& node);
     static bool IsHwcEnabledByGravity(RSSurfaceRenderNode& node, const Gravity frameGravity);
     static bool IsHwcEnabledByScalingMode(RSSurfaceRenderNode& node, const ScalingMode scalingMode);
