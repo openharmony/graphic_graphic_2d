@@ -80,4 +80,17 @@ HWTEST_F(RsCommonHookTest, GetComponentPowerFpsTest, TestSize.Level1)
     ASSERT_EQ(range.preferred_, RANGE_MAX_REFRESHRATE);
 }
 
+/**
+ * @tc.name: SetAdaptiveColorGamutEnableTest
+ * @tc.desc: Verify the SetAdaptiveColorGamutEnableTest and IsAdaptiveColorGamutEnabled
+ * @tc.type:FUNC
+ * @tc.require: issuesIC82H3
+ */
+HWTEST_F(RsCommonHookTest, SetAdaptiveColorGamutEnableTest, TestSize.Level1)
+{
+    RsCommonHook::Instance().SetAdaptiveColorGamutEnable(true);
+    ASSERT_EQ(RsCommonHook::Instance().IsAdaptiveColorGamutEnabled(), true);
+    RsCommonHook::Instance().SetAdaptiveColorGamutEnable(false);
+    ASSERT_EQ(RsCommonHook::Instance().IsAdaptiveColorGamutEnabled(), false);
+}
 } // namespace OHOS::Rosen

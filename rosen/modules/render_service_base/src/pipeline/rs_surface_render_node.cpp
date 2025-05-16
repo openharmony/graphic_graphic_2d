@@ -1333,7 +1333,7 @@ GraphicColorGamut RSSurfaceRenderNode::GetColorSpace() const
     if (!RSSystemProperties::GetWideColorSpaceEnabled()) {
         return GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     }
-    if (RsCommonHook::Instance().GetP3NodeCountFlag() && wideColorGamutNum_ > 0) {
+    if (RsCommonHook::Instance().IsAdaptiveColorGamutEnabled() && wideColorGamutNum_ > 0) {
         return GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
     }
     return colorSpace_;
@@ -1345,7 +1345,7 @@ GraphicColorGamut RSSurfaceRenderNode::GetFirstLevelNodeColorGamut() const
         return GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     }
     if (wideColorGamutWindowCount_ > 0 ||
-        (RsCommonHook::Instance().GetP3NodeCountFlag() && wideColorGamutResourceWindowCount_ > 0)) {
+        (RsCommonHook::Instance().IsAdaptiveColorGamutEnabled() && wideColorGamutResourceWindowCount_ > 0)) {
         return GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
     } else {
         return GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;

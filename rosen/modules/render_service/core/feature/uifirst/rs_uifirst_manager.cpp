@@ -472,7 +472,9 @@ void RSUifirstManager::SyncHDRDisplayParam(std::shared_ptr<DrawableV2::RSSurface
         GetUiFirstSwitch();
     bool changeColorSpace = rsSubThreadCache.GetTargetColorGamut() != colorGamut;
     if (isHdrOn || isScRGBEnable || changeColorSpace) {
-        if ((isScRGBEnable || RsCommonHook::Instance().GetP3NodeCountFlag()) && changeColorSpace) {
+        // When ScRGB or Adaptive P3 is enabled, some operations may cause the window color gamut to change.
+        // In this case, the uifirst cache needs to be cleared.
+        if ((isScRGBEnable || ColorGamutParam::IsAdaptiveColorGamutEnabled()) && changeColorSpace) {
             RS_LOGI("UIFirstHDR SyncDisplayParam: ColorSpace change, ClearCacheSurface,"
                 "nodeID: [%{public}" PRIu64"]", id);
             RS_TRACE_NAME_FMT("UIFirstHDR SyncDisplayParam: ColorSpace change, ClearCacheSurface,"

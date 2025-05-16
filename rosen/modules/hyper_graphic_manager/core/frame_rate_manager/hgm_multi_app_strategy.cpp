@@ -465,8 +465,6 @@ void HgmMultiAppStrategy::CheckPackageInConfigList(const std::vector<std::string
     rsCommonHook.SetHardwareEnabledByHwcnodeBelowSelfInAppFlag(false);
     rsCommonHook.SetHardwareEnabledByBackgroundAlphaFlag(false);
     rsCommonHook.SetIsWhiteListForSolidColorLayerFlag(false);
-    rsCommonHook.SetP3NodeCountFlag(configData->p3NodeCountSwitch_);
-    rsCommonHook.SetIsCoveredSurfaceCloseP3(configData->isCoveredSurfaceCloseP3_);
     std::unordered_map<std::string, std::string>& videoConfigFromHgm = configData->sourceTuningConfig_;
     std::unordered_map<std::string, std::string>& solidLayerConfigFromHgm = configData->solidLayerConfig_;
     std::unordered_map<std::string, std::string>& hwcVideoConfigFromHgm = configData->hwcSourceTuningConfig_;
