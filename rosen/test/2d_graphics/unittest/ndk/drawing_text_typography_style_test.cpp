@@ -271,10 +271,10 @@ HWTEST_F(OhDrawingTypographyStyleTest, OH_Drawing_SetTypographyTextAutoSpaceTest
     EXPECT_GT(line3True, 0);
 
     // paragraph2
-    OH_Drawing_TypographyStyle* typoStyle2_ = OH_Drawing_CreateTypographyStyle();
+    typoStyle2_ = OH_Drawing_CreateTypographyStyle();
     ASSERT_NE(typoStyle2_, nullptr);
     OH_Drawing_SetTypographyTextAutoSpace(typoStyle2_, false);
-    OH_Drawing_TypographyCreate* handler2_ = OH_Drawing_CreateTypographyHandler(typoStyle2_, fontCollection_);
+    handler2_ = OH_Drawing_CreateTypographyHandler(typoStyle2_, fontCollection_);
     ASSERT_NE(handler2_, nullptr);
     OH_Drawing_TypographyHandlerPushTextStyle(handler2_, txtStyle_);
     OH_Drawing_TypographyHandlerAddText(handler2_, text.c_str());
