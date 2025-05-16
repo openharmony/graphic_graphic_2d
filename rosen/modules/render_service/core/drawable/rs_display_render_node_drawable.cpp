@@ -597,8 +597,8 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     uniParam->SetCompositeType(params->GetCompositeType());
     params->SetDirtyAlignEnabled(uniParam->IsDirtyAlignEnabled());
     ScreenId paramScreenId = params->GetScreenId();
-    offsetX_ = params->IsMirrorScreen() ? 0 : params->GetDisplayOffsetX();
-    offsetY_ = params->IsMirrorScreen() ? 0 : params->GetDisplayOffsetY();
+    offsetX_ = params->GetDisplayOffsetX();
+    offsetY_ = params->GetDisplayOffsetY();
     curDisplayScreenId_ = paramScreenId;
     RS_LOGD("RSDisplayRenderNodeDrawable::OnDraw curScreenId=[%{public}" PRIu64 "], "
         "offsetX=%{public}d, offsetY=%{public}d", paramScreenId, offsetX_, offsetY_);
@@ -648,7 +648,8 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     }
 
     auto mirroredDrawable = params->GetMirrorSourceDrawable().lock();
-    auto mirroredRenderParams = mirroredDrawable ? mirroredDrawable->GetRenderParams().get() : nullptr;
+    auto mirroredRenderParams = mirroredDrawable ?
+        static_cast<RSDisplayRenderParams*>(mirroredDrawable->GetRenderParams().get()) : nullptr;
     if (mirroredRenderParams ||
         params->GetCompositeType() == RSDisplayRenderNode::CompositeType::UNI_RENDER_EXPAND_COMPOSITE) {
         if (!processor->InitForRenderThread(*this,
@@ -661,6 +662,8 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             return;
         }
         if (mirroredRenderParams) {
+            offsetX_ = mirroredRenderParams->GetDisplayOffsetX();
+            offsetY_ = mirroredRenderParams->GetDisplayOffsetY();
             enableVisibleRect_ = screenInfo.enableVisibleRect;
             if (enableVisibleRect_) {
                 const auto& rect = screenManager->GetMirrorScreenVisibleRect(paramScreenId);
