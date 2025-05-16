@@ -39,7 +39,6 @@ declare_args() {
   use_skia_txt = true
   use_video_processing_engine = false
   logger_enable_scope = false
-  texgine_enable_debug_log = false
   player_framework_enable = true
   graphic_2d_feature_drivers_interface_display_enable = true
   graphic_2d_feature_tp_switch_enbale = false
