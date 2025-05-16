@@ -2093,7 +2093,6 @@ void RSUniRenderVisitor::UpdateHwcNodeDirtyRegionAndCreateLayer(std::shared_ptr<
         }
         UpdateHwcNodeDirtyRegionForApp(node, hwcNodePtr);
         hwcNodePtr->SetCalcRectInPrepare(false);
-        hwcNodePtr->SetHardWareDisabledByReverse(false);
         surfaceHandler->SetGlobalZOrder(hwcNodePtr->IsHardwareForcedDisabled() &&
             !hwcNodePtr->GetSpecialLayerMgr().Find(SpecialLayerType::PROTECTED) ? -1.f : globalZOrder_++);
         auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams*>(hwcNodePtr->GetStagingRenderParams().get());
@@ -2896,7 +2895,7 @@ CM_INLINE void RSUniRenderVisitor::PostPrepare(RSRenderNode& node, bool subTreeS
     }
     if (node.GetRenderProperties().NeedFilter() || node.GetHwcRecorder().IsBlendWithBackground()) {
         hwcVisitor_->UpdateHwcNodeEnableByFilterRect(
-            curSurfaceNode_, node, NeedPrepareChindrenInReverseOrder(node),
+            curSurfaceNode_, node,
             node.GetHwcRecorder().GetZOrderForHwcEnableByFilter());
         node.CalVisibleFilterRect(prepareClipRect_);
         node.MarkClearFilterCacheIfEffectChildrenChanged();
