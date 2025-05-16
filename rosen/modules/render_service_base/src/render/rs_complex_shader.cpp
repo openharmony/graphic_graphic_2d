@@ -29,7 +29,7 @@ RSComplexShader::RSComplexShader()
     type_ = ShaderType::COMPLEX;
 }
   
-RSComplexShader::RSComplexShader(GexComlexShaderType type)
+RSComplexShader::RSComplexShader(GexComplexShaderType type)
     : shaderType_{type}
 {
     type_ = ShaderType::COMPLEX;
@@ -54,8 +54,8 @@ bool RSComplexShader::Marshalling(Parcel &parcel)
 bool RSComplexShader::Unmarshalling(Parcel &parcel, bool &needReset)
 {
     auto type = parcel.ReadUint32();
-    if (type < static_cast<uint32_t>(GexComlexShaderType::MAX)) {
-        shaderType_ = static_cast<GexComlexShaderType>(type);
+    if (type < static_cast<uint32_t>(GexComplexShaderType::MAX)) {
+        shaderType_ = static_cast<GexComplexShaderType>(type);
         return true;
     }
     return false;
@@ -72,7 +72,7 @@ std::shared_ptr<Drawing::ShaderEffect> RSComplexShader::GetShaderEffect(
     return shader->GetDrawingShader();
 }
   
-GexComlexShaderType RSComplexShader::GetShaderType() const
+GexComplexShaderType RSComplexShader::GetShaderType() const
 {
     return shaderType_;
 }

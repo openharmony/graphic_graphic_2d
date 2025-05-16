@@ -19,6 +19,7 @@
 #include "common/rs_macros.h"
 #include "common/rs_vector2.h"
 #include "common/rs_vector4.h"
+#include <vector>
 
 namespace OHOS {
 namespace Rosen {

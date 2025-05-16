@@ -111,8 +111,8 @@ HWTEST_F(RSComplexShaderTest, GetShaderEffectTest001, TestSize.Level1)
  */
 HWTEST_F(RSComplexShaderTest, GetShaderTypeTest001, TestSize.Level3)
 {
-    auto rsComplexShader = std::make_shared<RSComplexShader>(GexComlexShaderType::COLOR_GRADIENT);
-    EXPECT_EQ(rsComplexShader->GetShaderType(), GexComlexShaderType::COLOR_GRADIENT);
+    auto rsComplexShader = std::make_shared<RSComplexShader>(GexComplexShaderType::COLOR_GRADIENT);
+    EXPECT_EQ(rsComplexShader->GetShaderType(), GexComplexShaderType::COLOR_GRADIENT);
 }
 
 } // namespace OHOS::Rosen

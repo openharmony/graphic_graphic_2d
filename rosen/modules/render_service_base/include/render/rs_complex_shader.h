@@ -33,7 +33,7 @@ namespace Rosen {
 class RSB_EXPORT RSComplexShader : public RSShader {
 public:
     RSComplexShader();
-    RSComplexShader(GexComlexShaderType type);
+    RSComplexShader(GexComplexShaderType type);
     ~RSComplexShader() = default;
 
     void MakeDrawingShader(const RectF& rect, std::vector<float> params) override;
@@ -45,8 +45,8 @@ public:
 private:
     std::shared_ptr<Drawing::ShaderEffect> GetShaderEffect(
         const std::vector<float> &effectParam, const Drawing::RectF &rect);
-    GexComlexShaderType GetShaderType() const;
-    GexComlexShaderType shaderType_;
+    GexComplexShaderType GetShaderType() const;
+    GexComplexShaderType shaderType_;
     std::shared_ptr<Drawing::ShaderEffect> shaderEffect_;
 };
 }  // namespace Rosen
