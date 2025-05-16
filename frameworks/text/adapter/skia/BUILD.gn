@@ -122,7 +122,7 @@ template("skia_libtxt") {
         "skia:skia_canvaskit",
         "skia:skia_paragraph_ohos",
       ]
-      defines += [ "OHOS_STANDARD_SYSTEM" ]
+      defines += [ "TEXT_SYSTEM_OHOS" ]
     }
   }
 }
