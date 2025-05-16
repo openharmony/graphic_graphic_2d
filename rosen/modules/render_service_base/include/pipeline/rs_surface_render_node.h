@@ -1344,16 +1344,6 @@ public:
         return doDirectComposition_;
     }
 
-    void SetHardWareDisabledByReverse(bool isHardWareDisabledByReverse)
-    {
-        isHardWareDisabledByReverse_ = isHardWareDisabledByReverse;
-    }
-
-    bool GetHardWareDisabledByReverse() const
-    {
-        return isHardWareDisabledByReverse_;
-    }
-
     void SetSkipDraw(bool skip);
     bool GetSkipDraw() const;
     void SetHidePrivacyContent(bool needHidePrivacyContent);
@@ -1643,7 +1633,7 @@ private:
     bool isParentScaling_ = false;
     bool needDrawAnimateProperty_ = false;
     bool prevVisible_ = false;
-    bool isHardWareDisabledByReverse_ = false;
+
     // mark if this self-drawing node do not consume buffer when gpu -> hwc
     bool hwcDelayDirtyFlag_ = false;
     bool isForeground_ = false;
