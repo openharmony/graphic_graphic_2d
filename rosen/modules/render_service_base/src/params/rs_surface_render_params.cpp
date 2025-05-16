@@ -624,6 +624,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->screenRect_ = screenRect_;
     targetSurfaceParams->dirtyRegionMatrix_ = dirtyRegionMatrix_;
     targetSurfaceParams->uiFirstFrameGravity_ = uiFirstFrameGravity_;
+    targetSurfaceParams->isFrameGravityNewVersionEnabled_ = isFrameGravityNewVersionEnabled_;
     RSRenderParams::OnSync(target);
 }
 
@@ -678,6 +679,16 @@ void RSSurfaceRenderParams::SetNeedCacheSurface(bool needCacheSurface)
 bool RSSurfaceRenderParams::GetNeedCacheSurface() const
 {
     return needCacheSurface_;
+}
+
+void RSSurfaceRenderParams::SetFrameGravityNewVersionEnabled(bool isEnabled)
+{
+    isFrameGravityNewVersionEnabled_ = isEnabled;
+}
+
+bool RSSurfaceRenderParams::GetFrameGravityNewVersionEnabled() const
+{
+    return isFrameGravityNewVersionEnabled_;
 }
 
 } // namespace OHOS::Rosen

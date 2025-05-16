@@ -1537,6 +1537,9 @@ public:
         return appWindowZOrder_;
     }
 
+    void SetFrameGravityNewVersionEnabled(bool isEnabled);
+    bool GetFrameGravityNewVersionEnabled() const;
+
 protected:
     void OnSync() override;
     void OnSkipSync() override;
@@ -1869,6 +1872,8 @@ private:
 
     // used in uifirst for checking whether node and parents should paint or not
     bool selfAndParentShouldPaint_ = true;
+
+    bool isFrameGravityNewVersionEnabled_ = false;
 
     // UIExtension record, <UIExtension, hostAPP>
     inline static std::unordered_map<NodeId, NodeId> secUIExtensionNodes_ = {};

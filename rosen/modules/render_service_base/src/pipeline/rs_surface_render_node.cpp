@@ -3627,5 +3627,29 @@ void RSSurfaceRenderNode::ResetSurfaceNodeStates()
     surfaceParams->SetIsBufferFlushed(false);
     AddToPendingSyncList();
 }
+
+void RSSurfaceRenderNode::SetFrameGravityNewVersionEnabled(bool isEnabled)
+{
+    if (isFrameGravityNewVersionEnabled_ == isEnabled) {
+        return;
+    }
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (surfaceParams == nullptr) {
+        ROSEN_LOGE("RSSurfaceRenderNode::SetFrameGravityNewVersionEnabled failed! surfaceParams is null. id:%{public}"
+            "" PRIu64 ", isEnabled:%{public}d", GetId(), isEnabled);
+        return;
+    }
+    surfaceParams->SetFrameGravityNewVersionEnabled(isEnabled);
+    AddToPendingSyncList();
+
+    isFrameGravityNewVersionEnabled_ = isEnabled;
+    ROSEN_LOGI("RSSurfaceRenderNode::SetFrameGravityNewVersionEnabled id:%{public}" PRIu64 ", isEnabled:%{public}d",
+        GetId(), isEnabled);
+}
+
+bool RSSurfaceRenderNode::GetFrameGravityNewVersionEnabled() const
+{
+    return isFrameGravityNewVersionEnabled_;
+}
 } // namespace Rosen
 } // namespace OHOS

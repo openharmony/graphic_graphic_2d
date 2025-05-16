@@ -700,6 +700,9 @@ public:
         return sourceDisplayRenderNodeDrawable_;
     }
 
+    void SetFrameGravityNewVersionEnabled(bool isEnabled);
+    bool GetFrameGravityNewVersionEnabled() const;
+
 private:
     bool isMainWindowType_ = false;
     bool isLeashWindow_ = false;
@@ -828,6 +831,7 @@ private:
     friend class RSUniRenderThread;
 
     bool isBufferFlushed_ = false;
+    bool isFrameGravityNewVersionEnabled_ = false;
 };
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_PARAMS_RS_SURFACE_RENDER_PARAMS_H
