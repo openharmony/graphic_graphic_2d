@@ -2777,6 +2777,7 @@ MARSHALLING_AND_UNMARSHALLING(RSRenderAnimatableProperty)
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector2f)                                           \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector3f)                                           \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector4<uint32_t>)                                  \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::vector<float>)                                 \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector4<Color>)                                     \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector4f)                                           \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<Drawing::DrawCmdList>)              \
@@ -2804,6 +2805,7 @@ BATCH_EXPLICIT_INSTANTIATION(RSRenderProperty)
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector3f)                  \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector4<Color>)            \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector4f)                  \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::vector<float>)        \
     EXPLICIT_INSTANTIATION(TEMPLATE, RRectT<float>)
 
 BATCH_EXPLICIT_INSTANTIATION(RSRenderAnimatableProperty)

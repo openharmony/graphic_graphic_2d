@@ -411,6 +411,8 @@ public:
 
     bool IsDirtyRegionUpdated() const;
     void CleanDirtyRegionUpdated();
+    
+    std::shared_ptr<RSRenderPropertyBase> GetProperty(PropertyId id);
 
     void AddModifier(const std::shared_ptr<RSRenderModifier>& modifier, bool isSingleFrameComposer = false);
     void RemoveModifier(const PropertyId& id);
@@ -1162,6 +1164,8 @@ private:
     RSDrawable::Vec drawableVec_;
     RSAnimationManager animationManager_;
     RSOpincCache opincCache_;
+
+    std::map<PropertyId, std::shared_ptr<RSRenderPropertyBase>> properties_;
 
     std::list<WeakPtr> children_;
     std::set<NodeId> preFirstLevelNodeIdSet_ = {};

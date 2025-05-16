@@ -221,6 +221,11 @@ void RSProperty<float>::UpdateToRender(const float& value, PropertyUpdateType ty
     UPDATE_TO_RENDER(RSUpdatePropertyFloat, value, type);
 }
 template<>
+void RSProperty<std::vector<float>>::UpdateToRender(const std::vector<float>& value, PropertyUpdateType type) const
+{
+    UPDATE_TO_RENDER(RSUpdatePropertyComplexShaderParam, value, type);
+}
+template<>
 void RSProperty<int>::UpdateToRender(const int& value, PropertyUpdateType type) const
 {
     UPDATE_TO_RENDER(RSUpdatePropertyInt, value, type);
@@ -422,6 +427,11 @@ template<>
 RSRenderPropertyType RSAnimatableProperty<RRect>::GetPropertyType() const
 {
     return RSRenderPropertyType::PROPERTY_RRECT;
+}
+template<>
+RSRenderPropertyType RSAnimatableProperty<std::vector<float>>::GetPropertyType() const
+{
+    return RSRenderPropertyType::PROPERTY_SHADER_PARAM;
 }
 } // namespace Rosen
 } // namespace OHOS

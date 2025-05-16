@@ -266,7 +266,9 @@ static const std::unordered_map<RSModifierType, ResetPropertyFunc> g_propertyRes
     { RSModifierType::ATTRACTION_DSTPOINT,                  [](RSProperties* prop) {
                                                                 prop->SetAttractionDstPoint({}); }},
     { RSModifierType::ALWAYS_SNAPSHOT,                      [](RSProperties* prop) {
-                                                                prop->SetAlwaysSnapshot(false); }},                                                            
+                                                                prop->SetAlwaysSnapshot(false); }},  
+    { RSModifierType::COMPLEX_SHADER_PARAM,                 [](RSProperties* prop) {
+                                                                prop->SetComplexShaderParam({}); }},                                                                                                                    
 };
 
 } // namespace
@@ -2967,6 +2969,22 @@ bool RSProperties::GetAlwaysSnapshot() const
     return alwaysSnapshot_;
 }
 
+void RSProperties::SetComplexShaderParam(const std::vector<float> &param)
+{
+    complexShaderParam_ = param;
+    if (!param.empty()) {
+        isDrawn_ = true;
+    }
+    bgShaderNeedUpdate_ = true;
+    SetDirty();
+    contentDirty_ = true;
+}
+ 
+std::optional<std::vector<float>> RSProperties::GetComplexShaderParam() const
+{
+    return complexShaderParam_;
+}
+
 bool RSProperties::IsBackgroundMaterialFilterValid() const
 {
     return IsBackgroundBlurRadiusValid() || IsBackgroundBlurBrightnessValid() || IsBackgroundBlurSaturationValid();
@@ -4663,6 +4681,11 @@ void RSProperties::UpdateBackgroundShader()
     bgShaderNeedUpdate_ = false;
     const auto& bgShader = GetBackgroundShader();
     if (bgShader) {
+        const auto &param = GetComplexShaderParam();
+        if (param.has_value()) {
+            const auto & paramValue = param.value();
+            bgShader->MakeDrawingShader(GetBoundsRect(), paramValue);
+        }
         bgShader->MakeDrawingShader(GetBoundsRect(), GetBackgroundShaderProgress());
     }
 }

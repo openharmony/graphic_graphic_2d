@@ -334,7 +334,8 @@ class RSAnimatableProperty : public RSProperty<T> {
                   std::is_same_v<Vector3f, T> || std::is_same_v<Vector4f, T> ||
                   std::is_same_v<Quaternion, T> || std::is_same_v<std::shared_ptr<RSFilter>, T> ||
                   std::is_same_v<Vector4<Color>, T> || std::is_base_of_v<RSAnimatableArithmetic<T>, T> ||
-                  supports_animatable_arithmetic<T>::value || std::is_same_v<RRect, T>);
+                  supports_animatable_arithmetic<T>::value || std::is_same_v<RRect, T> ||
+                  std::is_same_v<std::vector<float>, T>);
 
 public:
     RSAnimatableProperty() : RSProperty<T>() {}
@@ -700,8 +701,11 @@ template<>
 RSC_EXPORT void RSProperty<bool>::UpdateToRender(const bool& value, PropertyUpdateType type) const;
 template<>
 RSC_EXPORT void RSProperty<float>::UpdateToRender(const float& value, PropertyUpdateType type) const;
-template<>
-RSC_EXPORT void RSProperty<int>::UpdateToRender(const int& value, PropertyUpdateType type) const;
+template <>
+RSC_EXPORT void RSProperty<std::vector<float>>::UpdateToRender(
+    const std::vector<float> &value, PropertyUpdateType type) const;
+template <>
+RSC_EXPORT void RSProperty<int>::UpdateToRender(const int &value, PropertyUpdateType type) const;
 template<>
 RSC_EXPORT void RSProperty<Color>::UpdateToRender(const Color& value, PropertyUpdateType type) const;
 template<>
@@ -791,6 +795,8 @@ template<>
 RSC_EXPORT RSRenderPropertyType RSAnimatableProperty<Vector4<Color>>::GetPropertyType() const;
 template<>
 RSC_EXPORT RSRenderPropertyType RSAnimatableProperty<RRect>::GetPropertyType() const;
+template<>
+RSC_EXPORT RSRenderPropertyType RSAnimatableProperty<std::vector<float>>::GetPropertyType() const;
 } // namespace Rosen
 } // namespace OHOS
 

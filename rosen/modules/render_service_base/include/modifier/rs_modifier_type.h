@@ -168,6 +168,7 @@ enum class RSModifierType : int16_t {
     ATTRACTION_FRACTION = 132,
     ATTRACTION_DSTPOINT = 133,
     ALWAYS_SNAPSHOT = 134,
+    COMPLEX_SHADER_PARAM = 135,
 
     CUSTOM = 200,
     EXTENDED = 201,
@@ -217,6 +218,7 @@ enum class RSRenderPropertyType : int16_t {
     PROPERTY_VECTOR4_COLOR,
     PROPERTY_SKMATRIX,
     PROPERTY_RRECT,
+    PROPERTY_SHADER_PARAM,
 };
 
 enum class RSPropertyUnit : int16_t {
@@ -360,6 +362,7 @@ public:
             case RSModifierType::FOREGROUND_BLUR_RADIUS_Y: return "ForegroundBlurRadiusY";
             case RSModifierType::FG_BLUR_DISABLE_SYSTEM_ADAPTATION: return "FgBlurDisableSystemAdaptation";
             case RSModifierType::ALWAYS_SNAPSHOT: return "AlwaysSnapshot";
+            case RSModifierType::COMPLEX_SHADER_PARAM: return "ComplexShaderParam";
             case RSModifierType::CUSTOM: return "Custom";
             case RSModifierType::EXTENDED: return "Extended";
             case RSModifierType::TRANSITION: return "Transition";

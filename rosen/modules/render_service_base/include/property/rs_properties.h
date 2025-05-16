@@ -210,6 +210,10 @@ public:
     std::shared_ptr<RSShader> GetBackgroundShader() const;
     void SetBackgroundShaderProgress(const float& progress);
     float GetBackgroundShaderProgress() const;
+
+    void SetComplexShaderParam(const std::vector<float>& param);
+    std::optional<std::vector<float>> GetComplexShaderParam() const;
+
     void SetBgImage(const std::shared_ptr<RSImage>& image);
     std::shared_ptr<RSImage> GetBgImage() const;
     void SetBgImageInnerRect(const Vector4f& rect);
@@ -718,6 +722,9 @@ private:
     std::optional<Vector4f> pixelStretchPercent_;
     std::optional<Vector4f> cornerRadius_;
     std::optional<RSShadow> shadow_;
+
+    std::shared_ptr<Drawing::RuntimeEffect> shaderEffect_ = nullptr;
+    std::optional<std::vector<float>> complexShaderParam_;
 
     std::optional<RSWaterRipplePara> waterRippleParams_ = std::nullopt;
     std::optional<RSFlyOutPara> flyOutParams_ = std::nullopt;

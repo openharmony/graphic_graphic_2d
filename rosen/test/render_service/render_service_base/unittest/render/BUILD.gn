@@ -767,6 +767,7 @@ ohos_unittest("RSPixelMapUtilTest") {
   sources = [
     "rs_pixel_map_util_test.cpp",
     "rs_shader_test.cpp",
+    "rs_complex_shader_test.cpp",
     "rs_shadow_test.cpp",
     "rs_skia_filter_test.cpp",
     "rs_spherize_effect_filter_test.cpp",

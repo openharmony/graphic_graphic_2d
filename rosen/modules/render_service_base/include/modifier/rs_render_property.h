@@ -505,6 +505,7 @@ extern template class RSRenderAnimatableProperty<Matrix3f>;
 extern template class RSRenderAnimatableProperty<Color>;
 extern template class RSRenderAnimatableProperty<std::shared_ptr<RSFilter>>;
 extern template class RSRenderAnimatableProperty<Vector4<Color>>;
+extern template class RSRenderAnimatableProperty<std::vector<float>>;
 #endif
 } // namespace Rosen
 } // namespace OHOS

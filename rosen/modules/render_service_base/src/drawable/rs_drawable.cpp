@@ -164,6 +164,7 @@ static const std::unordered_map<RSModifierType, RSDrawableSlot> g_propertyToDraw
     { RSModifierType::ATTRACTION_FRACTION,                       RSDrawableSlot::FOREGROUND_FILTER },
     { RSModifierType::ATTRACTION_DSTPOINT,                       RSDrawableSlot::FOREGROUND_FILTER },
     { RSModifierType::ALWAYS_SNAPSHOT,                           RSDrawableSlot::BACKGROUND_FILTER },
+    { RSModifierType::COMPLEX_SHADER_PARAM,                      RSDrawableSlot::BACKGROUND_SHADER },
     { RSModifierType::CUSTOM,                                    RSDrawableSlot::INVALID },
     { RSModifierType::EXTENDED,                                  RSDrawableSlot::INVALID },
     { RSModifierType::TRANSITION,                                RSDrawableSlot::TRANSITION },

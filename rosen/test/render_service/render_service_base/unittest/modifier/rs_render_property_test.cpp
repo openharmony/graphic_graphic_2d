@@ -177,6 +177,8 @@ HWTEST_F(RSRenderPropertyTest, PropertyIPC001, TestSize.Level1)
         RSRenderPropertyType::PROPERTY_QUATERNION));
     props.push_back(std::make_shared<MockRSRenderAnimatableProperty<std::shared_ptr<RSFilter>>>(
         RSRenderPropertyType::PROPERTY_FILTER));
+    props.push_back(std::make_shared<MockRSRenderAnimatableProperty<std::vector<float>>>(
+        RSRenderPropertyType::PROPERTY_SHADER_PARAM));
     props.push_back(std::make_shared<MockRSRenderAnimatableProperty<Vector2f>>(
         RSRenderPropertyType::PROPERTY_VECTOR2F));
     props.push_back(std::make_shared<MockRSRenderAnimatableProperty<Vector4f>>(

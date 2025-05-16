@@ -2528,6 +2528,15 @@ void RSRenderNode::SetUifirstSyncFlag(bool needSync)
     uifirstNeedSync_ = needSync;
 }
 
+std::shared_ptr<RSRenderPropertyBase> RSRenderNode::GetProperty(PropertyId id)
+{
+    auto it = properties_.find(id);
+    if (it == properties_.end()) {
+        return nullptr;
+    }
+    return it->second;
+}
+
 void RSRenderNode::AddModifier(const std::shared_ptr<RSRenderModifier>& modifier, bool isSingleFrameComposer)
 {
     if (!modifier) {
@@ -2550,6 +2559,10 @@ void RSRenderNode::AddModifier(const std::shared_ptr<RSRenderModifier>& modifier
         AddGeometryModifier(modifier);
     } else if (modifier->GetType() < RSModifierType::CUSTOM) {
         modifiers_.emplace(modifier->GetPropertyId(), modifier);
+        if (modifier->GetType() == RSModifierType::COMPLEX_SHADER_PARAM) {
+            auto property = modifier->GetProperty();
+            properties_.emplace(modifier->GetPropertyId(), property);
+        }
     } else {
         modifier->SetSingleFrameModifier(false);
         renderContent_->drawCmdModifiers_[modifier->GetType()].emplace_back(modifier);
@@ -2592,6 +2605,10 @@ void RSRenderNode::RemoveModifier(const PropertyId& id)
         ROSEN_LOGI_IF(DEBUG_MODIFIER, "RSRenderNode::remove modifier, node id: %{public}" PRIu64 ", type: %{public}s",
             GetId(), (it->second) ? it->second->GetModifierTypeString().c_str() : "UNKNOWN");
         modifiers_.erase(it);
+        auto propertyIt = properties_.find(id);
+        if (propertyIt != properties_.end()) {
+            properties_.erase(propertyIt);
+        }
         return;
     }
     for (auto& [type, modifiers] : renderContent_->drawCmdModifiers_) {
