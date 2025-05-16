@@ -53,7 +53,7 @@ HWTEST_F(RSProfilerBaseTest, SurfaceOnDrawMatchOptimize, Level1)
 
             RSProfiler::testing_ = false;
 
-            bool useNodeMatchOptimize = default_bool_value;
+            useNodeMatchOptimize = default_bool_value;
             RSProfiler::SetMode(Mode::READ_EMUL);
             RSProfiler::SurfaceOnDrawMatchOptimize(useNodeMatchOptimize);
             EXPECT_FALSE(useNodeMatchOptimize);
