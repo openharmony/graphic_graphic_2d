@@ -125,12 +125,17 @@ bool RSImplicitCancelAnimationParam::ExecuteSyncPropertiesTask(
             ROSEN_LOGE("RSImplicitCancelAnimationParam::ExecuteSyncPropertiesTask failed to get target node.");
             continue;
         }
-        auto modifier = node->GetModifier(propertyId);
-        if (modifier == nullptr) {
-            ROSEN_LOGE("RSImplicitCancelAnimationParam::ExecuteSyncPropertiesTask failed to get target modifier.");
-            continue;
+        std::shared_ptr<RSPropertyBase> property;
+        if (auto prop = node->GetProperty(propertyId)) {
+            property = prop;
+        } else {
+            auto modifier = node->GetModifier(propertyId);
+            if (modifier == nullptr) {
+                ROSEN_LOGE("RSImplicitCancelAnimationParam::ExecuteSyncPropertiesTask failed to get target modifier.");
+                continue;
+            }
+            property = modifier->GetProperty();
         }
-        auto property = modifier->GetProperty();
         if (property == nullptr) {
             ROSEN_LOGE("RSImplicitCancelAnimationParam::ExecuteSyncPropertiesTask failed to get target property.");
             continue;

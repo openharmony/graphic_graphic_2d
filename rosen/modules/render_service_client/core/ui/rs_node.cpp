@@ -56,6 +56,8 @@
 #include "ui/rs_surface_node.h"
 #include "ui/rs_ui_context.h"
 #include "ui/rs_ui_director.h"
+#include "ui_effect/property/include/rs_ui_filter.h"
+#include "ui_effect/property/include/rs_ui_displacement_distort_filter.h"
 
 #ifdef RS_ENABLE_VK
 #include "modifier_render_thread/rs_modifiers_draw.h"
@@ -1789,29 +1791,77 @@ void RSNode::SetUIBackgroundFilter(const OHOS::Rosen::Filter* backgroundFilter)
         return;
     }
     // To do: generate composed filter here. Now we just set background blur in v1.0.
+    std::shared_ptr<RSUIFilter> uiFilter = std::make_shared<RSUIFilter>();
     auto filterParas = backgroundFilter->GetAllPara();
-    for (const auto& filterPara : filterParas) {
-        if (filterPara->GetParaType() == FilterPara::BLUR) {
-            auto filterBlurPara = std::static_pointer_cast<FilterBlurPara>(filterPara);
-            auto blurRadius = filterBlurPara->GetRadius();
-            SetBackgroundBlurRadiusX(blurRadius);
-            SetBackgroundBlurRadiusY(blurRadius);
+    for (auto it = filterParas.begin(); it != filterParas.end(); ++it) {
+        auto filterPara = *it;
+        if (filterPara == nullptr) {
+            continue;
         }
-        if (filterPara->GetParaType() == FilterPara::WATER_RIPPLE) {
-            auto waterRipplePara = std::static_pointer_cast<WaterRipplePara>(filterPara);
-            auto waveCount = waterRipplePara->GetWaveCount();
-            auto rippleCenterX = waterRipplePara->GetRippleCenterX();
-            auto rippleCenterY = waterRipplePara->GetRippleCenterY();
-            auto progress = waterRipplePara->GetProgress();
-            auto rippleMode = waterRipplePara->GetRippleMode();
-            RSWaterRipplePara params = {
-                waveCount,
-                rippleCenterX,
-                rippleCenterY,
-                rippleMode
-            };
-            SetWaterRippleParams(params, progress);
+        switch (filterPara->GetParaType()) {
+            case FilterPara::BLUR : {
+                auto filterBlurPara = std::static_pointer_cast<FilterBlurPara>(filterPara);
+                auto blurRadius = filterBlurPara->GetRadius();
+                SetBackgroundBlurRadiusX(blurRadius);
+                SetBackgroundBlurRadiusY(blurRadius);
+                break;
+            }
+            case FilterPara::WATER_RIPPLE : {
+                auto waterRipplePara = std::static_pointer_cast<WaterRipplePara>(filterPara);
+                auto waveCount = waterRipplePara->GetWaveCount();
+                auto rippleCenterX = waterRipplePara->GetRippleCenterX();
+                auto rippleCenterY = waterRipplePara->GetRippleCenterY();
+                auto progress = waterRipplePara->GetProgress();
+                auto rippleMode = waterRipplePara->GetRippleMode();
+                RSWaterRipplePara params { waveCount, rippleCenterX, rippleCenterY, rippleMode };
+                SetWaterRippleParams(params, progress);
+                break;
+            }
+            case FilterPara::DISPLACEMENT_DISTORT : {
+                auto distortProperty = std::make_shared<RSUIDispDistortFilterPara>();
+                auto filterDistortPara = std::static_pointer_cast<DisplacementDistortPara>(filterPara);
+                distortProperty->SetDisplacementDistort(filterDistortPara);
+                uiFilter->Insert(distortProperty);
+                break;
+            }
+            default:
+                break;
         }
+    }
+    if (!uiFilter->GetAllTypes().empty()) {
+        SetBackgroundUIFilter(uiFilter);
+    }
+}
+
+void RSNode::SetBackgroundUIFilter(const std::shared_ptr<RSUIFilter> backgroundFilter)
+{
+    if (!backgroundFilter) {
+        ROSEN_LOGE("RSNode::SetBackgroundUIFilter background RSUIFilter is nullptr");
+        return;
+    }
+
+    bool shouldAdd = true;
+    std::shared_ptr<RSUIFilter> oldProperty = nullptr;
+    CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
+    auto iter = propertyModifiers_.find(RSModifierType::BACKGROUND_UI_FILTER);
+    if (iter != propertyModifiers_.end() && iter->second != nullptr) {
+        auto oldRsPro = std::static_pointer_cast<RSProperty<std::shared_ptr<RSUIFilter>>>(
+            iter->second->GetProperty());
+        if (oldRsPro) {
+            oldProperty = oldRsPro->Get();
+        }
+        if (oldProperty && backgroundFilter->IsStructureSame(oldProperty)) {
+            shouldAdd = false;
+            oldProperty->SetValue(backgroundFilter);
+            return;
+        }
+    }
+
+    if (shouldAdd) {
+        auto rsProperty = std::make_shared<RSProperty<std::shared_ptr<RSUIFilter>>>(backgroundFilter);
+        auto propertyModifier = std::make_shared<RSBackgroundUIFilterModifier>(rsProperty);
+        propertyModifiers_.emplace(RSModifierType::BACKGROUND_UI_FILTER, propertyModifier);
+        AddModifier(propertyModifier);
     }
 }
 
@@ -2070,7 +2120,6 @@ void RSNode::SetFgBrightnessFract(const float& fract)
 
 void RSNode::SetBgBrightnessParams(const RSDynamicBrightnessPara& params)
 {
-    ROSEN_LOGE("LJQDEBUG: params.saturation_ %{public}f", params.saturation_);
     // Compatible with original interfaces
     SetBgBrightnessRates(params.rates_);
     SetBgBrightnessSaturation(params.saturation_);
@@ -2562,6 +2611,7 @@ void RSNode::ClearAllModifiers()
     modifiers_.clear();
     propertyModifiers_.clear();
     modifiersTypeMap_.clear();
+    properties_.clear();
 }
 
 void RSNode::AddModifier(const std::shared_ptr<RSModifier> modifier)
@@ -2669,6 +2719,44 @@ const std::shared_ptr<RSModifier> RSNode::GetModifier(const PropertyId& property
     }
 
     return {};
+}
+
+const std::shared_ptr<RSPropertyBase> RSNode::GetProperty(const PropertyId& propertyId)
+{
+    std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
+    CHECK_FALSE_RETURN_VALUE(CheckMultiThreadAccess(__func__), nullptr);
+    auto iter = properties_.find(propertyId);
+    if (iter != properties_.end()) {
+        return iter->second;
+    }
+
+    return {};
+}
+
+void RSNode::RegisterProperty(std::shared_ptr<RSPropertyBase> property)
+{
+    std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
+    CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
+    if (property) {
+        properties_.emplace(property->GetId(), property);
+    }
+}
+
+void RSNode::UnRegisterProperty(const PropertyId& propertyId)
+{
+    std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
+    CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
+    auto iter = properties_.find(propertyId);
+    if (iter != properties_.end()) {
+        properties_.erase(iter);
+    }
+}
+
+void RSNode::ResetPropertyMap()
+{
+    std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
+    CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
+    properties_.clear();
 }
 
 void RSNode::UpdateModifierMotionPathOption()

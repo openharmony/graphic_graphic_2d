@@ -2736,6 +2736,21 @@ HWTEST_F(RSPropertiesTest, SetNGetAttractionFraction003, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetNGetBackgroundUIFilter001
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesTest, SetNGetBackgroundUIFilter001, TestSize.Level1)
+{
+    RSProperties properties;
+    auto filterProp = std::make_shared<RSRenderFilter>();
+    properties.SetBackgroundUIFilter(filterProp);
+    EXPECT_EQ(properties.isDrawn_, true);
+    EXPECT_EQ(properties.GetBackgroundUIFilter(), filterProp);
+}
+
+/**
  * @tc.name: SetLightUpEffect001
  * @tc.desc: test results of SetLightUpEffect
  * @tc.type:FUNC

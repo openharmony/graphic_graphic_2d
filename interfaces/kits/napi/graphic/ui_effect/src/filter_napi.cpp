@@ -15,22 +15,10 @@
 #include "filter_napi.h"
 #include "ui_effect_napi_utils.h"
 
-namespace {
-    constexpr uint32_t NUM_0 = 0;
-    constexpr uint32_t NUM_1 = 1;
-    constexpr uint32_t NUM_2 = 2;
-    constexpr uint32_t NUM_3 = 3;
-    constexpr uint32_t NUM_4 = 4;
-    constexpr uint32_t NUM_5 = 5;
-    constexpr uint32_t NUM_6 = 6;
-    constexpr uint32_t NUM_7 = 7;
-    constexpr uint32_t NUM_8 = 8;
-    constexpr uint32_t NUM_1000 = 1000;
-    constexpr int32_t ERR_NOT_SYSTEM_APP = 202;
-}
-
 namespace OHOS {
 namespace Rosen {
+
+using namespace UIEffect;
 
 std::map<int32_t, Drawing::TileMode> INDEX_TO_TILEMODE = {
     { NUM_0, Drawing::TileMode::CLAMP },
@@ -173,6 +161,7 @@ napi_value FilterNapi::CreateFilter(napi_env env, napi_callback_info info)
         DECLARE_NAPI_FUNCTION("flyInFlyOutEffect", SetFlyOut),
         DECLARE_NAPI_FUNCTION("distort", SetDistort),
         DECLARE_NAPI_FUNCTION("radiusGradientBlur", SetRadiusGradientBlurPara),
+        DECLARE_NAPI_FUNCTION("displacementDistort", SetDisplacementDistort),
     };
     status = napi_define_properties(env, object, sizeof(resultFuncs) / sizeof(resultFuncs[0]), resultFuncs);
     UIEFFECT_NAPI_CHECK_RET_DELETE_POINTER(status == napi_ok, nullptr, filterObj,
@@ -556,6 +545,46 @@ napi_value FilterNapi::SetDistort(napi_env env, napi_callback_info info)
     std::shared_ptr<DistortPara> para = std::make_shared<DistortPara>();
     UIEFFECT_NAPI_CHECK_RET_D(para != nullptr, nullptr, FILTER_LOG_E("FilterNapi SetDistort para is nullptr"));
     para->SetDistortionK(distortionK);
+    filterObj->AddPara(para);
+    return thisVar;
+}
+
+napi_value FilterNapi::SetDisplacementDistort(napi_env env, napi_callback_info info)
+{
+    if (!UIEffectNapiUtils::IsSystemApp()) {
+        FILTER_LOG_E("SetDisplacementDistort failed");
+        napi_throw_error(env, std::to_string(ERR_NOT_SYSTEM_APP).c_str(),
+            "FilterNapi SetDisplacementDistort failed, is not system app");
+        return nullptr;
+    }
+    const size_t requireArgc = NUM_2;
+    const size_t minArgc = NUM_1;
+    size_t realArgc = NUM_2;
+    napi_status status;
+    napi_value argv[requireArgc] = {0};
+    napi_value thisVar = nullptr;
+    UIEFFECT_JS_ARGS(env, info, status, realArgc, argv, thisVar);
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && realArgc <= requireArgc && realArgc >= minArgc, nullptr,
+        FILTER_LOG_E("FilterNapi SetDisplacementDistort parsing input fail"));
+
+    auto para = std::make_shared<DisplacementDistortPara>();
+    Mask* mask = nullptr;
+    status = napi_unwrap(env, argv[NUM_0], reinterpret_cast<void**>(&mask));
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && mask != nullptr, nullptr,
+        FILTER_LOG_E("FilterNapi SetDisplacementDistort unwrap mask fail"));
+    para->SetMask(mask->GetMaskPara());
+
+    if (realArgc == NUM_2) {
+        Vector2f factor;
+        UIEFFECT_NAPI_CHECK_RET_D(ParseJsVector2f(env, argv[NUM_1], factor), nullptr,
+            FILTER_LOG_E("FilterNapi SetDisplacementDistort parse factor fail"));
+        para->SetFactor(factor);
+    }
+
+    Filter* filterObj = nullptr;
+    status = napi_unwrap(env, thisVar, reinterpret_cast<void**>(&filterObj));
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && filterObj != nullptr, nullptr,
+        FILTER_LOG_E("FilterNapi SetDisplacementDistort unwrap filterObj fail"));
     filterObj->AddPara(para);
     return thisVar;
 }

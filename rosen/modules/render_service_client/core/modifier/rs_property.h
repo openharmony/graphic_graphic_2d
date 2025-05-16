@@ -61,6 +61,7 @@
 
 namespace OHOS {
 namespace Rosen {
+class RSUIFilter;
 // used to determine when the spring animation ends visually
 enum class ThresholdType {
     LAYOUT,  // 0.5f for properties like position, as the difference in properties by 0.5 appears visually unchanged
@@ -122,6 +123,11 @@ public:
 
     virtual void SetValueFromRender(const std::shared_ptr<const RSRenderPropertyBase>& rsRenderPropertyBase) {};
 
+    virtual std::shared_ptr<RSRenderPropertyBase> GetRenderProperty()
+    {
+        return std::make_shared<RSRenderPropertyBase>(id_);
+    }
+
 protected:
     virtual void SetIsCustom(bool isCustom) {}
 
@@ -165,11 +171,6 @@ protected:
     void MarkNodeDirty();
 
     void UpdateExtendModifierForGeometry(const std::shared_ptr<RSNode>& node);
-
-    virtual std::shared_ptr<RSRenderPropertyBase> GetRenderProperty()
-    {
-        return std::make_shared<RSRenderPropertyBase>(id_);
-    }
 
     virtual bool GetShowingValueAndCancelAnimation()
     {
@@ -224,6 +225,7 @@ private:
     friend class RSPropertyAnimation;
     friend class RSPathAnimation;
     friend class RSModifier;
+    friend class RSBackgroundUIFilterModifier;
     friend class RSKeyframeAnimation;
     friend class RSInterpolatingSpringAnimation;
     friend class RSImplicitTransitionParam;
@@ -536,6 +538,29 @@ public:
         propertyUnit_ = unit;
     }
 
+    std::shared_ptr<RSRenderPropertyBase> GetRenderProperty() override
+    {
+        if (!RSProperty<T>::isCustom_) {
+            return std::make_shared<RSRenderAnimatableProperty<T>>(
+                RSProperty<T>::stagingValue_, RSProperty<T>::id_, GetPropertyType(), propertyUnit_);
+        }
+
+        if (renderProperty_ == nullptr) {
+            renderProperty_ = std::make_shared<RSRenderAnimatableProperty<T>>(
+                RSProperty<T>::stagingValue_, RSProperty<T>::id_, GetPropertyType(), propertyUnit_);
+            auto weak = RSProperty<T>::weak_from_this();
+            renderProperty_->SetUpdateUIPropertyFunc(
+                [weak](const std::shared_ptr<RSRenderPropertyBase>& renderProperty) {
+                    auto property = weak.lock();
+                    if (property == nullptr) {
+                        return;
+                    }
+                    property->UpdateShowingValue(renderProperty);
+                });
+        }
+        return renderProperty_;
+    }
+
 protected:
     void UpdateOnAllAnimationFinish() override
     {
@@ -602,29 +627,6 @@ protected:
     void SetMotionPathOption(const std::shared_ptr<RSMotionPathOption>& motionPathOption) override
     {
         motionPathOption_ = motionPathOption;
-    }
-
-    std::shared_ptr<RSRenderPropertyBase> GetRenderProperty() override
-    {
-        if (!RSProperty<T>::isCustom_) {
-            return std::make_shared<RSRenderAnimatableProperty<T>>(
-                RSProperty<T>::stagingValue_, RSProperty<T>::id_, GetPropertyType(), propertyUnit_);
-        }
-
-        if (renderProperty_ == nullptr) {
-            renderProperty_ = std::make_shared<RSRenderAnimatableProperty<T>>(
-                RSProperty<T>::stagingValue_, RSProperty<T>::id_, GetPropertyType(), propertyUnit_);
-            auto weak = RSProperty<T>::weak_from_this();
-            renderProperty_->SetUpdateUIPropertyFunc(
-                [weak](const std::shared_ptr<RSRenderPropertyBase>& renderProperty) {
-                    auto property = weak.lock();
-                    if (property == nullptr) {
-                        return;
-                    }
-                    property->UpdateShowingValue(renderProperty);
-                });
-        }
-        return renderProperty_;
     }
 
     void NotifyPropertyChange()
@@ -767,6 +769,9 @@ template<>
 RSC_EXPORT void RSProperty<Vector4f>::UpdateToRender(const Vector4f& value, PropertyUpdateType type) const;
 template<>
 RSC_EXPORT void RSProperty<RRect>::UpdateToRender(const RRect& value, PropertyUpdateType type) const;
+template<>
+RSC_EXPORT void RSProperty<std::shared_ptr<RSUIFilter>>::UpdateToRender(
+    const std::shared_ptr<RSUIFilter>& value, PropertyUpdateType type) const;
 
 template<>
 RSC_EXPORT bool RSProperty<float>::IsValid(const float& value);

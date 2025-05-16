@@ -39,6 +39,7 @@
 #include "render/rs_motion_blur_filter.h"
 #include "render/rs_particles_drawable.h"
 #include "render/rs_path.h"
+#include "render/rs_render_filter.h"
 #include "render/rs_shader.h"
 #include "render/rs_shadow.h"
 #include "render/rs_attraction_effect_filter.h"
@@ -269,6 +270,9 @@ public:
     void SetDynamicLightUpRate(const std::optional<float>& rate);
     void SetDynamicLightUpDegree(const std::optional<float>& lightUpDegree);
     void SetDynamicDimDegree(const std::optional<float>& DimDegree);
+
+    void SetBackgroundUIFilter(const std::shared_ptr<RSRenderFilter>& renderFilter);
+    std::shared_ptr<RSRenderFilter> GetBackgroundUIFilter() const;
 
     void SetFgBrightnessRates(const Vector4f& rates);
     Vector4f GetFgBrightnessRates() const;
@@ -612,6 +616,7 @@ private:
         int colorMode, const RSColor& color);
     void GenerateBackgroundFilter();
     void GenerateForegroundFilter();
+    void GenerateBackgroundMaskFilter();
     void GenerateBackgroundBlurFilter();
     void GenerateForegroundBlurFilter();
     void GenerateBackgroundMaterialBlurFilter();
@@ -699,6 +704,7 @@ private:
     std::shared_ptr<RSFilter> foregroundFilter_ = nullptr; // view content filter
     std::shared_ptr<RSFilter> foregroundFilterCache_ = nullptr; // view content filter via cache
     std::shared_ptr<RSFilter> backgroundFilter_ = nullptr;
+    std::shared_ptr<RSRenderFilter> backgroundRenderFilter_ = nullptr;
     std::shared_ptr<RSFilter> filter_ = nullptr;
     std::shared_ptr<RectF> drawRegion_ = nullptr;
     std::shared_ptr<RSLightSource> lightSourcePtr_ = nullptr;

@@ -228,6 +228,8 @@ HWTEST_F(RSRenderPropertyTest, PropertyIPC002, TestSize.Level1)
         RSRenderPropertyType::PROPERTY_FLOAT));
     props.push_back(std::make_shared<MockRSRenderProperty<Vector4<Color>>>(
         RSRenderPropertyType::PROPERTY_FLOAT));
+    props.push_back(std::make_shared<MockRSRenderProperty<std::shared_ptr<RSRenderFilter>>>(
+        RSRenderPropertyType::PROPERTY_UI_FILTER));
 
     for (auto& prop : props) {
         MessageParcel parcel;

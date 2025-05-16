@@ -49,6 +49,7 @@
 #include "property/rs_properties_painter.h"
 #include "property/rs_property_trace.h"
 #include "render/rs_foreground_effect_filter.h"
+#include "render/rs_render_filter.h"
 #include "transaction/rs_transaction_proxy.h"
 #include "visitor/rs_node_visitor.h"
 #include "rs_profiler.h"
@@ -2557,6 +2558,8 @@ void RSRenderNode::AddModifier(const std::shared_ptr<RSRenderModifier>& modifier
     }
     if (modifier->GetType() == RSModifierType::BOUNDS || modifier->GetType() == RSModifierType::FRAME) {
         AddGeometryModifier(modifier);
+    } else if (modifier->GetType() == RSModifierType::BACKGROUND_UI_FILTER) {
+        AddUIFilterModifier(modifier);
     } else if (modifier->GetType() < RSModifierType::CUSTOM) {
         modifiers_.emplace(modifier->GetPropertyId(), modifier);
         if (modifier->GetType() == RSModifierType::COMPLEX_SHADER_PARAM) {
@@ -2570,6 +2573,33 @@ void RSRenderNode::AddModifier(const std::shared_ptr<RSRenderModifier>& modifier
     modifier->GetProperty()->Attach(shared_from_this());
     ROSEN_LOGI_IF(DEBUG_MODIFIER, "RSRenderNode:add modifier, node id: %{public}" PRIu64 ", type: %{public}s",
         GetId(), modifier->GetModifierTypeString().c_str());
+}
+
+void RSRenderNode::AddUIFilterModifier(const std::shared_ptr<RSRenderModifier>& modifier)
+{
+    if (!modifier) {
+        ROSEN_LOGW("RSRenderNode::AddUIFilterModifier: null modifier add failed.");
+        return;
+    }
+    modifiers_.emplace(modifier->GetPropertyId(), modifier);
+    auto renderProperty =
+        std::static_pointer_cast<RSRenderProperty<std::shared_ptr<RSRenderFilter>>>(modifier->GetProperty());
+    if (!renderProperty) {
+        ROSEN_LOGW("RSRenderNode::AddUIFilterModifier: null renderProperty.");
+    }
+    auto& renderFilter = renderProperty->GetRef();
+    for (auto& type : renderFilter->GetUIFilterTypes()) {
+        auto propGroup = renderFilter->GetRenderFilterPara(type);
+        if (!propGroup) {
+            continue;
+        }
+        for (auto& prop : propGroup->GetLeafRenderProperties()) {
+            if (prop) {
+                prop->Attach(shared_from_this());
+                properties_.emplace(prop->GetId(), prop);
+            }
+        }
+    }
 }
 
 void RSRenderNode::AddGeometryModifier(const std::shared_ptr<RSRenderModifier>& modifier)
@@ -2623,6 +2653,7 @@ void RSRenderNode::RemoveModifier(const PropertyId& id)
 void RSRenderNode::RemoveAllModifiers()
 {
     modifiers_.clear();
+    properties_.clear();
     renderContent_->drawCmdModifiers_.clear();
 }
 

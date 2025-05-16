@@ -44,6 +44,7 @@ public:
         FLY_OUT,
         DISTORT,
         RADIUS_GRADIENT_BLUR,
+        DISPLACEMENT_DISTORT,
     };
 
     FilterPara()  = default;

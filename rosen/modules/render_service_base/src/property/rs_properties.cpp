@@ -266,9 +266,11 @@ static const std::unordered_map<RSModifierType, ResetPropertyFunc> g_propertyRes
     { RSModifierType::ATTRACTION_DSTPOINT,                  [](RSProperties* prop) {
                                                                 prop->SetAttractionDstPoint({}); }},
     { RSModifierType::ALWAYS_SNAPSHOT,                      [](RSProperties* prop) {
-                                                                prop->SetAlwaysSnapshot(false); }},  
+                                                                prop->SetAlwaysSnapshot(false); }},
     { RSModifierType::COMPLEX_SHADER_PARAM,                 [](RSProperties* prop) {
-                                                                prop->SetComplexShaderParam({}); }},                                                                                                                    
+                                                                prop->SetComplexShaderParam({}); }},
+    { RSModifierType::BACKGROUND_UI_FILTER,                 [](RSProperties* prop) {
+                                                                prop->SetBackgroundUIFilter({}); }},
 };
 
 } // namespace
@@ -2521,6 +2523,20 @@ void RSProperties::SetMask(const std::shared_ptr<RSMask>& mask)
 std::shared_ptr<RSMask> RSProperties::GetMask() const
 {
     return mask_;
+}
+
+void RSProperties::SetBackgroundUIFilter(const std::shared_ptr<RSRenderFilter>& filterProp)
+{
+    backgroundRenderFilter_ = filterProp;
+    isDrawn_ = true;
+    filterNeedUpdate_ = true;
+    SetDirty();
+    contentDirty_ = true;
+}
+
+std::shared_ptr<RSRenderFilter> RSProperties::GetBackgroundUIFilter() const
+{
+    return backgroundRenderFilter_;
 }
 
 void RSProperties::SetSpherize(float spherizeDegree)

@@ -48,6 +48,7 @@ class Bitmap;
 class Typeface;
 }
 class RSFilter;
+class RSRenderFilter;
 class RSImage;
 class RSImageBase;
 class RSMask;
@@ -263,6 +264,7 @@ public:
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<ParticleNoiseField>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<ParticleNoiseFields>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSFilter>)
+    DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSRenderFilter>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSMask>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSImage>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSImageBase>)

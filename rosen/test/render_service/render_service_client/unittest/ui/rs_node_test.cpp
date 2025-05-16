@@ -23,6 +23,7 @@
 #include "ui/rs_canvas_node.h"
 #include "ui/rs_surface_node.h"
 #include "ui/rs_display_node.h"
+#include "ui_effect/property/include/rs_ui_filter.h"
 #include "ui_effect/effect/include/brightness_blender.h"
 #include "animation/rs_animation_callback.h"
 #include "animation/rs_implicit_animator_map.h"
@@ -4094,6 +4095,83 @@ HWTEST_F(RSNodeTest, SetUIBackgroundFilter, TestSize.Level1)
         delete filterObj;
         filterObj = nullptr;
     }
+}
+
+/**
+ * @tc.name: SetBackgroundUIFilter
+ * @tc.desc: test results of SetBackgroundUIFilter
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest, SetBackgroundUIFilter, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    auto backgroundFilter = std::make_shared<RSUIFilter>();
+
+    rsNode->SetBackgroundUIFilter(backgroundFilter);
+    EXPECT_FALSE(rsNode->propertyModifiers_.empty());
+}
+
+/**
+ * @tc.name: GetProperty
+ * @tc.desc: test results of GetProperty
+ * @tc.type: FUNC
+ * @tc.require: 
+ */
+HWTEST_F(RSNodeTest, GetProperty, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    auto rsPropertyBase = std::make_shared<RSPropertyBase>();
+    rsNode->properties_.emplace(rsPropertyBase->GetId(), rsPropertyBase);
+    auto tempRSPropertyBase = rsNode->GetProperty(rsPropertyBase->GetId());
+    EXPECT_NE(tempRSPropertyBase, nullptr);
+}
+
+/**
+ * @tc.name: RegisterProperty
+ * @tc.desc: test results of RegisterProperty
+ * @tc.type: FUNC
+ * @tc.require: 
+ */
+HWTEST_F(RSNodeTest, RegisterProperty, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    auto rsPropertyBase = std::make_shared<RSPropertyBase>();
+    rsNode->RegisterProperty(rsPropertyBase);
+    EXPECT_FALSE(rsNode->properties_.empty());
+}
+
+/**
+ * @tc.name: UnRegisterProperty
+ * @tc.desc: test results of UnRegisterProperty
+ * @tc.type: FUNC
+ * @tc.require: 
+ */
+HWTEST_F(RSNodeTest, UnRegisterProperty, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    auto rsPropertyBase = std::make_shared<RSPropertyBase>();
+    PropertyId propertyId = rsPropertyBase->GetId();
+    rsNode->properties_.emplace(propertyId, rsPropertyBase);
+    EXPECT_FALSE(rsNode->properties_.empty());
+    rsNode->UnRegisterProperty(propertyId);
+    EXPECT_TRUE(rsNode->properties_.empty());
+}
+
+/**
+ * @tc.name: ResetPropertyMap
+ * @tc.desc: test results of ResetPropertyMap
+ * @tc.type: FUNC
+ * @tc.require: 
+ */
+HWTEST_F(RSNodeTest, ResetPropertyMap, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    auto rsPropertyBase = std::make_shared<RSPropertyBase>();
+    PropertyId propertyId = rsPropertyBase->GetId();
+    rsNode->properties_.emplace(propertyId, rsPropertyBase);
+    EXPECT_FALSE(rsNode->properties_.empty());
+    rsNode->ResetPropertyMap();
+    EXPECT_TRUE(rsNode->properties_.empty());
 }
 
 /**

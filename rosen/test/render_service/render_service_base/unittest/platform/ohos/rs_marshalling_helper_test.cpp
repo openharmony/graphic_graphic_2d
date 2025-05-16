@@ -1741,5 +1741,31 @@ HWTEST_F(RSMarshallingHelperTest, UnmarshallingTest048, TestSize.Level1)
     EXPECT_FALSE(RSMarshallingHelper::Unmarshalling(parcel, shape));
 }
 
+/**
+ * @tc.name: MarshallingTest048
+ * @tc.desc: Verify function Unmarshalling
+ * @tc.type:FUNC
+ * @tc.require: issues
+ */
+HWTEST_F(RSMarshallingHelperTest, MarshallingTest048, TestSize.Level1)
+{
+    Parcel parcel;
+    auto rsRenderFilter = std::make_shared<RSRenderFilter>();
+    EXPECT_FALSE(RSMarshallingHelper::Marshalling(parcel, rsRenderFilter));
+}
+
+/**
+ * @tc.name: UnmarshallingTest049
+ * @tc.desc: Verify function Unmarshalling
+ * @tc.type:FUNC
+ * @tc.require: issues
+ */
+HWTEST_F(RSMarshallingHelperTest, UnmarshallingTest049, TestSize.Level1)
+{
+    Parcel parcel;
+    auto rsRenderFilter = std::make_shared<RSRenderFilter>();
+    EXPECT_FALSE(RSMarshallingHelper::Unmarshalling(parcel, rsRenderFilter));
+}
+
 } // namespace Rosen
 } // namespace OHOS

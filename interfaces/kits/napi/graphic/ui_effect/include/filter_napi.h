@@ -22,8 +22,10 @@
 #include "filter/include/filter_pixel_stretch_para.h"
 #include "filter/include/filter_water_ripple_para.h"
 #include "filter/include/filter_fly_out_para.h"
+#include "filter/include/filter_displacement_distort_para.h"
 #include "filter/include/filter_distort_para.h"
 #include "filter/include/filter_radius_gradient_blur_para.h"
+#include "mask/include/mask.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
 
@@ -31,7 +33,7 @@ namespace OHOS {
 namespace Rosen {
 
 #undef LOG_DOMAIN
-#define LOG_DOMAIN 0xD001499
+#define LOG_DOMAIN 0xD001405
 
 #undef LOG_TAG
 #define LOG_TAG "UiEffect_Filter"
@@ -57,6 +59,7 @@ private:
     static napi_value SetFlyOut(napi_env env, napi_callback_info info);
     static napi_value SetRadiusGradientBlurPara(napi_env env, napi_callback_info info);
     static napi_value SetDistort(napi_env env, napi_callback_info info);
+    static napi_value SetDisplacementDistort(napi_env env, napi_callback_info info);
     static Drawing::TileMode ParserArgumentType(napi_env env, napi_value argv);
     static GradientDirection ParserGradientDirection(napi_env env, napi_value argv);
 
