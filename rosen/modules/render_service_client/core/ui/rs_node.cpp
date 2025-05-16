@@ -56,6 +56,8 @@
 #include "ui/rs_surface_node.h"
 #include "ui/rs_ui_context.h"
 #include "ui/rs_ui_director.h"
+#include "ui_effect/property/include/rs_ui_color_gradient_filter.h"
+#include "ui_effect/mask/include/ripple_mask_para.h"
 
 #ifdef RS_ENABLE_VK
 #include "modifier_render_thread/rs_modifiers_draw.h"
@@ -1786,29 +1788,52 @@ void RSNode::SetUIBackgroundFilter(const OHOS::Rosen::Filter* backgroundFilter)
         return;
     }
     // To do: generate composed filter here. Now we just set background blur in v1.0.
+    std::shared_ptr<RSUIFilter> uiFilter = std::make_shared<RSUIFilter>();
     auto filterParas = backgroundFilter->GetAllPara();
-    for (const auto& filterPara : filterParas) {
-        if (filterPara->GetParaType() == FilterPara::BLUR) {
-            auto filterBlurPara = std::static_pointer_cast<FilterBlurPara>(filterPara);
-            auto blurRadius = filterBlurPara->GetRadius();
-            SetBackgroundBlurRadiusX(blurRadius);
-            SetBackgroundBlurRadiusY(blurRadius);
+    for (auto it = filterParas.rbegin(); it != filterParas.rend(); ++it) {
+        auto filterPara = *it;
+        if (filterPara == nullptr) {
+            continue;
         }
-        if (filterPara->GetParaType() == FilterPara::WATER_RIPPLE) {
-            auto waterRipplePara = std::static_pointer_cast<WaterRipplePara>(filterPara);
-            auto waveCount = waterRipplePara->GetWaveCount();
-            auto rippleCenterX = waterRipplePara->GetRippleCenterX();
-            auto rippleCenterY = waterRipplePara->GetRippleCenterY();
-            auto progress = waterRipplePara->GetProgress();
-            auto rippleMode = waterRipplePara->GetRippleMode();
-            RSWaterRipplePara params = {
-                waveCount,
-                rippleCenterX,
-                rippleCenterY,
-                rippleMode
-            };
-            SetWaterRippleParams(params, progress);
+        switch (filterPara->GetParaType()) {
+            case FilterPara::BLUR : {
+                auto filterBlurPara = std::static_pointer_cast<FilterBlurPara>(filterPara);
+                auto blurRadius = filterBlurPara->GetRadius();
+                SetBackgroundBlurRadiusX(blurRadius);
+                SetBackgroundBlurRadiusY(blurRadius);
+                break;
+            }
+            case FilterPara::WATER_RIPPLE : {
+                auto waterRipplePara = std::static_pointer_cast<WaterRipplePara>(filterPara);
+                auto waveCount = waterRipplePara->GetWaveCount();
+                auto rippleCenterX = waterRipplePara->GetRippleCenterX();
+                auto rippleCenterY = waterRipplePara->GetRippleCenterY();
+                auto progress = waterRipplePara->GetProgress();
+                auto rippleMode = waterRipplePara->GetRippleMode();
+                RSWaterRipplePara params { waveCount, rippleCenterX, rippleCenterY, rippleMode };
+                SetWaterRippleParams(params, progress);
+                break;
+            }
+            case FilterPara::DISPLACEMENT_DISTORT : {
+                auto distortProperty = std::make_shared<RSUIDispDistortFilterPara>();
+                auto filterDistortPara = std::static_pointer_cast<DisplacementDistortPara>(filterPara);
+                distortProperty->SetDisplacementDistort(filterDistortPara);
+                uiFilter->Insert(distortProperty);
+                break;
+            }
+            case FilterPara::COLOR_GRADIENT : {
+                auto filterColorGradientPara = std::static_pointer_cast<ColorGradientPara>(filterPara);
+                auto colorGradientProperty = std::make_shared<RSUIColorGradientFilterPara>();
+                colorGradientProperty->SetColorGradient(filterColorGradientPara);
+                uiFilter->Insert(colorGradientProperty);
+                break;
+            }
+            default:
+                break;
         }
+    }
+    if (!uiFilter->GetAllTypes().empty()) {
+        SetBackgroundUIFilter(uiFilter);
     }
 }
 

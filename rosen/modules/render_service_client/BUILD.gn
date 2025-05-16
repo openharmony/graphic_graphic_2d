@@ -143,6 +143,9 @@ template("render_service_client_source_set") {
       "core/ui/rs_ui_context.cpp",
       "core/ui/rs_ui_context_manager.cpp",
       "core/ui/rs_ui_director.cpp",
+
+      #ui_effect
+      "core/ui_effect/property/src/rs_ui_color_gradient_filter.cpp",
     ]
 
     if (is_cross_platform) {
