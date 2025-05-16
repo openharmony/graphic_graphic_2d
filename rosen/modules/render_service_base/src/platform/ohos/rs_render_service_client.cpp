@@ -318,6 +318,19 @@ bool RSRenderServiceClient::TakeSurfaceCapture(NodeId id, std::shared_ptr<Surfac
     return true;
 }
 
+std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>> RSRenderServiceClient::TakeSurfaceCaptureSoloNode(
+    NodeId id, const RSSurfaceCaptureConfig& captureConfig)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>> pixelMapIdPairVector;
+    if (renderService == nullptr) {
+        ROSEN_LOGE("RSRenderServiceClient::TakeSurfaceCaptureSoloNode renderService == nullptr!");
+        return pixelMapIdPairVector;
+    }
+    pixelMapIdPairVector = renderService->TakeSurfaceCaptureSoloNode(id, captureConfig);
+    return pixelMapIdPairVector;
+}
+
 bool RSRenderServiceClient::TakeSelfSurfaceCapture(NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback,
     const RSSurfaceCaptureConfig& captureConfig)
 {
@@ -2173,6 +2186,34 @@ bool RSRenderServiceClient::GetHighContrastTextState()
         return renderService->GetHighContrastTextState();
     }
     return false;
+}
+
+bool RSRenderServiceClient::SetBehindWindowFilterEnabled(bool enabled)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (!renderService) {
+        return false;
+    }
+    auto ret = renderService->SetBehindWindowFilterEnabled(enabled);
+    if (ret != ERR_OK) {
+        ROSEN_LOGE("RSRenderServiceClient::SetBehindWindowFilterEnabled fail, ret[%{public}d]", ret);
+        return false;
+    }
+    return true;
+}
+
+bool RSRenderServiceClient::GetBehindWindowFilterEnabled(bool& enabled)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (!renderService) {
+        return false;
+    }
+    auto ret = renderService->GetBehindWindowFilterEnabled(enabled);
+    if (ret != ERR_OK) {
+        ROSEN_LOGE("RSRenderServiceClient::GetBehindWindowFilterEnabled fail, ret[%{public}d]", ret);
+        return false;
+    }
+    return true;
 }
 } // namespace Rosen
 } // namespace OHOS

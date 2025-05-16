@@ -288,10 +288,7 @@ HWTEST_F(RSCurveAnimationTest, RSNodeAnimateTest001, TestSize.Level1)
     /**
      * @tc.steps: step2. start GetTimingCurve test
      */
-    EXPECT_TRUE(animations.size() == CORRECT_SIZE);
-    if (animations.size() != CORRECT_SIZE) {
-        return;
-    }
+    ASSERT_TRUE(animations.size() == CORRECT_SIZE);
     auto springAnimation = std::static_pointer_cast<RSCurveAnimation>(animations[FIRST_ANIMATION]);
     EXPECT_TRUE(springAnimation != nullptr);
     if (springAnimation != nullptr) {

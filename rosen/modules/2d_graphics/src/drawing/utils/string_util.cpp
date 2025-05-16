@@ -61,5 +61,12 @@ std::u16string Str8ToStr16ByIcu(const std::string& str)
     icu::UnicodeString uString = icu::UnicodeString::fromUTF8(str);
     return std::u16string(uString.getBuffer(), static_cast<size_t>(uString.length()));
 }
+
+// Illegal bytes are replaced with U+FFFD
+std::u16string Str32ToStr16ByIcu(const int32_t* data, size_t len)
+{
+    icu::UnicodeString uString = icu::UnicodeString::fromUTF32(data, len);
+    return std::u16string(uString.getBuffer(), static_cast<size_t>(uString.length()));
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -196,5 +196,14 @@ void RSNodeCommandHelper::SetCommitDumpNodeTreeProcessor(CommitDumpNodeTreeProce
 {
     gCommitDumpNodeTreeProcessor = processor;
 }
+
+void RSNodeCommandHelper::SetUIToken(RSContext& context, NodeId nodeId, uint64_t token)
+{
+    auto& nodeMap = context.GetNodeMap();
+    auto node = nodeMap.GetRenderNode(nodeId);
+    if (node) {
+        node->SetUIContextToken(token);
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -74,7 +74,8 @@ RSSurfaceRenderNodeDrawable::RSSurfaceRenderNodeDrawable(std::shared_ptr<const R
     auto nodeSp = std::const_pointer_cast<RSRenderNode>(node);
     auto surfaceNode = std::static_pointer_cast<RSSurfaceRenderNode>(nodeSp);
     name_ = surfaceNode->GetName();
-    if (name_.find("SCBScreenLock") != std::string::npos) {
+    surfaceWindowType_ = surfaceNode->GetSurfaceWindowType();
+    if (surfaceWindowType_ != SurfaceWindowType::SCB_SCREEN_LOCK) {
         vmaCacheOff_ = true;
     }
     surfaceNodeType_ = surfaceNode->GetSurfaceNodeType();
@@ -212,7 +213,7 @@ void RSSurfaceRenderNodeDrawable::DrawWatermark(RSPaintFilterCanvas& canvas, con
     }
 }
 
-Drawing::Region RSSurfaceRenderNodeDrawable::CalculateVisibleDirtyRegion(RSRenderThreadParams& uniParam,
+Drawing::Region RSSurfaceRenderNodeDrawable::CalculateVisibleDirtyRegion(
     RSSurfaceRenderParams& surfaceParams, RSSurfaceRenderNodeDrawable& surfaceDrawable, bool isOffscreen) const
 {
     Drawing::Region resultRegion;
@@ -228,7 +229,11 @@ Drawing::Region RSSurfaceRenderNodeDrawable::CalculateVisibleDirtyRegion(RSRende
     }
 
     auto visibleRegion = surfaceParams.GetVisibleRegion();
-    if (uniParam.IsOcclusionEnabled() && visibleRegion.IsEmpty() && !surfaceParams.IsFirstLevelCrossNode()) {
+    auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+    if (!uniParam) {
+        return resultRegion;
+    }
+    if (uniParam->IsOcclusionEnabled() && visibleRegion.IsEmpty() && !surfaceParams.IsFirstLevelCrossNode()) {
         return resultRegion;
     }
     // The region is dirty region of this SurfaceNode.
@@ -486,20 +491,27 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             currentFrameDirty.left_, currentFrameDirty.top_, currentFrameDirty.width_, currentFrameDirty.height_);
         return;
     }
+
     auto specialLayerManager = surfaceParams->GetSpecialLayerMgr();
     hasSkipCacheLayer_ =
         (specialLayerManager.Find(SpecialLayerType::SECURITY) && !uniParam->GetSecExemption()) ||
             specialLayerManager.Find(SpecialLayerType::SKIP);
-    if (hasSkipCacheLayer_ && curDrawingCacheRoot_) {
-        curDrawingCacheRoot_->SetSkipCacheLayer(true);
+    if (curDrawingCacheRoot_) {
+        if (hasSkipCacheLayer_) {
+            curDrawingCacheRoot_->SetSkipCacheLayer(true);
+        } else if (surfaceParams->IsInBlackList()) {
+            curDrawingCacheRoot_->SetChildInBlackList(true);
+        }
     }
+    
     if (surfaceParams->GetHardCursorStatus()) {
         SetDrawSkipType(DrawSkipType::HARD_CURSOR_ENAbLED);
         RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw hardcursor skip SurfaceName:%s", name_.c_str());
         return;
     }
 
-    Drawing::Region curSurfaceDrawRegion = CalculateVisibleDirtyRegion(*uniParam, *surfaceParams, *this, isUiFirstNode);
+    Drawing::Region curSurfaceDrawRegion =
+        surfaceParams->IsMainWindowType() ? GetSurfaceDrawRegion() : Drawing::Region();
 
     if (!isUiFirstNode) {
         if (uniParam->IsOpDropped() && surfaceParams->IsVisibleDirtyRegionEmpty(curSurfaceDrawRegion)) {
@@ -574,7 +586,7 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     bool needOffscreen = (realTid == RSUniRenderThread::Instance().GetTid()) &&
         RotateOffScreenParam::GetRotateOffScreenSurfaceNodeEnable() &&
         surfaceParams->GetNeedOffscreen() && !rscanvas->GetTotalMatrix().IsIdentity() &&
-        surfaceParams->IsAppWindow() && GetName().substr(0, 3) != "SCB" && !IsHardwareEnabled() &&
+        surfaceParams->IsAppWindow() && IsScbWindowType() && !IsHardwareEnabled() &&
         (surfaceParams->GetVisibleRegion().Area() == (surfaceParams->GetOpaqueRegion().Area() +
         surfaceParams->GetRoundedCornerRegion().Area()));
     curCanvas_ = rscanvas;
@@ -689,10 +701,44 @@ void RSSurfaceRenderNodeDrawable::CrossDisplaySurfaceDirtyRegionConversion(
     }
 }
 
+void RSSurfaceRenderNodeDrawable::UpdateSurfaceDirtyRegion(std::shared_ptr<RSPaintFilterCanvas>& canvas)
+{
+    if (!ShouldPaint()) {
+        return;
+    }
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(GetRenderParams().get());
+    if (!surfaceParams) {
+        RS_LOGE("RSSurfaceRenderParams is nullptr");
+        return;
+    }
+    if (surfaceParams->GetSkipDraw()) {
+        return;
+    }
+    Drawing::Region curSurfaceDrawRegion = CalculateVisibleDirtyRegion(
+        *surfaceParams, *this, canvas->GetIsParallelCanvas());
+    SetSurfaceDrawRegion(curSurfaceDrawRegion);
+}
+
+Drawing::Region RSSurfaceRenderNodeDrawable::GetSurfaceDrawRegion() const
+{
+    std::lock_guard<std::mutex> lock(drawRegionMutex_);
+    return curSurfaceDrawRegion_;
+}
+
+void RSSurfaceRenderNodeDrawable::SetSurfaceDrawRegion(const Drawing::Region& region)
+{
+    std::lock_guard<std::mutex> lock(drawRegionMutex_);
+    curSurfaceDrawRegion_.Clone(region);
+}
+
 void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
 {
     RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
         RS_RSSURFACERENDERNODEDRAWABLE_ONCAPTURE);
+    if (RSUniRenderThread::GetCaptureParam().isSoloNodeUiCapture_) {
+        RSRenderNodeDrawable::OnDraw(canvas);
+        return;
+    }
     if (!ShouldPaint()) {
         return;
     }

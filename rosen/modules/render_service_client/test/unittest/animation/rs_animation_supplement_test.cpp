@@ -126,6 +126,11 @@ class RSRenderAnimationMock : public RSRenderAnimation {
 public:
     RSRenderAnimationMock(AnimationId id) : RSRenderAnimation(id) {}
     ~RSRenderAnimationMock() = default;
+
+    void DumpAnimation(std::string& out)
+    {
+        RSRenderAnimation::DumpAnimation(out);
+    }
 };
 
 class RSAnimationGroupMock : public RSAnimationGroup {
@@ -1147,7 +1152,7 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest022, TestSize.Level1)
     std::shared_ptr<RSNode> node = RSCanvasNode::Create();
     node->SetShadowMask(true);
     node->IsImplicitAnimationOpen();
-    node->GetChildIdByIndex(1);
+    node->GetChildByIndex(1);
     std::string nodeName = "nodeName";
     node->SetNodeName(nodeName);
     PropertyCallback callback;
@@ -1285,6 +1290,109 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest025, TestSize.Level1)
     success = implicitAnimator->CloseImplicitCancelAnimation();
     EXPECT_TRUE(!success);
     GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest025 end";
+}
+
+/**
+ * @tc.name: DumpAnimation01
+ * @tc.desc: Verify the DumpAnimation of Animation
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSAnimationTest, DumpAnimation01, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationTest DumpAnimation01 start";
+    RSRenderAnimationMock animation(0);
+    animation.targetName_ = "TestNode";
+    std::string output;
+    animation.DumpAnimation(output);
+    EXPECT_NE(output.find("NodeName:TestNode"), std::string::npos);
+
+    animation.targetName_ = "";
+    output = "";
+    animation.DumpAnimation(output);
+    EXPECT_EQ(output.find("NodeName:"), std::string::npos);
+
+    animation.animationFraction_.SetStartDelay(5);
+    output = "";
+    animation.DumpAnimation(output);
+    EXPECT_NE(output.find("StartDelay:5"), std::string::npos);
+
+    animation.animationFraction_.SetStartDelay(0);
+    output = "";
+    animation.DumpAnimation(output);
+    EXPECT_EQ(output.find("StartDelay:"), std::string::npos);
+
+    animation.animationFraction_.SetSpeed(2.0f);
+    output = "";
+    animation.DumpAnimation(output);
+    EXPECT_NE(output.find("Speed:2"), std::string::npos);
+
+    animation.animationFraction_.SetSpeed(1.0f);
+    output = "";
+    animation.DumpAnimation(output);
+    EXPECT_EQ(output.find("Speed:"), std::string::npos);
+    GTEST_LOG_(INFO) << "RSAnimationTest DumpAnimation01 end";
+}
+
+/**
+ * @tc.name: DumpAnimation02
+ * @tc.desc: Verify the DumpAnimation of Animation
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSAnimationTest, DumpAnimation02, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationTest DumpAnimation02 start";
+    RSRenderAnimationMock animation(0);
+    animation.animationFraction_.SetRepeatCount(2);
+    std::string output;
+    animation.DumpAnimation(output);
+    EXPECT_NE(output.find("RepeatCount:2"), std::string::npos);
+
+    animation.animationFraction_.SetRepeatCount(1);
+    output = "";
+    animation.DumpAnimation(output);
+    EXPECT_EQ(output.find("RepeatCount"), std::string::npos);
+
+    animation.animationFraction_.SetAutoReverse(true);
+    output = "";
+    animation.DumpAnimation(output);
+    EXPECT_NE(output.find("AutoReverse:1"), std::string::npos);
+
+    animation.animationFraction_.SetAutoReverse(false);
+    output = "";
+    animation.DumpAnimation(output);
+    EXPECT_EQ(output.find("AutoReverse:"), std::string::npos);
+
+    animation.animationFraction_.SetDirection(false);
+    output = "";
+    animation.DumpAnimation(output);
+    EXPECT_NE(output.find("Direction:0"), std::string::npos);
+
+    animation.animationFraction_.SetDirection(true);
+    output = "";
+    animation.DumpAnimation(output);
+    EXPECT_EQ(output.find("Direction:"), std::string::npos);
+
+    animation.animationFraction_.SetFillMode(FillMode::BACKWARDS);
+    output = "";
+    animation.DumpAnimation(output);
+    EXPECT_NE(output.find("FillMode:2"), std::string::npos);
+
+    animation.animationFraction_.SetFillMode(FillMode::FORWARDS);
+    output = "";
+    animation.DumpAnimation(output);
+    EXPECT_EQ(output.find("FillMode:"), std::string::npos);
+
+    animation.animationFraction_.SetRepeatCallbackEnable(true);
+    output = "";
+    animation.DumpAnimation(output);
+    EXPECT_NE(output.find("RepeatCallbackEnable:1"), std::string::npos);
+
+    animation.animationFraction_.SetRepeatCallbackEnable(false);
+    output = "";
+    animation.DumpAnimation(output);
+    EXPECT_EQ(output.find("RepeatCallbackEnable:"), std::string::npos);
+
+    GTEST_LOG_(INFO) << "RSAnimationTest DumpAnimation02 end";
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -187,15 +187,16 @@ HWTEST_F(RSRenderNodeTest2, Animate, TestSize.Level1)
     int64_t timestamp = 4;
     int64_t period = 2;
     bool isDisplaySyncEnabled = true;
-    node.Animate(timestamp, period, isDisplaySyncEnabled);
+    int64_t leftDelayTime = 0;
+    node.Animate(timestamp, leftDelayTime, period, isDisplaySyncEnabled);
     node.displaySync_ = std::make_shared<RSRenderDisplaySync>(1);
-    node.Animate(timestamp, period, isDisplaySyncEnabled);
+    node.Animate(timestamp, leftDelayTime, period, isDisplaySyncEnabled);
     auto context_shared = std::make_shared<RSContext>();
     std::weak_ptr<RSContext> context2 = context_shared;
     RSRenderNode node2(id, context2);
-    node2.Animate(timestamp, period, isDisplaySyncEnabled);
+    node2.Animate(timestamp, leftDelayTime, period, isDisplaySyncEnabled);
     RSSurfaceRenderNode node3(id, context2);
-    node3.Animate(timestamp, period, isDisplaySyncEnabled);
+    node3.Animate(timestamp, leftDelayTime, period, isDisplaySyncEnabled);
     ASSERT_TRUE(true);
 }
 

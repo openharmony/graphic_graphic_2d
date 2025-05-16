@@ -182,7 +182,11 @@ public:
         const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam = {},
         const Drawing::Rect& specifiedAreaRect = Drawing::Rect(0.f, 0.f, 0.f, 0.f),
         RSSurfaceCapturePermissions permissions = RSSurfaceCapturePermissions()) = 0;
-    
+
+    virtual std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>> TakeSurfaceCaptureSoloNode(
+        NodeId id, const RSSurfaceCaptureConfig& captureConfig,
+        RSSurfaceCapturePermissions permissions = RSSurfaceCapturePermissions()) = 0;
+
     virtual void TakeSelfSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
         const RSSurfaceCaptureConfig& captureConfig) = 0;
 
@@ -403,6 +407,10 @@ public:
     virtual ErrCode NotifyPageName(const std::string &packageName, const std::string &pageName, bool isEnter) = 0;
 
     virtual bool GetHighContrastTextState() = 0;
+
+    virtual ErrCode SetBehindWindowFilterEnabled(bool enabled) = 0;
+
+    virtual ErrCode GetBehindWindowFilterEnabled(bool& enabled) = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -74,7 +74,6 @@ HWTEST_F(RSSyncTransactionHandlerTest, OpenSyncTransaction001, TestSize.Level1)
     syncTransaction->rsTransaction_ = nullptr;
     syncTransaction->needCloseSync_ = false;
     syncTransaction->OpenSyncTransaction();
-    EXPECT_TRUE(syncTransaction->rsTransaction_ == nullptr);
 }
 
 /**

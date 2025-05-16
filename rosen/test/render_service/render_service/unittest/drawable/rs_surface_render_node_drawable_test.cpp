@@ -83,6 +83,11 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, CreateSurfaceRenderNodeDrawable, TestS
     auto renderNode = std::make_shared<RSSurfaceRenderNode>(id);
     auto drawable = RSSurfaceRenderNodeDrawable::OnGenerate(renderNode);
     ASSERT_NE(drawable, nullptr);
+
+    const RSSurfaceRenderNodeConfig config = {.id = id, .surfaceWindowType = SurfaceWindowType::SCB_SCREEN_LOCK};
+    renderNode = std::make_shared<RSSurfaceRenderNode>(config);
+    drawable = RSSurfaceRenderNodeDrawable::OnGenerate(renderNode);
+    ASSERT_NE(drawable, nullptr);
 }
 
 /**
@@ -101,6 +106,34 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, OnDraw, TestSize.Level1)
     drawable_->renderParams_->shouldPaint_ = true;
     drawable_->renderParams_->contentEmpty_ = false;
     surfaceDrawable_->OnDraw(*drawingCanvas_);
+
+    surfaceDrawable_->surfaceWindowType_ = SurfaceWindowType::DEFAULT_WINDOW;
+    surfaceDrawable_->OnDraw(*drawingCanvas_);
+    ASSERT_EQ(surfaceDrawable_->IsScbWindowType(), false);
+
+    surfaceDrawable_->surfaceWindowType_ = SurfaceWindowType::SYSTEM_SCB_WINDOW;
+    surfaceDrawable_->OnDraw(*drawingCanvas_);
+    ASSERT_EQ(surfaceDrawable_->IsScbWindowType(), true);
+
+    surfaceDrawable_->surfaceWindowType_ = SurfaceWindowType::SCB_DESKTOP;
+    surfaceDrawable_->OnDraw(*drawingCanvas_);
+    ASSERT_EQ(surfaceDrawable_->IsScbWindowType(), true);
+
+    surfaceDrawable_->surfaceWindowType_ = SurfaceWindowType::SCB_WALLPAPER;
+    surfaceDrawable_->OnDraw(*drawingCanvas_);
+    ASSERT_EQ(surfaceDrawable_->IsScbWindowType(), true);
+
+    surfaceDrawable_->surfaceWindowType_ = SurfaceWindowType::SCB_SCREEN_LOCK;
+    surfaceDrawable_->OnDraw(*drawingCanvas_);
+    ASSERT_EQ(surfaceDrawable_->IsScbWindowType(), true);
+
+    surfaceDrawable_->surfaceWindowType_ = SurfaceWindowType::SCB_NEGATIVE_SCREEN;
+    surfaceDrawable_->OnDraw(*drawingCanvas_);
+    ASSERT_EQ(surfaceDrawable_->IsScbWindowType(), true);
+
+    surfaceDrawable_->surfaceWindowType_ = SurfaceWindowType::SCB_DROPDOWN_PANEL;
+    surfaceDrawable_->OnDraw(*drawingCanvas_);
+    ASSERT_EQ(surfaceDrawable_->IsScbWindowType(), true);
 }
 
 /**
@@ -387,32 +420,28 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, CalculateVisibleDirtyRegion, TestSize.
     ASSERT_NE(surfaceDrawable_, nullptr);
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable_->renderParams_.get());
     ASSERT_NE(surfaceParams, nullptr);
-    auto uniParams = std::make_shared<RSRenderThreadParams>();
 
     surfaceParams->isMainWindowType_ = false;
     surfaceParams->isLeashWindow_ = true;
     surfaceParams->isAppWindow_ = false;
-    Drawing::Region result = surfaceDrawable_->CalculateVisibleDirtyRegion(*uniParams,
-        *surfaceParams, *surfaceDrawable_, true);
+    Drawing::Region result = surfaceDrawable_->CalculateVisibleDirtyRegion(*surfaceParams, *surfaceDrawable_, true);
     ASSERT_TRUE(result.IsEmpty());
 
     surfaceParams->isMainWindowType_ = true;
     surfaceParams->isLeashWindow_ = false;
     surfaceParams->isAppWindow_ = false;
-    result = surfaceDrawable_->CalculateVisibleDirtyRegion(*uniParams, *surfaceParams, *surfaceDrawable_, true);
+    result = surfaceDrawable_->CalculateVisibleDirtyRegion(*surfaceParams, *surfaceDrawable_, true);
     ASSERT_FALSE(result.IsEmpty());
 
-    uniParams->SetOcclusionEnabled(true);
     Occlusion::Region region;
     surfaceParams->SetVisibleRegion(region);
-    result = surfaceDrawable_->CalculateVisibleDirtyRegion(*uniParams, *surfaceParams, *surfaceDrawable_, false);
+    result = surfaceDrawable_->CalculateVisibleDirtyRegion(*surfaceParams, *surfaceDrawable_, false);
     ASSERT_TRUE(result.IsEmpty());
 
     Occlusion::Region region1(DEFAULT_RECT);
     surfaceParams->SetVisibleRegion(region1);
-    uniParams->SetOcclusionEnabled(false);
     surfaceDrawable_->globalDirtyRegion_ = region1;
-    surfaceDrawable_->CalculateVisibleDirtyRegion(*uniParams, *surfaceParams, *surfaceDrawable_, false);
+    surfaceDrawable_->CalculateVisibleDirtyRegion(*surfaceParams, *surfaceDrawable_, false);
 }
 
 /**
@@ -1300,5 +1329,25 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, IsVisibleRegionEqualOnPhysicalAndVirtu
     appParams->SetVisibleRegion(emptyRegion);
     appParams->SetVisibleRegionInVirtual(region);
     ASSERT_FALSE(leashDrawable->IsVisibleRegionEqualOnPhysicalAndVirtual(*leashParams));
+}
+
+/**
+ * @tc.name: UpdateSurfaceDirtyRegion
+ * @tc.desc: Test UpdateSurfaceDirtyRegion
+ * @tc.type: FUNC
+ * @tc.require: #IA940V
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, UpdateSurfaceDirtyRegion, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    drawingCanvas_ = std::make_unique<Drawing::Canvas>(DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
+    canvas_ = std::make_shared<RSPaintFilterCanvas>(drawingCanvas_.get());
+    surfaceDrawable_->UpdateSurfaceDirtyRegion(canvas_);
+    drawable_->renderParams_->shouldPaint_ = true;
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable_->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+    surfaceDrawable_->UpdateSurfaceDirtyRegion(canvas_);
+    Drawing::Region region = surfaceDrawable_->GetSurfaceDrawRegion();
+    EXPECT_TRUE(region.IsEmpty());
 }
 }

@@ -49,56 +49,6 @@ T GetData()
     return object;
 }
 
-bool DoCreate(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-
-    // test
-    auto frameRateLinker = RSFrameRateLinker::Create();
-    return true;
-}
-
-bool DoGetId(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-
-    // test
-    auto frameRateLinker = RSFrameRateLinker::Create();
-    frameRateLinker->GetId();
-    return true;
-}
-
-bool DoIsUniRenderEnabled(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-
-    // test
-    auto frameRateLinker = RSFrameRateLinker::Create();
-    frameRateLinker->IsUniRenderEnabled();
-    return true;
-}
-
 bool DoUpdateFrameRateRange(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -150,57 +100,7 @@ bool DoSetEnable(const uint8_t* data, size_t size)
     auto frameRateLinker = RSFrameRateLinker::Create();
     bool enabled = GetData<bool>();
     frameRateLinker->SetEnable(enabled);
-    return true;
-}
-
-bool DoIsEnable(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-
-    // test
-    auto frameRateLinker = RSFrameRateLinker::Create();
     frameRateLinker->IsEnable();
-    return true;
-}
-
-bool DoInitUniRenderEnabled(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-
-    // test
-    auto frameRateLinker = RSFrameRateLinker::Create();
-    frameRateLinker->InitUniRenderEnabled();
-    return true;
-}
-
-bool DoGenerateId(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-
-    // test
-    auto frameRateLinker = RSFrameRateLinker::Create();
-    frameRateLinker->GenerateId();
     return true;
 }
 } // namespace Rosen
@@ -211,15 +111,9 @@ bool DoGenerateId(const uint8_t* data, size_t size)
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
-    OHOS::Rosen::DoCreate(data, size);
-    OHOS::Rosen::DoGetId(data, size);
-    OHOS::Rosen::DoIsUniRenderEnabled(data, size);
     OHOS::Rosen::DoUpdateFrameRateRange(data, size);
     OHOS::Rosen::DoUpdateFrameRateRangeImme(data, size);
     OHOS::Rosen::DoSetEnable(data, size);
-    OHOS::Rosen::DoIsEnable(data, size);
-    OHOS::Rosen::DoInitUniRenderEnabled(data, size);
-    OHOS::Rosen::DoGenerateId(data, size);
     return 0;
 }
 

@@ -26,6 +26,7 @@ constexpr float THIRTY_THREE_INTERVAL_IN_MS = 33.f;
 constexpr float SIXTEEN_INTERVAL_IN_MS = 16.67f;
 constexpr float FPS_TO_MS = 1000000.f;
 constexpr size_t MATRIX_SIZE = 9;
+static const std::vector<float> DEFAULT_MATRIX = { 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f };
 const std::string GENERIC_METADATA_KEY_SDR_NIT = "SDRBrightnessNit";
 const std::string GENERIC_METADATA_KEY_SDR_RATIO = "SDRBrightnessRatio";
 const std::string GENERIC_METADATA_KEY_BRIGHTNESS_NIT = "BrightnessNit";
@@ -856,6 +857,10 @@ int32_t HdiLayer::SetPerFrameLayerLinearMatrix()
 {
     if (prevLayerInfo_ != nullptr) {
         if (layerInfo_->GetLayerLinearMatrix() == prevLayerInfo_->GetLayerLinearMatrix()) {
+            return GRAPHIC_DISPLAY_SUCCESS;
+        }
+    } else {
+        if (layerInfo_->GetLayerLinearMatrix().empty() || layerInfo_->GetLayerLinearMatrix() == DEFAULT_MATRIX) {
             return GRAPHIC_DISPLAY_SUCCESS;
         }
     }

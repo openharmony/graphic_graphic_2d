@@ -132,22 +132,28 @@ public:
     bool Marshalling(Parcel& parcel) const override;
     [[nodiscard]] static RSImage* Unmarshalling(Parcel& parcel);
 #endif
+    std::string PixelSamplingDump() const;
     void dump(std::string &desc, int depth) const
     {
         std::string split(depth, '\t');
-        desc += split + "RSImage:{";
-        desc += split + "\timageFit_: " + std::to_string(static_cast<int>(imageFit_)) + "\n";
-        desc += split + "\timageRepeat_: " + std::to_string(static_cast<int>(imageRepeat_)) + "\n";
+        desc += split + "RSImage:{ ";
+        desc += split + "\timageFit_: " + std::to_string(static_cast<int>(imageFit_)) + " \n";
+        desc += split + "\timageRepeat_: " + std::to_string(static_cast<int>(imageRepeat_)) + " \n";
+        desc += split + "\torientationFit_: " + std::to_string(static_cast<int>(orientationFit_)) + " \n";
+
         int radiusSize = 4;
         for (int i = 0; i < radiusSize; i++) {
             desc += split + "\tPointF:{ \n";
-            desc += split + "\t\t x_: " + std::to_string(radius_[i].GetX()) + "\n";
-            desc += split + "\t\t y_: " + std::to_string(radius_[i].GetY()) + "\n";
-            desc += split + "\t}\n";
+            desc += split + "\t\t x_: " + std::to_string(radius_[i].GetX()) + " \n";
+            desc += split + "\t\t y_: " + std::to_string(radius_[i].GetY()) + " \n";
+            desc += split + "\t} \n";
         }
         desc += split + frameRect_.ToString();
-        desc += split + "\tscale_: " + std::to_string(scale_) + "\n";
-        desc += split + "}\n";
+        desc += split + "\tscale_: " + std::to_string(scale_) + " \n";
+        desc += split + "\tsrc_: " + src_.ToString() + " \n";
+        desc += split + "\tdst_: " + dst_.ToString() + " \n";
+        desc += split + "\tpixel sampling: " + PixelSamplingDump() + " \n";
+        desc += split + "} \n";
     }
 
 private:

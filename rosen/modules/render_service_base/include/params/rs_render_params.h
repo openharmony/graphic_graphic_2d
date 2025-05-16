@@ -168,16 +168,16 @@ public:
         return globalAlpha_;
     }
 
-    inline bool IsSecurityLayer() const
+    inline bool IsInBlackList() const
     {
-        return isSecurityLayer_;
+        return isInBlackList_;
     }
 
-    inline bool IsSkipLayer() const
+    inline void SetInBlackList(bool isInBlackList)
     {
-        return isSkipLayer_;
+        isInBlackList_ = isInBlackList;
     }
-
+    
     inline bool IsSnapshotSkipLayer() const
     {
         return isSnapshotSkipLayer_;
@@ -406,8 +406,7 @@ private:
     bool isDrawingCacheChanged_ = false;
     std::atomic_bool isNeedUpdateCache_ = false;
     bool drawingCacheIncludeProperty_ = false;
-    bool isSecurityLayer_ = false;
-    bool isSkipLayer_ = false;
+    bool isInBlackList_ = false;
     bool isSnapshotSkipLayer_ = false;
     bool shouldPaint_ = false;
     bool contentEmpty_  = false;

@@ -53,8 +53,10 @@ HWTEST_F(RSRenderNodeMapTest, ObtainScreenLockWindowNodeIdTest, TestSize.Level1)
     surfaceNode = std::make_shared<RSSurfaceRenderNode>(id);
     rsRenderNodeMap.ObtainScreenLockWindowNodeId(surfaceNode);
     ASSERT_EQ(rsRenderNodeMap.screenLockWindowNodeId_, 0);
-    surfaceNode->name_ = "SCBScreenLock";
-    rsRenderNodeMap.ObtainScreenLockWindowNodeId(surfaceNode);
+
+    RSSurfaceRenderNodeConfig config = { .id = id, .surfaceWindowType = SurfaceWindowType::SCB_SCREEN_LOCK };
+    auto node = std::make_shared<RSSurfaceRenderNode>(config);
+    rsRenderNodeMap.ObtainScreenLockWindowNodeId(node);
     ASSERT_EQ(rsRenderNodeMap.screenLockWindowNodeId_, 1);
 }
 
@@ -72,13 +74,18 @@ HWTEST_F(RSRenderNodeMapTest, ObtainLauncherNodeId, TestSize.Level1)
     ASSERT_EQ(rsRenderNodeMap.GetEntryViewNodeId(), 0);
 
     NodeId id = 1;
-    surfaceNode = std::make_shared<RSSurfaceRenderNode>(id);
-    surfaceNode->name_ = "SCBDesktop";
-    rsRenderNodeMap.ObtainLauncherNodeId(surfaceNode);
-    surfaceNode->name_ = "SCBWallpaper";
-    rsRenderNodeMap.ObtainLauncherNodeId(surfaceNode);
-    surfaceNode->name_ = "SCBNegativeScreen";
-    rsRenderNodeMap.ObtainLauncherNodeId(surfaceNode);
+    RSSurfaceRenderNodeConfig config = { .id = id, .surfaceWindowType = SurfaceWindowType::SCB_DESKTOP };
+    auto node = std::make_shared<RSSurfaceRenderNode>(config);
+    rsRenderNodeMap.ObtainLauncherNodeId(node);
+    
+    config.surfaceWindowType = SurfaceWindowType::SCB_WALLPAPER;
+    node = std::make_shared<RSSurfaceRenderNode>(config);
+    rsRenderNodeMap.ObtainLauncherNodeId(node);
+
+    config.surfaceWindowType = SurfaceWindowType::SCB_NEGATIVE_SCREEN;
+    node = std::make_shared<RSSurfaceRenderNode>(config);
+    rsRenderNodeMap.ObtainLauncherNodeId(node);
+    
     ASSERT_EQ(rsRenderNodeMap.entryViewNodeId_, 1);
     ASSERT_EQ(rsRenderNodeMap.wallpaperViewNodeId_, 1);
     ASSERT_EQ(rsRenderNodeMap.negativeScreenNodeId_, 1);

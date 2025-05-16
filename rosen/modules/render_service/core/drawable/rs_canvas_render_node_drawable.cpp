@@ -129,7 +129,10 @@ void RSCanvasRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
     auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
     RSAutoCanvasRestore acr(paintFilterCanvas, RSPaintFilterCanvas::SaveType::kCanvasAndAlpha);
     params->ApplyAlphaAndMatrixToCanvas(*paintFilterCanvas);
-
+    if (RSUniRenderThread::GetCaptureParam().isSoloNodeUiCapture_) {
+        RSRenderNodeDrawable::OnDraw(canvas);
+        return;
+    }
     RSRenderNodeSingleDrawableLocker singleLocker(this);
     if (UNLIKELY(!singleLocker.IsLocked())) {
         singleLocker.DrawableOnDrawMultiAccessEventReport(__func__);

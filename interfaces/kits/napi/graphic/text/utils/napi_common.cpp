@@ -406,6 +406,8 @@ bool GetParagraphStyleFromJS(napi_env env, napi_value argValue, TypographyStyle&
 
     SetEnumValueFromJS(env, argValue, "textHeightBehavior", pographyStyle.textHeightBehavior);
 
+    SetBoolValueFromJS(env, argValue, "trailingSpaceOptimized", pographyStyle.isTrailingSpaceOptimized);
+
     return true;
 }
 

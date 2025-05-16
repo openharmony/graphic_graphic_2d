@@ -78,6 +78,11 @@ bool RSSystemProperties::GetAnimationTraceEnabled()
     return false;
 }
 
+bool RSSystemProperties::GetAnimationDelayOptimizeEnabled()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetRSClientMultiInstanceEnabled()
 {
     return false;
@@ -713,6 +718,15 @@ void RSSystemProperties::SetDebugFmtTraceEnabled(bool flag)
 bool RSSystemProperties::GetDebugFmtTraceEnabled()
 {
     return GetDebugTraceEnabled();
+}
+
+void RSSystemProperties::SetBehindWindowFilterEnabled(bool enabled)
+{
+}
+
+bool RSSystemProperties::GetBehindWindowFilterEnabled()
+{
+    return false;
 }
 
 } // namespace Rosen

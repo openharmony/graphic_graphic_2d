@@ -35,6 +35,7 @@
 #include "common/rs_common_def.h"
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_vector4.h"
+#include "feature/hyper_graphic_manager/rs_frame_rate_policy.h"
 #include "modifier/rs_modifier.h"
 #include "modifier/rs_modifier_manager_map.h"
 #include "modifier/rs_property.h"
@@ -49,7 +50,7 @@
 #include "ui/rs_canvas_drawing_node.h"
 #include "ui/rs_canvas_node.h"
 #include "ui/rs_display_node.h"
-#include "feature/hyper_graphic_manager/rs_frame_rate_policy.h"
+#include "ui/rs_effect_node.h"
 #include "ui/rs_proxy_node.h"
 #include "ui/rs_root_node.h"
 #include "ui/rs_surface_node.h"
@@ -149,10 +150,9 @@ RSNode::~RSNode()
 
     // break current (ui) parent-child relationship.
     // render nodes will check if its child is expired and remove it, no need to manually remove it here.
-    SharedPtr parentPtr;
+    SharedPtr parentPtr = parent_.lock();
     auto rsUIContext = rsUIContext_.lock();
     if (rsUIContext != nullptr) {
-        parentPtr = rsUIContext->GetNodeMap().GetNode(parent_);
         // tell RT/RS to destroy related render node
         rsUIContext->GetMutableNodeMap().UnregisterNode(id_);
         auto transaction = rsUIContext->GetRSTransaction();
@@ -167,7 +167,6 @@ RSNode::~RSNode()
             transaction->AddCommand(command, !IsRenderServiceNode());
         }
     } else {
-        parentPtr = RSNodeMap::Instance().GetNode(parent_);
         RSNodeMap::MutableInstance().UnregisterNode(id_);
         // tell RT/RS to destroy related render node
         auto transactionProxy = RSTransactionProxy::GetInstance();
@@ -183,7 +182,10 @@ RSNode::~RSNode()
         }
     }
     if (parentPtr) {
-        parentPtr->RemoveChildById(id_);
+        parentPtr->children_.erase(std::remove_if(parentPtr->children_.begin(),
+                                                  parentPtr->children_.end(),
+                                                  [](const auto& child) { return child.expired(); }),
+                                   parentPtr->children_.end());
     }
 }
 
@@ -1325,26 +1327,28 @@ void RSNode::SetRSUIContext(std::shared_ptr<RSUIContext> rsUIContext)
         return;
     }
 
-    RSModifierExtractor rsModifierExtractor(id_, rsUIContext);
-    stagingPropertiesExtractor_ = rsModifierExtractor;
-    RSShowingPropertiesFreezer showingPropertiesFreezer(id_, rsUIContext);
-    showingPropertiesFreezer_ = showingPropertiesFreezer;
-    // step1 register node to new nodeMap
-    RegisterNodeMap();
-
     // if have old rsContext, should remove nodeId from old nodeMap and travel child
     if (rsContext != nullptr) {
-        // step2 remove node from old context
+        // step1 remove node from old context
         rsContext->GetMutableNodeMap().UnregisterNode(id_);
         // sync child
         for (uint32_t index = 0; index < children_.size(); index++) {
-            if (auto childPtr = rsContext->GetNodeMap().GetNode(children_[index])) {
+            if (auto childPtr = children_[index].lock()) {
                 childPtr->SetRSUIContext(rsUIContext);
             }
         }
     }
-    // step3 sign
+
+    RSModifierExtractor rsModifierExtractor(id_, rsUIContext);
+    stagingPropertiesExtractor_ = rsModifierExtractor;
+    RSShowingPropertiesFreezer showingPropertiesFreezer(id_, rsUIContext);
+    showingPropertiesFreezer_ = showingPropertiesFreezer;
+
+    // step2 sign
     rsUIContext_ = rsUIContext;
+    // step3 register node to new nodeMap
+    RegisterNodeMap();
+    SetUIContextToken();
 }
 
 void RSNode::SetSkewZ(float skewZ)
@@ -2247,6 +2251,12 @@ void RSNode::SetUseEffectType(UseEffectType useEffectType)
         RSModifierType::USE_EFFECT_TYPE, static_cast<int>(useEffectType));
 }
 
+void RSNode::SetAlwaysSnapshot(bool enable)
+{
+    SetProperty<RSAlwaysSnapshotModifier, RSProperty<bool>>(
+        RSModifierType::ALWAYS_SNAPSHOT, static_cast<bool>(enable));
+}
+
 void RSNode::SetUseShadowBatching(bool useShadowBatching)
 {
     SetProperty<RSUseShadowBatchingModifier, RSProperty<bool>>(RSModifierType::USE_SHADOW_BATCHING, useShadowBatching);
@@ -3106,8 +3116,8 @@ void RSNode::SetIsOnTheTree(bool flag)
         RSModifiersDraw::EraseOffTreeNode(instanceId_, id_);
     }
 #endif
-    for (const auto& childId : children_) {
-        auto childPtr = RSNodeMap::Instance().GetNode(childId);
+    for (auto child : children_) {
+        auto childPtr = child.lock();
         if (childPtr == nullptr) {
             continue;
         }
@@ -3121,7 +3131,7 @@ void RSNode::AddChild(SharedPtr child, int index)
         ROSEN_LOGE("RSNode::AddChild, child is nullptr");
         return;
     }
-    if (child->parent_ == id_) {
+    if (child->parent_.lock().get() == this) {
         ROSEN_LOGD("RSNode::AddChild, child already exist");
         return;
     }
@@ -3133,16 +3143,16 @@ void RSNode::AddChild(SharedPtr child, int index)
         child->SetDrawNode();
     }
     NodeId childId = child->GetId();
-    if (child->parent_ != 0) {
+    if (child->parent_.lock()) {
         child->RemoveFromTree();
     }
 
     if (index < 0 || index >= static_cast<int>(children_.size())) {
-        children_.push_back(childId);
+        children_.push_back(child);
     } else {
-        children_.insert(children_.begin() + index, childId);
+        children_.insert(children_.begin() + index, child);
     }
-    child->SetParent(id_);
+    child->SetParent(weak_from_this());
     if (isTextureExportNode_ != child->isTextureExportNode_) {
         child->SyncTextureExport(isTextureExportNode_);
     }
@@ -3153,6 +3163,10 @@ void RSNode::AddChild(SharedPtr child, int index)
     std::unique_ptr<RSCommand> command = std::make_unique<RSBaseNodeAddChild>(id_, childId, index);
 
     AddCommand(command, IsRenderServiceNode(), GetFollowType(), id_);
+    if (child->GetRSUIContext() != GetRSUIContext()) {
+        std::unique_ptr<RSCommand> child_command = std::make_unique<RSBaseNodeAddChild>(id_, childId, index);
+        child->AddCommand(child_command, IsRenderServiceNode(), GetFollowType(), id_);
+    }
     if (child->GetType() == RSUINodeType::SURFACE_NODE) {
         auto surfaceNode = RSBaseNode::ReinterpretCast<RSSurfaceNode>(child);
         ROSEN_LOGI("RSNode::AddChild, Id: %{public}" PRIu64 ", SurfaceNode:[Id: %{public}" PRIu64 ", name: %{public}s]",
@@ -3165,21 +3179,22 @@ void RSNode::AddChild(SharedPtr child, int index)
 
 void RSNode::MoveChild(SharedPtr child, int index)
 {
-    if (child == nullptr || child->parent_ != id_) {
+    if (child == nullptr || child->parent_.lock().get() != this) {
         ROSEN_LOGD("RSNode::MoveChild, not valid child");
         return;
     }
     NodeId childId = child->GetId();
-    auto itr = std::find(children_.begin(), children_.end(), childId);
+    auto itr = std::find_if(
+        children_.begin(), children_.end(), [&](WeakPtr& ptr) -> bool { return ROSEN_EQ<RSNode>(ptr, child); });
     if (itr == children_.end()) {
         ROSEN_LOGD("RSNode::MoveChild, not child");
         return;
     }
     children_.erase(itr);
     if (index < 0 || index >= static_cast<int>(children_.size())) {
-        children_.push_back(childId);
+        children_.push_back(child);
     } else {
-        children_.insert(children_.begin() + index, childId);
+        children_.insert(children_.begin() + index, child);
     }
     // construct command using child's GetHierarchyCommandNodeId(), not GetId()
     childId = child->GetHierarchyCommandNodeId();
@@ -3191,14 +3206,14 @@ void RSNode::MoveChild(SharedPtr child, int index)
 
 void RSNode::RemoveChild(SharedPtr child)
 {
-    if (child == nullptr || child->parent_ != id_) {
+    if (child == nullptr || child->parent_.lock().get() != this) {
         ROSEN_LOGI("RSNode::RemoveChild, child is nullptr");
         return;
     }
     NodeId childId = child->GetId();
-    RemoveChildById(childId);
+    RemoveChildByNode(child);
     child->OnRemoveChildren();
-    child->SetParent(0);
+    child->parent_.reset();
     child->MarkDirty(NodeDirtyType::APPEARANCE, true);
     // construct command using child's GetHierarchyCommandNodeId(), not GetId()
     childId = child->GetHierarchyCommandNodeId();
@@ -3215,14 +3230,13 @@ void RSNode::RemoveChild(SharedPtr child)
     child->SetIsOnTheTree(false);
 }
 
-void RSNode::RemoveChildByNodeId(NodeId childId)
+void RSNode::RemoveChildByNodeSelf(WeakPtr child)
 {
-    SharedPtr childPtr = rsUIContext_.lock() ? rsUIContext_.lock()->GetNodeMap().GetNode(childId)
-                                             : RSNodeMap::Instance().GetNode(childId);
+    SharedPtr childPtr = child.lock();
     if (childPtr) {
         RemoveChild(childPtr);
     } else {
-        ROSEN_LOGE("RSNode::RemoveChildByNodeId, childId not found");
+        ROSEN_LOGE("RSNode::RemoveChildByNodeSelf, childId not found");
     }
 }
 
@@ -3241,11 +3255,11 @@ void RSNode::AddCrossParentChild(SharedPtr child, int index)
     NodeId childId = child->GetId();
 
     if (index < 0 || index >= static_cast<int>(children_.size())) {
-        children_.push_back(childId);
+        children_.push_back(child);
     } else {
-        children_.insert(children_.begin() + index, childId);
+        children_.insert(children_.begin() + index, child);
     }
-    child->SetParent(id_);
+    child->SetParent(weak_from_this());
     child->OnAddChildren();
     child->MarkDirty(NodeDirtyType::APPEARANCE, true);
     // construct command using child's GetHierarchyCommandNodeId(), not GetId()
@@ -3256,7 +3270,7 @@ void RSNode::AddCrossParentChild(SharedPtr child, int index)
     child->SetIsOnTheTree(isOnTheTree_);
 }
 
-void RSNode::RemoveCrossParentChild(SharedPtr child, NodeId newParentId)
+void RSNode::RemoveCrossParentChild(SharedPtr child, SharedPtr newParent)
 {
     CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
     // RemoveCrossParentChild only used as: the child is under multiple parents(e.g. a window cross multi-screens),
@@ -3269,15 +3283,15 @@ void RSNode::RemoveCrossParentChild(SharedPtr child, NodeId newParentId)
         ROSEN_LOGE("RSNode::RemoveCrossScreenChild, only displayNode support RemoveCrossScreenChild");
         return;
     }
-    NodeId childId = child->GetId();
-    RemoveChildById(childId);
+    RemoveChildByNode(child);
     child->OnRemoveChildren();
-    child->SetParent(newParentId);
+    child->SetParent(newParent);
     child->MarkDirty(NodeDirtyType::APPEARANCE, true);
 
     // construct command using child's GetHierarchyCommandNodeId(), not GetId()
-    childId = child->GetHierarchyCommandNodeId();
-    std::unique_ptr<RSCommand> command = std::make_unique<RSBaseNodeRemoveCrossParentChild>(id_, childId, newParentId);
+    NodeId childId = child->GetHierarchyCommandNodeId();
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSBaseNodeRemoveCrossParentChild>(id_, childId, newParent->GetId());
     AddCommand(command, IsRenderServiceNode(), GetFollowType(), id_);
 }
 
@@ -3337,10 +3351,11 @@ void RSNode::RemoveCrossScreenChild(SharedPtr child)
     AddCommand(command, IsRenderServiceNode(), GetFollowType(), id_);
 }
 
-void RSNode::RemoveChildById(NodeId childId)
+void RSNode::RemoveChildByNode(SharedPtr child)
 {
     CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
-    auto itr = std::find(children_.begin(), children_.end(), childId);
+    auto itr = std::find_if(
+        children_.begin(), children_.end(), [&](WeakPtr &ptr) -> bool {return ROSEN_EQ<RSNode>(ptr, child);});
     if (itr != children_.end()) {
         children_.erase(itr);
     }
@@ -3350,12 +3365,11 @@ void RSNode::RemoveFromTree()
 {
     CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
     MarkDirty(NodeDirtyType::APPEARANCE, true);
-    auto parentPtr = rsUIContext_.lock() ? rsUIContext_.lock()->GetNodeMap().GetNode(parent_)
-                                         : RSNodeMap::Instance().GetNode(parent_);
+    auto parentPtr = parent_.lock();
     if (parentPtr) {
-        parentPtr->RemoveChildById(GetId());
+        parentPtr->RemoveChildByNode(shared_from_this());
         OnRemoveChildren();
-        SetParent(0);
+        parent_.reset();
     }
     // construct command using own GetHierarchyCommandNodeId(), not GetId()
     auto nodeId = GetHierarchyCommandNodeId();
@@ -3368,11 +3382,10 @@ void RSNode::RemoveFromTree()
 void RSNode::ClearChildren()
 {
     for (auto child : children_) {
-        auto childPtr = rsUIContext_.lock() ? rsUIContext_.lock()->GetNodeMap().GetNode(child)
-                                            : RSNodeMap::Instance().GetNode(child);
+        auto childPtr = child.lock();
         if (childPtr) {
             childPtr->SetIsOnTheTree(false);
-            childPtr->SetParent(0);
+            childPtr->parent_.reset();
             childPtr->MarkDirty(NodeDirtyType::APPEARANCE, true);
         }
     }
@@ -3414,8 +3427,7 @@ void RSNode::SyncTextureExport(bool isTextureExportNode)
     }
     SetTextureExport(isTextureExportNode);
     for (uint32_t index = 0; index < children_.size(); index++) {
-        auto childPtr = rsUIContext_.lock() ? rsUIContext_.lock()->GetNodeMap().GetNode(children_[index])
-                                            : RSNodeMap::Instance().GetNode(children_[index]);
+        auto childPtr = children_[index].lock();
         if (childPtr) {
             childPtr->SyncTextureExport(isTextureExportNode);
             std::unique_ptr<RSCommand> command =
@@ -3425,27 +3437,26 @@ void RSNode::SyncTextureExport(bool isTextureExportNode)
     }
 }
 
-const std::optional<NodeId> RSNode::GetChildIdByIndex(int index) const
+RSNode::SharedPtr RSNode::GetChildByIndex(int index) const
 {
     int childrenTotal = static_cast<int>(children_.size());
     if (childrenTotal <= 0 || index < -1 || index >= childrenTotal) {
-        return std::nullopt;
+        return nullptr;
     }
     if (index == -1) {
-        index = childrenTotal - 1;
+        return children_.back().lock();
     }
-    return children_.at(index);
+    return children_.at(index).lock();
 }
 
-void RSNode::SetParent(NodeId parentId)
+void RSNode::SetParent(WeakPtr parent)
 {
-    parent_ = parentId;
+    parent_ = parent;
 }
 
 RSNode::SharedPtr RSNode::GetParent()
 {
-    return rsUIContext_.lock() ? rsUIContext_.lock()->GetNodeMap().GetNode(parent_)
-                               : RSNodeMap::Instance().GetNode(parent_);
+    return parent_.lock();
 }
 
 void RSNode::DumpTree(int depth, std::string& out) const
@@ -3455,12 +3466,11 @@ void RSNode::DumpTree(int depth, std::string& out) const
     }
     out += "| ";
     Dump(out);
-    for (auto childId : children_) {
-        auto child = rsUIContext_.lock() ? rsUIContext_.lock()->GetNodeMap().GetNode(childId)
-                                         : RSNodeMap::Instance().GetNode(childId);
-        if (child) {
+    for (auto child : children_) {
+        auto childPtr = child.lock();
+        if (childPtr) {
             out += "\n";
-            child->DumpTree(depth + 1, out);
+            childPtr->DumpTree(depth + 1, out);
         }
     }
 }
@@ -3470,8 +3480,9 @@ void RSNode::Dump(std::string& out) const
     auto iter = RSUINodeTypeStrs.find(GetType());
     out += (iter != RSUINodeTypeStrs.end() ? iter->second : "RSNode");
     out += "[" + std::to_string(id_);
-    out += "], parent[" + std::to_string(parent_);
+    out += "], parent[" + std::to_string(parent_.lock() ? parent_.lock()->GetId() : -1);
     out += "], instanceId[" + std::to_string(instanceId_);
+    out += "], UIContext[" + std::to_string(rsUIContext_.lock() ? rsUIContext_.lock()->GetToken() : -1);
     if (auto node = ReinterpretCastTo<RSSurfaceNode>()) {
         out += "], name[" + node->GetName();
     } else if (!nodeName_.empty()) {
@@ -3524,7 +3535,7 @@ std::string RSNode::DumpNode(int depth) const
     }
     ss << it->second << "[" << std::to_string(id_) << "] child[";
     for (auto child : children_) {
-        ss << std::to_string(child) << " ";
+        ss << std::to_string(child.lock() ? child.lock()->GetId() : -1) << " ";
     }
     ss << "]";
 
@@ -3536,6 +3547,7 @@ std::string RSNode::DumpNode(int depth) const
             ss << " animationInfo:" << animation->DumpAnimation();
         }
     }
+    ss << " token:" << std::to_string((rsUIContext_.lock() != nullptr) ? rsUIContext_.lock()->GetToken() : -1);
     ss << " " << GetStagingProperties().Dump();
     return ss.str();
 }
@@ -3561,6 +3573,7 @@ template bool RSNode::IsInstanceOf<RSProxyNode>() const;
 template bool RSNode::IsInstanceOf<RSCanvasNode>() const;
 template bool RSNode::IsInstanceOf<RSRootNode>() const;
 template bool RSNode::IsInstanceOf<RSCanvasDrawingNode>() const;
+template bool RSNode::IsInstanceOf<RSEffectNode>() const;
 
 void RSNode::SetInstanceId(int32_t instanceId)
 {
@@ -3587,6 +3600,14 @@ bool RSNode::AddCommand(std::unique_ptr<RSCommand>& command, bool isRenderServic
         transactionProxy->AddCommand(command, isRenderServiceCommand, followType, nodeId);
     }
     return true;
+}
+
+void RSNode::SetUIContextToken()
+{
+    if (GetRSUIContext()) {
+        std::unique_ptr<RSCommand> command = std::make_unique<RSSetUIContextToken>(id_, GetRSUIContext()->GetToken());
+        AddCommand(command, IsRenderServiceNode(), GetFollowType(), id_);
+    }
 }
 
 DrawNodeChangeCallback RSNode::drawNodeChangeCallback_ = nullptr;

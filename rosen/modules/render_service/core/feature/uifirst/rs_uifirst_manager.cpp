@@ -1509,7 +1509,7 @@ bool RSUifirstManager::IsLeashWindowCache(RSSurfaceRenderNode& node, bool animat
                 && !node.HasFilter() && !RSUifirstManager::Instance().rotationChanged_;
     }
 
-    bool needFilterSCB = node.GetSurfaceWindowType() == SurfaceWindowType::SYSTEM_SCB_WINDOW;
+    bool needFilterSCB = node.IsScbWindowType();
     if (needFilterSCB || node.IsSelfDrawingType()) {
         RS_TRACE_NAME_FMT("IsLeashWindowCache: needFilterSCB [%d]", needFilterSCB);
         return false;
@@ -1544,7 +1544,7 @@ bool RSUifirstManager::IsNonFocusWindowCache(RSSurfaceRenderNode& node, bool ani
     }
 
     std::string surfaceName = node.GetName();
-    bool needFilterSCB = node.GetSurfaceWindowType() == SurfaceWindowType::SYSTEM_SCB_WINDOW;
+    bool needFilterSCB = node.IsScbWindowType();
     if (!(node.GetForceUIFirst() || node.GetUIFirstSwitch() == RSUIFirstSwitch::FORCE_ENABLE_LIMIT)
         && (needFilterSCB || node.IsSelfDrawingType())) {
         return false;

@@ -44,12 +44,19 @@ public:
     {
         return renderParticleVector_;
     }
-    bool Animate(int64_t time) override;
+    bool Animate(int64_t time, int64_t& minLeftDelayTime) override;
     void UpdateEmitter(const std::vector<std::shared_ptr<EmitterUpdater>>& emitterUpdater);
     void UpdateNoiseField(const std::shared_ptr<ParticleNoiseFields>& particleNoiseFields);
     const std::shared_ptr<RSRenderParticleSystem>& GetParticleSystem()
     {
         return particleSystem_;
+    }
+    template <typename T>
+    void UpdateParamsIfChanged(const std::shared_ptr<T>& updaterValue, std::shared_ptr<T>& targetValue)
+    {
+        if (updaterValue && updaterValue != targetValue) {
+            targetValue = updaterValue;
+        }
     }
 
 protected:

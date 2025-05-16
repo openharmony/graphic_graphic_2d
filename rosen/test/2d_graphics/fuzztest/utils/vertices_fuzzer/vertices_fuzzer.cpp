@@ -56,8 +56,24 @@ void VerticesFuzzTest000(const uint8_t* data, size_t size)
         indices[i] = GetObject<uint16_t>();
     }
     ver.MakeCopy(static_cast<VertexMode>(mode % MATH_THREE), MATH_TWO, positions, texs, colors, arr_size, indices);
+    for (size_t i = 0; i < arr_size; i++) {
+        positions[i].Set(xRad, yRad);
+        texs[i].Set(xRad, yRad);
+        colors[i] = GetObject<ColorQuad>();
+        indices[i] = GetObject<uint16_t>();
+    }
     ver1.MakeCopy(static_cast<VertexMode>(mode % MATH_THREE), MATH_TWO, positions, texs, colors, arr_size, indices);
+    for (size_t i = 0; i < arr_size; i++) {
+        positions[i].Set(xRad, yRad);
+        texs[i].Set(xRad, yRad);
+        colors[i] = GetObject<ColorQuad>();
+    }
     ver.MakeCopy(static_cast<VertexMode>(mode % MATH_THREE), MATH_TWO, positions, texs, colors);
+    for (size_t i = 0; i < arr_size; i++) {
+        positions[i].Set(xRad, yRad);
+        texs[i].Set(xRad, yRad);
+        colors[i] = GetObject<ColorQuad>();
+    }
     ver1.MakeCopy(static_cast<VertexMode>(mode % MATH_THREE), MATH_TWO, positions, texs, colors);
     std::shared_ptr<Data> data1 = ver.Serialize();
     ver.Deserialize(data1);

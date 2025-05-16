@@ -28,13 +28,16 @@ static const Vector2f CENTER_NODE_COORDINATE = { 0.5f, 0.5f }; // scale center n
 static const std::string SCALE_PROP_X = "sx";
 static const std::string SCALE_PROP_Y = "sy";
 static const std::string ALPHA_PROP = "alpha";
+static const std::string BLUR_PROP = "blur";
+static const std::string TRANSLATE_PROP_X = "tx";
+static const std::string TRANSLATE_PROP_Y = "ty";
 static const size_t PROPERTIES = 2; // symbol animation property contains two values, change from one to the other
 static const unsigned int PROP_START = 0; // symbol animation property contains two values, change from START to the END
 static const unsigned int PROP_END = 1; // symbol animation property contains two values, change from START to the END
 static const unsigned int NODE_WIDTH = 2;
 static const unsigned int NODE_HEIGHT = 3;
-static const int INVALID_STATUS = 0; // invalid status label
-static const int APPEAR_STATUS = 1 ; // appear status label
+static const unsigned int INVALID_STATUS = 0; // invalid status label
+static const unsigned int APPEAR_STATUS = 1 ; // appear status label
 
 namespace SymbolAnimation {
 template<typename T>
@@ -124,20 +127,29 @@ bool RSSymbolAnimation::SetSymbolAnimation(
     }
 
     if (!symbolAnimationConfig->currentAnimationHasPlayed) {
-        if (symbolAnimationConfig->effectStrategy == Drawing::DrawingEffectStrategy::REPLACE_APPEAR) {
-            PopNodeFromReplaceList(symbolAnimationConfig->symbolSpanId);
-        } else {
-            NodeProcessBeforeAnimation(symbolAnimationConfig);
+        switch (symbolAnimationConfig->effectStrategy) {
+            case Drawing::DrawingEffectStrategy::REPLACE_APPEAR:
+                PopNodeFromReplaceList(symbolAnimationConfig->symbolSpanId);
+                break;
+            case Drawing::DrawingEffectStrategy::TEXT_FLIP:
+                PopNodeFromFlipList(symbolAnimationConfig->symbolSpanId);
+                break;
+            default:
+                NodeProcessBeforeAnimation(symbolAnimationConfig);
+                break;
         }
     }
 
     InitSupportAnimationTable();
 
-    if (symbolAnimationConfig->effectStrategy == Drawing::DrawingEffectStrategy::REPLACE_APPEAR) {
-        return SetReplaceAnimation(symbolAnimationConfig);
+    switch (symbolAnimationConfig->effectStrategy) {
+        case Drawing::DrawingEffectStrategy::REPLACE_APPEAR:
+            return SetReplaceAnimation(symbolAnimationConfig);
+        case Drawing::DrawingEffectStrategy::TEXT_FLIP:
+            return SetTextFlipAnimation(symbolAnimationConfig);
+        default:
+            return SetPublicAnimation(symbolAnimationConfig);
     }
-
-    return SetPublicAnimation(symbolAnimationConfig);
 }
 
 void RSSymbolAnimation::NodeProcessBeforeAnimation(
@@ -158,6 +170,17 @@ void RSSymbolAnimation::PopNodeFromReplaceList(uint64_t symbolSpanId)
         rsNode_->canvasNodesListMap_[symbolSpanId].erase(config.nodeId);
     }
     rsNode_->replaceNodesSwapArr_[INVALID_STATUS].clear();
+}
+
+void RSSymbolAnimation::PopNodeFromFlipList(uint64_t symbolSpanId)
+{
+    std::lock_guard<std::mutex> lock(rsNode_->childrenNodeLock_);
+    auto it = rsNode_->canvasNodesListMap_.find(symbolSpanId);
+    if (it == rsNode_->canvasNodesListMap_.end()) {
+        it = rsNode_->canvasNodesListMap_.insert({symbolSpanId,
+            std::unordered_map<NodeId, std::shared_ptr<RSNode>>()}).first;
+    }
+    it->second.erase(INVALID_STATUS);
 }
 
 /**
@@ -245,7 +268,6 @@ bool RSSymbolAnimation::SetReplaceDisappear(
     return true;
 }
 
-
 bool RSSymbolAnimation::SetReplaceAppear(
     const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig,
     bool isStartAnimation)
@@ -312,7 +334,7 @@ bool RSSymbolAnimation::CreateSymbolNode(
         UpdateSymbolGeometry(rsNode_->canvasNodesListMap_[symbolSpanId][nodeId], symbolBounds);
         return false;
     }
-    auto childNode = RSCanvasNode::Create();
+    auto childNode = RSCanvasNode::Create(false, false, rsNode_->GetRSUIContext());
     if (childNode == nullptr) {
         ROSEN_LOGD("[%{public}s] Failed to create CanvasNode", __func__);
         return false;
@@ -444,6 +466,123 @@ bool RSSymbolAnimation::SetPublicAnimation(
     return true;
 }
 
+// set text flip animation
+bool RSSymbolAnimation::SetTextFlipAnimation(
+    const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig)
+{
+    if (symbolAnimationConfig->parameters.size() < PROPERTIES) {
+        ROSEN_LOGE("Invalid animation parameters of text flip, parameters.size: %{public}zu ",
+            symbolAnimationConfig->parameters.size());
+        return false;
+    }
+
+    if (!symbolAnimationConfig->currentAnimationHasPlayed) {
+        SetFlipDisappear(symbolAnimationConfig, rsNode_);
+    }
+    return SetFlipAppear(symbolAnimationConfig, rsNode_,
+        !symbolAnimationConfig->currentAnimationHasPlayed);
+}
+
+void RSSymbolAnimation::SetFlipDisappear(
+    const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig,
+    std::shared_ptr<RSNode>& rsNode)
+{
+    const auto& symbolId = symbolAnimationConfig->symbolSpanId;
+    if (rsNode->canvasNodesListMap_.find(symbolId) == rsNode->canvasNodesListMap_.end()) {
+        return ;
+    }
+    if (rsNode->canvasNodesListMap_[symbolId].find(APPEAR_STATUS) == rsNode->canvasNodesListMap_[symbolId].end()) {
+        return;
+    }
+    auto& canvasNode = rsNode->canvasNodesListMap_[symbolId][APPEAR_STATUS];
+    auto parameter = UpdateParametersDelay(symbolAnimationConfig->parameters[0],
+        symbolAnimationConfig->effectElement.delay);
+    SpliceAnimation(canvasNode, parameter);
+    {
+        std::lock_guard<std::mutex> lock(rsNode->childrenNodeLock_);
+        rsNode->canvasNodesListMap_[symbolId].insert({INVALID_STATUS, canvasNode});
+        rsNode->canvasNodesListMap_[symbolId].erase(APPEAR_STATUS);
+    }
+}
+
+bool RSSymbolAnimation::SetFlipAppear(
+    const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig,
+    std::shared_ptr<RSNode>& rsNode, bool isStartAnimation)
+{
+    auto symbolSpanId = symbolAnimationConfig->symbolSpanId;
+    TextEngine::SymbolNode symbolNode;
+    const auto& effectNode = symbolAnimationConfig->effectElement;
+    if (!effectNode.path.IsValid()) {
+        return true;
+    }
+    // creat childNode
+    Vector4f offsets = CalculateOffset(effectNode.path, effectNode.offset.GetX(),
+        effectNode.offset.GetY());
+    // 0: offsetX, 1: offsetY of childNode
+    auto bounds = Vector4f(offsets[0], offsets[1], effectNode.width, effectNode.height);
+    {
+        std::lock_guard<std::mutex> lock(rsNode->childrenNodeLock_);
+        if (rsNode->canvasNodesListMap_.find(symbolSpanId) == rsNode->canvasNodesListMap_.end()) {
+            rsNode->canvasNodesListMap_.insert({symbolSpanId,
+                std::unordered_map<NodeId, std::shared_ptr<RSNode>>()});
+        }
+        if (rsNode->canvasNodesListMap_[symbolSpanId].find(APPEAR_STATUS) ==
+            rsNode->canvasNodesListMap_[symbolSpanId].end()) {
+            auto childNode = RSCanvasNode::Create();
+            SetSymbolGeometry(childNode, bounds);
+            rsNode->canvasNodesListMap_[symbolSpanId].insert((std::make_pair(APPEAR_STATUS, childNode)));
+            rsNode->AddChild(childNode, -1);
+            isStartAnimation = true;
+        }
+        if (!isStartAnimation) {
+            UpdateSymbolGeometry(rsNode_->canvasNodesListMap_[symbolSpanId][APPEAR_STATUS], bounds);
+        }
+    }
+    auto canvasNode = std::static_pointer_cast<RSCanvasNode>(
+        rsNode_->canvasNodesListMap_[symbolSpanId][APPEAR_STATUS]);
+    if (canvasNode == nullptr) {
+        ROSEN_LOGE("Failed to get canvasNode of TextFilp");
+        return false;
+    }
+    // draw path
+    auto recordingCanvas = canvasNode->BeginRecording(effectNode.width, effectNode.height);
+    DrawPathOnCanvas(recordingCanvas, effectNode, symbolAnimationConfig->color, {offsets[0], offsets[1]});
+    canvasNode->FinishRecording();
+    if (isStartAnimation) {
+        auto parameter = UpdateParametersDelay(symbolAnimationConfig->parameters[1], effectNode.delay);
+        SpliceAnimation(canvasNode, parameter);
+    }
+    return true;
+}
+
+std::vector<Drawing::DrawingPiecewiseParameter> RSSymbolAnimation::UpdateParametersDelay(
+    const std::vector<Drawing::DrawingPiecewiseParameter>& parameters, int delay)
+{
+    std::vector<Drawing::DrawingPiecewiseParameter> outParameters = parameters;
+    for (auto& parameter : outParameters) {
+        parameter.delay += delay;
+    }
+    return outParameters;
+}
+
+void RSSymbolAnimation::DrawPathOnCanvas(ExtendRecordingCanvas* recordingCanvas,
+    const TextEngine::TextEffectElement& effectNode,
+    const Drawing::Color& color, const Drawing::Point& offset)
+{
+    if (recordingCanvas == nullptr) {
+        return;
+    }
+
+    Drawing::Brush brush;
+    brush.SetAntiAlias(true);
+    brush.SetColor(color.CastToColorQuad());
+    auto path = effectNode.path;
+    path.Offset(effectNode.offset.GetX() - offset.GetX(), effectNode.offset.GetY() - offset.GetY());
+    recordingCanvas->AttachBrush(brush);
+    recordingCanvas->DrawPath(path);
+    recordingCanvas->DetachBrush();
+}
+
 void RSSymbolAnimation::GroupAnimationStart(
     const std::shared_ptr<RSNode>& rsNode, std::vector<std::shared_ptr<RSAnimation>>& animations)
 {
@@ -486,6 +625,8 @@ void RSSymbolAnimation::SpliceAnimation(const std::shared_ptr<RSNode>& rsNode,
     }
     std::shared_ptr<RSAnimatableProperty<Vector2f>> scaleProperty = nullptr;
     std::shared_ptr<RSAnimatableProperty<float>> alphaProperty = nullptr;
+    std::shared_ptr<RSAnimatableProperty<Vector2f>> translateProperty = nullptr;
+    std::shared_ptr<RSAnimatableProperty<float>> blurProperty = nullptr;
     std::vector<std::shared_ptr<RSAnimation>> groupAnimation = {};
     SymbolBaseFuncMap funcMap = {
         {SCALE_PROP_X, [&, this](const Drawing::DrawingPiecewiseParameter& parameter)
@@ -496,6 +637,16 @@ void RSSymbolAnimation::SpliceAnimation(const std::shared_ptr<RSNode>& rsNode,
         {ALPHA_PROP, [&, this](const Drawing::DrawingPiecewiseParameter& parameter)
             {
                 AlphaAnimationBase(rsNode, alphaProperty, parameter, groupAnimation);
+            }
+        },
+        {TRANSLATE_PROP_X, [&, this](const Drawing::DrawingPiecewiseParameter& parameter)
+            {
+                TranslateAnimationBase(rsNode, translateProperty, parameter, groupAnimation);
+            }
+        },
+        {BLUR_PROP, [&, this](const Drawing::DrawingPiecewiseParameter& parameter)
+            {
+                BlurAnimationBase(rsNode, blurProperty, parameter, groupAnimation);
             }
         }
     };
@@ -809,6 +960,89 @@ void RSSymbolAnimation::AlphaAnimationBase(const std::shared_ptr<RSNode>& rsNode
 
     std::vector<std::shared_ptr<RSAnimation>> animations1 = RSNode::Animate(rsNode->GetRSUIContext(),
         alphaProtocol, alphaCurve, [&alphaProperty, &alphaValueEnd]() { alphaProperty->Set(alphaValueEnd); });
+
+    if (animations1.size() > 0 && animations1[0] != nullptr) {
+        animations.emplace_back(animations1[0]);
+    }
+}
+
+void RSSymbolAnimation::TranslateAnimationBase(const std::shared_ptr<RSNode>& rsNode,
+    std::shared_ptr<RSAnimatableProperty<Vector2f>>& property,
+    const Drawing::DrawingPiecewiseParameter& parameter,
+    std::vector<std::shared_ptr<RSAnimation>>& animations)
+{
+    const auto& properties = parameter.properties;
+    bool isInvalid = !properties.count(TRANSLATE_PROP_X) || !properties.count(TRANSLATE_PROP_Y) ||
+        properties.at(TRANSLATE_PROP_X).size() < PROPERTIES ||
+        properties.at(TRANSLATE_PROP_Y).size() < PROPERTIES;
+    if (isInvalid) {
+        ROSEN_LOGD("Invalid parameter input of translate.");
+        return;
+    }
+
+    if (property == nullptr) {
+        const Vector2f valueBegin = {properties.at(TRANSLATE_PROP_X).at(0), properties.at(TRANSLATE_PROP_Y).at(0)};
+        SymbolAnimation::CreateOrSetModifierValue(property, valueBegin);
+        auto modifier = std::make_shared<Rosen::RSTranslateModifier>(property);
+        rsNode->AddModifier(modifier);
+    }
+
+    const Vector2f valueEnd = {properties.at(TRANSLATE_PROP_X).at(PROP_END),
+        properties.at(TRANSLATE_PROP_Y).at(PROP_END)};
+
+    // set animation curve and protocol
+    RSAnimationTimingCurve timeCurve;
+    SymbolAnimation::CreateAnimationTimingCurve(parameter.curveType, parameter.curveArgs, timeCurve);
+
+    RSAnimationTimingProtocol protocol;
+    protocol.SetStartDelay(parameter.delay);
+    if (parameter.duration > 0) {
+        protocol.SetDuration(parameter.duration);
+    }
+
+    // set animation
+    std::vector<std::shared_ptr<RSAnimation>> animations1 = RSNode::Animate(rsNode->GetRSUIContext(),
+        protocol, timeCurve, [&property, &valueEnd]() { property->Set(valueEnd); });
+
+    if (animations1.size() > 0 && animations1[0] != nullptr) {
+        animations.emplace_back(animations1[0]);
+    }
+}
+
+void RSSymbolAnimation::BlurAnimationBase(const std::shared_ptr<RSNode>& rsNode,
+    std::shared_ptr<RSAnimatableProperty<float>>& property,
+    const Drawing::DrawingPiecewiseParameter& parameter,
+    std::vector<std::shared_ptr<RSAnimation>>& animations)
+{
+    const auto& properties = parameter.properties;
+    bool isInValid = !properties.count(BLUR_PROP) || properties.at(BLUR_PROP).size() < PROPERTIES;
+    if (isInValid) {
+        ROSEN_LOGD("Invalid parameter input of blur.");
+        return;
+    }
+
+    if (property == nullptr) {
+        float valueBegin = properties.at(BLUR_PROP).at(PROP_START);
+        SymbolAnimation::CreateOrSetModifierValue(property, valueBegin);
+        auto modifier = std::make_shared<Rosen::RSForegroundEffectRadiusModifier>(property);
+        rsNode->AddModifier(modifier);
+    }
+
+    float valueEnd = properties.at(BLUR_PROP).at(PROP_END);
+
+    // set animation curve and protocol
+    RSAnimationTimingCurve timeCurve;
+    SymbolAnimation::CreateAnimationTimingCurve(parameter.curveType, parameter.curveArgs, timeCurve);
+
+    RSAnimationTimingProtocol protocol;
+    protocol.SetStartDelay(parameter.delay);
+    if (parameter.duration > 0) {
+        protocol.SetDuration(parameter.duration);
+    }
+
+    // set animation
+    std::vector<std::shared_ptr<RSAnimation>> animations1 = RSNode::Animate(rsNode->GetRSUIContext(),
+        protocol, timeCurve, [&property, &valueEnd]() { property->Set(valueEnd); });
 
     if (animations1.size() > 0 && animations1[0] != nullptr) {
         animations.emplace_back(animations1[0]);

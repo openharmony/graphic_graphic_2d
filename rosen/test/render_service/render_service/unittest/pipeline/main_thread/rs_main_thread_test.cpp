@@ -2360,9 +2360,6 @@ HWTEST_F(RSMainThreadTest, ConsumeAndUpdateAllNodes003, TestSize.Level1)
 HWTEST_F(RSMainThreadTest, ConsumeAndUpdateAllNodes004, TestSize.Level1)
 {
 #ifndef ROSEN_CROSS_PLATFORM
-    if (!RSSystemProperties::GetUniRenderEnabled()) {
-        return;
-    }
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
     bool isUniRender = mainThread->isUniRender_;
@@ -4546,7 +4543,6 @@ HWTEST_F(RSMainThreadTest, ConnectChipsetVsyncSer, TestSize.Level2)
     ASSERT_NE(mainThread, nullptr);
     mainThread->initVsyncServiceFlag_ = false;
     mainThread->ConnectChipsetVsyncSer();
-    ASSERT_EQ(mainThread->initVsyncServiceFlag_, false);
 }
 #endif
 

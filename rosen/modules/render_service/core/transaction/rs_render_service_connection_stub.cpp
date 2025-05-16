@@ -194,6 +194,8 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_OVERLAY_DISPLAY_MODE),
 #endif
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_PAGE_NAME),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_BEHIND_WINDOW_FILTER_ENABLED),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_BEHIND_WINDOW_FILTER_ENABLED),
 };
 
 void CopyFileDescriptor(MessageParcel& old, MessageParcel& copied)
@@ -285,7 +287,11 @@ bool CheckCreateNodeAndSurface(pid_t pid, RSSurfaceNodeType nodeType, SurfaceWin
         RS_LOGW("CREATE_NODE_AND_SURFACE invalid RSSurfaceNodeType");
         return false;
     }
-    if (windowType != SurfaceWindowType::DEFAULT_WINDOW && windowType != SurfaceWindowType::SYSTEM_SCB_WINDOW) {
+    constexpr int windowTypeMin = static_cast<int>(SurfaceWindowType::DEFAULT_WINDOW);
+    constexpr int windowTypeMax = static_cast<int>(SurfaceWindowType::NODE_MAX);
+
+    int windowTypeNum = static_cast<int>(windowType);
+    if (windowTypeNum < windowTypeMin || windowTypeNum > windowTypeMax) {
         RS_LOGW("CREATE_NODE_AND_SURFACE invalid SurfaceWindowType");
         return false;
     }
@@ -1271,6 +1277,33 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             // The white list will be removed after GetCallingPid interface can return real PID.
             permissions.selfCapture = (ExtractPid(id) == callingPid || callingPid == 0);
             TakeSurfaceCapture(id, cb, captureConfig, blurParam, specifiedAreaRect, permissions);
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::TAKE_SURFACE_CAPTURE_SOLO): {
+            NodeId id{0};
+            if (!data.ReadUint64(id)) {
+                RS_LOGE("RSRenderServiceConnectionStub::TAKE_SURFACE_CAPTURE_SOLO Read parcel failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            RSSurfaceCaptureConfig captureConfig;
+            if (!ReadSurfaceCaptureConfig(captureConfig, data)) {
+                ret = ERR_INVALID_DATA;
+                RS_LOGE("RSRenderServiceConnectionStub::TAKE_SURFACE_CAPTURE_SOLO read captureConfig failed");
+                break;
+            }
+            RSSurfaceCapturePermissions permissions;
+            permissions.isSystemCalling = RSInterfaceCodeAccessVerifierBase::IsSystemCalling(
+                RSIRenderServiceConnectionInterfaceCodeAccessVerifier::codeEnumTypeName_ +
+                "::TAKE_SURFACE_CAPTURE_SOLO");
+            permissions.selfCapture = ExtractPid(id) == callingPid;
+            std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>> pixelMapIdPairVector;
+            pixelMapIdPairVector = TakeSurfaceCaptureSoloNode(id, captureConfig, permissions);
+            if (!RSMarshallingHelper::MarshallingVec(reply, pixelMapIdPairVector)) {
+                ret = ERR_INVALID_REPLY;
+                RS_LOGE("RSRenderServiceConnectionStub::TAKE_SURFACE_CAPTURE_SOLO MarshallingVec failed");
+                break;
+            }
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::TAKE_SELF_SURFACE_CAPTURE): {
@@ -3356,6 +3389,28 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_HIGH_CONTRAST_TEXT_STATE) : {
             bool highContrast = GetHighContrastTextState();
             if (!reply.WriteBool(highContrast)) {
+                ret = ERR_INVALID_REPLY;
+            }
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_BEHIND_WINDOW_FILTER_ENABLED): {
+            bool enabled { false };
+            if (!data.ReadBool(enabled)) {
+                RS_LOGE("RSRenderServiceConnectionStub::SET_BEHIND_WINDOW_FILTER_ENABLED read enabled failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            auto err = SetBehindWindowFilterEnabled(enabled);
+            if (err != ERR_OK) {
+                RS_LOGE("RSRenderServiceConnectionStub::SET_BEHIND_WINDOW_FILTER_ENABLED Write status failed!");
+                ret = ERR_INVALID_REPLY;
+            }
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_BEHIND_WINDOW_FILTER_ENABLED): {
+            bool enabled;
+            if (GetBehindWindowFilterEnabled(enabled) != ERR_OK || !reply.WriteBool(enabled)) {
+                RS_LOGE("RSRenderServiceConnectionStub::GET_BEHIND_WINDOW_FILTER_ENABLED write enabled failed!");
                 ret = ERR_INVALID_REPLY;
             }
             break;

@@ -17,9 +17,11 @@ group("unittest") {
   deps = [
     "adapter/skia_txt:unittest",
     "hm_symbol:hm_symbol_engine_test",
+    "ndk:unittest",
     "skia_test:unittest",
     "skia_txt:unittest",
     "symbol_resource:unittest",
     "texgine:unittest",
+    "util:unittest",
   ]
 }

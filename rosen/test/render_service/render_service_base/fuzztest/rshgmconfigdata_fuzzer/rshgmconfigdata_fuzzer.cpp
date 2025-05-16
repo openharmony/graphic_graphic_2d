@@ -33,6 +33,7 @@ namespace {
 const uint8_t* DATA = nullptr;
 size_t g_size = 0;
 size_t g_pos;
+constexpr size_t STR_LEN = 10;
 } // namespace
 
 template<class T>
@@ -50,55 +51,24 @@ T GetData()
     g_pos += objectSize;
     return object;
 }
-bool DoUnmarshalling(const uint8_t* data, size_t size)
+std::string GetStringFromData(int strlen)
 {
-    if (data == nullptr) {
-        return false;
+    if (strlen <= 0) {
+        return "fuzz";
     }
-
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-
-    Parcel parcel;
-    static_cast<void>(RSHgmConfigData::Unmarshalling(parcel));
-    return true;
+    char cstr[strlen];
+    cstr[strlen - 1] = '\0';
+    for (int i = 0; i < strlen - 1; i++) {
+        char tmp = GetData<char>();
+        if (tmp == '\0') {
+            tmp = '1';
+        }
+        cstr[i] = tmp;
+    }
+    std::string str(cstr);
+    return str;
 }
 bool DoMarshalling(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-    RSHgmConfigData rsHgmConfigData;
-    Parcel parcel;
-    rsHgmConfigData.Marshalling(parcel);
-    return true;
-}
-bool DoAddAnimDynamicItem(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-    RSHgmConfigData rsHgmConfigData;
-    AnimDynamicItem item;
-    item.minSpeed = GetData<int32_t>();
-    item.maxSpeed = GetData<int32_t>();
-    item.preferredFps = GetData<int32_t>();
-    rsHgmConfigData.AddAnimDynamicItem(item);
-    return true;
-}
-bool DoGetSet(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
         return false;
@@ -121,6 +91,21 @@ bool DoGetSet(const uint8_t* data, size_t size)
     rsHgmConfigData.SetPpi(ppi);
     rsHgmConfigData.SetXDpi(xDpi);
     rsHgmConfigData.SetYDpi(yDpi);
+
+    AnimDynamicItem item;
+    item.animType = GetStringFromData(STR_LEN);
+    item.animType = GetStringFromData(STR_LEN);
+    item.minSpeed = GetData<int32_t>();
+    item.maxSpeed = GetData<int32_t>();
+    item.preferredFps = GetData<int32_t>();
+    rsHgmConfigData.AddAnimDynamicItem(item);
+    std::string pageName = GetStringFromData(STR_LEN);
+    rsHgmConfigData.AddPageName(pageName);
+
+    Parcel parcel;
+    rsHgmConfigData.Marshalling(parcel);
+    sleep(1);
+    static_cast<void>(rsHgmConfigData.Unmarshalling(parcel));
     return true;
 }
 } // namespace Rosen
@@ -130,9 +115,6 @@ bool DoGetSet(const uint8_t* data, size_t size)
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
-    OHOS::Rosen::DoUnmarshalling(data, size);      // Unmarshalling
     OHOS::Rosen::DoMarshalling(data, size);        // Marshalling
-    OHOS::Rosen::DoAddAnimDynamicItem(data, size); // AddAnimDynamicItem
-    OHOS::Rosen::DoGetSet(data, size);             // GetSet
     return 0;
 }

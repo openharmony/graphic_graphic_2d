@@ -135,7 +135,8 @@ void RSRenderSpringAnimation::InheritSpringAnimation(const std::shared_ptr<RSRen
 {
     // return if no other spring animation(s) running, or the other animation is finished
     // meanwhile, align run time for both spring animations, prepare for status inheritance
-    if (prevAnimation == nullptr || prevAnimation->Animate(animationFraction_.GetLastFrameTime())) {
+    int64_t delayTime = 0;
+    if (prevAnimation == nullptr || prevAnimation->Animate(animationFraction_.GetLastFrameTime(), delayTime)) {
         blendDuration_ = 0;
         return;
     }

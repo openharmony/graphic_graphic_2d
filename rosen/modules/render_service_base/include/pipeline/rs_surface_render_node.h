@@ -80,6 +80,16 @@ public:
         return nodeType_ == RSSurfaceNodeType::APP_WINDOW_NODE;
     }
 
+    bool IsScbWindowType() const
+    {
+        return surfaceWindowType_ == SurfaceWindowType::SYSTEM_SCB_WINDOW ||
+               surfaceWindowType_ == SurfaceWindowType::SCB_DESKTOP ||
+               surfaceWindowType_ == SurfaceWindowType::SCB_WALLPAPER ||
+               surfaceWindowType_ == SurfaceWindowType::SCB_SCREEN_LOCK ||
+               surfaceWindowType_ == SurfaceWindowType::SCB_NEGATIVE_SCREEN ||
+               surfaceWindowType_ == SurfaceWindowType::SCB_DROPDOWN_PANEL;
+    }
+
     bool IsStartingWindow() const
     {
         return nodeType_ == RSSurfaceNodeType::STARTING_WINDOW_NODE;

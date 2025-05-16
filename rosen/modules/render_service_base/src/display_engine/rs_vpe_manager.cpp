@@ -52,11 +52,11 @@ void RSVpeManager::ReleaseVpeVideo(uint64_t nodeId)
     if (vpeVideoImp != nullptr) {
         int32_t ret = vpeVideoImp->Stop();
         if (ret != 0) {
-            RS_LOGE("vpeVideo stop failed nodeId:%{public}llu, ret:%{public}d", nodeId, ret);
+            RS_LOGE("vpeVideo stop failed nodeId:%{public}" PRIu64 ", ret:%{public}d", nodeId, ret);
         }
         ret = vpeVideoImp->Release();
         if (ret != 0) {
-            RS_LOGE("vpeVideo release failed nodeId:%{public}llu, ret:%{public}d", nodeId, ret);
+            RS_LOGE("vpeVideo release failed nodeId:%{public}" PRIu64 ", ret:%{public}d", nodeId, ret);
         }
     }
     allVpeVideo_.erase(nodeId);
@@ -121,7 +121,8 @@ sptr<Surface> RSVpeManager::GetVpeVideoSurface(uint32_t type, const sptr<Surface
         allVpeVideo_[config.id] = vpeVideo;
         mapSize = allVpeVideo_.size();
     }
-    RS_LOGD("type:%{public}u vepSF:%{public}llu RSSF:%{public}llu nodeId:%{public}llu mapSize:%{public}u",
+    RS_LOGD("type:%{public}u vepSF:%{public}" PRIu64 " RSSF:%{public}" PRIu64
+        " nodeId:%{public}" PRIu64 " mapSize:%{public}u",
         type, vpeSurface->GetUniqueId(), RSSurface->GetUniqueId(), config.id, mapSize);
     return vpeSurface;
 }

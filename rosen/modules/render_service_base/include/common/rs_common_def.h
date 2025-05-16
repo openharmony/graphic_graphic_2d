@@ -241,6 +241,7 @@ struct RSSurfaceCaptureConfig {
     SurfaceCaptureType captureType = SurfaceCaptureType::DEFAULT_CAPTURE;
     bool isSync = false;
     Drawing::Rect mainScreenRect = {};
+    bool isSoloNodeUiCapture = false;
     bool operator==(const RSSurfaceCaptureConfig& config) const
     {
         return mainScreenRect == config.mainScreenRect;
@@ -376,6 +377,12 @@ enum class SelfDrawingNodeType : uint8_t {
 enum class SurfaceWindowType : uint8_t {
     DEFAULT_WINDOW = 0,
     SYSTEM_SCB_WINDOW = 1,
+    SCB_DESKTOP = 2,
+    SCB_WALLPAPER = 3,
+    SCB_SCREEN_LOCK = 4,
+    SCB_NEGATIVE_SCREEN = 5,
+    SCB_DROPDOWN_PANEL = 6,
+    NODE_MAX,
 };
 
 enum class SurfaceHwcNodeType : uint8_t {

@@ -65,7 +65,7 @@ namespace OHOS {
 namespace Rosen {
 
 std::unordered_map<pid_t, size_t> RSRenderNode::blurEffectCounter_ = {};
-
+std::unordered_set<NodeId> RSRenderNode::pendingPurgeNodeIds_;
 void RSRenderNode::UpdateBlurEffectCounter(int deltaCount)
 {
     if (LIKELY(deltaCount == 0)) {
@@ -831,6 +831,11 @@ void RSRenderNode::DumpTree(int32_t depth, std::string& out) const
     
     DumpSubClassNode(out);
     out += ", Properties: " + GetRenderProperties().Dump();
+    if (uiContextToken_ > 0) {
+        out += ", RSUIContextToken: " + std::to_string(uiContextToken_);
+    } else {
+        out += ", RSUIContextToken: NO_RSUIContext";
+    }
     if (GetBootAnimation()) {
         out += ", GetBootAnimation: true";
     }
@@ -1296,13 +1301,15 @@ void RSRenderNode::UpdateDrawingCacheInfoBeforeChildren(bool isScreenRotation)
 #endif
 }
 
-void RSRenderNode::UpdateDrawingCacheInfoAfterChildren()
+void RSRenderNode::UpdateDrawingCacheInfoAfterChildren(bool isInBlackList)
 {
     RS_LOGI_IF(DEBUG_NODE, "RSRenderNode::UpdateDrawingCacheInfoAC uifirstArkTsCardNode:%{public}d"
         " startingWindowFlag_:%{public}d HasChildrenOutOfRect:%{public}d drawingCacheType:%{public}d",
         IsUifirstArkTsCardNode(), startingWindowFlag_, HasChildrenOutOfRect(), GetDrawingCacheType());
     if (IsUifirstArkTsCardNode() || startingWindowFlag_) {
         SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
+    } else if (isInBlackList) {
+        stagingRenderParams_->SetInBlackList(true);
     }
     if (HasChildrenOutOfRect() && GetDrawingCacheType() == RSDrawingCacheType::TARGETED_CACHE) {
         RS_OPTIONAL_TRACE_NAME_FMT("DrawingCacheInfoAfter ChildrenOutOfRect id:%llu", GetId());
@@ -1427,7 +1434,8 @@ void RSRenderNode::UpdateDisplaySyncRange()
     }
 }
 
-std::tuple<bool, bool, bool> RSRenderNode::Animate(int64_t timestamp, int64_t period, bool isDisplaySyncEnabled)
+std::tuple<bool, bool, bool> RSRenderNode::Animate(
+    int64_t timestamp, int64_t& minLeftDelayTime, int64_t period, bool isDisplaySyncEnabled)
 {
     if (displaySync_ && displaySync_->OnFrameSkip(timestamp, period, isDisplaySyncEnabled)) {
         return displaySync_->GetAnimateResult();
@@ -1442,7 +1450,7 @@ std::tuple<bool, bool, bool> RSRenderNode::Animate(int64_t timestamp, int64_t pe
         }
     }
 
-    auto animateResult = animationManager_.Animate(timestamp, IsOnTheTree(), abilityState);
+    auto animateResult = animationManager_.Animate(timestamp, minLeftDelayTime, IsOnTheTree(), abilityState);
     if (displaySync_) {
         displaySync_->SetAnimateResult(animateResult);
     }
@@ -2431,6 +2439,9 @@ void RSRenderNode::CheckFilterCacheAndUpdateDirtySlots(
         return;
     }
     filterDrawable->MarkNeedClearFilterCache();
+    if (filterDrawable->IsPendingPurge()) {
+        pendingPurgeNodeIds_.insert(GetId());
+    }
     UpdateDirtySlotsAndPendingNodes(slot);
 }
 #endif
@@ -2716,6 +2727,10 @@ CM_INLINE void RSRenderNode::ApplyModifiers()
     RS_LOGI_IF(DEBUG_NODE, "RSRenderNode::apply modifiers isFullChildrenListValid_:%{public}d"
         " isChildrenSorted_:%{public}d childrenHasSharedTransition_:%{public}d",
         isFullChildrenListValid_, isChildrenSorted_, childrenHasSharedTransition_);
+    if (pendingPurgeNodeIds_.count(GetId())) {
+        SetDirty();
+        pendingPurgeNodeIds_.erase(GetId());
+    }
     if (const auto& sharedTransitionParam = GetSharedTransitionParam()) {
         sharedTransitionParam->UpdateHierarchy(GetId());
         SharedTransitionParam::UpdateUnpairedSharedTransitionMap(sharedTransitionParam);
@@ -3856,6 +3871,19 @@ RSRenderNode::ChildrenListSharedPtr RSRenderNode::GetChildren() const
 RSRenderNode::ChildrenListSharedPtr RSRenderNode::GetSortedChildren() const
 {
     return std::atomic_load_explicit(&fullChildrenList_, std::memory_order_acquire);
+}
+
+void RSRenderNode::CollectAllChildren(
+    const std::shared_ptr<RSBaseRenderNode>& node, std::vector<NodeId>& vec)
+{
+    if (!node) {
+        ROSEN_LOGD("RSRenderNode::CollectAllChildren node is nullptr");
+        return;
+    }
+    vec.push_back(node->GetId());
+    for (auto& child : *node->GetSortedChildren()) {
+        child->CollectAllChildren(child, vec);
+    }
 }
 
 std::shared_ptr<RSRenderNode> RSRenderNode::GetFirstChild() const

@@ -2911,7 +2911,15 @@ CM_INLINE void RSUniRenderVisitor::PostPrepare(RSRenderNode& node, bool subTreeS
     node.ResetChangeState();
     node.SetHasUnobscuredUEC();
     if (isDrawingCacheEnabled_) {
-        node.UpdateDrawingCacheInfoAfterChildren();
+        bool isInBlackList = false;
+        if (node.GetType() == RSRenderNodeType::SURFACE_NODE) {
+            auto& surfaceNode = static_cast<RSSurfaceRenderNode&>(node);
+            if (surfaceNode.IsLeashWindow() &&
+                allBlackList_.find(surfaceNode.GetLeashPersistentId()) != allBlackList_.end()) {
+                isInBlackList = true;
+            }
+        }
+        node.UpdateDrawingCacheInfoAfterChildren(isInBlackList);
     }
     if (auto nodeParent = node.GetParent().lock()) {
         nodeParent->UpdateChildUifirstSupportFlag(node.GetUifirstSupportFlag());

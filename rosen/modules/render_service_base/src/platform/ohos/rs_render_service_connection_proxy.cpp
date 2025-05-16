@@ -1781,6 +1781,34 @@ void RSRenderServiceConnectionProxy::TakeSurfaceCapture(NodeId id, sptr<RSISurfa
     }
 }
 
+std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>> RSRenderServiceConnectionProxy::TakeSurfaceCaptureSoloNode(
+    NodeId id, const RSSurfaceCaptureConfig& captureConfig, RSSurfaceCapturePermissions)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>> pixelMapIdPairVector;
+    option.SetFlags(MessageOption::TF_SYNC);
+    if (!data.WriteUint64(id)) {
+        ROSEN_LOGE("%{public}s write id failed", __func__);
+        return pixelMapIdPairVector;
+    }
+    if (!WriteSurfaceCaptureConfig(captureConfig, data)) {
+        ROSEN_LOGE("%{public}s write captureConfig failed", __func__);
+        return pixelMapIdPairVector;
+    }
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::TAKE_SURFACE_CAPTURE_SOLO);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("%{public}s SendRequest() error[%{public}d]", __func__, err);
+        return pixelMapIdPairVector;
+    }
+    if (!RSMarshallingHelper::UnmarshallingVec(reply, pixelMapIdPairVector)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::TakeSurfaceCaptureSoloNode UnmarshallingVec failed");
+    }
+    return pixelMapIdPairVector;
+}
+
 void RSRenderServiceConnectionProxy::TakeSelfSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
     const RSSurfaceCaptureConfig& captureConfig)
 {
@@ -5049,6 +5077,52 @@ ErrCode RSRenderServiceConnectionProxy::NotifyPageName(const std::string &packag
         }
     } else {
         ROSEN_LOGE("RSRenderServiceConnectionProxy::NotifyPageName: write data err.");
+        return ERR_INVALID_VALUE;
+    }
+    return ERR_OK;
+}
+
+ErrCode RSRenderServiceConnectionProxy::SetBehindWindowFilterEnabled(bool enabled)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::SetBehindWindowFilterEnabled WriteInterfaceToken err.");
+        return ERR_INVALID_VALUE;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    if (!data.WriteBool(enabled)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::SetBehindWindowFilterEnabled WriteBool err.");
+        return ERR_INVALID_VALUE;
+    }
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_BEHIND_WINDOW_FILTER_ENABLED);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::SetBehindWindowFilterEnabled sendrequest error : %{public}d", err);
+        return ERR_INVALID_VALUE;
+    }
+    return ERR_OK;
+}
+
+ErrCode RSRenderServiceConnectionProxy::GetBehindWindowFilterEnabled(bool& enabled)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::GetBehindWindowFilterEnabled WriteInterfaceToken err.");
+        return ERR_INVALID_VALUE;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_BEHIND_WINDOW_FILTER_ENABLED);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::GetBehindWindowFilterEnabled sendrequest error : %{public}d", err);
+        return ERR_INVALID_VALUE;
+    }
+    if (!reply.ReadBool(enabled)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::SetBehindWindowFilterEnabled ReadBool err.");
         return ERR_INVALID_VALUE;
     }
     return ERR_OK;

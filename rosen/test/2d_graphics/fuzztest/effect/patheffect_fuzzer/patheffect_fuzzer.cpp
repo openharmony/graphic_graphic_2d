@@ -55,7 +55,7 @@ bool PathEffectFuzzTest(const uint8_t* data, size_t size)
         intervals[i] = GetObject<float>();
     }
     PathEffect::CreateDashPathEffect(intervals, count, phase);
-    PathEffect::CreateCornerPathEffect(radius);
+    PathEffect::CreateCornerPathEffect(GetObject<scalar>());
     scalar segLength = GetObject<scalar>();
     scalar dev = GetObject<scalar>();
     uint32_t seedAssist = GetObject<uint32_t>();
@@ -67,11 +67,14 @@ bool PathEffectFuzzTest(const uint8_t* data, size_t size)
     PathEffect::CreateComposePathEffect(pathEffect, pathEffectTWO);
     pathEffect.GetType();
     pathEffect.GetDrawingType();
-    PathEffect(type, intervals, count, phase);
-    PathEffect(type, path, advance, phase, static_cast<PathDashStyle>(style));
-    PathEffect(type, radius);
-    PathEffect(type, segLength, dev, seedAssist);
-    PathEffect(type, pathEffect, pathEffectTWO);
+    PathEffect(GetObject<PathEffect::PathEffectType>(), intervals, count, phase);
+    style = GetObject<uint32_t>();
+    PathEffect(GetObject<PathEffect::PathEffectType>(), path, GetObject<scalar>(), GetObject<scalar>(),
+        static_cast<PathDashStyle>(style));
+    PathEffect(GetObject<PathEffect::PathEffectType>(), GetObject<scalar>());
+    PathEffect(GetObject<PathEffect::PathEffectType>(), GetObject<scalar>(), GetObject<scalar>(),
+        GetObject<uint32_t>());
+    PathEffect(GetObject<PathEffect::PathEffectType>(), pathEffect, pathEffectTWO);
     if (intervals != nullptr) {
         delete [] intervals;
         intervals = nullptr;

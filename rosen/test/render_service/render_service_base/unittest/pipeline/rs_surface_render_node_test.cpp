@@ -2502,5 +2502,38 @@ HWTEST_F(RSSurfaceRenderNodeTest, GetSourceDisplayRenderNodeId, TestSize.Level1)
     testNode->SetSourceDisplayRenderNodeId(sourceDisplayRenderNodeId);
     ASSERT_EQ(testNode->GetSourceDisplayRenderNodeId(), sourceDisplayRenderNodeId);
 }
+
+/**
+ * @tc.name: IsScbWindowType
+ * @tc.desc: test IsScbWindowType.
+ * @tc.type: FUNC
+ * @tc.require: issueIBJJRI
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, IsScbWindowType, TestSize.Level1)
+{
+    RSSurfaceRenderNodeConfig c;
+    auto node = std::make_shared<RSSurfaceRenderNode>(c);
+    ASSERT_EQ(node->IsScbWindowType(), false);
+    
+    c.surfaceWindowType = SurfaceWindowType::SYSTEM_SCB_WINDOW;
+    node = std::make_shared<RSSurfaceRenderNode>(c);
+    ASSERT_EQ(node->IsScbWindowType(), true);
+
+    c.surfaceWindowType = SurfaceWindowType::SCB_DESKTOP;
+    node = std::make_shared<RSSurfaceRenderNode>(c);
+    ASSERT_EQ(node->IsScbWindowType(), true);
+
+    c.surfaceWindowType = SurfaceWindowType::SCB_WALLPAPER;
+    node = std::make_shared<RSSurfaceRenderNode>(c);
+    ASSERT_EQ(node->IsScbWindowType(), true);
+
+    c.surfaceWindowType = SurfaceWindowType::SCB_SCREEN_LOCK;
+    node = std::make_shared<RSSurfaceRenderNode>(c);
+    ASSERT_EQ(node->IsScbWindowType(), true);
+
+    c.surfaceWindowType = SurfaceWindowType::SCB_NEGATIVE_SCREEN;
+    node = std::make_shared<RSSurfaceRenderNode>(c);
+    ASSERT_EQ(node->IsScbWindowType(), true);
+}
 } // namespace Rosen
 } // namespace OHOS

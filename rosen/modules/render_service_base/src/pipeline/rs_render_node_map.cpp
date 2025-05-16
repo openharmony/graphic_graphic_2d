@@ -26,13 +26,6 @@
 
 namespace OHOS {
 namespace Rosen {
-namespace {
-constexpr const char* ENTRY_VIEW = "SCBDesktop";
-constexpr const char* WALLPAPER_VIEW = "SCBWallpaper";
-constexpr const char* SCREENLOCK_WINDOW = "SCBScreenLock";
-constexpr const char* SYSUI_DROPDOWN = "SCBDropdownPanel";
-constexpr const char* NEGATIVE_SCREEN = "SCBNegativeScreen";
-};
 
 using ResidentSurfaceNodeMap = std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>>;
 
@@ -53,13 +46,13 @@ void RSRenderNodeMap::ObtainLauncherNodeId(const std::shared_ptr<RSSurfaceRender
     if (surfaceNode == nullptr) {
         return;
     }
-    if (surfaceNode->GetName().find(ENTRY_VIEW) != std::string::npos) {
+    if (surfaceNode->GetSurfaceWindowType() == SurfaceWindowType::SCB_DESKTOP) {
         entryViewNodeId_ = surfaceNode->GetId();
     }
-    if (surfaceNode->GetName().find(WALLPAPER_VIEW) != std::string::npos) {
+    if (surfaceNode->GetSurfaceWindowType() == SurfaceWindowType::SCB_WALLPAPER) {
         wallpaperViewNodeId_ = surfaceNode->GetId();
     }
-    if (surfaceNode->GetName().find(NEGATIVE_SCREEN) != std::string::npos) {
+    if (surfaceNode->GetSurfaceWindowType() == SurfaceWindowType::SCB_NEGATIVE_SCREEN) {
         negativeScreenNodeId_ = surfaceNode->GetId();
     }
 }
@@ -69,7 +62,7 @@ void RSRenderNodeMap::ObtainScreenLockWindowNodeId(const std::shared_ptr<RSSurfa
     if (surfaceNode == nullptr) {
         return;
     }
-    if (surfaceNode->GetName().find(SCREENLOCK_WINDOW) != std::string::npos) {
+    if (surfaceNode->GetSurfaceWindowType() == SurfaceWindowType::SCB_SCREEN_LOCK) {
         screenLockWindowNodeId_ = surfaceNode->GetId();
     }
 }
@@ -96,10 +89,15 @@ NodeId RSRenderNodeMap::GetNegativeScreenNodeId() const
 
 static bool IsResidentProcess(const std::shared_ptr<RSSurfaceRenderNode> surfaceNode)
 {
-    return surfaceNode->GetName().find(ENTRY_VIEW) != std::string::npos ||
-           surfaceNode->GetName().find(SYSUI_DROPDOWN) != std::string::npos ||
-           surfaceNode->GetName().find(SCREENLOCK_WINDOW) != std::string::npos ||
-           surfaceNode->GetName().find(WALLPAPER_VIEW) != std::string::npos;
+    switch (surfaceNode->GetSurfaceWindowType()) {
+        case SurfaceWindowType::SCB_DESKTOP:
+        case SurfaceWindowType::SCB_DROPDOWN_PANEL:
+        case SurfaceWindowType::SCB_SCREEN_LOCK:
+        case SurfaceWindowType::SCB_WALLPAPER:
+            return true;
+        default:
+            return false;
+    }
 }
 
 uint32_t RSRenderNodeMap::GetVisibleLeashWindowCount() const

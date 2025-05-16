@@ -167,6 +167,7 @@ enum class RSModifierType : int16_t {
     FG_BLUR_DISABLE_SYSTEM_ADAPTATION = 131,
     ATTRACTION_FRACTION = 132,
     ATTRACTION_DSTPOINT = 133,
+    ALWAYS_SNAPSHOT = 134,
 
     CUSTOM = 200,
     EXTENDED = 201,
@@ -358,6 +359,7 @@ public:
             case RSModifierType::FOREGROUND_BLUR_RADIUS_X: return "ForegroundBlurRadiusX";
             case RSModifierType::FOREGROUND_BLUR_RADIUS_Y: return "ForegroundBlurRadiusY";
             case RSModifierType::FG_BLUR_DISABLE_SYSTEM_ADAPTATION: return "FgBlurDisableSystemAdaptation";
+            case RSModifierType::ALWAYS_SNAPSHOT: return "AlwaysSnapshot";
             case RSModifierType::CUSTOM: return "Custom";
             case RSModifierType::EXTENDED: return "Extended";
             case RSModifierType::TRANSITION: return "Transition";

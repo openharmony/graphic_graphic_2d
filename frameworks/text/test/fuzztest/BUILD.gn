@@ -11,16 +11,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import("//build/test.gni")
 group("fuzztest") {
   testonly = true
-  deps = []
 
-  deps += [
-    "drawing_fuzzer:fuzztest",
-    "drawingrun_fuzzer:fuzztest",
-    "drawingtext_fuzzer:fuzztest",
+  deps = [
     "hm_symbol:fuzztest",
-    "skia_txt:fuzztest",
+    "inner_api:fuzztest",
+    "ndk:fuzztest",
   ]
 }

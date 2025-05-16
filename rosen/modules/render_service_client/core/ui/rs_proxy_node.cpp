@@ -69,6 +69,7 @@ RSProxyNode::SharedPtr RSProxyNode::Create(
         ROSEN_LOGD("RSProxyNode::Create, target node id:%{public}" PRIu64 ", name %s proxy node id %{public}" PRIu64,
             node->GetId(), node->GetName().c_str(), proxyNodeId);
     }
+    node->SetUIContextToken();
     return node;
 }
 

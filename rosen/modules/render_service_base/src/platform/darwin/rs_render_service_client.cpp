@@ -140,6 +140,13 @@ bool RSRenderServiceClient::TakeSurfaceCapture(NodeId id, std::shared_ptr<Surfac
     return false;
 }
 
+std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>> RSRenderServiceClient::TakeSurfaceCaptureSoloNode(
+    NodeId id, const RSSurfaceCaptureConfig& captureConfig)
+{
+    std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>> result;
+    return result;
+}
+
 bool RSRenderServiceClient::TakeSelfSurfaceCapture(NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback,
     const RSSurfaceCaptureConfig& captureConfig)
 {
@@ -777,6 +784,16 @@ void RSRenderServiceClient::NotifyPageName(const std::string &packageName,
 }
 
 bool RSRenderServiceClient::GetHighContrastTextState()
+{
+    return false;
+}
+
+bool RSRenderServiceClient::SetBehindWindowFilterEnabled(bool enabled)
+{
+    return false;
+}
+
+bool RSRenderServiceClient::GetBehindWindowFilterEnabled(bool& enabled)
 {
     return false;
 }

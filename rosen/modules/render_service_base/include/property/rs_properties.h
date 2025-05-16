@@ -353,6 +353,9 @@ public:
     void SetBgBlurDisableSystemAdaptation(bool disableSystemAdaptation);
     bool GetBgBlurDisableSystemAdaptation() const;
 
+    void SetAlwaysSnapshot(bool enable);
+    bool GetAlwaysSnapshot() const;
+
     void SetForegroundBlurRadius(float ForegroundBlurRadius);
     float GetForegroundBlurRadius() const;
     bool IsForegroundBlurRadiusValid() const;
@@ -613,6 +616,7 @@ private:
     void GenerateCompositingMaterialFuzedBlurFilter();
     std::shared_ptr<Drawing::ColorFilter> GetMaterialColorFilter(float sat, float brightness);
     void GenerateAIBarFilter();
+    void GenerateAlwaysSnapshotFilter();
     void GenerateWaterRippleFilter();
     void GenerateLinearGradientBlurFilter();
     void GenerateMagnifierFilter();
@@ -659,6 +663,7 @@ private:
     bool isAttractionValid_ = false;
     bool bgBlurDisableSystemAdaptation = true;
     bool fgBlurDisableSystemAdaptation = true;
+    bool alwaysSnapshot_ = false;
     float frameOffsetX_ = 0.f;
     float frameOffsetY_ = 0.f;
     float alpha_ = 1.f;

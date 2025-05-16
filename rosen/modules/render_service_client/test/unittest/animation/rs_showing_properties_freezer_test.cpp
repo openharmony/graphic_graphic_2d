@@ -411,6 +411,7 @@ HWTEST_F(RSShowingPropertiesFreezerTest, GetShadowTest, TestSize.Level1)
     ASSERT_TRUE(result5.has_value());
     EXPECT_FLOAT_EQ(result5.value(), SHOWING_FLOAT_NUM);
 
+    canvasNode = RSCanvasNode::Create();
     canvasNode->SetShadowRadius(SHOWING_FLOAT_NUM);
     auto result6 = canvasNode->GetShowingProperties().GetShadowRadius();
     ASSERT_TRUE(result6.has_value());
@@ -462,6 +463,7 @@ HWTEST_F(RSShowingPropertiesFreezerTest, GetAttractionValueTest, TestSize.Level1
     ASSERT_TRUE(result2.has_value());
     EXPECT_FLOAT_EQ(result2.value().x_, SHOWING_FLOAT_NUM);
 
+    canvasNode = RSCanvasNode::Create();
     float showingFloatNumber = 200.f;
     canvasNode->SetAttractionEffectFraction(showingFloatNumber);
     auto result3 = canvasNode->GetShowingProperties().GetAttractionFractionValue();

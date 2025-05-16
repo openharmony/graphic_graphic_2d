@@ -45,6 +45,9 @@ bool MaskFilterFuzzTest(const uint8_t* data, size_t size)
     maskFilter->GetType();
     maskFilter->GetDrawingType();
     uint32_t t = GetObject<uint32_t>();
+    blurType = GetObject<uint32_t>();
+    sigma = GetObject<float>();
+    respectCTM = GetObject<bool>();
     MaskFilter(static_cast<MaskFilter::FilterType>(t % FILTERTYPE_SIZE),
         static_cast<BlurType>(blurType % BLURTYPE_SIZE), sigma, respectCTM);
     MaskFilter(static_cast<MaskFilter::FilterType>(t % FILTERTYPE_SIZE));
