@@ -2300,18 +2300,18 @@ HWTEST_F(RSUniHwcVisitorTest, IsDisableHwcOnExpandScreen, TestSize.Level2)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSUniHwcVisitorTest, UpdateCroseInfoForProtectedHwcNode001, TestSize.level2)
+HWTEST_F(RSUniHwcVisitorTest, UpdateCroseInfoForProtectedHwcNode001, TestSize.Level2)
 {
    NodeId surfaceNodeId = 1;
    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceNodeId);
    ASSERT_NE(surfaceNode, nullptr);
 
    ASSERT_FALSE(surfaceNode->GetFirstLevelNode());
-   ASSERT_FALSE(surfaceNode->IsHwcCrossNode());
+   ASSERT_FALSE(surfaceNode->IsHwcDRMNode());
    ASSERT_FALSE(surfaceNode->GetHwcGlobalPositionEnabled());
    ASSERT_FALSE(surfaceNode->GetSpecialLayerMgr().Find(SpecialLayerType::PROTECTED));
 
-   surfaceNode->GetMultableSpecialLayerMgr.Set(SpecialLayerType::PROTECTED, true);
+   surfaceNode->GetMultableSpecialLayerMgr().Set(SpecialLayerType::PROTECTED, true);
    surfaceNode->SetHwcGlobalPositionEnabled(true);
    surfaceNode->SetHwcCrossNode(true);
    UpdateCrossInfoForProtectedHwcNode(surfaceNode);
