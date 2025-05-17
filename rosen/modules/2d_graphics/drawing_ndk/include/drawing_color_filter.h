@@ -111,6 +111,19 @@ OH_Drawing_ColorFilter* OH_Drawing_ColorFilterCreateSrgbGammaToLinear(void);
 OH_Drawing_ColorFilter* OH_Drawing_ColorFilterCreateLuma(void);
 
 /**
+ * @brief Creates an <b>OH_Drawing_ColorFilter</b> with the given mutColor used to multiply source color and addColor
+ * used to add to source color. The Alpha channel will not be affected.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param mulColor Indicates the color, which is a 32-bit (ARGB) variable.
+ * @param addColor Indicates the color, which is a 32-bit (ARGB) variable.
+ * @return Returns the pointer to the <b>OH_Drawing_ColorFilter</b> object created.
+ * @since 20
+ * @version 1.0
+ */
+OH_Drawing_ColorFilter* OH_Drawing_ColorFilterCreateLighting(uint32_t mulColor, uint32_t addColor);
+
+/**
  * @brief Destroys an <b>OH_Drawing_ColorFilter</b> object and reclaims the memory occupied by the object.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing

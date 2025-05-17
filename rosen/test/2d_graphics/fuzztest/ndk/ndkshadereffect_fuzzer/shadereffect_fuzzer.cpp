@@ -33,6 +33,7 @@ namespace Rosen {
 namespace {
 constexpr size_t DATA_MIN_SIZE = 2;
 constexpr size_t FILTER_MODE_ENUM_SIZE = 2;
+constexpr size_t BLEND_MODE_ENUN_SIZE = 30;
 constexpr size_t MIP_MAP_MODE_ENUM_SIZE = 3;
 constexpr size_t TILE_MODE_ENUM_SIZE = 4;
 constexpr uint32_t MAX_ARRAY_SIZE = 5000;
@@ -281,6 +282,96 @@ void NativeShaderEffectTest005(const uint8_t* data, size_t size)
     OH_Drawing_MatrixDestroy(matrix);
     OH_Drawing_ShaderEffectDestroy(ShaderEffectEight);
     OH_Drawing_ShaderEffectDestroy(ShaderEffectNine);
+}
+
+void NativeShaderEffectTest006(const uint8_t* data, size_t size)
+{
+    if (data == nullptr || size < DATA_MIN_SIZE) {
+        return;
+    }
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    float x = GetObject<float>();
+    float y = GetObject<float>();
+    uint32_t tileMode = GetObject<uint32_t>();
+    uint32_t format = GetObject<uint32_t>() % MAX_ARRAY_SIZE;
+
+    uint32_t* colors = new uint32_t[format];
+    for (size_t i = 0; i < format; i++) {
+        colors[i] = GetObject<uint32_t>();
+    }
+    float* pos = new float[format];
+    for (size_t i = 0; i < format; i++) {
+        pos[i] = GetObject<float>();
+    }
+
+    OH_Drawing_Matrix* matrix = OH_Drawing_MatrixCreate();
+    OH_Drawing_Point* centerPt = OH_Drawing_PointCreate(x, y);
+    OH_Drawing_ShaderEffect* shaderEffectOne = OH_Drawing_ShaderEffectCreateSweepGradientWithLocalMatrix(centerPt,
+        colors, pos, format, static_cast<OH_Drawing_TileMode>(tileMode % TILE_MODE_ENUM_SIZE), nullptr);
+    OH_Drawing_ShaderEffect* shaderEffectTwo = OH_Drawing_ShaderEffectCreateSweepGradientWithLocalMatrix(nullptr,
+        colors, pos, format, static_cast<OH_Drawing_TileMode>(tileMode % TILE_MODE_ENUM_SIZE), nullptr);
+    OH_Drawing_ShaderEffect* shaderEffectThree = OH_Drawing_ShaderEffectCreateSweepGradientWithLocalMatrix(centerPt,
+        colors, pos, format, static_cast<OH_Drawing_TileMode>(tileMode % TILE_MODE_ENUM_SIZE), matrix);
+    OH_Drawing_ShaderEffect* shaderEffectFour = OH_Drawing_ShaderEffectCreateSweepGradientWithLocalMatrix(nullptr,
+        colors, pos, format, static_cast<OH_Drawing_TileMode>(tileMode % TILE_MODE_ENUM_SIZE), matrix);
+    if (colors != nullptr) {
+        delete[] colors;
+        colors = nullptr;
+    }
+    if (pos != nullptr) {
+        delete[] pos;
+        pos = nullptr;
+    }
+    OH_Drawing_PointDestroy(centerPt);
+    OH_Drawing_MatrixDestroy(matrix);
+    OH_Drawing_ShaderEffectDestroy(shaderEffectOne);
+    OH_Drawing_ShaderEffectDestroy(shaderEffectTwo);
+    OH_Drawing_ShaderEffectDestroy(shaderEffectThree);
+    OH_Drawing_ShaderEffectDestroy(shaderEffectFour);
+}
+
+void NativeShaderEffectTest007(const uint8_t* data, size_t size)
+{
+    if (data == nullptr || size < DATA_MIN_SIZE) {
+        return;
+    }
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+    uint32_t blendMode = GetObject<uint32_t>();
+    uint32_t color = GetObject<uint32_t>();
+    uint32_t colorTwo = GetObject<uint32_t>();
+    OH_Drawing_ShaderEffect* srcEffect = OH_Drawing_ShaderEffectCreateColorShader(color);
+    if (srcEffect == nullptr) {
+        return;
+    }
+    OH_Drawing_ShaderEffect* dstEffect = OH_Drawing_ShaderEffectCreateColorShader(colorTwo);
+    if (dstEffect == nullptr) {
+        OH_Drawing_ShaderEffectDestroy(srcEffect);
+        return;
+    }
+    OH_Drawing_ShaderEffect* effect = OH_Drawing_ShaderEffectCreateCompose(nullptr, srcEffect,
+        static_cast<OH_Drawing_BlendMode>(blendMode % BLEND_MODE_ENUN_SIZE));
+
+    effect = OH_Drawing_ShaderEffectCreateCompose(dstEffect, nullptr,
+        static_cast<OH_Drawing_BlendMode>(blendMode % BLEND_MODE_ENUN_SIZE));
+
+    OH_Drawing_BlendMode mode = static_cast<OH_Drawing_BlendMode>(blendMode % BLEND_MODE_ENUN_SIZE);
+    effect = OH_Drawing_ShaderEffectCreateCompose(dstEffect, srcEffect, mode);
+    if (effect == nullptr) {
+        OH_Drawing_ShaderEffectDestroy(srcEffect);
+        OH_Drawing_ShaderEffectDestroy(dstEffect);
+        return;
+    }
+
+    OH_Drawing_ShaderEffectDestroy(srcEffect);
+    OH_Drawing_ShaderEffectDestroy(dstEffect);
+    OH_Drawing_ShaderEffectDestroy(effect);
 }
 
 } // namespace Drawing

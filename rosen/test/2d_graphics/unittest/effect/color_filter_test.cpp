@@ -317,6 +317,19 @@ HWTEST_F(ColorFilterTest, CreateInstance008, TestSize.Level1)
     auto colorFilter = std::make_unique<ColorFilter>(ColorFilter::FilterType::NO_TYPE);
     EXPECT_FALSE(colorFilter == nullptr);
 }
+
+/**
+ * @tc.name: CreateLightingColorFilter001
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require: IAZ845
+ * @tc.author:
+ */
+HWTEST_F(ColorFilterTest, CreateLightingColorFilter001, TestSize.Level1)
+{
+    auto colorFilter = ColorFilter::CreateLightingColorFilter(0xff00c800, 0xff001400);
+    EXPECT_FALSE(nullptr == colorFilter);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
