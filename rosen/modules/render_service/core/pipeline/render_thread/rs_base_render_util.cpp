@@ -1019,7 +1019,7 @@ CM_INLINE bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfac
             "%{public}" PRIu64 ", buffer timestamp = %{public}" PRId64 ", seq = %{public}" PRIu32 ".",
             surfaceHandler.GetNodeId(), acquireTimeStamp, surfaceBuffer->timestamp, surfaceBuffer->buffer->GetSeqNum());
         if (IsTagEnabled(HITRACE_TAG_GRAPHIC_AGP)) {
-            auto parentNode = surfaceNode.GetParent().lock();
+            auto parentNode = surfaceNode->GetParent().lock();
             RS_TRACE_NAME_FMT("RsDebug surfaceHandler(id: %" PRIu64 ") AcquireBuffer success, acquireTimeStamp = "
                 "%" PRIu64 ", buffer timestamp = %" PRId64 ", parentId = %" PRIu64 ", seq = %" PRIu32 ".",
                 surfaceHandler.GetNodeId(), acquireTimeStamp, surfaceBuffer->timestamp,
