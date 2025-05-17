@@ -32,6 +32,8 @@ std::unordered_map<NodeId, std::unordered_set<NodeId>> RSModifiersDraw::offTreeN
 std::mutex RSModifiersDraw::nodeStatusMutex_;
 std::unordered_set<NodeId> RSModifiersDraw::foregroundRootSet_;
 std::mutex RSModifiersDraw::foregroundRootSetMutex_;
+std::vector<DestroySemaphoreInfo*> RSModifiersDraw::semaphoreInfoVec_;
+std::mutex RSModifiersDraw::semaphoreInfoMutex_;
 
 sptr<SurfaceBuffer> RSModifiersDraw::DmaMemAlloc(
     int32_t width, int32_t height, const std::unique_ptr<Media::PixelMap>& pixelMap)
@@ -180,6 +182,11 @@ bool RSModifiersDraw::IsBackground()
 }
 
 void RSModifiersDraw::ClearBackGroundMemory()
+{
+    return;
+}
+
+void RSModifiersDraw::DestroySemaphore()
 {
     return;
 }

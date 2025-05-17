@@ -143,6 +143,14 @@ template("render_service_client_source_set") {
       "core/ui/rs_ui_context.cpp",
       "core/ui/rs_ui_context_manager.cpp",
       "core/ui/rs_ui_director.cpp",
+
+      #ui_effect
+      "core/ui_effect/property/src/rs_ui_blur_filter.cpp",
+      "core/ui_effect/property/src/rs_ui_displacement_distort_filter.cpp",
+      "core/ui_effect/property/src/rs_ui_filter_para_base.cpp",
+      "core/ui_effect/property/src/rs_ui_filter.cpp",
+      "core/ui_effect/property/src/rs_ui_mask_para.cpp",
+      "core/ui_effect/property/src/rs_ui_ripple_mask.cpp",
     ]
 
     if (is_cross_platform) {

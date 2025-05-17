@@ -27,6 +27,7 @@ namespace OHOS {
 class Surface;
 namespace Rosen {
 class RSSurfaceNode;
+class RSRootNode;
 class RSTransactionData;
 class RSUIContext;
 using TaskRunner = std::function<void(const std::function<void()>&, uint32_t)>;
@@ -47,6 +48,7 @@ public:
     void StartTextureExport();
     void Destroy(bool isTextureExport = false);
     void SetRSSurfaceNode(std::shared_ptr<RSSurfaceNode> surfaceNode);
+    std::shared_ptr<RSSurfaceNode> GetRSSurfaceNode() const;
     void SetAbilityBGAlpha(uint8_t alpha);
     /**
      * @brief Set rt render status and keep it till set again
@@ -83,6 +85,7 @@ public:
     uint32_t GetIndex() const;
 
     std::shared_ptr<RSUIContext> GetRSUIContext() const;
+    void SetRSRootNode(std::shared_ptr<RSRootNode> rootNode);
 private:
     void AttachSurface();
     static void RecvMessages();
@@ -127,6 +130,7 @@ private:
     static std::function<void()> requestVsyncCallback_;
     bool isHgmConfigChangeCallbackReg_ = false;
     std::shared_ptr<RSUIContext> rsUIContext_ = nullptr;
+    std::weak_ptr<RSRootNode> rootNode_;
 
     friend class RSApplicationAgentImpl;
     friend class RSRenderThread;

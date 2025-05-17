@@ -37,17 +37,46 @@ void ColorGamutParamTest::SetUp() {}
 void ColorGamutParamTest::TearDown() {}
 
 /**
- * @tc.name: SetWiredExtendScreenCloseP3 IsWiredExtendScreenCloseP3
- * @tc.desc: Verify the SetWiredExtendScreenCloseP3 IsWiredExtendScreenCloseP3 function
+ * @tc.name: DisableP3OnWiredExtendedScreen SetDisableP3OnWiredExtendedScreen
+ * @tc.desc: Verify the DisableP3OnWiredExtendedScreen SetDisableP3OnWiredExtendedScreen function
  * @tc.type: FUNC
  * @tc.require: #IBIE4T
  */
-HWTEST_F(ColorGamutParamTest, WiredExtendScreenCloseP3, Function | SmallTest | Level1)
+HWTEST_F(ColorGamutParamTest, DisableP3OnWiredExtendedScreen, Function | SmallTest | Level1)
 {
-    ColorGamutParam::SetWiredExtendScreenCloseP3(true);
-    EXPECT_EQ(ColorGamutParam::IsWiredExtendScreenCloseP3(), true);
-    ColorGamutParam::SetWiredExtendScreenCloseP3(false);
-    EXPECT_EQ(ColorGamutParam::IsWiredExtendScreenCloseP3(), false);
+    ColorGamutParam::SetDisableP3OnWiredExtendedScreen(true);
+    EXPECT_EQ(ColorGamutParam::DisableP3OnWiredExtendedScreen(), true);
+    ColorGamutParam::SetDisableP3OnWiredExtendedScreen(false);
+    EXPECT_EQ(ColorGamutParam::DisableP3OnWiredExtendedScreen(), false);
+}
+
+/**
+ * @tc.name: IsAdaptiveColorGamutEnabled SetAdaptiveColorGamutEnable
+ * @tc.desc: Verify the IsAdaptiveColorGamutEnabled SetAdaptiveColorGamutEnable function 
+ * @tc.type: FUNC
+ * @tc.require: #IC82H3
+ */
+HWTEST_F(ColorGamutParamTest, AdaptiveColorGamutEnable, Function | SmallTest | Level1)
+{
+    ColorGamutParam::SetAdaptiveColorGamutEnable(true);
+    EXPECT_EQ(ColorGamutParam::IsAdaptiveColorGamutEnabled(), true);
+    ColorGamutParam::SetAdaptiveColorGamutEnable(false);
+    EXPECT_EQ(ColorGamutParam::IsAdaptiveColorGamutEnabled(), false);
+}
+
+/**
+ * @tc.name: SkipOccludedNodeDuringColorGamutCollection SetSkipOccludedNodeDuringColorGamutCollection
+ * @tc.desc: Verify the SkipOccludedNodeDuringColorGamutCollection and
+ *           SetSkipOccludedNodeDuringColorGamutCollection function
+ * @tc.type: FUNC
+ * @tc.require: #IBIE4T
+ */
+HWTEST_F(ColorGamutParamTest, SkipOccludedNodeDuringColorGamutCollection, Function | SmallTest | Level1)
+{
+    ColorGamutParam::SetSkipOccludedNodeDuringColorGamutCollection(true);
+    EXPECT_EQ(ColorGamutParam::SkipOccludedNodeDuringColorGamutCollection(), true);
+    ColorGamutParam::SetSkipOccludedNodeDuringColorGamutCollection(false);
+    EXPECT_EQ(ColorGamutParam::SkipOccludedNodeDuringColorGamutCollection(), false);
 }
 
 } // namespace Rosen

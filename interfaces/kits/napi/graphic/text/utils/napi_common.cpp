@@ -406,6 +406,8 @@ bool GetParagraphStyleFromJS(napi_env env, napi_value argValue, TypographyStyle&
 
     SetEnumValueFromJS(env, argValue, "textHeightBehavior", pographyStyle.textHeightBehavior);
 
+    SetBoolValueFromJS(env, argValue, "trailingSpaceOptimized", pographyStyle.isTrailingSpaceOptimized);
+
     return true;
 }
 
@@ -950,7 +952,8 @@ bool GetStartEndParams(napi_env env, napi_value arg, int64_t &start, int64_t &en
     }
     bool isEndOk = ConvertFromJsValue(env, tempValue, end);
     if (!isStartOk || !isEndOk || start < 0 || end < 0) {
-        TEXT_LOGE("Invalid parameter, is start %{public}d, is end %{public}d, start %{public}lld, end %{public}lld",
+        TEXT_LOGE("Invalid parameter, is start %{public}d, is end %{public}d, start %{public}" PRId64
+        ", end %{public}" PRId64,
             isStartOk, isEndOk, start, end);
         return false;
     }

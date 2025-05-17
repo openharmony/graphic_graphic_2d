@@ -39,20 +39,17 @@ static OH_NativeVSync* OH_NativeVSync_NativeVSyncToOHNativeVSync(NativeVSync* na
 
 std::shared_ptr<OHOS::Rosen::VSyncReceiver> CreateAndInitVSyncReceiver(
     const std::string& vsyncName,
+    NativeVSync* nativeVSync,
     uint64_t windowID = 0,
-    bool isAssociatedWindow = false,
-    NativeVSync* nativeVSync = nullptr)
+    bool isAssociatedWindow = false)
 {
     auto& rsClient = OHOS::Rosen::RSInterfaces::GetInstance();
     std::shared_ptr<OHOS::Rosen::VSyncReceiver> receiver;
-    if (isAssociatedWindow) {
-        nativeVSync->frameRateLinker_ = OHOS::Rosen::RSFrameRateLinker::Create();
-        receiver = rsClient.CreateVSyncReceiver(
-            vsyncName, nativeVSync->frameRateLinker_->GetId(), nullptr, windowID, true);
-    } else {
-        nativeVSync->frameRateLinker_ = OHOS::Rosen::RSFrameRateLinker::Create();
-        receiver = rsClient.CreateVSyncReceiver(vsyncName, nativeVSync->frameRateLinker_->GetId());
+    if (nativeVSync == nullptr || nativeVSync->frameRateLinker_ == nullptr) {
+        return nullptr;
     }
+    receiver = rsClient.CreateVSyncReceiver(
+        vsyncName, nativeVSync->frameRateLinker_->GetId(), nullptr, windowID, isAssociatedWindow);
     if (receiver == nullptr) {
         VLOGE("Create VSyncReceiver failed");
         return nullptr;
@@ -73,7 +70,18 @@ OH_NativeVSync* OH_NativeVSync_Create(const char* name, unsigned int length)
     }
     std::string vsyncName(name, length);
     NativeVSync* nativeVSync = new NativeVSync;
-    auto receiver = CreateAndInitVSyncReceiver(vsyncName, 0, true, nativeVSync);
+    if (nativeVSync == nullptr) {
+        VLOGE("nativeVSync create fail");
+        return nullptr;
+    }
+    nativeVSync->frameRateLinker_ = OHOS::Rosen::RSFrameRateLinker::Create();
+    if (nativeVSync->frameRateLinker_ == nullptr) {
+        VLOGE("frameRateLinker_ create fail");
+        delete nativeVSync;
+        return nullptr;
+    }
+    nativeVSync->frameRateLinker_->SetEnable(true);
+    auto receiver = CreateAndInitVSyncReceiver(vsyncName, nativeVSync);
     if (receiver == nullptr) {
         VLOGE("receiver is nullptr, please check");
         delete nativeVSync;
@@ -91,7 +99,12 @@ OH_NativeVSync* OH_NativeVSync_Create_ForAssociatedWindow(uint64_t windowID, con
     }
     std::string vsyncName(name, length);
     NativeVSync* nativeVSync = new NativeVSync;
-    auto receiver = CreateAndInitVSyncReceiver(vsyncName, windowID, true, nativeVSync);
+    if (nativeVSync == nullptr) {
+        VLOGE("nativeVSync create fail");
+        return nullptr;
+    }
+    nativeVSync->frameRateLinker_ = OHOS::Rosen::RSFrameRateLinker::Create();
+    auto receiver = CreateAndInitVSyncReceiver(vsyncName, nativeVSync, windowID, true);
     if (receiver == nullptr) {
         VLOGE("receiver is nullptr, please check");
         delete nativeVSync;
@@ -159,4 +172,39 @@ int OH_NativeVSync_DVSyncSwitch(OH_NativeVSync* ohNativeVSync, bool enable)
         return VSYNC_ERROR_INVALID_ARGUMENTS;
     }
     return nativeVSync->receiver_->SetNativeDVSyncSwitch(enable);
+}
+
+bool IsInputRateRangeValid(OH_NativeVSync_ExpectedRateRange* range)
+{
+    if (range == nullptr) {
+        VLOGE("input range is nullptr, please check");
+        return false;
+    }
+    return range->min <= range->expected && range->expected <= range->max &&
+        range->min >= 0 && range->max <= RANGE_MAX_REFRESHRATE;
+}
+
+int OH_NativeVSync_SetExpectedFrameRateRange(OH_NativeVSync* nativeVsync, OH_NativeVSync_ExpectedRateRange* range)
+{
+    NativeVSync* nativeVSync = OH_NativeVSync_OHNativeVSyncToNativeVSync(nativeVsync);
+    if (nativeVSync == nullptr || range == nullptr) {
+        VLOGE("parameter is nullptr, please check");
+        return VSYNC_ERROR_INVALID_ARGUMENTS;
+    }
+    if (!IsInputRateRangeValid(range)) {
+        VLOGE("ExpectedRateRange Error, please check.");
+        return VSYNC_ERROR_INVALID_ARGUMENTS;
+    }
+    if (nativeVSync->frameRateLinker_ == nullptr) {
+        VLOGE("FrameRateLinker is nullptr, please check.");
+        return VSYNC_ERROR_NOT_SUPPORT;
+    }
+    OHOS::Rosen::FrameRateRange frameRateRange(range->min, range->max, range->expected,
+        OHOS::Rosen::NATIVE_VSYNC_FRAME_RATE_TYPE);
+    VLOGI("NativeVsyncExpectedRateRange:{%{public}d, %{public}d, %{public}d}",
+        range->min, range->max, range->expected);
+    if (nativeVSync->frameRateLinker_->IsEnable()) {
+        nativeVSync->frameRateLinker_->UpdateFrameRateRangeImme(frameRateRange);
+    }
+    return VSYNC_ERROR_OK;
 }

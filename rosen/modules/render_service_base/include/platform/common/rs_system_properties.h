@@ -363,7 +363,8 @@ public:
     static bool GetHybridRenderHmsymbolEnabled();
 
     static bool GetVKImageUseEnabled();
-
+    static void SetBehindWindowFilterEnabled(bool enabled);
+    static bool GetBehindWindowFilterEnabled();
 private:
     RSSystemProperties() = default;
 
@@ -372,6 +373,7 @@ private:
     inline static bool cacheEnabledForRotation_ = false;
     static inline bool forceHpsBlurDisabled_ = false;
     static inline bool debugFmtTraceEnable_ = false;
+    static inline bool isBehindWindowFilterEnabled_ = true;
     static const GpuApiType systemGpuApiType_;
     static const DdgrOpincType ddgrOpincType_;
     static const DdgrOpincDfxType ddgrOpincDfxType_;

@@ -44,6 +44,7 @@ public:
         MAGNIFIER,
         LIGHT_BLUR,
         ALWAYS_SNAPSHOT,
+        DISPLACEMENT_DISTORT,
     };
 
     ShaderFilterType GetShaderFilterType() const

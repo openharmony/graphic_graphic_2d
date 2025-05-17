@@ -80,6 +80,16 @@ public:
         return nodeType_ == RSSurfaceNodeType::APP_WINDOW_NODE;
     }
 
+    bool IsScbWindowType() const
+    {
+        return surfaceWindowType_ == SurfaceWindowType::SYSTEM_SCB_WINDOW ||
+               surfaceWindowType_ == SurfaceWindowType::SCB_DESKTOP ||
+               surfaceWindowType_ == SurfaceWindowType::SCB_WALLPAPER ||
+               surfaceWindowType_ == SurfaceWindowType::SCB_SCREEN_LOCK ||
+               surfaceWindowType_ == SurfaceWindowType::SCB_NEGATIVE_SCREEN ||
+               surfaceWindowType_ == SurfaceWindowType::SCB_DROPDOWN_PANEL;
+    }
+
     bool IsStartingWindow() const
     {
         return nodeType_ == RSSurfaceNodeType::STARTING_WINDOW_NODE;
@@ -1334,16 +1344,6 @@ public:
         return doDirectComposition_;
     }
 
-    void SetHardWareDisabledByReverse(bool isHardWareDisabledByReverse)
-    {
-        isHardWareDisabledByReverse_ = isHardWareDisabledByReverse;
-    }
-
-    bool GetHardWareDisabledByReverse() const
-    {
-        return isHardWareDisabledByReverse_;
-    }
-
     void SetSkipDraw(bool skip);
     bool GetSkipDraw() const;
     void SetHidePrivacyContent(bool needHidePrivacyContent);
@@ -1633,7 +1633,7 @@ private:
     bool isParentScaling_ = false;
     bool needDrawAnimateProperty_ = false;
     bool prevVisible_ = false;
-    bool isHardWareDisabledByReverse_ = false;
+
     // mark if this self-drawing node do not consume buffer when gpu -> hwc
     bool hwcDelayDirtyFlag_ = false;
     bool isForeground_ = false;

@@ -166,6 +166,26 @@ OH_Drawing_ShaderEffect* OH_Drawing_ShaderEffectCreateRadialGradientWithLocalMat
  * @param colors Indicates the colors to be distributed between the two points.
  * @param pos Indicates the relative position of each corresponding color in the colors array.
  * @param size Indicates the number of colors and pos.
+ * @param tileMode Indicates the tile mode.
+ * @param matrix Indicates the pointer to an <b>OH_Drawing_Matrix</b> object,
+                            which represents the local matrix of the created <b>OH_Drawing_ShaderEffect</b> object.
+                            If matrix is nullptr, defaults to the identity matrix.
+ * @return Returns the pointer to the <b>OH_Drawing_ShaderEffect</b> object created.
+ * @since 20
+ * @version 1.0
+ */
+OH_Drawing_ShaderEffect* OH_Drawing_ShaderEffectCreateSweepGradientWithLocalMatrix(
+    const OH_Drawing_Point* centerPt, const uint32_t* colors, const float* pos, uint32_t size,
+    OH_Drawing_TileMode tileMode, const OH_Drawing_Matrix* matrix);
+
+/**
+ * @brief Creates an <b>OH_Drawing_ShaderEffect</b> that generates a sweep gradient given a center.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param centerPt Indicates the center of the circle for the gradient.
+ * @param colors Indicates the colors to be distributed between the two points.
+ * @param pos Indicates the relative position of each corresponding color in the colors array.
+ * @param size Indicates the number of colors and pos.
  * @param OH_Drawing_TileMode Indicates the tile mode.
  * @return Returns the pointer to the <b>OH_Drawing_ShaderEffect</b> object created.
  * @since 11
@@ -215,6 +235,22 @@ OH_Drawing_ShaderEffect* OH_Drawing_ShaderEffectCreateImageShader(OH_Drawing_Ima
 OH_Drawing_ShaderEffect* OH_Drawing_ShaderEffectCreateTwoPointConicalGradient(const OH_Drawing_Point2D* startPt,
     float startRadius, const OH_Drawing_Point2D* endPt, float endRadius, const uint32_t* colors, const float* pos,
     uint32_t size, OH_Drawing_TileMode, const OH_Drawing_Matrix*);
+
+/**
+ * @ brief Creates an <b>OH_Drawing_ShaderEffect</b> that generates by two shaders.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param dst Indicates the destination ShaderEffect pointer.
+ * @param src Indicates the source ShaderEffect pointer.
+ * @param mode Indicates the blend mode.
+ * @return Returns the pointer to the <b>OH_Drawing_ShaderEffect</b> object created.
+ *         If nullptr is returned, the creation fails.
+ *         The possible cause of the failure is that the available memory is empty or any of dst and src is nullptr.
+ * @since 20
+ * @version 1.0
+ */
+OH_Drawing_ShaderEffect* OH_Drawing_ShaderEffectCreateCompose(OH_Drawing_ShaderEffect* dst,
+    OH_Drawing_ShaderEffect* src, OH_Drawing_BlendMode mode);
 
 /**
  * @brief Destroys an <b>OH_Drawing_ShaderEffect</b> object and reclaims the memory occupied by the object.

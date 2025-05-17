@@ -84,6 +84,7 @@ private:
 
     TraceValue totalSize_;
     TraceValue purgeableSize_;
+    TraceValue externalTextureSize_;
     std::string currentElement_;
     std::unordered_map<std::string, TraceValue> currentValues_;
     std::unordered_map<std::string, std::unordered_map<std::string, TraceValue>> results_;

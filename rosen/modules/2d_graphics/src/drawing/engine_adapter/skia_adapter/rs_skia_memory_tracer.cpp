@@ -44,11 +44,13 @@ static const std::unordered_map<RSTagTracker::SOURCETYPE, std::string> sourceToS
 };
 
 SkiaMemoryTracer::SkiaMemoryTracer(const std::vector<ResourcePair>& resourceMap, bool itemizeType)
-    : resourceMap_(resourceMap), itemizeType_(itemizeType), totalSize_("bytes", 0), purgeableSize_("bytes", 0)
+    : resourceMap_(resourceMap), itemizeType_(itemizeType), totalSize_("bytes", 0),
+      purgeableSize_("bytes", 0), externalTextureSize_("bytes", 0)
 {}
 
 SkiaMemoryTracer::SkiaMemoryTracer(const char* categoryKey, bool itemizeType)
-    : categoryKey_(categoryKey), itemizeType_(itemizeType), totalSize_("bytes", 0), purgeableSize_("bytes", 0)
+    : categoryKey_(categoryKey), itemizeType_(itemizeType), totalSize_("bytes", 0),
+      purgeableSize_("bytes", 0), externalTextureSize_("bytes", 0)
 {}
 
 std::string SkiaMemoryTracer::SourceType2String(RSTagTracker::SOURCETYPE type)
@@ -104,6 +106,13 @@ void SkiaMemoryTracer::ProcessElement()
 
         // compute the type if we are itemizing or use the default "size" if we are not
         std::string key = (itemizeType_) ? type : sizeResult->first;
+
+        // compute the external texture size if one exists
+        std::string externalPrefix = "External";
+        if (key.size() >= externalPrefix.size() && key.compare(0, externalPrefix.size(), externalPrefix) == 0) {
+            externalTextureSize_.value += sizeResult->second.value;
+            externalTextureSize_.count++;
+        }
 
         // compute the top level element name using either the map or category key
         const char* resourceName = MapName(currentElement_.c_str());
@@ -247,8 +256,10 @@ void SkiaMemoryTracer::LogTotals(DfxString& log)
 {
     TraceValue total = ConvertUnits(totalSize_);
     TraceValue purgeable = ConvertUnits(purgeableSize_);
-    log.AppendFormat("    %.0f bytes, %.2f %s (%.2f %s is purgeable)\n", totalSize_.value, total.value,
-        total.units.c_str(), purgeable.value, purgeable.units.c_str());
+    TraceValue externalTexture = ConvertUnits(externalTextureSize_);
+    log.AppendFormat("    %.0f bytes, %.2f %s (%.2f %s is purgeable, %.2f %s is external)\n",
+        totalSize_.value, total.value, total.units.c_str(), purgeable.value, purgeable.units.c_str(),
+        externalTexture.value, externalTexture.units.c_str());
 }
 
 SkiaMemoryTracer::TraceValue SkiaMemoryTracer::ConvertUnits(const TraceValue& value)

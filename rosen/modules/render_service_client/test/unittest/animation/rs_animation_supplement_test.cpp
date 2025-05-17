@@ -1152,7 +1152,7 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest022, TestSize.Level1)
     std::shared_ptr<RSNode> node = RSCanvasNode::Create();
     node->SetShadowMask(true);
     node->IsImplicitAnimationOpen();
-    node->GetChildIdByIndex(1);
+    node->GetChildByIndex(1);
     std::string nodeName = "nodeName";
     node->SetNodeName(nodeName);
     PropertyCallback callback;

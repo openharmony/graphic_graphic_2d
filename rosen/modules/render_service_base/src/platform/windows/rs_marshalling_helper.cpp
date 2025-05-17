@@ -308,6 +308,16 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSFilter
     return {};
 }
 
+// RSRenderFilter
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSRenderFilter>& val)
+{
+    return {};
+}
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSRenderFilter>& val)
+{
+    return {};
+}
+
 // RSImageBase
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSImageBase>& val)
 {
@@ -473,6 +483,7 @@ MARSHALLING_AND_UNMARSHALLING(RSRenderAnimatableProperty)
     EXPLICIT_INSTANTIATION(TEMPLATE, Matrix3f)                     \
     EXPLICIT_INSTANTIATION(TEMPLATE, Quaternion)                   \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSFilter>)    \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSRenderFilter>) \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSImage>)     \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSMask>)      \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSPath>)      \
@@ -480,14 +491,13 @@ MARSHALLING_AND_UNMARSHALLING(RSRenderAnimatableProperty)
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSLinearGradientBlurPara>)    \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<MotionBlurParam>)    \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSMagnifierParams>)  \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<EmitterUpdater>)           \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::vector<std::shared_ptr<EmitterUpdater>>)  \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<ParticleNoiseField>)           \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<ParticleNoiseFields>)           \
     EXPLICIT_INSTANTIATION(TEMPLATE, RSRenderParticleVector)       \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector2f)                     \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector3f)                     \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector4<uint32_t>)            \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::vector<float>)           \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector4<Color>)               \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector4f)                     \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<Drawing::DrawCmdList>) \
@@ -513,6 +523,7 @@ BATCH_EXPLICIT_INSTANTIATION(RSRenderProperty)
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector3f)                            \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector4<Color>)                      \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector4f)                            \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::vector<float>)                  \
     EXPLICIT_INSTANTIATION(TEMPLATE, RRectT<float>)
 
 BATCH_EXPLICIT_INSTANTIATION(RSRenderAnimatableProperty)

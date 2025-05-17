@@ -28,6 +28,7 @@ constexpr uint32_t DISPLAY_SYNC_FRAME_RATE_TYPE = 3;
 constexpr uint32_t ACE_COMPONENT_FRAME_RATE_TYPE = 4;
 constexpr uint32_t DISPLAY_SOLOIST_FRAME_RATE_TYPE = 5;
 constexpr uint32_t DRAG_SCENE_FRAME_RATE_TYPE = 6;
+constexpr uint32_t NATIVE_VSYNC_FRAME_RATE_TYPE = 7;
 // extent info of ltpo frame rate vote: it indicates the frame contains the first frame of animation,
 // its value should be independent from above types
 constexpr uint32_t ANIMATION_STATE_FIRST_FRAME = 0x1000;

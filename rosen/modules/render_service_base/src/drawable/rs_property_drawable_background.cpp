@@ -697,11 +697,12 @@ Drawing::RecordingCanvas::DrawFunc RSUseEffectDrawable::CreateDrawFunc() const
         if (ptr->useEffectType_ == UseEffectType::BEHIND_WINDOW &&
             (paintFilterCanvas->GetIsWindowFreezeCapture() || paintFilterCanvas->GetIsDrawingCache())) {
             RS_TRACE_NAME_FMT("RSUseEffectDrawable::CreateDrawFunc drawBehindWindow WindowFreezeCapture:%d, "
-                "DrawingCache:%d, bounds:%s", paintFilterCanvas->GetIsWindowFreezeCapture(),
-                paintFilterCanvas->GetIsDrawingCache(), paintFilterCanvas->GetDeviceClipBounds().ToString().c_str());
-            RS_LOGD("RSUseEffectDrawable::CreateDrawFunc drawBehindWindow WindowFreezeCapture:%{public}d, "
-                "DrawingCache:%{public}d, bounds:%{public}s", paintFilterCanvas->GetIsWindowFreezeCapture(),
-                paintFilterCanvas->GetIsDrawingCache(), paintFilterCanvas->GetDeviceClipBounds().ToString().c_str());
+                "DrawingCache:%d, CacheData_valid:%d, bounds:%s", paintFilterCanvas->GetIsWindowFreezeCapture(),
+                paintFilterCanvas->GetIsDrawingCache(), paintFilterCanvas->GetCacheBehindWindowData() != nullptr,
+                paintFilterCanvas->GetDeviceClipBounds().ToString().c_str());
+            if (paintFilterCanvas->GetIsDrawingCache() && !paintFilterCanvas->GetCacheBehindWindowData()) {
+                return;
+            }
             paintFilterCanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
             return;
         }

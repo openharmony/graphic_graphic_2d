@@ -266,7 +266,11 @@ static const std::unordered_map<RSModifierType, ResetPropertyFunc> g_propertyRes
     { RSModifierType::ATTRACTION_DSTPOINT,                  [](RSProperties* prop) {
                                                                 prop->SetAttractionDstPoint({}); }},
     { RSModifierType::ALWAYS_SNAPSHOT,                      [](RSProperties* prop) {
-                                                                prop->SetAlwaysSnapshot(false); }},                                                            
+                                                                prop->SetAlwaysSnapshot(false); }},
+    { RSModifierType::COMPLEX_SHADER_PARAM,                 [](RSProperties* prop) {
+                                                                prop->SetComplexShaderParam({}); }},
+    { RSModifierType::BACKGROUND_UI_FILTER,                 [](RSProperties* prop) {
+                                                                prop->SetBackgroundUIFilter({}); }},
 };
 
 } // namespace
@@ -2398,6 +2402,11 @@ bool RSProperties::NeedFilter() const
     return needFilter_;
 }
 
+bool RSProperties::NeedHwcFilter() const
+{
+    return needHwcFilter_;
+}
+
 bool RSProperties::NeedClip() const
 {
     return clipToBounds_ || clipToFrame_;
@@ -2519,6 +2528,20 @@ void RSProperties::SetMask(const std::shared_ptr<RSMask>& mask)
 std::shared_ptr<RSMask> RSProperties::GetMask() const
 {
     return mask_;
+}
+
+void RSProperties::SetBackgroundUIFilter(const std::shared_ptr<RSRenderFilter>& filterProp)
+{
+    backgroundRenderFilter_ = filterProp;
+    isDrawn_ = true;
+    filterNeedUpdate_ = true;
+    SetDirty();
+    contentDirty_ = true;
+}
+
+std::shared_ptr<RSRenderFilter> RSProperties::GetBackgroundUIFilter() const
+{
+    return backgroundRenderFilter_;
 }
 
 void RSProperties::SetSpherize(float spherizeDegree)
@@ -2965,6 +2988,22 @@ void RSProperties::SetAlwaysSnapshot(bool enable)
 bool RSProperties::GetAlwaysSnapshot() const
 {
     return alwaysSnapshot_;
+}
+
+void RSProperties::SetComplexShaderParam(const std::vector<float> &param)
+{
+    complexShaderParam_ = param;
+    if (!param.empty()) {
+        isDrawn_ = true;
+    }
+    bgShaderNeedUpdate_ = true;
+    SetDirty();
+    contentDirty_ = true;
+}
+ 
+std::optional<std::vector<float>> RSProperties::GetComplexShaderParam() const
+{
+    return complexShaderParam_;
 }
 
 bool RSProperties::IsBackgroundMaterialFilterValid() const
@@ -4575,6 +4614,7 @@ void RSProperties::OnApplyModifiers()
         GenerateColorFilter();
         if (colorFilter_ != nullptr) {
             needFilter_ = true;
+            needHwcFilter_ = true;
         } else {
             // colorFilter generation failed, need to update needFilter
             filterNeedUpdate_ = true;
@@ -4623,7 +4663,12 @@ void RSProperties::UpdateFilter()
                   IsDynamicDimValid() || GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE ||
                   foregroundFilter_ != nullptr || IsFgBrightnessValid() || IsBgBrightnessValid() ||
                   foregroundFilterCache_ != nullptr || IsWaterRippleValid() || needDrawBehindWindow_ ||
-                  mask_;
+                  mask_ || colorFilter_ != nullptr;
+
+    needHwcFilter_ = backgroundFilter_ != nullptr || filter_ != nullptr || IsLightUpEffectValid() ||
+                     IsDynamicLightUpValid() || linearGradientBlurPara_ != nullptr ||
+                     IsDynamicDimValid() || IsFgBrightnessValid() || IsBgBrightnessValid() || IsWaterRippleValid() ||
+                     needDrawBehindWindow_ || colorFilter_ != nullptr;
 }
 
 void RSProperties::UpdateForegroundFilter()
@@ -4663,6 +4708,11 @@ void RSProperties::UpdateBackgroundShader()
     bgShaderNeedUpdate_ = false;
     const auto& bgShader = GetBackgroundShader();
     if (bgShader) {
+        const auto &param = GetComplexShaderParam();
+        if (param.has_value()) {
+            const auto & paramValue = param.value();
+            bgShader->MakeDrawingShader(GetBoundsRect(), paramValue);
+        }
         bgShader->MakeDrawingShader(GetBoundsRect(), GetBackgroundShaderProgress());
     }
 }

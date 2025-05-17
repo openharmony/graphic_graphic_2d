@@ -597,8 +597,8 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     uniParam->SetCompositeType(params->GetCompositeType());
     params->SetDirtyAlignEnabled(uniParam->IsDirtyAlignEnabled());
     ScreenId paramScreenId = params->GetScreenId();
-    offsetX_ = params->IsMirrorScreen() ? 0 : params->GetDisplayOffsetX();
-    offsetY_ = params->IsMirrorScreen() ? 0 : params->GetDisplayOffsetY();
+    offsetX_ = params->GetDisplayOffsetX();
+    offsetY_ = params->GetDisplayOffsetY();
     curDisplayScreenId_ = paramScreenId;
     RS_LOGD("RSDisplayRenderNodeDrawable::OnDraw curScreenId=[%{public}" PRIu64 "], "
         "offsetX=%{public}d, offsetY=%{public}d", paramScreenId, offsetX_, offsetY_);
@@ -648,7 +648,8 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     }
 
     auto mirroredDrawable = params->GetMirrorSourceDrawable().lock();
-    auto mirroredRenderParams = mirroredDrawable ? mirroredDrawable->GetRenderParams().get() : nullptr;
+    auto mirroredRenderParams = mirroredDrawable ?
+        static_cast<RSDisplayRenderParams*>(mirroredDrawable->GetRenderParams().get()) : nullptr;
     if (mirroredRenderParams ||
         params->GetCompositeType() == RSDisplayRenderNode::CompositeType::UNI_RENDER_EXPAND_COMPOSITE) {
         if (!processor->InitForRenderThread(*this,
@@ -661,6 +662,8 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             return;
         }
         if (mirroredRenderParams) {
+            offsetX_ = mirroredRenderParams->GetDisplayOffsetX();
+            offsetY_ = mirroredRenderParams->GetDisplayOffsetY();
             enableVisibleRect_ = screenInfo.enableVisibleRect;
             if (enableVisibleRect_) {
                 const auto& rect = screenManager->GetMirrorScreenVisibleRect(paramScreenId);
@@ -734,6 +737,17 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     bool isHdrOn = params->GetHDRPresent();
     // 0 means defalut hdrBrightnessRatio
     float hdrBrightnessRatio = RSLuminanceControl::Get().GetHdrBrightnessRatio(paramScreenId, 0);
+#ifdef RS_ENABLE_OVERLAY_DISPLAY // only for TV
+    /*
+     * Force hdrBrightnessRatio to be set to 1.0 when overlay_display display enabled.
+     * Do not change pixel value; the pixel value is encoded when overlay display enabled.
+     * If hdrBrightnessRatio is not equal 1.0, DSS will change the pixel value, so the
+     * decoded pixels is wrong and display is abnormal.
+     */
+    if (RSOverlayDisplayManager::Instance().IsOverlayDisplayEnableForCurrentVsync()) {
+        hdrBrightnessRatio = 1.0f;
+    }
+#endif
     if (!isHdrOn) {
         params->SetBrightnessRatio(hdrBrightnessRatio);
         hdrBrightnessRatio = 1.0f;
@@ -807,7 +821,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         RSOpincDrawCache::SetScreenRectInfo({0, 0, screenInfo.width, screenInfo.height});
     }
 #endif
-
+    UpdateSurfaceDrawRegion(curCanvas_, params);
     // canvas draw
     {
         {
@@ -2371,6 +2385,20 @@ void RSDisplayRenderNodeDrawable::FinishOffscreenRender(
         offscreenSurface_ = nullptr;
     }
     curCanvas_ = std::move(canvasBackup_);
+}
+
+void RSDisplayRenderNodeDrawable::UpdateSurfaceDrawRegion(std::shared_ptr<RSPaintFilterCanvas>& mainCanvas,
+    RSDisplayRenderParams* params)
+{
+    auto& curAllSurfaces = params->GetAllMainAndLeashSurfaceDrawables();
+
+    for (auto& renderNodeDrawable : curAllSurfaces) {
+        if (renderNodeDrawable != nullptr &&
+            renderNodeDrawable->GetNodeType() == RSRenderNodeType::SURFACE_NODE) {
+            auto* surfaceNodeDrawable = static_cast<DrawableV2::RSSurfaceRenderNodeDrawable*>(renderNodeDrawable.get());
+            surfaceNodeDrawable->UpdateSurfaceDirtyRegion(mainCanvas);
+        }
+    }
 }
 
 #ifndef ROSEN_CROSS_PLATFORM

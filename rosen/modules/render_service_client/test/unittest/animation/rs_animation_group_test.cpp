@@ -425,10 +425,7 @@ HWTEST_F(RSAnimationGroupTest, RSNodeAnimateTest001, TestSize.Level1)
     /**
      * @tc.steps: step2. start RSAnimate test
      */
-    EXPECT_TRUE(animations.size() == CORRECT_GROUP_SIZE);
-    if (animations.size() != CORRECT_GROUP_SIZE) {
-        return;
-    }
+    ASSERT_TRUE(animations.size() == CORRECT_GROUP_SIZE);
     EXPECT_FALSE(animations[FIRST_ANIMATION] == nullptr);
     EXPECT_TRUE(animations[FIRST_ANIMATION]->IsRunning());
     EXPECT_FALSE(animations[SECOND_ANIMATION] == nullptr);

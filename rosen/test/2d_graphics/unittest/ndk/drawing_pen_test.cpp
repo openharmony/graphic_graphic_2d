@@ -237,7 +237,11 @@ HWTEST_F(NativeDrawingPenTest, NativeDrawingPenTest_penGetFilter010, TestSize.Le
     OH_Drawing_ColorFilter* colorFilterTmp = OH_Drawing_ColorFilterCreateLinearToSrgbGamma();
     OH_Drawing_FilterSetColorFilter(cFilter_, nullptr);
     OH_Drawing_FilterGetColorFilter(cFilter_, colorFilterTmp);
-    EXPECT_EQ((reinterpret_cast<ColorFilter*>(colorFilterTmp))->GetType(), ColorFilter::FilterType::NO_TYPE);
+    NativeHandle<ColorFilter>* colorFilterHandle = Helper::CastTo<OH_Drawing_ColorFilter*,
+        NativeHandle<ColorFilter>*>(colorFilterTmp);
+    EXPECT_NE(colorFilterHandle, nullptr);
+    EXPECT_NE(colorFilterHandle->value, nullptr);
+    EXPECT_EQ(colorFilterHandle->value->GetType(), ColorFilter::FilterType::NO_TYPE);
 
     OH_Drawing_Filter* tmpFilter_ = OH_Drawing_FilterCreate();
     EXPECT_NE(cFilter_, nullptr);

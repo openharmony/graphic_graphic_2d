@@ -104,6 +104,10 @@ public:
     void MoveChild(SharedPtr child, int index);
     void RemoveChild(SharedPtr child, bool skipTransition = false);
     void ClearChildren();
+    void SetUIContextToken(uint64_t token)
+    {
+        uiContextToken_ = token;
+    }
     void RemoveFromTree(bool skipTransition = false);
 
     // Add/RemoveCrossParentChild only used as: the child is under multiple parents(e.g. a window cross multi-screens)
@@ -407,6 +411,8 @@ public:
 
     bool IsDirtyRegionUpdated() const;
     void CleanDirtyRegionUpdated();
+    
+    std::shared_ptr<RSRenderPropertyBase> GetProperty(PropertyId id);
 
     void AddModifier(const std::shared_ptr<RSRenderModifier>& modifier, bool isSingleFrameComposer = false);
     void RemoveModifier(const PropertyId& id);
@@ -921,6 +927,7 @@ protected:
 
     static void SendCommandFromRT(std::unique_ptr<RSCommand>& command, NodeId nodeId);
     void AddGeometryModifier(const std::shared_ptr<RSRenderModifier>& modifier);
+    void AddUIFilterModifier(const std::shared_ptr<RSRenderModifier>& modifier);
 
     virtual void InitRenderParams();
     virtual void OnSync();
@@ -1088,6 +1095,7 @@ private:
     float boundsWidth_ = 0.0f;
     float boundsHeight_ = 0.0f;
     pid_t appPid_ = 0;
+    uint64_t uiContextToken_ = 0;
     NodeId id_;
     NodeId instanceRootNodeId_ = INVALID_NODEID;
     NodeId firstLevelNodeId_ = INVALID_NODEID;
@@ -1157,6 +1165,8 @@ private:
     RSDrawable::Vec drawableVec_;
     RSAnimationManager animationManager_;
     RSOpincCache opincCache_;
+
+    std::map<PropertyId, std::shared_ptr<RSRenderPropertyBase>> properties_;
 
     std::list<WeakPtr> children_;
     std::set<NodeId> preFirstLevelNodeIdSet_ = {};

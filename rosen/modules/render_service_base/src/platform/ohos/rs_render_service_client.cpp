@@ -2187,5 +2187,33 @@ bool RSRenderServiceClient::GetHighContrastTextState()
     }
     return false;
 }
+
+bool RSRenderServiceClient::SetBehindWindowFilterEnabled(bool enabled)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (!renderService) {
+        return false;
+    }
+    auto ret = renderService->SetBehindWindowFilterEnabled(enabled);
+    if (ret != ERR_OK) {
+        ROSEN_LOGE("RSRenderServiceClient::SetBehindWindowFilterEnabled fail, ret[%{public}d]", ret);
+        return false;
+    }
+    return true;
+}
+
+bool RSRenderServiceClient::GetBehindWindowFilterEnabled(bool& enabled)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (!renderService) {
+        return false;
+    }
+    auto ret = renderService->GetBehindWindowFilterEnabled(enabled);
+    if (ret != ERR_OK) {
+        ROSEN_LOGE("RSRenderServiceClient::GetBehindWindowFilterEnabled fail, ret[%{public}d]", ret);
+        return false;
+    }
+    return true;
+}
 } // namespace Rosen
 } // namespace OHOS

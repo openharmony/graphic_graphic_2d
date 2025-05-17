@@ -4005,6 +4005,35 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateNodeVisibleRegion001, TestSize.Level2)
 }
 
 /**
+ * @tc.name: UpdateNodeVisibleRegion002
+ * @tc.desc: Visible region of app window out of screen depends on whether it's cross-screen. If so, its all-visible.
+ * @tc.type: FUNC
+ * @tc.require: issueIC84ZR
+ */
+HWTEST_F(RSUniRenderVisitorTest, UpdateNodeVisibleRegion002, TestSize.Level2)
+{
+    auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(rsSurfaceRenderNode, nullptr);
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    RSDisplayNodeConfig displayConfig;
+    rsUniRenderVisitor->curDisplayNode_ = std::make_shared<RSDisplayRenderNode>(DEFAULT_NODE_ID, displayConfig);
+    ASSERT_NE(rsUniRenderVisitor->curDisplayNode_, nullptr);
+    rsUniRenderVisitor->curDisplayNode_->isFirstVisitCrossNodeDisplay_ = true;
+    rsUniRenderVisitor->needRecalculateOcclusion_ = true;
+    // test: if node is non-cross-display, its visibility will be cropped by screen.
+    rsSurfaceRenderNode->oldDirtyInSurface_ = RectI();
+    rsSurfaceRenderNode->absDrawRect_ = DEFAULT_RECT;
+    rsUniRenderVisitor->UpdateNodeVisibleRegion(*rsSurfaceRenderNode);
+    ASSERT_TRUE(rsSurfaceRenderNode->GetVisibleRegion().IsEmpty());
+    // test: if node is cross-display, its visibility will not be cropped by screen.
+    rsSurfaceRenderNode->isFirstLevelCrossNode_ = true;
+    rsUniRenderVisitor->UpdateNodeVisibleRegion(*rsSurfaceRenderNode);
+    ASSERT_FALSE(rsSurfaceRenderNode->GetVisibleRegion().IsEmpty());
+    ASSERT_TRUE(rsSurfaceRenderNode->GetVisibleRegion().GetBound() == Occlusion::Rect(DEFAULT_RECT));
+}
+
+/**
  * @tc.name: CalculateOpaqueAndTransparentRegion004
  * @tc.desc: Test CalculateOpaqueAndTransparentRegion with multi-rsSurfaceRenderNode
  * @tc.type: FUNC
@@ -4235,7 +4264,6 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeInfoForAppNode002, TestSize.Level2
     ASSERT_NE(rsSurfaceRenderNode, nullptr);
     rsSurfaceRenderNode->needCollectHwcNode_ = true;
     rsSurfaceRenderNode->isHardwareEnabledNode_ = true;
-    rsSurfaceRenderNode->isHardWareDisabledByReverse_ = false;
     rsSurfaceRenderNode->isFixRotationByUser_ = false;
     rsSurfaceRenderNode->nodeType_ = RSSurfaceNodeType::SELF_DRAWING_NODE;
     NodeId surfaceNodeId = 1;

@@ -56,6 +56,8 @@ enum RSNodeCommandType : uint16_t {
     UPDATE_MODIFIER_RRECT = 0x0115,
     UPDATE_MODIFIER_DRAW_CMD_LIST = 0x0116,
     UPDATE_MODIFIER_DRAWING_MATRIX = 0x0117,
+    UPDATE_MODIFIER_COMPLEX_SHADER_PARAM = 0X0118,
+    UPDATE_MODIFIER_UI_FILTER_PTR = 0X0119,
 
     SET_FREEZE = 0x0200,
     SET_DRAW_REGION = 0x0201,
@@ -82,6 +84,8 @@ enum RSNodeCommandType : uint16_t {
 
     DUMP_CLIENT_NODE_TREE = 0x0700,
     COMMIT_DUMP_CLIENT_NODE_TREE = 0x0701,
+
+    SET_UICONTEXT_TOKEN = 0x0800,
 };
 
 class RSB_EXPORT RSNodeCommandHelper {
@@ -93,29 +97,20 @@ public:
     template<typename T>
     static void UpdateModifier(RSContext& context, NodeId nodeId, T value, PropertyId id, PropertyUpdateType type)
     {
-        std::shared_ptr<RSRenderPropertyBase> prop = std::make_shared<RSRenderProperty<T>>(value, id);
         auto& nodeMap = context.GetNodeMap();
         auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId);
         if (!node) {
             return;
         }
-        auto modifier = node->GetModifier(id);
-        if (!modifier) {
-            return;
+        if (type == UPDATE_TYPE_FORCE_OVERWRITE) {
+            node->GetAnimationManager().CancelAnimationByPropertyId(id);
         }
-        switch (type) {
-            case UPDATE_TYPE_OVERWRITE:
-                modifier->Update(prop, false);
-                break;
-            case UPDATE_TYPE_INCREMENTAL:
-                modifier->Update(prop, true);
-                break;
-            case UPDATE_TYPE_FORCE_OVERWRITE:
-                modifier->Update(prop, false);
-                node->GetAnimationManager().CancelAnimationByPropertyId(id);
-                break;
-            default:
-                break;
+        if (auto modifier = node->GetModifier(id)) {
+            std::shared_ptr<RSRenderPropertyBase> prop = std::make_shared<RSRenderProperty<T>>(value, id);
+            bool isDelta = (type == UPDATE_TYPE_INCREMENTAL);
+            modifier->Update(prop, isDelta);
+        } else if (auto property = node->GetProperty(id)) {
+            std::static_pointer_cast<RSRenderProperty<T>>(property)->Set(value, type);
         }
     }
     static void UpdateModifierDrawCmdList(
@@ -164,6 +159,7 @@ public:
     static void CommitDumpClientNodeTree(RSContext& context, NodeId nodeId, pid_t pid, uint32_t taskId,
         const std::string& result);
     static RSB_EXPORT void SetCommitDumpNodeTreeProcessor(CommitDumpNodeTreeProcessor processor);
+    static void SetUIToken(RSContext& context, NodeId nodeId, uint64_t token);
 };
 
 ADD_COMMAND(RSAddModifier,
@@ -198,6 +194,10 @@ ADD_COMMAND(RSUpdatePropertyFilter,
     ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_FILTER_PTR,
         RSNodeCommandHelper::UpdateModifier<std::shared_ptr<RSFilter>>,
         NodeId, std::shared_ptr<RSFilter>, PropertyId, PropertyUpdateType))
+ADD_COMMAND(RSUpdatePropertyUIFilter,
+    ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_UI_FILTER_PTR,
+        RSNodeCommandHelper::UpdateModifier<std::shared_ptr<RSRenderFilter>>,
+        NodeId, std::shared_ptr<RSRenderFilter>, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyImage,
     ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_IMAGE_PTR,
         RSNodeCommandHelper::UpdateModifier<std::shared_ptr<RSImage>>,
@@ -271,6 +271,10 @@ ADD_COMMAND(RSUpdatePropertyDrawCmdList,
 ADD_COMMAND(RSUpdatePropertyDrawingMatrix,
     ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_DRAWING_MATRIX,
         RSNodeCommandHelper::UpdateModifier<Drawing::Matrix>, NodeId, Drawing::Matrix, PropertyId, PropertyUpdateType))
+ADD_COMMAND(RSUpdatePropertyComplexShaderParam,
+    ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_COMPLEX_SHADER_PARAM,
+        RSNodeCommandHelper::UpdateModifier<std::vector<float>>,
+        NodeId, std::vector<float>, PropertyId, PropertyUpdateType))
 
 ADD_COMMAND(RSSetFreeze,
     ARG(PERMISSION_APP, RS_NODE, SET_FREEZE,
@@ -278,6 +282,9 @@ ADD_COMMAND(RSSetFreeze,
 ADD_COMMAND(RSSetNodeName,
     ARG(PERMISSION_APP, RS_NODE, SET_NODE_NAME,
         RSNodeCommandHelper::SetNodeName, NodeId, std::string))
+ADD_COMMAND(RSSetUIContextToken,
+    ARG(PERMISSION_APP, BASE_NODE, SET_UICONTEXT_TOKEN,
+        RSNodeCommandHelper::SetUIToken, NodeId, uint64_t))
 ADD_COMMAND(RSMarkNodeGroup,
     ARG(PERMISSION_APP, RS_NODE, MARK_NODE_GROUP,
         RSNodeCommandHelper::MarkNodeGroup, NodeId, bool, bool, bool))

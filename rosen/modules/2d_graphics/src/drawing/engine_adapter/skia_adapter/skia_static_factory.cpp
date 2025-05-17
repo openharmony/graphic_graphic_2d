@@ -72,6 +72,12 @@ std::shared_ptr<Typeface> SkiaStaticFactory::MakeFromStream(std::unique_ptr<Memo
     return SkiaTypeface::MakeFromStream(std::move(memoryStream), index);
 }
 
+std::shared_ptr<Typeface> SkiaStaticFactory::MakeFromStream(std::unique_ptr<MemoryStream> memoryStream,
+    const FontArguments& fontArguments)
+{
+    return SkiaTypeface::MakeFromStream(std::move(memoryStream), fontArguments);
+}
+
 std::shared_ptr<Typeface> SkiaStaticFactory::MakeFromName(const char familyName[], FontStyle fontStyle)
 {
     return SkiaTypeface::MakeFromName(familyName, fontStyle);
@@ -217,11 +223,7 @@ DrawingSymbolLayersGroups SkiaStaticFactory::GetSymbolLayersGroups(uint16_t glyp
 std::vector<std::vector<DrawingPiecewiseParameter>> SkiaStaticFactory::GetGroupParameters(
     DrawingAnimationType type, uint16_t groupSum, uint16_t animationMode, DrawingCommonSubType commonSubType)
 {
-#if !defined(CROSS_PLATFORM)
     return SkiaHmSymbolConfigOhos::GetGroupParameters(type, groupSum, animationMode, commonSubType);
-#endif
-    std::vector<std::vector<DrawingPiecewiseParameter>> parameters;
-    return parameters;
 }
 
 std::shared_ptr<Blender> SkiaStaticFactory::CreateWithBlendMode(BlendMode mode)

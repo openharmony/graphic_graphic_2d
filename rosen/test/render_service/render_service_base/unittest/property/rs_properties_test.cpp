@@ -147,6 +147,21 @@ HWTEST_F(RSPropertiesTest, SetBgImageHeight001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetComplexShaderParam001
+ * @tc.desc: test results of SetComplexShaderParam
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesTest, SetComplexShaderParam001, TestSize.Level1)
+{
+    RSProperties properties;
+    std::vector<float> param = {0.5f, 0.5f};
+    properties.SetComplexShaderParam(param);
+    EXPECT_TRUE(properties.isDrawn_);
+    EXPECT_FALSE(properties.GetComplexShaderParam()->empty());
+}
+
+/**
  * @tc.name: SetBgImage001
  * @tc.desc: test results of SetBgImage
  * @tc.type:FUNC
@@ -2019,6 +2034,24 @@ HWTEST_F(RSPropertiesTest, NeedFilterNClip001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: NeedHwcFilter001
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesTest, NeedHwcFilter001, TestSize.Level1)
+{
+    RSProperties properties;
+    EXPECT_FALSE(properties.NeedHwcFilter());
+
+    properties.needHwcFilter_ = true;
+    EXPECT_TRUE(properties.NeedHwcFilter());
+
+    properties.needHwcFilter_ = false;
+    EXPECT_FALSE(properties.NeedHwcFilter());
+}
+
+/**
  * @tc.name: NeedBlurFuzed001
  * @tc.desc: test results of NeedBlurFuzed
  * @tc.type:FUNC
@@ -2718,6 +2751,21 @@ HWTEST_F(RSPropertiesTest, SetNGetAttractionFraction003, TestSize.Level1)
     float attractionFraction{0.5f};
     properties.SetAttractionFraction(attractionFraction);
     EXPECT_EQ(properties.isDrawn_, true);
+}
+
+/**
+ * @tc.name: SetNGetBackgroundUIFilter001
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesTest, SetNGetBackgroundUIFilter001, TestSize.Level1)
+{
+    RSProperties properties;
+    auto filterProp = std::make_shared<RSRenderFilter>();
+    properties.SetBackgroundUIFilter(filterProp);
+    EXPECT_EQ(properties.isDrawn_, true);
+    EXPECT_EQ(properties.GetBackgroundUIFilter(), filterProp);
 }
 
 /**

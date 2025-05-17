@@ -163,6 +163,23 @@ bool RSExtendImageObject::IsValid()
     return rsImage_ != nullptr && rsImage_->GetPixelMap() != nullptr;
 }
 
+void RSExtendImageObject::Dump(std::string& dump)
+{
+    if (rsImage_ == nullptr) {
+        dump += " rsImage is nullptr";
+    } else {
+        std::string rsImageDump;
+        rsImage_->dump(rsImageDump, 0);
+        rsImageDump.erase(
+            std::remove_if(rsImageDump.begin(),
+            rsImageDump.end(),
+            [](auto c) { return c == '\t' || c == '\n'; }),
+            rsImageDump.end()
+        );
+        dump += rsImageDump;
+    }
+}
+
 void RSExtendImageObject::Playback(Drawing::Canvas& canvas, const Drawing::Rect& rect,
     const Drawing::SamplingOptions& sampling, bool isBackground)
 {
@@ -773,6 +790,12 @@ void DrawPixelMapWithParmOpItem::DumpItems(std::string& out) const
 {
     out += " sampling";
     sampling_.Dump(out);
+
+    if (objectHandle_ == nullptr) {
+        out += " objectHandle_ is nullptr";
+    } else {
+        objectHandle_->Dump(out);
+    }
 }
 
 #ifdef RS_ENABLE_VK

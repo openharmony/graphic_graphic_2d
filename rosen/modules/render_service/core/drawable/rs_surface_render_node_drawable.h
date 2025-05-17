@@ -21,6 +21,7 @@
 #include <iconsumer_surface.h>
 #include <surface.h>
 #endif
+#include <mutex>
 #include "platform/drawing/rs_surface.h"
 
 #include "common/rs_common_def.h"
@@ -99,6 +100,16 @@ public:
     void FinishOffscreenRender(const Drawing::SamplingOptions& sampling);
     bool IsHardwareEnabled();
 
+    bool IsScbWindowType() const
+    {
+        return surfaceWindowType_ == SurfaceWindowType::SYSTEM_SCB_WINDOW ||
+               surfaceWindowType_ == SurfaceWindowType::SCB_DESKTOP ||
+               surfaceWindowType_ == SurfaceWindowType::SCB_WALLPAPER ||
+               surfaceWindowType_ == SurfaceWindowType::SCB_SCREEN_LOCK ||
+               surfaceWindowType_ == SurfaceWindowType::SCB_NEGATIVE_SCREEN ||
+               surfaceWindowType_ == SurfaceWindowType::SCB_DROPDOWN_PANEL;
+    }
+
 #ifndef ROSEN_CROSS_PLATFORM
     sptr<IConsumerSurface> GetConsumerOnDraw() const
     {
@@ -108,6 +119,8 @@ public:
 #endif
 
     bool IsHardwareEnabledTopSurface() const;
+    void UpdateSurfaceDirtyRegion(std::shared_ptr<RSPaintFilterCanvas>& canvas);
+
 private:
     explicit RSSurfaceRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
     void OnGeneralProcess(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams,
@@ -115,8 +128,10 @@ private:
     bool IsVisibleRegionEqualOnPhysicalAndVirtual(RSSurfaceRenderParams& surfaceParams);
     void CaptureSurface(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams);
 
-    Drawing::Region CalculateVisibleDirtyRegion(RSRenderThreadParams& uniParam, RSSurfaceRenderParams& surfaceParams,
+    Drawing::Region CalculateVisibleDirtyRegion(RSSurfaceRenderParams& surfaceParams,
         RSSurfaceRenderNodeDrawable& surfaceDrawable, bool isOffscreen) const;
+    Drawing::Region GetSurfaceDrawRegion() const;
+    void SetSurfaceDrawRegion(const Drawing::Region& region);
     void CrossDisplaySurfaceDirtyRegionConversion(
         const RSRenderThreadParams& uniParam, const RSSurfaceRenderParams& surfaceParam, RectI& surfaceDirtyRect) const;
     bool HasCornerRadius(const RSSurfaceRenderParams& surfaceParams) const;
@@ -151,6 +166,7 @@ private:
 
     std::string name_;
     RSSurfaceNodeType surfaceNodeType_ = RSSurfaceNodeType::DEFAULT;
+    SurfaceWindowType surfaceWindowType_ = SurfaceWindowType::DEFAULT_WINDOW;
 #ifndef ROSEN_CROSS_PLATFORM
     sptr<IBufferConsumerListener> consumerListener_ = nullptr;
 #endif
@@ -189,6 +205,9 @@ private:
     bool lastGlobalPositionEnabled_ = false;
     RsSubThreadCache subThreadCache_;
     friend class RsSubThreadCache;
+
+    Drawing::Region curSurfaceDrawRegion_ {};
+    mutable std::mutex drawRegionMutex_;
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

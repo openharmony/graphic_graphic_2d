@@ -1169,4 +1169,25 @@ HWTEST_F(RSImageTest, ApplyImageOrientationTest, TestSize.Level1)
     EXPECT_EQ(drawingCanvas.GetTotalMatrix(), mat3);
     drawingCanvas.Restore();
 }
+
+/**
+ * @tc.name: PixelSamplingDumpTest
+ * @tc.desc: Verify function PixelSamplingDump
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSImageTest, PixelSamplingDumpTest, TestSize.Level1)
+{
+    auto rsImage = std::make_shared<RSImage>();
+    
+    EXPECT_EQ(rsImage->PixelSamplingDump(), " pixelMap_ is nullptr");
+
+    int width = 200;
+    int height = 300;
+    std::shared_ptr<Media::PixelMap> pixelmap = CreatePixelMap(width, height);
+    rsImage->SetPixelMap(pixelmap);
+    EXPECT_EQ(rsImage->PixelSamplingDump(),
+        "[ Width:200 Height:300 pixels: ARGB-0xFFFFFF00 ARGB-0xFFFFFF00"
+        " ARGB-0xFFFFFF00 ARGB-0xFFFFFF00 ARGB-0xFFFFFF00 ARGB-0xFFFFFF00"
+        " ARGB-0xFFFFFF00 ARGB-0xFFFFFF00 ARGB-0xFFFFFF00]");
+}
 } // namespace OHOS::Rosen

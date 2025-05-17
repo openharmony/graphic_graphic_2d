@@ -132,4 +132,19 @@ HWTEST_F(RSRenderFrameRateLinkerTest, SetVsyncName, TestSize.Level1)
     frameRateLinker->SetVsyncName(vsyncName);
     ASSERT_EQ(frameRateLinker->GetVsyncName(), vsyncName);
 }
+
+/**
+ * @tc.name: NativeVSyncIsTimeOut
+ * @tc.desc: Test NativeVSyncIsTimeOut
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderFrameRateLinkerTest, NativeVSyncIsTimeOut, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderFrameRateLinker> frameRateLinker = std::make_shared<RSRenderFrameRateLinker>();
+    frameRateLinker->UpdateNativeVSyncTimePoint();
+    ASSERT_EQ(frameRateLinker->NativeVSyncIsTimeOut(), false);
+    sleep(1);
+    ASSERT_EQ(frameRateLinker->NativeVSyncIsTimeOut(), true);
+}
 } // namespace OHOS::Rosen

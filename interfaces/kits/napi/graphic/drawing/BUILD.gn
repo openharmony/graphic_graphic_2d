@@ -110,6 +110,7 @@ if (is_arkui_x) {
       "enum_napi/js_enum.cpp",
       "font_napi/js_font.cpp",
       "font_napi/js_typeface.cpp",
+      "font_napi/js_typefacearguments.cpp",
       "image_filter_napi/js_image_filter.cpp",
       "js_drawing_init.cpp",
       "js_drawing_utils.cpp",

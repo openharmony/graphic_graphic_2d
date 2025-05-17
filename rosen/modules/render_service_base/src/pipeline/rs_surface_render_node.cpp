@@ -396,7 +396,7 @@ void RSSurfaceRenderNode::OnTreeStateChanged()
             if (IsLeashWindow()) {
                 context->MarkNeedPurge(ClearMemoryMoment::COMMON_SURFACE_NODE_HIDE, RSContext::PurgeType::GENTLY);
             }
-            if (surfaceWindowType_ == SurfaceWindowType::SYSTEM_SCB_WINDOW) {
+            if (IsScbWindowType()) {
                 context->MarkNeedPurge(ClearMemoryMoment::SCENEBOARD_SURFACE_NODE_HIDE, RSContext::PurgeType::STRONGLY);
             }
         }
@@ -1333,7 +1333,7 @@ GraphicColorGamut RSSurfaceRenderNode::GetColorSpace() const
     if (!RSSystemProperties::GetWideColorSpaceEnabled()) {
         return GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     }
-    if (RsCommonHook::Instance().GetP3NodeCountFlag() && wideColorGamutNum_ > 0) {
+    if (RsCommonHook::Instance().IsAdaptiveColorGamutEnabled() && wideColorGamutNum_ > 0) {
         return GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
     }
     return colorSpace_;
@@ -1345,7 +1345,7 @@ GraphicColorGamut RSSurfaceRenderNode::GetFirstLevelNodeColorGamut() const
         return GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     }
     if (wideColorGamutWindowCount_ > 0 ||
-        (RsCommonHook::Instance().GetP3NodeCountFlag() && wideColorGamutResourceWindowCount_ > 0)) {
+        (RsCommonHook::Instance().IsAdaptiveColorGamutEnabled() && wideColorGamutResourceWindowCount_ > 0)) {
         return GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
     } else {
         return GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
@@ -1686,7 +1686,8 @@ Occlusion::Rect RSSurfaceRenderNode::GetSurfaceOcclusionRect(bool isUniRender)
 {
     Occlusion::Rect occlusionRect;
     if (isUniRender) {
-        occlusionRect = Occlusion::Rect {GetOldDirtyInSurface()};
+        occlusionRect =
+            IsFirstLevelCrossNode() ? Occlusion::Rect {GetAbsDrawRect()} : Occlusion::Rect {GetOldDirtyInSurface()};
     } else {
         occlusionRect = Occlusion::Rect {GetDstRect()};
     }
@@ -1777,7 +1778,12 @@ WINDOW_LAYER_INFO_TYPE RSSurfaceRenderNode::GetVisibleLevelForWMS(RSVisibleLevel
 
 bool RSSurfaceRenderNode::IsSCBNode() const
 {
-    return surfaceWindowType_ != SurfaceWindowType::SYSTEM_SCB_WINDOW;
+    return surfaceWindowType_ != SurfaceWindowType::SYSTEM_SCB_WINDOW &&
+           surfaceWindowType_ != SurfaceWindowType::SCB_DESKTOP &&
+           surfaceWindowType_ != SurfaceWindowType::SCB_WALLPAPER &&
+           surfaceWindowType_ != SurfaceWindowType::SCB_SCREEN_LOCK &&
+           surfaceWindowType_ != SurfaceWindowType::SCB_NEGATIVE_SCREEN &&
+           surfaceWindowType_ != SurfaceWindowType::SCB_DROPDOWN_PANEL;
 }
 
 void RSSurfaceRenderNode::UpdateHwcNodeLayerInfo(GraphicTransformType transform, bool isHardCursorEnable)
@@ -3473,7 +3479,8 @@ void RSSurfaceRenderNode::SetOldNeedDrawBehindWindow(bool val)
 
 bool RSSurfaceRenderNode::NeedDrawBehindWindow() const
 {
-    return !GetRenderProperties().GetBackgroundFilter() && !childrenBlurBehindWindow_.empty();
+    return RSSystemProperties::GetBehindWindowFilterEnabled() && !GetRenderProperties().GetBackgroundFilter() &&
+        !childrenBlurBehindWindow_.empty();
 }
 
 void RSSurfaceRenderNode::AddChildBlurBehindWindow(NodeId id)

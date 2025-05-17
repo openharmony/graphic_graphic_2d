@@ -257,11 +257,11 @@ CancelAnimationStatus RSImplicitAnimator::CloseImplicitCancelAnimation()
 {
     if (globalImplicitParams_.empty() || implicitAnimations_.empty() || keyframeAnimations_.empty()) {
         ROSEN_LOGD("Failed to close cancel implicit animation, need to open implicit animation firstly!");
-        return CancelAnimationStatus::NO_CLOSURE_OPEN;
+        return CancelAnimationStatus::NO_OPEN_CLOSURE;
     }
     if (implicitAnimationParams_.top()->GetType() != ImplicitAnimationParamType::CANCEL) {
         ROSEN_LOGE("Failed to close cancel implicit animation, need to use the right fun 'CloseImplicitAnimation'!");
-        return CancelAnimationStatus::PARAM_TYPE_ERROR;
+        return CancelAnimationStatus::INCORRECT_PARAM_TYPE;
     }
 
     auto ret =

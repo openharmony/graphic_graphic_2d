@@ -295,7 +295,7 @@ void RSUniRenderVisitor::CheckColorSpaceWithSelfDrawingNode(RSSurfaceRenderNode&
     // currently, P3 is the only supported wide color gamut, this may be modified later.
     node.UpdateColorSpaceWithMetadata();
     auto appSurfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node.GetInstanceRootNode());
-    if (RsCommonHook::Instance().GetIsCoveredSurfaceCloseP3() && appSurfaceNode
+    if (ColorGamutParam::SkipOccludedNodeDuringColorGamutCollection() && appSurfaceNode
         && appSurfaceNode->IsMainWindowType() && appSurfaceNode->GetVisibleRegion().IsEmpty() && GetIsOpDropped()) {
         RS_LOGD("RSUniRenderVisitor::CheckColorSpaceWithSelfDrawingNode node(%{public}s) failed to set new color "
                 "gamut %{public}d because the window is blocked", node.GetName().c_str(), newColorSpace);
@@ -365,8 +365,8 @@ void RSUniRenderVisitor::HandleColorGamuts(RSDisplayRenderNode& node, const sptr
         }
         node.SetColorSpace(static_cast<GraphicColorGamut>(screenColorGamut));
         return;
-    } else if (ColorGamutParam::IsWiredExtendScreenCloseP3() && !RSMainThread::Instance()->HasWiredMirrorDisplay() &&
-        node.GetScreenId() != 0) {
+    } else if (ColorGamutParam::DisableP3OnWiredExtendedScreen() &&
+        !RSMainThread::Instance()->HasWiredMirrorDisplay() && node.GetScreenId() != 0) {
         // Current PC external screen do not support P3.
         // The wired extended screen is fixed to sRGB color space.
         node.SetColorSpace(GRAPHIC_COLOR_GAMUT_SRGB);
@@ -1563,6 +1563,7 @@ void RSUniRenderVisitor::QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node)
     node.UpdateCurCornerRadius(curCornerRadius_);
 
     bool isCurrOffscreen = hwcVisitor_->UpdateIsOffscreen(node);
+    hwcVisitor_->UpdateForegroundColorValid(node);
 
     // 1. Recursively traverse child nodes if above curSurfaceNode and subnode need draw
     hasAccumulatedClip_ = node.SetAccumulatedClipFlag(hasAccumulatedClip_);
@@ -1886,7 +1887,7 @@ CM_INLINE bool RSUniRenderVisitor::AfterUpdateSurfaceDirtyCalc(RSSurfaceRenderNo
         RSPointerWindowManager::CheckHardCursorValid(node);
     }
     // 4. Update color gamut for appNode
-    if (!RsCommonHook::Instance().GetIsCoveredSurfaceCloseP3() ||
+    if (!ColorGamutParam::SkipOccludedNodeDuringColorGamutCollection() ||
         !node.GetVisibleRegion().IsEmpty() || !GetIsOpDropped()) {
         CheckColorSpace(node);
     }
@@ -2093,7 +2094,6 @@ void RSUniRenderVisitor::UpdateHwcNodeDirtyRegionAndCreateLayer(std::shared_ptr<
         }
         UpdateHwcNodeDirtyRegionForApp(node, hwcNodePtr);
         hwcNodePtr->SetCalcRectInPrepare(false);
-        hwcNodePtr->SetHardWareDisabledByReverse(false);
         surfaceHandler->SetGlobalZOrder(hwcNodePtr->IsHardwareForcedDisabled() &&
             !hwcNodePtr->GetSpecialLayerMgr().Find(SpecialLayerType::PROTECTED) ? -1.f : globalZOrder_++);
         auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams*>(hwcNodePtr->GetStagingRenderParams().get());
@@ -2846,8 +2846,7 @@ void RSUniRenderVisitor::CollectEffectInfo(RSRenderNode& node)
     if (nodeParent == nullptr) {
         return;
     }
-    if (node.GetRenderProperties().NeedFilter() || node.ChildHasVisibleFilter() ||
-        node.GetHwcRecorder().IsBlendWithBackground()) {
+    if (RSUniHwcComputeUtil::IsBlendNeedFilter(node) || node.ChildHasVisibleFilter()) {
         nodeParent->SetChildHasVisibleFilter(true);
         nodeParent->UpdateVisibleFilterChild(node);
     }
@@ -2894,10 +2893,12 @@ CM_INLINE void RSUniRenderVisitor::PostPrepare(RSRenderNode& node, bool subTreeS
         node.CalDrawBehindWindowRegion();
         globalFilterRect = node.GetFilterRect();
     }
-    if (node.GetRenderProperties().NeedFilter() || node.GetHwcRecorder().IsBlendWithBackground()) {
+    if (RSUniHwcComputeUtil::IsBlendNeedBackground(node)) {
         hwcVisitor_->UpdateHwcNodeEnableByFilterRect(
-            curSurfaceNode_, node, NeedPrepareChindrenInReverseOrder(node),
+            curSurfaceNode_, node,
             node.GetHwcRecorder().GetZOrderForHwcEnableByFilter());
+    }
+    if (RSUniHwcComputeUtil::IsBlendNeedFilter(node)) {
         node.CalVisibleFilterRect(prepareClipRect_);
         node.MarkClearFilterCacheIfEffectChildrenChanged();
         CollectFilterInfoAndUpdateDirty(node, *curDirtyManager, globalFilterRect, globalHwcFilterRect);

@@ -162,13 +162,19 @@ bool RSUniHwcVisitor::UpdateIsOffscreen(RSCanvasRenderNode& node)
 {
     const auto& property = node.GetRenderProperties();
     bool isCurrOffscreen = isOffscreen_;
-    isOffscreen_ |= property.IsColorBlendApplyTypeOffscreen() && !property.IsColorBlendModeNone();
+    isOffscreen_ |= (property.IsColorBlendApplyTypeOffscreen() && !property.IsColorBlendModeNone()) ||
+        RSUniHwcComputeUtil::IsDangerousBlendMode(property.GetColorBlendMode(), property.GetColorBlendApplyType());
     // The meaning of first prepared offscreen node is either its colorBlendApplyType is not FAST or
     // its colorBlendMode is NONE.
     // Node will classified as blendWithBackground if it is the first prepared offscreen node and
     // its colorBlendMode is neither NONE nor SRC_OVER.
-    node.GetHwcRecorder().SetBlendWithBackground(!isCurrOffscreen && isOffscreen_ && property.IsColorBlendModeValid());
+    node.GetHwcRecorder().SetBlendWithBackground(!isCurrOffscreen && property.IsColorBlendModeValid());
     return isCurrOffscreen;
+}
+
+void RSUniHwcVisitor::UpdateForegroundColorValid(RSCanvasRenderNode& node)
+{
+    node.GetHwcRecorder().SetForegroundColorValid(RSUniHwcComputeUtil::IsForegroundColorStrategyValid(node));
 }
 
 bool RSUniHwcVisitor::CheckNodeOcclusion(const std::shared_ptr<RSRenderNode>& node,
@@ -762,7 +768,7 @@ void RSUniHwcVisitor::UpdateHardwareStateByHwcNodeBackgroundAlpha(
 }
 
 void RSUniHwcVisitor::CalcHwcNodeEnableByFilterRect(std::shared_ptr<RSSurfaceRenderNode>& node,
-    RSRenderNode& filterNode, bool isReverseOrder, int32_t filterZOrder)
+    RSRenderNode& filterNode, int32_t filterZOrder)
 {
     if (!node) {
         return;
@@ -777,14 +783,13 @@ void RSUniHwcVisitor::CalcHwcNodeEnableByFilterRect(std::shared_ptr<RSSurfaceRen
         PrintHiperfLog(node, "filter rect");
         node->SetIsHwcPendingDisabled(true);
         node->SetHardwareForcedDisabledState(true);
-        node->SetHardWareDisabledByReverse(isReverseOrder);
         Statistics().UpdateHwcDisabledReasonForDFX(node->GetId(),
             HwcDisabledReasons::DISABLED_BY_FLITER_RECT, node->GetName());
     }
 }
 
 void RSUniHwcVisitor::UpdateHwcNodeEnableByFilterRect(std::shared_ptr<RSSurfaceRenderNode>& node,
-    RSRenderNode& filterNode, bool isReverseOrder, int32_t filterZOrder)
+    RSRenderNode& filterNode, int32_t filterZOrder)
 {
     if (filterNode.GetOldDirtyInSurface().IsEmpty()) {
         return;
@@ -795,7 +800,7 @@ void RSUniHwcVisitor::UpdateHwcNodeEnableByFilterRect(std::shared_ptr<RSSurfaceR
             return;
         }
         for (auto hwcNode : selfDrawingNodes) {
-            CalcHwcNodeEnableByFilterRect(hwcNode, filterNode, isReverseOrder, filterZOrder);
+            CalcHwcNodeEnableByFilterRect(hwcNode, filterNode, filterZOrder);
         }
     } else {
         const auto& hwcNodes = node->GetChildHardwareEnabledNodes();
@@ -804,7 +809,7 @@ void RSUniHwcVisitor::UpdateHwcNodeEnableByFilterRect(std::shared_ptr<RSSurfaceR
         }
         for (auto hwcNode : hwcNodes) {
             auto hwcNodePtr = hwcNode.lock();
-            CalcHwcNodeEnableByFilterRect(hwcNodePtr, filterNode, isReverseOrder, filterZOrder);
+            CalcHwcNodeEnableByFilterRect(hwcNodePtr, filterNode, filterZOrder);
         }
     }
 }
@@ -962,7 +967,7 @@ void RSUniHwcVisitor::UpdateHwcNodeRectInSkippedSubTree(const RSRenderNode& root
             }
         }
         RectI clipRect;
-        UpdateHWCNodeClipRect(hwcNodePtr, clipRect, rootNode);
+        UpdateHwcNodeClipRect(hwcNodePtr, rootNode, clipRect);
         auto surfaceHandler = hwcNodePtr->GetMutableRSSurfaceHandler();
         auto& properties = hwcNodePtr->GetMutableRenderProperties();
         auto offset = std::nullopt;
@@ -1011,8 +1016,8 @@ bool RSUniHwcVisitor::FindRootAndUpdateMatrix(std::shared_ptr<RSRenderNode>& par
     return findInRoot;
 }
 
-void RSUniHwcVisitor::UpdateHWCNodeClipRect(std::shared_ptr<RSSurfaceRenderNode>& hwcNodePtr, RectI& clipRect,
-    const RSRenderNode& rootNode)
+void RSUniHwcVisitor::UpdateHwcNodeClipRect(const std::shared_ptr<RSSurfaceRenderNode>& hwcNodePtr,
+    const RSRenderNode& rootNode, RectI& clipRect)
 {
     // The value here represents an imaginary plane of infinite width and infinite height,
     // using values summarized empirically.
@@ -1126,14 +1131,12 @@ bool RSUniHwcVisitor::IsDisableHwcOnExpandScreen() const
 void RSUniHwcVisitor::UpdateHwcNodeInfo(RSSurfaceRenderNode& node,
     const Drawing::Matrix& absMatrix, bool subTreeSkipped)
 {
-    if (!node.GetHardWareDisabledByReverse()) {
-        node.SetHardwareForcedDisabledState(node.GetIsHwcPendingDisabled());
-        if (node.GetIsHwcPendingDisabled()) {
-            RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " disabled by IsHwcPendingDisabled",
-                node.GetName().c_str(), node.GetId());
-        }
-        node.SetIsHwcPendingDisabled(false);
+    node.SetHardwareForcedDisabledState(node.GetIsHwcPendingDisabled());
+    if (node.GetIsHwcPendingDisabled()) {
+        RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " disabled by IsHwcPendingDisabled",
+            node.GetName().c_str(), node.GetId());
     }
+    node.SetIsHwcPendingDisabled(false);
     node.SetInFixedRotation(uniRenderVisitor_.displayNodeRotationChanged_ ||
                             uniRenderVisitor_.isScreenRotationAnimating_);
     if (!uniRenderVisitor_.IsHardwareComposerEnabled() || !node.IsDynamicHardwareEnable() ||

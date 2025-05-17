@@ -272,6 +272,27 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+class RSC_EXPORT RSComplexShaderParamModifier : public RSBackgroundModifier {
+public:
+    explicit RSComplexShaderParamModifier(const std::shared_ptr<RSPropertyBase>& property);
+    virtual ~RSComplexShaderParamModifier() = default;
+protected:
+    RSModifierType GetModifierType() const override;
+    std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
+};
+
+class RSC_EXPORT RSBackgroundUIFilterModifier : public RSBackgroundModifier {
+public:
+    explicit RSBackgroundUIFilterModifier(const std::shared_ptr<RSPropertyBase>& property);
+    virtual ~RSBackgroundUIFilterModifier() = default;
+protected:
+    RSModifierType GetModifierType() const override;
+    std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
+private:
+    void OnAttachToNode(const std::weak_ptr<RSNode>& target) override;
+    void OnDetachFromNode() override;
+};
+
 class RSC_EXPORT RSUseShadowBatchingModifier : public RSBackgroundModifier {
 public:
     explicit RSUseShadowBatchingModifier(const std::shared_ptr<RSPropertyBase>& property);

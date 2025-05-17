@@ -35,6 +35,8 @@ public:
     bool UpdateIsOffscreen(RSCanvasRenderNode& node);
     void RestoreIsOffscreen(bool isOffscreen) { isOffscreen_ = isOffscreen; }
 
+    void UpdateForegroundColorValid(RSCanvasRenderNode& node);
+
     Color FindAppBackgroundColor(RSSurfaceRenderNode& node);
     bool CheckNodeOcclusion(const std::shared_ptr<RSRenderNode>& node,
         const RectI& nodeAbsRect, Color& nodeBgColor);
@@ -59,9 +61,9 @@ public:
         std::shared_ptr<RSSurfaceRenderNode>& appNode);
     void UpdateTransparentHwcNodeEnable(const std::vector<std::weak_ptr<RSSurfaceRenderNode>>& hwcNodes);
     void CalcHwcNodeEnableByFilterRect(std::shared_ptr<RSSurfaceRenderNode>& node,
-        RSRenderNode& filterNode, bool isReverseOrder = false, int32_t filterZOrder = 0);
+        RSRenderNode& filterNode, int32_t filterZOrder = 0);
     void UpdateHwcNodeEnableByFilterRect(std::shared_ptr<RSSurfaceRenderNode>& node,
-        RSRenderNode& filterNode, bool isReverseOrder = false, int32_t filterZOrder = 0);
+        RSRenderNode& filterNode, int32_t filterZOrder = 0);
     void UpdateHwcNodeEnableByGlobalFilter(std::shared_ptr<RSSurfaceRenderNode>& node);
     void UpdateHwcNodeEnableByGlobalCleanFilter(const std::vector<std::pair<NodeId, RectI>>& cleanFilter,
         RSSurfaceRenderNode& hwcNode);
@@ -91,8 +93,8 @@ private:
     // Functions
     bool FindRootAndUpdateMatrix(std::shared_ptr<RSRenderNode>& parent, Drawing::Matrix& matrix,
         const RSRenderNode& rootNode);
-    void UpdateHWCNodeClipRect(std::shared_ptr<RSSurfaceRenderNode>& hwcNodePtr, RectI& clipRect,
-        const RSRenderNode& rootNode);
+    void UpdateHwcNodeClipRect(const std::shared_ptr<RSSurfaceRenderNode>& hwcNodePtr,
+        const RSRenderNode& rootNode, RectI& clipRect);
 
     // indicates if hardware composer is totally disabled
     bool isHardwareForcedDisabled_ = false;

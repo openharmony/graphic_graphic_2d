@@ -122,10 +122,6 @@ void RSCanvasRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
     RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
         RS_RSCANVASRENDERNODEDRAWABLE_ONCAPTURE);
 #ifdef RS_ENABLE_GPU
-    if (RSUniRenderThread::GetCaptureParam().isSoloNodeUiCapture_) {
-        RSRenderNodeDrawable::OnDraw(canvas);
-        return;
-    }
     if (!ShouldPaint()) {
         return;
     }
@@ -133,7 +129,10 @@ void RSCanvasRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
     auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
     RSAutoCanvasRestore acr(paintFilterCanvas, RSPaintFilterCanvas::SaveType::kCanvasAndAlpha);
     params->ApplyAlphaAndMatrixToCanvas(*paintFilterCanvas);
-
+    if (RSUniRenderThread::GetCaptureParam().isSoloNodeUiCapture_) {
+        RSRenderNodeDrawable::OnDraw(canvas);
+        return;
+    }
     RSRenderNodeSingleDrawableLocker singleLocker(this);
     if (UNLIKELY(!singleLocker.IsLocked())) {
         singleLocker.DrawableOnDrawMultiAccessEventReport(__func__);
@@ -150,6 +149,7 @@ void RSCanvasRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
     } else {
         RSRenderNodeDrawable::OnDraw(canvas);
     }
+    RSRenderNodeDrawable::SnapshotProcessedNodeCountInc();
 #endif
 }
 } // namespace OHOS::Rosen::DrawableV2

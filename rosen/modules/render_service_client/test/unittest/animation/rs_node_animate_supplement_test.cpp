@@ -675,7 +675,8 @@ HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest023, TestSize.Level1)
 HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest024, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSNodeAnimateTest RSNodeAnimateSupplementTest024 start";
-    auto ret = RSNode::CloseImplicitCancelAnimationReturnStatus();
+    auto rsUIContext = std::make_shared<RSUIContext>();
+    auto ret = RSNode::CloseImplicitCancelAnimationReturnStatus(rsUIContext);
     EXPECT_EQ(ret, CancelAnimationStatus::NO_OPEN_CLOSURE);
     GTEST_LOG_(INFO) << "RSNodeAnimateTest RSNodeAnimateSupplementTest024 end";
 }
@@ -741,4 +742,3 @@ HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest027, TestSize.Level1)
 }
 } // namespace Rosen
 } // namespace OHOS
-

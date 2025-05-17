@@ -1687,5 +1687,85 @@ HWTEST_F(RSMarshallingHelperTest, UnmarshallingTest044, TestSize.Level1)
         }
     }
 }
+
+/**
+ * @tc.name: MarshallingTest045
+ * @tc.desc: Verify function Marshalling
+ * @tc.type:FUNC
+ * @tc.require: issues
+ */
+HWTEST_F(RSMarshallingHelperTest, MarshallingTest045, TestSize.Level1)
+{
+    Parcel parcel;
+    AnnulusRegion annulusRegion;
+    std::shared_ptr<AnnulusRegion> region = std::make_shared<AnnulusRegion>(annulusRegion);
+    EXPECT_TRUE(RSMarshallingHelper::Marshalling(parcel, region));
+}
+
+/**
+ * @tc.name: UnmarshallingTest046
+ * @tc.desc: Verify function Unmarshalling
+ * @tc.type:FUNC
+ * @tc.require: issues
+ */
+HWTEST_F(RSMarshallingHelperTest, UnmarshallingTest046, TestSize.Level1)
+{
+    Parcel parcel;
+    std::shared_ptr<AnnulusRegion> region;
+    EXPECT_FALSE(RSMarshallingHelper::Unmarshalling(parcel, region));
+}
+
+/**
+ * @tc.name: MarshallingTest047
+ * @tc.desc: Verify function Marshalling
+ * @tc.type:FUNC
+ * @tc.require: issues
+ */
+HWTEST_F(RSMarshallingHelperTest, MarshallingTest047, TestSize.Level1)
+{
+    Parcel parcel;
+    std::shared_ptr<Shape> shape;
+    EXPECT_TRUE(RSMarshallingHelper::Marshalling(parcel, shape));
+}
+
+/**
+ * @tc.name: UnmarshallingTest048
+ * @tc.desc: Verify function Unmarshalling
+ * @tc.type:FUNC
+ * @tc.require: issues
+ */
+HWTEST_F(RSMarshallingHelperTest, UnmarshallingTest048, TestSize.Level1)
+{
+    Parcel parcel;
+    std::shared_ptr<Shape> shape;
+    EXPECT_FALSE(RSMarshallingHelper::Unmarshalling(parcel, shape));
+}
+
+/**
+ * @tc.name: MarshallingTest048
+ * @tc.desc: Verify function Unmarshalling
+ * @tc.type:FUNC
+ * @tc.require: issues
+ */
+HWTEST_F(RSMarshallingHelperTest, MarshallingTest048, TestSize.Level1)
+{
+    Parcel parcel;
+    auto rsRenderFilter = std::make_shared<RSRenderFilter>();
+    EXPECT_FALSE(RSMarshallingHelper::Marshalling(parcel, rsRenderFilter));
+}
+
+/**
+ * @tc.name: UnmarshallingTest049
+ * @tc.desc: Verify function Unmarshalling
+ * @tc.type:FUNC
+ * @tc.require: issues
+ */
+HWTEST_F(RSMarshallingHelperTest, UnmarshallingTest049, TestSize.Level1)
+{
+    Parcel parcel;
+    auto rsRenderFilter = std::make_shared<RSRenderFilter>();
+    EXPECT_FALSE(RSMarshallingHelper::Unmarshalling(parcel, rsRenderFilter));
+}
+
 } // namespace Rosen
 } // namespace OHOS

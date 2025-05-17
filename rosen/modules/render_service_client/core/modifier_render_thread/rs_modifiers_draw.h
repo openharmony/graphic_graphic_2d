@@ -58,6 +58,8 @@ public:
     static bool IsBackground();
 
     static void ClearBackGroundMemory();
+
+    static void DestroySemaphore();
 private:
     struct SurfaceEntry {
         std::shared_ptr<Drawing::Surface> surface = nullptr;
@@ -129,6 +131,9 @@ private:
 
     static std::mutex foregroundRootSetMutex_;
     static bool needClearBackgroundMemory_;
+
+    static std::mutex semaphoreInfoMutex_;
+    static std::vector<DestroySemaphoreInfo*> semaphoreInfoVec_;
 };
 } // namespace Rosen
 } // namespace OHOS

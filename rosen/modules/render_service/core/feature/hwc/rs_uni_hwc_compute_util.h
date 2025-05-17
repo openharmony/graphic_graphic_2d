@@ -21,38 +21,11 @@
 
 namespace OHOS {
 namespace Rosen {
-
-#define CHECK_NULL_VOID(...)                                    \
-    do {                                                        \
-        if (RSUniHwcComputeUtil::IS_ANY_NULLPTR(__VA_ARGS__)) { \
-            return;                                             \
-        }                                                       \
-    } while (0)
-
 class RSUniHwcComputeUtil {
 public:
-    template <typename T>
-    constexpr static bool IS_NULLPTR(const T& ptr)
-    {
-        if constexpr (std::is_pointer_v<T>) {
-            return ptr == nullptr;
-        } else {
-            return ptr.get() == nullptr;
-        }
-    }
-    template <typename... Args>
-    constexpr static bool IS_ANY_NULLPTR(Args... args)
-    {
-        const auto results = std::make_tuple((IS_NULLPTR(args))...);
-        const bool anyNull = std::apply([](const auto&... result) {
-            return (result || ...);
-        }, results);
-        return anyNull;
-    }
     static void CalcSrcRectByBufferFlip(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo);
     static Drawing::Rect CalcSrcRectByBufferRotation(const SurfaceBuffer& buffer,
         const GraphicTransformType consumerTransformType, Drawing::Rect newSrcRect);
-    static void CheckForceHardwareAndUpdateDstRect(RSSurfaceRenderNode& node);
     static void DealWithNodeGravity(RSSurfaceRenderNode& node, const Drawing::Matrix& totalMatrix);
     static void DealWithNewSrcRect(Drawing::Rect& newSrcRect, Drawing::Rect newDstRect,
         Drawing::Matrix inverseTotalMatrix, Drawing::Matrix inverseGravityMatrix,
@@ -71,6 +44,35 @@ public:
     static GraphicTransformType GetRotateTransformForRotationFixed(RSSurfaceRenderNode& node,
         sptr<IConsumerSurface> consumer);
     static void UpdateHwcNodeProperty(std::shared_ptr<RSSurfaceRenderNode> hwcNode);
+    static bool HasNonZRotationTransform(const Drawing::Matrix& matrix);
+    static GraphicTransformType GetLayerTransform(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo);
+    static std::optional<Drawing::Matrix> GetMatrix(const std::shared_ptr<RSRenderNode>& hwcNode);
+    static void IntersectRect(Drawing::Rect& rect1, const Drawing::Rect& rect2);
+    static bool IsBlendNeedFilter(RSRenderNode& node);
+    static bool IsBlendNeedBackground(RSRenderNode& node);
+    static bool IsBlendNeedChildNode(RSRenderNode& node);
+    static bool IsDangerousBlendMode(int32_t blendMode, int32_t blendApplyType);
+    static bool IsForegroundColorStrategyValid(RSRenderNode& node);
+
+private:
+    template <typename T>
+    constexpr static bool IS_NULLPTR(const T& ptr)
+    {
+        if constexpr (std::is_pointer_v<T>) {
+            return ptr == nullptr;
+        } else {
+            return ptr.get() == nullptr;
+        }
+    }
+    template <typename... Args>
+    constexpr static bool IS_ANY_NULLPTR(Args... args)
+    {
+        const auto results = std::make_tuple((IS_NULLPTR(args))...);
+        const bool anyNull = std::apply([](const auto&... result) {
+            return (result || ...);
+        }, results);
+        return anyNull;
+    }
     template<typename... Callbacks>
     static void TraverseParentNodeAndReduce(std::shared_ptr<RSSurfaceRenderNode> hwcNode, Callbacks&&... callbacks)
     {
@@ -87,12 +89,9 @@ public:
             }
         }
     }
-    static bool HasNonZRotationTransform(Drawing::Matrix matrix);
-    static GraphicTransformType GetLayerTransform(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo);
-    static std::optional<Drawing::Matrix> GetMatrix(std::shared_ptr<RSRenderNode> hwcNode);
-    static void IntersectRect(Drawing::Rect& rect1, const Drawing::Rect& rect2);
-
-private:
+    template<typename T>
+    static std::shared_ptr<RSRenderProperty<T>> GetPropertyFromModifier(const RSRenderNode& node, RSModifierType type);
+    static void CheckForceHardwareAndUpdateDstRect(RSSurfaceRenderNode& node);
     static bool IsHwcEnabledByGravity(RSSurfaceRenderNode& node, const Gravity frameGravity);
     static bool IsHwcEnabledByScalingMode(RSSurfaceRenderNode& node, const ScalingMode scalingMode);
 };

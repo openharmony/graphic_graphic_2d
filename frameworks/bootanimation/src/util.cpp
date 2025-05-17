@@ -19,10 +19,12 @@
 #include <fstream>
 #include <securec.h>
 #include <sstream>
+#include <parameters.h>
 
 namespace OHOS {
 constexpr const float HALF = 2.0;
-constexpr const float RADIO = 360.0;
+constexpr const float RADIO_PHONE = 360.0;
+constexpr const float RADIO_OTHER = 800.0;
 
 void PostTask(std::function<void()> func, uint32_t delayTime)
 {
@@ -355,7 +357,12 @@ bool CheckImageData(const std::string& fileName, std::shared_ptr<ImageStruct> im
  */
 int32_t TransalteVp2Pixel(const int32_t sideLen, const int32_t vp)
 {
-    return static_cast<int32_t>(std::ceil(sideLen * HALF / RADIO) / HALF * vp);
+    std::string deviceType = GetDeviceType();
+    float radio = RADIO_PHONE;
+    if (DEVICE_TYPE_PHONE != deviceType && DEVICE_TYPE_WEARABLE != deviceType) {
+        radio = RADIO_OTHER;
+    }
+    return static_cast<int32_t>(std::ceil(sideLen * HALF / radio) / HALF * vp);
 }
 
 std::string ReadFile(const std::string &filePath)
@@ -397,5 +404,10 @@ int64_t GetSystemCurrentTime()
     auto currentTime = std::chrono::duration_cast<std::chrono::milliseconds>
         (std::chrono::steady_clock::now().time_since_epoch()).count();
     return currentTime;
+}
+
+std::string GetDeviceType()
+{
+    return system::GetParameter("const.product.devicetype", "phone");
 }
 } // namespace OHOS

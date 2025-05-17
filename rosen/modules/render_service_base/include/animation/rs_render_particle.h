@@ -33,7 +33,7 @@ namespace OHOS {
 namespace Rosen {
 enum class ParticleUpdator: uint32_t {NONE = 0, RANDOM, CURVE};
 
-enum class ShapeType: uint32_t {RECT = 0, CIRCLE, ELLIPSE};
+enum class ShapeType: uint32_t {RECT = 0, CIRCLE, ELLIPSE, ANNULUS};
 
 enum class ParticleType: uint32_t {POINTS = 0, IMAGES};
 
@@ -87,6 +87,53 @@ public:
     ~RenderParticleParaType() = default;
 };
 
+class RSB_EXPORT Shape {
+public:
+    ShapeType type_;
+    Shape() = default;
+    Shape(const ShapeType& type) : type_(type) {}
+    virtual void CalculatePosition(float& positionX, float& positionY) = 0;
+    virtual ShapeType GetShapeType() const
+    {
+        return type_;
+    }
+
+    virtual ~Shape() = default;
+
+protected:
+    Shape(const Shape& shape) = default;
+    Shape& operator=(const Shape& shape) = default;
+    Shape(Shape&&) = default;
+    Shape& operator=(Shape&&) = default;
+};
+
+class RSB_EXPORT AnnulusRegion : public Shape {
+public:
+    Vector2f center_ { Vector2f() };
+    float innerRadius_ { 0.0 };
+    float outerRadius_ { 0.0 };
+    float startAngle_ { 0.0 };
+    float endAngle_ { 0.0 };
+
+    AnnulusRegion()
+        : Shape(ShapeType::ANNULUS), center_(), innerRadius_(), outerRadius_(), startAngle_(), endAngle_()
+    {}
+    AnnulusRegion(const Vector2f& center, const float& innerRadius, const float& outerRadius,
+        const float & startAngle, const float& endAngle)
+        : Shape(ShapeType::ANNULUS), center_(center), innerRadius_(innerRadius), outerRadius_(outerRadius),
+          startAngle_(startAngle), endAngle_(endAngle)
+    {}
+    AnnulusRegion(const AnnulusRegion& region) = default;
+    AnnulusRegion& operator=(const AnnulusRegion& region) = default;
+    void CalculatePosition(float& positionX, float& positionY);
+    ShapeType GetShapeType() const
+    {
+        return ShapeType::ANNULUS;
+    }
+
+    ~AnnulusRegion() = default;
+};
+
 class RSB_EXPORT EmitterConfig {
 public:
     int emitRate_ { 0 };
@@ -99,10 +146,11 @@ public:
     float radius_ { 0.0 };
     std::shared_ptr<RSImage> image_;
     Vector2f imageSize_;
+    std::shared_ptr<Shape> shape_;
 
     EmitterConfig()
         : emitRate_(), emitShape_(ShapeType::RECT), position_(), emitSize_(), particleCount_(), lifeTime_(),
-          type_(ParticleType::POINTS), radius_(), image_(), imageSize_()
+          type_(ParticleType::POINTS), radius_(), image_(), imageSize_(), shape_()
     {}
     EmitterConfig(const int& emitRate, const ShapeType& emitShape, const Vector2f& position, const Vector2f& emitSize,
         const int32_t& particleCount, const Range<int64_t>& lifeTime, const ParticleType& type, const float& radius,
@@ -125,6 +173,8 @@ public:
     EmitterConfig(const EmitterConfig& config) = default;
     EmitterConfig& operator=(const EmitterConfig& config) = default;
     ~EmitterConfig() = default;
+
+    void SetConfigShape(const std::shared_ptr<Shape>& shape);
 };
 
 class RSB_EXPORT EmitterUpdater {
@@ -133,6 +183,7 @@ public:
     std::optional<Vector2f> position_;
     std::optional<Vector2f> emitSize_;
     std::optional<int> emitRate_;
+    std::shared_ptr<Shape> shape_;
 
     explicit EmitterUpdater(
         uint32_t emitterIndex,
@@ -146,6 +197,7 @@ public:
     ~EmitterUpdater() = default;
     
     void Dump(std::string& out) const;
+    void SetShape(const std::shared_ptr<Shape>& shape);
 };
 
 class RSB_EXPORT ParticleVelocity {
@@ -237,6 +289,7 @@ public:
     float GetParticleRadius() const;
     const std::shared_ptr<RSImage>& GetParticleImage();
     const Vector2f& GetImageSize() const;
+    const std::shared_ptr<Shape>& GetShape() const;
 
     float GetVelocityStartValue() const;
     float GetVelocityEndValue() const;
@@ -371,7 +424,8 @@ public:
     static float GetRandomValue(float min, float max);
     void SetColor();
     int GenerateColorComponent(double mean, double stddev);
-    Vector2f CalculateParticlePosition(const ShapeType& emitShape, const Vector2f& position, const Vector2f& emitSize);
+    Vector2f CalculateParticlePosition(const ShapeType& emitShape, const Vector2f& position, const Vector2f& emitSize,
+        const std::shared_ptr<Shape>& shape);
     std::shared_ptr<ParticleRenderParams> particleParams_;
 
     bool operator==(const RSRenderParticle& rhs)

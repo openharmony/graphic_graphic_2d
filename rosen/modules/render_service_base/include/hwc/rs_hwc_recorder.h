@@ -20,6 +20,7 @@ namespace OHOS {
 namespace Rosen {
 
 struct RSHwcRecorder {
+public:
     RSHwcRecorder() = default;
     ~RSHwcRecorder() = default;
 
@@ -30,6 +31,8 @@ struct RSHwcRecorder {
 
     void SetBlendWithBackground(bool isBlendWithBackground) { isBlendWithBackground_ = isBlendWithBackground; }
     bool IsBlendWithBackground() const { return isBlendWithBackground_; }
+    void SetForegroundColorValid(bool isForegroundColorValid) { isForegroundColorValid_ = isForegroundColorValid; }
+    bool IsForegroundColorValid() const { return isForegroundColorValid_; }
 
     void SetZOrderForHwcEnableByFilter(int32_t zOrderForHwcEnableByFilter)
     {
@@ -37,8 +40,9 @@ struct RSHwcRecorder {
     }
     int32_t GetZOrderForHwcEnableByFilter() const { return zOrderForHwcEnableByFilter_; }
 
+private:
     bool isBlendWithBackground_ = false;
-
+    bool isForegroundColorValid_ = false;
     int32_t zOrderForHwcEnableByFilter_ = 0;
 };
 

@@ -194,6 +194,8 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_OVERLAY_DISPLAY_MODE),
 #endif
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_PAGE_NAME),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_BEHIND_WINDOW_FILTER_ENABLED),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_BEHIND_WINDOW_FILTER_ENABLED),
 };
 
 void CopyFileDescriptor(MessageParcel& old, MessageParcel& copied)
@@ -268,7 +270,12 @@ std::shared_ptr<MessageParcel> CopyParcelIfNeed(MessageParcel& old, pid_t callin
         parcelCopied->InjectOffsets(old.GetObjectOffsets(), objectNum);
         CopyFileDescriptor(old, *parcelCopied);
     }
-    if (parcelCopied->ReadInt32() != 0) {
+    int32_t data{0};
+    if (!parcelCopied->ReadInt32(data)) {
+        RS_LOGE("RSRenderServiceConnectionStub::CopyParcelIfNeed parcel data Read failed");
+        return nullptr;
+    }
+    if (data != 0) {
         RS_LOGE("RSRenderServiceConnectionStub::CopyParcelIfNeed parcel data not match");
         return nullptr;
     }
@@ -285,7 +292,11 @@ bool CheckCreateNodeAndSurface(pid_t pid, RSSurfaceNodeType nodeType, SurfaceWin
         RS_LOGW("CREATE_NODE_AND_SURFACE invalid RSSurfaceNodeType");
         return false;
     }
-    if (windowType != SurfaceWindowType::DEFAULT_WINDOW && windowType != SurfaceWindowType::SYSTEM_SCB_WINDOW) {
+    constexpr int windowTypeMin = static_cast<int>(SurfaceWindowType::DEFAULT_WINDOW);
+    constexpr int windowTypeMax = static_cast<int>(SurfaceWindowType::NODE_MAX);
+
+    int windowTypeNum = static_cast<int>(windowType);
+    if (windowTypeNum < windowTypeMin || windowTypeNum > windowTypeMax) {
         RS_LOGW("CREATE_NODE_AND_SURFACE invalid SurfaceWindowType");
         return false;
     }
@@ -418,7 +429,12 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             std::shared_ptr<MessageParcel> parsedParcel;
             std::unique_ptr<AshmemFdWorker> ashmemFdWorker = nullptr;
             std::shared_ptr<AshmemFlowControlUnit> ashmemFlowControlUnit = nullptr;
-            if (data.ReadInt32() == 0) { // indicate normal parcel
+            int32_t readData{0};
+            if (!data.ReadInt32(readData)) {
+                RS_LOGE("RSRenderServiceConnectionStub::COMMIT_TRANSACTION read parcel failed");
+                return ERR_INVALID_DATA;
+            }
+            if (readData == 0) { // indicate normal parcel
                 if (isUniRender) {
                     // in uni render mode, if parcel size over threshold,
                     // Unmarshalling task will be post to RSUnmarshalThread,
@@ -3383,6 +3399,28 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_HIGH_CONTRAST_TEXT_STATE) : {
             bool highContrast = GetHighContrastTextState();
             if (!reply.WriteBool(highContrast)) {
+                ret = ERR_INVALID_REPLY;
+            }
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_BEHIND_WINDOW_FILTER_ENABLED): {
+            bool enabled { false };
+            if (!data.ReadBool(enabled)) {
+                RS_LOGE("RSRenderServiceConnectionStub::SET_BEHIND_WINDOW_FILTER_ENABLED read enabled failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            auto err = SetBehindWindowFilterEnabled(enabled);
+            if (err != ERR_OK) {
+                RS_LOGE("RSRenderServiceConnectionStub::SET_BEHIND_WINDOW_FILTER_ENABLED Write status failed!");
+                ret = ERR_INVALID_REPLY;
+            }
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_BEHIND_WINDOW_FILTER_ENABLED): {
+            bool enabled;
+            if (GetBehindWindowFilterEnabled(enabled) != ERR_OK || !reply.WriteBool(enabled)) {
+                RS_LOGE("RSRenderServiceConnectionStub::GET_BEHIND_WINDOW_FILTER_ENABLED write enabled failed!");
                 ret = ERR_INVALID_REPLY;
             }
             break;

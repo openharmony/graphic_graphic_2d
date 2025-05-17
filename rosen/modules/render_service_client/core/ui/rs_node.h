@@ -62,6 +62,7 @@ class RSImplicitAnimator;
 class RSModifier;
 class RSObjAbsGeometry;
 class RSUIContext;
+class RSUIFilter;
 enum class CancelAnimationStatus;
 
 class RSC_EXPORT RSNode : public std::enable_shared_from_this<RSNode> {
@@ -89,19 +90,19 @@ public:
     virtual void AddChild(SharedPtr child, int index = -1);
     void MoveChild(SharedPtr child, int index);
     virtual void RemoveChild(SharedPtr child);
-    void RemoveChildByNodeId(NodeId childId);
+    void RemoveChildByNodeSelf(WeakPtr child);
     void RemoveFromTree();
     virtual void ClearChildren();
-    const std::vector<NodeId>& GetChildren() const
+    const std::vector<WeakPtr>& GetChildren() const
     {
         return children_;
     }
     // ONLY support index in [0, childrenTotal) or index = -1, otherwise return std::nullopt
-    const std::optional<NodeId> GetChildIdByIndex(int index) const;
+    RSNode::SharedPtr GetChildByIndex(int index) const;
 
     // Add/RemoveCrossParentChild only used as: the child is under multiple parents(e.g. a window cross multi-screens)
     void AddCrossParentChild(SharedPtr child, int index);
-    void RemoveCrossParentChild(SharedPtr child, NodeId newParentId);
+    void RemoveCrossParentChild(SharedPtr child, SharedPtr newParent);
     void SetIsCrossNode(bool isCrossNode);
 
     // PC extend screen use this
@@ -347,6 +348,8 @@ public:
     void SetUIForegroundFilter(const OHOS::Rosen::Filter* foregroundFilter);
     void SetVisualEffect(const VisualEffect* visualEffect);
 
+    void SetBackgroundUIFilter(const std::shared_ptr<RSUIFilter> backgroundFilter);
+
     void SetForegroundEffectRadius(const float blurRadius);
     void SetBackgroundFilter(const std::shared_ptr<RSFilter>& backgroundFilter);
     void SetFilter(const std::shared_ptr<RSFilter>& filter);
@@ -562,6 +565,7 @@ public:
     {
         return rsUIContext_.lock();
     }
+    void SetUIContextToken();
     void SetRSUIContext(std::shared_ptr<RSUIContext> rsUIContext);
 
     void SetSkipCheckInMultiInstance(bool isSkipCheckInMultiInstance);
@@ -629,14 +633,14 @@ private:
     static NodeId GenerateId();
     static void InitUniRenderEnabled();
     NodeId id_;
-    NodeId parent_ = 0;
+    WeakPtr parent_;
     int32_t instanceId_ = INSTANCE_ID_UNDEFINED;
     int32_t frameNodeId_ = -1;
     std::string frameNodeTag_;
     std::string nodeName_ = "";
-    std::vector<NodeId> children_;
-    void SetParent(NodeId parent);
-    void RemoveChildById(NodeId childId);
+    std::vector<WeakPtr> children_;
+    void SetParent(WeakPtr parent);
+    void RemoveChildByNode(SharedPtr child);
     virtual void CreateRenderNodeForTextureExportSwitch() {};
 
     void SetBackgroundBlurRadius(float radius);
@@ -667,6 +671,10 @@ private:
     void RemoveAnimationInner(const std::shared_ptr<RSAnimation>& animation);
     void CancelAnimationByProperty(const PropertyId& id, const bool needForceSync = false);
     const std::shared_ptr<RSModifier> GetModifier(const PropertyId& propertyId);
+    const std::shared_ptr<RSPropertyBase> GetProperty(const PropertyId& propertyId);
+    void RegisterProperty(std::shared_ptr<RSPropertyBase> property);
+    void UnRegisterProperty(const PropertyId& propertyId);
+    void ResetPropertyMap();
     virtual void OnBoundsSizeChanged() const {};
     void UpdateModifierMotionPathOption();
     void MarkAllExtendModifierDirty();
@@ -703,6 +711,7 @@ private:
     RSModifierExtractor stagingPropertiesExtractor_;
     RSShowingPropertiesFreezer showingPropertiesFreezer_;
     std::map<PropertyId, std::shared_ptr<RSModifier>> modifiers_;
+    std::map<PropertyId, std::shared_ptr<RSPropertyBase>> properties_;
     std::map<uint16_t, std::shared_ptr<RSModifier>> modifiersTypeMap_;
     std::map<RSModifierType, std::shared_ptr<RSModifier>> propertyModifiers_;
     std::shared_ptr<RectF> drawRegion_;
@@ -728,6 +737,7 @@ private:
     friend class RSPathAnimation;
     friend class RSModifierExtractor;
     friend class RSModifier;
+    friend class RSBackgroundUIFilterModifier;
     friend class RSKeyframeAnimation;
     friend class RSInterpolatingSpringAnimation;
     friend class RSImplicitCancelAnimationParam;
