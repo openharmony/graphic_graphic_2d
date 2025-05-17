@@ -127,7 +127,7 @@ bool GetDecorationFromJS(napi_env env, napi_value argValue, const std::string& s
     return true;
 }
 
-bool GetDecorationFromJSForRelayout(napi_env env, napi_value argValue, TextStyle& textStyle)
+bool GetDecorationFromJSForUpdate(napi_env env, napi_value argValue, TextStyle& textStyle)
 {
     if (argValue == nullptr) {
         return false;

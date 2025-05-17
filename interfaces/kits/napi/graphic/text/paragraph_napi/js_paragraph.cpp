@@ -894,15 +894,13 @@ napi_value JsParagraph::OnUpdateColor(napi_env env, napi_callback_info info)
         TEXT_LOGE("Failed to get parameter, argc %{public}zu, ret %{public}d", argc, status);
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
-    TextStyle textStyle;
-    if (!SetColorFromJS(env, argv[0], textStyle.color)) {
+    TextStyle textStyleTemplate;
+    if (!SetColorFromJS(env, argv[0], textStyleTemplate.color)) {
         TEXT_LOGE("Invalid argv[0]");
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params");
     }
-    textStyle.relayoutChangeBitmap.set(static_cast<size_t>(RelayoutTextStyleAttribute::FONT_COLOR));
-    std::vector<TextStyle> relayoutTextStyles;
-    relayoutTextStyles.push_back(textStyle);
-    paragraph_->ApplyTextStyleChanges(relayoutTextStyles);
+    textStyleTemplate.relayoutChangeBitmap.set(static_cast<size_t>(RelayoutTextStyleAttribute::FONT_COLOR));
+    paragraph_->UpdateAllTextStyles(textStyleTemplate);
     return NapiGetUndefined(env);
 }
 
@@ -924,11 +922,9 @@ napi_value JsParagraph::OnUpdateDecoration(napi_env env, napi_callback_info info
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
 
-    TextStyle textStyle;
-    GetDecorationFromJSForRelayout(env, argv[0], textStyle);
-    std::vector<TextStyle> relayoutTextStyles;
-    relayoutTextStyles.push_back(textStyle);
-    paragraph_->ApplyTextStyleChanges(relayoutTextStyles);
+    TextStyle textStyleTemplate;
+    GetDecorationFromJSForUpdate(env, argv[0], textStyleTemplate);
+    paragraph_->UpdateAllTextStyles(textStyleTemplate);
     return NapiGetUndefined(env);
 }
 

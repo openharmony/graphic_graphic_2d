@@ -2208,12 +2208,10 @@ void OH_Drawing_TypographyUpdateFontColor(OH_Drawing_Typography* typography, uin
         return;
     }
 
-    TextStyle textStyle;
-    textStyle.relayoutChangeBitmap.set(static_cast<size_t>(RelayoutTextStyleAttribute::FONT_COLOR));
-    textStyle.color.SetColorQuad(color);
-    std::vector<TextStyle> relayoutTextStyles;
-    relayoutTextStyles.push_back(textStyle);
-    ConvertToOriginalText<Typography>(typography)->ApplyTextStyleChanges(relayoutTextStyles);
+    TextStyle textStyleTemplate;
+    textStyleTemplate.relayoutChangeBitmap.set(static_cast<size_t>(RelayoutTextStyleAttribute::FONT_COLOR));
+    textStyleTemplate.color.SetColorQuad(color);
+    ConvertToOriginalText<Typography>(typography)->UpdateAllTextStyles(textStyleTemplate);
 }
 
 void OH_Drawing_TypographyUpdateDecoration(OH_Drawing_Typography* typography, OH_Drawing_TextDecoration decoration)
@@ -2224,12 +2222,10 @@ void OH_Drawing_TypographyUpdateDecoration(OH_Drawing_Typography* typography, OH
         return;
     }
 
-    TextStyle textStyle;
-    textStyle.relayoutChangeBitmap.set(static_cast<size_t>(RelayoutTextStyleAttribute::DECORATION));
-    textStyle.decoration = static_cast<TextDecoration>(decoration);
-    std::vector<TextStyle> relayoutTextStyles;
-    relayoutTextStyles.push_back(textStyle);
-    ConvertToOriginalText<Typography>(typography)->ApplyTextStyleChanges(relayoutTextStyles);
+    TextStyle textStyleTemplate;
+    textStyleTemplate.relayoutChangeBitmap.set(static_cast<size_t>(RelayoutTextStyleAttribute::DECORATION));
+    textStyleTemplate.decoration = static_cast<TextDecoration>(decoration);
+    ConvertToOriginalText<Typography>(typography)->UpdateAllTextStyles(textStyleTemplate);
 }
 
 void OH_Drawing_TypographyUpdateDecorationThicknessScale(OH_Drawing_Typography* typography,
@@ -2239,12 +2235,10 @@ void OH_Drawing_TypographyUpdateDecorationThicknessScale(OH_Drawing_Typography* 
         return;
     }
 
-    TextStyle textStyle;
-    textStyle.relayoutChangeBitmap.set(static_cast<size_t>(RelayoutTextStyleAttribute::DECORATION_THICKNESS_SCALE));
-    textStyle.decorationThicknessScale = decorationThicknessScale;
-    std::vector<TextStyle> relayoutTextStyles;
-    relayoutTextStyles.push_back(textStyle);
-    ConvertToOriginalText<Typography>(typography)->ApplyTextStyleChanges(relayoutTextStyles);
+    TextStyle textStyleTemplate;
+    textStyleTemplate.relayoutChangeBitmap.set(static_cast<size_t>(RelayoutTextStyleAttribute::DECORATION_THICKNESS_SCALE));
+    textStyleTemplate.decorationThicknessScale = decorationThicknessScale;
+    ConvertToOriginalText<Typography>(typography)->UpdateAllTextStyles(textStyleTemplate);
 }
 
 void OH_Drawing_TypographyUpdateDecorationStyle(OH_Drawing_Typography* typography,
@@ -2254,26 +2248,26 @@ void OH_Drawing_TypographyUpdateDecorationStyle(OH_Drawing_Typography* typograph
         return;
     }
 
-    TextDecorationStyle rosenDecorationStyle;
+    TextDecorationStyle textDecorationStyle;
     switch (decorationStyle) {
         case TEXT_DECORATION_STYLE_SOLID: {
-            rosenDecorationStyle = TextDecorationStyle::SOLID;
+            textDecorationStyle = TextDecorationStyle::SOLID;
             break;
         }
         case TEXT_DECORATION_STYLE_DOUBLE: {
-            rosenDecorationStyle = TextDecorationStyle::DOUBLE;
+            textDecorationStyle = TextDecorationStyle::DOUBLE;
             break;
         }
         case TEXT_DECORATION_STYLE_DOTTED: {
-            rosenDecorationStyle = TextDecorationStyle::DOTTED;
+            textDecorationStyle = TextDecorationStyle::DOTTED;
             break;
         }
         case TEXT_DECORATION_STYLE_DASHED: {
-            rosenDecorationStyle = TextDecorationStyle::DASHED;
+            textDecorationStyle = TextDecorationStyle::DASHED;
             break;
         }
         case TEXT_DECORATION_STYLE_WAVY: {
-            rosenDecorationStyle = TextDecorationStyle::WAVY;
+            textDecorationStyle = TextDecorationStyle::WAVY;
             break;
         }
         default: {
@@ -2282,12 +2276,10 @@ void OH_Drawing_TypographyUpdateDecorationStyle(OH_Drawing_Typography* typograph
         }
     }
 
-    TextStyle textStyle;
-    textStyle.relayoutChangeBitmap.set(static_cast<size_t>(RelayoutTextStyleAttribute::DECORATION_STYLE));
-    textStyle.decorationStyle = rosenDecorationStyle;
-    std::vector<TextStyle> relayoutTextStyles;
-    relayoutTextStyles.push_back(textStyle);
-    ConvertToOriginalText<Typography>(typography)->ApplyTextStyleChanges(relayoutTextStyles);
+    TextStyle textStyleTemplate;
+    textStyleTemplate.relayoutChangeBitmap.set(static_cast<size_t>(RelayoutTextStyleAttribute::DECORATION_STYLE));
+    textStyleTemplate.decorationStyle = textDecorationStyle;
+    ConvertToOriginalText<Typography>(typography)->UpdateAllTextStyles(textStyleTemplate);
 }
 
 bool OH_Drawing_TypographyTextGetLineStyle(OH_Drawing_TypographyStyle* style)

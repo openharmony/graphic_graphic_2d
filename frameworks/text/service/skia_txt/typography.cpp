@@ -501,15 +501,14 @@ void Typography::UpdateColor(size_t from, size_t to, const Drawing::Color& color
     paragraph_->UpdateColor(from, to, color);
 }
 
-void Typography::ApplyTextStyleChanges(const std::vector<TextStyle>& textStyles) {
+void Typography::UpdateAllTextStyles(const TextStyle& textStyleTemplate)
+{
     std::unique_lock<std::shared_mutex> writeLock(mutex_);
-    if (!paragraph_ && textStyles.empty()) {
+    if (!paragraph_) {
         return;
     }
     std::vector<SPText::TextStyle> spTextStyles;
-    for (const TextStyle& style : textStyles) {
-        spTextStyles.push_back(Convert(style));
-    }
+    spTextStyles.push_back(Convert(textStyleTemplate));
     paragraph_->ApplyTextStyleChanges(spTextStyles);
 }
 
