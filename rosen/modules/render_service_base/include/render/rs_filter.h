@@ -72,9 +72,9 @@ public:
         MAGNIFIER,
         FLY_OUT,
         DISTORT,
+        ALWAYS_SNAPSHOT,
         DISPLACEMENT_DISTORT,
         COLOR_GRADIENT,
-        ALWAYS_SNAPSHOT,
         SOUND_WAVE,
     };
     FilterType GetFilterType() const
