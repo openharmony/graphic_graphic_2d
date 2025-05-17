@@ -88,7 +88,7 @@ private:
 
     // splice atomizated animation construct
     void SpliceAnimation(const std::shared_ptr<RSNode>& rsNode,
-        std::vector<Drawing::DrawingPiecewiseParameter>& parameters);
+        const std::vector<Drawing::DrawingPiecewiseParameter>& parameters);
 
     // atomizated animation construct
     void ScaleAnimationBase(const std::shared_ptr<RSNode>& rsNode,
@@ -113,13 +113,16 @@ private:
 
     // drawing a path group : symbol drawing or path drawing
     void GroupDrawing(const std::shared_ptr<RSCanvasNode>& canvasNode, TextEngine::SymbolNode& symbolNode,
-        const Vector4f& offsets);
+        const Vector4f& offsets, bool isClip = false);
 
     void SetIconProperty(Drawing::Brush& brush, Drawing::Pen& pen, Drawing::DrawingSColor& color);
 
     Vector4f CalculateOffset(const Drawing::Path& path, const float offsetX, const float offsetY);
 
     void DrawPathOnCanvas(
+        ExtendRecordingCanvas* recordingCanvas, TextEngine::SymbolNode& symbolNode, const Vector4f& offsets);
+
+    void DrawClipOnCanvas(
         ExtendRecordingCanvas* recordingCanvas, TextEngine::SymbolNode& symbolNode, const Vector4f& offsets);
     
     void DrawPathOnCanvas(ExtendRecordingCanvas* recordingCanvas,
@@ -148,7 +151,23 @@ private:
 
     // Determine whether to create a node based on the existing canvasNodesListMap node
     bool CreateSymbolNode(const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig,
-        const Vector4f& offsets, uint32_t index);
+        const Vector4f& offsets, uint32_t index, std::shared_ptr<RSNode> rsNode = nullptr);
+
+    // set Disable Animation
+    bool SetDisableAnimation(const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig);
+
+    void SetDisableParameter(std::vector<Drawing::DrawingPiecewiseParameter>& parameter,
+        const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig);
+
+    bool SetDisableBaseLayer(const std::shared_ptr<RSNode>& rsNode,
+        const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig,
+        const std::vector<std::vector<Drawing::DrawingPiecewiseParameter>>& parameters,
+        const Vector4f& offsets);
+
+    bool SetClipAnimation(const std::shared_ptr<RSNode>& rsNode,
+        const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig,
+        const std::vector<Drawing::DrawingPiecewiseParameter>& parameter,
+        uint32_t index, const Vector4f& offsets);
 
     // process node before animation include clean invalid node and config info
     void NodeProcessBeforeAnimation(

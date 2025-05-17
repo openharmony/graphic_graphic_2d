@@ -281,6 +281,7 @@ bool SymbolNodeBuild::DecomposeSymbolAndDraw()
     symbolAnimationConfig->symbolSpanId = symblSpanId_;
     symbolAnimationConfig->commonSubType = commonSubType_;
     symbolAnimationConfig->currentAnimationHasPlayed = currentAnimationHasPlayed_;
+    symbolAnimationConfig->slope = slope_;
     return animationFunc_(symbolAnimationConfig);
 }
 }

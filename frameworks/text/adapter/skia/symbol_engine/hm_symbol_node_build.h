@@ -84,6 +84,11 @@ public:
         commonSubType_ = commonSubType;
     }
 
+    void SetSlope(double slope)
+    {
+        slope_ = slope;
+    }
+
 private:
     RSAnimationSetting animationSetting_;
     RSHMSymbolData symbolData_;
@@ -97,6 +102,7 @@ private:
     std::function<bool(const std::shared_ptr<OHOS::Rosen::TextEngine::SymbolAnimationConfig>&)>
         animationFunc_ = nullptr;
     uint64_t symblSpanId_ = 0;
+    double slope_ = 0.0;
     bool animationStart_ = false;
     bool currentAnimationHasPlayed_ = false;
 };

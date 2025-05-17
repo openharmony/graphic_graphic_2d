@@ -75,6 +75,8 @@ DrawingAnimationSetting SkiaHmSymbolConfigOhos::ConvertToDrawingAnimationSetting
         groupSettings.push_back(groupSetting);
     }
     drawingSetting.groupSettings = groupSettings;
+    drawingSetting.slope = setting.slope;
+    drawingSetting.commonSubType = static_cast<DrawingCommonSubType>(setting.commonSubType);
 
     return drawingSetting;
 }
