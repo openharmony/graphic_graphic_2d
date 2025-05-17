@@ -135,6 +135,9 @@ public:
     bool IsLayoutDone() override;
 
     void SetLayoutState(size_t state) override;
+
+    void ApplyTextStyleChanges(const std::vector<OHOS::Rosen::SPText::TextStyle>& textStyles) override;
+
 private:
     void ParagraphStyleUpdater(skt::Paragraph& skiaParagraph, const ParagraphStyle& spParagraphStyle,
         skt::InternalState& state);
@@ -147,8 +150,6 @@ private:
     void GetExtraTextStyleAttributes(const skt::TextStyle& skStyle, TextStyle& txt);
 
     void ApplyParagraphStyleChanges(const ParagraphStyle& style);
-
-    void ApplyTextStyleChanges(const std::vector<OHOS::Rosen::SPText::TextStyle>& textStyles);
 
     void RecordDifferentPthreadCall(const char* caller) const;
 

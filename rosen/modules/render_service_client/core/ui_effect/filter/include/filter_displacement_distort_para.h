@@ -16,10 +16,13 @@
 #define UIEFFECT_FILTER_DISPLACENMENT_DISTORT_PARA_H
 #include "filter_para.h"
 #include "ui_effect/mask/include/mask_para.h"
-#include "ui_effect/mask/include/radial_gradient_mask_para.h"
+#include "ui_effect/utils.h"
 
 namespace OHOS {
 namespace Rosen {
+// limits for ripple mask center parameters
+constexpr std::pair<float, float> DISPLACEMENT_DISTORT_FACTOR_LIMITS { 0.0f, 10.0f };
+
 class DisplacementDistortPara : public FilterPara {
 public:
     DisplacementDistortPara()
@@ -40,7 +43,7 @@ public:
 
     void SetFactor(Vector2f& factor)
     {
-        factor_ = factor;
+        factor_ = UIEffect::GetLimitedPara(factor, DISPLACEMENT_DISTORT_FACTOR_LIMITS);
     }
 
     const Vector2f& GetFactor() const
@@ -50,8 +53,9 @@ public:
 
 private:
     std::shared_ptr<MaskPara> maskPara_;
-    Vector2f factor_;
+    Vector2f factor_ = { 1.0f, 1.0f };
 };
 } // namespace Rosen
 } // namespace OHOS
 #endif // UIEFFECT_FILTER_DISPLACENMENT_DISTORT_PARA_H
+ 

@@ -14,38 +14,30 @@
  */
 #ifndef RENDER_SERVICE_BASE_RENDER_RS_SHADER_MASK_H
 #define RENDER_SERVICE_BASE_RENDER_RS_SHADER_MASK_H
-#include "ge_visual_effect.h"
-#include "ge_visual_effect_container.h"
+
+#include "ge_shader_mask.h"
+#include "render/rs_render_mask.h"
 
 namespace OHOS {
 namespace Rosen {
 class RSB_EXPORT RSShaderMask {
 public:
-    RSShaderMask() = default;
+    RSShaderMask(const std::shared_ptr<RSRenderMaskPara>& renderMask);
     RSShaderMask(const RSShaderMask&) = delete;
     RSShaderMask operator=(const RSShaderMask&) = delete;
     virtual ~RSShaderMask() = default;
-
-    enum class Type {
-        NONE = 0,
-        RADIAL_GRADIENT,
-    };
-
-    Type GetShaderMaskType() const
-    {
-        return type_;
-    }
-
-    virtual void GenerateGEVisualEffect(std::shared_ptr<Drawing::GEVisualEffectContainer> visualEffectContainer);
-
-    uint32_t Hash() const
+    std::shared_ptr<Drawing::GEShaderMask> GenerateGEShaderMask() const;
+    inline uint32_t Hash() const
     {
         return hash_;
     }
 
 protected:
-    Type type_;
+    std::shared_ptr<RSRenderMaskPara> renderMask_ = nullptr;
     uint32_t hash_ = 0;
+
+private:
+    void CalHash();
 };
 } // Rosen
 } // OHOS

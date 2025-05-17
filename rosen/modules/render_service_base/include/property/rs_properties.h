@@ -631,6 +631,8 @@ private:
     void GenerateLinearGradientBlurFilter();
     void GenerateMagnifierFilter();
     void GenerateRenderFilter();
+    void GenerateDisplacementDistortFilter();
+    void GenerateRenderFilterColorGradient();
     void GenerateSoundWaveFilter();
 
     bool NeedClip() const;

@@ -19,6 +19,7 @@
 #include "drawing_color.h"
 #include "drawing_error_code.h"
 #include "drawing_filter.h"
+#include "drawing_helper.h"
 #include "drawing_mask_filter.h"
 #include "drawing_rect.h"
 #include "drawing_shadow_layer.h"
@@ -160,8 +161,11 @@ HWTEST_F(NativeDrawingBrushTest, NativeDrawingBrushTest_brushGetFilter005, TestS
 
     OH_Drawing_FilterSetColorFilter(cFilter_, nullptr);
     OH_Drawing_FilterGetColorFilter(cFilter_, colorFilterTmp);
-    EXPECT_EQ((reinterpret_cast<ColorFilter*>(colorFilterTmp))->GetType(),
-        ColorFilter::FilterType::NO_TYPE);
+    NativeHandle<ColorFilter>* colorFilterHandle = Helper::CastTo<OH_Drawing_ColorFilter*,
+        NativeHandle<ColorFilter>*>(colorFilterTmp);
+    EXPECT_NE(colorFilterHandle, nullptr);
+    EXPECT_NE(colorFilterHandle->value, nullptr);
+    EXPECT_EQ(colorFilterHandle->value->GetType(), ColorFilter::FilterType::NO_TYPE);
 
     OH_Drawing_ColorFilter* cColorFilter_ = OH_Drawing_ColorFilterCreateBlendMode(0xFF0000FF, BLEND_MODE_COLOR);
     OH_Drawing_FilterSetColorFilter(cFilter_, cColorFilter_);

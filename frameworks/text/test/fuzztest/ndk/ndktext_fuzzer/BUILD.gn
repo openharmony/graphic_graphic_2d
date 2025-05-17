@@ -18,7 +18,7 @@ import("//foundation/graphic/graphic_2d/frameworks/text/config.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 ##############################fuzztest##########################################
-ohos_fuzztest("DrawingFuzzTest") {
+ohos_fuzztest("NdkTextFuzzTest") {
   module_out_path = text_test_out_path
   fuzz_config_file = "."
 
@@ -53,7 +53,7 @@ group("fuzztest") {
   deps = []
   deps += [
     # deps file
-    ":DrawingFuzzTest",
+    ":NdkTextFuzzTest",
   ]
 }
 ###############################################################################

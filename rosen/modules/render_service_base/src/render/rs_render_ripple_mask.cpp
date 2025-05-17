@@ -33,6 +33,10 @@ namespace Rosen {
                 return std::make_shared<RSRenderAnimatableProperty<Vector2f>>(
                     value, 0, RSRenderPropertyType::PROPERTY_VECTOR2F);
             }
+            case RSUIFilterType::RIPPLE_MASK_WIDTH_CENTER_OFFSET : {
+                return std::make_shared<RSRenderAnimatableProperty<float>>(
+                    0.f, 0, RSRenderPropertyType::PROPERTY_FLOAT);
+            }
             default:
                 ROSEN_LOGE("RSRenderRippleMaskPara::CreateRenderPropert mask nullptr");
                 return nullptr;

@@ -18,64 +18,10 @@
 #include <sstream>
 #include "platform/common/rs_log.h"
 #include "pipeline/rs_render_node.h"
+#include "pipeline/rs_uni_render_judgement.h"
 #include "rs_trace.h"
 
 namespace OHOS::Rosen {
-// When a node has a modifier that is not in the OPAQUE_MODIFIERS, it is judged as a non opaque node.
-const std::unordered_set<RSModifierType> OPAQUE_MODIFIERS = {
-    RSModifierType::BOUNDS,
-    RSModifierType::FRAME,
-    RSModifierType::POSITION_Z,
-    RSModifierType::PIVOT,
-    RSModifierType::PIVOT_Z,
-    RSModifierType::SCALE,
-    RSModifierType::SCALE_Z,
-    RSModifierType::TRANSLATE,
-    RSModifierType::TRANSLATE_Z,
-    RSModifierType::CORNER_RADIUS,
-    RSModifierType::FOREGROUND_COLOR,
-    RSModifierType::BACKGROUND_COLOR,
-    RSModifierType::CLIP_RRECT,
-    RSModifierType::CLIP_BOUNDS,
-    RSModifierType::CLIP_TO_BOUNDS,
-    RSModifierType::CLIP_TO_FRAME,
-    RSModifierType::VISIBLE,
-    RSModifierType::ALPHA,
-    RSModifierType::ALPHA_OFFSCREEN,
-    RSModifierType::BORDER_COLOR,
-};
-// When a node has a modifier that is not in the OPAQUE_MODIFIERS and OCCLUDER_MODIFIERS,
-// it is determined that the subtree should not participate in occlusion culling.
-const std::unordered_set<RSModifierType> OCCLUDER_MODIFIERS = {
-    RSModifierType::BG_IMAGE,
-    RSModifierType::BG_IMAGE_INNER_RECT,
-    RSModifierType::BG_IMAGE_WIDTH,
-    RSModifierType::BG_IMAGE_HEIGHT,
-    RSModifierType::BG_IMAGE_POSITION_X,
-    RSModifierType::BG_IMAGE_POSITION_Y,
-    RSModifierType::BRIGHTNESS,
-    RSModifierType::BORDER_WIDTH,
-    RSModifierType::BORDER_STYLE,
-    RSModifierType::BORDER_DASH_WIDTH,
-    RSModifierType::BORDER_DASH_GAP,
-    RSModifierType::CAMERA_DISTANCE,
-    RSModifierType::SATURATE,
-    RSModifierType::BACKGROUND_SHADER,
-    RSModifierType::BACKGROUND_BLUR_RADIUS,
-    RSModifierType::BACKGROUND_BLUR_SATURATION,
-    RSModifierType::BACKGROUND_BLUR_BRIGHTNESS,
-    RSModifierType::BACKGROUND_BLUR_MASK_COLOR,
-    RSModifierType::BACKGROUND_BLUR_COLOR_MODE,
-    RSModifierType::FOREGROUND_BLUR_RADIUS_X,
-    RSModifierType::FOREGROUND_BLUR_RADIUS_Y,
-    RSModifierType::ROTATION,
-    RSModifierType::ROTATION_X,
-    RSModifierType::ROTATION_Y,
-    RSModifierType::FRAME_GRAVITY,
-    RSModifierType::POSITION_Z_APPLICABLE_CAMERA3D,
-    RSModifierType::GRAY_SCALE,
-};
-
 void OcclusionNode::ForwardOrderInsert(std::shared_ptr<OcclusionNode> newNode)
 {
     if (!newNode) {
@@ -142,21 +88,36 @@ void OcclusionNode::RemoveSubTree(std::unordered_map<NodeId, std::shared_ptr<Occ
 
 void OcclusionNode::CollectNodeProperties(const RSRenderNode& node)
 {
+    const auto& renderProperties = node.GetRenderProperties();
     auto parentShared = parentOcNode_.lock();
-    if (parentShared == nullptr || node.GetNodeGroupType() != RSRenderNode::NodeGroupType::NONE ||
-        node.GetIsTextureExportNode() || node.GetSharedTransitionParam() != nullptr) {
-        isSubTreeIgnored_ = true;
-        return;
-    }
 
-    if (!isSubTreeIgnored_) {
-        node.GetOcclusionInfo(OPAQUE_MODIFIERS, OCCLUDER_MODIFIERS, isOpaque_, isSubTreeIgnored_);
-    }
-    SetOcNodeOpaqueInfo(node);
+    isSubTreeIgnored_ = (parentShared == nullptr) || IsSubTreeShouldIgnored(node, renderProperties);
     if (isSubTreeIgnored_) {
         return;
     }
-    const auto& renderProperties = node.GetRenderProperties();
+    isBgOpaque_ = static_cast<uint8_t>(renderProperties.GetBackgroundColor().GetAlpha()) == UINT8_MAX &&
+        !renderProperties.IsBgBrightnessValid();
+    rootOcclusionNode_ = parentShared->rootOcclusionNode_;
+    localScale_ = renderProperties.GetScale();
+    localAlpha_ = renderProperties.GetAlpha();
+    isNeedClip_ = renderProperties.GetClipToBounds() || renderProperties.GetClipToFrame() ||
+        renderProperties.GetClipToRRect();
+    const auto& cornerRadius = renderProperties.GetCornerRadius();
+    cornerRadius_.x_ = std::isnan(cornerRadius.x_) ? 0.f : cornerRadius.x_;
+    cornerRadius_.y_ = std::isnan(cornerRadius.y_) ? 0.f : cornerRadius.y_;
+    cornerRadius_.z_ = std::isnan(cornerRadius.z_) ? 0.f : cornerRadius.z_;
+    cornerRadius_.w_ = std::isnan(cornerRadius.w_) ? 0.f : cornerRadius.w_;
+
+    CalculateDrawRect(node, renderProperties);
+}
+
+bool OcclusionNode::IsSubTreeShouldIgnored(const RSRenderNode& node, const RSProperties& renderProperties)
+{
+    if (node.GetNodeGroupType() != RSRenderNode::NodeGroupType::NONE ||
+        node.GetIsTextureExportNode() || node.GetSharedTransitionParam() != nullptr) {
+        return true;
+    }
+
     const auto& skew = renderProperties.GetSkew();
     const auto& perspective = renderProperties.GetPersp();
     const auto& degree = renderProperties.GetRotation();
@@ -168,33 +129,23 @@ void OcclusionNode::CollectNodeProperties(const RSRenderNode& node)
         !ROSEN_EQ(perspective[0], 0.f) || !ROSEN_EQ(perspective[1], 0.f) ||
         !ROSEN_EQ(degree, 0.f) || !ROSEN_EQ(degreeX, 0.f) || !ROSEN_EQ(degreeY, 0.f) ||
         renderProperties.GetClipBounds()) {
-        isSubTreeIgnored_ = true;
-        return;
+       return true;
     }
 
-    isSubTreeIgnored_ = false;
-    rootOcclusionNode_ = parentShared->rootOcclusionNode_;
-    localScale_ = renderProperties.GetScale();
-    localAlpha_ = renderProperties.GetAlpha();
-    isNeedClip_ = renderProperties.GetClipToBounds() || renderProperties.GetClipToFrame() ||
-        renderProperties.GetClipToRRect();
-    cornerRadius_ = renderProperties.GetCornerRadius();
+    // Skip this subtree if the node has any properties that may cause it to be drawn outside of its bounds.
+    const auto& originBounds = renderProperties.GetBounds();
+    const auto drawRect = RectF(originBounds.x_, originBounds.y_, originBounds.z_, originBounds.w_);
+    const auto& drawRegion = renderProperties.GetDrawRegion();
+    const auto& outline = renderProperties.GetOutline();
+    const auto& pixelStretch = renderProperties.GetPixelStretch();
+    const auto& distortionK = renderProperties.GetDistortionK();
+    auto foregroundFilter = RSUniRenderJudgement::IsUniRender() ? renderProperties.GetForegroundFilterCache()
+        : renderProperties.GetForegroundFilter();
+    const bool hasOutBoundsProp = (drawRegion && !drawRegion->IsInsideOf(drawRect)) ||
+        renderProperties.IsShadowValid() || outline || pixelStretch.has_value() ||
+        foregroundFilter || (distortionK.has_value() && *distortionK > 0);
 
-    CalculateDrawRect(node, renderProperties);
-}
-
-void OcclusionNode::SetOcNodeOpaqueInfo(const RSRenderNode& node)
-{
-    auto& renderProperties = node.GetRenderProperties();
-    if (node.IsPureContainer() // Pure container node, no drawing content
-        || node.GetDrawCmdModifiers().size() != 0 // Node has commands to draw
-        || !(ROSEN_EQ(renderProperties.GetAlpha(), 1.0f)) // Node has alpha attribute
-        || renderProperties.NeedFilter() // Node has filter attribute
-        // Node's background color has alpha attribute and brightness is not valid
-        || !(static_cast<uint8_t>(renderProperties.GetBackgroundColor().GetAlpha())
-             >= UINT8_MAX && !renderProperties.IsBgBrightnessValid())) { // Node has commands to draw
-        isOpaque_ &= false;
-    }
+    return hasOutBoundsProp;
 }
 
 void OcclusionNode::CalculateDrawRect(const RSRenderNode& node, const RSProperties& renderProperties)
@@ -256,11 +207,10 @@ void OcclusionNode::CalculateNodeAllBounds()
         return;
     }
 
-    accumulatedScale_ = parentShared->localScale_ * parentShared->accumulatedScale_;
     accumulatedAlpha_ = parentShared->localAlpha_ * parentShared->accumulatedAlpha_;
     auto alpha = localAlpha_ * accumulatedAlpha_;
     isAlphaNeed_ = alpha < 1.f;
-    isOpaque_ &= !isAlphaNeed_;
+    accumulatedScale_ = parentShared->localScale_ * parentShared->accumulatedScale_;
     absPositions_ = parentShared->absPositions_ + localPosition_ * accumulatedScale_;
     auto scaleDrawRect = RectF(drawRect_.GetLeft() * accumulatedScale_.x_,
         drawRect_.GetTop() * accumulatedScale_.y_,
@@ -279,9 +229,6 @@ void OcclusionNode::CalculateNodeAllBounds()
         clipInnerRect_ = innerRect_;
     }
 
-    if (innerRect_.IsEmpty()) {
-        isOpaque_ = false;
-    }
     isOutOfRootRect_ = IsOutOfRootRect(outerRect_);
 }
 
@@ -379,7 +326,7 @@ void OcclusionNode::CheckNodeOcclusion(OcclusionCoverageInfo& coverageInfo, std:
 void OcclusionNode::UpdateCoverageInfo(OcclusionCoverageInfo& globalCoverage, OcclusionCoverageInfo& selfCoverage)
 {
     // When the node is a opaque node, update the global coverage info
-    if (isOpaque_) {
+    if (IsOpaque()) {
         selfCoverage.area_ = innerRect_.GetWidth() * innerRect_.GetHeight();
         selfCoverage.rect_ = innerRect_;
         selfCoverage.id_ = id_;
@@ -419,7 +366,7 @@ std::string OcclusionNode::GetOcclusionNodeInfoString()
        << ", bottom: " << innerRect_.GetBottom()
        << ", subTreeIgnore: " << isSubTreeIgnored_
        << ", outOfScreen: " << isOutOfRootRect_
-       << ", opaque: " << isOpaque_
+       << ", bgOpaque: " << isBgOpaque_
        << ", alpha_: " << localAlpha_ * accumulatedAlpha_
        << ", isNeedClip_: " << isNeedClip_
        << ", hasChildrenOutOfRect_: " << hasChildrenOutOfRect_;

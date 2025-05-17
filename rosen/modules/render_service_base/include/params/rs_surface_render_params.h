@@ -384,9 +384,6 @@ public:
     void SetHwcCrossNode(bool isCrossNode);
     bool IsDRMCrossNode() const;
 
-    void SetIsNodeToBeCaptured(bool isNodeToBeCaptured);
-    bool IsNodeToBeCaptured() const;
-
     void SetSkipDraw(bool skip);
     bool GetSkipDraw() const;
 
@@ -700,6 +697,9 @@ public:
         return sourceDisplayRenderNodeDrawable_;
     }
 
+    void SetFrameGravityNewVersionEnabled(bool isEnabled);
+    bool GetFrameGravityNewVersionEnabled() const;
+
 private:
     bool isMainWindowType_ = false;
     bool isLeashWindow_ = false;
@@ -777,7 +777,6 @@ private:
     bool isSubSurfaceNode_ = false;
     bool isGlobalPositionEnabled_ = false;
     Gravity uiFirstFrameGravity_ = Gravity::TOP_LEFT;
-    bool isNodeToBeCaptured_ = false;
     RSSpecialLayerManager specialLayerManager_;
     std::set<NodeId> privacyContentLayerIds_ = {};
     std::set<int32_t> bufferCacheSet_ = {};
@@ -828,6 +827,7 @@ private:
     friend class RSUniRenderThread;
 
     bool isBufferFlushed_ = false;
+    bool isFrameGravityNewVersionEnabled_ = false;
 };
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_PARAMS_RS_SURFACE_RENDER_PARAMS_H

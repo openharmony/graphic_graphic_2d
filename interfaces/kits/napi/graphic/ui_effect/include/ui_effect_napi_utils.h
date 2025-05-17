@@ -81,6 +81,7 @@ constexpr uint32_t NUM_5 = 5;
 constexpr uint32_t NUM_6 = 6;
 constexpr uint32_t NUM_7 = 7;
 constexpr uint32_t NUM_8 = 8;
+constexpr uint32_t NUM_12 = 12;
 constexpr uint32_t NUM_1000 = 1000;
 constexpr int32_t ERR_NOT_SYSTEM_APP = 202;
 

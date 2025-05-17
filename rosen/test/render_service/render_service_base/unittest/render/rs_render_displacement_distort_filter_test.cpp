@@ -42,7 +42,7 @@ HWTEST_F(RSRenderDisplacementDistortFilterTest, GetDescription001, TestSize.Leve
     auto rsRenderDispDistortFilterPara = std::make_shared<RSRenderDispDistortFilterPara>(0);
     std::string out;
     rsRenderDispDistortFilterPara->GetDescription(out);
-    std::cout << out << std::endl;
+    EXPECT_FALSE(out.empty());
 }
 
 /**
@@ -97,6 +97,18 @@ HWTEST_F(RSRenderDisplacementDistortFilterTest, GetLeafRenderProperties001, Test
     auto rsRenderDispDistortFilterPara = std::make_shared<RSRenderDispDistortFilterPara>(0);
     auto rsRenderPropertyBaseVec = rsRenderDispDistortFilterPara->GetLeafRenderProperties();
     EXPECT_TRUE(rsRenderPropertyBaseVec.empty());
+}
+
+/**
+ * @tc.name: GetRenderMask001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderDisplacementDistortFilterTest, GetRenderMask001, TestSize.Level1)
+{
+    auto rsRenderDispDistortFilterPara = std::make_shared<RSRenderDispDistortFilterPara>(0);
+    auto renderMask = rsRenderDispDistortFilterPara->GetRenderMask();
+    EXPECT_NE(renderMask, nullptr);
 }
 
 } // namespace OHOS::Rosen

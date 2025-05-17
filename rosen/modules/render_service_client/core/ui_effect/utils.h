@@ -18,6 +18,7 @@
 #include <math.h>
 #include <utility>
 #include "common/rs_common_def.h"
+#include "common/rs_vector2.h"
 #include "common/rs_vector3.h"
 #include "common/rs_vector4.h"
 
@@ -33,6 +34,11 @@ inline bool IsParaSameSign(Vector4f para)
 inline float GetLimitedPara(float para, std::pair<float, float> limits = {-INFINITY, INFINITY})
 {
     return std::clamp(para, limits.first, limits.second);
+}
+
+inline Vector2f GetLimitedPara(const Vector2f& para, std::pair<float, float> limits = {-INFINITY, INFINITY})
+{
+    return Vector2f(std::clamp(para.x_, limits.first, limits.second), std::clamp(para.y_, limits.first, limits.second));
 }
 
 inline Vector3f GetLimitedPara(const Vector3f& para, std::pair<float, float> limits = {-INFINITY, INFINITY})

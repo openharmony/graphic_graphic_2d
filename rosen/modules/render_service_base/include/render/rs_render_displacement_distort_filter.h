@@ -41,6 +41,7 @@ public:
 
     virtual std::vector<std::shared_ptr<RSRenderPropertyBase>> GetLeafRenderProperties() override;
 
+    std::shared_ptr<RSRenderMaskPara> GetRenderMask();
 private:
     RSUIFilterType maskType_ = RSUIFilterType::NONE;
 };

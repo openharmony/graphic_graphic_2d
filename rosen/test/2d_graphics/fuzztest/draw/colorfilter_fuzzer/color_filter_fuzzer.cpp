@@ -24,7 +24,7 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 constexpr size_t BLENDMODE_SIZE = 29;
-constexpr size_t FILTERTYPE_SIZE = 8;
+constexpr size_t FILTERTYPE_SIZE = 9;
 constexpr size_t MATRIX_SIZE = 20;
 constexpr size_t OVER_DRAW_COLOR_NUM = 6;
 constexpr size_t MAX_SIZE = 5000;
@@ -134,6 +134,24 @@ bool ColorFilterFuzzTest002(const uint8_t* data, size_t size)
     return true;
 }
 
+bool ColorFilterFuzzTest003(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    ColorQuad mulColor = GetObject<ColorQuad>();
+    ColorQuad addColor = GetObject<ColorQuad>();
+    uint32_t type = GetObject<uint32_t>();
+    ColorFilter colorFilter = ColorFilter(static_cast<ColorFilter::FilterType>(type % FILTERTYPE_SIZE), mulColor,
+        addColor);
+    std::shared_ptr<ColorFilter> colorFilterTwo = ColorFilter::CreateLightingColorFilter(mulColor, addColor);
+    return true;
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
@@ -144,5 +162,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     /* Run your code on data */
     OHOS::Rosen::Drawing::ColorFilterFuzzTest001(data, size);
     OHOS::Rosen::Drawing::ColorFilterFuzzTest002(data, size);
+    OHOS::Rosen::Drawing::ColorFilterFuzzTest003(data, size);
     return 0;
 }

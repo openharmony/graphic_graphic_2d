@@ -140,6 +140,7 @@ public:
     VsyncError SetVSyncRate(int32_t rate, const sptr<VSyncConnection>& connection);
     VsyncError SetHighPriorityVSyncRate(int32_t highPriorityRate, const sptr<VSyncConnection>& connection);
     VsyncError SetQosVSyncRate(uint64_t windowNodeId, int32_t rate, bool isSystemAnimateScene = false);
+    VsyncError SetQosVSyncRateByConnId(uint64_t connId, int32_t rate);
     VsyncError SetQosVSyncRateByPidPublic(uint32_t pid, uint32_t rate, bool isSystemAnimateScene);
     VsyncError SetVsyncRateDiscountLTPS(uint32_t pid, const std::string &name, uint32_t rateDiscount);
     sptr<VSyncConnection> GetVSyncConnection(uint64_t id);
@@ -219,6 +220,7 @@ private:
     std::mutex mutex_;
     std::condition_variable con_;
     std::vector<sptr<VSyncConnection> > connections_;
+    std::unordered_map<uint64_t, sptr<VSyncConnection>> connMap_;
     std::map<uint64_t, std::vector<sptr<VSyncConnection>>> connectionsMap_;
     std::map<uint64_t, std::vector<uint64_t>> pidWindowIdMap_;
     VSyncEvent event_;

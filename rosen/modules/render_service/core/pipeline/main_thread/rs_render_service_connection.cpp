@@ -529,13 +529,15 @@ ErrCode RSRenderServiceConnection::CreateVSyncConnection(sptr<IVSyncConnection>&
                 HgmCore::Instance().SetHgmTaskFlag(true);
             }
         };
-        mainThread_->ScheduleTask([weakThis = wptr<RSRenderServiceConnection>(this), id, observer, name]() {
+        mainThread_->ScheduleTask([weakThis = wptr<RSRenderServiceConnection>(this),
+            id, observer, name, windowNodeId]() {
             sptr<RSRenderServiceConnection> connection = weakThis.promote();
             if (connection == nullptr || connection->mainThread_ == nullptr) {
                 return;
             }
             auto linker = std::make_shared<RSRenderFrameRateLinker>(id, observer);
             linker->SetVsyncName(name);
+            linker->SetWindowNodeId(windowNodeId);
             auto& context = connection->mainThread_->GetContext();
             auto& frameRateLinkerMap = context.GetMutableFrameRateLinkerMap();
             frameRateLinkerMap.RegisterFrameRateLinker(linker);
@@ -2634,6 +2636,32 @@ void RSRenderServiceConnection::NotifyRefreshRateEvent(const EventInfo& eventInf
         auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
         if (frameRateMgr != nullptr) {
             frameRateMgr->HandleRefreshRateEvent(pid, eventInfo);
+        }
+    });
+}
+
+void RSRenderServiceConnection::SetWindowExpectedRefreshRate(
+    const std::unordered_map<uint64_t, EventInfo>& eventInfos
+)
+{
+    HgmTaskHandleThread::Instance().PostTask([pid = remotePid_, eventInfos]() {
+        auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
+        if (frameRateMgr != nullptr) {
+            auto& softVsyncMgr = frameRateMgr->SoftVSyncMgrRef();
+            softVsyncMgr.SetWindowExpectedRefreshRate(pid, eventInfos);
+        }
+    });
+}
+
+void RSRenderServiceConnection::SetWindowExpectedRefreshRate(
+    const std::unordered_map<std::string, EventInfo>& eventInfos
+)
+{
+    HgmTaskHandleThread::Instance().PostTask([pid = remotePid_, eventInfos]() {
+        auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
+        if (frameRateMgr != nullptr) {
+            auto& softVsyncMgr = frameRateMgr->SoftVSyncMgrRef();
+            softVsyncMgr.SetWindowExpectedRefreshRate(pid, eventInfos);
         }
     });
 }

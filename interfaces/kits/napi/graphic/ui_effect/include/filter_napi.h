@@ -19,6 +19,7 @@
 #include <iostream>
 #include "filter/include/filter.h"
 #include "filter/include/filter_blur_para.h"
+#include "filter/include/filter_color_gradient_para.h"
 #include "filter/include/filter_pixel_stretch_para.h"
 #include "filter/include/filter_water_ripple_para.h"
 #include "filter/include/filter_fly_out_para.h"
@@ -59,12 +60,15 @@ private:
     static napi_value SetFlyOut(napi_env env, napi_callback_info info);
     static napi_value SetRadiusGradientBlurPara(napi_env env, napi_callback_info info);
     static napi_value SetDistort(napi_env env, napi_callback_info info);
+    static napi_value SetColorGradient(napi_env env, napi_callback_info info);
     static napi_value SetDisplacementDistort(napi_env env, napi_callback_info info);
     static Drawing::TileMode ParserArgumentType(napi_env env, napi_value argv);
     static GradientDirection ParserGradientDirection(napi_env env, napi_value argv);
 
     static float GetSpecialValue(napi_env env, napi_value argValue);
     static uint32_t GetSpecialIntValue(napi_env env, napi_value argValue);
+    static bool GetColorGradientArray(napi_env env, napi_value* argValue, std::shared_ptr<ColorGradientPara>& para,
+        uint32_t arraySize);
 
     std::shared_ptr<Filter> m_FilterObj = nullptr;
 };

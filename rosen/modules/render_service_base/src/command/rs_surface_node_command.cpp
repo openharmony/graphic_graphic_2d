@@ -444,5 +444,12 @@ void SurfaceNodeCommandHelper::DetachFromWindowContainer(RSContext& context, Nod
         }
     );
 }
+
+void SurfaceNodeCommandHelper::SetFrameGravityNewVersionEnabled(RSContext& context, NodeId nodeId, bool isEnabled)
+{
+    if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
+        node->SetFrameGravityNewVersionEnabled(isEnabled);
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

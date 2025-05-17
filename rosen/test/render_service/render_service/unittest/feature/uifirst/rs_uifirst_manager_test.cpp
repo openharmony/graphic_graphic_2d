@@ -328,19 +328,13 @@ HWTEST_F(RSUifirstManagerTest, ProcessDoneNode, TestSize.Level1)
 HWTEST_F(RSUifirstManagerTest, ProcessDoneNode001, TestSize.Level1)
 {
     NodeId id = 1;
-    uifirstManager_.capturedNodes_.push_back(id);
-    uifirstManager_.ProcessDoneNode();
-    EXPECT_TRUE(uifirstManager_.capturedNodes_.empty());
-    
     auto surfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(id);
     auto adapter = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceRenderNode);
     uifirstManager_.subthreadProcessingNode_.insert(std::make_pair(id, adapter));
-    uifirstManager_.capturedNodes_.push_back(id);
     uifirstManager_.ProcessDoneNode();
     EXPECT_FALSE(uifirstManager_.subthreadProcessingNode_.empty());
 
     uifirstManager_.pendingResetNodes_.insert(std::make_pair(id, surfaceRenderNode));
-    uifirstManager_.capturedNodes_.push_back(id);
     uifirstManager_.ProcessDoneNode();
     EXPECT_FALSE(uifirstManager_.pendingResetNodes_.empty());
 
@@ -491,12 +485,6 @@ HWTEST_F(RSUifirstManagerTest, ProcessTreeStateChange, TestSize.Level1)
     ASSERT_NE(surfaceNode1, nullptr);
     surfaceNode1->SetIsOnTheTree(true);
     uifirstManager_.ProcessTreeStateChange(*surfaceNode1);
-
-    auto surfaceNode2 = RSTestUtil::CreateSurfaceNode();
-    ASSERT_NE(surfaceNode2, nullptr);
-    surfaceNode2->SetIsOnTheTree(false);
-    surfaceNode2->SetIsNodeToBeCaptured(true);
-    uifirstManager_.ProcessTreeStateChange(*surfaceNode2);
 }
 
 /**
@@ -2000,18 +1988,6 @@ HWTEST_F(RSUifirstManagerTest, AddProcessDoneNode, TestSize.Level1)
     uifirstManager_.AddProcessDoneNode(1);
     ASSERT_FALSE(uifirstManager_.subthreadProcessDoneNode_.empty());
     uifirstManager_.subthreadProcessDoneNode_.clear();
-}
-
-/**
- * @tc.name: AddCapturedNodes
- * @tc.desc: Test AddCapturedNodes
- * @tc.type: FUNC
- * @tc.require: issueIBVHE7
- */
-HWTEST_F(RSUifirstManagerTest, AddCapturedNodes, TestSize.Level1)
-{
-    uifirstManager_.AddCapturedNodes(1);
-    ASSERT_FALSE(uifirstManager_.capturedNodes_.empty());
 }
 
 /**

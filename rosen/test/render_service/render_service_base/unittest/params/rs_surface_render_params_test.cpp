@@ -507,4 +507,20 @@ HWTEST_F(RSSurfaceRenderParamsTest, SetRogWidthRatioTest, TestSize.Level1)
     params.SetRogWidthRatio(1.0);
     EXPECT_EQ(params.GetRogWidthRatio(), 1.0);
 }
+
+/**
+ * @tc.name: SetFrameGravityNewVersionEnabledTest
+ * @tc.desc: SetFrameGravityNewVersionEnabled and GetFrameGravityNewVersionEnabled
+ * @tc.type: FUNC
+ * @tc.require: issueIC8CDF
+ */
+HWTEST_F(RSSurfaceRenderParamsTest, SetFrameGravityNewVersionEnabledTest, TestSize.Level1)
+{
+    RSSurfaceRenderParams params(128);
+    params.SetFrameGravityNewVersionEnabled(false);
+    EXPECT_EQ(params.GetFrameGravityNewVersionEnabled(), false);
+
+    params.SetFrameGravityNewVersionEnabled(true);
+    EXPECT_EQ(params.GetFrameGravityNewVersionEnabled(), true);
+}
 } // namespace OHOS::Rosen

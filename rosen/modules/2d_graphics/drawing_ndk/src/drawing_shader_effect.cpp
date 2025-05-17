@@ -162,6 +162,29 @@ OH_Drawing_ShaderEffect* OH_Drawing_ShaderEffectCreateRadialGradientWithLocalMat
         static_cast<TileMode>(cTileMode), cMatrix ? CastToMatrix(cMatrix) : nullptr));
 }
 
+OH_Drawing_ShaderEffect* OH_Drawing_ShaderEffectCreateSweepGradientWithLocalMatrix(
+    const OH_Drawing_Point* centerPt, const uint32_t* colors, const float* pos, uint32_t size,
+    OH_Drawing_TileMode tileMode, const OH_Drawing_Matrix* matrix)
+{
+    if (centerPt == nullptr || colors == nullptr) {
+        return nullptr;
+    }
+    if (tileMode < CLAMP || tileMode > DECAL) {
+        return nullptr;
+    }
+    std::vector<ColorQuad> colorsVector;
+    std::vector<scalar> posVector;
+    for (uint32_t i = 0; i < size; i++) {
+        colorsVector.emplace_back(colors[i]);
+        if (pos) {
+            posVector.emplace_back(pos[i]);
+        }
+    }
+    return CastShaderEffect(ShaderEffect::CreateSweepGradient(
+        *CastToPoint(centerPt), colorsVector, posVector, static_cast<TileMode>(tileMode), 0,
+        360, matrix ? CastToMatrix(matrix) : nullptr)); // 360: endAngle
+}
+
 OH_Drawing_ShaderEffect* OH_Drawing_ShaderEffectCreateSweepGradient(const OH_Drawing_Point* cCenterPt,
     const uint32_t* colors, const float* pos, uint32_t size, OH_Drawing_TileMode cTileMode)
 {
@@ -231,6 +254,27 @@ OH_Drawing_ShaderEffect* OH_Drawing_ShaderEffectCreateTwoPointConicalGradient(co
     return CastShaderEffect(ShaderEffect::CreateTwoPointConical(
         *CastToPoint(startPt), startRadius, *CastToPoint(endPt), endRadius, colorsVector, posVector,
         static_cast<TileMode>(cTileMode), cMatrix ? CastToMatrix(cMatrix) : nullptr));
+}
+
+OH_Drawing_ShaderEffect* OH_Drawing_ShaderEffectCreateCompose(OH_Drawing_ShaderEffect* dst,
+    OH_Drawing_ShaderEffect* src, OH_Drawing_BlendMode mode)
+{
+    if (dst == nullptr || src == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
+        return nullptr;
+    }
+    if (mode < BLEND_MODE_CLEAR || mode > BLEND_MODE_LUMINOSITY) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE;
+        return nullptr;
+    }
+    auto dstHandle = Helper::CastTo<OH_Drawing_ShaderEffect*, NativeHandle<ShaderEffect>*>(dst);
+    auto srcHandle = Helper::CastTo<OH_Drawing_ShaderEffect*, NativeHandle<ShaderEffect>*>(src);
+    if (dstHandle->value.get() == nullptr || srcHandle->value.get() == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
+        return nullptr;
+    }
+    return CastShaderEffect(ShaderEffect::CreateBlendShader(*dstHandle->value,
+        *srcHandle->value, static_cast<BlendMode>(mode)));
 }
 
 void OH_Drawing_ShaderEffectDestroy(OH_Drawing_ShaderEffect* cShaderEffect)

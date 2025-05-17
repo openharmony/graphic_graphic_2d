@@ -168,6 +168,7 @@ public:
     virtual Drawing::RectI GeneratePaintRegion(double x, double y) const = 0;
     virtual void Relayout(double width, const TypographyStyle& typograhyStyle,
         const std::vector<TextStyle>& textStyles) = 0;
+    virtual void UpdateAllTextStyles(const TextStyle& textStyleTemplate) = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

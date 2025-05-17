@@ -74,6 +74,7 @@ enum RSSurfaceNodeCommandType : uint16_t {
     SURFACE_NODE_DETACH_FROM_WINDOW_CONTAINER = 39,
     SURFACE_NODE_SET_SOURCE_VIRTUAL_DISPLAY_ID = 40,
     SURFACE_NODE_CREATE_SURFACE_EXT = 41,
+    SURFACE_NODE_SET_FRAME_GRAVITY_NEW_VERSION_ENABLED = 42,
 };
 
 class RSB_EXPORT SurfaceNodeCommandHelper {
@@ -126,6 +127,7 @@ public:
     static void SetSourceVirtualDisplayId(RSContext& context, NodeId nodeId, ScreenId screenId);
     static void AttachToWindowContainer(RSContext& context, NodeId nodeId, ScreenId screenId);
     static void DetachFromWindowContainer(RSContext& context, NodeId nodeId, ScreenId screenId);
+    static void SetFrameGravityNewVersionEnabled(RSContext& context, NodeId nodeId, bool isEnabled);
 };
 
 ADD_COMMAND(RSSurfaceNodeCreate,
@@ -257,6 +259,9 @@ ADD_COMMAND(RSSurfaceNodeDetachFromWindowContainer,
 ADD_COMMAND(RSSurfaceNodeSetSourceVirtualDisplayId,
     ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_SET_SOURCE_VIRTUAL_DISPLAY_ID,
         SurfaceNodeCommandHelper::SetSourceVirtualDisplayId, NodeId, ScreenId))
+ADD_COMMAND(RSSurfaceNodeSetFrameGravityNewVersionEnabled,
+    ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_SET_FRAME_GRAVITY_NEW_VERSION_ENABLED,
+        SurfaceNodeCommandHelper::SetFrameGravityNewVersionEnabled, NodeId, bool))
 } // namespace Rosen
 } // namespace OHOS
 #endif // ROSEN_RENDER_SERVICE_BASE_COMMAND_RS_SURFACE_NODE_COMMAND_H

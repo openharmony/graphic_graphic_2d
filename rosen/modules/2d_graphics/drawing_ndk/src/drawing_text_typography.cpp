@@ -2202,6 +2202,86 @@ void OH_Drawing_TypographyUpdateFontSize(OH_Drawing_Typography* typography, size
     ConvertToOriginalText<Typography>(typography)->UpdateFontSize(from, to, fontSize);
 }
 
+void OH_Drawing_TypographyUpdateFontColor(OH_Drawing_Typography* typography, uint32_t color)
+{
+    if (typography == nullptr) {
+        return;
+    }
+
+    TextStyle textStyleTemplate;
+    textStyleTemplate.relayoutChangeBitmap.set(static_cast<size_t>(RelayoutTextStyleAttribute::FONT_COLOR));
+    textStyleTemplate.color.SetColorQuad(color);
+    ConvertToOriginalText<Typography>(typography)->UpdateAllTextStyles(textStyleTemplate);
+}
+
+void OH_Drawing_TypographyUpdateDecoration(OH_Drawing_Typography* typography, OH_Drawing_TextDecoration decoration)
+{
+    if (typography == nullptr || (decoration & (~(TextDecoration::UNDERLINE | TextDecoration::OVERLINE |
+        TextDecoration::LINE_THROUGH)))) {
+        LOGE("Invalid Decoration type: %{public}d", decoration);
+        return;
+    }
+
+    TextStyle textStyleTemplate;
+    textStyleTemplate.relayoutChangeBitmap.set(static_cast<size_t>(RelayoutTextStyleAttribute::DECORATION));
+    textStyleTemplate.decoration = static_cast<TextDecoration>(decoration);
+    ConvertToOriginalText<Typography>(typography)->UpdateAllTextStyles(textStyleTemplate);
+}
+
+void OH_Drawing_TypographyUpdateDecorationThicknessScale(OH_Drawing_Typography* typography,
+    double decorationThicknessScale)
+{
+    if (typography == nullptr) {
+        return;
+    }
+
+    TextStyle textStyleTemplate;
+    textStyleTemplate.relayoutChangeBitmap.set(static_cast<size_t>(RelayoutTextStyleAttribute::DECORATION_THICKNESS_SCALE));
+    textStyleTemplate.decorationThicknessScale = decorationThicknessScale;
+    ConvertToOriginalText<Typography>(typography)->UpdateAllTextStyles(textStyleTemplate);
+}
+
+void OH_Drawing_TypographyUpdateDecorationStyle(OH_Drawing_Typography* typography,
+    OH_Drawing_TextDecorationStyle decorationStyle)
+{
+    if (typography == nullptr) {
+        return;
+    }
+
+    TextDecorationStyle textDecorationStyle;
+    switch (decorationStyle) {
+        case TEXT_DECORATION_STYLE_SOLID: {
+            textDecorationStyle = TextDecorationStyle::SOLID;
+            break;
+        }
+        case TEXT_DECORATION_STYLE_DOUBLE: {
+            textDecorationStyle = TextDecorationStyle::DOUBLE;
+            break;
+        }
+        case TEXT_DECORATION_STYLE_DOTTED: {
+            textDecorationStyle = TextDecorationStyle::DOTTED;
+            break;
+        }
+        case TEXT_DECORATION_STYLE_DASHED: {
+            textDecorationStyle = TextDecorationStyle::DASHED;
+            break;
+        }
+        case TEXT_DECORATION_STYLE_WAVY: {
+            textDecorationStyle = TextDecorationStyle::WAVY;
+            break;
+        }
+        default: {
+            LOGE("Invalid Decoration style type: %{public}d", decorationStyle);
+            return;
+        }
+    }
+
+    TextStyle textStyleTemplate;
+    textStyleTemplate.relayoutChangeBitmap.set(static_cast<size_t>(RelayoutTextStyleAttribute::DECORATION_STYLE));
+    textStyleTemplate.decorationStyle = textDecorationStyle;
+    ConvertToOriginalText<Typography>(typography)->UpdateAllTextStyles(textStyleTemplate);
+}
+
 bool OH_Drawing_TypographyTextGetLineStyle(OH_Drawing_TypographyStyle* style)
 {
     if (style == nullptr || ConvertToOriginalText<TypographyStyle>(style) == nullptr) {

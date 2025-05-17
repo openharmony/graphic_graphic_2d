@@ -186,6 +186,18 @@
       *HgmTouchManager::SetRsIdleTimeout*;
       *HgmTouchManager::State2String*;
 
+      *HgmSoftVSyncManager::HgmSoftVSyncManager*;
+      *HgmSoftVSyncManager::InitController*;
+      *HgmSoftVSyncManager::SetWindowExpectedRefreshRate*;
+      *HgmSoftVSyncManager::CollectVRateChange*;
+      *HgmSoftVSyncManager::SetVsyncRateDiscountLTPO*;
+      *HgmSoftVSyncManager::GetDrawingFrameRate*;
+      *HgmSoftVSyncManager::UniProcessDataForLtpo*;
+      *HgmSoftVSyncManager::CollectFrameRateChange*;
+      *HgmSoftVSyncManager::GetVRateMiniFPS*;
+      *HgmSoftVSyncManager::EraseGameRateDiscountMap*;
+      *HgmSoftVSyncManager::CollectGameRateDiscountChange*;
+
       *HgmPointerManager::CheckChangeStateValid*;
       *HgmPointerManager::HandleRsFrame*;
       *HgmPointerManager::HandleTimerReset*;

@@ -639,13 +639,17 @@ HWTEST_F(RSOcclusionNodeTest, DetectOcclusion_005, TestSize.Level1)
     std::shared_ptr<OcclusionNode> thirdChild =
         std::make_shared<OcclusionNode>(thirdNodeId, RSRenderNodeType::CANVAS_NODE);
     thirdChild->isValidInCurrentFrame_ = true;
-    thirdChild->isOpaque_ = true;
+    thirdChild->isBgOpaque_ = true;
+    thirdChild->isAlphaNeed_ = false;
     secondChild->isValidInCurrentFrame_ = true;
-    secondChild->isOpaque_ = true;
+    secondChild->isBgOpaque_ = true;
+    secondChild->isAlphaNeed_ = false;
     firstChild->isValidInCurrentFrame_ = true;
-    firstChild->isOpaque_ = true;
+    firstChild->isBgOpaque_ = true;
+    firstChild->isAlphaNeed_ = false;
     rootNode->isValidInCurrentFrame_ = true;
-    rootNode->isOpaque_ = true;
+    rootNode->isBgOpaque_ = true;
+    rootNode->isAlphaNeed_ = false;
     rootNode->lastChild_ = firstChild;
     firstChild->lastChild_ = thirdChild;
     firstChild->firstChild_ = secondChild;
@@ -684,13 +688,17 @@ HWTEST_F(RSOcclusionNodeTest, DetectOcclusion_006, TestSize.Level1)
     std::shared_ptr<OcclusionNode> thirdChild =
         std::make_shared<OcclusionNode>(thirdNodeId, RSRenderNodeType::CANVAS_NODE);
     thirdChild->isValidInCurrentFrame_ = true;
-    thirdChild->isOpaque_ = true;
+    thirdChild->isBgOpaque_ = true;
+    thirdChild->isAlphaNeed_ = false;
     secondChild->isValidInCurrentFrame_ = true;
-    secondChild->isOpaque_ = true;
+    secondChild->isBgOpaque_ = true;
+    secondChild->isAlphaNeed_ = false;
     firstChild->isValidInCurrentFrame_ = true;
-    firstChild->isOpaque_ = true;
+    firstChild->isBgOpaque_ = true;
+    firstChild->isAlphaNeed_ = false;
     rootNode->isValidInCurrentFrame_ = true;
-    rootNode->isOpaque_ = true;
+    rootNode->isBgOpaque_ = true;
+    rootNode->isAlphaNeed_ = false;
     rootNode->lastChild_ = firstChild;
     firstChild->lastChild_ = thirdChild;
     firstChild->firstChild_ = secondChild;
@@ -728,13 +736,17 @@ HWTEST_F(RSOcclusionNodeTest, DetectOcclusion_007, TestSize.Level1)
     std::shared_ptr<OcclusionNode> thirdChild =
         std::make_shared<OcclusionNode>(thirdNodeId, RSRenderNodeType::CANVAS_NODE);
     thirdChild->isValidInCurrentFrame_ = true;
-    thirdChild->isOpaque_ = true;
+    thirdChild->isBgOpaque_ = true;
+    thirdChild->isAlphaNeed_ = false;
     secondChild->isValidInCurrentFrame_ = true;
-    secondChild->isOpaque_ = true;
+    secondChild->isBgOpaque_ = true;
+    secondChild->isAlphaNeed_ = false;
     firstChild->isValidInCurrentFrame_ = true;
-    firstChild->isOpaque_ = true;
+    firstChild->isBgOpaque_ = true;
+    firstChild->isAlphaNeed_ = false;
     rootNode->isValidInCurrentFrame_ = true;
-    rootNode->isOpaque_ = true;
+    rootNode->isBgOpaque_ = true;
+    rootNode->isAlphaNeed_ = false;
     rootNode->lastChild_ = firstChild;
     firstChild->lastChild_ = thirdChild;
     firstChild->firstChild_ = secondChild;
@@ -776,13 +788,17 @@ HWTEST_F(RSOcclusionNodeTest, DetectOcclusion_008, TestSize.Level1)
     std::shared_ptr<OcclusionNode> thirdChild =
         std::make_shared<OcclusionNode>(thirdChildId, RSRenderNodeType::CANVAS_NODE);
     thirdChild->isValidInCurrentFrame_ = true;
-    thirdChild->isOpaque_ = true;
+    thirdChild->isBgOpaque_ = true;
+    thirdChild->isAlphaNeed_ = false;
     secondChild->isValidInCurrentFrame_ = true;
-    secondChild->isOpaque_ = true;
+    secondChild->isBgOpaque_ = true;
+    secondChild->isAlphaNeed_ = false;
     firstChild->isValidInCurrentFrame_ = true;
-    firstChild->isOpaque_ = true;
+    firstChild->isBgOpaque_ = true;
+    firstChild->isAlphaNeed_ = false;
     rootNode->isValidInCurrentFrame_ = true;
-    rootNode->isOpaque_ = true;
+    rootNode->isBgOpaque_ = true;
+    rootNode->isAlphaNeed_ = false;
     rootNode->lastChild_ = firstChild;
     firstChild->lastChild_ = thirdChild;
     firstChild->firstChild_ = secondChild;

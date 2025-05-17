@@ -2314,6 +2314,54 @@ int32_t OH_Drawing_TypographyGetUnresolvedGlyphsCount(OH_Drawing_Typography*);
 void OH_Drawing_TypographyUpdateFontSize(OH_Drawing_Typography*, size_t from, size_t to, float fontSize);
 
 /**
+ * @brief Update the font color of the typography.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param typography Indicates the pointer to the text <b>OH_Drawing_Typography</b> object.
+ * @param color Indicates the color to update.
+ * @since 20
+ * @version 1.0
+ */
+void OH_Drawing_TypographyUpdateFontColor(OH_Drawing_Typography* typography, uint32_t color);
+
+/**
+ * @brief Update the decoration of the typography.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param typography Indicates the pointer to the text <b>OH_Drawing_Typography</b> object.
+ * @param decoration Indicates the text decoration to update. For details, see the enum
+ * <b>OH_Drawing_TextDecoration</b>.
+ * @since 20
+ * @version 1.0
+ */
+void OH_Drawing_TypographyUpdateDecoration(OH_Drawing_Typography* typography, OH_Drawing_TextDecoration decoration);
+
+/**
+ * @brief Update the decoration thickness scale of the typography.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param typography Indicates the pointer to the text <b>OH_Drawing_Typography</b> object.
+ * @param decorationThicknessScale Indicates the thickness scale of the text decoration to update.
+ * @since 20
+ * @version 1.0
+ */
+void OH_Drawing_TypographyUpdateDecorationThicknessScale(OH_Drawing_Typography* typography,
+    double decorationThicknessScale);
+
+/**
+ * @brief Update the decoration style of the typography.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param typography Indicates the pointer to the text <b>OH_Drawing_Typography</b> object.
+ * @param decorationStyle Indicates the text decoration style to update.
+ * For details, see the enum <b>OH_Drawing_TextDecorationStyle</b>.
+ * @since 20
+ * @version 1.0
+ */
+void OH_Drawing_TypographyUpdateDecorationStyle(OH_Drawing_Typography* typography,
+    OH_Drawing_TextDecorationStyle decorationStyle);
+
+/**
  * @brief Get whether the text layout enables line styles.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing

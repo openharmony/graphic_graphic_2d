@@ -1331,9 +1331,6 @@ public:
     void GetAllSubSurfaceNodes(std::vector<std::pair<NodeId, RSSurfaceRenderNode::WeakPtr>>& allSubSurfaceNodes) const;
     std::string SubSurfaceNodesDump() const;
 
-    void SetIsNodeToBeCaptured(bool isNodeToBeCaptured);
-    bool IsNodeToBeCaptured() const;
-
     void SetDoDirectComposition(bool flag)
     {
         doDirectComposition_ = flag;
@@ -1527,6 +1524,9 @@ public:
         return appWindowZOrder_;
     }
 
+    void SetFrameGravityNewVersionEnabled(bool isEnabled);
+    bool GetFrameGravityNewVersionEnabled() const;
+
 protected:
     void OnSync() override;
     void OnSkipSync() override;
@@ -1654,7 +1654,6 @@ private:
     bool hasTransparentSurface_ = false;
     bool isGpuOverDrawBufferOptimizeNode_ = false;
     bool isSubSurfaceNode_ = false;
-    bool isNodeToBeCaptured_ = false;
     bool doDirectComposition_ = true;
     bool lastFrameHasVisibleRegion_ = true;
     bool isSkipDraw_ = false;
@@ -1859,6 +1858,8 @@ private:
 
     // used in uifirst for checking whether node and parents should paint or not
     bool selfAndParentShouldPaint_ = true;
+
+    bool isFrameGravityNewVersionEnabled_ = false;
 
     // UIExtension record, <UIExtension, hostAPP>
     inline static std::unordered_map<NodeId, NodeId> secUIExtensionNodes_ = {};
