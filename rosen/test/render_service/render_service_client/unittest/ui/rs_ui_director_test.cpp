@@ -674,7 +674,11 @@ HWTEST_F(RSUIDirectorTest, GetIndexTest001, TestSize.Level1)
     std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
     director->SendMessages();
     uint32_t index = director->GetIndex();
-    EXPECT_TRUE(index != 0);
+    if (RSSystemProperties::GetHybridRenderEnabled()) {
+        EXPECT_TRUE(index == 0);
+    } else {
+        EXPECT_TRUE(index != 0);
+    }
 }
 
 /**

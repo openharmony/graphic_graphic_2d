@@ -23,6 +23,7 @@
 #include "command/rs_node_command.h"
 #include "ffrt_inner.h"
 #include "modifier_render_thread/rs_modifiers_draw.h"
+#include "pipeline/rs_node_map.h"
 #include "platform/common/rs_log.h"
 #include "platform/ohos/backend/rs_vulkan_context.h"
 #include "qos.h"
@@ -32,6 +33,7 @@
 namespace OHOS {
 namespace Rosen {
 constexpr uint32_t DEFAULT_MODIFIERS_DRAW_THREAD_LOOP_NUM = 3;
+constexpr float HYBRID_RENDER_DISABLED_BY_ALPHA = 0.8f;
 RSModifiersDrawThread::RSModifiersDrawThread() {}
 
 RSModifiersDrawThread::~RSModifiersDrawThread()
@@ -138,6 +140,33 @@ void RSModifiersDrawThread::Start()
     RS_LOGI("%{public}s RSModifiersDrawThread started", __func__);
 }
 
+void RSModifiersDrawThread::InitMaxPixelMapSize()
+{
+    if (!isFirst_) {
+        return;
+    }
+    auto& vkContext = OHOS::Rosen::RsVulkanContext::GetSingleton().GetRsVulkanInterface();
+    VkPhysicalDevice physicalDevice = vkContext.GetPhysicalDevice();
+    if (physicalDevice == nullptr) {
+        return;
+    }
+    VkPhysicalDeviceProperties deviceProperties;
+    vkGetPhysicalDeviceProperties(physicalDevice, &deviceProperties);
+    maxPixelMapWidth_ = deviceProperties.limits.maxImageDimension2D;
+    maxPixelMapHeight_ = deviceProperties.limits.maxImageDimension2D;
+    isFirst_ = false;
+}
+
+uint32_t RSModifiersDrawThread::GetMaxPixelMapWidth() const
+{
+    return maxPixelMapWidth_;
+}
+
+uint32_t RSModifiersDrawThread::GetMaxPixelMapHeight() const
+{
+    return maxPixelMapHeight_;
+}
+
 void RSModifiersDrawThread::PostTask(const std::function<void()>&& task, const std::string& name, int64_t delayTime)
 {
     if (!isStarted_) {
@@ -199,11 +228,23 @@ bool RSModifiersDrawThread::TargetCommand(
     return targetCmd;
 }
 
+bool RSModifiersDrawThread::CheckTotalAlpha(NodeId id, Drawing::DrawCmdList::HybridRenderType hybridRenderType)
+{
+    auto node = RSNodeMap::Instance().GetNode(id);
+    // Disabled by alpha cannot use to CanvasDrawingNode, because it cannot be interrupted
+    if (node && ROSEN_LNE(node->GetTotalAlpha(), HYBRID_RENDER_DISABLED_BY_ALPHA) &&
+        hybridRenderType != Drawing::DrawCmdList::HybridRenderType::CANVAS) {
+        return false;
+    }
+    return true;
+}
+
 std::unique_ptr<RSTransactionData>& RSModifiersDrawThread::ConvertTransaction(
     std::unique_ptr<RSTransactionData>& transactionData)
 {
     static std::unique_ptr<ffrt::queue> queue = std::make_unique<ffrt::queue>(ffrt::queue_concurrent, "ModifiersDraw",
         ffrt::queue_attr().qos(ffrt::qos_user_interactive).max_concurrency(DEFAULT_MODIFIERS_DRAW_THREAD_LOOP_NUM));
+    RSModifiersDrawThread::Instance().InitMaxPixelMapSize();
     std::vector<ffrt::task_handle> handles;
     bool hasCanvasCmdList = false;
     for (auto& [nodeId, followType, command] : transactionData->GetPayload()) {
@@ -212,7 +253,10 @@ std::unique_ptr<RSTransactionData>& RSModifiersDrawThread::ConvertTransaction(
             continue;
         }
         auto hybridRenderType = drawCmdList->GetHybridRenderType();
-        if (!TargetCommand(hybridRenderType, command->GetType(), command->GetSubType(), drawCmdList->IsEmpty())) {
+        if (!TargetCommand(hybridRenderType, command->GetType(), command->GetSubType(), drawCmdList->IsEmpty()) ||
+            !drawCmdList->IsHybridRenderEnabled(RSModifiersDrawThread::Instance().GetMaxPixelMapWidth(),
+                RSModifiersDrawThread::Instance().GetMaxPixelMapHeight()) ||
+            !RSModifiersDrawThread::Instance().CheckTotalAlpha(command->GetNodeId(), hybridRenderType)) {
             continue;
         }
 

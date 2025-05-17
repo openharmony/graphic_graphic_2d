@@ -234,7 +234,15 @@ public:
 
     void SetCanvasDrawingOpLimitEnable(bool isEnable);
 
-    bool GetBounds(Rect& rect);
+    /**
+     * @brief Gets the pixelmap rect for hybrid render.
+     */
+    void GetBounds(Rect& rect);
+
+    /**
+     * @brief Check whether enable hybrid render.
+     */
+    bool IsHybridRenderEnabled(uint32_t maxPixelMapWidth, uint32_t maxPixelMapHeight);
 
 private:
     void ClearCache();

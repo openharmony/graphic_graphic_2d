@@ -148,6 +148,9 @@ RSNode::~RSNode()
     ClearAllModifiers();
 #ifdef RS_ENABLE_VK
     RSModifiersDraw::EraseOffTreeNode(instanceId_, id_);
+    if (RSSystemProperties::GetHybridRenderEnabled()) {
+        RSModifiersDraw::EraseDrawRegions(id_);
+    }
 #endif
 
     // break current (ui) parent-child relationship.
@@ -873,6 +876,7 @@ void RSNode::SetProperty(RSModifierType modifierType, T value)
 // alpha
 void RSNode::SetAlpha(float alpha)
 {
+    alpha_ = alpha;
     SetProperty<RSAlphaModifier, RSAnimatableProperty<float>>(RSModifierType::ALPHA, alpha);
     if (alpha < 1) {
         SetDrawNode();
@@ -2875,6 +2879,11 @@ void RSNode::SetDrawRegion(std::shared_ptr<RectF> rect)
         drawRegion_ = rect;
         std::unique_ptr<RSCommand> command = std::make_unique<RSSetDrawRegion>(GetId(), rect);
         AddCommand(command, IsRenderServiceNode(), GetFollowType(), GetId());
+#ifdef RS_ENABLE_VK
+        if (RSSystemProperties::GetHybridRenderEnabled() && !drawRegion_->IsEmpty()) {
+            RSModifiersDraw::AddDrawRegions(id_, drawRegion_);
+        }
+#endif
     }
 }
 
@@ -2986,7 +2995,7 @@ void RSNode::MarkUifirstNode(bool isUifirstNode)
     std::unique_ptr<RSCommand> command = std::make_unique<RSMarkUifirstNode>(GetId(), isUifirstNode);
     AddCommand(command, IsRenderServiceNode());
 }
- 
+
 void RSNode::MarkUifirstNode(bool isForceFlag, bool isUifirstEnable)
 {
     CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
@@ -3209,6 +3218,7 @@ void RSNode::SetIsOnTheTree(bool flag)
         if (childPtr == nullptr) {
             continue;
         }
+        childPtr->totalAlpha_ = childPtr->alpha_ * totalAlpha_;
         childPtr->SetIsOnTheTree(flag);
     }
 }
@@ -3261,6 +3271,10 @@ void RSNode::AddChild(SharedPtr child, int index)
             id_, childId, surfaceNode->GetName().c_str());
         RS_TRACE_NAME_FMT("RSNode::AddChild, Id: %" PRIu64 ", SurfaceNode:[Id: %" PRIu64 ", name: %s]",
             id_, childId, surfaceNode->GetName().c_str());
+    }
+    totalAlpha_ = alpha_;
+    if (isOnTheTree_) {
+        AccumulateAlpha(totalAlpha_);
     }
     child->SetIsOnTheTree(isOnTheTree_);
 }
@@ -3542,6 +3556,21 @@ void RSNode::SetParent(WeakPtr parent)
     parent_ = parent;
 }
 
+void RSNode::AccumulateAlpha(float& alpha)
+{
+    // avoid loop
+    if (visitedForTotalAlpha_) {
+        RS_LOGE("RSNode::AccumulateAlpha: %{public}" PRIu64 "has loop tree", GetId());
+        return;
+    }
+    visitedForTotalAlpha_ = true;
+    alpha *= alpha_;
+    if (auto parent = GetParent()) {
+        parent->AccumulateAlpha(totalAlpha_);
+    }
+    visitedForTotalAlpha_ = false;
+}
+
 RSNode::SharedPtr RSNode::GetParent()
 {
     return parent_.lock();
@@ -3576,6 +3605,8 @@ void RSNode::Dump(std::string& out) const
     } else if (!nodeName_.empty()) {
         out += "], nodeName[" + nodeName_;
     }
+    out += "], alpha[" + std::to_string(alpha_);
+    out += "], totalAlpha[" + std::to_string(totalAlpha_);
     out += "], frameNodeId[" + std::to_string(frameNodeId_);
     out += "], frameNodeTag[" + frameNodeTag_;
     out += "], extendModifierIsDirty[";

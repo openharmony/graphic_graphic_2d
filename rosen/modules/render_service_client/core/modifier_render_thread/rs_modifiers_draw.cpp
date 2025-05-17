@@ -145,6 +145,16 @@ std::unique_ptr<Media::PixelMap> RSModifiersDraw::GetPixelMapByNodeId(NodeId nod
     return nullptr;
 }
 
+void RSModifiersDraw::AddDrawRegions(NodeId nodeId, std::shared_ptr<RectF> rect)
+{
+    return;
+}
+
+void RSModifiersDraw::EraseDrawRegions(NodeId nodeId)
+{
+    return;
+}
+
 void RSModifiersDraw::RemoveSurfaceByNodeId(NodeId nodeId, bool postTask)
 {
     return;

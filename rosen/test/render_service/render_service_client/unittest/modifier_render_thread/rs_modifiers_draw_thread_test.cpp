@@ -79,6 +79,50 @@ HWTEST_F(RSModifiersDrawThreadTest, Start001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: InitMaxPixelMapSize001
+ * @tc.desc: test InitMaxPixelMapSize of Start
+ * @tc.type: FUNC
+ * @tc.require: issueIC8J12
+ */
+HWTEST_F(RSModifiersDrawThreadTest, InitMaxPixelMapSize001, TestSize.Level1)
+{
+    EXPECT_EQ(RSModifiersDrawThread::Instance().isFirst_, true);
+    RSModifiersDrawThread::Instance().InitMaxPixelMapSize();
+    EXPECT_EQ(RSModifiersDrawThread::Instance().isFirst_, false);
+
+    RSModifiersDrawThread::Instance().InitMaxPixelMapSize();
+    EXPECT_EQ(RSModifiersDrawThread::Instance().isFirst_, false);
+}
+
+/**
+ * @tc.name: GetMaxPixelMapWidth001
+ * @tc.desc: test GetMaxPixelMapWidth of Start
+ * @tc.type: FUNC
+ * @tc.require: issueIC8J12
+ */
+HWTEST_F(RSModifiersDrawThreadTest, GetMaxPixelMapWidth001, TestSize.Level1)
+{
+    EXPECT_EQ(RSModifiersDrawThread::Instance().GetMaxPixelMapWidth(), INT_MAX);
+    uint32_t width = 1000;
+    RSModifiersDrawThread::Instance().maxPixelMapWidth_ = width;
+    EXPECT_EQ(RSModifiersDrawThread::Instance().GetMaxPixelMapWidth(), width);
+}
+
+/**
+ * @tc.name: GetMaxPixelMapHeight001
+ * @tc.desc: test GetMaxPixelMapHeight of Start
+ * @tc.type: FUNC
+ * @tc.require: issueIC8J12
+ */
+HWTEST_F(RSModifiersDrawThreadTest, GetMaxPixelMapHeight001, TestSize.Level1)
+{
+    EXPECT_EQ(RSModifiersDrawThread::Instance().GetMaxPixelMapHeight(), INT_MAX);
+    uint32_t height = 1000;
+    RSModifiersDrawThread::Instance().maxPixelMapHeight_ = height;
+    EXPECT_EQ(RSModifiersDrawThread::Instance().GetMaxPixelMapHeight(), height);
+}
+
+/**
  * @tc.name: PostTask001
  * @tc.desc: test results of PostTask
  * @tc.type: FUNC
