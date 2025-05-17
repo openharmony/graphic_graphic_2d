@@ -44,8 +44,8 @@ public:
         MAGNIFIER,
         LIGHT_BLUR,
         ALWAYS_SNAPSHOT,
-        COLOR_GRADIENT,
         DISPLACEMENT_DISTORT,
+        COLOR_GRADIENT,
         SOUND_WAVE,
     };
 
