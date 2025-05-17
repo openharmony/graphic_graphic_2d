@@ -158,8 +158,8 @@ void RSAnimationTraceUtils::addAnimationFrameTrace(const uint64_t nodeId, const 
     const uint64_t animationId, const uint64_t propertyId, const float fraction,
     const std::shared_ptr<RSRenderPropertyBase>& value, const int64_t time, const int dur, const int repeat) const
 {
-    auto propertyValue = ParseRenderPropertyVaule(value);
     if (isDebugOpen_ || OHOS::Rosen::RSSystemProperties::GetDebugFmtTraceEnabled()) {
+        auto propertyValue = ParseRenderPropertyVaule(value);
         RS_TRACE_NAME_FMT("frame animation node[%llu] name[%s] pro[%llu] animate[%llu], fraction %f, value[%s], "
             "time[%lld], dur[%d], repeat[%d]", nodeId, nodeName.c_str(), propertyId, animationId, fraction,
             propertyValue.c_str(), time, dur, repeat);
