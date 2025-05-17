@@ -72,6 +72,8 @@ public:
         MAGNIFIER,
         FLY_OUT,
         DISTORT,
+        DISPLACEMENT_DISTORT,
+        COLOR_GRADIENT,
         ALWAYS_SNAPSHOT,
     };
     FilterType GetFilterType() const

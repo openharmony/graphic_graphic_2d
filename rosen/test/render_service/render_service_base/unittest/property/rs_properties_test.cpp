@@ -3132,6 +3132,19 @@ HWTEST_F(RSPropertiesTest, GenerateColorFilter002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GenerateDisplacementDistortFilter001
+ * @tc.desc: test results of GenerateDisplacementDistortFilter
+ * @tc.type: FUNC
+ * @tc.require: 
+ */
+HWTEST_F(RSPropertiesTest, GenerateDisplacementDistortFilter001, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.GenerateDisplacementDistortFilter();
+    EXPECT_NE(properties.backgroundFilter_, nullptr);
+}
+
+/**
  * @tc.name: CalculatePixelStretch001
  * @tc.desc: test results of CalculatePixelStretch
  * @tc.type:FUNC

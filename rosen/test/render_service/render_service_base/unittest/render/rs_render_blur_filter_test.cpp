@@ -42,7 +42,7 @@ HWTEST_F(RSRenderBlurFilterTest, GetDescription001, TestSize.Level1)
     auto rsRenderBlurFilterPara = std::make_shared<RSRenderBlurFilterPara>(0);
     std::string out;
     rsRenderBlurFilterPara->GetDescription(out);
-    std::cout << out << std::endl;
+    EXPECT_FALSE(out.empty());
 }
 
 /**

@@ -85,7 +85,8 @@ void MaskNapi::Destructor(napi_env env, void* nativeObject, void* finalize)
     filterNapi = nullptr;
 }
 
-bool ParseRippleMask(napi_env env, napi_value* argv, const std::shared_ptr<RippleMaskPara>& rippleMask)
+bool ParseRippleMask(
+    napi_env env, napi_value* argv, const std::shared_ptr<RippleMaskPara>& rippleMask, size_t& realArgc)
 {
     if (!rippleMask) {
         return false;
@@ -106,8 +107,11 @@ bool ParseRippleMask(napi_env env, napi_value* argv, const std::shared_ptr<Rippl
         rippleMask->SetWidth(static_cast<float>(val));
         parseTimes++;
     }
-
-    return (parseTimes == NUM_3);
+    if (ParseJsDoubleValue(env, argv[NUM_3], val)) {
+        rippleMask->SetWidthCenterOffset(static_cast<float>(val));
+        parseTimes++;
+    }
+    return (parseTimes == realArgc);
 }
 
 bool ParseValueArray(napi_env env, napi_value valuesArray, std::vector<Vector2f>& values)
@@ -199,17 +203,18 @@ napi_value MaskNapi::CreateRippleMask(napi_env env, napi_callback_info info)
             "MaskNapi CreateRippleMask failed, is not system app");
         return nullptr;
     }
-    const size_t requireArgc = NUM_3;
-    size_t realArgc = NUM_3;
-    napi_value argv[requireArgc];
+    const size_t requireMinArgc = NUM_3;
+    const size_t requireMaxArgc = NUM_4;
+    size_t realArgc = NUM_4;
+    napi_value argv[requireMaxArgc];
     napi_value thisVar = nullptr;
     napi_status status;
     UIEFFECT_JS_ARGS(env, info, status, realArgc, argv, thisVar);
-    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && realArgc == requireArgc, nullptr,
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && requireMinArgc <= realArgc && realArgc <= requireMaxArgc, nullptr,
         MASK_LOG_E("MaskNapi CreateRippleMask parsing input fail."));
     
     auto maskPara = std::make_shared<RippleMaskPara>();
-    UIEFFECT_NAPI_CHECK_RET_D(ParseRippleMask(env, argv, maskPara), nullptr,
+    UIEFFECT_NAPI_CHECK_RET_D(ParseRippleMask(env, argv, maskPara, realArgc), nullptr,
         MASK_LOG_E("MaskNapi CreateRippleMask parsing mask input fail."));
     return Create(env, maskPara);
 }

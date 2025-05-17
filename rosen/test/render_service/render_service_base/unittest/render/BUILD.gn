@@ -26,7 +26,9 @@ ohos_unittest("RSAibarShaderFilterTest") {
     "rs_aibar_shader_filter_test.cpp",
     "rs_attraction_effect_filter_test.cpp",
     "rs_blur_filter_test.cpp",
+    "rs_color_gradient_shader_filter_test.cpp",
     "rs_filter_cache_manager_test.cpp",
+    "rs_render_color_gradient_filter_test.cpp",
   ]
 
   cflags = [
@@ -718,6 +720,7 @@ ohos_unittest("RSMaterialFilterTest") {
     "rs_render_filter_test.cpp",
     "rs_render_filter_base_test.cpp",
     "rs_render_ripple_mask_test.cpp",
+    "rs_shader_mask_test.cpp",
   ]
 
   cflags = [

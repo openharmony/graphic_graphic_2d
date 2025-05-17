@@ -14,6 +14,7 @@
  */
 #include "platform/common/rs_log.h"
 #include "render/rs_render_blur_filter.h"
+#include "render/rs_render_color_gradient_filter.h"
 #include "render/rs_render_displacement_distort_filter.h"
 
 namespace OHOS {
@@ -38,6 +39,9 @@ std::shared_ptr<RSRenderFilterParaBase> RSRenderFilter::CreateRenderFilterPara(R
         }
         case RSUIFilterType::DISPLACEMENT_DISTORT : {
             return std::make_shared<RSRenderDispDistortFilterPara>(0);
+        }
+        case RSUIFilterType::COLOR_GRADIENT : {
+            return std::make_shared<RSRenderColorGradientFilterPara>(0);
         }
         default: {
             ROSEN_LOGE("RSRenderFilter::CreateRenderFilterPara null type %{public}d ",
@@ -99,9 +103,6 @@ void RSRenderFilter::Dump(std::string& out)
 
 bool RSRenderFilter::WriteToParcel(Parcel& parcel)
 {
-    std::string dumpInfo;
-    Dump(dumpInfo);
-    ROSEN_LOGI("%{public}s", dumpInfo.c_str());
     if (propertyTypes_.empty() || !MarshallingPropertyType(parcel, propertyTypes_)) {
         ROSEN_LOGE("RSRenderFilter::WriteToParcel failed with size %{public}d ",
             static_cast<int>(propertyTypes_.size()));
@@ -150,9 +151,6 @@ bool RSRenderFilter::ReadFromParcel(Parcel& parcel)
         }
         Insert(type, frProperty);
     }
-    std::string dumpInfo;
-    Dump(dumpInfo);
-    ROSEN_LOGI("%{public}s", dumpInfo.c_str());
     return true;
 }
 } // namespace Rosen

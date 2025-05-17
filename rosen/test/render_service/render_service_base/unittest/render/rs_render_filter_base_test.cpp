@@ -81,7 +81,7 @@ HWTEST_F(RSRenderFilterBaseTest, GetDescription001, TestSize.Level1)
     auto rsRenderFilterParaBase = std::make_shared<RSRenderFilterParaBase>(RSUIFilterType::BLUR);
     std::string out;
     rsRenderFilterParaBase->GetDescription(out);
-    std::cout << out << std::endl;
+    EXPECT_FALSE(out.empty());
 }
 
 /**

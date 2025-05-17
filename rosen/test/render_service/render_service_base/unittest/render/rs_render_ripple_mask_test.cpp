@@ -48,6 +48,9 @@ HWTEST_F(RSRenderRippleMaskTest, CreateRenderPropert001, TestSize.Level1)
     renderPropert = RSRenderRippleMaskPara::CreateRenderPropert(RSUIFilterType::RIPPLE_MASK_CENTER);
     EXPECT_NE(renderPropert, nullptr);
 
+    renderPropert = RSRenderRippleMaskPara::CreateRenderPropert(RSUIFilterType::RIPPLE_MASK_WIDTH_CENTER_OFFSET);
+    EXPECT_NE(renderPropert, nullptr);
+
     renderPropert = RSRenderRippleMaskPara::CreateRenderPropert(RSUIFilterType::BLUR);
     EXPECT_EQ(renderPropert, nullptr);
 }
@@ -75,7 +78,7 @@ HWTEST_F(RSRenderRippleMaskTest, GetDescription001, TestSize.Level1)
     auto rsRenderRippleMaskPara = std::make_shared<RSRenderRippleMaskPara>(0);
     std::string out;
     rsRenderRippleMaskPara->GetDescription(out);
-    std::cout << out << std::endl;
+    EXPECT_FALSE(out.empty());
 }
 
 /**

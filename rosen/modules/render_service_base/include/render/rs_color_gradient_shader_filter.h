@@ -12,35 +12,41 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef RENDER_SERVICE_BASE_RENDER_RS_DISPLACEMENT_DISTORT_FILTER_H
-#define RENDER_SERVICE_BASE_RENDER_RS_DISPLACEMENT_DISTORT_FILTER_H
+
+#ifndef RENDER_SERVICE_BASE_RENDER_RS_COLOR_GRADIENT_SHADER_FILTER_H
+#define RENDER_SERVICE_BASE_RENDER_RS_COLOR_GRADIENT_SHADER_FILTER_H
 
 #include <memory>
+#include <vector>
 
-#include "common/rs_vector2.h"
 #include "render/rs_shader_filter.h"
 #include "render/rs_shader_mask.h"
 
 namespace OHOS {
 namespace Rosen {
-class RSB_EXPORT RSDisplacementDistortFilter : public RSShaderFilter {
+
+class RSB_EXPORT RSColorGradientShaderFilter : public RSShaderFilter {
 public:
-    RSDisplacementDistortFilter(std::shared_ptr<RSShaderMask> mask, Vector2f factor = {1.f, 1.f});
-    RSDisplacementDistortFilter(const RSDisplacementDistortFilter&) = delete;
-    RSDisplacementDistortFilter operator=(const RSDisplacementDistortFilter&) = delete;
-    ~RSDisplacementDistortFilter() override = default;
+    RSColorGradientShaderFilter(std::vector<float> colors, std::vector<float> positions,
+        std::vector<float> strengths, std::shared_ptr<RSShaderMask> mask);
+    RSColorGradientShaderFilter(const RSColorGradientShaderFilter&) = delete;
+    RSColorGradientShaderFilter operator=(const RSColorGradientShaderFilter&) = delete;
+    ~RSColorGradientShaderFilter() override = default;
 
     void GenerateGEVisualEffect(std::shared_ptr<Drawing::GEVisualEffectContainer> visualEffectContainer) override;
 
-    const Vector2f& GetFactor() const;
+    const std::vector<float> GetColors() const;
+    const std::vector<float> GetPositions() const;
+    const std::vector<float> GetStrengths() const;
     const std::shared_ptr<RSShaderMask>& GetMask() const;
 
 private:
-    static constexpr char GE_FILTER_DISPLACEMENT_DISTORT_FACTOR[] = "DISTORT_FACTOR";
-    static constexpr char GE_FILTER_DISPLACEMENT_DISTORT_MASK[] = "DISTORT_MASK";
+    std::vector<float> colors_;
+    std::vector<float> positions_;
+    std::vector<float> strengths_;
     std::shared_ptr<RSShaderMask> mask_ = nullptr;
-    Vector2f factor_ = {1.f, 1.f};
 };
-} // Rosen
-} // OHOS
-#endif // RENDER_SERVICE_BASE_RENDER_RS_DISPLACEMENT_DISTORT_FILTER_H
+} // namespace Rosen
+} // namespace OHOS
+
+#endif // RENDER_SERVICE_BASE_RENDER_RS_COLOR_GRADIENT_SHADER_FILTER_H

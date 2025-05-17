@@ -23,7 +23,16 @@ RSDisplacementDistortFilter::RSDisplacementDistortFilter(std::shared_ptr<RSShade
     : mask_(mask), factor_(factor)
 {
     type_ = ShaderFilterType::DISPLACEMENT_DISTORT;
-    hash_ = SkOpts::hash(&factor_, sizeof(factor_), hash_);
+#ifndef ENABLE_M133_SKIA
+    const auto hashFunc = SkOpts::hash;
+#else
+    const auto hashFunc = SkChecksum::Hash32;
+#endif
+    hash_ = hashFunc(&factor_, sizeof(factor_), hash_);
+    if (mask_) {
+        auto maskHash = mask_->Hash();
+        hash_ = hashFunc(&maskHash, sizeof(maskHash), hash_);
+    }
 }
 
 void RSDisplacementDistortFilter::GenerateGEVisualEffect(
@@ -31,6 +40,8 @@ void RSDisplacementDistortFilter::GenerateGEVisualEffect(
 {
     auto distortFilter = std::make_shared<Drawing::GEVisualEffect>("DISPLACEMENT_DISTORT",
         Drawing::DrawingPaintType::BRUSH);
+    distortFilter->SetParam(GE_FILTER_DISPLACEMENT_DISTORT_FACTOR, std::make_pair(factor_[0], factor_[1]));
+    distortFilter->SetParam(GE_FILTER_DISPLACEMENT_DISTORT_MASK, mask_->GenerateGEShaderMask());
     visualEffectContainer->AddToChainedFilter(distortFilter);
 }
 

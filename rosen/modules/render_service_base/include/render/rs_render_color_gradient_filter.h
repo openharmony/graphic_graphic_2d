@@ -12,24 +12,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef RENDER_DISPLACEMENT_DISTORT_FILTER_RENDER_PROPERTY_H
-#define RENDER_DISPLACEMENT_DISTORT_FILTER_RENDER_PROPERTY_H
 
-#include "common/rs_vector2.h"
+#ifndef RENDER_COLOR_GRADIENT_FILTER_RENDER_PROPERTY_H
+#define RENDER_COLOR_GRADIENT_FILTER_RENDER_PROPERTY_H
+
+#include <vector>
+
 #include "render/rs_render_filter_base.h"
-#include "render/rs_render_ripple_mask.h"
+
 namespace OHOS {
 namespace Rosen {
 
-class RSB_EXPORT RSRenderDispDistortFilterPara : public RSRenderFilterParaBase {
+class RSB_EXPORT RSRenderColorGradientFilterPara : public RSRenderFilterParaBase {
 
 public:
-    RSRenderDispDistortFilterPara(PropertyId id, RSUIFilterType maskType = RSUIFilterType::NONE) :
-        RSRenderFilterParaBase(RSUIFilterType::DISPLACEMENT_DISTORT), maskType_(maskType) {
+    RSRenderColorGradientFilterPara(PropertyId id, RSUIFilterType maskType = RSUIFilterType::NONE) :
+        RSRenderFilterParaBase(RSUIFilterType::COLOR_GRADIENT), maskType_(maskType) {
         id_ = id;
     }
 
-    virtual ~RSRenderDispDistortFilterPara() = default;
+    virtual ~RSRenderColorGradientFilterPara() = default;
 
     void GetDescription(std::string& out) const override;
 
@@ -37,15 +39,16 @@ public:
 
     virtual bool ReadFromParcel(Parcel& parcel) override;
 
-    static std::shared_ptr<RSRenderMaskPara> CreateRenderPropert(RSUIFilterType type);
+    static std::shared_ptr<RSRenderMaskPara> CreateRenderProperty(RSUIFilterType type);
 
     virtual std::vector<std::shared_ptr<RSRenderPropertyBase>> GetLeafRenderProperties() override;
 
     std::shared_ptr<RSRenderMaskPara> GetRenderMask();
+
 private:
     RSUIFilterType maskType_ = RSUIFilterType::NONE;
 };
 } // namespace Rosen
 } // namespace OHOS
 
-#endif // RENDER_DISPLACEMENT_DISTORT_FILTER_RENDER_PROPERTY_H
+#endif // RENDER_COLOR_GRADIENT_FILTER_RENDER_PROPERTY_H

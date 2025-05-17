@@ -125,5 +125,14 @@ namespace Rosen {
         out.push_back(factProperty);
         return out;
     }
+
+    std::shared_ptr<RSRenderMaskPara> RSRenderDispDistortFilterPara::GetRenderMask()
+    {
+        auto property = GetRenderPropert(maskType_);
+        if (property == nullptr) {
+            return nullptr;
+        }
+        return std::static_pointer_cast<RSRenderMaskPara>(property);
+    }
 } // namespace Rosen
 } // namespace OHOS

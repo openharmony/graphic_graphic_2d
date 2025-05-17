@@ -56,6 +56,8 @@
 #include "ui/rs_surface_node.h"
 #include "ui/rs_ui_context.h"
 #include "ui/rs_ui_director.h"
+#include "ui_effect/property/include/rs_ui_color_gradient_filter.h"
+#include "ui_effect/mask/include/ripple_mask_para.h"
 #include "ui_effect/property/include/rs_ui_filter.h"
 #include "ui_effect/property/include/rs_ui_displacement_distort_filter.h"
 
@@ -1822,6 +1824,13 @@ void RSNode::SetUIBackgroundFilter(const OHOS::Rosen::Filter* backgroundFilter)
                 auto filterDistortPara = std::static_pointer_cast<DisplacementDistortPara>(filterPara);
                 distortProperty->SetDisplacementDistort(filterDistortPara);
                 uiFilter->Insert(distortProperty);
+                break;
+            }
+            case FilterPara::COLOR_GRADIENT : {
+                auto filterColorGradientPara = std::static_pointer_cast<ColorGradientPara>(filterPara);
+                auto colorGradientProperty = std::make_shared<RSUIColorGradientFilterPara>();
+                colorGradientProperty->SetColorGradient(filterColorGradientPara);
+                uiFilter->Insert(colorGradientProperty);
                 break;
             }
             default:

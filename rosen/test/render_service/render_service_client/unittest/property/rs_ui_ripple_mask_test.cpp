@@ -64,6 +64,9 @@ HWTEST_F(RSUIRippleMaskTest, SetProperty001, TestSize.Level1)
     float width = 0.5f;
     rippleMaskPara->SetWidth(width);
 
+    float widthCenterOffset = 0.8f;
+    rippleMaskPara->SetWidthCenterOffset(widthCenterOffset);
+
     auto maskPara = std::static_pointer_cast<MaskPara>(rippleMaskPara);
 
     auto rsUIRippleMaskPara1 = std::make_shared<RSUIRippleMaskPara>();
@@ -95,6 +98,9 @@ HWTEST_F(RSUIRippleMaskTest, SetPara001, TestSize.Level1)
     rippleMaskPara->SetRadius(radius);
     float width = 0.5f;
     rippleMaskPara->SetWidth(width);
+
+    float widthCenterOffset = 0.8f;
+    rippleMaskPara->SetWidthCenterOffset(widthCenterOffset);
 
     auto maskPara = std::static_pointer_cast<MaskPara>(rippleMaskPara);
 
@@ -168,6 +174,25 @@ HWTEST_F(RSUIRippleMaskTest, SetCenter001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetWidthCenterOffset001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSUIRippleMaskTest, SetWidthCenterOffset001, TestSize.Level1)
+{
+    auto rsUIRippleMaskPara = std::make_shared<RSUIRippleMaskPara>();
+    float widthCenterOffset = 0.8f;
+    rsUIRippleMaskPara->SetWidthCenterOffset(widthCenterOffset);
+
+    auto iter = rsUIRippleMaskPara->properties_.find(RSUIFilterType::RIPPLE_MASK_WIDTH_CENTER_OFFSET);
+    ASSERT_NE(iter, rsUIRippleMaskPara->properties_.end());
+
+    auto property = std::static_pointer_cast<RSAnimatableProperty<float>>(iter->second);
+    ASSERT_NE(property, nullptr);
+    EXPECT_EQ(property->Get(), widthCenterOffset);
+}
+
+/**
  * @tc.name: CreateRSRenderFilter001
  * @tc.desc:
  * @tc.type:FUNC
@@ -181,6 +206,9 @@ HWTEST_F(RSUIRippleMaskTest, CreateRSRenderFilter001, TestSize.Level1)
     rsUIRippleMaskPara->SetWidth(width);
     Vector2f center = Vector2f(0.0f, 0.0f);
     rsUIRippleMaskPara->SetCenter(center);
+
+    float widthCenterOffset = 0.8f;
+    rsUIRippleMaskPara->SetWidthCenterOffset(widthCenterOffset);
 
     auto rsRenderFilterParaBase = rsUIRippleMaskPara->CreateRSRenderFilter();
     EXPECT_NE(rsRenderFilterParaBase, nullptr);

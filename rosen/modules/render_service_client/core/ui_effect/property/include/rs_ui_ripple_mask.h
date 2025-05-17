@@ -16,7 +16,6 @@
 #define RENDER_RIPPLE_MASK_H
 
 #include "ui_effect/mask/include/mask_para.h"
-#include "ui_effect/mask/include/radial_gradient_mask_para.h"
 #include "ui_effect/property/include/rs_ui_mask_para.h"
 
 #include "common/rs_vector2.h"
@@ -40,6 +39,8 @@ public:
     void SetWidth(float width);
 
     void SetCenter(Vector2f center);
+
+    void SetWidthCenterOffset(float widthCenterOffset);
 
     template<class T>
     std::shared_ptr<RSRenderAnimatableProperty<T>> GetAnimatRenderProperty(

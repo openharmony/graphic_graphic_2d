@@ -45,20 +45,22 @@ void RSUIRippleMaskPara::SetProperty(const std::shared_ptr<RSUIFilterParaBase>& 
     auto radius = maskProperty->GetRSProperty(RSUIFilterType::RIPPLE_MASK_RADIUS);
     auto width = maskProperty->GetRSProperty(RSUIFilterType::RIPPLE_MASK_WIDTH);
     auto center = maskProperty->GetRSProperty(RSUIFilterType::RIPPLE_MASK_CENTER);
-    if (radius == nullptr || width == nullptr || center == nullptr) {
-        ROSEN_LOGW("RSUIRippleMaskPara::SetProperty radius or width, center is nullptr!");
+    auto widthCenterOffset = maskProperty->GetRSProperty(RSUIFilterType::RIPPLE_MASK_WIDTH_CENTER_OFFSET);
+    if (radius == nullptr || width == nullptr || center == nullptr || widthCenterOffset == nullptr) {
+        ROSEN_LOGW("RSUIRippleMaskPara::SetProperty radius or width, center, widthCenterOffset is nullptr!");
         return;
     }
     auto radiusProp = std::static_pointer_cast<RSAnimatableProperty<float>>(radius);
     auto widthProp = std::static_pointer_cast<RSAnimatableProperty<float>>(width);
     auto centerProp = std::static_pointer_cast<RSAnimatableProperty<Vector2f>>(center);
-    if (radiusProp == nullptr || widthProp == nullptr || centerProp == nullptr) {
-        ROSEN_LOGW("RSUIRippleMaskPara::SetProperty radius or width, center is animatable NG!");
+    auto offsetProp = std::static_pointer_cast<RSAnimatableProperty<float>>(widthCenterOffset);
+    if (radiusProp == nullptr || widthProp == nullptr || centerProp == nullptr || offsetProp == nullptr) {
         return;
     }
     SetRadius(radiusProp->Get());
     SetWidth(widthProp->Get());
     SetCenter(centerProp->Get());
+    SetWidthCenterOffset(offsetProp->Get());
 }
 
 void RSUIRippleMaskPara::SetPara(const std::shared_ptr<MaskPara>& para)
@@ -74,6 +76,7 @@ void RSUIRippleMaskPara::SetPara(const std::shared_ptr<MaskPara>& para)
     SetRadius(maskPara->GetRadius());
     SetWidth(maskPara->GetWidth());
     SetCenter(maskPara->GetCenter());
+    SetWidthCenterOffset(maskPara->GetWidthCenterOffset());
 }
 
 void RSUIRippleMaskPara::SetRadius(float radius)
@@ -91,6 +94,11 @@ void RSUIRippleMaskPara::SetCenter(Vector2f center)
     Setter<RSAnimatableProperty<Vector2f>>(RSUIFilterType::RIPPLE_MASK_CENTER, center);
 }
 
+void RSUIRippleMaskPara::SetWidthCenterOffset(float widthCenterOffset)
+{
+    Setter<RSAnimatableProperty<float>>(RSUIFilterType::RIPPLE_MASK_WIDTH_CENTER_OFFSET, widthCenterOffset);
+}
+
 std::shared_ptr<RSRenderFilterParaBase> RSUIRippleMaskPara::CreateRSRenderFilter()
 {
     auto frProperty = std::make_shared<RSRenderRippleMaskPara>(id_);
@@ -103,6 +111,9 @@ std::shared_ptr<RSRenderFilterParaBase> RSUIRippleMaskPara::CreateRSRenderFilter
     auto cProperty = GetAnimatRenderProperty<Vector2f>(
         RSUIFilterType::RIPPLE_MASK_CENTER, RSRenderPropertyType::PROPERTY_VECTOR2F);
     frProperty->Setter(RSUIFilterType::RIPPLE_MASK_CENTER, cProperty);
+    auto wCenterOffsetProperty = GetAnimatRenderProperty<float>(
+        RSUIFilterType::RIPPLE_MASK_WIDTH_CENTER_OFFSET, RSRenderPropertyType::PROPERTY_FLOAT);
+    frProperty->Setter(RSUIFilterType::RIPPLE_MASK_WIDTH_CENTER_OFFSET, wCenterOffsetProperty);
     return frProperty;
 }
 
@@ -116,4 +127,3 @@ std::vector<std::shared_ptr<RSPropertyBase>> RSUIRippleMaskPara::GetLeafProperti
 }
 } // namespace Rosen
 } // namespace OHOS
- 
