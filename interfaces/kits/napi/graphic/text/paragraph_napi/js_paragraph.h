@@ -59,6 +59,8 @@ public:
     std::shared_ptr<Typography> GetParagraph();
     static napi_value LayoutAsync(napi_env env, napi_callback_info info);
     static napi_value IsStrutStyleEqual(napi_env env, napi_callback_info info);
+    static napi_value UpdateColor(napi_env env, napi_callback_info info);
+    static napi_value UpdateDecoration(napi_env env, napi_callback_info info);
 
 private:
     napi_value OnLayout(napi_env env, napi_callback_info info);
@@ -84,10 +86,12 @@ private:
     napi_value OnGetActualTextRange(napi_env env, napi_callback_info info);
     napi_value OnGetLineMetrics(napi_env env, napi_callback_info info);
     napi_value OnGetLineMetricsAt(napi_env env, napi_callback_info info);
-    
+
     napi_value OnGetFontMetricsByTextStyle(napi_env env, napi_callback_info info);
     napi_value OnGetLineFontMetrics(napi_env env, napi_callback_info info);
     napi_value OnLayoutAsync(napi_env env, napi_callback_info info);
+    napi_value OnUpdateColor(napi_env env, napi_callback_info info);
+    napi_value OnUpdateDecoration(napi_env env, napi_callback_info info);
     static thread_local napi_ref constructor_;
     std::shared_ptr<Typography> paragraph_ = nullptr;
 };

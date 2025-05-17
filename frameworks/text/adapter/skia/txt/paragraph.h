@@ -205,6 +205,7 @@ public:
         const std::vector<TextStyle>& textStyes) = 0;
     virtual bool IsLayoutDone() = 0;
     virtual void SetLayoutState(size_t state) = 0;
+    virtual void ApplyTextStyleChanges(const std::vector<OHOS::Rosen::SPText::TextStyle>& textStyles) = 0;
 };
 } // namespace SPText
 } // namespace Rosen
