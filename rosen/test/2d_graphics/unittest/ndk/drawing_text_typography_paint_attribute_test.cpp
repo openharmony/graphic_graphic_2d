@@ -28,7 +28,7 @@ namespace {
     const char* DEFAULT_TEXT = "text";
 } // namespace
 
-class drawingTypographyPaintAttributeTest : public testing::Test {
+class DrawingTypographyPaintAttributeTest : public testing::Test {
 public:
     void SetUp() override;
     void TearDown() override;
@@ -45,7 +45,7 @@ static Typography* ConvertToOriginalText(OH_Drawing_Typography* style)
     return reinterpret_cast<Typography*>(style);
 }
 
-void drawingTypographyPaintAttributeTest::SetUp()
+void DrawingTypographyPaintAttributeTest::SetUp()
 {
     fTypoStyle = OH_Drawing_CreateTypographyStyle();
     ASSERT_NE(fTypoStyle, nullptr);
@@ -62,7 +62,7 @@ void drawingTypographyPaintAttributeTest::SetUp()
     OH_Drawing_TypographyLayout(fTypography, fLayoutWidth);
 }
 
-void drawingTypographyPaintAttributeTest::TearDown()
+void DrawingTypographyPaintAttributeTest::TearDown()
 {
     if (fHandler != nullptr) {
         OH_Drawing_DestroyTypographyHandler(fHandler);
@@ -87,7 +87,7 @@ void drawingTypographyPaintAttributeTest::TearDown()
  * @tc.desc: test the nullptr input value for updating the paint attribute
  * @tc.type: FUNC
  */
-HWTEST_F(drawingTypographyPaintAttributeTest, DrawingTypographyUpdateNullPtrTest001, TestSize.Level1)
+HWTEST_F(DrawingTypographyPaintAttributeTest, DrawingTypographyUpdateNullPtrTest001, TestSize.Level1)
 {
     OH_Drawing_TypographyUpdateFontColor(nullptr, OH_Drawing_ColorSetArgb(0xFF, 0x00, 0xFF, 0xFF));
     OH_Drawing_TypographyUpdateDecoration(nullptr, TEXT_DECORATION_LINE_THROUGH);
@@ -100,7 +100,7 @@ HWTEST_F(drawingTypographyPaintAttributeTest, DrawingTypographyUpdateNullPtrTest
  * @tc.desc: test for updating the font color
  * @tc.type: FUNC
  */
-HWTEST_F(drawingTypographyPaintAttributeTest, DrawingTypographyUpdateFontColorTest001, TestSize.Level1)
+HWTEST_F(DrawingTypographyPaintAttributeTest, DrawingTypographyUpdateFontColorTest001, TestSize.Level1)
 {
     OH_Drawing_TypographyUpdateFontColor(fTypography, OH_Drawing_ColorSetArgb(0xFF, 0x00, 0xFF, 0xFF));
 
@@ -116,7 +116,7 @@ HWTEST_F(drawingTypographyPaintAttributeTest, DrawingTypographyUpdateFontColorTe
  * @tc.desc: test for updating the decoration to the value of TEXT_DECORATION_LINE_THROUGH
  * @tc.type: FUNC
  */
-HWTEST_F(drawingTypographyPaintAttributeTest, DrawingTypographyUpdateDecorationTest001, TestSize.Level1)
+HWTEST_F(DrawingTypographyPaintAttributeTest, DrawingTypographyUpdateDecorationTest001, TestSize.Level1)
 {
     OH_Drawing_TypographyUpdateDecoration(fTypography, TEXT_DECORATION_LINE_THROUGH);
 
@@ -132,7 +132,7 @@ HWTEST_F(drawingTypographyPaintAttributeTest, DrawingTypographyUpdateDecorationT
  * @tc.desc: test for updating the decoration to the value of TEXT_DECORATION_UNDERLINE
  * @tc.type: FUNC
  */
-HWTEST_F(drawingTypographyPaintAttributeTest, DrawingTypographyUpdateDecorationTest002, TestSize.Level1)
+HWTEST_F(DrawingTypographyPaintAttributeTest, DrawingTypographyUpdateDecorationTest002, TestSize.Level1)
 {
     OH_Drawing_TypographyUpdateDecoration(fTypography, TEXT_DECORATION_UNDERLINE);
 
@@ -148,7 +148,7 @@ HWTEST_F(drawingTypographyPaintAttributeTest, DrawingTypographyUpdateDecorationT
  * @tc.desc: test for updating the decoration to the value of TEXT_DECORATION_OVERLINE
  * @tc.type: FUNC
  */
-HWTEST_F(drawingTypographyPaintAttributeTest, DrawingTypographyUpdateDecorationTest003, TestSize.Level1)
+HWTEST_F(DrawingTypographyPaintAttributeTest, DrawingTypographyUpdateDecorationTest003, TestSize.Level1)
 {
     OH_Drawing_TypographyUpdateDecoration(fTypography, TEXT_DECORATION_OVERLINE);
 
@@ -164,7 +164,7 @@ HWTEST_F(drawingTypographyPaintAttributeTest, DrawingTypographyUpdateDecorationT
  * @tc.desc: test for updating the decoration to the value of TEXT_DECORATION_NONE
  * @tc.type: FUNC
  */
-HWTEST_F(drawingTypographyPaintAttributeTest, DrawingTypographyUpdateDecorationTest004, TestSize.Level1)
+HWTEST_F(DrawingTypographyPaintAttributeTest, DrawingTypographyUpdateDecorationTest004, TestSize.Level1)
 {
     OH_Drawing_TypographyUpdateDecoration(fTypography, TEXT_DECORATION_NONE);
 
@@ -180,7 +180,7 @@ HWTEST_F(drawingTypographyPaintAttributeTest, DrawingTypographyUpdateDecorationT
  * @tc.desc: test for updating the decoration thickness scale
  * @tc.type: FUNC
  */
-HWTEST_F(drawingTypographyPaintAttributeTest, DrawingTypographyUpdateDecorationThicknessScaleTest001,
+HWTEST_F(DrawingTypographyPaintAttributeTest, DrawingTypographyUpdateDecorationThicknessScaleTest001,
     TestSize.Level1)
 {
     OH_Drawing_TypographyUpdateDecorationThicknessScale(fTypography, 2.0);
@@ -197,7 +197,7 @@ HWTEST_F(drawingTypographyPaintAttributeTest, DrawingTypographyUpdateDecorationT
  * @tc.desc: test for updating the decoration to the value of TEXT_DECORATION_STYLE_DOTTED
  * @tc.type: FUNC
  */
-HWTEST_F(drawingTypographyPaintAttributeTest, DrawingTypographyUpdateDecorationStyleTest001, TestSize.Level1)
+HWTEST_F(DrawingTypographyPaintAttributeTest, DrawingTypographyUpdateDecorationStyleTest001, TestSize.Level1)
 {
     OH_Drawing_TypographyUpdateDecorationStyle(fTypography, TEXT_DECORATION_STYLE_DOTTED);
 
@@ -213,7 +213,7 @@ HWTEST_F(drawingTypographyPaintAttributeTest, DrawingTypographyUpdateDecorationS
  * @tc.desc: test for updating the decoration to the value of TEXT_DECORATION_STYLE_DOTTED
  * @tc.type: FUNC
  */
-HWTEST_F(drawingTypographyPaintAttributeTest, DrawingTypographyUpdateDecorationStyleTest002, TestSize.Level1)
+HWTEST_F(DrawingTypographyPaintAttributeTest, DrawingTypographyUpdateDecorationStyleTest002, TestSize.Level1)
 {
     OH_Drawing_TypographyUpdateDecorationStyle(fTypography, TEXT_DECORATION_STYLE_SOLID);
 
@@ -229,7 +229,7 @@ HWTEST_F(drawingTypographyPaintAttributeTest, DrawingTypographyUpdateDecorationS
  * @tc.desc: test for updating the decoration to the value of TEXT_DECORATION_STYLE_WAVY
  * @tc.type: FUNC
  */
-HWTEST_F(drawingTypographyPaintAttributeTest, DrawingTypographyUpdateDecorationStyleTest003, TestSize.Level1)
+HWTEST_F(DrawingTypographyPaintAttributeTest, DrawingTypographyUpdateDecorationStyleTest003, TestSize.Level1)
 {
     OH_Drawing_TypographyUpdateDecorationStyle(fTypography, TEXT_DECORATION_STYLE_WAVY);
 
@@ -245,7 +245,7 @@ HWTEST_F(drawingTypographyPaintAttributeTest, DrawingTypographyUpdateDecorationS
  * @tc.desc: test for updating the decoration to the value of TEXT_DECORATION_STYLE_DASHED
  * @tc.type: FUNC
  */
-HWTEST_F(drawingTypographyPaintAttributeTest, DrawingTypographyUpdateDecorationStyleTest004, TestSize.Level1)
+HWTEST_F(DrawingTypographyPaintAttributeTest, DrawingTypographyUpdateDecorationStyleTest004, TestSize.Level1)
 {
     OH_Drawing_TypographyUpdateDecorationStyle(fTypography, TEXT_DECORATION_STYLE_DASHED);
 
@@ -261,7 +261,7 @@ HWTEST_F(drawingTypographyPaintAttributeTest, DrawingTypographyUpdateDecorationS
  * @tc.desc: test for updating the decoration to the value of TEXT_DECORATION_STYLE_DOUBLE
  * @tc.type: FUNC
  */
-HWTEST_F(drawingTypographyPaintAttributeTest, DrawingTypographyUpdateDecorationStyleTest005, TestSize.Level1)
+HWTEST_F(DrawingTypographyPaintAttributeTest, DrawingTypographyUpdateDecorationStyleTest005, TestSize.Level1)
 {
     OH_Drawing_TypographyUpdateDecorationStyle(fTypography, TEXT_DECORATION_STYLE_DOUBLE);
 
@@ -277,7 +277,7 @@ HWTEST_F(drawingTypographyPaintAttributeTest, DrawingTypographyUpdateDecorationS
  * @tc.desc: test for updating the font color and decoration in mutiple text.
  * @tc.type: FUNC
  */
-HWTEST_F(drawingTypographyPaintAttributeTest, DrawingTypographyUpdateColorAndDecoration001, TestSize.Level1)
+HWTEST_F(DrawingTypographyPaintAttributeTest, DrawingTypographyUpdateColorAndDecoration001, TestSize.Level1)
 {
     OH_Drawing_SetTextStyleColor(fTxtStyle, OH_Drawing_ColorSetArgb(0xFF, 0x00, 0xFF, 0x00));
     OH_Drawing_SetTextStyleDecoration(fTxtStyle, TEXT_DECORATION_NONE);
