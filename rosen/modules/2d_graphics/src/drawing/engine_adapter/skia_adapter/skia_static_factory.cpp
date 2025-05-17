@@ -72,6 +72,12 @@ std::shared_ptr<Typeface> SkiaStaticFactory::MakeFromStream(std::unique_ptr<Memo
     return SkiaTypeface::MakeFromStream(std::move(memoryStream), index);
 }
 
+std::shared_ptr<Typeface> SkiaStaticFactory::MakeFromStream(std::unique_ptr<MemoryStream> memoryStream,
+    const FontArguments& fontArguments)
+{
+    return SkiaTypeface::MakeFromStream(std::move(memoryStream), fontArguments);
+}
+
 std::shared_ptr<Typeface> SkiaStaticFactory::MakeFromName(const char familyName[], FontStyle fontStyle)
 {
     return SkiaTypeface::MakeFromName(familyName, fontStyle);

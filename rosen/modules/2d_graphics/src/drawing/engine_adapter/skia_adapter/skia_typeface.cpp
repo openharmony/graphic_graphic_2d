@@ -245,6 +245,36 @@ std::shared_ptr<Typeface> SkiaTypeface::MakeFromStream(std::unique_ptr<MemoryStr
     return std::make_shared<Typeface>(typefaceImpl);
 }
 
+std::shared_ptr<Typeface> SkiaTypeface::MakeFromStream(std::unique_ptr<MemoryStream> memoryStream,
+    const FontArguments& fontArguments)
+{
+    if (!memoryStream) {
+        LOGD("SkiaTypeface::MakeFromStream, memoryStream nullptr");
+        return nullptr;
+    }
+    auto memoryStreamImpl = memoryStream->GetImpl<SkiaMemoryStream>();
+    if (memoryStreamImpl == nullptr) {
+        LOGD("SkiaTypeface::MakeFromStream, memoryStreamImpl nullptr");
+        return nullptr;
+    }
+    std::unique_ptr<SkStreamAsset> skMemoryStream = memoryStreamImpl->GetSkMemoryStream();
+
+    auto skFontMgr = SkFontMgr::RefDefault();
+    if (skFontMgr == nullptr) {
+        LOGE("SkiaTypeface::MakeFromStream, skFontMgr nullptr");
+    }
+    SkFontArguments skFontArguments;
+    SkiaConvertUtils::DrawingFontArgumentsCastToSkFontArguments(fontArguments, skFontArguments);
+    sk_sp<SkTypeface> skTypeface = skFontMgr->makeFromStream(std::move(skMemoryStream), skFontArguments);
+    if (!skTypeface) {
+        LOGD("SkiaTypeface::MakeFromStream, skTypeface nullptr.");
+        return nullptr;
+    }
+    skTypeface->setIsCustomTypeface(true);
+    std::shared_ptr<TypefaceImpl> typefaceImpl = std::make_shared<SkiaTypeface>(skTypeface);
+    return std::make_shared<Typeface>(typefaceImpl);
+}
+
 std::shared_ptr<Typeface> SkiaTypeface::MakeFromName(const char familyName[], FontStyle fontStyle)
 {
     SkFontStyle skFontStyle;

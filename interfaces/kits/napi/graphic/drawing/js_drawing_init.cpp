@@ -21,6 +21,7 @@
 #include "enum_napi/js_enum.h"
 #include "font_napi/js_font.h"
 #include "font_napi/js_typeface.h"
+#include "font_napi/js_typefacearguments.h"
 #include "image_filter_napi/js_image_filter.h"
 #include "lattice_napi/js_lattice.h"
 #include "mask_filter_napi/js_mask_filter.h"
@@ -44,6 +45,7 @@ napi_value DrawingInit(napi_env env, napi_value exportObj)
     JsFont::Init(env, exportObj);
     JsPath::Init(env, exportObj);
     JsTypeface::Init(env, exportObj);
+    JsTypeFaceArguments::Init(env, exportObj);
     JsCanvas::Init(env, exportObj);
     JsEnum::Init(env, exportObj);
     JsColorFilter::Init(env, exportObj);

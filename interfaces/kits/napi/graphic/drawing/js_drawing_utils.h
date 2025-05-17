@@ -201,7 +201,7 @@ enum class DrawingErrorCode : int32_t {
     ERROR_NO_PERMISSION = 201, // the value do not change. It is defined on all system
     ERROR_INVALID_PARAM = 401, // the value do not change. It is defined on all system
     ERROR_DEVICE_NOT_SUPPORT = 801, // the value do not change. It is defined on all system
-    ERROR_ABNORMAL_PARAM_VALUE = 18600001, // the value do not change. It is defined on color manager system
+    ERROR_PARAM_VERIFICATION_FAILED = 25900001, // after api 18, no throw 401
 };
 
 template<class T>
