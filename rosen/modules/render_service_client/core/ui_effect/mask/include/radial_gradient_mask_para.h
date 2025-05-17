@@ -14,6 +14,8 @@
  */
 #ifndef UIEFFECT_RADIAL_GRADIENT_MASK_PARA_H
 #define UIEFFECT_RADIAL_GRADIENT_MASK_PARA_H
+#include <vector>
+
 #include "ui_effect/mask/include/mask_para.h"
 #include "common/rs_vector2.h"
 
