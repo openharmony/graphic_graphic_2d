@@ -12,6 +12,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+/**
+ * @addtogroup RenderNodeDisplay
+ * @{
+ *
+ * @brief Display render nodes.
+ */
+
+/**
+ * @file rs_surface_extractor.h
+ *
+ * @brief Defines the properties and methods for RSDisplayNode class.
+ */
+
 #ifndef RENDER_SERVICE_CLIENT_CORE_UI_RS_SURFACE_EXECTOR_H
 #define RENDER_SERVICE_CLIENT_CORE_UI_RS_SURFACE_EXECTOR_H
 
@@ -23,9 +37,16 @@ namespace Rosen {
 
 class RSC_EXPORT RSSurfaceExtractor {
 public:
+    /**
+     * @brief Extracts RSSurface.
+     *
+     * @param node A shared pointer to the RSSurfaceNode from which to extract the RSSurface.
+     * @return The extracted RSSurface, or nullptr if node is nullptr.
+     */
     static std::shared_ptr<RSSurface> ExtractRSSurface(std::shared_ptr<RSSurfaceNode> node);
 };
 } // namespace Rosen
 } // namespace OHOS
 
+/** @} */
 #endif // RENDER_SERVICE_CLIENT_CORE_UI_RS_SURFACE_EXECTOR_H

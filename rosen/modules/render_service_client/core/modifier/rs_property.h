@@ -13,6 +13,19 @@
  * limitations under the License.
  */
 
+/**
+ * @addtogroup RenderNodeDisplay
+ * @{
+ *
+ * @brief Display render nodes.
+ */
+
+/**
+ * @file rs_property.h
+ *
+ * @brief Defines the properties and methods of RSPropertyBase and its derived classes.
+ */
+
 #ifndef RENDER_SERVICE_CLIENT_CORE_MODIFIER_RS_PROPERTY_H
 #define RENDER_SERVICE_CLIENT_CORE_MODIFIER_RS_PROPERTY_H
 
@@ -62,15 +75,27 @@
 namespace OHOS {
 namespace Rosen {
 class RSUIFilter;
-// used to determine when the spring animation ends visually
+
+/**
+ * @brief Defines different types of thresholds for spring animation.
+ *
+ * Used to determine when the spring animation ends visually
+ */
 enum class ThresholdType {
-    LAYOUT,  // 0.5f for properties like position, as the difference in properties by 0.5 appears visually unchanged
-    COARSE,  // 1.0f / 256.0f
-    MEDIUM,  // 1.0f / 1000.0f
-    FINE,    // 1.0f / 3072.0f
-    COLOR,   // 0.0f
-    DEFAULT, // 1.0f / 256.0f
-    ZERO,    // 0.0f for noanimatable property
+    /** 0.5f for properties like position, as the difference in properties by 0.5 appears visually unchanged. */
+    LAYOUT,
+    /** 1.0f / 256.0f */
+    COARSE,
+    /** 1.0f / 1000.0f */
+    MEDIUM,
+    /** 1.0f / 3072.0f */
+    FINE,
+    /** 0.0f */
+    COLOR,
+    /** 1.0f / 256.0f */
+    DEFAULT,
+    /** 0.0f for noanimatable property */
+    ZERO,
 };
 
 namespace {
@@ -107,20 +132,48 @@ struct supports_animatable_arithmetic<T,
 
 class RSC_EXPORT RSPropertyBase : public std::enable_shared_from_this<RSPropertyBase> {
 public:
+    /**
+     * @brief Constructor for RSPropertyBase.
+     */
     RSPropertyBase();
+
+    /**
+     * @brief Destructor for RSPropertyBase.
+     */
     virtual ~RSPropertyBase() = default;
 
+    /**
+     * @brief Gets the ID of the property.
+     *
+     * @return The ID of the property.
+     */
     PropertyId GetId() const
     {
         return id_;
     }
 
+    /**
+     * @brief Sets the threshold type for the property.
+     *
+     * @param thresholdType Indicates the threshold type to be set.
+     */
     virtual void SetThresholdType(ThresholdType thresholdType) {}
+
+    /**
+     * @brief Gets the threshold type for the property.
+     *
+     * @return The threshold type of the property.
+     */
     virtual float GetThreshold() const
     {
         return 0.0f;
     }
 
+    /**
+     * @brief Sets the value of the property from the render.
+     *
+     * @param rsRenderPropertyBase A shared pointer to the RSRenderPropertyBase object.
+     */
     virtual void SetValueFromRender(const std::shared_ptr<const RSRenderPropertyBase>& rsRenderPropertyBase) {};
 
     virtual std::shared_ptr<RSRenderPropertyBase> GetRenderProperty()
@@ -250,11 +303,24 @@ class RSProperty : public RSPropertyBase {
     static_assert(std::is_base_of_v<RSArithmetic<T>, T> || supports_arithmetic<T>::value);
 
 public:
+    /**
+     * @brief Constructor for RSProperty.
+     */
     RSProperty() : RSPropertyBase() {}
+
+    /**
+     * @brief Constructor for RSProperty.
+     *
+     * @param value Indicates the staging value.
+     */
     explicit RSProperty(const T& value) : RSPropertyBase()
     {
         stagingValue_ = value;
     }
+
+    /**
+     * @brief Destructor for RSProperty.
+     */
     virtual ~RSProperty() = default;
 
     virtual void Set(const T& value)
@@ -278,6 +344,11 @@ public:
         }
     }
 
+    /**
+     * @brief Gets the value of the staging.
+     *
+     * @return The value of the staging.
+     */
     virtual T Get() const
     {
         return stagingValue_;
@@ -340,12 +411,24 @@ class RSAnimatableProperty : public RSProperty<T> {
                   std::is_same_v<std::vector<float>, T>);
 
 public:
+    /**
+     * @brief Constructor for RSAnimatableProperty.
+     */
     RSAnimatableProperty() : RSProperty<T>() {}
+
+    /**
+     * @brief Constructor for RSAnimatableProperty.
+     *
+     * @param value Indicates the showing value.
+     */
     explicit RSAnimatableProperty(const T& value) : RSProperty<T>(value)
     {
         showingValue_ = value;
     }
 
+    /**
+     * @brief Destructor for RSAnimatableProperty.
+     */
     virtual ~RSAnimatableProperty() = default;
 
     void Set(const T& value) override
@@ -398,6 +481,9 @@ public:
         }
     }
 
+    /**
+     * @brief Requests the cancellation of an ongoing implicit animation.
+     */
     void RequestCancelAnimation()
     {
         auto node = RSProperty<T>::target_.lock();
@@ -418,11 +504,22 @@ public:
         return RSProperty<T>::stagingValue_;
     }
 
+    /**
+     * @brief Gets the staging value of the property.
+     * @return The staging value.
+     */
     T GetStagingValue() const
     {
         return RSProperty<T>::stagingValue_;
     }
 
+    /**
+     * @brief Gets the showing value of the property and cancels the animation.
+     *
+     * @return true if the showing value was successfully got and the animation was canceled, or if no
+     *         animation was present or the property is custom; false if the task timed out or the property
+     *         could not be retrieved.
+     */
     bool GetShowingValueAndCancelAnimation() override
     {
         auto node = RSProperty<T>::target_.lock();
@@ -471,6 +568,11 @@ public:
         return true;
     }
 
+    /**
+     * @brief Sets the value of the property from render.
+     *
+     * @param rsRenderPropertyBase A shared pointer to the RSRenderPropertyBase object.
+     */
     void SetValueFromRender(const std::shared_ptr<const RSRenderPropertyBase>& rsRenderPropertyBase) override
     {
         auto renderProperty = std::static_pointer_cast<const RSRenderAnimatableProperty<T>>(rsRenderPropertyBase);
@@ -480,11 +582,28 @@ public:
         RSProperty<T>::stagingValue_ = renderProperty->Get();
     }
 
+    /**
+     * @brief Sets the callback function to be called when the property is updated.
+     *
+     * @param updateCallback The callback function to be set.
+     */
     void SetUpdateCallback(const std::function<void(T)>& updateCallback)
     {
         propertyChangeListener_ = updateCallback;
     }
 
+    /**
+     * @brief Plays the animation.
+     *
+     * @param timingProtocol The protocol specifying the timing parameters for the animation (e.g., duration, delay).
+     * @param timingCurve The curve defining the pacing of the animation (e.g., linear, ease-in, custom).
+     * @param targetValue The target value to animate to, wrapped in a shared pointer to RSPropertyBase.
+     * @param velocity (Optional) The initial velocity for the animation, wrapped in a shared pointer to RSAnimatableProperty<T>.
+     * @param finishCallback (Optional) A callback function to be invoked when the animation finishes.
+     * @param repeatCallback (Optional) A callback function to be invoked when the animation repeats.
+     * @return std::vector<std::shared_ptr<RSAnimation>> A vector of shared pointers to the created RSAnimation objects.
+     *         Returns an empty vector if the animation could not be created.
+     */
     std::vector<std::shared_ptr<RSAnimation>> AnimateWithInitialVelocity(
         const RSAnimationTimingProtocol& timingProtocol, const RSAnimationTimingCurve& timingCurve,
         const std::shared_ptr<RSPropertyBase>& targetValue,
@@ -533,6 +652,11 @@ public:
         return implicitAnimator->CloseImplicitAnimation();
     }
 
+    /**
+     * @brief Sets the property unit.
+     *
+     * @param unit The property unit to be set.
+     */
     void SetPropertyUnit(RSPropertyUnit unit)
     {
         propertyUnit_ = unit;
@@ -805,4 +929,5 @@ RSC_EXPORT RSRenderPropertyType RSAnimatableProperty<std::vector<float>>::GetPro
 } // namespace Rosen
 } // namespace OHOS
 
+/** @} */
 #endif // RENDER_SERVICE_CLIENT_CORE_MODIFIER_RS_PROPERTY_H
