@@ -247,6 +247,7 @@ ohos_unittest("RSColorfulShadowFilterTest") {
     "rs_fly_out_shader_filter_test.cpp",
     "rs_foreground_effect_filter_test.cpp",
     "rs_image_base_test.cpp",
+    "rs_sound_wave_filter_test.cpp",
   ]
 
   cflags = [
@@ -720,6 +721,7 @@ ohos_unittest("RSMaterialFilterTest") {
     "rs_render_filter_test.cpp",
     "rs_render_filter_base_test.cpp",
     "rs_render_ripple_mask_test.cpp",
+    "rs_render_sound_wave_filter_test.cpp",
     "rs_shader_mask_test.cpp",
   ]
 

@@ -28,6 +28,7 @@ ohos_unittest("RSRenderServiceClientPropertyTest") {
     "rs_ui_ripple_mask_test.cpp",
     "rs_ui_filter_test.cpp",
     "rs_ui_filter_para_base_test.cpp",
+    "rs_ui_sound_wave_filter_test.cpp",
   ]
 
   include_dirs = [

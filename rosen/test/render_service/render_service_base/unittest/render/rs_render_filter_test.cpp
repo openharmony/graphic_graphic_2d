@@ -75,6 +75,9 @@ HWTEST_F(RSRenderFilterTest, CreateRenderFilterPara001, TestSize.Level1)
 
     auto ripplePara = RSRenderFilter::CreateRenderFilterPara(RSUIFilterType::RIPPLE_MASK);
     EXPECT_EQ(ripplePara, nullptr);
+
+    auto soundWavePara = RSRenderFilter::CreateRenderFilterPara(RSUIFilterType::SOUND_WAVE);
+    EXPECT_NE(soundWavePara, nullptr);
 }
 
 /**

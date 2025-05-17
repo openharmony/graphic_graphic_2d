@@ -16,6 +16,7 @@
 #include "render/rs_render_blur_filter.h"
 #include "render/rs_render_color_gradient_filter.h"
 #include "render/rs_render_displacement_distort_filter.h"
+#include "render/rs_render_sound_wave_filter.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -42,6 +43,9 @@ std::shared_ptr<RSRenderFilterParaBase> RSRenderFilter::CreateRenderFilterPara(R
         }
         case RSUIFilterType::COLOR_GRADIENT : {
             return std::make_shared<RSRenderColorGradientFilterPara>(0);
+        }
+        case RSUIFilterType::SOUND_WAVE : {
+            return std::make_shared<RSRenderSoundWaveFilterPara>(0);
         }
         default: {
             ROSEN_LOGE("RSRenderFilter::CreateRenderFilterPara null type %{public}d ",

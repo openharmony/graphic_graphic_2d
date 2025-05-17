@@ -26,6 +26,7 @@ enum class RSUIFilterType : int16_t {
     BLUR,
     DISPLACEMENT_DISTORT,
     COLOR_GRADIENT,
+    SOUND_WAVE,
 
     // mask type
     RIPPLE_MASK,
@@ -47,6 +48,18 @@ enum class RSUIFilterType : int16_t {
     COLOR_GRADIENT_COLOR, // vector<float>
     COLOR_GRADIENT_POSITION, // vector<float>
     COLOR_GRADIENT_STRENGTH, // vector<float>
+
+    //value type
+    SOUND_WAVE_COLOR_A, //RSCOLOR
+    SOUND_WAVE_COLOR_B, //RSCOLOR
+    SOUND_WAVE_COLOR_C, //RSCOLOR
+    SOUND_WAVE_COLOR_PROGRESS, //float
+    SOUND_WAVE_CENTER_BRIGHTNESS, //float
+    SOUND_INTENSITY, //float
+    SHOCK_WAVE_ALPHA_A, //float
+    SHOCK_WAVE_ALPHA_B, //float
+    SHOCK_WAVE_PROGRESS_A, //float
+    SHOCK_WAVE_PROGRESS_B, //float
 };
 
 class RSB_EXPORT RSRenderFilterParaBase : public RSRenderPropertyBase,

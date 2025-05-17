@@ -633,6 +633,7 @@ private:
     void GenerateRenderFilter();
     void GenerateDisplacementDistortFilter();
     void GenerateRenderFilterColorGradient();
+    void GenerateSoundWaveFilter();
 
     bool NeedClip() const;
     bool NeedBlurFuzed();
