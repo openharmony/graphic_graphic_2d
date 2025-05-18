@@ -1857,7 +1857,7 @@ CM_INLINE bool RSUniRenderVisitor::AfterUpdateSurfaceDirtyCalc(RSSurfaceRenderNo
     if (geoPtr == nullptr) {
         return false;
     }
-    const auto& hwcNodePtr = node.shared_from_this();
+    const auto& hwcNodePtr =  RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node.shared_from_this());
     hwcVisitor_->UpdateCrossInfoForProtectedHwcNode(hwcNodePtr);
     UpdateAncoPrepareClip(node);
     hwcVisitor_->UpdateDstRect(node, geoPtr->GetAbsRect(), prepareClipRect_);
