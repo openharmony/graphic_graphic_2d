@@ -30,8 +30,12 @@
 #include "vulkan/vulkan_core.h"
 
 #include "rs_vulkan_context.h"
-#include "include/gpu/GrBackendSemaphore.h"
 
+#ifdef USE_M133_SKIA
+#include "include/gpu/ganesh/vk/GrVkBackendSemaphore.h"
+#else
+#include "include/gpu/GrBackendSemaphore.h"
+#endif
 
 #include "engine_adapter/skia_adapter/skia_surface.h"
 

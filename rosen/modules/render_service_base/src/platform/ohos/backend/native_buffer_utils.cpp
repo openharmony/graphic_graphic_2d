@@ -273,9 +273,15 @@ bool MakeFromNativeWindowBuffer(std::shared_ptr<Drawing::GPUContext> skContext, 
     return true;
 }
 
+#ifdef USE_M133_SKIA
+skgpu::VulkanYcbcrConversionInfo GetYcbcrInfo(VkNativeBufferFormatPropertiesOHOS& nbFormatProps)
+{
+    skgpu::VulkanYcbcrConversionInfo ycbcrInfo = {
+#else
 GrVkYcbcrConversionInfo GetYcbcrInfo(VkNativeBufferFormatPropertiesOHOS& nbFormatProps)
 {
     GrVkYcbcrConversionInfo ycbcrInfo = {
+#endif
         .fFormat = nbFormatProps.format,
         .fExternalFormat = nbFormatProps.externalFormat,
         .fYcbcrModel = nbFormatProps.suggestedYcbcrModel,

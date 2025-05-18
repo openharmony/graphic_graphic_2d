@@ -18,6 +18,12 @@
 #include "ge_shader_filter_params.h"
 #include "platform/common/rs_log.h"
 
+#ifdef USE_M133_SKIA
+#include "src/core/SkChecksum.h"
+#else
+#include "src/core/SkOpts.h"
+#endif
+
 namespace OHOS {
 namespace Rosen {
 static constexpr float COLOR_MAX = 255.0;
@@ -35,6 +41,18 @@ RSEdgeLightShaderFilter::RSEdgeLightShaderFilter(const EdgeLightShaderFilterPara
     addImage_(param.addImage)
 {
     type_ = ShaderFilterType::EDGE_LIGHT;
+#ifdef USE_M133_SKIA
+    hash_ = SkChecksum::Hash32(&detectColor_, sizeof(detectColor_), hash_);
+    hash_ = SkChecksum::Hash32(&color_, sizeof(color_), hash_);
+    hash_ = SkChecksum::Hash32(&edgeThreshold_, sizeof(edgeThreshold_), hash_);
+    hash_ = SkChecksum::Hash32(&edgeIntensity_, sizeof(edgeIntensity_), hash_);
+    hash_ = SkChecksum::Hash32(&edgeSoftThreshold_, sizeof(edgeSoftThreshold_), hash_);
+    hash_ = SkChecksum::Hash32(&bloomLevel_, sizeof(bloomLevel_), hash_);
+    hash_ = SkChecksum::Hash32(&useRawColor_, sizeof(useRawColor_), hash_);
+    hash_ = SkChecksum::Hash32(&gradient_, sizeof(gradient_), hash_);
+    hash_ = SkChecksum::Hash32(&alphaProgress_, sizeof(alphaProgress_), hash_);
+    hash_ = SkChecksum::Hash32(&addImage_, sizeof(addImage_), hash_);
+#else
     hash_ = SkOpts::hash(&detectColor_, sizeof(detectColor_), hash_);
     hash_ = SkOpts::hash(&color_, sizeof(color_), hash_);
     hash_ = SkOpts::hash(&edgeThreshold_, sizeof(edgeThreshold_), hash_);
@@ -45,6 +63,7 @@ RSEdgeLightShaderFilter::RSEdgeLightShaderFilter(const EdgeLightShaderFilterPara
     hash_ = SkOpts::hash(&gradient_, sizeof(gradient_), hash_);
     hash_ = SkOpts::hash(&alphaProgress_, sizeof(alphaProgress_), hash_);
     hash_ = SkOpts::hash(&addImage_, sizeof(addImage_), hash_);
+#endif
 }
 
 RSEdgeLightShaderFilter::~RSEdgeLightShaderFilter() {}
