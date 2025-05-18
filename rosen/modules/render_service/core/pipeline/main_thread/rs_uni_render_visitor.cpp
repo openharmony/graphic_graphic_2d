@@ -1081,6 +1081,8 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
     }
     CollectSelfDrawingNodeRectInfo(node);
     hasAccumulatedClip_ = node.SetAccumulatedClipFlag(hasAccumulatedClip_);
+    // Initialize the handler of control-level occlusion culling.
+    InitializeOcclusionHandler(node);
     bool isSubTreeNeedPrepare = node.IsSubTreeNeedPrepare(filterInGlobal_, IsSubTreeOccluded(node)) ||
         ForcePrepareSubTree();
     isSubTreeNeedPrepare ? QuickPrepareChildren(node) :
@@ -2862,9 +2864,6 @@ void RSUniRenderVisitor::CollectEffectInfo(RSRenderNode& node)
 
 CM_INLINE void RSUniRenderVisitor::PostPrepare(RSRenderNode& node, bool subTreeSkipped)
 {
-    // Collect prepared subtree into the control-level occlusion culling handler.
-    // For the root node, trigger occlusion detection.
-    CollectSubTreeAndProcessOcclusion(node, subTreeSkipped);
     UpdateCurFrameInfoDetail(node, subTreeSkipped, true);
     if (const auto& sharedTransitionParam = node.GetSharedTransitionParam()) {
         sharedTransitionParam->GenerateDrawable(node);
@@ -2936,6 +2935,10 @@ CM_INLINE void RSUniRenderVisitor::PostPrepare(RSRenderNode& node, bool subTreeS
         }
     }
 
+    // Collect prepared subtree into the control-level occlusion culling handler.
+    // For the surface node, trigger occlusion detection.
+    CollectSubTreeAndProcessOcclusion(node, subTreeSkipped);
+
     // planning: only do this if node is dirty
     node.UpdateRenderParams();
 
@@ -2949,27 +2952,23 @@ void RSUniRenderVisitor::CollectSubTreeAndProcessOcclusion(OHOS::Rosen::RSRender
         return;
     }
 
+    curOcclusionHandler_->UpdateChildrenOutOfRectInfo(node);
     curOcclusionHandler_->CollectSubTree(node, !subTreeSkipped);
     if (node.GetId() != curOcclusionHandler_->GetRootNodeId()) {
         return;
     }
 
+    auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node.shared_from_this());
+    if (surfaceNode == nullptr) {
+        curOcclusionHandler_ = nullptr;
+        return;
+    }
     curOcclusionHandler_->UpdateSkippedSubTreeProp();
     curOcclusionHandler_->CalculateFrameOcclusion();
-    auto rootNode = RSBaseRenderNode::ReinterpretCast<RSRootRenderNode>(node.shared_from_this());
-    if (!rootNode) {
-        return;
-    }
-
-    auto occlusionParams = rootNode->GetOcclusionParams();
-    if (!occlusionParams) {
-        return;
-    }
-
-    occlusionParams->SetCulledNodes(curOcclusionHandler_->AcquireCulledNodes());
-    if (!curOcclusionHandler_->IsOcclusionActive()) {
-        occlusionParams->UpdateOcclusionCullingStatus(false, INVALID_NODEID);
-    }
+    auto occlusionParams = surfaceNode->GetOcclusionParams();
+    occlusionParams->SetCulledNodes(curOcclusionHandler_->TakeCulledNodes());
+    occlusionParams->SetCulledEntireSubtree(curOcclusionHandler_->TakeCulledEntireSubtree());
+    occlusionParams->CheckKeyOcclusionNodeValidity(curOcclusionHandler_->GetOcclusionNodes());
     curOcclusionHandler_ = nullptr;
 }
 
@@ -3246,9 +3245,6 @@ void RSUniRenderVisitor::PrepareRootRenderNode(RSRootRenderNode& node)
 
     node.EnableWindowKeyFrame(false);
 
-    // Initialize the handler of control-level occlusion culling.
-    InitializeOcclusionHandler(node);
-
     bool isSubTreeNeedPrepare = node.IsSubTreeNeedPrepare(filterInGlobal_) || ForcePrepareSubTree();
     isSubTreeNeedPrepare ? QuickPrepareChildren(node) :
         node.SubTreeSkipPrepare(*curSurfaceDirtyManager_, curDirty_, dirtyFlag_, prepareClipRect_);
@@ -3260,24 +3256,24 @@ void RSUniRenderVisitor::PrepareRootRenderNode(RSRootRenderNode& node)
     prepareClipRect_ = prepareClipRect;
 }
 
-void RSUniRenderVisitor::InitializeOcclusionHandler(RSRootRenderNode& node)
+void RSUniRenderVisitor::InitializeOcclusionHandler(RSSurfaceRenderNode& node)
 {
+    if (!OcclusionCullingParam::IsIntraAppControlsLevelOcclusionCullingEnable()) {
+        return;
+    }
     if (curOcclusionHandler_) {
         return;
     }
-
     auto occlusionParams = node.GetOcclusionParams();
-    if (!occlusionParams || !occlusionParams->IsOcclusionCullingOn()) {
+    if (!occlusionParams->IsOcclusionCullingOn()) {
         return;
     }
 
     curOcclusionHandler_ = occlusionParams->GetOcclusionHandler();
-    if (!curOcclusionHandler_) {
-        curOcclusionHandler_ =
-            std::make_shared<RSOcclusionHandler>(node.GetId(), occlusionParams->GetKeyOcclusionNodeId());
+    if (curOcclusionHandler_ == nullptr) {
+        curOcclusionHandler_ = std::make_shared<RSOcclusionHandler>(node.GetId());
         occlusionParams->SetOcclusionHandler(curOcclusionHandler_);
     }
-    curOcclusionHandler_->UpdateKeyOcclusionNodeId(occlusionParams->GetKeyOcclusionNodeId());
 }
 
 void RSUniRenderVisitor::SetUniRenderThreadParam(std::unique_ptr<RSRenderThreadParams>& renderThreadParams)

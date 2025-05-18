@@ -693,6 +693,10 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     curCanvas_->SetDisableFilterCache(isDisableFilterCache || surfaceParams->GetGlobalPositionEnabled());
     auto parentSurfaceMatrix = RSRenderParams::GetParentSurfaceMatrix();
     RSRenderParams::SetParentSurfaceMatrix(curCanvas_->GetTotalMatrix());
+    if (surfaceParams->IsOcclusionCullingOn()) {
+        curCanvas_->SetCulledNodes(surfaceParams->TakeCulledNodes());
+        curCanvas_->SetCulledEntireSubtree(surfaceParams->TakeCulledEntireSubtree());
+    }
 
     // add a blending disable rect op behind floating window, to enable overdraw buffer feature on special gpu.
     if (surfaceParams->IsLeashWindow() && RSSystemProperties::GetGpuOverDrawBufferOptimizeEnabled()
@@ -746,6 +750,10 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     curCanvas_->SetDisableFilterCache(isDisableFilterCache);
     RSRenderParams::SetParentSurfaceMatrix(parentSurfaceMatrix);
     SetUIExtensionNeedToDraw(false);
+    if (surfaceParams->IsOcclusionCullingOn()) {
+        curCanvas_->SetCulledNodes(std::unordered_set<NodeId>());
+        curCanvas_->SetCulledEntireSubtree(std::unordered_set<NodeId>());
+    }
 }
 
 void RSSurfaceRenderNodeDrawable::CrossDisplaySurfaceDirtyRegionConversion(

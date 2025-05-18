@@ -31,7 +31,6 @@ enum RSRootNodeCommandType : uint16_t {
     ATTACH_TO_UNI_SURFACENODE = 2,
     SET_ENABLE_RENDER = 3,
     UPDATE_SUGGESTED_BUFFER_SIZE = 4,
-    SET_OCCLUSION_SCENE_ENABLE = 5,
 };
 
 class RSB_EXPORT RootNodeCommandHelper {
@@ -41,7 +40,6 @@ public:
     static void AttachToUniSurfaceNode(RSContext& context, NodeId id, NodeId surfaceNodeId);
     static void SetEnableRender(RSContext& context, NodeId id, bool flag);
     static void UpdateSuggestedBufferSize(RSContext& context, NodeId id, float width, float height);
-    static void UpdateOcclusionCullingStatus(RSContext& context, NodeId nodeId, bool enable, NodeId keyOcclusionNodeId);
 };
 
 ADD_COMMAND(RSRootNodeCreate,
@@ -60,10 +58,6 @@ ADD_COMMAND(RSRootNodeAttachToUniSurfaceNode,
 ADD_COMMAND(RSRootNodeUpdateSuggestedBufferSize,
     ARG(PERMISSION_APP, ROOT_NODE, UPDATE_SUGGESTED_BUFFER_SIZE,
         RootNodeCommandHelper::UpdateSuggestedBufferSize, NodeId, float, float))
-ADD_COMMAND(RSUpdateOcclusionCullingStatus,
-    ARG(PERMISSION_APP, ROOT_NODE, SET_OCCLUSION_SCENE_ENABLE,
-        RootNodeCommandHelper::UpdateOcclusionCullingStatus, NodeId, bool, NodeId))
-
 } // namespace Rosen
 } // namespace OHOS
 

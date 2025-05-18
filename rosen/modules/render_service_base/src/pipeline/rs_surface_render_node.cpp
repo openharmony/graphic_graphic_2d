@@ -107,6 +107,41 @@ bool IsFirstFrameReadyToDraw(RSSurfaceRenderNode& node)
 }
 }
 
+void OcclusionParams::UpdateOcclusionCullingStatus(bool enable, NodeId keyOcclusionNodeId)
+{
+    if (enable) {
+        constexpr uint16_t maxSize = std::numeric_limits<uint16_t>::max();
+        if (keyOcclusionNodeIds_.size() >= maxSize) {
+            RS_LOGE("%s: Size limit reached. Failed to add key occlusion node id.", __func__);
+        } else {
+            keyOcclusionNodeIds_.emplace(keyOcclusionNodeId);
+        }
+        return;
+    }
+    auto it = keyOcclusionNodeIds_.find(keyOcclusionNodeId);
+    if (it != keyOcclusionNodeIds_.end()) {
+        keyOcclusionNodeIds_.erase(it);
+        if (keyOcclusionNodeIds_.empty()) {
+            occlusionHandler_ = nullptr;
+        }
+    }
+}
+
+void OcclusionParams::CheckKeyOcclusionNodeValidity(
+    const std::unordered_map<NodeId, std::shared_ptr<OcclusionNode>>& occlusionNodes)
+{
+    for (auto it = keyOcclusionNodeIds_.begin(); it != keyOcclusionNodeIds_.end();) {
+        if (occlusionNodes.count(*it) == 0) {
+            it = keyOcclusionNodeIds_.erase(it);
+        } else {
+            ++it;
+        }
+    }
+    if (keyOcclusionNodeIds_.empty()) {
+        occlusionHandler_ = nullptr;
+    }
+}
+
 RSSurfaceRenderNode::RSSurfaceRenderNode(
     const RSSurfaceRenderNodeConfig& config, const std::weak_ptr<RSContext>& context)
     : RSRenderNode(config.id, context, config.isTextureExportNode),
@@ -3106,6 +3141,15 @@ void RSSurfaceRenderNode::UpdateRenderParams()
     surfaceParams->allSubSurfaceNodeIds_ = GetAllSubSurfaceNodeIds();
     surfaceParams->crossNodeSkipDisplayConversionMatrices_ = crossNodeSkipDisplayConversionMatrices_;
     surfaceParams->regionToBeMagnified_ = regionToBeMagnified_;
+    if (occlusionParams_ != nullptr && occlusionParams_->IsOcclusionCullingOn()) {
+        surfaceParams->isOcclusionCullingOn_ = true;
+        surfaceParams->culledNodes_ = occlusionParams_->TakeCulledNodes();
+        surfaceParams->culledEntireSubtree_ = occlusionParams_->TakeCulledEntireSubtree();
+    } else {
+        surfaceParams->isOcclusionCullingOn_ = false;
+        surfaceParams->culledNodes_.clear();
+        surfaceParams->culledEntireSubtree_.clear();
+    }
     surfaceParams->SetNeedSync(true);
 
     RSRenderNode::UpdateRenderParams();

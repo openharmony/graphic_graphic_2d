@@ -323,7 +323,7 @@ private:
     void CollectNodeForOcclusion(RSRenderNode& node);
 
     // Used to initialize the handler of control-level occlusion culling.
-    void InitializeOcclusionHandler(RSRootRenderNode& node);
+    void InitializeOcclusionHandler(RSSurfaceRenderNode& node);
 
     friend class RSUniHwcVisitor;
     std::unique_ptr<RSUniHwcVisitor> hwcVisitor_;

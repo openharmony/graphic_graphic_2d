@@ -53,9 +53,63 @@
 
 namespace OHOS {
 namespace Rosen {
+class OcclusionNode;
 class RSCommand;
 class RSDirtyRegionManager;
+class RSOcclusionHandler;
 class RSSurfaceHandler;
+
+// Used for control-level occlusion culling scene info and culled nodes transmission.
+// Maintained by the Dirty Regions feature team.
+class RSB_EXPORT OcclusionParams {
+public:
+    // Enables/Disables control-level occlusion culling for the node's subtree
+    void UpdateOcclusionCullingStatus(bool enable, NodeId keyOcclusionNodeId);
+
+    bool IsOcclusionCullingOn()
+    {
+        return !keyOcclusionNodeIds_.empty();
+    }
+
+    void SetOcclusionHandler(std::shared_ptr<RSOcclusionHandler> occlusionHandler)
+    {
+        occlusionHandler_ = occlusionHandler;
+    }
+
+    std::shared_ptr<RSOcclusionHandler> GetOcclusionHandler() const
+    {
+        return occlusionHandler_;
+    }
+
+    std::unordered_set<NodeId> TakeCulledNodes()
+    {
+        return std::move(culledNodes_);
+    }
+
+    void SetCulledNodes(std::unordered_set<NodeId>&& culledNodes)
+    {
+        culledNodes_ = std::move(culledNodes);
+    }
+
+    std::unordered_set<NodeId> TakeCulledEntireSubtree()
+    {
+        return std::move(culledEntireSubtree_);
+    }
+
+    void SetCulledEntireSubtree(std::unordered_set<NodeId>&& culledEntireSubtree)
+    {
+        culledEntireSubtree_ = std::move(culledEntireSubtree);
+    }
+
+    void CheckKeyOcclusionNodeValidity(
+        const std::unordered_map<NodeId, std::shared_ptr<OcclusionNode>>& occlusionNodes);
+private:
+    std::unordered_multiset<NodeId> keyOcclusionNodeIds_;
+    std::shared_ptr<RSOcclusionHandler> occlusionHandler_;
+    std::unordered_set<NodeId> culledNodes_;
+    std::unordered_set<NodeId> culledEntireSubtree_;
+};
+
 class RSB_EXPORT RSSurfaceRenderNode : public RSRenderNode {
 public:
     using WeakPtr = std::weak_ptr<RSSurfaceRenderNode>;
@@ -1508,6 +1562,15 @@ public:
     void SetFrameGravityNewVersionEnabled(bool isEnabled);
     bool GetFrameGravityNewVersionEnabled() const;
 
+    // Used for control-level occlusion culling scene info and culled nodes transmission.
+    std::shared_ptr<OcclusionParams> GetOcclusionParams()
+    {
+        if (occlusionParams_ == nullptr) {
+            occlusionParams_ = std::make_shared<OcclusionParams>();
+        }
+        return occlusionParams_;
+    }
+
 protected:
     void OnSync() override;
     void OnSkipSync() override;
@@ -1843,6 +1906,9 @@ private:
     bool selfAndParentShouldPaint_ = true;
 
     bool isFrameGravityNewVersionEnabled_ = false;
+
+    // Used for control-level occlusion culling scene info and culled nodes transmission.
+    std::shared_ptr<OcclusionParams> occlusionParams_ = nullptr;
 
     // UIExtension record, <UIExtension, hostAPP>
     inline static std::unordered_map<NodeId, NodeId> secUIExtensionNodes_ = {};

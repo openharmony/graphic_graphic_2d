@@ -24,36 +24,38 @@ namespace Rosen {
 class OcclusionNode;
 class RSB_EXPORT RSOcclusionHandler : public std::enable_shared_from_this<RSOcclusionHandler> {
 public:
-    RSOcclusionHandler(NodeId id, NodeId keyOcclusionNodeId) : rootNodeId_(id) {
-        UpdateOcclusionCullingStatus(true, keyOcclusionNodeId);
+    RSOcclusionHandler(NodeId id) : rootNodeId_(id) {}
+
+    NodeId GetRootNodeId() const
+    {
+        return rootNodeId_;
     }
-    RSOcclusionHandler() = delete;
-    ~RSOcclusionHandler() {
-        TerminateOcclusionProcessing();
+
+    const std::unordered_map<NodeId, std::shared_ptr<OcclusionNode>>& GetOcclusionNodes() const
+    {
+        return occlusionNodes_;
     }
-    // Status manage
-    void UpdateOcclusionCullingStatus(bool enable, NodeId keyOcclusionNodeId);
-    void TerminateOcclusionProcessing();
+
+    std::unordered_set<NodeId> TakeCulledNodes()
+    {
+        return std::move(culledNodes_);
+    }
+
+    std::unordered_set<NodeId> TakeCulledEntireSubtree()
+    {
+        return std::move(culledEntireSubtree_);
+    }
+
     // Tree maintenance
     void ProcessOffTreeNodes(const std::unordered_set<NodeId>& ids);
     void CollectNode(const RSRenderNode& node);
     void CollectSubTree(const RSRenderNode& node, bool isSubTreeNeedPrepare);
-    void UpdateFocusNode(const std::shared_ptr<RSRenderNode> rootNode);
     void UpdateChildrenOutOfRectInfo(const RSRenderNode& node);
     void UpdateSkippedSubTreeProp();
+
     // Occlusion detection
     void CalculateFrameOcclusion();
-    std::unordered_set<NodeId> AcquireCulledNodes();
 
-    NodeId GetRootNodeId() const {
-        return rootNodeId_;
-    }
-    void UpdateKeyOcclusionNodeId(NodeId keyOcclusionNodeId) {
-        keyOcclusionNodeId_ = keyOcclusionNodeId;
-    }
-    bool IsOcclusionActive() const {
-        return isOcclusionActive_;
-    }
 private:
     RSOcclusionHandler(const RSOcclusionHandler&) = delete;
     RSOcclusionHandler(const RSOcclusionHandler&&) = delete;
@@ -66,7 +68,6 @@ private:
     void DumpSubTreeOcclusionInfo(const RSRenderNode& node);
     void DebugPostOcclusionProcessing();
 
-    bool isOcclusionActive_ = false;
     int32_t debugLevel_ = 0;
     NodeId keyOcclusionNodeId_ = INVALID_NODEID;
     NodeId rootNodeId_ = INVALID_NODEID;
@@ -75,6 +76,7 @@ private:
     std::unordered_map<NodeId, std::shared_ptr<OcclusionNode>> occlusionNodes_;
     std::unordered_set<uint64_t> subTreeSkipPrepareNodes_;
     std::unordered_set<NodeId> culledNodes_;
+    std::unordered_set<NodeId> culledEntireSubtree_;
 };
 } // namespace Rosen
 } // namespace OHOS
