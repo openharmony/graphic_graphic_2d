@@ -59,6 +59,7 @@ void RSUniRenderThreadTest::TearDownTestCase()
 {
     uniRenderThread.uniRenderEngine_->renderContext_ = std::make_shared<RenderContext>();
     uniRenderThread.uniRenderEngine_->renderContext_->drGPUContext_ = std::make_shared<Drawing::GPUContext>();
+    sleep(25); // wait 25s ensure async task is executed.
 }
 
 void RSUniRenderThreadTest::SetUp() {}
