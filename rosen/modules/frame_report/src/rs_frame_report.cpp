@@ -231,16 +231,27 @@ void RsFrameReport::ReportHardwareInfo(int tid)
     ReportSchedEvent(FrameSchedEvent::RS_HARDWARE_INFO, payload);
 }
 
-void RsFrameReport::ReportFrameDeadline(int deadline)
+void RsFrameReport::ReportFrameDeadline(int deadline, uint32_t currentRate)
 {
     std::unordered_map<std::string, std::string> payload = {};
     payload["rsFrameDeadline"] = std::to_string(deadline);
+    payload["currentRate"] = std::to_string(currentRate);
     ReportSchedEvent(FrameSchedEvent::RS_FRAME_DEADLINE, payload);
 }
 
 void RsFrameReport::ReportDDGRTaskInfo()
 {
     ReportSchedEvent(FrameSchedEvent::RS_DDGR_TASK, {});
+}
+
+void RsFrameReport::ReportScbSceneInfo(std::string description, bool eventStatus)
+{
+    std::unordered_map<std::string, std::string> payload = {};
+    payload["description"] = description;
+    payload["eventStatus"] = eventStatus ? "1" : "0"; // true:enter false:exit
+    LOGI("RsFrameReport:[ReportScbSceneInfo]description %{public}s, eventStatus %{public}s",
+        description.c_str(), payload["eventStatus"].c_str());
+    ReportSchedEvent(FrameSchedEvent::GPU_SCB_SCENE_INFO, payload);
 }
 } // namespace Rosen
 } // namespace OHOS
