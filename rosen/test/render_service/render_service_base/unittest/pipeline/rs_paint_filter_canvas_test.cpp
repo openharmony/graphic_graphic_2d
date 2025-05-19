@@ -1786,5 +1786,20 @@ HWTEST_F(RSPaintFilterCanvasTest, CacheBehindWindowDataTest, TestSize.Level1)
     ASSERT_NE(paintFilterCanvas_->GetCacheBehindWindowData(), nullptr);
     paintFilterCanvas_->cacheBehindWindowData_ = nullptr;
 }
+
+/**
+ * @tc.name: SetParallelRender
+ * @tc.desc: Test SetParallelRender
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPaintFilterCanvasTest, SetParallelRender, TestSize.Level1)
+{
+    Drawing::Canvas canvas;
+    std::shared_ptr<RSPaintFilterCanvas> paintFilterCanvasBase = std::make_shared<RSPaintFilterCanvas>(&canvas);
+    EXPECT_NE(paintFilterCanvasBase, nullptr);
+    paintFilterCanvasBase->SetParallelRender(true);
+}
+
 } // namespace Rosen
 } // namespace OHOS

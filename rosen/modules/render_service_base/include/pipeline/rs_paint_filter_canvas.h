@@ -38,6 +38,7 @@ public:
     RSPaintFilterCanvasBase(Drawing::Canvas* canvas);
     ~RSPaintFilterCanvasBase() override = default;
 
+    void SetParallelRender(bool parallelEnable) override;
     Drawing::Matrix GetTotalMatrix() const override;
 
     Drawing::Rect GetLocalClipBounds() const override;

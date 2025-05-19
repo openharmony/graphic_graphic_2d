@@ -617,6 +617,11 @@ bool CoreCanvas::DrawBlurImage(const Image& image, const HpsBlurParameter& blurP
     return impl_->DrawBlurImage(image, blurParams);
 }
 
+void CoreCanvas::SetParallelRender(bool parallelEnable)
+{
+    impl_->SetParallelRender(parallelEnable);
+}
+
 std::array<int, 2> CoreCanvas::CalcHpsBluredImageDimension(const Drawing::HpsBlurParameter& blurParams)
 {
     return impl_->CalcHpsBluredImageDimension(blurParams);
