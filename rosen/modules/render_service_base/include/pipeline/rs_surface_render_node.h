@@ -1514,13 +1514,11 @@ public:
         return appWindowZOrder_;
     }
 
-<<<<<<< HEAD
     // Enable HWCompose
     RSHwcSurfaceRecorder& HwcSurfaceRecorder() { return hwcSurfaceRecorder_; }
-=======
+
     void SetFrameGravityNewVersionEnabled(bool isEnabled);
     bool GetFrameGravityNewVersionEnabled() const;
->>>>>>> b9ff0f5d88498a61622666979d0a92ddcf92f0bc
 
 protected:
     void OnSync() override;
