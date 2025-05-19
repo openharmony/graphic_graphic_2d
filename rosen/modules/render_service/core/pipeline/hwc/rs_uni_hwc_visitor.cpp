@@ -1179,10 +1179,10 @@ void RSUniHwcVisitor::UpdateCrossInfoForProtectedHwcNode(RSSurfaceRenderNode& hw
 {
     if (hwcNode.GetSpecialLayerMgr().Find(SpecialLayerType::PROTECTED)) {
         auto firstLevelNode =
-            RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(hwcNode->GetFirstLevelNode());
+            RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(hwcNode.GetFirstLevelNode());
         if (firstLevelNode) {
-            hwcNode->SetHwcGlobalPositionEnabled(firstLevelNode->GetGlobalPositionEnabled());
-            hwcNode->SetHwcCrossNode(firstLevelNode->IsFirstLevelCrossNode());
+            hwcNode.SetHwcGlobalPositionEnabled(firstLevelNode->GetGlobalPositionEnabled());
+            hwcNode.SetHwcCrossNode(firstLevelNode->IsFirstLevelCrossNode());
         }
     }
 }
