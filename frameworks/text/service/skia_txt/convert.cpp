@@ -97,6 +97,7 @@ SPText::ParagraphStyle Convert(const TypographyStyle& style)
         .defaultTextStyleUid = style.defaultTextStyleUid,
         .halfLeading = style.halfLeading,
         .isTrailingSpaceOptimized = style.isTrailingSpaceOptimized,
+        .enableAutoSpace = style.enableAutoSpace,
     };
 }
 

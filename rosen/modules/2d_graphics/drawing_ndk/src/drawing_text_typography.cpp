@@ -3605,3 +3605,11 @@ void OH_Drawing_SetTypographyTextTrailingSpaceOptimized(OH_Drawing_TypographySty
     }
     ConvertToOriginalText<TypographyStyle>(style)->isTrailingSpaceOptimized = trailingSpaceOptimized;
 }
+
+void OH_Drawing_SetTypographyTextAutoSpace(OH_Drawing_TypographyStyle* style, bool enableAutoSpace)
+{
+    if (style == nullptr || ConvertToOriginalText<TypographyStyle>(style) == nullptr) {
+        return;
+    }
+    ConvertToOriginalText<TypographyStyle>(style)->enableAutoSpace = enableAutoSpace;
+}
