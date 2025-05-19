@@ -396,7 +396,7 @@ void RSSurfaceRenderNode::OnTreeStateChanged()
             if (IsLeashWindow()) {
                 context->MarkNeedPurge(ClearMemoryMoment::COMMON_SURFACE_NODE_HIDE, RSContext::PurgeType::GENTLY);
             }
-            if (IsScbWindowType()) {
+            if (IS_SCB_WINDOW_TYPE(surfaceWindowType_)) {
                 context->MarkNeedPurge(ClearMemoryMoment::SCENEBOARD_SURFACE_NODE_HIDE, RSContext::PurgeType::STRONGLY);
             }
         }
@@ -1777,12 +1777,7 @@ WINDOW_LAYER_INFO_TYPE RSSurfaceRenderNode::GetVisibleLevelForWMS(RSVisibleLevel
 
 bool RSSurfaceRenderNode::IsSCBNode() const
 {
-    return surfaceWindowType_ != SurfaceWindowType::SYSTEM_SCB_WINDOW &&
-           surfaceWindowType_ != SurfaceWindowType::SCB_DESKTOP &&
-           surfaceWindowType_ != SurfaceWindowType::SCB_WALLPAPER &&
-           surfaceWindowType_ != SurfaceWindowType::SCB_SCREEN_LOCK &&
-           surfaceWindowType_ != SurfaceWindowType::SCB_NEGATIVE_SCREEN &&
-           surfaceWindowType_ != SurfaceWindowType::SCB_DROPDOWN_PANEL;
+    return surfaceWindowType_ != SurfaceWindowType::SYSTEM_SCB_WINDOW;
 }
 
 void RSSurfaceRenderNode::UpdateHwcNodeLayerInfo(GraphicTransformType transform, bool isHardCursorEnable)

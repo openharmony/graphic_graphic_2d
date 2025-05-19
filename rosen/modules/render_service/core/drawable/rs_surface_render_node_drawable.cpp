@@ -74,8 +74,7 @@ RSSurfaceRenderNodeDrawable::RSSurfaceRenderNodeDrawable(std::shared_ptr<const R
     auto nodeSp = std::const_pointer_cast<RSRenderNode>(node);
     auto surfaceNode = std::static_pointer_cast<RSSurfaceRenderNode>(nodeSp);
     name_ = surfaceNode->GetName();
-    surfaceWindowType_ = surfaceNode->GetSurfaceWindowType();
-    if (surfaceWindowType_ != SurfaceWindowType::SCB_SCREEN_LOCK) {
+    if (surfaceNode->GetSurfaceWindowType() != SurfaceWindowType::SCB_SCREEN_LOCK) {
         vmaCacheOff_ = true;
     }
     surfaceNodeType_ = surfaceNode->GetSurfaceNodeType();
