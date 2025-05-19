@@ -392,6 +392,14 @@ void RSFile::SetVersion(uint32_t version)
 }
 
 // ***********************************
+// *** LAYER DATA - UNWRITE
+
+void RSFile::UnwriteRSData()
+{
+    UnwriteTrackData(&RSFileLayer::rsData, 0);
+}
+
+// ***********************************
 // *** LAYER DATA - WRITE
 
 void RSFile::WriteRSData(double time, const void* data, size_t size)
@@ -630,6 +638,26 @@ void RSFile::Close()
 
     writeDataOff_ = 0;
     wasChanged_ = false;
+
+    preparedHeaderMode_ = false;
+    headerFirstFrame_.clear();
+    headerAnimeStartTimes_.clear();
+    preparedHeader_.clear();
+    mapVsyncId2Time_.clear();
+}
+
+void RSFile::UnwriteTrackData(LayerTrackMarkupPtr trackMarkup, uint32_t layer)
+{
+    const std::lock_guard<std::mutex> lgMutex(writeMutex_);
+
+    if (!file_ || !HasLayer(layer)) {
+        return;
+    }
+
+    RSFileLayer& layerData = layerData_[layer];
+    if ((layerData.*trackMarkup).size()) {
+        (layerData.*trackMarkup).pop_back();
+    }
 }
 
 void RSFile::WriteTrackData(LayerTrackMarkupPtr trackMarkup, uint32_t layer, double time, const void* data, size_t size)

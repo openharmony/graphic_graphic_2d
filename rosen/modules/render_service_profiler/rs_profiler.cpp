@@ -476,6 +476,15 @@ void RSProfiler::OnProcessCommand()
     }
 }
 
+bool RSProfiler::IsSecureScreen()
+{
+    std::shared_ptr<RSDisplayRenderNode> displayNode = GetDisplayNode(*context_);
+    if (displayNode) {
+        return (displayNode->GetMultableSpecialLayerMgr().Find(SpecialLayerType::HAS_SECURITY)) ? true : false;
+    }
+    return false;
+}
+
 void RSProfiler::OnRenderBegin()
 {
     if (!IsEnabled()) {
@@ -1716,6 +1725,10 @@ void RSProfiler::RecordStop(const ArgList& args)
     }
 
     SetMode(Mode::SAVING);
+    if (args.String() == "REMOVELAST") {
+        g_recordFile.UnwriteRSData(); // remove last commands they may start animation with password depiction
+        g_recordFile.UnwriteRSData();
+    }
 
     bool isBetaRecordingStarted = IsBetaRecordStarted();
     std::thread thread([isBetaRecordingStarted]() {

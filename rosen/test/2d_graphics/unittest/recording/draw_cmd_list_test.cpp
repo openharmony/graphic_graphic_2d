@@ -207,6 +207,23 @@ HWTEST_F(DrawCmdListTest, GetBounds003, TestSize.Level1)
     EXPECT_TRUE(ret);
     delete drawCmdList;
 }
+
+/**
+ * @tc.name: ProfilerMarshallingDrawOps
+ * @tc.desc: Test ProfilerMarshallingDrawOps
+ * @tc.type: FUNC
+ * @tc.require: IC2UAC
+ */
+HWTEST_F(DrawCmdListTest, ProfilerMarshallingDrawOps, TestSize.Level1)
+{
+    auto drawCmdList = new DrawCmdList(DrawCmdList::UnmarshalMode::DEFERRED);
+    auto secondDrawCmdList = new DrawCmdList(DrawCmdList::UnmarshalMode::DEFERRED);
+    Brush brush;
+    drawCmdList->drawOpItems_.emplace_back(std::make_shared<DrawBackgroundOpItem>(brush));
+    drawCmdList->ProfilerMarshallingDrawOps(secondDrawCmdList);
+    EXPECT_EQ(secondDrawCmdList->drawOpItems_.size(), 1);
+    delete drawCmdList;
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
