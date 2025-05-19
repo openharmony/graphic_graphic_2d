@@ -359,16 +359,6 @@ public:
         return isHardwareForcedDisabled_;
     }
 
-    void SetLastFrameHasVisibleRegion(bool lastFrameHasVisibleRegion)
-    {
-        lastFrameHasVisibleRegion_ = lastFrameHasVisibleRegion;
-    }
-
-    bool GetLastFrameHasVisibleRegion() const
-    {
-        return lastFrameHasVisibleRegion_;
-    }
-
     bool IsLeashOrMainWindow() const
     {
         return nodeType_ <= RSSurfaceNodeType::LEASH_WINDOW_NODE || nodeType_ == RSSurfaceNodeType::CURSOR_NODE ||
@@ -1532,6 +1522,9 @@ public:
         return appWindowZOrder_;
     }
 
+    // Enable HWCompose
+    RSHwcSurfaceRecorder& HwcSurfaceRecorder() { return hwcSurfaceRecorder_; }
+
     void SetFrameGravityNewVersionEnabled(bool isEnabled);
     bool GetFrameGravityNewVersionEnabled() const;
 
@@ -1663,7 +1656,6 @@ private:
     bool isGpuOverDrawBufferOptimizeNode_ = false;
     bool isSubSurfaceNode_ = false;
     bool doDirectComposition_ = true;
-    bool lastFrameHasVisibleRegion_ = true;
     bool isSkipDraw_ = false;
     bool needHidePrivacyContent_ = false;
     bool isHardwareForcedByBackgroundAlpha_ = false;
@@ -1793,6 +1785,10 @@ private:
     std::vector<std::shared_ptr<RSRenderNode>> filterNodes_;
     std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> drawingCacheNodes_;
     int32_t appWindowZOrder_ = 0;
+
+    // Enable HWCompose
+    RSHwcSurfaceRecorder hwcSurfaceRecorder_;
+
     // previous self-Drawing Node Bound
 #ifdef ENABLE_FULL_SCREEN_RECONGNIZE
     float prevSelfDrawHeight_ = 0.0f;

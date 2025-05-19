@@ -2529,7 +2529,8 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
 
     // children->size() is 1, the extended screen is not supported
     // there is no visible hwc node or visible hwc nodes don't need update
-    if (children->size() == 1 && (!displayNode->HasVisibleHwcNodes() || !ExistBufferIsVisibleAndUpdate())) {
+    if (children->size() == 1 && (!displayNode->HwcDisplayRecorder().HasVisibleHwcNodes() ||
+                                  !ExistBufferIsVisibleAndUpdate())) {
         RS_TRACE_NAME_FMT("%s: no hwcNode in visibleRegion", __func__);
         return true;
     }
@@ -2646,7 +2647,7 @@ bool RSMainThread::ExistBufferIsVisibleAndUpdate()
             continue;
         }
         if (surfaceNode->GetRSSurfaceHandler()->IsCurrentFrameBufferConsumed() &&
-            surfaceNode->GetLastFrameHasVisibleRegion()) {
+            surfaceNode->HwcSurfaceRecorder().GetLastFrameHasVisibleRegion()) {
             bufferNeedUpdate = true;
             break;
         }

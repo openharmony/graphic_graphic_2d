@@ -324,7 +324,7 @@ HWTEST_F(RSDisplayRenderParamsTest, SetNeedForceUpdateHwcNodes, TestSize.Level1)
 {
     constexpr NodeId id = TestSrc::limitNumber::Uint64[0];
     RSDisplayRenderParams params(id);
-    params.needForceUpdateHwcNodes_ = true;
+    params.needForceUpdateHwcNodes_ = false;
     params.SetNeedForceUpdateHwcNodes(true);
     ASSERT_TRUE(params.needForceUpdateHwcNodes_);
     params.SetNeedForceUpdateHwcNodes(false);
