@@ -983,7 +983,7 @@ void RSUniHwcVisitor::UpdateHwcNodeRectInSkippedSubTree(const RSRenderNode& root
         rect.top_ = static_cast<int>(std::floor(absRect.GetTop()));
         rect.width_ = static_cast<int>(std::ceil(absRect.GetRight() - rect.left_));
         rect.height_ = static_cast<int>(std::ceil(absRect.GetBottom() - rect.top_));
-        UpdateCrossInfoForProtectedHwcNode(hwcNodePtr);
+        UpdateCrossInfoForProtectedHwcNode(*hwcNodePtr);
         UpdateDstRect(*hwcNodePtr, rect, clipRect);
         UpdateHwcNodeInfo(*hwcNodePtr, matrix, true);
         hwcNodePtr->SetTotalMatrix(matrix);
@@ -1175,12 +1175,9 @@ void RSUniHwcVisitor::QuickPrepareChildrenOnlyOrder(RSRenderNode& node)
     }
 }
 
-void RSUniHwcVisitor::UpdateCrossInfoForProtectedHwcNode(const std::shared_ptr<RSSurfaceRenderNode>& hwcNode)
+void RSUniHwcVisitor::UpdateCrossInfoForProtectedHwcNode(RSSurfaceRenderNode& hwcNode)
 {
-    if (!hwcNode) {
-        return;
-    }
-    if (hwcNode->GetSpecialLayerMgr().Find(SpecialLayerType::PROTECTED)) {
+    if (hwcNode.GetSpecialLayerMgr().Find(SpecialLayerType::PROTECTED)) {
         auto firstLevelNode =
             RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(hwcNode->GetFirstLevelNode());
         if (firstLevelNode) {
