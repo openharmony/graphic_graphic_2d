@@ -1402,7 +1402,7 @@ void RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(GraphicTransformType tr
     } else {
         RS_OPTIONAL_TRACE_NAME_FMT("RSBaseRenderUtil::DealWithSurfaceRotationAndGravity "
             "old version, surfaceNode:[%lu] isFrameGravityNewVersionEnabled:[%d]",
-            nodeParams->GetId(), nodeParams->GetFrameGravityNewVersionEnabled());
+            nodeParams != nullptr ? nodeParams->GetId() : 0, nodeParams->GetFrameGravityNewVersionEnabled());
         params.matrix.PreConcat(RSBaseRenderUtil::GetSurfaceTransformMatrixForRotationFixed(rotationTransform,
             localBounds, bufferBounds, gravity));
         if (rotationTransform == GraphicTransformType::GRAPHIC_ROTATE_90 ||
