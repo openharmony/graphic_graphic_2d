@@ -51,7 +51,8 @@ T GetData()
     g_pos += objectSize;
     return object;
 }
-std::string GetStringFromData(int strlen)
+
+std::string GetStringFromData(size_t strlen)
 {
     if (strlen <= 0) {
         return "fuzz";
@@ -68,6 +69,7 @@ std::string GetStringFromData(int strlen)
     std::string str(cstr);
     return str;
 }
+
 bool DoMarshalling(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -94,7 +96,7 @@ bool DoMarshalling(const uint8_t* data, size_t size)
 
     AnimDynamicItem item;
     item.animType = GetStringFromData(STR_LEN);
-    item.animType = GetStringFromData(STR_LEN);
+    item.animName = GetStringFromData(STR_LEN);
     item.minSpeed = GetData<int32_t>();
     item.maxSpeed = GetData<int32_t>();
     item.preferredFps = GetData<int32_t>();

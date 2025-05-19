@@ -52,7 +52,7 @@ T GetData()
     return object;
 }
 
-std::string GetStringFromData(int strlen)
+std::string GetStringFromData(size_t strlen)
 {
     if (strlen <= 0) {
         return "fuzz";
@@ -139,7 +139,8 @@ bool DoGetExpectedFrameRate(const uint8_t* data, size_t size)
     };
 
     for (const auto& unit : units) {
-        instance->GetExpectedFrameRate(unit, 1.f);
+        float velocity = GetData<float>();
+        instance->GetExpectedFrameRate(unit, velocity);
     }
 
     return true;
