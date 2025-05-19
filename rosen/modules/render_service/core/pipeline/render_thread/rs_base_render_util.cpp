@@ -1019,10 +1019,14 @@ CM_INLINE bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfac
             "%{public}" PRIu64 ", buffer timestamp = %{public}" PRId64 ", seq = %{public}" PRIu32 ".",
             surfaceHandler.GetNodeId(), acquireTimeStamp, surfaceBuffer->timestamp, surfaceBuffer->buffer->GetSeqNum());
         if (IsTagEnabled(HITRACE_TAG_GRAPHIC_AGP)) {
-            auto parentNode = surfaceNode->GetParent().lock();
-            RS_TRACE_NAME_FMT("RsDebug surfaceHandler(id: %" PRIu64 ") AcquireBuffer success, acquireTimeStamp = "
-                "%" PRIu64 ", buffer timestamp = %" PRId64 ", parentId = %" PRIu64 ", seq = %" PRIu32 ".",
-                surfaceHandler.GetNodeId(), acquireTimeStamp, surfaceBuffer->timestamp,
+            uint64_t parentNodeId = 0;
+            if (surfaceNode) {
+                auto parentNode = surfaceNode->GetParent().lock();
+                parentNodeId = parentNode ? parentNode->GetId() : 0;
+            }
+            RS_TRACE_NAME_FMT("RsDebug surfaceHandler(id: %" PRIu64 ") AcquireBuffer success, parentNodeId = "
+                "%" PRIu64 ", acquireTimeStamp = %" PRIu64 ", buffer timestamp = %" PRId64 ", parentId = %" PRIu64 ", seq = %" PRIu32 ".",
+                parentNodeId, surfaceHandler.GetNodeId(), acquireTimeStamp, surfaceBuffer->timestamp,
                 parentNode ? parentNode->GetId() : 0, surfaceBuffer->buffer->GetSeqNum());
         }
         // The damages of buffer will be merged here, only single damage is supported so far
