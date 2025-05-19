@@ -1175,6 +1175,10 @@ void RSRenderNode::CollectSurface(
     const std::shared_ptr<RSRenderNode>& node, std::vector<RSRenderNode::SharedPtr>& vec, bool isUniRender,
     bool onlyFirstLevel)
 {
+    if (node == nullptr) {
+        return;
+    }
+
     for (auto& child : *node->GetSortedChildren()) {
         child->CollectSurface(child, vec, isUniRender, onlyFirstLevel);
     }
@@ -1182,6 +1186,10 @@ void RSRenderNode::CollectSurface(
 
 void RSRenderNode::CollectSelfDrawingChild(const std::shared_ptr<RSRenderNode>& node, std::vector<NodeId>& vec)
 {
+    if (node == nullptr) {
+        return;
+    }
+    
     for (auto& child : *node->GetSortedChildren()) {
         child->CollectSelfDrawingChild(child, vec);
     }
