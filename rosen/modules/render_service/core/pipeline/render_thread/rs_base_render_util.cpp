@@ -1025,9 +1025,9 @@ CM_INLINE bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfac
                 parentNodeId = parentNode ? parentNode->GetId() : 0;
             }
             RS_TRACE_NAME_FMT("RsDebug surfaceHandler(id: %" PRIu64 ") AcquireBuffer success, parentNodeId = "
-                "%" PRIu64 ", acquireTimeStamp = %" PRIu64 ", buffer timestamp = %" PRId64 ", parentId = %" PRIu64 ", seq = %" PRIu32 ".",
-                parentNodeId, surfaceHandler.GetNodeId(), acquireTimeStamp, surfaceBuffer->timestamp,
-                parentNode ? parentNode->GetId() : 0, surfaceBuffer->buffer->GetSeqNum());
+                "%" PRIu64 ", acquireTimeStamp = %" PRIu64 ", buffer timestamp = %" PRId64 ", parentId = %" PRIu64 ","
+                "seq = %" PRIu32 ".",parentNodeId, surfaceHandler.GetNodeId(), acquireTimeStamp, surfaceBuffer->timestamp,
+                surfaceBuffer->buffer->GetSeqNum());
         }
         // The damages of buffer will be merged here, only single damage is supported so far
         MergeBufferDamages(surfaceBuffer->damageRect, returnValue.damages);
