@@ -1197,6 +1197,9 @@ void RSUniHwcVisitor::PrintHiperfCounterLog(const char* const counterContext, ui
 void RSUniHwcVisitor::PrintHiperfLog(RSSurfaceRenderNode* node, const char* const disabledContext)
 {
 #ifdef HIPERF_TRACE_ENABLE
+    if (!node) {
+        return;
+    }
     RS_LOGW("hiperf_surface: name:%{public}s disabled by %{public}s "
         "surfaceRect:[%{public}d, %{public}d, %{public}d, %{public}d]->"
         "[%{public}d, %{public}d, %{public}d, %{public}d]",
@@ -1210,16 +1213,7 @@ void RSUniHwcVisitor::PrintHiperfLog(RSSurfaceRenderNode* node, const char* cons
 
 void RSUniHwcVisitor::PrintHiperfLog(std::shared_ptr<RSSurfaceRenderNode>& node, const char* const disabledContext)
 {
-#ifdef HIPERF_TRACE_ENABLE
-    RS_LOGW("hiperf_surface: name:%{public}s disabled by %{public}s "
-        "surfaceRect:[%{public}d, %{public}d, %{public}d, %{public}d]->"
-        "[%{public}d, %{public}d, %{public}d, %{public}d]",
-        node->GetName().c_str(), disabledContext,
-        node->GetSrcRect().GetLeft(), node->GetSrcRect().GetRight(),
-        node->GetSrcRect().GetTop(), node->GetSrcRect().GetBottom(),
-        node->GetDstRect().GetLeft(), node->GetDstRect().GetRight(),
-        node->GetDstRect().GetTop(), node->GetDstRect().GetBottom());
-#endif
+    PrintHiperfLog(node.get(), disabledContext);
 }
 
 } // namespace Rosen

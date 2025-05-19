@@ -2321,6 +2321,7 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateCroseInfoForProtectedHwcNode001, TestSize.Le
     ASSERT_FALSE(surfaceNode->GetHwcGlobalPositionEnabled());
     ASSERT_FALSE(surfaceNode->IsDRMCrossNode());
 }
+
 /*
  * @tc.name: UpdateHwcNodeClipRect_001
  * @tc.desc: Test UpdateHwcNodeClipRect
