@@ -3585,15 +3585,14 @@ void RSMainThread::Animate(uint64_t timestamp)
     doWindowAnimate_ = curWinAnim;
     RS_LOGD("RSMainThread::Animate end, animating nodes remains, has window animation: %{public}d", curWinAnim);
 
-    // Greater than one frame time (16.6 ms)
-    constexpr int64_t oneFrameTimeInFPS60 = 17;
     if (needRequestNextVsync) {
         HgmEnergyConsumptionPolicy::Instance().StatisticAnimationTime(timestamp / NS_PER_MS);
+        // greater than one frame time (16.6 ms)
+        constexpr int64_t oneFrameTimeInFPS60 = 17;
+        // maximum delay time 60000 milliseconds, which is equivalent to 60 seconds.
+        constexpr int64_t delayTimeMax = 60000;
         if (minLeftDelayTime > oneFrameTimeInFPS60) {
-            // If the input parameter delayTime for PostTask is a very large int64 value, it can lead to overflow and
-            // crash because delayTime is specified in milliseconds, and thus it should be limited to the maximum value
-            // of int32.
-            minLeftDelayTime = std::min<int64_t>(minLeftDelayTime, INT32_MAX);
+            minLeftDelayTime = std::min(minLeftDelayTime, delayTimeMax);
             auto RequestNextVSyncTask = [this]() {
                 RS_TRACE_NAME("Animate with delay RequestNextVSync");
                 RequestNextVSync("animate", timestamp_);
