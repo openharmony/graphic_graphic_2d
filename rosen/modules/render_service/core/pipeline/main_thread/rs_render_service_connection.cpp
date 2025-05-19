@@ -21,6 +21,7 @@
 #include "hgm_core.h"
 #include "hgm_frame_rate_manager.h"
 #include "offscreen_render/rs_offscreen_render_thread.h"
+#include "rs_frame_report.h"
 #include "rs_main_thread.h"
 #include "rs_trace.h"
 //blur predict
@@ -2632,6 +2633,10 @@ void RSRenderServiceConnection::NotifyRefreshRateEvent(const EventInfo& eventInf
         return;
     }
 
+    if (VOTER_SCENE_GPU == eventInfo.eventName) {
+        RsFrameReport::GetInstance().ReportScbSceneInfo(eventInfo.description, eventInfo.eventStatus);
+        return;
+    }
     HgmTaskHandleThread::Instance().PostTask([pid = remotePid_, eventInfo]() {
         auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
         if (frameRateMgr != nullptr) {
