@@ -374,7 +374,7 @@ public:
 
     void SetFreeMultiWindowStatus(bool enable);
 
-    bool RegisterTransactionDataCallback(pid_t pid, uint64_t timeStamp, std::function<void()> callback)
+    bool RegisterTransactionDataCallback(pid_t pid, uint64_t timeStamp, std::function<void()> callback);
 
     bool RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid,
         std::shared_ptr<SurfaceBufferCallback> callback);

@@ -2122,61 +2122,67 @@ public:
     ~TransactionDataCallbackDirector() noexcept override = default;
     void OnAfterProcess(pid_t pid, uint64_t timeStamp) override
     {
-        RS_TRACE_NAME_FMT("789 test 11. client trigger callback&erase, timeStamp: %" PRIu64 " pid: %d", timeStamp, pid);
-        RS_LOGD("789 test 11. client trigger callback&erase, timeStamp: %{public}" PRIu64 " pid: %{public}d", timeStamp, pid);
+        RS_TRACE_NAME_FMT("789 test 11. client trigger callback&erase, timeStamp: %"
+            PRIu64 " pid: %d", timeStamp, pid);
+        RS_LOGD("789 test 11. client trigger callback&erase, timeStamp: %{public}"
+            PRIu64 " pid: %{public}d", timeStamp, pid);
         client->TriggerTransactionDataCallbackAndErase(pid, timeStamp);
     }
 
 private:
     RSRenderServiceClient* client_;
-}
+};
 
 bool RSRenderServiceClient::RegisterTransactionDataCallback(pid_t pid, uint64_t timeStamp, std::function<void()> callback)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
-    if (renderService != nullptr) {
+    if (renderService == nullptr) {
         ROSEN_LOGE("RSRenderServiceClient::RegisterTransactionDataCallback renderService == nullptr!");
         return false;
     }
-    if (callback != nullptr) {
+    if (callback == nullptr) {
         ROSEN_LOGE("RSRenderServiceClient::RegisterTransactionDataCallback callback == nullptr!");
         return false;
     }
     {
         std::lock_guard<std::mutex> lock { transactionDataCallbackMutex_};
-        if (transactionDataCallbacks_.find(std::make_dir(pid, timeStamp)) == std::end(transactionDataCallbacks_)) {
+        if (transactionDataCallbacks_.find(std::make_pair(pid, timeStamp)) == std::end(transactionDataCallbacks_)) {
             transactionDataCallbacks_.emplace(std::make_pair(pid, timeStamp), callback);
         } else {
             ROSEN_LOGE("RSRenderServiceClient::RegisterTransactionDataCallback callback exists"
-                "in timestamp %{public}s", std::to_string(timeStamp).c_str());
+                "in timeStamp %{public}s", std::to_string(timeStamp).c_str());
             return false;
         }
         if (transactionDataCbDirector_ == nullptr) {
-            transactionDataCbDirector_ = new TRansactionDataCallbackDirector(this);
+            transactionDataCbDirector_ = new TransactionDataCallbackDirector(this);
         }
     }
-    RS_TRACE_NAME_FMT("789 test 3. write data and unicode, timeStamp: %" PRIu64 " pid: %d", timeStamp, pid);
-    RS_LOGD("789 test 3. write data and unicode, timeStamp: %{public}" PRIu64 " pid: %{public}d", timeStamp, pid);
-    renderService_->RegisterTransactionDataCallback(pid, timeStamp, transactionDataCbDirector_);
+    RS_TRACE_NAME_FMT("789 test 3. write data and unicode, timeStamp: %"
+        PRIu64 " pid: %d", timeStamp, pid);
+    RS_LOGD("789 test 3. write data and unicode, timeStamp: %{public}"
+        PRIu64 " pid: %{public}d", timeStamp, pid);
+    renderService->RegisterTransactionDataCallback(pid, timeStamp, transactionDataCbDirector_);
     return true;
 }
 
 void RSRenderServiceClient::TriggerTransactionDataCallbackAndErase(pid_t pid, uint64_t timeStamp)
 {
+    std::lock_guard<std::mutex> lock { transactionDataCallbackMutex_};
     std::function<void()> callback = nullptr;
     {
-        auto iter = transactionDataCallbacks_.find(std::make_dir(pid, timeStamp));
+        auto iter = transactionDataCallbacks_.find(std::make_pair(pid, timeStamp));
         if (iter != std::end(transactionDataCallbacks_)) {
             callback = iter->second;
             transactionDataCallbacks_.erase(iter);
         }
     }
     if (callback) {
-        RS_TRACE_NAME_FMT("789 test 12. invoke callack, timeStamp: %" PRIu64 " pid: %d", timeStamp, pid);
-        RS_LOGD("789 test 12. invoke callack, timeStamp: %{public}" PRIu64 " pid: %{public}d", timeStamp, pid);
+        RS_TRACE_NAME_FMT("789 test 12. invoke callback, timeStamp: %"
+            PRIu64 " pid: %d", timeStamp, pid);
+        RS_LOGD("789 test 12. invoke callback, timeStamp: %{public}"
+            PRIu64 " pid: %{public}d", timeStamp, pid);
         std::invoke(callback);
     }
-
 }
 
 void RSRenderServiceClient::SetColorFollow(const std::string &nodeIdStr, bool isColorFollow)

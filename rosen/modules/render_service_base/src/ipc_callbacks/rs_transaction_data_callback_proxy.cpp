@@ -21,35 +21,37 @@
 
 namespace OHOS {
 namespace Rosen {
-RSTRansactionDataCallbackProxy::RSTRansactionDataCallbackProxy(const sptr<IRemoteObject>& impl)
-    : IRemoteProxy<RSITRansactionDataCallback>(impl)
+RSTransactionDataCallbackProxy::RSTransactionDataCallbackProxy(const sptr<IRemoteObject>& impl)
+    : IRemoteProxy<RSITransactionDataCallback>(impl)
 {
 }
 
-void RSTRansactionDataCallbackProxy::OnAfterProcess(pid_t pid, uint64_t timeStamp)
+void RSTransactionDataCallbackProxy::OnAfterProcess(pid_t pid, uint64_t timeStamp)
 {
-    essageParcel data;
+    MessageParcel data;
     MessageParcel reply;
     MessageOption option;
-    if (!data.WriteInterfaceToken(RSITRansactionDataCallback::GetDescriptor())) {
-        ROSEN_LOGE("RSTRansactionDataCallbackProxy::data.writeInterfacetoken error.");
+    if (!data.WriteInterfaceToken(RSITransactionDataCallback::GetDescriptor())) {
+        ROSEN_LOGE("RSTransactionDataCallbackProxy::data.WriteInterfaceToken error.");
         return;
     }
     if (!data.WriteInt32(pid)) {
-        ROSEN_LOGE("RSTRansactionDataCallbackProxy::OnAfterProcess write pid error.");
+        ROSEN_LOGE("RSTransactionDataCallbackProxy::OnAfterProcess write pid error.");
         return;
     }
     if (!data.WriteUint64(timeStamp)) {
-        ROSEN_LOGE("RSTRansactionDataCallbackProxy::OnAfterProcess write timeStamp error.");
+        ROSEN_LOGE("RSTransactionDataCallbackProxy::OnAfterProcess write timeStamp error.");
         return;
     }
     option.SetFlags(MessageOption::TF_ASYNC);
     uint32_t code = static_cast<uint32_t>(RSITRansactionDataCallbackInterfaceCode::ON_AFTER_PROCESS);
-    RS_TRACE_NAME_FMT("789 test 9. manager to send data, timeStamp: %" PRIu64 " pid: %d", timeStamp, pid);
-    RS_LOGD("789 test 9. manager to send data, timeStamp: %{public}" PRIu64 " pid: %{public}d", timeStamp, pid);
-    int32_t err = SendRequest(code, data, reply, option);
+    RS_TRACE_NAME_FMT("789 test 9. manager to send data, timeStamp: %"
+        PRIu64 " pid: %d", timeStamp, pid);
+    RS_LOGD("789 test 9. manager to send data, timeStamp: %{public}"
+        PRIu64 " pid: %{public}d", timeStamp, pid);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
-        ROSEN_LOGE("RSRenderServiceConnectionProxy: Remote()->SendRequest() error");
+        ROSEN_LOGE("RSTransactionDataCallbackProxy: Remote()->SendRequest() error");
     }
 }
 } // namespace Rosen

@@ -17,20 +17,19 @@
 
 #include <iremote_broker.h>
 
-#include "sync_fence.h"
 #include "common/rs_common_def.h"
 
 namespace OHOS {
 namespace Rosen {
-class RSITRansactionDataCallback : public IRemoteBroker {
+class RSITransactionDataCallback : public IRemoteBroker {
 public:
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.rosen.TransactionDataListener");
 
-    RSITRansactionDataCallback() = default;
-    virtual ~RSITRansactionDataCallback() noexcept = default;
+    RSITransactionDataCallback() = default;
+    virtual ~RSITransactionDataCallback() noexcept = default;
 
     virtual void OnAfterProcess(pid_t pid, uint64_t timeStamp) = 0;
-}
+};
 }// namespace Rosen
 }// namespace OHOS
 

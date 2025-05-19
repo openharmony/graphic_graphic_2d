@@ -31,18 +31,20 @@ int RSTransactionDataCallbackStub::OnRemoteRequest(
     switch (code) {
         case static_cast<uint32_t>(RSITransactionDataCallbackInterfaceCode::ON_AFTER_PROCESS): {
             pid_t pid = {};
-            uint64_t timestamp = {};
-            auto readRet = data.ReadInt32(pid) && data.ReadUint64(timestamp);
+            uint64_t timeStamp = {};
+            auto readRet = data.ReadInt32(pid) && data.ReadUint64(timeStamp);
             if (!readRet) {
-                RS_LOGE("RSTransactionDataCallbackStub: Read Remote Data ERROR");
+                ROSEN_LOGE("RSTransactionDataCallbackStub: Read Remote Data ERROR");
             }
-            RS_TRACE_NAME_FMT("789 test 10. manager already decode, timeStamp: %" PRIu64 " pid: %d", timeStamp, pid);
-            RS_LOGD("789 test 10. manager already decode, timeStamp: %{public}" PRIu64 " pid: %{public}d", timeStamp, pid);
+            RS_TRACE_NAME_FMT("789 test 10. manager already decode, timeStamp: %"
+                PRIu64 " pid: %d", timeStamp, pid);
+            RS_LOGD("789 test 10. manager already decode, timeStamp: %{public}"
+                PRIu64 " pid: %{public}d", timeStamp, pid);
             OnAfterProcess(pid, timeStamp);
             break;
         }
         default: {
-            RS_LOGE("RSTransactionDataCallbackStub: Unhandled enumeration value");
+            ROSEN_LOGE("RSTransactionDataCallbackStub: Unhandled enumeration value");
             ret = IPCObjectStub::OnRemoteRequest(code, data, reply, option);
             break;
         }

@@ -18,8 +18,8 @@
 
 #include <iremote_stub.h>
 #include "common/rs_macros.h"
-#include "ipc_callbacks/rs_transaction_callback.h"
-#include "ipc_callbacks/rs_transaction_callback_ipc_interface_code.h"
+#include "ipc_callbacks/rs_transaction_data_callback.h"
+#include "ipc_callbacks/rs_transaction_data_callback_ipc_interface_code.h"
 
 namespace OHOS {
 namespace Rosen {

@@ -502,8 +502,10 @@ void RSUIDirector::SendMessages(std::function<void()> callback)
         if (callback != nullptr) {
             ROSEN_LOGE("Enter Callback Pipeline %{public}s", __func__);
             pid_t pid = getpid();
-            RS_TRACE_NAME_FMT("789 test 1. arkui call sendmessage, timeStamp: %" PRIu64 " pid: %d", timeStamp_, pid);
-            RS_LOGD("789 test 1. ackui call sendmessage, timeStamp: %{public}" PRIu64 " pid: %{public}d", timeStamp_, pid);
+            RS_TRACE_NAME_FMT("789 test 1. arkui call sendmessage, timeStamp: %"
+                PRIu64 " pid: %d", timeStamp_, pid);
+            RS_LOGD("789 test 1. arkui call sendmessage, timeStamp: %{public}"
+                PRIu64 " pid: %{public}d", timeStamp_, pid);
             RSInterfaces::GetInstance().RegisterTransactionDataCallback(pid, timeStamp_, callback);
         }
         transactionProxy->FlushImplicitTransaction(timeStamp_, abilityName_);

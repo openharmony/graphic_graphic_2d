@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,6 +18,7 @@
 
 #include <functional>
 #include <map>
+#include <utility>
 #include <mutex>
 #include <shared_mutex>
 #include <utility>
@@ -35,7 +36,6 @@ public:
     void RegisterTransactionDataCallback(pid_t pid, uint64_t timeStamp,
         sptr<RSITransactionDataCallback> callback);
     void TriggerTransactionDataCallback(pid_t pid, uint64_t timeStamp);
-    void UnregisterTransactionDataCallback(pid_t pid, uint64_t timeStamp);
 
     static RSTransactionDataCallbackManager& Instance();
 private:
@@ -48,7 +48,7 @@ private:
     RSTransactionDataCallbackManager& operator=(RSTransactionDataCallbackManager&&) = delete;
 
     sptr<RSITransactionDataCallback> PopTransactionDataCallback(pid_t pid, uint64_t timeStamp);
-    bool PushTRansactionDataCallback(pid_t pid, uint64_t timeStamp,
+    bool PushTransactionDataCallback(pid_t pid, uint64_t timeStamp,
         sptr<RSITransactionDataCallback> callback);
 
     std::map<std::pair<pid_t, uint64_t>, sptr<RSITransactionDataCallback>> transactionDataCallbacks_;
@@ -57,4 +57,4 @@ private:
 } // namespace Rosen
 } // namespace OHOS
 
-#endif // RENDER_SERVICE_BASE_PIPELINE_RS_SURFACE_BUFFER_CALLBACK_MANAGER_H
+#endif // RENDER_SERVICE_BASE_PIPELINE_RS_TRANSACTION_DATA_CALLBACK_MANAGER_H
