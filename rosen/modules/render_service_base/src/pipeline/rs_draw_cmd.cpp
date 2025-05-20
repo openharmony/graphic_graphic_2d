@@ -169,7 +169,7 @@ void RSExtendImageObject::Dump(std::string& dump)
         dump += " rsImage is nullptr";
     } else {
         std::string rsImageDump;
-        rsImage_->dump(rsImageDump, 0);
+        rsImage_->Dump(rsImageDump, 0);
         rsImageDump.erase(
             std::remove_if(rsImageDump.begin(),
             rsImageDump.end(),
