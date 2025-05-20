@@ -1777,7 +1777,7 @@ WINDOW_LAYER_INFO_TYPE RSSurfaceRenderNode::GetVisibleLevelForWMS(RSVisibleLevel
 
 bool RSSurfaceRenderNode::IsSCBNode() const
 {
-    return surfaceWindowType_ != SurfaceWindowType::SYSTEM_SCB_WINDOW;
+    return !IS_SCB_WINDOW_TYPE(SurfaceWindowType_);
 }
 
 void RSSurfaceRenderNode::UpdateHwcNodeLayerInfo(GraphicTransformType transform, bool isHardCursorEnable)
