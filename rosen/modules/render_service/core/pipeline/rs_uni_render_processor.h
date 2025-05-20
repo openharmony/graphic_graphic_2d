@@ -36,7 +36,6 @@ public:
     bool Init(RSDisplayRenderNode& node, int32_t offsetX, int32_t offsetY, ScreenId mirroredId,
               std::shared_ptr<RSBaseRenderEngine> renderEngine) override;
     void CreateLayer(RSSurfaceRenderNode& node, RSSurfaceRenderParams& params) override;
-    void CreateUIFirstLayer(DrawableV2::RSSurfaceRenderNodeDrawable& drawable, RSSurfaceRenderParams& params) override;
     void ProcessSurface(RSSurfaceRenderNode& node) override;
     void ProcessDisplaySurface(RSDisplayRenderNode& node) override;
     void ProcessRcdSurface(RSRcdSurfaceRenderNode& node) override;

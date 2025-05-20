@@ -56,7 +56,6 @@ public:
         doingCacheProcessNum_++;
     }
     void DrawableCacheWithSkImage(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> nodeDrawable);
-    void DrawableCacheWithDma(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> nodeDrawable);
     std::shared_ptr<Drawing::GPUContext> GetGrContext() const
     {
         return grContext_;

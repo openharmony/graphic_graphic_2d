@@ -189,13 +189,6 @@ bool RSSystemParameters::GetHideNotchStatus()
     return (strcmp(enable, "2") == 0);
 }
 
-bool RSSystemParameters::GetUIFirstDmaBufferEnabled()
-{
-    static bool enable =
-        std::atoi((system::GetParameter("persist.sys.graphic.ui.first.dma.enabled", "1")).c_str()) != 0;
-    return enable;
-}
-
 bool RSSystemParameters::GetTcacheEnabled()
 {
     static bool flag = system::GetBoolParameter("persist.sys.graphic.tcache.enable", true);
