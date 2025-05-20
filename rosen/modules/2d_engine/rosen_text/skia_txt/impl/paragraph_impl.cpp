@@ -413,14 +413,24 @@ std::unique_ptr<Paragraph> ParagraphImpl::CloneSelf()
     return paragraph;
 }
 
+#ifdef USE_M133_SKIA
+void ParagraphImpl::UpdateColor(size_t from, size_t to, const RSColor& color,
+    skia::textlayout::UtfEncodeType encodeType)
+#else
 void ParagraphImpl::UpdateColor(size_t from, size_t to, const RSColor& color)
+#endif
 {
     RecordDifferentPthreadCall(__FUNCTION__);
     if (!paragraph_) {
         return;
     }
+#ifdef USE_M133_SKIA
+    auto unresolvedPaintID = paragraph_->updateColor(from, to,
+        SkColorSetARGB(color.GetAlpha(), color.GetRed(), color.GetGreen(), color.GetBlue()), encodeType);
+#else
     auto unresolvedPaintID = paragraph_->updateColor(from, to,
         SkColorSetARGB(color.GetAlpha(), color.GetRed(), color.GetGreen(), color.GetBlue()));
+#endif
     for (auto paintID : unresolvedPaintID) {
         paints_[paintID].SetColor(color);
     }

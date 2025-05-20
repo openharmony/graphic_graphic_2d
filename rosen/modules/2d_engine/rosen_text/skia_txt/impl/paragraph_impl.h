@@ -125,7 +125,11 @@ public:
     std::vector<std::unique_ptr<SPText::TextLineBase>> GetTextLines() const override;
     std::unique_ptr<Paragraph> CloneSelf() override;
     TextStyle SkStyleToTextStyle(const skt::TextStyle& skStyle) override;
+#ifdef USE_M133_SKIA
+    void UpdateColor(size_t from, size_t to, const RSColor& color, skia::textlayout::UtfEncodeType encodeType) override;
+#else
     void UpdateColor(size_t from, size_t to, const RSColor& color) override;
+#endif
     Drawing::RectI GeneratePaintRegion(double x, double y) override;
 
     void Relayout(double width, const ParagraphStyle& paragraphStyle,

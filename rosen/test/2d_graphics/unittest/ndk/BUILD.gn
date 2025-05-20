@@ -83,6 +83,9 @@ ohos_unittest("2d_graphics_ndk_test") {
       "//third_party/skia",
     ]
     defines += [ "USE_GRAPHIC_TEXT_GINE" ]
+    if (use_new_skia) {
+      include_dirs -= [ "//third_party/skia" ]
+    }
   } else {
     include_dirs += [ "$graphic_2d_root/rosen/modules/2d_engine" ]
   }

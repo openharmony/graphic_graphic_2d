@@ -44,6 +44,10 @@ ohos_unittest("rosen_text_adapt_test") {
     "$skia_root_new",
   ]
 
+  if (use_new_skia) {
+    include_dirs -= [ "$skia_root_new" ]
+  }
+
   cflags = [
     "-std=c++17",
     "-Dprivate=public",
@@ -61,10 +65,18 @@ ohos_unittest("rosen_text_adapt_test") {
   }
 
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
-    defines += [
-      "USE_ROSEN_DRAWING",
-      "USE_SKIA_TXT",
-    ]
+    if (use_new_skia) {
+      defines += [
+        "USE_ROSEN_DRAWING",
+        "ENABLE_DRAWING_ADAPTER",
+        "USE_M133_SKIA",
+      ]
+    } else {
+      defines += [
+        "USE_ROSEN_DRAWING",
+        "USE_SKIA_TXT",
+      ]
+    }
     if (rs_enable_gpu) {
       defines += [ "RS_ENABLE_GPU" ]
     }
