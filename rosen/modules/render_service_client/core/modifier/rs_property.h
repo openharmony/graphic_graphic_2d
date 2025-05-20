@@ -279,6 +279,7 @@ private:
     friend class RSPathAnimation;
     friend class RSModifier;
     friend class RSBackgroundUIFilterModifier;
+    friend class RSForegroundUIFilterModifier;
     friend class RSKeyframeAnimation;
     friend class RSInterpolatingSpringAnimation;
     friend class RSImplicitTransitionParam;

@@ -72,7 +72,7 @@ void RSRenderNode::UpdateBlurEffectCounter(int deltaCount)
     if (LIKELY(deltaCount == 0)) {
         return;
     }
-    
+
     auto pid = ExtractPid(GetId());
     // Try to insert pid with value 0 and we got an iterator to the inserted element or to the existing element.
     auto it = blurEffectCounter_.emplace(std::make_pair(pid, 0)).first;
@@ -203,7 +203,7 @@ void RSRenderNode::AddChild(SharedPtr child, int index)
     if (child == nullptr || child->GetId() == GetId()) {
         return;
     }
-    
+
     if (RS_PROFILER_PROCESS_ADD_CHILD(this, child, index)) {
         RS_LOGI("Add child: blocked during replay");
         return;
@@ -223,7 +223,7 @@ void RSRenderNode::AddChild(SharedPtr child, int index)
         children_.emplace(std::next(children_.begin(), index), child);
     }
     disappearingChildren_.remove_if([&child](const auto& pair) -> bool { return pair.first == child; });
-    
+
     // A child is not on the tree until its parent is on the tree
     if (isOnTheTree_) {
         child->SetIsOnTheTree(true, instanceRootNodeId_, firstLevelNodeId_, drawingCacheRootId_,
@@ -831,7 +831,7 @@ void RSRenderNode::DumpTree(int32_t depth, std::string& out) const
         out += ", zOrder: " + std::to_string(hwcRecorder_.GetZOrderForHwcEnableByFilter());
     }
 #endif
-    
+
     DumpSubClassNode(out);
     out += ", Properties: " + GetRenderProperties().Dump();
     if (uiContextToken_ > 0) {
@@ -890,7 +890,7 @@ void RSRenderNode::DumpTree(int32_t depth, std::string& out) const
     DumpModifiers(out);
     animationManager_.DumpAnimations(out);
     ChildrenListDump(out);
-    
+
     for (auto& child : children_) {
         if (auto c = child.lock()) {
             c->DumpTree(depth + 1, out);
@@ -1448,7 +1448,7 @@ std::tuple<bool, bool, bool> RSRenderNode::Animate(
         return displaySync_->GetAnimateResult();
     }
     RSSurfaceNodeAbilityState abilityState = RSSurfaceNodeAbilityState::FOREGROUND;
-    
+
     // Animation on surfaceNode is always on foreground ability state.
     // If instanceRootNode is surfaceNode, get its ability state. If not, regard it as foreground ability state.
     if (GetType() != RSRenderNodeType::SURFACE_NODE) {
@@ -2562,19 +2562,21 @@ void RSRenderNode::AddModifier(const std::shared_ptr<RSRenderModifier>& modifier
             GetId(), modifier->GetModifierTypeString().c_str(), std::to_string(modifier->GetDrawCmdListId()).c_str());
         return;
     }
-    if (modifier->GetType() == RSModifierType::BOUNDS || modifier->GetType() == RSModifierType::FRAME) {
+    auto modifierType = modifier->GetType();
+    if (modifierType == RSModifierType::BOUNDS || modifierType == RSModifierType::FRAME) {
         AddGeometryModifier(modifier);
-    } else if (modifier->GetType() == RSModifierType::BACKGROUND_UI_FILTER) {
+    } else if (modifierType == RSModifierType::BACKGROUND_UI_FILTER ||
+        modifierType == RSModifierType::FOREGROUND_UI_FILTER) {
         AddUIFilterModifier(modifier);
-    } else if (modifier->GetType() < RSModifierType::CUSTOM) {
+    } else if (modifierType < RSModifierType::CUSTOM) {
         modifiers_.emplace(modifier->GetPropertyId(), modifier);
-        if (modifier->GetType() == RSModifierType::COMPLEX_SHADER_PARAM) {
+        if (modifierType == RSModifierType::COMPLEX_SHADER_PARAM) {
             auto property = modifier->GetProperty();
             properties_.emplace(modifier->GetPropertyId(), property);
         }
     } else {
         modifier->SetSingleFrameModifier(false);
-        renderContent_->drawCmdModifiers_[modifier->GetType()].emplace_back(modifier);
+        renderContent_->drawCmdModifiers_[modifierType].emplace_back(modifier);
     }
     modifier->GetProperty()->Attach(shared_from_this());
     ROSEN_LOGI_IF(DEBUG_MODIFIER, "RSRenderNode:add modifier, node id: %{public}" PRIu64 ", type: %{public}s",
@@ -4739,7 +4741,7 @@ void RSRenderNode::OnSync()
         renderDrawable_->drawCmdIndex_ = stagingDrawCmdIndex_;
         drawCmdListNeedSync_ = false;
     }
-    
+
     if (drawableVecNeedClear_) {
         ClearDrawableVec2();
     }

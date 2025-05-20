@@ -628,4 +628,23 @@ HWTEST_F(RSRenderModifierTest, RSBehindWindowFilterMaskColorRenderModifier001, T
     Parcel parcel;
     ASSERT_TRUE(modifier->Marshalling(parcel));
 }
+
+/**
+ * @tc.name: RSForegroundUIFilterRenderModifier001
+ * @tc.desc: RSForegroundUIFilterRenderModifier001
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderModifierTest, RSForegroundUIFilterRenderModifier001, TestSize.Level1)
+{
+    auto prop1 = std::make_shared<RSRenderProperty<std::shared_ptr<RSRenderFilter>>>();
+    auto modifier = std::make_shared<RSForegroundUIFilterRenderModifier>(prop1);
+    EXPECT_EQ(modifier->GetProperty(), prop1);
+
+    auto prop2 = std::make_shared<RSRenderProperty<std::shared_ptr<RSRenderFilter>>>();
+    modifier->Update(prop2, false);
+
+    Parcel parcel;
+    EXPECT_TRUE(modifier->Marshalling(parcel));
+}
 }

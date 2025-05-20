@@ -48,6 +48,7 @@ public:
         DISPLACEMENT_DISTORT,
         SOUND_WAVE,
         EDGE_LIGHT,
+        BEZIER_WARP,
     };
 
     FilterPara()  = default;

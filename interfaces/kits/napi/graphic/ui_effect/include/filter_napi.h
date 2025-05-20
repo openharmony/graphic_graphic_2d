@@ -18,6 +18,7 @@
 #include <hilog/log.h>
 #include <iostream>
 #include "filter/include/filter.h"
+#include "filter/include/filter_bezier_warp_para.h"
 #include "filter/include/filter_blur_para.h"
 #include "filter/include/filter_color_gradient_para.h"
 #include "filter/include/filter_pixel_stretch_para.h"
@@ -55,6 +56,7 @@ private:
     static void Destructor(napi_env env, void* nativeObject, void* finalize);
 
     static napi_value CreateFilter(napi_env env, napi_callback_info info);
+    static napi_value SetBezierWarp(napi_env env, napi_callback_info info);
     static napi_value SetBlur(napi_env env, napi_callback_info info);
     static napi_value SetPixelStretch(napi_env env, napi_callback_info info);
     static napi_value SetWaterRipple(napi_env env, napi_callback_info info);

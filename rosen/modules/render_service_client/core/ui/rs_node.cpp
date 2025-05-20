@@ -60,6 +60,7 @@
 #include "ui_effect/property/include/rs_ui_color_gradient_filter.h"
 #include "ui_effect/mask/include/ripple_mask_para.h"
 #include "ui_effect/property/include/rs_ui_filter.h"
+#include "ui_effect/property/include/rs_ui_bezier_warp_filter.h"
 #include "ui_effect/property/include/rs_ui_displacement_distort_filter.h"
 #include "ui_effect/property/include/rs_ui_edge_light_filter.h"
 
@@ -1976,8 +1977,9 @@ void RSNode::SetUIForegroundFilter(const OHOS::Rosen::Filter* foregroundFilter)
         ROSEN_LOGE("Failed to set foregroundFilter, foregroundFilter is null!");
         return;
     }
-    // To do: generate composed filter here. Now we just set pixel stretch in v1.0.
-    auto filterParas = foregroundFilter->GetAllPara();
+    // To do: generate composed filter here. Now we just set foreground blur in v1.0.
+    std::shared_ptr<RSUIFilter> uiFilter = std::make_shared<RSUIFilter>();
+    auto& filterParas = foregroundFilter->GetAllPara();
     for (const auto& filterPara : filterParas) {
         if (filterPara->GetParaType() == FilterPara::BLUR) {
             auto filterBlurPara = std::static_pointer_cast<FilterBlurPara>(filterPara);
@@ -1998,6 +2000,46 @@ void RSNode::SetUIForegroundFilter(const OHOS::Rosen::Filter* foregroundFilter)
             auto distortionK = distortPara->GetDistortionK();
             SetDistortionK(distortionK);
         }
+        if (filterPara->GetParaType() == FilterPara::BEZIER_WARP) {
+            auto bezierWarpProperty = std::make_shared<RSUIBezierWarpFilterPara>();
+            auto bezierWarpPara = std::static_pointer_cast<BezierWarpPara>(filterPara);
+            bezierWarpProperty->SetBezierWarp(bezierWarpPara);
+            uiFilter->Insert(bezierWarpProperty);
+        }
+    }
+    if (!uiFilter->GetAllTypes().empty()) {
+        SetForegroundUIFilter(uiFilter);
+    }
+}
+
+void RSNode::SetForegroundUIFilter(const std::shared_ptr<RSUIFilter> foregroundFilter)
+{
+    if (foregroundFilter == nullptr) {
+        ROSEN_LOGE("RSNode::SetForegroundUIFilter foregroundFilter is nullptr");
+        return;
+    }
+
+    bool shouldAdd = true;
+    std::shared_ptr<RSUIFilter> oldProperty = nullptr;
+    auto iter = propertyModifiers_.find(RSModifierType::FOREGROUND_UI_FILTER);
+    if (iter != propertyModifiers_.end() && iter->second != nullptr) {
+        auto oldRsPro = std::static_pointer_cast<RSProperty<std::shared_ptr<RSUIFilter>>>(
+            iter->second->GetProperty());
+        if (oldRsPro) {
+            oldProperty = oldRsPro->Get();
+        }
+        if (oldProperty && foregroundFilter->IsStructureSame(oldProperty)) {
+            shouldAdd = false;
+            oldProperty->SetValue(foregroundFilter);
+            return;
+        }
+    }
+
+    if (shouldAdd) {
+        auto rsProperty = std::make_shared<RSProperty<std::shared_ptr<RSUIFilter>>>(foregroundFilter);
+        auto propertyModifier = std::make_shared<RSForegroundUIFilterModifier>(rsProperty);
+        propertyModifiers_.emplace(RSModifierType::FOREGROUND_UI_FILTER, propertyModifier);
+        AddModifier(propertyModifier);
     }
 }
 
@@ -3060,7 +3102,7 @@ void RSNode::MarkUifirstNode(bool isUifirstNode)
     std::unique_ptr<RSCommand> command = std::make_unique<RSMarkUifirstNode>(GetId(), isUifirstNode);
     AddCommand(command, IsRenderServiceNode());
 }
- 
+
 void RSNode::MarkUifirstNode(bool isForceFlag, bool isUifirstEnable)
 {
     CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
@@ -3092,11 +3134,11 @@ bool RSNode::GetIsDrawn()
 
 /**
  * @brief Sets the drawing type of RSnode
- * 
+ *
  * This function is used to set the corresponding draw type when
  * adding draw properties to RSnode, so that it is easy to identify
  * which draw nodes are really needed.
- * 
+ *
  * @param nodeType The type of node that needs to be set.
  *
 */

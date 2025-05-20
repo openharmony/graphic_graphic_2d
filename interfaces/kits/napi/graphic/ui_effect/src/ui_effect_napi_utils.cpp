@@ -107,6 +107,24 @@ bool ConvertFromJsPoint(napi_env env, napi_value jsObject, double* point, size_t
     return true;
 }
 
+bool ParseJsPoint(napi_env env, napi_value jsObject, Vector2f& point)
+{
+    napi_value tmpValue = nullptr;
+    for (size_t idx = 0; idx < NUM_2; idx++) {
+        if (napi_get_named_property(env, jsObject, POINT_STRING[idx], &tmpValue) != napi_ok || tmpValue == nullptr) {
+            return false;
+        }
+
+        double value = 0.0;
+        if (napi_get_value_double(env, tmpValue, &value) != napi_ok) {
+            return false;
+        }
+
+        point[idx] = static_cast<float>(value);
+    }
+    return true;
+}
+
 bool ParseJsRGBAColor(napi_env env, napi_value jsValue, Vector4f& rgba)
 {
     for (size_t idx = 0; idx < NUM_4; idx++) {

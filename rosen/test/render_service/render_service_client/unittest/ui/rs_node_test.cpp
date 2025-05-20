@@ -4315,6 +4315,20 @@ HWTEST_F(RSNodeTest, SetUIForegroundFilter, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetForegroundUIFilter
+ * @tc.desc: test results of SetForegroundUIFilter
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest, SetForegroundUIFilter, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    auto rsUIFilter = std::make_shared<RSUIFilter>();
+
+    rsNode->SetForegroundUIFilter(rsUIFilter);
+    EXPECT_FALSE(rsNode->propertyModifiers_.empty());
+}
+
+/**
  * @tc.name: SetVisualEffect
  * @tc.desc: test results of SetVisualEffect
  * @tc.type: FUNC

@@ -48,6 +48,7 @@ public:
         COLOR_GRADIENT,
         SOUND_WAVE,
         EDGE_LIGHT,
+        BEZIER_WARP,
     };
 
     ShaderFilterType GetShaderFilterType() const

@@ -22,6 +22,7 @@ ohos_unittest("RSRenderServiceClientPropertyTest") {
 
   sources = [
     "rs_ui_blur_filter_test.cpp",
+    "rs_ui_bezier_warp_filter_test.cpp",
     "rs_ui_color_gradient_filter_test.cpp",
     "rs_ui_displacement_distort_filter_test.cpp",
     "rs_ui_edge_light_filter_test.cpp",

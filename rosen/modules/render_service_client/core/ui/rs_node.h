@@ -86,7 +86,7 @@ public:
     static inline constexpr RSUINodeType Type = RSUINodeType::RS_NODE;
     /**
      * @brief Get the type of the RSNode.
-     * 
+     *
      * @return The type of the RSNode.
      */
     virtual RSUINodeType GetType() const
@@ -121,7 +121,7 @@ public:
      * @brief Adds a child node to the current node at the specified index.
      *
      * @param child The shared pointer to the child node to be added.
-     * @param index The position at which the child node should be inserted. 
+     * @param index The position at which the child node should be inserted.
      *              If the index is -1 (default), the child is added to the end.
      */
     virtual void AddChild(SharedPtr child, int index = -1);
@@ -546,7 +546,7 @@ public:
      * @param pivotZ The Z coordinate of the pivot point.
      */
     void SetPivotZ(float pivotZ);
-    
+
     /**
      * @brief Sets the corner radius of the node.
      *
@@ -560,12 +560,12 @@ public:
      * @param cornerRadius A Vector4f representing the corner radius for each corner (top-left, top-right, bottom-right, bottom-left).
      */
     void SetCornerRadius(const Vector4f& cornerRadius);
-    
+
     /**
      * @brief Sets the rotation of the node.
      *
      * @param quaternion A Quaternion representing the rotation to be applied to the node.
-     */ 
+     */
     void SetRotation(const Quaternion& quaternion);
 
     /**
@@ -635,10 +635,10 @@ public:
      * @param translate The translation distance along the Z-axis.
      */
     void SetTranslateZ(float translate);
-    
+
     /**
      * @brief Sets the scale factor for the node.
-     * 
+     *
      * Greater than 1.0f will scale up, less than 1.0f will scale down.
      *
      * @param scale The scale factor to apply to the node.
@@ -871,7 +871,7 @@ public:
      * @param process The progress value to set for the background shader.
      */
     void SetBackgroundShaderProgress(const float& process);
-    
+
     /**
      * @brief Sets the background image for this node.
      *
@@ -929,7 +929,7 @@ public:
      * @param positionY The Y coordinate of the background image position.
      */
     void SetBgImagePositionY(float positionY);
-    
+
     /**
      * @brief Sets the border color of the node.
      *
@@ -1050,7 +1050,7 @@ public:
      * @param color Indicates outline color,each color contains rgb and alpha.
      */
     void SetOutlineColor(const Vector4<Color>& color);
-    
+
     /**
      * @brief Sets the outline width of the node.
      *
@@ -1064,7 +1064,7 @@ public:
      * @param style Indicates values to be used as the outline style.
      */
     void SetOutlineStyle(const Vector4<BorderStyle>& style);
-    
+
     /**
      * @brief Sets the dash width for the outline of the node.
      *
@@ -1116,6 +1116,7 @@ public:
     void SetVisualEffect(const VisualEffect* visualEffect);
 
     void SetBackgroundUIFilter(const std::shared_ptr<RSUIFilter> backgroundFilter);
+    void SetForegroundUIFilter(const std::shared_ptr<RSUIFilter> foregroundFilter);
 
     /**
      * @brief Sets the foreground effect radius.
@@ -1621,7 +1622,7 @@ public:
 
     /**
      * @brief Get the name of the node.
-     * 
+     *
      * @return The name of the node as a std::string.
      */
     const std::string GetNodeName() const
@@ -1681,7 +1682,7 @@ public:
 #endif
 
     /**
-     * @brief Gets whether the node is on the tree. 
+     * @brief Gets whether the node is on the tree.
      *
      * @return true if the node is on the tree; false otherwise.
      */
@@ -1909,6 +1910,7 @@ private:
     friend class RSModifierExtractor;
     friend class RSModifier;
     friend class RSBackgroundUIFilterModifier;
+    friend class RSForegroundUIFilterModifier;
     friend class RSKeyframeAnimation;
     friend class RSInterpolatingSpringAnimation;
     friend class RSImplicitCancelAnimationParam;

@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 #include "platform/common/rs_log.h"
+#include "render/rs_render_bezier_warp_filter.h"
 #include "render/rs_render_blur_filter.h"
 #include "render/rs_render_color_gradient_filter.h"
 #include "render/rs_render_displacement_distort_filter.h"
@@ -36,6 +37,9 @@ std::shared_ptr<RSRenderFilterParaBase> RSRenderFilter::GetRenderFilterPara(RSUI
 std::shared_ptr<RSRenderFilterParaBase> RSRenderFilter::CreateRenderFilterPara(RSUIFilterType type)
 {
     switch (type) {
+        case RSUIFilterType::BEZIER_WARP : {
+            return std::make_shared<RSRenderBezierWarpFilterPara>(0);
+        }
         case RSUIFilterType::BLUR : {
             return std::make_shared<RSRenderBlurFilterPara>(0);
         }

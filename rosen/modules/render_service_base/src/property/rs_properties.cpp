@@ -57,6 +57,7 @@
 #include "render/rs_distortion_shader_filter.h"
 #include "render/rs_sound_wave_filter.h"
 #include "render/rs_edge_light_shader_filter.h"
+#include "render/rs_bezier_warp_filter.h"
 #include "drawable/rs_property_drawable_utils.h"
 
 
@@ -283,6 +284,8 @@ static const std::unordered_map<RSModifierType, ResetPropertyFunc> g_propertyRes
                                                                 prop->SetComplexShaderParam({}); }},
     { RSModifierType::BACKGROUND_UI_FILTER,                 [](RSProperties* prop) {
                                                                 prop->SetBackgroundUIFilter({}); }},
+    { RSModifierType::FOREGROUND_UI_FILTER,                 [](RSProperties* prop) {
+                                                                prop->SetForegroundUIFilter({}); }},
 };
 
 } // namespace
@@ -2556,6 +2559,20 @@ std::shared_ptr<RSRenderFilter> RSProperties::GetBackgroundUIFilter() const
     return backgroundRenderFilter_;
 }
 
+void RSProperties::SetForegroundUIFilter(const std::shared_ptr<RSRenderFilter>& filterProp)
+{
+    foregroundRenderFilter_ = filterProp;
+    isDrawn_ = true;
+    filterNeedUpdate_ = true;
+    SetDirty();
+    contentDirty_ = true;
+}
+
+std::shared_ptr<RSRenderFilter> RSProperties::GetForegroundUIFilter() const
+{
+    return foregroundRenderFilter_;
+}
+
 void RSProperties::SetSpherize(float spherizeDegree)
 {
     spherizeDegree_ = spherizeDegree;
@@ -3012,7 +3029,7 @@ void RSProperties::SetComplexShaderParam(const std::vector<float> &param)
     SetDirty();
     contentDirty_ = true;
 }
- 
+
 std::optional<std::vector<float>> RSProperties::GetComplexShaderParam() const
 {
     return complexShaderParam_;
@@ -3662,6 +3679,76 @@ void RSProperties::GenerateRenderFilter()
     }
 }
 
+void RSProperties::GenerateForegroundRenderFilter()
+{
+    for (auto type : foregroundRenderFilter_->GetUIFilterTypes()) {
+        switch (type) {
+            case RSUIFilterType::BEZIER_WARP : {
+                GenerateBezierWarpFilter();
+                break;
+            }
+            default:
+                ROSEN_LOGE("RSProperties::GenerateReGenerateForegroundRenderFilternderFilter NULL.");
+                break;
+        }
+        ROSEN_LOGD("RSProperties::GenerateForegroundRenderFilter type %{public}d finished.", static_cast<int>(type));
+    }
+}
+
+void RSProperties::GenerateBezierWarpFilter()
+{
+    if (foregroundRenderFilter_ == nullptr) {
+        ROSEN_LOGE("RSProperties::GenerateBezierWarpFilter get foregroundRenderFilter_ nullptr.");
+        return;
+    }
+    auto bezierWarpPara = foregroundRenderFilter_->GetRenderFilterPara(RSUIFilterType::BEZIER_WARP);
+    if (bezierWarpPara == nullptr) {
+        ROSEN_LOGE("RSProperties::GenerateBezierWarpFilter BEZIER_WARP filter para not found.");
+        return;
+    }
+
+    std::array<RSUIFilterType, INDEX_12> ctrlPointsType = {
+        RSUIFilterType::BEZIER_CONTROL_POINT0,
+        RSUIFilterType::BEZIER_CONTROL_POINT1,
+        RSUIFilterType::BEZIER_CONTROL_POINT2,
+        RSUIFilterType::BEZIER_CONTROL_POINT3,
+        RSUIFilterType::BEZIER_CONTROL_POINT4,
+        RSUIFilterType::BEZIER_CONTROL_POINT5,
+        RSUIFilterType::BEZIER_CONTROL_POINT6,
+        RSUIFilterType::BEZIER_CONTROL_POINT7,
+        RSUIFilterType::BEZIER_CONTROL_POINT8,
+        RSUIFilterType::BEZIER_CONTROL_POINT9,
+        RSUIFilterType::BEZIER_CONTROL_POINT10,
+        RSUIFilterType::BEZIER_CONTROL_POINT11,
+    };
+    std::array<Drawing::Point, INDEX_12> ctrlPoints;
+    Vector2f tmpBezierCtrlPoint;
+    std::shared_ptr<RSRenderAnimatableProperty<Vector2f>> ctrlPointProperty;
+    for (size_t i = 0; i < INDEX_12; ++i) {
+        ctrlPointProperty = std::static_pointer_cast<RSRenderAnimatableProperty<Vector2f>>(
+            bezierWarpPara->GetRenderPropert(ctrlPointsType[i]));
+        if (ctrlPointProperty == nullptr) {
+            ROSEN_LOGE("RSProperties::GenerateBezierWarpFilter GetRenderPropert nullptr, index:%zu", i);
+            return;
+        }
+        tmpBezierCtrlPoint = ctrlPointProperty->Get();
+        ctrlPoints[i].Set(tmpBezierCtrlPoint.x_, tmpBezierCtrlPoint.y_);
+    }
+    std::shared_ptr<RSBezierWarpFilter> bezierWarpFilter = std::make_shared<RSBezierWarpFilter>(ctrlPoints);
+
+    std::shared_ptr<RSDrawingFilter> originalFilter = std::make_shared<RSDrawingFilter>(bezierWarpFilter);
+    foregroundFilter_.reset();
+    if (!foregroundFilter_) {
+        foregroundFilter_ = originalFilter;
+        foregroundFilter_->SetFilterType(RSFilter::BEZIER_WARP);
+    } else {
+        auto foregroundDrawingFilter = std::static_pointer_cast<RSDrawingFilter>(foregroundFilter_);
+        foregroundDrawingFilter = foregroundDrawingFilter->Compose(bezierWarpFilter);
+        foregroundDrawingFilter->SetFilterType(RSFilter::BEZIER_WARP);
+        foregroundFilter_ = foregroundDrawingFilter;
+    }
+}
+
 void RSProperties::GenerateBackgroundFilter()
 {
     if (aiInvert_.has_value() || systemBarEffect_) {
@@ -3704,6 +3791,7 @@ void RSProperties::GenerateForegroundFilter()
     } else {
         filter_ = nullptr;
     }
+
     if (filter_ == nullptr) {
         ROSEN_LOGD("RSProperties::GenerateForegroundFilter failed");
     }
@@ -4912,6 +5000,8 @@ void RSProperties::UpdateFilter()
 
 void RSProperties::UpdateForegroundFilter()
 {
+    foregroundFilter_.reset();
+    foregroundFilterCache_.reset();
     if (motionBlurPara_ && ROSEN_GNE(motionBlurPara_->radius, 0.0)) {
         auto motionBlurFilter = std::make_shared<RSMotionBlurFilter>(motionBlurPara_);
         if (IS_UNI_RENDER) {
@@ -4936,9 +5026,8 @@ void RSProperties::UpdateForegroundFilter()
         CreateColorfulShadowFilter();
     } else if (IsDistortionKValid()) {
         foregroundFilter_ = std::make_shared<RSDistortionFilter>(*distortionK_);
-    } else {
-        foregroundFilter_.reset();
-        foregroundFilterCache_.reset();
+    } else if (foregroundRenderFilter_) {
+        GenerateForegroundRenderFilter();
     }
 }
 

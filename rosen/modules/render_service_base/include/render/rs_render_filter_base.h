@@ -27,8 +27,9 @@ enum class RSUIFilterType : int16_t {
     DISPLACEMENT_DISTORT,
     COLOR_GRADIENT,
     SOUND_WAVE,
-
     EDGE_LIGHT,
+    BEZIER_WARP,
+
     // mask type
     RIPPLE_MASK,
     RADIAL_GRADIENT_MASK,
@@ -65,6 +66,20 @@ enum class RSUIFilterType : int16_t {
     // edge light value type
     EDGE_LIGHT_ALPHA, // float
     EDGE_LIGHT_COLOR, // Vector4f
+
+    // bezier warp value type
+    BEZIER_CONTROL_POINT0, // Vector2f
+    BEZIER_CONTROL_POINT1, // Vector2f
+    BEZIER_CONTROL_POINT2, // Vector2f
+    BEZIER_CONTROL_POINT3, // Vector2f
+    BEZIER_CONTROL_POINT4, // Vector2f
+    BEZIER_CONTROL_POINT5, // Vector2f
+    BEZIER_CONTROL_POINT6, // Vector2f
+    BEZIER_CONTROL_POINT7, // Vector2f
+    BEZIER_CONTROL_POINT8, // Vector2f
+    BEZIER_CONTROL_POINT9, // Vector2f
+    BEZIER_CONTROL_POINT10, // Vector2f
+    BEZIER_CONTROL_POINT11, // Vector2f
 };
 
 class RSB_EXPORT RSRenderFilterParaBase : public RSRenderPropertyBase,

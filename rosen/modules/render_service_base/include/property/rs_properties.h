@@ -273,6 +273,8 @@ public:
 
     void SetBackgroundUIFilter(const std::shared_ptr<RSRenderFilter>& renderFilter);
     std::shared_ptr<RSRenderFilter> GetBackgroundUIFilter() const;
+    void SetForegroundUIFilter(const std::shared_ptr<RSRenderFilter>& renderFilter);
+    std::shared_ptr<RSRenderFilter> GetForegroundUIFilter() const;
 
     void SetFgBrightnessRates(const Vector4f& rates);
     Vector4f GetFgBrightnessRates() const;
@@ -635,6 +637,8 @@ private:
     void GenerateRenderFilterColorGradient();
     void GenerateSoundWaveFilter();
     void GenerateRenderFilterEdgeLight();
+    void GenerateBezierWarpFilter();
+    void GenerateForegroundRenderFilter();
 
     bool NeedClip() const;
     bool NeedBlurFuzed();
@@ -710,6 +714,7 @@ private:
     std::shared_ptr<RSObjAbsGeometry> boundsGeo_;
     std::shared_ptr<RSFilter> foregroundFilter_ = nullptr; // view content filter
     std::shared_ptr<RSFilter> foregroundFilterCache_ = nullptr; // view content filter via cache
+    std::shared_ptr<RSRenderFilter> foregroundRenderFilter_ = nullptr;
     std::shared_ptr<RSFilter> backgroundFilter_ = nullptr;
     std::shared_ptr<RSRenderFilter> backgroundRenderFilter_ = nullptr;
     std::shared_ptr<RSFilter> filter_ = nullptr;

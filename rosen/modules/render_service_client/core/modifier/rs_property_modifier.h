@@ -893,7 +893,7 @@ protected:
      * @return The type of the modifier.
      */
     RSModifierType GetModifierType() const override;
-    
+
     /**
      * @brief Create a new render modifier.
      *
@@ -923,6 +923,18 @@ private:
     void OnDetachFromNode() override;
 };
 
+class RSC_EXPORT RSForegroundUIFilterModifier : public RSForegroundModifier {
+public:
+    explicit RSForegroundUIFilterModifier(const std::shared_ptr<RSPropertyBase>& property);
+    virtual ~RSForegroundUIFilterModifier() = default;
+protected:
+    RSModifierType GetModifierType() const override;
+    std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
+private:
+    void OnAttachToNode(const std::weak_ptr<RSNode>& target) override;
+    void OnDetachFromNode() override;
+};
+
 class RSC_EXPORT RSUseShadowBatchingModifier : public RSBackgroundModifier {
 public:
     /**
@@ -931,7 +943,7 @@ public:
      * @param property A shared pointer to the RSPropertyBase object.
      */
     explicit RSUseShadowBatchingModifier(const std::shared_ptr<RSPropertyBase>& property);
-    
+
     /**
      * @brief Destructor for RSUseShadowBatchingModifier.
      */
