@@ -1801,6 +1801,7 @@ HWTEST_F(RSPaintFilterCanvasTest, SetParallelRender, TestSize.Level1)
     paintFilterCanvasBase->SetParallelRender(true);
 }
 
+/**
  * @tc.name: isEffectIntersectWithDRMTest
  * @tc.desc: SetEffectIntersectWithDRM/GetIntersectWithDRM
  * @tc.type:FUNC
