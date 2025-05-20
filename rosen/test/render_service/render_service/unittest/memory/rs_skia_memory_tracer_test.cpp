@@ -38,6 +38,59 @@ void RSSkiaMemoryTracerTest::TearDownTestCase() {}
 void RSSkiaMemoryTracerTest::SetUp() {}
 void RSSkiaMemoryTracerTest::TearDown() {}
 
+/**
+ * @tc.name: SkiaMemoryTracer001
+ * @tc.desc: Test SkiaMemoryTracer's constructor
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSkiaMemoryTracerTest, SkiaMemoryTracer001, TestSize.Level1)
+{
+    auto skiaMemoryTracer = std::make_shared<SkiaMemoryTracer>("category", true);
+    ASSERT_TRUE(skiaMemoryTracer != nullptr);
+    std::vector<ResourcePair> cpuResourceMap = {
+        { "skia/sk_resource_cache/bitmap_", "Bitmaps" },
+        { "skia/sk_resource_cache/rrect-blur_", "Masks" },
+    };
+    skiaMemoryTracer = std::make_shared<SkiaMemoryTracer>(cpuResourceMap, true);
+    ASSERT_TRUE(skiaMemoryTracer != nullptr);
+}
+
+/**
+ * @tc.name: ProcessElement001
+ * @tc.desc: Test SkiaMemoryTracer's ProcessElement
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSkiaMemoryTracerTest, ProcessElement1, TestSize.Level1)
+{
+    auto skiaMemoryTracer = std::make_shared<SkiaMemoryTracer>("category", true);
+    ASSERT_TRUE(skiaMemoryTracer != nullptr);
+    skiaMemoryTracer->dumpNumericValue("resourceName", "size", "bytes", 1);
+    skiaMemoryTracer->dumpStringValue("resourceName", "type", "External Texture");
+    skiaMemoryTracer->dumpStringValue("resourceName", "category", "Image");
+    skiaMemoryTracer->ProcessElement();
+    ASSERT_TRUE(skiaMemoryTracer->GetGLMemorySize() != -1);
+}
+
+/**
+ * @tc.name: LogTotals001
+ * @tc.desc: Test SkiaMemoryTracer's LogTotals
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSkiaMemoryTracerTest, LogTotals001, TestSize.Level1)
+{
+    auto skiaMemoryTracer = std::make_shared<SkiaMemoryTracer>("category", true);
+    ASSERT_TRUE(skiaMemoryTracer != nullptr);
+    skiaMemoryTracer->dumpNumericValue("resourceName", "size", "bytes", 1);
+    skiaMemoryTracer->dumpStringValue("resourceName", "type", "Texture");
+    skiaMemoryTracer->dumpStringValue("resourceName", "category", "Image");
+    DfxString log;
+    skiaMemoryTracer->LogTotals(log);
+    ASSERT_TRUE(skiaMemoryTracer->GetGLMemorySize() != -1);
+}
+
 /*
  * @tc.name: dumpNumericValueTest
  * @tc.desc: dumpNumericValue Test
@@ -47,10 +100,11 @@ void RSSkiaMemoryTracerTest::TearDown() {}
 HWTEST_F(RSSkiaMemoryTracerTest, dumpNumericValueTest, testing::ext::TestSize.Level1)
 {
     bool itemizeType = true;
-    SkiaMemoryTracer skiaMemoryTracer("category", itemizeType);
+    auto skiaMemoryTracer = std::make_shared<SkiaMemoryTracer>("category", itemizeType);
+    ASSERT_TRUE(skiaMemoryTracer != nullptr);
     uint64_t value = 1;
-    skiaMemoryTracer.dumpNumericValue("dumpName", "valueName", "units", value);
-    EXPECT_TRUE(skiaMemoryTracer.GetGLMemorySize() != -1);
+    skiaMemoryTracer->dumpNumericValue("dumpName", "valueName", "units", value);
+    EXPECT_TRUE(skiaMemoryTracer->GetGLMemorySize() != -1);
 }
 
 /*
@@ -62,9 +116,10 @@ HWTEST_F(RSSkiaMemoryTracerTest, dumpNumericValueTest, testing::ext::TestSize.Le
 HWTEST_F(RSSkiaMemoryTracerTest, LogOutputTest, testing::ext::TestSize.Level1)
 {
     bool itemizeType = false;
-    SkiaMemoryTracer skiaMemoryTracer("category", itemizeType);
+    auto skiaMemoryTracer = std::make_shared<SkiaMemoryTracer>("category", itemizeType);
+    ASSERT_TRUE(skiaMemoryTracer != nullptr);
     DfxString log;
-    skiaMemoryTracer.LogOutput(log);
-    EXPECT_TRUE(skiaMemoryTracer.GetGLMemorySize() != -1);
+    skiaMemoryTracer->LogOutput(log);
+    EXPECT_TRUE(skiaMemoryTracer->GetGLMemorySize() != -1);
 }
 } // namespace OHOS::Rosen
