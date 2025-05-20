@@ -95,13 +95,18 @@ public:
 
     virtual bool IsValid() const = 0;
     virtual void Reset() = 0;
+    virtual void ReWind() = 0;
 
+    virtual void SetLastPoint(scalar x, scalar y) = 0;
     virtual void Close() = 0;
 
     virtual scalar GetLength(bool forceClosed) = 0;
     virtual bool GetPositionAndTangent(scalar distance, Point& position, Point& tangent, bool forceClosed) = 0;
     virtual bool GetSegment(scalar start, scalar stop, Path* dst, bool startWithMoveTo, bool forceClosed) = 0;
     virtual bool IsClosed(bool forceClosed) = 0;
+    virtual bool IsEmpty() = 0;
+    virtual bool IsRect(Rect* rect, bool* isClosed, PathDirection* direction) = 0;
+    virtual void SetPath(const Path& path) = 0;
     virtual bool GetMatrix(bool forceClosed, float distance, Matrix* matrix, PathMeasureMatrixFlags flag) = 0;
     virtual std::shared_ptr<Data> Serialize() const = 0;
     virtual bool Deserialize(std::shared_ptr<Data> data) = 0;

@@ -70,8 +70,11 @@ void NativeDrawingRoundRectTest001(const uint8_t* data, size_t size)
     OH_Drawing_RoundRectOffset(roundRect, dx, dy);
     OH_Drawing_RoundRectOffset(nullptr, dx, dy);
 
+    OH_Drawing_RoundRect* roundRect2 = OH_Drawing_RoundRectCopy(roundRect);
+
     OH_Drawing_RectDestroy(rect);
     OH_Drawing_RoundRectDestroy(roundRect);
+    OH_Drawing_RoundRectDestroy(roundRect2);
 }
 } // namespace Drawing
 } // namespace Rosen

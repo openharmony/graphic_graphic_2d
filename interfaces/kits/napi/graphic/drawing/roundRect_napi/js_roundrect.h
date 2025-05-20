@@ -28,6 +28,8 @@ class JsRoundRect final {
 public:
     explicit JsRoundRect(const Drawing::Rect& rect, float x, float y)
         : m_roundRect(rect, x, y) {};
+    explicit JsRoundRect(const RoundRect& rrect) : m_roundRect(RoundRect(rrect)) {};
+
     ~JsRoundRect() {};
 
     static napi_value Init(napi_env env, napi_value exportObj);

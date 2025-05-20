@@ -35,6 +35,7 @@ public:
     Region();
     Region(const Region& other);
     Region& operator=(const Region& other);
+    bool operator==(const Region& other) const;
     virtual ~Region() = default;
 
     void Clone(const Region& other)
@@ -50,11 +51,23 @@ public:
     virtual bool Contains(int32_t x, int32_t y) const;
 
     /**
+     * @brief Sets to empty bounds at (0, 0) with zero width and height.
+     */
+    virtual void SetEmpty();
+
+    /**
      * @brief Constructs a rectangular Region matching the bounds of rect.
      * @param rectI Bounds of constructed Region.
      * @return If rectI is empty, constructs empty and returns false.
      */
     virtual bool SetRect(const RectI& rectI);
+
+    /**
+     * @brief Constructs a copy of an existing region.
+     * @param region Region to copy by value.
+     * @return Return true if constructed region is not empty.
+     */
+    virtual bool SetRegion(const Region& region);
 
     /**
      * @brief Constructs Region to match outline of path within clip.
@@ -70,6 +83,18 @@ public:
      * @return Return true if path changed.
      */
     bool GetBoundaryPath(Path* path) const;
+
+    /**
+     * @brief Get the external rect with the smallest region.
+     * @return Return the external rect with the smallest region.
+     */
+    RectI GetBounds() const;
+
+    /**
+     * @brief Determine if the area contains multiple rectangles.
+     * @return If true indicates that the Region contains multiple rectangles.
+     */
+    bool IsComplex() const;
 
     /**
      * @brief Determines whether it intersects other.
@@ -111,6 +136,20 @@ public:
      * @return Returns true if rect and region is not intersect.
      */
     virtual bool QuickReject(const RectI& rectI) const;
+
+    /**
+     * @brief Determines whether two regions does not intersect.
+     * @param region Region to intersect.
+     * @return Returns true if two regions are not intersect.
+     */
+    virtual bool QuickReject(const Region& region) const;
+
+    /**
+     * @brief Translate the region by (x, y).
+     * @param x horizontal translation.
+     * @param y vertical translation.
+     */
+    void Translate(int32_t x, int32_t y);
 
     inline void Dump(std::string& out) const;
 

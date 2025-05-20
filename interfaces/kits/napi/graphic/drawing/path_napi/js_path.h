@@ -62,9 +62,15 @@ public:
     static napi_value GetLength(napi_env env, napi_callback_info info);
     static napi_value GetPositionAndTangent(napi_env env, napi_callback_info info);
     static napi_value GetSegment(napi_env env, napi_callback_info info);
+    static napi_value Set(napi_env env, napi_callback_info info);
+    static napi_value GetFillType(napi_env env, napi_callback_info info);
+    static napi_value SetLastPoint(napi_env env, napi_callback_info info);
+    static napi_value ReWind(napi_env env, napi_callback_info info);
     static napi_value GetMatrix(napi_env env, napi_callback_info info);
     static napi_value BuildFromSvgString(napi_env env, napi_callback_info info);
     static napi_value IsClosed(napi_env env, napi_callback_info info);
+    static napi_value IsEmpty(napi_env env, napi_callback_info info);
+    static napi_value IsRect(napi_env env, napi_callback_info info);
     static napi_value GetPathIterator(napi_env env, napi_callback_info info);
     Path* GetPath();
 
@@ -98,6 +104,12 @@ private:
     napi_value OnGetLength(napi_env env, napi_callback_info info);
     napi_value OnGetPositionAndTangent(napi_env env, napi_callback_info info);
     napi_value OnGetSegment(napi_env env, napi_callback_info info);
+    napi_value OnSet(napi_env env, napi_callback_info info);
+    napi_value OnGetFillType(napi_env env, napi_callback_info info);
+    napi_value OnSetLastPoint(napi_env env, napi_callback_info info);
+    napi_value OnReWind(napi_env env, napi_callback_info info);
+    napi_value OnIsRect(napi_env env, napi_callback_info info);
+    napi_value OnIsEmpty(napi_env env, napi_callback_info info);
     napi_value OnGetMatrix(napi_env env, napi_callback_info info);
     napi_value OnBuildFromSvgString(napi_env env, napi_callback_info info);
     napi_value OnIsClosed(napi_env env, napi_callback_info info);

@@ -51,18 +51,24 @@ static const napi_property_descriptor g_properties[] = {
     DECLARE_NAPI_FUNCTION("addPath", JsPath::AddPath),
     DECLARE_NAPI_FUNCTION("transform", JsPath::Transform),
     DECLARE_NAPI_FUNCTION("contains", JsPath::Contains),
+    DECLARE_NAPI_FUNCTION("set", JsPath::Set),
     DECLARE_NAPI_FUNCTION("setFillType", JsPath::SetFillType),
+    DECLARE_NAPI_FUNCTION("setLastPoint", JsPath::SetLastPoint),
     DECLARE_NAPI_FUNCTION("getBounds", JsPath::GetBounds),
     DECLARE_NAPI_FUNCTION("close", JsPath::Close),
     DECLARE_NAPI_FUNCTION("offset", JsPath::Offset),
+    DECLARE_NAPI_FUNCTION("rewind", JsPath::ReWind),
     DECLARE_NAPI_FUNCTION("reset", JsPath::Reset),
     DECLARE_NAPI_FUNCTION("op", JsPath::Op),
     DECLARE_NAPI_FUNCTION("getLength", JsPath::GetLength),
     DECLARE_NAPI_FUNCTION("getPositionAndTangent", JsPath::GetPositionAndTangent),
+    DECLARE_NAPI_FUNCTION("getFillType", JsPath::GetFillType),
     DECLARE_NAPI_FUNCTION("getSegment", JsPath::GetSegment),
     DECLARE_NAPI_FUNCTION("getMatrix", JsPath::GetMatrix),
     DECLARE_NAPI_FUNCTION("buildFromSvgString", JsPath::BuildFromSvgString),
     DECLARE_NAPI_FUNCTION("isClosed", JsPath::IsClosed),
+    DECLARE_NAPI_FUNCTION("isEmpty", JsPath::IsEmpty),
+    DECLARE_NAPI_FUNCTION("isRect", JsPath::IsRect),
     DECLARE_NAPI_FUNCTION("getPathIterator", JsPath::GetPathIterator),
 };
 
@@ -338,6 +344,30 @@ napi_value JsPath::GetPositionAndTangent(napi_env env, napi_callback_info info)
     return (me != nullptr) ? me->OnGetPositionAndTangent(env, info) : nullptr;
 }
 
+napi_value JsPath::Set(napi_env env, napi_callback_info info)
+{
+    JsPath* me = CheckParamsAndGetThis<JsPath>(env, info);
+    return (me != nullptr) ? me->OnSet(env, info) : nullptr;
+}
+
+napi_value JsPath::SetLastPoint(napi_env env, napi_callback_info info)
+{
+    JsPath* me = CheckParamsAndGetThis<JsPath>(env, info);
+    return (me != nullptr) ? me->OnSetLastPoint(env, info) : nullptr;
+}
+
+napi_value JsPath::GetFillType(napi_env env, napi_callback_info info)
+{
+    JsPath* me = CheckParamsAndGetThis<JsPath>(env, info);
+    return (me != nullptr) ? me->OnGetFillType(env, info) : nullptr;
+}
+
+napi_value JsPath::ReWind(napi_env env, napi_callback_info info)
+{
+    JsPath* me = CheckParamsAndGetThis<JsPath>(env, info);
+    return (me != nullptr) ? me->OnReWind(env, info) : nullptr;
+}
+
 napi_value JsPath::GetSegment(napi_env env, napi_callback_info info)
 {
     JsPath* me = CheckParamsAndGetThis<JsPath>(env, info);
@@ -360,6 +390,18 @@ napi_value JsPath::IsClosed(napi_env env, napi_callback_info info)
 {
     JsPath* me = CheckParamsAndGetThis<JsPath>(env, info);
     return (me != nullptr) ? me->OnIsClosed(env, info) : nullptr;
+}
+
+napi_value JsPath::IsEmpty(napi_env env, napi_callback_info info)
+{
+    JsPath* me = CheckParamsAndGetThis<JsPath>(env, info);
+    return (me != nullptr) ? me->OnIsEmpty(env, info) : nullptr;
+}
+
+napi_value JsPath::IsRect(napi_env env, napi_callback_info info)
+{
+    JsPath* me = CheckParamsAndGetThis<JsPath>(env, info);
+    return (me != nullptr) ? me->OnIsRect(env, info) : nullptr;
 }
 
 napi_value JsPath::Op(napi_env env, napi_callback_info info)
@@ -796,6 +838,60 @@ napi_value JsPath::OnGetPositionAndTangent(napi_env env, napi_callback_info info
     return CreateJsValue(env, result);
 }
 
+napi_value JsPath::OnSet(napi_env env, napi_callback_info info)
+{
+    if (m_path == nullptr) {
+        ROSEN_LOGE("JsPath::OnSet path is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+    napi_value argv[ARGC_ONE] = {nullptr};
+    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
+
+    JsPath* path = nullptr;
+    GET_UNWRAP_PARAM(ARGC_ZERO, path);
+    if (path->GetPath() == nullptr) {
+        return nullptr;
+    }
+    JS_CALL_DRAWING_FUNC(m_path->SetPath(*path->GetPath()));
+    return nullptr;
+}
+
+napi_value JsPath::OnSetLastPoint(napi_env env, napi_callback_info info)
+{
+    if (m_path == nullptr) {
+        ROSEN_LOGE("JsPath::OnSetLastPoint path is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+    napi_value argv[ARGC_TWO] = {nullptr};
+    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_TWO);
+    double x = 0.0;
+    GET_DOUBLE_PARAM(ARGC_ZERO, x);
+    double y = 0.0;
+    GET_DOUBLE_PARAM(ARGC_ONE, y);
+    JS_CALL_DRAWING_FUNC(m_path->SetLastPoint(x, y));
+    return nullptr;
+}
+
+napi_value JsPath::OnGetFillType(napi_env env, napi_callback_info info)
+{
+    if (m_path == nullptr) {
+        ROSEN_LOGE("JsPath::OnGetFillType path is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    return CreateJsValue(env, m_path->GetFillStyle());
+}
+
+napi_value JsPath::OnReWind(napi_env env, napi_callback_info info)
+{
+    if (m_path == nullptr) {
+        ROSEN_LOGE("JsPath::OnRewind path is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+    JS_CALL_DRAWING_FUNC(m_path->ReWind());
+    return nullptr;
+}
+
 napi_value JsPath::OnGetSegment(napi_env env, napi_callback_info info)
 {
     if (m_path == nullptr) {
@@ -833,6 +929,45 @@ napi_value JsPath::OnGetSegment(napi_env env, napi_callback_info info)
         return CreateJsValue(env, false);
     }
     return CreateJsValue(env, m_path->GetSegment(start, stop, dst, startWithMoveTo, forceClosed));
+}
+
+napi_value JsPath::OnIsEmpty(napi_env env, napi_callback_info info)
+{
+    if (m_path == nullptr) {
+        ROSEN_LOGE("JsPath::OnIsEmpty path is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    bool result = m_path->IsEmpty();
+    return CreateJsValue(env, result);
+}
+
+napi_value JsPath::OnIsRect(napi_env env, napi_callback_info info)
+{
+    if (m_path == nullptr) {
+        ROSEN_LOGE("JsPath::OnIsRect path is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+    
+    napi_value argv[ARGC_ONE] = {nullptr};
+    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
+    napi_valuetype valueType = napi_undefined;
+    if (napi_typeof(env, argv[ARGC_ZERO], &valueType) != napi_ok ||
+        (valueType != napi_null && valueType != napi_object)) {
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect OnSaveLayer parameter0 type.");
+    }
+    if (valueType == napi_null) {
+        return CreateJsValue(env, m_path->IsRect(nullptr));
+    }
+    double ltrb[ARGC_FOUR] = {0};
+    if (!ConvertFromJsRect(env, argv[ARGC_ZERO], ltrb, ARGC_FOUR)) {
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Incorrect parameter0 type. The type of left, top, right and bottom must be number.");
+    }
+    Drawing::Rect rect = Drawing::Rect(ltrb[ARGC_ZERO], ltrb[ARGC_ONE], ltrb[ARGC_TWO], ltrb[ARGC_THREE]);
+    bool result = m_path->IsRect(&rect);
+    DrawingRectConvertToJsRect(env, argv[ARGC_ZERO], rect);
+    return CreateJsValue(env, result);
 }
 
 napi_value JsPath::OnGetMatrix(napi_env env, napi_callback_info info)

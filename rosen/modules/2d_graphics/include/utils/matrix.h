@@ -74,8 +74,27 @@ public:
     void Rotate(scalar degree, scalar px, scalar py);
     void Translate(scalar dx, scalar dy);
     void Scale(scalar sx, scalar sy, scalar px, scalar py);
+
+    /**
+     * @brief    Sets Matrix to Matrix a multiplied by Matrix b.
+     * @param a  Matrix on left side of multiply expression.
+     * @param b  Matrix on right side of multiply expression.
+     */
+    void SetConcat(const Matrix& a, const Matrix& b);
+
     void SetScale(scalar sx, scalar sy);
     void SetScaleTranslate(scalar sx, scalar sy, scalar dx, scalar dy);
+
+    /**
+     * @brief Sets Matrix to rotate around a specified point (px, py) using the given sine and cosine values.
+     *
+     * @param sinValue Indicates the sine of the angle of rotation.
+     * @param cosValue Indicates the cosine of the angle of rotation.
+     * @param px Indicates the x-coordinate of the point around which to rotate.
+     * @param py Indicates the y-coordinate of the point around which to rotate.
+     */
+    void SetSinCos(scalar sinValue, scalar cosValue, scalar px, scalar py);
+
     void SetSkew(scalar kx, scalar ky);
     void SetSkew(scalar kx, scalar ky, scalar px, scalar py);
     /**
@@ -144,20 +163,20 @@ public:
     /**
      * @brief         Sets Matrix to Matrix multiplied by Matrix constructed
      *                from skewing by (kx, ky) about pivot point (px, py).
-     * @param sx      horizontal skew factor
-     * @param sy      vertical skew factor
-     * @param kx      pivot on x-axis
-     * @param ky      pivot on y-axis
+     * @param kx      horizontal skew factor
+     * @param ky      vertical skew factor
+     * @param px      pivot on x-axis
+     * @param py      pivot on y-axis
      */
     void PreSkew(scalar kx, scalar ky, scalar px, scalar py);
 
     /**
      * @brief         Sets Matrix to Matrix constructed from skewing by (kx, ky)
-     *                about pivot point(px,py), multiplied by Matrix.
-     * @param sx      horizontal skew factor
-     * @param sy      vertical skew factor
-     * @param kx      pivot on x-axis
-     * @param ky      pivot on y-axis
+     *                about pivot point(px, py), multiplied by Matrix.
+     * @param kx      horizontal skew factor
+     * @param ky      vertical skew factor
+     * @param px      pivot on x-axis
+     * @param py      pivot on y-axis
      */
     void PostSkew(scalar kx, scalar ky, scalar px, scalar py);
 
@@ -218,6 +237,15 @@ public:
     void MapPoints(std::vector<Point>& dst, const std::vector<Point>& src, uint32_t count) const;
 
     /**
+     * @brief Returns geometric mean radius of ellipse formed by constructing circle of size radius,
+     *        and mapping constructed circle with Matrix.
+     *
+     * @param radius  circle size to map.
+     * @return        average mapped radius.
+     */
+    scalar MapRadius(scalar radius) const;
+
+    /**
      * @brief       Sets dst to bounds of src corners mapped by Matrix.
      * @param dst   Storage for bounds of map.
      * @param src   To map.
@@ -261,6 +289,13 @@ public:
     }
 
     /**
+     * @brief Checks if the current transformation matrix is an affine transformation.
+     *
+     * @return If the rectangle is affine, return true; Otherwise, returns false.
+     */
+    bool IsAffine() const;
+
+    /**
      * @brief Returns true if matrix is Identity. Identity matrix is:
      *    | 1 0 0 |
      *    | 0 1 0 |
@@ -271,6 +306,14 @@ public:
 
     void PreRotate(scalar degree, scalar px, scalar py);
     void PreScale(scalar sx, scalar sy, scalar px, scalar py);
+
+    /**
+     * @brief Checks whether a rectangle will be mapped to another rectangle after the specified matrix transformation.
+     *
+     * @return If a rectangle is mapped to another rectangle, return true; Otherwise, return false.
+     */
+    bool RectStaysRect() const;
+
     void Reset();
 
     bool GetMinMaxScales(scalar scaleFactors[2]);

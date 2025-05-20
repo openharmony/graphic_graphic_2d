@@ -33,14 +33,29 @@ Region& Region::operator=(const Region& other)
     return *this;
 }
 
+bool Region::operator==(const Region& other) const
+{
+    return impl_->Equals(other);
+}
+
 bool Region::Contains(int32_t x, int32_t y) const
 {
     return impl_->Contains(x, y);
 }
 
+void Region::SetEmpty()
+{
+    return impl_->SetEmpty();
+}
+
 bool Region::SetRect(const RectI& rectI)
 {
     return impl_->SetRect(rectI);
+}
+
+bool Region::SetRegion(const Region& region)
+{
+    return impl_->SetRegion(region);
 }
 
 bool Region::SetPath(const Path& path, const Region& clip)
@@ -51,6 +66,16 @@ bool Region::SetPath(const Path& path, const Region& clip)
 bool Region::GetBoundaryPath(Path* path) const
 {
     return impl_->GetBoundaryPath(path);
+}
+
+RectI Region::GetBounds() const
+{
+    return impl_->GetBounds();
+}
+
+bool Region::IsComplex() const
+{
+    return impl_->IsComplex();
 }
 
 bool Region::IsIntersects(const Region& other) const
@@ -81,6 +106,16 @@ bool Region::Op(const Region& region, RegionOp op)
 bool Region::QuickReject(const RectI& rectI) const
 {
     return impl_->QuickReject(rectI);
+}
+
+bool Region::QuickReject(const Region& region) const
+{
+    return impl_->QuickReject(region);
+}
+
+void Region::Translate(int32_t x, int32_t y)
+{
+    return impl_->Translate(x, y);
 }
 
 std::shared_ptr<Data> Region::Serialize() const
