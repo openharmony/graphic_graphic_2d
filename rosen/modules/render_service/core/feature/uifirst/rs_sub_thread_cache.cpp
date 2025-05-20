@@ -1016,8 +1016,13 @@ bool RsSubThreadCache::DealWithUIFirstCache(DrawableV2::RSSurfaceRenderNodeDrawa
     // This branch is entered only when the conditions for executing the DrawUIFirstCache function are met.
     if (surfaceParams.GetGlobalPositionEnabled() &&
         surfaceParams.GetUifirstUseStarting() == INVALID_NODEID) {
-        auto matrix = surfaceParams.GetTotalMatrix();
-        matrix.Translate(-surfaceDrawable->offsetX_, -surfaceDrawable->offsetY_);
+        auto matrix = surfaceParams.GetMatrix();
+        Drawing::Matrix inverseMatrix;
+        if (!matrix.Invert(inverseMatrix)) {
+            RS_LOGW("RsSubThreadCache::%{public}s name: %{public}s matrix invert inverseMatrix Failed", __func__, surfaceParams.GetName().c_str());
+        }
+        canvas.ConcatMatrix(inverseMatrix);
+        canvas.Translate(-surfaceDrawable->offsetX_, -surfaceDrawable->offsetY_);
         canvas.ConcatMatrix(matrix);
         RS_LOGD("RsSubThreadCache::DealWithUIFirstCache Translate screenId=[%{public}" PRIu64 "] "
             "offsetX=%{public}d offsetY=%{public}d", surfaceDrawable->curDisplayScreenId_, surfaceDrawable->offsetX_,
