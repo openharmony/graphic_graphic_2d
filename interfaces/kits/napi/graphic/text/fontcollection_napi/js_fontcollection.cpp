@@ -85,8 +85,8 @@ napi_value JsFontCollection::Init(napi_env env, napi_value exportObj)
         DECLARE_NAPI_FUNCTION("loadFontSync", JsFontCollection::LoadFontSync),
         DECLARE_NAPI_FUNCTION("clearCaches", JsFontCollection::ClearCaches),
         DECLARE_NAPI_FUNCTION("loadFont", JsFontCollection::LoadFontAsync),
-        DECLARE_NAPI_FUNCTION("unLoadFontSync", JsFontCollection::UnLoadFontSync),
-        DECLARE_NAPI_FUNCTION("unLoadFont", JsFontCollection::UnLoadFontAsync),
+        DECLARE_NAPI_FUNCTION("unloadFontSync", JsFontCollection::UnloadFontSync),
+        DECLARE_NAPI_FUNCTION("unloadFont", JsFontCollection::UnloadFontAsync),
     };
 
     napi_value constructor = nullptr;
@@ -505,20 +505,20 @@ napi_value JsFontCollection::OnLoadFontAsync(napi_env env, napi_callback_info in
     return NapiAsyncWork::Enqueue(env, context, "OnLoadFontAsync", executor, complete);
 }
 
-napi_value JsFontCollection::UnLoadFontAsync(napi_env env, napi_callback_info info)
+napi_value JsFontCollection::UnloadFontAsync(napi_env env, napi_callback_info info)
 {
     JsFontCollection* me = CheckParamsAndGetThis<JsFontCollection>(env, info);
-    return (me != nullptr) ? me->OnUnLoadFontAsync(env, info) : nullptr;
+    return (me != nullptr) ? me->OnUnloadFontAsync(env, info) : nullptr;
 }
 
-napi_value JsFontCollection::UnLoadFontSync(napi_env env, napi_callback_info info)
+napi_value JsFontCollection::UnloadFontSync(napi_env env, napi_callback_info info)
 {
     JsFontCollection* me = CheckParamsAndGetThis<JsFontCollection>(env, info);
-    return (me != nullptr) ? me->OnUnLoadFont(env, info) : nullptr;
+    return (me != nullptr) ? me->OnUnloadFont(env, info) : nullptr;
 }
 
 
-napi_value JsFontCollection::OnUnLoadFontAsync(napi_env env, napi_callback_info info)
+napi_value JsFontCollection::OnUnloadFontAsync(napi_env env, napi_callback_info info)
 {
     sptr<FontArgumentsConcreteContext> context = sptr<FontArgumentsConcreteContext>::MakeSptr();
     NAPI_CHECK_AND_THROW_ERROR(context != nullptr, TextErrorCode::ERROR_NO_MEMORY, "Failed to make context");
@@ -543,16 +543,16 @@ napi_value JsFontCollection::OnUnLoadFontAsync(napi_env env, napi_callback_info 
 
         NAPI_CHECK_ARGS(context, fontCollection->fontcollection_ != nullptr, napi_generic_failure,
             TextErrorCode::ERROR_INVALID_PARAM, return, "Inner fontcollection is null");
-        fontCollection->fontcollection_->UnLoadFont(context->familyName);
+        fontCollection->fontcollection_->UnloadFont(context->familyName);
     };
 
     auto complete = [env](napi_value& output) {
         output = NapiGetUndefined(env);
     };
-    return NapiAsyncWork::Enqueue(env, context, "OnUnLoadFontAsync", executor, complete);
+    return NapiAsyncWork::Enqueue(env, context, "OnUnloadFontAsync", executor, complete);
 }
 
-napi_value JsFontCollection::OnUnLoadFont(napi_env env, napi_callback_info info)
+napi_value JsFontCollection::OnUnloadFont(napi_env env, napi_callback_info info)
 {
     size_t argc = ARGC_ONE;
     napi_value argv[ARGC_ONE] = { nullptr };
@@ -570,7 +570,7 @@ napi_value JsFontCollection::OnUnLoadFont(napi_env env, napi_callback_info info)
         return nullptr;
     }
 
-    fontcollection_->UnLoadFont(familyName);
+    fontcollection_->UnloadFont(familyName);
 
     return NapiGetUndefined(env);
 }
