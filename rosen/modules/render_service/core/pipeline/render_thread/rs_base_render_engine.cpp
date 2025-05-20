@@ -482,6 +482,16 @@ void RSBaseRenderEngine::DrawBuffer(RSPaintFilterCanvas& canvas, BufferDrawParam
         Drawing::SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);
 }
 
+std::shared_ptr<Drawing::ColorSpace> RSBaseRenderEngine::GetCanvasColorSpace(const RSPaintFilterCanvas& canvas)
+{
+    auto surface = canvas.GetSurface();
+    if (surface == nullptr) {
+        return nullptr;
+    }
+
+    return surface->GetImageInfo().GetColorSpace();
+}
+
 #ifdef USE_VIDEO_PROCESSING_ENGINE
 bool RSBaseRenderEngine::ConvertDrawingColorSpaceToSpaceInfo(const std::shared_ptr<Drawing::ColorSpace>& colorSpace,
     HDI::Display::Graphic::Common::V1_0::CM_ColorSpaceInfo& colorSpaceInfo)
@@ -512,16 +522,6 @@ bool RSBaseRenderEngine::ConvertDrawingColorSpaceToSpaceInfo(const std::shared_p
     }
 
     return true;
-}
-
-std::shared_ptr<Drawing::ColorSpace> RSBaseRenderEngine::GetCanvasColorSpace(const RSPaintFilterCanvas& canvas)
-{
-    auto surface = canvas.GetSurface();
-    if (surface == nullptr) {
-        return nullptr;
-    }
-
-    return surface->GetImageInfo().GetColorSpace();
 }
 
 bool RSBaseRenderEngine::SetColorSpaceConverterDisplayParameter(
@@ -700,6 +700,11 @@ std::shared_ptr<Drawing::Image> RSBaseRenderEngine::CreateImageFromBuffer(RSPain
             vkImageManager_->UnMapVkImageFromSurfaceBuffer(params.buffer->GetSeqNum());
         }
         auto bitmapFormat = RSBaseRenderUtil::GenerateDrawingBitmapFormat(params.buffer);
+        auto screenColorSpace = GetCanvasColorSpace(canvas);
+        if (screenColorSpace && videoInfo.drawingColorSpace_ &&
+            videoInfo.drawingColorSpace_->IsSRGB() != screenColorSpace->IsSRGB()) {
+            bitmapFormat.alphaType = Drawing::AlphaType::ALPHATYPE_OPAQUE;
+        }
         RS_LOGD_IF(DEBUG_COMPOSER, "  - Generated bitmap format: colorType = %{public}d, alphaType = %{public}d",
             bitmapFormat.colorType, bitmapFormat.alphaType);
 #ifndef ROSEN_EMULATOR
