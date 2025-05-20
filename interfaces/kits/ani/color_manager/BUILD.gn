@@ -19,6 +19,7 @@ group("ani_color_space_manager") {
   deps = [
     ":color_space_manager_etc",
     ":colorspacemanager_ani",
+    ":ani_color_space_object_convertor",
   ]
 }
 
@@ -57,6 +58,57 @@ ohos_shared_library("colorspacemanager_ani") {
   ]
 
   deps = [ "$graphic_2d_root/utils/color_manager:color_manager" ]
+
+  external_deps = [
+    "hilog:libhilog",
+    "runtime_core:ani",
+    "runtime_core:libarkruntime",
+  ]
+
+  part_name = "graphic_2d"
+  subsystem_name = "graphic"
+  output_extension = "so"
+}
+
+config("ani_color_space_object_convertor_public_config") {
+  visibility = [ ":*" ]
+
+  include_dirs = [
+    "$graphic_2d_root/interfaces/kits/ani/color_manager/src/color_space_object_convertor",
+  ]
+}
+
+ohos_shared_library("ani_color_space_object_convertor") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    cfi_vcall_icall_only = true
+    debug = false
+  }
+
+  include_dirs = [
+    "$graphic_2d_root/interfaces/kits/ani/color_manager/src",
+  ]
+
+  public_configs = [
+    ":ani_color_space_object_convertor_public_config",
+  ]
+
+  configs = [
+    ":color_manager_ani_config",
+    "$graphic_2d_root/utils/color_manager:color_manager_public_config",
+  ]
+
+  sources = [
+    "./src/color_space_object_convertor/ani_color_space_object_convertor.cpp",
+  ]
+
+  deps = [
+    ":colorspacemanager_ani",
+    "$graphic_2d_root/utils/color_manager:color_manager",
+  ]
 
   external_deps = [
     "hilog:libhilog",

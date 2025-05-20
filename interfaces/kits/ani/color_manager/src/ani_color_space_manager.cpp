@@ -46,16 +46,6 @@ static ani_error CreateAniError(ani_env *env, std::string&& errMsg)
     return static_cast<ani_error>(errorObject);
 }
 
-static AniColorSpaceManager* unwrap(ani_env *env, ani_object object)
-{
-    ani_long nativePtrLong;
-    if (ANI_OK != env->Object_GetFieldByName_Long(object, "nativePtr", &nativePtrLong)) {
-        ACMLOGE("[ANI]Object_GetField_Long failed");
-        return nullptr;
-    }
-    return reinterpret_cast<AniColorSpaceManager *>(nativePtrLong);
-}
-
 static ani_object DoubleToObject(ani_env *env, double value)
 {
     ani_object aniObject = nullptr;
@@ -98,6 +88,16 @@ bool CheckColorSpaceTypeRange(ani_env *env, const ApiColorSpaceType csType)
         return false;
     }
     return true;
+}
+
+AniColorSpaceManager* AniColorSpaceManager::unwrap(ani_env *env, ani_object object)
+{
+    ani_long nativePtrLong;
+    if (ANI_OK != env->Object_GetFieldByName_Long(object, "nativePtr", &nativePtrLong)) {
+        ACMLOGE("[ANI]Object_GetField_Long failed");
+        return nullptr;
+    }
+    return reinterpret_cast<AniColorSpaceManager *>(nativePtrLong);
 }
 
 ani_object AniColorSpaceManager::CreateByColorSpace(ani_env* env, ani_enum_item enumObj)
