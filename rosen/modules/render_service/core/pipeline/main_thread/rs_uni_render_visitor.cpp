@@ -1864,13 +1864,7 @@ CM_INLINE bool RSUniRenderVisitor::AfterUpdateSurfaceDirtyCalc(RSSurfaceRenderNo
     if (geoPtr == nullptr) {
         return false;
     }
-    if (node.GetSpecialLayerMgr().Find(SpecialLayerType::PROTECTED)) {
-        auto firstLevelNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node.GetFirstLevelNode());
-        if (firstLevelNode) {
-            node.SetHwcGlobalPositionEnabled(firstLevelNode->GetGlobalPositionEnabled());
-            node.SetHwcCrossNode(firstLevelNode->IsFirstLevelCrossNode());
-        }
-    }
+    hwcVisitor_->UpdateCrossInfoForProtectedHwcNode(node);
     UpdateAncoPrepareClip(node);
     hwcVisitor_->UpdateDstRect(node, geoPtr->GetAbsRect(), prepareClipRect_);
     node.UpdatePositionZ();
