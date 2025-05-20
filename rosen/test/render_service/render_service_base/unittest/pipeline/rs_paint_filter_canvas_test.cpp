@@ -1786,5 +1786,20 @@ HWTEST_F(RSPaintFilterCanvasTest, CacheBehindWindowDataTest, TestSize.Level1)
     ASSERT_NE(paintFilterCanvas_->GetCacheBehindWindowData(), nullptr);
     paintFilterCanvas_->cacheBehindWindowData_ = nullptr;
 }
+
+/**
+ * @tc.name: isEffectIntersectWithDRMTest
+ * @tc.desc: SetEffectIntersectWithDRM/GetIntersectWithDRM
+ * @tc.type:FUNC
+ * @tc.require:issuesIC0HM8
+ */
+HWTEST_F(RSPaintFilterCanvasTest, IsEffectIntersectWithDRMTest, TestSize.Level1)
+{
+    ASSERT_NE(paintFilterCanvas_, nullptr);
+    paintFilterCanvas_->SetEffectIntersectWithDRM(false);
+    EXPECT_EQ(paintFilterCanvas_->isIntersectWithDRM_, false);
+    paintFilterCanvas_->SetEffectIntersectWithDRM(true);
+    EXPECT_EQ(paintFilterCanvas_->isIntersectWithDRM_, true);
+}
 } // namespace Rosen
 } // namespace OHOS
