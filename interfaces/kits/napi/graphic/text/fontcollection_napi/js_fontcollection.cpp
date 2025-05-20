@@ -85,8 +85,8 @@ napi_value JsFontCollection::Init(napi_env env, napi_value exportObj)
         DECLARE_NAPI_FUNCTION("loadFontSync", JsFontCollection::LoadFontSync),
         DECLARE_NAPI_FUNCTION("clearCaches", JsFontCollection::ClearCaches),
         DECLARE_NAPI_FUNCTION("loadFont", JsFontCollection::LoadFontAsync),
-        DECLARE_NAPI_FUNCTION("unLoadFont", JsFontCollection::UnLoadFontSync),
-        DECLARE_NAPI_FUNCTION("unLoadFontAsync", JsFontCollection::UnLoadFontAsync),
+        DECLARE_NAPI_FUNCTION("unLoadFontSync", JsFontCollection::UnLoadFontSync),
+        DECLARE_NAPI_FUNCTION("unLoadFont", JsFontCollection::UnLoadFontAsync),
     };
 
     napi_value constructor = nullptr;
