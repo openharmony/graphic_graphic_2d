@@ -76,7 +76,7 @@ public:
 
     bool IsDisableHwcOnExpandScreen() const;
 
-    void UpdateHwcNodeInfo(RSSurfaceRenderNode& node, const Drawing::Matrix& absMatrix,
+    void UpdateHwcNodeInfo(RSSurfaceRenderNode& node, const Drawing::Matrix& absMatrix, const RectI& absRect,
         bool subTreeSkipped = false);
     void QuickPrepareChildrenOnlyOrder(RSRenderNode& node);
     void PrintHiperfCounterLog(const char* const counterContext, uint64_t counter);

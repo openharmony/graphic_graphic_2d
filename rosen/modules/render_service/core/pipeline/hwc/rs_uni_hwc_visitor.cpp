@@ -990,7 +990,7 @@ void RSUniHwcVisitor::UpdateHwcNodeRectInSkippedSubTree(const RSRenderNode& root
             }
         }
         UpdateDstRect(*hwcNodePtr, rect, clipRect);
-        UpdateHwcNodeInfo(*hwcNodePtr, matrix, true);
+        UpdateHwcNodeInfo(*hwcNodePtr, matrix, rect, true);
         hwcNodePtr->SetTotalMatrix(matrix);
         hwcNodePtr->SetOldDirtyInSurface(geoPtr->MapRect(hwcNodePtr->GetSelfDrawRect(), matrix));
     }
@@ -1129,7 +1129,7 @@ bool RSUniHwcVisitor::IsDisableHwcOnExpandScreen() const
 }
 
 void RSUniHwcVisitor::UpdateHwcNodeInfo(RSSurfaceRenderNode& node,
-    const Drawing::Matrix& absMatrix, bool subTreeSkipped)
+    const Drawing::Matrix& absMatrix, const RectI& absRect, bool subTreeSkipped)
 {
     node.SetHardwareForcedDisabledState(node.GetIsHwcPendingDisabled());
     if (node.GetIsHwcPendingDisabled()) {
@@ -1156,7 +1156,10 @@ void RSUniHwcVisitor::UpdateHwcNodeInfo(RSSurfaceRenderNode& node,
             return;
         }
     }
-    UpdateSrcRect(node, absMatrix);
+    const uint32_t apiCompatibleVersion = node.GetApiCompatibleVersion();
+    apiCompatibleVersion >= API18 ?
+        UpdateSrcRect(node, absMatrix) :
+        UpdateTopSurfaceSrcRect(node, absMatrix, absRect);
     UpdateHwcNodeEnableByBackgroundAlpha(node);
     UpdateHwcNodeByTransform(node, absMatrix);
     UpdateHwcNodeEnableByBufferSize(node);

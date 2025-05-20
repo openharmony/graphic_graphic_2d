@@ -2006,6 +2006,7 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByBackgroundAlpha004, TestSize.
 HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeInfo_001, TestSize.Level2)
 {
     Drawing::Matrix absMatrix;
+    RectI absRect;
     RectI rect = {0, 80, 1000, 1000};
 
     auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
@@ -2027,23 +2028,23 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeInfo_001, TestSize.Level2)
 
     rsSurfaceRenderNode->isFixRotationByUser_ = false;
     rsUniHwcVisitor->isHardwareForcedDisabled_ = true;
-    rsUniHwcVisitor->UpdateHwcNodeInfo(*rsSurfaceRenderNode, absMatrix);
+    rsUniHwcVisitor->UpdateHwcNodeInfo(*rsSurfaceRenderNode, absMatrix, absRect);
 
     rsUniHwcVisitor->isHardwareForcedDisabled_ = false;
     rsSurfaceRenderNode->dynamicHardwareEnable_ = false;
-    rsUniHwcVisitor->UpdateHwcNodeInfo(*rsSurfaceRenderNode, absMatrix);
+    rsUniHwcVisitor->UpdateHwcNodeInfo(*rsSurfaceRenderNode, absMatrix, absRect);
 
     rsSurfaceRenderNode->dynamicHardwareEnable_ = true;
     surfaceNode->visibleRegion_.Reset();
-    rsUniHwcVisitor->UpdateHwcNodeInfo(*rsSurfaceRenderNode, absMatrix);
+    rsUniHwcVisitor->UpdateHwcNodeInfo(*rsSurfaceRenderNode, absMatrix, absRect);
 
     surfaceNode->visibleRegion_.rects_.push_back(rect);
     surfaceNode->visibleRegion_.bound_ = rect;
     rsSurfaceRenderNode->isFixRotationByUser_ = true;
-    rsUniHwcVisitor->UpdateHwcNodeInfo(*rsSurfaceRenderNode, absMatrix);
+    rsUniHwcVisitor->UpdateHwcNodeInfo(*rsSurfaceRenderNode, absMatrix, absRect);
 
     rsSurfaceRenderNode->isFixRotationByUser_ = false;
-    rsUniHwcVisitor->UpdateHwcNodeInfo(*rsSurfaceRenderNode, absMatrix, true);
+    rsUniHwcVisitor->UpdateHwcNodeInfo(*rsSurfaceRenderNode, absMatrix, absRect, true);
 }
 
 /**
