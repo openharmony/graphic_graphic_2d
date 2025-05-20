@@ -128,8 +128,13 @@ bool RSDrawWindowCache::DealWithCachedWindow(DrawableV2::RSSurfaceRenderNodeDraw
         canvas.ConcatMatrix(surfaceParams.GetMatrix());
     }
     if (surfaceParams.GetGlobalPositionEnabled()) {
-        auto matrix = surfaceParams.GetTotalMatrix();
-        matrix.Translate(-surfaceDrawable->offsetX_, -surfaceDrawable->offsetY_);
+        auto matrix = surfaceParams.GetMatrix();
+        Drawing::Matrix inverseMatrix;
+        if (!matrix.Invert(inverseMatrix)) {
+            RS_LOGW("RSDrawWindowCache::%{public}s name: %{public}s matrix invert inverseMatrix Failed", __func__, surfaceParams.GetName().c_str());
+        }
+        canvas.ConcatMatrix(inverseMatrix);
+        canvas.Translate(-surfaceDrawable->offsetX_, -surfaceDrawable->offsetY_);
         canvas.ConcatMatrix(matrix);
     }
     auto boundSize = surfaceParams.GetBounds();

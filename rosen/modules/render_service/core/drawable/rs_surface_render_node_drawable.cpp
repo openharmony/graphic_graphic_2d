@@ -125,8 +125,13 @@ void RSSurfaceRenderNodeDrawable::OnGeneralProcess(RSPaintFilterCanvas& canvas,
     auto bounds = surfaceParams.GetFrameRect();
 
     if (surfaceParams.GetGlobalPositionEnabled()) {
-        auto matrix = surfaceParams.GetTotalMatrix();
-        matrix.Translate(-offsetX_, -offsetY_);
+        auto matrix = surfaceParams.GetMatrix();
+        Drawing::Matrix inverseMatrix;
+        if (!matrix.Invert(inverseMatrix)) {
+            RS_LOGW("RSSurfaceRenderNodeDrawable::%{public}s name: %{public}s matrix invert inverseMatrix Failed", __func__, GetName().c_str());
+        }
+        canvas.ConcatMatrix(inverseMatrix);
+        canvas.Translate(-offsetX_, -offsetY_);
         canvas.ConcatMatrix(matrix);
         if (!lastGlobalPositionEnabled_) {
             lastGlobalPositionEnabled_ = true;
