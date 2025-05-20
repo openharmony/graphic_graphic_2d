@@ -41,6 +41,8 @@ void WaitAcquireFence(const sptr<SyncFence>& acquireFence)
 constexpr size_t MAX_CACHE_SIZE = 16;
 constexpr size_t MAX_CACHE_SIZE_FOR_REUSE = 40;
 static const bool ENABLE_VKIMAGE_DFX = system::GetBoolParameter("persist.graphic.enable_vkimage_dfx", false);
+static const bool ENABLE_SEMAPHORE =
+    system::GetBoolParameter("persist.sys.graphic.rs_vkimgmgr_enable_semaphore", true);
 
 #define DFX_LOG(enableDfx, format, ...) \
     ((enableDfx) ? (void) HILOG_ERROR(LOG_CORE, format, ##__VA_ARGS__) : (void) 0)
@@ -79,16 +81,57 @@ std::shared_ptr<NativeVkImageRes> NativeVkImageRes::Create(sptr<OHOS::SurfaceBuf
             backendTexture.GetTextureInfo().GetVKTextureInfo()->vkAlloc.memory));
 }
 
+bool RSVkImageManager::WaitVKSemaphore(Drawing::Surface *drawingSurface, const sptr<SyncFence>& acquireFence)
+{
+    if (drawingSurface == nullptr || acquireFence == nullptr) {
+        return false;
+    }
+
+    VkSemaphore semaphore = VK_NULL_HANDLE;
+    VkSemaphoreCreateInfo semaphoreInfo;
+    semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+    semaphoreInfo.pNext = nullptr;
+    semaphoreInfo.flags = 0;
+    auto& vkInterface = RsVulkanContext::GetSingleton().GetRsVulkanInterface();
+    auto res = vkInterface.vkCreateSemaphore(vkInterface.GetDevice(), &semaphoreInfo, nullptr, &semaphore);
+    if (res != VK_SUCCESS) {
+        ROSEN_LOGE("RSVkImageManager: CreateVkSemaphore vkCreateSemaphore failed %{public}d", res);
+        semaphore = VK_NULL_HANDLE;
+        return false;
+    }
+
+    VkImportSemaphoreFdInfoKHR importSemaphoreFdInfo;
+    importSemaphoreFdInfo.sType = VK_STRUCTURE_TYPE_IMPORT_SEMAPHORE_FD_INFO_KHR;
+    importSemaphoreFdInfo.pNext = nullptr;
+    importSemaphoreFdInfo.semaphore = semaphore;
+    importSemaphoreFdInfo.flags = VK_SEMAPHORE_IMPORT_TEMPORARY_BIT;
+    importSemaphoreFdInfo.handleType = VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_SYNC_FD_BIT;
+    importSemaphoreFdInfo.fd = acquireFence->Dup();
+    res = vkInterface.vkImportSemaphoreFdKHR(vkInterface.GetDevice(), &importSemaphoreFdInfo);
+    if (res != VK_SUCCESS) {
+        ROSEN_LOGE("RSVkImageManager: CreateVkSemaphore vkImportSemaphoreFdKHR failed %{public}d", res);
+        vkInterface.vkDestroySemaphore(vkInterface.GetDevice(), semaphore, nullptr);
+        semaphore = VK_NULL_HANDLE;
+        close(importSemaphoreFdInfo.fd);
+        return false;
+    }
+
+    drawingSurface->Wait(1, semaphore); // 1 means only one VKSemaphore need to wait
+    return true;
+}
+
 std::shared_ptr<NativeVkImageRes> RSVkImageManager::MapVkImageFromSurfaceBuffer(
     const sptr<OHOS::SurfaceBuffer>& buffer,
     const sptr<SyncFence>& acquireFence,
-    pid_t threadIndex)
+    pid_t threadIndex, Drawing::Surface *drawingSurface)
 {
     if (buffer == nullptr) {
         ROSEN_LOGE("RSVkImageManager::MapVkImageFromSurfaceBuffer buffer is nullptr");
         return nullptr;
     }
-    WaitAcquireFence(acquireFence);
+    if (!ENABLE_SEMAPHORE || !WaitVKSemaphore(drawingSurface, acquireFence)) {
+        WaitAcquireFence(acquireFence);
+    }
     std::lock_guard<std::mutex> lock(opMutex_);
     bool isProtectedCondition = (buffer->GetUsage() & BUFFER_USAGE_PROTECTED) ||
         RsVulkanContext::GetSingleton().GetIsProtected();

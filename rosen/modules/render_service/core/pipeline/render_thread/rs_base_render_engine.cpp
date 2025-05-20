@@ -693,7 +693,7 @@ std::shared_ptr<Drawing::Image> RSBaseRenderEngine::CreateImageFromBuffer(RSPain
 #ifdef RS_ENABLE_VK
     if (RSSystemProperties::IsUseVulkan()) {
         auto imageCache = vkImageManager_->MapVkImageFromSurfaceBuffer(params.buffer,
-            params.acquireFence, params.threadIndex);
+            params.acquireFence, params.threadIndex, canvas.GetSurface());
         if (params.buffer != nullptr && params.buffer->GetBufferDeleteFromCacheFlag()) {
             RS_LOGD_IF(DEBUG_COMPOSER, "  - Buffer %{public}u marked for deletion from cache, unmapping",
                 params.buffer->GetSeqNum());
