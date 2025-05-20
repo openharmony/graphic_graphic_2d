@@ -1497,9 +1497,10 @@ int32_t RSSystemProperties::GetHybridRenderSwitch(ComponentEnableSwitch bitSeq)
     hybridRenderSystemProperty[static_cast<uint32_t>(bitSeq)] =
         ComponentSwitchTable[static_cast<uint32_t>(bitSeq)].ComponentHybridSwitch();
 
-    return (GetHybridRenderCcmEnabled() && (hybridRenderFeatureSwitch != 0 ?
-        1 : (1 << static_cast<uint32_t>(bitSeq)) & hybridRenderFeatureSwitch)) ||
-        hybridRenderSystemProperty[static_cast<uint32_t>(bitSeq)];
+    uint32_t hybridRenderFeatureSwitchValue = hybridRenderFeatureSwitch != 0 ? 1 :
+        (1 << static_cast<uint32_t>(bitSeq)) & hybridRenderFeatureSwitch;
+    return (GetHybridRenderCcmEnabled() && hybridRenderFeatureSwitchValue != 0) ||
+           hybridRenderSystemProperty[static_cast<uint32_t>(bitSeq)];
 }
 
 bool RSSystemProperties::GetVKImageUseEnabled()
