@@ -2000,12 +2000,7 @@ napi_value JsCanvas::OnGetLocalClipBounds(napi_env env, napi_callback_info info)
         ROSEN_LOGE("JsCanvas::OnGetLocalClipBounds canvas is nullptr");
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
-
-    Rect rect = m_canvas->GetLocalClipBounds();
-    std::shared_ptr<Rect> rectPtr = std::make_shared<Rect>(rect.GetLeft(),
-        rect.GetTop(), rect.GetRight(), rect.GetBottom());
-
-    return GetRectAndConvertToJsValue(env, rectPtr);
+    return GetRectAndConvertToJsValue(env, m_canvas->GetLocalClipBounds());
 }
 
 Canvas* JsCanvas::GetCanvas()

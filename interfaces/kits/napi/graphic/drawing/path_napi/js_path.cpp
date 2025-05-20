@@ -1132,11 +1132,7 @@ napi_value JsPath::OnGetBounds(napi_env env, napi_callback_info info)
         ROSEN_LOGE("JsPath::OnGetBounds path is nullptr");
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
-    auto bounds = m_path->GetBounds();
-    std::shared_ptr<Rect> rect = std::make_shared<Rect>(bounds.GetLeft(),
-                                                        bounds.GetTop(), bounds.GetRight(), bounds.GetBottom());
-
-    return GetRectAndConvertToJsValue(env, rect);
+    return GetRectAndConvertToJsValue(env, m_path->GetBounds());
 }
 
 napi_value JsPath::OnIsClosed(napi_env env, napi_callback_info info)
