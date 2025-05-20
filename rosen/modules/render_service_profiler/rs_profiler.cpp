@@ -2032,7 +2032,7 @@ void RSProfiler::PlaybackPauseAt(const ArgList& args)
 
     TimePauseAt(currentTimeNano, pauseAfterTimeNano, g_playbackImmediate);
     ResetAnimationStamp();
-    Respond("OK");
+    Respond("PlaybackPauseAt OK");
 }
 
 
