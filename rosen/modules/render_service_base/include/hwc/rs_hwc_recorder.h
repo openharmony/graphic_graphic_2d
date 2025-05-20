@@ -34,6 +34,14 @@ public:
     void SetForegroundColorValid(bool isForegroundColorValid) { isForegroundColorValid_ = isForegroundColorValid; }
     bool IsForegroundColorValid() const { return isForegroundColorValid_; }
 
+    bool GetZorderChanged() const { return zOrderChanged_; }
+
+    void UpdatePositionZ(float positionZ)
+    {
+        zOrderChanged_ = !ROSEN_EQ(positionZ, positionZ_);
+        positionZ_ = positionZ;
+    }
+
     void SetZOrderForHwcEnableByFilter(int32_t zOrderForHwcEnableByFilter)
     {
         zOrderForHwcEnableByFilter_ = zOrderForHwcEnableByFilter;
@@ -44,6 +52,10 @@ private:
     bool isBlendWithBackground_ = false;
     bool isForegroundColorValid_ = false;
     int32_t zOrderForHwcEnableByFilter_ = 0;
+
+private:
+    float positionZ_ = 0.0f;
+    bool zOrderChanged_ = false;
 };
 
 struct RSHwcSurfaceRecorder {

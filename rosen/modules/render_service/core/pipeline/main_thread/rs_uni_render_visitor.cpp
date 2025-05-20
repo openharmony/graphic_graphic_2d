@@ -1568,6 +1568,10 @@ void RSUniRenderVisitor::QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node)
     bool isCurrOffscreen = hwcVisitor_->UpdateIsOffscreen(node);
     hwcVisitor_->UpdateForegroundColorValid(node);
 
+    node.GetHwcRecorder().UpdatePositionZ(node.GetRenderProperties().GetPositionZ());
+    if (node.GetHwcRecorder().GetZorderChanged() && curSurfaceNode_) {
+        curSurfaceNode_->SetNeedCollectHwcNode(true);
+    }
     // 1. Recursively traverse child nodes if above curSurfaceNode and subnode need draw
     hasAccumulatedClip_ = node.SetAccumulatedClipFlag(hasAccumulatedClip_);
     auto subTreeDirty = node.GetOpincCache().OpincForcePrepareSubTree(autoCacheEnable_,
