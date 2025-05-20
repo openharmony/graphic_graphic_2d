@@ -2712,7 +2712,7 @@ bool RSRenderServiceConnection::NotifySoftVsyncRateDiscountEvent(uint32_t pid,
 ErrCode RSRenderServiceConnection::NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt)
 {
     if (mainThread_ != nullptr) {
-        mainThread_->NotifyTouchEvent(touchStatus, touchCnt);
+        mainThread_->HandleTouchEvent(touchStatus, touchCnt);
         return ERR_INVALID_VALUE;
     }
     auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();

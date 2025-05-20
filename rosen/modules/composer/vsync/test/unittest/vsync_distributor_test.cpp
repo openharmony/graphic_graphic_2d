@@ -117,6 +117,19 @@ HWTEST_F(VSyncDistributorTest, RemoveConnection003, Function | MediumTest| Level
 }
 
 /*
+ * @tc.name: CheckVsyncTsAndReceived
+ * @tc.desc: Test For CheckVsyncTsAndReceived
+ * @tc.type: FUNC
+ * @tc.require: issueIC989U
+ */
+HWTEST_F(VSyncDistributorTest, CheckVsyncTsAndReceived001, Function | MediumTest| Level3)
+{
+    uint64_t timestamp = 10;
+    auto res = VSyncDistributorTest::vsyncDistributor->CheckVsyncTsAndReceived(timestamp);
+    ASSERT_EQ(res, timestamp);
+}
+
+/*
 * Function: RequestNextVSync001
 * Type: Function
 * Rank: Important(2)
@@ -1039,17 +1052,17 @@ HWTEST_F(VSyncDistributorTest, NotifyPackageEventTest001, Function | MediumTest|
 }
 
 /*
-* Function: NotifyTouchEventTest001
+* Function: HandleTouchEvent001
 * Type: Function
 * Rank: Important(2)
 * EnvConditions: N/A
-* CaseDescription: 1. test NotifyTouchEvent
+* CaseDescription: 1. test HandleTouchEvent
  */
-HWTEST_F(VSyncDistributorTest, NotifyTouchEventTest001, Function | MediumTest| Level3)
+HWTEST_F(VSyncDistributorTest, HandleTouchEvent001, Function | MediumTest| Level3)
 {
     int32_t touchStatus = 0;
     int32_t touchCnt = 0;
-    vsyncDistributor->NotifyTouchEvent(touchStatus, touchCnt);
+    vsyncDistributor->HandleTouchEvent(touchStatus, touchCnt);
     ASSERT_EQ(touchStatus, 0);
 }
 

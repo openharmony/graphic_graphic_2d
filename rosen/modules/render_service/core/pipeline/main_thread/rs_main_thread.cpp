@@ -3361,6 +3361,7 @@ void RSMainThread::ProcessScreenHotPlugEvents()
 
 void RSMainThread::OnVsync(uint64_t timestamp, uint64_t frameCount, void* data)
 {
+    rsVSyncDistributor_->CheckVsyncTsAndReceived(timestamp);
     SetFrameInfo(frameCount, false);
     const int64_t onVsyncStartTime = GetCurrentSystimeMs();
     const int64_t onVsyncStartTimeSteady = GetCurrentSteadyTimeMs();
@@ -3496,7 +3497,6 @@ void RSMainThread::Animate(uint64_t timestamp)
     RS_TRACE_FUNC();
     lastAnimateTimestamp_ = timestamp;
     rsCurrRange_.Reset();
-    needRequestNextVsyncAnimate_ = false;
     if (context_->animatingNodeList_.empty()) {
         doWindowAnimate_ = false;
         context_->SetRequestedNextVsyncAnimate(false);
@@ -5296,9 +5296,9 @@ void RSMainThread::NotifyPackageEvent(const std::vector<std::string>& packageLis
     rsVSyncDistributor_->NotifyPackageEvent(packageList);
 }
 
-void RSMainThread::NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt)
+void RSMainThread::HandleTouchEvent(int32_t touchStatus, int32_t touchCnt)
 {
-    rsVSyncDistributor_->NotifyTouchEvent(touchStatus, touchCnt);
+    rsVSyncDistributor_->HandleTouchEvent(touchStatus, touchCnt);
 }
 
 void RSMainThread::SetBufferInfo(uint64_t id, const std::string &name, uint32_t queueSize,

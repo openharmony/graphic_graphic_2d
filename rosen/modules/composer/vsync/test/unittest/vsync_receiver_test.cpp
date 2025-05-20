@@ -51,6 +51,13 @@ void VsyncReceiverTest::OnVSync2(int64_t now, void* data)
     usleep(100000); // 100000us
 }
 
+static int64_t SystemTime()
+{
+    timespec t = {};
+    clock_gettime(CLOCK_MONOTONIC, &t);
+    return int64_t(t.tv_sec) * 1000000000LL + t.tv_nsec; // 1000000000ns == 1s
+}
+
 void VsyncReceiverTest::SetUpTestCase()
 {
     vsyncGenerator = CreateVSyncGenerator();
@@ -268,11 +275,10 @@ HWTEST_F(VsyncReceiverTest, GetVSyncPeriodAndLastTimeStamp001, Function | Medium
 }
 
 /*
-* Function: SetVsyncCallBackForEveryFrame001
-* Type: Function
-* Rank: Important(2)
-* EnvConditions: N/A
-* CaseDescription: 1. call SetVsyncCallBackForEveryFrame
+ * @tc.name: SetVsyncCallBackForEveryFrame
+ * @tc.desc: Test For SetVsyncCallBackForEveryFrame
+ * @tc.type: FUNC
+ * @tc.require: issueIC989U
  */
 HWTEST_F(VsyncReceiverTest, SetVsyncCallBackForEveryFrame001, Function | MediumTest| Level3)
 {
@@ -294,13 +300,16 @@ HWTEST_F(VsyncReceiverTest, SetVsyncCallBackForEveryFrame001, Function | MediumT
 
     onVsyncCount = 0;
     ASSERT_EQ(rsReceiver->SetVsyncCallBackForEveryFrame(fcb, true), VSYNC_ERROR_OK);
+    int64_t timeStart = SystemTime();
     int64_t period = 0;
     ASSERT_EQ(rsReceiver->GetVSyncPeriod(period), VSYNC_ERROR_OK);
     usleep(period / 10);
     ASSERT_EQ(rsReceiver->SetVsyncCallBackForEveryFrame(fcb, false), VSYNC_ERROR_OK);
+    int64_t timeEnd = SystemTime();
     sleep(1);
     std::cout<< "OnVsync called count: " << onVsyncCount << " period: " << period << std::endl;
-    ASSERT_EQ(abs(onVsyncCount - 100) <= 5, true);
+    bool res = abs(onVsyncCount - (timeEnd - timeStart) / period) <= 5 ? true : false;
+    ASSERT_EQ(res, true);
     rsReceiver->looper_->RemoveFileDescriptorListener(rsReceiver->fd_);
     rsReceiver->looper_ = nullptr;
     rsReceiver->fd_ = -1;
