@@ -18,6 +18,7 @@
 
 #ifdef ROSEN_OHOS
 #include "mem_mgr_client.h"
+#include "hisysevent.h"
 #endif
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
@@ -166,6 +167,7 @@ void RSTransactionProxy::FlushImplicitTransaction(uint64_t timestamp, const std:
         RS_LOGE_LIMIT(__func__, __line__, "FlushImplicitTransaction return, [renderServiceClient_:%{public}d," \
             " transactionData empty:%{public}d]",
             renderServiceClient_ != nullptr, implicitRemoteTransactionData_->IsEmpty());
+        uiSkipCount_++;
         return;
     }
 
@@ -182,6 +184,23 @@ void RSTransactionProxy::FlushImplicitTransaction(uint64_t timestamp, const std:
 #endif
     renderServiceClient_->CommitTransaction(transactionData);
     transactionDataIndex_ = transactionData->GetIndex();
+}
+
+void RSTransactionProxy::ReportUiSkipEvent(const std::string& ability, uint64_t nowMs, uint64_t lastTimestamp)
+{
+    static uint32_t lastCount = 0;
+    uint32_t nowCount = uiSkipCount_;
+    int64_t duration = (nowMs > lastTimestamp) ? nowMs - lastTimestamp : 0;
+    if (duration > 60 * 1000 && nowCount > lastCount && nowCount - lastCount > 100) { // 60 * 1000 ms, gt 100 frame
+        int32_t count = nowCount - lastCount;
+        RS_LOGE_LIMIT(__func__, __line__, "ui_skip count:%{public}d", count);
+#ifdef ROSEN_OHOS
+        using namespace OHOS::HiviewDFX;
+        HiSysEventWrite(HiSysEvent::Domain::GRAPHIC, "RS_UI_SKIP_ANOMALY",
+            HiSysEvent::EventType::FAULT, "ABILITY", ability, "COUNT", count, "DURATION", duration);
+#endif
+    }
+    lastCount = nowCount;
 }
 
 uint32_t RSTransactionProxy::GetTransactionDataIndex() const

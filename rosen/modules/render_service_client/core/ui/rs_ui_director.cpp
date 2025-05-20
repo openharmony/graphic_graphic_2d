@@ -200,6 +200,8 @@ void RSUIDirector::GoForeground(bool isTextureExport)
 {
     ROSEN_LOGD("RSUIDirector::GoForeground");
     if (!isActive_) {
+        auto nowTime = std::chrono::system_clock::now().time_since_epoch();
+        lastUiSkipTimestamp_ = std::chrono::duration_cast<std::chrono::milliseconds>(nowTime).count();
         if (!isUniRenderEnabled_ || isTextureExport) {
             RSRenderThread::Instance().UpdateWindowStatus(true);
         }
@@ -227,6 +229,12 @@ void RSUIDirector::GoBackground(bool isTextureExport)
             RSRenderThread::Instance().UpdateWindowStatus(false);
         }
         isActive_ = false;
+        auto nowTime = std::chrono::system_clock::now().time_since_epoch();
+        uint64_t nowMs = std::chrono::duration_cast<std::chrono::milliseconds>(nowTime).count();
+        auto transactionProxy = RSTransactionProxy::GetInstance();
+        if (transactionProxy != nullptr && nowMs - lastUiSkipTimestamp_ > 1000) { // 1000 ms
+            transactionProxy->ReportUiSkipEvent(abilityName_, nowMs, lastUiSkipTimestamp_);
+        }
         auto node = rootNode_.lock();
         if (node) {
             node->SetEnableRender(false);

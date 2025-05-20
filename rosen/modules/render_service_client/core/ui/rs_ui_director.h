@@ -121,6 +121,7 @@ private:
     bool isUniRenderEnabled_ = false;
     uint64_t refreshPeriod_ = 16666667;
     uint64_t timeStamp_ = 0;
+    uint64_t lastUiSkipTimestamp_ = 0; // ms
     uint32_t index_ = 0;
     std::string abilityName_;
     std::weak_ptr<RSSurfaceNode> surfaceNode_;
