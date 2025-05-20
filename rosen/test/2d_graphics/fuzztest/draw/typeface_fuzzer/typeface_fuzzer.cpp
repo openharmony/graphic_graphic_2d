@@ -98,6 +98,8 @@ bool TypefaceFuzzTest002(const uint8_t* data, size_t size)
 /*
  * 测试以下 Typeface 接口：
  * 1. MakeFromStream(std::unique_ptr<MemoryStream> memoryStream)
+ * 2. MakeFromStream(std::unique_ptr<MemoryStream> memoryStream,
+ *       const FontArguments& fontArguments);
  */
 bool TypefaceFuzzTest003(const uint8_t* data, size_t size)
 {
@@ -109,6 +111,7 @@ bool TypefaceFuzzTest003(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
 
+    size_t index = GetObject<size_t>() % MAX_SIZE + 1;
     size_t length = GetObject<size_t>() % MAX_SIZE + 1;
     char* fontData = new char[length];
     for (size_t i = 0; i < length; i++) {
@@ -120,6 +123,10 @@ bool TypefaceFuzzTest003(const uint8_t* data, size_t size)
         reinterpret_cast<const void*>(fontData), length, copyData);
     std::shared_ptr<Typeface> typeface = Typeface::MakeFromStream(std::move(memoryStream));
 
+    FontArguments args;
+    args.SetCollectionIndex(index);
+    std::shared_ptr<Typeface> typeface2 = Typeface::MakeFromStream(std::move(memoryStream), args);
+    std::shared_ptr<Typeface> typeface3 = Typeface::MakeFromStream(nullptr, args);
     if (fontData != nullptr) {
         delete [] fontData;
         fontData = nullptr;

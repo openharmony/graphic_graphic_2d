@@ -24,7 +24,8 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-TextBlob::TextBlob(std::shared_ptr<TextBlobImpl> textBlobImpl) noexcept : textBlobImpl_(textBlobImpl) {}
+TextBlob::TextBlob(std::shared_ptr<TextBlobImpl> textBlobImpl) noexcept : textBlobImpl_(textBlobImpl),
+    textContrast_(ProcessTextConstrast::Instance().GetTextContrast()) {}
 
 std::shared_ptr<TextBlob> TextBlob::MakeFromText(const void* text, size_t byteLength,
     const Font& font, TextEncoding encoding)

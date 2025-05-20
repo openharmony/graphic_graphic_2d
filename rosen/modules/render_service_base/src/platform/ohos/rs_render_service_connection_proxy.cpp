@@ -34,6 +34,8 @@ static constexpr int MAX_RETRY_COUNT = 20;
 static constexpr int RETRY_WAIT_TIME_US = 1000; // wait 1ms before retry SendRequest
 static constexpr int MAX_SECURITY_EXEMPTION_LIST_NUMBER = 1024; // securityExemptionList size not exceed 1024
 static constexpr uint32_t EDID_DATA_MAX_SIZE = 64 * 1024;
+static constexpr int MAX_VOTER_SIZE = 100; // SetWindowExpectedRefreshRate map size not exceed 100
+static constexpr int ZERO = 0; // empty map size
 }
 
 RSRenderServiceConnectionProxy::RSRenderServiceConnectionProxy(const sptr<IRemoteObject>& impl)
@@ -1779,6 +1781,34 @@ void RSRenderServiceConnectionProxy::TakeSurfaceCapture(NodeId id, sptr<RSISurfa
         ROSEN_LOGE("%{public}s SendRequest() error[%{public}d]", __func__, err);
         return;
     }
+}
+
+std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>> RSRenderServiceConnectionProxy::TakeSurfaceCaptureSoloNode(
+    NodeId id, const RSSurfaceCaptureConfig& captureConfig, RSSurfaceCapturePermissions)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>> pixelMapIdPairVector;
+    option.SetFlags(MessageOption::TF_SYNC);
+    if (!data.WriteUint64(id)) {
+        ROSEN_LOGE("%{public}s write id failed", __func__);
+        return pixelMapIdPairVector;
+    }
+    if (!WriteSurfaceCaptureConfig(captureConfig, data)) {
+        ROSEN_LOGE("%{public}s write captureConfig failed", __func__);
+        return pixelMapIdPairVector;
+    }
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::TAKE_SURFACE_CAPTURE_SOLO);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("%{public}s SendRequest() error[%{public}d]", __func__, err);
+        return pixelMapIdPairVector;
+    }
+    if (!RSMarshallingHelper::UnmarshallingVec(reply, pixelMapIdPairVector)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::TakeSurfaceCaptureSoloNode UnmarshallingVec failed");
+    }
+    return pixelMapIdPairVector;
 }
 
 void RSRenderServiceConnectionProxy::TakeSelfSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
@@ -4173,6 +4203,88 @@ void RSRenderServiceConnectionProxy::NotifyAppStrategyConfigChangeEvent(const st
     }
 }
 
+void RSRenderServiceConnectionProxy::SetWindowExpectedRefreshRate(
+    const std::unordered_map<uint64_t, EventInfo>& eventInfos
+)
+{
+    auto mapSize = eventInfos.size();
+    if (mapSize <= ZERO || mapSize > MAX_VOTER_SIZE) {
+        ROSEN_LOGE("SetWindowExpectedRefreshRate: map size err.");
+        return;
+    }
+
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("SetWindowExpectedRefreshRate: WriteInterfaceToken GetDescriptor err.");
+        return;
+    }
+    if (!data.WriteUint32(mapSize)) {
+        ROSEN_LOGE("SetWindowExpectedRefreshRate: WriteUint32 mapSize err.");
+        return;
+    }
+    for (const auto& [key, eventInfo] : eventInfos) {
+        if (!data.WriteUint64(key)) {
+            ROSEN_LOGE("SetWindowExpectedRefreshRate: WriteUint64 key err.");
+            return;
+        }
+        if (!eventInfo.Serialize(data)) {
+            ROSEN_LOGE("SetWindowExpectedRefreshRate: Write eventInfo err.");
+            return;
+        }
+    }
+    option.SetFlags(MessageOption::TF_ASYNC);
+    uint32_t code =
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_WINDOW_EXPECTED_BY_WINDOW_ID);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::SetWindowExpectedRefreshRate: Send Request err.");
+        return;
+    }
+}
+
+void RSRenderServiceConnectionProxy::SetWindowExpectedRefreshRate(
+    const std::unordered_map<std::string, EventInfo>& eventInfos
+)
+{
+    auto mapSize = eventInfos.size();
+    if (mapSize <= ZERO || mapSize > MAX_VOTER_SIZE) {
+        ROSEN_LOGE("SetWindowExpectedRefreshRate: map size err.");
+        return;
+    }
+
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("SetWindowExpectedRefreshRate: WriteInterfaceToken GetDescriptor err.");
+        return;
+    }
+    if (!data.WriteUint32(mapSize)) {
+        ROSEN_LOGE("SetWindowExpectedRefreshRate: WriteUint32 mapSize err.");
+        return;
+    }
+    for (const auto& [key, eventInfo] : eventInfos) {
+        if (!data.WriteString(key)) {
+            ROSEN_LOGE("SetWindowExpectedRefreshRate: WriteString key err.");
+            return;
+        }
+        if (!eventInfo.Serialize(data)) {
+            ROSEN_LOGE("SetWindowExpectedRefreshRate: Write eventInfo err.");
+            return;
+        }
+    }
+    option.SetFlags(MessageOption::TF_ASYNC);
+    uint32_t code =
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_WINDOW_EXPECTED_BY_VSYNC_NAME);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::SetWindowExpectedRefreshRate: Send Request err.");
+        return;
+    }
+}
+
 void RSRenderServiceConnectionProxy::NotifyRefreshRateEvent(const EventInfo& eventInfo)
 {
     MessageParcel data;
@@ -4345,6 +4457,33 @@ ErrCode RSRenderServiceConnectionProxy::NotifyHgmConfigEvent(const std::string &
     int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSRenderServiceConnectionProxy::NotifyHgmConfigEvent: Send Request err.");
+        return ERR_INVALID_VALUE;
+    }
+    return ERR_OK;
+}
+
+ErrCode RSRenderServiceConnectionProxy::NotifyXComponentExpectedFrameRate(
+    const std::string& id, int32_t expectedFrameRate)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("NotifyXComponentExpectedFrameRate: GetDescriptor err.");
+        return ERR_INVALID_VALUE;
+    }
+    if (!data.WriteString(id)) {
+        return ERR_INVALID_VALUE;
+    }
+    if (!data.WriteInt32(expectedFrameRate)) {
+        return ERR_INVALID_VALUE;
+    }
+    option.SetFlags(MessageOption::TF_ASYNC);
+    uint32_t code = static_cast<uint32_t>(
+        RSIRenderServiceConnectionInterfaceCode::NOTIFY_XCOMPONENT_EXPECTED_FRAMERATE);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::NotifyXComponentExpectedFrameRate: Send Request err.");
         return ERR_INVALID_VALUE;
     }
     return ERR_OK;
@@ -5049,6 +5188,52 @@ ErrCode RSRenderServiceConnectionProxy::NotifyPageName(const std::string &packag
         }
     } else {
         ROSEN_LOGE("RSRenderServiceConnectionProxy::NotifyPageName: write data err.");
+        return ERR_INVALID_VALUE;
+    }
+    return ERR_OK;
+}
+
+ErrCode RSRenderServiceConnectionProxy::SetBehindWindowFilterEnabled(bool enabled)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::SetBehindWindowFilterEnabled WriteInterfaceToken err.");
+        return ERR_INVALID_VALUE;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    if (!data.WriteBool(enabled)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::SetBehindWindowFilterEnabled WriteBool err.");
+        return ERR_INVALID_VALUE;
+    }
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_BEHIND_WINDOW_FILTER_ENABLED);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::SetBehindWindowFilterEnabled sendrequest error : %{public}d", err);
+        return ERR_INVALID_VALUE;
+    }
+    return ERR_OK;
+}
+
+ErrCode RSRenderServiceConnectionProxy::GetBehindWindowFilterEnabled(bool& enabled)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::GetBehindWindowFilterEnabled WriteInterfaceToken err.");
+        return ERR_INVALID_VALUE;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_BEHIND_WINDOW_FILTER_ENABLED);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::GetBehindWindowFilterEnabled sendrequest error : %{public}d", err);
+        return ERR_INVALID_VALUE;
+    }
+    if (!reply.ReadBool(enabled)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::SetBehindWindowFilterEnabled ReadBool err.");
         return ERR_INVALID_VALUE;
     }
     return ERR_OK;

@@ -347,7 +347,7 @@ void RsSubThreadCache::InitCacheSurface(Drawing::GPUContext* gpuContext,
             colorSpace =
                 Drawing::ColorSpace::CreateRGB(Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::DCIP3);
         }
-        cacheBackendTexture_ = RSUniRenderUtil::MakeBackendTexture(
+        cacheBackendTexture_ = NativeBufferUtils::MakeBackendTexture(
             width, height, ExtractPid(nodeDrawable->nodeId_), format);
         auto vkTextureInfo = cacheBackendTexture_.GetTextureInfo().GetVKTextureInfo();
         if (!cacheBackendTexture_.IsValid() || !vkTextureInfo) {
@@ -1004,11 +1004,6 @@ bool RsSubThreadCache::DealWithUIFirstCache(DrawableV2::RSSurfaceRenderNodeDrawa
         (RSUniRenderThread::GetCaptureParam().isSnapshot_ && !HasCachedTexture())) {
         return false;
     }
-    if (RSUniRenderThread::GetCaptureParam().isSnapshot_) {
-        RS_LOGI("%{public}s name:%{public}s surfaceCount:%{public}d nodeCount:%{public}d alpha:%{public}f",
-            __func__, surfaceDrawable->GetName().c_str(), cacheCompletedSurfaceInfo_.processedSurfaceCount,
-            cacheCompletedSurfaceInfo_.processedNodeCount, cacheCompletedSurfaceInfo_.alpha);
-    }
     RS_TRACE_NAME_FMT("DrawUIFirstCache [%s] %" PRIu64 ", type %d, cacheState:%d",
         surfaceParams.GetName().c_str(), surfaceParams.GetId(), enableType, cacheState);
     Drawing::Rect bounds = surfaceParams.GetBounds();
@@ -1021,8 +1016,13 @@ bool RsSubThreadCache::DealWithUIFirstCache(DrawableV2::RSSurfaceRenderNodeDrawa
     // This branch is entered only when the conditions for executing the DrawUIFirstCache function are met.
     if (surfaceParams.GetGlobalPositionEnabled() &&
         surfaceParams.GetUifirstUseStarting() == INVALID_NODEID) {
-        auto matrix = surfaceParams.GetTotalMatrix();
-        matrix.Translate(-surfaceDrawable->offsetX_, -surfaceDrawable->offsetY_);
+        auto matrix = surfaceParams.GetMatrix();
+        Drawing::Matrix inverseMatrix;
+        if (!matrix.Invert(inverseMatrix)) {
+            RS_LOGW("RsSubThreadCache::%{public}s name: %{public}s matrix invert inverseMatrix Failed", __func__, surfaceParams.GetName().c_str());
+        }
+        canvas.ConcatMatrix(inverseMatrix);
+        canvas.Translate(-surfaceDrawable->offsetX_, -surfaceDrawable->offsetY_);
         canvas.ConcatMatrix(matrix);
         RS_LOGD("RsSubThreadCache::DealWithUIFirstCache Translate screenId=[%{public}" PRIu64 "] "
             "offsetX=%{public}d offsetY=%{public}d", surfaceDrawable->curDisplayScreenId_, surfaceDrawable->offsetX_,

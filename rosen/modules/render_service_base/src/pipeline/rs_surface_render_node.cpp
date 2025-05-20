@@ -520,23 +520,6 @@ std::string RSSurfaceRenderNode::SubSurfaceNodesDump() const
     return out;
 }
 
-void RSSurfaceRenderNode::SetIsNodeToBeCaptured(bool isNodeToBeCaptured)
-{
-#ifdef RS_ENABLE_GPU
-    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
-    if (surfaceParams) {
-        surfaceParams->SetIsNodeToBeCaptured(isNodeToBeCaptured);
-        isNodeToBeCaptured_ = isNodeToBeCaptured;
-        AddToPendingSyncList();
-    }
-#endif
-}
-
-bool RSSurfaceRenderNode::IsNodeToBeCaptured() const
-{
-    return isNodeToBeCaptured_;
-}
-
 void RSSurfaceRenderNode::OnResetParent()
 {
     if (nodeType_ == RSSurfaceNodeType::LEASH_WINDOW_NODE) {
@@ -1333,7 +1316,7 @@ GraphicColorGamut RSSurfaceRenderNode::GetColorSpace() const
     if (!RSSystemProperties::GetWideColorSpaceEnabled()) {
         return GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     }
-    if (RsCommonHook::Instance().GetP3NodeCountFlag() && wideColorGamutNum_ > 0) {
+    if (RsCommonHook::Instance().IsAdaptiveColorGamutEnabled() && wideColorGamutNum_ > 0) {
         return GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
     }
     return colorSpace_;
@@ -1345,7 +1328,7 @@ GraphicColorGamut RSSurfaceRenderNode::GetFirstLevelNodeColorGamut() const
         return GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     }
     if (wideColorGamutWindowCount_ > 0 ||
-        (RsCommonHook::Instance().GetP3NodeCountFlag() && wideColorGamutResourceWindowCount_ > 0)) {
+        (RsCommonHook::Instance().IsAdaptiveColorGamutEnabled() && wideColorGamutResourceWindowCount_ > 0)) {
         return GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
     } else {
         return GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
@@ -1686,7 +1669,8 @@ Occlusion::Rect RSSurfaceRenderNode::GetSurfaceOcclusionRect(bool isUniRender)
 {
     Occlusion::Rect occlusionRect;
     if (isUniRender) {
-        occlusionRect = Occlusion::Rect {GetOldDirtyInSurface()};
+        occlusionRect =
+            IsFirstLevelCrossNode() ? Occlusion::Rect {GetAbsDrawRect()} : Occlusion::Rect {GetOldDirtyInSurface()};
     } else {
         occlusionRect = Occlusion::Rect {GetDstRect()};
     }
@@ -3121,6 +3105,7 @@ void RSSurfaceRenderNode::UpdateRenderParams()
     surfaceParams->hasSubSurfaceNodes_ = HasSubSurfaceNodes();
     surfaceParams->allSubSurfaceNodeIds_ = GetAllSubSurfaceNodeIds();
     surfaceParams->crossNodeSkipDisplayConversionMatrices_ = crossNodeSkipDisplayConversionMatrices_;
+    surfaceParams->regionToBeMagnified_ = regionToBeMagnified_;
     surfaceParams->SetNeedSync(true);
 
     RSRenderNode::UpdateRenderParams();
@@ -3473,7 +3458,8 @@ void RSSurfaceRenderNode::SetOldNeedDrawBehindWindow(bool val)
 
 bool RSSurfaceRenderNode::NeedDrawBehindWindow() const
 {
-    return !GetRenderProperties().GetBackgroundFilter() && !childrenBlurBehindWindow_.empty();
+    return RSSystemProperties::GetBehindWindowFilterEnabled() && !GetRenderProperties().GetBackgroundFilter() &&
+        !childrenBlurBehindWindow_.empty();
 }
 
 void RSSurfaceRenderNode::AddChildBlurBehindWindow(NodeId id)
@@ -3620,6 +3606,28 @@ void RSSurfaceRenderNode::ResetSurfaceNodeStates()
     }
     surfaceParams->SetIsBufferFlushed(false);
     AddToPendingSyncList();
+}
+
+void RSSurfaceRenderNode::SetFrameGravityNewVersionEnabled(bool isEnabled)
+{
+    if (isFrameGravityNewVersionEnabled_ == isEnabled) {
+        return;
+    }
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (surfaceParams == nullptr) {
+        ROSEN_LOGE("RSSurfaceRenderNode::SetFrameGravityNewVersionEnabled failed! surfaceParams is null. id:%{public}"
+            "" PRIu64 ", isEnabled:%{public}d", GetId(), isEnabled);
+        return;
+    }
+    surfaceParams->SetFrameGravityNewVersionEnabled(isEnabled);
+    AddToPendingSyncList();
+
+    isFrameGravityNewVersionEnabled_ = isEnabled;
+}
+
+bool RSSurfaceRenderNode::GetFrameGravityNewVersionEnabled() const
+{
+    return isFrameGravityNewVersionEnabled_;
 }
 } // namespace Rosen
 } // namespace OHOS

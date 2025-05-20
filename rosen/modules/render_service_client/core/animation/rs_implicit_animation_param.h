@@ -36,6 +36,14 @@ enum class ImplicitAnimationParamType {
     TRANSITION,
     CANCEL
 };
+enum class CancelAnimationStatus {
+    SUCCESS = 0,
+    NULL_ANIMATOR,
+    NO_OPEN_CLOSURE,
+    INCORRECT_PARAM_TYPE,
+    EMPTY_PENDING_SYNC_LIST,
+    TASK_EXECUTION_FAILURE,
+};
 class RSAnimation;
 class RSPropertyBase;
 class RSMotionPathOption;
@@ -64,7 +72,7 @@ public:
     ~RSImplicitCancelAnimationParam() override = default;
 
     void AddPropertyToPendingSyncList(const std::shared_ptr<RSPropertyBase>& property);
-    bool SyncProperties(const std::shared_ptr<RSUIContext>& rsUIContext);
+    CancelAnimationStatus SyncProperties(const std::shared_ptr<RSUIContext>& rsUIContext);
 
     std::shared_ptr<RSAnimation> CreateEmptyAnimation(std::shared_ptr<RSPropertyBase> property,
         const std::shared_ptr<RSPropertyBase>& startValue, const std::shared_ptr<RSPropertyBase>& endValue) const;

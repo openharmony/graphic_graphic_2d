@@ -42,6 +42,7 @@ private:
 
     friend class RSGraphicTestDirector;
     friend class RSGraphicTest;
+    friend class RSGraphicTestProfiler;
 };
 
 } // namespace Rosen

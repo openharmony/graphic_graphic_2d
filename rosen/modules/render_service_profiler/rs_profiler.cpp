@@ -36,6 +36,7 @@
 #include "rs_profiler_test_tree.h"
 
 #include "common/rs_common_def.h"
+#include "feature/dirty/rs_uni_dirty_compute_util.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
 #include "params/rs_display_render_params.h"
 #include "pipeline/main_thread/rs_main_thread.h"
@@ -179,7 +180,7 @@ void RSProfiler::SetDirtyRegion(const Occlusion::Region& dirtyRegion)
     auto screenInfo = params->GetScreenInfo();
     const uint64_t displayArea = static_cast<uint64_t>(screenInfo.width * screenInfo.height);
 
-    auto rects = RSUniRenderUtil::ScreenIntersectDirtyRects(dirtyRegion, screenInfo);
+    auto rects = RSUniDirtyComputeUtil::ScreenIntersectDirtyRects(dirtyRegion, screenInfo);
     uint64_t dirtyRegionArea = 0;
     g_dirtyRegionList.str("");
     for (const auto& rect : rects) {
@@ -475,6 +476,15 @@ void RSProfiler::OnProcessCommand()
     }
 }
 
+bool RSProfiler::IsSecureScreen()
+{
+    std::shared_ptr<RSDisplayRenderNode> displayNode = GetDisplayNode(*context_);
+    if (displayNode) {
+        return (displayNode->GetMultableSpecialLayerMgr().Find(SpecialLayerType::HAS_SECURITY)) ? true : false;
+    }
+    return false;
+}
+
 void RSProfiler::OnRenderBegin()
 {
     if (!IsEnabled()) {
@@ -592,7 +602,7 @@ void RSProfiler::ProcessPauseMessage()
         if (deltaTime > g_replayLastPauseTimeReported) {
             int64_t vsyncId = g_playbackFile.ConvertTime2VsyncId(deltaTime);
             if (vsyncId) {
-                SendMessage("Replay timer paused vsyncId=%lld", vsyncId); // DO NOT TOUCH!
+                SendMessage("Replay timer paused vsyncId=%" PRId64, vsyncId); // DO NOT TOUCH!
             }
             g_replayLastPauseTimeReported = deltaTime;
         }
@@ -1715,6 +1725,10 @@ void RSProfiler::RecordStop(const ArgList& args)
     }
 
     SetMode(Mode::SAVING);
+    if (args.String() == "REMOVELAST") {
+        g_recordFile.UnwriteRSData(); // remove last commands they may start animation with password depiction
+        g_recordFile.UnwriteRSData();
+    }
 
     bool isBetaRecordingStarted = IsBetaRecordStarted();
     std::thread thread([isBetaRecordingStarted]() {
@@ -1733,7 +1747,7 @@ void RSProfiler::RecordStop(const ArgList& args)
         ImageCache::Reset();
 
         SendMessage("Record: Stopped");
-        SendMessage("Network: record_vsync_range %llu %llu", g_recordMinVsync, g_recordMaxVsync); // DO NOT TOUCH!
+        SendMessage("Network: record_vsync_range %" PRIu64 "%" PRIu64, g_recordMinVsync, g_recordMaxVsync); // DO NOT TOUCH!
 
         SetMode(Mode::NONE);
     });
@@ -1986,7 +2000,7 @@ void RSProfiler::PlaybackPause(const ArgList& args)
 
     int64_t vsyncId = g_playbackFile.ConvertTime2VsyncId(recordPlayTime);
     if (vsyncId) {
-        SendMessage("Replay timer paused vsyncId=%lld", vsyncId); // DO NOT TOUCH!
+        SendMessage("Replay timer paused vsyncId=%" PRId64, vsyncId); // DO NOT TOUCH!
     }
     g_replayLastPauseTimeReported = recordPlayTime;
 }

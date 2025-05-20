@@ -1097,4 +1097,97 @@ HWTEST_F(RSImageTest, PurgeTest004, TestSize.Level1)
     rsImage = nullptr;
     RSImageCache::Instance().ReleaseUniqueIdList();
 }
+
+/**
+ * @tc.name: SetOrientationFitTest
+ * @tc.desc: Verify function SetOrientationFit
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSImageTest, SetOrientationFitTest, TestSize.Level1)
+{
+    auto rsImage = std::make_shared<RSImage>();
+    rsImage->SetOrientationFit(0);
+    EXPECT_EQ(rsImage->orientationFit_, OrientationFit::NONE);
+
+    rsImage->SetOrientationFit(1);
+    EXPECT_EQ(rsImage->orientationFit_, OrientationFit::VERTICAL_FLIP);
+
+    rsImage->SetOrientationFit(2);
+    EXPECT_EQ(rsImage->orientationFit_, OrientationFit::HORIZONTAL_FLIP);
+}
+
+/**
+ * @tc.name: GetOrientationFitTest
+ * @tc.desc: Verify function GetOrientationFit
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSImageTest, GetOrientationFitTest, TestSize.Level1)
+{
+    auto rsImage = std::make_shared<RSImage>();
+    rsImage->orientationFit_ = OrientationFit::NONE;
+    EXPECT_EQ(rsImage->GetOrientationFit(), OrientationFit::NONE);
+
+    rsImage->orientationFit_ = OrientationFit::VERTICAL_FLIP;
+    EXPECT_EQ(rsImage->GetOrientationFit(), OrientationFit::VERTICAL_FLIP);
+
+    rsImage->orientationFit_ = OrientationFit::HORIZONTAL_FLIP;
+    EXPECT_EQ(rsImage->GetOrientationFit(), OrientationFit::HORIZONTAL_FLIP);
+}
+
+/**
+ * @tc.name: ApplyImageOrientationTest
+ * @tc.desc: Verify function ApplyImageOrientation
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSImageTest, ApplyImageOrientationTest, TestSize.Level1)
+{
+    auto rsImage = std::make_shared<RSImage>();
+    Drawing::Canvas drawingCanvas;
+
+    rsImage->SetOrientationFit(0);
+    rsImage->dst_ = Drawing::Rect(0, 0, 100, 100);
+    
+    Drawing::Matrix mat1 = Drawing::Matrix();
+    drawingCanvas.Save();
+    rsImage->ApplyImageOrientation(drawingCanvas);
+    EXPECT_EQ(drawingCanvas.GetTotalMatrix(), mat1);
+    drawingCanvas.Restore();
+
+    Drawing::Matrix mat2 = Drawing::Matrix();
+    mat2.SetScaleTranslate(1, -1, 0, 100);
+    rsImage->SetOrientationFit(1);
+    drawingCanvas.Save();
+    rsImage->ApplyImageOrientation(drawingCanvas);
+    EXPECT_EQ(drawingCanvas.GetTotalMatrix(), mat2);
+    drawingCanvas.Restore();
+
+    Drawing::Matrix mat3 = Drawing::Matrix();
+    mat3.SetScaleTranslate(-1, 1, 100, 0);
+    rsImage->SetOrientationFit(2);
+    drawingCanvas.Save();
+    rsImage->ApplyImageOrientation(drawingCanvas);
+    EXPECT_EQ(drawingCanvas.GetTotalMatrix(), mat3);
+    drawingCanvas.Restore();
+}
+
+/**
+ * @tc.name: PixelSamplingDumpTest
+ * @tc.desc: Verify function PixelSamplingDump
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSImageTest, PixelSamplingDumpTest, TestSize.Level1)
+{
+    auto rsImage = std::make_shared<RSImage>();
+    
+    EXPECT_EQ(rsImage->PixelSamplingDump(), " pixelMap_ is nullptr");
+
+    int width = 200;
+    int height = 300;
+    std::shared_ptr<Media::PixelMap> pixelmap = CreatePixelMap(width, height);
+    rsImage->SetPixelMap(pixelmap);
+    EXPECT_EQ(rsImage->PixelSamplingDump(),
+        "[ Width:200 Height:300 pixels: ARGB-0xFFFFFF00 ARGB-0xFFFFFF00"
+        " ARGB-0xFFFFFF00 ARGB-0xFFFFFF00 ARGB-0xFFFFFF00 ARGB-0xFFFFFF00"
+        " ARGB-0xFFFFFF00 ARGB-0xFFFFFF00 ARGB-0xFFFFFF00]");
+}
 } // namespace OHOS::Rosen

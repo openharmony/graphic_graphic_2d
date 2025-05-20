@@ -16,6 +16,10 @@
 #include "gtest/gtest.h"
 #include "memory/rs_memory_manager.h"
 
+#ifdef RS_ENABLE_VK
+#include "platform/ohos/backend/rs_vulkan_context.h"
+#endif
+
 using namespace testing;
 using namespace testing::ext;
 
@@ -35,7 +39,12 @@ public:
     void TearDown() override;
 };
 
-void RSMemoryManagerTest::SetUpTestCase() {}
+void RSMemoryManagerTest::SetUpTestCase()
+{
+#ifdef RS_ENABLE_VK
+    RsVulkanContext::SetRecyclable(false);
+#endif
+}
 void RSMemoryManagerTest::TearDownTestCase() {}
 void RSMemoryManagerTest::SetUp() {}
 void RSMemoryManagerTest::TearDown() {}
@@ -751,5 +760,25 @@ HWTEST_F(RSMemoryManagerTest, InterruptReclaimTaskTest001, testing::ext::TestSiz
     RSReclaimMemoryManager::Instance().InterruptReclaimTask("GESTURE_TO_RECENTS");
     ASSERT_FALSE(RSReclaimMemoryManager::Instance().IsReclaimInterrupt());
     RSReclaimMemoryManager::Instance().SetReclaimInterrupt(false);
+}
+
+/**
+ * @tc.name: MemoryOverForReportTest00
+ * @tc.desc: memory over report
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryManagerTest, MemoryOverForReportTest001, testing::ext::TestSize.Level1)
+{
+    std::unordered_map<pid_t, MemorySnapshotInfo> infoMap;
+    pid_t pid = 123;
+    MemorySnapshotInfo info;
+    info.cpuMemory = 1;
+    info.gpuMemory = 2048;
+    infoMap.insert(std::make_pair(pid, info));
+    MemoryManager::memoryWarning_ = 800;
+    MemoryManager::gpuMemoryControl_ = 2000;
+    MemoryManager::MemoryOverForReport(infoMap, false);
+    ASSERT_TRUE(MemoryManager::processKillReportPidSet_.count(pid));
 }
 } // namespace OHOS::Rosen

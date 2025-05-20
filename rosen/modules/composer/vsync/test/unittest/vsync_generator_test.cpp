@@ -103,6 +103,21 @@ void VSyncGeneratorTestCallback::OnConnsRefreshRateChanged(
 
 namespace {
 /*
+* Function: CheckSampleIsAdaptiveTest001
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: Test CheckSampleIsAdaptive
+ */
+HWTEST_F(VSyncGeneratorTest, CheckSampleIsAdaptiveTest001, Function | MediumTest| Level0)
+{
+    // 20000000ns
+    ASSERT_EQ(VSyncGeneratorTest::vsyncGenerator_->CheckSampleIsAdaptive(20000000), true);
+    // 16500000ns
+    ASSERT_EQ(VSyncGeneratorTest::vsyncGenerator_->CheckSampleIsAdaptive(16500000), false);
+}
+
+/*
 * Function: CheckAndUpdateReferenceTimeTest001
 * Type: Function
 * Rank: Important(2)
@@ -1193,18 +1208,20 @@ HWTEST_F(VSyncGeneratorTest, RemoveDVSyncListenerTest001, Function | MediumTest|
 }
 
 /*
-* Function: CheckSampleIsAdaptiveTest001
+* Function: IsUiDvsyncOnTest001
 * Type: Function
 * Rank: Important(2)
 * EnvConditions: N/A
-* CaseDescription: Test CheckSampleIsAdaptive
+* CaseDescription: Test IsUiDvsyncOnTest001
  */
-HWTEST_F(VSyncGeneratorTest, CheckSampleIsAdaptiveTest001, Function | MediumTest| Level0)
+HWTEST_F(VSyncGeneratorTest, IsUiDvsyncOnTest001, Function | MediumTest| Level0)
 {
-    // 20000000ns
-    ASSERT_EQ(VSyncGeneratorTest::vsyncGenerator_->CheckSampleIsAdaptive(20000000), true);
-    // 16500000ns
-    ASSERT_EQ(VSyncGeneratorTest::vsyncGenerator_->CheckSampleIsAdaptive(16500000), false);
+    auto vsyncGeneratorImpl = static_cast<impl::VSyncGenerator*>(VSyncGeneratorTest::vsyncGenerator_.GetRefPtr());
+    auto rsVSyncDistributor = vsyncGeneratorImpl->rsVSyncDistributor_;
+    vsyncGeneratorImpl->rsVSyncDistributor_ = nullptr;
+    bool ret = vsyncGeneratorImpl->IsUiDvsyncOn();
+    vsyncGeneratorImpl->rsVSyncDistributor_ = rsVSyncDistributor;
+    ASSERT_EQ(ret, false);
 }
 } // namespace
 } // namespace Rosen

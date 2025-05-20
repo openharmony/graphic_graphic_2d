@@ -178,6 +178,10 @@ private:
         const Drawing::Rect& specifiedAreaRect = Drawing::Rect(0.f, 0.f, 0.f, 0.f),
         RSSurfaceCapturePermissions permissions = RSSurfaceCapturePermissions()) override;
 
+    std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>> TakeSurfaceCaptureSoloNode(
+        NodeId id, const RSSurfaceCaptureConfig& captureConfig,
+        RSSurfaceCapturePermissions permissions = RSSurfaceCapturePermissions()) override;
+
     void TakeSelfSurfaceCapture(
         NodeId id, sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig) override;
 
@@ -327,6 +331,10 @@ private:
 
     void NotifyRefreshRateEvent(const EventInfo& eventInfo) override;
 
+    void SetWindowExpectedRefreshRate(const std::unordered_map<uint64_t, EventInfo>& eventInfos) override;
+
+    void SetWindowExpectedRefreshRate(const std::unordered_map<std::string, EventInfo>& eventInfos) override;
+
     ErrCode NotifySoftVsyncEvent(uint32_t pid, uint32_t rateDiscount) override;
 
     bool NotifySoftVsyncRateDiscountEvent(uint32_t pid, const std::string &name, uint32_t rateDiscount) override;
@@ -336,6 +344,8 @@ private:
     void NotifyDynamicModeEvent(bool enableDynamicModeEvent) override;
 
     ErrCode NotifyHgmConfigEvent(const std::string &eventName, bool state) override;
+
+    ErrCode NotifyXComponentExpectedFrameRate(const std::string& id, int32_t expectedFrameRate) override;
 
     ErrCode SetCacheEnabledForRotation(bool isEnabled) override;
 
@@ -390,6 +400,10 @@ private:
     ErrCode NotifyPageName(const std::string &packageName, const std::string &pageName, bool isEnter) override;
 
     bool GetHighContrastTextState() override;
+
+    ErrCode SetBehindWindowFilterEnabled(bool enabled) override;
+
+    ErrCode GetBehindWindowFilterEnabled(bool& enabled) override;
 
     pid_t remotePid_;
     wptr<RSRenderService> renderService_;

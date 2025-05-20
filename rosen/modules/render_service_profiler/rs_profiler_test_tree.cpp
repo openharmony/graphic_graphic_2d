@@ -68,7 +68,7 @@ Drawing::Image TestTreeBuilder::GenerateRandomImage(int width, int height)
     auto pixelsPtr = static_cast<uint8_t*>(bitmap.GetPixels());
     if (pixelsPtr) {
         const auto& imageInfo = bitmap.GetImageInfo();
-        size_t bytesPerPixel = imageInfo.GetBytesPerPixel();
+        size_t bytesPerPixel = static_cast<size_t>(imageInfo.GetBytesPerPixel());
         int heightImage = bitmap.GetHeight();
         int rowBytes = bitmap.GetRowBytes();
 

@@ -177,6 +177,8 @@ public:
     const RectI GetFilterCachedRegion() const;
 
     void SetSkipCacheLayer(bool hasSkipCacheLayer);
+    void SetChildInBlackList(bool hasChildInBlackList);
+
     size_t GetFilterNodeSize() const
     {
         return filterNodeSize_;
@@ -331,6 +333,8 @@ protected:
 #endif
     // if the node needs to avoid drawing cache because of some layers, such as the security layer...
     bool hasSkipCacheLayer_ = false;
+    bool hasChildInBlackList_ = false;
+    
     ClearSurfaceTask clearSurfaceTask_ = nullptr;
 private:
     static void InitRenderParams(const std::shared_ptr<const RSRenderNode>& node,

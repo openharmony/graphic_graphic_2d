@@ -135,16 +135,6 @@ int32_t XMLParser::ParseParam(xmlNode& node)
 
         HGM_LOGI("HgmXMLParser ParseParam default_refreshrate_mode %{public}s",
                  mParsedData_->defaultRefreshRateMode_.c_str());
-    } else if (paraName == "p3_node_count_config") {
-        HGM_LOGD("XMLParser parsing p3_node_count_config");
-        if (ExtractPropertyValue("value", node) == "1") {
-            mParsedData_->p3NodeCountSwitch_ = true;
-        }
-    } else if (paraName == "is_covered_surface_close_p3_config") {
-        HGM_LOGD("XMLParser parsing is_covered_surface_close_p3_config");
-        if (ExtractPropertyValue("value", node) == "1") {
-            mParsedData_->isCoveredSurfaceCloseP3_ = true;
-        }
     }
 
     return EXEC_SUCCESS;

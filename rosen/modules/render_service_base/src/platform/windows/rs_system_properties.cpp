@@ -67,6 +67,11 @@ bool RSSystemProperties::GetAnimationTraceEnabled()
     return false;
 }
 
+bool RSSystemProperties::GetAnimationDelayOptimizeEnabled()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetRSClientMultiInstanceEnabled()
 {
     return false;
@@ -660,6 +665,11 @@ uint32_t RSSystemProperties::GetHybridRenderTextBlobLenCount()
     return 0;
 }
 
+bool RSSystemProperties::ViewDrawNodeType()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetHybridRenderParallelConvertEnabled()
 {
     return false;
@@ -714,5 +724,13 @@ bool RSSystemProperties::GetDebugFmtTraceEnabled()
     return GetDebugTraceEnabled();
 }
 
+void RSSystemProperties::SetBehindWindowFilterEnabled(bool enabled)
+{
+}
+
+bool RSSystemProperties::GetBehindWindowFilterEnabled()
+{
+    return false;
+}
 } // namespace Rosen
 } // namespace OHOS

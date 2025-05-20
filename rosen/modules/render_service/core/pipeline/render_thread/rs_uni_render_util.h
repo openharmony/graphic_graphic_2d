@@ -53,9 +53,6 @@ public:
     // for mirror display, call this function twice will introduce additional dirtyhistory in dirtymanager
     static void MergeDirtyHistoryForDrawable(DrawableV2::RSDisplayRenderNodeDrawable& drawable, int32_t bufferAge,
         RSDisplayRenderParams& params, bool useAlignedDirtyRegion = false);
-    static void SetAllSurfaceDrawableGlobalDirtyRegion(
-        std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& allSurfaceDrawables,
-        const Occlusion::Region& globalDirtyRegion);
     static void SetDrawRegionForQuickReject(
         std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& allSurfaceDrawables,
         const Occlusion::Region mergedDirtyRects);
@@ -76,12 +73,6 @@ public:
     static Occlusion::Region MergeVisibleDirtyRegionInVirtual(
         std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& allSurfaceNodeDrawables,
         RSDisplayRenderParams& displayParams, bool isSecScreen = false);
-    static std::vector<RectI> GetCurrentFrameVisibleDirty(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable,
-        ScreenInfo& screenInfo, RSDisplayRenderParams& params);
-    static std::vector<RectI> ScreenIntersectDirtyRects(const Occlusion::Region &region, ScreenInfo& screenInfo);
-    static std::vector<RectI> GetFilpDirtyRects(const std::vector<RectI>& srcRects, const ScreenInfo& screenInfo);
-    static std::vector<RectI> FilpRects(const std::vector<RectI>& srcRects, const ScreenInfo& screenInfo);
-    static GraphicIRect IntersectRect(const GraphicIRect& first, const GraphicIRect& second);
     // This is used for calculate matrix from buffer coordinate to window's relative coordinate
     static Drawing::Matrix GetMatrixOfBufferToRelRect(const RSSurfaceRenderNode& node);
     static void SrcRectScaleDown(BufferDrawParam& params, const sptr<SurfaceBuffer>& buffer,
@@ -112,13 +103,6 @@ public:
     static void ClearNodeCacheSurface(std::shared_ptr<Drawing::Surface>&& cacheSurface,
         std::shared_ptr<Drawing::Surface>&& cacheCompletedSurface,
         uint32_t cacheSurfaceThreadIndex, uint32_t completedSurfaceThreadIndex);
-#ifdef RS_ENABLE_VK
-    static uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
-    static void SetVkImageInfo(std::shared_ptr<OHOS::Rosen::Drawing::VKTextureInfo> vkImageInfo,
-        const VkImageCreateInfo& imageInfo);
-    static Drawing::BackendTexture MakeBackendTexture(uint32_t width, uint32_t height, pid_t pid,
-        VkFormat format = VK_FORMAT_R8G8B8A8_UNORM);
-#endif
     static void OptimizedFlushAndSubmit(std::shared_ptr<Drawing::Surface>& surface,
         Drawing::GPUContext* const grContext, bool optFenceWait = true);
     static SecRectInfo GenerateSecRectInfoFromNode(RSRenderNode& node, RectI rect);

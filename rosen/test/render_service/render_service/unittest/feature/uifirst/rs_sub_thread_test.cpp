@@ -33,7 +33,12 @@ public:
     void TearDown() override;
 };
 
-void RsSubThreadTest::SetUpTestCase() {}
+void RsSubThreadTest::SetUpTestCase()
+{
+#ifdef RS_ENABLE_VK
+    RsVulkanContext::SetRecyclable(false);
+#endif
+}
 void RsSubThreadTest::TearDownTestCase() {}
 void RsSubThreadTest::SetUp() {}
 void RsSubThreadTest::TearDown() {}
@@ -380,5 +385,53 @@ HWTEST_F(RsSubThreadTest, SetHighContrastIfEnabledTest, TestSize.Level1)
     RSUniRenderThread::Instance().GetRenderEngine()->SetHighContrast(false);
     curThread->SetHighContrastIfEnabled(filterCanvas);
     EXPECT_FALSE(filterCanvas.isHighContrastEnabled());
+}
+
+/**
+ * @tc.name: UpdateGpuMemoryStatisticsTest
+ * @tc.desc: gpu memory statics
+ * @tc.type: FUNC
+ * @tc.require: issueIBVHE7
+ */
+HWTEST_F(RsSubThreadTest, UpdateGpuMemoryStatisticsTest, TestSize.Level1)
+{
+    auto renderContext = std::make_shared<RenderContext>();
+    auto curThread = std::make_shared<RSSubThread>(renderContext.get(), 0);
+    curThread->UpdateGpuMemoryStatistics();
+    EXPECT_TRUE(curThread->gpuMemoryOfPid_.empty());
+}
+
+/**
+ * @tc.name: GetGpuMemoryOfPidTest
+ * @tc.desc: get gpu memory statics map
+ * @tc.type: FUNC
+ * @tc.require: issueIBVHE7
+ */
+HWTEST_F(RsSubThreadTest, GetGpuMemoryOfPidTest, TestSize.Level1)
+{
+    auto renderContext = std::make_shared<RenderContext>();
+    auto curThread = std::make_shared<RSSubThread>(renderContext.get(), 0);
+    pid_t pid = 123;
+    size_t memSize = 2048;
+    curThread->gpuMemoryOfPid_.insert(std::make_pair(pid, memSize));
+    std::unordered_map<pid_t, size_t> memMap = curThread->GetGpuMemoryOfPid();
+    EXPECT_FALSE(memMap.empty());
+}
+
+/**
+ * @tc.name: ErasePidOfGpuMemoryTest
+ * @tc.desc: erase pid of gpu memory statics map
+ * @tc.type: FUNC
+ * @tc.require: issueIBVHE7
+ */
+HWTEST_F(RsSubThreadTest, ErasePidOfGpuMemoryTest, TestSize.Level1)
+{
+    auto renderContext = std::make_shared<RenderContext>();
+    auto curThread = std::make_shared<RSSubThread>(renderContext.get(), 0);
+    pid_t pid = 123;
+    size_t memSize = 2048;
+    curThread->gpuMemoryOfPid_.insert(std::make_pair(pid, memSize));
+    curThread->ErasePidOfGpuMemory(pid);
+    EXPECT_TRUE(curThread->gpuMemoryOfPid_.empty());
 }
 } // namespace OHOS::Rosen

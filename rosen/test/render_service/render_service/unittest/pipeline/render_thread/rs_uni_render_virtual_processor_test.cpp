@@ -62,7 +62,12 @@ public:
     };
 };
 
-void RSUniRenderVirtualProcessorTest::SetUpTestCase() {}
+void RSUniRenderVirtualProcessorTest::SetUpTestCase()
+{
+#ifdef RS_ENABLE_VK
+    RsVulkanContext::SetRecyclable(false);
+#endif
+}
 void RSUniRenderVirtualProcessorTest::TearDownTestCase() {}
 void RSUniRenderVirtualProcessorTest::SetUp()
 {

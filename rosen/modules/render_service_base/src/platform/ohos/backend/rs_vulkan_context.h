@@ -178,6 +178,7 @@ public:
     DEFINE_FUNC(DestroySwapchainKHR);
     DEFINE_FUNC(DeviceWaitIdle);
     DEFINE_FUNC(EndCommandBuffer);
+    DEFINE_FUNC(EnumerateDeviceExtensionProperties);
     DEFINE_FUNC(EnumerateDeviceLayerProperties);
     DEFINE_FUNC(EnumerateInstanceExtensionProperties);
     DEFINE_FUNC(EnumerateInstanceLayerProperties);
@@ -209,6 +210,7 @@ public:
     DEFINE_FUNC(ImportSemaphoreFdKHR);
     DEFINE_FUNC(GetPhysicalDeviceFeatures2);
     DEFINE_FUNC(SetFreqAdjustEnable);
+    DEFINE_FUNC(GetSemaphoreFdKHR);
 #undef DEFINE_FUNC
 
     VkPhysicalDevice GetPhysicalDevice() const
@@ -266,6 +268,10 @@ private:
     VkPhysicalDeviceFeatures2 physicalDeviceFeatures2_;
     VkPhysicalDeviceProtectedMemoryFeatures* protectedMemoryFeatures_ = nullptr;
     VkPhysicalDeviceSamplerYcbcrConversionFeatures ycbcrFeature_;
+    VkPhysicalDeviceSynchronization2Features sync2Feature_;
+    VkPhysicalDeviceDescriptorIndexingFeatures bindlessFeature_;
+    VkPhysicalDeviceTimelineSemaphoreFeatures timelineFeature_;
+    std::vector<const char*> deviceExtensions_;
     VkDeviceMemoryExclusiveThresholdHUAWEI deviceMemoryExclusiveThreshold_;
     GrVkExtensions skVkExtensions_;
     RsVulkanMemStat mVkMemStat;
@@ -283,6 +289,8 @@ private:
     bool SetupLoaderProcAddresses();
     bool CloseLibraryHandle();
     bool SetupDeviceProcAddresses(VkDevice device);
+    void ConfigureFeatures(bool isProtected);
+    void ConfigureExtensions();
     PFN_vkVoidFunction AcquireProc(
         const char* proc_name,
         const VkInstance& instance) const;
@@ -317,7 +325,12 @@ public:
     explicit RsVulkanContext(std::string cacheDir = "");
     void InitVulkanContextForHybridRender(const std::string& cacheDir);
     void InitVulkanContextForUniRender(const std::string& cacheDir);
-    ~RsVulkanContext() {};
+    ~RsVulkanContext()
+    {
+        std::lock_guard<std::mutex> lock(drawingContextMutex_);
+        drawingContextMap_.clear();
+        protectedDrawingContextMap_.clear();
+    }
 
     RsVulkanContext(const RsVulkanContext&) = delete;
     RsVulkanContext &operator=(const RsVulkanContext&) = delete;

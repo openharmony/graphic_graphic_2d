@@ -16,6 +16,7 @@
 #ifndef TEXT_BLOB_H
 #define TEXT_BLOB_H
 
+#include <atomic>
 #include <cstdint>
 #include <memory>
 
@@ -29,6 +30,36 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
+enum class TextContrast {
+    FOLLOW_SYSTEM, // Follow the system configuration.
+    DISABLE_CONTRAST, // Do not follow the system, APP prohibits high contrast.
+    ENABLE_CONTRAST // Do not follow the system, APP enables high contrast.
+};
+
+class DRAWING_API ProcessTextConstrast {
+public:
+    static ProcessTextConstrast& Instance() {
+        static ProcessTextConstrast instance;
+        return instance;
+    }
+
+    void SetTextContrast(TextContrast contrast) {
+        textContrast_.store(contrast);
+    }
+
+    TextContrast GetTextContrast() {
+        return textContrast_.load();
+    }
+private:
+    ProcessTextConstrast() = default;
+    ~ProcessTextConstrast() = default;
+    ProcessTextConstrast(const ProcessTextConstrast&) = delete;
+    ProcessTextConstrast(const ProcessTextConstrast&&) = delete;
+    ProcessTextConstrast& operator=(const ProcessTextConstrast&) = delete;
+    ProcessTextConstrast& operator=(const ProcessTextConstrast&&) = delete;
+
+    std::atomic<TextContrast> textContrast_ {TextContrast::FOLLOW_SYSTEM};
+};
 class DRAWING_API TextBlob {
 public:
     explicit TextBlob(std::shared_ptr<TextBlobImpl> textBlobImpl) noexcept;
@@ -84,6 +115,14 @@ public:
         this->isEmoji = emoji;
     }
 
+    void SetTextContrast(TextContrast contrast) {
+        textContrast_ = contrast;
+    }
+
+    TextContrast GetTextContrast() const {
+        return textContrast_;
+    }
+
     class Context {
     public:
         explicit Context(std::shared_ptr<Typeface> typeface, bool isCustomTypeface) noexcept
@@ -116,6 +155,7 @@ public:
 private:
     std::shared_ptr<TextBlobImpl> textBlobImpl_;
     bool isEmoji = false;
+    TextContrast textContrast_ = TextContrast::FOLLOW_SYSTEM;
 };
 } // namespace Drawing
 } // namespace Rosen

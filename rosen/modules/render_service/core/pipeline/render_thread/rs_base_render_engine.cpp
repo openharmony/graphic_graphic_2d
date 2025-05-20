@@ -15,6 +15,7 @@
 
 #include "rs_base_render_engine.h"
 #include <memory>
+#include <csignal>
 
 #include "v2_1/cm_color_space.h"
 #ifdef RS_ENABLE_EGLIMAGE
@@ -49,6 +50,7 @@
 namespace OHOS {
 namespace Rosen {
 constexpr float DEFAULT_DISPLAY_NIT = 500.0f;
+constexpr int SIGNAL_FOR_OCERAN = 42;
 
 RSBaseRenderEngine::RSBaseRenderEngine()
 {
@@ -238,7 +240,7 @@ std::unique_ptr<RSRenderFrame> RSBaseRenderEngine::RequestFrame(
     }
     RS_OPTIONAL_TRACE_BEGIN("RSBaseRenderEngine::RequestFrame(RSSurface)");
 #ifdef RS_ENABLE_VK
-    RSTagTracker tagTracker(skContext_.get(), RSTagTracker::TAGTYPE::TAG_ACQUIRE_SURFACE);
+    RSTagTracker tagTracker(skContext_, RSTagTracker::TAGTYPE::TAG_ACQUIRE_SURFACE);
 #endif
     rsSurface->SetColorSpace(config.colorGamut);
     rsSurface->SetSurfacePixelFormat(config.format);
@@ -597,6 +599,7 @@ void RSBaseRenderEngine::ColorSpaceConvertor(std::shared_ptr<Drawing::ShaderEffe
         return;
     }
     params.paint.SetShaderEffect(outputShader);
+    RS_LOGI("paint SetShaderEffect Func:%s, Line:%d", __FUNCTION__, __LINE__);
     RS_OPTIONAL_TRACE_END();
 }
 #endif
@@ -860,11 +863,16 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
     RS_LOGD_IF(DEBUG_COMPOSER, "  - Image shader transformation:"
         "sx=%{public}.2f, sy=%{public}.2f, tx=%{public}.2f, ty=%{public}.2f", sx, sy, tx, ty);
 
+    auto gpuCtx = canvas.GetGPUContext();
     auto imageShader = Drawing::ShaderEffect::CreateImageShader(
         *image, Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP, samplingOptions, matrix);
     if (imageShader == nullptr) {
         RS_LOGW("RSBaseRenderEngine::DrawImage imageShader is nullptr.");
     } else {
+        if (gpuCtx.get() && !image->IsValid(gpuCtx.get())) {
+            RS_LOGE("SetShaderEffect cross thread, Func:%s, Line:%d", __FUNCTION__, __LINE__);
+            raise(SIGNAL_FOR_OCERAN);
+        }
         params.paint.SetShaderEffect(imageShader);
         ColorSpaceConvertor(imageShader, params, videoInfo.parameter_);
     }

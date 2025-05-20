@@ -1681,5 +1681,25 @@ const std::shared_ptr<RSPaintFilterCanvas::CacheBehindWindowData>& RSPaintFilter
 {
     return cacheBehindWindowData_;
 }
+
+void RSPaintFilterCanvas::SetEffectIntersectWithDRM(bool intersect)
+{
+    isIntersectWithDRM_ = intersect;
+}
+
+bool RSPaintFilterCanvas::GetEffectIntersectWithDRM() const
+{
+    return isIntersectWithDRM_;
+}
+
+void RSPaintFilterCanvas::SetDarkColorMode(bool isDark)
+{
+    isDarkColorMode_ = isDark;
+}
+
+bool RSPaintFilterCanvas::GetDarkColorMode() const
+{
+    return isDarkColorMode_;
+}
 } // namespace Rosen
 } // namespace OHOS

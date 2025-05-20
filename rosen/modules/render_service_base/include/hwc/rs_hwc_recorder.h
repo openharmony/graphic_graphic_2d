@@ -20,6 +20,7 @@ namespace OHOS {
 namespace Rosen {
 
 struct RSHwcRecorder {
+public:
     RSHwcRecorder() = default;
     ~RSHwcRecorder() = default;
 
@@ -30,6 +31,16 @@ struct RSHwcRecorder {
 
     void SetBlendWithBackground(bool isBlendWithBackground) { isBlendWithBackground_ = isBlendWithBackground; }
     bool IsBlendWithBackground() const { return isBlendWithBackground_; }
+    void SetForegroundColorValid(bool isForegroundColorValid) { isForegroundColorValid_ = isForegroundColorValid; }
+    bool IsForegroundColorValid() const { return isForegroundColorValid_; }
+
+    bool GetZorderChanged() const { return zOrderChanged_; }
+
+    void UpdatePositionZ(float positionZ)
+    {
+        zOrderChanged_ = !ROSEN_EQ(positionZ, positionZ_);
+        positionZ_ = positionZ;
+    }
 
     void SetZOrderForHwcEnableByFilter(int32_t zOrderForHwcEnableByFilter)
     {
@@ -37,9 +48,14 @@ struct RSHwcRecorder {
     }
     int32_t GetZOrderForHwcEnableByFilter() const { return zOrderForHwcEnableByFilter_; }
 
+private:
     bool isBlendWithBackground_ = false;
-
+    bool isForegroundColorValid_ = false;
     int32_t zOrderForHwcEnableByFilter_ = 0;
+
+private:
+    float positionZ_ = 0.0f;
+    bool zOrderChanged_ = false;
 };
 
 struct RSHwcSurfaceRecorder {
@@ -50,6 +66,35 @@ struct RSHwcSurfaceRecorder {
     RSHwcSurfaceRecorder(RSHwcSurfaceRecorder&&) = delete;
     RSHwcSurfaceRecorder& operator=(const RSHwcSurfaceRecorder&) = delete;
     RSHwcSurfaceRecorder& operator=(RSHwcSurfaceRecorder&&) = delete;
+
+    void SetLastFrameHasVisibleRegion(bool lastFrameHasVisibleRegion)
+    {
+        lastFrameHasVisibleRegion_ = lastFrameHasVisibleRegion;
+    }
+    bool GetLastFrameHasVisibleRegion() const { return lastFrameHasVisibleRegion_; }
+
+    bool lastFrameHasVisibleRegion_ = true;
+};
+
+struct RSHwcDisplayRecorder {
+    RSHwcDisplayRecorder() = default;
+    ~RSHwcDisplayRecorder() = default;
+
+    RSHwcDisplayRecorder(const RSHwcDisplayRecorder&) = delete;
+    RSHwcDisplayRecorder(RSHwcDisplayRecorder&&) = delete;
+    RSHwcDisplayRecorder& operator=(const RSHwcDisplayRecorder&) = delete;
+    RSHwcDisplayRecorder& operator=(RSHwcDisplayRecorder&&) = delete;
+
+    bool GetNeedForceUpdateHwcNodes() const { return needForceUpdateHwcNodes_; }
+    void SetNeedForceUpdateHwcNodes(bool needForceUpdateHwcNodes)
+    {
+        needForceUpdateHwcNodes_ = needForceUpdateHwcNodes;
+    }
+    bool HasVisibleHwcNodes() const { return hasVisibleHwcNodes_; }
+    void SetHasVisibleHwcNodes(bool hasVisibleHwcNodes) { hasVisibleHwcNodes_ = hasVisibleHwcNodes; }
+
+    bool needForceUpdateHwcNodes_ = false;
+    bool hasVisibleHwcNodes_ = false;
 };
 
 } // namespace Rosen

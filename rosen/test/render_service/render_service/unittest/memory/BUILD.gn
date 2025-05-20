@@ -31,6 +31,7 @@ ohos_unittest("RenderServiceMemoryTest") {
   include_dirs = [
     "./../../../../../modules/2d_graphics",
     "./../../../../../modules/render_service/core",
+    "$graphic_2d_root/rosen/modules/render_service_base/src",
   ]
 
   deps = [
@@ -41,6 +42,7 @@ ohos_unittest("RenderServiceMemoryTest") {
   external_deps = [
     "c_utils:utils",
     "googletest:gtest_main",
+    "graphic_2d:librender_service_base",
     "hilog:libhilog",
     "image_framework:image_native",
     "image_framework:image_utils",

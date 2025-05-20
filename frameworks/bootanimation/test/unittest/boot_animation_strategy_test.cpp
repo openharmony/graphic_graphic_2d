@@ -66,40 +66,19 @@ HWTEST_F(BootAnimationStrategyTest, BootAnimationStrategyTest_001, TestSize.Leve
 
 /**
  * @tc.name: BootAnimationStrategyTest_002
- * @tc.desc: Verify the CheckNeedOtaCompile
+ * @tc.desc: Verify the IsOtaUpdate
  * @tc.type:FUNC
  */
 HWTEST_F(BootAnimationStrategyTest, BootAnimationStrategyTest_002, TestSize.Level1)
 {
-    std::shared_ptr<BootAnimationStrategy> bas1 = std::make_shared<BootAnimationStrategy>();
-    system::SetParameter("const.bms.optimizing_apps.switch", "off");
-    bas1->CheckNeedOtaCompile();
-    
-    std::shared_ptr<BootAnimationStrategy> bas2 = std::make_shared<BootAnimationStrategy>();
-    system::SetParameter("const.bms.optimizing_apps.switch", "on");
-    bas2->CheckNeedOtaCompile();
-
-    std::shared_ptr<BootAnimationStrategy> bas3 = std::make_shared<BootAnimationStrategy>();
-    system::SetParameter("const.bms.optimizing_apps.switch", "on");
-    system::SetParameter("persist.dupdate_engine.update_type", "");
-    bas3->CheckNeedOtaCompile();
-
-    std::shared_ptr<BootAnimationStrategy> bas4 = std::make_shared<BootAnimationStrategy>();
-    system::SetParameter("const.bms.optimizing_apps.switch", "on");
+    std::shared_ptr<BootAnimationStrategy> strategy = std::make_shared<BootAnimationStrategy>();
     bool result = system::SetParameter("persist.dupdate_engine.update_type", "manual");
-    EXPECT_EQ(result ? "manual" : "", system::GetParameter("persist.dupdate_engine.update_type", ""));
-    bas4->CheckNeedOtaCompile();
+    EXPECT_EQ(result, strategy->IsOtaUpdate());
 
-    std::shared_ptr<BootAnimationStrategy> bas5 = std::make_shared<BootAnimationStrategy>();
-    system::SetParameter("const.bms.optimizing_apps.switch", "on");
-    system::SetParameter("persist.dupdate_engine.update_type", "manual");
-    system::SetParameter(BMS_COMPILE_STATUS, "-1");
-    bas5->CheckNeedOtaCompile();
+    result = system::SetParameter("persist.dupdate_engine.update_type", "night");
+    EXPECT_EQ(result, strategy->IsOtaUpdate());
 
-    std::shared_ptr<BootAnimationStrategy> bas6 = std::make_shared<BootAnimationStrategy>();
-    system::SetParameter("const.bms.optimizing_apps.switch", "on");
-    system::SetParameter("persist.dupdate_engine.update_type", "manual");
-    system::SetParameter(BMS_COMPILE_STATUS, BMS_COMPILE_STATUS_END);
-    bas6->CheckNeedOtaCompile();
+    system::SetParameter("persist.dupdate_engine.update_type", "test");
+    EXPECT_EQ(false, strategy->IsOtaUpdate());
 }
 }

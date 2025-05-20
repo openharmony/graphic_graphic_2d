@@ -20,33 +20,10 @@
 #include "include/core/SkString.h"
 #include "include/core/SkTraceMemoryDump.h"
 #include "memory/rs_dfx_string.h"
+#include "memory/rs_tag_tracker.h"
 
 namespace OHOS::Rosen {
 typedef std::pair<const char*, const char*> ResourcePair;
-
-enum SOURCETYPE : uint32_t { // sync with rosen/modules/render_service_base/include/memory/rs_tag_tracker.h
-    SOURCE_OTHER,
-    SOURCE_RSCUSTOMMODIFIERDRAWABLE,
-    SOURCE_RSBEGINBLENDERDRAWABLE,
-    SOURCE_RSSHADOWDRAWABLE,
-    SOURCE_RSBACKGROUNDIMAGEDRAWABLE,
-    SOURCE_RSUSEEFFECTDRAWABLE,
-    SOURCE_RSDYNAMICLIGHTUPDRAWABLE,
-    SOURCE_RSBINARIZATIONDRAWABLE,
-    SOURCE_RSCOLORFILTERDRAWABLE,
-    SOURCE_RSLIGHTUPEFFECTDRAWABLE,
-    SOURCE_RSDYNAMICDIMDRAWABLE,
-    SOURCE_RSFOREGROUNDFILTERDRAWABLE,
-    SOURCE_RSFOREGROUNDFILTERRESTOREDRAWABLE,
-    SOURCE_RSPIXELSTRETCHDRAWABLE,
-    SOURCE_RSPOINTLIGHTDRAWABLE,
-    SOURCE_RSPROPERTYDRAWABLE,
-    SOURCE_RSFILTERDRAWABLE,
-    SOURCE_FINISHOFFSCREENRENDER,
-    SOURCE_DRAWSELFDRAWINGNODEBUFFER,
-    SOURCE_ONCAPTURE,
-    SOURCE_INITCACHEDSURFACE
-};
 
 class SkiaMemoryTracer : public SkTraceMemoryDump {
 public:
@@ -95,7 +72,7 @@ private:
         int count;
     };
 
-    static std::string SourceType2String(SOURCETYPE type);
+    static std::string SourceType2String(RSTagTracker::SOURCETYPE type);
     const char* MapName(const char* resourceName);
     void ProcessElement();
     TraceValue ConvertUnits(const TraceValue& value);
@@ -107,6 +84,7 @@ private:
 
     TraceValue totalSize_;
     TraceValue purgeableSize_;
+    TraceValue externalTextureSize_;
     std::string currentElement_;
     std::unordered_map<std::string, TraceValue> currentValues_;
     std::unordered_map<std::string, std::unordered_map<std::string, TraceValue>> results_;

@@ -182,7 +182,11 @@ public:
         const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam = {},
         const Drawing::Rect& specifiedAreaRect = Drawing::Rect(0.f, 0.f, 0.f, 0.f),
         RSSurfaceCapturePermissions permissions = RSSurfaceCapturePermissions()) = 0;
-    
+
+    virtual std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>> TakeSurfaceCaptureSoloNode(
+        NodeId id, const RSSurfaceCaptureConfig& captureConfig,
+        RSSurfaceCapturePermissions permissions = RSSurfaceCapturePermissions()) = 0;
+
     virtual void TakeSelfSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
         const RSSurfaceCaptureConfig& captureConfig) = 0;
 
@@ -315,6 +319,10 @@ public:
 
     virtual void NotifyRefreshRateEvent(const EventInfo& eventInfo) = 0;
 
+    virtual void SetWindowExpectedRefreshRate(const std::unordered_map<uint64_t, EventInfo>& eventInfos) = 0;
+
+    virtual void SetWindowExpectedRefreshRate(const std::unordered_map<std::string, EventInfo>& eventInfos) = 0;
+
     virtual ErrCode NotifySoftVsyncEvent(uint32_t pid, uint32_t rateDiscount) = 0;
 
     virtual bool NotifySoftVsyncRateDiscountEvent(uint32_t pid, const std::string &name, uint32_t rateDiscount) = 0;
@@ -324,6 +332,8 @@ public:
     virtual void NotifyDynamicModeEvent(bool enableDynamicMode) = 0;
 
     virtual ErrCode NotifyHgmConfigEvent(const std::string &eventName, bool state) = 0;
+
+    virtual ErrCode NotifyXComponentExpectedFrameRate(const std::string& id, int32_t expectedFrameRate) = 0;
 
     virtual ErrCode ReportEventResponse(DataBaseRs info) = 0;
 
@@ -403,6 +413,10 @@ public:
     virtual ErrCode NotifyPageName(const std::string &packageName, const std::string &pageName, bool isEnter) = 0;
 
     virtual bool GetHighContrastTextState() = 0;
+
+    virtual ErrCode SetBehindWindowFilterEnabled(bool enabled) = 0;
+
+    virtual ErrCode GetBehindWindowFilterEnabled(bool& enabled) = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

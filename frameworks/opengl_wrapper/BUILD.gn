@@ -30,7 +30,9 @@ config("egl_config") {
   } else {
     defines += [ "USE_APS_IGAMESERVICE_FUNC=0" ]
   }
-
+  if (graphic_2d_feature_enable_opengl_to_vulkan) {
+    defines += [ "OPENGL_WRAPPER_ENABLE_GL4" ]
+  }
   cflags = [
     "-Wall",
     "-Werror",
@@ -254,6 +256,64 @@ if (current_os != "ohos") {
 }
 
 ## Build libGLESv3.so }}}
+
+## Build libGLv4.so {{{
+config("glv4_config") {
+  visibility = [ ":*" ]
+
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+  ]
+
+  defines = []
+
+  if (graphic_2d_feature_enable_opengl_to_vulkan) {
+    defines += [ "OPENGL_WRAPPER_ENABLE_GL4" ]
+  }
+}
+
+config("glv4_public_config") {
+  include_dirs = [ "include" ]
+}
+
+if (current_os != "ohos" || !graphic_2d_feature_enable_opengl_to_vulkan) {
+  group("GLv4") {
+    public_external_deps = [
+      "egl:libEGL",
+      "opengles:libGLES",
+    ]
+  }
+} else {
+  ohos_shared_library("GLv4") {
+    branch_protector_ret = "pac_ret"
+    sources = [ "src/GL4/gl4.cpp" ]
+    configs = [ ":glv4_config" ]
+
+    public_configs = [ ":glv4_public_config" ]
+
+    public_external_deps = [
+      "egl:libEGL",
+      "opengles:libGLES",
+    ]
+
+    external_deps = [
+      "hilog:libhilog",
+      "mesa3d:zink_opengl",
+    ]
+
+    output_name = "GLv4"
+    output_extension = "so"
+
+    innerapi_tags = [ "ndk" ]
+
+    part_name = "graphic_2d"
+    subsystem_name = "graphic"
+  }
+}
+
+## Build libGLv4.so }}}
 
 ## Build opengl_wrapper_native_test {{{
 ohos_executable("opengl_wrapper_native_test") {

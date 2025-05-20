@@ -64,7 +64,12 @@ public:
     static inline NodeId id = DEFAULT_ID;
 };
 
-void RSDisplayRenderNodeDrawableTest::SetUpTestCase() {}
+void RSDisplayRenderNodeDrawableTest::SetUpTestCase()
+{
+#ifdef RS_ENABLE_VK
+    RsVulkanContext::SetRecyclable(false);
+#endif
+}
 void RSDisplayRenderNodeDrawableTest::TearDownTestCase() {}
 void RSDisplayRenderNodeDrawableTest::SetUp()
 {
@@ -596,24 +601,9 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, CheckDisplayNodeSkipTest, TestSize.Lev
     RSMainThread::Instance()->isDirty_ = false;
     RSUifirstManager::Instance().hasForceUpdateNode_ = false;
 
-    // mock off screen surface null
-    params->hasHdrPresent_ = true;
-    displayDrawable_->offscreenSurface_ = nullptr;
+    params->isHDRStatusChanged_ = true;
     result = displayDrawable_->CheckDisplayNodeSkip(*params, processor);
     EXPECT_EQ(result, false);
-
-    // mock HDR off screen surface in wrong format, here RGBA_8888
-    Drawing::ImageInfo info = Drawing::ImageInfo { DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE,
-        Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL,
-        Drawing::ColorSpace::CreateSRGB()};
-    auto surface = std::make_shared<Drawing::Surface>();
-    displayDrawable_->offscreenSurface_ = surface->MakeSurface(info);
-    result = displayDrawable_->CheckDisplayNodeSkip(*params, processor);
-    EXPECT_EQ(result, false);
-
-    params->hasHdrPresent_ = false;
-    displayDrawable_->offscreenSurface_ = nullptr;
-    surface = nullptr;
 }
 
 /**
@@ -2130,4 +2120,20 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, SetSecurityMaskTest, TestSize.Level2)
     auto virtualProcesser = std::make_shared<RSUniRenderVirtualProcessor>();
     displayDrawable_->SetSecurityMask(*virtualProcesser);
 }
+
+/**
+ * @tc.name: UpdateSurfaceDrawRegion
+ * @tc.desc: Test UpdateSurfaceDrawRegion
+ * @tc.type: FUNC
+ * @tc.require: issueIBCH1W
+ */
+HWTEST_F(RSDisplayRenderNodeDrawableTest, UpdateSurfaceDrawRegion, TestSize.Level2)
+{
+    ASSERT_NE(displayDrawable_, nullptr);
+    drawingCanvas_ = std::make_unique<Drawing::Canvas>(DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
+    auto canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas_.get());
+    RSDisplayRenderParams* params = static_cast<RSDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());;
+    displayDrawable_->UpdateSurfaceDrawRegion(canvas, params);
+}
+
 }

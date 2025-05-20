@@ -15,9 +15,11 @@
 
 #include "platform/common/rs_system_properties.h"
 
+#include <charconv>
 #include <cstdlib>
 #include <parameter.h>
 #include <parameters.h>
+#include <unistd.h>
 #include "param/sys_param.h"
 #include "platform/common/rs_log.h"
 #include "transaction/rs_render_service_client.h"
@@ -36,6 +38,7 @@ constexpr int DEFAULT_DIRTY_ALIGN_ENABLED_VALUE = 0;
 constexpr int DEFAULT_CORRECTION_MODE_VALUE = 999;
 constexpr int DEFAULT_SCALE_MODE = 2;
 constexpr const char* DEFAULT_CLIP_RECT_THRESHOLD = "0.7";
+constexpr const char* VULKAN_CONFIG_FILE_PATH = "/vendor/etc/vulkan/icd.d";
 constexpr int DEFAULT_TEXTBLOB_LINE_COUNT = 9;
 struct GetComponentSwitch ComponentSwitchTable[] = {
     {ComponentEnableSwitch::TEXTBLOB, RSSystemProperties::GetHybridRenderTextBlobEnabled},
@@ -55,8 +58,18 @@ const GpuApiType RSSystemProperties::systemGpuApiType_ = GpuApiType::VULKAN;
 
 int ConvertToInt(const char *originValue, int defaultValue)
 {
-    return originValue == nullptr ? defaultValue : std::atoi(originValue);
+    if (originValue == nullptr) {
+        return defaultValue;
+    }
+    int value;
+    auto result = std::from_chars(originValue, originValue + std::strlen(originValue), value);
+    if (result.ec == std::errc()) {
+        return value;
+    } else {
+        return defaultValue;
+    }
 }
+
 static void ParseDfxSurfaceNamesString(const std::string& paramsStr,
     std::vector<std::string>& splitStrs, const std::string& seperator)
 {
@@ -203,6 +216,14 @@ bool RSSystemProperties::GetAnimationTraceEnabled()
 {
     static bool isNeedTrace = system::GetParameter("persist.rosen.animationtrace.enabled", "0") != "0";
     return isNeedTrace;
+}
+
+bool RSSystemProperties::GetAnimationDelayOptimizeEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.animationdelay.optimize.enabled", "1");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 1) != 0;
 }
 
 bool RSSystemProperties::GetRSClientMultiInstanceEnabled()
@@ -1400,9 +1421,16 @@ bool RSSystemProperties::GetHybridRenderDfxEnabled()
 
 uint32_t RSSystemProperties::GetHybridRenderTextBlobLenCount()
 {
-    static uint32_t textBlobLenCount =
-        system::GetIntParameter("persist.sys.graphic.hybrid_render_text_blob_len_count", DEFAULT_TEXTBLOB_LINE_COUNT);
+    static uint32_t textBlobLenCount = static_cast<uint32_t>(
+        system::GetIntParameter("persist.sys.graphic.hybrid_render_text_blob_len_count", DEFAULT_TEXTBLOB_LINE_COUNT));
     return textBlobLenCount;
+}
+
+bool RSSystemProperties::ViewDrawNodeType()
+{
+    static CachedHandle handle = CachedParameterCreate("persist.graphic.ViewDrawNodeType", "0");
+    int32_t changed = 0;
+    return ConvertToInt(CachedParameterGetChanged(handle, &changed), 0) != 0;
 }
 
 bool RSSystemProperties::GetHybridRenderParallelConvertEnabled()
@@ -1453,20 +1481,25 @@ bool RSSystemProperties::GetHybridRenderHmsymbolEnabled()
 
 int32_t RSSystemProperties::GetHybridRenderSwitch(ComponentEnableSwitch bitSeq)
 {
-    static int32_t hybridRenderFeatureSwitch =
-        std::stol((system::GetParameter("const.graphics.hybridrenderfeatureswitch", "0x00")).c_str(), nullptr, 16);
+    static int isAccessToVulkanConfigFile = access(VULKAN_CONFIG_FILE_PATH, F_OK);
+    if (isAccessToVulkanConfigFile == -1) {
+        ROSEN_LOGD("GetHybridRenderSwitch access to [%{public}s] is denied", VULKAN_CONFIG_FILE_PATH);
+        return 0;
+    }
+    static uint32_t hybridRenderFeatureSwitch =
+        std::stoul((system::GetParameter("const.graphics.hybridrenderfeatureswitch", "0x00")).c_str(), nullptr, 16);
     static std::vector<int> hybridRenderSystemProperty(std::size(ComponentSwitchTable));
 
     if (!GetHybridRenderEnabled()) {
         return 0;
     }
 
-    hybridRenderSystemProperty[static_cast<int>(bitSeq)] =
-        ComponentSwitchTable[static_cast<int>(bitSeq)].ComponentHybridSwitch();
+    hybridRenderSystemProperty[static_cast<uint32_t>(bitSeq)] =
+        ComponentSwitchTable[static_cast<uint32_t>(bitSeq)].ComponentHybridSwitch();
 
-    return (GetHybridRenderCcmEnabled() && (!hybridRenderFeatureSwitch ?
-        1 : (1 << static_cast<int>(bitSeq)) & hybridRenderFeatureSwitch)) ||
-        hybridRenderSystemProperty[static_cast<int>(bitSeq)];
+    return (GetHybridRenderCcmEnabled() && (hybridRenderFeatureSwitch != 0 ?
+        1 : (1 << static_cast<uint32_t>(bitSeq)) & hybridRenderFeatureSwitch)) ||
+        hybridRenderSystemProperty[static_cast<uint32_t>(bitSeq)];
 }
 
 bool RSSystemProperties::GetVKImageUseEnabled()
@@ -1487,5 +1520,14 @@ bool RSSystemProperties::GetDebugFmtTraceEnabled()
     return GetDebugTraceEnabled() || debugFmtTraceEnable_;
 }
 
+void RSSystemProperties::SetBehindWindowFilterEnabled(bool enabled)
+{
+    isBehindWindowFilterEnabled_ = enabled;
+}
+
+bool RSSystemProperties::GetBehindWindowFilterEnabled()
+{
+    return isBehindWindowFilterEnabled_;
+}
 } // namespace Rosen
 } // namespace OHOS

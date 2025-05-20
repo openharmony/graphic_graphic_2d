@@ -264,7 +264,7 @@ HWTEST_F(DrawCmdTest, GenerateCachedOpItem001, TestSize.Level1)
     uint64_t globalUniqueId = 0;
     PaintHandle paintHandle;
     DrawTextBlobOpItem::ConstructorHandle handle{opDataHandle,
-        globalUniqueId, 0, 0, paintHandle};
+        globalUniqueId, TextContrast::FOLLOW_SYSTEM, 0, 0, paintHandle};
     EXPECT_FALSE(player.GenerateCachedOpItem(DrawOpItem::TEXT_BLOB_OPITEM, &handle, 0));
     EXPECT_FALSE(player.GenerateCachedOpItem(DrawOpItem::PICTURE_OPITEM, &handle, 0));
 }
@@ -282,7 +282,8 @@ HWTEST_F(DrawCmdTest, PatchTypefaceIds001, TestSize.Level1)
     OpDataHandle opDataHandle;
     uint64_t globalUniqueId = 1;
     PaintHandle paintHandle;
-    DrawTextBlobOpItem::ConstructorHandle handle{opDataHandle, globalUniqueId, 0, 0, paintHandle};
+    DrawTextBlobOpItem::ConstructorHandle handle{opDataHandle, globalUniqueId,
+        TextContrast::FOLLOW_SYSTEM, 0, 0, paintHandle};
     GenerateCachedOpItemPlayer player{*drawCmdList, nullptr, nullptr};
     player.GenerateCachedOpItem(DrawOpItem::TEXT_BLOB_OPITEM, &handle, 0);
     drawCmdList->PatchTypefaceIds();
@@ -915,6 +916,9 @@ HWTEST_F(DrawCmdTest, DrawTextBlobOpItem001, TestSize.Level1)
     opItem.DrawHighContrast(&canvas);
     opItem.DrawHighContrastEnabled(&canvas);
 
+    textBlob->SetTextContrast(TextContrast::ENABLE_CONTRAST);
+    opItem.Playback(recordingCanvas2.get(), &rect);
+
     DrawTextBlobOpItem::ConstructorHandle::GenerateCachedOpItem(*drawCmdList, nullptr, 0, 0, paint);
     DrawTextBlobOpItem::ConstructorHandle::GenerateCachedOpItem(*drawCmdList, textBlob.get(), 0, 0, paint);
     TextBlob textBlob2{nullptr};
@@ -925,8 +929,34 @@ HWTEST_F(DrawCmdTest, DrawTextBlobOpItem001, TestSize.Level1)
     opDataHandle.size = 10;
     uint64_t globalUniqueId = 0;
     PaintHandle paintHandle;
-    DrawTextBlobOpItem::ConstructorHandle handler{opDataHandle, globalUniqueId, 10, 10, paintHandle}; // 10: x, y
+    DrawTextBlobOpItem::ConstructorHandle handler{opDataHandle, globalUniqueId,
+        TextContrast::FOLLOW_SYSTEM, 10, 10, paintHandle}; // 10: x, y
     handler.GenerateCachedOpItem(*drawCmdList, &canvas);
+}
+
+/**
+ * @tc.name: IsHighContrastEnableTest
+ * @tc.desc: Test functions for IsHighContrastEnableTest
+ * @tc.type: FUNC
+ * @tc.require: I9120P
+ */
+HWTEST_F(DrawCmdTest, IsHighContrastEnableTest, TestSize.Level1)
+{
+    Font font;
+    auto textBlob = TextBlob::MakeFromString("11", font, TextEncoding::UTF8);
+    Paint paint;
+    DrawTextBlobOpItem opItem{textBlob.get(), 0, 0, paint};
+
+    auto recordingCanvas = std::make_shared<RecordingCanvas>(1, 10);
+    TextContrast textContrast = TextContrast::FOLLOW_SYSTEM;
+    EXPECT_EQ(opItem.IsHighContrastEnable(recordingCanvas.get(), textContrast),
+        recordingCanvas.get()->isHighContrastEnabled());
+
+    textContrast = TextContrast::DISABLE_CONTRAST;
+    EXPECT_FALSE(opItem.IsHighContrastEnable(recordingCanvas.get(), textContrast));
+
+    textContrast = TextContrast::ENABLE_CONTRAST;
+    EXPECT_TRUE(opItem.IsHighContrastEnable(recordingCanvas.get(), textContrast));
 }
 
 /**

@@ -63,10 +63,10 @@ void RSImplicitCancelAnimationParam::AddPropertyToPendingSyncList(const std::sha
     pendingSyncList_.emplace_back(property);
 }
 
-bool RSImplicitCancelAnimationParam::SyncProperties(const std::shared_ptr<RSUIContext>& rsUIContext)
+CancelAnimationStatus RSImplicitCancelAnimationParam::SyncProperties(const std::shared_ptr<RSUIContext>& rsUIContext)
 {
     if (pendingSyncList_.empty()) {
-        return false;
+        return CancelAnimationStatus::EMPTY_PENDING_SYNC_LIST;
     }
 
     // Create sync map
@@ -94,7 +94,7 @@ bool RSImplicitCancelAnimationParam::SyncProperties(const std::shared_ptr<RSUICo
     if (!renderThreadPropertiesMap.empty()) {
         ret = ret && ExecuteSyncPropertiesTask(std::move(renderThreadPropertiesMap), false, rsUIContext);
     }
-    return ret;
+    return ret ? CancelAnimationStatus::SUCCESS : CancelAnimationStatus::TASK_EXECUTION_FAILURE;
 }
 
 bool RSImplicitCancelAnimationParam::ExecuteSyncPropertiesTask(
@@ -125,12 +125,17 @@ bool RSImplicitCancelAnimationParam::ExecuteSyncPropertiesTask(
             ROSEN_LOGE("RSImplicitCancelAnimationParam::ExecuteSyncPropertiesTask failed to get target node.");
             continue;
         }
-        auto modifier = node->GetModifier(propertyId);
-        if (modifier == nullptr) {
-            ROSEN_LOGE("RSImplicitCancelAnimationParam::ExecuteSyncPropertiesTask failed to get target modifier.");
-            continue;
+        std::shared_ptr<RSPropertyBase> property;
+        if (auto prop = node->GetProperty(propertyId)) {
+            property = prop;
+        } else {
+            auto modifier = node->GetModifier(propertyId);
+            if (modifier == nullptr) {
+                ROSEN_LOGE("RSImplicitCancelAnimationParam::ExecuteSyncPropertiesTask failed to get target modifier.");
+                continue;
+            }
+            property = modifier->GetProperty();
         }
-        auto property = modifier->GetProperty();
         if (property == nullptr) {
             ROSEN_LOGE("RSImplicitCancelAnimationParam::ExecuteSyncPropertiesTask failed to get target property.");
             continue;

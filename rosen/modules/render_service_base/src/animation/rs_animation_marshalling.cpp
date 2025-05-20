@@ -241,6 +241,11 @@ bool RSRenderAnimation::Marshalling(Parcel& parcel) const
         ROSEN_LOGE("RSRenderAnimation::Marshalling, write param failed");
         return false;
     }
+    // token for finding ui instance when executing animation callback in client
+    if (!parcel.WriteUint64(token_)) {
+        ROSEN_LOGE("multi-instance, RSRenderAnimation::Marshalling, write token failed");
+        return false;
+    }
     return true;
 }
 
@@ -258,11 +263,12 @@ bool RSRenderAnimation::ParseParam(Parcel& parcel)
     int fpsMax = 0;
     int fpsPreferred = 0;
     int componentScene = 0;
+    uint64_t token = 0;
     if (!(parcel.ReadUint64(id_) && parcel.ReadInt32(duration) && parcel.ReadInt32(startDelay) &&
             parcel.ReadFloat(speed) && parcel.ReadInt32(repeatCount) && parcel.ReadBool(autoReverse) &&
             parcel.ReadBool(direction) && parcel.ReadInt32(fillMode) && parcel.ReadBool(isRepeatCallbackEnable) &&
             parcel.ReadInt32(fpsMin) && parcel.ReadInt32(fpsMax) && parcel.ReadInt32(fpsPreferred) &&
-            parcel.ReadInt32(componentScene))) {
+            parcel.ReadInt32(componentScene) && parcel.ReadUint64(token))) {
         ROSEN_LOGE("RSRenderAnimation::ParseParam, read param failed");
         return false;
     }
@@ -276,6 +282,7 @@ bool RSRenderAnimation::ParseParam(Parcel& parcel)
     SetFillMode(static_cast<FillMode>(fillMode));
     SetRepeatCallbackEnable(isRepeatCallbackEnable);
     SetFrameRateRange({fpsMin, fpsMax, fpsPreferred, 0, static_cast<ComponentScene>(componentScene)});
+    SetToken(token);
     return true;
 }
 

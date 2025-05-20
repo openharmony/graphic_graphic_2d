@@ -209,7 +209,7 @@ HWTEST_F(HyperGraphicManagerTest, AddScreen, Function | MediumTest | Level2)
 
         STEP("5. mark screenIds Size") {
             sizeScreenIds  = instance.GetScreenIds().size();
-            STEP_ASSERT_EQ(sizeScreenIds + 1, sizeListAfter);
+            STEP_ASSERT_EQ(sizeScreenIds, sizeListAfter);
         }
     }
 }

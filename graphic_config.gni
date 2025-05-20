@@ -36,11 +36,9 @@ declare_args() {
   graphic_2d_feature_enable_filter_cache = true
   graphic_2d_feature_parallel_upload_enable = true
   enable_text_gine = true
-  use_texgine = false
   use_skia_txt = true
   use_video_processing_engine = false
   logger_enable_scope = false
-  texgine_enable_debug_log = false
   player_framework_enable = true
   graphic_2d_feature_drivers_interface_display_enable = true
   graphic_2d_feature_tp_switch_enbale = false
@@ -53,6 +51,7 @@ declare_args() {
   graphic_2d_support_access_token = true
   graphic_2d_feature_overlay_display_enable = false
   enable_full_screen_recongnize = false
+  graphic_2d_feature_enable_opengl_to_vulkan = false
 
   if (defined(is_arkui_x) && is_arkui_x) {
     is_cross_platform = true
@@ -86,9 +85,6 @@ if (graphic_2d_feature_product == "tablet") {
 
 gpu_defines = []
 accessibility_defines = []
-if (enable_text_gine) {
-  gpu_defines += [ "USE_GRAPHIC_TEXT_GINE" ]
-}
 if (graphic_2d_feature_ace_enable_gpu) {
   if (graphic_2d_feature_enable_flutter_vulkan) {
     gpu_defines += [ "RS_ENABLE_OLD_VK" ]
@@ -157,8 +153,6 @@ if (graphic_2d_feature_rs_enable_eglimage || current_os == "android") {
   gpu_defines += [ "RS_DISABLE_EGLIMAGE" ]
   rs_enable_eglimage = false
 }
-
-# use_texgine = graphic_2d_feature_use_texgine
 
 if (graphic_2d_feature_rs_enable_uni_render) {
   graphic_2d_feature_enable_dvsync = true

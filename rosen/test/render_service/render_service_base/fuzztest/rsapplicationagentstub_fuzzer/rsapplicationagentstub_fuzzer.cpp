@@ -62,6 +62,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     DATA = data;
     g_size = size;
     g_pos = 0;
+    const uint8_t targetSize = 4;
 
     uint32_t code = GetData<uint32_t>();
     MessageParcel value;
@@ -77,6 +78,10 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
         }
     };
     MyApplicationAgentStub myApplicationAgentStub;
+    // Set a token that matches GetDescriptor()
+    if (code % targetSize) {
+        value.WriteInterfaceToken(IApplicationAgent::GetDescriptor());
+    }
     myApplicationAgentStub.OnRemoteRequest(code, value, reply, option);
     return true;
 }

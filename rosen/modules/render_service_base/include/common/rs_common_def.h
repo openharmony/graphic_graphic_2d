@@ -241,6 +241,7 @@ struct RSSurfaceCaptureConfig {
     SurfaceCaptureType captureType = SurfaceCaptureType::DEFAULT_CAPTURE;
     bool isSync = false;
     Drawing::Rect mainScreenRect = {};
+    bool isSoloNodeUiCapture = false;
     bool operator==(const RSSurfaceCaptureConfig& config) const
     {
         return mainScreenRect == config.mainScreenRect;
@@ -338,6 +339,7 @@ enum class RSSurfaceNodeType : uint8_t {
     UI_EXTENSION_COMMON_NODE, // uiextension node
     UI_EXTENSION_SECURE_NODE, // uiextension node that requires info callback
     CURSOR_NODE,              // cursor node created by MMI
+    ABILITY_MAGNIFICATION_NODE, // local magnification
     NODE_MAX,
 };
 
@@ -595,6 +597,14 @@ struct VSyncConnParam {
     NodeId windowNodeId = 0;
     bool fromXcomponent = false;
 };
+
+enum DrawNodeType : uint32_t {
+    PureContainerType = 0,
+    MergeableType,
+    DrawPropertyType,
+    GeometryPropertyType
+};
+
 } // namespace Rosen
 } // namespace OHOS
 #endif // RENDER_SERVICE_CLIENT_CORE_COMMON_RS_COMMON_DEF_H

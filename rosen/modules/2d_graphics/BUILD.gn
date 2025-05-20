@@ -52,7 +52,7 @@ config("export_config") {
 }
 
 if (enable_text_gine) {
-  defines = [ "USE_GRAPHIC_TEXT_GINE" ]
+  defines = []
 }
 
 template("graphics2d_source_set") {
@@ -61,9 +61,7 @@ template("graphics2d_source_set") {
   ohos_source_set(target_name) {
     defines += invoker.defines
     cflags_cc += invoker.cflags_cc
-    if (use_texgine) {
-      defines += [ "USE_TEXGINE" ]
-    } else if (use_skia_txt) {
+    if (use_skia_txt) {
       defines += [ "USE_SKIA_TXT" ]
     }
 
@@ -184,6 +182,7 @@ template("graphics2d_source_set") {
       "$drawing_core_src_dir/utils/sharing_serial_context.cpp",
       "$drawing_core_src_dir/utils/string_util.cpp",
       "$drawing_core_src_dir/utils/vertices.cpp",
+      "$drawing_core_src_dir/utils/canvas_utils.cpp",
     ]
 
     if (platform == "ohos" || platform == "ohos_ng") {
@@ -285,10 +284,6 @@ template("graphics2d_source_set") {
     }
 
     if (enable_text_gine) {
-      defines += [ "USE_GRAPHIC_TEXT_GINE" ]
-      if (use_texgine) {
-        defines += [ "USE_TEXGINE" ]
-      }
       include_dirs += [
         "$rosen_text_root",
         "$rosen_text_root/service",
@@ -312,7 +307,7 @@ template("graphics2d_source_set") {
         "skia:skia_canvaskit",
       ]
 
-      defines += [ "OHOS_TEXT_ENABLE" ]
+      defines += [ "ENABLE_OHOS_ENHANCE" ]
       deps = []
       defines += [
         "SUPPORT_OHOS_PIXMAP",
@@ -336,6 +331,7 @@ template("graphics2d_source_set") {
       } else {
         external_deps += [
           "bounds_checking_function:libsec_static",
+          "icu:shared_icuuc",
           "skia:skia_canvaskit",
         ]
       }
@@ -346,16 +342,11 @@ template("graphics2d_source_set") {
         defines += [ "CROSS_PLATFORM" ]
         deps += [ "//third_party/icu/icu4c:static_icuuc" ]
       }
-
-      defines += [ "USE_GRAPHIC_TEXT_GINE" ]
     }
-    if (enable_text_gine) {
-      deps += [ "$rosen_text_root:rosen_text_inner" ]
-      defines += [ "USE_GRAPHIC_TEXT_GINE" ]
-      if (use_skia_txt) {
-        include_dirs += [ "$rosen_text_root/adapter/skia" ]
-      }
+    if (enable_text_gine && !is_arkui_x) {
+      deps += [ "$rosen_text_root/adapter/skia:font_asset" ]
     }
+    include_dirs += [ "$rosen_text_root/adapter/skia" ]
     if (rosen_is_ohos) {
       defines += gpu_defines
       if (rs_enable_gpu) {
@@ -547,10 +538,6 @@ ohos_shared_library("2d_graphics_canvaskit0310") {
       # "//third_party/skia_canvaskit0310:skia",
     ]
     external_deps += [ "graphic_surface:surface" ]
-  }
-
-  if (enable_text_gine) {
-    defines += [ "USE_GRAPHIC_TEXT_GINE" ]
   }
 
   part_name = "graphic_2d"

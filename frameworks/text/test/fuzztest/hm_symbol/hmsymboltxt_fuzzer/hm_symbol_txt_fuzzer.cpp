@@ -14,39 +14,43 @@
  */
 
 #include "hm_symbol_txt_fuzzer.h"
+
 #include <cstddef>
-#include "get_object.h"
+#include <fuzzer/FuzzedDataProvider.h>
+
 #include "rosen_text/hm_symbol_txt.h"
 #include "symbol_engine/hm_symbol_txt.h"
 
 namespace OHOS {
 namespace Rosen {
-void HmSymbolTxtFuzzTestInner01(HMSymbolTxt& symbol)
+void HmSymbolTxtFuzzTestInner01(HMSymbolTxt& symbol, const uint8_t* data, size_t size)
 {
+    FuzzedDataProvider fdp(data, size);
     // Simulation input color data
-    U8CPU red1 = SPText::GetObject<U8CPU>();
-    U8CPU gree1 = SPText::GetObject<U8CPU>();
-    U8CPU blue1 = SPText::GetObject<U8CPU>();
-    float alpha1 = SPText::GetObject<float>();
-    RSSColor color1 = {alpha1, red1, gree1, blue1};
-    std::vector<RSSColor> colors1 = {color1};
+    U8CPU red1 = fdp.ConsumeIntegral<U8CPU>();
+    U8CPU gree1 = fdp.ConsumeIntegral<U8CPU>();
+    U8CPU blue1 = fdp.ConsumeIntegral<U8CPU>();
+    float alpha1 = fdp.ConsumeFloatingPoint<float>();
+    RSSColor color1 = { alpha1, red1, gree1, blue1 };
+    std::vector<RSSColor> colors1 = { color1 };
     symbol.SetRenderColor(color1);
     symbol.SetRenderColor(colors1);
 
     Drawing::Color color2 = Drawing::Color::COLOR_BLUE;
     Drawing::Color color3 = Drawing::Color::COLOR_GREEN;
-    std::vector<Drawing::Color> colors2 = {color2, color3};
+    std::vector<Drawing::Color> colors2 = { color2, color3 };
     symbol.SetRenderColor(color2);
     symbol.SetRenderColor(colors2);
 
     // Simulation input data with attributes of symbol
-    uint32_t renderMode = SPText::GetObject<uint32_t>();
-    uint32_t effectStrategy = SPText::GetObject<uint32_t>();
-    uint16_t animationMode = SPText::GetObject<uint16_t>();
-    int repeatCount = SPText::GetObject<int>();
-    bool animationStart = SPText::GetObject<bool>();
-    Drawing::DrawingCommonSubType commonSubType = SPText::GetObject<Drawing::DrawingCommonSubType>();
-    VisualMode visual = SPText::GetObject<VisualMode>();
+    uint32_t renderMode = fdp.ConsumeIntegral<uint32_t>();
+    uint32_t effectStrategy = fdp.ConsumeIntegral<uint32_t>();
+    uint16_t animationMode = fdp.ConsumeIntegral<uint16_t>();
+    int repeatCount = fdp.ConsumeIntegral<int>();
+    bool animationStart = fdp.ConsumeBool();
+    Drawing::DrawingCommonSubType commonSubType =
+        static_cast<Drawing::DrawingCommonSubType>(fdp.ConsumeIntegral<uint8_t>());
+    VisualMode visual = static_cast<VisualMode>(fdp.ConsumeIntegral<uint8_t>());
     symbol.SetRenderMode(renderMode);
     symbol.SetSymbolEffect(effectStrategy);
     symbol.SetAnimationMode(animationMode);
@@ -69,14 +73,16 @@ void HmSymbolTxtFuzzTestInner02(HMSymbolTxt& symbol1, SPText::HMSymbolTxt& symbo
 }
 
 // test operator == with the color
-void HmSymbolTxtFuzzTestInner03(SPText::HMSymbolTxt& symbol1, SPText::HMSymbolTxt& symbol2)
+void HmSymbolTxtFuzzTestInner03(
+    SPText::HMSymbolTxt& symbol1, SPText::HMSymbolTxt& symbol2, const uint8_t* data, size_t size)
 {
+    FuzzedDataProvider fdp(data, size);
     // Simulation input color data
-    U8CPU red = SPText::GetObject<U8CPU>();
-    U8CPU gree = SPText::GetObject<U8CPU>();
-    U8CPU blue = SPText::GetObject<U8CPU>();
-    float alphaF = SPText::GetObject<float>();
-    RSSColor color = {alphaF, red, gree, blue};
+    U8CPU red = fdp.ConsumeIntegral<U8CPU>();
+    U8CPU gree = fdp.ConsumeIntegral<U8CPU>();
+    U8CPU blue = fdp.ConsumeIntegral<U8CPU>();
+    float alphaF = fdp.ConsumeFloatingPoint<float>();
+    RSSColor color = { alphaF, red, gree, blue };
     std::vector<RSSColor> colors = {};
     symbol2.SetRenderColor(colors);
     symbol1.SetRenderColor(color);
@@ -121,15 +127,16 @@ void HmSymbolTxtFuzzTestInner03(SPText::HMSymbolTxt& symbol1, SPText::HMSymbolTx
 }
 
 // test operator == with the color RenderMode and SymbolEffect
-void HmSymbolTxtFuzzTestInner04()
+void HmSymbolTxtFuzzTestInner04(const uint8_t* data, size_t size)
 {
+    FuzzedDataProvider fdp(data, size);
     SPText::HMSymbolTxt symbol1;
     SPText::HMSymbolTxt symbol2;
-    RSSymbolRenderingStrategy renderMode1 = SPText::GetObject<RSSymbolRenderingStrategy>();
-    RSSymbolRenderingStrategy renderMode2 = SPText::GetObject<RSSymbolRenderingStrategy>();
+    RSSymbolRenderingStrategy renderMode1 = static_cast<RSSymbolRenderingStrategy>(fdp.ConsumeIntegral<uint8_t>());
+    RSSymbolRenderingStrategy renderMode2 = static_cast<RSSymbolRenderingStrategy>(fdp.ConsumeIntegral<uint8_t>());
 
-    RSEffectStrategy effectStrategy1 = SPText::GetObject<RSEffectStrategy>();
-    RSEffectStrategy effectStrategy2 = SPText::GetObject<RSEffectStrategy>();
+    RSEffectStrategy effectStrategy1 = static_cast<RSEffectStrategy>(fdp.ConsumeIntegral<uint8_t>());
+    RSEffectStrategy effectStrategy2 = static_cast<RSEffectStrategy>(fdp.ConsumeIntegral<uint8_t>());
 
     symbol1.SetRenderMode(renderMode1);
     symbol2.SetRenderMode(renderMode2);
@@ -166,20 +173,12 @@ void HmSymbolTxtFuzzTestInner04()
 
 bool HmSymbolTxtFuzzTest01(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-    // initialize
-    SPText::g_data = data;
-    SPText::g_size = size;
-    SPText::g_pos = 0;
-
     HMSymbolTxt symbol1;
     SPText::HMSymbolTxt symbol2;
     SPText::HMSymbolTxt symbol3;
 
     // test interface functins of symbol
-    HmSymbolTxtFuzzTestInner01(symbol1);
+    HmSymbolTxtFuzzTestInner01(symbol1, data, size);
 
     // test data transfer
     HmSymbolTxtFuzzTestInner02(symbol1, symbol2);
@@ -188,14 +187,6 @@ bool HmSymbolTxtFuzzTest01(const uint8_t* data, size_t size)
 
 bool HmSymbolTxtFuzzTest02(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
-        return false;
-    }
-    // initialize
-    SPText::g_data = data;
-    SPText::g_size = size;
-    SPText::g_pos = 0;
-
     SPText::HMSymbolTxt symbol1;
     SPText::HMSymbolTxt symbol2;
     symbol2.SetRenderColor(symbol1.GetRenderColor());
@@ -207,10 +198,10 @@ bool HmSymbolTxtFuzzTest02(const uint8_t* data, size_t size)
     symbol2.SetCommonSubType(symbol1.GetCommonSubType());
 
     // test operator == with the color
-    HmSymbolTxtFuzzTestInner03(symbol1, symbol2);
+    HmSymbolTxtFuzzTestInner03(symbol1, symbol2, data, size);
 
     // test operator == with the color RenderMode and SymbolEffect
-    HmSymbolTxtFuzzTestInner04();
+    HmSymbolTxtFuzzTestInner04(data, size);
     return true;
 }
 } // namespace Rosen

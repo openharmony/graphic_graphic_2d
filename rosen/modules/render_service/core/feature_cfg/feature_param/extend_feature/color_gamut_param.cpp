@@ -14,16 +14,38 @@
  */
 
 #include "color_gamut_param.h"
+#include "common/rs_common_hook.h"
 
 namespace OHOS::Rosen {
 
-bool ColorGamutParam::IsWiredExtendScreenCloseP3()
+bool ColorGamutParam::DisableP3OnWiredExtendedScreen()
 {
-    return isWiredExtendScreenCloseP3_;
+    return disableP3OnWiredExtendedScreen_;
 }
 
-void ColorGamutParam::SetWiredExtendScreenCloseP3(bool isEnable)
+void ColorGamutParam::SetDisableP3OnWiredExtendedScreen(bool isEnable)
 {
-    isWiredExtendScreenCloseP3_ = isEnable;
+    disableP3OnWiredExtendedScreen_ = isEnable;
+}
+
+bool ColorGamutParam::IsAdaptiveColorGamutEnabled()
+{
+    return isAdaptiveColorGamutEnabled_;
+}
+
+void ColorGamutParam::SetAdaptiveColorGamutEnable(bool isEnable)
+{
+    RsCommonHook::Instance().SetAdaptiveColorGamutEnable(isEnable);
+    isAdaptiveColorGamutEnabled_ = isEnable;
+}
+
+bool ColorGamutParam::SkipOccludedNodeDuringColorGamutCollection()
+{
+    return skipOccludedNodeDuringColorGamutCollection_;
+}
+
+void ColorGamutParam::SetSkipOccludedNodeDuringColorGamutCollection(bool isEnable)
+{
+    skipOccludedNodeDuringColorGamutCollection_ = isEnable;
 }
 } // namespace OHOS::Rosen

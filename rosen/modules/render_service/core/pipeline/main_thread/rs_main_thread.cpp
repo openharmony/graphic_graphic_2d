@@ -115,6 +115,7 @@
 
 #ifdef RS_ENABLE_GPU
 #include "feature/capture/rs_ui_capture_task_parallel.h"
+#include "feature/capture/rs_ui_capture_solo_task_parallel.h"
 #include "feature/uifirst/rs_sub_thread_manager.h"
 #include "feature/round_corner_display/rs_rcd_surface_render_node.h"
 #include "feature/round_corner_display/rs_round_corner_display_manager.h"
@@ -191,6 +192,7 @@ constexpr uint64_t MAX_SYSTEM_SCENE_STATUS_TIME = 800000000;
 constexpr uint64_t PERF_PERIOD_MULTI_WINDOW = 80000000;
 constexpr uint32_t MULTI_WINDOW_PERF_START_NUM = 2;
 constexpr uint32_t MULTI_WINDOW_PERF_END_NUM = 4;
+constexpr uint32_t TIME_OF_CAPTURE_TASK_REMAIN = 500;
 constexpr uint32_t TIME_OF_EIGHT_FRAMES = 8000;
 constexpr uint32_t TIME_OF_THE_FRAMES = 1000;
 constexpr uint32_t WAIT_FOR_RELEASED_BUFFER_TIMEOUT = 3000;
@@ -221,6 +223,7 @@ constexpr const char* DRAWING_CACHE_DFX = "rosen.drawingCache.enabledDfx";
 constexpr const char* DEFAULT_SURFACE_NODE_NAME = "DefaultSurfaceNodeName";
 constexpr const char* ENABLE_DEBUG_FMT_TRACE = "sys.graphic.openTestModeTrace";
 constexpr int64_t ONE_SECOND_TIMESTAMP = 1e9;
+constexpr int SKIP_FIRST_FRAME_DRAWING_NUM = 1;
 
 #ifdef RS_ENABLE_GL
 constexpr size_t DEFAULT_SKIA_CACHE_SIZE        = 96 * (1 << 20);
@@ -593,6 +596,7 @@ void RSMainThread::Init()
 #endif
     }
 
+    RS_LOGI("thread init");
     runner_ = AppExecFwk::EventRunner::Create(false);
     handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
     uint32_t timeForWatchDog = WATCHDOG_TIMEVAL;
@@ -604,6 +608,7 @@ void RSMainThread::Init()
     SubScribeSystemAbility();
 #endif
     InitRSEventDetector();
+    RS_LOGI("VSync init");
     sptr<VSyncIConnectionToken> token = new IRemoteStub<VSyncIConnectionToken>();
     sptr<VSyncConnection> conn = new VSyncConnection(rsVSyncDistributor_, "rs", token->AsObject());
     rsFrameRateLinker_ = std::make_shared<RSRenderFrameRateLinker>([this] (const RSRenderFrameRateLinker& linker) {
@@ -649,13 +654,16 @@ void RSMainThread::Init()
         }
     }
 #endif // RS_ENABLE_GL
+    RS_LOGI("OpenInnovationSo");
     RSInnovation::OpenInnovationSo();
 #if defined(RS_ENABLE_UNI_RENDER)
+    RS_LOGI("InitRenderContext");
     /* move to render thread ? */
     RSBackgroundThread::Instance().InitRenderContext(GetRenderEngine()->GetRenderContext().get());
 #endif
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
 #if defined (RS_ENABLE_VK)
+    RS_LOGI("RSMagicPointerRenderManager init");
     RSMagicPointerRenderManager::InitInstance(GetRenderEngine()->GetVkImageManager());
 #endif
 
@@ -673,6 +681,7 @@ void RSMainThread::Init()
 #endif
 
 #if defined(ACCESSIBILITY_ENABLE)
+    RS_LOGI("AccessibilityConfig init");
     accessibilityObserver_ = std::make_shared<AccessibilityObserver>();
     auto &config = OHOS::AccessibilityConfig::AccessibilityConfig::GetInstance();
     config.InitializeContext();
@@ -708,8 +717,10 @@ void RSMainThread::Init()
             RequestNextVSync("OverDrawUpdate");
         });
     });
+    RS_LOGI("RSOverdrawController init");
     RSOverdrawController::GetInstance().SetDelegate(delegate);
 
+    RS_LOGI("HgmTaskHandleThread init");
     HgmTaskHandleThread::Instance().PostSyncTask([this] () {
         auto frameRateMgr = OHOS::Rosen::HgmCore::Instance().GetFrameRateMgr();
         if (frameRateMgr == nullptr) {
@@ -724,12 +735,15 @@ void RSMainThread::Init()
                 RSMainThread::Instance()->RequestNextVSync("ltpoForceUpdate");
             });
         });
-        frameRateMgr->Init(rsVSyncController_, appVSyncController_, vsyncGenerator_);
+        frameRateMgr->Init(rsVSyncController_, appVSyncController_, vsyncGenerator_, appVSyncDistributor_);
     });
     SubscribeAppState();
     PrintCurrentStatus();
+    RS_LOGI("UpdateGpuContextCacheSize");
     UpdateGpuContextCacheSize();
+    RS_LOGI("RSLuminanceControl init");
     RSLuminanceControl::Get().Init();
+    RS_LOGI("RSColorTemperature init");
     RSColorTemperature::Get().Init();
     // used to force refresh screen when cct is updated
     std::function<void()> refreshFunc = []() {
@@ -1395,14 +1409,17 @@ void RSMainThread::ProcessCommandForUniRender()
     if (transactionDataEffective != nullptr && !transactionDataEffective->empty()) {
         for (auto& rsTransactionElem : *transactionDataEffective) {
             for (auto& rsTransaction : rsTransactionElem.second) {
+                if (!rsTransaction) {
+                    continue;
+                }
                 RS_TRACE_NAME_FMT("[pid:%d, index:%d]", rsTransactionElem.first, rsTransaction->GetIndex());
                 // If this transaction is marked as requiring synchronization and the SyncId for synchronization is not
                 // 0, or if there have been previous transactions of this process considered as synchronous, then all
                 // subsequent transactions of this process will be synchronized.
-                if (rsTransaction && ((rsTransaction->IsNeedSync() && rsTransaction->GetSyncId() > 0) ||
-                    syncTransactionData_.count(rsTransactionElem.first) > 0)) {
+                if ((rsTransaction->IsNeedSync() && rsTransaction->GetSyncId() > 0) ||
+                    syncTransactionData_.count(rsTransactionElem.first) > 0) {
                     ProcessSyncRSTransactionData(rsTransaction, rsTransactionElem.first);
-                } else if (rsTransaction) {
+                } else {
                     ProcessRSTransactionData(rsTransaction, rsTransactionElem.first);
                 }
             }
@@ -1587,7 +1604,11 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
                 }
                 auto name = surfaceNode->GetName().empty() ? DEFAULT_SURFACE_NODE_NAME : surfaceNode->GetName();
                 auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
-                if (LIKELY(frameRateMgr != nullptr)) {
+                const auto& consumer = surfaceHandler->GetConsumer();
+                if (LIKELY(frameRateMgr != nullptr) && consumer != nullptr &&
+                    consumer->GetSurfaceSourceType() != OH_SURFACE_SOURCE_GAME &&
+                    consumer->GetSurfaceSourceType() != OH_SURFACE_SOURCE_CAMERA &&
+                    consumer->GetSurfaceSourceType() != OH_SURFACE_SOURCE_VIDEO) {
                     frameRateMgr->UpdateSurfaceTime(name, ExtractPid(surfaceNode->GetId()), UIFWKType::FROM_SURFACE);
                 }
             }
@@ -1596,7 +1617,7 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
             bool enableAdaptive = rsVSyncDistributor_->AdaptiveDVSyncEnable(
                 surfaceNode->GetName(), timestamp_, surfaceHandler->GetAvailableBufferCount(), needConsume);
             if (RSBaseRenderUtil::ConsumeAndUpdateBuffer(*surfaceHandler, timestamp_,
-                    IsNeedDropFrameByPid(surfaceHandler->GetNodeId()), enableAdaptive, needConsume)) {
+                    IsNeedDropFrameByPid(surfaceHandler->GetNodeId()), enableAdaptive, needConsume, surfaceNode)) {
                 if (!isUniRender_) {
                     this->dividedRenderbufferTimestamps_[surfaceNode->GetId()] =
                         static_cast<uint64_t>(surfaceHandler->GetTimestamp());
@@ -2234,12 +2255,17 @@ void RSMainThread::PrepareUiCaptureTasks(std::shared_ptr<RSUniRenderVisitor> uni
     const auto& nodeMap = context_->GetNodeMap();
     for (auto [id, captureTask]: pendingUiCaptureTasks_) {
         auto node = nodeMap.GetRenderNode(id);
-        bool flag = context_->GetUiCaptureCmdsExecutedFlag(id);
-        if (!flag) {
+        auto cmdFlag = context_->GetUiCaptureHelper().GetUiCaptureCmdsExecutedFlag(id);
+        uint64_t duration = context_->GetUiCaptureHelper().GetCurrentSteadyTimeMs() - cmdFlag.second;
+        if (!cmdFlag.first && duration < TIME_OF_CAPTURE_TASK_REMAIN) {
+            RS_TRACE_NAME_FMT("RSMainThread::PrepareUiCaptureTasks cmds not be processed, id: %" PRIu64
+                              ", duration: %" PRIu64 "ms", id, duration);
+            RS_LOGI("RSMainThread::PrepareUiCaptureTasks cmds not be processed, id: %{public}" PRIu64
+                    ", duration: %{public}" PRIu64 "ms", id, duration);
             remainUiCaptureTasks.emplace_back(id, captureTask);
             continue;
         }
-        context_->EraseUiCaptureCmdsExecutedFlag(id);
+        context_->GetUiCaptureHelper().EraseUiCaptureCmdsExecutedFlag(id);
         if (!node) {
             RS_LOGW("RSMainThread::PrepareUiCaptureTasks node is nullptr");
         } else if (!node->IsOnTheTree() || node->IsDirty() || node->IsSubTreeDirty()) {
@@ -2358,7 +2384,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         RS_OPTIONAL_TRACE_NAME_FMT("rs debug: %s HardwareForcedDisabled is true", __func__);
     }
     // need draw skipped node at cur frame
-    doDirectComposition_ &= LIKELY(!RSUifirstManager::Instance().NeedNextDrawForSkippedNode());
+    doDirectComposition_ &= !RSUifirstManager::Instance().NeedNextDrawForSkippedNode();
     bool needTraverseNodeTree = true;
     needDrawFrame_ = true;
     bool pointerSkip = !RSPointerWindowManager::Instance().IsPointerCanSkipFrameCompareChange(false, true);
@@ -2450,8 +2476,6 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         isAccessibilityConfigChanged_ = false;
         isCurtainScreenUsingStatusChanged_ = false;
         RSPointLightManager::Instance()->PrepareLight();
-        vsyncControlEnabled_ = rsVsyncRateReduceManager_.GetVRateDeviceSupport()
-                               && RSSystemParameters::GetVSyncControlEnabled();
         systemAnimatedScenesEnabled_ = RSSystemParameters::GetSystemAnimatedScenesEnabled();
         if (RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
             WaitUntilUploadTextureTaskFinished(isUniRender_);
@@ -2473,6 +2497,9 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
     screenPowerOnChanged_ = false;
     forceUpdateUniRenderFlag_ = false;
     idleTimerExpiredFlag_ = false;
+    if (context_) {
+        context_->SetUnirenderVisibleLeashWindowCount(context_->GetNodeMap().GetVisibleLeashWindowCount());
+    }
 #endif
 }
 
@@ -2502,7 +2529,8 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
 
     // children->size() is 1, the extended screen is not supported
     // there is no visible hwc node or visible hwc nodes don't need update
-    if (children->size() == 1 && (!displayNode->HasVisibleHwcNodes() || !ExistBufferIsVisibleAndUpdate())) {
+    if (children->size() == 1 && (!displayNode->HwcDisplayRecorder().HasVisibleHwcNodes() ||
+                                  !ExistBufferIsVisibleAndUpdate())) {
         RS_TRACE_NAME_FMT("%s: no hwcNode in visibleRegion", __func__);
         return true;
     }
@@ -2619,7 +2647,7 @@ bool RSMainThread::ExistBufferIsVisibleAndUpdate()
             continue;
         }
         if (surfaceNode->GetRSSurfaceHandler()->IsCurrentFrameBufferConsumed() &&
-            surfaceNode->GetLastFrameHasVisibleRegion()) {
+            surfaceNode->HwcSurfaceRecorder().GetLastFrameHasVisibleRegion()) {
             bufferNeedUpdate = true;
             break;
         }
@@ -2921,6 +2949,8 @@ void RSMainThread::CalcOcclusionImplementation(const std::shared_ptr<RSDisplayRe
     bool hasFilterCacheOcclusion = false;
     bool filterCacheOcclusionEnabled = RSSystemParameters::GetFilterCacheOcculusionEnabled();
 
+    vsyncControlEnabled_ = rsVsyncRateReduceManager_.GetVRateDeviceSupport() &&
+                           RSSystemParameters::GetVSyncControlEnabled();
     auto calculator = [this, &displayNode, &occlusionSurfaces, &accumulatedRegion, &curVisVec, &visMapForVsyncRate,
         &hasFilterCacheOcclusion, filterCacheOcclusionEnabled] (std::shared_ptr<RSSurfaceRenderNode>& curSurface,
         bool needSetVisibleRegion) {
@@ -3338,6 +3368,7 @@ void RSMainThread::OnVsync(uint64_t timestamp, uint64_t frameCount, void* data)
     RSJankStatsOnVsyncStart(onVsyncStartTime, onVsyncStartTimeSteady, onVsyncStartTimeSteadyFloat);
     timestamp_ = timestamp;
     dvsyncRsTimestamp_.store(timestamp_);
+    drawingRequestNextVsyncNum_.store(requestNextVsyncNum_);
     curTime_ = static_cast<uint64_t>(
         std::chrono::duration_cast<std::chrono::nanoseconds>(
             std::chrono::steady_clock::now().time_since_epoch()).count());
@@ -3479,6 +3510,7 @@ void RSMainThread::Animate(uint64_t timestamp)
     bool isRateDeciderEnabled = (context_->animatingNodeList_.size() <= CAL_NODE_PREFERRED_FPS_LIMIT);
     bool isDisplaySyncEnabled = true;
     int64_t period = 0;
+    int64_t minLeftDelayTime = RSSystemProperties::GetAnimationDelayOptimizeEnabled() ? INT64_MAX : 0;
     if (receiver_) {
         receiver_->GetVSyncPeriod(period);
     }
@@ -3490,7 +3522,7 @@ void RSMainThread::Animate(uint64_t timestamp)
     // iterate and animate all animating nodes, remove if animation finished
     EraseIf(context_->animatingNodeList_,
         [this, timestamp, period, isDisplaySyncEnabled, isRateDeciderEnabled, &totalAnimationSize,
-        &curWinAnim, &needRequestNextVsync, &isCalculateAnimationValue, &needPrintAnimationDFX,
+        &curWinAnim, &needRequestNextVsync, &isCalculateAnimationValue, &needPrintAnimationDFX, &minLeftDelayTime,
         &animationPids](const auto& iter) -> bool {
         auto node = iter.second.lock();
         if (node == nullptr) {
@@ -3513,7 +3545,7 @@ void RSMainThread::Animate(uint64_t timestamp)
         };
         node->animationManager_.SetRateDeciderEnable(isRateDeciderEnabled, frameRateGetFunc);
         auto [hasRunningAnimation, nodeNeedRequestNextVsync, nodeCalculateAnimationValue] =
-            node->Animate(timestamp, period, isDisplaySyncEnabled);
+            node->Animate(timestamp, minLeftDelayTime, period, isDisplaySyncEnabled);
         if (!hasRunningAnimation) {
             node->InActivateDisplaySync();
             RS_LOGD("RSMainThread::Animate removing finished animating node %{public}" PRIu64, node->GetId());
@@ -3556,7 +3588,22 @@ void RSMainThread::Animate(uint64_t timestamp)
 
     if (needRequestNextVsync) {
         HgmEnergyConsumptionPolicy::Instance().StatisticAnimationTime(timestamp / NS_PER_MS);
-        RequestNextVSync("animate", timestamp_);
+        // greater than one frame time (16.6 ms)
+        constexpr int64_t oneFrameTimeInFPS60 = 17;
+        // maximum delay time 60000 milliseconds, which is equivalent to 60 seconds.
+        constexpr int64_t delayTimeMax = 60000;
+        if (minLeftDelayTime > oneFrameTimeInFPS60) {
+            minLeftDelayTime = std::min(minLeftDelayTime, delayTimeMax);
+            auto RequestNextVSyncTask = [this]() {
+                RS_TRACE_NAME("Animate with delay RequestNextVSync");
+                RequestNextVSync("animate", timestamp_);
+            };
+            RS_TRACE_NAME_FMT("Animate minLeftDelayTime: %ld", minLeftDelayTime);
+            PostTask(RequestNextVSyncTask, "animate_request_next_vsync", minLeftDelayTime - oneFrameTimeInFPS60,
+                AppExecFwk::EventQueue::Priority::IMMEDIATE);
+        } else {
+            RequestNextVSync("animate", timestamp_);
+        }
     } else if (isUniRender_) {
 #ifdef RS_ENABLE_GPU
         isImplicitAnimationEnd_ = true;
@@ -4393,7 +4440,7 @@ void RSMainThread::CheckFastCompose(int64_t lastFlushedDesiredPresentTimeStamp)
         "" PRIu64 "earlyFastCompose = %d", unsignedNowTime, lastVsyncTime, timestamp_, earlyFastComposeFlag);
     // ignore animation scenario and mult-window scenario
     bool isNeedSingleFrameCompose = context_->GetAnimatingNodeList().empty() &&
-        context_->GetNodeMap().GetVisibleLeashWindowCount() < MULTI_WINDOW_PERF_START_NUM;
+        context_->GetUnirenderVisibleLeashWindowCount() < MULTI_WINDOW_PERF_START_NUM;
     // 1/2 vsync period to support continunous fastcompose
     if (isNeedSingleFrameCompose && unsignedNowTime - timestamp_ > unsignedVsyncPeriod / 2 &&
         unsignedLastFlushedDesiredPresentTimeStamp < lastVsyncTime &&
@@ -4568,7 +4615,9 @@ void RSMainThread::RenderFrameStart(uint64_t timestamp)
     int hardwareTid = RSHardwareThread::Instance().GetHardwareTid();
     RsFrameReport::GetInstance().ReportHardwareInfo(hardwareTid);
 #endif
-    RsFrameReport::GetInstance().RenderStart(timestamp);
+    int skipFirstFrame = (drawingRequestNextVsyncNum_.load() == SKIP_FIRST_FRAME_DRAWING_NUM) &&
+        forceUpdateUniRenderFlag_;
+    RsFrameReport::GetInstance().RenderStart(timestamp, skipFirstFrame);
     RenderFrameTrace::GetInstance().RenderStartFrameTrace(RS_INTERVAL_NAME);
 }
 

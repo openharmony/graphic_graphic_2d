@@ -27,7 +27,6 @@ group("unittest") {
     ":RSEffectRenderNodeDrawableTest",
     ":RSRcdSurfaceRenderNodeDrawableTest",
     ":RSRenderNodeDrawableAdapterTest",
-    ":RSRenderNodeDrawableAutoCacheTest",
     ":RSRenderNodeDrawableTest",
     ":RSRootRenderNodeDrawableTest",
     ":RSSkpCaptureDFXTest",
@@ -127,20 +126,6 @@ ohos_unittest("RSRenderNodeDrawableAdapterTest") {
   }
 }
 
-## Build RSRenderNodeDrawableAutoCacheTest
-ohos_unittest("RSRenderNodeDrawableAutoCacheTest") {
-  module_out_path = module_output_path
-  sources = [ "rs_render_node_drawable_autocache_test.cpp" ]
-  deps = [ ":rs_test_common" ]
-  external_deps = [
-    "c_utils:utils",
-    "hilog:libhilog",
-  ]
-  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
-    external_deps += [ "sensor:sensor_interface_native" ]
-  }
-}
-
 ## Build RSRenderNodeDrawableTest
 ohos_unittest("RSRenderNodeDrawableTest") {
   module_out_path = module_output_path
@@ -212,6 +197,7 @@ config("rs_test_common_public_config") {
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/config",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/frame_rate_manager",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/hgm_screen_manager",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/soft_vsync_manager",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/utils",
     "$graphic_2d_root/rosen/modules/render_service/core",
     "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg",

@@ -12,6 +12,7 @@
 # limitations under the License.
 
 import("//build/ohos.gni")
+import("//foundation/graphic/graphic_2d/frameworks/text/config.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 group("drawingnapi") {
@@ -77,6 +78,7 @@ if (is_arkui_x) {
       "path_iterator_napi/js_path_iterator.cpp",
       "path_napi/js_path.cpp",
       "pen_napi/js_pen.cpp",
+      "rect_utils_napi/js_rect_utils.cpp",
       "region_napi/js_region.cpp",
       "roundRect_napi/js_roundrect.cpp",
       "sampling_options_napi/js_sampling_options.cpp",
@@ -109,6 +111,7 @@ if (is_arkui_x) {
       "enum_napi/js_enum.cpp",
       "font_napi/js_font.cpp",
       "font_napi/js_typeface.cpp",
+      "font_napi/js_typefacearguments.cpp",
       "image_filter_napi/js_image_filter.cpp",
       "js_drawing_init.cpp",
       "js_drawing_utils.cpp",
@@ -119,6 +122,7 @@ if (is_arkui_x) {
       "path_iterator_napi/js_path_iterator.cpp",
       "path_napi/js_path.cpp",
       "pen_napi/js_pen.cpp",
+      "rect_utils_napi/js_rect_utils.cpp",
       "region_napi/js_region.cpp",
       "roundRect_napi/js_roundrect.cpp",
       "sampling_options_napi/js_sampling_options.cpp",
@@ -134,6 +138,7 @@ if (is_arkui_x) {
     deps = [
       "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
       "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+      "$rosen_text_root:rosen_text",
     ]
 
     external_deps = [ "napi:ace_napi" ]

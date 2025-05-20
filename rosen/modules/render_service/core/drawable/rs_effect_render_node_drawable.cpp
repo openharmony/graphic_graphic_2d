@@ -33,6 +33,10 @@ RSRenderNodeDrawable::Ptr RSEffectRenderNodeDrawable::OnGenerate(std::shared_ptr
 void RSEffectRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 {
 #ifdef RS_ENABLE_GPU
+    if (RSUniRenderThread::GetCaptureParam().isSoloNodeUiCapture_) {
+        RS_LOGD("RSEffectRenderNodeDrawable::OnDraw node %{public}" PRIu64 " isSoloNodeUiCapture, skip", nodeId_);
+        return;
+    }
     SetDrawSkipType(DrawSkipType::NONE);
     if (!ShouldPaint()) {
         SetDrawSkipType(DrawSkipType::SHOULD_NOT_PAINT);
@@ -49,6 +53,9 @@ void RSEffectRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     Drawing::GPUResourceTag::SetCurrentNodeId(GetId());
     auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
     RSAutoCanvasRestore acr(paintFilterCanvas, RSPaintFilterCanvas::SaveType::kAll);
+
+    paintFilterCanvas->SetEffectIntersectWithDRM(effectParams->GetEffectIntersectWithDRM());
+    paintFilterCanvas->SetDarkColorMode(effectParams->GetDarkColorMode());
 
     effectParams->ApplyAlphaAndMatrixToCanvas(*paintFilterCanvas);
     auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();

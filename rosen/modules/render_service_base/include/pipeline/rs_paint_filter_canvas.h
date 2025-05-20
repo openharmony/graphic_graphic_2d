@@ -314,6 +314,10 @@ public:
     void SetIsWindowFreezeCapture(bool isWindowFreezeCapture);
     bool GetIsDrawingCache() const;
     void SetIsDrawingCache(bool isDrawingCache);
+    void SetEffectIntersectWithDRM(bool intersect);
+    bool GetEffectIntersectWithDRM() const;
+    void SetDarkColorMode(bool isDark);
+    bool GetDarkColorMode() const;
 
     struct CacheBehindWindowData {
         CacheBehindWindowData() = default;
@@ -381,6 +385,8 @@ private:
     bool isWindowFreezeCapture_ = false;
     // Drawing window cache or uifirst cache
     bool isDrawingCache_ = false;
+    bool isIntersectWithDRM_ = false;
+    bool isDarkColorMode_ = false;
     CacheType cacheType_ { RSPaintFilterCanvas::CacheType::UNDEFINED };
     std::atomic_bool isHighContrastEnabled_ { false };
     GraphicColorGamut targetColorGamut_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;

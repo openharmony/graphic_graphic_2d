@@ -60,19 +60,14 @@ HWTEST_F(RSAnimationTest, AnimationGetId001, TestSize.Level1)
     /**
      * @tc.steps: step2. start AnimationGetId test
      */
-    EXPECT_TRUE(animations.size() == CORRECT_SIZE);
-    if (animations.size() != CORRECT_SIZE) {
-        return;
-    }
+    ASSERT_TRUE(animations.size() == CORRECT_SIZE);
     auto animation = std::static_pointer_cast<RSSpringAnimation>(animations[FIRST_ANIMATION]);
-    EXPECT_TRUE(animation != nullptr);
-    if (animation != nullptr) {
-        RSAnimationTimingCurve timingCurve = animation->GetTimingCurve();
-        EXPECT_TRUE(timingCurve.type_ == RSAnimationTimingCurve::CurveType::SPRING);
-        AnimationId id = animation->GetId();
-        EXPECT_TRUE(id != 0);
-        NotifyStartAnimation();
-    }
+    ASSERT_TRUE(animation != nullptr);
+    RSAnimationTimingCurve timingCurve = animation->GetTimingCurve();
+    EXPECT_TRUE(timingCurve.type_ == RSAnimationTimingCurve::CurveType::SPRING);
+    AnimationId id = animation->GetId();
+    EXPECT_TRUE(id != 0);
+    NotifyStartAnimation();
     GTEST_LOG_(INFO) << "RSAnimationTest AnimationGetId001 end";
 }
 
@@ -101,19 +96,14 @@ HWTEST_F(RSAnimationTest, AnimationGetId002, TestSize.Level1)
     /**
      * @tc.steps: step2. start AnimationGetId test
      */
-    EXPECT_TRUE(animations.size() == CORRECT_SIZE);
-    if (animations.size() != CORRECT_SIZE) {
-        return;
-    }
+    ASSERT_TRUE(animations.size() == CORRECT_SIZE);
     auto animation = std::static_pointer_cast<RSCurveAnimation>(animations[FIRST_ANIMATION]);
-    EXPECT_TRUE(animation != nullptr);
-    if (animation != nullptr) {
-        RSAnimationTimingCurve timingCurve = animation->GetTimingCurve();
-        EXPECT_TRUE(timingCurve.type_ == RSAnimationTimingCurve::CurveType::INTERPOLATING);
-        AnimationId id = animation->GetId();
-        EXPECT_TRUE(id != 0);
-        NotifyStartAnimation();
-    }
+    ASSERT_TRUE(animation != nullptr);
+    RSAnimationTimingCurve timingCurve = animation->GetTimingCurve();
+    EXPECT_TRUE(timingCurve.type_ == RSAnimationTimingCurve::CurveType::INTERPOLATING);
+    AnimationId id = animation->GetId();
+    EXPECT_TRUE(id != 0);
+    NotifyStartAnimation();
     GTEST_LOG_(INFO) << "RSAnimationTest AnimationGetId002 end";
 }
 
@@ -141,17 +131,12 @@ HWTEST_F(RSAnimationTest, AnimationGetId003, TestSize.Level1)
     /**
      * @tc.steps: step2. start AnimationGetId test
      */
-    EXPECT_TRUE(animations.size() == CORRECT_SIZE);
-    if (animations.size() != CORRECT_SIZE) {
-        return;
-    }
+    ASSERT_TRUE(animations.size() == CORRECT_SIZE);
     auto animation = std::static_pointer_cast<RSTransition>(animations[FIRST_ANIMATION]);
-    EXPECT_TRUE(animation != nullptr);
-    if (animation != nullptr) {
-        AnimationId id = animation->GetId();
-        EXPECT_TRUE(id != 0);
-        NotifyStartAnimation();
-    }
+    ASSERT_TRUE(animation != nullptr);
+    AnimationId id = animation->GetId();
+    EXPECT_TRUE(id != 0);
+    NotifyStartAnimation();
     GTEST_LOG_(INFO) << "RSAnimationTest AnimationGetId003 end";
 }
 
@@ -183,21 +168,16 @@ HWTEST_F(RSAnimationTest, AnimationSetFinishCallback001, TestSize.Level1)
     /**
      * @tc.steps: step2. start AnimationSetFinishCallback test
      */
-    EXPECT_TRUE(animations.size() == CORRECT_SIZE);
-    if (animations.size() != CORRECT_SIZE) {
-        return;
-    }
+    ASSERT_TRUE(animations.size() == CORRECT_SIZE);
     auto animation = std::static_pointer_cast<RSSpringAnimation>(animations[FIRST_ANIMATION]);
-    EXPECT_TRUE(animation != nullptr);
-    if (animation != nullptr) {
-        RSAnimationTimingCurve timingCurve = animation->GetTimingCurve();
-        EXPECT_TRUE(timingCurve.type_ == RSAnimationTimingCurve::CurveType::SPRING);
-        NotifyStartAnimation();
-        sleep(DELAY_TIME_ONE);
-        animation->Finish();
-        EXPECT_TRUE(animation->IsFinished());
-        EXPECT_STREQ(SUCCESS_STRING.c_str(), testString.c_str());
-    }
+    ASSERT_TRUE(animation != nullptr);
+    RSAnimationTimingCurve timingCurve = animation->GetTimingCurve();
+    EXPECT_TRUE(timingCurve.type_ == RSAnimationTimingCurve::CurveType::SPRING);
+    NotifyStartAnimation();
+    sleep(DELAY_TIME_ONE);
+    animation->Finish();
+    EXPECT_TRUE(animation->IsFinished());
+    EXPECT_STREQ(SUCCESS_STRING.c_str(), testString.c_str());
     GTEST_LOG_(INFO) << "RSAnimationTest AnimationSetFinishCallback001 end";
 }
 
@@ -228,21 +208,16 @@ HWTEST_F(RSAnimationTest, AnimationSetFinishCallback002, TestSize.Level1)
     /**
      * @tc.steps: step2. start AnimationSetFinishCallback test
      */
-    EXPECT_TRUE(animations.size() == CORRECT_SIZE);
-    if (animations.size() != CORRECT_SIZE) {
-        return;
-    }
+    ASSERT_TRUE(animations.size() == CORRECT_SIZE);
     auto animation = std::static_pointer_cast<RSCurveAnimation>(animations[FIRST_ANIMATION]);
-    EXPECT_TRUE(animation != nullptr);
-    if (animation != nullptr) {
-        RSAnimationTimingCurve timingCurve = animation->GetTimingCurve();
-        EXPECT_TRUE(timingCurve.type_ == RSAnimationTimingCurve::CurveType::INTERPOLATING);
-        NotifyStartAnimation();
-        sleep(DELAY_TIME_ONE);
-        animation->Finish();
-        EXPECT_TRUE(animation->IsFinished());
-        EXPECT_STREQ(SUCCESS_STRING.c_str(), testString.c_str());
-    }
+    ASSERT_TRUE(animation != nullptr);
+    RSAnimationTimingCurve timingCurve = animation->GetTimingCurve();
+    EXPECT_TRUE(timingCurve.type_ == RSAnimationTimingCurve::CurveType::INTERPOLATING);
+    NotifyStartAnimation();
+    sleep(DELAY_TIME_ONE);
+    animation->Finish();
+    EXPECT_TRUE(animation->IsFinished());
+    EXPECT_STREQ(SUCCESS_STRING.c_str(), testString.c_str());
     GTEST_LOG_(INFO) << "RSAnimationTest AnimationSetFinishCallback002 end";
 }
 
@@ -272,20 +247,15 @@ HWTEST_F(RSAnimationTest, AnimationSetFinishCallback003, TestSize.Level1)
     /**
      * @tc.steps: step2. start AnimationSetFinishCallback test
      */
-    EXPECT_TRUE(animations.size() == CORRECT_SIZE);
-    if (animations.size() != CORRECT_SIZE) {
-        return;
-    }
+    ASSERT_TRUE(animations.size() == CORRECT_SIZE);
     auto animation = std::static_pointer_cast<RSTransition>(animations[FIRST_ANIMATION]);
-    EXPECT_TRUE(animation != nullptr);
-    if (animation != nullptr) {
-        EXPECT_TRUE(animation->IsRunning());
-        NotifyStartAnimation();
-        sleep(DELAY_TIME_ONE);
-        animation->Finish();
-        EXPECT_TRUE(animation->IsFinished());
-        EXPECT_STREQ(SUCCESS_STRING.c_str(), testString.c_str());
-    }
+    ASSERT_TRUE(animation != nullptr);
+    EXPECT_TRUE(animation->IsRunning());
+    NotifyStartAnimation();
+    sleep(DELAY_TIME_ONE);
+    animation->Finish();
+    EXPECT_TRUE(animation->IsFinished());
+    EXPECT_STREQ(SUCCESS_STRING.c_str(), testString.c_str());
     GTEST_LOG_(INFO) << "RSAnimationTest AnimationSetFinishCallback003 end";
 }
 
@@ -315,19 +285,14 @@ HWTEST_F(RSAnimationTest, AnimationGetTarget001, TestSize.Level1)
     /**
      * @tc.steps: step2. start AnimationGetTarget test
      */
-    EXPECT_TRUE(animations.size() == CORRECT_SIZE);
-    if (animations.size() != CORRECT_SIZE) {
-        return;
-    }
+    ASSERT_TRUE(animations.size() == CORRECT_SIZE);
     auto animation = std::static_pointer_cast<RSSpringAnimation>(animations[FIRST_ANIMATION]);
-    EXPECT_TRUE(animation != nullptr);
-    if (animation != nullptr) {
-        RSAnimationTimingCurve timingCurve = animation->GetTimingCurve();
-        EXPECT_TRUE(timingCurve.type_ == RSAnimationTimingCurve::CurveType::SPRING);
-        auto target = animation->GetTarget();
-        EXPECT_TRUE(target.lock() != nullptr);
-        NotifyStartAnimation();
-    }
+    ASSERT_TRUE(animation != nullptr);
+    RSAnimationTimingCurve timingCurve = animation->GetTimingCurve();
+    EXPECT_TRUE(timingCurve.type_ == RSAnimationTimingCurve::CurveType::SPRING);
+    auto target = animation->GetTarget();
+    EXPECT_TRUE(target.lock() != nullptr);
+    NotifyStartAnimation();
     GTEST_LOG_(INFO) << "RSAnimationTest AnimationGetTarget001 end";
 }
 
@@ -357,19 +322,14 @@ HWTEST_F(RSAnimationTest, AnimationGetTarget002, TestSize.Level1)
     /**
      * @tc.steps: step2. start AnimationGetTarget test
      */
-    EXPECT_TRUE(animations.size() == CORRECT_SIZE);
-    if (animations.size() != CORRECT_SIZE) {
-        return;
-    }
+    ASSERT_TRUE(animations.size() == CORRECT_SIZE);
     auto animation = std::static_pointer_cast<RSCurveAnimation>(animations[FIRST_ANIMATION]);
-    EXPECT_TRUE(animation != nullptr);
-    if (animation != nullptr) {
-        RSAnimationTimingCurve timingCurve = animation->GetTimingCurve();
-        EXPECT_TRUE(timingCurve.type_ == RSAnimationTimingCurve::CurveType::INTERPOLATING);
-        auto target = animation->GetTarget();
-        EXPECT_TRUE(target.lock() != nullptr);
-        NotifyStartAnimation();
-    }
+    ASSERT_TRUE(animation != nullptr);
+    RSAnimationTimingCurve timingCurve = animation->GetTimingCurve();
+    EXPECT_TRUE(timingCurve.type_ == RSAnimationTimingCurve::CurveType::INTERPOLATING);
+    auto target = animation->GetTarget();
+    EXPECT_TRUE(target.lock() != nullptr);
+    NotifyStartAnimation();
     GTEST_LOG_(INFO) << "RSAnimationTest AnimationGetTarget002 end";
 }
 
@@ -397,18 +357,13 @@ HWTEST_F(RSAnimationTest, AnimationGetTarget003, TestSize.Level1)
     /**
      * @tc.steps: step2. start AnimationGetTarget test
      */
-    EXPECT_TRUE(animations.size() == CORRECT_SIZE);
-    if (animations.size() != CORRECT_SIZE) {
-        return;
-    }
+    ASSERT_TRUE(animations.size() == CORRECT_SIZE);
     auto animation = std::static_pointer_cast<RSTransition>(animations[FIRST_ANIMATION]);
-    EXPECT_TRUE(animation != nullptr);
-    if (animation != nullptr) {
-        EXPECT_TRUE(animation->IsRunning());
-        auto target = animation->GetTarget();
-        EXPECT_TRUE(target.lock() != nullptr);
-        NotifyStartAnimation();
-    }
+    ASSERT_TRUE(animation != nullptr);
+    EXPECT_TRUE(animation->IsRunning());
+    auto target = animation->GetTarget();
+    EXPECT_TRUE(target.lock() != nullptr);
+    NotifyStartAnimation();
     GTEST_LOG_(INFO) << "RSAnimationTest AnimationGetTarget003 end";
 }
 
@@ -438,26 +393,21 @@ HWTEST_F(RSAnimationTest, AnimationStatus001, TestSize.Level1)
     /**
      * @tc.steps: step2. start AnimationStatus test
      */
-    EXPECT_TRUE(animations.size() == CORRECT_SIZE);
-    if (animations.size() != CORRECT_SIZE) {
-        return;
-    }
+    ASSERT_TRUE(animations.size() == CORRECT_SIZE);
     auto animation = std::static_pointer_cast<RSSpringAnimation>(animations[FIRST_ANIMATION]);
-    EXPECT_TRUE(animation != nullptr);
-    if (animation != nullptr) {
-        RSAnimationTimingCurve timingCurve = animation->GetTimingCurve();
-        EXPECT_TRUE(timingCurve.type_ == RSAnimationTimingCurve::CurveType::SPRING);
-        EXPECT_TRUE(animation->IsRunning());
-        animation->Pause();
-        EXPECT_TRUE(animation->IsPaused());
-        animation->Reverse();
-        animation->Resume();
-        EXPECT_TRUE(animation->IsRunning());
-        NotifyStartAnimation();
-        sleep(DELAY_TIME_ONE);
-        animation->Finish();
-        EXPECT_TRUE(animation->IsFinished());
-    }
+    ASSERT_TRUE(animation != nullptr);
+    RSAnimationTimingCurve timingCurve = animation->GetTimingCurve();
+    EXPECT_TRUE(timingCurve.type_ == RSAnimationTimingCurve::CurveType::SPRING);
+    EXPECT_TRUE(animation->IsRunning());
+    animation->Pause();
+    EXPECT_TRUE(animation->IsPaused());
+    animation->Reverse();
+    animation->Resume();
+    EXPECT_TRUE(animation->IsRunning());
+    NotifyStartAnimation();
+    sleep(DELAY_TIME_ONE);
+    animation->Finish();
+    EXPECT_TRUE(animation->IsFinished());
     GTEST_LOG_(INFO) << "RSAnimationTest AnimationStatus001 end";
 }
 
@@ -487,26 +437,21 @@ HWTEST_F(RSAnimationTest, AnimationStatus002, TestSize.Level1)
     /**
      * @tc.steps: step2. start AnimationStatus test
      */
-    EXPECT_TRUE(animations.size() == CORRECT_SIZE);
-    if (animations.size() != CORRECT_SIZE) {
-        return;
-    }
+    ASSERT_TRUE(animations.size() == CORRECT_SIZE);
     auto animation = std::static_pointer_cast<RSCurveAnimation>(animations[FIRST_ANIMATION]);
-    EXPECT_TRUE(animation != nullptr);
-    if (animation != nullptr) {
-        RSAnimationTimingCurve timingCurve = animation->GetTimingCurve();
-        EXPECT_TRUE(timingCurve.type_ == RSAnimationTimingCurve::CurveType::INTERPOLATING);
-        EXPECT_TRUE(animation->IsRunning());
-        animation->Pause();
-        EXPECT_TRUE(animation->IsPaused());
-        animation->Reverse();
-        animation->Resume();
-        EXPECT_TRUE(animation->IsRunning());
-        NotifyStartAnimation();
-        sleep(DELAY_TIME_ONE);
-        animation->Finish();
-        EXPECT_TRUE(animation->IsFinished());
-    }
+    ASSERT_TRUE(animation != nullptr);
+    RSAnimationTimingCurve timingCurve = animation->GetTimingCurve();
+    EXPECT_TRUE(timingCurve.type_ == RSAnimationTimingCurve::CurveType::INTERPOLATING);
+    EXPECT_TRUE(animation->IsRunning());
+    animation->Pause();
+    EXPECT_TRUE(animation->IsPaused());
+    animation->Reverse();
+    animation->Resume();
+    EXPECT_TRUE(animation->IsRunning());
+    NotifyStartAnimation();
+    sleep(DELAY_TIME_ONE);
+    animation->Finish();
+    EXPECT_TRUE(animation->IsFinished());
     GTEST_LOG_(INFO) << "RSAnimationTest AnimationStatus002 end";
 }
 
@@ -534,24 +479,19 @@ HWTEST_F(RSAnimationTest, AnimationStatus003, TestSize.Level1)
     /**
      * @tc.steps: step2. start AnimationStatus test
      */
-    EXPECT_TRUE(animations.size() == CORRECT_SIZE);
-    if (animations.size() != CORRECT_SIZE) {
-        return;
-    }
+    ASSERT_TRUE(animations.size() == CORRECT_SIZE);
     auto animation = std::static_pointer_cast<RSTransition>(animations[FIRST_ANIMATION]);
-    EXPECT_TRUE(animation != nullptr);
-    if (animation != nullptr) {
-        EXPECT_TRUE(animation->IsRunning());
-        animation->Pause();
-        EXPECT_TRUE(animation->IsPaused());
-        animation->Reverse();
-        animation->Resume();
-        EXPECT_TRUE(animation->IsRunning());
-        NotifyStartAnimation();
-        sleep(DELAY_TIME_ONE);
-        animation->Finish();
-        EXPECT_TRUE(animation->IsFinished());
-    }
+    ASSERT_TRUE(animation != nullptr);
+    EXPECT_TRUE(animation->IsRunning());
+    animation->Pause();
+    EXPECT_TRUE(animation->IsPaused());
+    animation->Reverse();
+    animation->Resume();
+    EXPECT_TRUE(animation->IsRunning());
+    NotifyStartAnimation();
+    sleep(DELAY_TIME_ONE);
+    animation->Finish();
+    EXPECT_TRUE(animation->IsFinished());
     GTEST_LOG_(INFO) << "RSAnimationTest AnimationStatus003 end";
 }
 
@@ -632,15 +572,11 @@ HWTEST_F(RSAnimationTest, IsSupportInteractiveAnimator001, TestSize.Level1)
     /**
      * @tc.steps: step2. start IsSupportInteractiveAnimator test
      */
-    if (animations.size() != CORRECT_SIZE) {
-        return;
-    }
+    ASSERT_TRUE(animations.size() == CORRECT_SIZE);
     auto animation = std::static_pointer_cast<RSAnimation>(animations[FIRST_ANIMATION]);
-    EXPECT_TRUE(animation != nullptr);
-    if (animation != nullptr) {
-        EXPECT_TRUE(animation->IsSupportInteractiveAnimator());
-        NotifyStartAnimation();
-    }
+    ASSERT_TRUE(animation != nullptr);
+    EXPECT_TRUE(animation->IsSupportInteractiveAnimator());
+    NotifyStartAnimation();
     GTEST_LOG_(INFO) << "RSAnimationTest IsSupportInteractiveAnimator001 end";
 }
 
@@ -668,18 +604,14 @@ HWTEST_F(RSAnimationTest, Pause, TestSize.Level1)
     /**
      * @tc.steps: step2. start Pause test
      */
-    if (animations.size() != CORRECT_SIZE) {
-        return;
-    }
+    ASSERT_TRUE(animations.size() == CORRECT_SIZE);
     auto animation = std::static_pointer_cast<RSAnimation>(animations[FIRST_ANIMATION]);
-    EXPECT_TRUE(animation != nullptr);
-    if (animation != nullptr) {
-        animation->state_ = RSAnimation::AnimationState::RUNNING;
-        animation->target_.reset();
-        animation->Pause();
-        std::weak_ptr<RSNode> rsNode = animation->GetTarget();
-        EXPECT_FALSE(rsNode.lock() != nullptr);
-    }
+    ASSERT_TRUE(animation != nullptr);
+    animation->state_ = RSAnimation::AnimationState::RUNNING;
+    animation->target_.reset();
+    animation->Pause();
+    std::weak_ptr<RSNode> rsNode = animation->GetTarget();
+    EXPECT_FALSE(rsNode.lock() != nullptr);
     GTEST_LOG_(INFO) << "RSAnimationTest Pause end";
 }
 
@@ -702,9 +634,7 @@ HWTEST_F(RSAnimationTest, InteractivePause, TestSize.Level1)
     auto animations = RSNode::Animate(protocol, curve, [&property]() {
         property->Set(ANIMATION_END_BOUNDS);
     });
-    if (animations.size() != CORRECT_SIZE) {
-        return;
-    }
+    ASSERT_TRUE(animations.size() == CORRECT_SIZE);
     auto animation = std::static_pointer_cast<RSAnimation>(animations[FIRST_ANIMATION]);
     EXPECT_TRUE(animation != nullptr);
 
@@ -749,26 +679,21 @@ HWTEST_F(RSAnimationTest, InteractiveContinue, TestSize.Level1)
     /**
      * @tc.steps: step2. start InteractiveContinue test
      */
-    EXPECT_TRUE(animations.size() == CORRECT_SIZE);
-    if (animations.size() != CORRECT_SIZE) {
-        return;
-    }
+    ASSERT_TRUE(animations.size() == CORRECT_SIZE);
     auto animation = std::static_pointer_cast<RSSpringAnimation>(animations[FIRST_ANIMATION]);
-    EXPECT_TRUE(animation != nullptr);
-    if (animation != nullptr) {
-        animation->state_ = RSAnimation::AnimationState::RUNNING;
-        animation->InteractiveContinue();
-        animation->state_ = RSAnimation::AnimationState::PAUSED;
-        animation->target_.reset();
-        animation->InteractiveContinue();
-        std::shared_ptr<RSNode> target = std::make_shared<RSNode>(true, true);
-        animation->target_ = target;
-        std::shared_ptr<RSRenderAnimation> uiAnimation =
-            std::make_unique<RSRenderAnimation>();
-        animation->uiAnimation_ = uiAnimation;
-        animation->InteractiveContinue();
-        EXPECT_NE(nullptr, animation->uiAnimation_);
-    }
+    ASSERT_TRUE(animation != nullptr);
+    animation->state_ = RSAnimation::AnimationState::RUNNING;
+    animation->InteractiveContinue();
+    animation->state_ = RSAnimation::AnimationState::PAUSED;
+    animation->target_.reset();
+    animation->InteractiveContinue();
+    std::shared_ptr<RSNode> target = std::make_shared<RSNode>(true, true);
+    animation->target_ = target;
+    std::shared_ptr<RSRenderAnimation> uiAnimation =
+        std::make_unique<RSRenderAnimation>();
+    animation->uiAnimation_ = uiAnimation;
+    animation->InteractiveContinue();
+    EXPECT_NE(nullptr, animation->uiAnimation_);
     GTEST_LOG_(INFO) << "RSAnimationTest InteractiveContinue end";
 }
 
@@ -796,27 +721,23 @@ HWTEST_F(RSAnimationTest, InteractiveFinish, TestSize.Level1)
     /**
      * @tc.steps: step2. start InteractiveFinish test
      */
-    if (animations.size() != CORRECT_SIZE) {
-        return;
-    }
+    ASSERT_TRUE(animations.size() == CORRECT_SIZE);
     auto animation = std::static_pointer_cast<RSAnimation>(animations[FIRST_ANIMATION]);
-    EXPECT_TRUE(animation != nullptr);
-    if (animation != nullptr) {
-        animation->state_ = RSAnimation::AnimationState::FINISHED;
-        animation->InteractiveFinish(RSInteractiveAnimationPosition::CURRENT);
+    ASSERT_TRUE(animation != nullptr);
+    animation->state_ = RSAnimation::AnimationState::FINISHED;
+    animation->InteractiveFinish(RSInteractiveAnimationPosition::CURRENT);
 
-        animation->state_ = RSAnimation::AnimationState::PAUSED;
-        animation->target_.reset();
-        animation->InteractiveFinish(RSInteractiveAnimationPosition::CURRENT);
+    animation->state_ = RSAnimation::AnimationState::PAUSED;
+    animation->target_.reset();
+    animation->InteractiveFinish(RSInteractiveAnimationPosition::CURRENT);
 
-        std::shared_ptr<RSNode> target = std::make_shared<RSNode>(true, true);
-        animation->target_ = target;
-        std::shared_ptr<RSRenderAnimation> uiAnimation =
-            std::make_unique<RSRenderAnimation>();
-        animation->uiAnimation_ = uiAnimation;
-        animation->InteractiveFinish(RSInteractiveAnimationPosition::CURRENT);
-        EXPECT_NE(nullptr, animation->uiAnimation_);
-    }
+    std::shared_ptr<RSNode> target = std::make_shared<RSNode>(true, true);
+    animation->target_ = target;
+    std::shared_ptr<RSRenderAnimation> uiAnimation =
+        std::make_unique<RSRenderAnimation>();
+    animation->uiAnimation_ = uiAnimation;
+    animation->InteractiveFinish(RSInteractiveAnimationPosition::CURRENT);
+    EXPECT_NE(nullptr, animation->uiAnimation_);
     GTEST_LOG_(INFO) << "RSAnimationTest InteractiveFinish end";
 }
 
@@ -846,26 +767,21 @@ HWTEST_F(RSAnimationTest, InteractiveReverse, TestSize.Level1)
     /**
      * @tc.steps: step2. start InteractiveReverse test
      */
-    EXPECT_TRUE(animations.size() == CORRECT_SIZE);
-    if (animations.size() != CORRECT_SIZE) {
-        return;
-    }
+    ASSERT_TRUE(animations.size() == CORRECT_SIZE);
     auto animation = std::static_pointer_cast<RSSpringAnimation>(animations[FIRST_ANIMATION]);
-    EXPECT_TRUE(animation != nullptr);
-    if (animation != nullptr) {
-        animation->state_ = RSAnimation::AnimationState::FINISHED;
-        animation->InteractiveReverse();
-        animation->state_ = RSAnimation::AnimationState::PAUSED;
-        animation->target_.reset();
-        animation->InteractiveReverse();
-        std::shared_ptr<RSNode> target = std::make_shared<RSNode>(true, true);
-        animation->target_ = target;
-        std::shared_ptr<RSRenderAnimation> uiAnimation =
-            std::make_unique<RSRenderAnimation>();
-        animation->uiAnimation_ = uiAnimation;
-        animation->InteractiveReverse();
-        EXPECT_NE(nullptr, animation->uiAnimation_);
-    }
+    ASSERT_TRUE(animation != nullptr);
+    animation->state_ = RSAnimation::AnimationState::FINISHED;
+    animation->InteractiveReverse();
+    animation->state_ = RSAnimation::AnimationState::PAUSED;
+    animation->target_.reset();
+    animation->InteractiveReverse();
+    std::shared_ptr<RSNode> target = std::make_shared<RSNode>(true, true);
+    animation->target_ = target;
+    std::shared_ptr<RSRenderAnimation> uiAnimation =
+        std::make_unique<RSRenderAnimation>();
+    animation->uiAnimation_ = uiAnimation;
+    animation->InteractiveReverse();
+    EXPECT_NE(nullptr, animation->uiAnimation_);
     GTEST_LOG_(INFO) << "RSAnimationTest InteractiveReverse end";
 }
 
@@ -893,26 +809,22 @@ HWTEST_F(RSAnimationTest, InteractiveSetFraction, TestSize.Level1)
     /**
      * @tc.steps: step2. start InteractiveSetFraction test
      */
-    if (animations.size() != CORRECT_SIZE) {
-        return;
-    }
+    ASSERT_TRUE(animations.size() == CORRECT_SIZE);
     auto animation = std::static_pointer_cast<RSAnimation>(animations[FIRST_ANIMATION]);
-    EXPECT_TRUE(animation != nullptr);
-    if (animation != nullptr) {
-        animation->state_ = RSAnimation::AnimationState::FINISHED;
-        animation->InteractiveSetFraction(3.14f);
+    ASSERT_TRUE(animation != nullptr);
+    animation->state_ = RSAnimation::AnimationState::FINISHED;
+    animation->InteractiveSetFraction(3.14f);
 
-        animation->state_ = RSAnimation::AnimationState::PAUSED;
-        animation->target_.reset();
-        animation->InteractiveSetFraction(3.14f);
-        std::shared_ptr<RSNode> target = std::make_shared<RSNode>(true, true);
-        animation->target_ = target;
-        std::shared_ptr<RSRenderAnimation> uiAnimation =
-            std::make_unique<RSRenderAnimation>();
-        animation->uiAnimation_ = uiAnimation;
-        animation->InteractiveSetFraction(3.14f);
-        EXPECT_NE(nullptr, animation->uiAnimation_);
-    }
+    animation->state_ = RSAnimation::AnimationState::PAUSED;
+    animation->target_.reset();
+    animation->InteractiveSetFraction(3.14f);
+    std::shared_ptr<RSNode> target = std::make_shared<RSNode>(true, true);
+    animation->target_ = target;
+    std::shared_ptr<RSRenderAnimation> uiAnimation =
+        std::make_unique<RSRenderAnimation>();
+    animation->uiAnimation_ = uiAnimation;
+    animation->InteractiveSetFraction(3.14f);
+    EXPECT_NE(nullptr, animation->uiAnimation_);
     GTEST_LOG_(INFO) << "RSAnimationTest InteractiveSetFraction end";
 }
 
@@ -942,21 +854,16 @@ HWTEST_F(RSAnimationTest, Finish, TestSize.Level1)
     /**
      * @tc.steps: step2. start Finish test
      */
-    EXPECT_TRUE(animations.size() == CORRECT_SIZE);
-    if (animations.size() != CORRECT_SIZE) {
-        return;
-    }
+    ASSERT_TRUE(animations.size() == CORRECT_SIZE);
     auto animation = std::static_pointer_cast<RSSpringAnimation>(animations[FIRST_ANIMATION]);
-    EXPECT_TRUE(animation != nullptr);
-    if (animation != nullptr) {
-        animation->state_ = RSAnimation::AnimationState::PAUSED;
-        animation->target_.reset();
-        animation->Finish();
-        animation->state_ = RSAnimation::AnimationState::RUNNING;
-        animation->Finish();
-        std::weak_ptr<RSNode> rsNode = animation->GetTarget();
-        EXPECT_FALSE(rsNode.lock() != nullptr);
-    }
+    ASSERT_TRUE(animation != nullptr);
+    animation->state_ = RSAnimation::AnimationState::PAUSED;
+    animation->target_.reset();
+    animation->Finish();
+    animation->state_ = RSAnimation::AnimationState::RUNNING;
+    animation->Finish();
+    std::weak_ptr<RSNode> rsNode = animation->GetTarget();
+    EXPECT_FALSE(rsNode.lock() != nullptr);
     GTEST_LOG_(INFO) << "RSAnimationTest Finish end";
 }
 } // namespace Rosen

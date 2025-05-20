@@ -174,6 +174,7 @@ public:
     static bool GetRenderNodeTraceEnabled();
     static bool GetDrawOpTraceEnabled();
     static bool GetAnimationTraceEnabled();
+    static bool GetAnimationDelayOptimizeEnabled();
     static bool GetRSClientMultiInstanceEnabled();
     static bool GetRenderNodePurgeEnabled();
     static bool GetRSImagePurgeEnabled();
@@ -334,6 +335,7 @@ public:
         return RSSystemProperties::GetGpuApiType() != GpuApiType::OPENGL;
     }
 
+    static bool ViewDrawNodeType();
     static bool GetJankLoadOptimizeEnabled();
     static int GetRSNodeLimit();
     static std::string GetVersionType();
@@ -362,7 +364,8 @@ public:
     static bool GetHybridRenderHmsymbolEnabled();
 
     static bool GetVKImageUseEnabled();
-
+    static void SetBehindWindowFilterEnabled(bool enabled);
+    static bool GetBehindWindowFilterEnabled();
 private:
     RSSystemProperties() = default;
 
@@ -371,6 +374,7 @@ private:
     inline static bool cacheEnabledForRotation_ = false;
     static inline bool forceHpsBlurDisabled_ = false;
     static inline bool debugFmtTraceEnable_ = false;
+    static inline bool isBehindWindowFilterEnabled_ = true;
     static const GpuApiType systemGpuApiType_;
     static const DdgrOpincType ddgrOpincType_;
     static const DdgrOpincDfxType ddgrOpincDfxType_;

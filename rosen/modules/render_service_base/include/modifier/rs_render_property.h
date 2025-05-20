@@ -27,6 +27,7 @@
 
 namespace OHOS {
 namespace Rosen {
+class RSRenderMaskPara;
 class RSRenderNode;
 enum class ForegroundColorStrategyType;
 enum class Gravity;
@@ -189,11 +190,11 @@ public:
     RSRenderProperty() : RSRenderPropertyBase(0) {}
     RSRenderProperty(const T& value, const PropertyId& id) : RSRenderPropertyBase(id), stagingValue_(value) {}
     RSRenderProperty(const T& value, const PropertyId& id, const RSRenderPropertyType type)
-        : RSRenderPropertyBase(id), stagingValue_(value)
+        : RSRenderPropertyBase(id), stagingValue_(value), type_(type)
     {}
     virtual ~RSRenderProperty() = default;
 
-    void Set(const T& value)
+    virtual void Set(const T& value, PropertyUpdateType type = UPDATE_TYPE_OVERWRITE)
     {
         if (value == stagingValue_) {
             return;
@@ -232,10 +233,11 @@ public:
 
 protected:
     T stagingValue_;
+    RSRenderPropertyType type_ = RSRenderPropertyType::INVALID;
     std::function<void(const std::shared_ptr<RSRenderPropertyBase>&)> updateUIPropertyFunc_;
     RSRenderPropertyType GetPropertyType() const override
     {
-        return RSRenderPropertyType::INVALID;
+        return type_;
     }
 
     friend class RSMarshallingHelper;
@@ -248,37 +250,50 @@ public:
     RSRenderAnimatableProperty(const T& value) : RSRenderProperty<T>(value, 0) {}
     RSRenderAnimatableProperty(const T& value, const PropertyId& id) : RSRenderProperty<T>(value, id) {}
     RSRenderAnimatableProperty(const T& value, const PropertyId& id, const RSRenderPropertyType type)
-        : RSRenderProperty<T>(value, id), type_(type)
+        : RSRenderProperty<T>(value, id, type)
     {}
     RSRenderAnimatableProperty(const T& value, const PropertyId& id,
         const RSRenderPropertyType type, const RSPropertyUnit unit)
-        : RSRenderProperty<T>(value, id), type_(type), unit_(unit)
+        : RSRenderProperty<T>(value, id, type), unit_(unit)
     {}
     virtual ~RSRenderAnimatableProperty() = default;
+
+    void Set(const T& value, PropertyUpdateType type = UPDATE_TYPE_OVERWRITE) override
+    {
+        if (type == UPDATE_TYPE_OVERWRITE && value == RSRenderProperty<T>::stagingValue_) {
+            return;
+        }
+        RSRenderProperty<T>::stagingValue_ =
+            type == UPDATE_TYPE_INCREMENTAL ? static_cast<T>(RSRenderProperty<T>::Get() + value) : value;
+        RSRenderProperty<T>::OnChange();
+        if (RSRenderProperty<T>::updateUIPropertyFunc_) {
+            RSRenderProperty<T>::updateUIPropertyFunc_(RSRenderProperty<T>::shared_from_this());
+        }
+    }
 
 protected:
     const std::shared_ptr<RSRenderPropertyBase> Clone() const override
     {
         return std::make_shared<RSRenderAnimatableProperty<T>>(
-            RSRenderProperty<T>::stagingValue_, RSRenderProperty<T>::id_, type_, unit_);
+            RSRenderProperty<T>::stagingValue_, RSRenderProperty<T>::id_, RSRenderProperty<T>::type_, unit_);
     }
 
     void SetValue(const std::shared_ptr<RSRenderPropertyBase>& value) override
     {
         auto property = std::static_pointer_cast<RSRenderAnimatableProperty<T>>(value);
-        if (property != nullptr && property->GetPropertyType() == type_) {
+        if (property != nullptr && property->GetPropertyType() == RSRenderProperty<T>::type_) {
             RSRenderProperty<T>::Set(property->Get());
         }
     }
 
     void SetPropertyType(const RSRenderPropertyType type) override
     {
-        type_ = type;
+        RSRenderProperty<T>::type_ = type;
     }
 
     virtual RSRenderPropertyType GetPropertyType() const override
     {
-        return type_;
+        return RSRenderProperty<T>::type_;
     }
 
     void SetPropertyUnit(RSPropertyUnit unit) override
@@ -322,7 +337,6 @@ protected:
     }
 
 private:
-    RSRenderPropertyType type_ = RSRenderPropertyType::INVALID;
     RSPropertyUnit unit_ = RSPropertyUnit::UNKNOWN;
 
     std::shared_ptr<RSRenderPropertyBase> Add(const std::shared_ptr<const RSRenderPropertyBase>& value) override
@@ -494,6 +508,8 @@ extern template class RSRenderProperty<std::shared_ptr<RSMagnifierParams>>;
 extern template class RSRenderProperty<std::vector<std::shared_ptr<EmitterUpdater>>>;
 extern template class RSRenderProperty<std::shared_ptr<ParticleNoiseFields>>;
 extern template class RSRenderProperty<std::shared_ptr<RSMask>>;
+extern template class RSRenderProperty<std::shared_ptr<RSRenderFilter>>;
+extern template class RSRenderProperty<std::shared_ptr<RSRenderMaskPara>>;
 
 extern template class RSRenderAnimatableProperty<float>;
 extern template class RSRenderAnimatableProperty<Vector4f>;
@@ -505,6 +521,7 @@ extern template class RSRenderAnimatableProperty<Matrix3f>;
 extern template class RSRenderAnimatableProperty<Color>;
 extern template class RSRenderAnimatableProperty<std::shared_ptr<RSFilter>>;
 extern template class RSRenderAnimatableProperty<Vector4<Color>>;
+extern template class RSRenderAnimatableProperty<std::vector<float>>;
 #endif
 } // namespace Rosen
 } // namespace OHOS

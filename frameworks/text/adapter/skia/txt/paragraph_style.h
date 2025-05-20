@@ -94,12 +94,14 @@ public:
     bool hintingIsOn = false;
     BreakStrategy breakStrategy = BreakStrategy::GREEDY;
     TextTab tab;
-    float paragraphSpacing { 0.0f };
-    bool isEndAddParagraphSpacing { false };
+    float paragraphSpacing{0.0f};
+    bool isEndAddParagraphSpacing{false};
+    bool isTrailingSpaceOptimized{false};
     std::bitset<static_cast<size_t>(RelayoutParagraphStyleAttribute::PARAGRAPH_STYLE_ATTRIBUTE_BUTT)>
         relayoutChangeBitmap;
     size_t defaultTextStyleUid { 0 };
     bool halfLeading { false };
+    bool enableAutoSpace{false};
 };
 } // namespace SPText
 } // namespace Rosen

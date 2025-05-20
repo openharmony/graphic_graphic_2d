@@ -58,7 +58,7 @@ public:
 #endif
     void SendCommandsStart();
     void SetFrameParam(int requestId, int load, int schedFrameNum, int value);
-    void RenderStart(uint64_t timestamp);
+    void RenderStart(uint64_t timestamp, int skipFirstFrame = 0);
     void RenderEnd();
     void DirectRenderEnd();
     void UniRenderStart();

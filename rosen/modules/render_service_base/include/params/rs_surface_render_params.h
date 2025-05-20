@@ -384,9 +384,6 @@ public:
     void SetHwcCrossNode(bool isCrossNode);
     bool IsDRMCrossNode() const;
 
-    void SetIsNodeToBeCaptured(bool isNodeToBeCaptured);
-    bool IsNodeToBeCaptured() const;
-
     void SetSkipDraw(bool skip);
     bool GetSkipDraw() const;
 
@@ -700,6 +697,19 @@ public:
         return sourceDisplayRenderNodeDrawable_;
     }
 
+    bool IsAbilityMagnificationNode()
+    {
+        return rsSurfaceNodeType_ == RSSurfaceNodeType::ABILITY_MAGNIFICATION_NODE;
+    }
+
+    const Vector4f& GetRegionToBeMagnified() const
+    {
+        return regionToBeMagnified_;
+    }
+
+    void SetFrameGravityNewVersionEnabled(bool isEnabled);
+    bool GetFrameGravityNewVersionEnabled() const;
+
 private:
     bool isMainWindowType_ = false;
     bool isLeashWindow_ = false;
@@ -734,6 +744,7 @@ private:
     RectI childrenDirtyRect_;
     RectI absDrawRect_;
     RRect rrect_;
+    Vector4f regionToBeMagnified_;
     NodeId uifirstUseStarting_ = INVALID_NODEID;
     Occlusion::Region transparentRegion_;
     Occlusion::Region roundedCornerRegion_;
@@ -777,7 +788,6 @@ private:
     bool isSubSurfaceNode_ = false;
     bool isGlobalPositionEnabled_ = false;
     Gravity uiFirstFrameGravity_ = Gravity::TOP_LEFT;
-    bool isNodeToBeCaptured_ = false;
     RSSpecialLayerManager specialLayerManager_;
     std::set<NodeId> privacyContentLayerIds_ = {};
     std::set<int32_t> bufferCacheSet_ = {};
@@ -828,6 +838,7 @@ private:
     friend class RSUniRenderThread;
 
     bool isBufferFlushed_ = false;
+    bool isFrameGravityNewVersionEnabled_ = false;
 };
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_PARAMS_RS_SURFACE_RENDER_PARAMS_H

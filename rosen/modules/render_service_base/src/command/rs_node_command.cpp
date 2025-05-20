@@ -143,7 +143,7 @@ void RSNodeCommandHelper::SetOutOfParent(RSContext& context, NodeId nodeId, OutO
 
 void RSNodeCommandHelper::SetTakeSurfaceForUIFlag(RSContext& context, NodeId nodeId)
 {
-    context.InsertUiCaptureCmdsExecutedFlag(nodeId, true);
+    context.GetUiCaptureHelper().InsertUiCaptureCmdsExecutedFlag(nodeId, true);
 }
 
 void RSNodeCommandHelper::RegisterGeometryTransitionPair(RSContext& context, NodeId inNodeId, NodeId outNodeId,
@@ -195,6 +195,24 @@ void RSNodeCommandHelper::CommitDumpClientNodeTree(RSContext& context, NodeId no
 void RSNodeCommandHelper::SetCommitDumpNodeTreeProcessor(CommitDumpNodeTreeProcessor processor)
 {
     gCommitDumpNodeTreeProcessor = processor;
+}
+
+void RSNodeCommandHelper::SetUIToken(RSContext& context, NodeId nodeId, uint64_t token)
+{
+    auto& nodeMap = context.GetNodeMap();
+    auto node = nodeMap.GetRenderNode(nodeId);
+    if (node) {
+        node->SetUIContextToken(token);
+    }
+}
+
+void RSNodeCommandHelper::SetDrawNodeType(RSContext& context, NodeId nodeId, DrawNodeType nodeType)
+{
+    auto& nodeMap = context.GetNodeMap();
+    auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId);
+    if (node) {
+        node->SetDrawNodeType(nodeType);
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

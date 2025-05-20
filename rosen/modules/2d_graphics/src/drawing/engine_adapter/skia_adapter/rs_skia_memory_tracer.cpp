@@ -17,87 +17,49 @@
 #include <numeric>
 namespace OHOS::Rosen {
 constexpr uint32_t MEMUNIT_RATE = 1024;
+static const std::unordered_map<RSTagTracker::SOURCETYPE, std::string> sourceToStringMap = {
+    {RSTagTracker::SOURCE_OTHER, "source_other"},
+    {RSTagTracker::SOURCE_RSCUSTOMMODIFIERDRAWABLE, "source_rscustommodifierdrawable"},
+    {RSTagTracker::SOURCE_RSBEGINBLENDERDRAWABLE, "source_rsbeginblenderdrawable"},
+    {RSTagTracker::SOURCE_RSSHADOWDRAWABLE, "source_rsshadowdrawable"},
+    {RSTagTracker::SOURCE_RSBACKGROUNDIMAGEDRAWABLE, "source_rsbackgroundimagedrawable"},
+    {RSTagTracker::SOURCE_RSBACKGROUNDEFFECTDRAWABLE, "source_rsbackgroundeffectdrawable"},
+    {RSTagTracker::SOURCE_RSUSEEFFECTDRAWABLE, "source_rsuseeffectdrawable"},
+    {RSTagTracker::SOURCE_RSDYNAMICLIGHTUPDRAWABLE, "source_rsdynamiclightupdrawable"},
+    {RSTagTracker::SOURCE_RSBINARIZATIONDRAWABLE, "source_rsbinarizationdrawable"},
+    {RSTagTracker::SOURCE_RSCOLORFILTERDRAWABLE, "source_rscolorfilterdrawable"},
+    {RSTagTracker::SOURCE_RSLIGHTUPEFFECTDRAWABLE, "source_rslightupeffectdrawable"},
+    {RSTagTracker::SOURCE_RSDYNAMICDIMDRAWABLE, "source_rsdynamicdimdrawable"},
+    {RSTagTracker::SOURCE_RSFOREGROUNDFILTERDRAWABLE, "source_rsforegroundfilterdrawable"},
+    {RSTagTracker::SOURCE_RSFOREGROUNDFILTERRESTOREDRAWABLE, "source_rsforegroundfilterrestoredrawable"},
+    {RSTagTracker::SOURCE_RSPIXELSTRETCHDRAWABLE, "source_rspixelstretchdrawable"},
+    {RSTagTracker::SOURCE_RSPOINTLIGHTDRAWABLE, "source_rspointlightdrawable"},
+    {RSTagTracker::SOURCE_RSPROPERTYDRAWABLE, "source_rspropertydrawable"},
+    {RSTagTracker::SOURCE_RSFILTERDRAWABLE, "source_rsfilterdrawable"},
+    {RSTagTracker::SOURCE_FINISHOFFSCREENRENDER, "source_finishoffscreenrender"},
+    {RSTagTracker::SOURCE_DRAWSELFDRAWINGNODEBUFFER, "source_drawselfdrawingnodebuffer"},
+    {RSTagTracker::SOURCE_ONCAPTURE, "source_oncapture"},
+    {RSTagTracker::SOURCE_INITCACHEDSURFACE, "source_initcachedsurface"},
+    {RSTagTracker::SOURCE_DRAWRENDERCONTENT, "source_drawrendercontent"},
+};
 
 SkiaMemoryTracer::SkiaMemoryTracer(const std::vector<ResourcePair>& resourceMap, bool itemizeType)
-    : resourceMap_(resourceMap), itemizeType_(itemizeType), totalSize_("bytes", 0), purgeableSize_("bytes", 0)
+    : resourceMap_(resourceMap), itemizeType_(itemizeType), totalSize_("bytes", 0),
+      purgeableSize_("bytes", 0), externalTextureSize_("bytes", 0)
 {}
 
 SkiaMemoryTracer::SkiaMemoryTracer(const char* categoryKey, bool itemizeType)
-    : categoryKey_(categoryKey), itemizeType_(itemizeType), totalSize_("bytes", 0), purgeableSize_("bytes", 0)
+    : categoryKey_(categoryKey), itemizeType_(itemizeType), totalSize_("bytes", 0),
+      purgeableSize_("bytes", 0), externalTextureSize_("bytes", 0)
 {}
 
-std::string SkiaMemoryTracer::SourceType2String(SOURCETYPE type)
+std::string SkiaMemoryTracer::SourceType2String(RSTagTracker::SOURCETYPE type)
 {
-    std::string sourceType;
-    switch (type) {
-        case SOURCE_OTHER :
-            sourceType = "source_other";
-            break;
-        case SOURCE_RSCUSTOMMODIFIERDRAWABLE :
-            sourceType = "source_rscustommodifierdrawable";
-            break;
-        case SOURCE_RSBEGINBLENDERDRAWABLE :
-            sourceType = "source_rsbeginblenderdrawable";
-            break;
-        case SOURCE_RSSHADOWDRAWABLE :
-            sourceType = "source_rsshadowdrawable";
-            break;
-        case SOURCE_RSBACKGROUNDIMAGEDRAWABLE :
-            sourceType = "source_rsbackgroundimagedrawable";
-            break;
-        case SOURCE_RSUSEEFFECTDRAWABLE :
-            sourceType = "source_rsuseeffectdrawable";
-            break;
-        case SOURCE_RSDYNAMICLIGHTUPDRAWABLE :
-            sourceType = "source_rsdynamiclightupdrawable";
-            break;
-        case SOURCE_RSBINARIZATIONDRAWABLE :
-            sourceType = "source_rsbinarizationdrawable";
-            break;
-        case SOURCE_RSCOLORFILTERDRAWABLE :
-            sourceType = "source_rscolorfilterdrawable";
-            break;
-        case SOURCE_RSLIGHTUPEFFECTDRAWABLE :
-            sourceType = "source_rslightupeffectdrawable";
-            break;
-        case SOURCE_RSDYNAMICDIMDRAWABLE :
-            sourceType = "source_rsdynamicdimdrawable";
-            break;
-        case SOURCE_RSFOREGROUNDFILTERDRAWABLE :
-            sourceType = "source_rsforegroundfilterdrawable";
-            break;
-        case SOURCE_RSFOREGROUNDFILTERRESTOREDRAWABLE :
-            sourceType = "source_rsforegroundfilterrestoredrawable";
-            break;
-        case SOURCE_RSPIXELSTRETCHDRAWABLE :
-            sourceType = "source_rspixelstretchdrawable";
-            break;
-        case SOURCE_RSPOINTLIGHTDRAWABLE :
-            sourceType = "source_rspointlightdrawable";
-            break;
-        case SOURCE_RSPROPERTYDRAWABLE :
-            sourceType = "source_rspropertydrawable";
-            break;
-        case SOURCE_RSFILTERDRAWABLE :
-            sourceType = "source_rsfilterdrawable";
-            break;
-        case SOURCE_FINISHOFFSCREENRENDER :
-            sourceType = "source_finishoffscreenrender";
-            break;
-        case SOURCE_DRAWSELFDRAWINGNODEBUFFER :
-            sourceType = "source_drawselfdrawingnodebuffer";
-            break;
-        case SOURCE_ONCAPTURE :
-            sourceType = "source_oncapture";
-            break;
-        case SOURCE_INITCACHEDSURFACE :
-            sourceType = "source_initcachedsurface";
-            break;
-        default :
-            sourceType = "";
-            break;
+    auto it = sourceToStringMap.find(type);
+    if (it != sourceToStringMap.end()) {
+        return it->second;
     }
-    return sourceType;
+    return "";
 }
 
 const char* SkiaMemoryTracer::MapName(const char* resourceName)
@@ -145,6 +107,13 @@ void SkiaMemoryTracer::ProcessElement()
         // compute the type if we are itemizing or use the default "size" if we are not
         std::string key = (itemizeType_) ? type : sizeResult->first;
 
+        // compute the external texture size if one exists
+        std::string externalPrefix = "External";
+        if (key.size() >= externalPrefix.size() && key.compare(0, externalPrefix.size(), externalPrefix) == 0) {
+            externalTextureSize_.value += sizeResult->second.value;
+            externalTextureSize_.count++;
+        }
+
         // compute the top level element name using either the map or category key
         const char* resourceName = MapName(currentElement_.c_str());
         if (categoryKey_ != nullptr) {
@@ -182,8 +151,8 @@ void SkiaMemoryTracer::ProcessElement()
         std::string sourceType;
         auto sourceIdResult = currentValues_.find("source");
         if (sourceIdResult != currentValues_.end()) {
-            sourceType =
-                SourceType2String(static_cast<SOURCETYPE>(static_cast<uint32_t>(sourceIdResult->second.value)));
+            sourceType = SourceType2String(
+                static_cast<RSTagTracker::SOURCETYPE>(static_cast<uint32_t>(sourceIdResult->second.value)));
         } else if (itemizeType_) {
             sourceType = "source_other";
         } else {
@@ -287,8 +256,10 @@ void SkiaMemoryTracer::LogTotals(DfxString& log)
 {
     TraceValue total = ConvertUnits(totalSize_);
     TraceValue purgeable = ConvertUnits(purgeableSize_);
-    log.AppendFormat("    %.0f bytes, %.2f %s (%.2f %s is purgeable)\n", totalSize_.value, total.value,
-        total.units.c_str(), purgeable.value, purgeable.units.c_str());
+    TraceValue externalTexture = ConvertUnits(externalTextureSize_);
+    log.AppendFormat("    %.0f bytes, %.2f %s (%.2f %s is purgeable, %.2f %s is external)\n",
+        totalSize_.value, total.value, total.units.c_str(), purgeable.value, purgeable.units.c_str(),
+        externalTexture.value, externalTexture.units.c_str());
 }
 
 SkiaMemoryTracer::TraceValue SkiaMemoryTracer::ConvertUnits(const TraceValue& value)

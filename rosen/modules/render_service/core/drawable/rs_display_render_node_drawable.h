@@ -190,6 +190,8 @@ private:
     void RenderOverDraw();
     bool SkipFrameByInterval(uint32_t refreshRate, uint32_t skipFrameInterval);
     bool SkipFrameByRefreshRate(uint32_t refreshRate, uint32_t expectedRefreshRate);
+    void UpdateSurfaceDrawRegion(std::shared_ptr<RSPaintFilterCanvas>& mainCanvas,
+        RSDisplayRenderParams* params);
 
     void MirrorRedrawDFX(bool mirrorRedraw, ScreenId screenId);
 

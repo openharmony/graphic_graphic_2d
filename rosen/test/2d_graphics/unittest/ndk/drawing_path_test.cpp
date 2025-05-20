@@ -24,6 +24,10 @@
 #include "draw/path.h"
 #include "utils/scalar.h"
 
+#ifdef RS_ENABLE_VK
+#include "platform/ohos/backend/rs_vulkan_context.h"
+#endif
+
 using namespace testing;
 using namespace testing::ext;
 
@@ -42,7 +46,12 @@ constexpr uint32_t INTNUM_TEN = 10;
 constexpr int32_t NEGATIVE_ONE = -1;
 constexpr uint32_t ADDPOLYGON_COUNT = 1;
 
-void NativeDrawingPathTest::SetUpTestCase() {}
+void NativeDrawingPathTest::SetUpTestCase()
+{
+#ifdef RS_ENABLE_VK
+    RsVulkanContext::SetRecyclable(false);
+#endif
+}
 void NativeDrawingPathTest::TearDownTestCase() {}
 void NativeDrawingPathTest::SetUp() {}
 void NativeDrawingPathTest::TearDown() {}
@@ -909,6 +918,106 @@ HWTEST_F(NativeDrawingPathTest, NativeDrawingPathTest_PathGetSegment039, TestSiz
         OH_DRAWING_ERROR_INVALID_PARAMETER);
 
     OH_Drawing_PathDestroy(newPath);
+    OH_Drawing_PathDestroy(path);
+}
+
+/*
+ * @tc.name: NativeDrawingPathTest_SetPath040
+ * @tc.desc: test for Set Path.
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingPathTest, NativeDrawingPathTest_OH_Drawing_PathSetPath040, TestSize.Level1)
+{
+    OH_Drawing_Path* path = OH_Drawing_PathCreate();
+    ASSERT_TRUE(path != nullptr);
+    OH_Drawing_Path* path2 = OH_Drawing_PathCreate();
+    OH_Drawing_ErrorCode code = OH_Drawing_PathSetPath(path, path2);
+    EXPECT_EQ(code, OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_PathSetPath(path, nullptr), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    OH_Drawing_PathDestroy(path);
+    OH_Drawing_PathDestroy(path2);
+}
+
+/*
+ * @tc.name: NativeDrawingPathTest_OH_Drawing_PathIsEmpty041
+ * @tc.desc: test for if path is empty.
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingPathTest, NativeDrawingPathTest_OH_Drawing_PathIsEmpty041, TestSize.Level1)
+{
+    OH_Drawing_Path* path = OH_Drawing_PathCreate();
+    ASSERT_TRUE(path != nullptr);
+    bool isEmpty = false;
+    OH_Drawing_ErrorCode code = OH_Drawing_PathIsEmpty(path, &isEmpty);
+    ASSERT_TRUE(isEmpty == true);
+    EXPECT_EQ(code, OH_DRAWING_SUCCESS);
+    OH_Drawing_ErrorCode code2 = OH_Drawing_PathIsEmpty(nullptr, &isEmpty);
+    EXPECT_EQ(code2, OH_DRAWING_ERROR_INVALID_PARAMETER);
+    OH_Drawing_ErrorCode code3 = OH_Drawing_PathIsEmpty(nullptr, nullptr);
+    EXPECT_EQ(code3, OH_DRAWING_ERROR_INVALID_PARAMETER);
+    OH_Drawing_ErrorCode code4 = OH_Drawing_PathIsEmpty(path, nullptr);
+    EXPECT_EQ(code4, OH_DRAWING_ERROR_INVALID_PARAMETER);
+    OH_Drawing_PathDestroy(path);
+}
+
+/*
+ * @tc.name: NativeDrawingPathTest_OH_Drawing_PathIsRect042
+ * @tc.desc: test for if path is rect.
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingPathTest, NativeDrawingPathTest_OH_Drawing_PathIsRect042, TestSize.Level1)
+{
+    OH_Drawing_Path* path = OH_Drawing_PathCreate();
+    OH_Drawing_Rect* rect = OH_Drawing_RectCreate(0, 0, 20, 20);
+    ASSERT_TRUE(path != nullptr);
+    ASSERT_TRUE(rect != nullptr);
+    bool isRect = false;
+    bool isEmpty = false;
+    OH_Drawing_ErrorCode code = OH_Drawing_PathIsRect(path, rect, &isRect);
+    ASSERT_TRUE(isRect == false);
+    EXPECT_EQ(code, OH_DRAWING_SUCCESS);
+    OH_Drawing_ErrorCode code2 = OH_Drawing_PathIsRect(nullptr, rect, &isEmpty);
+    EXPECT_EQ(code2, OH_DRAWING_ERROR_INVALID_PARAMETER);
+    OH_Drawing_ErrorCode code3 = OH_Drawing_PathIsRect(nullptr, nullptr, &isEmpty);
+    EXPECT_EQ(code3, OH_DRAWING_ERROR_INVALID_PARAMETER);
+    OH_Drawing_ErrorCode code4 = OH_Drawing_PathIsRect(path, nullptr, nullptr);
+    EXPECT_EQ(code4, OH_DRAWING_ERROR_INVALID_PARAMETER);
+    OH_Drawing_ErrorCode code5 = OH_Drawing_PathIsRect(path, nullptr, nullptr);
+    EXPECT_EQ(code5, OH_DRAWING_ERROR_INVALID_PARAMETER);
+    OH_Drawing_ErrorCode code6 = OH_Drawing_PathIsRect(nullptr, nullptr, nullptr);
+    EXPECT_EQ(code6, OH_DRAWING_ERROR_INVALID_PARAMETER);
+    OH_Drawing_ErrorCode code7 = OH_Drawing_PathIsRect(path, nullptr, &isEmpty);
+    EXPECT_EQ(code7, OH_DRAWING_SUCCESS);
+    OH_Drawing_ErrorCode code8 = OH_Drawing_PathIsRect(path, rect, nullptr);
+    EXPECT_EQ(code8, OH_DRAWING_ERROR_INVALID_PARAMETER);
+    OH_Drawing_PathDestroy(path);
+    OH_Drawing_RectDestroy(rect);
+}
+
+/*
+ * @tc.name: NativeDrawingPathTest_OH_Drawing_PathGetFillType043
+ * @tc.desc: test for gets Filltype.
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingPathTest, NativeDrawingPathTest_OH_Drawing_PathGetFillType043, TestSize.Level1)
+{
+    OH_Drawing_Path* path = OH_Drawing_PathCreate();
+    ASSERT_TRUE(path != nullptr);
+    OH_Drawing_PathFillType type;
+    OH_Drawing_PathSetFillType(path, PATH_FILL_TYPE_WINDING);
+    OH_Drawing_ErrorCode code = OH_Drawing_PathGetFillType(path, &type);
+    EXPECT_EQ(code, OH_DRAWING_SUCCESS);
+    EXPECT_EQ(type, PATH_FILL_TYPE_WINDING);
+    OH_Drawing_ErrorCode code2 = OH_Drawing_PathGetFillType(nullptr, &type);
+    EXPECT_EQ(code2, OH_DRAWING_ERROR_INVALID_PARAMETER);
+    OH_Drawing_ErrorCode code3 = OH_Drawing_PathGetFillType(path, nullptr);
+    EXPECT_EQ(code3, OH_DRAWING_ERROR_INVALID_PARAMETER);
+    OH_Drawing_ErrorCode code4 = OH_Drawing_PathGetFillType(nullptr, nullptr);
+    EXPECT_EQ(code4, OH_DRAWING_ERROR_INVALID_PARAMETER);
     OH_Drawing_PathDestroy(path);
 }
 } // namespace Drawing

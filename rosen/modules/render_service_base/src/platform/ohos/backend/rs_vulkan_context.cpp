@@ -16,7 +16,8 @@
 #include "platform/ohos/backend/rs_vulkan_context.h"
 #include <memory>
 #include <mutex>
-#include <set>
+#include <unordered_set>
+#include <string_view>
 #include <dlfcn.h>
 #include <vector>
 #include "common/rs_optional_trace.h"
@@ -52,7 +53,7 @@ static std::vector<const char*> gInstanceExtensions = {
     VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME,
 };
 
-static std::vector<const char*> gDeviceExtensions = {
+static std::vector<const char*> gMandatoryDeviceExtensions = {
     VK_KHR_EXTERNAL_SEMAPHORE_FD_EXTENSION_NAME,
     VK_KHR_SAMPLER_YCBCR_CONVERSION_EXTENSION_NAME,
     VK_KHR_MAINTENANCE1_EXTENSION_NAME,
@@ -62,6 +63,10 @@ static std::vector<const char*> gDeviceExtensions = {
     VK_KHR_BIND_MEMORY_2_EXTENSION_NAME,
     VK_OHOS_NATIVE_BUFFER_EXTENSION_NAME,
     VK_OHOS_EXTERNAL_MEMORY_EXTENSION_NAME,
+};
+
+static std::vector<const char*> gOptionalDeviceExtensions = {
+    VK_KHR_SYNCHRONIZATION_2_EXTENSION_NAME,
 };
 
 static const int GR_CHUNK_SIZE = 1048576;
@@ -169,6 +174,7 @@ bool RsVulkanInterface::CreateInstance()
     ACQUIRE_PROC(CreateDevice, instance_);
     ACQUIRE_PROC(DestroyDevice, instance_);
     ACQUIRE_PROC(DestroyInstance, instance_);
+    ACQUIRE_PROC(EnumerateDeviceExtensionProperties, instance_);
     ACQUIRE_PROC(EnumerateDeviceLayerProperties, instance_);
     ACQUIRE_PROC(EnumeratePhysicalDevices, instance_);
     ACQUIRE_PROC(GetPhysicalDeviceFeatures, instance_);
@@ -215,6 +221,59 @@ bool RsVulkanInterface::SelectPhysicalDevice(bool isProtected)
     return true;
 }
 
+void RsVulkanInterface::ConfigureFeatures(bool isProtected)
+{
+    ycbcrFeature_.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SAMPLER_YCBCR_CONVERSION_FEATURES,
+    ycbcrFeature_.pNext = nullptr;
+    sync2Feature_.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SYNCHRONIZATION_2_FEATURES;
+    sync2Feature_.pNext = &ycbcrFeature_;
+    bindlessFeature_.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_INDEXING_FEATURES;
+    bindlessFeature_.pNext = &sync2Feature_;
+    timelineFeature_.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TIMELINE_SEMAPHORE_FEATURES;
+    timelineFeature_.pNext = &bindlessFeature_;
+    physicalDeviceFeatures2_.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+    physicalDeviceFeatures2_.pNext = &timelineFeature_;
+    void** tailPnext = &ycbcrFeature_.pNext;
+    protectedMemoryFeatures_ = new VkPhysicalDeviceProtectedMemoryFeatures;
+    if (isProtected) {
+        protectedMemoryFeatures_->sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROTECTED_MEMORY_FEATURES;
+        protectedMemoryFeatures_->pNext = nullptr;
+        *tailPnext = protectedMemoryFeatures_;
+        tailPnext = &protectedMemoryFeatures_->pNext;
+    }
+}
+
+void RsVulkanInterface::ConfigureExtensions()
+{
+    deviceExtensions_ = gMandatoryDeviceExtensions;
+    uint32_t count = 0;
+    std::vector<VkExtensionProperties> supportedExtensions;
+    if (vkEnumerateDeviceExtensionProperties(physicalDevice_, nullptr, &count, nullptr) != VK_SUCCESS) {
+        ROSEN_LOGE("Failed to get device extension count, try to create device with mandatory extensions only!");
+        return;
+    }
+    supportedExtensions.resize(count);
+    if (vkEnumerateDeviceExtensionProperties(physicalDevice_, nullptr, &count,
+        supportedExtensions.data()) != VK_SUCCESS) {
+        ROSEN_LOGE("Failed to get device extensions, try to create device with mandatory extensions only!");
+        return;
+    }
+    std::unordered_set<std::string_view> extensionNames;
+    for (auto& prop: supportedExtensions) {
+        extensionNames.emplace(prop.extensionName);
+    }
+    for (auto& ext: gOptionalDeviceExtensions) {
+        if (extensionNames.find(ext) != extensionNames.end()) {
+            deviceExtensions_.emplace_back(ext);
+        }
+    }
+    for (auto& ext: gMandatoryDeviceExtensions) {
+        if (extensionNames.find(ext) == extensionNames.end()) {
+            ROSEN_LOGE("Mandatory device extension %{public}s not found! Try to enable it anyway.", ext);
+        }
+    }
+}
+
 bool RsVulkanInterface::CreateDevice(bool isProtected)
 {
     if (!physicalDevice_) {
@@ -246,21 +305,8 @@ bool RsVulkanInterface::CreateDevice(bool isProtected)
         .flags = deviceQueueCreateFlags, .queueFamilyIndex = graphicsQueueFamilyIndex_, .queueCount = 1,
         .pQueuePriorities = priorities,
     }};
-    ycbcrFeature_.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SAMPLER_YCBCR_CONVERSION_FEATURES,
-    ycbcrFeature_.pNext = nullptr;
-    deviceMemoryExclusiveThreshold_.sType = VK_STRUCTURE_TYPE_DEVICE_MEMORY_EXCLUSIVE_THRESHOLD_INFO;
-    deviceMemoryExclusiveThreshold_.pNext = &ycbcrFeature_;
-    deviceMemoryExclusiveThreshold_.threshold = GR_CHUNK_SIZE;
-    physicalDeviceFeatures2_.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
-    physicalDeviceFeatures2_.pNext = &deviceMemoryExclusiveThreshold_;
-    void** tailPnext = &ycbcrFeature_.pNext;
-    protectedMemoryFeatures_ = new VkPhysicalDeviceProtectedMemoryFeatures;
-    if (isProtected) {
-        protectedMemoryFeatures_->sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROTECTED_MEMORY_FEATURES;
-        protectedMemoryFeatures_->pNext = nullptr;
-        *tailPnext = protectedMemoryFeatures_;
-        tailPnext = &protectedMemoryFeatures_->pNext;
-    }
+    ConfigureExtensions();
+    ConfigureFeatures(isProtected);
 
     vkGetPhysicalDeviceFeatures2(physicalDevice_, &physicalDeviceFeatures2_);
 
@@ -268,8 +314,8 @@ bool RsVulkanInterface::CreateDevice(bool isProtected)
         .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO, .pNext = &physicalDeviceFeatures2_,
         .flags = 0, .queueCreateInfoCount = queueCreate.size(), .pQueueCreateInfos = queueCreate.data(),
         .enabledLayerCount = 0, .ppEnabledLayerNames = nullptr,
-        .enabledExtensionCount = static_cast<uint32_t>(gDeviceExtensions.size()),
-        .ppEnabledExtensionNames = gDeviceExtensions.data(), .pEnabledFeatures = nullptr,
+        .enabledExtensionCount = static_cast<uint32_t>(deviceExtensions_.size()),
+        .ppEnabledExtensionNames = deviceExtensions_.data(), .pEnabledFeatures = nullptr,
     };
     if (vkCreateDevice(physicalDevice_, &createInfo, nullptr, &device_) != VK_SUCCESS) {
         ROSEN_LOGE("vkCreateDevice failed");
@@ -321,7 +367,7 @@ bool RsVulkanInterface::CreateSkiaBackendContext(GrVkBackendContext* context, bo
 
     skVkExtensions_.init(getProc, instance_, physicalDevice_,
         gInstanceExtensions.size(), gInstanceExtensions.data(),
-        gDeviceExtensions.size(), gDeviceExtensions.data());
+        deviceExtensions_.size(), deviceExtensions_.data());
 
     context->fVkExtensions = &skVkExtensions_;
     context->fDeviceFeatures2 = &physicalDeviceFeatures2_;
@@ -366,6 +412,7 @@ bool RsVulkanInterface::SetupDeviceProcAddresses(VkDevice device)
     ACQUIRE_PROC(QueueSignalReleaseImageOHOS, device_);
     ACQUIRE_PROC(ImportSemaphoreFdKHR, device_);
     ACQUIRE_PROC(SetFreqAdjustEnable, device_);
+    ACQUIRE_PROC(GetSemaphoreFdKHR, device_);
 
     return true;
 }

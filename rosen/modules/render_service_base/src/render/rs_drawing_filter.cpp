@@ -48,6 +48,7 @@ const std::map<int, std::string> FILTER_TYPE_MAP {
     { RSFilter::COMPOUND_EFFECT, "CompoundEffect" },
     { RSFilter::FLY_OUT, "FlyOut" },
     { RSFilter::DISTORT, "RSDistortionFilter" },
+    { RSFilter::EDGE_LIGHT, "EdgeLight" },
 };
 }
 

@@ -49,13 +49,10 @@ void RSHdrUtilTest::TearDown() {}
 HWTEST_F(RSHdrUtilTest, CheckIsHdrSurfaceTest, TestSize.Level1)
 {
     auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    if (node->GetRSSurfaceHandler() == nullptr) {
-        return;
-    }
+    ASSERT_TRUE(node->GetRSSurfaceHandler() != nullptr);
     auto buffer = node->GetRSSurfaceHandler()->GetBuffer();
-    if (buffer == nullptr || buffer->GetBufferHandle() == nullptr) {
-        return;
-    }
+    ASSERT_TRUE(buffer != nullptr);
+    ASSERT_TRUE(buffer->GetBufferHandle() != nullptr);
     node->SetIsOnTheTree(false);
     HdrStatus ret = RSHdrUtil::CheckIsHdrSurface(*node);
     ASSERT_EQ(ret, HdrStatus::NO_HDR);
@@ -73,16 +70,13 @@ HWTEST_F(RSHdrUtilTest, CheckIsHdrSurfaceTest, TestSize.Level1)
 HWTEST_F(RSHdrUtilTest, CheckIsHdrSurfaceBufferTest, TestSize.Level1)
 {
     auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    if (node->GetRSSurfaceHandler() == nullptr) {
-        return;
-    }
+    ASSERT_TRUE(node->GetRSSurfaceHandler() != nullptr);
     sptr<SurfaceBuffer> buffer = nullptr;
     HdrStatus ret = RSHdrUtil::CheckIsHdrSurfaceBuffer(buffer);
     ASSERT_EQ(ret, HdrStatus::NO_HDR);
     buffer = node->GetRSSurfaceHandler()->GetBuffer();
-    if (buffer == nullptr || buffer->GetBufferHandle() == nullptr) {
-        return;
-    }
+    ASSERT_TRUE(buffer != nullptr);
+    ASSERT_TRUE(buffer->GetBufferHandle() != nullptr);
     buffer->GetBufferHandle()->format = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_YCBCR_420_SP;
     ret = RSHdrUtil::CheckIsHdrSurfaceBuffer(buffer);
     ASSERT_EQ(ret, HdrStatus::NO_HDR);
@@ -100,13 +94,10 @@ HWTEST_F(RSHdrUtilTest, CheckIsHdrSurfaceBufferTest, TestSize.Level1)
 HWTEST_F(RSHdrUtilTest, CheckIsSurfaceWithMetadataTest, TestSize.Level1)
 {
     auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    if (node->GetRSSurfaceHandler() == nullptr) {
-        return;
-    }
+    ASSERT_TRUE(node->GetRSSurfaceHandler() != nullptr);
     auto buffer = node->GetRSSurfaceHandler()->GetBuffer();
-    if (buffer == nullptr || buffer->GetBufferHandle() == nullptr) {
-        return;
-    }
+    ASSERT_TRUE(buffer != nullptr);
+    ASSERT_TRUE(buffer->GetBufferHandle() != nullptr);
     node->SetIsOnTheTree(false);
     bool ret = RSHdrUtil::CheckIsSurfaceWithMetadata(*node);
     ASSERT_EQ(ret, false);
@@ -124,13 +115,10 @@ HWTEST_F(RSHdrUtilTest, CheckIsSurfaceWithMetadataTest, TestSize.Level1)
 HWTEST_F(RSHdrUtilTest, CheckIsSurfaceBufferWithMetadataTest, TestSize.Level1)
 {
     auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    if (node->GetRSSurfaceHandler() == nullptr) {
-        return;
-    }
+    ASSERT_TRUE(node->GetRSSurfaceHandler() != nullptr);
     auto buffer = node->GetRSSurfaceHandler()->GetBuffer();
-    if (buffer == nullptr || buffer->GetBufferHandle() == nullptr) {
-        return;
-    }
+    ASSERT_TRUE(buffer != nullptr);
+    ASSERT_TRUE(buffer->GetBufferHandle() != nullptr);
     bool ret = RSHdrUtil::CheckIsSurfaceBufferWithMetadata(buffer);
     ASSERT_EQ(ret, false);
 }

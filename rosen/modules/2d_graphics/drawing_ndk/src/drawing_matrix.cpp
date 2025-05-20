@@ -62,6 +62,15 @@ OH_Drawing_Matrix* OH_Drawing_MatrixCreate()
     return (OH_Drawing_Matrix*)new Matrix();
 }
 
+OH_Drawing_Matrix* OH_Drawing_MatrixCopy(const OH_Drawing_Matrix* matrix)
+{
+    if (matrix == nullptr) {
+        return nullptr;
+    }
+    const Matrix* mat = reinterpret_cast<const Matrix*>(matrix);
+    return (OH_Drawing_Matrix*)new Matrix(*mat);
+}
+
 OH_Drawing_Matrix* OH_Drawing_MatrixCreateRotation(float deg, float x, float y)
 {
     Matrix* matrix = new Matrix();

@@ -43,11 +43,11 @@ const std::string OUT_STR1 =
     "DISPLAY_NODERS_NODESURFACE_NODECANVAS_NODEROOT_NODEPROXY_NODECANVAS_DRAWING_NODEEFFECT_NODEUNKNOWN_NODE";
 const std::string OUT_STR2 =
     "| RS_NODE[0], instanceRootNodeId[0], SharedTransitionParam: [0 -> 0], [nodeGroup1], uifirstRootNodeId_: 1, "
-    "Properties: Bounds[-inf -inf -inf -inf] Frame[-inf -inf -inf -inf], GetBootAnimation: true, "
-    "isContainBootAnimation: true, isNodeDirty: 1, isPropertyDirty: true, isSubTreeDirty: true, IsPureContainer: true, "
-    "Children list needs update, current count: 0 expected count: 0, disappearingChildren: 1(0 )\n"
-    "  | RS_NODE[0], instanceRootNodeId[0], Properties: Bounds[-inf -inf -inf -inf] Frame[-inf -inf -inf -inf], "
-    "IsPureContainer: true\n";
+    "Properties: Bounds[-inf -inf -inf -inf] Frame[-inf -inf -inf -inf], RSUIContextToken: NO_RSUIContext, "
+    "GetBootAnimation: true, isContainBootAnimation: true, isNodeDirty: 1, isPropertyDirty: true, "
+    "isSubTreeDirty: true, IsPureContainer: true, Children list needs update, current count: 0 expected count: 0, "
+    "disappearingChildren: 1(0 )\n  | RS_NODE[0], instanceRootNodeId[0], Properties: Bounds[-inf -inf -inf -inf] "
+    "Frame[-inf -inf -inf -inf], RSUIContextToken: NO_RSUIContext, IsPureContainer: true\n";
 const int DEFAULT_BOUNDS_SIZE = 10;
 const int DEFAULT_NODE_ID = 1;
 class RSRenderNodeDrawableAdapterBoy : public DrawableV2::RSRenderNodeDrawableAdapter {
@@ -169,7 +169,7 @@ HWTEST_F(RSRenderNodeTest, ProcessTransitionBeforeChildrenTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: ProcessTransitionBeforeChildrenTest
+ * @tc.name: AddModifierTest
  * @tc.desc: test
  * @tc.type:FUNC
  * @tc.require:
@@ -180,6 +180,19 @@ HWTEST_F(RSRenderNodeTest, AddModifierTest, TestSize.Level1)
     RSRenderNode node(id, context);
     node.AddModifier(modifier);
     ASSERT_FALSE(node.IsDirty());
+}
+
+/**
+ * @tc.name: GetPropertyTest
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest, GetPropertyTest, TestSize.Level1)
+{
+    RSRenderNode node(id, context);
+    auto rsRenderPropertyBase = node.GetProperty(id);
+    EXPECT_EQ(rsRenderPropertyBase, nullptr);
 }
 
 /**
@@ -244,6 +257,33 @@ HWTEST_F(RSRenderNodeTest, SetDrawingCacheTypeTest, TestSize.Level2)
     ASSERT_EQ(node.GetDrawingCacheType(), RSDrawingCacheType::FORCED_CACHE);
     node.SetDrawingCacheType(RSDrawingCacheType::TARGETED_CACHE);
     ASSERT_EQ(node.GetDrawingCacheType(), RSDrawingCacheType::TARGETED_CACHE);
+}
+
+
+/**
+ * @tc.name: SetDrawNodeType
+ * @tc.desc: test results of SetDrawNodeType
+ * @tc.type: FUNC
+ * @tc.require: IC8BLE
+ */
+HWTEST_F(RSRenderNodeTest, SetDrawNodeType001, TestSize.Level1)
+{
+    RSRenderNode rsNode(id, context);
+    rsNode.SetDrawNodeType(DrawNodeType::PureContainerType);
+    ASSERT_EQ(rsNode.drawNodeType_, DrawNodeType::PureContainerType);
+}
+
+/**
+ * @tc.name: GetDrawNodeType
+ * @tc.desc: test results of GetDrawNodeType
+ * @tc.type: FUNC
+ * @tc.require: IC8BLE
+ */
+HWTEST_F(RSRenderNodeTest, SetDrawNodeType002, TestSize.Level1)
+{
+    RSRenderNode rsNode(id, context);
+    rsNode.SetDrawNodeType(DrawNodeType::GeometryPropertyType);
+    ASSERT_EQ(rsNode.GetDrawNodeType(), DrawNodeType::GeometryPropertyType);
 }
 
 /**
@@ -1265,7 +1305,7 @@ HWTEST_F(RSRenderNodeTest, OnSyncTest, TestSize.Level1)
     node->stagingRenderParams_->freezeFlag_ = true;
     node->needClearSurface_ = true;
     std::function<void()> clearTask = []() { printf("ClearSurfaceTask CallBack\n"); };
-    node->isOpincRootFlag_ = true;
+    node->GetOpincCache().isOpincRootFlag_ = true;
     node->OnSync();
     EXPECT_TRUE(node->dirtySlots_.empty());
     EXPECT_FALSE(node->drawCmdListNeedSync_);

@@ -943,12 +943,48 @@ HWTEST_F(RSUniRenderVisitorTest, CollectTopOcclusionSurfacesInfo003, TestSize.Le
     config.nodeType = RSSurfaceNodeType::LEASH_WINDOW_NODE;
     auto parentSurfaceNode2 = std::make_shared<RSSurfaceRenderNode>(config);
     surfaceNode2->SetParent(parentSurfaceNode2);
+    // Applications with sidebar blur have both opaque areas and transparent blur areas
+    surfaceNode->GetOpaqueRegion() = defaultRegion;
     rsUniRenderVisitor->transparentCleanFilter_[surfaceNode2->GetId()].emplace_back(
         surfaceNode2->GetId(), RectI(0, 0, defaultRegionSize, defaultRegionSize));
 
     rsUniRenderVisitor->CollectTopOcclusionSurfacesInfo(*surfaceNode2, false);
     EXPECT_EQ(parentSurfaceNode2->stencilVal_, (TOP_OCCLUSION_SURFACES_NUM - 1) * OCCLUSION_ENABLE_SCENE_NUM + 1);
     EXPECT_EQ(rsUniRenderVisitor->occlusionSurfaceOrder_, DEFAULT_OCCLUSION_SURFACE_ORDER);
+}
+
+/**
+ * @tc.name: CollectTopOcclusionSurfacesInfo004
+ * @tc.desc: test CollectTopOcclusionSurfacesInfo with first level cross node 
+ * @tc.type:FUNC
+ * @tc.require:issuesIC88GA
+ */
+HWTEST_F(RSUniRenderVisitorTest, CollectTopOcclusionSurfacesInfo004, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    NodeId id = 0;
+    RSDisplayNodeConfig displayConfig;
+    rsUniRenderVisitor->curDisplayNode_ = std::make_shared<RSDisplayRenderNode>(id, displayConfig);
+    rsUniRenderVisitor->isStencilPixelOcclusionCullingEnabled_ = true;
+    rsUniRenderVisitor->occlusionSurfaceOrder_ = TOP_OCCLUSION_SURFACES_NUM;
+    constexpr int defaultRegionSize{100};
+    Occlusion::Region defaultRegion(Occlusion::Rect(0, 0, defaultRegionSize, defaultRegionSize));
+
+    RSSurfaceRenderNodeConfig config;
+    ++id;
+    config.id = id;
+    config.nodeType = RSSurfaceNodeType::APP_WINDOW_NODE;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(config);
+    ++id;
+    config.id = id;
+    config.nodeType = RSSurfaceNodeType::LEASH_WINDOW_NODE;
+    auto parentSurfaceNode = std::make_shared<RSSurfaceRenderNode>(config);
+    surfaceNode->SetParent(parentSurfaceNode);
+    surfaceNode->GetOpaqueRegion() = defaultRegion;
+    surfaceNode->SetFirstLevelCrossNode(true);
+
+    rsUniRenderVisitor->CollectTopOcclusionSurfacesInfo(*surfaceNode, true);
+    EXPECT_EQ(parentSurfaceNode->stencilVal_, DEFAULT_OCCLUSION_SURFACE_ORDER);
 }
 
 /*
@@ -4005,6 +4041,35 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateNodeVisibleRegion001, TestSize.Level2)
 }
 
 /**
+ * @tc.name: UpdateNodeVisibleRegion002
+ * @tc.desc: Visible region of app window out of screen depends on whether it's cross-screen. If so, its all-visible.
+ * @tc.type: FUNC
+ * @tc.require: issueIC84ZR
+ */
+HWTEST_F(RSUniRenderVisitorTest, UpdateNodeVisibleRegion002, TestSize.Level2)
+{
+    auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(rsSurfaceRenderNode, nullptr);
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    RSDisplayNodeConfig displayConfig;
+    rsUniRenderVisitor->curDisplayNode_ = std::make_shared<RSDisplayRenderNode>(DEFAULT_NODE_ID, displayConfig);
+    ASSERT_NE(rsUniRenderVisitor->curDisplayNode_, nullptr);
+    rsUniRenderVisitor->curDisplayNode_->isFirstVisitCrossNodeDisplay_ = true;
+    rsUniRenderVisitor->needRecalculateOcclusion_ = true;
+    // test: if node is non-cross-display, its visibility will be cropped by screen.
+    rsSurfaceRenderNode->oldDirtyInSurface_ = RectI();
+    rsSurfaceRenderNode->absDrawRect_ = DEFAULT_RECT;
+    rsUniRenderVisitor->UpdateNodeVisibleRegion(*rsSurfaceRenderNode);
+    ASSERT_TRUE(rsSurfaceRenderNode->GetVisibleRegion().IsEmpty());
+    // test: if node is cross-display, its visibility will not be cropped by screen.
+    rsSurfaceRenderNode->isFirstLevelCrossNode_ = true;
+    rsUniRenderVisitor->UpdateNodeVisibleRegion(*rsSurfaceRenderNode);
+    ASSERT_FALSE(rsSurfaceRenderNode->GetVisibleRegion().IsEmpty());
+    ASSERT_TRUE(rsSurfaceRenderNode->GetVisibleRegion().GetBound() == Occlusion::Rect(DEFAULT_RECT));
+}
+
+/**
  * @tc.name: CalculateOpaqueAndTransparentRegion004
  * @tc.desc: Test CalculateOpaqueAndTransparentRegion with multi-rsSurfaceRenderNode
  * @tc.type: FUNC
@@ -4235,7 +4300,6 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeInfoForAppNode002, TestSize.Level2
     ASSERT_NE(rsSurfaceRenderNode, nullptr);
     rsSurfaceRenderNode->needCollectHwcNode_ = true;
     rsSurfaceRenderNode->isHardwareEnabledNode_ = true;
-    rsSurfaceRenderNode->isHardWareDisabledByReverse_ = false;
     rsSurfaceRenderNode->isFixRotationByUser_ = false;
     rsSurfaceRenderNode->nodeType_ = RSSurfaceNodeType::SELF_DRAWING_NODE;
     NodeId surfaceNodeId = 1;

@@ -12,6 +12,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+ /**
+ * @addtogroup RenderNodeDisplay
+ * @{
+ *
+ * @brief Display render nodes.
+ */
+
+/**
+ * @file rs_surface_node.h
+ *
+ * @brief Defines the properties and methods for RSSurfaceNode class.
+ */
+
 #ifndef RENDER_SERVICE_CLIENT_CORE_UI_RS_SURFACE_NODE_H
 #define RENDER_SERVICE_CLIENT_CORE_UI_RS_SURFACE_NODE_H
 
@@ -38,13 +52,24 @@
 
 namespace OHOS {
 namespace Rosen {
+/**
+ * @struct RSSurfaceNodeConfig
+ * @brief Configuration structure for creating or managing a surface node.
+ */
 struct RSSurfaceNodeConfig {
+    /* Name of the surface node. Defaults to "SurfaceNode" */
     std::string SurfaceNodeName = "SurfaceNode";
+    /* Pointer to any additional user data. Defaults to nullptr. */
     void* additionalData = nullptr;
+    /* Indicates if the node is used for texture export. Defaults to false. */
     bool isTextureExportNode = false;
+    /* Unique identifier for the surface. Defaults to 0. */
     SurfaceId surfaceId = 0;
+    /* Specifies if the node operates in synchronous mode. Defaults to true. */
     bool isSync = true;
+    /* Type of the surface window. Defaults to SurfaceWindowType::DEFAULT_WINDOW */
     enum SurfaceWindowType surfaceWindowType = SurfaceWindowType::DEFAULT_WINDOW;
+    /* Shared pointer to the UI context associated with this node. Defaults to nullptr. */
     std::shared_ptr<RSUIContext> rsUIContext = nullptr;
 };
 
@@ -55,17 +80,44 @@ public:
     using WeakPtr = std::weak_ptr<RSSurfaceNode>;
     using SharedPtr = std::shared_ptr<RSSurfaceNode>;
     static inline constexpr RSUINodeType Type = RSUINodeType::SURFACE_NODE;
+    /**
+     * @brief Get the type of the RSNode.
+     * 
+     * @return The type of the RSNode.
+     */
     RSUINodeType GetType() const override
     {
         return Type;
     }
 
+    /**
+     * @brief Destructor for RSSurfaceNode.
+     */
     ~RSSurfaceNode() override;
 
+    /**
+     * @brief Creates a new instance of RSSurfaceNode with the specified configuration.
+     * 
+     * @param surfaceNodeConfig The configuration settings for the surface node.
+     * @param isWindow Indicates whether the surface node is a window. Defaults to true.
+     * @param rsUIContext An optional shared pointer to an RSUIContext object. Defaults to nullptr.
+     * @return SharedPtr A shared pointer to the newly created RSSurfaceNode instance.
+     */
     static SharedPtr Create(const RSSurfaceNodeConfig& surfaceNodeConfig, bool isWindow = true,
         std::shared_ptr<RSUIContext> rsUIContext = nullptr);
 
-    // This interface is only available for WMS
+    /**
+     * @brief Creates a new RSSurfaceNode instance with the specified configuration and parameters.
+     *
+     * This interface is only available for WMS
+     *
+     * @param surfaceNodeConfig The configuration settings for the surface node.
+     * @param type The type of the surface node, specified as an RSSurfaceNodeType.
+     * @param isWindow Indicates whether the surface node represents a window. Defaults to true.
+     * @param unobscured Indicates whether the surface node is unobscured. Defaults to false.
+     * @param rsUIContext An optional shared pointer to an RSUIContext instance. Defaults to nullptr.
+     * @return A shared pointer to the newly created RSSurfaceNode instance.
+     */
     static SharedPtr Create(const RSSurfaceNodeConfig& surfaceNodeConfig, RSSurfaceNodeType type, bool isWindow = true,
         bool unobscured = false, std::shared_ptr<RSUIContext> rsUIContext = nullptr);
 
@@ -74,8 +126,25 @@ public:
     // After calling it, this surfaceNode is disallowed to add/remove child.
     void CreateNodeInRenderThread();
 
+    /**
+     * @brief Adds a child node to the current node at the specified index.
+     *
+     * @param child The shared pointer to the child node to be added.
+     * @param index The position at which the child node should be inserted. 
+     *              If the index is -1 (default), the child is added to the end.
+     */
     void AddChild(std::shared_ptr<RSBaseNode> child, int index) override;
+
+    /**
+     * @brief Removes a child node from the current node.
+     *
+     * @param child A shared pointer to the child node to be removed.
+     */
     void RemoveChild(std::shared_ptr<RSBaseNode> child) override;
+
+    /**
+     * @brief Removes all child nodes associated with this node.
+     */
     void ClearChildren() override;
 
     void SetSecurityLayer(bool isSecurityLayer);
@@ -88,6 +157,11 @@ public:
     bool GetSnapshotSkipLayer() const;
     void SetFingerprint(bool hasFingerprint);
     bool GetFingerprint() const;
+    /**
+     * @brief Sets the background alpha value for the ability.
+     *
+     * @param alpha The alpha value to set, ranging from 0 (fully transparent) to 255 (fully opaque).
+     */
     void SetAbilityBGAlpha(uint8_t alpha);
     void SetIsNotifyUIBufferAvailable(bool available);
     void MarkUIHidden(bool isHidden);
@@ -98,9 +172,30 @@ public:
     void SetBoundsChangedCallback(BoundsChangedCallback callback) override;
     void SetAnimationFinished();
 
+    /**
+     * @brief Serializes the RSSurfaceNode into a parcel.
+     *
+     * @param parcel The Parcel object where the RSSurfaceNode data will be written.
+     * @return true if the serialization is successful; false otherwise.
+     */
     bool Marshalling(Parcel& parcel) const;
+
+    /**
+     * @brief Deserializes the RSDisplayNode from a Parcel.
+     *
+     * @param parcel The Parcel object containing the serialized RSSurfaceNode data.
+     * @return A shared pointer to the deserialized RSSurfaceNode instance.
+     */
     static SharedPtr Unmarshalling(Parcel& parcel);
-    // Create RSProxyNode by unmarshalling RSSurfaceNode, return existing node if it exists in RSNodeMap.
+
+    /**
+     * @brief Create RSProxyNode by unmarshalling RSSurfaceNode.
+     *
+     * return existing node if it exists in RSNodeMap
+     *
+     * @param parcel The Parcel object containing the marshalled data.
+     * @return A shared pointer to the unmarshalled RSNode object.
+     */
     static RSNode::SharedPtr UnmarshallingAsProxyNode(Parcel& parcel);
 
     FollowType GetFollowType() const override;
@@ -115,6 +210,18 @@ public:
     void SetTextureExport(bool isTextureExportNode) override;
     void SetGlobalPositionEnabled(bool isEnabled);
     bool GetGlobalPositionEnabled() const;
+    /**
+     * @brief Set whether to enable the new version of frame gravity.
+     *
+     * @param bool enable the new version of frame gravity or not.
+     */
+    void SetFrameGravityNewVersionEnabled(bool isEnabled);
+    /**
+     * @brief Get the enable status of new version of frame gravity.
+     *
+     * @return true if the new version of frame gravity enabled; false otherwise.
+     */
+    bool GetFrameGravityNewVersionEnabled() const;
 
 #ifndef ROSEN_CROSS_PLATFORM
     sptr<OHOS::Surface> GetSurface() const;
@@ -125,6 +232,11 @@ public:
         return colorSpace_;
     }
 
+    /**
+     * @brief Get the name of the node.
+     * 
+     * @return A string representing the name of the node.
+     */
     inline std::string GetName() const
     {
         return name_;
@@ -133,6 +245,11 @@ public:
     void ResetContextAlpha() const;
 
     void SetContainerWindow(bool hasContainerWindow, RRect rrect);
+    /**
+     * @brief Sets the window ID for the surface node.
+     *
+     * @param windowId The unique identifier of the window to be set.
+     */
     void SetWindowId(uint32_t windowId);
 
     void SetFreeze(bool isFreeze) override;
@@ -163,11 +280,17 @@ public:
     // the self-drawing node use hardware composer in some condition,
     // such as transparent background.
     void SetHardwareEnableHint(bool enable);
+    
+    /**
+     * @brief Sets the API compatible version for the surface node.
+     * @param version The API version to set for compatibility.
+     */
     void SetApiCompatibleVersion(uint32_t version);
 
     void SetSourceVirtualDisplayId(ScreenId screenId);
     void AttachToWindowContainer(ScreenId screenId);
     void DetachFromWindowContainer(ScreenId screenId);
+    void SetRegionToBeMagnified(const Vector4f& regionToBeMagnified);
 protected:
     bool NeedForcedSendToRemote() const override;
     RSSurfaceNode(const RSSurfaceNodeConfig& config, bool isRenderServiceNode,
@@ -186,6 +309,9 @@ private:
     bool CreateNode(const RSSurfaceRenderNodeConfig& config);
     bool CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config, SurfaceId surfaceId = 0,
         bool unobscured = false);
+    /**
+     * @brief Called when the bounds size of the surface node changes.
+     */
     void OnBoundsSizeChanged() const override;
     // this function is only used in texture export
     void SetSurfaceIdToRenderNode();
@@ -210,6 +336,7 @@ private:
     bool isSkipDraw_ = false;
     RSSurfaceNodeAbilityState abilityState_ = RSSurfaceNodeAbilityState::FOREGROUND;
     bool isGlobalPositionEnabled_ = false;
+    bool isFrameGravityNewVersionEnabled_ = false;
     LeashPersistentId leashPersistentId_ = INVALID_LEASH_PERSISTENTID;
 
     uint32_t windowId_ = 0;
@@ -228,4 +355,5 @@ private:
 } // namespace Rosen
 } // namespace OHOS
 
+/** @} */
 #endif // RENDER_SERVICE_CLIENT_CORE_UI_RS_SURFACE_NODE_H

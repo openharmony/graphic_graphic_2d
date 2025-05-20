@@ -21,7 +21,8 @@ namespace OHOS::Rosen {
 namespace {
 static std::atomic<bool> g_releaseResourceEnabled_ = true;
 }
-RSTagTracker::RSTagTracker(Drawing::GPUContext* gpuContext, RSTagTracker::TAGTYPE tagType) : gpuContext_(gpuContext)
+RSTagTracker::RSTagTracker(const std::shared_ptr<Drawing::GPUContext>& gpuContext,
+    RSTagTracker::TAGTYPE tagType) : gpuContext_(gpuContext)
 {
     if (!gpuContext_) {
         return;
@@ -35,7 +36,7 @@ RSTagTracker::RSTagTracker(Drawing::GPUContext* gpuContext, RSTagTracker::TAGTYP
 #endif
 }
 
-RSTagTracker::RSTagTracker(Drawing::GPUContext* gpuContext,
+RSTagTracker::RSTagTracker(const std::shared_ptr<Drawing::GPUContext>& gpuContext,
     RSTagTracker::SOURCETYPE sourceType) : gpuContext_(gpuContext)
 {
     if (!gpuContext_) {
@@ -100,7 +101,7 @@ std::string RSTagTracker::TagType2String(TAGTYPE type)
     return tagType;
 }
 
-RSTagTracker::RSTagTracker(Drawing::GPUContext* gpuContext, NodeId nodeId,
+RSTagTracker::RSTagTracker(const std::shared_ptr<Drawing::GPUContext>& gpuContext, NodeId nodeId,
     RSTagTracker::TAGTYPE tagType, const std::string& name)
     : gpuContext_(gpuContext)
 {
@@ -116,7 +117,8 @@ RSTagTracker::RSTagTracker(Drawing::GPUContext* gpuContext, NodeId nodeId,
 #endif
 }
 
-RSTagTracker::RSTagTracker(Drawing::GPUContext* gpuContext, Drawing::GPUResourceTag& tag) : gpuContext_(gpuContext)
+RSTagTracker::RSTagTracker(const std::shared_ptr<Drawing::GPUContext>& gpuContext,
+    Drawing::GPUResourceTag& tag) : gpuContext_(gpuContext)
 {
     if (!gpuContext_) {
         return;

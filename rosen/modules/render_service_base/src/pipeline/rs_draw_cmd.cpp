@@ -70,6 +70,19 @@ Drawing::ColorType GetColorTypeFromVKFormat(VkFormat vkFormat)
             return Drawing::COLORTYPE_RGBA_8888;
     }
 }
+
+bool WaitFence(const sptr<SyncFence>& fence)
+{
+    if (fence == nullptr) {
+        return false;
+    }
+    int ret = fence->Wait(FENCE_WAIT_TIME);
+    auto fenceFd = fence->Get();
+    if (ret < 0 && fenceFd != -1) {
+        return false;
+    }
+    return true;
+}
 #endif
 
 RSExtendImageObject::RSExtendImageObject(const std::shared_ptr<Drawing::Image>& image,
@@ -86,6 +99,7 @@ RSExtendImageObject::RSExtendImageObject(const std::shared_ptr<Drawing::Image>& 
     rsImage_->SetScale(imageInfo.scale);
     rsImage_->SetDynamicRangeMode(imageInfo.dynamicRangeMode);
     rsImage_->SetFitMatrix(imageInfo.fitMatrix);
+    rsImage_->SetOrientationFit(imageInfo.orientationNum);
     imageInfo_ = imageInfo;
 }
 
@@ -113,6 +127,7 @@ RSExtendImageObject::RSExtendImageObject(const std::shared_ptr<Media::PixelMap>&
                         imageInfo.frameRect.GetBottom());
         rsImage_->SetFrameRect(frameRect);
         rsImage_->SetFitMatrix(imageInfo.fitMatrix);
+        rsImage_->SetOrientationFit(imageInfo.orientationNum);
     }
 }
 
@@ -121,6 +136,12 @@ void RSExtendImageObject::SetNodeId(NodeId id)
     if (rsImage_) {
         rsImage_->UpdateNodeIdToPicture(id);
     }
+    nodeId_ = id;
+}
+
+NodeId RSExtendImageObject::GetNodeId() const
+{
+    return nodeId_;
 }
 
 void RSExtendImageObject::SetPaint(Drawing::Paint paint)
@@ -134,6 +155,28 @@ void RSExtendImageObject::Purge()
 {
     if (rsImage_) {
         rsImage_->Purge();
+    }
+}
+
+bool RSExtendImageObject::IsValid()
+{
+    return rsImage_ != nullptr && rsImage_->GetPixelMap() != nullptr;
+}
+
+void RSExtendImageObject::Dump(std::string& dump)
+{
+    if (rsImage_ == nullptr) {
+        dump += " rsImage is nullptr";
+    } else {
+        std::string rsImageDump;
+        rsImage_->dump(rsImageDump, 0);
+        rsImageDump.erase(
+            std::remove_if(rsImageDump.begin(),
+            rsImageDump.end(),
+            [](auto c) { return c == '\t' || c == '\n'; }),
+            rsImageDump.end()
+        );
+        dump += rsImageDump;
     }
 }
 
@@ -747,6 +790,12 @@ void DrawPixelMapWithParmOpItem::DumpItems(std::string& out) const
 {
     out += " sampling";
     sampling_.Dump(out);
+
+    if (objectHandle_ == nullptr) {
+        out += " objectHandle_ is nullptr";
+    } else {
+        objectHandle_->Dump(out);
+    }
 }
 
 #ifdef RS_ENABLE_VK
@@ -756,9 +805,14 @@ UNMARSHALLING_REGISTER(DrawHybridPixelMapOpItem, DrawOpItem::HYBRID_RENDER_PIXEL
  
 DrawHybridPixelMapOpItem::DrawHybridPixelMapOpItem(
     const DrawCmdList& cmdList, DrawHybridPixelMapOpItem::ConstructorHandle* handle)
-    : DrawWithPaintOpItem(cmdList, handle->paintHandle, HYBRID_RENDER_PIXELMAP_OPITEM), sampling_(handle->sampling)
+    : DrawWithPaintOpItem(cmdList, handle->paintHandle, HYBRID_RENDER_PIXELMAP_OPITEM), sampling_(handle->sampling),
+    isRenderForeground_(handle->isRenderForeground)
 {
     objectHandle_ = CmdListHelper::GetImageObjectFromCmdList(cmdList, handle->objectHandle);
+    auto entry = CmdListHelper::GetSurfaceBufferEntryFromCmdList(cmdList, handle->entryId);
+    if (entry != nullptr) {
+        fence_ = entry->acquireFence_;
+    }
 }
 
 DrawHybridPixelMapOpItem::DrawHybridPixelMapOpItem(const std::shared_ptr<Media::PixelMap>& pixelMap,
@@ -773,7 +827,9 @@ void DrawHybridPixelMapOpItem::Marshalling(DrawCmdList& cmdList)
     PaintHandle paintHandle;
     GenerateHandleFromPaint(cmdList, paint_, paintHandle);
     auto objectHandle = CmdListHelper::AddImageObjectToCmdList(cmdList, objectHandle_);
-    cmdList.AddOp<ConstructorHandle>(objectHandle, sampling_, paintHandle);
+    uint32_t entryId = CmdListHelper::AddSurfaceBufferEntryToCmdList(cmdList,
+        std::make_shared<SurfaceBufferEntry>(nullptr, fence_));
+    cmdList.AddOp<ConstructorHandle>(objectHandle, sampling_, paintHandle, entryId, isRenderForeground_);
 }
  
 std::shared_ptr<DrawOpItem> DrawHybridPixelMapOpItem::Unmarshalling(const DrawCmdList& cmdList, void* handle)
@@ -804,9 +860,17 @@ void DrawHybridPixelMapOpItem::Playback(Canvas* canvas, const Rect* rect)
     filter.SetColorFilter(ColorFilter::CreateBlendModeColorFilter(paintCanvas->GetEnvForegroundColor(),
         BlendMode::SRC_ATOP));
     paint_.SetFilter(filter);
-
-    objectHandle_->SetPaint(paint_);
-    paintCanvas->AttachPaint(paint_);
+    if (isRenderForeground_) {
+        objectHandle_->SetPaint(paint_);
+        paintCanvas->AttachPaintWithColor(paint_);
+    } else {
+        paintCanvas->AttachPaint(paint_);
+    }
+    if (objectHandle_->IsValid() && !WaitFence(fence_)) {
+        if (auto rsExtendImageObject = static_cast<RSExtendImageObject*>(objectHandle_.get())) {
+            RS_TRACE_NAME_FMT("DrawHybridPixelMap waitfence error, nodeId: %llu", rsExtendImageObject->GetNodeId());
+        }
+    }
     objectHandle_->Playback(*paintCanvas, *rect, sampling_, false);
 }
  
@@ -814,6 +878,10 @@ void DrawHybridPixelMapOpItem::DumpItems(std::string& out) const
 {
     out += " sampling";
     sampling_.Dump(out);
+    out += " foreground:" + std::to_string(isRenderForeground_);
+    if (fence_ != nullptr) {
+        out += " fenceFd:" + std::to_string(fence_->Get());
+    }
 }
 #endif
 

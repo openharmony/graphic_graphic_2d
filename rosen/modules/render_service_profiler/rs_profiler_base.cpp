@@ -344,7 +344,7 @@ std::shared_ptr<RSDisplayRenderNode> RSProfiler::GetDisplayNode(const RSContext&
 {
     const std::shared_ptr<RSBaseRenderNode>& root = context.GetGlobalRootRenderNode();
     // without these checks device might get stuck on startup
-    if (!root || (root->GetChildrenCount() != 1)) {
+    if (!root || !root->GetChildrenCount()) {
         return nullptr;
     }
 
@@ -627,7 +627,7 @@ static void MarshalDrawCmdModifiers(
             if (auto oldCmdList = modifier->GetPropertyDrawCmdList()) {
                 auto newCmdList = std::make_shared<Drawing::DrawCmdList>(oldCmdList->GetWidth(),
                     oldCmdList->GetHeight(), Drawing::DrawCmdList::UnmarshalMode::IMMEDIATE);
-                oldCmdList->MarshallingDrawOps(newCmdList.get());
+                oldCmdList->ProfilerMarshallingDrawOps(newCmdList.get());
                 newCmdList->PatchTypefaceIds(oldCmdList);
 
                 modifier->SetPropertyDrawCmdList(newCmdList);
@@ -1524,6 +1524,16 @@ bool RSProfiler::IfNeedToSkipDuringReplay(Parcel& parcel)
         return true;
     }
     return false;
+}
+
+void RSProfiler::SurfaceOnDrawMatchOptimize(bool& useNodeMatchOptimize)
+{
+    if (!IsEnabled()) {
+        return;
+    }
+    if (IsReadEmulationMode() || IsReadMode()) {
+        useNodeMatchOptimize = true;
+    }
 }
 
 } // namespace OHOS::Rosen

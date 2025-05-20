@@ -44,6 +44,7 @@ public:
     virtual void InitWithCompose(const ColorFilter& f1, const ColorFilter& f2) = 0;
     virtual void InitWithCompose(const float f1[MATRIX_SIZE], const float f2[MATRIX_SIZE], Clamp clamp) = 0;
     virtual void InitWithOverDrawColor(const ColorQuad colors[OVER_DRAW_COLOR_NUM]) = 0;
+    virtual void InitWithLighting(ColorQuad mul, ColorQuad add) = 0;
     virtual void Compose(const ColorFilter& f) = 0;
     virtual void InitWithLuma() = 0;
     virtual std::shared_ptr<Data> Serialize() const = 0;

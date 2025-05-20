@@ -382,7 +382,7 @@ namespace {
         [](Paragraph& paragraph, skt::Block& skiaBlock, const TextStyle& spTextStyle, skt::InternalState& state) {
             skt::TextStyle& skiaTextStyle = skiaBlock.fStyle;
             skiaTextStyle.setDecoration(static_cast<skt::TextDecoration>(spTextStyle.decoration));
-            state = std::min(skt::InternalState::kShaped, state);
+            state = std::min(skt::InternalState::kFormatted, state);
         },
 
         [](Paragraph& paragraph, skt::Block& skiaBlock, const TextStyle& spTextStyle, skt::InternalState& state) {

@@ -48,9 +48,6 @@ const std::string BOOT_VIDEO_PATH = "file://system/etc/graphic/bootvideo.mp4";
 const std::string TYPE_VIDEO = "video";
 const std::string TYPE_SOUND = "sound";
 
-constexpr const char* BMS_COMPILE_STATUS = "bms.optimizing_apps.status";
-const std::string BMS_COMPILE_STATUS_BEGIN = "0";
-const std::string BMS_COMPILE_STATUS_END = "1";
 const std::string HING_STATUS_INFO_PATH = "/sys/class/sensors/hinge_sensor/hinge_status_info";
 
 constexpr const char* BOOT_ANIMATION_STARTED = "bootevent.bootanimation.started";
@@ -58,6 +55,8 @@ constexpr const char* BOOT_ANIMATION_READY = "bootevent.bootanimation.ready";
 constexpr const char* BOOT_ANIMATION_FINISHED = "bootevent.bootanimation.finished";
 constexpr const char* BOOT_COMPLETED = "bootevent.boot.completed";
 constexpr const char* BOOT_SOUND = "const.bootanimation.bootsound";
+const std::string DEVICE_TYPE_PHONE = "phone";
+const std::string DEVICE_TYPE_WEARABLE = "wearable";
 
 enum class BootStrategyType {
     ASSOCIATIVE,
@@ -169,6 +168,8 @@ std::string ReadFile(const std::string &filePath);
 std::string GetHingeStatus();
 
 int64_t GetSystemCurrentTime();
+
+std::string GetDeviceType();
 } // namespace OHOS
 
 #endif // FRAMEWORKS_BOOTANIMATION_INCLUDE_UTIL_H

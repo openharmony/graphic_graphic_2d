@@ -495,17 +495,20 @@ void RSRenderThread::Animate(uint64_t timestamp)
     }
 
     bool needRequestNextVsync = false;
+    // For now, there is no need to optimize the power consumption issue related to delayTime.
+    int64_t minLeftDelayTime = 0;
     // isCalculateAnimationValue is embedded modify for stat animate frame drop
     bool isCalculateAnimationValue = false;
     // iterate and animate all animating nodes, remove if animation finished
     EraseIf(context_->animatingNodeList_,
-        [timestamp, &needRequestNextVsync, &isCalculateAnimationValue](const auto& iter) -> bool {
+        [timestamp, &needRequestNextVsync, &isCalculateAnimationValue, &minLeftDelayTime](const auto& iter) -> bool {
         auto node = iter.second.lock();
         if (node == nullptr) {
             ROSEN_LOGD("RSRenderThread::Animate removing expired animating node");
             return true;
         }
-        auto [hasRunningAnimation, nodeNeedRequestNextVsync, nodeCalculateAnimationValue] = node->Animate(timestamp);
+        auto [hasRunningAnimation, nodeNeedRequestNextVsync, nodeCalculateAnimationValue] =
+            node->Animate(timestamp, minLeftDelayTime);
         if (!hasRunningAnimation) {
             ROSEN_LOGD("RSRenderThread::Animate removing finished animating node %{public}" PRIu64, node->GetId());
         }

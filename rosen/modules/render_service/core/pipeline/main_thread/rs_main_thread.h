@@ -660,6 +660,7 @@ private:
     std::atomic<int32_t> focusAppPid_ = -1;
     std::atomic<int32_t> focusAppUid_ = -1;
     std::atomic<uint32_t> requestNextVsyncNum_ = 0;
+    std::atomic<uint32_t> drawingRequestNextVsyncNum_ = 0;
     uint64_t curTime_ = 0;
     uint64_t timestamp_ = 0;
     uint64_t vsyncId_ = 0;

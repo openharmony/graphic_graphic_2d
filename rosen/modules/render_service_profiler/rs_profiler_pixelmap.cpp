@@ -271,7 +271,7 @@ void PixelMapStorage::PushHeapMemory(uint64_t id, PixelMap& map)
 
 bool PixelMapStorage::PullHeapMemory(uint64_t id, const ImageInfo& info, PixelMemInfo& memory, size_t& skipBytes)
 {
-    if (memory.bufferSize <= PixelMap::MIN_IMAGEDATA_SIZE) {
+    if (static_cast<size_t>(memory.bufferSize) <= PixelMap::MIN_IMAGEDATA_SIZE) {
         return false;
     }
 
@@ -422,9 +422,9 @@ EncodedType PixelMapStorage::TryEncodeTexture(const ImageProperties* properties,
                 TextureHeader* header = reinterpret_cast<TextureHeader*>(image.data.data());
                 header->magicNumber = 'JPEG';
                 header->properties = *properties;
-                header->totalOriginalSize = data.size();
+                header->totalOriginalSize = static_cast<int32_t>(data.size());
                 header->rgbEncodedSize = rgbEncodedSize;
-                header->alphaOriginalSize = alpha.size();
+                header->alphaOriginalSize = static_cast<int32_t>(alpha.size());
                 header->alphaEncodedSize = alphaEncodedSize;
             }
         }
@@ -435,7 +435,7 @@ EncodedType PixelMapStorage::TryEncodeTexture(const ImageProperties* properties,
             encodedType = EncodedType::XLZ4;
             TextureHeader* header = reinterpret_cast<TextureHeader*>(image.data.data());
             header->magicNumber = 'XLZ4';
-            header->totalOriginalSize = data.size();
+            header->totalOriginalSize = static_cast<int32_t>(data.size());
         }
     }
     return encodedType;
@@ -607,7 +607,7 @@ bool PixelMapStorage::CopyImageData(Image* image, uint8_t* dstImage, size_t dstS
                 header->totalOriginalSize);
         }
     } else if (header->magicNumber == 'XLZ4' && image->data.size() >= sizeof(TextureHeader)) {
-        int32_t sourceSize = image->data.size() - sizeof(TextureHeader);
+        int32_t sourceSize = static_cast<int32_t>(image->data.size() - sizeof(TextureHeader));
         int32_t decodedTotalBytes = DecodeSeqLZ4(srcStart, result, sourceSize, header->totalOriginalSize);
         if (decodedTotalBytes == header->totalOriginalSize) {
             image->data.clear();

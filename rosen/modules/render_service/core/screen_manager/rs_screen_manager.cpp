@@ -388,16 +388,22 @@ void RSScreenManager::OnHwcDead(void* data)
 
 void RSScreenManager::OnHwcDeadEvent()
 {
+    // Only clean the physical screen when hwc dead
     std::map<ScreenId, std::shared_ptr<OHOS::Rosen::RSScreen>> screens;
     {
         std::lock_guard<std::mutex> lock(screenMapMutex_);
-        screens.swap(screens_);
+        for (auto it = screens_.begin(); it != screens_.end();) {
+            if (it->second && !it->second->IsVirtual()) {
+                auto node = screens_.extract(it++);
+                screens.insert(std::move(node));
+            } else {
+                ++it;
+            }
+        }
     }
 #ifdef RS_ENABLE_GPU
     for (const auto& [_, screen] : screens) {
-        if (screen && !screen->IsVirtual()) {
-            RSHardwareThread::Instance().ClearFrameBuffers(screen->GetOutput());
-        }
+        RSHardwareThread::Instance().ClearFrameBuffers(screen->GetOutput());
     }
 #endif
     isHwcDead_ = true;

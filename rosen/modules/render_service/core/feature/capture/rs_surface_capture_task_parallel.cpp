@@ -208,7 +208,7 @@ bool RSSurfaceCaptureTaskParallel::Run(
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     SetupGpuContext();
     std::string nodeName("RSSurfaceCaptureTaskParallel");
-    RSTagTracker tagTracker(gpuContext_.get(), nodeId_, RSTagTracker::TAGTYPE::TAG_CAPTURE, nodeName);
+    RSTagTracker tagTracker(gpuContext_, nodeId_, RSTagTracker::TAGTYPE::TAG_CAPTURE, nodeName);
 #endif
     auto surface = CreateSurface(pixelMap_);
     if (surface == nullptr) {
@@ -235,6 +235,9 @@ bool RSSurfaceCaptureTaskParallel::Run(
             captureParam.isSelfCapture, captureParam.blurParam.isNeedBlur));
         canvas.SetIsWindowFreezeCapture(captureParam.isFreeze);
         surfaceNodeDrawable_->OnCapture(canvas);
+        RS_LOGI("RSSurfaceCaptureTaskParallel::Run: the number of total processedNodes: %{public}d",
+            DrawableV2::RSRenderNodeDrawable::GetSnapshotProcessedNodeCount());
+        DrawableV2::RSRenderNodeDrawable::ClearSnapshotProcessedNodeCount();
         if (captureParam.isFreeze) {
             surfaceNodeDrawable_->SetCacheImageByCapture(surface->GetImageSnapshot());
         }
@@ -254,9 +257,6 @@ bool RSSurfaceCaptureTaskParallel::Run(
     (defined(RS_ENABLE_EGLIMAGE) && defined(RS_ENABLE_UNI_RENDER))
     RSUniRenderUtil::OptimizedFlushAndSubmit(surface, gpuContext_.get(), GetFeatureParamValue("CaptureConfig",
         &CaptureBaseParam::IsSnapshotWithDMAEnabled).value_or(false));
-    if (curNodeParams && curNodeParams->IsNodeToBeCaptured()) {
-        RSUifirstManager::Instance().AddCapturedNodes(curNodeParams->GetId());
-    }
     bool snapshotDmaEnabled = system::GetBoolParameter("rosen.snapshotDma.enabled", true);
     bool isEnableFeature = GetFeatureParamValue("CaptureConfig",
         &CaptureBaseParam::IsSnapshotWithDMAEnabled).value_or(false);

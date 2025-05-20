@@ -232,6 +232,21 @@ HWTEST_F(RSProfilerTest, RSTreeTest, testing::ext::TestSize.Level1)
     });
 }
 
+
+/*
+ * @tc.name: RSTreeTest
+ * @tc.desc: Test SecureScreen
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSProfilerTest, SecureScreen, testing::ext::TestSize.Level1)
+{
+    RSProfiler::testing_ = true;
+    EXPECT_NO_THROW({
+        EXPECT_FALSE(RSProfiler::IsSecureScreen());
+    });
+}
+
 /*
  * @tc.name: RSDoubleTransformationTest
  * @tc.desc: Test double use of FirstFrameMarshalling & FirstFrameUnmarshalling with test tree

@@ -529,6 +529,24 @@ HWTEST_F(RSDrawCmdTest, CreateSamplingOptions, TestSize.Level1)
     ASSERT_EQ(samplingOptions.GetMipmapMode(), Drawing::MipmapMode::NONE);
 }
 
+/**
+ * @tc.name: RSExtendImageObjectDumpTest
+ * @tc.desc: test results of RSExtendImageObjectDump
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSDrawCmdTest, RSExtendImageObjectDumpTest, TestSize.Level1)
+{
+    RSExtendImageObject extendImageObject;
+    std::string desc;
+    extendImageObject.Dump(desc);
+    EXPECT_EQ(desc," rsImage is nullptr");
+
+    extendImageObject.rsImage_ = std::make_shared<RSImage>();
+    desc = "dump ";
+    extendImageObject.Dump(desc);
+    EXPECT_NE(desc, "dump ");
+}
+
 #ifdef RS_ENABLE_VK
 /**
  * @tc.name: DrawHybridPixelMapOpItem_Unmarshalling
@@ -547,7 +565,7 @@ HWTEST_F(RSDrawCmdTest, Unmarshalling005, TestSize.Level1)
     Drawing::DrawHybridPixelMapOpItem drawHybridPixelMapOpItem(pixelMap, rsImageInfo, sampling, paint);
     Drawing::DrawCmdList cmdList;
     drawHybridPixelMapOpItem.Marshalling(cmdList);
-    Drawing::DrawHybridPixelMapOpItem::ConstructorHandle handle(objectHandle, sampling, paintHandle);
+    Drawing::DrawHybridPixelMapOpItem::ConstructorHandle handle(objectHandle, sampling, paintHandle, -1, false);
     ASSERT_NE(drawHybridPixelMapOpItem.Unmarshalling(cmdList, (void*)(&handle)), nullptr);
 }
  
@@ -582,7 +600,7 @@ HWTEST_F(RSDrawCmdTest, Playback010, TestSize.Level1)
     Drawing::OpDataHandle objectHandle;
     Drawing::SamplingOptions sampling;
     Drawing::PaintHandle paintHandle;
-    Drawing::DrawHybridPixelMapOpItem::ConstructorHandle handle(objectHandle, sampling, paintHandle);
+    Drawing::DrawHybridPixelMapOpItem::ConstructorHandle handle(objectHandle, sampling, paintHandle, -1, false);
     Drawing::DrawHybridPixelMapOpItem drawHybridPixelMapOpItem(cmdList, &handle);
     Drawing::Canvas canvas;
     Drawing::Rect rect;

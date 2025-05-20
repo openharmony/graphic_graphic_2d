@@ -467,8 +467,8 @@ void RSDisplayRenderNode::SetNeedForceUpdateHwcNodes(bool needForceUpdate, bool 
     if (displayParams == nullptr) {
         return;
     }
-    needForceUpdateHwcNodes_ = needForceUpdate;
-    hasVisibleHwcNodes_ = hasVisibleHwcNodes;
+    HwcDisplayRecorder().SetNeedForceUpdateHwcNodes(needForceUpdate);
+    HwcDisplayRecorder().SetHasVisibleHwcNodes(hasVisibleHwcNodes);
     displayParams->SetNeedForceUpdateHwcNodes(needForceUpdate);
     if (stagingRenderParams_->NeedSync()) {
         AddToPendingSyncList();
@@ -502,6 +502,7 @@ void RSDisplayRenderNode::SetHDRPresent(bool hdrPresent)
         RS_LOGE("%{public}s displayParams is nullptr", __func__);
         return;
     }
+    displayParams->SetHDRStatusChanged(displayParams->GetHDRPresent() != hdrPresent);
     displayParams->SetHDRPresent(hdrPresent);
     if (stagingRenderParams_->NeedSync()) {
         AddToPendingSyncList();

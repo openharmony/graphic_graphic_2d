@@ -157,6 +157,9 @@ public:
         const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam = {},
         const Drawing::Rect& specifiedAreaRect = Drawing::Rect(0.f, 0.f, 0.f, 0.f));
 
+    std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>> TakeSurfaceCaptureSoloNode(
+        NodeId id, const RSSurfaceCaptureConfig& captureConfig);
+
     bool TakeSelfSurfaceCapture(NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback,
         const RSSurfaceCaptureConfig& captureConfig);
 
@@ -374,6 +377,10 @@ public:
 
     void NotifyRefreshRateEvent(const EventInfo& eventInfo);
 
+    void SetWindowExpectedRefreshRate(const std::unordered_map<uint64_t, EventInfo>& eventInfos);
+
+    void SetWindowExpectedRefreshRate(const std::unordered_map<std::string, EventInfo>& eventInfos);
+
     bool NotifySoftVsyncRateDiscountEvent(uint32_t pid, const std::string &name, uint32_t rateDiscount);
 
     void NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt);
@@ -381,6 +388,8 @@ public:
     void NotifyDynamicModeEvent(bool enableDynamicMode);
 
     void NotifyHgmConfigEvent(const std::string &eventName, bool state);
+
+    void NotifyXComponentExpectedFrameRate(const std::string& id, int32_t expectedFrameRate);
 
     void ReportEventResponse(DataBaseRs info);
 
@@ -456,6 +465,9 @@ public:
 
     bool GetHighContrastTextState();
 
+    bool SetBehindWindowFilterEnabled(bool enabled);
+
+    bool GetBehindWindowFilterEnabled(bool& enabled);
 private:
     void TriggerSurfaceCaptureCallback(NodeId id, const RSSurfaceCaptureConfig& captureConfig,
         std::shared_ptr<Media::PixelMap> pixelmap);

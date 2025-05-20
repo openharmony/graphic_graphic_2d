@@ -99,6 +99,7 @@ ohos_shared_library("text_napi_impl") {
   deps = [
     "$graphic_2d_root/interfaces/kits/napi/graphic/drawing:drawing_napi_impl",
     "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
+    "$rosen_text_root:rosen_text",
     "$rosen_text_root/service/texgine:libtexgine_source",
   ]
 
@@ -114,7 +115,7 @@ ohos_shared_library("text_napi_impl") {
 
   if (current_os == "ohos" || current_os == "ohos_ng") {
     external_deps += [ "init:libbegetutil" ]
-    defines = [ "OHOS_TEXT_ENABLE" ]
+    defines = [ "ENABLE_OHOS_ENHANCE" ]
   }
   cflags_cc = [ "-std=c++17" ]
 

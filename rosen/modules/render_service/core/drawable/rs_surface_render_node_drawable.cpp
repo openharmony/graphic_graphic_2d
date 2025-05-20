@@ -61,6 +61,9 @@
 #ifdef USE_VIDEO_PROCESSING_ENGINE
 #include "metadata_helper.h"
 #endif
+
+#include "rs_profiler.h"
+
 namespace {
 constexpr int32_t CORNER_SIZE = 4;
 constexpr float GAMMA2_2 = 2.2f;
@@ -121,8 +124,13 @@ void RSSurfaceRenderNodeDrawable::OnGeneralProcess(RSPaintFilterCanvas& canvas,
     auto bounds = surfaceParams.GetFrameRect();
 
     if (surfaceParams.GetGlobalPositionEnabled()) {
-        auto matrix = surfaceParams.GetTotalMatrix();
-        matrix.Translate(-offsetX_, -offsetY_);
+        auto matrix = surfaceParams.GetMatrix();
+        Drawing::Matrix inverseMatrix;
+        if (!matrix.Invert(inverseMatrix)) {
+            RS_LOGW("RSSurfaceRenderNodeDrawable::%{public}s name: %{public}s matrix invert inverseMatrix Failed", __func__, GetName().c_str());
+        }
+        canvas.ConcatMatrix(inverseMatrix);
+        canvas.Translate(-offsetX_, -offsetY_);
         canvas.ConcatMatrix(matrix);
         if (!lastGlobalPositionEnabled_) {
             lastGlobalPositionEnabled_ = true;
@@ -141,6 +149,11 @@ void RSSurfaceRenderNodeDrawable::OnGeneralProcess(RSPaintFilterCanvas& canvas,
             uniParams.IsStencilPixelOcclusionCullingEnabled(), surfaceParams.GetStencilVal());
     } else {
         DrawBackground(canvas, bounds);
+    }
+
+    /* draw local magnification region */
+    if (surfaceParams.IsAbilityMagnificationNode()) {
+        DrawMagnificationRegion(canvas, surfaceParams);
     }
 
     // 2. draw self drawing node
@@ -174,6 +187,51 @@ void RSSurfaceRenderNodeDrawable::OnGeneralProcess(RSPaintFilterCanvas& canvas,
         Drawing::Color color(0, 128, 128, 128);
         subThreadCache_.GetRSDrawWindowCache().DrawCrossNodeOffscreenDFX(canvas, surfaceParams, uniParams, color);
     }
+}
+
+void RSSurfaceRenderNodeDrawable::DrawMagnificationRegion(
+    RSPaintFilterCanvas& canvas, const RSSurfaceRenderParams& surfaceParams)
+{
+    Drawing::Surface* drawingSurface = canvas.GetSurface();
+    if (drawingSurface == nullptr) {
+        ROSEN_LOGE("RSSurfaceRenderNodeDrawable::DrawMagnificationRegion, drawingSurface is nullptr");
+        return;
+    }
+
+    /* Get Region to be magnified */
+    auto regionToBeMagnified = surfaceParams.GetRegionToBeMagnified();
+    RectI magnifingRectI(std::ceil(regionToBeMagnified.x_), std::ceil(regionToBeMagnified.y_),
+        std::floor(regionToBeMagnified.z_), std::floor(regionToBeMagnified.w_));
+    if (magnifingRectI.IsEmpty()) {
+        ROSEN_LOGE("RSSurfaceRenderNodeDrawable::DrawMagnificationRegion, regionToBeMagnified is empty");
+        return;
+    }
+
+    /* Capture a screenshot of the region to be magnified */
+    RectI deviceRect(0, 0, drawingSurface->Width(), drawingSurface->Height());
+    magnifingRectI = magnifingRectI.IntersectRect(deviceRect);
+    if (UNLIKELY(magnifingRectI.IsEmpty())) {
+        return;
+    }
+    Drawing::RectI imageRect(
+        magnifingRectI.GetLeft(), magnifingRectI.GetTop(), magnifingRectI.GetRight(), magnifingRectI.GetBottom());
+    auto imageSnapshot = drawingSurface->GetImageSnapshot(imageRect);
+    if (UNLIKELY(imageSnapshot == nullptr)) {
+        return;
+    }
+
+    /* Optimization */
+    Drawing::SamplingOptions samplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::LINEAR);
+    Drawing::Brush paint;
+    paint.SetAntiAlias(true);
+    canvas.AttachBrush(paint);
+
+    /* Magnify */
+    auto frame = surfaceParams.GetFrameRect();
+    canvas.DrawImageRect(*imageSnapshot, frame, Drawing::SamplingOptions());
+    canvas.DetachBrush();
+
+    return ;
 }
 
 void RSSurfaceRenderNodeDrawable::DrawWatermark(RSPaintFilterCanvas& canvas, const RSSurfaceRenderParams& params)
@@ -212,7 +270,7 @@ void RSSurfaceRenderNodeDrawable::DrawWatermark(RSPaintFilterCanvas& canvas, con
     }
 }
 
-Drawing::Region RSSurfaceRenderNodeDrawable::CalculateVisibleDirtyRegion(RSRenderThreadParams& uniParam,
+Drawing::Region RSSurfaceRenderNodeDrawable::CalculateVisibleDirtyRegion(
     RSSurfaceRenderParams& surfaceParams, RSSurfaceRenderNodeDrawable& surfaceDrawable, bool isOffscreen) const
 {
     Drawing::Region resultRegion;
@@ -228,7 +286,11 @@ Drawing::Region RSSurfaceRenderNodeDrawable::CalculateVisibleDirtyRegion(RSRende
     }
 
     auto visibleRegion = surfaceParams.GetVisibleRegion();
-    if (uniParam.IsOcclusionEnabled() && visibleRegion.IsEmpty() && !surfaceParams.IsFirstLevelCrossNode()) {
+    auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+    if (!uniParam) {
+        return resultRegion;
+    }
+    if (uniParam->IsOcclusionEnabled() && visibleRegion.IsEmpty() && !surfaceParams.IsFirstLevelCrossNode()) {
         return resultRegion;
     }
     // The region is dirty region of this SurfaceNode.
@@ -323,7 +385,7 @@ void RSSurfaceRenderNodeDrawable::FinishOffscreenRender(const Drawing::SamplingO
         return;
     }
 #ifdef RS_ENABLE_GPU
-    RSTagTracker tagTracker(canvasBackup_->GetGPUContext().get(),
+    RSTagTracker tagTracker(canvasBackup_->GetGPUContext(),
         RSTagTracker::SOURCETYPE::SOURCE_FINISHOFFSCREENRENDER);
 #endif
     // draw offscreen surface to current canvas
@@ -470,8 +532,8 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         RS_LOGE("RSSurfaceRenderNodeDrawable::OnDraw renderEngine is nullptr");
         return;
     }
-    if (autoCacheEnable_) {
-        nodeCacheType_ = NodeStrategyType::CACHE_NONE;
+    if (RSOpincDrawCache::IsAutoCacheEnable()) {
+        RSOpincDrawCache::SetNodeCacheType(NodeStrategyType::CACHE_NONE);
     }
     // syncDirtyManager_ is not null
     const RectI& currentFrameDirty = syncDirtyManager_->GetCurrentFrameDirtyRegion();
@@ -486,20 +548,27 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             currentFrameDirty.left_, currentFrameDirty.top_, currentFrameDirty.width_, currentFrameDirty.height_);
         return;
     }
+
     auto specialLayerManager = surfaceParams->GetSpecialLayerMgr();
     hasSkipCacheLayer_ =
         (specialLayerManager.Find(SpecialLayerType::SECURITY) && !uniParam->GetSecExemption()) ||
             specialLayerManager.Find(SpecialLayerType::SKIP);
-    if (hasSkipCacheLayer_ && curDrawingCacheRoot_) {
-        curDrawingCacheRoot_->SetSkipCacheLayer(true);
+    if (curDrawingCacheRoot_) {
+        if (hasSkipCacheLayer_) {
+            curDrawingCacheRoot_->SetSkipCacheLayer(true);
+        } else if (surfaceParams->IsInBlackList()) {
+            curDrawingCacheRoot_->SetChildInBlackList(true);
+        }
     }
+    
     if (surfaceParams->GetHardCursorStatus()) {
         SetDrawSkipType(DrawSkipType::HARD_CURSOR_ENAbLED);
         RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw hardcursor skip SurfaceName:%s", name_.c_str());
         return;
     }
 
-    Drawing::Region curSurfaceDrawRegion = CalculateVisibleDirtyRegion(*uniParam, *surfaceParams, *this, isUiFirstNode);
+    Drawing::Region curSurfaceDrawRegion =
+        surfaceParams->IsMainWindowType() ? GetSurfaceDrawRegion() : Drawing::Region();
 
     if (!isUiFirstNode) {
         if (uniParam->IsOpDropped() && surfaceParams->IsVisibleDirtyRegionEmpty(curSurfaceDrawRegion)) {
@@ -542,6 +611,7 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     auto cacheState = RSUifirstManager::Instance().GetCacheSurfaceProcessedStatus(*surfaceParams);
     auto useNodeMatchOptimize = rscanvas->GetIsParallelCanvas() &&
         (cacheState == CacheProcessStatus::WAITING || cacheState == CacheProcessStatus::DOING);
+    RS_PROFILER_SURFACE_ON_DRAW_MATCH_OPTIMIZE(useNodeMatchOptimize);
     if (!RSUiFirstProcessStateCheckerHelper::CheckMatchAndWaitNotify(*surfaceParams, useNodeMatchOptimize)) {
         SetDrawSkipType(DrawSkipType::CHECK_MATCH_AND_WAIT_NOTIFY_FAIL);
         RS_LOGE("RSSurfaceRenderNodeDrawable::OnDraw CheckMatchAndWaitNotify failed");
@@ -566,7 +636,7 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     } else {
         gpuContext = RSSubThreadManager::Instance()->GetGrContextFromSubThread(realTid);
     }
-    RSTagTracker tagTracker(gpuContext.get(), surfaceParams->GetId(),
+    RSTagTracker tagTracker(gpuContext, surfaceParams->GetId(),
         RSTagTracker::TAGTYPE::TAG_DRAW_SURFACENODE, surfaceParams->GetName());
 
     // Draw base pipeline start
@@ -689,10 +759,44 @@ void RSSurfaceRenderNodeDrawable::CrossDisplaySurfaceDirtyRegionConversion(
     }
 }
 
+void RSSurfaceRenderNodeDrawable::UpdateSurfaceDirtyRegion(std::shared_ptr<RSPaintFilterCanvas>& canvas)
+{
+    if (!ShouldPaint()) {
+        return;
+    }
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(GetRenderParams().get());
+    if (!surfaceParams) {
+        RS_LOGE("RSSurfaceRenderParams is nullptr");
+        return;
+    }
+    if (surfaceParams->GetSkipDraw()) {
+        return;
+    }
+    Drawing::Region curSurfaceDrawRegion = CalculateVisibleDirtyRegion(
+        *surfaceParams, *this, canvas->GetIsParallelCanvas());
+    SetSurfaceDrawRegion(curSurfaceDrawRegion);
+}
+
+Drawing::Region RSSurfaceRenderNodeDrawable::GetSurfaceDrawRegion() const
+{
+    std::lock_guard<std::mutex> lock(drawRegionMutex_);
+    return curSurfaceDrawRegion_;
+}
+
+void RSSurfaceRenderNodeDrawable::SetSurfaceDrawRegion(const Drawing::Region& region)
+{
+    std::lock_guard<std::mutex> lock(drawRegionMutex_);
+    curSurfaceDrawRegion_.Clone(region);
+}
+
 void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
 {
     RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
         RS_RSSURFACERENDERNODEDRAWABLE_ONCAPTURE);
+    if (RSUniRenderThread::GetCaptureParam().isSoloNodeUiCapture_) {
+        RSRenderNodeDrawable::OnDraw(canvas);
+        return;
+    }
     if (!ShouldPaint()) {
         return;
     }
@@ -741,7 +845,7 @@ void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
     }
 
 #ifdef RS_ENABLE_GPU
-    RSTagTracker tagTracker(rscanvas->GetGPUContext().get(), RSTagTracker::SOURCETYPE::SOURCE_ONCAPTURE);
+    RSTagTracker tagTracker(rscanvas->GetGPUContext(), RSTagTracker::SOURCETYPE::SOURCE_ONCAPTURE);
 #endif
 
     if (DrawCloneNode(*rscanvas, *uniParam, *surfaceParams, true)) {
@@ -795,6 +899,7 @@ void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
 
     CaptureSurface(*rscanvas, *surfaceParams);
     ResetVirtualScreenWhiteListRootId(surfaceParams->GetLeashPersistentId());
+    RSRenderNodeDrawable::SnapshotProcessedNodeCountInc();
 }
 
 bool RSSurfaceRenderNodeDrawable::CheckIfSurfaceSkipInMirror(const RSSurfaceRenderParams& surfaceParams)
@@ -962,10 +1067,9 @@ void RSSurfaceRenderNodeDrawable::CaptureSurface(RSPaintFilterCanvas& canvas, RS
     bool enableVisiableRect = RSUniRenderThread::Instance().GetEnableVisiableRect();
     if (!(specialLayerManager.Find(HAS_GENERAL_SPECIAL) || surfaceParams.GetHDRPresent() || hasHidePrivacyContent ||
         enableVisiableRect || !IsVisibleRegionEqualOnPhysicalAndVirtual(surfaceParams))) {
-        if (subThreadCache_.DealWithUIFirstCache(this, canvas, surfaceParams, *uniParams)) {
-            if (RSUniRenderThread::GetCaptureParam().isSingleSurface_) {
-                RS_LOGI("%{public}s DealWithUIFirstCache", __func__);
-            }
+        //Window screenshot does not enable uifirst.
+        if (!RSUniRenderThread::GetCaptureParam().isSingleSurface_ &&
+            subThreadCache_.DealWithUIFirstCache(this, canvas, surfaceParams, *uniParams)) {
             return;
         }
     }
@@ -1185,7 +1289,7 @@ void RSSurfaceRenderNodeDrawable::DrawSelfDrawingNodeBuffer(
     RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
         RS_RSSURFACERENDERNODEDRAWABLE_DRAWSELFDRAWINGNODEBUFFER);
 #ifdef RS_ENABLE_GPU
-    RSTagTracker tagTracker(canvas.GetGPUContext().get(), RSTagTracker::SOURCETYPE::SOURCE_DRAWSELFDRAWINGNODEBUFFER);
+    RSTagTracker tagTracker(canvas.GetGPUContext(), RSTagTracker::SOURCETYPE::SOURCE_DRAWSELFDRAWINGNODEBUFFER);
 #endif
     if (params.buffer == nullptr) {
         RS_LOGE("RSSurfaceRenderNodeDrawable::DrawSelfDrawingNodeBuffer params.buffer is nullptr");

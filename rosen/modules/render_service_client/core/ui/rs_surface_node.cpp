@@ -42,6 +42,10 @@
 #include "surface_utils.h"
 #endif
 
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+#include "display_engine/rs_vpe_manager.h"
+#endif
+
 namespace OHOS {
 namespace Rosen {
 #ifdef ROSEN_OHOS
@@ -79,6 +83,8 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfac
     };
     config.nodeType = type;
 
+    RS_TRACE_NAME_FMT("RSSurfaceNode::Create name: %s type: %hhu, id: %lu, token:%lu", node->name_.c_str(),
+        config.nodeType, node->GetId(), rsUIContext ? rsUIContext->GetToken() : -1);
     RS_LOGD("RSSurfaceNode::Create name:%{public}s type: %{public}hhu "
         "isWindow %{public}d %{public}d ", config.name.c_str(),
         config.nodeType, isWindow, node->IsRenderServiceNode());
@@ -144,6 +150,7 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfac
         node->SetFrameGravity(Gravity::RESIZE);
     }
     ROSEN_LOGD("RsDebug RSSurfaceNode::Create id:%{public}" PRIu64, node->GetId());
+    node->SetUIContextToken();
     return node;
 }
 
@@ -627,6 +634,9 @@ RSSurfaceNode::~RSSurfaceNode()
         std::static_pointer_cast<RSRenderServiceClient>(RSIRenderClient::CreateRenderServiceClient());
     if (renderServiceClient != nullptr) {
         renderServiceClient->UnregisterBufferAvailableListener(GetId());
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+        RSVpeManager::GetInstance().ReleaseVpeVideo(GetId());
+#endif
     }
 
     // For abilityComponent and remote window, we should destroy the corresponding render node in RenderThread
@@ -970,6 +980,32 @@ void RSSurfaceNode::DetachFromWindowContainer(ScreenId screenId)
     AddCommand(command, true);
     RS_LOGD("RSSurfaceNode::DetachFromWindowContainer: Node: %{public}" PRIu64 ", screenId: %{public}" PRIu64,
         GetId(), screenId);
+}
+
+void RSSurfaceNode::SetRegionToBeMagnified(const Vector4f& regionToBeMagnified)
+{
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSSurfaceNodeSetRegionToBeMagnified>(GetId(), regionToBeMagnified);
+    AddCommand(command, true);
+    RS_LOGI_LIMIT("RSSurfaceNode::SetRegionToBeMagnified, regionToBeMagnified left=%f, top=%f, width=%f, hight=%f",
+        regionToBeMagnified.x_, regionToBeMagnified.y_, regionToBeMagnified.z_, regionToBeMagnified.w_);
+}
+
+void RSSurfaceNode::SetFrameGravityNewVersionEnabled(bool isEnabled)
+{
+    if (isFrameGravityNewVersionEnabled_ == isEnabled) {
+        return;
+    }
+
+    isFrameGravityNewVersionEnabled_ = isEnabled;
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSSurfaceNodeSetFrameGravityNewVersionEnabled>(GetId(), isEnabled);
+    AddCommand(command, true);
+}
+
+bool RSSurfaceNode::GetFrameGravityNewVersionEnabled() const
+{
+    return isFrameGravityNewVersionEnabled_;
 }
 } // namespace Rosen
 } // namespace OHOS

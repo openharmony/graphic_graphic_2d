@@ -424,16 +424,6 @@ bool RSSurfaceRenderParams::IsDRMCrossNode() const
     return isHwcCrossNode_;
 }
 
-void RSSurfaceRenderParams::SetIsNodeToBeCaptured(bool isNodeToBeCaptured)
-{
-    isNodeToBeCaptured_ = isNodeToBeCaptured;
-}
-
-bool RSSurfaceRenderParams::IsNodeToBeCaptured() const
-{
-    return isNodeToBeCaptured_;
-}
-
 void RSSurfaceRenderParams::SetSkipDraw(bool skip)
 {
     isSkipDraw_ = skip;
@@ -586,7 +576,6 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->isGpuOverDrawBufferOptimizeNode_ = isGpuOverDrawBufferOptimizeNode_;
     targetSurfaceParams->isSubSurfaceNode_ = isSubSurfaceNode_;
     targetSurfaceParams->isGlobalPositionEnabled_ = isGlobalPositionEnabled_;
-    targetSurfaceParams->isNodeToBeCaptured_ = isNodeToBeCaptured_;
     targetSurfaceParams->isHwcGlobalPositionEnabled_ = isHwcGlobalPositionEnabled_;
     targetSurfaceParams->isHwcCrossNode_ = isHwcCrossNode_;
     targetSurfaceParams->dstRect_ = dstRect_;
@@ -624,6 +613,8 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->screenRect_ = screenRect_;
     targetSurfaceParams->dirtyRegionMatrix_ = dirtyRegionMatrix_;
     targetSurfaceParams->uiFirstFrameGravity_ = uiFirstFrameGravity_;
+    targetSurfaceParams->regionToBeMagnified_ = regionToBeMagnified_;
+    targetSurfaceParams->isFrameGravityNewVersionEnabled_ = isFrameGravityNewVersionEnabled_;
     RSRenderParams::OnSync(target);
 }
 
@@ -678,6 +669,16 @@ void RSSurfaceRenderParams::SetNeedCacheSurface(bool needCacheSurface)
 bool RSSurfaceRenderParams::GetNeedCacheSurface() const
 {
     return needCacheSurface_;
+}
+
+void RSSurfaceRenderParams::SetFrameGravityNewVersionEnabled(bool isEnabled)
+{
+    isFrameGravityNewVersionEnabled_ = isEnabled;
+}
+
+bool RSSurfaceRenderParams::GetFrameGravityNewVersionEnabled() const
+{
+    return isFrameGravityNewVersionEnabled_;
 }
 
 } // namespace OHOS::Rosen

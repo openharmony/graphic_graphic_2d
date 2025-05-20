@@ -63,26 +63,33 @@ napi_value JsRoundRect::Constructor(napi_env env, napi_callback_info info)
         return nullptr;
     }
 
-    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_THREE);
+    CHECK_PARAM_NUMBER_WITH_OPTIONAL_PARAMS(argv, argCount, ARGC_ONE, ARGC_THREE);
     napi_valuetype valueType = napi_undefined;
     if (argv[0] == nullptr || napi_typeof(env, argv[0], &valueType) != napi_ok || valueType != napi_object) {
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
             "JsRoundRect::Constructor Argv[0] is invalid.");
     }
-
-    double ltrb[ARGC_FOUR] = {0};
-    if (!ConvertFromJsRect(env, argv[ARGC_ZERO], ltrb, ARGC_FOUR)) {
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "Incorrect parameter0 type. The type of left, top, right and bottom must be number.");
+    JsRoundRect* jsRoundRect = nullptr;
+    if (argCount == ARGC_ONE) {
+        JsRoundRect* otherRoundRect = nullptr;
+        GET_UNWRAP_PARAM(ARGC_ZERO, otherRoundRect);
+        const RoundRect& rrect = otherRoundRect->GetRoundRect();
+        jsRoundRect = new JsRoundRect(rrect);
+    } else {
+        double ltrb[ARGC_FOUR] = {0};
+        if (!ConvertFromJsRect(env, argv[ARGC_ZERO], ltrb, ARGC_FOUR)) {
+            return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+                "Incorrect parameter0 type. The type of left, top, right and bottom must be number.");
+        }
+        Drawing::Rect drawingRect = Drawing::Rect(ltrb[ARGC_ZERO], ltrb[ARGC_ONE], ltrb[ARGC_TWO], ltrb[ARGC_THREE]);
+    
+        double xRad = 0.0;
+        GET_DOUBLE_PARAM(ARGC_ONE, xRad);
+        double yRad = 0.0;
+        GET_DOUBLE_PARAM(ARGC_TWO, yRad);
+    
+        jsRoundRect = new JsRoundRect(drawingRect, xRad, yRad);
     }
-    Drawing::Rect drawingRect = Drawing::Rect(ltrb[ARGC_ZERO], ltrb[ARGC_ONE], ltrb[ARGC_TWO], ltrb[ARGC_THREE]);
-
-    double xRad = 0.0;
-    GET_DOUBLE_PARAM(ARGC_ONE, xRad);
-    double yRad = 0.0;
-    GET_DOUBLE_PARAM(ARGC_TWO, yRad);
-
-    JsRoundRect* jsRoundRect = new JsRoundRect(drawingRect, xRad, yRad);
     status = napi_wrap(env, jsThis, jsRoundRect,
                        JsRoundRect::Destructor, nullptr, nullptr);
     if (status != napi_ok) {

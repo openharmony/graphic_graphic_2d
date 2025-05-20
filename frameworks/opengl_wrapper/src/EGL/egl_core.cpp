@@ -25,6 +25,21 @@
 #endif
 #include "wrapper_log.h"
 
+namespace {
+#ifdef OPENGL_WRAPPER_ENABLE_GL4
+bool CheckIfNeedOpengl()
+{
+    const char* needOpenglEnv = "NEED_OPENGL";
+    const char* needOpenglEnvValue = getenv(needOpenglEnv);
+    if (needOpenglEnvValue && std::string(needOpenglEnvValue) == "1") {
+        return true;
+    }
+    WLOGI("Failed to get env NEED_OPENGL or the value of NEED_OPENGL is not 1");
+    return false;
+}
+#endif
+}
+
 namespace OHOS {
 EglWrapperDispatchTable gWrapperHook;
 GlHookTable gGlHookNoContext;
@@ -52,21 +67,26 @@ char const * const gEglApiNames[EGL_API_NUM] = {
     nullptr
 };
 
-char const * const gGlApiNames1[GL_API_NUM] = {
+char const * const gGlApiNames1[GLES_API_NUM] = {
 #include "gl1_hook_entries.in"
     nullptr
 };
 
-char const * const gGlApiNames2[GL_API_NUM] = {
+char const * const gGlApiNames2[GLES_API_NUM] = {
 #include "gl2_hook_entries.in"
     nullptr
 };
 
-char const * const gGlApiNames3[GL_API_NUM] = {
+char const * const gGlApiNames3[GLES_API_NUM] = {
 #include "gl3_hook_entries.in"
     nullptr
 };
-
+#ifdef OPENGL_WRAPPER_ENABLE_GL4
+char const * const gGlApiNames4[OPENGL_API_NUM] = {
+#include "gl4_hook_entries.in"
+    nullptr
+};
+#endif
 using namespace OHOS;
 
 static std::mutex gInitMutex;
@@ -100,6 +120,19 @@ bool EglCoreInit()
         WLOGE("preInit Error.");
         return false;
     }
+
+#ifdef OPENGL_WRAPPER_ENABLE_GL4
+    gWrapperHook.useMesa = CheckIfNeedOpengl();
+    if (gWrapperHook.useMesa) {
+        ThreadPrivateDataCtl::SetGlHookTable(&OHOS::gWrapperHook.gl);
+        EglWrapperLoader& loader(EglWrapperLoader::GetInstance());
+        if (!loader.Load(&gWrapperHook)) {
+            WLOGE("EglWrapperLoader Load Failed.");
+            return false;
+        }
+        return true;
+    }
+#endif
 
     WrapperHookTableInit();
     EglWrapperLoader& loader(EglWrapperLoader::GetInstance());

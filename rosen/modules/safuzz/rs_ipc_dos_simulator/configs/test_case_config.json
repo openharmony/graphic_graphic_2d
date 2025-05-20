@@ -2289,6 +2289,13 @@
     "messageOption": "TF_ASYNC"
   },
   {
+    "testCaseDesc": "NOTIFY_XCOMPONENT_EXPECTED_FRAMERATE_TEST_001",
+    "interfaceName": "NOTIFY_XCOMPONENT_EXPECTED_FRAMERATE",
+    "inputParams": "WriteString;WriteInt32",
+    "writeInterfaceToken": true,
+    "messageOption": "TF_ASYNC"
+  },
+  {
     "testCaseDesc": "NOTIFY_SCREEN_SWITCHED_TEST_001",
     "interfaceName": "NOTIFY_SCREEN_SWITCHED",
     "inputParams": "",

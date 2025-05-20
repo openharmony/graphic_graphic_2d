@@ -138,8 +138,10 @@ void RSCanvasDrawingRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     //if you want to dump canvas_drawing_node as a png
     DumpCanvasDrawing();
 
-    // 3. Draw children of this drawing node by the main canvas.
-    DrawChildren(canvas, bounds);
+    if (!RSUniRenderThread::GetCaptureParam().isSoloNodeUiCapture_) {
+        // 3. Draw children of this drawing node by the main canvas.
+        DrawChildren(canvas, bounds);
+    }
 
     // 4. Draw foreground of this drawing node by the main canvas.
     DrawForeground(canvas, bounds);
@@ -188,6 +190,9 @@ void RSCanvasDrawingRenderNodeDrawable::DrawRenderContent(Drawing::Canvas& canva
     if (params == nullptr) {
         return;
     }
+#ifdef RS_ENABLE_GPU
+    RSTagTracker tagTracker(canvas.GetGPUContext(), RSTagTracker::SOURCETYPE::SOURCE_DRAWRENDERCONTENT);
+#endif
     auto& frameRect = params->GetFrameRect();
     if (RSPropertiesPainter::GetGravityMatrix(params->GetFrameGravity(),
         { frameRect.GetLeft(), frameRect.GetTop(), frameRect.GetWidth(), frameRect.GetHeight() },
@@ -681,7 +686,7 @@ void RSCanvasDrawingRenderNodeDrawable::DrawCaptureImage(RSPaintFilterCanvas& ca
 bool RSCanvasDrawingRenderNodeDrawable::ReleaseSurfaceVK(int width, int height)
 {
     if (!backendTexture_.IsValid() || !backendTexture_.GetTextureInfo().GetVKTextureInfo()) {
-        backendTexture_ = RSUniRenderUtil::MakeBackendTexture(width, height, ExtractPid(nodeId_));
+        backendTexture_ = NativeBufferUtils::MakeBackendTexture(width, height, ExtractPid(nodeId_));
         if (!backendTexture_.IsValid()) {
             surface_ = nullptr;
             recordingCanvas_ = nullptr;

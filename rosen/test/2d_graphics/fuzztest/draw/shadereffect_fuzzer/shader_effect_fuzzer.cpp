@@ -245,7 +245,14 @@ bool ShaderEffectFuzzTest004(const uint8_t* data, size_t size)
         scalarNumbers, static_cast<TileMode>(tileMode % TILEMODE_SIZE), &matrix);
     ShaderEffect::CreateSweepGradient(startPt, colorQuad, scalarNumbers,
         static_cast<TileMode>(tileMode % TILEMODE_SIZE), GetObject<scalar>(), GetObject<scalar>(), &matrix);
+    uint32_t color = GetObject<uint32_t>();
+    uint32_t t = GetObject<uint32_t>();
+    float lightUpDeg = GetObject<float>();
+    ShaderEffect shaderEffect = ShaderEffect(static_cast<ShaderEffect::ShaderEffectType>(t % SHADEREFFECTTYPE_SIZE),
+        color);
+    ShaderEffect::CreateLightUp(lightUpDeg, shaderEffect);
     ShaderEffect::CreateExtendShader(nullptr);
+    shaderEffect.GetType();
     return true;
 }
 
@@ -328,6 +335,138 @@ bool ShaderEffectFuzzTest005(const uint8_t* data, size_t size)
     return true;
 }
 
+/*
+ * 测试以下 ShaderEffect 接口：
+ * 1.  ShaderEffect(ShaderEffectType t, const Point& startPt, const Point& endPt, const std::vector<Color4f>& colors,
+ *      std::shared_ptr<ColorSpace> colorSpace, const std::vector<scalar>& pos, TileMode mode,
+ *      const Matrix *matrix = nullptr) noexcept;
+ * 2. ShaderEffect(ShaderEffectType t, const Point& centerPt, scalar radius, const std::vector<Color4f>& colors,
+ *      std::shared_ptr<ColorSpace> colorSpace, const std::vector<scalar>& pos, TileMode mode,
+ *      const Matrix *matrix = nullptr) noexcept;
+ * 3. ShaderEffect(ShaderEffectType t, const Point& startPt, scalar startRadius, const Point& endPt, scalar endRadius,
+ *      const std::vector<Color4f>& colors, std::shared_ptr<ColorSpace> colorSpace, const std::vector<scalar>& pos,
+ *      TileMode mode, const Matrix *matrix = nullptr) noexcept;
+ * 4. ShaderEffect(ShaderEffectType t, const Point& centerPt, const std::vector<Color4f>& colors,
+ *      std::shared_ptr<ColorSpace> colorSpace, const std::vector<scalar>& pos, TileMode mode,
+ *      scalar startAngle, scalar endAngle, const Matrix *matrix = nullptr) noexcept;
+ *
+ */
+bool ShaderEffectFuzzTest006(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+    uint32_t tileMode = GetObject<uint32_t>();
+    Matrix matrix;
+    scalar scaleX = GetObject<scalar>();
+    scalar skewX = GetObject<scalar>();
+    scalar transX = GetObject<scalar>();
+    scalar skewY = GetObject<scalar>();
+    scalar scaleY = GetObject<scalar>();
+    scalar transY = GetObject<scalar>();
+    scalar persp0 = GetObject<scalar>();
+    scalar persp1 = GetObject<scalar>();
+    scalar persp2 = GetObject<scalar>();
+    matrix.SetMatrix(scaleX, skewX, transX, skewY, scaleY, transY, persp0, persp1, persp2);
+    Point startPt = PointF(GetObject<float>(), GetObject<float>());
+    Point endPt = PointF(GetObject<float>(), GetObject<float>());
+    std::vector<Color4f> colorQuad;
+    float redF = GetObject<float>();
+    float greenF = GetObject<float>();
+    float blueF = GetObject<float>();
+    float alphaF = GetObject<float>();
+
+    Color4f color4f {
+        redF,
+        greenF,
+        blueF,
+        alphaF,
+    };
+    colorQuad.push_back(color4f);
+    std::vector<scalar> scalarNumbers;
+    scalar scalarOne = GetObject<scalar>();
+    scalar scalarTwo = GetObject<scalar>();
+    scalarNumbers.push_back(scalarOne);
+    scalarNumbers.push_back(scalarTwo);
+    std::shared_ptr<ColorSpace> colorSpace = std::make_shared<ColorSpace>();
+    ShaderEffect(ShaderEffect::ShaderEffectType::LINEAR_GRADIENT, startPt, endPt, colorQuad, colorSpace,
+        scalarNumbers, static_cast<TileMode>(tileMode % TILEMODE_SIZE), &matrix);
+    ShaderEffect(ShaderEffect::ShaderEffectType::RADIAL_GRADIENT, startPt, GetObject<scalar>(), colorQuad,
+        colorSpace, scalarNumbers, static_cast<TileMode>(tileMode % TILEMODE_SIZE), &matrix);
+    ShaderEffect(ShaderEffect::ShaderEffectType::CONICAL_GRADIENT, startPt, GetObject<scalar>(),
+        endPt, GetObject<scalar>(), colorQuad, colorSpace, scalarNumbers,
+        static_cast<TileMode>(tileMode % TILEMODE_SIZE), &matrix);
+    ShaderEffect(ShaderEffect::ShaderEffectType::SWEEP_GRADIENT, startPt, colorQuad, colorSpace, scalarNumbers,
+        static_cast<TileMode>(tileMode % TILEMODE_SIZE), GetObject<scalar>(), GetObject<scalar>(), &matrix);
+    ShaderEffect::CreateExtendShader(nullptr);
+    return true;
+}
+
+/*
+ * 测试以下 ShaderEffect 接口：
+ * 1. CreateLinearGradient(...)
+ * 2. CreateRadialGradient(...)
+ * 3. CreateTwoPointConical(...)
+ * 4. CreateSweepGradient(...)
+ * 5. GetType()
+ */
+bool ShaderEffectFuzzTest007(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+    uint32_t tileMode = GetObject<uint32_t>();
+    Matrix matrix;
+    scalar scaleX = GetObject<scalar>();
+    scalar skewX = GetObject<scalar>();
+    scalar transX = GetObject<scalar>();
+    scalar skewY = GetObject<scalar>();
+    scalar scaleY = GetObject<scalar>();
+    scalar transY = GetObject<scalar>();
+    scalar persp0 = GetObject<scalar>();
+    scalar persp1 = GetObject<scalar>();
+    scalar persp2 = GetObject<scalar>();
+    matrix.SetMatrix(scaleX, skewX, transX, skewY, scaleY, transY, persp0, persp1, persp2);
+    Point startPt = PointF(GetObject<float>(), GetObject<float>());
+    Point endPt = PointF(GetObject<float>(), GetObject<float>());
+    std::vector<Color4f> colorQuad;
+    float redF = GetObject<float>();
+    float greenF = GetObject<float>();
+    float blueF = GetObject<float>();
+    float alphaF = GetObject<float>();
+
+    Color4f color4f {
+        redF,
+        greenF,
+        blueF,
+        alphaF,
+    };
+    colorQuad.push_back(color4f);
+    std::vector<scalar> scalarNumbers;
+    scalar scalarOne = GetObject<scalar>();
+    scalar scalarTwo = GetObject<scalar>();
+    scalarNumbers.push_back(scalarOne);
+    scalarNumbers.push_back(scalarTwo);
+    std::shared_ptr<ColorSpace> colorSpace = std::make_shared<ColorSpace>();
+    ShaderEffect::CreateLinearGradient(startPt, endPt, colorQuad, colorSpace,
+        scalarNumbers, static_cast<TileMode>(tileMode % TILEMODE_SIZE), &matrix);
+    ShaderEffect::CreateRadialGradient(startPt, GetObject<scalar>(), colorQuad, colorSpace, scalarNumbers,
+        static_cast<TileMode>(tileMode % TILEMODE_SIZE), &matrix);
+    ShaderEffect::CreateTwoPointConical(startPt, GetObject<scalar>(), endPt, GetObject<scalar>(), colorQuad,
+        colorSpace, scalarNumbers, static_cast<TileMode>(tileMode % TILEMODE_SIZE), &matrix);
+    ShaderEffect::CreateSweepGradient(startPt, colorQuad, colorSpace, scalarNumbers,
+        static_cast<TileMode>(tileMode % TILEMODE_SIZE), GetObject<scalar>(), GetObject<scalar>(), &matrix);
+    ShaderEffect::CreateExtendShader(nullptr);
+    return true;
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
@@ -341,5 +480,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::Drawing::ShaderEffectFuzzTest003(data, size);
     OHOS::Rosen::Drawing::ShaderEffectFuzzTest004(data, size);
     OHOS::Rosen::Drawing::ShaderEffectFuzzTest005(data, size);
+    OHOS::Rosen::Drawing::ShaderEffectFuzzTest006(data, size);
+    OHOS::Rosen::Drawing::ShaderEffectFuzzTest007(data, size);
     return 0;
 }

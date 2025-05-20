@@ -653,6 +653,11 @@ void RSRenderNodeDrawableAdapter::SetSkipCacheLayer(bool hasSkipCacheLayer)
     hasSkipCacheLayer_ = hasSkipCacheLayer;
 }
 
+void RSRenderNodeDrawableAdapter::SetChildInBlackList(bool hasChildInBlackList)
+{
+    hasChildInBlackList_ = hasChildInBlackList;
+}
+
 void RSRenderNodeDrawableAdapter::ApplyForegroundColorIfNeed(Drawing::Canvas& canvas, const Drawing::Rect& rect) const
 {
     if (drawCmdList_.empty()) {

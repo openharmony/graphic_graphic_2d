@@ -24,6 +24,10 @@
 #include "utils/round_rect.h"
 #include "utils/scalar.h"
 
+#ifdef RS_ENABLE_VK
+#include "platform/ohos/backend/rs_vulkan_context.h"
+#endif
+
 using namespace testing;
 using namespace testing::ext;
 
@@ -38,7 +42,12 @@ public:
     void TearDown() override;
 };
 
-void NativeDrawingRoundRectTest::SetUpTestCase() {}
+void NativeDrawingRoundRectTest::SetUpTestCase()
+{
+#ifdef RS_ENABLE_VK
+    RsVulkanContext::SetRecyclable(false);
+#endif
+}
 void NativeDrawingRoundRectTest::TearDownTestCase() {}
 void NativeDrawingRoundRectTest::SetUp() {}
 void NativeDrawingRoundRectTest::TearDown() {}
@@ -196,6 +205,30 @@ HWTEST_F(NativeDrawingRoundRectTest, NativeDrawingRoundRectTest_RoundRectOffset0
     OH_Drawing_RectDestroy(rect);
     OH_Drawing_RoundRectDestroy(roundRect);
 }
+
+/**
+ * @tc.name: NativeDrawingRoundRectTest_RoundRectCopy007
+ * @tc.desc: test for sets create roundRect by copy.
+ * @tc.type: FUNC
+ * @tc.require: AR20240104201189
+ */
+HWTEST_F(NativeDrawingRoundRectTest, NativeDrawingMatrixTest_OH_Drawing_RoundRectCopy001, TestSize.Level1)
+{
+    OH_Drawing_Rect* rect = OH_Drawing_RectCreate(100, 100, 200, 200);
+    const OH_Drawing_RoundRect* roundRect = OH_Drawing_RoundRectCreate(rect, 200, 200);
+    ASSERT_TRUE(roundRect != nullptr);
+    OH_Drawing_RoundRect* roundRect2 = OH_Drawing_RoundRectCopy(roundRect);
+    ASSERT_TRUE(roundRect2 != nullptr);
+    
+    OH_Drawing_RoundRect* roundRect3 = OH_Drawing_RoundRectCopy(nullptr);
+    ASSERT_TRUE(roundRect3 == nullptr);
+
+    OH_Drawing_RectDestroy(rect);
+    OH_Drawing_RoundRectDestroy(const_cast<OH_Drawing_RoundRect*>(roundRect));
+    OH_Drawing_RoundRectDestroy(roundRect2);
+    OH_Drawing_RoundRectDestroy(roundRect3);
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

@@ -23,7 +23,9 @@
 #ifdef RS_ENABLE_VK
 #include "backend/rs_surface_ohos_vulkan.h"
 #endif
-
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+#include "display_engine/rs_vpe_manager.h"
+#endif
 #include "command/rs_command.h"
 #include "command/rs_node_showing_command.h"
 #include "common/rs_xcollie.h"
@@ -157,6 +159,13 @@ std::shared_ptr<RSSurface> RSRenderServiceClient::CreateNodeAndSurface(const RSS
         ROSEN_LOGE("RSRenderServiceClient::CreateNodeAndSurface surface is nullptr.");
         return nullptr;
     }
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+    surface = RSVpeManager::GetInstance().CheckAndGetSurface(surface, config);
+    if (surface == nullptr) {
+        ROSEN_LOGE("RSVpeManager::CheckAndGetSurface surface is nullptr.");
+        return nullptr;
+    }
+#endif
     return CreateRSSurface(surface);
 }
 
@@ -307,6 +316,19 @@ bool RSRenderServiceClient::TakeSurfaceCapture(NodeId id, std::shared_ptr<Surfac
     }
     renderService->TakeSurfaceCapture(id, surfaceCaptureCbDirector_, captureConfig, blurParam, specifiedAreaRect);
     return true;
+}
+
+std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>> RSRenderServiceClient::TakeSurfaceCaptureSoloNode(
+    NodeId id, const RSSurfaceCaptureConfig& captureConfig)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>> pixelMapIdPairVector;
+    if (renderService == nullptr) {
+        ROSEN_LOGE("RSRenderServiceClient::TakeSurfaceCaptureSoloNode renderService == nullptr!");
+        return pixelMapIdPairVector;
+    }
+    pixelMapIdPairVector = renderService->TakeSurfaceCaptureSoloNode(id, captureConfig);
+    return pixelMapIdPairVector;
 }
 
 bool RSRenderServiceClient::TakeSelfSurfaceCapture(NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback,
@@ -1765,6 +1787,22 @@ void RSRenderServiceClient::NotifyRefreshRateEvent(const EventInfo& eventInfo)
     }
 }
 
+void RSRenderServiceClient::SetWindowExpectedRefreshRate(const std::unordered_map<uint64_t, EventInfo>& eventInfos)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService != nullptr) {
+        renderService->SetWindowExpectedRefreshRate(eventInfos);
+    }
+}
+
+void RSRenderServiceClient::SetWindowExpectedRefreshRate(const std::unordered_map<std::string, EventInfo>& eventInfos)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService != nullptr) {
+        renderService->SetWindowExpectedRefreshRate(eventInfos);
+    }
+}
+
 bool RSRenderServiceClient::NotifySoftVsyncRateDiscountEvent(uint32_t pid,
     const std::string &name, uint32_t rateDiscount)
 {
@@ -1780,6 +1818,14 @@ void RSRenderServiceClient::NotifyHgmConfigEvent(const std::string &eventName, b
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService != nullptr) {
         renderService->NotifyHgmConfigEvent(eventName, state);
+    }
+}
+
+void RSRenderServiceClient::NotifyXComponentExpectedFrameRate(const std::string& id, int32_t expectedFrameRate)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService != nullptr) {
+        renderService->NotifyXComponentExpectedFrameRate(id, expectedFrameRate);
     }
 }
 
@@ -2164,6 +2210,34 @@ bool RSRenderServiceClient::GetHighContrastTextState()
         return renderService->GetHighContrastTextState();
     }
     return false;
+}
+
+bool RSRenderServiceClient::SetBehindWindowFilterEnabled(bool enabled)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (!renderService) {
+        return false;
+    }
+    auto ret = renderService->SetBehindWindowFilterEnabled(enabled);
+    if (ret != ERR_OK) {
+        ROSEN_LOGE("RSRenderServiceClient::SetBehindWindowFilterEnabled fail, ret[%{public}d]", ret);
+        return false;
+    }
+    return true;
+}
+
+bool RSRenderServiceClient::GetBehindWindowFilterEnabled(bool& enabled)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (!renderService) {
+        return false;
+    }
+    auto ret = renderService->GetBehindWindowFilterEnabled(enabled);
+    if (ret != ERR_OK) {
+        ROSEN_LOGE("RSRenderServiceClient::GetBehindWindowFilterEnabled fail, ret[%{public}d]", ret);
+        return false;
+    }
+    return true;
 }
 } // namespace Rosen
 } // namespace OHOS

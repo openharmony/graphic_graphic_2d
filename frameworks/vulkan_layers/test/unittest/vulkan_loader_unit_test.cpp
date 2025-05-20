@@ -104,6 +104,28 @@ public:
     static inline uint32_t queueCount_;
     static inline VkDebugUtilsMessengerEXT debugUtilsMessenger = VK_NULL_HANDLE;
     static inline std::stringstream debugMessage_;
+
+    // V1.4.309 func pointers
+    static inline PFN_vkCmdBindDescriptorSets2 vkCmdBindDescriptorSets2;
+    static inline PFN_vkCmdBindIndexBuffer2 vkCmdBindIndexBuffer2;
+    static inline PFN_vkCmdPushConstants2 vkCmdPushConstants2;
+    static inline PFN_vkCmdPushDescriptorSet vkCmdPushDescriptorSet;
+    static inline PFN_vkCmdPushDescriptorSet2 vkCmdPushDescriptorSet2;
+    static inline PFN_vkCmdPushDescriptorSetWithTemplate vkCmdPushDescriptorSetWithTemplate;
+    static inline PFN_vkCmdPushDescriptorSetWithTemplate2 vkCmdPushDescriptorSetWithTemplate2;
+    static inline PFN_vkCmdSetLineStipple vkCmdSetLineStipple;
+    static inline PFN_vkCmdSetRenderingAttachmentLocations vkCmdSetRenderingAttachmentLocations;
+    static inline PFN_vkCmdSetRenderingInputAttachmentIndices vkCmdSetRenderingInputAttachmentIndices;
+    static inline PFN_vkCopyImageToImage vkCopyImageToImage;
+    static inline PFN_vkCopyImageToMemory vkCopyImageToMemory;
+    static inline PFN_vkCopyMemoryToImage vkCopyMemoryToImage;
+    static inline PFN_vkCreateHeadlessSurfaceEXT vkCreateHeadlessSurfaceEXT;
+    static inline PFN_vkGetDeviceImageSubresourceLayout vkGetDeviceImageSubresourceLayout;
+    static inline PFN_vkGetImageSubresourceLayout2 vkGetImageSubresourceLayout2;
+    static inline PFN_vkGetRenderingAreaGranularity vkGetRenderingAreaGranularity;
+    static inline PFN_vkMapMemory2 vkMapMemory2;
+    static inline PFN_vkTransitionImageLayout vkTransitionImageLayout;
+    static inline PFN_vkUnmapMemory2 vkUnmapMemory2;
 };
 
 void VulkanLoaderUnitTest::DLOpenLibVulkan()
@@ -287,6 +309,93 @@ HWTEST_F(VulkanLoaderUnitTest, LoadBaseFuncPtr, TestSize.Level1)
         vkGetDeviceProcAddr = reinterpret_cast<PFN_vkGetDeviceProcAddr>(dlsym(libVulkan_, "vkGetDeviceProcAddr"));
         EXPECT_NE(vkGetDeviceProcAddr, nullptr);
         TrytoCreateVkInstance();
+    }
+}
+
+/**
+ * @tc.name: Load 1.4.309 Vulkan functions
+ * @tc.desc: Load 1.4.309 Vulkan functions
+ * @tc.type: FUNC
+ * @tc.require: issueI6SKRO
+ */
+HWTEST_F(VulkanLoaderUnitTest, LoadBaseFuncPtr1, TestSize.Level1)
+{
+    if (isSupportedVulkan_) {
+        EXPECT_NE(libVulkan_, nullptr);
+        vkCmdBindDescriptorSets2 = reinterpret_cast<PFN_vkCmdBindDescriptorSets2>(
+            dlsym(libVulkan_, "vkCmdBindDescriptorSets2"));
+        vkCmdBindIndexBuffer2 = reinterpret_cast<PFN_vkCmdBindIndexBuffer2>(
+            dlsym(libVulkan_, "vkCmdBindIndexBuffer2"));
+        vkCmdPushConstants2 = reinterpret_cast<PFN_vkCmdPushConstants2>(
+            dlsym(libVulkan_, "vkCmdPushConstants2"));
+        vkCmdPushDescriptorSet = reinterpret_cast<PFN_vkCmdPushDescriptorSet>(
+            dlsym(libVulkan_, "vkCmdPushDescriptorSet"));
+        vkCmdPushDescriptorSet2 = reinterpret_cast<PFN_vkCmdPushDescriptorSet2>(
+            dlsym(libVulkan_, "vkCmdPushDescriptorSet2"));
+        vkCmdPushDescriptorSetWithTemplate = reinterpret_cast<PFN_vkCmdPushDescriptorSetWithTemplate>(
+            dlsym(libVulkan_, "vkCmdPushDescriptorSetWithTemplate"));
+        vkCmdPushDescriptorSetWithTemplate2 = reinterpret_cast<PFN_vkCmdPushDescriptorSetWithTemplate2>(
+            dlsym(libVulkan_, "vkCmdPushDescriptorSetWithTemplate2"));
+        vkCmdSetLineStipple = reinterpret_cast<PFN_vkCmdSetLineStipple>(
+            dlsym(libVulkan_, "vkCmdSetLineStipple"));
+        vkCmdSetRenderingAttachmentLocations = reinterpret_cast<PFN_vkCmdSetRenderingAttachmentLocations>(
+            dlsym(libVulkan_, "vkCmdSetRenderingAttachmentLocations"));
+        vkCmdSetRenderingInputAttachmentIndices = reinterpret_cast<PFN_vkCmdSetRenderingInputAttachmentIndices>(
+            dlsym(libVulkan_, "vkCmdSetRenderingInputAttachmentIndices"));
+        EXPECT_NE(vkCmdBindDescriptorSets2, nullptr);
+        EXPECT_NE(vkCmdBindIndexBuffer2, nullptr);
+        EXPECT_NE(vkCmdPushConstants2, nullptr);
+        EXPECT_NE(vkCmdPushDescriptorSet, nullptr);
+        EXPECT_NE(vkCmdPushDescriptorSet2, nullptr);
+        EXPECT_NE(vkCmdPushDescriptorSetWithTemplate, nullptr);
+        EXPECT_NE(vkCmdPushDescriptorSetWithTemplate2, nullptr);
+        EXPECT_NE(vkCmdSetLineStipple, nullptr);
+        EXPECT_NE(vkCmdSetRenderingAttachmentLocations, nullptr);
+        EXPECT_NE(vkCmdSetRenderingInputAttachmentIndices, nullptr);
+    }
+}
+
+/**
+ * @tc.name: Load 1.4.309 Vulkan functions
+ * @tc.desc: Load 1.4.309 Vulkan functions
+ * @tc.type: FUNC
+ * @tc.require: issueI6SKRO
+ */
+HWTEST_F(VulkanLoaderUnitTest, LoadBaseFuncPtr2, TestSize.Level1)
+{
+    if (isSupportedVulkan_) {
+        EXPECT_NE(libVulkan_, nullptr);
+        vkCopyImageToImage = reinterpret_cast<PFN_vkCopyImageToImage>(
+            dlsym(libVulkan_, "vkCopyImageToImage"));
+        vkCopyImageToMemory = reinterpret_cast<PFN_vkCopyImageToMemory>(
+            dlsym(libVulkan_, "vkCopyImageToMemory"));
+        vkCopyMemoryToImage = reinterpret_cast<PFN_vkCopyMemoryToImage>(
+            dlsym(libVulkan_, "vkCopyMemoryToImage"));
+        vkCreateHeadlessSurfaceEXT = reinterpret_cast<PFN_vkCreateHeadlessSurfaceEXT>(
+            dlsym(libVulkan_, "vkCreateHeadlessSurfaceEXT"));
+        vkGetDeviceImageSubresourceLayout = reinterpret_cast<PFN_vkGetDeviceImageSubresourceLayout>(
+            dlsym(libVulkan_, "vkGetDeviceImageSubresourceLayout"));
+        vkGetImageSubresourceLayout2 = reinterpret_cast<PFN_vkGetImageSubresourceLayout2>(
+            dlsym(libVulkan_, "vkGetImageSubresourceLayout2"));
+        vkGetRenderingAreaGranularity = reinterpret_cast<PFN_vkGetRenderingAreaGranularity>(
+            dlsym(libVulkan_, "vkGetRenderingAreaGranularity"));
+        vkMapMemory2 = reinterpret_cast<PFN_vkMapMemory2>(
+            dlsym(libVulkan_, "vkMapMemory2"));
+        vkTransitionImageLayout = reinterpret_cast<PFN_vkTransitionImageLayout>(
+            dlsym(libVulkan_, "vkTransitionImageLayout"));
+        vkUnmapMemory2 = reinterpret_cast<PFN_vkUnmapMemory2>(
+            dlsym(libVulkan_, "vkUnmapMemory2"));
+
+        EXPECT_NE(vkCopyImageToImage, nullptr);
+        EXPECT_NE(vkCopyImageToMemory, nullptr);
+        EXPECT_NE(vkCopyMemoryToImage, nullptr);
+        EXPECT_NE(vkCreateHeadlessSurfaceEXT, nullptr);
+        EXPECT_NE(vkGetDeviceImageSubresourceLayout, nullptr);
+        EXPECT_NE(vkGetImageSubresourceLayout2, nullptr);
+        EXPECT_NE(vkGetRenderingAreaGranularity, nullptr);
+        EXPECT_NE(vkMapMemory2, nullptr);
+        EXPECT_NE(vkTransitionImageLayout, nullptr);
+        EXPECT_NE(vkUnmapMemory2, nullptr);
     }
 }
 

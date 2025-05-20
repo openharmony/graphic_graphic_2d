@@ -20,6 +20,11 @@
 #include "pipeline/sk_resource_manager.h"
 #include "utils/graphic_coretrace.h"
 
+#ifdef RS_ENABLE_VK
+#include "include/gpu/GrBackendSurface.h"
+#include "platform/ohos/backend/rs_vulkan_context.h"
+#endif
+
 namespace OHOS::Rosen {
 namespace NativeBufferUtils {
 void DeleteVkImage(void* context)
@@ -437,5 +442,162 @@ std::shared_ptr<Drawing::Surface> CreateFromNativeWindowBuffer(Drawing::GPUConte
     nativeSurface.image = image;
     return surface;
 }
+
+#ifdef RS_ENABLE_VK
+uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
+{
+    if (OHOS::Rosen::RSSystemProperties::GetGpuApiType() != OHOS::Rosen::GpuApiType::VULKAN &&
+        OHOS::Rosen::RSSystemProperties::GetGpuApiType() != OHOS::Rosen::GpuApiType::DDGR) {
+        return UINT32_MAX;
+    }
+    auto& vkContext = OHOS::Rosen::RsVulkanContext::GetSingleton().GetRsVulkanInterface();
+    VkPhysicalDevice physicalDevice = vkContext.GetPhysicalDevice();
+
+    VkPhysicalDeviceMemoryProperties memProperties;
+    vkContext.vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memProperties);
+
+    for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
+        if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties) {
+            return i;
+        }
+    }
+
+    return UINT32_MAX;
+}
+
+void SetVkImageInfo(std::shared_ptr<OHOS::Rosen::Drawing::VKTextureInfo> vkImageInfo,
+    const VkImageCreateInfo& imageInfo)
+{
+    if (vkImageInfo == nullptr) {
+        return;
+    }
+    vkImageInfo->imageTiling = imageInfo.tiling;
+    vkImageInfo->imageLayout = imageInfo.initialLayout;
+    vkImageInfo->format = imageInfo.format;
+    vkImageInfo->imageUsageFlags = imageInfo.usage;
+    vkImageInfo->levelCount = imageInfo.mipLevels;
+    vkImageInfo->currentQueueFamily = VK_QUEUE_FAMILY_EXTERNAL;
+    vkImageInfo->ycbcrConversionInfo = {};
+    vkImageInfo->sharingMode = imageInfo.sharingMode;
+}
+
+Drawing::BackendTexture MakeBackendTexture(
+    uint32_t width, uint32_t height, pid_t pid, VkFormat format)
+{
+    VkImageTiling tiling = VK_IMAGE_TILING_OPTIMAL;
+    VkImageUsageFlags usage = VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT |
+        VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+    VkImageCreateInfo imageInfo {
+        .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .imageType = VK_IMAGE_TYPE_2D,
+        .format = format,
+        .extent = {width, height, 1},
+        .mipLevels = 1,
+        .arrayLayers = 1,
+        .samples = VK_SAMPLE_COUNT_1_BIT,
+        .tiling = tiling,
+        .usage = usage,
+        .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+        .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED
+    };
+
+    auto& vkContext = OHOS::Rosen::RsVulkanContext::GetSingleton().GetRsVulkanInterface();
+    VkDevice device = vkContext.GetDevice();
+    VkImage image = VK_NULL_HANDLE;
+    VkDeviceMemory memory = VK_NULL_HANDLE;
+
+    if (width * height > OHOS::Rosen::NativeBufferUtils::VKIMAGE_LIMIT_SIZE) {
+        ROSEN_LOGE(
+            "NativeBufferUtils:Image is too large, width:%{public}u, height::%{public}u",
+            width, height);
+        return {};
+    }
+
+    if (vkContext.vkCreateImage(device, &imageInfo, nullptr, &image) != VK_SUCCESS) {
+        return {};
+    }
+    Drawing::BackendTexture backendTexture =
+        SetBackendTexture(vkContext, device, image, width, height, memory, imageInfo, pid);
+    return backendTexture;
+}
+Drawing::BackendTexture SetBackendTexture(RsVulkanInterface& vkContext, VkDevice device,
+    VkImage image, uint32_t width, uint32_t height, VkDeviceMemory memory, VkImageCreateInfo imageInfo,
+    pid_t pid)
+{
+    VkMemoryRequirements memRequirements;
+    vkContext.vkGetImageMemoryRequirements(device, image, &memRequirements);
+
+    VkMemoryAllocateInfo allocInfo{};
+    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    allocInfo.allocationSize = memRequirements.size;
+    allocInfo.memoryTypeIndex = FindMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+    if (allocInfo.memoryTypeIndex == UINT32_MAX) {
+        return {};
+    }
+
+    if (vkContext.vkAllocateMemory(device, &allocInfo, nullptr, &memory) != VK_SUCCESS) {
+        return {};
+    }
+
+    vkContext.vkBindImageMemory(device, image, memory, 0);
+
+    OHOS::Rosen::RsVulkanMemStat& memStat = vkContext.GetRsVkMemStat();
+    auto time = std::chrono::time_point_cast<std::chrono::microseconds>(std::chrono::system_clock::now());
+    std::string timeStamp = std::to_string(static_cast<uint64_t>(time.time_since_epoch().count()));
+    memStat.InsertResource(timeStamp, pid, static_cast<uint64_t>(memRequirements.size));
+
+    OHOS::Rosen::Drawing::BackendTexture backendTexture(true);
+    OHOS::Rosen::Drawing::TextureInfo textureInfo;
+    textureInfo.SetWidth(width);
+    textureInfo.SetHeight(height);
+
+    std::shared_ptr<OHOS::Rosen::Drawing::VKTextureInfo> vkImageInfo =
+        std::make_shared<OHOS::Rosen::Drawing::VKTextureInfo>();
+    vkImageInfo->vkImage = image;
+    vkImageInfo->vkAlloc.memory = memory;
+    vkImageInfo->vkAlloc.size = memRequirements.size;
+    vkImageInfo->vkAlloc.statName = timeStamp;
+
+    SetVkImageInfo(vkImageInfo, imageInfo);
+    textureInfo.SetVKTextureInfo(vkImageInfo);
+    backendTexture.SetTextureInfo(textureInfo);
+    return backendTexture;
+}
+
+void CreateVkSemaphore(VkSemaphore& semaphore)
+{
+    auto& vkContext = RsVulkanContext::GetSingleton().GetRsVulkanInterface();
+    VkExportSemaphoreCreateInfo exportSemaphoreCreateInfo;
+    exportSemaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_EXPORT_SEMAPHORE_CREATE_INFO;
+    exportSemaphoreCreateInfo.pNext = nullptr;
+    exportSemaphoreCreateInfo.handleTypes = VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_SYNC_FD_BIT;
+
+    VkSemaphoreCreateInfo semaphoreInfo;
+    semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+    semaphoreInfo.pNext = &exportSemaphoreCreateInfo;
+    semaphoreInfo.flags = 0;
+    vkContext.vkCreateSemaphore(vkContext.GetDevice(), &semaphoreInfo, nullptr, &semaphore);
+}
+
+void GetFenceFdFromSemaphore(VkSemaphore& semaphore, int32_t& syncFenceFd)
+{
+    auto& vkContext = RsVulkanContext::GetSingleton().GetRsVulkanInterface();
+    VkSemaphoreGetFdInfoKHR getFdInfo;
+
+    getFdInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_GET_FD_INFO_KHR;
+    getFdInfo.pNext = nullptr;
+    getFdInfo.semaphore = semaphore;
+    getFdInfo.handleType = VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_SYNC_FD_BIT;
+
+    auto err = vkContext.vkGetSemaphoreFdKHR(vkContext.GetDevice(), &getFdInfo, &syncFenceFd);
+    if (VK_SUCCESS != err) {
+        RS_LOGD("FlushSurfaceWithFence: failed to get semaphore fd");
+        syncFenceFd = -1;
+    }
+}
+#endif
+
 } // namespace NativeBufferUtils
 } // namespace OHOS::Rosen

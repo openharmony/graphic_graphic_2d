@@ -63,9 +63,12 @@ public:
     void PreorderTraversal(std::vector<std::shared_ptr<OcclusionNode>>& result);
     std::string GetOcclusionNodeInfoString();
 private:
-    void SetOcNodeOpaqueInfo(const RSRenderNode& node);
     void CalculateDrawRect(const RSRenderNode& node, const RSProperties& renderProperties);
     bool IsOutOfRootRect(const RectI16 &rect);
+    bool IsSubTreeShouldIgnored(const RSRenderNode& node, const RSProperties& renderProperties);
+    bool IsOpaque() const {
+        return isBgOpaque_ && !isAlphaNeed_;
+    }
     OcclusionCoverageInfo DetectOcclusionInner(OcclusionCoverageInfo& globalCoverInfo,
         std::unordered_set<NodeId>& culledNodes, std::unordered_set<NodeId>& offTreeNodes);
     void CheckNodeOcclusion(OcclusionCoverageInfo& coverageInfo, std::unordered_set<NodeId>& culledNodes);
@@ -79,7 +82,7 @@ private:
     bool isNeedClip_ = false;
     bool isOutOfRootRect_ = false;
     bool isAlphaNeed_ = false;
-    bool isOpaque_ = false;
+    bool isBgOpaque_ = false;
     bool isValidInCurrentFrame_ = false;
 
     // Spatial information

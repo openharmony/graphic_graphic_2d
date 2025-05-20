@@ -169,7 +169,9 @@ const Drawing::DrawingPiecewiseParameter DISAPPEAR_SECOND_PHASE_PARAS = {
 };
 
 const TextEngine::SymbolAnimationConfig VARIABLE_COLOR_CONFIG = {
-    {}, 0, // symbolNodes is {}; numNodes is 0;
+    {}, // symbolNodes is {};
+    {}, {}, Drawing::Color::COLOR_BLACK,
+    0, // numNodes is 0;
     Drawing::DrawingEffectStrategy::VARIABLE_COLOR, // effectStrategy is VARIABLE_COLOR;
     9999, 0, // symbolSpanId is 9999, which is a random value; animationMode is 0, which means iterative mode;
     1, true, Drawing::DrawingCommonSubType::DOWN // repeatCount is 1; animationStart is true；move direction is
@@ -177,10 +179,46 @@ const TextEngine::SymbolAnimationConfig VARIABLE_COLOR_CONFIG = {
 };
 
 const TextEngine::SymbolAnimationConfig PULSE_CONFIG = {
-    {}, 0, // symbolNodes is {}; numNodes is 0;
+    {}, // symbolNodes is {};
+    {}, {}, Drawing::Color::COLOR_BLACK,
+    0, // numNodes is 0;
     Drawing::DrawingEffectStrategy::PULSE, // effectStrategy is PULSE;
     8888, 0, // symbolSpanId is 8888, which is a random value; animationMode is 0, which means hierarchical mode;
     1, true, Drawing::DrawingCommonSubType::DOWN // repeatCount is 1; animationStart is true；move direction is downward
+};
+
+const Drawing::DrawingPiecewiseParameter TRANSITION_FIRST_PARAS = {
+    OHOS::Rosen::Drawing::DrawingCurveType::LINEAR, // animation curve type
+    {},
+    150, 0,                        // 150 is animation duration, 0 is animation delay
+    {
+        {"tx", {0, 0}},            // translate of x-axis is from 0 to 0
+        {"ty", {0, -100}}          // translate of y-axis is from 0 to -100
+    }
+};
+
+const Drawing::DrawingPiecewiseParameter TRANSITION_SECOND_PARAS = {
+    OHOS::Rosen::Drawing::DrawingCurveType::LINEAR, // animation curve type
+    {},
+    150, 150,                      // 150 is animation duration, 150 is animation delay
+    {
+        {"tx", {0, 0}},            // translate of x-axis is from 0 to 0
+        {"ty", {-100, 0}}          // translate of y-axis is from 0 to -100
+    }
+};
+
+const Drawing::DrawingPiecewiseParameter BLUR_FIRST_PARAS = {
+    OHOS::Rosen::Drawing::DrawingCurveType::LINEAR, // animation curve type
+    {},
+    150, 0,                        // 150 is animation duration, 0 is animation delay
+    {{"blur", {0, 20}}}            // blur radius is from 0 to 20
+};
+
+const Drawing::DrawingPiecewiseParameter BLUR_SECOND_PARAS = {
+    OHOS::Rosen::Drawing::DrawingCurveType::LINEAR, // animation curve type
+    {},
+    100, 150,                        // 100 is animation duration, 150 is animation delay
+    {{"blur", {20, 0}}}            // blur radius is from 20 to 0
 };
 } // ANIMATIONTEST
 } // namespace Rosen

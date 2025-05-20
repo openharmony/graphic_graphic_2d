@@ -45,7 +45,12 @@ public:
     void TearDown() override;
 };
 
-void RSSubThreadCacheTest::SetUpTestCase() {}
+void RSSubThreadCacheTest::SetUpTestCase()
+{
+#ifdef RS_ENABLE_VK
+    RsVulkanContext::SetRecyclable(false);
+#endif
+}
 void RSSubThreadCacheTest::TearDownTestCase() {}
 void RSSubThreadCacheTest::SetUp()
 {
@@ -88,9 +93,7 @@ HWTEST_F(RSSubThreadCacheTest, CreateUIFirstSurfaceRenderNodeDrawableTest, TestS
  */
 HWTEST_F(RSSubThreadCacheTest, GetCacheSurfaceTest, TestSize.Level1)
 {
-    if (surfaceDrawable_ == nullptr) {
-        return;
-    }
+    ASSERT_NE(surfaceDrawable_, nullptr);
 
     surfaceDrawable_->GetRsSubThreadCache().cacheSurface_ = std::make_shared<Drawing::Surface>();
     uint32_t threadIndex = 0;
@@ -109,9 +112,7 @@ HWTEST_F(RSSubThreadCacheTest, GetCacheSurfaceTest, TestSize.Level1)
  */
 HWTEST_F(RSSubThreadCacheTest, GetCompletedImageTest, TestSize.Level1)
 {
-    if (surfaceDrawable_ == nullptr) {
-        return;
-    }
+    ASSERT_NE(surfaceDrawable_, nullptr);
 
     uint32_t threadIndex = 1;
     bool isUIFirst = true;
@@ -130,7 +131,7 @@ HWTEST_F(RSSubThreadCacheTest, GetCompletedImageTest, TestSize.Level1)
 
 #ifdef RS_ENABLE_VK
     surfaceDrawable_->GetRsSubThreadCache().cacheCompletedSurface_ = std::make_shared<Drawing::Surface>();
-    auto cacheBackendTexture_ = RSUniRenderUtil::MakeBackendTexture(
+    auto cacheBackendTexture_ = NativeBufferUtils::MakeBackendTexture(
         10, 10, 0, VkFormat::VK_FORMAT_A1R5G5B5_UNORM_PACK16);
     auto vkTextureInfo = cacheBackendTexture_.GetTextureInfo().GetVkTextureInfo();
     surfaceDrawable_->GetRsSubThreadCache().cacheCompletedCleanupHelper_ = new NativeBufferUtils::VulkanCleanupHelper(
@@ -158,9 +159,7 @@ HWTEST_F(RSSubThreadCacheTest, GetCompletedImageTest, TestSize.Level1)
  */
 HWTEST_F(RSSubThreadCacheTest, DrawCacheSurfaceTest, TestSize.Level1)
 {
-    if (surfaceDrawable_ == nullptr) {
-        return;
-    }
+    ASSERT_NE(surfaceDrawable_, nullptr);
     Vector2f boundSize;
     uint32_t threadIndex = 1;
     bool isUIFirst = false;
@@ -213,9 +212,7 @@ HWTEST_F(RSSubThreadCacheTest, NeedInitCacheSurfaceTest, TestSize.Level1)
  */
 HWTEST_F(RSSubThreadCacheTest, UpdateCompletedCacheSurfaceTest, TestSize.Level1)
 {
-    if (surfaceDrawable_ == nullptr) {
-        return;
-    }
+    ASSERT_NE(surfaceDrawable_, nullptr);
     uint32_t completedSurfaceThreadIndex = 1;
     uint32_t cacheSurfaceThreadIndex = 0;
     surfaceDrawable_->GetRsSubThreadCache().completedSurfaceThreadIndex_ = completedSurfaceThreadIndex;
@@ -241,9 +238,7 @@ HWTEST_F(RSSubThreadCacheTest, UpdateCompletedCacheSurfaceTest, TestSize.Level1)
  */
 HWTEST_F(RSSubThreadCacheTest, ClearCacheSurfaceTest, TestSize.Level1)
 {
-    if (surfaceDrawable_ == nullptr) {
-        return;
-    }
+    ASSERT_NE(surfaceDrawable_, nullptr);
     surfaceDrawable_->GetRsSubThreadCache().ClearCacheSurface(true);
     ASSERT_EQ(surfaceDrawable_->GetRsSubThreadCache().cacheCompletedCleanupHelper_, nullptr);
 
@@ -260,9 +255,7 @@ HWTEST_F(RSSubThreadCacheTest, ClearCacheSurfaceTest, TestSize.Level1)
  */
 HWTEST_F(RSSubThreadCacheTest, IsCurFrameStaticTest, TestSize.Level1)
 {
-    if (surfaceDrawable_ == nullptr) {
-        return;
-    }
+    ASSERT_NE(surfaceDrawable_, nullptr);
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->GetRenderParams().get());
     ASSERT_NE(surfaceParams, nullptr);
     ASSERT_EQ(surfaceParams->GetSurfaceCacheContentStatic(), false);
@@ -276,9 +269,7 @@ HWTEST_F(RSSubThreadCacheTest, IsCurFrameStaticTest, TestSize.Level1)
  */
 HWTEST_F(RSSubThreadCacheTest, UpdateUifirstDirtyManagerTest, TestSize.Level1)
 {
-    if (surfaceDrawable_ == nullptr) {
-        return;
-    }
+    ASSERT_NE(surfaceDrawable_, nullptr);
     surfaceDrawable_->syncDirtyManager_->dirtyRegion_ = {0, 0, 10, 10};
     surfaceDrawable_->GetRsSubThreadCache().isCacheValid_ = true;
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->GetRenderParams().get());
@@ -304,9 +295,7 @@ HWTEST_F(RSSubThreadCacheTest, UpdateUifirstDirtyManagerTest, TestSize.Level1)
  */
 HWTEST_F(RSSubThreadCacheTest, CalculateUifirstDirtyRegionTest, TestSize.Level1)
 {
-    if (surfaceDrawable_ == nullptr) {
-        return;
-    }
+    ASSERT_NE(surfaceDrawable_, nullptr);
     RectI dirtyRegion = {0, 0, 10, 10};
     surfaceDrawable_->GetRsSubThreadCache().syncUifirstDirtyManager_->historyHead_ = 0;
     surfaceDrawable_->GetRsSubThreadCache().syncUifirstDirtyManager_->dirtyHistory_[0]= dirtyRegion;
@@ -328,9 +317,7 @@ HWTEST_F(RSSubThreadCacheTest, CalculateUifirstDirtyRegionTest, TestSize.Level1)
  */
 HWTEST_F(RSSubThreadCacheTest, MergeUifirstAllSurfaceDirtyRegionTest, TestSize.Level1)
 {
-    if (surfaceDrawable_ == nullptr) {
-        return;
-    }
+    ASSERT_NE(surfaceDrawable_, nullptr);
     RectI dirtyRegion = {0, 0, 10, 10};
     surfaceDrawable_->GetRsSubThreadCache().syncUifirstDirtyManager_->historyHead_ = 0;
     surfaceDrawable_->GetRsSubThreadCache().syncUifirstDirtyManager_->dirtyHistory_[0]= dirtyRegion;
@@ -353,9 +340,7 @@ HWTEST_F(RSSubThreadCacheTest, MergeUifirstAllSurfaceDirtyRegionTest, TestSize.L
  */
 HWTEST_F(RSSubThreadCacheTest, SubDrawTest, TestSize.Level1)
 {
-    if (surfaceDrawable_ == nullptr) {
-        return;
-    }
+    ASSERT_NE(surfaceDrawable_, nullptr);
     drawingCanvas_ = std::make_unique<Drawing::Canvas>(DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
     surfaceDrawable_->GetRsSubThreadCache().SubDraw(surfaceDrawable_.get(), *drawingCanvas_.get());
     EXPECT_TRUE(surfaceDrawable_->uifirstDrawCmdList_.empty());
@@ -369,9 +354,7 @@ HWTEST_F(RSSubThreadCacheTest, SubDrawTest, TestSize.Level1)
  */
 HWTEST_F(RSSubThreadCacheTest, DrawUIFirstCacheTest, TestSize.Level1)
 {
-    if (surfaceDrawable_ == nullptr) {
-        return;
-    }
+    ASSERT_NE(surfaceDrawable_, nullptr);
     drawingCanvas_ = std::make_unique<Drawing::Canvas>(DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
     auto rscanvas = RSPaintFilterCanvas(drawingCanvas_.get());
     auto result = surfaceDrawable_->GetRsSubThreadCache().DrawUIFirstCache(surfaceDrawable_.get(), rscanvas, true);

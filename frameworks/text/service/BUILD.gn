@@ -40,9 +40,11 @@ ohos_source_set("rosen_text_skia") {
   ]
 
   if (is_arkui_x) {
-    include_dirs += [ "//third_party/bounds_checking_function/include" ]
-  } else {
-    public_external_deps = [ "bounds_checking_function:libsec_shared" ]
+    include_dirs += [
+      "//base/hiviewdfx/hitrace/interfaces/native/innerkits/include/hitrace_meter",
+      "//third_party/bounds_checking_function/include",
+    ]
+    defines = [ "CROSS_PLATFORM" ]
   }
 
   cflags_cc = [ "-std=c++17" ]
@@ -62,6 +64,7 @@ ohos_source_set("rosen_text_skia") {
   ]
 
   external_deps = [
+    "bounds_checking_function:libsec_shared",
     "hilog:libhilog",
     "jsoncpp:jsoncpp",
     "skia:skia_canvaskit",
@@ -71,16 +74,13 @@ ohos_source_set("rosen_text_skia") {
     "$rosen_text_root/adapter/skia:skia_libtxt_$platform",
     "texgine:libtexgine_source",
   ]
-  is_cross_platform =
-      current_os == "mac" || current_os == "mingw" || current_os == "linux" ||
-      current_os == "android" || current_os == "ios"
 
-  if (!is_cross_platform) {
+  if (platform_is_ohos) {
     external_deps += [
       "hitrace:hitrace_meter",
       "init:libbegetutil",
     ]
-    defines = [ "OHOS_TEXT_ENABLE" ]
+    defines = [ "ENABLE_OHOS_ENHANCE" ]
   }
 
   part_name = "graphic_2d"

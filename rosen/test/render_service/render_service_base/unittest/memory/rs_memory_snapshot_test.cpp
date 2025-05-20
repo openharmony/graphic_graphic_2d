@@ -110,10 +110,11 @@ HWTEST_F(RSMemorySnapshotTest, UpdateGpuMemoryInfoTest001, testing::ext::TestSiz
     MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
     MemorySnapshot::Instance().AddCpuMemory(pid, cpuSize);
     std::unordered_map<pid_t, size_t> gpuInfo = {{pid, gpuSize}};
+    std::unordered_map<pid_t, size_t> subThreadGpuInfo = {{pid, gpuSize}};
     std::unordered_map<pid_t, MemorySnapshotInfo> pidForReport;
     bool isTotalOver = false;
     MemorySnapshotInfo info;
-    MemorySnapshot::Instance().UpdateGpuMemoryInfo(gpuInfo, pidForReport, isTotalOver);
+    MemorySnapshot::Instance().UpdateGpuMemoryInfo(gpuInfo, subThreadGpuInfo, pidForReport, isTotalOver);
     bool ret = MemorySnapshot::Instance().GetMemorySnapshotInfoByPid(pid, info);
     ASSERT_TRUE(ret);
     ASSERT_EQ(info.TotalMemory(), cpuSize + gpuSize);
@@ -170,9 +171,10 @@ HWTEST_F(RSMemorySnapshotTest, FindMaxValuesTest001, testing::ext::TestSize.Leve
     size_t gpuSize = 2048;
     MemorySnapshot::Instance().AddCpuMemory(pid, cpuSize);
     std::unordered_map<pid_t, size_t> gpuInfo = {{pid, gpuSize}};
+    std::unordered_map<pid_t, size_t> subThreadGpuInfo = {{pid, gpuSize}};
     std::unordered_map<pid_t, MemorySnapshotInfo> pidForReport;
     bool isTotalOver = false;
-    MemorySnapshot::Instance().UpdateGpuMemoryInfo(gpuInfo, pidForReport, isTotalOver);
+    MemorySnapshot::Instance().UpdateGpuMemoryInfo(gpuInfo, subThreadGpuInfo, pidForReport, isTotalOver);
     std::vector<MemorySnapshotInfo> list;
     size_t maxCpu = 100;
     size_t maxGpu = 200;

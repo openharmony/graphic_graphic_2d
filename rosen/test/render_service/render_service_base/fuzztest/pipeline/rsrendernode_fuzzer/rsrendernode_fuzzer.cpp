@@ -123,6 +123,7 @@ bool RSBaseRenderNodeFuzzTest(const uint8_t* data, size_t size)
     int top = GetData<int>();
     int width = GetData<int>();
     int height = GetData<int>();
+    int64_t leftDelayTime = GetData<int64_t>();
     RectI r(left, top, width, height);
 
     // test
@@ -134,7 +135,7 @@ bool RSBaseRenderNodeFuzzTest(const uint8_t* data, size_t size)
     node->AddCrossParentChild(child, index);
     node->CollectSurface(child, vec, isUniRender, false);
     node->SetIsOnTheTree(flag);
-    node->Animate(timestamp);
+    node->Animate(timestamp, leftDelayTime);
     node->SetIsOnTheTree(flag);
     node->HasDisappearingTransition(recursive);
     node->SetTunnelHandleChange(change);

@@ -155,6 +155,7 @@ bool RSRenderNodeMap::RegisterRenderNode(const std::shared_ptr<RSBaseRenderNode>
     NodeId id = nodePtr->GetId();
     pid_t pid = ExtractPid(id);
     if (!(renderNodeMap_[pid].insert({ id, nodePtr })).second) {
+        ROSEN_LOGE("RegisterRenderNode insert to Map failed, pid:%{public}d, nodeId:%{public}" PRIu64 " ", static_cast<int32_t>(pid), id);
         return false;
     }
     nodePtr->OnRegister(context_);

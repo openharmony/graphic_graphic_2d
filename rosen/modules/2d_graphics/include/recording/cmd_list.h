@@ -46,6 +46,12 @@ public:
     virtual void SetNodeId(NodeId id) {};
     virtual void SetPaint(Paint paint) {};
     virtual void Purge() {};
+    virtual bool IsValid() {return false;};
+    virtual void Dump(std::string& dump) {};
+    virtual NodeId GetNodeId() const
+    {
+        return 0;
+    }
 };
 
 class DRAWING_API ExtendImageBaseObj {

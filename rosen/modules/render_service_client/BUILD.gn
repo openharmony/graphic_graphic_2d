@@ -66,6 +66,7 @@ template("render_service_client_source_set") {
     if (defined(is_arkui_x) && is_arkui_x) {
       include_dirs += [
         "$graphic_2d_root/utils/color_manager/export",
+        "//base/hiviewdfx/hitrace/interfaces/native/innerkits/include/hitrace_meter",
         "//foundation/multimedia/image_framework/interfaces/innerkits/include",
         "//foundation/graphic/graphic_surface/interfaces/inner_api/surface",
       ]
@@ -142,6 +143,17 @@ template("render_service_client_source_set") {
       "core/ui/rs_ui_context.cpp",
       "core/ui/rs_ui_context_manager.cpp",
       "core/ui/rs_ui_director.cpp",
+
+      #ui_effect
+      "core/ui_effect/property/src/rs_ui_blur_filter.cpp",
+      "core/ui_effect/property/src/rs_ui_color_gradient_filter.cpp",
+      "core/ui_effect/property/src/rs_ui_displacement_distort_filter.cpp",
+      "core/ui_effect/property/src/rs_ui_edge_light_filter.cpp",
+      "core/ui_effect/property/src/rs_ui_filter_para_base.cpp",
+      "core/ui_effect/property/src/rs_ui_filter.cpp",
+      "core/ui_effect/property/src/rs_ui_mask_para.cpp",
+      "core/ui_effect/property/src/rs_ui_ripple_mask.cpp",
+      "core/ui_effect/property/src/rs_ui_sound_wave_filter.cpp",
     ]
 
     if (is_cross_platform) {
@@ -222,6 +234,13 @@ template("render_service_client_source_set") {
         "qos_manager:qos",
       ]
 
+      if (defined(use_video_processing_engine) && use_video_processing_engine) {
+        defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
+        external_deps += [
+          "video_processing_engine:videoprocessingengine",
+          "media_foundation:media_foundation",
+        ]
+      }
       defines += [ "RES_CLINET_SCHED_ENABLE" ]
 
       if (accessibility_enable) {

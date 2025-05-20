@@ -61,6 +61,7 @@ RSCanvasNode::SharedPtr RSCanvasNode::Create(
 
     std::unique_ptr<RSCommand> command = std::make_unique<RSCanvasNodeCreate>(node->GetId(), isTextureExportNode);
     node->AddCommand(command, node->IsRenderServiceNode());
+    node->SetUIContextToken();
     return node;
 }
 
@@ -304,7 +305,7 @@ bool RSCanvasNode::ResetSurface(int width, int height)
     if (!IsHybridRenderCanvas()) {
         return false;
     }
-    return RSModifiersDraw::ResetSurfaceByNodeId(width, height, GetId(), true);
+    return RSModifiersDraw::ResetSurfaceByNodeId(width, height, GetId(), true, true);
 }
 #endif
 

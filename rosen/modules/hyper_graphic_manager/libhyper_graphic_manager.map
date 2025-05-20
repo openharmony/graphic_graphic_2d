@@ -23,9 +23,11 @@
       *HgmConfigCallbackManager::RegisterHgmConfigChangeCallback*;
       *HgmConfigCallbackManager::RegisterHgmRefreshRateModeChangeCallback*;
       *HgmConfigCallbackManager::RegisterHgmRefreshRateUpdateCallback*;
+      *HgmConfigCallbackManager::RegisterXComponentExpectedFrameRateCallback*;
       *HgmConfigCallbackManager::SyncHgmConfigChangeCallback*;
       *HgmConfigCallbackManager::SyncRefreshRateModeChangeCallback*;
       *HgmConfigCallbackManager::SyncRefreshRateUpdateCallback*;
+      *HgmConfigCallbackManager::SyncXComponentExpectedFrameRateCallback*;
       *HgmConfigCallbackManager::UnRegisterHgmConfigChangeCallback*;
 
       *HgmCore::AddScreen*;
@@ -76,13 +78,16 @@
       *HgmFrameRateManager::CleanVote*;
       *HgmFrameRateManager::CollectFrameRateChange*;
       *HgmFrameRateManager::CollectVRateChange*;
+      *HgmFrameRateManager::CheckAncoVoterStatus*;
       *HgmFrameRateManager::DeliverRefreshRateVote*;
       *HgmFrameRateManager::FrameRateReport*;
+      *HgmFrameRateManager::GetAncoLowBrightVec*;
       *HgmFrameRateManager::GetDrawingFrameRate*;
       *HgmFrameRateManager::GetExpectedFrameRate*;
       *HgmFrameRateManager::GetLowBrightVec*;
       *HgmFrameRateManager::GetPreferredFps*;
       *HgmFrameRateManager::GetStylusVec*;
+      *HgmFrameRateManager::GetSupportedRefreshRates*;
       *HgmFrameRateManager::HandleAppStrategyConfigEvent*;
       *HgmFrameRateManager::HandleDynamicModeEvent*;
       *HgmFrameRateManager::HandleFrameRateChangeForLTPO*;
@@ -130,6 +135,7 @@
       *HgmIdleDetector::GetTouchUpExpectedFPS*;
       *HgmIdleDetector::SetAceAnimatorIdleState*;
       *HgmIdleDetector::SetAppSupportedState*;
+      *HgmIdleDetector::UpdateAceAnimatorExpectedFrameRate*;
       *HgmIdleDetector::UpdateSurfaceTime*;
       *HgmIdleDetector::UpdateSurfaceState*;
 
@@ -184,6 +190,18 @@
       *HgmTouchManager::SetUpTimeout*;
       *HgmTouchManager::SetRsIdleTimeout*;
       *HgmTouchManager::State2String*;
+
+      *HgmSoftVSyncManager::HgmSoftVSyncManager*;
+      *HgmSoftVSyncManager::InitController*;
+      *HgmSoftVSyncManager::SetWindowExpectedRefreshRate*;
+      *HgmSoftVSyncManager::CollectVRateChange*;
+      *HgmSoftVSyncManager::SetVsyncRateDiscountLTPO*;
+      *HgmSoftVSyncManager::GetDrawingFrameRate*;
+      *HgmSoftVSyncManager::UniProcessDataForLtpo*;
+      *HgmSoftVSyncManager::CollectFrameRateChange*;
+      *HgmSoftVSyncManager::GetVRateMiniFPS*;
+      *HgmSoftVSyncManager::EraseGameRateDiscountMap*;
+      *HgmSoftVSyncManager::CollectGameRateDiscountChange*;
 
       *HgmPointerManager::CheckChangeStateValid*;
       *HgmPointerManager::HandleRsFrame*;

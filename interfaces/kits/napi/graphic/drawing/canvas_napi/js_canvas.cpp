@@ -54,123 +54,6 @@ namespace OHOS::Rosen {
 #ifdef ROSEN_OHOS
 using namespace Media;
 namespace {
-static std::shared_ptr<Drawing::ColorSpace> ColorSpaceToDrawingColorSpace(ColorSpace colorSpace)
-{
-    switch (colorSpace) {
-        case ColorSpace::DISPLAY_P3:
-            return Drawing::ColorSpace::CreateRGB(
-                Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::DCIP3);
-        case ColorSpace::LINEAR_SRGB:
-            return Drawing::ColorSpace::CreateSRGBLinear();
-        case ColorSpace::SRGB:
-            return Drawing::ColorSpace::CreateSRGB();
-        default:
-            return Drawing::ColorSpace::CreateSRGB();
-    }
-}
-
-static Drawing::ColorType PixelFormatToDrawingColorType(PixelFormat pixelFormat)
-{
-    switch (pixelFormat) {
-        case PixelFormat::RGB_565:
-            return Drawing::ColorType::COLORTYPE_RGB_565;
-        case PixelFormat::RGBA_8888:
-            return Drawing::ColorType::COLORTYPE_RGBA_8888;
-        case PixelFormat::BGRA_8888:
-            return Drawing::ColorType::COLORTYPE_BGRA_8888;
-        case PixelFormat::ALPHA_8:
-            return Drawing::ColorType::COLORTYPE_ALPHA_8;
-        case PixelFormat::RGBA_F16:
-            return Drawing::ColorType::COLORTYPE_RGBA_F16;
-        case PixelFormat::UNKNOWN:
-        case PixelFormat::ARGB_8888:
-        case PixelFormat::RGB_888:
-        case PixelFormat::NV21:
-        case PixelFormat::NV12:
-        case PixelFormat::CMYK:
-        default:
-            return Drawing::ColorType::COLORTYPE_UNKNOWN;
-    }
-}
-
-static Drawing::AlphaType AlphaTypeToDrawingAlphaType(AlphaType alphaType)
-{
-    switch (alphaType) {
-        case AlphaType::IMAGE_ALPHA_TYPE_UNKNOWN:
-            return Drawing::AlphaType::ALPHATYPE_UNKNOWN;
-        case AlphaType::IMAGE_ALPHA_TYPE_OPAQUE:
-            return Drawing::AlphaType::ALPHATYPE_OPAQUE;
-        case AlphaType::IMAGE_ALPHA_TYPE_PREMUL:
-            return Drawing::AlphaType::ALPHATYPE_PREMUL;
-        case AlphaType::IMAGE_ALPHA_TYPE_UNPREMUL:
-            return Drawing::AlphaType::ALPHATYPE_UNPREMUL;
-        default:
-            return Drawing::AlphaType::ALPHATYPE_UNKNOWN;
-    }
-}
-
-struct PixelMapReleaseContext {
-    explicit PixelMapReleaseContext(std::shared_ptr<PixelMap> pixelMap) : pixelMap_(pixelMap) {}
-
-    ~PixelMapReleaseContext()
-    {
-        pixelMap_ = nullptr;
-    }
-
-private:
-    std::shared_ptr<PixelMap> pixelMap_;
-};
-
-static void PixelMapReleaseProc(const void* /* pixels */, void* context)
-{
-    PixelMapReleaseContext* ctx = static_cast<PixelMapReleaseContext*>(context);
-    if (ctx) {
-        delete ctx;
-        ctx = nullptr;
-    }
-}
-
-std::shared_ptr<Drawing::Image> ExtractDrawingImage(std::shared_ptr<Media::PixelMap> pixelMap)
-{
-    if (!pixelMap) {
-        ROSEN_LOGE("Drawing_napi::pixelMap fail");
-        return nullptr;
-    }
-    ImageInfo imageInfo;
-    pixelMap->GetImageInfo(imageInfo);
-    Drawing::ImageInfo drawingImageInfo { imageInfo.size.width, imageInfo.size.height,
-        PixelFormatToDrawingColorType(imageInfo.pixelFormat),
-        AlphaTypeToDrawingAlphaType(imageInfo.alphaType),
-        ColorSpaceToDrawingColorSpace(imageInfo.colorSpace) };
-    Drawing::Pixmap imagePixmap(drawingImageInfo,
-        reinterpret_cast<const void*>(pixelMap->GetPixels()), pixelMap->GetRowStride());
-    PixelMapReleaseContext* releaseContext = new PixelMapReleaseContext(pixelMap);
-    auto image = Drawing::Image::MakeFromRaster(imagePixmap, PixelMapReleaseProc, releaseContext);
-    if (!image) {
-        ROSEN_LOGE("Drawing_napi :RSPixelMapUtil::ExtractDrawingImage fail");
-        delete releaseContext;
-        releaseContext = nullptr;
-    }
-    return image;
-}
-
-bool ExtracetDrawingBitmap(std::shared_ptr<Media::PixelMap> pixelMap, Drawing::Bitmap& bitmap)
-{
-    if (!pixelMap) {
-        ROSEN_LOGE("Drawing_napi ::pixelMap fail");
-        return false;
-    }
-    ImageInfo imageInfo;
-    pixelMap->GetImageInfo(imageInfo);
-    Drawing::ImageInfo drawingImageInfo { imageInfo.size.width, imageInfo.size.height,
-        PixelFormatToDrawingColorType(imageInfo.pixelFormat),
-        AlphaTypeToDrawingAlphaType(imageInfo.alphaType),
-        ColorSpaceToDrawingColorSpace(imageInfo.colorSpace) };
-    bitmap.Build(drawingImageInfo, pixelMap->GetRowStride());
-    bitmap.SetPixels(const_cast<void*>(reinterpret_cast<const void*>(pixelMap->GetPixels())));
-    return true;
-}
-
 void DrawingPixelMapMesh(std::shared_ptr<Media::PixelMap> pixelMap, int column, int row,
     float* vertices, uint32_t* colors, Drawing::Canvas* m_canvas)
 {
@@ -248,7 +131,7 @@ void DrawingPixelMapMesh(std::shared_ptr<Media::PixelMap> pixelMap, int column, 
         return;
     }
     if (m_canvas->GetDrawingType() != Drawing::DrawingType::RECORDING) {
-        std::shared_ptr<Drawing::Image> image = ExtractDrawingImage(pixelMap);
+        std::shared_ptr<Drawing::Image> image = Drawing::ExtractDrawingImage(pixelMap);
         if (image == nullptr) {
             ROSEN_LOGE("Drawing_napi::DrawingPixelMapMesh image is nullptr");
             return;
@@ -2117,12 +2000,7 @@ napi_value JsCanvas::OnGetLocalClipBounds(napi_env env, napi_callback_info info)
         ROSEN_LOGE("JsCanvas::OnGetLocalClipBounds canvas is nullptr");
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
-
-    Rect rect = m_canvas->GetLocalClipBounds();
-    std::shared_ptr<Rect> rectPtr = std::make_shared<Rect>(rect.GetLeft(),
-        rect.GetTop(), rect.GetRight(), rect.GetBottom());
-
-    return GetRectAndConvertToJsValue(env, rectPtr);
+    return GetRectAndConvertToJsValue(env, m_canvas->GetLocalClipBounds());
 }
 
 Canvas* JsCanvas::GetCanvas()

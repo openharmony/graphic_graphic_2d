@@ -41,6 +41,7 @@ RsFrameReport& RsFrameReport::GetInstance()
 
 RsFrameReport::RsFrameReport()
 {
+    LOGI("RsFrameReport:[Init] LoadLibrary");
     int ret = LoadLibrary();
     if (!ret) {
         LOGE("RsFrameReport:[Init] dlopen libframe_ui_intf.so failed!");
@@ -50,6 +51,7 @@ RsFrameReport::RsFrameReport()
     initFunc_ = (InitFunc)LoadSymbol("Init");
     if (initFunc_ != nullptr) {
         initFunc_();
+        LOGI("RsFrameReport:[Init] Init success");
     }
 }
 
@@ -57,6 +59,7 @@ RsFrameReport::~RsFrameReport() {}
 
 void RsFrameReport::Init()
 {
+    LOGI("RsFrameReport init");
     ReportSchedEvent(FrameSchedEvent::INIT, {});
 }
 
@@ -164,10 +167,11 @@ void RsFrameReport::SendCommandsStart()
     }
 }
 
-void RsFrameReport::RenderStart(uint64_t timestamp)
+void RsFrameReport::RenderStart(uint64_t timestamp, int skipFirstFrame)
 {
     std::unordered_map<std::string, std::string> payload = {};
     payload["vsyncTime"] = std::to_string(timestamp);
+    payload["skipFirstFrame"] = std::to_string(skipFirstFrame);
     ReportSchedEvent(FrameSchedEvent::RS_RENDER_START, payload);
 }
 

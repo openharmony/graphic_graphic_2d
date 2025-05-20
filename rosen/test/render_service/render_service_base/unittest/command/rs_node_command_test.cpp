@@ -130,6 +130,21 @@ HWTEST_F(RSNodeCommandTest, SetDrawRegionTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetDrawNodeType
+ * @tc.desc: SetDrawNodeType test.
+ * @tc.type: FUNC
+ * @tc.require: IC8BLE
+ */
+HWTEST_F(RSNodeCommandTest, SetDrawNodeType, TestSize.Level1)
+{
+    RSContext context;
+    NodeId nodeId = static_cast<NodeId>(1);
+    std::shared_ptr<RectF> rect = nullptr;
+    RSNodeCommandHelper::SetDrawNodeType(context, nodeId, DrawNodeType::PureContainerType);
+    EXPECT_TRUE(context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId) == nullptr);
+}
+
+/**
  * @tc.name: RegisterGeometryTransitionPairTest
  * @tc.desc: RegisterGeometryTransitionPair test.
  * @tc.type: FUNC

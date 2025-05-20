@@ -15,10 +15,15 @@
 
 #include "drawing_error_code.h"
 #include "drawing_image.h"
+#include "drawing_matrix.h"
 #include "drawing_point.h"
 #include "drawing_sampling_options.h"
 #include "drawing_shader_effect.h"
 #include "gtest/gtest.h"
+
+#ifdef RS_ENABLE_VK
+#include "platform/ohos/backend/rs_vulkan_context.h"
+#endif
 
 using namespace testing;
 using namespace testing::ext;
@@ -36,7 +41,12 @@ public:
 
 constexpr uint32_t POINT_NUM = 3;
 
-void NativeDrawingShaderEffectTest::SetUpTestCase() {}
+void NativeDrawingShaderEffectTest::SetUpTestCase()
+{
+#ifdef RS_ENABLE_VK
+    RsVulkanContext::SetRecyclable(false);
+#endif
+}
 void NativeDrawingShaderEffectTest::TearDownTestCase() {}
 void NativeDrawingShaderEffectTest::SetUp() {}
 void NativeDrawingShaderEffectTest::TearDown() {}
@@ -261,6 +271,53 @@ HWTEST_F(NativeDrawingShaderEffectTest, NativeDrawingShaderEffectTest_ShaderEffe
         OH_Drawing_TileMode::CLAMP), nullptr);
 }
 
+HWTEST_F(NativeDrawingShaderEffectTest,
+    NativeDrawingShaderEffectTest_OH_Drawing_ShaderEffectCreateSweepGradientWithLocalMatrix001, TestSize.Level1)
+{
+    OH_Drawing_Point* startPt = OH_Drawing_PointCreate(0, 0);
+    uint32_t colors[POINT_NUM] = {0xFF00FFFF, 0xFFFF00FF, 0xFFFFFF00};
+    float pos[POINT_NUM] = {0.0f, 0.5f, 1.0f}; // 0.5f: gradient color points, 1.0f: gradient color points
+    EXPECT_EQ(OH_Drawing_ShaderEffectCreateSweepGradientWithLocalMatrix(nullptr, colors, pos, POINT_NUM,
+        OH_Drawing_TileMode::CLAMP, nullptr), nullptr);
+    EXPECT_EQ(OH_Drawing_ShaderEffectCreateSweepGradientWithLocalMatrix(nullptr, nullptr, pos, POINT_NUM,
+        OH_Drawing_TileMode::CLAMP, nullptr), nullptr);
+    EXPECT_EQ(OH_Drawing_ShaderEffectCreateSweepGradientWithLocalMatrix(startPt, nullptr, pos, POINT_NUM,
+        OH_Drawing_TileMode::CLAMP, nullptr), nullptr);
+    EXPECT_EQ(OH_Drawing_ShaderEffectCreateSweepGradientWithLocalMatrix(startPt, colors, pos, POINT_NUM,
+        static_cast<OH_Drawing_TileMode>(-1), nullptr), nullptr);
+    EXPECT_EQ(OH_Drawing_ShaderEffectCreateSweepGradientWithLocalMatrix(startPt, colors, pos, POINT_NUM,
+        static_cast<OH_Drawing_TileMode>(99), nullptr), nullptr);
+    EXPECT_NE(OH_Drawing_ShaderEffectCreateSweepGradientWithLocalMatrix(startPt, colors, nullptr, POINT_NUM,
+        OH_Drawing_TileMode::CLAMP, nullptr), nullptr);
+}
+
+HWTEST_F(NativeDrawingShaderEffectTest,
+    NativeDrawingShaderEffectTest_OH_Drawing_ShaderEffectCreateSweepGradientWithLocalMatrix002, TestSize.Level1)
+{
+    OH_Drawing_Point* startPt = OH_Drawing_PointCreate(0, 0);
+    uint32_t colors[POINT_NUM] = {0xFF00FFFF, 0xFFFF00FF, 0xFFFFFF00};
+    OH_Drawing_Matrix* matrix = OH_Drawing_MatrixCreate();
+    OH_Drawing_MatrixSetMatrix(
+        matrix,
+        1, 0, 0,
+        0, 3, 1,
+        0, 0, 4);
+    float pos[POINT_NUM] = {0.0f, 0.5f, 1.0f}; // 0.5f: gradient color points, 1.0f: gradient color points
+
+    EXPECT_EQ(OH_Drawing_ShaderEffectCreateSweepGradientWithLocalMatrix(nullptr, colors, pos, POINT_NUM,
+        OH_Drawing_TileMode::CLAMP, matrix), nullptr);
+    EXPECT_EQ(OH_Drawing_ShaderEffectCreateSweepGradientWithLocalMatrix(nullptr, nullptr, pos, POINT_NUM,
+        OH_Drawing_TileMode::CLAMP, matrix), nullptr);
+    EXPECT_EQ(OH_Drawing_ShaderEffectCreateSweepGradientWithLocalMatrix(startPt, nullptr, pos, POINT_NUM,
+        OH_Drawing_TileMode::CLAMP, matrix), nullptr);
+    EXPECT_EQ(OH_Drawing_ShaderEffectCreateSweepGradientWithLocalMatrix(startPt, colors, pos, POINT_NUM,
+        static_cast<OH_Drawing_TileMode>(-1), matrix), nullptr);
+    EXPECT_EQ(OH_Drawing_ShaderEffectCreateSweepGradientWithLocalMatrix(startPt, colors, pos, POINT_NUM,
+        static_cast<OH_Drawing_TileMode>(99), matrix), nullptr);
+    EXPECT_NE(OH_Drawing_ShaderEffectCreateSweepGradientWithLocalMatrix(startPt, colors, nullptr, POINT_NUM,
+        OH_Drawing_TileMode::CLAMP, matrix), nullptr);
+}
+
 /*
  * @tc.name: NativeDrawingShaderEffectTest_ShaderEffectCreateColorShader004
  * @tc.desc: test for creates an <b>OH_Drawing_ShaderEffect</b> that generates a shader with single color.
@@ -274,6 +331,80 @@ HWTEST_F(NativeDrawingShaderEffectTest, NativeDrawingShaderEffectTest_ShaderEffe
     OH_Drawing_ShaderEffect * colorShaderEffect = OH_Drawing_ShaderEffectCreateColorShader(color);
     EXPECT_NE(colorShaderEffect, nullptr);
     OH_Drawing_ShaderEffectDestroy(colorShaderEffect);
+}
+
+/*
+ * @tc.name: OH_Drawing_ShaderEffectCreateCompose001
+ * @tc.desc: test for creates an <b>OH_Drawing_ShaderEffect</b> that generates a shader by two shaders.
+ * @tc.type: FUNC
+ * @tc.require: IAYWTV
+ */
+HWTEST_F(NativeDrawingShaderEffectTest, OH_Drawing_ShaderEffectCreateCompose001, TestSize.Level1)
+{
+    uint32_t gColors[] = { 0xFFFF0000, 0xFF00FF00, 0xFF0000FF, 0xFFFFFFFF, 0xFF000000 };
+    float_t gPos[] = { 0.25f, 0.75f }; // 0.25f: gradient color points, 0.75f: gradient color points
+    float radius = 200; // 200: gradient color radius
+    float x = 200; // 200: x coordinate
+    float y = 200; // 200: y coordinate
+    OH_Drawing_Point* centerPt = OH_Drawing_PointCreate(x, y);
+    OH_Drawing_ShaderEffect* srcEffect =
+        OH_Drawing_ShaderEffectCreateRadialGradient(centerPt, radius, gColors, gPos, 1, OH_Drawing_TileMode::REPEAT);
+    ASSERT_TRUE(srcEffect != nullptr);
+
+    x = 500; // 500: x coordinate
+    y = 500; // 500: y coordinate
+    OH_Drawing_Point* centerPtTwo = OH_Drawing_PointCreate(x, y);
+    OH_Drawing_ShaderEffect* dstEffect =
+        OH_Drawing_ShaderEffectCreateRadialGradient(centerPtTwo, radius, gColors, gPos, 1, OH_Drawing_TileMode::REPEAT);
+    ASSERT_TRUE(dstEffect != nullptr);
+
+    OH_Drawing_ShaderEffect* effect =
+    OH_Drawing_ShaderEffectCreateCompose(dstEffect, srcEffect, OH_Drawing_BlendMode::BLEND_MODE_SRC);
+    EXPECT_NE(effect, nullptr);
+
+    OH_Drawing_ShaderEffectDestroy(srcEffect);
+    OH_Drawing_ShaderEffectDestroy(dstEffect);
+    OH_Drawing_ShaderEffectDestroy(effect);
+    OH_Drawing_PointDestroy(centerPt);
+    OH_Drawing_PointDestroy(centerPtTwo);
+}
+ 
+ /*
+  * @tc.name: OH_Drawing_ShaderEffectCreateCompose002
+  * @tc.desc: test for creates an <b>OH_Drawing_ShaderEffect</b> that generates a shader by two shaders.
+  * @tc.type: FUNC
+  * @tc.require: IAYWTV
+  */
+HWTEST_F(NativeDrawingShaderEffectTest, OH_Drawing_ShaderEffectCreateCompose002, TestSize.Level1)
+{
+    uint32_t gColors[] = { 0xFFFF0000, 0xFF00FF00, 0xFF0000FF, 0xFFFFFFFF, 0xFF000000 };
+    float_t gPos[] = { 0.25f, 0.75f }; // 0.25f: gradient color points, 0.75f: gradient color points
+    float radius = 200; // 200: gradient color radius
+    float x = 200; // 200: x coordinate
+    float y = 200; // 200: y coordinate
+    OH_Drawing_Point* centerPt = OH_Drawing_PointCreate(x, y);
+    OH_Drawing_ShaderEffect* srcEffect =
+        OH_Drawing_ShaderEffectCreateRadialGradient(centerPt, radius, gColors, gPos, 1, OH_Drawing_TileMode::REPEAT);
+    ASSERT_TRUE(srcEffect != nullptr);
+
+    x = 500; // 500: x coordinate
+    y = 500; // 500: y coordinate
+    OH_Drawing_Point* centerPtT = OH_Drawing_PointCreate(x, y);
+    OH_Drawing_ShaderEffect* dstEffect =
+        OH_Drawing_ShaderEffectCreateRadialGradient(centerPtT, radius, gColors, gPos, 1, OH_Drawing_TileMode::REPEAT);
+    ASSERT_TRUE(dstEffect != nullptr);
+
+    OH_Drawing_ShaderEffect* effect =
+        OH_Drawing_ShaderEffectCreateCompose(nullptr, srcEffect, OH_Drawing_BlendMode::BLEND_MODE_SRC);
+    EXPECT_EQ(effect, nullptr);
+
+    effect = OH_Drawing_ShaderEffectCreateCompose(dstEffect, nullptr, OH_Drawing_BlendMode::BLEND_MODE_SRC);
+    EXPECT_EQ(effect, nullptr);
+
+    OH_Drawing_ShaderEffectDestroy(srcEffect);
+    OH_Drawing_ShaderEffectDestroy(dstEffect);
+    OH_Drawing_PointDestroy(centerPt);
+    OH_Drawing_PointDestroy(centerPtT);
 }
 } // namespace Drawing
 } // namespace Rosen

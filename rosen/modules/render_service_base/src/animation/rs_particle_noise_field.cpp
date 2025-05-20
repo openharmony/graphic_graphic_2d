@@ -20,6 +20,7 @@ namespace Rosen {
 constexpr float EPSILON = 1e-3;
 constexpr float HALF = 0.5f;
 constexpr float FEATHERMAX = 100.f;
+constexpr int SQUARE_NUM = 2;
 bool ParticleNoiseField::IsPointInField(
     const Vector2f& point, const ShapeType& fieldShape, const Vector2f& fieldCenter, float width, float height)
 {
@@ -78,6 +79,23 @@ float ParticleNoiseField::CalculateDistanceToRectangleEdge(
     return distance;
 }
 
+float ParticleNoiseField::CalculateDistanceToEllipseEdge(const Vector2f& direction,
+    const Vector2f& center, const Vector2f& axes)
+{
+    if (ROSEN_EQ(direction.x_, 0.f) && ROSEN_EQ(direction.y_, 0.f)) {
+        return 0.0f;
+    }
+
+    float a = axes.x_ / 2;
+    float b = axes.y_ / 2;
+
+    float t = std::atan2(direction.y_, direction.x_);
+    float x = a * std::cos(t);
+    float y = b * std::sin(t);
+
+    return std::sqrt(std::pow(x, SQUARE_NUM) + std::pow(y, SQUARE_NUM));
+}
+
 float ParticleNoiseField::CalculateFeatherEffect(float distanceToEdge, float featherWidth)
 {
     float normalizedDistance = 1.0f;
@@ -101,7 +119,14 @@ Vector2f ParticleNoiseField::ApplyField(const Vector2f& position, float deltaTim
         float distance = direction.GetLength();
         float forceMagnitude = static_cast<float>(fieldStrength_);
         float featherWidth = fieldSize_.x_ * (fieldFeather_ / FEATHERMAX);
-        float edgeDistance = CalculateDistanceToRectangleEdge(position, direction, fieldCenter_, fieldSize_);
+        float edgeDistance = 0.f;
+        if (fieldShape_ == ShapeType::CIRCLE) {
+            edgeDistance = fieldSize_.x_;
+        } else if (fieldShape_ == ShapeType::ELLIPSE) {
+            edgeDistance = CalculateDistanceToEllipseEdge(direction, fieldCenter_, fieldSize_);
+        } else {
+            edgeDistance = CalculateDistanceToRectangleEdge(position, direction, fieldCenter_, fieldSize_);
+        }
 
         if (fieldStrength_ < 0 && !ROSEN_EQ(deltaTime, 0.f)) {
             forceMagnitude = std::max(forceMagnitude, -1.f * distance / deltaTime);

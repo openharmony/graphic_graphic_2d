@@ -1,4 +1,4 @@
-# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Copyright (c) 2023-2025 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -24,11 +24,14 @@ group("unittest") {
     ":RSHdrUtilTest",
     ":RSOcclusionHandlerTest",
     ":RSOcclusionNodeTest",
+    ":RSOpincDrawCacheTest",
     ":RSOpincManagerTest",
     ":RSSubThreadCacheTest",
     ":RSSurfaceCaptureParallelTaskTest",
     ":RSSurfaceCaptureTaskTest",
     ":RSUiCaptureTaskParallelTest",
+    ":RSUiCaptureSoloTaskParallelTest",
+    ":RSUniDirtyComputeUtilTest",
     ":RSUniHwcComputeUtilTest",
     ":RSUniHwcPrevalidateUtilTest",
     ":RSUniUiCaptureTest",
@@ -50,6 +53,9 @@ group("unittest") {
   }
   if (graphic_2d_feature_overlay_display_enable) {
     deps += [ ":OverlayDisplayTest" ]
+  }
+  if (graphic_2d_feature_enable_vulkan) {
+    deps += [ ":RSVKImageManagerTest" ]
   }
 }
 
@@ -202,6 +208,36 @@ ohos_unittest("RSUiCaptureTaskParallelTest") {
   }
 }
 
+## Build RSUiCaptureSoloTaskParallelTest
+ohos_unittest("RSUiCaptureSoloTaskParallelTest") {
+  module_out_path = module_output_path
+  sources = [
+    "$graphic_2d_root/rosen/modules/render_service_base/src/pipeline/rs_canvas_render_node.cpp",
+    "capture/rs_ui_capture_solo_task_parallel_test.cpp",
+  ]
+  deps = [ ":rs_test_common" ]
+  include_dirs = [ "../../../../../modules/render_service_base/include" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
+  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
+    external_deps += [ "sensor:sensor_interface_native" ]
+  }
+  defines = []
+  defines += gpu_defines
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    defines += [ "USE_ROSEN_DRAWING" ]
+  }
+  if (defined(use_video_processing_engine) && use_video_processing_engine) {
+    defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
+    external_deps += [
+      "drivers_interface_display:libdisplay_commontype_proxy_1.0",
+      "video_processing_engine:videoprocessingengine",
+    ]
+  }
+}
+
 ## Build RSUniUiCaptureTest
 ohos_unittest("RSUniUiCaptureTest") {
   module_out_path = module_output_path
@@ -244,6 +280,22 @@ ohos_unittest("RSUifirstManagerTest") {
   sources = [
     "$graphic_2d_root/rosen/modules/render_service_base/src/pipeline/rs_canvas_render_node.cpp",
     "uifirst/rs_uifirst_manager_test.cpp",
+  ]
+  deps = [ ":rs_test_common" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
+  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
+    external_deps += [ "sensor:sensor_interface_native" ]
+  }
+}
+
+## Build RSOpincDrawCacheTest
+ohos_unittest("RSOpincDrawCacheTest") {
+  module_out_path = module_output_path
+  sources = [
+    "opinc/rs_opinc_draw_cache_test.cpp",
   ]
   deps = [ ":rs_test_common" ]
   external_deps = [
@@ -377,6 +429,41 @@ ohos_unittest("RSUniHwcPrevalidateUtilTest") {
   sources = [
     "$graphic_2d_root/rosen/modules/render_service_base/src/pipeline/rs_canvas_render_node.cpp",
     "hwc/rs_uni_hwc_prevalidate_util_test.cpp",
+  ]
+  deps = [
+    ":rs_test_common",
+    "$graphic_2d_root/rosen/modules/render_service_base/src/platform:platform",
+  ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+    "init:libbegetutil",
+  ]
+  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
+    external_deps += [ "sensor:sensor_interface_native" ]
+    external_deps += [ "accessibility:accessibilityconfig" ]
+    external_deps += [ "accessibility:accessibility_common" ]
+  }
+  defines = []
+  defines += gpu_defines
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    defines += [ "USE_ROSEN_DRAWING" ]
+  }
+  if (defined(use_video_processing_engine) && use_video_processing_engine) {
+    include_dirs = []
+    defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
+    external_deps += [
+      "drivers_interface_display:libdisplay_commontype_proxy_1.0",
+      "video_processing_engine:videoprocessingengine",
+    ]
+  }
+}
+
+## Build RSVKImageManagerTest
+ohos_unittest("RSVKImageManagerTest") {
+  module_out_path = module_output_path
+  sources = [
+    "gpuComposition/rs_vk_image_manager_test.cpp",
   ]
   deps = [
     ":rs_test_common",
@@ -559,7 +646,37 @@ ohos_unittest("OverlayDisplayTest") {
 ## Build RSUniHwcComputeUtilTest
 ohos_unittest("RSUniHwcComputeUtilTest") {
   module_out_path = module_output_path
-  sources = [ "hwc/rs_uni_hwc_compute_util_test.cpp" ]
+  sources = [ 
+    "$graphic_2d_root/rosen/modules/render_service_base/src/pipeline/rs_canvas_render_node.cpp",
+    "hwc/rs_uni_hwc_compute_util_test.cpp",
+  ]
+  deps = [ ":rs_test_common" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
+  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
+    external_deps += [ "sensor:sensor_interface_native" ]
+  }
+  defines = []
+  defines += gpu_defines
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    defines += [ "USE_ROSEN_DRAWING" ]
+  }
+  if (defined(use_video_processing_engine) && use_video_processing_engine) {
+    include_dirs = []
+    defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
+    external_deps += [
+      "drivers_interface_display:libdisplay_commontype_proxy_1.0",
+      "video_processing_engine:videoprocessingengine",
+    ]
+  }
+}
+
+## Build RSUniDirtyComputeUtilTest
+ohos_unittest("RSUniDirtyComputeUtilTest") {
+  module_out_path = module_output_path
+  sources = [ "dirty/rs_uni_dirty_compute_util_test.cpp" ]
   deps = [ ":rs_test_common" ]
   external_deps = [
     "c_utils:utils",
@@ -590,6 +707,7 @@ config("rs_test_common_public_config") {
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/config",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/frame_rate_manager",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/hgm_screen_manager",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/soft_vsync_manager",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/utils",
     "$graphic_2d_root/rosen/modules/render_service/core",
     "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg",

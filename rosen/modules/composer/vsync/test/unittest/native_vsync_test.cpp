@@ -74,6 +74,33 @@ HWTEST_F(NativeVsyncTest, OH_NativeVSync_Create002, Function | MediumTest | Leve
 }
 
 /*
+* Function: OH_NativeVSync_Create_ForAssociatedWindow
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call OH_NativeVSync_Create_ForAssociatedWindow by abnormal input
+*                  2. check ret
+ */
+HWTEST_F(NativeVsyncTest, OH_NativeVSync_Create_ForAssociatedWindow001, Function | MediumTest | Level2)
+{
+    ASSERT_EQ(OH_NativeVSync_Create_ForAssociatedWindow(0, nullptr, 0), nullptr);
+}
+
+/*
+* Function: OH_NativeVSync_Create_ForAssociatedWindow
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call OH_NativeVSync_Create_ForAssociatedWindow
+*                  2. check ret
+ */
+HWTEST_F(NativeVsyncTest, OH_NativeVSync_Create_ForAssociatedWindow002, Function | MediumTest | Level2)
+{
+    char name[] = "test";
+    ASSERT_NE(OH_NativeVSync_Create_ForAssociatedWindow(0, name, sizeof(name)), nullptr);
+}
+
+/*
 * Function: OH_NativeVSync_RequestFrame
 * Type: Function
 * Rank: Important(2)
@@ -251,6 +278,53 @@ HWTEST_F(NativeVsyncTest, OH_NativeVSync_DVSyncSwitch002, Function | MediumTest 
 {
     ASSERT_EQ(OH_NativeVSync_DVSyncSwitch(native_vsync, true), 0);
     ASSERT_EQ(OH_NativeVSync_DVSyncSwitch(native_vsync, false), 0);
+}
+
+/*
+* Function: OH_NativeVSync_SetExpectedFrameRateRange
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. call OH_NativeVSync_SetExpectedFrameRateRange by abnormal input
+*                  2. check ret
+ */
+HWTEST_F(NativeVsyncTest, OH_NativeVSync_SetExpectedFrameRateRange001, Function | MediumTest | Level2)
+{
+    ASSERT_NE(OH_NativeVSync_SetExpectedFrameRateRange(nullptr, nullptr), 0);
+}
+ 
+/*
+* Function: OH_NativeVSync_SetExpectedFrameRateRange
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call OH_NativeVSync_SetExpectedFrameRateRange by abnormal input
+*                  2. check ret
+ */
+ HWTEST_F(NativeVsyncTest, OH_NativeVSync_SetExpectedFrameRateRange002, Function | MediumTest | Level2)
+{
+    OH_NativeVSync_ExpectedRateRange range = {0, 160, 0};
+    ASSERT_NE(OH_NativeVSync_SetExpectedFrameRateRange(native_vsync, &range), 0);
+    range = {-60, 120, 120};
+    ASSERT_NE(OH_NativeVSync_SetExpectedFrameRateRange(native_vsync, &range), 0);
+    range = {60, 30, 30};
+    ASSERT_NE(OH_NativeVSync_SetExpectedFrameRateRange(native_vsync, &range), 0);
+    range = {0, 60, 120};
+    ASSERT_NE(OH_NativeVSync_SetExpectedFrameRateRange(native_vsync, &range), 0);
+}
+ 
+/*
+* Function: OH_NativeVSync_SetExpectedFrameRateRange
+* Type: Function
+* Rank: Important(3)
+* EnvConditions: N/A
+* CaseDescription: 1. call OH_NativeVSync_SetExpectedFrameRateRange
+*                  2. check ret
+ */
+ HWTEST_F(NativeVsyncTest, OH_NativeVSync_SetExpectedFrameRateRange003, Function | MediumTest | Level2)
+{
+    OH_NativeVSync_ExpectedRateRange range = {60, 120, 120};
+    ASSERT_EQ(OH_NativeVSync_SetExpectedFrameRateRange(native_vsync, &range), 0);
 }
 
 /*

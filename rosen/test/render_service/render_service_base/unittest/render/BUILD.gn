@@ -26,7 +26,62 @@ ohos_unittest("RSAibarShaderFilterTest") {
     "rs_aibar_shader_filter_test.cpp",
     "rs_attraction_effect_filter_test.cpp",
     "rs_blur_filter_test.cpp",
+    "rs_color_gradient_shader_filter_test.cpp",
     "rs_filter_cache_manager_test.cpp",
+    "rs_render_color_gradient_filter_test.cpp",
+  ]
+
+  cflags = [
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+
+  configs = [
+    ":render_test",
+    "$graphic_2d_root/rosen/modules/render_service_base:export_config",
+  ]
+
+  include_dirs = [
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
+    "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing/engine_adapter/skia_adapter/",
+    "$graphic_2d_root/rosen/include",
+    "$graphic_2d_root/rosen/test/include",
+    "$graphic_2d_root/rosen/modules/platform/eventhandler",
+    "$graphic_2d_root/utils/log",
+  ]
+
+  deps = [
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_base:render_service_base_src",
+  ]
+  external_deps = [
+    "c_utils:utils",
+    "googletest:gmock",
+    "googletest:gtest_main",
+    "graphic_surface:surface",
+    "graphics_effect:graphics_effect_core",
+    "hilog:libhilog",
+    "image_framework:image_native",
+    "init:libbegetutil",
+    "skia:skia_canvaskit",
+  ]
+
+  if (use_video_processing_engine) {
+    external_deps +=
+        [ "drivers_interface_display:display_commontype_idl_headers" ]
+    defines = [ "USE_VIDEO_PROCESSING_ENGINE" ]
+    external_deps += [ "video_processing_engine:videoprocessingengine" ]
+  }
+
+  subsystem_name = "graphic"
+}
+
+##############################  RSRenderServiceBaseRenderTest  ##################################
+ohos_unittest("RSAlwaysSnapshotShaderFilterTest") {
+  module_out_path = module_output_path
+
+  sources = [
+    "rs_always_snapshot_shader_filter_test.cpp",
   ]
 
   cflags = [
@@ -192,6 +247,7 @@ ohos_unittest("RSColorfulShadowFilterTest") {
     "rs_fly_out_shader_filter_test.cpp",
     "rs_foreground_effect_filter_test.cpp",
     "rs_image_base_test.cpp",
+    "rs_sound_wave_filter_test.cpp",
   ]
 
   cflags = [
@@ -206,6 +262,7 @@ ohos_unittest("RSColorfulShadowFilterTest") {
 
   include_dirs = [
     "$graphic_2d_root/rosen/modules/render_service_base/include",
+    "$graphic_2d_root/rosen/modules/render_service_base/src",
     "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing/engine_adapter/skia_adapter/",
     "$graphic_2d_root/rosen/include",
     "$graphic_2d_root/rosen/test/include",
@@ -659,6 +716,14 @@ ohos_unittest("RSMaterialFilterTest") {
     "rs_motion_blur_filter_test.cpp",
     "rs_path_test.cpp",
     "rs_pixel_map_shader_test.cpp",
+    "rs_render_blur_filter_test.cpp",
+    "rs_render_displacement_distort_filter_test.cpp",
+    "rs_render_edge_light_filter_test.cpp",
+    "rs_render_filter_test.cpp",
+    "rs_render_filter_base_test.cpp",
+    "rs_render_ripple_mask_test.cpp",
+    "rs_render_sound_wave_filter_test.cpp",
+    "rs_shader_mask_test.cpp",
   ]
 
   cflags = [
@@ -713,6 +778,7 @@ ohos_unittest("RSPixelMapUtilTest") {
   sources = [
     "rs_pixel_map_util_test.cpp",
     "rs_shader_test.cpp",
+    "rs_complex_shader_test.cpp",
     "rs_shadow_test.cpp",
     "rs_skia_filter_test.cpp",
     "rs_spherize_effect_filter_test.cpp",

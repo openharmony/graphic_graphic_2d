@@ -179,6 +179,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     int32_t repCode = GetData<int32_t>();
     uint32_t retureCode = GetData<uint32_t>();
     bool success = GetData<bool>();
+    int32_t expectedFrameRate = GetData<int32_t>();
 
     rsRenderServiceConnectionProxy.CommitTransaction(transactionData);
     rsRenderServiceConnectionProxy.ExecuteSynchronousTask(task);
@@ -275,6 +276,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     rsRenderServiceConnectionProxy.NotifyTouchEvent(pid1, uid);
     rsRenderServiceConnectionProxy.NotifyDynamicModeEvent(true);
     rsRenderServiceConnectionProxy.NotifyHgmConfigEvent(name, true);
+    rsRenderServiceConnectionProxy.NotifyXComponentExpectedFrameRate(name, expectedFrameRate);
     rsRenderServiceConnectionProxy.ReportEventResponse(info);
     rsRenderServiceConnectionProxy.ReportEventComplete(info);
     rsRenderServiceConnectionProxy.ReportEventJankFrame(info);
@@ -353,6 +355,30 @@ bool DoSetOverlayDisplayModeFuzzTest(const uint8_t* data, size_t size)
     return true;
 }
 #endif
+
+bool DoBehindWindowFilterEnabled(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    // get data
+    bool enabled = GetData<bool>();
+    bool res = GetData<bool>();
+
+    // test
+    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
+    RSRenderServiceConnectionProxy rsRenderServiceConnectionProxy(remoteObject);
+    rsRenderServiceConnectionProxy.SetBehindWindowFilterEnabled(enabled);
+    rsRenderServiceConnectionProxy.GetBehindWindowFilterEnabled(res);
+    return true;
+}
 } // namespace Rosen
 } // namespace OHOS
 
@@ -367,5 +393,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
     OHOS::Rosen::DoSetOverlayDisplayModeFuzzTest(data, size);
 #endif
+    OHOS::Rosen::DoBehindWindowFilterEnabled(data, size);
     return 0;
 }

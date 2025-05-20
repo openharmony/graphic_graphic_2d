@@ -1005,6 +1005,43 @@ bool DoSetSourceVirtualDisplayId(const uint8_t* data, size_t size)
     surfaceNode->SetSourceVirtualDisplayId(screenId);
     return true;
 }
+
+bool DoSetFrameGravityNewVersionEnabled(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    // test
+    RSSurfaceNodeConfig config;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
+    bool isEnabled = GetData<bool>();
+    surfaceNode->SetFrameGravityNewVersionEnabled(isEnabled);
+    return true;
+}
+
+bool DoGetFrameGravityNewVersionEnabled(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    // test
+    RSSurfaceNodeConfig config;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
+    surfaceNode->GetFrameGravityNewVersionEnabled();
+    return true;
+}
 } // namespace Rosen
 } // namespace OHOS
 
@@ -1058,6 +1095,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoSetHidePrivacyContent(data, size);
     OHOS::Rosen::DoSetHardwareEnableHint(data, size);
     OHOS::Rosen::DoSetSourceVirtualDisplayId(data, size);
+    OHOS::Rosen::DoSetFrameGravityNewVersionEnabled(data, size);
+    OHOS::Rosen::DoGetFrameGravityNewVersionEnabled(data, size);
     return 0;
 }
 
