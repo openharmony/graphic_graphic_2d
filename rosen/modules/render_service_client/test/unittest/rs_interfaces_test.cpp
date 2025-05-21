@@ -2427,7 +2427,7 @@ HWTEST_F(RSInterfacesTest, TakeSurfaceCaptureTest, Function | SmallTest | Level2
     ASSERT_NE(rsInterfaces, nullptr);
     std::shared_ptr<RSDisplayNode> displayNode;
     std::shared_ptr<SurfaceCaptureCallback> callback;
-    RSSurfaceCaptureConfig captureConfig
+    RSSurfaceCaptureConfig captureConfig;
 
     int32_t ret = rsInterfaces->TakeSurfaceCapture(displayNode, callback, captureConfig);
     EXPECT_EQ(ret, false);
