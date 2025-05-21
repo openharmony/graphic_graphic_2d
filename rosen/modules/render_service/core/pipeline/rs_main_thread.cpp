@@ -1181,11 +1181,13 @@ void RSMainThread::ProcessCommandForUniRender()
     }
     for (auto& rsTransactionElem: *transactionDataEffective) {
         for (auto& rsTransaction: rsTransactionElem.second) {
-            if (rsTransaction) {
-                if (rsTransaction->IsNeedSync() || syncTransactionData_.count(rsTransactionElem.first) > 0) {
-                    ProcessSyncRSTransactionData(rsTransaction, rsTransactionElem.first);
-                    continue;
-                }
+            // If this transaction is marked as requiring synchronization and the SyncId for synchronization is not
+            // 0, or if there have been previous transactions of this process considered as synchronous, then all
+            // subsequent transactions of this process will be synchronized.
+            if (rsTransaction && ((rsTransaction->IsNeedSync() && rsTransaction->GetSyncId() > 0) ||
+                syncTransactionData_.count(rsTransactionElem.first)) > 0) {
+                ProcessSyncRSTransactionData(rsTransaction, rsTransactionElem.first);
+            } else if (rsTransaction) {
                 ProcessRSTransactionData(rsTransaction, rsTransactionElem.first);
             }
         }
