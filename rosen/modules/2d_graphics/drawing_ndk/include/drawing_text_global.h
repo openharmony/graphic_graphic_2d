@@ -60,7 +60,7 @@ typedef enum {
 
 /**
  * @brief Visual representations for undefined (.notdef) glyphs.
- * 
+ *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @since 20
  */
@@ -82,7 +82,7 @@ void OH_Drawing_SetTextHighContrast(OH_Drawing_TextHighContrast action);
 
 /**
  * @brief Controls how undefined glyphs are visually presented, affects all text rendered after this call.
- * 
+ *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param noGlyphShow Indicates a <b>OH_Drawing_NoGlyphShow</b> to be set.
  * @since 20
