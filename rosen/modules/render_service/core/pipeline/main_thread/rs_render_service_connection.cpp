@@ -700,6 +700,7 @@ ScreenId RSRenderServiceConnection::CreateVirtualScreen(
     if (surface != nullptr) {
         EventInfo event = { "VOTER_VIRTUALDISPLAY", ADD_VOTE, OLED_60_HZ, OLED_60_HZ, name };
         NotifyRefreshRateEvent(event);
+        ROSEN_LOGE("RSRenderServiceConnection::%{public}s vote 60hz", __func__);
     }
     return newVirtualScreenId;
 }

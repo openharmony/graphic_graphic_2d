@@ -664,6 +664,7 @@ ScreenId RSRenderServiceConnectionProxy::CreateVirtualScreen(
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_VIRTUAL_SCREEN);
     int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::%{public}s: Send Request err.", __func__);
         return INVALID_SCREEN_ID;
     }
 

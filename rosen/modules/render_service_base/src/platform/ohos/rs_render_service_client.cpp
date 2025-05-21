@@ -466,6 +466,7 @@ ScreenId RSRenderServiceClient::CreateVirtualScreen(
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
+        RS_LOGE("RSRenderServiceClient::%{public}s renderService is null!", __func__);
         return INVALID_SCREEN_ID;
     }
 
@@ -476,6 +477,7 @@ int32_t RSRenderServiceClient::SetVirtualScreenBlackList(ScreenId id, std::vecto
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
+        RS_LOGE("RSRenderServiceClient::%{public}s renderService is null!", __func__);
         return RENDER_SERVICE_NULL;
     }
 
@@ -497,6 +499,7 @@ int32_t RSRenderServiceClient::AddVirtualScreenBlackList(ScreenId id, std::vecto
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
+        RS_LOGE("RSRenderServiceClient::%{public}s renderService is null!", __func__);
         return RENDER_SERVICE_NULL;
     }
     int32_t repCode;
@@ -508,6 +511,7 @@ int32_t RSRenderServiceClient::RemoveVirtualScreenBlackList(ScreenId id, std::ve
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
+        RS_LOGE("RSRenderServiceClient::%{public}s renderService is null!", __func__);
         return RENDER_SERVICE_NULL;
     }
     int32_t repCode;
