@@ -26,3 +26,12 @@ void OH_Drawing_SetTextHighContrast(OH_Drawing_TextHighContrast action)
         TEXT_LOGE("Failed to set text high contrast");
     }
 }
+
+
+void OH_Drawing_SetNoGlyphShow(OH_Drawing_NoGlyphShow noGlyphShow)
+{
+    auto result = TextGlobalConfig::SetTextNoGlyphShow(static_cast<uint32_t>(noGlyphShow));
+    if (result != TEXT_SUCCESS) {
+        TEXT_LOGE("Failed to set text high contrast");
+    }
+}

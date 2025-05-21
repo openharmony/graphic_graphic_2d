@@ -25,6 +25,7 @@ public:
 
     static napi_value Init(napi_env env, napi_value exportObj);
     static napi_value SetTextHighContrast(napi_env env, napi_callback_info info);
+    static napi_value SetTextNoGlyphShow(napi_env env, napi_callback_info info);
 };
 }
 #endif

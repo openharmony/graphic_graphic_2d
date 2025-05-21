@@ -58,6 +58,18 @@ typedef enum {
     TEXT_APP_ENABLE_HIGH_CONTRAST
 } OH_Drawing_TextHighContrast;
 
+/**
+ * @brief Visual representations for undefined (.notdef) glyphs.
+ * 
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @since 20
+ */
+typedef enum {
+    /** Uses the glyph defined in the font file, which could be an empty box, blank space, or custom symbol etc. */
+    OH_DRAWING_NO_GLYPH_USE_DEFAULT = 0,
+    /** Always render tofu blocks for missing glyphs. */
+    OH_DRAWING_NO_GLYPH_USE_TOFU
+} OH_Drawing_NoGlyphShow;
 
 /**
  * @brief Sets high contrast mode of text rendering.
@@ -68,6 +80,15 @@ typedef enum {
  */
 void OH_Drawing_SetTextHighContrast(OH_Drawing_TextHighContrast action);
 
+/**
+ * @brief Controls how undefined glyphs are visually presented, affects all text rendered after this call.
+ * 
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param noGlyphShow Indicates a <b>OH_Drawing_NoGlyphShow</b> to be set.
+ * @since 20
+ * @version 1.0
+ */
+void OH_Drawing_SetNoGlyphShow(OH_Drawing_NoGlyphShow noGlyphShow);
 #ifdef __cplusplus
 }
 #endif
