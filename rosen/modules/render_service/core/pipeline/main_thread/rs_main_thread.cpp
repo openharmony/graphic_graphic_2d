@@ -1616,8 +1616,10 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
             bool needConsume = true;
             bool enableAdaptive = rsVSyncDistributor_->AdaptiveDVSyncEnable(
                 surfaceNode->GetName(), timestamp_, surfaceHandler->GetAvailableBufferCount(), needConsume);
+            auto parentNode = surfaceNode->GetParent().lock();
             if (RSBaseRenderUtil::ConsumeAndUpdateBuffer(*surfaceHandler, timestamp_,
-                    IsNeedDropFrameByPid(surfaceHandler->GetNodeId()), enableAdaptive, needConsume, surfaceNode)) {
+                    IsNeedDropFrameByPid(surfaceHandler->GetNodeId()), enableAdaptive, needConsume,
+                    parentNode ? parentNode->GetId() : 0)) {
                 if (!isUniRender_) {
                     this->dividedRenderbufferTimestamps_[surfaceNode->GetId()] =
                         static_cast<uint64_t>(surfaceHandler->GetTimestamp());
