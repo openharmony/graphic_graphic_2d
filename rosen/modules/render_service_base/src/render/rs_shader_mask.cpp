@@ -34,13 +34,21 @@ std::shared_ptr<Drawing::GEShaderMask> RSShaderMask::GenerateGEShaderMask() cons
     switch (renderMask_->GetType()) {
         case RSUIFilterType::RIPPLE_MASK: {
             auto rippleMask = std::static_pointer_cast<RSRenderRippleMaskPara>(renderMask_);
-            auto center = rippleMask->GetAnimatRenderProperty<Vector2f>(RSUIFilterType::RIPPLE_MASK_CENTER)->Get();
-            auto radius = rippleMask->GetAnimatRenderProperty<float>(RSUIFilterType::RIPPLE_MASK_RADIUS)->Get();
-            auto width  = rippleMask->GetAnimatRenderProperty<float>(RSUIFilterType::RIPPLE_MASK_WIDTH)->Get();
+            if (!rippleMask) {
+                ROSEN_LOGE("RSShaderMask::GenerateGEShaderMask rippleMask null");
+                return nullptr;
+            }
+            auto center = rippleMask->GetAnimatRenderProperty<Vector2f>(RSUIFilterType::RIPPLE_MASK_CENTER);
+            auto radius = rippleMask->GetAnimatRenderProperty<float>(RSUIFilterType::RIPPLE_MASK_RADIUS);
+            auto width  = rippleMask->GetAnimatRenderProperty<float>(RSUIFilterType::RIPPLE_MASK_WIDTH);
             auto widthCenterOffset =
-                rippleMask->GetAnimatRenderProperty<float>(RSUIFilterType::RIPPLE_MASK_WIDTH_CENTER_OFFSET)->Get();
-            Drawing::GERippleShaderMaskParams maskParam { std::make_pair(center.x_, center.y_), radius, width,
-                widthCenterOffset };
+                rippleMask->GetAnimatRenderProperty<float>(RSUIFilterType::RIPPLE_MASK_WIDTH_CENTER_OFFSET);
+            if (!center || !radius || !width || !widthCenterOffset) {
+                ROSEN_LOGE("RSShaderMask::GenerateGEShaderMask property null");
+                return nullptr;
+            }
+            Drawing::GERippleShaderMaskParams maskParam { std::make_pair(center->Get().x_, center->Get().y_),
+                radius->Get(), width->Get(), widthCenterOffset->Get() };
             return std::make_shared<Drawing::GERippleShaderMask>(maskParam);
         }
         default: {
@@ -63,6 +71,7 @@ void RSShaderMask::CalHash()
     switch (renderMask_->GetType()) {
         case RSUIFilterType::RIPPLE_MASK: {
             auto rippleMask = std::static_pointer_cast<RSRenderRippleMaskPara>(renderMask_);
+            if (!rippleMask) { return; }
             auto centerProp = rippleMask->GetAnimatRenderProperty<Vector2f>(RSUIFilterType::RIPPLE_MASK_CENTER);
             auto radiusProp = rippleMask->GetAnimatRenderProperty<float>(RSUIFilterType::RIPPLE_MASK_RADIUS);
             auto widthProp = rippleMask->GetAnimatRenderProperty<float>(RSUIFilterType::RIPPLE_MASK_WIDTH);

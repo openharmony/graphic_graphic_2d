@@ -12,11 +12,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- #ifndef UIEFFECT_RIPPLE_MASK_PARA_H
- #define UIEFFECT_RIPPLE_MASK_PARA_H
- #include "ui_effect/mask/include/mask_para.h"
- #include "common/rs_vector2.h"
- #include "ui_effect/utils.h"
+#ifndef UIEFFECT_RIPPLE_MASK_PARA_H
+#define UIEFFECT_RIPPLE_MASK_PARA_H
+#include "ui_effect/mask/include/mask_para.h"
+#include "common/rs_vector2.h"
+#include "ui_effect/utils.h"
 
 namespace OHOS {
 namespace Rosen {

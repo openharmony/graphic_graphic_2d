@@ -44,8 +44,8 @@ public:
         FLY_OUT,
         DISTORT,
         RADIUS_GRADIENT_BLUR,
-        COLOR_GRADIENT,
         DISPLACEMENT_DISTORT,
+        COLOR_GRADIENT,
         SOUND_WAVE,
         EDGE_LIGHT,
     };
