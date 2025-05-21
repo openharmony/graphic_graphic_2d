@@ -39,7 +39,12 @@
 #endif
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+#ifdef USE_M133_SKIA
+#include "include/gpu/ganesh/GrBackendSemaphore.h"
+#include "include/gpu/ganesh/GrVkBackendSemaphore.h"
+#else
 #include "include/gpu/GrBackendSemaphore.h"
+#endif
 #endif
 #include "common/rs_rect.h"
 #include "utils/graphic_coretrace.h"

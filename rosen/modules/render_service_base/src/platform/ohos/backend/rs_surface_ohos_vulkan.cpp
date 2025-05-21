@@ -21,7 +21,6 @@
 #include "native_buffer_inner.h"
 #include "native_window.h"
 #include "vulkan/vulkan_core.h"
-#include "include/gpu/GrBackendSemaphore.h"
 #include "platform/common/rs_log.h"
 #include "window.h"
 #include "platform/common/rs_system_properties.h"
@@ -32,8 +31,10 @@
 
 #ifdef USE_M133_SKIA
 #include "include/gpu/ganesh/GrDirectContext.h"
+#include "include/gpu/ganesh/vk/GrVkBackendSemaphore.h"
 #else
 #include "include/gpu/GrDirectContext.h"
+#include "include/gpu/GrBackendSemaphore.h"
 #endif
 
 namespace OHOS {
