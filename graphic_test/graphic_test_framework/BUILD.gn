@@ -76,6 +76,7 @@ ohos_source_set("rs_graphic_test_src") {
   ]
 
   public_external_deps = [
+    "cJSON:cjson",
     "googletest:gtest",
     "graphic_surface:surface",
     "graphics_effect:graphics_effect_core",
