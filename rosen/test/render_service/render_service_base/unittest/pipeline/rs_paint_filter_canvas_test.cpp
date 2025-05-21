@@ -1788,7 +1788,7 @@ HWTEST_F(RSPaintFilterCanvasTest, CacheBehindWindowDataTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: isEffectIntersectWithDRMTest
+ * @tc.name: IsEffectIntersectWithDRMTest
  * @tc.desc: SetEffectIntersectWithDRM/GetIntersectWithDRM
  * @tc.type:FUNC
  * @tc.require:issuesIC0HM8
@@ -1800,6 +1800,21 @@ HWTEST_F(RSPaintFilterCanvasTest, IsEffectIntersectWithDRMTest, TestSize.Level1)
     EXPECT_EQ(paintFilterCanvas_->isIntersectWithDRM_, false);
     paintFilterCanvas_->SetEffectIntersectWithDRM(true);
     EXPECT_EQ(paintFilterCanvas_->isIntersectWithDRM_, true);
+}
+
+/**
+ * @tc.name: IsDarkColorModeTest
+ * @tc.desc: SetDarkColorMode/GetDarkColorMode
+ * @tc.type:FUNC
+ * @tc.require:issuesIC0HM8
+ */
+HWTEST_F(RSPaintFilterCanvasTest, IsDarkColorModeTestTest, TestSize.Level1)
+{
+    ASSERT_NE(paintFilterCanvas_, nullptr);
+    paintFilterCanvas_->SetDarkColorMode(false);
+    EXPECT_EQ(paintFilterCanvas_->isDarkColorMode_, false);
+    paintFilterCanvas_->SetDarkColorMode(true);
+    EXPECT_EQ(paintFilterCanvas_->isDarkColorMode_, true);
 }
 } // namespace Rosen
 } // namespace OHOS
