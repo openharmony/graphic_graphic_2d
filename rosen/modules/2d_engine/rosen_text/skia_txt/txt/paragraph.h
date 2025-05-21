@@ -197,7 +197,12 @@ public:
     virtual std::vector<std::unique_ptr<SPText::TextLineBase>> GetTextLines() const = 0;
     virtual std::unique_ptr<Paragraph> CloneSelf() = 0;
     virtual TextStyle SkStyleToTextStyle(const skia::textlayout::TextStyle& skStyle) = 0;
+#ifdef USE_M133_SKIA
+    virtual void UpdateColor(size_t from, size_t to, const RSColor& color,
+        skia::textlayout::UtfEncodeType encodeType = skia::textlayout::UtfEncodeType::kUtf8) = 0;
+#else
     virtual void UpdateColor(size_t from, size_t to, const RSColor& color) = 0;
+#endif
     virtual Range<size_t> GetEllipsisTextRange() = 0;
     virtual OHOS::Rosen::Drawing::RectI GeneratePaintRegion(double x, double y) = 0;
     virtual void Relayout(double width, const ParagraphStyle& paragrahStyle,

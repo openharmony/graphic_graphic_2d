@@ -201,7 +201,7 @@ std::shared_ptr<Typeface> SkiaTypeface::MakeFromFile(const char path[], int inde
         return nullptr;
     }
 #ifdef USE_M133_SKIA
-    auto skFontMgr = SkFontMgr::RefEmpty();
+    auto skFontMgr = SkFontMgr::RefDefault();
     if (!skFontMgr) {
         LOGD("SkiaTypeface::MakeFromFile, skFontMgr is nullptr.");
         return nullptr;
