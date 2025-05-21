@@ -2431,11 +2431,6 @@ HWTEST_F(RSInterfacesTest, TakeSurfaceCaptureTest, Function | SmallTest | Level2
 
     int32_t ret = rsInterfaces->TakeSurfaceCapture(displayNode, callback, captureConfig);
     EXPECT_EQ(ret, false);
-
-    std::shared_ptr<RSDisplayNode> displayNode1 = std::make_shared<RSDisplayNode>();
-    int32_t ret = rsInterfaces->TakeSurfaceCapture(displayNode, callback, captureConfig);
-    EXPECT_EQ(ret, true);
-
 }
 
 /*
