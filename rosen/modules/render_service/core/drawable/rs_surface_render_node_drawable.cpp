@@ -195,7 +195,8 @@ void RSSurfaceRenderNodeDrawable::DrawMagnificationRegion(
 {
     Drawing::Surface* drawingSurface = canvas.GetSurface();
     if (drawingSurface == nullptr) {
-        ROSEN_LOGE("RSSurfaceRenderNodeDrawable::DrawMagnificationRegion, drawingSurface is nullptr");
+        RS_LOGE("RSSurfaceRenderNodeDrawable::DrawMagnificationRegion, drawingSurface is nullptr");
+        RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::DrawMagnificationRegion, drawingSurface is nullptr");
         return;
     }
 
@@ -204,7 +205,8 @@ void RSSurfaceRenderNodeDrawable::DrawMagnificationRegion(
     RectI magnifingRectI(std::ceil(regionToBeMagnified.x_), std::ceil(regionToBeMagnified.y_),
         std::floor(regionToBeMagnified.z_), std::floor(regionToBeMagnified.w_));
     if (magnifingRectI.IsEmpty()) {
-        ROSEN_LOGE("RSSurfaceRenderNodeDrawable::DrawMagnificationRegion, regionToBeMagnified is empty");
+        RS_LOGE("RSSurfaceRenderNodeDrawable::DrawMagnificationRegion, regionToBeMagnified is empty");
+        RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::DrawMagnificationRegion, regionToBeMagnified is empty");
         return;
     }
 
@@ -229,7 +231,7 @@ void RSSurfaceRenderNodeDrawable::DrawMagnificationRegion(
 
     /* Magnify */
     auto frame = surfaceParams.GetFrameRect();
-    canvas.DrawImageRect(*imageSnapshot, frame, Drawing::SamplingOptions());
+    canvas.DrawImageRect(*imageSnapshot, frame, samplingOptions);
     canvas.DetachBrush();
 
     return ;

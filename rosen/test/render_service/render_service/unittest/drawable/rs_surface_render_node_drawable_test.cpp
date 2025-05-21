@@ -1361,4 +1361,39 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, UpdateSurfaceDirtyRegion, TestSize.Lev
     Drawing::Region region = surfaceDrawable_->GetSurfaceDrawRegion();
     EXPECT_TRUE(region.IsEmpty());
 }
+
+/**
+ * @tc.name: DrawMagnificationRegion
+ * @tc.desc: Test DrawMagnificationRegion
+ * @tc.type: FUNC
+ * @tc.require: issueIAEDYI
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, DrawMagnificationRegionTest, TestSize.Level1)
+{
+    std::shared_ptr<Drawing::Surface> surface = Drawing::Surface::MakeRasterN32Premul(500, 1000);
+    ASSERT_NE(surface, nullptr);
+    RSPaintFilterCanvas canvas(surface.get());
+
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable_->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+
+    /* RSSurfaceRenderNodeDrawable::DrawMagnificationRegion abnormal case1 */
+    surfaceParams->frameRect_ = {0, 0, 100, 100};
+    surfaceParams->regionToBeMagnified_ = {0, 0, 0, 0};
+    surfaceParams->rsSurfaceNodeType_ = RSSurfaceNodeType::ABILITY_MAGNIFICATION_NODE;
+    surfaceDrawable_->DrawMagnificationRegion(canvas, *surfaceParams);
+
+    /* RSSurfaceRenderNodeDrawable::DrawMagnificationRegion abnormal case2 */
+    surfaceParams->frameRect_ = {0, 0, 100, 100};
+    surfaceParams->regionToBeMagnified_ = {1000, 1500, 100, 100};
+    surfaceParams->rsSurfaceNodeType_ = RSSurfaceNodeType::ABILITY_MAGNIFICATION_NODE;
+    surfaceDrawable_->DrawMagnificationRegion(canvas, *surfaceParams);
+
+    /* RSSurfaceRenderNodeDrawable::DrawMagnificationRegion base case */
+    surfaceParams->frameRect_ = {0, 0, 100, 100};
+    surfaceParams->regionToBeMagnified_ = {0, 0, 50, 50};
+    surfaceParams->rsSurfaceNodeType_ = RSSurfaceNodeType::ABILITY_MAGNIFICATION_NODE;
+    surfaceDrawable_->DrawMagnificationRegion(canvas, *surfaceParams);
+}
 }
