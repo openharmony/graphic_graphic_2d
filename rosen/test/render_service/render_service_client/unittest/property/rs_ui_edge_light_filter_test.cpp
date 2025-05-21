@@ -55,8 +55,7 @@ HWTEST_F(RSUIEdgeLightFilterTest, Equal001, TestSize.Level1)
  */
 HWTEST_F(RSUIEdgeLightFilterTest, Dump001, TestSize.Level1)
 {
-    std::string temp = 
-        "RSUIEdgeLightFilterPara:[alpha:0.500000 color:rgba[0.500000, 0.500000, 0.500000, 0.500000]]";
+    std::string temp = "RSUIEdgeLightFilterPara:[alpha:0.500000, ColorRGBA(0.500000, 0.500000, 0.500000, 0.500000)]";
 
     auto edgeLightPara = std::make_shared<EdgeLightPara>();
 
