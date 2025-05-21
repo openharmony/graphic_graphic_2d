@@ -140,7 +140,7 @@ GRAPHIC_N_TEST(RSScreenCaptureTest, CONTENT_DISPLAY_TEST, DISPLAY_NODE_CAPTURE_T
     auto csurface = IConsumerSurface::Create();
     auto producer = csurface->GetProducer();
     auto psurface = Surface::CreateSurfaceAsProducer(producer);
-    ScreenId screenId = RSInterfaces::GetInstance().CreateVirtualScreen("TestVirtualScreen", width, height, psurface
+    ScreenId screenId = RSInterfaces::GetInstance().CreateVirtualScreen("TestVirtualScreen", width, height, psurface,
         INVALID_SCREEN_ID, -1, {});
     if (screenId == INVALID_SCREEN_ID) {
         LOGE("CreateVirtualScreen failed");
@@ -206,7 +206,7 @@ GRAPHIC_N_TEST(RSScreenCaptureTest, CONTENT_DISPLAY_TEST, DISPLAY_NODE_CAPTURE_T
     auto csurface = IConsumerSurface::Create();
     auto producer = csurface->GetProducer();
     auto psurface = Surface::CreateSurfaceAsProducer(producer);
-    ScreenId screenId = RSInterfaces::GetInstance().CreateVirtualScreen("TestVirtualScreen", width, height, psurface
+    ScreenId screenId = RSInterfaces::GetInstance().CreateVirtualScreen("TestVirtualScreen", width, height, psurface,
         INVALID_SCREEN_ID, -1, {});
     if (screenId == INVALID_SCREEN_ID) {
         LOGE("CreateVirtualScreen failed");
