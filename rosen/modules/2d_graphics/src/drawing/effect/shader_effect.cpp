@@ -134,7 +134,7 @@ ShaderEffect::ShaderEffect(ShaderEffectType t, const float& lightUpDeg, ShaderEf
 
 /* ExtendShader */
 ShaderEffect::ShaderEffect(ShaderEffectType t, std::shared_ptr<ExtendObject> object) noexcept
-    : type_(t), object_(object) {}
+    : type_(t), impl_(ImplFactory::CreateShaderEffectImpl()), object_(object) {}
 
 /* SdfShader */
 ShaderEffect::ShaderEffect(ShaderEffectType t, const SDFShapeBase& shape) noexcept
