@@ -20,7 +20,6 @@
 #include "rs_graphic_test_utils.h"
 
 #include "transaction/rs_interfaces.h"
-#include "ui/rs_canvas_node.h"
 
 using namespace testing;
 using namespace testing::ext;
