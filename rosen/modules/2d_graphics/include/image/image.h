@@ -242,7 +242,6 @@ public:
     Image() noexcept;
     // constructor adopt a raw image ptr, using for ArkUI, should remove after enable multi-media image decode.
     explicit Image(void* rawImg) noexcept;
-    explicit Image(std::shared_ptr<ImageImpl> imageImpl);
     virtual ~Image() {};
     bool BuildFromBitmap(const Bitmap& bitmap);
 
