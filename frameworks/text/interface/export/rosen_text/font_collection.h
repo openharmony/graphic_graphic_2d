@@ -49,7 +49,7 @@ public:
     virtual LoadSymbolErrorCode LoadSymbolFont(const std::string& familyName, const uint8_t* data, size_t datalen) = 0;
     virtual LoadSymbolErrorCode LoadSymbolJson(const std::string& familyName, const uint8_t* data, size_t datalen) = 0;
     virtual void ClearCaches() = 0;
-    virtual void UnLoadFont(const std::string& familyName) = 0;
+    virtual void UnloadFont(const std::string& familyName) = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

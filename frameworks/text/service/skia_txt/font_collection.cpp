@@ -217,10 +217,8 @@ void FontCollection::ClearCaches()
     fontCollection_->ClearFontFamilyCache();
 }
 
-void FontCollection::UnLoadFont(const std::string& familyName)
+void FontCollection::UnloadFont(const std::string& familyName)
 {
-    dfmanager_->LoadDynamicFont(familyName, nullptr, 0);
-    fontCollection_->ClearFontFamilyCache();
     if (Drawing::Typeface::GetTypefaceUnRegisterCallBack() == nullptr) {
         return;
     }
@@ -230,6 +228,8 @@ void FontCollection::UnLoadFont(const std::string& familyName)
         if (it->GetAlias() == familyName) {
             Drawing::Typeface::GetTypefaceUnRegisterCallBack()(it->GetTypeface());
             FontDescriptorMgrInstance.DeleteDynamicTypefaceFromCache(familyName);
+            dfmanager_->LoadDynamicFont(familyName, nullptr, 0);
+            fontCollection_->ClearFontFamilyCache();
             familyNames_.erase(it->GetHash());
             typefaceSet_.erase(it++);
         } else {

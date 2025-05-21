@@ -35,7 +35,7 @@ void FontCollectionFuzzTest(const uint8_t* data, size_t size)
     fc->DisableSystemFont();
     fc->GetFontMgr();
     fc->LoadFont(fdp.ConsumeRandomLengthString(), fontData.get(), datalen);
-    fc->UnLoadFont(fdp.ConsumeRandomLengthString());
+    fc->UnloadFont(fdp.ConsumeRandomLengthString());
     fc->LoadSymbolFont(fdp.ConsumeRandomLengthString(), fontData.get(), datalen);
     fc->LoadThemeFont(fdp.ConsumeRandomLengthString(), fontData.get(), datalen);
     fc->ClearThemeFont();

@@ -304,7 +304,7 @@ HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest008, TestSi
     ASSERT_NE(styleSet, nullptr);
     EXPECT_EQ(styleSet->Count(), 1);
     EXPECT_EQ(styleSet->CreateTypeface(0)->GetFamilyName(), sansFamily_);
-    fontCollection_->UnLoadFont(familyName);
+    fontCollection_->UnloadFont(familyName);
     EXPECT_EQ(fontMgr_->CountFamilies(), 0);
 }
 
@@ -334,7 +334,7 @@ HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest009, TestSi
     EXPECT_EQ(styleSet->Count(), 2);
     EXPECT_EQ(styleSet->CreateTypeface(0)->GetFamilyName(), sansFamily_);
     EXPECT_EQ(styleSet->CreateTypeface(1)->GetFamilyName(), cjkFamily_);
-    fontCollection_->UnLoadFont(familyName);
+    fontCollection_->UnloadFont(familyName);
     EXPECT_EQ(fontMgr_->CountFamilies(), 0);
 }
 
@@ -364,14 +364,14 @@ HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest010, TestSi
     ASSERT_NE(styleSet1, nullptr);
     EXPECT_EQ(styleSet1->Count(), 1);
     EXPECT_EQ(styleSet1->CreateTypeface(0)->GetFamilyName(), sansFamily_);
-    fontCollection_->UnLoadFont(familyName1);
+    fontCollection_->UnloadFont(familyName1);
     EXPECT_EQ(fontMgr_->CountFamilies(), 1);
 
     auto styleSet2 = fontMgr_->MatchFamily(familyName2.c_str());
     ASSERT_NE(styleSet2, nullptr);
     EXPECT_EQ(styleSet2->Count(), 1);
     EXPECT_EQ(styleSet2->CreateTypeface(0)->GetFamilyName(), cjkFamily_);
-    fontCollection_->UnLoadFont(familyName2);
+    fontCollection_->UnloadFont(familyName2);
     EXPECT_EQ(fontMgr_->CountFamilies(), 0);
 }
 } // namespace Rosen
