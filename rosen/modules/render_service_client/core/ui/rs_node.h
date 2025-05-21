@@ -80,6 +80,11 @@ class RSUIContext;
 class RSUIFilter;
 enum class CancelAnimationStatus;
 
+/**
+ * @class RSNode
+ *
+ * @brief The class for RSNode(render service node).
+ */
 class RSC_EXPORT RSNode : public std::enable_shared_from_this<RSNode> {
 public:
     using WeakPtr = std::weak_ptr<RSNode>;

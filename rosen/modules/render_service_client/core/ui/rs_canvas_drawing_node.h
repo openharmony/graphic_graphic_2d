@@ -39,6 +39,13 @@ namespace OHOS {
 namespace Rosen {
 class RSNodeMap;
 
+/**
+ * @class RSCanvasDrawingNode
+ *
+ * @brief Represents a drawing node in the rendering service.
+ *
+ * This class is responsible for handling drawing operations on a canvas.
+ */
 class RSC_EXPORT RSCanvasDrawingNode : public RSCanvasNode {
 public:
     using WeakPtr = std::weak_ptr<RSCanvasDrawingNode>;

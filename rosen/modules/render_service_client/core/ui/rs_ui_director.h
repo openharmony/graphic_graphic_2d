@@ -51,6 +51,11 @@ using CommitTransactionCallback =
     std::function<void(std::shared_ptr<RSIRenderClient>&, std::unique_ptr<RSTransactionData>&&, uint32_t&)>;
 #endif
 
+/**
+ * @class RSUIDirector
+ *
+ * @brief The class for managing the UI director in the rendering service.
+ */
 class RSC_EXPORT RSUIDirector final {
 public:
     /**

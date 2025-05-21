@@ -43,6 +43,12 @@
 
 namespace OHOS {
 namespace Rosen {
+
+/**
+ * @class RSModifier
+ *
+ * @brief The base class for all modifiers.
+ */
 class RSC_EXPORT RSModifier : public std::enable_shared_from_this<RSModifier> {
 public:
     /**
@@ -160,6 +166,11 @@ protected:
     friend class RSPropertyBase;
 };
 
+/**
+ * @class RSGeometryModifier
+ *
+ * @brief The class for geometry modifiers.
+ */
 class RSC_EXPORT RSGeometryModifier : public RSModifier {
 public:
     /**
@@ -191,6 +202,11 @@ protected:
     }
 };
 
+/**
+ * @class RSBackgroundModifier
+ *
+ * @brief The class for background modifiers.
+ */
 class RSC_EXPORT RSBackgroundModifier : public RSModifier {
 public:
     /**
@@ -215,6 +231,11 @@ protected:
     }
 };
 
+/**
+ * @class RSContentModifier
+ *
+ * @brief The class for content modifiers.
+ */
 class RSC_EXPORT RSContentModifier : public RSModifier {
 public:
     /**
@@ -244,6 +265,11 @@ protected:
     }
 };
 
+/**
+ * @class RSForegroundModifier
+ *
+ * @brief The class for foreground modifiers.
+ */
 class RSC_EXPORT RSForegroundModifier : public RSModifier {
 public:
     /**
@@ -273,6 +299,11 @@ protected:
     }
 };
 
+/**
+ * @class RSOverlayModifier
+ *
+ * @brief The class for overlay modifiers.
+ */
 class RSC_EXPORT RSOverlayModifier : public RSModifier {
 public:
     /**
@@ -297,6 +328,11 @@ protected:
     }
 };
 
+/**
+ * @class RSAppearanceModifier
+ *
+ * @brief The class for appearance modifiers.
+ */
 class RSC_EXPORT RSAppearanceModifier : public RSModifier {
 public:
     /**

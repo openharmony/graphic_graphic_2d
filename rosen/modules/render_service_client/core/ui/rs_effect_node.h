@@ -34,6 +34,11 @@
 namespace OHOS {
 namespace Rosen {
 
+/**
+ * @class RSEffectNode
+ *
+ * @brief Represents a effect node in the rendering service.
+ */
 class RSC_EXPORT RSEffectNode : public RSNode {
 public:
     using WeakPtr = std::weak_ptr<RSEffectNode>;
