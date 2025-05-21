@@ -948,14 +948,6 @@ int RSUniRenderUtil::GetRotationDegreeFromMatrix(Drawing::Matrix matrix)
         value[Drawing::Matrix::Index::SCALE_X]) * (RS_ROTATION_180 / PI)));
 }
 
-float RSUniRenderUtil::GetFloatRotationDegreeFromMatrix(Drawing::Matrix matrix)
-{
-    Drawing::Matrix::Buffer value;
-    matrix.GetAll(value);
-    return atan2(value[Drawing::Matrix::Index::SKEW_X], value[Drawing::Matrix::Index::SCALE_X]) *
-        (RS_ROTATION_180 / PI);
-}
-
 void RSUniRenderUtil::ClearNodeCacheSurface(std::shared_ptr<Drawing::Surface>&& cacheSurface,
     std::shared_ptr<Drawing::Surface>&& cacheCompletedSurface,
     uint32_t cacheSurfaceThreadIndex, uint32_t completedSurfaceThreadIndex)

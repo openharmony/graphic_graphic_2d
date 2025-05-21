@@ -69,8 +69,8 @@ bool RSUniHwcComputeUtil::IsHwcEnabledByGravity(RSSurfaceRenderNode& node, const
     // When renderfit mode is not Gravity::RESIZE or Gravity::TOP_LEFT,
     // we currently disable hardware composer.
     if (frameGravity != Gravity::RESIZE && frameGravity != Gravity::TOP_LEFT) {
-        RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 "disabled by frameGravity[%d]",
-            node.GetName().c_str(), node.GetId(), static_cast<int>(frameGravity));
+        RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " disabled by frameGravity[%d]",
+            node.GetName().c_str(), node.GetId(), static_cast<int32_t>(frameGravity));
         node.SetHardwareForcedDisabledState(true);
         return false;
     }
@@ -397,8 +397,8 @@ bool RSUniHwcComputeUtil::IsHwcEnabledByScalingMode(RSSurfaceRenderNode& node, c
 {
     // We temporarily disabled HWC when scalingMode is freeze or no_scale_crop
     if (scalingMode == ScalingMode::SCALING_MODE_FREEZE || scalingMode == ScalingMode::SCALING_MODE_NO_SCALE_CROP) {
-        RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 "disabled by scalingMode[%d]",
-            node.GetName().c_str(), node.GetId(), static_cast<int>(scalingMode));
+        RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " disabled by scalingMode[%d]",
+            node.GetName().c_str(), node.GetId(), static_cast<int32_t>(scalingMode));
         node.SetHardwareForcedDisabledState(true);
         return false;
     }
@@ -530,41 +530,65 @@ void RSUniHwcComputeUtil::UpdateRealSrcRect(RSSurfaceRenderNode& node, const Rec
     node.SetSrcRect(newSrcRect);
 }
 
-void RSUniHwcComputeUtil::UpdateHwcNodeProperty(std::shared_ptr<RSSurfaceRenderNode> hwcNode)
+inline void RSUniHwcComputeUtil::UpdateHwcNodeDrawingCache(const std::shared_ptr<RSRenderNode>& parent,
+    HwcPropertyContext& ctx)
+{
+    bool& isNodeRenderByDrawingCache = ctx.isNodeRenderByDrawingCache;
+    if (isNodeRenderByDrawingCache) {
+        return;
+    }
+    // If parentNode of hwcNode is marked as freeze or nodegroup, RS will disable hwcNode's hardware composer
+    isNodeRenderByDrawingCache |= parent->IsStaticCached() ||
+        parent->GetNodeGroupType() != RSRenderNode::NodeGroupType::NONE;
+}
+
+inline void RSUniHwcComputeUtil::UpdateHwcNodeBlendNeedChildNode(const std::shared_ptr<RSRenderNode>& parent,
+    HwcPropertyContext& ctx)
+{
+    bool& isNodeRenderByChildNode = ctx.isNodeRenderByChildNode;
+    if (isNodeRenderByChildNode) {
+        return;
+    }
+    isNodeRenderByChildNode |= IsBlendNeedChildNode(*parent);
+}
+
+inline void RSUniHwcComputeUtil::UpdateHwcNodeAlpha(const std::shared_ptr<RSRenderNode>& parent,
+    HwcPropertyContext& ctx)
+{
+    auto& parentProperty = parent->GetRenderProperties();
+    ctx.alpha *= parentProperty.GetAlpha();
+}
+
+inline void RSUniHwcComputeUtil::UpdateHwcNodeTotalMatrix(const std::shared_ptr<RSRenderNode>& parent,
+    HwcPropertyContext& ctx)
+{
+    if (auto opt = GetMatrix(parent)) {
+        ctx.totalMatrix.PostConcat(opt.value());
+    }
+}
+
+void RSUniHwcComputeUtil::UpdateHwcNodeProperty(const std::shared_ptr<RSSurfaceRenderNode>& hwcNode)
 {
     if (hwcNode == nullptr) {
         RS_LOGE("hwcNode is null.");
         return;
     }
-    auto hwcNodeGeo = hwcNode->GetRenderProperties().GetBoundsGeometry();
-    bool hasCornerRadius = !hwcNode->GetRenderProperties().GetCornerRadius().IsZero();
     std::vector<RectI> currIntersectedRoundCornerAABBs = {};
-    float alpha = hwcNode->GetRenderProperties().GetAlpha();
-    Drawing::Matrix totalMatrix = hwcNodeGeo->GetMatrix();
+    bool hasCornerRadius = !hwcNode->GetRenderProperties().GetCornerRadius().IsZero();
+    const auto& hwcNodeGeo = hwcNode->GetRenderProperties().GetBoundsGeometry();
     auto hwcNodeRect = hwcNodeGeo->GetAbsRect();
-    bool isNodeRenderByDrawingCache = false;
-    bool isNodeRenderByChildNode = false;
     hwcNode->SetAbsRotation(hwcNode->GetRenderProperties().GetRotation());
+    HwcPropertyContext ctx;
+    ctx.alpha = hwcNode->GetRenderProperties().GetAlpha();
+    ctx.totalMatrix = hwcNodeGeo->GetMatrix();
     RSUniHwcComputeUtil::TraverseParentNodeAndReduce(
         hwcNode,
-        [&isNodeRenderByDrawingCache](std::shared_ptr<RSRenderNode> parent) {
-            if (isNodeRenderByDrawingCache) {
-                return;
-            }
-            // if the parent node of hwcNode is marked freeze or nodegroup, RS closes hardware composer of hwcNode.
-            isNodeRenderByDrawingCache = isNodeRenderByDrawingCache || parent->IsStaticCached() ||
-                (parent->GetNodeGroupType() != RSRenderNode::NodeGroupType::NONE);
-        },
-        [&alpha](std::shared_ptr<RSRenderNode> parent) {
-            auto& parentProperty = parent->GetRenderProperties();
-            alpha *= parentProperty.GetAlpha();
-        },
-        [&totalMatrix](std::shared_ptr<RSRenderNode> parent) {
-            if (auto opt = GetMatrix(parent)) {
-                totalMatrix.PostConcat(opt.value());
-            } else {
-                return;
-            }
+        [&ctx](const std::shared_ptr<RSRenderNode>& parent) { UpdateHwcNodeDrawingCache(parent, ctx); },
+        [&ctx](const std::shared_ptr<RSRenderNode>& parent) { UpdateHwcNodeBlendNeedChildNode(parent, ctx); },
+        [&ctx](const std::shared_ptr<RSRenderNode>& parent) { UpdateHwcNodeAlpha(parent, ctx); },
+        [&ctx](const std::shared_ptr<RSRenderNode>& parent) { UpdateHwcNodeTotalMatrix(parent, ctx); },
+        [hwcNode](std::shared_ptr<RSRenderNode> parent) {
+            hwcNode->SetAbsRotation(hwcNode->GetAbsRotation() + parent->GetRenderProperties().GetRotation());
         },
         [&currIntersectedRoundCornerAABBs, hwcNodeRect](std::shared_ptr<RSRenderNode> parent) {
             auto& parentProperty = parent->GetRenderProperties();
@@ -620,24 +644,15 @@ void RSUniHwcComputeUtil::UpdateHwcNodeProperty(std::shared_ptr<RSSurfaceRenderN
                     checkIntersectWithRoundCorner(parentClipRect, maxClipRRectCornerRadiusX, maxClipRRectCornerRadiusY);
                 }
             }
-        },
-        [hwcNode](std::shared_ptr<RSRenderNode> parent) {
-            hwcNode->SetAbsRotation(hwcNode->GetAbsRotation() + parent->GetRenderProperties().GetRotation());
-        },
-        [&isNodeRenderByChildNode](std::shared_ptr<RSRenderNode> parent) {
-            if (isNodeRenderByChildNode) {
-                return;
-            }
-            isNodeRenderByChildNode |= IsBlendNeedChildNode(*parent);
         });
-    if (isNodeRenderByDrawingCache || isNodeRenderByChildNode) {
+    if (ctx.isNodeRenderByDrawingCache || ctx.isNodeRenderByChildNode) {
         RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%" PRIu64 " disabled by drawing cache or need blend with "
             "childNode, isNodeRenderByDrawingCache[%d], isNodeRenderByChildNode[%d]",
-            hwcNode->GetName().c_str(), hwcNode->GetId(), isNodeRenderByDrawingCache, isNodeRenderByChildNode);
+            hwcNode->GetName().c_str(), hwcNode->GetId(), ctx.isNodeRenderByDrawingCache, ctx.isNodeRenderByChildNode);
         hwcNode->SetHardwareForcedDisabledState(true);
     }
-    hwcNode->SetTotalMatrix(totalMatrix);
-    hwcNode->SetGlobalAlpha(alpha);
+    hwcNode->SetTotalMatrix(ctx.totalMatrix);
+    hwcNode->SetGlobalAlpha(ctx.alpha);
     hwcNode->SetIntersectedRoundCornerAABBs(std::move(currIntersectedRoundCornerAABBs));
 }
 
@@ -789,10 +804,19 @@ bool RSUniHwcComputeUtil::IsForegroundColorStrategyValid(RSRenderNode& node)
 
 bool RSUniHwcComputeUtil::IsDangerousBlendMode(int32_t blendMode, int32_t blendApplyType)
 {
-    if (blendMode == 0) {
+    // The NONE blend mode does not create an offscreen buffer
+    if (blendMode == static_cast<int32_t>(RSColorBlendMode::NONE)) {
         return false;
     }
     return RSPropertiesPainter::IsDangerousBlendMode(blendMode - 1, blendApplyType);
+}
+
+float RSUniHwcComputeUtil::GetFloatRotationDegreeFromMatrix(const Drawing::Matrix& matrix)
+{
+    Drawing::Matrix::Buffer value;
+    matrix.GetAll(value);
+    return std::atan2(value[Drawing::Matrix::Index::SKEW_X], value[Drawing::Matrix::Index::SCALE_X]) *
+        (RS_ROTATION_180 / PI);
 }
 
 #undef CHECK_NULL_VOID
