@@ -369,7 +369,7 @@ bool DoTakeSurfaceCapture(const uint8_t* data, size_t size)
 
     // get data
     uint64_t nodeId = GetData<uint64_t>();
-    std::shared_ptr<SurfaceCaptureCallback> callback;
+    sptr<RSISurfaceCaptureCallback> callback;
     RSSurfaceCaptureConfig captureConfig;
     captureConfig.scaleX = GetData<float>();
     captureConfig.scaleY = GetData<float>();
