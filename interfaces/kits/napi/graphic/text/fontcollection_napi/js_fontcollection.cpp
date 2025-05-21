@@ -558,16 +558,16 @@ napi_value JsFontCollection::OnUnloadFont(napi_env env, napi_callback_info info)
     napi_value argv[ARGC_ONE] = { nullptr };
     if (napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr) != napi_ok || argc < ARGC_ONE) {
         TEXT_LOGE("Failed to get argument, argc %{public}zu", argc);
-        return nullptr;
+        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Failed to get argument");
     }
     if (argv[0] == nullptr) {
         TEXT_LOGE("Null argv[0]");
-        return nullptr;
+        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Failed to get argument");
     }
     std::string familyName;
     if (!ConvertFromJsValue(env, argv[0], familyName)) {
         TEXT_LOGE("Failed to convert argv[0]");
-        return nullptr;
+        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Failed to get argument");
     }
 
     fontcollection_->UnloadFont(familyName);

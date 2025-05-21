@@ -166,6 +166,5 @@ uint32_t OH_Drawing_UnregisterFont(OH_Drawing_FontCollection* fontCollection, co
     }
 
     auto fc = ConvertToOriginalText<FontCollection>(fontCollection);
-    fc->UnloadFont(fontFamily);
-    return 0;
+    return !fc->UnloadFont(fontFamily);
 }

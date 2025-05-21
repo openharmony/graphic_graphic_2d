@@ -75,7 +75,7 @@ public:
     LoadSymbolErrorCode LoadSymbolFont(const std::string& familyName, const uint8_t* data, size_t datalen) override;
     LoadSymbolErrorCode LoadSymbolJson(const std::string& familyName, const uint8_t* data, size_t datalen) override;
     void ClearCaches() override;
-    void UnloadFont(const std::string& familyName) override;
+    bool UnloadFont(const std::string& familyName) override;
 
 private:
     RegisterError RegisterTypeface(const TypefaceWithAlias& ta);

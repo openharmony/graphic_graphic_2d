@@ -126,4 +126,38 @@ HWTEST_F(NativeDrawingRegisterFontTest, NativeDrawingRegisterFontTest005, TestSi
     OH_Drawing_DestroyFontCollection(fontCollection);
 }
 
+/*
+ * @tc.name: NativeDrawingRegisterFontTest006
+ * @tc.desc: test for unregister font
+ * @tc.type: FUNC
+ */
+HWTEST_F(NativeDrawingRegisterFontTest, NativeDrawingRegisterFontTest006, TestSize.Level1)
+{
+    OH_Drawing_FontCollection* fontCollection = OH_Drawing_CreateFontCollection();
+    uint32_t result = OH_Drawing_RegisterFont(fontCollection, "test1", existFontPath_);
+    EXPECT_EQ(result, 0);
+    result = OH_Drawing_RegisterFont(fontCollection, "test2", existFontPath_);
+    EXPECT_EQ(result, 0);
+    EXPECT_EQ(OH_Drawing_UnregisterFont(fontCollection, "test1"), 0);
+    EXPECT_EQ(OH_Drawing_UnregisterFont(fontCollection, "test2"), 0);
+    EXPECT_EQ(OH_Drawing_UnregisterFont(fontCollection, "test3"), 1);
+
+    OH_Drawing_DestroyFontCollection(fontCollection);
+}
+
+/*
+ * @tc.name: NativeDrawingRegisterFontTest007
+ * @tc.desc: test for unregister font
+ * @tc.type: FUNC
+ */
+HWTEST_F(NativeDrawingRegisterFontTest, NativeDrawingRegisterFontTest007, TestSize.Level1)
+{
+    // ERROR_NULL_FONT_COLLECTION is 8
+    const uint32_t nullFontCollection = 8;
+    OH_Drawing_FontCollection* fontCollection = OH_Drawing_CreateFontCollection();
+    EXPECT_EQ(OH_Drawing_UnregisterFont(nullptr, ""), nullFontCollection);
+    EXPECT_EQ(OH_Drawing_UnregisterFont(nullptr, nullptr), nullFontCollection);
+    EXPECT_EQ(OH_Drawing_UnregisterFont(fontCollection, nullptr), nullFontCollection);
+    OH_Drawing_DestroyFontCollection(fontCollection);
+}
 } // namespace OHOS

@@ -211,13 +211,15 @@ void FontCollection::ClearCaches()
     fontCollection_->ClearFontFamilyCache();
 }
 
-void FontCollection::UnloadFont(const std::string& familyName)
+bool FontCollection::UnloadFont(const std::string& familyName)
 {
-    if (Drawing::Typeface::GetTypefaceUnRegisterCallBack() == nullptr) {
-        return;
+    if (Drawing::Typeface::GetTypefaceUnRegisterCallBack() == nullptr ||
+        SPText::DefaultFamilyNameMgr::IsThemeFontFamily(familyName)) {
+        return false;
     }
 
     std::unique_lock<std::shared_mutex> lock(mutex_);
+    bool unloadSuccess = false;
     for (auto it = typefaceSet_.begin(); it != typefaceSet_.end();) {
         if (it->GetAlias() == familyName) {
             Drawing::Typeface::GetTypefaceUnRegisterCallBack()(it->GetTypeface());
@@ -226,11 +228,12 @@ void FontCollection::UnloadFont(const std::string& familyName)
             fontCollection_->ClearFontFamilyCache();
             familyNames_.erase(it->GetHash());
             typefaceSet_.erase(it++);
+            unloadSuccess = true;
         } else {
             ++it;
         }
     }
-    return;
+    return unloadSuccess;
 }
 
 TypefaceWithAlias::TypefaceWithAlias(const std::string& alias, const std::shared_ptr<Drawing::Typeface>& typeface)
