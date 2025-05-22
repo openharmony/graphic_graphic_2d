@@ -97,7 +97,6 @@ public:
     static int TransferToAntiClockwiseDegrees(int angle);
     static int GetRotationFromMatrix(Drawing::Matrix matrix);
     static int GetRotationDegreeFromMatrix(Drawing::Matrix matrix);
-    static float GetFloatRotationDegreeFromMatrix(Drawing::Matrix matrix);
 
     static void ClearCacheSurface(RSRenderNode& node, uint32_t threadIndex, bool isClearCompletedCacheSurface = true);
     static void ClearNodeCacheSurface(std::shared_ptr<Drawing::Surface>&& cacheSurface,

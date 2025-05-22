@@ -930,6 +930,14 @@ void OH_Drawing_SetTextStyleEllipsisModal(OH_Drawing_TextStyle* style, int ellip
     ConvertToOriginalText<TextStyle>(style)->ellipsisModal = rosenEllipsisModal;
 }
 
+void OH_Drawing_SetTextStyleBadgeType(OH_Drawing_TextStyle* style, OH_Drawing_TextBadgeType textBadgeType)
+{
+    if (style == nullptr) {
+        return;
+    }
+    ConvertToOriginalText<TextStyle>(style)->badgeType = static_cast<TextBadgeType>(textBadgeType);
+}
+
 void OH_Drawing_SetTypographyTextBreakStrategy(OH_Drawing_TypographyStyle* style, int breakStrategy)
 {
     if (!style) {

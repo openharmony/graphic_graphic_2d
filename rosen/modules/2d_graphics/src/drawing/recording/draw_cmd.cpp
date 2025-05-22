@@ -1572,7 +1572,9 @@ DrawTextBlobOpItem::DrawTextBlobOpItem(const DrawCmdList& cmdList, DrawTextBlobO
     globalUniqueId_ = handle->globalUniqueId;
     textContrast_ = handle->textContrast;
     textBlob_ = CmdListHelper::GetTextBlobFromCmdList(cmdList, handle->textBlob, handle->globalUniqueId);
-    textBlob_->SetTextContrast(textContrast_);
+    if (textBlob_) {
+        textBlob_->SetTextContrast(textContrast_);
+    }
 }
 
 std::shared_ptr<DrawOpItem> DrawTextBlobOpItem::Unmarshalling(const DrawCmdList& cmdList, void* handle)
@@ -1593,8 +1595,10 @@ void DrawTextBlobOpItem::Marshalling(DrawCmdList& cmdList)
         globalUniqueId = (shiftedPid | typefaceId);
     }
 
-    cmdList.AddOp<ConstructorHandle>(textBlobHandle,
-        globalUniqueId, textBlob_->GetTextContrast(), x_, y_, paintHandle);
+    if (textBlob_) {
+        cmdList.AddOp<ConstructorHandle>(textBlobHandle,
+            globalUniqueId, textBlob_->GetTextContrast(), x_, y_, paintHandle);
+    }
 }
 
 uint64_t DrawTextBlobOpItem::GetTypefaceId()

@@ -470,6 +470,46 @@ HWTEST_F(RSRenderParamsTest, SetDrawingCacheIncludeProperty_001, TestSize.Level2
 }
 
 /**
+ * @tc.name: OpincSetIsSuggest
+ * @tc.desc: Test function OpincSetIsSuggest
+ * @tc.type:FUNC
+ * @tc.require:issueIC87OJ
+ */
+HWTEST_F(RSRenderParamsTest, OpincSetIsSuggest, TestSize.Level2)
+{
+    constexpr NodeId id = TestSrc::limitNumber::Uint64[4];
+    std::unique_ptr<RSRenderParams> target = std::make_unique<RSRenderParams>(id);
+    RSRenderParams params(id);
+    auto renderParams = static_cast<RSRenderParams*>(target.get());
+    renderParams->isOpincSuggestFlag_ = false;
+    renderParams->needSync_  = false;
+
+    renderParams->OpincSetIsSuggest(true);
+    EXPECT_TRUE(renderParams->needSync_);
+    EXPECT_TRUE(renderParams->OpincIsSuggest());
+}
+
+/**
+ * @tc.name: OpincUpdateSupportFlag
+ * @tc.desc: Test function OpincUpdateSupportFlag
+ * @tc.type:FUNC
+ * @tc.require:issueIC87OJ
+ */
+HWTEST_F(RSRenderParamsTest, OpincUpdateSupportFlag, TestSize.Level2)
+{
+    constexpr NodeId id = TestSrc::limitNumber::Uint64[4];
+    std::unique_ptr<RSRenderParams> target = std::make_unique<RSRenderParams>(id);
+    RSRenderParams params(id);
+    auto renderParams = static_cast<RSRenderParams*>(target.get());
+    renderParams->isOpincSupportFlag_ = false;
+    renderParams->needSync_  = false;
+
+    renderParams->OpincUpdateSupportFlag(true);
+    EXPECT_TRUE(renderParams->needSync_);
+    EXPECT_TRUE(renderParams->OpincGetSupportFlag());
+}
+
+/**
  * @tc.name: OpincSetCacheChangeFlag_001
  * @tc.desc: Test function OpincSetCacheChangeFlag, not lastFrameSynced
  * @tc.type:FUNC

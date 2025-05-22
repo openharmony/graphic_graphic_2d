@@ -50,7 +50,7 @@ HWTEST_F(RSCommonDefTest, New001, TestSize.Level1)
     MemObject* memObject = new (std::nothrow) MemObject(1);
     ASSERT_EQ(memObject->size_, 1);
     if (memObject) {
-        delete memObject;
+        MemObject::operator delete(memObject, std::nothrow);
     }
 }
 

@@ -47,7 +47,8 @@ public:
 
     void UpdateHwcNodeEnableByBackgroundAlpha(RSSurfaceRenderNode& node);
     void UpdateHwcNodeEnableByBufferSize(RSSurfaceRenderNode& node);
-    void UpdateHwcNodeEnableByRotateAndAlpha(std::shared_ptr<RSSurfaceRenderNode>& node);
+    void UpdateHwcNodeEnableByAlpha(const std::shared_ptr<RSSurfaceRenderNode>& node);
+    void UpdateHwcNodeEnableByRotate(const std::shared_ptr<RSSurfaceRenderNode>& node);
     void UpdateHwcNodeEnable();
     void UpdateHwcNodeEnableByNodeBelow();
     void UpdateHwcNodeEnableByHwcNodeBelowSelf(std::vector<RectI>& hwcRects,
@@ -81,7 +82,7 @@ public:
     void QuickPrepareChildrenOnlyOrder(RSRenderNode& node);
     void PrintHiperfCounterLog(const char* const counterContext, uint64_t counter);
     void PrintHiperfLog(RSSurfaceRenderNode* node, const char* const disabledContext);
-    void PrintHiperfLog(std::shared_ptr<RSSurfaceRenderNode>& node, const char* const disabledContext);
+    void PrintHiperfLog(const std::shared_ptr<RSSurfaceRenderNode>& node, const char* const disabledContext);
 
     // DRM
     void UpdateCrossInfoForProtectedHwcNode(RSSurfaceRenderNode& hwcNode);

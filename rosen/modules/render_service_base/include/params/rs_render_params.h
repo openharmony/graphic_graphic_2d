@@ -213,6 +213,10 @@ public:
     void SetDrawingCacheType(RSDrawingCacheType cacheType);
     RSDrawingCacheType GetDrawingCacheType() const;
 
+    void OpincSetIsSuggest(bool isSuggest);
+    bool OpincIsSuggest() const;
+    void OpincUpdateSupportFlag(bool supportFlag);
+    bool OpincGetSupportFlag() const;
     void OpincUpdateRootFlag(bool suggestFlag);
     bool OpincGetRootFlag() const;
     void OpincSetCacheChangeFlag(bool state, bool lastFrameSynced);
@@ -416,6 +420,8 @@ private:
     RSDrawingCacheType drawingCacheType_ = RSDrawingCacheType::DISABLED_CACHE;
     DirtyRegionInfoForDFX dirtyRegionInfoForDFX_;
     std::shared_ptr<RSFilter> foregroundFilterCache_ = nullptr;
+    bool isOpincSuggestFlag_ = false;
+    bool isOpincSupportFlag_ = false;
     bool isOpincRootFlag_ = false;
     bool isOpincStateChanged_ = false;
     bool startingWindowFlag_ = false;

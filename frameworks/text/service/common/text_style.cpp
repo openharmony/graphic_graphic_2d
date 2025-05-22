@@ -140,7 +140,8 @@ bool TextStyle::operator ==(const TextStyle& rhs) const
         styleId == rhs.styleId &&
         shadows == rhs.shadows &&
         fontFeatures == rhs.fontFeatures &&
-        fontVariations == rhs.fontVariations;
+        fontVariations == rhs.fontVariations &&
+        badgeType == rhs.badgeType;
 }
 
 bool TextStyle::EqualByFonts(const TextStyle &rhs) const

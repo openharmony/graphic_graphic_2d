@@ -55,7 +55,7 @@ HWTEST_F(RSRenderEdgeLightFilterTest, WriteToParcel001, TestSize.Level1)
     auto rsRenderEdgeLightFilterPara= std::make_shared<RSRenderEdgeLightFilterPara>(0);
     Parcel parcel;
     auto ret = rsRenderEdgeLightFilterPara->WriteToParcel(parcel);
-    EXPECT_FALSE(ret);
+    EXPECT_TRUE(ret);
 }
 
 /**

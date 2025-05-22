@@ -968,7 +968,7 @@ void RSBaseRenderUtil::MergeBufferDamages(Rect& surfaceDamage, const std::vector
 
 CM_INLINE bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler,
     uint64_t presentWhen, bool dropFrameByPidEnable, bool adaptiveDVSyncEnable, bool needConsume,
-    std::shared_ptr<RSSurfaceRenderNode> surfaceNode)
+    uint64_t parentNodeId)
 {
     if (surfaceHandler.GetAvailableBufferCount() <= 0) {
         return true;
@@ -1019,11 +1019,6 @@ CM_INLINE bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfac
             "%{public}" PRIu64 ", buffer timestamp = %{public}" PRId64 ", seq = %{public}" PRIu32 ".",
             surfaceHandler.GetNodeId(), acquireTimeStamp, surfaceBuffer->timestamp, surfaceBuffer->buffer->GetSeqNum());
         if (IsTagEnabled(HITRACE_TAG_GRAPHIC_AGP)) {
-            uint64_t parentNodeId = 0;
-            if (surfaceNode) {
-                auto parentNode = surfaceNode->GetParent().lock();
-                parentNodeId = parentNode ? parentNode->GetId() : 0;
-            }
             RS_TRACE_NAME_FMT("RsDebug surfaceHandler(id: %" PRIu64 ") AcquireBuffer success, parentNodeId = %"
                 PRIu64 ", acquireTimeStamp = %" PRIu64 ", buffer timestamp = %" PRId64 ", seq = %" PRIu32 ".",
                 surfaceHandler.GetNodeId(), parentNodeId, acquireTimeStamp, surfaceBuffer->timestamp,
@@ -1393,6 +1388,9 @@ void RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(GraphicTransformType tr
     if (nodeParams != nullptr && (nodeParams->GetApiCompatibleVersion() >= API18 ||
         nodeParams->GetName() == "RosenWeb" ||
         nodeParams->GetFrameGravityNewVersionEnabled())) {
+        RS_OPTIONAL_TRACE_NAME_FMT("RSBaseRenderUtil::DealWithSurfaceRotationAndGravity "
+            "new version, surfaceNode:[%lu] isFrameGravityNewVersionEnabled:[%d]",
+            nodeParams->GetId(), nodeParams->GetFrameGravityNewVersionEnabled());
         // deal with buffer's gravity effect in node's inner space.
         params.matrix.PreConcat(RSBaseRenderUtil::GetGravityMatrix(gravity, bufferBounds, localBounds));
         params.matrix.PreConcat(
@@ -1403,6 +1401,10 @@ void RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(GraphicTransformType tr
             std::swap(localBounds.width_, localBounds.height_);
         }
     } else {
+        RS_OPTIONAL_TRACE_NAME_FMT("RSBaseRenderUtil::DealWithSurfaceRotationAndGravity "
+            "old version, surfaceNode:[%lu] isFrameGravityNewVersionEnabled:[%d]",
+            nodeParams ? nodeParams->GetId() : 0,
+            nodeParams ? nodeParams->GetFrameGravityNewVersionEnabled() : -1);
         params.matrix.PreConcat(RSBaseRenderUtil::GetSurfaceTransformMatrixForRotationFixed(rotationTransform,
             localBounds, bufferBounds, gravity));
         if (rotationTransform == GraphicTransformType::GRAPHIC_ROTATE_90 ||

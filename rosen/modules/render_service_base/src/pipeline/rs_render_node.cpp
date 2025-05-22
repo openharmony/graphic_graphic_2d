@@ -3713,6 +3713,8 @@ void RSRenderNode::UpdateOpincParam()
     if (stagingRenderParams_) {
         stagingRenderParams_->OpincSetCacheChangeFlag(opincCache_.GetCacheChangeFlag(), lastFrameSynced_);
         stagingRenderParams_->OpincUpdateRootFlag(opincCache_.OpincGetRootFlag());
+        stagingRenderParams_->OpincSetIsSuggest(opincCache_.IsSuggestOpincNode());
+        stagingRenderParams_->OpincUpdateSupportFlag(isOpincNodeSupportFlag_);
     }
 }
 

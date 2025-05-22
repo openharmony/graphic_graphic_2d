@@ -106,34 +106,6 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, OnDraw, TestSize.Level1)
     drawable_->renderParams_->shouldPaint_ = true;
     drawable_->renderParams_->contentEmpty_ = false;
     surfaceDrawable_->OnDraw(*drawingCanvas_);
-
-    surfaceDrawable_->surfaceWindowType_ = SurfaceWindowType::DEFAULT_WINDOW;
-    surfaceDrawable_->OnDraw(*drawingCanvas_);
-    ASSERT_EQ(surfaceDrawable_->IsScbWindowType(), false);
-
-    surfaceDrawable_->surfaceWindowType_ = SurfaceWindowType::SYSTEM_SCB_WINDOW;
-    surfaceDrawable_->OnDraw(*drawingCanvas_);
-    ASSERT_EQ(surfaceDrawable_->IsScbWindowType(), true);
-
-    surfaceDrawable_->surfaceWindowType_ = SurfaceWindowType::SCB_DESKTOP;
-    surfaceDrawable_->OnDraw(*drawingCanvas_);
-    ASSERT_EQ(surfaceDrawable_->IsScbWindowType(), true);
-
-    surfaceDrawable_->surfaceWindowType_ = SurfaceWindowType::SCB_WALLPAPER;
-    surfaceDrawable_->OnDraw(*drawingCanvas_);
-    ASSERT_EQ(surfaceDrawable_->IsScbWindowType(), true);
-
-    surfaceDrawable_->surfaceWindowType_ = SurfaceWindowType::SCB_SCREEN_LOCK;
-    surfaceDrawable_->OnDraw(*drawingCanvas_);
-    ASSERT_EQ(surfaceDrawable_->IsScbWindowType(), true);
-
-    surfaceDrawable_->surfaceWindowType_ = SurfaceWindowType::SCB_NEGATIVE_SCREEN;
-    surfaceDrawable_->OnDraw(*drawingCanvas_);
-    ASSERT_EQ(surfaceDrawable_->IsScbWindowType(), true);
-
-    surfaceDrawable_->surfaceWindowType_ = SurfaceWindowType::SCB_DROPDOWN_PANEL;
-    surfaceDrawable_->OnDraw(*drawingCanvas_);
-    ASSERT_EQ(surfaceDrawable_->IsScbWindowType(), true);
 }
 
 /**
@@ -1360,5 +1332,40 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, UpdateSurfaceDirtyRegion, TestSize.Lev
     surfaceDrawable_->UpdateSurfaceDirtyRegion(canvas_);
     Drawing::Region region = surfaceDrawable_->GetSurfaceDrawRegion();
     EXPECT_TRUE(region.IsEmpty());
+}
+
+/**
+ * @tc.name: DrawMagnificationRegion
+ * @tc.desc: Test DrawMagnificationRegion
+ * @tc.type: FUNC
+ * @tc.require: issueIAEDYI
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, DrawMagnificationRegionTest, TestSize.Level1)
+{
+    std::shared_ptr<Drawing::Surface> surface = Drawing::Surface::MakeRasterN32Premul(500, 1000);
+    ASSERT_NE(surface, nullptr);
+    RSPaintFilterCanvas canvas(surface.get());
+
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable_->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+
+    /* RSSurfaceRenderNodeDrawable::DrawMagnificationRegion abnormal case1 */
+    surfaceParams->frameRect_ = {0, 0, 100, 100};
+    surfaceParams->regionToBeMagnified_ = {0, 0, 0, 0};
+    surfaceParams->rsSurfaceNodeType_ = RSSurfaceNodeType::ABILITY_MAGNIFICATION_NODE;
+    surfaceDrawable_->DrawMagnificationRegion(canvas, *surfaceParams);
+
+    /* RSSurfaceRenderNodeDrawable::DrawMagnificationRegion abnormal case2 */
+    surfaceParams->frameRect_ = {0, 0, 100, 100};
+    surfaceParams->regionToBeMagnified_ = {1000, 1500, 100, 100};
+    surfaceParams->rsSurfaceNodeType_ = RSSurfaceNodeType::ABILITY_MAGNIFICATION_NODE;
+    surfaceDrawable_->DrawMagnificationRegion(canvas, *surfaceParams);
+
+    /* RSSurfaceRenderNodeDrawable::DrawMagnificationRegion base case */
+    surfaceParams->frameRect_ = {0, 0, 100, 100};
+    surfaceParams->regionToBeMagnified_ = {0, 0, 50, 50};
+    surfaceParams->rsSurfaceNodeType_ = RSSurfaceNodeType::ABILITY_MAGNIFICATION_NODE;
+    surfaceDrawable_->DrawMagnificationRegion(canvas, *surfaceParams);
 }
 }

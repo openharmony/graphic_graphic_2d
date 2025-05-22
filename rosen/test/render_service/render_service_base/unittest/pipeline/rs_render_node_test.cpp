@@ -895,17 +895,47 @@ HWTEST_F(RSRenderNodeTest, HasChildrenOutOfRectTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: UpdateVisibleFilterChildTest
+ * @tc.name: UpdateVisibleFilterChildTest_001
  * @tc.desc:
  * @tc.type: FUNC
  * @tc.require: issueI9T3XY
  */
-HWTEST_F(RSRenderNodeTest, UpdateVisibleFilterChildTest, TestSize.Level1)
+HWTEST_F(RSRenderNodeTest, UpdateVisibleFilterChildTest_001, TestSize.Level1)
 {
     auto node = std::make_shared<RSRenderNode>(id, context);
     auto childNode = std::make_shared<RSRenderNode>(id + 1, context);
     childNode->GetMutableRenderProperties().needFilter_ = true;
     EXPECT_TRUE(childNode->GetRenderProperties().NeedFilter());
+    node->UpdateVisibleFilterChild(*childNode);
+    EXPECT_TRUE(!node->visibleFilterChild_.empty());
+}
+
+/**
+ * @tc.name: UpdateVisibleFilterChildTest_002
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require: issueI9T3XY
+ */
+HWTEST_F(RSRenderNodeTest, UpdateVisibleFilterChildTest_002, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(id, context);
+    auto childNode = std::make_shared<RSRenderNode>(id + 1, context);
+    childNode->GetHwcRecorder().SetBlendWithBackground(true);
+    node->UpdateVisibleFilterChild(*childNode);
+    EXPECT_TRUE(!node->visibleFilterChild_.empty());
+}
+
+/**
+ * @tc.name: UpdateVisibleFilterChildTest_003
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require: issueI9T3XY
+ */
+HWTEST_F(RSRenderNodeTest, UpdateVisibleFilterChildTest_003, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(id, context);
+    auto childNode = std::make_shared<RSRenderNode>(id + 1, context);
+    childNode->GetHwcRecorder().SetForegroundColorValid(true);
     node->UpdateVisibleFilterChild(*childNode);
     EXPECT_TRUE(!node->visibleFilterChild_.empty());
 }

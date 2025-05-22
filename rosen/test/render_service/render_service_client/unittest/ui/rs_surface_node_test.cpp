@@ -59,6 +59,45 @@ HWTEST_F(RSSurfaceNodeTest, CreateNodeInRenderThread001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: Create002
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSSurfaceNodeTest, Create002, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    c.surfaceWindowType = SurfaceWindowType::SCB_SCREEN_LOCK;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    ASSERT_TRUE(surfaceNode != nullptr);
+    usleep(100000);
+
+    c.surfaceWindowType = SurfaceWindowType::SCB_DESKTOP;
+    surfaceNode = RSSurfaceNode::Create(c);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    ASSERT_TRUE(surfaceNode != nullptr);
+    usleep(100000);
+
+    c.surfaceWindowType = SurfaceWindowType::SCB_WALLPAPER;
+    surfaceNode = RSSurfaceNode::Create(c);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    ASSERT_TRUE(surfaceNode != nullptr);
+    usleep(100000);
+
+    c.surfaceWindowType = static_cast<SurfaceWindowType>(-1);
+    surfaceNode = RSSurfaceNode::Create(c);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    ASSERT_FALSE(surfaceNode != nullptr);
+    usleep(100000);
+
+    c.surfaceWindowType = SurfaceWindowType::DEFAULT_WINDOW;
+    surfaceNode = RSSurfaceNode::Create(c);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    ASSERT_TRUE(surfaceNode != nullptr);
+    usleep(100000);
+}
+
+/**
  * @tc.name: SetBufferAvailableCallback001
  * @tc.desc:
  * @tc.type:FUNC

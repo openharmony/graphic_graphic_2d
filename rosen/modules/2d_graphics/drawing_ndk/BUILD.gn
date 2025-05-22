@@ -88,6 +88,7 @@ template("drawing_ndk_source_set") {
       "$drawing_ndk_src_dir/drawing_surface.cpp",
       "$drawing_ndk_src_dir/drawing_text_blob.cpp",
       "$drawing_ndk_src_dir/drawing_text_font_descriptor.cpp",
+      "$drawing_ndk_src_dir/drawing_text_global.cpp",
       "$drawing_ndk_src_dir/drawing_text_line.cpp",
       "$drawing_ndk_src_dir/drawing_text_lineTypography.cpp",
       "$drawing_ndk_src_dir/drawing_text_run.cpp",
@@ -118,6 +119,7 @@ template("drawing_ndk_source_set") {
       "$graphic_2d_root/rosen/modules/render_service_base/include",
       "$graphic_2d_root/rosen/modules/render_service_base/src",
       "$rosen_text_root/service/texgine/src",
+      "$graphic_2d_root/frameworks/text/service/global_config",
     ]
 
     if (enable_text_gine) {

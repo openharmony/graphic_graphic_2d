@@ -106,6 +106,7 @@ void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         }
         CheckCacheTypeAndDraw(canvas, *params);
         GetOpincDrawCache().AfterDrawCache(canvas, *params, isOpincDropNodeExt_, opincRootTotalCount_);
+        GetOpincDrawCache().DrawOpincDisabledDfx(canvas, *params);
     } else {
         RSRenderNodeDrawable::OnDraw(canvas);
     }

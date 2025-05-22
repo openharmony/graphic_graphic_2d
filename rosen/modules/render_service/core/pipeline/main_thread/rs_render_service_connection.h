@@ -443,7 +443,8 @@ private:
     mutable std::mutex mutex_;
     bool cleanDone_ = false;
     const std::string VOTER_SCENE_BLUR = "VOTER_SCENE_BLUR";
-
+    const std::string VOTER_SCENE_GPU = "VOTER_SCENE_GPU";
+    
     // save all virtual screenIds created by this connection.
     std::unordered_set<ScreenId> virtualScreenIds_;
     sptr<RSIScreenChangeCallback> screenChangeCallback_;

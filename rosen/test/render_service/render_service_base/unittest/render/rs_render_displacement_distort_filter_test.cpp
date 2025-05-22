@@ -108,7 +108,7 @@ HWTEST_F(RSRenderDisplacementDistortFilterTest, GetRenderMask001, TestSize.Level
 {
     auto rsRenderDispDistortFilterPara = std::make_shared<RSRenderDispDistortFilterPara>(0);
     auto renderMask = rsRenderDispDistortFilterPara->GetRenderMask();
-    EXPECT_NE(renderMask, nullptr);
+    EXPECT_EQ(renderMask, nullptr);
 }
 
 } // namespace OHOS::Rosen

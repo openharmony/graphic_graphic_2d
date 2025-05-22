@@ -53,6 +53,8 @@ public:
 
     // opinc switch
     bool IsAutoCacheDebugEnable();
+    int32_t GetOpincCacheMaxWidth() const;
+    int32_t GetOpincCacheMaxHeight() const;
 
     void OpincCalculateBefore(Drawing::Canvas& canvas,
         const RSRenderParams& params, bool& isOpincDropNodeExt);
@@ -65,6 +67,7 @@ public:
         const Drawing::SamplingOptions& samplingOption, Drawing::SrcRectConstraint constraint);
     void DrawAutoCacheDfx(RSPaintFilterCanvas& canvas,
         std::vector<std::pair<RectI, std::string>>& autoCacheRenderNodeInfos);
+    void DrawOpincDisabledDfx(Drawing::Canvas& canvas, RSRenderParams& params);
     void DrawableCacheStateReset(RSRenderParams& params);
     bool PreDrawableCacheState(RSRenderParams& params, bool& isOpincDropNodeExt);
     void OpincCanvasUnionTranslate(RSPaintFilterCanvas& canvas);

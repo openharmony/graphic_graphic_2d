@@ -17,6 +17,7 @@
 #define RS_GRAPHIC_TEST_PROFILER_H
 
 #include <filesystem>
+#include "third_party/cJSON/cJSON.h"
 
 #include "common/rs_color.h"
 #include "common/rs_rect.h"
@@ -30,15 +31,29 @@ namespace Rosen {
 class RSGraphicRootNode;
 class RSGraphicTestProfiler {
 public:
+    struct PlaybackInfo
+    {
+        std::string fileName;
+        int startTime;
+        int endTime;
+        int timeInterval;
+    };
+
     int RunNodeTreeTest(const std::string& path);
+    int RunPlaybackTest(const std::string& filePath, const std::string& configPath);
 private:
     void NodeTreeTestSetUp();
+    void PlaybackTestSetUp();
 
     void CopyDirectoryAndLoadNodeTreeFile(const std::filesystem::path& src, const std::filesystem::path& dest);
+    void AnalysePlaybackInfo(
+        const std::filesystem::path& rootPath, const std::filesystem::path& imagePath, const cJSON* root);
     std::shared_ptr<RSGraphicRootNode> GetRootNode() const;
     Vector2f GetScreenSize() const;
 
     void LoadNodeTreeProfilerFile(const std::string& filePath, const std::string& savePath);
+    void LoadPlaybackProfilerFile(const std::string& filePath, const std::string& savePath, PlaybackInfo info);
+
     void TestCaseCapture(bool isScreenshot, const std::string& savePath);
     std::string GetImageSavePath();
 

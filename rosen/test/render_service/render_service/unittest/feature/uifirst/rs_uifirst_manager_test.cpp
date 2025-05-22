@@ -1647,10 +1647,7 @@ HWTEST_F(RSUifirstManagerTest, UpdateUifirstNodes002, TestSize.Level1)
 {
     auto surfaceNode = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(surfaceNode, nullptr);
-    if (uifirstManager_.uifirstType_ != UiFirstCcmType::MULTI) {
-        return;
-    }
-
+    uifirstManager_.uifirstType_ = UiFirstCcmType::MULTI;
     surfaceNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
     surfaceNode->isChildSupportUifirst_ = true;
     surfaceNode->firstLevelNodeId_ = surfaceNode->GetId();
@@ -1660,12 +1657,12 @@ HWTEST_F(RSUifirstManagerTest, UpdateUifirstNodes002, TestSize.Level1)
     surfaceNode->lastFrameUifirstFlag_ = MultiThreadCacheType::NONE;
     uifirstManager_.rotationChanged_ = false;
     uifirstManager_.UpdateUifirstNodes(*surfaceNode, true);
-    auto param = static_cast<RSSurfaceRenderParams*>(surfaceNode->stagingRenderParams_.get());
-    EXPECT_TRUE(param->GetUifirstNodeEnableParam() == MultiThreadCacheType::NONE);
+    EXPECT_TRUE(surfaceNode->GetLastFrameUifirstFlag() == MultiThreadCacheType::NONE);
 
     surfaceNode->lastFrameUifirstFlag_ = MultiThreadCacheType::NONFOCUS_WINDOW;
     uifirstManager_.UpdateUifirstNodes(*surfaceNode, true);
-    EXPECT_TRUE(param->GetUifirstNodeEnableParam() == MultiThreadCacheType::NONFOCUS_WINDOW);
+    EXPECT_TRUE(surfaceNode->GetLastFrameUifirstFlag() == MultiThreadCacheType::NONFOCUS_WINDOW);
+    uifirstManager_.uifirstType_ = UiFirstCcmType::SINGLE;
 }
 
 /**

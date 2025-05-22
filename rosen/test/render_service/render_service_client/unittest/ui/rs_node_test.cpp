@@ -7034,7 +7034,6 @@ HWTEST_F(RSNodeTest, DoFlushModifier, TestSize.Level1)
     rsNode->modifiers_[id] = modifier;
     rsNode->DoFlushModifier();
     EXPECT_EQ(rsNode->modifiers_.empty(), false);
-    EXPECT_EQ(rsNode->modifiers_.size(), 0);
 }
 
 /**

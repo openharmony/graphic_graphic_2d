@@ -132,6 +132,7 @@ public:
 
     VsyncError AddConnection(const sptr<VSyncConnection>& connection, uint64_t windowNodeId = 0);
     VsyncError RemoveConnection(const sptr<VSyncConnection> &connection);
+    uint64_t CheckVsyncTsAndReceived(uint64_t timestamp);
 
     // fromWhom indicates whether the source is animate or non-animate
     // lastVSyncTS indicates last vsync time, 0 when non-animate
@@ -166,7 +167,7 @@ public:
     void PrintConnectionsStatus();
     void FirstRequestVsync();
     void NotifyPackageEvent(const std::vector<std::string>& packageList);
-    void NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt);
+    void HandleTouchEvent(int32_t touchStatus, int32_t touchCnt);
     void SetBufferInfo(uint64_t id, const std::string &name, uint32_t queueSize,
         int32_t bufferCount, int64_t lastConsumeTime);
     bool AdaptiveDVSyncEnable(const std::string &nodeName, int64_t timeStamp, int32_t bufferCount, bool &needConsume);

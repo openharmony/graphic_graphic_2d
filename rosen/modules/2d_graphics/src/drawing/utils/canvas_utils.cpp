@@ -47,6 +47,7 @@ Canvas* CanvasUtils::CreateLockCanvas(OHNativeWindow* nativeWindow)
     bool result = bitmap.InstallPixels(imageInfo, buffer->sfbuffer->GetVirAddr(), buffer->sfbuffer->GetStride());
     if (!result) {
         LOGE("CreateLockCanvas Create bitmap failed");
+        NativeWindowCancelBuffer(nativeWindow, buffer);
         return nullptr;
     }
 
@@ -78,6 +79,7 @@ bool CanvasUtils::UnlockCanvas(Canvas* canvas, OHNativeWindow* nativeWindow)
         LOGE("UnlockCanvas NativeWindowUnlockAndFlushBuffer failed");
         return false;
     }
+    delete canvas;
 
     return true;
 #else

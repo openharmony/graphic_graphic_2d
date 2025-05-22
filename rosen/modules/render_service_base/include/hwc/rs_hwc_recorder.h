@@ -52,13 +52,12 @@ private:
     bool isBlendWithBackground_ = false;
     bool isForegroundColorValid_ = false;
     int32_t zOrderForHwcEnableByFilter_ = 0;
-
-private:
     float positionZ_ = 0.0f;
     bool zOrderChanged_ = false;
 };
 
 struct RSHwcSurfaceRecorder {
+public:
     RSHwcSurfaceRecorder() = default;
     ~RSHwcSurfaceRecorder() = default;
 
@@ -72,8 +71,15 @@ struct RSHwcSurfaceRecorder {
         lastFrameHasVisibleRegion_ = lastFrameHasVisibleRegion;
     }
     bool GetLastFrameHasVisibleRegion() const { return lastFrameHasVisibleRegion_; }
+    void SetIntersectWithPreviousFilter(bool isIntersectWithPreviousFilter)
+    {
+        isIntersectWithPreviousFilter_ = isIntersectWithPreviousFilter;
+    }
+    bool IsIntersectWithPreviousFilter() const { return isIntersectWithPreviousFilter_; }
 
+private:
     bool lastFrameHasVisibleRegion_ = true;
+    bool isIntersectWithPreviousFilter_ = false;
 };
 
 struct RSHwcDisplayRecorder {

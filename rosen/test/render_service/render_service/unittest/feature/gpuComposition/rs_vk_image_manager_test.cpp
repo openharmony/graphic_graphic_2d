@@ -155,6 +155,38 @@ HWTEST_F(RSVKImageManagerTest, MapAndUnMapVKImage003, TestSize.Level1)
 }
 
 /**
+ * @tc.name: MapAndUnMapVKImage004
+ * @tc.desc: Map 10 VKImages and map them again, check imageCacheSeqs size
+ *           UnMap all VKImage, check cacheSeqs size is 0
+ * @tc.type: FUNC
+ * @tc.require: issueI6QHNP
+ */
+HWTEST_F(RSVKImageManagerTest, MapAndUnMapVKImage004, TestSize.Level1)
+{
+    const uint32_t cacheNums = 10;
+    std::vector<sptr<SurfaceBuffer>> bufferVector;
+    for (uint32_t i = 1; i <= cacheNums; i++) {
+        auto buffer = CreateBuffer();
+        ASSERT_NE(buffer, nullptr);
+        bufferVector.push_back(buffer);
+        auto imageCache = vkImageManager_->MapVkImageFromSurfaceBuffer(buffer, SyncFence::INVALID_FENCE, fakeTid_);
+        EXPECT_NE(imageCache, nullptr);
+        EXPECT_EQ(i, vkImageManager_->imageCacheSeqs_.size());
+    }
+
+    for (uint32_t i = 1; i <= cacheNums; i++) {
+        auto imageCache = vkImageManager_->MapVkImageFromSurfaceBuffer(bufferVector[i - 1], SyncFence::INVALID_FENCE, fakeTid_);
+        EXPECT_NE(imageCache, nullptr);
+        EXPECT_EQ(cacheNums, vkImageManager_->imageCacheSeqs_.size());
+    }
+
+    for (uint32_t i = cacheNums; i >= 1; i--) {
+        vkImageManager_->UnMapVkImageFromSurfaceBuffer(bufferVector[i - 1]->GetSeqNum());
+    }
+    EXPECT_EQ(0, vkImageManager_->imageCacheSeqs_.size());
+}
+
+/**
  * @tc.name: CreateImageCacheFromBuffer001
  * @tc.desc: call CreateImageCacheFromBuffer, check Image will be created
  * @tc.type: FUNC

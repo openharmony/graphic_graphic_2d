@@ -423,7 +423,7 @@ public:
     void InitVulkanErrorCallback(Drawing::GPUContext* gpuContext);
     void NotifyUnmarshalTask(int64_t uiTimestamp);
     void NotifyPackageEvent(const std::vector<std::string>& packageList);
-    void NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt);
+    void HandleTouchEvent(int32_t touchStatus, int32_t touchCnt);
     void SetBufferInfo(uint64_t id, const std::string &name, uint32_t queueSize,
         int32_t bufferCount, int64_t lastConsumeTime);
     void GetFrontBufferDesiredPresentTimeStamp(
@@ -606,7 +606,6 @@ private:
     bool isDrawingCacheDfxEnabledOfCurFrame_ = false;
     bool isDrawingCacheDfxEnabledOfLastFrame_ = false;
     // for dvsync (animate requestNextVSync after mark rsnotrendering)
-    bool needRequestNextVsyncAnimate_ = false;
     bool forceUIFirstChanged_ = false;
     bool lastFrameUIExtensionDataEmpty_ = false;
     // overDraw

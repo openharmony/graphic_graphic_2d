@@ -122,7 +122,7 @@ bool RSCanvasRenderNode::OpincGetNodeSupportFlag()
         property.NeedFilter() ||
         property.GetUseEffect() ||
         property.GetColorBlend().has_value() ||
-        IsSelfDrawingNode()) {
+        (IsSelfDrawingNode() && GetOpincCache().OpincGetRootFlag())) {
         return false;
     }
     return true && RSRenderNode::OpincGetNodeSupportFlag();

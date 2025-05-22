@@ -77,8 +77,7 @@ RSSurfaceRenderNodeDrawable::RSSurfaceRenderNodeDrawable(std::shared_ptr<const R
     auto nodeSp = std::const_pointer_cast<RSRenderNode>(node);
     auto surfaceNode = std::static_pointer_cast<RSSurfaceRenderNode>(nodeSp);
     name_ = surfaceNode->GetName();
-    surfaceWindowType_ = surfaceNode->GetSurfaceWindowType();
-    if (surfaceWindowType_ != SurfaceWindowType::SCB_SCREEN_LOCK) {
+    if (surfaceNode->GetSurfaceWindowType() != SurfaceWindowType::SCB_SCREEN_LOCK) {
         vmaCacheOff_ = true;
     }
     surfaceNodeType_ = surfaceNode->GetSurfaceNodeType();
@@ -195,7 +194,8 @@ void RSSurfaceRenderNodeDrawable::DrawMagnificationRegion(
 {
     Drawing::Surface* drawingSurface = canvas.GetSurface();
     if (drawingSurface == nullptr) {
-        ROSEN_LOGE("RSSurfaceRenderNodeDrawable::DrawMagnificationRegion, drawingSurface is nullptr");
+        RS_LOGE("RSSurfaceRenderNodeDrawable::DrawMagnificationRegion, drawingSurface is nullptr");
+        RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::DrawMagnificationRegion, drawingSurface is nullptr");
         return;
     }
 
@@ -204,7 +204,8 @@ void RSSurfaceRenderNodeDrawable::DrawMagnificationRegion(
     RectI magnifingRectI(std::ceil(regionToBeMagnified.x_), std::ceil(regionToBeMagnified.y_),
         std::floor(regionToBeMagnified.z_), std::floor(regionToBeMagnified.w_));
     if (magnifingRectI.IsEmpty()) {
-        ROSEN_LOGE("RSSurfaceRenderNodeDrawable::DrawMagnificationRegion, regionToBeMagnified is empty");
+        RS_LOGE("RSSurfaceRenderNodeDrawable::DrawMagnificationRegion, regionToBeMagnified is empty");
+        RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::DrawMagnificationRegion, regionToBeMagnified is empty");
         return;
     }
 
@@ -229,7 +230,7 @@ void RSSurfaceRenderNodeDrawable::DrawMagnificationRegion(
 
     /* Magnify */
     auto frame = surfaceParams.GetFrameRect();
-    canvas.DrawImageRect(*imageSnapshot, frame, Drawing::SamplingOptions());
+    canvas.DrawImageRect(*imageSnapshot, frame, samplingOptions);
     canvas.DetachBrush();
 
     return ;
@@ -645,7 +646,7 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     bool needOffscreen = (realTid == RSUniRenderThread::Instance().GetTid()) &&
         RotateOffScreenParam::GetRotateOffScreenSurfaceNodeEnable() &&
         surfaceParams->GetNeedOffscreen() && !rscanvas->GetTotalMatrix().IsIdentity() &&
-        surfaceParams->IsAppWindow() && IsScbWindowType() && !IsHardwareEnabled() &&
+        surfaceParams->IsAppWindow() && GetName().substr(0, 3) != "SCB" && !IsHardwareEnabled() &&
         (surfaceParams->GetVisibleRegion().Area() == (surfaceParams->GetOpaqueRegion().Area() +
         surfaceParams->GetRoundedCornerRegion().Area()));
     curCanvas_ = rscanvas;

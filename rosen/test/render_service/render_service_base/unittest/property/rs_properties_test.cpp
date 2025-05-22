@@ -3135,13 +3135,16 @@ HWTEST_F(RSPropertiesTest, GenerateColorFilter002, TestSize.Level1)
  * @tc.name: GenerateDisplacementDistortFilter001
  * @tc.desc: test results of GenerateDisplacementDistortFilter
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSPropertiesTest, GenerateDisplacementDistortFilter001, TestSize.Level1)
 {
     RSProperties properties;
     properties.GenerateDisplacementDistortFilter();
-    EXPECT_NE(properties.backgroundFilter_, nullptr);
+    EXPECT_EQ(properties.backgroundFilter_, nullptr);
+    properties.backgroundRenderFilter_ = std::make_shared<RSRenderFilter>();
+    properties.GenerateDisplacementDistortFilter();
+    EXPECT_EQ(properties.backgroundFilter_, nullptr);
 }
 
 /**

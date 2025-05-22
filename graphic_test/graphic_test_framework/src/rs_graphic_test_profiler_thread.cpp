@@ -30,6 +30,8 @@ namespace Rosen {
 constexpr int64_t INIT_WAIT_TIME = 50;
 constexpr int64_t SOCKET_REFRESH_TIME = 20;
 constexpr int SOCKET_CONNECT_MAX_NUM = 10000;
+const std::string RESPOND_PAUSE_AT = "PlaybackPauseAt OK";
+const std::string RESPOND_PLAYBACK_PREPARE = "awake_frame 0";
 
 RSGraphicTestProfilerThread::~RSGraphicTestProfilerThread()
 {
@@ -60,10 +62,17 @@ void RSGraphicTestProfilerThread::Stop()
     }
 }
 
-void RSGraphicTestProfilerThread::SendCommand(const std::string command)
+void RSGraphicTestProfilerThread::SendCommand(const std::string command, int outTime)
 {
-    std::unique_lock lock(queue_mutex_);
-    message_queue_.push(command);
+    {
+        std::unique_lock lock(queue_mutex_);
+        message_queue_.push(command);
+    }
+    if (outTime > 0) {
+        std::unique_lock lock(wait_mutex_);
+        waitReceive_ = true;
+        cv_.wait_for(lock, std::chrono::milliseconds(outTime), [&] { return !waitReceive_; });
+    }
 }
 
 void RSGraphicTestProfilerThread::MainLoop()
@@ -168,7 +177,20 @@ void RSGraphicTestProfilerThread::RecieveMessage()
     if (packet.GetType() == Packet::LOG) {
         std::string out(data.begin(), data.end());
         std::cout << out << std::endl;
+        if (waitReceive_) {
+            bool reveive = IsReceiveWaitMessage(out);
+            if (reveive) {
+                std::unique_lock lock(wait_mutex_);
+                waitReceive_ = false;
+                cv_.notify_one();
+            }
+        }
     }
+}
+
+bool RSGraphicTestProfilerThread::IsReceiveWaitMessage(const std::string& message)
+{
+    return (message == RESPOND_PAUSE_AT || message == RESPOND_PLAYBACK_PREPARE);
 }
 
 bool RSGraphicTestProfilerThread::RecieveHeader(void* data, size_t& size)

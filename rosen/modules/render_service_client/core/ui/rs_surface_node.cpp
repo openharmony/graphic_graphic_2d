@@ -1001,8 +1001,6 @@ void RSSurfaceNode::SetFrameGravityNewVersionEnabled(bool isEnabled)
     std::unique_ptr<RSCommand> command =
         std::make_unique<RSSurfaceNodeSetFrameGravityNewVersionEnabled>(GetId(), isEnabled);
     AddCommand(command, true);
-    ROSEN_LOGI("RSSurfaceNode::SetFrameGravityNewVersionEnabled, surfaceNodeId:[%" PRIu64 "] isEnabled:%s",
-        GetId(), isEnabled ? "true" : "false");
 }
 
 bool RSSurfaceNode::GetFrameGravityNewVersionEnabled() const

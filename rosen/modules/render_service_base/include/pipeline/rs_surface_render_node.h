@@ -80,16 +80,6 @@ public:
         return nodeType_ == RSSurfaceNodeType::APP_WINDOW_NODE;
     }
 
-    bool IsScbWindowType() const
-    {
-        return surfaceWindowType_ == SurfaceWindowType::SYSTEM_SCB_WINDOW ||
-               surfaceWindowType_ == SurfaceWindowType::SCB_DESKTOP ||
-               surfaceWindowType_ == SurfaceWindowType::SCB_WALLPAPER ||
-               surfaceWindowType_ == SurfaceWindowType::SCB_SCREEN_LOCK ||
-               surfaceWindowType_ == SurfaceWindowType::SCB_NEGATIVE_SCREEN ||
-               surfaceWindowType_ == SurfaceWindowType::SCB_DROPDOWN_PANEL;
-    }
-
     bool IsStartingWindow() const
     {
         return nodeType_ == RSSurfaceNodeType::STARTING_WINDOW_NODE;
@@ -1473,16 +1463,6 @@ public:
         return apiCompatibleVersion_;
     }
 
-    bool GetIsHwcPendingDisabled() const
-    {
-        return isHwcPendingDisabled_;
-    }
-
-    void SetIsHwcPendingDisabled(bool isHwcPendingDisabled)
-    {
-        isHwcPendingDisabled_ = isHwcPendingDisabled;
-    }
-
     void ResetIsBufferFlushed();
 
     void ResetSurfaceNodeStates();
@@ -1592,8 +1572,6 @@ private:
     uint8_t abilityBgAlpha_ = 0;
     bool alphaChanged_ = false;
     bool isUIHidden_ = false;
-    // is hwc node disabled by filter rect
-    bool isHwcPendingDisabled_ = false;
     bool extraDirtyRegionAfterAlignmentIsEmpty_ = true;
     bool opaqueRegionChanged_ = false;
     bool isFilterCacheFullyCovered_ = false;
