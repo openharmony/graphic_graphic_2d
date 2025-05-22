@@ -78,6 +78,43 @@ MARSHALLING_AND_UNMARSHALLING(double, Double)
 
 #undef MARSHALLING_AND_UNMARSHALLING
 
+#define MARSHALLING_AND_UNMARSHALLING(TYPE, TYPENAME)                                                       \
+    bool RSMarshallingHelper::CompatibleMarshalling(Parcel& parcel, const TYPE& val, uint16_t paramVersion) \
+    {                                                                                                       \
+        return parcel.Write##TYPENAME(val);                                                                 \
+    }                                                                                                       \
+    bool RSMarshallingHelper::CompatibleUnmarshalling(                                                      \
+        Parcel& parcel, TYPE& val, TYPE defaultValue, uint16_t paramVersion)                                \
+    {                                                                                                       \
+        if (RSMarshallingHelper::TransactionVersionCheck(parcel, paramVersion)) {                           \
+            return parcel.Read##TYPENAME(val);                                                              \
+        }                                                                                                   \
+        val = defaultValue;                                                                                 \
+        return true;                                                                                        \
+    }
+
+void RSMarshallingHelper::CompatibleUnmarshallingObsolete(Parcel& parcel, size_t typeSize, uint16_t paramVersion)
+{
+    if (paramVersion != RSPARCELVER_ALWAYS && !RSMarshallingHelper::TransactionVersionCheck(parcel, paramVersion)) {
+        parcel.SkipBytes(typeSize);
+    }
+}
+
+// basic types
+MARSHALLING_AND_UNMARSHALLING(bool, Bool)
+MARSHALLING_AND_UNMARSHALLING(int8_t, Int8)
+MARSHALLING_AND_UNMARSHALLING(uint8_t, Uint8)
+MARSHALLING_AND_UNMARSHALLING(int16_t, Int16)
+MARSHALLING_AND_UNMARSHALLING(uint16_t, Uint16)
+MARSHALLING_AND_UNMARSHALLING(int32_t, Int32)
+MARSHALLING_AND_UNMARSHALLING(uint32_t, Uint32)
+MARSHALLING_AND_UNMARSHALLING(int64_t, Int64)
+MARSHALLING_AND_UNMARSHALLING(uint64_t, Uint64)
+MARSHALLING_AND_UNMARSHALLING(float, Float)
+MARSHALLING_AND_UNMARSHALLING(double, Double)
+
+#undef MARSHALLING_AND_UNMARSHALLING
+
 namespace {
 template<typename T, typename P>
 static inline sk_sp<T> sk_reinterpret_cast(sk_sp<P> ptr)
@@ -565,6 +602,18 @@ bool RSMarshallingHelper::CheckReadPosition(Parcel& parcel)
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSRenderPropertyBase>& val)
 {
     return true;
+}
+bool RSMarshallingHelper::MarshallingTransactionVer(Parcel& parcel)
+{
+    return true;
+}
+bool RSMarshallingHelper::UnmarshallingTransactionVer(Parcel& parcel)
+{
+    return true;
+}
+bool RSMarshallingHelper::TransactionVersionCheck(Parcel& parcel, uint8_t supportedFlag)
+{
+    return false;
 }
 } // namespace Rosen
 } // namespace OHOS

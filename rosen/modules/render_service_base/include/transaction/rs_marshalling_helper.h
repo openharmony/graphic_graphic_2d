@@ -28,6 +28,8 @@
 #include "image/image.h"
 #include "text/hm_symbol.h"
 
+#define RSPARCELVER_ALWAYS 0x100
+#define RSPARCELVER_ADD_ANIMTOKEN 0
 
 namespace OHOS {
 namespace Media {
@@ -232,6 +234,27 @@ public:
     static RSB_EXPORT bool ReadColorSpaceFromParcel(Parcel& parcel, std::shared_ptr<Drawing::ColorSpace>& colorSpace);
 
     // reloaded marshalling & unmarshalling function for types
+#define DECLARE_FUNCTION_OVERLOAD(TYPE)                                                                   \
+    static RSB_EXPORT bool CompatibleMarshalling(Parcel& parcel, const TYPE& val, uint16_t paramVersion); \
+    static RSB_EXPORT bool CompatibleUnmarshalling(Parcel& parcel, TYPE& val, TYPE defaultValue, uint16_t paramVersion);
+
+    // basic types
+    DECLARE_FUNCTION_OVERLOAD(bool)
+    DECLARE_FUNCTION_OVERLOAD(int8_t)
+    DECLARE_FUNCTION_OVERLOAD(uint8_t)
+    DECLARE_FUNCTION_OVERLOAD(int16_t)
+    DECLARE_FUNCTION_OVERLOAD(uint16_t)
+    DECLARE_FUNCTION_OVERLOAD(int32_t)
+    DECLARE_FUNCTION_OVERLOAD(uint32_t)
+    DECLARE_FUNCTION_OVERLOAD(int64_t)
+    DECLARE_FUNCTION_OVERLOAD(uint64_t)
+    DECLARE_FUNCTION_OVERLOAD(float)
+    DECLARE_FUNCTION_OVERLOAD(double)
+#undef DECLARE_FUNCTION_OVERLOAD
+
+    static RSB_EXPORT void CompatibleUnmarshallingObsolete(Parcel& parcel, size_t typeSize, uint16_t paramVersion);
+
+// reloaded marshalling & unmarshalling function for types
 #define DECLARE_FUNCTION_OVERLOAD(TYPE)                                  \
     static RSB_EXPORT bool Marshalling(Parcel& parcel, const TYPE& val); \
     static RSB_EXPORT bool Unmarshalling(Parcel& parcel, TYPE& val);
@@ -443,6 +466,10 @@ public:
     static bool CheckReadPosition(Parcel& parcel);
 
     static void SetCallingPid(pid_t callingPid);
+
+    static bool MarshallingTransactionVer(Parcel& parcel);
+    static bool UnmarshallingTransactionVer(Parcel& parcel);
+    static bool TransactionVersionCheck(Parcel& parcel, uint8_t supportedFlag);
 
 private:
     static bool WriteToParcel(Parcel& parcel, const void* data, size_t size);

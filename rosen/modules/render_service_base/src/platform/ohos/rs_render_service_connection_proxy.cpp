@@ -142,6 +142,11 @@ bool RSRenderServiceConnectionProxy::FillParcelWithTransactionData(
         return false;
     }
 
+    if (!RSMarshallingHelper::MarshallingTransactionVer(*data)) {
+        ROSEN_LOGE("FillParcelWithTransactionData WriteVersionHeader failed!");
+        return false;
+    }
+
     {
         // 1. marshalling RSTransactionData
 #ifdef RS_ENABLE_VK
