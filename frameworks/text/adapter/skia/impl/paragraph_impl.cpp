@@ -23,6 +23,7 @@
 #include "text_font_utils.h"
 #include "include/core/SkMatrix.h"
 #include "modules/skparagraph/include/Paragraph.h"
+#include "modules/skparagraph/include/TextStyle.h"
 #include "paragraph_builder_impl.h"
 #include "skia_adapter/skia_convert_utils.h"
 #include "symbol_engine/hm_symbol_run.h"
@@ -30,7 +31,6 @@
 #include "text_line_impl.h"
 #include "utils/text_log.h"
 #include "utils/text_trace.h"
-#include "modules/skparagraph/include/TextStyle.h"
 
 namespace OHOS {
 namespace Rosen {
