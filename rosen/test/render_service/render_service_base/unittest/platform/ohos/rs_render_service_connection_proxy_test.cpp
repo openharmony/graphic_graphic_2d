@@ -1292,5 +1292,19 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, GetBehindWindowFilterEnabledTest, T
     auto res = connectionProxy->GetBehindWindowFilterEnabled(enabled);
     EXPECT_EQ(res, ERR_OK);
 }
+
+/**
+ * @tc.name: NotifyScreenSwitched
+ * @tc.desc: Test NotifyScreenSwitched
+ * @tc.type: FUNC
+ * @tc.require: issueIC9IVH
+ */
+HWTEST_F(RSRenderServiceConnectionProxyTest, NotifyScreenSwitched, TestSize.Level1)
+{
+
+    int32_t res = proxy->NotifyScreenSwitched();
+    ASSERT_EQ(res, ERR_INVALID_VALUE);
+}
+
 } // namespace Rosen
 } // namespace OHOS

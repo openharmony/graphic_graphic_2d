@@ -1162,6 +1162,24 @@ HWTEST_F(RSScreenTest, SetScreenBacklight_002, testing::ext::TestSize.Level1)
 }
 
 /*
+ * @tc.name: SetScreenBacklight_003
+ * @tc.desc: SetScreenBacklight Test, trigger branch -- IsVirtual()
+ * @tc.type: FUNC
+ * @tc.require: issueIC9IVH
+ */
+HWTEST_F(RSScreenTest, SetScreenBacklight_003, testing::ext::TestSize.Level1)
+{
+    ScreenId id = 0;
+    auto rsScreen = std::make_shared<impl::RSScreen>(id, true, nullptr, nullptr);
+    ASSERT_NE(nullptr, rsScreen);
+
+    rsScreen->hdiScreen_->device_ = hdiDeviceMock_;
+    EXPECT_CALL(*hdiDeviceMock_, SetScreenBacklight(_, _)).Times(0).WillOnce(testing::Return(-1));
+
+    rsScreen->SetScreenBacklight(1);
+}
+
+/*
  * @tc.name: GetScreenBacklight_001
  * @tc.desc: GetScreenBacklight Test, hdiScreen_->GetScreenBacklight(level) < 0
  * @tc.type: FUNC

@@ -327,6 +327,8 @@ void RSScreenManager::OnHotPlugEvent(std::shared_ptr<HdiOutput>& output, bool co
             RS_LOGE("%{public}s: screen %{public}" PRIu64 "is covered.", __func__, id);
         }
         pendingHotPlugEvents_[id] = ScreenHotPlugEvent{output, connected};
+        RS_LOGI("%{public}s: screen %{public}" PRIu64 "is %{public}s, event has been saved", __func__, id,
+                connected ? "connected" : "disconnected");
     }
 
     // This func would be called in main thread first time immediately after calling composer_->RegScreenHotplug,
@@ -340,6 +342,7 @@ void RSScreenManager::OnHotPlugEvent(std::shared_ptr<HdiOutput>& output, bool co
         RS_LOGE("%{public}s: mainThread is nullptr.", __func__);
         return;
     }
+    RS_LOGI("%{public}s: mainThread->RequestNextVSync()", __func__);
     mainThread->RequestNextVSync();
 }
 
@@ -484,6 +487,9 @@ bool RSScreenManager::TrySimpleProcessHotPlugEvents()
         mipiCheckInFirstHotPlugEvent_ = true;
         return true;
     }
+    RS_LOGI("%{public}s: isHwcDead_:%{public}d, pendingHotPlugEventsSize:%{public}zu, "
+            "pendingConnectedIdsSize:%{public}zu",
+            __func__, isHwcDead_.load(), pendingHotPlugEvents_.size(), pendingConnectedIds_.size());
     return false;
 }
 
@@ -639,6 +645,9 @@ void RSScreenManager::ProcessScreenConnected(std::shared_ptr<HdiOutput>& output)
             defaultScreenId = id;
         }
     } else if (defaultScreenId == INVALID_SCREEN_ID) {
+        RS_LOGI("%{public}s The screen id %{public}" PRIu64
+                " is set to defaultScreenId. last defaultScreenId is %{public}" PRIu64 ".",
+                __func__, id, defaultScreenId);
         defaultScreenId = id;
     }
     defaultScreenId_ = defaultScreenId;
@@ -651,6 +660,7 @@ void RSScreenManager::ProcessScreenConnected(std::shared_ptr<HdiOutput>& output)
 
 #ifdef RS_SUBSCRIBE_SENSOR_ENABLE
     if (isFoldScreenFlag_ && id != 0) {
+        RS_LOGI("%{public}s The externalScreenId_ is set %{public}" PRIu64 ".", __func__, id);
         externalScreenId_ = id;
     }
 #endif
@@ -1728,7 +1738,7 @@ int32_t RSScreenManager::GetScreenBacklight(ScreenId id) const
 {
     auto screen = GetScreen(id);
     if (screen == nullptr) {
-        RS_LOGW("%{public}s: There is no screen for id %{public}" PRIu64, __func__, id);
+        RS_LOGE("%{public}s: There is no screen for id %{public}" PRIu64, __func__, id);
         return INVALID_BACKLIGHT_VALUE;
     }
     return screen->GetScreenBacklight();
@@ -1876,10 +1886,12 @@ void RSScreenManager::RemoveScreenChangeCallback(const sptr<RSIScreenChangeCallb
 {
     std::lock_guard<std::shared_mutex> lock(screenChangeCallbackMutex_);
     auto iter = std::find(screenChangeCallbacks_.cbegin(), screenChangeCallbacks_.cend(), callback);
-    if (iter != screenChangeCallbacks_.cend()) {
-        screenChangeCallbacks_.erase(iter);
-        RS_LOGI("%{public}s: remove a remote callback succeed.", __func__);
+    if (iter == screenChangeCallbacks_.cend()) {
+        RS_LOGW("%{public}s: The remote callback is not in screenChangeCallbacks_", __func__);
+        return;
     }
+    screenChangeCallbacks_.erase(iter);
+    RS_LOGI("%{public}s: remove a remote callback succeed.", __func__);
 }
 
 void RSScreenManager::DisplayDump(std::string& dumpString)
@@ -2375,6 +2387,7 @@ void RSScreenManager::SetScreenHasProtectedLayer(ScreenId id, bool hasProtectedL
 
 void RSScreenManager::SetScreenSwitchStatus(bool flag)
 {
+    RS_LOGI("%{public}s: set isScreenSwitching_ = %{public}d", __func__, flag);
     isScreenSwitching_ = flag;
 }
 
@@ -2418,6 +2431,9 @@ bool RSScreenManager::AnyScreenFits(std::function<bool(const ScreenNode&)> func)
 void RSScreenManager::TriggerCallbacks(ScreenId id, ScreenEvent event, ScreenChangeReason reason) const
 {
     std::shared_lock<std::shared_mutex> lock(screenChangeCallbackMutex_);
+    RS_LOGI("%{public}s: id %{public}" PRIu64
+            "event %{public}u reason %{public}u screenChangeCallbacks_.size() %{public}zu",
+            __func__, id, static_cast<uint8_t>(event), static_cast<uint8_t>(reason), screenChangeCallbacks_.size());
     for (const auto& cb : screenChangeCallbacks_) {
         cb->OnScreenChanged(id, event, reason);
     }

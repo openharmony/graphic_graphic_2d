@@ -46,10 +46,15 @@ public:
     class RSIScreenChangeCallbackConfig : public RSIScreenChangeCallback {
     public:
         RSIScreenChangeCallbackConfig() = default;
+        explicit RSIScreenChangeCallbackConfig(std::function<void()> callbackFunc_)
+            : callbackFunc_(std::move(callbackFunc_))
+        {}
         ~RSIScreenChangeCallbackConfig() = default;
         void OnScreenChanged(ScreenId id, ScreenEvent event,
             ScreenChangeReason reason = ScreenChangeReason::DEFAULT) override;
         sptr<IRemoteObject> AsObject() override;
+    private:
+        std::function<void()> callbackFunc_;
     };
 };
 
@@ -563,6 +568,23 @@ HWTEST_F(RSScreenManagerTest, ProcessScreenHotPlugEvents_001, TestSize.Level1)
 }
 
 /*
+ * @tc.name: ProcessScreenHotPlugEvents_002
+ * @tc.desc: Test ProcessScreenHotPlugEvents
+ * @tc.type: FUNC
+ * @tc.require: issueIC9IVH
+ */
+HWTEST_F(RSScreenManagerTest, ProcessScreenHotPlugEvents_002, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    impl::RSScreenManager& screenManagerImpl = static_cast<impl::RSScreenManager&>(*screenManager);
+    constexpr ScreenId mockScreenId = 100;
+    screenManagerImpl.pendingHotPlugEvents_[mockScreenId] = impl::ScreenHotPlugEvent{nullptr, true};
+    screenManagerImpl.ProcessScreenHotPlugEvents();
+    EXPECT_TRUE(screenManagerImpl.pendingHotPlugEvents_.empty());
+}
+
+/*
  * @tc.name: GetScreenBacklight_001
  * @tc.desc: Test GetScreenBacklight
  * @tc.type: FUNC
@@ -603,6 +625,32 @@ HWTEST_F(RSScreenManagerTest, AddScreenChangeCallback_001, TestSize.Level1)
     auto screenManager = CreateOrGetScreenManager();
     ASSERT_NE(nullptr, screenManager);
     ASSERT_EQ(INVALID_ARGUMENTS, screenManager->AddScreenChangeCallback(nullptr));
+}
+
+/*
+ * @tc.name: AddScreenChangeCallback_002
+ * @tc.desc: Test AddScreenChangeCallback
+ * @tc.type: FUNC
+ * @tc.require: issueIC9IVH
+ */
+HWTEST_F(RSScreenManagerTest, AddScreenChangeCallback_002, TestSize.Level1)
+{
+    auto screenManager = sptr<impl::RSScreenManager>::MakeSptr();
+    ASSERT_NE(nullptr, screenManager);
+    sptr<RSIScreenChangeCallback> callback = sptr<RSScreenManagerTest::RSIScreenChangeCallbackConfig>::MakeSptr();
+    ASSERT_NE(nullptr, callback);
+    // case1: The screen is nullptr.
+    constexpr ScreenId mockNullptrScreen = 0;
+    screenManager->screens_[mockNullptrScreen] = nullptr;
+    // case2: The screen is virtual.
+    constexpr ScreenId mockVirtualScreen = 1;
+    screenManager->screens_[mockVirtualScreen] =
+        std::make_shared<impl::RSScreen>(mockVirtualScreen, true, nullptr, nullptr);
+    // case3: The screen is physical.
+    constexpr ScreenId mockPhysicalScreen = 2;
+    screenManager->screens_[mockPhysicalScreen] =
+        std::make_shared<impl::RSScreen>(mockPhysicalScreen, false, nullptr, nullptr);
+    ASSERT_EQ(SUCCESS, screenManager->AddScreenChangeCallback(callback));
 }
 
 /*
@@ -4029,5 +4077,54 @@ HWTEST_F(RSScreenManagerTest, InitLoadOptParams001, TestSize.Level1)
     screenManagerImpl->RSScreenManager::InitLoadOptParams(params);
     EXPECT_EQ(screenManagerImpl->loadOptParamsForScreen_.loadOptParamsForHdiBackend.loadOptParamsForHdiOutput
                   .switchParams.size(), 0);
+}
+
+/*
+ * @tc.name: OnHotPlug
+ * @tc.desc: Test OnHotPlug
+ * @tc.type: FUNC
+ * @tc.require: issueIC9IVH
+ */
+HWTEST_F(RSScreenManagerTest, OnHotPlug, TestSize.Level1)
+{
+    sptr<OHOS::Rosen::impl::RSScreenManager> screenManagerImpl =
+        sptr<OHOS::Rosen::impl::RSScreenManager>::MakeSptr();
+    ASSERT_NE(screenManagerImpl, nullptr);
+    std::shared_ptr<HdiOutput> output = nullptr;
+    // case1: output is nullptr
+    screenManagerImpl->RSScreenManager::OnHotPlug(output, true, nullptr);
+    // case2: data is not nullptr
+    constexpr ScreenId mockScreenId = 100;
+    output = HdiOutput::CreateHdiOutput(mockScreenId);
+    screenManagerImpl->RSScreenManager::OnHotPlug(output, true, screenManagerImpl);
+    // case3: data is nullptr && screenManager is nullptr
+    // To confirm GetInstance() has been invoked at least one time;
+    OHOS::Rosen::impl::RSScreenManager::GetInstance();
+    sptr<OHOS::Rosen::RSScreenManager> instance = OHOS::Rosen::impl::RSScreenManager::instance_;
+    OHOS::Rosen::impl::RSScreenManager::instance_ = nullptr;
+    ASSERT_NE(nullptr, instance);
+    ASSERT_EQ(nullptr, OHOS::Rosen::impl::RSScreenManager::instance_);
+    screenManagerImpl->RSScreenManager::OnHotPlug(output, true, nullptr);
+    std::swap(OHOS::Rosen::impl::RSScreenManager::instance_, instance);
+    ASSERT_NE(nullptr, OHOS::Rosen::impl::RSScreenManager::instance_);
+}
+
+/*
+ * @tc.name: OnHotPlugEvent
+ * @tc.desc: Test OnHotPlugEvent
+ * @tc.type: FUNC
+ * @tc.require: issueIC9IVH
+ */
+HWTEST_F(RSScreenManagerTest, OnHotPlugEvent, TestSize.Level1)
+{
+    sptr<OHOS::Rosen::impl::RSScreenManager> screenManagerImpl =
+        sptr<OHOS::Rosen::impl::RSScreenManager>::MakeSptr();
+    ASSERT_NE(screenManagerImpl, nullptr);
+    constexpr ScreenId mockScreenId = 100;
+    std::shared_ptr<HdiOutput> output = HdiOutput::CreateHdiOutput(mockScreenId);
+    // case1: add FirstEvent
+    screenManagerImpl->RSScreenManager::OnHotPlugEvent(output, true);
+    // case2: Same screenId event cover
+    screenManagerImpl->RSScreenManager::OnHotPlugEvent(output, true);
 }
 } // namespace OHOS::Rosen

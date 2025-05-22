@@ -207,6 +207,7 @@ int32_t RSInterfaces::UnRegisterPointerLuminanceChangeCallback()
 
 int32_t RSInterfaces::SetScreenChangeCallback(const ScreenChangeCallback &callback)
 {
+    ROSEN_LOGI("RSInterfaces::%{public}s", __func__);
     return renderServiceClient_->SetScreenChangeCallback(callback);
 }
 
@@ -506,6 +507,8 @@ bool RSInterfaces::SetGlobalDarkColorMode(bool isDark)
 #ifndef ROSEN_ARKUI_X
 int32_t RSInterfaces::SetPhysicalScreenResolution(ScreenId id, uint32_t width, uint32_t height)
 {
+    RS_LOGI("RSInterfaces:%{public}s, screenId:%{public}" PRIu64 ", width:%{public}u, height:%{public}u", __func__, id,
+            width, height);
     return renderServiceClient_->SetPhysicalScreenResolution(id, width, height);
 }
 
@@ -1067,6 +1070,8 @@ void RSInterfaces::SetColorFollow(const std::string &nodeIdStr, bool isColorFoll
 
 void RSInterfaces::NotifyScreenSwitched()
 {
+    RS_TRACE_NAME("NotifyScreenSwitched");
+    ROSEN_LOGI("RSInterfaces::%{public}s", __func__);
     renderServiceClient_->NotifyScreenSwitched();
 }
 

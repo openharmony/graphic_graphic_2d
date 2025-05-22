@@ -3347,6 +3347,7 @@ void RSMainThread::ProcessScreenHotPlugEvents()
 {
     auto screenManager_ = CreateOrGetScreenManager();
     if (!screenManager_) {
+        RS_LOGE("RSMainThread::%{public}s screenManager_ is nullptr", __func__);
         return;
     }
 #ifdef RS_ENABLE_GPU

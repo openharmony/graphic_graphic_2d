@@ -86,6 +86,12 @@ public:
     int32_t UnRegisterPointerLuminanceChangeCallback();
 #endif
 
+    /**
+     * @brief Set screen connection status change callback.
+     * on the screen connection status is changed.
+     * @param callback Callback of the screen connection status changed.
+     * @return Returns int32_t, return value == 0 success, otherwise, failed.
+     */
     int32_t SetScreenChangeCallback(const ScreenChangeCallback &callback);
 
     // if return true, the setting is successful. otherwise failed. The function is setted watermark for SurfaceNode
@@ -138,7 +144,13 @@ public:
     bool GetTotalAppMemSize(float& cpuMemSize, float& gpuMemSize);
 
 #ifndef ROSEN_ARKUI_X
-    // width and height should be greater than physical width and height
+    /**
+     * @brief Set render resolution of physical screen.
+     * @param id Id of the physical screen.
+     * @param width Width to set, and should be greater than physical width.
+     * @param height Height to set, and should be greater than physical height.
+     * @return StatusCode. Returns value, return value == 0 success, otherwise, failed.
+     */
     int32_t SetPhysicalScreenResolution(ScreenId id, uint32_t width, uint32_t height);
 
     int32_t SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height);
@@ -160,6 +172,11 @@ public:
 
     void DisablePowerOffRenderControl(ScreenId id);
 
+    /**
+     * @brief Set power of the screen.
+     * @param id Id of the screen to set power status.
+     * @param status The status to set to the screen.
+     */
     void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status);
 
     RSScreenModeInfo GetScreenActiveMode(ScreenId id);
@@ -197,6 +214,12 @@ public:
 #endif // !ROSEN_ARKUI_X
     int32_t GetScreenBacklight(ScreenId id);
 
+    /**
+     * @brief Set backlight value of the screen.
+     * 
+     * @param id Id of the screen to set its backlight value.
+     * @param level The value of backlight.
+     */
     void SetScreenBacklight(ScreenId id, uint32_t level);
 
     int32_t GetScreenSupportedColorGamuts(ScreenId id, std::vector<ScreenColorGamut>& mode);

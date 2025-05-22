@@ -470,7 +470,8 @@ void RSScreen::SetRogResolution(uint32_t width, uint32_t height)
 
 int32_t RSScreen::SetResolution(uint32_t width, uint32_t height)
 {
-    RS_LOGI("%{public}s width: %{public}u height: %{public}u", __func__, width, height);
+    RS_LOGI("%{public}s screenId:%{public}" PRIu64 " width: %{public}u height: %{public}u", __func__, id_, width,
+            height);
     std::lock_guard<std::shared_mutex> lock(screenMutex_);
     if (IsVirtual()) {
         width_ = width;
@@ -520,6 +521,7 @@ int32_t RSScreen::SetPowerStatus(uint32_t powerStatus)
 
     RS_LOGW("[UL_POWER]RSScreen_%{public}" PRIu64 " SetPowerStatus: %{public}u.", id_, powerStatus);
     RS_TRACE_NAME_FMT("[UL_POWER]Screen_%llu SetPowerStatus %u", id_, powerStatus);
+    hasLogBackLightAfterPowerStatusChanged_ = false;
     if (hdiScreen_->SetScreenPowerStatus(static_cast<GraphicDispPowerStatus>(powerStatus)) < 0) {
         RS_LOGW("[UL_POWER] %{public}s failed to set power status", __func__);
         powerStatus_ = ScreenPowerStatus::INVALID_POWER_STATUS;
@@ -765,6 +767,12 @@ void RSScreen::DisplayDump(int32_t screenIndex, std::string& dumpString)
         skipFrameLock.unlock();
         ModeInfoDump(dumpString);
         CapabilityDump(dumpString);
+        AppendFormat(dumpString,
+                     "isSamplingOn=%d, samplingScale=%.2f, samplingTranslateX=%.2f, samplingTranslateY=%.2f\n",
+                     isSamplingOn_, samplingScale_, samplingTranslateX_, samplingTranslateY_);
+        AppendFormat(dumpString, "enableVisibleRect=%d, mainScreenVisibleRect_=[%d,%d,%d,%d]",
+                     enableVisibleRect_.load(), mainScreenVisibleRect_.x, mainScreenVisibleRect_.y,
+                     mainScreenVisibleRect_.w, mainScreenVisibleRect_.h);
     }
 }
 
@@ -857,11 +865,20 @@ void RSScreen::SetScreenBacklight(uint32_t level)
         RS_LOGW("%{public}s: virtual screen not support SetScreenBacklight.", __func__);
         return;
     }
+    if (!hasLogBackLightAfterPowerStatusChanged_) {
+        RS_LOGI("%{public}s id: %{public}" PRIu64 ", level is %{public}u, current level is %{public}d", __func__, id_,
+                level, screenBacklightLevel_);
+    }
 
     RS_LOGD("%{public}s id: %{public}" PRIu64 ", level is %{public}u", __func__, id_, level);
     if (hdiScreen_->SetScreenBacklight(level) < 0) {
         RS_LOGE("RSScreen_%{public}" PRIu64 " SetScreenBacklight error.", id_);
         return;
+    }
+    if (!hasLogBackLightAfterPowerStatusChanged_) {
+        RS_LOGI("%{public}s id: %{public}" PRIu64 ", level is %{public}u done, last level is %{public}d", __func__, id_,
+                level, screenBacklightLevel_);
+        hasLogBackLightAfterPowerStatusChanged_ = true;
     }
     std::lock_guard<std::shared_mutex> lock(screenMutex_);
     screenBacklightLevel_ = static_cast<int32_t>(level);

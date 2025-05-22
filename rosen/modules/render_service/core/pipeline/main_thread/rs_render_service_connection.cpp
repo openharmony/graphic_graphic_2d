@@ -860,18 +860,22 @@ void RSRenderServiceConnection::RemoveVirtualScreen(ScreenId id)
 int32_t RSRenderServiceConnection::SetScreenChangeCallback(sptr<RSIScreenChangeCallback> callback)
 {
     if (!callback) {
+        RS_LOGE("RSRenderServiceConnection::%{public}s: callback is nullptr", __func__);
         return INVALID_ARGUMENTS;
     }
     std::unique_lock<std::mutex> lock(mutex_);
     if (screenChangeCallback_ == callback) {
+        RS_LOGE("RSRenderServiceConnection::%{public}s: the callback has been set", __func__);
         return INVALID_ARGUMENTS;
     }
     if (screenManager_ == nullptr) {
+        RS_LOGE("RSRenderServiceConnection::%{public}s: screenManager_ is nullptr", __func__);
         return SCREEN_NOT_FOUND;
     }
 
     if (screenChangeCallback_ != nullptr) {
         // remove the old callback
+        RS_LOGW("RSRenderServiceConnection::%{public}s: last screenChangeCallback_ should be removed", __func__);
         screenManager_->RemoveScreenChangeCallback(screenChangeCallback_);
     }
 
@@ -1726,6 +1730,7 @@ ErrCode RSRenderServiceConnection::GetScreenBacklight(uint64_t id, int32_t& leve
 void RSRenderServiceConnection::SetScreenBacklight(ScreenId id, uint32_t level)
 {
     if (!screenManager_) {
+        RS_LOGE("RSRenderServiceConnection::%{public}s screenManager_ is nullptr.", __func__);
         return;
     }
     RSLuminanceControl::Get().SetSdrLuminance(id, level);
