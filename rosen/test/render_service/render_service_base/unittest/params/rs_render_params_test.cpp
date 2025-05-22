@@ -683,6 +683,21 @@ HWTEST_F(RSRenderParamsTest, OnSync_002, TestSize.Level2)
     EXPECT_EQ(targetParams->drawingCacheType_, renderParams->drawingCacheType_);
 }
 
+
+/**
+ * @tc.name: RepaintBoundary
+ * @tc.desc: Test function MarkRepaintBoundary and IsRepaintBoundary
+ * @tc.type:FUNC
+ * @tc.require: issuesIC50OX
+ */
+HWTEST_F(RSRenderParamsTest, RepaintBoundary, TestSize.Level2)
+{
+    constexpr NodeId id = TestSrc::limitNumber::Uint64[4];
+    std::unique_ptr<RSRenderParams> renderParams = std::make_unique<RSRenderParams>(id);
+    renderParams->MarkRepaintBoundary(true);
+    EXPECT_TRUE(renderParams->IsRepaintBoundary());
+}
+
 /**
  * @tc.name: SetUiFirstRootNode_001
  * @tc.desc: Test function SetUiFirstRootNode

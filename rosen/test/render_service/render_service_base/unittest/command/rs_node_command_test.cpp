@@ -239,6 +239,23 @@ HWTEST_F(RSNodeCommandTest, SetNodeName001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: MarkRepaintBoundary
+ * @tc.desc: test results of MarkRepaintBoundary
+ * @tc.type: FUNC
+ * @tc.require: issuesIC50OX
+ */
+HWTEST_F(RSNodeCommandTest, MarkRepaintBoundary, TestSize.Level1)
+{
+    RSContext context;
+    NodeId nodeId = 0;
+    RSNodeCommandHelper::MarkRepaintBoundary(context, nodeId, true);
+    ASSERT_EQ(context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId)->isRepaintBoundary_, true);
+
+    RSNodeCommandHelper::MarkRepaintBoundary(context, nodeId, false);
+    ASSERT_EQ(context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId)->isRepaintBoundary_, false);
+}
+
+/**
  * @tc.name: MarkNodeSingleFrameComposer001
  * @tc.desc: test results of MarkNodeSingleFrameComposer
  * @tc.type: FUNC
