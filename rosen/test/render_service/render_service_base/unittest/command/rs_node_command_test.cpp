@@ -58,9 +58,9 @@ HWTEST_F(RSNodeCommandTest, TestRSBaseNodeCommand002, TestSize.Level1)
 {
     RSContext context;
     NodeId nodeId = static_cast<NodeId>(-1);
-    EXPECT_NE(nodeId, -5);
     std::shared_ptr<RSRenderModifier> modifier = nullptr;
     RSNodeCommandHelper::AddModifier(context, nodeId, modifier);
+    EXPECT_EQ(context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId), nullptr);
 }
 
 /**
