@@ -156,7 +156,7 @@ int main()
     shared_ptr<Media::PixelMap> bgpixelmap = DecodePixelMap("/data/local/tmp/test_bg.jpg", allocatorType);
     shared_ptr<Media::PixelMap> maskPixelmap = DecodePixelMap("/data/local/tmp/mask.jpg", allocatorType);
     if (bgpixelmap == nullptr) {
-        return -1;
+        // return -1;
     }
 
     cout << "rs pixelmap demo stage 3: bgImage" << endl;
