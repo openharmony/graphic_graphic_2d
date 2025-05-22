@@ -1409,18 +1409,22 @@ HWTEST_F(RSRenderNodeTest2, SetIsOnTheTreeTest02, TestSize.Level1)
 
 /**
  * @tc.name: SetHdrNum
- * @tc.desc: SetIsOnTheTree ResetChildRelevantFlags and UpdateChildrenRect test
+ * @tc.desc: SetHdrNum test
  * @tc.type: FUNC
  * @tc.require: issueI9US6V
  */
 HWTEST_F(RSRenderNodeTest2, SetHdrNum, TestSize.Level1)
 {
-    // SetIsOnTheTree test
-    auto canvasNode = std::make_shared<RSCanvasRenderNode>(DEFAULT_NODE_ID, context);
-    canvasNode->InitRenderParams();
-    EXPECT_NE(canvasNode, nullptr);
-
-    canvasNode->SetHdrNum(true, 0);
+    auto rsContext = std::make_shared<RSContext>();
+    EXPECT_NE(rsContext, nullptr);
+    auto node = std::make_shared<RSRenderNode>(0, rsContext);
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(1);
+    EXPECT_NE(surfaceNode, nullptr);
+    rsContext->nodeMap.renderNodeMap_[ExtractPid(1)][1] = surfaceNode;
+    node->SetHdrNum(true, 1, HDRType::IMAGE);
+    EXPECT_EQ(surfaceNode->hdrPhotoNum_, 1);
+    node->SetHdrNum(true, 1, HDRType::UICOMPONENT);
+    EXPECT_EQ(surfaceNode->hdrUIComponentNum_, 1);
 }
 
 /**

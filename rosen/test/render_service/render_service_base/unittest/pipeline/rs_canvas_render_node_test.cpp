@@ -264,6 +264,22 @@ HWTEST_F(RSCanvasRenderNodeTest, GetHDRUIBrightnessTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetHDRUIPresent
+ * @tc.desc: test results of GetHDRUIPresent
+ * @tc.type: FUNC
+ * @tc.require: issueIB6Y6O
+ */
+HWTEST_F(RSCanvasRenderNodeTest, GetHDRUIPresentTest, TestSize.Level1)
+{
+    NodeId nodeId = 0;
+    std::weak_ptr<RSContext> context;
+    RSCanvasRenderNode rsCanvasRenderNode(nodeId, context);
+    EXPECT_FALSE(rsCanvasRenderNode.GetHDRUIPresent());
+    rsCanvasRenderNode.hdrUIBrightness_ = 1.5f;
+    EXPECT_TRUE(rsCanvasRenderNode.GetHDRUIPresent());
+}
+
+/**
  * @tc.name: SetHDRPresent001
  * @tc.desc: test true of SetHDRPresent
  * @tc.type: FUNC
