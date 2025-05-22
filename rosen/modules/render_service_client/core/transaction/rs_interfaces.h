@@ -111,7 +111,6 @@ public:
     /**
      * @brief Remove virtual screen.
      * @param id Virtual screen id.
-     * @return void.
      */
     void RemoveVirtualScreen(ScreenId id);
 
@@ -458,7 +457,6 @@ public:
     /**
      * @brief Set virtual screen using status, vote for 60Hz if being used.
      * @param isVirtualScreenUsingStatus True means using virtual screen, false means not using.
-     * @return Void.
      */
     void SetVirtualScreenUsingStatus(bool isVirtualScreenUsingStatus);
 
