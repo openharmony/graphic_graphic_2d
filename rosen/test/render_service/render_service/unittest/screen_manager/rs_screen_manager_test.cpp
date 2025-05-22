@@ -577,8 +577,7 @@ HWTEST_F(RSScreenManagerTest, ProcessScreenHotPlugEvents_002, TestSize.Level1)
 {
     auto screenManager = CreateOrGetScreenManager();
     ASSERT_NE(nullptr, screenManager);
-    impl::RSScreenManager& screenManagerImpl =
-        static_cast<impl::RSScreenManager&>(*screenManager);
+    impl::RSScreenManager& screenManagerImpl = static_cast<impl::RSScreenManager&>(*screenManager);
     constexpr ScreenId mockScreenId = 100;
     screenManagerImpl.pendingHotPlugEvents_[mockScreenId] = impl::ScreenHotPlugEvent{nullptr, true};
     screenManagerImpl.ProcessScreenHotPlugEvents();

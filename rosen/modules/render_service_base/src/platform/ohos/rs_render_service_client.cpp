@@ -2137,11 +2137,11 @@ void RSRenderServiceClient::SetColorFollow(const std::string &nodeIdStr, bool is
 void RSRenderServiceClient::NotifyScreenSwitched()
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
-    if (renderService != nullptr) {
-        renderService->NotifyScreenSwitched();
+    if (renderService == nullptr) {
+        ROSEN_LOGE("RSRenderServiceClient::%{public}s renderService is nullptr", __func__);
         return;
     }
-    ROSEN_LOGE("RSRenderServiceClient::%{public}s renderService is nullptr", __func__);
+    renderService->NotifyScreenSwitched();
 }
 
 void RSRenderServiceClient::SetWindowContainer(NodeId nodeId, bool value)
