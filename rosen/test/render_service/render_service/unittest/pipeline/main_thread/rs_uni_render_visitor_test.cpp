@@ -4130,7 +4130,7 @@ HWTEST_F(RSUniRenderVisitorTest, CalculateOpaqueAndTransparentRegion005, TestSiz
  * @tc.name: CalculateOpaqueAndTransparentRegion006
  * @tc.desc: Test CalculateOpaqueAndTransparentRegion, filter rect should be accumulated.
  * @tc.type: FUNC
- * @tc.require: issueIBCR0E
+ * @tc.require: issueIC9HNQ
  */
 HWTEST_F(RSUniRenderVisitorTest, CalculateOpaqueAndTransparentRegion006, TestSize.Level2)
 {
@@ -4146,7 +4146,7 @@ HWTEST_F(RSUniRenderVisitorTest, CalculateOpaqueAndTransparentRegion006, TestSiz
     rsUniRenderVisitor->accumulatedTransparentRegion_ = regionFilter;
 
     rsUniRenderVisitor->ancestorNodeHasAnimation_ = false;
-    rSUniRenderVisitor->isAllSurfaceVisibleDebugEnabled_ = false;
+    rsUniRenderVisitor->isAllSurfaceVisibleDebugEnabled_ = false;
     EXPECT_CALL(*rsSurfaceRenderNode, CheckParticipateInOcclusion()).WillRepeatedly(testing::Return(true));
     EXPECT_CALL(*rsSurfaceRenderNode, NeedDrawBehindWindow()).WillRepeatedly(testing::Return(true));
     EXPECT_CALL(*rsSurfaceRenderNode, GetFilterRect()).WillRepeatedly(testing::Return(DEFAULT_FILTER_RECT));
@@ -4159,7 +4159,7 @@ HWTEST_F(RSUniRenderVisitorTest, CalculateOpaqueAndTransparentRegion006, TestSiz
  * @tc.name: CalculateOpaqueAndTransparentRegion007
  * @tc.desc: Test CalculateOpaqueAndTransparentRegion when node.NeedDrawBehindWindow() return false.
  * @tc.type: FUNC
- * @tc.require: issueIBCR0E
+ * @tc.require: issueIC9HNQ
  */
 HWTEST_F(RSUniRenderVisitorTest, CalculateOpaqueAndTransparentRegion007, TestSize.Level2)
 {
@@ -4175,7 +4175,7 @@ HWTEST_F(RSUniRenderVisitorTest, CalculateOpaqueAndTransparentRegion007, TestSiz
     rsUniRenderVisitor->accumulatedTransparentRegion_ = regionFilter;
 
     rsUniRenderVisitor->ancestorNodeHasAnimation_ = false;
-    rSUniRenderVisitor->isAllSurfaceVisibleDebugEnabled_ = false;
+    rsUniRenderVisitor->isAllSurfaceVisibleDebugEnabled_ = false;
     EXPECT_CALL(*rsSurfaceRenderNode, CheckParticipateInOcclusion()).WillRepeatedly(testing::Return(true));
     EXPECT_CALL(*rsSurfaceRenderNode, NeedDrawBehindWindow()).WillRepeatedly(testing::Return(false));
 
