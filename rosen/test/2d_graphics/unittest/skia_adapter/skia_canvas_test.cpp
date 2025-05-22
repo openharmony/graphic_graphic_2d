@@ -666,7 +666,7 @@ HWTEST_F(SkiaCanvasTest, GetDeviceClipBoundsTest001, TestSize.Level1)
  * @tc.name: SetParallelRender
  * @tc.desc: Test for seting parallel render.
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: IC8TIV
  */
 HWTEST_F(SkiaCanvasTest, SetParallelRender, TestSize.Level1)
 {
