@@ -3029,7 +3029,7 @@ void RSNode::MarkRepaintBoundary(const std::string& tag)
         return;
     }
     isRepaintBoundary_ = isRepaintBoundary;
-    std::unique_ptr<RSCommand> command = std::make_unique<RSMarkRepaintBoundary>(GetId(), isRepaintBoundary_);
+    std::unique_ptr<RSCommand> command = std::make_unique<RSMarkRepaintBoundary>(id_, isRepaintBoundary_);
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
         transactionProxy->AddCommand(command, IsRenderServiceNode());
