@@ -96,7 +96,6 @@ bool RSVkImageManager::WaitVKSemaphore(Drawing::Surface *drawingSurface, const s
     auto res = vkInterface.vkCreateSemaphore(vkInterface.GetDevice(), &semaphoreInfo, nullptr, &semaphore);
     if (res != VK_SUCCESS) {
         ROSEN_LOGE("RSVkImageManager: CreateVkSemaphore vkCreateSemaphore failed %{public}d", res);
-        semaphore = VK_NULL_HANDLE;
         return false;
     }
 
@@ -111,7 +110,6 @@ bool RSVkImageManager::WaitVKSemaphore(Drawing::Surface *drawingSurface, const s
     if (res != VK_SUCCESS) {
         ROSEN_LOGE("RSVkImageManager: CreateVkSemaphore vkImportSemaphoreFdKHR failed %{public}d", res);
         vkInterface.vkDestroySemaphore(vkInterface.GetDevice(), semaphore, nullptr);
-        semaphore = VK_NULL_HANDLE;
         close(importSemaphoreFdInfo.fd);
         return false;
     }

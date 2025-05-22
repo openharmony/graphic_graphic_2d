@@ -187,6 +187,31 @@ HWTEST_F(RSVKImageManagerTest, MapAndUnMapVKImage004, TestSize.Level1)
 }
 
 /**
+ * @tc.name: MapAndUnMapVKImage005
+ * @tc.desc: Map a vkimage with drawingSurface or invalid drawingSurface
+ * @tc.type: FUNC
+ * @tc.require: issueI6QHNP
+ */
+HWTEST_F(RSVKImageManagerTest, MapAndUnMapVKImage005, TestSize.Level1)
+{
+    auto image = vkImageManager_->MapVkImageFromSurfaceBuffer(buffer_, nullptr, fakeTid_, nullptr);
+    EXPECT_NE(image, nullptr);
+    image = vkImageManager_->MapVkImageFromSurfaceBuffer(buffer_, BufferFence_, fakeTid_, nullptr);
+    EXPECT_NE(image, nullptr);
+
+    auto drawingSurface = std::make_unique<Drawing::Surface>();
+    EXPECT_NE(drawingSurface, nullptr);
+    if (drawingSurface) {
+        image = vkImageManager_->MapVkImageFromSurfaceBuffer(buffer_, BufferFence_, fakeTid_, drawingSurface.get());
+        EXPECT_NE(image, nullptr);
+    }
+
+    auto size = vkImageManager_->imageCacheSeqs_.size();
+    vkImageManager_->UnMapVkImageFromSurfaceBuffer(buffer_->GetSeqNum());
+    EXPECT_EQ(size - 1, vkImageManager_->imageCacheSeqs_.size());
+}
+
+/**
  * @tc.name: CreateImageCacheFromBuffer001
  * @tc.desc: call CreateImageCacheFromBuffer, check Image will be created
  * @tc.type: FUNC
