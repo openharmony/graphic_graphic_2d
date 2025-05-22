@@ -71,6 +71,7 @@ template("graphics2d_source_set") {
     sources = [
       "$drawing_core_src_dir/draw/OpListHandle.cpp",
       "$drawing_core_src_dir/draw/brush.cpp",
+      "$drawing_core_src_dir/config/DrawingConfig.cpp",
       "$drawing_core_src_dir/draw/canvas.cpp",
       "$drawing_core_src_dir/draw/color.cpp",
       "$drawing_core_src_dir/draw/core_canvas.cpp",

@@ -181,6 +181,11 @@ void Pen::SetAntiAlias(bool aa)
 
 void Pen::SetPathEffect(std::shared_ptr<PathEffect> e)
 {
+#ifdef DRAWING_DISABLE_API
+    if (DrawingConfig::IsDisabled(DrawingConfig::DrawingDisableFlag::DISABLE_PATH_EFFECT)) {
+        return;
+    }
+#endif
     pathEffect_ = e;
 }
 
