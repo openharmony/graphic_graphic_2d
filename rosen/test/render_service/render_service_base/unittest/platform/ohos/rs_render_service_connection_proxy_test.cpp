@@ -272,7 +272,8 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, AddVirtualScreenBlackList, TestSize
 {
     ScreenId id = 100;
     std::vector<NodeId> blackListVector({1, 2, 3});
-    EXPECT_EQ(proxy->AddVirtualScreenBlackList(id, blackListVector), 0);
+    int32_t repCode = 0;
+    EXPECT_EQ(proxy->AddVirtualScreenBlackList(id, blackListVector, repCode), 0);
 }
 
 /**
@@ -285,7 +286,8 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, RemoveVirtualScreenBlackList, TestS
 {
     ScreenId id = 100;
     std::vector<NodeId> blackListVector({1, 2, 3});
-    EXPECT_EQ(proxy->RemoveVirtualScreenBlackList(id, blackListVector), 0);
+    int32_t repCode = 0;
+    EXPECT_EQ(proxy->RemoveVirtualScreenBlackList(id, blackListVector, repCode), 0);
 }
 
 /**

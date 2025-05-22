@@ -408,7 +408,8 @@ bool DoAddVirtualScreenBlackList(const uint8_t* data, size_t size)
     auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
     RSRenderServiceConnectionProxy rsRenderServiceConnectionProxy(remoteObject);
-    rsRenderServiceConnectionProxy.AddVirtualScreenBlackList(screenId, blackList);
+    int32_t repCode = 0;
+    rsRenderServiceConnectionProxy.AddVirtualScreenBlackList(screenId, blackList, repCode);
     return true;
 }
 
@@ -436,7 +437,8 @@ bool DoRemoveVirtualScreenBlackList(const uint8_t* data, size_t size)
     auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
     RSRenderServiceConnectionProxy rsRenderServiceConnectionProxy(remoteObject);
-    rsRenderServiceConnectionProxy.RemoveVirtualScreenBlackList(screenId, blackList);
+    int32_t repCode = 0;
+    rsRenderServiceConnectionProxy.RemoveVirtualScreenBlackList(screenId, blackList, repCode);
     return true;
 }
 

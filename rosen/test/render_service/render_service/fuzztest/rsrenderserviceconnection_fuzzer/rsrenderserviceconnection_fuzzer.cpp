@@ -826,7 +826,8 @@ bool DoAddVirtualScreenBlackList()
         NodeId nodeId = GetData<NodeId>();
         blackListVector.push_back(nodeId);
     }
-    rsConn_->AddVirtualScreenBlackList(id, blackListVector);
+    int32_t repCode = 0;
+    rsConn_->AddVirtualScreenBlackList(id, blackListVector, repCode);
     return true;
 }
 
@@ -842,7 +843,8 @@ bool DoRemoveVirtualScreenBlackList()
         NodeId nodeId = GetData<NodeId>();
         blackListVector.push_back(nodeId);
     }
-    rsConn_->RemoveVirtualScreenBlackList(id, blackListVector);
+    int32_t repCode = 0;
+    rsConn_->RemoveVirtualScreenBlackList(id, blackListVector, repCode);
     return true;
 }
 
