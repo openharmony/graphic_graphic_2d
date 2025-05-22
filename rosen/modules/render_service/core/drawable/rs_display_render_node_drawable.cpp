@@ -608,13 +608,14 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     const RectI& dirtyRegion = syncDirtyManager->GetCurrentFrameDirtyRegion();
     const auto& activeSurfaceRect = syncDirtyManager->GetActiveSurfaceRect().IsEmpty() ?
         syncDirtyManager->GetSurfaceRect() : syncDirtyManager->GetActiveSurfaceRect();
+    ScreenInfo curScreenInfo = screenManager->QueryScreenInfo(paramScreenId);
     RS_TRACE_NAME_FMT("RSDisplayRenderNodeDrawable::OnDraw[%" PRIu64 "][%" PRIu64
-        "] zoomed(%d), dirty(%d, %d, %d, %d), active(%d, %d, %d, %d)",
+        "] zoomed(%d), currentFrameDirty(%d, %d, %d, %d), screen(%d, %d), active(%d, %d, %d, %d)",
         paramScreenId, GetId(), params->GetZoomed(),
         dirtyRegion.left_, dirtyRegion.top_, dirtyRegion.width_, dirtyRegion.height_,
+        curScreenInfo.width, curScreenInfo.height,
         activeSurfaceRect.left_, activeSurfaceRect.top_, activeSurfaceRect.width_, activeSurfaceRect.height_);
     RS_LOGD("RSDisplayRenderNodeDrawable::OnDraw node: %{public}" PRIu64 "", GetId());
-    ScreenInfo curScreenInfo = screenManager->QueryScreenInfo(paramScreenId);
     ScreenId activeScreenId = HgmCore::Instance().GetActiveScreenId();
     uint32_t activeScreenRefreshRate = HgmCore::Instance().GetScreenCurrentRefreshRate(activeScreenId);
 

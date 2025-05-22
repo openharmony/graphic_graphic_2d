@@ -545,8 +545,9 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     if (!disableFilterCache && !isUiFirstNode && surfaceParams->GetOccludedByFilterCache()) {
         SetDrawSkipType(DrawSkipType::FILTERCACHE_OCCLUSION_SKIP);
         RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw[%s](%d, %d, %d, %d) filterCache occlusion skip, "
-            "id:%" PRIu64 ", alpha:%f, dirty(%d, %d, %d, %d)", name_.c_str(), absDrawRect.left_, absDrawRect.top_,
-            absDrawRect.width_, absDrawRect.height_, surfaceParams->GetId(), surfaceParams->GetGlobalAlpha(),
+            "id:%" PRIu64 ", alpha:%f, currentFrameDirty(%d, %d, %d, %d)",
+            name_.c_str(), absDrawRect.left_, absDrawRect.top_, absDrawRect.width_, absDrawRect.height_,
+            surfaceParams->GetId(), surfaceParams->GetGlobalAlpha(),
             currentFrameDirty.left_, currentFrameDirty.top_, currentFrameDirty.width_, currentFrameDirty.height_);
         return;
     }
@@ -576,7 +577,8 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         if (uniParam->IsOpDropped() && surfaceParams->IsVisibleDirtyRegionEmpty(curSurfaceDrawRegion)) {
             SetDrawSkipType(DrawSkipType::OCCLUSION_SKIP);
             RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw[%s](%d, %d, %d, %d) occlusion skip, "
-                "id:%" PRIu64 ", alpha:%f, dirty(%d, %d, %d, %d)", name_.c_str(), absDrawRect.left_, absDrawRect.top_,
+                "id:%" PRIu64 ", alpha:%f, currentFrameDirty(%d, %d, %d, %d)",
+                name_.c_str(), absDrawRect.left_, absDrawRect.top_,
                 absDrawRect.width_, absDrawRect.height_, surfaceParams->GetId(), surfaceParams->GetGlobalAlpha(),
                 currentFrameDirty.left_, currentFrameDirty.top_, currentFrameDirty.width_, currentFrameDirty.height_);
             return;
@@ -584,12 +586,16 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     }
     const RectI& mergeHistoryDirty = syncDirtyManager_->GetDirtyRegion();
     // warning : don't delete this trace or change trace level to optional !!!
-    RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw[%s](%d, %d, %d, %d), id:%" PRIu64 ", alpha:%f"
-        ", preSub:%d, dirty(%d, %d, %d, %d), mergedDirty(%d, %d, %d, %d)", name_.c_str(), absDrawRect.left_,
-        absDrawRect.top_, absDrawRect.width_, absDrawRect.height_, GetId(), surfaceParams->GetGlobalAlpha(),
-        surfaceParams->GetPreSubHighPriorityType(),
+    RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw[%s](%d, %d, %d, %d), id:%" PRIu64 ", alpha:[%f], "
+        "preSub:[%d], currentFrameDirty(%d, %d, %d, %d), mergedDirty(%d, %d, %d, %d), "
+        "visibleRengion: [%s], opaqueRegion: [%s], transparentRegion: [%s]",
+        name_.c_str(), absDrawRect.left_, absDrawRect.top_, absDrawRect.width_, absDrawRect.height_,
+        GetId(), surfaceParams->GetGlobalAlpha(), surfaceParams->GetPreSubHighPriorityType(),
         currentFrameDirty.left_, currentFrameDirty.top_, currentFrameDirty.width_, currentFrameDirty.height_,
-        mergeHistoryDirty.left_, mergeHistoryDirty.top_, mergeHistoryDirty.width_, mergeHistoryDirty.height_);
+        mergeHistoryDirty.left_, mergeHistoryDirty.top_, mergeHistoryDirty.width_, mergeHistoryDirty.height_,
+        surfaceParams->GetVisibleRegion().GetRegionInfo().c_str(),
+        surfaceParams->GetOpaqueRegion().GetRegionInfo().c_str(),
+        surfaceParams->GetTransparentRegion().GetRegionInfo().c_str());
 
     RS_LOGD("RSSurfaceRenderNodeDrawable::OnDraw node:%{public}" PRIu64 ", name:%{public}s,"
             "OcclusionVisible:%{public}d Bound:%{public}s",

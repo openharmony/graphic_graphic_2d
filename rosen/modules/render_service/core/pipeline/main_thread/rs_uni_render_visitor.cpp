@@ -216,6 +216,8 @@ void RSUniRenderVisitor::PartialRenderOptionInit()
         (dirtyRegionDebugType_ == DirtyRegionDebugType::EGL_DAMAGE);
     isDisplayDirtyDfxEnabled_ = !isTargetDirtyRegionDfxEnabled_ &&
         (dirtyRegionDebugType_ == DirtyRegionDebugType::DISPLAY_DIRTY);
+    isMergedDirtyRegionDfxEnabled_ = !isTargetDirtyRegionDfxEnabled_ &&
+        (dirtyRegionDebugType_ == DirtyRegionDebugType::MERGED_DIRTY);
     isOpDropped_ = isPartialRenderEnabled_ &&
         (partialRenderType_ != PartialRenderType::SET_DAMAGE) && !isRegionDebugEnabled_;
     isVirtualDirtyDfxEnabled_ = RSSystemProperties::GetVirtualDirtyDebugEnabled();
@@ -796,6 +798,10 @@ void RSUniRenderVisitor::QuickPrepareDisplayRenderNode(RSDisplayRenderNode& node
     dirtyFlag_ = isDirty_ || displayNodeRotationChanged_ || zoomStateChange_ ||
         curDisplayDirtyManager_->IsActiveSurfaceRectChanged() ||
         curDisplayDirtyManager_->IsSurfaceRectChanged() || node.IsDirty();
+    if (dirtyFlag_) {
+        RS_TRACE_NAME_FMT("need recalculate dirty region");
+        RS_LOGI("need recalculate dirty region");
+    }
     prepareClipRect_ = screenRect_;
     hasAccumulatedClip_ = false;
 
@@ -3290,6 +3296,7 @@ void RSUniRenderVisitor::SetUniRenderThreadParam(std::unique_ptr<RSRenderThreadP
     renderThreadParams->isRegionDebugEnabled_ = isRegionDebugEnabled_;
     renderThreadParams->isDirtyRegionDfxEnabled_ = isDirtyRegionDfxEnabled_;
     renderThreadParams->isDisplayDirtyDfxEnabled_ = isDisplayDirtyDfxEnabled_;
+    renderThreadParams->isMergedDirtyRegionDfxEnabled_ = isMergedDirtyRegionDfxEnabled_;
     renderThreadParams->isOpaqueRegionDfxEnabled_ = isOpaqueRegionDfxEnabled_;
     renderThreadParams->isVisibleRegionDfxEnabled_ = isVisibleRegionDfxEnabled_;
     renderThreadParams->isAllSurfaceVisibleDebugEnabled_ = isAllSurfaceVisibleDebugEnabled_;

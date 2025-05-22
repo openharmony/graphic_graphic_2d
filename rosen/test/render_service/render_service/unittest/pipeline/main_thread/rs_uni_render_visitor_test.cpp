@@ -3984,6 +3984,30 @@ HWTEST_F(RSUniRenderVisitorTest, QuickPrepareDisplayRenderNode001, TestSize.Leve
 }
 
 /**
+ * @tc.name: QuickPrepareDisplayRenderNode002
+ * @tc.desc: Test QuickPrepareDisplayRenderNode with display node dirtyFlag_ = true
+ * @tc.type: FUNC
+ * @tc.require: issuesIC9MUF
+ */
+HWTEST_F(RSUniRenderVisitorTest, QuickPrepareDisplayRenderNode002, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    ASSERT_NE(rsContext, nullptr);
+    RSDisplayNodeConfig displayConfig;
+    auto rsDisplayRenderNode = std::make_shared<RSDisplayRenderNode>(11, displayConfig, rsContext->weak_from_this());
+    ASSERT_NE(rsDisplayRenderNode, nullptr);
+    rsDisplayRenderNode->dirtyManager_ = std::make_shared<RSDirtyRegionManager>();
+    ASSERT_NE(rsDisplayRenderNode->dirtyManager_, nullptr);
+    rsDisplayRenderNode->GetMutableRenderProperties().boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->curDisplayNode_ = rsDisplayRenderNode;
+    rsUniRenderVisitor->dirtyFlag_ = true;
+    rsUniRenderVisitor->QuickPrepareDisplayRenderNode(*rsDisplayRenderNode);
+}
+
+/**
  * @tc.name: CheckFilterCacheNeedForceClearOrSave001
  * @tc.desc: Test CheckFilterCacheNeedForceClearOrSave with multi-RSRenderNode
  * @tc.type: FUNC

@@ -39,8 +39,9 @@ enum class DirtyRegionDebugType {
     MULTI_HISTORY,
     CURRENT_SUB_AND_WHOLE,
     CURRENT_WHOLE_AND_MULTI_HISTORY,
-    EGL_DAMAGE, // all dirty region infomation, includes detailed app dirty region and global dirty.
+    EGL_DAMAGE, // all dirty region information, includes detailed app dirty region and global dirty.
     DISPLAY_DIRTY, // detailed global dirty (before merge rect).
+    MERGED_DIRTY, // advanced dirty region information, includes merged dirty region
     CUR_DIRTY_DETAIL_ONLY_TRACE = 10,
     UPDATE_DIRTY_REGION, // dirty region for each node.
     OVERLAY_RECT,   // drawRegion

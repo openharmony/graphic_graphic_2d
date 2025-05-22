@@ -409,6 +409,7 @@ private:
     bool hasDisplayHdrOn_ = false;
     std::vector<NodeId> hasVisitedCrossNodeIds_;
     bool isDirtyRegionDfxEnabled_ = false; // dirtyRegion DFX visualization
+    bool isMergedDirtyRegionDfxEnabled_ = false;
     bool isTargetDirtyRegionDfxEnabled_ = false;
     bool isOpaqueRegionDfxEnabled_ = false;
     bool isVisibleRegionDfxEnabled_ = false;

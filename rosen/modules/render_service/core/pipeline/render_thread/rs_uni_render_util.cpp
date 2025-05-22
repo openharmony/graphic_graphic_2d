@@ -122,6 +122,7 @@ std::vector<RectI> RSUniRenderUtil::MergeDirtyHistory(DrawableV2::RSDisplayRende
         globalDirtyRegion.OrSelf(region);
         GpuDirtyRegionCollection::GetInstance().UpdateGlobalDirtyInfoForDFX(rect.IntersectRect(screenRectI));
     }
+    rsDirtyRectsDfx.SetDirtyRegion(dirtyRegion);
     Occlusion::Region damageRegion;
     RS_TRACE_NAME_FMT("AdvancedDirtyRegionType is [%d]", static_cast<int>(uniParam->GetAdvancedDirtyType()));
     switch (uniParam->GetAdvancedDirtyType()) {
@@ -153,7 +154,7 @@ std::vector<RectI> RSUniRenderUtil::MergeDirtyHistory(DrawableV2::RSDisplayRende
             damageRegion.GetAlignedRegion(MAX_DIRTY_ALIGNMENT_SIZE) : damageRegion;
     }
     RSUniRenderUtil::SetDrawRegionForQuickReject(curAllSurfaceDrawables, drawnRegion);
-    rsDirtyRectsDfx.SetDirtyRegion(drawnRegion);
+    rsDirtyRectsDfx.SetMergedDirtyRegion(drawnRegion);
     auto damageRegionRects = RSUniDirtyComputeUtil::ScreenIntersectDirtyRects(damageRegion, screenInfo);
     if (damageRegionRects.empty()) {
         // When damageRegionRects is empty, SetDamageRegion function will not take effect and buffer will
