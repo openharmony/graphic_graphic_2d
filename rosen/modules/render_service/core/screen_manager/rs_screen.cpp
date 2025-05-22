@@ -110,8 +110,8 @@ RSScreen::RSScreen(const VirtualScreenConfigs &configs)
       whiteList_(configs.whiteList)
 {
     VirtualScreenInit();
-    RS_LOGW("init virtualscreen: {id: %{public}" PRIu64 ", mirroredId: %{public}" PRIu64
-        ", w * h: [%{public}u * %{public}u], name: %{public}s, screenType: %{public}u, whitelist: %{public}zu}",
+    RS_LOGW("init virtual screen: {id: %{public}" PRIu64 ", mirroredId: %{public}" PRIu64
+        ", w * h: [%{public}u * %{public}u], name: %{public}s, screenType: %{public}u, whiteList size: %{public}zu}",
         id_, mirroredId_, width_, height_, name_.c_str(), screenType_, whiteList_.size());
 }
 
