@@ -65,7 +65,7 @@ bool RSRenderEdgeLightFilterPara::WriteToParcel(Parcel& parcel)
     }
 
     size_t size = properties_.size();
-    if (!parcel.WriteUint32(size)) {
+    if (!RSMarshallingHelper::Marshalling(parcel, size)) {
         ROSEN_LOGE("RSRenderEdgeLightFilterPara::WriteToParcel properties size Error");
         return false;
     }
