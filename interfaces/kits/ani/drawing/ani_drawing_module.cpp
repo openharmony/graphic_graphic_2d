@@ -14,6 +14,7 @@
  */
 
 #include "ani_drawing_utils.h"
+#include "lattice_ani/ani_lattice.h"
 #include "brush_ani/ani_brush.h"
 #include "canvas_ani/ani_canvas.h"
 #include "color_filter_ani/ani_color_filter.h"
@@ -37,7 +38,8 @@ ANI_EXPORT ani_status ANI_Constructor(ani_vm* vm, uint32_t* result)
         OHOS::Rosen::Drawing::AniFont::AniInit(env) != ANI_OK ||
         OHOS::Rosen::Drawing::AniPen::AniInit(env) != ANI_OK ||
         OHOS::Rosen::Drawing::AniSamplingOptions::AniInit(env) != ANI_OK ||
-        OHOS::Rosen::Drawing::AniTypeface::AniInit(env) != ANI_OK) {
+        OHOS::Rosen::Drawing::AniTypeface::AniInit(env) != ANI_OK ||
+        OHOS::Rosen::Drawing::AniLattice::AniInit(env) != ANI_OK) {
         ROSEN_LOGE("[ANI_Constructor] Init failed");
         return ANI_ERROR;
     }

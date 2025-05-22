@@ -177,8 +177,8 @@ function testDrawImage(canvas: drawing.Canvas) {
   let samplingOptions = new drawing.SamplingOptions(drawing.FilterMode.FILTER_MODE_LINEAR);
   canvas.drawImageRect(pixelMap, rect, samplingOptions)
 
-  let verts: Array<number> = [100, 100, 200, 100, 150, 200, 200, 200];
-  let colors: Array<number> = [0x00ff0088, 0x00ff0088, 0x00ff0088, 0x00ff0088];
+  let verts: number[] = [100, 100, 200, 100, 150, 200, 200, 200];
+  let colors: number[] = [0x00ff0088, 0x00ff0088, 0x00ff0088, 0x00ff0088];
   canvas.drawPixelMapMesh(pixelMap, 1, 1, verts, 0, colors, 0);
 }
 
@@ -217,6 +217,46 @@ function testCanvas() {
   console.log(`testCanvas end`);
 }
 
+function testLattice() {
+    console.log(`testLattice start`);
+    let xDivs : number[] = [1, 2, 4];
+    let yDivs : number[] = [1, 2, 4];
+    let fBounds: common2D.Rect = { left: 10, top: 10, right: 100, bottom: 100 };
+    let fRectTypes : drawing.RectType[] = [
+        drawing.RectType.DEFAULT, drawing.RectType.DEFAULT,
+        drawing.RectType.DEFAULT, drawing.RectType.DEFAULT,
+        drawing.RectType.TRANSPARENT, drawing.RectType.TRANSPARENT,
+        drawing.RectType.TRANSPARENT, drawing.RectType.TRANSPARENT,
+        drawing.RectType.FIXEDCOLOR, drawing.RectType.FIXEDCOLOR,
+        drawing.RectType.FIXEDCOLOR, drawing.RectType.FIXEDCOLOR,
+        drawing.RectType.TRANSPARENT, drawing.RectType.TRANSPARENT,
+        drawing.RectType.TRANSPARENT, drawing.RectType.TRANSPARENT ]
+    let colorArray : number[] = [0xffffff,0x444444,0x999999,0xffffff,0x444444,0x999999,0xffffff,0x444444,
+        0x999999,0x444444,0x999999,0xffffff,0x444444,0x999999,0xffffff,0x444444];
+    let color : common2D.Color = { alpha: 0xFF, red: 0x55, green: 0xFF, blue: 0x44 };
+    let colorArray1 :common2D.Color[] = [
+        color,color,color,color,color,color,color,color,color,color,color,color,color,color,color,color]
+    let lattice1 : drawing.Lattice = drawing.Lattice.createImageLattice(
+        xDivs, yDivs, 3, 3, fBounds, fRectTypes, colorArray);
+    let lattice2 : drawing.Lattice = drawing.Lattice.createImageLattice(xDivs, yDivs, 3, 3);
+    let lattice3 : drawing.Lattice = drawing.Lattice.createImageLattice(xDivs, yDivs, 3, 3, fBounds);
+    let lattice4 : drawing.Lattice = drawing.Lattice.createImageLattice(xDivs, yDivs, 3, 3, fBounds, fRectTypes);
+    let lattice5 : drawing.Lattice = drawing.Lattice.createImageLattice(xDivs, yDivs, 3, 3, null)
+    let lattice6 : drawing.Lattice = drawing.Lattice.createImageLattice(xDivs, yDivs, 3, 3, null, null);
+    let lattice7 : drawing.Lattice = drawing.Lattice.createImageLattice(xDivs, yDivs, 3, 3, null, null, null);
+    let lattice8 : drawing.Lattice = drawing.Lattice.createImageLattice(
+        xDivs, yDivs, 3, 3, null, fRectTypes, colorArray);
+    let lattice9 : drawing.Lattice = drawing.Lattice.createImageLattice(xDivs, yDivs, 3, 3, fBounds, null, colorArray);
+    let lattice10 : drawing.Lattice = drawing.Lattice.createImageLattice(
+        xDivs, yDivs, 3, 3, fBounds, fRectTypes, null);
+    let lattice11 : drawing.Lattice = drawing.Lattice.createImageLattice(xDivs, yDivs, 3, 3, null, null, colorArray);
+    let lattice12 : drawing.Lattice = drawing.Lattice.createImageLattice(xDivs, yDivs, 3, 3, fBounds, null, null);
+    let lattice13 : drawing.Lattice = drawing.Lattice.createImageLattice(xDivs, yDivs, 3, 3, null, fRectTypes, null);
+    let lattice14 : drawing.Lattice = drawing.Lattice.createImageLattice(
+        xDivs, yDivs, 3, 3, fBounds, fRectTypes, colorArray1);
+    console.log(`testLattice end`);
+}
+
 function main() {
     testPen();
     testBrush();
@@ -225,4 +265,5 @@ function main() {
     testTypeface();
     testErrorCode();
     testCanvas();
+    testLattice();
 }

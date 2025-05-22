@@ -67,6 +67,7 @@ ohos_shared_library("drawing_ani") {
   sources = [
     "ani_drawing_module.cpp",
     "ani_drawing_utils.cpp",
+    "lattice_ani/ani_lattice.cpp",
     "brush_ani/ani_brush.cpp",
     "canvas_ani/ani_canvas.cpp",
     "color_filter_ani/ani_color_filter.cpp",

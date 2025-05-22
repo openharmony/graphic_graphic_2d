@@ -836,6 +836,67 @@ namespace drawing {
     leading: number = 0;
   }
 
+  /**
+   * Lattice is the class for dividing an image into grids.
+   * @syscap SystemCapability.Graphics.Drawing
+   * @since 12
+   */
+  export class Lattice {
+    static { loadLibrary("drawing_ani"); }
+    private nativeObj: long = 0;
+    /**
+     * Divide an image into a rectangular grid. Grid entries on even columns and even rows are fixed;
+     * these entries are always drawn at their original size if the destination is large enough. If the destination
+     * side is too small to hold the fixed entries, all fixed entries are scaled down to fit.
+     * The grid entries not on even columns and rows are scaled to fit the remaining space, if any.
+     * @param { Array<number> } xDivs - X coordinate of values used to divide the image.
+     * @param { Array<number> } yDivs - Y coordinate of values used to divide the image.
+     * @param { number } fXCount - Number of x coordinates. Must be >= 0.
+     * @param { number } fYCount - Number of y coordinates. Must be >= 0.
+     * @param { common2D.Rect | null } fBounds - Source bounds to draw from. The default value is null.
+     * @param { Array<RectType> | null } fRectTypes - Array of fill types. The default value is null.
+     * @param { Array<common2D.Color> | null } fColors - Array of colors. The default value is null.
+     * @returns { Lattice } Lattice object.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types; 3. Parameter verification failed.
+     * @static
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    static native createImageLattice(xDivs: Array<number>, yDivs: Array<number>, fXCount: number, fYCount: number,
+      fBounds?: common2D.Rect | null, fRectTypes?: Array<RectType> | null, fColors?: Array<common2D.Color> | Array<number> | null): Lattice;
+  }
+
+  /**
+   * Enumerate rect types. Optional setting per rectangular grid entry to make it transparent,
+   * or to fill the grid entry with a color. only used in Lattice.
+   * @enum { number }
+   * @syscap SystemCapability.Graphics.Drawing
+   * @since 12
+   */
+  export enum RectType {
+    /**
+     * Draws image into lattice rect.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    DEFAULT = 0,
+
+    /**
+     * Skips lattice rect by making it transparent.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    TRANSPARENT = 1,
+
+    /**
+     * Draws one of fColors into lattice rect.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    FIXEDCOLOR = 2
+  }
+
    /**
    * Enumerates of operations when two regions are combined.
    * @enum { number }
