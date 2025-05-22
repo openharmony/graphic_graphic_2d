@@ -115,7 +115,7 @@ napi_value EffectNapi::CreateEffect(napi_env env, napi_callback_info info)
         UIEFFECT_LOG_E("EffectNapi CreateEffect wrap fail"));
     napi_property_descriptor resultFuncs[] = {
         DECLARE_NAPI_FUNCTION("backgroundColorBlender", SetBackgroundColorBlender),
-        DECLARE_NAPI_FUNCTION("hdrBrightnessRatio", SetHDRUIbrightness),
+        DECLARE_NAPI_FUNCTION("hdrBrightnessRatio", SetHDRUIBrightness),
     };
     status = napi_define_properties(env, object, sizeof(resultFuncs) / sizeof(resultFuncs[0]), resultFuncs);
     UIEFFECT_NAPI_CHECK_RET_DELETE_POINTER(status == napi_ok, nullptr, effectObj,
