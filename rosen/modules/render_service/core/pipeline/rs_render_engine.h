@@ -40,7 +40,6 @@ public:
     {
         mirrorAdaptiveCoefficient_ = mirrorAdaptiveCoefficient;
     }
-    void DrawUIFirstCacheWithParams(RSPaintFilterCanvas& canvas, BufferDrawParam& params) override {}
 
 private:
     void DrawWithParams(RSPaintFilterCanvas& canvas, BufferDrawParam& params,

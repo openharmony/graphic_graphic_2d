@@ -278,11 +278,7 @@ void RSSubThread::DrawableCache(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeD
         doingCacheProcessNum_--;
         return;
     }
-    if (nodeDrawable->UseDmaBuffer()) {
-        DrawableCacheWithDma(nodeDrawable);
-    } else {
-        DrawableCacheWithSkImage(nodeDrawable);
-    }
+    DrawableCacheWithSkImage(nodeDrawable);
 
     RSMainThread::Instance()->PostTask([]() {
         RSMainThread::Instance()->SetIsCachedSurfaceUpdated(true);
@@ -385,53 +381,6 @@ void RSSubThread::DrawableCacheWithSkImage(std::shared_ptr<DrawableV2::RSSurface
     // 2. hdc shell setenforce 0 # close selinux temporarily
     // 3. hdc shell chmod 0777 /data
     RSBaseRenderUtil::WriteCacheImageRenderNodeToPng(cacheSurface, nodeDrawable->GetName());
-}
-
-void RSSubThread::DrawableCacheWithDma(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> nodeDrawable)
-{
-    RS_TRACE_NAME("DrawableCacheWithDma");
-    if (!nodeDrawable) {
-        RS_LOGE("RSSubThread::DrawableCache nodeDrawable is nullptr");
-        return;
-    }
-    if (!nodeDrawable->IsSurfaceCreated()) {
-        nodeDrawable->CreateSurface();
-    }
-    auto renderFrame = nodeDrawable->RequestFrame(renderContext_, grContext_);
-    if (!renderFrame) {
-        RS_LOGE("RSSubThread::DrawableCache renderFrame is nullptr");
-        return;
-    }
-    auto drSurface = renderFrame->GetFrame()->GetSurface();
-    if (!drSurface) {
-        RS_LOGE("RSSubThread::DrawableCache DrawingSurface is null");
-        return;
-    }
-    auto rsCanvas = std::make_shared<RSPaintFilterCanvas>(drSurface.get());
-    if (rsCanvas == nullptr) {
-        RS_LOGE("RSSubThread::DrawableCache canvas is nullptr");
-        return;
-    }
-    SetHighContrastIfEnabled(*rsCanvas);
-    rsCanvas->SetIsParallelCanvas(true);
-    rsCanvas->SetDisableFilterCache(true);
-    rsCanvas->SetParallelThreadIdx(threadIndex_);
-    rsCanvas->SetScreenId(nodeDrawable->GetScreenId());
-    rsCanvas->SetTargetColorGamut(nodeDrawable->GetTargetColorGamut());
-    nodeDrawable->ClipRoundRect(*rsCanvas);
-    rsCanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
-
-    nodeDrawable->SubDraw(*rsCanvas);
-    RS_TRACE_BEGIN("FlushFrame");
-    bool optFenceWait = RSMainThread::Instance()->GetDeviceType() == DeviceType::PC ? false : true;
-    RSUniRenderUtil::OptimizedFlushAndSubmit(drSurface, grContext_.get(), optFenceWait);
-    renderFrame->Flush();
-    RS_TRACE_END();
-    // uifirst_debug dump img, run following commands to grant permissions before dump, otherwise dump maybe fail:
-    // 1. hdc shell mount -o rw,remount /
-    // 2. hdc shell setenforce 0 # close selinux temporarily
-    // 3. hdc shell chmod 0777 /data
-    RSBaseRenderUtil::WriteCacheImageRenderNodeToPng(drSurface, nodeDrawable->GetName());
 }
 
 void RSSubThread::ResetGrContext()

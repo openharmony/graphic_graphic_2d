@@ -30,7 +30,6 @@
 #include "drawable/rs_surface_render_node_drawable.h"
 #include "params/rs_display_render_params.h"
 #include "params/rs_surface_render_params.h"
-#include "pipeline/parallel_render/rs_sub_thread_manager.h"
 #include "pipeline/round_corner_display/rs_rcd_surface_render_node.h"
 #include "platform/common/rs_log.h"
 
@@ -163,37 +162,6 @@ void RSUniRenderProcessor::CreateLayerForRenderThread(DrawableV2::RSSurfaceRende
     CreateSolidColorLayer(layer, params);
     layers_.emplace_back(layer);
     params.SetLayerCreated(true);
-}
-
-void RSUniRenderProcessor::CreateUIFirstLayer(DrawableV2::RSSurfaceRenderNodeDrawable& drawable,
-    RSSurfaceRenderParams& params)
-{
-    auto surfaceHandler = drawable.GetMutableRSSurfaceHandlerUiFirstOnDraw();
-    if (!surfaceHandler) {
-        return;
-    }
-    auto buffer = surfaceHandler->GetBuffer();
-    if (buffer == nullptr && surfaceHandler->GetAvailableBufferCount() <= 0) {
-        RS_TRACE_NAME_FMT("HandleSubThreadNode wait %" PRIu64 "", params.GetId());
-        RSSubThreadManager::Instance()->WaitNodeTask(params.GetId());
-    }
-    if (!RSBaseRenderUtil::ConsumeAndUpdateBuffer(*surfaceHandler) || !surfaceHandler->GetBuffer()) {
-        RS_LOGE("CreateUIFirstLayer ConsumeAndUpdateBuffer or GetBuffer return  false");
-        return;
-    }
-    buffer = surfaceHandler->GetBuffer();
-    auto preBuffer = surfaceHandler->GetPreBuffer();
-    LayerInfoPtr layer = GetLayerInfo(
-        params, buffer, preBuffer, surfaceHandler->GetConsumer(), surfaceHandler->GetAcquireFence());
-    uniComposerAdapter_->SetMetaDataInfoToLayer(layer, params.GetBuffer(), surfaceHandler->GetConsumer());
-    layers_.emplace_back(layer);
-    auto& layerInfo = params.layerInfo_;
-    RS_LOGD("RSUniRenderProcessor::CreateUIFirstLayer: [%{public}s-%{public}" PRIu64 "] "
-        "src: %{public}d %{public}d %{public}d %{public}d, "
-        "dst: %{public}d %{public}d %{public}d %{public}d, zOrder: %{public}d",
-        drawable.GetName().c_str(), drawable.GetId(),
-        layerInfo.srcRect.x, layerInfo.srcRect.y, layerInfo.srcRect.w, layerInfo.srcRect.h,
-        layerInfo.dstRect.x, layerInfo.dstRect.y, layerInfo.dstRect.w, layerInfo.dstRect.h, layerInfo.zOrder);
 }
 
 void RSUniRenderProcessor::CreateSolidColorLayer(LayerInfoPtr layer, RSSurfaceRenderParams& params)

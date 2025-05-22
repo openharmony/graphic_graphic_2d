@@ -26,7 +26,6 @@
 #include "common/rs_obj_abs_geometry.h"
 #include "drawable/rs_display_render_node_drawable.h"
 #include "pipeline/rs_surface_render_node.h"
-#include "pipeline/rs_uifirst_manager.h"
 #include "platform/common/rs_log.h"
 
 namespace OHOS {
@@ -189,31 +188,6 @@ bool RSUniHwcPrevalidateUtil::CreateDisplayNodeLayerInfo(uint32_t zorder,
     return true;
 }
 
-bool RSUniHwcPrevalidateUtil::CreateUIFirstLayerInfo(
-    RSSurfaceRenderNode::SharedPtr node, GraphicTransformType transform, uint32_t fps, RequestLayerInfo &info)
-{
-    if (!node) {
-        return false;
-    }
-    info.id = node->GetId();
-    auto src = node->GetSrcRect();
-    info.srcRect = {src.left_, src.top_, src.width_, src.height_};
-    auto dst = node->GetDstRect();
-    info.dstRect = {dst.left_, dst.top_, dst.width_, dst.height_};
-    info.zOrder = static_cast<uint32_t>(node->GetRSSurfaceHandler()->GetGlobalZOrder());
-    info.format = GRAPHIC_PIXEL_FMT_RGBA_8888;
-    info.usage = BUFFER_USAGE_HW_RENDER | BUFFER_USAGE_HW_TEXTURE | BUFFER_USAGE_HW_COMPOSER | BUFFER_USAGE_MEM_DMA;
-    info.fps = fps;
-    info.transform = static_cast<int>(transform);
-    RS_LOGD_IF(DEBUG_PREVALIDATE, "RSUniHwcPrevalidateUtil::CreateUIFirstLayerInfo %{public}s, %{public}" PRIu64 ","
-        " src: %{public}s, dst: %{public}s, z: %{public}" PRIu32 ","
-        " usage: %{public}" PRIu64 ", format: %{public}d, transform: %{public}d, fps: %{public}d",
-        node->GetName().c_str(), node->GetId(),
-        node->GetSrcRect().ToString().c_str(), node->GetDstRect().ToString().c_str(),
-        info.zOrder, info.usage, info.format, info.transform, fps);
-    return true;
-}
-
 bool RSUniHwcPrevalidateUtil::CreateRCDLayerInfo(
     RSRcdSurfaceRenderNode::SharedPtr node, const ScreenInfo &screenInfo, uint32_t fps, RequestLayerInfo &info)
 {
@@ -271,25 +245,6 @@ void RSUniHwcPrevalidateUtil::CollectSurfaceNodeLayerInfo(
                 zOrder++, hwcNodePtr, transform, curFps, surfaceLayer)) {
                 prevalidLayers.emplace_back(surfaceLayer);
             }
-        }
-    }
-}
-
-void RSUniHwcPrevalidateUtil::CollectUIFirstLayerInfo(std::vector<RequestLayerInfo>& uiFirstLayers,
-    uint32_t curFps, float zOrder, const ScreenInfo& screenInfo)
-{
-    auto pendingNodes = RSUifirstManager::Instance().GetPendingPostNodes();
-    for (auto iter : pendingNodes) {
-        if (!iter.second || iter.second->IsHardwareForcedDisabled() ||
-            !RSUifirstManager::Instance().GetUseDmaBuffer(iter.second->GetName())) {
-            continue;
-        }
-        iter.second->GetMutableRSSurfaceHandler()->SetGlobalZOrder(zOrder++);
-        auto transform = RSUniRenderUtil::GetLayerTransform(*iter.second, screenInfo);
-        RequestLayerInfo uiFirstLayer;
-        if (RSUniHwcPrevalidateUtil::GetInstance().CreateUIFirstLayerInfo(
-            iter.second, transform, curFps, uiFirstLayer)) {
-            uiFirstLayers.emplace_back(uiFirstLayer);
         }
     }
 }

@@ -328,11 +328,6 @@ HWTEST_F(RsSubThreadTest, DrawableCache001, TestSize.Level1)
     curThread->DrawableCache(nodeDrawable);
     EXPECT_TRUE(nodeDrawable->GetRenderParams());
 
-    RSUifirstManager::Instance().useDmaBuffer_ = true;
-    nodeDrawable->name_ = "ScreenShotWindow";
-    curThread->DrawableCache(nodeDrawable);
-    EXPECT_TRUE(nodeDrawable->UseDmaBuffer());
-
     nodeDrawable->SetTaskFrameCount(1);
     curThread->DrawableCache(nodeDrawable);
     EXPECT_TRUE(nodeDrawable->GetTaskFrameCount());
@@ -349,31 +344,6 @@ HWTEST_F(RsSubThreadTest, CreateShareGrContext001, TestSize.Level1)
     auto renderContext = std::make_shared<RenderContext>();
     auto curThread = std::make_shared<RSSubThread>(renderContext.get(), 0);
     EXPECT_FALSE(curThread->CreateShareGrContext());
-}
-
-/**
- * @tc.name: DrawableCacheWithDma001
- * @tc.desc: Verify function DrawableCacheWithDma
- * @tc.type: FUNC
- * @tc.require: issueIAE59W
- */
-HWTEST_F(RsSubThreadTest, DrawableCacheWithDma001, TestSize.Level1)
-{
-    auto renderContext = std::make_shared<RenderContext>();
-    auto curThread = std::make_shared<RSSubThread>(renderContext.get(), 0);
-    auto node = std::make_shared<const RSSurfaceRenderNode>(0);
-    std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> nodeDrawable = nullptr;
-    curThread->DrawableCacheWithDma(nodeDrawable);
-
-    nodeDrawable = std::make_shared<DrawableV2::RSSurfaceRenderNodeDrawable>(std::move(node));
-    curThread->DrawableCacheWithDma(nodeDrawable);
-    EXPECT_FALSE(nodeDrawable->surfaceCreated_);
-
-    nodeDrawable->surfaceCreated_ = true;
-    curThread->DrawableCacheWithDma(nodeDrawable);
-    EXPECT_TRUE(curThread->renderContext_);
-    EXPECT_FALSE(curThread->grContext_);
-    EXPECT_TRUE(nodeDrawable->surfaceCreated_);
 }
 
 /**
