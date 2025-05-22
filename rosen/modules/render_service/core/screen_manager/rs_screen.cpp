@@ -751,9 +751,6 @@ void RSScreen::DisplayDump(int32_t screenIndex, std::string& dumpString)
         dumpString += "id=";
         dumpString += (id_ == INVALID_SCREEN_ID) ? "INVALID_SCREEN_ID" : std::to_string(id_);
         dumpString += ", ";
-        dumpString += "mirroredId=";
-        dumpString += (mirroredId_ == INVALID_SCREEN_ID) ? "INVALID_SCREEN_ID" : std::to_string(mirroredId_);
-        dumpString += ", ";
         PowerStatusDump(dumpString);
         dumpString += ", ";
         dumpString += "backlight=" + std::to_string(GetScreenBacklight());

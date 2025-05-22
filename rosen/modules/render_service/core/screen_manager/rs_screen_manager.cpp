@@ -1886,12 +1886,12 @@ void RSScreenManager::RemoveScreenChangeCallback(const sptr<RSIScreenChangeCallb
 {
     std::lock_guard<std::shared_mutex> lock(screenChangeCallbackMutex_);
     auto iter = std::find(screenChangeCallbacks_.cbegin(), screenChangeCallbacks_.cend(), callback);
-    if (iter != screenChangeCallbacks_.cend()) {
-        screenChangeCallbacks_.erase(iter);
-        RS_LOGI("%{public}s: remove a remote callback succeed.", __func__);
+    if (iter == screenChangeCallbacks_.cend()) {
+        RS_LOGW("%{public}s: The remote callback is not in screenChangeCallbacks_", __func__);
         return;
     }
-    RS_LOGW("%{public}s: The remote callback is not in screenChangeCallbacks_", __func__);
+    screenChangeCallbacks_.erase(iter);
+    RS_LOGI("%{public}s: remove a remote callback succeed.", __func__);
 }
 
 void RSScreenManager::DisplayDump(std::string& dumpString)
