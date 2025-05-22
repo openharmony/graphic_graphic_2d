@@ -1788,6 +1788,20 @@ HWTEST_F(RSPaintFilterCanvasTest, CacheBehindWindowDataTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetParallelRender
+ * @tc.desc: Test SetParallelRender
+ * @tc.type:FUNC
+ * @tc.require: IC8TIV
+ */
+HWTEST_F(RSPaintFilterCanvasTest, SetParallelRender, TestSize.Level1)
+{
+    Drawing::Canvas canvas;
+    std::shared_ptr<RSPaintFilterCanvas> paintFilterCanvasBase = std::make_shared<RSPaintFilterCanvas>(&canvas);
+    EXPECT_NE(paintFilterCanvasBase, nullptr);
+    paintFilterCanvasBase->SetParallelRender(true);
+}
+
+/**
  * @tc.name: isEffectIntersectWithDRMTest
  * @tc.desc: SetEffectIntersectWithDRM/GetIntersectWithDRM
  * @tc.type:FUNC

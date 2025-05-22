@@ -374,19 +374,6 @@ HWTEST_F(SkiaSurfaceTest, GetImageSnapshot002, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetParallelRender
- * @tc.desc: Test SetParallelRender
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(SkiaSurfaceTest, SetParallelRender, TestSize.Level1)
-{
-    auto surface = std::make_unique<SkiaSurface>();
-    ASSERT_TRUE(surface != nullptr);
-    surface->SetParallelRender(true);
-}
-
-/**
  * @tc.name: SetSkSurface001
  * @tc.desc: Test SetSkSurface
  * @tc.type: FUNC

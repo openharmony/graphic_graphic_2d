@@ -748,6 +748,8 @@ public:
         return paintPen_;
     }
 
+    virtual void SetParallelRender(bool parallelEnable);
+
     virtual bool DrawBlurImage(const Image& image, const HpsBlurParameter& blurParams);
 
     /**

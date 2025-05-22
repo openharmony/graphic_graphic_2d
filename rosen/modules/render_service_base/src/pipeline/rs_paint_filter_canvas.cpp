@@ -35,6 +35,11 @@ RSPaintFilterCanvasBase::RSPaintFilterCanvasBase(Drawing::Canvas* canvas)
 #endif
 }
 
+void RSPaintFilterCanvasBase::SetParallelRender(bool parallelEnable)
+{
+    canvas_->SetParallelRender(parallelEnable);
+}
+
 Drawing::Matrix RSPaintFilterCanvasBase::GetTotalMatrix() const
 {
     return canvas_->GetTotalMatrix();
