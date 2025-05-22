@@ -69,7 +69,7 @@ void RSHDRUIBrightnessFilter::DrawImageRect(Drawing::Canvas& canvas, const std::
     filter.SetColorFilter(luminanceColorFilter);
     brush.SetFilter(filter);
     canvas.AttachBrush(brush);
-    Drawing::SamplingOptions samplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
+    Drawing::SamplingOptions options(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
     canvas.DrawImageRect(*image, src, dst, options);
     canvas.DetachBrush();
 }

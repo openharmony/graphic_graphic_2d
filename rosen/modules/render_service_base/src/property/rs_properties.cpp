@@ -4973,7 +4973,7 @@ void RSProperties::UpdateForegroundFilter()
         CreateColorfulShadowFilter();
     } else if (IsDistortionKValid()) {
         foregroundFilter_ = std::make_shared<RSDistortionFilter>(*distortionK_);
-    } else if () {
+    } else if (IsHDRUIBrightnessValid()) {
         CreateHDRUIBrightnessFilter();
     } else {
         foregroundFilter_.reset();

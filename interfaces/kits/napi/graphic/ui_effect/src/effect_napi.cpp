@@ -341,7 +341,7 @@ napi_value EffectNapi::SetBackgroundColorBlender(napi_env env, napi_callback_inf
 napi_value EffectNapi::SetHDRUIBrightness(napi_env env, napi_callback_info info)
 {
     if (!UIEffectNapiUtils::IsSystemApp()) {
-        UIEFFECT_LOG_E("EffectNapi SetHDRUIBrightness: not system app");
+        UIEFFECT_LOG_E("EffectNapi SetHDRUIBrightness: is not system app");
         napi_throw_error(env, std::to_string(ERR_NOT_SYSTEM_APP).c_str(),
             "The SetHDRUIBrightness is only accessible to system applications.");
         return nullptr;
@@ -356,7 +356,7 @@ napi_value EffectNapi::SetHDRUIBrightness(napi_env env, napi_callback_info info)
     napi_valuetype valueType = napi_undefined;
     napi_typeof(env, argv[0], &valueType);
     if (valueType != napi_number) {
-        UIEFFECT_LOG_E("EffectNapi SetHDRUIBrightness: input not number");
+        UIEFFECT_LOG_E("EffectNapi SetHDRUIBrightness: input is not number");
         return nullptr;
     }
     double brightnessRatio = 1.0;

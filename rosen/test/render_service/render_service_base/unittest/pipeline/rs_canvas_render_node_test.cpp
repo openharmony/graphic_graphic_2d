@@ -231,6 +231,39 @@ HWTEST_F(RSCanvasRenderNodeTest, OnTreeStateChanged, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetHDRUIBrightness
+ * @tc.desc: test results of SetHDRUIBrightness
+ * @tc.type: FUNC
+ * @tc.require: issueIB6Y6O
+ */
+HWTEST_F(RSCanvasRenderNodeTest, SetHDRUIBrightnessTest, TestSize.Level1)
+{
+    NodeId nodeId = 0;
+    std::weak_ptr<RSContext> context;
+    RSCanvasRenderNode rsCanvasRenderNode(nodeId, context);
+    float hdrUIBrightness = rsCanvasRenderNode.GetHDRUIBrightness();
+    rsCanvasRenderNode.SetHDRUIBrightness(hdrUIBrightness);
+    EXPECT_EQ(hdrUIBrightness, rsCanvasRenderNode.GetHDRUIBrightness());
+    rsCanvasRenderNode.SetIsOnTheTree(true);
+    rsCanvasRenderNode.SetHDRUIBrightness(2.0f);
+    EXPECT_EQ(rsCanvasRenderNode.GetHDRUIBrightness(), 2.0f);
+}
+
+/**
+ * @tc.name: GetHDRUIBrightness
+ * @tc.desc: test results of GetHDRUIBrightness
+ * @tc.type: FUNC
+ * @tc.require: issueIB6Y6O
+ */
+HWTEST_F(RSCanvasRenderNodeTest, GetHDRUIBrightnessTest, TestSize.Level1)
+{
+    NodeId nodeId = 0;
+    std::weak_ptr<RSContext> context;
+    RSCanvasRenderNode rsCanvasRenderNode(nodeId, context);
+    EXPECT_EQ(rsCanvasRenderNode.hdrUIBrightness_, rsCanvasRenderNode.GetHDRUIBrightness());
+}
+
+/**
  * @tc.name: SetHDRPresent001
  * @tc.desc: test true of SetHDRPresent
  * @tc.type: FUNC
