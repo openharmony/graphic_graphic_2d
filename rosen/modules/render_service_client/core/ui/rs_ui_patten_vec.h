@@ -17,7 +17,7 @@
 
 namespace OHOS {
 namespace Rosen {
-
+// subtree parallel judgment conditions vec
 static const std::set<std::string> g_rbPattenVec = {
     "GridItem",
     "Grid",
