@@ -31,40 +31,40 @@ constexpr uint32_t SLEEP_TIME_FOR_PROXY = 100000; // 100ms
 
 class CustomizedSurfaceCapture : public SurfaceCaptureCallback {
 public:
-    void OnSurfaceCapture(std::shared_ptr<Media::PixelMap> pixelmap) override
+    void OnSurfaceCapture(std::shared_ptr<Media::PixelMap> pixelMap) override
     {
-        if (pixelmap == nullptr) {
-            LOGE("CustomizedSurfaceCapture::OnSurfaceCapture failed to get pixelmap, return nullptr!");
+        if (pixelMap == nullptr) {
+            LOGE("CustomizedSurfaceCapture::OnSurfaceCapture failed to get pixelMap, return nullptr!");
             return;
         }
         isCallbackCalled_ = true;
         const ::testing::TestInfo* const testInfo =
         ::testing::UnitTest::GetInstance()->current_test_info();
-        std::string filename = "/data/local/graphic_test/screen_capture/";
+        std::string fileName = "/data/local/graphic_test/screen_capture/";
         namespace fs = std::filesystem;
-        if (!fs::exists(filename)) {
-            if (!fs::create_directories(filename)) {
+        if (!fs::exists(fileName)) {
+            if (!fs::create_directories(fileName)) {
                 LOGE("CustomizedSurfaceCapture::OnSurfaceCapture create dir failed");
             }
         } else {
-            if (!fs::is_directory(filename)) {
+            if (!fs::is_directory(fileName)) {
                 LOGE("CustomizedSurfaceCapture::OnSurfaceCapture path is not dir");
                 return;
             }
         }
-        filename += testInfo->test_case_name() + std::string("_");
-        filename += testInfo->name() + std::string(".png");
-        if (std::filesystem::exists(filename)) {
-            LOGW("CustomizedSurfaceCapture::OnSurfaceCapture file exists %{public}s", filename.c_str());
+        fileName += testInfo->test_case_name() + std::string("_");
+        fileName += testInfo->name() + std::string(".png");
+        if (std::filesystem::exists(fileName)) {
+            LOGW("CustomizedSurfaceCapture::OnSurfaceCapture file exists %{public}s", fileName.c_str());
         }
-        if (!WriteToPngWithPixelMap(filename, *pixelmap)) {
+        if (!WriteToPngWithPixelMap(fileName, *pixelMap)) {
             LOGE("CustomizedSurfaceCapture::OnSurfaceCapture write image failed %{public}s-%{public}s",
                 testInfo->test_case_name(), testInfo->name());
         }
     }
     bool isCallbackCalled_ = false;
 };
-}
+} // namespace
 
 class RSScreenCaptureTest : public RSGraphicTest {
 public:
@@ -158,7 +158,9 @@ GRAPHIC_N_TEST(RSScreenCaptureTest, CONTENT_DISPLAY_TEST, DISPLAY_NODE_CAPTURE_T
 
     auto callback = std::make_shared<CustomizedSurfaceCapture>();
     RSInterfaces::GetInstance().TakeSurfaceCapture(displayNode, callback);
-    CheckSurfaceCaptureCallback(callback);
+    if (!CheckSurfaceCaptureCallback(callback)) {
+        LOGE("TakeSurfaceCapture failed");
+    }
 
     RSInterfaces::GetInstance().RemoveVirtualScreen(screenId);
 }
@@ -227,8 +229,10 @@ GRAPHIC_N_TEST(RSScreenCaptureTest, CONTENT_DISPLAY_TEST, DISPLAY_NODE_CAPTURE_T
 
     auto callback = std::make_shared<CustomizedSurfaceCapture>();
     RSInterfaces::GetInstance().TakeSurfaceCapture(displayNode, callback, captureConfig);
-    CheckSurfaceCaptureCallback(callback);
+    if (!CheckSurfaceCaptureCallback(callback)) {
+        LOGE("TakeSurfaceCapture failed");
+    }
 
     RSInterfaces::GetInstance().RemoveVirtualScreen(screenId);
 }
-}
+} // namespace OHOS::Rosen

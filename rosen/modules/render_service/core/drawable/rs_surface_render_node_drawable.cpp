@@ -909,20 +909,20 @@ bool RSSurfaceRenderNodeDrawable::CheckIfSurfaceSkipInMirrorOrScreenshot(const R
     const auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
     const auto& captureParam = RSUniRenderThread::GetCaptureParam();
     bool isScreenshot = captureParam.isSnapshot_ && !captureParam.isSingleSurface_;
+    // no need to check if not in mirror or screenshot
     if (uniParam && !uniParam->IsMirrorScreen() && !isScreenshot) {
-        // No need to check if not in mirror or screenshot.
         return false;
     }
     // Check black list.
     const auto& blackList = RSUniRenderThread::Instance().GetBlackList();
     if (surfaceParams.IsLeashWindow() && blackList.find(surfaceParams.GetLeashPersistentId()) != blackList.end()) {
-        RS_LOGD("RSSurfaceRenderNodeDrawable::CheckIfSurfaceSkipInMirrorOrScreenshot: \
-            (LeashPersistentId:[%{public}" PRIu64 "]) is in black list", surfaceParams.GetLeashPersistentId());
+        RS_LOGD("RSSurfaceRenderNodeDrawable::CheckIfSurfaceSkipInMirrorOrScreenshot: "
+            "(LeashPersistentId:[%{public}" PRIu64 "]) is in black list", surfaceParams.GetLeashPersistentId());
         return true;
     }
     if (blackList.find(surfaceParams.GetId()) != blackList.end()) {
-        RS_LOGD("RSSurfaceRenderNodeDrawable::CheckIfSurfaceSkipInMirrorOrScreenshot: \
-            (surfaceParamsId:[%{public}" PRIu64 "]) is in black list", surfaceParams.GetId());
+        RS_LOGD("RSSurfaceRenderNodeDrawable::CheckIfSurfaceSkipInMirrorOrScreenshot: "
+            "(surfaceParamsId:[%{public}" PRIu64 "]) is in black list", surfaceParams.GetId());
         return true;
     }
     // Check type black list.
@@ -936,8 +936,8 @@ bool RSSurfaceRenderNodeDrawable::CheckIfSurfaceSkipInMirrorOrScreenshot(const R
     // Check white list.
     const auto& whiteList = RSUniRenderThread::Instance().GetWhiteList();
     if (!whiteList.empty() && RSUniRenderThread::GetCaptureParam().rootIdInWhiteList_ == INVALID_NODEID) {
-        RS_LOGD("RSSurfaceRenderNodeDrawable::CheckIfSurfaceSkipInMirrorOrScreenshot: \
-            (id:[%{public}" PRIu64 "]) isn't in white list", surfaceParams.GetId());
+        RS_LOGD("RSSurfaceRenderNodeDrawable::CheckIfSurfaceSkipInMirrorOrScreenshot: "
+            "(id:[%{public}" PRIu64 "]) isn't in white list", surfaceParams.GetId());
         return true;
     }
 

@@ -1759,9 +1759,9 @@ void RSDisplayRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
         RS_LOGD("RSDisplayRenderNodeDrawable::OnCapture: \
             process RSDisplayRenderNode(id:[%{public}" PRIu64 "]) Not using UniRender buffer.",
             params->GetId());
-        RS_TRACE_NAME_FMT("Process RSDisplayRenderNodeDrawable screenId: [%" PRIu64 "]"
+        RS_TRACE_NAME_FMT("RSDisplayRenderNodeDrawable::%s screenId: [%" PRIu64 "]"
             " Not using UniRender buffer. specialLayer: %d, noBuffer: %d, "
-            "isSamplingOn: %d, isRenderSkipIfScreenOff: %d, blackList: %lu", params->GetScreenId(),
+            "isSamplingOn: %d, isRenderSkipIfScreenOff: %d, blackList: %lu", __func__, params->GetScreenId(),
             specialLayerType_ != NO_SPECIAL_LAYER, noBuffer, params->GetScreenInfo().isSamplingOn,
             isRenderSkipIfScreenOff_, currentBlackList.size());
 

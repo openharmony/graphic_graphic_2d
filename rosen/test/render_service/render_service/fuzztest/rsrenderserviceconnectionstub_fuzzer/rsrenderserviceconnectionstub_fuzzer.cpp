@@ -3241,7 +3241,7 @@ bool DoTakeSurfaceCapture(const uint8_t* data, size_t size)
     float top = GetData<float>();
     float right = GetData<float>();
     float bottom = GetData<float>();
-    std::vector<NodeId> blackList({GetData<NodeId>()});
+    std::vector<NodeId> blackList{GetData<NodeId>()};
     float areaRectLeft = GetData<float>();
     float areaRectTop = GetData<float>();
     float areaRectRight = GetData<float>();
