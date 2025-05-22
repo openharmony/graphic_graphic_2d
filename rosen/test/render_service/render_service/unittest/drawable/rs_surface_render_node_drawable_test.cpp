@@ -787,7 +787,6 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, OnGeneralProcessTest, TestSize.Level1)
     surfaceDrawable_->OnGeneralProcess(canvas, *surfaceParams, *uniParams, true);
     surfaceParams->buffer_ = OHOS::SurfaceBuffer::Create();
     surfaceDrawable_->OnGeneralProcess(canvas, *surfaceParams, *uniParams, true);
-
     /* RSSurfaceRenderNodeDrawable::DrawMagnificationRegion base case */
     surfaceParams->frameRect_ = {0, 0, 100, 100};
     surfaceParams->regionToBeMagnified_ = {0, 0, 50, 50};
@@ -798,6 +797,12 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, OnGeneralProcessTest, TestSize.Level1)
     surfaceParams->regionToBeMagnified_ = {0, 0, 0, 0};
     surfaceParams->rsSurfaceNodeType_ = RSSurfaceNodeType::ABILITY_MAGNIFICATION_NODE;
     surfaceDrawable_->OnGeneralProcess(canvas, *surfaceParams, *uniParams, true);
+    /* OnGlobalPositionEnabled is true */
+    surfaceParams->isGlobalPositionEnabled_ = true;
+    surfaceDrawable_->OnGeneralProcess(canvas, *surfaceParams, *uniParams, false);
+    // To set matrix is singular matrix
+    surfaceParams->matrix_.SetMatrix(1, 2, 3, 2, 4, 6, 3, 6, 9);
+    surfaceDrawable_->OnGeneralProcess(canvas, *surfaceParams, *uniParams, false);
 }
 
 /**

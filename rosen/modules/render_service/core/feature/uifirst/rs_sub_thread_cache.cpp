@@ -1019,7 +1019,8 @@ bool RsSubThreadCache::DealWithUIFirstCache(DrawableV2::RSSurfaceRenderNodeDrawa
         auto matrix = surfaceParams.GetMatrix();
         Drawing::Matrix inverseMatrix;
         if (!matrix.Invert(inverseMatrix)) {
-            RS_LOGW("RsSubThreadCache::%{public}s name: %{public}s matrix invert inverseMatrix Failed", __func__, surfaceParams.GetName().c_str());
+            RS_LOGW("RsSubThreadCache::%{public}s name: %{public}s matrix invert inverseMatrix Failed", __func__,
+                    surfaceParams.GetName().c_str());
         }
         canvas.ConcatMatrix(inverseMatrix);
         canvas.Translate(-surfaceDrawable->offsetX_, -surfaceDrawable->offsetY_);

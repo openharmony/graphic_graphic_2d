@@ -127,7 +127,8 @@ void RSSurfaceRenderNodeDrawable::OnGeneralProcess(RSPaintFilterCanvas& canvas,
         auto matrix = surfaceParams.GetMatrix();
         Drawing::Matrix inverseMatrix;
         if (!matrix.Invert(inverseMatrix)) {
-            RS_LOGW("RSSurfaceRenderNodeDrawable::%{public}s name: %{public}s matrix invert inverseMatrix Failed", __func__, GetName().c_str());
+            RS_LOGW("RSSurfaceRenderNodeDrawable::%{public}s name: %{public}s matrix invert inverseMatrix Failed",
+                    __func__, GetName().c_str());
         }
         canvas.ConcatMatrix(inverseMatrix);
         canvas.Translate(-offsetX_, -offsetY_);
