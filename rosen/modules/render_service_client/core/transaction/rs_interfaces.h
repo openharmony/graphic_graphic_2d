@@ -45,15 +45,15 @@ public:
 
 #ifndef ROSEN_CROSS_PLATFORM
     /**
-     * @brief Create virtual screen with params
-     * @param name: virtual screen name
-     * @param width: virtual screen width. max: MAX_VIRTUAL_SCREEN_WIDTH
-     * @param height: virtual screen height. max: MAX_VIRTUAL_SCREEN_HEIGHT
-     * @param surface: virtual screen surface. if not nullptr, vote for 60Hz
-     * @param mirrorId: decide which screen id to mirror, INVALID_SCREEN_ID means do not mirror any screen
-     * @param flags: reserved for future use
-     * @param whiteList: list of surface node id, only these nodes can be drawn on this screen
-     * @return virtual screen id, INVALID_SCREEN_ID means create failed
+     * @brief Create virtual screen with params.
+     * @param name Virtual screen name.
+     * @param width Virtual screen width, max: MAX_VIRTUAL_SCREEN_WIDTH.
+     * @param height Virtual screen height, max: MAX_VIRTUAL_SCREEN_HEIGHT.
+     * @param surface Virtual screen surface, if not nullptr, vote for 60Hz.
+     * @param mirrorId Decide which screen id to mirror, INVALID_SCREEN_ID means do not mirror any screen.
+     * @param flags Reserved for future use.
+     * @param whiteList List of surface node id, only these nodes can be drawn on this screen.
+     * @return Virtual screen id, INVALID_SCREEN_ID means failed.
      */
     ScreenId CreateVirtualScreen(
         const std::string &name,
@@ -65,10 +65,10 @@ public:
         std::vector<NodeId> whiteList = {});
     
     /**
-     * @brief set list of surface node id, these nodes will be excluded from this screen
-     * @param id: valid screen id, set screen record black list; INVALID_SCREEN_ID, set screen cast black list
-     * @param blackListVector: list of surface node id
-     * @return 0 means success
+     * @brief Set list of surface node id, these nodes will be excluded from this screen.
+     * @param id Valid screen id: set screen record black list; INVALID_SCREEN_ID: set screen cast black list.
+     * @param blackListVector List of surface node id.
+     * @return 0 means success.
      */
     int32_t SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector);
 
@@ -82,36 +82,36 @@ public:
     int32_t SetVirtualScreenSecurityExemptionList(ScreenId id, const std::vector<NodeId>& securityExemptionList);
     
     /**
-     * @brief set mask displayed on virtual mirror screen when security layer is present
-     * @param id: virtual screen id
-     * @param securityMask: mask to be set, nullptr means no mask
-     * @return 0 means success
+     * @brief Set mask image displayed on virtual mirror screen when security layer is present.
+     * @param id Virtual screen id.
+     * @param securityMask Mask image to be set, nullptr means no mask.
+     * @return 0 means success.
      */
     int32_t SetScreenSecurityMask(ScreenId id, std::shared_ptr<Media::PixelMap> securityMask);
 
     int32_t SetMirrorScreenVisibleRect(ScreenId id, const Rect& mainScreenRect, bool supportRotation = false);
     
     /**
-     * @brief set if cast screen black list is enabled, surface node in black list will not be drawn
-     * @param id: virtual screen id
-     * @param enable: true means enable, false means disable
-     * @return 0 means success
+     * @brief Set if cast screen black list is enabled, surface node in black list will not be drawn.
+     * @param id Virtual screen id.
+     * @param enable True means enable, false means disable.
+     * @return 0 means success.
      */
     int32_t SetCastScreenEnableSkipWindow(ScreenId id, bool enable);
     
     /**
-     * @brief set producer surface for virtual screen
-     * @param id: virtual screen id
-     * @param surface: producer surface
-     * @return 0 means success
+     * @brief Set producer surface for virtual screen.
+     * @param id Virtual screen id.
+     * @param surface Producer surface.
+     * @return 0 means success.
      */
     int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface);
 #endif
     
     /**
-     * @brief remove virtual screen
-     * @param id: virtual screen id
-     * @return void
+     * @brief Remove virtual screen.
+     * @param id Virtual screen id.
+     * @return void.
      */
     void RemoveVirtualScreen(ScreenId id);
 
@@ -140,11 +140,11 @@ public:
         float blurRadius = 1E-6);
     
     /**
-     * @brief Take display node capture
-     * @param node: display node
-     * @param callback: callback when capture is done
-     * @param captureConfig: capture config, see RSSurfaceCaptureConfig
-     * @return true if capture task is successfully created, false if failed
+     * @brief Take display node capture.
+     * @param node Display node.
+     * @param callback Callback to be called when capture is done.
+     * @param captureConfig Capture config, see RSSurfaceCaptureConfig.
+     * @return True if capture task is successfully created, false if failed.
      */
     bool TakeSurfaceCapture(std::shared_ptr<RSDisplayNode> node, std::shared_ptr<SurfaceCaptureCallback> callback,
         RSSurfaceCaptureConfig captureConfig = {});
@@ -188,28 +188,28 @@ public:
     int32_t SetPhysicalScreenResolution(ScreenId id, uint32_t width, uint32_t height);
     
     /**
-     * @brief set virtual screen resolution
-     * @param id: virtual screen id
-     * @param width: virtual screen width, max: MAX_VIRTUAL_SCREEN_WIDTH
-     * @param height: virtual screen height, max: MAX_VIRTUAL_SCREEN_HEIGHT
-     * @return 0 means success
+     * @brief Set virtual screen resolution.
+     * @param id Virtual screen id.
+     * @param width Virtual screen width, max: MAX_VIRTUAL_SCREEN_WIDTH.
+     * @param height Virtual screen height, max: MAX_VIRTUAL_SCREEN_HEIGHT.
+     * @return 0 means success.
      */
     int32_t SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height);
 #endif // !ROSEN_ARKUI_X
     
     /**
-     * @brief set if auto rotation is enabled for virtual mirror screen, keep content always horizontal
-     * @param id: virtual screen id
-     * @param canvasRotation: true means enable, false means disable
-     * @return true if success, false if failed
+     * @brief Set if auto rotation is enabled for virtual mirror screen, keep content always horizontal.
+     * @param id Virtual screen id.
+     * @param canvasRotation True means enable, false means disable.
+     * @return True if success, false if failed.
      */
     bool SetVirtualMirrorScreenCanvasRotation(ScreenId id, bool canvasRotation);
 
     /**
-     * @brief set scale mode for virtual mirror screen
-     * @param id: virtual screen id
-     * @param scaleMode: scale mode, see ScreenScaleMode
-     * @return true if success, false if failed
+     * @brief Set scale mode for virtual mirror screen.
+     * @param id Virtual screen id.
+     * @param scaleMode Scale mode, see ScreenScaleMode.
+     * @return True if success, false if failed.
      */
     bool SetVirtualMirrorScreenScaleMode(ScreenId id, ScreenScaleMode scaleMode);
 
@@ -217,9 +217,9 @@ public:
     bool SetGlobalDarkColorMode(bool isDark);
 #ifndef ROSEN_ARKUI_X
     /**
-     * @brief get virtual screen resolution
-     * @param id: virtual screen id
-     * @return virtual screen resolution, see RSVirtualScreenResolution
+     * @brief Get virtual screen resolution.
+     * @param id Virtual screen id.
+     * @return Virtual screen resolution, see RSVirtualScreenResolution.
      */
     RSVirtualScreenResolution GetVirtualScreenResolution(ScreenId id);
 
@@ -279,10 +279,10 @@ public:
     int32_t SetScreenGamutMap(ScreenId id, ScreenGamutMap mode);
     
     /**
-     * @brief set screen correction, used to correct screen rotation
-     * @param id: screen id
-     * @param screenRotation: screen rotation, see ScreenRotation
-     * @return 0 means success
+     * @brief Set screen correction, used to correct screen rotation.
+     * @param id Screen id.
+     * @param screenRotation Screen correction, see ScreenRotation.
+     * @return 0 means success.
      */
     int32_t SetScreenCorrection(ScreenId id, ScreenRotation screenRotation);
 
@@ -318,10 +318,10 @@ public:
     int32_t SetVirtualScreenRefreshRate(ScreenId id, uint32_t maxRefreshRate, uint32_t& actualRefreshRate);
 
     /**
-     * @brief set screen active rect, part of screen that can be drawn
-     * @param id: screen id
-     * @param activeRect: screen active rect
-     * @return 0 means success
+     * @brief Set screen active rect, part of screen that can be drawn.
+     * @param id Screen id.
+     * @param activeRect Screen active rect.
+     * @return 0 means success.
      */
     uint32_t SetScreenActiveRect(ScreenId id, const Rect& activeRect);
 
@@ -375,11 +375,11 @@ public:
     void ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow);
 
     /**
-     * @brief Resize virtual screen
-     * @param id: virtual screen id
-     * @param width: virtual screen width, max: MAX_VIRTUAL_SCREEN_WIDTH
-     * @param height: virtual screen height, max: MAX_VIRTUAL_SCREEN_HEIGHT
-     * @return 0 means success
+     * @brief Resize virtual screen.
+     * @param id Virtual screen id.
+     * @param width Virtual screen width, max: MAX_VIRTUAL_SCREEN_WIDTH.
+     * @param height Virtual screen height, max: MAX_VIRTUAL_SCREEN_HEIGHT.
+     * @return 0 means success.
      */
     int32_t ResizeVirtualScreen(ScreenId id, uint32_t width, uint32_t height);
 
@@ -456,19 +456,19 @@ public:
 #endif
 
     /**
-     * @brief set virtual screen using status, vote for 60Hz if being used
-     * @param isVirtualScreenUsingStatus: true means using virtual screen, false means not using
-     * @return void
+     * @brief Set virtual screen using status, vote for 60Hz if being used.
+     * @param isVirtualScreenUsingStatus True means using virtual screen, false means not using.
+     * @return Void.
      */
     void SetVirtualScreenUsingStatus(bool isVirtualScreenUsingStatus);
 
     int32_t RegisterUIExtensionCallback(uint64_t userId, const UIExtensionCallback& callback, bool unobscured = false);
     
     /**
-     * @brief set virtual screen status
-     * @param id: virtual screen id
-     * @param screenStatus: virtual screen status, see VirtualScreenStatus
-     * @return true if success, false if failed
+     * @brief Set virtual screen status.
+     * @param id Virtual screen id.
+     * @param screenStatus Virtual screen status, see VirtualScreenStatus.
+     * @return True if success, false if failed.
      */
     bool SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus);
 
