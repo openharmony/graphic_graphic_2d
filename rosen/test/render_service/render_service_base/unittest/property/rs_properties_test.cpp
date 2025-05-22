@@ -3301,6 +3301,20 @@ HWTEST_F(RSPropertiesTest, GetPixelStretchTileMode001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetLocalMagnificationCap001
+ * @tc.desc: test results of SetLocalMagnificationCap
+ * @tc.type: FUNC
+ * @tc.require: issueI9QKVM
+ */
+HWTEST_F(RSPropertiesTest, SetLocalMagnificationCap001, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.SetLocalMagnificationCap(true);
+    EXPECT_EQ(properties.localMagnificationCap_, true);
+    EXPECT_EQ(properties.filterNeedUpdate_, true);
+}
+
+/**
  * @tc.name: SetNGetWaterRippleParams001
  * @tc.desc: test results of SetNGetWaterRippleParams001
  * @tc.type: FUNC

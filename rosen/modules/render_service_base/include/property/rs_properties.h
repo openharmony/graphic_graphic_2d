@@ -177,6 +177,8 @@ public:
     void SetAlphaOffscreen(bool alphaOffscreen);
     bool GetAlphaOffscreen() const;
 
+    void SetLocalMagnificationCap(bool localMagnificationCap);
+
     void SetSublayerTransform(const std::optional<Matrix3f>& sublayerTransform);
     const std::optional<Matrix3f>& GetSublayerTransform() const;
 
@@ -680,6 +682,7 @@ private:
     bool bgBlurDisableSystemAdaptation = true;
     bool fgBlurDisableSystemAdaptation = true;
     bool alwaysSnapshot_ = false;
+    bool localMagnificationCap_ = false;
     float frameOffsetX_ = 0.f;
     float frameOffsetY_ = 0.f;
     float alpha_ = 1.f;

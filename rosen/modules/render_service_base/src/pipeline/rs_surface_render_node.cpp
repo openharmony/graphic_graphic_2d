@@ -123,6 +123,7 @@ RSSurfaceRenderNode::RSSurfaceRenderNode(
 #endif
     MemorySnapshot::Instance().AddCpuMemory(ExtractPid(config.id), sizeof(*this));
     RsCommandVerifyHelper::GetInstance().AddSurfaceNodeCreateCnt(ExtractPid(config.id));
+    GetMutableRenderProperties().SetLocalMagnificationCap(nodeType_ == RSSurfaceNodeType::ABILITY_MAGNIFICATION_NODE);
 }
 
 RSSurfaceRenderNode::RSSurfaceRenderNode(NodeId id, const std::weak_ptr<RSContext>& context, bool isTextureExportNode)

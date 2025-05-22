@@ -85,6 +85,26 @@ public:
 };
 
 /**
+ * @tc.name: RSSurfaceRenderNodeCreate001
+ * @tc.desc: Test RSSurfaceRenderNode
+ * @tc.type: FUNC
+ * @tc.require: issueIAI1VN
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, RSSurfaceRenderNodeCreate001, TestSize.Level1)
+{
+    NodeId id = 1;
+    RSSurfaceNodeType type = RSSurfaceNodeType::ABILITY_MAGNIFICATION_NODE;
+    RSSurfaceRenderNodeConfig config = { .id = id, .nodeType = type };
+    auto node = std::make_shared<RSSurfaceRenderNode>(config);
+    EXPECT_NE(node, nullptr);
+    if (node != nullptr) {
+        auto& properties = node->GetMutableRenderProperties();
+        EXPECT_EQ(properties.localMagnificationCap_, true);
+        EXPECT_EQ(properties.filterNeedUpdate_, true);
+    }
+}
+
+/**
  * @tc.name: SetContextMatrix001
  * @tc.desc: test
  * @tc.type:FUNC

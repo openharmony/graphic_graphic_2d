@@ -223,7 +223,7 @@ void RSSurfaceRenderNodeDrawable::DrawMagnificationRegion(
     }
 
     /* Optimization */
-    Drawing::SamplingOptions samplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::LINEAR);
+    Drawing::SamplingOptions samplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
     Drawing::Brush paint;
     paint.SetAntiAlias(true);
     canvas.AttachBrush(paint);

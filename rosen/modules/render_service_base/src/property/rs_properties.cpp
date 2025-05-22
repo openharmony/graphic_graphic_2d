@@ -1033,6 +1033,14 @@ bool RSProperties::GetAlphaOffscreen() const
     return alphaOffscreen_;
 }
 
+void RSProperties::SetLocalMagnificationCap(bool localMagnificationCap) const
+{
+    localMagnificationCap_ = localMagnificationCap;
+    if (localMagnificationCap_) {
+        filterNeedUpdate_ = true;
+    }
+}
+
 void RSProperties::SetSublayerTransform(const std::optional<Matrix3f>& sublayerTransform)
 {
     sublayerTransform_ = sublayerTransform;
@@ -4902,12 +4910,12 @@ void RSProperties::UpdateFilter()
                   IsDynamicDimValid() || GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE ||
                   foregroundFilter_ != nullptr || IsFgBrightnessValid() || IsBgBrightnessValid() ||
                   foregroundFilterCache_ != nullptr || IsWaterRippleValid() || needDrawBehindWindow_ ||
-                  mask_ || colorFilter_ != nullptr;
+                  mask_ || colorFilter_ != nullptr || localMagnificationCap_;
 
     needHwcFilter_ = backgroundFilter_ != nullptr || filter_ != nullptr || IsLightUpEffectValid() ||
                      IsDynamicLightUpValid() || linearGradientBlurPara_ != nullptr ||
                      IsDynamicDimValid() || IsFgBrightnessValid() || IsBgBrightnessValid() || IsWaterRippleValid() ||
-                     needDrawBehindWindow_ || colorFilter_ != nullptr;
+                     needDrawBehindWindow_ || colorFilter_ != nullptr || localMagnificationCap_;
 }
 
 void RSProperties::UpdateForegroundFilter()
