@@ -19,7 +19,10 @@ ohos_unittest("add_text_test") {
   module_out_path = text_test_out_path
 
   defines = []
-  sources = [ "add_text_test.cpp" ]
+  sources = [
+    "add_text_test.cpp",
+    "no_glyph_show_test.cpp",
+  ]
 
   include_dirs = [
     "$graphic_2d_root/rosen/modules/2d_graphics/drawing_ndk/drawing_utils",
