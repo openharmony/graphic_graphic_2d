@@ -98,7 +98,6 @@ static const std::unordered_map<RSUINodeType, std::string> RSUINodeTypeStrs = {
     {RSUINodeType::EFFECT_NODE,         "EffectNode"},
     {RSUINodeType::CANVAS_DRAWING_NODE, "CanvasDrawingNode"},
 };
-
 std::once_flag flag_;
 bool IsPathAnimatableModifier(const RSModifierType& type)
 {
