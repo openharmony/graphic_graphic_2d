@@ -87,10 +87,10 @@ public:
 #endif
 
     /**
-     * @brief Set screen connection status change callback
+     * @brief Set screen connection status change callback.
      * on the screen connection status is changed.
-     * @param callback Callback of the screen connection status changed
-     * @return int32_t, value == 0 success, return value == others, failed
+     * @param callback Callback of the screen connection status changed.
+     * @return Returns int32_t, return value == 0 success, otherwise, failed.
      */
     int32_t SetScreenChangeCallback(const ScreenChangeCallback &callback);
 
@@ -149,7 +149,7 @@ public:
      * @param id Id of the physical screen.
      * @param width Width to set, and should be greater than physical width.
      * @param height Height to set, and should be greater than physical height.
-     * @return StatusCode. Returns value, return value == 0 success, return value == others, failed.
+     * @return StatusCode. Returns value, return value == 0 success, otherwise, failed.
      */
     int32_t SetPhysicalScreenResolution(ScreenId id, uint32_t width, uint32_t height);
 
@@ -173,9 +173,9 @@ public:
     void DisablePowerOffRenderControl(ScreenId id);
 
     /**
-     * @brief Set power of the screen
-     * @param id Id of the screen to set power status
-     * @param status the status to set to the screen
+     * @brief Set power of the screen.
+     * @param id Id of the screen to set power status.
+     * @param status The status to set to the screen.
      */
     void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status);
 
@@ -215,10 +215,10 @@ public:
     int32_t GetScreenBacklight(ScreenId id);
 
     /**
-     * @brief Set backlight value of the screen
+     * @brief Set backlight value of the screen.
      * 
-     * @param id Id of the screen to set its backlight value
-     * @param level value of backlight
+     * @param id Id of the screen to set its backlight value.
+     * @param level The value of backlight.
      */
     void SetScreenBacklight(ScreenId id, uint32_t level);
 
