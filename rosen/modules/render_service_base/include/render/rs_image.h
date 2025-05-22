@@ -200,6 +200,7 @@ private:
     bool isFitMatrixValid_ = false;
     OrientationFit orientationFit_ = OrientationFit::NONE;
     bool isOrientationValid_ = false;
+    Drawing::Rect rectForDrawShader_;
 };
 
 template<>
