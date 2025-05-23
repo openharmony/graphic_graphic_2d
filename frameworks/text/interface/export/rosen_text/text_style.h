@@ -62,6 +62,7 @@ enum class RelayoutTextStyleAttribute {
     FONT_COLOR = 18,
     SHADOWS = 19,
     HALF_LEADING = 20,
+    FOREGROUND_BRUSH = 21,
 
     TEXT_STYLE_ATTRIBUTE_BUTT,
 };
