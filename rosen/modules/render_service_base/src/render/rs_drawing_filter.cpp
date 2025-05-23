@@ -377,10 +377,20 @@ void RSDrawingFilter::ApplyImageEffect(Drawing::Canvas& canvas, const std::share
             return;
         }
         auto hpsParam = Drawing::HpsBlurParameter(attr.src, attr.dst, radius, saturationForHPS_, brightnessForHPS_);
+        RSColor maskColorForHPS = RSColor();
+        canSkipMaskColor_ = false;
+        if (ROSEN_EQ(attr.brushAlpha, 1.0f)) {
+            std::shared_ptr<RSShaderFilter> maskColorShaderFilter = GetShaderFilterWithType(RSShaderFilter::MASK_COLOR);
+            if (maskColorShaderFilter != nullptr) {
+                auto maskColorFilter = std::static_pointer_cast<RSMaskColorShaderFilter>(maskColorShaderFilter);
+                maskColorForHPS = maskColorFilter->GetMaskColor();
+            }
+        }
         if (RSSystemProperties::GetHpsBlurEnabled() && GetFilterType() == RSFilter::MATERIAL &&
             HpsBlurFilter::GetHpsBlurFilter().ApplyHpsBlur(canvas, outImage, hpsParam,
-                brush.GetColor().GetAlphaF() * attr.brushAlpha, brush.GetFilter().GetColorFilter())) {
-            RS_OPTIONAL_TRACE_NAME("ApplyHPSBlur " + std::to_string(radius));
+            brush.GetColor().GetAlphaF() * attr.brushAlpha, brush.GetFilter().GetColorFilter(), maskColorForHPS)) {
+                canSkipMaskColor_ = maskColorForHPS != RSColor();
+                RS_OPTIONAL_TRACE_NAME("ApplyHPSBlur " + std::to_string(radius));
         } else {
             auto effectContainer = std::make_shared<Drawing::GEVisualEffectContainer>();
             tmpFilter->GenerateGEVisualEffect(effectContainer);
@@ -470,6 +480,9 @@ void RSDrawingFilter::PostProcess(Drawing::Canvas& canvas)
 {
     std::for_each(shaderFilters_.begin(), shaderFilters_.end(), [&](auto& filter) {
         filter->PostProcess(canvas);
+        if ((!canSkipMaskColor_) || (!(filter->GetShaderFilterType() == RSShaderFilter::MASK_COLOR))) {
+            filter->PostProcess(canvas);
+        }
     });
 }
 } // namespace Rosen

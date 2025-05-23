@@ -119,6 +119,7 @@ private:
     std::vector<std::shared_ptr<RSShaderFilter>> shaderFilters_;
     uint32_t imageFilterHash_ = 0;
     bool canSkipFrame_ = false;
+    bool canSkipMaskColor_ = false;
     float saturationForHPS_ = 1.f;
     float brightnessForHPS_ = 1.f;
     friend class RSMarshallingHelper;

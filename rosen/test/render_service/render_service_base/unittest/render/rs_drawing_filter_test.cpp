@@ -389,6 +389,12 @@ HWTEST_F(RSDrawingFilterTest, DrawImageRect001, TestSize.Level1)
     drawingFilter.DrawImageRect(canvas, image, src, dst, { false, false });
     EXPECT_TRUE(image != nullptr);
 
+    auto colorShaderFilter = std::make_shared<RSMaskColorShaderFilter>(0, RSColor());
+    colorShaderFilter->maskColor_.SetAlpha(102);
+    drawingFilter.InsertShaderFilter(colorShaderFilter);
+    drawingFilter.DrawImageRect(canvas, image, src, dst, { false, false });
+    EXPECT_TRUE(image != nullptr);
+
     RSPaintFilterCanvas paintFilterCanvas(&canvas);
     paintFilterCanvas.SetAlpha(0.5);
     drawingFilter.DrawImageRect(paintFilterCanvas, image, src, dst, { false, false });
