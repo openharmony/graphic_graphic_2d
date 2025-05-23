@@ -17,6 +17,7 @@
 #include "platform/common/rs_log.h"
 #include "render/rs_render_edge_light_filter.h"
 #include "render/rs_render_filter_base.h"
+#include "render/rs_render_pixel_map_mask.h"
 #include "transaction/rs_marshalling_helper.h"
 
 namespace OHOS {
@@ -44,6 +45,9 @@ std::shared_ptr<RSRenderPropertyBase> RSRenderEdgeLightFilterPara::CreateRenderP
         }
         case RSUIFilterType::RIPPLE_MASK : {
             return std::make_shared<RSRenderRippleMaskPara>(0);
+        }
+        case RSUIFilterType::PIXEL_MAP_MASK : {
+            return std::make_shared<RSRenderPixelMapMaskPara>(0);
         }
         default: {
             ROSEN_LOGD("RSRenderEdgeLightFilterPara::CreateRenderPropert nullptr");

@@ -13,7 +13,11 @@
  * limitations under the License.
  */
 #include "mask_napi.h"
+#include "js_native_api.h"
+#include "js_native_api_types.h"
+#include "mask/include/pixel_map_mask_para.h"
 #include "ui_effect_napi_utils.h"
+#include "common/rs_vector4.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -33,6 +37,7 @@ napi_value MaskNapi::Init(napi_env env, napi_value exports)
     napi_property_descriptor static_prop[] = {
         DECLARE_NAPI_STATIC_FUNCTION("createRippleMask", CreateRippleMask),
         DECLARE_NAPI_STATIC_FUNCTION("createRadialGradientMask", CreateRadialGradientMask),
+        DECLARE_NAPI_STATIC_FUNCTION("createPixelMapMask", CreatePixelMapMask),
     };
 
     napi_value constructor = nullptr;
@@ -240,6 +245,78 @@ napi_value MaskNapi::CreateRadialGradientMask(napi_env env, napi_callback_info i
     UIEFFECT_NAPI_CHECK_RET_D(ParseRadialGradientMask(env, argv, maskPara), nullptr,
         MASK_LOG_E("MaskNapi CreateRadialGradientMask parsing mask input fail."));
     return Create(env, maskPara);
+}
+
+static void ClampVector4f(Vector4f& v, float minx, float maxn)
+{
+    for (auto& data : v.data_) {
+        data = std::clamp(data, minx, maxn);
+    }
+}
+
+static bool ParsePixelMapMask(napi_env env, napi_value* argv, size_t realArgc, std::shared_ptr<PixelMapMaskPara> para)
+{
+    if (!para) {
+        return false;
+    }
+
+    Vector4f src;
+    if (!ParseJsLTRBRect(env, argv[NUM_1], src)) {
+        MASK_LOG_E("ParsePixelMapMask parse src failed");
+        return false;
+    }
+    ClampVector4f(src, 0.f, 1.f);
+    para->SetSrc(src);
+
+    Vector4f dst;
+    if (!ParseJsLTRBRect(env, argv[NUM_2], dst)) {
+        MASK_LOG_E("ParsePixelMapMask parse dst failed");
+        return false;
+    }
+    ClampVector4f(dst, 0.f, 1.f);
+    para->SetDst(dst);
+
+    if (realArgc >= NUM_4) {
+        Vector4f fillColor;
+        if (ParseJsRGBAColor(env, argv[NUM_3], fillColor)) {
+            ClampVector4f(fillColor, 0.f, 1.f);
+            para->SetFillColor(fillColor);
+        }
+    }
+    return true;
+}
+
+napi_value MaskNapi::CreatePixelMapMask(napi_env env, napi_callback_info info)
+{
+    if (!UIEffectNapiUtils::IsSystemApp()) {
+        MASK_LOG_E("MaskNapi CreatePixelMapMask failed");
+        napi_throw_error(env, std::to_string(ERR_NOT_SYSTEM_APP).c_str(),
+            "MaskNapi CreatePixelMapMask failed, is not system app");
+        return nullptr;
+    }
+    static const size_t maxArgc = NUM_4;
+    static const size_t minArgc = NUM_3;
+    size_t realArgc = maxArgc;
+    napi_value result = nullptr;
+    napi_get_undefined(env, &result);
+    napi_status status;
+    napi_value argv[maxArgc];
+    napi_value thisVar = nullptr;
+    UIEFFECT_JS_ARGS(env, info, status, realArgc, argv, thisVar);
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && minArgc <= realArgc && realArgc <= maxArgc, nullptr,
+        MASK_LOG_E("MaskNapi CreatePixelMapMask parsing input fail."));
+    auto para = std::make_shared<PixelMapMaskPara>();
+    if (!ParsePixelMapMask(env, argv, realArgc, para)) {
+        MASK_LOG_E("MaskNapi CreatePixelMapMask parse param failed");
+        return nullptr;
+    }
+
+    if (!para->IsValid()) {
+        MASK_LOG_E("MaskNapi CreatePixelMapMask pixel map mask param invalid");
+        return nullptr;
+    }
+
+    return Create(env, para);
 }
 }  // namespace Rosen
 }  // namespace OHOS

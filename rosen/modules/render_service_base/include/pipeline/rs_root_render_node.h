@@ -23,8 +23,6 @@ namespace OHOS {
 namespace Rosen {
 class RSSurface;
 class RSDirtyRegionManager;
-class OcclusionParams;
-class RSOcclusionHandler;
 class RSB_EXPORT RSRootRenderNode : public RSCanvasRenderNode {
 public:
     static inline constexpr RSRenderNodeType Type = RSRenderNodeType::ROOT_NODE;
@@ -70,19 +68,6 @@ public:
     void EnableWindowKeyFrame(bool enable);
     bool IsWindowKeyFrameEnabled();
 
-    // Currently only used to pass the list of culled nodes in control-level occlusion culling.
-    void InitRenderParams() override;
-    void UpdateRenderParams() override;
-
-    // Used for control-level occlusion culling scene info and culled nodes transmission.
-    std::shared_ptr<OcclusionParams> GetOcclusionParams()
-    {
-        if (!occlusionParams_) {
-            occlusionParams_ = std::make_shared<OcclusionParams>();
-        }
-        return occlusionParams_;
-    }
-
 private:
     explicit RSRootRenderNode(NodeId id, const std::weak_ptr<RSContext>& context = {},
         bool isTextureExportNode = false);
@@ -96,52 +81,9 @@ private:
 
     std::vector<NodeId> childSurfaceNodeIds_;
 
-    // Used for control-level occlusion culling scene info and culled nodes transmission.
-    std::shared_ptr<OcclusionParams> occlusionParams_ = nullptr;
-
     friend class RootNodeCommandHelper;
     friend class RSRenderThreadVisitor;
 };
-
-// Used for control-level occlusion culling scene info and culled nodes transmission.
-// Maintained by the Dirty Regions feature team.
-class RSB_EXPORT OcclusionParams {
-public:
-    void UpdateOcclusionCullingStatus(bool enable, NodeId keyOcclusionNodeId);
-
-    int IsOcclusionCullingOn() {
-        return isOcclusionOn_;
-    }
-
-    NodeId GetKeyOcclusionNodeId()
-    {
-        return keyOcclusionNodeId_;
-    }
-
-    void SetOcclusionHandler(std::shared_ptr<RSOcclusionHandler> occlusionHandler)
-    {
-        occlusionHandler_ = occlusionHandler;
-    }
-
-    std::shared_ptr<RSOcclusionHandler> GetOcclusionHandler() const
-    {
-        return occlusionHandler_;
-    }
-
-    void SetCulledNodes(const std::unordered_set<NodeId>&& culledNodes)
-    {
-        culledNodes_ = std::move(culledNodes);
-    }
-private:
-    NodeId keyOcclusionNodeId_ = INVALID_NODEID;
-    int occlusionActiveCount_ = 0;
-    bool isOcclusionOn_ = false;
-    std::unordered_set<NodeId> culledNodes_;
-    std::shared_ptr<RSOcclusionHandler> occlusionHandler_ = nullptr;
-
-    friend class RSRootRenderNode;
-};
-
 } // namespace Rosen
 } // namespace OHOS
 

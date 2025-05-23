@@ -80,6 +80,12 @@ enum class RSUIFilterType : int16_t {
     BEZIER_CONTROL_POINT9, // Vector2f
     BEZIER_CONTROL_POINT10, // Vector2f
     BEZIER_CONTROL_POINT11, // Vector2f
+    
+    // pixel map mask value type
+    PIXEL_MAP_MASK_PIXEL_MAP, // Media::PixelMap
+    PIXEL_MAP_MASK_SRC, // Vector4f
+    PIXEL_MAP_MASK_DST, // Vector4f
+    PIXEL_MAP_MASK_FILL_COLOR, // Vector4f
 };
 
 class RSB_EXPORT RSRenderFilterParaBase : public RSRenderPropertyBase,

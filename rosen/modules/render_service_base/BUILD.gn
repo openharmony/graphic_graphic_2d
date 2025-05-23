@@ -283,6 +283,7 @@ ohos_source_set("render_service_base_src") {
     "src/render/rs_render_displacement_distort_filter.cpp",
     "src/render/rs_render_filter.cpp",
     "src/render/rs_render_filter_base.cpp",
+    "src/render/rs_render_pixel_map_mask.cpp",
     "src/render/rs_render_ripple_mask.cpp",
     "src/render/rs_render_sound_wave_filter.cpp",
     "src/render/rs_resource_manager.cpp",
@@ -354,7 +355,6 @@ ohos_source_set("render_service_base_src") {
       "src/params/rs_rcd_render_params.cpp",
       "src/params/rs_render_params.cpp",
       "src/params/rs_render_thread_params.cpp",
-      "src/params/rs_root_render_params.cpp",
       "src/params/rs_surface_render_params.cpp",
     ]
   }

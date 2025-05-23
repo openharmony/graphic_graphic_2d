@@ -68,16 +68,5 @@ void RootNodeCommandHelper::UpdateSuggestedBufferSize(RSContext& context, NodeId
         node->UpdateSuggestedBufferSize(width, height);
     }
 }
-
-void RootNodeCommandHelper::UpdateOcclusionCullingStatus(RSContext& context, NodeId nodeId,
-    bool enable, NodeId keyOcclusionNodeId)
-{
-    auto& nodeMap = context.GetNodeMap();
-    if (auto node = nodeMap.GetRenderNode<RSRootRenderNode>(nodeId)) {
-        if (auto occlusionParams = node->GetOcclusionParams()) {
-            occlusionParams->UpdateOcclusionCullingStatus(enable, keyOcclusionNodeId);
-        }
-    }
-}
 } // namespace Rosen
 } // namespace OHOS

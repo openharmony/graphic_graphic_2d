@@ -652,6 +652,31 @@ public:
         return apiCompatibleVersion_;
     }
 
+    bool IsOcclusionCullingOn() const
+    {
+        return isOcclusionCullingOn_;
+    }
+
+    std::unordered_set<NodeId> TakeCulledNodes()
+    {
+        return std::move(culledNodes_);
+    }
+
+    const std::unordered_set<NodeId>& GetCulledNodes() const
+    {
+        return culledNodes_;
+    }
+
+    std::unordered_set<NodeId> TakeCulledEntireSubtree()
+    {
+        return std::move(culledEntireSubtree_);
+    }
+
+    const std::unordered_set<NodeId>& GetCulledEntireSubtree() const
+    {
+        return culledEntireSubtree_;
+    }
+
     // [Attention] The function only used for unlocking screen for PC currently
     bool ClonedSourceNode() const
     {
@@ -832,6 +857,10 @@ private:
     std::unordered_map<NodeId, Drawing::Matrix> crossNodeSkipDisplayConversionMatrices_ = {};
 
     uint32_t apiCompatibleVersion_ = 0;
+
+    bool isOcclusionCullingOn_ = false;
+    std::unordered_set<NodeId> culledNodes_;
+    std::unordered_set<NodeId> culledEntireSubtree_;
 
     friend class RSSurfaceRenderNode;
     friend class RSUniRenderProcessor;

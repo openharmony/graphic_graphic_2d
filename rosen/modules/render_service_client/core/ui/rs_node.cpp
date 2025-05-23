@@ -2948,6 +2948,16 @@ void RSNode::SetSkipCheckInMultiInstance(bool isSkipCheckInMultiInstance)
     isSkipCheckInMultiInstance_ = isSkipCheckInMultiInstance;
 }
 
+void RSNode::UpdateOcclusionCullingStatus(bool enable, NodeId keyOcclusionNodeId)
+{
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSUpdateOcclusionCullingStatus>(GetId(), enable, keyOcclusionNodeId);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, IsRenderServiceNode());
+    }
+}
+
 std::vector<PropertyId> RSNode::GetModifierIds() const
 {
     std::unique_lock<std::recursive_mutex> lock(propertyMutex_);

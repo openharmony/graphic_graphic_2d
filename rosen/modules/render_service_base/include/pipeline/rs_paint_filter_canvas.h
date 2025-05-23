@@ -331,14 +331,27 @@ public:
     const std::shared_ptr<CacheBehindWindowData>& GetCacheBehindWindowData() const;
 
     // Set culled nodes for control-level occlusion culling
-    void SetCulledNodes(const std::unordered_set<NodeId>&& culledNodes)
+    void SetCulledNodes(std::unordered_set<NodeId>&& culledNodes)
     {
         culledNodes_ = std::move(culledNodes);
     }
+
     // Get culled nodes for control-level occlusion culling
     const std::unordered_set<NodeId>& GetCulledNodes() const
     {
         return culledNodes_;
+    }
+
+    // Set culled entire subtree for control-level occlusion culling
+    void SetCulledEntireSubtree(std::unordered_set<NodeId>&& culledEntireSubtree)
+    {
+        culledEntireSubtree_ = std::move(culledEntireSubtree);
+    }
+
+    // Get culled entire subtree for control-level occlusion culling
+    const std::unordered_set<NodeId>& GetCulledEntireSubtree() const
+    {
+        return culledEntireSubtree_;
     }
 
 protected:
@@ -399,6 +412,7 @@ private:
     Drawing::Canvas* storeMainCanvas_ = nullptr; // store main canvas
     Drawing::Rect visibleRect_ = Drawing::Rect();
     std::unordered_set<NodeId> culledNodes_; // store culled nodes for control-level occlusion culling
+    std::unordered_set<NodeId> culledEntireSubtree_; // store culled entire subtree for control-level occlusion culling
 
     std::stack<float> alphaStack_;
     std::stack<Env> envStack_;

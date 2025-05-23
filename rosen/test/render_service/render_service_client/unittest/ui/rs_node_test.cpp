@@ -8335,4 +8335,21 @@ HWTEST_F(RSNodeTest, SetAlwaysSnapshot, TestSize.Level1)
     rsNode->SetAlwaysSnapshot(true);
     EXPECT_EQ(rsNode->GetStagingProperties().GetAlwaysSnapshot(), true);
 }
+
+/**
+ * @tc.name: UpdateOcclusionCullingStatus001
+ * @tc.desc: test UpdateOcclusionCullingStatus
+ * @tc.type: FUNC
+ * @tc.require: issueIC8LN4
+ */
+HWTEST_F(RSNodeTest, UpdateOcclusionCullingStatus001, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
+
+    auto id = rsNode->GetId();
+    rsNode->UpdateOcclusionCullingStatus(true, id);
+    rsNode->UpdateOcclusionCullingStatus(false, id);
+    EXPECT_EQ(id, rsNode->GetId());
+}
 } // namespace OHOS::Rosen

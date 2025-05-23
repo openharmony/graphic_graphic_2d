@@ -86,7 +86,7 @@ void RSRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     RSRenderNodeDrawable::TotalProcessedNodeCountInc();
     Drawing::Rect bounds = GetRenderParams() ? GetRenderParams()->GetFrameRect() : Drawing::Rect(0, 0, 0, 0);
     // Skip nodes that were culled by the control-level occlusion.
-    if (SkipCulledNodeAndDrawChildren(canvas, bounds)) {
+    if (SkipCulledNodeOrEntireSubtree(canvas, bounds)) {
         return;
     }
 
@@ -103,17 +103,19 @@ void RSRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     DrawForeground(canvas, bounds);
 }
 
-bool RSRenderNodeDrawable::SkipCulledNodeAndDrawChildren(Drawing::Canvas& canvas, Drawing::Rect& bounds)
+bool RSRenderNodeDrawable::SkipCulledNodeOrEntireSubtree(Drawing::Canvas& canvas, Drawing::Rect& bounds)
 {
     auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
     auto id = GetId();
-    // Control-level occlusion culling, active exclusively in the uni render thread and
-    // disabled during capture or off-screen rendering.
-    if (id != 0 && paintFilterCanvas->GetParallelThreadIdx() == UNI_RENDER_THREAD_INDEX &&
-        LIKELY(!RSUniRenderThread::IsInCaptureProcess()) && GetOpDropped()) {
+    if (LIKELY(id != INVALID_NODEID) && IsOcclusionCullingEnabled()) {
+        if (paintFilterCanvas->GetCulledEntireSubtree().count(id) > 0) {
+            RS_OPTIONAL_TRACE_NAME_FMT("%s, id: %" PRIu64 " culled entire subtree success", __func__, id);
+            SetDrawSkipType(DrawSkipType::OCCLUSION_SKIP);
+            return true;
+        }
         if (paintFilterCanvas->GetCulledNodes().count(id) > 0) {
-            RS_OPTIONAL_TRACE_NAME_FMT("RSRenderNodeDrawable::SkipCulledNode id: %lu culled success", id);
-            CollectInfoForUnobscuredUEC(canvas);
+            RS_OPTIONAL_TRACE_NAME_FMT("%s, id: %" PRIu64 " culled success", __func__, id);
+            SetDrawSkipType(DrawSkipType::OCCLUSION_SKIP);
             DrawChildren(canvas, bounds);
             return true;
         }

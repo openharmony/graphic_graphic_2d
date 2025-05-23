@@ -26,6 +26,7 @@ namespace UIEffect {
 
 constexpr const char* POINT_STRING[2] = { "x", "y" };
 constexpr const char* COLOR_STRING[4] = {"red", "green", "blue", "alpha"};
+constexpr const char* RECT_STRING[4] = {"left", "top", "right", "bottom"};
 
 bool ConvertDoubleValueFromJsElement(napi_env env, napi_value jsObject, uint32_t idx, double& data)
 {
@@ -135,6 +136,20 @@ bool ParseJsRGBAColor(napi_env env, napi_value jsValue, Vector4f& rgba)
             return false;
         }
         rgba[idx] = static_cast<float>(value);
+    }
+    return true;
+}
+
+bool ParseJsLTRBRect(napi_env env, napi_value jsValue, Vector4f& ltrb)
+{
+    for (size_t idx = 0; idx < NUM_4; idx++) {
+        napi_value tempValue = nullptr;
+        napi_get_named_property(env, jsValue, RECT_STRING[idx], &tempValue);
+        double value = 0.0;
+        if (tempValue == nullptr || napi_get_value_double(env, tempValue, &value) != napi_ok) {
+            return false;
+        }
+        ltrb[idx] = static_cast<float>(value);
     }
     return true;
 }

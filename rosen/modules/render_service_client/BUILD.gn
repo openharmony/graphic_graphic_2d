@@ -153,6 +153,7 @@ template("render_service_client_source_set") {
       "core/ui_effect/property/src/rs_ui_filter_para_base.cpp",
       "core/ui_effect/property/src/rs_ui_filter.cpp",
       "core/ui_effect/property/src/rs_ui_mask_para.cpp",
+      "core/ui_effect/property/src/rs_ui_pixel_map_mask.cpp",
       "core/ui_effect/property/src/rs_ui_ripple_mask.cpp",
       "core/ui_effect/property/src/rs_ui_sound_wave_filter.cpp",
     ]

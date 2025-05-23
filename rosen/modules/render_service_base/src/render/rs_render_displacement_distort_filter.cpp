@@ -14,6 +14,7 @@
  */
 #include "platform/common/rs_log.h"
 #include "render/rs_render_displacement_distort_filter.h"
+#include "render/rs_render_pixel_map_mask.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -95,6 +96,9 @@ namespace Rosen {
         switch (type) {
             case RSUIFilterType::RIPPLE_MASK : {
                 return std::make_shared<RSRenderRippleMaskPara>(0);
+            }
+            case RSUIFilterType::PIXEL_MAP_MASK : {
+                return std::make_shared<RSRenderPixelMapMaskPara>(0);
             }
             default: {
                 ROSEN_LOGD("RSRenderDispDistortFilterPara::CreateRenderPropert mask nullptr");
