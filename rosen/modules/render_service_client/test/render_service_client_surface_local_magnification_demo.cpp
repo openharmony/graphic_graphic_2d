@@ -120,5 +120,14 @@ int main()
         sleep(1);
     }
 
+    std::cout << "Local Magnification Case7: dirty manager, click to the accessibility page" << std::endl;
+    surfaceNode->SetPositionZ(MAX_ZORDER);
+    surfaceNode->SetAbilityBGAlpha(254);
+    surfaceNode->SetFrameGravity(Gravity::RESIZE_ASPECT);
+    surfaceNode->SetRegionToBeMagnified({230, 1100, 400, 400});
+    surfaceNode->SetFrame({230, 1100, 800, 800});
+    RSTransaction::FlushImplicitTransaction();
+    sleep(50);
+
     return EXIT_SUCCESS;
 }
