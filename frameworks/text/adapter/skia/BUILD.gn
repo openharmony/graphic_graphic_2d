@@ -108,6 +108,8 @@ template("skia_libtxt") {
     }
 
     if (is_arkui_x) {
+      include_dirs += [ "//base/hiviewdfx/hitrace/interfaces/native/innerkits/include/hitrace_meter" ]
+      defines += [ "CROSS_PLATFORM" ]
       deps = [
         "//third_party/bounds_checking_function:libsec_static",
         "//third_party/jsoncpp:jsoncpp_static",
