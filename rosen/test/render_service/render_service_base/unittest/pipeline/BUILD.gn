@@ -57,7 +57,7 @@ ohos_unittest("RSBaseRenderNodeTest") {
     "hilog:libhilog",
     "hitrace:hitrace_meter",
     "init:libbegetutil",
-    "skia:skia_canvaskit",
+    "skia:skia_canvaskit",  
   ]
 
   subsystem_name = "graphic"
@@ -1163,6 +1163,7 @@ ohos_unittest("RSSurfaceRenderNodeTest") {
     "hitrace:hitrace_meter",
     "init:libbegetutil",
     "skia:skia_canvaskit",
+    "samgr:samgr_proxy",
   ]
 
   subsystem_name = "graphic"
