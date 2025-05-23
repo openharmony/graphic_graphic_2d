@@ -25,6 +25,7 @@
 #include <unordered_set>
 #include <unistd.h>
 #include <utils/rect.h>
+#include <vector>
 
 #include "common/rs_macros.h"
 

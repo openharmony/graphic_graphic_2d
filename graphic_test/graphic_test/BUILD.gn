@@ -63,7 +63,10 @@ rs_display_effect_sources = [
   "rs_display_effect/restore_tree_display/restore_node_tree_file_test.cpp",
 ]
 rs_framework_sources = []
-rs_func_feature_sources = [ "rs_func_feature/component_capture/demo.cpp" ]
+rs_func_feature_sources = [
+  "rs_func_feature/component_capture/demo.cpp",
+  "rs_func_feature/screen_capture/display_node_capture_test.cpp",
+]
 rs_perform_feature_sources = []
 
 group("test") {
