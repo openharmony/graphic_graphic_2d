@@ -115,6 +115,7 @@ napi_value EffectNapi::CreateEffect(napi_env env, napi_callback_info info)
         UIEFFECT_LOG_E("EffectNapi CreateEffect wrap fail"));
     napi_property_descriptor resultFuncs[] = {
         DECLARE_NAPI_FUNCTION("backgroundColorBlender", SetBackgroundColorBlender),
+        DECLARE_NAPI_FUNCTION("hdrBrightnessRatio", SetHDRUIBrightness),
     };
     status = napi_define_properties(env, object, sizeof(resultFuncs) / sizeof(resultFuncs[0]), resultFuncs);
     UIEFFECT_NAPI_CHECK_RET_DELETE_POINTER(status == napi_ok, nullptr, effectObj,
@@ -333,6 +334,47 @@ napi_value EffectNapi::SetBackgroundColorBlender(napi_env env, napi_callback_inf
     status = napi_unwrap(env, thisVar, reinterpret_cast<void**>(&effectObj));
     UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && effectObj != nullptr, nullptr,
         UIEFFECT_LOG_E("EffectNapi SetBackgroundColorBlender effectObj is nullptr"));
+    effectObj->AddPara(para);
+    return thisVar;
+}
+
+napi_value EffectNapi::SetHDRUIBrightness(napi_env env, napi_callback_info info)
+{
+    if (!UIEffectNapiUtils::IsSystemApp()) {
+        UIEFFECT_LOG_E("EffectNapi SetHDRUIBrightness is not system app");
+        napi_throw_error(env, std::to_string(ERR_NOT_SYSTEM_APP).c_str(),
+            "The SetHDRUIBrightness is only accessible to system applications.");
+        return nullptr;
+    }
+    size_t argc = NUM_1;
+    napi_value argv[NUM_1] = {0};
+    napi_value thisVar = nullptr;
+    if (napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr) != napi_ok) {
+        UIEFFECT_LOG_E("EffectNapi SetHDRUIBrightness parsing input fail");
+        return nullptr;
+    }
+    napi_valuetype valueType = napi_undefined;
+    napi_typeof(env, argv[0], &valueType);
+    if (valueType != napi_number) {
+        UIEFFECT_LOG_E("EffectNapi SetHDRUIBrightness input is not number");
+        return nullptr;
+    }
+    double brightnessRatio = 1.0;
+    if (napi_get_value_double(env, argv[0], &brightnessRatio) != napi_ok) {
+        UIEFFECT_LOG_E("EffectNapi SetHDRUIBrightness parsing float fail");
+        return nullptr;
+    }
+    VisualEffect* effectObj = nullptr;
+    if (napi_unwrap(env, thisVar, reinterpret_cast<void**>(&effectObj)) != napi_ok || effectObj == nullptr) {
+        UIEFFECT_LOG_E("EffectNapi SetHDRUIBrightness effectObj is nullptr");
+        return nullptr;
+    }
+    if (std::isnan(brightnessRatio)) {
+        UIEFFECT_LOG_E("EffectNapi SetHDRUIBrightness brightnessRatio is nan");
+        brightnessRatio = 1.0f;
+    }
+    std::shared_ptr<HDRUIBrightnessPara> para = std::make_shared<HDRUIBrightnessPara>();
+    para->SetHDRUIBrightness(static_cast<float>(brightnessRatio));
     effectObj->AddPara(para);
     return thisVar;
 }

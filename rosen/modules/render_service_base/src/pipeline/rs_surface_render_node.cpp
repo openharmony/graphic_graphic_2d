@@ -1133,25 +1133,39 @@ void RSSurfaceRenderNode::SetHDRPresent(bool hasHdrPresent)
 
 bool RSSurfaceRenderNode::GetHDRPresent() const
 {
-    return hdrNum_ > 0;
+    return hdrPhotoNum_ > 0 || hdrUIComponentNum_ > 0;
 }
 
-void RSSurfaceRenderNode::IncreaseHDRNum()
+void RSSurfaceRenderNode::IncreaseHDRNum(HDRComponentType hdrType)
 {
     std::lock_guard<std::mutex> lockGuard(mutexHDR_);
-    hdrNum_++;
-    RS_LOGD("RSSurfaceRenderNode::IncreaseHDRNum HDRClient hdrNum_: %{public}d", hdrNum_);
-}
-
-void RSSurfaceRenderNode::ReduceHDRNum()
-{
-    std::lock_guard<std::mutex> lockGuard(mutexHDR_);
-    if (hdrNum_ == 0) {
-        ROSEN_LOGE("RSSurfaceRenderNode::ReduceHDRNum error");
-        return;
+    if (hdrType == HDRComponentType::IMAGE) {
+        hdrPhotoNum_++;
+        RS_LOGD("RSSurfaceRenderNode::IncreaseHDRNum HDRClient hdrPhotoNum_: %{public}d", hdrPhotoNum_);
+    } else if (hdrType == HDRComponentType::UICOMPONENT) {
+        hdrUIComponentNum_++;
+        RS_LOGD("RSSurfaceRenderNode::IncreaseHDRNum HDRClient hdrUIComponentNum_: %{public}d", hdrUIComponentNum_);
     }
-    hdrNum_--;
-    RS_LOGD("RSSurfaceRenderNode::ReduceHDRNum HDRClient hdrNum_: %{public}d", hdrNum_);
+}
+
+void RSSurfaceRenderNode::ReduceHDRNum(HDRComponentType hdrType)
+{
+    std::lock_guard<std::mutex> lockGuard(mutexHDR_);
+    if (hdrType == HDRComponentType::IMAGE) {
+        if (hdrPhotoNum_ == 0) {
+            ROSEN_LOGE("RSSurfaceRenderNode::ReduceHDRNum error");
+            return;
+        }
+        hdrPhotoNum_--;
+        RS_LOGD("RSSurfaceRenderNode::ReduceHDRNum HDRClient hdrPhotoNum_: %{public}d", hdrPhotoNum_);
+    } else if (hdrType == HDRComponentType::UICOMPONENT) {
+        if (hdrUIComponentNum_ == 0) {
+            ROSEN_LOGE("RSSurfaceRenderNode::ReduceHDRNum error");
+            return;
+        }
+        hdrUIComponentNum_--;
+        RS_LOGD("RSSurfaceRenderNode::ReduceHDRNum HDRClient hdrUIComponentNum_: %{public}d", hdrUIComponentNum_);
+    }
 }
 
 bool RSSurfaceRenderNode::GetIsWideColorGamut() const

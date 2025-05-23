@@ -1065,7 +1065,7 @@ HWTEST_F(RSUniRenderVisitorTest, CheckPixelFormat, TestSize.Level1)
     rsSurfaceRenderNode->hasFingerprint_ = false;
     rsUniRenderVisitor->hasFingerprint_[1] = false;
     rsUniRenderVisitor->CheckPixelFormat(*rsSurfaceRenderNode);
-    rsSurfaceRenderNode->hdrNum_ = 1;
+    rsSurfaceRenderNode->hdrPhotoNum_ = 1;
     ASSERT_EQ(rsSurfaceRenderNode->IsContentDirty(), false);
     rsUniRenderVisitor->curDisplayNode_->isLuminanceStatusChange_ = true;
     rsUniRenderVisitor->CheckPixelFormat(*rsSurfaceRenderNode);

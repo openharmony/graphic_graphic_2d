@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -12,28 +12,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef UIEFFECT_EFFECT_VISUAL_EFFECT_PARA_H
-#define UIEFFECT_EFFECT_VISUAL_EFFECT_PARA_H
+#ifndef UIEFFECT_EFFECT_HDR_UI_BRIGHTNESS_PARA_H
+#define UIEFFECT_EFFECT_HDR_UI_BRIGHTNESS_PARA_H
+
+#include "visual_effect_para.h"
 
 namespace OHOS {
 namespace Rosen {
-class VisualEffectPara {
+class HDRUIBrightnessPara : public VisualEffectPara {
 public:
-    enum ParaType {
-        NONE,
-        BACKGROUND_COLOR_EFFECT,
-        HDR_UI_BRIGHTNESS,
-    };
-
-    VisualEffectPara()  = default;
-    virtual ~VisualEffectPara() = default;
-    ParaType GetParaType()
+    HDRUIBrightnessPara()
     {
-        return type_;
+        this->type_ = VisualEffectPara::ParaType::HDR_UI_BRIGHTNESS;
     }
-protected:
-    ParaType type_;
+    ~HDRUIBrightnessPara() override = default;
+
+    void SetHDRUIBrightness(float hdrUIBrightness)
+    {
+        hdrUIBrightness_ = hdrUIBrightness;
+    }
+
+    float GetHDRUIBrightness() const
+    {
+        return hdrUIBrightness_;
+    }
+
+private:
+    float hdrUIBrightness_ = 1.0f;
 };
 } // namespace Rosen
 } // namespace OHOS
-#endif // UIEFFECT_EFFECT_VISUAL_EFFECT_PARA_H
+#endif // UIEFFECT_EFFECT_HDR_UI_BRIGHTNESS_PARA_H

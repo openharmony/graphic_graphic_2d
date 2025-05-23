@@ -620,8 +620,8 @@ public:
     void SetHDRPresent(bool hasHdrPresent);
     bool GetHDRPresent() const;
 
-    void IncreaseHDRNum();
-    void ReduceHDRNum();
+    void IncreaseHDRNum(HDRComponentType hdrType);
+    void ReduceHDRNum(HDRComponentType hdrType);
 
     bool GetIsWideColorGamut() const;
 
@@ -1653,8 +1653,10 @@ private:
     std::atomic<bool> hasUnSubmittedOccludedDirtyRegion_ = false;
     static inline std::atomic<bool> ancoForceDoDirect_ = false;
     float contextAlpha_ = 1.0f;
-    // Count the number of hdr pictures. If hdrNum_ > 0, it means there are hdr pictures
-    int hdrNum_ = 0;
+    // Count the number of hdr pictures. If hdrPhotoNum_ > 0, it means there are hdr pictures
+    int hdrPhotoNum_ = 0;
+    // Count the number of hdr UI components. If hdrUIComponentNum_ > 0, it means there are hdr UI components
+    int hdrUIComponentNum_ = 0;
     int wideColorGamutNum_ = 0;
     int32_t offsetX_ = 0;
     int32_t offsetY_ = 0;

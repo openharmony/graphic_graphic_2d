@@ -288,7 +288,7 @@ void RSCanvasRenderNode::SetHDRPresent(bool hasHdrPresent)
         return;
     }
     if (IsOnTheTree()) {
-        SetHdrNum(hasHdrPresent, GetInstanceRootNodeId());
+        SetHdrNum(hasHdrPresent, GetInstanceRootNodeId(), HDRComponentType::IMAGE);
     }
     hasHdrPresent_ = hasHdrPresent;
 }

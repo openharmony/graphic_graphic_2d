@@ -170,6 +170,7 @@ enum class RSModifierType : int16_t {
     ALWAYS_SNAPSHOT = 134,
     COMPLEX_SHADER_PARAM = 135,
     BACKGROUND_UI_FILTER = 136,
+    HDR_UI_BRIGHTNESS = 137,
 
     CUSTOM = 200,
     EXTENDED = 201,
@@ -366,6 +367,7 @@ public:
             case RSModifierType::ALWAYS_SNAPSHOT: return "AlwaysSnapshot";
             case RSModifierType::COMPLEX_SHADER_PARAM: return "ComplexShaderParam";
             case RSModifierType::BACKGROUND_UI_FILTER: return "BackgroundUIFilter";
+            case RSModifierType::HDR_UI_BRIGHTNESS: return "HDRUIBrightness";
             case RSModifierType::CUSTOM: return "Custom";
             case RSModifierType::EXTENDED: return "Extended";
             case RSModifierType::TRANSITION: return "Transition";

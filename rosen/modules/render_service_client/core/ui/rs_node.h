@@ -49,6 +49,7 @@
 #include "render/rs_mask.h"
 #include "render/rs_path.h"
 #include "ui_effect/effect/include/background_color_effect_para.h"
+#include "ui_effect/effect/include/hdr_ui_brightness_para.h"
 #include "ui_effect/effect/include/visual_effect.h"
 #include "ui_effect/filter/include/filter.h"
 #include "ui_effect/filter/include/filter_pixel_stretch_para.h"
@@ -1418,6 +1419,13 @@ public:
      * @param spherizeDegree The degree of spherization to apply.
      */
     void SetSpherizeDegree(float spherizeDegree);
+
+    /**
+     * @brief Sets the brightness ratio of HDR UI component.
+     *
+     * @param hdrUIBrightness The HDR UI component brightness ratio.
+     */
+    void SetHDRUIBrightness(float hdrUIBrightness);
 
     /**
      * @brief Sets the degree of light up effect.
