@@ -41,6 +41,11 @@ sptr<SurfaceBuffer> RSModifiersDraw::DmaMemAlloc(
     return nullptr;
 }
 
+void RSModifiersDraw::PurgeContextResource()
+{
+    return;
+}
+
 sptr<SurfaceBuffer> RSModifiersDraw::CreateSurfaceBuffer(
     const std::unique_ptr<Media::PixelMap>& pixelMap, int32_t width, int32_t height)
 {
@@ -174,6 +179,11 @@ bool RSModifiersDraw::CheckNodeIsOffTree(NodeId nodeId)
 void RSModifiersDraw::CreateNextFrameSurface()
 {
     return;
+}
+
+bool RSModifiersDraw::CheckIfModifiersDrawThreadInited()
+{
+    return false;
 }
 
 void RSModifiersDraw::InsertForegroundRoot(NodeId nodeId)

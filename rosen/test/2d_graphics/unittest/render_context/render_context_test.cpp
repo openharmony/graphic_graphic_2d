@@ -418,4 +418,19 @@ HWTEST_F(RenderContextTest, DamageFrameTest002, Level1)
     auto rects = {rect};
     renderContext->DamageFrame(rects);
 }
+
+/**
+ * @tc.name: ClearDrGPUContext001
+ * @tc.desc: test ClearDrGPUContext
+ * @tc.type: FUNC
+ * @tc.require: issuesIC7U3T
+ */
+HWTEST_F(RenderContextTest, ClearDrGPUContext001, Level2)
+{
+    RenderContext* renderContext = RenderContextFactory::GetInstance().CreateEngine();
+    ASSERT_NE(renderContext, nullptr);
+    renderContext->ClearDrGPUContext();
+
+    ASSERT_EQ(renderContext->drGPUContext_, nullptr);
+}
 } // namespace OHOS::Rosen

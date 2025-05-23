@@ -289,5 +289,17 @@ HWTEST_F(RSModifiersDrawTest, EraseForegroundRoot, TestSize.Level1)
     }
     RSModifiersDrawThread::Instance().isStarted_ = false;
 }
+
+/**
+ * @tc.name: PurgeContextResource
+ * @tc.desc: PurgeContextResource Test
+ * @tc.type:FUNC
+ * @tc.require:issuesIC7U3T
+*/
+HWTEST_F(RSModifiersDrawTest, PurgeContextResource, TestSize.Level2)
+{
+    RSModifiersDraw::PurgeContextResource();
+    ASSERT_NE(RsVulkanContext::GetSingleton().GetDrawingContext(), nullptr);
+}
 } // namespace Rosen
 } // namespace OHOS

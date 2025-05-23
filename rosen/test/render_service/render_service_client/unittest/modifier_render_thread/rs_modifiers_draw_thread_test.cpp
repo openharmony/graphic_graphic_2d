@@ -20,6 +20,10 @@
 #include "modifier_render_thread/rs_modifiers_draw_thread.h"
 #include "render_context/shader_cache.h"
 
+#ifdef RS_ENABLE_VK
+#include "src/platform/ohos/backend/rs_vulkan_context.h"
+#endif
+
 using namespace testing;
 using namespace testing::ext;
 
@@ -34,7 +38,12 @@ public:
     void TearDown() override;
 };
 
-void RSModifiersDrawThreadTest::SetUpTestCase() {}
+void RSModifiersDrawThreadTest::SetUpTestCase()
+{
+#ifdef RS_ENABLE_VK
+    RsVulkanContext::SetRecyclable(false);
+#endif
+}
 void RSModifiersDrawThreadTest::TearDownTestCase() {}
 void RSModifiersDrawThreadTest::SetUp() {}
 void RSModifiersDrawThreadTest::TearDown() {}

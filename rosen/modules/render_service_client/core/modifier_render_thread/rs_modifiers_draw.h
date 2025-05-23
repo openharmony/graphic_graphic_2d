@@ -55,6 +55,8 @@ public:
 
     static void EraseDrawRegions(NodeId nodeId);
 
+    static bool CheckIfModifiersDrawThreadInited();
+
     static void InsertForegroundRoot(NodeId nodeId);
 
     static void EraseForegroundRoot(NodeId nodeId);
@@ -64,6 +66,8 @@ public:
     static void ClearBackGroundMemory();
 
     static void DestroySemaphore();
+
+    static void PurgeContextResource();
 private:
     struct SurfaceEntry {
         std::shared_ptr<Drawing::Surface> surface = nullptr;
