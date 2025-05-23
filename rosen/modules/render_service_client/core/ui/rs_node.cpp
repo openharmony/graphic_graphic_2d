@@ -1649,6 +1649,11 @@ void RSNode::SetForegroundColor(uint32_t colorValue)
 void RSNode::SetBackgroundColor(uint32_t colorValue)
 {
     auto color = Color::FromArgbInt(colorValue);
+    SetBackgroundColor(color);
+}
+
+void RSNode::SetBackgroundColor(RSColor& color)
+{
     SetProperty<RSBackgroundColorModifier, RSAnimatableProperty<Color>>(RSModifierType::BACKGROUND_COLOR, color);
     if (color.GetAlpha() > 0) {
         SetDrawNode();
