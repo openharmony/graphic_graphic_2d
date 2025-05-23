@@ -1033,7 +1033,7 @@ bool RSProperties::GetAlphaOffscreen() const
     return alphaOffscreen_;
 }
 
-void RSProperties::SetLocalMagnificationCap(bool localMagnificationCap) const
+void RSProperties::SetLocalMagnificationCap(bool localMagnificationCap)
 {
     localMagnificationCap_ = localMagnificationCap;
     if (localMagnificationCap_) {
