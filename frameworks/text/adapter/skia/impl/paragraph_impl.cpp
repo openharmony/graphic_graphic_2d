@@ -435,6 +435,18 @@ void ParagraphImpl::UpdateColor(size_t from, size_t to, const RSColor& color,
     }
 }
 
+void ParagraphImpl::UpdatePaintsBySkiaBlock(skt::Block& skiaBlock, std::optional<RSBrush> brush)
+{
+    PaintID foregroundId = std::get<PaintID>(skiaBlock.fStyle.getForegroundPaintOrID());
+    if ((foregroundId < 0) || (foregroundId >= static_cast<int>(paints_.size()))) {
+        return;
+    }
+    if (paints_[foregroundId].isSymbolGlyph) {
+        return;
+    }
+    paints_[foregroundId].brush = brush;
+}
+
 void ParagraphImpl::UpdateForegroundBrushWithValidData(SkTArray<skt::Block, true>& skiaTextStyles,
     std::optional<RSBrush> brush)
 {
@@ -445,13 +457,7 @@ void ParagraphImpl::UpdateForegroundBrushWithValidData(SkTArray<skt::Block, true
     for (size_t i = 0; i < skiaTextStyles.size(); i++) {
         skt::Block& skiaBlock = skiaTextStyles[i];
         if (skiaBlock.fStyle.hasForeground()) {
-            PaintID foregroundId = std::get<PaintID>(skiaBlock.fStyle.getForegroundPaintOrID());
-            if ((0 <= foregroundId) && (foregroundId < static_cast<int>(paints_.size()))) {
-                if (paints_[foregroundId].isSymbolGlyph) {
-                    continue;
-                }
-                paints_[foregroundId].brush = brush;
-            }
+            UpdatePaintsBySkiaBlock(skiaBlock, brush);
         } else {
             skiaBlock.fStyle.setForegroundPaintID(newId);
             if (needAddNewBrush) {
@@ -468,15 +474,10 @@ void ParagraphImpl::UpdateForegroundBrushWithNullopt(SkTArray<skt::Block, true>&
     TEXT_TRACE_FUNC();
     for (size_t i = 0; i < skiaTextStyles.size(); i++) {
         skt::Block& skiaBlock = skiaTextStyles[i];
-        if (skiaBlock.fStyle.hasForeground()) {
-            PaintID foregroundId = std::get<PaintID>(skiaBlock.fStyle.getForegroundPaintOrID());
-            if ((0 <= foregroundId) && (foregroundId < static_cast<int>(paints_.size()))) {
-                if (paints_[foregroundId].isSymbolGlyph) {
-                    continue;
-                }
-                paints_[foregroundId].brush = std::nullopt;
-            }
+        if (!skiaBlock.fStyle.hasForeground()) {
+            continue;
         }
+        UpdatePaintsBySkiaBlock(skiaBlock, std::nullopt);
     }
 }
 

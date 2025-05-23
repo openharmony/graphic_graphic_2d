@@ -153,6 +153,7 @@ private:
     void ApplyParagraphStyleChanges(const ParagraphStyle& style);
     void UpdateForegroundBrushWithValidData(SkTArray<skt::Block, true>& skiaTextStyles, std::optional<RSBrush> brush);
     void UpdateForegroundBrushWithNullopt(SkTArray<skt::Block, true>& skiaTextStyles);
+    void UpdatePaintsBySkiaBlock(skt::Block& skiaBlock, std::optional<RSBrush> brush);
 
     void RecordDifferentPthreadCall(const char* caller) const;
 
