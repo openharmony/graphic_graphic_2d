@@ -22,6 +22,8 @@ namespace Rosen {
 namespace AdapterTxt {
 const std::string WGHT_AXIS = "wght";
 constexpr float FONT_WEIGHT_MULTIPLE = 100.0;
+const std::string SUPS{"sups"};
+const std::string SUBS{"subs"};
 
 std::shared_ptr<OHOS::Rosen::AdapterTxt::FontCollection> Convert(
     const std::shared_ptr<OHOS::Rosen::FontCollection>& fontCollection)
@@ -158,7 +160,12 @@ void SplitTextStyleConvert(SPText::TextStyle& textStyle, const TextStyle& style)
     }
 
     for (const auto& [tag, value] : style.fontFeatures.GetFontFeatures()) {
-        textStyle.fontFeatures.SetFeature(RemoveQuotes(tag), value);
+        std::string featureName = RemoveQuotes(tag);
+        textStyle.fontFeatures.SetFeature(featureName, value);
+        if (textStyle.badgeType != TextBadgeType::BADGE_NONE && ((featureName == SUPS && value == 1) ||
+            (featureName == SUBS && value == 1))) {
+            textStyle.badgeType = TextBadgeType::BADGE_NONE;
+        }
     }
 
     if (!style.fontVariations.GetAxisValues().empty()) {
@@ -202,6 +209,7 @@ SPText::TextStyle Convert(const TextStyle& style)
     textStyle.baseLineShift = style.baseLineShift;
     textStyle.isPlaceholder = style.isPlaceholder;
     textStyle.relayoutChangeBitmap = style.relayoutChangeBitmap;
+    textStyle.badgeType = style.badgeType;
     SplitTextStyleConvert(textStyle, style);
 
     return textStyle;
@@ -282,6 +290,7 @@ TextStyle Convert(const SPText::TextStyle& style)
     textStyle.isSymbolGlyph = style.isSymbolGlyph;
     textStyle.baseLineShift = style.baseLineShift;
     textStyle.isPlaceholder = style.isPlaceholder;
+    textStyle.badgeType = style.badgeType;
     SplitTextStyleConvert(textStyle, style);
 
     return textStyle;

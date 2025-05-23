@@ -139,4 +139,17 @@ HWTEST_F(RSSystemParametersTest, GetAnimationOcclusionEnabled, TestSize.Level2)
     auto result = RSSystemParameters::GetAnimationOcclusionEnabled();
     EXPECT_EQ(original, result);
 }
+
+/**
+ * @tc.name: GetDumpCanvasDrawingNodeEnabledTest
+ * @tc.desc: Test GetDumpCanvasDrawingNodeEnabled
+ * @tc.type: FUNC
+ * @tc.require: IC9VB0
+ */
+HWTEST_F(RSSystemParametersTest, GetDumpCanvasDrawingNodeEnabledTest, TestSize.Level2)
+{
+    auto original = system::GetBoolParameter("debug.graphic.canvasDrawingEnabled", false);
+    auto result = RSSystemParameters::GetDumpCanvasDrawingNodeEnabled();
+    EXPECT_EQ(original, result);
+}
 } // namespace OHOS::Rosen

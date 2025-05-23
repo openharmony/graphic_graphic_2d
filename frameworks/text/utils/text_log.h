@@ -16,7 +16,7 @@
 #ifndef TEXT_LOG_H
 #define TEXT_LOG_H
 
-#ifdef OHOS_TEXT_ENABLE
+#ifdef ENABLE_OHOS_ENHANCE
 #include <hilog/log.h>
 #endif
 
@@ -25,7 +25,7 @@ void ignore_unused(Args&&...)
 {}
 namespace OHOS {
 namespace Rosen {
-#ifdef OHOS_TEXT_ENABLE
+#ifdef ENABLE_OHOS_ENHANCE
 
 #undef LOG_DOMAIN
 #define LOG_DOMAIN 0xD001408

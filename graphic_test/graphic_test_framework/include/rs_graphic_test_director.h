@@ -50,7 +50,7 @@ public:
     void RequestNextVSync();
     void OnVSync(int64_t time);
 
-    void SendProfilerCommand(const std::string command);
+    void SendProfilerCommand(const std::string command, int outTime = 0);
 
     static RSGraphicTestDirector& Instance();
 

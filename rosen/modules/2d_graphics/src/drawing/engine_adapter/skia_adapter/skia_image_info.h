@@ -145,12 +145,12 @@ public:
 
     static ImageInfo ConvertToRSImageInfo(const SkImageInfo& skImageInfo)
     {
-        std::shared_ptr<SkiaColorSpace> skiaColorSpace = std::make_shared<SkiaColorSpace>();
-        skiaColorSpace->SetColorSpace(skImageInfo.refColorSpace());
+        std::shared_ptr<ColorSpace> colorSpace = std::make_shared<ColorSpace>();
+        colorSpace->GetImpl<SkiaColorSpace>()->SetColorSpace(skImageInfo.refColorSpace());
         return {skImageInfo.width(), skImageInfo.height(),
                 ConvertToColorType(skImageInfo.colorType()),
                 ConvertToAlphaType(skImageInfo.alphaType()),
-                ColorSpace::CreateFromImpl(skiaColorSpace)};
+                colorSpace};
     }
 
     static SkEncodedImageFormat ConvertToSkEncodedImageFormat(const EncodedImageFormat& encodedImageFormat)

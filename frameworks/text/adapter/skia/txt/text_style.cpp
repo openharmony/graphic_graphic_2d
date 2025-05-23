@@ -105,7 +105,8 @@ bool TextStyle::operator==(TextStyle const& other) const
         backgroundRect == other.backgroundRect &&
         foreground == other.foreground &&
         fontFamilies == other.fontFamilies &&
-        textShadows == other.textShadows;
+        textShadows == other.textShadows &&
+        badgeType == other.badgeType;
 }
 } // namespace SPText
 } // namespace Rosen

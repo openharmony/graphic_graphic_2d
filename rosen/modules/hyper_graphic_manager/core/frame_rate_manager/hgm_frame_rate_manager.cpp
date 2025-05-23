@@ -699,6 +699,7 @@ uint32_t HgmFrameRateManager::CalcRefreshRate(const ScreenId id, const FrameRate
     bool stylusFlag = (stylusMode_ == STYLUS_WAKEUP && !stylusVec_.empty());
     if ((isLtpo_ && isAmbientStatus_ == LightFactorStatus::NORMAL_LOW && isAmbientEffect_) ||
         (!isLtpo_ && isAmbientEffect_ && isAmbientStatus_ != LightFactorStatus::HIGH_LEVEL)) {
+        RS_TRACE_NAME_FMT("Replace supported refresh rates from config");
         if (CheckAncoVoterStatus()) {
             supportRefreshRateVec = ancoLowBrightVec_;
         } else {

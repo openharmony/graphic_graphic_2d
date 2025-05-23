@@ -85,6 +85,7 @@ ohos_shared_library("libcomposer") {
     "drivers_interface_display:libdisplay_buffer_proxy_1.0",
     "drivers_interface_display:libdisplay_commontype_proxy_1.0",
     "drivers_interface_display:libdisplay_composer_hdi_impl_1.2",
+    "drivers_interface_display:libdisplay_composer_proxy_1.0",
     "drivers_interface_display:libdisplay_composer_proxy_1.1",
     "drivers_interface_display:libdisplay_composer_proxy_1.2",
     "eventhandler:libeventhandler",

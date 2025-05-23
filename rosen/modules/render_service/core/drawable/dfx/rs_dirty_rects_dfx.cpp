@@ -63,6 +63,11 @@ void RSDirtyRectsDfx::OnDraw(RSPaintFilterCanvas& canvas)
         return;
     }
 
+    if (targetDrawable_.GetSyncDirtyManager() == nullptr) {
+        RS_LOGE("RSDirtyRectsDfx::OnDraw display dirty manager is nullptr!");
+        return;
+    }
+
     // the following code makes DirtyRegion visible, enable this method by turning on the dirtyregiondebug property
     if (renderThreadParams->isPartialRenderEnabled_) {
         if (renderThreadParams->isDirtyRegionDfxEnabled_) {
@@ -73,6 +78,9 @@ void RSDirtyRectsDfx::OnDraw(RSPaintFilterCanvas& canvas)
         }
         if (renderThreadParams->isDisplayDirtyDfxEnabled_) {
             DrawDirtyRegionForDFX(canvas, targetDrawable_.GetSyncDirtyManager()->GetMergedDirtyRegions());
+        }
+        if (renderThreadParams->isMergedDirtyRegionDfxEnabled_) {
+            DrawMergedAndAllDirtyRegionForDFX(canvas);
         }
     }
 
@@ -389,17 +397,26 @@ void RSDirtyRectsDfx::DrawSurfaceOpaqueRegionForDFX(RSPaintFilterCanvas& canvas,
 #endif
 void RSDirtyRectsDfx::DrawAllSurfaceDirtyRegionForDFX(RSPaintFilterCanvas& canvas) const
 {
-    const auto& visibleDirtyRects = dirtyRegion_.GetRegionRects();
-    std::vector<RectI> rects;
-    for (auto& rect : visibleDirtyRects) {
-        rects.emplace_back(rect.left_, rect.top_, rect.right_ - rect.left_, rect.bottom_ - rect.top_);
+    // draw merged dirtyregion with blue color
+    for (const auto& subRect : mergedDirtyRegion_.GetRegionRectIs()) {
+        DrawDirtyRectForDFX(canvas, subRect, Drawing::Color::COLOR_BLUE, RSPaintStyle::STROKE);
     }
-    DrawDirtyRegionForDFX(canvas, rects);
+}
 
-    // draw expanded dirtyregion with cyan color
-    constexpr int edgeWidth = 6;
-    for (const auto& subRect : expandedDirtyRegion_.GetRegionRectIs()) {
-        DrawDirtyRectForDFX(canvas, subRect, Drawing::Color::COLOR_CYAN, RSPaintStyle::STROKE, edgeWidth, true);
+void RSDirtyRectsDfx::DrawMergedAndAllDirtyRegionForDFX(RSPaintFilterCanvas& canvas) const
+{
+    for (const auto& subRect : dirtyRegion_.GetRegionRectIs()) {
+        DrawDirtyRectForDFX(canvas, subRect, Drawing::Color::COLOR_BLUE, RSPaintStyle::STROKE);
+    }
+
+    // draw display dirtyregion with red color
+    for (const auto& subRect : targetDrawable_.GetSyncDirtyManager()->GetAdvancedDirtyRegion()) {
+        DrawDirtyRectForDFX(canvas, subRect, Drawing::Color::COLOR_RED, RSPaintStyle::STROKE);
+    }
+
+    // draw merged dirtyregion with yellow region
+    for (const auto& subRect : mergedDirtyRegion_.GetRegionRectIs()) {
+        DrawDirtyRectForDFX(canvas, subRect, Drawing::Color::COLOR_YELLOW, RSPaintStyle::FILL);
     }
 }
 

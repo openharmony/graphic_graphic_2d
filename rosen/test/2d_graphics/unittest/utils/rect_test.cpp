@@ -459,6 +459,241 @@ HWTEST_F(RectTest, RectJoin003, TestSize.Level1)
 }
 
 /**
+ * @tc.name: RectIsIntersect001
+ * @tc.desc: test for determine whether this and other intersect.
+ * @tc.type: FUNC
+ * @tc.require: IC2DF1
+ */
+HWTEST_F(RectTest, RectIsIntersect001, TestSize.Level1)
+{
+    RectF rectf1(0.0f, 0.0f, 100.0f, 100.0f);
+    RectF rectf2(30.0f, 30.0f, 70.0f, 70.0f);
+    EXPECT_TRUE(rectf1.IsIntersect(rectf2));
+}
+
+/**
+ * @tc.name: RectIsIntersect002
+ * @tc.desc: test for determine whether this and other intersect.
+ * @tc.type: FUNC
+ * @tc.require: IC2DF1
+ */
+HWTEST_F(RectTest, RectIsIntersect002, TestSize.Level1)
+{
+    RectF rectf1(0.0f, 0.0f, 100.0f, 100.0f);
+    RectF rectf2(0.0f, 50.0f, 100.0f, 150.0f);
+    EXPECT_TRUE(rectf1.IsIntersect(rectf2));
+}
+
+/**
+ * @tc.name: RectIsIntersect003
+ * @tc.desc: test for determine whether this and other intersect.
+ * @tc.type: FUNC
+ * @tc.require: IC2DF1
+ */
+HWTEST_F(RectTest, RectIsIntersect003, TestSize.Level1)
+{
+    RectF rectf1(0.0f, 0.0f, 100.0f, 100.0f);
+    RectF rectf2(0.0f, 100.0f, 100.0f, 200.0f);
+    EXPECT_FALSE(rectf1.IsIntersect(rectf2));
+}
+
+/**
+ * @tc.name: RectContains001
+ * @tc.desc: test for determine if (x, y) is within this rectangle.
+ * @tc.type: FUNC
+ * @tc.require: IC2DF1
+ */
+HWTEST_F(RectTest, RectContains001, TestSize.Level1)
+{
+    RectF rectf(0.0f, 0.0f, 100.0f, 100.0f);
+    EXPECT_TRUE(rectf.Contains(50.0f, 50.0f));
+}
+
+/**
+ * @tc.name: RectContains002
+ * @tc.desc: test for determine if (x, y) is within this rectangle.
+ * @tc.type: FUNC
+ * @tc.require: IC2DF1
+ */
+HWTEST_F(RectTest, RectContains002, TestSize.Level1)
+{
+    RectF rectf(0.0f, 0.0f, 100.0f, 100.0f);
+    EXPECT_TRUE(rectf.Contains(0.0f, 50.0f));
+}
+
+/**
+ * @tc.name: RectContains003
+ * @tc.desc: test for determine if (x, y) is within this rectangle.
+ * @tc.type: FUNC
+ * @tc.require: IC2DF1
+ */
+HWTEST_F(RectTest, RectContains003, TestSize.Level1)
+{
+    RectF rectf(0.0f, 0.0f, 100.0f, 100.0f);
+    EXPECT_FALSE(rectf.Contains(100.0f, 50.0f));
+}
+
+/**
+ * @tc.name: RectContains004
+ * @tc.desc: test for determine if (x, y) is within this rectangle.
+ * @tc.type: FUNC
+ * @tc.require: IC2DF1
+ */
+HWTEST_F(RectTest, RectContains004, TestSize.Level1)
+{
+    RectF rectf;
+    EXPECT_FALSE(rectf.Contains(0.0f, 0.0f));
+}
+
+/**
+ * @tc.name: RectContains005
+ * @tc.desc: test for determine if other rectangle is inside this rectangle.
+ * @tc.type: FUNC
+ * @tc.require: IC2DF1
+ */
+HWTEST_F(RectTest, RectContains005, TestSize.Level1)
+{
+    RectF rectf1(0.0f, 0.0f, 100.0f, 100.0f);
+    RectF rectf2(30.0f, 30.0f, 70.0f, 70.0f);
+    EXPECT_TRUE(rectf1.Contains(rectf2));
+}
+
+/**
+ * @tc.name: RectContains006
+ * @tc.desc: test for determine if other rectangle is inside this rectangle.
+ * @tc.type: FUNC
+ * @tc.require: IC2DF1
+ */
+HWTEST_F(RectTest, RectContains006, TestSize.Level1)
+{
+    RectF rectf1(0.0f, 0.0f, 100.0f, 100.0f);
+    RectF rectf2(50.0f, 50.0f, 150.0f, 150.0f);
+    EXPECT_FALSE(rectf1.Contains(rectf2));
+}
+
+/**
+ * @tc.name: RectContains007
+ * @tc.desc: test for determine if other rectangle is inside this rectangle.
+ * @tc.type: FUNC
+ * @tc.require: IC2DF1
+ */
+HWTEST_F(RectTest, RectContains007, TestSize.Level1)
+{
+    RectF rectf1(0.0f, 0.0f, 100.0f, 100.0f);
+    RectF rectf2(0.0f, 0.0f, 100.0f, 50.0f);
+    EXPECT_TRUE(rectf1.Contains(rectf2));
+}
+
+/**
+ * @tc.name: RectContains008
+ * @tc.desc: test for determine if other rectangle is inside this rectangle.
+ * @tc.type: FUNC
+ * @tc.require: IC2DF1
+ */
+HWTEST_F(RectTest, RectContains008, TestSize.Level1)
+{
+    RectF rectf1(0.0f, 0.0f, 100.0f, 100.0f);
+    RectF rectf2(0.0f, 0.0f, 100.0f, 150.0f);
+    EXPECT_FALSE(rectf1.Contains(rectf2));
+}
+
+/**
+ * @tc.name: RectContains009
+ * @tc.desc: test for determine if other rectangle is inside this rectangle.
+ * @tc.type: FUNC
+ * @tc.require: IC2DF1
+ */
+HWTEST_F(RectTest, RectContains009, TestSize.Level1)
+{
+    RectF rectf1;
+    RectF rectf2(0.0f, 0.0f, 100.0f, 100.0f);
+    EXPECT_FALSE(rectf1.Contains(rectf2));
+}
+
+/**
+ * @tc.name: RectContains010
+ * @tc.desc: test for determine if other rectangle is inside this rectangle.
+ * @tc.type: FUNC
+ * @tc.require: IC2DF1
+ */
+HWTEST_F(RectTest, RectContains010, TestSize.Level1)
+{
+    RectF rectf1(0.0f, 0.0f, 100.0f, 100.0f);
+    RectF rectf2;
+    EXPECT_FALSE(rectf1.Contains(rectf2));
+}
+
+/**
+ * @tc.name: RectContains011
+ * @tc.desc: test for determine if other rectangle is inside this rectangle.
+ * @tc.type: FUNC
+ * @tc.require: IC2DF1
+ */
+HWTEST_F(RectTest, RectContains011, TestSize.Level1)
+{
+    RectF rectf(0.0f, 0.0f, 100.0f, 100.0f);
+    EXPECT_TRUE(rectf.Contains(rectf));
+}
+
+/**
+ * @tc.name: RectContains012
+ * @tc.desc: test for determine if other rectangle is inside this rectangle.
+ * @tc.type: FUNC
+ * @tc.require: IC2DF1
+ */
+HWTEST_F(RectTest, RectContains012, TestSize.Level1)
+{
+    RectF rectf1(0.0f, 0.0f, 100.0f, 100.0f);
+    RectF rectf2(100.0f, 100.0f, 0.0f, 0.0f);
+    EXPECT_FALSE(rectf1.Contains(rectf2));
+}
+
+/**
+ * @tc.name: RectContains013
+ * @tc.desc: test for determine if other rectangle is inside this rectangle.
+ * @tc.type: FUNC
+ * @tc.require: IC2DF1
+ */
+HWTEST_F(RectTest, RectContains013, TestSize.Level1)
+{
+    RectF rectf1(100.0f, 100.0f, 0.0f, 0.0f);
+    RectF rectf2(0.0f, 0.0f, 100.0f, 100.0f);
+    EXPECT_FALSE(rectf1.Contains(rectf2));
+}
+
+/**
+ * @tc.name: RectSort001
+ * @tc.desc: test for swap the left and right sides of the swap rectangle.
+ * @tc.type: FUNC
+ * @tc.require: IC2DF1
+ */
+HWTEST_F(RectTest, RectSort001, TestSize.Level1)
+{
+    RectF rectf(0.0f, 0.0f, 100.0f, 100.0f);
+    rectf.Sort();
+    EXPECT_EQ(0.0f, rectf.GetLeft());
+    EXPECT_EQ(0.0f, rectf.GetTop());
+    EXPECT_EQ(100.0f, rectf.GetRight());
+    EXPECT_EQ(100.0f, rectf.GetBottom());
+}
+
+/**
+ * @tc.name: RectSort002
+ * @tc.desc: test for swap the left and right sides of the swap rectangle.
+ * @tc.type: FUNC
+ * @tc.require: IC2DF1
+ */
+HWTEST_F(RectTest, RectSort002, TestSize.Level1)
+{
+    RectF rectf(100.0f, 100.0f, 0.0f, 0.0f);
+    rectf.Sort();
+    EXPECT_EQ(0.0f, rectf.GetLeft());
+    EXPECT_EQ(0.0f, rectf.GetTop());
+    EXPECT_EQ(100.0f, rectf.GetRight());
+    EXPECT_EQ(100.0f, rectf.GetBottom());
+}
+
+/**
  * @tc.name: RectICreateAndDestroy001
  * @tc.desc:
  * @tc.type: FUNC

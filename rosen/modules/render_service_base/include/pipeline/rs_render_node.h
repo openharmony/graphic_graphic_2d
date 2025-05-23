@@ -32,6 +32,7 @@
 #include "common/rs_common_def.h"
 #include "common/rs_macros.h"
 #include "common/rs_rect.h"
+#include "display_engine/rs_luminance_control.h"
 #include "draw/surface.h"
 #include "drawable/rs_drawable.h"
 #include "drawable/rs_property_drawable.h"
@@ -221,6 +222,16 @@ public:
     inline RectI GetFilterRegion() const
     {
         return filterRegion_;
+    }
+
+    inline bool IsRepaintBoundary() const
+    {
+        return isRepaintBoundary_;
+    }
+
+    inline void MarkRepaintBoundary(bool isRepaintBoundary)
+    {
+        isRepaintBoundary_ = isRepaintBoundary;
     }
 
     inline bool IsWaitSync() const
@@ -481,9 +492,6 @@ public:
     void UpdateBackendTexture();
 #endif
 
-    void DrawCacheSurface(RSPaintFilterCanvas& canvas, uint32_t threadIndex = UNI_MAIN_THREAD_INDEX,
-        bool isUIFirst = false);
-
     void SetCacheType(CacheType cacheType);
     CacheType GetCacheType() const;
 
@@ -634,6 +642,11 @@ public:
     virtual bool OpincGetNodeSupportFlag()
     {
         return isOpincNodeSupportFlag_;
+    }
+
+    void OpincSetNodeSupportFlag(bool supportFlag)
+    {
+        isOpincNodeSupportFlag_ = supportFlag;
     }
 
     // arkui mark
@@ -842,7 +855,7 @@ public:
     {
         isFirstLevelCrossNode_ = isFirstLevelCrossNode;
     }
-    void SetHdrNum(bool flag, NodeId instanceRootNodeId);
+    void SetHdrNum(bool flag, NodeId instanceRootNodeId, HDRComponentType hdrType);
 
     void SetIsAccessibilityConfigChanged(bool isAccessibilityConfigChanged)
     {
@@ -1190,6 +1203,7 @@ private:
     static std::unordered_map<pid_t, size_t> blurEffectCounter_;
     // The angle at which the node rotates about the Z-axis
     float absRotation_ = 0.f;
+    bool isRepaintBoundary_ = false;
     void UpdateBlurEffectCounter(int deltaCount);
     int GetBlurEffectDrawbleCount();
 

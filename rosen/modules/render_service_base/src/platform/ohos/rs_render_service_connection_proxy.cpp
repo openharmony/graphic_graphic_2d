@@ -145,11 +145,11 @@ bool RSRenderServiceConnectionProxy::FillParcelWithTransactionData(
     {
         // 1. marshalling RSTransactionData
 #ifdef RS_ENABLE_VK
-        RS_TRACE_NAME_FMT("MarshRSTransactionData cmdCount: %lu, transactionFlag:[%d, %d, %" PRIu64 "], timestamp:%ld",
-            transactionData->GetCommandCount(), pid_, transactionData->GetSendingTid(), transactionData->GetIndex(),
-            transactionData->GetTimestamp());
+        RS_TRACE_NAME_FMT("MarshRSTransactionData cmdCount: %lu, transactionFlag:[%d,%" PRIu64 "], tid:%d, "
+            "timestamp:%ld", transactionData->GetCommandCount(), pid_, transactionData->GetIndex(),
+            transactionData->GetSendingTid(), transactionData->GetTimestamp());
 #else
-        RS_TRACE_NAME_FMT("MarshRSTransactionData cmdCount: %lu, transactionFlag:[%d, %" PRIu64 "], timestamp:%ld",
+        RS_TRACE_NAME_FMT("MarshRSTransactionData cmdCount: %lu, transactionFlag:[%d,%" PRIu64 "], timestamp:%ld",
             transactionData->GetCommandCount(), pid_, transactionData->GetIndex(), transactionData->GetTimestamp());
 #endif
         ROSEN_LOGI_IF(DEBUG_PIPELINE,
@@ -664,6 +664,7 @@ ScreenId RSRenderServiceConnectionProxy::CreateVirtualScreen(
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_VIRTUAL_SCREEN);
     int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::%{public}s: Send Request err.", __func__);
         return INVALID_SCREEN_ID;
     }
 
@@ -1896,7 +1897,8 @@ bool RSRenderServiceConnectionProxy::WriteSurfaceCaptureConfig(
         !data.WriteFloat(captureConfig.mainScreenRect.left_) ||
         !data.WriteFloat(captureConfig.mainScreenRect.top_) ||
         !data.WriteFloat(captureConfig.mainScreenRect.right_) ||
-        !data.WriteFloat(captureConfig.mainScreenRect.bottom_)) {
+        !data.WriteFloat(captureConfig.mainScreenRect.bottom_) ||
+        !data.WriteUInt64Vector(captureConfig.blackList)) {
         ROSEN_LOGE("WriteSurfaceCaptureConfig: WriteSurfaceCaptureConfig captureConfig err.");
         return false;
     }
@@ -2279,6 +2281,7 @@ void RSRenderServiceConnectionProxy::SetScreenBacklight(ScreenId id, uint32_t le
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_BACK_LIGHT);
     int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
+        ROSEN_LOGE("SetScreenBacklight: SendRequest failed");
         return;
     }
 }

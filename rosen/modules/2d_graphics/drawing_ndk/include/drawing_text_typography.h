@@ -568,6 +568,21 @@ enum OH_Drawing_FontWidth {
 };
 
 /**
+ * @brief Type of badge.
+ *
+ * @since 20
+ * @version 1.0
+ */
+typedef enum OH_Drawing_TextBadgeType {
+    /* No badge */
+    TEXT_BADGE_NONE,
+    /* Superscript */
+    TEXT_SUPERSCRIPT,
+    /* Subscript */
+    TEXT_SUBSCRIPT,
+} OH_Drawing_TextBadgeType;
+
+/**
  * @brief Defines the font style struct.
  *
  * @since 12
@@ -1417,6 +1432,17 @@ void OH_Drawing_SetTextStyleEllipsis(OH_Drawing_TextStyle*, const char*);
  * @version 1.0
  */
 void OH_Drawing_SetTextStyleEllipsisModal(OH_Drawing_TextStyle*, int);
+
+/**
+ * @brief Sets whether to use superscript or subscript in text layout.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param style Pointer to an OH_Drawing_TextStyle object.
+ * @param textBageType The type of text badge.
+ * @since 20
+ * @version 1.0
+ */
+void OH_Drawing_SetTextStyleBadgeType(OH_Drawing_TextStyle* style, OH_Drawing_TextBadgeType textBadgeType);
 
 /**
  * @brief Sets the break strategy.

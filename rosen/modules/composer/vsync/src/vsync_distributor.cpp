@@ -1094,6 +1094,15 @@ void VSyncDistributor::PostVSyncEvent(const std::vector<sptr<VSyncConnection>> &
     }
 }
 
+uint64_t VSyncDistributor::CheckVsyncTsAndReceived(uint64_t timestamp)
+{
+#if defined(RS_ENABLE_DVSYNC_2)
+    return DVSync::Instance().CheckVsyncTsAndReceived(timestamp);
+#else
+    return timestamp;
+#endif
+}
+
 VsyncError VSyncDistributor::RequestNextVSync(const sptr<VSyncConnection> &connection, const std::string &fromWhom,
                                               int64_t lastVSyncTS, const int64_t& requestVsyncTime)
 {
@@ -1782,18 +1791,6 @@ void VSyncDistributor::NotifyPackageEvent(const std::vector<std::string>& packag
 #endif
 }
 
-void VSyncDistributor::NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt)
-{
-#if defined(RS_ENABLE_DVSYNC)
-    if (IsDVsyncOn()) {
-        dvsync_->NotifyTouchEvent(touchStatus, touchCnt);
-    }
-#endif
-#if defined(RS_ENABLE_DVSYNC_2)
-    DVSync::Instance().NotifyTouchEvent(touchStatus, touchCnt);
-#endif
-}
-
 bool VSyncDistributor::AdaptiveDVSyncEnable(const std::string &nodeName, int64_t timeStamp, int32_t bufferCount,
     bool &needConsume)
 {
@@ -1801,6 +1798,19 @@ bool VSyncDistributor::AdaptiveDVSyncEnable(const std::string &nodeName, int64_t
     return DVSync::Instance().AdaptiveDVSyncEnable(nodeName, timeStamp, bufferCount, needConsume);
 #else
     return false;
+#endif
+}
+
+void VSyncDistributor::HandleTouchEvent(int32_t touchStatus, int32_t touchCnt)
+{
+#if defined(RS_ENABLE_DVSYNC)
+    if (IsDVsyncOn()) {
+        dvsync_->HandleTouchEvent(touchStatus, touchCnt);
+    }
+#endif
+#if defined(RS_ENABLE_DVSYNC_2)
+    DVSync::Instance().HandleTouchEvent(static_cast<uint32_t>(touchStatus),
+        static_cast<uint32_t>(touchCnt));
 #endif
 }
 

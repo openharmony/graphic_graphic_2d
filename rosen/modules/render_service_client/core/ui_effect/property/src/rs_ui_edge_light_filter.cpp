@@ -42,24 +42,28 @@ bool RSUIEdgeLightFilterPara::Equals(const std::shared_ptr<RSUIFilterParaBase>& 
 
 void RSUIEdgeLightFilterPara::Dump(std::string& out) const
 {
-    out += "RSUIEdgeLightFilterPara:[";
-    char buffer[UINT8_MAX] = { 0 };
+    out += "RSUIEdgeLightFilterPara:[alpha:";
     auto iter = properties_.find(RSUIFilterType::EDGE_LIGHT_ALPHA);
     if (iter != properties_.end()) {
         auto alpha = std::static_pointer_cast<RSAnimatableProperty<float>>(iter->second);
         if (alpha != nullptr) {
-            sprintf_s(buffer, UINT8_MAX, "alpha:%f", alpha->Get());
-            out.append(buffer);
+            out += std::to_string(alpha->Get()) + ", ";
+        } else {
+            out += "nullptr, ";
         }
     }
 
+    out += "ColorRGBA:(";
     iter = properties_.find(RSUIFilterType::EDGE_LIGHT_COLOR);
     if (iter != properties_.end()) {
         auto color = std::static_pointer_cast<RSAnimatableProperty<Vector4f>>(iter->second);
         if (color != nullptr) {
-            sprintf_s(buffer, UINT8_MAX, " color:rgba[%f, %f, %f, %f]",
-                color->Get().x_, color->Get().y_, color->Get().z_, color->Get().w_);
-            out.append(buffer);
+            out += std::to_string(color->Get().x_) + ", ";
+            out += std::to_string(color->Get().y_) + ", ";
+            out += std::to_string(color->Get().z_) + ", ";
+            out += std::to_string(color->Get().w_) + ")";
+        } else {
+            out += "nullptr)";
         }
     }
 
@@ -75,11 +79,6 @@ void RSUIEdgeLightFilterPara::SetProperty(const std::shared_ptr<RSUIFilterParaBa
     }
 
     auto edgeLightProperty = std::static_pointer_cast<RSUIEdgeLightFilterPara>(other);
-    if (edgeLightProperty == nullptr) {
-        ROSEN_LOGW("RSUIEdgeLightFilterPara::SetProperty other is null NG!");
-        return;
-    }
-
     auto alpha = edgeLightProperty->GetPropertyWithFilterType<RSAnimatableProperty<float>>(
         RSUIFilterType::EDGE_LIGHT_ALPHA);
     if (alpha == nullptr) {
@@ -123,17 +122,20 @@ void RSUIEdgeLightFilterPara::SetEdgeLight(const std::shared_ptr<EdgeLightPara>&
     }
 
     auto maskPara = edgeLight->GetMask();
-    if (maskPara != nullptr) {
-        maskType_ = RSUIMaskPara::ConvertMaskType(maskPara->GetMaskParaType());
-        std::shared_ptr<RSUIMaskPara> maskProperty = CreateMask(maskType_);
-        if (maskProperty == nullptr) {
-            ROSEN_LOGW("RSUIEdgeLightFilterPara::SetEdgeLight maskType:%{public}d not support NG!",
-                static_cast<int>(maskType_));
-            return;
-        }
-        maskProperty->SetPara(maskPara);
-        SetMask(maskProperty);
+    if (maskPara == nullptr) {
+        ROSEN_LOGW("RSUIEdgeLightFilterPara::SetEdgeLight maskPara nullptr.");
+        return;
     }
+
+    maskType_ = RSUIMaskPara::ConvertMaskType(maskPara->GetMaskParaType());
+    std::shared_ptr<RSUIMaskPara> maskProperty = CreateMask(maskType_);
+    if (maskProperty == nullptr) {
+        ROSEN_LOGW("RSUIEdgeLightFilterPara::SetEdgeLight maskType:%{public}d not support NG!",
+            static_cast<int>(maskType_));
+        return;
+    }
+    maskProperty->SetPara(maskPara);
+    SetMask(maskProperty);
 }
 
 void RSUIEdgeLightFilterPara::SetAlpha(float alpha)

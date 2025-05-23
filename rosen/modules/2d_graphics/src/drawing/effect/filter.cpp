@@ -15,6 +15,7 @@
 
 #include <effect/filter.h>
 
+#include "config/DrawingConfig.h"
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
@@ -24,6 +25,11 @@ Filter::Filter() noexcept
 
 void Filter::SetColorFilter(std::shared_ptr<ColorFilter> colorFilter)
 {
+#ifdef DRAWING_DISABLE_API
+    if (DrawingConfig::IsDisabled(DrawingConfig::DrawingDisableFlag::DISABLE_COLOR_FILTER)) {
+        return;
+    }
+#endif
     colorFilter_ = colorFilter;
 }
 
@@ -39,6 +45,11 @@ const ColorFilter* Filter::GetColorFilterPtr() const
 
 void Filter::SetImageFilter(std::shared_ptr<ImageFilter> imageFilter)
 {
+#ifdef DRAWING_DISABLE_API
+    if (DrawingConfig::IsDisabled(DrawingConfig::DrawingDisableFlag::DISABLE_IMAGE_FILTER)) {
+        return;
+    }
+#endif
     imageFilter_ = imageFilter;
 }
 
@@ -54,6 +65,11 @@ const ImageFilter* Filter::GetImageFilterPtr() const
 
 void Filter::SetMaskFilter(std::shared_ptr<MaskFilter> maskFilter)
 {
+#ifdef DRAWING_DISABLE_API
+    if (DrawingConfig::IsDisabled(DrawingConfig::DrawingDisableFlag::DISABLE_MASK_FILTER)) {
+        return;
+    }
+#endif
     maskFilter_ = maskFilter;
 }
 

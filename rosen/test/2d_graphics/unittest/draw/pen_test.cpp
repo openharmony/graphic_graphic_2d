@@ -930,6 +930,7 @@ HWTEST_F(PenTest, GetBlenderPtr001, TestSize.Level1)
     auto blender = std::make_shared<Blender>();
     pen->SetBlender(blender);
     ASSERT_NE(pen->GetBlender(), nullptr);
+    ASSERT_NE(pen->GetBlenderPtr(), nullptr);
 }
 
 /**

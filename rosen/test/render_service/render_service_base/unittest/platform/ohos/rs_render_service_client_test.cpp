@@ -447,6 +447,67 @@ HWTEST_F(RSClientTest, SetVirtualScreenSurface001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetVirtualScreenBlackList Test
+ * @tc.desc: SetVirtualScreenBlackList Test
+ * @tc.type:FUNC
+ * @tc.require: issues#IC98BX
+ */
+HWTEST_F(RSClientTest, SetVirtualScreenBlackListTest, TestSize.Level1)
+{
+    ASSERT_NE(rsClient, nullptr);
+    ScreenId screenId = 100;
+    std::vector<NodeId> blackListVector({1, 2, 3});
+    int32_t ret = rsClient->SetVirtualScreenBlackList(screenId, blackListVector);
+    ASSERT_EQ(ret, 0);
+}
+
+/**
+ * @tc.name: AddVirtualScreenBlackList Test
+ * @tc.desc: AddVirtualScreenBlackList Test
+ * @tc.type:FUNC
+ * @tc.require: issues#IC98BX
+ */
+HWTEST_F(RSClientTest, AddVirtualScreenBlackListTest, TestSize.Level1)
+{
+    ASSERT_NE(rsClient, nullptr);
+    ScreenId screenId = 100;
+    std::vector<NodeId> blackListVector({1, 2, 3});
+    int32_t ret = rsClient->AddVirtualScreenBlackList(screenId, blackListVector);
+    ASSERT_EQ(ret, 0);
+}
+
+/**
+ * @tc.name: RemoveVirtualScreenBlackList Test
+ * @tc.desc: RemoveVirtualScreenBlackList Test
+ * @tc.type:FUNC
+ * @tc.require: issues#IC98BX
+ */
+HWTEST_F(RSClientTest, RemoveVirtualScreenBlackListTest, TestSize.Level1)
+{
+    ASSERT_NE(rsClient, nullptr);
+    ScreenId screenId = 100;
+    std::vector<NodeId> blackListVector({1, 2, 3});
+    int32_t ret = rsClient->RemoveVirtualScreenBlackList(screenId, blackListVector);
+    ASSERT_EQ(ret, 0);
+}
+
+/**
+ * @tc.name: ResizeVirtualScreen Test
+ * @tc.desc: ResizeVirtualScreen Test
+ * @tc.type:FUNC
+ * @tc.require: issues#IC98BX
+ */
+HWTEST_F(RSClientTest, ResizeVirtualScreenTest, TestSize.Level1)
+{
+    ASSERT_NE(rsClient, nullptr);
+    ScreenId screenId = 100;
+    uint32_t width = 500;
+    uint32_t height = 500;
+    int32_t ret = rsClient->ResizeVirtualScreen(screenId, width, height);
+    ASSERT_EQ(ret, SCREEN_NOT_FOUND);
+}
+
+/**
  * @tc.name: SetScreenChangeCallback Test
  * @tc.desc: SetScreenChangeCallback Test
  * @tc.type:FUNC

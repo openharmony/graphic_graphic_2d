@@ -439,20 +439,35 @@ inline napi_value GetStringAndConvertToJsValue(napi_env env, std::string str)
 
 napi_value GetFontMetricsAndConvertToJsValue(napi_env env, FontMetrics* metrics);
 
-inline napi_value GetRectAndConvertToJsValue(napi_env env, std::shared_ptr<Rect> rect)
+inline void LtrbConvertToJsRect(napi_env env, napi_value jsValue, double left, double top, double right, double bottom)
+{
+    napi_set_named_property(env, jsValue, "left", CreateJsNumber(env, left));
+    napi_set_named_property(env, jsValue, "top", CreateJsNumber(env, top));
+    napi_set_named_property(env, jsValue, "right", CreateJsNumber(env, right));
+    napi_set_named_property(env, jsValue, "bottom", CreateJsNumber(env, bottom));
+}
+
+inline void DrawingRectConvertToJsRect(napi_env env, napi_value jsValue, const Rect& rect)
+{
+    LtrbConvertToJsRect(env, jsValue, rect.GetLeft(), rect.GetTop(), rect.GetRight(), rect.GetBottom());
+}
+
+inline napi_value GetRectAndConvertToJsValue(napi_env env, double left, double top, double right, double bottom)
 {
     napi_value objValue = nullptr;
     napi_create_object(env, &objValue);
-    if (rect != nullptr && objValue != nullptr) {
-        napi_set_named_property(env, objValue, "left", CreateJsNumber(env, rect->GetLeft()));
-        napi_set_named_property(env, objValue, "top", CreateJsNumber(env, rect->GetTop()));
-        napi_set_named_property(env, objValue, "right", CreateJsNumber(env, rect->GetRight()));
-        napi_set_named_property(env, objValue, "bottom", CreateJsNumber(env, rect->GetBottom()));
+    if (objValue != nullptr) {
+        LtrbConvertToJsRect(env, objValue, left, top, right, bottom);
     }
     return objValue;
 }
 
-inline napi_value ConvertPointToJsValue(napi_env env, Drawing::Point& point)
+inline napi_value GetRectAndConvertToJsValue(napi_env env, const Rect& rect)
+{
+    return GetRectAndConvertToJsValue(env, rect.GetLeft(), rect.GetTop(), rect.GetRight(), rect.GetBottom());
+}
+
+inline napi_value ConvertPointToJsValue(napi_env env, const Drawing::Point& point)
 {
     napi_value objValue = nullptr;
     napi_create_object(env, &objValue);

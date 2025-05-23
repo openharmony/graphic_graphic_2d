@@ -613,7 +613,7 @@ HWTEST_F(RSImageTest, dumpTest, TestSize.Level1)
     auto innerRect = std::make_optional<Drawing::RectI>();
     ASSERT_NE(rsImage, nullptr);
     std::string desc = "dump ";
-    rsImage->dump(desc, 0);
+    rsImage->Dump(desc, 0);
     EXPECT_NE(desc, "dump ");
 }
 

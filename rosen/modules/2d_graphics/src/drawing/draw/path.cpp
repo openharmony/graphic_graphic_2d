@@ -265,6 +265,16 @@ void Path::Reset()
     impl_->Reset();
 }
 
+void Path::SetLastPoint(scalar x, scalar y)
+{
+    impl_->SetLastPoint(x, y);
+}
+
+void Path::ReWind()
+{
+    impl_->ReWind();
+}
+
 void Path::Close()
 {
     impl_->Close();
@@ -288,6 +298,21 @@ bool Path::GetSegment(scalar start, scalar stop, Path* dst, bool startWithMoveTo
 bool Path::IsClosed(bool forceClosed) const
 {
     return impl_->IsClosed(forceClosed);
+}
+
+bool Path::IsEmpty() const
+{
+    return impl_->IsEmpty();
+}
+
+bool Path::IsRect(Rect* rect, bool* isClosed, PathDirection* direction) const
+{
+    return impl_->IsRect(rect, isClosed, direction);
+}
+
+void Path::SetPath(const Path& path)
+{
+    return impl_->SetPath(path);
 }
 
 bool Path::GetMatrix(bool forceClosed, float distance, Matrix* matrix, PathMeasureMatrixFlags flag)

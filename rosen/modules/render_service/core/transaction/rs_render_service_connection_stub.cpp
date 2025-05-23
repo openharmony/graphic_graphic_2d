@@ -294,12 +294,8 @@ bool CheckCreateNodeAndSurface(pid_t pid, RSSurfaceNodeType nodeType, SurfaceWin
     if (typeNum < nodeTypeMin || typeNum > nodeTypeMax) {
         RS_LOGW("CREATE_NODE_AND_SURFACE invalid RSSurfaceNodeType");
         return false;
-    }
-    constexpr int windowTypeMin = static_cast<int>(SurfaceWindowType::DEFAULT_WINDOW);
-    constexpr int windowTypeMax = static_cast<int>(SurfaceWindowType::NODE_MAX);
-
-    int windowTypeNum = static_cast<int>(windowType);
-    if (windowTypeNum < windowTypeMin || windowTypeNum > windowTypeMax) {
+    }  
+    if (windowType != SurfaceWindowType::DEFAULT_WINDOW && !IS_SCB_WINDOW_TYPE(windowType)) {
         RS_LOGW("CREATE_NODE_AND_SURFACE invalid SurfaceWindowType");
         return false;
     }
@@ -881,14 +877,17 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_CHANGE_CALLBACK): {
             auto remoteObject = data.ReadRemoteObject();
             if (remoteObject == nullptr) {
+                RS_LOGE("RSRenderServiceConnectionStub::SET_SCREEN_CHANGE_CALLBACK remoteObject is nullptr");
                 ret = ERR_NULL_OBJECT;
                 break;
             }
             sptr<RSIScreenChangeCallback> cb = iface_cast<RSIScreenChangeCallback>(remoteObject);
             if (cb == nullptr) {
+                RS_LOGE("RSRenderServiceConnectionStub::SET_SCREEN_CHANGE_CALLBACK callback is nullptr");
                 ret = ERR_NULL_OBJECT;
                 break;
             }
+            RS_LOGI("RSRenderServiceConnectionStub::SET_SCREEN_CHANGE_CALLBACK");
             int32_t status = SetScreenChangeCallback(cb);
             if (!reply.WriteInt32(status)) {
                 RS_LOGE("RSRenderServiceConnectionStub::SET_SCREEN_CHANGE_CALLBACK Write status failed!");
@@ -3590,7 +3589,8 @@ bool RSRenderServiceConnectionStub::ReadSurfaceCaptureConfig(RSSurfaceCaptureCon
         !data.ReadFloat(captureConfig.mainScreenRect.left_) ||
         !data.ReadFloat(captureConfig.mainScreenRect.top_) ||
         !data.ReadFloat(captureConfig.mainScreenRect.right_) ||
-        !data.ReadFloat(captureConfig.mainScreenRect.bottom_)) {
+        !data.ReadFloat(captureConfig.mainScreenRect.bottom_) ||
+        !data.ReadUInt64Vector(&captureConfig.blackList)) {
         RS_LOGE("RSRenderServiceConnectionStub::ReadSurfaceCaptureConfig Read captureType failed!");
         return false;
     }

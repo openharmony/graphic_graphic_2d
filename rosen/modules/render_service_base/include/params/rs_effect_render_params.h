@@ -31,9 +31,16 @@ public:
     void SetHasEffectChildren(bool hasEffectChildren);
     bool GetHasEffectChildren() const;
 
+    void SetEffectIntersectWithDRM(bool intersect);
+    bool GetEffectIntersectWithDRM() const;
+    void SetDarkColorMode(bool isDark);
+    bool GetDarkColorMode() const;
+
 private:
     bool cacheValid_ = false;
     bool hasEffectChildren_ = false;
+    bool isIntersectWithDRM_ = false;
+    bool isDarkColorMode_ = false;
 };
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_PARAMS_RS_EFFECT_RENDER_PARAMS_H

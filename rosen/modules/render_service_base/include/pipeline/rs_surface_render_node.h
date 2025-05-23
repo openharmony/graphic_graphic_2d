@@ -80,16 +80,6 @@ public:
         return nodeType_ == RSSurfaceNodeType::APP_WINDOW_NODE;
     }
 
-    bool IsScbWindowType() const
-    {
-        return surfaceWindowType_ == SurfaceWindowType::SYSTEM_SCB_WINDOW ||
-               surfaceWindowType_ == SurfaceWindowType::SCB_DESKTOP ||
-               surfaceWindowType_ == SurfaceWindowType::SCB_WALLPAPER ||
-               surfaceWindowType_ == SurfaceWindowType::SCB_SCREEN_LOCK ||
-               surfaceWindowType_ == SurfaceWindowType::SCB_NEGATIVE_SCREEN ||
-               surfaceWindowType_ == SurfaceWindowType::SCB_DROPDOWN_PANEL;
-    }
-
     bool IsStartingWindow() const
     {
         return nodeType_ == RSSurfaceNodeType::STARTING_WINDOW_NODE;
@@ -357,16 +347,6 @@ public:
             return GetGlobalAlpha() < DRM_MIN_ALPHA; // if alpha less than 0.1, drm layer display black background.
         }
         return isHardwareForcedDisabled_;
-    }
-
-    void SetLastFrameHasVisibleRegion(bool lastFrameHasVisibleRegion)
-    {
-        lastFrameHasVisibleRegion_ = lastFrameHasVisibleRegion;
-    }
-
-    bool GetLastFrameHasVisibleRegion() const
-    {
-        return lastFrameHasVisibleRegion_;
     }
 
     bool IsLeashOrMainWindow() const
@@ -640,8 +620,8 @@ public:
     void SetHDRPresent(bool hasHdrPresent);
     bool GetHDRPresent() const;
 
-    void IncreaseHDRNum();
-    void ReduceHDRNum();
+    void IncreaseHDRNum(HDRComponentType hdrType);
+    void ReduceHDRNum(HDRComponentType hdrType);
 
     bool GetIsWideColorGamut() const;
 
@@ -1483,16 +1463,6 @@ public:
         return apiCompatibleVersion_;
     }
 
-    bool GetIsHwcPendingDisabled() const
-    {
-        return isHwcPendingDisabled_;
-    }
-
-    void SetIsHwcPendingDisabled(bool isHwcPendingDisabled)
-    {
-        isHwcPendingDisabled_ = isHwcPendingDisabled;
-    }
-
     void ResetIsBufferFlushed();
 
     void ResetSurfaceNodeStates();
@@ -1531,6 +1501,9 @@ public:
     {
         return appWindowZOrder_;
     }
+
+    // Enable HWCompose
+    RSHwcSurfaceRecorder& HwcSurfaceRecorder() { return hwcSurfaceRecorder_; }
 
     void SetFrameGravityNewVersionEnabled(bool isEnabled);
     bool GetFrameGravityNewVersionEnabled() const;
@@ -1599,8 +1572,6 @@ private:
     uint8_t abilityBgAlpha_ = 0;
     bool alphaChanged_ = false;
     bool isUIHidden_ = false;
-    // is hwc node disabled by filter rect
-    bool isHwcPendingDisabled_ = false;
     bool extraDirtyRegionAfterAlignmentIsEmpty_ = true;
     bool opaqueRegionChanged_ = false;
     bool isFilterCacheFullyCovered_ = false;
@@ -1663,7 +1634,6 @@ private:
     bool isGpuOverDrawBufferOptimizeNode_ = false;
     bool isSubSurfaceNode_ = false;
     bool doDirectComposition_ = true;
-    bool lastFrameHasVisibleRegion_ = true;
     bool isSkipDraw_ = false;
     bool needHidePrivacyContent_ = false;
     bool isHardwareForcedByBackgroundAlpha_ = false;
@@ -1683,8 +1653,10 @@ private:
     std::atomic<bool> hasUnSubmittedOccludedDirtyRegion_ = false;
     static inline std::atomic<bool> ancoForceDoDirect_ = false;
     float contextAlpha_ = 1.0f;
-    // Count the number of hdr pictures. If hdrNum_ > 0, it means there are hdr pictures
-    int hdrNum_ = 0;
+    // Count the number of hdr pictures. If hdrPhotoNum_ > 0, it means there are hdr pictures
+    int hdrPhotoNum_ = 0;
+    // Count the number of hdr UI components. If hdrUIComponentNum_ > 0, it means there are hdr UI components
+    int hdrUIComponentNum_ = 0;
     int wideColorGamutNum_ = 0;
     int32_t offsetX_ = 0;
     int32_t offsetY_ = 0;
@@ -1793,6 +1765,10 @@ private:
     std::vector<std::shared_ptr<RSRenderNode>> filterNodes_;
     std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> drawingCacheNodes_;
     int32_t appWindowZOrder_ = 0;
+
+    // Enable HWCompose
+    RSHwcSurfaceRecorder hwcSurfaceRecorder_;
+
     // previous self-Drawing Node Bound
 #ifdef ENABLE_FULL_SCREEN_RECONGNIZE
     float prevSelfDrawHeight_ = 0.0f;

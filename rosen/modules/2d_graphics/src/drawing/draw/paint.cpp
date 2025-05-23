@@ -225,16 +225,31 @@ void Paint::SetFilter(const Filter& filter)
 
 void Paint::SetShaderEffect(std::shared_ptr<ShaderEffect> e)
 {
+#ifdef DRAWING_DISABLE_API
+    if (DrawingConfig::IsDisabled(DrawingConfig::DrawingDisableFlag::DISABLE_SHADER)) {
+        return;
+    }
+#endif
     shaderEffect_ = e;
 }
 
 void Paint::SetPathEffect(std::shared_ptr<PathEffect> e)
 {
+#ifdef DRAWING_DISABLE_API
+    if (DrawingConfig::IsDisabled(DrawingConfig::DrawingDisableFlag::DISABLE_PATH_EFFECT)) {
+        return;
+    }
+#endif
     pathEffect_ = e;
 }
 
 void Paint::SetBlender(std::shared_ptr<Blender> blender)
 {
+#ifdef DRAWING_DISABLE_API
+    if (DrawingConfig::IsDisabled(DrawingConfig::DrawingDisableFlag::DISABLE_BLENDER)) {
+        return;
+    }
+#endif
     blender_ = blender;
 }
 

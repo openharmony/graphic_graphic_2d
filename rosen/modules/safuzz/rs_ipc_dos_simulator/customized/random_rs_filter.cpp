@@ -29,6 +29,7 @@
 #include "render/rs_fly_out_shader_filter.h"
 #include "render/rs_foreground_effect_filter.h"
 #include "render/rs_gradient_blur_para.h"
+#include "render/rs_hdr_ui_brightness_filter.h"
 #include "render/rs_kawase_blur_shader_filter.h"
 #include "render/rs_linear_gradient_blur_shader_filter.h"
 #include "render/rs_magnifier_shader_filter.h"
@@ -66,6 +67,7 @@ std::shared_ptr<RSFilter> RandomRSFilter::GetRandomRSFilter()
         RandomRSFilter::GetRandomForegroundEffectFilter,
         RandomRSFilter::GetRandomMotionBlurFilter,
         RandomRSFilter::GetRandomSpherizeEffectFilter,
+        RandomRSFilter::GetRandomHDRUIBrightnessFilter,
         RandomRSFilter::GetRandomColorfulShadowFilter,
         RandomRSFilter::GetRandomAttractionEffectFilter,
         RandomRSFilter::GetRandomMagnifierShaderFilter,
@@ -161,6 +163,12 @@ std::shared_ptr<RSFilter> RandomRSFilter::GetRandomSpherizeEffectFilter()
 {
     float spherizeDegree = RandomData::GetRandomFloat();
     return std::make_shared<RSSpherizeEffectFilter>(spherizeDegree);
+}
+
+std::shared_ptr<RSFilter> RandomRSFilter::GetRandomHDRUIBrightnessFilter()
+{
+    float hdrUIBrightness = RandomData::GetRandomFloat();
+    return std::make_shared<RSHDRUIBrightnessFilter>(hdrUIBrightness);
 }
 
 std::shared_ptr<RSFilter> RandomRSFilter::GetRandomColorfulShadowFilter()

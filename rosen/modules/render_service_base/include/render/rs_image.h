@@ -133,7 +133,7 @@ public:
     [[nodiscard]] static RSImage* Unmarshalling(Parcel& parcel);
 #endif
     std::string PixelSamplingDump() const;
-    void dump(std::string &desc, int depth) const
+    void Dump(std::string &desc, uint8_t depth) const
     {
         std::string split(depth, '\t');
         desc += split + "RSImage:{ ";
@@ -200,6 +200,7 @@ private:
     bool isFitMatrixValid_ = false;
     OrientationFit orientationFit_ = OrientationFit::NONE;
     bool isOrientationValid_ = false;
+    Drawing::Rect rectForDrawShader_;
 };
 
 template<>

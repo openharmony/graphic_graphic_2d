@@ -7048,7 +7048,6 @@ HWTEST_F(RSNodeTest, DoFlushModifier, TestSize.Level1)
     rsNode->modifiers_[id] = modifier;
     rsNode->DoFlushModifier();
     EXPECT_EQ(rsNode->modifiers_.empty(), false);
-    EXPECT_EQ(rsNode->modifiers_.size(), 0);
 }
 
 /**
@@ -7315,6 +7314,72 @@ HWTEST_F(RSNodeTest, UnregisterTransitionPair, TestSize.Level1)
 }
 
 /**
+ * @tc.name: RegisterTransitionPair
+ * @tc.desc: test results of RegisterTransitionPair
+ * @tc.type: FUNC
+ * @tc.require: issueIC9YCM
+ */
+HWTEST_F(RSNodeTest, RegisterTransitionPairWithEmptyRSUIContext, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    NodeId inNodeId = 1;
+    NodeId outNodeId = 1;
+    rsNode->RegisterTransitionPair(nullptr, inNodeId, outNodeId, true);
+    EXPECT_NE(RSTransactionProxy::instance_, nullptr);
+}
+
+/**
+ * @tc.name: UnregisterTransitionPair
+ * @tc.desc: test results of UnregisterTransitionPair
+ * @tc.type: FUNC
+ * @tc.require: issueIC9YCM
+ */
+HWTEST_F(RSNodeTest, UnregisterTransitionPairWithEmptyRSUIContext, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    NodeId inNodeId = 1;
+    NodeId outNodeId = 1;
+    rsNode->UnregisterTransitionPair(nullptr, inNodeId, outNodeId);
+    EXPECT_NE(RSTransactionProxy::instance_, nullptr);
+}
+
+/**
+ * @tc.name: RegisterTransitionPair
+ * @tc.desc: test results of RegisterTransitionPair
+ * @tc.type: FUNC
+ * @tc.require: issueIC9YCM
+ */
+HWTEST_F(RSNodeTest, RegisterTransitionPairWithRSUIContext, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    auto rsUIContext = std::make_shared<RSUIContext>(1);
+    NodeId inNodeId = 1;
+    NodeId outNodeId = 1;
+    rsNode->RegisterTransitionPair(rsUIContext, inNodeId, outNodeId, true);
+    ASSERT_NE(rsUIContext->GetRSTransaction(), nullptr);
+    ASSERT_NE(rsUIContext->GetRSTransaction()->implicitRemoteTransactionData_, nullptr);
+    EXPECT_FALSE(rsUIContext->GetRSTransaction()->implicitRemoteTransactionData_->IsEmpty());
+}
+
+/**
+ * @tc.name: UnregisterTransitionPair
+ * @tc.desc: test results of UnregisterTransitionPair
+ * @tc.type: FUNC
+ * @tc.require: issueIC9YCM
+ */
+HWTEST_F(RSNodeTest, UnregisterTransitionPairWithRSUIContext, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    auto rsUIContext = std::make_shared<RSUIContext>(1);
+    NodeId inNodeId = 1;
+    NodeId outNodeId = 1;
+    rsNode->UnregisterTransitionPair(rsUIContext, inNodeId, outNodeId);
+    ASSERT_NE(rsUIContext->GetRSTransaction(), nullptr);
+    ASSERT_NE(rsUIContext->GetRSTransaction()->implicitRemoteTransactionData_, nullptr);
+    EXPECT_FALSE(rsUIContext->GetRSTransaction()->implicitRemoteTransactionData_->IsEmpty());
+}
+
+/**
  * @tc.name: MarkNodeGroup
  * @tc.desc: test results of MarkNodeGroup
  * @tc.type: FUNC
@@ -7333,6 +7398,29 @@ HWTEST_F(RSNodeTest, MarkNodeGroup, TestSize.Level1)
     rsNode->MarkNodeGroup(true, true, true);
     EXPECT_EQ(RSTransactionProxy::instance_, nullptr);
     RSTransactionProxy::instance_ = new RSTransactionProxy();
+}
+
+/**
+ * @tc.name: MarkRepaintBoundary
+ * @tc.desc: test results of MarkRepaintBoundary
+ * @tc.type: FUNC
+ * @tc.require: issuesIC50OX
+ */
+HWTEST_F(RSNodeTest, MarkRepaintBoundary, TestSize.Level1)
+{
+    auto rbRsNode = RSCanvasNode::Create();
+    rbRsNode->MarkRepaintBoundary("GridItem");
+    EXPECT_TRUE(rbRsNode->isRepaintBoundary_);
+
+    rbRsNode->MarkRepaintBoundary("Grid");
+    EXPECT_TRUE(rbRsNode->isRepaintBoundary_);
+
+    auto rsNode = RSCanvasNode::Create(true, false);
+    rsNode->MarkRepaintBoundary("IsolatedComponent");
+    EXPECT_FALSE(rsNode->isRepaintBoundary_);
+
+    rsNode->MarkRepaintBoundary("FlowItem");
+    EXPECT_TRUE(rsNode->isRepaintBoundary_);
 }
 
 /**

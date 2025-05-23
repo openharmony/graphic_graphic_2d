@@ -1353,4 +1353,20 @@ HWTEST_F(RSUniHwcComputeUtilTest, IsDangerousBlendMode_001, Function | SmallTest
     EXPECT_TRUE(RSUniHwcComputeUtil::IsDangerousBlendMode(1, 0));
     EXPECT_TRUE(RSUniHwcComputeUtil::IsDangerousBlendMode(1, 1));
 }
+
+/*
+ * @tc.name: GetFloatRotationDegreeFromMatrix_001
+ * @tc.desc: Test GetFloatRotationDegreeFromMatrix
+ * @tc.type: FUNC
+ * @tc.require: issueIBJ6BZ
+ */
+HWTEST_F(RSUniHwcComputeUtilTest, GetFloatRotationDegreeFromMatrix_001, Function | SmallTest | Level2)
+{
+    Drawing::Matrix matrix;
+    matrix.SetMatrix(1.f, -1.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 1.f);
+
+    float result = RSUniHwcComputeUtil::GetFloatRotationDegreeFromMatrix(matrix);
+    EXPECT_NEAR(result, -45.0f, 1e-6);
 }
+
+} // namespace OHOS::Rosen

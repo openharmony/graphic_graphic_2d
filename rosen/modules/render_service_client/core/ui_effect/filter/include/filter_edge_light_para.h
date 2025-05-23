@@ -14,6 +14,9 @@
  */
 #ifndef UIEFFECT_FILTER_EDGE_LIGHT_PARA_H
 #define UIEFFECT_FILTER_EDGE_LIGHT_PARA_H
+
+#include <optional>
+
 #include "common/rs_vector4.h"
 #include "filter_para.h"
 #include "ui_effect/mask/include/mask_para.h"

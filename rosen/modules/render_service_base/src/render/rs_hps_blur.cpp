@@ -28,6 +28,7 @@ namespace OHOS {
 namespace Rosen {
 
 static constexpr uint32_t MAX_SURFACE_SIZE = 10000;
+constexpr float MAX_ALPHA = 255.0f;
 static std::shared_ptr<Drawing::RuntimeEffect> g_mixEffect;
 std::mutex g_mixEffectMutex;
 
@@ -73,7 +74,8 @@ std::shared_ptr<Drawing::RuntimeEffect> HpsBlurFilter::GetMixEffect() const
 }
 
 bool HpsBlurFilter::ApplyHpsBlur(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
-    const Drawing::HpsBlurParameter& param, float alpha, std::shared_ptr<Drawing::ColorFilter> colorFilter) const
+    const Drawing::HpsBlurParameter& param, float alpha, std::shared_ptr<Drawing::ColorFilter> colorFilter,
+    const RSColor& maskColor) const
 {
     auto surface = canvas.GetSurface();
     if (surface == nullptr || image == nullptr) {
@@ -101,6 +103,22 @@ bool HpsBlurFilter::ApplyHpsBlur(Drawing::Canvas& canvas, const std::shared_ptr<
         return false;
     }
 
+    float newAlpha = alpha;
+    if (maskColor != RSColor()) {
+        float maskColorAlpha = static_cast<float>(maskColor.GetAlpha()) / MAX_ALPHA;
+        newAlpha += maskColorAlpha - alpha * maskColorAlpha;
+        Drawing::Brush maskBrush;
+        maskBrush.SetColor(maskColor.AsArgbInt());
+        if (ROSEN_EQ(newAlpha, 0.f)) {
+            maskBrush.SetAlphaF(0.f);
+        } else {
+            maskBrush.SetAlphaF(maskColorAlpha / newAlpha);
+        }
+        ROSEN_LOGD("HpsBlurFilter::ApplyHpsBlur newMaskColor %{public}#x, alpha = %{public}f",
+            maskColor.AsArgbInt(), alpha);
+        offscreenCanvas->DrawBackground(maskBrush);
+    }
+
     auto imageCache = offscreenSurface->GetImageSnapshot();
     if (imageCache == nullptr) {
         return false;
@@ -118,7 +136,7 @@ bool HpsBlurFilter::ApplyHpsBlur(Drawing::Canvas& canvas, const std::shared_ptr<
         filter.SetColorFilter(colorFilter);
         brush.SetFilter(filter);
     }
-    brush.SetAlphaF(alpha);
+    brush.SetAlphaF(newAlpha);
     canvas.AttachBrush(brush);
     canvas.DrawRect(dst);
     canvas.DetachBrush();

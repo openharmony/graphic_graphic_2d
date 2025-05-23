@@ -28,6 +28,8 @@ void RSEffectRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     }
     targetEffectRenderParam->cacheValid_ = cacheValid_;
     targetEffectRenderParam->hasEffectChildren_ = hasEffectChildren_;
+    targetEffectRenderParam->isDarkColorMode_ = isDarkColorMode_;
+    targetEffectRenderParam->isIntersectWithDRM_ = isIntersectWithDRM_;
 
     RSRenderParams::OnSync(target);
 }
@@ -59,4 +61,31 @@ bool RSEffectRenderParams::GetHasEffectChildren() const
     return hasEffectChildren_;
 }
 
+void RSEffectRenderParams::SetEffectIntersectWithDRM(bool intersect)
+{
+    if (isIntersectWithDRM_ == intersect) {
+        return;
+    }
+    isIntersectWithDRM_ = intersect;
+    needSync_ = true;
+}
+
+bool RSEffectRenderParams::GetEffectIntersectWithDRM() const
+{
+    return isIntersectWithDRM_;
+}
+
+void RSEffectRenderParams::SetDarkColorMode(bool isDark)
+{
+    if (isDarkColorMode_ == isDark) {
+        return;
+    }
+    isDarkColorMode_ = isDark;
+    needSync_ = true;
+}
+
+bool RSEffectRenderParams::GetDarkColorMode() const
+{
+    return isDarkColorMode_;
+}
 } // namespace OHOS::Rosen

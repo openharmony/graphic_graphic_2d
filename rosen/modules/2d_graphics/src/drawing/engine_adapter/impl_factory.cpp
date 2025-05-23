@@ -431,7 +431,6 @@ std::shared_ptr<FontMgrImpl> ImplFactory::CreateDefaultFontMgrImpl()
     return EngineImplFactory::CreateDefaultFontMgr();
 }
 
-#ifndef USE_TEXGINE
 std::shared_ptr<FontMgrImpl> ImplFactory::CreateDynamicFontMgrImpl()
 {
 #ifdef ENABLE_DDGR_OPTIMIZE
@@ -441,7 +440,6 @@ std::shared_ptr<FontMgrImpl> ImplFactory::CreateDynamicFontMgrImpl()
 #endif
     return EngineImplFactory::CreateDynamicFontMgr();
 }
-#endif
 
 std::unique_ptr<VerticesImpl> ImplFactory::CreateVerticesImpl()
 {

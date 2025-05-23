@@ -354,6 +354,15 @@ bool DoTakeSurfaceCapture(const uint8_t* data, size_t size)
     uint8_t type = GetData<uint8_t>();
     captureConfig.captureType = (SurfaceCaptureType)type;
     captureConfig.isSync = GetData<bool>();
+    uint8_t listSize = GetData<uint8_t>();
+    for (uint8_t i = 0; i < listSize; ++i) {
+        uint64_t nodeId = GetData<uint64_t>();
+        captureConfig.blackList.push_back(nodeId);
+    }
+    captureConfig.mainScreenRect.left_ = GetData<float>();
+    captureConfig.mainScreenRect.top_ = GetData<float>();
+    captureConfig.mainScreenRect.right_ = GetData<float>();
+    captureConfig.mainScreenRect.bottom_ = GetData<float>();
 
     client->TakeSurfaceCapture(nodeId, callback, captureConfig);
     return true;

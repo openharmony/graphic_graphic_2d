@@ -177,6 +177,8 @@ public:
     void SetAlphaOffscreen(bool alphaOffscreen);
     bool GetAlphaOffscreen() const;
 
+    void SetLocalMagnificationCap(bool localMagnificationCap);
+
     void SetSublayerTransform(const std::optional<Matrix3f>& sublayerTransform);
     const std::optional<Matrix3f>& GetSublayerTransform() const;
 
@@ -490,6 +492,11 @@ public:
     bool IsSpherizeValid() const;
     void CreateSphereEffectFilter();
 
+    void SetHDRUIBrightness(float hdrUIBrightness);
+    float GetHDRUIBrightness() const;
+    bool IsHDRUIBrightnessValid() const;
+    void CreateHDRUIBrightnessFilter();
+
     bool IsAttractionValid() const;
     void SetAttractionFraction(float fraction);
     void SetAttractionDstPoint(Vector2f dstPoint);
@@ -684,6 +691,7 @@ private:
     bool bgBlurDisableSystemAdaptation = true;
     bool fgBlurDisableSystemAdaptation = true;
     bool alwaysSnapshot_ = false;
+    bool localMagnificationCap_ = false;
     float frameOffsetX_ = 0.f;
     float frameOffsetY_ = 0.f;
     float alpha_ = 1.f;
@@ -696,6 +704,7 @@ private:
     float foregroundEffectRadius_ = 0.f;
     float attractFraction_ = 0.f;
     float spherizeDegree_ = 0.f;
+    float hdrUIBrightness_ = 1.0f;
     float lightUpEffectDegree_ = 1.0f;
     // filter property
     float backgroundBlurRadius_ = 0.f;

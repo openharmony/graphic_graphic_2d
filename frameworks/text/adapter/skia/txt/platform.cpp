@@ -22,7 +22,7 @@ namespace Rosen {
 namespace SPText {
 DefaultFamilyNameMgr::DefaultFamilyNameMgr()
 {
-#ifdef OHOS_STANDARD_SYSTEM
+#ifdef TEXT_SYSTEM_OHOS
     defaultFamilies_ = { "HarmonyOS-Sans" };
 #else
     defaultFamilies_ = { "sans-serif" };

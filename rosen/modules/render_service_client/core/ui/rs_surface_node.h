@@ -210,7 +210,17 @@ public:
     void SetTextureExport(bool isTextureExportNode) override;
     void SetGlobalPositionEnabled(bool isEnabled);
     bool GetGlobalPositionEnabled() const;
+    /**
+     * @brief Set whether to enable the new version of frame gravity.
+     *
+     * @param bool enable the new version of frame gravity or not.
+     */
     void SetFrameGravityNewVersionEnabled(bool isEnabled);
+    /**
+     * @brief Get the enable status of new version of frame gravity.
+     *
+     * @return true if the new version of frame gravity enabled; false otherwise.
+     */
     bool GetFrameGravityNewVersionEnabled() const;
 
 #ifndef ROSEN_CROSS_PLATFORM

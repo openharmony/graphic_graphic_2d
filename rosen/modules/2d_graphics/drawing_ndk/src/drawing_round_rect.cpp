@@ -42,6 +42,15 @@ OH_Drawing_RoundRect* OH_Drawing_RoundRectCreate(const OH_Drawing_Rect* cRect, f
     return (OH_Drawing_RoundRect*)new RoundRect(CastToRect(*cRect), xRad, yRad);
 }
 
+OH_Drawing_RoundRect* OH_Drawing_RoundRectCopy(const OH_Drawing_RoundRect* roundRect)
+{
+    if (roundRect == nullptr) {
+        return nullptr;
+    }
+    const RoundRect* rect = reinterpret_cast<const RoundRect*>(roundRect);
+    return (OH_Drawing_RoundRect*)new RoundRect(*rect);
+}
+
 static RoundRect::CornerPos CCornerPosCastToCornerPos(OH_Drawing_CornerPos pos)
 {
     RoundRect::CornerPos roundPos = RoundRect::CornerPos::TOP_LEFT_POS;

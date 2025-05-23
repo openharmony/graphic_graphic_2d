@@ -30,6 +30,93 @@ class OH_Drawing_TypographyTest : public testing::Test {
 };
 
 /*
+ * @tc.name: OH_Drawing_TypographyInnerBadgeTypeTest001
+ * @tc.desc: Test for badge text
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyInnerBadgeTypeTest001, TestSize.Level1)
+{
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    OHOS::Rosen::TextStyle superscriptTextStyle;
+    superscriptTextStyle.fontSize = 50;
+    superscriptTextStyle.badgeType = TextBadgeType::SUPERSCRIPT;
+    OHOS::Rosen::TextStyle subscriptTextStyle;
+    subscriptTextStyle.fontSize = 50;
+    subscriptTextStyle.badgeType = TextBadgeType::SUBSCRIPT;
+    OHOS::Rosen::TextStyle textStyle;
+    textStyle.fontSize = 50;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> superTypographyCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> subTypographyCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+
+    std::u16string text = u"你好测试 textstyle hello";
+    superTypographyCreate->PushStyle(superscriptTextStyle);
+    superTypographyCreate->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> superscriptTypography = superTypographyCreate->CreateTypography();
+    double maxWidth = 10000.0;
+    superscriptTypography->Layout(maxWidth);
+
+    subTypographyCreate->PushStyle(subscriptTextStyle);
+    subTypographyCreate->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> subscriptTypography = subTypographyCreate->CreateTypography();
+    subscriptTypography->Layout(maxWidth);
+
+    typographyCreate->PushStyle(textStyle);
+    typographyCreate->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography  = typographyCreate->CreateTypography();
+    typography->Layout(maxWidth);
+
+    EXPECT_NE(superscriptTypography->GetHeight(), typography->GetHeight());
+    EXPECT_NE(superscriptTypography->GetLongestLineWithIndent(), typography->GetLongestLineWithIndent());
+    EXPECT_TRUE(skia::textlayout::nearlyEqual(superscriptTypography->GetHeight(), subscriptTypography->GetHeight()));
+    EXPECT_TRUE(skia::textlayout::nearlyEqual(superscriptTypography->GetLongestLineWithIndent(),
+        subscriptTypography->GetLongestLineWithIndent()));
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographyInnerBadgeTypeTest002
+ * @tc.desc: Test the conflict between the text badge and fontFeature
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyInnerBadgeTypeTest002, TestSize.Level1)
+{
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    OHOS::Rosen::TextStyle superscriptTextStyle;
+    superscriptTextStyle.fontSize = 50;
+    superscriptTextStyle.badgeType = TextBadgeType::SUPERSCRIPT;
+    superscriptTextStyle.fontFeatures.SetFeature("sups", 1);
+    OHOS::Rosen::TextStyle textStyle;
+    textStyle.fontSize = 50;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> superTypographyCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+
+    std::u16string text = u"你好测试 textstyle hello";
+    superTypographyCreate->PushStyle(superscriptTextStyle);
+    superTypographyCreate->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> superscriptTypography = superTypographyCreate->CreateTypography();
+    double maxWidth = 10000.0;
+    superscriptTypography->Layout(maxWidth);
+
+    typographyCreate->PushStyle(textStyle);
+    typographyCreate->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography  = typographyCreate->CreateTypography();
+    typography->Layout(maxWidth);
+
+    EXPECT_TRUE(skia::textlayout::nearlyEqual(superscriptTypography->GetHeight(), typography->GetHeight()));
+    EXPECT_TRUE(skia::textlayout::nearlyEqual(superscriptTypography->GetLongestLineWithIndent(),
+        typography->GetLongestLineWithIndent()));
+}
+
+/*
  * @tc.name: OH_Drawing_TypographyTest001
  * @tc.desc: test for get max width for Typography
  * @tc.type: FUNC

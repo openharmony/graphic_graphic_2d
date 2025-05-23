@@ -43,6 +43,15 @@ OH_Drawing_Region* OH_Drawing_RegionCreate()
     return (OH_Drawing_Region*)new Region();
 }
 
+OH_Drawing_Region* OH_Drawing_RegionCopy(const OH_Drawing_Region* region)
+{
+    if (region == nullptr) {
+        return nullptr;
+    }
+    const Region* reg = reinterpret_cast<const Region*>(region);
+    return (OH_Drawing_Region*)new Region(*reg);
+}
+
 bool OH_Drawing_RegionContains(OH_Drawing_Region* cRegion, int32_t x, int32_t y)
 {
     Region* region = CastToRegion(cRegion);

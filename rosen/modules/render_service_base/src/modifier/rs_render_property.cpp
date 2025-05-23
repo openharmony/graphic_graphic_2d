@@ -761,7 +761,7 @@ void RSRenderProperty<std::shared_ptr<RSImage>>::Dump(std::string& out) const
         return;
     }
     std::string info;
-    Get()->dump(info, 0);
+    Get()->Dump(info, 0);
     info.erase(std::remove_if(info.begin(), info.end(), [](auto c) { return c == '\t' || c == '\n'; }),
         info.end());
     out += "[\"" + info + "\"]";

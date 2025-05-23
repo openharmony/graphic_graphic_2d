@@ -56,18 +56,14 @@ int RSSurfaceCaptureCallbackStub::OnRemoteRequest(
 
 bool RSSurfaceCaptureCallbackStub::ReadSurfaceCaptureConfig(RSSurfaceCaptureConfig& captureConfig, MessageParcel& data)
 {
-    uint8_t captureType { 0 };
-    if (!data.ReadFloat(captureConfig.scaleX) || !data.ReadFloat(captureConfig.scaleY) ||
-        !data.ReadBool(captureConfig.useDma) || !data.ReadBool(captureConfig.useCurWindow) ||
-        !data.ReadUint8(captureType) || !data.ReadBool(captureConfig.isSync) ||
-        !data.ReadFloat(captureConfig.mainScreenRect.left_) ||
+    // read mainScreenRect only to reduce ipc data size
+    if (!data.ReadFloat(captureConfig.mainScreenRect.left_) ||
         !data.ReadFloat(captureConfig.mainScreenRect.top_) ||
         !data.ReadFloat(captureConfig.mainScreenRect.right_) ||
         !data.ReadFloat(captureConfig.mainScreenRect.bottom_)) {
         RS_LOGE("RSSurfaceCaptureCallbackStub::ReadSurfaceCaptureConfig read parcel failed!");
         return false;
     }
-    captureConfig.captureType = static_cast<SurfaceCaptureType>(captureType);
     return true;
 }
 } // namespace Rosen

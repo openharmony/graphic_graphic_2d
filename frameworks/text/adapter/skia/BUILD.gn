@@ -100,7 +100,7 @@ template("skia_libtxt") {
         "samgr:samgr_proxy",
       ]
       defines += [
-        "OHOS_TEXT_ENABLE",
+        "ENABLE_OHOS_ENHANCE",
         "HM_SYMBOL_TXT_ENABLE",
       ]
     } else {
@@ -108,6 +108,8 @@ template("skia_libtxt") {
     }
 
     if (is_arkui_x) {
+      include_dirs += [ "//base/hiviewdfx/hitrace/interfaces/native/innerkits/include/hitrace_meter" ]
+      defines += [ "CROSS_PLATFORM" ]
       deps = [
         "//third_party/bounds_checking_function:libsec_static",
         "//third_party/jsoncpp:jsoncpp_static",
@@ -122,7 +124,7 @@ template("skia_libtxt") {
         "skia:skia_canvaskit",
         "skia:skia_paragraph_ohos",
       ]
-      defines += [ "OHOS_STANDARD_SYSTEM" ]
+      defines += [ "TEXT_SYSTEM_OHOS" ]
     }
   }
 }
@@ -182,7 +184,7 @@ ohos_static_library("font_asset") {
     defines += [
       "HM_SYMBOL_TXT_ENABLE",
       "BUILD_NON_SDK_VER",
-      "OHOS_TEXT_ENABLE",
+      "ENABLE_OHOS_ENHANCE",
     ]
   } else {
     defines += [ "MODULE_FONT" ]

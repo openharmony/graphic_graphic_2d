@@ -241,6 +241,11 @@ std::optional<float> RSShowingPropertiesFreezer::GetSpherizeDegree() const
     return GetPropertyImpl<float, RSModifierType::SPHERIZE>();
 }
 
+std::optional<float> RSShowingPropertiesFreezer::GetHDRUIBrightness() const
+{
+    return GetPropertyImpl<float, RSModifierType::HDR_UI_BRIGHTNESS>();
+}
+
 std::optional<float> RSShowingPropertiesFreezer::GetAttractionFractionValue() const
 {
     return GetPropertyImpl<float, RSModifierType::ATTRACTION_FRACTION>();

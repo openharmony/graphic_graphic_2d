@@ -16,7 +16,7 @@
 #ifndef TEXT_TRACE_H
 #define TEXT_TRACE_H
 
-#ifdef OHOS_TEXT_ENABLE
+#ifdef ENABLE_OHOS_ENHANCE
 #include "hitrace_meter.h"
 #include "parameters.h"
 #include "text_common.h"
@@ -25,7 +25,7 @@
 #endif
 
 namespace OHOS::Rosen {
-#if defined(OHOS_TEXT_ENABLE) || defined(CROSS_PLATFORM)
+#if defined(ENABLE_OHOS_ENHANCE) || defined(CROSS_PLATFORM)
 enum class TextTraceLevel {
     TEXT_TRACE_LEVEL_DEFAULT,
     TEXT_TRACE_LEVEL_LOW,
@@ -41,7 +41,7 @@ class TextOptionalTrace {
 public:
     TextOptionalTrace(std::string traceStr)
     {
-#ifdef OHOS_TEXT_ENABLE
+#ifdef ENABLE_OHOS_ENHANCE
         static bool debugTraceEnable = (OHOS::system::GetIntParameter("persist.sys.graphic.openDebugTrace", 0) != 0);
         if (UNLIKELY(debugTraceEnable)) {
             std::string name { "Text#" };
@@ -59,7 +59,7 @@ public:
 
     ~TextOptionalTrace()
     {
-#ifdef OHOS_TEXT_ENABLE
+#ifdef ENABLE_OHOS_ENHANCE
         static bool debugTraceEnable = (OHOS::system::GetIntParameter("persist.sys.graphic.openDebugTrace", 0) != 0);
         if (UNLIKELY(debugTraceEnable)) {
             FinishTrace(HITRACE_TAG_GRAPHIC_AGP | HITRACE_TAG_COMMERCIAL);
@@ -98,7 +98,7 @@ public:
 
     static void TraceWithLevel(TextTraceLevel level, const std::string& traceStr, std::string caller)
     {
-#ifdef OHOS_TEXT_ENABLE
+#ifdef ENABLE_OHOS_ENHANCE
         static int32_t systemLevel =
             std::atoi(OHOS::system::GetParameter("persist.sys.graphic.openDebugTrace", "0").c_str());
         if ((systemLevel != 0) && (systemLevel <= static_cast<int32_t>(level))) {

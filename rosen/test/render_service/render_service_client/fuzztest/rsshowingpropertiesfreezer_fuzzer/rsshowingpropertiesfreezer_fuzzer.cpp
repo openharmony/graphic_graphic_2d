@@ -714,6 +714,25 @@ bool DoGetSpherizeDegree(const uint8_t* data, size_t size)
     return true;
 }
 
+bool DoGetHDRUIBrightness(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    // test
+    NodeId id = GetData<NodeId>();
+    RSShowingPropertiesFreezer showingPropertiesFreezer(id);
+    showingPropertiesFreezer.GetHDRUIBrightness();
+
+    return true;
+}
+
 bool DoGetAttractionFractionValue(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {

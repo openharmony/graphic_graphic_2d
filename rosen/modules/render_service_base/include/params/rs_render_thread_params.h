@@ -493,6 +493,7 @@ private:
     bool isDisplayDirtyDfxEnabled_ = false;
     bool isOpaqueRegionDfxEnabled_ = false;
     bool isVisibleRegionDfxEnabled_ = false;
+    bool isMergedDirtyRegionDfxEnabled_ = false;
     bool isAllSurfaceVisibleDebugEnabled_ = false;
     bool isOpDropped_ = false;
     bool isDirtyAlignEnabled_ = false;

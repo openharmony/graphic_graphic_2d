@@ -76,28 +76,28 @@ HWTEST_F(RSFrameRateVoteTest, CheckSurfaceAndUi001, Function | SmallTest | Level
     ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->CheckSurfaceAndUi(
         OHSurfaceSource::OH_SURFACE_SOURCE_DEFAULT),
         true);
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->transactionFlags_ = "1000,30";
+    DelayedSingleton<RSFrameRateVote>::GetInstance()->transactionFlags_ = "[1000,30]";
     DelayedSingleton<RSFrameRateVote>::GetInstance()->lastVotedPid_ = 1000;
     DelayedSingleton<RSFrameRateVote>::GetInstance()->CheckSurfaceAndUi(OHSurfaceSource::OH_SURFACE_SOURCE_DEFAULT);
     usleep(40000);
     ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->CheckSurfaceAndUi(
         OHSurfaceSource::OH_SURFACE_SOURCE_DEFAULT),
         true);
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->transactionFlags_ = "1000,30";
+    DelayedSingleton<RSFrameRateVote>::GetInstance()->transactionFlags_ = "[1000,30]";
     DelayedSingleton<RSFrameRateVote>::GetInstance()->lastVotedPid_ = 1000;
     DelayedSingleton<RSFrameRateVote>::GetInstance()->CheckSurfaceAndUi(OHSurfaceSource::OH_SURFACE_SOURCE_VIDEO);
     usleep(40000);
     ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->CheckSurfaceAndUi(
         OHSurfaceSource::OH_SURFACE_SOURCE_VIDEO),
         true);
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->transactionFlags_ = "500,30";
+    DelayedSingleton<RSFrameRateVote>::GetInstance()->transactionFlags_ = "[500,30]";
     DelayedSingleton<RSFrameRateVote>::GetInstance()->lastVotedPid_ = 1000;
     DelayedSingleton<RSFrameRateVote>::GetInstance()->CheckSurfaceAndUi(OHSurfaceSource::OH_SURFACE_SOURCE_DEFAULT);
     usleep(40000);
     ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->CheckSurfaceAndUi(
         OHSurfaceSource::OH_SURFACE_SOURCE_DEFAULT),
         true);
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->transactionFlags_ = "500,30";
+    DelayedSingleton<RSFrameRateVote>::GetInstance()->transactionFlags_ = "[500,30]";
     DelayedSingleton<RSFrameRateVote>::GetInstance()->lastVotedPid_ = 1000;
     ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->CheckSurfaceAndUi(
         OHSurfaceSource::OH_SURFACE_SOURCE_VIDEO),

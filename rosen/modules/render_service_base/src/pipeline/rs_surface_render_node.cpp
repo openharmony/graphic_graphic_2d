@@ -123,6 +123,7 @@ RSSurfaceRenderNode::RSSurfaceRenderNode(
 #endif
     MemorySnapshot::Instance().AddCpuMemory(ExtractPid(config.id), sizeof(*this));
     RsCommandVerifyHelper::GetInstance().AddSurfaceNodeCreateCnt(ExtractPid(config.id));
+    GetMutableRenderProperties().SetLocalMagnificationCap(nodeType_ == RSSurfaceNodeType::ABILITY_MAGNIFICATION_NODE);
 }
 
 RSSurfaceRenderNode::RSSurfaceRenderNode(NodeId id, const std::weak_ptr<RSContext>& context, bool isTextureExportNode)
@@ -396,7 +397,7 @@ void RSSurfaceRenderNode::OnTreeStateChanged()
             if (IsLeashWindow()) {
                 context->MarkNeedPurge(ClearMemoryMoment::COMMON_SURFACE_NODE_HIDE, RSContext::PurgeType::GENTLY);
             }
-            if (IsScbWindowType()) {
+            if (IS_SCB_WINDOW_TYPE(surfaceWindowType_)) {
                 context->MarkNeedPurge(ClearMemoryMoment::SCENEBOARD_SURFACE_NODE_HIDE, RSContext::PurgeType::STRONGLY);
             }
         }
@@ -1132,25 +1133,39 @@ void RSSurfaceRenderNode::SetHDRPresent(bool hasHdrPresent)
 
 bool RSSurfaceRenderNode::GetHDRPresent() const
 {
-    return hdrNum_ > 0;
+    return hdrPhotoNum_ > 0 || hdrUIComponentNum_ > 0;
 }
 
-void RSSurfaceRenderNode::IncreaseHDRNum()
+void RSSurfaceRenderNode::IncreaseHDRNum(HDRComponentType hdrType)
 {
     std::lock_guard<std::mutex> lockGuard(mutexHDR_);
-    hdrNum_++;
-    RS_LOGD("RSSurfaceRenderNode::IncreaseHDRNum HDRClient hdrNum_: %{public}d", hdrNum_);
-}
-
-void RSSurfaceRenderNode::ReduceHDRNum()
-{
-    std::lock_guard<std::mutex> lockGuard(mutexHDR_);
-    if (hdrNum_ == 0) {
-        ROSEN_LOGE("RSSurfaceRenderNode::ReduceHDRNum error");
-        return;
+    if (hdrType == HDRComponentType::IMAGE) {
+        hdrPhotoNum_++;
+        RS_LOGD("RSSurfaceRenderNode::IncreaseHDRNum HDRClient hdrPhotoNum_: %{public}d", hdrPhotoNum_);
+    } else if (hdrType == HDRComponentType::UICOMPONENT) {
+        hdrUIComponentNum_++;
+        RS_LOGD("RSSurfaceRenderNode::IncreaseHDRNum HDRClient hdrUIComponentNum_: %{public}d", hdrUIComponentNum_);
     }
-    hdrNum_--;
-    RS_LOGD("RSSurfaceRenderNode::ReduceHDRNum HDRClient hdrNum_: %{public}d", hdrNum_);
+}
+
+void RSSurfaceRenderNode::ReduceHDRNum(HDRComponentType hdrType)
+{
+    std::lock_guard<std::mutex> lockGuard(mutexHDR_);
+    if (hdrType == HDRComponentType::IMAGE) {
+        if (hdrPhotoNum_ == 0) {
+            ROSEN_LOGE("RSSurfaceRenderNode::ReduceHDRNum error");
+            return;
+        }
+        hdrPhotoNum_--;
+        RS_LOGD("RSSurfaceRenderNode::ReduceHDRNum HDRClient hdrPhotoNum_: %{public}d", hdrPhotoNum_);
+    } else if (hdrType == HDRComponentType::UICOMPONENT) {
+        if (hdrUIComponentNum_ == 0) {
+            ROSEN_LOGE("RSSurfaceRenderNode::ReduceHDRNum error");
+            return;
+        }
+        hdrUIComponentNum_--;
+        RS_LOGD("RSSurfaceRenderNode::ReduceHDRNum HDRClient hdrUIComponentNum_: %{public}d", hdrUIComponentNum_);
+    }
 }
 
 bool RSSurfaceRenderNode::GetIsWideColorGamut() const
@@ -1761,12 +1776,7 @@ WINDOW_LAYER_INFO_TYPE RSSurfaceRenderNode::GetVisibleLevelForWMS(RSVisibleLevel
 
 bool RSSurfaceRenderNode::IsSCBNode() const
 {
-    return surfaceWindowType_ != SurfaceWindowType::SYSTEM_SCB_WINDOW &&
-           surfaceWindowType_ != SurfaceWindowType::SCB_DESKTOP &&
-           surfaceWindowType_ != SurfaceWindowType::SCB_WALLPAPER &&
-           surfaceWindowType_ != SurfaceWindowType::SCB_SCREEN_LOCK &&
-           surfaceWindowType_ != SurfaceWindowType::SCB_NEGATIVE_SCREEN &&
-           surfaceWindowType_ != SurfaceWindowType::SCB_DROPDOWN_PANEL;
+    return !IS_SCB_WINDOW_TYPE(surfaceWindowType_);
 }
 
 void RSSurfaceRenderNode::UpdateHwcNodeLayerInfo(GraphicTransformType transform, bool isHardCursorEnable)
@@ -3628,8 +3638,6 @@ void RSSurfaceRenderNode::SetFrameGravityNewVersionEnabled(bool isEnabled)
     AddToPendingSyncList();
 
     isFrameGravityNewVersionEnabled_ = isEnabled;
-    ROSEN_LOGI("RSSurfaceRenderNode::SetFrameGravityNewVersionEnabled id:%{public}" PRIu64 ", isEnabled:%{public}d",
-        GetId(), isEnabled);
 }
 
 bool RSSurfaceRenderNode::GetFrameGravityNewVersionEnabled() const

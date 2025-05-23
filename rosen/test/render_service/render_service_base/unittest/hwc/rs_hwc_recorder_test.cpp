@@ -98,4 +98,33 @@ HWTEST_F(RSHwcRecorderTest, IsForegroundColorValid_001, TestSize.Level1)
     node.GetHwcRecorder().SetForegroundColorValid(true);
     ASSERT_TRUE(node.GetHwcRecorder().IsForegroundColorValid());
 }
+
+/**
+ * @tc.name: SetIntersectWithPreviousFilter_001
+ * @tc.desc: test SetIntersectWithPreviousFilter
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSHwcRecorderTest, SetIntersectWithPreviousFilter_001, TestSize.Level1)
+{
+    NodeId id = 0;
+    RSSurfaceRenderNode node(id);
+    node.HwcSurfaceRecorder().SetIntersectWithPreviousFilter(true);
+    ASSERT_TRUE(node.HwcSurfaceRecorder().isIntersectWithPreviousFilter_);
+}
+
+/**
+ * @tc.name: IsIntersectWithPreviousFilter_001
+ * @tc.desc: test IsIntersectWithPreviousFilter
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSHwcRecorderTest, IsIntersectWithPreviousFilter_001, TestSize.Level1)
+{
+    NodeId id = 0;
+    RSSurfaceRenderNode node(id);
+    node.HwcSurfaceRecorder().SetIntersectWithPreviousFilter(true);
+    ASSERT_TRUE(node.HwcSurfaceRecorder().IsIntersectWithPreviousFilter());
+}
+
 } //namespace OHOS::Rosen

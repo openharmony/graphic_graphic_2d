@@ -77,8 +77,7 @@ RSSurfaceRenderNodeDrawable::RSSurfaceRenderNodeDrawable(std::shared_ptr<const R
     auto nodeSp = std::const_pointer_cast<RSRenderNode>(node);
     auto surfaceNode = std::static_pointer_cast<RSSurfaceRenderNode>(nodeSp);
     name_ = surfaceNode->GetName();
-    surfaceWindowType_ = surfaceNode->GetSurfaceWindowType();
-    if (surfaceWindowType_ != SurfaceWindowType::SCB_SCREEN_LOCK) {
+    if (surfaceNode->GetSurfaceWindowType() == SurfaceWindowType::SCB_SCREEN_LOCK) {
         vmaCacheOff_ = true;
     }
     surfaceNodeType_ = surfaceNode->GetSurfaceNodeType();
@@ -125,8 +124,14 @@ void RSSurfaceRenderNodeDrawable::OnGeneralProcess(RSPaintFilterCanvas& canvas,
     auto bounds = surfaceParams.GetFrameRect();
 
     if (surfaceParams.GetGlobalPositionEnabled()) {
-        auto matrix = surfaceParams.GetTotalMatrix();
-        matrix.Translate(-offsetX_, -offsetY_);
+        auto matrix = surfaceParams.GetMatrix();
+        Drawing::Matrix inverseMatrix;
+        if (!matrix.Invert(inverseMatrix)) {
+            RS_LOGW("RSSurfaceRenderNodeDrawable::%{public}s name: %{public}s matrix invert inverseMatrix Failed",
+                    __func__, GetName().c_str());
+        }
+        canvas.ConcatMatrix(inverseMatrix);
+        canvas.Translate(-offsetX_, -offsetY_);
         canvas.ConcatMatrix(matrix);
         if (!lastGlobalPositionEnabled_) {
             lastGlobalPositionEnabled_ = true;
@@ -190,7 +195,8 @@ void RSSurfaceRenderNodeDrawable::DrawMagnificationRegion(
 {
     Drawing::Surface* drawingSurface = canvas.GetSurface();
     if (drawingSurface == nullptr) {
-        ROSEN_LOGE("RSSurfaceRenderNodeDrawable::DrawMagnificationRegion, drawingSurface is nullptr");
+        RS_LOGE("RSSurfaceRenderNodeDrawable::DrawMagnificationRegion, drawingSurface is nullptr");
+        RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::DrawMagnificationRegion, drawingSurface is nullptr");
         return;
     }
 
@@ -199,7 +205,8 @@ void RSSurfaceRenderNodeDrawable::DrawMagnificationRegion(
     RectI magnifingRectI(std::ceil(regionToBeMagnified.x_), std::ceil(regionToBeMagnified.y_),
         std::floor(regionToBeMagnified.z_), std::floor(regionToBeMagnified.w_));
     if (magnifingRectI.IsEmpty()) {
-        ROSEN_LOGE("RSSurfaceRenderNodeDrawable::DrawMagnificationRegion, regionToBeMagnified is empty");
+        RS_LOGE("RSSurfaceRenderNodeDrawable::DrawMagnificationRegion, regionToBeMagnified is empty");
+        RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::DrawMagnificationRegion, regionToBeMagnified is empty");
         return;
     }
 
@@ -217,14 +224,14 @@ void RSSurfaceRenderNodeDrawable::DrawMagnificationRegion(
     }
 
     /* Optimization */
-    Drawing::SamplingOptions samplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::LINEAR);
+    Drawing::SamplingOptions samplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
     Drawing::Brush paint;
     paint.SetAntiAlias(true);
     canvas.AttachBrush(paint);
 
     /* Magnify */
     auto frame = surfaceParams.GetFrameRect();
-    canvas.DrawImageRect(*imageSnapshot, frame, Drawing::SamplingOptions());
+    canvas.DrawImageRect(*imageSnapshot, frame, samplingOptions);
     canvas.DetachBrush();
 
     return ;
@@ -513,7 +520,8 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             name_.c_str(), surfaceParams->GetId());
         return;
     }
-    if (CheckIfSurfaceSkipInMirror(*surfaceParams)) {
+    if (CheckIfSurfaceSkipInMirrorOrScreenshot(*surfaceParams)) {
+        // Whitelist not checked
         SetDrawSkipType(DrawSkipType::SURFACE_SKIP_IN_MIRROR);
         RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw surface skipped in mirror name:[%s] id:%" PRIu64,
             name_.c_str(), surfaceParams->GetId());
@@ -539,8 +547,9 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     if (!disableFilterCache && !isUiFirstNode && surfaceParams->GetOccludedByFilterCache()) {
         SetDrawSkipType(DrawSkipType::FILTERCACHE_OCCLUSION_SKIP);
         RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw[%s](%d, %d, %d, %d) filterCache occlusion skip, "
-            "id:%" PRIu64 ", alpha:%f, dirty(%d, %d, %d, %d)", name_.c_str(), absDrawRect.left_, absDrawRect.top_,
-            absDrawRect.width_, absDrawRect.height_, surfaceParams->GetId(), surfaceParams->GetGlobalAlpha(),
+            "id:%" PRIu64 ", alpha:%f, currentFrameDirty(%d, %d, %d, %d)",
+            name_.c_str(), absDrawRect.left_, absDrawRect.top_, absDrawRect.width_, absDrawRect.height_,
+            surfaceParams->GetId(), surfaceParams->GetGlobalAlpha(),
             currentFrameDirty.left_, currentFrameDirty.top_, currentFrameDirty.width_, currentFrameDirty.height_);
         return;
     }
@@ -570,7 +579,8 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         if (uniParam->IsOpDropped() && surfaceParams->IsVisibleDirtyRegionEmpty(curSurfaceDrawRegion)) {
             SetDrawSkipType(DrawSkipType::OCCLUSION_SKIP);
             RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw[%s](%d, %d, %d, %d) occlusion skip, "
-                "id:%" PRIu64 ", alpha:%f, dirty(%d, %d, %d, %d)", name_.c_str(), absDrawRect.left_, absDrawRect.top_,
+                "id:%" PRIu64 ", alpha:%f, currentFrameDirty(%d, %d, %d, %d)",
+                name_.c_str(), absDrawRect.left_, absDrawRect.top_,
                 absDrawRect.width_, absDrawRect.height_, surfaceParams->GetId(), surfaceParams->GetGlobalAlpha(),
                 currentFrameDirty.left_, currentFrameDirty.top_, currentFrameDirty.width_, currentFrameDirty.height_);
             return;
@@ -578,12 +588,16 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     }
     const RectI& mergeHistoryDirty = syncDirtyManager_->GetDirtyRegion();
     // warning : don't delete this trace or change trace level to optional !!!
-    RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw[%s](%d, %d, %d, %d), id:%" PRIu64 ", alpha:%f"
-        ", preSub:%d, dirty(%d, %d, %d, %d), mergedDirty(%d, %d, %d, %d)", name_.c_str(), absDrawRect.left_,
-        absDrawRect.top_, absDrawRect.width_, absDrawRect.height_, GetId(), surfaceParams->GetGlobalAlpha(),
-        surfaceParams->GetPreSubHighPriorityType(),
+    RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw[%s](%d, %d, %d, %d), id:%" PRIu64 ", alpha:[%f], "
+        "preSub:[%d], currentFrameDirty(%d, %d, %d, %d), mergedDirty(%d, %d, %d, %d), "
+        "visibleRengion: [%s], opaqueRegion: [%s], transparentRegion: [%s]",
+        name_.c_str(), absDrawRect.left_, absDrawRect.top_, absDrawRect.width_, absDrawRect.height_,
+        GetId(), surfaceParams->GetGlobalAlpha(), surfaceParams->GetPreSubHighPriorityType(),
         currentFrameDirty.left_, currentFrameDirty.top_, currentFrameDirty.width_, currentFrameDirty.height_,
-        mergeHistoryDirty.left_, mergeHistoryDirty.top_, mergeHistoryDirty.width_, mergeHistoryDirty.height_);
+        mergeHistoryDirty.left_, mergeHistoryDirty.top_, mergeHistoryDirty.width_, mergeHistoryDirty.height_,
+        surfaceParams->GetVisibleRegion().GetRegionInfo().c_str(),
+        surfaceParams->GetOpaqueRegion().GetRegionInfo().c_str(),
+        surfaceParams->GetTransparentRegion().GetRegionInfo().c_str());
 
     RS_LOGD("RSSurfaceRenderNodeDrawable::OnDraw node:%{public}" PRIu64 ", name:%{public}s,"
             "OcclusionVisible:%{public}d Bound:%{public}s",
@@ -640,7 +654,7 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     bool needOffscreen = (realTid == RSUniRenderThread::Instance().GetTid()) &&
         RotateOffScreenParam::GetRotateOffScreenSurfaceNodeEnable() &&
         surfaceParams->GetNeedOffscreen() && !rscanvas->GetTotalMatrix().IsIdentity() &&
-        surfaceParams->IsAppWindow() && IsScbWindowType() && !IsHardwareEnabled() &&
+        surfaceParams->IsAppWindow() && GetName().substr(0, 3) != "SCB" && !IsHardwareEnabled() &&
         (surfaceParams->GetVisibleRegion().Area() == (surfaceParams->GetOpaqueRegion().Area() +
         surfaceParams->GetRoundedCornerRegion().Area()));
     curCanvas_ = rscanvas;
@@ -853,7 +867,7 @@ void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
     auto whiteList = RSUniRenderThread::Instance().GetWhiteList();
     SetVirtualScreenWhiteListRootId(whiteList, surfaceParams->GetLeashPersistentId());
 
-    if (CheckIfSurfaceSkipInMirror(*surfaceParams)) {
+    if (CheckIfSurfaceSkipInMirrorOrScreenshot(*surfaceParams)) {
         SetDrawSkipType(DrawSkipType::SURFACE_SKIP_IN_MIRROR);
         RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnCapture surface skipped in mirror name:[%s] id:%" PRIu64,
             name_.c_str(), surfaceParams->GetId());
@@ -898,37 +912,40 @@ void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
     RSRenderNodeDrawable::SnapshotProcessedNodeCountInc();
 }
 
-bool RSSurfaceRenderNodeDrawable::CheckIfSurfaceSkipInMirror(const RSSurfaceRenderParams& surfaceParams)
+bool RSSurfaceRenderNodeDrawable::CheckIfSurfaceSkipInMirrorOrScreenshot(const RSSurfaceRenderParams& surfaceParams)
 {
     const auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
-    if (uniParam && !uniParam->IsMirrorScreen()) {
+    const auto& captureParam = RSUniRenderThread::GetCaptureParam();
+    bool isScreenshot = captureParam.isSnapshot_ && !captureParam.isSingleSurface_;
+    // no need to check if not in mirror or screenshot
+    if (uniParam && !uniParam->IsMirrorScreen() && !isScreenshot) {
         return false;
     }
     // Check black list.
     const auto& blackList = RSUniRenderThread::Instance().GetBlackList();
     if (surfaceParams.IsLeashWindow() && blackList.find(surfaceParams.GetLeashPersistentId()) != blackList.end()) {
-        RS_LOGD("RSSurfaceRenderNodeDrawable::CheckIfSurfaceSkipInMirror: \
-            (LeashPersistentId:[%{public}" PRIu64 "]) is in black list", surfaceParams.GetLeashPersistentId());
+        RS_LOGD("RSSurfaceRenderNodeDrawable::CheckIfSurfaceSkipInMirrorOrScreenshot: "
+            "(LeashPersistentId:[%{public}" PRIu64 "]) is in black list", surfaceParams.GetLeashPersistentId());
         return true;
     }
     if (blackList.find(surfaceParams.GetId()) != blackList.end()) {
-        RS_LOGD("RSSurfaceRenderNodeDrawable::CheckIfSurfaceSkipInMirror: \
-            (surfaceParamsId:[%{public}" PRIu64 "]) is in black list", surfaceParams.GetId());
+        RS_LOGD("RSSurfaceRenderNodeDrawable::CheckIfSurfaceSkipInMirrorOrScreenshot: "
+            "(surfaceParamsId:[%{public}" PRIu64 "]) is in black list", surfaceParams.GetId());
         return true;
     }
     // Check type black list.
     const auto& typeBlackList = RSUniRenderThread::Instance().GetTypeBlackList();
     NodeType nodeType = static_cast<NodeType>(surfaceParams.GetSurfaceNodeType());
     if (typeBlackList.find(nodeType) != typeBlackList.end()) {
-        RS_LOGD("RSSurfaceRenderNodeDrawable::CheckIfSurfaceSkipInMirror: "
+        RS_LOGD("RSSurfaceRenderNodeDrawable::CheckIfSurfaceSkipInMirrorOrScreenshot: "
             "(surfaceNodeType:[%{public}u]) is in type black list", nodeType);
         return true;
     }
     // Check white list.
     const auto& whiteList = RSUniRenderThread::Instance().GetWhiteList();
     if (!whiteList.empty() && RSUniRenderThread::GetCaptureParam().rootIdInWhiteList_ == INVALID_NODEID) {
-        RS_LOGD("RSSurfaceRenderNodeDrawable::CheckIfSurfaceSkipInMirror: \
-            (id:[%{public}" PRIu64 "]) isn't in white list", surfaceParams.GetId());
+        RS_LOGD("RSSurfaceRenderNodeDrawable::CheckIfSurfaceSkipInMirrorOrScreenshot: "
+            "(id:[%{public}" PRIu64 "]) isn't in white list", surfaceParams.GetId());
         return true;
     }
 

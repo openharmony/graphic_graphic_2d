@@ -577,6 +577,9 @@ void RSProfiler::MarshalNode(const RSRenderNode& node, std::stringstream& data, 
         data.write(reinterpret_cast<const char*>(&nodeGroupType), sizeof(nodeGroupType));
     }
 
+    const bool isRepaintBoundary = node.IsRepaintBoundary();
+    data.write(reinterpret_cast<const char*>(&isRepaintBoundary), sizeof(isRepaintBoundary));
+
     MarshalNodeModifiers(node, data, fileVersion);
 }
 
@@ -831,12 +834,18 @@ std::string RSProfiler::UnmarshalNode(RSContext& context, std::stringstream& dat
         data.read(reinterpret_cast<char*>(&nodeGroupType), sizeof(nodeGroupType));
     }
 
+    uint8_t isRepaintBoundary = false;
+    if (fileVersion >= RSFILE_VERSION_ISREPAINT_BOUNDARY) {
+        data.read(reinterpret_cast<char*>(&isRepaintBoundary), sizeof(isRepaintBoundary));
+    }
+
     if (auto node = context.GetMutableNodeMap().GetRenderNode(nodeId)) {
         node->GetMutableRenderProperties().SetPositionZ(positionZ);
         node->GetMutableRenderProperties().SetPivotZ(pivotZ);
         node->SetPriority(priority);
         node->RSRenderNode::SetIsOnTheTree(isOnTree);
         node->nodeGroupType_ = nodeGroupType;
+        node->MarkRepaintBoundary(isRepaintBoundary);
         return UnmarshalNodeModifiers(*node, data, fileVersion);
     }
     return "";

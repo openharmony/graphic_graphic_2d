@@ -50,6 +50,12 @@ ohos_unittest("RSModifiersDrawThreadTest") {
     "googletest:gtest_main",
     "hilog:libhilog",
   ]
+  defines = []
+  if (accessibility_enable) {
+    external_deps += [ "accessibility:accessibilityconfig" ]
+    external_deps += [ "accessibility:accessibility_common" ]
+    defines += accessibility_defines
+  }
 }
 
 ##############################  RSModifiersDrawTest  ##################################

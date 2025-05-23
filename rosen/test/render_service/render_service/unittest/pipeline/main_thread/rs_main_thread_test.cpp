@@ -4961,7 +4961,7 @@ HWTEST_F(RSMainThreadTest, ExistBufferIsVisibleAndUpdateTest, TestSize.Level1)
     ASSERT_NE(surfaceNode->surfaceHandler_, nullptr);
     surfaceNode->surfaceHandler_->SetBuffer(preBuffer, acquireFence, damageRect, timestamp);
     surfaceNode->surfaceHandler_->isCurrentFrameBufferConsumed_ = true;
-    surfaceNode->lastFrameHasVisibleRegion_ = true;
+    surfaceNode->HwcSurfaceRecorder().SetLastFrameHasVisibleRegion(true);
     hardwareEnabledNodes.push_back(surfaceNode);
     mainThread->hardwareEnabledNodes_ = hardwareEnabledNodes;
     EXPECT_TRUE(mainThread->ExistBufferIsVisibleAndUpdate());

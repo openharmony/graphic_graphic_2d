@@ -36,7 +36,6 @@ void SkiaFontMgrTest::TearDownTestCase() {}
 void SkiaFontMgrTest::SetUp() {}
 void SkiaFontMgrTest::TearDown() {}
 
-#ifndef USE_TEXGINE
 /**
  * @tc.name: CreateDynamicFontMgr001
  * @tc.desc: Test CreateDynamicFontMgr
@@ -75,7 +74,6 @@ HWTEST_F(SkiaFontMgrTest, LoadThemeFont001, TestSize.Level1)
     ASSERT_TRUE(skiaFontMgr != nullptr);
     skiaFontMgr->LoadThemeFont("0", "none", nullptr, 0);
 }
-#endif
 
 /**
  * @tc.name: MatchFamily001

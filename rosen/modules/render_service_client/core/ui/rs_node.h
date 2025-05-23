@@ -49,6 +49,7 @@
 #include "render/rs_mask.h"
 #include "render/rs_path.h"
 #include "ui_effect/effect/include/background_color_effect_para.h"
+#include "ui_effect/effect/include/hdr_ui_brightness_para.h"
 #include "ui_effect/effect/include/visual_effect.h"
 #include "ui_effect/filter/include/filter.h"
 #include "ui_effect/filter/include/filter_pixel_stretch_para.h"
@@ -1421,6 +1422,13 @@ public:
     void SetSpherizeDegree(float spherizeDegree);
 
     /**
+     * @brief Sets the brightness ratio of HDR UI component.
+     *
+     * @param hdrUIBrightness The HDR UI component brightness ratio.
+     */
+    void SetHDRUIBrightness(float hdrUIBrightness);
+
+    /**
      * @brief Sets the degree of light up effect.
      *
      * @param LightUpEffectDegree The degree of the light up effect to apply.
@@ -1524,6 +1532,7 @@ public:
 
     void MarkNodeSingleFrameComposer(bool isNodeSingleFrameComposer);
 
+    void MarkRepaintBoundary(const std::string& tag);
     void SetGrayScale(float grayScale);
 
     void SetLightIntensity(float lightIntensity);
@@ -1690,6 +1699,12 @@ public:
     {
         return isOnTheTree_;
     }
+
+    float GetTotalAlpha() const
+    {
+        return totalAlpha_;
+    }
+
 protected:
     explicit RSNode(
         bool isRenderServiceNode, bool isTextureExportNode = false, std::shared_ptr<RSUIContext> rsUIContext = nullptr,
@@ -1846,6 +1861,7 @@ private:
     void MarkAllExtendModifierDirty();
     void ResetExtendModifierDirty();
     void SetParticleDrawRegion(std::vector<ParticleParams>& particleParams);
+    void AccumulateAlpha(float &alpha);
 
     /**
      * @brief Clears all modifiers associated with this node.
@@ -1861,10 +1877,14 @@ private:
 
     float globalPositionX_ = 0.f;
     float globalPositionY_ = 0.f;
+    float alpha_ = 1.f;
+    float totalAlpha_ = 1.f;
+    bool visitedForTotalAlpha_ = false;
 
     bool extendModifierIsDirty_ { false };
 
     bool isNodeGroup_ = false;
+    bool isRepaintBoundary_ = false;
 
     bool isNodeSingleFrameComposer_ = false;
 

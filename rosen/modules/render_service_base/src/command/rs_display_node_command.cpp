@@ -74,7 +74,10 @@ void DisplayNodeCommandHelper::SetScreenId(RSContext& context, NodeId id, uint64
     if (auto node = context.GetNodeMap().GetRenderNode<RSDisplayRenderNode>(id)) {
         node->SetScreenId(screenId);
         node->NotifyScreenNotSwitching();
+        return;
     }
+    RS_LOGE("DisplayNodeCommandHelper::%{public}s, displayNode not found, id:[%{public}" PRIu64
+            "], screenId:[%{public}" PRIu64 "]", __func__, id, screenId);
 }
 
 void DisplayNodeCommandHelper::SetRogSize(RSContext& context, NodeId id, uint32_t rogWidth, uint32_t rogHeight)

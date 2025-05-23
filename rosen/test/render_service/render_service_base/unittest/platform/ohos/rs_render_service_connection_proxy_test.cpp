@@ -250,6 +250,47 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, SetVirtualScreenSurface, TestSize.L
 }
 
 /**
+ * @tc.name: SetVirtualScreenBlackList Test
+ * @tc.desc: SetVirtualScreenBlackList Test
+ * @tc.type:FUNC
+ * @tc.require: issue#IC98BX
+ */
+HWTEST_F(RSRenderServiceConnectionProxyTest, SetVirtualScreenBlackList, TestSize.Level1)
+{
+    ScreenId id = 100;
+    std::vector<NodeId> blackListVector({1, 2, 3});
+    EXPECT_EQ(proxy->SetVirtualScreenBlackList(id, blackListVector), 0);
+}
+
+/**
+ * @tc.name: AddVirtualScreenBlackList Test
+ * @tc.desc: AddVirtualScreenBlackList Test
+ * @tc.type:FUNC
+ * @tc.require: issue#IC98BX
+ */
+HWTEST_F(RSRenderServiceConnectionProxyTest, AddVirtualScreenBlackList, TestSize.Level1)
+{
+    ScreenId id = 100;
+    std::vector<NodeId> blackListVector({1, 2, 3});
+    int32_t repCode = 0;
+    EXPECT_EQ(proxy->AddVirtualScreenBlackList(id, blackListVector, repCode), 0);
+}
+
+/**
+ * @tc.name: RemoveVirtualScreenBlackList Test
+ * @tc.desc: RemoveVirtualScreenBlackList Test
+ * @tc.type:FUNC
+ * @tc.require: issue#IC98BX
+ */
+HWTEST_F(RSRenderServiceConnectionProxyTest, RemoveVirtualScreenBlackList, TestSize.Level1)
+{
+    ScreenId id = 100;
+    std::vector<NodeId> blackListVector({1, 2, 3});
+    int32_t repCode = 0;
+    EXPECT_EQ(proxy->RemoveVirtualScreenBlackList(id, blackListVector, repCode), 0);
+}
+
+/**
  * @tc.name: RemoveVirtualScreen Test
  * @tc.desc: RemoveVirtualScreen Test
  * @tc.type:FUNC
@@ -545,6 +586,8 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, TakeSurfaceCapture, TestSize.Level1
     captureConfig.useDma = false;
     captureConfig.captureType = SurfaceCaptureType::UICAPTURE;
     captureConfig.isSync = true;
+    captureConfig.blackList = std::vector<NodeId>{0};
+    ASSERT_FALSE(captureConfig.blackList.empty());
     RSSurfaceCaptureBlurParam blurParam;
     blurParam.isNeedBlur = true;
     blurParam.blurRadius = 10;
@@ -1292,5 +1335,19 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, GetBehindWindowFilterEnabledTest, T
     auto res = connectionProxy->GetBehindWindowFilterEnabled(enabled);
     EXPECT_EQ(res, ERR_OK);
 }
+
+/**
+ * @tc.name: NotifyScreenSwitched
+ * @tc.desc: Test NotifyScreenSwitched
+ * @tc.type: FUNC
+ * @tc.require: issueIC9IVH
+ */
+HWTEST_F(RSRenderServiceConnectionProxyTest, NotifyScreenSwitched, TestSize.Level1)
+{
+
+    int32_t res = proxy->NotifyScreenSwitched();
+    ASSERT_EQ(res, ERR_INVALID_VALUE);
+}
+
 } // namespace Rosen
 } // namespace OHOS

@@ -28,10 +28,8 @@ RSSurfaceCaptureCallbackProxy::RSSurfaceCaptureCallbackProxy(const sptr<IRemoteO
 bool RSSurfaceCaptureCallbackProxy::WriteSurfaceCaptureConfig(
     const RSSurfaceCaptureConfig& captureConfig, MessageParcel& data)
 {
-    if (!data.WriteFloat(captureConfig.scaleX) || !data.WriteFloat(captureConfig.scaleY) ||
-        !data.WriteBool(captureConfig.useDma) || !data.WriteBool(captureConfig.useCurWindow) ||
-        !data.WriteUint8(static_cast<uint8_t>(captureConfig.captureType)) || !data.WriteBool(captureConfig.isSync) ||
-        !data.WriteFloat(captureConfig.mainScreenRect.left_) ||
+    // send mainScreenRect only to reduce ipc data size
+    if (!data.WriteFloat(captureConfig.mainScreenRect.left_) ||
         !data.WriteFloat(captureConfig.mainScreenRect.top_) ||
         !data.WriteFloat(captureConfig.mainScreenRect.right_) ||
         !data.WriteFloat(captureConfig.mainScreenRect.bottom_)) {

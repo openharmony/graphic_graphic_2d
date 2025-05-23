@@ -15,6 +15,7 @@
 
 #include "gtest/gtest.h"
 
+#include "graphic_feature_param_manager.h"
 #include "params/rs_surface_render_params.h"
 #include "pipeline/hardware_thread/rs_hardware_thread.h"
 #include "pipeline/render_thread/rs_base_render_engine.h"
@@ -493,6 +494,23 @@ HWTEST_F(RSUniRenderThreadTest, WaitUntilDisplayNodeBufferReleased001, TestSize.
     displayNodeDrawable->surfaceCreated_ = true;
     res = instance.WaitUntilDisplayNodeBufferReleased(*displayNodeDrawable);
     EXPECT_TRUE(res);
+}
+
+/**
+ * @tc.name: PerfForBlurIfNeededTest
+ * @tc.desc: Test PerfForBlurIfNeeded
+ * @tc.type: FUNC
+ * @tc.require: issueIAE59W
+ */
+HWTEST_F(RSUniRenderThreadTest, PerfForBlurIfNeededTest, TestSize.Level1)
+{
+    auto& managerInstance = GraphicFeatureParamManager::GetInstance();
+    managerInstance.Init();
+    ASSERT_NE(managerInstance.featureParamMap_.size(), 0);
+    RSUniRenderThread& instance = RSUniRenderThread::Instance();
+    auto renderThreadParams = std::make_unique<RSRenderThreadParams>();
+    instance.Sync(move(renderThreadParams));
+    instance.PerfForBlurIfNeeded();
 }
 
 /**

@@ -28,7 +28,6 @@ std::shared_ptr<FontMgr> FontMgr::CreateDefaultFontMgr()
     return std::make_shared<FontMgr>(ImplFactory::CreateDefaultFontMgrImpl());
 }
 
-#ifndef USE_TEXGINE
 std::shared_ptr<FontMgr> FontMgr::CreateDynamicFontMgr()
 {
     return std::make_shared<FontMgr>(ImplFactory::CreateDynamicFontMgrImpl());
@@ -58,7 +57,6 @@ void FontMgr::LoadThemeFont(const std::string& themeName, std::shared_ptr<Typefa
     }
     return;
 }
-#endif
 
 Typeface* FontMgr::MatchFamilyStyleCharacter(const char familyName[], const FontStyle& fontStyle,
                                              const char* bcp47[], int bcp47Count,

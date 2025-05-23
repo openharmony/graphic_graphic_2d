@@ -46,7 +46,11 @@ void RSEdgeLightShaderFilter::GenerateGEVisualEffect(
     if (visualEffectContainer == nullptr) {
         return;
     }
-    Vector4f color = color_.value();
+    
+    Vector4f color;
+    if (color_.has_value()) {
+        color = color_.value();
+    }
 
     auto edgeLightShaderFilter = std::make_shared<Drawing::GEVisualEffect>(
         Drawing::GE_FILTER_EDGE_LIGHT, Drawing::DrawingPaintType::BRUSH);

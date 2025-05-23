@@ -188,7 +188,6 @@ private:
     bool CheckLuminanceStatusChange(ScreenId id);
     bool CheckSkipCrossNode(RSSurfaceRenderNode& node);
     bool CheckSkipAndPrepareForCrossNode(RSSurfaceRenderNode& node);
-    bool IsFirstFrameOfPartialRender() const;
     bool IsFirstFrameOfOverdrawSwitch() const;
     bool IsFirstFrameOfDrawingCacheDfxSwitch() const;
     bool IsAccessibilityConfigChanged() const;
@@ -409,6 +408,7 @@ private:
     bool hasDisplayHdrOn_ = false;
     std::vector<NodeId> hasVisitedCrossNodeIds_;
     bool isDirtyRegionDfxEnabled_ = false; // dirtyRegion DFX visualization
+    bool isMergedDirtyRegionDfxEnabled_ = false;
     bool isTargetDirtyRegionDfxEnabled_ = false;
     bool isOpaqueRegionDfxEnabled_ = false;
     bool isVisibleRegionDfxEnabled_ = false;
@@ -465,7 +465,7 @@ private:
     // used in uifirst for checking whether leashwindow or its parent should paint or not
     bool globalShouldPaint_ = true;
 
-    int32_t rsDisplayNodeChildNum_ = 0;
+    uint32_t rsDisplayNodeChildNum_ = 0;
 
     int32_t appWindowZOrder_ = 0;
 

@@ -342,16 +342,6 @@ public:
 
     bool IsRequestedNextVSync();
 
-    bool GetNextDVsyncAnimateFlag() const
-    {
-        return needRequestNextVsyncAnimate_;
-    }
-
-    bool IsFirstFrameOfPartialRender() const
-    {
-        return isFirstFrameOfPartialRender_;
-    }
-
     bool IsOcclusionNodesNeedSync(NodeId id, bool useCurWindow);
 
     void CallbackDrawContextStatusToWMS(bool isUniRender = false);
@@ -433,7 +423,7 @@ public:
     void InitVulkanErrorCallback(Drawing::GPUContext* gpuContext);
     void NotifyUnmarshalTask(int64_t uiTimestamp);
     void NotifyPackageEvent(const std::vector<std::string>& packageList);
-    void NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt);
+    void HandleTouchEvent(int32_t touchStatus, int32_t touchCnt);
     void SetBufferInfo(uint64_t id, const std::string &name, uint32_t queueSize,
         int32_t bufferCount, int64_t lastConsumeTime);
     void GetFrontBufferDesiredPresentTimeStamp(
@@ -616,7 +606,6 @@ private:
     bool isDrawingCacheDfxEnabledOfCurFrame_ = false;
     bool isDrawingCacheDfxEnabledOfLastFrame_ = false;
     // for dvsync (animate requestNextVSync after mark rsnotrendering)
-    bool needRequestNextVsyncAnimate_ = false;
     bool forceUIFirstChanged_ = false;
     bool lastFrameUIExtensionDataEmpty_ = false;
     // overDraw
@@ -627,9 +616,6 @@ private:
 #endif
     bool isCurtainScreenOn_ = false;
     // partial render
-    bool isFirstFrameOfPartialRender_ = false;
-    bool isPartialRenderEnabledOfLastFrame_ = false;
-    bool isRegionDebugEnabledOfLastFrame_ = false;
     bool isForceRefresh_ = false;
     // record multidisplay status change
     bool isMultiDisplayPre_ = false;

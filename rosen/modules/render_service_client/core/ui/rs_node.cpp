@@ -19,6 +19,7 @@
 #include <memory>
 #include <sstream>
 #include <string>
+#include <vector>
 
 #include "rs_trace.h"
 #include "sandbox_utils.h"
@@ -57,6 +58,7 @@
 #include "ui/rs_surface_node.h"
 #include "ui/rs_ui_context.h"
 #include "ui/rs_ui_director.h"
+#include "ui/rs_ui_patten_vec.h"
 #include "ui_effect/property/include/rs_ui_color_gradient_filter.h"
 #include "ui_effect/mask/include/ripple_mask_para.h"
 #include "ui_effect/property/include/rs_ui_filter.h"
@@ -153,6 +155,9 @@ RSNode::~RSNode()
     ClearAllModifiers();
 #ifdef RS_ENABLE_VK
     RSModifiersDraw::EraseOffTreeNode(instanceId_, id_);
+    if (RSSystemProperties::GetHybridRenderEnabled()) {
+        RSModifiersDraw::EraseDrawRegions(id_);
+    }
 #endif
 
     // break current (ui) parent-child relationship.
@@ -303,6 +308,7 @@ void RSNode::SetFrameNodeInfo(int32_t id, std::string tag)
 {
     frameNodeId_ = id;
     frameNodeTag_ = tag;
+    MarkRepaintBoundary(tag);
 }
 
 int32_t RSNode::GetFrameNodeId()
@@ -891,6 +897,7 @@ void RSNode::SetProperty(RSModifierType modifierType, T value)
 // alpha
 void RSNode::SetAlpha(float alpha)
 {
+    alpha_ = alpha;
     SetProperty<RSAlphaModifier, RSAnimatableProperty<float>>(RSModifierType::ALPHA, alpha);
     if (alpha < 1) {
         SetDrawNode();
@@ -2043,15 +2050,31 @@ void RSNode::SetForegroundUIFilter(const std::shared_ptr<RSUIFilter> foregroundF
     }
 }
 
+void RSNode::SetHDRUIBrightness(float hdrUIBrightness)
+{
+    SetProperty<RSHDRUIBrightnessModifier, RSAnimatableProperty<float>>(
+        RSModifierType::HDR_UI_BRIGHTNESS, hdrUIBrightness);
+}
+
 void RSNode::SetVisualEffect(const VisualEffect* visualEffect)
 {
     if (visualEffect == nullptr) {
         ROSEN_LOGE("Failed to set visualEffect, visualEffect is null!");
         return;
     }
-    // To do: generate composed visual effect here. Now we just set background brightness in v1.0.
+    // To do: generate composed visual effect here. Now we just set background and HDR UI brightness in v2.0.
     auto visualEffectParas = visualEffect->GetAllPara();
     for (const auto& visualEffectPara : visualEffectParas) {
+        if (visualEffectPara == nullptr) {
+            continue;
+        }
+        if (visualEffectPara->GetParaType() == VisualEffectPara::HDR_UI_BRIGHTNESS) {
+            auto hdrUIBrightnessPara = std::static_pointer_cast<HDRUIBrightnessPara>(visualEffectPara);
+            if (hdrUIBrightnessPara) {
+                SetHDRUIBrightness(hdrUIBrightnessPara->GetHDRUIBrightness());
+            }
+            continue;
+        }
         if (visualEffectPara->GetParaType() != VisualEffectPara::BACKGROUND_COLOR_EFFECT) {
             continue;
         }
@@ -2991,6 +3014,11 @@ void RSNode::SetDrawRegion(std::shared_ptr<RectF> rect)
         drawRegion_ = rect;
         std::unique_ptr<RSCommand> command = std::make_unique<RSSetDrawRegion>(GetId(), rect);
         AddCommand(command, IsRenderServiceNode(), GetFollowType(), GetId());
+#ifdef RS_ENABLE_VK
+        if (RSSystemProperties::GetHybridRenderEnabled() && !drawRegion_->IsEmpty()) {
+            RSModifiersDraw::AddDrawRegions(id_, drawRegion_);
+        }
+#endif
     }
 }
 
@@ -3018,7 +3046,8 @@ void RSNode::RegisterTransitionPair(const std::shared_ptr<RSUIContext> rsUIConte
     const bool isInSameWindow)
 {
     if (rsUIContext == nullptr) {
-        ROSEN_LOGE("RSNode::RegisterTransitionPair, rsUIContext is nullptr");
+        ROSEN_LOGD("RSNode::RegisterTransitionPair, rsUIContext is nullptr");
+        RegisterTransitionPair(inNodeId, outNodeId, isInSameWindow);
         return;
     }
     std::unique_ptr<RSCommand> command = std::make_unique<RSRegisterGeometryTransitionNodePair>(inNodeId, outNodeId,
@@ -3032,7 +3061,8 @@ void RSNode::RegisterTransitionPair(const std::shared_ptr<RSUIContext> rsUIConte
 void RSNode::UnregisterTransitionPair(const std::shared_ptr<RSUIContext> rsUIContext, NodeId inNodeId, NodeId outNodeId)
 {
     if (rsUIContext == nullptr) {
-        ROSEN_LOGE("RSNode::UnregisterTransitionPair, rsUIContext is nullptr");
+        ROSEN_LOGD("RSNode::UnregisterTransitionPair, rsUIContext is nullptr");
+        UnregisterTransitionPair(inNodeId, outNodeId);
         return;
     }
     std::unique_ptr<RSCommand> command = std::make_unique<RSUnregisterGeometryTransitionNodePair>(inNodeId, outNodeId);
@@ -3071,6 +3101,20 @@ void RSNode::MarkNodeSingleFrameComposer(bool isNodeSingleFrameComposer)
         std::unique_ptr<RSCommand> command =
             std::make_unique<RSMarkNodeSingleFrameComposer>(GetId(), isNodeSingleFrameComposer, GetRealPid());
         AddCommand(command, IsRenderServiceNode());
+    }
+}
+
+void RSNode::MarkRepaintBoundary(const std::string& tag)
+{
+    bool isRepaintBoundary = CheckRbPatten(tag);
+    if (isRepaintBoundary_ == isRepaintBoundary) {
+        return;
+    }
+    isRepaintBoundary_ = isRepaintBoundary;
+    std::unique_ptr<RSCommand> command = std::make_unique<RSMarkRepaintBoundary>(id_, isRepaintBoundary_);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, IsRenderServiceNode());
     }
 }
 
@@ -3362,6 +3406,7 @@ void RSNode::SetIsOnTheTree(bool flag)
         if (childPtr == nullptr) {
             continue;
         }
+        childPtr->totalAlpha_ = childPtr->alpha_ * totalAlpha_;
         childPtr->SetIsOnTheTree(flag);
     }
 }
@@ -3414,6 +3459,10 @@ void RSNode::AddChild(SharedPtr child, int index)
             id_, childId, surfaceNode->GetName().c_str());
         RS_TRACE_NAME_FMT("RSNode::AddChild, Id: %" PRIu64 ", SurfaceNode:[Id: %" PRIu64 ", name: %s]",
             id_, childId, surfaceNode->GetName().c_str());
+    }
+    totalAlpha_ = alpha_;
+    if (isOnTheTree_) {
+        AccumulateAlpha(totalAlpha_);
     }
     child->SetIsOnTheTree(isOnTheTree_);
 }
@@ -3695,6 +3744,21 @@ void RSNode::SetParent(WeakPtr parent)
     parent_ = parent;
 }
 
+void RSNode::AccumulateAlpha(float& alpha)
+{
+    // avoid loop
+    if (visitedForTotalAlpha_) {
+        RS_LOGE("RSNode::AccumulateAlpha: %{public}" PRIu64 "has loop tree", GetId());
+        return;
+    }
+    visitedForTotalAlpha_ = true;
+    alpha *= alpha_;
+    if (auto parent = GetParent()) {
+        parent->AccumulateAlpha(totalAlpha_);
+    }
+    visitedForTotalAlpha_ = false;
+}
+
 RSNode::SharedPtr RSNode::GetParent()
 {
     return parent_.lock();
@@ -3729,6 +3793,8 @@ void RSNode::Dump(std::string& out) const
     } else if (!nodeName_.empty()) {
         out += "], nodeName[" + nodeName_;
     }
+    out += "], alpha[" + std::to_string(alpha_);
+    out += "], totalAlpha[" + std::to_string(totalAlpha_);
     out += "], frameNodeId[" + std::to_string(frameNodeId_);
     out += "], frameNodeTag[" + frameNodeTag_;
     out += "], extendModifierIsDirty[";

@@ -54,7 +54,6 @@ public:
     virtual std::shared_ptr<Canvas> GetCanvas() const = 0;
     virtual std::shared_ptr<Image> GetImageSnapshot() const = 0;
     virtual std::shared_ptr<Image> GetImageSnapshot(const RectI& bounds, bool allowRefCache = true) const = 0;
-    virtual void SetParallelRender(bool parallelEnable) = 0;
     virtual std::shared_ptr<Surface> MakeSurface(int width, int height) const = 0;
     virtual std::shared_ptr<Surface> MakeSurface(const ImageInfo& imageInfo) const = 0;
     virtual BackendTexture GetBackendTexture(BackendAccess access) const = 0;

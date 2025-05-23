@@ -3135,13 +3135,16 @@ HWTEST_F(RSPropertiesTest, GenerateColorFilter002, TestSize.Level1)
  * @tc.name: GenerateDisplacementDistortFilter001
  * @tc.desc: test results of GenerateDisplacementDistortFilter
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSPropertiesTest, GenerateDisplacementDistortFilter001, TestSize.Level1)
 {
     RSProperties properties;
     properties.GenerateDisplacementDistortFilter();
-    EXPECT_NE(properties.backgroundFilter_, nullptr);
+    EXPECT_EQ(properties.backgroundFilter_, nullptr);
+    properties.backgroundRenderFilter_ = std::make_shared<RSRenderFilter>();
+    properties.GenerateDisplacementDistortFilter();
+    EXPECT_EQ(properties.backgroundFilter_, nullptr);
 }
 
 /**
@@ -3295,6 +3298,20 @@ HWTEST_F(RSPropertiesTest, GetPixelStretchTileMode001, TestSize.Level1)
     properties.SetPixelStretchTileMode(static_cast<int>(Drawing::TileMode::DECAL));
     mode = properties.GetPixelStretchTileMode();
     ASSERT_EQ(static_cast<int>(Drawing::TileMode::DECAL), mode);
+}
+
+/**
+ * @tc.name: SetLocalMagnificationCap001
+ * @tc.desc: test results of SetLocalMagnificationCap
+ * @tc.type: FUNC
+ * @tc.require: issueI9QKVM
+ */
+HWTEST_F(RSPropertiesTest, SetLocalMagnificationCap001, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.SetLocalMagnificationCap(true);
+    EXPECT_EQ(properties.localMagnificationCap_, true);
+    EXPECT_EQ(properties.filterNeedUpdate_, true);
 }
 
 /**

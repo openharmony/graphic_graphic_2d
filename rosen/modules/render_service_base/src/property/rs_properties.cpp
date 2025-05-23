@@ -25,6 +25,7 @@
 #include "render/rs_mesa_blur_shader_filter.h"
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_vector4.h"
+#include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
@@ -38,6 +39,7 @@
 #include "render/rs_filter.h"
 #include "render/rs_foreground_effect_filter.h"
 #include "render/rs_grey_shader_filter.h"
+#include "render/rs_hdr_ui_brightness_filter.h"
 #include "render/rs_kawase_blur_shader_filter.h"
 #include "render/rs_material_filter.h"
 #include "render/rs_light_blur_shader_filter.h"
@@ -284,8 +286,10 @@ static const std::unordered_map<RSModifierType, ResetPropertyFunc> g_propertyRes
                                                                 prop->SetComplexShaderParam({}); }},
     { RSModifierType::BACKGROUND_UI_FILTER,                 [](RSProperties* prop) {
                                                                 prop->SetBackgroundUIFilter({}); }},
+    { RSModifierType::HDR_UI_BRIGHTNESS,                    [](RSProperties* prop) {
+                                                                prop->SetHDRUIBrightness(1.0f); }},
     { RSModifierType::FOREGROUND_UI_FILTER,                 [](RSProperties* prop) {
-                                                                prop->SetForegroundUIFilter({}); }},
+                                                                prop->SetForegroundUIFilter({}); }},                                                                
 };
 
 } // namespace
@@ -1034,6 +1038,14 @@ void RSProperties::SetAlphaOffscreen(bool alphaOffscreen)
 bool RSProperties::GetAlphaOffscreen() const
 {
     return alphaOffscreen_;
+}
+
+void RSProperties::SetLocalMagnificationCap(bool localMagnificationCap)
+{
+    localMagnificationCap_ = localMagnificationCap;
+    if (localMagnificationCap_) {
+        filterNeedUpdate_ = true;
+    }
 }
 
 void RSProperties::SetSublayerTransform(const std::optional<Matrix3f>& sublayerTransform)
@@ -2571,6 +2583,43 @@ void RSProperties::SetForegroundUIFilter(const std::shared_ptr<RSRenderFilter>& 
 std::shared_ptr<RSRenderFilter> RSProperties::GetForegroundUIFilter() const
 {
     return foregroundRenderFilter_;
+}
+
+void RSProperties::SetHDRUIBrightness(float hdrUIBrightness)
+{
+    if (auto node = RSBaseRenderNode::ReinterpretCast<RSCanvasRenderNode>(backref_.lock())) {
+        bool oldHDRUIStatus = IsHDRUIBrightnessValid();
+        bool newHDRUIStatus = ROSEN_GNE(hdrUIBrightness, 1.0f);
+        if ((oldHDRUIStatus != newHDRUIStatus) && node->IsOnTheTree()) {
+            node->SetHdrNum(newHDRUIStatus, node->GetInstanceRootNodeId(), HDRComponentType::UICOMPONENT);
+        }
+    }
+    hdrUIBrightness_ = hdrUIBrightness;
+    if (IsHDRUIBrightnessValid()) {
+        isDrawn_ = true;
+    }
+    filterNeedUpdate_ = true;
+    SetDirty();
+}
+
+float RSProperties::GetHDRUIBrightness() const
+{
+    return hdrUIBrightness_;
+}
+
+bool RSProperties::IsHDRUIBrightnessValid() const
+{
+    return ROSEN_GNE(GetHDRUIBrightness(), 1.0f);
+}
+
+void RSProperties::CreateHDRUIBrightnessFilter()
+{
+    auto hdrUIBrightnessFilter = std::make_shared<RSHDRUIBrightnessFilter>(hdrUIBrightness_);
+    if (IS_UNI_RENDER) {
+        foregroundFilterCache_ = hdrUIBrightnessFilter;
+    } else {
+        foregroundFilter_ = hdrUIBrightnessFilter;
+    }
 }
 
 void RSProperties::SetSpherize(float spherizeDegree)
@@ -4990,12 +5039,12 @@ void RSProperties::UpdateFilter()
                   IsDynamicDimValid() || GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE ||
                   foregroundFilter_ != nullptr || IsFgBrightnessValid() || IsBgBrightnessValid() ||
                   foregroundFilterCache_ != nullptr || IsWaterRippleValid() || needDrawBehindWindow_ ||
-                  mask_ || colorFilter_ != nullptr;
+                  mask_ || colorFilter_ != nullptr || localMagnificationCap_;
 
     needHwcFilter_ = backgroundFilter_ != nullptr || filter_ != nullptr || IsLightUpEffectValid() ||
                      IsDynamicLightUpValid() || linearGradientBlurPara_ != nullptr ||
                      IsDynamicDimValid() || IsFgBrightnessValid() || IsBgBrightnessValid() || IsWaterRippleValid() ||
-                     needDrawBehindWindow_ || colorFilter_ != nullptr;
+                     needDrawBehindWindow_ || colorFilter_ != nullptr || localMagnificationCap_;
 }
 
 void RSProperties::UpdateForegroundFilter()
@@ -5026,6 +5075,8 @@ void RSProperties::UpdateForegroundFilter()
         CreateColorfulShadowFilter();
     } else if (IsDistortionKValid()) {
         foregroundFilter_ = std::make_shared<RSDistortionFilter>(*distortionK_);
+    } else if (IsHDRUIBrightnessValid()) {
+        CreateHDRUIBrightnessFilter();
     } else if (foregroundRenderFilter_) {
         GenerateForegroundRenderFilter();
     }

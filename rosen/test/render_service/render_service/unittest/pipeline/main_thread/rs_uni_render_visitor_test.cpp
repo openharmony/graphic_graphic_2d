@@ -943,12 +943,48 @@ HWTEST_F(RSUniRenderVisitorTest, CollectTopOcclusionSurfacesInfo003, TestSize.Le
     config.nodeType = RSSurfaceNodeType::LEASH_WINDOW_NODE;
     auto parentSurfaceNode2 = std::make_shared<RSSurfaceRenderNode>(config);
     surfaceNode2->SetParent(parentSurfaceNode2);
+    // Applications with sidebar blur have both opaque areas and transparent blur areas
+    surfaceNode->GetOpaqueRegion() = defaultRegion;
     rsUniRenderVisitor->transparentCleanFilter_[surfaceNode2->GetId()].emplace_back(
         surfaceNode2->GetId(), RectI(0, 0, defaultRegionSize, defaultRegionSize));
 
     rsUniRenderVisitor->CollectTopOcclusionSurfacesInfo(*surfaceNode2, false);
     EXPECT_EQ(parentSurfaceNode2->stencilVal_, (TOP_OCCLUSION_SURFACES_NUM - 1) * OCCLUSION_ENABLE_SCENE_NUM + 1);
     EXPECT_EQ(rsUniRenderVisitor->occlusionSurfaceOrder_, DEFAULT_OCCLUSION_SURFACE_ORDER);
+}
+
+/**
+ * @tc.name: CollectTopOcclusionSurfacesInfo004
+ * @tc.desc: test CollectTopOcclusionSurfacesInfo with first level cross node 
+ * @tc.type:FUNC
+ * @tc.require:issuesIC88GA
+ */
+HWTEST_F(RSUniRenderVisitorTest, CollectTopOcclusionSurfacesInfo004, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    NodeId id = 0;
+    RSDisplayNodeConfig displayConfig;
+    rsUniRenderVisitor->curDisplayNode_ = std::make_shared<RSDisplayRenderNode>(id, displayConfig);
+    rsUniRenderVisitor->isStencilPixelOcclusionCullingEnabled_ = true;
+    rsUniRenderVisitor->occlusionSurfaceOrder_ = TOP_OCCLUSION_SURFACES_NUM;
+    constexpr int defaultRegionSize{100};
+    Occlusion::Region defaultRegion(Occlusion::Rect(0, 0, defaultRegionSize, defaultRegionSize));
+
+    RSSurfaceRenderNodeConfig config;
+    ++id;
+    config.id = id;
+    config.nodeType = RSSurfaceNodeType::APP_WINDOW_NODE;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(config);
+    ++id;
+    config.id = id;
+    config.nodeType = RSSurfaceNodeType::LEASH_WINDOW_NODE;
+    auto parentSurfaceNode = std::make_shared<RSSurfaceRenderNode>(config);
+    surfaceNode->SetParent(parentSurfaceNode);
+    surfaceNode->GetOpaqueRegion() = defaultRegion;
+    surfaceNode->SetFirstLevelCrossNode(true);
+
+    rsUniRenderVisitor->CollectTopOcclusionSurfacesInfo(*surfaceNode, true);
+    EXPECT_EQ(parentSurfaceNode->stencilVal_, DEFAULT_OCCLUSION_SURFACE_ORDER);
 }
 
 /*
@@ -1029,7 +1065,7 @@ HWTEST_F(RSUniRenderVisitorTest, CheckPixelFormat, TestSize.Level1)
     rsSurfaceRenderNode->hasFingerprint_ = false;
     rsUniRenderVisitor->hasFingerprint_[1] = false;
     rsUniRenderVisitor->CheckPixelFormat(*rsSurfaceRenderNode);
-    rsSurfaceRenderNode->hdrNum_ = 1;
+    rsSurfaceRenderNode->hdrPhotoNum_ = 1;
     ASSERT_EQ(rsSurfaceRenderNode->IsContentDirty(), false);
     rsUniRenderVisitor->curDisplayNode_->isLuminanceStatusChange_ = true;
     rsUniRenderVisitor->CheckPixelFormat(*rsSurfaceRenderNode);
@@ -3948,6 +3984,30 @@ HWTEST_F(RSUniRenderVisitorTest, QuickPrepareDisplayRenderNode001, TestSize.Leve
 }
 
 /**
+ * @tc.name: QuickPrepareDisplayRenderNode002
+ * @tc.desc: Test QuickPrepareDisplayRenderNode with display node dirtyFlag_ = true
+ * @tc.type: FUNC
+ * @tc.require: issuesIC9MUF
+ */
+HWTEST_F(RSUniRenderVisitorTest, QuickPrepareDisplayRenderNode002, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    ASSERT_NE(rsContext, nullptr);
+    RSDisplayNodeConfig displayConfig;
+    auto rsDisplayRenderNode = std::make_shared<RSDisplayRenderNode>(11, displayConfig, rsContext->weak_from_this());
+    ASSERT_NE(rsDisplayRenderNode, nullptr);
+    rsDisplayRenderNode->dirtyManager_ = std::make_shared<RSDirtyRegionManager>();
+    ASSERT_NE(rsDisplayRenderNode->dirtyManager_, nullptr);
+    rsDisplayRenderNode->GetMutableRenderProperties().boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->curDisplayNode_ = rsDisplayRenderNode;
+    rsUniRenderVisitor->dirtyFlag_ = true;
+    rsUniRenderVisitor->QuickPrepareDisplayRenderNode(*rsDisplayRenderNode);
+}
+
+/**
  * @tc.name: CheckFilterCacheNeedForceClearOrSave001
  * @tc.desc: Test CheckFilterCacheNeedForceClearOrSave with multi-RSRenderNode
  * @tc.type: FUNC
@@ -4106,8 +4166,17 @@ HWTEST_F(RSUniRenderVisitorTest, QuickPrepareCanvasRenderNode001, TestSize.Level
     ASSERT_NE(rsUniRenderVisitor, nullptr);
     rsUniRenderVisitor->QuickPrepareCanvasRenderNode(*rsCanvasRenderNode);
 
+    rsCanvasRenderNode->GetOpincCache().isReseted_ = true;
+    rsCanvasRenderNode->isOpincNodeSupportFlag_ = false;
     rsUniRenderVisitor->isDrawingCacheEnabled_ = true;
     rsUniRenderVisitor->QuickPrepareCanvasRenderNode(*rsCanvasRenderNode);
+    ASSERT_TRUE(rsCanvasRenderNode->isOpincNodeSupportFlag_);
+
+    rsCanvasRenderNode->GetOpincCache().isReseted_ = false;
+    rsCanvasRenderNode->isOpincNodeSupportFlag_ = false;
+    rsUniRenderVisitor->isDrawingCacheEnabled_ = true;
+    rsUniRenderVisitor->QuickPrepareCanvasRenderNode(*rsCanvasRenderNode);
+    ASSERT_FALSE(rsCanvasRenderNode->isOpincNodeSupportFlag_);
 }
 
 /**
@@ -4286,6 +4355,35 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeInfoForAppNode002, TestSize.Level2
     rsSurfaceRenderNode->dynamicHardwareEnable_ = true;
     ASSERT_NE(rsSurfaceRenderNode->renderContent_, nullptr);
     rsSurfaceRenderNode->renderContent_->renderProperties_.boundsGeo_ = nullptr;
+    rsUniRenderVisitor->UpdateHwcNodeInfoForAppNode(*rsSurfaceRenderNode);
+}
+
+/**
+ * @tc.name: UpdateHwcNodeInfoForAppNode003
+ * @tc.desc: Test UpdateHwcNodeInfoForAppNode with multi-params
+ * @tc.type: FUNC
+ * @tc.require: issueIASE3Z
+ */
+HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeInfoForAppNode003, TestSize.Level2)
+{
+    auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(rsSurfaceRenderNode, nullptr);
+    rsSurfaceRenderNode->needCollectHwcNode_ = true;
+    rsSurfaceRenderNode->isHardwareEnabledNode_ = true;
+    rsSurfaceRenderNode->isFixRotationByUser_ = false;
+    rsSurfaceRenderNode->nodeType_ = RSSurfaceNodeType::SELF_DRAWING_NODE;
+    NodeId surfaceNodeId = 1;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceNodeId);
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->needCollectHwcNode_ = true;
+    surfaceNode->visibleRegion_.Reset();
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->curSurfaceNode_ = surfaceNode;
+
+    rsSurfaceRenderNode->HwcSurfaceRecorder().SetIntersectWithPreviousFilter(true);
+    rsUniRenderVisitor->hwcVisitor_->isHardwareForcedDisabled_ = true;
     rsUniRenderVisitor->UpdateHwcNodeInfoForAppNode(*rsSurfaceRenderNode);
 }
 
@@ -4482,7 +4580,7 @@ HWTEST_F(RSUniRenderVisitorTest, MarkBlurIntersectWithDRM002, TestSize.Level2)
 
     // let drm intersect with blur
     surfaceNode->filterRegion_ = RectT(0, 0, 1, 1);
-    drmNode->dstRect_ = RectT(0, 0, 1, 1);
+    drmNode->GetRenderProperties().GetBoundsGeometry()->absRect_ = RectT(0, 0, 1, 1);
 
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
