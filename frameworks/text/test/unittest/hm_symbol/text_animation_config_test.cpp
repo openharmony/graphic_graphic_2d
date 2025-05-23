@@ -16,18 +16,18 @@
 #include "gtest/gtest.h"
 #include "rosen_text/text_style.h"
 #include "convert.h"
-#include "symbol_engine/text_effect.h"
+#include "symbol_engine/text_animation_config.h"
 
 using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
-class OHTextEffectTest : public testing::Test {
+class OHTextAnimationConfigTest : public testing::Test {
 public:
     static bool SetSymbolAnimation(const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig);
 };
 
-bool OHTextEffectTest::SetSymbolAnimation(
+bool OHTextAnimationConfigTest::SetSymbolAnimation(
     const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig)
 {
     if (symbolAnimationConfig == nullptr) {
@@ -41,10 +41,10 @@ bool OHTextEffectTest::SetSymbolAnimation(
 
 /*
  * @tc.name: DrawTextEffect001
- * @tc.desc: test for DrawTextEffect
+ * @tc.desc: test for DrawTextEffect witch canvas is nullptr and no parametor
  * @tc.type: FUNC
  */
-HWTEST_F(OHTextEffectTest, DrawTextEffect001, TestSize.Level1)
+HWTEST_F(OHTextAnimationConfigTest, DrawTextEffect001, TestSize.Level1)
 {
     // init data
     std::shared_ptr<RSCanvas> rsCanvas = std::make_shared<RSCanvas>();
@@ -55,7 +55,7 @@ HWTEST_F(OHTextEffectTest, DrawTextEffect001, TestSize.Level1)
     TextEngine::TextEffectElement effectElement;
     effectElement.path = path;
     effectElement.offset = offset;
-    SPText::TextEffect textEffect;
+    SPText::TextAnimationConfig textEffect;
     textEffect.SetUniqueId(19); // set UniqueId as 19
     std::vector<TextEngine::TextEffectElement> effectElements;
 
@@ -85,10 +85,10 @@ HWTEST_F(OHTextEffectTest, DrawTextEffect001, TestSize.Level1)
 
 /*
  * @tc.name: DrawTextEffect002
- * @tc.desc: test for DrawTextEffect
+ * @tc.desc: Test for DrawTextEffect by animation config
  * @tc.type: FUNC
  */
-HWTEST_F(OHTextEffectTest, DrawTextEffect002, TestSize.Level1)
+HWTEST_F(OHTextAnimationConfigTest, DrawTextEffect002, TestSize.Level1)
 {
     // init data
     std::shared_ptr<RSCanvas> rsCanvas = std::make_shared<RSCanvas>();
@@ -99,7 +99,7 @@ HWTEST_F(OHTextEffectTest, DrawTextEffect002, TestSize.Level1)
     TextEngine::TextEffectElement effectElement;
     effectElement.path = path;
     effectElement.offset = offset;
-    SPText::TextEffect textEffect;
+    SPText::TextAnimationConfig textEffect;
     std::vector<TextEngine::TextEffectElement> effectElements;
     effectElements.push_back(effectElement);
     std::vector<std::vector<Drawing::DrawingPiecewiseParameter>> parameters;
@@ -129,13 +129,13 @@ HWTEST_F(OHTextEffectTest, DrawTextEffect002, TestSize.Level1)
 
 /*
  * @tc.name: SetColor
- * @tc.desc: test for DrawTextEffect
+ * @tc.desc: Test whether the color was set successfully
  * @tc.type: FUNC
  */
-HWTEST_F(OHTextEffectTest, SetColor, TestSize.Level1)
+HWTEST_F(OHTextAnimationConfigTest, SetColor, TestSize.Level1)
 {
     // init data
-    SPText::TextEffect textEffect;
+    SPText::TextAnimationConfig textEffect;
     RSColor color = RSColor(255, 0, 255, 255); // set color r 255, g 0, b 255, a 255
    
     // test setColor

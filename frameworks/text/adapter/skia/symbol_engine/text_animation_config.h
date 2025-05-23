@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef SYMBOL_ENGINE_TEXT_EFFECT_H
-#define SYMBOL_ENGINE_TEXT_EFFECT_H
+#ifndef SYMBOL_ENGINE_TEXT_ANIMATION_CONFIG_H
+#define SYMBOL_ENGINE_TEXT_ANIMATION_CONFIG_H
 
 #include <iostream>
 #include <string>
@@ -25,11 +25,11 @@
 #include "rosen_text/symbol_animation_config.h"
 
 namespace OHOS::Rosen::SPText {
-class TextEffect {
+class TextAnimationConfig {
 public:
-    ~TextEffect() {};
+    ~TextAnimationConfig() {};
 
-    TextEffect() {};
+    TextAnimationConfig() {};
 
     void SetUniqueId(uint64_t uniqueId);
 
