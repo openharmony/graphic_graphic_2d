@@ -1401,7 +1401,7 @@ void RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(GraphicTransformType tr
             std::swap(localBounds.width_, localBounds.height_);
         }
     } else {
-        RS_OPTIONAL_TRACE_NAME_FMT("RSBaseRenderUtil::DealWithSurfaceRotationAndGravity old version");
+        RS_OPTIONAL_TRACE_NAME("RSBaseRenderUtil::DealWithSurfaceRotationAndGravity old version");
         params.matrix.PreConcat(RSBaseRenderUtil::GetSurfaceTransformMatrixForRotationFixed(rotationTransform,
             localBounds, bufferBounds, gravity));
         if (rotationTransform == GraphicTransformType::GRAPHIC_ROTATE_90 ||
