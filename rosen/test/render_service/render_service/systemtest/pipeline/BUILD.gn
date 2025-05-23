@@ -151,7 +151,7 @@ ohos_static_library("rs_test_common") {
     "ipc:ipc_core",
     "samgr:samgr_proxy",
     "window_manager:libwm",
-    "window_manager:libwms",    
+    "window_manager:libwms", 
   ]
 
   if (use_memmgr_plugin || use_memmgr) {
