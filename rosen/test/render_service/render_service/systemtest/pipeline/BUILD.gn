@@ -149,9 +149,10 @@ ohos_static_library("rs_test_common") {
     "hitrace:hitrace_meter",
     "init:libbegetutil",
     "ipc:ipc_core",
+    "samgr:samgr_proxy",
     "window_manager:libwm",
     "window_manager:libwms",
-    "samgr:samgr_proxy",
+    
   ]
 
   if (use_memmgr_plugin || use_memmgr) {

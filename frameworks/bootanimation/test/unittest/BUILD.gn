@@ -60,8 +60,9 @@ ohos_unittest("bootanimation_test") {
     "config_policy:configpolicy_util",
     "hitrace:hitrace_meter",
     "init:libbegetutil",
-    "zlib:libz",
     "samgr:samgr_proxy",
+    "zlib:libz",
+    
   ]
 
   if (player_framework_enable) {
