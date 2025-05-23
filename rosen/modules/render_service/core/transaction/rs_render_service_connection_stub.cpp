@@ -3470,12 +3470,10 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 iface_cast<RSITransactionDataCallback>(remoteObject);
             if (callback == nullptr) {
                 ret = ERR_NULL_OBJECT;
-                RS_LOGE("RSRenderServiceConnectionStub::OnRemoteRequest remoteObject cast error");
+                RS_LOGE("RSRenderServiceConnectionStub::OnRemoteRequest callback == nullptr");
                 break;
             }
-            RS_TRACE_NAME_FMT("789 test 5. already decode unicode, timeStamp: %"
-                PRIu64 " pid: %d", timeStamp, pid);
-            RS_LOGD("789 test 5. already decode unicode, timeStamp: %{public}"
+            RS_LOGD("RSRenderServiceConnectionStub: already decode unicode, timeStamp: %{public}"
                 PRIu64 " pid: %{public}d", timeStamp, pid);
             RegisterTransactionDataCallback(pid, timeStamp, callback);
             break;

@@ -18,7 +18,6 @@
 
 #include <functional>
 #include <map>
-#include <utility>
 #include <memory>
 #include <mutex>
 #include <shared_mutex>
@@ -26,6 +25,7 @@
 #include <surface_type.h>
 #ifndef ROSEN_CROSS_PLATFORM
 #include <surface.h>
+#include <utility>
 #endif
 
 #include "ipc_callbacks/buffer_available_callback.h"

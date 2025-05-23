@@ -128,7 +128,7 @@ void DoSetWatermark()
 void DoRegisterTransactionDataCallback()
 {
     if (data == nullptr) {
-        return false;
+        return;
     }
 
     // initialize
@@ -140,7 +140,7 @@ void DoRegisterTransactionDataCallback()
     MessageParcel reply;
     MessageOption option;
     if (!dataP.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
-        return false;
+        return;
     }
     auto pid = GetData<int32_t>();
     auto timeStamp = GetData<uint64_t>();
@@ -152,7 +152,7 @@ void DoRegisterTransactionDataCallback()
     uint32_t code = static_cast<uint32_t>(
         RSIRenderServiceConnectionInterfaceCode::REGISTER_TRANSACTION_DATA_CALLBACK);
     if (rsConnStub_ == nullptr) {
-        return false;
+        return;
     }
     rsConnStub_->OnRemoteRequest(code, dataP, reply, option);
 }

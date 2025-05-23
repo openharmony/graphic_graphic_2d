@@ -62,6 +62,7 @@ const std::unordered_map<std::string, std::function<bool(MessageParcel&, const T
     DECLARE_WRITE_RANDOM(UIExtensionCallbackSptr),
     DECLARE_WRITE_RANDOM(ScreenChangeCallbackSptr),
     DECLARE_WRITE_RANDOM(SurfaceCaptureCallbackSptr),
+    DECLARE_WRITE_RANDOM(TransactionDataCallbackSptr),
     DECLARE_WRITE_RANDOM(SelfDrawingNodeRectChangeCallbackSptr),
 
     DECLARE_WRITE_RANDOM(PixelMapSharedPtr),
@@ -352,6 +353,24 @@ bool MessageParcelCustomizedTypeUtils::WriteRandomSurfaceCaptureCallbackSptr(Mes
     sptr<RSISurfaceCaptureCallback> obj = new SurfaceCaptureCallbackDirector(rsClient);
     if (!messageParcel.WriteRemoteObject(obj->AsObject())) {
         SAFUZZ_LOGE("MessageParcelCustomizedTypeUtils::WriteRandomSurfaceCaptureCallbackSptr "
+            "WriteRemoteObject failed");
+        return false;
+    }
+    return true;
+}
+
+bool MessageParcelCustomizedTypeUtils::WriteRandomTransactionDataCallbackSptr(MessageParcel& messageParcel,
+    const TestCaseParams& /* testCaseParams */)
+{
+    RSRenderServiceClient* rsClient = RSInterfaces::GetInstance().renderServiceClient_.get();
+    if (rsClient == nullptr) {
+        SAFUZZ_LOGE("MessageParcelCustomizedTypeUtils::WriteRandomTransactionDataCallbackSptr "
+            "rsClient is nullptr");
+        return false;
+    }
+    sptr<RSITransactionDataCallback> obj = new TransactionDataCallbackDirector(std::shared_ptr<RSRenderServiceClient>(rsClient));
+    if (!messageParcel.WriteRemoteObject(obj->AsObject())) {
+        SAFUZZ_LOGE("MessageParcelCustomizedTypeUtils::WriteRandomTransactionDataCallbackSptr "
             "WriteRemoteObject failed");
         return false;
     }

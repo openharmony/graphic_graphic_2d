@@ -32,22 +32,20 @@ void RSTransactionDataCallbackProxy::OnAfterProcess(int32_t pid, uint64_t timeSt
     MessageParcel reply;
     MessageOption option;
     if (!data.WriteInterfaceToken(RSITransactionDataCallback::GetDescriptor())) {
-        ROSEN_LOGE("RSTransactionDataCallbackProxy::data.WriteInterfaceToken error");
+        ROSEN_LOGE("RSTransactionDataCallbackProxy: OnAfterProcess writeInterfaceToken error");
         return;
     }
     if (!data.WriteInt32(pid)) {
-        ROSEN_LOGE("RSTransactionDataCallbackProxy::OnAfterProcess write pid error");
+        ROSEN_LOGE("RSTransactionDataCallbackProxy: OnAfterProcess write pid error");
         return;
     }
     if (!data.WriteUint64(timeStamp)) {
-        ROSEN_LOGE("RSTransactionDataCallbackProxy::OnAfterProcess write timeStamp error");
+        ROSEN_LOGE("RSTransactionDataCallbackProxy: OnAfterProcess write timeStamp error");
         return;
     }
     option.SetFlags(MessageOption::TF_ASYNC);
     uint32_t code = static_cast<uint32_t>(RSITransactionDataCallbackInterfaceCode::ON_AFTER_PROCESS);
-    RS_TRACE_NAME_FMT("789 test 9. manager to send data, timeStamp: %"
-        PRIu64 " pid: %d", timeStamp, pid);
-    RS_LOGD("789 test 9. manager to send data, timeStamp: %{public}"
+    RS_LOGD("RSTransactionDataCallbackProxy: OnAfterProcess send data, timeStamp: %{public}"
         PRIu64 " pid: %{public}d", timeStamp, pid);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {

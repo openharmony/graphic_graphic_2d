@@ -31,6 +31,7 @@
 #include "ipc_callbacks/rs_uiextension_callback_stub.h"
 #include "ipc_callbacks/screen_change_callback_stub.h"
 #include "ipc_callbacks/surface_capture_callback_stub.h"
+#include "ipc_callbacks/rs_transaction_data_callback_stub.h"
 #include "transaction/rs_render_service_client.h"
 
 namespace OHOS {
@@ -270,6 +271,24 @@ public:
 
 private:
     RSRenderServiceClient* client_;
+};
+
+class TransactionDataCallbackDirector : public RSTransactionDataCallbackStub {
+public:
+    explicit TransactionDataCallbackDirector (std::shared_ptr<RSRenderServiceClient> client) : client_(client) {}
+    ~TransactionDataCallbackDirector() noexcept override = default;
+    void OnAfterProcess(int32_t pid, uint64_t timeStamp) override
+    {
+        if (auto shared_client = client_.lock()) {
+            shared_client->TriggerTransactionDataCallbackAndErase(pid, timeStamp);
+        } else {
+            RS_LOGD("OnAfterProcess: TriggerTransactionDataCallbackAndErase, timeStamp: %{public}"
+                PRIu64 " pid: %{public}d", timeStamp, pid);
+        }
+    }
+
+private:
+    std::weak_ptr<RSRenderServiceClient> client_;
 };
 
 class CustomSelfDrawingNodeRectChangeCallback : public RSSelfDrawingNodeRectChangeCallbackStub {

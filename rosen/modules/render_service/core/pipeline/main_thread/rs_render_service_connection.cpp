@@ -66,13 +66,13 @@
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_task_dispatcher.h"
 #include "pipeline/rs_uni_render_judgement.h"
-#include "pipeline/rs_transaction_data_callback_manager.h"
 #include "pixel_map_from_surface.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "platform/ohos/rs_jank_stats_helper.h"
 #include "render/rs_typeface_cache.h"
 #include "transaction/rs_unmarshal_thread.h"
+#include "transaction/rs_transaction_data_callback_manager.h"
 #include "utils/graphic_coretrace.h"
 
 #ifdef TP_FEATURE_ENABLE
@@ -3108,10 +3108,6 @@ ErrCode RSRenderServiceConnection::SetLayerTop(const std::string &nodeIdStr, boo
 void RSRenderServiceConnection::RegisterTransactionDataCallback(int32_t pid,
     uint64_t timeStamp, sptr<RSITransactionDataCallback> callback)
 {
-    RS_TRACE_NAME_FMT("789 test 6. call manager, timeStamp: %"
-        PRIu64 " pid: %d", timeStamp, pid);
-    RS_LOGD("789 test 6. call manager, timeStamp: %{public}"
-        PRIu64 " pid: %{public}d", timeStamp, pid);
     RSTransactionDataCallbackManager::Instance().RegisterTransactionDataCallback(pid, timeStamp, callback);
 }
 

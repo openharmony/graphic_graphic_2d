@@ -24,7 +24,7 @@ int RSTransactionDataCallbackStub::OnRemoteRequest(
 {
     auto token = data.ReadInterfaceToken();
     if (token != RSITransactionDataCallback::GetDescriptor()) {
-        ROSEN_LOGE("RSTransactionDataCallbackStub: token ERR_INVALID_STATE");
+        ROSEN_LOGE("RSTransactionDataCallbackStub: token error");
         return ERR_INVALID_STATE;
     }
     int ret = ERR_NONE;
@@ -34,17 +34,16 @@ int RSTransactionDataCallbackStub::OnRemoteRequest(
             uint64_t timeStamp = {};
             auto readRet = data.ReadInt32(pid) && data.ReadUint64(timeStamp);
             if (!readRet) {
-                ROSEN_LOGE("RSTransactionDataCallbackStub: Read Remote Data ERROR");
+                ROSEN_LOGE("RSTransactionDataCallbackStub: read remote data error");
+                break;
             }
-            RS_TRACE_NAME_FMT("789 test 10. manager already decode, timeStamp: %"
-                PRIu64 " pid: %d", timeStamp, pid);
-            RS_LOGD("789 test 10. manager already decode, timeStamp: %{public}"
+            RS_LOGD("RSTransactionDataCallbackStub: already decode, timeStamp: %{public}"
                 PRIu64 " pid: %{public}d", timeStamp, pid);
             OnAfterProcess(pid, timeStamp);
             break;
         }
         default: {
-            ROSEN_LOGE("RSTransactionDataCallbackStub: Unhandled enumeration value");
+            ROSEN_LOGE("RSTransactionDataCallbackStub: unhandled enumeration value");
             ret = IPCObjectStub::OnRemoteRequest(code, data, reply, option);
             break;
         }

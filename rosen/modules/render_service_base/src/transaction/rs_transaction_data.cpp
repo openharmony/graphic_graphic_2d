@@ -13,17 +13,17 @@
  * limitations under the License.
  */
 
-#include "transaction/rs_transaction_data.h"
-#include "rs_trace.h"
 #include "command/rs_canvas_node_command.h"
 #include "command/rs_command.h"
 #include "command/rs_command_factory.h"
 #include "common/rs_optional_trace.h"
 #include "ipc_security/rs_ipc_interface_code_access_verifier_base.h"
-#include "pipeline/rs_transaction_data_callback_manager.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "rs_profiler.h"
+#include "rs_trace.h"
+#include "transaction/rs_transaction_data.h"
+#include "transaction/rs_transaction_data_callback_manager.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -195,8 +195,6 @@ void RSTransactionData::Process(RSContext& context)
             command->Process(context);
         }
     }
-    RS_TRACE_NAME_FMT("789 test trace. Process trigger, timeStamp: %"
-        PRIu64 " pid: %d", timestamp_, pid_);
     RSTransactionDataCallbackManager::Instance().TriggerTransactionDataCallback(pid_, timestamp_);
 }
 

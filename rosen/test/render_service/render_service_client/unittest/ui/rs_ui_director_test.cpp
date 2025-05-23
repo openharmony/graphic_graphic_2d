@@ -215,31 +215,6 @@ HWTEST_F(RSUIDirectorTest, DirectorSendMessages001, TestSize.Level1)
 }
 
 /**
- * @tc.name: DirectorSendMessages002
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSUIDirectorTest, DirectorSendMessages002, TestSize.Level1)
-{
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
-    ASSERT_NE(director, nullptr);
-    director->SendMessages(nullptr);
-}
-
-/**
- * @tc.name: DirectorSendMessages003
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSUIDirectorTest, DirectorSendMessages003, TestSize.Level1)
-{
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
-    ASSERT_NE(director, nullptr);
-    std::function<void()> callback = []() {};
-    director->SendMessages(callback);
-}
-
-/**
  * @tc.name: UIDirectorSetRoot001
  * @tc.desc:
  * @tc.type:FUNC

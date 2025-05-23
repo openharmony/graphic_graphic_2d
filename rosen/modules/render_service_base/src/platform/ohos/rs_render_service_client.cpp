@@ -2118,24 +2118,20 @@ void RSRenderServiceClient::SetLayerTop(const std::string &nodeIdStr, bool isTop
 
 class TransactionDataCallbackDirector : public RSTransactionDataCallbackStub {
 public:
-    explicit TransactionDataCallbackDirector (std::shared_ptr<RSRenderServiceClient> client) : client_(client) {}
+    explicit TransactionDataCallbackDirector(std::shared_ptr<RSRenderServiceClient> client) : client_(client) {}
     ~TransactionDataCallbackDirector() noexcept override = default;
     void OnAfterProcess(int32_t pid, uint64_t timeStamp) override
     {
-        RS_TRACE_NAME_FMT("789 test 11. client trigger callback&erase, timeStamp: %"
-            PRIu64 " pid: %d", timeStamp, pid);
-        RS_LOGD("789 test 11. client trigger callback&erase, timeStamp: %{public}"
-            PRIu64 " pid: %{public}d", timeStamp, pid);
         if (auto shared_client = client_.lock()) {
             shared_client->TriggerTransactionDataCallbackAndErase(pid, timeStamp);
         } else {
-            RS_TRACE_NAME_FMT("789 test 11x. client trigger callback&erase, timeStamp: %"
-                PRIu64 " pid: %d", timeStamp, pid);
+            RS_LOGD("OnAfterProcess: TriggerTransactionDataCallbackAndErase, timeStamp: %{public}"
+                PRIu64 " pid: %{public}d", timeStamp, pid);
         }
     }
 
 private:
-    std::weak_ptr <RSRenderServiceClient> client_;
+    std::weak_ptr<RSRenderServiceClient> client_;
 };
 
 bool RSRenderServiceClient::RegisterTransactionDataCallback(int32_t pid, uint64_t timeStamp, std::function<void()> callback)
@@ -2150,7 +2146,7 @@ bool RSRenderServiceClient::RegisterTransactionDataCallback(int32_t pid, uint64_
         return false;
     }
     {
-        std::lock_guard<std::mutex> lock { transactionDataCallbackMutex_ };
+        std::lock_guard<std::mutex> lock{ transactionDataCallbackMutex_ };
         if (transactionDataCallbacks_.find(std::make_pair(pid, timeStamp)) == std::end(transactionDataCallbacks_)) {
             transactionDataCallbacks_.emplace(std::make_pair(pid, timeStamp), callback);
         } else {
@@ -2163,9 +2159,7 @@ bool RSRenderServiceClient::RegisterTransactionDataCallback(int32_t pid, uint64_
                 std::static_pointer_cast<RSRenderServiceClient>(RSIRenderClient::client_));
         }
     }
-    RS_TRACE_NAME_FMT("789 test 3. write data and unicode, timeStamp: %"
-        PRIu64 " pid: %d", timeStamp, pid);
-    RS_LOGD("789 test 3. write data and unicode, timeStamp: %{public}"
+    RS_LOGD("RSRenderServiceClient::RegisterTransactionDataCallback, timeStamp: %{public}"
         PRIu64 " pid: %{public}d", timeStamp, pid);
     renderService->RegisterTransactionDataCallback(pid, timeStamp, transactionDataCbDirector_);
     return true;
@@ -2175,7 +2169,7 @@ void RSRenderServiceClient::TriggerTransactionDataCallbackAndErase(int32_t pid, 
 {
     std::function<void()> callback = nullptr;
     {
-        std::lock_guard<std::mutex> lock { transactionDataCallbackMutex_};
+        std::lock_guard<std::mutex> lock{ transactionDataCallbackMutex_ };
         auto iter = transactionDataCallbacks_.find(std::make_pair(pid, timeStamp));
         if (iter != std::end(transactionDataCallbacks_)) {
             callback = iter->second;
@@ -2183,13 +2177,10 @@ void RSRenderServiceClient::TriggerTransactionDataCallbackAndErase(int32_t pid, 
         }
     }
     if (callback) {
-        RS_TRACE_NAME_FMT("789 test 12. invoke callback, timeStamp: %"
-            PRIu64 " pid: %d", timeStamp, pid);
-        RS_LOGD("789 test 12. invoke callback, timeStamp: %{public}"
+        RS_LOGD("TriggerTransactionDataCallbackAndErase: invoke callback, timeStamp: %{public}"
             PRIu64 " pid: %{public}d", timeStamp, pid);
         std::invoke(callback);
     }
-
 }
 
 void RSRenderServiceClient::SetColorFollow(const std::string &nodeIdStr, bool isColorFollow)

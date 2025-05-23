@@ -2298,7 +2298,7 @@
   {
     "testCaseDesc": "REGISTER_TRANSACTION_DATA_CALLBACK_TEST_001",
     "interfaceName": "REGISTER_TRANSACTION_DATA_CALLBACK",
-    "inputParams": "Writeint32;WriteUint64",
+    "inputParams": "WriteInt32;WriteUint64;WriteTransactionDataCallbackSptr",
     "writeInterfaceToken": true,
     "messageOption": "TF_ASYNC"
   }

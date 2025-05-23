@@ -540,7 +540,8 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, RegisterTransactionDataCallback01, 
     ASSERT_NE(samgr, nullptr);
     auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
     sptr<RSITransactionDataCallback> callback = iface_cast<RSITransactionDataCallback>(remoteObject);
-    proxy->RegisterTransactionDataCallback(1,, 456, callback);
+    proxy->RegisterTransactionDataCallback(1, 456, callback);
+    ASSERT_EQ(proxy->transactionDataIndex_, 0);
 }
 
 /**

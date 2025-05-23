@@ -230,7 +230,7 @@ HWTEST_F(RSClientTest, RegisterTransactionDataCallback_Test02, TestSize.Level1)
 {
     ASSERT_NE(rsClient, nullptr);
     std::function<void()> callback = []() {};
-    bool ret = rsClient->RegisterTransactionDataCallback(1, 789, callback); // test a notfound number: 123
+    bool ret = rsClient->RegisterTransactionDataCallback(1, 789, callback);
     EXPECT_TRUE(ret);
 }
 
@@ -244,12 +244,13 @@ HWTEST_F(RSClientTest, RegisterTransactionDataCallback_Test03, TestSize.Level1)
 {
     ASSERT_NE(rsClient, nullptr);
     auto callback = []() {
-        RS_LOGD("789 test 12. invoke callback");
+        RS_LOGD("invoke callback");
     };
     int32_t pid = 123;
     uint64_t timeStamp = 456;
     rsClient->transactionDataCallbacks_[std::make_pair(pid, timeStamp)] = callback;
-    rsClient->RegisterTransactionDataCallback(pid, timeStamp, callback); // test a notfound number: 123
+    bool ret = rsClient->RegisterTransactionDataCallback(pid, timeStamp, callback);
+    EXPECT_TRUE(ret);
 }
 
 /**
@@ -261,7 +262,7 @@ HWTEST_F(RSClientTest, RegisterTransactionDataCallback_Test03, TestSize.Level1)
 HWTEST_F(RSClientTest, TriggerTransactionDataCallbackAndErase_Test01, TestSize.Level1)
 {
     ASSERT_NE(rsClient, nullptr);
-    rsClient->TriggerTransactionDataCallbackAndErase(123, 789); // test a notfound number: 123
+    rsClient->TriggerTransactionDataCallbackAndErase(123, 789);
 }
 
 /**
@@ -275,10 +276,10 @@ HWTEST_F(RSClientTest, TriggerTransactionDataCallbackAndErase_Test02, TestSize.L
     int32_t pid = 123;
     uint64_t timeStamp = 456;
     auto callback = []() {
-        RS_LOGD("789 test 12. invoke callback");
+        RS_LOGD("invoke callback");
     };
     rsClient->transactionDataCallbacks_[std::make_pair(pid, timeStamp)] = callback;
-    rsClient->TriggerTransactionDataCallbackAndErase(pid, timeStamp); // test a notfound number: 123
+    rsClient->TriggerTransactionDataCallbackAndErase(pid, timeStamp);
 }
 
 /**
@@ -291,9 +292,9 @@ HWTEST_F(RSClientTest, TriggerTransactionDataCallbackAndErase_Test03, TestSize.L
 {
     int32_t pid = 123;
     uint64_t timeStamp = 456;
-    std::function<void()> callback = []() {};
+    std::function<void()> callback = nullptr;
     rsClient->transactionDataCallbacks_[std::make_pair(pid, timeStamp)] = callback;
-    rsClient->TriggerTransactionDataCallbackAndErase(pid, timeStamp); // test a notfound number: 123
+    rsClient->TriggerTransactionDataCallbackAndErase(pid, timeStamp);
 }
 
 /**

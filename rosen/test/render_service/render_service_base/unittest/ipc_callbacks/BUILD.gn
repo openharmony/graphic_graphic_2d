@@ -41,6 +41,8 @@ ohos_unittest("RSRenderServiceBaseIpcCallBacksTest") {
     "rs_surface_buffer_callback_test.cpp",
     "rs_surface_occlusion_change_callback_proxy_test.cpp",
     "rs_surface_occlusion_change_callback_stub_test.cpp",
+    "rs_transaction_data_callback_proxy_test.cpp",
+    "rs_transaction_data_callback_stub_test.cpp",
     "rs_uiextension_callback_proxy_test.cpp",
     "rs_uiextension_callback_stub_test.cpp",
     "screen_change_callback_proxy_test.cpp",

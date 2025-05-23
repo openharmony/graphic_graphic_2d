@@ -4904,6 +4904,10 @@ void RSRenderServiceConnectionProxy::SetFreeMultiWindowStatus(bool enable)
 void RSRenderServiceConnectionProxy::RegisterTransactionDataCallback(int32_t pid,
     uint64_t timeStamp, sptr<RSITransactionDataCallback> callback)
 {
+    if (callback == nullptr) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::RegisterTransactionDataCallback callback == nullptr.");
+        return;
+    }
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -4914,11 +4918,11 @@ void RSRenderServiceConnectionProxy::RegisterTransactionDataCallback(int32_t pid
     option.SetFlags(MessageOption::TF_ASYNC);
     static_assert(std::is_same_v<int32_t, pid_t>, "pid_t is not int32_t on this platform.");
     if (!data.WriteInt32(pid)) {
-        ROSEN_LOGE("RSRenderServiceConnectionProxy::RegisterTransactionDataCallback: write Int32 val err.");
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::RegisterTransactionDataCallback: write int32 val err.");
         return;
     }
     if (!data.WriteUint64(timeStamp)) {
-        ROSEN_LOGE("RSRenderServiceConnectionProxy::RegisterTransactionDataCallback: write Uint64 val err.");
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::RegisterTransactionDataCallback: write uint64 val err.");
         return;
     }
     if (!data.WriteRemoteObject(callback->AsObject())) {
@@ -4927,9 +4931,7 @@ void RSRenderServiceConnectionProxy::RegisterTransactionDataCallback(int32_t pid
     }
     uint32_t code = static_cast<uint32_t>(
         RSIRenderServiceConnectionInterfaceCode::REGISTER_TRANSACTION_DATA_CALLBACK);
-    RS_TRACE_NAME_FMT("789 test 4. send data and unicode, timeStamp: %"
-        PRIu64 " pid: %d", timeStamp, pid);
-    RS_LOGD("789 test 4. send data and unicode, timeStamp: %{public}"
+    RS_LOGD("RSRenderServiceConnectionProxy::RegisterTransactionDataCallback: timeStamp: %{public}"
         PRIu64 " pid: %{public}d", timeStamp, pid);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
