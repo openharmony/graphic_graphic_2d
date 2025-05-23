@@ -809,7 +809,8 @@ bool CoreCanvas::DrawBlurImage(const Image& image, const HpsBlurParameter& blurP
     if (DrawingConfig::IsDisabled(DrawingConfig::DrawingDisableFlag::DISABLE_BLUR_IMAGE)) {
         SamplingOptions sampling;
         Paint paint;
-        impl_->DrawImageRect(image, blurParams.src, blurParams.dst, sampling, SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT, paint);
+        impl_->DrawImageRect(image, blurParams.src, blurParams.dst, sampling,
+            SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT, paint);
         return true;
     }
 #endif
