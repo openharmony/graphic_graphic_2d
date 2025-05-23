@@ -32,6 +32,6 @@ void OH_Drawing_SetNoGlyphShow(OH_Drawing_NoGlyphShow noGlyphShow)
 {
     auto result = TextGlobalConfig::SetTextNoGlyphShow(static_cast<uint32_t>(noGlyphShow));
     if (result != TEXT_SUCCESS) {
-        TEXT_LOGE("Failed to set text high contrast");
+        TEXT_LOGE("Failed to set text no glyph show");
     }
 }
