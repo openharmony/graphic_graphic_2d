@@ -362,7 +362,7 @@ private:
     std::unordered_set<NodeId> allBlackList_; // The collection of blacklist for all screens
     std::unordered_set<NodeId> allWhiteList_; // The collection of whitelist for all screens
     Occlusion::Region accumulatedOcclusionRegion_;
-    Occlusion::Region accumulatedTransparentRegion_;
+    Occlusion::Region accumulatedTransparentRegion_; // Cumulate transparent area of the navigation bar
     Occlusion::Region occlusionRegionWithoutSkipLayer_;
     // variable for occlusion
     bool needRecalculateOcclusion_ = false;
