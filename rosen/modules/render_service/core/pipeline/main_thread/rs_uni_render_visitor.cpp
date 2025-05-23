@@ -592,7 +592,7 @@ void RSUniRenderVisitor::ResetDisplayDirtyRegion()
     }
     bool ret = CheckScreenPowerChange() ||
         CheckCurtainScreenUsingStatusChange() ||
-        IsFirstFrameOfPartialRender() ||
+        curDisplayDirtyManager_->GetEnabledChanged() ||
         IsWatermarkFlagChanged() ||
         zoomStateChange_ ||
         isCompleteRenderEnabled_ ||
@@ -643,15 +643,6 @@ bool RSUniRenderVisitor::CheckLuminanceStatusChange(ScreenId id)
     }
     curDisplayNode_->SetIsLuminanceStatusChange(true);
     RS_LOGD("RSUniRenderVisitor::CheckLuminanceStatusChange changed");
-    return true;
-}
-
-bool RSUniRenderVisitor::IsFirstFrameOfPartialRender() const
-{
-    if (!RSMainThread::Instance()->IsFirstFrameOfPartialRender()) {
-        return false;
-    }
-    RS_LOGD("FirstFrameOfPartialRender");
     return true;
 }
 
@@ -1726,6 +1717,7 @@ bool RSUniRenderVisitor::InitDisplayInfo(RSDisplayRenderNode& node)
         RS_LOGE("RSUniRenderVisitor::InitDisplayInfo dirtyMgr or node ptr is nullptr");
         return false;
     }
+    curDisplayDirtyManager_->SetPartialRenderEnabled(isPartialRenderEnabled_ && !isRegionDebugEnabled_);
     curDisplayDirtyManager_->SetAdvancedDirtyRegionType(advancedDirtyType_);
     curDisplayNode_->GetMultableSpecialLayerMgr().Set(HAS_GENERAL_SPECIAL, false);
     curDisplayDirtyManager_->Clear();

@@ -887,4 +887,19 @@ HWTEST_F(RSDirtyRegionManagerTest, SetMaxNumOfDirtyRects, Function | SmallTest |
     auto advancedDirtyRegion2 = fun2.GetCurrentFrameAdvancedDirtyRegion();
     EXPECT_EQ(static_cast<int>(advancedDirtyRegion2.size()), 1);
 }
+
+/**
+ * @tc.name: GetEnabled
+ * @tc.desc: test invalid input for Enabled
+ * @tc.type:FUNC
+ * @tc.require: issuesIC96MO
+ */
+HWTEST_F(RSDirtyRegionManagerTest, GetEnabled, Function | SmallTest | TestSize.Level2)
+{
+    RSDirtyRegionManager fun;
+    fun.SetPartialRenderEnabled(false);
+    EXPECT_FALSE(fun.GetEnabledChanged());
+    fun.SetPartialRenderEnabled(true);
+    EXPECT_TRUE(fun.GetEnabledChanged());
+}
 } // namespace OHOS::Rosen
