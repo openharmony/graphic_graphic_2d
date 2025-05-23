@@ -3375,56 +3375,6 @@ Vector2f RSRenderNode::GetOptionalBufferSize() const
     return { vector4f.z_, vector4f.w_ };
 }
 
-void RSRenderNode::DrawCacheSurface(RSPaintFilterCanvas& canvas, uint32_t threadIndex, bool isUIFirst)
-{
-    if (ROSEN_EQ(boundsWidth_, 0.f) || ROSEN_EQ(boundsHeight_, 0.f)) {
-        return;
-    }
-    auto cacheType = GetCacheType();
-    canvas.Save();
-    Vector2f size = GetOptionalBufferSize();
-    float scaleX = size.x_ / boundsWidth_;
-    float scaleY = size.y_ / boundsHeight_;
-    canvas.Scale(scaleX, scaleY);
-    auto cacheImage = GetCompletedImage(canvas, threadIndex, isUIFirst);
-    if (cacheImage == nullptr) {
-        canvas.Restore();
-        return;
-    }
-    auto samplingOptions = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
-    if (RSSystemProperties::GetRecordingEnabled()) {
-        if (cacheImage->IsTextureBacked()) {
-            RS_LOGI("RSRenderNode::DrawCacheSurface convert cacheImage from texture to raster image");
-            cacheImage = cacheImage->MakeRasterImage();
-            if (!cacheImage) {
-                RS_LOGE("RSRenderNode::DrawCacheSurface: MakeRasterImage failed");
-                canvas.Restore();
-                return;
-            }
-        }
-    }
-    Drawing::Brush brush;
-    canvas.AttachBrush(brush);
-    if ((cacheType == CacheType::ANIMATE_PROPERTY && GetRenderProperties().IsShadowValid()) || isUIFirst) {
-        auto surfaceNode = ReinterpretCastTo<RSSurfaceRenderNode>();
-        Vector2f gravityTranslate = surfaceNode ?
-            surfaceNode->GetGravityTranslate(cacheImage->GetWidth(), cacheImage->GetHeight()) : Vector2f(0.0f, 0.0f);
-        canvas.DrawImage(*cacheImage, -shadowRectOffsetX_ * scaleX + gravityTranslate.x_,
-            -shadowRectOffsetY_ * scaleY + gravityTranslate.y_, samplingOptions);
-    } else {
-        if (canvas.GetTotalMatrix().HasPerspective()) {
-            // In case of perspective transformation, make dstRect 1px outset to anti-alias
-            Drawing::Rect dst(0, 0, cacheImage->GetWidth(), cacheImage->GetHeight());
-            dst.MakeOutset(1, 1);
-            canvas.DrawImageRect(*cacheImage, dst, samplingOptions);
-        } else {
-            canvas.DrawImage(*cacheImage, 0.0, 0.0, samplingOptions);
-        }
-    }
-    canvas.DetachBrush();
-    canvas.Restore();
-}
-
 std::shared_ptr<Drawing::Image> RSRenderNode::GetCompletedImage(
     RSPaintFilterCanvas& canvas, uint32_t threadIndex, bool isUIFirst)
 {

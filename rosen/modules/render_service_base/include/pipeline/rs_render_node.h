@@ -491,9 +491,6 @@ public:
     void UpdateBackendTexture();
 #endif
 
-    void DrawCacheSurface(RSPaintFilterCanvas& canvas, uint32_t threadIndex = UNI_MAIN_THREAD_INDEX,
-        bool isUIFirst = false);
-
     void SetCacheType(CacheType cacheType);
     CacheType GetCacheType() const;
 

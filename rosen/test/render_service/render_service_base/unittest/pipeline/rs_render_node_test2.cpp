@@ -2223,56 +2223,6 @@ HWTEST_F(RSRenderNodeTest2, InitCacheSurfaceTest02, TestSize.Level1)
 }
 
 /**
- * @tc.name: DrawCacheSurfaceTest02
- * @tc.desc: DrawCacheSurface test
- * @tc.type: FUNC
- * @tc.require: issueIA61E9
- */
-HWTEST_F(RSRenderNodeTest2, DrawCacheSurfaceTest02, TestSize.Level1)
-{
-    std::shared_ptr<RSRenderNode> node = std::make_shared<RSRenderNode>(0);
-    EXPECT_NE(node, nullptr);
-    node->boundsModifier_ = nullptr;
-    node->frameModifier_ = nullptr;
-    Drawing::Canvas canvasTest1;
-    std::shared_ptr<Drawing::GPUContext> gpuContextTest1 = std::make_shared<Drawing::GPUContext>();
-    canvasTest1.gpuContext_ = gpuContextTest1;
-    RSPaintFilterCanvas paintFilterCanvasTest1(&canvasTest1);
-
-    //set bounds width 5
-    node->boundsWidth_ = 5.0f;
-    node->DrawCacheSurface(paintFilterCanvasTest1, 0, true);
-    //set bounds width 15
-    node->boundsWidth_ = 15.0f;
-    node->DrawCacheSurface(paintFilterCanvasTest1, 0, false);
-    //set bounds 15*15
-    node->boundsWidth_ = 15.0f;
-    node->boundsHeight_ = 15.0f;
-    node->cacheCompletedBackendTexture_.isValid_ = false;
-    paintFilterCanvasTest1.canvas_->paintBrush_.hasFilter_ = true;
-    node->DrawCacheSurface(paintFilterCanvasTest1, 0, true);
-    EXPECT_TRUE(paintFilterCanvasTest1.canvas_->paintBrush_.hasFilter_);
-
-    // RSSystemPrperties:GetRecordongEnabled() is false
-    node->cacheCompletedBackendTexture_.isValid_ = true;
-    RSShadow rsShadow;
-    std::optional <RSShadow>shadow(rsShadow);
-    node->renderContent_->renderProperties_.shadow_ = shadow;
-    node->renderContent_->renderProperties_.shadow_->radius_ = 1.0f;
-    node->cacheType_ = CacheType::ANIMATE_PROPERTY;
-    Drawing::Canvas canvasTest2;
-    std::shared_ptr<Drawing::GPUContext> gpuContextTest2 = std::make_shared<Drawing::GPUContext>();
-    canvasTest2.gpuContext_ = gpuContextTest2;
-    RSPaintFilterCanvas paintFilterCanvasTest2(&canvasTest2);
-    std::shared_ptr<Drawing::SkiaCanvas> implTest1 = std::make_shared<Drawing::SkiaCanvas>();
-    implTest1->skCanvas_ = nullptr;
-    paintFilterCanvasTest2.canvas_->impl_ = implTest1;
-    paintFilterCanvasTest2.canvas_->paintBrush_.hasFilter_ = true;
-    node->DrawCacheSurface(paintFilterCanvasTest2, 0, true);
-    EXPECT_NE(paintFilterCanvasTest2.canvas_, nullptr);
-}
-
-/**
  * @tc.name: ResortChildrenTest02
  * @tc.desc:
  * @tc.type: FUNC
