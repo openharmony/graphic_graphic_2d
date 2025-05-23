@@ -1365,9 +1365,10 @@ void RSUniRenderVisitor::UpdateNodeVisibleRegion(RSSurfaceRenderNode& node)
         node.SetVisibleRegionInVirtual(subResultWithoutSkipLayer);
     }
     RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(TRACE_LEVEL_THREE,
-        "RSUniRenderVisitor::UpdateNodeVisibleRegion name[%s] visibleRegion[%s] visibleRegionIncludeTransparentOcclusion[%s]" ,
-        node.GetName().c_str(), node.GetVisibleRegion().GetRegionInfo().c_str(),
-        node.GetVisibleRegionIncludeTransparentOcclusion().GetRegionInfo().c_str());
+                                    "RSUniRenderVisitor::UpdateNodeVisibleRegion name[%s] visibleRegion[%s] "
+                                    "visibleRegionIncludeTransparentOcclusion[%s]",
+                                    node.GetName().c_str(), node.GetVisibleRegion().GetRegionInfo().c_str(),
+                                    node.GetVisibleRegionIncludeTransparentOcclusion().GetRegionInfo().c_str());
 }
 
 CM_INLINE void RSUniRenderVisitor::CalculateOpaqueAndTransparentRegion(RSSurfaceRenderNode& node)
