@@ -588,6 +588,7 @@ public:
     bool IsAIBarFilter() const;
     bool IsAIBarFilterCacheValid() const;
     void MarkForceClearFilterCacheWithInvisible();
+    void MarkFilterInForegroundFilterAndCheckNeedForceClearCache(bool inForegroundFilter);
 
     void CheckGroupableAnimation(const PropertyId& id, bool isAnimAdd);
     bool IsForcedDrawInGroup() const;
