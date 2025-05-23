@@ -200,23 +200,15 @@ std::shared_ptr<Typeface> SkiaTypeface::MakeFromFile(const char path[], int inde
         LOGD("SkiaTypeface::MakeFromFile, path is nullptr.");
         return nullptr;
     }
-#ifdef USE_M133_SKIA
-    auto skFontMgr = SkFontMgr::RefDefault();
-    if (!skFontMgr) {
-        LOGD("SkiaTypeface::MakeFromFile, skFontMgr is nullptr.");
-        return nullptr;
-    }
-    sk_sp<SkTypeface> skTypeface = skFontMgr->makeFromFile(path, index);
-#else
     sk_sp<SkTypeface> skTypeface = SkTypeface::MakeFromFile(path, index);
-#endif
+
     if (!skTypeface) {
         LOGD("skTypeface nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
         return nullptr;
     }
-#ifndef USE_M133_SKIA
+
     skTypeface->setIsCustomTypeface(true);
-#endif
+
     std::shared_ptr<TypefaceImpl> typefaceImpl = std::make_shared<SkiaTypeface>(skTypeface);
     return std::make_shared<Typeface>(typefaceImpl);
 }

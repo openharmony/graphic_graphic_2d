@@ -99,7 +99,7 @@ HWTEST_F(TypefaceTest, MakeFromStream002, TestSize.Level1)
     auto stream = std::make_unique<MemoryStream>(ttfData_.get(), ttfLen_);
     ASSERT_NE(stream, nullptr);
     FontArguments args;
-    args.SetCollectionIndex(10);
+    args.SetCollectionIndex(0);
     auto typeface = Typeface::MakeFromStream(std::move(stream), args);
     ASSERT_NE(typeface, nullptr);
     EXPECT_EQ(typeface->GetFamilyName(), familyName_);
