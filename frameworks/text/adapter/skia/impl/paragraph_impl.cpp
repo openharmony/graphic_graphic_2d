@@ -435,7 +435,7 @@ void ParagraphImpl::UpdateColor(size_t from, size_t to, const RSColor& color,
     }
 }
 
-void ParagraphImpl::UpdatePaintsBySkiaBlock(skt::Block& skiaBlock, std::optional<RSBrush> brush)
+void ParagraphImpl::UpdatePaintsBySkiaBlock(skt::Block& skiaBlock, const std::optional<RSBrush>& brush)
 {
     PaintID foregroundId = std::get<PaintID>(skiaBlock.fStyle.getForegroundPaintOrID());
     if ((foregroundId < 0) || (foregroundId >= static_cast<int>(paints_.size()))) {
@@ -448,7 +448,7 @@ void ParagraphImpl::UpdatePaintsBySkiaBlock(skt::Block& skiaBlock, std::optional
 }
 
 void ParagraphImpl::UpdateForegroundBrushWithValidData(SkTArray<skt::Block, true>& skiaTextStyles,
-    std::optional<RSBrush> brush)
+    const std::optional<RSBrush>& brush)
 {
     TEXT_TRACE_FUNC();
     PaintID newId = static_cast<int>(paints_.size());
