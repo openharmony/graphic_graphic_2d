@@ -75,7 +75,7 @@ template("skia_libtxt") {
       "symbol_engine/hm_symbol_node_build.cpp",
       "symbol_engine/hm_symbol_run.cpp",
       "symbol_engine/hm_symbol_txt.cpp",
-      "symbol_engine/text_effect.cpp",
+      "symbol_engine/text_animation_config.cpp",
       "symbol_resource/symbol_config_parser.cpp",
       "txt/asset_font_manager.cpp",
       "txt/font_asset_provider.cpp",
