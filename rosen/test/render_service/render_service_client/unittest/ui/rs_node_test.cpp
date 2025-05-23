@@ -3986,6 +3986,22 @@ HWTEST_F(RSNodeTest, SetandGetBackgroundColor003, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetandGetBackgroundColor004
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSNodeTest, SetandGetBackgroundColor004, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    constexpr uint32_t colorValue = 0xff00ffff;
+    auto srgbColor = RSColor(colorValue);
+    auto p3Color = RSColor(colorValue);
+    p3Color.SetColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3); 
+    rsNode->SetBackgroundColor(srgbColor);
+    EXPECT_TRUE(rsNode->GetStagingProperties().GetBackgroundColor() != p3Color);
+}
+
+/**
  * @tc.name: SetandGetBorderColor001
  * @tc.desc:
  * @tc.type:FUNC

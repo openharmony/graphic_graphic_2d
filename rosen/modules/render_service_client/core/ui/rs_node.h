@@ -859,6 +859,13 @@ public:
     void SetBackgroundColor(uint32_t colorValue);
 
     /**
+     * @brief Sets the background color of the node, support color with different color space.
+     *
+     * @param color The color to set.
+     */
+    void SetBackgroundColor(RSColor& color);
+
+    /**
      * @brief Sets the background shader for this node.
      *
      * @param shader A shared pointer to an RSShader object representing the shader to be applied as the background.
