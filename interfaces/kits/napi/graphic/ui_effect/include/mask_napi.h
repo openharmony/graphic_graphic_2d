@@ -50,6 +50,7 @@ private:
     static napi_value Create(napi_env env, std::shared_ptr<MaskPara> maskPara);
     static napi_value CreateRippleMask(napi_env env, napi_callback_info info);
     static napi_value CreateRadialGradientMask(napi_env env, napi_callback_info info);
+    static napi_value CreatePixelMapMask(napi_env env, napi_callback_info info);
 };
 } // namespace Rosen
 } // namespace OHOS

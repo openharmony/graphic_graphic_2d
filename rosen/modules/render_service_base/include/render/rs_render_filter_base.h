@@ -65,6 +65,12 @@ enum class RSUIFilterType : int16_t {
     // edge light value type
     EDGE_LIGHT_ALPHA, // float
     EDGE_LIGHT_COLOR, // Vector4f
+
+    // pixel map mask value type
+    PIXEL_MAP_MASK_PIXEL_MAP, // Media::PixelMap
+    PIXEL_MAP_MASK_SRC, // Vector4f
+    PIXEL_MAP_MASK_DST, // Vector4f
+    PIXEL_MAP_MASK_FILL_COLOR, // Vector4f
 };
 
 class RSB_EXPORT RSRenderFilterParaBase : public RSRenderPropertyBase,

@@ -26,6 +26,7 @@ ohos_unittest("RSRenderServiceClientPropertyTest") {
     "rs_ui_displacement_distort_filter_test.cpp",
     "rs_ui_edge_light_filter_test.cpp",
     "rs_ui_mask_para_test.cpp",
+    "rs_ui_pixel_map_mask_test.cpp",
     "rs_ui_ripple_mask_test.cpp",
     "rs_ui_filter_test.cpp",
     "rs_ui_filter_para_base_test.cpp",
@@ -53,8 +54,9 @@ ohos_unittest("RSRenderServiceClientPropertyTest") {
   subsystem_name = "graphic"
   external_deps = [
     "c_utils:utils",
-    "hilog:libhilog",
     "googletest:gtest_main",
+    "hilog:libhilog",
+    "image_framework:image",
   ]
 }
 

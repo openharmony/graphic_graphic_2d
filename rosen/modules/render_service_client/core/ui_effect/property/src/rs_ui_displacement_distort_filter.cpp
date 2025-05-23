@@ -14,6 +14,7 @@
  */
 
 #include "ui_effect/property/include/rs_ui_displacement_distort_filter.h"
+#include "ui_effect/property/include/rs_ui_pixel_map_mask.h"
 
 #include "platform/common/rs_log.h"
 #include "render/rs_render_displacement_distort_filter.h"
@@ -162,6 +163,9 @@ std::shared_ptr<RSUIMaskPara> RSUIDispDistortFilterPara::CreateMask(RSUIFilterTy
     switch (type) {
         case RSUIFilterType::RIPPLE_MASK: {
             return std::make_shared<RSUIRippleMaskPara>();
+        }
+        case RSUIFilterType::PIXEL_MAP_MASK: {
+            return std::make_shared<RSUIPixelMapMaskPara>();
         }
         default:
             return nullptr;
