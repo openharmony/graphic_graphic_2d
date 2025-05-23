@@ -2020,9 +2020,14 @@ void RSNode::SetVisualEffect(const VisualEffect* visualEffect)
     // To do: generate composed visual effect here. Now we just set background and HDR UI brightness in v2.0.
     auto visualEffectParas = visualEffect->GetAllPara();
     for (const auto& visualEffectPara : visualEffectParas) {
+        if (visualEffectPara == nullptr) {
+            continue;
+        }
         if (visualEffectPara->GetParaType() == VisualEffectPara::HDR_UI_BRIGHTNESS) {
             auto hdrUIBrightnessPara = std::static_pointer_cast<HDRUIBrightnessPara>(visualEffectPara);
-            SetHDRUIBrightness(hdrUIBrightnessPara->GetHDRUIBrightness());
+            if (hdrUIBrightnessPara) {
+                SetHDRUIBrightness(hdrUIBrightnessPara->GetHDRUIBrightness());
+            }
             continue;
         }
         if (visualEffectPara->GetParaType() != VisualEffectPara::BACKGROUND_COLOR_EFFECT) {
