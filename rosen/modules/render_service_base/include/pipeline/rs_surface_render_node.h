@@ -609,6 +609,7 @@ public:
     void SetSnapshotSkipLayer(bool isSnapshotSkipLayer);
     void SetProtectedLayer(bool isProtectedLayer);
     void SetIsOutOfScreen(bool isOutOfScreen);
+    void UpdateBlackListStatus(ScreenId virtualScreenId, bool isBlackList);
 
     // get whether it is a security/skip layer itself
     LeashPersistentId GetLeashPersistentId() const;
@@ -632,6 +633,7 @@ public:
 
     void UpdateSpecialLayerInfoByTypeChange(uint32_t type, bool isSpecialLayer);
     void UpdateSpecialLayerInfoByOnTreeStateChange();
+    void SyncBlackListInfoToFirstLevelNode();
     void SyncPrivacyContentInfoToFirstLevelNode();
     void SyncColorGamutInfoToFirstLevelNode();
 
@@ -1608,6 +1610,7 @@ private:
 
     RSSpecialLayerManager specialLayerManager_;
     bool specialLayerChanged_ = false;
+    std::unordered_map<ScreenId, std::unordered_set<NodeId>> blackListIds_ = {};
     bool isGlobalPositionEnabled_ = false;
     bool isHwcGlobalPositionEnabled_ = false;
     bool isHwcCrossNode_ = false;
@@ -1783,10 +1786,6 @@ private:
     std::optional<Drawing::Matrix> contextMatrix_;
     std::optional<Drawing::Rect> contextClipRect_;
 
-    std::set<NodeId> skipLayerIds_= {};
-    std::set<NodeId> snapshotSkipLayerIds_= {};
-    std::set<NodeId> securityLayerIds_= {};
-    std::set<NodeId> protectedLayerIds_= {};
     std::set<NodeId> privacyContentLayerIds_ = {};
     Drawing::Matrix totalMatrix_;
     std::vector<RectI> intersectedRoundCornerAABBs_;

@@ -456,6 +456,7 @@ void RSSurfaceRenderNode::OnTreeStateChanged()
     OnSubSurfaceChanged();
 
     // sync skip & security info
+    SyncBlackListInfoToFirstLevelNode();
     UpdateSpecialLayerInfoByOnTreeStateChange();
     SyncPrivacyContentInfoToFirstLevelNode();
     SyncColorGamutInfoToFirstLevelNode();
@@ -1072,6 +1073,41 @@ void RSSurfaceRenderNode::UpdateSpecialLayerInfoByOnTreeStateChange()
             firstLevelNode->specialLayerManager_.RemoveIds(specialLayerManager_.Get(), GetId());
         }
         firstLevelNode->specialLayerChanged_ = specialLayerChanged_;
+    }
+}
+
+void RSSurfaceRenderNode::UpdateBlackListStatus(ScreenId virtualScreenId, bool isBlackList)
+{
+    SetDirty();
+    if (isBlackList) {
+        blackListIds_[virtualScreenId].insert(GetId());
+        return;
+    }
+    for (const auto& [screenId, nodeIdSet] : blackListIds_) {
+        if (nodeIdSet.size() > 0 && nodeIdSet.find(GetId()) != nodeIdSet.end()) {
+            blackListIds_[screenId].erase(GetId());
+        }
+    }
+}
+
+void RSSurfaceRenderNode::SyncBlackListInfoToFirstLevelNode()
+{
+    if (IsLeashWindow() || GetUifirstRootNodeId() == GetId()) {
+        return;
+    }
+    auto firstLevelNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(GetFirstLevelNode());
+    if (!firstLevelNode || GetFirstLevelNodeId() == GetId()) {
+        return;
+    }
+    // firstLevelNode is the nearest app window / leash node
+    for (const auto& [screenId, nodeIdSet] : blackListIds_) {
+        for (const auto& nodeId : nodeIdSet) {
+            if (IsOnTheTree()) {
+                firstLevelNode->blackListIds_[screenId].insert(nodeId);
+            } else {
+                firstLevelNode->blackListIds_[screenId].erase(nodeId);
+            }
+        }
     }
 }
 
@@ -3136,6 +3172,7 @@ void RSSurfaceRenderNode::UpdateRenderParams()
     surfaceParams->isCloneNode_ = isCloneNode_;
     surfaceParams->SetAncestorDisplayNode(ancestorDisplayNode_);
     surfaceParams->specialLayerManager_ = specialLayerManager_;
+    surfaceParams->blackListIds_ = blackListIds_;
     surfaceParams->animateState_ = animateState_;
     surfaceParams->isRotating_ = isRotating_;
     surfaceParams->privacyContentLayerIds_ = privacyContentLayerIds_;
