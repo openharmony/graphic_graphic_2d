@@ -371,7 +371,7 @@ void RSUniRenderVirtualProcessor::ScaleMirrorIfNeed(const ScreenRotation angle, 
         static_cast<int>(screenCorrection_), static_cast<int>(angle), static_cast<int>(scaleMode_));
 
     if (!EnableVisibleRect() &&
-        mirroredScreenWidth == virtualScreenWidth_ && mirroredScreenHeight == virtualScreenHeight_) {
+        ROSEN_EQ(mirroredScreenWidth, virtualScreenWidth_) && ROSEN_EQ(mirroredScreenHeight, virtualScreenHeight_)) {
         return;
     }
 
@@ -464,43 +464,44 @@ void RSUniRenderVirtualProcessor::Fill(RSPaintFilterCanvas& canvas,
 void RSUniRenderVirtualProcessor::UniScale(RSPaintFilterCanvas& canvas,
     float mainWidth, float mainHeight, float mirrorWidth, float mirrorHeight)
 {
-    if (mainWidth > 0 && mainHeight > 0) {
-        float startX = 0.0f;
-        float startY = 0.0f;
-        mirrorScaleX_ = mirrorWidth / mainWidth;
-        mirrorScaleY_ = mirrorHeight / mainHeight;
-        if (mirrorScaleY_ < mirrorScaleX_) {
-            mirrorScaleX_ = mirrorScaleY_;
-            startX = (mirrorWidth / mirrorScaleX_ - mainWidth) / 2;
-        } else {
-            mirrorScaleY_ = mirrorScaleX_;
-            startY = (mirrorHeight / mirrorScaleY_ - mainHeight) / 2;
-        }
-
-        if (EnableSlrScale()) {
-            if (slrManager_ == nullptr) {
-                slrManager_ = std::make_shared<RSSLRScaleFunction>(virtualScreenWidth_, virtualScreenHeight_,
-                    mirroredScreenWidth_, mirroredScreenHeight_);
-            } else {
-                slrManager_->CheckOrRefreshScreen(virtualScreenWidth_, virtualScreenHeight_,
-                    mirroredScreenWidth_, mirroredScreenHeight_);
-            }
-            slrManager_->CheckOrRefreshColorSpace(renderFrameConfig_.colorGamut);
-            slrManager_->CanvasScale(canvas);
-            RS_LOGD("RSUniRenderVirtualProcessor::UniScale: Scale With SLR, color is %{public}d.",
-                renderFrameConfig_.colorGamut);
-            return;
-        }
-
-        canvas.Scale(mirrorScaleX_, mirrorScaleY_);
-        if (EnableVisibleRect() && !drawMirrorCopy_) {
-            canvas.Translate(-visibleRect_.GetLeft(), -visibleRect_.GetTop());
-            RS_LOGD("RSUniRenderVirtualProcessor::UniScale: Scale With VisibleRect, "
-                "mirrorScaleX_: %{public}f, mirrorScaleY_: %{public}f, startX: %{public}f, startY: %{public}f",
-                mirrorScaleX_, mirrorScaleY_, startX, startY);
-        }
-        canvas.Translate(startX, startY);
+    if (ROSEN_LE(mainWidth, 0) || ROSEN_LE(mainHeight, 0) || ROSEN_LE(mirrorWidth, 0) || ROSEN_LE(mirrorHeight, 0)) {
+        return;
     }
+    float startX = 0.0f;
+    float startY = 0.0f;
+    mirrorScaleX_ = mirrorWidth / mainWidth;
+    mirrorScaleY_ = mirrorHeight / mainHeight;
+    if (mirrorScaleY_ < mirrorScaleX_) {
+        mirrorScaleX_ = mirrorScaleY_;
+        startX = (mirrorWidth / mirrorScaleX_ - mainWidth) / 2;
+    } else {
+        mirrorScaleY_ = mirrorScaleX_;
+        startY = (mirrorHeight / mirrorScaleY_ - mainHeight) / 2;
+    }
+
+    if (EnableSlrScale()) {
+        if (slrManager_ == nullptr) {
+            slrManager_ = std::make_shared<RSSLRScaleFunction>(virtualScreenWidth_, virtualScreenHeight_,
+                mirroredScreenWidth_, mirroredScreenHeight_);
+        } else {
+            slrManager_->CheckOrRefreshScreen(virtualScreenWidth_, virtualScreenHeight_,
+                mirroredScreenWidth_, mirroredScreenHeight_);
+        }
+        slrManager_->CheckOrRefreshColorSpace(renderFrameConfig_.colorGamut);
+        slrManager_->CanvasScale(canvas);
+        RS_LOGD("RSUniRenderVirtualProcessor::UniScale: Scale With SLR, color is %{public}d.",
+            renderFrameConfig_.colorGamut);
+        return;
+    }
+
+    canvas.Scale(mirrorScaleX_, mirrorScaleY_);
+    if (EnableVisibleRect() && !drawMirrorCopy_) {
+        canvas.Translate(-visibleRect_.GetLeft(), -visibleRect_.GetTop());
+        RS_LOGD("RSUniRenderVirtualProcessor::UniScale: Scale With VisibleRect, "
+            "mirrorScaleX_: %{public}f, mirrorScaleY_: %{public}f, startX: %{public}f, startY: %{public}f",
+            mirrorScaleX_, mirrorScaleY_, startX, startY);
+    }
+    canvas.Translate(startX, startY);
 }
 
 bool RSUniRenderVirtualProcessor::EnableSlrScale()
