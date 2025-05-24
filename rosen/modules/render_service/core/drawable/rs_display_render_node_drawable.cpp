@@ -1245,6 +1245,7 @@ void RSDisplayRenderNodeDrawable::DrawMirror(RSDisplayRenderParams& params,
     // surface in PrepareOffscreenRender() above. The offscreen surface has the same size as
     // the main display that's why no need additional scale.
     RSUniRenderThread::SetCaptureParam(CaptureParam(false, false, true));
+    RSUniRenderThread::GetCaptureParam().virtualScreenId_ = params.GetScreenId();
     RSRenderParams::SetParentSurfaceMatrix(curCanvas_->GetTotalMatrix());
     bool isOpDropped = uniParam.IsOpDropped();
     uniParam.SetOpDropped(false); // disable partial render

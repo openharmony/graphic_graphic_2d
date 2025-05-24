@@ -1319,6 +1319,35 @@ HWTEST_F(RSUniRenderVisitorTest, CheckColorSpace001, TestSize.Level2)
 }
 
 /**
+ * @tc.name: UpdateBlackListRecord
+ * @tc.desc: Test UpdateBlackListRecord
+ * @tc.type: FUNC
+ * @tc.require: issueIC9I11
+ */
+HWTEST_F(RSUniRenderVisitorTest, UpdateBlackListRecord, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    RSDisplayNodeConfig displayConfig;
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(screenManager, nullptr);
+    auto id = screenManager->CreateVirtualScreen("virtualScreen01", 480, 320, nullptr);
+    displayConfig.screenId = id;
+    auto rsDisplayRenderNode = std::make_shared<RSDisplayRenderNode>(id, displayConfig, rsContext->weak_from_this());
+    rsDisplayRenderNode->InitRenderParams();
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    rsUniRenderVisitor->screenManager_ = screenManager;
+    ASSERT_NE(rsUniRenderVisitor->screenManager_, nullptr);
+
+    RSSurfaceRenderNodeConfig surfaceConfig;
+    surfaceConfig.id = 1;
+    auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(surfaceConfig);
+    ASSERT_NE(rsSurfaceRenderNode, nullptr);
+    rsSurfaceRenderNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
+    rsUniRenderVisitor->UpdateBlackListRecord(*rsSurfaceRenderNode);
+}
+
+/**
  * @tc.name: PrepareForCloneNode
  * @tc.desc: Test PrepareForCloneNode while node is not clone
  * @tc.type: FUNC

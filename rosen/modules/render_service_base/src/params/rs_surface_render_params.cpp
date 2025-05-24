@@ -566,6 +566,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->isOutOfScreen_ = isOutOfScreen_;
     targetSurfaceParams->isRotating_ = isRotating_;
     targetSurfaceParams->specialLayerManager_ = specialLayerManager_;
+    targetSurfaceParams->blackListIds_ = blackListIds_;
     targetSurfaceParams->privacyContentLayerIds_ = privacyContentLayerIds_;
     targetSurfaceParams->name_ = name_;
     targetSurfaceParams->bundleName_ = bundleName_;

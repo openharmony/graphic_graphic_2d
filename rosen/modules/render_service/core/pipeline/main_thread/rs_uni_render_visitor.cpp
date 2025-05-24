@@ -516,6 +516,25 @@ void RSUniRenderVisitor::MarkHardwareForcedDisabled()
     hwcVisitor_->isHardwareForcedDisabled_ = true;
 }
 
+void RSUniRenderVisitor::UpdateBlackListRecord(RSSurfaceRenderNode& node)
+{
+    if (!screenManager_) {
+        return;
+    }
+    std::unordered_set<uint64_t> virtualScreens = screenManager_->GetBlackListVirtualScreenByNode(node.GetId());
+    if (node.IsLeashWindow()) {
+        auto leashVirtualScreens = screenManager_->GetBlackListVirtualScreenByNode(node.GetLeashPersistentId());
+        virtualScreens.insert(leashVirtualScreens.begin(), leashVirtualScreens.end());
+    }
+    if (virtualScreens.empty()) {
+        node.UpdateBlackListStatus(INVALID_SCREEN_ID, false);
+        return;
+    }
+    for (const auto& screenId : virtualScreens) {
+        node.UpdateBlackListStatus(screenId, true);
+    }
+}
+
 void RSUniRenderVisitor::UpdateSpecialLayersRecord(RSSurfaceRenderNode& node)
 {
     if (node.ShouldPaint() == false) {
@@ -1008,6 +1027,7 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
 
     // avoid cross node subtree visited twice or more
     UpdateSpecialLayersRecord(node);
+    UpdateBlackListRecord(node);
     if (CheckSkipAndPrepareForCrossNode(node)) {
         return;
     }

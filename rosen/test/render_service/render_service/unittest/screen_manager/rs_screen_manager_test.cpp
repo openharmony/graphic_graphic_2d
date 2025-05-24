@@ -2729,6 +2729,28 @@ HWTEST_F(RSScreenManagerTest, GetVirtualScreenBlackList003, TestSize.Level1)
 }
 
 /*
+ * @tc.name: GetBlackListVirtualScreenByNode001
+ * @tc.desc: Test GetBlackListVirtualScreenByNode
+ * @tc.type: FUNC
+ * @tc.require: issueIC9I11
+ */
+HWTEST_F(RSScreenManagerTest, GetBlackListVirtualScreenByNode001, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
+        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
+
+    ScreenId id = 1;
+    screenManagerImpl.screens_[id] = std::make_shared<impl::RSScreen>(id, false, nullptr, nullptr);
+    const std::vector<uint64_t>& blackList = { 1, 2, 3, 4 };
+    std::unordered_set<NodeId> screenBlackList(blackList.begin(), blackList.end());
+    ASSERT_EQ(screenManagerImpl.SetVirtualScreenBlackList(id, blackList), StatusCode::SUCCESS);
+
+    ASSERT_EQ(screenManagerImpl.GetBlackListVirtualScreenByNode(1).empty(), false);
+}
+
+/*
  * @tc.name: GetAllBlackList001
  * @tc.desc: Test GetAllBlackList
  * @tc.type: FUNC

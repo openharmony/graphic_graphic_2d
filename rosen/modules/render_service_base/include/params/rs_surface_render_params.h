@@ -196,6 +196,12 @@ public:
     {
         return specialLayerManager_;
     }
+
+    bool HasBlackListByScreenId(ScreenId screenId)
+    {
+        return blackListIds_[screenId].size() != 0;
+    }
+
     bool HasPrivacyContentLayer()
     {
         return privacyContentLayerIds_.size() != 0;
@@ -814,6 +820,7 @@ private:
     bool isGlobalPositionEnabled_ = false;
     Gravity uiFirstFrameGravity_ = Gravity::TOP_LEFT;
     RSSpecialLayerManager specialLayerManager_;
+    std::unordered_map<ScreenId, std::unordered_set<NodeId>> blackListIds_ = {};
     std::set<NodeId> privacyContentLayerIds_ = {};
     std::set<int32_t> bufferCacheSet_ = {};
     std::string name_= "";

@@ -781,6 +781,63 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetSkipLayer001, TestSize.Level2)
 }
 
 /**
+ * @tc.name: SetBlackListWithScreen001
+ * @tc.desc: Test UpdateBlackListStatus
+ * @tc.type: FUNC
+ * @tc.require: issueIC9I11
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SetBlackListWithScreen001, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    ASSERT_NE(rsContext, nullptr);
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, rsContext);
+    ASSERT_NE(node, nullptr);
+    node->InitRenderParams();
+    node->addedToPendingSyncList_ = true;
+    auto params = static_cast<RSSurfaceRenderParams*>(node->stagingRenderParams_.get());
+    EXPECT_NE(params, nullptr);
+
+    auto virtualScreenId = 1;
+    node->UpdateBlackListStatus(virtualScreenId, true);
+    node->UpdateBlackListStatus(virtualScreenId, false);
+}
+
+/**
+ * @tc.name: SyncBlackListInfoToFirstLevelNode001
+ * @tc.desc: Test SyncBlackListInfoToFirstLevelNode
+ * @tc.type: FUNC
+ * @tc.require: issueIC9I11
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SyncBlackListInfoToFirstLevelNode001, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    ASSERT_NE(rsContext, nullptr);
+    auto parentNode = std::make_shared<RSSurfaceRenderNode>(id, rsContext);
+    auto childNode = std::make_shared<RSSurfaceRenderNode>(id + 1, rsContext);
+    ASSERT_NE(parentNode, nullptr);
+    ASSERT_NE(childNode, nullptr);
+
+    NodeId parentNodeId = parentNode->GetId();
+    pid_t parentNodePid = ExtractPid(parentNodeId);
+    NodeId childNodeId = childNode->GetId();
+    pid_t childNodePid = ExtractPid(childNodeId);
+    rsContext->GetMutableNodeMap().renderNodeMap_[parentNodePid][parentNodeId] = parentNode;
+    rsContext->GetMutableNodeMap().renderNodeMap_[childNodePid][childNodeId] = childNode;
+    childNode->firstLevelNodeId_ = parentNodeId;
+    parentNode->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
+    parentNode->AddChild(childNode);
+
+    auto virtualScreenId = 1;
+    childNode->UpdateBlackListStatus(virtualScreenId, true);
+    parentNode->SetIsOnTheTree(true);
+    parentNode->SyncBlackListInfoToFirstLevelNode();
+    childNode->SetIsOnTheTree(true);
+    childNode->SyncBlackListInfoToFirstLevelNode();
+    childNode->SetIsOnTheTree(false);
+    childNode->SyncBlackListInfoToFirstLevelNode();
+}
+
+/**
  * @tc.name: SetSnapshotSkipLayer001
  * @tc.desc: Test SetSnapshotSkipLayer for single surface node which is skip layer
  * @tc.type: FUNC
