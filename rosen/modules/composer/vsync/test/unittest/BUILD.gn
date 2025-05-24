@@ -45,6 +45,8 @@ ohos_unittest("vsync_connection_test") {
     ":vsync_test_common",
     "$graphic_2d_root/utils:socketpair",
   ]
+
+  external_deps = [ "samgr:samgr_proxy" ]
 }
 
 ## UnitTest vsync_connection_test }}}
@@ -56,6 +58,8 @@ ohos_unittest("vsync_controller_test") {
   sources = [ "vsync_controller_test.cpp" ]
 
   deps = [ ":vsync_test_common" ]
+
+  external_deps = [ "samgr:samgr_proxy" ]
 }
 
 ## UnitTest vsync_controller_test }}}
@@ -70,6 +74,8 @@ ohos_unittest("vsync_distributor_test") {
     ":vsync_test_common",
     "$graphic_2d_root/utils:socketpair",
   ]
+
+  external_deps = [ "samgr:samgr_proxy" ]
 }
 
 ## UnitTest vsync_distributor_test }}}
@@ -85,6 +91,7 @@ ohos_unittest("vsync_generator_test") {
   external_deps = [
     "eventhandler:libeventhandler",
     "ipc:ipc_core",
+    "samgr:samgr_proxy",
   ]
 }
 
@@ -103,7 +110,10 @@ ohos_unittest("vsync_receiver_test") {
     "$graphic_2d_root//utils:socketpair",
   ]
 
-  external_deps = [ "ipc:ipc_core" ]
+  external_deps = [
+    "ipc:ipc_core",
+    "samgr:samgr_proxy",
+  ]
 }
 
 ## UnitTest vsync_receiver_test }}}
@@ -193,8 +203,7 @@ ohos_static_library("vsync_test_common") {
     "c_utils:utils",
     "googletest:gmock_main",
     "googletest:gtest_main",
-    "graphic_surface:surface",
-    "samgr:samgr_proxy",
+    "graphic_surface:surface",    
   ]
 
   subsystem_name = "graphic"
