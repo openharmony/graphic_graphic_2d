@@ -1236,7 +1236,7 @@ void RSDisplayRenderNodeDrawable::DrawMirror(RSDisplayRenderParams& params,
     }
     // Clean up the content of the previous frame
     curCanvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
-    virtualProcesser->CanvasClipRegionForUniscaleMode();
+    virtualProcesser->CanvasClipRegionForUniscaleMode(visibleClipRectMatrix_, mirroredScreenInfo);
     curCanvas_->ConcatMatrix(mirroredParams->GetMatrix());
     PrepareOffscreenRender(*mirroredDrawable, false, false);
 
@@ -2155,6 +2155,10 @@ void RSDisplayRenderNodeDrawable::ScaleCanvasIfNeeded(const ScreenInfo& screenIn
         return;
     }
     slrScale_ = nullptr;
+    if (enableVisibleRect_) {
+        // save canvas matrix to calculate visible clip rect
+        visibleClipRectMatrix_ = curCanvas_->GetTotalMatrix();
+    }
     curCanvas_->Translate(screenInfo.samplingTranslateX, screenInfo.samplingTranslateY);
     curCanvas_->Scale(screenInfo.samplingScale, screenInfo.samplingScale);
 }
