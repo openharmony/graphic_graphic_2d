@@ -184,7 +184,7 @@ HWTEST_F(RSRenderNodeDrawableTest, UpdateCacheInfoForDfxTest, TestSize.Level1)
     drawable->UpdateCacheInfoForDfx(canvas, params.GetBounds(), params.GetId());
     drawable->isDrawingCacheDfxEnabled_ = true;
     drawable->UpdateCacheInfoForDfx(canvas, params.GetBounds(), params.GetId());
-    ASSERT_EQ(drawable->isDrawingCacheDfxEnabled_, true);
+    ASSERT_EQ(drawable->isDrawingCacheEnabled_, false);
 }
 
 /**

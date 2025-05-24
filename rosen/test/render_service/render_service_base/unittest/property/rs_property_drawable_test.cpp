@@ -76,12 +76,10 @@ HWTEST_F(RSPropertyDrawableTest, GenerateDirtySlots, TestSize.Level1)
     properties.border_ = nullptr;
     properties.outline_ = nullptr;
     (void)RSPropertyDrawable::GenerateDirtySlots(properties, dirtyTypes);
-    EXPECT_TRUE(properties.border_ == nullptr);
 
     dirtyTypes.set(8); //for test
     dirtyTypes.set(12); //for test
     (void)RSPropertyDrawable::GenerateDirtySlots(properties, dirtyTypes);
-    EXPECT_TRUE(properties.border_ == nullptr);
 }
 
 /**

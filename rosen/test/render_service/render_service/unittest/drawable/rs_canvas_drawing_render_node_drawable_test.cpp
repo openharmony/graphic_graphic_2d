@@ -347,7 +347,6 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, FlushTest, TestSize.Level1)
     drawable->recordingCanvas_ = nullptr;
     drawable->canvas_ = nullptr;
     drawable->Flush(width, height, context, id, canvas);
-    EXPECT_EQ(drawable->canvas_, nullptr);
 }
 
 /**

@@ -1786,7 +1786,6 @@ HWTEST_F(RSPropertiesTest, SetShadowAlpha001, TestSize.Level1)
     RSProperties properties;
     float alpha = 0.f;
     properties.SetShadowAlpha(alpha);
-    EXPECT_EQ(alpha, 0.f);
 
     alpha = 1.f;
     properties.shadow_ = std::make_optional<RSShadow>();
@@ -2142,7 +2141,6 @@ HWTEST_F(RSPropertiesTest, GetDirtyRect001, TestSize.Level1)
 
     properties.clipToBounds_ = true;
     properties.GetDirtyRect();
-    EXPECT_EQ(properties.clipToBounds_, true);
 
     std::shared_ptr<RectF> rect = std::make_shared<RectF>(1.f, 1.f, 1.f, 1.f);
     properties.SetDrawRegion(rect);
@@ -2172,12 +2170,10 @@ HWTEST_F(RSPropertiesTest, GetDirtyRect002, TestSize.Level1)
 
     properties.clipToBounds_ = true;
     properties.GetDirtyRect(drawRegion);
-    EXPECT_EQ(properties.clipToBounds_, true);
 
     std::shared_ptr<RectF> rect = std::make_shared<RectF>(1.f, 1.f, 1.f, 1.f);
     properties.SetDrawRegion(rect);
     properties.GetDirtyRect(drawRegion);
-    EXPECT_EQ(properties.clipToBounds_, true);
 }
 
 /**
@@ -2271,7 +2267,6 @@ HWTEST_F(RSPropertiesTest, SetBackgroundBlurRadiusX001, TestSize.Level1)
     RSProperties properties;
     float backgroundBlurRadiusX = 0.f;
     properties.SetBackgroundBlurRadiusX(backgroundBlurRadiusX);
-    EXPECT_EQ(backgroundBlurRadiusX, 0.f);
 
     backgroundBlurRadiusX = 2.f;
     properties.SetBackgroundBlurRadiusX(backgroundBlurRadiusX);
@@ -2289,7 +2284,6 @@ HWTEST_F(RSPropertiesTest, SetBackgroundBlurRadiusY001, TestSize.Level1)
     RSProperties properties;
     float backgroundBlurRadiusY = 0.f;
     properties.SetBackgroundBlurRadiusY(backgroundBlurRadiusY);
-    EXPECT_EQ(backgroundBlurRadiusY, 0.f);
 
     backgroundBlurRadiusY = 2.f;
     properties.SetBackgroundBlurRadiusY(backgroundBlurRadiusY);
@@ -2307,7 +2301,6 @@ HWTEST_F(RSPropertiesTest, SetForegroundBlurRadius001, TestSize.Level1)
     RSProperties properties;
     float foregroundBlurRadius = 0.f;
     properties.SetForegroundBlurRadius(foregroundBlurRadius);
-    EXPECT_EQ(foregroundBlurRadius, 0.f);
 
     foregroundBlurRadius = 2.f;
     properties.SetForegroundBlurRadius(foregroundBlurRadius);

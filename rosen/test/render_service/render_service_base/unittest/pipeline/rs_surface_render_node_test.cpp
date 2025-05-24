@@ -726,9 +726,8 @@ HWTEST_F(RSSurfaceRenderNodeTest, UpdateSurfaceCacheContentStatic, TestSize.Leve
 {
     auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
     auto subNode = std::make_shared<RSRenderNode>(id + 1, context);
-    if (node == nullptr || subNode == nullptr) {
-        return;
-    }
+    ASSERT_NE(node, nullptr);
+    ASSERT_NE(subNode, nullptr);
     std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> activeNodeIds;
     node->UpdateSurfaceCacheContentStatic(activeNodeIds);
     std::shared_ptr<RSRenderNode> nullNode = nullptr;
@@ -752,9 +751,8 @@ HWTEST_F(RSSurfaceRenderNodeTest, IsContentDirtyNodeLimited, TestSize.Level1)
 {
     auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
     auto subnode = std::make_shared<RSRenderNode>(id + 1, context);
-    if (node == nullptr || subnode == nullptr) {
-        return;
-    }
+    ASSERT_NE(node, nullptr);
+    ASSERT_NE(subnode, nullptr);
     node->AddChild(subnode, 0);
     subnode->isContentDirty_ = true;
     subnode->isNewOnTree_ = true;

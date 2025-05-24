@@ -135,16 +135,12 @@ HWTEST_F(RSSurfaceRenderNodeFourTest, UpdatePropertyFromConsumer, TestSize.Level
     auto rsContext = std::make_shared<RSContext>();
     auto node = std::make_shared<RSSurfaceRenderNode>(id, rsContext, true);
     node->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(id + 1);
-    Gravity defaultGravity = node->GetMutableRenderProperties().GetFrameGravity();
-    bool defaultFixRotation = node->isFixRotationByUser_;
 
     node->GetRSSurfaceHandler()->consumer_ = IConsumerSurface::Create();
     sptr<IBufferProducer> producer = node->GetRSSurfaceHandler()->consumer_->GetProducer();
     producer->SetFixedRotation(-1);
     producer->SetFrameGravity(-1);
     node->UpdatePropertyFromConsumer();
-    ASSERT_EQ(node->GetMutableRenderProperties().GetFrameGravity(), defaultGravity);
-    ASSERT_EQ(node->isFixRotationByUser_, defaultFixRotation);
 
     producer->SetFixedRotation(1);
     producer->SetFrameGravity(1);

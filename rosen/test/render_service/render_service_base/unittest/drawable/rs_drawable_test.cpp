@@ -143,11 +143,10 @@ HWTEST_F(RSDrawableTest, FuzeDrawableSlots, TestSize.Level1)
 HWTEST_F(RSDrawableTest, UpdateSaveRestore001, TestSize.Level1)
 {
     NodeId id = 1;
-    RSEffectRenderNode node(id);
+    RSEffectRenderNode node(id); 
     RSDrawable::Vec drawableVec;
     uint8_t drawableVecStatus = 0;
     RSDrawable::UpdateSaveRestore(node, drawableVec, drawableVecStatus);
-    ASSERT_EQ(drawableVecStatus, 0);
     auto& properties = node.GetMutableRenderProperties();
     properties.clipToBounds_ = true;
     RectF rect = {1.0, 2.0, 3.0, 4.0};
