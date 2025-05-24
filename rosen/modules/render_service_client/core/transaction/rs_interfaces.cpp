@@ -448,6 +448,46 @@ std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>>
     }
 }
 
+bool RSInterfaces::TakeUICaptureInRange(std::shared_ptr<RSNode> beginNode, std::shared_ptr<RSNode> endNode,
+    bool useBeginNodeSize, std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY, bool isSync)
+{
+    if (!beginNode) {
+        ROSEN_LOGW("RSInterfaces::TakeUICaptureInRange beginNode is nullpter return");
+        return false;
+    }
+    if (!endNode) {
+        return TakeSurfaceCaptureForUI(beginNode, callback, scaleX, scaleY, isSync);
+    }
+    // textureExportNode process cmds in renderThread of application, isSync is unnecessary.
+    if (beginNode->IsTextureExportNode()) {
+        ROSEN_LOGD("RSInterfaces::TakeUICaptureInRange beginNode [%{public}" PRIu64
+            "] is textureExportNode, set isSync false", beginNode->GetId());
+        isSync = false;
+    }
+    if (!((beginNode->GetType() == RSUINodeType::ROOT_NODE) ||
+          (beginNode->GetType() == RSUINodeType::CANVAS_NODE) ||
+          (beginNode->GetType() == RSUINodeType::CANVAS_DRAWING_NODE) ||
+          (beginNode->GetType() == RSUINodeType::SURFACE_NODE))) {
+        ROSEN_LOGE("RSInterfaces::TakeUICaptureInRange unsupported node type return");
+        return false;
+    }
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.scaleX = scaleX;
+    captureConfig.scaleY = scaleY;
+    captureConfig.captureType = SurfaceCaptureType::UICAPTURE;
+    captureConfig.isSync = isSync;
+    captureConfig.uiCaptureInRangeParam.endNodeId = endNode->GetId();
+    captureConfig.uiCaptureInRangeParam.useBeginNodeSize = useBeginNodeSize;
+    if (RSSystemProperties::GetUniRenderEnabled()) {
+        if (isSync) {
+            beginNode->SetTakeSurfaceForUIFlag();
+        }
+        return renderServiceClient_->TakeUICaptureInRange(beginNode->GetId(), callback, captureConfig);
+    } else {
+        return TakeSurfaceCaptureForUIWithoutUni(beginNode->GetId(), callback, scaleX, scaleY);
+    }
+}
+
 bool RSInterfaces::RegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface)
 {
     static std::function<std::shared_ptr<Drawing::Typeface> (uint64_t)> customTypefaceQueryfunc =

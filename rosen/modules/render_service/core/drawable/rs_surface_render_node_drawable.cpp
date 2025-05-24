@@ -173,8 +173,14 @@ void RSSurfaceRenderNodeDrawable::OnGeneralProcess(RSPaintFilterCanvas& canvas,
         // 3. Draw content of this node by the main canvas.
         DrawContent(canvas, bounds);
 
-        // 4. Draw children of this node by the main canvas.
-        DrawChildren(canvas, bounds);
+        auto& captureParam = RSUniRenderThread::GetCaptureParam();
+        bool stopDrawForRangeCapture = (canvas.GetUICapture() &&
+            captureParam.endNodeId_ == GetId() &&
+            captureParam.endNodeId_ != INVALID_NODEID);
+        if (!stopDrawForRangeCapture) {
+            // 4. Draw children of this node by the main canvas.
+            DrawChildren(canvas, bounds);
+        }
     }
 
     // 5. Draw foreground of this node by the main canvas.

@@ -32,7 +32,9 @@ bool RSSurfaceCaptureCallbackProxy::WriteSurfaceCaptureConfig(
     if (!data.WriteFloat(captureConfig.mainScreenRect.left_) ||
         !data.WriteFloat(captureConfig.mainScreenRect.top_) ||
         !data.WriteFloat(captureConfig.mainScreenRect.right_) ||
-        !data.WriteFloat(captureConfig.mainScreenRect.bottom_)) {
+        !data.WriteFloat(captureConfig.mainScreenRect.bottom_) ||
+        !data.WriteUint64(captureConfig.uiCaptureInRangeParam.endNodeId) ||
+        !data.WriteBool(captureConfig.uiCaptureInRangeParam.useBeginNodeSize)) {
         ROSEN_LOGE("RSSurfaceCaptureCallbackProxy::WriteSurfaceCaptureConfig Write CaptureConfig failed");
         return false;
     }

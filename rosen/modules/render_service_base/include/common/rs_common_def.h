@@ -234,6 +234,11 @@ struct FocusAppInfo {
     uint64_t focusNodeId = 0;
 };
 
+struct RSUICaptureInRangeParam {
+    NodeId endNodeId = INVALID_NODEID;
+    bool useBeginNodeSize = true;
+};
+
 struct RSSurfaceCaptureConfig {
     float scaleX = 1.0f;
     float scaleY = 1.0f;
@@ -244,9 +249,12 @@ struct RSSurfaceCaptureConfig {
     Drawing::Rect mainScreenRect = {};
     std::vector<NodeId> blackList = {}; // exclude surfacenode in screenshot
     bool isSoloNodeUiCapture = false;
+    RSUICaptureInRangeParam uiCaptureInRangeParam = {};
     bool operator==(const RSSurfaceCaptureConfig& config) const
     {
-        return mainScreenRect == config.mainScreenRect;
+        return mainScreenRect == config.mainScreenRect &&
+            uiCaptureInRangeParam.endNodeId == config.uiCaptureInRangeParam.endNodeId &&
+            uiCaptureInRangeParam.useBeginNodeSize == config.uiCaptureInRangeParam.useBeginNodeSize;
     }
 };
 

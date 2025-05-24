@@ -335,6 +335,10 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             hasPermission = CheckPermission(code);
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::TAKE_UI_CAPTURE_IN_RANGE): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::TAKE_UI_CAPTURE_IN_RANGE");
+            break;
+        }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_POINTER_POSITION): {
             hasPermission = CheckPermission(code);
             break;
