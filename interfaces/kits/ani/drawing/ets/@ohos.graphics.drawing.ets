@@ -309,6 +309,7 @@ namespace drawing {
   export class Canvas {
     static { loadLibrary("drawing_ani"); }
     private nativeObj : long = 0;
+
     /**
      * Constructor for the Canvas.
      * @param { image.PixelMap } pixelmap - PixelMap.

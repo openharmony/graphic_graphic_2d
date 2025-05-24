@@ -276,6 +276,14 @@ void AniCanvas::NotifyDirty()
 
 void AniCanvas::Constructor(ani_env* env, ani_object obj, ani_object pixelmapObj)
 {
+    if (pixelmapObj == nullptr) {
+        AniCanvas *aniCanvas = new AniCanvas();
+        if (ANI_OK != env->Object_SetFieldByName_Long(obj, NATIVE_OBJ, reinterpret_cast<ani_long>(aniCanvas))) {
+            ROSEN_LOGE("AniCanvas::Constructor failed create AniCanvas with nullptr");
+            delete aniCanvas;
+        }
+        return;
+    }
 #ifdef ROSEN_OHOS
     std::shared_ptr<PixelMap> pixelMap = ImageAniUtils::GetPixelMapFromEnvSp(env, pixelmapObj);
     if (!pixelMap) {
@@ -290,11 +298,12 @@ void AniCanvas::Constructor(ani_env* env, ani_object obj, ani_object pixelmapObj
 
     Canvas* canvas = new Canvas();
     canvas->Bind(bitmap);
-    AniCanvas *aniCanvas = new AniCanvas(canvas);
+    AniCanvas *aniCanvas = new AniCanvas(canvas, true);
     aniCanvas->mPixelMap_ = pixelMap;
 
     if (ANI_OK != env->Object_SetFieldByName_Long(obj, NATIVE_OBJ, reinterpret_cast<ani_long>(aniCanvas))) {
-        ROSEN_LOGE("AniBrush::Constructor failed create aniBrush");
+        ROSEN_LOGE("AniCanvas::Constructor failed create aniCanvas");
+        delete aniCanvas;
         return;
     }
 #endif
@@ -647,6 +656,32 @@ void AniCanvas::Rotate(ani_env* env, ani_object obj, ani_double degrees, ani_dou
 Canvas* AniCanvas::GetCanvas()
 {
     return m_canvas;
+}
+
+ani_object AniCanvas::CreateAniCanvas(ani_env* env, Canvas* canvas)
+{
+    if (canvas == nullptr) {
+        ROSEN_LOGE("CreateAniCanvas failed, canvas is nullptr!");
+        return CreateAniUndefined(env);
+    }
+
+    auto aniCanvas = new AniCanvas(canvas);
+    ani_object aniObj = CreateAniObject(env, ANI_CLASS_CANVAS_NAME, nullptr, nullptr);
+    if (ANI_OK != env->Object_SetFieldByName_Long(aniObj,
+        NATIVE_OBJ, reinterpret_cast<ani_long>(aniCanvas))) {
+        ROSEN_LOGE("aniCanvas failed cause by Object_SetFieldByName_Long");
+        delete aniCanvas;
+        return CreateAniUndefined(env);
+    }
+    return aniObj;
+}
+
+AniCanvas::~AniCanvas()
+{
+    if (owned_) {
+        delete m_canvas;
+    }
+    m_canvas = nullptr;
 }
 } // namespace Drawing
 } // namespace OHOS::Rosen

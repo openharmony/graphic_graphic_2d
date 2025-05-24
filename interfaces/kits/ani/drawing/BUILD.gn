@@ -22,6 +22,15 @@ group("ani_drawing") {
   ]
 }
 
+config("drawing_ani_config") {
+  include_dirs = [
+    "$graphic_2d_root/interfaces/kits/ani/drawing",
+  ]
+  defines = [
+    "ROSEN_OHOS"
+  ]
+}
+
 config("graphic_ani_drawing_config") {
   visibility = [ ":*" ]
   defines = []
@@ -58,7 +67,10 @@ ohos_shared_library("drawing_ani") {
     debug = false
   }
 
-  public_configs = []
+  public_configs = [
+    ":drawing_ani_config",
+    "$graphic_2d_root/rosen/modules/2d_graphics:export_config",
+  ]
 
   configs = [
     ":graphic_ani_drawing_config",
@@ -84,10 +96,13 @@ ohos_shared_library("drawing_ani") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
-    "image_framework:image",
     "image_framework:image_ani",
     "runtime_core:ani",
     "runtime_core:libarkruntime",
+  ]
+
+  public_external_deps = [
+    "image_framework:image",
   ]
 
   part_name = "graphic_2d"
@@ -121,6 +136,5 @@ ohos_prebuilt_etc("drawing_ets") {
   part_name = "graphic_2d"
   deps = [
     ":drawing",
-    ":drawing_test",
   ]
 }
