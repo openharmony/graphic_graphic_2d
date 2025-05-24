@@ -1046,7 +1046,7 @@ ohos_static_library("rs_test_common") {
     defines += [ "USE_ROSEN_DRAWING" ]
   }
 
-  external_deps = []
+  external_deps = [ "samgr:samgr_proxy" ]
 
   public_external_deps = [
     "c_utils:utils",
