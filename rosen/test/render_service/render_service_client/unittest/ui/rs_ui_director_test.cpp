@@ -196,21 +196,6 @@ HWTEST_F(RSUIDirectorTest, SetUITaskRunner002, TestSize.Level1)
     ASSERT_TRUE(director != nullptr);
 }
 
-
-/**
- * @tc.name: StartTextureExport001
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSUIDirectorTest, StartTextureExport001, TestSize.Level1)
-{
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
-    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN) {
-        director->StartTextureExport();
-    }
-    ASSERT_TRUE(director != nullptr);
-}
-
 /**
  * @tc.name: DirectorSendMessages001
  * @tc.desc:
@@ -465,20 +450,6 @@ HWTEST_F(RSUIDirectorTest, SetRTRenderForced, TestSize.Level1)
 }
 
 /**
- * @tc.name: StartTextureExport
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSUIDirectorTest, StartTextureExport, TestSize.Level1)
-{
-    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN) {
-        std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
-        ASSERT_TRUE(director != nullptr);
-        director->StartTextureExport();
-    }
-}
-
-/**
  * @tc.name: GoGround
  * @tc.desc:
  * @tc.type:FUNC
@@ -498,9 +469,6 @@ HWTEST_F(RSUIDirectorTest, GoGround, TestSize.Level1)
     director->SetRoot(node->GetId());
     RSRootNode::SharedPtr nodePtr = std::make_shared<RSRootNode>(node->GetId());
     nodePtr->SetId(node->GetId());
-    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN) {
-        director->StartTextureExport();
-    }
     director->GoForeground();
     director->GoBackground();
     bool res = RSNodeMap::MutableInstance().RegisterNode(nodePtr);
@@ -610,25 +578,6 @@ HWTEST_F(RSUIDirectorTest, PostDelayTask001, TestSize.Level1)
 }
 
 /**
- * @tc.name: StartTextureExportTest001
- * @tc.desc: StartTextureExport Test
- * @tc.type: FUNC
- * @tc.require: issueI9N1QF
- */
-HWTEST_F(RSUIDirectorTest, StartTextureExportTest001, TestSize.Level1)
-{
-    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN) {
-        std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
-        ASSERT_TRUE(director != nullptr);
-        if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN) {
-            director->isUniRenderEnabled_ = true;
-            director->StartTextureExport();
-            EXPECT_NE(RSTransactionProxy::GetInstance(), nullptr);
-        }
-    }
-}
-
-/**
  * @tc.name: SetRTRenderForcedTest002
  * @tc.desc: SetRTRenderForced Test
  * @tc.type: FUNC
@@ -701,5 +650,25 @@ HWTEST_F(RSUIDirectorTest, HasFirstFrameAnimationTest, TestSize.Level1)
     ASSERT_TRUE(director != nullptr);
     bool res = director->HasFirstFrameAnimation();
     ASSERT_FALSE(res);
+}
+
+/**
+ * @tc.name: StartTextureExportTest001
+ * @tc.desc: StartTextureExport Test
+ * @tc.type: FUNC
+ * @tc.require: issueI9N1QF
+ */
+HWTEST_F(RSUIDirectorTest, StartTextureExportTest001, TestSize.Level1)
+{
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN) {
+        std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+        ASSERT_TRUE(director != nullptr);
+        if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN) {
+            director->isUniRenderEnabled_ = true;
+            RSRenderThread::Instance().thread_ = std::make_unique<std::thread>([]{});
+            director->StartTextureExport();
+            EXPECT_NE(RSTransactionProxy::GetInstance(), nullptr);
+        }
+    }
 }
 } // namespace OHOS::Rosen
