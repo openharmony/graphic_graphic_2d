@@ -142,6 +142,23 @@ HWTEST_F(RSClientTest, TakeSurfaceCapture01, TestSize.Level1)
 }
 
 /**
+ * @tc.name: TakeUICaptureInRangeTest
+ * @tc.desc: TakeUICaptureInRangeTest
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientTest, TakeUICaptureInRangeTest, TestSize.Level1)
+{
+    ASSERT_NE(rsClient, nullptr);
+    RSSurfaceCaptureConfig captureConfig;
+    bool ret = rsClient->TakeUICaptureInRange(TEST_ID, nullptr, captureConfig);
+    ASSERT_NE(ret, true);
+    std::shared_ptr<TestSurfaceCaptureCallback> cb = std::make_shared<TestSurfaceCaptureCallback>();
+    ret = rsClient->TakeUICaptureInRange(TEST_ID, cb, captureConfig);
+    ASSERT_EQ(ret, true);
+}
+
+/**
  * @tc.name: SetHwcNodeBounds_Test
  * @tc.desc: Test Set HwcNode Bounds
  * @tc.type:FUNC

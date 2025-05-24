@@ -603,6 +603,33 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, TakeSurfaceCapture, TestSize.Level1
 }
 
 /**
+ * @tc.name: TakeUICaptureInRange Test
+ * @tc.desc: TakeUICaptureInRange Test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderServiceConnectionProxyTest, TakeUICaptureInRange, TestSize.Level1)
+{
+    NodeId id = 1;
+    sptr<RSISurfaceCaptureCallback> callback;
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.scaleX = 1.0f;
+    captureConfig.scaleY = 1.0f;
+    captureConfig.useDma = false;
+    captureConfig.captureType = SurfaceCaptureType::UICAPTURE;
+    captureConfig.isSync = true;
+
+    proxy->TakeUICaptureInRange(id, callback, captureConfig);
+
+    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    ASSERT_NE(samgr, nullptr);
+    auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
+    callback = iface_cast<RSISurfaceCaptureCallback>(remoteObject);
+    proxy->TakeUICaptureInRange(id, callback, captureConfig);
+    ASSERT_NE(proxy->transactionDataIndex_, 5);
+}
+
+/**
  * @tc.name: TakeSurfaceCaptureSoloNode Test
  * @tc.desc: TakeSurfaceCaptureSoloNode Test
  * @tc.type:FUNC

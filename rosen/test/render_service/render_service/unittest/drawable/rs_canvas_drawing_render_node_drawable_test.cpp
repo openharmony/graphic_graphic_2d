@@ -121,6 +121,29 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, OnDrawTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: OnDrawWithoutChildren
+ * @tc.desc: OnDrawWithoutChildren
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, OnDrawWithoutChildren, TestSize.Level1)
+{
+    auto drawable = RSCanvasDrawingRenderNodeDrawableTest::CreateDrawable();
+
+    Drawing::Canvas canvas;
+    drawable->renderParams_->shouldPaint_ = true;
+    drawable->renderParams_->contentEmpty_ = false;
+    RSUniRenderThread::GetCaptureParam().endNodeId_ = drawable->renderParams_->GetId();
+    canvas.SetUICapture(true);
+    drawable->OnDraw(canvas);
+    ASSERT_FALSE(drawable->renderParams_->GetCanvasDrawingSurfaceChanged());
+    RSUniRenderThread::GetCaptureParam().endNodeId_ = INVALID_NODEID;
+    drawable->renderParams_->canvasDrawingNodeSurfaceChanged_ = true;
+    drawable->OnDraw(canvas);
+    ASSERT_TRUE(drawable->renderParams_->GetCanvasDrawingSurfaceChanged());
+}
+
+/**
  * @tc.name: DrawRenderContent
  * @tc.desc: Test If DrawRenderContent Can Run
  * @tc.type: FUNC

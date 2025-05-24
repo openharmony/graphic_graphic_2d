@@ -175,6 +175,9 @@ public:
         std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig = {},
         float blurRadius = 1E-6);
 
+    bool TakeUICaptureInRange(std::shared_ptr<RSNode> beginNode, std::shared_ptr<RSNode> endNode, bool useBeginNodeSize,
+        std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY, bool isSync);
+
     bool SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY, float positionZ, float positionW);
 
     bool RegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface);

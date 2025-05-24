@@ -806,6 +806,38 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, OnGeneralProcessTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: OnGeneralProcess_StoppedByRangeCapTest
+ * @tc.desc: OnGeneralProcess_StoppedByRangeCapTest
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, OnGeneralProcess_StoppedByRangeCapTest, TestSize.Level1)
+{
+    auto& rtThread = RSUniRenderThread::Instance();
+    if (!rtThread.GetRSRenderThreadParams()) {
+        rtThread.Sync(std::make_unique<RSRenderThreadParams>());
+    }
+    if (!rtThread.uniRenderEngine_) {
+        rtThread.uniRenderEngine_ = std::make_shared<RSRenderEngine>();
+    }
+
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable_->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    auto uniParams = std::make_shared<RSRenderThreadParams>();
+    ASSERT_NE(uniParams, nullptr);
+    canvas.SetUICapture(true);
+    RSUniRenderThread::GetCaptureParam().endNodeId_ = surfaceParams->GetId();
+    surfaceDrawable_->OnGeneralProcess(canvas, *surfaceParams, *uniParams, false);
+    EXPECT_FALSE(surfaceParams->GetBuffer());
+    RSUniRenderThread::GetCaptureParam().endNodeId_ = INVALID_NODEID;
+    surfaceDrawable_->OnGeneralProcess(canvas, *surfaceParams, *uniParams, false);
+    EXPECT_FALSE(surfaceParams->GetBuffer());
+}
+
+/**
  * @tc.name: RecordTimestamp
  * @tc.desc: Test RecordTimestamp
  * @tc.type: FUNC

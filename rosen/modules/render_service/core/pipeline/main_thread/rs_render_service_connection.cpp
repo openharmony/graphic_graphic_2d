@@ -1477,6 +1477,12 @@ ErrCode RSRenderServiceConnection::SetWindowFreezeImmediately(NodeId id, bool is
     return ERR_OK;
 }
 
+void RSRenderServiceConnection::TakeUICaptureInRange(
+    NodeId id, sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig)
+{
+    TakeSurfaceCaptureForUiParallel(id, callback, captureConfig, {});
+}
+
 ErrCode RSRenderServiceConnection::SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
     float positionZ, float positionW)
 {

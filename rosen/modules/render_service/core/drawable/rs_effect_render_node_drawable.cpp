@@ -144,6 +144,13 @@ bool RSEffectRenderNodeDrawable::GenerateEffectDataOnDemand(RSEffectRenderParams
 
 void RSEffectRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
 {
+    auto& captureParam = RSUniRenderThread::GetCaptureParam();
+    bool stopDrawForRangeCapture = (canvas.GetUICapture() &&
+        captureParam.endNodeId_ == GetId() &&
+        captureParam.endNodeId_ != INVALID_NODEID);
+    if (stopDrawForRangeCapture) {
+        return;
+    }
     RSEffectRenderNodeDrawable::OnDraw(canvas);
 }
 } // namespace OHOS::Rosen::DrawableV2

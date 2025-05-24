@@ -398,6 +398,38 @@ bool RSRenderServiceClient::SetWindowFreezeImmediately(NodeId id, bool isFreeze,
     return true;
 }
 
+bool RSRenderServiceClient::TakeUICaptureInRange(
+    NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        ROSEN_LOGE("RSRenderServiceClient::TakeUICaptureInRange renderService == nullptr!");
+        return false;
+    }
+    if (callback == nullptr) {
+        ROSEN_LOGE("RSRenderServiceClient::TakeUICaptureInRange callback == nullptr!");
+        return false;
+    }
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        auto iter = surfaceCaptureCbMap_.find({ id, captureConfig });
+        if (iter != surfaceCaptureCbMap_.end()) {
+            ROSEN_LOGD("RSRenderServiceClient::TakeUICaptureInRange surfaceCaptureCbMap_.count(id) != 0");
+            iter->second.emplace_back(callback);
+            return true;
+        }
+        std::vector<std::shared_ptr<SurfaceCaptureCallback>> callbackVector = {callback};
+        surfaceCaptureCbMap_.emplace(std::make_pair(id, captureConfig), callbackVector);
+    }
+
+    std::lock_guard<std::mutex> lock(surfaceCaptureCbDirectorMutex_);
+    if (surfaceCaptureCbDirector_ == nullptr) {
+        surfaceCaptureCbDirector_ = new SurfaceCaptureCallbackDirector(this);
+    }
+    renderService->TakeUICaptureInRange(id, surfaceCaptureCbDirector_, captureConfig);
+    return true;
+}
+
 bool RSRenderServiceClient::SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
     float positionZ, float positionW)
 {

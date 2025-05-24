@@ -138,7 +138,12 @@ void RSCanvasDrawingRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     //if you want to dump canvas_drawing_node as a png
     DumpCanvasDrawing();
 
-    if (!RSUniRenderThread::GetCaptureParam().isSoloNodeUiCapture_) {
+    auto& captureParam = RSUniRenderThread::GetCaptureParam();
+    bool stopDrawForRangeCapture = (canvas.GetUICapture() &&
+        captureParam.endNodeId_ == GetId() &&
+        captureParam.endNodeId_ != INVALID_NODEID);
+
+    if (!captureParam.isSoloNodeUiCapture_ && !stopDrawForRangeCapture) {
         // 3. Draw children of this drawing node by the main canvas.
         DrawChildren(canvas, bounds);
     }

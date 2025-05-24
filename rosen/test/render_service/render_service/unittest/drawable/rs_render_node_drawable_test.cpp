@@ -406,6 +406,29 @@ HWTEST_F(RSRenderNodeDrawableTest, DrawTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: DrawWithoutChild
+ * @tc.desc: DrawWithoutChild
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeDrawableTest, DrawWithoutChild, TestSize.Level1)
+{
+    auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
+    Drawing::Canvas canvas;
+    canvas.SetUICapture(true);
+    NodeId id = 1;
+    RSUniRenderThread::GetCaptureParam().endNodeId_ = id;
+    drawable->OnDraw(canvas);
+    ASSERT_FALSE(RSUniRenderThread::IsInCaptureProcess());
+
+    CaptureParam param;
+    param.isSnapshot_ = true;
+    RSUniRenderThread::GetCaptureParam().endNodeId_ = INVALID_NODEID;
+    RSUniRenderThread::SetCaptureParam(param);
+    ASSERT_TRUE(RSUniRenderThread::IsInCaptureProcess());
+}
+
+/**
  * @tc.name: TraverseSubTreeAndDrawFilterWithClip
  * @tc.desc: Test If TraverseSubTreeAndDrawFilterWithClip Can Run
  * @tc.type: FUNC
