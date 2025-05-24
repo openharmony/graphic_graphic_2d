@@ -93,7 +93,6 @@ bool RSRenderColorGradientFilterPara::ReadFromParcel(Parcel& parcel)
 
     uint32_t size = 0;
     if (!RSMarshallingHelper::Unmarshalling(parcel, size)) { return false; }
-    if (size > static_cast<size_t>(RSMarshallingHelper::UNMARSHALLING_MAX_VECTOR_SIZE)) { return false; }
 
     RSUIFilterType colorsType = RSUIFilterType::NONE;
     if (!RSMarshallingHelper::Unmarshalling(parcel, colorsType)) { return false; }
@@ -130,7 +129,7 @@ bool RSRenderColorGradientFilterPara::ReadFromParcel(Parcel& parcel)
         return false;
     }
     if (maskType_ != RSUIFilterType::NONE) {
-        std::shared_ptr<RSRenderFilterParaBase> maskProperty = CreateRenderProperty(maskType_);
+        std::shared_ptr<RSRenderFilterParaBase> maskProperty = CreateMaskRenderProperty(maskType_);
         if (maskProperty == nullptr || !maskProperty->ReadFromParcel(parcel)) {
             ROSEN_LOGE("RSRenderColorGradientFilterPara::ReadFromParcel mask error");
             return false;
@@ -141,14 +140,14 @@ bool RSRenderColorGradientFilterPara::ReadFromParcel(Parcel& parcel)
     return true;
 }
 
-std::shared_ptr<RSRenderMaskPara> RSRenderColorGradientFilterPara::CreateRenderProperty(RSUIFilterType type)
+std::shared_ptr<RSRenderMaskPara> RSRenderColorGradientFilterPara::CreateMaskRenderProperty(RSUIFilterType type)
 {
     switch (type) {
         case RSUIFilterType::RIPPLE_MASK : {
             return std::make_shared<RSRenderRippleMaskPara>(0);
         }
         default: {
-            ROSEN_LOGD("RSRenderColorGradientFilterPara::CreateRenderProperty RSUIFilterType nullptr");
+            ROSEN_LOGD("RSRenderColorGradientFilterPara::CreateMaskRenderProperty RSUIFilterType nullptr");
             return nullptr;
         }
     }
@@ -159,7 +158,7 @@ std::vector<std::shared_ptr<RSRenderPropertyBase>> RSRenderColorGradientFilterPa
 {
     auto colorsProperty = GetRenderPropert(RSUIFilterType::COLOR_GRADIENT_COLOR);
     if (colorsProperty == nullptr) {
-        ROSEN_LOGE("RSRenderColorGradientFilterPara::GetLeafRenderProperties empty factor");
+        ROSEN_LOGE("RSRenderColorGradientFilterPara::GetLeafRenderProperties empty colors");
         return {};
     }
 

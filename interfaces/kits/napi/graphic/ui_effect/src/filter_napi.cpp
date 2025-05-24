@@ -599,23 +599,17 @@ bool FilterNapi::GetColorGradientArray(napi_env env, napi_value* argValue, std::
             return false;
         }
 
-        for (size_t j = 0; j < NUM_4; j++) {
-            napi_value jsValue;
-            if ((napi_get_element(env, jsValueColor, j, &jsValue)) != napi_ok) {
-                FILTER_LOG_E("GetColorGradientArray get args color fail");
-                return false;
-            }
-            colorValue.push_back(GetSpecialValue(env, jsValue));
-        }
+        Vector4f color;
+        if (!ParseJsRGBAColor(env, jsValueColor, color)) { return false; }
+        colorValue.push_back(color[0]);
+        colorValue.push_back(color[1]);
+        colorValue.push_back(color[2]); // 2 element of color
+        colorValue.push_back(color[3]); // 3 element of color
 
-        for (size_t j = 0; j < NUM_2; j++) {
-            napi_value jsValue;
-            if ((napi_get_element(env, jsValuePos, j, &jsValue)) != napi_ok) {
-                FILTER_LOG_E("GetColorGradientArray get args pos fail");
-                return false;
-            }
-            posValue.push_back(GetSpecialValue(env, jsValue));
-        }
+        double position[NUM_2] = { 0.0 };
+        if (!ConvertFromJsPoint(env, jsValuePos, position, NUM_2)) { return false; }
+        posValue.push_back(static_cast<float>(position[0]));
+        posValue.push_back(static_cast<float>(position[1]));
 
         strengthValue.push_back(GetSpecialValue(env, jsValueStrength));
     }
@@ -657,7 +651,7 @@ napi_value FilterNapi::SetColorGradient(napi_env env, napi_callback_info info)
         return nullptr;
     }
     if (arraySizeColor != arraySizePos || arraySizeColor != arraySizeStrength ||
-        arraySizeStrength <= NUM_0 || arraySizeStrength > NUM_12) {
+        arraySizeStrength < NUM_0 || arraySizeStrength > NUM_12) {
         FILTER_LOG_E("SetColorGradient param Error");
         return nullptr;
     }

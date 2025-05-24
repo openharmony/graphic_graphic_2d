@@ -43,7 +43,7 @@ enum class RSUIFilterType : int16_t {
     RIPPLE_MASK_CENTER, // Vector2f
     RIPPLE_MASK_RADIUS, // float
     RIPPLE_MASK_WIDTH, // float
-    RIPPLE_MASK_WIDTH_CENTER_OFFSET, //float
+    RIPPLE_MASK_WIDTH_CENTER_OFFSET, // float
     DISPLACEMENT_DISTORT_FACTOR, // Vector2f
 
     // value type
