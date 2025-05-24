@@ -3614,6 +3614,9 @@ HWTEST_F(RSScreenManagerTest, RemoveScreenChangeCallback, TestSize.Level1)
     EXPECT_NE(nullptr, callback2);
 
     screenManagerImpl->screenChangeCallbacks_.push_back(callback1);
+    screenManagerImpl->RSScreenManager::RemoveScreenChangeCallback(callback2);
+    EXPECT_EQ(1, screenManagerImpl->screenChangeCallbacks_.size());
+    
     screenManagerImpl->screenChangeCallbacks_.push_back(callback2);
     EXPECT_EQ(2, screenManagerImpl->screenChangeCallbacks_.size());
 
