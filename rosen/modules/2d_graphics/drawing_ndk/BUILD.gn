@@ -141,10 +141,12 @@ template("drawing_ndk_source_set") {
       external_deps += [
         "bounds_checking_function:libsec_static",
         "hilog:libhilog",
+        "hitrace:hitrace_meter",
         "icu:shared_icuuc",
         "image_framework:image_native",
         "image_framework:pixelmap",
         "image_framework:pixelmap_ndk",
+        "init:libbegetutil",
       ]
 
       remove_configs = [ "//build/config/compiler:default_include_dirs" ]

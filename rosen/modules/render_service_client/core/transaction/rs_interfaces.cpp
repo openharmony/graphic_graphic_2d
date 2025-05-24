@@ -449,7 +449,6 @@ std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>>
 
 bool RSInterfaces::RegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface)
 {
-    RS_TRACE_FUNC();
     static std::function<std::shared_ptr<Drawing::Typeface> (uint64_t)> customTypefaceQueryfunc =
         [](uint64_t globalUniqueId) -> std::shared_ptr<Drawing::Typeface> {
         return RSTypefaceCache::Instance().GetDrawingTypefaceCache(globalUniqueId);
@@ -483,7 +482,6 @@ bool RSInterfaces::RegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface
 
 bool RSInterfaces::UnRegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface)
 {
-    RS_TRACE_FUNC();
     RS_LOGW("RSInterfaces:Unreg typeface: family name:%{public}s, uniqueid:%{public}u",
         typeface->GetFamilyName().c_str(), typeface->GetUniqueID());
     if (RSSystemProperties::GetUniRenderEnabled()) {

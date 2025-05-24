@@ -18,7 +18,6 @@
 #include "draw/paint.h"
 #include "platform/common/rs_log.h"
 #include "utils/point.h"
-#include "rs_trace.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -114,7 +113,6 @@ RSSymbolAnimation::~RSSymbolAnimation() {}
 bool RSSymbolAnimation::SetSymbolAnimation(
     const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig)
 {
-    RS_TRACE_FUNC();
     if (rsNode_ == nullptr || symbolAnimationConfig == nullptr) {
         ROSEN_LOGD("HmSymbol RSSymbolAnimation::getNode or get symbolAnimationConfig:failed");
         return false;

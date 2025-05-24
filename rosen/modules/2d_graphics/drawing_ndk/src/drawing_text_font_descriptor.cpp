@@ -19,7 +19,9 @@
 #include "font_descriptor_mgr.h"
 #include "font_utils.h"
 #include "text/common_utils.h"
+#define ENABLE_OHOS_ENHANCE
 #include "utils/text_trace.h"
+#undef ENABLE_OHOS_ENHANCE
 
 using namespace OHOS::Rosen;
 namespace {
