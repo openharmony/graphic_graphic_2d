@@ -46,6 +46,7 @@
 #include "pipeline/main_thread/rs_uni_render_visitor.h"
 #include "pipeline/hwc/rs_uni_hwc_visitor.h"
 #include "screen_manager/rs_screen.h"
+#include "feature/occlusion_culling/rs_occlusion_handler.h"
 #include "feature/round_corner_display/rs_round_corner_display.h"
 #include "feature/round_corner_display/rs_round_corner_display_manager.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
@@ -985,6 +986,65 @@ HWTEST_F(RSUniRenderVisitorTest, CollectTopOcclusionSurfacesInfo004, TestSize.Le
 
     rsUniRenderVisitor->CollectTopOcclusionSurfacesInfo(*surfaceNode, true);
     EXPECT_EQ(parentSurfaceNode->stencilVal_, DEFAULT_OCCLUSION_SURFACE_ORDER);
+}
+
+/**
+ * @tc.name: InitializeOcclusionHandler001
+ * @tc.desc: test InitializeOcclusionHandler with the switch is enabled or not enabled
+ * @tc.type: FUNC
+ * @tc.require: issueICA6FQ
+ */
+HWTEST_F(RSUniRenderVisitorTest, InitializeOcclusionHandler001, TestSize.Level2)
+{
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+
+    OcclusionCullingParam::SetIntraAppControlsLevelOcclusionCullingEnable(false);
+    rsUniRenderVisitor->InitializeOcclusionHandler(*surfaceNode);
+    EXPECT_EQ(rsUniRenderVisitor->curOcclusionHandler_, nullptr);
+
+    OcclusionCullingParam::SetIntraAppControlsLevelOcclusionCullingEnable(true);
+    rsUniRenderVisitor->InitializeOcclusionHandler(*surfaceNode);
+    EXPECT_EQ(rsUniRenderVisitor->curOcclusionHandler_, nullptr);
+
+    surfaceNode->GetOcclusionParams()->keyOcclusionNodeIds_.emplace(surfaceNode->GetId());
+    rsUniRenderVisitor->InitializeOcclusionHandler(*surfaceNode);
+    EXPECT_NE(rsUniRenderVisitor->curOcclusionHandler_, nullptr);
+
+    rsUniRenderVisitor->InitializeOcclusionHandler(*surfaceNode);
+    EXPECT_EQ(rsUniRenderVisitor->curOcclusionHandler_,
+        surfaceNode->GetOcclusionParams()->GetOcclusionHandler());
+}
+
+/**
+ * @tc.name: CollectSubTreeAndProcessOcclusion001
+ * @tc.desc: test CollectSubTreeAndProcessOcclusion
+ * @tc.type: FUNC
+ * @tc.require: issueICA6FQ
+ */
+HWTEST_F(RSUniRenderVisitorTest, CollectSubTreeAndProcessOcclusion001, TestSize.Level2)
+{
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    rsUniRenderVisitor->CollectSubTreeAndProcessOcclusion(*surfaceNode, true);
+
+    OcclusionCullingParam::SetIntraAppControlsLevelOcclusionCullingEnable(true);
+    surfaceNode->GetOcclusionParams()->keyOcclusionNodeIds_.emplace(surfaceNode->GetId());
+    rsUniRenderVisitor->InitializeOcclusionHandler(*surfaceNode);
+    ASSERT_NE(rsUniRenderVisitor->curOcclusionHandler_, nullptr);
+    rsUniRenderVisitor->curOcclusionHandler_->rootNodeId_ = surfaceNode->GetId();
+    
+    
+    auto rsContext = std::make_shared<RSContext>();
+    auto canvasNodeId = surfaceNode->GetId();
+    ++canvasNodeId;
+    auto rsCanvasRenderNode = std::make_shared<RSCanvasRenderNode>(canvasNodeId, rsContext->weak_from_this());
+    rsUniRenderVisitor->CollectSubTreeAndProcessOcclusion(*rsCanvasRenderNode, false);
+    ASSERT_NE(rsUniRenderVisitor->curOcclusionHandler_, nullptr);
+    rsUniRenderVisitor->CollectSubTreeAndProcessOcclusion(*surfaceNode, true);
+    ASSERT_EQ(rsUniRenderVisitor->curOcclusionHandler_, nullptr);
 }
 
 /*

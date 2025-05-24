@@ -168,7 +168,7 @@ private:
     static inline std::unordered_map<NodeId, int32_t> drawingCacheContinuousUpdateTimeMap_;
 
     static thread_local bool isOpDropped_;
-    static thread_local inline bool occlusionCullingEnabled_ = false;
+    static thread_local bool occlusionCullingEnabled_;
     static thread_local bool isOffScreenWithClipHole_;
     static inline std::atomic<int> totalProcessedNodeCount_ = 0;
     static inline int snapshotProcessedNodeCount_ = 0;

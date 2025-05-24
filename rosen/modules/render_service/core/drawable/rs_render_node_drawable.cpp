@@ -42,6 +42,7 @@ namespace OHOS::Rosen::DrawableV2 {
 RSRenderNodeDrawable::Registrar RSRenderNodeDrawable::instance_;
 thread_local bool RSRenderNodeDrawable::drawBlurForCache_ = false;
 thread_local bool RSRenderNodeDrawable::isOpDropped_ = true;
+thread_local bool RSRenderNodeDrawable::occlusionCullingEnabled_ = false;
 thread_local bool RSRenderNodeDrawable::isOffScreenWithClipHole_ = false;
 
 namespace {
