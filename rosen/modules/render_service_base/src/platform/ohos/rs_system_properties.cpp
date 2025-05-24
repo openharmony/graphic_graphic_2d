@@ -1414,7 +1414,7 @@ bool RSSystemProperties::GetHybridRenderSystemEnabled()
 
 bool RSSystemProperties::GetHybridRenderDfxEnabled()
 {
-    static bool hybridRenderDfxEnabled = GetHybridRenderSystemEnabled() &&
+    static bool hybridRenderDfxEnabled = GetHybridRenderEnabled() &&
         system::GetBoolParameter("persist.sys.graphic.hybrid_render_dfx_enabled", false);
     return hybridRenderDfxEnabled;
 }
@@ -1435,7 +1435,7 @@ bool RSSystemProperties::ViewDrawNodeType()
 
 bool RSSystemProperties::GetHybridRenderParallelConvertEnabled()
 {
-    static bool paraConvertEnabled = GetHybridRenderSystemEnabled() &&
+    static bool paraConvertEnabled = GetHybridRenderEnabled() &&
         system::GetBoolParameter("persist.sys.graphic.hybrid_render_parallelconvert_enabled", true);
     return paraConvertEnabled;
 }
@@ -1450,7 +1450,7 @@ bool RSSystemProperties::GetHybridRenderCanvasEnabled()
 
 bool RSSystemProperties::GetHybridRenderMemeoryReleaseEnabled()
 {
-    static bool memoryReleaseEnabled = GetHybridRenderSystemEnabled() &&
+    static bool memoryReleaseEnabled = GetHybridRenderEnabled() &&
         system::GetBoolParameter("persist.sys.graphic.hybrid_render_memory_release_enabled", true);
     return memoryReleaseEnabled;
 }
@@ -1459,7 +1459,7 @@ bool RSSystemProperties::GetHybridRenderMemeoryReleaseEnabled()
 bool RSSystemProperties::GetHybridRenderTextBlobEnabled()
 {
     static bool textblobEnabled = GetHybridRenderSystemEnabled() &&
-        system::GetBoolParameter("persist.sys.graphic.hybrid_render_textblob_enabled", true);
+        system::GetBoolParameter("persist.sys.graphic.hybrid_render_textblob_enabled", false);
     return textblobEnabled;
 }
 
@@ -1467,7 +1467,7 @@ bool RSSystemProperties::GetHybridRenderTextBlobEnabled()
 bool RSSystemProperties::GetHybridRenderSvgEnabled()
 {
     static bool svgEnabled = GetHybridRenderSystemEnabled() &&
-        system::GetBoolParameter("persist.sys.graphic.hybrid_render_svg_enabled", true);
+        system::GetBoolParameter("persist.sys.graphic.hybrid_render_svg_enabled", false);
     return svgEnabled;
 }
 
@@ -1475,7 +1475,7 @@ bool RSSystemProperties::GetHybridRenderSvgEnabled()
 bool RSSystemProperties::GetHybridRenderHmsymbolEnabled()
 {
     static bool hmsymbolEnabled = GetHybridRenderSystemEnabled() &&
-        system::GetBoolParameter("persist.sys.graphic.hybrid_render_hmsymbol_enabled", true);
+        system::GetBoolParameter("persist.sys.graphic.hybrid_render_hmsymbol_enabled", false);
     return hmsymbolEnabled;
 }
 
