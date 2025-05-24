@@ -49,6 +49,7 @@ public:
         SOUND_WAVE,
         EDGE_LIGHT,
         BEZIER_WARP,
+        DISPERSION,
     };
 
     FilterPara()  = default;

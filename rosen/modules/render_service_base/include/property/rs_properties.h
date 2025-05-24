@@ -645,6 +645,7 @@ private:
     void GenerateSoundWaveFilter();
     void GenerateRenderFilterEdgeLight();
     void GenerateBezierWarpFilter();
+    void GenerateRenderFilterDispersion();
     void GenerateForegroundRenderFilter();
 
     bool NeedClip() const;

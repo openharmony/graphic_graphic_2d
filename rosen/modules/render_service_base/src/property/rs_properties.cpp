@@ -49,6 +49,7 @@
 #include "render/rs_render_color_gradient_filter.h"
 #include "render/rs_render_displacement_distort_filter.h"
 #include "render/rs_render_edge_light_filter.h"
+#include "render/rs_render_dispersion_filter.h"
 #include "render/rs_render_filter_base.h"
 #include "render/rs_shader_mask.h"
 #include "render/rs_spherize_effect_filter.h"
@@ -60,6 +61,7 @@
 #include "render/rs_sound_wave_filter.h"
 #include "render/rs_edge_light_shader_filter.h"
 #include "render/rs_bezier_warp_filter.h"
+#include "render/rs_dispersion_shader_filter.h"
 #include "drawable/rs_property_drawable_utils.h"
 
 
@@ -3700,6 +3702,54 @@ void RSProperties::GenerateRenderFilterEdgeLight()
     }
 }
 
+void RSProperties::GenerateRenderFilterDispersion()
+{
+    if (!backgroundRenderFilter_) {
+        ROSEN_LOGE("RSProperties::GenerateRenderFilterDispersion backgroundRenderFilter_ nullptr.");
+        return;
+    }
+    auto dispersionFilterPara = std::static_pointer_cast<RSRenderDispersionFilterPara>(
+        backgroundRenderFilter_->GetRenderFilterPara(RSUIFilterType::DISPERSION));
+    if (!dispersionFilterPara) {
+        ROSEN_LOGE("RSProperties::GenerateRenderFilterDispersion DISPERSION filter para not found.");
+        return;
+    }
+
+    auto dispersionMask = std::static_pointer_cast<RSRenderMaskPara>(
+        dispersionFilterPara->GetRenderPropert(dispersionFilterPara->GetMaskType()));
+    auto dispersionShaderMask = std::make_shared<RSShaderMask>(dispersionMask);
+    auto dispersionOpacity = std::static_pointer_cast<RSRenderProperty<float>>(
+        dispersionFilterPara->GetRenderPropert(RSUIFilterType::DISPERSION_OPACITY));
+    auto dispersionRedOffset = std::static_pointer_cast<RSRenderProperty<Vector2f>>(
+        dispersionFilterPara->GetRenderPropert(RSUIFilterType::DISPERSION_RED_OFFSET));
+    auto dispersionGreenOffset = std::static_pointer_cast<RSRenderProperty<Vector2f>>(
+        dispersionFilterPara->GetRenderPropert(RSUIFilterType::DISPERSION_GREEN_OFFSET));
+    auto dispersionBlueOffset = std::static_pointer_cast<RSRenderProperty<Vector2f>>(
+        dispersionFilterPara->GetRenderPropert(RSUIFilterType::DISPERSION_BLUE_OFFSET));
+    
+    bool hasNull = !dispersionShaderMask || !dispersionOpacity || !dispersionRedOffset || !dispersionGreenOffset ||
+        !dispersionBlueOffset;
+    if (hasNull) {
+        ROSEN_LOGE("RSProperties::GenerateRenderFilterDispersion GetRenderPropert has some nullptr.");
+        return;
+    }
+
+    DispersionShaderFilterParams dspParas = { dispersionShaderMask, dispersionOpacity->Get(), dispersionRedOffset->Get(), 
+        dispersionGreenOffset->Get(), dispersionBlueOffset->Get() };
+    std::shared_ptr<RSDispersionShaderFilter> dspFilter = std::make_shared<RSDispersionShaderFilter>(dspParas);
+
+    std::shared_ptr<RSDrawingFilter> originalFilter = std::make_shared<RSDrawingFilter>(dspFilter);
+    if (!backgroundFilter_) {
+        backgroundFilter_ = originalFilter;
+        backgroundFilter_->SetFilterType(RSFilter::DISPERSION);
+    } else {
+        auto backgroundDrawingFilter = std::static_pointer_cast<RSDrawingFilter>(backgroundFilter_);
+        backgroundDrawingFilter = backgroundDrawingFilter->Compose(dspFilter);
+        backgroundDrawingFilter->SetFilterType(RSFilter::COMPOUND_EFFECT);
+        backgroundFilter_ = backgroundDrawingFilter;
+    }
+}
+
 void RSProperties::GenerateRenderFilter()
 {
     for (auto type : backgroundRenderFilter_->GetUIFilterTypes()) {
@@ -3718,6 +3768,10 @@ void RSProperties::GenerateRenderFilter()
             }
             case RSUIFilterType::EDGE_LIGHT : {
                 GenerateRenderFilterEdgeLight();
+                break;
+            }
+            case RSUIFilterType::DISPERSION : {
+                GenerateRenderFilterDispersion();
                 break;
             }
             default:

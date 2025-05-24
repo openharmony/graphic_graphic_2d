@@ -27,8 +27,10 @@ enum class RSUIFilterType : int16_t {
     DISPLACEMENT_DISTORT,
     COLOR_GRADIENT,
     SOUND_WAVE,
+
     EDGE_LIGHT,
     BEZIER_WARP,
+    DISPERSION,
 
     // mask type
     RIPPLE_MASK,
@@ -86,6 +88,12 @@ enum class RSUIFilterType : int16_t {
     PIXEL_MAP_MASK_SRC, // Vector4f
     PIXEL_MAP_MASK_DST, // Vector4f
     PIXEL_MAP_MASK_FILL_COLOR, // Vector4f
+
+    // dispersion value type
+    DISPERSION_OPACITY, // float
+    DISPERSION_RED_OFFSET, // Vector2f
+    DISPERSION_GREEN_OFFSET, // Vector2f
+    DISPERSION_BLUE_OFFSET, // Vector2f
 };
 
 class RSB_EXPORT RSRenderFilterParaBase : public RSRenderPropertyBase,

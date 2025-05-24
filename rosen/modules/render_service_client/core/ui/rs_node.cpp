@@ -65,6 +65,7 @@
 #include "ui_effect/property/include/rs_ui_bezier_warp_filter.h"
 #include "ui_effect/property/include/rs_ui_displacement_distort_filter.h"
 #include "ui_effect/property/include/rs_ui_edge_light_filter.h"
+#include "ui_effect/property/include/rs_ui_dispersion_filter.h"
 
 #ifdef RS_ENABLE_VK
 #include "modifier_render_thread/rs_modifiers_draw.h"
@@ -1908,6 +1909,13 @@ void RSNode::SetUIBackgroundFilter(const OHOS::Rosen::Filter* backgroundFilter)
                 auto filterEdgeLightPara = std::static_pointer_cast<EdgeLightPara>(filterPara);
                 edgeLightProperty->SetEdgeLight(filterEdgeLightPara);
                 uiFilter->Insert(edgeLightProperty);
+                break;
+            }
+            case FilterPara::DISPERSION: {
+                auto dispersionProperty = std::make_shared<RSUIDispersionFilterPara>();
+                auto filterDispersionPara = std::static_pointer_cast<DispersionPara>(filterPara);
+                dispersionProperty->SetDispersion(filterDispersionPara);
+                uiFilter->Insert(dispersionProperty);
                 break;
             }
             default:

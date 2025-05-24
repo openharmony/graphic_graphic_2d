@@ -28,6 +28,7 @@
 #include "filter/include/filter_distort_para.h"
 #include "filter/include/filter_radius_gradient_blur_para.h"
 #include "filter/include/filter_edge_light_para.h"
+#include "filter/include/filter_dispersion_para.h"
 #include "mask/include/mask.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
@@ -66,6 +67,7 @@ private:
     static napi_value SetColorGradient(napi_env env, napi_callback_info info);
     static napi_value SetDisplacementDistort(napi_env env, napi_callback_info info);
     static napi_value SetEdgeLight(napi_env env, napi_callback_info info);
+    static napi_value SetMaskDispersion(napi_env env, napi_callback_info info);
     static Drawing::TileMode ParserArgumentType(napi_env env, napi_value argv);
     static GradientDirection ParserGradientDirection(napi_env env, napi_value argv);
 
