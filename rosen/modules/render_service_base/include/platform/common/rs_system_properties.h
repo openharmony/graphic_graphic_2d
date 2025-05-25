@@ -140,6 +140,7 @@ enum class ComponentEnableSwitch {
     SVG,
     HMSYMBOL,
     CANVAS,
+    SWITCH_MAX,
 };
 
 struct GetComponentSwitch {
