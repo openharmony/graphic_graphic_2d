@@ -1321,12 +1321,12 @@ HWTEST_F(HgmFrameRateMgrTest, HandlePackageEvent, Function | SmallTest | Level1)
 }
 
 /**
- * @tc.name: AvoidChangeRateFrequent
- * @tc.desc: Verify the result of AvoidChangeRateFrequent
+ * @tc.name: UpdateFrameRateWithDelay
+ * @tc.desc: Verify the result of UpdateFrameRateWithDelay
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmFrameRateMgrTest, AvoidChangeRateFrequent, Function | SmallTest | Level1)
+HWTEST_F(HgmFrameRateMgrTest, UpdateFrameRateWithDelay, Function | SmallTest | Level1)
 {
     auto &hgmCore = HgmCore::Instance();
     auto frameRateMgr = hgmCore.GetFrameRateMgr();
@@ -1335,15 +1335,15 @@ HWTEST_F(HgmFrameRateMgrTest, AvoidChangeRateFrequent, Function | SmallTest | Le
     }
     
     frameRateMgr->isDragScene_ = false;
-    ASSERT_EQ(frameRateMgr->AvoidChangeRateFrequent(120), 120);
-    ASSERT_EQ(frameRateMgr->AvoidChangeRateFrequent(72), 72);
+    ASSERT_EQ(frameRateMgr->UpdateFrameRateWithDelay(120), 120);
+    ASSERT_EQ(frameRateMgr->UpdateFrameRateWithDelay(72), 72);
 
     frameRateMgr->isDragScene_ = true;
-    ASSERT_EQ(frameRateMgr->AvoidChangeRateFrequent(120), 120);
-    ASSERT_EQ(frameRateMgr->AvoidChangeRateFrequent(72), 120);
+    ASSERT_EQ(frameRateMgr->UpdateFrameRateWithDelay(120), 120);
+    ASSERT_EQ(frameRateMgr->UpdateFrameRateWithDelay(72), 120);
 
     std::this_thread::sleep_for(std::chrono::seconds(1));
-    ASSERT_EQ(frameRateMgr->AvoidChangeRateFrequent(72), 72);
+    ASSERT_EQ(frameRateMgr->UpdateFrameRateWithDelay(72), 72);
 }
 
 /**

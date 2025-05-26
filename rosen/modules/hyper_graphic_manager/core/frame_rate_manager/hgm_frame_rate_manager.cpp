@@ -408,9 +408,9 @@ void HgmFrameRateManager::ProcessLtpoVote(const FrameRateRange& finalRange)
 {
     isDragScene_ = finalRange.type_ == DRAG_SCENE_FRAME_RATE_TYPE;
     if (finalRange.IsValid()) {
-        auto refreshRate = AvoidChangeRateFrequent(CalcRefreshRate(curScreenId_.load(), finalRange));
-        RS_TRACE_NAME_FMT("ProcessLtpoVote isDragScene_: [%d], refreshRate: [%d], lastLtpoRefreshRate_: [%d]",
-            isDragScene_, refreshRate, lastLtpoRefreshRate_);
+        auto refreshRate = UpdateFrameRateWithDelay(CalcRefreshRate(curScreenId_.load(), finalRange));
+        RS_TRACE_NAME_FMT("ProcessLtpoVote isDragScene_: [%d], refreshRate: [%d], lastLTPORefreshRate_: [%d]",
+            isDragScene_, refreshRate, lastLTPORefreshRate_);
         DeliverRefreshRateVote(
             {"VOTER_LTPO", refreshRate, refreshRate, DEFAULT_PID, finalRange.GetExtInfo()}, ADD_VOTE);
     } else {
@@ -418,7 +418,7 @@ void HgmFrameRateManager::ProcessLtpoVote(const FrameRateRange& finalRange)
     }
 }
 
-uint32_t HgmFrameRateManager::AvoidChangeRateFrequent(uint32_t refreshRate)
+uint32_t HgmFrameRateManager::UpdateFrameRateWithDelay(uint32_t refreshRate)
 {
     if (!isDragScene_) {
         return refreshRate;
@@ -426,12 +426,12 @@ uint32_t HgmFrameRateManager::AvoidChangeRateFrequent(uint32_t refreshRate)
 
     auto curTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now()
                     .time_since_epoch()).count();
-    if (refreshRate < lastLtpoRefreshRate_ && curTime - lastLtpoVoteTime_ < DRAG_SCENE_CHANGE_RATE_TIMEOUT) {
-        return lastLtpoRefreshRate_;
+    if (refreshRate < lastLTPORefreshRate_ && curTime - lastLTPOVoteTime_ < DRAG_SCENE_CHANGE_RATE_TIMEOUT) {
+        return lastLTPORefreshRate_;
     }
 
-    lastLtpoRefreshRate_ = refreshRate;
-    lastLtpoVoteTime_ = curTime;
+    lastLTPORefreshRate_ = refreshRate;
+    lastLTPOVoteTime_ = curTime;
     return refreshRate;
 }
 

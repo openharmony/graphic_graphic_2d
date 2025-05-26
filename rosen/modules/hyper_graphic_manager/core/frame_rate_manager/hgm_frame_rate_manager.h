@@ -234,7 +234,7 @@ private:
     void RegisterCoreCallbacksAndInitController(sptr<VSyncController> rsController,
         sptr<VSyncController> appController,
         sptr<VSyncGenerator> vsyncGenerator, sptr<VSyncDistributor> appDistributor);
-    uint32_t AvoidChangeRateFrequent(uint32_t refreshRate);
+    uint32_t UpdateFrameRateWithDelay(uint32_t refreshRate);
     std::string GetGameNodeName() const
     {
         std::lock_guard<std::mutex> lock(pendingMutex_);
@@ -328,8 +328,8 @@ private:
     HgmAppPageUrlStrategy appPageUrlStrategy_;
 
     bool isDragScene_ = false;
-    uint32_t lastLtpoRefreshRate_ = 0;
-    long lastLtpoVoteTime_ = 0;
+    uint32_t lastLTPORefreshRate_ = 0;
+    long lastLTPOVoteTime_ = 0;
 };
 } // namespace Rosen
 } // namespace OHOS
