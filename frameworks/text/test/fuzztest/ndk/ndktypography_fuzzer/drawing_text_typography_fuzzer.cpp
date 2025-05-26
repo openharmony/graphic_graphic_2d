@@ -340,6 +340,7 @@ void OHDrawingParserTest(FuzzedDataProvider& fdp)
 void OHDrawingTypographyTest(const uint8_t* data, size_t size)
 {
     FuzzedDataProvider fdp(data, size);
+    OH_Drawing_SetTextNoGlyphShow(static_cast<OH_Drawing_TextNoGlyphShow>(fdp.ConsumeIntegral<uint8_t>()));
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     UpdateTypographyStyle(typoStyle, fdp);
     UpdateTypographyStyle(nullptr, fdp);
