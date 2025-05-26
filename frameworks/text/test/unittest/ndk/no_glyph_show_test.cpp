@@ -96,7 +96,7 @@ OH_Drawing_Typography* NdkNoGlyphShowTest::PrepareCreateTextLine(const std::stri
  */
 HWTEST_F(NdkNoGlyphShowTest, NdkNoGlyphShowTest001, TestSize.Level1)
 {
-    OH_Drawing_SetNoGlyphShow(OH_DRAWING_NO_GLYPH_USE_TOFU);
+    OH_Drawing_SetTextNoGlyphShow(TEXT_NO_GLYPH_USE_TOFU);
     BoundsResult(tofuResult_, 3, text_);
 }
 
@@ -107,7 +107,7 @@ HWTEST_F(NdkNoGlyphShowTest, NdkNoGlyphShowTest001, TestSize.Level1)
  */
 HWTEST_F(NdkNoGlyphShowTest, NdkNoGlyphShowTest002, TestSize.Level1)
 {
-    OH_Drawing_SetNoGlyphShow(OH_DRAWING_NO_GLYPH_USE_DEFAULT);
+    OH_Drawing_SetTextNoGlyphShow(TEXT_NO_GLYPH_USE_DEFAULT);
     BoundsResult(defaultResult_, 3, text_);
 }
 
@@ -118,11 +118,11 @@ HWTEST_F(NdkNoGlyphShowTest, NdkNoGlyphShowTest002, TestSize.Level1)
  */
 HWTEST_F(NdkNoGlyphShowTest, NdkNoGlyphShowTest003, TestSize.Level1)
 {
-    OH_Drawing_SetNoGlyphShow(OH_DRAWING_NO_GLYPH_USE_DEFAULT);
-    OH_Drawing_SetNoGlyphShow(static_cast<OH_Drawing_NoGlyphShow>(100));
+    OH_Drawing_SetTextNoGlyphShow(TEXT_NO_GLYPH_USE_DEFAULT);
+    OH_Drawing_SetTextNoGlyphShow(static_cast<OH_Drawing_TextNoGlyphShow>(100));
     BoundsResult(defaultResult_, 3, text_);
-    OH_Drawing_SetNoGlyphShow(OH_DRAWING_NO_GLYPH_USE_TOFU);
-    OH_Drawing_SetNoGlyphShow(static_cast<OH_Drawing_NoGlyphShow>(100));
+    OH_Drawing_SetTextNoGlyphShow(TEXT_NO_GLYPH_USE_TOFU);
+    OH_Drawing_SetTextNoGlyphShow(static_cast<OH_Drawing_TextNoGlyphShow>(100));
     BoundsResult(tofuResult_, 3, text_);
 }
 
@@ -133,11 +133,11 @@ HWTEST_F(NdkNoGlyphShowTest, NdkNoGlyphShowTest003, TestSize.Level1)
  */
 HWTEST_F(NdkNoGlyphShowTest, NdkNoGlyphShowTest004, TestSize.Level1)
 {
-    OH_Drawing_SetNoGlyphShow(OH_DRAWING_NO_GLYPH_USE_DEFAULT);
-    OH_Drawing_SetNoGlyphShow(static_cast<OH_Drawing_NoGlyphShow>(100));
+    OH_Drawing_SetTextNoGlyphShow(TEXT_NO_GLYPH_USE_DEFAULT);
+    OH_Drawing_SetTextNoGlyphShow(static_cast<OH_Drawing_TextNoGlyphShow>(100));
     BoundsResult(onlyDefaultResult_, 1, onlyNoGlyph_);
-    OH_Drawing_SetNoGlyphShow(OH_DRAWING_NO_GLYPH_USE_TOFU);
-    OH_Drawing_SetNoGlyphShow(static_cast<OH_Drawing_NoGlyphShow>(100));
+    OH_Drawing_SetTextNoGlyphShow(TEXT_NO_GLYPH_USE_TOFU);
+    OH_Drawing_SetTextNoGlyphShow(static_cast<OH_Drawing_TextNoGlyphShow>(100));
     BoundsResult(onlyTofuResult_, 1, onlyNoGlyph_);
 }
 } // namespace Rosen

@@ -28,7 +28,7 @@ void OH_Drawing_SetTextHighContrast(OH_Drawing_TextHighContrast action)
 }
 
 
-void OH_Drawing_SetNoGlyphShow(OH_Drawing_NoGlyphShow noGlyphShow)
+void OH_Drawing_SetTextNoGlyphShow(OH_Drawing_TextNoGlyphShow noGlyphShow)
 {
     auto result = TextGlobalConfig::SetTextNoGlyphShow(static_cast<uint32_t>(noGlyphShow));
     if (result != TEXT_SUCCESS) {
