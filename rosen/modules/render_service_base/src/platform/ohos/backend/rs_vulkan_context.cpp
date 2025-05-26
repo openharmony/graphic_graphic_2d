@@ -45,7 +45,7 @@ std::map<int, std::shared_ptr<Drawing::GPUContext>> RsVulkanContext::protectedDr
 std::mutex RsVulkanContext::drawingContextMutex_;
 std::unique_ptr<RsVulkanContext> RsVulkanContext::recyclableSingleton_ = nullptr;
 std::mutex RsVulkanContext::recyclableSingletonMutex_;
-bool RsVulkanContext::isRecyclable_ = true;
+bool RsVulkanContext::isRecyclable_ = false;
 std::atomic<bool> RsVulkanContext::isInited_ = false;
 void* RsVulkanInterface::handle_ = nullptr;
 VkInstance RsVulkanInterface::instance_ = VK_NULL_HANDLE;
