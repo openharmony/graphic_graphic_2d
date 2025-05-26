@@ -11,14 +11,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-group("fuzztest") {
-  testonly = true
-
-  deps = [
-    "ndkaddtext_fuzzer:fuzztest",
-    "ndkregisterfont_fuzzer:fuzztest",
-    "ndkrun_fuzzer:fuzztest",
-    "ndktext_fuzzer:fuzztest",
-    "ndktypography_fuzzer:fuzztest",
-  ]
-}
+FUZZ
