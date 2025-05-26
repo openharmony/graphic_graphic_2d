@@ -922,7 +922,8 @@ std::string RSProfiler::UnmarshalNodeModifiers(RSRenderNode& node, std::stringst
         std::string errModifierCode = "";
         auto ptr = UnmarshalRenderModifier(data, errModifierCode);
         if (!ptr) {
-            return "Modifier format changed [" + errModifierCode + "]";
+            RSProfiler::SendMessageBase("LOADERROR: Modifier format changed [" + errModifierCode + "]");
+            continue;
         }
         node.AddModifier(std::shared_ptr<RSRenderModifier>(ptr));
     }
@@ -936,7 +937,8 @@ std::string RSProfiler::UnmarshalNodeModifiers(RSRenderNode& node, std::stringst
             std::string errModifierCode = "";
             auto ptr = UnmarshalRenderModifier(data, errModifierCode);
             if (!ptr) {
-                return "DrawModifier format changed [" + errModifierCode + "]";
+                RSProfiler::SendMessageBase("LOADERROR: DrawModifier format changed [" + errModifierCode + "]");
+                continue;
             }
             node.AddModifier(std::shared_ptr<RSRenderModifier>(ptr));
         }
