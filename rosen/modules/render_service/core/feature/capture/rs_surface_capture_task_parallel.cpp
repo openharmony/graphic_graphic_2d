@@ -246,7 +246,11 @@ bool RSSurfaceCaptureTaskParallel::Run(
         }
     } else if (displayNodeDrawable_) {
         RSUniRenderThread::SetCaptureParam(CaptureParam(true, false, false));
+        // Screenshot blacklist, exclude surfaceNode in blacklist while capturing displaynode
+        std::unordered_set<NodeId> blackList(captureConfig_.blackList.begin(), captureConfig_.blackList.end());
+        RSUniRenderThread::Instance().SetBlackList(blackList);
         displayNodeDrawable_->OnCapture(canvas);
+        RSUniRenderThread::Instance().SetBlackList({});
     } else {
         RS_LOGE("RSSurfaceCaptureTaskParallel::Run: Invalid RSRenderNodeDrawable!");
         return false;
@@ -363,10 +367,10 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTaskParallel::CreatePixelMapByD
         " origin pixelmap size: [%{public}u, %{public}u],"
         " scale: [%{public}f, %{public}f],"
         " ScreenRect: [%{public}f, %{public}f, %{public}f, %{public}f],"
-        " useDma: [%{public}d], screenRotation: [%{public}d], screenCorrection: [%{public}d]",
+        " useDma: [%{public}d], screenRotation: [%{public}d], screenCorrection: [%{public}d], blackList: [%{public}zu]",
         node->GetId(), pixmapWidth, pixmapHeight, captureConfig_.scaleX, captureConfig_.scaleY,
         rect.GetLeft(), rect.GetTop(), rect.GetWidth(), rect.GetHeight(),
-        captureConfig_.useDma, screenRotation_, screenCorrection_);
+        captureConfig_.useDma, screenRotation_, screenCorrection_, captureConfig_.blackList.size());
     std::unique_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(opts);
     if (pixelMap) {
         GraphicColorGamut windowColorGamut = node->GetColorSpace();

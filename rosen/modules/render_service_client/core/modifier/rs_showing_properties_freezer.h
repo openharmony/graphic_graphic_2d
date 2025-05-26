@@ -307,6 +307,13 @@ public:
     std::optional<float> GetSpherizeDegree() const;
 
     /**
+     * @brief Gets the brightness ratio of HDR UI component.
+     *
+     * @return The HDR UI component brightness ratio.
+     */
+    std::optional<float> GetHDRUIBrightness() const;
+
+    /**
      * @brief Gets the degree of light up effect.
      *
      * @return The light up effect degree.

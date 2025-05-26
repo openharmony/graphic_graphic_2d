@@ -145,25 +145,121 @@ public:
     VSyncReceiver(const VSyncReceiver &) = delete;
     VSyncReceiver &operator=(const VSyncReceiver &) = delete;
 
+    /**
+     * @brief init VSyncReceiver instance.
+     *
+     * @return Returns an error code.
+     */
     virtual VsyncError Init();
+
+    /**
+     * @brief request next vsync signal.
+     * if this function been called multi times in one frame, only the last callback will be called.
+     *
+     * @param callback is a callback function which will be called when next vsync signal comes.
+     * @return Returns an error code.
+     */
     virtual VsyncError RequestNextVSync(FrameCallback callback);
+
+    /**
+     * @brief set vsync rate.
+     *
+     * @param callback is a callback function which will be called when next vsync signal comes.
+     * @param rate means the frequency of callback function calls.
+     * @return Returns an error code.
+     */
     virtual VsyncError SetVSyncRate(FrameCallback callback, int32_t rate);
+
+    /**
+     * @brief get vsync period.
+     *
+     * @param period is vsync period, the unit is nanoseconds.
+     * @return Returns an error code.
+     */
     virtual VsyncError GetVSyncPeriod(int64_t &period);
+
+    /**
+     * @brief get vsync period and last vsync timestamp.
+     *
+     * @param period is vsync period, the unit is nanoseconds.
+     * @param timeStamp is last vsync timestamp, the unit is nanoseconds.
+     * @param isThreadShared means whether the period and timeStamp are thread shared.
+     * @return Returns an error code.
+     */
     virtual VsyncError GetVSyncPeriodAndLastTimeStamp(int64_t &period, int64_t &timeStamp,
                                                         bool isThreadShared = false);
+
+    /**
+     * @brief get the ReceiveFd of the vsync socketpair.
+     *
+     * @return Returns the value of fd.
+     */
     int32_t GetFd() { return fd_; }
 
     /* transfer the FD to other process(want to use the FD),
       the current process does not use the FD, so close FD, but not close vsync connection
     */
     void CloseVsyncReceiverFd();
+
+    /**
+     * @brief request next vsync signal.
+     *
+     * @param callback is a callback function which will be called when next vsync signal comes.
+     * @param fromWhom is the role who request next vsync.
+     * @param lastVSyncTS is last vsync timestamp.
+     * @param requestVsyncTime is the count of request vsync.
+     * @return Returns an error code.
+     */
     virtual VsyncError RequestNextVSync(FrameCallback callback, const std::string &fromWhom,
                                         int64_t lastVSyncTS, const int64_t &requestVsyncTime = 0);
+
+    /**
+     * @brief whether next vsync is requested.
+     *
+     * @return whether next vsync is requested.
+     */
     virtual bool IsRequestedNextVSync();
+
+    /**
+     * @brief callback will be called when isOpen is true, and stop when isOpen is false.
+     *
+     * @param callback is a callback function which will be called when next vsync signal comes.
+     * @param isOpen whether the callback function called every frame.
+     * @return Returns an error code.
+     */
     virtual VsyncError SetVsyncCallBackForEveryFrame(FrameCallback callback, bool isOpen);
+
+    /**
+     * @brief UI Dvsync feature switch on or switch off.
+     *
+     * @param dvsyncSwitch true: switch on, false: switch off.
+     * @return Returns an error code.
+     */
     virtual VsyncError SetUiDvsyncSwitch(bool dvsyncSwitch);
+
+    /**
+     * @brief set UI Dvsync configuration.
+     *
+     * @param bufferCount is buffer count.
+     * @return Returns an error code.
+     */
     virtual VsyncError SetUiDvsyncConfig(int32_t bufferCount);
+
+    /**
+     * @brief request next vsync signal.
+     * if this function been called multi times in one frame, all the callbacks will be called.
+     *
+     * @param callback is a callback function which will be called when next vsync signal comes.
+     * @return Returns an error code.
+     */
     virtual VsyncError RequestNextVSyncWithMultiCallback(FrameCallback callback);
+
+    /**
+     * @brief Native Dvsync feature switch on or switch off.
+     *
+     * @param dvsyncSwitch true: switch on, false: switch off.
+     * @return Returns an error code.
+     */
     virtual VsyncError SetNativeDVSyncSwitch(bool dvsyncSwitch);
 private:
     void RegisterFileDescriptorListener();

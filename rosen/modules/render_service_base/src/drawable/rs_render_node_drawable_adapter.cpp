@@ -26,7 +26,6 @@
 #include "params/rs_canvas_drawing_render_params.h"
 #include "params/rs_display_render_params.h"
 #include "params/rs_effect_render_params.h"
-#include "params/rs_root_render_params.h"
 #include "params/rs_surface_render_params.h"
 #include "params/rs_rcd_render_params.h"
 #include "pipeline/rs_context.h"
@@ -149,10 +148,6 @@ void RSRenderNodeDrawableAdapter::InitRenderParams(const std::shared_ptr<const R
         case RSRenderNodeType::CANVAS_DRAWING_NODE:
             sharedPtr->renderParams_ = std::make_unique<RSCanvasDrawingRenderParams>(sharedPtr->nodeId_);
             sharedPtr->uifirstRenderParams_ = std::make_unique<RSCanvasDrawingRenderParams>(sharedPtr->nodeId_);
-            break;
-        case RSRenderNodeType::ROOT_NODE:
-            sharedPtr->renderParams_ = std::make_unique<RSRootRenderParams>(sharedPtr->nodeId_);
-            sharedPtr->uifirstRenderParams_ = std::make_unique<RSRootRenderParams>(sharedPtr->nodeId_);
             break;
         default:
             sharedPtr->renderParams_ = std::make_unique<RSRenderParams>(sharedPtr->nodeId_);

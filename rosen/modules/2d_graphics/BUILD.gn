@@ -52,7 +52,7 @@ config("export_config") {
 }
 
 if (enable_text_gine) {
-  defines = [ "USE_GRAPHIC_TEXT_GINE" ]
+  defines = []
 }
 
 template("graphics2d_source_set") {
@@ -61,9 +61,7 @@ template("graphics2d_source_set") {
   ohos_source_set(target_name) {
     defines += invoker.defines
     cflags_cc += invoker.cflags_cc
-    if (use_texgine) {
-      defines += [ "USE_TEXGINE" ]
-    } else if (use_skia_txt) {
+    if (use_skia_txt) {
       defines += [ "USE_SKIA_TXT" ]
     }
 
@@ -73,6 +71,7 @@ template("graphics2d_source_set") {
     sources = [
       "$drawing_core_src_dir/draw/OpListHandle.cpp",
       "$drawing_core_src_dir/draw/brush.cpp",
+      "$drawing_core_src_dir/config/DrawingConfig.cpp",
       "$drawing_core_src_dir/draw/canvas.cpp",
       "$drawing_core_src_dir/draw/color.cpp",
       "$drawing_core_src_dir/draw/core_canvas.cpp",
@@ -286,10 +285,6 @@ template("graphics2d_source_set") {
     }
 
     if (enable_text_gine) {
-      defines += [ "USE_GRAPHIC_TEXT_GINE" ]
-      if (use_texgine) {
-        defines += [ "USE_TEXGINE" ]
-      }
       include_dirs += [
         "$rosen_text_root",
         "$rosen_text_root/service",
@@ -313,7 +308,7 @@ template("graphics2d_source_set") {
         "skia:skia_canvaskit",
       ]
 
-      defines += [ "OHOS_TEXT_ENABLE" ]
+      defines += [ "ENABLE_OHOS_ENHANCE" ]
       deps = []
       defines += [
         "SUPPORT_OHOS_PIXMAP",
@@ -348,8 +343,6 @@ template("graphics2d_source_set") {
         defines += [ "CROSS_PLATFORM" ]
         deps += [ "//third_party/icu/icu4c:static_icuuc" ]
       }
-
-      defines += [ "USE_GRAPHIC_TEXT_GINE" ]
     }
     if (enable_text_gine && !is_arkui_x) {
       deps += [ "$rosen_text_root/adapter/skia:font_asset" ]
@@ -447,113 +440,6 @@ if (!is_arkui_x) {
     part_name = "graphic_2d"
     subsystem_name = "graphic"
   }
-}
-
-## Build 2d_graphics.so
-ohos_shared_library("2d_graphics_canvaskit0310") {
-  sanitize = {
-    cfi = true
-    cfi_cross_dso = true
-    cfi_no_nvcall = true
-    cfi_vcall_icall_only = true
-    debug = false
-  }
-  sources = [
-    "$drawing_core_src_dir/draw/brush.cpp",
-    "$drawing_core_src_dir/draw/color.cpp",
-    "$drawing_core_src_dir/draw/core_canvas.cpp",
-    "$drawing_core_src_dir/draw/path.cpp",
-    "$drawing_core_src_dir/draw/path_iterator.cpp",
-    "$drawing_core_src_dir/draw/pen.cpp",
-    "$drawing_core_src_dir/effect/blur_draw_looper.cpp",
-    "$drawing_core_src_dir/effect/color_filter.cpp",
-    "$drawing_core_src_dir/effect/color_space.cpp",
-    "$drawing_core_src_dir/effect/filter.cpp",
-    "$drawing_core_src_dir/effect/image_filter.cpp",
-    "$drawing_core_src_dir/effect/mask_filter.cpp",
-    "$drawing_core_src_dir/effect/path_effect.cpp",
-    "$drawing_core_src_dir/effect/runtime_effect.cpp",
-    "$drawing_core_src_dir/effect/runtime_shader_builder.cpp",
-    "$drawing_core_src_dir/effect/shader_effect.cpp",
-    "$drawing_core_src_dir/engine_adapter/impl_factory.cpp",
-    "$drawing_core_src_dir/engine_adapter/skia_adapter/skia_bitmap.cpp",
-    "$drawing_core_src_dir/engine_adapter/skia_adapter/skia_camera.cpp",
-    "$drawing_core_src_dir/engine_adapter/skia_adapter/skia_canvas.cpp",
-    "$drawing_core_src_dir/engine_adapter/skia_adapter/skia_color_filter.cpp",
-    "$drawing_core_src_dir/engine_adapter/skia_adapter/skia_color_space.cpp",
-    "$drawing_core_src_dir/engine_adapter/skia_adapter/skia_document.cpp",
-    "$drawing_core_src_dir/engine_adapter/skia_adapter/skia_file_w_stream.cpp",
-    "$drawing_core_src_dir/engine_adapter/skia_adapter/skia_graphics.cpp",
-    "$drawing_core_src_dir/engine_adapter/skia_adapter/skia_helper.cpp",
-    "$drawing_core_src_dir/engine_adapter/skia_adapter/skia_image.cpp",
-    "$drawing_core_src_dir/engine_adapter/skia_adapter/skia_image_filter.cpp",
-    "$drawing_core_src_dir/engine_adapter/skia_adapter/skia_impl_factory.cpp",
-    "$drawing_core_src_dir/engine_adapter/skia_adapter/skia_mask_filter.cpp",
-    "$drawing_core_src_dir/engine_adapter/skia_adapter/skia_matrix.cpp",
-    "$drawing_core_src_dir/engine_adapter/skia_adapter/skia_paint.cpp",
-    "$drawing_core_src_dir/engine_adapter/skia_adapter/skia_path.cpp",
-    "$drawing_core_src_dir/engine_adapter/skia_adapter/skia_path_effect.cpp",
-    "$drawing_core_src_dir/engine_adapter/skia_adapter/skia_path_iterator.cpp",
-    "$drawing_core_src_dir/engine_adapter/skia_adapter/skia_picture.cpp",
-    "$drawing_core_src_dir/engine_adapter/skia_adapter/skia_picture_recorder.cpp",
-    "$drawing_core_src_dir/engine_adapter/skia_adapter/skia_pixmap.cpp",
-    "$drawing_core_src_dir/engine_adapter/skia_adapter/skia_runtime_effect.cpp",
-    "$drawing_core_src_dir/engine_adapter/skia_adapter/skia_runtime_shader_builder.cpp",
-    "$drawing_core_src_dir/engine_adapter/skia_adapter/skia_serial_procs.cpp",
-    "$drawing_core_src_dir/engine_adapter/skia_adapter/skia_shader_effect.cpp",
-    "$drawing_core_src_dir/engine_adapter/skia_adapter/skia_sharing_serial_context.cpp",
-    "$drawing_core_src_dir/image/bitmap.cpp",
-    "$drawing_core_src_dir/image/image.cpp",
-    "$drawing_core_src_dir/image/picture.cpp",
-    "$drawing_core_src_dir/image/pixmap.cpp",
-    "$drawing_core_src_dir/text/text.cpp",
-    "$drawing_core_src_dir/utils/camera3d.cpp",
-    "$drawing_core_src_dir/utils/document.cpp",
-    "$drawing_core_src_dir/utils/file_w_stream.cpp",
-    "$drawing_core_src_dir/utils/matrix.cpp",
-    "$drawing_core_src_dir/utils/picture_recorder.cpp",
-    "$drawing_core_src_dir/utils/serial_procs.cpp",
-    "$drawing_core_src_dir/utils/sharing_serial_context.cpp",
-  ]
-
-  if (enable_text_gine) {
-    defines += [ "USE_CANVASKIT0310_SKIA" ]
-  } else {
-    defines = [ "USE_CANVASKIT0310_SKIA" ]
-  }
-
-  include_dirs = [
-    "$drawing_core_include_dir",
-    "$src_dir",
-    "$drawing_core_src_dir",
-    "$drawing_core_src_dir/engine_adapter",
-  ]
-
-  external_deps = [
-    "hilog:libhilog",
-    "image_framework:image_native",
-  ]
-
-  external_deps += [ "skia:skia_canvaskit" ]
-  if (defined(graphic_2d_feature_enable_sdf) && graphic_2d_feature_enable_sdf) {
-    deps = [ "graphic_2d_ext:libsdf" ]
-    include_dirs += [ "$graphic_2d_ext_root/sdf/include" ]
-    defines += [ "RS_ENABLE_SDF" ]
-  }
-
-  if (!is_arkui_x) {
-    deps = [
-      # "//third_party/skia_canvaskit0310:skia",
-    ]
-    external_deps += [ "graphic_surface:surface" ]
-  }
-
-  if (enable_text_gine) {
-    defines += [ "USE_GRAPHIC_TEXT_GINE" ]
-  }
-
-  part_name = "graphic_2d"
-  subsystem_name = "graphic"
 }
 
 group("2d_graphics_packages") {

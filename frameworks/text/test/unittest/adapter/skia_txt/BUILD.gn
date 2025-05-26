@@ -45,7 +45,7 @@ ohos_unittest("rosen_text_adapt_test") {
   ]
 
   if (platform_is_ohos) {
-    defines = [ "OHOS_TEXT_ENABLE" ]
+    defines = [ "ENABLE_OHOS_ENHANCE" ]
   }
 
   deps = [

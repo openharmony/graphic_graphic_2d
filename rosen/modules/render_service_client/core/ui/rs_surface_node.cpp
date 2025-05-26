@@ -721,7 +721,7 @@ void RSSurfaceNode::SetGlobalPositionEnabled(bool isEnabled)
     std::unique_ptr<RSCommand> command =
         std::make_unique<RSSurfaceNodeSetGlobalPositionEnabled>(GetId(), isEnabled);
     AddCommand(command, true);
-    ROSEN_LOGI("RSSurfaceNode::SetGlobalPositionEnabled, surfaceNodeId:[%" PRIu64 "] isEnabled:%s",
+    ROSEN_LOGI("RSSurfaceNode::SetGlobalPositionEnabled, surfaceNodeId:[%{public}" PRIu64 "] isEnabled:%{public}s",
         GetId(), isEnabled ? "true" : "false");
 }
 
@@ -982,6 +982,15 @@ void RSSurfaceNode::DetachFromWindowContainer(ScreenId screenId)
         GetId(), screenId);
 }
 
+void RSSurfaceNode::SetRegionToBeMagnified(const Vector4f& regionToBeMagnified)
+{
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSSurfaceNodeSetRegionToBeMagnified>(GetId(), regionToBeMagnified);
+    AddCommand(command, true);
+    RS_LOGI_LIMIT("RSSurfaceNode::SetRegionToBeMagnified, regionToBeMagnified left=%f, top=%f, width=%f, hight=%f",
+        regionToBeMagnified.x_, regionToBeMagnified.y_, regionToBeMagnified.z_, regionToBeMagnified.w_);
+}
+
 void RSSurfaceNode::SetFrameGravityNewVersionEnabled(bool isEnabled)
 {
     if (isFrameGravityNewVersionEnabled_ == isEnabled) {
@@ -992,8 +1001,6 @@ void RSSurfaceNode::SetFrameGravityNewVersionEnabled(bool isEnabled)
     std::unique_ptr<RSCommand> command =
         std::make_unique<RSSurfaceNodeSetFrameGravityNewVersionEnabled>(GetId(), isEnabled);
     AddCommand(command, true);
-    ROSEN_LOGI("RSSurfaceNode::SetFrameGravityNewVersionEnabled, surfaceNodeId:[%" PRIu64 "] isEnabled:%s",
-        GetId(), isEnabled ? "true" : "false");
 }
 
 bool RSSurfaceNode::GetFrameGravityNewVersionEnabled() const

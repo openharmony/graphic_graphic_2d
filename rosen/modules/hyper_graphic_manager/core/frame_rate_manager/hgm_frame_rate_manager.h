@@ -208,7 +208,10 @@ private:
     void UpdateScreenFrameRate();
     void RegisterUpTimeoutAndDownEvent();
 
+    void GetSupportedRefreshRates(const std::shared_ptr<PolicyConfigData>& configData,
+        const std::string& modeKey, std::vector<uint32_t>& targetVec, bool handleAmbientEffect);
     void GetLowBrightVec(const std::shared_ptr<PolicyConfigData>& configData);
+    void GetAncoLowBrightVec(const std::shared_ptr<PolicyConfigData>& configData);
     void GetStylusVec(const std::shared_ptr<PolicyConfigData>& configData);
     void DeliverRefreshRateVote(const VoteInfo& voteInfo, bool eventStatus);
     void MarkVoteChange(const std::string& voter = "");
@@ -218,6 +221,7 @@ private:
     bool MergeLtpo2IdleVote(
         std::vector<std::string>::iterator& voterIter, VoteInfo& resultVoteInfo, VoteRange& mergedVoteRange);
     void CheckAncoVoter(const std::string& voter, VoteInfo& curVoteInfo);
+    bool CheckAncoVoterStatus() const;
     bool ProcessRefreshRateVote(std::vector<std::string>::iterator& voterIter, VoteInfo& resultVoteInfo,
         VoteRange& voteRange, bool &voterGamesEffective);
     VoteInfo ProcessRefreshRateVote();
@@ -265,6 +269,7 @@ private:
 
     std::shared_ptr<HgmVSyncGeneratorController> controller_ = nullptr;
     std::vector<uint32_t> lowBrightVec_;
+    std::vector<uint32_t> ancoLowBrightVec_;
     std::vector<uint32_t> stylusVec_;
 
     std::function<void(bool, bool)> forceUpdateCallback_ = nullptr;

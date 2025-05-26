@@ -14,6 +14,7 @@
  */
 
 #include "command/rs_node_command.h"
+#include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
 
 namespace OHOS {
@@ -76,6 +77,14 @@ void RSNodeCommandHelper::MarkNodeGroup(RSContext& context, NodeId nodeId, bool 
     if (auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId)) {
         node->MarkNodeGroup(isForced ? RSRenderNode::GROUPED_BY_USER : RSRenderNode::GROUPED_BY_UI, isNodeGroup,
             includeProperty);
+    }
+}
+
+void RSNodeCommandHelper::MarkRepaintBoundary(RSContext& context, NodeId nodeId, bool isRepaintBoundary)
+{
+    auto& nodeMap = context.GetNodeMap();
+    if (auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId)) {
+        node->MarkRepaintBoundary(isRepaintBoundary);
     }
 }
 
@@ -212,6 +221,21 @@ void RSNodeCommandHelper::SetDrawNodeType(RSContext& context, NodeId nodeId, Dra
     auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId);
     if (node) {
         node->SetDrawNodeType(nodeType);
+    }
+}
+
+void RSNodeCommandHelper::UpdateOcclusionCullingStatus(RSContext& context, NodeId nodeId,
+    bool enable, NodeId keyOcclusionNodeId)
+{
+    auto& nodeMap = context.GetNodeMap();
+    if (auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId)) {
+        auto instanceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node->GetInstanceRootNode());
+        if (instanceNode == nullptr) {
+            return;
+        }
+        if (auto occlusionParams = instanceNode->GetOcclusionParams()) {
+            occlusionParams->UpdateOcclusionCullingStatus(enable, keyOcclusionNodeId);
+        }
     }
 }
 } // namespace Rosen

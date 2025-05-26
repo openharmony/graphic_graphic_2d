@@ -65,6 +65,11 @@ void SkiaMatrix::SetScaleTranslate(scalar sx, scalar sy, scalar dx, scalar dy)
     skMatrix_.setScaleTranslate(sx, sy, dx, dy);
 }
 
+void SkiaMatrix::SetSinCos(scalar sinValue, scalar cosValue, scalar px, scalar py)
+{
+    skMatrix_.setSinCos(sinValue, cosValue, px, py);
+}
+
 void SkiaMatrix::SetSkew(scalar kx, scalar ky)
 {
     skMatrix_.setSkew(kx, ky);
@@ -211,6 +216,11 @@ void SkiaMatrix::MapPoints(std::vector<Point>& dst, const std::vector<Point>& sr
         reinterpret_cast<SkPoint*>(dst.data()), reinterpret_cast<const SkPoint*>(src.data()), count);
 }
 
+scalar SkiaMatrix::MapRadius(scalar radius) const
+{
+    return skMatrix_.mapRadius(radius);
+}
+
 bool SkiaMatrix::MapRect(Rect& dst, const Rect& src) const
 {
     SkRect skSrc = SkRect::MakeXYWH(src.GetLeft(), src.GetTop(), src.GetWidth(), src.GetHeight());
@@ -246,6 +256,11 @@ void SkiaMatrix::SetAll(std::array<scalar, MatrixImpl::MATRIX_SIZE>& buffer)
     skMatrix_.set9(buffer.data());
 }
 
+bool SkiaMatrix::IsAffine() const
+{
+    return skMatrix_.asAffine(nullptr);
+}
+
 bool SkiaMatrix::IsIdentity() const
 {
     return skMatrix_.isIdentity();
@@ -264,6 +279,11 @@ void SkiaMatrix::PreRotate(scalar degree, scalar px, scalar py)
 void SkiaMatrix::PreScale(scalar sx, scalar sy, scalar px, scalar py)
 {
     skMatrix_.preScale(sx, sy, px, py);
+}
+
+bool SkiaMatrix::RectStaysRect() const
+{
+    return skMatrix_.rectStaysRect();
 }
 
 void SkiaMatrix::Reset()

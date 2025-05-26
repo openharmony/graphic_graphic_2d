@@ -325,12 +325,7 @@ public:
     explicit RsVulkanContext(std::string cacheDir = "");
     void InitVulkanContextForHybridRender(const std::string& cacheDir);
     void InitVulkanContextForUniRender(const std::string& cacheDir);
-    ~RsVulkanContext()
-    {
-        std::lock_guard<std::mutex> lock(drawingContextMutex_);
-        drawingContextMap_.clear();
-        protectedDrawingContextMap_.clear();
-    }
+    ~RsVulkanContext();
 
     RsVulkanContext(const RsVulkanContext&) = delete;
     RsVulkanContext &operator=(const RsVulkanContext&) = delete;
@@ -408,6 +403,8 @@ public:
 
     static void CleanUpRecyclableDrawingContext(int tid);
 
+    static bool GetIsInited();
+
 private:
     static thread_local bool isProtected_;
     static thread_local VulkanInterfaceType vulkanInterfaceType_;
@@ -422,6 +419,8 @@ private:
     static std::unique_ptr<RsVulkanContext> recyclableSingleton_;
     static std::mutex recyclableSingletonMutex_;
     static bool isRecyclable_;
+    // use to mark current process has created vulkan context at least once
+    static std::atomic<bool> isInited_;
 };
 
 } // namespace Rosen

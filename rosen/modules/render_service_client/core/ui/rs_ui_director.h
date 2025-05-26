@@ -169,6 +169,18 @@ public:
      * @param timeStamp The timestamp value to be set.
      * @param abilityName The name of the ability to associate with the timestamp.
      */
+
+      /**
+     * @brief Post messages to render thread.
+     */
+    void SendMessages(std::function<void()> callback);
+    
+    /**
+     * @brief Sets the timestamp and associates it with a specific ability name.
+     *
+     * @param timeStamp The timestamp value to be set.
+     * @param abilityName The name of the ability to associate with the timestamp.
+     */
     void SetTimeStamp(uint64_t timeStamp, const std::string& abilityName);
 
     /**

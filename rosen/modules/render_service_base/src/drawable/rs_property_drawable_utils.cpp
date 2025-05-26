@@ -416,6 +416,13 @@ void RSPropertyDrawableUtils::DrawForegroundFilter(RSPaintFilterCanvas& canvas,
         ROSEN_LOGD("RSPropertyDrawableUtils::DrawForegroundFilter image null");
         return;
     }
+    auto rsdrawingFilter = std::static_pointer_cast<RSDrawingFilter>(rsFilter);
+    if (rsdrawingFilter != nullptr && (rsFilter->GetFilterType() == RSFilter::BEZIER_WARP)) {
+        rsdrawingFilter->DrawImageRect(canvas, imageSnapshot, Drawing::Rect(0, 0, imageSnapshot->GetWidth(),
+            imageSnapshot->GetHeight()), Drawing::Rect(0, 0, imageSnapshot->GetWidth(), imageSnapshot->GetHeight()));
+        return;
+    }
+
     auto foregroundFilter = std::static_pointer_cast<RSDrawingFilterOriginal>(rsFilter);
     if (foregroundFilter->GetFilterType() == RSFilter::MOTION_BLUR) {
         if (canvas.GetDisableFilterCache()) {

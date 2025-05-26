@@ -84,8 +84,9 @@ std::shared_ptr<Image> SkiaImage::MakeFromRaster(const Pixmap& pixmap,
             SkImageInfo::ByteSizeOverflowed(info.computeByteSize(skPixmap.rowBytes())));
         return nullptr;
     }
-    std::shared_ptr<ImageImpl> imageImpl = std::make_shared<SkiaImage>(skImage);
-    return std::make_shared<Image>(imageImpl);
+    std::shared_ptr<Image> image = std::make_shared<Image>();
+    image->GetImpl<SkiaImage>()->SetSkImage(skImage);
+    return image;
 }
 
 std::shared_ptr<Image> SkiaImage::MakeRasterData(const ImageInfo& info, std::shared_ptr<Data> pixels,
@@ -107,8 +108,9 @@ std::shared_ptr<Image> SkiaImage::MakeRasterData(const ImageInfo& info, std::sha
             SkImageInfo::ByteSizeOverflowed(skImageInfo.computeByteSize(rowBytes)));
         return nullptr;
     }
-    std::shared_ptr<ImageImpl> imageImpl = std::make_shared<SkiaImage>(skImage);
-    return std::make_shared<Image>(imageImpl);
+    std::shared_ptr<Image> image = std::make_shared<Image>();
+    image->GetImpl<SkiaImage>()->SetSkImage(skImage);
+    return image;
 }
 
 bool SkiaImage::BuildFromBitmap(const Bitmap& bitmap)
@@ -148,8 +150,9 @@ std::shared_ptr<Image> SkiaImage::MakeFromYUVAPixmaps(GPUContext& gpuContext, co
         LOGD("skImage nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
         return nullptr;
     }
-    std::shared_ptr<ImageImpl> imageImpl = std::make_shared<SkiaImage>(skImage);
-    return std::make_shared<Image>(imageImpl);
+    std::shared_ptr<Image> image = std::make_shared<Image>();
+    image->GetImpl<SkiaImage>()->SetSkImage(skImage);
+    return image;
 }
 
 bool SkiaImage::BuildFromBitmap(GPUContext& gpuContext, const Bitmap& bitmap)
@@ -529,8 +532,9 @@ std::shared_ptr<Image> SkiaImage::MakeRasterImage() const
         LOGD("skImage nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
         return nullptr;
     }
-    std::shared_ptr<ImageImpl> imageImpl = std::make_shared<SkiaImage>(skImage);
-    return std::make_shared<Image>(imageImpl);
+    std::shared_ptr<Image> image = std::make_shared<Image>();
+    image->GetImpl<SkiaImage>()->SetSkImage(skImage);
+    return image;
 }
 
 bool SkiaImage::CanPeekPixels() const

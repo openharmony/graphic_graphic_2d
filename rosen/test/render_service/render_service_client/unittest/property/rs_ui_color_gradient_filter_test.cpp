@@ -45,7 +45,7 @@ HWTEST_F(RSUIColorGradientFilterTest, Equal001, TestSize.Level1)
     auto filterPara2 = std::make_shared<RSUIColorGradientFilterPara>();
     auto filterParaBase = static_cast<std::shared_ptr<RSUIFilterParaBase>>(filterPara2);
     
-    EXPECT_TRUE(filterPara1->Equals(filterParaBase));
+    EXPECT_FALSE(filterPara1->Equals(filterParaBase));
     EXPECT_FALSE(filterPara1->Equals(nullptr));
 }
 
@@ -63,9 +63,9 @@ HWTEST_F(RSUIColorGradientFilterTest, Dump001, TestSize.Level1)
     filterPara->Dump(out);
     EXPECT_EQ(temp, out);
 
-    std::string temp1 = "RSUIColorGradientFilterPara: [[color: 1.000000 1.000000 1.000000 1.000000]";
-    std::vector<float> colors = { 1.0, 1.0, 1.0, 1.0 }; // 1.0f 1.0f 1.0f 1.0f is color rgba
-    filterPara->SetColors(colors);
+    std::string temp1 = "RSUIColorGradientFilterPara: [[strength: 1.000000]";
+    std::vector<float> strength = { 1.0f }; // 1.0f is strength params
+    filterPara->SetStrengths(strength);
     std::string out1;
     filterPara->Dump(out1);
     EXPECT_EQ(temp1, out1);

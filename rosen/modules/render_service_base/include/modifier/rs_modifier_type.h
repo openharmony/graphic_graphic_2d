@@ -170,6 +170,8 @@ enum class RSModifierType : int16_t {
     ALWAYS_SNAPSHOT = 134,
     COMPLEX_SHADER_PARAM = 135,
     BACKGROUND_UI_FILTER = 136,
+    HDR_UI_BRIGHTNESS = 137,
+    FOREGROUND_UI_FILTER = 138,
 
     CUSTOM = 200,
     EXTENDED = 201,
@@ -190,7 +192,7 @@ enum class RSModifierType : int16_t {
     BEHIND_WINDOW_FILTER_MASK_COLOR = 216,
 
     CHILDREN = 240, // PLACEHOLDER, no such modifier, but we need a dirty flag
-    
+
     MAX_RS_MODIFIER_TYPE = 255,
 };
 
@@ -366,6 +368,8 @@ public:
             case RSModifierType::ALWAYS_SNAPSHOT: return "AlwaysSnapshot";
             case RSModifierType::COMPLEX_SHADER_PARAM: return "ComplexShaderParam";
             case RSModifierType::BACKGROUND_UI_FILTER: return "BackgroundUIFilter";
+            case RSModifierType::HDR_UI_BRIGHTNESS: return "HDRUIBrightness";
+            case RSModifierType::FOREGROUND_UI_FILTER: return "ForegroundUIFilter";
             case RSModifierType::CUSTOM: return "Custom";
             case RSModifierType::EXTENDED: return "Extended";
             case RSModifierType::TRANSITION: return "Transition";

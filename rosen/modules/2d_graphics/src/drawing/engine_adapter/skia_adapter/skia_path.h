@@ -94,6 +94,8 @@ public:
 
     bool IsValid() const override;
     void Reset() override;
+    void ReWind() override;
+    void SetLastPoint(scalar x, scalar y) override;
 
     void Close() override;
 
@@ -108,6 +110,9 @@ public:
     bool GetPositionAndTangent(scalar distance, Point& position, Point& tangent, bool forceClosed) override;
     bool GetSegment(scalar start, scalar stop, Path* dst, bool startWithMoveTo, bool forceClosed) override;
     bool IsClosed(bool forceClosed) override;
+    bool IsEmpty() override;
+    bool IsRect(Rect* rect, bool* isClosed, PathDirection* direction) override;
+    void SetPath(const Path& path) override;
     bool GetMatrix(bool forceClosed, float distance, Matrix* matrix, PathMeasureMatrixFlags flag) override;
 
     std::shared_ptr<Data> Serialize() const override;

@@ -155,13 +155,27 @@ static int RunNodeTreeProfilerTest(int argc, char **argv)
     return engine.RunNodeTreeTest(path);
 }
 
+static int RunPlaybackProfilerTest(int argc, char **argv)
+{
+    if (argc != ARGS_FOUR) {
+        cout << "playback failed : wrong param number" << endl;
+        return 0;
+    }
+    RSGraphicTestDirector::Instance().Run();
+    std::string filePath = argv[ARGS_TWO];
+    std::string configPath = argv[ARGS_THREE];
+    RSGraphicTestProfiler engine;
+    return engine.RunPlaybackTest(filePath, configPath);
+}
+
 int main(int argc, char **argv)
 {
     GraphicTestCommandTb funcTbl[] = {
         { "-list", DisplayAllCaseInfo },
         { "-unit", FilterTestUnit },
         { "-all", RunAllTest },
-        { "-nodetree", RunNodeTreeProfilerTest }
+        { "-nodetree", RunNodeTreeProfilerTest },
+        { "-playback", RunPlaybackProfilerTest }
     };
 
     if (argc >= ARGS_TWO) {

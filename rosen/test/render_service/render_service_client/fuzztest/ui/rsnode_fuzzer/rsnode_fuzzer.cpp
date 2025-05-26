@@ -205,6 +205,11 @@ void RSNodeFuzzTestInner02(std::shared_ptr<RSSurfaceNode> surfaceNode)
 
     surfaceNode->SetVisible(GetData<bool>());
     surfaceNode->SetPaintOrder(GetData<bool>());
+
+    auto nodeId = GetData<NodeId>();
+    surfaceNode->UpdateOcclusionCullingStatus(true, nodeId);
+    surfaceNode->UpdateOcclusionCullingStatus(false, nodeId);
+    surfaceNode->UpdateOcclusionCullingStatus(GetData<bool>(), GetData<NodeId>());
 }
 
 bool RSNodeFuzzTest(const uint8_t* data, size_t size)

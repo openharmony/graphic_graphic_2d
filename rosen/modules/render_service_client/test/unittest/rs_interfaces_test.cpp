@@ -2417,6 +2417,23 @@ HWTEST_F(RSInterfacesTest, SetScreenSecurityMask_003, Function | SmallTest | Lev
 }
 
 /*
+ * @tc.name: TakeSurfaceCaptureTest
+ * @tc.desc: Test TakeSurfaceCapture.
+ * @tc.type: FUNC
+ * @tc.require: issue#IC4P5O
+ */
+HWTEST_F(RSInterfacesTest, TakeSurfaceCaptureTest, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    std::shared_ptr<RSDisplayNode> displayNode;
+    std::shared_ptr<SurfaceCaptureCallback> callback;
+    RSSurfaceCaptureConfig captureConfig;
+
+    bool ret = rsInterfaces->TakeSurfaceCapture(displayNode, callback, captureConfig);
+    EXPECT_EQ(ret, false);
+}
+
+/*
  * @tc.name: RegisterSelfDrawingNodeRectChangeCallbackTest
  * @tc.desc: Test RegisterSelfDrawingNodeRectChangeCallback
  * @tc.type: FUNC

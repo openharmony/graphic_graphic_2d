@@ -104,9 +104,7 @@ public:
     static std::unique_ptr<FontImpl> CreateFontImpl(const Font& font);
     static std::unique_ptr<TextBlobBuilderImpl> CreateTextBlobBuilderImpl();
     static std::shared_ptr<FontMgrImpl> CreateDefaultFontMgrImpl();
-#ifndef USE_TEXGINE
     static std::shared_ptr<FontMgrImpl> CreateDynamicFontMgrImpl();
-#endif
     static std::unique_ptr<VerticesImpl> CreateVerticesImpl();
     static std::unique_ptr<VerticesImpl::BuilderImpl> CreateVerticesBuilderImpl();
     static std::shared_ptr<MemoryStreamImpl> CreateMemoryStreamImpl();

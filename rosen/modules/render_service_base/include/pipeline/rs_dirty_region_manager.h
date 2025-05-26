@@ -258,6 +258,17 @@ public:
         advancedDirtyRegionType_ = advancedDirtyRegionType;
     }
 
+    void SetPartialRenderEnabled(bool isPartialRenderEnabled)
+    {
+        isEnabledChanged_ = (isPartialRenderEnabled_ != isPartialRenderEnabled);
+        isPartialRenderEnabled_ = isPartialRenderEnabled;
+    }
+    
+    bool GetEnabledChanged() const
+    {
+        return isEnabledChanged_;
+    }
+
 private:
     void UpdateMaxNumOfDirtyRectByState();
     void UpdateCurrentFrameAdvancedDirtyRegion(RectI rect);
@@ -273,6 +284,8 @@ private:
     bool isDirtyRegionAlignedEnable_ = false;
     bool isFilterCacheRectValid_ = true;
     bool isDisplayDirtyManager_ = false;
+    bool isPartialRenderEnabled_ = false;
+    bool isEnabledChanged_ = false;
     bool hasOffset_ = false;
     std::atomic<bool> isSync_ = false;
     int historyHead_ = -1;

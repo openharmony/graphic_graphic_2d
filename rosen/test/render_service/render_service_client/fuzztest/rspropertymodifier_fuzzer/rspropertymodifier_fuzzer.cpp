@@ -398,6 +398,9 @@ bool DoModifier007(const uint8_t* data, size_t size)
     auto spherizemodifier = std::make_shared<RSSpherizeModifier>(property);
     spherizemodifier->GetModifierType();
     spherizemodifier->CreateRenderModifier();
+    auto hdrUIBrightnessmodifier = std::make_shared<RSHDRUIBrightnessModifier>(property);
+    hdrUIBrightnessmodifier->GetModifierType();
+    hdrUIBrightnessmodifier->CreateRenderModifier();
     auto shadowColormodifier = std::make_shared<RSShadowColorModifier>(property);
     shadowColormodifier->GetModifierType();
     shadowColormodifier->CreateRenderModifier();

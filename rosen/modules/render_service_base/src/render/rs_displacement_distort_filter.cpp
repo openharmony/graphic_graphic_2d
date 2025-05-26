@@ -38,6 +38,9 @@ RSDisplacementDistortFilter::RSDisplacementDistortFilter(std::shared_ptr<RSShade
 void RSDisplacementDistortFilter::GenerateGEVisualEffect(
     std::shared_ptr<Drawing::GEVisualEffectContainer> visualEffectContainer)
 {
+    if (!mask_) {
+        return;
+    }
     auto distortFilter = std::make_shared<Drawing::GEVisualEffect>("DISPLACEMENT_DISTORT",
         Drawing::DrawingPaintType::BRUSH);
     distortFilter->SetParam(GE_FILTER_DISPLACEMENT_DISTORT_FACTOR, std::make_pair(factor_[0], factor_[1]));

@@ -1162,6 +1162,7 @@ ohos_unittest("RSSurfaceRenderNodeTest") {
     "hilog:libhilog",
     "hitrace:hitrace_meter",
     "init:libbegetutil",
+    "samgr:samgr_proxy",
     "skia:skia_canvaskit",
   ]
 

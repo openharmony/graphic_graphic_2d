@@ -51,6 +51,12 @@ public:
 
     static void MergeOffTreeNodeSet();
 
+    static void AddDrawRegions(NodeId nodeId, std::shared_ptr<RectF> rect);
+
+    static void EraseDrawRegions(NodeId nodeId);
+
+    static bool CheckIfModifiersDrawThreadInited();
+
     static void InsertForegroundRoot(NodeId nodeId);
 
     static void EraseForegroundRoot(NodeId nodeId);
@@ -60,6 +66,8 @@ public:
     static void ClearBackGroundMemory();
 
     static void DestroySemaphore();
+
+    static void PurgeContextResource();
 private:
     struct SurfaceEntry {
         std::shared_ptr<Drawing::Surface> surface = nullptr;
@@ -134,6 +142,8 @@ private:
 
     static std::mutex semaphoreInfoMutex_;
     static std::vector<DestroySemaphoreInfo*> semaphoreInfoVec_;
+
+    static std::unordered_map<NodeId, std::shared_ptr<RectF>> drawRegions_;
 };
 } // namespace Rosen
 } // namespace OHOS

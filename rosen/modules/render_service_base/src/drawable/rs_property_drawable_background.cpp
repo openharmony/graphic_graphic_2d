@@ -236,7 +236,13 @@ bool RSBackgroundColorDrawable::OnUpdate(const RSRenderNode& node)
     RSPropertyDrawCmdListUpdater updater(0, 0, this);
     Drawing::Canvas& canvas = *updater.GetRecordingCanvas();
     Drawing::Brush brush;
-    brush.SetColor(Drawing::Color(bgColor.AsArgbInt()));
+    if (bgColor.GetColorSpace() == GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB) {
+        brush.SetColor(Drawing::Color(bgColor.AsArgbInt()));
+    } else {
+        // Currently, only P3 wide color space is supported, and it will be expanded soon.
+        brush.SetColor(bgColor.GetColor4f(),
+            Drawing::ColorSpace::CreateRGB(Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::DCIP3));
+    }
     if (properties.IsBgBrightnessValid()) {
         if (Rosen::RSSystemProperties::GetDebugTraceLevel() >= TRACE_LEVEL_TWO) {
             RSPropertyDrawable::stagingPropertyDescription_ = properties.GetBgBrightnessDescription();
@@ -721,7 +727,15 @@ Drawing::RecordingCanvas::DrawFunc RSUseEffectDrawable::CreateDrawFunc() const
             int8_t index = drawable->drawCmdIndex_.backgroundFilterIndex_;
             drawable->DrawImpl(*paintFilterCanvas, *rect, index);
             paintFilterCanvas->SetDisableFilterCache(disableFilterCache);
+            if (paintFilterCanvas->GetEffectIntersectWithDRM()) {
+                RSPropertyDrawableUtils::DrawFilterWithDRM(canvas, paintFilterCanvas->GetDarkColorMode());
+                return;
+            }
             RSPropertyDrawableUtils::DrawUseEffect(paintFilterCanvas, ptr->useEffectType_);
+            return;
+        }
+        if (paintFilterCanvas->GetEffectIntersectWithDRM()) {
+            RSPropertyDrawableUtils::DrawFilterWithDRM(canvas, paintFilterCanvas->GetDarkColorMode());
             return;
         }
         RSPropertyDrawableUtils::DrawUseEffect(paintFilterCanvas, ptr->useEffectType_);

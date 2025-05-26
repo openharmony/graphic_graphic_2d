@@ -53,9 +53,63 @@
 
 namespace OHOS {
 namespace Rosen {
+class OcclusionNode;
 class RSCommand;
 class RSDirtyRegionManager;
+class RSOcclusionHandler;
 class RSSurfaceHandler;
+
+// Used for control-level occlusion culling scene info and culled nodes transmission.
+// Maintained by the Dirty Regions feature team.
+class RSB_EXPORT OcclusionParams {
+public:
+    // Enables/Disables control-level occlusion culling for the node's subtree
+    void UpdateOcclusionCullingStatus(bool enable, NodeId keyOcclusionNodeId);
+
+    bool IsOcclusionCullingOn()
+    {
+        return !keyOcclusionNodeIds_.empty();
+    }
+
+    void SetOcclusionHandler(std::shared_ptr<RSOcclusionHandler> occlusionHandler)
+    {
+        occlusionHandler_ = occlusionHandler;
+    }
+
+    std::shared_ptr<RSOcclusionHandler> GetOcclusionHandler() const
+    {
+        return occlusionHandler_;
+    }
+
+    std::unordered_set<NodeId> TakeCulledNodes()
+    {
+        return std::move(culledNodes_);
+    }
+
+    void SetCulledNodes(std::unordered_set<NodeId>&& culledNodes)
+    {
+        culledNodes_ = std::move(culledNodes);
+    }
+
+    std::unordered_set<NodeId> TakeCulledEntireSubtree()
+    {
+        return std::move(culledEntireSubtree_);
+    }
+
+    void SetCulledEntireSubtree(std::unordered_set<NodeId>&& culledEntireSubtree)
+    {
+        culledEntireSubtree_ = std::move(culledEntireSubtree);
+    }
+
+    void CheckKeyOcclusionNodeValidity(
+        const std::unordered_map<NodeId, std::shared_ptr<OcclusionNode>>& occlusionNodes);
+private:
+    std::unordered_multiset<NodeId> keyOcclusionNodeIds_;
+    std::shared_ptr<RSOcclusionHandler> occlusionHandler_;
+    std::unordered_set<NodeId> culledNodes_;
+    std::unordered_set<NodeId> culledEntireSubtree_;
+};
+
 class RSB_EXPORT RSSurfaceRenderNode : public RSRenderNode {
 public:
     using WeakPtr = std::weak_ptr<RSSurfaceRenderNode>;
@@ -78,16 +132,6 @@ public:
     bool IsAppWindow() const
     {
         return nodeType_ == RSSurfaceNodeType::APP_WINDOW_NODE;
-    }
-
-    bool IsScbWindowType() const
-    {
-        return surfaceWindowType_ == SurfaceWindowType::SYSTEM_SCB_WINDOW ||
-               surfaceWindowType_ == SurfaceWindowType::SCB_DESKTOP ||
-               surfaceWindowType_ == SurfaceWindowType::SCB_WALLPAPER ||
-               surfaceWindowType_ == SurfaceWindowType::SCB_SCREEN_LOCK ||
-               surfaceWindowType_ == SurfaceWindowType::SCB_NEGATIVE_SCREEN ||
-               surfaceWindowType_ == SurfaceWindowType::SCB_DROPDOWN_PANEL;
     }
 
     bool IsStartingWindow() const
@@ -359,26 +403,19 @@ public:
         return isHardwareForcedDisabled_;
     }
 
-    void SetLastFrameHasVisibleRegion(bool lastFrameHasVisibleRegion)
-    {
-        lastFrameHasVisibleRegion_ = lastFrameHasVisibleRegion;
-    }
-
-    bool GetLastFrameHasVisibleRegion() const
-    {
-        return lastFrameHasVisibleRegion_;
-    }
-
     bool IsLeashOrMainWindow() const
     {
-        return nodeType_ <= RSSurfaceNodeType::LEASH_WINDOW_NODE || nodeType_ == RSSurfaceNodeType::CURSOR_NODE;
+        return nodeType_ <= RSSurfaceNodeType::LEASH_WINDOW_NODE || nodeType_ == RSSurfaceNodeType::CURSOR_NODE ||
+               nodeType_ == RSSurfaceNodeType::ABILITY_MAGNIFICATION_NODE;
     }
 
     bool IsMainWindowType() const
     {
         // a mainWindowType surfacenode will not mounted under another mainWindowType surfacenode
         // including app main window, starting window, and selfdrawing window
-        return nodeType_ <= RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE || nodeType_ == RSSurfaceNodeType::CURSOR_NODE;
+        return nodeType_ <= RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE ||
+               nodeType_ == RSSurfaceNodeType::CURSOR_NODE ||
+               nodeType_ == RSSurfaceNodeType::ABILITY_MAGNIFICATION_NODE;
     }
 
     bool GetIsLastFrameHwcEnabled() const
@@ -572,6 +609,7 @@ public:
     void SetSnapshotSkipLayer(bool isSnapshotSkipLayer);
     void SetProtectedLayer(bool isProtectedLayer);
     void SetIsOutOfScreen(bool isOutOfScreen);
+    void UpdateBlackListStatus(ScreenId virtualScreenId, bool isBlackList);
 
     // get whether it is a security/skip layer itself
     LeashPersistentId GetLeashPersistentId() const;
@@ -595,6 +633,7 @@ public:
 
     void UpdateSpecialLayerInfoByTypeChange(uint32_t type, bool isSpecialLayer);
     void UpdateSpecialLayerInfoByOnTreeStateChange();
+    void SyncBlackListInfoToFirstLevelNode();
     void SyncPrivacyContentInfoToFirstLevelNode();
     void SyncColorGamutInfoToFirstLevelNode();
 
@@ -637,8 +676,8 @@ public:
     void SetHDRPresent(bool hasHdrPresent);
     bool GetHDRPresent() const;
 
-    void IncreaseHDRNum();
-    void ReduceHDRNum();
+    void IncreaseHDRNum(HDRComponentType hdrType);
+    void ReduceHDRNum(HDRComponentType hdrType);
 
     bool GetIsWideColorGamut() const;
 
@@ -678,6 +717,11 @@ public:
     void SetDstRectWithoutRenderFit(const RectI& rect)
     {
         dstRectWithoutRenderFit_ = Drawing::Rect(rect.left_, rect.top_, rect.GetRight(), rect.GetBottom());
+    }
+
+    void SetRegionToBeMagnified(Vector4f regionToBeMagnified)
+    {
+        regionToBeMagnified_ = regionToBeMagnified;
     }
 
     Drawing::Rect GetDstRectWithoutRenderFit() const
@@ -1475,16 +1519,6 @@ public:
         return apiCompatibleVersion_;
     }
 
-    bool GetIsHwcPendingDisabled() const
-    {
-        return isHwcPendingDisabled_;
-    }
-
-    void SetIsHwcPendingDisabled(bool isHwcPendingDisabled)
-    {
-        isHwcPendingDisabled_ = isHwcPendingDisabled;
-    }
-
     void ResetIsBufferFlushed();
 
     void ResetSurfaceNodeStates();
@@ -1524,8 +1558,20 @@ public:
         return appWindowZOrder_;
     }
 
+    // Enable HWCompose
+    RSHwcSurfaceRecorder& HwcSurfaceRecorder() { return hwcSurfaceRecorder_; }
+
     void SetFrameGravityNewVersionEnabled(bool isEnabled);
     bool GetFrameGravityNewVersionEnabled() const;
+
+    // Used for control-level occlusion culling scene info and culled nodes transmission.
+    std::shared_ptr<OcclusionParams> GetOcclusionParams()
+    {
+        if (occlusionParams_ == nullptr) {
+            occlusionParams_ = std::make_shared<OcclusionParams>();
+        }
+        return occlusionParams_;
+    }
 
 protected:
     void OnSync() override;
@@ -1564,6 +1610,7 @@ private:
 
     RSSpecialLayerManager specialLayerManager_;
     bool specialLayerChanged_ = false;
+    std::unordered_map<ScreenId, std::unordered_set<NodeId>> blackListIds_ = {};
     bool isGlobalPositionEnabled_ = false;
     bool isHwcGlobalPositionEnabled_ = false;
     bool isHwcCrossNode_ = false;
@@ -1591,8 +1638,6 @@ private:
     uint8_t abilityBgAlpha_ = 0;
     bool alphaChanged_ = false;
     bool isUIHidden_ = false;
-    // is hwc node disabled by filter rect
-    bool isHwcPendingDisabled_ = false;
     bool extraDirtyRegionAfterAlignmentIsEmpty_ = true;
     bool opaqueRegionChanged_ = false;
     bool isFilterCacheFullyCovered_ = false;
@@ -1655,7 +1700,6 @@ private:
     bool isGpuOverDrawBufferOptimizeNode_ = false;
     bool isSubSurfaceNode_ = false;
     bool doDirectComposition_ = true;
-    bool lastFrameHasVisibleRegion_ = true;
     bool isSkipDraw_ = false;
     bool needHidePrivacyContent_ = false;
     bool isHardwareForcedByBackgroundAlpha_ = false;
@@ -1675,8 +1719,10 @@ private:
     std::atomic<bool> hasUnSubmittedOccludedDirtyRegion_ = false;
     static inline std::atomic<bool> ancoForceDoDirect_ = false;
     float contextAlpha_ = 1.0f;
-    // Count the number of hdr pictures. If hdrNum_ > 0, it means there are hdr pictures
-    int hdrNum_ = 0;
+    // Count the number of hdr pictures. If hdrPhotoNum_ > 0, it means there are hdr pictures
+    int hdrPhotoNum_ = 0;
+    // Count the number of hdr UI components. If hdrUIComponentNum_ > 0, it means there are hdr UI components
+    int hdrUIComponentNum_ = 0;
     int wideColorGamutNum_ = 0;
     int32_t offsetX_ = 0;
     int32_t offsetY_ = 0;
@@ -1725,6 +1771,7 @@ private:
     RectI srcRect_;
     RectI originalDstRect_;
     RectI originalSrcRect_;
+    Vector4f regionToBeMagnified_;
     Drawing::Rect dstRectWithoutRenderFit_;
     RectI historyUnSubmittedOccludedDirtyRegion_;
     Vector4f overDrawBufferNodeCornerRadius_;
@@ -1739,10 +1786,6 @@ private:
     std::optional<Drawing::Matrix> contextMatrix_;
     std::optional<Drawing::Rect> contextClipRect_;
 
-    std::set<NodeId> skipLayerIds_= {};
-    std::set<NodeId> snapshotSkipLayerIds_= {};
-    std::set<NodeId> securityLayerIds_= {};
-    std::set<NodeId> protectedLayerIds_= {};
     std::set<NodeId> privacyContentLayerIds_ = {};
     Drawing::Matrix totalMatrix_;
     std::vector<RectI> intersectedRoundCornerAABBs_;
@@ -1784,6 +1827,10 @@ private:
     std::vector<std::shared_ptr<RSRenderNode>> filterNodes_;
     std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> drawingCacheNodes_;
     int32_t appWindowZOrder_ = 0;
+
+    // Enable HWCompose
+    RSHwcSurfaceRecorder hwcSurfaceRecorder_;
+
     // previous self-Drawing Node Bound
 #ifdef ENABLE_FULL_SCREEN_RECONGNIZE
     float prevSelfDrawHeight_ = 0.0f;
@@ -1860,6 +1907,9 @@ private:
     bool selfAndParentShouldPaint_ = true;
 
     bool isFrameGravityNewVersionEnabled_ = false;
+
+    // Used for control-level occlusion culling scene info and culled nodes transmission.
+    std::shared_ptr<OcclusionParams> occlusionParams_ = nullptr;
 
     // UIExtension record, <UIExtension, hostAPP>
     inline static std::unordered_map<NodeId, NodeId> secUIExtensionNodes_ = {};

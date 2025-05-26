@@ -46,6 +46,7 @@ std::mutex RsVulkanContext::drawingContextMutex_;
 std::unique_ptr<RsVulkanContext> RsVulkanContext::recyclableSingleton_ = nullptr;
 std::mutex RsVulkanContext::recyclableSingletonMutex_;
 bool RsVulkanContext::isRecyclable_ = true;
+std::atomic<bool> RsVulkanContext::isInited_ = false;
 void* RsVulkanInterface::handle_ = nullptr;
 VkInstance RsVulkanInterface::instance_ = VK_NULL_HANDLE;
 
@@ -587,6 +588,14 @@ RsVulkanContext::RsVulkanContext(std::string cacheDir)
     } else {
         InitVulkanContextForUniRender(cacheDir);
     }
+    RsVulkanContext::isInited_ = true;
+}
+
+RsVulkanContext::~RsVulkanContext()
+{
+    std::lock_guard<std::mutex> lock(drawingContextMutex_);
+    drawingContextMap_.clear();
+    protectedDrawingContextMap_.clear();
 }
 
 void RsVulkanContext::InitVulkanContextForHybridRender(const std::string& cacheDir)
@@ -648,7 +657,20 @@ void RsVulkanContext::ReleaseRecyclableSingleton()
     }
     {
         std::lock_guard<std::mutex> lock(drawingContextMutex_);
+        for (auto& [_, context] : drawingContextMap_) {
+            if (context == nullptr) {
+                continue;
+            }
+            context->FlushAndSubmit(true);
+        }
         drawingContextMap_.clear();
+
+        for (auto& [_, protectedContext] : protectedDrawingContextMap_) {
+            if (protectedContext == nullptr) {
+                continue;
+            }
+            protectedContext->FlushAndSubmit(true);
+        }
         protectedDrawingContextMap_.clear();
     }
     {
@@ -676,6 +698,11 @@ void RsVulkanContext::CleanUpRecyclableDrawingContext(int tid)
     std::lock_guard<std::mutex> lock(drawingContextMutex_);
     drawingContextMap_.erase(tid);
     protectedDrawingContextMap_.erase(tid);
+}
+
+bool RsVulkanContext::GetIsInited()
+{
+    return isInited_.load();
 }
 
 RsVulkanInterface& RsVulkanContext::GetRsVulkanInterface()

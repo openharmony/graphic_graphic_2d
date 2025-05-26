@@ -17,6 +17,8 @@
 #include "matrix_napi/js_matrix.h"
 
 #include <cstdint>
+#include "image/image.h"
+#include "sampling_options_napi/js_sampling_options.h"
 #include "js_drawing_utils.h"
 #include "utils/log.h"
 
@@ -31,7 +33,9 @@ napi_value JsShaderEffect::Init(napi_env env, napi_value exportObj)
         DECLARE_NAPI_STATIC_FUNCTION("createLinearGradient", JsShaderEffect::CreateLinearGradient),
         DECLARE_NAPI_STATIC_FUNCTION("createRadialGradient", JsShaderEffect::CreateRadialGradient),
         DECLARE_NAPI_STATIC_FUNCTION("createSweepGradient", JsShaderEffect::CreateSweepGradient),
+        DECLARE_NAPI_STATIC_FUNCTION("createComposeShader", JsShaderEffect::CreateComposeShader),
         DECLARE_NAPI_STATIC_FUNCTION("createConicalGradient", JsShaderEffect::CreateConicalGradient),
+        DECLARE_NAPI_STATIC_FUNCTION("createImageShader", JsShaderEffect::CreateImageShader),
     };
     napi_value constructor = nullptr;
     napi_status status = napi_define_class(env, CLASS_NAME.c_str(), NAPI_AUTO_LENGTH, Constructor, nullptr,
@@ -350,6 +354,43 @@ napi_value JsShaderEffect::CreateSweepGradient(napi_env env, napi_callback_info 
     return JsShaderEffect::Create(env, sweepGradient);
 }
 
+napi_value JsShaderEffect::CreateComposeShader(napi_env env, napi_callback_info info)
+{
+    napi_value argv[ARGC_THREE] = {nullptr};
+    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_THREE);
+
+    napi_valuetype valueType = napi_undefined;
+    if (napi_typeof(env, argv[ARGC_ZERO], &valueType) != napi_ok || valueType != napi_object) {
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Incorrect CreateComposeShader parameter0 type.");
+    }
+    JsShaderEffect* dstJsShaderEffect = nullptr;
+    GET_UNWRAP_PARAM(ARGC_ZERO, dstJsShaderEffect);
+    if (dstJsShaderEffect->GetShaderEffect() == nullptr) {
+        ROSEN_LOGE("JsShaderEffect::CreateBlendShader destination ShaderEffect is nullptr");
+        return nullptr;
+    }
+
+    if (napi_typeof(env, argv[ARGC_ONE], &valueType) != napi_ok || valueType != napi_object) {
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Incorrect CreateComposeShader parameter1 type.");
+    }
+    JsShaderEffect* srcJsShaderEffect = nullptr;
+    GET_UNWRAP_PARAM(ARGC_ONE, srcJsShaderEffect);
+    if (srcJsShaderEffect->GetShaderEffect() == nullptr) {
+        ROSEN_LOGE("JsShaderEffect::CreateBlendShader source ShaderEffect is nullptr");
+        return nullptr;
+    }
+
+    int32_t jsBlendMode = 0;
+    GET_ENUM_PARAM_RANGE(ARGC_TWO, jsBlendMode, static_cast<int32_t>(BlendMode::CLEAR),
+        static_cast<int32_t>(BlendMode::LUMINOSITY));
+
+    std::shared_ptr<ShaderEffect> effectShader = ShaderEffect::CreateBlendShader(*dstJsShaderEffect->GetShaderEffect(),
+        *srcJsShaderEffect->GetShaderEffect(), static_cast<BlendMode>(jsBlendMode));
+    return JsShaderEffect::Create(env, effectShader);
+}
+
 napi_value JsShaderEffect::CreateConicalGradient(napi_env env, napi_callback_info info)
 {
     size_t argc = ARGC_EIGHT;
@@ -442,6 +483,52 @@ napi_value JsShaderEffect::CreateConicalGradient(napi_env env, napi_callback_inf
         drawingStartPoint, startRadius, drawingEndPoint, endRadius, colors, pos,
         static_cast<TileMode>(jsTileMode), drawingMatrixPtr);
     return JsShaderEffect::Create(env, twoPointConicalGradient);
+}
+
+napi_value JsShaderEffect::CreateImageShader(napi_env env, napi_callback_info info)
+{
+    #ifdef ROSEN_OHOS
+    size_t argc = ARGC_FIVE;
+    napi_value argv[ARGC_FIVE] = { nullptr };
+    CHECK_PARAM_NUMBER_WITH_OPTIONAL_PARAMS(argv, argc, ARGC_FOUR, ARGC_FIVE);
+
+    Media::PixelMapNapi* pixelMapNapi = nullptr;
+    GET_UNWRAP_PARAM(ARGC_ZERO, pixelMapNapi);
+    auto pixel = pixelMapNapi->GetPixelNapiInner();
+    if (pixel == nullptr) {
+        ROSEN_LOGE("JsShaderEffect::CreateImageShader pixelmap GetPixelNapiInner is nullptr");
+        return nullptr;
+    }
+    std::shared_ptr<Drawing::Image> image = ExtractDrawingImage(pixel);
+    if (image == nullptr) {
+        ROSEN_LOGE("JsShaderEffect::CreateImageShader image is nullptr");
+        return nullptr;
+    }
+    int32_t jsTileModeX = 0;
+    int32_t jsTileModeY = 0;
+    GET_ENUM_PARAM_RANGE(ARGC_ONE, jsTileModeX, 0, static_cast<int32_t>(TileMode::DECAL));
+    GET_ENUM_PARAM_RANGE(ARGC_TWO, jsTileModeY, 0, static_cast<int32_t>(TileMode::DECAL));
+    JsSamplingOptions* jsSamplingOptions = nullptr;
+    GET_UNWRAP_PARAM(ARGC_THREE, jsSamplingOptions);
+    std::shared_ptr<SamplingOptions> samplingOptions = jsSamplingOptions->GetSamplingOptions();
+    if (samplingOptions == nullptr) {
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect samplingOptions parameter.");
+    }
+
+    Drawing::Matrix matrix;
+    if (argc == ARGC_FIVE) {
+        JsMatrix* jsMatrix = nullptr;
+        GET_UNWRAP_PARAM_OR_NULL(ARGC_FOUR, jsMatrix);
+
+        if (jsMatrix != nullptr && jsMatrix->GetMatrix() != nullptr) {
+            matrix = *jsMatrix->GetMatrix();
+        }
+    }
+    std::shared_ptr<ShaderEffect> imageShader = ShaderEffect::CreateImageShader(*image,
+        static_cast<TileMode>(jsTileModeX), static_cast<TileMode>(jsTileModeY), *samplingOptions, matrix);
+    return JsShaderEffect::Create(env, imageShader);
+#endif
+    return nullptr;
 }
 
 napi_value JsShaderEffect::Create(napi_env env, const std::shared_ptr<ShaderEffect> gradient)

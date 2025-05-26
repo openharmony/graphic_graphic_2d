@@ -18,6 +18,8 @@
 #include "native_value.h"
 
 #include "js_drawing_utils.h"
+#include "image/image.h"
+#include "utils/sampling_options.h"
 
 namespace OHOS::Rosen {
 namespace Drawing {
@@ -26,8 +28,13 @@ thread_local napi_ref JsImageFilter::constructor_ = nullptr;
 napi_value JsImageFilter::Init(napi_env env, napi_value exportObj)
 {
     napi_property_descriptor properties[] = {
+        DECLARE_NAPI_STATIC_FUNCTION("createBlendImageFilter", JsImageFilter::CreateBlendImageFilter),
+        DECLARE_NAPI_STATIC_FUNCTION("createComposeImageFilter", JsImageFilter::CreateComposeImageFilter),
         DECLARE_NAPI_STATIC_FUNCTION("createBlurImageFilter", JsImageFilter::CreateBlurImageFilter),
         DECLARE_NAPI_STATIC_FUNCTION("createFromColorFilter", JsImageFilter::CreateFromColorFilter),
+        DECLARE_NAPI_STATIC_FUNCTION("createFromImage", JsImageFilter::CreateFromImage),
+        DECLARE_NAPI_STATIC_FUNCTION("createFromShaderEffect", JsImageFilter::CreateFromShaderEffect),
+        DECLARE_NAPI_STATIC_FUNCTION("createOffsetImageFilter", JsImageFilter::CreateOffsetImageFilter),
     };
 
     napi_value constructor = nullptr;
@@ -98,6 +105,28 @@ void JsImageFilter::Destructor(napi_env env, void *nativeObject, void *finalize)
     }
 }
 
+napi_value JsImageFilter::CreateBlendImageFilter(napi_env env, napi_callback_info info)
+{
+    napi_value argv[ARGC_THREE] = { nullptr };
+    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_THREE);
+
+    int32_t blendMode = 0;
+    GET_ENUM_PARAM_RANGE(ARGC_ZERO, blendMode, 0, static_cast<int32_t>(BlendMode::LUMINOSITY));
+
+    JsImageFilter* jsBackground = nullptr;
+    GET_UNWRAP_PARAM(ARGC_ONE, jsBackground);
+
+    JsImageFilter* jsForeground = nullptr;
+    GET_UNWRAP_PARAM(ARGC_TWO, jsForeground);
+
+    std::shared_ptr<ImageFilter> background = jsBackground->GetImageFilter();
+    std::shared_ptr<ImageFilter> foreground = jsForeground->GetImageFilter();
+
+    std::shared_ptr<ImageFilter> imgFilter = ImageFilter::CreateBlendImageFilter(static_cast<BlendMode>(blendMode),
+        background, foreground);
+    return JsImageFilter::Create(env, imgFilter);
+}
+
 napi_value JsImageFilter::CreateBlurImageFilter(napi_env env, napi_callback_info info)
 {
     size_t argc = ARGC_FOUR;
@@ -126,6 +155,32 @@ napi_value JsImageFilter::CreateBlurImageFilter(napi_env env, napi_callback_info
     return JsImageFilter::Create(env, imgFilter);
 }
 
+napi_value JsImageFilter::CreateComposeImageFilter(napi_env env, napi_callback_info info)
+{
+    napi_value argv[ARGC_TWO] = { nullptr };
+    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_TWO);
+
+    JsImageFilter* jsOuter = nullptr;
+    GET_UNWRAP_PARAM_OR_NULL(ARGC_ZERO, jsOuter);
+
+    JsImageFilter* jsInner = nullptr;
+    GET_UNWRAP_PARAM_OR_NULL(ARGC_ONE, jsInner);
+
+    if (jsInner == nullptr && jsOuter == nullptr) {
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Inner and outer are nullptr");
+    }
+
+    std::shared_ptr<ImageFilter> outer = jsOuter ? jsOuter->GetImageFilter() : nullptr;
+    std::shared_ptr<ImageFilter> inner = jsInner ? jsInner->GetImageFilter() : nullptr;
+    std::shared_ptr<ImageFilter> imageFilter = ImageFilter::CreateComposeImageFilter(outer, inner);
+    if (imageFilter == nullptr) {
+        ROSEN_LOGE("JsImageFilter::CreateComposeImageFilter: imageFilter is nullptr.");
+        return nullptr;
+    }
+    return JsImageFilter::Create(env, imageFilter);
+}
+
 napi_value JsImageFilter::CreateFromColorFilter(napi_env env, napi_callback_info info)
 {
     size_t argc = ARGC_TWO;
@@ -146,6 +201,110 @@ napi_value JsImageFilter::CreateFromColorFilter(napi_env env, napi_callback_info
 
     std::shared_ptr<ImageFilter> imgFilter = ImageFilter::CreateColorFilterImageFilter(*colorFilter, imageFilter);
     return JsImageFilter::Create(env, imgFilter);
+}
+
+napi_value JsImageFilter::CreateFromImage(napi_env env, napi_callback_info info)
+{
+#ifdef ROSEN_OHOS
+    size_t argc = ARGC_THREE;
+    napi_value argv[ARGC_THREE] = {nullptr};
+    CHECK_PARAM_NUMBER_WITH_OPTIONAL_PARAMS(argv, argc, ARGC_ONE, ARGC_THREE);
+
+    Media::PixelMapNapi* pixelMapNapi = nullptr;
+    GET_UNWRAP_PARAM(ARGC_ZERO, pixelMapNapi);
+
+    std::shared_ptr<Media::PixelMap> pixelMap = pixelMapNapi->GetPixelNapiInner();
+    if (pixelMap == nullptr) {
+        ROSEN_LOGE("JsImageFilter::CreateFromImage GetPixelNapiInner failed!");
+        return nullptr;
+    }
+
+    std::shared_ptr<Drawing::Image> image = ExtractDrawingImage(pixelMap);
+    if (image == nullptr) {
+        ROSEN_LOGE("JsImageFilter::CreateFromImage image is nullptr!");
+        return nullptr;
+    }
+    Drawing::Rect srcRect = Drawing::Rect(0.0f, 0.0f, image->GetWidth(), image->GetHeight());
+    Drawing::Rect dstRect = srcRect;
+    if (argc >= ARGC_TWO) {
+        napi_valuetype valueType = napi_undefined;
+        if (napi_typeof(env, argv[ARGC_ONE], &valueType) != napi_ok) {
+            return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+                std::string("Incorrect ") + __FUNCTION__ + "parameter1 type");
+        }
+        if (valueType != napi_null && valueType != napi_object) {
+            return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+                std::string("Incorrect valueType") + __FUNCTION__ + "parameter1 type");
+        }
+        if (valueType == napi_object) {
+            double srcLtrb[ARGC_FOUR] = {0};
+            if (!ConvertFromJsRect(env, argv[ARGC_ONE], srcLtrb, ARGC_FOUR)) {
+                return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+                    "Incorrect parameter0 type. The type of left, top, right and bottom must be number.");
+            }
+            srcRect = Drawing::Rect(srcLtrb[ARGC_ZERO], srcLtrb[ARGC_ONE], srcLtrb[ARGC_TWO], srcLtrb[ARGC_THREE]);
+        }
+    }
+    if (argc == ARGC_THREE) {
+        napi_valuetype valueType = napi_undefined;
+        if (napi_typeof(env, argv[ARGC_TWO], &valueType) != napi_ok) {
+            return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+                std::string("Incorrect ") + __FUNCTION__ + "parameter2 type");
+        }
+        if (valueType != napi_null && valueType != napi_object) {
+            return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+                std::string("Incorrect valueType ") + __FUNCTION__ + "parameter2 type");
+        }
+        if (valueType == napi_object) {
+            double dstLtrb[ARGC_FOUR] = {0};
+            if (!ConvertFromJsRect(env, argv[ARGC_TWO], dstLtrb, ARGC_FOUR)) {
+                return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+                    "Incorrect parameter2 type. The type of left, top, right and bottom must be number.");
+            }
+            dstRect = Drawing::Rect(dstLtrb[ARGC_ZERO], dstLtrb[ARGC_ONE], dstLtrb[ARGC_TWO], dstLtrb[ARGC_THREE]);
+        }
+    }
+
+    std::shared_ptr<ImageFilter> imgFilter = ImageFilter::CreateImageImageFilter(image, srcRect, dstRect,
+        SamplingOptions(FilterMode::LINEAR));
+    return JsImageFilter::Create(env, imgFilter);
+#else
+    return nullptr;
+#endif
+}
+
+napi_value JsImageFilter::CreateFromShaderEffect(napi_env env, napi_callback_info info)
+{
+    napi_value argv[ARGC_ONE] = {nullptr};
+    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
+    JsShaderEffect* jsShaderEffect = nullptr;
+    GET_UNWRAP_PARAM(ARGC_ZERO, jsShaderEffect);
+    std::shared_ptr<ShaderEffect> shaderEffect = jsShaderEffect->GetShaderEffect();
+    std::shared_ptr<ImageFilter> imgFilter = ImageFilter::CreateShaderImageFilter(shaderEffect);
+    return JsImageFilter::Create(env, imgFilter);
+}
+
+napi_value JsImageFilter::CreateOffsetImageFilter(napi_env env, napi_callback_info info)
+{
+    size_t argc = ARGC_THREE;
+    napi_value argv[ARGC_THREE] = {nullptr};
+    CHECK_PARAM_NUMBER_WITH_OPTIONAL_PARAMS(argv, argc, ARGC_TWO, ARGC_THREE);
+
+    double dx = 0;
+    GET_DOUBLE_PARAM(ARGC_ZERO, dx);
+    double dy = 0;
+    GET_DOUBLE_PARAM(ARGC_ONE, dy);
+
+    std::shared_ptr<ImageFilter> input = nullptr;
+    if (argc == ARGC_THREE) {
+        JsImageFilter* jsInput = nullptr;
+        GET_UNWRAP_PARAM_OR_NULL(ARGC_TWO, jsInput);
+        if (jsInput != nullptr) {
+            input = jsInput->GetImageFilter();
+        }
+    }
+    auto imageFilter = ImageFilter::CreateOffsetImageFilter(dx, dy, input);
+    return JsImageFilter::Create(env, imageFilter);
 }
 
 napi_value JsImageFilter::Create(napi_env env, const std::shared_ptr<ImageFilter> imageFilter)

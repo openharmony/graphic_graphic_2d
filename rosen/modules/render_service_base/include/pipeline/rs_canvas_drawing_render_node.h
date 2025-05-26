@@ -49,7 +49,7 @@ public:
 
     bool OpincGetNodeSupportFlag() override
     {
-        return false;
+        return !GetOpincCache().OpincGetRootFlag();
     }
 
     Drawing::Bitmap GetBitmap();

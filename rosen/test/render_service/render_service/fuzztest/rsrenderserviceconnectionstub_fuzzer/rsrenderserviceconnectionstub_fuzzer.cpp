@@ -3241,6 +3241,7 @@ bool DoTakeSurfaceCapture(const uint8_t* data, size_t size)
     float top = GetData<float>();
     float right = GetData<float>();
     float bottom = GetData<float>();
+    std::vector<NodeId> blackList{GetData<NodeId>()};
     float areaRectLeft = GetData<float>();
     float areaRectTop = GetData<float>();
     float areaRectRight = GetData<float>();
@@ -3258,6 +3259,7 @@ bool DoTakeSurfaceCapture(const uint8_t* data, size_t size)
     dataParcel.WriteFloat(top);
     dataParcel.WriteFloat(right);
     dataParcel.WriteFloat(bottom);
+    dataParcel.WriteUInt64Vector(blackList);
     dataParcel.WriteBool(isNeedBlur);
     dataParcel.WriteFloat(blurRadius);
     dataParcel.WriteFloat(areaRectLeft);

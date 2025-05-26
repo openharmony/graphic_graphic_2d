@@ -78,13 +78,16 @@
       *HgmFrameRateManager::CleanVote*;
       *HgmFrameRateManager::CollectFrameRateChange*;
       *HgmFrameRateManager::CollectVRateChange*;
+      *HgmFrameRateManager::CheckAncoVoterStatus*;
       *HgmFrameRateManager::DeliverRefreshRateVote*;
       *HgmFrameRateManager::FrameRateReport*;
+      *HgmFrameRateManager::GetAncoLowBrightVec*;
       *HgmFrameRateManager::GetDrawingFrameRate*;
       *HgmFrameRateManager::GetExpectedFrameRate*;
       *HgmFrameRateManager::GetLowBrightVec*;
       *HgmFrameRateManager::GetPreferredFps*;
       *HgmFrameRateManager::GetStylusVec*;
+      *HgmFrameRateManager::GetSupportedRefreshRates*;
       *HgmFrameRateManager::HandleAppStrategyConfigEvent*;
       *HgmFrameRateManager::HandleDynamicModeEvent*;
       *HgmFrameRateManager::HandleFrameRateChangeForLTPO*;

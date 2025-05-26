@@ -63,7 +63,7 @@ HWTEST_F(RSUIMaskParaTest, ConvertMaskType001, TestSize.Level1)
     type = RSUIMaskPara::ConvertMaskType(MaskPara::Type::RIPPLE_MASK);
     EXPECT_EQ(type, RSUIFilterType::RIPPLE_MASK);
 
-    type = RSUIMaskPara::ConvertMaskType(MaskPara::Type::PIXEL_MAK_MASK);
-    EXPECT_EQ(type, RSUIFilterType::NONE);
+    type = RSUIMaskPara::ConvertMaskType(MaskPara::Type::PIXEL_MAP_MASK);
+    EXPECT_EQ(type, RSUIFilterType::PIXEL_MAP_MASK);
 }
 } // namespace OHOS::Rosen

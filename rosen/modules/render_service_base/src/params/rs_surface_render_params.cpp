@@ -566,6 +566,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->isOutOfScreen_ = isOutOfScreen_;
     targetSurfaceParams->isRotating_ = isRotating_;
     targetSurfaceParams->specialLayerManager_ = specialLayerManager_;
+    targetSurfaceParams->blackListIds_ = blackListIds_;
     targetSurfaceParams->privacyContentLayerIds_ = privacyContentLayerIds_;
     targetSurfaceParams->name_ = name_;
     targetSurfaceParams->bundleName_ = bundleName_;
@@ -608,11 +609,15 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->allSubSurfaceNodeIds_ = allSubSurfaceNodeIds_;
     targetSurfaceParams->crossNodeSkipDisplayConversionMatrices_ = crossNodeSkipDisplayConversionMatrices_;
     targetSurfaceParams->apiCompatibleVersion_ = apiCompatibleVersion_;
+    targetSurfaceParams->isOcclusionCullingOn_ = isOcclusionCullingOn_;
+    targetSurfaceParams->culledNodes_ = std::move(culledNodes_);
+    targetSurfaceParams->culledEntireSubtree_ = std::move(culledEntireSubtree_);
     targetSurfaceParams->isBufferFlushed_ = isBufferFlushed_;
     targetSurfaceParams->colorFollow_ = colorFollow_;
     targetSurfaceParams->screenRect_ = screenRect_;
     targetSurfaceParams->dirtyRegionMatrix_ = dirtyRegionMatrix_;
     targetSurfaceParams->uiFirstFrameGravity_ = uiFirstFrameGravity_;
+    targetSurfaceParams->regionToBeMagnified_ = regionToBeMagnified_;
     targetSurfaceParams->isFrameGravityNewVersionEnabled_ = isFrameGravityNewVersionEnabled_;
     RSRenderParams::OnSync(target);
 }

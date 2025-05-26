@@ -1408,13 +1408,13 @@ int32_t RSSystemProperties::GetHybridRenderCcmEnabled()
 bool RSSystemProperties::GetHybridRenderSystemEnabled()
 {
     static bool hybridRenderSystemEnabled = Drawing::SystemProperties::IsUseVulkan() &&
-        system::GetBoolParameter("persist.sys.graphic.hybrid_render", true);
+        system::GetBoolParameter("persist.sys.graphic.hybrid_render", false);
     return hybridRenderSystemEnabled;
 }
 
 bool RSSystemProperties::GetHybridRenderDfxEnabled()
 {
-    static bool hybridRenderDfxEnabled = GetHybridRenderSystemEnabled() &&
+    static bool hybridRenderDfxEnabled = GetHybridRenderEnabled() &&
         system::GetBoolParameter("persist.sys.graphic.hybrid_render_dfx_enabled", false);
     return hybridRenderDfxEnabled;
 }
@@ -1435,7 +1435,7 @@ bool RSSystemProperties::ViewDrawNodeType()
 
 bool RSSystemProperties::GetHybridRenderParallelConvertEnabled()
 {
-    static bool paraConvertEnabled = GetHybridRenderSystemEnabled() &&
+    static bool paraConvertEnabled = GetHybridRenderEnabled() &&
         system::GetBoolParameter("persist.sys.graphic.hybrid_render_parallelconvert_enabled", true);
     return paraConvertEnabled;
 }
@@ -1443,14 +1443,14 @@ bool RSSystemProperties::GetHybridRenderParallelConvertEnabled()
 // The switch are for scheme debugging. After the scheme is stabilizated, the switch will be removed.
 bool RSSystemProperties::GetHybridRenderCanvasEnabled()
 {
-    static bool canvasEnabled = GetHybridRenderSystemEnabled() &&
+    static bool canvasEnabled = GetHybridRenderEnabled() &&
         system::GetBoolParameter("persist.sys.graphic.hybrid_render_canvas_drawing_node_enabled", false);
     return canvasEnabled;
 }
 
 bool RSSystemProperties::GetHybridRenderMemeoryReleaseEnabled()
 {
-    static bool memoryReleaseEnabled = GetHybridRenderSystemEnabled() &&
+    static bool memoryReleaseEnabled = GetHybridRenderEnabled() &&
         system::GetBoolParameter("persist.sys.graphic.hybrid_render_memory_release_enabled", true);
     return memoryReleaseEnabled;
 }
@@ -1458,24 +1458,24 @@ bool RSSystemProperties::GetHybridRenderMemeoryReleaseEnabled()
 // The switch are for scheme debugging. After the scheme is stabilizated, the switch will be removed.
 bool RSSystemProperties::GetHybridRenderTextBlobEnabled()
 {
-    static bool textblobEnabled = GetHybridRenderSystemEnabled() &&
-        system::GetBoolParameter("persist.sys.graphic.hybrid_render_textblob_enabled", true);
+    static bool textblobEnabled = GetHybridRenderEnabled() &&
+        system::GetBoolParameter("persist.sys.graphic.hybrid_render_textblob_enabled", false);
     return textblobEnabled;
 }
 
 // The switch are for scheme debugging. After the scheme is stabilizated, the switch will be removed.
 bool RSSystemProperties::GetHybridRenderSvgEnabled()
 {
-    static bool svgEnabled = GetHybridRenderSystemEnabled() &&
-        system::GetBoolParameter("persist.sys.graphic.hybrid_render_svg_enabled", true);
+    static bool svgEnabled = GetHybridRenderEnabled() &&
+        system::GetBoolParameter("persist.sys.graphic.hybrid_render_svg_enabled", false);
     return svgEnabled;
 }
 
 // The switch are for scheme debugging. After the scheme is stabilizated, the switch will be removed.
 bool RSSystemProperties::GetHybridRenderHmsymbolEnabled()
 {
-    static bool hmsymbolEnabled = GetHybridRenderSystemEnabled() &&
-        system::GetBoolParameter("persist.sys.graphic.hybrid_render_hmsymbol_enabled", true);
+    static bool hmsymbolEnabled = GetHybridRenderEnabled() &&
+        system::GetBoolParameter("persist.sys.graphic.hybrid_render_hmsymbol_enabled", false);
     return hmsymbolEnabled;
 }
 
@@ -1490,6 +1490,9 @@ int32_t RSSystemProperties::GetHybridRenderSwitch(ComponentEnableSwitch bitSeq)
         std::stoul((system::GetParameter("const.graphics.hybridrenderfeatureswitch", "0x00")).c_str(), nullptr, 16);
     static std::vector<int> hybridRenderSystemProperty(std::size(ComponentSwitchTable));
 
+    if (bitSeq >= ComponentEnableSwitch::SWITCH_MAX) {
+        return 0;
+    }
     if (!GetHybridRenderEnabled()) {
         return 0;
     }
@@ -1497,9 +1500,10 @@ int32_t RSSystemProperties::GetHybridRenderSwitch(ComponentEnableSwitch bitSeq)
     hybridRenderSystemProperty[static_cast<uint32_t>(bitSeq)] =
         ComponentSwitchTable[static_cast<uint32_t>(bitSeq)].ComponentHybridSwitch();
 
-    return (GetHybridRenderCcmEnabled() && (hybridRenderFeatureSwitch != 0 ?
-        1 : (1 << static_cast<uint32_t>(bitSeq)) & hybridRenderFeatureSwitch)) ||
-        hybridRenderSystemProperty[static_cast<uint32_t>(bitSeq)];
+    uint32_t hybridRenderFeatureSwitchValue = hybridRenderFeatureSwitch == 0 ? 0 :
+        (1 << static_cast<uint32_t>(bitSeq)) & hybridRenderFeatureSwitch;
+    return (GetHybridRenderCcmEnabled() && hybridRenderFeatureSwitchValue != 0) ||
+           hybridRenderSystemProperty[static_cast<uint32_t>(bitSeq)];
 }
 
 bool RSSystemProperties::GetVKImageUseEnabled()

@@ -15,6 +15,7 @@
 
 #include "image/gpu_context.h"
 
+#include "config/DrawingConfig.h"
 #include "impl_factory.h"
 #include "static_factory.h"
 #ifdef RS_ENABLE_VK
@@ -87,6 +88,9 @@ void GPUContext::Flush()
 void GPUContext::FlushAndSubmit(bool syncCpu)
 {
     impl_->FlushAndSubmit(syncCpu);
+#ifdef DRAWING_DISABLE_API
+    DrawingConfig::UpdateDrawingProperties();
+#endif
 }
 
 void GPUContext::Submit()

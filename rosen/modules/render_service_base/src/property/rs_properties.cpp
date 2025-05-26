@@ -25,6 +25,7 @@
 #include "render/rs_mesa_blur_shader_filter.h"
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_vector4.h"
+#include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
@@ -38,6 +39,7 @@
 #include "render/rs_filter.h"
 #include "render/rs_foreground_effect_filter.h"
 #include "render/rs_grey_shader_filter.h"
+#include "render/rs_hdr_ui_brightness_filter.h"
 #include "render/rs_kawase_blur_shader_filter.h"
 #include "render/rs_material_filter.h"
 #include "render/rs_light_blur_shader_filter.h"
@@ -47,6 +49,7 @@
 #include "render/rs_render_color_gradient_filter.h"
 #include "render/rs_render_displacement_distort_filter.h"
 #include "render/rs_render_edge_light_filter.h"
+#include "render/rs_render_dispersion_filter.h"
 #include "render/rs_render_filter_base.h"
 #include "render/rs_shader_mask.h"
 #include "render/rs_spherize_effect_filter.h"
@@ -57,6 +60,8 @@
 #include "render/rs_distortion_shader_filter.h"
 #include "render/rs_sound_wave_filter.h"
 #include "render/rs_edge_light_shader_filter.h"
+#include "render/rs_bezier_warp_filter.h"
+#include "render/rs_dispersion_shader_filter.h"
 #include "drawable/rs_property_drawable_utils.h"
 
 
@@ -283,6 +288,10 @@ static const std::unordered_map<RSModifierType, ResetPropertyFunc> g_propertyRes
                                                                 prop->SetComplexShaderParam({}); }},
     { RSModifierType::BACKGROUND_UI_FILTER,                 [](RSProperties* prop) {
                                                                 prop->SetBackgroundUIFilter({}); }},
+    { RSModifierType::HDR_UI_BRIGHTNESS,                    [](RSProperties* prop) {
+                                                                prop->SetHDRUIBrightness(1.0f); }},
+    { RSModifierType::FOREGROUND_UI_FILTER,                 [](RSProperties* prop) {
+                                                                prop->SetForegroundUIFilter({}); }},                                                                
 };
 
 } // namespace
@@ -1031,6 +1040,14 @@ void RSProperties::SetAlphaOffscreen(bool alphaOffscreen)
 bool RSProperties::GetAlphaOffscreen() const
 {
     return alphaOffscreen_;
+}
+
+void RSProperties::SetLocalMagnificationCap(bool localMagnificationCap)
+{
+    localMagnificationCap_ = localMagnificationCap;
+    if (localMagnificationCap_) {
+        filterNeedUpdate_ = true;
+    }
 }
 
 void RSProperties::SetSublayerTransform(const std::optional<Matrix3f>& sublayerTransform)
@@ -2556,6 +2573,57 @@ std::shared_ptr<RSRenderFilter> RSProperties::GetBackgroundUIFilter() const
     return backgroundRenderFilter_;
 }
 
+void RSProperties::SetForegroundUIFilter(const std::shared_ptr<RSRenderFilter>& filterProp)
+{
+    foregroundRenderFilter_ = filterProp;
+    isDrawn_ = true;
+    filterNeedUpdate_ = true;
+    SetDirty();
+    contentDirty_ = true;
+}
+
+std::shared_ptr<RSRenderFilter> RSProperties::GetForegroundUIFilter() const
+{
+    return foregroundRenderFilter_;
+}
+
+void RSProperties::SetHDRUIBrightness(float hdrUIBrightness)
+{
+    if (auto node = RSBaseRenderNode::ReinterpretCast<RSCanvasRenderNode>(backref_.lock())) {
+        bool oldHDRUIStatus = IsHDRUIBrightnessValid();
+        bool newHDRUIStatus = ROSEN_GNE(hdrUIBrightness, 1.0f);
+        if ((oldHDRUIStatus != newHDRUIStatus) && node->IsOnTheTree()) {
+            node->SetHdrNum(newHDRUIStatus, node->GetInstanceRootNodeId(), HDRComponentType::UICOMPONENT);
+        }
+    }
+    hdrUIBrightness_ = hdrUIBrightness;
+    if (IsHDRUIBrightnessValid()) {
+        isDrawn_ = true;
+    }
+    filterNeedUpdate_ = true;
+    SetDirty();
+}
+
+float RSProperties::GetHDRUIBrightness() const
+{
+    return hdrUIBrightness_;
+}
+
+bool RSProperties::IsHDRUIBrightnessValid() const
+{
+    return ROSEN_GNE(GetHDRUIBrightness(), 1.0f);
+}
+
+void RSProperties::CreateHDRUIBrightnessFilter()
+{
+    auto hdrUIBrightnessFilter = std::make_shared<RSHDRUIBrightnessFilter>(hdrUIBrightness_);
+    if (IS_UNI_RENDER) {
+        foregroundFilterCache_ = hdrUIBrightnessFilter;
+    } else {
+        foregroundFilter_ = hdrUIBrightnessFilter;
+    }
+}
+
 void RSProperties::SetSpherize(float spherizeDegree)
 {
     spherizeDegree_ = spherizeDegree;
@@ -3012,7 +3080,7 @@ void RSProperties::SetComplexShaderParam(const std::vector<float> &param)
     SetDirty();
     contentDirty_ = true;
 }
- 
+
 std::optional<std::vector<float>> RSProperties::GetComplexShaderParam() const
 {
     return complexShaderParam_;
@@ -3634,6 +3702,54 @@ void RSProperties::GenerateRenderFilterEdgeLight()
     }
 }
 
+void RSProperties::GenerateRenderFilterDispersion()
+{
+    if (!backgroundRenderFilter_) {
+        ROSEN_LOGE("RSProperties::GenerateRenderFilterDispersion backgroundRenderFilter_ nullptr.");
+        return;
+    }
+    auto dispersionFilterPara = std::static_pointer_cast<RSRenderDispersionFilterPara>(
+        backgroundRenderFilter_->GetRenderFilterPara(RSUIFilterType::DISPERSION));
+    if (!dispersionFilterPara) {
+        ROSEN_LOGE("RSProperties::GenerateRenderFilterDispersion DISPERSION filter para not found.");
+        return;
+    }
+
+    auto dispersionMask = std::static_pointer_cast<RSRenderMaskPara>(
+        dispersionFilterPara->GetRenderPropert(dispersionFilterPara->GetMaskType()));
+    auto dispersionShaderMask = std::make_shared<RSShaderMask>(dispersionMask);
+    auto dispersionOpacity = std::static_pointer_cast<RSRenderProperty<float>>(
+        dispersionFilterPara->GetRenderPropert(RSUIFilterType::DISPERSION_OPACITY));
+    auto dispersionRedOffset = std::static_pointer_cast<RSRenderProperty<Vector2f>>(
+        dispersionFilterPara->GetRenderPropert(RSUIFilterType::DISPERSION_RED_OFFSET));
+    auto dispersionGreenOffset = std::static_pointer_cast<RSRenderProperty<Vector2f>>(
+        dispersionFilterPara->GetRenderPropert(RSUIFilterType::DISPERSION_GREEN_OFFSET));
+    auto dispersionBlueOffset = std::static_pointer_cast<RSRenderProperty<Vector2f>>(
+        dispersionFilterPara->GetRenderPropert(RSUIFilterType::DISPERSION_BLUE_OFFSET));
+    
+    bool hasNull = !dispersionShaderMask || !dispersionOpacity || !dispersionRedOffset || !dispersionGreenOffset ||
+        !dispersionBlueOffset;
+    if (hasNull) {
+        ROSEN_LOGE("RSProperties::GenerateRenderFilterDispersion GetRenderPropert has some nullptr.");
+        return;
+    }
+
+    DispersionShaderFilterParams dspParas = { dispersionShaderMask, dispersionOpacity->Get(), dispersionRedOffset->Get(), 
+        dispersionGreenOffset->Get(), dispersionBlueOffset->Get() };
+    std::shared_ptr<RSDispersionShaderFilter> dspFilter = std::make_shared<RSDispersionShaderFilter>(dspParas);
+
+    std::shared_ptr<RSDrawingFilter> originalFilter = std::make_shared<RSDrawingFilter>(dspFilter);
+    if (!backgroundFilter_) {
+        backgroundFilter_ = originalFilter;
+        backgroundFilter_->SetFilterType(RSFilter::DISPERSION);
+    } else {
+        auto backgroundDrawingFilter = std::static_pointer_cast<RSDrawingFilter>(backgroundFilter_);
+        backgroundDrawingFilter = backgroundDrawingFilter->Compose(dspFilter);
+        backgroundDrawingFilter->SetFilterType(RSFilter::COMPOUND_EFFECT);
+        backgroundFilter_ = backgroundDrawingFilter;
+    }
+}
+
 void RSProperties::GenerateRenderFilter()
 {
     for (auto type : backgroundRenderFilter_->GetUIFilterTypes()) {
@@ -3654,11 +3770,85 @@ void RSProperties::GenerateRenderFilter()
                 GenerateRenderFilterEdgeLight();
                 break;
             }
+            case RSUIFilterType::DISPERSION : {
+                GenerateRenderFilterDispersion();
+                break;
+            }
             default:
                 ROSEN_LOGE("RSProperties::GenerateRenderFilter NULL.");
                 break;
         }
         ROSEN_LOGD("RSProperties::GenerateRenderFilter type %{public}d finished.", static_cast<int>(type));
+    }
+}
+
+void RSProperties::GenerateForegroundRenderFilter()
+{
+    for (auto type : foregroundRenderFilter_->GetUIFilterTypes()) {
+        switch (type) {
+            case RSUIFilterType::BEZIER_WARP : {
+                GenerateBezierWarpFilter();
+                break;
+            }
+            default:
+                ROSEN_LOGE("RSProperties::GenerateReGenerateForegroundRenderFilternderFilter NULL.");
+                break;
+        }
+        ROSEN_LOGD("RSProperties::GenerateForegroundRenderFilter type %{public}d finished.", static_cast<int>(type));
+    }
+}
+
+void RSProperties::GenerateBezierWarpFilter()
+{
+    if (foregroundRenderFilter_ == nullptr) {
+        ROSEN_LOGE("RSProperties::GenerateBezierWarpFilter get foregroundRenderFilter_ nullptr.");
+        return;
+    }
+    auto bezierWarpPara = foregroundRenderFilter_->GetRenderFilterPara(RSUIFilterType::BEZIER_WARP);
+    if (bezierWarpPara == nullptr) {
+        ROSEN_LOGE("RSProperties::GenerateBezierWarpFilter BEZIER_WARP filter para not found.");
+        return;
+    }
+
+    std::array<RSUIFilterType, INDEX_12> ctrlPointsType = {
+        RSUIFilterType::BEZIER_CONTROL_POINT0,
+        RSUIFilterType::BEZIER_CONTROL_POINT1,
+        RSUIFilterType::BEZIER_CONTROL_POINT2,
+        RSUIFilterType::BEZIER_CONTROL_POINT3,
+        RSUIFilterType::BEZIER_CONTROL_POINT4,
+        RSUIFilterType::BEZIER_CONTROL_POINT5,
+        RSUIFilterType::BEZIER_CONTROL_POINT6,
+        RSUIFilterType::BEZIER_CONTROL_POINT7,
+        RSUIFilterType::BEZIER_CONTROL_POINT8,
+        RSUIFilterType::BEZIER_CONTROL_POINT9,
+        RSUIFilterType::BEZIER_CONTROL_POINT10,
+        RSUIFilterType::BEZIER_CONTROL_POINT11,
+    };
+    std::array<Drawing::Point, INDEX_12> ctrlPoints;
+    Vector2f tmpBezierCtrlPoint;
+    std::shared_ptr<RSRenderAnimatableProperty<Vector2f>> ctrlPointProperty;
+    for (size_t i = 0; i < INDEX_12; ++i) {
+        ctrlPointProperty = std::static_pointer_cast<RSRenderAnimatableProperty<Vector2f>>(
+            bezierWarpPara->GetRenderPropert(ctrlPointsType[i]));
+        if (ctrlPointProperty == nullptr) {
+            ROSEN_LOGE("RSProperties::GenerateBezierWarpFilter GetRenderPropert nullptr, index:%zu", i);
+            return;
+        }
+        tmpBezierCtrlPoint = ctrlPointProperty->Get();
+        ctrlPoints[i].Set(tmpBezierCtrlPoint.x_, tmpBezierCtrlPoint.y_);
+    }
+    std::shared_ptr<RSBezierWarpFilter> bezierWarpFilter = std::make_shared<RSBezierWarpFilter>(ctrlPoints);
+
+    std::shared_ptr<RSDrawingFilter> originalFilter = std::make_shared<RSDrawingFilter>(bezierWarpFilter);
+    foregroundFilter_.reset();
+    if (!foregroundFilter_) {
+        foregroundFilter_ = originalFilter;
+        foregroundFilter_->SetFilterType(RSFilter::BEZIER_WARP);
+    } else {
+        auto foregroundDrawingFilter = std::static_pointer_cast<RSDrawingFilter>(foregroundFilter_);
+        foregroundDrawingFilter = foregroundDrawingFilter->Compose(bezierWarpFilter);
+        foregroundDrawingFilter->SetFilterType(RSFilter::BEZIER_WARP);
+        foregroundFilter_ = foregroundDrawingFilter;
     }
 }
 
@@ -3704,6 +3894,7 @@ void RSProperties::GenerateForegroundFilter()
     } else {
         filter_ = nullptr;
     }
+
     if (filter_ == nullptr) {
         ROSEN_LOGD("RSProperties::GenerateForegroundFilter failed");
     }
@@ -4902,16 +5093,18 @@ void RSProperties::UpdateFilter()
                   IsDynamicDimValid() || GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE ||
                   foregroundFilter_ != nullptr || IsFgBrightnessValid() || IsBgBrightnessValid() ||
                   foregroundFilterCache_ != nullptr || IsWaterRippleValid() || needDrawBehindWindow_ ||
-                  mask_ || colorFilter_ != nullptr;
+                  mask_ || colorFilter_ != nullptr || localMagnificationCap_;
 
     needHwcFilter_ = backgroundFilter_ != nullptr || filter_ != nullptr || IsLightUpEffectValid() ||
                      IsDynamicLightUpValid() || linearGradientBlurPara_ != nullptr ||
                      IsDynamicDimValid() || IsFgBrightnessValid() || IsBgBrightnessValid() || IsWaterRippleValid() ||
-                     needDrawBehindWindow_ || colorFilter_ != nullptr;
+                     needDrawBehindWindow_ || colorFilter_ != nullptr || localMagnificationCap_;
 }
 
 void RSProperties::UpdateForegroundFilter()
 {
+    foregroundFilter_.reset();
+    foregroundFilterCache_.reset();
     if (motionBlurPara_ && ROSEN_GNE(motionBlurPara_->radius, 0.0)) {
         auto motionBlurFilter = std::make_shared<RSMotionBlurFilter>(motionBlurPara_);
         if (IS_UNI_RENDER) {
@@ -4936,9 +5129,10 @@ void RSProperties::UpdateForegroundFilter()
         CreateColorfulShadowFilter();
     } else if (IsDistortionKValid()) {
         foregroundFilter_ = std::make_shared<RSDistortionFilter>(*distortionK_);
-    } else {
-        foregroundFilter_.reset();
-        foregroundFilterCache_.reset();
+    } else if (IsHDRUIBrightnessValid()) {
+        CreateHDRUIBrightnessFilter();
+    } else if (foregroundRenderFilter_) {
+        GenerateForegroundRenderFilter();
     }
 }
 

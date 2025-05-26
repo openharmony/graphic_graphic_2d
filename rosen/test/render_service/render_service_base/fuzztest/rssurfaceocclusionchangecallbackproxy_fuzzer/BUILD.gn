@@ -36,6 +36,7 @@ ohos_fuzztest("RSSurfaceOcclusionChangeCallbackProxyFuzzTest") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "samgr:samgr_proxy",
   ]
   cflags = [
     "-g",

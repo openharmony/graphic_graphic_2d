@@ -297,6 +297,34 @@ bool RSRenderParams::GetRSFreezeFlag() const
     return freezeFlag_;
 }
 
+void RSRenderParams::OpincSetIsSuggest(bool isSuggest)
+{
+    if (isOpincSuggestFlag_ == isSuggest) {
+        return;
+    }
+    isOpincSuggestFlag_ = isSuggest;
+    needSync_ = true;
+}
+
+bool RSRenderParams::OpincIsSuggest() const
+{
+    return isOpincSuggestFlag_;
+}
+
+void RSRenderParams::OpincUpdateSupportFlag(bool supportFlag)
+{
+    if (isOpincSupportFlag_ == supportFlag) {
+        return;
+    }
+    isOpincSupportFlag_ = supportFlag;
+    needSync_ = true;
+}
+
+bool RSRenderParams::OpincGetSupportFlag() const
+{
+    return isOpincSupportFlag_;
+}
+
 void RSRenderParams::OpincUpdateRootFlag(bool suggestFlag)
 {
     if (isOpincRootFlag_ == suggestFlag) {
@@ -452,6 +480,16 @@ void RSRenderParams::SetCanvasDrawingSurfaceChanged(bool changeFlag)
     canvasDrawingNodeSurfaceChanged_ = changeFlag;
 }
 
+bool RSRenderParams::IsRepaintBoundary() const
+{
+    return isRepaintBoundary_;
+}
+
+void RSRenderParams::MarkRepaintBoundary(bool isRepaintBoundary)
+{
+    isRepaintBoundary_ = isRepaintBoundary;
+}
+
 const std::shared_ptr<RSFilter>& RSRenderParams::GetForegroundFilterCache() const
 {
     return foregroundFilterCache_;
@@ -506,6 +544,7 @@ void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     target->drawingCacheIncludeProperty_ = drawingCacheIncludeProperty_;
     target->isInBlackList_ = isInBlackList_;
     target->dirtyRegionInfoForDFX_ = dirtyRegionInfoForDFX_;
+    target->isRepaintBoundary_ = isRepaintBoundary_;
     target->alphaOffScreen_ = alphaOffScreen_;
     target->hdrBrightness_ = hdrBrightness_;
     target->needFilter_ = needFilter_;
@@ -516,6 +555,8 @@ void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     target->hasBlurFilter_ = hasBlurFilter_;
     target->foregroundFilterCache_ = foregroundFilterCache_;
     OnCanvasDrawingSurfaceChange(target);
+    target->isOpincSuggestFlag_ = isOpincSuggestFlag_;
+    target->isOpincSupportFlag_ = isOpincSupportFlag_;
     target->isOpincRootFlag_ = isOpincRootFlag_;
     target->isOpincStateChanged_ = target->isOpincStateChanged_ || isOpincStateChanged_;
     target->startingWindowFlag_ = startingWindowFlag_;

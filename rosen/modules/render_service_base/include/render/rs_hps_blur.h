@@ -16,6 +16,7 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_RENDER_RS_HPS_BLUR_H
 #define RENDER_SERVICE_CLIENT_CORE_RENDER_RS_HPS_BLUR_H
 
+#include "common/rs_color.h"
 #include "draw/canvas.h"
 #include "effect/color_filter.h"
 #include "effect/runtime_effect.h"
@@ -30,7 +31,8 @@ public:
     ~HpsBlurFilter() = default;
     bool ApplyHpsBlur(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
         const Drawing::HpsBlurParameter& param, float alpha,
-        std::shared_ptr<Drawing::ColorFilter> colorFilter = nullptr) const;
+        std::shared_ptr<Drawing::ColorFilter> colorFilter = nullptr,
+        const RSColor& color = RSColor()) const;
     const static HpsBlurFilter& GetHpsBlurFilter()
     {
         static HpsBlurFilter filter;

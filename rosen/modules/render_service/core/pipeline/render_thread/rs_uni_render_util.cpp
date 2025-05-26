@@ -122,6 +122,7 @@ std::vector<RectI> RSUniRenderUtil::MergeDirtyHistory(DrawableV2::RSDisplayRende
         globalDirtyRegion.OrSelf(region);
         GpuDirtyRegionCollection::GetInstance().UpdateGlobalDirtyInfoForDFX(rect.IntersectRect(screenRectI));
     }
+    rsDirtyRectsDfx.SetDirtyRegion(dirtyRegion);
     Occlusion::Region damageRegion;
     RS_TRACE_NAME_FMT("AdvancedDirtyRegionType is [%d]", static_cast<int>(uniParam->GetAdvancedDirtyType()));
     switch (uniParam->GetAdvancedDirtyType()) {
@@ -153,7 +154,7 @@ std::vector<RectI> RSUniRenderUtil::MergeDirtyHistory(DrawableV2::RSDisplayRende
             damageRegion.GetAlignedRegion(MAX_DIRTY_ALIGNMENT_SIZE) : damageRegion;
     }
     RSUniRenderUtil::SetDrawRegionForQuickReject(curAllSurfaceDrawables, drawnRegion);
-    rsDirtyRectsDfx.SetDirtyRegion(drawnRegion);
+    rsDirtyRectsDfx.SetMergedDirtyRegion(drawnRegion);
     auto damageRegionRects = RSUniDirtyComputeUtil::ScreenIntersectDirtyRects(damageRegion, screenInfo);
     if (damageRegionRects.empty()) {
         // When damageRegionRects is empty, SetDamageRegion function will not take effect and buffer will
@@ -946,14 +947,6 @@ int RSUniRenderUtil::GetRotationDegreeFromMatrix(Drawing::Matrix matrix)
     matrix.GetAll(value);
     return static_cast<int>(-round(atan2(value[Drawing::Matrix::Index::SKEW_X],
         value[Drawing::Matrix::Index::SCALE_X]) * (RS_ROTATION_180 / PI)));
-}
-
-float RSUniRenderUtil::GetFloatRotationDegreeFromMatrix(Drawing::Matrix matrix)
-{
-    Drawing::Matrix::Buffer value;
-    matrix.GetAll(value);
-    return atan2(value[Drawing::Matrix::Index::SKEW_X], value[Drawing::Matrix::Index::SCALE_X]) *
-        (RS_ROTATION_180 / PI);
 }
 
 void RSUniRenderUtil::ClearNodeCacheSurface(std::shared_ptr<Drawing::Surface>&& cacheSurface,

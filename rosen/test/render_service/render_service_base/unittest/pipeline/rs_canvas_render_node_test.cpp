@@ -170,22 +170,7 @@ HWTEST_F(RSCanvasRenderNodeTest, ColorBlendModeTest, TestSize.Level1)
     auto canvasRenderNode = std::make_shared<RSCanvasRenderNode>(id, context);
     canvas_->SaveLayer({ nullptr, nullptr });
 
-    int blendMode = 0;
-    auto convertToBlendMode = [&blendMode]() {
-        static const std::unordered_map<int, Drawing::BlendMode> blendModeLUT = {
-            { static_cast<int>(RSColorBlendMode::DST_IN), Drawing::BlendMode::DST_IN },
-            { static_cast<int>(RSColorBlendMode::SRC_IN), Drawing::BlendMode::SRC_IN }
-        };
-
-        auto iter = blendModeLUT.find(blendMode);
-        if (iter == blendModeLUT.end()) {
-            ROSEN_LOGE("The desired color_blend_mode is undefined, and the Drawing::BlendMode::SRC is used.");
-            return Drawing::BlendMode::SRC;
-        }
-
-        return blendModeLUT.at(blendMode);
-    };
-    Drawing::BlendMode drawingBlendMode = convertToBlendMode();
+    Drawing::BlendMode drawingBlendMode = Drawing::BlendMode::SRC;
     Drawing::Brush maskBrush;
     maskBrush.SetBlendMode(drawingBlendMode);
     Drawing::SaveLayerOps maskLayerRec(nullptr, &maskBrush, 0);

@@ -29,6 +29,9 @@ enum class RSUIFilterType : int16_t {
     SOUND_WAVE,
 
     EDGE_LIGHT,
+    BEZIER_WARP,
+    DISPERSION,
+
     // mask type
     RIPPLE_MASK,
     RADIAL_GRADIENT_MASK,
@@ -42,7 +45,7 @@ enum class RSUIFilterType : int16_t {
     RIPPLE_MASK_CENTER, // Vector2f
     RIPPLE_MASK_RADIUS, // float
     RIPPLE_MASK_WIDTH, // float
-    RIPPLE_MASK_WIDTH_CENTER_OFFSET, //float
+    RIPPLE_MASK_WIDTH_CENTER_OFFSET, // float
     DISPLACEMENT_DISTORT_FACTOR, // Vector2f
 
     // value type
@@ -65,6 +68,32 @@ enum class RSUIFilterType : int16_t {
     // edge light value type
     EDGE_LIGHT_ALPHA, // float
     EDGE_LIGHT_COLOR, // Vector4f
+
+    // bezier warp value type
+    BEZIER_CONTROL_POINT0, // Vector2f
+    BEZIER_CONTROL_POINT1, // Vector2f
+    BEZIER_CONTROL_POINT2, // Vector2f
+    BEZIER_CONTROL_POINT3, // Vector2f
+    BEZIER_CONTROL_POINT4, // Vector2f
+    BEZIER_CONTROL_POINT5, // Vector2f
+    BEZIER_CONTROL_POINT6, // Vector2f
+    BEZIER_CONTROL_POINT7, // Vector2f
+    BEZIER_CONTROL_POINT8, // Vector2f
+    BEZIER_CONTROL_POINT9, // Vector2f
+    BEZIER_CONTROL_POINT10, // Vector2f
+    BEZIER_CONTROL_POINT11, // Vector2f
+    
+    // pixel map mask value type
+    PIXEL_MAP_MASK_PIXEL_MAP, // Media::PixelMap
+    PIXEL_MAP_MASK_SRC, // Vector4f
+    PIXEL_MAP_MASK_DST, // Vector4f
+    PIXEL_MAP_MASK_FILL_COLOR, // Vector4f
+
+    // dispersion value type
+    DISPERSION_OPACITY, // float
+    DISPERSION_RED_OFFSET, // Vector2f
+    DISPERSION_GREEN_OFFSET, // Vector2f
+    DISPERSION_BLUE_OFFSET, // Vector2f
 };
 
 class RSB_EXPORT RSRenderFilterParaBase : public RSRenderPropertyBase,

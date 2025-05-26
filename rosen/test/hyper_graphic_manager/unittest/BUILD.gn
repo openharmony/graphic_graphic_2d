@@ -79,6 +79,7 @@ ohos_unittest("hyper_graphic_manager_test") {
     "init:libbeget_proxy",
     "init:libbegetutil",
     "libxml2:libxml2",
+    "samgr:samgr_proxy",
   ]
 
   part_name = "graphic_2d"
@@ -140,6 +141,7 @@ ohos_unittest("frame_rate_manager_test") {
     "init:libbeget_proxy",
     "init:libbegetutil",
     "libxml2:libxml2",
+    "samgr:samgr_proxy",
   ]
 
   part_name = "graphic_2d"
@@ -199,6 +201,7 @@ ohos_unittest("hgm_pointer_manager_test") {
     "init:libbeget_proxy",
     "init:libbegetutil",
     "libxml2:libxml2",
+    "samgr:samgr_proxy",
   ]
 
   part_name = "graphic_2d"
@@ -258,6 +261,7 @@ ohos_unittest("hgm_touch_manager_test") {
     "init:libbeget_proxy",
     "init:libbegetutil",
     "libxml2:libxml2",
+    "samgr:samgr_proxy",
   ]
 
   part_name = "graphic_2d"

@@ -693,7 +693,7 @@ std::shared_ptr<Drawing::Image> RSBaseRenderEngine::CreateImageFromBuffer(RSPain
 #ifdef RS_ENABLE_VK
     if (RSSystemProperties::IsUseVulkan()) {
         auto imageCache = vkImageManager_->MapVkImageFromSurfaceBuffer(params.buffer,
-            params.acquireFence, params.threadIndex);
+            params.acquireFence, params.threadIndex, canvas.GetSurface());
         if (params.buffer != nullptr && params.buffer->GetBufferDeleteFromCacheFlag()) {
             RS_LOGD_IF(DEBUG_COMPOSER, "  - Buffer %{public}u marked for deletion from cache, unmapping",
                 params.buffer->GetSeqNum());
@@ -981,15 +981,6 @@ void RSBaseRenderEngine::RegisterDeleteBufferListener(RSSurfaceHandler& handler)
 
 void RSBaseRenderEngine::ShrinkCachesIfNeeded(bool isForUniRedraw)
 {
-#ifdef RS_ENABLE_VK
-    if (RSSystemProperties::IsUseVulkan()) {
-        if (vkImageManager_ != nullptr) {
-            vkImageManager_->ShrinkCachesIfNeeded();
-        }
-        return;
-    }
-#endif // RS_ENABLE_VK
-
 #if (defined(RS_ENABLE_EGLIMAGE) && defined(RS_ENABLE_GPU))
     if (eglImageManager_ != nullptr) {
         eglImageManager_->ShrinkCachesIfNeeded(isForUniRedraw);

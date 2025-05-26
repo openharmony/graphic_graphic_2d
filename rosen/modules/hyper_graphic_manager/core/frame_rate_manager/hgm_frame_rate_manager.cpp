@@ -59,6 +59,7 @@ namespace {
     const static std::string S_UP_TIMEOUT_MS = "up_timeout_ms";
     const static std::string S_RS_IDLE_TIMEOUT_MS = "rs_idle_timeout_ms";
     const static std::string LOW_BRIGHT = "LowBright";
+    const static std::string ANCO_LOW_BRIGHT = "AncoLowBright";
     const static std::string STYLUS_PEN = "StylusPen";
     // CAUTION: with priority
     const std::string VOTER_NAME[] = {
@@ -149,6 +150,7 @@ void HgmFrameRateManager::Init(sptr<VSyncController> rsController,
         multiAppStrategy_.UpdateXmlConfigCache();
         SetTimeoutParamsFromConfig(configData);
         GetLowBrightVec(configData);
+        GetAncoLowBrightVec(configData);
         GetStylusVec(configData);
         UpdateEnergyConsumptionConfig();
         multiAppStrategy_.CalcVote();
@@ -612,37 +614,52 @@ void HgmFrameRateManager::DVSyncTaskProcessor(int64_t delayTime, uint64_t target
     HgmTaskHandleThread::Instance().PostTask(task, delayTime);
 }
 
-void HgmFrameRateManager::GetLowBrightVec(const std::shared_ptr<PolicyConfigData>& configData)
+void HgmFrameRateManager::GetSupportedRefreshRates(const std::shared_ptr<PolicyConfigData>& configData,
+    const std::string& modeKey, std::vector<uint32_t>& targetVec, bool handleAmbientEffect)
 {
-    isAmbientEffect_ = false;
-    multiAppStrategy_.HandleLowAmbientStatus(isAmbientEffect_);
     if (configData == nullptr) {
         return;
     }
 
-    // obtain the refresh rate supported in low ambient light
+    // Check if current screen strategy ID exists in supported mode configs
     if (configData->supportedModeConfigs_.find(curScreenStrategyId_) == configData->supportedModeConfigs_.end()) {
         return;
     }
     auto supportedModeConfig = configData->supportedModeConfigs_[curScreenStrategyId_];
-    auto iter = supportedModeConfig.find(LOW_BRIGHT);
+    auto iter = supportedModeConfig.find(modeKey);
     if (iter == supportedModeConfig.end() || iter->second.empty()) {
         return;
     }
+
+    // Get supported refresh rates from HgmCore
     auto supportRefreshRateVec = HgmCore::Instance().GetScreenSupportedRefreshRates(curScreenId_.load());
-    lowBrightVec_.clear();
+    targetVec.clear();
+
+    // Match supported refresh rates
     for (auto rate : iter->second) {
         auto it = std::find(supportRefreshRateVec.begin(), supportRefreshRateVec.end(), rate);
         if (it != supportRefreshRateVec.end()) {
-            lowBrightVec_.push_back(*it);
+            targetVec.push_back(*it);
         }
     }
 
-    if (lowBrightVec_.empty()) {
-        return;
+    // Handle ambient effect if needed
+    if (!targetVec.empty() && handleAmbientEffect) {
+        isAmbientEffect_ = true;
+        multiAppStrategy_.HandleLowAmbientStatus(isAmbientEffect_);
     }
-    isAmbientEffect_ = true;
+}
+
+void HgmFrameRateManager::GetLowBrightVec(const std::shared_ptr<PolicyConfigData>& configData)
+{
+    isAmbientEffect_ = false;
     multiAppStrategy_.HandleLowAmbientStatus(isAmbientEffect_);
+    GetSupportedRefreshRates(configData, LOW_BRIGHT, lowBrightVec_, true);
+}
+
+void HgmFrameRateManager::GetAncoLowBrightVec(const std::shared_ptr<PolicyConfigData>& configData)
+{
+    GetSupportedRefreshRates(configData, ANCO_LOW_BRIGHT, ancoLowBrightVec_, false);
 }
 
 void HgmFrameRateManager::GetStylusVec(const std::shared_ptr<PolicyConfigData>& configData)
@@ -682,7 +699,12 @@ uint32_t HgmFrameRateManager::CalcRefreshRate(const ScreenId id, const FrameRate
     bool stylusFlag = (stylusMode_ == STYLUS_WAKEUP && !stylusVec_.empty());
     if ((isLtpo_ && isAmbientStatus_ == LightFactorStatus::NORMAL_LOW && isAmbientEffect_) ||
         (!isLtpo_ && isAmbientEffect_ && isAmbientStatus_ != LightFactorStatus::HIGH_LEVEL)) {
-        supportRefreshRateVec = lowBrightVec_;
+        RS_TRACE_NAME_FMT("Replace supported refresh rates from config");
+        if (CheckAncoVoterStatus()) {
+            supportRefreshRateVec = ancoLowBrightVec_;
+        } else {
+            supportRefreshRateVec = lowBrightVec_;
+        }
     } else if (stylusFlag) {
         supportRefreshRateVec = stylusVec_;
         HGM_LOGD("stylusVec size = %{public}zu", stylusVec_.size());
@@ -1114,6 +1136,7 @@ void HgmFrameRateManager::UpdateScreenFrameRate()
 
     multiAppStrategy_.UpdateXmlConfigCache();
     GetLowBrightVec(configData);
+    GetAncoLowBrightVec(configData);
     GetStylusVec(configData);
     UpdateEnergyConsumptionConfig();
 
@@ -1493,6 +1516,19 @@ void HgmFrameRateManager::CheckAncoVoter(const std::string& voter, VoteInfo& cur
         max = std::max(min, max);
         curVoteInfo.SetRange(min, max);
     }
+}
+
+bool HgmFrameRateManager::CheckAncoVoterStatus() const
+{
+    if (isAmbientStatus_ != LightFactorStatus::NORMAL_LOW || !isLtpo_ ||
+        !isAmbientEffect_ || ancoLowBrightVec_.empty()) {
+        return false;
+    }
+    auto iter = voteRecord_.find("VOTER_ANCO");
+    if (iter == voteRecord_.end() || iter->second.first.empty() || !iter->second.second) {
+        return false;
+    }
+    return true;
 }
 
 bool HgmFrameRateManager::ProcessRefreshRateVote(std::vector<std::string>::iterator& voterIter,

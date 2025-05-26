@@ -34,6 +34,12 @@
 
 namespace OHOS {
 namespace Rosen {
+enum class TextBadgeType {
+    BADGE_NONE,
+    SUPERSCRIPT,
+    SUBSCRIPT,
+};
+
 enum class RelayoutTextStyleAttribute {
     FONT_SIZE = 0,
     FONT_WEIGHT = 1,
@@ -56,6 +62,7 @@ enum class RelayoutTextStyleAttribute {
     FONT_COLOR = 18,
     SHADOWS = 19,
     HALF_LEADING = 20,
+    FOREGROUND_BRUSH = 21,
 
     TEXT_STYLE_ATTRIBUTE_BUTT,
 };
@@ -132,18 +139,19 @@ struct TextStyle {
     std::vector<TextShadow> shadows;
     FontFeatures fontFeatures;
     FontVariations fontVariations;
-    RectStyle backgroundRect { 0, 0.0, 0.0, 0.0, 0.0 };
-    int styleId { 0 };
-    size_t textStyleUid { 0 };
+    RectStyle backgroundRect{0, 0.0, 0.0, 0.0, 0.0};
+    int styleId{0};
+    size_t textStyleUid{0};
     bool operator ==(const TextStyle &rhs) const;
     bool EqualByFonts(const TextStyle &rhs) const;
     bool MatchOneAttribute(StyleType styleType, const TextStyle &rhs) const;
     // symbol glyph
-    bool isSymbolGlyph { false };
+    bool isSymbolGlyph{false};
     HMSymbolTxt symbol;
-    double baseLineShift { 0.0 };
-    bool isPlaceholder { false };
+    double baseLineShift{0.0f};
+    bool isPlaceholder{false};
     std::bitset<static_cast<size_t>(RelayoutTextStyleAttribute::TEXT_STYLE_ATTRIBUTE_BUTT)> relayoutChangeBitmap;
+    TextBadgeType badgeType{TextBadgeType::BADGE_NONE};
 };
 } // namespace Rosen
 } // namespace OHOS

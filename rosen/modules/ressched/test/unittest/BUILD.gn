@@ -41,5 +41,6 @@ ohos_unittest("graphic_ressched_test") {
     "hitrace:hitrace_meter",
     "ipc:ipc_core",
     "resource_schedule_service:ressched_client",
+    "samgr:samgr_proxy",
   ]
 }

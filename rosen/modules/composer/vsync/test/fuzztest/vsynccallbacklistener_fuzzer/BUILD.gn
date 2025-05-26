@@ -43,6 +43,7 @@ ohos_fuzztest("VsyncCallbackListenerFuzzTest") {
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "ipc:ipc_core",
+    "samgr:samgr_proxy",
   ]
   defines = []
   if (graphic_2d_feature_enable_dvsync) {

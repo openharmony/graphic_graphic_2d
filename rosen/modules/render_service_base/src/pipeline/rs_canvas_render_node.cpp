@@ -122,7 +122,7 @@ bool RSCanvasRenderNode::OpincGetNodeSupportFlag()
         property.NeedFilter() ||
         property.GetUseEffect() ||
         property.GetColorBlend().has_value() ||
-        IsSelfDrawingNode()) {
+        (IsSelfDrawingNode() && GetOpincCache().OpincGetRootFlag())) {
         return false;
     }
     return true && RSRenderNode::OpincGetNodeSupportFlag();
@@ -288,7 +288,7 @@ void RSCanvasRenderNode::SetHDRPresent(bool hasHdrPresent)
         return;
     }
     if (IsOnTheTree()) {
-        SetHdrNum(hasHdrPresent, GetInstanceRootNodeId());
+        SetHdrNum(hasHdrPresent, GetInstanceRootNodeId(), HDRComponentType::IMAGE);
     }
     hasHdrPresent_ = hasHdrPresent;
 }

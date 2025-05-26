@@ -34,7 +34,7 @@ config("texgine_test_config") {
     "-Dprotected=public",
   ]
 
-  defines = [ "OHOS_TEXT_ENABLE" ]
+  defines = [ "ENABLE_OHOS_ENHANCE" ]
 }
 
 group("common_deps") {

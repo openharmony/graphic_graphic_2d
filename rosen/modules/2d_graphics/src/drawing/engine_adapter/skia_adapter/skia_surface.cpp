@@ -384,10 +384,6 @@ std::shared_ptr<Image> SkiaSurface::GetImageSnapshot(const RectI& bounds, bool a
     return image;
 }
 
-void SkiaSurface::SetParallelRender(bool parallelEnable)
-{
-}
-
 BackendTexture SkiaSurface::GetBackendTexture(BackendAccess access) const
 {
 #ifdef RS_ENABLE_GPU

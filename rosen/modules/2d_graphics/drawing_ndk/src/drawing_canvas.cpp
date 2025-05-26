@@ -1152,7 +1152,22 @@ OH_Drawing_ErrorCode OH_Drawing_CanvasDrawRecordCmd(OH_Drawing_Canvas* cCanvas,
     if (recordCmdHandle->value == nullptr) {
         return OH_DRAWING_ERROR_INVALID_PARAMETER;
     }
-    canvas->DrawRecordCmd(recordCmdHandle->value);
+    DrawingCanvasUtils::DrawRecordCmd(canvas, recordCmdHandle->value);
+    return OH_DRAWING_SUCCESS;
+}
+
+OH_Drawing_ErrorCode OH_Drawing_CanvasDrawRecordCmdNesting(OH_Drawing_Canvas* cCanvas,
+    OH_Drawing_RecordCmd* cRecordCmd)
+{
+    if (cCanvas == nullptr || cRecordCmd == nullptr) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    Canvas* canvas = CastToCanvas(cCanvas);
+    auto recordCmdHandle = Helper::CastTo<OH_Drawing_RecordCmd*, NativeHandle<RecordCmd>*>(cRecordCmd);
+    if (recordCmdHandle->value == nullptr) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    DrawingCanvasUtils::DrawRecordCmd(canvas, recordCmdHandle->value, true);
     return OH_DRAWING_SUCCESS;
 }
 

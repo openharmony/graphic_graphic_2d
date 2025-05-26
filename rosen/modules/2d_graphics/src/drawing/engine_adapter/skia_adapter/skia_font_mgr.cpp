@@ -20,9 +20,7 @@
 
 #include "include/core/SkString.h"
 #include "include/core/SkTypeface.h"
-#ifndef USE_TEXGINE
 #include "txt/asset_font_manager.h"
-#endif
 
 #include "text/font_mgr.h"
 #include "txt/platform.h"
@@ -127,7 +125,6 @@ bool SkiaFontMgr::CheckDynamicFontValid(const std::string &familyName, sk_sp<SkT
     return true;
 }
 
-#ifndef USE_TEXGINE
 std::shared_ptr<FontMgrImpl> SkiaFontMgr::CreateDynamicFontMgr()
 {
     sk_sp<txt::DynamicFontManager> dynamicFontManager = sk_make_sp<txt::DynamicFontManager>();
@@ -198,7 +195,6 @@ Typeface* SkiaFontMgr::LoadThemeFont(const std::string& familyName, const std::s
         }
     }
 }
-#endif
 
 Typeface* SkiaFontMgr::MatchFamilyStyleCharacter(const char familyName[], const FontStyle& fontStyle,
                                                  const char* bcp47[], int bcp47Count,

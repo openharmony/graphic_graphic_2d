@@ -1616,8 +1616,10 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
             bool needConsume = true;
             bool enableAdaptive = rsVSyncDistributor_->AdaptiveDVSyncEnable(
                 surfaceNode->GetName(), timestamp_, surfaceHandler->GetAvailableBufferCount(), needConsume);
+            auto parentNode = surfaceNode->GetParent().lock();
             if (RSBaseRenderUtil::ConsumeAndUpdateBuffer(*surfaceHandler, timestamp_,
-                    IsNeedDropFrameByPid(surfaceHandler->GetNodeId()), enableAdaptive, needConsume)) {
+                    IsNeedDropFrameByPid(surfaceHandler->GetNodeId()), enableAdaptive, needConsume,
+                    parentNode ? parentNode->GetId() : 0)) {
                 if (!isUniRender_) {
                     this->dividedRenderbufferTimestamps_[surfaceNode->GetId()] =
                         static_cast<uint64_t>(surfaceHandler->GetTimestamp());
@@ -2429,8 +2431,6 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         uniVisitor->SetAnimateState(doWindowAnimate_);
         uniVisitor->SetDirtyFlag(isDirty_ || isAccessibilityConfigChanged_ || forceUIFirstChanged_);
         forceUIFirstChanged_ = false;
-        isFirstFrameOfPartialRender_ = (!isPartialRenderEnabledOfLastFrame_ || isRegionDebugEnabledOfLastFrame_) &&
-            uniVisitor->GetIsPartialRenderEnabled() && !uniVisitor->GetIsRegionDebugEnabled();
         SetFocusLeashWindowId();
         uniVisitor->SetFocusedNodeId(focusNodeId_, focusLeashWindowId_);
         rsVsyncRateReduceManager_.SetFocusedNodeId(focusNodeId_);
@@ -2481,8 +2481,6 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
             WaitUntilUploadTextureTaskFinished(isUniRender_);
         }
         lastWatermarkFlag_ = watermarkFlag_;
-        isPartialRenderEnabledOfLastFrame_ = uniVisitor->GetIsPartialRenderEnabled();
-        isRegionDebugEnabledOfLastFrame_ = uniVisitor->GetIsRegionDebugEnabled();
         isOverDrawEnabledOfLastFrame_ = isOverDrawEnabledOfCurFrame_;
         isDrawingCacheDfxEnabledOfLastFrame_ = isDrawingCacheDfxEnabledOfCurFrame_;
         // set params used in render thread
@@ -2529,7 +2527,8 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
 
     // children->size() is 1, the extended screen is not supported
     // there is no visible hwc node or visible hwc nodes don't need update
-    if (children->size() == 1 && (!displayNode->HasVisibleHwcNodes() || !ExistBufferIsVisibleAndUpdate())) {
+    if (children->size() == 1 && (!displayNode->HwcDisplayRecorder().HasVisibleHwcNodes() ||
+                                  !ExistBufferIsVisibleAndUpdate())) {
         RS_TRACE_NAME_FMT("%s: no hwcNode in visibleRegion", __func__);
         return true;
     }
@@ -2646,7 +2645,7 @@ bool RSMainThread::ExistBufferIsVisibleAndUpdate()
             continue;
         }
         if (surfaceNode->GetRSSurfaceHandler()->IsCurrentFrameBufferConsumed() &&
-            surfaceNode->GetLastFrameHasVisibleRegion()) {
+            surfaceNode->HwcSurfaceRecorder().GetLastFrameHasVisibleRegion()) {
             bufferNeedUpdate = true;
             break;
         }
@@ -3344,6 +3343,7 @@ void RSMainThread::ProcessScreenHotPlugEvents()
 {
     auto screenManager_ = CreateOrGetScreenManager();
     if (!screenManager_) {
+        RS_LOGE("RSMainThread::%{public}s screenManager_ is nullptr", __func__);
         return;
     }
 #ifdef RS_ENABLE_GPU
@@ -3360,6 +3360,7 @@ void RSMainThread::ProcessScreenHotPlugEvents()
 
 void RSMainThread::OnVsync(uint64_t timestamp, uint64_t frameCount, void* data)
 {
+    rsVSyncDistributor_->CheckVsyncTsAndReceived(timestamp);
     SetFrameInfo(frameCount, false);
     const int64_t onVsyncStartTime = GetCurrentSystimeMs();
     const int64_t onVsyncStartTimeSteady = GetCurrentSteadyTimeMs();
@@ -3495,7 +3496,6 @@ void RSMainThread::Animate(uint64_t timestamp)
     RS_TRACE_FUNC();
     lastAnimateTimestamp_ = timestamp;
     rsCurrRange_.Reset();
-    needRequestNextVsyncAnimate_ = false;
     if (context_->animatingNodeList_.empty()) {
         doWindowAnimate_ = false;
         context_->SetRequestedNextVsyncAnimate(false);
@@ -3585,15 +3585,14 @@ void RSMainThread::Animate(uint64_t timestamp)
     doWindowAnimate_ = curWinAnim;
     RS_LOGD("RSMainThread::Animate end, animating nodes remains, has window animation: %{public}d", curWinAnim);
 
-    // Greater than one frame time (16.6 ms)
-    constexpr int64_t oneFrameTimeInFPS60 = 17;
     if (needRequestNextVsync) {
         HgmEnergyConsumptionPolicy::Instance().StatisticAnimationTime(timestamp / NS_PER_MS);
+        // greater than one frame time (16.6 ms)
+        constexpr int64_t oneFrameTimeInFPS60 = 17;
+        // maximum delay time 60000 milliseconds, which is equivalent to 60 seconds.
+        constexpr int64_t delayTimeMax = 60000;
         if (minLeftDelayTime > oneFrameTimeInFPS60) {
-            // If the input parameter delayTime for PostTask is a very large int64 value, it can lead to overflow and
-            // crash because delayTime is specified in milliseconds, and thus it should be limited to the maximum value
-            // of int32.
-            minLeftDelayTime = std::min<int64_t>(minLeftDelayTime, INT32_MAX);
+            minLeftDelayTime = std::min(minLeftDelayTime, delayTimeMax);
             auto RequestNextVSyncTask = [this]() {
                 RS_TRACE_NAME("Animate with delay RequestNextVSync");
                 RequestNextVSync("animate", timestamp_);
@@ -5296,9 +5295,9 @@ void RSMainThread::NotifyPackageEvent(const std::vector<std::string>& packageLis
     rsVSyncDistributor_->NotifyPackageEvent(packageList);
 }
 
-void RSMainThread::NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt)
+void RSMainThread::HandleTouchEvent(int32_t touchStatus, int32_t touchCnt)
 {
-    rsVSyncDistributor_->NotifyTouchEvent(touchStatus, touchCnt);
+    rsVSyncDistributor_->HandleTouchEvent(touchStatus, touchCnt);
 }
 
 void RSMainThread::SetBufferInfo(uint64_t id, const std::string &name, uint32_t queueSize,

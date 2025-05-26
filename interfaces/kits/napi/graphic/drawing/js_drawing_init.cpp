@@ -30,6 +30,7 @@
 #include "path_iterator_napi/js_path_iterator.h"
 #include "path_napi/js_path.h"
 #include "pen_napi/js_pen.h"
+#include "rect_utils_napi/js_rect_utils.h"
 #include "region_napi/js_region.h"
 #include "roundRect_napi/js_roundrect.h"
 #include "sampling_options_napi/js_sampling_options.h"
@@ -58,6 +59,7 @@ napi_value DrawingInit(napi_env env, napi_value exportObj)
     JsLattice::Init(env, exportObj);
     JsPathEffect::Init(env, exportObj);
     JsPathIterator::Init(env, exportObj);
+    JsRectUtils::Init(env, exportObj);
     JsRegion::Init(env, exportObj);
     JsRoundRect::Init(env, exportObj);
     JsShaderEffect::Init(env, exportObj);

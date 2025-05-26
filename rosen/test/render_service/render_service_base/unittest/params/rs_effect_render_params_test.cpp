@@ -69,6 +69,8 @@ HWTEST_F(RSEffectRenderParamsTest, OnSync002, TestSize.Level1)
     RSEffectRenderParams params(id);
     params.cacheValid_ = true;
     params.hasEffectChildren_ = true;
+    params.isDarkColorMode_ = true;
+    params.isIntersectWithDRM_ = true;
     params.OnSync(target);
     EXPECT_EQ(params.cacheValid_, targetEffectRenderParam->cacheValid_);
     EXPECT_EQ(params.hasEffectChildren_, targetEffectRenderParam->hasEffectChildren_);
@@ -104,5 +106,39 @@ HWTEST_F(RSEffectRenderParamsTest, SetHasEffectChildren001, TestSize.Level1)
     params.hasEffectChildren_ = true;
     params.SetHasEffectChildren(true);
     EXPECT_TRUE(params.GetHasEffectChildren());
+}
+
+/**
+ * @tc.name: SetEffectIntersectWithDRM001
+ * @tc.desc:
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSEffectRenderParamsTest, SetEffectIntersectWithDRM001, TestSize.Level1)
+{
+    constexpr NodeId id = TestSrc::limitNumber::Uint64[5];
+    std::unique_ptr<RSRenderParams> target = std::make_unique<RSEffectRenderParams>(id);
+    RSEffectRenderParams params(id);
+    params.isIntersectWithDRM_ = false;
+    EXPECT_FALSE(params.GetEffectIntersectWithDRM());
+    params.SetEffectIntersectWithDRM(true);
+    EXPECT_TRUE(params.GetEffectIntersectWithDRM());
+}
+
+/**
+ * @tc.name: SetDarkColorMode001
+ * @tc.desc:
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSEffectRenderParamsTest, SetDarkColorMode001, TestSize.Level1)
+{
+    constexpr NodeId id = TestSrc::limitNumber::Uint64[5];
+    std::unique_ptr<RSRenderParams> target = std::make_unique<RSEffectRenderParams>(id);
+    RSEffectRenderParams params(id);
+    params.isDarkColorMode_ = false;
+    EXPECT_FALSE(params.GetDarkColorMode());
+    params.SetDarkColorMode(true);
+    EXPECT_TRUE(params.GetDarkColorMode());
 }
 } // namespace OHOS::Rosen

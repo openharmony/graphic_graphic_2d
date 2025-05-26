@@ -31,6 +31,7 @@
 #include "memory/rs_memory_track.h"
 #include "modifier/rs_render_modifier.h"
 #include "pipeline/rs_draw_cmd.h"
+#include "pipeline/rs_record_cmd_utils.h"
 #include "platform/common/rs_log.h"
 #include "render/rs_blur_filter.h"
 #include "render/rs_filter.h"
@@ -1566,16 +1567,16 @@ HWTEST_F(RSMarshallingHelperTest, MarshallingTest040, TestSize.Level1)
  */
 HWTEST_F(RSMarshallingHelperTest, UnmarshallingTest041, TestSize.Level1)
 {
-    uint32_t opCount = {};
     Parcel parcel;
     auto drawCmdList = std::make_shared<Drawing::DrawCmdList>();
     auto ptr = std::make_shared<Drawing::RecordCmd>(drawCmdList, Drawing::Rect{});
-    EXPECT_FALSE(RSMarshallingHelper::Unmarshalling(parcel, ptr, &opCount));
+    EXPECT_FALSE(RSMarshallingHelper::Unmarshalling(parcel, ptr));
     parcel.WriteFloat(0.f);
     parcel.WriteFloat(0.f);
     parcel.WriteFloat(0.f);
     parcel.WriteFloat(0.f);
-    EXPECT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, ptr, &opCount));
+    parcel.WriteInt32(-1);
+    EXPECT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, ptr));
 }
 
 /**
@@ -1767,5 +1768,159 @@ HWTEST_F(RSMarshallingHelperTest, UnmarshallingTest049, TestSize.Level1)
     EXPECT_FALSE(RSMarshallingHelper::Unmarshalling(parcel, rsRenderFilter));
 }
 
+/**
+ * @tc.name: UnmarshallingTest050
+ * @tc.desc: Verify function Unmarshalling op count limit
+ * @tc.type:FUNC
+ * @tc.require: issues
+ */
+HWTEST_F(RSMarshallingHelperTest, UnmarshallingTest050, TestSize.Level1)
+{
+    int32_t width = 10;
+    int32_t height = 20;
+    auto rootCanvas = std::make_shared<Drawing::RecordingCanvas>(width, height);
+    auto p = Drawing::Point(width, height);
+    Drawing::Rect rect = Drawing::Rect(0, 0, width, height);
+    for (int i = 0; i < Drawing::MAX_OPITEMSIZE - 1; i++) {
+        rootCanvas->DrawPoint(p);
+    }
+    std::shared_ptr<Drawing::DrawCmdList> drawCmdList = rootCanvas->GetDrawCmdList();
+    MessageParcel parcel;
+    EXPECT_TRUE(RSMarshallingHelper::Marshalling(parcel, drawCmdList));
+    std::shared_ptr<Drawing::DrawCmdList> outDrawCmdList = nullptr;
+    // not exceed max opItem size
+    EXPECT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, outDrawCmdList));
+    EXPECT_NE(outDrawCmdList, nullptr);
+
+    auto rootCanvas2 = std::make_shared<Drawing::RecordingCanvas>(width, height);
+    for (int i = 0; i < Drawing::MAX_OPITEMSIZE - 1; i++) {
+        rootCanvas2->DrawPoint(p);
+    }
+    auto recordCmdUtils2 = std::make_shared<RSRecordCmdUtils>();
+    Drawing::Canvas* recordCanvas2 = recordCmdUtils2->BeginRecording(rect);
+    recordCanvas2->DrawPoint(p);
+    std::shared_ptr<Drawing::RecordCmd> recordCmd2 = recordCmdUtils2->FinishRecording();
+
+    rootCanvas2->DrawRecordCmd(recordCmd2, nullptr, nullptr);
+    std::shared_ptr<Drawing::DrawCmdList> drawCmdList2 = rootCanvas2->GetDrawCmdList();
+    EXPECT_NE(drawCmdList2, nullptr);
+    MessageParcel parcel2;
+    EXPECT_TRUE(RSMarshallingHelper::Marshalling(parcel2, drawCmdList2));
+    outDrawCmdList = nullptr;
+    // exceed max opItem size
+    EXPECT_FALSE(RSMarshallingHelper::Unmarshalling(parcel2, outDrawCmdList));
+}
+
+/**
+ * @tc.name: UnmarshallingTest051
+ * @tc.desc: Verify function Unmarshalling recordcmd count limit.
+ * @tc.type:FUNC
+ * @tc.require: issues
+ */
+HWTEST_F(RSMarshallingHelperTest, UnmarshallingTest051, TestSize.Level1)
+{
+    int32_t width = 10;
+    int32_t height = 20;
+    auto recordCmdUtilsTmp = std::make_shared<RSRecordCmdUtils>();
+    Drawing::Rect rect = Drawing::Rect(0, 0, width, height);
+    Drawing::Canvas* recordCanvasTmp = recordCmdUtilsTmp->BeginRecording(rect);
+    auto p = Drawing::Point(width, height);
+    recordCanvasTmp->DrawPoint(p);
+    std::shared_ptr<Drawing::RecordCmd> recordCmdTmp = recordCmdUtilsTmp->FinishRecording();
+
+    for (int i = 0; i < 99; i++) { // Nesting count: 99 + 1 = 100
+        auto recordCmdUtils = std::make_shared<RSRecordCmdUtils>();
+        Drawing::Canvas* recordCanvas = recordCmdUtils->BeginRecording(rect);
+        recordCanvas->DrawRecordCmd(recordCmdTmp, nullptr, nullptr);
+        std::shared_ptr<Drawing::RecordCmd> recordCmd = recordCmdUtils->FinishRecording();
+        recordCmdUtils = nullptr;
+        recordCmdTmp = recordCmd;
+    }
+
+    auto rootCanvas = std::make_shared<Drawing::RecordingCanvas>(width, height);
+    for (int i = 0; i < Drawing::RECORD_CMD_MAX_SIZE / 100; i++) { // recordCmdCount = 100 * i
+        rootCanvas->DrawRecordCmd(recordCmdTmp, nullptr, nullptr);
+    }
+
+    std::shared_ptr<Drawing::DrawCmdList> drawCmdList = rootCanvas->GetDrawCmdList();
+    EXPECT_NE(drawCmdList, nullptr);
+    auto parcel = std::make_shared<MessageParcel>();
+    const size_t parcelCapacity = 200 * 1024 * 1024; // parcel capacity: 200M
+    parcel->SetMaxCapacity(parcelCapacity);
+    RSMarshallingHelper::BeginNoSharedMem(std::this_thread::get_id());
+    EXPECT_TRUE(RSMarshallingHelper::Marshalling(*parcel, drawCmdList));
+    std::shared_ptr<Drawing::DrawCmdList> outDrawCmdList = nullptr;
+    // not exceed max recordCmd count
+    EXPECT_TRUE(RSMarshallingHelper::Unmarshalling(*parcel, outDrawCmdList));
+
+    rootCanvas->DrawRecordCmd(recordCmdTmp, nullptr, nullptr); // Drawing::RECORD_CMD_MAX_SIZE + 1
+    std::shared_ptr<Drawing::DrawCmdList> drawCmdList2 = rootCanvas->GetDrawCmdList();
+    EXPECT_NE(drawCmdList2, nullptr);
+    auto parcel2 = std::make_shared<MessageParcel>();
+    parcel2->SetMaxCapacity(parcelCapacity);
+    RSMarshallingHelper::BeginNoSharedMem(std::this_thread::get_id());
+    EXPECT_TRUE(RSMarshallingHelper::Marshalling(*parcel2, drawCmdList2));
+    std::shared_ptr<Drawing::DrawCmdList> outDrawCmdList2 = nullptr;
+    // exceed max recordCmd count
+    EXPECT_FALSE(RSMarshallingHelper::Unmarshalling(*parcel, outDrawCmdList2));
+    RSMarshallingHelper::EndNoSharedMem();
+}
+
+/**
+ * @tc.name: UnmarshallingTest052
+ * @tc.desc: Verify function Unmarshalling recordCmd nesting depth limit
+ * @tc.type:FUNC
+ * @tc.require: issues
+ */
+HWTEST_F(RSMarshallingHelperTest, UnmarshallingTest052, TestSize.Level1)
+{
+    int32_t width = 10;
+    int32_t height = 20;
+    auto recordCmdUtilsTmp = std::make_shared<RSRecordCmdUtils>();
+    Drawing::Rect rect = Drawing::Rect(0, 0, width, height);
+    Drawing::Canvas* recordCanvasTmp = recordCmdUtilsTmp->BeginRecording(rect);
+    auto p = Drawing::Point(width, height);
+    recordCanvasTmp->DrawPoint(p);
+    std::shared_ptr<Drawing::RecordCmd> recordCmdTmp = recordCmdUtilsTmp->FinishRecording();
+
+    for (int i = 0; i < Drawing::RECORD_CMD_MAX_DEPTH - 1; i++) {
+        auto recordCmdUtils = std::make_shared<RSRecordCmdUtils>();
+        Drawing::Canvas* recordCanvas = recordCmdUtils->BeginRecording(rect);
+        recordCanvas->DrawPoint(p);
+        recordCanvas->DrawRecordCmd(recordCmdTmp, nullptr, nullptr);
+        std::shared_ptr<Drawing::RecordCmd> recordCmd = recordCmdUtils->FinishRecording();
+        recordCmdUtils = nullptr;
+        recordCmdTmp = recordCmd;
+    }
+
+    auto rootCanvas = std::make_shared<Drawing::RecordingCanvas>(width, height);
+    rootCanvas->DrawRecordCmd(recordCmdTmp, nullptr, nullptr);
+    std::shared_ptr<Drawing::DrawCmdList> drawCmdList = rootCanvas->GetDrawCmdList();
+    auto parcel = std::make_shared<MessageParcel>();
+    const size_t parcelCapacity = 200 * 1024 * 1024; // parcel capacity: 200M
+    parcel->SetMaxCapacity(parcelCapacity);
+    RSMarshallingHelper::BeginNoSharedMem(std::this_thread::get_id());
+    EXPECT_TRUE(RSMarshallingHelper::Marshalling(*parcel, drawCmdList));
+    std::shared_ptr<Drawing::DrawCmdList> outDrawCmdList = nullptr;
+    // not exceed max recordCmd count
+    EXPECT_TRUE(RSMarshallingHelper::Unmarshalling(*parcel, outDrawCmdList));
+
+    auto recordCmdUtilsTmp2 = std::make_shared<RSRecordCmdUtils>();
+    Drawing::Canvas* recordCanvasTmp2 = recordCmdUtilsTmp2->BeginRecording(rect);
+    recordCanvasTmp2->DrawPoint(p);
+    recordCanvasTmp2->DrawRecordCmd(recordCmdTmp, nullptr, nullptr);
+    std::shared_ptr<Drawing::RecordCmd> recordCmdTmp2 = recordCmdUtilsTmp2->FinishRecording();
+    recordCmdUtilsTmp2 = nullptr;
+    auto rootCanvas2 = std::make_shared<Drawing::RecordingCanvas>(width, height);
+    rootCanvas2->DrawRecordCmd(recordCmdTmp2, nullptr, nullptr);
+    std::shared_ptr<Drawing::DrawCmdList> drawCmdList2 = rootCanvas2->GetDrawCmdList();
+    auto parcel2 = std::make_shared<MessageParcel>();
+    parcel2->SetMaxCapacity(parcelCapacity);
+    RSMarshallingHelper::BeginNoSharedMem(std::this_thread::get_id());
+    EXPECT_TRUE(RSMarshallingHelper::Marshalling(*parcel2, drawCmdList2));
+    std::shared_ptr<Drawing::DrawCmdList> outDrawCmdList2 = nullptr;
+    // exceed max recordCmd count
+    EXPECT_FALSE(RSMarshallingHelper::Unmarshalling(*parcel2, outDrawCmdList2));
+}
 } // namespace Rosen
 } // namespace OHOS

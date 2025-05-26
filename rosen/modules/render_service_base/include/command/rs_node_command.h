@@ -88,6 +88,10 @@ enum RSNodeCommandType : uint16_t {
     SET_UICONTEXT_TOKEN = 0x0800,
 
     SET_DRAW_NODE_TYPE = 0x0900,
+
+    UPDATE_OCCLUSION_CULLING_STATUS = 0x0a00,
+
+    MARK_REPAINT_BOUNDARY = 0x1000,
 };
 
 class RSB_EXPORT RSNodeCommandHelper {
@@ -139,6 +143,7 @@ public:
     static void SetNodeName(RSContext& context, NodeId nodeId, std::string& nodeName);
     static void MarkNodeGroup(RSContext& context, NodeId nodeId, bool isNodeGroup, bool isForced,
         bool includeProperty);
+    static void MarkRepaintBoundary(RSContext& context, NodeId nodeId, bool isRepaintBoundary);
     static void MarkNodeSingleFrameComposer(RSContext& context, NodeId nodeId, bool isNodeFasterDraw, pid_t pid);
     static void MarkSuggestOpincNode(RSContext& context, NodeId nodeId, bool isOpincNode, bool isNeedCalculate);
 
@@ -163,6 +168,8 @@ public:
     static RSB_EXPORT void SetCommitDumpNodeTreeProcessor(CommitDumpNodeTreeProcessor processor);
     static void SetUIToken(RSContext& context, NodeId nodeId, uint64_t token);
     static void SetDrawNodeType(RSContext& context, NodeId nodeId, DrawNodeType nodeType);
+    static void UpdateOcclusionCullingStatus(RSContext& context, NodeId nodeId,
+        bool enable, NodeId keyOcclusionNodeId);
 };
 
 ADD_COMMAND(RSAddModifier,
@@ -291,6 +298,9 @@ ADD_COMMAND(RSSetUIContextToken,
 ADD_COMMAND(RSMarkNodeGroup,
     ARG(PERMISSION_APP, RS_NODE, MARK_NODE_GROUP,
         RSNodeCommandHelper::MarkNodeGroup, NodeId, bool, bool, bool))
+ADD_COMMAND(RSMarkRepaintBoundary,
+    ARG(PERMISSION_APP, RS_NODE, MARK_REPAINT_BOUNDARY,
+        RSNodeCommandHelper::MarkRepaintBoundary, NodeId, bool))
 ADD_COMMAND(RSMarkNodeSingleFrameComposer,
     ARG(PERMISSION_APP, RS_NODE, MARK_NODE_SINGLE_FRAME_COMPOSER,
         RSNodeCommandHelper::MarkNodeSingleFrameComposer, NodeId, bool, pid_t))
@@ -340,6 +350,9 @@ ADD_COMMAND(RSCommitDumpClientNodeTree,
 ADD_COMMAND(RSSetDrawNodeType,
     ARG(PERMISSION_APP, RS_NODE, SET_DRAW_NODE_TYPE,
         RSNodeCommandHelper::SetDrawNodeType, NodeId, DrawNodeType))
+ADD_COMMAND(RSUpdateOcclusionCullingStatus,
+    ARG(PERMISSION_APP, RS_NODE, UPDATE_OCCLUSION_CULLING_STATUS,
+        RSNodeCommandHelper::UpdateOcclusionCullingStatus, NodeId, bool, NodeId))
 } // namespace Rosen
 } // namespace OHOS
 

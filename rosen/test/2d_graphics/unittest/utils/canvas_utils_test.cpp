@@ -74,7 +74,6 @@ HWTEST_F(CanvasUtilsTest, LockAndUnlockCanvas, TestSize.Level1)
     EXPECT_NE(canvas1, nullptr);
     ret = CanvasUtils::UnlockCanvas(canvas1, window_);
     EXPECT_EQ(ret, true);
-    delete canvas1;
 }
 } // namespace Drawing
 } // namespace Rosen

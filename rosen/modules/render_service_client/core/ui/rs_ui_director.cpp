@@ -494,6 +494,25 @@ void RSUIDirector::SendMessages()
     }
 }
 
+void RSUIDirector::SendMessages(std::function<void()> callback)
+{
+    ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "SendCommands With Callback");
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        if (callback != nullptr) {
+            static const int32_t pid = static_cast<uint32_t>(getpid());
+            RS_LOGD("RSUIDirector::SendMessages with callback, timeStamp: %{public}"
+                PRIu64 " pid: %{public}d", timeStamp_, pid);
+            RSInterfaces::GetInstance().RegisterTransactionDataCallback(pid, timeStamp_, callback);
+        }
+        transactionProxy->FlushImplicitTransaction(timeStamp_, abilityName_);
+        index_ = transactionProxy->GetTransactionDataIndex();
+    } else {
+        RS_LOGE_LIMIT(__func__, __line__, "RSUIDirector::SendMessages failed, transactionProxy is nullptr");
+    }
+    ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
+}
+
 uint32_t RSUIDirector::GetIndex() const
 {
     return index_;

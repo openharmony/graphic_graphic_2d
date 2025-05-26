@@ -1016,6 +1016,82 @@ HWTEST_F(HgmFrameRateMgrTest, GetLowBrightVec, Function | SmallTest | Level2)
 }
 
 /**
+ * @tc.name: GetAncoLowBrightVec
+ * @tc.desc: Verify the result of GetAncoLowBrightVec
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, GetAncoLowBrightVec, Function | SmallTest | Level2)
+{
+    HgmFrameRateManager mgr;
+    std::shared_ptr<PolicyConfigData> configData = std::make_shared<PolicyConfigData>();
+
+    std::vector<std::string> screenConfigs = {"LTPO-DEFAULT", "LTPO-internal", "LTPO-external"};
+    PolicyConfigData::SupportedModeConfig supportedMode = {{"AncoLowBright", {}}};
+    PolicyConfigData::SupportedModeConfig supportedMode1 = {{"AncoLowBright", {OLED_90_HZ}}};
+    for (const auto& screenConfig : screenConfigs) {
+        if (configData->screenStrategyConfigs_.find(screenConfig) == configData->screenStrategyConfigs_.end()) {
+            continue;
+        }
+        configData->supportedModeConfigs_[screenConfig] = supportedMode;
+        mgr.GetAncoLowBrightVec(configData);
+        ASSERT_TRUE(mgr.lowBrightVec_.empty());
+
+        configData->supportedModeConfigs_[screenConfig].clear();
+        configData->supportedModeConfigs_[screenConfig] = supportedMode1;
+        mgr.GetAncoLowBrightVec(configData);
+        ASSERT_TRUE(!mgr.lowBrightVec_.empty());
+    }
+}
+
+/**
+ * @tc.name: CheckAncoVoterStatus
+ * @tc.desc: Verify the result of CheckAncoVoterStatus
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, CheckAncoVoterStatus, Function | SmallTest | Level2)
+{
+    HgmFrameRateManager mgr;
+    struct AncoVoterStatusTestParams {
+        LightFactorStatus ambientStatus;
+        bool isLtpo;
+        bool isAmbientEffect;
+        std::vector<uint32_t> ancoLowBrightVec;
+        std::string voteRecordKey;
+        std::vector<VoteInfo> voteRecordFirst;
+        bool voteRecordSecond;
+    };
+
+    auto testParams = [&mgr](AncoVoterStatusTestParams params, bool expected) {
+        mgr.isAmbientStatus_ = params.ambientStatus;
+        mgr.isLtpo_ = params.isLtpo;
+        mgr.isAmbientEffect_ = params.isAmbientEffect;
+        mgr.ancoLowBrightVec_ = params.ancoLowBrightVec;
+        mgr.voteRecord_[params.voteRecordKey] = std::make_pair(params.voteRecordFirst, params.voteRecordSecond);
+        EXPECT_EQ(mgr.CheckAncoVoterStatus(), expected);
+        mgr.voteRecord_.clear();
+    };
+
+    testParams({LightFactorStatus::NORMAL_LOW, true, true, {OLED_90_HZ},
+        "VOTER_ANCO", {{.voterName = "VOTER_ANCO"}}, true}, true);
+    testParams({LightFactorStatus::NORMAL_HIGH, true, true, {OLED_90_HZ},
+        "VOTER_ANCO", {{.voterName = "VOTER_ANCO"}}, true}, false);
+    testParams({LightFactorStatus::NORMAL_LOW, false, true, {OLED_90_HZ},
+        "VOTER_ANCO", {{.voterName = "VOTER_ANCO"}}, true}, false);
+    testParams({LightFactorStatus::NORMAL_LOW, true, false, {OLED_90_HZ},
+        "VOTER_ANCO", {{.voterName = "VOTER_ANCO"}}, true}, false);
+    testParams({LightFactorStatus::NORMAL_LOW, true, true, {},
+        "VOTER_ANCO", {{.voterName = "VOTER_ANCO"}}, true}, false);
+    testParams({LightFactorStatus::NORMAL_LOW, true, true, {OLED_90_HZ},
+        "VOTER_LTPO", {{.voterName = "VOTER_LTPO"}}, true}, false);
+    testParams({LightFactorStatus::NORMAL_LOW, true, true, {OLED_90_HZ},
+        "VOTER_ANCO", {}, true}, false);
+    testParams({LightFactorStatus::NORMAL_LOW, true, true, {OLED_90_HZ},
+        "VOTER_ANCO", {{.voterName = "VOTER_ANCO"}}, false}, false);
+}
+
+/**
  * @tc.name: SetTimeoutParamsFromConfig
  * @tc.desc: Verify the result of SetTimeoutParamsFromConfig
  * @tc.type: FUNC

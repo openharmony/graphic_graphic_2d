@@ -85,6 +85,26 @@ public:
 };
 
 /**
+ * @tc.name: RSSurfaceRenderNodeCreate001
+ * @tc.desc: Test RSSurfaceRenderNode
+ * @tc.type: FUNC
+ * @tc.require: issueIAI1VN
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, RSSurfaceRenderNodeCreate001, TestSize.Level1)
+{
+    NodeId id = 1;
+    RSSurfaceNodeType type = RSSurfaceNodeType::ABILITY_MAGNIFICATION_NODE;
+    RSSurfaceRenderNodeConfig config = { .id = id, .nodeType = type };
+    auto node = std::make_shared<RSSurfaceRenderNode>(config);
+    EXPECT_NE(node, nullptr);
+    if (node != nullptr) {
+        auto& properties = node->GetMutableRenderProperties();
+        EXPECT_EQ(properties.localMagnificationCap_, true);
+        EXPECT_EQ(properties.filterNeedUpdate_, true);
+    }
+}
+
+/**
  * @tc.name: SetContextMatrix001
  * @tc.desc: test
  * @tc.type:FUNC
@@ -706,9 +726,8 @@ HWTEST_F(RSSurfaceRenderNodeTest, UpdateSurfaceCacheContentStatic, TestSize.Leve
 {
     auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
     auto subNode = std::make_shared<RSRenderNode>(id + 1, context);
-    if (node == nullptr || subNode == nullptr) {
-        return;
-    }
+    ASSERT_NE(node, nullptr);
+    ASSERT_NE(subNode, nullptr);
     std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> activeNodeIds;
     node->UpdateSurfaceCacheContentStatic(activeNodeIds);
     std::shared_ptr<RSRenderNode> nullNode = nullptr;
@@ -732,9 +751,8 @@ HWTEST_F(RSSurfaceRenderNodeTest, IsContentDirtyNodeLimited, TestSize.Level1)
 {
     auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
     auto subnode = std::make_shared<RSRenderNode>(id + 1, context);
-    if (node == nullptr || subnode == nullptr) {
-        return;
-    }
+    ASSERT_NE(node, nullptr);
+    ASSERT_NE(subnode, nullptr);
     node->AddChild(subnode, 0);
     subnode->isContentDirty_ = true;
     subnode->isNewOnTree_ = true;
@@ -758,6 +776,63 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetSkipLayer001, TestSize.Level2)
 
     node->SetSkipLayer(true);
     ASSERT_TRUE(node->GetSpecialLayerMgr().Find(SpecialLayerType::SKIP));
+}
+
+/**
+ * @tc.name: SetBlackListWithScreen001
+ * @tc.desc: Test UpdateBlackListStatus
+ * @tc.type: FUNC
+ * @tc.require: issueIC9I11
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SetBlackListWithScreen001, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    ASSERT_NE(rsContext, nullptr);
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, rsContext);
+    ASSERT_NE(node, nullptr);
+    node->InitRenderParams();
+    node->addedToPendingSyncList_ = true;
+    auto params = static_cast<RSSurfaceRenderParams*>(node->stagingRenderParams_.get());
+    EXPECT_NE(params, nullptr);
+
+    auto virtualScreenId = 1;
+    node->UpdateBlackListStatus(virtualScreenId, true);
+    node->UpdateBlackListStatus(virtualScreenId, false);
+}
+
+/**
+ * @tc.name: SyncBlackListInfoToFirstLevelNode001
+ * @tc.desc: Test SyncBlackListInfoToFirstLevelNode
+ * @tc.type: FUNC
+ * @tc.require: issueIC9I11
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SyncBlackListInfoToFirstLevelNode001, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    ASSERT_NE(rsContext, nullptr);
+    auto parentNode = std::make_shared<RSSurfaceRenderNode>(id, rsContext);
+    auto childNode = std::make_shared<RSSurfaceRenderNode>(id + 1, rsContext);
+    ASSERT_NE(parentNode, nullptr);
+    ASSERT_NE(childNode, nullptr);
+
+    NodeId parentNodeId = parentNode->GetId();
+    pid_t parentNodePid = ExtractPid(parentNodeId);
+    NodeId childNodeId = childNode->GetId();
+    pid_t childNodePid = ExtractPid(childNodeId);
+    rsContext->GetMutableNodeMap().renderNodeMap_[parentNodePid][parentNodeId] = parentNode;
+    rsContext->GetMutableNodeMap().renderNodeMap_[childNodePid][childNodeId] = childNode;
+    childNode->firstLevelNodeId_ = parentNodeId;
+    parentNode->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
+    parentNode->AddChild(childNode);
+
+    auto virtualScreenId = 1;
+    childNode->UpdateBlackListStatus(virtualScreenId, true);
+    parentNode->SetIsOnTheTree(true);
+    parentNode->SyncBlackListInfoToFirstLevelNode();
+    childNode->SetIsOnTheTree(true);
+    childNode->SyncBlackListInfoToFirstLevelNode();
+    childNode->SetIsOnTheTree(false);
+    childNode->SyncBlackListInfoToFirstLevelNode();
 }
 
 /**
@@ -2142,10 +2217,15 @@ HWTEST_F(RSSurfaceRenderNodeTest, HDRPresentTest002, TestSize.Level1)
     parentNode->SetIsOnTheTree(true);
     childNode->SetIsOnTheTree(true);
 
-    childNode->IncreaseHDRNum();
-    ASSERT_TRUE(childNode->GetHDRPresent());
-    childNode->ReduceHDRNum();
-    ASSERT_FALSE(childNode->GetHDRPresent());
+    childNode->IncreaseHDRNum(HDRComponentType::IMAGE);
+    EXPECT_TRUE(childNode->GetHDRPresent());
+    childNode->ReduceHDRNum(HDRComponentType::IMAGE);
+    EXPECT_FALSE(childNode->GetHDRPresent());
+
+    childNode->IncreaseHDRNum(HDRComponentType::UICOMPONENT);
+    EXPECT_TRUE(childNode->GetHDRPresent());
+    childNode->ReduceHDRNum(HDRComponentType::UICOMPONENT);
+    EXPECT_FALSE(childNode->GetHDRPresent());
 }
 
 /**
@@ -2501,55 +2581,6 @@ HWTEST_F(RSSurfaceRenderNodeTest, GetSourceDisplayRenderNodeId, TestSize.Level1)
     NodeId sourceDisplayRenderNodeId = 1;
     testNode->SetSourceDisplayRenderNodeId(sourceDisplayRenderNodeId);
     ASSERT_EQ(testNode->GetSourceDisplayRenderNodeId(), sourceDisplayRenderNodeId);
-}
-
-/**
- * @tc.name: IsScbWindowType
- * @tc.desc: test IsScbWindowType.
- * @tc.type: FUNC
- * @tc.require: issueIBJJRI
- */
-HWTEST_F(RSSurfaceRenderNodeTest, IsScbWindowType, TestSize.Level1)
-{
-    RSSurfaceRenderNodeConfig c;
-    auto node = std::make_shared<RSSurfaceRenderNode>(c);
-    ASSERT_EQ(node->IsScbWindowType(), false);
-    
-    c.surfaceWindowType = SurfaceWindowType::SYSTEM_SCB_WINDOW;
-    node = std::make_shared<RSSurfaceRenderNode>(c);
-    ASSERT_EQ(node->IsScbWindowType(), true);
-
-    c.surfaceWindowType = SurfaceWindowType::SCB_DESKTOP;
-    node = std::make_shared<RSSurfaceRenderNode>(c);
-    ASSERT_EQ(node->IsScbWindowType(), true);
-
-    c.surfaceWindowType = SurfaceWindowType::SCB_WALLPAPER;
-    node = std::make_shared<RSSurfaceRenderNode>(c);
-    ASSERT_EQ(node->IsScbWindowType(), true);
-
-    c.surfaceWindowType = SurfaceWindowType::SCB_SCREEN_LOCK;
-    node = std::make_shared<RSSurfaceRenderNode>(c);
-    ASSERT_EQ(node->IsScbWindowType(), true);
-
-    c.surfaceWindowType = SurfaceWindowType::SCB_NEGATIVE_SCREEN;
-    node = std::make_shared<RSSurfaceRenderNode>(c);
-    ASSERT_EQ(node->IsScbWindowType(), true);
-}
-
-/**
- * @tc.name: SetFrameGravityNewVersionEnabledTest
- * @tc.desc: SetFrameGravityNewVersionEnabled and GetFrameGravityNewVersionEnabled
- * @tc.type: FUNC
- * @tc.require: issueIC8CDF
- */
-HWTEST_F(RSSurfaceRenderNodeTest, SetFrameGravityNewVersionEnabledTest, TestSize.Level1)
-{
-    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
-    node->stagingRenderParams_ = std::make_unique<RSRenderParams>(id);
-    node->SetFrameGravityNewVersionEnabled(true);
-    ASSERT_EQ(node->GetFrameGravityNewVersionEnabled(), true);
-    node->SetFrameGravityNewVersionEnabled(false);
-    ASSERT_FALSE(node->GetFrameGravityNewVersionEnabled());
 }
 } // namespace Rosen
 } // namespace OHOS

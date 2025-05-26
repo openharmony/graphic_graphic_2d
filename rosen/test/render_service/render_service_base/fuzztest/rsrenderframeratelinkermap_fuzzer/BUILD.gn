@@ -35,6 +35,7 @@ ohos_fuzztest("RSRenderFrameRateLinkerMapFuzzTest") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "samgr:samgr_proxy",
   ]
   cflags = [
     "-g",

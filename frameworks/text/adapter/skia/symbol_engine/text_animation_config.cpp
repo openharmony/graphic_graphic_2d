@@ -13,19 +13,19 @@
  * limitations under the License.
  */
 
-#include "text_effect.h"
+#include "text_animation_config.h"
 #include "draw/path.h"
 #include "hm_symbol_node_build.h"
 #include "utils/text_log.h"
 
 namespace OHOS::Rosen::SPText {
 
-void TextEffect::SetUniqueId(uint64_t uniqueId)
+void TextAnimationConfig::SetUniqueId(uint64_t uniqueId)
 {
     uniqueId_ = uniqueId;
 }
 
-void TextEffect::SetAnimation(
+void TextAnimationConfig::SetAnimation(
     const std::function<bool(const std::shared_ptr<OHOS::Rosen::TextEngine::SymbolAnimationConfig>&)>&
     animationFunc)
 {
@@ -34,29 +34,31 @@ void TextEffect::SetAnimation(
     }
 }
 
-void TextEffect::SetEffectConfig(const std::vector<std::vector<Drawing::DrawingPiecewiseParameter>>& parameters)
+void TextAnimationConfig::SetEffectConfig(
+    const std::vector<std::vector<Drawing::DrawingPiecewiseParameter>>& parameters)
 {
     parameters_ = parameters;
     currentAnimationHasPlayed_ = false;
 }
 
-void TextEffect::SetColor(const RSColor& color)
+void TextAnimationConfig::SetColor(const RSColor& color)
 {
     color_ = color.CastToColorQuad();
 }
 
-void TextEffect::SetAnimationStart(bool animationStart)
+void TextAnimationConfig::SetAnimationStart(bool animationStart)
 {
     animationStart_ = animationStart;
 }
 
-void TextEffect::SetEffectStrategy(RSEffectStrategy effectStrategy)
+void TextAnimationConfig::SetEffectStrategy(RSEffectStrategy effectStrategy)
 {
     effectStrategy_ = effectStrategy;
     currentAnimationHasPlayed_ = false;
 }
 
-bool TextEffect::DrawTextEffect(RSCanvas* canvas, const std::vector<TextEngine::TextEffectElement>& effectElements)
+bool TextAnimationConfig::DrawTextEffect(RSCanvas* canvas,
+    const std::vector<TextEngine::TextEffectElement>& effectElements)
 {
     if (canvas == nullptr) {
         TEXT_LOGE("Invalid input, canvas is nullptr.");
@@ -79,7 +81,7 @@ bool TextEffect::DrawTextEffect(RSCanvas* canvas, const std::vector<TextEngine::
     return false;
 }
 
-bool TextEffect::TextAnimationRun(const std::vector<TextEngine::TextEffectElement>& effectElements)
+bool TextAnimationConfig::TextAnimationRun(const std::vector<TextEngine::TextEffectElement>& effectElements)
 {
     if (animationFunc_ == nullptr) {
         return false;
@@ -101,7 +103,7 @@ bool TextEffect::TextAnimationRun(const std::vector<TextEngine::TextEffectElemen
     return true;
 }
 
-void TextEffect::OnDrawTextEffect(RSCanvas* canvas,
+void TextAnimationConfig::OnDrawTextEffect(RSCanvas* canvas,
     const std::vector<TextEngine::TextEffectElement>& effectElements)
 {
     Drawing::Brush brush;
@@ -117,7 +119,7 @@ void TextEffect::OnDrawTextEffect(RSCanvas* canvas,
     }
 }
 
-void TextEffect::ClearTextAnimation(uint64_t uniqueId)
+void TextAnimationConfig::ClearTextAnimation(uint64_t uniqueId)
 {
     if (animationFunc_ == nullptr) {
         return;

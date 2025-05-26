@@ -15,7 +15,6 @@
 
 #include "drawable/rs_root_render_node_drawable.h"
 
-#include "params/rs_root_render_params.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/rs_root_render_node.h"
 #include "platform/common/rs_log.h"
@@ -41,19 +40,7 @@ void RSRootRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         windowKeyframeBuffer_.OnDraw(canvas, *params);
         return;
     }
-
-    auto rootParams = static_cast<RSRootRenderParams*>(GetRenderParams().get());
-    auto rscanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
-    // Set culled nodes of control-level occlusion culling to current canvas.
-    if (rootParams->IsOcclusionCullingOn()) {
-        rscanvas->SetCulledNodes(rootParams->GetCulledNodes());
-    }
-
     RSCanvasRenderNodeDrawable::OnDraw(canvas);
-
-    if (rootParams->IsOcclusionCullingOn()) {
-        rscanvas->SetCulledNodes(std::unordered_set<NodeId>());
-    }
 }
 
 void RSRootRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)

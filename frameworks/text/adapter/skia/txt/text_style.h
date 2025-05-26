@@ -149,11 +149,12 @@ public:
     FontVariations fontVariations;
 
     // symbol glyph
-    bool isSymbolGlyph { false };
+    bool isSymbolGlyph{false};
     HMSymbolTxt symbol;
-    double baseLineShift { 0.0 };
-    bool isPlaceholder { false };
+    double baseLineShift{0.0f};
+    bool isPlaceholder{false};
     std::bitset<static_cast<size_t>(RelayoutTextStyleAttribute::TEXT_STYLE_ATTRIBUTE_BUTT)> relayoutChangeBitmap;
+    TextBadgeType badgeType{TextBadgeType::BADGE_NONE};
 };
 
 } // namespace SPText

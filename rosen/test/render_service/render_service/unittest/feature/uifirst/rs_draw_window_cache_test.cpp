@@ -103,6 +103,14 @@ HWTEST_F(RSDrawWindowCacheTest, DealWithCachedWindow, TestSize.Level1)
     surfaceParams.SetUifirstNodeEnableParam(MultiThreadCacheType::NONFOCUS_WINDOW);
     ASSERT_TRUE(drawWindowCache.DealWithCachedWindow(surfaceDrawable,
         canvas, surfaceParams, *uniParams));
+    /* OnGlobalPositionEnabled is true */
+    surfaceParams.isGlobalPositionEnabled_ = true;
+    ASSERT_TRUE(drawWindowCache.DealWithCachedWindow(surfaceDrawable,
+        canvas, surfaceParams, *uniParams));
+    // To set matrix is singular matrix
+    surfaceParams.matrix_.SetMatrix(1, 2, 3, 2, 4, 6, 3, 6, 9);
+    ASSERT_TRUE(drawWindowCache.DealWithCachedWindow(surfaceDrawable,
+        canvas, surfaceParams, *uniParams));
 }
 
 /**

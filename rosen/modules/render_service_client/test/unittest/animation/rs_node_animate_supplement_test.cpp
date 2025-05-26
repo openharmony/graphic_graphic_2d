@@ -740,5 +740,22 @@ HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest027, TestSize.Level1)
     EXPECT_EQ(ret, CancelAnimationStatus::SUCCESS);
     GTEST_LOG_(INFO) << "RSNodeAnimateTest RSNodeAnimateSupplementTest027 end";
 }
+
+/**
+ * @tc.name: RSNodeAnimateSupplementTest028
+ * @tc.desc: Verify the RSNode::CloseImplicitCancelAnimation with multi-instance
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest028, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSNodeAnimateTest RSNodeAnimateSupplementTest028 start";
+    RSAnimationTimingProtocol protocol;
+    RSAnimationTimingCurve curve;
+    auto rsUIContext = std::make_shared<RSUIContext>();
+    RSNode::OpenImplicitAnimation(rsUIContext, protocol, curve);
+    auto ret = RSNode::CloseImplicitCancelAnimation(rsUIContext);
+    EXPECT_FALSE(ret);
+    GTEST_LOG_(INFO) << "RSNodeAnimateTest RSNodeAnimateSupplementTest028 end";
+}
 } // namespace Rosen
 } // namespace OHOS

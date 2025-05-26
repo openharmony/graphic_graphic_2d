@@ -192,6 +192,17 @@ static std::unordered_map<RSModifierType, ModifierUnmarshallingFunc> funcLUT = {
             return modifier;
         },
     },
+    { RSModifierType::FOREGROUND_UI_FILTER, [](Parcel& parcel) -> RSRenderModifier* {
+            std::shared_ptr<RSRenderPropertyBase> prop =
+                std::make_shared<RSRenderProperty<std::shared_ptr<RSRenderFilter>>>();
+            if (!RSRenderPropertyBase::Unmarshalling(parcel, prop)) {
+                ROSEN_LOGE("RSModifierType::FOREGROUND_UI_FILTER Unmarshalling failed");
+                return nullptr;
+            }
+            auto modifier = new RSForegroundUIFilterRenderModifier(prop);
+            return modifier;
+        },
+    },
 };
 
 #undef DECLARE_ANIMATABLE_MODIFIER
@@ -482,7 +493,7 @@ void RSComplexShaderParamRenderModifier::Update(const std::shared_ptr<RSRenderPr
         renderProperty->Set(isDelta ? (renderProperty->Get() + property->Get()) : property->Get());
     }
 }
- 
+
 bool RSComplexShaderParamRenderModifier::Marshalling(Parcel& parcel)
 {
     auto renderProperty = std::static_pointer_cast<RSRenderAnimatableProperty<std::vector<float>>>(property_);
@@ -519,6 +530,35 @@ bool RSBackgroundUIFilterRenderModifier::Marshalling(Parcel& parcel)
         RSRenderPropertyBase::Marshalling(parcel, renderFilter);
     if (!flag) {
         ROSEN_LOGE("RSBackgroundUIFilterRenderModifier::Marshalling failed");
+    }
+    return flag;
+}
+
+void RSForegroundUIFilterRenderModifier::Apply(RSModifierContext& context) const
+{
+    auto renderProperty = std::static_pointer_cast<RSRenderProperty<std::shared_ptr<RSRenderFilter>>>(property_);
+    context.properties_.SetForegroundUIFilter(renderProperty->GetRef());
+}
+
+void RSForegroundUIFilterRenderModifier::Update(const std::shared_ptr<RSRenderPropertyBase>& prop, bool isDelta)
+{
+    if (auto property = std::static_pointer_cast<RSRenderProperty<std::shared_ptr<RSRenderFilter>>>(prop)) {
+        auto renderProperty =
+            std::static_pointer_cast<RSRenderProperty<std::shared_ptr<RSRenderFilter>>>(property_);
+        renderProperty->Set(property->Get());
+    }
+}
+
+bool RSForegroundUIFilterRenderModifier::Marshalling(Parcel& parcel)
+{
+    auto prop =
+        std::static_pointer_cast<RSRenderProperty<std::shared_ptr<RSRenderFilter>>>(property_);
+    auto renderFilter = std::make_shared<RSRenderProperty<std::shared_ptr<RSRenderFilter>>>(
+        prop->Get(), prop->GetId(), RSRenderPropertyType::PROPERTY_UI_FILTER);
+    bool flag = parcel.WriteInt16(static_cast<int16_t>(RSModifierType::FOREGROUND_UI_FILTER)) &&
+        RSRenderPropertyBase::Marshalling(parcel, renderFilter);
+    if (!flag) {
+        ROSEN_LOGE("RSForegroundUIFilterRenderModifier::Marshalling failed");
     }
     return flag;
 }

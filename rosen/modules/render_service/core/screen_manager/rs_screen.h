@@ -419,6 +419,8 @@ private:
     std::atomic<bool> hasProtectedLayer_ = false;
 
     std::vector<float> linearMatrix_ = {1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f};
+
+    std::atomic<bool> hasLogBackLightAfterPowerStatusChanged_ = false;
 };
 } // namespace impl
 } // namespace Rosen

@@ -588,9 +588,6 @@ public:
     std::shared_ptr<RSBaseRenderNode> GetWindowContainer() const;
 
     void SetNeedForceUpdateHwcNodes(bool needForceUpdate, bool hasVisibleHwcNodes);
-    bool GetNeedForceUpdateHwcNodes() const { return needForceUpdateHwcNodes_; }
-
-    bool HasVisibleHwcNodes() const { return hasVisibleHwcNodes_; }
 
     void SetTargetSurfaceRenderNodeId(NodeId nodeId)
     {
@@ -603,6 +600,9 @@ public:
     }
 
     void SetTargetSurfaceRenderNodeDrawable(DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr drawable);
+
+    // Enable HWCompose
+    RSHwcDisplayRecorder& HwcDisplayRecorder() { return hwcDisplayRecorder_; }
 
 protected:
     void OnSync() override;
@@ -650,8 +650,6 @@ private:
     // Use in MultiLayersPerf
     size_t surfaceCountForMultiLayersPerf_ = 0;
     int64_t lastRefreshTime_ = 0;
-    bool needForceUpdateHwcNodes_ = false;
-    bool hasVisibleHwcNodes_ = false;
     static ReleaseDmaBufferTask releaseScreenDmaBufferTask_;
     std::shared_ptr<RSDirtyRegionManager> dirtyManager_ = nullptr;
     // Use in screen recording optimization
@@ -705,6 +703,9 @@ private:
 
     // Window Container
     std::shared_ptr<RSBaseRenderNode> windowContainer_;
+
+    // Enable HWCompose
+    RSHwcDisplayRecorder hwcDisplayRecorder_;
 };
 } // namespace Rosen
 } // namespace OHOS

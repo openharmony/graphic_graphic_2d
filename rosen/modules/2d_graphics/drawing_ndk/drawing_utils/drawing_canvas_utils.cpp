@@ -20,6 +20,7 @@
 #include "pipeline/rs_recording_canvas.h"
 #include "pixel_map.h"
 #include "render/rs_pixel_map_util.h"
+#include "utils/log.h"
 
 using namespace OHOS;
 using namespace Rosen;
@@ -78,6 +79,19 @@ void DrawingCanvasUtils::DrawPixelMapRect(Drawing::Canvas* canvas, std::shared_p
     canvas->DrawImageRect(*image, src ? *src : Drawing::Rect(0, 0, pixelMap->GetWidth(), pixelMap->GetHeight()),
         *dst, sampling ? *sampling : Drawing::SamplingOptions());
 #endif
+}
+
+void DrawingCanvasUtils::DrawRecordCmd(Drawing::Canvas* canvas,
+    const std::shared_ptr<Drawing::RecordCmd> recordCmd, bool canNesting)
+{
+    if (!canNesting && canvas->GetDrawingType() == Drawing::DrawingType::RECORDING) {
+        ExtendRecordingCanvas* canvas_ = reinterpret_cast<ExtendRecordingCanvas*>(canvas);
+        if (canvas_->IsRecordCmd()) {
+            LOGE("RecordingCanvas::DrawRecordCmd, operation is unsupported!");
+            return;
+        }
+    }
+    canvas->DrawRecordCmd(recordCmd);
 }
 
 #ifdef OHOS_PLATFORM

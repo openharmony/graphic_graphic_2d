@@ -1786,7 +1786,6 @@ HWTEST_F(RSPropertiesTest, SetShadowAlpha001, TestSize.Level1)
     RSProperties properties;
     float alpha = 0.f;
     properties.SetShadowAlpha(alpha);
-    EXPECT_EQ(alpha, 0.f);
 
     alpha = 1.f;
     properties.shadow_ = std::make_optional<RSShadow>();
@@ -2142,7 +2141,6 @@ HWTEST_F(RSPropertiesTest, GetDirtyRect001, TestSize.Level1)
 
     properties.clipToBounds_ = true;
     properties.GetDirtyRect();
-    EXPECT_EQ(properties.clipToBounds_, true);
 
     std::shared_ptr<RectF> rect = std::make_shared<RectF>(1.f, 1.f, 1.f, 1.f);
     properties.SetDrawRegion(rect);
@@ -2172,12 +2170,10 @@ HWTEST_F(RSPropertiesTest, GetDirtyRect002, TestSize.Level1)
 
     properties.clipToBounds_ = true;
     properties.GetDirtyRect(drawRegion);
-    EXPECT_EQ(properties.clipToBounds_, true);
 
     std::shared_ptr<RectF> rect = std::make_shared<RectF>(1.f, 1.f, 1.f, 1.f);
     properties.SetDrawRegion(rect);
     properties.GetDirtyRect(drawRegion);
-    EXPECT_EQ(properties.clipToBounds_, true);
 }
 
 /**
@@ -2271,7 +2267,6 @@ HWTEST_F(RSPropertiesTest, SetBackgroundBlurRadiusX001, TestSize.Level1)
     RSProperties properties;
     float backgroundBlurRadiusX = 0.f;
     properties.SetBackgroundBlurRadiusX(backgroundBlurRadiusX);
-    EXPECT_EQ(backgroundBlurRadiusX, 0.f);
 
     backgroundBlurRadiusX = 2.f;
     properties.SetBackgroundBlurRadiusX(backgroundBlurRadiusX);
@@ -2289,7 +2284,6 @@ HWTEST_F(RSPropertiesTest, SetBackgroundBlurRadiusY001, TestSize.Level1)
     RSProperties properties;
     float backgroundBlurRadiusY = 0.f;
     properties.SetBackgroundBlurRadiusY(backgroundBlurRadiusY);
-    EXPECT_EQ(backgroundBlurRadiusY, 0.f);
 
     backgroundBlurRadiusY = 2.f;
     properties.SetBackgroundBlurRadiusY(backgroundBlurRadiusY);
@@ -2307,7 +2301,6 @@ HWTEST_F(RSPropertiesTest, SetForegroundBlurRadius001, TestSize.Level1)
     RSProperties properties;
     float foregroundBlurRadius = 0.f;
     properties.SetForegroundBlurRadius(foregroundBlurRadius);
-    EXPECT_EQ(foregroundBlurRadius, 0.f);
 
     foregroundBlurRadius = 2.f;
     properties.SetForegroundBlurRadius(foregroundBlurRadius);
@@ -3135,13 +3128,29 @@ HWTEST_F(RSPropertiesTest, GenerateColorFilter002, TestSize.Level1)
  * @tc.name: GenerateDisplacementDistortFilter001
  * @tc.desc: test results of GenerateDisplacementDistortFilter
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSPropertiesTest, GenerateDisplacementDistortFilter001, TestSize.Level1)
 {
     RSProperties properties;
     properties.GenerateDisplacementDistortFilter();
-    EXPECT_NE(properties.backgroundFilter_, nullptr);
+    EXPECT_EQ(properties.backgroundFilter_, nullptr);
+    properties.backgroundRenderFilter_ = std::make_shared<RSRenderFilter>();
+    properties.GenerateDisplacementDistortFilter();
+    EXPECT_EQ(properties.backgroundFilter_, nullptr);
+}
+
+/**
+ * @tc.name: GenerateRenderFilterDispersion001
+ * @tc.desc: test results of GenerateRenderFilterDispersion
+ * @tc.type: FUNC
+ * @tc.require: 
+ */
+HWTEST_F(RSPropertiesTest, GenerateRenderFilterDispersion001, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.GenerateRenderFilterDispersion();
+    EXPECT_EQ(properties.backgroundFilter_, nullptr);
 }
 
 /**
@@ -3295,6 +3304,20 @@ HWTEST_F(RSPropertiesTest, GetPixelStretchTileMode001, TestSize.Level1)
     properties.SetPixelStretchTileMode(static_cast<int>(Drawing::TileMode::DECAL));
     mode = properties.GetPixelStretchTileMode();
     ASSERT_EQ(static_cast<int>(Drawing::TileMode::DECAL), mode);
+}
+
+/**
+ * @tc.name: SetLocalMagnificationCap001
+ * @tc.desc: test results of SetLocalMagnificationCap
+ * @tc.type: FUNC
+ * @tc.require: issueI9QKVM
+ */
+HWTEST_F(RSPropertiesTest, SetLocalMagnificationCap001, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.SetLocalMagnificationCap(true);
+    EXPECT_EQ(properties.localMagnificationCap_, true);
+    EXPECT_EQ(properties.filterNeedUpdate_, true);
 }
 
 /**

@@ -691,6 +691,14 @@ HWTEST_F(RSHpsBlurTest, ApplyHpsBlurTest001, TestSize.Level1)
 
     HpsBlurFilter filter;
     EXPECT_EQ(filter.ApplyHpsBlur(canvas_, image, param, alpha, colorFilter), false);
+
+    int16_t red = 10;
+    int16_t green = 11;
+    int16_t blue = 12;
+    int16_t alpha1 = 13;
+    RSColor maskColor(red, green, blue, alpha1);
+    EXPECT_EQ(filter.ApplyHpsBlur(canvas_, image, param, alpha1, colorFilter, maskColor), false);
+    EXPECT_EQ(filter.ApplyHpsBlur(canvas_, image, param, 0.0, colorFilter, maskColor), false);
 }
 
 /**
@@ -716,6 +724,14 @@ HWTEST_F(RSHpsBlurTest, ApplyHpsBlurTest002, TestSize.Level1)
 
     HpsBlurFilter filter;
     EXPECT_EQ(filter.ApplyHpsBlur(*canvas, image, param, alpha, colorFilter), false);
+
+    int16_t red = 10;
+    int16_t green = 11;
+    int16_t blue = 12;
+    int16_t alpha1 = 13;
+    RSColor maskColor(red, green, blue, alpha1);
+    EXPECT_EQ(filter.ApplyHpsBlur(*canvas, image, param, alpha1, colorFilter, maskColor), false);
+    EXPECT_EQ(filter.ApplyHpsBlur(*canvas, image, param, 0.0, colorFilter, maskColor), false);
 }
 
 /**

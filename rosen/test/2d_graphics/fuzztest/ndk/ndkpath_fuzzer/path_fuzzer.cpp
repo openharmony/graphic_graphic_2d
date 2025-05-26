@@ -488,6 +488,43 @@ void NativeDrawingPathTest010(const uint8_t* data, size_t size)
     OH_Drawing_PathDestroy(path);
     OH_Drawing_PathDestroy(newPath);
 }
+
+void NativeDrawingPathTest011(const uint8_t* data, size_t size)
+{
+    if (data == nullptr || size < DATA_MIN_SIZE) {
+        return;
+    }
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    uint32_t pathFillType = GetObject<uint32_t>();
+    bool isEmpty = GetObject<bool>();
+    bool isRect = GetObject<bool>();
+    OH_Drawing_Path* path = OH_Drawing_PathCreate();
+    OH_Drawing_Rect* rect = OH_Drawing_RectCreate(0, 0, 20, 20);
+    OH_Drawing_Path* path2 = OH_Drawing_PathCreate();
+    OH_Drawing_PathFillType type = static_cast<OH_Drawing_PathFillType>(pathFillType);
+    OH_Drawing_PathGetFillType(path, &type);
+    OH_Drawing_PathGetFillType(nullptr, &type);
+    OH_Drawing_PathGetFillType(path, nullptr);
+    OH_Drawing_PathSetPath(path, path2);
+    OH_Drawing_PathSetPath(nullptr, path2);
+    OH_Drawing_PathSetPath(path, nullptr);
+    OH_Drawing_PathIsEmpty(path, &isEmpty);
+    OH_Drawing_PathIsEmpty(nullptr, &isEmpty);
+    OH_Drawing_PathIsEmpty(path, nullptr);
+    OH_Drawing_PathIsRect(path, rect, &isRect);
+    OH_Drawing_PathIsRect(path, nullptr, &isRect);
+    OH_Drawing_PathIsRect(path, rect, nullptr);
+    OH_Drawing_PathIsRect(nullptr, nullptr, &isRect);
+    OH_Drawing_PathIsRect(nullptr, nullptr, nullptr);
+
+    OH_Drawing_PathDestroy(path);
+    OH_Drawing_PathDestroy(path2);
+    OH_Drawing_RectDestroy(rect);
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
@@ -506,5 +543,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::Drawing::NativeDrawingPathTest008(data, size);
     OHOS::Rosen::Drawing::NativeDrawingPathTest009(data, size);
     OHOS::Rosen::Drawing::NativeDrawingPathTest010(data, size);
+    OHOS::Rosen::Drawing::NativeDrawingPathTest011(data, size);
     return 0;
 }

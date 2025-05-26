@@ -134,7 +134,8 @@ static bool MarshallingRecordCmdFromDrawCmdList(Parcel& parcel, const std::share
     return true;
 }
 
-static bool UnmarshallingRecordCmdToDrawCmdList(Parcel& parcel, std::shared_ptr<Drawing::DrawCmdList>& val)
+static bool UnmarshallingRecordCmdToDrawCmdList(Parcel& parcel, std::shared_ptr<Drawing::DrawCmdList>& val,
+    uint32_t* opItemCount, uint32_t* recordCmdCount, uint32_t recordCmdDepth)
 {
     if (!val) {
         ROSEN_LOGE("unirender: RSMarshallingHelper::UnmarshallingRecordCmdToDrawCmdList failed with null CmdList");
@@ -148,16 +149,15 @@ static bool UnmarshallingRecordCmdToDrawCmdList(Parcel& parcel, std::shared_ptr<
         ROSEN_LOGE("unirender: RSMarshallingHelper::UnmarshallingRecordCmdToDrawCmdList failed with max limit");
         return false;
     }
-    uint32_t opItemCount = 0;
     std::vector<std::shared_ptr<Drawing::RecordCmd>> recordCmdVec;
     for (uint32_t i = 0; i < recordCmdSize; i++) {
-        std::shared_ptr<Drawing::RecordCmd> recordCmd = nullptr;
-        if (!RSMarshallingHelper::Unmarshalling(parcel, recordCmd, &opItemCount)) {
+        if (recordCmdCount && ++(*recordCmdCount) > Drawing::RECORD_CMD_MAX_SIZE) {
+            ROSEN_LOGE("unirender: RSMarshallingHelper::UnmarshallingRecordCmdToDrawCmdList failed, "
+                "exceed recordCmd count limit, cur[%{public}u]", *recordCmdCount);
             return false;
         }
-        if (opItemCount > Drawing::MAX_OPITEMSIZE) {
-            ROSEN_LOGE(
-                "unirender: RSMarshallingHelper::UnmarshallingRecordCmdToDrawCmdList failed with max opItemSize");
+        std::shared_ptr<Drawing::RecordCmd> recordCmd = nullptr;
+        if (!RSMarshallingHelper::Unmarshalling(parcel, recordCmd, opItemCount, recordCmdCount, recordCmdDepth)) {
             return false;
         }
         recordCmdVec.emplace_back(recordCmd);
@@ -1887,10 +1887,8 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, RRectT<float>& val)
            Unmarshalling(parcel, val.radius_[3]);
 }
 
-
 // Drawing::DrawCmdList
-bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Drawing::DrawCmdList>& val,
-    bool isRecordCmd)
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Drawing::DrawCmdList>& val)
 {
     if (!val) {
         bool flag = parcel.WriteInt32(-1);
@@ -2032,13 +2030,7 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Draw
         ROSEN_LOGE("unirender: failed RSMarshallingHelper::Marshalling Drawing::DrawCmdList ExtendObject");
         return ret;
     }
-    if (!isRecordCmd) {
-        ret &= MarshallingRecordCmdFromDrawCmdList(parcel, val);
-        if (!ret) {
-            ROSEN_LOGE("unirender: failed RSMarshallingHelper::Marshalling Drawing::DrawCmdList RecordCmd");
-            return ret;
-        }
-    }
+
 #ifdef ROSEN_OHOS
     std::vector<std::shared_ptr<Drawing::SurfaceBufferEntry>> surfaceBufferEntryVec;
     uint32_t surfaceBufferSize = val->GetAllSurfaceBufferEntry(surfaceBufferEntryVec);
@@ -2068,11 +2060,24 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Draw
         }
     }
 #endif
+
+    ret &= MarshallingRecordCmdFromDrawCmdList(parcel, val);
+    if (!ret) {
+        return ret;
+    }
     return ret;
 }
 
-bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing::DrawCmdList>& val,
-    uint32_t* opItemCount)
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing::DrawCmdList>& val)
+{
+    uint32_t opItemCount = 0;
+    uint32_t recordCmdCount = 0;
+    uint32_t recordCmdDepth = 0;
+    return SafeUnmarshallingDrawCmdList(parcel, val, &opItemCount, &recordCmdCount, recordCmdDepth);
+}
+
+bool RSMarshallingHelper::SafeUnmarshallingDrawCmdList(Parcel& parcel, std::shared_ptr<Drawing::DrawCmdList>& val,
+    uint32_t* opItemCount, uint32_t* recordCmdCount, uint32_t recordCmdDepth)
 {
     int32_t size = parcel.ReadInt32();
     if (size == -1) {
@@ -2291,13 +2296,6 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
         return ret;
     }
 
-    if (!opItemCount) {
-        ret &= UnmarshallingRecordCmdToDrawCmdList(parcel, val);
-        if (!ret) {
-            ROSEN_LOGE("unirender: failed RSMarshallingHelper::Marshalling Drawing::DrawCmdList RecordCmd");
-            return ret;
-        }
-    }
 #ifdef ROSEN_OHOS
     uint32_t surfaceBufferEntrySize{0};
     if (!parcel.ReadUint32(surfaceBufferEntrySize)) {
@@ -2349,9 +2347,16 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
     }
 #endif
 
+    ret &= UnmarshallingRecordCmdToDrawCmdList(parcel, val, opItemCount, recordCmdCount, recordCmdDepth);
+    if (!ret) { // Attention: don't add log here.
+        return ret;
+    }
     RS_PROFILER_PATCH_TYPEFACE_ID(parcel, val);
     val->UnmarshallingDrawOps(opItemCount);
-    return ret;
+    if (opItemCount && (*opItemCount) > Drawing::MAX_OPITEMSIZE) {
+        return false;
+    }
+    return true;
 }
 
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Drawing::RecordCmd>& val)
@@ -2363,7 +2368,7 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Draw
     const auto& rect = val->GetCullRect();
     bool success = parcel.WriteFloat(rect.GetLeft()) && parcel.WriteFloat(rect.GetTop()) &&
         parcel.WriteFloat(rect.GetRight()) && parcel.WriteFloat(rect.GetBottom()) &&
-        RSMarshallingHelper::Marshalling(parcel, val->GetDrawCmdList(), true);
+        RSMarshallingHelper::Marshalling(parcel, val->GetDrawCmdList());
     if (!success) {
         ROSEN_LOGE("RSMarshallingHelper::Marshalling RecordCmd failed");
     }
@@ -2371,8 +2376,14 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Draw
 }
 
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing::RecordCmd>& val,
-    uint32_t* opItemCount)
+    uint32_t* opItemCount, uint32_t* recordCmdCount, uint32_t recordCmdDepth)
 {
+    if (++recordCmdDepth > Drawing::RECORD_CMD_MAX_DEPTH) {
+        ROSEN_LOGE("RSMarshallingHelper::Unmarshalling RecordCmd failed, "
+            "exceed max depth, cur depth[%{public}u]", recordCmdDepth);
+        return false;
+    }
+
     val = nullptr;
     float left = 0;
     float top = 0;
@@ -2385,9 +2396,9 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
         return false;
     }
     std::shared_ptr<Drawing::DrawCmdList> drawCmdList = nullptr;
-    success = RSMarshallingHelper::Unmarshalling(parcel, drawCmdList, opItemCount);
-    if (!success) {
-        ROSEN_LOGE("RSMarshallingHelper::Unmarshalling RecordCmd, drawCmdList unmarshalling failed.");
+    success = RSMarshallingHelper::SafeUnmarshallingDrawCmdList(parcel, drawCmdList,
+        opItemCount, recordCmdCount, recordCmdDepth);
+    if (!success) { // Attention: don't add log here.
         return false;
     }
     Drawing::Rect rect(left, top, right, bottom);

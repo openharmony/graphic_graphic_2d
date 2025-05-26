@@ -17,6 +17,7 @@
 
 #include "platform/common/rs_log.h"
 #include "render/rs_render_ripple_mask.h"
+#include "render/rs_render_pixel_map_mask.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -39,6 +40,9 @@ RSUIFilterType RSUIMaskPara::ConvertMaskType(MaskPara::Type maskType)
         }
         case MaskPara::Type::RIPPLE_MASK: {
             return RSUIFilterType::RIPPLE_MASK;
+        }
+        case MaskPara::Type::PIXEL_MAP_MASK: {
+            return RSUIFilterType::PIXEL_MAP_MASK;
         }
         default:
             return RSUIFilterType::NONE;

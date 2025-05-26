@@ -35,6 +35,11 @@ RSPaintFilterCanvasBase::RSPaintFilterCanvasBase(Drawing::Canvas* canvas)
 #endif
 }
 
+void RSPaintFilterCanvasBase::SetParallelRender(bool parallelEnable)
+{
+    canvas_->SetParallelRender(parallelEnable);
+}
+
 Drawing::Matrix RSPaintFilterCanvasBase::GetTotalMatrix() const
 {
     return canvas_->GetTotalMatrix();
@@ -1680,6 +1685,26 @@ void RSPaintFilterCanvas::SetCacheBehindWindowData(const std::shared_ptr<CacheBe
 const std::shared_ptr<RSPaintFilterCanvas::CacheBehindWindowData>& RSPaintFilterCanvas::GetCacheBehindWindowData() const
 {
     return cacheBehindWindowData_;
+}
+
+void RSPaintFilterCanvas::SetEffectIntersectWithDRM(bool intersect)
+{
+    isIntersectWithDRM_ = intersect;
+}
+
+bool RSPaintFilterCanvas::GetEffectIntersectWithDRM() const
+{
+    return isIntersectWithDRM_;
+}
+
+void RSPaintFilterCanvas::SetDarkColorMode(bool isDark)
+{
+    isDarkColorMode_ = isDark;
+}
+
+bool RSPaintFilterCanvas::GetDarkColorMode() const
+{
+    return isDarkColorMode_;
 }
 } // namespace Rosen
 } // namespace OHOS

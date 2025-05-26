@@ -43,9 +43,9 @@ SkiaPixmap::~SkiaPixmap() {}
 
 std::shared_ptr<ColorSpace> SkiaPixmap::GetColorSpace() const
 {
-    std::shared_ptr<SkiaColorSpace> skiaColorSpace = std::make_shared<SkiaColorSpace>();
-    skiaColorSpace->SetColorSpace(skiaPixmap_.refColorSpace());
-    return ColorSpace::CreateFromImpl(skiaColorSpace);
+    std::shared_ptr<ColorSpace> colorSpace = std::make_shared<ColorSpace>();
+    colorSpace->GetImpl<SkiaColorSpace>()->SetColorSpace(skiaPixmap_.refColorSpace());
+    return colorSpace;
 }
 
 ColorType SkiaPixmap::GetColorType() const

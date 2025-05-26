@@ -17,6 +17,7 @@
 
 #include <cstddef>
 #include <memory>
+#include <unordered_set>
 
 #include "recording/draw_cmd.h"
 #include "recording/recording_canvas.h"
@@ -28,7 +29,33 @@ namespace OHOS {
 namespace Rosen {
 namespace Drawing {
 namespace {
-    constexpr uint32_t DRAWCMDLIST_OPSIZE_COUNT_LIMIT = 50000;
+// WhiteList for hybridRender DrawOpItemTypes
+const std::unordered_set<uint32_t> HYBRID_RENDER_DRAW_OPITEM_TYPES = {
+    DrawOpItem::OPITEM_HEAD,
+    DrawOpItem::PATH_OPITEM,
+    DrawOpItem::TEXT_BLOB_OPITEM,
+    DrawOpItem::SYMBOL_OPITEM,
+    DrawOpItem::CLIP_RECT_OPITEM,
+    DrawOpItem::CLIP_IRECT_OPITEM,
+    DrawOpItem::CLIP_ROUND_RECT_OPITEM,
+    DrawOpItem::CLIP_PATH_OPITEM,
+    DrawOpItem::CLIP_REGION_OPITEM,
+    DrawOpItem::SET_MATRIX_OPITEM,
+    DrawOpItem::CONCAT_MATRIX_OPITEM,
+    DrawOpItem::TRANSLATE_OPITEM,
+    DrawOpItem::SCALE_OPITEM,
+    DrawOpItem::ROTATE_OPITEM,
+    DrawOpItem::SHEAR_OPITEM,
+    DrawOpItem::FLUSH_OPITEM,
+    DrawOpItem::CLEAR_OPITEM,
+    DrawOpItem::SAVE_OPITEM,
+    DrawOpItem::SAVE_LAYER_OPITEM,
+    DrawOpItem::RESTORE_OPITEM,
+    DrawOpItem::DISCARD_OPITEM,
+    DrawOpItem::CLIP_ADAPTIVE_ROUND_RECT_OPITEM,
+    DrawOpItem::HYBRID_RENDER_PIXELMAP_SIZE_OPITEM,
+};
+constexpr uint32_t DRAWCMDLIST_OPSIZE_COUNT_LIMIT = 50000;
 }
 
 std::shared_ptr<DrawCmdList> DrawCmdList::CreateFromData(const CmdListData& data, bool isCopy)
@@ -302,6 +329,7 @@ void DrawCmdList::UnmarshallingDrawOps(uint32_t* opItemCount)
     do {
         count++;
         if (opItemCount && ++(*opItemCount) > MAX_OPITEMSIZE) {
+            LOGE("DrawCmdList::UnmarshallingOps failed, opItem count exceed limit");
             break;
         }
         void* itemPtr = opAllocator_.OffsetToAddr(offset, sizeof(OpItem));
@@ -670,18 +698,54 @@ void DrawCmdList::PlaybackByBuffer(Canvas& canvas, const Rect* rect)
     canvas.DetachPaint();
 }
 
-bool DrawCmdList::GetBounds(Rect& rect)
+void DrawCmdList::GetBounds(Rect& rect)
 {
     std::lock_guard<std::recursive_mutex> lock(mutex_);
+    for (const auto& op : drawOpItems_) {
+        if (op == nullptr) {
+            continue;
+        }
+        switch (op->GetType()) {
+            case DrawOpItem::HYBRID_RENDER_PIXELMAP_SIZE_OPITEM: {
+                HybridRenderPixelMapSizeOpItem *sizeOp = static_cast<HybridRenderPixelMapSizeOpItem*>(op.get());
+                rect.Join(Rect(0, 0, sizeOp->GetWidth(), sizeOp->GetHeight()));
+                break;
+            }
+            default:
+                break;
+        }
+    }
+}
+
+bool DrawCmdList::IsHybridRenderEnabled(uint32_t maxPixelMapWidth, uint32_t maxPixelMapHeight)
+{
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
+    // canvasdrawingnode does not support switching from enable to disable
+    if (hybridRenderType_ == HybridRenderType::CANVAS) {
+        return true;
+    }
     if (!UnmarshallingDrawOpsSimple()) {
         return false;
     }
-    for (auto op : drawOpItems_) {
-        if (op == nullptr || op->GetType() != DrawOpItem::HYBRID_RENDER_PIXELMAP_SIZE_OPITEM) {
+    // check whiteList
+    for (const auto& op : drawOpItems_) {
+        if (op == nullptr) {
             continue;
         }
-        HybridRenderPixelMapSizeOpItem* sizeOp = static_cast<HybridRenderPixelMapSizeOpItem*>(op.get());
-        rect = RectF(0.0f, 0.0f, sizeOp->GetWidth(), sizeOp->GetHeight());
+        if (HYBRID_RENDER_DRAW_OPITEM_TYPES.find(op->GetType()) == HYBRID_RENDER_DRAW_OPITEM_TYPES.end()) {
+            return false;
+        }
+    }
+    // check size
+    Drawing::Rect bounds;
+    int32_t width = GetWidth();
+    int32_t height = GetHeight();
+    GetBounds(bounds);
+    width = std::max(width, DrawingFloatSaturate2Int(ceilf(bounds.GetWidth())));
+    height = std::max(height, DrawingFloatSaturate2Int(ceilf(bounds.GetHeight())));
+    if (width < 0 || height < 0 ||
+        static_cast<uint32_t>(width) > maxPixelMapWidth || static_cast<uint32_t>(height) > maxPixelMapHeight) {
+        return false;
     }
     return true;
 }

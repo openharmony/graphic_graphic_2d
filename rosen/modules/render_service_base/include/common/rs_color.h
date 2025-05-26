@@ -21,17 +21,44 @@
 
 #include "common/rs_common_def.h"
 #include "common/rs_macros.h"
+#include "surface_type.h"
+#include "draw/color.h"
 
 namespace OHOS {
 namespace Rosen {
+using scalar = Drawing::scalar;
+namespace {
+constexpr static uint8_t RGB_MAX = 255;
+constexpr static uint8_t COLOR_ARRAY_RED_INDEX = 0;
+constexpr static uint8_t COLOR_ARRAY_GREEN_INDEX = 1;
+constexpr static uint8_t COLOR_ARRAY_BLUE_INDEX = 2;
+}
 class RSB_EXPORT RSColor final {
 public:
     RSColor() noexcept : alpha_(0), blue_(0), green_(0), red_(0) {}
     explicit RSColor(uint32_t rgba) noexcept;
     RSColor(int16_t red, int16_t green, int16_t blue) noexcept;
     RSColor(int16_t red, int16_t green, int16_t blue, int16_t alpha) noexcept;
-    RSColor(const RSColor& rhs) noexcept = default;
-    RSColor& operator=(const RSColor& rhs) noexcept = default;
+
+    RSColor(const RSColor& rhs) noexcept
+    {
+        red_ = rhs.red_;
+        green_ = rhs.green_;
+        blue_ = rhs.blue_;
+        alpha_ = rhs.alpha_;
+        colorSpace_ = rhs.colorSpace_;
+    }
+
+    RSColor& operator=(const RSColor& rhs) noexcept
+    {
+        red_ = rhs.red_;
+        green_ = rhs.green_;
+        blue_ = rhs.blue_;
+        alpha_ = rhs.alpha_;
+        colorSpace_ = rhs.colorSpace_;
+        return *this;
+    }
+
     ~RSColor() = default;
     bool operator==(const RSColor& rhs) const;
     inline bool operator!=(const RSColor& rhs) const
@@ -55,10 +82,17 @@ public:
     int16_t GetGreen() const;
     int16_t GetRed() const;
     int16_t GetAlpha() const;
+    scalar GetRedF() const;
+    scalar GetGreenF() const;
+    scalar GetBlueF() const;
+    scalar GetAlphaF() const;
+    Drawing::Color4f GetColor4f() const;
+    GraphicColorGamut GetColorSpace() const;
     void SetBlue(int16_t blue);
     void SetGreen(int16_t green);
     void SetRed(int16_t red);
     void SetAlpha(int16_t alpha);
+    void SetColorSpace(GraphicColorGamut colorSpace);
     void MultiplyAlpha(float alpha);
 
     void Dump(std::string& out) const;
@@ -75,6 +109,7 @@ private:
         int16_t green_ : 16;
         int16_t red_ : 16;
     };
+    GraphicColorGamut colorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
 };
 } // namespace Rosen
 } // namespace OHOS

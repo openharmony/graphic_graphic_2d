@@ -128,6 +128,10 @@ void SkiaCanvas::InheriteState(Canvas* canvas)
 {
 }
 
+void SkiaCanvas::SetParallelRender(bool parallelEnable)
+{
+}
+
 RectI SkiaCanvas::GetRoundInDeviceClipBounds() const
 {
     if (skCanvas_ == nullptr) {

@@ -196,6 +196,12 @@ public:
     {
         return specialLayerManager_;
     }
+
+    bool HasBlackListByScreenId(ScreenId screenId)
+    {
+        return blackListIds_[screenId].size() != 0;
+    }
+
     bool HasPrivacyContentLayer()
     {
         return privacyContentLayerIds_.size() != 0;
@@ -652,6 +658,31 @@ public:
         return apiCompatibleVersion_;
     }
 
+    bool IsOcclusionCullingOn() const
+    {
+        return isOcclusionCullingOn_;
+    }
+
+    std::unordered_set<NodeId> TakeCulledNodes()
+    {
+        return std::move(culledNodes_);
+    }
+
+    const std::unordered_set<NodeId>& GetCulledNodes() const
+    {
+        return culledNodes_;
+    }
+
+    std::unordered_set<NodeId> TakeCulledEntireSubtree()
+    {
+        return std::move(culledEntireSubtree_);
+    }
+
+    const std::unordered_set<NodeId>& GetCulledEntireSubtree() const
+    {
+        return culledEntireSubtree_;
+    }
+
     // [Attention] The function only used for unlocking screen for PC currently
     bool ClonedSourceNode() const
     {
@@ -697,6 +728,16 @@ public:
         return sourceDisplayRenderNodeDrawable_;
     }
 
+    bool IsAbilityMagnificationNode()
+    {
+        return rsSurfaceNodeType_ == RSSurfaceNodeType::ABILITY_MAGNIFICATION_NODE;
+    }
+
+    const Vector4f& GetRegionToBeMagnified() const
+    {
+        return regionToBeMagnified_;
+    }
+
     void SetFrameGravityNewVersionEnabled(bool isEnabled);
     bool GetFrameGravityNewVersionEnabled() const;
 
@@ -734,6 +775,7 @@ private:
     RectI childrenDirtyRect_;
     RectI absDrawRect_;
     RRect rrect_;
+    Vector4f regionToBeMagnified_;
     NodeId uifirstUseStarting_ = INVALID_NODEID;
     Occlusion::Region transparentRegion_;
     Occlusion::Region roundedCornerRegion_;
@@ -778,6 +820,7 @@ private:
     bool isGlobalPositionEnabled_ = false;
     Gravity uiFirstFrameGravity_ = Gravity::TOP_LEFT;
     RSSpecialLayerManager specialLayerManager_;
+    std::unordered_map<ScreenId, std::unordered_set<NodeId>> blackListIds_ = {};
     std::set<NodeId> privacyContentLayerIds_ = {};
     std::set<int32_t> bufferCacheSet_ = {};
     std::string name_= "";
@@ -821,6 +864,10 @@ private:
     std::unordered_map<NodeId, Drawing::Matrix> crossNodeSkipDisplayConversionMatrices_ = {};
 
     uint32_t apiCompatibleVersion_ = 0;
+
+    bool isOcclusionCullingOn_ = false;
+    std::unordered_set<NodeId> culledNodes_;
+    std::unordered_set<NodeId> culledEntireSubtree_;
 
     friend class RSSurfaceRenderNode;
     friend class RSUniRenderProcessor;

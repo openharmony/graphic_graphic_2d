@@ -320,5 +320,23 @@ void RSEffectRenderNode::MarkClearFilterCacheIfEffectChildrenChanged()
     }
 #endif
 }
+
+void RSEffectRenderNode::SetEffectIntersectWithDRM(bool intersect)
+{
+    auto effectParams = static_cast<RSEffectRenderParams*>(stagingRenderParams_.get());
+    if (effectParams == nullptr) {
+        return;
+    }
+    effectParams->SetEffectIntersectWithDRM(intersect);
+}
+
+void RSEffectRenderNode::SetDarkColorMode(bool isDark)
+{
+    auto effectParams = static_cast<RSEffectRenderParams*>(stagingRenderParams_.get());
+    if (effectParams == nullptr) {
+        return;
+    }
+    effectParams->SetDarkColorMode(isDark);
+}
 } // namespace Rosen
 } // namespace OHOS
