@@ -15,6 +15,7 @@
 
 #include "draw/pen.h"
 
+#include "config/DrawingConfig.h"
 #include "static_factory.h"
 
 namespace OHOS {

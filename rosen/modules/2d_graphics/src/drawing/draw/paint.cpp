@@ -15,6 +15,7 @@
 
 #include <string>
 #include "draw/paint.h"
+#include "config/DrawingConfig.h"
 
 namespace OHOS {
 namespace Rosen {

@@ -13,8 +13,9 @@
  * limitations under the License.
  */
 
-#ifdef DRAWING_DISABLE_API
+
 #include "config/DrawingConfig.h"
+#ifdef DRAWING_DISABLE_API
 #include <string>
 #include <vector>
 #include "base/startup/init/interfaces/innerkits/include/syspara/parameters.h"
@@ -24,7 +25,7 @@ namespace OHOS {
 namespace Rosen {
 namespace Drawing {
 int flagCount = static_cast<int>(DrawingConfig::DrawingDisableFlag::COUNT);
-
+std::mutex DrawingConfig::mutex;
 std::vector<bool> gDrawingDisableFlags(flagCount, false);
 
 std::vector<std::string> gDrawingDisableFlagStr = {

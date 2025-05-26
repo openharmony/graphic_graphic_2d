@@ -73,7 +73,7 @@ public:
 
     static bool IsDisabled(DrawingDisableFlag flag);
 private:
-    std::mutex mutex;
+    static std::mutex mutex;
 #endif
 };
 }
