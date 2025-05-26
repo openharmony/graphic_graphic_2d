@@ -21,14 +21,14 @@
 #endif
 #include "ani_drawing_utils.h"
 #include "draw/canvas.h"
-#include "image_ani_utils.h"
 #include "sampling_options_ani/ani_sampling_options.h"
 
 namespace OHOS::Rosen {
 namespace Drawing {
 class AniCanvas final {
 public:
-    explicit AniCanvas(Canvas* canvas) : m_canvas(canvas) {};
+    AniCanvas() = default;
+    explicit AniCanvas(Canvas* canvas, bool owned = false) : m_canvas(canvas), owned_(owned) {};
     ~AniCanvas();
 
     static ani_status AniInit(ani_env *env);
@@ -58,6 +58,7 @@ public:
     DRAWING_API void ClipCanvas(float width, float height);
     DRAWING_API void SaveCanvas();
     DRAWING_API void RestoreCanvas();
+    DRAWING_API static ani_object CreateAniCanvas(ani_env* env, Canvas* canvas);
 
 private:
     void NotifyDirty();
@@ -66,6 +67,7 @@ private:
         Drawing::Rect& rect, AniSamplingOptions* samplingOptions);
 #endif
     Canvas* m_canvas = nullptr;
+    bool owned_ = false;
 #ifdef ROSEN_OHOS
     std::shared_ptr<Media::PixelMap> mPixelMap_ = nullptr;
 #endif
