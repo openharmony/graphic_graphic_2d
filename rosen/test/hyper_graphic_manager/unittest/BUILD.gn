@@ -80,6 +80,7 @@ ohos_unittest("hyper_graphic_manager_test") {
     "hitrace:hitrace_meter",
     "init:libbeget_proxy",
     "init:libbegetutil",
+    "libxml2:libxml2",
   ]
 
   part_name = "graphic_2d"

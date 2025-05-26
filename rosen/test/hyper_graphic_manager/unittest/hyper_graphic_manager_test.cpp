@@ -18,6 +18,7 @@
 
 #include "hgm_core.h"
 #include "hgm_frame_rate_manager.h"
+#include "hgm_test_base.h"
 
 #include "screen_manager/screen_types.h"
 
@@ -40,7 +41,7 @@ namespace {
     constexpr int32_t IDEAL_60_PERIOD = 16666666;
 
 }
-class HyperGraphicManagerTest : public testing::Test {
+class HyperGraphicManagerTest : public HgmTestBase {
 public:
     static void SetUpTestCase();
     static void TearDownTestCase();
@@ -48,7 +49,10 @@ public:
     void TearDown();
 };
 
-void HyperGraphicManagerTest::SetUpTestCase() {}
+void HyperGraphicManagerTest::SetUpTestCase()
+{
+    HgmTestBase::SetUpTestCase();
+}
 void HyperGraphicManagerTest::TearDownTestCase() {}
 void HyperGraphicManagerTest::SetUp() {}
 void HyperGraphicManagerTest::TearDown() {}
