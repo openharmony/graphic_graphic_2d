@@ -16,6 +16,8 @@
 #ifndef DRAWING_CONFIG_H
 #define DRAWING_CONFIG_H
 
+#include <mutex>
+
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
@@ -70,6 +72,8 @@ public:
     };
 
     static bool IsDisabled(DrawingDisableFlag flag);
+private:
+    std::mutex mutex;
 #endif
 };
 }

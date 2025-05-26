@@ -227,6 +227,7 @@ void Paint::SetShaderEffect(std::shared_ptr<ShaderEffect> e)
 {
 #ifdef DRAWING_DISABLE_API
     if (DrawingConfig::IsDisabled(DrawingConfig::DrawingDisableFlag::DISABLE_SHADER)) {
+        shaderEffect_ = nullptr;
         return;
     }
 #endif
@@ -237,6 +238,7 @@ void Paint::SetPathEffect(std::shared_ptr<PathEffect> e)
 {
 #ifdef DRAWING_DISABLE_API
     if (DrawingConfig::IsDisabled(DrawingConfig::DrawingDisableFlag::DISABLE_PATH_EFFECT)) {
+        pathEffect_ = nullptr;
         return;
     }
 #endif
@@ -247,6 +249,7 @@ void Paint::SetBlender(std::shared_ptr<Blender> blender)
 {
 #ifdef DRAWING_DISABLE_API
     if (DrawingConfig::IsDisabled(DrawingConfig::DrawingDisableFlag::DISABLE_BLENDER)) {
+        blender_ = nullptr;
         return;
     }
 #endif

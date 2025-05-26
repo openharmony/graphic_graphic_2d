@@ -72,6 +72,7 @@ std::vector<std::string> gDrawingDisableFlagStr = {
 
 void DrawingConfig::UpdateDrawingProperties()
 {
+    std::lock_guard<std::mutex> lock(mutex);
     if (flagCount != static_cast<int>(gDrawingDisableFlagStr.size())) {
         LOGE("The number of gDrawingDisableFlagStr and DrawingDisableFlag is inconsistent");
         return;
@@ -85,6 +86,7 @@ void DrawingConfig::UpdateDrawingProperties()
 
 bool DrawingConfig::IsDisabled(DrawingDisableFlag flag)
 {
+    std::lock_guard<std::mutex> lock(mutex);
     return gDrawingDisableFlags[static_cast<int>(flag)];
 }
 }
