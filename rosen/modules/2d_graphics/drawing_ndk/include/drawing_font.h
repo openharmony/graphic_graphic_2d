@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -276,6 +276,83 @@ OH_Drawing_ErrorCode OH_Drawing_FontMeasureSingleCharacter(const OH_Drawing_Font
  */
 OH_Drawing_ErrorCode OH_Drawing_FontMeasureText(const OH_Drawing_Font* font, const void* text, size_t byteLength,
     OH_Drawing_TextEncoding encoding, OH_Drawing_Rect* bounds, float* textWidth);
+
+/**
+ * @brief Measures the width of text with brush or pen.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param font Indicates the pointer to an <b>OH_Drawing_Font</b> object.
+ * @param text Indicates the character storage encoded with text encoding.
+ * @param byteLength Indicates the text length in bytes.
+ * @param encoding Indicates the text encoding.
+ * @param brush Indicates the pointer to an <b>OH_Drawing_Brush</b> object.
+ * @param pen Indicates the pointer to an <b>OH_Drawing_Pen</b> object.
+ * @param bounds Gets the bounding box relative to (0, 0) if not nullptr.
+ * @param textWidth Indicates the width of text.
+ * @return Returns the error code.
+ *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
+ *         Returns {@link OH_DRAWING_ERROR_INVALID_PARAMETER} if any of font, text
+ *                 and textWidth is nullptr or byteLength is 0 or brush and pen are both not nullptr.
+ * @since 20
+ * @version 1.0
+ */
+OH_Drawing_ErrorCode OH_Drawing_FontMeasureTextWithBrushOrPen(const OH_Drawing_Font* font, const void* text,
+    size_t byteLength, OH_Drawing_TextEncoding encoding, const OH_Drawing_Brush* brush, const OH_Drawing_Pen* pen,
+    OH_Drawing_Rect* bounds, float* textWidth);
+
+/**
+ * @brief Retrieves the advance and bounding box for each glyph in glyphs
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param font Indicates the pointer to an <b>OH_Drawing_Font</b> object.
+ * @param glyphs Indicates the array of glyph indices to be measured.
+ * @param count Indicates the number of glyphs.
+ * @param brush Indicates the pointer to an <b>OH_Drawing_Brush</b> object.
+ * @param pen Indicates the pointer to an <b>OH_Drawing_Pen</b> object.
+ * @param widths Indicates the text advances for each glyph returned to the caller.
+ * @param bounds Indicates the text bounding box for each glyph returned to caller.
+ * @return Returns the error code.
+ *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
+ *         Returns {@link OH_DRAWING_ERROR_INVALID_PARAMETER} if any of font and glyphs is nullptr
+ *                 or count is no larger than 0 or brush and pen are both not nullptr.
+ * @since 20
+ * @version 1.0
+ */
+OH_Drawing_ErrorCode OH_Drawing_FontGetWidthsBounds(const OH_Drawing_Font* font, const uint16_t* glyphs, int count,
+    const OH_Drawing_Brush* brush, const OH_Drawing_Pen* pen, float* widths, OH_Drawing_Array* bounds);
+
+/**
+ * @brief Retrieves the positions for each glyph, beginning at the specified origin.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param font Indicates the pointer to an <b>OH_Drawing_Font</b> object.
+ * @param glyphs Indicates the array of glyph indices to be measured.
+ * @param count Indicates the number of glyphs.
+ * @param origin Indicates the location of the first glyph.
+ * @param points Indicates the relative position for each glyph returned to tha caller.
+ * @return Returns the error code.
+ *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
+ *         Returns {@link OH_DRAWING_ERROR_INVALID_PARAMETER} if any of font, glyphs and points is nullptr or
+ *                 count is not larger than 0.
+ * @since 20
+ * @version 1.0
+ */
+OH_Drawing_ErrorCode OH_Drawing_FontGetPos(const OH_Drawing_Font* font, const uint16_t* glyphs, int count,
+    const OH_Drawing_Point* origin, OH_Drawing_Point2D* bounds);
+
+/**
+ * @brief Returns the recommended spacing between lines.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param font Indicates the pointer to an <b>OH_Drawing_Font</b> object.
+ * @param spacing Indicates the recommended spacing between lines.
+ * @return Returns the error code.
+ *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
+ *         Returns {@link OH_DRAWING_ERROR_INVALID_PARAMETER} if any of font and spacing is nullptr.
+ * @since 20
+ * @version 1.0
+ */
+OH_Drawing_ErrorCode OH_Drawing_FontGetSpacing(const OH_Drawing_Font* font, float* spacing);
 
 /**
  * @brief Enables or disables linearly scalable font for an <b>OH_Drawing_Font</b> object.

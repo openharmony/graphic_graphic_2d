@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -76,6 +76,12 @@ public:
     bool GetPathForGlyph(uint16_t glyph, Path* path) const override;
 
     scalar MeasureText(const void* text, size_t byteLength, TextEncoding encoding, Rect* bounds) const override;
+    scalar MeasureText(const void* text, size_t byteLength, TextEncoding encoding, Rect* bounds,
+        const Brush* brush, const Pen* pen) const override;
+    void GetWidthsBounds(const uint16_t glyphs[], int count, float widths[], Rect bounds[],
+        const Brush* brush, const Pen* pen) const override;
+    void GetPos(const uint16_t glyphs[], int count, Point points[], Point origin = {0, 0}) const override;
+    float GetSpacing() const override;
     int CountText(const void* text, size_t byteLength, TextEncoding encoding) const override;
 
     void GetTextPath(const void* text, size_t byteLength, TextEncoding encoding,
