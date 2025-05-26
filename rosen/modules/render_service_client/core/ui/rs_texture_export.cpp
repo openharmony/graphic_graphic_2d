@@ -106,6 +106,7 @@ void RSTextureExport::ClearContext()
         return;
     }
 
+    std::lock_guard<std::mutex> lock(virtualSurfaceNodeSetMutex_);
     for (auto& node : virtualSurfaceNodeSet_) {
         if (node == nullptr) {
             continue;
