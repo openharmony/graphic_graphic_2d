@@ -43,6 +43,11 @@ namespace Rosen {
 class RSModifier;
 class RSRenderAnimation;
 
+/**
+ * @class RSModifierManager
+ *
+ * @brief The class for managing RSModifier instances.
+ */
 class RSC_EXPORT RSModifierManager {
 public:
     /**
