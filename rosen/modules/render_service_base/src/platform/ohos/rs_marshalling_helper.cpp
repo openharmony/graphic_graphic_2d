@@ -3075,7 +3075,8 @@ bool RSMarshallingHelper::UnmarshallingTransactionVer(Parcel& parcel)
     size_t offset = parcel.GetReadPosition();
     headerCode = parcel.ReadInt64();
     if (headerCode == -1) {
-        for (int i = 0; i < 4; i++) {
+        constexpr int numInterations = 4;
+        for (int i = 0; i < numInterations; i++) {
             parcel.ReadUint64();
         }
     } else {
@@ -3086,8 +3087,10 @@ bool RSMarshallingHelper::UnmarshallingTransactionVer(Parcel& parcel)
 
 bool RSMarshallingHelper::TransactionVersionCheck(Parcel& parcel, uint8_t supportedFlag)
 {
+    constexpr size_t startPositionOffset = 4;
+
     size_t offset = parcel.GetReadPosition();
-    parcel.RewindRead(4);
+    parcel.RewindRead(startPositionOffset);
     int64_t headerCode = parcel.ReadInt64();
     if (headerCode == -1) {
         uint64_t flags = 0;

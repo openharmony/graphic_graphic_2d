@@ -135,8 +135,6 @@ static std::shared_ptr<Drawing::Image> CreateDrawingImage()
     return surface->GetImageSnapshot();
 }
 
-
-
 static Drawing::Path CreateDrawingPath()
 {
     Drawing::Path path;
@@ -144,6 +142,31 @@ static Drawing::Path CreateDrawingPath()
     path.QuadTo(20, 60, 80, 50);
     path.QuadTo(20, 60, 20, 80);
     return path;
+}
+
+template<typename T>
+static void TestCompatibleMarshalling(T value)
+{
+    const T srcValue = value;
+
+    Parcel parcel;
+
+    parcel.WriteInt32(0);
+    RSMarshallingHelper::MarshallingTransactionVer(parcel);
+
+    EXPECT_TRUE(RSMarshallingHelper::CompatibleMarshalling(parcel, value, RSPARCELVER_ADD_ANIMTOKEN));
+
+    constexpr auto skipSize = 36;
+    parcel.SkipBytes(skipSize);
+
+    EXPECT_TRUE(RSMarshallingHelper::CompatibleUnmarshalling(parcel, value, 0, RSPARCELVER_ADD_ANIMTOKEN));
+
+    if constexpr (std::is_same_v<T, float> == true || std::is_same_v<T, double> == true) {
+        constexpr auto eps = 0.001;
+        EXPECT_NEAR(value, srcValue, eps);
+    } else {
+        EXPECT_EQ(value, srcValue);
+    }
 }
 
 /**
@@ -494,4 +517,43 @@ HWTEST_F(RSMarshallingTest, SkipSkImage001, Function | MediumTest | Level2)
     RSMarshallingHelper::SkipImage(parcel);
     EXPECT_NE(RSMarshallingHelper::MIN_DATA_SIZE, 0);
 }
+
+/**
+ * @tc.name: ParcelVersion
+ * @tc.desc:
+ * @tc.type:FUNC
+ * @tc.require: issueIC9VTO
+ */
+HWTEST_F(RSMarshallingTest, ParcelVersion, Function | MediumTest | Level2)
+{
+    Parcel parcel;
+
+    ASSERT_TRUE(RSMarshallingHelper::MarshallingTransactionVer(parcel));
+    ASSERT_TRUE(RSMarshallingHelper::UnmarshallingTransactionVer(parcel));
+}
+
+/**
+ * @tc.name: CompatibleMarshalling
+ * @tc.desc:
+ * @tc.type:FUNC
+ * @tc.require: issueIC9VTO
+ */
+HWTEST_F(RSMarshallingTest, CompatibleMarshalling, Function | MediumTest | Level2)
+{
+    TestCompatibleMarshalling(true);
+    TestCompatibleMarshalling(static_cast<int8_t>(123));
+    TestCompatibleMarshalling(static_cast<uint8_t>(32));
+    TestCompatibleMarshalling(static_cast<int16_t>(2342));
+    TestCompatibleMarshalling(static_cast<uint16_t>(998));
+
+    TestCompatibleMarshalling(54444);
+    TestCompatibleMarshalling(98123u);
+
+    TestCompatibleMarshalling(static_cast<int64_t>(653434));
+    TestCompatibleMarshalling(static_cast<uint64_t>(5434695));
+
+    TestCompatibleMarshalling(54.76f);
+    TestCompatibleMarshalling(656.76);
+}
+
 } // namespace OHOS::Rosen

@@ -79,7 +79,7 @@ bool RSRenderServiceConnectionProxyVariant::FillParcelWithTransactionData(std::u
     }
 
     if (!RSMarshallingHelper::MarshallingTransactionVer(*parcel)) {
-        ROSEN_LOGE("FillParcelWithTransactionData WriteVersionHeader failed!");
+        SAFUZZ_LOGE("FillParcelWithTransactionData WriteVersionHeader failed!");
         return false;
     }
 
