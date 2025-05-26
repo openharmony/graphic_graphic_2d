@@ -83,7 +83,6 @@ template("skia_libtxt") {
       "txt/paragraph_builder.cpp",
       "txt/paragraph_style.cpp",
       "txt/placeholder_run.cpp",
-      "txt/platform.cpp",
       "txt/text_bundle_config_parser.cpp",
       "txt/text_style.cpp",
       "txt/typeface_font_asset_provider.cpp",
@@ -177,6 +176,8 @@ ohos_static_library("font_asset") {
     "$rosen_text_root/adapter/skia/txt",
     "$rosen_text_root/adapter/skia",
     "$rosen_text_root/service/texgine/src",
+    "$graphic_2d_root/rosen/modules/2d_graphics/include",
+    "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing/engine_adapter",
   ]
 
   if (platform_is_ohos) {
@@ -195,5 +196,6 @@ ohos_static_library("font_asset") {
     "$rosen_text_root/adapter/skia/txt/font_asset_provider.cpp",
     "$rosen_text_root/adapter/skia/txt/typeface_font_asset_provider.cpp",
     "$rosen_text_root/service/texgine/src/font_config.cpp",
+    "txt/platform.cpp",
   ]
 }
