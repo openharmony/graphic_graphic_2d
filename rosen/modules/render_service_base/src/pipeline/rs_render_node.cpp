@@ -440,6 +440,7 @@ void RSRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId, NodeId f
         if (ret) {
             AddToPendingSyncList();
         }
+        stagingRenderParams_->SetIsOnTheTree(isOnTheTree_);
     }
 
     for (auto& weakChild : children_) {

@@ -576,6 +576,9 @@ void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     target->needSwapBuffer_ = needSwapBuffer_;
     target->cacheNodeFrameRect_ = cacheNodeFrameRect_;
 
+    // used for DFX
+    target->isOnTheTree_ = isOnTheTree_;
+
     needSync_ = false;
 }
 
@@ -733,5 +736,16 @@ void RSRenderParams::SetCacheNodeFrameRect(const Drawing::RectF& cacheNodeFrameR
 const Drawing::RectF& RSRenderParams::GetCacheNodeFrameRect() const
 {
     return cacheNodeFrameRect_;
+}
+
+// used for DFX
+void RSRenderParams::SetIsOnTheTree(bool isOnTheTree)
+{
+    isOnTheTree_ = isOnTheTree;
+}
+
+bool RSRenderParams::GetIsOnTheTree() const
+{
+    return isOnTheTree_;
 }
 } // namespace OHOS::Rosen
