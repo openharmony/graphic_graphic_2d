@@ -368,7 +368,7 @@ bool MessageParcelCustomizedTypeUtils::WriteRandomTransactionDataCallbackSptr(Me
             "rsClient is nullptr");
         return false;
     }
-    sptr<RSITransactionDataCallback> obj = new TransactionDataCallbackDirector(std::shared_ptr<RSRenderServiceClient>(rsClient));
+    sptr<RSITransactionDataCallback> obj = new TransactionDataCallbackDirector(rsClient);
     if (!messageParcel.WriteRemoteObject(obj->AsObject())) {
         SAFUZZ_LOGE("MessageParcelCustomizedTypeUtils::WriteRandomTransactionDataCallbackSptr "
             "WriteRemoteObject failed");
