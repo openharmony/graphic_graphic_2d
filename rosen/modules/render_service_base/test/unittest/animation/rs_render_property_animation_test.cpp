@@ -209,10 +209,8 @@ HWTEST_F(RSRenderPropertyAnimationTest, ProcessAnimateVelocityUnderAngleRotation
  */
 HWTEST_F(RSRenderPropertyAnimationTest, RSRenderPropertyAnimation_Constructor001, TestSize.Level1)
 {
-    AnimationId id = 1;
-    PropertyId propertyId = 2;
     auto originValue = std::make_shared<RSRenderAnimatableProperty<float>>(0);
-    RSRenderPropertyAnimation animation(id, propertyId, originValue);
+    RSRenderPropertyAnimation animation(ANIMATION_ID, PROPERTY_ID, originValue);
     EXPECT_NE(animation.GetOriginValue(), nullptr);
     EXPECT_NE(animation.GetLastValue(), nullptr);
 }
@@ -224,9 +222,7 @@ HWTEST_F(RSRenderPropertyAnimationTest, RSRenderPropertyAnimation_Constructor001
  */
 HWTEST_F(RSRenderPropertyAnimationTest, RSRenderPropertyAnimation_Constructor002, TestSize.Level1)
 {
-    AnimationId id = 1;
-    PropertyId propertyId = 2;
-    RSRenderPropertyAnimation animation(id, propertyId, nullptr);
+    RSRenderPropertyAnimation animation(ANIMATION_ID, PROPERTY_ID, nullptr);
     EXPECT_NE(animation.GetOriginValue(), nullptr);
     EXPECT_NE(animation.GetLastValue(), nullptr);
 }
