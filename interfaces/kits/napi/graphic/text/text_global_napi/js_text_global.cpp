@@ -69,7 +69,8 @@ napi_value JsTextGlobal::SetTextUndefinedGlyphDisplay(napi_env env, napi_callbac
 
     auto result = TextGlobalConfig::SetTextUndefinedGlyphDisplay(textUndefinedGlyphDisplay);
     if (result != TEXT_SUCCESS) {
-        TEXT_LOGE("Failed to set text undefined glyph display, undefined glyph display: %{public}u", textUndefinedGlyphDisplay);
+        TEXT_LOGE("Failed to set text undefined glyph display, undefined glyph display: %{public}u",
+            textUndefinedGlyphDisplay);
     }
     return NapiGetUndefined(env);
 }
