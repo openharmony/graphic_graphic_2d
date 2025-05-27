@@ -173,8 +173,10 @@ HWTEST_F(NdkUndefinedGlyphDisplayTest, NdkUndefinedGlyphDisplayTest005, TestSize
     OH_Drawing_SetTextUndefinedGlyphDisplay(TEXT_UNDEFINED_GLYPH_USE_TOFU);
     const char* fontFamilies[] = { "Noto Sans" };
     OH_Drawing_Typography* typography = PrepareCreateTypography(text_, fontFamilies, 1);
+    EXPECT_NE(typography, nullptr);
     BoundsResult(typography, notoResult_, 3);
     OH_Drawing_Typography* onlyTypography = PrepareCreateTypography(noGlyphText_, fontFamilies, 1);
+    EXPECT_NE(onlyTypography, nullptr);
     BoundsResult(onlyTypography, noGlyphTofuResult_, 1);
     OH_Drawing_SetTextUndefinedGlyphDisplay(TEXT_UNDEFINED_GLYPH_USE_DEFAULT);
     OH_Drawing_DestroyTypography(typography);
