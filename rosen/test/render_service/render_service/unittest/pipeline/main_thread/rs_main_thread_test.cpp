@@ -5002,7 +5002,6 @@ HWTEST_F(RSMainThreadTest, HandleTunnelLayerId001, TestSize.Level1)
  
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(0, mainThread->context_);
     auto surfaceHandler = surfaceNode->surfaceHandler_;
-    surfaceHandler = nullptr;
  
     mainThread->HandleTunnelLayerId(surfaceHandler, surfaceNode);
     EXPECT_EQ(surfaceNode->GetTunnelLayerId(), 0);

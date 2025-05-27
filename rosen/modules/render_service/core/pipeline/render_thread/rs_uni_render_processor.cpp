@@ -410,7 +410,6 @@ void RSUniRenderProcessor::ProcessRcdSurfaceForRenderThread(DrawableV2::RSRcdSur
 void RSUniRenderProcessor::HandleTunnelLayerParameters(RSSurfaceRenderParams& params, LayerInfoPtr& layer)
 {
     if (!layer || !params.GetTunnelLayerId()) {
-        RS_LOGI("%{public}s layer or tunnelLayerId is null", __func__);
         return;
     }
     layer->SetTunnelLayerId(params.GetTunnelLayerId());

@@ -5320,13 +5320,17 @@ void RSMainThread::OnFmtTraceSwitchCallback(const char *key, const char *value, 
 void RSMainThread::HandleTunnelLayerId(const std::shared_ptr<RSSurfaceHandler>& surfaceHandler,
     const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode)
 {
-    if (surfaceHandler == nullptr || surfaceNode == nullptr ||
-        surfaceHandler->GetSourceType() !=
+    if (surfaceHandler == nullptr || surfaceNode == nullptr) {
+        RS_LOGI("%{public}s surfaceHandler or surfaceNode is null", __func__);
+        return;
+    }
+
+    if (surfaceHandler->GetSourceType() !=
         static_cast<uint32_t>(OHSurfaceSource::OH_SURFACE_SOURCE_LOWPOWERVIDEO)) {
-        RS_LOGI("%{public}s not support lpp, clear lpp id", __func__);
         surfaceNode->SetTunnelLayerId(0);
         return;
     }
+
     auto consumer = surfaceHandler->GetConsumer();
     if (consumer == nullptr) {
         RS_LOGI("%{public}s consumer is null", __func__);
@@ -5335,15 +5339,13 @@ void RSMainThread::HandleTunnelLayerId(const std::shared_ptr<RSSurfaceHandler>& 
 
     uint64_t currentTunnelLayerId = surfaceNode->GetTunnelLayerId();
     uint64_t newTunnelLayerId = consumer->GetUniqueId();
-
     if (currentTunnelLayerId == newTunnelLayerId) {
-        RS_LOGI("%{public}s: lpp id not change", __func__);
         return;
     }
 
     surfaceNode->SetTunnelLayerId(newTunnelLayerId);
     RS_LOGI("%{public}s lpp surfaceid:%{public}llu", __func__, newTunnelLayerId);
-    RS_TRACE_NAME_FMT("%s: lpp surfaceid=%" PRIu64 "", __func__, newTunnelLayerId);
+    RS_TRACE_NAME_FMT("%s lpp surfaceid=%" PRIu64 "", __func__, newTunnelLayerId);
 }
 } // namespace Rosen
 } // namespace OHOS

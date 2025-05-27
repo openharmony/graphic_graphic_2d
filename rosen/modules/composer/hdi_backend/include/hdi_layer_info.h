@@ -232,7 +232,7 @@ public:
         tunnelHandle_ = handle;
     }
 
-    void SetTunnelLayerId(uint64_t tunnelLayerId)
+    void SetTunnelLayerId(const uint64_t &tunnelLayerId)
     {
         tunnelLayerId_ = tunnelLayerId;
     }
