@@ -542,9 +542,9 @@ bool RSUifirstManager::SubThreadControlFrameRate(NodeId id,
     bool isLeashWindow = node->GetLastFrameUifirstFlag() == MultiThreadCacheType::LEASH_WINDOW;
 
     return purgeEnable_ && hasAvailableTexture && isLeashWindow &&
-    RSUifirstFrameRateControl::Instance().NeedRSUifirstControlFrameDrop(*node) &&
-    (subthreadProcessingNode_.find(id) == subthreadProcessingNode_.end()) &&
-    !drawable->GetRsSubThreadCache().IsSubThreadSkip();
+        RSUifirstFrameRateControl::Instance().NeedRSUifirstControlFrameDrop(*node) &&
+        (subthreadProcessingNode_.find(id) == subthreadProcessingNode_.end()) &&
+        !drawable->GetRsSubThreadCache().IsSubThreadSkip();
 }
 
 void RSUifirstManager::DoPurgePendingPostNodes(std::unordered_map<NodeId,
