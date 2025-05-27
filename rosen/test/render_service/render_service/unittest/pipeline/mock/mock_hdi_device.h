@@ -91,6 +91,8 @@ public:
     MOCK_METHOD4(SetLayerPerFrameParameterSmq,
                  int32_t(uint32_t, uint32_t, const std::string&, const std::vector<int8_t>&));
     MOCK_METHOD3(SetLayerTunnelHandle, int32_t(uint32_t, uint32_t, GraphicExtDataHandle *));
+    MOCK_METHOD3(SetTunnelLayerId, int32_t(uint32_t, uint32_t, uint64_t));
+    MOCK_METHOD3(SetTunnelLayerProperty, int32_t(uint32_t, uint32_t, uint32_t));
     MOCK_METHOD3(GetSupportedPresentTimestampType, int32_t(uint32_t, uint32_t, GraphicPresentTimestampType&));
     MOCK_METHOD3(GetPresentTimestamp, int32_t(uint32_t, uint32_t, GraphicPresentTimestamp&));
     MOCK_METHOD3(SetLayerMaskInfo, int32_t(uint32_t, uint32_t, uint32_t));

@@ -570,6 +570,8 @@ private:
     bool DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNode, bool waitForRT);
     bool ExistBufferIsVisibleAndUpdate();
     void UpdateDirectCompositionByAnimate(bool animateNeedRequestNextVsync);
+    void HandleTunnelLayerId(const std::shared_ptr<RSSurfaceHandler>& surfaceHandler,
+        const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode);
 
     bool isUniRender_ = RSUniRenderJudgement::IsUniRender();
     bool needWaitUnmarshalFinished_ = true;
