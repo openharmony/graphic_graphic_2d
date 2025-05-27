@@ -671,6 +671,18 @@ int32_t HdiDeviceImpl::SetLayerTunnelHandle(uint32_t screenId, uint32_t layerId,
     return g_composer->SetLayerTunnelHandle(screenId, layerId, (*(reinterpret_cast<ExtDataHandle *>(handle))));
 }
 
+int32_t HdiDeviceImpl::SetTunnelLayerId(uint32_t devId, uint32_t layerId, uint64_t tunnelId)
+{
+    CHECK_FUNC(g_composer);
+    return g_composer->SetTunnelLayerId(devId, layerId, tunnelId);
+}
+
+int32_t HdiDeviceImpl::SetTunnelLayerProperty(uint32_t devId, uint32_t layerId, uint32_t property)
+{
+    CHECK_FUNC(g_composer);
+    return g_composer->SetTunnelLayerProperty(devId, layerId, property);
+}
+
 int32_t HdiDeviceImpl::GetSupportedPresentTimestampType(uint32_t screenId, uint32_t layerId,
                                                         GraphicPresentTimestampType &type)
 {
@@ -710,7 +722,7 @@ int32_t HdiDeviceImpl::CreateLayer(uint32_t screenId, const GraphicLayerInfo &la
     LayerInfo hdiLayerInfo = {
         .width = layerInfo.width,
         .height = layerInfo.height,
-        .type = static_cast<LayerType>(layerInfo.type),
+        .type = static_cast<Composer::V1_0::LayerType>(layerInfo.type),
         .pixFormat = static_cast<HDI::Display::Composer::V1_0::PixelFormat>(layerInfo.pixFormat),
     };
     return g_composer->CreateLayer(screenId, hdiLayerInfo, cacheCount, layerId);

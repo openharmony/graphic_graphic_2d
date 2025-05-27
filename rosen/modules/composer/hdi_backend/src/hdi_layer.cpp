@@ -499,6 +499,38 @@ int32_t HdiLayer::SetLayerTunnelHandle()
     return ret;
 }
 
+int32_t HdiLayer::SetTunnelLayerId()
+{
+    if (prevLayerInfo_ != nullptr) {
+        if (layerInfo_->GetTunnelLayerId() == prevLayerInfo_->GetTunnelLayerId()) {
+            return GRAPHIC_DISPLAY_SUCCESS;
+        }
+    }
+ 
+    int32_t ret = device_->SetTunnelLayerId(screenId_, layerId_, layerInfo_->GetTunnelLayerId());
+    if (ret != GRAPHIC_DISPLAY_SUCCESS) {
+        return ret;
+    }
+
+    return GRAPHIC_DISPLAY_SUCCESS;
+}
+
+int32_t HdiLayer::SetTunnelLayerProperty()
+{
+    if (prevLayerInfo_ != nullptr) {
+        if (layerInfo_->GetTunnelLayerProperty() == prevLayerInfo_->GetTunnelLayerProperty()) {
+            return GRAPHIC_DISPLAY_SUCCESS;
+        }
+    }
+
+    int32_t ret = device_->SetTunnelLayerProperty(screenId_, layerId_, layerInfo_->GetTunnelLayerProperty());
+    if (ret != GRAPHIC_DISPLAY_SUCCESS) {
+        return ret;
+    }
+
+    return GRAPHIC_DISPLAY_SUCCESS;
+}
+
 int32_t HdiLayer::SetLayerPresentTimestamp()
 {
     if (supportedPresentTimestamptype_ == GraphicPresentTimestampType::GRAPHIC_DISPLAY_PTS_UNSUPPORTED) {
@@ -807,6 +839,13 @@ int32_t HdiLayer::SetPerFrameParameters()
             ret = SetPerFrameLayerSourceTuning();
             CheckRet(ret, "SetLayerSourceTuning");
         }
+    }
+
+    if (layerInfo_->GetTunnelLayerId() || layerInfo_->GetTunnelLayerProperty()) {
+        ret = SetTunnelLayerId();
+        CheckRet(ret, "SetTunnelLayerId");
+        ret = SetTunnelLayerProperty();
+        CheckRet(ret, "SetTunnelLayerProperty");
     }
     return ret;
 }
