@@ -1898,7 +1898,7 @@ void RSSurfaceRenderNode::ResetSurfaceOpaqueRegion(const RectI& screeninfo, cons
 {
     Occlusion::Region absRegion { absRect };
     Occlusion::Region oldOpaqueRegion { opaqueRegion_ };
-    Occlusion::Region oldNagivationBarTransparentRegion { navigationBarTransparentRegionChanged_ };
+    Occlusion::Region oldNavigationBarTransparentRegion { navigationBarTransparentRegion_ };
 
     // The transparent region of surfaceNode should include shadow area
     Occlusion::Rect dirtyRect { GetOldDirty() };
@@ -1938,9 +1938,9 @@ void RSSurfaceRenderNode::ResetSurfaceOpaqueRegion(const RectI& screeninfo, cons
     Occlusion::Region screenRegion{screen};
     transparentRegion_.AndSelf(screenRegion);
     opaqueRegion_.AndSelf(screenRegion);
-    navigationBarTransparentRegionChanged_ = Occlusion::Region(Occlusion::Rect(NeedDrawBehindWindow() ? GetFilterRect() : RectI()));
+    navigationBarTransparentRegion_ = Occlusion::Region(Occlusion::Rect(NeedDrawBehindWindow() ? GetFilterRect() : RectI()));
     opaqueRegionChanged_ = !oldOpaqueRegion.Xor(opaqueRegion_).IsEmpty();
-    navigationBarTransparentRegionChanged_ = !oldNavigationBarTransparentRegion.Xor(navigationBarTransparentRegionChanged_).IsEmpty();
+    navigationBarTransparentRegionChanged_ = !oldNavigationBarTransparentRegion.Xor(navigationBarTransparentRegion_).IsEmpty();
     ResetSurfaceContainerRegion(screeninfo, absRect, screenRotation);
 }
 
