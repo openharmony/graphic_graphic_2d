@@ -182,8 +182,7 @@ public:
     void CheckHwcChildrenType(RSSurfaceRenderNode& node, SurfaceHwcNodeType& enabledType);
     void MarkSubHighPriorityType(RSSurfaceRenderNode& node);
     void MarkPostNodesPriority();
-    bool SubThreadControlFrameRate(const bool subThreadControlFrameRateEnable,
-    const bool hasAvailableTexture, const bool isLeashWindow, uint64_t id,
+    bool SubThreadControlFrameRate(NodeId id,
     std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable>& drawable,
     std::shared_ptr<RSSurfaceRenderNode>& node);
     void RecordScreenRect(RSSurfaceRenderNode& node, RectI rect);
