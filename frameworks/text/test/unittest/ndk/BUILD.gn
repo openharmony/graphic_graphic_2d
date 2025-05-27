@@ -21,7 +21,7 @@ ohos_unittest("text_ndk_test") {
   defines = []
   sources = [
     "add_text_test.cpp",
-    "no_glyph_show_test.cpp",
+    "undefined_glyph_display_test.cpp",
   ]
 
   include_dirs = [

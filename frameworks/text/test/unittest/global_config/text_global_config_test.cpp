@@ -70,9 +70,9 @@ HWTEST_F(TextGlobalConfigTest, TextHighContrastTest02, TestSize.Level1)
 */
 HWTEST_F(TextGlobalConfigTest, TextUndefinedGlyphDisplayTest01, TestSize.Level1)
 {
-    uint32_t result = TextGlobalConfig::SetTextUndefinedGlyphDisplay(NO_GLYPH_USE_DEFAULT);
+    uint32_t result = TextGlobalConfig::SetTextUndefinedGlyphDisplay(UNDEFINED_GLYPH_USE_DEFAULT);
     EXPECT_EQ(result, 0);
-    result = TextGlobalConfig::SetTextUndefinedGlyphDisplay(NO_GLYPH_USE_TOFU);
+    result = TextGlobalConfig::SetTextUndefinedGlyphDisplay(UNDEFINED_GLYPH_USE_TOFU);
     EXPECT_EQ(result, 0);
     result = TextGlobalConfig::SetTextUndefinedGlyphDisplay(3);
     EXPECT_EQ(result, TEXT_ERR_PARA_INVALID);

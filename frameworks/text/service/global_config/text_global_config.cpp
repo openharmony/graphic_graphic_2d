@@ -36,7 +36,7 @@ uint32_t TextGlobalConfig::SetTextHighContrast(uint32_t textHighContrast)
 
 uint32_t TextGlobalConfig::SetTextUndefinedGlyphDisplay(uint32_t textUndefinedGlyphDisplay)
 {
-    if (textUndefinedGlyphDisplay >= NO_GLYPH_BUTT) {
+    if (textUndefinedGlyphDisplay >= UNDEFINED_GLYPH_BUTT) {
         return TEXT_ERR_PARA_INVALID;
     }
     skia::textlayout::TextGlobalConfig::SetUndefinedGlyphDisplay(textUndefinedGlyphDisplay);

@@ -38,9 +38,9 @@ enum TextError {
 };
 
 enum TextUndefinedGlyphDisplay {
-    NO_GLYPH_USE_DEFAULT,
-    NO_GLYPH_USE_TOFU,
-    NO_GLYPH_BUTT,
+    UNDEFINED_GLYPH_USE_DEFAULT,
+    UNDEFINED_GLYPH_USE_TOFU,
+    UNDEFINED_GLYPH_BUTT,
 };
 
 class TextGlobalConfig final {
