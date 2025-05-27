@@ -414,7 +414,7 @@ void RSUniRenderProcessor::HandleTunnelLayerParameters(RSSurfaceRenderParams& pa
     }
     layer->SetTunnelLayerId(params.GetTunnelLayerId());
     layer->SetTunnelLayerProperty(TunnelLayerProperty::TUNNEL_PROP_BUFFER_ADDR |
-        TunnelLayerProperty::TUNNEL_PROP_SHB_COMMIT);
+        TunnelLayerProperty::TUNNEL_PROP_DEVICE_COMMIT);
 }
 
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR

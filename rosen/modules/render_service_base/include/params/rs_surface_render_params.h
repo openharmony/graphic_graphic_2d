@@ -372,7 +372,7 @@ public:
     // source crop tuning
     void SetLayerSourceTuning(int32_t needSourceTuning);
     int32_t GetLayerSourceTuning() const;
-    void SetTunnelLayerId(uint64_t tunnelLayerId);
+    void SetTunnelLayerId(const uint64_t& tunnelLayerId);
     uint64_t GetTunnelLayerId() const;
 
     void SetGpuOverDrawBufferOptimizeNode(bool overDrawNode);
