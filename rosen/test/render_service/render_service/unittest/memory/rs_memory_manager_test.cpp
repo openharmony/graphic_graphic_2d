@@ -720,6 +720,34 @@ HWTEST_F(RSMemoryManagerTest, SetGpuMemoryLimit002, testing::ext::TestSize.Level
 }
 
 /**
+ * @tc.name: MemoryOverflow001
+ * @tc.desc: Test MemoryOverflow
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryManagerTest, MemoryOverflow001, testing::ext::TestSize.Level1)
+{
+    logMsg.clear();
+    LOG_SetCallback(MyLogCallback);
+    MemoryManager::MemoryOverflow(1433, 1024, true);
+    EXPECT_TRUE(logMsg.find("RSMemoryOverflow pid[1433]") != std::string::npos);
+}
+
+/**
+ * @tc.name: MemoryOverflow002
+ * @tc.desc: Test pid = 0
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryManagerTest, MemoryOverflow002, testing::ext::TestSize.Level1)
+{
+    logMsg.clear();
+    LOG_SetCallback(MyLogCallback);
+    MemoryManager::MemoryOverflow(0, 1024, true);
+    EXPECT_TRUE(logMsg.find("MemoryManager::MemoryOverflow pid = 0") != std::string::npos);
+}
+
+/**
  * @tc.name: DumpExitPidMem001
  * @tc.desc: Verify DumpExitPidMem logs correct trace info
  * @tc.type: FUNC
