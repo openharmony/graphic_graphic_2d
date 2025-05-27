@@ -674,13 +674,13 @@ int32_t HdiDeviceImpl::SetLayerTunnelHandle(uint32_t screenId, uint32_t layerId,
 int32_t HdiDeviceImpl::SetTunnelLayerId(uint32_t devId, uint32_t layerId, uint64_t tunnelId)
 {
     CHECK_FUNC(g_composer);
-    return g_composer->SetTunnelLayerId(devId, layerId, tunnelId);
+    return GRAPHIC_DISPLAY_SUCCESS;
 }
 
 int32_t HdiDeviceImpl::SetTunnelLayerProperty(uint32_t devId, uint32_t layerId, uint32_t property)
 {
     CHECK_FUNC(g_composer);
-    return g_composer->SetTunnelLayerProperty(devId, layerId, property);
+    return GRAPHIC_DISPLAY_SUCCESS;
 }
 
 int32_t HdiDeviceImpl::GetSupportedPresentTimestampType(uint32_t screenId, uint32_t layerId,
