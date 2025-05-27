@@ -1533,5 +1533,19 @@ bool RSSystemProperties::GetBehindWindowFilterEnabled()
 {
     return isBehindWindowFilterEnabled_;
 }
+
+bool RSSystemProperties::GetSubThreadControlFrameRate()
+{
+    static bool subThreadControlFrameRateEnable =
+        system::GetBoolParameter("const.graphic.subthread.control.framerate", false);
+    return subThreadControlFrameRateEnable;
+}
+
+int RSSystemProperties::GetSubThreadDropFrameInterval()
+{
+    static bool dropFrameInterval =
+        system::GetIntParameter("const.graphic.subthread.dropframe.interval", 1);
+    return dropFrameInterval;
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -368,6 +368,8 @@ public:
     static bool GetVKImageUseEnabled();
     static void SetBehindWindowFilterEnabled(bool enabled);
     static bool GetBehindWindowFilterEnabled();
+    static bool GetSubThreadControlFrameRate();
+    static int GetSubThreadDropFrameInterval();
 private:
     RSSystemProperties() = default;
 
