@@ -56,6 +56,7 @@ void AniBrush::Constructor(ani_env* env, ani_object obj)
     AniBrush* aniBrush = new AniBrush();
     if (ANI_OK != env->Object_SetFieldByName_Long(obj, NATIVE_OBJ, reinterpret_cast<ani_long>(aniBrush))) {
         ROSEN_LOGE("AniBrush::Constructor failed create aniBrush");
+        delete aniBrush;
         return;
     }
 }
@@ -71,6 +72,7 @@ void AniBrush::ConstructorWithBrush(ani_env* env, ani_object obj, ani_object ani
     AniBrush* newAniBrush = new AniBrush(aniBrush->GetBrush());
     if (ANI_OK != env->Object_SetFieldByName_Long(obj, NATIVE_OBJ, reinterpret_cast<ani_long>(newAniBrush))) {
         ROSEN_LOGE("AniBrush::Constructor failed create aniBrush");
+        delete newAniBrush;
         return;
     }
 }

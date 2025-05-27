@@ -84,6 +84,7 @@ void AniFont::Constructor(ani_env* env, ani_object obj)
     AniFont* aniFont = new AniFont();
     if (ANI_OK != env->Object_SetFieldByName_Long(obj, NATIVE_OBJ, reinterpret_cast<ani_long>(aniFont))) {
         ROSEN_LOGE("AniFont::Constructor failed create aniFont");
+        delete aniFont;
         return;
     }
 }

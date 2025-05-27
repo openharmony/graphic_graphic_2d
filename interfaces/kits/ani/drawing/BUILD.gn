@@ -80,6 +80,11 @@ ohos_shared_library("drawing_ani") {
     "ani_drawing_module.cpp",
     "ani_drawing_utils.cpp",
     "lattice_ani/ani_lattice.cpp",
+    "matrix_ani/ani_matrix.cpp",
+    "path_iterator_ani/ani_path_iterator.cpp",
+    "path_ani/ani_path.cpp",
+    "region_ani/ani_region.cpp",
+    "round_rect_ani/ani_round_rect.cpp",
     "brush_ani/ani_brush.cpp",
     "canvas_ani/ani_canvas.cpp",
     "color_filter_ani/ani_color_filter.cpp",
@@ -87,6 +92,7 @@ ohos_shared_library("drawing_ani") {
     "pen_ani/ani_pen.cpp",
     "sampling_options_ani/ani_sampling_options.cpp",
     "typeface_ani/ani_typeface.cpp",
+    "typeface_arguments_ani/ani_typeface_arguments.cpp",
   ]
 
   deps = [

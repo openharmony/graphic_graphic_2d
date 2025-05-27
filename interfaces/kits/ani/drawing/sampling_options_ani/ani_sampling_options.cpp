@@ -51,6 +51,7 @@ void AniSamplingOptions::Constructor(ani_env* env, ani_object obj)
     AniSamplingOptions* aniSamplingOptions = new AniSamplingOptions(samplingOptions);
     if (ANI_OK != env->Object_SetFieldByName_Long(obj, NATIVE_OBJ, reinterpret_cast<ani_long>(aniSamplingOptions))) {
         ROSEN_LOGE("AniSamplingOptions::Constructor failed create aniSamplingOptions");
+        delete aniSamplingOptions;
         return;
     }
 }
@@ -68,6 +69,7 @@ void AniSamplingOptions::ConstructorWithFilterMode(ani_env* env, ani_object obj,
 
     if (ANI_OK != env->Object_SetFieldByName_Long(obj, NATIVE_OBJ, reinterpret_cast<ani_long>(aniSamplingOptions))) {
         ROSEN_LOGE("AniSamplingOptions::Constructor failed create aniSamplingOptions");
+        delete aniSamplingOptions;
         return;
     }
 }

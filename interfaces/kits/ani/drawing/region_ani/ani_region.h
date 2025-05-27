@@ -13,34 +13,32 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_ROSEN_ANI_TYPEFACE_H
-#define OHOS_ROSEN_ANI_TYPEFACE_H
+#ifndef OHOS_ROSEN_ANI_REGION_H
+#define OHOS_ROSEN_ANI_REGION_H
 
 #include "ani_drawing_utils.h"
-
-#include "text/typeface.h"
+#include "utils/region.h"
 
 namespace OHOS::Rosen {
 namespace Drawing {
-class AniTypeface final {
+class AniRegion final {
 public:
-    explicit AniTypeface(std::shared_ptr<Typeface> typeface) : typeface_(typeface) {}
-    ~AniTypeface() = default;
+    AniRegion() = default;
+    explicit AniRegion(const Region& region) : region_(region) {}
+    ~AniRegion() = default;
 
     static ani_status AniInit(ani_env *env);
 
-    static void CreateAniTypeface(ani_env* env, ani_object obj, ani_long typeface);
+    static void Constructor(ani_env* env, ani_object obj);
+    static void ConstructorWithRegion(ani_env* env, ani_object obj, ani_object aniRegionObj);
+    static void ConstructorWithRect(ani_env* env, ani_object obj, ani_double left, ani_double top, ani_double right,
+        ani_double bottom);
 
-    static ani_string GetFamilyName(ani_env* env, ani_object obj);
-    static ani_object MakeFromFile(ani_env* env, ani_object obj, ani_string filePath);
-    static ani_object MakeFromFileWithArguments(ani_env* env, ani_object obj, ani_string filePath,
-        ani_object argumentsObj);
-
-    std::shared_ptr<Typeface> GetTypeface();
+    Region& GetRegion();
 
 private:
-    std::shared_ptr<Typeface> typeface_;
+    Region region_;
 };
 } // namespace Drawing
 } // namespace OHOS::Rosen
-#endif // OHOS_ROSEN_ANI_TYPEFACE_H
+#endif // OHOS_ROSEN_ANI_REGION_H

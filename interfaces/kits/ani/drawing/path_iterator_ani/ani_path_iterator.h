@@ -13,34 +13,28 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_ROSEN_ANI_TYPEFACE_H
-#define OHOS_ROSEN_ANI_TYPEFACE_H
+#ifndef OHOS_ROSEN_ANI_PATHITERATOR_H
+#define OHOS_ROSEN_ANI_PATHITERATOR_H
 
 #include "ani_drawing_utils.h"
-
-#include "text/typeface.h"
+#include "draw/path_iterator.h"
 
 namespace OHOS::Rosen {
 namespace Drawing {
-class AniTypeface final {
+class AniPathIterator final {
 public:
-    explicit AniTypeface(std::shared_ptr<Typeface> typeface) : typeface_(typeface) {}
-    ~AniTypeface() = default;
+    explicit AniPathIterator(const Path& path) : pathIterator_(path) {}
+    ~AniPathIterator() = default;
 
     static ani_status AniInit(ani_env *env);
 
-    static void CreateAniTypeface(ani_env* env, ani_object obj, ani_long typeface);
+    static void ConstructorWithPath(ani_env* env, ani_object obj, ani_object aniPathObj);
 
-    static ani_string GetFamilyName(ani_env* env, ani_object obj);
-    static ani_object MakeFromFile(ani_env* env, ani_object obj, ani_string filePath);
-    static ani_object MakeFromFileWithArguments(ani_env* env, ani_object obj, ani_string filePath,
-        ani_object argumentsObj);
-
-    std::shared_ptr<Typeface> GetTypeface();
+    PathIterator& GetPathIterator();
 
 private:
-    std::shared_ptr<Typeface> typeface_;
+    PathIterator pathIterator_;
 };
 } // namespace Drawing
 } // namespace OHOS::Rosen
-#endif // OHOS_ROSEN_ANI_TYPEFACE_H
+#endif // OHOS_ROSEN_ANI_PATHITERATOR_H

@@ -55,6 +55,7 @@ void AniPen::Constructor(ani_env* env, ani_object obj)
     AniPen* aniPen = new AniPen();
     if (ANI_OK != env->Object_SetFieldByName_Long(obj, NATIVE_OBJ, reinterpret_cast<ani_long>(aniPen))) {
         ROSEN_LOGE("AniPen::Constructor failed create aniPen");
+        delete aniPen;
         return;
     }
 }
@@ -70,6 +71,7 @@ void AniPen::ConstructorWithPen(ani_env* env, ani_object obj, ani_object aniPenO
     AniPen* newAniPen = new AniPen(aniPen->GetPen());
     if (ANI_OK != env->Object_SetFieldByName_Long(obj, NATIVE_OBJ, reinterpret_cast<ani_long>(newAniPen))) {
         ROSEN_LOGE("AniPen::Constructor failed create aniPen");
+        delete newAniPen;
         return;
     }
 }
