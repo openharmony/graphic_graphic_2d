@@ -663,12 +663,10 @@ HWTEST_F(RSUIDirectorTest, StartTextureExportTest001, TestSize.Level1)
     if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN) {
         std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
         ASSERT_TRUE(director != nullptr);
-        if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN) {
-            director->isUniRenderEnabled_ = true;
-            RSRenderThread::Instance().thread_ = std::make_unique<std::thread>([]{});
-            director->StartTextureExport();
-            EXPECT_NE(RSTransactionProxy::GetInstance(), nullptr);
-        }
+        director->isUniRenderEnabled_ = true;
+        RSRenderThread::Instance().thread_ = std::make_unique<std::thread>([]{});
+        director->StartTextureExport();
+        EXPECT_NE(RSTransactionProxy::GetInstance(), nullptr);
     }
 }
 } // namespace OHOS::Rosen
