@@ -265,8 +265,8 @@ bool HgmSoftVSyncManager::CollectVRateChange(uint64_t linkerId, FrameRateRange& 
     }
     int32_t& appFrameRate = finalRange.preferred_;
     // finalRange.preferred_ is 0 means that the appframerate want to be changed by self.
-    if (appFrameRate != 0 && (finalRange.type_ != ACE_COMPONENT_FRAME_RATE_TYPE ||
-        (finalRange.type_ == ACE_COMPONENT_FRAME_RATE_TYPE && /* ArkUI Vote */
+    if (appFrameRate != 0 && (finalRange.type_ != DRAG_SCENE_FRAME_RATE_TYPE ||
+        (finalRange.type_ == DRAG_SCENE_FRAME_RATE_TYPE && /* ArkUI Vote */
         iter->second != std::numeric_limits<int>::max()))) { /*invisible window*/
         RS_OPTIONAL_TRACE_NAME_FMT("CollectVRateChange pid = %d , linkerId = %" PRIu64 ", vrate = %d return because "
             "appFrameRate[%d] changed by self, not arkui vote[%u], not invisble window", ExtractPid(linkerId),
