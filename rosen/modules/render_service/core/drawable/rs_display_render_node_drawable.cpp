@@ -981,7 +981,8 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     }
     HardCursorCreateLayer(processor);
     if (screenInfo.activeRect.IsEmpty() ||
-        screenInfo.activeRect == RectI(0, 0, screenInfo.width, screenInfo.height)) {
+        screenInfo.activeRect == RectI(0, 0, screenInfo.width, screenInfo.height) ||
+        DirtyRegionParam::IsComposeDirtyRegionEnableInPartialDisplay()) {
         if (uniParam->IsRegionDebugEnabled()) {
             std::vector<RectI> emptyRegionRects = {};
             SetDirtyRects(emptyRegionRects);
