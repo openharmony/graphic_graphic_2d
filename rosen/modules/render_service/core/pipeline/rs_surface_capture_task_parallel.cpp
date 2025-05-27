@@ -225,6 +225,9 @@ bool RSSurfaceCaptureTaskParallel::Run(
         RSUniRenderThread::SetCaptureParam(
             CaptureParam(true, true, false, captureConfig_.scaleX, captureConfig_.scaleY, true, isSystemCalling));
         surfaceNodeDrawable_->OnCapture(canvas);
+        RS_LOGI("RSSurfaceCaptureTaskParallel::Run: the number of total processedNodes: %{public}d",
+            DrawableV2::RSRenderNodeDrawable::GetSnapshotProcessedNodeCount());
+        DrawableV2::RSRenderNodeDrawable::ClearSnapshotProcessedNodeCount();
         if (isFreeze) {
             surfaceNodeDrawable_->SetCacheImageByCapture(surface->GetImageSnapshot());
         }
@@ -241,9 +244,6 @@ bool RSSurfaceCaptureTaskParallel::Run(
 #if (defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK)) && (defined RS_ENABLE_EGLIMAGE)
 #ifdef RS_ENABLE_UNI_RENDER
     RSUniRenderUtil::OptimizedFlushAndSubmit(surface, gpuContext_.get(), !RSSystemProperties::IsPcType());
-    if (curNodeParams && curNodeParams->IsNodeToBeCaptured()) {
-        RSUifirstManager::Instance().AddCapturedNodes(curNodeParams->GetId());
-    }
     if (RSSystemProperties::GetSnapshotWithDMAEnabled()) {
         auto copytask = CreateSurfaceSyncCopyTask(surface, std::move(pixelMap_),
             nodeId_, callback, finalRotationAngle_, captureConfig_.useDma);

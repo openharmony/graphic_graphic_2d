@@ -110,8 +110,6 @@ public:
         return isRecentTaskScene_.load();
     }
 
-    void AddCapturedNodes(NodeId id);
-
     void AddCardNodes(NodeId id, MultiThreadCacheType currentFrameCacheType)
     {
         if (currentFrameCacheType != MultiThreadCacheType::ARKTS_CARD) {
@@ -251,7 +249,6 @@ private:
 
     // for recents scene
     std::atomic<bool> isRecentTaskScene_ = false;
-    std::vector<NodeId> capturedNodes_;
     std::vector<NodeId> currentFrameDeletedCardNodes_;
     std::atomic<bool> isCurrentFrameHasCardNodeReCreate_ = false;
 };

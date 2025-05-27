@@ -860,4 +860,21 @@ void RSRenderNodeDrawable::ClearProcessedNodeCount()
 {
     processedNodeCount_ = 0;
 }
+
+int RSRenderNodeDrawable::GetSnapshotProcessedNodeCount()
+{
+    return snapshotProcessedNodeCount_;
+}
+
+void RSRenderNodeDrawable::SnapshotProcessedNodeCountInc()
+{
+    if (RSUniRenderThread::GetCaptureParam().isSingleSurface_) {
+        ++snapshotProcessedNodeCount_;
+    }
+}
+
+void RSRenderNodeDrawable::ClearSnapshotProcessedNodeCount()
+{
+    snapshotProcessedNodeCount_ = 0;
+}
 } // namespace OHOS::Rosen::DrawableV2
