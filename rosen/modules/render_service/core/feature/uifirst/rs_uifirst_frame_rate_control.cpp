@@ -34,13 +34,11 @@ bool RSUifirstFrameRateControl::JudgeMultiSubSurface(RSSurfaceRenderNode& node)
 
 bool RSUifirstFrameRateControl::GetUifirstFrameDropInternal(int frameInterval)
 {
-    callCount++;
-
-    if(callCount % (frameInterval + 1) == 0) {
-        callCount = 0;
+    callCount_++;
+    if(callCount_ % (frameInterval + 1) == 0) {
+        callCount_ = 0;
         return false;
     }
-
     return true;
 }
 
