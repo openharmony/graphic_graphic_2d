@@ -14,16 +14,16 @@
  */
 
 #include "skia_hm_symbol_config_ohos.h"
-
-#include "src/ports/skia_ohos/HmSymbolConfig_ohos.h"
+#include "symbol_resource/symbol_default_config_parser.h"
 #include "utils/log.h"
+
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
 
 DrawingSymbolLayersGroups SkiaHmSymbolConfigOhos::GetSymbolLayersGroups(uint16_t glyphId)
 {
-    SymbolLayersGroups groups = HmSymbolConfig_OHOS::GetInstance()->GetSymbolLayersGroups(glyphId);
+    SymbolLayersGroups groups = SymbolDefaultConfigParser::GetInstance()->GetSymbolLayersGroups(glyphId);
 
     DrawingSymbolLayersGroups drawingGroups;
     drawingGroups.symbolGlyphId = groups.symbolGlyphId;
@@ -125,7 +125,7 @@ std::vector<std::vector<DrawingPiecewiseParameter>> SkiaHmSymbolConfigOhos::GetG
 {
     auto animationType = static_cast<AnimationType>(type);
     auto subType = static_cast<CommonSubType>(commonSubType);
-    auto parametersPtr = HmSymbolConfig_OHOS::GetInstance()->GetGroupParameters(
+    auto parametersPtr = SymbolDefaultConfigParser::GetInstance()->GetGroupParameters(
         animationType, groupSum, animationMode, subType);
 
     std::vector<std::vector<DrawingPiecewiseParameter>> parameters;

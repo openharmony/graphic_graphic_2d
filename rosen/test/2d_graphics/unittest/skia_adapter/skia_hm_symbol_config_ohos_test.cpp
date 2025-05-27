@@ -14,6 +14,7 @@
  */
 
 #include <cstddef>
+
 #include "gtest/gtest.h"
 #include "skia_adapter/skia_hm_symbol_config_ohos.h"
 #include "src/ports/skia_ohos/HmSymbolConfig_ohos.h"
@@ -45,7 +46,7 @@ void SkiaHmSymbolConfigOhosTest::TearDown() {}
  */
 HWTEST_F(SkiaHmSymbolConfigOhosTest, GetSymbolLayersGroups001, TestSize.Level1)
 {
-    HmSymbolConfig_OHOS::GetInstance()->ParseConfigOfHmSymbol("hm_symbol_config_next.json",
+    skia::text::HmSymbolConfig_OHOS::LoadSymbolConfig("hm_symbol_config_next.json",
         SkString("/system/fonts/"));
     auto groups = SkiaHmSymbolConfigOhos::GetSymbolLayersGroups(3); // 3 is an existing GlyphID
     ASSERT_TRUE(groups.symbolGlyphId != 0);
