@@ -86,6 +86,9 @@ public:
     static int GetTotalProcessedNodeCount();
     static void TotalProcessedNodeCountInc();
     static void ClearTotalProcessedNodeCount();
+    static int GetSnapshotProcessedNodeCount();
+    static void SnapshotProcessedNodeCountInc();
+    static void ClearSnapshotProcessedNodeCount();
 
     // opinc dfx
     std::string GetNodeDebugInfo();
@@ -196,6 +199,7 @@ private:
     static thread_local bool isOpDropped_;
     static thread_local bool isOffScreenWithClipHole_;
     static inline std::atomic<int> totalProcessedNodeCount_ = 0;
+    static inline int snapshotProcessedNodeCount_ = 0;
     static thread_local inline int processedNodeCount_ = 0;
     // used foe render group cache
 
