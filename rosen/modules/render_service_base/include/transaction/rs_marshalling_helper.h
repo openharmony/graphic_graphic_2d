@@ -215,11 +215,13 @@ public:
         return true;
     }
 
-    static RSB_EXPORT bool Marshalling(Parcel& parcel, const std::shared_ptr<Drawing::DrawCmdList>& val);
+    static RSB_EXPORT bool Marshalling(Parcel& parcel, const std::shared_ptr<Drawing::DrawCmdList>& val,
+        int32_t recordCmdDepth = 0);
     static RSB_EXPORT bool Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing::DrawCmdList>& val);
-    static RSB_EXPORT bool Marshalling(Parcel& parcel, const std::shared_ptr<Drawing::RecordCmd>& val);
+    static RSB_EXPORT bool Marshalling(Parcel& parcel, const std::shared_ptr<Drawing::RecordCmd>& val,
+        int32_t recordCmdDepth = 0);
     static RSB_EXPORT bool Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing::RecordCmd>& val,
-        uint32_t* opItemCount = nullptr, uint32_t* recordCmdCount = nullptr, uint32_t recordCmdDepth = 0);
+        uint32_t* opItemCount = nullptr, uint32_t* recordCmdCount = nullptr, int32_t recordCmdDepth = 0);
     static RSB_EXPORT bool Marshalling(Parcel& parcel, std::shared_ptr<Drawing::Typeface>& val);
     static RSB_EXPORT bool Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing::Typeface>& val);
     static RSB_EXPORT bool Marshalling(Parcel& parcel, const std::shared_ptr<Drawing::Image>& val);
@@ -448,7 +450,7 @@ private:
     static bool SkipFromParcel(Parcel& parcel, size_t size);
     static const void* ReadFromAshmem(Parcel& parcel, size_t size, bool& isMalloc);
     static bool SafeUnmarshallingDrawCmdList(Parcel& parcel, std::shared_ptr<Drawing::DrawCmdList>& val,
-        uint32_t* opItemCount, uint32_t* recordCmdCount, uint32_t recordCmdDepth);
+        uint32_t* opItemCount, uint32_t* recordCmdCount, int32_t recordCmdDepth);
 
     static constexpr size_t MAX_DATA_SIZE = 128 * 1024 * 1024; // 128M
     static constexpr size_t MIN_DATA_SIZE = 8 * 1024;          // 8k
