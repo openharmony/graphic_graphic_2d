@@ -527,12 +527,21 @@ bool RSUifirstManager::CheckVisibleDirtyRegionIsEmpty(const std::shared_ptr<RSSu
     return false;
 }
 
-bool RSUifirstManager::SubThreadControlFrameRate(const bool subThreadControlFrameRateEnable,
-    const bool hasAvailableTexture, const bool isLeashWindow, uint64_t id,
+bool RSUifirstManager::SubThreadControlFrameRate(NodeId id,
     std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable>& drawable,
     std::shared_ptr<RSSurfaceRenderNode>& node)
 {
-    return subThreadControlFrameRateEnable && purgeEnable_ && hasAvailableTexture && isLeashWindow &&
+    if (!RSSystemProperties::GetSubThreadControlFrameRate()) {
+        return false;
+    }
+
+    auto& rsSubThreadCache = drawable->GetRsSubThreadCache();
+    bool hasAvailableTexture = rsSubThreadCache.HasCachedTexture() &&
+        rsSubThreadCache.GetCacheSurfaceAlphaInfo() != CACHED_SURFACE_IS_TRANSPARENT &&
+        rsSubThreadCache.GetCacheSurfaceProcessedNodes() > SUBTHREAD_CONTROL_FRAMERATE_NODE_LIMIT;
+    bool isLeashWindow = node->GetLastFrameUifirstFlag() == MultiThreadCacheType::LEASH_WINDOW;
+
+    return purgeEnable_ && hasAvailableTexture && isLeashWindow &&
     RSUifirstFrameRateControl::Instance().NeedRSUifirstControlFrameDrop(*node) &&
     (subthreadProcessingNode_.find(id) == subthreadProcessingNode_.end()) &&
     !drawable->GetRsSubThreadCache().IsSubThreadSkip();
@@ -572,12 +581,6 @@ void RSUifirstManager::DoPurgePendingPostNodes(std::unordered_map<NodeId,
 
         auto& rsSubThreadCache = drawable->GetRsSubThreadCache();
         bool staticContent = surfaceParams->GetSurfaceCacheContentStatic();
-        bool subThreadControlFrameRateEnable = RSSystemProperties::GetSubThreadControlFrameRate();
-        bool hasAvailableTexture = rsSubThreadCache.HasCachedTexture() &&
-            rsSubThreadCache.GetCacheSurfaceAlphaInfo() != CACHED_SURFACE_IS_TRANSPARENT &&
-            rsSubThreadCache.GetCacheSurfaceProcessedNodes() > SUBTHREAD_CONTROL_FRAMERATE_NODE_LIMIT;
-        bool isLeashWindow = node->GetLastFrameUifirstFlag() == MultiThreadCacheType::LEASH_WINDOW;
-
         RS_TRACE_NAME_FMT("Purge node name: %s, PurgeEnable:%d, HasCachedTexture:%d, staticContent: %d %" PRIu64,
             surfaceParams->GetName().c_str(), purgeEnable_,
             rsSubThreadCache.HasCachedTexture(), staticContent, drawable->GetId());
@@ -587,8 +590,7 @@ void RSUifirstManager::DoPurgePendingPostNodes(std::unordered_map<NodeId,
             !rsSubThreadCache.IsSubThreadSkip()) {
             RS_OPTIONAL_TRACE_NAME_FMT("Purge node name %s", surfaceParams->GetName().c_str());
             it = pendingNode.erase(it);
-        } else if (SubThreadControlFrameRate(subThreadControlFrameRateEnable, hasAvailableTexture, isLeashWindow,
-            id, drawable, node)) {
+        } else if (SubThreadControlFrameRate(id, drawable, node)) {
             RS_OPTIONAL_TRACE_NAME_FMT("Purge frame drop node name %s", surfaceParams->GetName().c_str());
             it = pendingNode.erase(it);
         } else {
