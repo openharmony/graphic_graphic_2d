@@ -741,6 +741,7 @@ public:
         return visibleRegion_;
     }
 
+    // Get the visible region which include transparent occlusion of the navigation bar
     const Occlusion::Region& GetVisibleRegionIncludeTransparentOcclusion() const
     {
         return visibleRegionIncludeTransparentOcclusion_;
@@ -901,6 +902,7 @@ public:
         visibleRegion_ = region;
     }
 
+    // Set the visible region which include transparent occlusion of the navigation bar
     void SetVisibleRegionIncludeTransparentOcclusion(const Occlusion::Region& region)
     {
         visibleRegionIncludeTransparentOcclusion_ = region;
@@ -988,6 +990,11 @@ public:
     void CleanOpaqueRegionChanged()
     {
         opaqueRegionChanged_ = false;
+    }
+
+    bool IsNavigationBarTransparentRegionChanged() const
+    {
+        return navigationBarTransparentRegionChanged_;
     }
 
     // [planning] Remove this after skia is upgraded, the clipRegion is supported
@@ -1584,6 +1591,7 @@ private:
     bool isUIHidden_ = false;
     bool extraDirtyRegionAfterAlignmentIsEmpty_ = true;
     bool opaqueRegionChanged_ = false;
+    bool navigationBarTransparentRegionChanged_ = false;
     bool isFilterCacheFullyCovered_ = false;
     bool isFilterCacheValidForOcclusion_ = false;
     bool isOccludedByFilterCache_ = false;
@@ -1767,6 +1775,7 @@ private:
     std::vector<std::shared_ptr<RSRenderNode>> childrenFilterNodes_;
     // transparent region of the surface, floating window's container window is always treated as transparent
     Occlusion::Region transparentRegion_;
+    Occlusion::Region navigationBarTransparentRegion_;
 
     Occlusion::Region containerRegion_;
     std::unordered_set<NodeId> abilityNodeIds_;
