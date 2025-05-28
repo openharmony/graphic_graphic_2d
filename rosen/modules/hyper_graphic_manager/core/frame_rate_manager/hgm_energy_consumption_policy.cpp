@@ -29,7 +29,7 @@ namespace OHOS::Rosen {
 
 const static std::string RS_ENERGY_ASSURANCE_TASK_ID = "RS_ENERGY_ASSURANCE_TASK_ID";
 const static std::string DESCISION_VIDEO_CALL_TASK_ID = "DESCISION_VIDEO_CALL_TASK_ID";
-static const std::unordered_map<std::string, std::vertor<uint32_t>> UI_RATE_TYPE_NAME_MAP = {
+static const std::unordered_map<std::string, std::vector<uint32_t>> UI_RATE_TYPE_NAME_MAP = {
     {"ui_animation", { UI_ANIMATION_FRAME_RATE_TYPE, DRAG_SCENE_FRAME_RATE_TYPE } },
     {"display_sync", { DISPLAY_SYNC_FRAME_RATE_TYPE } },
     {"ace_component", { ACE_COMPONENT_FRAME_RATE_TYPE } },
