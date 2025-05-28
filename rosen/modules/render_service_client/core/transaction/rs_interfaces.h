@@ -67,7 +67,8 @@ public:
     /**
      * @brief Set list of surface node id, these nodes will be excluded from this screen.
      * @param id Valid screen id: set screen record black list; INVALID_SCREEN_ID: set screen cast black list.
-     * @param blackListVector List of surface node id.
+     * @param blackListVector List of surface node id. If the screen id is INVALID_SCREEN_ID, the blackListVector will
+     * apply to all virtual screens.
      * @return 0 means success.
      */
     int32_t SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector);
