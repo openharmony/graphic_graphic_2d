@@ -2612,6 +2612,7 @@ void RSRenderNode::AddUIFilterModifier(const std::shared_ptr<RSRenderModifier>& 
         std::static_pointer_cast<RSRenderProperty<std::shared_ptr<RSRenderFilter>>>(modifier->GetProperty());
     if (!renderProperty) {
         ROSEN_LOGW("RSRenderNode::AddUIFilterModifier: null renderProperty.");
+        return;
     }
     auto& renderFilter = renderProperty->GetRef();
     for (auto& type : renderFilter->GetUIFilterTypes()) {

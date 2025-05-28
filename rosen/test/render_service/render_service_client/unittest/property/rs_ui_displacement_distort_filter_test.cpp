@@ -126,6 +126,9 @@ HWTEST_F(RSUIDisplacementDistortFilterTest, SetDisplacementDistort001, TestSize.
     auto rsUIDispDistortFilterPara = std::make_shared<RSUIDispDistortFilterPara>();
     rsUIDispDistortFilterPara->SetDisplacementDistort(displacementDistortPara);
 
+    maskPara->type_ = MaskPara::Type::RIPPLE_MASK;
+    rsUIDispDistortFilterPara->SetDisplacementDistort(displacementDistortPara);
+
     auto iter = rsUIDispDistortFilterPara->properties_.find(RSUIFilterType::DISPLACEMENT_DISTORT_FACTOR);
     ASSERT_NE(iter, rsUIDispDistortFilterPara->properties_.end());
 

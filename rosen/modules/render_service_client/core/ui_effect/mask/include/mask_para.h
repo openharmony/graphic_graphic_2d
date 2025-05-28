@@ -34,7 +34,7 @@ public:
     }
 
 protected:
-    Type type_;
+    Type type_ = Type::NONE;
 };
 } // namespace Rosen
 } // namespace OHOS

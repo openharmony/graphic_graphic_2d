@@ -91,12 +91,12 @@ void MaskNapi::Destructor(napi_env env, void* nativeObject, void* finalize)
 }
 
 bool ParseRippleMask(
-    napi_env env, napi_value* argv, const std::shared_ptr<RippleMaskPara>& rippleMask, size_t& realArgc)
+    napi_env env, napi_value* argv, const std::shared_ptr<RippleMaskPara>& rippleMask, const size_t& realArgc)
 {
-    if (!rippleMask) {
+    if (!rippleMask || realArgc < NUM_3) {
         return false;
     }
-    int parseTimes = 0;
+    uint32_t parseTimes = 0;
     double point[NUM_2] = { 0 };
     if (ConvertFromJsPoint(env, argv[NUM_0], point, NUM_2)) {
         Vector2f center(static_cast<float>(point[NUM_0]), static_cast<float>(point[NUM_1]));
@@ -112,7 +112,7 @@ bool ParseRippleMask(
         rippleMask->SetWidth(static_cast<float>(val));
         parseTimes++;
     }
-    if (ParseJsDoubleValue(env, argv[NUM_3], val)) {
+    if (realArgc == NUM_4 && ParseJsDoubleValue(env, argv[NUM_3], val)) {
         rippleMask->SetWidthCenterOffset(static_cast<float>(val));
         parseTimes++;
     }
@@ -146,9 +146,10 @@ bool ParseValueArray(napi_env env, napi_value valuesArray, std::vector<Vector2f>
     return true;
 }
 
-bool ParseRadialGradientMask(napi_env env, napi_value* argv, std::shared_ptr<RadialGradientMaskPara> mask)
+bool ParseRadialGradientMask(
+    napi_env env, napi_value *argv, std::shared_ptr<RadialGradientMaskPara> mask, const size_t& realArgc)
 {
-    if (!mask) {
+    if (!mask || realArgc != NUM_4) {
         return false;
     }
     int parseTimes = 0;
@@ -242,7 +243,7 @@ napi_value MaskNapi::CreateRadialGradientMask(napi_env env, napi_callback_info i
         MASK_LOG_E("MaskNapi CreateRadialGradientMask parsing input fail."));
     
     auto maskPara = std::make_shared<RadialGradientMaskPara>();
-    UIEFFECT_NAPI_CHECK_RET_D(ParseRadialGradientMask(env, argv, maskPara), nullptr,
+    UIEFFECT_NAPI_CHECK_RET_D(ParseRadialGradientMask(env, argv, maskPara, realArgc), nullptr,
         MASK_LOG_E("MaskNapi CreateRadialGradientMask parsing mask input fail."));
     return Create(env, maskPara);
 }
