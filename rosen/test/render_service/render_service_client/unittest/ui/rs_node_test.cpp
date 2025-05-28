@@ -4331,6 +4331,28 @@ HWTEST_F(RSNodeTest, SetUIForegroundFilter, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetUIForegroundFilter002
+ * @tc.desc: test results of SetUIForegroundFilter
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest, SetUIForegroundFilter002, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    Filter* filterObj = new(std::nothrow) Filter();
+    std::shared_ptr<HdrBrightnessRatioPara> para = std::make_shared<HdrBrightnessRatioPara>();
+    float hdrBrightness = 2.0f; // hdr brightness
+    para->SetBrightnessRatio(hdrBrightness);
+    filterObj->AddPara(para);
+    rsNode->SetUIForegroundFilter(filterObj);
+    EXPECT_EQ(rsNode->GetStagingProperties().GetHDRUIBrightness(), hdrBrightness);
+
+    if (filterObj != nullptr) {
+        delete filterObj;
+        filterObj = nullptr;
+    }
+}
+
+/**
  * @tc.name: SetForegroundUIFilter
  * @tc.desc: test results of SetForegroundUIFilter
  * @tc.type: FUNC
@@ -5899,6 +5921,24 @@ HWTEST_F(RSNodeTest, SetHDRBrightness, TestSize.Level1)
     float hdrBrightness = 0.5f; // for test
     rsNode->SetHDRBrightness(hdrBrightness);
     EXPECT_NE(rsNode->GenerateId(), 1);
+}
+
+/**
+ * @tc.name: SetHDRUIBrightnessTest
+ * @tc.desc: test results of SetHDRUIBrightness
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest, SetHDRUIBrightnessTest, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
+
+    // Default value is 1.0f
+    EXPECT_EQ(rsNode->GetStagingProperties().GetHDRUIBrightness(), 1.0f);
+
+    float hdrBrightness = 2.0f; // hdr brightness
+    rsNode->SetHDRUIBrightness(hdrBrightness);
+    EXPECT_EQ(rsNode->GetStagingProperties().GetHDRUIBrightness(), hdrBrightness);
 }
 
 /**

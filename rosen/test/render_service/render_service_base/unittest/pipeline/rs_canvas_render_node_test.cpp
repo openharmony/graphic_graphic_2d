@@ -223,11 +223,18 @@ HWTEST_F(RSCanvasRenderNodeTest, OnTreeStateChanged, TestSize.Level1)
  */
 HWTEST_F(RSCanvasRenderNodeTest, SetHDRPresent001, TestSize.Level1)
 {
-    NodeId nodeId = 0;
-    std::weak_ptr<RSContext> context;
-    RSCanvasRenderNode rsCanvasRenderNode(nodeId, context);
-    rsCanvasRenderNode.SetHDRPresent(true);
-    EXPECT_TRUE(rsCanvasRenderNode.GetHDRPresent());
+    NodeId nodeId = 1;
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSCanvasRenderNode>(nodeId, context, true);
+    node->context_ = context;
+    EXPECT_TRUE(node->GetContext().lock() != nullptr);
+    NodeId surfaceNodeId = 2;
+    SurfaceNodeCommandHelper::Create(*context, surfaceNodeId);
+    auto surfaceNode = context->GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(surfaceNodeId);
+    node->instanceRootNodeId_ = surfaceNodeId;
+    node->isOnTheTree_ = true;
+    node->SetHDRPresent(true);
+    EXPECT_TRUE(node->GetHDRPresent());
 }
 
 /**
