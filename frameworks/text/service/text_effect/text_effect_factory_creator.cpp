@@ -46,3 +46,4 @@ std::shared_ptr<TextEffect> TextEffectFactoryCreator::CreateTextEffect(TextEffec
     }
     return iter->second->CreateTextEffect();
 }
+} // namespace OHOS::Rosen

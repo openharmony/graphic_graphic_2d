@@ -26,7 +26,7 @@
 
 namespace OHOS::Rosen {
 enum class TextEffectAttribute {
-    FLIP_DIRECTION = 0,
+    FLIP_DIRECTION,
     BLUR_ENABLE,
 };
 
@@ -37,7 +37,6 @@ enum class TextEffectState {
 
 enum class TextEffectStrategy {
     FLIP,
-
     STRATEGY_BUTT
 };
 
@@ -74,13 +73,7 @@ public:
     static TextEffectFactoryCreator& GetInstance();
     ~TextEffectFactoryCreator() = default;
     bool RegisterFactory(TextEffectStrategy strategy, std::shared_ptr<TextEffectFactory> factory);
-    std::shared_ptr<TextEffect> CreateTextEffect(TextEffectStrategy strategy) {
-        std::lock_guard<std::shared_mutex> lock(mutex_);
-        if (factoryTable_.find(strategy) == factoryTable_.end()) {
-            return nullptr;
-        }
-        return factoryTable_[strategy]->CreateTextEffect();
-    }
+    std::shared_ptr<TextEffect> CreateTextEffect(TextEffectStrategy strategy);
 
 private:
     TextEffectFactoryCreator() = default;
@@ -91,8 +84,6 @@ private:
 
     std::unordered_map<TextEffectStrategy, std::shared_ptr<TextEffectFactory>> factoryTable_;
     std::shared_mutex mutex_;
-}
-
-}
-
+};
+} // namespace OHOS::Rosen
 #endif // OHOS_ROSEN_TEXT_TEXT_EFFECT_H
