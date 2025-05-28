@@ -46,7 +46,7 @@ void RSEdgeLightShaderFilter::GenerateGEVisualEffect(
     if (visualEffectContainer == nullptr) {
         return;
     }
-    
+
     Vector4f color;
     if (color_.has_value()) {
         color = color_.value();

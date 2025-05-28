@@ -58,8 +58,9 @@ bool RSFrameRateVote::CheckSurfaceAndUi(OHSurfaceSource sourceType)
         transactionFlags = transactionFlags_;
     }
     // transactionFlags_ format is [pid, eventId]
+    auto strLastVotedPid = "[" + std::to_string(lastVotedPid_) + ",";
     if (sourceType == OHSurfaceSource::OH_SURFACE_SOURCE_VIDEO &&
-        (transactionFlags == "" || transactionFlags.find(std::to_string(lastVotedPid_)) == std::string::npos)) {
+        (transactionFlags == "" || transactionFlags.find(strLastVotedPid) == std::string::npos)) {
         return false;
     }
     auto lastUpdateTime = currentUpdateTime_;

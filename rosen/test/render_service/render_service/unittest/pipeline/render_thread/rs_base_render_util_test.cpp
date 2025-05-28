@@ -1316,4 +1316,24 @@ HWTEST_F(RSBaseRenderUtilTest, GetAccumulatedBufferCount_001, TestSize.Level2)
     ASSERT_EQ(0, RSBaseRenderUtil::GetAccumulatedBufferCount());
 }
 
+/*
+ * @tc.name: WriteCacheImageRenderNodeToPngTest
+ * @tc.desc: Test WriteCacheImageRenderNodeToPng
+ * @tc.type: FUNC
+ * @tc.require: IC9VB0
+ */
+HWTEST_F(RSBaseRenderUtilTest, WriteCacheImageRenderNodeToPngTest, TestSize.Level2)
+{
+    std::shared_ptr<Drawing::Bitmap> bitmap = nullptr;
+    std::string debugInfo = "";
+    bool result = RSBaseRenderUtil::WriteCacheImageRenderNodeToPng(bitmap, debugInfo);
+    ASSERT_EQ(false, result);
+
+    auto bitmap2 = std::make_shared<Drawing::Bitmap>();
+    Drawing::BitmapFormat bitmapFormat { Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_OPAQUE };
+    bitmap2->Build(10, 10, bitmapFormat);
+    bool result2 = RSBaseRenderUtil::WriteCacheImageRenderNodeToPng(bitmap2, debugInfo);
+    ASSERT_EQ(true, result2);
+}
+
 } // namespace OHOS::Rosen

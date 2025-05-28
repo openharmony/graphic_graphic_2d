@@ -501,4 +501,21 @@ HWTEST_F(RSPropertyModifierTest, RSBackgroundUIFilterModifierTest, TestSize.Leve
     RSModifierType ModifierType = modifier->GetModifierType();
     EXPECT_EQ(ModifierType, RSModifierType::BACKGROUND_UI_FILTER);
 }
+
+/**
+ * @tc.name: RSForegroundUIFilterModifierTest
+ * @tc.desc: RSForegroundUIFilterModifierTest
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertyModifierTest, RSForegroundUIFilterModifierTest, TestSize.Level1)
+{
+    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSPropertyBase>();
+    ASSERT_NE(property, nullptr);
+    std::shared_ptr<RSForegroundUIFilterModifier> modifier =
+        std::make_shared<RSForegroundUIFilterModifier>(property);
+    ASSERT_NE(modifier, nullptr);
+    RSModifierType ModifierType = modifier->GetModifierType();
+    EXPECT_EQ(ModifierType, RSModifierType::FOREGROUND_UI_FILTER);
+}
 } // namespace OHOS::Rosen

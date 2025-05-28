@@ -519,32 +519,6 @@ HWTEST_F(RSBaseRenderNodeTest, GetOptionalBufferSize, TestSize.Level1)
 }
 
 /**
- * @tc.name: DrawCacheSurface
- * @tc.desc: test results of DrawCacheSurface
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSBaseRenderNodeTest, DrawCacheSurface, TestSize.Level1)
-{
-    auto node = std::make_shared<RSBaseRenderNode>(id, context);
-    Drawing::Canvas canvas;
-    RSPaintFilterCanvas paintFilterCanvas(&canvas);
-    uint32_t threadIndex = 1;
-    bool isUIFirst = true;
-    node->DrawCacheSurface(paintFilterCanvas, threadIndex, isUIFirst);
-
-    node->boundsHeight_ = 1.0f;
-    node->DrawCacheSurface(paintFilterCanvas, threadIndex, isUIFirst);
-
-    node->boundsWidth_ = 1.0f;
-    node->DrawCacheSurface(paintFilterCanvas, threadIndex, isUIFirst);
-
-    isUIFirst = false;
-    node->DrawCacheSurface(paintFilterCanvas, threadIndex, isUIFirst);
-    ASSERT_TRUE(true);
-}
-
-/**
  * @tc.name: GetCompletedImage
  * @tc.desc: test results of GetCompletedImage
  * @tc.type:FUNC

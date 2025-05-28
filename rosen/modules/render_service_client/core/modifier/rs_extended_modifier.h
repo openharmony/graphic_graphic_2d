@@ -53,6 +53,11 @@ struct RSDrawingContext {
     float height;
 };
 
+/**
+ * @class RSExtendedModifierHelper
+ *
+ * @brief Provides helper functions for creating and managing extended modifiers.
+ */
 class RSC_EXPORT RSExtendedModifierHelper {
 public:
     /**
@@ -74,7 +79,6 @@ public:
     static std::shared_ptr<RSRenderModifier> CreateRenderModifier(
         RSDrawingContext& ctx, PropertyId id, RSModifierType type);
     
-    
     /**
      * @brief Completes the drawing process for the given drawing context.
      *
@@ -84,6 +88,11 @@ public:
     static std::shared_ptr<Drawing::DrawCmdList> FinishDrawing(RSDrawingContext& ctx);
 };
 
+/**
+ * @class RSExtendedModifier
+ *
+ * @brief The modifier corresponding to arkui custom operations
+ */
 class RSC_EXPORT RSExtendedModifier : public RSModifier {
 public:
     /**
@@ -187,6 +196,12 @@ private:
     bool noNeedUICaptured_ = false;
 };
 
+
+/**
+ * @class RSGeometryTransModifier
+ *
+ * @brief The modifier corresponding to arkui geometry transform operations
+ */
 class RS_EXPORT RSGeometryTransModifier : public RSExtendedModifier {
 public:
     /**
@@ -277,6 +292,11 @@ protected:
     }
 };
 
+/**
+ * @class RSTransitionModifier
+ *
+ * @brief The modifier corresponding to arkui transition operations
+ */
 class RSC_EXPORT RSTransitionModifier : public RSExtendedModifier {
 public:
     /**
@@ -306,6 +326,11 @@ public:
     virtual void Identity() = 0;
 };
 
+/**
+ * @class RSBackgroundStyleModifier
+ *
+ * @brief The modifier corresponding to arkui background style operations
+ */
 class RSC_EXPORT RSBackgroundStyleModifier : public RSExtendedModifier {
 public:
     /**
@@ -325,6 +350,11 @@ public:
     }
 };
 
+/**
+ * @class RSContentStyleModifier
+ *
+ * @brief The modifier corresponding to arkui content style operations
+ */
 class RSC_EXPORT RSContentStyleModifier : public RSExtendedModifier {
 public:
     /**
@@ -344,6 +374,11 @@ public:
     }
 };
 
+/**
+ * @class RSForegroundStyleModifier
+ *
+ * @brief The modifier corresponding to arkui foreground style operations
+ */
 class RSC_EXPORT RSForegroundStyleModifier : public RSExtendedModifier {
 public:
     /**
@@ -363,6 +398,11 @@ public:
     }
 };
 
+/**
+ * @class RSOverlayStyleModifier
+ *
+ * @brief The modifier corresponding to arkui overlay style operations
+ */
 class RSC_EXPORT RSOverlayStyleModifier : public RSExtendedModifier {
 public:
     /**
@@ -382,6 +422,11 @@ public:
     }
 };
 
+/**
+ * @class RSNodeModifier
+ *
+ * @brief The modifier corresponding to arkui node operations
+ */
 class RSC_EXPORT RSNodeModifier : public RSExtendedModifier {
 public:
     /**

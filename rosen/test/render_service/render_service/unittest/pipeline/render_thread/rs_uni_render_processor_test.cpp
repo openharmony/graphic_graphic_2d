@@ -505,6 +505,79 @@ HWTEST(RSUniRenderProcessorTest, GetForceClientForDRM005, TestSize.Level1)
 }
 
 /**
+ * @tc.name: HandleTunnelLayerParameters001
+ * @tc.desc: Test RSUniRenderProcessorTest.HandleTunnelLayerParameters
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST(RSUniRenderProcessorTest, HandleTunnelLayerParameters001, TestSize.Level1)
+{
+    auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
+    ASSERT_NE(renderProcessor, nullptr);
+    RSSurfaceRenderParams params(0);
+    LayerInfoPtr layer = nullptr;
+    renderProcessor->HandleTunnelLayerParameters(params, layer);
+    EXPECT_EQ(layer, nullptr);
+}
+ 
+/**
+ * @tc.name: HandleTunnelLayerParameters002
+ * @tc.desc: Test RSUniRenderProcessorTest.HandleTunnelLayerParameters
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST(RSUniRenderProcessorTest, HandleTunnelLayerParameters002, TestSize.Level1)
+{
+    auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
+    ASSERT_NE(renderProcessor, nullptr);
+    RSSurfaceRenderParams params(0);
+    LayerInfoPtr layer;
+    params.SetTunnelLayerId(0);
+    renderProcessor->HandleTunnelLayerParameters(params, layer);
+    EXPECT_EQ(layer->GetTunnelLayerId(), 0);
+    EXPECT_EQ(layer->GetTunnelLayerProperty(), 0);
+}
+ 
+/**
+ * @tc.name: HandleTunnelLayerParameters003
+ * @tc.desc: Test RSUniRenderProcessorTest.HandleTunnelLayerParameters
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST(RSUniRenderProcessorTest, HandleTunnelLayerParameters003, TestSize.Level1)
+{
+    auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
+    ASSERT_NE(renderProcessor, nullptr);
+    RSSurfaceRenderParams params(0);
+    LayerInfoPtr layer;
+    params.SetTunnelLayerId(1);
+    renderProcessor->HandleTunnelLayerParameters(params, layer);
+    EXPECT_EQ(layer->GetTunnelLayerId(), 1);
+    ASSERT_NE(layer->GetTunnelLayerProperty(), 0);
+}
+ 
+/**
+ * @tc.name: GetLayerInfo001
+ * @tc.desc: Test RSUniRenderProcessorTest.GetLayerInfo
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST(RSUniRenderProcessorTest, GetLayerInfo001, TestSize.Level1)
+{
+    auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
+    ASSERT_NE(renderProcessor, nullptr);
+    RSSurfaceRenderParams params(0);
+    params.SetTunnelLayerId(1);
+    sptr<SurfaceBuffer> buffer = nullptr;
+    sptr<SurfaceBuffer> preBuffer = nullptr;
+    sptr<IConsumerSurface> consumer = nullptr;
+    sptr<SyncFence> acquireFence = nullptr;
+ 
+    LayerInfoPtr result = renderProcessor->GetLayerInfo(params, buffer, preBuffer, consumer, acquireFence);
+    EXPECT_EQ(result->GetType(), GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL);
+}
+
+/**
  * @tc.name: CreateLayer_Anco
  * @tc.desc: Test RSUniRenderProcessorTest.CreateLayerForRenderThread for anco
  * @tc.type:FUNC

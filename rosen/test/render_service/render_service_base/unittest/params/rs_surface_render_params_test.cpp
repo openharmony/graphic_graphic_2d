@@ -141,6 +141,20 @@ HWTEST_F(RSSurfaceRenderParamsTest, SetLayerSourceTuning, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetTunnelLayerId
+ * @tc.desc:
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderParamsTest, SetTunnelLayerId, TestSize.Level1)
+{
+    RSSurfaceRenderParams params(DEFAULT_NODEID);
+    EXPECT_EQ(params.GetTunnelLayerId(), 0);
+    params.SetTunnelLayerId(1);
+    EXPECT_EQ(params.GetTunnelLayerId(), 1);
+}
+
+/**
  * @tc.name: SetFixRotationByUser
  * @tc.desc:
  * @tc.type:FUNC

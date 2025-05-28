@@ -88,6 +88,9 @@ enum RSNodeCommandType : uint16_t {
     SET_UICONTEXT_TOKEN = 0x0800,
 
     SET_DRAW_NODE_TYPE = 0x0900,
+
+    UPDATE_OCCLUSION_CULLING_STATUS = 0x0a00,
+
     MARK_REPAINT_BOUNDARY = 0x1000,
 };
 
@@ -165,6 +168,8 @@ public:
     static RSB_EXPORT void SetCommitDumpNodeTreeProcessor(CommitDumpNodeTreeProcessor processor);
     static void SetUIToken(RSContext& context, NodeId nodeId, uint64_t token);
     static void SetDrawNodeType(RSContext& context, NodeId nodeId, DrawNodeType nodeType);
+    static void UpdateOcclusionCullingStatus(RSContext& context, NodeId nodeId,
+        bool enable, NodeId keyOcclusionNodeId);
 };
 
 ADD_COMMAND(RSAddModifier,
@@ -345,6 +350,9 @@ ADD_COMMAND(RSCommitDumpClientNodeTree,
 ADD_COMMAND(RSSetDrawNodeType,
     ARG(PERMISSION_APP, RS_NODE, SET_DRAW_NODE_TYPE,
         RSNodeCommandHelper::SetDrawNodeType, NodeId, DrawNodeType))
+ADD_COMMAND(RSUpdateOcclusionCullingStatus,
+    ARG(PERMISSION_APP, RS_NODE, UPDATE_OCCLUSION_CULLING_STATUS,
+        RSNodeCommandHelper::UpdateOcclusionCullingStatus, NodeId, bool, NodeId))
 } // namespace Rosen
 } // namespace OHOS
 

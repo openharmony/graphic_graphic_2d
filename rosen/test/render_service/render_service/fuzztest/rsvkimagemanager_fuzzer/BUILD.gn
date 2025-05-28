@@ -39,6 +39,8 @@ ohos_fuzztest("RSVKImageManagerFuzzTest") {
   }
 
   cflags = [
+    "-Dprivate=public",
+    "-Dprotected=public",
     "-g",
     "-O0",
     "-Wno-unused-variable",

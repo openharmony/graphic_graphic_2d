@@ -110,9 +110,9 @@ RSScreen::RSScreen(const VirtualScreenConfigs &configs)
       whiteList_(configs.whiteList)
 {
     VirtualScreenInit();
-    RS_LOGW("init virtual: {id: %{public}" PRIu64 ", mirroredId: %{public}" PRIu64
-        ", w * h: [%{public}u * %{public}u], name: %{public}s, screenType: %{public}u}",
-        id_, mirroredId_, width_, height_, name_.c_str(), screenType_);
+    RS_LOGW("init virtual screen: {id: %{public}" PRIu64 ", mirroredId: %{public}" PRIu64
+        ", w * h: [%{public}u * %{public}u], name: %{public}s, screenType: %{public}u, whiteList size: %{public}zu}",
+        id_, mirroredId_, width_, height_, name_.c_str(), screenType_, whiteList_.size());
 }
 
 void RSScreen::VirtualScreenInit() noexcept
@@ -770,7 +770,7 @@ void RSScreen::DisplayDump(int32_t screenIndex, std::string& dumpString)
         AppendFormat(dumpString,
                      "isSamplingOn=%d, samplingScale=%.2f, samplingTranslateX=%.2f, samplingTranslateY=%.2f\n",
                      isSamplingOn_, samplingScale_, samplingTranslateX_, samplingTranslateY_);
-        AppendFormat(dumpString, "enableVisibleRect=%d, mainScreenVisibleRect_=[%d,%d,%d,%d]",
+        AppendFormat(dumpString, "enableVisibleRect=%d, mainScreenVisibleRect_=[%d,%d,%d,%d]\n",
                      enableVisibleRect_.load(), mainScreenVisibleRect_.x, mainScreenVisibleRect_.y,
                      mainScreenVisibleRect_.w, mainScreenVisibleRect_.h);
     }

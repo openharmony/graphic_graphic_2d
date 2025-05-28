@@ -1326,7 +1326,7 @@ HWTEST_F(RSSymbolAnimationTest, PopNodeFromFlipListTest001, TestSize.Level1)
 
 /**
  * @tc.name: SetTextFlipAnimation001
- * @tc.desc: test text filp animation
+ * @tc.desc: Test text flip animation respectively through invalid and valid parameters
  * @tc.type: FUNC
  */
 HWTEST_F(RSSymbolAnimationTest, SetTextFlipAnimation001, TestSize.Level1)
@@ -1363,7 +1363,7 @@ HWTEST_F(RSSymbolAnimationTest, SetTextFlipAnimation001, TestSize.Level1)
 
 /**
  * @tc.name: SetTextFlipAnimation002
- * @tc.desc: test text filp animation
+ * @tc.desc: Test text flip animation respectively through invalid and valid node
  * @tc.type: FUNC
  */
 HWTEST_F(RSSymbolAnimationTest, SetTextFlipAnimation002, TestSize.Level1)
@@ -1396,7 +1396,7 @@ HWTEST_F(RSSymbolAnimationTest, SetTextFlipAnimation002, TestSize.Level1)
     bool flag1 = symbolAnimation.SetTextFlipAnimation(symbolAnimationConfig);
     EXPECT_FALSE(flag1);
     /**
-     * @tc.steps: step2.2 test Text FLip animation with 
+     * @tc.steps: step2.2 test Text Flip animation by valid node
      */
     rootNode->canvasNodesListMap_.erase(symbolSpanId);
     symbolAnimationConfig->currentAnimationHasPlayed = false;
@@ -1410,7 +1410,7 @@ HWTEST_F(RSSymbolAnimationTest, SetTextFlipAnimation002, TestSize.Level1)
 
 /**
  * @tc.name: SetFlipAppear001
- * @tc.desc: test text filp animation
+ * @tc.desc: Test SetFlipAppear of text flip animation
  * @tc.type: FUNC
  */
 HWTEST_F(RSSymbolAnimationTest, SetFlipAppear001, TestSize.Level1)
@@ -1447,7 +1447,7 @@ HWTEST_F(RSSymbolAnimationTest, SetFlipAppear001, TestSize.Level1)
 
 /**
  * @tc.name: DrawPathOnCanvas002
- * @tc.desc: test text filp animation
+ * @tc.desc: Test DrawPathOnCanvas of text flip animation
  * @tc.type: FUNC
  */
 HWTEST_F(RSSymbolAnimationTest, DrawPathOnCanvas002, TestSize.Level1)
@@ -1478,7 +1478,7 @@ HWTEST_F(RSSymbolAnimationTest, DrawPathOnCanvas002, TestSize.Level1)
 
 /**
  * @tc.name: SpliceAnimation002
- * @tc.desc: implement animation according to type
+ * @tc.desc: Test SpliceAnimation of text flip animation
  * @tc.type: FUNC
  */
 HWTEST_F(RSSymbolAnimationTest, SpliceAnimation002, TestSize.Level1)
@@ -1498,7 +1498,7 @@ HWTEST_F(RSSymbolAnimationTest, SpliceAnimation002, TestSize.Level1)
 
 /**
  * @tc.name: TranslateAnimationBase
- * @tc.desc: implement animation according to type
+ * @tc.desc: Test TranslateAnimationBase respectively through invalid and valid parameters
  * @tc.type: FUNC
  */
 HWTEST_F(RSSymbolAnimationTest, TranslateAnimationBase, TestSize.Level1)
@@ -1533,7 +1533,7 @@ HWTEST_F(RSSymbolAnimationTest, TranslateAnimationBase, TestSize.Level1)
 
 /**
  * @tc.name: BlurAnimationBase
- * @tc.desc: implement animation according to type
+ * @tc.desc: Test BlurAnimationBase respectively through invalid and valid parameters
  * @tc.type: FUNC
  */
 HWTEST_F(RSSymbolAnimationTest, BlurAnimationBase, TestSize.Level1)

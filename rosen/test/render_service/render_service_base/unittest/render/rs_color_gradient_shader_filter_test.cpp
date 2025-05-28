@@ -43,7 +43,7 @@ HWTEST_F(RSColorGradientShaderFilterTest, RSColorGradientShaderFilterTest001, Te
 {
     // 1.0, 0.0, 0.0, 1.0 is the color rgba params
     std::vector<float> colors = { 1.0, 0.0, 0.0, 1.0 };
-    std::vector<float> positions = { 1.0, 1.0 }; // 1.0, 1.0 is poition xy params
+    std::vector<float> positions = { 1.0, 1.0 }; // 1.0, 1.0 is position xy params
     std::vector<float> strengths = { 0.5 }; // 0.5 is strength params
 
     RSColorGradientShaderFilter filter = RSColorGradientShaderFilter(colors, positions, strengths, nullptr);

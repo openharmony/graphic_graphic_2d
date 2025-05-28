@@ -37,8 +37,19 @@
 
 namespace OHOS {
 namespace Rosen {
+
+/**
+ * @class RSModifierManagerMap
+ *
+ * @brief The class for managing RSModifierManager instances.
+ */
 class RSModifierManager;
 
+/**
+ * @class RSModifierManagerMap
+ *
+ * @brief The class for managing RSModifierManager instances.
+ */
 class RSC_EXPORT RSModifierManagerMap final {
 public:
     /**

@@ -51,6 +51,11 @@ using CommitTransactionCallback =
     std::function<void(std::shared_ptr<RSIRenderClient>&, std::unique_ptr<RSTransactionData>&&, uint32_t&)>;
 #endif
 
+/**
+ * @class RSUIDirector
+ *
+ * @brief The class for managing the UI director in the rendering service.
+ */
 class RSC_EXPORT RSUIDirector final {
 public:
     /**
@@ -162,6 +167,18 @@ public:
      * @brief Post messages to render thread.
      */
     void SendMessages();
+    
+    /**
+     * @brief Sets the timestamp and associates it with a specific ability name.
+     *
+     * @param timeStamp The timestamp value to be set.
+     * @param abilityName The name of the ability to associate with the timestamp.
+     */
+
+      /**
+     * @brief Post messages to render thread.
+     */
+    void SendMessages(std::function<void()> callback);
     
     /**
      * @brief Sets the timestamp and associates it with a specific ability name.

@@ -231,6 +231,20 @@ int32_t RSSurfaceRenderParams::GetLayerSourceTuning() const
     return layerSource_;
 }
 
+void RSSurfaceRenderParams::SetTunnelLayerId(const uint64_t& tunnelLayerId)
+{
+    if (tunnelLayerId_ == tunnelLayerId) {
+        return;
+    }
+    tunnelLayerId_ = tunnelLayerId;
+    needSync_ = true;
+}
+
+uint64_t RSSurfaceRenderParams::GetTunnelLayerId() const
+{
+    return tunnelLayerId_;
+}
+
 bool RSSurfaceRenderParams::GetLastFrameHardwareEnabled() const
 {
     return isLastFrameHardwareEnabled_;
@@ -566,6 +580,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->isOutOfScreen_ = isOutOfScreen_;
     targetSurfaceParams->isRotating_ = isRotating_;
     targetSurfaceParams->specialLayerManager_ = specialLayerManager_;
+    targetSurfaceParams->blackListIds_ = blackListIds_;
     targetSurfaceParams->privacyContentLayerIds_ = privacyContentLayerIds_;
     targetSurfaceParams->name_ = name_;
     targetSurfaceParams->bundleName_ = bundleName_;
@@ -589,6 +604,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->roundedCornerRegion_ = roundedCornerRegion_;
     targetSurfaceParams->needOffscreen_ = needOffscreen_;
     targetSurfaceParams->layerSource_ = layerSource_;
+    targetSurfaceParams->tunnelLayerId_ = tunnelLayerId_;
     targetSurfaceParams->hasHdrPresent_ = hasHdrPresent_;
     targetSurfaceParams->totalMatrix_ = totalMatrix_;
     targetSurfaceParams->visibleFilterChild_ = visibleFilterChild_;
@@ -610,6 +626,9 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->allSubSurfaceNodeIds_ = allSubSurfaceNodeIds_;
     targetSurfaceParams->crossNodeSkipDisplayConversionMatrices_ = crossNodeSkipDisplayConversionMatrices_;
     targetSurfaceParams->apiCompatibleVersion_ = apiCompatibleVersion_;
+    targetSurfaceParams->isOcclusionCullingOn_ = isOcclusionCullingOn_;
+    targetSurfaceParams->culledNodes_ = std::move(culledNodes_);
+    targetSurfaceParams->culledEntireSubtree_ = std::move(culledEntireSubtree_);
     targetSurfaceParams->isBufferFlushed_ = isBufferFlushed_;
     targetSurfaceParams->colorFollow_ = colorFollow_;
     targetSurfaceParams->screenRect_ = screenRect_;

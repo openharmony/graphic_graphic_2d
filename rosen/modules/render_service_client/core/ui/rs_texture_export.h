@@ -29,12 +29,20 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_UI_RS_TEXTURE_EXPORT_H
 #define RENDER_SERVICE_CLIENT_CORE_UI_RS_TEXTURE_EXPORT_H
 
+#include <mutex>
+#include <unordered_set>
+
 #include "ui/rs_ui_director.h"
 #include "ui/rs_node.h"
 
 namespace OHOS {
 namespace Rosen {
 
+/**
+ * @class RSTextureExport
+ *
+ * @brief The class for exporting textures from a render service node.
+ */
 class RSC_EXPORT RSTextureExport {
 public:
     /**
@@ -71,12 +79,17 @@ public:
      * @param height The height of the buffer.
      */
     void UpdateBufferInfo(float x, float y, float width, float height);
+#ifdef RS_ENABLE_VK
+    static void ClearContext();
+#endif
 private:
     std::shared_ptr<RSUIDirector> rsUiDirector_;
     std::shared_ptr<RSNode> rootNode_;
     SurfaceId surfaceId_;
     std::shared_ptr<RSSurfaceNode> virtualSurfaceNode_;
     std::shared_ptr<RSNode> virtualRootNode_;
+    static std::mutex virtualSurfaceNodeSetMutex_;
+    static std::unordered_set<std::shared_ptr<RSSurfaceNode>> virtualSurfaceNodeSet_;
 };
 } // namespace Rosen
 } // namespace OHOS

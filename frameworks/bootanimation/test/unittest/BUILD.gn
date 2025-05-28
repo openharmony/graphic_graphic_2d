@@ -54,13 +54,17 @@ ohos_unittest("bootanimation_test") {
     "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
   ]
 
+  public_external_deps = [ "cJSON:cjson" ]
+
   external_deps = [
     "cJSON:cjson_static",
     "c_utils:utils",
     "config_policy:configpolicy_util",
     "hitrace:hitrace_meter",
     "init:libbegetutil",
-    "zlib:libz",
+    "samgr:samgr_proxy",
+    "zlib:libz",    
+    "googletest:gtest_main",
   ]
 
   if (player_framework_enable) {

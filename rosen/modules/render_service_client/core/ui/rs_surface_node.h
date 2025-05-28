@@ -73,6 +73,11 @@ struct RSSurfaceNodeConfig {
     std::shared_ptr<RSUIContext> rsUIContext = nullptr;
 };
 
+/**
+ * @class RSSurfaceNode
+ *
+ * @brief Represents a surface node in the rendering service.
+ */
 class RSC_EXPORT RSSurfaceNode : public RSNode {
 public:
     static constexpr float POINTER_WINDOW_POSITION_Z = 9999;

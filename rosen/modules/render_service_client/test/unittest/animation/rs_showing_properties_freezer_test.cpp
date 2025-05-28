@@ -290,7 +290,9 @@ HWTEST_F(RSShowingPropertiesFreezerTest, GetColorTest, TestSize.Level1)
     ASSERT_TRUE(result1.has_value());
     EXPECT_TRUE(result1.value().GetRed() == SHOWING_COLOR_NUM);
 
-    canvasNode->SetBackgroundColor(SK_ColorRED);
+    RSColor color = Color::FromArgbInt(SK_ColorRED);
+    color.SetColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    canvasNode->SetBackgroundColor(color);
     auto result2 = canvasNode->GetShowingProperties().GetBackgroundColor();
     ASSERT_TRUE(result2.has_value());
     EXPECT_TRUE(result2.value().GetRed() == SHOWING_COLOR_NUM);

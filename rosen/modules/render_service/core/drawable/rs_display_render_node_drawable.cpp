@@ -608,13 +608,14 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     const RectI& dirtyRegion = syncDirtyManager->GetCurrentFrameDirtyRegion();
     const auto& activeSurfaceRect = syncDirtyManager->GetActiveSurfaceRect().IsEmpty() ?
         syncDirtyManager->GetSurfaceRect() : syncDirtyManager->GetActiveSurfaceRect();
+    ScreenInfo curScreenInfo = screenManager->QueryScreenInfo(paramScreenId);
     RS_TRACE_NAME_FMT("RSDisplayRenderNodeDrawable::OnDraw[%" PRIu64 "][%" PRIu64
-        "] zoomed(%d), dirty(%d, %d, %d, %d), active(%d, %d, %d, %d)",
+        "] zoomed(%d), currentFrameDirty(%d, %d, %d, %d), screen(%d, %d), active(%d, %d, %d, %d)",
         paramScreenId, GetId(), params->GetZoomed(),
         dirtyRegion.left_, dirtyRegion.top_, dirtyRegion.width_, dirtyRegion.height_,
+        curScreenInfo.width, curScreenInfo.height,
         activeSurfaceRect.left_, activeSurfaceRect.top_, activeSurfaceRect.width_, activeSurfaceRect.height_);
     RS_LOGD("RSDisplayRenderNodeDrawable::OnDraw node: %{public}" PRIu64 "", GetId());
-    ScreenInfo curScreenInfo = screenManager->QueryScreenInfo(paramScreenId);
     ScreenId activeScreenId = HgmCore::Instance().GetActiveScreenId();
     uint32_t activeScreenRefreshRate = HgmCore::Instance().GetScreenCurrentRefreshRate(activeScreenId);
 
@@ -852,8 +853,11 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
             if (needOffscreen) {
                 ScaleCanvasIfNeeded(screenInfo);
+                auto rect = curCanvas_->GetDeviceClipBounds();
                 PrepareOffscreenRender(*this, !screenInfo.isSamplingOn, !screenInfo.isSamplingOn);
-                curCanvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
+                if (params->GetHDRPresent() || isScRGBEnable) {
+                    curCanvas_->ClipRect(rect);
+                }
             }
 
             if (!params->GetNeedOffscreen()) {
@@ -1235,7 +1239,7 @@ void RSDisplayRenderNodeDrawable::DrawMirror(RSDisplayRenderParams& params,
     }
     // Clean up the content of the previous frame
     curCanvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
-    virtualProcesser->CanvasClipRegionForUniscaleMode();
+    virtualProcesser->CanvasClipRegionForUniscaleMode(visibleClipRectMatrix_, mirroredScreenInfo);
     curCanvas_->ConcatMatrix(mirroredParams->GetMatrix());
     PrepareOffscreenRender(*mirroredDrawable, false, false);
 
@@ -1244,6 +1248,7 @@ void RSDisplayRenderNodeDrawable::DrawMirror(RSDisplayRenderParams& params,
     // surface in PrepareOffscreenRender() above. The offscreen surface has the same size as
     // the main display that's why no need additional scale.
     RSUniRenderThread::SetCaptureParam(CaptureParam(false, false, true));
+    RSUniRenderThread::GetCaptureParam().virtualScreenId_ = params.GetScreenId();
     RSRenderParams::SetParentSurfaceMatrix(curCanvas_->GetTotalMatrix());
     bool isOpDropped = uniParam.IsOpDropped();
     uniParam.SetOpDropped(false); // disable partial render
@@ -2153,6 +2158,10 @@ void RSDisplayRenderNodeDrawable::ScaleCanvasIfNeeded(const ScreenInfo& screenIn
         return;
     }
     slrScale_ = nullptr;
+    if (enableVisibleRect_) {
+        // save canvas matrix to calculate visible clip rect
+        visibleClipRectMatrix_ = curCanvas_->GetTotalMatrix();
+    }
     curCanvas_->Translate(screenInfo.samplingTranslateX, screenInfo.samplingTranslateY);
     curCanvas_->Scale(screenInfo.samplingScale, screenInfo.samplingScale);
 }

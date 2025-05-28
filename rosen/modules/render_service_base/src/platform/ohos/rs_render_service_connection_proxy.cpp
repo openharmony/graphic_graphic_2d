@@ -142,6 +142,11 @@ bool RSRenderServiceConnectionProxy::FillParcelWithTransactionData(
         return false;
     }
 
+    if (!RSMarshallingHelper::MarshallingTransactionVer(*data)) {
+        ROSEN_LOGE("FillParcelWithTransactionData WriteVersionHeader failed!");
+        return false;
+    }
+
     {
         // 1. marshalling RSTransactionData
 #ifdef RS_ENABLE_VK
@@ -664,6 +669,7 @@ ScreenId RSRenderServiceConnectionProxy::CreateVirtualScreen(
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_VIRTUAL_SCREEN);
     int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::%{public}s: Send Request err.", __func__);
         return INVALID_SCREEN_ID;
     }
 
@@ -1887,6 +1893,38 @@ ErrCode RSRenderServiceConnectionProxy::SetWindowFreezeImmediately(NodeId id, bo
     return ERR_OK;
 }
 
+void RSRenderServiceConnectionProxy::TakeUICaptureInRange(
+    NodeId id, sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig)
+{
+    if (callback == nullptr) {
+        ROSEN_LOGE("%{public}s callback == nullptr", __func__);
+        return;
+    }
+
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    if (!data.WriteUint64(id)) {
+        ROSEN_LOGE("%{public}s write id failed", __func__);
+        return;
+    }
+    if (!data.WriteRemoteObject(callback->AsObject())) {
+        ROSEN_LOGE("%{public}s write callback failed", __func__);
+        return;
+    }
+    if (!WriteSurfaceCaptureConfig(captureConfig, data)) {
+        ROSEN_LOGE("%{public}s write captureConfig failed", __func__);
+        return;
+    }
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::TAKE_UI_CAPTURE_IN_RANGE);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("%{public}s SendRequest() error[%{public}d]", __func__, err);
+        return;
+    }
+}
+
 bool RSRenderServiceConnectionProxy::WriteSurfaceCaptureConfig(
     const RSSurfaceCaptureConfig& captureConfig, MessageParcel& data)
 {
@@ -1897,6 +1935,8 @@ bool RSRenderServiceConnectionProxy::WriteSurfaceCaptureConfig(
         !data.WriteFloat(captureConfig.mainScreenRect.top_) ||
         !data.WriteFloat(captureConfig.mainScreenRect.right_) ||
         !data.WriteFloat(captureConfig.mainScreenRect.bottom_) ||
+        !data.WriteUint64(captureConfig.uiCaptureInRangeParam.endNodeId) ||
+        !data.WriteBool(captureConfig.uiCaptureInRangeParam.useBeginNodeSize) ||
         !data.WriteUInt64Vector(captureConfig.blackList)) {
         ROSEN_LOGE("WriteSurfaceCaptureConfig: WriteSurfaceCaptureConfig captureConfig err.");
         return false;
@@ -4928,6 +4968,44 @@ void RSRenderServiceConnectionProxy::SetFreeMultiWindowStatus(bool enable)
     int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSRenderServiceConnectionProxy::SetFreeMultiWindowStatus: Send Request err.");
+    }
+}
+void RSRenderServiceConnectionProxy::RegisterTransactionDataCallback(int32_t pid,
+    uint64_t timeStamp, sptr<RSITransactionDataCallback> callback)
+{
+    if (callback == nullptr) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::RegisterTransactionDataCallback callback == nullptr.");
+        return;
+    }
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::RegisterTransactionDataCallback: write token err.");
+        return;
+    }
+    option.SetFlags(MessageOption::TF_ASYNC);
+    static_assert(std::is_same_v<int32_t, pid_t>, "pid_t is not int32_t on this platform.");
+    if (!data.WriteInt32(pid)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::RegisterTransactionDataCallback: write int32 val err.");
+        return;
+    }
+    if (!data.WriteUint64(timeStamp)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::RegisterTransactionDataCallback: write uint64 val err.");
+        return;
+    }
+    if (!data.WriteRemoteObject(callback->AsObject())) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::RegisterTransactionDataCallback: write Callback val err.");
+        return;
+    }
+    uint32_t code = static_cast<uint32_t>(
+        RSIRenderServiceConnectionInterfaceCode::REGISTER_TRANSACTION_DATA_CALLBACK);
+    RS_LOGD("RSRenderServiceConnectionProxy::RegisterTransactionDataCallback: timeStamp: %{public}"
+        PRIu64 " pid: %{public}d", timeStamp, pid);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::RegisterTransactionDataCallback: Send Request err.");
+        return;
     }
 }
 

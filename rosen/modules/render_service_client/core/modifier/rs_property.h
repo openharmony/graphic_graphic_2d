@@ -74,6 +74,12 @@
 
 namespace OHOS {
 namespace Rosen {
+
+/**
+ * @class RSUIFilter
+ *
+ * @brief The class for UI filter.
+ */
 class RSUIFilter;
 
 /**
@@ -130,6 +136,13 @@ struct supports_animatable_arithmetic<T,
         decltype(std::declval<T>() == std::declval<T>())>>
     : std::true_type {};
 
+/**
+ * @class RSPropertyBase
+ *
+ * @brief The base class for properties.
+ *
+ * This class provides a common interface for all property types.
+ */
 class RSC_EXPORT RSPropertyBase : public std::enable_shared_from_this<RSPropertyBase> {
 public:
     /**
@@ -279,6 +292,7 @@ private:
     friend class RSPathAnimation;
     friend class RSModifier;
     friend class RSBackgroundUIFilterModifier;
+    friend class RSForegroundUIFilterModifier;
     friend class RSKeyframeAnimation;
     friend class RSInterpolatingSpringAnimation;
     friend class RSImplicitTransitionParam;
@@ -298,6 +312,11 @@ private:
     friend class RSGetShowingValueAndCancelAnimationTask;
 };
 
+/**
+ * @class RSProperty
+ *
+ * @brief The class for properties.
+ */
 template<typename T>
 class RSProperty : public RSPropertyBase {
     static_assert(std::is_base_of_v<RSArithmetic<T>, T> || supports_arithmetic<T>::value);
@@ -400,6 +419,11 @@ protected:
     friend class RSModifier;
 };
 
+/**
+ * @class RSAnimatableProperty
+ *
+ * @brief The class for animatable properties.
+ */
 template<typename T>
 class RSAnimatableProperty : public RSProperty<T> {
     static_assert(std::is_integral_v<T> || std::is_floating_point_v<T> || std::is_same_v<Color, T> ||

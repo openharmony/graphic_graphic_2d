@@ -54,9 +54,63 @@
 
 namespace OHOS {
 namespace Rosen {
+class OcclusionNode;
 class RSCommand;
 class RSDirtyRegionManager;
+class RSOcclusionHandler;
 class RSSurfaceHandler;
+
+// Used for control-level occlusion culling scene info and culled nodes transmission.
+// Maintained by the Dirty Regions feature team.
+class RSB_EXPORT OcclusionParams {
+public:
+    // Enables/Disables control-level occlusion culling for the node's subtree
+    void UpdateOcclusionCullingStatus(bool enable, NodeId keyOcclusionNodeId);
+
+    bool IsOcclusionCullingOn()
+    {
+        return !keyOcclusionNodeIds_.empty();
+    }
+
+    void SetOcclusionHandler(std::shared_ptr<RSOcclusionHandler> occlusionHandler)
+    {
+        occlusionHandler_ = occlusionHandler;
+    }
+
+    std::shared_ptr<RSOcclusionHandler> GetOcclusionHandler() const
+    {
+        return occlusionHandler_;
+    }
+
+    std::unordered_set<NodeId> TakeCulledNodes()
+    {
+        return std::move(culledNodes_);
+    }
+
+    void SetCulledNodes(std::unordered_set<NodeId>&& culledNodes)
+    {
+        culledNodes_ = std::move(culledNodes);
+    }
+
+    std::unordered_set<NodeId> TakeCulledEntireSubtree()
+    {
+        return std::move(culledEntireSubtree_);
+    }
+
+    void SetCulledEntireSubtree(std::unordered_set<NodeId>&& culledEntireSubtree)
+    {
+        culledEntireSubtree_ = std::move(culledEntireSubtree);
+    }
+
+    void CheckKeyOcclusionNodeValidity(
+        const std::unordered_map<NodeId, std::shared_ptr<OcclusionNode>>& occlusionNodes);
+private:
+    std::unordered_multiset<NodeId> keyOcclusionNodeIds_;
+    std::shared_ptr<RSOcclusionHandler> occlusionHandler_;
+    std::unordered_set<NodeId> culledNodes_;
+    std::unordered_set<NodeId> culledEntireSubtree_;
+};
+
 class RSB_EXPORT RSSurfaceRenderNode : public RSRenderNode {
 public:
     using WeakPtr = std::weak_ptr<RSSurfaceRenderNode>;
@@ -341,6 +395,9 @@ public:
 
     bool IsHardwareForcedDisabled() const
     {
+        if (GetTunnelLayerId()) {
+            return false;
+        }
         // a protected node not on the tree need to release buffer when producer produce buffers
         // release buffer in ReleaseSelfDrawingNodeBuffer function
         if ((specialLayerManager_.Find(SpecialLayerType::PROTECTED) || isHardwareEnableHint_) && IsOnTheTree()) {
@@ -556,6 +613,7 @@ public:
     void SetSnapshotSkipLayer(bool isSnapshotSkipLayer);
     void SetProtectedLayer(bool isProtectedLayer);
     void SetIsOutOfScreen(bool isOutOfScreen);
+    void UpdateBlackListStatus(ScreenId virtualScreenId, bool isBlackList);
 
     // get whether it is a security/skip layer itself
     LeashPersistentId GetLeashPersistentId() const;
@@ -579,6 +637,7 @@ public:
 
     void UpdateSpecialLayerInfoByTypeChange(uint32_t type, bool isSpecialLayer);
     void UpdateSpecialLayerInfoByOnTreeStateChange();
+    void SyncBlackListInfoToFirstLevelNode();
     void SyncPrivacyContentInfoToFirstLevelNode();
     void SyncColorGamutInfoToFirstLevelNode();
 
@@ -630,8 +689,8 @@ public:
     void SetHDRPresent(bool hasHdrPresent);
     bool GetHDRPresent() const;
 
-    void IncreaseHDRNum();
-    void ReduceHDRNum();
+    void IncreaseHDRNum(HDRComponentType hdrType);
+    void ReduceHDRNum(HDRComponentType hdrType);
 
     bool GetIsWideColorGamut() const;
 
@@ -1235,6 +1294,16 @@ public:
         return surfaceId_;
     }
 
+    void SetTunnelLayerId(SurfaceId tunnelLayerId)
+    {
+        tunnelLayerId_ = tunnelLayerId;
+    }
+
+    SurfaceId GetTunnelLayerId() const
+    {
+        return tunnelLayerId_;
+    }
+
     bool GetIsForeground() const
     {
         return isForeground_;
@@ -1518,6 +1587,15 @@ public:
     void SetFrameGravityNewVersionEnabled(bool isEnabled);
     bool GetFrameGravityNewVersionEnabled() const;
 
+    // Used for control-level occlusion culling scene info and culled nodes transmission.
+    std::shared_ptr<OcclusionParams> GetOcclusionParams()
+    {
+        if (occlusionParams_ == nullptr) {
+            occlusionParams_ = std::make_shared<OcclusionParams>();
+        }
+        return occlusionParams_;
+    }
+
 protected:
     void OnSync() override;
     void OnSkipSync() override;
@@ -1555,6 +1633,7 @@ private:
 
     RSSpecialLayerManager specialLayerManager_;
     bool specialLayerChanged_ = false;
+    std::unordered_map<ScreenId, std::unordered_set<NodeId>> blackListIds_ = {};
     bool isGlobalPositionEnabled_ = false;
     bool isHwcGlobalPositionEnabled_ = false;
     bool isHwcCrossNode_ = false;
@@ -1663,8 +1742,10 @@ private:
     std::atomic<bool> hasUnSubmittedOccludedDirtyRegion_ = false;
     static inline std::atomic<bool> ancoForceDoDirect_ = false;
     float contextAlpha_ = 1.0f;
-    // Count the number of hdr pictures. If hdrNum_ > 0, it means there are hdr pictures
-    int hdrNum_ = 0;
+    // Count the number of hdr pictures. If hdrPhotoNum_ > 0, it means there are hdr pictures
+    int hdrPhotoNum_ = 0;
+    // Count the number of hdr UI components. If hdrUIComponentNum_ > 0, it means there are hdr UI components
+    int hdrUIComponentNum_ = 0;
     int wideColorGamutNum_ = 0;
     int32_t offsetX_ = 0;
     int32_t offsetY_ = 0;
@@ -1691,6 +1772,7 @@ private:
     Drawing::GPUContext* grContext_ = nullptr;
     ScreenId screenId_ = INVALID_SCREEN_ID;
     SurfaceId surfaceId_ = 0;
+    SurfaceId tunnelLayerId_ = 0;
     uint64_t leashPersistentId_ = INVALID_LEASH_PERSISTENTID;
     size_t dirtyContentNodeNum_ = 0;
     size_t dirtyGeoNodeNum_ = 0;
@@ -1728,10 +1810,6 @@ private:
     std::optional<Drawing::Matrix> contextMatrix_;
     std::optional<Drawing::Rect> contextClipRect_;
 
-    std::set<NodeId> skipLayerIds_= {};
-    std::set<NodeId> snapshotSkipLayerIds_= {};
-    std::set<NodeId> securityLayerIds_= {};
-    std::set<NodeId> protectedLayerIds_= {};
     std::set<NodeId> privacyContentLayerIds_ = {};
     Drawing::Matrix totalMatrix_;
     std::vector<RectI> intersectedRoundCornerAABBs_;
@@ -1853,6 +1931,9 @@ private:
     bool selfAndParentShouldPaint_ = true;
 
     bool isFrameGravityNewVersionEnabled_ = false;
+
+    // Used for control-level occlusion culling scene info and culled nodes transmission.
+    std::shared_ptr<OcclusionParams> occlusionParams_ = nullptr;
 
     // UIExtension record, <UIExtension, hostAPP>
     inline static std::unordered_map<NodeId, NodeId> secUIExtensionNodes_ = {};

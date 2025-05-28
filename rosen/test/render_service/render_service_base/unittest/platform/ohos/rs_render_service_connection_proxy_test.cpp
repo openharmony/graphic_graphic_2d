@@ -250,6 +250,47 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, SetVirtualScreenSurface, TestSize.L
 }
 
 /**
+ * @tc.name: SetVirtualScreenBlackList Test
+ * @tc.desc: SetVirtualScreenBlackList Test
+ * @tc.type:FUNC
+ * @tc.require: issue#IC98BX
+ */
+HWTEST_F(RSRenderServiceConnectionProxyTest, SetVirtualScreenBlackList, TestSize.Level1)
+{
+    ScreenId id = 100;
+    std::vector<NodeId> blackListVector({1, 2, 3});
+    EXPECT_EQ(proxy->SetVirtualScreenBlackList(id, blackListVector), 0);
+}
+
+/**
+ * @tc.name: AddVirtualScreenBlackList Test
+ * @tc.desc: AddVirtualScreenBlackList Test
+ * @tc.type:FUNC
+ * @tc.require: issue#IC98BX
+ */
+HWTEST_F(RSRenderServiceConnectionProxyTest, AddVirtualScreenBlackList, TestSize.Level1)
+{
+    ScreenId id = 100;
+    std::vector<NodeId> blackListVector({1, 2, 3});
+    int32_t repCode = 0;
+    EXPECT_EQ(proxy->AddVirtualScreenBlackList(id, blackListVector, repCode), 0);
+}
+
+/**
+ * @tc.name: RemoveVirtualScreenBlackList Test
+ * @tc.desc: RemoveVirtualScreenBlackList Test
+ * @tc.type:FUNC
+ * @tc.require: issue#IC98BX
+ */
+HWTEST_F(RSRenderServiceConnectionProxyTest, RemoveVirtualScreenBlackList, TestSize.Level1)
+{
+    ScreenId id = 100;
+    std::vector<NodeId> blackListVector({1, 2, 3});
+    int32_t repCode = 0;
+    EXPECT_EQ(proxy->RemoveVirtualScreenBlackList(id, blackListVector, repCode), 0);
+}
+
+/**
  * @tc.name: RemoveVirtualScreen Test
  * @tc.desc: RemoveVirtualScreen Test
  * @tc.type:FUNC
@@ -528,6 +569,21 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, RegisterApplicationAgent, TestSize.
     proxy->RegisterApplicationAgent(pid, app);
     ASSERT_EQ(proxy->transactionDataIndex_, 0);
 }
+/**
+ * @tc.name: RegisterTransactionDataCallback01
+ * @tc.desc: RegisterTransactionDataCallback Test normal
+ * @tc.type:FUNC
+ * @tc.require: issueI9KXXE
+ */
+HWTEST_F(RSRenderServiceConnectionProxyTest, RegisterTransactionDataCallback01, TestSize.Level1)
+{
+    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    ASSERT_NE(samgr, nullptr);
+    auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
+    sptr<RSITransactionDataCallback> callback = iface_cast<RSITransactionDataCallback>(remoteObject);
+    proxy->RegisterTransactionDataCallback(1, 456, callback);
+    ASSERT_NE(proxy->transactionDataIndex_, 5);
+}
 
 /**
  * @tc.name: TakeSurfaceCapture Test
@@ -559,6 +615,33 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, TakeSurfaceCapture, TestSize.Level1
     callback = iface_cast<RSISurfaceCaptureCallback>(remoteObject);
     proxy->TakeSurfaceCapture(id, callback, captureConfig, blurParam, specifiedAreaRect);
     ASSERT_EQ(proxy->transactionDataIndex_, 0);
+}
+
+/**
+ * @tc.name: TakeUICaptureInRange Test
+ * @tc.desc: TakeUICaptureInRange Test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderServiceConnectionProxyTest, TakeUICaptureInRange, TestSize.Level1)
+{
+    NodeId id = 1;
+    sptr<RSISurfaceCaptureCallback> callback;
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.scaleX = 1.0f;
+    captureConfig.scaleY = 1.0f;
+    captureConfig.useDma = false;
+    captureConfig.captureType = SurfaceCaptureType::UICAPTURE;
+    captureConfig.isSync = true;
+
+    proxy->TakeUICaptureInRange(id, callback, captureConfig);
+
+    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    ASSERT_NE(samgr, nullptr);
+    auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
+    callback = iface_cast<RSISurfaceCaptureCallback>(remoteObject);
+    proxy->TakeUICaptureInRange(id, callback, captureConfig);
+    ASSERT_NE(proxy->transactionDataIndex_, 5);
 }
 
 /**
@@ -1294,19 +1377,5 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, GetBehindWindowFilterEnabledTest, T
     auto res = connectionProxy->GetBehindWindowFilterEnabled(enabled);
     EXPECT_EQ(res, ERR_OK);
 }
-
-/**
- * @tc.name: NotifyScreenSwitched
- * @tc.desc: Test NotifyScreenSwitched
- * @tc.type: FUNC
- * @tc.require: issueIC9IVH
- */
-HWTEST_F(RSRenderServiceConnectionProxyTest, NotifyScreenSwitched, TestSize.Level1)
-{
-
-    int32_t res = proxy->NotifyScreenSwitched();
-    ASSERT_EQ(res, ERR_INVALID_VALUE);
-}
-
 } // namespace Rosen
 } // namespace OHOS

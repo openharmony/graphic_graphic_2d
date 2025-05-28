@@ -186,18 +186,8 @@ std::shared_ptr<NativeVkImageRes> RSVkImageManager::NewImageCacheFromBuffer(
     if (imageCacheSeqSize <= MAX_CACHE_SIZE_FOR_REUSE) {
         imageCacheSeqs_.emplace(bufferId, imageCache);
     }
-    cacheQueue_.push(bufferId);
 
     return imageCache;
-}
-
-void RSVkImageManager::ShrinkCachesIfNeeded()
-{
-    while (cacheQueue_.size() > MAX_CACHE_SIZE) {
-        const uint32_t id = cacheQueue_.front();
-        UnMapVkImageFromSurfaceBuffer(id);
-        cacheQueue_.pop();
-    }
 }
 
 void RSVkImageManager::UnMapVkImageFromSurfaceBuffer(uint32_t seqNum)

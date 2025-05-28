@@ -201,6 +201,7 @@ public:
         skia::textlayout::UtfEncodeType encodeType = skia::textlayout::UtfEncodeType::kUtf8) = 0;
     virtual Range<size_t> GetEllipsisTextRange() = 0;
     virtual OHOS::Rosen::Drawing::RectI GeneratePaintRegion(double x, double y) = 0;
+    virtual void UpdateForegroundBrush(const TextStyle& spTextStyle) = 0;
     virtual void Relayout(double width, const ParagraphStyle& paragrahStyle,
         const std::vector<TextStyle>& textStyes) = 0;
     virtual bool IsLayoutDone() = 0;

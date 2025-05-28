@@ -23,42 +23,13 @@
 #include "rs_trace.h"
 
 namespace OHOS::Rosen {
-void RSOcclusionHandler::UpdateOcclusionCullingStatus(bool enable, NodeId keyOcclusionNodeId)
-{
-    RS_TRACE_NAME_FMT("RSOcclusionHandler::UpdateOcclusionCullingStatus enable:%d", enable);
-    if (!enable) {
-        TerminateOcclusionProcessing();
-        return;
-    }
-    isOcclusionActive_ = OcclusionCullingParam::IsIntraAppControlsLevelOcclusionCullingEnable();
-    keyOcclusionNodeId_ = keyOcclusionNodeId;
-}
-
-void RSOcclusionHandler::TerminateOcclusionProcessing()
-{
-    if (!isOcclusionActive_) {
-        return;
-    }
-    RS_TRACE_NAME_FMT("RSOcclusionHandler::TerminateOcclusionProcessing");
-    isOcclusionActive_ = false;
-    keyOcclusionNodeId_ = INVALID_NODEID;
-    subTreeSkipPrepareNodes_.clear();
-    occlusionNodes_ = std::unordered_map<NodeId, std::shared_ptr<OcclusionNode>>();
-    rootOcclusionNode_ = nullptr;
-    rootNode_.reset();
-}
-
 void RSOcclusionHandler::ProcessOffTreeNodes(const std::unordered_set<NodeId>& offTreeNodeIds)
 {
-    if (!isOcclusionActive_ || occlusionNodes_.size() == 0) {
+    if (occlusionNodes_.empty()) {
         return;
     }
     RS_TRACE_NAME_FMT("RSOcclusionHandler::ProcessOffTreeNodes");
-    for (auto &id : offTreeNodeIds) {
-        RS_OPTIONAL_TRACE_NAME_FMT("RSOcclusionHandler off id %lu", id);
-        if (keyOcclusionNodeId_ == id) {
-            TerminateOcclusionProcessing();
-        }
+    for (const auto id : offTreeNodeIds) {
         auto it = occlusionNodes_.find(id);
         if (it == occlusionNodes_.end() || it->second == nullptr) {
             continue;
@@ -72,9 +43,6 @@ void RSOcclusionHandler::ProcessOffTreeNodes(const std::unordered_set<NodeId>& o
 
 void RSOcclusionHandler::CollectNode(const RSRenderNode& node)
 {
-    if (!isOcclusionActive_) {
-        return;
-    }
     if (node.GetId() == rootNodeId_) {
         CollectRootNode(node);
     } else {
@@ -86,12 +54,13 @@ void RSOcclusionHandler::CollectRootNode(const RSRenderNode& node)
 {
     RS_TRACE_NAME_FMT("RSOcclusionHandler::CollectRootNode node id = %lu", node.GetId());
     auto itNode = occlusionNodes_.find(node.GetId());
-    auto ocNode = itNode != occlusionNodes_.end() ?
+    auto ocNode = (itNode != occlusionNodes_.end() && itNode->second != nullptr) ?
         itNode->second : std::make_shared<OcclusionNode>(node.GetId(), node.GetType());
     rootOcclusionNode_ = ocNode;
     rootNode_ = node.weak_from_this();
     ocNode->MarkAsRootOcclusionNode();
     ocNode->UpdateClipRect(node);
+    ocNode->UpdateChildrenOutOfRectInfo(node.HasChildrenOutOfRect());
     occlusionNodes_[ocNode->GetId()] = ocNode;
 }
 
@@ -114,13 +83,14 @@ void RSOcclusionHandler::CollectNodeInner(const RSRenderNode& node)
     parentOcNode->ForwardOrderInsert(ocNode);
     ocNode->CollectNodeProperties(node);
     ocNode->CalculateNodeAllBounds();
+    ocNode->UpdateChildrenOutOfRectInfo(node.HasChildrenOutOfRect());
     occlusionNodes_[nodeId] = ocNode;
 }
 
 void RSOcclusionHandler::CollectSubTree(const RSRenderNode& node,
     bool isSubTreeNeedPrepare)
 {
-    if (isSubTreeNeedPrepare || !isOcclusionActive_) {
+    if (isSubTreeNeedPrepare) {
         return;
     }
     auto itNode = occlusionNodes_.find(node.GetId());
@@ -155,9 +125,6 @@ void RSOcclusionHandler::CollectSubTreeInner(const RSRenderNode& node)
 
 void RSOcclusionHandler::UpdateChildrenOutOfRectInfo(const RSRenderNode& node)
 {
-    if (!isOcclusionActive_) {
-        return;
-    }
     auto it = occlusionNodes_.find(node.GetId());
     if (it == occlusionNodes_.end() || it->second == nullptr) {
         return;
@@ -167,7 +134,7 @@ void RSOcclusionHandler::UpdateChildrenOutOfRectInfo(const RSRenderNode& node)
 
 void RSOcclusionHandler::UpdateSkippedSubTreeProp()
 {
-    if (!isOcclusionActive_ || subTreeSkipPrepareNodes_.empty()) {
+    if (subTreeSkipPrepareNodes_.empty()) {
         return;
     }
     RS_TRACE_NAME_FMT("RSOcclusionHandler::UpdateSkippedSubTreeProp");
@@ -183,35 +150,24 @@ void RSOcclusionHandler::UpdateSkippedSubTreeProp()
 
 void RSOcclusionHandler::CalculateFrameOcclusion()
 {
-    if (!isOcclusionActive_) {
-        return;
-    }
     {
         RS_TRACE_NAME_FMT("CalculateFrameOcclusion Started");
         culledNodes_.clear();
-        culledNodes_.reserve(occlusionNodes_.size());
         std::unordered_set<NodeId> offTreeNodes_;
         if (rootOcclusionNode_) {
-            rootOcclusionNode_->DetectOcclusion(culledNodes_, offTreeNodes_);
+            rootOcclusionNode_->DetectOcclusion(culledNodes_, culledEntireSubtree_, offTreeNodes_);
         }
         ProcessOffTreeNodes(offTreeNodes_);
         RS_TRACE_NAME_FMT(
-            "CalculateFrameOcclusion Finished, occlusionNodes size is %d, culledNodes size is %d",
-            occlusionNodes_.size(), culledNodes_.size());
+            "CalculateFrameOcclusion Finished, occlusionNodes size is %zu, culledNodes size is %zu, "
+            "culledEntireSubtree size is %zu", occlusionNodes_.size(), culledNodes_.size(),
+            culledEntireSubtree_.size());
     }
     DebugPostOcclusionProcessing();
 }
 
-std::unordered_set<NodeId> RSOcclusionHandler::AcquireCulledNodes()
-{
-    return std::move(culledNodes_);
-}
-
 void RSOcclusionHandler::DumpSubTreeOcclusionInfo(const RSRenderNode& node)
 {
-    if (!isOcclusionActive_) {
-        return;
-    }
     auto sortChildren = node.GetSortedChildren();
     auto it = occlusionNodes_.find(node.GetId());
     if (it == occlusionNodes_.end() || it->second == nullptr) {

@@ -15,8 +15,12 @@
 
 #include "render/rs_shader_mask.h"
 #include "ge_ripple_shader_mask.h"
+#include "ge_pixel_map_shader_mask.h"
+#include "common/rs_vector4.h"
 #include "render/rs_render_ripple_mask.h"
+#include "render/rs_render_pixel_map_mask.h"
 #include "platform/common/rs_log.h"
+#include "utils/rect.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -34,14 +38,38 @@ std::shared_ptr<Drawing::GEShaderMask> RSShaderMask::GenerateGEShaderMask() cons
     switch (renderMask_->GetType()) {
         case RSUIFilterType::RIPPLE_MASK: {
             auto rippleMask = std::static_pointer_cast<RSRenderRippleMaskPara>(renderMask_);
-            auto center = rippleMask->GetAnimatRenderProperty<Vector2f>(RSUIFilterType::RIPPLE_MASK_CENTER)->Get();
-            auto radius = rippleMask->GetAnimatRenderProperty<float>(RSUIFilterType::RIPPLE_MASK_RADIUS)->Get();
-            auto width  = rippleMask->GetAnimatRenderProperty<float>(RSUIFilterType::RIPPLE_MASK_WIDTH)->Get();
+            if (!rippleMask) {
+                ROSEN_LOGE("RSShaderMask::GenerateGEShaderMask rippleMask null");
+                return nullptr;
+            }
+            auto center = rippleMask->GetAnimatRenderProperty<Vector2f>(RSUIFilterType::RIPPLE_MASK_CENTER);
+            auto radius = rippleMask->GetAnimatRenderProperty<float>(RSUIFilterType::RIPPLE_MASK_RADIUS);
+            auto width  = rippleMask->GetAnimatRenderProperty<float>(RSUIFilterType::RIPPLE_MASK_WIDTH);
             auto widthCenterOffset =
-                rippleMask->GetAnimatRenderProperty<float>(RSUIFilterType::RIPPLE_MASK_WIDTH_CENTER_OFFSET)->Get();
-            Drawing::GERippleShaderMaskParams maskParam { std::make_pair(center.x_, center.y_), radius, width,
-                widthCenterOffset };
+                rippleMask->GetAnimatRenderProperty<float>(RSUIFilterType::RIPPLE_MASK_WIDTH_CENTER_OFFSET);
+            if (!center || !radius || !width || !widthCenterOffset) {
+                ROSEN_LOGE("RSShaderMask::GenerateGEShaderMask property null");
+                return nullptr;
+            }
+            Drawing::GERippleShaderMaskParams maskParam { std::make_pair(center->Get().x_, center->Get().y_),
+                radius->Get(), width->Get(), widthCenterOffset->Get() };
             return std::make_shared<Drawing::GERippleShaderMask>(maskParam);
+        }
+        case RSUIFilterType::PIXEL_MAP_MASK: {
+            auto pixelMapMask = std::static_pointer_cast<RSRenderPixelMapMaskPara>(renderMask_);
+            auto image = pixelMapMask->GetImage();
+            auto srcProp = pixelMapMask->GetRenderAnimatableProperty<Vector4f>(RSUIFilterType::PIXEL_MAP_MASK_SRC);
+            auto dstProp = pixelMapMask->GetRenderAnimatableProperty<Vector4f>(RSUIFilterType::PIXEL_MAP_MASK_DST);
+            auto fillColorProp =
+                pixelMapMask->GetRenderAnimatableProperty<Vector4f>(RSUIFilterType::PIXEL_MAP_MASK_FILL_COLOR);
+            if (image == nullptr || srcProp == nullptr || dstProp == nullptr || fillColorProp == nullptr) {
+                ROSEN_LOGE("RSShaderMask::GenerateGEShaderMask pixel map mask some property not found");
+                return nullptr;
+            }
+            Drawing::RectF srcRect(srcProp->Get().x_, srcProp->Get().y_, srcProp->Get().z_, srcProp->Get().w_);
+            Drawing::RectF dstRect(dstProp->Get().x_, dstProp->Get().y_, dstProp->Get().z_, dstProp->Get().w_);
+            Drawing::GEPixelMapMaskParams maskParam { image, srcRect, dstRect, fillColorProp->Get() };
+            return std::make_shared<Drawing::GEPixelMapShaderMask>(maskParam);
         }
         default: {
             return nullptr;
@@ -63,6 +91,7 @@ void RSShaderMask::CalHash()
     switch (renderMask_->GetType()) {
         case RSUIFilterType::RIPPLE_MASK: {
             auto rippleMask = std::static_pointer_cast<RSRenderRippleMaskPara>(renderMask_);
+            if (!rippleMask) { return; }
             auto centerProp = rippleMask->GetAnimatRenderProperty<Vector2f>(RSUIFilterType::RIPPLE_MASK_CENTER);
             auto radiusProp = rippleMask->GetAnimatRenderProperty<float>(RSUIFilterType::RIPPLE_MASK_RADIUS);
             auto widthProp = rippleMask->GetAnimatRenderProperty<float>(RSUIFilterType::RIPPLE_MASK_WIDTH);
@@ -78,6 +107,27 @@ void RSShaderMask::CalHash()
                 hash_ = hashFunc(&width, sizeof(width), hash_);
                 hash_ = hashFunc(&widthCenterOffset, sizeof(widthCenterOffset), hash_);
             }
+            break;
+        }
+        case RSUIFilterType::PIXEL_MAP_MASK: {
+            auto pixelMapMask = std::static_pointer_cast<RSRenderPixelMapMaskPara>(renderMask_);
+            auto image = pixelMapMask->GetImage();
+            auto srcProp = pixelMapMask->GetRenderAnimatableProperty<Vector4f>(RSUIFilterType::PIXEL_MAP_MASK_SRC);
+            auto dstProp = pixelMapMask->GetRenderAnimatableProperty<Vector4f>(RSUIFilterType::PIXEL_MAP_MASK_DST);
+            auto fillColorProp =
+                pixelMapMask->GetRenderAnimatableProperty<Vector4f>(RSUIFilterType::PIXEL_MAP_MASK_FILL_COLOR);
+            if (image == nullptr || srcProp == nullptr || dstProp == nullptr || fillColorProp == nullptr) {
+                ROSEN_LOGE("RSShaderMask::CalHash pixel map mask some property not found");
+                return;
+            }
+            auto imageUniqueID = image->GetUniqueID();
+            auto src = srcProp->Get();
+            auto dst = dstProp->Get();
+            auto fillColor = fillColorProp->Get();
+            hash_ = hashFunc(&imageUniqueID, sizeof(imageUniqueID), hash_);
+            hash_ = hashFunc(&src, sizeof(src), hash_);
+            hash_ = hashFunc(&dst, sizeof(dst), hash_);
+            hash_ = hashFunc(&fillColor, sizeof(fillColor), hash_);
             break;
         }
         default: {

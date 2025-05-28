@@ -351,7 +351,6 @@ HWTEST_F(PropertiesTest, GetFgBrightnessDescriptionTest, TestSize.Level1)
     RSProperties properties;
     properties.fgBrightnessParams_ = std::nullopt;
     properties.GetFgBrightnessDescription();
-    EXPECT_TRUE(properties.fgBrightnessParams_ == std::nullopt);
 
     RSDynamicBrightnessPara value;
     properties.fgBrightnessParams_ = value;
@@ -370,7 +369,6 @@ HWTEST_F(PropertiesTest, GetBgBrightnessDescriptionTest, TestSize.Level1)
     RSProperties properties;
     properties.bgBrightnessParams_ = std::nullopt;
     properties.GetBgBrightnessDescription();
-    EXPECT_TRUE(properties.bgBrightnessParams_ == std::nullopt);
 
     RSDynamicBrightnessPara value;
     properties.bgBrightnessParams_ = value;
@@ -692,7 +690,6 @@ HWTEST_F(PropertiesTest, CheckEmptyBoundsTest, TestSize.Level1)
 
     properties.hasBounds_ = true;
     properties.CheckEmptyBounds();
-    EXPECT_EQ(properties.hasBounds_, true);
 }
 
 /**

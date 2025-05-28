@@ -93,7 +93,6 @@ public:
     std::shared_ptr<NativeVkImageRes> MapVkImageFromSurfaceBuffer(const sptr<OHOS::SurfaceBuffer>& buffer,
         const sptr<SyncFence>& acquireFence, pid_t threadIndex, Drawing::Surface *drawingSurface = nullptr);
     void UnMapVkImageFromSurfaceBuffer(uint32_t seqNum);
-    void ShrinkCachesIfNeeded();
     std::shared_ptr<NativeVkImageRes> CreateImageCacheFromBuffer(sptr<OHOS::SurfaceBuffer> buffer,
         const sptr<SyncFence>& acquireFence);
     void DumpVkImageInfo(std::string &dumpString);
@@ -102,7 +101,6 @@ private:
         const sptr<OHOS::SurfaceBuffer>& buffer, pid_t threadIndex, bool isProtectedCondition);
     bool WaitVKSemaphore(Drawing::Surface *drawingSurface, const sptr<SyncFence>& acquireFence);
     mutable std::mutex opMutex_;
-    std::queue<uint32_t> cacheQueue_; // fifo, size restricted by MAX_CACHE_SIZE
     std::unordered_map<uint32_t, std::shared_ptr<NativeVkImageRes>> imageCacheSeqs_; // guarded by opMutex_
 };
 

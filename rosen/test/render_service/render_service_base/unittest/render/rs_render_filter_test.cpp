@@ -81,6 +81,12 @@ HWTEST_F(RSRenderFilterTest, CreateRenderFilterPara001, TestSize.Level1)
 
     auto edgeLightPara = RSRenderFilter::CreateRenderFilterPara(RSUIFilterType::EDGE_LIGHT);
     EXPECT_NE(edgeLightPara, nullptr);
+
+    auto bezierWarpPara = RSRenderFilter::CreateRenderFilterPara(RSUIFilterType::BEZIER_WARP);
+    EXPECT_NE(bezierWarpPara, nullptr);
+
+    auto dispersionPara = RSRenderFilter::CreateRenderFilterPara(RSUIFilterType::DISPERSION);
+    EXPECT_NE(dispersionPara, nullptr);
 }
 
 /**

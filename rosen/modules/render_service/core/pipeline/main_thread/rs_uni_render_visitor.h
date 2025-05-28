@@ -188,7 +188,6 @@ private:
     bool CheckLuminanceStatusChange(ScreenId id);
     bool CheckSkipCrossNode(RSSurfaceRenderNode& node);
     bool CheckSkipAndPrepareForCrossNode(RSSurfaceRenderNode& node);
-    bool IsFirstFrameOfPartialRender() const;
     bool IsFirstFrameOfOverdrawSwitch() const;
     bool IsFirstFrameOfDrawingCacheDfxSwitch() const;
     bool IsAccessibilityConfigChanged() const;
@@ -269,6 +268,7 @@ private:
 
     bool IsHardwareComposerEnabled();
     void UpdateSpecialLayersRecord(RSSurfaceRenderNode& node);
+    void UpdateBlackListRecord(RSSurfaceRenderNode& node);
     void SendRcdMessage(RSDisplayRenderNode& node);
 
     bool ForcePrepareSubTree()
@@ -323,7 +323,8 @@ private:
     void CollectNodeForOcclusion(RSRenderNode& node);
 
     // Used to initialize the handler of control-level occlusion culling.
-    void InitializeOcclusionHandler(RSRootRenderNode& node);
+    void InitializeOcclusionHandler(RSSurfaceRenderNode& node);
+    void HandleTunnelLayerId(RSSurfaceRenderNode& node);
 
     friend class RSUniHwcVisitor;
     std::unique_ptr<RSUniHwcVisitor> hwcVisitor_;
@@ -409,6 +410,7 @@ private:
     bool hasDisplayHdrOn_ = false;
     std::vector<NodeId> hasVisitedCrossNodeIds_;
     bool isDirtyRegionDfxEnabled_ = false; // dirtyRegion DFX visualization
+    bool isMergedDirtyRegionDfxEnabled_ = false;
     bool isTargetDirtyRegionDfxEnabled_ = false;
     bool isOpaqueRegionDfxEnabled_ = false;
     bool isVisibleRegionDfxEnabled_ = false;

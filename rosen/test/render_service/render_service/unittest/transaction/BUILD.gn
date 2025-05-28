@@ -42,7 +42,7 @@ ohos_unittest("RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest") {
     "rs_irender_service_connection_ipc_interface_code_access_verifier_test.cpp",
   ]
   deps = [ ":rs_test_common" ]
-  external_deps = []
+  external_deps = [ "samgr:samgr_proxy" ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
   }
@@ -59,6 +59,7 @@ ohos_unittest("RSIRenderServiceIpcInterfaceCodeAccessVerifierTest") {
   module_out_path = module_output_path
   sources = [ "rs_irender_service_ipc_interface_code_access_verifier_test.cpp" ]
   deps = [ ":rs_test_common" ]
+  external_deps = [ "samgr:samgr_proxy" ]
 }
 
 ## Build RSRenderServiceConnectionStubTest
@@ -69,7 +70,10 @@ ohos_unittest("RSRenderServiceConnectionStubTest") {
     "rs_render_service_connection_stub_test.cpp",
   ]
   deps = [ ":rs_test_common" ]
-  external_deps = [ "googletest:gmock_main" ]
+  external_deps = [
+    "googletest:gmock_main",
+    "samgr:samgr_proxy", 
+  ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
   }
@@ -82,7 +86,7 @@ ohos_unittest("RSRenderServiceStubTest") {
   module_out_path = module_output_path
   sources = [ "rs_render_service_stub_test.cpp" ]
   deps = [ ":rs_test_common" ]
-  external_deps = []
+  external_deps = [ "samgr:samgr_proxy" ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
   }
@@ -133,6 +137,7 @@ ohos_unittest("RSUnmarshalThreadTest") {
     "c_utils:utils",
     "ffrt:libffrt",
     "hilog:libhilog",
+    "samgr:samgr_proxy",
   ]
   defines = []
   defines += gpu_defines

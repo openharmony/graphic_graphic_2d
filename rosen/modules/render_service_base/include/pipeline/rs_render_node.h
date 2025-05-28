@@ -32,6 +32,7 @@
 #include "common/rs_common_def.h"
 #include "common/rs_macros.h"
 #include "common/rs_rect.h"
+#include "display_engine/rs_luminance_control.h"
 #include "draw/surface.h"
 #include "drawable/rs_drawable.h"
 #include "drawable/rs_property_drawable.h"
@@ -491,9 +492,6 @@ public:
     void UpdateBackendTexture();
 #endif
 
-    void DrawCacheSurface(RSPaintFilterCanvas& canvas, uint32_t threadIndex = UNI_MAIN_THREAD_INDEX,
-        bool isUIFirst = false);
-
     void SetCacheType(CacheType cacheType);
     CacheType GetCacheType() const;
 
@@ -857,7 +855,7 @@ public:
     {
         isFirstLevelCrossNode_ = isFirstLevelCrossNode;
     }
-    void SetHdrNum(bool flag, NodeId instanceRootNodeId);
+    void SetHdrNum(bool flag, NodeId instanceRootNodeId, HDRComponentType hdrType);
 
     void SetIsAccessibilityConfigChanged(bool isAccessibilityConfigChanged)
     {

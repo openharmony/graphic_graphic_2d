@@ -109,6 +109,7 @@ HWTEST_F(RSDirtyRectsDFXTest, OnDraw, TestSize.Level1)
     renderThreadParams->isDirtyRegionDfxEnabled_ = true;
     renderThreadParams->isTargetDirtyRegionDfxEnabled_ = true;
     renderThreadParams->isDisplayDirtyDfxEnabled_ = true;
+    renderThreadParams->isMergedDirtyRegionDfxEnabled_ = true;
     rsDirtyRectsDfx_->OnDraw(*canvas_);
     renderThreadParams->isPartialRenderEnabled_ = false;
     renderThreadParams->isOpaqueRegionDfxEnabled_ = false;
@@ -117,6 +118,7 @@ HWTEST_F(RSDirtyRectsDFXTest, OnDraw, TestSize.Level1)
     renderThreadParams->isDirtyRegionDfxEnabled_ = false;
     renderThreadParams->isTargetDirtyRegionDfxEnabled_ = false;
     renderThreadParams->isDisplayDirtyDfxEnabled_ = false;
+    renderThreadParams->isMergedDirtyRegionDfxEnabled_ = false;
 }
 
 /**
@@ -195,7 +197,7 @@ HWTEST_F(RSDirtyRectsDFXTest, DrawCurrentRefreshRate, TestSize.Level1)
 HWTEST_F(RSDirtyRectsDFXTest, DrawDirtyRegionForDFX, TestSize.Level1)
 {
     ASSERT_NE(rsDirtyRectsDfx_, nullptr);
-    const auto& visibleDirtyRects = rsDirtyRectsDfx_->dirtyRegion_.GetRegionRects();
+    const auto& visibleDirtyRects = rsDirtyRectsDfx_->mergedDirtyRegion_.GetRegionRects();
     std::vector<RectI> rects;
     for (auto& rect : visibleDirtyRects) {
         rects.emplace_back(rect.left_, rect.top_, rect.right_ - rect.left_, rect.bottom_ - rect.top_);
@@ -634,5 +636,27 @@ HWTEST_F(RSDirtyRectsDFXTest, DrawHwcRegionForDFXTest, TestSize.Level1)
     RSUniRenderThread::Instance().Sync(move(params));
     ASSERT_NE(canvas_, nullptr);
     rsDirtyRectsDfx_->DrawHwcRegionForDFX(*canvas_);
+}
+
+/**
+ * @tc.name: DrawMergedAndAllDirtyRegionForDFX
+ * @tc.desc: Test DrawMergedAndAllDirtyRegionForDFX
+ * @tc.type: FUNC
+ * @tc.require: issuesIC9MUF
+ */
+HWTEST_F(RSDirtyRectsDFXTest, DrawMergedAndAllDirtyRegionForDFX, TestSize.Level1)
+{
+    ASSERT_NE(rsDirtyRectsDfx_, nullptr);
+    rsDirtyRectsDfx_->OnDraw(*canvas_);
+    ASSERT_NE(canvas_, nullptr);
+    rsDirtyRectsDfx_->OnDraw(*canvas_);
+
+    auto& renderThreadParams = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+    ASSERT_TRUE(renderThreadParams);
+    renderThreadParams->isPartialRenderEnabled_ = true;
+    renderThreadParams->isMergedDirtyRegionDfxEnabled_ = true;
+    rsDirtyRectsDfx_->OnDraw(*canvas_);
+    renderThreadParams->isPartialRenderEnabled_ = false;
+    renderThreadParams->isMergedDirtyRegionDfxEnabled_ = false;
 }
 }

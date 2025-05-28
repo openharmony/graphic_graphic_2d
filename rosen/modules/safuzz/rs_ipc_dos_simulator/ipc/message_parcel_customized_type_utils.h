@@ -66,6 +66,8 @@ private:
         const TestCaseParams& testCaseParams);
     static bool WriteRandomSurfaceCaptureCallbackSptr(MessageParcel& messageParcel,
         const TestCaseParams& testCaseParams);
+    static bool WriteRandomTransactionDataCallbackSptr(MessageParcel& messageParcel,
+        const TestCaseParams& testCaseParams);
     static bool WriteRandomSelfDrawingNodeRectChangeCallbackSptr(MessageParcel& messageParcel,
         const TestCaseParams& testCaseParams);
 

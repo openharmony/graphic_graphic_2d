@@ -13,11 +13,13 @@
  * limitations under the License.
  */
 #include "platform/common/rs_log.h"
+#include "render/rs_render_bezier_warp_filter.h"
 #include "render/rs_render_blur_filter.h"
 #include "render/rs_render_color_gradient_filter.h"
 #include "render/rs_render_displacement_distort_filter.h"
 #include "render/rs_render_sound_wave_filter.h"
 #include "render/rs_render_edge_light_filter.h"
+#include "render/rs_render_dispersion_filter.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -36,6 +38,9 @@ std::shared_ptr<RSRenderFilterParaBase> RSRenderFilter::GetRenderFilterPara(RSUI
 std::shared_ptr<RSRenderFilterParaBase> RSRenderFilter::CreateRenderFilterPara(RSUIFilterType type)
 {
     switch (type) {
+        case RSUIFilterType::BEZIER_WARP : {
+            return std::make_shared<RSRenderBezierWarpFilterPara>(0);
+        }
         case RSUIFilterType::BLUR : {
             return std::make_shared<RSRenderBlurFilterPara>(0);
         }
@@ -50,6 +55,9 @@ std::shared_ptr<RSRenderFilterParaBase> RSRenderFilter::CreateRenderFilterPara(R
         }
         case RSUIFilterType::EDGE_LIGHT : {
             return std::make_shared<RSRenderEdgeLightFilterPara>(0);
+        }
+        case RSUIFilterType::DISPERSION : {
+            return std::make_shared<RSRenderDispersionFilterPara>(0);
         }
         default: {
             ROSEN_LOGE("RSRenderFilter::CreateRenderFilterPara null type %{public}d ",

@@ -72,7 +72,7 @@ void RSRenderNode::UpdateBlurEffectCounter(int deltaCount)
     if (LIKELY(deltaCount == 0)) {
         return;
     }
-    
+
     auto pid = ExtractPid(GetId());
     // Try to insert pid with value 0 and we got an iterator to the inserted element or to the existing element.
     auto it = blurEffectCounter_.emplace(std::make_pair(pid, 0)).first;
@@ -203,7 +203,7 @@ void RSRenderNode::AddChild(SharedPtr child, int index)
     if (child == nullptr || child->GetId() == GetId()) {
         return;
     }
-    
+
     if (RS_PROFILER_PROCESS_ADD_CHILD(this, child, index)) {
         RS_LOGI("Add child: blocked during replay");
         return;
@@ -223,7 +223,7 @@ void RSRenderNode::AddChild(SharedPtr child, int index)
         children_.emplace(std::next(children_.begin(), index), child);
     }
     disappearingChildren_.remove_if([&child](const auto& pair) -> bool { return pair.first == child; });
-    
+
     // A child is not on the tree until its parent is on the tree
     if (isOnTheTree_) {
         child->SetIsOnTheTree(true, instanceRootNodeId_, firstLevelNodeId_, drawingCacheRootId_,
@@ -358,7 +358,7 @@ void RSRenderNode::SetHasUnobscuredUEC()
     stagingRenderParams_->SetHasUnobscuredUEC(hasUnobscuredUEC);
 }
 
-void RSRenderNode::SetHdrNum(bool flag, NodeId instanceRootNodeId)
+void RSRenderNode::SetHdrNum(bool flag, NodeId instanceRootNodeId, HDRComponentType hdrType)
 {
     auto context = GetContext().lock();
     if (!context) {
@@ -372,9 +372,9 @@ void RSRenderNode::SetHdrNum(bool flag, NodeId instanceRootNodeId)
     }
     if (auto parentSurface = parentInstance->ReinterpretCastTo<RSSurfaceRenderNode>()) {
         if (flag) {
-            parentSurface->IncreaseHDRNum();
+            parentSurface->IncreaseHDRNum(hdrType);
         } else {
-            parentSurface->ReduceHDRNum();
+            parentSurface->ReduceHDRNum(hdrType);
         }
     }
 }
@@ -395,12 +395,18 @@ void RSRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId, NodeId f
     // Need to count upeer or lower trees of HDR nodes
     if (GetType() == RSRenderNodeType::CANVAS_NODE) {
         auto canvasNode = RSBaseRenderNode::ReinterpretCast<RSCanvasRenderNode>(shared_from_this());
-        if (canvasNode != nullptr && canvasNode->GetHDRPresent()) {
+        if (canvasNode != nullptr && (canvasNode->GetHDRPresent() ||
+            canvasNode->GetRenderProperties().IsHDRUIBrightnessValid())) {
             NodeId parentNodeId = flag ? instanceRootNodeId : instanceRootNodeId_;
             ROSEN_LOGD("RSRenderNode::SetIsOnTheTree HDRClient canvasNode[id:%{public}" PRIu64 " name:%{public}s]"
                 " parent'S id:%{public}" PRIu64 " ", canvasNode->GetId(), canvasNode->GetNodeName().c_str(),
                 parentNodeId);
-            SetHdrNum(flag, parentNodeId);
+            if (canvasNode->GetHDRPresent()) {
+                SetHdrNum(flag, parentNodeId, HDRComponentType::IMAGE);
+            }
+            if (canvasNode->GetRenderProperties().IsHDRUIBrightnessValid()) {
+                SetHdrNum(flag, parentNodeId, HDRComponentType::UICOMPONENT);
+            }
         }
     }
 
@@ -434,6 +440,7 @@ void RSRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId, NodeId f
         if (ret) {
             AddToPendingSyncList();
         }
+        stagingRenderParams_->SetIsOnTheTree(isOnTheTree_);
     }
 
     for (auto& weakChild : children_) {
@@ -831,7 +838,7 @@ void RSRenderNode::DumpTree(int32_t depth, std::string& out) const
         out += ", zOrder: " + std::to_string(hwcRecorder_.GetZOrderForHwcEnableByFilter());
     }
 #endif
-    
+
     DumpSubClassNode(out);
     out += ", Properties: " + GetRenderProperties().Dump();
     if (uiContextToken_ > 0) {
@@ -893,7 +900,7 @@ void RSRenderNode::DumpTree(int32_t depth, std::string& out) const
     DumpModifiers(out);
     animationManager_.DumpAnimations(out);
     ChildrenListDump(out);
-    
+
     for (auto& child : children_) {
         if (auto c = child.lock()) {
             c->DumpTree(depth + 1, out);
@@ -1459,7 +1466,7 @@ std::tuple<bool, bool, bool> RSRenderNode::Animate(
         return displaySync_->GetAnimateResult();
     }
     RSSurfaceNodeAbilityState abilityState = RSSurfaceNodeAbilityState::FOREGROUND;
-    
+
     // Animation on surfaceNode is always on foreground ability state.
     // If instanceRootNode is surfaceNode, get its ability state. If not, regard it as foreground ability state.
     if (GetType() != RSRenderNodeType::SURFACE_NODE) {
@@ -2573,19 +2580,21 @@ void RSRenderNode::AddModifier(const std::shared_ptr<RSRenderModifier>& modifier
             GetId(), modifier->GetModifierTypeString().c_str(), std::to_string(modifier->GetDrawCmdListId()).c_str());
         return;
     }
-    if (modifier->GetType() == RSModifierType::BOUNDS || modifier->GetType() == RSModifierType::FRAME) {
+    auto modifierType = modifier->GetType();
+    if (modifierType == RSModifierType::BOUNDS || modifierType == RSModifierType::FRAME) {
         AddGeometryModifier(modifier);
-    } else if (modifier->GetType() == RSModifierType::BACKGROUND_UI_FILTER) {
+    } else if (modifierType == RSModifierType::BACKGROUND_UI_FILTER ||
+        modifierType == RSModifierType::FOREGROUND_UI_FILTER) {
         AddUIFilterModifier(modifier);
-    } else if (modifier->GetType() < RSModifierType::CUSTOM) {
+    } else if (modifierType < RSModifierType::CUSTOM) {
         modifiers_.emplace(modifier->GetPropertyId(), modifier);
-        if (modifier->GetType() == RSModifierType::COMPLEX_SHADER_PARAM) {
+        if (modifierType == RSModifierType::COMPLEX_SHADER_PARAM) {
             auto property = modifier->GetProperty();
             properties_.emplace(modifier->GetPropertyId(), property);
         }
     } else {
         modifier->SetSingleFrameModifier(false);
-        renderContent_->drawCmdModifiers_[modifier->GetType()].emplace_back(modifier);
+        renderContent_->drawCmdModifiers_[modifierType].emplace_back(modifier);
     }
     modifier->GetProperty()->Attach(shared_from_this());
     ROSEN_LOGI_IF(DEBUG_MODIFIER, "RSRenderNode:add modifier, node id: %{public}" PRIu64 ", type: %{public}s",
@@ -3375,56 +3384,6 @@ Vector2f RSRenderNode::GetOptionalBufferSize() const
     return { vector4f.z_, vector4f.w_ };
 }
 
-void RSRenderNode::DrawCacheSurface(RSPaintFilterCanvas& canvas, uint32_t threadIndex, bool isUIFirst)
-{
-    if (ROSEN_EQ(boundsWidth_, 0.f) || ROSEN_EQ(boundsHeight_, 0.f)) {
-        return;
-    }
-    auto cacheType = GetCacheType();
-    canvas.Save();
-    Vector2f size = GetOptionalBufferSize();
-    float scaleX = size.x_ / boundsWidth_;
-    float scaleY = size.y_ / boundsHeight_;
-    canvas.Scale(scaleX, scaleY);
-    auto cacheImage = GetCompletedImage(canvas, threadIndex, isUIFirst);
-    if (cacheImage == nullptr) {
-        canvas.Restore();
-        return;
-    }
-    auto samplingOptions = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
-    if (RSSystemProperties::GetRecordingEnabled()) {
-        if (cacheImage->IsTextureBacked()) {
-            RS_LOGI("RSRenderNode::DrawCacheSurface convert cacheImage from texture to raster image");
-            cacheImage = cacheImage->MakeRasterImage();
-            if (!cacheImage) {
-                RS_LOGE("RSRenderNode::DrawCacheSurface: MakeRasterImage failed");
-                canvas.Restore();
-                return;
-            }
-        }
-    }
-    Drawing::Brush brush;
-    canvas.AttachBrush(brush);
-    if ((cacheType == CacheType::ANIMATE_PROPERTY && GetRenderProperties().IsShadowValid()) || isUIFirst) {
-        auto surfaceNode = ReinterpretCastTo<RSSurfaceRenderNode>();
-        Vector2f gravityTranslate = surfaceNode ?
-            surfaceNode->GetGravityTranslate(cacheImage->GetWidth(), cacheImage->GetHeight()) : Vector2f(0.0f, 0.0f);
-        canvas.DrawImage(*cacheImage, -shadowRectOffsetX_ * scaleX + gravityTranslate.x_,
-            -shadowRectOffsetY_ * scaleY + gravityTranslate.y_, samplingOptions);
-    } else {
-        if (canvas.GetTotalMatrix().HasPerspective()) {
-            // In case of perspective transformation, make dstRect 1px outset to anti-alias
-            Drawing::Rect dst(0, 0, cacheImage->GetWidth(), cacheImage->GetHeight());
-            dst.MakeOutset(1, 1);
-            canvas.DrawImageRect(*cacheImage, dst, samplingOptions);
-        } else {
-            canvas.DrawImage(*cacheImage, 0.0, 0.0, samplingOptions);
-        }
-    }
-    canvas.DetachBrush();
-    canvas.Restore();
-}
-
 std::shared_ptr<Drawing::Image> RSRenderNode::GetCompletedImage(
     RSPaintFilterCanvas& canvas, uint32_t threadIndex, bool isUIFirst)
 {
@@ -3688,6 +3647,7 @@ void RSRenderNode::MarkSuggestOpincNode(bool isOpincNode, bool isNeedCalculate)
 {
     RS_TRACE_NAME_FMT("mark opinc %llx, isopinc:%d. isCal:%d", GetId(), isOpincNode, isNeedCalculate);
     opincCache_.MarkSuggestOpincNode(isOpincNode, isNeedCalculate);
+    OpincSetNodeSupportFlag(true);
     SetDirty();
 }
 
@@ -4753,7 +4713,7 @@ void RSRenderNode::OnSync()
         renderDrawable_->drawCmdIndex_ = stagingDrawCmdIndex_;
         drawCmdListNeedSync_ = false;
     }
-    
+
     if (drawableVecNeedClear_) {
         ClearDrawableVec2();
     }

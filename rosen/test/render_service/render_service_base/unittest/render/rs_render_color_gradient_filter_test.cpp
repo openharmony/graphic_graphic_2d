@@ -101,18 +101,18 @@ HWTEST_F(RSRenderColorGradientFilterTest, ReadFromParcel001, TestSize.Level1)
 }
 
 /**
- * @tc.name: CreateRenderProperty001
- * @tc.desc: test CreateRenderProperty
+ * @tc.name: CreateMaskRenderProperty001
+ * @tc.desc: test CreateMaskRenderProperty
  * @tc.type:FUNC
  */
-HWTEST_F(RSRenderColorGradientFilterTest, CreateRenderProperty001, TestSize.Level1)
+HWTEST_F(RSRenderColorGradientFilterTest, CreateMaskRenderProperty001, TestSize.Level1)
 {
     auto fliterPara = std::make_shared<RSRenderColorGradientFilterPara>(0);
 
-    auto renderPropert = fliterPara->CreateRenderProperty(RSUIFilterType::RIPPLE_MASK);
+    auto renderPropert = fliterPara->CreateMaskRenderProperty(RSUIFilterType::RIPPLE_MASK);
     EXPECT_NE(renderPropert, nullptr);
 
-    renderPropert = fliterPara->CreateRenderProperty(RSUIFilterType::BLUR);
+    renderPropert = fliterPara->CreateMaskRenderProperty(RSUIFilterType::BLUR);
     EXPECT_EQ(renderPropert, nullptr);
 }
 

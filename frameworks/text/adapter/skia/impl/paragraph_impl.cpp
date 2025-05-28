@@ -23,13 +23,14 @@
 #include "text_font_utils.h"
 #include "include/core/SkMatrix.h"
 #include "modules/skparagraph/include/Paragraph.h"
+#include "modules/skparagraph/include/TextStyle.h"
 #include "paragraph_builder_impl.h"
 #include "skia_adapter/skia_convert_utils.h"
 #include "symbol_engine/hm_symbol_run.h"
 #include "text/font_metrics.h"
 #include "text_line_impl.h"
 #include "utils/text_log.h"
-#include "modules/skparagraph/include/TextStyle.h"
+#include "utils/text_trace.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -431,6 +432,68 @@ void ParagraphImpl::UpdateColor(size_t from, size_t to, const RSColor& color,
         SkColorSetARGB(color.GetAlpha(), color.GetRed(), color.GetGreen(), color.GetBlue()), encodeType);
     for (auto paintID : unresolvedPaintID) {
         paints_[paintID].SetColor(color);
+    }
+}
+
+void ParagraphImpl::UpdatePaintsBySkiaBlock(skt::Block& skiaBlock, const std::optional<RSBrush>& brush)
+{
+    PaintID foregroundId = std::get<PaintID>(skiaBlock.fStyle.getForegroundPaintOrID());
+    if ((foregroundId < 0) || (foregroundId >= static_cast<int>(paints_.size()))) {
+        return;
+    }
+    if (paints_[foregroundId].isSymbolGlyph) {
+        return;
+    }
+    paints_[foregroundId].brush = brush;
+}
+
+void ParagraphImpl::UpdateForegroundBrushWithValidData(SkTArray<skt::Block, true>& skiaTextStyles,
+    const std::optional<RSBrush>& brush)
+{
+    TEXT_TRACE_FUNC();
+    PaintID newId = static_cast<int>(paints_.size());
+    bool needAddNewBrush = true;
+
+    for (size_t i = 0; i < skiaTextStyles.size(); i++) {
+        skt::Block& skiaBlock = skiaTextStyles[i];
+        if (skiaBlock.fStyle.hasForeground()) {
+            UpdatePaintsBySkiaBlock(skiaBlock, brush);
+        } else {
+            skiaBlock.fStyle.setForegroundPaintID(newId);
+            if (needAddNewBrush) {
+                PaintRecord pr(brush, std::nullopt);
+                paints_.push_back(pr);
+                needAddNewBrush = false;
+            }
+        }
+    }
+}
+
+void ParagraphImpl::UpdateForegroundBrushWithNullopt(SkTArray<skt::Block, true>& skiaTextStyles)
+{
+    TEXT_TRACE_FUNC();
+    for (size_t i = 0; i < skiaTextStyles.size(); i++) {
+        skt::Block& skiaBlock = skiaTextStyles[i];
+        if (!skiaBlock.fStyle.hasForeground()) {
+            continue;
+        }
+        UpdatePaintsBySkiaBlock(skiaBlock, std::nullopt);
+    }
+}
+
+void ParagraphImpl::UpdateForegroundBrush(const TextStyle& spTextStyle)
+{
+    RecordDifferentPthreadCall(__FUNCTION__);
+    if (paragraph_ == nullptr) {
+        return;
+    }
+
+    SkTArray<skt::Block, true>& skiaTextStyles = paragraph_->exportTextStyles();
+
+    if (spTextStyle.foreground.has_value() && spTextStyle.foreground.value().brush.has_value()) {
+        UpdateForegroundBrushWithValidData(skiaTextStyles, spTextStyle.foreground.value().brush);
+    } else {
+        UpdateForegroundBrushWithNullopt(skiaTextStyles);
     }
 }
 

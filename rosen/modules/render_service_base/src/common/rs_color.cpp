@@ -43,13 +43,15 @@ RSColor::RSColor(int16_t red, int16_t green, int16_t blue, int16_t alpha) noexce
 
 bool RSColor::operator==(const RSColor& rhs) const
 {
-    return red_ == rhs.red_ && green_ == rhs.green_ && blue_ == rhs.blue_ && alpha_ == rhs.alpha_;
+    return red_ == rhs.red_ && green_ == rhs.green_ && blue_ == rhs.blue_ && alpha_ == rhs.alpha_ &&
+        colorSpace_ == rhs.colorSpace_;
 }
 
 bool RSColor::IsNearEqual(const RSColor& other, int16_t threshold) const
 {
     return (std::abs(red_ - other.red_) <= threshold) && (std::abs(green_ - other.green_) <= threshold) &&
-           (std::abs(blue_ - other.blue_) <= threshold) && (std::abs(alpha_ - other.alpha_) <= threshold);
+           (std::abs(blue_ - other.blue_) <= threshold) && (std::abs(alpha_ - other.alpha_) <= threshold) &&
+           (colorSpace_ == other.colorSpace_);
 }
 
 RSColor RSColor::operator+(const RSColor& rhs) const
@@ -154,6 +156,41 @@ int16_t RSColor::GetAlpha() const
     return alpha_;
 }
 
+scalar RSColor::GetRedF() const
+{
+    return static_cast<scalar>(red_) / RGB_MAX;
+}
+
+scalar RSColor::GetGreenF() const
+{
+    return static_cast<scalar>(green_) / RGB_MAX;
+}
+
+scalar RSColor::GetBlueF() const
+{
+    return static_cast<scalar>(blue_) / RGB_MAX;
+}
+
+scalar RSColor::GetAlphaF() const
+{
+    return static_cast<scalar>(alpha_) / RGB_MAX;
+}
+
+Drawing::Color4f RSColor::GetColor4f() const
+{
+    Drawing::Color4f color4f;
+    color4f.redF_ = GetRedF();
+    color4f.greenF_ = GetGreenF();
+    color4f.blueF_ = GetBlueF();
+    color4f.alphaF_ = GetAlphaF();
+    return color4f;
+}
+
+GraphicColorGamut RSColor::GetColorSpace() const
+{
+    return colorSpace_;
+}
+
 void RSColor::SetBlue(int16_t blue)
 {
     blue_ = blue;
@@ -174,6 +211,11 @@ void RSColor::SetAlpha(int16_t alpha)
     alpha_ = alpha;
 }
 
+void RSColor::SetColorSpace(GraphicColorGamut colorSpace)
+{
+    colorSpace_ = colorSpace;
+}
+
 void RSColor::MultiplyAlpha(float alpha)
 {
     alpha_ = static_cast<int16_t>(alpha_ * std::clamp(alpha, 0.0f, 1.0f));
@@ -184,8 +226,20 @@ void RSColor::Dump(std::string& out) const
     constexpr int32_t colorStrWidth = 8;
     std::stringstream ss;
     ss << "[RGBA-0x" << std::hex << std::setfill('0') << std::setw(colorStrWidth) << std::uppercase;
-    ss << AsRgbaInt() << ']';
+    ss << AsRgbaInt() << ',';
     out += ss.str();
+    switch (colorSpace_) {
+        case GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB:
+            out += " colorSpace: SRGB]";
+            break;
+        case GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3:
+            out += " colorSpace: DISPLAY_P3]";
+            break;
+        default:
+            out += " colorSpace: OTHER]";
+            break;
+    }
+    
 }
 } // namespace Rosen
 } // namespace OHOS

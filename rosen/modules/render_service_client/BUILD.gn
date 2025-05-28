@@ -145,13 +145,16 @@ template("render_service_client_source_set") {
       "core/ui/rs_ui_director.cpp",
 
       #ui_effect
+      "core/ui_effect/property/src/rs_ui_bezier_warp_filter.cpp",
       "core/ui_effect/property/src/rs_ui_blur_filter.cpp",
       "core/ui_effect/property/src/rs_ui_color_gradient_filter.cpp",
       "core/ui_effect/property/src/rs_ui_displacement_distort_filter.cpp",
+      "core/ui_effect/property/src/rs_ui_dispersion_filter.cpp",
       "core/ui_effect/property/src/rs_ui_edge_light_filter.cpp",
       "core/ui_effect/property/src/rs_ui_filter_para_base.cpp",
       "core/ui_effect/property/src/rs_ui_filter.cpp",
       "core/ui_effect/property/src/rs_ui_mask_para.cpp",
+      "core/ui_effect/property/src/rs_ui_pixel_map_mask.cpp",
       "core/ui_effect/property/src/rs_ui_ripple_mask.cpp",
       "core/ui_effect/property/src/rs_ui_sound_wave_filter.cpp",
     ]

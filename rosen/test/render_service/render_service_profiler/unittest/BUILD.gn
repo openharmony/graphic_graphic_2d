@@ -244,6 +244,7 @@ ohos_unittest("RSProfilerTest") {
   external_deps = [
     "c_utils:utils",
     "init:libbegetutil",
+    "samgr:samgr_proxy",
   ]
 
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {

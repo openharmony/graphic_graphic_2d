@@ -27,6 +27,7 @@ void Filter::SetColorFilter(std::shared_ptr<ColorFilter> colorFilter)
 {
 #ifdef DRAWING_DISABLE_API
     if (DrawingConfig::IsDisabled(DrawingConfig::DrawingDisableFlag::DISABLE_COLOR_FILTER)) {
+        colorFilter_ = nullptr;
         return;
     }
 #endif
@@ -47,6 +48,7 @@ void Filter::SetImageFilter(std::shared_ptr<ImageFilter> imageFilter)
 {
 #ifdef DRAWING_DISABLE_API
     if (DrawingConfig::IsDisabled(DrawingConfig::DrawingDisableFlag::DISABLE_IMAGE_FILTER)) {
+        imageFilter_ = nullptr;
         return;
     }
 #endif
@@ -67,6 +69,7 @@ void Filter::SetMaskFilter(std::shared_ptr<MaskFilter> maskFilter)
 {
 #ifdef DRAWING_DISABLE_API
     if (DrawingConfig::IsDisabled(DrawingConfig::DrawingDisableFlag::DISABLE_MASK_FILTER)) {
+        maskFilter_ = nullptr;
         return;
     }
 #endif

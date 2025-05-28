@@ -40,6 +40,7 @@
 #include "feature/capture/rs_ui_capture_task_parallel.h"
 #include "feature/capture/rs_ui_capture_solo_task_parallel.h"
 #include "feature/capture/rs_surface_capture_task_parallel.h"
+#include "feature/uifirst/rs_uifirst_frame_rate_control.h"
 #include "gfx/fps_info/rs_surface_fps_manager.h"
 #include "gfx/first_frame_notifier/rs_first_frame_notifier.h"
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
@@ -73,6 +74,7 @@
 #include "platform/ohos/rs_jank_stats_helper.h"
 #include "render/rs_typeface_cache.h"
 #include "transaction/rs_unmarshal_thread.h"
+#include "transaction/rs_transaction_data_callback_manager.h"
 #include "utils/graphic_coretrace.h"
 
 #ifdef TP_FEATURE_ENABLE
@@ -701,6 +703,7 @@ ScreenId RSRenderServiceConnection::CreateVirtualScreen(
     if (surface != nullptr) {
         EventInfo event = { "VOTER_VIRTUALDISPLAY", ADD_VOTE, OLED_60_HZ, OLED_60_HZ, name };
         NotifyRefreshRateEvent(event);
+        ROSEN_LOGI("RSRenderServiceConnection::%{public}s vote 60hz", __func__);
     }
     return newVirtualScreenId;
 }
@@ -1474,6 +1477,12 @@ ErrCode RSRenderServiceConnection::SetWindowFreezeImmediately(NodeId id, bool is
     };
     mainThread_->PostTask(setWindowFreezeTask);
     return ERR_OK;
+}
+
+void RSRenderServiceConnection::TakeUICaptureInRange(
+    NodeId id, sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig)
+{
+    TakeSurfaceCaptureForUiParallel(id, callback, captureConfig, {});
 }
 
 ErrCode RSRenderServiceConnection::SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
@@ -2384,6 +2393,7 @@ ErrCode RSRenderServiceConnection::SetScreenActiveRect(ScreenId id, const Rect& 
         if (!screenManager) {
             return;
         }
+        HgmCore::Instance().SetScreenSwitchDssEnable(id, false);
         screenManager->SetScreenActiveRect(id, dstActiveRect);
     };
     mainThread_->ScheduleTask(task).wait();
@@ -2645,6 +2655,8 @@ void RSRenderServiceConnection::NotifyRefreshRateEvent(const EventInfo& eventInf
             frameRateMgr->HandleRefreshRateEvent(pid, eventInfo);
         }
     });
+
+    RSUifirstFrameRateControl::Instance().SetAnimationInfo(eventInfo);
 }
 
 void RSRenderServiceConnection::SetWindowExpectedRefreshRate(
@@ -3118,6 +3130,12 @@ ErrCode RSRenderServiceConnection::SetLayerTop(const std::string &nodeIdStr, boo
     };
     mainThread_->PostTask(task);
     return ERR_OK;
+}
+
+void RSRenderServiceConnection::RegisterTransactionDataCallback(int32_t pid,
+    uint64_t timeStamp, sptr<RSITransactionDataCallback> callback)
+{
+    RSTransactionDataCallbackManager::Instance().RegisterTransactionDataCallback(pid, timeStamp, callback);
 }
 
 void RSRenderServiceConnection::SetColorFollow(const std::string &nodeIdStr, bool isColorFollow)

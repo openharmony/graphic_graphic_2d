@@ -216,6 +216,8 @@ void RSUniRenderVisitor::PartialRenderOptionInit()
         (dirtyRegionDebugType_ == DirtyRegionDebugType::EGL_DAMAGE);
     isDisplayDirtyDfxEnabled_ = !isTargetDirtyRegionDfxEnabled_ &&
         (dirtyRegionDebugType_ == DirtyRegionDebugType::DISPLAY_DIRTY);
+    isMergedDirtyRegionDfxEnabled_ = !isTargetDirtyRegionDfxEnabled_ &&
+        (dirtyRegionDebugType_ == DirtyRegionDebugType::MERGED_DIRTY);
     isOpDropped_ = isPartialRenderEnabled_ &&
         (partialRenderType_ != PartialRenderType::SET_DAMAGE) && !isRegionDebugEnabled_;
     isVirtualDirtyDfxEnabled_ = RSSystemProperties::GetVirtualDirtyDebugEnabled();
@@ -514,6 +516,25 @@ void RSUniRenderVisitor::MarkHardwareForcedDisabled()
     hwcVisitor_->isHardwareForcedDisabled_ = true;
 }
 
+void RSUniRenderVisitor::UpdateBlackListRecord(RSSurfaceRenderNode& node)
+{
+    if (!screenManager_) {
+        return;
+    }
+    std::unordered_set<uint64_t> virtualScreens = screenManager_->GetBlackListVirtualScreenByNode(node.GetId());
+    if (node.IsLeashWindow()) {
+        auto leashVirtualScreens = screenManager_->GetBlackListVirtualScreenByNode(node.GetLeashPersistentId());
+        virtualScreens.insert(leashVirtualScreens.begin(), leashVirtualScreens.end());
+    }
+    if (virtualScreens.empty()) {
+        node.UpdateBlackListStatus(INVALID_SCREEN_ID, false);
+        return;
+    }
+    for (const auto& screenId : virtualScreens) {
+        node.UpdateBlackListStatus(screenId, true);
+    }
+}
+
 void RSUniRenderVisitor::UpdateSpecialLayersRecord(RSSurfaceRenderNode& node)
 {
     if (node.ShouldPaint() == false) {
@@ -590,7 +611,7 @@ void RSUniRenderVisitor::ResetDisplayDirtyRegion()
     }
     bool ret = CheckScreenPowerChange() ||
         CheckCurtainScreenUsingStatusChange() ||
-        IsFirstFrameOfPartialRender() ||
+        curDisplayDirtyManager_->GetEnabledChanged() ||
         IsWatermarkFlagChanged() ||
         zoomStateChange_ ||
         isCompleteRenderEnabled_ ||
@@ -641,15 +662,6 @@ bool RSUniRenderVisitor::CheckLuminanceStatusChange(ScreenId id)
     }
     curDisplayNode_->SetIsLuminanceStatusChange(true);
     RS_LOGD("RSUniRenderVisitor::CheckLuminanceStatusChange changed");
-    return true;
-}
-
-bool RSUniRenderVisitor::IsFirstFrameOfPartialRender() const
-{
-    if (!RSMainThread::Instance()->IsFirstFrameOfPartialRender()) {
-        return false;
-    }
-    RS_LOGD("FirstFrameOfPartialRender");
     return true;
 }
 
@@ -796,6 +808,10 @@ void RSUniRenderVisitor::QuickPrepareDisplayRenderNode(RSDisplayRenderNode& node
     dirtyFlag_ = isDirty_ || displayNodeRotationChanged_ || zoomStateChange_ ||
         curDisplayDirtyManager_->IsActiveSurfaceRectChanged() ||
         curDisplayDirtyManager_->IsSurfaceRectChanged() || node.IsDirty();
+    if (dirtyFlag_) {
+        RS_TRACE_NAME_FMT("need recalculate dirty region");
+        RS_LOGI("need recalculate dirty region");
+    }
     prepareClipRect_ = screenRect_;
     hasAccumulatedClip_ = false;
 
@@ -1011,6 +1027,7 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
 
     // avoid cross node subtree visited twice or more
     UpdateSpecialLayersRecord(node);
+    UpdateBlackListRecord(node);
     if (CheckSkipAndPrepareForCrossNode(node)) {
         return;
     }
@@ -1081,6 +1098,8 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
     }
     CollectSelfDrawingNodeRectInfo(node);
     hasAccumulatedClip_ = node.SetAccumulatedClipFlag(hasAccumulatedClip_);
+    // Initialize the handler of control-level occlusion culling.
+    InitializeOcclusionHandler(node);
     bool isSubTreeNeedPrepare = node.IsSubTreeNeedPrepare(filterInGlobal_, IsSubTreeOccluded(node)) ||
         ForcePrepareSubTree();
     isSubTreeNeedPrepare ? QuickPrepareChildren(node) :
@@ -1138,6 +1157,7 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
     if (node.IsUIBufferAvailable()) {
         uiBufferAvailableId_.emplace_back(node.GetId());
     }
+    HandleTunnelLayerId(node);
     PrepareForMultiScreenViewSurfaceNode(node);
 }
 
@@ -1720,6 +1740,7 @@ bool RSUniRenderVisitor::InitDisplayInfo(RSDisplayRenderNode& node)
         RS_LOGE("RSUniRenderVisitor::InitDisplayInfo dirtyMgr or node ptr is nullptr");
         return false;
     }
+    curDisplayDirtyManager_->SetPartialRenderEnabled(isPartialRenderEnabled_ && !isRegionDebugEnabled_);
     curDisplayDirtyManager_->SetAdvancedDirtyRegionType(advancedDirtyType_);
     curDisplayNode_->GetMultableSpecialLayerMgr().Set(HAS_GENERAL_SPECIAL, false);
     curDisplayDirtyManager_->Clear();
@@ -2862,9 +2883,6 @@ void RSUniRenderVisitor::CollectEffectInfo(RSRenderNode& node)
 
 CM_INLINE void RSUniRenderVisitor::PostPrepare(RSRenderNode& node, bool subTreeSkipped)
 {
-    // Collect prepared subtree into the control-level occlusion culling handler.
-    // For the root node, trigger occlusion detection.
-    CollectSubTreeAndProcessOcclusion(node, subTreeSkipped);
     UpdateCurFrameInfoDetail(node, subTreeSkipped, true);
     if (const auto& sharedTransitionParam = node.GetSharedTransitionParam()) {
         sharedTransitionParam->GenerateDrawable(node);
@@ -2936,6 +2954,10 @@ CM_INLINE void RSUniRenderVisitor::PostPrepare(RSRenderNode& node, bool subTreeS
         }
     }
 
+    // Collect prepared subtree into the control-level occlusion culling handler.
+    // For the surface node, trigger occlusion detection.
+    CollectSubTreeAndProcessOcclusion(node, subTreeSkipped);
+
     // planning: only do this if node is dirty
     node.UpdateRenderParams();
 
@@ -2949,27 +2971,23 @@ void RSUniRenderVisitor::CollectSubTreeAndProcessOcclusion(OHOS::Rosen::RSRender
         return;
     }
 
+    curOcclusionHandler_->UpdateChildrenOutOfRectInfo(node);
     curOcclusionHandler_->CollectSubTree(node, !subTreeSkipped);
     if (node.GetId() != curOcclusionHandler_->GetRootNodeId()) {
         return;
     }
 
+    auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node.shared_from_this());
+    if (surfaceNode == nullptr) {
+        curOcclusionHandler_ = nullptr;
+        return;
+    }
     curOcclusionHandler_->UpdateSkippedSubTreeProp();
     curOcclusionHandler_->CalculateFrameOcclusion();
-    auto rootNode = RSBaseRenderNode::ReinterpretCast<RSRootRenderNode>(node.shared_from_this());
-    if (!rootNode) {
-        return;
-    }
-
-    auto occlusionParams = rootNode->GetOcclusionParams();
-    if (!occlusionParams) {
-        return;
-    }
-
-    occlusionParams->SetCulledNodes(curOcclusionHandler_->AcquireCulledNodes());
-    if (!curOcclusionHandler_->IsOcclusionActive()) {
-        occlusionParams->UpdateOcclusionCullingStatus(false, INVALID_NODEID);
-    }
+    auto occlusionParams = surfaceNode->GetOcclusionParams();
+    occlusionParams->SetCulledNodes(curOcclusionHandler_->TakeCulledNodes());
+    occlusionParams->SetCulledEntireSubtree(curOcclusionHandler_->TakeCulledEntireSubtree());
+    occlusionParams->CheckKeyOcclusionNodeValidity(curOcclusionHandler_->GetOcclusionNodes());
     curOcclusionHandler_ = nullptr;
 }
 
@@ -2985,12 +3003,14 @@ void RSUniRenderVisitor::MarkBlurIntersectWithDRM(std::shared_ptr<RSRenderNode> 
     if (appWindowNode == nullptr) {
         return;
     }
-    if (node->IsInstanceOf<RSEffectRenderNode>()) {
-        if (auto effectNode = node->ReinterpretCastTo<RSEffectRenderNode>()) {
-            effectNode->SetEffectIntersectWithDRM(false);
-            effectNode->SetDarkColorMode(RSMainThread::Instance()->GetGlobalDarkColorMode());
-        }
+    auto effectNode = node->IsInstanceOf<RSEffectRenderNode>() && node->ReinterpretCastTo<RSEffectRenderNode>() ?
+        node->ReinterpretCastTo<RSEffectRenderNode>() : nullptr;
+
+    if (effectNode) {
+        effectNode->SetEffectIntersectWithDRM(false);
+        effectNode->SetDarkColorMode(RSMainThread::Instance()->GetGlobalDarkColorMode());
     }
+
     for (const auto& win : drmKeyWins) {
         if (appWindowNode->GetName().find(win) == std::string::npos) {
             continue;
@@ -3004,11 +3024,8 @@ void RSUniRenderVisitor::MarkBlurIntersectWithDRM(std::shared_ptr<RSRenderNode> 
                 drmNodePtr->GetRenderProperties().GetBoundsGeometry()->GetAbsRect().Intersect(node->GetFilterRegion());
             if (isIntersect) {
                 node->MarkBlurIntersectWithDRM(true, RSMainThread::Instance()->GetGlobalDarkColorMode());
-                if (node->IsInstanceOf<RSEffectRenderNode>()) {
-                    if (auto effectNode = node->ReinterpretCastTo<RSEffectRenderNode>()) {
-                        effectNode->SetEffectIntersectWithDRM(true);
-                        effectNode->SetDarkColorMode(RSMainThread::Instance()->GetGlobalDarkColorMode());
-                    }
+                if (effectNode) {
+                    effectNode->SetEffectIntersectWithDRM(true);
                 }
             }
         }
@@ -3246,9 +3263,6 @@ void RSUniRenderVisitor::PrepareRootRenderNode(RSRootRenderNode& node)
 
     node.EnableWindowKeyFrame(false);
 
-    // Initialize the handler of control-level occlusion culling.
-    InitializeOcclusionHandler(node);
-
     bool isSubTreeNeedPrepare = node.IsSubTreeNeedPrepare(filterInGlobal_) || ForcePrepareSubTree();
     isSubTreeNeedPrepare ? QuickPrepareChildren(node) :
         node.SubTreeSkipPrepare(*curSurfaceDirtyManager_, curDirty_, dirtyFlag_, prepareClipRect_);
@@ -3260,24 +3274,24 @@ void RSUniRenderVisitor::PrepareRootRenderNode(RSRootRenderNode& node)
     prepareClipRect_ = prepareClipRect;
 }
 
-void RSUniRenderVisitor::InitializeOcclusionHandler(RSRootRenderNode& node)
+void RSUniRenderVisitor::InitializeOcclusionHandler(RSSurfaceRenderNode& node)
 {
+    if (!OcclusionCullingParam::IsIntraAppControlsLevelOcclusionCullingEnable()) {
+        return;
+    }
     if (curOcclusionHandler_) {
         return;
     }
-
     auto occlusionParams = node.GetOcclusionParams();
-    if (!occlusionParams || !occlusionParams->IsOcclusionCullingOn()) {
+    if (!occlusionParams->IsOcclusionCullingOn()) {
         return;
     }
 
     curOcclusionHandler_ = occlusionParams->GetOcclusionHandler();
-    if (!curOcclusionHandler_) {
-        curOcclusionHandler_ =
-            std::make_shared<RSOcclusionHandler>(node.GetId(), occlusionParams->GetKeyOcclusionNodeId());
+    if (curOcclusionHandler_ == nullptr) {
+        curOcclusionHandler_ = std::make_shared<RSOcclusionHandler>(node.GetId());
         occlusionParams->SetOcclusionHandler(curOcclusionHandler_);
     }
-    curOcclusionHandler_->UpdateKeyOcclusionNodeId(occlusionParams->GetKeyOcclusionNodeId());
 }
 
 void RSUniRenderVisitor::SetUniRenderThreadParam(std::unique_ptr<RSRenderThreadParams>& renderThreadParams)
@@ -3290,6 +3304,7 @@ void RSUniRenderVisitor::SetUniRenderThreadParam(std::unique_ptr<RSRenderThreadP
     renderThreadParams->isRegionDebugEnabled_ = isRegionDebugEnabled_;
     renderThreadParams->isDirtyRegionDfxEnabled_ = isDirtyRegionDfxEnabled_;
     renderThreadParams->isDisplayDirtyDfxEnabled_ = isDisplayDirtyDfxEnabled_;
+    renderThreadParams->isMergedDirtyRegionDfxEnabled_ = isMergedDirtyRegionDfxEnabled_;
     renderThreadParams->isOpaqueRegionDfxEnabled_ = isOpaqueRegionDfxEnabled_;
     renderThreadParams->isVisibleRegionDfxEnabled_ = isVisibleRegionDfxEnabled_;
     renderThreadParams->isAllSurfaceVisibleDebugEnabled_ = isAllSurfaceVisibleDebugEnabled_;
@@ -3577,6 +3592,21 @@ void RSUniRenderVisitor::UpdateAncoPrepareClip(RSSurfaceRenderNode& node)
             prepareClipRect_ = prepareClipRect_.IntersectRect(geoPtr->MapAbsRect(rect));
         }
     }
+}
+
+void RSUniRenderVisitor::HandleTunnelLayerId(RSSurfaceRenderNode& node)
+{
+    auto tunnelLayerId = node.GetTunnelLayerId();
+    if (!tunnelLayerId) {
+        return;
+    }
+    const auto nodeParams = static_cast<RSSurfaceRenderParams*>(node.GetStagingRenderParams().get());
+    if (nodeParams == nullptr) {
+        return;
+    }
+    nodeParams->SetTunnelLayerId(tunnelLayerId);
+    RS_LOGI("%{public}s lpp surfaceid:%{public}llu, nodeid:%{public}llu", __func__, tunnelLayerId, node.GetId());
+    RS_TRACE_NAME_FMT("%s lpp surfaceid:%llu, nodeid:%llu", __func__, tunnelLayerId, node.GetId());
 }
 } // namespace Rosen
 } // namespace OHOS

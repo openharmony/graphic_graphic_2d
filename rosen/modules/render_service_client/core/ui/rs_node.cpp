@@ -62,8 +62,10 @@
 #include "ui_effect/property/include/rs_ui_color_gradient_filter.h"
 #include "ui_effect/mask/include/ripple_mask_para.h"
 #include "ui_effect/property/include/rs_ui_filter.h"
+#include "ui_effect/property/include/rs_ui_bezier_warp_filter.h"
 #include "ui_effect/property/include/rs_ui_displacement_distort_filter.h"
 #include "ui_effect/property/include/rs_ui_edge_light_filter.h"
+#include "ui_effect/property/include/rs_ui_dispersion_filter.h"
 
 #ifdef RS_ENABLE_VK
 #include "modifier_render_thread/rs_modifiers_draw.h"
@@ -1649,6 +1651,11 @@ void RSNode::SetForegroundColor(uint32_t colorValue)
 void RSNode::SetBackgroundColor(uint32_t colorValue)
 {
     auto color = Color::FromArgbInt(colorValue);
+    SetBackgroundColor(color);
+}
+
+void RSNode::SetBackgroundColor(RSColor& color)
+{
     SetProperty<RSBackgroundColorModifier, RSAnimatableProperty<Color>>(RSModifierType::BACKGROUND_COLOR, color);
     if (color.GetAlpha() > 0) {
         SetDrawNode();
@@ -1904,6 +1911,13 @@ void RSNode::SetUIBackgroundFilter(const OHOS::Rosen::Filter* backgroundFilter)
                 uiFilter->Insert(edgeLightProperty);
                 break;
             }
+            case FilterPara::DISPERSION: {
+                auto dispersionProperty = std::make_shared<RSUIDispersionFilterPara>();
+                auto filterDispersionPara = std::static_pointer_cast<DispersionPara>(filterPara);
+                dispersionProperty->SetDispersion(filterDispersionPara);
+                uiFilter->Insert(dispersionProperty);
+                break;
+            }
             default:
                 break;
         }
@@ -1983,8 +1997,9 @@ void RSNode::SetUIForegroundFilter(const OHOS::Rosen::Filter* foregroundFilter)
         ROSEN_LOGE("Failed to set foregroundFilter, foregroundFilter is null!");
         return;
     }
-    // To do: generate composed filter here. Now we just set pixel stretch in v1.0.
-    auto filterParas = foregroundFilter->GetAllPara();
+    // To do: generate composed filter here. Now we just set foreground blur in v1.0.
+    std::shared_ptr<RSUIFilter> uiFilter = std::make_shared<RSUIFilter>();
+    auto& filterParas = foregroundFilter->GetAllPara();
     for (const auto& filterPara : filterParas) {
         if (filterPara->GetParaType() == FilterPara::BLUR) {
             auto filterBlurPara = std::static_pointer_cast<FilterBlurPara>(filterPara);
@@ -2005,7 +2020,53 @@ void RSNode::SetUIForegroundFilter(const OHOS::Rosen::Filter* foregroundFilter)
             auto distortionK = distortPara->GetDistortionK();
             SetDistortionK(distortionK);
         }
+        if (filterPara->GetParaType() == FilterPara::BEZIER_WARP) {
+            auto bezierWarpProperty = std::make_shared<RSUIBezierWarpFilterPara>();
+            auto bezierWarpPara = std::static_pointer_cast<BezierWarpPara>(filterPara);
+            bezierWarpProperty->SetBezierWarp(bezierWarpPara);
+            uiFilter->Insert(bezierWarpProperty);
+        }
     }
+    if (!uiFilter->GetAllTypes().empty()) {
+        SetForegroundUIFilter(uiFilter);
+    }
+}
+
+void RSNode::SetForegroundUIFilter(const std::shared_ptr<RSUIFilter> foregroundFilter)
+{
+    if (foregroundFilter == nullptr) {
+        ROSEN_LOGE("RSNode::SetForegroundUIFilter foregroundFilter is nullptr");
+        return;
+    }
+
+    bool shouldAdd = true;
+    std::shared_ptr<RSUIFilter> oldProperty = nullptr;
+    auto iter = propertyModifiers_.find(RSModifierType::FOREGROUND_UI_FILTER);
+    if (iter != propertyModifiers_.end() && iter->second != nullptr) {
+        auto oldRsPro = std::static_pointer_cast<RSProperty<std::shared_ptr<RSUIFilter>>>(
+            iter->second->GetProperty());
+        if (oldRsPro) {
+            oldProperty = oldRsPro->Get();
+        }
+        if (oldProperty && foregroundFilter->IsStructureSame(oldProperty)) {
+            shouldAdd = false;
+            oldProperty->SetValue(foregroundFilter);
+            return;
+        }
+    }
+
+    if (shouldAdd) {
+        auto rsProperty = std::make_shared<RSProperty<std::shared_ptr<RSUIFilter>>>(foregroundFilter);
+        auto propertyModifier = std::make_shared<RSForegroundUIFilterModifier>(rsProperty);
+        propertyModifiers_.emplace(RSModifierType::FOREGROUND_UI_FILTER, propertyModifier);
+        AddModifier(propertyModifier);
+    }
+}
+
+void RSNode::SetHDRUIBrightness(float hdrUIBrightness)
+{
+    SetProperty<RSHDRUIBrightnessModifier, RSAnimatableProperty<float>>(
+        RSModifierType::HDR_UI_BRIGHTNESS, hdrUIBrightness);
 }
 
 void RSNode::SetVisualEffect(const VisualEffect* visualEffect)
@@ -2014,9 +2075,19 @@ void RSNode::SetVisualEffect(const VisualEffect* visualEffect)
         ROSEN_LOGE("Failed to set visualEffect, visualEffect is null!");
         return;
     }
-    // To do: generate composed visual effect here. Now we just set background brightness in v1.0.
+    // To do: generate composed visual effect here. Now we just set background and HDR UI brightness in v2.0.
     auto visualEffectParas = visualEffect->GetAllPara();
     for (const auto& visualEffectPara : visualEffectParas) {
+        if (visualEffectPara == nullptr) {
+            continue;
+        }
+        if (visualEffectPara->GetParaType() == VisualEffectPara::HDR_UI_BRIGHTNESS) {
+            auto hdrUIBrightnessPara = std::static_pointer_cast<HDRUIBrightnessPara>(visualEffectPara);
+            if (hdrUIBrightnessPara) {
+                SetHDRUIBrightness(hdrUIBrightnessPara->GetHDRUIBrightness());
+            }
+            continue;
+        }
         if (visualEffectPara->GetParaType() != VisualEffectPara::BACKGROUND_COLOR_EFFECT) {
             continue;
         }
@@ -2890,6 +2961,16 @@ void RSNode::SetSkipCheckInMultiInstance(bool isSkipCheckInMultiInstance)
     isSkipCheckInMultiInstance_ = isSkipCheckInMultiInstance;
 }
 
+void RSNode::UpdateOcclusionCullingStatus(bool enable, NodeId keyOcclusionNodeId)
+{
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSUpdateOcclusionCullingStatus>(GetId(), enable, keyOcclusionNodeId);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, IsRenderServiceNode());
+    }
+}
+
 std::vector<PropertyId> RSNode::GetModifierIds() const
 {
     std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
@@ -2988,7 +3069,8 @@ void RSNode::RegisterTransitionPair(const std::shared_ptr<RSUIContext> rsUIConte
     const bool isInSameWindow)
 {
     if (rsUIContext == nullptr) {
-        ROSEN_LOGE("RSNode::RegisterTransitionPair, rsUIContext is nullptr");
+        ROSEN_LOGD("RSNode::RegisterTransitionPair, rsUIContext is nullptr");
+        RegisterTransitionPair(inNodeId, outNodeId, isInSameWindow);
         return;
     }
     std::unique_ptr<RSCommand> command = std::make_unique<RSRegisterGeometryTransitionNodePair>(inNodeId, outNodeId,
@@ -3002,7 +3084,8 @@ void RSNode::RegisterTransitionPair(const std::shared_ptr<RSUIContext> rsUIConte
 void RSNode::UnregisterTransitionPair(const std::shared_ptr<RSUIContext> rsUIContext, NodeId inNodeId, NodeId outNodeId)
 {
     if (rsUIContext == nullptr) {
-        ROSEN_LOGE("RSNode::UnregisterTransitionPair, rsUIContext is nullptr");
+        ROSEN_LOGD("RSNode::UnregisterTransitionPair, rsUIContext is nullptr");
+        UnregisterTransitionPair(inNodeId, outNodeId);
         return;
     }
     std::unique_ptr<RSCommand> command = std::make_unique<RSUnregisterGeometryTransitionNodePair>(inNodeId, outNodeId);
@@ -3118,11 +3201,11 @@ bool RSNode::GetIsDrawn()
 
 /**
  * @brief Sets the drawing type of RSnode
- * 
+ *
  * This function is used to set the corresponding draw type when
  * adding draw properties to RSnode, so that it is easy to identify
  * which draw nodes are really needed.
- * 
+ *
  * @param nodeType The type of node that needs to be set.
  *
 */

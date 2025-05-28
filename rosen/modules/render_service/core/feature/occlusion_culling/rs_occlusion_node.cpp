@@ -271,15 +271,17 @@ void OcclusionNode::UpdateSubTreeProp()
     }
 }
 
-void OcclusionNode::DetectOcclusion(std::unordered_set<NodeId>& culledNodes, std::unordered_set<NodeId>& offTreeNodes)
+void OcclusionNode::DetectOcclusion(std::unordered_set<NodeId>& culledNodes,
+    std::unordered_set<NodeId>& culledEntireSubtree, std::unordered_set<NodeId>& offTreeNodes)
 {
     RS_TRACE_NAME_FMT("OcclusionNode::DetectOcclusion, root node id is : %lu", id_);
     OcclusionCoverageInfo globalCoverage;
-    DetectOcclusionInner(globalCoverage, culledNodes, offTreeNodes);
+    (void)DetectOcclusionInner(globalCoverage, culledNodes, culledEntireSubtree, offTreeNodes);
 }
 
 OcclusionCoverageInfo OcclusionNode::DetectOcclusionInner(OcclusionCoverageInfo& globalCoverage,
-    std::unordered_set<NodeId>& culledNodes, std::unordered_set<NodeId>& offTreeNodes)
+    std::unordered_set<NodeId>& culledNodes, std::unordered_set<NodeId>& culledEntireSubtree,
+    std::unordered_set<NodeId>& offTreeNodes)
 {
     isValidInCurrentFrame_ = false;
     occludedById_ = 0;
@@ -289,10 +291,11 @@ OcclusionCoverageInfo OcclusionNode::DetectOcclusionInner(OcclusionCoverageInfo&
     OcclusionCoverageInfo selfCoverage;
     // Before traversing child nodes, check if this node is already fully covered by the global occlusion region.
     // This check can be optimized to cull the entire subtree in the future.
-    CheckNodeOcclusion(globalCoverage, culledNodes);
+    CheckNodeOcclusion(globalCoverage, culledNodes, culledEntireSubtree);
     while (child) {
         if (!child->isSubTreeIgnored_ && child->isValidInCurrentFrame_) {
-            auto childCoverInfo = child->DetectOcclusionInner(globalCoverage, culledNodes, offTreeNodes);
+            const auto& childCoverInfo = child->DetectOcclusionInner(globalCoverage, culledNodes,
+                culledEntireSubtree, offTreeNodes);
             if (childCoverInfo.area_ > maxChildCoverage.area_) {
                 maxChildCoverage = childCoverInfo;
             }
@@ -320,6 +323,22 @@ void OcclusionNode::CheckNodeOcclusion(OcclusionCoverageInfo& coverageInfo, std:
             culledNodes.insert(id_);
             occludedById_ = coverageInfo.id_;
         }
+    }
+}
+
+void OcclusionNode::CheckNodeOcclusion(OcclusionCoverageInfo& coverageInfo, std::unordered_set<NodeId>& culledNodes,
+    std::unordered_set<NodeId>& culledEntireSubtree)
+{
+    if (type_ != RSRenderNodeType::CANVAS_NODE) {
+        return;
+    }
+    if (isOutOfRootRect_ || outerRect_.IsInsideOf(coverageInfo.rect_)) {
+        if (!hasChildrenOutOfRect_) {
+            culledEntireSubtree.insert(id_);
+        } else if (!isNeedClip_) {
+            culledNodes.insert(id_);
+        }
+        occludedById_ = coverageInfo.id_;
     }
 }
 

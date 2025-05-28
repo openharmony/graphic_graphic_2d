@@ -59,7 +59,8 @@ public:
     void CalculateNodeAllBounds();
     void UpdateClipRect(const RSRenderNode& node);
     void UpdateSubTreeProp();
-    void DetectOcclusion(std::unordered_set<NodeId>& culledNodes, std::unordered_set<NodeId>& offTreeNodes);
+    void DetectOcclusion(std::unordered_set<NodeId>& culledNodes, std::unordered_set<NodeId>& culledEntireSubtree,
+        std::unordered_set<NodeId>& offTreeNodes);
     void PreorderTraversal(std::vector<std::shared_ptr<OcclusionNode>>& result);
     std::string GetOcclusionNodeInfoString();
 private:
@@ -70,8 +71,11 @@ private:
         return isBgOpaque_ && !isAlphaNeed_;
     }
     OcclusionCoverageInfo DetectOcclusionInner(OcclusionCoverageInfo& globalCoverInfo,
-        std::unordered_set<NodeId>& culledNodes, std::unordered_set<NodeId>& offTreeNodes);
+        std::unordered_set<NodeId>& culledNodes, std::unordered_set<NodeId>& culledEntireSubtree,
+        std::unordered_set<NodeId>& offTreeNodes);
     void CheckNodeOcclusion(OcclusionCoverageInfo& coverageInfo, std::unordered_set<NodeId>& culledNodes);
+    void CheckNodeOcclusion(OcclusionCoverageInfo& coverageInfo, std::unordered_set<NodeId>& culledNodes,
+        std::unordered_set<NodeId>& culledEntireSubtree);
     void UpdateCoverageInfo(OcclusionCoverageInfo& globalCoverage, OcclusionCoverageInfo& selfCoverage);
 
     uint64_t id_ = INVALID_NODEID;

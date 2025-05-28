@@ -23,7 +23,7 @@ public:
         NONE,
         RIPPLE_MASK,
         RADIAL_GRADIENT_MASK,
-        PIXEL_MAK_MASK,
+        PIXEL_MAP_MASK,
     };
 
     MaskPara()  = default;

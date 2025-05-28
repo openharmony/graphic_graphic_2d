@@ -22,6 +22,7 @@ public:
     enum ParaType {
         NONE,
         BACKGROUND_COLOR_EFFECT,
+        HDR_UI_BRIGHTNESS,
     };
 
     VisualEffectPara()  = default;

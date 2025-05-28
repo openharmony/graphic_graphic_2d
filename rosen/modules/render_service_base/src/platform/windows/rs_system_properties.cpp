@@ -732,5 +732,15 @@ bool RSSystemProperties::GetBehindWindowFilterEnabled()
 {
     return false;
 }
+
+bool RSSystemProperties::GetSubThreadControlFrameRate()
+{
+    return false;
+}
+
+int RSSystemProperties::GetSubThreadDropFrameInterval()
+{
+    return 0;
+}
 } // namespace Rosen
 } // namespace OHOS

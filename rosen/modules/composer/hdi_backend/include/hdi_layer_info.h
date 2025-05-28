@@ -222,6 +222,11 @@ public:
         isUniRender_ = isUniRender;
     }
 
+    void SetDisplayNodeFlag(bool isDisplayNode)
+    {
+        isDisplayNode_ = isDisplayNode;
+    }
+
     void SetTunnelHandleChange(bool change)
     {
         tunnelHandleChange_ = change;
@@ -230,6 +235,26 @@ public:
     void SetTunnelHandle(const sptr<SurfaceTunnelHandle> &handle)
     {
         tunnelHandle_ = handle;
+    }
+
+    void SetTunnelLayerId(const uint64_t &tunnelLayerId)
+    {
+        tunnelLayerId_ = tunnelLayerId;
+    }
+
+    uint64_t GetTunnelLayerId() const
+    {
+        return tunnelLayerId_;
+    }
+
+    void SetTunnelLayerProperty(uint32_t tunnelLayerProperty)
+    {
+        tunnelLayerProperty_ = tunnelLayerProperty;
+    }
+
+    uint32_t GetTunnelLayerProperty() const
+    {
+        return tunnelLayerProperty_;
     }
 
     bool IsSupportedPresentTimestamp() const
@@ -330,6 +355,11 @@ public:
     bool GetUniRenderFlag() const
     {
         return isUniRender_;
+    }
+
+    bool GetDisplayNodeFlag() const
+    {
+        return isDisplayNode_;
     }
 
     bool IsPreMulti() const
@@ -528,6 +558,8 @@ public:
         arsrTag_ = layerInfo->GetLayerArsr();
         copybitTag_ = layerInfo->GetLayerCopybit();
         needBilinearInterpolation_ = layerInfo->GetNeedBilinearInterpolation();
+        tunnelLayerId_ = layerInfo->GetTunnelLayerId();
+        tunnelLayerProperty_ = layerInfo->GetTunnelLayerProperty();
         ancoFlags_ = layerInfo->GetAncoFlags();
     }
 
@@ -641,6 +673,7 @@ private:
     GraphicMatrix matrix_; // matrix used for uni render redraw
     int32_t gravity_; // used for uni render redraw
     bool isUniRender_ = false; // true for uni render layer (DisplayNode)
+    bool isDisplayNode_ = false; // true for Displaynode layer
     GraphicLayerAlpha layerAlpha_;
     GraphicTransformType transformType_ = GraphicTransformType::GRAPHIC_ROTATE_BUTT;
     GraphicCompositionType compositionType_;
@@ -671,6 +704,8 @@ private:
     std::vector<float> layerLinearMatrix_
         = {1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f}; // matrix for linear colorspace
     uint64_t nodeId_ = 0;
+    uint64_t tunnelLayerId_ = 0;
+    uint32_t tunnelLayerProperty_ = 0;
     int32_t layerSource_ = 0; // default layer source tag
     bool rotationFixed_ = false;
     bool arsrTag_ = true;

@@ -420,6 +420,116 @@ bool DoBehindWindowFilterEnabled(const uint8_t* data, size_t size)
     rsRenderServiceConnectionProxy.GetBehindWindowFilterEnabled(res);
     return true;
 }
+
+bool DoSetVirtualScreenBlackList(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    // get data
+    ScreenId screenId = GetData<ScreenId>();
+    std::vector<NodeId> blackList;
+    uint8_t listSize = GetData<uint8_t>();
+    for (uint8_t i = 0; i < listSize; ++i) {
+        NodeId nodeId = GetData<NodeId>();
+        blackList.push_back(nodeId);
+    }
+
+    // test
+    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
+    RSRenderServiceConnectionProxy rsRenderServiceConnectionProxy(remoteObject);
+    rsRenderServiceConnectionProxy.SetVirtualScreenBlackList(screenId, blackList);
+    return true;
+}
+
+bool DoAddVirtualScreenBlackList(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    // get data
+    ScreenId screenId = GetData<ScreenId>();
+    std::vector<NodeId> blackList;
+    uint8_t listSize = GetData<uint8_t>();
+    for (uint8_t i = 0; i < listSize; ++i) {
+        NodeId nodeId = GetData<NodeId>();
+        blackList.push_back(nodeId);
+    }
+
+    // test
+    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
+    RSRenderServiceConnectionProxy rsRenderServiceConnectionProxy(remoteObject);
+    int32_t repCode = 0;
+    rsRenderServiceConnectionProxy.AddVirtualScreenBlackList(screenId, blackList, repCode);
+    return true;
+}
+
+bool DoRemoveVirtualScreenBlackList(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    // get data
+    ScreenId screenId = GetData<ScreenId>();
+    std::vector<NodeId> blackList;
+    uint8_t listSize = GetData<uint8_t>();
+    for (uint8_t i = 0; i < listSize; ++i) {
+        NodeId nodeId = GetData<NodeId>();
+        blackList.push_back(nodeId);
+    }
+
+    // test
+    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
+    RSRenderServiceConnectionProxy rsRenderServiceConnectionProxy(remoteObject);
+    int32_t repCode = 0;
+    rsRenderServiceConnectionProxy.RemoveVirtualScreenBlackList(screenId, blackList, repCode);
+    return true;
+}
+
+bool DoResizeVirtualScreen(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    // get data
+    ScreenId screenId = GetData<ScreenId>();
+    uint32_t width = GetData<uint32_t>();
+    uint32_t height = GetData<uint32_t>();
+
+    // test
+    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
+    RSRenderServiceConnectionProxy rsRenderServiceConnectionProxy(remoteObject);
+    rsRenderServiceConnectionProxy.ResizeVirtualScreen(screenId, width, height);
+    return true;
+}
 } // namespace Rosen
 } // namespace OHOS
 
@@ -436,5 +546,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 #endif
     OHOS::Rosen::DoTakeSurfaceCapture(data, size);
     OHOS::Rosen::DoBehindWindowFilterEnabled(data, size);
+    OHOS::Rosen::DoSetVirtualScreenBlackList(data, size);
+    OHOS::Rosen::DoAddVirtualScreenBlackList(data, size);
+    OHOS::Rosen::DoRemoveVirtualScreenBlackList(data, size);
+    OHOS::Rosen::DoResizeVirtualScreen(data, size);
     return 0;
 }

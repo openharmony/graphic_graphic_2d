@@ -215,6 +215,7 @@ private:
     bool isDisplayNodeSkipStatusChanged_ = false;
     Drawing::Matrix lastMatrix_;
     Drawing::Matrix lastMirrorMatrix_;
+    Drawing::Matrix visibleClipRectMatrix_;
     bool useFixedOffscreenSurfaceSize_ = false;
     std::shared_ptr<RSDisplayRenderNodeDrawable> mirrorSourceDrawable_ = nullptr;
     uint64_t virtualSurfaceUniqueId_ = 0;

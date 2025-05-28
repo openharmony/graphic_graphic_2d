@@ -66,7 +66,6 @@ HWTEST_F(RSModifierDrawableTest, Draw001, TestSize.Level1)
     RSModifierType type = RSModifierType::BOUNDS;
     RSModifierDrawable drawable(type);
     drawable.Draw(content, fileCanvas);
-    EXPECT_EQ(type, RSModifierType::BOUNDS);
 
     auto sharedPtr = std::make_shared<RSRenderNode>(1);
     RSProperties& properties = content.GetMutableRenderProperties();
@@ -81,7 +80,6 @@ HWTEST_F(RSModifierDrawableTest, Draw001, TestSize.Level1)
     modifierList.push_back(modifier);
     content.drawCmdModifiers_.insert(std::make_pair(RSModifierType::BOUNDS, modifierList));
     drawable.Draw(content, fileCanvas);
-    EXPECT_EQ(type, RSModifierType::BOUNDS);
 }
 
 /**

@@ -177,6 +177,8 @@ public:
     void SetAlphaOffscreen(bool alphaOffscreen);
     bool GetAlphaOffscreen() const;
 
+    void SetLocalMagnificationCap(bool localMagnificationCap);
+
     void SetSublayerTransform(const std::optional<Matrix3f>& sublayerTransform);
     const std::optional<Matrix3f>& GetSublayerTransform() const;
 
@@ -273,6 +275,8 @@ public:
 
     void SetBackgroundUIFilter(const std::shared_ptr<RSRenderFilter>& renderFilter);
     std::shared_ptr<RSRenderFilter> GetBackgroundUIFilter() const;
+    void SetForegroundUIFilter(const std::shared_ptr<RSRenderFilter>& renderFilter);
+    std::shared_ptr<RSRenderFilter> GetForegroundUIFilter() const;
 
     void SetFgBrightnessRates(const Vector4f& rates);
     Vector4f GetFgBrightnessRates() const;
@@ -488,6 +492,11 @@ public:
     bool IsSpherizeValid() const;
     void CreateSphereEffectFilter();
 
+    void SetHDRUIBrightness(float hdrUIBrightness);
+    float GetHDRUIBrightness() const;
+    bool IsHDRUIBrightnessValid() const;
+    void CreateHDRUIBrightnessFilter();
+
     bool IsAttractionValid() const;
     void SetAttractionFraction(float fraction);
     void SetAttractionDstPoint(Vector2f dstPoint);
@@ -635,6 +644,9 @@ private:
     void GenerateRenderFilterColorGradient();
     void GenerateSoundWaveFilter();
     void GenerateRenderFilterEdgeLight();
+    void GenerateBezierWarpFilter();
+    void GenerateRenderFilterDispersion();
+    void GenerateForegroundRenderFilter();
 
     bool NeedClip() const;
     bool NeedBlurFuzed();
@@ -680,6 +692,7 @@ private:
     bool bgBlurDisableSystemAdaptation = true;
     bool fgBlurDisableSystemAdaptation = true;
     bool alwaysSnapshot_ = false;
+    bool localMagnificationCap_ = false;
     float frameOffsetX_ = 0.f;
     float frameOffsetY_ = 0.f;
     float alpha_ = 1.f;
@@ -692,6 +705,7 @@ private:
     float foregroundEffectRadius_ = 0.f;
     float attractFraction_ = 0.f;
     float spherizeDegree_ = 0.f;
+    float hdrUIBrightness_ = 1.0f;
     float lightUpEffectDegree_ = 1.0f;
     // filter property
     float backgroundBlurRadius_ = 0.f;
@@ -710,6 +724,7 @@ private:
     std::shared_ptr<RSObjAbsGeometry> boundsGeo_;
     std::shared_ptr<RSFilter> foregroundFilter_ = nullptr; // view content filter
     std::shared_ptr<RSFilter> foregroundFilterCache_ = nullptr; // view content filter via cache
+    std::shared_ptr<RSRenderFilter> foregroundRenderFilter_ = nullptr;
     std::shared_ptr<RSFilter> backgroundFilter_ = nullptr;
     std::shared_ptr<RSRenderFilter> backgroundRenderFilter_ = nullptr;
     std::shared_ptr<RSFilter> filter_ = nullptr;

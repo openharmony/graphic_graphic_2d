@@ -236,6 +236,10 @@ LayerInfoPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, s
     layer->SetPreBuffer(preBuffer);
     params.SetPreBuffer(nullptr);
     layer->SetZorder(layerInfo.zOrder);
+    if (params.GetTunnelLayerId()) {
+        RS_TRACE_NAME_FMT("%s lpp set tunnel layer type", __func__);
+        layerInfo.layerType = GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL;
+    }
     layer->SetType(layerInfo.layerType);
     layer->SetRotationFixed(params.GetFixRotationByUser());
 
@@ -311,6 +315,7 @@ LayerInfoPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, s
     layer->SetLayerSourceTuning(params.GetLayerSourceTuning());
     layer->SetLayerArsr(layerInfo.arsrTag);
     layer->SetLayerCopybit(layerInfo.copybitTag);
+    HandleTunnelLayerParameters(params, layer);
     return layer;
 }
 
@@ -402,6 +407,16 @@ void RSUniRenderProcessor::ProcessRcdSurfaceForRenderThread(DrawableV2::RSRcdSur
         return;
     }
     layers_.emplace_back(layer);
+}
+
+void RSUniRenderProcessor::HandleTunnelLayerParameters(RSSurfaceRenderParams& params, LayerInfoPtr& layer)
+{
+    if (!layer || !params.GetTunnelLayerId()) {
+        return;
+    }
+    layer->SetTunnelLayerId(params.GetTunnelLayerId());
+    layer->SetTunnelLayerProperty(TunnelLayerProperty::TUNNEL_PROP_BUFFER_ADDR |
+        TunnelLayerProperty::TUNNEL_PROP_DEVICE_COMMIT);
 }
 
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR

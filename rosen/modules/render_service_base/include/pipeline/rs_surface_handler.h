@@ -263,6 +263,16 @@ public:
     void SetGlobalZOrder(float globalZOrder);
     float GetGlobalZOrder() const;
 
+    void SetSourceType(uint32_t sourceType)
+    {
+        sourceType_ = sourceType;
+    }
+
+    uint32_t GetSourceType() const
+    {
+        return sourceType_;
+    }
+
     bool GetBufferSizeChanged()
     {
         std::lock_guard<std::mutex> lock(mutex_);
@@ -328,6 +338,7 @@ private:
     std::atomic<int> bufferAvailableCount_ = 0;
     bool bufferSizeChanged_ = false;
     bool bufferTransformTypeChanged_ = false;
+    uint32_t sourceType_ = 0;
     std::shared_ptr<SurfaceBufferEntry> holdBuffer_ = nullptr;
 };
 }

@@ -342,11 +342,6 @@ public:
 
     bool IsRequestedNextVSync();
 
-    bool IsFirstFrameOfPartialRender() const
-    {
-        return isFirstFrameOfPartialRender_;
-    }
-
     bool IsOcclusionNodesNeedSync(NodeId id, bool useCurWindow);
 
     void CallbackDrawContextStatusToWMS(bool isUniRender = false);
@@ -575,6 +570,8 @@ private:
     bool DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNode, bool waitForRT);
     bool ExistBufferIsVisibleAndUpdate();
     void UpdateDirectCompositionByAnimate(bool animateNeedRequestNextVsync);
+    void HandleTunnelLayerId(const std::shared_ptr<RSSurfaceHandler>& surfaceHandler,
+        const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode);
 
     bool isUniRender_ = RSUniRenderJudgement::IsUniRender();
     bool needWaitUnmarshalFinished_ = true;
@@ -621,9 +618,6 @@ private:
 #endif
     bool isCurtainScreenOn_ = false;
     // partial render
-    bool isFirstFrameOfPartialRender_ = false;
-    bool isPartialRenderEnabledOfLastFrame_ = false;
-    bool isRegionDebugEnabledOfLastFrame_ = false;
     bool isForceRefresh_ = false;
     // record multidisplay status change
     bool isMultiDisplayPre_ = false;

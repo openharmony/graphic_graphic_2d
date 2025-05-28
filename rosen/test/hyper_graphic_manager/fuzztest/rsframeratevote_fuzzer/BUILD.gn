@@ -46,6 +46,7 @@ ohos_fuzztest("RSFrameRateVoteFuzzTest") {
     "ffrt:libffrt",
     "graphic_surface:surface",
     "hitrace:hitrace_meter",
+    "samgr:samgr_proxy",
   ]
 }
 

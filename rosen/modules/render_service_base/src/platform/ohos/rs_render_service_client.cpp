@@ -15,6 +15,7 @@
 
 #include "transaction/rs_render_service_client.h"
 #include "surface_type.h"
+#include "rs_trace.h"
 #include "surface_utils.h"
 #ifdef RS_ENABLE_GL
 #include "backend/rs_surface_ohos_gl.h"
@@ -40,6 +41,7 @@
 #include "ipc_callbacks/rs_occlusion_change_callback_stub.h"
 #include "ipc_callbacks/rs_self_drawing_node_rect_change_callback_stub.h"
 #include "ipc_callbacks/rs_surface_buffer_callback_stub.h"
+#include "ipc_callbacks/rs_transaction_data_callback_stub.h"
 #include "ipc_callbacks/rs_frame_rate_linker_expected_fps_update_callback_stub.h"
 #include "ipc_callbacks/rs_uiextension_callback_stub.h"
 #include "platform/common/rs_log.h"
@@ -398,6 +400,38 @@ bool RSRenderServiceClient::SetWindowFreezeImmediately(NodeId id, bool isFreeze,
     return true;
 }
 
+bool RSRenderServiceClient::TakeUICaptureInRange(
+    NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        ROSEN_LOGE("RSRenderServiceClient::TakeUICaptureInRange renderService == nullptr!");
+        return false;
+    }
+    if (callback == nullptr) {
+        ROSEN_LOGE("RSRenderServiceClient::TakeUICaptureInRange callback == nullptr!");
+        return false;
+    }
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        auto iter = surfaceCaptureCbMap_.find({ id, captureConfig });
+        if (iter != surfaceCaptureCbMap_.end()) {
+            ROSEN_LOGD("RSRenderServiceClient::TakeUICaptureInRange surfaceCaptureCbMap_.count(id) != 0");
+            iter->second.emplace_back(callback);
+            return true;
+        }
+        std::vector<std::shared_ptr<SurfaceCaptureCallback>> callbackVector = {callback};
+        surfaceCaptureCbMap_.emplace(std::make_pair(id, captureConfig), callbackVector);
+    }
+
+    std::lock_guard<std::mutex> lock(surfaceCaptureCbDirectorMutex_);
+    if (surfaceCaptureCbDirector_ == nullptr) {
+        surfaceCaptureCbDirector_ = new SurfaceCaptureCallbackDirector(this);
+    }
+    renderService->TakeUICaptureInRange(id, surfaceCaptureCbDirector_, captureConfig);
+    return true;
+}
+
 bool RSRenderServiceClient::SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
     float positionZ, float positionW)
 {
@@ -466,6 +500,7 @@ ScreenId RSRenderServiceClient::CreateVirtualScreen(
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
+        RS_LOGE("RSRenderServiceClient::%{public}s renderService is null!", __func__);
         return INVALID_SCREEN_ID;
     }
 
@@ -476,6 +511,7 @@ int32_t RSRenderServiceClient::SetVirtualScreenBlackList(ScreenId id, std::vecto
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
+        RS_LOGE("RSRenderServiceClient::%{public}s renderService is null!", __func__);
         return RENDER_SERVICE_NULL;
     }
 
@@ -497,6 +533,7 @@ int32_t RSRenderServiceClient::AddVirtualScreenBlackList(ScreenId id, std::vecto
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
+        RS_LOGE("RSRenderServiceClient::%{public}s renderService is null!", __func__);
         return RENDER_SERVICE_NULL;
     }
     int32_t repCode;
@@ -508,6 +545,7 @@ int32_t RSRenderServiceClient::RemoveVirtualScreenBlackList(ScreenId id, std::ve
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
+        RS_LOGE("RSRenderServiceClient::%{public}s renderService is null!", __func__);
         return RENDER_SERVICE_NULL;
     }
     int32_t repCode;
@@ -2123,6 +2161,69 @@ void RSRenderServiceClient::SetLayerTop(const std::string &nodeIdStr, bool isTop
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService != nullptr) {
         renderService->SetLayerTop(nodeIdStr, isTop);
+    }
+}
+
+class TransactionDataCallbackDirector : public RSTransactionDataCallbackStub {
+public:
+    explicit TransactionDataCallbackDirector(RSRenderServiceClient* client) : client_(client) {}
+    ~TransactionDataCallbackDirector() noexcept override = default;
+    void OnAfterProcess(int32_t pid, uint64_t timeStamp) override
+    {
+        RS_LOGD("OnAfterProcess: TriggerTransactionDataCallbackAndErase, timeStamp: %{public}"
+            PRIu64 " pid: %{public}d", timeStamp, pid);
+        client_->TriggerTransactionDataCallbackAndErase(pid, timeStamp);
+    }
+
+private:
+    RSRenderServiceClient* client_;
+};
+
+bool RSRenderServiceClient::RegisterTransactionDataCallback(int32_t pid, uint64_t timeStamp, std::function<void()> callback)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        ROSEN_LOGE("RSRenderServiceClient::RegisterTransactionDataCallback renderService == nullptr!");
+        return false;
+    }
+    if (callback == nullptr) {
+        ROSEN_LOGE("RSRenderServiceClient::RegisterTransactionDataCallback callback == nullptr!");
+        return false;
+    }
+    {
+        std::lock_guard<std::mutex> lock{ transactionDataCallbackMutex_ };
+        if (transactionDataCallbacks_.find(std::make_pair(pid, timeStamp)) == std::end(transactionDataCallbacks_)) {
+            transactionDataCallbacks_.emplace(std::make_pair(pid, timeStamp), callback);
+        } else {
+            ROSEN_LOGE("RSRenderServiceClient::RegisterTransactionDataCallback callback exists"
+                " in timeStamp %{public}s", std::to_string(timeStamp).c_str());
+            return false;
+        }
+        if (transactionDataCbDirector_ == nullptr) {
+            transactionDataCbDirector_ = new TransactionDataCallbackDirector(this);
+        }
+    }
+    RS_LOGD("RSRenderServiceClient::RegisterTransactionDataCallback, timeStamp: %{public}"
+        PRIu64 " pid: %{public}d", timeStamp, pid);
+    renderService->RegisterTransactionDataCallback(pid, timeStamp, transactionDataCbDirector_);
+    return true;
+}
+
+void RSRenderServiceClient::TriggerTransactionDataCallbackAndErase(int32_t pid, uint64_t timeStamp)
+{
+    std::function<void()> callback = nullptr;
+    {
+        std::lock_guard<std::mutex> lock{ transactionDataCallbackMutex_ };
+        auto iter = transactionDataCallbacks_.find(std::make_pair(pid, timeStamp));
+        if (iter != std::end(transactionDataCallbacks_)) {
+            callback = iter->second;
+            transactionDataCallbacks_.erase(iter);
+        }
+    }
+    if (callback) {
+        RS_LOGD("TriggerTransactionDataCallbackAndErase: invoke callback, timeStamp: %{public}"
+            PRIu64 " pid: %{public}d", timeStamp, pid);
+        std::invoke(callback);
     }
 }
 

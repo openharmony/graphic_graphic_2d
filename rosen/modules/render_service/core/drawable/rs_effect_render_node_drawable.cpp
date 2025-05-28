@@ -59,8 +59,8 @@ void RSEffectRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
     effectParams->ApplyAlphaAndMatrixToCanvas(*paintFilterCanvas);
     auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
-    if ((UNLIKELY(!uniParam) || uniParam->IsOpDropped()) && GetOpDropped() &&
-        QuickReject(canvas, effectParams->GetLocalDrawRect())) {
+    SetOcclusionCullingEnabled((!uniParam || uniParam->IsOpDropped()) && GetOpDropped());
+    if (IsOcclusionCullingEnabled() && QuickReject(canvas, effectParams->GetLocalDrawRect())) {
         SetDrawSkipType(DrawSkipType::OCCLUSION_SKIP);
         return;
     }
@@ -144,6 +144,13 @@ bool RSEffectRenderNodeDrawable::GenerateEffectDataOnDemand(RSEffectRenderParams
 
 void RSEffectRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
 {
+    auto& captureParam = RSUniRenderThread::GetCaptureParam();
+    bool stopDrawForRangeCapture = (canvas.GetUICapture() &&
+        captureParam.endNodeId_ == GetId() &&
+        captureParam.endNodeId_ != INVALID_NODEID);
+    if (stopDrawForRangeCapture) {
+        return;
+    }
     RSEffectRenderNodeDrawable::OnDraw(canvas);
 }
 } // namespace OHOS::Rosen::DrawableV2

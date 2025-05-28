@@ -53,9 +53,11 @@ namespace Rosen {
 namespace {
 const uint8_t DO_SHOW_WATERMARK = 0;
 const uint8_t DO_SET_WATERMARK = 1;
-const uint8_t TARGET_SIZE = 2;
+const uint8_t DO_REGISTER_TRANSACTION_DATA_CALLBACK = 2;
+const uint8_t TARGET_SIZE = 3;
 
 sptr<RSIRenderServiceConnection> CONN = nullptr;
+sptr<RSRenderServiceConnectionStub> rsConnStub_ = nullptr;
 const uint8_t* DATA = nullptr;
 size_t g_size = 0;
 size_t g_pos;
@@ -122,6 +124,39 @@ void DoShowWatermark()
 
 void DoSetWatermark()
 {}
+
+void DoRegisterTransactionDataCallback()
+{
+    if (data == nullptr) {
+        return;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    MessageParcel dataP;
+    MessageParcel reply;
+    MessageOption option;
+    if (!dataP.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return;
+    }
+    auto pid = GetData<int32_t>();
+    auto timeStamp = GetData<uint64_t>();
+    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
+    dataP.WriteInt32(pid);
+    dataP.WriteUint64(timeStamp);
+    dataP.WriteRemoteObject(remoteObject);
+    uint32_t code = static_cast<uint32_t>(
+        RSIRenderServiceConnectionInterfaceCode::REGISTER_TRANSACTION_DATA_CALLBACK);
+    if (rsConnStub_ == nullptr) {
+        return;
+    }
+    rsConnStub_->OnRemoteRequest(code, dataP, reply, option);
+}
+
 } // namespace Rosen
 } // namespace OHOS
 
@@ -153,6 +188,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     switch (tarPos) {
         case OHOS::Rosen::DO_SHOW_WATERMARK:
             OHOS::Rosen::DoShowWatermark();
+            break;
+        case OHOS::Rosen::DO_REGISTER_TRANSACTION_DATA_CALLBACK:
+            OHOS::Rosen::DoRegisterTransactionDataCallback();
             break;
         case OHOS::Rosen::DO_SET_WATERMARK:
             OHOS::Rosen::DoSetWatermark();

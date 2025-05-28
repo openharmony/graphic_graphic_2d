@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -22,11 +22,13 @@
 
 #include "skia_adapter/skia_convert_utils.h"
 #include "skia_adapter/skia_typeface.h"
+#include "skia_adapter/skia_paint.h"
 #include "skia_path.h"
 #include "skia_typeface.h"
 #include "src/core/SkFontPriv.h"
 #include "text/font.h"
 #include "utils/log.h"
+
 
 namespace OHOS {
 namespace Rosen {
@@ -248,6 +250,61 @@ scalar SkiaFont::MeasureText(const void* text, size_t byteLength, TextEncoding e
 {
     SkTextEncoding skEncoding = static_cast<SkTextEncoding>(encoding);
     return skFont_.measureText(text, byteLength, skEncoding, reinterpret_cast<SkRect*>(bounds));
+}
+
+scalar SkiaFont::MeasureText(
+    const void* text, size_t byteLength, TextEncoding encoding, Rect* bounds, const Brush* brush, const Pen* pen) const
+{
+    if (!text || byteLength == 0) {
+        LOGE("SkiaFont MeasureText error param");
+        return 0.0f;
+    }
+    SkTextEncoding skEncoding = static_cast<SkTextEncoding>(encoding);
+    SkRect* skBounds = reinterpret_cast<SkRect*>(bounds);
+    std::unique_ptr<SkPaint> paint = nullptr;
+    if (brush != nullptr) {
+        paint = std::make_unique<SkPaint>();
+        SkiaPaint::BrushToSkPaint(*brush, *paint);
+    } else if (pen != nullptr) {
+        paint = std::make_unique<SkPaint>();
+        SkiaPaint::PenToSkPaint(*pen, *paint);
+    }
+    return skFont_.measureText(text, byteLength, skEncoding, skBounds, paint.get());
+}
+
+void SkiaFont::GetWidthsBounds(const uint16_t glyphs[], int count, float widths[], Rect bounds[],
+    const Brush* brush, const Pen* pen) const
+{
+    if (count <= 0) {
+        LOGE("SkiaFont GetWidthsBounds error param");
+        return;
+    }
+    SkRect* skRect = bounds ? reinterpret_cast<SkRect*>(bounds) : nullptr;
+    std::unique_ptr<SkPaint> paint = nullptr;
+    if (brush != nullptr) {
+        paint = std::make_unique<SkPaint>();
+        SkiaPaint::BrushToSkPaint(*brush, *paint);
+    } else if (pen != nullptr) {
+        paint = std::make_unique<SkPaint>();
+        SkiaPaint::PenToSkPaint(*pen, *paint);
+    }
+    skFont_.getWidthsBounds(glyphs, count, widths, skRect, paint.get());
+}
+
+void SkiaFont::GetPos(const uint16_t glyphs[], int count, Point points[], Point origin) const
+{
+    if (count <= 0) {
+        LOGE("SkiaFont GetPos error param");
+        return;
+    }
+    SkPoint* skPts = reinterpret_cast<SkPoint*>(points);
+    SkPoint skOrigin = SkPoint::Make(origin.GetX(), origin.GetY());
+    skFont_.getPos(glyphs, count, skPts, skOrigin);
+}
+
+float SkiaFont::GetSpacing() const
+{
+    return skFont_.getSpacing();
 }
 
 int SkiaFont::CountText(const void* text, size_t byteLength, TextEncoding encoding) const

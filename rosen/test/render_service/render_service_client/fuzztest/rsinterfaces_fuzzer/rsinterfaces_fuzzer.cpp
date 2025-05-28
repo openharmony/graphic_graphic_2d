@@ -339,6 +339,40 @@ bool DoGetHighContrastTextState(const uint8_t* data, size_t size)
     return true;
 }
 
+bool DoCreateVirtualScreen(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    // get data
+    const std::string name = GetData<std::string>();
+    uint32_t width = GetData<uint32_t>();
+    uint32_t height = GetData<uint32_t>();
+    auto csurface = IConsumerSurface::Create();
+    auto producer = csurface->GetProducer();
+    auto psurface = Surface::CreateSurfaceAsProducer(producer);
+    ScreenId mirrorId = GetData<ScreenId>();
+    int flags = GetData<int>();
+    std::vector<NodeId> whiteList;
+    uint8_t whiteListSize = GetData<uint8_t>();
+    for (uint8_t i = 0; i < whiteListSize; ++i) {
+        NodeId nodeId = GetData<NodeId>();
+        whiteList.push_back(nodeId);
+    }
+
+    // test
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    ScreenId virtualScreenId = rsInterfaces.CreateVirtualScreen(name, width, height, psurface, mirrorId, flags, whiteList);
+    rsInterfaces.RemoveVirtualScreen(virtualScreenId);
+    return true;
+}
+
 bool DoSetBehindWindowFilterEnabled(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -397,5 +431,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoGetHighContrastTextState(data, size);
     OHOS::Rosen::DoSetBehindWindowFilterEnabled(data, size);
     OHOS::Rosen::DoGetBehindWindowFilterEnabled(data, size);
+    OHOS::Rosen::DoCreateVirtualScreen(data, size);
     return 0;
 }

@@ -347,7 +347,7 @@ bool EglWrapperLayer::LoadLayers(const std::string& libname, const std::vector<s
 
 bool EglWrapperLayer::DoLoadLayers(const std::vector<std::string>& layers)
 {
-    for (size_t i = layers.size() - 1; i >= 0; i--) {
+    for (int32_t i = static_cast<int32_t>(layers.size()) - 1; i >= 0; i--) {
         std::string layerLib = std::string(DEBUG_LAYERS_PREFIX) + layers[i] + std::string(DEBUG_LAYERS_SUFFIX);
         std::vector<std::string> allLayerPaths;
         if (layerLib == "libsquid.so") {

@@ -100,7 +100,7 @@ int main()
     RSTransaction::FlushImplicitTransaction();
     sleep(2);
 
-    std::cout << "Local Magnification Case5: abnormal case" << std::endl;
+    std::cout << "Local Magnification Case5: abnormal case1" << std::endl;
     surfaceNode->SetPositionZ(MAX_ZORDER);
     surfaceNode->SetAbilityBGAlpha(254);
     surfaceNode->SetFrameGravity(Gravity::RESIZE_ASPECT);
@@ -109,7 +109,16 @@ int main()
     RSTransaction::FlushImplicitTransaction();
     sleep(2);
 
-    std::cout << "Local Magnification Case6: sliding window" << std::endl;
+    std::cout << "Local Magnification Case5: abnormal case2" << std::endl;
+    surfaceNode->SetPositionZ(MAX_ZORDER);
+    surfaceNode->SetAbilityBGAlpha(254);
+    surfaceNode->SetFrameGravity(Gravity::RESIZE_ASPECT);
+    surfaceNode->SetRegionToBeMagnified({ 1300, 500, 400, 250 });
+    surfaceNode->SetFrame({ 500, 500, BOUNDS_WIDTH, BOUNDS_HEIGHT });
+    RSTransaction::FlushImplicitTransaction();
+    sleep(2);
+
+    std::cout << "Local Magnification Case7: sliding window" << std::endl;
     for (int i = 0; i < 15; i++) {
         surfaceNode->SetPositionZ(MAX_ZORDER);
         surfaceNode->SetAbilityBGAlpha(254);
@@ -119,6 +128,15 @@ int main()
         RSTransaction::FlushImplicitTransaction();
         sleep(1);
     }
+
+    std::cout << "Local Magnification Case8: dirty manager, click to the accessibility page" << std::endl;
+    surfaceNode->SetPositionZ(MAX_ZORDER);
+    surfaceNode->SetAbilityBGAlpha(254);
+    surfaceNode->SetFrameGravity(Gravity::RESIZE_ASPECT);
+    surfaceNode->SetRegionToBeMagnified({230, 1100, 400, 400});
+    surfaceNode->SetFrame({230, 1100, 800, 800});
+    RSTransaction::FlushImplicitTransaction();
+    sleep(50);
 
     return EXIT_SUCCESS;
 }

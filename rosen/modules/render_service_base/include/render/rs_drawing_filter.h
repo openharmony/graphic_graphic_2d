@@ -109,6 +109,8 @@ private:
     float PrepareAlphaForOnScreenDraw(RSPaintFilterCanvas& paintFilterCanvas);
     std::shared_ptr<Drawing::ImageFilter> ProcessImageFilter(float brushAlpha) const;
 
+    bool IsHpsBlurApplied(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& outImage,
+        const DrawImageRectAttributes& attr, const Drawing::Brush& brush, float radius);
     bool ApplyImageEffectWithLightBlur(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
         const DrawImageRectAttributes& attr, const Drawing::Brush& brush);
     void ApplyImageEffect(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
@@ -119,6 +121,7 @@ private:
     std::vector<std::shared_ptr<RSShaderFilter>> shaderFilters_;
     uint32_t imageFilterHash_ = 0;
     bool canSkipFrame_ = false;
+    bool canSkipMaskColor_ = false;
     float saturationForHPS_ = 1.f;
     float brightnessForHPS_ = 1.f;
     friend class RSMarshallingHelper;

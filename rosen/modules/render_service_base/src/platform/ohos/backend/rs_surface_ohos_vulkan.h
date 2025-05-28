@@ -63,6 +63,24 @@ public:
         }
         mSurfaceMap.clear();
     }
+
+    void ClearSurfaceResource()
+    {
+        if (mSkContext) {
+            mSkContext->FlushAndSubmit(true);
+        }
+        for (auto& [key, val] : mSurfaceMap) {
+            NativeWindowCancelBuffer(mNativeWindow, key);
+        }
+        mSurfaceMap.clear();
+        mSurfaceList.clear();
+        {
+            std::lock_guard<std::mutex> lock(protectedSurfaceBufferListMutex_);
+            protectedSurfaceBufferList_.clear();
+        }
+        mSkContext = nullptr;
+    }
+
     int DupReservedFlushFd();
 
     int32_t RequestNativeWindowBuffer(NativeWindowBuffer** nativeWindowBuffer, int32_t width, int32_t height,

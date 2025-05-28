@@ -31,6 +31,7 @@
 #include "ipc_callbacks/rs_uiextension_callback_stub.h"
 #include "ipc_callbacks/screen_change_callback_stub.h"
 #include "ipc_callbacks/surface_capture_callback_stub.h"
+#include "ipc_callbacks/rs_transaction_data_callback_stub.h"
 #include "transaction/rs_render_service_client.h"
 
 namespace OHOS {
@@ -267,6 +268,20 @@ public:
         std::shared_ptr<Media::PixelMap> surfaceCapture(pixelmap);
         client_->TriggerSurfaceCaptureCallback(id, captureConfig, surfaceCapture);
     };
+
+private:
+    RSRenderServiceClient* client_;
+};
+
+class TransactionDataCallbackDirector : public RSTransactionDataCallbackStub {
+public:
+    explicit TransactionDataCallbackDirector(RSRenderServiceClient* client) : client_(client) {}
+    ~TransactionDataCallbackDirector() noexcept override = default;
+    void OnAfterProcess(int32_t pid, uint64_t timeStamp) override
+    {
+        SAFUZZ_LOGD("OnAfterProcess: TriggerTransactionDataCallbackAndErase");
+        client_->TriggerTransactionDataCallbackAndErase(pid, timeStamp);
+    }
 
 private:
     RSRenderServiceClient* client_;

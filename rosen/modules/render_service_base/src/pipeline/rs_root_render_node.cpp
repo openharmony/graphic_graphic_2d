@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "params/rs_root_render_params.h"
+#include "params/rs_render_params.h"
 #include "pipeline/rs_root_render_node.h"
 #include "platform/common/rs_log.h"
 #include "platform/drawing/rs_surface.h"
@@ -127,43 +127,6 @@ void RSRootRenderNode::EnableWindowKeyFrame(bool enable)
 bool RSRootRenderNode::IsWindowKeyFrameEnabled()
 {
     return stagingRenderParams_ != nullptr ? stagingRenderParams_->IsWindowKeyFrameEnabled() : false;
-}
-
-// Currently only used to pass the list of culled nodes in control-level occlusion culling.
-void RSRootRenderNode::InitRenderParams()
-{
-    stagingRenderParams_ = std::make_unique<RSRootRenderParams>(GetId());
-    DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(shared_from_this());
-    if (renderDrawable_ == nullptr) {
-        RS_LOGE("RSRootRenderNode::InitRenderParams failed");
-        return;
-    }
-}
-
-// Currently only used to pass the list of culled nodes in control-level occlusion culling.
-void RSRootRenderNode::UpdateRenderParams()
-{
-    auto rootParams = static_cast<RSRootRenderParams*>(stagingRenderParams_.get());
-    if (rootParams == nullptr) {
-        RS_LOGE("RSRootRenderNode::UpdateRenderParams rootParams is null");
-        return;
-    }
-    if (occlusionParams_ && occlusionParams_->isOcclusionOn_) {
-        rootParams->culledNodes_ = std::move(occlusionParams_->culledNodes_);
-        rootParams->isOcclusionCullingOn_ = occlusionParams_->isOcclusionOn_;
-        rootParams->SetNeedSync(true);
-    }
-
-    RSRenderNode::UpdateRenderParams();
-}
-
-// Enables/disables control-level occlusion culling for the node's subtree
-void OcclusionParams::UpdateOcclusionCullingStatus(bool enable, NodeId keyOcclusionNodeId)
-{
-    keyOcclusionNodeId_ = keyOcclusionNodeId;
-    occlusionActiveCount_ = std::max(0, occlusionActiveCount_ + (enable ? 1 : -1));
-    isOcclusionOn_ = (occlusionActiveCount_ > 0);
-    occlusionHandler_ = isOcclusionOn_ ? occlusionHandler_ : nullptr;
 }
 } // namespace Rosen
 } // namespace OHOS

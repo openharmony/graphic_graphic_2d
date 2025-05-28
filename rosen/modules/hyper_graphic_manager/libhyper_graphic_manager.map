@@ -71,7 +71,6 @@
       *HgmEnergyConsumptionPolicy::GetVideoCallFrameRate*;
       *HgmEnergyConsumptionPolicy::SetCurrentPkgName*;
 
-      *HgmFrameRateManager::AvoidChangeRateFrequent*;
       *HgmFrameRateManager::CalcRefreshRate*;
       *HgmFrameRateManager::ChangePriority*;
       *HgmFrameRateManager::CleanPageUrlVote*;
@@ -122,6 +121,7 @@
       *HgmFrameRateManager::UpdateVoteRule*;
       *HgmFrameRateManager::HandleGameNode*;
       *HgmFrameRateManager::UpdateSoftVSync*;
+      *HgmFrameRateManager::UpdateFrameRateWithDelay*;
       *HgmFrameRateManager::SetVsyncRateDiscountLTPO*;
       *HgmFrameRateManager::EraseGameRateDiscountMap*;
       *HgmFrameRateManager::CollectGameRateDiscountChange*;

@@ -62,6 +62,16 @@ public:
         return isOpDropped_;
     }
 
+    inline bool IsOcclusionCullingEnabled() const
+    {
+        return occlusionCullingEnabled_;
+    }
+
+    inline void SetOcclusionCullingEnabled(bool enabled)
+    {
+        occlusionCullingEnabled_ = enabled;
+    }
+
     bool ShouldPaint() const;
 
     static int GetTotalProcessedNodeCount();
@@ -158,6 +168,7 @@ private:
     static inline std::unordered_map<NodeId, int32_t> drawingCacheContinuousUpdateTimeMap_;
 
     static thread_local bool isOpDropped_;
+    static thread_local bool occlusionCullingEnabled_;
     static thread_local bool isOffScreenWithClipHole_;
     static inline std::atomic<int> totalProcessedNodeCount_ = 0;
     static inline int snapshotProcessedNodeCount_ = 0;
@@ -180,8 +191,8 @@ private:
     friend class RsSubThreadCache;
     RSOpincDrawCache opincDrawCache_;
 
-    // Used to skip nodes that were culled by the control-level occlusion.
-    bool SkipCulledNodeAndDrawChildren(Drawing::Canvas& canvas, Drawing::Rect& bounds);
+    // Used to skip nodes or entire subtree that were culled by the control-level occlusion.
+    bool SkipCulledNodeOrEntireSubtree(Drawing::Canvas& canvas, Drawing::Rect& bounds);
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

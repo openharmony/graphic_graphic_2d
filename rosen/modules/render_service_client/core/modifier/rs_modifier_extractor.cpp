@@ -366,6 +366,11 @@ float RSModifierExtractor::GetSpherizeDegree() const
     GET_PROPERTY_FROM_MODIFIERS_EQRETURN(float, SPHERIZE, 0.f, =);
 }
 
+float RSModifierExtractor::GetHDRUIBrightness() const
+{
+    GET_PROPERTY_FROM_MODIFIERS_EQRETURN(float, HDR_UI_BRIGHTNESS, 1.0f, =);
+}
+
 float RSModifierExtractor::GetAttractionFractionValue() const
 {
     GET_PROPERTY_FROM_MODIFIERS(float, ATTRACTION_FRACTION, 0.f, =);

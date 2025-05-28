@@ -173,8 +173,14 @@ void RSSurfaceRenderNodeDrawable::OnGeneralProcess(RSPaintFilterCanvas& canvas,
         // 3. Draw content of this node by the main canvas.
         DrawContent(canvas, bounds);
 
-        // 4. Draw children of this node by the main canvas.
-        DrawChildren(canvas, bounds);
+        auto& captureParam = RSUniRenderThread::GetCaptureParam();
+        bool stopDrawForRangeCapture = (canvas.GetUICapture() &&
+            captureParam.endNodeId_ == GetId() &&
+            captureParam.endNodeId_ != INVALID_NODEID);
+        if (!stopDrawForRangeCapture) {
+            // 4. Draw children of this node by the main canvas.
+            DrawChildren(canvas, bounds);
+        }
     }
 
     // 5. Draw foreground of this node by the main canvas.
@@ -200,13 +206,24 @@ void RSSurfaceRenderNodeDrawable::DrawMagnificationRegion(
         return;
     }
 
+    /* Get absRect of frame */
+    RSAutoCanvasRestore acr(&canvas);
+    auto frame = surfaceParams.GetFrameRect();
+    Drawing::Rect absRect;
+    canvas.GetTotalMatrix().MapRect(absRect, frame);
+    canvas.ResetMatrix();
+
     /* Get Region to be magnified */
     auto regionToBeMagnified = surfaceParams.GetRegionToBeMagnified();
     RectI magnifingRectI(std::ceil(regionToBeMagnified.x_), std::ceil(regionToBeMagnified.y_),
         std::floor(regionToBeMagnified.z_), std::floor(regionToBeMagnified.w_));
     if (magnifingRectI.IsEmpty()) {
-        RS_LOGE("RSSurfaceRenderNodeDrawable::DrawMagnificationRegion, regionToBeMagnified is empty");
-        RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::DrawMagnificationRegion, regionToBeMagnified is empty");
+        RS_LOGE("RSSurfaceRenderNodeDrawable::DrawMagnificationRegion, regionToBeMagnified is empty, "
+                "regionToBeMagnified left=%f, top=%f, width=%f, hight=%f",
+            regionToBeMagnified.x_, regionToBeMagnified.y_, regionToBeMagnified.z_, regionToBeMagnified.w_);
+        RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::DrawMagnificationRegion, regionToBeMagnified is empty, "
+                          "regionToBeMagnified left=%f, top=%f, width=%f, hight=%f",
+            regionToBeMagnified.x_, regionToBeMagnified.y_, regionToBeMagnified.z_, regionToBeMagnified.w_);
         return;
     }
 
@@ -214,6 +231,13 @@ void RSSurfaceRenderNodeDrawable::DrawMagnificationRegion(
     RectI deviceRect(0, 0, drawingSurface->Width(), drawingSurface->Height());
     magnifingRectI = magnifingRectI.IntersectRect(deviceRect);
     if (UNLIKELY(magnifingRectI.IsEmpty())) {
+        RS_LOGE("RSSurfaceRenderNodeDrawable::DrawMagnificationRegion, regionToBeMagnified is not in the screen range, "
+                "regionToBeMagnified left=%f, top=%f, width=%f, hight=%f",
+            regionToBeMagnified.x_, regionToBeMagnified.y_, regionToBeMagnified.z_, regionToBeMagnified.w_);
+        RS_TRACE_NAME_FMT(
+            "RSSurfaceRenderNodeDrawable::DrawMagnificationRegion, regionToBeMagnified is not in the screen range, "
+            "regionToBeMagnified left=%f, top=%f, width=%f, hight=%f",
+            regionToBeMagnified.x_, regionToBeMagnified.y_, regionToBeMagnified.z_, regionToBeMagnified.w_);
         return;
     }
     Drawing::RectI imageRect(
@@ -224,15 +248,18 @@ void RSSurfaceRenderNodeDrawable::DrawMagnificationRegion(
     }
 
     /* Optimization */
-    Drawing::SamplingOptions samplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::LINEAR);
+    Drawing::SamplingOptions samplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
     Drawing::Brush paint;
     paint.SetAntiAlias(true);
     canvas.AttachBrush(paint);
 
     /* Magnify */
-    auto frame = surfaceParams.GetFrameRect();
-    canvas.DrawImageRect(*imageSnapshot, frame, samplingOptions);
+    canvas.DrawImageRect(*imageSnapshot, absRect, samplingOptions);
     canvas.DetachBrush();
+
+    RS_OPTIONAL_TRACE_NAME_FMT(
+        "RSSurfaceRenderNodeDrawable::DrawMagnificationRegion, regionToBeMagnified left=%f, top=%f, width=%f, hight=%f",
+        regionToBeMagnified.x_, regionToBeMagnified.y_, regionToBeMagnified.z_, regionToBeMagnified.w_);
 
     return ;
 }
@@ -547,8 +574,9 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     if (!disableFilterCache && !isUiFirstNode && surfaceParams->GetOccludedByFilterCache()) {
         SetDrawSkipType(DrawSkipType::FILTERCACHE_OCCLUSION_SKIP);
         RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw[%s](%d, %d, %d, %d) filterCache occlusion skip, "
-            "id:%" PRIu64 ", alpha:%f, dirty(%d, %d, %d, %d)", name_.c_str(), absDrawRect.left_, absDrawRect.top_,
-            absDrawRect.width_, absDrawRect.height_, surfaceParams->GetId(), surfaceParams->GetGlobalAlpha(),
+            "id:%" PRIu64 ", alpha:%f, currentFrameDirty(%d, %d, %d, %d)",
+            name_.c_str(), absDrawRect.left_, absDrawRect.top_, absDrawRect.width_, absDrawRect.height_,
+            surfaceParams->GetId(), surfaceParams->GetGlobalAlpha(),
             currentFrameDirty.left_, currentFrameDirty.top_, currentFrameDirty.width_, currentFrameDirty.height_);
         return;
     }
@@ -578,7 +606,8 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         if (uniParam->IsOpDropped() && surfaceParams->IsVisibleDirtyRegionEmpty(curSurfaceDrawRegion)) {
             SetDrawSkipType(DrawSkipType::OCCLUSION_SKIP);
             RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw[%s](%d, %d, %d, %d) occlusion skip, "
-                "id:%" PRIu64 ", alpha:%f, dirty(%d, %d, %d, %d)", name_.c_str(), absDrawRect.left_, absDrawRect.top_,
+                "id:%" PRIu64 ", alpha:%f, currentFrameDirty(%d, %d, %d, %d)",
+                name_.c_str(), absDrawRect.left_, absDrawRect.top_,
                 absDrawRect.width_, absDrawRect.height_, surfaceParams->GetId(), surfaceParams->GetGlobalAlpha(),
                 currentFrameDirty.left_, currentFrameDirty.top_, currentFrameDirty.width_, currentFrameDirty.height_);
             return;
@@ -586,12 +615,16 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     }
     const RectI& mergeHistoryDirty = syncDirtyManager_->GetDirtyRegion();
     // warning : don't delete this trace or change trace level to optional !!!
-    RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw[%s](%d, %d, %d, %d), id:%" PRIu64 ", alpha:%f"
-        ", preSub:%d, dirty(%d, %d, %d, %d), mergedDirty(%d, %d, %d, %d)", name_.c_str(), absDrawRect.left_,
-        absDrawRect.top_, absDrawRect.width_, absDrawRect.height_, GetId(), surfaceParams->GetGlobalAlpha(),
-        surfaceParams->GetPreSubHighPriorityType(),
+    RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw[%s](%d, %d, %d, %d), id:%" PRIu64 ", alpha:[%f], "
+        "preSub:[%d], currentFrameDirty(%d, %d, %d, %d), mergedDirty(%d, %d, %d, %d), "
+        "visibleRengion: [%s], opaqueRegion: [%s], transparentRegion: [%s]",
+        name_.c_str(), absDrawRect.left_, absDrawRect.top_, absDrawRect.width_, absDrawRect.height_,
+        GetId(), surfaceParams->GetGlobalAlpha(), surfaceParams->GetPreSubHighPriorityType(),
         currentFrameDirty.left_, currentFrameDirty.top_, currentFrameDirty.width_, currentFrameDirty.height_,
-        mergeHistoryDirty.left_, mergeHistoryDirty.top_, mergeHistoryDirty.width_, mergeHistoryDirty.height_);
+        mergeHistoryDirty.left_, mergeHistoryDirty.top_, mergeHistoryDirty.width_, mergeHistoryDirty.height_,
+        surfaceParams->GetVisibleRegion().GetRegionInfo().c_str(),
+        surfaceParams->GetOpaqueRegion().GetRegionInfo().c_str(),
+        surfaceParams->GetTransparentRegion().GetRegionInfo().c_str());
 
     RS_LOGD("RSSurfaceRenderNodeDrawable::OnDraw node:%{public}" PRIu64 ", name:%{public}s,"
             "OcclusionVisible:%{public}d Bound:%{public}s",
@@ -693,6 +726,10 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     curCanvas_->SetDisableFilterCache(isDisableFilterCache || surfaceParams->GetGlobalPositionEnabled());
     auto parentSurfaceMatrix = RSRenderParams::GetParentSurfaceMatrix();
     RSRenderParams::SetParentSurfaceMatrix(curCanvas_->GetTotalMatrix());
+    if (surfaceParams->IsOcclusionCullingOn()) {
+        curCanvas_->SetCulledNodes(surfaceParams->TakeCulledNodes());
+        curCanvas_->SetCulledEntireSubtree(surfaceParams->TakeCulledEntireSubtree());
+    }
 
     // add a blending disable rect op behind floating window, to enable overdraw buffer feature on special gpu.
     if (surfaceParams->IsLeashWindow() && RSSystemProperties::GetGpuOverDrawBufferOptimizeEnabled()
@@ -746,6 +783,10 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     curCanvas_->SetDisableFilterCache(isDisableFilterCache);
     RSRenderParams::SetParentSurfaceMatrix(parentSurfaceMatrix);
     SetUIExtensionNeedToDraw(false);
+    if (surfaceParams->IsOcclusionCullingOn()) {
+        curCanvas_->SetCulledNodes(std::unordered_set<NodeId>());
+        curCanvas_->SetCulledEntireSubtree(std::unordered_set<NodeId>());
+    }
 }
 
 void RSSurfaceRenderNodeDrawable::CrossDisplaySurfaceDirtyRegionConversion(

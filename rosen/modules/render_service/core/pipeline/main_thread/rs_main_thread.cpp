@@ -1620,6 +1620,7 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
             if (RSBaseRenderUtil::ConsumeAndUpdateBuffer(*surfaceHandler, timestamp_,
                     IsNeedDropFrameByPid(surfaceHandler->GetNodeId()), enableAdaptive, needConsume,
                     parentNode ? parentNode->GetId() : 0)) {
+                HandleTunnelLayerId(surfaceHandler, surfaceNode);
                 if (!isUniRender_) {
                     this->dividedRenderbufferTimestamps_[surfaceNode->GetId()] =
                         static_cast<uint64_t>(surfaceHandler->GetTimestamp());
@@ -2431,8 +2432,6 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         uniVisitor->SetAnimateState(doWindowAnimate_);
         uniVisitor->SetDirtyFlag(isDirty_ || isAccessibilityConfigChanged_ || forceUIFirstChanged_);
         forceUIFirstChanged_ = false;
-        isFirstFrameOfPartialRender_ = (!isPartialRenderEnabledOfLastFrame_ || isRegionDebugEnabledOfLastFrame_) &&
-            uniVisitor->GetIsPartialRenderEnabled() && !uniVisitor->GetIsRegionDebugEnabled();
         SetFocusLeashWindowId();
         uniVisitor->SetFocusedNodeId(focusNodeId_, focusLeashWindowId_);
         rsVsyncRateReduceManager_.SetFocusedNodeId(focusNodeId_);
@@ -2483,8 +2482,6 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
             WaitUntilUploadTextureTaskFinished(isUniRender_);
         }
         lastWatermarkFlag_ = watermarkFlag_;
-        isPartialRenderEnabledOfLastFrame_ = uniVisitor->GetIsPartialRenderEnabled();
-        isRegionDebugEnabledOfLastFrame_ = uniVisitor->GetIsRegionDebugEnabled();
         isOverDrawEnabledOfLastFrame_ = isOverDrawEnabledOfCurFrame_;
         isDrawingCacheDfxEnabledOfLastFrame_ = isDrawingCacheDfxEnabledOfCurFrame_;
         // set params used in render thread
@@ -2584,6 +2581,7 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
         auto surfaceHandler = surfaceNode->GetRSSurfaceHandler();
         if (!surfaceNode->IsHardwareForcedDisabled()) {
             auto params = static_cast<RSSurfaceRenderParams*>(surfaceNode->GetStagingRenderParams().get());
+            HandleTunnelLayerId(surfaceHandler, surfaceNode);
             if (!surfaceHandler->IsCurrentFrameBufferConsumed() && params->GetPreBuffer() != nullptr) {
                 params->SetPreBuffer(nullptr);
                 surfaceNode->AddToPendingSyncList();
@@ -5317,6 +5315,37 @@ void RSMainThread::OnFmtTraceSwitchCallback(const char *key, const char *value, 
     }
     bool isTraceEnable = (std::atoi(value) != 0);
     RSSystemProperties::SetDebugFmtTraceEnabled(isTraceEnable);
+}
+
+void RSMainThread::HandleTunnelLayerId(const std::shared_ptr<RSSurfaceHandler>& surfaceHandler,
+    const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode)
+{
+    if (surfaceHandler == nullptr || surfaceNode == nullptr) {
+        RS_LOGI("%{public}s surfaceHandler or surfaceNode is null", __func__);
+        return;
+    }
+
+    if (surfaceHandler->GetSourceType() !=
+        static_cast<uint32_t>(OHSurfaceSource::OH_SURFACE_SOURCE_LOWPOWERVIDEO)) {
+        surfaceNode->SetTunnelLayerId(0);
+        return;
+    }
+
+    auto consumer = surfaceHandler->GetConsumer();
+    if (consumer == nullptr) {
+        RS_LOGI("%{public}s consumer is null", __func__);
+        return;
+    }
+
+    uint64_t currentTunnelLayerId = surfaceNode->GetTunnelLayerId();
+    uint64_t newTunnelLayerId = consumer->GetUniqueId();
+    if (currentTunnelLayerId == newTunnelLayerId) {
+        return;
+    }
+
+    surfaceNode->SetTunnelLayerId(newTunnelLayerId);
+    RS_LOGI("%{public}s lpp surfaceid:%{public}llu", __func__, newTunnelLayerId);
+    RS_TRACE_NAME_FMT("%s lpp surfaceid=%" PRIu64 "", __func__, newTunnelLayerId);
 }
 } // namespace Rosen
 } // namespace OHOS
