@@ -302,9 +302,10 @@ void BlobCache::WriteToDisk()
             return;
         }
     }
+    fdsan_exchange_owner_tag(fd, 0, LOG_DOMAIN);
     size_t filesize = GetCacheSize();
     if (filesize == 0) {
-        close(fd);
+        fdsan_close_with_tag(fd, LOG_DOMAIN);
         return;
     }
     size_t headsize = sizeof(CacheHeader);
@@ -319,14 +320,14 @@ void BlobCache::WriteToDisk()
         eheader->valueSize = valuesize;
         if (memcpy_s(eheader->mData, bufsize - offset - headsize, item->first->data, keysize) != 0) {
             delete[] buf;
-            close(fd);
+            fdsan_close_with_tag(fd, LOG_DOMAIN);
             return;
         }
 
         if (memcpy_s(eheader->mData + keysize, bufsize - offset - headsize - keysize,
                      item->second->data, valuesize) !=0) {
             delete[] buf;
-            close(fd);
+            fdsan_close_with_tag(fd, LOG_DOMAIN);
             return;
         }
         size_t innerSize = headsize + keysize + valuesize;
@@ -334,7 +335,7 @@ void BlobCache::WriteToDisk()
     }
     if (memcpy_s(buf, bufsize, CACHE_MAGIC, CACHE_MAGIC_HEAD) != 0) {
         delete[] buf;
-        close(fd);
+        fdsan_close_with_tag(fd, LOG_DOMAIN);
         return;
     }
     uint32_t *crc = reinterpret_cast<uint32_t*>(buf + CACHE_MAGIC_HEAD);
@@ -343,7 +344,7 @@ void BlobCache::WriteToDisk()
         fchmod(fd, S_IRUSR);
     }
     delete[] buf;
-    close(fd);
+    fdsan_close_with_tag(fd, LOG_DOMAIN);
 }
 
 void BlobCache::BlobCacheReadFromDisk(const std::string filePath)
@@ -361,24 +362,25 @@ void BlobCache::BlobCacheReadFromDisk(const std::string filePath)
         close(fd);
         return;
     }
+    fdsan_exchange_owner_tag(fd, 0, LOG_DOMAIN);
     struct stat bufstat;
     if (fstat(fd, &bufstat) == -1) {
-        close(fd);
+        fdsan_close_with_tag(fd, LOG_DOMAIN);
         return;
     }
     if (bufstat.st_size <= 0 || static_cast<size_t>(bufstat.st_size) > maxShaderSize_ + maxShaderSize_) {
-        close(fd);
+        fdsan_close_with_tag(fd, LOG_DOMAIN);
         return;
     }
     size_t filesize = static_cast<size_t>(bufstat.st_size);
     uint8_t *buf = reinterpret_cast<uint8_t*>(mmap(nullptr, filesize, PROT_READ, MAP_PRIVATE, fd, 0));
     if (buf == MAP_FAILED) {
-        close(fd);
+        fdsan_close_with_tag(fd, LOG_DOMAIN);
         return;
     }
     if (!ValidFile(buf, filesize)) {
         munmap(buf, filesize);
-        close(fd);
+        fdsan_close_with_tag(fd, LOG_DOMAIN);
         return;
     }
     size_t headsize = sizeof(CacheHeader);
@@ -400,7 +402,7 @@ void BlobCache::BlobCacheReadFromDisk(const std::string filePath)
         byteoffset += Formatfile(innerSize);
     }
     munmap(buf, filesize);
-    close(fd);
+    fdsan_close_with_tag(fd, LOG_DOMAIN);
 }
 
 void BlobCache::ReadFromDisk()
