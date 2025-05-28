@@ -1938,9 +1938,11 @@ void RSSurfaceRenderNode::ResetSurfaceOpaqueRegion(const RectI& screeninfo, cons
     Occlusion::Region screenRegion{screen};
     transparentRegion_.AndSelf(screenRegion);
     opaqueRegion_.AndSelf(screenRegion);
-    navigationBarTransparentRegion_ = Occlusion::Region(Occlusion::Rect(NeedDrawBehindWindow() ? GetFilterRect() : RectI()));
+    navigationBarTransparentRegion_ = Occlusion::Region(Occlusion::Rect(
+        NeedDrawBehindWindow() ? GetFilterRect() : RectI()));
     opaqueRegionChanged_ = !oldOpaqueRegion.Xor(opaqueRegion_).IsEmpty();
-    navigationBarTransparentRegionChanged_ = !oldNavigationBarTransparentRegion.Xor(navigationBarTransparentRegion_).IsEmpty();
+    navigationBarTransparentRegionChanged_ = !oldNavigationBarTransparentRegion.Xor(
+        navigationBarTransparentRegion_).IsEmpty();
     ResetSurfaceContainerRegion(screeninfo, absRect, screenRotation);
 }
 
