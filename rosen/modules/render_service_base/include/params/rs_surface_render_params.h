@@ -295,13 +295,9 @@ public:
     }
 
     void SetAncoSrcCrop(const Rect& srcCrop) { ancoSrcCrop_ = srcCrop; }
-
     const Rect& GetAncoSrcCrop() const { return ancoSrcCrop_; }
-
     void SetAncoFlags(const uint32_t ancoFlags) { ancoFlags_ = ancoFlags; }
-
     uint32_t GetAncoFlags() const { return ancoFlags_; }
-
     bool IsAncoSfv() const
     {
         return (ancoFlags_ & static_cast<uint32_t>(AncoFlags::ANCO_SFV_NODE)) ==
