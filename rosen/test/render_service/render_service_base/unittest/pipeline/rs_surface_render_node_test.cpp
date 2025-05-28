@@ -2615,6 +2615,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, GetSourceDisplayRenderNodeId, TestSize.Level1)
     ASSERT_EQ(testNode->GetSourceDisplayRenderNodeId(), sourceDisplayRenderNodeId);
 }
 
+#ifndef ROSEN_CROSS_PLATFORM
 /**
  * @tc.name: UpdateLayerSrcRectForAnco
  * @tc.desc: test results of UpdateLayerSrcRectForAnco
@@ -2660,5 +2661,6 @@ HWTEST_F(RSSurfaceRenderNodeTest, UpdateLayerSrcRectForAnco, TestSize.Level1)
     GraphicTransformType transform{};
     node->UpdateHwcNodeLayerInfo(transform);
 }
+#endif
 } // namespace Rosen
 } // namespace OHOS
