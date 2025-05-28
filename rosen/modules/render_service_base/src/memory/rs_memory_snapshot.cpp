@@ -37,26 +37,14 @@ MemorySnapshot& MemorySnapshot::Instance()
 
 void MemorySnapshot::AddCpuMemory(const pid_t pid, const size_t size)
 {
-    bool shouldReport = false;
-    size_t cpuMemory = 0;
-    {
-        std::lock_guard<std::mutex> lock(mutex_);
-        if (appMemorySnapshots_.find(pid) == appMemorySnapshots_.end()) {
-            dirtyMemorySnapshots_.push_back(pid);
-        }
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (appMemorySnapshots_.find(pid) == appMemorySnapshots_.end()) {
+        dirtyMemorySnapshots_.push_back(pid);
+    }
 
-        MemorySnapshotInfo& mInfo = appMemorySnapshots_[pid];
-        mInfo.pid = pid;
-        mInfo.cpuMemory += size;
-        totalMemory_ += size;
-        if (mInfo.cpuMemory > singleCpuMemoryLimit_ && mInfo.cpuMemory - size < singleCpuMemoryLimit_) {
-            shouldReport = true;
-            cpuMemory = mInfo.cpuMemory;
-        }
-    }
-    if (shouldReport && callback_) {
-        callback_(pid, cpuMemory, false);
-    }
+    MemorySnapshotInfo& mInfo = appMemorySnapshots_[pid];
+    mInfo.pid = pid;
+    mInfo.cpuMemory += size;
 }
 
 void MemorySnapshot::RemoveCpuMemory(const pid_t pid, const size_t size)
@@ -64,8 +52,11 @@ void MemorySnapshot::RemoveCpuMemory(const pid_t pid, const size_t size)
     std::lock_guard<std::mutex> lock(mutex_);
     auto it = appMemorySnapshots_.find(pid);
     if (it != appMemorySnapshots_.end()) {
-        it->second.cpuMemory -= size;
-        totalMemory_ -= size;
+        if (it->second.cpuMemory > size) {
+            it->second.cpuMemory -= size;
+        } else {
+            appMemorySnapshots_.erase(it);
+        }
     }
 }
 

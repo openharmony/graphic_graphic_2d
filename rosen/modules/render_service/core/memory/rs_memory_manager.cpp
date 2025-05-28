@@ -769,6 +769,10 @@ static void KillProcessByPid(const pid_t pid, const std::string& processName, co
 
 void MemoryManager::MemoryOverflow(pid_t pid, size_t overflowMemory, bool isGpu)
 {
+    if (pid == 0) {
+        RS_LOGD("MemoryManager::MemoryOverflow pid = 0");
+        return;
+    }
     MemorySnapshotInfo info;
     MemorySnapshot::Instance().GetMemorySnapshotInfoByPid(pid, info);
     if (isGpu) {
