@@ -196,7 +196,7 @@ void RSImage::ApplyImageOrientation(Drawing::Canvas& canvas)
 void RSImage::DrawImageWithRotateDegree(
     Drawing::Canvas& canvas, const Drawing::Rect& rect, const Drawing::SamplingOptions& samplingOptions)
 {
-    bool needCanvasRestore = (rotateDegree_ != 0) || isOrientationValid_;
+    bool needCanvasRestore = rotateDegree_ || isOrientationValid_;
     Drawing::AutoCanvasRestore acr(canvas, needCanvasRestore);
     if (rotateDegree_ != 0) {
         canvas.Rotate(rotateDegree_);
