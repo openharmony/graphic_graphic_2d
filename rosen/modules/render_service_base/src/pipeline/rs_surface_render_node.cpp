@@ -1078,14 +1078,19 @@ void RSSurfaceRenderNode::UpdateSpecialLayerInfoByOnTreeStateChange()
 
 void RSSurfaceRenderNode::UpdateBlackListStatus(ScreenId virtualScreenId, bool isBlackList)
 {
-    SetDirty();
     if (isBlackList) {
+        if (blackListIds_.find(virtualScreenId) != blackListIds_.end() &&
+            blackListIds_[virtualScreenId].find(GetId()) != blackListIds_[virtualScreenId].end()) {
+            return;
+        }
         blackListIds_[virtualScreenId].insert(GetId());
+        SetDirty();
         return;
     }
     for (const auto& [screenId, nodeIdSet] : blackListIds_) {
         if (nodeIdSet.size() > 0 && nodeIdSet.find(GetId()) != nodeIdSet.end()) {
             blackListIds_[screenId].erase(GetId());
+            SetDirty();
         }
     }
 }

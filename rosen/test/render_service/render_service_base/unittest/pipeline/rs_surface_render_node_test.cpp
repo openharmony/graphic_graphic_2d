@@ -779,12 +779,12 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetSkipLayer001, TestSize.Level2)
 }
 
 /**
- * @tc.name: SetBlackListWithScreen001
+ * @tc.name: UpdateBlackListStatus001
  * @tc.desc: Test UpdateBlackListStatus
  * @tc.type: FUNC
  * @tc.require: issueIC9I11
  */
-HWTEST_F(RSSurfaceRenderNodeTest, SetBlackListWithScreen001, TestSize.Level1)
+HWTEST_F(RSSurfaceRenderNodeTest, UpdateBlackListStatus001, TestSize.Level1)
 {
     auto rsContext = std::make_shared<RSContext>();
     ASSERT_NE(rsContext, nullptr);
@@ -794,10 +794,16 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetBlackListWithScreen001, TestSize.Level1)
     node->addedToPendingSyncList_ = true;
     auto params = static_cast<RSSurfaceRenderParams*>(node->stagingRenderParams_.get());
     EXPECT_NE(params, nullptr);
+    node->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
 
     auto virtualScreenId = 1;
     node->UpdateBlackListStatus(virtualScreenId, true);
+    node->UpdateBlackListStatus(virtualScreenId, true);
+    node->UpdateRenderParams();
+    EXPECT_TRUE(params->HasBlackListByScreenId(virtualScreenId));
     node->UpdateBlackListStatus(virtualScreenId, false);
+    node->UpdateRenderParams();
+    EXPECT_FALSE(params->HasBlackListByScreenId(virtualScreenId));
 }
 
 /**

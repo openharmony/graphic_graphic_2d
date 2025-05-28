@@ -518,7 +518,7 @@ void RSUniRenderVisitor::MarkHardwareForcedDisabled()
 
 void RSUniRenderVisitor::UpdateBlackListRecord(RSSurfaceRenderNode& node)
 {
-    if (!screenManager_) {
+    if (!hasMirrorDisplay_ || !screenManager_) {
         return;
     }
     std::unordered_set<uint64_t> virtualScreens = screenManager_->GetBlackListVirtualScreenByNode(node.GetId());

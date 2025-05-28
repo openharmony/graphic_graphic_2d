@@ -199,7 +199,10 @@ public:
 
     bool HasBlackListByScreenId(ScreenId screenId)
     {
-        return blackListIds_[screenId].size() != 0;
+        if (blackListIds_.find(screenId) != blackListIds_.end()) {
+            return blackListIds_[screenId].size() != 0;
+        }
+        return false;
     }
 
     bool HasPrivacyContentLayer()
