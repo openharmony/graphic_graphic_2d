@@ -447,7 +447,6 @@ void RSSkewModifier::Apply(const std::shared_ptr<RSObjAbsGeometry>& geometry)
 void RSPerspModifier::Apply(const std::shared_ptr<RSObjAbsGeometry>& geometry)
 {
     auto value = std::static_pointer_cast<RSProperty<Vector4f>>(property_)->Get();
-    value = Vector4f(geometry->GetPerspX(), geometry->GetPerspY(), geometry->GetPerspZ(), geometry->GetPerspW());
     geometry->SetPersp(value.x_, value.y_, value.z_, value.w_);
 }
 
