@@ -179,8 +179,7 @@ void RSImage::CanvasDrawImage(Drawing::Canvas& canvas, const Drawing::Rect& rect
 
 void RSImage::ApplyImageOrientation(Drawing::Canvas& canvas)
 {
-    switch (orientationFit_)
-    {
+    switch (orientationFit_) {
         case OrientationFit::VERTICAL_FLIP:
             canvas.Scale(1, -1);
             canvas.Translate(0, -(dst_.GetBottom() + dst_.GetTop()));
