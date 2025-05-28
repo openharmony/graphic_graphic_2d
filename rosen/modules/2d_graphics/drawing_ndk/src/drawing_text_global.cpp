@@ -30,8 +30,8 @@ void OH_Drawing_SetTextHighContrast(OH_Drawing_TextHighContrast action)
 
 void OH_Drawing_SetTextUndefinedGlyphDisplay(OH_Drawing_TextUndefinedGlyphDisplay undefinedGlyphDisplay)
 {
-    auto result = TextGlobalConfig::SetTextUndefinedGlyphDisplay(static_cast<uint32_t>(undefinedGlyphDisplay));
+    uint32_t result = TextGlobalConfig::SetTextUndefinedGlyphDisplay(static_cast<uint32_t>(undefinedGlyphDisplay));
     if (result != TEXT_SUCCESS) {
-        TEXT_LOGE("Failed to set text undefined glyph display");
+        TEXT_LOGE("Failed to set text undefined glyph display, result is %{public}u", result);
     }
 }

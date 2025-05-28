@@ -145,7 +145,7 @@ static const std::vector<struct JsEnumInt> TEXTHEIGHTBEHAVIOR = {
     { "DISABLE_ALL", static_cast<size_t>(TextHeightBehavior::DISABLE_ALL) },
 };
 
-static const std::vector<struct JsEnumInt> g_systemFontType = {
+static const std::vector<struct JsEnumInt> SYSTEM_FONT_TYPE = {
     { "ALL", static_cast<size_t>(TextEngine::FontParser::SystemFontType::ALL) },
     { "GENERIC", static_cast<size_t>(TextEngine::FontParser::SystemFontType::GENERIC) },
     { "STYLISH", static_cast<size_t>(TextEngine::FontParser::SystemFontType::STYLISH) },
@@ -153,7 +153,7 @@ static const std::vector<struct JsEnumInt> g_systemFontType = {
     { "CUSTOMIZED", static_cast<size_t>(TextEngine::FontParser::SystemFontType::CUSTOMIZED) },
 };
 
-static const std::vector<struct JsEnumInt> g_textHighContrast = {
+static const std::vector<struct JsEnumInt> TEXT_HIGH_CONTRAST = {
     {"TEXT_FOLLOW_SYSTEM_HIGH_CONTRAST",
         static_cast<size_t>(SrvText::TextHighContrast::TEXT_FOLLOW_SYSTEM_HIGH_CONTRAST)},
     {"TEXT_APP_DISABLE_HIGH_CONTRAST",
@@ -168,7 +168,7 @@ static const std::vector<struct JsEnumInt> TEXT_BADGE_TYPE = {
     { "TEXT_SUBSCRIPT", static_cast<uint32_t>(TextBadgeType::SUBSCRIPT) },
 };
 
-static const std::vector<struct JsEnumInt> g_textUndefinedGlyphDisplay = {
+static const std::vector<struct JsEnumInt> TEXT_UNDEFINED_GLYPH_DISPLAY = {
     { "USE_DEFAULT", static_cast<size_t>(SrvText::TextUndefinedGlyphDisplay::UNDEFINED_GLYPH_USE_DEFAULT) },
     { "USE_TOFU", static_cast<size_t>(SrvText::TextUndefinedGlyphDisplay::UNDEFINED_GLYPH_USE_TOFU) },
 };
@@ -190,10 +190,10 @@ const std::map<std::string_view, const std::vector<struct JsEnumInt>&> INT_ENUM_
     { "Affinity", AFFINITY },
     { "FontWidth", FONTWIDTH },
     { "TextHeightBehavior", TEXTHEIGHTBEHAVIOR },
-    { "SystemFontType", g_systemFontType },
-    { "TextHighContrast", g_textHighContrast},
-    { "TextBadgeType", TEXT_BADGE_TYPE},
-    { "TextUndefinedGlyphDisplay", g_textUndefinedGlyphDisplay }
+    { "SystemFontType", SYSTEM_FONT_TYPE },
+    { "TextHighContrast", TEXT_HIGH_CONTRAST },
+    { "TextBadgeType", TEXT_BADGE_TYPE },
+    { "TextUndefinedGlyphDisplay", TEXT_UNDEFINED_GLYPH_DISPLAY }
 };
 
 napi_value JsEnum::JsEnumIntInit(napi_env env, napi_value exports)
