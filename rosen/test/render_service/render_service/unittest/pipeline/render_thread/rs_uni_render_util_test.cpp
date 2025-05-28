@@ -1449,26 +1449,25 @@ HWTEST_F(RSUniRenderUtilTest, SetSrcRectForAnco, TestSize.Level2)
     ASSERT_EQ(drawable->renderParams_, nullptr);
     drawable->renderParams_ = std::make_unique<RSSurfaceRenderParams>(surfaceNode->GetId() + 1);
     RSSurfaceRenderParams* surfaceParams = nullptr;
-    RSUniRenderUtil::SetSrcRectForAnco(surfaceParams, params);
     surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable->renderParams_.get());
     ASSERT_NE(surfaceParams, nullptr);
     surfaceParams->buffer_ = buffer;
     drawable->consumerOnDraw_ = surfaceNode->surfaceHandler_->GetConsumer();
     ASSERT_NE(drawable->consumerOnDraw_, nullptr);
     params = RSUniRenderUtil::CreateBufferDrawParam(*drawable, false, 1);
-    RSUniRenderUtil::SetSrcRectForAnco(surfaceParams, params);
+    RSUniRenderUtil::SetSrcRectForAnco(*surfaceParams, params);
 
     surfaceParams->SetAncoFlags(static_cast<uint32_t>(AncoFlags::ANCO_SFV_NODE));
-    RSUniRenderUtil::SetSrcRectForAnco(surfaceParams, params);
+    RSUniRenderUtil::SetSrcRectForAnco(*surfaceParams, params);
     ASSERT_TRUE(params.srcRect == Drawing::Rect(0, 0, 100, 100));
     surfaceParams->SetAncoSrcCrop({0, 0, 100, 0});
-    RSUniRenderUtil::SetSrcRectForAnco(surfaceParams, params);
+    RSUniRenderUtil::SetSrcRectForAnco(*surfaceParams, params);
     ASSERT_TRUE(params.srcRect == Drawing::Rect(0, 0, 100, 100));
     surfaceParams->SetAncoSrcCrop({0, 0, 0, 100});
-    RSUniRenderUtil::SetSrcRectForAnco(surfaceParams, params);
+    RSUniRenderUtil::SetSrcRectForAnco(*surfaceParams, params);
     ASSERT_TRUE(params.srcRect == Drawing::Rect(0, 0, 100, 100));
     surfaceParams->SetAncoSrcCrop({0, 0, 50, 50});
-    RSUniRenderUtil::SetSrcRectForAnco(surfaceParams, params);
+    RSUniRenderUtil::SetSrcRectForAnco(*surfaceParams, params);
     ASSERT_TRUE(params.srcRect == Drawing::Rect(0, 0, 50, 50));
 }
 } // namespace OHOS::Rosen
