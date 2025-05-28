@@ -237,6 +237,26 @@ public:
         tunnelHandle_ = handle;
     }
 
+    void SetTunnelLayerId(const uint64_t &tunnelLayerId)
+    {
+        tunnelLayerId_ = tunnelLayerId;
+    }
+
+    uint64_t GetTunnelLayerId() const
+    {
+        return tunnelLayerId_;
+    }
+
+    void SetTunnelLayerProperty(uint32_t tunnelLayerProperty)
+    {
+        tunnelLayerProperty_ = tunnelLayerProperty;
+    }
+
+    uint32_t GetTunnelLayerProperty() const
+    {
+        return tunnelLayerProperty_;
+    }
+
     bool IsSupportedPresentTimestamp() const
     {
         return IsSupportedPresentTimestamp_;
@@ -538,6 +558,8 @@ public:
         arsrTag_ = layerInfo->GetLayerArsr();
         copybitTag_ = layerInfo->GetLayerCopybit();
         needBilinearInterpolation_ = layerInfo->GetNeedBilinearInterpolation();
+        tunnelLayerId_ = layerInfo->GetTunnelLayerId();
+        tunnelLayerProperty_ = layerInfo->GetTunnelLayerProperty();
     }
 
     void Dump(std::string &result) const
@@ -670,6 +692,8 @@ private:
     std::vector<float> layerLinearMatrix_
         = {1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f}; // matrix for linear colorspace
     uint64_t nodeId_ = 0;
+    uint64_t tunnelLayerId_ = 0;
+    uint32_t tunnelLayerProperty_ = 0;
     int32_t layerSource_ = 0; // default layer source tag
     bool rotationFixed_ = false;
     bool arsrTag_ = true;

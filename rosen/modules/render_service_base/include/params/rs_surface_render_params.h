@@ -372,6 +372,8 @@ public:
     // source crop tuning
     void SetLayerSourceTuning(int32_t needSourceTuning);
     int32_t GetLayerSourceTuning() const;
+    void SetTunnelLayerId(const uint64_t& tunnelLayerId);
+    uint64_t GetTunnelLayerId() const;
 
     void SetGpuOverDrawBufferOptimizeNode(bool overDrawNode);
     bool IsGpuOverDrawBufferOptimizeNode() const;
@@ -833,6 +835,7 @@ private:
     bool needOffscreen_ = false;
     bool layerCreated_ = false;
     int32_t layerSource_ = 0;
+    uint64_t tunnelLayerId_ = 0;
     int64_t stencilVal_ = -1;
     std::unordered_map<std::string, bool> watermarkHandles_ = {};
     std::vector<float> drmCornerRadiusInfo_;

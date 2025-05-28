@@ -324,6 +324,7 @@ private:
 
     // Used to initialize the handler of control-level occlusion culling.
     void InitializeOcclusionHandler(RSSurfaceRenderNode& node);
+    void HandleTunnelLayerId(RSSurfaceRenderNode& node);
 
     friend class RSUniHwcVisitor;
     std::unique_ptr<RSUniHwcVisitor> hwcVisitor_;

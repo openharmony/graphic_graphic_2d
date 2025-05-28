@@ -5054,4 +5054,50 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodesIfVisibleForAppTest, TestSize.Lev
     EXPECT_FALSE(hasVisibleHwcNodes);
     EXPECT_FALSE(needForceUpdateHwcNodes);
 }
+
+/*
+ * @tc.name: HandleTunnelLayerId001
+ * @tc.desc: Test HandleTunnelLayerId
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniRenderVisitorTest, HandleTunnelLayerId001, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+ 
+    RSSurfaceRenderNodeConfig surfaceConfig;
+    surfaceConfig.id = 1;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceConfig);
+    ASSERT_NE(surfaceNode, nullptr);
+ 
+    rsUniRenderVisitor->HandleTunnelLayerId(*surfaceNode);
+    EXPECT_EQ(surfaceNode->GetTunnelLayerId(), 0);
+}
+ 
+/*
+ * @tc.name: HandleTunnelLayerId002
+ * @tc.desc: Test HandleTunnelLayerId002
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniRenderVisitorTest, HandleTunnelLayerId002, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+ 
+    RSSurfaceRenderNodeConfig surfaceConfig;
+    surfaceConfig.id = 1;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceConfig);
+    ASSERT_NE(surfaceNode, nullptr);
+ 
+    surfaceNode->SetTunnelLayerId(1);
+    rsUniRenderVisitor->HandleTunnelLayerId(*surfaceNode);
+    const auto nodeParams = static_cast<RSSurfaceRenderParams*>(surfaceNode->GetStagingRenderParams().get());
+    if (nodeParams != nullptr) {
+        EXPECT_EQ(surfaceNode->GetTunnelLayerId(), 1);
+    } else {
+        EXPECT_EQ(surfaceNode->GetTunnelLayerId(), 0);
+    }
+}
 } // OHOS::Rosen

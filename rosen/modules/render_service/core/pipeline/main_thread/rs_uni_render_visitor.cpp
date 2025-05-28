@@ -1157,6 +1157,7 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
     if (node.IsUIBufferAvailable()) {
         uiBufferAvailableId_.emplace_back(node.GetId());
     }
+    HandleTunnelLayerId(node);
     PrepareForMultiScreenViewSurfaceNode(node);
 }
 
@@ -3591,6 +3592,21 @@ void RSUniRenderVisitor::UpdateAncoPrepareClip(RSSurfaceRenderNode& node)
             prepareClipRect_ = prepareClipRect_.IntersectRect(geoPtr->MapAbsRect(rect));
         }
     }
+}
+
+void RSUniRenderVisitor::HandleTunnelLayerId(RSSurfaceRenderNode& node)
+{
+    auto tunnelLayerId = node.GetTunnelLayerId();
+    if (!tunnelLayerId) {
+        return;
+    }
+    const auto nodeParams = static_cast<RSSurfaceRenderParams*>(node.GetStagingRenderParams().get());
+    if (nodeParams == nullptr) {
+        return;
+    }
+    nodeParams->SetTunnelLayerId(tunnelLayerId);
+    RS_LOGI("%{public}s lpp surfaceid:%{public}llu, nodeid:%{public}llu", __func__, tunnelLayerId, node.GetId());
+    RS_TRACE_NAME_FMT("%s lpp surfaceid:%llu, nodeid:%llu", __func__, tunnelLayerId, node.GetId());
 }
 } // namespace Rosen
 } // namespace OHOS

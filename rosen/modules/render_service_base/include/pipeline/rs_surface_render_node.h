@@ -394,6 +394,9 @@ public:
 
     bool IsHardwareForcedDisabled() const
     {
+        if (GetTunnelLayerId()) {
+            return false;
+        }
         // a protected node not on the tree need to release buffer when producer produce buffers
         // release buffer in ReleaseSelfDrawingNodeBuffer function
         if ((specialLayerManager_.Find(SpecialLayerType::PROTECTED) || isHardwareEnableHint_) && IsOnTheTree()) {
@@ -1281,6 +1284,16 @@ public:
         return surfaceId_;
     }
 
+    void SetTunnelLayerId(SurfaceId tunnelLayerId)
+    {
+        tunnelLayerId_ = tunnelLayerId;
+    }
+
+    SurfaceId GetTunnelLayerId() const
+    {
+        return tunnelLayerId_;
+    }
+
     bool GetIsForeground() const
     {
         return isForeground_;
@@ -1749,6 +1762,7 @@ private:
     Drawing::GPUContext* grContext_ = nullptr;
     ScreenId screenId_ = INVALID_SCREEN_ID;
     SurfaceId surfaceId_ = 0;
+    SurfaceId tunnelLayerId_ = 0;
     uint64_t leashPersistentId_ = INVALID_LEASH_PERSISTENTID;
     size_t dirtyContentNodeNum_ = 0;
     size_t dirtyGeoNodeNum_ = 0;
