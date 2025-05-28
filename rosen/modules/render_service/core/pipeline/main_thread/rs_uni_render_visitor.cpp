@@ -1273,7 +1273,7 @@ void RSUniRenderVisitor::ResetCrossNodesVisitedStatus()
         return;
     }
     const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
-    for (NodeId& nodeId : hasVisitedCrossNodeIds_) {
+    for (NodeId nodeId : hasVisitedCrossNodeIds_) {
         auto visitedNode = nodeMap.GetRenderNode<RSSurfaceRenderNode>(nodeId);
         if (!visitedNode) {
             RS_LOGE("%{public}s visitedNode is nullptr NodeId[%{public}" PRIu64 "]", __func__, nodeId);
