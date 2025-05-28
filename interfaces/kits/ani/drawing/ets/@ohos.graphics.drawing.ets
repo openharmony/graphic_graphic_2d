@@ -677,6 +677,18 @@ namespace drawing {
      * @since 12
      */
      static native makeFromFile(filePath: string): Typeface;
+
+     /**
+     * Generate typeface from file and TypefaceArguments.
+     * @param { string } filePath - file path for typeface.
+     * @param { TypefaceArguments } typefaceArguments - TypefaceArguments for typeface.
+     * @returns { Typeface } Typeface.
+     * @static
+     * @syscap SystemCapability.Graphics.Drawing
+     * @crossplatform
+     * @since 20
+     */
+    static native makeFromFileWithArguments(filePath: string, typefaceArguments: TypefaceArguments): Typeface;
   }
 
   /**
@@ -866,6 +878,219 @@ namespace drawing {
      */
     static native createImageLattice(xDivs: Array<number>, yDivs: Array<number>, fXCount: number, fYCount: number,
       fBounds?: common2D.Rect | null, fRectTypes?: Array<RectType> | null, fColors?: Array<common2D.Color> | Array<number> | null): Lattice;
+  }
+
+  /**
+   * Implements a matrix.
+   *
+   * @syscap SystemCapability.Graphics.Drawing
+   * @since 12
+   */
+  export class Matrix {
+    static { loadLibrary("drawing_ani"); }
+    private nativeObj: long = 0;
+    /**
+     * Creates a Matrix object.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    native constructor();
+
+    /**
+     * Creates a deep copy of the specified matrix object.
+     * @param { Matrix } matrix - The matrix object to copy.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @crossplatform
+     * @since 20
+     */
+    native constructor(matrix: Matrix);
+
+    /**
+     * Resets this matrix to an identity matrix.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    native reset(): void;
+
+    /**
+     * Sets this matrix as an identity matrix and translates it by a given distance (dx, dy).
+     * @param { number } dx - Horizontal distance to translate. A positive number indicates a translation towards the positive direction of the X axis,
+     * and a negative number indicates a translation towards the negative direction of the X axis. The value is a floating point number.
+     * @param { number } dy - Vertical distance to translate. A positive number indicates a translation towards the positive direction of the Y axis,
+     * and a negative number indicates a translation towards the negative direction of the Y axis. The value is a floating point number.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    native setTranslation(dx: number, dy: number): void;
+
+    /**
+     * Obtains the value of a given index in this matrix. The index ranges from 0 to 8.
+     * @param { number } index - Index. The value is an integer ranging from 0 to 8.
+     * @returns { number } Returns value corresponding to index.Returns 0 if out of range.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types; 3. Parameter verification failed.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    native getValue(index: number): number;
+  }
+
+  /**
+   * Implements a path operation iterator. You can read path operation instructions by traversing the iterator.
+   *
+   * @syscap SystemCapability.Graphics.Drawing
+   * @since 18
+   */
+  export class PathIterator {
+    static { loadLibrary("drawing_ani"); }
+    private nativeObj: long = 0;
+    /**
+     * Creates an iterator and binds it with a path.
+     * @param { Path } path - Path object bound to the iterator.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 18
+     */
+    native constructor(path: Path);
+  }
+
+  /**
+   * A compound geometric path consisting of line segments, arcs, quadratic Bezier curves, and cubic Bezier curves.
+   *
+   * @syscap SystemCapability.Graphics.Drawing
+   * @since 11
+   */
+  export class Path {
+    static { loadLibrary("drawing_ani"); }
+    private nativeObj: long = 0;
+    /**
+     * Constructs a path.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    native constructor();
+
+    /**
+     * Constructs a copy of an existing path.
+     * @param { Path } path - Path to copy.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    native constructor(path: Path);
+
+    /**
+     * Draws an arc to this path using angle arc mode. This mode first defines a rectangle and takes its inscribed ellipse.
+     * Then, it specifies a start angle and a sweep angle. The arc is the portion of the ellipse's circumference defined by the start angle
+     * and the sweep angle. By default, a line segment from the last point of the path to the start point of the arc is also added.
+     * @param { number } x1 - X coordinate of the upper left corner of the rectangle. The value is a floating point number.
+     * @param { number } y1 - Y coordinate of the upper left corner of the rectangle. The value is a floating point number.
+     * @param { number } x2 - X coordinate of the lower right corner of the rectangle. The value is a floating point number.
+     * @param { number } y2 - Y coordinate of the lower right corner of the rectangle. The value is a floating point number.
+     * @param { number } startDeg - Start angle. The start direction (0°) of the angle is the positive direction of the X axis.
+     * @param { number } sweepDeg - Angle to sweep, in degrees. A positive number indicates a clockwise sweep,
+     * and a negative value indicates a counterclockwise swipe. The actual swipe degree is the modulo operation result of the input parameter by 360.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 11
+     */
+    native arcTo(x1: number, y1: number, x2: number, y2: number, startDeg: number, sweepDeg: number): void;
+
+    /**
+     * Resets the path data.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 11
+     */
+    native reset(): void;
+  }
+
+  /**
+   * Describes a region, which is used to describe the region where the shape can be drawn.
+   * @syscap SystemCapability.Graphics.Drawing
+   * @since 12
+   */
+  export class Region {
+    static { loadLibrary("drawing_ani"); }
+    private nativeObj: long = 0;
+    /**
+     * Creates an empty region.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @crossplatform
+     * @since 20
+     */
+    native constructor();
+
+    /**
+     * Creates a deep copy of the specified region object.
+     * @param { Region } region - The region object to copy.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @crossplatform
+     * @since 20
+     */
+    native constructor(region: Region);
+
+    /**
+     * Creates a region with a rectangle.
+     * @param { number } left - Indicates the left edge of the rectangle.
+     * @param { number } top - Indicates the top edge of the rectangle.
+     * @param { number } right - Indicates the right edge of the rectangle.
+     * @param { number } bottom - Indicates the bottom edge of the rectangle.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @crossplatform
+     * @since 20
+     */
+    native constructor(left: number, top: number, right: number, bottom: number);
+  }
+
+  /**
+   * Implements a rounded rectangle.
+   *
+   * @syscap SystemCapability.Graphics.Drawing
+   * @since 12
+   */
+  export class RoundRect {
+    static { loadLibrary("drawing_ani"); }
+    private nativeObj: long = 0;
+
+    /**
+     * Creates a deep copy of the specified round rect object.
+     * @param { RoundRect } roundRect - The round rect object to copy.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @crossplatform
+     * @since 20
+     */
+    native constructor(roundRect: RoundRect);
+
+    /**
+     * A constructor used to create a RoundRect object. A rounded rectangle is created when both xRadii and yRadii are greater than 0. Otherwise, only a rectangle is created.
+     * @param { common2D.Rect } rect - Rectangle that encloses the rounded rectangle to create.
+     * @param { number } xRadii - Radius of the rounded corner on the X axis. The value is a floating point number. A negative number is invalid.
+     * @param { number } yRadii - Radius of the rounded corner on the Y axis. The value is a floating point number. A negative number is invalid.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 12
+     */
+    native constructor(rect: common2D.Rect, xRadii: number, yRadii: number);
+  }
+
+  /**
+   * Provides an interface to the drawing, and describe the arguments for a font.
+   * @syscap SystemCapability.Graphics.Drawing
+   * @crossplatform
+   * @since 20
+   */
+  export class TypefaceArguments {
+    static { loadLibrary("drawing_ani"); }
+    private nativeObj: long = 0;
+    /**
+     * Constructor for the TypefaceArguments.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @crossplatform
+     * @since 20
+     */
+    native constructor();
   }
 
   /**

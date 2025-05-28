@@ -126,6 +126,11 @@ inline bool CheckDoubleOutOfRange(ani_double val, double lowerBound, double uppe
     return val < lowerBound || val > upperBound;
 }
 
+inline bool CheckInt32OutOfRange(ani_int val, int32_t lowerBound, int32_t upperBound)
+{
+    return val < lowerBound || val > upperBound;
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

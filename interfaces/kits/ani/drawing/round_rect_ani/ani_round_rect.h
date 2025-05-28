@@ -13,34 +13,30 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_ROSEN_ANI_TYPEFACE_H
-#define OHOS_ROSEN_ANI_TYPEFACE_H
+#ifndef OHOS_ROSEN_ANI_ROUND_RECT_H
+#define OHOS_ROSEN_ANI_ROUND_RECT_H
 
 #include "ani_drawing_utils.h"
-
-#include "text/typeface.h"
+#include "utils/round_rect.h"
 
 namespace OHOS::Rosen {
 namespace Drawing {
-class AniTypeface final {
+class AniRoundRect final {
 public:
-    explicit AniTypeface(std::shared_ptr<Typeface> typeface) : typeface_(typeface) {}
-    ~AniTypeface() = default;
+    explicit AniRoundRect(const Rect& rect, float x, float y) : roundRect_(RoundRect(rect, x, y)) {}
+    explicit AniRoundRect(const RoundRect& roundRect) : roundRect_(roundRect) {}
+    ~AniRoundRect() = default;
 
     static ani_status AniInit(ani_env *env);
+    static void ConstructorWithRect(ani_env* env, ani_object obj, ani_object aniRectObj, ani_double xRadii,
+        ani_double yRadii);
+    static void ConstructorWithRoundRect(ani_env* env, ani_object obj, ani_object aniRoundRectObj);
 
-    static void CreateAniTypeface(ani_env* env, ani_object obj, ani_long typeface);
-
-    static ani_string GetFamilyName(ani_env* env, ani_object obj);
-    static ani_object MakeFromFile(ani_env* env, ani_object obj, ani_string filePath);
-    static ani_object MakeFromFileWithArguments(ani_env* env, ani_object obj, ani_string filePath,
-        ani_object argumentsObj);
-
-    std::shared_ptr<Typeface> GetTypeface();
+    RoundRect& GetRoundRect();
 
 private:
-    std::shared_ptr<Typeface> typeface_;
+    RoundRect roundRect_;
 };
 } // namespace Drawing
 } // namespace OHOS::Rosen
-#endif // OHOS_ROSEN_ANI_TYPEFACE_H
+#endif // OHOS_ROSEN_ANI_ROUND_RECT_H

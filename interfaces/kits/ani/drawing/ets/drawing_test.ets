@@ -97,7 +97,10 @@ function testFont() {
 
 function testTypeface() {
     console.log(`testTypeface start`);
-    let typeface : drawing.Typeface = drawing.Typeface.makeFromFile('/system/fonts/HarmonyOS_Sans.ttf');
+    let ta : drawing.TypefaceArguments = new drawing.TypefaceArguments();
+    let typeface0 : drawing.Typeface = drawing.Typeface.makeFromFile('/system/fonts/HarmonyOS_Sans.ttf');
+    let typeface : drawing.Typeface = drawing.Typeface.makeFromFileWithArguments('/system/fonts/HarmonyOS_Sans.ttf',
+        ta);
     if (typeface == null) {
         console.error(`testTypeface typeface == null`);
         return;
@@ -257,6 +260,43 @@ function testLattice() {
     console.log(`testLattice end`);
 }
 
+function testMatrix() {
+    console.log(`testMatrix start`);
+    let matrix : drawing.Matrix = new drawing.Matrix();
+    matrix.setTranslation(2.0, 3.0);
+    let matrix2 : drawing.Matrix = new drawing.Matrix(matrix);
+    matrix.reset();
+    console.log(`testErrorCode matrix.getValue2 = ${matrix.getValue(2)} getValue3 = ${matrix.getValue(5)}`)
+    console.log(`testErrorCode matrix2.getValue2 = ${matrix2.getValue(2)} getValue3 = ${matrix2.getValue(5)}`)
+    console.log(`testMatrix end`);
+}
+
+function testPath() {
+    console.log(`testPath start`);
+    let path : drawing.Path = new drawing.Path();
+    path.arcTo(1, 2, 3, 4, 5, 6);
+    path.reset();
+    let path2 : drawing.Path = new drawing.Path(path);
+    let pathIterator : drawing.PathIterator = new drawing.PathIterator(path);
+    console.log(`testPath end`);
+}
+
+function testRegion() {
+    console.log(`testRegion start`);
+    let region : drawing.Region = new drawing.Region();
+    let region2 : drawing.Region = new drawing.Region(region);
+    let region3 : drawing.Region = new drawing.Region(1, 2, 3, 4);
+    console.log(`testRegion end`);
+}
+
+function testRroundRect() {
+    console.log(`testRroundRect start`);
+    let rect: common2D.Rect = { left: 10, top: 10, right: 100, bottom: 100 };
+    let rrect : drawing.RoundRect = new drawing.RoundRect(rect, 3, 3);
+    let rrect2 : drawing.RoundRect = new drawing.RoundRect(rrect);
+    console.log(`testRroundRect end`);
+}
+
 function main() {
     testPen();
     testBrush();
@@ -264,6 +304,10 @@ function main() {
     testFont();
     testTypeface();
     testErrorCode();
+    testMatrix();
+    testPath();
+    testRegion();
+    testRroundRect();
     testCanvas();
     testLattice();
 }

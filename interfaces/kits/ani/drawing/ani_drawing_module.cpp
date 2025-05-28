@@ -19,9 +19,15 @@
 #include "canvas_ani/ani_canvas.h"
 #include "color_filter_ani/ani_color_filter.h"
 #include "font_ani/ani_font.h"
+#include "matrix_ani/ani_matrix.h"
+#include "path_ani/ani_path.h"
+#include "path_iterator_ani/ani_path_iterator.h"
 #include "pen_ani/ani_pen.h"
+#include "region_ani/ani_region.h"
+#include "round_rect_ani/ani_round_rect.h"
 #include "sampling_options_ani/ani_sampling_options.h"
 #include "typeface_ani/ani_typeface.h"
+#include "typeface_arguments_ani/ani_typeface_arguments.h"
 
 extern "C" {
 ANI_EXPORT ani_status ANI_Constructor(ani_vm* vm, uint32_t* result)
@@ -39,7 +45,13 @@ ANI_EXPORT ani_status ANI_Constructor(ani_vm* vm, uint32_t* result)
         OHOS::Rosen::Drawing::AniPen::AniInit(env) != ANI_OK ||
         OHOS::Rosen::Drawing::AniSamplingOptions::AniInit(env) != ANI_OK ||
         OHOS::Rosen::Drawing::AniTypeface::AniInit(env) != ANI_OK ||
-        OHOS::Rosen::Drawing::AniLattice::AniInit(env) != ANI_OK) {
+        OHOS::Rosen::Drawing::AniLattice::AniInit(env) != ANI_OK ||
+        OHOS::Rosen::Drawing::AniMatrix::AniInit(env) != ANI_OK ||
+        OHOS::Rosen::Drawing::AniPath::AniInit(env) != ANI_OK ||
+        OHOS::Rosen::Drawing::AniPathIterator::AniInit(env) != ANI_OK ||
+        OHOS::Rosen::Drawing::AniRegion::AniInit(env) != ANI_OK ||
+        OHOS::Rosen::Drawing::AniRoundRect::AniInit(env) != ANI_OK ||
+        OHOS::Rosen::Drawing::AniTypefaceArguments::AniInit(env) != ANI_OK) {
         ROSEN_LOGE("[ANI_Constructor] Init failed");
         return ANI_ERROR;
     }

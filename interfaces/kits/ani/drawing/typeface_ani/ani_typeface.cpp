@@ -14,6 +14,7 @@
  */
 
 #include "ani_typeface.h"
+#include "typeface_arguments_ani/ani_typeface_arguments.h"
 
 namespace OHOS::Rosen {
 namespace Drawing {
@@ -33,6 +34,9 @@ ani_status AniTypeface::AniInit(ani_env *env)
             reinterpret_cast<void*>(GetFamilyName) },
         ani_native_function { "makeFromFile", "Lstd/core/String;:L@ohos/graphics/drawing/drawing/Typeface;",
             reinterpret_cast<void*>(MakeFromFile) },
+        ani_native_function { "makeFromFileWithArguments", "Lstd/core/String;"
+            "L@ohos/graphics/drawing/drawing/TypefaceArguments;:L@ohos/graphics/drawing/drawing/Typeface;",
+            reinterpret_cast<void*>(MakeFromFileWithArguments) },
     };
 
     ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
@@ -64,6 +68,29 @@ ani_object AniTypeface::MakeFromFile(ani_env* env, ani_object obj, ani_string an
 {
     std::string filePath = CreateStdString(env, aniFilePath);
     std::shared_ptr<Typeface> typeface = Typeface::MakeFromFile(filePath.c_str());
+    AniTypeface* aniTypeface = new AniTypeface(typeface);
+    ani_object aniObj = CreateAniObject(env, "L@ohos/graphics/drawing/drawing/Typeface;", nullptr);
+    if (ANI_OK != env->Object_SetFieldByName_Long(aniObj,
+        NATIVE_OBJ, reinterpret_cast<ani_long>(aniTypeface))) {
+        ROSEN_LOGE("AniTypeface::MakeFromFile failed cause by Object_SetFieldByName_Long");
+        delete aniTypeface;
+        return CreateAniUndefined(env);
+    }
+    return aniObj;
+}
+
+ani_object AniTypeface::MakeFromFileWithArguments(ani_env* env, ani_object obj, ani_string aniFilePath,
+    ani_object argumentsObj)
+{
+    std::string filePath = CreateStdString(env, aniFilePath);
+    auto aniTypefaceArguments = GetNativeFromObj<AniTypefaceArguments>(env, argumentsObj);
+    if (aniTypefaceArguments == nullptr) {
+        AniThrowError(env, "Invalid params. "); // message length must be a multiple of 4, for example 16, 20, etc
+        return CreateAniUndefined(env);
+    }
+    FontArguments fontArguments;
+    AniTypefaceArguments::ConvertToFontArguments(aniTypefaceArguments->GetTypefaceArgumentsHelper(), fontArguments);
+    std::shared_ptr<Typeface> typeface = Typeface::MakeFromFile(filePath.c_str(), fontArguments);
     AniTypeface* aniTypeface = new AniTypeface(typeface);
     ani_object aniObj = CreateAniObject(env, "L@ohos/graphics/drawing/drawing/Typeface;", nullptr);
     if (ANI_OK != env->Object_SetFieldByName_Long(aniObj,
