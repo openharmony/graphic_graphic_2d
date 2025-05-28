@@ -129,6 +129,7 @@ void RSImage::CanvasDrawImage(Drawing::Canvas& canvas, const Drawing::Rect& rect
     }
     isFitMatrixValid_ = !isBackground && imageFit_ == ImageFit::MATRIX &&
                        fitMatrix_.has_value() && !fitMatrix_.value().IsIdentity();
+    isOrientationValid_ = orientationFit_ != OrientationFit::NONE;
     if (!isDrawn_ || rect != lastRect_) {
         UpdateNodeIdToPicture(nodeId_);
         bool needCanvasRestore = HasRadius() || isFitMatrixValid_ || (rotateDegree_ != 0);
@@ -176,15 +177,37 @@ void RSImage::CanvasDrawImage(Drawing::Canvas& canvas, const Drawing::Rect& rect
     lastRect_ = rect;
 }
 
+void RSImage::ApplyImageOrientation(Drawing::Canvas& canvas)
+{
+    switch (orientationFit_) {
+        case OrientationFit::VERTICAL_FLIP:
+            canvas.Scale(1, -1);
+            canvas.Translate(0, -(dst_.GetBottom() + dst_.GetTop()));
+            return;
+        case OrientationFit::HORIZONTAL_FLIP:
+            canvas.Scale(-1, 1);
+            canvas.Translate(-(dst_.GetRight() + dst_.GetLeft()), 0);
+            return;
+        default:
+            return;
+    }
+}
+
 void RSImage::DrawImageWithRotateDegree(
     Drawing::Canvas& canvas, const Drawing::Rect& rect, const Drawing::SamplingOptions& samplingOptions)
 {
-    Drawing::AutoCanvasRestore acr(canvas, true);
+    bool needCanvasRestore = rotateDegree_ || isOrientationValid_;
+    Drawing::AutoCanvasRestore acr(canvas, needCanvasRestore);
     if (rotateDegree_ != 0) {
         canvas.Rotate(rotateDegree_);
         auto axis = CalculateByDegree(rect);
         canvas.Translate(axis.first, axis.second);
     }
+
+    if (isOrientationValid_) {
+        ApplyImageOrientation(canvas);
+    }
+
     if (imageRepeat_ == ImageRepeat::NO_REPEAT && isFitMatrixValid_ &&
         (fitMatrix_->Get(Drawing::Matrix::Index::SKEW_X) != 0 ||
         fitMatrix_->Get(Drawing::Matrix::Index::SKEW_Y) != 0 ||
@@ -361,7 +384,8 @@ Drawing::AdaptiveImageInfo RSImage::GetAdaptiveImageInfoWithCustomizedFrameRect(
         .dynamicRangeMode = dynamicRangeMode_,
         .rotateDegree = rotateDegree_,
         .frameRect = frameRect,
-        .fitMatrix = fitMatrix_.has_value() ? fitMatrix_.value() : Drawing::Matrix()
+        .fitMatrix = fitMatrix_.has_value() ? fitMatrix_.value() : Drawing::Matrix(),
+        .orientationNum = static_cast<int32_t>(orientationFit_)
     };
     return imageInfo;
 }
@@ -374,6 +398,16 @@ void RSImage::SetFitMatrix(const Drawing::Matrix& matrix)
 Drawing::Matrix RSImage::GetFitMatrix() const
 {
     return fitMatrix_.value();
+}
+
+void RSImage::SetOrientationFit(int orientationFitNum)
+{
+    orientationFit_ = static_cast<OrientationFit>(orientationFitNum);
+}
+
+OrientationFit RSImage::GetOrientationFit() const
+{
+    return orientationFit_;
 }
 
 RectF RSImage::GetDstRect()
@@ -495,15 +529,20 @@ void RSImage::DrawImageRepeatRect(const Drawing::SamplingOptions& samplingOption
         for (int j = minY; j <= maxY; ++j) {
             auto top = dstRect_.top_ + j * dstRect_.height_;
             dst_ = Drawing::Rect(left, top, right, top + dstRect_.height_);
+            
+            bool needCanvasRestore = isAstc || isOrientationValid_;
+            Drawing::AutoCanvasRestore acr(canvas, needCanvasRestore);
+
             if (isAstc) {
-                canvas.Save();
                 RSPixelMapUtil::TransformDataSetForAstc(pixelMap_, src_, dst_, canvas);
             }
+            
+            if (isOrientationValid_) {
+                ApplyImageOrientation(canvas);
+            }
+
             if (image_) {
                 DrawImageOnCanvas(samplingOptions, canvas, hdrImageDraw);
-            }
-            if (isAstc) {
-                canvas.Restore();
             }
         }
     }
@@ -687,6 +726,7 @@ bool RSImage::Marshalling(Parcel& parcel) const
 {
     int imageFit = static_cast<int>(imageFit_);
     int imageRepeat = static_cast<int>(imageRepeat_);
+    int orientationFit = static_cast<int>(orientationFit_);
 
     std::lock_guard<std::mutex> lock(mutex_);
     auto image = image_;
@@ -709,6 +749,7 @@ bool RSImage::Marshalling(Parcel& parcel) const
                    RSMarshallingHelper::Marshalling(parcel, radius_) &&
                    RSMarshallingHelper::Marshalling(parcel, scale_) &&
                    RSMarshallingHelper::Marshalling(parcel, rotateDegree_) &&
+                   RSMarshallingHelper::Marshalling(parcel, orientationFit) &&
                    parcel.WriteBool(fitMatrix_.has_value()) &&
                    fitMatrix_.has_value() ? RSMarshallingHelper::Marshalling(parcel, fitMatrix_.value()) : true;
     return success;
@@ -742,8 +783,9 @@ RSImage* RSImage::Unmarshalling(Parcel& parcel)
     int32_t degree = 0;
     bool hasFitMatrix;
     Drawing::Matrix fitMatrix;
+    int orientationFit;
     if (!UnmarshalImageProperties(parcel, fitNum, repeatNum, radius, scale, degree,
-                                  hasFitMatrix, fitMatrix)) {
+                                  hasFitMatrix, fitMatrix, orientationFit)) {
         return nullptr;
     }
     RSImage* rsImage = new RSImage();
@@ -760,6 +802,7 @@ RSImage* RSImage::Unmarshalling(Parcel& parcel)
     if (hasFitMatrix && !fitMatrix.IsIdentity()) {
         rsImage->SetFitMatrix(fitMatrix);
     }
+    rsImage->SetOrientationFit(orientationFit);
     ProcessImageAfterCreation(rsImage, uniqueId, useSkImage, pixelMap);
     return rsImage;
 }
@@ -780,7 +823,7 @@ bool RSImage::UnmarshalIdSizeAndNodeId(Parcel& parcel, uint64_t& uniqueId, int& 
 
 bool RSImage::UnmarshalImageProperties(
     Parcel& parcel, int& fitNum, int& repeatNum, std::vector<Drawing::Point>& radius, double& scale, int32_t& degree,
-    bool& hasFitMatrix, Drawing::Matrix& fitMatrix)
+    bool& hasFitMatrix, Drawing::Matrix& fitMatrix, int& orientationFitNum)
 {
     if (!RSMarshallingHelper::Unmarshalling(parcel, fitNum)) {
         RS_LOGE("RSImage::Unmarshalling fitNum fail");
@@ -804,6 +847,11 @@ bool RSImage::UnmarshalImageProperties(
 
     if (!RSMarshallingHelper::Unmarshalling(parcel, degree)) {
         RS_LOGE("RSImage::Unmarshalling rotateDegree fail");
+        return false;
+    }
+
+    if (!RSMarshallingHelper::Unmarshalling(parcel, orientationFitNum)) {
+        RS_LOGE("RSImage::Unmarshalling orientationFitNum fail");
         return false;
     }
 
