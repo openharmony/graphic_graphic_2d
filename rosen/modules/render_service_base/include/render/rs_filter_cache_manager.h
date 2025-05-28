@@ -119,7 +119,7 @@ public:
     void SwapDataAndInitStagingFlags(std::unique_ptr<RSFilterCacheManager>& cacheManager);
     bool WouldDrawLargeAreaBlur();
     bool WouldDrawLargeAreaBlurPrecisely();
-    void MarkInForegroundFilterAndCheckNeedForceClearCache(bool inForegroundFilter);
+    void MarkInForegroundFilterAndCheckNeedForceClearCache(NodeId offscreenCanvasNodeId);
     RSFilter::FilterType GetFilterType() const {
         return filterType_;
     }
@@ -173,7 +173,7 @@ private:
     bool stagingForceClearCacheForLastFrame_ = false;
     bool stagingIsAIBarInteractWithHWC_ = false;
     bool stagingIsEffectNode_ = false;
-    bool stagingInForegroundFilter_ = false;
+    NodeId stagingInForegroundFilter_ = INVALID_NODEID;
 
     // clear one of snapshot cache and filtered cache after drawing
     // All renderXXX variables should be read & written by render_thread or OnSync() function
@@ -202,7 +202,7 @@ private:
     bool pendingPurge_ = false;
 
     // last stagingInForegroundFilter_ value
-    bool lastInForegroundFilter_ = false;
+    NodeId lastInForegroundFilter_ = INVALID_NODEID;
 
 public:
     static bool isCCMFilterCacheEnable_;
