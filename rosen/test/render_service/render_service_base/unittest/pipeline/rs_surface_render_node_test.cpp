@@ -2631,6 +2631,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, UpdateLayerSrcRectForAnco, TestSize.Level1)
     node->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(1);
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(node->stagingRenderParams_.get());
     ASSERT_NE(surfaceParams, nullptr);
+    RSLayerInfo layerInfo{};
     node->UpdateLayerSrcRectForAnco(layerInfo, *surfaceParams);
     node->SetAncoFlags(static_cast<uint32_t>(AncoFlags::ANCO_SFV_NODE));
     node->SetAncoSrcCrop({0, 0, 0, 0});
