@@ -684,7 +684,7 @@ public:
     // Set the buffer srcRect of the anco node. Only used on anco nodes.
     void SetAncoSrcCrop(const Rect& srcCrop);
     // When updating the hwcLayer information of anco node, SrcCrop takes effect.
-    void UpdateLayerSrcRectForAnco(RSLayerInfo& layer, RSSurfaceRenderParams* surfaceParams);
+    void UpdateLayerSrcRectForAnco(RSLayerInfo& layer, const RSSurfaceRenderParams& surfaceParams);
 
     void SetHDRPresent(bool hasHdrPresent);
     bool GetHDRPresent() const;
