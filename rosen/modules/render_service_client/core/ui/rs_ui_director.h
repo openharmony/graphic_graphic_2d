@@ -146,6 +146,8 @@ public:
     /**
      * @brief Sets the root node for the UI director.
      *
+     * It is recommended to use the SetRSRootNode interface, as the SetRoot interface is planned to be deprecated.
+     *
      * @param root The ID of the node to be set as the root.
      */
     void SetRoot(NodeId root);
@@ -283,7 +285,14 @@ public:
      * @return A shared pointer to the RSUIContext instance.
      */
     std::shared_ptr<RSUIContext> GetRSUIContext() const;
+
+    /**
+     * @brief Sets the root node for the UI director.
+     *
+     * @param rootNode A std::shared_ptr pointing to the RSRootNode object to be set.
+     */
     void SetRSRootNode(std::shared_ptr<RSRootNode> rootNode);
+
 private:
     void AttachSurface();
     static void RecvMessages();

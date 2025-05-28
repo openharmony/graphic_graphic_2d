@@ -101,7 +101,7 @@ void Init(std::shared_ptr<RSUIDirector> rsUiDirector, int width, int height)
     cout << "RootNode id = " << rootNode->GetId() << endl;
     rootNode->SetFrame(0, 0, width, height);
     rootNode->SetBackgroundColor(Drawing::Color::COLOR_WHITE);
-    rsUiDirector->SetRoot(rootNode->GetId());
+    rsUiDirector->SetRSRootNode(rootNode->ReinterpretCastTo<RSRootNode>());
 
     auto canvasNode = RSCanvasNode::Create();
     cout << "canvasNode id = " << canvasNode->GetId() << endl;

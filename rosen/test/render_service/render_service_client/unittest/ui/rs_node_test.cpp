@@ -14,23 +14,26 @@
  */
 
 #include <memory>
+
 #include "gtest/gtest.h"
+#include "ui_effect/effect/include/brightness_blender.h"
+#include "ui_effect/property/include/rs_ui_filter.h"
+
 #include "animation/rs_animation.h"
+#include "animation/rs_animation_callback.h"
+#include "animation/rs_implicit_animation_param.h"
+#include "animation/rs_implicit_animator.h"
+#include "animation/rs_implicit_animator_map.h"
 #include "animation/rs_transition.h"
+#include "common/rs_vector4.h"
+#include "modifier/rs_modifier.h"
 #include "modifier/rs_property_modifier.h"
 #include "render/rs_filter.h"
 #include "render/rs_material_filter.h"
 #include "ui/rs_canvas_node.h"
-#include "ui/rs_surface_node.h"
 #include "ui/rs_display_node.h"
-#include "ui_effect/property/include/rs_ui_filter.h"
-#include "ui_effect/effect/include/brightness_blender.h"
-#include "animation/rs_animation_callback.h"
-#include "animation/rs_implicit_animator_map.h"
-#include "animation/rs_implicit_animator.h"
-#include "animation/rs_implicit_animation_param.h"
-#include "modifier/rs_modifier.h"
-#include "common/rs_vector4.h"
+#include "ui/rs_surface_node.h"
+#include "ui/rs_ui_director.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -7679,12 +7682,12 @@ HWTEST_F(RSNodeTest, IsRenderServiceNode, TestSize.Level1)
 }
 
 /**
- * @tc.name: AddChild
+ * @tc.name: AddChildTest001
  * @tc.desc: test results of AddChild
  * @tc.type: FUNC
  * @tc.require: issueI9RLG7
  */
-HWTEST_F(RSNodeTest, AddChild, TestSize.Level1)
+HWTEST_F(RSNodeTest, AddChildTest001, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
     std::shared_ptr<RSNode> child = nullptr;
@@ -7730,6 +7733,39 @@ HWTEST_F(RSNodeTest, AddChild, TestSize.Level1)
     delete RSTransactionProxy::instance_;
     RSTransactionProxy::instance_ = nullptr;
     rsNode->AddChild(child, 1);
+    EXPECT_EQ(RSTransactionProxy::GetInstance(), nullptr);
+    RSTransactionProxy::instance_ = new RSTransactionProxy();
+}
+
+/**
+ * @tc.name: AddChildTest002
+ * @tc.desc: test results of AddChild
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSNodeTest, AddChildTest002, TestSize.Level1)
+{
+    auto uiDirector1 = RSUIDirector::Create();
+    uiDirector1->Init(true, true);
+    auto uiDirector2 = RSUIDirector::Create();
+    uiDirector2->Init(true, true);
+    auto rsNode = RSCanvasNode::Create(false, false, uiDirector1->GetRSUIContext());
+    auto childNode = RSCanvasNode::Create(false, false, uiDirector2->GetRSUIContext());
+    rsNode->AddChild(childNode, -1);
+    auto uiContext1 = uiDirector1->GetRSUIContext();
+    auto uiContext2 = uiDirector2->GetRSUIContext();
+    ASSERT_NE(uiContext1, nullptr);
+    ASSERT_NE(uiContext2, nullptr);
+    auto transactionHandler1 = uiContext1->GetRSTransaction();
+    auto transactionHandler2 = uiContext2->GetRSTransaction();
+    ASSERT_NE(transactionHandler1, nullptr);
+    ASSERT_NE(transactionHandler2, nullptr);
+    ASSERT_FALSE(transactionHandler1->IsEmpty());
+    ASSERT_FALSE(transactionHandler2->IsEmpty());
+
+    delete RSTransactionProxy::instance_;
+    RSTransactionProxy::instance_ = nullptr;
+    rsNode->AddChild(childNode, -1);
     EXPECT_EQ(RSTransactionProxy::GetInstance(), nullptr);
     RSTransactionProxy::instance_ = new RSTransactionProxy();
 }
@@ -8345,6 +8381,29 @@ HWTEST_F(RSNodeTest, SetAlwaysSnapshot, TestSize.Level1)
 
     rsNode->SetAlwaysSnapshot(true);
     EXPECT_EQ(rsNode->GetStagingProperties().GetAlwaysSnapshot(), true);
+}
+
+/**
+ * @tc.name: SetUIContextToken
+ * @tc.desc: test results of SetUIContextToken
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSNodeTest, SetUIContextToken, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
+    rsNode->SetUIContextToken();
+    rsNode = nullptr;
+    auto uiDirector = RSUIDirector::Create();
+    uiDirector->Init(true, true);
+    auto uiContext = uiDirector->GetRSUIContext();
+    rsNode = RSCanvasNode::Create(false, false, uiContext);
+    rsNode->SetUIContextToken();
+    ASSERT_NE(uiContext, nullptr);
+    auto transaction = uiContext->GetRSTransaction();
+    ASSERT_NE(transaction, nullptr);
+    ASSERT_FALSE(transaction->IsEmpty());
 }
 
 /**

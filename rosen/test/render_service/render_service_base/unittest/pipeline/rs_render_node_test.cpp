@@ -3042,6 +3042,21 @@ HWTEST_F(RSRenderNodeTest, GetIsFullChildrenListValid, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetUIContextTokenTest001
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest, SetUIContextTokenTest001, TestSize.Level1)
+{
+    auto renderNode = std::make_shared<RSRenderNode>(1);
+    ASSERT_NE(renderNode, nullptr);
+    uint64_t token = 1001;
+    renderNode->SetUIContextToken(token);
+    ASSERT_EQ(renderNode->uiContextToken_, token);
+}
+
+/**
  * @tc.name: RepaintBoundary
  * @tc.desc: Test function MarkRepaintBoundary and IsRepaintBoundary
  * @tc.type: FUNC

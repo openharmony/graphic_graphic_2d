@@ -42,7 +42,7 @@ void Init(std::shared_ptr<RSUIDirector> rsUiDirector, int width, int height)
     rootNode->SetFrame(0, 0, width, height);
     rootNode->SetBackgroundColor(Drawing::Color::COLOR_RED);
 
-    rsUiDirector->SetRoot(rootNode->GetId());
+    rsUiDirector->SetRSRootNode(rootNode->ReinterpretCastTo<RSRootNode>());
 }
 
 int main()
