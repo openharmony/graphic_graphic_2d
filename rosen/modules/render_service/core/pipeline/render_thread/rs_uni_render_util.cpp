@@ -1413,8 +1413,8 @@ void RSUniRenderUtil::SetSrcRectForAnco(const LayerInfoPtr& layer, BufferDrawPar
 
 void RSUniRenderUtil::SetSrcRectForAnco(const RSSurfaceRenderParams& surfaceParams, BufferDrawParam& params)
 {
-    if (surfaceParams->IsAncoSfv()) {
-        const Rect& cropRect = surfaceParams->GetAncoSrcCrop();
+    if (surfaceParams.IsAncoSfv()) {
+        const Rect& cropRect = surfaceParams.GetAncoSrcCrop();
         Drawing::Rect srcRect{cropRect.x, cropRect.y, cropRect.w + cropRect.x, cropRect.h + cropRect.y};
         float left = std::max(params.srcRect.left_, srcRect.left_);
         float top = std::max(params.srcRect.top_, srcRect.top_);
