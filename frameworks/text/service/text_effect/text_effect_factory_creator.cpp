@@ -29,7 +29,7 @@ bool TextEffectFactoryCreator::RegisterFactory(TextEffectStrategy strategy,
     if (factory == nullptr) {
         return false;
     }
-    std::unlock_guard<std::shared_mutex> lock(mutex_);
+    std::unique_lock<std::shared_mutex> lock(mutex_);
     if (factoryTable_.find(strategy) != factoryTable_.end()) {
        return false;
     }
