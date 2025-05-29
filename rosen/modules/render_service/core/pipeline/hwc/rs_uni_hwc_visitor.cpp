@@ -727,6 +727,11 @@ void RSUniHwcVisitor::UpdateHardwareStateByBoundNEDstRectInApps(
             }
         }
 
+        // Anco node donot collect
+        if ((hwcNodePtr->GetAncoFlags() & static_cast<uint32_t>(AncoFlags::IS_ANCO_NODE)) != 0) {
+            continue;
+        }
+
         // Check if the hwcNode's DstRect is inside of BoundRect, and not equal each other.
         if (dstRect.IsInsideOf(boundRect) && dstRect != boundRect) {
             abovedBounds.emplace_back(boundRect);

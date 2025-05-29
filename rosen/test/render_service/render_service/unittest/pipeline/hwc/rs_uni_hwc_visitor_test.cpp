@@ -778,6 +778,35 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHardwareStateByBoundNEDstRectInApps002, Test
 }
 
 /**
+ * @tc.name: UpdateHardwareStateByBoundNEDstRectInApps003
+ * @tc.desc: Test RSUniHwcVisitorTest.UpdateHardwareStateByBoundNEDstRectInApps003
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniHwcVisitorTest, UpdateHardwareStateByBoundNEDstRectInApps003, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    ASSERT_NE(rsUniRenderVisitor->hwcVisitor_, nullptr);
+
+    std::vector<RectI> aboveBounds;
+    std::vector<std::weak_ptr<RSSurfaceRenderNode>> hwcNodes;
+
+    RSSurfaceRenderNodeConfig surfaceConfig;
+    surfaceConfig.id = 1;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceConfig);
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->SetHardwareForcedDisabledState(false);
+    surfaceNode->GetRenderProperties().GetBoundsGeometry()->absRect_ = RectI{0, 0, 200, 200};
+
+    // test Anco node
+    surfaceNode->SetAncoFlags(true);
+    hwcNodes.push_back(std::weak_ptr<RSSurfaceRenderNode>(surfaceNode));
+    rsUniRenderVisitor->hwcVisitor_->UpdateHardwareStateByBoundNEDstRectInApps(hwcNodes, aboveBounds);
+    ASSERT_TRUE(aboveBounds.empty());
+}
+
+/**
  * @tc.name: UpdateHardwareStateByHwcNodeBackgroundAlpha001
  * @tc.desc: Test RSUniHwcVisitorTest.UpdateHardwareStateByHwcNodeBackgroundAlpha
  * @tc.type: FUNC
