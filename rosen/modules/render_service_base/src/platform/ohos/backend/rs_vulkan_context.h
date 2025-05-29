@@ -31,10 +31,15 @@
 
 #include "vulkan/vulkan.h"
 #include "include/gpu/vk/GrVkBackendContext.h"
-#include "include/gpu/GrDirectContext.h"
 #include "rs_vulkan_mem_statistic.h"
 
 #include "image/gpu_context.h"
+
+#ifdef USE_M133_SKIA
+#include "include/gpu/ganesh/GrDirectContext.h"
+#else
+#include "include/gpu/GrDirectContext.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {

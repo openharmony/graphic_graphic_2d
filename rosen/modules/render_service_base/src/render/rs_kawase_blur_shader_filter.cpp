@@ -16,10 +16,15 @@
 
 #include "effect/color_matrix.h"
 #include "effect/runtime_shader_builder.h"
-#include "include/gpu/GrDirectContext.h"
 #include "platform/common/rs_system_properties.h"
-#include "src/core/SkOpts.h"
 
+#ifdef USE_M133_SKIA
+#include "src/core/SkChecksum.h"
+#include "include/gpu/ganesh/GrDirectContext.h"
+#else
+#include "src/core/SkOpts.h"
+#include "include/gpu/GrDirectContext.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {

@@ -51,11 +51,22 @@
 #include "include/core/SkColorSpace.h"
 #include "include/core/SkImageInfo.h"
 #include "include/core/SkSurface.h"
+#include "utils/graphic_coretrace.h"
+#ifdef USE_M133_SKIA
+#include "include/gpu/ganesh/gl/GrGLBackendSurface.h"
+#include "include/gpu/ganesh/gl/GrGLInterface.h"
+#include "include/gpu/ganesh/GrBackendSurface.h"
+#include "include/gpu/ganesh/GrDirectContext.h"
+#include "include/gpu/ganesh/GrRecordingContext.h"
+#include "include/gpu/ganesh/SkImageGanesh.h"
+#include "include/gpu/ganesh/SkSurfaceGanesh.h"
+#include "include/gpu/GpuTypes.h"
+#else
 #include "include/gpu/GrBackendSurface.h"
 #include "include/gpu/GrDirectContext.h"
 #include "include/gpu/gl/GrGLInterface.h"
-#include "utils/graphic_coretrace.h"
-
+#include "include/core/SkImage.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -182,10 +193,17 @@ sk_sp<SkSurface> DmaMem::GetSkSurfaceFromSurfaceBuffer(GrRecordingContext *conte
         glEGLImageTargetTexture2DOESFunc(GL_TEXTURE_2D, static_cast<GLeglImageOES>(eglImage_));
     }
     GrGLTextureInfo textureInfo = { GL_TEXTURE_2D, texId_, GL_RGBA8_OES };
+#ifdef USE_M133_SKIA
+    GrBackendTexture backendTexture = GrBackendTextures::MakeGL(
+        surfaceBuffer->GetWidth(), surfaceBuffer->GetHeight(), skgpu::Mipmapped::kNo, textureInfo);
+    auto skSurface = SkSurfaces::WrapBackendTexture(context, backendTexture,
+        kTopLeft_GrSurfaceOrigin, 0, kRGBA_8888_SkColorType, SkColorSpace::MakeSRGB(), nullptr);
+#else
     GrBackendTexture backendTexture(
         surfaceBuffer->GetWidth(), surfaceBuffer->GetHeight(), GrMipMapped::kNo, textureInfo);
     auto skSurface = SkSurface::MakeFromBackendTexture(context, backendTexture,
         kTopLeft_GrSurfaceOrigin, 0, kRGBA_8888_SkColorType, SkColorSpace::MakeSRGB(), nullptr);
+#endif
     return skSurface;
 }
 #endif
@@ -714,6 +732,16 @@ bool PixelMapFromSurface::DrawImage(GrRecordingContext *context,
         glType = GL_RGB10_A2;
     }
     GrGLTextureInfo grExternalTextureInfo = { GL_TEXTURE_EXTERNAL_OES, texId_, static_cast<GrGLenum>(glType) };
+#ifdef USE_M133_SKIA
+    auto backendTexturePtr = std::make_shared<GrBackendTexture>(
+        GrBackendTextures::MakeGL(bufferWidth, bufferHeight, skgpu::Mipmapped::kNo, grExternalTextureInfo)
+    );
+    if (backendTexturePtr == nullptr) {
+        return false;
+    }
+    sk_sp<SkImage> image = SkImages::BorrowTextureFrom(context, *backendTexturePtr,
+        kTopLeft_GrSurfaceOrigin, colorType, kPremul_SkAlphaType, nullptr);
+#else
     auto backendTexturePtr =
         std::make_shared<GrBackendTexture>(bufferWidth, bufferHeight, GrMipMapped::kNo, grExternalTextureInfo);
     if (backendTexturePtr == nullptr) {
@@ -721,6 +749,7 @@ bool PixelMapFromSurface::DrawImage(GrRecordingContext *context,
     }
     sk_sp<SkImage> image = SkImage::MakeFromTexture(context, *backendTexturePtr,
         kTopLeft_GrSurfaceOrigin, colorType, kPremul_SkAlphaType, nullptr);
+#endif
     if (image == nullptr) {
         RS_LOGE("make skImage fail");
         return false;
@@ -742,7 +771,15 @@ bool PixelMapFromSurface::DrawImage(GrRecordingContext *context,
     }
     {
         ScopedBytrace trace3("flushAndSubmit");
+#ifdef USE_M133_SKIA
+        GrDirectContext* directContext = GrAsDirectContext(surface->recordingContext());
+        if (directContext == nullptr) {
+            return false;
+        }
+        directContext->flushAndSubmit(GrSyncCpu::kYes);
+#else
         surface->flushAndSubmit(true);
+#endif
     }
     return true;
 #else

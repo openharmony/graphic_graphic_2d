@@ -18,7 +18,11 @@
 #include "render/rs_filter.h"
 
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+#ifdef USE_M133_SKIA
+#include "include/gpu/ganesh/GrBackendSurface.h"
+#else
 #include "include/gpu/GrBackendSurface.h"
+#endif
 #include "src/image/SkImage_Base.h"
 
 #include "common/rs_optional_trace.h"
