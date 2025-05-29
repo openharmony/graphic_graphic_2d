@@ -295,7 +295,7 @@ OH_Drawing_Point* OH_Drawing_GetRunGlyphAdvanceByIndex(OH_Drawing_Array* advance
     return nullptr;
 }
 
-void OH_Drawing_DestroyRunPositions(OH_Drawing_Array* advances)
+void OH_Drawing_DestroyRunGlyphAdvances(OH_Drawing_Array* advances)
 {
     ObjectArray* advancesArray = reinterpret_cast<ObjectArray*>(advances);
     if (advancesArray && advancesArray->addr && advancesArray->type == ObjectType::TEXT_RUN) {

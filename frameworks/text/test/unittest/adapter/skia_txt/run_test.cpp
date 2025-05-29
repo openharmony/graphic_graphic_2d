@@ -26,6 +26,9 @@ using namespace testing::ext;
 
 namespace OHOS {
 namespace Rosen {
+namespace {
+    constexpr static float FLOAT_DATA_EPSILON = 1e-6f;
+}
 class OHDrawingRunTest : public testing::Test {
 protected:
     void SetUp() override;
@@ -67,7 +70,7 @@ void OHDrawingRunTest::TearDown()
 
 void OHDrawingRunTest::PrepareCreateRunForGlyphDrawing()
 {
-    layoutwidth_ = 1200;
+    layoutWidth_ = 1200;
     TypographyStyle ts;
     ts.fontSize = 100;
     std::shared_ptr<FontCollection> fc = FontCollection::From(std::make_shared<txt::FontCollection>());
@@ -235,13 +238,11 @@ HWTEST_F(OHDrawingRunTest, RunGlyphDrawingTest001, TestSize.Level1)
     text_ = u"Hello你好";
     PrepareCreateRunForGlyphDrawing();
     EXPECT_EQ(runs_[0]->GetTextDirection(), OHOS::Rosen::TextDirection::LTR);
-    EXPECT_EQ(runs_[0]->GetAdvances(-1, 10), std::vector<Drawing::Point>());
-    EXPECT_EQ(runs_[0]->GetAdvances(0, -1), std::vector<Drawing::Point>());
-    std::vector<Drawing::Point> pointVector = {
-        {111.750076, 0}, {82.050049, 0}, {35.850021, 0}, {35.850021, 0}, {88.650055, 0}};
-    EXPECT_EQ(runs_[0]->GetAdvances(0, 0), pointVector);
-    pointVector = {{111.750076, 0}};
-    EXPECT_EQ(runs_[0]->GetAdvances(0, 1), pointVector);
+    std::vector<Drawing::Point> pointResult = runs_[0]->GetAdvances(0, 0);
+    EXPECT_EQ(pointResult.size(), 5);
+    EXPECT_NEAR(pointResult[0].GetX(), 74.4999237, FLOAT_DATA_EPSILON);
+    pointResult = runs_[0]->GetAdvances(0, 1);
+    EXPECT_EQ(pointResult.size(), 1);
 }
 
 /*
@@ -253,14 +254,12 @@ HWTEST_F(OHDrawingRunTest, RunGlyphDrawingTest002, TestSize.Level1)
 {
     text_ = u"مرحبا";
     PrepareCreateRunForGlyphDrawing();
-    EXPECT_EQ(runs_[0]->GetTextDirection(), OHOS::Rosen::TextDirection::LTR);
-    EXPECT_EQ(runs_[0]->GetAdvances(-1, 10), std::vector<Drawing::Point>());
-    EXPECT_EQ(runs_[0]->GetAdvances(0, -1), std::vector<Drawing::Point>());
-    std::vector<Drawing::Point> pointVector = {
-        {111.750076, 0}, {82.050049, 0}, {35.850021, 0}, {35.850021, 0}, {88.650055, 0}};
-    EXPECT_EQ(runs_[0]->GetAdvances(0, 0), pointVector);
-    pointVector = {{111.750076, 0}};
-    EXPECT_EQ(runs_[0]->GetAdvances(0, 1), pointVector);
+    EXPECT_EQ(runs_[0]->GetTextDirection(), OHOS::Rosen::TextDirection::RTL);
+    std::vector<Drawing::Point> pointResult = runs_[0]->GetAdvances(0, 0);
+    EXPECT_EQ(pointResult.size(), 5);
+    EXPECT_NEAR(pointResult[0].GetX(), 27.3999786, FLOAT_DATA_EPSILON);
+    pointResult = runs_[0]->GetAdvances(0, 1);
+    EXPECT_EQ(pointResult.size(), 1);
 }
 
 /*

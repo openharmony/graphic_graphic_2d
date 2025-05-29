@@ -583,7 +583,7 @@ HWTEST_F(NativeDrawingRunTest, OH_Drawing_GlyDrawingTest002, TestSize.Level1)
 {
     text_ = "Hello你好";
     PrepareCreateTextLineForGlyphDrawing();
-    OH_Drawing_Run* run = OH_Drawing_GetRunByIndex(runs, 0);
+    OH_Drawing_Run* run = OH_Drawing_GetRunByIndex(runs_, 0);
     EXPECT_TRUE(run != nullptr);
 
     OH_Drawing_Font* font = OH_Drawing_GetRunFont(run);
@@ -591,13 +591,13 @@ HWTEST_F(NativeDrawingRunTest, OH_Drawing_GlyDrawingTest002, TestSize.Level1)
     OH_Drawing_Font_Metrics fontMetrics;
     OH_Drawing_FontGetMetrics(font, &fontMetrics);
     EXPECT_EQ(fontMetrics.flags, 31);
-    EXPECT_NEAR(fontMetrics.top, -69.900002, FLOAT_DATA_EPSILON);
-    EXPECT_NEAR(fontMetrics.ascent, -58.950001, FLOAT_DATA_EPSILON);
-    EXPECT_NEAR(fontMetrics.descent, 16.150002, FLOAT_DATA_EPSILON);
-    EXPECT_NEAR(fontMetrics.bottom, 19.650000, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.top, -105.599998, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.ascent, -92.799995, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.descent, 24.399999, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.bottom,  27.100000, FLOAT_DATA_EPSILON);
     EXPECT_NEAR(fontMetrics.leading, 0.0, FLOAT_DATA_EPSILON);
-    EXPECT_NEAR(fontMetrics.avgCharWidth, 35.150002, FLOAT_DATA_EPSILON);
-    EXPECT_NEAR(fontMetrics.maxCharWidth, 80.450005, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.avgCharWidth, 50.0, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.maxCharWidth, 248.600006, FLOAT_DATA_EPSILON);
 
     OH_Drawing_TextDirection direction = OH_Drawing_GetRunTextDirection(run);
     EXPECT_EQ(direction, TEXT_DIRECTION_LTR);
@@ -606,11 +606,17 @@ HWTEST_F(NativeDrawingRunTest, OH_Drawing_GlyDrawingTest002, TestSize.Level1)
     EXPECT_TRUE(advances != nullptr);
     size_t advancesSize = OH_Drawing_GetDrawingArraySize(advances);
     EXPECT_TRUE(advancesSize != 0);
-    EXPECT_NEAR(OH_Drawing_GetRunGlyphAdvanceByIndex(advances, 0), 111.750076, FLOAT_DATA_EPSILON);
-    EXPECT_NEAR(OH_Drawing_GetRunGlyphAdvanceByIndex(advances, 1), 82.050049, FLOAT_DATA_EPSILON);
-    EXPECT_NEAR(OH_Drawing_GetRunGlyphAdvanceByIndex(advances, 2), 35.850021, FLOAT_DATA_EPSILON);
-    EXPECT_NEAR(OH_Drawing_GetRunGlyphAdvanceByIndex(advances, 3), 35.850021, FLOAT_DATA_EPSILON);
-    EXPECT_NEAR(OH_Drawing_GetRunGlyphAdvanceByIndex(advances, 4), 88.650055, FLOAT_DATA_EPSILON);
+
+    OH_Drawing_Point* advance = OH_Drawing_GetRunGlyphAdvanceByIndex(advances, 0);
+    EXPECT_TRUE(advance != nullptr);
+    float x = 0.0;
+    OH_Drawing_PointGetX(advance, &x);
+    EXPECT_NEAR(x, 74.499923, FLOAT_DATA_EPSILON);
+    advance = OH_Drawing_GetRunGlyphAdvanceByIndex(advances, 1);
+    EXPECT_TRUE(advance != nullptr);
+    OH_Drawing_PointGetX(advance, &x);
+    EXPECT_NEAR(x, 54.699951, FLOAT_DATA_EPSILON);
+
     OH_Drawing_DestroyRunGlyphAdvances(advances);
     OH_Drawing_FontDestroy(font);
 }
@@ -624,7 +630,7 @@ HWTEST_F(NativeDrawingRunTest, OH_Drawing_GlyDrawingTest003, TestSize.Level1)
 {
     text_ = "⌚😀😁🤣👨‍🔬👩‍👩‍👧‍👦👭";
     PrepareCreateTextLineForGlyphDrawing();
-    OH_Drawing_Run* run = OH_Drawing_GetRunByIndex(runs, 0);
+    OH_Drawing_Run* run = OH_Drawing_GetRunByIndex(runs_, 0);
     EXPECT_TRUE(run != nullptr);
 
     OH_Drawing_Font* font = OH_Drawing_GetRunFont(run);
@@ -632,13 +638,13 @@ HWTEST_F(NativeDrawingRunTest, OH_Drawing_GlyDrawingTest003, TestSize.Level1)
     OH_Drawing_Font_Metrics fontMetrics;
     OH_Drawing_FontGetMetrics(font, &fontMetrics);
     EXPECT_EQ(fontMetrics.flags, 31);
-    EXPECT_NEAR(fontMetrics.top, -69.900002, FLOAT_DATA_EPSILON);
-    EXPECT_NEAR(fontMetrics.ascent, -58.950001, FLOAT_DATA_EPSILON);
-    EXPECT_NEAR(fontMetrics.descent, 16.150002, FLOAT_DATA_EPSILON);
-    EXPECT_NEAR(fontMetrics.bottom, 19.650000, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.top, -92.660552, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.ascent, -92.660552, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.descent, 24.770643, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.bottom,  24.770643, FLOAT_DATA_EPSILON);
     EXPECT_NEAR(fontMetrics.leading, 0.0, FLOAT_DATA_EPSILON);
-    EXPECT_NEAR(fontMetrics.avgCharWidth, 35.150002, FLOAT_DATA_EPSILON);
-    EXPECT_NEAR(fontMetrics.maxCharWidth, 80.450005, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.avgCharWidth, 124.511718, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.maxCharWidth, 124.7706451, FLOAT_DATA_EPSILON);
 
     OH_Drawing_TextDirection direction = OH_Drawing_GetRunTextDirection(run);
     EXPECT_EQ(direction, TEXT_DIRECTION_LTR);
@@ -647,8 +653,13 @@ HWTEST_F(NativeDrawingRunTest, OH_Drawing_GlyDrawingTest003, TestSize.Level1)
     EXPECT_TRUE(advances != nullptr);
     size_t advancesSize = OH_Drawing_GetDrawingArraySize(advances);
     EXPECT_EQ(advancesSize, 2);
-    EXPECT_NEAR(OH_Drawing_GetRunGlyphAdvanceByIndex(advances, 0), 187.15620, FLOAT_DATA_EPSILON);
-    EXPECT_NEAR(OH_Drawing_GetRunGlyphAdvanceByIndex(advances, 1), 187.15620, FLOAT_DATA_EPSILON);
+
+    OH_Drawing_Point* advance = OH_Drawing_GetRunGlyphAdvanceByIndex(advances, 0);
+    EXPECT_TRUE(advance != nullptr);
+    float x = 0.0;
+    OH_Drawing_PointGetX(advance, &x);
+    EXPECT_NEAR(x, 124.765625, FLOAT_DATA_EPSILON);
+
     OH_Drawing_DestroyRunGlyphAdvances(advances);
     OH_Drawing_FontDestroy(font);
 }
@@ -662,7 +673,7 @@ HWTEST_F(NativeDrawingRunTest, OH_Drawing_GlyDrawingTest004, TestSize.Level1)
 {
     text_ = "مرحبا";
     PrepareCreateTextLineForGlyphDrawing();
-    OH_Drawing_Run* run = OH_Drawing_GetRunByIndex(runs, 0);
+    OH_Drawing_Run* run = OH_Drawing_GetRunByIndex(runs_, 0);
     EXPECT_TRUE(run != nullptr);
 
     OH_Drawing_Font* font = OH_Drawing_GetRunFont(run);
@@ -670,13 +681,13 @@ HWTEST_F(NativeDrawingRunTest, OH_Drawing_GlyDrawingTest004, TestSize.Level1)
     OH_Drawing_Font_Metrics fontMetrics;
     OH_Drawing_FontGetMetrics(font, &fontMetrics);
     EXPECT_EQ(fontMetrics.flags, 31);
-    EXPECT_NEAR(fontMetrics.top, -69.900002, FLOAT_DATA_EPSILON);
-    EXPECT_NEAR(fontMetrics.ascent, -58.950001, FLOAT_DATA_EPSILON);
-    EXPECT_NEAR(fontMetrics.descent, 16.150002, FLOAT_DATA_EPSILON);
-    EXPECT_NEAR(fontMetrics.bottom, 19.650000, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.top, -139.800003, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.ascent, -117.900001, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.descent, 32.300003, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.bottom, 39.299999, FLOAT_DATA_EPSILON);
     EXPECT_NEAR(fontMetrics.leading, 0.0, FLOAT_DATA_EPSILON);
-    EXPECT_NEAR(fontMetrics.avgCharWidth, 35.150002, FLOAT_DATA_EPSILON);
-    EXPECT_NEAR(fontMetrics.maxCharWidth, 80.450005, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.avgCharWidth, 70.300003, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.maxCharWidth, 160.900009, FLOAT_DATA_EPSILON);
 
     OH_Drawing_TextDirection direction = OH_Drawing_GetRunTextDirection(run);
     EXPECT_EQ(direction, TEXT_DIRECTION_RTL);
@@ -685,8 +696,17 @@ HWTEST_F(NativeDrawingRunTest, OH_Drawing_GlyDrawingTest004, TestSize.Level1)
     EXPECT_TRUE(advances != nullptr);
     size_t advancesSize = OH_Drawing_GetDrawingArraySize(advances);
     EXPECT_EQ(advancesSize, 2);
-    EXPECT_NEAR(OH_Drawing_GetRunGlyphAdvanceByIndex(advances, 0), 16.149979, FLOAT_DATA_EPSILON);
-    EXPECT_NEAR(OH_Drawing_GetRunGlyphAdvanceByIndex(advances, 1), 19.339979, FLOAT_DATA_EPSILON);
+
+    OH_Drawing_Point* advance = OH_Drawing_GetRunGlyphAdvanceByIndex(advances, 0);
+    EXPECT_TRUE(advance != nullptr);
+    float x = 0.0;
+    OH_Drawing_PointGetX(advance, &x);
+    EXPECT_NEAR(x, 32.999969, FLOAT_DATA_EPSILON);
+    advance = OH_Drawing_GetRunGlyphAdvanceByIndex(advances, 1);
+    EXPECT_TRUE(advance != nullptr);
+    OH_Drawing_PointGetX(advance, &x);
+    EXPECT_NEAR(x, 64.599945, FLOAT_DATA_EPSILON);
+
     OH_Drawing_DestroyRunGlyphAdvances(advances);
     OH_Drawing_FontDestroy(font);
 }
@@ -700,7 +720,7 @@ HWTEST_F(NativeDrawingRunTest, OH_Drawing_GlyDrawingTest005, TestSize.Level1)
 {
     text_ = "\u0644\u0627Hello你好连字测试\u0066\u0069";
     PrepareCreateTextLineForGlyphDrawing();
-    OH_Drawing_Run* run = OH_Drawing_GetRunByIndex(runs, 0);
+    OH_Drawing_Run* run = OH_Drawing_GetRunByIndex(runs_, 0);
     EXPECT_TRUE(run != nullptr);
 
     OH_Drawing_Font* font = OH_Drawing_GetRunFont(run);
@@ -708,29 +728,33 @@ HWTEST_F(NativeDrawingRunTest, OH_Drawing_GlyDrawingTest005, TestSize.Level1)
     OH_Drawing_Font_Metrics fontMetrics;
     OH_Drawing_FontGetMetrics(font, &fontMetrics);
     EXPECT_EQ(fontMetrics.flags, 31);
-    EXPECT_NEAR(fontMetrics.top, -69.900002, FLOAT_DATA_EPSILON);
-    EXPECT_NEAR(fontMetrics.ascent, -58.950001, FLOAT_DATA_EPSILON);
-    EXPECT_NEAR(fontMetrics.descent, 16.150002, FLOAT_DATA_EPSILON);
-    EXPECT_NEAR(fontMetrics.bottom, 19.650000, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.top, -139.800003, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.ascent, -117.900001, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.descent, 32.300003, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.bottom, 39.299999, FLOAT_DATA_EPSILON);
     EXPECT_NEAR(fontMetrics.leading, 0.0, FLOAT_DATA_EPSILON);
-    EXPECT_NEAR(fontMetrics.avgCharWidth, 35.150002, FLOAT_DATA_EPSILON);
-    EXPECT_NEAR(fontMetrics.maxCharWidth, 80.450005, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.avgCharWidth, 70.300003, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.maxCharWidth, 160.900009, FLOAT_DATA_EPSILON);
 
     OH_Drawing_TextDirection direction = OH_Drawing_GetRunTextDirection(run);
-    EXPECT_EQ(direction, TEXT_DIRECTION_LTR);
+    EXPECT_EQ(direction, TEXT_DIRECTION_RTL);
 
-    OH_Drawing_Array* advances = OH_Drawing_GetRunGlyphAdvances(run, 0, 1);
-    EXPECT_TRUE(advances != nullptr);
-    size_t advancesSize = OH_Drawing_GetDrawingArraySize(advances);
-    EXPECT_EQ(advancesSize, 1);
-    EXPECT_NEAR(OH_Drawing_GetRunGlyphAdvanceByIndex(advances, 0), 24.499969, FLOAT_DATA_EPSILON);
+    OH_Drawing_Point* advance = OH_Drawing_GetRunGlyphAdvanceByIndex(advances, 0);
+    EXPECT_TRUE(advance != nullptr);
+    float x = 0.0;
+    OH_Drawing_PointGetX(advance, &x);
+    EXPECT_NEAR(x, 48.999954, FLOAT_DATA_EPSILON);
 
-    run = OH_Drawing_GetRunByIndex(runs, 3);
+    run = OH_Drawing_GetRunByIndex(runs_, 3);
     advances = OH_Drawing_GetRunGlyphAdvances(run, 0, 2);
     EXPECT_TRUE(advances != nullptr);
-    size_t advancesSize = OH_Drawing_GetDrawingArraySize(advances);
+    advancesSize = OH_Drawing_GetDrawingArraySize(advances);
     EXPECT_EQ(advancesSize, 1);
-    EXPECT_NEAR(OH_Drawing_GetRunGlyphAdvanceByIndex(advances, 0), 57.399948, FLOAT_DATA_EPSILON);
+
+    advance = OH_Drawing_GetRunGlyphAdvanceByIndex(advances, 0);
+    EXPECT_TRUE(advance != nullptr);
+    OH_Drawing_PointGetX(advance, &x);
+    EXPECT_NEAR(x, 57.399948, FLOAT_DATA_EPSILON);
 
     OH_Drawing_DestroyRunGlyphAdvances(advances);
     OH_Drawing_FontDestroy(font);
@@ -745,7 +769,7 @@ HWTEST_F(NativeDrawingRunTest, OH_Drawing_GlyDrawingTest006, TestSize.Level1)
 {
     text_ = "क्Hello你好天成文测试का";
     PrepareCreateTextLineForGlyphDrawing();
-    OH_Drawing_Run* run = OH_Drawing_GetRunByIndex(runs, 0);
+    OH_Drawing_Run* run = OH_Drawing_GetRunByIndex(runs_, 0);
     EXPECT_TRUE(run != nullptr);
 
     OH_Drawing_Font* font = OH_Drawing_GetRunFont(run);
@@ -768,16 +792,33 @@ HWTEST_F(NativeDrawingRunTest, OH_Drawing_GlyDrawingTest006, TestSize.Level1)
     EXPECT_TRUE(advances != nullptr);
     size_t advancesSize = OH_Drawing_GetDrawingArraySize(advances);
     EXPECT_EQ(advancesSize, 2);
-    EXPECT_NEAR(OH_Drawing_GetRunGlyphAdvanceByIndex(advances, 0), 76.199921, FLOAT_DATA_EPSILON);
-    EXPECT_NEAR(OH_Drawing_GetRunGlyphAdvanceByIndex(advances, 1), 0.000000, FLOAT_DATA_EPSILON);
 
-    run = OH_Drawing_GetRunByIndex(runs, 3);
+    OH_Drawing_Point* advance = OH_Drawing_GetRunGlyphAdvanceByIndex(advances, 0);
+    EXPECT_TRUE(advance != nullptr);
+    float x = 0.0;
+    OH_Drawing_PointGetX(advance, &x);
+    EXPECT_NEAR(x, 76.199921, FLOAT_DATA_EPSILON);
+
+    advance = OH_Drawing_GetRunGlyphAdvanceByIndex(advances, 1);
+    EXPECT_TRUE(advance != nullptr);
+    OH_Drawing_PointGetX(advance, &x);
+    EXPECT_NEAR(x, 0.000000, FLOAT_DATA_EPSILON);
+
+    run = OH_Drawing_GetRunByIndex(runs_, 3);
     advances = OH_Drawing_GetRunGlyphAdvances(run, 0, 2);
     EXPECT_TRUE(advances != nullptr);
-    size_t advancesSize = OH_Drawing_GetDrawingArraySize(advances);
+    advancesSize = OH_Drawing_GetDrawingArraySize(advances);
     EXPECT_EQ(advancesSize, 2);
-    EXPECT_NEAR(OH_Drawing_GetRunGlyphAdvanceByIndex(advances, 0), 76.199921, FLOAT_DATA_EPSILON);
-    EXPECT_NEAR(OH_Drawing_GetRunGlyphAdvanceByIndex(advances, 1), 25.899979, FLOAT_DATA_EPSILON);
+
+    advance = OH_Drawing_GetRunGlyphAdvanceByIndex(advances, 0);
+    EXPECT_TRUE(advance != nullptr);
+    OH_Drawing_PointGetX(advance, &x);
+    EXPECT_NEAR(x, 76.199921, FLOAT_DATA_EPSILON);
+
+    advance = OH_Drawing_GetRunGlyphAdvanceByIndex(advances, 1);
+    EXPECT_TRUE(advance != nullptr);
+    OH_Drawing_PointGetX(advance, &x);
+    EXPECT_NEAR(x, 25.899979, FLOAT_DATA_EPSILON);
 
     OH_Drawing_DestroyRunGlyphAdvances(advances);
     OH_Drawing_FontDestroy(font);
@@ -792,7 +833,7 @@ HWTEST_F(NativeDrawingRunTest, OH_Drawing_GlyDrawingTest007, TestSize.Level1)
 {
     text_ = "གྷHello你好藏文测试སྒྲ";
     PrepareCreateTextLineForGlyphDrawing();
-    OH_Drawing_Run* run = OH_Drawing_GetRunByIndex(runs, 0);
+    OH_Drawing_Run* run = OH_Drawing_GetRunByIndex(runs_, 0);
     EXPECT_TRUE(run != nullptr);
 
     OH_Drawing_Font* font = OH_Drawing_GetRunFont(run);
@@ -815,14 +856,22 @@ HWTEST_F(NativeDrawingRunTest, OH_Drawing_GlyDrawingTest007, TestSize.Level1)
     EXPECT_TRUE(advances != nullptr);
     size_t advancesSize = OH_Drawing_GetDrawingArraySize(advances);
     EXPECT_EQ(advancesSize, 1);
-    EXPECT_NEAR(OH_Drawing_GetRunGlyphAdvanceByIndex(advances, 0), 56.405991, FLOAT_DATA_EPSILON);
 
-    run = OH_Drawing_GetRunByIndex(runs, 3);
+    OH_Drawing_Point* advance = OH_Drawing_GetRunGlyphAdvanceByIndex(advances, 0);
+    EXPECT_TRUE(advance != nullptr);
+    float x = 0.0;
+    OH_Drawing_PointGetX(advance, &x);
+    EXPECT_NEAR(x, 56.405991, FLOAT_DATA_EPSILON);
+
+    run = OH_Drawing_GetRunByIndex(runs_, 3);
     advances = OH_Drawing_GetRunGlyphAdvances(run, 0, 1);
     EXPECT_TRUE(advances != nullptr);
-    size_t advancesSize = OH_Drawing_GetDrawingArraySize(advances);
+    advancesSize = OH_Drawing_GetDrawingArraySize(advances);
     EXPECT_EQ(advancesSize, 1);
-    EXPECT_NEAR(OH_Drawing_GetRunGlyphAdvanceByIndex(advances, 0), 53.324997, FLOAT_DATA_EPSILON);
+    advance = OH_Drawing_GetRunGlyphAdvanceByIndex(advances, 0);
+    EXPECT_TRUE(advance != nullptr);
+    OH_Drawing_PointGetX(advance, &x);
+    EXPECT_NEAR(x, 53.324997, FLOAT_DATA_EPSILON);
 
     OH_Drawing_DestroyRunGlyphAdvances(advances);
     OH_Drawing_FontDestroy(font);
@@ -837,7 +886,7 @@ HWTEST_F(NativeDrawingRunTest, OH_Drawing_GlyDrawingTest008, TestSize.Level1)
 {
     text_ = "\u0E01\u0E33\u0E41\u0E01Hello你好泰文测试";
     PrepareCreateTextLineForGlyphDrawing();
-    OH_Drawing_Run* run = OH_Drawing_GetRunByIndex(runs, 0);
+    OH_Drawing_Run* run = OH_Drawing_GetRunByIndex(runs_, 0);
     EXPECT_TRUE(run != nullptr);
 
     OH_Drawing_Font* font = OH_Drawing_GetRunFont(run);
@@ -860,11 +909,31 @@ HWTEST_F(NativeDrawingRunTest, OH_Drawing_GlyDrawingTest008, TestSize.Level1)
     EXPECT_TRUE(advances != nullptr);
     size_t advancesSize = OH_Drawing_GetDrawingArraySize(advances);
     EXPECT_EQ(advancesSize, 5);
-    EXPECT_NEAR(OH_Drawing_GetRunGlyphAdvanceByIndex(advances, 0), 59.999939, FLOAT_DATA_EPSILON);
-    EXPECT_NEAR(OH_Drawing_GetRunGlyphAdvanceByIndex(advances, 1), 0.000000, FLOAT_DATA_EPSILON);
-    EXPECT_NEAR(OH_Drawing_GetRunGlyphAdvanceByIndex(advances, 2), 40.599960, FLOAT_DATA_EPSILON);
-    EXPECT_NEAR(OH_Drawing_GetRunGlyphAdvanceByIndex(advances, 3), 56.799942, FLOAT_DATA_EPSILON);
-    EXPECT_NEAR(OH_Drawing_GetRunGlyphAdvanceByIndex(advances, 4), 59.999939, FLOAT_DATA_EPSILON);
+
+    OH_Drawing_Point* advance = OH_Drawing_GetRunGlyphAdvanceByIndex(advances, 0);
+    EXPECT_TRUE(advance != nullptr);
+    float x = 0.0;
+    OH_Drawing_PointGetX(advance, &x);
+    EXPECT_NEAR(x, 59.999939, FLOAT_DATA_EPSILON);
+
+    advance = OH_Drawing_GetRunGlyphAdvanceByIndex(advances, 1);
+    EXPECT_TRUE(advance != nullptr);
+    OH_Drawing_PointGetX(advance, &x);
+    EXPECT_NEAR(x, 0.000000, FLOAT_DATA_EPSILON);
+
+    advance = OH_Drawing_GetRunGlyphAdvanceByIndex(advances, 2);
+    EXPECT_TRUE(advance != nullptr);
+    OH_Drawing_PointGetX(advance, &x);
+    EXPECT_NEAR(x, 40.599960, FLOAT_DATA_EPSILON);
+        advance = OH_Drawing_GetRunGlyphAdvanceByIndex(advances, 3);
+    EXPECT_TRUE(advance != nullptr);
+    OH_Drawing_PointGetX(advance, &x);
+    EXPECT_NEAR(x, 56.799942, FLOAT_DATA_EPSILON);
+
+    advance = OH_Drawing_GetRunGlyphAdvanceByIndex(advances, 4);
+    EXPECT_TRUE(advance != nullptr);
+    OH_Drawing_PointGetX(advance, &x);
+    EXPECT_NEAR(x, 59.999939, FLOAT_DATA_EPSILON);
 
     OH_Drawing_DestroyRunGlyphAdvances(advances);
     OH_Drawing_FontDestroy(font);

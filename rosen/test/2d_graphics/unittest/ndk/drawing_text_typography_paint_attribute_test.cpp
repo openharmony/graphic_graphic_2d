@@ -309,8 +309,8 @@ HWTEST_F(DrawingTypographyPaintAttributeTest, DrawingTypographyUpdateColorAndDec
 HWTEST_F(DrawingTypographyPaintAttributeTest, DrawingTypographyUpdateDecorationColorTest001, TestSize.Level1)
 {
 
-    OH_Drawing_TypographyUpdatDecorationColor(nullptr, OH_Drawing_ColorSetArgb(0xFF, 0x00, 0xFF, 0xFF));
-    OH_Drawing_TypographyUpdatDecorationColor(fTypography, OH_Drawing_ColorSetArgb(0xFF, 0x00, 0xFF, 0xFF));
+    OH_Drawing_TypographyUpdateDecorationColor(nullptr, OH_Drawing_ColorSetArgb(0xFF, 0x00, 0xFF, 0xFF));
+    OH_Drawing_TypographyUpdateDecorationColor(fTypography, OH_Drawing_ColorSetArgb(0xFF, 0x00, 0xFF, 0xFF));
 
     Typography* typography = ConvertToOriginalText(fTypography);
     auto runMetrics = typography->GetLineMetrics()[0].runMetrics;

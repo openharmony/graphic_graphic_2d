@@ -98,7 +98,7 @@ std::vector<Drawing::Point> RunImpl::GetAdvances(uint32_t start, uint32_t length
     return run_->GetAdvances(start, length);
 }
 
-TextDirection RunImpl::getTextDirection() const
+TextDirection RunImpl::GetTextDirection() const
 {
     if (run_ == nullptr) {
         return TextDirection::LTR;
