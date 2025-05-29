@@ -433,5 +433,17 @@ HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest012, TestSi
     fontCollection_->ClearThemeFont();
     EXPECT_EQ(fontMgr_->CountFamilies(), 0);
 }
+
+/*
+ * @tc.name: OH_Drawing_FontCollectionTest013
+ * @tc.desc: test for unload system font and empty but failed
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest013, TestSize.Level1)
+{
+    EXPECT_FALSE(fontCollection_->UnloadFont(""));
+    EXPECT_FALSE(fontCollection_->UnloadFont("Noto Sans"));
+    EXPECT_FALSE(fontCollection_->UnloadFont("Noto Sans Mono"));
+}
 } // namespace Rosen
 } // namespace OHOS
