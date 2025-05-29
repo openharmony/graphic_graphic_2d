@@ -40,8 +40,9 @@ if (rosen_preview) {
 
     public_configs = [ ":libglfw_render_context_public_config" ]
 
+    deps = [ "//third_party/glfw:glfw" ]
+
     external_deps = [
-      "glfw:glfw",
       "hilog:libhilog",
     ]
 
