@@ -19,9 +19,6 @@
 #include "font_descriptor_mgr.h"
 #include "font_utils.h"
 #include "text/common_utils.h"
-#define ENABLE_OHOS_ENHANCE
-#include "utils/text_trace.h"
-#undef ENABLE_OHOS_ENHANCE
 
 using namespace OHOS::Rosen;
 namespace {
@@ -118,7 +115,6 @@ void OH_Drawing_DestroyFontDescriptors(OH_Drawing_FontDescriptor* descriptors, s
 OH_Drawing_FontDescriptor* OH_Drawing_GetFontDescriptorByFullName(const OH_Drawing_String* fullName,
     OH_Drawing_SystemFontType fontType)
 {
-    TEXT_TRACE_FUNC();
     if (fullName == nullptr) {
         return nullptr;
     }
@@ -146,7 +142,6 @@ OH_Drawing_FontDescriptor* OH_Drawing_GetFontDescriptorByFullName(const OH_Drawi
 
 OH_Drawing_Array* OH_Drawing_GetSystemFontFullNamesByType(OH_Drawing_SystemFontType fontType)
 {
-    TEXT_TRACE_FUNC();   
     auto systemFontType = static_cast<int32_t>(fontType);
     std::unordered_set<std::string> fullNameList;
     FontDescriptorMgrInstance.GetSystemFontFullNamesByType(systemFontType, fullNameList);
