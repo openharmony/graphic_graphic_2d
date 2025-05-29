@@ -55,7 +55,6 @@ namespace {
     constexpr int32_t strategy3 = 3;
     constexpr int32_t maxSize = 25;
     const std::string testScene = "TestScene";
-    constexpr int32_t STYLUS_LINK_WRITE = 2;
     const GraphicIRect rectF {
         .x = 0,
         .y = 0,
@@ -1314,7 +1313,7 @@ HWTEST_F(HgmFrameRateMgrTest, HandlePackageEvent, Function | SmallTest | Level1)
     FrameRateRange finalRange = {OLED_60_HZ, OLED_120_HZ, OLED_60_HZ};
     EXPECT_EQ(frameRateMgr->CalcRefreshRate(frameRateMgr->curScreenId_.load(), finalRange),
         frameRateMgr->currRefreshRate_);
-    frameRateMgr->stylusMode_ = STYLUS_LINK_WRITE;
+    frameRateMgr->isStylusWakeUp_ = true;
     frameRateMgr->stylusVec_.clear();
     ASSERT_EQ(frameRateMgr->CalcRefreshRate(frameRateMgr->curScreenId_.load(), finalRange),
         frameRateMgr->currRefreshRate_);
