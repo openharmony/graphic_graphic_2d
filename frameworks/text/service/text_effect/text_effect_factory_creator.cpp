@@ -24,14 +24,14 @@ TextEffectFactoryCreator& TextEffectFactoryCreator::GetInstance()
 }
 
 bool TextEffectFactoryCreator::RegisterFactory(TextEffectStrategy strategy,
-    std::shared_ptr<TextEffectFactory> factory) 
+    std::shared_ptr<TextEffectFactory> factory)
 {
     if (factory == nullptr) {
         return false;
     }
     std::unique_lock<std::shared_mutex> lock(mutex_);
     if (factoryTable_.find(strategy) != factoryTable_.end()) {
-       return false;
+        return false;
     }
     factoryTable_.emplace(strategy, factory);
     return true;

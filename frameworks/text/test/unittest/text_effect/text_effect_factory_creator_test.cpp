@@ -25,7 +25,8 @@ using namespace OHOS::Rosen;
 class TextEffectFactoryCreatorTest : public testing::Test {
 public:
     void SetUp() override {}
-    void TearDown override {
+    void TearDown() override
+    {
         TextEffectFactoryCreator::GetInstance().factoryTable_.erase(TextEffectStrategy::STRATEGY_BUTT);
     }
 };
@@ -45,9 +46,9 @@ public:
 };
 
 
-/**
+/*
  * @tc.name: TextEffectFactoryCreatorTest001
- * @tc.desc: Test for RegisterTextEffect action
+ * @tc.desc: Test for RegisterFactory action
  * @tc.type: FUNC
  */
 HWTEST_F(TextEffectFactoryCreatorTest, TextEffectFactoryCreatorTest001, TestSize.Level1)
@@ -63,7 +64,7 @@ HWTEST_F(TextEffectFactoryCreatorTest, TextEffectFactoryCreatorTest001, TestSize
     EXPECT_FALSE(result);
 }
 
-/**
+/*
  * @tc.name: TextEffectFactoryCreatorTest002
  * @tc.desc: Test for CreateTextEffect action
  * @tc.type: FUNC
