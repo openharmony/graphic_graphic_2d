@@ -3243,6 +3243,15 @@ void RSMainThread::NotifyHardwareThreadCanExecuteTask()
     hardwareThreadTaskCond_.notify_one();
 }
 
+uint32_t RSMainThread::GetVsyncRefreshRate()
+{
+    if (vsyncGenerator_ == nullptr) {
+        RS_LOGE("RSMainThread::GetVsyncRefreshRate vsyncGenerator is nullptr");
+        return 0;
+    }
+    return vsyncGenerator_->GetVsyncRefreshRate();
+}
+
 void RSMainThread::RequestNextVSync(const std::string& fromWhom, int64_t lastVSyncTS, const int64_t& requestVsyncTime)
 {
     RS_OPTIONAL_TRACE_FUNC();

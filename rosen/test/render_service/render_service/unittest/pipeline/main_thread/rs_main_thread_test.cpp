@@ -2275,6 +2275,21 @@ HWTEST_F(RSMainThreadTest, CheckSurfaceOcclusionNeedProcess003, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetVsyncRefreshRate
+ * @tc.desc: GetVsyncRefreshRate Test
+ * @tc.type: FUNC
+ * @tc.require: issueICAANX
+ */
+HWTEST_F(RSMainThreadTest, GetVsyncRefreshRate001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->vsyncGenerator_ = nullptr;
+    uint32_t refreshRate = mainThread->GetVsyncRefreshRate();
+    ASSERT_EQ(refreshRate, 0);
+}
+
+/**
  * @tc.name: CalcOcclusion002
  * @tc.desc: CalcOcclusion Test
  * @tc.type: FUNC
