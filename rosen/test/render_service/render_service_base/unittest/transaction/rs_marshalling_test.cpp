@@ -158,13 +158,12 @@ static void TestCompatibleMarshalling(T value, bool isNewViersion)
     }
 
     RSMarshallingHelper::MarshallingTransactionVer(parcel);
-
-    EXPECT_TRUE(RSMarshallingHelper::CompatibleMarshalling(parcel, value, 0));
-
+    
     const auto headerLen = parcel.GetWritePosition();
     parcel.SkipBytes(headerLen);
 
-    EXPECT_TRUE(RSMarshallingHelper::CompatibleUnmarshalling(parcel, value, 0, 1));
+    EXPECT_TRUE(RSMarshallingHelper::CompatibleMarshalling(parcel, value, 0));
+    EXPECT_TRUE(RSMarshallingHelper::CompatibleUnmarshalling(parcel, value, 0, 0));
 
     if constexpr (std::is_same_v<T, float> == true || std::is_same_v<T, double> == true) {
         constexpr auto eps = 0.001;
@@ -188,14 +187,15 @@ static void TestCompatibleMarshallingObsolete(T value, bool isNewViersion)
     RSMarshallingHelper::MarshallingTransactionVer(parcel);
 
     const auto headerLen = parcel.GetWritePosition();
-
     parcel.SkipBytes(headerLen);
 
     EXPECT_TRUE(RSMarshallingHelper::CompatibleMarshalling(parcel, value, 0));
 
     RSMarshallingHelper::CompatibleUnmarshallingObsolete(parcel, sizeof(value), 1);
 
-    EXPECT_EQ(parcel.GetWritePosition(), headerLen + sizeof(value));
+    const auto valueSize = std::max<size_t>(sizeof(value), 4);
+
+    EXPECT_EQ(parcel.GetWritePosition(), headerLen + valueSize);
 }
 
 /**

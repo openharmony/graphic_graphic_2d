@@ -3078,7 +3078,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSRender
 bool RSMarshallingHelper::MarshallingTransactionVer(Parcel& parcel)
 {
     parcel.WriteInt64(-1);
-    uint64_t flags[4] = { 0 };
+    uint64_t flags[NUM_ITEMS_IN_VERSION] = { 0 };
     constexpr uint8_t bitsPerUint64 = 64;
     for (auto supportedFlag : supportedParcelVerFlags) {
         flags[supportedFlag / bitsPerUint64] |= static_cast<uint64_t>(1) << (supportedFlag % bitsPerUint64);
