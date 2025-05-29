@@ -198,6 +198,7 @@ private:
     static float SqrPixelToSqrMM(T sqrPixel);
 
     void HandleIdleEvent(bool isIdle);
+    void HandleStylusSceneEvent(const std::string& sceneName);
     void HandleSceneEvent(pid_t pid, EventInfo eventInfo);
     void HandleVirtualDisplayEvent(pid_t pid, EventInfo eventInfo);
     void HandleGamesEvent(pid_t pid, EventInfo eventInfo);
@@ -297,7 +298,7 @@ private:
     std::unordered_map<std::string, std::pair<int32_t, bool>> screenExtStrategyMap_ = HGM_CONFIG_SCREENEXT_STRATEGY_MAP;
     int32_t isAmbientStatus_ = 0;
     bool isAmbientEffect_ = false;
-    int32_t stylusMode_ = -1;
+    bool isStylusWakeUp_ = false;
     int32_t idleFps_ = OLED_60_HZ;
     VoteInfo lastVoteInfo_;
     HgmMultiAppStrategy multiAppStrategy_;

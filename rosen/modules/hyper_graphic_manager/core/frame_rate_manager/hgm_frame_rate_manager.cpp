@@ -85,19 +85,7 @@ namespace {
 
     constexpr int ADAPTIVE_SYNC_PROPERTY = 3;
     constexpr int DISPLAY_SUCCESS = 1;
-
-    constexpr int32_t STYLUS_NO_LINK = 0;
-    constexpr int32_t STYLUS_LINK_UNUSED = 1;
-    constexpr int32_t STYLUS_LINK_WRITE = 2;
-    constexpr int32_t STYLUS_SLEEP = 3;
-    constexpr int32_t STYLUS_WAKEUP = 4;
     constexpr int32_t VIRTUAL_KEYBOARD_FINGERS_MIN_CNT = 8;
-    const std::unordered_map<std::string, int32_t> STYLUS_STATUS_MAP = {
-        {"STYLUS_NO_LINK", STYLUS_NO_LINK},
-        {"STYLUS_LINK_UNUSED", STYLUS_LINK_UNUSED},
-        {"STYLUS_LINK_WRITE", STYLUS_LINK_WRITE},
-        {"STYLUS_SLEEP", STYLUS_SLEEP},
-        {"STYLUS_WAKEUP", STYLUS_WAKEUP}};
     constexpr uint32_t FRAME_RATE_REPORT_MAX_RETRY_TIMES = 3;
     constexpr uint32_t FRAME_RATE_REPORT_DELAY_TIME = 20000;
 }
@@ -696,7 +684,7 @@ uint32_t HgmFrameRateManager::CalcRefreshRate(const ScreenId id, const FrameRate
     // of current screen are {30, 60, 90}, the result will be 90.
     uint32_t refreshRate = currRefreshRate_;
     std::vector<uint32_t> supportRefreshRateVec;
-    bool stylusFlag = (stylusMode_ == STYLUS_WAKEUP && !stylusVec_.empty());
+    bool stylusFlag = (isStylusWakeUp_ && !stylusVec_.empty());
     if ((isLtpo_ && isAmbientStatus_ == LightFactorStatus::NORMAL_LOW && isAmbientEffect_) ||
         (!isLtpo_ && isAmbientEffect_ && isAmbientStatus_ != LightFactorStatus::HIGH_LEVEL)) {
         RS_TRACE_NAME_FMT("Replace supported refresh rates from config");
@@ -715,12 +703,16 @@ uint32_t HgmFrameRateManager::CalcRefreshRate(const ScreenId id, const FrameRate
         return refreshRate;
     }
     std::sort(supportRefreshRateVec.begin(), supportRefreshRateVec.end());
+    if (stylusFlag) {
+        auto item = std::upper_bound(supportRefreshRateVec.begin(), supportRefreshRateVec.end(), range.preferred_);
+        if ((item - supportRefreshRateVec.begin()) > 0) {
+            item--;
+        }
+        return *item;
+    }
     auto iter = std::lower_bound(supportRefreshRateVec.begin(), supportRefreshRateVec.end(), range.preferred_);
     if (iter != supportRefreshRateVec.end()) {
         refreshRate = *iter;
-        if (stylusFlag) {
-            return refreshRate;
-        }
         if (refreshRate > static_cast<uint32_t>(range.max_) &&
             (iter - supportRefreshRateVec.begin()) > 0) {
             iter--;
@@ -1161,6 +1153,15 @@ void HgmFrameRateManager::HandleRsFrame()
     pointerManager_.HandleRsFrame();
 }
 
+void HgmFrameRateManager::HandleStylusSceneEvent(const std::string& sceneName)
+{
+    if (sceneName == "STYLUS_SLEEP" || sceneName == "STYLUS_NO_LINK") {
+        isStylusWakeUp_ = false;
+    } else if (sceneName == "STYLUS_WAKEUP") {
+        isStylusWakeUp_ = true;
+    }
+}
+
 void HgmFrameRateManager::HandleSceneEvent(pid_t pid, EventInfo eventInfo)
 {
     std::string sceneName = eventInfo.description;
@@ -1169,10 +1170,7 @@ void HgmFrameRateManager::HandleSceneEvent(pid_t pid, EventInfo eventInfo)
     auto &ancoSceneList = screenSetting.ancoSceneList;
 
     // control the list of supported frame rates for stylus pen, not control frame rate directly
-    if (STYLUS_STATUS_MAP.find(sceneName) != STYLUS_STATUS_MAP.end()) {
-        stylusMode_ = STYLUS_STATUS_MAP.at(sceneName);
-        return;
-    }
+    HandleStylusSceneEvent(sceneName);
 
     if (gameSceneList.find(sceneName) != gameSceneList.end()) {
         if (eventInfo.eventStatus == ADD_VOTE) {
