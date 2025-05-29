@@ -592,7 +592,9 @@ void RSCanvasDrawingRenderNode::ReportOpCount(const std::list<Drawing::DrawCmdLi
 {
     size_t totalOpCount = 0;
     for (const auto& cmdList : cmdLists) {
-        totalOpCount += cmdList->GetOpItemSize();
+        if (cmdList != nullptr) {
+            totalOpCount += cmdList->GetOpItemSize();
+        }
     }
     if (totalOpCount > DRAWCMDLIST_OPSIZE_TOTAL_COUNT_LIMIT) {
         RS_LOGI_LIMIT("CanvasDrawingNode NodeId[%{public}" PRIu64 "] totalOpCount[%{public}zu]", GetId(), totalOpCount);
