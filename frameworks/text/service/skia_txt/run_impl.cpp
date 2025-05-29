@@ -92,7 +92,7 @@ std::vector<Drawing::Point> RunImpl::GetPositions(int64_t start, int64_t length)
 
 std::vector<Drawing::Point> RunImpl::GetAdvances(uint32_t start, uint32_t length) const
 {
-    if (run_ == nullptr || start < 0 || length < 0) {
+    if (run_ == nullptr) {
         return {};
     }
     return run_->GetAdvances(start, length);
@@ -103,22 +103,11 @@ TextDirection RunImpl::GetTextDirection() const
     if (run_ == nullptr) {
         return TextDirection::LTR;
     }
-    TextDirection textDirection;
-    switch (run_->GetTextDirection()) {
-        case SPText::TextDirection::RTL: {
-            textDirection = TextDirection::RTL;
-            break;
-        }
-        case SPText::TextDirection::LTR: {
-            textDirection = TextDirection::LTR;
-            break;
-        }
-        default: {
-            textDirection = TextDirection::LTR;
-            break;
-        }
+    if (run_->GetTextDirection() == SPText::TextDirection::RTL) {
+        return TextDirection::RTL;
+    } else {
+        return TextDirection::LTR;
     }
-    return textDirection;
 }
 
 void RunImpl::GetStringRange(uint64_t* location, uint64_t* length) const

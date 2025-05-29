@@ -41,7 +41,7 @@ public:
 
     void Paint(Drawing::Canvas *canvas, double x, double y) override;
 
-    std::unique_ptr<TextLineBase> CreateTruncatedLine(double width, OHOS::Rosen::EllipsisModal ellipsisMode,
+    std::unique_ptr<TextLineBase> CreateTruncatedLine(double width, EllipsisModal ellipsisMode,
         const std::string& ellipsisStr) const override;
 
     double GetTypographicBounds(double* ascent, double* descent, double* leading) const override;

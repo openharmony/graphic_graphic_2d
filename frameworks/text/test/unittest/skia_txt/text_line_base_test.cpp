@@ -129,11 +129,11 @@ HWTEST_F(TextLineBaseTest, TextLineBaseTest005, TestSize.Level1)
 {
     std::string ellipsisStr;
     std::unique_ptr<SPText::TextLineBase> line
-        = textLine_[0]->CreateTruncatedLine(10, OHOS::Rosen::EllipsisModal::HEAD, ellipsisStr);
+        = textLine_[0]->CreateTruncatedLine(10, SPText::EllipsisModal::HEAD, ellipsisStr);
     EXPECT_NE(line, nullptr);
     EXPECT_EQ(line->GetGlyphCount(), 5);
 
-    line = textLine_[0]->CreateTruncatedLine(10, static_cast<OHOS::Rosen::EllipsisModal>(-1), ellipsisStr);
+    line = textLine_[0]->CreateTruncatedLine(10, static_cast<SPText::EllipsisModal>(-1), ellipsisStr);
     EXPECT_EQ(line, nullptr);
 
     double ascent = 0;
@@ -161,7 +161,7 @@ HWTEST_F(TextLineBaseTest, TextLineBaseTest006, TestSize.Level1)
 
     std::string ellipsisStr;
     std::unique_ptr<SPText::TextLineBase> line
-        = textLineBase->CreateTruncatedLine(10, OHOS::Rosen::EllipsisModal::HEAD, ellipsisStr);
+        = textLineBase->CreateTruncatedLine(10, SPText::EllipsisModal::HEAD, ellipsisStr);
     EXPECT_EQ(line, nullptr);
 
     double ascent = 0;

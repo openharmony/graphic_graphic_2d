@@ -39,6 +39,7 @@ public:
 private:
     // 50 is the width of the layout, just for test
     int layoutWidth_ = 50;
+    int fontSize_ = 100;
     // this is the default font family name, just for test
     std::string familyName_ = { 0x48, 0x61, 0x72, 0x6d, 0x6f, 0x6e, 0x79, 0x4f, 0x53, 0x2d, 0x53, 0x61, 0x6e, 0x73 };
 
@@ -72,9 +73,8 @@ void RunTest::TearDown()
 
 void RunTest::PrepareCreateRunForGlyphDrawing()
 {
-    layoutWidth_ = 1200;
     ParagraphStyle paragraphStyle;
-    paragraphStyle.fontSize = 100;
+    paragraphStyle.fontSize = fontSize_;
     std::shared_ptr<FontCollection> fontCollection = std::make_shared<FontCollection>();
     ASSERT_NE(fontCollection, nullptr);
     fontCollection->SetupDefaultFontManager();
@@ -244,7 +244,7 @@ HWTEST_F(RunTest, RunGlyphDrawingTest002, TestSize.Level1)
 {
     text_ = u"مرحبا";
     PrepareCreateRunForGlyphDrawing();
-    EXPECT_EQ(runs_[0]->GetTextDirection(), OHOS::Rosen::TextDirection::RTL);
+    EXPECT_EQ(runs_[0]->GetTextDirection(), OHOS::Rosen::SPText::TextDirection::RTL);
     std::vector<Drawing::Point> pointResult = runs_[0]->GetAdvances(0, 0);
     EXPECT_EQ(pointResult.size(), 5);
     EXPECT_NEAR(pointResult[0].GetX(), 27.3999786, FLOAT_DATA_EPSILON);

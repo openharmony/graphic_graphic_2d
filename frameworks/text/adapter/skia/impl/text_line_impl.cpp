@@ -67,7 +67,7 @@ void TextLineImpl::Paint(Drawing::Canvas* canvas, double x, double y)
     textLineBase_->paint(&painter, x, y);
 }
 
-std::unique_ptr<TextLineBase> TextLineImpl::CreateTruncatedLine(double width, OHOS::Rosen::EllipsisModal ellipsisMode,
+std::unique_ptr<TextLineBase> TextLineImpl::CreateTruncatedLine(double width, EllipsisModal ellipsisMode,
     const std::string& ellipsisStr) const
 {
     if (!textLineBase_) {

@@ -38,6 +38,7 @@ protected:
 private:
     // 50 is the width of the layout, just for test
     int layoutWidth_ = 50;
+    int fontSize_ = 100;
     // this is the default font family name, just for test
     std::string familyName_ = { 0x48, 0x61, 0x72, 0x6d, 0x6f, 0x6e, 0x79, 0x4f, 0x53, 0x2d, 0x53, 0x61, 0x6e, 0x73 };
 
@@ -70,9 +71,8 @@ void OHDrawingRunTest::TearDown()
 
 void OHDrawingRunTest::PrepareCreateRunForGlyphDrawing()
 {
-    layoutWidth_ = 1200;
     TypographyStyle ts;
-    ts.fontSize = 100;
+    ts.fontSize = fontSize_;
     std::shared_ptr<FontCollection> fc = FontCollection::From(std::make_shared<txt::FontCollection>());
     ASSERT_NE(fc, nullptr);
     auto tc = OHOS::Rosen::TypographyCreate::Create(ts, fc);

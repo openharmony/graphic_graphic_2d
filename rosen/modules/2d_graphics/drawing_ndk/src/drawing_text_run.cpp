@@ -238,27 +238,16 @@ OH_Drawing_TextDirection OH_Drawing_GetRunTextDirection(OH_Drawing_Run* run)
     }
 
     auto textDirection = reinterpret_cast<AdapterTxt::RunImpl*>(run)->GetTextDirection();
-    OH_Drawing_TextDirection textDirectionResult;
-    switch (textDirection) {
-        case TextDirection::RTL: {
-            textDirectionResult = TEXT_DIRECTION_RTL;
-            break;
-        }
-        case TextDirection::LTR: {
-            textDirectionResult = TEXT_DIRECTION_LTR;
-            break;
-        }
-        default: {
-            textDirectionResult = TEXT_DIRECTION_LTR;
-            break;
-        }
+    if (textDirection == TextDirection::RTL) {
+        return TEXT_DIRECTION_RTL;
+    } else {
+        return TEXT_DIRECTION_LTR;
     }
-    return textDirectionResult;
 }
 
 OH_Drawing_Array* OH_Drawing_GetRunGlyphAdvances(OH_Drawing_Run* run, uint32_t start, uint32_t length)
 {
-    if (run == nullptr || start < 0 || length < 0) {
+    if (run == nullptr) {
         return nullptr;
     }
 

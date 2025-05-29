@@ -37,7 +37,7 @@ public:
 
     virtual void Paint(Drawing::Canvas *canvas, double x, double y) = 0;
 
-    virtual std::unique_ptr<TextLineBase> CreateTruncatedLine(double width, OHOS::Rosen::EllipsisModal ellipsisMode,
+    virtual std::unique_ptr<TextLineBase> CreateTruncatedLine(double width, EllipsisModal ellipsisMode,
         const std::string& ellipsisStr) const = 0;
 
     virtual double GetTypographicBounds(double* ascent, double* descent, double* leading) const = 0;
