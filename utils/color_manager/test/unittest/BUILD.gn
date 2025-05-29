@@ -45,9 +45,11 @@ ohos_static_library("color_manager_test_common") {
 
   public_deps = [
     "//foundation/graphic/graphic_2d/utils/color_manager:color_manager",
-    "//third_party/googletest:gtest_main",
   ]
-  public_external_deps = [ "skia:skia_canvaskit" ]
+  public_external_deps = [
+    "skia:skia_canvaskit",
+    "googletest:gtest_main"
+  ]
   external_deps = [ "hilog:libhilog" ]
   subsystem_name = "graphic"
   part_name = "graphic_2d"

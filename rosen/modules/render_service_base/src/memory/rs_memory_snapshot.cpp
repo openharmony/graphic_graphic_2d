@@ -15,7 +15,6 @@
 #include "memory/rs_memory_snapshot.h"
 
 #include "platform/common/rs_log.h"
-#include <vector>
 
 namespace OHOS {
 namespace Rosen {
@@ -38,22 +37,14 @@ MemorySnapshot& MemorySnapshot::Instance()
 
 void MemorySnapshot::AddCpuMemory(const pid_t pid, const size_t size)
 {
-    bool shouldReport = false;
-    size_t cpuMemory = 0;
-    {
-        std::lock_guard<std::mutex> lock(mutex_);
-        MemorySnapshotInfo& mInfo = appMemorySnapshots_[pid];
-        mInfo.pid = pid;
-        mInfo.cpuMemory += size;
-        totalMemory_ += size;
-        if (mInfo.cpuMemory > singleCpuMemoryLimit_ && mInfo.cpuMemory - size < singleCpuMemoryLimit_) {
-            shouldReport = true;
-            cpuMemory = mInfo.cpuMemory;
-        }
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (appMemorySnapshots_.find(pid) == appMemorySnapshots_.end()) {
+        dirtyMemorySnapshots_.push_back(pid);
     }
-    if (shouldReport && callback_) {
-        callback_(pid, cpuMemory, false);
-    }
+
+    MemorySnapshotInfo& mInfo = appMemorySnapshots_[pid];
+    mInfo.pid = pid;
+    mInfo.cpuMemory += size;
 }
 
 void MemorySnapshot::RemoveCpuMemory(const pid_t pid, const size_t size)
@@ -61,8 +52,11 @@ void MemorySnapshot::RemoveCpuMemory(const pid_t pid, const size_t size)
     std::lock_guard<std::mutex> lock(mutex_);
     auto it = appMemorySnapshots_.find(pid);
     if (it != appMemorySnapshots_.end()) {
-        it->second.cpuMemory -= size;
-        totalMemory_ -= size;
+        if (it->second.cpuMemory > size) {
+            it->second.cpuMemory -= size;
+        } else {
+            appMemorySnapshots_.erase(it);
+        }
     }
 }
 
@@ -77,15 +71,21 @@ bool MemorySnapshot::GetMemorySnapshotInfoByPid(const pid_t pid, MemorySnapshotI
     return true;
 }
 
-void MemorySnapshot::UpdateGpuMemoryInfo(const std::unordered_map<pid_t, size_t>& gpuInfo,
+void MemorySnapshot::UpdateGpuMemoryInfo(const std::unordered_map<pid_t, size_t>& uniRenderGpuInfo,
+    const std::unordered_map<pid_t, size_t>& subThreadGpuInfo,
     std::unordered_map<pid_t, MemorySnapshotInfo>& pidForReport, bool& isTotalOver)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     for (auto& [pid, info] : appMemorySnapshots_) {
-        auto it = gpuInfo.find(pid);
-        if (it != gpuInfo.end()) {
+        auto it = uniRenderGpuInfo.find(pid);
+        if (it != uniRenderGpuInfo.end()) {
             totalMemory_ = totalMemory_ - info.gpuMemory + it->second;
             info.gpuMemory = it->second;
+        }
+        auto subThreadInfoIt = subThreadGpuInfo.find(pid);
+        if (subThreadInfoIt != subThreadGpuInfo.end()) {
+            totalMemory_ = totalMemory_ - info.subThreadGpuMemory + subThreadInfoIt->second;
+            info.subThreadGpuMemory = subThreadInfoIt->second;
         }
         if (info.TotalMemory() > singleMemoryWarning_) {
             pidForReport.emplace(pid, info);
@@ -129,6 +129,24 @@ void MemorySnapshot::GetMemorySnapshot(std::unordered_map<pid_t, MemorySnapshotI
     map = appMemorySnapshots_;
 }
 
+void MemorySnapshot::GetDirtyMemorySnapshot(std::vector<pid_t>& list)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    list = dirtyMemorySnapshots_;
+}
+
+void MemorySnapshot::FillMemorySnapshot(std::unordered_map<pid_t, MemorySnapshotInfo>& infoMap)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    for (auto pPid = dirtyMemorySnapshots_.begin(); pPid != dirtyMemorySnapshots_.end();) {
+        auto it = appMemorySnapshots_.find(*pPid);
+        if (it != appMemorySnapshots_.end()) {
+            it->second.bundleName = infoMap[it->first].bundleName;
+        }
+        pPid = dirtyMemorySnapshots_.erase(pPid);
+    }
+}
+
 size_t MemorySnapshot::GetTotalMemory()
 {
     return totalMemory_;
@@ -156,16 +174,13 @@ void MemorySnapshot::PrintMemorySnapshotToHilog()
             return scoreA > scoreB;
         });
 
-    std::string hilogInfo = "[";
+    RS_LOGE("TotalMemoryOverReport. TotalMemory:[%{public}zuKB]", totalMemory_ / MEMUNIT_RATE);
     for (size_t i = 0 ; i < HILOG_INFO_COUNT && i < memorySnapshotsList.size() ; i++) {
         MemorySnapshotInfo info = memorySnapshotsList[i];
-        hilogInfo += "pid[" + std::to_string(info.pid) +
-            "] cpu[" + std::to_string(info.cpuMemory / MEMUNIT_RATE) +
-            "KB] gpu[" + std::to_string(info.gpuMemory / MEMUNIT_RATE) + "KB], ";
+        RS_LOGE("pid : %{public}d %{public}s, cpu : %{public}zuKB, gpu : %{public}zuKB",
+            static_cast<int32_t>(info.pid), info.bundleName.c_str(),
+            info.cpuMemory / MEMUNIT_RATE, (info.gpuMemory + info.subThreadGpuMemory) / MEMUNIT_RATE);
     }
-    hilogInfo += "]";
-    RS_LOGE("TotalMemoryOverReport. TotalMemory:[%{public}zuKB], memorySnapshots:%{public}s",
-        totalMemory_ / MEMUNIT_RATE, hilogInfo.c_str());
 
     memorySnapshotHilogTime_ = currentTime + MEMORY_SNAPSHOT_INTERVAL;
 }
@@ -181,8 +196,8 @@ void MemorySnapshot::FindMaxValues(std::vector<MemorySnapshotInfo>& memorySnapsh
             maxCpu = snapshotInfo.cpuMemory;
         }
 
-        if (snapshotInfo.gpuMemory > maxGpu) {
-            maxGpu = snapshotInfo.gpuMemory;
+        if (snapshotInfo.gpuMemory + snapshotInfo.subThreadGpuMemory > maxGpu) {
+            maxGpu = snapshotInfo.gpuMemory + snapshotInfo.subThreadGpuMemory;
         }
 
         size_t totalMemory = snapshotInfo.TotalMemory();
@@ -196,7 +211,8 @@ float MemorySnapshot::CalculateRiskScore(const MemorySnapshotInfo snapshotInfo,
     size_t maxCpu, size_t maxGpu, size_t maxSum)
 {
     float normCpu = (maxCpu == 0) ? 0 : static_cast<float>(snapshotInfo.cpuMemory) / maxCpu;
-    float normGpu = (maxGpu == 0) ? 0 : static_cast<float>(snapshotInfo.gpuMemory) / maxGpu;
+    float normGpu =
+        (maxGpu == 0) ? 0 : static_cast<float>(snapshotInfo.gpuMemory + snapshotInfo.subThreadGpuMemory) / maxGpu;
     float normSum = (maxSum == 0) ? 0 : static_cast<float>(snapshotInfo.TotalMemory()) / maxSum;
     return WEIGHT_CPU * normCpu + WEIGHT_GPU * normGpu + WEIGHT_SUM * normSum;
 }

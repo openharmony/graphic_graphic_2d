@@ -128,6 +128,5 @@ bool RSRootRenderNode::IsWindowKeyFrameEnabled()
 {
     return stagingRenderParams_ != nullptr ? stagingRenderParams_->IsWindowKeyFrameEnabled() : false;
 }
-
 } // namespace Rosen
 } // namespace OHOS

@@ -39,6 +39,7 @@ enum RSDisplayNodeCommandType : uint16_t {
     DISPLAY_NODE_REMOVE_FROM_TREE = 9,
     DISPLAY_NODE_SET_NODE_PID = 10,
     DISPLAY_NODE_SET_VIRTUAL_SCREEN_MUTE_STATUS = 11,
+    DISPLAY_NODE_SET_FORCE_CLOSE_HDR = 12,
 };
 
 class RSB_EXPORT DisplayNodeCommandHelper {
@@ -56,6 +57,7 @@ public:
     static void RemoveDisplayNodeFromTree(RSContext&, NodeId);
     static void SetScbNodePid(RSContext&, NodeId, const std::vector<int32_t>& oldScbPids, int32_t currentScbPid);
     static void SetVirtualScreenMuteStatus(RSContext&, NodeId, bool);
+    static void SetForceCloseHdr(RSContext&, NodeId, bool);
 };
 
 ADD_COMMAND(RSDisplayNodeCreate,
@@ -94,6 +96,9 @@ ADD_COMMAND(RSDisplayNodeSetNodePid,
 ADD_COMMAND(RSDisplayNodeSetVirtualScreenMuteStatus,
     ARG(PERMISSION_SYSTEM, DISPLAY_NODE, DISPLAY_NODE_SET_VIRTUAL_SCREEN_MUTE_STATUS,
         DisplayNodeCommandHelper::SetVirtualScreenMuteStatus, NodeId, bool))
+ADD_COMMAND(RSDisplayNodeForceCloseHdr,
+    ARG(PERMISSION_SYSTEM, DISPLAY_NODE, DISPLAY_NODE_SET_FORCE_CLOSE_HDR,
+        DisplayNodeCommandHelper::SetForceCloseHdr, NodeId, bool))
 } // namespace Rosen
 } // namespace OHOS
 

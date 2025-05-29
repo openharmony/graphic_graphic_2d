@@ -15,6 +15,7 @@
 
 #include "gtest/gtest.h"
 #include "limit_number.h"
+#include "parameters.h"
 #include "pipeline/render_thread/rs_base_render_util.h"
 #include "foundation/graphic/graphic_2d/rosen/test/render_service/render_service/unittest/pipeline/rs_test_util.h"
 #include "surface_buffer_impl.h"
@@ -189,6 +190,26 @@ HWTEST_F(RSBaseRenderUtilTest, DropFrameProcess_001, TestSize.Level2)
     ASSERT_EQ(OHOS::GSERROR_NO_CONSUMER, RSBaseRenderUtil::DropFrameProcess(surfaceHandler));
 }
 
+/**
+ * @tc.name: GetColorTypeFromBufferFormatTest
+ * @tc.desc: Test GetColorTypeFromBufferFormat
+ * @tc.type: FUNC
+ * @tc.require:issueIC1RNF
+ */
+HWTEST_F(RSBaseRenderUtilTest, GetColorTypeFromBufferFormatTest, TestSize.Level2)
+{
+    auto colorType = RSBaseRenderUtil::GetColorTypeFromBufferFormat(12);
+    ASSERT_EQ(colorType, Drawing::ColorType::COLORTYPE_RGBA_8888);
+    colorType = RSBaseRenderUtil::GetColorTypeFromBufferFormat(11);
+    ASSERT_EQ(colorType, Drawing::ColorType::COLORTYPE_RGB_888X);
+    colorType = RSBaseRenderUtil::GetColorTypeFromBufferFormat(20);
+    ASSERT_EQ(colorType, Drawing::ColorType::COLORTYPE_BGRA_8888);
+    colorType = RSBaseRenderUtil::GetColorTypeFromBufferFormat(3);
+    ASSERT_EQ(colorType, Drawing::ColorType::COLORTYPE_RGB_565);
+    colorType = RSBaseRenderUtil::GetColorTypeFromBufferFormat(36);
+    ASSERT_EQ(colorType, Drawing::ColorType::COLORTYPE_RGBA_1010102);
+}
+
 /*
  * @tc.name: MergeBufferDamages_001
  * @tc.desc: check MergeBufferDamages result
@@ -203,6 +224,24 @@ HWTEST_F(RSBaseRenderUtilTest, MergeBufferDamages_001, TestSize.Level2)
     Rect damageAfterMerge = RSBaseRenderUtil::MergeBufferDamages(damages);
     bool compareResult = (damageAfterMerge.x == RECT_RESULT.x) && (damageAfterMerge.y == RECT_RESULT.y) &&
         (damageAfterMerge.w == RECT_RESULT.w) && (damageAfterMerge.h == RECT_RESULT.h);
+    ASSERT_EQ(true, compareResult);
+}
+
+/*
+ * @tc.name: MergeBufferDamages_002
+ * @tc.desc: check MergeBufferDamages result
+ * @tc.type: FUNC
+ * @tc.require: #IBZ3UR
+ */
+HWTEST_F(RSBaseRenderUtilTest, MergeBufferDamages_002, TestSize.Level2)
+{
+    std::vector<Rect> damages;
+    damages.push_back(RECT_ONE);
+    damages.push_back(RECT_TWO);
+    Rect damageAfterMerge;
+    RSBaseRenderUtil::MergeBufferDamages(damageAfterMerge, damages);
+    bool compareResult = (damageAfterMerge.x == RECT_RESULT.x) && (damageAfterMerge.y == RECT_RESULT.y) &&
+                         (damageAfterMerge.w == RECT_RESULT.w) && (damageAfterMerge.h == RECT_RESULT.h);
     ASSERT_EQ(true, compareResult);
 }
 
@@ -298,6 +337,50 @@ HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_003, TestSize.Level2)
         surfaceHandler.SetConsumer(surfaceConsumer);
         uint64_t presentWhen = 100; // let presentWhen smaller than INT64_MAX
         RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, presentWhen, true);
+        ASSERT_EQ(surfaceConsumer->GetAvailableBufferCount(), 0);
+    }
+
+    // release buffer
+    surfaceConsumer->ReleaseBuffer(buffer, SyncFence::INVALID_FENCE);
+}
+
+/*
+ * @tc.name: ConsumeAndUpdateBuffer_004
+ * @tc.desc: Test ConsumeAndUpdateBuffer while need surfaceNode
+ * @tc.type: FUNC
+ * @tc.require: issueIC8HC4
+ */
+HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_004, TestSize.Level2)
+{
+    // create producer and consumer
+    auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(rsSurfaceRenderNode, nullptr);
+    const auto& surfaceConsumer = rsSurfaceRenderNode->GetRSSurfaceHandler()->GetConsumer();
+    ASSERT_NE(surfaceConsumer, nullptr);
+    auto producer = surfaceConsumer->GetProducer();
+    ASSERT_NE(producer, nullptr);
+    psurf = Surface::CreateSurfaceAsProducer(producer);
+    ASSERT_NE(psurf, nullptr);
+    psurf->SetQueueSize(1);
+
+    // request buffer
+    sptr<SurfaceBuffer> buffer;
+    sptr<SyncFence> requestFence = SyncFence::INVALID_FENCE;
+    GSError ret = psurf->RequestBuffer(buffer, requestFence, requestConfig);
+    ASSERT_EQ(ret, GSERROR_OK);
+
+    // flush buffer
+    sptr<SyncFence> flushFence = SyncFence::INVALID_FENCE;
+    ret = psurf->FlushBuffer(buffer, flushFence, flushConfig);
+    ASSERT_EQ(ret, GSERROR_OK);
+
+    // acquire buffer
+    if (RSUniRenderJudgement::IsUniRender() && RSSystemParameters::GetControlBufferConsumeEnabled()) {
+        auto& surfaceHandler = *(rsSurfaceRenderNode->GetRSSurfaceHandler());
+        surfaceHandler.SetConsumer(surfaceConsumer);
+        uint64_t presentWhen = 100; // let presentWhen smaller than INT64_MAX
+        uint64_t parentNodeId = 0;
+        RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, presentWhen, true, false, false, parentNodeId);
         ASSERT_EQ(surfaceConsumer->GetAvailableBufferCount(), 0);
     }
 
@@ -431,6 +514,20 @@ HWTEST_F(RSBaseRenderUtilTest, IsColorFilterModeValid_001, TestSize.Level2)
 }
 
 /*
+ * @tc.name: GetScreenIdFromSurfaceRenderParamsTest
+ * @tc.desc: Test GetScreenIdFromSurfaceRenderParams
+ * @tc.type: FUNC
+ * @tc.require: issueI605F4
+ */
+HWTEST_F(RSBaseRenderUtilTest, GetScreenIdFromSurfaceRenderParamsTest, TestSize.Level2)
+{
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceNode->stagingRenderParams_.get());
+    auto screenId = RSBaseRenderUtil::GetScreenIdFromSurfaceRenderParams(surfaceParams);
+    ASSERT_EQ(screenId, 0);
+}
+
+/*
  * @tc.name: IsColorFilterModeValid_002
  * @tc.desc: Test IsColorFilterModeValid
  * @tc.type: FUNC
@@ -450,22 +547,15 @@ HWTEST_F(RSBaseRenderUtilTest, IsColorFilterModeValid_002, TestSize.Level2)
  */
 HWTEST_F(RSBaseRenderUtilTest, WriteSurfaceRenderNodeToPng_001, TestSize.Level2)
 {
-    RSSurfaceRenderNodeConfig config;
-    std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(config);
-    bool result = RSBaseRenderUtil::WriteSurfaceRenderNodeToPng(*node);
+    auto param = OHOS::system::GetParameter("rosen.dumpsurfacetype.enabled", "1");
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    bool result = RSBaseRenderUtil::WriteSurfaceRenderNodeToPng(*surfaceNode);
     ASSERT_EQ(false, result);
-}
 
-/*
- * @tc.name: WriteCacheRenderNodeToPng_001
- * @tc.desc: Test WriteCacheRenderNodeToPng
- * @tc.type: FUNC
- * @tc.require: issueI605F4
- */
-HWTEST_F(RSBaseRenderUtilTest, WriteCacheRenderNodeToPng_001, TestSize.Level2)
-{
-    bool result = RSBaseRenderUtil::WriteCacheRenderNodeToPng(*node_);
-    ASSERT_EQ(false, result);
+    OHOS::system::SetParameter("rosen.dumpsurfacetype.enabled", "2");
+    result = RSBaseRenderUtil::WriteSurfaceRenderNodeToPng(*surfaceNode);
+    ASSERT_EQ(true, result);
+    OHOS::system::SetParameter("rosen.dumpsurfacetype.enabled", param);
 }
 
 /*
@@ -1051,90 +1141,6 @@ HWTEST_F(RSBaseRenderUtilTest, GetFlipTransform_006, Function | SmallTest | Leve
 }
 
 /*
- * @tc.name: ClockwiseToAntiClockwiseTransform
- * @tc.desc: Test ClockwiseToAntiClockwiseTransform GRAPHIC_ROTATE_90
- * @tc.type: FUNC
- * @tc.require: I6HE0M
-*/
-HWTEST_F(RSBaseRenderUtilTest, ClockwiseToAntiClockwiseTransform_001, Function | SmallTest | Level2)
-{
-    auto transform = RSBaseRenderUtil::ClockwiseToAntiClockwiseTransform(GraphicTransformType::GRAPHIC_ROTATE_90);
-    ASSERT_EQ(transform, GraphicTransformType::GRAPHIC_ROTATE_270);
-}
-
-/*
- * @tc.name: ClockwiseToAntiClockwiseTransform
- * @tc.desc: Test ClockwiseToAntiClockwiseTransform GRAPHIC_ROTATE_270
- * @tc.type: FUNC
- * @tc.require: I6HE0M
-*/
-HWTEST_F(RSBaseRenderUtilTest, ClockwiseToAntiClockwiseTransform_002, Function | SmallTest | Level2)
-{
-    auto transform = RSBaseRenderUtil::ClockwiseToAntiClockwiseTransform(GraphicTransformType::GRAPHIC_ROTATE_270);
-    ASSERT_EQ(transform, GraphicTransformType::GRAPHIC_ROTATE_90);
-}
-
-/*
- * @tc.name: ClockwiseToAntiClockwiseTransform
- * @tc.desc: Test ClockwiseToAntiClockwiseTransform GRAPHIC_FLIP_H_ROT90
- * @tc.type: FUNC
- * @tc.require: I6HE0M
-*/
-HWTEST_F(RSBaseRenderUtilTest, ClockwiseToAntiClockwiseTransform_003, Function | SmallTest | Level2)
-{
-    auto transform = RSBaseRenderUtil::ClockwiseToAntiClockwiseTransform(GraphicTransformType::GRAPHIC_FLIP_H_ROT90);
-    ASSERT_EQ(transform, GraphicTransformType::GRAPHIC_FLIP_V_ROT90);
-}
-
-/*
- * @tc.name: ClockwiseToAntiClockwiseTransform
- * @tc.desc: Test ClockwiseToAntiClockwiseTransform GRAPHIC_FLIP_H_ROT270
- * @tc.type: FUNC
- * @tc.require: I6HE0M
-*/
-HWTEST_F(RSBaseRenderUtilTest, ClockwiseToAntiClockwiseTransform_004, Function | SmallTest | Level2)
-{
-    auto transform = RSBaseRenderUtil::ClockwiseToAntiClockwiseTransform(GraphicTransformType::GRAPHIC_FLIP_H_ROT270);
-    ASSERT_EQ(transform, GraphicTransformType::GRAPHIC_FLIP_V_ROT270);
-}
-
-/*
- * @tc.name: ClockwiseToAntiClockwiseTransform
- * @tc.desc: Test ClockwiseToAntiClockwiseTransform GRAPHIC_FLIP_V_ROT90
- * @tc.type: FUNC
- * @tc.require: I6HE0M
-*/
-HWTEST_F(RSBaseRenderUtilTest, ClockwiseToAntiClockwiseTransform_005, Function | SmallTest | Level2)
-{
-    auto transform = RSBaseRenderUtil::ClockwiseToAntiClockwiseTransform(GraphicTransformType::GRAPHIC_FLIP_V_ROT90);
-    ASSERT_EQ(transform, GraphicTransformType::GRAPHIC_FLIP_H_ROT90);
-}
-
-/*
- * @tc.name: ClockwiseToAntiClockwiseTransform
- * @tc.desc: Test ClockwiseToAntiClockwiseTransform GRAPHIC_FLIP_V_ROT270
- * @tc.type: FUNC
- * @tc.require: I6HE0M
-*/
-HWTEST_F(RSBaseRenderUtilTest, ClockwiseToAntiClockwiseTransform_006, Function | SmallTest | Level2)
-{
-    auto transform = RSBaseRenderUtil::ClockwiseToAntiClockwiseTransform(GraphicTransformType::GRAPHIC_FLIP_V_ROT270);
-    ASSERT_EQ(transform, GraphicTransformType::GRAPHIC_FLIP_H_ROT270);
-}
-
-/*
- * @tc.name: ClockwiseToAntiClockwiseTransform
- * @tc.desc: Test ClockwiseToAntiClockwiseTransform GRAPHIC_ROTATE_NONE
- * @tc.type: FUNC
- * @tc.require: I6HE0M
- */
-HWTEST_F(RSBaseRenderUtilTest, ClockwiseToAntiClockwiseTransform_007, Function | SmallTest | Level2)
-{
-    auto transform = RSBaseRenderUtil::ClockwiseToAntiClockwiseTransform(GraphicTransformType::GRAPHIC_ROTATE_NONE);
-    ASSERT_EQ(transform, GraphicTransformType::GRAPHIC_ROTATE_NONE);
-}
-
-/*
  * @tc.name: GetSurfaceTransformMatrix_001
  * @tc.desc: Test GetSurfaceTransformMatrix GRAPHIC_ROTATE_90
  * @tc.type: FUNC
@@ -1308,6 +1314,26 @@ HWTEST_F(RSBaseRenderUtilTest, GetAccumulatedBufferCount_001, TestSize.Level2)
     RSBaseRenderUtil::DecAcquiredBufferCount();
     RSBaseRenderUtil::DecAcquiredBufferCount();
     ASSERT_EQ(0, RSBaseRenderUtil::GetAccumulatedBufferCount());
+}
+
+/*
+ * @tc.name: WriteCacheImageRenderNodeToPngTest
+ * @tc.desc: Test WriteCacheImageRenderNodeToPng
+ * @tc.type: FUNC
+ * @tc.require: IC9VB0
+ */
+HWTEST_F(RSBaseRenderUtilTest, WriteCacheImageRenderNodeToPngTest, TestSize.Level2)
+{
+    std::shared_ptr<Drawing::Bitmap> bitmap = nullptr;
+    std::string debugInfo = "";
+    bool result = RSBaseRenderUtil::WriteCacheImageRenderNodeToPng(bitmap, debugInfo);
+    ASSERT_EQ(false, result);
+
+    auto bitmap2 = std::make_shared<Drawing::Bitmap>();
+    Drawing::BitmapFormat bitmapFormat { Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_OPAQUE };
+    bitmap2->Build(10, 10, bitmapFormat);
+    bool result2 = RSBaseRenderUtil::WriteCacheImageRenderNodeToPng(bitmap2, debugInfo);
+    ASSERT_EQ(true, result2);
 }
 
 } // namespace OHOS::Rosen

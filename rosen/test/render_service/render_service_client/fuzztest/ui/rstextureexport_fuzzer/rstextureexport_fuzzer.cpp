@@ -25,15 +25,15 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
+const uint8_t DO_RSTEXTURE_EXPORT = 0;
+const uint8_t DO_DOTEXTURE_EXPORT = 1;
+const uint8_t DO_STOPTEXTURE_EXPORT = 2;
+const uint8_t TARGET_SIZE = 3;
+
 const uint8_t* g_data = nullptr;
 size_t g_size = 0;
 size_t g_pos;
-} // namespace
 
-/*
- * describe: get data from outside untrusted data(g_data) which size is according to sizeof(T)
- * tips: only support basic type
- */
 template<class T>
 T GetData()
 {
@@ -50,63 +50,43 @@ T GetData()
     return object;
 }
 
-bool DoRSTextureExport(const uint8_t* data, size_t size)
+bool Init(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
         return false;
     }
 
-    // initialize
     g_data = data;
     g_size = size;
     g_pos = 0;
+    return true;
+}
+} // namespace
 
-    // test
+void DoRSTextureExport()
+{
     SurfaceId surfaceId = GetData<SurfaceId>();
     bool isRenderServiceNode = GetData<bool>();
     std::shared_ptr<RSNode> node = RSRootNode::Create(isRenderServiceNode);
     RSTextureExport text(node, surfaceId);
-    return true;
 }
 
-bool DoDoTextureExport(const uint8_t* data, size_t size)
+void DoDoTextureExport()
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    // test
     SurfaceId surfaceId = GetData<SurfaceId>();
     bool isRenderServiceNode = GetData<bool>();
     std::shared_ptr<RSNode> node = RSRootNode::Create(isRenderServiceNode);
     RSTextureExport text(node, surfaceId);
     text.DoTextureExport();
-    return true;
 }
 
-bool DoStopTextureExport(const uint8_t* data, size_t size)
+void DoStopTextureExport()
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    // test
     SurfaceId surfaceId = GetData<SurfaceId>();
     bool isRenderServiceNode = GetData<bool>();
     std::shared_ptr<RSNode> node = RSRootNode::Create(isRenderServiceNode);
     RSTextureExport text(node, surfaceId);
     text.StopTextureExport();
-    return true;
 }
 } // namespace Rosen
 } // namespace OHOS
@@ -115,9 +95,23 @@ bool DoStopTextureExport(const uint8_t* data, size_t size)
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
-    OHOS::Rosen::DoRSTextureExport(data, size);
-    OHOS::Rosen::DoDoTextureExport(data, size);
-    OHOS::Rosen::DoStopTextureExport(data, size);
+    if (!OHOS::Rosen::Init(data, size)) {
+        return -1;
+    }
+    uint8_t tarPos = OHOS::Rosen::GetData<uint8_t>() % OHOS::Rosen::TARGET_SIZE;
+    switch (tarPos) {
+        case OHOS::Rosen::DO_RSTEXTURE_EXPORT:
+            OHOS::Rosen::DoRSTextureExport();
+            break;
+        case OHOS::Rosen::DO_DOTEXTURE_EXPORT:
+            OHOS::Rosen::DoDoTextureExport();
+            break;
+        case OHOS::Rosen::DO_STOPTEXTURE_EXPORT:
+            OHOS::Rosen::DoStopTextureExport();
+            break;
+        default:
+            return -1;
+    }
     return 0;
 }
 

@@ -14,7 +14,7 @@
 import("//build/test.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
-module_out_path = "graphic_2d/composer"
+module_out_path = "graphic_2d/graphic_2d/composer"
 
 group("unittest") {
   testonly = true
@@ -91,7 +91,7 @@ ohos_unittest("hdioutput_unit_test") {
 
   deps = [
     ":hdibackend_test_common",
-    "../../../vsync:libvsync",
+    "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
   ]
 }
 
@@ -147,14 +147,13 @@ ohos_static_library("hdibackend_test_common") {
 
   public_configs = [ ":hdibackend_test_common_public_config" ]
 
-  public_deps = [
-    "//foundation/graphic/graphic_2d/rosen/modules/composer:libcomposer",
-    "//third_party/googletest:gmock_main",
-    "//third_party/googletest:gtest_main",
-  ]
+  public_deps =
+      [ "$graphic_2d_root/rosen/modules/composer:libcomposer" ]
 
   public_external_deps = [
     "c_utils:utils",
+    "googletest:gmock_main",
+    "googletest:gtest_main",
     "graphic_surface:surface",
     "hilog:libhilog",
     "ipc:ipc_core",

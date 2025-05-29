@@ -17,6 +17,36 @@
 #include "wrapper_log.h"
 #include "thread_private_data_ctl.h"
 
+#ifdef OPENGL_WRAPPER_ENABLE_GL4
+#undef CALL_HOOK_API
+#define CALL_HOOK_API(api, ...)                                         \
+    do {                                                                \
+        bool eglCoreInitRet = OHOS::EglCoreInit();                      \
+        if (eglCoreInitRet && OHOS::gWrapperHook.useMesa) {             \
+            OHOS::gWrapperHook.egl.api(__VA_ARGS__);                    \
+        } else if (eglCoreInitRet && OHOS::CheckEglWrapperApi(#api)) {  \
+            OHOS::gWrapperHook.wrapper.api(__VA_ARGS__);                \
+        } else {                                                        \
+            WLOGE("%{public}s is invalid.", #api);                      \
+        }                                                               \
+    } while (0);                                                        \
+}
+
+#undef CALL_HOOK_API_RET
+#define CALL_HOOK_API_RET(api, ...)                                     \
+    do {                                                                \
+        bool eglCoreInitRet = OHOS::EglCoreInit();                      \
+        if (eglCoreInitRet && OHOS::gWrapperHook.useMesa) {             \
+            return OHOS::gWrapperHook.egl.api(__VA_ARGS__);             \
+        } else if (eglCoreInitRet && OHOS::CheckEglWrapperApi(#api)) {  \
+            return OHOS::gWrapperHook.wrapper.api(__VA_ARGS__);         \
+        } else {                                                        \
+            WLOGE("%{public}s is invalid.", #api);                      \
+            return 0;                                                   \
+        }                                                               \
+    } while (0);                                                        \
+}
+#else
 #undef CALL_HOOK_API
 #define CALL_HOOK_API(api, ...)                                         \
     do {                                                                \
@@ -39,6 +69,7 @@
         }                                                               \
     } while (0);                                                        \
 }
+#endif
 
 #undef HOOK_API_ENTRY
 #define HOOK_API_ENTRY(r, api, ...) r api(__VA_ARGS__) {                \

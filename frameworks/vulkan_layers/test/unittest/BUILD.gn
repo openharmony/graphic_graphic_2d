@@ -12,8 +12,9 @@
 # limitations under the License.
 
 import("//build/test.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
-module_out_path = "graphic_2d/vulkan_layers"
+module_out_path = "graphic_2d/graphic_2d/vulkan_layers"
 
 group("unittest") {
   testonly = true
@@ -29,8 +30,8 @@ ohos_unittest("vulkan_loader_unit_test") {
 
 config("vulkan_loader_test_common_public_config") {
   include_dirs = [
-    "../../../../interfaces/inner_api/common",
-    "../../../../rosen/modules/render_service_client",
+    "$graphic_2d_root/interfaces/inner_api/common",
+    "$graphic_2d_root/rosen/modules/render_service_client",
   ]
 
   cflags = [
@@ -49,11 +50,10 @@ ohos_static_library("vulkan_loader_test_common") {
   public_configs = [ ":vulkan_loader_test_common_public_config" ]
 
   public_deps = [
-    "../../../../rosen/modules/2d_graphics:2d_graphics",
-    "../../../../rosen/modules/render_service_base:librender_service_base",
-    "../../../../rosen/modules/render_service_client:librender_service_client",
-    "../../../../utils:libgraphic_utils",
-    "//third_party/googletest:gtest_main",
+    "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
+    "$graphic_2d_root/utils:libgraphic_utils",
   ]
   public_external_deps = [
     "vulkan-headers:vulkan_headers",
@@ -61,6 +61,7 @@ ohos_static_library("vulkan_loader_test_common") {
   ]
   external_deps = [
     "c_utils:utils",
+    "googletest:gtest_main",
     "hilog:libhilog",
   ]
   subsystem_name = "graphic"

@@ -251,7 +251,6 @@ HWTEST_F(RSPropertyDrawableUtilsTest, RSPropertyDrawableUtilsTest008, testing::e
     ASSERT_NE(lastBlurCnt, 0);
     cacheManager->renderClearFilteredCacheAfterDrawing_ = false;
     rsPropertyDrawableUtils->DrawBackgroundEffect(nullptr, rsFilter, cacheManager, bounds);
-    ASSERT_EQ(lastBlurCnt, lastBlurCnt);
 }
 
 /**
@@ -318,18 +317,6 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawLightUpEffectTest010, testing::ext::Te
 }
 
 /**
- * @tc.name: MakeLightUpEffectBlender001
- * @tc.desc: test results of MakeLightUpEffectBlender
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSPropertyDrawableUtilsTest, MakeLightUpEffectBlender001, testing::ext::TestSize.Level1)
-{
-    auto blender = RSPropertyDrawableUtils::MakeLightUpEffectBlender(1.0f);
-    EXPECT_NE(blender, nullptr);
-}
-
-/**
  * @tc.name: TransformativeShaderTest011
  * @tc.desc: MakeDynamicDimShader MakeBinarizationShader MakeDynamicBrightnessBlender MakeDynamicBrightnessBuilder test
  * @tc.type: FUNC
@@ -355,6 +342,11 @@ HWTEST_F(RSPropertyDrawableUtilsTest, TransformativeShaderTest011, testing::ext:
     EXPECT_NE(rsPropertyDrawableUtilsTest4, nullptr);
     RSDynamicBrightnessPara params;
     EXPECT_NE(rsPropertyDrawableUtilsTest4->MakeDynamicBrightnessBlender(params), nullptr);
+
+    std::shared_ptr<RSPropertyDrawableUtils> rsPropertyDrawableUtilsTest5 = std::make_shared<RSPropertyDrawableUtils>();
+    EXPECT_NE(rsPropertyDrawableUtilsTest5, nullptr);
+    params.fraction_ = 0.0;
+    EXPECT_NE(rsPropertyDrawableUtilsTest5->MakeDynamicBrightnessBlender(params), nullptr);
 }
 /**
  * @tc.name: DrawBinarizationTest012
@@ -735,7 +727,6 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawBackgroundEffectTest002, testing::ext:
     ASSERT_NE(lastBlurCnt, 0);
     cacheManager->renderClearFilteredCacheAfterDrawing_ = false;
     rsPropertyDrawableUtils->DrawBackgroundEffect(nullptr, rsFilter, cacheManager, bounds);
-    ASSERT_EQ(lastBlurCnt, lastBlurCnt);
 }
 
 /**

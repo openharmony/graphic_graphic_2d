@@ -900,6 +900,68 @@ HWTEST_F(PenTest, Dump001, TestSize.Level1)
     pen.Dump(dump);
     EXPECT_TRUE(dump != "");
 }
+
+/**
+ * @tc.name: GetColorSpacePtr001
+ * @tc.desc: Test for GetColorSpacePtr
+ * @tc.type: FUNC
+ * @tc.require: AR000GGNV3
+ * @tc.author:
+ */
+HWTEST_F(PenTest, GetColorSpacePtr001, TestSize.Level1)
+{
+    auto pen = std::make_shared<Pen>();
+    auto colorSpace = std::make_shared<ColorSpace>(ColorSpace::ColorSpaceType::REF_IMAGE);
+    Color4f color4f;
+    pen->SetColor(color4f, colorSpace);
+    ASSERT_NE(pen->GetColorSpacePtr(), nullptr);
+}
+
+/**
+ * @tc.name: GetBlenderPtr001
+ * @tc.desc: Test for GetBlenderPtr
+ * @tc.type: FUNC
+ * @tc.require: AR000GGNV3
+ * @tc.author:
+ */
+HWTEST_F(PenTest, GetBlenderPtr001, TestSize.Level1)
+{
+    auto pen = std::make_shared<Pen>();
+    auto blender = std::make_shared<Blender>();
+    pen->SetBlender(blender);
+    ASSERT_NE(pen->GetBlender(), nullptr);
+    ASSERT_NE(pen->GetBlenderPtr(), nullptr);
+}
+
+/**
+ * @tc.name: GetPathEffectPtr001
+ * @tc.desc: Test for GetPathEffectPtr
+ * @tc.type: FUNC
+ * @tc.require: AR000GGNV3
+ * @tc.author:
+ */
+HWTEST_F(PenTest, GetPathEffectPtr001, TestSize.Level1)
+{
+    auto pen = std::make_shared<Pen>();
+    auto pathEffect = std::make_shared<PathEffect>(PathEffect::PathEffectType::DASH, 0.2f);
+    pen->SetPathEffect(pathEffect);
+    ASSERT_NE(pen->GetPathEffectPtr(), nullptr);
+}
+
+/**
+ * @tc.name: GetShaderEffectPtr001
+ * @tc.desc: Test for GetShaderEffectPtr
+ * @tc.type: FUNC
+ * @tc.require: AR000GGNV3
+ * @tc.author:
+ */
+HWTEST_F(PenTest, GetShaderEffectPtr001, TestSize.Level1)
+{
+    auto pen = std::make_shared<Pen>();
+    auto shaderEffect = ShaderEffect::CreateColorShader(2);
+    pen->SetShaderEffect(shaderEffect);
+    ASSERT_NE(pen->GetShaderEffectPtr(), nullptr);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

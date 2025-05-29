@@ -46,7 +46,10 @@ ohos_source_set("create_pixelmap_surface_src") {
     "$graphic_2d_root/utils:scoped_bytrace",
   ]
 
-  external_deps = [ "graphic_surface:sync_fence" ]
+  external_deps = [
+    "eventhandler:libeventhandler",
+    "graphic_surface:sync_fence",
+  ]
 
   if (use_video_processing_engine) {
     defines = [ "USE_VIDEO_PROCESSING_ENGINE" ]

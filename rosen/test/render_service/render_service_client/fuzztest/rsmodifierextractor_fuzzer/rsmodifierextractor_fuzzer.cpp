@@ -134,6 +134,7 @@ bool DoGet002(const uint8_t* data, size_t size)
     modifierExtractor.GetVisible();
     modifierExtractor.GetMask();
     modifierExtractor.GetSpherizeDegree();
+    modifierExtractor.GetHDRUIBrightness();
     modifierExtractor.GetLightUpEffectDegree();
     modifierExtractor.GetDynamicDimDegree();
     modifierExtractor.GetBackgroundBlurRadius();

@@ -17,7 +17,7 @@
 #include <test_header.h>
 
 #include "rs_frame_rate_vote.h"
-#include "hgm_core.h"
+#include "hgm_test_base.h"
 #include "surface_buffer_impl.h"
 
 using namespace testing;
@@ -27,7 +27,7 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 }
-class RSFrameRateVoteTest : public testing::Test {
+class RSFrameRateVoteTest : public HgmTestBase {
 public:
     static void SetUpTestCase();
     static void TearDownTestCase();
@@ -35,7 +35,10 @@ public:
     void TearDown();
 };
 
-void RSFrameRateVoteTest::SetUpTestCase() {}
+void RSFrameRateVoteTest::SetUpTestCase()
+{
+    HgmTestBase::SetUpTestCase();
+}
 void RSFrameRateVoteTest::TearDownTestCase() {}
 void RSFrameRateVoteTest::SetUp() {}
 void RSFrameRateVoteTest::TearDown() {}
@@ -73,28 +76,28 @@ HWTEST_F(RSFrameRateVoteTest, CheckSurfaceAndUi001, Function | SmallTest | Level
     ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->CheckSurfaceAndUi(
         OHSurfaceSource::OH_SURFACE_SOURCE_DEFAULT),
         true);
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->transactionFlags_ = "1000,30";
+    DelayedSingleton<RSFrameRateVote>::GetInstance()->transactionFlags_ = "[1000,30]";
     DelayedSingleton<RSFrameRateVote>::GetInstance()->lastVotedPid_ = 1000;
     DelayedSingleton<RSFrameRateVote>::GetInstance()->CheckSurfaceAndUi(OHSurfaceSource::OH_SURFACE_SOURCE_DEFAULT);
     usleep(40000);
     ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->CheckSurfaceAndUi(
         OHSurfaceSource::OH_SURFACE_SOURCE_DEFAULT),
         true);
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->transactionFlags_ = "1000,30";
+    DelayedSingleton<RSFrameRateVote>::GetInstance()->transactionFlags_ = "[1000,30]";
     DelayedSingleton<RSFrameRateVote>::GetInstance()->lastVotedPid_ = 1000;
     DelayedSingleton<RSFrameRateVote>::GetInstance()->CheckSurfaceAndUi(OHSurfaceSource::OH_SURFACE_SOURCE_VIDEO);
     usleep(40000);
     ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->CheckSurfaceAndUi(
         OHSurfaceSource::OH_SURFACE_SOURCE_VIDEO),
         true);
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->transactionFlags_ = "500,30";
+    DelayedSingleton<RSFrameRateVote>::GetInstance()->transactionFlags_ = "[500,30]";
     DelayedSingleton<RSFrameRateVote>::GetInstance()->lastVotedPid_ = 1000;
     DelayedSingleton<RSFrameRateVote>::GetInstance()->CheckSurfaceAndUi(OHSurfaceSource::OH_SURFACE_SOURCE_DEFAULT);
     usleep(40000);
     ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->CheckSurfaceAndUi(
         OHSurfaceSource::OH_SURFACE_SOURCE_DEFAULT),
         true);
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->transactionFlags_ = "500,30";
+    DelayedSingleton<RSFrameRateVote>::GetInstance()->transactionFlags_ = "[500,30]";
     DelayedSingleton<RSFrameRateVote>::GetInstance()->lastVotedPid_ = 1000;
     ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->CheckSurfaceAndUi(
         OHSurfaceSource::OH_SURFACE_SOURCE_VIDEO),

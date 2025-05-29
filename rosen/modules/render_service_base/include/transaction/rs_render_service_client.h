@@ -25,6 +25,7 @@
 #include <surface_type.h>
 #ifndef ROSEN_CROSS_PLATFORM
 #include <surface.h>
+#include <utility>
 #endif
 
 #include "ipc_callbacks/buffer_available_callback.h"
@@ -35,6 +36,7 @@
 #include "ipc_callbacks/rs_surface_buffer_callback.h"
 #include "ipc_callbacks/screen_change_callback.h"
 #include "ipc_callbacks/surface_capture_callback.h"
+#include "ipc_callbacks/rs_transaction_data_callback.h"
 #include "memory/rs_memory_graphic.h"
 #include "platform/drawing/rs_surface.h"
 #include "rs_irender_client.h"
@@ -157,17 +159,22 @@ public:
         const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam = {},
         const Drawing::Rect& specifiedAreaRect = Drawing::Rect(0.f, 0.f, 0.f, 0.f));
 
+    std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>> TakeSurfaceCaptureSoloNode(
+        NodeId id, const RSSurfaceCaptureConfig& captureConfig);
+
     bool TakeSelfSurfaceCapture(NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback,
         const RSSurfaceCaptureConfig& captureConfig);
 
     bool SetWindowFreezeImmediately(NodeId id, bool isFreeze, std::shared_ptr<SurfaceCaptureCallback> callback,
         const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam = {});
 
+    bool TakeUICaptureInRange(
+        NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig);
+
     bool SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
         float positionZ, float positionW);
 
-    int32_t SetFocusAppInfo(int32_t pid, int32_t uid, const std::string &bundleName, const std::string &abilityName,
-        uint64_t focusNodeId);
+    int32_t SetFocusAppInfo(const FocusAppInfo& info);
 
     ScreenId GetDefaultScreenId();
     ScreenId GetActiveScreenId();
@@ -182,6 +189,8 @@ public:
     int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface);
 
     int32_t SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector);
+
+    int32_t SetVirtualScreenTypeBlackList(ScreenId id, std::vector<NodeType>& typeBlackListVector);
 
     int32_t AddVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector);
 
@@ -237,6 +246,7 @@ public:
     uint32_t GetRealtimeRefreshRate(ScreenId screenId);
 
     std::string GetRefreshInfo(pid_t pid);
+    std::string GetRefreshInfoToSP(NodeId id);
 
 #ifndef ROSEN_ARKUI_X
     int32_t SetPhysicalScreenResolution(ScreenId id, uint32_t width, uint32_t height);
@@ -372,11 +382,19 @@ public:
 
     void NotifyRefreshRateEvent(const EventInfo& eventInfo);
 
+    void SetWindowExpectedRefreshRate(const std::unordered_map<uint64_t, EventInfo>& eventInfos);
+
+    void SetWindowExpectedRefreshRate(const std::unordered_map<std::string, EventInfo>& eventInfos);
+
+    bool NotifySoftVsyncRateDiscountEvent(uint32_t pid, const std::string &name, uint32_t rateDiscount);
+
     void NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt);
 
     void NotifyDynamicModeEvent(bool enableDynamicMode);
 
     void NotifyHgmConfigEvent(const std::string &eventName, bool state);
+
+    void NotifyXComponentExpectedFrameRate(const std::string& id, int32_t expectedFrameRate);
 
     void ReportEventResponse(DataBaseRs info);
 
@@ -416,6 +434,8 @@ public:
 
     void SetLayerTop(const std::string &nodeIdStr, bool isTop);
 
+    void SetColorFollow(const std::string &nodeIdStr, bool isColorFollow);
+
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
     int32_t SetOverlayDisplayMode(int32_t mode);
 #endif
@@ -448,12 +468,19 @@ public:
 
     void NotifyPageName(const std::string &packageName, const std::string &pageName, bool isEnter);
 
-    void TestLoadFileSubTreeToNode(NodeId nodeId, const std::string &filePath);
+    bool GetHighContrastTextState();
+
+    bool RegisterTransactionDataCallback(int32_t pid, uint64_t timeStamp, std::function<void()> callback);
+
+    bool SetBehindWindowFilterEnabled(bool enabled);
+
+    bool GetBehindWindowFilterEnabled(bool& enabled);
 private:
     void TriggerSurfaceCaptureCallback(NodeId id, const RSSurfaceCaptureConfig& captureConfig,
         std::shared_ptr<Media::PixelMap> pixelmap);
     void TriggerOnFinish(const FinishCallbackRet& ret) const;
     void TriggerOnAfterAcquireBuffer(const AfterAcquireBufferRet& ret) const;
+    void TriggerTransactionDataCallbackAndErase(int32_t pid, uint64_t timeStamp);
     struct RectHash {
         std::size_t operator()(const Drawing::Rect& rect) const {
             std::size_t h1 = std::hash<Drawing::scalar>()(rect.left_);
@@ -473,6 +500,7 @@ private:
     };
 
     std::mutex mutex_;
+    std::mutex surfaceCaptureCbDirectorMutex_;
     std::map<NodeId, sptr<RSIBufferAvailableCallback>> bufferAvailableCbRTMap_;
     std::mutex mapMutex_;
     std::map<NodeId, sptr<RSIBufferAvailableCallback>> bufferAvailableCbUIMap_;
@@ -485,8 +513,13 @@ private:
     std::map<uint64_t, std::shared_ptr<SurfaceBufferCallback>> surfaceBufferCallbacks_;
     mutable std::shared_mutex surfaceBufferCallbackMutex_;
 
+    sptr<RSITransactionDataCallback> transactionDataCbDirector_;
+    std::map<std::pair<int32_t, uint64_t>, std::function<void()>> transactionDataCallbacks_;
+    std::mutex transactionDataCallbackMutex_;
+
     friend class SurfaceCaptureCallbackDirector;
     friend class SurfaceBufferCallbackDirector;
+    friend class TransactionDataCallbackDirector;
 };
 } // namespace Rosen
 } // namespace OHOS

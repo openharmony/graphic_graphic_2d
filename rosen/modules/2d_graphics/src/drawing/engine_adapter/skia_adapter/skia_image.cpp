@@ -77,11 +77,16 @@ std::shared_ptr<Image> SkiaImage::MakeFromRaster(const Pixmap& pixmap,
     auto& skPixmap = pixmap.GetImpl<SkiaPixmap>()->ExportSkiaPixmap();
     sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skPixmap, rasterReleaseProc, releaseContext);
     if (skImage == nullptr) {
-        LOGD("SkiaImage::MakeFromRaster failed");
+        SkImageInfo info = skPixmap.info();
+        LOGE("SkiaImage::MakeFromRaster failed. Pixmap info [width: %{public}d height: %{public}d"
+            " colorType: %{public}d alphaType: %{public}d validRowBytes: %{public}d byteSizeOverflow: %{public}d]",
+            info.width(), info.height(), info.colorType(), info.alphaType(), info.validRowBytes(skPixmap.rowBytes()),
+            SkImageInfo::ByteSizeOverflowed(info.computeByteSize(skPixmap.rowBytes())));
         return nullptr;
     }
-    std::shared_ptr<ImageImpl> imageImpl = std::make_shared<SkiaImage>(skImage);
-    return std::make_shared<Image>(imageImpl);
+    std::shared_ptr<Image> image = std::make_shared<Image>();
+    image->GetImpl<SkiaImage>()->SetSkImage(skImage);
+    return image;
 }
 
 std::shared_ptr<Image> SkiaImage::MakeRasterData(const ImageInfo& info, std::shared_ptr<Data> pixels,
@@ -96,11 +101,16 @@ std::shared_ptr<Image> SkiaImage::MakeRasterData(const ImageInfo& info, std::sha
 
     sk_sp<SkImage> skImage = SkImage::MakeRasterData(skImageInfo, skData, rowBytes);
     if (skImage == nullptr) {
-        LOGD("skImage nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        LOGE("SkiaImage::MakeRasterData failed. Pixmap info [width: %{public}d height: %{public}d"
+            " colorType: %{public}d alphaType: %{public}d validRowBytes: %{public}d byteSizeOverflow: %{public}d]",
+            skImageInfo.width(), skImageInfo.height(), skImageInfo.colorType(), skImageInfo.alphaType(),
+            skImageInfo.validRowBytes(rowBytes),
+            SkImageInfo::ByteSizeOverflowed(skImageInfo.computeByteSize(rowBytes)));
         return nullptr;
     }
-    std::shared_ptr<ImageImpl> imageImpl = std::make_shared<SkiaImage>(skImage);
-    return std::make_shared<Image>(imageImpl);
+    std::shared_ptr<Image> image = std::make_shared<Image>();
+    image->GetImpl<SkiaImage>()->SetSkImage(skImage);
+    return image;
 }
 
 bool SkiaImage::BuildFromBitmap(const Bitmap& bitmap)
@@ -140,8 +150,9 @@ std::shared_ptr<Image> SkiaImage::MakeFromYUVAPixmaps(GPUContext& gpuContext, co
         LOGD("skImage nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
         return nullptr;
     }
-    std::shared_ptr<ImageImpl> imageImpl = std::make_shared<SkiaImage>(skImage);
-    return std::make_shared<Image>(imageImpl);
+    std::shared_ptr<Image> image = std::make_shared<Image>();
+    image->GetImpl<SkiaImage>()->SetSkImage(skImage);
+    return image;
 }
 
 bool SkiaImage::BuildFromBitmap(GPUContext& gpuContext, const Bitmap& bitmap)
@@ -324,9 +335,10 @@ BackendTexture SkiaImage::GetBackendTexture(bool flushPendingGrContextIO, Textur
         skBackendTexture =
             skiaImage_->getBackendTexture(flushPendingGrContextIO);
     } else {
-        GrSurfaceOrigin grOrigin = SkiaTextureInfo::ConvertToGrSurfaceOrigin(*origin);
+        GrSurfaceOrigin grOrigin;
         skBackendTexture =
             skiaImage_->getBackendTexture(flushPendingGrContextIO, &grOrigin);
+        *origin = static_cast<TextureOrigin>(grOrigin);
     }
     if (!skBackendTexture.isValid()) {
         LOGD("SkiaImage::GetBackendTexture, skBackendTexture is nullptr!");
@@ -520,8 +532,9 @@ std::shared_ptr<Image> SkiaImage::MakeRasterImage() const
         LOGD("skImage nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
         return nullptr;
     }
-    std::shared_ptr<ImageImpl> imageImpl = std::make_shared<SkiaImage>(skImage);
-    return std::make_shared<Image>(imageImpl);
+    std::shared_ptr<Image> image = std::make_shared<Image>();
+    image->GetImpl<SkiaImage>()->SetSkImage(skImage);
+    return image;
 }
 
 bool SkiaImage::CanPeekPixels() const

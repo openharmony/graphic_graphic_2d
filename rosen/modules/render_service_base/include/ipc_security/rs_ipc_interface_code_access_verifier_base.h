@@ -46,8 +46,6 @@ public:
     static void GetAccessType(bool& isTokenTypeValid, bool& isNonSystemAppCalling);
 
     static bool IsSystemCalling(const std::string& callingCode);
-
-    static bool IsStartByHdcd(bool isLocalSysCalling = false);
 protected:
     /* this class cannot be instantiated */
     RSInterfaceCodeAccessVerifierBase() = default;

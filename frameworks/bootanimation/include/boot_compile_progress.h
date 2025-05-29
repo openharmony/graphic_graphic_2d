@@ -33,21 +33,20 @@
 namespace OHOS {
 class BootCompileProgress {
 public:
-    void Init(const BootAnimationConfig& config, bool needOtaCompile, bool needBundleScan);
+    void Init(const BootAnimationConfig& config);
 
 private:
     void OnVsync();
     void DrawCompileProgress();
     void UpdateCompileProgress();
-    bool WaitBmsStartIfNeeded();
     bool CreateCanvasNode();
     bool RegisterVsyncCallback();
     Rosen::Drawing::Brush DrawProgressPoint(int32_t idx, int32_t frameNum);
-    bool WaitParamsIfNeeded();
-    bool WaitBundleScanIfNeeded();
-    bool CheckParams();
-    bool CheckBundleScanParam();
-    bool CheckBmsStartParam();
+    bool IsBmsBundleReady();
+    void DrawMaginBrush(Rosen::Drawing::RecordingCanvas* canvas);
+    bool IsEndFlag();
+    void RecordDeviceType();
+    void SetFrame();
 
     int32_t windowWidth_ = 0;
     int32_t windowHeight_ = 0;
@@ -62,6 +61,9 @@ private:
     std::string displayInfo_ = "";
 
     volatile bool isUpdateOptEnd_ = false;
+    bool isWearable_ = false;
+    bool isOther_ = false;
+    bool isSupportBmsCompile_ = false;
 
     std::shared_ptr<Rosen::RSSurfaceNode> rsSurfaceNode_;
     std::shared_ptr<Rosen::RSCanvasNode> rsCanvasNode_;
@@ -71,10 +73,6 @@ private:
     std::shared_ptr<OHOS::AppExecFwk::EventHandler> compileHandler_;
     std::shared_ptr<OHOS::AppExecFwk::EventRunner> compileRunner_;
     std::shared_ptr<Rosen::RSInterpolator> sharpCurve_;
-
-    bool needOtaCompile_ = false;
-    bool needBundleScan_ = false;
-    std::set<std::string> paramNeeded_;
 };
 } // namespace OHOS
 

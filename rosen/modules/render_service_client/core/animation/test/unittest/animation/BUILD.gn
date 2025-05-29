@@ -120,7 +120,6 @@ ohos_unittest("RSAnimationTest") {
     "$rosen_root/modules/render_service_base:librender_service_base",
     "$rosen_root/modules/render_service_base/src/platform:platform",
     "$rosen_root/modules/render_service_client:librender_service_client",
-    "//third_party/googletest:gtest_main",
   ]
   external_deps = [
     "c_utils:utils",

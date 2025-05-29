@@ -1,0 +1,74 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/test.gni")
+import("//foundation/graphic/graphic_2d/frameworks/text/config.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
+
+group("unittest") {
+  testonly = true
+  deps = [
+    ":texgine_unittest_part3",
+    ":texgine_unittest_part7",
+  ]
+}
+
+config("texgine_test_config") {
+  include_dirs = [
+    "$rosen_text_root/service/texgine/src",
+    "$rosen_text_root/service/texgine/src/opentype_parser",
+  ]
+
+  cflags = [
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+
+  defines = [ "ENABLE_OHOS_ENHANCE" ]
+}
+
+group("common_deps") {
+  testonly = true
+  public_deps = [
+    "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
+    "$graphic_2d_root/utils/test_header:test_header",
+    "$rosen_text_root:rosen_text",
+  ]
+}
+
+ohos_unittest("texgine_unittest_part3") {
+  module_out_path = text_test_out_path
+  sources = [ "font_parser_test.cpp" ]
+
+  public_configs = [ ":texgine_test_config" ]
+  public_deps = [ ":common_deps" ]
+
+  use_exceptions = true
+
+  part_name = "graphic_2d"
+  subsystem_name = "graphic"
+}
+
+ohos_unittest("texgine_unittest_part7") {
+  module_out_path = text_test_out_path
+
+  sources = [ "font_descriptor_cache_test.cpp" ]
+
+  public_configs = [ ":texgine_test_config" ]
+  public_deps = [ ":common_deps" ]
+
+  use_exceptions = true
+
+  part_name = "graphic_2d"
+  subsystem_name = "graphic"
+}

@@ -68,7 +68,6 @@ void DrawCmdListFuzzTest000(const uint8_t* data, size_t size)
     drawCmdList->GetIsCache();
     drawCmdList->SetCachedHighContrast(static_cast<bool>(isCopy));
     drawCmdList->GetCachedHighContrast();
-    drawCmdList->CountTextBlobNum();
     if (obj != nullptr) {
         delete [] obj;
         obj = nullptr;
@@ -109,6 +108,7 @@ void DrawCmdListFuzzTest001(const uint8_t* data, size_t size)
     drawCmdList->UpdateNodeIdToPicture(nodeId);
     std::vector<std::pair<size_t, size_t>> replacedOpList = drawCmdList->GetReplacedOpList();
     drawCmdList->SetReplacedOpList(replacedOpList);
+    drawCmdList->GetBounds(rect);
     drawCmdList->ClearOp();
     drawCmdList->ClearCache();
     std::string out;
@@ -249,7 +249,6 @@ void DrawCmdListFuzzTest004(const uint8_t* data, size_t size)
     drawCmdList->GenerateCache(recordingCanvas.get(), &rect);
     drawCmdList->PatchTypefaceIds();
     drawCmdList->GetCachedHighContrast();
-    drawCmdList->CountTextBlobNum();
     drawCmdList->GetOpItemSize();
     drawCmdList->GetOpsWithDesc();
     drawCmdList->MarshallingDrawOps();

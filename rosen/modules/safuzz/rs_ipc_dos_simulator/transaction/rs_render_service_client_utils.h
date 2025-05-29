@@ -25,11 +25,13 @@
 #endif
 #include "ipc_callbacks/rs_frame_rate_linker_expected_fps_update_callback_stub.h"
 #include "ipc_callbacks/rs_occlusion_change_callback_stub.h"
+#include "ipc_callbacks/rs_self_drawing_node_rect_change_callback_stub.h"
 #include "ipc_callbacks/rs_surface_buffer_callback_stub.h"
 #include "ipc_callbacks/rs_surface_occlusion_change_callback_stub.h"
 #include "ipc_callbacks/rs_uiextension_callback_stub.h"
 #include "ipc_callbacks/screen_change_callback_stub.h"
 #include "ipc_callbacks/surface_capture_callback_stub.h"
+#include "ipc_callbacks/rs_transaction_data_callback_stub.h"
 #include "transaction/rs_render_service_client.h"
 
 namespace OHOS {
@@ -269,6 +271,37 @@ public:
 
 private:
     RSRenderServiceClient* client_;
+};
+
+class TransactionDataCallbackDirector : public RSTransactionDataCallbackStub {
+public:
+    explicit TransactionDataCallbackDirector(RSRenderServiceClient* client) : client_(client) {}
+    ~TransactionDataCallbackDirector() noexcept override = default;
+    void OnAfterProcess(int32_t pid, uint64_t timeStamp) override
+    {
+        SAFUZZ_LOGD("OnAfterProcess: TriggerTransactionDataCallbackAndErase");
+        client_->TriggerTransactionDataCallbackAndErase(pid, timeStamp);
+    }
+
+private:
+    RSRenderServiceClient* client_;
+};
+
+class CustomSelfDrawingNodeRectChangeCallback : public RSSelfDrawingNodeRectChangeCallbackStub {
+public:
+    explicit CustomSelfDrawingNodeRectChangeCallback(const SelfDrawingNodeRectChangeCallback& callback) : cb_(callback)
+    {}
+    ~CustomSelfDrawingNodeRectChangeCallback() override {};
+
+    void OnSelfDrawingNodeRectChange(std::shared_ptr<RSSelfDrawingNodeRectData> rectData) override
+    {
+        if (cb_ != nullptr) {
+            cb_(rectData);
+        }
+    }
+
+private:
+    SelfDrawingNodeRectChangeCallback cb_;
 };
 } // namespace Rosen
 } // namespace OHOS

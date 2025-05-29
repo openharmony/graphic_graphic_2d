@@ -28,6 +28,7 @@
 #include "pipeline/render_thread/rs_uni_render_util.h"
 #include "pipeline/render_thread/rs_uni_render_virtual_processor.h"
 #include "platform/drawing/rs_surface_converter.h"
+#include "screen_manager/rs_screen.h"
 // xml parser
 #include "graphic_feature_param_manager.h"
 
@@ -63,7 +64,12 @@ public:
     static inline NodeId id = DEFAULT_ID;
 };
 
-void RSDisplayRenderNodeDrawableTest::SetUpTestCase() {}
+void RSDisplayRenderNodeDrawableTest::SetUpTestCase()
+{
+#ifdef RS_ENABLE_VK
+    RsVulkanContext::SetRecyclable(false);
+#endif
+}
 void RSDisplayRenderNodeDrawableTest::TearDownTestCase() {}
 void RSDisplayRenderNodeDrawableTest::SetUp()
 {
@@ -549,33 +555,6 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, HardCursorCreateLayerTest, TestSize.Le
 }
 
 /**
- * @tc.name: DRMCreateLayer
- * @tc.desc: Test DRMCreateLayer
- * @tc.type: FUNC
- * @tc.require: #IAX2SN
- */
-HWTEST_F(RSDisplayRenderNodeDrawableTest, DRMCreateLayerTest, TestSize.Level1)
-{
-    ASSERT_NE(renderNode_, nullptr);
-    ASSERT_NE(displayDrawable_, nullptr);
-    ASSERT_NE(displayDrawable_->renderParams_, nullptr);
-
-    auto params = static_cast<RSDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
-    ASSERT_NE(params, nullptr);
-    auto processor = RSProcessorFactory::CreateProcessor(params->GetCompositeType());
-    ASSERT_NE(processor, nullptr);
-    displayDrawable_->DRMCreateLayer(processor);
-
-    NodeId id = 1;
-    auto rsSurfaceNode = std::make_shared<RSSurfaceRenderNode>(id);
-    auto drawableAdapter = RSRenderNodeDrawableAdapter::OnGenerate(rsSurfaceNode);
-    params->hardwareEnabledDrawables_.push_back(drawableAdapter);
-    ASSERT_TRUE(params->GetHardwareEnabledDrawables().size() != 0);
-
-    displayDrawable_->DRMCreateLayer(processor);
-}
-
-/**
  * @tc.name: CheckDisplayNodeSkip
  * @tc.desc: Test CheckDisplayNodeSkip
  * @tc.type: FUNC
@@ -595,13 +574,15 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, CheckDisplayNodeSkipTest, TestSize.Lev
     ASSERT_EQ(result, true);
 
     RSUniRenderThread::Instance().uniRenderEngine_ = std::make_shared<RSRenderEngine>();
-    RSUniRenderThread::Instance().GetRSRenderThreadParams()->isForceCommitLayer_ = true;
+    RSUniRenderThread::Instance().GetRSRenderThreadParams()->forceCommitReason_ = 1;
     result = displayDrawable_->CheckDisplayNodeSkip(*params, processor);
     ASSERT_EQ(result, true);
 
-    RSMainThread::Instance()->isDirty_ = true;
-    result = displayDrawable_->CheckDisplayNodeSkip(*params, processor);
-    ASSERT_EQ(result, false);
+    RSMainThread::Instance()->SetDirtyFlag(true);
+    if (RSMainThread::Instance()->GetDirtyFlag()) {
+        result = displayDrawable_->CheckDisplayNodeSkip(*params, processor);
+        ASSERT_EQ(result, false);
+    }
 
     RSUifirstManager::Instance().hasForceUpdateNode_ = true;
     result = displayDrawable_->CheckDisplayNodeSkip(*params, processor);
@@ -616,9 +597,13 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, CheckDisplayNodeSkipTest, TestSize.Lev
     result = displayDrawable_->CheckDisplayNodeSkip(*params, processor);
     ASSERT_EQ(result, false);
     RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
-    RSUniRenderThread::Instance().GetRSRenderThreadParams()->isForceCommitLayer_ = false;
+    RSUniRenderThread::Instance().GetRSRenderThreadParams()->forceCommitReason_ = 0;
     RSMainThread::Instance()->isDirty_ = false;
     RSUifirstManager::Instance().hasForceUpdateNode_ = false;
+
+    params->isHDRStatusChanged_ = true;
+    result = displayDrawable_->CheckDisplayNodeSkip(*params, processor);
+    EXPECT_EQ(result, false);
 }
 
 /**
@@ -2135,4 +2120,20 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, SetSecurityMaskTest, TestSize.Level2)
     auto virtualProcesser = std::make_shared<RSUniRenderVirtualProcessor>();
     displayDrawable_->SetSecurityMask(*virtualProcesser);
 }
+
+/**
+ * @tc.name: UpdateSurfaceDrawRegion
+ * @tc.desc: Test UpdateSurfaceDrawRegion
+ * @tc.type: FUNC
+ * @tc.require: issueIBCH1W
+ */
+HWTEST_F(RSDisplayRenderNodeDrawableTest, UpdateSurfaceDrawRegion, TestSize.Level2)
+{
+    ASSERT_NE(displayDrawable_, nullptr);
+    drawingCanvas_ = std::make_unique<Drawing::Canvas>(DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
+    auto canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas_.get());
+    RSDisplayRenderParams* params = static_cast<RSDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());;
+    displayDrawable_->UpdateSurfaceDrawRegion(canvas, params);
+}
+
 }

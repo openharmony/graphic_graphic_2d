@@ -37,7 +37,7 @@
 #include "feature/gpuComposition/rs_egl_image_manager.h"
 #endif // RS_ENABLE_EGLIMAGE
 #ifdef USE_VIDEO_PROCESSING_ENGINE
-#include "pipeline/colorspace_converter_display.h"
+#include "colorspace_converter_display.h"
 #endif
 
 namespace OHOS {
@@ -130,7 +130,6 @@ public:
     RSBaseRenderEngine();
     virtual ~RSBaseRenderEngine() noexcept;
     void Init(bool independentContext = false);
-    void InitCapture(bool independentContext = false);
     RSBaseRenderEngine(const RSBaseRenderEngine&) = delete;
     void operator=(const RSBaseRenderEngine&) = delete;
 
@@ -177,8 +176,7 @@ public:
     static void DrawBuffer(RSPaintFilterCanvas& canvas, BufferDrawParam& params);
 
     void ShrinkCachesIfNeeded(bool isForUniRedraw = false);
-    void ClearCacheSet(const std::set<uint32_t>& unmappedCache, bool isMatchVirtualScreen = false);
-    void ClearVirtualScreenCacheSet();
+    void ClearCacheSet(const std::set<uint32_t>& unmappedCache);
     static void SetColorFilterMode(ColorFilterMode mode);
     static ColorFilterMode GetColorFilterMode();
     static void SetHighContrast(bool enabled);
@@ -188,10 +186,6 @@ public:
     const std::shared_ptr<RenderContext>& GetRenderContext()
     {
         return renderContext_;
-    }
-    const std::shared_ptr<RenderContext>& GetCaptureRenderContext()
-    {
-        return captureRenderContext_;
     }
 #endif // RS_ENABLE_GL || RS_ENABLE_VK
     void ResetCurrentContext();
@@ -244,7 +238,6 @@ private:
 
 #if (defined RS_ENABLE_GL) || (defined RS_ENABLE_VK)
     std::shared_ptr<RenderContext> renderContext_ = nullptr;
-    std::shared_ptr<RenderContext> captureRenderContext_ = nullptr;
 #endif // RS_ENABLE_GL || RS_ENABLE_VK
 #if (defined(RS_ENABLE_EGLIMAGE) && defined(RS_ENABLE_GPU))
     std::shared_ptr<RSEglImageManager> eglImageManager_ = nullptr;

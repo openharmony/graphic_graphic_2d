@@ -22,7 +22,7 @@ config("rs_graphic_test_config") {
     "$graphic_2d_root/rosen/modules",
     "$graphic_2d_root/rosen/modules/render_service_client/core",
     "$graphic_2d_root/rosen/modules/render_service_base/include",
-    "$graphic_2d_root/rosen/modules/2d_engine/rosen_text/export/rosen_text",
+    "$graphic_2d_root/rosen/modules/render_service_profiler",
     "$graphic_2d_root/rosen/modules/2d_graphics",
     "$graphic_2d_root/rosen/modules/2d_graphics/include",
     "$graphic_2d_root/rosen/modules/utils",
@@ -42,6 +42,8 @@ ohos_source_set("rs_graphic_test_src") {
     "src/rs_graphic_test_director.cpp",
     "src/rs_graphic_test_ext.cpp",
     "src/rs_graphic_test_img.cpp",
+    "src/rs_graphic_test_profiler_thread.cpp",
+    "src/rs_graphic_test_profiler.cpp",
     "src/rs_graphic_test_text.cpp",
     "src/rs_graphic_test_utils.cpp",
     "src/rs_parameter_parse.cpp",
@@ -68,12 +70,14 @@ ohos_source_set("rs_graphic_test_src") {
   ]
 
   public_deps = [
+    "$rosen_root/modules/render_service:librender_service",
     "$rosen_root/modules/render_service_base:librender_service_base",
     "$rosen_root/modules/render_service_client:librender_service_client",
-    "//third_party/googletest:gtest",
   ]
 
   public_external_deps = [
+    "cJSON:cjson",
+    "googletest:gtest",
     "graphic_surface:surface",
     "graphics_effect:graphics_effect_core",
     "hilog:libhilog",
@@ -84,6 +88,11 @@ ohos_source_set("rs_graphic_test_src") {
     "zlib:libz",
   ]
 
+  if (rosen_is_ohos && graphic_2d_feature_rs_enable_profiler &&
+      player_framework_enable) {
+    defines += [ "RS_PROFILER_ENABLED" ]
+  }
+
   part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
@@ -91,10 +100,9 @@ ohos_source_set("rs_graphic_test_src") {
 ohos_shared_library("rs_graphic_test") {
   testonly = true
 
-  public_deps = [
-    ":rs_graphic_test_src",
-    "//third_party/googletest:gtest_main",
-  ]
+  public_deps = [ ":rs_graphic_test_src" ]
+
+  external_deps = [ "googletest:gtest_main" ]
 
   part_name = "graphic_2d"
   subsystem_name = "graphic"

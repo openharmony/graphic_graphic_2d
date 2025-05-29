@@ -26,8 +26,6 @@ ohos_fuzztest("RSOverdrawControllerFuzzTest") {
     "//foundation/graphic/graphic_2d/utils/log",
   ]
 
-  include_dirs += [ "//third_party/skia" ]
-
   deps = [
     "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics:2d_graphics",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service:librender_service",

@@ -15,6 +15,8 @@
 
 #include "skia_static_factory.h"
 
+#include "include/gpu/vk/GrVulkanTrackerInterface.h"
+
 #include "skia_adapter/skia_blender.h"
 #include "skia_adapter/skia_convert_utils.h"
 #include "skia_adapter/skia_data.h"
@@ -68,6 +70,12 @@ std::shared_ptr<Typeface> SkiaStaticFactory::MakeFromFile(const char path[], con
 std::shared_ptr<Typeface> SkiaStaticFactory::MakeFromStream(std::unique_ptr<MemoryStream> memoryStream, int32_t index)
 {
     return SkiaTypeface::MakeFromStream(std::move(memoryStream), index);
+}
+
+std::shared_ptr<Typeface> SkiaStaticFactory::MakeFromStream(std::unique_ptr<MemoryStream> memoryStream,
+    const FontArguments& fontArguments)
+{
+    return SkiaTypeface::MakeFromStream(std::move(memoryStream), fontArguments);
 }
 
 std::shared_ptr<Typeface> SkiaStaticFactory::MakeFromName(const char familyName[], FontStyle fontStyle)
@@ -215,11 +223,7 @@ DrawingSymbolLayersGroups SkiaStaticFactory::GetSymbolLayersGroups(uint16_t glyp
 std::vector<std::vector<DrawingPiecewiseParameter>> SkiaStaticFactory::GetGroupParameters(
     DrawingAnimationType type, uint16_t groupSum, uint16_t animationMode, DrawingCommonSubType commonSubType)
 {
-#if !defined(CROSS_PLATFORM)
     return SkiaHmSymbolConfigOhos::GetGroupParameters(type, groupSum, animationMode, commonSubType);
-#endif
-    std::vector<std::vector<DrawingPiecewiseParameter>> parameters;
-    return parameters;
 }
 
 std::shared_ptr<Blender> SkiaStaticFactory::CreateWithBlendMode(BlendMode mode)
@@ -293,6 +297,11 @@ bool SkiaStaticFactory::IsOpenPerf()
 int64_t SkiaStaticFactory::GetCurrentTime()
 {
     return GrPerfMonitorReporter::getCurrentTime();
+}
+
+void SkiaStaticFactory::SetCurrentNodeId(uint64_t nodeId)
+{
+    RECORD_GPU_RESOURCE_DRAWABLE_CALLER(nodeId);
 }
 
 void SkiaStaticFactory::GrTextureEventConvert2Rs(std::map<std::string, RsTextureEvent>& rsTextureEvent,

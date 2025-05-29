@@ -43,7 +43,7 @@ constexpr int PARAM_DOUBLE = 2;
 std::shared_ptr<Drawing::RuntimeEffect> RSPropertyDrawableUtils::binarizationShaderEffect_ = nullptr;
 std::shared_ptr<Drawing::RuntimeEffect> RSPropertyDrawableUtils::dynamicDimShaderEffect_ = nullptr;
 std::shared_ptr<Drawing::RuntimeEffect> RSPropertyDrawableUtils::dynamicBrightnessBlenderEffect_ = nullptr;
-std::shared_ptr<Drawing::RuntimeEffect> RSPropertyDrawableUtils::lightUpEffectBlender_ = nullptr;
+std::shared_ptr<Drawing::RuntimeEffect> RSPropertyDrawableUtils::dynamicBrightnessLinearBlenderEffect_ = nullptr;
 
 Drawing::RoundRect RSPropertyDrawableUtils::RRect2DrawingRRect(const RRect& rr)
 {
@@ -416,6 +416,13 @@ void RSPropertyDrawableUtils::DrawForegroundFilter(RSPaintFilterCanvas& canvas,
         ROSEN_LOGD("RSPropertyDrawableUtils::DrawForegroundFilter image null");
         return;
     }
+    auto rsdrawingFilter = std::static_pointer_cast<RSDrawingFilter>(rsFilter);
+    if (rsdrawingFilter != nullptr && (rsFilter->GetFilterType() == RSFilter::BEZIER_WARP)) {
+        rsdrawingFilter->DrawImageRect(canvas, imageSnapshot, Drawing::Rect(0, 0, imageSnapshot->GetWidth(),
+            imageSnapshot->GetHeight()), Drawing::Rect(0, 0, imageSnapshot->GetWidth(), imageSnapshot->GetHeight()));
+        return;
+    }
+
     auto foregroundFilter = std::static_pointer_cast<RSDrawingFilterOriginal>(rsFilter);
     if (foregroundFilter->GetFilterType() == RSFilter::MOTION_BLUR) {
         if (canvas.GetDisableFilterCache()) {
@@ -541,51 +548,22 @@ void RSPropertyDrawableUtils::DrawLightUpEffect(Drawing::Canvas* canvas, const f
         return;
     }
 
-    auto blender = MakeLightUpEffectBlender(lightUpEffectDegree);
-    Drawing::Brush brush;
-    brush.SetBlender(blender);
-    canvas->DrawBackground(brush);
-}
-
-std::shared_ptr<Drawing::Blender> RSPropertyDrawableUtils::MakeLightUpEffectBlender(const float lightUpDeg)
-{
-    static constexpr char prog[] = R"(
-        uniform half lightUpDeg;
-
-        vec3 rgb2hsv(in vec3 c)
-        {
-            vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
-            vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));
-            vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));
-            float d = q.x - min(q.w, q.y);
-            float e = 1.0e-10;
-            return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);
-        }
-        vec3 hsv2rgb(in vec3 c)
-        {
-            vec3 rgb = clamp(abs(mod(c.x * 6.0 + vec3(0.0, 4.0, 2.0), 6.0) - 3.0) - 1.0, 0.0, 1.0);
-            return c.z * mix(vec3(1.0), rgb, c.y);
-        }
-        vec4 main(vec4 drawing_src, vec4 drawing_dst) {
-            drawing_dst = max(drawing_dst, 0.0);
-            vec3 c = vec3(drawing_dst.r, drawing_dst.g, drawing_dst.b);
-            vec3 hsv = rgb2hsv(c);
-            float satUpper = clamp(hsv.y * 1.2, 0.0, 1.0);
-            hsv.y = mix(satUpper, hsv.y, lightUpDeg);
-            hsv.z += lightUpDeg - 1.0;
-            hsv.z = max(hsv.z, 0.0);
-            return vec4(hsv2rgb(hsv), drawing_dst.a);
-        }
-    )";
-    if (lightUpEffectBlender_ == nullptr) {
-        lightUpEffectBlender_ = Drawing::RuntimeEffect::CreateForBlender(prog);
-        if (lightUpEffectBlender_ == nullptr) {
-            return nullptr;
-        }
+    auto clipBounds = canvas->GetDeviceClipBounds();
+    auto image = surface->GetImageSnapshot(clipBounds, false);
+    if (image == nullptr) {
+        ROSEN_LOGE("RSPropertyDrawableUtils::DrawLightUpEffect image is null");
+        return;
     }
-    auto builder = std::make_shared<Drawing::RuntimeBlenderBuilder>(lightUpEffectBlender_);
-    builder->SetUniform("lightUpDeg", lightUpDeg);
-    return builder->MakeBlender();
+    Drawing::Matrix scaleMat;
+    auto imageShader = Drawing::ShaderEffect::CreateImageShader(*image, Drawing::TileMode::CLAMP,
+        Drawing::TileMode::CLAMP, Drawing::SamplingOptions(Drawing::FilterMode::LINEAR), scaleMat);
+    auto shader = Drawing::ShaderEffect::CreateLightUp(lightUpEffectDegree, *imageShader);
+    Drawing::Brush brush;
+    brush.SetShaderEffect(shader);
+    Drawing::AutoCanvasRestore acr(*canvas, true);
+    canvas->ResetMatrix();
+    canvas->Translate(clipBounds.GetLeft(), clipBounds.GetTop());
+    canvas->DrawBackground(brush);
 }
 
 void RSPropertyDrawableUtils::DrawDynamicDim(Drawing::Canvas* canvas, const float dynamicDimDegree)
@@ -710,40 +688,95 @@ std::shared_ptr<Drawing::ShaderEffect> RSPropertyDrawableUtils::MakeBinarization
 }
 
 std::shared_ptr<Drawing::Blender> RSPropertyDrawableUtils::MakeDynamicBrightnessBlender(
-    const RSDynamicBrightnessPara& params, float ratio)
+    const RSDynamicBrightnessPara& params)
 {
     if (!RSSystemProperties::GetDynamicBrightnessEnabled()) {
         return nullptr;
     }
 
-    auto builder = MakeDynamicBrightnessBuilder();
-    if (!builder) {
-        ROSEN_LOGE("RSPropertyDrawableUtils::MakeDynamicBrightnessBlender make builder fail");
-        return nullptr;
+    std::shared_ptr<Drawing::RuntimeBlenderBuilder> builder;
+    if (ROSEN_EQ(params.rates_.x_, 0.f) && ROSEN_EQ(params.rates_.y_, 0.f) && ROSEN_EQ(params.fraction_, 0.f)) {
+        builder = MakeDynamicBrightnessLinearBuilder();
+        ROSEN_LOGD("RSPropertyDrawableUtils::MakeDynamicBrightnessBlender equivalent blender in the linear case");
+        if (!builder) {
+            ROSEN_LOGE("RSPropertyDrawableUtils::MakeDynamicBrightnessBlender make linear builder fail");
+            return nullptr;
+        }
+        // pre-process for pos and neg params
+        float minusSat = 1.f - params.saturation_;
+        bool swap = ROSEN_LE(minusSat, 0.f);
+        const auto& posCoeffTmp = swap ? params.negCoeff_ : params.posCoeff_;
+        const auto& negCoeffTmp = swap ? params.posCoeff_ : params.negCoeff_;
+        builder->SetUniform("ubo_posr", posCoeffTmp.x_ * minusSat);
+        builder->SetUniform("ubo_posg", posCoeffTmp.y_ * minusSat);
+        builder->SetUniform("ubo_posb", posCoeffTmp.z_ * minusSat);
+        builder->SetUniform("ubo_negr", negCoeffTmp.x_ * minusSat);
+        builder->SetUniform("ubo_negg", negCoeffTmp.y_ * minusSat);
+        builder->SetUniform("ubo_negb", negCoeffTmp.z_ * minusSat);
+    } else {
+        builder = MakeDynamicBrightnessBuilder();
+        if (!builder) {
+            ROSEN_LOGE("RSPropertyDrawableUtils::MakeDynamicBrightnessBlender make builder fail");
+            return nullptr;
+        }
+        builder->SetUniform("ubo_fract", std::clamp(params.fraction_, 0.0f, 1.0f));
+        builder->SetUniform("ubo_cubic", params.rates_.x_);
+        builder->SetUniform("ubo_quad", params.rates_.y_);
+        builder->SetUniform("ubo_baseSat", params.saturation_);
+        builder->SetUniform("ubo_posr", params.posCoeff_.x_);
+        builder->SetUniform("ubo_posg", params.posCoeff_.y_);
+        builder->SetUniform("ubo_posb", params.posCoeff_.z_);
+        builder->SetUniform("ubo_negr", params.negCoeff_.x_);
+        builder->SetUniform("ubo_negg", params.negCoeff_.y_);
+        builder->SetUniform("ubo_negb", params.negCoeff_.z_);
     }
 
     RS_OPTIONAL_TRACE_NAME("RSPropertyDrawableUtils::MakeDynamicBrightnessBlender");
-    builder->SetUniform("ubo_ratio", ratio);
-    builder->SetUniform("ubo_fract", std::clamp(params.fraction_, 0.0f, 1.0f));
-    builder->SetUniform("ubo_cubic", params.rates_.x_);
-    builder->SetUniform("ubo_quad", params.rates_.y_);
     builder->SetUniform("ubo_rate", params.rates_.z_);
     builder->SetUniform("ubo_degree", params.rates_.w_);
-    builder->SetUniform("ubo_baseSat", params.saturation_);
-    builder->SetUniform("ubo_posr", params.posCoeff_.x_);
-    builder->SetUniform("ubo_posg", params.posCoeff_.y_);
-    builder->SetUniform("ubo_posb", params.posCoeff_.z_);
-    builder->SetUniform("ubo_negr", params.negCoeff_.x_);
-    builder->SetUniform("ubo_negg", params.negCoeff_.y_);
-    builder->SetUniform("ubo_negb", params.negCoeff_.z_);
     return builder->MakeBlender();
+}
+
+std::shared_ptr<Drawing::RuntimeBlenderBuilder> RSPropertyDrawableUtils::MakeDynamicBrightnessLinearBuilder()
+{
+    RS_OPTIONAL_TRACE_NAME("RSPropertyDrawableUtils::MakeDynamicBrightnessLinearBuilder");
+    static constexpr char prog[] = R"(
+        uniform half ubo_rate;
+        uniform half ubo_degree;
+        uniform half ubo_posr;
+        uniform half ubo_posg;
+        uniform half ubo_posb;
+        uniform half ubo_negr;
+        uniform half ubo_negg;
+        uniform half ubo_negb;
+
+        const half3 baseVec = half3(0.2412016, 0.6922296, 0.0665688);
+        half3 sat(half3 inColor, half3 pos, half3 neg) {
+            half3 delta = dot(inColor, baseVec) - inColor;
+            half3 v = mix(neg, pos, step(0, delta));
+            return saturate(delta * v + inColor);
+        }
+
+        half4 main(half4 src, half4 dst) {
+            half2 coeff = half2(ubo_rate, ubo_degree);
+            half3 color = coeff.x * dst.rgb + coeff.y * dst.a;
+            half3 pos = half3(ubo_posr, ubo_posg, ubo_posb);
+            half3 neg = half3(ubo_negr, ubo_negg, ubo_negb);
+            color = sat(color, pos, neg);
+            return half4(mix(dst.rgb, color, src.a), dst.a);
+        }
+    )";
+    if (dynamicBrightnessLinearBlenderEffect_ == nullptr) {
+        dynamicBrightnessLinearBlenderEffect_ = Drawing::RuntimeEffect::CreateForBlender(prog);
+        if (dynamicBrightnessLinearBlenderEffect_ == nullptr) { return nullptr; }
+    }
+    return std::make_shared<Drawing::RuntimeBlenderBuilder>(dynamicBrightnessLinearBlenderEffect_);
 }
 
 std::shared_ptr<Drawing::RuntimeBlenderBuilder> RSPropertyDrawableUtils::MakeDynamicBrightnessBuilder()
 {
     RS_OPTIONAL_TRACE_NAME("RSPropertyDrawableUtils::MakeDynamicBrightnessBuilder");
     static constexpr char prog[] = R"(
-        uniform half ubo_ratio;
         uniform half ubo_fract;
         uniform half ubo_rate;
         uniform half ubo_degree;
@@ -758,21 +791,20 @@ std::shared_ptr<Drawing::RuntimeBlenderBuilder> RSPropertyDrawableUtils::MakeDyn
         uniform half ubo_negb;
 
         const vec3 baseVec = vec3(0.2412016, 0.6922296, 0.0665688);
-        const float eps = 1e-6;
+        const half eps = 1e-5;
         half3 getUnpremulRGB(half4 color) {
-            half factor = 1.0 / (max(ubo_ratio, eps) * max(color.a, eps));
-            return clamp(color.rgb * factor, 0.0, 1.0);
+            half factor = 1.0 / (max(color.a, eps));
+            return saturate(color.rgb * factor);
         }
         half3 gray(half3 x, half4 coeff) {
             return coeff.x * x * x * x + coeff.y * x * x + coeff.z * x + coeff.w;
         }
         half3 sat(half3 inColor, half n, half3 pos, half3 neg) {
-            half base = dot(inColor, baseVec) * (1.0 - n);
-            half3 delta = base + inColor * n - inColor;
-            half3 posDelta = inColor + delta * pos;
-            half3 negDelta = inColor + delta * neg;
-            half3 test = mix(negDelta, posDelta, step(0, delta));
-            return test;
+            half3 r = (1.0 - n) * inColor;
+            half base = dot(r, baseVec);
+            half3 delta = base - r;
+            half3 v = mix(neg, pos, step(0, delta));
+            return saturate(inColor + delta * v);
         }
 
         half4 main(half4 src, half4 dst) {
@@ -781,9 +813,8 @@ std::shared_ptr<Drawing::RuntimeBlenderBuilder> RSPropertyDrawableUtils::MakeDyn
             half3 pos = half3(ubo_posr, ubo_posg, ubo_posb);
             half3 neg = half3(ubo_negr, ubo_negg, ubo_negb);
             color = sat(color, ubo_baseSat, pos, neg);
-            color = clamp(color, 0.0, 1.0);
             color = mix(color, getUnpremulRGB(src), ubo_fract);
-            return half4(mix(dst.rgb, color * ubo_ratio * dst.a, src.a), dst.a);
+            return half4(mix(dst.rgb, color * dst.a, src.a), dst.a);
         }
     )";
     if (dynamicBrightnessBlenderEffect_ == nullptr) {
@@ -1189,7 +1220,10 @@ Color RSPropertyDrawableUtils::GetInvertBackgroundColor(RSPaintFilterCanvas& can
         RS_LOGI("RSPropertyDrawableUtils::GetInvertBackgroundColor not alpha");
         return RSPropertyDrawableUtils::CalculateInvertColor(backgroundColor);
     }
-    auto imageSnapshot = canvas.GetSurface()->GetImageSnapshot(canvas.GetDeviceClipBounds());
+    auto surface = canvas.GetSurface();
+    std::shared_ptr<Drawing::Image> imageSnapshot = surface == nullptr ?
+        nullptr :
+        surface->GetImageSnapshot(canvas.GetDeviceClipBounds());
     if (imageSnapshot == nullptr) {
         RS_LOGI("RSPropertyDrawableUtils::GetInvertBackgroundColor imageSnapshot null");
         return Color(0);

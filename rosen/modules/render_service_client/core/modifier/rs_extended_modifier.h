@@ -13,6 +13,19 @@
  * limitations under the License.
  */
 
+/**
+ * @addtogroup RenderNodeDisplay
+ * @{
+ *
+ * @brief Display render nodes.
+ */
+
+/**
+ * @file rs_extended_modifier.h 
+ *
+ * @brief Defines the properties and methods of the RSExtendedModifier and its derived classes.
+ */
+
 #ifndef RENDER_SERVICE_CLIENT_CORE_MODIFIER_RS_EXTENDED_MODIFIER_H
 #define RENDER_SERVICE_CLIENT_CORE_MODIFIER_RS_EXTENDED_MODIFIER_H
 
@@ -27,35 +40,99 @@
 
 namespace OHOS {
 namespace Rosen {
+/**
+ * @struct RSDrawingContext
+ * @brief Represents the drawing context used for rendering operations.
+ */
 struct RSDrawingContext {
+    /* Pointer to the canvas object used for drawing operations. */
     Drawing::Canvas* canvas;
+    /* The width of the drawing area. */
     float width;
+    /* The height of the drawing area. */
     float height;
 };
 
+/**
+ * @class RSExtendedModifierHelper
+ *
+ * @brief Provides helper functions for creating and managing extended modifiers.
+ */
 class RSC_EXPORT RSExtendedModifierHelper {
 public:
+    /**
+     * @brief Creates a drawing context for the specified canvas node.
+     *
+     * @param canvasnode A weak pointer to the RSCanvasNode for which the drawing context is to be created.
+     * @return An RSDrawingContext object associated with the given canvas node.
+     */
     static RSDrawingContext CreateDrawingContext(std::weak_ptr<RSCanvasNode> canvasnode);
+
+    /**
+     * @brief Creates a render modifier.
+     *
+     * @param ctx The drawing context in which the render modifier will be created.
+     * @param id The property ID associated with the render modifier.
+     * @param type The type of the render modifier to be created.
+     * @return A shared pointer to the created RSRenderModifier object.
+     */
     static std::shared_ptr<RSRenderModifier> CreateRenderModifier(
         RSDrawingContext& ctx, PropertyId id, RSModifierType type);
+    
+    /**
+     * @brief Completes the drawing process for the given drawing context.
+     *
+     * @param ctx The drawing context containing the state and operations to be finalized.
+     * @return A shared pointer to a DrawCmdList object representing the completed drawing commands.
+     */
     static std::shared_ptr<Drawing::DrawCmdList> FinishDrawing(RSDrawingContext& ctx);
 };
 
+/**
+ * @class RSExtendedModifier
+ *
+ * @brief The modifier corresponding to arkui custom operations
+ */
 class RSC_EXPORT RSExtendedModifier : public RSModifier {
 public:
+    /**
+     * @brief Constructs an RSExtendedModifier object with the specified property.
+     *
+     * @param property A shared pointer to an RSPropertyBase object.
+     */
     RSExtendedModifier(const std::shared_ptr<RSPropertyBase>& property = {})
         : RSModifier(property, RSModifierType::EXTENDED)
     {
         property_->SetIsCustom(true);
     }
+
+    /**
+     * @brief Destructor for RSExtendedModifier.
+     */
     virtual ~RSExtendedModifier() = default;
 
+    /**
+     * @brief Gets the type of the modifier.
+     *
+     * @return The type of the modifier as an RSModifierType enum value.
+     */
     RSModifierType GetModifierType() const override
     {
         return RSModifierType::EXTENDED;
     }
+
+    /**
+     * @brief Draws the content using the specified drawing context.
+     *
+     * @param context The drawing context used for rendering operations.
+     */
     virtual void Draw(RSDrawingContext& context) const = 0;
 
+    /**
+     * @brief Sets whether the UI captured is not needed.
+     *
+     * @param noNeedUICaptured A boolean value indicating whether the UI captured is not needed.
+     */
     void SetNoNeedUICaptured(bool noNeedUICaptured)
     {
         noNeedUICaptured_ = noNeedUICaptured;
@@ -119,19 +196,49 @@ private:
     bool noNeedUICaptured_ = false;
 };
 
+
+/**
+ * @class RSGeometryTransModifier
+ *
+ * @brief The modifier corresponding to arkui geometry transform operations
+ */
 class RS_EXPORT RSGeometryTransModifier : public RSExtendedModifier {
 public:
+    /**
+     * @brief Constructs an RSGeometryTransModifier instance.
+     */
     RSGeometryTransModifier() : RSExtendedModifier(RSModifierType::GEOMETRYTRANS)
     {}
+
+    /**
+     * @brief Destructor for RSGeometryTransModifier.
+     */
     virtual ~RSGeometryTransModifier() = default;
 
+    /**
+     * @brief Gets the type of the modifier.
+     *
+     * @return The type of the modifier as an RSModifierType enum value.
+     */
     RSModifierType GetModifierType() const override
     {
         return RSModifierType::GEOMETRYTRANS;
     }
 
+    /**
+     * @brief Draws the content using the specified drawing context.
+     *
+     * @param context Indicates drawing context.
+     */
     void Draw(RSDrawingContext& context) const override {};
 
+    /**
+     * @brief Gets the geometry effect for the specified width and height.
+     *
+     * @param width Indicates the width of the geometry effect.
+     * @param height Indicates the height of the geometry effect.
+     * @return The geometry effect information.
+     */
     virtual Drawing::Matrix GeometryEffect(float width, float height) const = 0;
 
 protected:
@@ -185,75 +292,164 @@ protected:
     }
 };
 
+/**
+ * @class RSTransitionModifier
+ *
+ * @brief The modifier corresponding to arkui transition operations
+ */
 class RSC_EXPORT RSTransitionModifier : public RSExtendedModifier {
 public:
+    /**
+     * @brief Constructs an RSTransitionModifier instance.
+     */
     RSTransitionModifier() : RSExtendedModifier(RSModifierType::TRANSITION)
     {}
 
+    /**
+     * @brief Gets the type of the modifier.
+     *
+     * @return The type of the modifier as an RSModifierType enum value.
+     */
     RSModifierType GetModifierType() const override
     {
         return RSModifierType::TRANSITION;
     }
 
+    /**
+     * @brief Gets whether the modifier is active.
+     */
     virtual void Active() = 0;
 
+    /**
+     * @brief Gets the identity of the modifier.
+     */
     virtual void Identity() = 0;
 };
 
+/**
+ * @class RSBackgroundStyleModifier
+ *
+ * @brief The modifier corresponding to arkui background style operations
+ */
 class RSC_EXPORT RSBackgroundStyleModifier : public RSExtendedModifier {
 public:
+    /**
+     * @brief Constructs an RSBackgroundStyleModifier instance.
+     */
     RSBackgroundStyleModifier() : RSExtendedModifier(RSModifierType::BACKGROUND_STYLE)
     {}
 
+    /**
+     * @brief Gets the type of the modifier.
+     *
+     * @return The type of the modifier as an RSModifierType enum value.
+     */
     RSModifierType GetModifierType() const override
     {
         return RSModifierType::BACKGROUND_STYLE;
     }
 };
 
+/**
+ * @class RSContentStyleModifier
+ *
+ * @brief The modifier corresponding to arkui content style operations
+ */
 class RSC_EXPORT RSContentStyleModifier : public RSExtendedModifier {
 public:
+    /**
+     * @brief Constructs an RSContentStyleModifier instance.
+     */
     RSContentStyleModifier() : RSExtendedModifier(RSModifierType::CONTENT_STYLE)
     {}
 
+    /**
+     * @brief Gets the type of the modifier.
+     *
+     * @return The type of the modifier as an RSModifierType enum value.
+     */
     RSModifierType GetModifierType() const override
     {
         return RSModifierType::CONTENT_STYLE;
     }
 };
 
+/**
+ * @class RSForegroundStyleModifier
+ *
+ * @brief The modifier corresponding to arkui foreground style operations
+ */
 class RSC_EXPORT RSForegroundStyleModifier : public RSExtendedModifier {
 public:
+    /**
+     * @brief Constructs an RSForegroundStyleModifier instance.
+     */
     RSForegroundStyleModifier() : RSExtendedModifier(RSModifierType::FOREGROUND_STYLE)
     {}
 
+    /**
+     * @brief Gets the type of the modifier.
+     *
+     * @return The type of the modifier as an RSModifierType enum value.
+     */
     RSModifierType GetModifierType() const override
     {
         return RSModifierType::FOREGROUND_STYLE;
     }
 };
 
+/**
+ * @class RSOverlayStyleModifier
+ *
+ * @brief The modifier corresponding to arkui overlay style operations
+ */
 class RSC_EXPORT RSOverlayStyleModifier : public RSExtendedModifier {
 public:
+    /**
+     * @brief Constructs an RSOverlayStyleModifier instance.
+     */
     RSOverlayStyleModifier() : RSExtendedModifier(RSModifierType::OVERLAY_STYLE)
     {}
 
+    /**
+     * @brief Gets the type of the modifier.
+     *
+     * @return The type of the modifier as an RSModifierType enum value.
+     */
     RSModifierType GetModifierType() const override
     {
         return RSModifierType::OVERLAY_STYLE;
     }
 };
 
+/**
+ * @class RSNodeModifier
+ *
+ * @brief The modifier corresponding to arkui node operations
+ */
 class RSC_EXPORT RSNodeModifier : public RSExtendedModifier {
 public:
+    /**
+     * @brief Constructs an RSNodeModifier instance.
+     */
     RSNodeModifier() : RSExtendedModifier(RSModifierType::NODE_MODIFIER)
     {}
 
+    /**
+     * @brief Gets the type of the modifier.
+     *
+     * @return The type of the modifier as an RSModifierType enum value.
+     */
     RSModifierType GetModifierType() const override
     {
         return RSModifierType::NODE_MODIFIER;
     }
 
+    /**
+     * @brief Modifies the target node.
+     *
+     * @param target The target node to be modified.
+     */
     virtual void Modify(RSNode& target) const = 0;
 
 private:
@@ -278,4 +474,5 @@ private:
 } // namespace Rosen
 } // namespace OHOS
 
+/** @} */
 #endif // RENDER_SERVICE_CLIENT_CORE_MODIFIER_RS_EXTENDED_MODIFIER_H

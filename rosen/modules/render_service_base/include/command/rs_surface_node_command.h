@@ -58,23 +58,24 @@ enum RSSurfaceNodeCommandType : uint16_t {
     SURFACE_NODE_SET_FORCE_HARDWARE_AND_FIX_ROTATION = 23,
     SURFACE_NODE_SET_BOOT_ANIMATION = 24,
     SURFACE_NODE_SET_GLOBAL_POSITION_ENABLED = 25,
-    SURFACE_NODE_CREATE_SURFACE_EXT = 26,
-    SURFACE_NODE_SET_FOREGROUND = 27,
-    SURFACE_NODE_SET_SURFACE_ID = 28,
-    SURFACE_NODE_SET_CLONED_NODE_ID = 29,
-    SURFACE_NODE_SET_FORCE_UIFIRST = 30,
-    SURFACE_NODE_SET_ANCO_FLAGS = 31,
-    SURFACE_NODE_SET_HDR_PRESENT = 32,
-    SURFACE_NODE_SET_SKIP_DRAW = 33,
-    SURFACE_NODE_SET_WATERMARK = 34,
-    SURFACE_NODE_SET_WATERMARK_ENABLED = 35,
-    SURFACE_NODE_SET_ABILITY_STATE = 36,
-    SURFACE_NODE_SET_LEASH_PERSISTENT_ID = 37,
-    SURFACE_NODE_SET_API_COMPATIBLE_VERSION = 38,
-    SURFACE_NODE_SET_HARDWARE_ENABLE_HINT = 39,
-    SURFACE_NODE_ATTACH_TO_WINDOW_CONTAINER = 40,
-    SURFACE_NODE_DETACH_FROM_WINDOW_CONTAINER = 41,
-    SURFACE_NODE_SET_SOURCE_VIRTUAL_DISPLAY_ID = 42,
+    SURFACE_NODE_SET_FOREGROUND = 26,
+    SURFACE_NODE_SET_SURFACE_ID = 27,
+    SURFACE_NODE_SET_CLONED_NODE_ID = 28,
+    SURFACE_NODE_SET_FORCE_UIFIRST = 29,
+    SURFACE_NODE_SET_ANCO_FLAGS = 30,
+    SURFACE_NODE_SET_HDR_PRESENT = 31,
+    SURFACE_NODE_SET_SKIP_DRAW = 32,
+    SURFACE_NODE_SET_WATERMARK_ENABLED = 33,
+    SURFACE_NODE_SET_ABILITY_STATE = 34,
+    SURFACE_NODE_SET_LEASH_PERSISTENT_ID = 35,
+    SURFACE_NODE_SET_API_COMPATIBLE_VERSION = 36,
+    SURFACE_NODE_SET_HARDWARE_ENABLE_HINT = 37,
+    SURFACE_NODE_ATTACH_TO_WINDOW_CONTAINER = 38,
+    SURFACE_NODE_DETACH_FROM_WINDOW_CONTAINER = 39,
+    SURFACE_NODE_SET_SOURCE_VIRTUAL_DISPLAY_ID = 40,
+    SURFACE_NODE_CREATE_SURFACE_EXT = 41,
+    SURFACE_NODE_SET_FRAME_GRAVITY_NEW_VERSION_ENABLED = 42,
+    SURFACE_NODE_SET_REGION_TO_BE_MAGNIFIED = 43,
 };
 
 class RSB_EXPORT SurfaceNodeCommandHelper {
@@ -115,7 +116,7 @@ public:
 #endif
     static void SetForeground(RSContext& context, NodeId nodeId, bool isForeground);
     static void SetSurfaceId(RSContext& context, NodeId nodeId, SurfaceId surfaceId);
-    static void SetClonedNodeId(RSContext& context, NodeId nodeId, NodeId cloneNodeId);
+    static void SetClonedNodeInfo(RSContext& context, NodeId nodeId, NodeId cloneNodeId, bool needOffscreen);
     static void SetForceUIFirst(RSContext& context, NodeId nodeId, bool forceUIFirst);
     static void SetAncoFlags(RSContext& context, NodeId nodeId, uint32_t flags);
     static void SetHDRPresent(RSContext& context, NodeId nodeId, bool hdrPresent);
@@ -127,6 +128,8 @@ public:
     static void SetSourceVirtualDisplayId(RSContext& context, NodeId nodeId, ScreenId screenId);
     static void AttachToWindowContainer(RSContext& context, NodeId nodeId, ScreenId screenId);
     static void DetachFromWindowContainer(RSContext& context, NodeId nodeId, ScreenId screenId);
+    static void SetRegionToBeMagnified(RSContext& context, NodeId nodeId, Vector4f regionToBeMagnified);
+    static void SetFrameGravityNewVersionEnabled(RSContext& context, NodeId nodeId, bool isEnabled);
 };
 
 ADD_COMMAND(RSSurfaceNodeCreate,
@@ -224,7 +227,7 @@ ADD_COMMAND(RSSurfaceNodeSetForeground,
         SurfaceNodeCommandHelper::SetForeground, NodeId, bool))
 ADD_COMMAND(RSSurfaceNodeSetClonedNodeId,
     ARG(PERMISSION_SYSTEM, SURFACE_NODE, SURFACE_NODE_SET_CLONED_NODE_ID,
-        SurfaceNodeCommandHelper::SetClonedNodeId, NodeId, NodeId))
+        SurfaceNodeCommandHelper::SetClonedNodeInfo, NodeId, NodeId, bool))
 ADD_COMMAND(RSSurfaceNodeSetForceUIFirst,
     ARG(PERMISSION_SYSTEM, SURFACE_NODE, SURFACE_NODE_SET_FORCE_UIFIRST,
         SurfaceNodeCommandHelper::SetForceUIFirst, NodeId, bool))
@@ -258,6 +261,12 @@ ADD_COMMAND(RSSurfaceNodeDetachFromWindowContainer,
 ADD_COMMAND(RSSurfaceNodeSetSourceVirtualDisplayId,
     ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_SET_SOURCE_VIRTUAL_DISPLAY_ID,
         SurfaceNodeCommandHelper::SetSourceVirtualDisplayId, NodeId, ScreenId))
+ADD_COMMAND(RSSurfaceNodeSetRegionToBeMagnified,
+    ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_SET_REGION_TO_BE_MAGNIFIED,
+        SurfaceNodeCommandHelper::SetRegionToBeMagnified, NodeId, Vector4f))
+ADD_COMMAND(RSSurfaceNodeSetFrameGravityNewVersionEnabled,
+    ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_SET_FRAME_GRAVITY_NEW_VERSION_ENABLED,
+        SurfaceNodeCommandHelper::SetFrameGravityNewVersionEnabled, NodeId, bool))
 } // namespace Rosen
 } // namespace OHOS
 #endif // ROSEN_RENDER_SERVICE_BASE_COMMAND_RS_SURFACE_NODE_COMMAND_H

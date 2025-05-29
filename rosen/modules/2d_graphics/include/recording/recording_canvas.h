@@ -134,6 +134,9 @@ public:
     bool IsCustomTypeface() const;
 
     void SetIsRecordCmd(bool isRecordCmd);
+    bool IsRecordCmd() const { return isRecordCmd_; };
+
+    void ResetHybridRenderSize(float width, float height);
 
     using DrawFunc = std::function<void(Drawing::Canvas* canvas, const Drawing::Rect* rect)>;
 protected:

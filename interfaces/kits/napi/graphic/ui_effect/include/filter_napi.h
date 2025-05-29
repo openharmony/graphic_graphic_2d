@@ -18,11 +18,18 @@
 #include <hilog/log.h>
 #include <iostream>
 #include "filter/include/filter.h"
+#include "filter/include/filter_bezier_warp_para.h"
 #include "filter/include/filter_blur_para.h"
+#include "filter/include/filter_color_gradient_para.h"
 #include "filter/include/filter_pixel_stretch_para.h"
 #include "filter/include/filter_water_ripple_para.h"
 #include "filter/include/filter_fly_out_para.h"
+#include "filter/include/filter_displacement_distort_para.h"
 #include "filter/include/filter_distort_para.h"
+#include "filter/include/filter_radius_gradient_blur_para.h"
+#include "filter/include/filter_edge_light_para.h"
+#include "filter/include/filter_dispersion_para.h"
+#include "mask/include/mask.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
 
@@ -30,7 +37,7 @@ namespace OHOS {
 namespace Rosen {
 
 #undef LOG_DOMAIN
-#define LOG_DOMAIN 0xD001499
+#define LOG_DOMAIN 0xD001405
 
 #undef LOG_TAG
 #define LOG_TAG "UiEffect_Filter"
@@ -50,15 +57,24 @@ private:
     static void Destructor(napi_env env, void* nativeObject, void* finalize);
 
     static napi_value CreateFilter(napi_env env, napi_callback_info info);
+    static napi_value SetBezierWarp(napi_env env, napi_callback_info info);
     static napi_value SetBlur(napi_env env, napi_callback_info info);
     static napi_value SetPixelStretch(napi_env env, napi_callback_info info);
     static napi_value SetWaterRipple(napi_env env, napi_callback_info info);
     static napi_value SetFlyOut(napi_env env, napi_callback_info info);
+    static napi_value SetRadiusGradientBlurPara(napi_env env, napi_callback_info info);
     static napi_value SetDistort(napi_env env, napi_callback_info info);
+    static napi_value SetColorGradient(napi_env env, napi_callback_info info);
+    static napi_value SetDisplacementDistort(napi_env env, napi_callback_info info);
+    static napi_value SetEdgeLight(napi_env env, napi_callback_info info);
+    static napi_value SetMaskDispersion(napi_env env, napi_callback_info info);
     static Drawing::TileMode ParserArgumentType(napi_env env, napi_value argv);
+    static GradientDirection ParserGradientDirection(napi_env env, napi_value argv);
 
     static float GetSpecialValue(napi_env env, napi_value argValue);
     static uint32_t GetSpecialIntValue(napi_env env, napi_value argValue);
+    static bool GetColorGradientArray(napi_env env, napi_value* argValue, std::shared_ptr<ColorGradientPara>& para,
+        uint32_t arraySize);
 
     std::shared_ptr<Filter> m_FilterObj = nullptr;
 };

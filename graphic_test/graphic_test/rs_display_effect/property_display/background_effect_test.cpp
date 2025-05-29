@@ -30,7 +30,7 @@ public:
     // called before each tests
     void BeforeEach() override
     {
-        SetScreenSurfaceBounds({ 0, 0, screenWidth, screenHeight });
+        SetScreenSize(screenWidth, screenHeight);
     }
 };
 
@@ -71,6 +71,31 @@ GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, Fly_In_Test)
             SetUpNodeBgImage("/data/local/tmp/Images/backGroundImage.jpg", { x, y, sizeX - 10, sizeY - 10 });
         RSFlyOutPara para = { i % 2 };
         testNodeBackGround->SetFlyOutParams(para, progressList[i]);
+        GetRootNode()->AddChild(testNodeBackGround);
+        RegisterNode(testNodeBackGround);
+    }
+}
+
+GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, Distort_Test)
+{
+    int columnCount = 3;
+    int rowCount = 3;
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight / rowCount;
+
+    std::vector<float> valueList = { 1, -10, -1, -0.5, 0, 0.1, 0.3, 0.5, 10 };
+
+    for (int i = 0; i < valueList.size(); i++) {
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+        auto testNodeBackGround =
+            SetUpNodeBgImage("/data/local/tmp/Images/backGroundImage.jpg", { x, y, sizeX - 10, sizeY - 10 });
+        testNodeBackGround->SetDistortionK(valueList[i]);
+        testNodeBackGround->SetClipToBounds(true);
+        testNodeBackGround->SetClipToFrame(true);
+        testNodeBackGround->SetBorderStyle(0, 0, 0, 0);
+        testNodeBackGround->SetBorderWidth(5, 5, 5, 5);
+        testNodeBackGround->SetBorderColor(Vector4<Color>(RgbPalette::Green()));
         GetRootNode()->AddChild(testNodeBackGround);
         RegisterNode(testNodeBackGround);
     }

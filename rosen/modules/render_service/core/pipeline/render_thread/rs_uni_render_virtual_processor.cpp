@@ -354,11 +354,6 @@ void RSUniRenderVirtualProcessor::ScaleMirrorIfNeed(const ScreenRotation angle, 
         std::swap(virtualScreenWidth_, virtualScreenHeight_);
     }
 
-    RS_TRACE_NAME_FMT("RSUniRenderVirtualProcessor::ScaleMirrorIfNeed:(%f, %f, %f, %f), " \
-        "screenCorrection:%d, oriRotation:%d",
-        mirroredScreenWidth_, mirroredScreenHeight_, virtualScreenWidth_, virtualScreenHeight_,
-        static_cast<int>(screenCorrection_), static_cast<int>(angle));
-
     float mirroredScreenWidth = mirroredScreenWidth_;
     float mirroredScreenHeight = mirroredScreenHeight_;
     if (EnableVisibleRect()) {
@@ -368,19 +363,15 @@ void RSUniRenderVirtualProcessor::ScaleMirrorIfNeed(const ScreenRotation angle, 
             RS_LOGE("RSUniRenderVirtualProcessor::ScaleMirrorIfNeed, input is illegal.");
             return;
         }
-        if (!drawMirrorCopy_) {
-            float top = visibleRect_.GetTop();
-            float left = visibleRect_.GetLeft();
-            float startRectX = virtualScreenWidth_ * (left / mirroredScreenWidth);
-            float startRectY = virtualScreenHeight_ * (top / mirroredScreenHeight);
-            canvas.Translate(-startRectX, -startRectY);
-            RS_LOGD("RSUniRenderVirtualProcessor::ScaleMirrorIfNeed, top:%{public}f, left:%{public}f, width:%{public}f,"
-                "height:%{public}f, X:%{public}f, Y:%{public}f", top, left, mirroredScreenWidth,
-                mirroredScreenHeight, startRectX, startRectY);
-        }
     }
 
-    if (mirroredScreenWidth == virtualScreenWidth_ && mirroredScreenHeight == virtualScreenHeight_) {
+    RS_TRACE_NAME_FMT("RSUniRenderVirtualProcessor::ScaleMirrorIfNeed:(%f, %f, %f, %f), "
+        "screenCorrection:%d, oriRotation:%d, scaleMode_: %d",
+        mirroredScreenWidth, mirroredScreenHeight, virtualScreenWidth_, virtualScreenHeight_,
+        static_cast<int>(screenCorrection_), static_cast<int>(angle), static_cast<int>(scaleMode_));
+
+    if (!EnableVisibleRect() &&
+        ROSEN_EQ(mirroredScreenWidth, virtualScreenWidth_) && ROSEN_EQ(mirroredScreenHeight, virtualScreenHeight_)) {
         return;
     }
 
@@ -464,41 +455,53 @@ void RSUniRenderVirtualProcessor::Fill(RSPaintFilterCanvas& canvas,
         mirrorScaleX_ = mirrorWidth / mainWidth;
         mirrorScaleY_ = mirrorHeight / mainHeight;
         canvas.Scale(mirrorScaleX_, mirrorScaleY_);
+        if (EnableVisibleRect() && !drawMirrorCopy_) {
+            canvas.Translate(-visibleRect_.GetLeft(), -visibleRect_.GetTop());
+        }
     }
 }
 
 void RSUniRenderVirtualProcessor::UniScale(RSPaintFilterCanvas& canvas,
     float mainWidth, float mainHeight, float mirrorWidth, float mirrorHeight)
 {
-    if (mainWidth > 0 && mainHeight > 0) {
-        float startX = 0.0f;
-        float startY = 0.0f;
-        mirrorScaleX_ = mirrorWidth / mainWidth;
-        mirrorScaleY_ = mirrorHeight / mainHeight;
-        if (mirrorScaleY_ < mirrorScaleX_) {
-            mirrorScaleX_ = mirrorScaleY_;
-            startX = (mirrorWidth - (mirrorScaleX_ * mainWidth)) / 2; // 2 for calc X
-        } else {
-            mirrorScaleY_ = mirrorScaleX_;
-            startY = (mirrorHeight - (mirrorScaleY_ * mainHeight)) / 2; // 2 for calc Y
-        }
-
-        if (EnableSlrScale()) {
-            if (slrManager_ == nullptr) {
-                slrManager_ = std::make_shared<RSSLRScaleFunction>(virtualScreenWidth_, virtualScreenHeight_,
-                    mirroredScreenWidth_, mirroredScreenHeight_);
-            } else {
-                slrManager_->CheckOrRefreshScreen(virtualScreenWidth_, virtualScreenHeight_,
-                    mirroredScreenWidth_, mirroredScreenHeight_);
-            }
-            slrManager_->CanvasScale(canvas);
-            RS_LOGD("RSUniRenderVirtualProcessor::UniScale: Scale With SLR.");
-            return;
-        }
-
-        canvas.Translate(startX, startY);
-        canvas.Scale(mirrorScaleX_, mirrorScaleY_);
+    if (ROSEN_LE(mainWidth, 0) || ROSEN_LE(mainHeight, 0) || ROSEN_LE(mirrorWidth, 0) || ROSEN_LE(mirrorHeight, 0)) {
+        return;
     }
+    float startX = 0.0f;
+    float startY = 0.0f;
+    mirrorScaleX_ = mirrorWidth / mainWidth;
+    mirrorScaleY_ = mirrorHeight / mainHeight;
+    if (mirrorScaleY_ < mirrorScaleX_) {
+        mirrorScaleX_ = mirrorScaleY_;
+        startX = (mirrorWidth / mirrorScaleX_ - mainWidth) / 2; // 2 for calc X
+    } else {
+        mirrorScaleY_ = mirrorScaleX_;
+        startY = (mirrorHeight / mirrorScaleY_ - mainHeight) / 2; // 2 for calc Y
+    }
+
+    if (EnableSlrScale()) {
+        if (slrManager_ == nullptr) {
+            slrManager_ = std::make_shared<RSSLRScaleFunction>(virtualScreenWidth_, virtualScreenHeight_,
+                mirroredScreenWidth_, mirroredScreenHeight_);
+        } else {
+            slrManager_->CheckOrRefreshScreen(virtualScreenWidth_, virtualScreenHeight_,
+                mirroredScreenWidth_, mirroredScreenHeight_);
+        }
+        slrManager_->CheckOrRefreshColorSpace(renderFrameConfig_.colorGamut);
+        slrManager_->CanvasScale(canvas);
+        RS_LOGD("RSUniRenderVirtualProcessor::UniScale: Scale With SLR, color is %{public}d.",
+            renderFrameConfig_.colorGamut);
+        return;
+    }
+
+    canvas.Scale(mirrorScaleX_, mirrorScaleY_);
+    if (EnableVisibleRect() && !drawMirrorCopy_) {
+        canvas.Translate(-visibleRect_.GetLeft(), -visibleRect_.GetTop());
+        RS_LOGD("RSUniRenderVirtualProcessor::UniScale: Scale With VisibleRect, "
+            "mirrorScaleX_: %{public}f, mirrorScaleY_: %{public}f, startX: %{public}f, startY: %{public}f",
+            mirrorScaleX_, mirrorScaleY_, startX, startY);
+    }
+    canvas.Translate(startX, startY);
 }
 
 bool RSUniRenderVirtualProcessor::EnableSlrScale()
@@ -530,20 +533,37 @@ void RSUniRenderVirtualProcessor::ProcessCacheImage(Drawing::Image& cacheImage)
     RSUniRenderUtil::ProcessCacheImage(*canvas_, cacheImage);
 }
 
-void RSUniRenderVirtualProcessor::CanvasClipRegionForUniscaleMode()
+void RSUniRenderVirtualProcessor::CanvasClipRegionForUniscaleMode(const Drawing::Matrix& visibleClipRectMatrix,
+    const ScreenInfo& mainScreenInfo)
 {
     if (canvas_ == nullptr) {
         RS_LOGE("RSUniRenderVirtualProcessor::CanvasClipRegion: Canvas is null!");
         return;
     }
-    if (scaleMode_ == ScreenScaleMode::UNISCALE_MODE) {
-        Drawing::Rect rect(0, 0, mirroredScreenWidth_, mirroredScreenHeight_);
-        canvas_->GetTotalMatrix().MapRect(rect, rect);
-        Drawing::RectI rectI = {rect.GetLeft(), rect.GetTop(), rect.GetRight(), rect.GetBottom()};
-        Drawing::Region clipRegion;
-        clipRegion.SetRect(rectI);
-        canvas_->ClipRegion(clipRegion);
+    if (scaleMode_ != ScreenScaleMode::UNISCALE_MODE) {
+        return;
     }
+    Drawing::Rect rect(0, 0, mirroredScreenWidth_, mirroredScreenHeight_);
+    // SLR scaling does not scale canvas, get scale matrix from slrManager_ if SLR scaling is enabled.
+    auto matrix = EnableSlrScale() && slrManager_ ? slrManager_->GetScaleMatrix() : canvas_->GetTotalMatrix();
+    if (EnableVisibleRect()) {
+        if (drawMirrorCopy_) {
+            rect = Drawing::Rect(0, 0, visibleRect_.GetWidth(), visibleRect_.GetHeight());
+        } else {
+            rect = visibleRect_;
+            if (mainScreenInfo.isSamplingOn && !RSSystemProperties::GetSLRScaleEnabled()) {
+                // If SLR scaling is not enabled, apply visibleClipRectMatrix to rect to exclude sampling operation.
+                matrix = visibleClipRectMatrix;
+            }
+        }
+    }
+    matrix.MapRect(rect, rect);
+    Drawing::RectI rectI = {rect.GetLeft(), rect.GetTop(), rect.GetRight(), rect.GetBottom()};
+    Drawing::Region clipRegion;
+    clipRegion.SetRect(rectI);
+    canvas_->ClipRegion(clipRegion);
+    RS_LOGD("RSUniRenderVirtualProcessor::CanvasClipRegionForUniscaleMode, clipRect: %{public}s",
+        rectI.ToString().c_str());
 }
 
 void RSUniRenderVirtualProcessor::ProcessRcdSurface(RSRcdSurfaceRenderNode& node)

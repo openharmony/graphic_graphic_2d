@@ -26,8 +26,8 @@ ohos_unittest("frame_analyzer_test") {
   ]
 
   deps = [
-    "//foundation/graphic/graphic_2d/rosen/modules/frame_analyzer:libframe_analyzer",
-    "//foundation/graphic/graphic_2d/utils/test_header:test_header",
+    "$graphic_2d_root/rosen/modules/frame_analyzer:libframe_analyzer",
+    "$graphic_2d_root/utils/test_header:test_header",
   ]
   external_deps = [
     "hilog:libhilog",
@@ -36,7 +36,7 @@ ohos_unittest("frame_analyzer_test") {
 
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
     defines = [ "USE_ROSEN_DRAWING" ]
-    deps += [ "../../../modules/2d_graphics:2d_graphics" ]
+    deps += [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics" ]
   }
 
   cflags = [

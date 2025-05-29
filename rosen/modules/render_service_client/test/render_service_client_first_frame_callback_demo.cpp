@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,16 +14,16 @@
  */
 
 #include <iostream>
-#include <surface.h>
 
-#include "wm/window.h"
+#include "dm/display_manager.h"
+#include "securec.h"
 
-
+#include "transaction/rs_interfaces.h"
 #include "transaction/rs_transaction.h"
-#include "ui/rs_root_node.h"
 #include "ui/rs_display_node.h"
+#include "ui/rs_root_node.h"
 #include "ui/rs_surface_node.h"
-#include "ui/rs_surface_extractor.h"
+#include "ui/rs_ui_context.h"
 #include "ui/rs_ui_director.h"
 
 using namespace OHOS;
@@ -32,64 +32,63 @@ using namespace std;
 
 std::shared_ptr<RSNode> rootNode;
 std::vector<std::shared_ptr<RSCanvasNode>> nodes;
+uint64_t screenId = 0;
 
-void Init(std::shared_ptr<RSUIDirector> rsUiDirector, int width, int height)
+void Init(std::shared_ptr<RSUIDirector> rsUiDirector, int width, int height,
+    std::vector<std::shared_ptr<RSCanvasNode>>& nodes, std::shared_ptr<RSNode>& rootNode)
 {
     std::cout << "rs app demo Init Rosen Backend!" << std::endl;
-
-    rootNode = RSRootNode::Create();
+    auto rsUIContext = rsUiDirector->GetRSUIContext();
+    rootNode = RSRootNode::Create(false, false, rsUIContext);
     rootNode->SetBounds(0, 0, width, height);
     rootNode->SetFrame(0, 0, width, height);
-    rootNode->SetBackgroundColor(Drawing::Color::COLOR_RED);
+    rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
 
+    nodes.emplace_back(RSCanvasNode::Create(false, false, rsUIContext));
+    nodes[0]->SetBounds(0, 0, 100, 100);
+    nodes[0]->SetFrame(0, 0, 100, 100);
+    nodes[0]->SetBackgroundColor(Drawing::Color::COLOR_BLUE);
+
+    rootNode->AddChild(nodes[0], -1);
     rsUiDirector->SetRoot(rootNode->GetId());
 }
 
 int main()
 {
-    std::cout << "rs app demo start!" << std::endl;
-    sptr<WindowOption> option = new WindowOption();
-    option->SetWindowType(WindowType::WINDOW_TYPE_STATUS_BAR);
-    option->SetWindowMode(WindowMode::WINDOW_MODE_FLOATING);
-    option->SetWindowRect({0, 0, 2560, 112});
-    auto window = Window::Create("app_demo", option);
-    
-    window->Show();
-    auto rect = window->GetRect();
-    while (rect.width_ == 0 && rect.height_ == 0) {
-        std::cout << "rs app demo create window failed: " << rect.width_ << " " << rect.height_ << std::endl;
-        window->Hide();
-        window->Destroy();
-        window = Window::Create("app_demo", option);
-        window->Show();
-        rect = window->GetRect();
-    }
-    std::cout << "rs app demo create window " << rect.width_ << " " << rect.height_ << std::endl;
-    auto surfaceNode = window->GetSurfaceNode();
-
-    auto rsUiDirector = RSUIDirector::Create();
-    rsUiDirector->Init();
-    RSTransaction::FlushImplicitTransaction();
-    sleep(1);
-
+    std::cout << "render service client first frame callback demo start!" << std::endl;
+    std::shared_ptr<RSNode> rootNode;
+    std::vector<std::shared_ptr<RSCanvasNode>> nodes;
+    std::shared_ptr<RSUIDirector> rsUiDirector = RSUIDirector::Create();
+    rsUiDirector->Init(true, true);
+    auto uiContext = rsUiDirector->GetRSUIContext();
+    RSSurfaceNodeConfig surfaceNodeConfig;
+    surfaceNodeConfig.SurfaceNodeName = "AppMain_Window";
+    RSSurfaceNodeType surfaceNodeType = RSSurfaceNodeType::APP_WINDOW_NODE;
+    auto surfaceNode = RSSurfaceNode::Create(surfaceNodeConfig, surfaceNodeType, true, false, uiContext);
+    surfaceNode->SetFrameGravity(Gravity::RESIZE_ASPECT_FILL);
+    surfaceNode->SetPositionZ(RSSurfaceNode::POINTER_WINDOW_POSITION_Z);
+    surfaceNode->SetBounds(0, 0, 600, 600);
     std::cout << "rs app demo stage 1 " << std::endl;
     rsUiDirector->SetRSSurfaceNode(surfaceNode);
-    Init(rsUiDirector, rect.width_, rect.height_);
-    rsUiDirector->SendMessages();
-    sleep(1);
+    Init(rsUiDirector, 300, 300, nodes, rootNode);
+    surfaceNode->AttachToDisplay(screenId);
+    auto transaction = uiContext->GetRSTransaction();
+    if (!transaction) {
+        std::cout << "!transaction " << std::endl;
+        return -1;
+    }
+    transaction->FlushImplicitTransaction();
 
+    sleep(2);
     std::cout << "rs app demo stage 2 " << std::endl;
-    int resizeH = 1600;
-    window->Resize(2560, resizeH);
-    rootNode->SetBounds(0, 0, 2560, resizeH);
     rootNode->SetBackgroundColor(Drawing::Color::COLOR_YELLOW);
-    rsUiDirector->SendMessages();
-    sleep(4);
+    transaction->FlushImplicitTransaction();
+    sleep(2);
 
     std::cout << "rs app demo stage 3 " << std::endl;
     rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLUE);
-    rsUiDirector->SendMessages();
-    sleep(1);
+    transaction->FlushImplicitTransaction();
+    sleep(2);
 
     std::cout << "rs app demo stage 4 bufferAvailble" << std::endl;
     surfaceNode->SetIsNotifyUIBufferAvailable(false);
@@ -97,8 +96,8 @@ int main()
         std::cout << "SetBufferAvailableCallback 1" << std::endl;
     });
     rootNode->SetBackgroundColor(Drawing::Color::COLOR_YELLOW);
-    rsUiDirector->SendMessages();
-    sleep(1);
+    transaction->FlushImplicitTransaction();
+    sleep(2);
 
     std::cout << "rs app demo stage 5 bufferAvailble " << std::endl;
     surfaceNode->SetIsNotifyUIBufferAvailable(false);
@@ -106,8 +105,8 @@ int main()
         std::cout << "SetBufferAvailableCallback 2" << std::endl;
     });
     rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLUE);
-    rsUiDirector->SendMessages();
-    sleep(1);
+    transaction->FlushImplicitTransaction();
+    sleep(4);
 
     return 0;
 }

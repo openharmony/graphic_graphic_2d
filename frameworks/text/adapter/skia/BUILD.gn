@@ -1,0 +1,199 @@
+# Copyright (c) 2024 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+import("//foundation/graphic/graphic_2d/ace_platforms.gni")
+import("//foundation/graphic/graphic_2d/frameworks/text/config.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
+
+config("skia_libtxt_config") {
+  defines = [
+    "OHOS_SUPPORT",
+    "USE_SKIA_TXT",
+  ]
+
+  if (rs_enable_gpu) {
+    defines += [ "RS_ENABLE_GPU" ]
+  }
+
+  include_dirs = [
+    "$rosen_text_root",
+    "$rosen_text_root/interface/export",
+    "$rosen_text_root/interface/export/rosen_text",
+  ]
+
+  cflags_cc = [
+    "-Wno-implicit-fallthrough",
+    "-fvisibility-inlines-hidden",
+    "-std=c++17",
+  ]
+}
+
+template("skia_libtxt") {
+  forward_variables_from(invoker, "*")
+
+  ohos_source_set(target_name) {
+    part_name = "graphic_2d"
+    subsystem_name = "graphic"
+    defines += invoker.defines
+    cflags_cc += invoker.cflags_cc
+
+    public_configs = [ ":skia_libtxt_config" ]
+    include_dirs = [
+      "$rosen_root/modules/render_service_base/include",
+      "$graphic_2d_root/rosen/modules/2d_graphics/include",
+      "$graphic_2d_root/rosen/modules/2d_graphics/src",
+      "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing",
+      "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing/engine_adapter",
+      "$rosen_text_root",
+      "$rosen_text_root/service/skia_txt",
+      "$rosen_text_root/adapter/skia",
+      "$rosen_text_root/adapter/skia/txt",
+      "$rosen_text_root/service/texgine/src",
+    ]
+
+    sources = [
+      "common_utils/string_util.cpp",
+      "impl/drawing_painter_impl.cpp",
+      "impl/paragraph_builder_impl.cpp",
+      "impl/paragraph_impl.cpp",
+      "impl/paragraph_line_fetcher_impl.cpp",
+      "impl/paragraph_relayout_impl.cpp",
+      "impl/run_impl.cpp",
+      "impl/text_font_utils.cpp",
+      "impl/text_line_impl.cpp",
+      "symbol_engine/hm_symbol_node_build.cpp",
+      "symbol_engine/hm_symbol_run.cpp",
+      "symbol_engine/hm_symbol_txt.cpp",
+      "symbol_engine/text_animation_config.cpp",
+      "symbol_resource/symbol_config_parser.cpp",
+      "txt/asset_font_manager.cpp",
+      "txt/font_asset_provider.cpp",
+      "txt/font_collection.cpp",
+      "txt/paragraph_builder.cpp",
+      "txt/paragraph_style.cpp",
+      "txt/placeholder_run.cpp",
+      "txt/platform.cpp",
+      "txt/text_bundle_config_parser.cpp",
+      "txt/text_style.cpp",
+      "txt/typeface_font_asset_provider.cpp",
+    ]
+
+    external_deps = []
+    if (platform_is_ohos) {
+      external_deps += [
+        "bundle_framework:appexecfwk_base",
+        "bundle_framework:appexecfwk_core",
+        "hitrace:hitrace_meter",
+        "init:libbegetutil",
+        "ipc:ipc_core",
+        "samgr:samgr_proxy",
+      ]
+      defines += [
+        "ENABLE_OHOS_ENHANCE",
+        "HM_SYMBOL_TXT_ENABLE",
+      ]
+    } else {
+      defines += [ "MODULE_TEXTING" ]
+    }
+
+    if (is_arkui_x) {
+      include_dirs += [ "//base/hiviewdfx/hitrace/interfaces/native/innerkits/include/hitrace_meter" ]
+      defines += [ "CROSS_PLATFORM" ]
+      deps = [
+        "//third_party/bounds_checking_function:libsec_static",
+        "//third_party/jsoncpp:jsoncpp_static",
+        "//third_party/skia:skia_$platform",
+        "//third_party/skia/modules/skparagraph:skia_paragraph_ohos",
+      ]
+    } else {
+      external_deps += [
+        "bounds_checking_function:libsec_shared",
+        "hilog:libhilog",
+        "jsoncpp:jsoncpp",
+        "skia:skia_canvaskit",
+        "skia:skia_paragraph_ohos",
+      ]
+      defines += [ "TEXT_SYSTEM_OHOS" ]
+    }
+  }
+}
+
+foreach(item, ace_platforms) {
+  skia_libtxt("skia_libtxt_" + item.name) {
+    defines = []
+    cflags_cc = []
+    config = {
+    }
+
+    if (defined(item.config)) {
+      config = item.config
+    }
+
+    if (defined(config.defines)) {
+      defines = config.defines
+    }
+
+    if (defined(config.cflags_cc)) {
+      cflags_cc = config.cflags_cc
+    }
+  }
+}
+
+ohos_static_library("font_asset") {
+  part_name = "graphic_2d"
+  subsystem_name = "graphic"
+
+  public_configs = [ ":skia_libtxt_config" ]
+  defines = []
+  if (is_arkui_x) {
+    deps = [
+      "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog_${target_os}",
+      "//third_party/bounds_checking_function:libsec_static",
+      "//third_party/cJSON:cjson_static",
+      "//third_party/skia:skia_$platform",
+    ]
+  } else {
+    external_deps = [
+      "bounds_checking_function:libsec_shared",
+      "cJSON:cjson",
+      "hilog:libhilog",
+      "skia:skia_canvaskit",
+    ]
+  }
+
+  include_dirs = [
+    "$rosen_text_root/service/skia_txt",
+    "$rosen_text_root/adapter/skia/txt",
+    "$rosen_text_root/adapter/skia",
+    "$rosen_text_root/service/texgine/src",
+  ]
+
+  if (platform_is_ohos) {
+    external_deps += [ "init:libbegetutil" ]
+    defines += [
+      "HM_SYMBOL_TXT_ENABLE",
+      "BUILD_NON_SDK_VER",
+      "ENABLE_OHOS_ENHANCE",
+    ]
+  } else {
+    defines += [ "MODULE_FONT" ]
+  }
+
+  sources = [
+    "$rosen_text_root/adapter/skia/txt/asset_font_manager.cpp",
+    "$rosen_text_root/adapter/skia/txt/font_asset_provider.cpp",
+    "$rosen_text_root/adapter/skia/txt/typeface_font_asset_provider.cpp",
+    "$rosen_text_root/service/texgine/src/font_config.cpp",
+  ]
+}

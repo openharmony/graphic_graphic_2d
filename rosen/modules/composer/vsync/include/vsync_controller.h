@@ -50,6 +50,7 @@ public:
     virtual VsyncError SetEnable(bool enable, bool& isGeneratorEnable);
     VsyncError SetCallback(Callback* cb);
     VsyncError SetPhaseOffset(int64_t offset);
+    bool NeedPreexecuteAndUpdateTs(int64_t& timestamp, int64_t& period);
 
 private:
     friend class DVSyncController;
@@ -65,6 +66,7 @@ private:
     std::mutex offsetMutex_;
     int64_t phaseOffset_;
     bool enabled_;
+    int64_t lastVsyncTime_;
 };
 } // namespace Rosen
 } // namespace OHOS

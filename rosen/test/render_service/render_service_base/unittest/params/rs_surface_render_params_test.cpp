@@ -141,6 +141,20 @@ HWTEST_F(RSSurfaceRenderParamsTest, SetLayerSourceTuning, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetTunnelLayerId
+ * @tc.desc:
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderParamsTest, SetTunnelLayerId, TestSize.Level1)
+{
+    RSSurfaceRenderParams params(DEFAULT_NODEID);
+    EXPECT_EQ(params.GetTunnelLayerId(), 0);
+    params.SetTunnelLayerId(1);
+    EXPECT_EQ(params.GetTunnelLayerId(), 1);
+}
+
+/**
  * @tc.name: SetFixRotationByUser
  * @tc.desc:
  * @tc.type:FUNC
@@ -470,12 +484,12 @@ HWTEST_F(RSSurfaceRenderParamsTest, GetSourceDisplayRenderNodeDrawable, TestSize
 }
 
 /**
- * @tc.name: SetOffsetX
+ * @tc.name: SetOffsetXTest
  * @tc.desc:
  * @tc.type:FUNC
  * @tc.require:
  */
-HWTEST_F(RSSurfaceRenderParamsTest, SetOffsetX, TestSize.Level1)
+HWTEST_F(RSSurfaceRenderParamsTest, SetOffsetXTest, TestSize.Level1)
 {
     RSSurfaceRenderParams params(125);
     params.SetOffsetX(1);
@@ -488,7 +502,7 @@ HWTEST_F(RSSurfaceRenderParamsTest, SetOffsetX, TestSize.Level1)
  * @tc.type:FUNC
  * @tc.require:
  */
-HWTEST_F(RSSurfaceRenderParamsTest, SetOffsetY, TestSize.Level1)
+HWTEST_F(RSSurfaceRenderParamsTest, SetOffsetYTest, TestSize.Level1)
 {
     RSSurfaceRenderParams params(126);
     params.SetOffsetY(1);
@@ -501,10 +515,26 @@ HWTEST_F(RSSurfaceRenderParamsTest, SetOffsetY, TestSize.Level1)
  * @tc.type:FUNC
  * @tc.require:
  */
-HWTEST_F(RSSurfaceRenderParamsTest, SetRogWidthRatio, TestSize.Level1)
+HWTEST_F(RSSurfaceRenderParamsTest, SetRogWidthRatioTest, TestSize.Level1)
 {
     RSSurfaceRenderParams params(127);
     params.SetRogWidthRatio(1.0);
     EXPECT_EQ(params.GetRogWidthRatio(), 1.0);
+}
+
+/**
+ * @tc.name: SetFrameGravityNewVersionEnabledTest
+ * @tc.desc: SetFrameGravityNewVersionEnabled and GetFrameGravityNewVersionEnabled
+ * @tc.type: FUNC
+ * @tc.require: issueIC8CDF
+ */
+HWTEST_F(RSSurfaceRenderParamsTest, SetFrameGravityNewVersionEnabledTest, TestSize.Level1)
+{
+    RSSurfaceRenderParams params(128);
+    params.SetFrameGravityNewVersionEnabled(false);
+    EXPECT_EQ(params.GetFrameGravityNewVersionEnabled(), false);
+
+    params.SetFrameGravityNewVersionEnabled(true);
+    EXPECT_EQ(params.GetFrameGravityNewVersionEnabled(), true);
 }
 } // namespace OHOS::Rosen

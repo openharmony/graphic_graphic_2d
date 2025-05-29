@@ -31,10 +31,13 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
+const uint8_t DO_GET_UNI_RENDER_ENABLED_TYPE = 0;
+const uint8_t DO_SAFE_GET_LINE = 1;
+const uint8_t TARGET_SIZE = 2;
+
 const uint8_t* g_data = nullptr;
 size_t g_size = 0;
 size_t g_pos;
-} // namespace
 
 template<class T>
 T GetData()
@@ -51,38 +54,33 @@ T GetData()
     g_pos += objectSize;
     return object;
 }
-bool DoGetUniRenderEnabledType(const uint8_t* data, size_t size)
+
+bool Init(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
         return false;
     }
 
-    // initialize
     g_data = data;
     g_size = size;
     g_pos = 0;
+    return true;
+}
+} // namespace
 
+void DoGetUniRenderEnabledType()
+{
     RSUniRenderJudgement::GetUniRenderEnabledType();
     RSUniRenderJudgement::InitUniRenderConfig();
     RSUniRenderJudgement::IsUniRender();
     RSUniRenderJudgement::InitUniRenderWithConfigFile();
-    return true;
 }
-bool DoSafeGetLine(const uint8_t* data, size_t size)
+
+void DoSafeGetLine()
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
     std::string line;
     std::ifstream configFile("path_to_your_file.txt");
     RSUniRenderJudgement::SafeGetLine(configFile, line);
-    return true;
 }
 } // namespace Rosen
 } // namespace OHOS
@@ -91,7 +89,19 @@ bool DoSafeGetLine(const uint8_t* data, size_t size)
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
-    OHOS::Rosen::DoGetUniRenderEnabledType(data, size);
-    OHOS::Rosen::DoSafeGetLine(data, size);
+    if (!OHOS::Rosen::Init(data, size)) {
+        return -1;
+    }
+    uint8_t tarPos = OHOS::Rosen::GetData<uint8_t>() % OHOS::Rosen::TARGET_SIZE;
+    switch (tarPos) {
+        case OHOS::Rosen::DO_GET_UNI_RENDER_ENABLED_TYPE:
+            OHOS::Rosen::DoGetUniRenderEnabledType();
+            break;
+        case OHOS::Rosen::DO_SAFE_GET_LINE:
+            OHOS::Rosen::DoSafeGetLine();
+            break;
+        default:
+            return -1;
+    }
     return 0;
 }

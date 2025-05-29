@@ -568,6 +568,21 @@ enum OH_Drawing_FontWidth {
 };
 
 /**
+ * @brief Type of badge.
+ *
+ * @since 20
+ * @version 1.0
+ */
+typedef enum OH_Drawing_TextBadgeType {
+    /* No badge */
+    TEXT_BADGE_NONE,
+    /* Superscript */
+    TEXT_SUPERSCRIPT,
+    /* Subscript */
+    TEXT_SUBSCRIPT,
+} OH_Drawing_TextBadgeType;
+
+/**
  * @brief Defines the font style struct.
  *
  * @since 12
@@ -949,6 +964,20 @@ void OH_Drawing_TypographyHandlerPushTextStyle(OH_Drawing_TypographyCreate*, OH_
  * @version 1.0
  */
 void OH_Drawing_TypographyHandlerAddText(OH_Drawing_TypographyCreate*, const char*);
+
+/**
+ * @brief Sets the text content. The content supports UTF-8, UTF-16, and UTF-32 formats.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param handler Indicates the pointer to an <b>OH_Drawing_TypographyCreate</b> object.
+ * @param text Indicates the pointer to the text content to set.
+ * @param byteLength Set the byte length of the text content.
+ * @param textEncodingType Indicates the text encoding type <b>OH_Drawing_TextEncoding</b>.
+ * @since 20
+ * @version 1.0
+ */
+void OH_Drawing_TypographyHandlerAddEncodedText(OH_Drawing_TypographyCreate* handler, const void* text,
+    size_t byteLength, OH_Drawing_TextEncoding textEncodingType);
 
 /**
  * @brief Removes the topmost style in the stack, leaving the remaining styles in effect.
@@ -1403,6 +1432,17 @@ void OH_Drawing_SetTextStyleEllipsis(OH_Drawing_TextStyle*, const char*);
  * @version 1.0
  */
 void OH_Drawing_SetTextStyleEllipsisModal(OH_Drawing_TextStyle*, int);
+
+/**
+ * @brief Sets whether to use superscript or subscript in text layout.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param style Pointer to an OH_Drawing_TextStyle object.
+ * @param textBageType The type of text badge.
+ * @since 20
+ * @version 1.0
+ */
+void OH_Drawing_SetTextStyleBadgeType(OH_Drawing_TextStyle* style, OH_Drawing_TextBadgeType textBadgeType);
 
 /**
  * @brief Sets the break strategy.
@@ -2300,6 +2340,54 @@ int32_t OH_Drawing_TypographyGetUnresolvedGlyphsCount(OH_Drawing_Typography*);
 void OH_Drawing_TypographyUpdateFontSize(OH_Drawing_Typography*, size_t from, size_t to, float fontSize);
 
 /**
+ * @brief Update the font color of the typography.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param typography Indicates the pointer to the text <b>OH_Drawing_Typography</b> object.
+ * @param color Indicates the color to update.
+ * @since 20
+ * @version 1.0
+ */
+void OH_Drawing_TypographyUpdateFontColor(OH_Drawing_Typography* typography, uint32_t color);
+
+/**
+ * @brief Update the decoration of the typography.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param typography Indicates the pointer to the text <b>OH_Drawing_Typography</b> object.
+ * @param decoration Indicates the text decoration to update. For details, see the enum
+ * <b>OH_Drawing_TextDecoration</b>.
+ * @since 20
+ * @version 1.0
+ */
+void OH_Drawing_TypographyUpdateDecoration(OH_Drawing_Typography* typography, OH_Drawing_TextDecoration decoration);
+
+/**
+ * @brief Update the decoration thickness scale of the typography.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param typography Indicates the pointer to the text <b>OH_Drawing_Typography</b> object.
+ * @param decorationThicknessScale Indicates the thickness scale of the text decoration to update.
+ * @since 20
+ * @version 1.0
+ */
+void OH_Drawing_TypographyUpdateDecorationThicknessScale(OH_Drawing_Typography* typography,
+    double decorationThicknessScale);
+
+/**
+ * @brief Update the decoration style of the typography.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param typography Indicates the pointer to the text <b>OH_Drawing_Typography</b> object.
+ * @param decorationStyle Indicates the text decoration style to update.
+ * For details, see the enum <b>OH_Drawing_TextDecorationStyle</b>.
+ * @since 20
+ * @version 1.0
+ */
+void OH_Drawing_TypographyUpdateDecorationStyle(OH_Drawing_Typography* typography,
+    OH_Drawing_TextDecorationStyle decorationStyle);
+
+/**
  * @brief Get whether the text layout enables line styles.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
@@ -2813,6 +2901,28 @@ void OH_Drawing_SetTypographyTextTab(OH_Drawing_TypographyStyle*, OH_Drawing_Tex
  * @version 1.0
  */
 size_t OH_Drawing_GetDrawingArraySize(OH_Drawing_Array* drawingArray);
+
+/**
+ * @brief Sets whether to optimize whitespace at the end of each line for text typography.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param style Indicates the pointer to an <b>OH_Drawing_TypographyStyle</b> object.
+ * @param trailingSpaceOptimized Boolean value indicating whether to optimize whitespace at the end of each line
+ * for text typography to set.
+ * @since 20
+ * @version 1.0
+ */
+void OH_Drawing_SetTypographyTextTrailingSpaceOptimized(OH_Drawing_TypographyStyle* style, bool trailingSpaceOptimized);
+
+/**
+ * @brief Set whether to enable automatic spacing between Chinese and English for paragraph.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param style Indicates the pointer to an <b>OH_Drawing_TypographyStyle</b> object.
+ * @param enableAutoSpace Indicates Whether to enable automatic spacing between Chinese and English.
+ * @since 20
+ */
+void OH_Drawing_SetTypographyTextAutoSpace(OH_Drawing_TypographyStyle* style, bool enableAutoSpace);
 
 #ifdef __cplusplus
 }

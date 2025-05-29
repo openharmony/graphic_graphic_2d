@@ -253,18 +253,18 @@ void RSImplicitAnimator::ProcessAnimationFinishCallbackGuaranteeTask()
     RSUIDirector::PostDelayTask(callbackSafetyNetLambda, estimateDuration);
 }
 
-bool RSImplicitAnimator::CloseImplicitCancelAnimation()
+CancelAnimationStatus RSImplicitAnimator::CloseImplicitCancelAnimation()
 {
     if (globalImplicitParams_.empty() || implicitAnimations_.empty() || keyframeAnimations_.empty()) {
         ROSEN_LOGD("Failed to close cancel implicit animation, need to open implicit animation firstly!");
-        return false;
+        return CancelAnimationStatus::NO_OPEN_CLOSURE;
     }
     if (implicitAnimationParams_.top()->GetType() != ImplicitAnimationParamType::CANCEL) {
         ROSEN_LOGE("Failed to close cancel implicit animation, need to use the right fun 'CloseImplicitAnimation'!");
-        return false;
+        return CancelAnimationStatus::INCORRECT_PARAM_TYPE;
     }
 
-    bool ret =
+    auto ret =
         std::static_pointer_cast<RSImplicitCancelAnimationParam>(implicitAnimationParams_.top())->
         SyncProperties(rsUIContext_.lock());
     const auto& finishCallback = std::get<const std::shared_ptr<AnimationFinishCallback>>(globalImplicitParams_.top());

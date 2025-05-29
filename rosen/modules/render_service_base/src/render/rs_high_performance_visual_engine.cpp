@@ -15,6 +15,7 @@
 
 #include "render/rs_high_performance_visual_engine.h"
 #include "common/rs_optional_trace.h"
+#include "common/rs_color_palette.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -79,9 +80,14 @@ std::shared_ptr<Drawing::Image> HveFilter::SampleLayer(RSPaintFilterCanvas& canv
         Drawing::Matrix rotateMatrix = vecSurfaceNode[i].matrix_;
         Drawing::Rect parmSrcRect = vecSurfaceNode[i].srcRect_;
         Drawing::Rect parmDstRect = vecSurfaceNode[i].dstRect_;
-
+        // Get the color of solidlayer
+        Color solidLayerColor = vecSurfaceNode[i].solidLayerColor_;
         if (surfaceImage == nullptr) {
             continue;
+        }
+        // A valid solidlayer color exists.
+        if (solidLayerColor != RgbPalette::Transparent()) {
+            offscreenCanvas->Clear(static_cast<Drawing::ColorQuad>(solidLayerColor.AsArgbInt()));
         }
         offscreenCanvas->Save();
         offscreenCanvas->Translate(-srcRect.GetLeft(), -srcRect.GetTop());

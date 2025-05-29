@@ -66,7 +66,8 @@ private:
     xmlDoc *xmlSysDocument_ = nullptr;
     xmlDoc *xmlProdDocument_ = nullptr;
     std::vector<std::string> sysPaths_ = {"/system/variant/phone/base/", "/system/variant/tablet/base/",
-        "/system/variant/pc/base/", "/system/variant/watch/base/"};
+        "/system/variant/pc/base/", "/system/variant/watch/base/", "/system/variant/tv/base/",
+        "/system/variant/car/base/", "/system/variant/smarthomehost/base/"};
     std::string prodPath_ = "/sys_prod/";
 };
 } // namespace OHOS::Rosen

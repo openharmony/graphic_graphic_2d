@@ -58,7 +58,6 @@ ADD_COMMAND(RSRootNodeAttachToUniSurfaceNode,
 ADD_COMMAND(RSRootNodeUpdateSuggestedBufferSize,
     ARG(PERMISSION_APP, ROOT_NODE, UPDATE_SUGGESTED_BUFFER_SIZE,
         RootNodeCommandHelper::UpdateSuggestedBufferSize, NodeId, float, float))
-
 } // namespace Rosen
 } // namespace OHOS
 

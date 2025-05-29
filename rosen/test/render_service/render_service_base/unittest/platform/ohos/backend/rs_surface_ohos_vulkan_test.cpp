@@ -304,5 +304,46 @@ HWTEST_F(RSSurfaceOhosVulkanTest, FlushFrame001, TestSize.Level1)
         ASSERT_TRUE(rsSurface.FlushFrame(frame, uiTimestamp));
     }
 }
+
+/**
+ * @tc.name: ClearSurfaceResource001
+ * @tc.desc: test ClearSurfaceResource
+ * @tc.type:FUNC
+ * @tc.require: issuesIC7U3T
+ */
+HWTEST_F(RSSurfaceOhosVulkanTest, ClearSurfaceResource001, TestSize.Level1)
+{
+    RSSurfaceOhosVulkan rsSurface(IConsumerSurface::Create());
+
+    // create consumer
+    sptr<OHOS::IConsumerSurface> cSurface = IConsumerSurface::Create();
+    ASSERT_NE(cSurface, nullptr);
+    sptr<IBufferConsumerListener> listener = new BufferConsumerListener();
+    cSurface->RegisterConsumerListener(listener);
+
+    // create producer
+    sptr<OHOS::IBufferProducer> producer = cSurface->GetProducer();
+    sptr<OHOS::Surface> pSurface = Surface::CreateSurfaceAsProducer(producer);
+    ASSERT_NE(pSurface, nullptr);
+    int32_t fence;
+    sptr<OHOS::SurfaceBuffer> sBuffer = nullptr;
+    BufferRequestConfig requestConfig = {
+        .width = 0x100,
+        .height = 0x100,
+        .strideAlignment = 0x8,
+        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
+        .timeout = 0,
+    };
+
+    // create buffer
+    pSurface->RequestBuffer(sBuffer, fence, requestConfig);
+    NativeWindowBuffer* nativeWindowBuffer = OH_NativeWindow_CreateNativeWindowBufferFromSurfaceBuffer(&sBuffer);
+    ASSERT_NE(nativeWindowBuffer, nullptr);
+
+    rsSurface.mSurfaceList.emplace_back(nativeWindowBuffer);
+    rsSurface.ClearSurfaceResource();
+    ASSERT_TRUE(rsSurface.mSurfaceList.empty());
+}
 } // namespace Rosen
 } // namespace OHOS

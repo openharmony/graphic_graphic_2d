@@ -24,37 +24,37 @@ public:
     DVSyncParam() = default;
     ~DVSyncParam() = default;
 
-    bool IsDVSyncEnable() const;
-    bool IsUiDVSyncEnable() const;
-    bool IsNativeDVSyncEnable() const;
-    bool IsAdaptiveDVSyncEnable() const;
-    uint32_t GetUiBufferCount() const;
-    uint32_t GetRsBufferCount() const;
-    uint32_t GetNativeBufferCount() const;
-    uint32_t GetWebBufferCount() const;
-    std::unordered_map<std::string, std::string> GetAdaptiveConfig() const;
+    static bool IsDVSyncEnable();
+    static bool IsUiDVSyncEnable();
+    static bool IsNativeDVSyncEnable();
+    static bool IsAdaptiveDVSyncEnable();
+    static uint32_t GetUiBufferCount();
+    static uint32_t GetRsBufferCount();
+    static uint32_t GetNativeBufferCount();
+    static uint32_t GetWebBufferCount();
+    static std::unordered_map<std::string, std::string> GetAdaptiveConfig();
 
 protected:
-    void SetDVSyncEnable(bool isEnable);
-    void SetUiDVSyncEnable(bool isEnable);
-    void SetNativeDVSyncEnable(bool isEnable);
-    void SetAdaptiveDVSyncEnable(bool isEnable);
-    void SetRsBufferCount(int32_t cnt);
-    void SetUiBufferCount(int32_t cnt);
-    void SetNativeBufferCount(int32_t cnt);
-    void SetWebBufferCount(int32_t cnt);
-    void SetAdaptiveConfig(const std::string &name, const std::string &val);
+    static void SetDVSyncEnable(bool isEnable);
+    static void SetUiDVSyncEnable(bool isEnable);
+    static void SetNativeDVSyncEnable(bool isEnable);
+    static void SetAdaptiveDVSyncEnable(bool isEnable);
+    static void SetRsBufferCount(int32_t cnt);
+    static void SetUiBufferCount(int32_t cnt);
+    static void SetNativeBufferCount(int32_t cnt);
+    static void SetWebBufferCount(int32_t cnt);
+    static void SetAdaptiveConfig(const std::string &name, const std::string &val);
 
 private:
-    bool isRsDVSyncEnabled_ = false;
-    bool isUiDVSyncEnabled_ = false;
-    bool isNativeDVSyncEnabled_ = false;
-    bool isAdaptiveDVSyncEnabled_ = false;
-    uint32_t uiBufferCount_ = 3;
-    uint32_t rsBufferCount_ = 1;
-    uint32_t nativeBufferCount_ = 2;
-    uint32_t webBufferCount_ = 1;
-    std::unordered_map<std::string, std::string> adaptiveConfig_;
+    inline static bool isRsDVSyncEnabled_ = false;
+    inline static bool isUiDVSyncEnabled_ = false;
+    inline static bool isNativeDVSyncEnabled_ = false;
+    inline static bool isAdaptiveDVSyncEnabled_ = false;
+    inline static uint32_t uiBufferCount_ = 3;
+    inline static uint32_t rsBufferCount_ = 1;
+    inline static uint32_t nativeBufferCount_ = 2;
+    inline static uint32_t webBufferCount_ = 1;
+    inline static std::unordered_map<std::string, std::string> adaptiveConfig_;
 
     friend class DVSyncParamParse;
 };

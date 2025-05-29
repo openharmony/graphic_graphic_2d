@@ -63,10 +63,8 @@ public:
         return hardCursorDrawables_;
     }
 
-    void CollectAllHardCursor(NodeId id, DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr cursorDrawable)
-    {
-        hardCursorDrawableMap_.emplace(id, cursorDrawable);
-    }
+    void CollectAllHardCursor(
+        RSSurfaceRenderNode& hardCursorNode, std::shared_ptr<RSDisplayRenderNode>& curDisplayNode);
 
     const std::map<NodeId, DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& GetHardCursorDrawableMap() const
     {
@@ -154,7 +152,8 @@ public:
 
     bool CheckHardCursorSupport(uint32_t screenId);
     bool HasMirrorDisplay() const;
-
+    std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> GetHardCursorDrawable(NodeId id);
+    static void CheckHardCursorValid(const RSSurfaceRenderNode& node);
 private:
     bool isNeedForceCommitByPointer_{ false };
     HardCursorInfo hardCursorDrawables_;

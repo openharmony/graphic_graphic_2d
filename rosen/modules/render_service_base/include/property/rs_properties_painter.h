@@ -97,7 +97,6 @@ public:
         float dynamicLightUpRate, float dynamicLightUpDeg);
     static std::shared_ptr<Drawing::Image> DrawGreyAdjustment(
         Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image, const Vector2f& greyCoef);
-    static std::shared_ptr<Drawing::Blender> MakeLightUpEffectBlender(const float lightUpDeg);
 
     // EffectView and useEffect
     static void DrawBackgroundImageAsEffect(const RSProperties& properties, RSPaintFilterCanvas& canvas);
@@ -126,6 +125,8 @@ private:
     static void DrawBorderLight(const RSProperties& properties, Drawing::Canvas& canvas,
         std::shared_ptr<Drawing::RuntimeShaderBuilder>& lightBuilder, Drawing::Pen& pen,
         const std::array<float, MAX_LIGHT_SOURCES>& lightIntensityArray);
+    static std::shared_ptr<Drawing::ShaderEffect> MakeLightUpEffectShader(
+        float lightUpDeg, std::shared_ptr<Drawing::ShaderEffect> imageShader);
     static std::shared_ptr<Drawing::ShaderEffect> MakeDynamicDimShader(
         float dynamicDimDeg, std::shared_ptr<Drawing::ShaderEffect> imageShader);
     static std::shared_ptr<Drawing::ShaderEffect> MakeBinarizationShader(float low, float high,
@@ -139,7 +140,6 @@ private:
 
     static std::shared_ptr<Drawing::RuntimeEffect> greyAdjustEffect_;
     static std::shared_ptr<Drawing::RuntimeEffect> binarizationShaderEffect_;
-    static std::shared_ptr<Drawing::RuntimeEffect> lightUpEffectBlender_;
     static std::shared_ptr<Drawing::RuntimeEffect> dynamicBrightnessBlenderEffect_;
     static std::shared_ptr<Drawing::RuntimeEffect> dynamicLightUpBlenderEffect_;
     static std::shared_ptr<Drawing::RuntimeEffect> dynamicDimShaderEffect_;

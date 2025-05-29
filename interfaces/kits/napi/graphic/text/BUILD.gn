@@ -12,6 +12,7 @@
 # limitations under the License.
 
 import("//build/ohos.gni")
+import("//foundation/graphic/graphic_2d/frameworks/text/config.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 group("textnapi") {
@@ -32,10 +33,13 @@ config("local_text") {
     "../text",
     "../text/fontdescriptor_napi/include",
     "../drawing",
-    "$graphic_2d_root/rosen/modules/2d_engine/rosen_text/export/rosen_text",
+    "$rosen_text_root/interface/export/rosen_text",
     "$graphic_2d_root/rosen/modules/2d_graphics/include",
     "$graphic_2d_root/interfaces/kits/napi/graphic/text/utils",
-    "$graphic_2d_root/rosen/modules/texgine/src",
+    "$rosen_text_root/service/texgine/src",
+    "$rosen_text_root",
+    "$rosen_text_root/adapter/skia",
+    "$graphic_2d_root/frameworks/text/service/global_config",
   ]
 }
 
@@ -76,6 +80,7 @@ ohos_shared_library("text_napi_impl") {
     "paragraph_builder_napi/js_paragraph_builder.cpp",
     "paragraph_napi/js_paragraph.cpp",
     "run_napi/js_run.cpp",
+    "text_global_napi/js_text_global.cpp",
     "text_line_napi/js_text_line.cpp",
     "utils/napi_async_work.cpp",
     "utils/napi_common.cpp",
@@ -96,12 +101,14 @@ ohos_shared_library("text_napi_impl") {
   deps = [
     "$graphic_2d_root/interfaces/kits/napi/graphic/drawing:drawing_napi_impl",
     "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
-    "$graphic_2d_root/rosen/modules/texgine:libtexgine_source",
+    "$rosen_text_root:rosen_text",
+    "$rosen_text_root/service/texgine:libtexgine_source",
   ]
 
   external_deps = [
     "ability_runtime:abilitykit_native",
     "ability_runtime:app_context",
+    "eventhandler:libeventhandler",
     "graphic_surface:surface",
     "hilog:libhilog",
     "napi:ace_napi",
@@ -110,7 +117,7 @@ ohos_shared_library("text_napi_impl") {
 
   if (current_os == "ohos" || current_os == "ohos_ng") {
     external_deps += [ "init:libbegetutil" ]
-    defines = [ "OHOS_TEXT_ENABLE" ]
+    defines = [ "ENABLE_OHOS_ENHANCE" ]
   }
   cflags_cc = [ "-std=c++17" ]
 

@@ -17,6 +17,7 @@
 #include "pipeline/hardware_thread/rs_hardware_thread.h"
 #include "pipeline/render_thread/rs_uni_render_composer_adapter.h"
 #include "pipeline/render_thread/rs_uni_render_engine.h"
+#include "screen_manager/rs_screen.h"
 #include "foundation/graphic/graphic_2d/rosen/test/render_service/render_service/unittest/pipeline/rs_test_util.h"
 #include "foundation/graphic/graphic_2d/rosen/test/render_service/render_service/unittest/pipeline/mock/mock_hdi_device.h"
 #include "gfx/fps_info/rs_surface_fps_manager.h"
@@ -68,6 +69,9 @@ public:
 
 void RSHardwareThreadTest::SetUpTestCase()
 {
+#ifdef RS_ENABLE_VK
+    RsVulkanContext::SetRecyclable(false);
+#endif
     hdiDeviceMock_ = Mock::HdiDeviceMock::GetInstance();
     EXPECT_CALL(*hdiDeviceMock_, RegHotPlugCallback(_, _)).WillRepeatedly(testing::Return(0));
     EXPECT_CALL(*hdiDeviceMock_, RegHwcDeadCallback(_, _)).WillRepeatedly(testing::Return(false));
@@ -127,6 +131,7 @@ HWTEST_F(RSHardwareThreadTest, ClearFrameBuffers001, TestSize.Level1)
 {
     auto& hardwareThread = RSHardwareThread::Instance();
     auto hdiOutput = HdiOutput::CreateHdiOutput(screenId_);
+    ASSERT_NE(hdiOutput, nullptr);
     if (hdiOutput->GetFrameBufferSurface()) {
         GSError ret = hardwareThread.ClearFrameBuffers(hdiOutput);
         ASSERT_EQ(ret, GSERROR_OK);
@@ -160,6 +165,7 @@ HWTEST_F(RSHardwareThreadTest, Start002, TestSize.Level1)
     ASSERT_NE(hardwareThread.hdiBackend_, nullptr);
     hardwareThread.PostTask([&]() {});
     hardwareThread.ScheduleTask([=]() {}).wait();
+    hardwareThread.PostSyncTask([&]() {});
 }
 
 /**
@@ -430,12 +436,17 @@ HWTEST_F(RSHardwareThreadTest, PerformSetActiveMode, TestSize.Level1)
     hgmCore.modeListToApply_->insert({screenId_, rate});
     hardwareThread.PerformSetActiveMode(output, 0, 0);
 
+    uint64_t timestamp = 0;
     auto supportedModes = screenManager->GetScreenSupportedModes(screenId_);
     ASSERT_EQ(supportedModes.size(), 0);
     HgmCore::Instance().hgmFrameRateMgr_->isAdaptive_ = true;
     HgmCore::Instance().hgmFrameRateMgr_->isGameNodeOnTree_ = true;
     hardwareThread.PerformSetActiveMode(output, 0, 0);
     HgmCore::Instance().hgmFrameRateMgr_ = nullptr;
+    hardwareThread.PerformSetActiveMode(output, 0, 0);
+    HgmCore::Instance().vBlankIdleCorrectSwitch_.store(true);
+    hardwareThread.vblankIdleCorrector_.isVBlankIdle_ = true;
+    hardwareThread.OnScreenVBlankIdleCallback(screenId_, timestamp);
     hardwareThread.PerformSetActiveMode(output, 0, 0);
 }
 
@@ -636,7 +647,184 @@ HWTEST_F(RSHardwareThreadTest, ChangeLayersForActiveRectOutside001, TestSize.Lev
 {
     auto &hardwareThread = RSHardwareThread::Instance();
     std::vector<LayerInfoPtr> layers;
+    LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
+    layers.emplace_back(layer);
     hardwareThread.ChangeLayersForActiveRectOutside(layers, screenId_);
-    EXPECT_EQ(layers.size(), 0);
+    EXPECT_NE(layers.size(), 0);
+}
+
+/*
+ * @tc.name: ClearRedrawGPUCompositionCache001
+ * @tc.desc: Test RSHardwareThreadTest.ClearRedrawGPUCompositionCache
+ * @tc.type: FUNC
+ * @tc.require: issuesIBYE2H
+ */
+HWTEST_F(RSHardwareThreadTest, ClearRedrawGPUCompositionCache001, TestSize.Level1)
+{
+    auto &hardwareThread = RSHardwareThread::Instance();
+    hardwareThread.Start();
+    ASSERT_NE(hardwareThread.hdiBackend_, nullptr);
+    std::set<uint32_t> bufferIds = {1};
+    hardwareThread.ClearRedrawGPUCompositionCache(bufferIds);
+}
+
+/*
+ * @tc.name: RefreshRateCounts001
+ * @tc.desc: Test RSHardwareThreadTest.RefreshRateCounts
+ * @tc.type: FUNC
+ * @tc.require: issuesIBYE2H
+ */
+HWTEST_F(RSHardwareThreadTest, RefreshRateCounts001, TestSize.Level1)
+{
+    OutputPtr output = HdiOutput::CreateHdiOutput(screenId_);
+    auto &hardwareThread = RSHardwareThread::Instance();
+    auto count = hardwareThread.refreshRateCounts_;
+    hardwareThread.AddRefreshRateCount(output);
+    ASSERT_TRUE(count != hardwareThread.refreshRateCounts_);
+
+    std::string dumpString = "";
+    hardwareThread.RefreshRateCounts(dumpString);
+    ASSERT_NE(dumpString, "");
+}
+
+/*
+ * @tc.name: ClearRefreshRateCounts001
+ * @tc.desc: Test RSHardwareThreadTest.ClearRefreshRateCounts
+ * @tc.type: FUNC
+ * @tc.require: issuesIBYE2H
+ */
+HWTEST_F(RSHardwareThreadTest, ClearRefreshRateCounts001, TestSize.Level1)
+{
+    OutputPtr output = HdiOutput::CreateHdiOutput(screenId_);
+    auto &hardwareThread = RSHardwareThread::Instance();
+    auto count = hardwareThread.refreshRateCounts_;
+    hardwareThread.AddRefreshRateCount(output);
+    ASSERT_TRUE(count != hardwareThread.refreshRateCounts_);
+
+    std::string dumpString = "";
+    hardwareThread.ClearRefreshRateCounts(dumpString);
+    ASSERT_EQ(hardwareThread.refreshRateCounts_.empty(), true);
+}
+
+/*
+ * @tc.name: OnScreenVBlankIdleCallback001
+ * @tc.desc: Test RSHardwareThreadTest.OnScreenVBlankIdleCallback
+ * @tc.type: FUNC
+ * @tc.require: issuesIBYE2H
+ */
+HWTEST_F(RSHardwareThreadTest, OnScreenVBlankIdleCallback001, TestSize.Level1)
+{
+    auto &hardwareThread = RSHardwareThread::Instance();
+    hardwareThread.Start();
+    ASSERT_NE(hardwareThread.hdiBackend_, nullptr);
+    uint64_t timestamp = 10;
+    hardwareThread.OnScreenVBlankIdleCallback(screenId_, timestamp);
+}
+
+/*
+ * @tc.name: ChangeDssRefreshRate001
+ * @tc.desc: Test RSHardwareThreadTest.ChangeDssRefreshRate
+ * @tc.type: FUNC
+ * @tc.require: issuesIBYE2H
+ */
+HWTEST_F(RSHardwareThreadTest, ChangeDssRefreshRate001, TestSize.Level1)
+{
+    auto &hardwareThread = RSHardwareThread::Instance();
+    hardwareThread.Start();
+    ASSERT_NE(hardwareThread.hdiBackend_, nullptr);
+    bool followPipline = true;
+    uint32_t refreshRate = 100;
+    hardwareThread.ChangeDssRefreshRate(screenId_, refreshRate, followPipline);
+
+    followPipline = false;
+    hardwareThread.ChangeDssRefreshRate(screenId_, refreshRate, followPipline);
+}
+
+/*
+ * @tc.name: RedrawScreenRCD001
+ * @tc.desc: Test RSHardwareThreadTest.RedrawScreenRCD
+ * @tc.type: FUNC
+ * @tc.require: issuesIBYE2H
+ */
+HWTEST_F(RSHardwareThreadTest, RedrawScreenRCD001, TestSize.Level1)
+{
+    auto &hardwareThread = RSHardwareThread::Instance();
+    hardwareThread.Start();
+    Drawing::Canvas canvas;
+    RSPaintFilterCanvas rsPaintFilterCanvas(&canvas);
+    std::vector<LayerInfoPtr> layers;
+    LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
+    layers.emplace_back(layer);
+    EXPECT_NE(layers.size(), 0);
+    hardwareThread.RedrawScreenRCD(rsPaintFilterCanvas, layers);
+}
+
+/*
+ * @tc.name: Redraw001
+ * @tc.desc: Test RSHardwareThreadTest.Redraw
+ * @tc.type: FUNC
+ * @tc.require: issuesIBYE2H
+ */
+HWTEST_F(RSHardwareThreadTest, Redraw001, TestSize.Level1)
+{
+    auto &hardwareThread = RSHardwareThread::Instance();
+    auto csurface = IConsumerSurface::Create();
+    ASSERT_NE(csurface, nullptr);
+    auto producer = csurface->GetProducer();
+    auto psurface = Surface::CreateSurfaceAsProducer(producer);
+    ASSERT_NE(psurface, nullptr);
+
+    std::vector<LayerInfoPtr> layers;
+    LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
+    layers.emplace_back(layer);
+    EXPECT_NE(layers.size(), 0);
+
+    hardwareThread.Redraw(psurface, layers, screenId_);
+}
+
+/*
+ * @tc.name: EndCheck001
+ * @tc.desc: Test RSHardwareThreadTest.EndCheck
+ * @tc.type: FUNC
+ * @tc.require: issuesIC3DAI
+ */
+HWTEST_F(RSHardwareThreadTest, EndCheck001, TestSize.Level1)
+{
+    auto &hardwareThread = RSHardwareThread::Instance();
+    hardwareThread.hardwareCount_ = 0;
+    RSTimer timer("EndCheckTest", 800); // 800ms
+    hardwareThread.EndCheck(timer);
+    ASSERT_EQ(hardwareThread.hardwareCount_, 0); // timeout count 0
+    usleep(800 * 1000); // 800ms
+    hardwareThread.EndCheck(timer);
+    ASSERT_EQ(hardwareThread.hardwareCount_, 1); // timeout count 1
+}
+
+/*
+ * @tc.name: IsDropDirtyFrame
+ * @tc.desc: Test RSHardwareThreadTest.IsDropDirtyFrame
+ * @tc.type: FUNC
+ * @tc.require: issueIC5RYI
+ */
+HWTEST_F(RSHardwareThreadTest, IsDropDirtyFrame, TestSize.Level1)
+{
+    auto &hardwareThread = RSHardwareThread::Instance();
+    OutputPtr output = HdiOutput::CreateHdiOutput(screenId_);
+
+    if (!RSSystemProperties::IsSuperFoldDisplay()) {
+        ASSERT_EQ(hardwareThread.IsDropDirtyFrame(output), false);
+    } else {
+        GraphicIRect activeRect = {0, 0, 0, 0};
+        ASSERT_EQ(hardwareThread.IsDropDirtyFrame(output), false);
+
+        auto screenInfo = screenManager_->QueryScreenInfo(screenId_);
+        activeRect = {0, 0, screenInfo.width, screenInfo.height};
+        screenManager_->SetScreenActiveRect(screenId_, activeRect);
+        ASSERT_EQ(hardwareThread.IsDropDirtyFrame(output), false);
+
+        activeRect = {0, 0, screenInfo.width/2, screenInfo.height/2};
+        screenManager_->SetScreenActiveRect(screenId_, activeRect);
+        ASSERT_EQ(hardwareThread.IsDropDirtyFrame(output), true);
+    }
 }
 } // namespace OHOS::Rosen

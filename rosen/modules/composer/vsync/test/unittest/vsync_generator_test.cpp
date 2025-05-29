@@ -103,6 +103,21 @@ void VSyncGeneratorTestCallback::OnConnsRefreshRateChanged(
 
 namespace {
 /*
+* Function: CheckSampleIsAdaptiveTest001
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: Test CheckSampleIsAdaptive
+ */
+HWTEST_F(VSyncGeneratorTest, CheckSampleIsAdaptiveTest001, Function | MediumTest| Level0)
+{
+    // 20000000ns
+    ASSERT_EQ(VSyncGeneratorTest::vsyncGenerator_->CheckSampleIsAdaptive(20000000), true);
+    // 16500000ns
+    ASSERT_EQ(VSyncGeneratorTest::vsyncGenerator_->CheckSampleIsAdaptive(16500000), false);
+}
+
+/*
 * Function: CheckAndUpdateReferenceTimeTest001
 * Type: Function
 * Rank: Important(2)
@@ -746,6 +761,24 @@ HWTEST_F(VSyncGeneratorTest, AddListener003, Function | MediumTest| Level0)
 }
 
 /*
+* Function: AddListener004
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call AddListener
+ */
+HWTEST_F(VSyncGeneratorTest, AddListener004, Function | MediumTest| Level0)
+{
+    auto generatorImpl = static_cast<impl::VSyncGenerator*>(VSyncGeneratorTest::vsyncGenerator_.GetRefPtr());
+    generatorImpl->listeners_.clear();
+    sptr<VSyncGeneratorTestCallback> callback = new VSyncGeneratorTestCallback;
+    ASSERT_EQ(VSyncGeneratorTest::vsyncGenerator_->AddListener(0, callback), VSYNC_ERROR_OK);
+    ASSERT_EQ(generatorImpl->listeners_.size(), 1);
+    ASSERT_EQ(VSyncGeneratorTest::vsyncGenerator_->AddListener(0, callback), VSYNC_ERROR_OK);
+    ASSERT_EQ(generatorImpl->listeners_.size(), 1);
+}
+
+/*
 * Function: RemoveListener001
 * Type: Function
 * Rank: Important(2)
@@ -783,7 +816,7 @@ HWTEST_F(VSyncGeneratorTest, RemoveListener003, Function | MediumTest| Level0)
     sptr<VSyncGeneratorTestCallback> callback3 = new VSyncGeneratorTestCallback;
     VSyncGeneratorTest::vsyncGenerator_->AddListener(2, callback3);
     sptr<VSyncGeneratorTestCallback> callback4 = new VSyncGeneratorTestCallback;
-    ASSERT_EQ(VSyncGeneratorTest::vsyncGenerator_->RemoveListener(callback4), VSYNC_ERROR_INVALID_ARGUMENTS);
+    ASSERT_EQ(VSyncGeneratorTest::vsyncGenerator_->RemoveListener(callback4), VSYNC_ERROR_OK);
 }
 
 /*
@@ -1067,6 +1100,100 @@ HWTEST_F(VSyncGeneratorTest, AddDVSyncListenerTest001, Function | MediumTest| Le
 }
 
 /*
+* Function: ComputeDVSyncListenerNextVSyncTimeStampTest001
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: Test ComputeDVSyncListenerNextVSyncTimeStamp
+ */
+HWTEST_F(VSyncGeneratorTest, ComputeDVSyncListenerNextVSyncTimeStampTest001, Function | MediumTest| Level0)
+{
+    impl::VSyncGenerator::Listener listener;
+    listener.lastTime_ = SystemTime();
+    listener.phase_ = 0;
+    listener.callback_ = nullptr;
+ 
+    auto vsyncGeneratorImpl = static_cast<impl::VSyncGenerator*>(VSyncGeneratorTest::vsyncGenerator_.GetRefPtr());
+    auto ret = vsyncGeneratorImpl->ComputeDVSyncListenerNextVSyncTimeStamp(listener, 0, 0, 0);
+    ASSERT_EQ(ret, INT64_MAX);
+}
+ 
+/*
+* Function: ComputeDVSyncListenerNextVSyncTimeStampTest002
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: Test ComputeDVSyncListenerNextVSyncTimeStamp
+ */
+HWTEST_F(VSyncGeneratorTest, ComputeDVSyncListenerNextVSyncTimeStampTest002, Function | MediumTest| Level0)
+{
+    impl::VSyncGenerator::Listener listener;
+    listener.lastTime_ = SystemTime();
+    listener.phase_ = 0;
+    listener.callback_ = nullptr;
+    int64_t period = 8333333; // 8333333ns (period of 120Hz)
+    int64_t now = period * 5 + listener.lastTime_;
+    int64_t referenceTime = period + listener.lastTime_;
+    auto vsyncGeneratorImpl = static_cast<impl::VSyncGenerator*>(VSyncGeneratorTest::vsyncGenerator_.GetRefPtr());
+    vsyncGeneratorImpl->phaseRecord_ = 0;
+    vsyncGeneratorImpl->wakeupDelay_ = 0;
+ 
+    auto ret = vsyncGeneratorImpl->ComputeDVSyncListenerNextVSyncTimeStamp(listener, now, referenceTime, period);
+    ASSERT_EQ(ret, 6 * period + listener.lastTime_);
+}
+ 
+/*
+* Function: ComputeDVSyncListenerNextVSyncTimeStampTest003
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: Test ComputeDVSyncListenerNextVSyncTimeStamp
+ */
+HWTEST_F(VSyncGeneratorTest, ComputeDVSyncListenerNextVSyncTimeStampTest003, Function | MediumTest| Level0)
+{
+    impl::VSyncGenerator::Listener listener;
+    listener.lastTime_ = SystemTime();
+    listener.phase_ = 0;
+    listener.callback_ = nullptr;
+    int64_t period = 8333333; // 8333333ns (period of 120Hz)
+    int64_t now = listener.lastTime_;
+    int64_t referenceTime = period + listener.lastTime_;
+    auto vsyncGeneratorImpl = static_cast<impl::VSyncGenerator*>(VSyncGeneratorTest::vsyncGenerator_.GetRefPtr());
+    vsyncGeneratorImpl->phaseRecord_ = 0;
+    vsyncGeneratorImpl->wakeupDelay_ = 0;
+    vsyncGeneratorImpl->vsyncMode_ = VSYNC_MODE_LTPO;
+    vsyncGeneratorImpl->refreshRateIsChanged_ = true;
+ 
+    auto ret = vsyncGeneratorImpl->ComputeDVSyncListenerNextVSyncTimeStamp(listener, now, referenceTime, period);
+    ASSERT_EQ(ret, referenceTime);
+}
+ 
+/*
+* Function: ComputeDVSyncListenerNextVSyncTimeStampTest004
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: Test ComputeDVSyncListenerNextVSyncTimeStamp
+ */
+HWTEST_F(VSyncGeneratorTest, ComputeDVSyncListenerNextVSyncTimeStampTest004, Function | MediumTest| Level0)
+{
+    impl::VSyncGenerator::Listener listener;
+    listener.lastTime_ = SystemTime();
+    listener.phase_ = 0;
+    listener.callback_ = nullptr;
+    int64_t period = 8333333; // 8333333ns (period of 120Hz)
+    int64_t now = listener.lastTime_;
+    int64_t referenceTime = period + listener.lastTime_;
+    auto vsyncGeneratorImpl = static_cast<impl::VSyncGenerator*>(VSyncGeneratorTest::vsyncGenerator_.GetRefPtr());
+    vsyncGeneratorImpl->phaseRecord_ = 0;
+    vsyncGeneratorImpl->wakeupDelay_ = 0;
+    vsyncGeneratorImpl->vsyncMode_ = VSYNC_MODE_LTPS;
+ 
+    auto ret = vsyncGeneratorImpl->ComputeDVSyncListenerNextVSyncTimeStamp(listener, now, referenceTime, period);
+    ASSERT_EQ(ret, referenceTime);
+}
+
+/*
 * Function: RemoveDVSyncListenerTest001
 * Type: Function
 * Rank: Important(2)
@@ -1078,6 +1205,23 @@ HWTEST_F(VSyncGeneratorTest, RemoveDVSyncListenerTest001, Function | MediumTest|
     sptr<VSyncGenerator::Callback> cb = nullptr;
     VsyncError error = VSyncGeneratorTest::vsyncGenerator_->RemoveDVSyncListener(cb);
     ASSERT_EQ(error, VSYNC_ERROR_INVALID_ARGUMENTS);
+}
+
+/*
+* Function: IsUiDvsyncOnTest001
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: Test IsUiDvsyncOnTest001
+ */
+HWTEST_F(VSyncGeneratorTest, IsUiDvsyncOnTest001, Function | MediumTest| Level0)
+{
+    auto vsyncGeneratorImpl = static_cast<impl::VSyncGenerator*>(VSyncGeneratorTest::vsyncGenerator_.GetRefPtr());
+    auto rsVSyncDistributor = vsyncGeneratorImpl->rsVSyncDistributor_;
+    vsyncGeneratorImpl->rsVSyncDistributor_ = nullptr;
+    bool ret = vsyncGeneratorImpl->IsUiDvsyncOn();
+    vsyncGeneratorImpl->rsVSyncDistributor_ = rsVSyncDistributor;
+    ASSERT_EQ(ret, false);
 }
 } // namespace
 } // namespace Rosen

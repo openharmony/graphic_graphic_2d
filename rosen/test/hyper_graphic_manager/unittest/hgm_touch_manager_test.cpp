@@ -17,8 +17,8 @@
 #include <limits>
 #include <test_header.h>
 
-#include "hgm_core.h"
 #include "hgm_frame_rate_manager.h"
+#include "hgm_test_base.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -28,9 +28,12 @@ namespace Rosen {
 namespace {
     constexpr int32_t waitTaskFinishNs = 100000;
 }
-class HgmTouchManagerTest : public testing::Test {
+class HgmTouchManagerTest : public HgmTestBase {
 public:
-    static void SetUpTestCase() {}
+    static void SetUpTestCase()
+    {
+        HgmTestBase::SetUpTestCase();
+    }
     static void TearDownTestCase() {}
     void SetUp() {}
     void TearDown() {}
@@ -164,6 +167,9 @@ HWTEST_F(HgmTouchManagerTest, Up2IdleState001, Function | SmallTest | Level1)
             ASSERT_EQ(touchManager.GetState(), TouchState::UP_STATE);
 
             touchManager.OnEvent(TouchEvent::UP_TIMEOUT_EVENT);
+            usleep(rsTimeoutUs);
+            ASSERT_EQ(touchManager.GetState(), TouchState::IDLE_STATE);
+            touchManager.OnEvent(TouchEvent::RS_IDLE_TIMEOUT_EVENT);
             usleep(rsTimeoutUs);
             ASSERT_EQ(touchManager.GetState(), TouchState::IDLE_STATE);
         }

@@ -15,9 +15,8 @@
 
 #include <gtest/gtest.h>
 
-#include "hgm_core.h"
 #include "hgm_energy_consumption_policy.h"
-
+#include "hgm_test_base.h"
 #include "common/rs_common_hook.h"
 
 using namespace testing;
@@ -28,9 +27,12 @@ namespace Rosen {
 constexpr int DEFAULT_MAX_FPS = 120;
 constexpr int IDLE_FPS = 60;
 
-class HgmEnergyConsumptionPolicyTest : public testing::Test {
+class HgmEnergyConsumptionPolicyTest : public HgmTestBase {
 public:
-    static void SetUpTestCase() {}
+    static void SetUpTestCase()
+    {
+        HgmTestBase::SetUpTestCase();
+    }
     static void TearDownTestCase() {}
     void SetUp() {}
     void TearDown() {}

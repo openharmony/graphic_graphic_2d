@@ -24,14 +24,12 @@ ohos_unittest("2d_graphics_bitmap_test") {
   include_dirs = [
     "$graphic_2d_root/rosen/modules/2d_graphics/include",
     "$graphic_2d_root/rosen/modules/2d_graphics/src",
-    "//third_party/googletest/googletest/include",
   ]
 
   deps = [
     "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
     "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
     "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
-    "//third_party/googletest:gtest_main",
   ]
 
   defines = [ "ROSEN_OHOS" ]

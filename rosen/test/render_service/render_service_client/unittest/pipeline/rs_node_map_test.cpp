@@ -103,9 +103,6 @@ HWTEST_F(RSNodeMapTest, UnregisterNode001, TestSize.Level1)
      */
     RSSurfaceNodeConfig config;
     RSSurfaceNode::SharedPtr node = RSSurfaceNode::Create(config);
-    if (node == nullptr) {
-        return;
-    }
     EXPECT_TRUE(node != nullptr);
     RSNodeMap::MutableInstance().UnregisterNode(node->GetId());
 }

@@ -12,6 +12,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+/**
+ * @addtogroup RenderNodeDisplay
+ * @{
+ *
+ * @brief Display render nodes.
+ */
+
+/**
+ * @file rs_modifier_manager_map.h
+ *
+ * @brief Defines the properties and methods for RSModifierManagerMap class.
+ */
+
 #ifndef RENDER_SERVICE_CLIENT_CORE_MODIFIER_RS_MODIFIER_MANAGER_MAP_H
 #define RENDER_SERVICE_CLIENT_CORE_MODIFIER_RS_MODIFIER_MANAGER_MAP_H
 
@@ -23,13 +37,39 @@
 
 namespace OHOS {
 namespace Rosen {
+
+/**
+ * @class RSModifierManagerMap
+ *
+ * @brief The class for managing RSModifierManager instances.
+ */
 class RSModifierManager;
 
+/**
+ * @class RSModifierManagerMap
+ *
+ * @brief The class for managing RSModifierManager instances.
+ */
 class RSC_EXPORT RSModifierManagerMap final {
 public:
+    /**
+     * @brief Destructor for RSModifierManagerMap.
+     */
     ~RSModifierManagerMap() = default;
+
+    /**
+     * @brief Provides a singleton instance of the RSModifierManagerMap.
+     *
+     * @return A constant reference to the singleton instance of RSModifierManagerMap.
+     */
     static std::shared_ptr<RSModifierManagerMap>& Instance();
 
+    /**
+     * @brief Gets the RSModifierManager associated with the given ID.
+     *
+     * @param id The unique identifier for the RSModifierManager.
+     * @return A shared pointer to the RSModifierManager associated with the given ID.
+     */
     const std::shared_ptr<RSModifierManager>& GetModifierManager(const int32_t id);
 
 private:
@@ -46,4 +86,5 @@ private:
 } // namespace Rosen
 } // namespace OHOS
 
+/** @} */
 #endif // RENDER_SERVICE_CLIENT_CORE_MODIFIER_RS_MODIFIER_MANAGER_MAP_H

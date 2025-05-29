@@ -47,17 +47,17 @@ ohos_systemtest("hdibackend_sys_test") {
   ]
 
   deps = [
-    "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
     "//foundation/graphic/graphic_2d/rosen/modules/composer:libcomposer",
     "//foundation/graphic/graphic_2d/utils:socketpair",
-    "//third_party/googletest:gmock_main",
-    "//third_party/googletest:gtest_main",
   ]
 
   external_deps = [
     "c_utils:utils",
+    "googletest:gmock_main",
+    "googletest:gtest_main",
     "graphic_surface:surface",
     "hilog:libhilog",
+    "ipc:ipc_core",
   ]
 }
 
@@ -81,17 +81,17 @@ ohos_systemtest("hdilayer_sys_test") {
   ]
 
   deps = [
-    "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
     "//foundation/graphic/graphic_2d/rosen/modules/composer:libcomposer",
     "//foundation/graphic/graphic_2d/utils:socketpair",
-    "//third_party/googletest:gmock_main",
-    "//third_party/googletest:gtest_main",
   ]
 
   external_deps = [
     "c_utils:utils",
+    "googletest:gmock_main",
+    "googletest:gtest_main",
     "graphic_surface:surface",
     "hilog:libhilog",
+    "ipc:ipc_core",
   ]
 }
 
@@ -118,17 +118,17 @@ ohos_systemtest("hdioutput_sys_test") {
   ]
 
   deps = [
-    "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
     "//foundation/graphic/graphic_2d/rosen/modules/composer:libcomposer",
     "//foundation/graphic/graphic_2d/utils:socketpair",
-    "//third_party/googletest:gmock_main",
-    "//third_party/googletest:gtest_main",
   ]
 
   external_deps = [
     "c_utils:utils",
+    "googletest:gmock_main",
+    "googletest:gtest_main",
     "graphic_surface:surface",
     "hilog:libhilog",
+    "ipc:ipc_core",
   ]
 }
 
@@ -155,17 +155,17 @@ ohos_systemtest("hdiscreen_sys_test") {
   ]
 
   deps = [
-    "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
     "//foundation/graphic/graphic_2d/rosen/modules/composer:libcomposer",
     "//foundation/graphic/graphic_2d/utils:socketpair",
-    "//third_party/googletest:gmock_main",
-    "//third_party/googletest:gtest_main",
   ]
 
   external_deps = [
     "c_utils:utils",
+    "googletest:gmock_main",
+    "googletest:gtest_main",
     "graphic_surface:surface",
     "hilog:libhilog",
+    "ipc:ipc_core",
   ]
 }
 ## SystemTest hdiscreen_sys_test }}}

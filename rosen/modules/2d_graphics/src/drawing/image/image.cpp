@@ -45,8 +45,6 @@ const TextureInfo& BackendTexture::GetTextureInfo() const
 
 Image::Image() noexcept : imageImplPtr(ImplFactory::CreateImageImpl()) {}
 
-Image::Image(std::shared_ptr<ImageImpl> imageImpl) : imageImplPtr(imageImpl) {}
-
 Image::Image(void* rawImg) noexcept : imageImplPtr(ImplFactory::CreateImageImpl(rawImg)) {}
 
 bool Image::BuildFromBitmap(const Bitmap& bitmap)

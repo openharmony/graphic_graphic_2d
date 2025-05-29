@@ -255,6 +255,7 @@ HWTEST_F(RSDirtyRegionManagerTest, UpdateDirtyInvalid, Function | SmallTest | Le
     RectI curDirtyRect = RectI();
 
     for (int i = 0; i < invalidRects.size(); ++i) {
+        rsDirtyManager->SetAdvancedDirtyRegionType(AdvancedDirtyRegionType::SET_ADVANCED_SURFACE_AND_DISPLAY);
         rsDirtyManager->Clear();
         rsDirtyManager->SetBufferAge(i + 1);
         auto invalidRect = invalidRects[i];
@@ -291,6 +292,7 @@ HWTEST_F(RSDirtyRegionManagerTest, UpdateDirtyValid, Function | SmallTest | Leve
     std::vector<int> advancedDirtyRegionArea = {129600, 145800, 154800};
 
     for (int i = 0; i < validRects.size(); ++i) {
+        rsDirtyManager->SetAdvancedDirtyRegionType(AdvancedDirtyRegionType::SET_ADVANCED_SURFACE_AND_DISPLAY);
         rsDirtyManager->Clear();
         rsDirtyManager->SetBufferAge(i + 1);
         auto validRect = validRects[i];
@@ -884,5 +886,20 @@ HWTEST_F(RSDirtyRegionManagerTest, SetMaxNumOfDirtyRects, Function | SmallTest |
     }
     auto advancedDirtyRegion2 = fun2.GetCurrentFrameAdvancedDirtyRegion();
     EXPECT_EQ(static_cast<int>(advancedDirtyRegion2.size()), 1);
+}
+
+/**
+ * @tc.name: GetEnabled
+ * @tc.desc: test invalid input for Enabled
+ * @tc.type:FUNC
+ * @tc.require: issuesIC96MO
+ */
+HWTEST_F(RSDirtyRegionManagerTest, GetEnabled, Function | SmallTest | TestSize.Level2)
+{
+    RSDirtyRegionManager fun;
+    fun.SetPartialRenderEnabled(false);
+    EXPECT_FALSE(fun.GetEnabledChanged());
+    fun.SetPartialRenderEnabled(true);
+    EXPECT_TRUE(fun.GetEnabledChanged());
 }
 } // namespace OHOS::Rosen

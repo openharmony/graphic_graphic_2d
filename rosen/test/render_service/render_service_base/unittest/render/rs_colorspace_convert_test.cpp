@@ -498,11 +498,37 @@ HWTEST_F(RSColorspaceConvertTest, GetFovMetadata002, TestSize.Level1)
     };
     sptr<SurfaceBuffer> surfaceBuffer = new SurfaceBufferImpl(0);
     GSError ret = surfaceBuffer->Alloc(requestConfig);
-    ASSERT_TRUE(ret, GSERROR_OK);
+    ASSERT_TRUE(ret == GSERROR_OK);
     ASSERT_TRUE(surfaceBuffer != nullptr);
     std::vector<uint8_t> metadataSet{1, 18, 119, 33, 196, 253, 112, 171, 74, 230, 99, 23, 0, 244, 82,
         138, 13, 158, 100, 41, 50, 189, 111, 144, 3, 153, 75, 210, 243, 237, 19, 12, 128};
     ret = MetadataHelper::SetAdaptiveFOVMetadata(surfaceBuffer, metadataSet);
-    ASSERT_TRUE(ret == GSERROR_OK || ret == GSERROR_HDI_ERROR);
+    ASSERT_TRUE(ret == GSERROR_OK);
+}
+
+/**
+ * @tc.name: GetVideoDynamicMetadata001
+ * @tc.desc: test get video dynamic metadata normal case
+ * @tc.type:FUNC
+ * @tc.require: IBYX6N
+ */
+HWTEST_F(RSColorspaceConvertTest, GetVideoDynamicMetadata001, TestSize.Level1)
+{
+    BufferRequestConfig requestConfig = {
+        .width = 0x100,
+        .height = 0x100,
+        .strideAlignment = 0x8,
+        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
+        .timeout = 0,
+        .colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB,
+    };
+    sptr<SurfaceBuffer> surfaceBuffer = new SurfaceBufferImpl(0);
+    GSError ret = surfaceBuffer->Alloc(requestConfig);
+    ASSERT_TRUE(ret == GSERROR_OK);
+    ASSERT_TRUE(surfaceBuffer != nullptr);
+    std::vector<uint8_t> metadataSet{};
+    ret = MetadataHelper::GetVideoDynamicMetadata(surfaceBuffer, metadataSet);
+    ASSERT_TRUE(ret == GSERROR_HDI_ERROR);
 }
 } // namespace OHOS::Rosen

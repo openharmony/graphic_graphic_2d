@@ -27,6 +27,7 @@ namespace OHOS {
 namespace Rosen {
 namespace RDC {
 static const std::streamsize SHADER_MAX_SIZE = 102400; // 100K
+static constexpr int DECIMAL_BASE = 10;
 
 xmlNodePtr XMLReader::FindChildNodeByPropName(const xmlNodePtr& src, const std::string& index)
 {
@@ -66,7 +67,22 @@ std::string XMLReader::ReadNodeValue(const xmlNodePtr& node)
 
 uint32_t XMLReader::ReadNodeValueInt(const xmlNodePtr& node)
 {
-    return static_cast<uint32_t>(std::stoul(ReadNodeValue(node).c_str()));
+    std::string nodeValueStr = ReadNodeValue(node);
+    if (nodeValueStr.empty()) {
+        RS_LOGE("RDC read xml node error, read node value is empty");
+        return 0;
+    }
+    char* end;
+    unsigned long long value = std::strtoull(nodeValueStr.c_str(), &end, DECIMAL_BASE);
+    if (*end != '\0') {
+        RS_LOGE("RDC read xml node error, read node value is not end");
+        return 0;
+    }
+    if (value > UINT32_MAX) {
+        RS_LOGE("RDC read xml node error, read node value is overflow");
+        return 0;
+    }
+    return static_cast<uint32_t>(value);
 }
 
 std::string XMLReader::ReadAttrStr(const xmlNodePtr& src, const std::string& attr)

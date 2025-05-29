@@ -14,6 +14,7 @@
  */
 
 #include "pipeline/rs_pointer_window_manager.h"
+#include "feature/hwc/rs_uni_hwc_compute_util.h"
 #include "common/rs_optional_trace.h"
 #include "feature_cfg/graphic_feature_param_manager.h"
 #include "pipeline/main_thread/rs_main_thread.h"
@@ -23,6 +24,10 @@
 #endif
 namespace OHOS {
 namespace Rosen {
+namespace {
+constexpr int MIN_LAYER_WIDTH = 2;
+constexpr int MIN_LAYER_HEIGHT = 2;
+}
 RSPointerWindowManager& RSPointerWindowManager::Instance()
 {
     static RSPointerWindowManager instance;
@@ -102,7 +107,7 @@ void RSPointerWindowManager::UpdatePointerInfo()
     if (surfaceNode == nullptr) {
         return;
     }
-    RSUniRenderUtil::UpdateHwcNodeProperty(surfaceNode);
+    RSUniHwcComputeUtil::UpdateHwcNodeProperty(surfaceNode);
 
     // 2.update (layerInfo.matrix = TotalMatrix)
     if (surfaceNode->GetScreenId() != INVALID_SCREEN_ID) {
@@ -112,7 +117,7 @@ void RSPointerWindowManager::UpdatePointerInfo()
             return;
         }
         auto screenInfo = screenManager->QueryScreenInfo(surfaceNode->GetScreenId());
-        auto transform = RSUniRenderUtil::GetLayerTransform(*surfaceNode, screenInfo);
+        auto transform = RSUniHwcComputeUtil::GetLayerTransform(*surfaceNode, screenInfo);
         surfaceNode->UpdateHwcNodeLayerInfo(transform, isPointerEnableHwc_);
     }
 #endif
@@ -141,8 +146,10 @@ void RSPointerWindowManager::SetHardCursorNodeInfo(std::shared_ptr<RSSurfaceRend
         (!hardCursorNode->ShouldPaint() && !hardCursorNode->GetHardCursorStatus())) {
         return;
     }
-    auto nodeId = hardCursorNode->GetId();
-    hardCursorNodeMap_.emplace(nodeId, hardCursorNode);
+    if (hardCursorNode->IsOnTheTree()) {
+        auto nodeId = hardCursorNode->GetId();
+        hardCursorNodeMap_.emplace(nodeId, hardCursorNode);
+    }
 }
 
 const std::map<NodeId, std::shared_ptr<RSSurfaceRenderNode>>& RSPointerWindowManager::GetHardCursorNode() const
@@ -168,7 +175,6 @@ void RSPointerWindowManager::HardCursorCreateLayerForDirect(std::shared_ptr<RSPr
                 params->SetPreBuffer(nullptr);
                 hardCursorNode->AddToPendingSyncList();
             }
-            RS_OPTIONAL_TRACE_NAME("HardCursorCreateLayerForDirect create layer");
             processor->CreateLayer(*hardCursorNode, *params);
         }
     }
@@ -207,6 +213,71 @@ bool RSPointerWindowManager::HasMirrorDisplay() const
         }
     }
     return false;
+}
+
+void RSPointerWindowManager::CollectAllHardCursor(
+    RSSurfaceRenderNode& hardCursorNode, std::shared_ptr<RSDisplayRenderNode>& curDisplayNode)
+{
+    if (hardCursorNode.IsHardwareEnabledTopSurface() &&
+        (hardCursorNode.ShouldPaint() || hardCursorNode.GetHardCursorStatus())) {
+        auto surfaceNodeDrawable =
+            std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(hardCursorNode.GetRenderDrawable());
+        if (surfaceNodeDrawable && hardCursorNode.IsOnTheTree()) {
+            hardCursorDrawableMap_.emplace(curDisplayNode->GetId(), hardCursorNode.GetRenderDrawable());
+        }
+    }
+}
+
+std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> RSPointerWindowManager::GetHardCursorDrawable(NodeId id)
+{
+    auto& renderThreadParams = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+    if (!renderThreadParams) {
+        return nullptr;
+    }
+    auto& hardCursorDrawables = renderThreadParams->GetHardCursorDrawables();
+    if (hardCursorDrawables.empty()) {
+        return nullptr;
+    }
+    auto iter = hardCursorDrawables.find(id);
+    if (iter == hardCursorDrawables.end()) {
+        return nullptr;
+    }
+    auto& hardCursorDrawable = iter->second;
+    if (!hardCursorDrawable) {
+        return nullptr;
+    }
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(hardCursorDrawable->GetRenderParams().get());
+    if (!surfaceParams) {
+        return nullptr;
+    }
+    auto surfaceDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(hardCursorDrawable);
+    if (surfaceDrawable && surfaceParams->GetHardCursorStatus()) {
+        return std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(surfaceDrawable);
+    }
+    return nullptr;
+}
+
+void RSPointerWindowManager::CheckHardCursorValid(const RSSurfaceRenderNode& node)
+{
+    if (!node.GetHardCursorStatus()) {
+        return;
+    }
+    // DSS Hardware don't support the synthesis of layers with length and width not larger than 2
+    auto srcRect = node.GetSrcRect();
+    if (srcRect.GetWidth() <= MIN_LAYER_WIDTH || srcRect.GetHeight() <= MIN_LAYER_WIDTH) {
+        const auto& property = node.GetRenderProperties();
+        auto buffer = node.GetRSSurfaceHandler()->GetBuffer();
+        if (buffer == nullptr) {
+            RS_LOGE("RSPointerWindowManager::CheckHardCursorValid: buffer is nullptr");
+            return;
+        }
+        auto bufferWidth = buffer->GetSurfaceBufferWidth();
+        auto bufferHeight = buffer->GetSurfaceBufferHeight();
+        const auto boundsWidth = property.GetBoundsWidth();
+        const auto boundsHeight = property.GetBoundsHeight();
+        RS_LOGE("hardcursor srcRect error, %{public}d, %{public}d, %{public}f, %{public}f",
+            bufferWidth, bufferHeight, boundsWidth, boundsHeight);
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

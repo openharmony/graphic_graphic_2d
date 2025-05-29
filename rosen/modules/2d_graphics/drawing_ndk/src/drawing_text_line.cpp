@@ -22,7 +22,7 @@
 #include "drawing_rect.h"
 #include "skia_txt/run_impl.h"
 #include "skia_txt/text_line_base.h"
-#include "skia_txt/txt/paragraph.h"
+#include "skia/txt/paragraph.h"
 #include "utils/text_log.h"
 
 using namespace OHOS::Rosen;

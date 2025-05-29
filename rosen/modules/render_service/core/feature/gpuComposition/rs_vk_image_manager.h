@@ -21,6 +21,7 @@
 #include <queue>
 #include <unordered_map>
 
+#include "draw/surface.h"
 #include "surface.h"
 #include "sync_fence.h"
 #include "vulkan/vulkan_core.h"
@@ -28,7 +29,6 @@
 #include "native_window.h"
 #include "common/rs_common_def.h"
 #include "platform/ohos/backend/native_buffer_utils.h"
-#include "screen_manager/rs_screen_manager.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -91,22 +91,17 @@ public:
     ~RSVkImageManager() noexcept = default;
 
     std::shared_ptr<NativeVkImageRes> MapVkImageFromSurfaceBuffer(const sptr<OHOS::SurfaceBuffer>& buffer,
-        const sptr<SyncFence>& acquireFence, pid_t threadIndex, ScreenId screenId);
-    void UnMapVkImageFromSurfaceBuffer(uint32_t seqNum, bool isMatchVirtualScreen = false);
-    void UnMapAllVkImageVirtualScreenCache();
-    void ShrinkCachesIfNeeded();
+        const sptr<SyncFence>& acquireFence, pid_t threadIndex, Drawing::Surface *drawingSurface = nullptr);
+    void UnMapVkImageFromSurfaceBuffer(uint32_t seqNum);
     std::shared_ptr<NativeVkImageRes> CreateImageCacheFromBuffer(sptr<OHOS::SurfaceBuffer> buffer,
         const sptr<SyncFence>& acquireFence);
     void DumpVkImageInfo(std::string &dumpString);
 private:
     std::shared_ptr<NativeVkImageRes> NewImageCacheFromBuffer(
-        const sptr<OHOS::SurfaceBuffer>& buffer, pid_t threadIndex, bool isProtectedCondition,
-        bool isMatchVirtualScreen = false);
-    bool isVirtualScreen(ScreenId screenId);
+        const sptr<OHOS::SurfaceBuffer>& buffer, pid_t threadIndex, bool isProtectedCondition);
+    bool WaitVKSemaphore(Drawing::Surface *drawingSurface, const sptr<SyncFence>& acquireFence);
     mutable std::mutex opMutex_;
-    std::queue<uint32_t> cacheQueue_; // fifo, size restricted by MAX_CACHE_SIZE
     std::unordered_map<uint32_t, std::shared_ptr<NativeVkImageRes>> imageCacheSeqs_; // guarded by opMutex_
-    std::unordered_map<uint32_t, std::shared_ptr<NativeVkImageRes>> imageCacheVirtualScreenSeqs_; // guarded by opMutex_
 };
 
 } // namespace Rosen

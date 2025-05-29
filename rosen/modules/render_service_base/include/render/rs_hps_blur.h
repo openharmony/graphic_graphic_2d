@@ -16,6 +16,7 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_RENDER_RS_HPS_BLUR_H
 #define RENDER_SERVICE_CLIENT_CORE_RENDER_RS_HPS_BLUR_H
 
+#include "common/rs_color_palette.h"
 #include "draw/canvas.h"
 #include "effect/color_filter.h"
 #include "effect/runtime_effect.h"
@@ -30,7 +31,8 @@ public:
     ~HpsBlurFilter() = default;
     bool ApplyHpsBlur(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
         const Drawing::HpsBlurParameter& param, float alpha,
-        std::shared_ptr<Drawing::ColorFilter> colorFilter = nullptr) const;
+        std::shared_ptr<Drawing::ColorFilter> colorFilter = nullptr,
+        const RSColor& color = RSColor()) const;
     const static HpsBlurFilter& GetHpsBlurFilter()
     {
         static HpsBlurFilter filter;
@@ -43,6 +45,7 @@ private:
     std::shared_ptr<Drawing::RuntimeEffect> GetMixEffect() const;
     bool SetShaderEffect(Drawing::Brush& brush, std::shared_ptr<Drawing::ShaderEffect> blurShader,
         std::shared_ptr<Drawing::Image> imageCache) const;
+    float ApplyMaskColorFilter(Drawing::Canvas& offscreenCanvas, float alpha, const RSColor& maskColor) const;
 };
 } // namespace Rosen
 } // namespace OHOS

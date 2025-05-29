@@ -329,8 +329,7 @@ HWTEST_F(RSRenderModifierTest, CanvasNull, TestSize.Level1)
     RSModifierContext context(properties);
     context.canvas_ = nullptr;
     modifier->Apply(context);
-    bool ret = false;
-    ASSERT_EQ(ret, false);
+    ASSERT_NE(modifier, nullptr);
 }
 
 /**
@@ -350,9 +349,7 @@ HWTEST_F(RSRenderModifierTest, CanvasNotNull, TestSize.Level1)
     Drawing::Canvas* canvas1 = new Drawing::Canvas();
     context.canvas_ = new RSPaintFilterCanvas(canvas1);
     modifier->Apply(context);
-
-    bool ret = true;
-    ASSERT_EQ(ret, true);
+    ASSERT_NE(modifier, nullptr);
 }
 
 /**
@@ -385,8 +382,7 @@ HWTEST_F(RSRenderModifierTest, Apply001, TestSize.Level1)
     RSProperties properties;
     RSModifierContext contextArgs(properties, &paintFilterCanvas);
     RSEFC->Apply(contextArgs);
-    bool ret = true;
-    ASSERT_TRUE(ret == true);
+    ASSERT_NE(RSEFC, nullptr);
 }
 
 /**
@@ -417,8 +413,7 @@ HWTEST_F(RSRenderModifierTest, Apply002, TestSize.Level1)
     RSProperties properties;
     RSModifierContext context(properties);
     modifier->Apply(context);
-    bool ret = true;
-    ASSERT_TRUE(ret == true);
+    ASSERT_NE(modifier, nullptr);
 }
 
 /**
@@ -442,8 +437,7 @@ HWTEST_F(RSRenderModifierTest, GetInvertBackgroundColor, TestSize.Level1)
     color.SetAlpha(0xff);
     contextArgs.properties_.SetBackgroundColor(color);
     modifier->GetInvertBackgroundColor(contextArgs);
-    bool ret = true;
-    ASSERT_TRUE(ret == true);
+    ASSERT_NE(modifier, nullptr);
 }
 
 /**
@@ -461,8 +455,7 @@ HWTEST_F(RSRenderModifierTest, Update001, TestSize.Level1)
     const std::shared_ptr<RSRenderPropertyBase> prop;
     bool isDelta = false;
     modifier->Update(prop, isDelta);
-    bool ret = true;
-    ASSERT_TRUE(ret == true);
+    ASSERT_NE(modifier, nullptr);
 }
 
 /**
@@ -480,8 +473,7 @@ HWTEST_F(RSRenderModifierTest, Apply003, TestSize.Level1)
     auto test = std::make_shared<RSRenderProperty<ForegroundColorStrategyType>>();
     modifier->property_ = test;
     modifier->Apply(context);
-    bool ret = true;
-    ASSERT_TRUE(ret == true);
+    ASSERT_NE(modifier, nullptr);
 }
 
 /**
@@ -498,8 +490,7 @@ HWTEST_F(RSRenderModifierTest, CalculateInvertColor, TestSize.Level1)
     RSModifierContext context(properties);
     Color backgroundColor;
     modifier->CalculateInvertColor(backgroundColor);
-    bool ret = true;
-    ASSERT_TRUE(ret == true);
+    ASSERT_NE(modifier, nullptr);
 }
 
 /**
@@ -636,5 +627,24 @@ HWTEST_F(RSRenderModifierTest, RSBehindWindowFilterMaskColorRenderModifier001, T
         colorData[1] + colorData[2]);
     Parcel parcel;
     ASSERT_TRUE(modifier->Marshalling(parcel));
+}
+
+/**
+ * @tc.name: RSForegroundUIFilterRenderModifier001
+ * @tc.desc: RSForegroundUIFilterRenderModifier001
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderModifierTest, RSForegroundUIFilterRenderModifier001, TestSize.Level1)
+{
+    auto prop1 = std::make_shared<RSRenderProperty<std::shared_ptr<RSRenderFilter>>>();
+    auto modifier = std::make_shared<RSForegroundUIFilterRenderModifier>(prop1);
+    EXPECT_EQ(modifier->GetProperty(), prop1);
+
+    auto prop2 = std::make_shared<RSRenderProperty<std::shared_ptr<RSRenderFilter>>>();
+    modifier->Update(prop2, false);
+
+    Parcel parcel;
+    EXPECT_TRUE(modifier->Marshalling(parcel));
 }
 }

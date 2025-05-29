@@ -33,6 +33,10 @@ public:
     void SetVideoSurfaceFlag(bool videoSurfaceFlag);
     bool GetVideoSurfaceFlag() const;
 
+    // use to implement product isolation for the adaptive P3 scheme
+    void SetAdaptiveColorGamutEnable(bool isAdaptiveColorGamutEnable);
+    bool IsAdaptiveColorGamutEnabled() const;
+
     // use in updating hwcnode hardware state with background alpha
     void SetHardwareEnabledByHwcnodeBelowSelfInAppFlag(bool hardwareEnabledByHwcNodeSkippedFlag);
     void SetHardwareEnabledByBackgroundAlphaFlag(bool hardwareEnabledByBackgroundAlphaSkippedFlag);
@@ -47,6 +51,9 @@ private:
     std::function<void(const std::string&)> startNewAniamtionFunc_ = nullptr;
     // source crop tuning
     std::atomic<bool> videoSurfaceFlag_{false};
+
+    // use to implement product isolation for the adaptive P3 scheme
+    std::atomic<bool> isAdaptiveColorGamutEnable_{false};
 
     // use in updating hwcnode hardware state with background alpha
     std::atomic<bool> hardwareEnabledByHwcnodeSkippedFlag_{false};

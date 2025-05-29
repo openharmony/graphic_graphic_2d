@@ -27,12 +27,10 @@ group("unittest") {
     ":RSEffectRenderNodeDrawableTest",
     ":RSRcdSurfaceRenderNodeDrawableTest",
     ":RSRenderNodeDrawableAdapterTest",
-    ":RSRenderNodeDrawableAutoCacheTest",
     ":RSRenderNodeDrawableTest",
     ":RSRootRenderNodeDrawableTest",
     ":RSSkpCaptureDFXTest",
     ":RSSurfaceRenderNodeDrawableTest",
-    ":RSUIFirstSurfaceRenderNodeDrawableTest",
   ]
 }
 
@@ -49,6 +47,7 @@ ohos_unittest("RSCanvasDrawingRenderNodeDrawableTest") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "samgr:samgr_proxy",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -66,6 +65,7 @@ ohos_unittest("RSCanvasRenderNodeDrawableTest") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "samgr:samgr_proxy",
   ]
 }
 
@@ -77,6 +77,7 @@ ohos_unittest("RSDisplayRenderNodeDrawableTest") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "samgr:samgr_proxy",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -91,6 +92,7 @@ ohos_unittest("RSEffectRenderNodeDrawableTest") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "samgr:samgr_proxy",
   ]
 }
 
@@ -102,6 +104,7 @@ ohos_unittest("RSRcdSurfaceRenderNodeDrawableTest") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "samgr:samgr_proxy",
     "skia:skia_canvaskit",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
@@ -122,20 +125,7 @@ ohos_unittest("RSRenderNodeDrawableAdapterTest") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
-  ]
-  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
-    external_deps += [ "sensor:sensor_interface_native" ]
-  }
-}
-
-## Build RSRenderNodeDrawableAutoCacheTest
-ohos_unittest("RSRenderNodeDrawableAutoCacheTest") {
-  module_out_path = module_output_path
-  sources = [ "rs_render_node_drawable_autocache_test.cpp" ]
-  deps = [ ":rs_test_common" ]
-  external_deps = [
-    "c_utils:utils",
-    "hilog:libhilog",
+    "samgr:samgr_proxy",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -150,6 +140,7 @@ ohos_unittest("RSRenderNodeDrawableTest") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "samgr:samgr_proxy",
   ]
 }
 
@@ -161,6 +152,7 @@ ohos_unittest("RSRootRenderNodeDrawableTest") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "samgr:samgr_proxy",
   ]
 }
 
@@ -172,20 +164,7 @@ ohos_unittest("RSSurfaceRenderNodeDrawableTest") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
-  ]
-  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
-    external_deps += [ "sensor:sensor_interface_native" ]
-  }
-}
-
-## Build RSUIFirstSurfaceRenderNodeDrawableTest
-ohos_unittest("RSUIFirstSurfaceRenderNodeDrawableTest") {
-  module_out_path = module_output_path
-  sources = [ "rs_ui_first_surface_render_node_drawable_test.cpp" ]
-  deps = [ ":rs_test_common" ]
-  external_deps = [
-    "c_utils:utils",
-    "hilog:libhilog",
+    "samgr:samgr_proxy",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -200,6 +179,7 @@ ohos_unittest("RSDirtyRectsDFXTest") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "samgr:samgr_proxy",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -214,6 +194,7 @@ ohos_unittest("RSSkpCaptureDFXTest") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "samgr:samgr_proxy",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -227,6 +208,7 @@ config("rs_test_common_public_config") {
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/config",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/frame_rate_manager",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/hgm_screen_manager",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/soft_vsync_manager",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/utils",
     "$graphic_2d_root/rosen/modules/render_service/core",
     "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg",
@@ -239,10 +221,6 @@ config("rs_test_common_public_config") {
     "$graphic_2d_root/rosen/modules/render_service_client/core",
     "$graphic_2d_root/rosen/modules/render_service_base/src",
     "$graphic_2d_root/rosen/test/include",
-    "$memmgr_plugin_root/interface/innerkits/include",
-    "$memmgr_plugin_root/services/memmgrservice/include/memory_level_manager",
-    "$memmgr_root/interface/innerkits/include",
-    "$memmgr_root/services/memmgrservice/include/memory_level_manager",
   ]
 
   cflags = [
@@ -267,8 +245,6 @@ ohos_static_library("rs_test_common") {
     "$graphic_2d_root/rosen/modules/render_service:librender_service",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
     "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
-    "//third_party/googletest:gmock_main",
-    "//third_party/googletest:gtest_main",
   ]
 
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
@@ -276,15 +252,20 @@ ohos_static_library("rs_test_common") {
     defines += [ "USE_ROSEN_DRAWING" ]
   }
 
-  external_deps = []
+  external_deps = [ "samgr:samgr_proxy" ]
 
   public_external_deps = [
     "c_utils:utils",
+    "googletest:gmock_main",
+    "googletest:gtest_main",
     "hilog:libhilog",
     "hitrace:hitrace_meter",
     "init:libbegetutil",
     "ipc:ipc_core",
   ]
+  if (use_memmgr_plugin || use_memmgr) {
+    public_external_deps += [ "memmgr:memmgrclient" ]
+  }
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
   }

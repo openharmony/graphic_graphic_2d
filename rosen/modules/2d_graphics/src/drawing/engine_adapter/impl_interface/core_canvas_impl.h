@@ -75,6 +75,7 @@ public:
     virtual std::shared_ptr<GPUContext> GetGPUContext() const = 0;
 #endif
     virtual void InheriteState(Canvas* canvas) = 0;
+    virtual void SetParallelRender(bool parallelEnable) = 0;
     virtual int32_t GetWidth() const = 0;
     virtual int32_t GetHeight() const = 0;
     virtual ImageInfo GetImageInfo() = 0;

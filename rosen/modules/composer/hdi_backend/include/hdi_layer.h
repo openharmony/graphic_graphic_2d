@@ -51,7 +51,7 @@ public:
     void SetLayerStatus(bool inUsing);
     bool GetLayerStatus() const;
     void UpdateLayerInfo(const LayerInfoPtr &layerInfo);
-    int32_t SetHdiLayerInfo();
+    int32_t SetHdiLayerInfo(bool isActiveRectSwitching = false);
     uint32_t GetLayerId() const;
     bool RecordPresentTime(int64_t timestamp);
     void RecordMergedPresentTime(int64_t timestamp); // used for uni render layer
@@ -120,6 +120,8 @@ private:
     int32_t SetLayerMetaDataSet();
     sptr<SyncFence> Merge(const sptr<SyncFence> &fence1, const sptr<SyncFence> &fence2);
     int32_t SetLayerTunnelHandle();
+    int32_t SetTunnelLayerId();
+    int32_t SetTunnelLayerProperty();
     int32_t SetLayerPresentTimestamp();
     int32_t InitDevice();
     bool IsSameLayerMetaData();

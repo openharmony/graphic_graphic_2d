@@ -121,7 +121,10 @@ bool SkiaSurface::Bind(const Image& image)
     if (skImage->isLazyGenerated()) {
         skImage = skImage->makeTextureImage(grContext.get());
     }
-
+    if (skImage == nullptr) {
+        LOGD("SkiaSurface bind Image failed: skImage is nullptr");
+        return false;
+    }
     GrSurfaceOrigin grSurfaceOrigin;
     GrBackendTexture grBackendTexture;
     SkSurfaceProps surfaceProps(SURFACE_PROPS_FLAGS, kRGB_H_SkPixelGeometry);
@@ -381,10 +384,6 @@ std::shared_ptr<Image> SkiaSurface::GetImageSnapshot(const RectI& bounds, bool a
     return image;
 }
 
-void SkiaSurface::SetParallelRender(bool parallelEnable)
-{
-}
-
 BackendTexture SkiaSurface::GetBackendTexture(BackendAccess access) const
 {
 #ifdef RS_ENABLE_GPU
@@ -473,9 +472,10 @@ void SkiaSurface::Flush(FlushInfo *drawingflushInfo)
     RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
         GRAPHIC2D_SKIASURFACE_FLUSH);
     if (skSurface_ == nullptr) {
-        LOGD("skSurface is nullptr");
+        LOGE("skSurface is nullptr");
         // handle exception such as skia
         if (!drawingflushInfo) {
+            LOGE("drawingflushInfo is nullptr");
             return;
         }
         if (drawingflushInfo->submittedProc) {

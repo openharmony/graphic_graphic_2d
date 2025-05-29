@@ -1,0 +1,72 @@
+# Copyright (c) 2024 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/test.gni")
+import("//foundation/graphic/graphic_2d/frameworks/text/config.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
+
+ohos_unittest("rosen_text_adapt_test") {
+  module_out_path = text_test_out_path
+  configs = [ "$rosen_text_root/adapter/skia:skia_libtxt_config" ]
+
+  sources = [
+    "convert_test.cpp",
+    "font_collection_test.cpp",
+    "run_test.cpp",
+    "text_line_base_test.cpp",
+    "typography_create_test.cpp",
+    "typography_relayout_test.cpp",
+    "typography_test.cpp",
+  ]
+  include_dirs = [
+    "$rosen_text_root",
+    "$rosen_text_root/service/skia_txt",
+    "$rosen_text_root/interface/export",
+    "$rosen_text_root/interface/export/rosen_text",
+    "$rosen_text_root/adapter/skia",
+    "$rosen_text_root/adapter/skia/txt",
+    "$rosen_root/modules/render_service_base/include",
+  ]
+
+  cflags = [
+    "-std=c++17",
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+
+  if (platform_is_ohos) {
+    defines = [ "ENABLE_OHOS_ENHANCE" ]
+  }
+
+  deps = [
+    "$rosen_root/modules/2d_graphics:2d_graphics",
+    "$rosen_text_root:rosen_text",
+  ]
+
+  external_deps = [
+    "bundle_framework:appexecfwk_base",
+    "bundle_framework:appexecfwk_core",
+    "c_utils:utils",
+    "hilog:libhilog",
+    "skia:skia_paragraph_ohos",
+  ]
+
+  part_name = "graphic_2d"
+  subsystem_name = "graphic"
+}
+
+group("unittest") {
+  testonly = true
+
+  deps = [ ":rosen_text_adapt_test" ]
+}

@@ -84,8 +84,11 @@ public:
         SurfaceBuffer *surfaceBuffer, const std::shared_ptr<Drawing::ColorSpace>& colorSpace = nullptr);
 #endif
     void SetNodeId(NodeId id) override;
+    NodeId GetNodeId() const override;
     void SetPaint(Drawing::Paint paint) override;
     void Purge() override;
+    bool IsValid() override;
+    void Dump(std::string& dump) override;
 protected:
     std::shared_ptr<RSImage> rsImage_ = nullptr;
 private:
@@ -105,6 +108,7 @@ private:
 #endif
     std::shared_ptr<Drawing::Image> image_;
     Drawing::AdaptiveImageInfo imageInfo_;
+    NodeId nodeId_ = INVALID_NODEID;
 };
 
 class RSB_EXPORT RSExtendImageBaseObj : public Drawing::ExtendImageBaseObj {
@@ -225,6 +229,45 @@ private:
     SamplingOptions sampling_;
     std::shared_ptr<ExtendImageObject> objectHandle_;
 };
+
+#ifdef RS_ENABLE_VK
+class RSB_EXPORT DrawHybridPixelMapOpItem : public DrawWithPaintOpItem {
+public:
+    struct ConstructorHandle : public OpItem {
+        ConstructorHandle(const OpDataHandle& objectHandle, const SamplingOptions& sampling,
+            const PaintHandle& paintHandle, uint32_t entryId, bool isRenderForeground)
+            : OpItem(DrawOpItem::HYBRID_RENDER_PIXELMAP_OPITEM), objectHandle(objectHandle), sampling(sampling),
+              paintHandle(paintHandle), entryId(entryId), isRenderForeground(isRenderForeground) {}
+        ~ConstructorHandle() override = default;
+        OpDataHandle objectHandle;
+        SamplingOptions sampling;
+        PaintHandle paintHandle;
+        uint32_t entryId;
+        bool isRenderForeground;
+    };
+    DrawHybridPixelMapOpItem(const DrawCmdList& cmdList, ConstructorHandle* handle);
+    DrawHybridPixelMapOpItem(const std::shared_ptr<Media::PixelMap>& pixelMap,
+        const AdaptiveImageInfo& rsImageInfo, const SamplingOptions& sampling, const Paint& paint);
+    ~DrawHybridPixelMapOpItem() override = default;
+
+    static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
+    void Marshalling(DrawCmdList& cmdList) override;
+    void Playback(Canvas* canvas, const Rect* rect) override;
+    void SetNodeId(NodeId id) override;
+    virtual void DumpItems(std::string& out) const override;
+    void Purge() override
+    {
+        if (objectHandle_) {
+            objectHandle_->Purge();
+        }
+    }
+private:
+    SamplingOptions sampling_;
+    std::shared_ptr<ExtendImageObject> objectHandle_;
+    bool isRenderForeground_ = false;
+    sptr<SyncFence> fence_ = nullptr;
+};
+#endif
 
 class RSB_EXPORT DrawPixelMapRectOpItem : public DrawWithPaintOpItem {
 public:

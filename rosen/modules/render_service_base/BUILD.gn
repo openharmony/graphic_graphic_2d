@@ -36,7 +36,7 @@ if (!is_mingw && !is_mac && !is_cross_platform &&
 
   ohos_rust_static_ffi("particle_cxx_rust") {
     sources = [ "rust/src/lib.rs" ]
-    deps = [ "//third_party/rust/crates/cxx:lib" ]
+    external_deps = [ "rust_cxx:lib" ]
     part_name = "graphic_2d"
     subsystem_name = "graphic"
   }
@@ -52,11 +52,6 @@ if (!is_mingw && !is_mac && !is_cross_platform &&
     part_name = "graphic_2d"
     subsystem_name = "graphic"
     defines += [ "RUST_CXX_NO_EXCEPTIONS" ]
-    sources = [
-      "//third_party/rust/crates/cxx/include/cxx.h",
-      "//third_party/rust/crates/cxx/src/cxx.cc",
-    ]
-    deps = [ "//third_party/rust/crates/cxx:lib" ]
   }
 }
 
@@ -140,11 +135,13 @@ ohos_source_set("render_service_base_src") {
     "src/common/rs_color.cpp",
     "src/common/rs_common_def.cpp",
     "src/common/rs_common_tools.cpp",
+    "src/common/rs_exception_check.cpp",
     "src/common/rs_obj_abs_geometry.cpp",
     "src/common/rs_occlusion_region.cpp",
     "src/common/rs_occlusion_region_helper.cpp",
     "src/common/rs_rectangles_merger.cpp",
     "src/common/rs_special_layer_manager.cpp",
+    "src/common/rs_switching_thread.cpp",
     "src/common/rs_thread_handler_generic.cpp",
     "src/common/rs_thread_looper_generic.cpp",
     "src/common/rs_thread_looper_impl.cpp",
@@ -152,6 +149,9 @@ ohos_source_set("render_service_base_src") {
 
     #delegate
     "src/delegate/rs_functional_delegate.cpp",
+
+    #feature
+    "src/feature/opinc/rs_opinc_cache.cpp",
 
     #ipc_callbacks
     "src/ipc_callbacks/buffer_available_callback_proxy.cpp",
@@ -182,6 +182,8 @@ ohos_source_set("render_service_base_src") {
     "src/ipc_callbacks/screen_change_callback_stub.cpp",
     "src/ipc_callbacks/surface_capture_callback_proxy.cpp",
     "src/ipc_callbacks/surface_capture_callback_stub.cpp",
+    "src/ipc_callbacks/rs_transaction_data_callback_proxy.cpp",
+    "src/ipc_callbacks/rs_transaction_data_callback_stub.cpp",
 
     #ipc_security
     "src/ipc_security/rs_ipc_interface_code_access_verifier_base.cpp",
@@ -212,7 +214,6 @@ ohos_source_set("render_service_base_src") {
     "src/pipeline/rs_render_frame_rate_linker.cpp",
     "src/pipeline/rs_render_frame_rate_linker_map.cpp",
     "src/pipeline/rs_render_node.cpp",
-    "src/pipeline/rs_render_node_autocache.cpp",
     "src/pipeline/rs_render_node_gc.cpp",
     "src/pipeline/rs_render_node_map.cpp",
     "src/pipeline/rs_root_render_node.cpp",
@@ -237,20 +238,27 @@ ohos_source_set("render_service_base_src") {
     #render
     "src/render/rs_aibar_shader_filter.cpp",
     "src/render/rs_attraction_effect_filter.cpp",
+    "src/render/rs_bezier_warp_filter.cpp",
     "src/render/rs_blur_filter.cpp",
     "src/render/rs_border.cpp",
     "src/render/rs_color_extract.cpp",
+    "src/render/rs_color_gradient_shader_filter.cpp",
     "src/render/rs_color_picker.cpp",
     "src/render/rs_colorful_shadow_filter.cpp",
+    "src/render/rs_edge_light_shader_filter.cpp",
+    "src/render/rs_displacement_distort_filter.cpp",
     "src/render/rs_distortion_shader_filter.cpp",
+    "src/render/rs_dispersion_shader_filter.cpp",
     "src/render/rs_dot_matrix_shader.cpp",
     "src/render/rs_drawing_filter.cpp",
     "src/render/rs_filter.cpp",
     "src/render/rs_filter_cache_manager.cpp",
+    "src/render/rs_complex_shader.cpp",
     "src/render/rs_flow_light_sweep_shader.cpp",
     "src/render/rs_fly_out_shader_filter.cpp",
     "src/render/rs_foreground_effect_filter.cpp",
     "src/render/rs_grey_shader_filter.cpp",
+    "src/render/rs_hdr_ui_brightness_filter.cpp",
     "src/render/rs_high_performance_visual_engine.cpp",
     "src/render/rs_hps_blur.cpp",
     "src/render/rs_image.cpp",
@@ -271,19 +279,34 @@ ohos_source_set("render_service_base_src") {
     "src/render/rs_path.cpp",
     "src/render/rs_pixel_map_shader.cpp",
     "src/render/rs_pixel_map_util.cpp",
+    "src/render/rs_render_bezier_warp_filter.cpp",
+    "src/render/rs_render_blur_filter.cpp",
+    "src/render/rs_render_color_gradient_filter.cpp",
+    "src/render/rs_render_edge_light_filter.cpp",
+    "src/render/rs_render_displacement_distort_filter.cpp",
+    "src/render/rs_render_dispersion_filter.cpp",
+    "src/render/rs_render_filter.cpp",
+    "src/render/rs_render_filter_base.cpp",
+    "src/render/rs_render_pixel_map_mask.cpp",
+    "src/render/rs_render_ripple_mask.cpp",
+    "src/render/rs_render_sound_wave_filter.cpp",
     "src/render/rs_resource_manager.cpp",
     "src/render/rs_shader.cpp",
+    "src/render/rs_shader_mask.cpp",
     "src/render/rs_shadow.cpp",
     "src/render/rs_skia_filter.cpp",
+    "src/render/rs_sound_wave_filter.cpp",
     "src/render/rs_spherize_effect_filter.cpp",
     "src/render/rs_typeface_cache.cpp",
     "src/render/rs_water_ripple_shader_filter.cpp",
+    "src/render/rs_always_snapshot_shader_filter.cpp",
 
     #transaction
     "src/transaction/rs_hgm_config_data.cpp",
     "src/transaction/rs_occlusion_data.cpp",
     "src/transaction/rs_self_drawing_node_rect_data.cpp",
     "src/transaction/rs_transaction_data.cpp",
+    "src/transaction/rs_transaction_data_callback_manager.cpp",
     "src/transaction/rs_transaction_handler.cpp",
     "src/transaction/rs_transaction_metric_collector.cpp",
     "src/transaction/rs_transaction_proxy.cpp",
@@ -311,7 +334,11 @@ ohos_source_set("render_service_base_src") {
     "src/info_collection/rs_layer_compose_collection.cpp",
 
     #monitor
+    "src/monitor/aps_monitor_impl.cpp",
     "src/monitor/self_drawing_node_monitor.cpp",
+
+    #feature
+    "src/feature/capture/rs_ui_capture_helper.cpp",
   ]
 
   if (rs_enable_gpu) {
@@ -396,7 +423,6 @@ ohos_source_set("render_service_base_src") {
       #memory
       "src/memory/rs_memory_graphic.cpp",
       "src/memory/rs_memory_track.cpp",
-      "src/memory/rs_tag_tracker.cpp",
 
       #pipeline
       "src/pipeline/rs_occlusion_config.cpp",
@@ -435,6 +461,9 @@ ohos_source_set("render_service_base_src") {
       }
       if (graphic_2d_feature_enable_pgo &&
           graphic_2d_feature_product != "default") {
+        if (graphic_2d_feature_enable_codemerge) {
+          defines += [ "CM_FEATURE_ENABLE" ]
+        }
         cflags += [
           "-fprofile-use=" + rebase_path(
                   "${graphic_2d_feature_pgo_path}/librender_service_base.profdata",
@@ -442,6 +471,8 @@ ohos_source_set("render_service_base_src") {
           "-Wno-error=backend-plugin",
           "-Wno-profile-instr-out-of-date",
           "-Wno-profile-instr-unprofiled",
+          "-mllvm",
+          "-enable-partial-inlining",
         ]
       }
       if (graphic_2d_feature_product == "pc" && target_cpu == "arm64") {
@@ -528,22 +559,28 @@ ohos_source_set("render_service_base_src") {
       !(host_os == "linux" && host_cpu == "arm64")) {
     defines += [ "ENABLE_RUST" ]
     sources += get_target_outputs(":particle_cxx_gen")
-    include_dirs += [
-      "//third_party/rust/crates/cxx/include",
-      "${target_gen_dir}/rust/src",
-    ]
+    include_dirs += [ "${target_gen_dir}/rust/src" ]
     deps += [
       ":particle_cxx_cppdeps",
       ":particle_cxx_gen",
       ":particle_cxx_rust",
     ]
+    external_deps += [
+      "rust_cxx:cxx_cppdeps",
+      "rust_cxx:lib",
+    ]
   }
 
   if (use_video_processing_engine) {
     defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
-    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
-    external_deps += [ "video_processing_engine:videoprocessingengine" ]
-    sources += [ "src/render/rs_colorspace_convert.cpp" ]
+    external_deps += [
+      "video_processing_engine:videoprocessingengine",
+      "media_foundation:media_foundation",
+    ]
+    sources += [
+      "src/render/rs_colorspace_convert.cpp",
+      "src/display_engine/rs_vpe_manager.cpp",
+    ]
   }
 
   if (rosen_is_ohos && defined(enable_ipc_security) && enable_ipc_security) {
@@ -572,6 +609,10 @@ ohos_source_set("render_service_base_src") {
     }
 
     deps += [ "$rosen_root/modules/2d_graphics:2d_graphics" ]
+  }
+
+  if (defined(enable_full_screen_recongnize) && enable_full_screen_recongnize) {
+    defines += [ "ENABLE_FULL_SCREEN_RECONGNIZE" ]
   }
 
   if (rosen_cross_platform) {
@@ -649,7 +690,26 @@ config("render_service_base_link_config") {
     ]
 
     if (graphic_2d_feature_enable_pgo && enable_enhanced_opt) {
-      ldflags += [ "-Wl,--aarch64-inline-plt" ]
+      ldflags += [
+        "-Wl,--aarch64-inline-plt",
+        "-Wl,-mllvm,-enable-partial-inlining",
+      ]
+      if (graphic_2d_feature_enable_codemerge) {
+        ldflags += [
+          "-Wl,-plugin-opt=-split-machine-functions",
+          "-Wl,-mllvm",
+          "-Wl,-fixup-unconditional-branch-unsafely",
+          "-Wl,--no-create-thunks-introduced-by-mfs",
+          "-Wl,-mllvm",
+          "-Wl,-mfs-psi-cutoff=999500",
+          "-Wl,-z",
+          "-Wl,keep-text-section-prefix",
+          "-Wl,--symbol-ordering-file=" + rebase_path(
+                  "${graphic_2d_feature_pgo_path}/librender_service_base.txt",
+                  root_build_dir),
+          "-Wl,--no-warn-symbol-ordering",
+        ]
+      }
     }
   }
 }

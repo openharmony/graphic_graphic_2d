@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 
-
 #include "rs_frame_report.h"
 
 #include <dlfcn.h>
@@ -40,15 +39,9 @@ RsFrameReport& RsFrameReport::GetInstance()
     return instance;
 }
 
-RsFrameReport::RsFrameReport() {}
-
-RsFrameReport::~RsFrameReport()
+RsFrameReport::RsFrameReport()
 {
-    CloseLibrary();
-}
-
-void RsFrameReport::Init()
-{
+    LOGI("RsFrameReport:[Init] LoadLibrary");
     int ret = LoadLibrary();
     if (!ret) {
         LOGE("RsFrameReport:[Init] dlopen libframe_ui_intf.so failed!");
@@ -58,7 +51,16 @@ void RsFrameReport::Init()
     initFunc_ = (InitFunc)LoadSymbol("Init");
     if (initFunc_ != nullptr) {
         initFunc_();
+        LOGI("RsFrameReport:[Init] Init success");
     }
+}
+
+RsFrameReport::~RsFrameReport() {}
+
+void RsFrameReport::Init()
+{
+    LOGI("RsFrameReport init");
+    ReportSchedEvent(FrameSchedEvent::INIT, {});
 }
 
 bool RsFrameReport::LoadLibrary()
@@ -93,7 +95,6 @@ void *RsFrameReport::LoadSymbol(const char *symName)
         LOGE("RsFrameReport:[loadSymbol]libframe_ui_intf.so not loaded.\n");
         return nullptr;
     }
-
     void *funcSym = dlsym(frameSchedHandle_, symName);
     if (funcSym == nullptr) {
         LOGE("RsFrameReport:[loadSymbol]Get %{public}s symbol failed: %{public}s\n", symName, dlerror());
@@ -118,7 +119,7 @@ int RsFrameReport::GetEnable()
     }
 }
 
-void RsFrameReport::ReportSchedEvent(FrameSchedEvent event, const std::unordered_map<std::string, std::string> &payload)
+void RsFrameReport::ReportSchedEvent(FrameSchedEvent event, const std::unordered_map<std::string, std::string>& payload)
 {
     if (reportSchedEventFunc_ == nullptr) {
         reportSchedEventFunc_ = (ReportSchedEventFunc)LoadSymbol("ReportSchedEvent");
@@ -130,89 +131,16 @@ void RsFrameReport::ReportSchedEvent(FrameSchedEvent event, const std::unordered
     }
 }
 
-void RsFrameReport::ProcessCommandsStart()
+#ifdef RS_ENABLE_VK
+void RsFrameReport::ModifierReportSchedEvent(
+    FrameSchedEvent event, const std::unordered_map<std::string, std::string> &payload)
 {
-    if (processCommandsStartFun_ == nullptr) {
-        processCommandsStartFun_ = (ProcessCommandsStartFunc)LoadSymbol("ProcessCommandsStart");
+    if (!frameSchedSoLoaded_) {
+        LoadLibrary();
     }
-    if (processCommandsStartFun_ != nullptr) {
-        processCommandsStartFun_();
-    } else {
-        LOGE("RsFrameReport:[ProcessCommandsStart]load ProcessCommandsStart function failed!");
-    }
+    ReportSchedEvent(event, payload);
 }
- 
-void RsFrameReport::AnimateStart()
-{
-    if (animateStartFunc_ == nullptr) {
-        animateStartFunc_ = (AnimateStartFunc)LoadSymbol("AnimateStart");
-    }
-    if (animateStartFunc_ != nullptr) {
-        animateStartFunc_();
-    } else {
-        LOGE("RsFrameReport:[AnimateStart]load AnimateStart function failed!");
-    }
-}
- 
-void RsFrameReport::RenderStart(uint64_t timestamp)
-{
-    if (renderStartFunc_ == nullptr) {
-        renderStartFunc_ = (RenderStartFunc)LoadSymbol("RenderStart");
-    }
-    if (renderStartFunc_ != nullptr) {
-        renderStartFunc_(timestamp);
-    } else {
-        LOGE("RsFrameReport:[RenderStart]load RenderStart function failed!");
-    }
-}
- 
-void RsFrameReport::RSRenderStart()
-{
-    if (parallelRenderStartFunc_ == nullptr) {
-        parallelRenderStartFunc_ = (ParallelRenderStartFunc)LoadSymbol("RSRenderStart");
-    }
-    if (parallelRenderStartFunc_ != nullptr) {
-        parallelRenderStartFunc_();
-    } else {
-        LOGE("RsFrameReport:[RSRenderStart]load RSRenderStart function failed!");
-    }
-}
- 
-void RsFrameReport::RenderEnd()
-{
-    if (renderEndFunc_ == nullptr) {
-        renderEndFunc_ = (RenderEndFunc)LoadSymbol("RenderEnd");
-    }
-    if (renderEndFunc_ != nullptr) {
-        renderEndFunc_();
-    } else {
-        LOGE("RsFrameReport:[RenderEnd]load RenderEnd function failed!");
-    }
-}
- 
-void RsFrameReport::RSRenderEnd()
-{
-    if (parallelRenderEndFunc_ == nullptr) {
-        parallelRenderEndFunc_ = (ParallelRenderEndFunc)LoadSymbol("RSRenderEnd");
-    }
-    if (parallelRenderEndFunc_ != nullptr) {
-        parallelRenderEndFunc_();
-    } else {
-        LOGE("RsFrameReport:[RSRenderEnd]load RSRenderEnd function failed!");
-    }
-}
- 
-void RsFrameReport::SendCommandsStart()
-{
-    if (sendCommandsStartFunc_ == nullptr) {
-        sendCommandsStartFunc_ = (SendCommandsStartFunc)LoadSymbol("SendCommandsStart");
-    }
-    if (sendCommandsStartFunc_ != nullptr) {
-        sendCommandsStartFunc_();
-    } else {
-        LOGE("RsFrameReport:[SendCommandsStart]load SendCommandsStart function failed!");
-    }
-}
+#endif
 
 void RsFrameReport::SetFrameParam(int requestId, int load, int schedFrameNum, int value)
 {
@@ -225,6 +153,46 @@ void RsFrameReport::SetFrameParam(int requestId, int load, int schedFrameNum, in
     } else {
         LOGE("RsFrameReport:[SetFrameParam]load SetFrameParam function failed");
     }
+}
+
+void RsFrameReport::SendCommandsStart()
+{
+    if (sendCommandsStartFunc_ == nullptr) {
+        sendCommandsStartFunc_ = (SendCommandsStartFunc)LoadSymbol("SendCommandsStart");
+    }
+    if (sendCommandsStartFunc_ != nullptr) {
+        sendCommandsStartFunc_();
+    } else {
+        LOGE("RsFrameReport:[SendCommandsStart]load SendCommandsStart function failed!");
+    }
+}
+
+void RsFrameReport::RenderStart(uint64_t timestamp, int skipFirstFrame)
+{
+    std::unordered_map<std::string, std::string> payload = {};
+    payload["vsyncTime"] = std::to_string(timestamp);
+    payload["skipFirstFrame"] = std::to_string(skipFirstFrame);
+    ReportSchedEvent(FrameSchedEvent::RS_RENDER_START, payload);
+}
+
+void RsFrameReport::RenderEnd()
+{
+    ReportSchedEvent(FrameSchedEvent::RS_RENDER_END, {});
+}
+
+void RsFrameReport::DirectRenderEnd()
+{
+    ReportSchedEvent(FrameSchedEvent::RS_UNI_RENDER_END, {});
+}
+
+void RsFrameReport::UniRenderStart()
+{
+    ReportSchedEvent(FrameSchedEvent::RS_UNI_RENDER_START, {});
+}
+
+void RsFrameReport::UniRenderEnd()
+{
+    ReportSchedEvent(FrameSchedEvent::RS_UNI_RENDER_END, {});
 }
 
 void RsFrameReport::UnblockMainThread()
@@ -240,6 +208,51 @@ void RsFrameReport::PostAndWait()
 void RsFrameReport::BeginFlush()
 {
     ReportSchedEvent(FrameSchedEvent::RS_BEGIN_FLUSH, {});
+}
+
+void RsFrameReport::ReportBufferCount(int count)
+{
+    if (bufferCount_ == count) {
+        return;
+    }
+    bufferCount_ = count;
+    std::unordered_map<std::string, std::string> payload = {};
+    payload["bufferCount"] = std::to_string(count);
+    ReportSchedEvent(FrameSchedEvent::RS_BUFFER_COUNT, payload);
+}
+
+void RsFrameReport::ReportHardwareInfo(int tid)
+{
+    if (hardwareTid_ == tid) {
+        return;
+    }
+    hardwareTid_ = tid;
+    std::unordered_map<std::string, std::string> payload = {};
+    payload["hardwareTid"] = std::to_string(tid);
+    ReportSchedEvent(FrameSchedEvent::RS_HARDWARE_INFO, payload);
+}
+
+void RsFrameReport::ReportFrameDeadline(int deadline, uint32_t currentRate)
+{
+    std::unordered_map<std::string, std::string> payload = {};
+    payload["rsFrameDeadline"] = std::to_string(deadline);
+    payload["currentRate"] = std::to_string(currentRate);
+    ReportSchedEvent(FrameSchedEvent::RS_FRAME_DEADLINE, payload);
+}
+
+void RsFrameReport::ReportDDGRTaskInfo()
+{
+    ReportSchedEvent(FrameSchedEvent::RS_DDGR_TASK, {});
+}
+
+void RsFrameReport::ReportScbSceneInfo(std::string description, bool eventStatus)
+{
+    std::unordered_map<std::string, std::string> payload = {};
+    payload["description"] = description;
+    payload["eventStatus"] = eventStatus ? "1" : "0"; // true:enter false:exit
+    LOGI("RsFrameReport:[ReportScbSceneInfo]description %{public}s, eventStatus %{public}s",
+        description.c_str(), payload["eventStatus"].c_str());
+    ReportSchedEvent(FrameSchedEvent::GPU_SCB_SCENE_INFO, payload);
 }
 } // namespace Rosen
 } // namespace OHOS

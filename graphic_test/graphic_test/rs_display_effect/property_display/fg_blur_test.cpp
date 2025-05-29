@@ -17,8 +17,10 @@
 #include "rs_graphic_test.h"
 #include "rs_graphic_test_img.h"
 
+#include "render/rs_blur_filter.h"
 #include "render/rs_filter.h"
 #include "render/rs_gradient_blur_para.h"
+#include "render/rs_material_filter.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -34,7 +36,7 @@ public:
     // called before each tests
     void BeforeEach() override
     {
-        SetScreenSurfaceBounds({ 0, 0, screenWidth, screenHeight });
+        SetScreenSize(screenWidth, screenHeight);
     }
 };
 
@@ -133,15 +135,16 @@ GRAPHIC_TEST(ForegroundTest, CONTENT_DISPLAY_TEST, Blur_LinearGradientBlur_Test_
         GradientDirection::BOTTOM,
         GradientDirection::RIGHT,
         GradientDirection::RIGHT,
+        GradientDirection::RIGHT,
     };
     std::vector<std::pair<float, float>> fractionStops[] = {
-        { std::make_pair(0.0, 0.0), std::make_pair(0.0, 1.0) },
-        { std::make_pair(1.0, 0.0), std::make_pair(1.0, 1.0) },
+        { std::make_pair(0.0, 0.0), std::make_pair(0.0, 1.0) }, { std::make_pair(1.0, 0.0), std::make_pair(1.0, 1.0) },
         { std::make_pair(0.0, 0.0), std::make_pair(1.0, 1.0) },
-        { std::make_pair(0.0, 0.0), std::make_pair(1.0, 1.0) },
+        { std::make_pair(0.1, 0.1), std::make_pair(1.0, 0.5), std::make_pair(0.5, 0.7) },
         { std::make_pair(0.0, 0.0), std::make_pair(1.0, 0.5), std::make_pair(0.0, 1.0) },
+        { std::make_pair(0.0, 0.1), std::make_pair(0.5, 0.7), std::make_pair(0.9, 0.3) }, // 对应模糊位置不严格递增
     };
-    for (int i = 0; i < FIVE_; i++) {
+    for (int i = 0; i < SIX_; i++) {
         int x = (i % TWO_) * SIX_HUNDRED_TEN_;
         int y = (i / TWO_) * SIX_HUNDRED_TEN_;
         auto testNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { x, y, SIX_HUNDRED_, SIX_HUNDRED_ });
@@ -152,6 +155,58 @@ GRAPHIC_TEST(ForegroundTest, CONTENT_DISPLAY_TEST, Blur_LinearGradientBlur_Test_
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
     }
+}
+
+GRAPHIC_TEST(ForegroundTest, CONTENT_DISPLAY_TEST, Foreground_Filter_Test)
+{
+    int columnCount = 2;
+    int rowCount = 2;
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight / rowCount;
+
+    // Three nodes, 2 columns * 2 rows
+    // First image, index = 0
+    int x = (0 % columnCount) * sizeX;
+    int y = (0 / columnCount) * sizeY;
+    auto testNodeForeground =
+        SetUpNodeBgImage("/data/local/tmp/Images/backGroundImage.jpg", { x, y, sizeX - 10, sizeY - 10 });
+    testNodeForeground->SetFilter(nullptr);
+    GetRootNode()->AddChild(testNodeForeground);
+    RegisterNode(testNodeForeground);
+
+    // Second image, index = 1
+    x = (1 % columnCount) * sizeX;
+    y = (1 / columnCount) * sizeY;
+    auto testNodeForeground2 =
+        SetUpNodeBgImage("/data/local/tmp/Images/backGroundImage.jpg", { x, y, sizeX - 10, sizeY - 10 });
+    MaterialParam materialParam = { 50, 0.8, 0.8, Color(0x2dff0000), false };
+    std::shared_ptr<RSMaterialFilter> matFilter =
+        std::make_shared<RSMaterialFilter>(materialParam, BLUR_COLOR_MODE::PRE_DEFINED);
+    testNodeForeground2->SetFilter(matFilter);
+    GetRootNode()->AddChild(testNodeForeground2);
+    RegisterNode(testNodeForeground2);
+
+    // Third image, index = 2
+    x = (2 % columnCount) * sizeX;
+    y = (2 / columnCount) * sizeY;
+    auto testNodeForeground3 =
+        SetUpNodeBgImage("/data/local/tmp/Images/backGroundImage.jpg", { x, y, sizeX - 10, sizeY - 10 });
+    std::shared_ptr<RSBlurFilter> blurFilter = std::make_shared<RSBlurFilter>(30, 30, false);
+    testNodeForeground3->SetFilter(blurFilter);
+    GetRootNode()->AddChild(testNodeForeground3);
+    RegisterNode(testNodeForeground3);
+
+    // Forth image, index = 3, with all material filter value invalid
+    x = (3 % columnCount) * sizeX;
+    y = (3 / columnCount) * sizeY;
+    auto testNodeForeground4 =
+        SetUpNodeBgImage("/data/local/tmp/Images/backGroundImage.jpg", { x, y, sizeX - 10, sizeY - 10 });
+    MaterialParam materialParam2 = { -50, -0.5, -0.5, Color(0x9fff0000), false };
+    std::shared_ptr<RSMaterialFilter> matFilter2 =
+        std::make_shared<RSMaterialFilter>(materialParam2, BLUR_COLOR_MODE::PRE_DEFINED);
+    testNodeForeground4->SetFilter(matFilter2);
+    GetRootNode()->AddChild(testNodeForeground4);
+    RegisterNode(testNodeForeground4);
 }
 
 } // namespace OHOS::Rosen

@@ -142,7 +142,8 @@ HWTEST_F(SkiaColorSpaceTest, Equals001, TestSize.Level1)
 {
     std::shared_ptr<ColorSpaceImpl> colorSpaceImpl = std::make_shared<SkiaColorSpace>();
     colorSpaceImpl->InitWithSRGB();
-    std::shared_ptr<ColorSpace> colorSpace = ColorSpace::CreateFromImpl(colorSpaceImpl);
+    std::shared_ptr<ColorSpace> colorSpace = std::make_shared<ColorSpace>();
+    colorSpace->GetImpl<SkiaColorSpace>()->SetColorSpace(colorSpaceImpl->GetSkColorSpace());
 
     SkiaColorSpace skiaColorSpace;
     skiaColorSpace.InitWithSRGB();

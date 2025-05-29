@@ -23,6 +23,11 @@
 
 namespace OHOS {
 namespace Rosen {
+#ifdef ROSEN_OHOS
+bool RSKawaseBlurShaderFilter::isMesablurAllEnable_ = RSSystemProperties::GetForceKawaseDisabled();
+#else
+bool RSKawaseBlurShaderFilter::isMesablurAllEnable_ = false;
+#endif
 RSKawaseBlurShaderFilter::RSKawaseBlurShaderFilter(int radius)
     : radius_(radius)
 {
@@ -32,6 +37,11 @@ RSKawaseBlurShaderFilter::RSKawaseBlurShaderFilter(int radius)
 
 RSKawaseBlurShaderFilter::~RSKawaseBlurShaderFilter() = default;
 
+void RSKawaseBlurShaderFilter::SetMesablurAllEnabledByCCM(bool flag)
+{
+    isMesablurAllEnable_ = isMesablurAllEnable_ || flag;
+}
+
 int RSKawaseBlurShaderFilter::GetRadius() const
 {
     return radius_;
@@ -40,7 +50,7 @@ int RSKawaseBlurShaderFilter::GetRadius() const
 std::string RSKawaseBlurShaderFilter::GetDescription() const
 {
     std::string filterString = ", radius: " + std::to_string(radius_) + " sigma";
-    if (RSSystemProperties::GetForceKawaseDisabled()) {
+    if (isMesablurAllEnable_) {
         filterString = filterString + ", replaced by Mesa.";
     }
     return filterString;
@@ -49,7 +59,7 @@ std::string RSKawaseBlurShaderFilter::GetDescription() const
 void RSKawaseBlurShaderFilter::GenerateGEVisualEffect(
     std::shared_ptr<Drawing::GEVisualEffectContainer> visualEffectContainer)
 {
-    if (RSSystemProperties::GetForceKawaseDisabled()) {
+    if (isMesablurAllEnable_) {
         // Substitute the blur algorithm
         auto kawaseFilter = std::make_shared<Drawing::GEVisualEffect>("MESA_BLUR", Drawing::DrawingPaintType::BRUSH);
         kawaseFilter->SetParam("MESA_BLUR_RADIUS", (int)radius_); // blur radius

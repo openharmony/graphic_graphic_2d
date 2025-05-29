@@ -57,4 +57,21 @@ HWTEST_F(EglCoreTest, EglCoreInit002, Level2)
 
     gWrapperHook.isLoad = temp;
 }
+
+#ifdef OPENGL_WRAPPER_ENABLE_GL4
+/**
+ * @tc.name: EglCoreInit003
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(EglCoreTest, EglCoreInit003, Level2)
+{
+    auto temp = gWrapperHook.isLoad;
+    gWrapperHook.isLoad = true;
+    gWrapperHook.useMesa = true;
+    auto result = EglCoreInit();
+    ASSERT_TRUE(result);
+    gWrapperHook.isLoad = temp;
+}
+#endif
 } // OHOS::Rosen

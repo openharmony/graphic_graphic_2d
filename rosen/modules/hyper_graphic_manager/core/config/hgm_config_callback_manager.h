@@ -20,6 +20,7 @@
 #include <mutex>
 #include <unordered_map>
 
+#include "ipc_callbacks/rs_iframe_rate_linker_expected_fps_update_callback.h"
 #include "ipc_callbacks/rs_ihgm_config_change_callback.h"
 #include "refbase.h"
 
@@ -35,10 +36,13 @@ public:
     void RegisterHgmConfigChangeCallback(pid_t pid, const sptr<RSIHgmConfigChangeCallback>& callback);
     void RegisterHgmRefreshRateModeChangeCallback(pid_t pid, const sptr<RSIHgmConfigChangeCallback>& callback);
     void RegisterHgmRefreshRateUpdateCallback(pid_t pid, const sptr<RSIHgmConfigChangeCallback>& callback);
+    void RegisterXComponentExpectedFrameRateCallback(pid_t listenerPid, pid_t dstPid,
+        const sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback>& callback);
     void SyncHgmConfigChangeCallback();
     void SyncHgmConfigChangeCallback(const std::unordered_map<pid_t, std::pair<int32_t, std::string>>& pids);
     void SyncRefreshRateModeChangeCallback(int32_t refreshRateMode);
     void SyncRefreshRateUpdateCallback(int32_t refreshRate);
+    void SyncXComponentExpectedFrameRateCallback(pid_t pid, const std::string& id, int32_t expectedFrameRate);
     void UnRegisterHgmConfigChangeCallback(pid_t pid);
 
 private:
@@ -50,6 +54,11 @@ private:
     std::unordered_map<pid_t, sptr<RSIHgmConfigChangeCallback>> pendingAnimDynamicCfgCallbacks_;
     std::unordered_map<pid_t, sptr<RSIHgmConfigChangeCallback>> refreshRateModeCallbacks_;
     std::unordered_map<pid_t, sptr<RSIHgmConfigChangeCallback>> refreshRateUpdateCallbacks_;
+    // <dstPid, <listenerPid, cb>>
+    std::unordered_map<pid_t, std::unordered_map<pid_t,
+        sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback>>> xcomponentExpectedFrameRateCallbacks_;
+    // <dstPid, fps>
+    std::unordered_map<pid_t, int32_t> xcomponentExpectedFrameRate_;
 };
 } // namespace OHOS::Rosen
 #endif // HGM_CONFIG_CALLBACK_MANAGER_H

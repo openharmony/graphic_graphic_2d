@@ -14,6 +14,7 @@
 #####################hydra-fuzz###################
 import("//build/config/features.gni")
 import("//build/test.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
 module_output_path = "graphic_2d/graphic_2d"
 
 ##############################fuzztest##########################################
@@ -23,7 +24,6 @@ ohos_fuzztest("EGLWrapperLayerFuzzTest") {
 
   include_dirs = [
     "//foundation/graphic/graphic_2d/frameworks/opengl_wrapper/src/EGL",
-    "//drivers/peripheral/display/interfaces/include",
   ]
   cflags = [
     "-g",
@@ -32,7 +32,7 @@ ohos_fuzztest("EGLWrapperLayerFuzzTest") {
     "-fno-omit-frame-pointer",
   ]
   sources = [ "eglwrapperlayer_fuzzer.cpp" ]
-  deps = [ "../../../../opengl_wrapper:EGL" ]
+  deps = [ "$graphic_2d_root/frameworks/opengl_wrapper:EGL" ]
   external_deps = [ "c_utils:utils" ]
 }
 

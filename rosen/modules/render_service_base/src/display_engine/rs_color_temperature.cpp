@@ -23,6 +23,7 @@
 
 namespace {
 constexpr std::string_view EXT_LIB_PATH = "system/lib64/libcct_ext.z.so";
+static const std::vector<float> DEFAULT_MATRIX = {1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f};
 }
 
 namespace OHOS {
@@ -47,6 +48,7 @@ void RSColorTemperature::CloseLibrary()
         dlclose(extLibHandle_);
         extLibHandle_ = nullptr;
     }
+    initStatus_ = false;
     create_ = nullptr;
     destroy_ = nullptr;
 }
@@ -58,8 +60,8 @@ void RSColorTemperature::Init()
         CloseLibrary();
     }
     if (create_ != nullptr) {
-        rSCctInterface_ = create_();
-        if (rSCctInterface_ == nullptr) {
+        rSColorTemperatureInterface_ = create_();
+        if (rSColorTemperatureInterface_ == nullptr) {
             CloseLibrary();
         }
     }
@@ -75,7 +77,7 @@ bool RSColorTemperature::LoadLibrary()
         RS_LOGI("ColorTemp dlopen error:%{public}s", dlerror());
         return false;
     }
-    create_ = reinterpret_cast<CreatFunc>(dlsym(extLibHandle_, "Create"));
+    create_ = reinterpret_cast<CreateFunc>(dlsym(extLibHandle_, "Create"));
     if (create_ == nullptr) {
         RS_LOGE("ColorTemp link create error!");
         return false;
@@ -89,45 +91,51 @@ bool RSColorTemperature::LoadLibrary()
     return true;
 }
 
-void RSColorTemperature::RegisterRefresh(std::function<void()>&& refresh)
+void RSColorTemperature::RegisterRefresh(std::function<void()>&& refreshFunc)
 {
-    if (rSCctInterface_ != nullptr) {
-        rSCctInterface_->RegisterRefresh(std::forward<std::function<void()>>(refresh));
+    if (rSColorTemperatureInterface_ != nullptr) {
+        rSColorTemperatureInterface_->RegisterRefresh(std::forward<std::function<void()>>(refreshFunc));
     }
 }
 
-void RSColorTemperature::UpdateScreenStatus(ScreenId screenId, ScreenPowerStatus status)
+void RSColorTemperature::UpdateScreenStatus(ScreenId screenId, ScreenPowerStatus powerStatus)
 {
-    if (rSCctInterface_ != nullptr) {
-        rSCctInterface_->UpdateScreenStatus(screenId, status);
+    if (rSColorTemperatureInterface_ != nullptr) {
+        rSColorTemperatureInterface_->UpdateScreenStatus(screenId, powerStatus);
     }
 }
 
 bool RSColorTemperature::IsDimmingOn(ScreenId screenId)
 {
-    return (rSCctInterface_ != nullptr) ? rSCctInterface_->IsDimmingOn(screenId) : false;
+    return (rSColorTemperatureInterface_ != nullptr) ?
+        rSColorTemperatureInterface_->IsDimmingOn(screenId) : false;
 }
 
 void RSColorTemperature::DimmingIncrease(ScreenId screenId)
 {
-    if (rSCctInterface_ != nullptr) {
-        rSCctInterface_->DimmingIncrease(screenId);
+    if (rSColorTemperatureInterface_ != nullptr) {
+        rSColorTemperatureInterface_->DimmingIncrease(screenId);
     }
+}
+
+bool RSColorTemperature::IsColorTemperatureOn() const
+{
+    return (rSColorTemperatureInterface_ != nullptr) ?
+        rSColorTemperatureInterface_->IsColorTemperatureOn() : false;
 }
 
 std::vector<float> RSColorTemperature::GetNewLinearCct(ScreenId screenId)
 {
-    return (rSCctInterface_ != nullptr) ?
-        rSCctInterface_->GetNewLinearCct(screenId) :
-            std::vector<float>{1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f};
+    return (rSColorTemperatureInterface_ != nullptr) ?
+        rSColorTemperatureInterface_->GetNewLinearCct(screenId) : DEFAULT_MATRIX;
 }
 
-std::vector<float> RSColorTemperature::GetLayerLinearCct(ScreenId screenId, const std::vector<uint8_t>& metadata,
-    const CM_Matrix srcColorMatrix)
+std::vector<float> RSColorTemperature::GetLayerLinearCct(ScreenId screenId,
+    const std::vector<uint8_t>& dynamicMetadata, const CM_Matrix srcColorMatrix)
 {
-    return (rSCctInterface_ != nullptr) ?
-        rSCctInterface_->GetLayerLinearCct(screenId, metadata, srcColorMatrix) :
-            std::vector<float>{1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f};
+    return (rSColorTemperatureInterface_ != nullptr) ?
+        rSColorTemperatureInterface_->GetLayerLinearCct(screenId,
+            dynamicMetadata, srcColorMatrix) : DEFAULT_MATRIX;
 }
 } // Rosen
 } // OHOS

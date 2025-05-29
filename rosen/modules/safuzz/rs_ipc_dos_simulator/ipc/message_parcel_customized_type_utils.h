@@ -66,10 +66,17 @@ private:
         const TestCaseParams& testCaseParams);
     static bool WriteRandomSurfaceCaptureCallbackSptr(MessageParcel& messageParcel,
         const TestCaseParams& testCaseParams);
+    static bool WriteRandomTransactionDataCallbackSptr(MessageParcel& messageParcel,
+        const TestCaseParams& testCaseParams);
+    static bool WriteRandomSelfDrawingNodeRectChangeCallbackSptr(MessageParcel& messageParcel,
+        const TestCaseParams& testCaseParams);
 
     static bool WriteRandomPixelMapSharedPtr(MessageParcel& messageParcel, const TestCaseParams& testCaseParams);
     static bool WriteRandomSurfaceSptr(MessageParcel& messageParcel, const TestCaseParams& testCaseParams);
     static bool WriteRandomDrawingTypefaceSharedPtr(MessageParcel& messageParcel, const TestCaseParams& testCaseParams);
+    static bool WriteRandomDrawingRect(MessageParcel& messageParcel, const TestCaseParams& testCaseParams);
+    static bool WriteRandomDrawingDrawCmdListSharedPtr(MessageParcel& messageParcel,
+        const TestCaseParams& testCaseParams);
     static bool WriteRandomRSSyncTaskSharedPtr(MessageParcel& messageParcel, const TestCaseParams& testCaseParams);
 
     static bool WriteRandomRSTransactionDataToVector(std::vector<std::shared_ptr<MessageParcel>>& messageParcels,

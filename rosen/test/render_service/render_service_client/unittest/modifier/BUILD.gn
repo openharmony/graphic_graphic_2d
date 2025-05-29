@@ -13,6 +13,7 @@
 
 import("//build/ohos.gni")
 import("//build/test.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 module_output_path = "graphic_2d/graphic_2d/render_service_client/modifier"
 
@@ -29,11 +30,11 @@ ohos_unittest("RSRenderServiceClientModifierTest") {
     "rs_property_test.cpp",
   ]
 
-  include_dirs = [ "//foundation/graphic/graphic_2d/rosen/test/include" ]
+  include_dirs = [ "$graphic_2d_root/rosen/test/include" ]
 
   configs = [
     ":modifier_test",
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:render_service_client_config",
+    "$graphic_2d_root/rosen/modules/render_service_client:render_service_client_config",
   ]
 
   cflags = [
@@ -42,8 +43,7 @@ ohos_unittest("RSRenderServiceClientModifierTest") {
   ]
 
   deps = [
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:render_service_client_src",
-    "//third_party/googletest:gtest_main",
+    "$graphic_2d_root/rosen/modules/render_service_client:render_service_client_src",
   ]
 
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
@@ -53,6 +53,7 @@ ohos_unittest("RSRenderServiceClientModifierTest") {
   subsystem_name = "graphic"
   external_deps = [
     "c_utils:utils",
+    "googletest:gtest_main",
     "hilog:libhilog",
   ]
 }
@@ -61,7 +62,7 @@ ohos_unittest("RSRenderServiceClientModifierTest") {
 config("modifier_test") {
   visibility = [ ":*" ]
   include_dirs =
-      [ "//foundation/graphic/graphic_2d/rosen/modules/render_service_client" ]
+      [ "$graphic_2d_root/rosen/modules/render_service_client" ]
 }
 
 group("unittest") {

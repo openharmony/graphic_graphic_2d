@@ -40,6 +40,7 @@ ohos_fuzztest("VsyncConnectionFuzzTest") {
   external_deps = [
     "c_utils:utils",
     "ipc:ipc_single",
+    "samgr:samgr_proxy",
   ]
   defines = []
   if (graphic_2d_feature_enable_dvsync) {

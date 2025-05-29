@@ -38,6 +38,9 @@ RSLuminanceControl& RSLuminanceControl::Get()
 
 RSLuminanceControl::~RSLuminanceControl()
 {
+    if (initStatus_ && destroy_ != nullptr) {
+        destroy_();
+    }
     CloseLibrary();
 }
 
@@ -47,22 +50,9 @@ void RSLuminanceControl::CloseLibrary()
         dlclose(extLibHandle_);
         extLibHandle_ = nullptr;
     }
-    setHdrStatus_ = nullptr;
-    isHdrOn_ = nullptr;
-    isDimmingOn_ = nullptr;
-    dimmingIncrease_ = nullptr;
-    setSdrLuminance_ = nullptr;
-    getNewHdrLuminance_ = nullptr;
-    setNowHdrLuminance_ = nullptr;
-    isNeedUpdateLuminance_ = nullptr;
-    getSdrDisplayNits_ = nullptr;
-    getDisplayNits_ = nullptr;
-    getNonlinearRatio_ = nullptr;
-    calScaler_ = nullptr;
-    isHdrPictureOn_ = nullptr;
-    isCloseHardwareHdr_ = nullptr;
-    isForceCloseHdr_ = nullptr;
-    forceCloseHdr_ = nullptr;
+    initStatus_ = false;
+    create_ = nullptr;
+    destroy_ = nullptr;
 }
 
 void RSLuminanceControl::Init()
@@ -71,6 +61,12 @@ void RSLuminanceControl::Init()
     if (!initStatus_) {
         CloseLibrary();
     }
+    if (create_ != nullptr) {
+        rSLuminanceControlInterface_ = create_();
+        if (rSLuminanceControlInterface_ == nullptr) {
+            CloseLibrary();
+        }
+    }
 }
 
 bool RSLuminanceControl::LoadLibrary()
@@ -78,221 +74,125 @@ bool RSLuminanceControl::LoadLibrary()
     if (UNLIKELY(extLibHandle_ != nullptr)) {
         return false;
     }
-    bool loadResult{true};
     extLibHandle_ = dlopen(EXT_LIB_PATH.data(), RTLD_NOW);
     if (extLibHandle_ == nullptr) {
-        RS_LOGI("LumCtr dlopen error:%{public}s", dlerror());
-        loadResult = false;
-    }
-    if (loadResult && !LoadStatusControl()) {
-        CloseLibrary();
-        loadResult = false;
-    }
-    if (loadResult && !LoadLumControl()) {
-        CloseLibrary();
-        loadResult = false;
-    }
-    if (loadResult && !LoadTmoControl()) {
-        CloseLibrary();
-        loadResult = false;
-    }
-    RS_LOGI("LumCtr init status:%{public}d", loadResult);
-    return loadResult;
-}
-
-bool RSLuminanceControl::LoadStatusControl()
-{
-    if (UNLIKELY(extLibHandle_ == nullptr)) {
+        RS_LOGI("LumControl dlopen error:%{public}s", dlerror());
         return false;
     }
-    setHdrStatus_ = reinterpret_cast<SetHdrStatusFunc>(dlsym(extLibHandle_, "SetHdrStatus"));
-    if (setHdrStatus_ == nullptr) {
-        RS_LOGE("LumCtr link SetHdrStatusFunc error!");
+    create_ = reinterpret_cast<CreateFunc>(dlsym(extLibHandle_, "Create"));
+    if (create_ == nullptr) {
+        RS_LOGE("LumControl link create error!");
         return false;
     }
-    isHdrOn_ = reinterpret_cast<IsHdrOnFunc>(dlsym(extLibHandle_, "IsHdrOn"));
-    if (isHdrOn_ == nullptr) {
-        RS_LOGE("LumCtr link IsHdrOn error!");
+    destroy_ = reinterpret_cast<DestroyFunc>(dlsym(extLibHandle_, "Destroy"));
+    if (destroy_ == nullptr) {
+        RS_LOGE("LumControl link destroy error!");
         return false;
     }
-    isDimmingOn_ = reinterpret_cast<IsDimmingOnFunc>(dlsym(extLibHandle_, "IsDimmingOn"));
-    if (isDimmingOn_ == nullptr) {
-        RS_LOGE("LumCtr link IsDimmingOn error!");
-        return false;
-    }
-    dimmingIncrease_ = reinterpret_cast<DimmingIncreaseFunc>(dlsym(extLibHandle_, "DimmingIncrease"));
-    if (dimmingIncrease_ == nullptr) {
-        RS_LOGE("LumCtr link IsDimmingOn error!");
-        return false;
-    }
-    isHdrPictureOn_ = reinterpret_cast<IsHdrPictureOnFunc>(dlsym(extLibHandle_, "IsHdrPictureOn"));
-    if (isHdrPictureOn_ == nullptr) {
-        RS_LOGE("LumCtr link IsHdrPictureOn error!");
-        return false;
-    }
-    isForceCloseHdr_ = reinterpret_cast<IsForceCloseHdrFunc>(dlsym(extLibHandle_, "IsForceCloseHdr"));
-    if (isForceCloseHdr_ == nullptr) {
-        RS_LOGE("LumCtr link IsForceCloseHdr error!");
-        return false;
-    }
-    forceCloseHdr_ = reinterpret_cast<ForceCloseHdrFunc>(dlsym(extLibHandle_, "ForceCloseHdr"));
-    if (forceCloseHdr_ == nullptr) {
-        RS_LOGE("LumCtr link ForceCloseHdr error!");
-        return false;
-    }
-    isCloseHardwareHdr_ = reinterpret_cast<IsCloseHardwareHdrFunc>(dlsym(extLibHandle_,
-        "IsCloseHardwareHdr"));
-    if (isCloseHardwareHdr_ == nullptr) {
-        RS_LOGE("LumCtr link IsCloseHardwareHdr error!");
-        return false;
-    }
+    RS_LOGI("LumControl LoadLibrary success");
     return true;
 }
 
-bool RSLuminanceControl::LoadLumControl()
+bool RSLuminanceControl::SetHdrStatus(ScreenId screenId, HdrStatus hdrStatus)
 {
-    if (UNLIKELY(extLibHandle_ == nullptr)) {
-        return false;
-    }
-    setSdrLuminance_ = reinterpret_cast<SetSdrLuminanceFunc>(dlsym(extLibHandle_, "SetSdrLuminance"));
-    if (setSdrLuminance_ == nullptr) {
-        RS_LOGE("LumCtr link SetSdrLuminance error!");
-        return false;
-    }
-    getNewHdrLuminance_ = reinterpret_cast<GetNewHdrLuminanceFunc>(dlsym(extLibHandle_, "GetNewHdrLuminance"));
-    if (getNewHdrLuminance_ == nullptr) {
-        RS_LOGE("LumCtr link GetNewHdrLuminance error!");
-        return false;
-    }
-    setNowHdrLuminance_ = reinterpret_cast<SetNowHdrLuminanceFunc>(dlsym(extLibHandle_, "SetNowHdrLuminance"));
-    if (setNowHdrLuminance_ == nullptr) {
-        RS_LOGE("LumCtr link SetNowHdrLuminance error!");
-        return false;
-    }
-    isNeedUpdateLuminance_ = reinterpret_cast<IsNeedUpdateLuminanceFunc>(dlsym(extLibHandle_, "IsNeedUpdateLuminance"));
-    if (isNeedUpdateLuminance_ == nullptr) {
-        RS_LOGE("LumCtr link IsNeedUpdateLuminance error!");
-        return false;
-    }
-    return true;
-}
-
-bool RSLuminanceControl::LoadTmoControl()
-{
-    if (UNLIKELY(extLibHandle_ == nullptr)) {
-        return false;
-    }
-    getSdrDisplayNits_ = reinterpret_cast<GetSdrDisplayNitsFunc>(dlsym(extLibHandle_, "GetSdrDisplayNits"));
-    if (getSdrDisplayNits_ == nullptr) {
-        RS_LOGE("LumCtr link GetSdrDisplayNits error!");
-        return false;
-    }
-    getDisplayNits_ = reinterpret_cast<GetDisplayNitsFunc>(dlsym(extLibHandle_, "GetDisplayNits"));
-    if (getDisplayNits_ == nullptr) {
-        RS_LOGE("LumCtr link GetDisplayNits error!");
-        return false;
-    }
-    getNonlinearRatio_ = reinterpret_cast<GetNonlinearRatioFunc>(dlsym(extLibHandle_, "GetNonlinearRatio"));
-    if (getNonlinearRatio_ == nullptr) {
-        RS_LOGE("LumCtr link GetHdrBrightnessRatio error!");
-        return false;
-    }
-    calScaler_ = reinterpret_cast<CalScalerFunc>(dlsym(extLibHandle_, "CalScaler"));
-    if (calScaler_ == nullptr) {
-        RS_LOGE("LumCtr link CalScaler error!");
-        return false;
-    }
-    return true;
-}
-
-bool RSLuminanceControl::SetHdrStatus(ScreenId screenId, HdrStatus hdrstatus)
-{
-    return (initStatus_ && setHdrStatus_ != nullptr) ? setHdrStatus_(screenId, hdrstatus) : false;
+    return (rSLuminanceControlInterface_ != nullptr) ?
+        rSLuminanceControlInterface_->SetHdrStatus(screenId, hdrStatus) : false;
 }
 
 bool RSLuminanceControl::IsHdrOn(ScreenId screenId)
 {
-    return (initStatus_ && isHdrOn_ != nullptr) ? isHdrOn_(screenId) : false;
+    return (rSLuminanceControlInterface_ != nullptr) ?
+        rSLuminanceControlInterface_->IsHdrOn(screenId) : false;
 }
 
 bool RSLuminanceControl::IsDimmingOn(ScreenId screenId)
 {
-    return (initStatus_ && isDimmingOn_ != nullptr) ? isDimmingOn_(screenId) : false;
+    return (rSLuminanceControlInterface_ != nullptr) ?
+        rSLuminanceControlInterface_->IsDimmingOn(screenId) : false;
 }
 
 void RSLuminanceControl::DimmingIncrease(ScreenId screenId)
 {
-    if (initStatus_ && dimmingIncrease_ != nullptr) {
-        dimmingIncrease_(screenId);
+    if (rSLuminanceControlInterface_ != nullptr) {
+        rSLuminanceControlInterface_->DimmingIncrease(screenId);
     }
 }
 
 void RSLuminanceControl::SetSdrLuminance(ScreenId screenId, uint32_t level)
 {
-    if (initStatus_ && setSdrLuminance_ != nullptr) {
-        setSdrLuminance_(screenId, level);
+    if (rSLuminanceControlInterface_ != nullptr) {
+        rSLuminanceControlInterface_->SetSdrLuminance(screenId, level);
     }
 }
 
 uint32_t RSLuminanceControl::GetNewHdrLuminance(ScreenId screenId)
 {
-    return (initStatus_ && getNewHdrLuminance_ != nullptr) ? getNewHdrLuminance_(screenId) : DEFAULT_LEVEL;
+    return (rSLuminanceControlInterface_ != nullptr) ?
+        rSLuminanceControlInterface_->GetNewHdrLuminance(screenId) : DEFAULT_LEVEL;
 }
 
 void RSLuminanceControl::SetNowHdrLuminance(ScreenId screenId, uint32_t level)
 {
-    if (initStatus_ && setNowHdrLuminance_ != nullptr) {
-        setNowHdrLuminance_(screenId, level);
+    if (rSLuminanceControlInterface_ != nullptr) {
+        rSLuminanceControlInterface_->SetNowHdrLuminance(screenId, level);
     }
 }
 
 bool RSLuminanceControl::IsNeedUpdateLuminance(ScreenId screenId)
 {
-    return (initStatus_ && isNeedUpdateLuminance_ != nullptr) ? isNeedUpdateLuminance_(screenId) : false;
+    return (rSLuminanceControlInterface_ != nullptr) ?
+        rSLuminanceControlInterface_->IsNeedUpdateLuminance(screenId) : false;
 }
 
 float RSLuminanceControl::GetSdrDisplayNits(ScreenId screenId)
 {
-    return (initStatus_ && getSdrDisplayNits_ != nullptr) ? getSdrDisplayNits_(screenId) : HDR_DEFAULT_TMO_NIT;
+    return (rSLuminanceControlInterface_ != nullptr) ?
+        rSLuminanceControlInterface_->GetSdrDisplayNits(screenId) : HDR_DEFAULT_TMO_NIT;
 }
 
 float RSLuminanceControl::GetDisplayNits(ScreenId screenId)
 {
-    return (initStatus_ && getDisplayNits_ != nullptr) ? getDisplayNits_(screenId) : HDR_DEFAULT_TMO_NIT;
+    return (rSLuminanceControlInterface_ != nullptr) ?
+        rSLuminanceControlInterface_->GetDisplayNits(screenId) : HDR_DEFAULT_TMO_NIT;
 }
 
-double RSLuminanceControl::GetHdrBrightnessRatio(ScreenId screenId, int32_t mode)
+double RSLuminanceControl::GetHdrBrightnessRatio(ScreenId screenId, uint32_t mode)
 {
-    return (initStatus_ && getNonlinearRatio_ != nullptr) ? getNonlinearRatio_(screenId, mode) : 1.0;
+    return (rSLuminanceControlInterface_ != nullptr) ?
+        rSLuminanceControlInterface_->GetNonlinearRatio(screenId, mode) : 1.0;
 }
 
-float RSLuminanceControl::CalScaler(const float& maxContentLightLevel, int32_t dynamicMetadataSize, const float& ratio)
+float RSLuminanceControl::CalScaler(const float& maxContentLightLevel,
+    const std::vector<uint8_t>& dynamicMetadata, const float& ratio)
 {
-    return (initStatus_ && calScaler_ != nullptr) ? calScaler_(maxContentLightLevel, dynamicMetadataSize, ratio) :
-        HDR_DEFAULT_SCALER * ratio;
+    return (rSLuminanceControlInterface_ != nullptr) ?
+        rSLuminanceControlInterface_->CalScaler(maxContentLightLevel,
+            dynamicMetadata, ratio) : HDR_DEFAULT_SCALER * ratio;
 }
 
 bool RSLuminanceControl::IsHdrPictureOn()
 {
-    return (initStatus_ && isHdrPictureOn_ != nullptr) ? isHdrPictureOn_() : false;
+    return (rSLuminanceControlInterface_ != nullptr) ?
+        rSLuminanceControlInterface_->IsHdrPictureOn() : false;
 }
 
 bool RSLuminanceControl::IsForceCloseHdr()
 {
-    return (initStatus_ && isForceCloseHdr_ != nullptr) ? isForceCloseHdr_() : false;
+    return (rSLuminanceControlInterface_ != nullptr) ?
+        rSLuminanceControlInterface_->IsForceCloseHdr() : false;
 }
 
 void RSLuminanceControl::ForceCloseHdr(uint32_t closeHdrSceneId, bool forceCloseHdr)
 {
-    if (initStatus_ && forceCloseHdr_ != nullptr) {
-        forceCloseHdr_(closeHdrSceneId, forceCloseHdr);
+    if (rSLuminanceControlInterface_ != nullptr) {
+        rSLuminanceControlInterface_->ForceCloseHdr(closeHdrSceneId, forceCloseHdr);
     }
 }
 
 bool RSLuminanceControl::IsCloseHardwareHdr()
 {
-    return (initStatus_ && isCloseHardwareHdr_ != nullptr) ?
-        isCloseHardwareHdr_() : false;
+    return (rSLuminanceControlInterface_ != nullptr) ?
+        rSLuminanceControlInterface_->IsCloseHardwareHdr() : false;
 }
 } // namespace Rosen
 } // namespace OHOS

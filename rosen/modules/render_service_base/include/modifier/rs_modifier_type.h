@@ -29,6 +29,9 @@ namespace Rosen {
 // 2. Property modifier(i.e. to be applied to RSProperties) MUST be added before CUSTOM enum, elsewise it will not work
 // 3. Each command HAVE TO have UNIQUE ID in ALL HISTORY
 //    If a command is not used and you want to delete it, just COMMENT it
+// 4. MAX_RS_MODIFIER_TYPE always MUST be equla (GREATEST_ID_VALUE_IN_ENUM + 1)
+//    Example: If you added new enum value which id equal 400 and it greatest value in enum,
+//    you HAVE TO change MAX_RS_MODIFIER_TYPE id to 401
 enum class RSModifierType : int16_t {
     INVALID = 0,
     BOUNDS = 1,
@@ -164,25 +167,33 @@ enum class RSModifierType : int16_t {
     FG_BLUR_DISABLE_SYSTEM_ADAPTATION = 131,
     ATTRACTION_FRACTION = 132,
     ATTRACTION_DSTPOINT = 133,
-    CUSTOM = 134,
-    EXTENDED = 135,
-    TRANSITION = 136,
-    BACKGROUND_STYLE = 137,
-    CONTENT_STYLE = 138,
-    FOREGROUND_STYLE = 139,
-    OVERLAY_STYLE = 140,
-    NODE_MODIFIER = 141,
-    ENV_FOREGROUND_COLOR = 142,
-    ENV_FOREGROUND_COLOR_STRATEGY = 143,
-    GEOMETRYTRANS = 144,
-    CUSTOM_CLIP_TO_FRAME = 145,
-    HDR_BRIGHTNESS = 146,
-    BEHIND_WINDOW_FILTER_RADIUS = 147,
-    BEHIND_WINDOW_FILTER_SATURATION = 148,
-    BEHIND_WINDOW_FILTER_BRIGHTNESS = 149,
-    BEHIND_WINDOW_FILTER_MASK_COLOR = 150,
-    CHILDREN = 151, // PLACEHOLDER, no such modifier, but we need a dirty flag
-    MAX_RS_MODIFIER_TYPE = 152,
+    ALWAYS_SNAPSHOT = 134,
+    COMPLEX_SHADER_PARAM = 135,
+    BACKGROUND_UI_FILTER = 136,
+    HDR_UI_BRIGHTNESS = 137,
+    FOREGROUND_UI_FILTER = 138,
+
+    CUSTOM = 200,
+    EXTENDED = 201,
+    TRANSITION = 202,
+    BACKGROUND_STYLE = 203,
+    CONTENT_STYLE = 204,
+    FOREGROUND_STYLE = 205,
+    OVERLAY_STYLE = 206,
+    NODE_MODIFIER = 207,
+    ENV_FOREGROUND_COLOR = 208,
+    ENV_FOREGROUND_COLOR_STRATEGY = 209,
+    GEOMETRYTRANS = 210,
+    CUSTOM_CLIP_TO_FRAME = 211,
+    HDR_BRIGHTNESS = 212,
+    BEHIND_WINDOW_FILTER_RADIUS = 213,
+    BEHIND_WINDOW_FILTER_SATURATION = 214,
+    BEHIND_WINDOW_FILTER_BRIGHTNESS = 215,
+    BEHIND_WINDOW_FILTER_MASK_COLOR = 216,
+
+    CHILDREN = 240, // PLACEHOLDER, no such modifier, but we need a dirty flag
+
+    MAX_RS_MODIFIER_TYPE = 255,
 };
 
 enum class RSPropertyModifierType : uint8_t {
@@ -210,6 +221,8 @@ enum class RSRenderPropertyType : int16_t {
     PROPERTY_VECTOR4_COLOR,
     PROPERTY_SKMATRIX,
     PROPERTY_RRECT,
+    PROPERTY_SHADER_PARAM,
+    PROPERTY_UI_FILTER,
 };
 
 enum class RSPropertyUnit : int16_t {
@@ -352,6 +365,11 @@ public:
             case RSModifierType::FOREGROUND_BLUR_RADIUS_X: return "ForegroundBlurRadiusX";
             case RSModifierType::FOREGROUND_BLUR_RADIUS_Y: return "ForegroundBlurRadiusY";
             case RSModifierType::FG_BLUR_DISABLE_SYSTEM_ADAPTATION: return "FgBlurDisableSystemAdaptation";
+            case RSModifierType::ALWAYS_SNAPSHOT: return "AlwaysSnapshot";
+            case RSModifierType::COMPLEX_SHADER_PARAM: return "ComplexShaderParam";
+            case RSModifierType::BACKGROUND_UI_FILTER: return "BackgroundUIFilter";
+            case RSModifierType::HDR_UI_BRIGHTNESS: return "HDRUIBrightness";
+            case RSModifierType::FOREGROUND_UI_FILTER: return "ForegroundUIFilter";
             case RSModifierType::CUSTOM: return "Custom";
             case RSModifierType::EXTENDED: return "Extended";
             case RSModifierType::TRANSITION: return "Transition";

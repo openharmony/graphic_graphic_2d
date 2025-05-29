@@ -1145,6 +1145,36 @@ HWTEST_F(PathTest, Dump001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: ReWind001
+ * @tc.desc: ReWind Path
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(PathTest, ReWind001, TestSize.Level1)
+{
+    Path path;
+    path.MoveTo(1.0f, 2.0f);
+    path.LineTo(3.0f, 4.0f);
+    path.ReWind();
+    EXPECT_TRUE(path.IsEmpty());
+}
+
+/**
+ * @tc.name: SetLastPoint001
+ * @tc.desc: ReWind Path
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(PathTest, SetLastPoint001, TestSize.Level1)
+{
+    Path path;
+    path.MoveTo(1.0f, 2.0f);
+    path.LineTo(3.0f, 4.0f);
+    path.SetLastPoint(5.0f, 6.0f);
+    EXPECT_FALSE(path.IsEmpty());
+}
+
+/**
  * @tc.name: Serialize001
  * @tc.desc: Data returned shouldn't be nullptr
  * @tc.type: FUNC
@@ -1161,6 +1191,71 @@ HWTEST_F(PathTest, Serialize001, TestSize.Level1)
     auto data2 = path2.Serialize();
     ASSERT_TRUE(data2 != nullptr);
 }
+
+/**
+ * @tc.name: SetPath001
+ * @tc.desc: Set path to another.
+ * @tc.type: FUNC
+ * @tc.require: issuelI6M9U9
+ */
+HWTEST_F(PathTest, SetPath001, TestSize.Level1)
+{
+    Path path1;
+    path1.MoveTo(1.0f, 2.0f);
+    path1.LineTo(3.0f, 4.0f);
+    Path path2;
+    ASSERT_TRUE(path2.IsEmpty());
+    path2.SetPath(path1);
+    ASSERT_FALSE(path2.IsEmpty());
+}
+
+/**
+ * @tc.name: IsEmpty001
+ * @tc.desc: return if path is empty.
+ * @tc.type: FUNC
+ * @tc.require: issuelI6M9U9
+ */
+HWTEST_F(PathTest, IsEmpty001, TestSize.Level1)
+{
+    Path path1;
+    ASSERT_TRUE(path1.IsEmpty());
+    path1.MoveTo(1.0f, 2.0f);
+    path1.LineTo(3.0f, 4.0f);
+    ASSERT_FALSE(path1.IsEmpty());
+    Path path2;
+    path2.AddRect(1.0f, 4.0f, 3.0f, 2.0f);
+    ASSERT_FALSE(path2.IsEmpty());
+}
+
+
+/**
+ * @tc.name: IsRect001
+ * @tc.desc: return if path is empty.
+ * @tc.type: FUNC
+ * @tc.require: issuelI6M9U9
+ */
+HWTEST_F(PathTest, IsRect001, TestSize.Level1)
+{
+    Path path1;
+    Rect rect;
+    bool isClosed = false;
+    PathDirection dir;
+    path1.MoveTo(1.0f, 2.0f);
+    path1.LineTo(2.0f, 2.0f);
+    path1.LineTo(2.0f, 3.0f);
+    path1.LineTo(1.0f, 3.0f);
+    path1.LineTo(1.0f, 2.0f);
+    ASSERT_TRUE(path1.IsRect(&rect));
+    Path path2;
+    path2.MoveTo(1.0f, 2.0f);
+    path2.LineTo(3.0f, 3.0f);
+    ASSERT_FALSE(path2.IsRect(&rect));
+    ASSERT_FALSE(path2.IsRect(&rect, &isClosed));
+    ASSERT_FALSE(path2.IsRect(&rect, &isClosed));
+    ASSERT_FALSE(path2.IsRect(&rect, &isClosed, nullptr));
+    ASSERT_FALSE(path2.IsRect(&rect, &isClosed, &dir));
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

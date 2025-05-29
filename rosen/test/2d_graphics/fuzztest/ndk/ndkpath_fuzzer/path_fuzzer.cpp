@@ -51,13 +51,13 @@ void NativeDrawingPathTest001(const uint8_t* data, size_t size)
     float y = GetObject<float>();
     OH_Drawing_Path* path = OH_Drawing_PathCreate();
     OH_Drawing_PathMoveTo(nullptr, x, y);
-    OH_Drawing_PathMoveTo(path, x, y);
-    OH_Drawing_PathRMoveTo(nullptr, x, y);
-    OH_Drawing_PathRMoveTo(path, x, y);
-    OH_Drawing_PathLineTo(nullptr, x, y);
-    OH_Drawing_PathLineTo(path, x, y);
-    OH_Drawing_PathRLineTo(nullptr, x, y);
-    OH_Drawing_PathRLineTo(path, x, y);
+    OH_Drawing_PathMoveTo(path, GetObject<float>(), GetObject<float>());
+    OH_Drawing_PathRMoveTo(nullptr, GetObject<float>(), GetObject<float>());
+    OH_Drawing_PathRMoveTo(path, GetObject<float>(), GetObject<float>());
+    OH_Drawing_PathLineTo(nullptr, GetObject<float>(), GetObject<float>());
+    OH_Drawing_PathLineTo(path, GetObject<float>(), GetObject<float>());
+    OH_Drawing_PathRLineTo(nullptr, GetObject<float>(), GetObject<float>());
+    OH_Drawing_PathRLineTo(path, GetObject<float>(), GetObject<float>());
     OH_Drawing_PathClose(nullptr);
     OH_Drawing_PathClose(path);
 
@@ -82,33 +82,38 @@ void NativeDrawingPathTest002(const uint8_t* data, size_t size)
     float y1 = GetObject<float>();
     float x2 = GetObject<float>();
     float y2 = GetObject<float>();
-    float weight = GetObject<float>();
-    float endX = GetObject<float>();
-    float endY = GetObject<float>();
     float startDeg = GetObject<float>();
     float sweepDeg = GetObject<float>();
 
     OH_Drawing_Path* pathArcTo = OH_Drawing_PathCreate();
     OH_Drawing_PathArcTo(nullptr, x1, y1, x2, y2, startDeg, sweepDeg);
-    OH_Drawing_PathArcTo(pathArcTo, x1, y1, x2, y2, startDeg, sweepDeg);
+    OH_Drawing_PathArcTo(pathArcTo, GetObject<float>(), GetObject<float>(), GetObject<float>(),GetObject<float>(),
+        GetObject<float>(), GetObject<float>());
 
     OH_Drawing_Path* pathQuadTo = OH_Drawing_PathCreate();
-    OH_Drawing_PathQuadTo(nullptr, x1, y1, x2, y2);
-    OH_Drawing_PathQuadTo(pathQuadTo, x1, y1, x2, y2);
-    OH_Drawing_PathRQuadTo(nullptr, x1, y1, x2, y2);
-    OH_Drawing_PathRQuadTo(pathQuadTo, x1, y1, x2, y2);
+    OH_Drawing_PathQuadTo(nullptr, GetObject<float>(), GetObject<float>(), GetObject<float>(), GetObject<float>());
+    OH_Drawing_PathQuadTo(pathQuadTo, GetObject<float>(), GetObject<float>(), GetObject<float>(), GetObject<float>());
+    OH_Drawing_PathRQuadTo(nullptr, GetObject<float>(), GetObject<float>(), GetObject<float>(), GetObject<float>());
+    OH_Drawing_PathRQuadTo(pathQuadTo, GetObject<float>(), GetObject<float>(), GetObject<float>(), GetObject<float>());
 
     OH_Drawing_Path* pathConicTo = OH_Drawing_PathCreate();
-    OH_Drawing_PathConicTo(nullptr, x1, y1, x2, y2, weight);
-    OH_Drawing_PathConicTo(pathConicTo, x1, y1, x2, y2, weight);
-    OH_Drawing_PathRConicTo(nullptr, x1, y1, x2, y2, weight);
-    OH_Drawing_PathRConicTo(pathConicTo, x1, y1, x2, y2, weight);
-
+    OH_Drawing_PathConicTo(nullptr, GetObject<float>(), GetObject<float>(), GetObject<float>(), GetObject<float>(),
+        GetObject<float>());
+    OH_Drawing_PathConicTo(pathConicTo, GetObject<float>(), GetObject<float>(), GetObject<float>(), GetObject<float>(),
+        GetObject<float>());
+    OH_Drawing_PathRConicTo(nullptr, GetObject<float>(), GetObject<float>(), GetObject<float>(), GetObject<float>(),
+        GetObject<float>());
+    OH_Drawing_PathRConicTo(pathConicTo, GetObject<float>(), GetObject<float>(), GetObject<float>(), GetObject<float>(),
+        GetObject<float>());
     OH_Drawing_Path* pathCubicTo = OH_Drawing_PathCreate();
-    OH_Drawing_PathCubicTo(nullptr, x1, y1, x2, y2, endX, endY);
-    OH_Drawing_PathCubicTo(pathCubicTo, x1, y1, x2, y2, endX, endY);
-    OH_Drawing_PathRCubicTo(nullptr, x1, y1, x2, y2, endX, endY);
-    OH_Drawing_PathRCubicTo(pathCubicTo, x1, y1, x2, y2, endX, endY);
+    OH_Drawing_PathCubicTo(nullptr, GetObject<float>(), GetObject<float>(), GetObject<float>(),GetObject<float>(),
+        GetObject<float>(), GetObject<float>());
+    OH_Drawing_PathCubicTo(pathCubicTo, GetObject<float>(), GetObject<float>(), GetObject<float>(),GetObject<float>(),
+        GetObject<float>(), GetObject<float>());
+    OH_Drawing_PathRCubicTo(nullptr, GetObject<float>(), GetObject<float>(), GetObject<float>(),GetObject<float>(),
+        GetObject<float>(), GetObject<float>());
+    OH_Drawing_PathRCubicTo(pathCubicTo, GetObject<float>(), GetObject<float>(), GetObject<float>(),GetObject<float>(),
+        GetObject<float>(), GetObject<float>());
 
     OH_Drawing_PathDestroy(pathArcTo);
     OH_Drawing_PathDestroy(pathQuadTo);
@@ -136,35 +141,39 @@ void NativeDrawingPathTest003(const uint8_t* data, size_t size)
 
     OH_Drawing_Path* path = OH_Drawing_PathCreate();
     OH_Drawing_PathAddRect(path, left, top, right, bottom, static_cast<OH_Drawing_PathDirection>(pathDirection));
-    OH_Drawing_PathAddRect(nullptr, left, top, right, bottom,
-                           static_cast<OH_Drawing_PathDirection>(pathDirection % PATH_DIRECTION_ENUM_SIZE));
-    OH_Drawing_PathAddRect(path, left, top, right, bottom,
-                           static_cast<OH_Drawing_PathDirection>(pathDirection % PATH_DIRECTION_ENUM_SIZE));
+    OH_Drawing_PathAddRect(nullptr, GetObject<float>(), GetObject<float>(), GetObject<float>(), GetObject<float>(),
+                           static_cast<OH_Drawing_PathDirection>(GetObject<uint32_t>() % PATH_DIRECTION_ENUM_SIZE));
+    OH_Drawing_PathAddRect(path, GetObject<float>(), GetObject<float>(), GetObject<float>(), GetObject<float>(),
+                           static_cast<OH_Drawing_PathDirection>(GetObject<uint32_t>() % PATH_DIRECTION_ENUM_SIZE));
 
-    OH_Drawing_Rect* rect = OH_Drawing_RectCreate(left, top, right, bottom);
+    OH_Drawing_Rect* rect = OH_Drawing_RectCreate(GetObject<float>(), GetObject<float>(), GetObject<float>(),
+        GetObject<float>());
     OH_Drawing_PathAddRectWithInitialCorner(path, rect, static_cast<OH_Drawing_PathDirection>(pathDirection), start);
     OH_Drawing_PathAddRectWithInitialCorner(nullptr, rect,
-        static_cast<OH_Drawing_PathDirection>(pathDirection % PATH_DIRECTION_ENUM_SIZE), start);
+        static_cast<OH_Drawing_PathDirection>(GetObject<uint32_t>() % PATH_DIRECTION_ENUM_SIZE),
+        GetObject<uint32_t>());
     OH_Drawing_PathAddRectWithInitialCorner(path, nullptr,
-        static_cast<OH_Drawing_PathDirection>(pathDirection % PATH_DIRECTION_ENUM_SIZE), start);
+        static_cast<OH_Drawing_PathDirection>(GetObject<uint32_t>() % PATH_DIRECTION_ENUM_SIZE),
+        GetObject<uint32_t>());
     OH_Drawing_PathAddRectWithInitialCorner(path, rect,
-        static_cast<OH_Drawing_PathDirection>(pathDirection % PATH_DIRECTION_ENUM_SIZE), start);
+        static_cast<OH_Drawing_PathDirection>(GetObject<uint32_t>() % PATH_DIRECTION_ENUM_SIZE),
+        GetObject<uint32_t>());
 
     OH_Drawing_RoundRect* roundRect = OH_Drawing_RoundRectCreate(rect, xRad, yRad);
     OH_Drawing_PathAddRoundRect(path, roundRect, static_cast<OH_Drawing_PathDirection>(pathDirection));
     OH_Drawing_PathAddRoundRect(nullptr, roundRect,
-        static_cast<OH_Drawing_PathDirection>(pathDirection % PATH_DIRECTION_ENUM_SIZE));
+        static_cast<OH_Drawing_PathDirection>(GetObject<uint32_t>() % PATH_DIRECTION_ENUM_SIZE));
     OH_Drawing_PathAddRoundRect(path, nullptr,
-        static_cast<OH_Drawing_PathDirection>(pathDirection % PATH_DIRECTION_ENUM_SIZE));
+        static_cast<OH_Drawing_PathDirection>(GetObject<uint32_t>() % PATH_DIRECTION_ENUM_SIZE));
     OH_Drawing_PathAddRoundRect(path, roundRect,
-        static_cast<OH_Drawing_PathDirection>(pathDirection % PATH_DIRECTION_ENUM_SIZE));
+        static_cast<OH_Drawing_PathDirection>(GetObject<uint32_t>() % PATH_DIRECTION_ENUM_SIZE));
 
-    OH_Drawing_PathAddOvalWithInitialPoint(nullptr, rect, start,
-        static_cast<OH_Drawing_PathDirection>(pathDirection % PATH_DIRECTION_ENUM_SIZE));
-    OH_Drawing_PathAddOvalWithInitialPoint(path, nullptr, start,
-        static_cast<OH_Drawing_PathDirection>(pathDirection % PATH_DIRECTION_ENUM_SIZE));
-    OH_Drawing_PathAddOvalWithInitialPoint(path, rect, start,
-        static_cast<OH_Drawing_PathDirection>(pathDirection % PATH_DIRECTION_ENUM_SIZE));
+    OH_Drawing_PathAddOvalWithInitialPoint(nullptr, rect, GetObject<uint32_t>(),
+        static_cast<OH_Drawing_PathDirection>(GetObject<uint32_t>() % PATH_DIRECTION_ENUM_SIZE));
+    OH_Drawing_PathAddOvalWithInitialPoint(path, nullptr, GetObject<uint32_t>(),
+        static_cast<OH_Drawing_PathDirection>(GetObject<uint32_t>() % PATH_DIRECTION_ENUM_SIZE));
+    OH_Drawing_PathAddOvalWithInitialPoint(path, rect, GetObject<uint32_t>(),
+        static_cast<OH_Drawing_PathDirection>(GetObject<uint32_t>() % PATH_DIRECTION_ENUM_SIZE));
 
     OH_Drawing_PathDestroy(path);
     OH_Drawing_RectDestroy(rect);
@@ -186,7 +195,6 @@ void NativeDrawingPathTest004(const uint8_t* data, size_t size)
     float bottom = GetObject<float>();
     float startAngle = GetObject<float>();
     float sweepAngle = GetObject<float>();
-    uint32_t pathAddMode = GetObject<uint32_t>();
     float scaleX = GetObject<float>();
     float skewX = GetObject<float>();
     float transX = GetObject<float>();
@@ -200,8 +208,8 @@ void NativeDrawingPathTest004(const uint8_t* data, size_t size)
     OH_Drawing_Path* path = OH_Drawing_PathCreate();
     OH_Drawing_Rect* rect = OH_Drawing_RectCreate(left, top, right, bottom);
     OH_Drawing_PathAddArc(nullptr, rect, startAngle, sweepAngle);
-    OH_Drawing_PathAddArc(path, nullptr, startAngle, sweepAngle);
-    OH_Drawing_PathAddArc(path, rect, startAngle, sweepAngle);
+    OH_Drawing_PathAddArc(path, nullptr, GetObject<float>(), GetObject<float>());
+    OH_Drawing_PathAddArc(path, rect, GetObject<float>(), GetObject<float>());
     
     OH_Drawing_Path* destPath = OH_Drawing_PathCreate();
     OH_Drawing_Matrix* matrix = OH_Drawing_MatrixCreate();
@@ -213,13 +221,13 @@ void NativeDrawingPathTest004(const uint8_t* data, size_t size)
     OH_Drawing_PathAddPath(destPath, path, matrix);
 
     OH_Drawing_PathAddPathWithMatrixAndMode(nullptr, path, matrix,
-        static_cast<OH_Drawing_PathAddMode>(pathAddMode % PATH_ADD_MODE_ENUM_SIZE));
+        static_cast<OH_Drawing_PathAddMode>(GetObject<uint32_t>() % PATH_ADD_MODE_ENUM_SIZE));
     OH_Drawing_PathAddPathWithMatrixAndMode(destPath, nullptr, matrix,
-        static_cast<OH_Drawing_PathAddMode>(pathAddMode % PATH_ADD_MODE_ENUM_SIZE));
+        static_cast<OH_Drawing_PathAddMode>(GetObject<uint32_t>() % PATH_ADD_MODE_ENUM_SIZE));
     OH_Drawing_PathAddPathWithMatrixAndMode(destPath, path, nullptr,
-        static_cast<OH_Drawing_PathAddMode>(pathAddMode % PATH_ADD_MODE_ENUM_SIZE));
+        static_cast<OH_Drawing_PathAddMode>(GetObject<uint32_t>() % PATH_ADD_MODE_ENUM_SIZE));
     OH_Drawing_PathAddPathWithMatrixAndMode(destPath, path, matrix,
-        static_cast<OH_Drawing_PathAddMode>(pathAddMode % PATH_ADD_MODE_ENUM_SIZE));
+        static_cast<OH_Drawing_PathAddMode>(GetObject<uint32_t>() % PATH_ADD_MODE_ENUM_SIZE));
 
     OH_Drawing_PathDestroy(path);
     OH_Drawing_PathDestroy(destPath);
@@ -242,7 +250,6 @@ void NativeDrawingPathTest005(const uint8_t* data, size_t size)
     float bottom = GetObject<float>();
     float dx = GetObject<float>();
     float dy = GetObject<float>();
-    uint32_t pathAddMode = GetObject<uint32_t>();
     uint32_t pathDirection = GetObject<uint32_t>();
 
     OH_Drawing_Path* path = OH_Drawing_PathCreate();
@@ -252,23 +259,23 @@ void NativeDrawingPathTest005(const uint8_t* data, size_t size)
     OH_Drawing_PathAddOval(nullptr, rect,
         static_cast<OH_Drawing_PathDirection>(pathDirection % PATH_DIRECTION_ENUM_SIZE));
     OH_Drawing_PathAddOval(path, nullptr,
-        static_cast<OH_Drawing_PathDirection>(pathDirection % PATH_DIRECTION_ENUM_SIZE));
+        static_cast<OH_Drawing_PathDirection>(GetObject<uint32_t>() % PATH_DIRECTION_ENUM_SIZE));
     OH_Drawing_PathAddOval(path, rect,
-        static_cast<OH_Drawing_PathDirection>(pathDirection % PATH_DIRECTION_ENUM_SIZE));
+        static_cast<OH_Drawing_PathDirection>(GetObject<uint32_t>() % PATH_DIRECTION_ENUM_SIZE));
 
     OH_Drawing_PathAddPathWithMode(nullptr, path,
-        static_cast<OH_Drawing_PathAddMode>(pathAddMode % PATH_ADD_MODE_ENUM_SIZE));
+        static_cast<OH_Drawing_PathAddMode>(GetObject<uint32_t>() % PATH_ADD_MODE_ENUM_SIZE));
     OH_Drawing_PathAddPathWithMode(dstPath, nullptr,
-        static_cast<OH_Drawing_PathAddMode>(pathAddMode % PATH_ADD_MODE_ENUM_SIZE));
+        static_cast<OH_Drawing_PathAddMode>(GetObject<uint32_t>() % PATH_ADD_MODE_ENUM_SIZE));
     OH_Drawing_PathAddPathWithMode(dstPath, path,
-        static_cast<OH_Drawing_PathAddMode>(pathAddMode % PATH_ADD_MODE_ENUM_SIZE));
+        static_cast<OH_Drawing_PathAddMode>(GetObject<uint32_t>() % PATH_ADD_MODE_ENUM_SIZE));
 
     OH_Drawing_PathAddPathWithOffsetAndMode(nullptr, path, dx, dy,
-        static_cast<OH_Drawing_PathAddMode>(pathAddMode % PATH_ADD_MODE_ENUM_SIZE));
+        static_cast<OH_Drawing_PathAddMode>(GetObject<uint32_t>() % PATH_ADD_MODE_ENUM_SIZE));
     OH_Drawing_PathAddPathWithOffsetAndMode(dstPath, nullptr, dx, dy,
-        static_cast<OH_Drawing_PathAddMode>(pathAddMode % PATH_ADD_MODE_ENUM_SIZE));
+        static_cast<OH_Drawing_PathAddMode>(GetObject<uint32_t>() % PATH_ADD_MODE_ENUM_SIZE));
     OH_Drawing_PathAddPathWithOffsetAndMode(dstPath, path, dx, dy,
-        static_cast<OH_Drawing_PathAddMode>(pathAddMode % PATH_ADD_MODE_ENUM_SIZE));
+        static_cast<OH_Drawing_PathAddMode>(GetObject<uint32_t>() % PATH_ADD_MODE_ENUM_SIZE));
 
     OH_Drawing_PathDestroy(path);
     OH_Drawing_PathDestroy(dstPath);
@@ -285,7 +292,6 @@ void NativeDrawingPathTest006(const uint8_t* data, size_t size)
     g_pos = 0;
 
     uint32_t count = GetObject<uint32_t>() % MAX_ARRAY_SIZE + 1;
-    bool isValue = GetObject<bool>();
     OH_Drawing_Point2D* point = new OH_Drawing_Point2D[count];
     for (size_t i = 0; i < count; i++) {
         point[i] = {GetObject<float>(), GetObject<float>()};
@@ -297,25 +303,23 @@ void NativeDrawingPathTest006(const uint8_t* data, size_t size)
     str[count - 1] = '\0';
     float x = GetObject<float>();
     float y = GetObject<float>();
-    float radius = GetObject<float>();
-    uint32_t pathDirection = GetObject<uint32_t>();
     OH_Drawing_Path* path = OH_Drawing_PathCreate();
 
-    OH_Drawing_PathAddPolygon(nullptr, point, count, isValue);
-    OH_Drawing_PathAddPolygon(path, nullptr, count, isValue);
-    OH_Drawing_PathAddPolygon(path, point, 0, isValue);
-    OH_Drawing_PathAddPolygon(path, point, count, isValue);
+    OH_Drawing_PathAddPolygon(nullptr, point, count, GetObject<bool>());
+    OH_Drawing_PathAddPolygon(path, nullptr, count, GetObject<bool>());
+    OH_Drawing_PathAddPolygon(path, point, 0, GetObject<bool>());
+    OH_Drawing_PathAddPolygon(path, point, count, GetObject<bool>());
     if (point != nullptr) {
         delete[] point;
         point = nullptr;
     }
 
-    OH_Drawing_PathAddCircle(nullptr, x, y, radius,
-        static_cast<OH_Drawing_PathDirection>(pathDirection % PATH_DIRECTION_ENUM_SIZE));
-    OH_Drawing_PathAddCircle(nullptr, x, y, 0,
-        static_cast<OH_Drawing_PathDirection>(pathDirection % PATH_DIRECTION_ENUM_SIZE));
-    OH_Drawing_PathAddCircle(path, x, y, radius,
-        static_cast<OH_Drawing_PathDirection>(pathDirection % PATH_DIRECTION_ENUM_SIZE));
+    OH_Drawing_PathAddCircle(nullptr, x, y, GetObject<float>(),
+        static_cast<OH_Drawing_PathDirection>(GetObject<uint32_t>() % PATH_DIRECTION_ENUM_SIZE));
+    OH_Drawing_PathAddCircle(nullptr, GetObject<float>(), GetObject<float>(), 0,
+        static_cast<OH_Drawing_PathDirection>(GetObject<uint32_t>() % PATH_DIRECTION_ENUM_SIZE));
+    OH_Drawing_PathAddCircle(path, GetObject<float>(), GetObject<float>(), GetObject<float>(),
+        static_cast<OH_Drawing_PathDirection>(GetObject<uint32_t>() % PATH_DIRECTION_ENUM_SIZE));
 
     OH_Drawing_PathBuildFromSvgString(nullptr, str);
     OH_Drawing_PathBuildFromSvgString(path, nullptr);
@@ -348,10 +352,9 @@ void NativeDrawingPathTest007(const uint8_t* data, size_t size)
     float persp0 = GetObject<float>();
     float persp1 = GetObject<float>();
     float persp2 = GetObject<float>();
-    uint32_t pathFillType = GetObject<uint32_t>();
     OH_Drawing_Path* path = OH_Drawing_PathCreate();
     OH_Drawing_PathContains(nullptr, x, y);
-    OH_Drawing_PathContains(path, x, y);
+    OH_Drawing_PathContains(path, GetObject<float>(), GetObject<float>());
 
     OH_Drawing_Matrix* matrix = OH_Drawing_MatrixCreate();
     OH_Drawing_MatrixSetMatrix(matrix, scaleX, skewX, transX, skewY, scaleY, transY, persp0, persp1, persp2);
@@ -361,12 +364,12 @@ void NativeDrawingPathTest007(const uint8_t* data, size_t size)
 
     OH_Drawing_Path* dstPath = OH_Drawing_PathCreate();
     OH_Drawing_PathTransformWithPerspectiveClip(nullptr, matrix, dstPath, isValue);
-    OH_Drawing_PathTransformWithPerspectiveClip(path, nullptr, dstPath, isValue);
-    OH_Drawing_PathTransformWithPerspectiveClip(path, matrix, dstPath, isValue);
+    OH_Drawing_PathTransformWithPerspectiveClip(path, nullptr, dstPath, GetObject<bool>());
+    OH_Drawing_PathTransformWithPerspectiveClip(path, matrix, dstPath, GetObject<bool>());
 
-    OH_Drawing_PathSetFillType(nullptr, static_cast<OH_Drawing_PathFillType>(pathFillType % PATH_FILL_TYPE_ENUM_SIZE));
-    OH_Drawing_PathSetFillType(path, static_cast<OH_Drawing_PathFillType>(pathFillType));
-    OH_Drawing_PathSetFillType(path, static_cast<OH_Drawing_PathFillType>(pathFillType % PATH_FILL_TYPE_ENUM_SIZE));
+    OH_Drawing_PathSetFillType(nullptr, static_cast<OH_Drawing_PathFillType>(GetObject<uint32_t>() % PATH_FILL_TYPE_ENUM_SIZE));
+    OH_Drawing_PathSetFillType(path, static_cast<OH_Drawing_PathFillType>(GetObject<uint32_t>()));
+    OH_Drawing_PathSetFillType(path, static_cast<OH_Drawing_PathFillType>(GetObject<uint32_t>() % PATH_FILL_TYPE_ENUM_SIZE));
 
     OH_Drawing_PathGetLength(nullptr, GetObject<bool>());
     OH_Drawing_PathGetLength(path, GetObject<bool>());
@@ -485,6 +488,43 @@ void NativeDrawingPathTest010(const uint8_t* data, size_t size)
     OH_Drawing_PathDestroy(path);
     OH_Drawing_PathDestroy(newPath);
 }
+
+void NativeDrawingPathTest011(const uint8_t* data, size_t size)
+{
+    if (data == nullptr || size < DATA_MIN_SIZE) {
+        return;
+    }
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    uint32_t pathFillType = GetObject<uint32_t>();
+    bool isEmpty = GetObject<bool>();
+    bool isRect = GetObject<bool>();
+    OH_Drawing_Path* path = OH_Drawing_PathCreate();
+    OH_Drawing_Rect* rect = OH_Drawing_RectCreate(0, 0, 20, 20);
+    OH_Drawing_Path* path2 = OH_Drawing_PathCreate();
+    OH_Drawing_PathFillType type = static_cast<OH_Drawing_PathFillType>(pathFillType);
+    OH_Drawing_PathGetFillType(path, &type);
+    OH_Drawing_PathGetFillType(nullptr, &type);
+    OH_Drawing_PathGetFillType(path, nullptr);
+    OH_Drawing_PathSetPath(path, path2);
+    OH_Drawing_PathSetPath(nullptr, path2);
+    OH_Drawing_PathSetPath(path, nullptr);
+    OH_Drawing_PathIsEmpty(path, &isEmpty);
+    OH_Drawing_PathIsEmpty(nullptr, &isEmpty);
+    OH_Drawing_PathIsEmpty(path, nullptr);
+    OH_Drawing_PathIsRect(path, rect, &isRect);
+    OH_Drawing_PathIsRect(path, nullptr, &isRect);
+    OH_Drawing_PathIsRect(path, rect, nullptr);
+    OH_Drawing_PathIsRect(nullptr, nullptr, &isRect);
+    OH_Drawing_PathIsRect(nullptr, nullptr, nullptr);
+
+    OH_Drawing_PathDestroy(path);
+    OH_Drawing_PathDestroy(path2);
+    OH_Drawing_RectDestroy(rect);
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
@@ -503,5 +543,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::Drawing::NativeDrawingPathTest008(data, size);
     OHOS::Rosen::Drawing::NativeDrawingPathTest009(data, size);
     OHOS::Rosen::Drawing::NativeDrawingPathTest010(data, size);
+    OHOS::Rosen::Drawing::NativeDrawingPathTest011(data, size);
     return 0;
 }

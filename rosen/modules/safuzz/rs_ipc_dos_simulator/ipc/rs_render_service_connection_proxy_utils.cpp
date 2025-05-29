@@ -78,6 +78,11 @@ bool RSRenderServiceConnectionProxyVariant::FillParcelWithTransactionData(std::u
         return false;
     }
 
+    if (!RSMarshallingHelper::MarshallingTransactionVer(*parcel)) {
+        SAFUZZ_LOGE("FillParcelWithTransactionData WriteVersionHeader failed!");
+        return false;
+    }
+
     // 1. marshalling RSTransactionData
     RS_TRACE_BEGIN("[SAFUZZ] MarshRSTransactionData cmdCount:" + std::to_string(data->GetCommandCount()) +
         " index:" + std::to_string(data->GetIndex()));

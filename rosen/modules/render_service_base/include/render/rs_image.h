@@ -16,6 +16,8 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_RENDER_RS_IMAGE_H
 #define RENDER_SERVICE_CLIENT_CORE_RENDER_RS_IMAGE_H
 
+#include <pthread.h>
+
 #include "draw/canvas.h"
 #include "effect/color_filter.h"
 #include "image/image.h"
@@ -39,6 +41,7 @@ struct AdaptiveImageInfo {
     int32_t rotateDegree = 0;
     Rect frameRect = Rect();
     Drawing::Matrix fitMatrix = Drawing::Matrix();
+    int32_t orientationNum = 0;
 };
 }
 
@@ -85,6 +88,12 @@ enum class ImageFit {
     MATRIX,
 };
 
+enum class OrientationFit : int {
+    NONE,
+    VERTICAL_FLIP,
+    HORIZONTAL_FLIP,
+};
+
 class RSB_EXPORT RSImage : public RSImageBase {
 public:
     RSImage() = default;
@@ -116,26 +125,35 @@ public:
     void SetFrameRect(RectF frameRect);
     void SetFitMatrix(const Drawing::Matrix& matrix);
     Drawing::Matrix GetFitMatrix() const;
+    std::shared_ptr<Drawing::Image> GetImage() const;
+    void SetOrientationFit(int orientationFitNum);
+    OrientationFit GetOrientationFit() const;
 #ifdef ROSEN_OHOS
     bool Marshalling(Parcel& parcel) const override;
     [[nodiscard]] static RSImage* Unmarshalling(Parcel& parcel);
 #endif
-    void dump(std::string &desc, int depth) const
+    std::string PixelSamplingDump() const;
+    void Dump(std::string &desc, uint8_t depth) const
     {
         std::string split(depth, '\t');
-        desc += split + "RSImage:{";
-        desc += split + "\timageFit_: " + std::to_string(static_cast<int>(imageFit_)) + "\n";
-        desc += split + "\timageRepeat_: " + std::to_string(static_cast<int>(imageRepeat_)) + "\n";
+        desc += split + "RSImage:{ ";
+        desc += split + "\timageFit_: " + std::to_string(static_cast<int>(imageFit_)) + " \n";
+        desc += split + "\timageRepeat_: " + std::to_string(static_cast<int>(imageRepeat_)) + " \n";
+        desc += split + "\torientationFit_: " + std::to_string(static_cast<int>(orientationFit_)) + " \n";
+
         int radiusSize = 4;
         for (int i = 0; i < radiusSize; i++) {
             desc += split + "\tPointF:{ \n";
-            desc += split + "\t\t x_: " + std::to_string(radius_[i].GetX()) + "\n";
-            desc += split + "\t\t y_: " + std::to_string(radius_[i].GetY()) + "\n";
-            desc += split + "\t}\n";
+            desc += split + "\t\t x_: " + std::to_string(radius_[i].GetX()) + " \n";
+            desc += split + "\t\t y_: " + std::to_string(radius_[i].GetY()) + " \n";
+            desc += split + "\t} \n";
         }
         desc += split + frameRect_.ToString();
-        desc += split + "\tscale_: " + std::to_string(scale_) + "\n";
-        desc += split + "}\n";
+        desc += split + "\tscale_: " + std::to_string(scale_) + " \n";
+        desc += split + "\tsrc_: " + src_.ToString() + " \n";
+        desc += split + "\tdst_: " + dst_.ToString() + " \n";
+        desc += split + "\tpixel sampling: " + PixelSamplingDump() + " \n";
+        desc += split + "} \n";
     }
 
 private:
@@ -153,14 +171,16 @@ private:
     std::shared_ptr<Drawing::ShaderEffect> GenerateImageShaderForDrawRect(
         const Drawing::Canvas& canvas, const Drawing::SamplingOptions& sampling) const;
     void DrawImageShaderRectOnCanvas(
-        Drawing::Canvas& canvas, const std::shared_ptr<Drawing::ShaderEffect>& imageShader) const;
+        Drawing::Canvas& canvas, const std::shared_ptr<Drawing::ShaderEffect>& imageShader, pthread_t imageTid) const;
     void DrawImageWithFirMatrixRotateOnCanvas(
         const Drawing::SamplingOptions& samplingOptions, Drawing::Canvas& canvas) const;
+    void ApplyImageOrientation(Drawing::Canvas& canvas);
 #ifdef ROSEN_OHOS
     static bool UnmarshalIdSizeAndNodeId(Parcel& parcel, uint64_t& uniqueId, int& width, int& height, NodeId& nodeId);
     static bool UnmarshalImageProperties(
         Parcel& parcel, int& fitNum, int& repeatNum, std::vector<Drawing::Point>& radius, double& scale,
-        bool& hasFitMatrix, Drawing::Matrix& fitMatrix, uint32_t& dynamicRangeMode, int32_t& degree);
+        bool& hasFitMatrix, Drawing::Matrix& fitMatrix, uint32_t& dynamicRangeMode, int32_t& degree,
+        int& orientationFitNum);
     static void ProcessImageAfterCreation(RSImage* rsImage, const uint64_t uniqueId, const bool useSkImage,
         const std::shared_ptr<Media::PixelMap>& pixelMap);
 #endif
@@ -178,6 +198,9 @@ private:
     uint32_t dynamicRangeMode_ = 0;
     std::optional<Drawing::Matrix> fitMatrix_ = std::nullopt;
     bool isFitMatrixValid_ = false;
+    OrientationFit orientationFit_ = OrientationFit::NONE;
+    bool isOrientationValid_ = false;
+    Drawing::Rect rectForDrawShader_;
 };
 
 template<>

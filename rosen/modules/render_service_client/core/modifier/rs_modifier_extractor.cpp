@@ -366,6 +366,11 @@ float RSModifierExtractor::GetSpherizeDegree() const
     GET_PROPERTY_FROM_MODIFIERS_EQRETURN(float, SPHERIZE, 0.f, =);
 }
 
+float RSModifierExtractor::GetHDRUIBrightness() const
+{
+    GET_PROPERTY_FROM_MODIFIERS_EQRETURN(float, HDR_UI_BRIGHTNESS, 1.0f, =);
+}
+
 float RSModifierExtractor::GetAttractionFractionValue() const
 {
     GET_PROPERTY_FROM_MODIFIERS(float, ATTRACTION_FRACTION, 0.f, =);
@@ -424,6 +429,11 @@ float RSModifierExtractor::GetBackgroundBlurRadiusY() const
 bool RSModifierExtractor::GetBgBlurDisableSystemAdaptation() const
 {
     GET_PROPERTY_FROM_MODIFIERS(bool, BG_BLUR_DISABLE_SYSTEM_ADAPTATION, true, =);
+}
+
+bool RSModifierExtractor::GetAlwaysSnapshot() const
+{
+    GET_PROPERTY_FROM_MODIFIERS(bool, ALWAYS_SNAPSHOT, false, =);
 }
 
 float RSModifierExtractor::GetForegroundBlurRadius() const
@@ -510,6 +520,20 @@ std::string RSModifierExtractor::Dump() const
 {
     std::string dumpInfo;
     char buffer[UINT8_MAX] = { 0 };
+    if (sprintf_s(buffer, UINT8_MAX, "modifierExtractor rsUIContext token is %lu",
+                  rsUIContext_.lock() ? rsUIContext_.lock()->GetToken() : -1) != -1) {
+        dumpInfo.append(buffer);
+    }
+
+    if (rsUIContext_.lock()) {
+        if (rsUIContext_.lock()->GetNodeMap().GetNode<RSNode>(id_) != nullptr) {
+            sprintf_s(buffer, UINT8_MAX, "node Is %d ", 1);
+        } else {
+            sprintf_s(buffer, UINT8_MAX, "node Is %d ", 0);
+        }
+        dumpInfo.append(buffer);
+    }
+
     auto bounds = GetBounds();
     auto frame = GetFrame();
     if (sprintf_s(buffer, UINT8_MAX, "Bounds[%.1f %.1f %.1f %.1f] Frame[%.1f %.1f %.1f %.1f]",

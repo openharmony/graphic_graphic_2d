@@ -528,4 +528,86 @@ HWTEST_F(RSDrawCmdTest, CreateSamplingOptions, TestSize.Level1)
     ASSERT_EQ(samplingOptions.GetFilterMode(), Drawing::FilterMode::LINEAR);
     ASSERT_EQ(samplingOptions.GetMipmapMode(), Drawing::MipmapMode::NONE);
 }
+
+/**
+ * @tc.name: RSExtendImageObjectDumpTest
+ * @tc.desc: test results of RSExtendImageObjectDump
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSDrawCmdTest, RSExtendImageObjectDumpTest, TestSize.Level1)
+{
+    RSExtendImageObject extendImageObject;
+    std::string desc;
+    extendImageObject.Dump(desc);
+    EXPECT_EQ(desc," rsImage is nullptr");
+
+    extendImageObject.rsImage_ = std::make_shared<RSImage>();
+    desc = "dump ";
+    extendImageObject.Dump(desc);
+    EXPECT_NE(desc, "dump ");
+}
+
+#ifdef RS_ENABLE_VK
+/**
+ * @tc.name: DrawHybridPixelMapOpItem_Unmarshalling
+ * @tc.desc: test results of Unmarshalling
+ * @tc.type:FUNC
+ * @tc.require:issueIC3UZH
+ */
+HWTEST_F(RSDrawCmdTest, Unmarshalling005, TestSize.Level1)
+{
+    std::shared_ptr<Media::PixelMap> pixelMap;
+    Drawing::AdaptiveImageInfo rsImageInfo;
+    Drawing::SamplingOptions sampling;
+    Drawing::OpDataHandle objectHandle;
+    Drawing::PaintHandle paintHandle;
+    Drawing::Paint paint;
+    Drawing::DrawHybridPixelMapOpItem drawHybridPixelMapOpItem(pixelMap, rsImageInfo, sampling, paint);
+    Drawing::DrawCmdList cmdList;
+    drawHybridPixelMapOpItem.Marshalling(cmdList);
+    Drawing::DrawHybridPixelMapOpItem::ConstructorHandle handle(objectHandle, sampling, paintHandle, -1, false);
+    ASSERT_NE(drawHybridPixelMapOpItem.Unmarshalling(cmdList, (void*)(&handle)), nullptr);
+}
+ 
+/**
+ * @tc.name: DrawHybridPixelMapOpItem_SetNodeId
+ * @tc.desc: test results of SetNodeId
+ * @tc.type:FUNC
+ * @tc.require:issueIC3UZH
+ */
+HWTEST_F(RSDrawCmdTest, SetNodeId006, TestSize.Level1)
+{
+    std::shared_ptr<Media::PixelMap> pixelMap;
+    Drawing::AdaptiveImageInfo rsImageInfo;
+    Drawing::SamplingOptions sampling;
+    Drawing::Paint paint;
+    Drawing::DrawHybridPixelMapOpItem drawHybridPixelMapOpItem(pixelMap, rsImageInfo, sampling, paint);
+    ASSERT_NE(drawHybridPixelMapOpItem.objectHandle_, nullptr);
+    drawHybridPixelMapOpItem.SetNodeId(id);
+    drawHybridPixelMapOpItem.objectHandle_ = nullptr;
+    drawHybridPixelMapOpItem.SetNodeId(id);
+}
+ 
+/**
+ * @tc.name: DrawHybridPixelMapOpItem_Playback
+ * @tc.desc: test results of Playback
+ * @tc.type:FUNC
+ * @tc.require:issueIC3UZH
+ */
+HWTEST_F(RSDrawCmdTest, Playback010, TestSize.Level1)
+{
+    Drawing::DrawCmdList cmdList;
+    Drawing::OpDataHandle objectHandle;
+    Drawing::SamplingOptions sampling;
+    Drawing::PaintHandle paintHandle;
+    Drawing::DrawHybridPixelMapOpItem::ConstructorHandle handle(objectHandle, sampling, paintHandle, -1, false);
+    Drawing::DrawHybridPixelMapOpItem drawHybridPixelMapOpItem(cmdList, &handle);
+    Drawing::Canvas canvas;
+    Drawing::Rect rect;
+    ASSERT_EQ(drawHybridPixelMapOpItem.objectHandle_, nullptr);
+    drawHybridPixelMapOpItem.Playback(&canvas, &rect);
+    drawHybridPixelMapOpItem.objectHandle_ = nullptr;
+    drawHybridPixelMapOpItem.Playback(&canvas, &rect);
+}
+#endif
 } // namespace OHOS::Rosen

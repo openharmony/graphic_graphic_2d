@@ -80,6 +80,7 @@ private:
     uint64_t token_ = 0;
 
     std::vector<NodeId> childSurfaceNodeIds_;
+
     friend class RootNodeCommandHelper;
     friend class RSRenderThreadVisitor;
 };

@@ -19,6 +19,13 @@
 #include "drawing_font.h"
 #include "drawing_path.h"
 #include "drawing_rect.h"
+#include "drawing_typeface.h"
+#include "drawing_pen.h"
+#include "drawing_point.h"
+
+#ifdef RS_ENABLE_VK
+#include "platform/ohos/backend/rs_vulkan_context.h"
+#endif
 
 using namespace testing;
 using namespace testing::ext;
@@ -26,6 +33,10 @@ using namespace testing::ext;
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
+constexpr float FLOAT_DATA_EPSILON = 1e-6f;
+constexpr char TTF_FILE_PATH[] = {0x2F, 0x73, 0x79, 0x73, 0x74, 0x65, 0x6D, 0x2F, 0x66, 0x6F, 0x6E, 0x74, 0x73,
+    0x2F, 0x48, 0x61, 0x72, 0x6D, 0x6F, 0x6E, 0x79, 0x4F, 0x53, 0x5F, 0x53, 0x61, 0x6E, 0x73, 0x5F,
+    0x53, 0x43, 0x2E, 0x74, 0x74, 0x66, 0x00};
 class NativeFontTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -34,7 +45,12 @@ public:
     void TearDown() override;
 };
 
-void NativeFontTest::SetUpTestCase() {}
+void NativeFontTest::SetUpTestCase()
+{
+#ifdef RS_ENABLE_VK
+    RsVulkanContext::SetRecyclable(false);
+#endif
+}
 void NativeFontTest::TearDownTestCase() {}
 void NativeFontTest::SetUp() {}
 void NativeFontTest::TearDown() {}
@@ -55,6 +71,102 @@ HWTEST_F(NativeFontTest, NativeFontTest_GetMetrics001, TestSize.Level1)
     EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
     EXPECT_TRUE(OH_Drawing_FontGetMetrics(nullptr, nullptr) < 0);
     EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    OH_Drawing_FontDestroy(font);
+}
+
+/*
+ * @tc.name: NativeFontTest_GetMetrics002
+ * @tc.desc: test for sans sc metrics data.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NativeFontTest, NativeFontTest_GetMetrics002, TestSize.Level1)
+{
+    OH_Drawing_Font* font = OH_Drawing_FontCreate();
+    OH_Drawing_Typeface* typeface = OH_Drawing_TypefaceCreateFromFile(TTF_FILE_PATH, 0);
+    OH_Drawing_FontSetTypeface(font, typeface);
+    OH_Drawing_Font_Metrics fontMetrics;
+    OH_Drawing_FontGetMetrics(font, &fontMetrics);
+    EXPECT_EQ(fontMetrics.flags, 31);
+    EXPECT_NEAR(fontMetrics.top, -12.672000, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.ascent, -11.136000, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.descent, 2.928000, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.bottom, 3.252000, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.leading, 0, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.avgCharWidth, 6.000000, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.maxCharWidth, 29.832001, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.xMin, -6.576000, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.xMax, 23.256001, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.xHeight, 6.000000, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.capHeight, 8.400000, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.underlineThickness, 0.600000, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.underlinePosition, 2.484000, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.strikeoutThickness, 0.600000, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.strikeoutPosition, -3.600000, FLOAT_DATA_EPSILON);
+    OH_Drawing_TypefaceDestroy(typeface);
+    OH_Drawing_FontDestroy(font);
+}
+
+/*
+ * @tc.name: NativeFontTest_GetMetrics003
+ * @tc.desc: test for symbol metrics data.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NativeFontTest, NativeFontTest_GetMetrics003, TestSize.Level1)
+{
+    OH_Drawing_Font* font = OH_Drawing_FontCreate();
+    OH_Drawing_Typeface* typeface = OH_Drawing_TypefaceCreateFromFile("/system/fonts/HMSymbolVF.ttf", 0);
+    OH_Drawing_FontSetTypeface(font, typeface);
+    OH_Drawing_Font_Metrics fontMetrics;
+    OH_Drawing_FontGetMetrics(font, &fontMetrics);
+    EXPECT_EQ(fontMetrics.flags, 31);
+    EXPECT_NEAR(fontMetrics.top, -10.559999, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.ascent, -10.559999, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.descent, 1.440000, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.bottom, 1.440000, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.leading, 0, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.avgCharWidth, 12, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.maxCharWidth, 19.092000961303711, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.xMin, -0.684000, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.xMax, 18.408000946044922, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.xHeight, 6.000000, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.capHeight, 8.400000, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.underlineThickness, 0.600000, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.underlinePosition, 1.200000, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.strikeoutThickness, 0.600000, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.strikeoutPosition, -3.000000, FLOAT_DATA_EPSILON);
+    OH_Drawing_TypefaceDestroy(typeface);
+    OH_Drawing_FontDestroy(font);
+}
+
+/*
+ * @tc.name: NativeFontTest_GetMetrics004
+ * @tc.desc: test for emoji metrics data.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NativeFontTest, NativeFontTest_GetMetrics004, TestSize.Level1)
+{
+    OH_Drawing_Font* font = OH_Drawing_FontCreate();
+    OH_Drawing_Typeface* typeface = OH_Drawing_TypefaceCreateFromFile("/system/fonts/HMOSColorEmojiFlags.ttf", 0);
+    OH_Drawing_FontSetTypeface(font, typeface);
+    OH_Drawing_Font_Metrics fontMetrics;
+    OH_Drawing_FontGetMetrics(font, &fontMetrics);
+    EXPECT_EQ(fontMetrics.flags, 31);
+    EXPECT_NEAR(fontMetrics.top, -11.119267, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.ascent, -11.119267, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.descent, 2.972477, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.bottom, 2.972477, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.leading, 0, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.avgCharWidth, 14.941406, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.maxCharWidth, 14.972477, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.xMin, 0, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.xMax, 14.972477, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.xHeight, 11.119267, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.capHeight, 11.132812, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.underlineThickness, 0.767578, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.underlinePosition, 7.289062, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.strikeoutThickness, 0.597656, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.strikeoutPosition, -3.105469, FLOAT_DATA_EPSILON);
+    OH_Drawing_TypefaceDestroy(typeface);
     OH_Drawing_FontDestroy(font);
 }
 
@@ -817,6 +929,170 @@ HWTEST_F(NativeFontTest, NativeFontTest_FontThemeFont001, TestSize.Level1)
     OH_Drawing_FontSetThemeFontFollowed(font, true);
     OH_Drawing_FontIsThemeFontFollowed(font, &followed);
     EXPECT_EQ(followed, true);
+    OH_Drawing_FontDestroy(font);
+}
+
+/*
+ * @tc.name: NativeFontTest_FontMeasureTextWithBrushOrPen001
+ * @tc.desc: test for FontMeasureTextWithBrushOrPen.
+ * @tc.type: FUNC
+ * @tc.require: AR20250515745872
+ */
+HWTEST_F(NativeFontTest, NativeFontTest_FontMeasureTextWithBrushOrPen001, TestSize.Level1)
+{
+    OH_Drawing_Font *font = OH_Drawing_FontCreate();
+    OH_Drawing_FontSetTextSize(font, 50);
+    const char* text = "你好世界";
+    float textWidth;
+    OH_Drawing_Brush* brush = OH_Drawing_BrushCreate();
+    OH_Drawing_Pen* pen = OH_Drawing_PenCreate();
+    EXPECT_EQ(OH_Drawing_FontMeasureTextWithBrushOrPen(nullptr, text, strlen(text),
+        TEXT_ENCODING_UTF8, brush, nullptr, nullptr, &textWidth), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(OH_Drawing_FontMeasureTextWithBrushOrPen(font, nullptr, strlen(text),
+        TEXT_ENCODING_UTF8, brush, nullptr, nullptr, &textWidth), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(OH_Drawing_FontMeasureTextWithBrushOrPen(font, text, 0,
+        TEXT_ENCODING_UTF8, brush, nullptr, nullptr, &textWidth), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(OH_Drawing_FontMeasureTextWithBrushOrPen(nullptr, text, strlen(text),
+        TEXT_ENCODING_UTF8, brush, pen, nullptr, &textWidth), OH_DRAWING_ERROR_INVALID_PARAMETER);
+
+    OH_Drawing_ErrorCode errorCode = OH_Drawing_FontMeasureTextWithBrushOrPen(font, text, strlen(text),
+        TEXT_ENCODING_UTF8, nullptr, nullptr, nullptr, &textWidth);
+    EXPECT_EQ(errorCode, OH_DRAWING_SUCCESS);
+    EXPECT_EQ((int)textWidth, 200);
+
+    const char* text1 = "hello world";
+    errorCode = OH_Drawing_FontMeasureTextWithBrushOrPen(font, text1, strlen(text),
+        TEXT_ENCODING_UTF8, brush, nullptr, nullptr, &textWidth);
+    EXPECT_EQ(errorCode, OH_DRAWING_SUCCESS);
+    EXPECT_EQ((int)textWidth, 304);
+
+    const char* text2 = "1234567890 !@#$%^&*(";
+    errorCode = OH_Drawing_FontMeasureTextWithBrushOrPen(font, text2, strlen(text2),
+        TEXT_ENCODING_UTF8, nullptr, pen, nullptr, &textWidth);
+    EXPECT_EQ(errorCode, OH_DRAWING_SUCCESS);
+    EXPECT_EQ((int)textWidth, 555);
+    OH_Drawing_BrushDestroy(brush);
+    OH_Drawing_PenDestroy(pen);
+    OH_Drawing_FontDestroy(font);
+}
+
+/*
+ * @tc.name: NativeFontTest_FontGetWidthsBounds001
+ * @tc.desc: test for FontMeasureTextWithBrushOrPen.
+ * @tc.type: FUNC
+ * @tc.require: AR20250515745872
+ */
+HWTEST_F(NativeFontTest, OH_Drawing_FontGetWidthsBounds001, TestSize.Level1)
+{
+    OH_Drawing_Font *font = OH_Drawing_FontCreate();
+    OH_Drawing_FontSetTextSize(font, 50);
+    OH_Drawing_Brush* brush = OH_Drawing_BrushCreate();
+    OH_Drawing_Pen* pen = OH_Drawing_PenCreate();
+    const char* text = "你好世界";
+    uint32_t count = 0;
+    count = OH_Drawing_FontCountText(font, text, strlen(text), TEXT_ENCODING_UTF8);
+    uint16_t glyphs[count];
+    OH_Drawing_FontTextToGlyphs(font, text, strlen(text), TEXT_ENCODING_UTF8, glyphs, count);
+    int glyphsCount = 0;
+    glyphsCount = OH_Drawing_FontTextToGlyphs(
+        font, text, strlen(text), OH_Drawing_TextEncoding::TEXT_ENCODING_UTF8, glyphs, count);
+    // paramter font is nullptr
+    float widths[50] = {0.f}; // 50 means widths array number
+    OH_Drawing_Array *outRectarr = OH_Drawing_RectCreateArray(count);
+    EXPECT_EQ(OH_Drawing_FontGetWidthsBounds(nullptr, glyphs, glyphsCount, brush, pen, widths, outRectarr),
+        OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(OH_Drawing_FontGetWidthsBounds(font, nullptr, glyphsCount, brush, pen, widths, outRectarr),
+        OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(OH_Drawing_FontGetWidthsBounds(font, glyphs, 0, brush, pen, widths, outRectarr),
+        OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(OH_Drawing_FontGetWidthsBounds(font, glyphs, 0, brush, pen, widths, outRectarr),
+        OH_DRAWING_ERROR_INVALID_PARAMETER);
+
+    std::vector<int> widthArr = {50, 50, 50, 50};
+    OH_Drawing_ErrorCode errorCode = OH_Drawing_FontGetWidthsBounds(
+        font, glyphs, glyphsCount, brush, nullptr, widths, nullptr);
+    EXPECT_EQ(errorCode, OH_DRAWING_SUCCESS);
+    for (int i = 0; i < count; i++) {
+        EXPECT_EQ((int)widths[i], widthArr[i]);
+    }
+
+    errorCode = OH_Drawing_FontGetWidthsBounds(
+        font, glyphs, glyphsCount, nullptr, pen, nullptr, outRectarr);
+    EXPECT_EQ(errorCode, OH_DRAWING_SUCCESS);
+
+    std::vector<std::array<int, 4>> arr = { { 0, -42, 48, 3 }, { 1, -42, 48, 3 }, { 2, -42, 47, 2 }, { 1, -40, 48, 3 }};
+    for (int i = 0; i < count; i++) {
+        OH_Drawing_Rect* iter = nullptr;
+        EXPECT_EQ(OH_Drawing_RectGetArrayElement(outRectarr, i, &iter), OH_DRAWING_SUCCESS);
+        ASSERT_NE(iter, nullptr);
+        EXPECT_EQ((int)OH_Drawing_RectGetLeft(iter), arr[i][0]);
+        EXPECT_EQ((int)OH_Drawing_RectGetTop(iter), arr[i][1]);
+        EXPECT_EQ((int)OH_Drawing_RectGetRight(iter), arr[i][2]);
+        EXPECT_EQ((int)OH_Drawing_RectGetBottom(iter), arr[i][3]);
+        EXPECT_EQ(OH_Drawing_RectGetBottom(iter) - OH_Drawing_RectGetTop(iter), OH_Drawing_RectGetHeight(iter));
+        EXPECT_EQ(OH_Drawing_RectGetRight(iter) - OH_Drawing_RectGetLeft(iter), OH_Drawing_RectGetWidth(iter));
+    }
+    OH_Drawing_BrushDestroy(brush);
+    OH_Drawing_PenDestroy(pen);
+    OH_Drawing_FontDestroy(font);
+}
+
+/*
+ * @tc.name: NativeFontTest_FontGetPos001
+ * @tc.desc: test for FontGetPos.
+ * @tc.type: FUNC
+ * @tc.require: AR20250515745872
+ */
+HWTEST_F(NativeFontTest, OH_Drawing_FontGetPos001, TestSize.Level1)
+{
+    OH_Drawing_Font *font = OH_Drawing_FontCreate();
+    OH_Drawing_FontSetTextSize(font, 50);
+    const char* text = "你好世界";
+    uint32_t count = 0;
+    count = OH_Drawing_FontCountText(font, text, strlen(text), TEXT_ENCODING_UTF8);
+    OH_Drawing_Point *point = OH_Drawing_PointCreate(10.0, 10.0);
+    uint16_t glyphs[count];
+    OH_Drawing_FontTextToGlyphs(font, text, strlen(text), TEXT_ENCODING_UTF8, glyphs, count);
+    int glyphsCount = 0;
+    glyphsCount = OH_Drawing_FontTextToGlyphs(
+        font, text, strlen(text), OH_Drawing_TextEncoding::TEXT_ENCODING_UTF8, glyphs, count);
+    // paramter font is nullptr
+    OH_Drawing_Point2D* points = new OH_Drawing_Point2D[count];
+    EXPECT_EQ(OH_Drawing_FontGetPos(nullptr, glyphs, glyphsCount, point, points), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(OH_Drawing_FontGetPos(font, nullptr, glyphsCount, point, points), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(OH_Drawing_FontGetPos(font, glyphs, 0, point, points), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(OH_Drawing_FontGetPos(font, glyphs, glyphsCount, nullptr, nullptr), OH_DRAWING_ERROR_INVALID_PARAMETER);
+
+    std::vector<std::array<int, 2>> testPoints = {{10, 10}, {60, 10}, {110, 10}, {160, 10}};
+    OH_Drawing_ErrorCode errorCode = OH_Drawing_FontGetPos(font, glyphs, glyphsCount, point, points);
+    EXPECT_EQ(errorCode, OH_DRAWING_SUCCESS);
+    for (int i = 0; i < count; i++) {
+        EXPECT_EQ((int)points[i].x, testPoints[i][0]);
+        EXPECT_EQ((int)points[i].y, testPoints[i][1]);
+    }
+    OH_Drawing_PointDestroy(point);
+    if (points != nullptr) {
+        delete[] points;
+    }
+    OH_Drawing_FontDestroy(font);
+}
+
+/*
+ * @tc.name: NativeFontTest_FontGetSpacing001
+ * @tc.desc: test for FontGetSpacing.
+ * @tc.type: FUNC
+ * @tc.require: AR20250515745872
+ */
+HWTEST_F(NativeFontTest, OH_Drawing_FontGetSpacing001, TestSize.Level1)
+{
+    OH_Drawing_Font *font = OH_Drawing_FontCreate();
+    OH_Drawing_FontSetTextSize(font, 30);
+    float spacing = 0.0f;
+    EXPECT_EQ(OH_Drawing_FontGetSpacing(nullptr, &spacing), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(OH_Drawing_FontGetSpacing(font, nullptr), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    OH_Drawing_ErrorCode errorCode = OH_Drawing_FontGetSpacing(font, &spacing);
+    EXPECT_EQ(errorCode, OH_DRAWING_SUCCESS);
+    EXPECT_EQ(std::fabs(spacing - 35.16) < 1e-6, true);
     OH_Drawing_FontDestroy(font);
 }
 } // namespace Drawing

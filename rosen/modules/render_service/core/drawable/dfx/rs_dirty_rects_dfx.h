@@ -48,9 +48,9 @@ public:
         dirtyRegion_ = dirtyRegion;
     }
 
-    void SetExpandedDirtyRegion(Occlusion::Region& expandedDirtyRegion)
+    void SetMergedDirtyRegion(const Occlusion::Region& mergedDirtyRegion)
     {
-        expandedDirtyRegion_ = expandedDirtyRegion;
+        mergedDirtyRegion_ = mergedDirtyRegion;
     }
 
     void SetVirtualDirtyRects(const std::vector<RectI>& virtualDirtyRects, const ScreenInfo& screenInfo)
@@ -61,7 +61,7 @@ public:
 
 private:
     Occlusion::Region dirtyRegion_;
-    Occlusion::Region expandedDirtyRegion_;
+    Occlusion::Region mergedDirtyRegion_;
     std::vector<RectI> virtualDirtyRects_;
     ScreenInfo screenInfo_;
     const DrawableV2::RSDisplayRenderNodeDrawable& targetDrawable_;
@@ -81,6 +81,7 @@ private:
 
     void DrawDirtyRegionForDFX(RSPaintFilterCanvas& canvas, const std::vector<RectI>& dirtyRects) const;
     void DrawAllSurfaceDirtyRegionForDFX(RSPaintFilterCanvas& canvas) const;
+    void DrawMergedAndAllDirtyRegionForDFX(RSPaintFilterCanvas& canvas) const;
     void DrawAllSurfaceOpaqueRegionForDFX(RSPaintFilterCanvas& canvas) const;
     void DrawTargetSurfaceDirtyRegionForDFX(RSPaintFilterCanvas& canvas) const;
     void DrawTargetSurfaceVisibleRegionForDFX(RSPaintFilterCanvas& canvas) const;

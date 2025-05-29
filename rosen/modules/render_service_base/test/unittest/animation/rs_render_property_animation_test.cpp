@@ -201,5 +201,30 @@ HWTEST_F(RSRenderPropertyAnimationTest, ProcessAnimateVelocityUnderAngleRotation
     EXPECT_TRUE(renderPropertyAnimation2->IsRunning());
     GTEST_LOG_(INFO) << "RSRenderPropertyAnimationTest ProcessAnimateVelocityUnderAngleRotation001 end";
 }
+
+/**
+ * @tc.name: RSRenderPropertyAnimation_Constructor001
+ * @tc.desc: Verify the RSRenderPropertyAnimation_Constructor originValue is not null
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderPropertyAnimationTest, RSRenderPropertyAnimation_Constructor001, TestSize.Level1)
+{
+    auto originValue = std::make_shared<RSRenderAnimatableProperty<float>>(0);
+    RSRenderPropertyAnimation animation(ANIMATION_ID, PROPERTY_ID, originValue);
+    EXPECT_NE(animation.GetOriginValue(), nullptr);
+    EXPECT_NE(animation.GetLastValue(), nullptr);
+}
+
+/**
+ * @tc.name: RSRenderPropertyAnimation_Constructor002
+ * @tc.desc: Verify the RSRenderPropertyAnimation_Constructor originValue is null
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderPropertyAnimationTest, RSRenderPropertyAnimation_Constructor002, TestSize.Level1)
+{
+    RSRenderPropertyAnimation animation(ANIMATION_ID, PROPERTY_ID, nullptr);
+    EXPECT_NE(animation.GetOriginValue(), nullptr);
+    EXPECT_NE(animation.GetLastValue(), nullptr);
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -13,6 +13,7 @@
 
 import("//build/test.gni")
 import("//foundation/graphic/graphic_2d/ace_platforms.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 module_output_path = "graphic_2d/graphic_2d/render_service_client/ui"
 
@@ -36,12 +37,12 @@ ohos_unittest("RSCanvasDrawingNodeTest") {
 
   deps = [
     "$graphic_2d_root/rosen/modules/render_service_client:render_service_client_src",
-    "//third_party/googletest:gtest_main",
   ]
 
   subsystem_name = "graphic"
   external_deps = [
     "c_utils:utils",
+    "googletest:gtest_main",
     "hilog:libhilog",
   ]
 }
@@ -51,6 +52,10 @@ ohos_unittest("RSCanvasNodeTest") {
   module_out_path = module_output_path
 
   sources = [ "rs_canvas_node_test.cpp" ]
+
+  if (graphic_2d_feature_enable_vulkan) {
+    defines = [ "RS_ENABLE_VK" ]
+  }
 
   include_dirs = [ "$graphic_2d_root/rosen/test/include" ]
 
@@ -66,12 +71,12 @@ ohos_unittest("RSCanvasNodeTest") {
 
   deps = [
     "$graphic_2d_root/rosen/modules/render_service_client:render_service_client_src",
-    "//third_party/googletest:gtest_main",
   ]
 
   subsystem_name = "graphic"
   external_deps = [
     "c_utils:utils",
+    "googletest:gtest_main",
     "hilog:libhilog",
   ]
 }
@@ -96,12 +101,12 @@ ohos_unittest("RSDisplayNodeTest") {
 
   deps = [
     "$graphic_2d_root/rosen/modules/render_service_client:render_service_client_src",
-    "//third_party/googletest:gtest_main",
   ]
 
   subsystem_name = "graphic"
   external_deps = [
     "c_utils:utils",
+    "googletest:gtest_main",
     "hilog:libhilog",
   ]
 }
@@ -126,12 +131,12 @@ ohos_unittest("RSEffectNodeTest") {
 
   deps = [
     "$graphic_2d_root/rosen/modules/render_service_client:render_service_client_src",
-    "//third_party/googletest:gtest_main",
   ]
 
   subsystem_name = "graphic"
   external_deps = [
     "c_utils:utils",
+    "googletest:gtest_main",
     "hilog:libhilog",
   ]
 }
@@ -141,6 +146,10 @@ ohos_unittest("RSNodeTest") {
   module_out_path = module_output_path
 
   sources = [ "rs_node_test.cpp" ]
+
+  if (graphic_2d_feature_enable_vulkan) {
+    defines = [ "RS_ENABLE_VK" ]
+  }
 
   include_dirs = [ "$graphic_2d_root/rosen/test/include" ]
 
@@ -156,12 +165,12 @@ ohos_unittest("RSNodeTest") {
 
   deps = [
     "$graphic_2d_root/rosen/modules/render_service_client:render_service_client_src",
-    "//third_party/googletest:gtest_main",
   ]
 
   subsystem_name = "graphic"
   external_deps = [
     "c_utils:utils",
+    "googletest:gtest_main",
     "hilog:libhilog",
   ]
 }
@@ -186,12 +195,12 @@ ohos_unittest("RSProxyNodeTest") {
 
   deps = [
     "$graphic_2d_root/rosen/modules/render_service_client:render_service_client_src",
-    "//third_party/googletest:gtest_main",
   ]
 
   subsystem_name = "graphic"
   external_deps = [
     "c_utils:utils",
+    "googletest:gtest_main",
     "hilog:libhilog",
   ]
 }
@@ -216,12 +225,12 @@ ohos_unittest("RSRootNodeTest") {
 
   deps = [
     "$graphic_2d_root/rosen/modules/render_service_client:render_service_client_src",
-    "//third_party/googletest:gtest_main",
   ]
 
   subsystem_name = "graphic"
   external_deps = [
     "c_utils:utils",
+    "googletest:gtest_main",
     "hilog:libhilog",
   ]
 }
@@ -246,12 +255,12 @@ ohos_unittest("RSSurfaceExtractorTest") {
 
   deps = [
     "$graphic_2d_root/rosen/modules/render_service_client:render_service_client_src",
-    "//third_party/googletest:gtest_main",
   ]
 
   subsystem_name = "graphic"
   external_deps = [
     "c_utils:utils",
+    "googletest:gtest_main",
     "hilog:libhilog",
   ]
 }
@@ -276,12 +285,12 @@ ohos_unittest("RSSurfaceNodeTest") {
 
   deps = [
     "$graphic_2d_root/rosen/modules/render_service_client:render_service_client_src",
-    "//third_party/googletest:gtest_main",
   ]
 
   subsystem_name = "graphic"
   external_deps = [
     "c_utils:utils",
+    "googletest:gtest_main",
     "hilog:libhilog",
     "init:libbegetutil",
   ]
@@ -293,7 +302,10 @@ ohos_unittest("RSTextureExportTest") {
 
   sources = [ "rs_texture_export_test.cpp" ]
 
-  include_dirs = [ "$graphic_2d_root/rosen/test/include" ]
+  include_dirs = [
+    "$graphic_2d_root/rosen/test/include",
+    "$graphic_2d_root/rosen/modules/render_service_base/src",
+  ]
 
   configs = [
     ":ui_test",
@@ -307,12 +319,12 @@ ohos_unittest("RSTextureExportTest") {
 
   deps = [
     "$graphic_2d_root/rosen/modules/render_service_client:render_service_client_src",
-    "//third_party/googletest:gtest_main",
   ]
 
   subsystem_name = "graphic"
   external_deps = [
     "c_utils:utils",
+    "googletest:gtest_main",
     "hilog:libhilog",
   ]
 }
@@ -323,7 +335,14 @@ ohos_unittest("RSUIDirectorTest") {
 
   sources = [ "rs_ui_director_test.cpp" ]
 
-  include_dirs = [ "$graphic_2d_root/rosen/test/include" ]
+  if (graphic_2d_feature_enable_vulkan) {
+    defines = [ "RS_ENABLE_VK" ]
+  }
+
+  include_dirs = [
+    "$graphic_2d_root/rosen/test/include",
+    "$graphic_2d_root/rosen/modules/render_service_base/src",
+  ]
 
   configs = [
     ":ui_test",
@@ -337,12 +356,12 @@ ohos_unittest("RSUIDirectorTest") {
 
   deps = [
     "$graphic_2d_root/rosen/modules/render_service_client:render_service_client_src",
-    "//third_party/googletest:gtest_main",
   ]
 
   subsystem_name = "graphic"
   external_deps = [
     "c_utils:utils",
+    "googletest:gtest_main",
     "hilog:libhilog",
   ]
 }

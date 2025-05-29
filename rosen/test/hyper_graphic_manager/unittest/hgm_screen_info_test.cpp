@@ -18,15 +18,19 @@
 #include <test_header.h>
 
 #include "hgm_screen_info.h"
+#include "hgm_test_base.h"
 
 using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS {
 namespace Rosen {
-class HgmScreenInfoTest : public testing::Test {
+class HgmScreenInfoTest : public HgmTestBase {
 public:
-    static void SetUpTestCase() {}
+    static void SetUpTestCase()
+    {
+        HgmTestBase::SetUpTestCase();
+    }
     static void TearDownTestCase() {}
     void SetUp() {}
     void TearDown() {}

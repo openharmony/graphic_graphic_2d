@@ -58,9 +58,9 @@ HWTEST_F(RSNodeCommandTest, TestRSBaseNodeCommand002, TestSize.Level1)
 {
     RSContext context;
     NodeId nodeId = static_cast<NodeId>(-1);
-    EXPECT_NE(nodeId, -5);
     std::shared_ptr<RSRenderModifier> modifier = nullptr;
     RSNodeCommandHelper::AddModifier(context, nodeId, modifier);
+    EXPECT_EQ(context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId), nullptr);
 }
 
 /**
@@ -126,6 +126,21 @@ HWTEST_F(RSNodeCommandTest, SetDrawRegionTest, TestSize.Level1)
     NodeId nodeId = static_cast<NodeId>(1);
     std::shared_ptr<RectF> rect = nullptr;
     RSNodeCommandHelper::SetDrawRegion(context, nodeId, rect);
+    EXPECT_TRUE(context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId) == nullptr);
+}
+
+/**
+ * @tc.name: SetDrawNodeType
+ * @tc.desc: SetDrawNodeType test.
+ * @tc.type: FUNC
+ * @tc.require: IC8BLE
+ */
+HWTEST_F(RSNodeCommandTest, SetDrawNodeType, TestSize.Level1)
+{
+    RSContext context;
+    NodeId nodeId = static_cast<NodeId>(1);
+    std::shared_ptr<RectF> rect = nullptr;
+    RSNodeCommandHelper::SetDrawNodeType(context, nodeId, DrawNodeType::PureContainerType);
     EXPECT_TRUE(context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId) == nullptr);
 }
 
@@ -221,6 +236,23 @@ HWTEST_F(RSNodeCommandTest, SetNodeName001, TestSize.Level1)
     nodeId = 0;
     RSNodeCommandHelper::SetNodeName(context, nodeId, nodeName);
     EXPECT_NE(context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId), nullptr);
+}
+
+/**
+ * @tc.name: MarkRepaintBoundary
+ * @tc.desc: test results of MarkRepaintBoundary
+ * @tc.type: FUNC
+ * @tc.require: issuesIC50OX
+ */
+HWTEST_F(RSNodeCommandTest, MarkRepaintBoundary, TestSize.Level1)
+{
+    RSContext context;
+    NodeId nodeId = 0;
+    RSNodeCommandHelper::MarkRepaintBoundary(context, nodeId, true);
+    ASSERT_EQ(context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId)->isRepaintBoundary_, true);
+
+    RSNodeCommandHelper::MarkRepaintBoundary(context, nodeId, false);
+    ASSERT_EQ(context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId)->isRepaintBoundary_, false);
 }
 
 /**

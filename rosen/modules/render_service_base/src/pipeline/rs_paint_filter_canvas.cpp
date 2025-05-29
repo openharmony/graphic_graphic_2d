@@ -35,6 +35,11 @@ RSPaintFilterCanvasBase::RSPaintFilterCanvasBase(Drawing::Canvas* canvas)
 #endif
 }
 
+void RSPaintFilterCanvasBase::SetParallelRender(bool parallelEnable)
+{
+    canvas_->SetParallelRender(parallelEnable);
+}
+
 Drawing::Matrix RSPaintFilterCanvasBase::GetTotalMatrix() const
 {
     return canvas_->GetTotalMatrix();
@@ -55,7 +60,7 @@ Drawing::RectI RSPaintFilterCanvasBase::GetRoundInDeviceClipBounds() const
     return canvas_->GetRoundInDeviceClipBounds();
 }
 
-uint32_t RSPaintFilterCanvasBase::GetSaveCount() const
+CM_INLINE uint32_t RSPaintFilterCanvasBase::GetSaveCount() const
 {
     return canvas_->GetSaveCount();
 }
@@ -1646,6 +1651,60 @@ bool RSPaintFilterCanvas::GetIsWindowFreezeCapture() const
 void RSPaintFilterCanvas::SetIsWindowFreezeCapture(bool isWindowFreezeCapture)
 {
     isWindowFreezeCapture_ = isWindowFreezeCapture;
+}
+
+#ifdef RS_ENABLE_VK
+CoreCanvas& RSHybridRenderPaintFilterCanvas::AttachPaint(const Drawing::Paint& paint)
+{
+    if (paint.GetColor() == Color::COLOR_FOREGROUND) {
+        SetRenderWithForegroundColor(true);
+    }
+    return RSPaintFilterCanvas::AttachPaint(paint);
+}
+#endif
+bool RSPaintFilterCanvas::GetIsDrawingCache() const
+{
+    return isDrawingCache_;
+}
+
+void RSPaintFilterCanvas::SetIsDrawingCache(bool isDrawingCache)
+{
+    isDrawingCache_ = isDrawingCache;
+}
+
+RSPaintFilterCanvas::CacheBehindWindowData::CacheBehindWindowData(
+    std::shared_ptr<RSFilter> filter, const Drawing::Rect rect)
+    : filter_(filter), rect_(rect)
+{}
+
+void RSPaintFilterCanvas::SetCacheBehindWindowData(const std::shared_ptr<CacheBehindWindowData>& data)
+{
+    cacheBehindWindowData_ = data;
+}
+
+const std::shared_ptr<RSPaintFilterCanvas::CacheBehindWindowData>& RSPaintFilterCanvas::GetCacheBehindWindowData() const
+{
+    return cacheBehindWindowData_;
+}
+
+void RSPaintFilterCanvas::SetEffectIntersectWithDRM(bool intersect)
+{
+    isIntersectWithDRM_ = intersect;
+}
+
+bool RSPaintFilterCanvas::GetEffectIntersectWithDRM() const
+{
+    return isIntersectWithDRM_;
+}
+
+void RSPaintFilterCanvas::SetDarkColorMode(bool isDark)
+{
+    isDarkColorMode_ = isDark;
+}
+
+bool RSPaintFilterCanvas::GetDarkColorMode() const
+{
+    return isDarkColorMode_;
 }
 } // namespace Rosen
 } // namespace OHOS

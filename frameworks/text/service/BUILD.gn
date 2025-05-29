@@ -1,0 +1,89 @@
+# Copyright (c) 2022 Huawei Device Co., Ltd.. All rights reserved.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+import("//foundation/graphic/graphic_2d/frameworks/text/config.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
+
+config("rosen_text_public_config") {
+  include_dirs = [
+    "$rosen_text_root/interface/export",
+    "$graphic_2d_root/rosen/modules/2d_graphics/include",
+    "$graphic_2d_root/rosen/modules/2d_graphics/src",
+    "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing",
+    "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing/engine_adapter",
+    "$graphic_2d_root/rosen/modules",
+    "$graphic_2d_root/rosen/modules/render_service_client",
+    "$graphic_2d_root/rosen/modules/render_service_client/core",
+    "$graphic_2d_root/rosen/modules/render_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
+    "$graphic_2d_root/rosen/modules/platform/image_native",
+  ]
+}
+
+ohos_source_set("rosen_text_skia") {
+  public_configs = [ ":rosen_text_public_config" ]
+  include_dirs = [
+    ".",
+    "$rosen_text_root/adapter/skia",
+    "$rosen_text_root/adapter/skia/txt/src",
+  ]
+
+  if (is_arkui_x) {
+    include_dirs += [
+      "//base/hiviewdfx/hitrace/interfaces/native/innerkits/include/hitrace_meter",
+      "//third_party/bounds_checking_function/include",
+    ]
+    defines = [ "CROSS_PLATFORM" ]
+  }
+
+  cflags_cc = [ "-std=c++17" ]
+
+  sources = [
+    "common/hm_symbol_txt.cpp",
+    "common/text_style.cpp",
+    "common/typography_style.cpp",
+    "global_config/text_global_config.cpp",
+    "skia_txt/convert.cpp",
+    "skia_txt/custom_symbol_config.cpp",
+    "skia_txt/font_collection.cpp",
+    "skia_txt/line_typography.cpp",
+    "skia_txt/run_impl.cpp",
+    "skia_txt/text_line_base.cpp",
+    "skia_txt/typography.cpp",
+    "skia_txt/typography_create.cpp",
+  ]
+
+  external_deps = [
+    "bounds_checking_function:libsec_shared",
+    "hilog:libhilog",
+    "jsoncpp:jsoncpp",
+    "skia:skia_canvaskit",
+  ]
+
+  deps = [
+    "$rosen_text_root/adapter/skia:skia_libtxt_$platform",
+    "texgine:libtexgine_source",
+  ]
+
+  if (platform_is_ohos) {
+    external_deps += [
+      "hitrace:hitrace_meter",
+      "init:libbegetutil",
+    ]
+    defines = [ "ENABLE_OHOS_ENHANCE" ]
+  }
+
+  part_name = "graphic_2d"
+  subsystem_name = "graphic"
+}

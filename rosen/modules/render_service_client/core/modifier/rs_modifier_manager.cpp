@@ -90,9 +90,11 @@ bool RSModifierManager::Animate(int64_t time, int64_t vsyncPeriod)
     // process animation
     bool hasRunningAnimation = false;
     rateDecider_.Reset();
+    // For now, there is no need to optimize the power consumption issue related to delayTime.
+    int64_t minLeftDelayTime = 0;
 
     // iterate and execute all animations, remove finished animations
-    EraseIf(animations_, [this, &hasRunningAnimation, time, vsyncPeriod](auto& iter) -> bool {
+    EraseIf(animations_, [this, &hasRunningAnimation, time, vsyncPeriod, &minLeftDelayTime](auto& iter) -> bool {
         auto animation = iter.second.lock();
         if (animation == nullptr) {
             displaySyncs_.erase(iter.first);
@@ -102,7 +104,7 @@ bool RSModifierManager::Animate(int64_t time, int64_t vsyncPeriod)
         bool isFinished = false;
         AnimationId animId = animation->GetAnimationId();
         if (!JudgeAnimateWhetherSkip(animId, time, vsyncPeriod)) {
-            isFinished = animation->Animate(time);
+            isFinished = animation->Animate(time, minLeftDelayTime);
         }
 
         if (isFinished) {

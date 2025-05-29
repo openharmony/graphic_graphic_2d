@@ -24,6 +24,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
+const uint8_t SCREEN_INTERFACE_TYPE_SIZE = 13;
 const uint8_t* g_data = nullptr;
 size_t g_size = 0;
 size_t g_pos;
@@ -50,362 +51,167 @@ T GetData()
     return object;
 }
 
-bool DoMarshalling(const uint8_t* data, size_t size)
+bool Init(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
         return false;
     }
-
-    // initialize
     g_data = data;
     g_size = size;
     g_pos = 0;
+    return true;
+}
 
-    // test
+void InitProps(std::vector<RSScreenProps>& props)
+{
+    uint32_t propId = GetData<uint32_t>();
+    uint64_t value = GetData<uint64_t>();
+    std::string capName(STRING_LEN, GetData<char>());
+    RSScreenProps prop = RSScreenProps(capName, propId, value);
+    props.push_back(prop);
+}
+
+void InitRSScreenCapabilityAndParcel(RSScreenCapability& capability, Parcel& parcel)
+{
+    uint32_t phyWidth = GetData<uint32_t>();
+    capability.SetPhyWidth(phyWidth);
+    uint32_t phyHight = GetData<uint32_t>();
+    capability.SetPhyHeight(phyHight);
+    uint32_t supportLayers = GetData<uint32_t>();
+    capability.SetSupportLayers(supportLayers);
+    uint32_t virtualDispCount = GetData<uint32_t>();
+    capability.SetVirtualDispCount(virtualDispCount);
+    ScreenInterfaceType type = static_cast<ScreenInterfaceType>(GetData<uint32_t>() % SCREEN_INTERFACE_TYPE_SIZE);
+    capability.SetType(type);
+    std::string name(STRING_LEN, GetData<char>());
+    capability.SetName(name);
+    bool supportWriteBack = GetData<bool>();
+    capability.SetSupportWriteBack(supportWriteBack);
+    std::vector<RSScreenProps> props;
+    InitProps(props);
+    capability.SetProps(props);
+}
+
+bool DoMarshalling()
+{
+    uint32_t phyWidth = GetData<uint32_t>();
+    uint32_t phyHeight = GetData<uint32_t>();
+    uint32_t supportLayers = GetData<uint32_t>();
+    uint32_t virtualDispCount = GetData<uint32_t>();
+    ScreenInterfaceType type = static_cast<ScreenInterfaceType>(GetData<uint32_t>() % SCREEN_INTERFACE_TYPE_SIZE);
+    bool supportWriteBack = GetData<bool>();
+    std::string name(STRING_LEN, GetData<char>());
+    std::vector<RSScreenProps> props;
+    InitProps(props);
+    auto capability = std::make_shared<RSScreenCapability>(name, type, phyWidth, phyHeight, supportLayers, virtualDispCount, supportWriteBack, props);
+    Parcel parcel;
+    capability->Marshalling(parcel);
+    return true;
+}
+
+bool DoUnmarshalling()
+{
     RSScreenCapability capability;
     Parcel parcel;
+    InitRSScreenCapabilityAndParcel(capability, parcel);
     capability.Marshalling(parcel);
+    RSScreenCapability* resultPtr = capability.Unmarshalling(parcel);
+    delete resultPtr;
     return true;
 }
 
-bool DoUnmarshalling(const uint8_t* data, size_t size)
+bool DoSetName()
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    // test
-    RSScreenCapability capability;
-    Parcel parcel;
-    (void)capability.Unmarshalling(parcel);
-    return true;
-}
-
-bool DoSetName(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    // test
     RSScreenCapability capability;
     std::string name(STRING_LEN, GetData<char>());
     capability.SetName(name);
-    return true;
-}
-
-bool DoSetType(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    // test
-    RSScreenCapability capability;
-    ScreenInterfaceType type = GetData<ScreenInterfaceType>();
-    capability.SetType(type);
-    return true;
-}
-
-bool DoSetPhyWidth(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    // test
-    RSScreenCapability capability;
-    uint32_t phyWidth = GetData<uint32_t>();
-    capability.SetPhyWidth(phyWidth);
-    return true;
-}
-
-bool DoSetPhyHeight(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    // test
-    RSScreenCapability capability;
-    uint32_t phyHeight = GetData<uint32_t>();
-    capability.SetPhyHeight(phyHeight);
-    return true;
-}
-
-bool DoSetSupportLayers(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    // test
-    RSScreenCapability capability;
-    uint32_t supportLayers = GetData<uint32_t>();
-    capability.SetSupportLayers(supportLayers);
-    return true;
-}
-
-bool DoSetVirtualDispCount(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    // test
-    RSScreenCapability capability;
-    uint32_t virtualDispCount = GetData<uint32_t>();
-    capability.SetVirtualDispCount(virtualDispCount);
-    return true;
-}
-
-bool DoSetSupportWriteBack(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    // test
-    RSScreenCapability capability;
-    bool supportWriteBack = GetData<bool>();
-    capability.SetSupportWriteBack(supportWriteBack);
-    return true;
-}
-
-bool DoSetProps(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    // test
-    RSScreenCapability capability;
-    std::string capName(STRING_LEN, GetData<char>());
-    RSScreenProps prop = RSScreenProps(capName, GetData<uint32_t>(), GetData<uint64_t>());
-    std::vector<RSScreenProps> props = {prop};
-    capability.SetProps(props);
-    return true;
-}
-
-bool DoGetName(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    // test
-    RSScreenCapability capability;
     capability.GetName();
     return true;
 }
 
-bool DoGetType(const uint8_t* data, size_t size)
+bool DoSetType()
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    // test
     RSScreenCapability capability;
+    ScreenInterfaceType type = GetData<ScreenInterfaceType>();
+    capability.SetType(type);
     capability.GetType();
     return true;
 }
 
-bool DoGetPhyWidth(const uint8_t* data, size_t size)
+bool DoSetPhyWidth()
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    // test
     RSScreenCapability capability;
+    uint32_t phyWidth = GetData<uint32_t>();
+    capability.SetPhyWidth(phyWidth);
     capability.GetPhyWidth();
     return true;
 }
 
-bool DoGetPhyHeight(const uint8_t* data, size_t size)
+bool DoSetPhyHeight()
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    // test
     RSScreenCapability capability;
+    uint32_t phyHeight = GetData<uint32_t>();
+    capability.SetPhyHeight(phyHeight);
     capability.GetPhyHeight();
     return true;
 }
 
-bool DoGetSupportLayers(const uint8_t* data, size_t size)
+bool DoSetSupportLayers()
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    // test
     RSScreenCapability capability;
+    uint32_t supportLayers = GetData<uint32_t>();
+    capability.SetSupportLayers(supportLayers);
     capability.GetSupportLayers();
     return true;
 }
 
-bool DoGetVirtualDispCount(const uint8_t* data, size_t size)
+bool DoSetVirtualDispCount()
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    // test
     RSScreenCapability capability;
+    uint32_t virtualDispCount = GetData<uint32_t>();
+    capability.SetVirtualDispCount(virtualDispCount);
     capability.GetVirtualDispCount();
     return true;
 }
 
-bool DoGetSupportWriteBack(const uint8_t* data, size_t size)
+bool DoSetSupportWriteBack()
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    // test
     RSScreenCapability capability;
+    bool supportWriteBack = GetData<bool>();
+    capability.SetSupportWriteBack(supportWriteBack);
     capability.GetSupportWriteBack();
     return true;
 }
 
-bool DoGetProps(const uint8_t* data, size_t size)
+bool DoSetProps()
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    // test
     RSScreenCapability capability;
+    std::vector<RSScreenProps> props;
+    InitProps(props);
+    capability.SetProps(props);
     capability.GetProps();
     return true;
 }
 
-bool DoWriteVector(const uint8_t* data, size_t size)
+bool DoWriteVector()
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    // test
     RSScreenCapability capability;
-    std::string capName(STRING_LEN, GetData<char>());
-    RSScreenProps prop = RSScreenProps(capName, GetData<uint32_t>(), GetData<uint64_t>());
-    std::vector<RSScreenProps> props = {prop};
+    std::vector<RSScreenProps> props;
+    InitProps(props);
     Parcel parcel;
     capability.WriteVector(props, parcel);
     return true;
 }
 
-bool DoReadVector(const uint8_t* data, size_t size)
+bool DoReadVector()
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    // test
-    std::string capName(STRING_LEN, GetData<char>());
-    RSScreenProps prop = RSScreenProps(capName, GetData<uint32_t>(), GetData<uint64_t>());
-    std::vector<RSScreenProps> unmarProps = {prop};
-    uint32_t unmarPropCount = GetData<uint32_t>();
+    RSScreenCapability capability;
+    std::vector<RSScreenProps> props;
+    InitProps(props);
     Parcel parcel;
+    capability.WriteVector(props, parcel);
+    uint32_t unmarPropCount = static_cast<uint32_t>(parcel.GetDataSize());
+    std::vector<RSScreenProps> unmarProps;
     RSScreenCapability::ReadVector(unmarProps, unmarPropCount, parcel);
     return true;
 }
@@ -415,27 +221,27 @@ bool DoReadVector(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    if (!OHOS::Rosen::Init(data, size)) {
+        return 0;
+    }
     /* Run your code on data */
-    OHOS::Rosen::DoMarshalling(data, size);
-    OHOS::Rosen::DoUnmarshalling(data, size);
-    OHOS::Rosen::DoSetName(data, size);
-    OHOS::Rosen::DoSetType(data, size);
-    OHOS::Rosen::DoSetPhyWidth(data, size);
-    OHOS::Rosen::DoSetPhyHeight(data, size);
-    OHOS::Rosen::DoSetSupportLayers(data, size);
-    OHOS::Rosen::DoSetVirtualDispCount(data, size);
-    OHOS::Rosen::DoSetSupportWriteBack(data, size);
-    OHOS::Rosen::DoSetProps(data, size);
-    OHOS::Rosen::DoGetName(data, size);
-    OHOS::Rosen::DoGetType(data, size);
-    OHOS::Rosen::DoGetPhyWidth(data, size);
-    OHOS::Rosen::DoGetPhyHeight(data, size);
-    OHOS::Rosen::DoGetSupportLayers(data, size);
-    OHOS::Rosen::DoGetVirtualDispCount(data, size);
-    OHOS::Rosen::DoGetSupportWriteBack(data, size);
-    OHOS::Rosen::DoGetProps(data, size);
-    OHOS::Rosen::DoWriteVector(data, size);
-    OHOS::Rosen::DoReadVector(data, size);
+    using FunctionPtr = bool (*)();
+    std::vector<FunctionPtr> funcVector = {
+        OHOS::Rosen::DoMarshalling,
+        OHOS::Rosen::DoUnmarshalling,
+        OHOS::Rosen::DoSetName,
+        OHOS::Rosen::DoSetType,
+        OHOS::Rosen::DoSetPhyWidth,
+        OHOS::Rosen::DoSetPhyHeight,
+        OHOS::Rosen::DoSetSupportLayers,
+        OHOS::Rosen::DoSetVirtualDispCount,
+        OHOS::Rosen::DoSetSupportWriteBack,
+        OHOS::Rosen::DoSetProps,
+        OHOS::Rosen::DoWriteVector,
+        OHOS::Rosen::DoReadVector
+    };
+
+    uint8_t pos = OHOS::Rosen::GetData<uint8_t>() % funcVector.size();
+    funcVector[pos]();
     return 0;
 }
-

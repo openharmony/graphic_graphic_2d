@@ -23,6 +23,7 @@
 #include "drawing_error_code.h"
 #include "drawing_filter.h"
 #include "drawing_font.h"
+#include "drawing_helper.h"
 #include "drawing_image.h"
 #include "drawing_image_filter.h"
 #include "drawing_mask_filter.h"
@@ -44,6 +45,10 @@
 #include "effect/filter.h"
 #include "recording/recording_canvas.h"
 #include "image/pixelmap_native.h"
+
+#ifdef RS_ENABLE_VK
+#include "platform/ohos/backend/rs_vulkan_context.h"
+#endif
 
 using namespace testing;
 using namespace testing::ext;
@@ -67,7 +72,12 @@ constexpr uint32_t COLOR_PARAMETER = 3;
 constexpr uint32_t INTNUM_TEN = 10;
 constexpr int32_t NEGATIVE_ONE = -1;
 
-void NativeDrawingCanvasTest::SetUpTestCase() {}
+void NativeDrawingCanvasTest::SetUpTestCase()
+{
+#ifdef RS_ENABLE_VK
+    RsVulkanContext::SetRecyclable(false);
+#endif
+}
 void NativeDrawingCanvasTest::TearDownTestCase() {}
 void NativeDrawingCanvasTest::SetUp()
 {
@@ -655,11 +665,19 @@ HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_ColorFilterCreateBlend
     EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
     OH_Drawing_FilterSetColorFilter(filter, nullptr);
     OH_Drawing_FilterGetColorFilter(filter, colorFilterTmp);
-    EXPECT_EQ(reinterpret_cast<ColorFilter*>(colorFilterTmp)->GetType(), ColorFilter::FilterType::NO_TYPE);
+    NativeHandle<ColorFilter>* colorFilterHandle = Helper::CastTo<OH_Drawing_ColorFilter*,
+        NativeHandle<ColorFilter>*>(colorFilterTmp);
+    EXPECT_NE(colorFilterHandle, nullptr);
+    EXPECT_NE(colorFilterHandle->value, nullptr);
+    EXPECT_EQ(colorFilterHandle->value->GetType(), ColorFilter::FilterType::NO_TYPE);
 
     OH_Drawing_FilterSetColorFilter(filter, colorFilter);
     OH_Drawing_FilterGetColorFilter(filter, colorFilterTmp);
-    EXPECT_EQ(reinterpret_cast<ColorFilter*>(colorFilterTmp)->GetType(), ColorFilter::FilterType::BLEND_MODE);
+    NativeHandle<ColorFilter>* colorFilterHandleT = Helper::CastTo<OH_Drawing_ColorFilter*,
+        NativeHandle<ColorFilter>*>(colorFilterTmp);
+    EXPECT_NE(colorFilterHandleT, nullptr);
+    EXPECT_NE(colorFilterHandleT->value, nullptr);
+    EXPECT_EQ(colorFilterHandleT->value->GetType(), ColorFilter::FilterType::BLEND_MODE);
 
     OH_Drawing_BrushSetFilter(brush_, nullptr);
     OH_Drawing_BrushSetFilter(brush_, filter);
@@ -1718,6 +1736,112 @@ HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_CanvasDrawRecordCmd001
 }
 
 /*
+ * @tc.name: NativeDrawingCanvasTest_CanvasDrawRecordCmdNesting001
+ * @tc.desc: test for OH_Drawing_CanvasDrawRecordCmdNesting.
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_CanvasDrawRecordCmdNesting001, TestSize.Level1)
+{
+    int32_t width = 10; // canvas width is 10
+    int32_t height = 20; // canvas width is 20
+    OH_Drawing_Canvas* recordCanvas1 = nullptr;
+    OH_Drawing_RecordCmdUtils* recordCmdUtils1 = OH_Drawing_RecordCmdUtilsCreate();
+    EXPECT_TRUE(recordCmdUtils1 != nullptr);
+    OH_Drawing_ErrorCode code = OH_Drawing_RecordCmdUtilsBeginRecording(recordCmdUtils1, width, height, &recordCanvas1);
+    EXPECT_TRUE(recordCanvas1 != nullptr);
+    EXPECT_EQ(code, OH_DRAWING_SUCCESS);
+    OH_Drawing_CanvasDrawLine(recordCanvas1, 0, 0, static_cast<float>(width), static_cast<float>(height));
+    OH_Drawing_RecordCmd* recordCmd1 = nullptr;
+    code = OH_Drawing_RecordCmdUtilsFinishRecording(recordCmdUtils1, &recordCmd1);
+    EXPECT_TRUE(recordCmd1 != nullptr);
+    EXPECT_EQ(code, OH_DRAWING_SUCCESS);
+    OH_Drawing_RecordCmdUtilsDestroy(recordCmdUtils1);
+
+    OH_Drawing_Canvas* recordCanvas2 = nullptr;
+    OH_Drawing_RecordCmdUtils* recordCmdUtils2 = OH_Drawing_RecordCmdUtilsCreate();
+    EXPECT_TRUE(recordCmdUtils2 != nullptr);
+    code = OH_Drawing_RecordCmdUtilsBeginRecording(recordCmdUtils2, width, height, &recordCanvas2);
+    EXPECT_TRUE(recordCanvas2 != nullptr);
+    EXPECT_EQ(code, OH_DRAWING_SUCCESS);
+    OH_Drawing_CanvasDrawLine(recordCanvas2, static_cast<float>(width), 0, 0, static_cast<float>(height));
+    code = OH_Drawing_CanvasDrawRecordCmdNesting(recordCanvas2, recordCmd1);
+    EXPECT_EQ(code, OH_DRAWING_SUCCESS);
+    OH_Drawing_RecordCmd* recordCmd2 = nullptr;
+    code = OH_Drawing_RecordCmdUtilsFinishRecording(recordCmdUtils2, &recordCmd2);
+    EXPECT_TRUE(recordCmd2 != nullptr);
+    EXPECT_EQ(code, OH_DRAWING_SUCCESS);
+    OH_Drawing_RecordCmdUtilsDestroy(recordCmdUtils2);
+    // test exception
+    OH_Drawing_Canvas* recordCanvas = OH_Drawing_CanvasCreate();
+    EXPECT_TRUE(recordCanvas != nullptr);
+    code = OH_Drawing_CanvasDrawRecordCmdNesting(recordCanvas, recordCmd1);
+    EXPECT_EQ(code, OH_DRAWING_SUCCESS);
+    code = OH_Drawing_CanvasDrawRecordCmdNesting(nullptr, recordCmd1);
+    EXPECT_EQ(code, OH_DRAWING_ERROR_INVALID_PARAMETER);
+    code = OH_Drawing_CanvasDrawRecordCmdNesting(recordCanvas, nullptr);
+    EXPECT_EQ(code, OH_DRAWING_ERROR_INVALID_PARAMETER);
+    code = OH_Drawing_CanvasDrawRecordCmdNesting(nullptr, nullptr);
+    EXPECT_EQ(code, OH_DRAWING_ERROR_INVALID_PARAMETER);
+
+    OH_Drawing_CanvasDestroy(recordCanvas);
+    OH_Drawing_RecordCmdDestroy(recordCmd1);
+    OH_Drawing_RecordCmdDestroy(recordCmd2);
+}
+
+/*
+ * @tc.name: NativeDrawingCanvasTest_CanvasDrawRecordCmdNesting002
+ * @tc.desc: test for OH_Drawing_CanvasDrawRecordCmdNesting.
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_CanvasDrawRecordCmdNesting002, TestSize.Level1)
+{
+    int32_t width = 10; // canvas width is 10
+    int32_t height = 20; // canvas width is 20
+    OH_Drawing_Canvas* recordCanvas1 = nullptr;
+    OH_Drawing_RecordCmdUtils* recordCmdUtils1 = OH_Drawing_RecordCmdUtilsCreate();
+    EXPECT_TRUE(recordCmdUtils1 != nullptr);
+    OH_Drawing_ErrorCode code = OH_Drawing_RecordCmdUtilsBeginRecording(recordCmdUtils1, width, height, &recordCanvas1);
+    EXPECT_TRUE(recordCanvas1 != nullptr);
+    EXPECT_EQ(code, OH_DRAWING_SUCCESS);
+    OH_Drawing_CanvasDrawLine(recordCanvas1, 0, 0, static_cast<float>(width), static_cast<float>(height));
+    OH_Drawing_RecordCmd* recordCmd1 = nullptr;
+    code = OH_Drawing_RecordCmdUtilsFinishRecording(recordCmdUtils1, &recordCmd1);
+    EXPECT_TRUE(recordCmd1 != nullptr);
+    EXPECT_EQ(code, OH_DRAWING_SUCCESS);
+    OH_Drawing_RecordCmdUtilsDestroy(recordCmdUtils1);
+
+    OH_Drawing_Canvas* recordCanvas2 = nullptr;
+    OH_Drawing_RecordCmdUtils* recordCmdUtils2 = OH_Drawing_RecordCmdUtilsCreate();
+    EXPECT_TRUE(recordCmdUtils2 != nullptr);
+    code = OH_Drawing_RecordCmdUtilsBeginRecording(recordCmdUtils2, width, height, &recordCanvas2);
+    EXPECT_TRUE(recordCanvas2 != nullptr);
+    EXPECT_EQ(code, OH_DRAWING_SUCCESS);
+    OH_Drawing_CanvasDrawLine(recordCanvas2, static_cast<float>(width), 0, 0, static_cast<float>(height));
+    code = OH_Drawing_CanvasDrawRecordCmdNesting(recordCanvas2, recordCmd1);
+    EXPECT_EQ(code, OH_DRAWING_SUCCESS);
+    OH_Drawing_RecordCmd* recordCmd2 = nullptr;
+    // test beginRecording repeatedly
+    code = OH_Drawing_RecordCmdUtilsBeginRecording(recordCmdUtils2, width, height, &recordCanvas2);
+    EXPECT_EQ(code, OH_DRAWING_SUCCESS);
+    code = OH_Drawing_CanvasDrawRecordCmdNesting(recordCanvas2, recordCmd1);
+    EXPECT_EQ(code, OH_DRAWING_SUCCESS);
+    // test DrawRecordCmdNesting repeatedly
+    code = OH_Drawing_CanvasDrawRecordCmdNesting(recordCanvas2, recordCmd1);
+    EXPECT_EQ(code, OH_DRAWING_SUCCESS);
+    // test DrawRecordCmdNesting and DrawRecordCmdNest
+    code = OH_Drawing_CanvasDrawRecordCmd(recordCanvas2, recordCmd1);
+    EXPECT_EQ(code, OH_DRAWING_SUCCESS);
+    OH_Drawing_RecordCmdDestroy(recordCmd1);
+    code = OH_Drawing_RecordCmdUtilsFinishRecording(recordCmdUtils2, &recordCmd2);
+    EXPECT_TRUE(recordCmd2 != nullptr);
+    EXPECT_EQ(code, OH_DRAWING_SUCCESS);
+    OH_Drawing_RecordCmdUtilsDestroy(recordCmdUtils2);
+    OH_Drawing_RecordCmdDestroy(recordCmd2);
+}
+
+/*
  * @tc.name: NativeOH_Drawing_CanvasQuickRejectPath001
  * @tc.desc: test for OH_Drawing_CanvasQuickRejectPath.
  * @tc.type: FUNC
@@ -1928,6 +2052,139 @@ HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_CanvasDrawPixelMapNine
     OH_Drawing_RectDestroy(srcRect);
     OH_Drawing_RectDestroy(dstRect);
     delete recordingCanvas;
+}
+
+/*
+ * @tc.name: NativeDrawingCanvasTest_CanvasCreateWithPixelMap001
+ * @tc.desc: test for OH_Drawing_CanvasCreateWithPixelMap.
+ * @tc.type: FUNC
+ * @tc.require: IBHFF5
+ */
+HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_CanvasCreateWithPixelMap001, TestSize.Level1)
+{
+    OH_Pixelmap_InitializationOptions *options = nullptr;
+    OH_PixelmapInitializationOptions_Create(&options);
+    EXPECT_NE(options, nullptr);
+
+    // 1 means width
+    OH_PixelmapInitializationOptions_SetWidth(options, 1);
+    // 1 means height
+    OH_PixelmapInitializationOptions_SetHeight(options, 1);
+    // 3 means RGBA format
+    OH_PixelmapInitializationOptions_SetPixelFormat(options, 3);
+    // 2 means ALPHA_FORMAT_PREMUL format
+    OH_PixelmapInitializationOptions_SetAlphaType(options, 2);
+    // 4 means data length
+    size_t bufferSize = 4;
+    void *buffer = malloc(bufferSize);
+    EXPECT_NE(buffer, nullptr);
+
+    OH_PixelmapNative *pixelMap = nullptr;
+    OH_PixelmapNative_CreatePixelmap(static_cast<uint8_t *>(buffer), bufferSize, options, &pixelMap);
+    EXPECT_NE(pixelMap, nullptr);
+    OH_Drawing_PixelMap *drPixelMap = OH_Drawing_PixelMapGetFromOhPixelMapNative(pixelMap);
+    EXPECT_NE(drPixelMap, nullptr);
+
+    OH_Drawing_Canvas *canvas = OH_Drawing_CanvasCreateWithPixelMap(nullptr);
+    EXPECT_EQ(canvas, nullptr);
+    canvas = OH_Drawing_CanvasCreateWithPixelMap(drPixelMap);
+    EXPECT_NE(canvas, nullptr);
+
+    OH_Drawing_CanvasDestroy(canvas);
+    OH_Drawing_PixelMapDissolve(drPixelMap);
+    OH_PixelmapNative_Release(pixelMap);
+    OH_PixelmapInitializationOptions_Release(options);
+    free(buffer);
+}
+
+/*
+ * @tc.name: NativeDrawingCanvasTest_ImageFilterCreateOffsetImageFilter001
+ * @tc.desc: test for creates an OH_Drawing_ImageFilter object that instance with the provided x and y offset.
+ * @tc.type: FUNC
+ * @tc.require: IAYWTV
+ */
+HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_ImageFilterCreateOffset001, TestSize.Level1)
+{
+    OH_Drawing_ImageFilter* cInput = nullptr;
+    float dx = 0.f;
+    float dy = 0.f;
+
+    OH_Drawing_ImageFilter* imagefilterTest1 =
+        OH_Drawing_ImageFilterCreateOffset(dx, dy, cInput);
+    EXPECT_TRUE(imagefilterTest1 != nullptr);
+
+    float sifmaX = 10.0f;
+    float sigmaY = 10.0f;
+    cInput = OH_Drawing_ImageFilterCreateBlur(sifmaX, sigmaY, CLAMP, nullptr);
+    EXPECT_TRUE(cInput != nullptr);
+    OH_Drawing_ImageFilter* imagefilterTest2 =
+        OH_Drawing_ImageFilterCreateOffset(dx, dy, cInput);
+    EXPECT_TRUE(imagefilterTest2 != nullptr);
+
+    OH_Drawing_ImageFilterDestroy(cInput);
+    OH_Drawing_ImageFilterDestroy(imagefilterTest1);
+    OH_Drawing_ImageFilterDestroy(imagefilterTest2);
+}
+
+/*
+ * @tc.name: NativeDrawingCanvasTest_ImageFilterCreateShaderImageFilter001
+ * @tc.desc: test for creates an OH_Drawing_ImageFilter object that renders the contents of the input Shader.
+ * @tc.type: FUNC
+ * @tc.require: IAYWTV
+ */
+HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_ImageFilterCreateShaderImageFilter001, TestSize.Level1)
+{
+    OH_Drawing_ShaderEffect* cShader = nullptr;
+    OH_Drawing_ImageFilter* imagefilterTest1 = OH_Drawing_ImageFilterCreateFromShaderEffect(cShader);
+    EXPECT_TRUE(imagefilterTest1 == nullptr);
+    uint32_t color = 1;
+    cShader = OH_Drawing_ShaderEffectCreateColorShader(color);
+    EXPECT_TRUE(cShader != nullptr);
+    OH_Drawing_ImageFilter* imagefilterTest2 = OH_Drawing_ImageFilterCreateFromShaderEffect(cShader);
+    EXPECT_TRUE(imagefilterTest2 != nullptr);
+
+    OH_Drawing_ShaderEffectDestroy(cShader);
+    OH_Drawing_ImageFilterDestroy(imagefilterTest1);
+    OH_Drawing_ImageFilterDestroy(imagefilterTest2);
+}
+
+/*
+ * @tc.name: NativeDrawingCanvasTest_ColorFilterCreateLighting001
+ * @tc.desc: test for colorfilter create lighting.
+ * @tc.type: FUNC
+ * @tc.require: IAYWTV
+ */
+HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_ColorFilterCreateLighting001, TestSize.Level1)
+{
+    OH_Drawing_ColorFilter* colorFilter = OH_Drawing_ColorFilterCreateLighting(0xff0000ff, 0xff000001);
+    EXPECT_NE(colorFilter, nullptr);
+    OH_Drawing_ColorFilter* colorFilterTmp = OH_Drawing_ColorFilterCreateLinearToSrgbGamma();
+    EXPECT_NE(colorFilterTmp, nullptr);
+    OH_Drawing_Filter* filter = OH_Drawing_FilterCreate();
+    EXPECT_NE(filter, nullptr);
+
+    OH_Drawing_FilterSetColorFilter(nullptr, colorFilter);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    OH_Drawing_FilterSetColorFilter(filter, nullptr);
+    OH_Drawing_FilterGetColorFilter(filter, colorFilterTmp);
+    NativeHandle<ColorFilter>* colorFilterHandle = Helper::CastTo<OH_Drawing_ColorFilter*,
+        NativeHandle<ColorFilter>*>(colorFilterTmp);
+    EXPECT_NE(colorFilterHandle, nullptr);
+    EXPECT_NE(colorFilterHandle->value, nullptr);
+    EXPECT_EQ(colorFilterHandle->value->GetType(), ColorFilter::FilterType::NO_TYPE);
+
+    OH_Drawing_FilterSetColorFilter(filter, colorFilter);
+    OH_Drawing_FilterGetColorFilter(filter, colorFilterTmp);
+    NativeHandle<ColorFilter>* colorFilterHandleT = Helper::CastTo<OH_Drawing_ColorFilter*,
+        NativeHandle<ColorFilter>*>(colorFilterTmp);
+    EXPECT_NE(colorFilterHandleT, nullptr);
+    EXPECT_NE(colorFilterHandleT->value, nullptr);
+    EXPECT_EQ(colorFilterHandleT->value->GetType(), ColorFilter::FilterType::LIGHTING);
+
+    OH_Drawing_BrushSetFilter(brush_, nullptr);
+    OH_Drawing_BrushSetFilter(brush_, filter);
+    OH_Drawing_Rect *rect = OH_Drawing_RectCreate(0, 0, 100, 100);
+    OH_Drawing_CanvasDrawRect(canvas_, rect);
 }
 } // namespace Drawing
 } // namespace Rosen

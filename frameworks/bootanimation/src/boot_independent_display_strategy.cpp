@@ -46,11 +46,9 @@ void BootIndependentDisplayStrategy::Display(int32_t duration, std::vector<BootA
         }
     }
 
-    bool needOtaCompile = CheckNeedOtaCompile();
-    bool needBundleScan = CheckNeedBundleScan();
-    if (needOtaCompile || needBundleScan) {
+    if (IsOtaUpdate()) {
         bootCompileProgress_ = std::make_shared<BootCompileProgress>();
-        bootCompileProgress_->Init(screenConfig, needOtaCompile, needBundleScan);
+        bootCompileProgress_->Init(screenConfig);
     }
 
     while (!CheckExitAnimation()) {

@@ -3814,6 +3814,22 @@ HWTEST_F(RSCanvasNodeTest, SetHDRPresent001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetIsWideColorGamutTest
+ * @tc.desc: test results of SetIsWideColorGamut
+ * @tc.type: FUNC
+ * @tc.require: issueIC1PS1
+ */
+HWTEST_F(RSCanvasNodeTest, SetIsWideColorGamutTest, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    canvasNode->SetIsWideColorGamut(true);
+    EXPECT_TRUE(RSTransactionProxy::instance_);
+
+    canvasNode->SetIsWideColorGamut(false);
+    EXPECT_TRUE(RSTransactionProxy::instance_);
+}
+
+/**
  * @tc.name: OnBoundsSizeChanged001
  * @tc.desc: test results of OnBoundsSizeChanged
  * @tc.type: FUNC
@@ -3906,4 +3922,107 @@ HWTEST_F(RSCanvasNodeTest, UnMarshalling002, TestSize.Level1)
     EXPECT_EQ(canvasNodeUm->IsRenderServiceNode(), canvasNode->IsRenderServiceNode());
     EXPECT_EQ(canvasNodeUm->GetId(), canvasNode->GetId());
 }
+
+#ifdef RS_ENABLE_VK
+/**
+ * @tc.name: GetBitmap001
+ * @tc.desc: Test GetBitmap
+ * @tc.type: FUNC
+ * @tc.require: IBFOIN
+ */
+HWTEST_F(RSCanvasNodeTest, GetBitmap001, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    canvasNode->SetHybridRenderCanvas(false);
+    Drawing::Bitmap bitmap;
+    auto ret = canvasNode->GetBitmap(bitmap);
+    EXPECT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: GetBitmap002
+ * @tc.desc: Test GetBitmap
+ * @tc.type: FUNC
+ * @tc.require: IBFOIN
+ */
+HWTEST_F(RSCanvasNodeTest, GetBitmap002, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    canvasNode->SetHybridRenderCanvas(true);
+    Drawing::Bitmap bitmap;
+    auto ret = canvasNode->GetBitmap(bitmap);
+    EXPECT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: GetPixelmap001
+ * @tc.desc: Test GetPixelmap
+ * @tc.type: FUNC
+ * @tc.require: IBFOIN
+ */
+HWTEST_F(RSCanvasNodeTest, GetPixelmap001, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    canvasNode->SetHybridRenderCanvas(false);
+    auto ret = canvasNode->GetPixelmap(nullptr);
+    EXPECT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: GetPixelmap002
+ * @tc.desc: Test GetPixelmap
+ * @tc.type: FUNC
+ * @tc.require: IBFOIN
+ */
+HWTEST_F(RSCanvasNodeTest, GetPixelmap002, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    canvasNode->SetHybridRenderCanvas(true);
+    auto ret = canvasNode->GetPixelmap(nullptr);
+    EXPECT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: GetPixelmap003
+ * @tc.desc: Test GetPixelmap
+ * @tc.type: FUNC
+ * @tc.require: IBFOIN
+ */
+HWTEST_F(RSCanvasNodeTest, GetPixelmap003, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    canvasNode->SetHybridRenderCanvas(true);
+    Drawing::Rect rect = {0, 0, 0, 0};
+    auto ret = canvasNode->GetPixelmap(nullptr, nullptr, &rect);
+    EXPECT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: ResetSurface001
+ * @tc.desc: Test ResetSurface
+ * @tc.type: FUNC
+ * @tc.require: IBFOIN
+ */
+HWTEST_F(RSCanvasNodeTest, ResetSurface001, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    canvasNode->SetHybridRenderCanvas(false);
+    auto ret = canvasNode->ResetSurface(0, 0);
+    EXPECT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: ResetSurface002
+ * @tc.desc: Test ResetSurface
+ * @tc.type: FUNC
+ * @tc.require: IBFOIN
+ */
+HWTEST_F(RSCanvasNodeTest, ResetSurface002, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    canvasNode->SetHybridRenderCanvas(true);
+    auto ret = canvasNode->ResetSurface(0, 0);
+    EXPECT_EQ(ret, true);
+}
+#endif
 } // namespace OHOS::Rosen

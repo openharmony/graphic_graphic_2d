@@ -15,7 +15,7 @@ import("//build/test.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 ohos_unittest("feature_cfg_test") {
-  module_out_path = "graphic_2d/rosen/modules/feature_cfg"
+  module_out_path = "graphic_2d/graphic_2d/rosen/modules/feature_cfg"
 
   cflags = [
     "-Wall",
@@ -31,21 +31,24 @@ ohos_unittest("feature_cfg_test") {
     "color_gamut_param_test.cpp",
     "dirtyregion_param_test.cpp",
     "drm_param_test.cpp",
+    "dvsync_param_parse_test.cpp",
     "dvsync_param_test.cpp",
     "filter_param_test.cpp",
-    "gpu_resource_release_test.cpp",
     "graphic_feature_param_manager_test.cpp",
     "hard_cursor_param_test.cpp",
     "hfbc_param_test.cpp",
+    "hwc_param_parse_test.cpp",
     "hwc_param_test.cpp",
+    "loadoptimization_param_test.cpp",
     "mem_param_test.cpp",
     "multiscreen_param_test.cpp",
+    "occlusion_culling_param_test.cpp",
     "opinc_param_test.cpp",
+    "prevalidate_param_parse_test.cpp",
     "prevalidate_param_test.cpp",
     "rotateoffscreen_param_test.cpp",
     "socperf_param_test.cpp",
     "speciallayer_param_test.cpp",
-    "stencil_pixel_occlusion_culling_param_test.cpp",
     "surface_capture_param_test.cpp",
     "ui_capture_param_test.cpp",
     "uifirst_param_test.cpp",
@@ -59,6 +62,7 @@ ohos_unittest("feature_cfg_test") {
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/config",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/frame_rate_manager",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/hgm_screen_manager",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/soft_vsync_manager",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/utils",
     "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg",
     "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/feature_param",

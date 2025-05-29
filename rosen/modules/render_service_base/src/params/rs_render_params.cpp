@@ -64,10 +64,11 @@ void RSRenderParams::SetMatrix(const Drawing::Matrix& matrix)
     needSync_ = true;
     dirtyType_.set(RSRenderParamsDirtyType::MATRIX_DIRTY);
 }
+
 const Drawing::Matrix& RSRenderParams::GetMatrix() const
 {
     return matrix_;
-}\
+}
 
 bool RSRenderParams::HasUnobscuredUEC() const
 {
@@ -296,6 +297,34 @@ bool RSRenderParams::GetRSFreezeFlag() const
     return freezeFlag_;
 }
 
+void RSRenderParams::OpincSetIsSuggest(bool isSuggest)
+{
+    if (isOpincSuggestFlag_ == isSuggest) {
+        return;
+    }
+    isOpincSuggestFlag_ = isSuggest;
+    needSync_ = true;
+}
+
+bool RSRenderParams::OpincIsSuggest() const
+{
+    return isOpincSuggestFlag_;
+}
+
+void RSRenderParams::OpincUpdateSupportFlag(bool supportFlag)
+{
+    if (isOpincSupportFlag_ == supportFlag) {
+        return;
+    }
+    isOpincSupportFlag_ = supportFlag;
+    needSync_ = true;
+}
+
+bool RSRenderParams::OpincGetSupportFlag() const
+{
+    return isOpincSupportFlag_;
+}
+
 void RSRenderParams::OpincUpdateRootFlag(bool suggestFlag)
 {
     if (isOpincRootFlag_ == suggestFlag) {
@@ -358,7 +387,7 @@ void RSRenderParams::SetFrameGravity(Gravity gravity)
 
 void RSRenderParams::SetHDRBrightness(float hdrBrightness)
 {
-    if (hdrBrightness_ == hdrBrightness) {
+    if (ROSEN_EQ(hdrBrightness_, hdrBrightness)) {
         return;
     }
     hdrBrightness_ = hdrBrightness;
@@ -451,6 +480,16 @@ void RSRenderParams::SetCanvasDrawingSurfaceChanged(bool changeFlag)
     canvasDrawingNodeSurfaceChanged_ = changeFlag;
 }
 
+bool RSRenderParams::IsRepaintBoundary() const
+{
+    return isRepaintBoundary_;
+}
+
+void RSRenderParams::MarkRepaintBoundary(bool isRepaintBoundary)
+{
+    isRepaintBoundary_ = isRepaintBoundary;
+}
+
 const std::shared_ptr<RSFilter>& RSRenderParams::GetForegroundFilterCache() const
 {
     return foregroundFilterCache_;
@@ -503,7 +542,9 @@ void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     target->isDrawingCacheChanged_ = target->isDrawingCacheChanged_ || isDrawingCacheChanged_;
     target->shadowRect_ = shadowRect_;
     target->drawingCacheIncludeProperty_ = drawingCacheIncludeProperty_;
+    target->isInBlackList_ = isInBlackList_;
     target->dirtyRegionInfoForDFX_ = dirtyRegionInfoForDFX_;
+    target->isRepaintBoundary_ = isRepaintBoundary_;
     target->alphaOffScreen_ = alphaOffScreen_;
     target->hdrBrightness_ = hdrBrightness_;
     target->needFilter_ = needFilter_;
@@ -514,6 +555,8 @@ void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     target->hasBlurFilter_ = hasBlurFilter_;
     target->foregroundFilterCache_ = foregroundFilterCache_;
     OnCanvasDrawingSurfaceChange(target);
+    target->isOpincSuggestFlag_ = isOpincSuggestFlag_;
+    target->isOpincSupportFlag_ = isOpincSupportFlag_;
     target->isOpincRootFlag_ = isOpincRootFlag_;
     target->isOpincStateChanged_ = target->isOpincStateChanged_ || isOpincStateChanged_;
     target->startingWindowFlag_ = startingWindowFlag_;
@@ -532,6 +575,9 @@ void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     target->linkedRootNodeDrawable_ = linkedRootNodeDrawable_;
     target->needSwapBuffer_ = needSwapBuffer_;
     target->cacheNodeFrameRect_ = cacheNodeFrameRect_;
+
+    // used for DFX
+    target->isOnTheTree_ = isOnTheTree_;
 
     needSync_ = false;
 }
@@ -690,5 +736,16 @@ void RSRenderParams::SetCacheNodeFrameRect(const Drawing::RectF& cacheNodeFrameR
 const Drawing::RectF& RSRenderParams::GetCacheNodeFrameRect() const
 {
     return cacheNodeFrameRect_;
+}
+
+// used for DFX
+void RSRenderParams::SetIsOnTheTree(bool isOnTheTree)
+{
+    isOnTheTree_ = isOnTheTree;
+}
+
+bool RSRenderParams::GetIsOnTheTree() const
+{
+    return isOnTheTree_;
 }
 } // namespace OHOS::Rosen

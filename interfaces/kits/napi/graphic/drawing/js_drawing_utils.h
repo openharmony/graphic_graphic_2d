@@ -26,6 +26,10 @@
 #include "draw/shadow.h"
 #include "native_engine/native_engine.h"
 #include "native_engine/native_value.h"
+#ifdef ROSEN_OHOS
+#include "pixel_map.h"
+#include "pixel_map_napi.h"
+#endif
 #include "text/font.h"
 #include "text/font_mgr.h"
 #include "text/font_metrics.h"
@@ -179,6 +183,15 @@ private:
         }                                                                                                              \
     } while (0)
 
+#define GET_ENUM_PARAM_RANGE(argc, value, lo, hi)                                                                      \
+    do {                                                                                                               \
+        GET_INT32_PARAM(argc, value);                                                                                  \
+        if (value < lo || value > hi) {                                                                                \
+            return NapiThrowError(env, DrawingErrorCode::ERROR_PARAM_VERIFICATION_FAILED,                              \
+                std::string("Incorrect ") + __FUNCTION__ + " parameter" + std::to_string(argc) + " range.");           \
+        }                                                                                                              \
+    } while (0)
+
 namespace Drawing {
 constexpr char THEME_FONT[] = "OhosThemeFont";
 constexpr size_t ARGC_ZERO = 0;
@@ -193,6 +206,7 @@ constexpr size_t ARGC_EIGHT = 8;
 constexpr size_t ARGC_NINE = 9;
 constexpr int NUMBER_TWO = 2;
 constexpr int MAX_PAIRS_PATHVERB = 4;
+constexpr int MAX_ELEMENTSIZE = 3000 * 3000;
 extern const char* const JSCOLOR[4];
 
 enum class DrawingErrorCode : int32_t {
@@ -200,7 +214,7 @@ enum class DrawingErrorCode : int32_t {
     ERROR_NO_PERMISSION = 201, // the value do not change. It is defined on all system
     ERROR_INVALID_PARAM = 401, // the value do not change. It is defined on all system
     ERROR_DEVICE_NOT_SUPPORT = 801, // the value do not change. It is defined on all system
-    ERROR_ABNORMAL_PARAM_VALUE = 18600001, // the value do not change. It is defined on color manager system
+    ERROR_PARAM_VERIFICATION_FAILED = 25900001, // after api 18, no throw 401
 };
 
 template<class T>
@@ -425,20 +439,35 @@ inline napi_value GetStringAndConvertToJsValue(napi_env env, std::string str)
 
 napi_value GetFontMetricsAndConvertToJsValue(napi_env env, FontMetrics* metrics);
 
-inline napi_value GetRectAndConvertToJsValue(napi_env env, std::shared_ptr<Rect> rect)
+inline void LtrbConvertToJsRect(napi_env env, napi_value jsValue, double left, double top, double right, double bottom)
+{
+    napi_set_named_property(env, jsValue, "left", CreateJsNumber(env, left));
+    napi_set_named_property(env, jsValue, "top", CreateJsNumber(env, top));
+    napi_set_named_property(env, jsValue, "right", CreateJsNumber(env, right));
+    napi_set_named_property(env, jsValue, "bottom", CreateJsNumber(env, bottom));
+}
+
+inline void DrawingRectConvertToJsRect(napi_env env, napi_value jsValue, const Rect& rect)
+{
+    LtrbConvertToJsRect(env, jsValue, rect.GetLeft(), rect.GetTop(), rect.GetRight(), rect.GetBottom());
+}
+
+inline napi_value GetRectAndConvertToJsValue(napi_env env, double left, double top, double right, double bottom)
 {
     napi_value objValue = nullptr;
     napi_create_object(env, &objValue);
-    if (rect != nullptr && objValue != nullptr) {
-        napi_set_named_property(env, objValue, "left", CreateJsNumber(env, rect->GetLeft()));
-        napi_set_named_property(env, objValue, "top", CreateJsNumber(env, rect->GetTop()));
-        napi_set_named_property(env, objValue, "right", CreateJsNumber(env, rect->GetRight()));
-        napi_set_named_property(env, objValue, "bottom", CreateJsNumber(env, rect->GetBottom()));
+    if (objValue != nullptr) {
+        LtrbConvertToJsRect(env, objValue, left, top, right, bottom);
     }
     return objValue;
 }
 
-inline napi_value ConvertPointToJsValue(napi_env env, Drawing::Point& point)
+inline napi_value GetRectAndConvertToJsValue(napi_env env, const Rect& rect)
+{
+    return GetRectAndConvertToJsValue(env, rect.GetLeft(), rect.GetTop(), rect.GetRight(), rect.GetBottom());
+}
+
+inline napi_value ConvertPointToJsValue(napi_env env, const Drawing::Point& point)
 {
     napi_value objValue = nullptr;
     napi_create_object(env, &objValue);
@@ -481,6 +510,15 @@ napi_value NapiThrowError(napi_env env, DrawingErrorCode err, const std::string&
 std::shared_ptr<Font> GetThemeFont(std::shared_ptr<Font> font);
 std::shared_ptr<Font> MatchThemeFont(std::shared_ptr<Font> font, int32_t unicode);
 std::shared_ptr<FontMgr> GetFontMgr(std::shared_ptr<Font> font);
+class Bitmap;
+class ColorSpace;
+#ifdef ROSEN_OHOS
+extern std::shared_ptr<Drawing::ColorSpace> ColorSpaceToDrawingColorSpace(Media::ColorSpace colorSpace);
+extern Drawing::ColorType PixelFormatToDrawingColorType(Media::PixelFormat pixelFormat);
+extern Drawing::AlphaType AlphaTypeToDrawingAlphaType(Media::AlphaType alphaType);
+extern bool ExtracetDrawingBitmap(std::shared_ptr<Media::PixelMap> pixelMap, Drawing::Bitmap& bitmap);
+extern std::shared_ptr<Drawing::Image> ExtractDrawingImage(std::shared_ptr<Media::PixelMap> pixelMap);
+#endif
 } // namespace Drawing
 } // namespace OHOS::Rosen
 

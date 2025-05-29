@@ -561,6 +561,17 @@ HWTEST_F(RSSystemPropertiesTest, GetAnimationScale, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetAnimationDelayOptimizeEnabled
+ * @tc.desc: GetAnimationDelayOptimizeEnabled Test
+ * @tc.type:FUNC
+ * @tc.require: issueI9JZWC
+ */
+HWTEST_F(RSSystemPropertiesTest, GetAnimationDelayOptimizeEnabled, TestSize.Level1)
+{
+    ASSERT_TRUE(RSSystemProperties::GetAnimationDelayOptimizeEnabled());
+}
+
+/**
  * @tc.name: GetHdrImageEnabled
  * @tc.desc: GetHdrImageEnabled Test
  * @tc.type:FUNC
@@ -829,6 +840,17 @@ HWTEST_F(RSSystemPropertiesTest, GetUIFirstDebugEnabled, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetUIFirstBehindWindowFilterEnabled
+ * @tc.desc: GetUIFirstBehindWindowFilterEnabled Test
+ * @tc.type:FUNC
+ * @tc.require: issuesIC0HM8
+ */
+HWTEST_F(RSSystemPropertiesTest, GetUIFirstBehindWindowFilterEnabled, TestSize.Level1)
+{
+    ASSERT_TRUE(RSSystemProperties::GetUIFirstBehindWindowFilterEnabled());
+}
+
+/**
  * @tc.name: GetDumpImgEnabled
  * @tc.desc: GetDumpImgEnabled Test
  * @tc.type:FUNC
@@ -840,18 +862,13 @@ HWTEST_F(RSSystemPropertiesTest, GetDumpImgEnabled, TestSize.Level1)
 }
 
 /**
- * @tc.name: FindNodeInTargetListSucess
- * @tc.desc: FindNodeInTargetListSucess Test
+ * @tc.name: FindNodeInTargetListSuccess
+ * @tc.desc: FindNodeInTargetListSuccess Test
  * @tc.type:FUNC
  * @tc.require: issueI9V3Y2
  */
-HWTEST_F(RSSystemPropertiesTest, FindNodeInTargetListSucess, TestSize.Level1)
+HWTEST_F(RSSystemPropertiesTest, FindNodeInTargetListSuccess, TestSize.Level1)
 {
-    std::string targetStr1("");
-    system::SetParameter("persist.sys.graphic.traceTargetList", targetStr1);
-    std::string nodeStr1("A");
-    RSSystemProperties::FindNodeInTargetList(nodeStr1);
-
     std::string targetStr("A;B;C;D");
     system::SetParameter("persist.sys.graphic.traceTargetList", targetStr);
     std::string nodeStr("A");
@@ -943,7 +960,7 @@ HWTEST_F(RSSystemPropertiesTest, GetImageGpuResourceCacheEnable, TestSize.Level1
  */
 HWTEST_F(RSSystemPropertiesTest, GetBoolSystemProperty, TestSize.Level1)
 {
-    ASSERT_TRUE(RSSystemProperties::GetBoolSystemProperty(std::string("noName").c_str(), true));
+    EXPECT_FALSE(RSSystemProperties::GetBoolSystemProperty(std::string("noName").c_str(), false));
 }
 
 /**
@@ -968,17 +985,6 @@ HWTEST_F(RSSystemPropertiesTest, WatchSystemProperty, TestSize.Level1)
 HWTEST_F(RSSystemPropertiesTest, IsPhoneType, TestSize.Level1)
 {
     ASSERT_FALSE(RSSystemProperties::IsPhoneType());
-}
-
-/**
- * @tc.name: IsPcType
- * @tc.desc: IsPcType Test
- * @tc.type:FUNC
- * @tc.require: issueI9JZWC
- */
-HWTEST_F(RSSystemPropertiesTest, IsPcType, TestSize.Level1)
-{
-    ASSERT_FALSE(RSSystemProperties::IsPcType());
 }
 
 /**
@@ -1063,6 +1069,31 @@ HWTEST_F(RSSystemPropertiesTest, GetOptimizeParentNodeRegionEnabled, TestSize.Le
 HWTEST_F(RSSystemPropertiesTest, GetOptimizeHwcComposeAreaEnabled, TestSize.Level1)
 {
     ASSERT_TRUE(RSSystemProperties::GetOptimizeHwcComposeAreaEnabled());
+}
+
+/**
+ * @tc.name: GetTimeVsyncDisabled
+ * @tc.desc: GetTimeVsyncDisabled Test
+ * @tc.type:FUNC
+ * @tc.require: issuesIBIA3V
+ */
+HWTEST_F(RSSystemPropertiesTest, GetTimeVsyncDisabled001, TestSize.Level1)
+{
+    ASSERT_FALSE(RSSystemProperties::GetTimeVsyncDisabled());
+}
+
+/**
+ * @tc.name: BehindWindowFilterEnabledTest
+ * @tc.desc: BehindWindowFilterEnabledTest
+ * @tc.type:FUNC
+ * @tc.require: issuesIC5OEB
+ */
+HWTEST_F(RSSystemPropertiesTest, BehindWindowFilterEnabledTest, TestSize.Level1)
+{
+    bool enabled = RSSystemProperties::GetBehindWindowFilterEnabled();
+    RSSystemProperties::SetBehindWindowFilterEnabled(!enabled);
+    EXPECT_EQ(RSSystemProperties::GetBehindWindowFilterEnabled(), !enabled);
+    RSSystemProperties::SetBehindWindowFilterEnabled(enabled);
 }
 } // namespace Rosen
 } // namespace OHOS

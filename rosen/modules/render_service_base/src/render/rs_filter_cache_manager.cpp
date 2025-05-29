@@ -159,7 +159,7 @@ bool RSFilterCacheManager::DrawFilterWithoutSnapshot(RSPaintFilterCanvas& canvas
 }
 
 void RSFilterCacheManager::DrawFilter(RSPaintFilterCanvas& canvas, const std::shared_ptr<RSDrawingFilter>& filter,
-    bool manuallyHandleFilterCahe, bool shouldClearFilteredCache,
+    bool manuallyHandleFilterCache, bool shouldClearFilteredCache,
     const std::optional<Drawing::RectI>& srcRect,
     const std::optional<Drawing::RectI>& dstRect)
 {
@@ -179,7 +179,7 @@ void RSFilterCacheManager::DrawFilter(RSPaintFilterCanvas& canvas, const std::sh
     }
 
     if (cachedFilteredSnapshot_ == nullptr || cachedFilteredSnapshot_->cachedImage_ == nullptr) {
-        if (manuallyHandleFilterCahe ? DrawFilterWithoutSnapshot(canvas, filter, src, dst, shouldClearFilteredCache)
+        if (manuallyHandleFilterCache ? DrawFilterWithoutSnapshot(canvas, filter, src, dst, shouldClearFilteredCache)
             :DrawFilterWithoutSnapshot(canvas, filter, src, dst, renderClearFilteredCacheAfterDrawing_)) {
             return;
         } else {
@@ -431,6 +431,14 @@ void RSFilterCacheManager::MarkFilterRegionIsLargeArea()
     stagingIsLargeArea_ = true;
 }
 
+void RSFilterCacheManager::MarkInForegroundFilterAndCheckNeedForceClearCache(bool inForegroundFilter)
+{
+    stagingInForegroundFilter_ = inForegroundFilter;
+    if (stagingInForegroundFilter_ != lastInForegroundFilter_ && lastCacheType_ != FilterCacheType::NONE) {
+        MarkFilterForceClearCache();
+    }
+}
+
 void RSFilterCacheManager::UpdateFlags(FilterCacheType type, bool cacheValid)
 {
     stagingClearType_ = type;
@@ -498,6 +506,9 @@ void RSFilterCacheManager::SwapDataAndInitStagingFlags(std::unique_ptr<RSFilterC
     // renderParams to stagingParams
     lastCacheType_ = cacheManager->lastCacheType_;
 
+    // save staging param value
+    lastInForegroundFilter_ = stagingInForegroundFilter_;
+
     // stagingParams init
     stagingFilterHashChanged_ = false;
     stagingForceClearCacheForLastFrame_ = false;
@@ -514,28 +525,32 @@ void RSFilterCacheManager::SwapDataAndInitStagingFlags(std::unique_ptr<RSFilterC
 
     stagingIsLargeArea_ = false;
     isFilterCacheValid_ = false;
+
+    stagingInForegroundFilter_ = false;
 }
 
-void RSFilterCacheManager::MarkNeedClearFilterCache()
+void RSFilterCacheManager::MarkNeedClearFilterCache(NodeId nodeId)
 {
-    RS_TRACE_NAME_FMT("RSFilterCacheManager::MarkNeedClearFilterCache forceUseCache_:%d,"
+    RS_TRACE_NAME_FMT("RSFilterCacheManager::MarkNeedClearFilterCache nodeId[%llu] forceUseCache_:%d,"
         "forceClearCache_:%d, hashChanged:%d, regionChanged_:%d, belowDirty_:%d,"
         "lastCacheType:%d, cacheUpdateInterval_:%d, canSkip:%d, isLargeArea:%d, filterType_:%d, pendingPurge_:%d,"
-        "forceClearCacheWithLastFrame:%d, rotationChanged:%d",
+        "forceClearCacheWithLastFrame:%d, rotationChanged:%d, inForegroundFilter:%d", nodeId,
         stagingForceUseCache_, stagingForceClearCache_, stagingFilterHashChanged_,
         stagingFilterRegionChanged_, stagingFilterInteractWithDirty_,
         lastCacheType_, cacheUpdateInterval_, canSkipFrame_, stagingIsLargeArea_,
-        filterType_, pendingPurge_, stagingForceClearCacheForLastFrame_, stagingRotationChanged_);
+        filterType_, pendingPurge_, stagingForceClearCacheForLastFrame_, stagingRotationChanged_,
+        stagingInForegroundFilter_);
 
     ROSEN_LOGD("RSFilterDrawable::MarkNeedClearFilterCache, forceUseCache_:%{public}d,"
         "forceClearCache_:%{public}d, hashChanged:%{public}d, regionChanged_:%{public}d, belowDirty_:%{public}d,"
         "lastCacheType:%{public}hhu, cacheUpdateInterval_:%{public}d, canSkip:%{public}d, isLargeArea:%{public}d,"
         "filterType_:%{public}d, pendingPurge_:%{public}d,"
-        "forceClearCacheWithLastFrame:%{public}d, rotationChanged:%{public}d",
+        "forceClearCacheWithLastFrame:%{public}d, rotationChanged:%{public}d, inForegroundFilter:%{public}d",
         stagingForceUseCache_, stagingForceClearCache_,
         stagingFilterHashChanged_, stagingFilterRegionChanged_, stagingFilterInteractWithDirty_,
         lastCacheType_, cacheUpdateInterval_, canSkipFrame_, stagingIsLargeArea_,
-        filterType_, pendingPurge_, stagingForceClearCacheForLastFrame_, stagingRotationChanged_);
+        filterType_, pendingPurge_, stagingForceClearCacheForLastFrame_, stagingRotationChanged_,
+        stagingInForegroundFilter_);
 
     // if do not request NextVsync, close skip
     if (stagingForceClearCacheForLastFrame_) {
@@ -577,6 +592,11 @@ void RSFilterCacheManager::MarkNeedClearFilterCache()
 bool RSFilterCacheManager::NeedPendingPurge() const
 {
     return !stagingFilterInteractWithDirty_ && pendingPurge_;
+}
+
+bool RSFilterCacheManager::IsPendingPurge() const
+{
+    return pendingPurge_;
 }
 
 void RSFilterCacheManager::ClearFilterCache()

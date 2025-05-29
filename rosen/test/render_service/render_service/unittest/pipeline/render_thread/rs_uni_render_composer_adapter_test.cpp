@@ -20,6 +20,7 @@
 #include "pipeline/main_thread/rs_uni_render_listener.h"
 #include "surface_buffer_impl.h"
 #include "metadata_helper.h"
+#include "screen_manager/rs_screen.h"
 
 using namespace testing;
 using namespace testing::ext;

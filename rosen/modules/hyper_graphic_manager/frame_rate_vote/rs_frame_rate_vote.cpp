@@ -58,8 +58,9 @@ bool RSFrameRateVote::CheckSurfaceAndUi(OHSurfaceSource sourceType)
         transactionFlags = transactionFlags_;
     }
     // transactionFlags_ format is [pid, eventId]
+    auto strLastVotedPid = "[" + std::to_string(lastVotedPid_) + ",";
     if (sourceType == OHSurfaceSource::OH_SURFACE_SOURCE_VIDEO &&
-        (transactionFlags == "" || transactionFlags.find(std::to_string(lastVotedPid_)) == std::string::npos)) {
+        (transactionFlags == "" || transactionFlags.find(strLastVotedPid) == std::string::npos)) {
         return false;
     }
     auto lastUpdateTime = currentUpdateTime_;
@@ -76,17 +77,15 @@ void RSFrameRateVote::VideoFrameRateVote(uint64_t surfaceNodeId, OHSurfaceSource
     sptr<SurfaceBuffer>& buffer)
 {
     // OH SURFACE SOURCE VIDEO AN UI VOTE
-    if (CheckSurfaceAndUi(sourceType)) {
-        CancelVoteRate(lastVotedPid_, VIDEO_VOTE_FLAG);
-        std::lock_guard<ffrt::mutex> autoLock(ffrtMutex_);
-        auto it = surfaceVideoRate_.find(surfaceNodeId);
-        if (it != surfaceVideoRate_.end()) {
-            surfaceVideoRate_.clear();
+    if (lastVotedRate_ != OLED_NULL_HZ && CheckSurfaceAndUi(sourceType)) {
+        {
+            std::lock_guard<ffrt::mutex> autoLock(ffrtMutex_);
+            auto votingAddress = surfaceVideoFrameRateVote_.find(lastSurfaceNodeId_);
+            if (votingAddress != surfaceVideoFrameRateVote_.end() && votingAddress->second) {
+                votingAddress->second->ReSetLastRate();
+            }
         }
-        if (surfaceVideoFrameRateVote_.find(surfaceNodeId) != surfaceVideoFrameRateVote_.end()) {
-            surfaceVideoFrameRateVote_[surfaceNodeId]->ReSetLastRate();
-        }
-        lastVotedRate_ = OLED_NULL_HZ;
+        SurfaceVideoVote(lastSurfaceNodeId_, 0);
         return;
     }
     if (!isSwitchOn_ || sourceType != OHSurfaceSource::OH_SURFACE_SOURCE_VIDEO || buffer == nullptr) {
@@ -148,12 +147,17 @@ void RSFrameRateVote::SurfaceVideoVote(uint64_t surfaceNodeId, uint32_t rate)
         CancelVoteRate(lastVotedPid_, VIDEO_VOTE_FLAG);
         lastVotedPid_ = DEFAULT_PID;
         lastVotedRate_ = OLED_NULL_HZ;
+        if (ffrtQueue_ && taskHandler_) {
+            ffrtQueue_->cancel(taskHandler_);
+            taskHandler_ = nullptr;
+        }
         return;
     }
     auto maxElement = std::max_element(surfaceVideoRate_.begin(), surfaceVideoRate_.end(),
         [] (const auto& lhs, const auto& rhs) { return lhs.second < rhs.second; });
     uint32_t maxRate = maxElement->second;
     pid_t maxPid = ExtractPid(maxElement->first);
+    lastSurfaceNodeId_ = surfaceNodeId;
     if (maxRate == lastVotedRate_ && maxPid == lastVotedPid_) {
         return;
     }

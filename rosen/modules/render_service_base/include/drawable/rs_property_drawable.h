@@ -132,11 +132,13 @@ public:
     void MarkNodeIsOccluded(bool isOccluded);
     void MarkNeedClearFilterCache();
     void MarkBlurIntersectWithDRM(bool IsIntersectWithDRM, bool isDark);
+    void MarkInForegroundFilterAndCheckNeedForceClearCache(bool inForegroundFilter);
 
     bool IsFilterCacheValid() const;
     bool IsForceClearFilterCache() const;
     bool IsForceUseFilterCache() const;
     bool NeedPendingPurge() const;
+    bool IsPendingPurge() const;
     bool IsSkippingFrame() const;
     bool IsAIBarFilter() const;
     bool IsAIBarCacheValid();

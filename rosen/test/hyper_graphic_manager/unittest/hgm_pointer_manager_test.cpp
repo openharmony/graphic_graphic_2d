@@ -17,8 +17,8 @@
 #include <limits>
 #include <test_header.h>
 
-#include "hgm_core.h"
 #include "hgm_frame_rate_manager.h"
+#include "hgm_test_base.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -28,9 +28,12 @@ namespace Rosen {
 namespace {
     constexpr int32_t waitTaskFinishNs = 100000;
 }
-class HgmPointerManagerTest : public testing::Test {
+class HgmPointerManagerTest : public HgmTestBase {
 public:
-    static void SetUpTestCase() {}
+    static void SetUpTestCase()
+    {
+        HgmTestBase::SetUpTestCase();
+    }
     static void TearDownTestCase() {}
     void SetUp() {}
     void TearDown() {}

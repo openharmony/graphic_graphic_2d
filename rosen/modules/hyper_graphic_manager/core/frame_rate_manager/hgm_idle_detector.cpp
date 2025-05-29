@@ -156,5 +156,25 @@ int32_t HgmIdleDetector::GetTouchUpExpectedFPS()
     return std::max(aceAnimatorVote, surfaceVote);
 }
 
+void HgmIdleDetector::UpdateAceAnimatorExpectedFrameRate(int32_t aceAnimatorExpectedFrameRate)
+{
+    // aceAnimatorExpectedFrameRate int32_t  example: 0x003c0001
+    // [0, 16) is existAnimatorNoExpectdRate = 1
+    // [16, 32) is aceAnimatorExpectedFrameRate = 60
+    if (aceAnimatorExpectedFrameRate < 0) {
+        return;
+    }
+    bool existAnimatorNoExpectdRate = aceAnimatorExpectedFrameRate & 1;
+    if (bufferFpsMap_[ACE_ANIMATOR_NAME] > 0 && existAnimatorNoExpectdRate) {
+        aceAnimatorExpectedFrameRate = 0;
+    } else {
+        aceAnimatorExpectedFrameRate = aceAnimatorExpectedFrameRate >> ACE_ANIMATOR_OFFSET;
+    }
+
+    if (aceAnimatorExpectedFrameRate_ != 0 &&
+        (aceAnimatorExpectedFrameRate == 0 || aceAnimatorExpectedFrameRate > aceAnimatorExpectedFrameRate_)) {
+        aceAnimatorExpectedFrameRate_ = aceAnimatorExpectedFrameRate;
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

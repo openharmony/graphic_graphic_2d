@@ -56,7 +56,6 @@ ohos_unittest("RSNodeCommandTest") {
 
   deps = [
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
-    "//third_party/googletest:gtest_main",
   ]
 
   if (defined(use_rosen_drawing) && use_rosen_drawing) {

@@ -55,8 +55,9 @@ const RSProfiler::CommandRegistry RSProfiler::COMMANDS = {
     { "rstree_prepare_replay", PlaybackPrepare },
     { "rstree_save_frame", TestSaveFrame },
     { "rstree_load_frame", TestLoadFrame },
-    { "rssubtree_save", TestSaveFrame },
-    { "rssubtree_load", TestLoadFrame },
+    { "rssubtree_save", TestSaveSubTree },
+    { "rssubtree_load", TestLoadSubTree },
+    { "rssubtree_clear", TestClearSubTree },
     { "rstree_switch", TestSwitch },
     { "rstree_dump_json", DumpTreeToJson },
     { "rstree_clear_filter", ClearFilter },
@@ -78,6 +79,8 @@ const RSProfiler::CommandRegistry RSProfiler::COMMANDS = {
     { "rscon_print", DumpConnections },
     { "save_rdc", SaveRdc },
     { "save_skp", SaveSkp },
+    { "save_offscreen", SaveOffscreenSkp },
+    { "save_component", SaveComponentSkp },
     { "info", GetDeviceInfo },
     { "freq", GetDeviceFrequency },
     { "fixenv", FixDeviceEnv },
@@ -93,6 +96,7 @@ const RSProfiler::CommandRegistry RSProfiler::COMMANDS = {
     { "reset", Reset },
     { "drawing_canvas", DumpDrawingCanvasNodes },
     { "drawing_canvas_enable", DrawingCanvasRedrawEnable },
+    { "keep_draw_cmd", RenderNodeKeepDrawCmd },
     { "rsrecord_replay_speed", PlaybackSetSpeed },
     { "rsrecord_replay_immediate", PlaybackSetImmediate },
     { "build_test_tree", BuildTestTree },
@@ -136,6 +140,51 @@ void RSProfiler::SaveSkp(const ArgList& args)
         Respond("Recording .skp for DrawingCanvasNode: id=" + std::to_string(nodeId));
     }
     AwakeRenderServiceThread();
+}
+
+void RSProfiler::SaveOffscreenSkp(const ArgList& args)
+{
+    if (!context_) {
+        return;
+    }
+    const auto nodeIdArg = args.Node();
+    SendMessage("Trying to playback the drawing commands for node: %" PRId64 "", nodeIdArg);
+    if (nodeIdArg == 0) {
+        SendMessage("Pass correct node id in args: save_offscreen <node_id>");
+        return;
+    }
+    const auto& map = context_->GetMutableNodeMap();
+    map.TraversalNodes([nodeIdArg](const std::shared_ptr<RSBaseRenderNode>& node) {
+        if (!node || (node->GetId() != nodeIdArg)) {
+            return;
+        }
+        if (node->IsOnTheTree()) {
+            SendMessage("Node is on tree, pick off-screen node");
+            return;
+        }
+        SendMessage("Node found, trying to capture");
+        auto drawable = std::reinterpret_pointer_cast<DrawableV2::RSRenderNodeDrawable>(node->GetRenderDrawable());
+        if (drawable == nullptr) {
+            return;
+        }
+        auto& drawableRenderParams = drawable->GetRenderParams();
+        if (drawableRenderParams == nullptr) {
+            return;
+        }
+        auto nodeRect = drawableRenderParams->GetAbsDrawRect();
+        if (auto canvasRec = RSCaptureRecorder::GetInstance().TryOffscreenCanvasCapture(
+            nodeRect.GetWidth(), nodeRect.GetHeight())) {
+            RSPaintFilterCanvas paintFilterCanvas(canvasRec);
+            drawable->OnDraw(paintFilterCanvas);
+            RSCaptureRecorder::GetInstance().EndOffscreenCanvasCapture();
+        }
+    });
+}
+
+void RSProfiler::SaveComponentSkp(const ArgList& args)
+{
+    RSCaptureRecorder::GetInstance().SetComponentScreenshotFlag(true);
+    SendMessage("Capturing for the next \"Component Screenshot\" is set.");
 }
 
 void RSProfiler::SetSystemParameter(const ArgList& args)
@@ -199,6 +248,13 @@ void RSProfiler::DrawingCanvasRedrawEnable(const ArgList& args)
 {
     const auto enable = args.Uint64(); // 0 - disabled, >0 - enabled
     RSProfiler::SetDrawingCanvasNodeRedraw(enable > 0);
+}
+
+void RSProfiler::RenderNodeKeepDrawCmd(const ArgList& args)
+{
+    const auto enable = args.Uint64(); // 0 - disabled, >0 - enabled
+    SendMessage("Set: KeepDrawCmdList to: %s", enable > 0 ? "true" : "false");
+    RSProfiler::SetRenderNodeKeepDrawCmd(enable > 0);
 }
 
 void RSProfiler::ClearFilter(const ArgList& args)

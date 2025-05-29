@@ -39,8 +39,9 @@ enum class DirtyRegionDebugType {
     MULTI_HISTORY,
     CURRENT_SUB_AND_WHOLE,
     CURRENT_WHOLE_AND_MULTI_HISTORY,
-    EGL_DAMAGE, // all dirty region infomation, includes detailed app dirty region and global dirty.
+    EGL_DAMAGE, // all dirty region information, includes detailed app dirty region and global dirty.
     DISPLAY_DIRTY, // detailed global dirty (before merge rect).
+    MERGED_DIRTY, // advanced dirty region information, includes merged dirty region
     CUR_DIRTY_DETAIL_ONLY_TRACE = 10,
     UPDATE_DIRTY_REGION, // dirty region for each node.
     OVERLAY_RECT,   // drawRegion
@@ -134,6 +135,19 @@ enum class DdgrOpincDfxType {
     OPINC_DFX_AUTO,
 };
 
+enum class ComponentEnableSwitch {
+    TEXTBLOB = 0,
+    SVG,
+    HMSYMBOL,
+    CANVAS,
+    SWITCH_MAX,
+};
+
+struct GetComponentSwitch {
+    ComponentEnableSwitch type;
+    bool (*ComponentHybridSwitch)();
+};
+
 using OnSystemPropertyChanged = void(*)(const char*, const char*, void*);
 
 class RSB_EXPORT RSSystemProperties final {
@@ -162,6 +176,7 @@ public:
     static bool GetRenderNodeTraceEnabled();
     static bool GetDrawOpTraceEnabled();
     static bool GetAnimationTraceEnabled();
+    static bool GetAnimationDelayOptimizeEnabled();
     static bool GetRSClientMultiInstanceEnabled();
     static bool GetRenderNodePurgeEnabled();
     static bool GetRSImagePurgeEnabled();
@@ -259,12 +274,14 @@ public:
     static bool GetUIFirstDirtyEnabled();
     static bool GetUIFirstDirtyDebugEnabled();
     static bool GetTargetUIFirstDfxEnabled(std::vector<std::string>& SurfaceNames);
+    static bool GetUIFirstBehindWindowFilterEnabled();
     static bool GetWideColorSpaceEnabled();
     static bool GetSurfaceOffscreenEnadbled();
     static bool GetDebugTraceEnabled();
     static int GetDebugTraceLevel();
     static bool FindNodeInTargetList(std::string node);
     static bool IsFoldScreenFlag();
+    static bool IsSmallFoldDevice();
     static bool GetCacheCmdEnabled();
     static bool GetASTCEnabled();
     static bool GetCachedBlurPartialRenderEnabled();
@@ -272,8 +289,6 @@ public:
     static bool GetDrmEnabled();
     static bool GetSurfaceNodeWatermarkEnabled();
     static bool IsPhoneType();
-    static bool IsTabletType();
-    static bool IsPcType();
     static bool IsSuperFoldDisplay();
     static bool IsBetaRelease();
     static bool GetSyncTransactionEnabled();
@@ -322,6 +337,8 @@ public:
         return RSSystemProperties::GetGpuApiType() != GpuApiType::OPENGL;
     }
 
+    static bool ViewDrawNodeType();
+    static bool GetJankLoadOptimizeEnabled();
     static int GetRSNodeLimit();
     static std::string GetVersionType();
     static bool GetHwcDirtyRegionEnabled();
@@ -331,6 +348,28 @@ public:
     static bool GetOptimizeHwcComposeAreaEnabled();
     static bool GetWindowKeyFrameEnabled();
     static bool GetNodeGroupGroupedByUIEnabled();
+    static bool GetTimeVsyncDisabled();
+    static void SetDebugFmtTraceEnabled(bool flag);
+    static bool GetDebugFmtTraceEnabled();
+
+    static bool GetHybridRenderEnabled();
+    static bool GetHybridRenderDfxEnabled();
+    static uint32_t GetHybridRenderTextBlobLenCount();
+    static bool GetHybridRenderParallelConvertEnabled();
+    static bool GetHybridRenderCanvasEnabled();
+    static bool GetHybridRenderMemeoryReleaseEnabled();
+    static bool GetHybridRenderSystemEnabled();
+    static int32_t GetHybridRenderCcmEnabled();
+    static int32_t GetHybridRenderSwitch(ComponentEnableSwitch bitSeq);
+    static bool GetHybridRenderTextBlobEnabled();
+    static bool GetHybridRenderSvgEnabled();
+    static bool GetHybridRenderHmsymbolEnabled();
+
+    static bool GetVKImageUseEnabled();
+    static void SetBehindWindowFilterEnabled(bool enabled);
+    static bool GetBehindWindowFilterEnabled();
+    static bool GetSubThreadControlFrameRate();
+    static int GetSubThreadDropFrameInterval();
 private:
     RSSystemProperties() = default;
 
@@ -338,6 +377,8 @@ private:
     inline static bool isDrawTextAsBitmap_ = false;
     inline static bool cacheEnabledForRotation_ = false;
     static inline bool forceHpsBlurDisabled_ = false;
+    static inline bool debugFmtTraceEnable_ = false;
+    static inline bool isBehindWindowFilterEnabled_ = true;
     static const GpuApiType systemGpuApiType_;
     static const DdgrOpincType ddgrOpincType_;
     static const DdgrOpincDfxType ddgrOpincDfxType_;

@@ -22,6 +22,7 @@
 #include "pipeline/render_thread/rs_base_render_util.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
 #include "pipeline/rs_pointer_window_manager.h"
+#include "feature/hwc/rs_uni_hwc_compute_util.h"
 
 #include "common/rs_common_hook.h"
 #include "common/rs_obj_abs_geometry.h"
@@ -60,8 +61,9 @@ RSUniHwcPrevalidateUtil::RSUniHwcPrevalidateUtil()
     }
     RS_LOGI("[%{public}s_%{public}d]:load success", __func__, __LINE__);
     loadSuccess_ = true;
-    isPrevalidateHwcNodeEnable_ = RSUniHwcPrevalidateUtil::GetPrevalidateEnabled();
+    isPrevalidateHwcNodeEnable_ = PrevalidateParam::IsPrevalidateEnable();
     arsrPreEnabled_ = RSSystemParameters::GetArsrPreEnabled();
+    isCopybitSupported_ = RSSystemParameters::GetIsCopybitSupported();
 }
 
 RSUniHwcPrevalidateUtil::~RSUniHwcPrevalidateUtil()
@@ -70,16 +72,6 @@ RSUniHwcPrevalidateUtil::~RSUniHwcPrevalidateUtil()
         dlclose(preValidateHandle_);
         preValidateHandle_ = nullptr;
     }
-}
-
-bool RSUniHwcPrevalidateUtil::GetPrevalidateEnabled()
-{
-    auto prevalidateFeatureParam = GraphicFeatureParamManager::GetInstance().GetFeatureParam("PrevalidateConfig");
-    auto prevalidateFeature = std::static_pointer_cast<PrevalidateParam>(prevalidateFeatureParam);
-    if (prevalidateFeature != nullptr) {
-        return prevalidateFeature->IsPrevalidateEnable();
-    }
-    return true;
 }
 
 bool RSUniHwcPrevalidateUtil::IsPrevalidateEnable()
@@ -153,6 +145,7 @@ bool RSUniHwcPrevalidateUtil::CreateSurfaceNodeLayerInfo(uint32_t zorder,
         info.perFrameParameters["ArsrDoEnhance"] = std::vector<int8_t> {1};
         node->SetArsrTag(true);
     }
+    CheckIfDoCopybit(node, transform, info);
     RS_LOGD_IF(DEBUG_PREVALIDATE, "RSUniHwcPrevalidateUtil::CreateSurfaceNodeLayerInfo %{public}s,"
         " %{public}" PRIu64 ", src: %{public}s, dst: %{public}s, z: %{public}" PRIu32 ","
         " usage: %{public}" PRIu64 ", format: %{public}d, transform: %{public}d, fps: %{public}d",
@@ -173,6 +166,17 @@ bool RSUniHwcPrevalidateUtil::IsYUVBufferFormat(RSSurfaceRenderNode::SharedPtr n
         return false;
     }
     return true;
+}
+
+bool RSUniHwcPrevalidateUtil::IsNeedDssRotate(GraphicTransformType transform) const
+{
+    if (transform > GRAPHIC_ROTATE_270) {
+        transform = RSBaseRenderUtil::GetRotateTransform(transform);
+    }
+    if (transform == GRAPHIC_ROTATE_90 || transform == GRAPHIC_ROTATE_270) {
+        return true;
+    }
+    return false;
 }
 
 bool RSUniHwcPrevalidateUtil::CreateDisplayNodeLayerInfo(uint32_t zorder,
@@ -274,7 +278,7 @@ void RSUniHwcPrevalidateUtil::EmplaceSurfaceNodeLayer(
     std::vector<RequestLayerInfo>& prevalidLayers, RSSurfaceRenderNode::SharedPtr node,
     uint32_t curFps, uint32_t& zOrder, const ScreenInfo& screenInfo)
 {
-    auto transform = RSUniRenderUtil::GetLayerTransform(*node, screenInfo);
+    auto transform = RSUniHwcComputeUtil::GetLayerTransform(*node, screenInfo);
     RequestLayerInfo surfaceLayer;
     if (RSUniHwcPrevalidateUtil::GetInstance().CreateSurfaceNodeLayerInfo(
         zOrder++, node, transform, curFps, surfaceLayer)) {
@@ -358,6 +362,20 @@ bool RSUniHwcPrevalidateUtil::CheckIfDoArsrPre(const RSSurfaceRenderNode::Shared
         return true;
     }
     return false;
+}
+
+void RSUniHwcPrevalidateUtil::CheckIfDoCopybit(const RSSurfaceRenderNode::SharedPtr node,
+    GraphicTransformType transform, RequestLayerInfo& info)
+{
+    if (!isCopybitSupported_ || node->GetRSSurfaceHandler()->GetBuffer() == nullptr) {
+        return;
+    }
+    if (IsYUVBufferFormat(node) && IsNeedDssRotate(transform)) {
+        info.perFrameParameters["TryToDoCopybit"] = std::vector<int8_t> {1};
+        node->SetCopybitTag(true);
+        return;
+    }
+    return;
 }
 } //Rosen
 } //OHOS

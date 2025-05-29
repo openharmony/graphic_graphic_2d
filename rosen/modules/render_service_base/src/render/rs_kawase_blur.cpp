@@ -252,6 +252,9 @@ std::shared_ptr<Drawing::ShaderEffect> KawaseBlurFilter::ApplySimpleFilter(Drawi
 #else
     std::shared_ptr<Drawing::Image> tmpSimpleBlur(simpleBlurBuilder.MakeImage(nullptr, nullptr, scaledInfo, false));
 #endif
+    if (tmpSimpleBlur == nullptr) {
+        return nullptr;
+    }
     return Drawing::ShaderEffect::CreateImageShader(*tmpSimpleBlur, Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP,
         linear, Drawing::Matrix());
 }
@@ -337,6 +340,10 @@ std::shared_ptr<Drawing::Image> KawaseBlurFilter::ExecutePingPongBlur(Drawing::C
     // And now we'll build our chain of scaled blur stages
     for (auto i = 1; i < blur.numberOfPasses; i++) {
         const float stepScale = static_cast<float>(i) * blurScale_;
+        if (tmpBlur == nullptr) {
+            ROSEN_LOGE("KawaseBlurFilter::ExecutePingPongBlur tmpBlur is nullptr.");
+            return nullptr;
+        }
         blurBuilder.SetChild("imageInput", Drawing::ShaderEffect::CreateImageShader(*tmpBlur, Drawing::TileMode::CLAMP,
             Drawing::TileMode::CLAMP, linear, Drawing::Matrix()));
 

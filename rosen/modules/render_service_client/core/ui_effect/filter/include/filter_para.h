@@ -43,6 +43,13 @@ public:
         WATER_RIPPLE,
         FLY_OUT,
         DISTORT,
+        RADIUS_GRADIENT_BLUR,
+        DISPLACEMENT_DISTORT,
+        COLOR_GRADIENT,
+        SOUND_WAVE,
+        EDGE_LIGHT,
+        BEZIER_WARP,
+        DISPERSION,
     };
 
     FilterPara()  = default;

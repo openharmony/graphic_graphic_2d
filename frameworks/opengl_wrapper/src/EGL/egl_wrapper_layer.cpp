@@ -334,7 +334,7 @@ bool EglWrapperLayer::LoadLayers(const std::string& libname, const std::vector<s
             WLOGD("LoadLayers PathToRealPath is failed");
             continue;
         }
-        WLOGD("LoadLayers realLayerPath=%{public}s", realLayerPath.c_str());
+        WLOGD("LoadLayers realLayerPath=%{private}s", realLayerPath.c_str());
         if (!LoadLayerFuncs(realLayerPath)) {
             WLOGD("LoadLayers LoadLayerFuncs is failed");
             return false;
@@ -347,7 +347,7 @@ bool EglWrapperLayer::LoadLayers(const std::string& libname, const std::vector<s
 
 bool EglWrapperLayer::DoLoadLayers(const std::vector<std::string>& layers)
 {
-    for (int32_t i = layers.size() - 1; i >= 0; i--) {
+    for (int32_t i = static_cast<int32_t>(layers.size()) - 1; i >= 0; i--) {
         std::string layerLib = std::string(DEBUG_LAYERS_PREFIX) + layers[i] + std::string(DEBUG_LAYERS_SUFFIX);
         std::vector<std::string> allLayerPaths;
         if (layerLib == "libsquid.so") {
@@ -362,7 +362,6 @@ bool EglWrapperLayer::DoLoadLayers(const std::vector<std::string>& layers)
             allLayerPaths = GetDebugLayerPaths();
             WLOGD("LoadLayerFuncs layerLib=%{public}s", layerLib.c_str());
             if (!LoadLayers(layerLib, allLayerPaths)) {
-                WLOGD("LoadLayerFuncs LoadLayers is failed!");
                 return false;
             } else {
                 WLOGD("LoadLayerFuncs is ok!");

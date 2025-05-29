@@ -16,6 +16,9 @@
 #include "rs_graphic_test.h"
 #include "rs_graphic_test_img.h"
 
+#include "render/rs_blur_filter.h"
+#include "render/rs_material_filter.h"
+
 using namespace testing;
 using namespace testing::ext;
 
@@ -30,7 +33,7 @@ public:
     // called before each tests
     void BeforeEach() override
     {
-        SetScreenSurfaceBounds({ 0, 0, screenWidth, screenHeight });
+        SetScreenSize(screenWidth, screenHeight);
     }
 };
 
@@ -157,12 +160,12 @@ GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, Background_Blur_Mask_Color_Te
         Color(0x00000000), // RgbPalette::Transparent()
         Color(0x10000000), // RgbPalette::Transparent()
         Color(0x20000000), // RgbPalette::Transparent()
-        Color(0x30000000), // RgbPalette::Transparent()
+        Color(0xff00ff00), // RgbPalette::Green()
     };
 
-    std::vector<int> radiusList = { 10, 20, 30, 40, 50, 60, 70, 80, 90, -100, -10, 0 };
-    std::vector<float> saturationList = { 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 0.6, 1.0, 1.4 };
-    std::vector<float> brightnessList = { 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 0.6, 1.0, 1.4 };
+    std::vector<int> radiusList = { 10, 20, 30, 40, 50, 60, 70, 80, 90, -100, -10, -10 };
+    std::vector<float> saturationList = { 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 0.6, 1.0, -1.4 };
+    std::vector<float> brightnessList = { 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 0.6, 1.0, -1.4 };
 
     for (int i = 0; i < colorList.size(); i++) {
         int x = (i % columnCount) * sizeX;
@@ -247,6 +250,7 @@ GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, Background_Blur_Color_Mode_Te
         testNodeBackGround->SetBackgroundBlurSaturation(1);
         testNodeBackGround->SetBackgroundBlurBrightness(0.5);
         testNodeBackGround->SetBackgroundBlurColorMode(colorModeList[i]);
+        testNodeBackGround->SetBackgroundBlurMaskColor(Color(0xff00ff00));
         GetRootNode()->AddChild(testNodeBackGround);
         RegisterNode(testNodeBackGround);
     }
@@ -306,4 +310,44 @@ GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, Background_MESA_Blur_Test)
         RegisterNode(testNodeMesaBlur);
     }
 }
+
+GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, Background_Filter_Test)
+{
+    int columnCount = 2;
+    int rowCount = 2;
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight / rowCount;
+
+    // Three nodes, 2 columns * 2 rows
+    int x = (0 % columnCount) * sizeX;
+    int y = (0 / columnCount) * sizeY;
+    auto testNodeBackGround =
+        SetUpNodeBgImage("/data/local/tmp/Images/backGroundImage.jpg", { x, y, sizeX - 10, sizeY - 10 });
+    testNodeBackGround->SetBackgroundFilter(nullptr);
+    GetRootNode()->AddChild(testNodeBackGround);
+    RegisterNode(testNodeBackGround);
+
+    // Second image
+    x = (1 % columnCount) * sizeX;
+    y = (1 / columnCount) * sizeY;
+    auto testNodeBackGround2 =
+        SetUpNodeBgImage("/data/local/tmp/Images/backGroundImage.jpg", { x, y, sizeX - 10, sizeY - 10 });
+    MaterialParam materialParam = { 50, 0.8, 0.8, Color(0x2dff0000), false };
+    std::shared_ptr<RSMaterialFilter> matFilter =
+        std::make_shared<RSMaterialFilter>(materialParam, BLUR_COLOR_MODE::PRE_DEFINED);
+    testNodeBackGround2->SetBackgroundFilter(matFilter);
+    GetRootNode()->AddChild(testNodeBackGround2);
+    RegisterNode(testNodeBackGround2);
+
+    // Third image
+    x = (2 % columnCount) * sizeX;
+    y = (2 / columnCount) * sizeY;
+    auto testNodeBackGround3 =
+        SetUpNodeBgImage("/data/local/tmp/Images/backGroundImage.jpg", { x, y, sizeX - 10, sizeY - 10 });
+    std::shared_ptr<RSBlurFilter> blurFilter = std::make_shared<RSBlurFilter>(30, 30, false);
+    testNodeBackGround3->SetBackgroundFilter(blurFilter);
+    GetRootNode()->AddChild(testNodeBackGround3);
+    RegisterNode(testNodeBackGround3);
+}
+
 } // namespace OHOS::Rosen

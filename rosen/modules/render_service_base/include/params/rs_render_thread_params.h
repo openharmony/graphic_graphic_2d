@@ -30,26 +30,40 @@ struct CaptureParam {
     bool isSnapshot_ = false;
     bool isSingleSurface_ = false;
     bool isMirror_ = false;
+    uint64_t virtualScreenId_ = INVALID_SCREEN_ID;
     NodeId rootIdInWhiteList_ = INVALID_NODEID;
     bool isFirstNode_ = false;
     bool isSystemCalling_ = false;
     bool isSelfCapture_ = false;
     bool isNeedBlur_ = false;
+    bool isSoloNodeUiCapture_ = false;
+    NodeId endNodeId_ = INVALID_NODEID;
     CaptureParam() {}
     CaptureParam(bool isSnapshot, bool isSingleSurface, bool isMirror, bool isFirstNode = false,
-        bool isSystemCalling = false, bool isSelfCapture = false, bool isNeedBlur = false)
+        bool isSystemCalling = false, bool isSelfCapture = false, bool isNeedBlur = false,
+        bool isSoloNodeUiCapture = false, NodeId endNodeId = INVALID_NODEID)
         : isSnapshot_(isSnapshot),
         isSingleSurface_(isSingleSurface),
         isMirror_(isMirror),
         isFirstNode_(isFirstNode),
         isSystemCalling_(isSystemCalling),
         isSelfCapture_(isSelfCapture),
-        isNeedBlur_(isNeedBlur) {}
+        isNeedBlur_(isNeedBlur),
+        isSoloNodeUiCapture_(isSoloNodeUiCapture),
+        endNodeId_(endNodeId) {}
 };
 struct HardCursorInfo {
     NodeId id = INVALID_NODEID;
     DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr drawablePtr = nullptr;
 };
+
+enum ForceCommitReason {
+    NO_FORCE = 0,
+    FORCED_BY_UNI_RENDER_FLAG = 1,
+    FORCED_BY_HWC_UPDATE = 1 << 1,
+    FORCED_BY_POINTER_WINDOW = 1 << 2,
+};
+
 class RSB_EXPORT RSRenderThreadParams {
 public:
     using DrawablesVec = std::vector<std::pair<NodeId,
@@ -289,14 +303,14 @@ public:
         return isCurtainScreenOn_;
     }
     
-    void SetForceCommitLayer(bool forceCommit)
+    void SetForceCommitLayer(uint32_t forceCommitReason)
     {
-        isForceCommitLayer_ = forceCommit;
+        forceCommitReason_ = forceCommitReason;
     }
 
-    bool GetForceCommitLayer() const
+    uint32_t GetForceCommitReason() const
     {
-        return isForceCommitLayer_;
+        return forceCommitReason_;
     }
 
     void SetCacheEnabledForRotation(bool flag)
@@ -307,16 +321,6 @@ public:
     bool GetCacheEnabledForRotation() const
     {
         return cacheEnabledForRotation_;
-    }
-
-    void SetRequestNextVsyncFlag(bool flag)
-    {
-        needRequestNextVsyncAnimate_ = flag;
-    }
-
-    bool GetRequestNextVsyncFlag() const
-    {
-        return needRequestNextVsyncAnimate_;
     }
 
     void SetOnVsyncStartTime(int64_t time)
@@ -492,6 +496,7 @@ private:
     bool isDisplayDirtyDfxEnabled_ = false;
     bool isOpaqueRegionDfxEnabled_ = false;
     bool isVisibleRegionDfxEnabled_ = false;
+    bool isMergedDirtyRegionDfxEnabled_ = false;
     bool isAllSurfaceVisibleDebugEnabled_ = false;
     bool isOpDropped_ = false;
     bool isDirtyAlignEnabled_ = false;
@@ -511,7 +516,7 @@ private:
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> selfDrawables_;
     DrawablesVec hardwareEnabledTypeDrawables_;
     std::map<NodeId, DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> hardCursorDrawableMap_;
-    bool isForceCommitLayer_ = false;
+    uint32_t forceCommitReason_ = 0;
     bool hasMirrorDisplay_ = false;
     // accumulatedDirtyRegion to decide whether to skip tranasparent nodes.
     Occlusion::Region accumulatedDirtyRegion_;
@@ -519,7 +524,6 @@ private:
     std::shared_ptr<Drawing::Image> watermarkImg_ = nullptr;
     std::unordered_map<std::string, std::shared_ptr<Media::PixelMap>> surfaceNodeWatermarks_;
 
-    bool needRequestNextVsyncAnimate_ = false;
     bool isOverDrawEnabled_ = false;
     bool isDrawingCacheDfxEnabled_ = false;
 

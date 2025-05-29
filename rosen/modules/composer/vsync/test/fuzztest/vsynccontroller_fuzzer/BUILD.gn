@@ -38,7 +38,10 @@ ohos_fuzztest("VsyncControllerFuzzTest") {
   deps = [
     "//foundation/graphic/graphic_2d/rosen/modules/composer/vsync:libvsync",
   ]
-  external_deps = [ "c_utils:utils" ]
+  external_deps = [
+    "c_utils:utils",
+    "samgr:samgr_proxy",
+  ]
   defines = []
   if (graphic_2d_feature_enable_dvsync) {
     defines += [ "RS_ENABLE_DVSYNC_2" ]

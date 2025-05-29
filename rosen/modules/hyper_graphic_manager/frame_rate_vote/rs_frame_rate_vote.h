@@ -52,6 +52,7 @@ private:
     pid_t lastVotedPid_ {DEFAULT_PID};
     uint32_t lastVotedRate_ {OLED_NULL_HZ};
     bool isVoted_ {false};
+    uint64_t lastSurfaceNodeId_ {0};
     uint64_t currentUpdateTime_ {0};
     std::string transactionFlags_ = "";
     std::unordered_map<uint64_t, std::shared_ptr<RSVideoFrameRateVote>> surfaceVideoFrameRateVote_ {};

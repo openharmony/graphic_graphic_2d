@@ -45,6 +45,7 @@ namespace RSEventName {
     const std::string RENDER_MEMORY_OVER_ERROR = "RENDER_MEMORY_OVER_ERROR";
     const std::string RS_HARDWARE_THREAD_LOAD_WARNING = "RS_HARDWARE_THREAD_LOAD_WARNING";
     const std::string RENDER_DRAWABLE_MULTI_ACCESS = "RENDER_DRAWABLE_MULTI_ACCESS";
+    const std::string RS_RENDER_EXCEPTION = "RS_RENDER_EXCEPTION";
 } // namespace RSEventName
 
 enum RSEventType {

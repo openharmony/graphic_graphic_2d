@@ -143,6 +143,49 @@ HWTEST_F(RSSurfaceHandlerTest, SetBufferSizeChanged001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetSourceType
+ * @tc.desc: test set source type
+ * @tc.type: FUNC
+ * @tc.require: issueI9IUKU
+ */
+HWTEST_F(RSSurfaceHandlerTest, SetSourceType, TestSize.Level1)
+{
+    ASSERT_NE(rSSurfaceHandlerPtr_, nullptr);
+    ASSERT_EQ(rSSurfaceHandlerPtr_->GetSourceType(), 0);
+    rSSurfaceHandlerPtr_->SetSourceType(5);
+    ASSERT_EQ(rSSurfaceHandlerPtr_->GetSourceType(), 5);
+}
+
+/**
+ * @tc.name: UpdateBuffer001
+ * @tc.desc: test update buffer
+ * @tc.type: FUNC
+ * @tc.require: #IBZ3UR
+ */
+HWTEST_F(RSSurfaceHandlerTest, UpdateBuffer001, TestSize.Level1)
+{
+#ifndef ROSEN_CROSS_PLATFORM
+    sptr<SurfaceBuffer> buffer;
+    int32_t releaseFence = 0;
+    int64_t timestamp = 0;
+    Rect damage = { 0 };
+    sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
+    // case 1: rSSurfaceHandlerPtr_->preBuffer_->buffer is nullptr
+    auto ret = surfacePtr_->RequestBuffer(buffer, releaseFence, requestConfig);
+    EXPECT_EQ(ret, GSERROR_OK);
+    rSSurfaceHandlerPtr_->UpdateBuffer(buffer, acquireFence, damage, timestamp);
+    EXPECT_TRUE(!rSSurfaceHandlerPtr_->bufferSizeChanged_);
+    // case 2: rSSurfaceHandlerPtr_->preBuffer_->buffer isn't nullptr
+    requestConfig.width = 0x300;
+    ret = surfacePtr_->RequestBuffer(buffer, releaseFence, requestConfig);
+    EXPECT_EQ(ret, GSERROR_OK);
+    rSSurfaceHandlerPtr_->UpdateBuffer(buffer, acquireFence, damage, timestamp);
+    EXPECT_TRUE(rSSurfaceHandlerPtr_->bufferSizeChanged_);
+    rSSurfaceHandlerPtr_->RegisterDeleteBufferListener(BufferDeleteCbFunc);
+#endif
+}
+
+/**
  * @tc.name: SetBufferTransformTypeChanged001
  * @tc.desc: test set buffer transform type changed
  * @tc.type: FUNC

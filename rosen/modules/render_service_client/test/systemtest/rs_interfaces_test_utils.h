@@ -30,7 +30,7 @@
 #include "ui/rs_surface_node.h"
 #include "ui/rs_ui_director.h"
 #include "unique_fd.h"
-#include "window.h"
+#include "wm/window.h"
 #include "window_manager_hilog.h"
 #include "window_option.h"
 #include "wm_common.h"

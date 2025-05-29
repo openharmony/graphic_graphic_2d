@@ -164,7 +164,7 @@ float MemoryTrack::GetAppMemorySizeInMB()
 }
 
 void MemoryTrack::DumpMemoryStatistics(DfxString& log,
-    std::function<std::tuple<uint64_t, std::string, RectI> (uint64_t)> func)
+    std::function<std::tuple<uint64_t, std::string, RectI, bool> (uint64_t)> func)
 {
     std::vector<MemoryInfo> memPicRecord;
     {
@@ -343,7 +343,7 @@ std::string MemoryTrack::GenerateDetail(MemoryInfo info, uint64_t wId, std::stri
 }
 
 void MemoryTrack::DumpMemoryPicStatistics(DfxString& log,
-    std::function<std::tuple<uint64_t, std::string, RectI> (uint64_t)> func,
+    std::function<std::tuple<uint64_t, std::string, RectI, bool> (uint64_t)> func,
     const std::vector<MemoryInfo>& memPicRecord)
 {
     log.AppendFormat("RSImageCache:\n");
@@ -357,6 +357,10 @@ void MemoryTrack::DumpMemoryPicStatistics(DfxString& log,
     int count = 0;
     int totalWithoutDMASize = 0;
     int countWithoutDMA = 0;
+    int totalNullNodeSize = 0;
+    int countNullNodes = 0;
+    int nullWithoutDMASize = 0;
+    int nullWithoutDMA = 0;
     //calculate by byte
     for (auto& info : memPicRecord) {
         int size = static_cast<uint64_t>(info.size / BYTE_CONVERT); // k
@@ -375,8 +379,19 @@ void MemoryTrack::DumpMemoryPicStatistics(DfxString& log,
             countWithoutDMA++;
         }
 
-        auto [windowId, windowName, nodeFrameRect] = func(info.nid);
-        log.AppendFormat("%s\n", GenerateDetail(info, windowId, windowName, nodeFrameRect).c_str());
+        auto [windowId, windowName, nodeFrameRect, isNodeNull] = func(info.nid);
+        log.AppendFormat("%s", GenerateDetail(info, windowId, windowName, nodeFrameRect).c_str());
+        if (info.type == MEMORY_TYPE::MEM_PIXELMAP) {
+            log.AppendFormat("     %d\n", isNodeNull ? 1 : 0);
+            if (isNodeNull) {
+                totalNullNodeSize += size;
+                countNullNodes++;
+                if (info.allocType != OHOS::Media::AllocatorType::DMA_ALLOC) {
+                    nullWithoutDMASize += size;
+                    nullWithoutDMA++;
+                }
+            }
+        }
     }
 
     for (uint32_t i = MEM_PIXELMAP; i < MEM_MAX_SIZE; i++) {
@@ -387,6 +402,8 @@ void MemoryTrack::DumpMemoryPicStatistics(DfxString& log,
     }
     log.AppendFormat("Total Size = %d KB (%d entries)\n", totalSize, count);
     log.AppendFormat("Total Without DMA Size = %d KB (%d entries)\n", totalWithoutDMASize, countWithoutDMA);
+    log.AppendFormat("MEM_PIXELMAP Null Nodes: Size = %d KB (%d entries)\n", totalNullNodeSize, countNullNodes);
+    log.AppendFormat("Null Nodes Without DMA: Size = %d KB (%d entries)\n", nullWithoutDMASize, nullWithoutDMA);
 }
 
 void MemoryTrack::AddPictureRecord(const void* addr, MemoryInfo info)

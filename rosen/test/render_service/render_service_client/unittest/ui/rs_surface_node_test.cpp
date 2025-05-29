@@ -59,6 +59,45 @@ HWTEST_F(RSSurfaceNodeTest, CreateNodeInRenderThread001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: Create002
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSSurfaceNodeTest, Create002, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    c.surfaceWindowType = SurfaceWindowType::SCB_SCREEN_LOCK;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    ASSERT_TRUE(surfaceNode != nullptr);
+    usleep(100000);
+
+    c.surfaceWindowType = SurfaceWindowType::SCB_DESKTOP;
+    surfaceNode = RSSurfaceNode::Create(c);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    ASSERT_TRUE(surfaceNode != nullptr);
+    usleep(100000);
+
+    c.surfaceWindowType = SurfaceWindowType::SCB_WALLPAPER;
+    surfaceNode = RSSurfaceNode::Create(c);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    ASSERT_TRUE(surfaceNode != nullptr);
+    usleep(100000);
+
+    c.surfaceWindowType = static_cast<SurfaceWindowType>(-1);
+    surfaceNode = RSSurfaceNode::Create(c);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    ASSERT_FALSE(surfaceNode != nullptr);
+    usleep(100000);
+
+    c.surfaceWindowType = SurfaceWindowType::DEFAULT_WINDOW;
+    surfaceNode = RSSurfaceNode::Create(c);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    ASSERT_TRUE(surfaceNode != nullptr);
+    usleep(100000);
+}
+
+/**
  * @tc.name: SetBufferAvailableCallback001
  * @tc.desc:
  * @tc.type:FUNC
@@ -1394,6 +1433,21 @@ HWTEST_F(RSSurfaceNodeTest, ResetContextAlpha, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetClonedNodeInfo Test
+ * @tc.desc: test results of SetClonedNodeInfo
+ * @tc.type: FUNC
+ * @tc.require:issueIBX8OW
+ */
+HWTEST_F(RSSurfaceNodeTest, SetClonedNodeInfo, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->SetClonedNodeInfo(INVALID_NODEID + 1);
+    ASSERT_NE(RSTransactionProxy::GetInstance()->implicitRemoteTransactionData_, nullptr);
+}
+
+/**
  * @tc.name: SetForeground Test
  * @tc.desc: SetForeground and SetForceUIFirst and SetAncoFlags and SetHDRPresent
  * @tc.type: FUNC
@@ -1453,8 +1507,7 @@ HWTEST_F(RSSurfaceNodeTest, MarkUIHidden, TestSize.Level1)
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
     bool isHidden = true;
     surfaceNode->MarkUIHidden(isHidden);
-    bool res = true;
-    ASSERT_EQ(true, res);
+    ASSERT_NE(surfaceNode, nullptr);
 }
 
 /**
@@ -1469,8 +1522,7 @@ HWTEST_F(RSSurfaceNodeTest, SetIsNotifyUIBufferAvailable, TestSize.Level1)
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
     bool available = true;
     surfaceNode->SetIsNotifyUIBufferAvailable(available);
-    bool res = true;
-    ASSERT_EQ(true, res);
+    ASSERT_NE(surfaceNode, nullptr);
 }
 
 /**
@@ -1485,8 +1537,7 @@ HWTEST_F(RSSurfaceNodeTest, SetAbilityBGAlpha, TestSize.Level1)
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
     uint8_t alpha = 0;
     surfaceNode->SetAbilityBGAlpha(alpha);
-    bool res = true;
-    ASSERT_EQ(true, res);
+    ASSERT_NE(surfaceNode, nullptr);
 }
 
 /**
@@ -1500,8 +1551,7 @@ HWTEST_F(RSSurfaceNodeTest, NeedForcedSendToRemote, TestSize.Level1)
     RSSurfaceNodeConfig c;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
     surfaceNode->NeedForcedSendToRemote();
-    bool res = true;
-    ASSERT_EQ(true, res);
+    ASSERT_NE(surfaceNode, nullptr);
 }
 
 /**
@@ -1546,8 +1596,7 @@ HWTEST_F(RSSurfaceNodeTest, OnBoundsSizeChanged, TestSize.Level1)
     RSSurfaceNodeConfig c;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
     surfaceNode->OnBoundsSizeChanged();
-    bool res = true;
-    ASSERT_EQ(true, res);
+    ASSERT_NE(surfaceNode, nullptr);
 }
 
 /**
@@ -1561,8 +1610,7 @@ HWTEST_F(RSSurfaceNodeTest, SetSurfaceIdToRenderNode, TestSize.Level1)
     RSSurfaceNodeConfig c;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
     surfaceNode->SetSurfaceIdToRenderNode();
-    bool res = true;
-    ASSERT_EQ(true, res);
+    ASSERT_NE(surfaceNode, nullptr);
 }
 
 /**
@@ -1576,8 +1624,7 @@ HWTEST_F(RSSurfaceNodeTest, CreateRenderNodeForTextureExportSwitch, TestSize.Lev
     RSSurfaceNodeConfig c;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
     surfaceNode->CreateRenderNodeForTextureExportSwitch();
-    bool res = true;
-    ASSERT_EQ(true, res);
+    ASSERT_NE(surfaceNode, nullptr);
 }
 
 /**
@@ -1592,8 +1639,7 @@ HWTEST_F(RSSurfaceNodeTest, SetIsTextureExportNode, TestSize.Level1)
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
     bool isTextureExportNode = true;
     surfaceNode->SetIsTextureExportNode(isTextureExportNode);
-    bool res = true;
-    ASSERT_EQ(true, res);
+    ASSERT_NE(surfaceNode, nullptr);
 }
 
 /**
@@ -1698,8 +1744,7 @@ HWTEST_F(RSSurfaceNodeTest, SetHardwareEnableHint, TestSize.Level1)
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
     surfaceNode->SetHardwareEnableHint(true);
     surfaceNode->SetHardwareEnableHint(false);
-    bool res = true;
-    ASSERT_EQ(true, res);
+    ASSERT_NE(surfaceNode, nullptr);
 }
 
 /**
@@ -1714,8 +1759,7 @@ HWTEST_F(RSSurfaceNodeTest, SetSourceVirtualDisplayId, TestSize.Level1)
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
     ScreenId id = {};
     surfaceNode->SetSourceVirtualDisplayId(id);
-    bool res = true;
-    ASSERT_EQ(true, res);
+    ASSERT_NE(surfaceNode, nullptr);
 }
 
 /**
@@ -1730,8 +1774,7 @@ HWTEST_F(RSSurfaceNodeTest, AttachToWindowContainer, TestSize.Level1)
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
     ScreenId id = {};
     surfaceNode->AttachToWindowContainer(id);
-    bool res = true;
-    ASSERT_EQ(true, res);
+    ASSERT_NE(surfaceNode, nullptr);
 }
 
 /**
@@ -1746,7 +1789,37 @@ HWTEST_F(RSSurfaceNodeTest, DetachFromWindowContainer, TestSize.Level1)
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
     ScreenId id = {};
     surfaceNode->DetachFromWindowContainer(id);
-    bool res = true;
-    ASSERT_EQ(true, res);
+    ASSERT_NE(surfaceNode, nullptr);
+}
+
+/**
+ * @tc.name: SetRegionToBeMagnified
+ * @tc.desc: Test function SetRegionToBeMagnified
+ * @tc.type: FUNC
+ * @tc.require: issueIBIK1X
+ */
+HWTEST_F(RSSurfaceNodeTest, SetRegionToBeMagnified, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    Vector4f regionToBeMagnified = {0.0, 0.0, 200.0, 200.0};
+    surfaceNode->SetRegionToBeMagnified(regionToBeMagnified);
+    ASSERT_NE(surfaceNode, nullptr);
+}
+
+/**
+ * @tc.name: SetFrameGravityNewVersionEnabledTest
+ * @tc.desc: SetFrameGravityNewVersionEnabled and GetFrameGravityNewVersionEnabled
+ * @tc.type: FUNC
+ * @tc.require: issueIC8CDF
+ */
+HWTEST_F(RSSurfaceNodeTest, SetFrameGravityNewVersionEnabledTest, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    surfaceNode->SetFrameGravityNewVersionEnabled(true);
+    ASSERT_EQ(true, surfaceNode->GetFrameGravityNewVersionEnabled());
+    surfaceNode->SetFrameGravityNewVersionEnabled(false);
+    ASSERT_EQ(false, surfaceNode->GetFrameGravityNewVersionEnabled());
 }
 } // namespace OHOS::Rosen

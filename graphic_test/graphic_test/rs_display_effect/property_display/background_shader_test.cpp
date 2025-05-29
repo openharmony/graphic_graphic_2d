@@ -34,7 +34,7 @@ public:
     // called before each tests
     void BeforeEach() override
     {
-        SetScreenSurfaceBounds({ 0, 0, screenWidth, screenHeight });
+        SetScreenSize(screenWidth, screenHeight);
     }
 };
 
@@ -237,8 +237,8 @@ GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, BackGround_FlowLightSweep_Sha
         { Drawing::Color::COLOR_MAGENTA, 1.0 } };
 
     std::vector<std::pair<Drawing::Color, float>> effectColor_2 = { { Drawing::Color::COLOR_RED, -1.0 },
-        { Drawing::Color::COLOR_GREEN, 0.2 }, { Drawing::Color::COLOR_BLUE, 0.5 },
-        { Drawing::Color::COLOR_YELLOW, 0.5 }, { Drawing::Color::COLOR_CYAN, 0.2 },
+        { Drawing::Color::COLOR_GREEN, 0.2 }, { Drawing::Color::COLOR_BLUE, 0.2 },
+        { Drawing::Color::COLOR_YELLOW, 0.5 }, { Drawing::Color::COLOR_CYAN, 0.5 },
         { Drawing::Color::COLOR_MAGENTA, 2.0 } };
 
     std::vector<std::pair<Drawing::Color, float>> effectColor_3 = { { Drawing::Color::COLOR_BLACK, 1.0 },

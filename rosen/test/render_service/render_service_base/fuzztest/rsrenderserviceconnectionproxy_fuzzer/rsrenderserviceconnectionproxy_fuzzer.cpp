@@ -109,7 +109,6 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     int32_t y = GetData<int32_t>();
     int32_t w = GetData<int32_t>();
     int32_t h = GetData<int32_t>();
-    int32_t resCode;
     Rect activeRect {
         .x = x,
         .y = y,
@@ -165,57 +164,76 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     RSRenderServiceConnectionProxy rsRenderServiceConnectionProxy(remoteObject);
     MemoryGraphic memoryGraphic;
     std::vector<MemoryGraphic> memoryGraphics;
-    bool getTotalAppMemSizeSuccess;
     bool getUniRenderEnable;
     bool createNodeSuccess;
     std::string getRefreshInfoEnable;
+    std::string getRefreshInfoToSPEnable;
     bool getBitmapSuccess;
     bool getPixelmapSuccess;
+    FocusAppInfo appInfo = {
+        .pid = pid1,
+        .uid = uid,
+        .bundleName = name,
+        .abilityName = name,
+        .focusNodeId = id1};
+    int32_t repCode = GetData<int32_t>();
+    uint32_t retureCode = GetData<uint32_t>();
+    bool success = GetData<bool>();
+    int32_t expectedFrameRate = GetData<int32_t>();
+
     rsRenderServiceConnectionProxy.CommitTransaction(transactionData);
     rsRenderServiceConnectionProxy.ExecuteSynchronousTask(task);
     rsRenderServiceConnectionProxy.GetMemoryGraphic(pid, memoryGraphic);
     rsRenderServiceConnectionProxy.GetMemoryGraphics(memoryGraphics);
-    rsRenderServiceConnectionProxy.GetTotalAppMemSize(cpuMemSize, gpuMemSize, getTotalAppMemSizeSuccess);
+    rsRenderServiceConnectionProxy.GetTotalAppMemSize(cpuMemSize, gpuMemSize);
     rsRenderServiceConnectionProxy.GetUniRenderEnabled(getUniRenderEnable);
     rsRenderServiceConnectionProxy.CreateNode(config, createNodeSuccess);
     sptr<Surface> sface = nullptr;
     rsRenderServiceConnectionProxy.CreateNodeAndSurface(config, sface);
     sptr<IVSyncConnection> conn = nullptr;
     VSyncConnParam vsyncConnParam = {id1, windowNodeId, false};
+    bool enable = GetData<bool>();
+    uint32_t powerStatus = GetData<uint32_t>();
+    int32_t backlightlevel = GetData<int32_t>();
+    uint64_t screenId = GetData<uint64_t>();
+    RSScreenModeInfo modeInfo;
+    int32_t resCode;
+
     rsRenderServiceConnectionProxy.CreateVSyncConnection(conn, name, token, vsyncConnParam);
     std::shared_ptr<Media::PixelMap> pixelMap = nullptr;
     rsRenderServiceConnectionProxy.CreatePixelMapFromSurface(surface, srcRect, pixelMap);
-    rsRenderServiceConnectionProxy.SetFocusAppInfo(pid1, uid, name, name, id1);
-    rsRenderServiceConnectionProxy.GetDefaultScreenId();
-    rsRenderServiceConnectionProxy.GetActiveScreenId();
+    rsRenderServiceConnectionProxy.SetFocusAppInfo(appInfo, repCode);
+    rsRenderServiceConnectionProxy.GetDefaultScreenId(screenId);
+    rsRenderServiceConnectionProxy.GetActiveScreenId(screenId);
     rsRenderServiceConnectionProxy.GetAllScreenIds();
     rsRenderServiceConnectionProxy.CreateVirtualScreen(name, width, height, surface);
     rsRenderServiceConnectionProxy.SetVirtualScreenSurface(id1, surface);
     rsRenderServiceConnectionProxy.RemoveVirtualScreen(id1);
     rsRenderServiceConnectionProxy.SetScreenChangeCallback(callback);
     rsRenderServiceConnectionProxy.SetScreenActiveMode(id1, width);
-    rsRenderServiceConnectionProxy.SetScreenActiveRect(id1, activeRect);
+    rsRenderServiceConnectionProxy.SetScreenActiveRect(id1, activeRect, retureCode);
     rsRenderServiceConnectionProxy.SetScreenRefreshRate(id1, pid1, uid);
     rsRenderServiceConnectionProxy.SetRefreshRateMode(pid1);
     rsRenderServiceConnectionProxy.SyncFrameRateRange(id1, range, 0);
     rsRenderServiceConnectionProxy.GetScreenCurrentRefreshRate(id1);
     rsRenderServiceConnectionProxy.GetCurrentRefreshRateMode();
     rsRenderServiceConnectionProxy.GetScreenSupportedRefreshRates(id1);
-    rsRenderServiceConnectionProxy.GetShowRefreshRateEnabled();
+    rsRenderServiceConnectionProxy.GetShowRefreshRateEnabled(enable);
     rsRenderServiceConnectionProxy.SetShowRefreshRateEnabled(true, 0);
     rsRenderServiceConnectionProxy.GetRealtimeRefreshRate(id1);
     rsRenderServiceConnectionProxy.GetRefreshInfo(id1, getRefreshInfoEnable);
+    rsRenderServiceConnectionProxy.GetRefreshInfoToSP(id1, getRefreshInfoToSPEnable);
     rsRenderServiceConnectionProxy.SetPhysicalScreenResolution(id1, width, height);
     rsRenderServiceConnectionProxy.SetVirtualScreenResolution(id1, width, height);
     rsRenderServiceConnectionProxy.SetScreenPowerStatus(id1, status);
     rsRenderServiceConnectionProxy.RegisterApplicationAgent(width, app);
     rsRenderServiceConnectionProxy.GetVirtualScreenResolution(id1);
-    rsRenderServiceConnectionProxy.GetScreenActiveMode(id1);
+    rsRenderServiceConnectionProxy.GetScreenActiveMode(id1, modeInfo);
     rsRenderServiceConnectionProxy.GetScreenSupportedModes(id1);
     rsRenderServiceConnectionProxy.GetScreenCapability(id1);
-    rsRenderServiceConnectionProxy.GetScreenPowerStatus(id1);
+    rsRenderServiceConnectionProxy.GetScreenPowerStatus(id1, powerStatus);
     rsRenderServiceConnectionProxy.GetScreenData(id1);
-    rsRenderServiceConnectionProxy.GetScreenBacklight(id1);
+    rsRenderServiceConnectionProxy.GetScreenBacklight(id1, backlightlevel);
     rsRenderServiceConnectionProxy.SetScreenBacklight(id1, width);
     rsRenderServiceConnectionProxy.RegisterBufferAvailableListener(id1, callback2, true);
     rsRenderServiceConnectionProxy.RegisterBufferClearListener(id1, callback3);
@@ -238,8 +256,8 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     rsRenderServiceConnectionProxy.GetPixelmap(id1, pixelmap, &rect, drawCmdList, getPixelmapSuccess);
     rsRenderServiceConnectionProxy.RegisterTypeface(id1, typeface);
     rsRenderServiceConnectionProxy.UnRegisterTypeface(id1);
-    rsRenderServiceConnectionProxy.SetScreenSkipFrameInterval(id1, width);
-    rsRenderServiceConnectionProxy.RegisterOcclusionChangeCallback(rsIOcclusionChangeCallback);
+    rsRenderServiceConnectionProxy.SetScreenSkipFrameInterval(id1, width, resCode);
+    rsRenderServiceConnectionProxy.RegisterOcclusionChangeCallback(rsIOcclusionChangeCallback, repCode);
     rsRenderServiceConnectionProxy.RegisterSurfaceOcclusionChangeCallback(id1, callbackTwo, partitionPoints);
     rsRenderServiceConnectionProxy.UnRegisterSurfaceOcclusionChangeCallback(id1);
     rsRenderServiceConnectionProxy.RegisterHgmConfigChangeCallback(rsIHgmConfigChangeCallback);
@@ -247,16 +265,18 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     rsRenderServiceConnectionProxy.RegisterHgmRefreshRateUpdateCallback(rsIHgmConfigChangeCallback);
     rsRenderServiceConnectionProxy.RegisterFirstFrameCommitCallback(rsIFirstFrameCommitCallback);
     rsRenderServiceConnectionProxy.SetAppWindowNum(width);
-    rsRenderServiceConnectionProxy.SetSystemAnimatedScenes(systemAnimatedScenes, false);
+    rsRenderServiceConnectionProxy.SetSystemAnimatedScenes(systemAnimatedScenes, false, success);
     rsRenderServiceConnectionProxy.ShowWatermark(watermarkImg, true);
     rsRenderServiceConnectionProxy.ResizeVirtualScreen(id1, width, height);
     rsRenderServiceConnectionProxy.ReportJankStats();
     rsRenderServiceConnectionProxy.NotifyLightFactorStatus(1);
     rsRenderServiceConnectionProxy.NotifyPackageEvent(width, packageList);
     rsRenderServiceConnectionProxy.NotifyRefreshRateEvent(eventInfo);
+    rsRenderServiceConnectionProxy.NotifySoftVsyncRateDiscountEvent(1, name, 1);
     rsRenderServiceConnectionProxy.NotifyTouchEvent(pid1, uid);
     rsRenderServiceConnectionProxy.NotifyDynamicModeEvent(true);
     rsRenderServiceConnectionProxy.NotifyHgmConfigEvent(name, true);
+    rsRenderServiceConnectionProxy.NotifyXComponentExpectedFrameRate(name, expectedFrameRate);
     rsRenderServiceConnectionProxy.ReportEventResponse(info);
     rsRenderServiceConnectionProxy.ReportEventComplete(info);
     rsRenderServiceConnectionProxy.ReportEventJankFrame(info);
@@ -335,6 +355,181 @@ bool DoSetOverlayDisplayModeFuzzTest(const uint8_t* data, size_t size)
     return true;
 }
 #endif
+
+bool DoTakeSurfaceCapture(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    // get data
+    uint64_t nodeId = GetData<uint64_t>();
+    sptr<RSISurfaceCaptureCallback> callback;
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.scaleX = GetData<float>();
+    captureConfig.scaleY = GetData<float>();
+    captureConfig.useDma = GetData<bool>();
+    captureConfig.useCurWindow = GetData<bool>();
+    uint8_t type = GetData<uint8_t>();
+    captureConfig.captureType = (SurfaceCaptureType)type;
+    captureConfig.isSync = GetData<bool>();
+    uint8_t listSize = GetData<uint8_t>();
+    for (uint8_t i = 0; i < listSize; ++i) {
+        uint64_t nodeid = GetData<uint64_t>();
+        captureConfig.blackList.push_back(nodeid);
+    }
+    captureConfig.mainScreenRect.left_ = GetData<float>();
+    captureConfig.mainScreenRect.top_ = GetData<float>();
+    captureConfig.mainScreenRect.right_ = GetData<float>();
+    captureConfig.mainScreenRect.bottom_ = GetData<float>();
+    RSSurfaceCaptureBlurParam blurParam;
+
+    // test
+    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
+    RSRenderServiceConnectionProxy rsRenderServiceConnectionProxy(remoteObject);
+    rsRenderServiceConnectionProxy.TakeSurfaceCapture(nodeId, callback, captureConfig, blurParam);
+    return true;
+}
+
+bool DoBehindWindowFilterEnabled(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    // get data
+    bool enabled = GetData<bool>();
+    bool res = GetData<bool>();
+
+    // test
+    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
+    RSRenderServiceConnectionProxy rsRenderServiceConnectionProxy(remoteObject);
+    rsRenderServiceConnectionProxy.SetBehindWindowFilterEnabled(enabled);
+    rsRenderServiceConnectionProxy.GetBehindWindowFilterEnabled(res);
+    return true;
+}
+
+bool DoSetVirtualScreenBlackList(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    // get data
+    ScreenId screenId = GetData<ScreenId>();
+    std::vector<NodeId> blackList;
+    uint8_t listSize = GetData<uint8_t>();
+    for (uint8_t i = 0; i < listSize; ++i) {
+        NodeId nodeId = GetData<NodeId>();
+        blackList.push_back(nodeId);
+    }
+
+    // test
+    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
+    RSRenderServiceConnectionProxy rsRenderServiceConnectionProxy(remoteObject);
+    rsRenderServiceConnectionProxy.SetVirtualScreenBlackList(screenId, blackList);
+    return true;
+}
+
+bool DoAddVirtualScreenBlackList(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    // get data
+    ScreenId screenId = GetData<ScreenId>();
+    std::vector<NodeId> blackList;
+    uint8_t listSize = GetData<uint8_t>();
+    for (uint8_t i = 0; i < listSize; ++i) {
+        NodeId nodeId = GetData<NodeId>();
+        blackList.push_back(nodeId);
+    }
+
+    // test
+    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
+    RSRenderServiceConnectionProxy rsRenderServiceConnectionProxy(remoteObject);
+    int32_t repCode = 0;
+    rsRenderServiceConnectionProxy.AddVirtualScreenBlackList(screenId, blackList, repCode);
+    return true;
+}
+
+bool DoRemoveVirtualScreenBlackList(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    // get data
+    ScreenId screenId = GetData<ScreenId>();
+    std::vector<NodeId> blackList;
+    uint8_t listSize = GetData<uint8_t>();
+    for (uint8_t i = 0; i < listSize; ++i) {
+        NodeId nodeId = GetData<NodeId>();
+        blackList.push_back(nodeId);
+    }
+
+    // test
+    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
+    RSRenderServiceConnectionProxy rsRenderServiceConnectionProxy(remoteObject);
+    int32_t repCode = 0;
+    rsRenderServiceConnectionProxy.RemoveVirtualScreenBlackList(screenId, blackList, repCode);
+    return true;
+}
+
+bool DoResizeVirtualScreen(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    // get data
+    ScreenId screenId = GetData<ScreenId>();
+    uint32_t width = GetData<uint32_t>();
+    uint32_t height = GetData<uint32_t>();
+
+    // test
+    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
+    RSRenderServiceConnectionProxy rsRenderServiceConnectionProxy(remoteObject);
+    rsRenderServiceConnectionProxy.ResizeVirtualScreen(screenId, width, height);
+    return true;
+}
 } // namespace Rosen
 } // namespace OHOS
 
@@ -349,5 +544,11 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
     OHOS::Rosen::DoSetOverlayDisplayModeFuzzTest(data, size);
 #endif
+    OHOS::Rosen::DoTakeSurfaceCapture(data, size);
+    OHOS::Rosen::DoBehindWindowFilterEnabled(data, size);
+    OHOS::Rosen::DoSetVirtualScreenBlackList(data, size);
+    OHOS::Rosen::DoAddVirtualScreenBlackList(data, size);
+    OHOS::Rosen::DoRemoveVirtualScreenBlackList(data, size);
+    OHOS::Rosen::DoResizeVirtualScreen(data, size);
     return 0;
 }

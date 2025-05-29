@@ -27,12 +27,10 @@ ohos_unittest("2d_graphics_text_test") {
   sources = [
     "font_mgr_test.cpp",
     "skfontmgr_test.cpp",
+    "text_blob_test.cpp",
     "typeface_test.cpp",
+    "font_test.cpp",
   ]
-
-  include_dirs = [ "//third_party/googletest/googletest/include" ]
-
-  deps = [ "//third_party/googletest:gtest_main" ]
 
   external_deps = [
     "c_utils:utils",

@@ -15,6 +15,7 @@
 
 #include "rs_base_render_engine.h"
 #include <memory>
+#include <csignal>
 
 #include "v2_1/cm_color_space.h"
 #ifdef RS_ENABLE_EGLIMAGE
@@ -49,6 +50,7 @@
 namespace OHOS {
 namespace Rosen {
 constexpr float DEFAULT_DISPLAY_NIT = 500.0f;
+constexpr int SIGNAL_FOR_OCERAN = 42;
 
 RSBaseRenderEngine::RSBaseRenderEngine()
 {
@@ -98,38 +100,6 @@ void RSBaseRenderEngine::Init(bool independentContext)
 #endif
 }
 
-void RSBaseRenderEngine::InitCapture(bool independentContext)
-{
-#ifdef RS_ENABLE_GPU
-    (void)independentContext;
-    if (captureRenderContext_) {
-        return;
-    }
-#endif
-
-#if (defined RS_ENABLE_GL) || (defined RS_ENABLE_VK)
-    captureRenderContext_ = std::make_shared<RenderContext>();
-#ifdef RS_ENABLE_GL
-    if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
-        captureRenderContext_->InitializeEglContext();
-    }
-#endif
-    if (RSUniRenderJudgement::IsUniRender()) {
-        captureRenderContext_->SetUniRenderMode(true);
-    }
-#if defined(RS_ENABLE_VK)
-    if (RSSystemProperties::IsUseVulkan()) {
-        captureSkContext_ = RsVulkanContext::GetSingleton().CreateDrawingContext();
-        captureRenderContext_->SetUpGpuContext(captureSkContext_);
-    } else {
-        captureRenderContext_->SetUpGpuContext();
-    }
-#else
-    captureRenderContext_->SetUpGpuContext();
-#endif
-#endif // RS_ENABLE_GL || RS_ENABLE_VK
-}
-
 void RSBaseRenderEngine::ResetCurrentContext()
 {
 #ifdef RS_ENABLE_GPU
@@ -141,18 +111,12 @@ void RSBaseRenderEngine::ResetCurrentContext()
 #if (defined RS_ENABLE_GL)
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
         renderContext_->ShareMakeCurrentNoSurface(EGL_NO_CONTEXT);
-        if (captureRenderContext_) {
-            captureRenderContext_->ShareMakeCurrentNoSurface(EGL_NO_CONTEXT);
-        }
     }
 #endif
 
 #if defined(RS_ENABLE_VK) // end RS_ENABLE_GL and enter RS_ENABLE_VK
     if (RSSystemProperties::IsUseVulkan()) {
         renderContext_->AbandonContext();
-        if (captureRenderContext_) {
-            captureRenderContext_->AbandonContext();
-        }
     }
 #endif // end RS_ENABLE_GL and RS_ENABLE_VK
 }
@@ -276,7 +240,7 @@ std::unique_ptr<RSRenderFrame> RSBaseRenderEngine::RequestFrame(
     }
     RS_OPTIONAL_TRACE_BEGIN("RSBaseRenderEngine::RequestFrame(RSSurface)");
 #ifdef RS_ENABLE_VK
-    RSTagTracker tagTracker(skContext_.get(), RSTagTracker::TAGTYPE::TAG_ACQUIRE_SURFACE);
+    RSTagTracker tagTracker(skContext_, RSTagTracker::TAGTYPE::TAG_ACQUIRE_SURFACE);
 #endif
     rsSurface->SetColorSpace(config.colorGamut);
     rsSurface->SetSurfacePixelFormat(config.format);
@@ -635,6 +599,7 @@ void RSBaseRenderEngine::ColorSpaceConvertor(std::shared_ptr<Drawing::ShaderEffe
         return;
     }
     params.paint.SetShaderEffect(outputShader);
+    RS_LOGI("paint SetShaderEffect Func:%s, Line:%d", __FUNCTION__, __LINE__);
     RS_OPTIONAL_TRACE_END();
 }
 #endif
@@ -728,11 +693,11 @@ std::shared_ptr<Drawing::Image> RSBaseRenderEngine::CreateImageFromBuffer(RSPain
 #ifdef RS_ENABLE_VK
     if (RSSystemProperties::IsUseVulkan()) {
         auto imageCache = vkImageManager_->MapVkImageFromSurfaceBuffer(params.buffer,
-            params.acquireFence, params.threadIndex, params.screenId);
+            params.acquireFence, params.threadIndex, canvas.GetSurface());
         if (params.buffer != nullptr && params.buffer->GetBufferDeleteFromCacheFlag()) {
             RS_LOGD_IF(DEBUG_COMPOSER, "  - Buffer %{public}u marked for deletion from cache, unmapping",
                 params.buffer->GetSeqNum());
-            vkImageManager_->UnMapVkImageFromSurfaceBuffer(params.buffer->GetSeqNum(), true);
+            vkImageManager_->UnMapVkImageFromSurfaceBuffer(params.buffer->GetSeqNum());
         }
         auto bitmapFormat = RSBaseRenderUtil::GenerateDrawingBitmapFormat(params.buffer);
         RS_LOGD_IF(DEBUG_COMPOSER, "  - Generated bitmap format: colorType = %{public}d, alphaType = %{public}d",
@@ -898,11 +863,16 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
     RS_LOGD_IF(DEBUG_COMPOSER, "  - Image shader transformation:"
         "sx=%{public}.2f, sy=%{public}.2f, tx=%{public}.2f, ty=%{public}.2f", sx, sy, tx, ty);
 
+    auto gpuCtx = canvas.GetGPUContext();
     auto imageShader = Drawing::ShaderEffect::CreateImageShader(
         *image, Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP, samplingOptions, matrix);
     if (imageShader == nullptr) {
         RS_LOGW("RSBaseRenderEngine::DrawImage imageShader is nullptr.");
     } else {
+        if (gpuCtx.get() && !image->IsValid(gpuCtx.get())) {
+            RS_LOGE("SetShaderEffect cross thread, Func:%s, Line:%d", __FUNCTION__, __LINE__);
+            raise(SIGNAL_FOR_OCERAN);
+        }
         params.paint.SetShaderEffect(imageShader);
         ColorSpaceConvertor(imageShader, params, videoInfo.parameter_);
     }
@@ -969,7 +939,6 @@ void RSBaseRenderEngine::RegisterDeleteBufferListener(const sptr<IConsumerSurfac
     if (RSSystemProperties::IsUseVulkan()) {
         auto regUnMapVkImageFunc = [this, isForUniRedraw](int32_t bufferId) {
             RSMainThread::Instance()->AddToUnmappedCacheSet(bufferId);
-            RSMainThread::Instance()->AddToUnmappedMirrorCacheSet(bufferId);
         };
         if (consumer == nullptr ||
             (consumer->RegisterDeleteBufferListener(regUnMapVkImageFunc, isForUniRedraw) != GSERROR_OK)) {
@@ -1012,15 +981,6 @@ void RSBaseRenderEngine::RegisterDeleteBufferListener(RSSurfaceHandler& handler)
 
 void RSBaseRenderEngine::ShrinkCachesIfNeeded(bool isForUniRedraw)
 {
-#ifdef RS_ENABLE_VK
-    if (RSSystemProperties::IsUseVulkan()) {
-        if (vkImageManager_ != nullptr) {
-            vkImageManager_->ShrinkCachesIfNeeded();
-        }
-        return;
-    }
-#endif // RS_ENABLE_VK
-
 #if (defined(RS_ENABLE_EGLIMAGE) && defined(RS_ENABLE_GPU))
     if (eglImageManager_ != nullptr) {
         eglImageManager_->ShrinkCachesIfNeeded(isForUniRedraw);
@@ -1028,14 +988,14 @@ void RSBaseRenderEngine::ShrinkCachesIfNeeded(bool isForUniRedraw)
 #endif // RS_ENABLE_EGLIMAGE
 }
 
-void RSBaseRenderEngine::ClearCacheSet(const std::set<uint32_t>& unmappedCache, bool isMatchVirtualScreen)
+void RSBaseRenderEngine::ClearCacheSet(const std::set<uint32_t>& unmappedCache)
 {
 #ifdef RS_ENABLE_VK
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
         RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
         if (vkImageManager_ != nullptr) {
             for (auto id : unmappedCache) {
-                vkImageManager_->UnMapVkImageFromSurfaceBuffer(id, isMatchVirtualScreen);
+                vkImageManager_->UnMapVkImageFromSurfaceBuffer(id);
             }
         }
     }
@@ -1048,18 +1008,6 @@ void RSBaseRenderEngine::ClearCacheSet(const std::set<uint32_t>& unmappedCache, 
         }
     }
 #endif // RS_ENABLE_EGLIMAGE
-}
-
-void RSBaseRenderEngine::ClearVirtualScreenCacheSet()
-{
-#ifdef RS_ENABLE_VK
-    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-        if (vkImageManager_ != nullptr) {
-            vkImageManager_->UnMapAllVkImageVirtualScreenCache();
-        }
-    }
-#endif // RS_ENABLE_VK
 }
 } // namespace Rosen
 } // namespace OHOS

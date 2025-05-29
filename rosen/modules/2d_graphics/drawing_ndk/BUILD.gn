@@ -13,8 +13,8 @@
 
 import("//build/ohos.gni")
 import("//foundation/graphic/graphic_2d/ace_platforms.gni")
+import("//foundation/graphic/graphic_2d/frameworks/text/config.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
-import("$graphic_2d_root/rosen/modules/2d_engine/rosen_text/config.gni")
 
 drawing_root = "$rosen_root/modules/2d_graphics"
 drawing_ndk_include_dir = "$rosen_root/modules/2d_graphics/drawing_ndk/include"
@@ -26,7 +26,7 @@ config("export_config") {
 }
 
 if (enable_text_gine) {
-  defines = [ "USE_GRAPHIC_TEXT_GINE" ]
+  defines = []
 }
 
 template("drawing_ndk_source_set") {
@@ -35,9 +35,7 @@ template("drawing_ndk_source_set") {
   ohos_source_set(target_name) {
     defines += invoker.defines
     cflags_cc += invoker.cflags_cc
-    if (use_texgine) {
-      defines += [ "USE_TEXGINE" ]
-    } else if (use_skia_txt) {
+    if (use_skia_txt) {
       defines += [ "USE_SKIA_TXT" ]
     }
 
@@ -90,6 +88,7 @@ template("drawing_ndk_source_set") {
       "$drawing_ndk_src_dir/drawing_surface.cpp",
       "$drawing_ndk_src_dir/drawing_text_blob.cpp",
       "$drawing_ndk_src_dir/drawing_text_font_descriptor.cpp",
+      "$drawing_ndk_src_dir/drawing_text_global.cpp",
       "$drawing_ndk_src_dir/drawing_text_line.cpp",
       "$drawing_ndk_src_dir/drawing_text_lineTypography.cpp",
       "$drawing_ndk_src_dir/drawing_text_run.cpp",
@@ -119,23 +118,21 @@ template("drawing_ndk_source_set") {
       "$drawing_utils_root",
       "$graphic_2d_root/rosen/modules/render_service_base/include",
       "$graphic_2d_root/rosen/modules/render_service_base/src",
-      "$rosen_root/modules/texgine/src",
+      "$rosen_text_root/service/texgine/src",
+      "$graphic_2d_root/frameworks/text/service/global_config",
     ]
 
     if (enable_text_gine) {
-      defines += [ "USE_GRAPHIC_TEXT_GINE" ]
-      if (use_texgine) {
-        defines += [ "USE_TEXGINE" ]
-      }
       include_dirs += [
-        "$rosen_root/modules/2d_engine/rosen_text",
-        "$rosen_root/modules/2d_engine/rosen_text/adapter",
-        "$rosen_root/modules/2d_engine/rosen_text/export",
+        "$rosen_text_root",
+        "$rosen_text_root/service",
+        "$rosen_text_root/adapter",
+        "$rosen_text_root/interface/export",
       ]
     } else {
       include_dirs += [
         "$ace_napi_frameworks/frameworks",
-        "$rosen_2d_engine_root",
+        "$rosen_text_root",
       ]
     }
 
@@ -161,15 +158,11 @@ template("drawing_ndk_source_set") {
 
       external_deps += [ "bounds_checking_function:libsec_static" ]
       defines += [ "MODULE_DRAWING" ]
-
-      defines += [ "USE_GRAPHIC_TEXT_GINE" ]
     }
     if (enable_text_gine) {
-      deps = [ "$rosen_root/modules/2d_engine/rosen_text:rosen_text_inner" ]
-      defines += [ "USE_GRAPHIC_TEXT_GINE" ]
+      deps = [ "$rosen_text_root:rosen_text" ]
       if (use_skia_txt) {
-        include_dirs +=
-            [ "$graphic_2d_root/rosen/modules/2d_engine/rosen_text/skia_txt" ]
+        include_dirs += [ "$rosen_text_root/adapter/skia" ]
       }
     }
     if (rosen_is_ohos) {

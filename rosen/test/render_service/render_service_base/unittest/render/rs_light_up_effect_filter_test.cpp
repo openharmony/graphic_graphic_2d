@@ -57,6 +57,50 @@ HWTEST_F(RSLightUpEffectFilterTest, RSLightUpEffectFilterTest001, TestSize.Level
 }
 
 /**
+ * @tc.name: RSLightUpEffectFilterTestFLT_MAX
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSLightUpEffectFilterTest, RSLightUpEffectFilterTestFLT_MAX, TestSize.Level1)
+{
+    float lightUpDegree = FLT_MAX;
+    auto filter = std::make_shared<RSLightUpEffectFilter>(lightUpDegree);
+    EXPECT_TRUE(filter != nullptr);
+
+    EXPECT_TRUE(filter->GetLightUpDegree() == FLT_MAX);
+    filter->GetDescription();
+
+    auto filter2 = std::make_shared<RSLightUpEffectFilter>(lightUpDegree);
+    auto result = filter->Compose(filter2);
+    EXPECT_TRUE(result != nullptr);
+
+    RSLightUpEffectFilter rsLightUpEffectFilter = RSLightUpEffectFilter(lightUpDegree);
+    rsLightUpEffectFilter.GetDescription();
+}
+
+/**
+ * @tc.name: RSLightUpEffectFilterTestFLT_MIN
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSLightUpEffectFilterTest, RSLightUpEffectFilterTestFLT_MIN, TestSize.Level1)
+{
+    float lightUpDegree = FLT_MIN;
+    auto filter = std::make_shared<RSLightUpEffectFilter>(lightUpDegree);
+    EXPECT_TRUE(filter != nullptr);
+
+    EXPECT_TRUE(filter->GetLightUpDegree() == FLT_MIN);
+    filter->GetDescription();
+
+    auto filter2 = std::make_shared<RSLightUpEffectFilter>(lightUpDegree);
+    auto result = filter->Compose(filter2);
+    EXPECT_TRUE(result != nullptr);
+
+    RSLightUpEffectFilter rsLightUpEffectFilter = RSLightUpEffectFilter(lightUpDegree);
+    rsLightUpEffectFilter.GetDescription();
+}
+
+/**
  * @tc.name: RSLightUpEffectFilterTest002
  * @tc.desc:
  * @tc.type:FUNC
@@ -150,6 +194,231 @@ HWTEST_F(RSLightUpEffectFilterTest, GetDescriptAddTest001ionTest001, TestSize.Le
 }
 
 /**
+ * @tc.name: GetDescriptAddTestNONE
+ * @tc.desc: Verify function Add
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSLightUpEffectFilterTest, GetDescriptAddTestNONE, TestSize.Level1)
+{
+    float lightUpDegree = 1.0f;
+    auto filter = std::make_shared<RSLightUpEffectFilter>(lightUpDegree);
+    auto rhs = std::make_shared<RSFilter>();
+    EXPECT_NE(filter->Add(rhs), nullptr);
+    rhs->type_ = RSDrawingFilterOriginal::FilterType::NONE;
+    EXPECT_NE(filter->Add(rhs), nullptr);
+}
+
+/**
+ * @tc.name: GetDescriptAddTestBLUR
+ * @tc.desc: Verify function Add
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSLightUpEffectFilterTest, GetDescriptAddTestBLUR, TestSize.Level1)
+{
+    float lightUpDegree = 1.0f;
+    auto filter = std::make_shared<RSLightUpEffectFilter>(lightUpDegree);
+    auto rhs = std::make_shared<RSFilter>();
+    EXPECT_NE(filter->Add(rhs), nullptr);
+    rhs->type_ = RSDrawingFilterOriginal::FilterType::BLUR;
+    EXPECT_NE(filter->Add(rhs), nullptr);
+}
+
+/**
+ * @tc.name: GetDescriptAddTestMATERIAL
+ * @tc.desc: Verify function Add
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSLightUpEffectFilterTest, GetDescriptAddTestMATERIAL, TestSize.Level1)
+{
+    float lightUpDegree = 1.0f;
+    auto filter = std::make_shared<RSLightUpEffectFilter>(lightUpDegree);
+    auto rhs = std::make_shared<RSFilter>();
+    EXPECT_NE(filter->Add(rhs), nullptr);
+    rhs->type_ = RSDrawingFilterOriginal::FilterType::MATERIAL;
+    EXPECT_NE(filter->Add(rhs), nullptr);
+}
+
+/**
+ * @tc.name: GetDescriptAddTestAIBAR
+ * @tc.desc: Verify function Add
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSLightUpEffectFilterTest, GetDescriptAddTestAIBAR, TestSize.Level1)
+{
+    float lightUpDegree = 1.0f;
+    auto filter = std::make_shared<RSLightUpEffectFilter>(lightUpDegree);
+    auto rhs = std::make_shared<RSFilter>();
+    EXPECT_NE(filter->Add(rhs), nullptr);
+    rhs->type_ = RSDrawingFilterOriginal::FilterType::AIBAR;
+    EXPECT_NE(filter->Add(rhs), nullptr);
+}
+
+/**
+ * @tc.name: GetDescriptAddTestLINEAR_GRADIENT_BLUR
+ * @tc.desc: Verify function Add
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSLightUpEffectFilterTest, GetDescriptAddTestLINEAR_GRADIENT_BLUR, TestSize.Level1)
+{
+    float lightUpDegree = 1.0f;
+    auto filter = std::make_shared<RSLightUpEffectFilter>(lightUpDegree);
+    auto rhs = std::make_shared<RSFilter>();
+    EXPECT_NE(filter->Add(rhs), nullptr);
+    rhs->type_ = RSDrawingFilterOriginal::FilterType::LINEAR_GRADIENT_BLUR;
+    EXPECT_NE(filter->Add(rhs), nullptr);
+}
+
+/**
+ * @tc.name: GetDescriptAddTestFOREGROUND_EFFECT
+ * @tc.desc: Verify function Add
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSLightUpEffectFilterTest, GetDescriptAddTestFOREGROUND_EFFECT, TestSize.Level1)
+{
+    float lightUpDegree = 1.0f;
+    auto filter = std::make_shared<RSLightUpEffectFilter>(lightUpDegree);
+    auto rhs = std::make_shared<RSFilter>();
+    EXPECT_NE(filter->Add(rhs), nullptr);
+    rhs->type_ = RSDrawingFilterOriginal::FilterType::FOREGROUND_EFFECT;
+    EXPECT_NE(filter->Add(rhs), nullptr);
+}
+
+/**
+ * @tc.name: GetDescriptAddTestMOTION_BLUR
+ * @tc.desc: Verify function Add
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSLightUpEffectFilterTest, GetDescriptAddTestMOTION_BLUR, TestSize.Level1)
+{
+    float lightUpDegree = 1.0f;
+    auto filter = std::make_shared<RSLightUpEffectFilter>(lightUpDegree);
+    auto rhs = std::make_shared<RSFilter>();
+    EXPECT_NE(filter->Add(rhs), nullptr);
+    rhs->type_ = RSDrawingFilterOriginal::FilterType::MOTION_BLUR;
+    EXPECT_NE(filter->Add(rhs), nullptr);
+}
+
+/**
+ * @tc.name: GetDescriptAddTestSPHERIZE_EFFECT
+ * @tc.desc: Verify function Add
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSLightUpEffectFilterTest, GetDescriptAddTestSPHERIZE_EFFECT, TestSize.Level1)
+{
+    float lightUpDegree = 1.0f;
+    auto filter = std::make_shared<RSLightUpEffectFilter>(lightUpDegree);
+    auto rhs = std::make_shared<RSFilter>();
+    EXPECT_NE(filter->Add(rhs), nullptr);
+    rhs->type_ = RSDrawingFilterOriginal::FilterType::SPHERIZE_EFFECT;
+    EXPECT_NE(filter->Add(rhs), nullptr);
+}
+
+/**
+ * @tc.name: GetDescriptAddTestCOLORFUL_SHADOW
+ * @tc.desc: Verify function Add
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSLightUpEffectFilterTest, GetDescriptAddTestCOLORFUL_SHADOW, TestSize.Level1)
+{
+    float lightUpDegree = 1.0f;
+    auto filter = std::make_shared<RSLightUpEffectFilter>(lightUpDegree);
+    auto rhs = std::make_shared<RSFilter>();
+    EXPECT_NE(filter->Add(rhs), nullptr);
+    rhs->type_ = RSDrawingFilterOriginal::FilterType::COLORFUL_SHADOW;
+    EXPECT_NE(filter->Add(rhs), nullptr);
+}
+
+/**
+ * @tc.name: GetDescriptAddTestATTRACTION_EFFECT
+ * @tc.desc: Verify function Add
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSLightUpEffectFilterTest, GetDescriptAddTestATTRACTION_EFFECT, TestSize.Level1)
+{
+    float lightUpDegree = 1.0f;
+    auto filter = std::make_shared<RSLightUpEffectFilter>(lightUpDegree);
+    auto rhs = std::make_shared<RSFilter>();
+    EXPECT_NE(filter->Add(rhs), nullptr);
+    rhs->type_ = RSDrawingFilterOriginal::FilterType::ATTRACTION_EFFECT;
+    EXPECT_NE(filter->Add(rhs), nullptr);
+}
+
+/**
+ * @tc.name: GetDescriptAddTestWATER_RIPPLE
+ * @tc.desc: Verify function Add
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSLightUpEffectFilterTest, GetDescriptAddTestWATER_RIPPLE, TestSize.Level1)
+{
+    float lightUpDegree = 1.0f;
+    auto filter = std::make_shared<RSLightUpEffectFilter>(lightUpDegree);
+    auto rhs = std::make_shared<RSFilter>();
+    EXPECT_NE(filter->Add(rhs), nullptr);
+    rhs->type_ = RSDrawingFilterOriginal::FilterType::WATER_RIPPLE;
+    EXPECT_NE(filter->Add(rhs), nullptr);
+}
+
+/**
+ * @tc.name: GetDescriptAddTestCOMPOUND_EFFECT
+ * @tc.desc: Verify function Add
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSLightUpEffectFilterTest, GetDescriptAddTestCOMPOUND_EFFECT, TestSize.Level1)
+{
+    float lightUpDegree = 1.0f;
+    auto filter = std::make_shared<RSLightUpEffectFilter>(lightUpDegree);
+    auto rhs = std::make_shared<RSFilter>();
+    EXPECT_NE(filter->Add(rhs), nullptr);
+    rhs->type_ = RSDrawingFilterOriginal::FilterType::COMPOUND_EFFECT;
+    EXPECT_NE(filter->Add(rhs), nullptr);
+}
+
+/**
+ * @tc.name: GetDescriptAddTestMAGNIFIER
+ * @tc.desc: Verify function Add
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSLightUpEffectFilterTest, GetDescriptAddTestMAGNIFIER, TestSize.Level1)
+{
+    float lightUpDegree = 1.0f;
+    auto filter = std::make_shared<RSLightUpEffectFilter>(lightUpDegree);
+    auto rhs = std::make_shared<RSFilter>();
+    EXPECT_NE(filter->Add(rhs), nullptr);
+    rhs->type_ = RSDrawingFilterOriginal::FilterType::MAGNIFIER;
+    EXPECT_NE(filter->Add(rhs), nullptr);
+}
+
+/**
+ * @tc.name: GetDescriptAddTestFLY_OUT
+ * @tc.desc: Verify function Add
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSLightUpEffectFilterTest, GetDescriptAddTestFLY_OUT, TestSize.Level1)
+{
+    float lightUpDegree = 1.0f;
+    auto filter = std::make_shared<RSLightUpEffectFilter>(lightUpDegree);
+    auto rhs = std::make_shared<RSFilter>();
+    EXPECT_NE(filter->Add(rhs), nullptr);
+    rhs->type_ = RSDrawingFilterOriginal::FilterType::FLY_OUT;
+    EXPECT_NE(filter->Add(rhs), nullptr);
+}
+
+/**
+ * @tc.name: GetDescriptAddTestDISTORT
+ * @tc.desc: Verify function Add
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSLightUpEffectFilterTest, GetDescriptAddTestDISTORT, TestSize.Level1)
+{
+    float lightUpDegree = 1.0f;
+    auto filter = std::make_shared<RSLightUpEffectFilter>(lightUpDegree);
+    auto rhs = std::make_shared<RSFilter>();
+    EXPECT_NE(filter->Add(rhs), nullptr);
+    rhs->type_ = RSDrawingFilterOriginal::FilterType::DISTORT;
+    EXPECT_NE(filter->Add(rhs), nullptr);
+}
+
+/**
  * @tc.name: AddTest002
  * @tc.desc: Verify function Add
  * @tc.type:FUNC
@@ -173,6 +442,231 @@ HWTEST_F(RSLightUpEffectFilterTest, SubTest001, TestSize.Level1)
     auto rhs = std::make_shared<RSFilter>();
     EXPECT_NE(filter->Sub(rhs), nullptr);
     rhs->type_ = RSDrawingFilterOriginal::FilterType::LIGHT_UP_EFFECT;
+    EXPECT_NE(filter->Sub(rhs), nullptr);
+}
+
+/**
+ * @tc.name: SubTestNONE
+ * @tc.desc: Verify function Sub
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSLightUpEffectFilterTest, SubTestNONE, TestSize.Level1)
+{
+    float lightUpDegree = 1.0f;
+    auto filter = std::make_shared<RSLightUpEffectFilter>(lightUpDegree);
+    auto rhs = std::make_shared<RSFilter>();
+    EXPECT_NE(filter->Sub(rhs), nullptr);
+    rhs->type_ = RSDrawingFilterOriginal::FilterType::NONE;
+    EXPECT_NE(filter->Sub(rhs), nullptr);
+}
+
+/**
+ * @tc.name: SubTestBLUR
+ * @tc.desc: Verify function Sub
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSLightUpEffectFilterTest, SubTestBLUR, TestSize.Level1)
+{
+    float lightUpDegree = 1.0f;
+    auto filter = std::make_shared<RSLightUpEffectFilter>(lightUpDegree);
+    auto rhs = std::make_shared<RSFilter>();
+    EXPECT_NE(filter->Sub(rhs), nullptr);
+    rhs->type_ = RSDrawingFilterOriginal::FilterType::BLUR;
+    EXPECT_NE(filter->Sub(rhs), nullptr);
+}
+
+/**
+ * @tc.name: SubTestMATERIAL
+ * @tc.desc: Verify function Sub
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSLightUpEffectFilterTest, SubTestMATERIAL, TestSize.Level1)
+{
+    float lightUpDegree = 1.0f;
+    auto filter = std::make_shared<RSLightUpEffectFilter>(lightUpDegree);
+    auto rhs = std::make_shared<RSFilter>();
+    EXPECT_NE(filter->Sub(rhs), nullptr);
+    rhs->type_ = RSDrawingFilterOriginal::FilterType::MATERIAL;
+    EXPECT_NE(filter->Sub(rhs), nullptr);
+}
+
+/**
+ * @tc.name: SubTestAIBAR
+ * @tc.desc: Verify function Sub
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSLightUpEffectFilterTest, SubTestAIBAR, TestSize.Level1)
+{
+    float lightUpDegree = 1.0f;
+    auto filter = std::make_shared<RSLightUpEffectFilter>(lightUpDegree);
+    auto rhs = std::make_shared<RSFilter>();
+    EXPECT_NE(filter->Sub(rhs), nullptr);
+    rhs->type_ = RSDrawingFilterOriginal::FilterType::AIBAR;
+    EXPECT_NE(filter->Sub(rhs), nullptr);
+}
+
+/**
+ * @tc.name: SubTestLINEAR_GRADIENT_BLUR
+ * @tc.desc: Verify function Sub
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSLightUpEffectFilterTest, SubTestLINEAR_GRADIENT_BLUR, TestSize.Level1)
+{
+    float lightUpDegree = 1.0f;
+    auto filter = std::make_shared<RSLightUpEffectFilter>(lightUpDegree);
+    auto rhs = std::make_shared<RSFilter>();
+    EXPECT_NE(filter->Sub(rhs), nullptr);
+    rhs->type_ = RSDrawingFilterOriginal::FilterType::LINEAR_GRADIENT_BLUR;
+    EXPECT_NE(filter->Sub(rhs), nullptr);
+}
+
+/**
+ * @tc.name: SubTestFOREGROUND_EFFECT
+ * @tc.desc: Verify function Sub
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSLightUpEffectFilterTest, SubTestFOREGROUND_EFFECT, TestSize.Level1)
+{
+    float lightUpDegree = 1.0f;
+    auto filter = std::make_shared<RSLightUpEffectFilter>(lightUpDegree);
+    auto rhs = std::make_shared<RSFilter>();
+    EXPECT_NE(filter->Sub(rhs), nullptr);
+    rhs->type_ = RSDrawingFilterOriginal::FilterType::FOREGROUND_EFFECT;
+    EXPECT_NE(filter->Sub(rhs), nullptr);
+}
+
+/**
+ * @tc.name: SubTestMOTION_BLUR
+ * @tc.desc: Verify function Sub
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSLightUpEffectFilterTest, SubTestMOTION_BLUR, TestSize.Level1)
+{
+    float lightUpDegree = 1.0f;
+    auto filter = std::make_shared<RSLightUpEffectFilter>(lightUpDegree);
+    auto rhs = std::make_shared<RSFilter>();
+    EXPECT_NE(filter->Sub(rhs), nullptr);
+    rhs->type_ = RSDrawingFilterOriginal::FilterType::MOTION_BLUR;
+    EXPECT_NE(filter->Sub(rhs), nullptr);
+}
+
+/**
+ * @tc.name: SubTestSPHERIZE_EFFECT
+ * @tc.desc: Verify function Sub
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSLightUpEffectFilterTest, SubTestSPHERIZE_EFFECT, TestSize.Level1)
+{
+    float lightUpDegree = 1.0f;
+    auto filter = std::make_shared<RSLightUpEffectFilter>(lightUpDegree);
+    auto rhs = std::make_shared<RSFilter>();
+    EXPECT_NE(filter->Sub(rhs), nullptr);
+    rhs->type_ = RSDrawingFilterOriginal::FilterType::SPHERIZE_EFFECT;
+    EXPECT_NE(filter->Sub(rhs), nullptr);
+}
+
+/**
+ * @tc.name: SubTestCOLORFUL_SHADOW
+ * @tc.desc: Verify function Sub
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSLightUpEffectFilterTest, SubTestCOLORFUL_SHADOW, TestSize.Level1)
+{
+    float lightUpDegree = 1.0f;
+    auto filter = std::make_shared<RSLightUpEffectFilter>(lightUpDegree);
+    auto rhs = std::make_shared<RSFilter>();
+    EXPECT_NE(filter->Sub(rhs), nullptr);
+    rhs->type_ = RSDrawingFilterOriginal::FilterType::COLORFUL_SHADOW;
+    EXPECT_NE(filter->Sub(rhs), nullptr);
+}
+
+/**
+ * @tc.name: SubTestATTRACTION_EFFECT
+ * @tc.desc: Verify function Sub
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSLightUpEffectFilterTest, SubTestATTRACTION_EFFECT, TestSize.Level1)
+{
+    float lightUpDegree = 1.0f;
+    auto filter = std::make_shared<RSLightUpEffectFilter>(lightUpDegree);
+    auto rhs = std::make_shared<RSFilter>();
+    EXPECT_NE(filter->Sub(rhs), nullptr);
+    rhs->type_ = RSDrawingFilterOriginal::FilterType::ATTRACTION_EFFECT;
+    EXPECT_NE(filter->Sub(rhs), nullptr);
+}
+
+/**
+ * @tc.name: SubTestWATER_RIPPLE
+ * @tc.desc: Verify function Sub
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSLightUpEffectFilterTest, SubTestWATER_RIPPLE, TestSize.Level1)
+{
+    float lightUpDegree = 1.0f;
+    auto filter = std::make_shared<RSLightUpEffectFilter>(lightUpDegree);
+    auto rhs = std::make_shared<RSFilter>();
+    EXPECT_NE(filter->Sub(rhs), nullptr);
+    rhs->type_ = RSDrawingFilterOriginal::FilterType::WATER_RIPPLE;
+    EXPECT_NE(filter->Sub(rhs), nullptr);
+}
+
+/**
+ * @tc.name: SubTestCOMPOUND_EFFECT
+ * @tc.desc: Verify function Sub
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSLightUpEffectFilterTest, SubTestCOMPOUND_EFFECT, TestSize.Level1)
+{
+    float lightUpDegree = 1.0f;
+    auto filter = std::make_shared<RSLightUpEffectFilter>(lightUpDegree);
+    auto rhs = std::make_shared<RSFilter>();
+    EXPECT_NE(filter->Sub(rhs), nullptr);
+    rhs->type_ = RSDrawingFilterOriginal::FilterType::COMPOUND_EFFECT;
+    EXPECT_NE(filter->Sub(rhs), nullptr);
+}
+
+/**
+ * @tc.name: SubTestMAGNIFIER
+ * @tc.desc: Verify function Sub
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSLightUpEffectFilterTest, SubTestMAGNIFIER, TestSize.Level1)
+{
+    float lightUpDegree = 1.0f;
+    auto filter = std::make_shared<RSLightUpEffectFilter>(lightUpDegree);
+    auto rhs = std::make_shared<RSFilter>();
+    EXPECT_NE(filter->Sub(rhs), nullptr);
+    rhs->type_ = RSDrawingFilterOriginal::FilterType::MAGNIFIER;
+    EXPECT_NE(filter->Sub(rhs), nullptr);
+}
+
+/**
+ * @tc.name: SubTestFLY_OUT
+ * @tc.desc: Verify function Sub
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSLightUpEffectFilterTest, SubTestFLY_OUT, TestSize.Level1)
+{
+    float lightUpDegree = 1.0f;
+    auto filter = std::make_shared<RSLightUpEffectFilter>(lightUpDegree);
+    auto rhs = std::make_shared<RSFilter>();
+    EXPECT_NE(filter->Sub(rhs), nullptr);
+    rhs->type_ = RSDrawingFilterOriginal::FilterType::FLY_OUT;
+    EXPECT_NE(filter->Sub(rhs), nullptr);
+}
+
+/**
+ * @tc.name: SubTestDISTORT
+ * @tc.desc: Verify function Sub
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSLightUpEffectFilterTest, SubTestDISTORT, TestSize.Level1)
+{
+    float lightUpDegree = 1.0f;
+    auto filter = std::make_shared<RSLightUpEffectFilter>(lightUpDegree);
+    auto rhs = std::make_shared<RSFilter>();
+    EXPECT_NE(filter->Sub(rhs), nullptr);
+    rhs->type_ = RSDrawingFilterOriginal::FilterType::DISTORT;
     EXPECT_NE(filter->Sub(rhs), nullptr);
 }
 

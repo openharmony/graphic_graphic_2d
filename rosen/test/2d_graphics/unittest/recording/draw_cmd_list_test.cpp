@@ -154,16 +154,188 @@ HWTEST_F(DrawCmdListTest, GenerateCacheByBuffer006, TestSize.Level1)
 }
 
 /**
- * @tc.name: CountTextBlobNum007
- * @tc.desc: Test the CountTextBlobNum function.
+ * @tc.name: GetBounds001
+ * @tc.desc: Test the GetBounds function.
  * @tc.type: FUNC
- * @tc.require: IBJ4VQ
+ * @tc.require: IC2UAC
  */
-HWTEST_F(DrawCmdListTest, CountTextBlobNum007, TestSize.Level1)
+HWTEST_F(DrawCmdListTest, GetBounds001, TestSize.Level1)
 {
     auto drawCmdList = new DrawCmdList(DrawCmdList::UnmarshalMode::IMMEDIATE);
-    size_t textBlobCnt = drawCmdList->CountTextBlobNum();
-    EXPECT_TRUE(textBlobCnt == 0);
+    EXPECT_TRUE(drawCmdList->opAllocator_.GetSize() <= drawCmdList->offset_);
+    auto ret = drawCmdList->UnmarshallingDrawOpsSimple();
+    EXPECT_EQ(ret, false);
+    Rect rect;
+    drawCmdList->GetBounds(rect);
+    EXPECT_EQ(rect.IsValid(), false);
+    delete drawCmdList;
+}
+
+/**
+ * @tc.name: GetBounds002
+ * @tc.desc: Test the GetBounds function.
+ * @tc.type: FUNC
+ * @tc.require: IC2UAC
+ */
+HWTEST_F(DrawCmdListTest, GetBounds002, TestSize.Level1)
+{
+    auto drawCmdList = new DrawCmdList(DrawCmdList::UnmarshalMode::IMMEDIATE);
+    drawCmdList->opAllocator_.size_ = drawCmdList->offset_ + 1;
+    EXPECT_TRUE(drawCmdList->opAllocator_.GetSize() > drawCmdList->offset_);
+    auto ret = drawCmdList->UnmarshallingDrawOpsSimple();
+    EXPECT_EQ(ret, true);
+    Rect rect;
+    drawCmdList->GetBounds(rect);
+    delete drawCmdList;
+}
+
+/**
+ * @tc.name: GetBounds003
+ * @tc.desc: Test the GetBounds function.
+ * @tc.type: FUNC
+ * @tc.require: IC2UAC
+ */
+HWTEST_F(DrawCmdListTest, GetBounds003, TestSize.Level1)
+{
+    auto drawCmdList = new DrawCmdList(DrawCmdList::UnmarshalMode::IMMEDIATE);
+    drawCmdList->opAllocator_.size_ = drawCmdList->offset_ + 1;
+    EXPECT_TRUE(drawCmdList->opAllocator_.GetSize() > drawCmdList->offset_);
+    drawCmdList->lastOpGenSize_ = drawCmdList->opAllocator_.GetSize();
+    Brush brush;
+    drawCmdList->drawOpItems_.emplace_back(std::make_shared<DrawBackgroundOpItem>(brush));
+    Rect rect = Rect(0.0f, 0.0f, 100.0f, 100.0f);
+    auto opItem = std::make_shared<HybridRenderPixelMapSizeOpItem>(rect.GetWidth(), rect.GetHeight());
+    drawCmdList->drawOpItems_.emplace_back(opItem);
+    auto ret = drawCmdList->UnmarshallingDrawOpsSimple();
+    EXPECT_EQ(ret, true);
+    Rect rectGet;
+    drawCmdList->GetBounds(rectGet);
+    EXPECT_EQ(rect, rectGet);
+    delete drawCmdList;
+}
+
+/**
+ * @tc.name: GetBounds004
+ * @tc.desc: Test the GetBounds function.
+ * @tc.type: FUNC
+ * @tc.require: IC8J12
+ */
+HWTEST_F(DrawCmdListTest, GetBounds004, TestSize.Level1)
+{
+    auto drawCmdList = new DrawCmdList(DrawCmdList::UnmarshalMode::IMMEDIATE);
+    drawCmdList->drawOpItems_.emplace_back(nullptr);
+    Rect rect;
+    drawCmdList->GetBounds(rect);
+    EXPECT_EQ(rect.IsValid(), false);
+    delete drawCmdList;
+}
+
+/**
+ * @tc.name: IsHybridRenderEnabled001
+ * @tc.desc: Test the IsHybridRenderEnabled function.
+ * @tc.type: FUNC
+ * @tc.require: IC2UAC
+ */
+HWTEST_F(DrawCmdListTest, IsHybridRenderEnabled001, TestSize.Level1)
+{
+    auto drawCmdList = new DrawCmdList(DrawCmdList::UnmarshalMode::IMMEDIATE);
+    EXPECT_TRUE(drawCmdList->opAllocator_.GetSize() <= drawCmdList->offset_);
+    drawCmdList->hybridRenderType_ = DrawCmdList::HybridRenderType::CANVAS;
+    auto ret = drawCmdList->IsHybridRenderEnabled(0, 0);
+    EXPECT_EQ(ret, true);
+    delete drawCmdList;
+}
+
+/**
+ * @tc.name: IsHybridRenderEnabled002
+ * @tc.desc: Test the IsHybridRenderEnabled function.
+ * @tc.type: FUNC
+ * @tc.require: IC2UAC
+ */
+HWTEST_F(DrawCmdListTest, IsHybridRenderEnabled002, TestSize.Level1)
+{
+    auto drawCmdList = new DrawCmdList(DrawCmdList::UnmarshalMode::IMMEDIATE);
+    drawCmdList->opAllocator_.size_ = drawCmdList->offset_ + 1;
+    EXPECT_TRUE(drawCmdList->opAllocator_.GetSize() > drawCmdList->offset_);
+    auto ret = drawCmdList->IsHybridRenderEnabled(INT_MAX, INT_MAX);
+    EXPECT_EQ(ret, true);
+    delete drawCmdList;
+}
+
+/**
+ * @tc.name: IsHybridRenderEnabled003
+ * @tc.desc: Test the IsHybridRenderEnabled function.
+ * @tc.type: FUNC
+ * @tc.require: IC2UAC
+ */
+HWTEST_F(DrawCmdListTest, IsHybridRenderEnabled003, TestSize.Level1)
+{
+    auto drawCmdList = new DrawCmdList(DrawCmdList::UnmarshalMode::IMMEDIATE);
+    drawCmdList->opAllocator_.size_ = drawCmdList->offset_ + 1;
+    EXPECT_TRUE(drawCmdList->opAllocator_.GetSize() > drawCmdList->offset_);
+    drawCmdList->lastOpGenSize_ = drawCmdList->opAllocator_.GetSize();
+    Brush brush;
+    drawCmdList->drawOpItems_.emplace_back(std::make_shared<DrawBackgroundOpItem>(brush));
+    Rect rect = Rect(0.0f, 0.0f, 100.0f, 100.0f);
+    auto opItem = std::make_shared<HybridRenderPixelMapSizeOpItem>(rect.GetWidth(), rect.GetHeight());
+    drawCmdList->drawOpItems_.emplace_back(opItem);
+    auto ret = drawCmdList->IsHybridRenderEnabled(INT_MAX, INT_MAX);
+    EXPECT_EQ(ret, false);
+    delete drawCmdList;
+}
+
+/**
+ * @tc.name: IsHybridRenderEnabled004
+ * @tc.desc: Test the IsHybridRenderEnabled function.
+ * @tc.type: FUNC
+ * @tc.require: IC2UAC
+ */
+HWTEST_F(DrawCmdListTest, IsHybridRenderEnabled004, TestSize.Level1)
+{
+    auto drawCmdList = new DrawCmdList(DrawCmdList::UnmarshalMode::IMMEDIATE);
+    drawCmdList->opAllocator_.size_ = drawCmdList->offset_ + 1;
+    EXPECT_TRUE(drawCmdList->opAllocator_.GetSize() > drawCmdList->offset_);
+    drawCmdList->width_ = 5001;
+    drawCmdList->height_ = 1000;
+    auto ret = drawCmdList->IsHybridRenderEnabled(5000, 5000);
+    EXPECT_EQ(ret, false);
+    drawCmdList->width_ = 5001;
+    drawCmdList->height_ = 5000;
+    ret = drawCmdList->IsHybridRenderEnabled(5000, 5000);
+    EXPECT_EQ(ret, false);
+    drawCmdList->width_ = 1000;
+    drawCmdList->height_ = 5001;
+    ret = drawCmdList->IsHybridRenderEnabled(5000, 5000);
+    EXPECT_EQ(ret, false);
+    drawCmdList->width_ = -1;
+    drawCmdList->height_ = 5001;
+    ret = drawCmdList->IsHybridRenderEnabled(5000, 5000);
+    EXPECT_EQ(ret, false);
+    drawCmdList->width_ = 5001;
+    drawCmdList->height_ = -1;
+    ret = drawCmdList->IsHybridRenderEnabled(5000, 5000);
+    EXPECT_EQ(ret, false);
+    drawCmdList->width_ = -1;
+    drawCmdList->height_ = -1;
+    ret = drawCmdList->IsHybridRenderEnabled(5000, 5000);
+    EXPECT_EQ(ret, true);
+    delete drawCmdList;
+}
+
+/**
+ * @tc.name: ProfilerMarshallingDrawOps
+ * @tc.desc: Test ProfilerMarshallingDrawOps
+ * @tc.type: FUNC
+ * @tc.require: IC2UAC
+ */
+HWTEST_F(DrawCmdListTest, ProfilerMarshallingDrawOps, TestSize.Level1)
+{
+    auto drawCmdList = new DrawCmdList(DrawCmdList::UnmarshalMode::DEFERRED);
+    auto secondDrawCmdList = new DrawCmdList(DrawCmdList::UnmarshalMode::DEFERRED);
+    Brush brush;
+    drawCmdList->drawOpItems_.emplace_back(std::make_shared<DrawBackgroundOpItem>(brush));
+    drawCmdList->ProfilerMarshallingDrawOps(secondDrawCmdList);
+    EXPECT_EQ(secondDrawCmdList->drawOpItems_.size(), 1);
     delete drawCmdList;
 }
 } // namespace Drawing

@@ -17,6 +17,7 @@
 #define GRAPHIC_COMPOSER_DISPLAY_TYPE_H
 #include "buffer_handle.h"
 #include "surface_type.h"
+#include "sync_fence.h"
 
 #ifdef __cplusplus
 extern "C" {

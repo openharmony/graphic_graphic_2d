@@ -19,6 +19,7 @@
 
 #include "pipeline/rs_render_node.h"
 #include "platform/common/rs_log.h"
+#include "render/rs_render_filter.h"
 #include "rs_profiler.h"
 
 namespace OHOS {
@@ -155,6 +156,18 @@ bool RSRenderPropertyBase::Marshalling(Parcel& parcel, const std::shared_ptr<RSR
             }
             return flag;
         }
+        case RSRenderPropertyType::PROPERTY_VECTOR3F: {
+            auto property = std::static_pointer_cast<RSRenderAnimatableProperty<Vector3f>>(val);
+            if (property == nullptr) {
+                return false;
+            }
+            bool flag = parcel.WriteUint64(property->GetId()) &&
+                        RSMarshallingHelper::Marshalling(parcel, property->Get());
+            if (!flag) {
+                ROSEN_LOGE("RSRenderPropertyBase::Marshalling PROPERTY_VECTOR3F failed");
+            }
+            return flag;
+        }
         case RSRenderPropertyType::PROPERTY_VECTOR4F: {
             auto property = std::static_pointer_cast<RSRenderAnimatableProperty<Vector4f>>(val);
             if (property == nullptr) {
@@ -191,7 +204,27 @@ bool RSRenderPropertyBase::Marshalling(Parcel& parcel, const std::shared_ptr<RSR
             }
             return flag;
         }
+        case RSRenderPropertyType::PROPERTY_SHADER_PARAM: {
+            auto property = std::static_pointer_cast<RSRenderAnimatableProperty<std::vector<float>>>(val);
+            if (property == nullptr) {
+                return false;
+            }
+            return parcel.WriteUint64(property->GetId()) && RSMarshallingHelper::Marshalling(parcel, property->Get());
+        }
+        case RSRenderPropertyType::PROPERTY_UI_FILTER: {
+            auto property = std::static_pointer_cast<RSRenderProperty<std::shared_ptr<RSRenderFilter>>>(val);
+            if (property == nullptr) {
+                return false;
+            }
+            bool flag = parcel.WriteUint64(
+                property->GetId()) && RSMarshallingHelper::Marshalling(parcel, property->Get());
+            if (!flag) {
+                ROSEN_LOGE("RSRenderPropertyBase::Marshalling PROPERTY_UI_FILTER failed");
+            }
+            return flag;
+        }
         default: {
+            ROSEN_LOGE("RSRenderPropertyBase::Marshalling unknown type failed");
             return false;
         }
     }
@@ -271,6 +304,14 @@ bool RSRenderPropertyBase::Unmarshalling(Parcel& parcel, std::shared_ptr<RSRende
             val.reset(new RSRenderAnimatableProperty<Vector2f>(value, id, type, unit));
             break;
         }
+        case RSRenderPropertyType::PROPERTY_VECTOR3F: {
+            Vector3f value;
+            if (!RSMarshallingHelper::Unmarshalling(parcel, value)) {
+                return false;
+            }
+            val.reset(new RSRenderAnimatableProperty<Vector3f>(value, id, type, unit));
+            break;
+        }
         case RSRenderPropertyType::PROPERTY_VECTOR4F: {
             Vector4f value;
             if (!RSMarshallingHelper::Unmarshalling(parcel, value)) {
@@ -295,7 +336,25 @@ bool RSRenderPropertyBase::Unmarshalling(Parcel& parcel, std::shared_ptr<RSRende
             val.reset(new RSRenderAnimatableProperty<RRect>(value, id, type, unit));
             break;
         }
+        case RSRenderPropertyType::PROPERTY_SHADER_PARAM: {
+            std::vector<float> value;
+            if (!RSMarshallingHelper::Unmarshalling(parcel, value)) {
+                return false;
+            }
+            val.reset(new RSRenderAnimatableProperty<std::vector<float>>(value, id, type, unit));
+            break;
+        }
+        case RSRenderPropertyType::PROPERTY_UI_FILTER: {
+            std::shared_ptr<RSRenderFilter> value;
+            if (!RSMarshallingHelper::Unmarshalling(parcel, value)) {
+                ROSEN_LOGE("RSRenderPropertyBase::Unmarshalling PROPERTY_UI_FILTER failed");
+                return false;
+            }
+            val = std::make_shared<RSRenderProperty<std::shared_ptr<RSRenderFilter>>>(value, id, type);
+            break;
+        }
         default: {
+            ROSEN_LOGE("RSRenderPropertyBase::Unmarshalling unknown type failed");
             return false;
         }
     }
@@ -324,6 +383,12 @@ template<>
 float RSRenderAnimatableProperty<Vector2f>::ToFloat() const
 {
     return RSRenderProperty<Vector2f>::stagingValue_.GetLength();
+}
+
+template<>
+float RSRenderAnimatableProperty<Vector3f>::ToFloat() const
+{
+    return RSRenderProperty<Vector3f>::stagingValue_.GetLength();
 }
 
 std::shared_ptr<RSRenderPropertyBase> operator+=(
@@ -515,6 +580,15 @@ void RSRenderProperty<Vector2f>::Dump(std::string& out) const
 }
 
 template<>
+void RSRenderProperty<Vector3f>::Dump(std::string& out) const
+{
+    Vector3f v3f = Get();
+    std::stringstream ss;
+    ss << std::fixed << std::setprecision(1) << "[x:" << v3f.x_ << " y:" << v3f.y_ << " z:" << v3f.z_ << "]";
+    out += ss.str();
+}
+
+template<>
 void RSRenderProperty<Matrix3f>::Dump(std::string& out) const
 {
 }
@@ -687,7 +761,7 @@ void RSRenderProperty<std::shared_ptr<RSImage>>::Dump(std::string& out) const
         return;
     }
     std::string info;
-    Get()->dump(info, 0);
+    Get()->Dump(info, 0);
     info.erase(std::remove_if(info.begin(), info.end(), [](auto c) { return c == '\t' || c == '\n'; }),
         info.end());
     out += "[\"" + info + "\"]";
@@ -754,6 +828,18 @@ bool RSRenderAnimatableProperty<Vector2f>::IsNearEqual(
         return RSRenderProperty<Vector2f>::stagingValue_.IsNearEqual(animatableProperty->Get(), zeroThreshold);
     }
     ROSEN_LOGE("RSRenderAnimatableProperty<Vector2f>::IsNearEqual: the value of the comparison is a null pointer!");
+    return true;
+}
+
+template<>
+bool RSRenderAnimatableProperty<Vector3f>::IsNearEqual(
+    const std::shared_ptr<RSRenderPropertyBase>& value, float zeroThreshold) const
+{
+    auto animatableProperty = std::static_pointer_cast<const RSRenderAnimatableProperty<Vector3f>>(value);
+    if (animatableProperty != nullptr) {
+        return RSRenderProperty<Vector3f>::stagingValue_.IsNearEqual(animatableProperty->Get(), zeroThreshold);
+    }
+    ROSEN_LOGE("RSRenderAnimatableProperty<Vector3f>::IsNearEqual: the value of the comparison is a null pointer!");
     return true;
 }
 
@@ -845,7 +931,7 @@ bool RSRenderAnimatableProperty<Vector4<Color>>::IsNearEqual(
         auto otherValue = animatableProperty->Get();
         auto& otherData = otherValue.data_;
         int16_t threshold = static_cast<int16_t>(zeroThreshold);
-        return thisData[0].IsNearEqual(otherData[0], threshold) && thisData[2].IsNearEqual(otherData[2], threshold) &&
+        return thisData[0].IsNearEqual(otherData[0], threshold) && thisData[1].IsNearEqual(otherData[1], threshold) &&
                thisData[2].IsNearEqual(otherData[2], threshold) && thisData[3].IsNearEqual(otherData[3], threshold);
     }
     ROSEN_LOGE(
@@ -901,6 +987,7 @@ template class RSRenderProperty<Vector4<uint32_t>>;
 template class RSRenderProperty<Vector4f>;
 template class RSRenderProperty<Quaternion>;
 template class RSRenderProperty<Vector2f>;
+template class RSRenderProperty<Vector3f>;
 template class RSRenderProperty<Matrix3f>;
 template class RSRenderProperty<Color>;
 template class RSRenderProperty<std::shared_ptr<RSFilter>>;
@@ -920,15 +1007,19 @@ template class RSRenderProperty<std::shared_ptr<RSMagnifierParams>>;
 template class RSRenderProperty<std::vector<std::shared_ptr<EmitterUpdater>>>;
 template class RSRenderProperty<std::shared_ptr<ParticleNoiseFields>>;
 template class RSRenderProperty<std::shared_ptr<RSMask>>;
+template class RSRenderProperty<std::shared_ptr<RSRenderFilter>>;
+template class RSRenderProperty<std::shared_ptr<RSRenderMaskPara>>;
 
 template class RSRenderAnimatableProperty<float>;
 template class RSRenderAnimatableProperty<Vector4f>;
 template class RSRenderAnimatableProperty<Quaternion>;
 template class RSRenderAnimatableProperty<Vector2f>;
+template class RSRenderAnimatableProperty<Vector3f>;
 template class RSRenderAnimatableProperty<Matrix3f>;
 template class RSRenderAnimatableProperty<Color>;
 template class RSRenderAnimatableProperty<std::shared_ptr<RSFilter>>;
 template class RSRenderAnimatableProperty<Vector4<Color>>;
 template class RSRenderAnimatableProperty<RRect>;
+template class RSRenderAnimatableProperty<std::vector<float>>;
 } // namespace Rosen
 } // namespace OHOS

@@ -28,6 +28,8 @@
 #include "image/image.h"
 #include "text/hm_symbol.h"
 
+#define RSPARCELVER_ALWAYS 0x100
+#define RSPARCELVER_ADD_ANIMTOKEN 0
 
 namespace OHOS {
 namespace Media {
@@ -48,6 +50,7 @@ class Bitmap;
 class Typeface;
 }
 class RSFilter;
+class RSRenderFilter;
 class RSImage;
 class RSImageBase;
 class RSMask;
@@ -60,6 +63,8 @@ class ParticleNoiseField;
 class ParticleNoiseFields;
 template<typename T>
 class RenderParticleParaType;
+class AnnulusRegion;
+class Shape;
 class EmitterConfig;
 class ParticleVelocity;
 class RenderParticleColorParaType;
@@ -213,12 +218,12 @@ public:
     }
 
     static RSB_EXPORT bool Marshalling(Parcel& parcel, const std::shared_ptr<Drawing::DrawCmdList>& val,
-        bool isRecordCmd = false);
-    static RSB_EXPORT bool Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing::DrawCmdList>& val,
-        uint32_t* opItemCount = nullptr);
-    static RSB_EXPORT bool Marshalling(Parcel& parcel, const std::shared_ptr<Drawing::RecordCmd>& val);
+        int32_t recordCmdDepth = 0);
+    static RSB_EXPORT bool Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing::DrawCmdList>& val);
+    static RSB_EXPORT bool Marshalling(Parcel& parcel, const std::shared_ptr<Drawing::RecordCmd>& val,
+        int32_t recordCmdDepth = 0);
     static RSB_EXPORT bool Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing::RecordCmd>& val,
-        uint32_t* opItemCount = nullptr);
+        uint32_t* opItemCount = nullptr, uint32_t* recordCmdCount = nullptr, int32_t recordCmdDepth = 0);
     static RSB_EXPORT bool Marshalling(Parcel& parcel, std::shared_ptr<Drawing::Typeface>& val);
     static RSB_EXPORT bool Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing::Typeface>& val);
     static RSB_EXPORT bool Marshalling(Parcel& parcel, const std::shared_ptr<Drawing::Image>& val);
@@ -229,6 +234,27 @@ public:
     static RSB_EXPORT bool ReadColorSpaceFromParcel(Parcel& parcel, std::shared_ptr<Drawing::ColorSpace>& colorSpace);
 
     // reloaded marshalling & unmarshalling function for types
+#define DECLARE_FUNCTION_OVERLOAD(TYPE)                                                                   \
+    static RSB_EXPORT bool CompatibleMarshalling(Parcel& parcel, const TYPE& val, uint16_t paramVersion); \
+    static RSB_EXPORT bool CompatibleUnmarshalling(Parcel& parcel, TYPE& val, TYPE defaultValue, uint16_t paramVersion);
+
+    // basic types
+    DECLARE_FUNCTION_OVERLOAD(bool)
+    DECLARE_FUNCTION_OVERLOAD(int8_t)
+    DECLARE_FUNCTION_OVERLOAD(uint8_t)
+    DECLARE_FUNCTION_OVERLOAD(int16_t)
+    DECLARE_FUNCTION_OVERLOAD(uint16_t)
+    DECLARE_FUNCTION_OVERLOAD(int32_t)
+    DECLARE_FUNCTION_OVERLOAD(uint32_t)
+    DECLARE_FUNCTION_OVERLOAD(int64_t)
+    DECLARE_FUNCTION_OVERLOAD(uint64_t)
+    DECLARE_FUNCTION_OVERLOAD(float)
+    DECLARE_FUNCTION_OVERLOAD(double)
+#undef DECLARE_FUNCTION_OVERLOAD
+
+    static RSB_EXPORT void CompatibleUnmarshallingObsolete(Parcel& parcel, size_t typeSize, uint16_t paramVersion);
+
+// reloaded marshalling & unmarshalling function for types
 #define DECLARE_FUNCTION_OVERLOAD(TYPE)                                  \
     static RSB_EXPORT bool Marshalling(Parcel& parcel, const TYPE& val); \
     static RSB_EXPORT bool Unmarshalling(Parcel& parcel, TYPE& val);
@@ -261,9 +287,12 @@ public:
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<ParticleNoiseField>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<ParticleNoiseFields>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSFilter>)
+    DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSRenderFilter>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSMask>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSImage>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSImageBase>)
+    DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<AnnulusRegion>)
+    DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<Shape>)
     DECLARE_FUNCTION_OVERLOAD(EmitterConfig)
     DECLARE_FUNCTION_OVERLOAD(ParticleVelocity)
     DECLARE_FUNCTION_OVERLOAD(RenderParticleParaType<float>)
@@ -438,11 +467,17 @@ public:
 
     static void SetCallingPid(pid_t callingPid);
 
+    static bool MarshallingTransactionVer(Parcel& parcel);
+    static bool UnmarshallingTransactionVer(Parcel& parcel);
+    static bool TransactionVersionCheck(Parcel& parcel, uint8_t supportedFlag);
+
 private:
     static bool WriteToParcel(Parcel& parcel, const void* data, size_t size);
     static const void* ReadFromParcel(Parcel& parcel, size_t size, bool& isMalloc);
     static bool SkipFromParcel(Parcel& parcel, size_t size);
     static const void* ReadFromAshmem(Parcel& parcel, size_t size, bool& isMalloc);
+    static bool SafeUnmarshallingDrawCmdList(Parcel& parcel, std::shared_ptr<Drawing::DrawCmdList>& val,
+        uint32_t* opItemCount, uint32_t* recordCmdCount, int32_t recordCmdDepth);
 
     static constexpr size_t MAX_DATA_SIZE = 128 * 1024 * 1024; // 128M
     static constexpr size_t MIN_DATA_SIZE = 8 * 1024;          // 8k

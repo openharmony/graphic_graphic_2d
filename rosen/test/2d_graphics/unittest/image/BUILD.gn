@@ -33,14 +33,13 @@ ohos_unittest("2d_graphics_image_test") {
   include_dirs = [
     "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/include",
     "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/src",
-    "//third_party/googletest/googletest/include",
+    "$graphic_2d_root/rosen/modules/render_service_base/src",
   ]
 
   deps = [
     "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
     "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
     "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics:2d_graphics",
-    "//third_party/googletest:gtest_main",
   ]
 
   defines = [ "ROSEN_OHOS" ]

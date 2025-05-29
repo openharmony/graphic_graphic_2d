@@ -37,7 +37,8 @@ enum RSGraphicTestType {
 enum class RSGraphicTestMode : uint8_t {
     AUTOMATIC = 0x01,
     MANUAL = 0x02,
-    ALL = 0x01 | 0x02,
+    DYNAMIC = 0x04,
+    ALL = 0x01 | 0x02 | 0x04,
 };
 
 struct TestDefInfo {
@@ -92,9 +93,16 @@ public:
 #define GRAPHIC_N_TEST_3(test_case_name, test_type, test_name) \
     GRAPHIC_TEST_PARAMS(test_case_name, test_name, test_type, RSGraphicTestMode::MANUAL, false)
 
+#define GRAPHIC_D_TEST_2(test_type, test_name) \
+    GRAPHIC_TEST_PARAMS(RSGraphicTest, test_name, test_type, RSGraphicTestMode::DYNAMIC, false)
+
+#define GRAPHIC_D_TEST_3(test_case_name, test_type, test_name) \
+    GRAPHIC_TEST_PARAMS(test_case_name, test_name, test_type, RSGraphicTestMode::DYNAMIC, false)
+
 #define GET_MACRO(_1, _2, _3, NAME, ...) NAME
 #define GRAPHIC_TEST(...) GET_MACRO(__VA_ARGS__, GRAPHIC_TEST_3, GRAPHIC_TEST_2)(__VA_ARGS__)
 #define GRAPHIC_N_TEST(...) GET_MACRO(__VA_ARGS__, GRAPHIC_N_TEST_3, GRAPHIC_N_TEST_2)(__VA_ARGS__)
 #define GRAPHIC_TESTS(...) GET_MACRO(__VA_ARGS__, GRAPHIC_TESTS_3, GRAPHIC_TESTS_2)(__VA_ARGS__)
+#define GRAPHIC_D_TEST(...) GET_MACRO(__VA_ARGS__, GRAPHIC_D_TEST_3, GRAPHIC_D_TEST_2)(__VA_ARGS__)
 
 #endif // RS_GRAPHIC_TEST_EXT_H

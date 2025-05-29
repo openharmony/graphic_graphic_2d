@@ -42,7 +42,7 @@ enum BLUR_CLEAR_CACHE_REASON {
     FORCE_CLEAR_CACHE,
 };
 
-class RSPerfMonitorReporter {
+class RSB_EXPORT RSPerfMonitorReporter {
 public:
     RSB_EXPORT static RSPerfMonitorReporter& GetInstance();
 
@@ -103,13 +103,13 @@ private:
     std::mutex mtx_;
     
     //for rendergroup subhealth
-    static inline std::mutex drawingCacheTimeTakenMapMutex_;
-    static inline std::unordered_map<NodeId, std::vector<int64_t>> drawingCacheTimeTakenMap_;
-    static inline std::mutex drawingCacheLastTwoTimestampMapMutex_;
-    static inline std::unordered_map<NodeId,
+    std::mutex drawingCacheTimeTakenMapMutex_;
+    std::unordered_map<NodeId, std::vector<int64_t>> drawingCacheTimeTakenMap_;
+    std::mutex drawingCacheLastTwoTimestampMapMutex_;
+    std::unordered_map<NodeId,
         std::queue<std::chrono::time_point<high_resolution_clock>>> drawingCacheLastTwoTimestampMap_;
-    static inline std::mutex drawingCacheLastReportTimeMapMutex_;
-    static inline std::unordered_map<NodeId,
+    std::mutex drawingCacheLastReportTimeMapMutex_;
+    std::unordered_map<NodeId,
         std::chrono::time_point<high_resolution_clock>> drawingCacheLastReportTimeMap_;
     static inline const std::string RENDERGROUP_SUBHEALTH_EVENT_NAME = "RENDERGROUP_SUBHEALTH_EVENT";
 };

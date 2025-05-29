@@ -18,6 +18,7 @@
 #include <test_header.h>
 
 #include "hgm_hfbc_config.h"
+#include "hgm_test_base.h"
 #include <parameters.h>
 
 using namespace testing;
@@ -27,48 +28,102 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 constexpr const char* VDEC_HFBC_SWITCH = "vendor.vdec.hfbc.disable.fromuser";
+HgmHfbcConfig g_hfbcConfig;
 }
 
-class HgmHfbcConfigTest : public testing::Test {
+class HgmHfbcConfigTest : public HgmTestBase {
 public:
-    static void SetUpTestCase() {}
+    static void SetUpTestCase()
+    {
+        HgmTestBase::SetUpTestCase();
+    }
     static void TearDownTestCase() {}
     void SetUp() {}
     void TearDown() {}
 };
 
 /**
- * @tc.name: HandleHfbcConfig
+ * @tc.name: SetHfbcConfigMap
+ * @tc.desc: Verify the result of SetHfbcConfigMap function
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmHfbcConfigTest, SetHfbcConfigMap, Function | SmallTest | Level2)
+{
+    std::unordered_map<std::string, std::string> hfbcConfig = {
+        { "com.test.allowapp", "1" }, { "com.test.allowapp2", "1" }
+    };
+    ASSERT_NO_FATAL_FAILURE({g_hfbcConfig.SetHfbcConfigMap(hfbcConfig);});
+    EXPECT_EQ(g_hfbcConfig.hfbcConfig_.size(), hfbcConfig.size());
+    for (const auto& pkg : hfbcConfig) {
+        EXPECT_EQ(g_hfbcConfig.hfbcConfig_.find(pkg.first) != g_hfbcConfig.hfbcConfig_.end(), true);
+    }
+}
+
+/**
+ * @tc.name: SetHfbcControlMode
+ * @tc.desc: Verify the result of SetHfbcControlMode function
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmHfbcConfigTest, SetHfbcControlMode, Function | SmallTest | Level2)
+{
+    g_hfbcConfig.SetHfbcControlMode(true);
+    EXPECT_EQ(g_hfbcConfig.isHfbcDisableListMode_, true);
+    g_hfbcConfig.SetHfbcControlMode(false);
+    EXPECT_EQ(g_hfbcConfig.isHfbcDisableListMode_, false);
+}
+
+/**
+ * @tc.name: HandleHfbcConfig01
  * @tc.desc: Verify the execution process of HandleHfbcConfig function
  * @tc.type: FUNC
  * @tc.require:
  */
 HWTEST_F(HgmHfbcConfigTest, HandleHfbcConfig01, Function | SmallTest | Level1)
 {
+    std::unordered_map<std::string, std::string> hfbcConfig = {
+        { "com.test.banapp", "1" }, { "com.test.banapp2", "1" }
+    };
+    ASSERT_NO_FATAL_FAILURE({g_hfbcConfig.SetHfbcConfigMap(hfbcConfig);});
+    EXPECT_EQ(g_hfbcConfig.hfbcConfig_.size(), hfbcConfig.size());
+
+    g_hfbcConfig.SetHfbcControlMode(true);
+    EXPECT_EQ(g_hfbcConfig.isHfbcDisableListMode_, true);
+
     std::vector<std::string> packageList;
-    packageList.emplace_back("com.test.banapp");
     packageList.emplace_back("com.test.allowapp");
-    ASSERT_NO_FATAL_FAILURE({HgmHfbcConfig::HandleHfbcConfig(packageList);});
+    packageList.emplace_back("com.test.allowapp2");
+    ASSERT_NO_FATAL_FAILURE({g_hfbcConfig.HandleHfbcConfig(packageList);});
+
     std::string hfbcStatus = system::GetParameter(VDEC_HFBC_SWITCH, "0");
-    bool ret = hfbcStatus == "-1";
-    ASSERT_EQ(ret, 0);
+    ASSERT_EQ(hfbcStatus == "0", true);
 }
 
 /**
- * @tc.name: HandleHfbcConfig
+ * @tc.name: HandleHfbcConfig02
  * @tc.desc: Verify the execution process of HandleHfbcConfig function
  * @tc.type: FUNC
  * @tc.require:
  */
 HWTEST_F(HgmHfbcConfigTest, HandleHfbcConfig02, Function | SmallTest | Level1)
 {
+    std::unordered_map<std::string, std::string> hfbcConfig = {
+        { "com.test.allowapp", "1" }, { "com.test.allowapp2", "1" }
+    };
+    ASSERT_NO_FATAL_FAILURE({g_hfbcConfig.SetHfbcConfigMap(hfbcConfig);});
+    EXPECT_EQ(g_hfbcConfig.hfbcConfig_.size(), hfbcConfig.size());
+
+    g_hfbcConfig.SetHfbcControlMode(false);
+    EXPECT_EQ(g_hfbcConfig.isHfbcDisableListMode_, false);
+
     std::vector<std::string> packageList;
     packageList.emplace_back("com.test.allowapp");
-    ASSERT_NO_FATAL_FAILURE({HgmHfbcConfig::HandleHfbcConfig(packageList);});
-    // hfbc can be enabled now
+    packageList.emplace_back("com.test.allowapp2");
+    ASSERT_NO_FATAL_FAILURE({g_hfbcConfig.HandleHfbcConfig(packageList);});
+
     std::string hfbcStatus = system::GetParameter(VDEC_HFBC_SWITCH, "0");
-    bool ret = hfbcStatus == "0";
-    ASSERT_EQ(ret, 1);
+    ASSERT_EQ(hfbcStatus == "0", true);
 }
 
 } // namespace Rosen

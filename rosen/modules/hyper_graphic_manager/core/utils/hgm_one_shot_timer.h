@@ -50,13 +50,15 @@ public:
     void Stop();
     // Resets the wakeup time and fires the reset callback.
     void Reset();
+    // Set interval value
+    void SetInterval(Interval valueMs);
 private:
     void Loop();
 
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
 
     std::string name_;
-    const Interval interval_;
+    std::atomic<Interval> interval_;
     const StartCallback startCallback_ = nullptr;
     const ExpiredCallback expiredCallback_ = nullptr;
     std::unique_ptr<ChronoSteadyClock> clock_ = nullptr;

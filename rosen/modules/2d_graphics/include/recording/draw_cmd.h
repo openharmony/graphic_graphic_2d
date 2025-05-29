@@ -99,6 +99,8 @@ public:
         SURFACEBUFFER_OPITEM,
         DRAW_FUNC_OPITEM,
         RECORD_CMD_OPITEM,
+        HYBRID_RENDER_PIXELMAP_OPITEM,
+        HYBRID_RENDER_PIXELMAP_SIZE_OPITEM,
     };
 
     static void BrushHandleToBrush(const BrushHandle& brushHandle, const DrawCmdList& cmdList, Brush& brush);
@@ -889,14 +891,15 @@ class DrawTextBlobOpItem : public DrawWithPaintOpItem {
 public:
     struct ConstructorHandle : public OpItem {
         ConstructorHandle(const OpDataHandle& textBlob, const uint64_t& globalUniqueId,
-            scalar x, scalar y, const PaintHandle& paintHandle)
+            TextContrast textContrast, scalar x, scalar y, const PaintHandle& paintHandle)
             : OpItem(DrawOpItem::TEXT_BLOB_OPITEM), textBlob(textBlob), globalUniqueId(globalUniqueId),
-            x(x), y(y), paintHandle(paintHandle) {}
+            textContrast(textContrast), x(x), y(y), paintHandle(paintHandle) {}
         ~ConstructorHandle() override = default;
         static bool GenerateCachedOpItem(DrawCmdList& cmdList, const TextBlob* textBlob, scalar x, scalar y, Paint& p);
         bool GenerateCachedOpItem(DrawCmdList& cmdList, Canvas* canvas);
         OpDataHandle textBlob;
         uint64_t globalUniqueId;
+        TextContrast textContrast;
         scalar x;
         scalar y;
         PaintHandle paintHandle;
@@ -904,7 +907,7 @@ public:
     DrawTextBlobOpItem(const DrawCmdList& cmdList, ConstructorHandle* handle);
     DrawTextBlobOpItem(const TextBlob* blob, const scalar x, const scalar y, const Paint& paint)
         : DrawWithPaintOpItem(paint, DrawOpItem::TEXT_BLOB_OPITEM), x_(x), y_(y),
-          textBlob_(std::make_shared<TextBlob>(*blob)) {}
+          textBlob_(std::make_shared<TextBlob>(*blob)), globalUniqueId_(0) {}
     ~DrawTextBlobOpItem() override = default;
 
     static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
@@ -924,6 +927,8 @@ private:
     scalar y_;
     std::shared_ptr<TextBlob> textBlob_;
     uint64_t globalUniqueId_;
+    TextContrast textContrast_;
+    bool IsHighContrastEnable(Canvas* canvas, TextContrast value) const;
 };
 
 class DrawSymbolOpItem : public DrawWithPaintOpItem {
@@ -1343,6 +1348,30 @@ public:
 private:
     std::vector<Point> radiusData_;
 };
+
+class HybridRenderPixelMapSizeOpItem : public DrawOpItem {
+    public:
+        struct ConstructorHandle : public OpItem {
+            ConstructorHandle(float width, float height)
+                : OpItem(DrawOpItem::HYBRID_RENDER_PIXELMAP_SIZE_OPITEM), width(width), height(height) {}
+            ~ConstructorHandle() override = default;
+            float width;
+            float height;
+        };
+        explicit HybridRenderPixelMapSizeOpItem(ConstructorHandle* handle);
+        explicit HybridRenderPixelMapSizeOpItem(float width, float height)
+            : DrawOpItem(DrawOpItem::HYBRID_RENDER_PIXELMAP_SIZE_OPITEM), width_(width), height_(height) {}
+        ~HybridRenderPixelMapSizeOpItem() override = default;
+        static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
+        void Marshalling(DrawCmdList& cmdList) override;
+        void Playback(Canvas* canvas, const Rect* rect) override;
+        void Dump(std::string& out) const override;
+        float GetWidth() const;
+        float GetHeight() const;
+    private:
+        float width_;
+        float height_;
+    };
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

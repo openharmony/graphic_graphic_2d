@@ -50,16 +50,18 @@ int32_t ColorGamutParamParse::ParseColorGamutInternal(xmlNode &node)
     auto val = ExtractPropertyValue("value", *currNode);
     if (xmlParamType == PARSE_XML_FEATURE_SWITCH) {
         bool isEnabled = ParseFeatureSwitch(val);
-        if (name == "CoveredSurfaceCloseP3") {
-            ColorGamutParam::SetCoveredSurfaceCloseP3(isEnabled);
-            RS_LOGI("ColorGamutParamParse parse CoveredSurfaceCloseP3 %{public}d",
-                ColorGamutParam::IsCoveredSurfaceCloseP3());
-        } else if (name == "SLRCloseP3") {
-            ColorGamutParam::SetSLRCloseP3(isEnabled);
-            RS_LOGI("ColorGamutParamParse parse SLRCloseP3 %{public}d", ColorGamutParam::IsSLRCloseP3());
-        } else {
-            RS_LOGE("ColorGamutParamParse parse %{public}s is not support", name.c_str());
-            return PARSE_ERROR;
+        if (name == "DisableP3OnWiredExtendedScreen") {
+            ColorGamutParam::SetDisableP3OnWiredExtendedScreen(isEnabled);
+            RS_LOGI("ColorGamutParamParse parse DisableP3OnWiredExtendedScreen %{public}d",
+                ColorGamutParam::DisableP3OnWiredExtendedScreen());
+        } else if (name == "AdaptiveColorGamutEnable") {
+            ColorGamutParam::SetAdaptiveColorGamutEnable(isEnabled);
+            RS_LOGI("ColorGamutParamParse parse AdaptiveColorGamutEnable %{public}d",
+                ColorGamutParam::IsAdaptiveColorGamutEnabled());
+        } else if (name == "SkipOccludedNodeDuringColorGamutCollection") {
+            ColorGamutParam::SetSkipOccludedNodeDuringColorGamutCollection(isEnabled);
+            RS_LOGI("ColorGamutParamParse parse SkipOccludedNodeDuringColorGamutCollection %{public}d",
+                ColorGamutParam::SkipOccludedNodeDuringColorGamutCollection());
         }
     }
 

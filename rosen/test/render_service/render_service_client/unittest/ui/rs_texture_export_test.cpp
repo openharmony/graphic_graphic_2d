@@ -17,6 +17,10 @@
 #include "ui/rs_texture_export.h"
 #include "limit_number.h"
 #include "ui/rs_root_node.h"
+#include "ui/rs_surface_node.h"
+#ifdef RS_ENABLE_VK
+#include "platform/ohos/backend/rs_surface_ohos_vulkan.h"
+#endif
 
 using namespace testing;
 using namespace testing::ext;
@@ -97,9 +101,88 @@ HWTEST_F(RSTextureExportTest, StopTextureExport, TestSize.Level1)
     SurfaceId surfaceId = 0;
     RSTextureExport text(rootNode, surfaceId);
     text.StopTextureExport();
-    bool res = true;
-    ASSERT_TRUE(res == true);
-    res = false;
-    ASSERT_TRUE(res == false);
+    ASSERT_NE(rootNode, nullptr);
 }
+
+#ifdef RS_ENABLE_VK
+/**
+ * @tc.name: ClearContext001
+ * @tc.desc: test ClearContext while virtualSurfaceNodeSet_ is empty
+ * @tc.type:FUNC
+ * @tc.require: issuesIC7U3T
+ */
+HWTEST_F(RSTextureExportTest, ClearContext001, TestSize.Level2)
+{
+    if (RSSystemProperties::IsUseVulkan()) {
+        RSTextureExport text(nullptr, INVALID_NODEID);
+        RSTextureExport::ClearContext();
+        ASSERT_TRUE(RSTextureExport::virtualSurfaceNodeSet_.empty());
+    }
+}
+
+/**
+ * @tc.name: ClearContext002
+ * @tc.desc: test ClearContext while virtualSurfaceNodeSet_ has nullptr
+ * @tc.type:FUNC
+ * @tc.require: issuesIC7U3T
+ */
+HWTEST_F(RSTextureExportTest, ClearContext002, TestSize.Level2)
+{
+    if (RSSystemProperties::IsUseVulkan()) {
+        RSTextureExport text(nullptr, INVALID_NODEID);
+        RSTextureExport::virtualSurfaceNodeSet_.insert(nullptr);
+        RSTextureExport::ClearContext();
+        ASSERT_FALSE(RSTextureExport::virtualSurfaceNodeSet_.empty());
+    }
+}
+
+/**
+ * @tc.name: ClearContext003
+ * @tc.desc: test ClearContext while rsSurface is nullptr
+ * @tc.type:FUNC
+ * @tc.require: issuesIC7U3T
+ */
+HWTEST_F(RSTextureExportTest, ClearContext003, TestSize.Level2)
+{
+    if (RSSystemProperties::IsUseVulkan()) {
+        bool isRenderServiceNode = false;
+        std::shared_ptr<RSRootNode> rootNode = std::make_shared<RSRootNode>(isRenderServiceNode);
+        SurfaceId surfaceId = 0;
+        RSTextureExport text(rootNode, surfaceId);
+        ASSERT_NE(text.virtualSurfaceNode_, nullptr);
+        text.virtualSurfaceNode_->surface_ = nullptr;
+
+        RSTextureExport::ClearContext();
+        ASSERT_FALSE(RSTextureExport::virtualSurfaceNodeSet_.empty());
+    }
+}
+
+/**
+ * @tc.name: ClearContext004
+ * @tc.desc: test ClearContext while rsSurface isn't nullptr
+ * @tc.type:FUNC
+ * @tc.require: issuesIC7U3T
+ */
+HWTEST_F(RSTextureExportTest, ClearContext004, TestSize.Level2)
+{
+    if (RSSystemProperties::IsUseVulkan()) {
+        // create producer surface
+        sptr<OHOS::IConsumerSurface> cSurface = IConsumerSurface::Create();
+        ASSERT_NE(cSurface, nullptr);
+        sptr<OHOS::IBufferProducer> producer = cSurface->GetProducer();
+        sptr<OHOS::Surface> pSurface = Surface::CreateSurfaceAsProducer(producer);
+        ASSERT_NE(pSurface, nullptr);
+        
+        bool isRenderServiceNode = false;
+        std::shared_ptr<RSRootNode> rootNode = std::make_shared<RSRootNode>(isRenderServiceNode);
+        SurfaceId surfaceId = 0;
+        RSTextureExport text(rootNode, surfaceId);
+        ASSERT_NE(text.virtualSurfaceNode_, nullptr);
+        text.virtualSurfaceNode_->surface_ = std::make_shared<RSSurfaceOhosVulkan>(pSurface);
+
+        RSTextureExport::ClearContext();
+        ASSERT_FALSE(RSTextureExport::virtualSurfaceNodeSet_.empty());
+    }
+}
+#endif
 }

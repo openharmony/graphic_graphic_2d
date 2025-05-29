@@ -19,12 +19,12 @@ module_output_path = "graphic_2d/graphic_2d"
 
 ##############################fuzztest##########################################
 ohos_fuzztest("VsyncCallbackListenerFuzzTest") {
-  fuzz_config_file = "../../../../../../../rosen/modules/composer/vsync/test/fuzztest/vsynccallbacklistener_fuzzer"
+  fuzz_config_file = "$graphic_2d_root/rosen/modules/composer/vsync/test/fuzztest/vsynccallbacklistener_fuzzer"
   module_out_path = module_output_path
 
   include_dirs = [
-    "../../../../../../../interfaces/inner_api/common",
-    "../../../../../../../rosen/modules/composer/vsync/include",
+    "$graphic_2d_root/interfaces/inner_api/common",
+    "$graphic_2d_root/rosen/modules/composer/vsync/include",
   ]
   cflags = [
     "-g",
@@ -36,13 +36,14 @@ ohos_fuzztest("VsyncCallbackListenerFuzzTest") {
   ]
   sources = [ "vsynccallbacklistener_fuzzer.cpp" ]
   deps = [
-    "../../../../../../../utils:socketpair",
-    "../../../../vsync:libvsync",
+    "$graphic_2d_root/utils:socketpair",
+    "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
   ]
   external_deps = [
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "ipc:ipc_core",
+    "samgr:samgr_proxy",
   ]
   defines = []
   if (graphic_2d_feature_enable_dvsync) {

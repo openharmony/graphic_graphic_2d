@@ -37,31 +37,46 @@ void ColorGamutParamTest::SetUp() {}
 void ColorGamutParamTest::TearDown() {}
 
 /**
- * @tc.name: SetCoveredSurfaceCloseP3 IsCoveredSurfaceCloseP3
- * @tc.desc: Verify the SetCoveredSurfaceCloseP3 IsCoveredSurfaceCloseP3 function
+ * @tc.name: DisableP3OnWiredExtendedScreen SetDisableP3OnWiredExtendedScreen
+ * @tc.desc: Verify the DisableP3OnWiredExtendedScreen SetDisableP3OnWiredExtendedScreen function
  * @tc.type: FUNC
  * @tc.require: #IBIE4T
  */
-HWTEST_F(ColorGamutParamTest, CoveredSurfaceCloseP3, Function | SmallTest | Level1)
+HWTEST_F(ColorGamutParamTest, DisableP3OnWiredExtendedScreen, Function | SmallTest | Level1)
 {
-    ColorGamutParam::SetCoveredSurfaceCloseP3(true);
-    EXPECT_EQ(ColorGamutParam::IsCoveredSurfaceCloseP3(), true);
-    ColorGamutParam::SetCoveredSurfaceCloseP3(false);
-    EXPECT_EQ(ColorGamutParam::IsCoveredSurfaceCloseP3(), false);
+    ColorGamutParam::SetDisableP3OnWiredExtendedScreen(true);
+    EXPECT_EQ(ColorGamutParam::DisableP3OnWiredExtendedScreen(), true);
+    ColorGamutParam::SetDisableP3OnWiredExtendedScreen(false);
+    EXPECT_EQ(ColorGamutParam::DisableP3OnWiredExtendedScreen(), false);
 }
 
 /**
- * @tc.name: SetSLRCloseP3 IsSLRCloseP3
- * @tc.desc: Verify the SetSLRCloseP3 IsSLRCloseP3 function
+ * @tc.name: IsAdaptiveColorGamutEnabled SetAdaptiveColorGamutEnable
+ * @tc.desc: Verify the IsAdaptiveColorGamutEnabled SetAdaptiveColorGamutEnable function 
+ * @tc.type: FUNC
+ * @tc.require: #IC82H3
+ */
+HWTEST_F(ColorGamutParamTest, AdaptiveColorGamutEnable, Function | SmallTest | Level1)
+{
+    ColorGamutParam::SetAdaptiveColorGamutEnable(true);
+    EXPECT_EQ(ColorGamutParam::IsAdaptiveColorGamutEnabled(), true);
+    ColorGamutParam::SetAdaptiveColorGamutEnable(false);
+    EXPECT_EQ(ColorGamutParam::IsAdaptiveColorGamutEnabled(), false);
+}
+
+/**
+ * @tc.name: SkipOccludedNodeDuringColorGamutCollection SetSkipOccludedNodeDuringColorGamutCollection
+ * @tc.desc: Verify the SkipOccludedNodeDuringColorGamutCollection and
+ *           SetSkipOccludedNodeDuringColorGamutCollection function
  * @tc.type: FUNC
  * @tc.require: #IBIE4T
  */
-HWTEST_F(ColorGamutParamTest, SLRCloseP3, Function | SmallTest | Level1)
+HWTEST_F(ColorGamutParamTest, SkipOccludedNodeDuringColorGamutCollection, Function | SmallTest | Level1)
 {
-    ColorGamutParam::SetSLRCloseP3(true);
-    EXPECT_EQ(ColorGamutParam::IsSLRCloseP3(), true);
-    ColorGamutParam::SetSLRCloseP3(false);
-    EXPECT_EQ(ColorGamutParam::IsSLRCloseP3(), false);
+    ColorGamutParam::SetSkipOccludedNodeDuringColorGamutCollection(true);
+    EXPECT_EQ(ColorGamutParam::SkipOccludedNodeDuringColorGamutCollection(), true);
+    ColorGamutParam::SetSkipOccludedNodeDuringColorGamutCollection(false);
+    EXPECT_EQ(ColorGamutParam::SkipOccludedNodeDuringColorGamutCollection(), false);
 }
 
 } // namespace Rosen

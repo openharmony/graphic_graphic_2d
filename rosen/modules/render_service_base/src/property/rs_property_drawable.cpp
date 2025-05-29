@@ -184,6 +184,8 @@ static const std::unordered_map<RSModifierType, RSPropertyDrawableSlot> g_proper
     { RSModifierType::FG_BLUR_DISABLE_SYSTEM_ADAPTATION, RSPropertyDrawableSlot::COMPOSITING_FILTER },
     { RSModifierType::ATTRACTION_FRACTION, RSPropertyDrawableSlot::INVALID },
     { RSModifierType::ATTRACTION_DSTPOINT, RSPropertyDrawableSlot::INVALID },
+    { RSModifierType::ALWAYS_SNAPSHOT, RSPropertyDrawableSlot::BACKGROUND_FILTER },
+    { RSModifierType::HDR_UI_BRIGHTNESS, RSPropertyDrawableSlot::INVALID },
     { RSModifierType::CUSTOM, RSPropertyDrawableSlot::INVALID },
     { RSModifierType::EXTENDED, RSPropertyDrawableSlot::INVALID },
     { RSModifierType::TRANSITION, RSPropertyDrawableSlot::TRANSITION },
@@ -283,7 +285,7 @@ std::unordered_set<RSPropertyDrawableSlot> RSPropertyDrawable::GenerateDirtySlot
 {
     // Step 1.1: collect dirty slots
     std::unordered_set<RSPropertyDrawableSlot> dirtySlots;
-    for (uint8_t type = 0; type < static_cast<size_t>(RSModifierType::MAX_RS_MODIFIER_TYPE); type++) {
+    for (size_t type = 0; type < static_cast<size_t>(RSModifierType::MAX_RS_MODIFIER_TYPE); type++) {
         if (dirtyTypes[type]) {
             auto it = g_propertyToDrawableLut.find(static_cast<RSModifierType>(type));
             if (it == g_propertyToDrawableLut.end() || it->second == RSPropertyDrawableSlot::INVALID) {

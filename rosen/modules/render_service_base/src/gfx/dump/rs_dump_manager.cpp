@@ -138,6 +138,9 @@ void RSDumpManager::DumpHelpInfo(std::string &out)
         .append("Usage:\n");
     for (const auto &entry : cmdMap_) {
         std::u16string cmd = entry.first;
+        if (excludeCmds_.find(cmd) != excludeCmds_.end()) {
+            continue;
+        }
         std::string cmd_str = std::string(cmd.begin(), cmd.end());
         out.append(cmd_str)
             .append(HELPINFO_CMD_FIXED_LENGTH - cmd_str.length(), ' ')

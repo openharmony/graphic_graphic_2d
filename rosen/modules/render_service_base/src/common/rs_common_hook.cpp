@@ -44,6 +44,17 @@ bool RsCommonHook::GetVideoSurfaceFlag() const
     return videoSurfaceFlag_;
 }
 
+// use to implement product isolation for the adaptive P3 scheme
+void RsCommonHook::SetAdaptiveColorGamutEnable(bool isAdaptiveColorGamutEnable)
+{
+    isAdaptiveColorGamutEnable_ = isAdaptiveColorGamutEnable;
+}
+
+bool RsCommonHook::IsAdaptiveColorGamutEnabled() const
+{
+    return isAdaptiveColorGamutEnable_;
+}
+
 // skip hwcnode hardware state updating
 void RsCommonHook::SetHardwareEnabledByHwcnodeBelowSelfInAppFlag(bool hardwareEnabledByHwcnodeSkippedFlag)
 {

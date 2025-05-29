@@ -16,7 +16,7 @@
 #include <gtest/gtest.h>
 #include <test_header.h>
 
-#include "xml_parser.h"
+#include "hgm_test_base.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -34,7 +34,10 @@ public:
     static constexpr char invalidConfig[] = "/sys_prod/etc/graphic/invalid_config.xml";
 };
 
-void HgmXmlParserTest::SetUpTestCase() {}
+void HgmXmlParserTest::SetUpTestCase()
+{
+    HgmTestBase::SetUpTestCase();
+}
 void HgmXmlParserTest::TearDownTestCase() {}
 void HgmXmlParserTest::SetUp() {}
 void HgmXmlParserTest::TearDown() {}

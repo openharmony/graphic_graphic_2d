@@ -44,27 +44,14 @@ private:
  */
 GRAPHIC_TEST(TestTemplateImageTest, CONTENT_DISPLAY_TEST, test1)
 {
-    float alphaList[] = { 0, 0.2, 1 };
-
-    const int columnCount = 2;
-    const int rowCount = 3;
-    const int nodeWidth = 400;
-    const int nodeHeight = 400;
-    const int nodeGap = 10;
-
     uint8_t pngData[] = {
         #include ""
     };
 
-    for (int i = 0; i < rowCount; i++) {
-        int x = (i % rowCount) * (nodeWidth + nodeGap);
-        int y = (columnCount + columnCount) * (nodeHeight + nodeGap);
-        uint32_t pngsize = sizeof(pngData) / sizeof(uint8_t);
-        auto testNodeBgImg = SetUpNodeBgImage(pngData, pngsize, { x, y, nodeWidth, nodeHeight });
-        testNodeBgImg->SetAlpha(alphaList[i]);
-        GetRootNode()->AddChild(testNodeBgImg);
-        RegisterNode(testNodeBgImg);
-    }
+    uint32_t pngsize = sizeof(pngData) / sizeof(uint8_t);
+    auto testNodeBgImg = SetUpNodeBgImage(pngData, pngsize, { 0, 0, screenWidth, screenHeight });
+    GetRootNode()->AddChild(testNodeBgImg);
+    RegisterNode(testNodeBgImg);
 }
 
 }

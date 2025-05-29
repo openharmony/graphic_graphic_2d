@@ -21,7 +21,8 @@ namespace OHOS::Rosen {
 namespace {
 static std::atomic<bool> g_releaseResourceEnabled_ = true;
 }
-RSTagTracker::RSTagTracker(Drawing::GPUContext* gpuContext, RSTagTracker::TAGTYPE tagType) : gpuContext_(gpuContext)
+RSTagTracker::RSTagTracker(const std::shared_ptr<Drawing::GPUContext>& gpuContext,
+    RSTagTracker::TAGTYPE tagType) : gpuContext_(gpuContext)
 {
     if (!gpuContext_) {
         return;
@@ -31,6 +32,25 @@ RSTagTracker::RSTagTracker(Drawing::GPUContext* gpuContext, RSTagTracker::TAGTYP
     }
 #if defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK)
     Drawing::GPUResourceTag tag(0, 0, 0, tagType, TagType2String(tagType));
+    gpuContext_->SetCurrentGpuResourceTag(tag);
+#endif
+}
+
+RSTagTracker::RSTagTracker(const std::shared_ptr<Drawing::GPUContext>& gpuContext,
+    RSTagTracker::SOURCETYPE sourceType) : gpuContext_(gpuContext)
+{
+    if (!gpuContext_) {
+        return;
+    }
+    if (!g_releaseResourceEnabled_) {
+        return;
+    }
+#if defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK)
+    Drawing::GPUResourceTag tag = gpuContext_->GetCurrentGpuResourceTag();
+    if (tag.fFid == 0) {
+        ROSEN_LOGE("RSTagTracker::RSTagTracker GpuResourceTag is Empty, sourceType is %{public}d", sourceType);
+    }
+    tag.fSid = sourceType;
     gpuContext_->SetCurrentGpuResourceTag(tag);
 #endif
 }
@@ -81,7 +101,7 @@ std::string RSTagTracker::TagType2String(TAGTYPE type)
     return tagType;
 }
 
-RSTagTracker::RSTagTracker(Drawing::GPUContext* gpuContext, NodeId nodeId,
+RSTagTracker::RSTagTracker(const std::shared_ptr<Drawing::GPUContext>& gpuContext, NodeId nodeId,
     RSTagTracker::TAGTYPE tagType, const std::string& name)
     : gpuContext_(gpuContext)
 {
@@ -97,7 +117,8 @@ RSTagTracker::RSTagTracker(Drawing::GPUContext* gpuContext, NodeId nodeId,
 #endif
 }
 
-RSTagTracker::RSTagTracker(Drawing::GPUContext* gpuContext, Drawing::GPUResourceTag& tag) : gpuContext_(gpuContext)
+RSTagTracker::RSTagTracker(const std::shared_ptr<Drawing::GPUContext>& gpuContext,
+    Drawing::GPUResourceTag& tag) : gpuContext_(gpuContext)
 {
     if (!gpuContext_) {
         return;

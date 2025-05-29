@@ -23,8 +23,8 @@ ohos_fuzztest("VsyncReceiverFuzzTest") {
   module_out_path = module_output_path
 
   include_dirs = [
-    "//foundation/graphic/graphic_2d/interfaces/inner_api/common",
-    "//foundation/graphic/graphic_2d/rosen/modules/composer/vsync/include",
+    "$graphic_2d_root/interfaces/inner_api/common",
+    "$graphic_2d_root/rosen/modules/composer/vsync/include",
   ]
   cflags = [
     "-g",
@@ -36,13 +36,14 @@ ohos_fuzztest("VsyncReceiverFuzzTest") {
   ]
   sources = [ "vsyncreceiver_fuzzer.cpp" ]
   deps = [
-    "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
-    "//foundation/graphic/graphic_2d/rosen/modules/composer/vsync:libvsync",
-    "//foundation/graphic/graphic_2d/utils:socketpair",
+    "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+    "$graphic_2d_root/utils:socketpair",
   ]
   external_deps = [
     "c_utils:utils",
     "eventhandler:libeventhandler",
+    "ipc:ipc_core",
+    "samgr:samgr_proxy",
   ]
   defines = []
   if (graphic_2d_feature_enable_dvsync) {

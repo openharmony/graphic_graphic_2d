@@ -35,8 +35,6 @@
 #include "common/rs_thread_handler.h"
 #include "common/rs_thread_looper.h"
 #include "drawable/rs_render_node_drawable_adapter.h"
-#include "feature_cfg/graphic_feature_param_manager.h"
-#include "feature_cfg/feature_param/feature_param.h"
 #include "ipc_callbacks/iapplication_agent.h"
 #include "ipc_callbacks/rs_iocclusion_change_callback.h"
 #include "ipc_callbacks/rs_isurface_occlusion_change_callback.h"
@@ -46,7 +44,8 @@
 #include "params/rs_render_thread_params.h"
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_uni_render_judgement.h"
-#include "pipeline/rs_vsync_rate_reduce_manager.h"
+#include "pipeline/hwc/rs_direct_composition_helper.h"
+#include "feature/vrate/rs_vsync_rate_reduce_manager.h"
 #include "platform/common/rs_event_manager.h"
 #include "platform/drawing/rs_vsync_client.h"
 #include "transaction/rs_transaction_data.h"
@@ -100,7 +99,8 @@ public:
     void UpdateNeedDrawFocusChange(NodeId id);
     void ProcessDataBySingleFrameComposer(std::unique_ptr<RSTransactionData>& rsTransactionData);
     void RecvRSTransactionData(std::unique_ptr<RSTransactionData>& rsTransactionData);
-    void RequestNextVSync(const std::string& fromWhom = "unknown", int64_t lastVSyncTS = 0);
+    void RequestNextVSync(
+        const std::string& fromWhom = "unknown", int64_t lastVSyncTS = 0, const int64_t& requestVsyncTime = 0);
     void PostTask(RSTaskMessage::RSTask task);
     void PostTask(RSTaskMessage::RSTask task, const std::string& name, int64_t delayTime,
         AppExecFwk::EventQueue::Priority priority = AppExecFwk::EventQueue::Priority::IDLE);
@@ -153,11 +153,6 @@ public:
         return mainThreadId_;
     }
 
-    bool CheckIsHardwareEnabledBufferUpdated() const
-    {
-        return isHardwareEnabledBufferUpdated_;
-    }
-
     void SetGlobalDarkColorMode(bool isDark)
     {
         isGlobalDarkColorMode_ = isDark;
@@ -190,14 +185,10 @@ public:
     void ClearSurfaceOcclusionChangeCallback(pid_t pid);
     bool SurfaceOcclusionCallBackIfOnTreeStateChanged();
 
-    bool WaitHardwareThreadTaskExecute();
-    void NotifyHardwareThreadCanExecuteTask();
-
     void ClearTransactionDataPidInfo(pid_t remotePid);
     void AddTransactionDataPidInfo(pid_t remotePid);
 
-    void SetFocusAppInfo(
-        int32_t pid, int32_t uid, const std::string& bundleName, const std::string& abilityName, uint64_t focusNodeId);
+    void SetFocusAppInfo(const FocusAppInfo& info);
     const std::unordered_map<NodeId, bool>& GetCacheCmdSkippedNodes() const;
 
     sptr<VSyncDistributor> rsVSyncDistributor_;
@@ -218,7 +209,10 @@ public:
     bool GetScreenPowerOnChanged() const;
     bool IsAccessibilityConfigChanged() const;
     bool IsCurtainScreenUsingStatusChanged() const;
+    bool IsFastComposeAllow(uint64_t unsignedVsyncPeriod, bool nextVsyncRequested,
+        uint64_t unsignedNowTime, uint64_t lastVsyncTime);
     void CheckFastCompose(int64_t bufferTimeStamp);
+    bool CheckAdaptiveCompose();
     void ForceRefreshForUni(bool needDelay = false);
     void TrimMem(std::unordered_set<std::u16string>& argSets, std::string& result);
     void DumpMem(std::unordered_set<std::u16string>& argSets, std::string& result, std::string& type, pid_t pid = 0);
@@ -313,9 +307,7 @@ public:
     void AddSelfDrawingNodes(std::shared_ptr<RSSurfaceRenderNode> selfDrawingNode);
     const std::vector<std::shared_ptr<RSSurfaceRenderNode>>& GetSelfDrawingNodes() const;
     void ClearSelfDrawingNodes();
-#ifdef RS_ENABLE_GPU
-    const std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& GetSelfDrawables() const;
-#endif
+
     bool GetDiscardJankFrames() const
     {
         return discardJankFrames_.load();
@@ -350,17 +342,6 @@ public:
 
     bool IsRequestedNextVSync();
 
-    bool GetNextDVsyncAnimateFlag() const
-    {
-        return needRequestNextVsyncAnimate_;
-    }
-
-    bool IsFirstFrameOfPartialRender() const
-    {
-        return isFirstFrameOfPartialRender_;
-    }
-
-    bool IsHardwareEnabledNodesNeedSync();
     bool IsOcclusionNodesNeedSync(NodeId id, bool useCurWindow);
 
     void CallbackDrawContextStatusToWMS(bool isUniRender = false);
@@ -432,12 +413,6 @@ public:
         unmappedCacheSet_.insert(bufferId);
     }
 
-    void AddToUnmappedMirrorCacheSet(uint32_t bufferId)
-    {
-        std::lock_guard<std::mutex> lock(unmappedCacheSetMutex_);
-        unmappedVirScreenCacheSet_.insert(bufferId);
-    }
-
     void AddToUnmappedCacheSet(const std::set<uint32_t>& seqNumSet)
     {
         std::lock_guard<std::mutex> lock(unmappedCacheSetMutex_);
@@ -448,8 +423,17 @@ public:
     void InitVulkanErrorCallback(Drawing::GPUContext* gpuContext);
     void NotifyUnmarshalTask(int64_t uiTimestamp);
     void NotifyPackageEvent(const std::vector<std::string>& packageList);
-    void NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt);
-    void SetBufferInfo(std::string &name, int32_t bufferCount, int64_t lastFlushedTimeStamp);
+    void HandleTouchEvent(int32_t touchStatus, int32_t touchCnt);
+    void SetBufferInfo(uint64_t id, const std::string &name, uint32_t queueSize,
+        int32_t bufferCount, int64_t lastConsumeTime);
+    void GetFrontBufferDesiredPresentTimeStamp(
+        const sptr<IConsumerSurface>& consumer, int64_t& desiredPresentTimeStamp);
+
+    // Enable HWCompose
+    bool IsHardwareEnabledNodesNeedSync();
+    bool WaitHardwareThreadTaskExecute();
+    void NotifyHardwareThreadCanExecuteTask();
+
 private:
     using TransactionDataIndexMap = std::unordered_map<pid_t,
         std::pair<uint64_t, std::vector<std::unique_ptr<RSTransactionData>>>>;
@@ -468,7 +452,6 @@ private:
     void UpdateSubSurfaceCnt();
     void Animate(uint64_t timestamp);
     void ConsumeAndUpdateAllNodes();
-    void CollectInfoForHardwareComposer();
     void ReleaseAllNodesBuffer();
     void Render();
     void OnUniRenderDraw();
@@ -497,10 +480,11 @@ private:
     void SkipCommandByNodeId(std::vector<std::unique_ptr<RSTransactionData>>& transactionVec, pid_t pid);
     static void OnHideNotchStatusCallback(const char *key, const char *value, void *context);
     static void OnDrawingCacheDfxSwitchCallback(const char *key, const char *value, void *context);
+    static void OnFmtTraceSwitchCallback(const char *key, const char *value, void *context);
 
     bool DoParallelComposition(std::shared_ptr<RSBaseRenderNode> rootNode);
 
-    void ClassifyRSTransactionData(std::unique_ptr<RSTransactionData>& rsTransactionData);
+    void ClassifyRSTransactionData(std::shared_ptr<RSTransactionData> rsTransactionData);
     void ProcessRSTransactionData(std::unique_ptr<RSTransactionData>& rsTransactionData, pid_t pid);
     void ProcessSyncRSTransactionData(std::unique_ptr<RSTransactionData>& rsTransactionData, pid_t pid);
     void ProcessSyncTransactionCount(std::unique_ptr<RSTransactionData>& rsTransactionData);
@@ -516,13 +500,12 @@ private:
     void PerfForBlurIfNeeded();
     void PerfMultiWindow();
     void RenderFrameStart(uint64_t timestamp);
-    void ResetHardwareEnabledState(bool isUniRender);
-    void CheckIfHardwareForcedDisabled();
     void CheckAndUpdateTransactionIndex(
         std::shared_ptr<TransactionDataMap>& transactionDataEffective, std::string& transactionFlags);
 
     bool IsResidentProcess(pid_t pid) const;
     bool IsNeedSkip(NodeId instanceRootNodeId, pid_t pid);
+    uint32_t GetForceCommitReason() const;
 
     // UIFirst
     bool CheckParallelSubThreadNodesStatus();
@@ -552,8 +535,6 @@ private:
     void SetVsyncInfo(uint64_t timestamp);
 #endif
 
-    bool DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNode, bool waitForRT);
-
     void RSJankStatsOnVsyncStart(int64_t onVsyncStartTime, int64_t onVsyncStartTimeSteady,
                                  float onVsyncStartTimeSteadyFloat);
     void RSJankStatsOnVsyncEnd(int64_t onVsyncStartTime, int64_t onVsyncStartTimeSteady,
@@ -567,6 +548,8 @@ private:
     void PrepareUiCaptureTasks(std::shared_ptr<RSUniRenderVisitor> uniVisitor);
     void UIExtensionNodesTraverseAndCallback();
     bool CheckUIExtensionCallbackDataChanged() const;
+    void RequestNextVSyncInner(VSyncReceiver::FrameCallback callback,
+        const std::string& fromWhom = "unknown", int64_t lastVSyncTS = 0, const int64_t& requestVsyncTime = 0);
 
     void CheckBlurEffectCountStatistics(std::shared_ptr<RSBaseRenderNode> rootNode);
     void OnCommitDumpClientNodeTree(NodeId nodeId, pid_t pid, uint32_t taskId, const std::string& result);
@@ -579,6 +562,16 @@ private:
     void DumpEventHandlerInfo();
     std::string SubHistoryEventQueue(std::string input);
     std::string SubPriorityEventQueue(std::string input);
+
+    // Enable HWCompose
+    void CollectInfoForHardwareComposer();
+    void ResetHardwareEnabledState(bool isUniRender);
+    void CheckIfHardwareForcedDisabled();
+    bool DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNode, bool waitForRT);
+    bool ExistBufferIsVisibleAndUpdate();
+    void UpdateDirectCompositionByAnimate(bool animateNeedRequestNextVsync);
+    void HandleTunnelLayerId(const std::shared_ptr<RSSurfaceHandler>& surfaceHandler,
+        const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode);
 
     bool isUniRender_ = RSUniRenderJudgement::IsUniRender();
     bool needWaitUnmarshalFinished_ = true;
@@ -595,16 +588,14 @@ private:
     bool isFoldScreenDevice_ = false;
     mutable std::atomic_bool hasWiredMirrorDisplay_ = false;
     mutable std::atomic_bool hasVirtualMirrorDisplay_ = false;
-    // used for hardware enabled case
-    bool doDirectComposition_ = true;
+
 #ifdef RS_ENABLE_GPU
     bool needDrawFrame_ = true;
     bool needPostAndWait_ = true;
+    bool isLastFrameNeedPostAndWait_ = true;
 #endif
-    bool isLastFrameDirectComposition_ = false;
+
     bool isNeedResetClearMemoryTask_ = false;
-    bool isHardwareEnabledBufferUpdated_ = false;
-    bool isHardwareForcedDisabled_ = false; // if app node has shadow or filter, disable hardware composer for all
     bool watermarkFlag_ = false;
     bool lastWatermarkFlag_ = false;
     bool hasProtectedLayer_ = false;
@@ -617,7 +608,6 @@ private:
     bool isDrawingCacheDfxEnabledOfCurFrame_ = false;
     bool isDrawingCacheDfxEnabledOfLastFrame_ = false;
     // for dvsync (animate requestNextVSync after mark rsnotrendering)
-    bool needRequestNextVsyncAnimate_ = false;
     bool forceUIFirstChanged_ = false;
     bool lastFrameUIExtensionDataEmpty_ = false;
     // overDraw
@@ -628,9 +618,6 @@ private:
 #endif
     bool isCurtainScreenOn_ = false;
     // partial render
-    bool isFirstFrameOfPartialRender_ = false;
-    bool isPartialRenderEnabledOfLastFrame_ = false;
-    bool isRegionDebugEnabledOfLastFrame_ = false;
     bool isForceRefresh_ = false;
     // record multidisplay status change
     bool isMultiDisplayPre_ = false;
@@ -646,8 +633,9 @@ private:
     // for statistic of jank frames
     std::atomic_bool discardJankFrames_ = false;
     std::atomic_bool skipJankAnimatorFrame_ = false;
+    bool isImplicitAnimationEnd_ = false;
+
     pid_t lastCleanCachePid_ = -1;
-    int preHardwareTid_ = -1;
     int32_t unmarshalFinishedCount_ = 0;
     uint32_t appWindowNum_ = 0;
     pid_t desktopPidForRotationScene_ = 0;
@@ -657,11 +645,10 @@ private:
     uint32_t leashWindowCount_ = 0;
     pid_t exitedPid_ = -1;
     RsParallelType rsParallelType_;
-    // render start hardware task count
-    uint32_t preUnExecuteTaskNum_ = 0;
     std::atomic<int32_t> focusAppPid_ = -1;
     std::atomic<int32_t> focusAppUid_ = -1;
     std::atomic<uint32_t> requestNextVsyncNum_ = 0;
+    std::atomic<uint32_t> drawingRequestNextVsyncNum_ = 0;
     uint64_t curTime_ = 0;
     uint64_t timestamp_ = 0;
     uint64_t vsyncId_ = 0;
@@ -703,6 +690,10 @@ private:
     std::map<pid_t, std::vector<std::unique_ptr<RSTransactionData>>> cachedSkipTransactionDataMap_;
     std::unordered_map<pid_t, uint64_t> transactionDataLastWaitTime_;
 
+    int64_t requestNextVsyncTime_ = -1;
+    bool isHdrSwitchChanged_ = false;
+    bool isColorTemperatureOn_ = false;
+
     /**
      * @brief A set to store buffer IDs of images that are about to be unmapped from GPU cache.
      *
@@ -712,7 +703,6 @@ private:
      * removed from the GPU cache.
      */
     std::set<uint32_t> unmappedCacheSet_ = {}; // must protected by unmappedCacheSetMutex_
-    std::set<uint32_t> unmappedVirScreenCacheSet_ = {}; // must protected by unmappedCacheSetMutex_
     std::mutex unmappedCacheSetMutex_;
 
     /**
@@ -761,12 +751,19 @@ private:
 
     RSEventManager rsEventManager_;
 
-    std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledNodes_;
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> selfDrawingNodes_;
 #ifdef RS_ENABLE_GPU
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> selfDrawables_;
 #endif
+
+    // Enable HWCompose
+    std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledNodes_;
     DrawablesVec hardwareEnabledDrwawables_;
+    bool isHardwareEnabledBufferUpdated_ = false;
+    bool isHardwareForcedDisabled_ = false; // if app node has shadow or filter, disable hardware composer for all
+    bool doDirectComposition_ = true;
+    bool lastAnimateNeedRequestNextVsync_ = false;
+    RSDirectCompositionHelper directComposeHelper_;
 
     // for client node tree dump
     struct NodeTreeDumpTask {
@@ -802,8 +799,6 @@ private:
         std::vector<float>, uint8_t>> surfaceOcclusionListeners_;
     std::unordered_map<NodeId, // map<node ID, <surface node, app window node>>
         std::pair<std::shared_ptr<RSSurfaceRenderNode>, std::shared_ptr<RSSurfaceRenderNode>>> savedAppWindowNode_;
-    std::unordered_map<NodeId, // map<first level node ID, drm surface node>
-        std::vector<std::shared_ptr<RSSurfaceRenderNode>>> drmNodes_;
 
     // used for watermark
     std::mutex watermarkMutex_;
@@ -843,6 +838,8 @@ private:
 #ifdef RES_SCHED_ENABLE
     sptr<VSyncSystemAbilityListener> saStatusChangeListener_ = nullptr;
 #endif
+
+    std::function<void(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode)> consumeAndUpdateNode_;
 };
 } // namespace OHOS::Rosen
 #endif // RS_MAIN_THREAD

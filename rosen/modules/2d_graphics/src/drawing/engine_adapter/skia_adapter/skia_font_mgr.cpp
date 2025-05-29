@@ -20,9 +20,7 @@
 
 #include "include/core/SkString.h"
 #include "include/core/SkTypeface.h"
-#ifndef USE_TEXGINE
 #include "txt/asset_font_manager.h"
-#endif
 
 #include "text/font_mgr.h"
 #include "txt/platform.h"
@@ -115,26 +113,18 @@ bool SkiaFontMgr::CheckDynamicFontValid(const std::string &familyName, sk_sp<SkT
         checkStr.assign(name.c_str(), name.size());
     }
 
-    auto toLower = [](const std::string& input) {
-        std::string output(input.length(), 0);
-        std::transform(input.begin(), input.end(), output.begin(),
-            [](char c) { return (c & 0x80) ? c : ::tolower(c); }); // 0x80 means upper case
-        return output;
-    };
-    std::string lowFamilyName = toLower(checkStr);
-
-    auto themeFamilies = SPText::DefaultFamilyNameMgr::GetInstance().GetThemeFontFamilies();
-    for (const auto& themeFamily : themeFamilies) {
-        if (lowFamilyName == toLower(themeFamily)) {
-            TEXT_LOGE("Prohibited to use OhosThemeFont registered dynamic fonts");
-            return false;
-        }
+    std::string lowFamilyName(checkStr.length() + 1, 0);
+    std::transform(
+        checkStr.begin(), checkStr.end(), lowFamilyName.begin(), [](char c) { return (c & 0x80) ? c : ::tolower(c); });
+    if (lowFamilyName.find("ohosthemefont") == 0) {
+        TEXT_LOGE("Prohibited to use OhosThemeFont registered dynamic fonts: %{public}s %{public}zu",
+            lowFamilyName.c_str(), lowFamilyName.find("ohosthemefont"));
+        return false;
     }
 
     return true;
 }
 
-#ifndef USE_TEXGINE
 std::shared_ptr<FontMgrImpl> SkiaFontMgr::CreateDynamicFontMgr()
 {
     sk_sp<txt::DynamicFontManager> dynamicFontManager = sk_make_sp<txt::DynamicFontManager>();
@@ -205,7 +195,6 @@ Typeface* SkiaFontMgr::LoadThemeFont(const std::string& familyName, const std::s
         }
     }
 }
-#endif
 
 Typeface* SkiaFontMgr::MatchFamilyStyleCharacter(const char familyName[], const FontStyle& fontStyle,
                                                  const char* bcp47[], int bcp47Count,

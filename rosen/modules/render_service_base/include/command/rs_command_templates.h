@@ -33,12 +33,24 @@ class RSUIDirector;
 // Add new RSCommand as alias of template class
 // Explicit instantiating templates will register the unmarshalling function into RSCommandFactory.
 // To avoid redundant registry, make sure templates only instantiated once.
+#ifdef _WIN32
 #ifdef ROSEN_INSTANTIATE_COMMAND_TEMPLATE
 #define ADD_COMMAND(ALIAS, TYPE)           \
     using ALIAS = RSCommandTemplate<TYPE>; \
     template class RSCommandTemplate<TYPE>;
 #else
 #define ADD_COMMAND(ALIAS, TYPE) using ALIAS = RSCommandTemplate<TYPE>;
+#endif
+#else
+#ifdef ROSEN_INSTANTIATE_COMMAND_TEMPLATE
+#define ADD_COMMAND(ALIAS, TYPE)           \
+    using ALIAS = RSCommandTemplate<TYPE>; \
+    template class RSB_EXPORT RSCommandTemplate<TYPE>;
+#else
+#define ADD_COMMAND(ALIAS, TYPE)           \
+    using ALIAS = RSCommandTemplate<TYPE>; \
+    extern template class RSB_EXPORT RSCommandTemplate<TYPE>;
+#endif
 #endif
 
 template<RSCommandPermissionType permissionType, uint16_t commandType, uint16_t commandSubType, auto processFunc,

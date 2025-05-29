@@ -23,6 +23,10 @@
 #include "gtest/gtest.h"
 #include "string"
 
+#ifdef RS_ENABLE_VK
+#include "platform/ohos/backend/rs_vulkan_context.h"
+#endif
+
 using namespace testing;
 using namespace testing::ext;
 
@@ -33,7 +37,12 @@ constexpr static float FLOAT_DATA_EPSILON = 1e-6f;
 
 class NativeDrawingRunTest : public testing::Test {
 public:
-    static void SetUpTestCase() {}
+    static void SetUpTestCase()
+    {
+#ifdef RS_ENABLE_VK
+        Rosen::RsVulkanContext::SetRecyclable(false);
+#endif
+    }
     static void TearDownTestCase() {}
     void SetUp() override {};
     void TearDown() override;
@@ -271,7 +280,7 @@ HWTEST_F(NativeDrawingRunTest, OH_Drawing_RunTest005, TestSize.Level1)
     ASSERT_GT(runsSize, 0);
     
     std::vector<float> widthArr = {78.929932, 59.999939, 8.099991, 81.509903, 187.187500, 64.349945};
-    std::vector<float> ascentArr = {27.840000, 27.840000, 27.840000, 27.840000, 27.798166, 35.369999};
+    std::vector<float> ascentArr = {-27.840000, -27.840000, -27.840000, -27.840000, -27.798166, -35.369999};
     std::vector<float> descentArr = {7.320000, 7.320000, 7.320000, 7.320000, 7.431193, 9.690001};
     for (int i = 0; i < runsSize; i++) {
         OH_Drawing_Run* run = OH_Drawing_GetRunByIndex(runs, i);

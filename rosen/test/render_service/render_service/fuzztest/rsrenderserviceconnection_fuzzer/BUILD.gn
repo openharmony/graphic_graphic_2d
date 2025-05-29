@@ -20,41 +20,38 @@ module_output_path = "graphic_2d/graphic_2d"
 ##############################fuzztest##########################################
 ohos_fuzztest("RSRenderServiceConnectionFuzzTest") {
   module_out_path = module_output_path
-  fuzz_config_file = "//foundation/graphic/graphic_2d/rosen/test/render_service/render_service/fuzztest/rsrenderserviceconnection_fuzzer"
+  fuzz_config_file = "$graphic_2d_root/rosen/test/render_service/render_service/fuzztest/rsrenderserviceconnection_fuzzer"
 
   include_dirs = [
     "../../../../../rosen/modules/platform/ipc_core",
     "../../../../../rosen/modules/platform",
-    "../../../../../modules/hyper_graphic_manager/core/config",
-    "../../../../../modules/hyper_graphic_manager/core/frame_rate_manager",
-    "../../../../../modules/hyper_graphic_manager/core/hgm_screen_manager",
-    "../../../../../modules/hyper_graphic_manager/core/utils",
-    "../../../../../modules/render_service/core",
-    "../../../../../modules/render_service/core/feature_cfg",
-    "../../../../../modules/render_service/core/feature_cfg/feature_param",
-    "../../../../../modules/render_service/core/feature_cfg/feature_param/extend_feature",
-    "../../../../../modules/render_service/core/feature_cfg/feature_param/performance_feature",
-    "../../../../../modules/render_service/core/feature_cfg/xml_parser",
-    "../../../../../modules/render_service/core/feature_cfg/xml_parser/extend_feature_parser",
-    "../../../../../modules/render_service/core/feature_cfg/xml_parser/performance_feature_parser",
-    "../../../../../modules/render_service_base/src",
-    "../../../../../test/include",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/config",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/frame_rate_manager",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/hgm_screen_manager",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/soft_vsync_manager",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/utils",
+    "$graphic_2d_root/rosen/modules/render_service/core",
+    "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg",
+    "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/feature_param",
+    "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/feature_param/extend_feature",
+    "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/feature_param/performance_feature",
+    "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/xml_parser",
+    "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/xml_parser/extend_feature_parser",
+    "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/xml_parser/performance_feature_parser",
+    "$graphic_2d_root/rosen/modules/render_service_base/src",
+    "$graphic_2d_root/rosen/test/include",
     "../../../../../../../../../../base/account/os_account/services/accountmgr/test/mock/app_account",
     "../../../../../../../../../../base/security/access_token/interfaces/innerkits/nativetoken/include",
     "../../../../../../../../../../base/security/access_token/interfaces/innerkits/token_sptproc/include",
     "$graphic_2d_root/frameworks/surface/include",
-    "$memmgr_root/interface/innerkits/include",
-    "$memmgr_root/services/memmgrservice/include/memory_level_manager",
-    "$memmgr_plugin_root/interface/innerkits/include",
-    "$memmgr_plugin_root/services/memmgrservice/include/memory_level_manager",
   ]
 
   deps = [
-    "../../../../../modules/2d_graphics:2d_graphics",
-    "../../../../../modules/composer:libcomposer",
-    "../../../../../modules/render_service:librender_service",
-    "../../../../../modules/render_service_base:librender_service_base",
-    "../../../../../modules/render_service_client:librender_service_client",
+    "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
+    "$graphic_2d_root/rosen/modules/composer:libcomposer",
+    "$graphic_2d_root/rosen/modules/render_service:librender_service",
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
   ]
 
   cflags = [
@@ -87,6 +84,10 @@ ohos_fuzztest("RSRenderServiceConnectionFuzzTest") {
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
+
+  if (use_memmgr_plugin || use_memmgr) {
+    external_deps += [ "memmgr:memmgrclient" ]
+  }
 
   defines = []
   if (graphic_2d_support_access_token) {

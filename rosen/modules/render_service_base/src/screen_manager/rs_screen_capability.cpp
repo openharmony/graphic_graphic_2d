@@ -62,9 +62,9 @@ void RSScreenCapability::SetSupportWriteBack(bool supportWriteBack)
     supportWriteBack_ = supportWriteBack;
 }
 
-void RSScreenCapability::SetProps(const std::vector<RSScreenProps>& props)
+void RSScreenCapability::SetProps(std::vector<RSScreenProps> props)
 {
-    props_ = props;
+    props_ = std::move(props);
 }
 
 const std::string& RSScreenCapability::GetName() const

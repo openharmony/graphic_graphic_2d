@@ -35,13 +35,28 @@ void RSRenderAnimation::DumpAnimation(std::string& out) const
         out += ", NodeName:" + targetName_;
     }
     out += ", Duration:" + std::to_string(animationFraction_.GetDuration());
-    out += ", StartDelay:" + std::to_string(animationFraction_.GetStartDelay());
-    out += ", Speed:" + std::to_string(animationFraction_.GetSpeed());
-    out += ", RepeatCount:" + std::to_string(animationFraction_.GetRepeatCount());
-    out += ", AutoReverse:" + std::to_string(animationFraction_.GetAutoReverse());
-    out += ", Direction:" + std::to_string(animationFraction_.GetDirection());
-    out += ", FillMode:" + std::to_string(static_cast<int>(animationFraction_.GetFillMode()));
-    out += ", RepeatCallbackEnable:" + std::to_string(animationFraction_.GetRepeatCallbackEnable());
+    out += ", runningTime:" + std::to_string(animationFraction_.GetRunningTime());
+    if (animationFraction_.GetStartDelay() != 0) {
+        out += ", StartDelay:" + std::to_string(animationFraction_.GetStartDelay());
+    }
+    if (ROSEN_NE(animationFraction_.GetSpeed(), 1.0f)) {
+        out += ", Speed:" + std::to_string(animationFraction_.GetSpeed());
+    }
+    if (animationFraction_.GetRepeatCount() != 1) {
+        out += ", RepeatCount:" + std::to_string(animationFraction_.GetRepeatCount());
+    }
+    if (animationFraction_.GetAutoReverse()) {
+        out += ", AutoReverse:" + std::to_string(animationFraction_.GetAutoReverse());
+    }
+    if (!animationFraction_.GetDirection()) {
+        out += ", Direction:" + std::to_string(animationFraction_.GetDirection());
+    }
+    if (animationFraction_.GetFillMode() != FillMode::FORWARDS) {
+        out += ", FillMode:" + std::to_string(static_cast<int>(animationFraction_.GetFillMode()));
+    }
+    if (animationFraction_.GetRepeatCallbackEnable()) {
+        out += ", RepeatCallbackEnable:" + std::to_string(animationFraction_.GetRepeatCallbackEnable());
+    }
     out += ", FrameRateRange_min:" + std::to_string(animationFraction_.GetFrameRateRange().min_);
     out += ", FrameRateRange_max:" + std::to_string(animationFraction_.GetFrameRateRange().max_);
     out += ", FrameRateRange_prefered:" + std::to_string(animationFraction_.GetFrameRateRange().preferred_);
@@ -265,7 +280,7 @@ void RSRenderAnimation::ProcessOnRepeatFinish()
     RSMessageProcessor::Instance().AddUIMessage(ExtractPid(id_), command);
 }
 
-bool RSRenderAnimation::Animate(int64_t time)
+bool RSRenderAnimation::Animate(int64_t time, int64_t& minLeftDelayTime)
 {
     // calculateAnimationValue_ is embedded modify for stat animate frame drop
     calculateAnimationValue_ = true;
@@ -279,11 +294,13 @@ bool RSRenderAnimation::Animate(int64_t time)
     // set start time and return
     if (needUpdateStartTime_) {
         SetStartTime(time);
+        minLeftDelayTime = 0;
         return state_ == AnimationState::FINISHED;
     }
 
     // if time not changed since last frame, return
     if (time == animationFraction_.GetLastFrameTime()) {
+        minLeftDelayTime = 0;
         return state_ == AnimationState::FINISHED;
     }
 
@@ -296,7 +313,8 @@ bool RSRenderAnimation::Animate(int64_t time)
     float frameInterval = (time - animationFraction_.GetLastFrameTime()) * 1.0f / NS_TO_S;
 
     // convert time to fraction
-    auto [fraction, isInStartDelay, isFinished, isRepeatFinished] = animationFraction_.GetAnimationFraction(time);
+    auto [fraction, isInStartDelay, isFinished, isRepeatFinished] =
+        animationFraction_.GetAnimationFraction(time, minLeftDelayTime);
     if (isInStartDelay) {
         calculateAnimationValue_ = false;
         ProcessFillModeOnStart(fraction);

@@ -419,9 +419,6 @@ void RSRenderThread::ProcessCommands()
         uiTimestamp_ = prevTimestamp_ - 1;
         return;
     }
-    if (RsFrameReport::GetInstance().GetEnable()) {
-        RsFrameReport::GetInstance().ProcessCommandsStart();
-    }
 
     if (commandTimestamp_ != 0) {
         uiTimestamp_ = commandTimestamp_;
@@ -491,10 +488,6 @@ void RSRenderThread::Animate(uint64_t timestamp)
 {
     RS_TRACE_FUNC();
 
-    if (RsFrameReport::GetInstance().GetEnable()) {
-        RsFrameReport::GetInstance().AnimateStart();
-    }
-
     lastAnimateTimestamp_ = timestamp;
 
     if (context_->animatingNodeList_.empty()) {
@@ -502,17 +495,20 @@ void RSRenderThread::Animate(uint64_t timestamp)
     }
 
     bool needRequestNextVsync = false;
+    // For now, there is no need to optimize the power consumption issue related to delayTime.
+    int64_t minLeftDelayTime = 0;
     // isCalculateAnimationValue is embedded modify for stat animate frame drop
     bool isCalculateAnimationValue = false;
     // iterate and animate all animating nodes, remove if animation finished
     EraseIf(context_->animatingNodeList_,
-        [timestamp, &needRequestNextVsync, &isCalculateAnimationValue](const auto& iter) -> bool {
+        [timestamp, &needRequestNextVsync, &isCalculateAnimationValue, &minLeftDelayTime](const auto& iter) -> bool {
         auto node = iter.second.lock();
         if (node == nullptr) {
             ROSEN_LOGD("RSRenderThread::Animate removing expired animating node");
             return true;
         }
-        auto [hasRunningAnimation, nodeNeedRequestNextVsync, nodeCalculateAnimationValue] = node->Animate(timestamp);
+        auto [hasRunningAnimation, nodeNeedRequestNextVsync, nodeCalculateAnimationValue] =
+            node->Animate(timestamp, minLeftDelayTime);
         if (!hasRunningAnimation) {
             ROSEN_LOGD("RSRenderThread::Animate removing finished animating node %{public}" PRIu64, node->GetId());
         }
@@ -535,9 +531,7 @@ void RSRenderThread::Render()
         RSPropertyTrace::GetInstance().RefreshNodeTraceInfo();
     }
     ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSRenderThread::Render");
-    if (RsFrameReport::GetInstance().GetEnable()) {
-        RsFrameReport::GetInstance().RenderStart(timestamp_);
-    }
+    RsFrameReport::GetInstance().RenderStart(timestamp_);
     std::unique_lock<std::mutex> lock(mutex_);
     const auto& rootNode = context_->GetGlobalRootRenderNode();
 
@@ -563,9 +557,7 @@ void RSRenderThread::Render()
 void RSRenderThread::SendCommands()
 {
     ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSRenderThread::SendCommands");
-    if (RsFrameReport::GetInstance().GetEnable()) {
-        RsFrameReport::GetInstance().SendCommandsStart();
-    }
+    RsFrameReport::GetInstance().SendCommandsStart();
 
     RSUIDirector::RecvMessages();
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);

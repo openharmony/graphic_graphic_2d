@@ -114,6 +114,8 @@ std::string AshmemFdContainer::PrintFds() const
     return "";
 }
 
+AshmemFdWorker::AshmemFdWorker(const pid_t callingPid) : callingPid_(callingPid) {}
+
 AshmemFdWorker::~AshmemFdWorker()
 {
     isFdContainerUpdated_ = false;
@@ -128,6 +130,7 @@ void AshmemFdWorker::InsertFdWithOffset(int fd, binder_size_t offset, bool shoul
 
 void AshmemFdWorker::PushFdsToContainer()
 {
+    (void)callingPid_;
 }
 
 void AshmemFdWorker::EnableManualCloseFds()
@@ -140,7 +143,7 @@ void RSAshmemHelper::CopyFileDescriptor(
 }
 
 void RSAshmemHelper::InjectFileDescriptor(std::shared_ptr<MessageParcel>& dataParcel, MessageParcel* ashmemParcel,
-    std::unique_ptr<AshmemFdWorker>& ashmemFdWorker)
+    std::unique_ptr<AshmemFdWorker>& ashmemFdWorker, pid_t callingPid)
 {
 }
 

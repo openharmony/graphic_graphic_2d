@@ -33,7 +33,7 @@ public:
     // called before each tests
     void BeforeEach() override
     {
-        SetScreenSurfaceBounds({ 0, 0, screenWidth, screenHeight });
+        SetScreenSize(screenWidth, screenHeight);
     }
 };
 
@@ -105,6 +105,35 @@ GRAPHIC_TEST(ForegroundTest, CONTENT_DISPLAY_TEST, FgBrightnessParams_Fraction_T
             for (int k = 0; k < TWO_; k++) {
                 RSDynamicBrightnessPara params = RSDynamicBrightnessPara(rateList[i], rateList[(i + 3) % 4],
                     saturationList[j], saturationList[(j + 1) % 4], saturationList[j], RGB[k], RGB[(k + 1) % 2]);
+                params.fraction_ = ZERO_;
+                int x = i * THREE_HUNDRED_TEN_;
+                int y = (k + j * 2) * THREE_HUNDRED_TEN_;
+                auto testFaNode =
+                    SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { x, y, THREE_HUNDRED_, THREE_HUNDRED_ });
+                auto testNode = RSCanvasNode::Create();
+                testNode->SetBounds({ 0, 0, THREE_HUNDRED_, THREE_HUNDRED_ });
+                testNode->SetForegroundColor(0xff7d112c);
+                testNode->SetFgBrightnessParams(params);
+                testNode->SetFgBrightnessFract(params.fraction_);
+                GetRootNode()->AddChild(testFaNode);
+                testFaNode->AddChild(testNode);
+                RegisterNode(testFaNode);
+                RegisterNode(testNode);
+            }
+        }
+    }
+}
+
+GRAPHIC_TEST(ForegroundTest, CONTENT_DISPLAY_TEST, FgBrightnessParams_Fraction_Test_4)
+{
+    float rateList[] = { -0.05, 0.0, 1.0, 20.0 };
+    float saturationList[] = { 0.0, 5.0, 10.0, 20.0 };
+    std::array<float, 3> RGB[] = { { 2.3, 4.5, 2 }, { 0.5, 2, 0.5 } };
+    for (int i = 0; i < FOUR_; i++) {
+        for (int j = 0; j < FOUR_; j++) {
+            for (int k = 0; k < TWO_; k++) {
+                RSDynamicBrightnessPara params = RSDynamicBrightnessPara(rateList[i], rateList[(i + 3) % 4],
+                    0.0, 0.0, saturationList[j], RGB[k], RGB[(k + 1) % 2]);
                 params.fraction_ = ZERO_;
                 int x = i * THREE_HUNDRED_TEN_;
                 int y = (k + j * 2) * THREE_HUNDRED_TEN_;

@@ -17,11 +17,17 @@
 
 #include "platform/common/rs_log.h"
 #include "ui/rs_root_node.h"
+#include "ui/rs_surface_extractor.h"
 #include "ui/rs_surface_node.h"
+
+#ifdef RS_ENABLE_VK
+#include "platform/ohos/backend/rs_surface_ohos_vulkan.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
-
+std::unordered_set<std::shared_ptr<RSSurfaceNode>> RSTextureExport::virtualSurfaceNodeSet_;
+std::mutex RSTextureExport::virtualSurfaceNodeSetMutex_;
 RSTextureExport::RSTextureExport(std::shared_ptr<RSNode> rootNode, SurfaceId surfaceId)
 {
     if (rootNode == nullptr) {
@@ -36,24 +42,31 @@ RSTextureExport::RSTextureExport(std::shared_ptr<RSNode> rootNode, SurfaceId sur
         .isTextureExportNode = true,
         .surfaceId = surfaceId_
     };
-    virtualSurfaceNode_ = RSSurfaceNode::Create(config, false, rsUiDirector_->GetRSUIContext());
+    virtualSurfaceNode_ = RSSurfaceNode::Create(config, false, rootNode_->GetRSUIContext());
+    {
+        std::lock_guard<std::mutex> lock(virtualSurfaceNodeSetMutex_);
+        virtualSurfaceNodeSet_.insert(virtualSurfaceNode_);
+    }
     rootNode_->SyncTextureExport(true);
 }
 
 RSTextureExport::~RSTextureExport()
 {
+    {
+        std::lock_guard<std::mutex> lock(virtualSurfaceNodeSetMutex_);
+        virtualSurfaceNodeSet_.erase(virtualSurfaceNode_);
+    }
     rsUiDirector_->Destroy(true);
 }
 
 bool RSTextureExport::DoTextureExport()
 {
-    auto rsUIContext = rsUiDirector_->GetRSUIContext();
     if (!rootNode_->IsTextureExportNode()) {
         rootNode_->SyncTextureExport(true);
     }
     rsUiDirector_->StartTextureExport();
     if (rootNode_->GetType() != RSUINodeType::ROOT_NODE) {
-        virtualRootNode_ = RSRootNode::Create(false, true, rsUIContext);
+        virtualRootNode_ = RSRootNode::Create(false, true, rootNode_->GetRSUIContext());
         auto bounds = rootNode_->GetStagingProperties().GetBounds();
         virtualRootNode_->SetBounds({-bounds.x_, -bounds.y_, bounds.z_, bounds.w_});
         auto frame = rootNode_->GetStagingProperties().GetFrame();
@@ -64,9 +77,9 @@ bool RSTextureExport::DoTextureExport()
         return false;
     }
     if (rootNode_->GetType() == RSUINodeType::ROOT_NODE) {
-        rsUiDirector_->SetRoot(rootNode_->GetId());
+        rsUiDirector_->SetRSRootNode(RSBaseNode::ReinterpretCast<RSRootNode>(rootNode_));
     } else {
-        rsUiDirector_->SetRoot(virtualRootNode_->GetId());
+        rsUiDirector_->SetRSRootNode(RSBaseNode::ReinterpretCast<RSRootNode>(virtualRootNode_));
         virtualRootNode_->AddChild(rootNode_);
     }
     rsUiDirector_->SetRSSurfaceNode(virtualSurfaceNode_);
@@ -86,5 +99,29 @@ void RSTextureExport::StopTextureExport()
     rootNode_->RemoveFromTree();
 }
 
+#ifdef RS_ENABLE_VK
+void RSTextureExport::ClearContext()
+{
+    if (!RSSystemProperties::IsUseVulkan()) {
+        return;
+    }
+
+    std::lock_guard<std::mutex> lock(virtualSurfaceNodeSetMutex_);
+    for (auto& node : virtualSurfaceNodeSet_) {
+        if (node == nullptr) {
+            continue;
+        }
+        std::shared_ptr<RSSurface> rsSurface = RSSurfaceExtractor::ExtractRSSurface(node);
+        if (rsSurface == nullptr) {
+            continue;
+        }
+        auto rsSurfaceVulkan = std::static_pointer_cast<RSSurfaceOhosVulkan>(rsSurface);
+        if (rsSurfaceVulkan == nullptr) {
+            continue;
+        }
+        rsSurfaceVulkan->ClearSurfaceResource();
+    }
+}
+#endif
 } // namespace Rosen
 } // namespace OHOS

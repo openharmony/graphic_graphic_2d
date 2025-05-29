@@ -20,6 +20,7 @@
 #include "common/rs_optional_trace.h"
 #include "drawable/rs_property_drawable_utils.h"
 #include "gfx/performance/rs_perfmonitor_reporter.h"
+#include "memory/rs_tag_tracker.h"
 #include "pipeline/rs_recording_canvas.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
@@ -53,6 +54,10 @@ Drawing::RecordingCanvas::DrawFunc RSPropertyDrawable::CreateDrawFunc() const
 {
     auto ptr = std::static_pointer_cast<const RSPropertyDrawable>(shared_from_this());
     return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
+#ifdef RS_ENABLE_GPU
+        RSTagTracker tagTracker(canvas ? canvas->GetGPUContext() : nullptr,
+            RSTagTracker::SOURCETYPE::SOURCE_RSPROPERTYDRAWABLE);
+#endif
         ptr->drawCmdList_->Playback(*canvas);
         if (!ptr->propertyDescription_.empty()) {
             RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(TRACE_LEVEL_TWO, "RSPropertyDrawable:: %s, bounds:%s",
@@ -223,15 +228,19 @@ Drawing::RecordingCanvas::DrawFunc RSFilterDrawable::CreateDrawFunc() const
 {
     auto ptr = std::static_pointer_cast<const RSFilterDrawable>(shared_from_this());
     return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
+#ifdef RS_ENABLE_GPU
+        RSTagTracker tagTracker(canvas ? canvas->GetGPUContext() : nullptr,
+            RSTagTracker::SOURCETYPE::SOURCE_RSFILTERDRAWABLE);
+#endif
         if (ptr->needDrawBehindWindow_) {
-            auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
-            if (!paintFilterCanvas || !canvas->GetSurface()) {
-                RS_LOGE("RSFilterDrawable::CreateDrawFunc DrawBehindWindow canvas:[%{public}d], surface:[%{public}d]",
-                    paintFilterCanvas != nullptr, canvas->GetSurface() != nullptr);
+            if (!canvas->GetSurface()) {
+                RS_LOGE("RSFilterDrawable::CreateDrawFunc DrawBehindWindow surface is nullptr");
                 return;
             }
-            RS_TRACE_NAME_FMT("RSFilterDrawable::CreateDrawFunc DrawBehindWindow node[%llu], windowFreezeCapture[%d]",
-                ptr->renderNodeId_, paintFilterCanvas->GetIsWindowFreezeCapture());
+            auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
+            RS_TRACE_NAME_FMT("RSFilterDrawable::CreateDrawFunc DrawBehindWindow node[%" PRIu64 "], "
+                "windowFreezeCapture[%d], DrawingCache[%d]", ptr->renderNodeId_,
+                paintFilterCanvas->GetIsWindowFreezeCapture(), paintFilterCanvas->GetIsDrawingCache());
             if (paintFilterCanvas->GetIsWindowFreezeCapture()) {
                 RS_LOGD("RSFilterDrawable::CreateDrawFunc DrawBehindWindow capture freeze surface, "
                     "no need to drawBehindWindow");
@@ -242,6 +251,13 @@ Drawing::RecordingCanvas::DrawFunc RSFilterDrawable::CreateDrawFunc() const
             Drawing::Rect absRect(0.0, 0.0, 0.0, 0.0);
             Drawing::Rect relativeBounds(ptr->drawBehindWindowRegion_.GetLeft(), ptr->drawBehindWindowRegion_.GetTop(),
                 ptr->drawBehindWindowRegion_.GetRight(), ptr->drawBehindWindowRegion_.GetBottom());
+            if (paintFilterCanvas->GetIsDrawingCache()) {
+                RS_OPTIONAL_TRACE_NAME_FMT("RSFilterDrawable::CreateDrawFunc DrawBehindWindow DrawingCache bounds:%s",
+                    relativeBounds.ToString().c_str());
+                auto data = std::make_shared<RSPaintFilterCanvas::CacheBehindWindowData>(ptr->filter_, relativeBounds);
+                paintFilterCanvas->SetCacheBehindWindowData(std::move(data));
+                return;
+            }
             canvas->GetTotalMatrix().MapRect(absRect, relativeBounds);
             Drawing::RectI bounds(std::ceil(absRect.GetLeft()), std::ceil(absRect.GetTop()),
                 std::ceil(absRect.GetRight()), std::ceil(absRect.GetBottom()));
@@ -385,8 +401,7 @@ void RSFilterDrawable::MarkNeedClearFilterCache()
     if (stagingCacheManager_  == nullptr) {
         return;
     }
-    RS_TRACE_NAME_FMT("RSFilterDrawable::MarkNeedClearFilterCache nodeId[%llu]", stagingNodeId_);
-    stagingCacheManager_->MarkNeedClearFilterCache();
+    stagingCacheManager_->MarkNeedClearFilterCache(stagingNodeId_);
     ROSEN_LOGD("RSFilterDrawable::MarkNeedClearFilterCache nodeId[%{public}lld]",
         static_cast<long long>(stagingNodeId_));
 }
@@ -396,6 +411,14 @@ void RSFilterDrawable::MarkBlurIntersectWithDRM(bool intersectWithDRM, bool isDa
 {
     stagingIntersectWithDRM_ = intersectWithDRM;
     stagingIsDarkColorMode_ = isDark;
+}
+
+void RSFilterDrawable::MarkInForegroundFilterAndCheckNeedForceClearCache(bool inForegroundFilter)
+{
+    if (stagingCacheManager_ == nullptr) {
+        return;
+    }
+    stagingCacheManager_->MarkInForegroundFilterAndCheckNeedForceClearCache(inForegroundFilter);
 }
 
 bool RSFilterDrawable::IsFilterCacheValid() const
@@ -436,6 +459,14 @@ bool RSFilterDrawable::NeedPendingPurge() const
         return false;
     }
     return stagingCacheManager_->NeedPendingPurge();
+}
+
+bool RSFilterDrawable::IsPendingPurge() const
+{
+    if (stagingCacheManager_ == nullptr) {
+        return false;
+    }
+    return stagingCacheManager_->IsPendingPurge();
 }
 
 void RSFilterDrawable::MarkEffectNode()

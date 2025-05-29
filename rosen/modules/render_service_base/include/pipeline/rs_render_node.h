@@ -32,9 +32,12 @@
 #include "common/rs_common_def.h"
 #include "common/rs_macros.h"
 #include "common/rs_rect.h"
+#include "display_engine/rs_luminance_control.h"
 #include "draw/surface.h"
 #include "drawable/rs_drawable.h"
 #include "drawable/rs_property_drawable.h"
+#include "feature/opinc/rs_opinc_cache.h"
+#include "hwc/rs_hwc_recorder.h"
 #include "image/gpu_context.h"
 #include "memory/rs_dfx_string.h"
 #include "memory/rs_memory_snapshot.h"
@@ -73,8 +76,6 @@ struct CurFrameInfoDetail {
 
 class RSB_EXPORT RSRenderNode : public std::enable_shared_from_this<RSRenderNode>  {
 public:
-    // Used to check if hwc should enable for this selfdraw-surface
-    int32_t zOrderForCalcHwcNodeEnableByFilter_ = 0;
     using WeakPtr = std::weak_ptr<RSRenderNode>;
     using SharedPtr = std::shared_ptr<RSRenderNode>;
     static inline constexpr RSRenderNodeType Type = RSRenderNodeType::RS_NODE;
@@ -104,6 +105,10 @@ public:
     void MoveChild(SharedPtr child, int index);
     void RemoveChild(SharedPtr child, bool skipTransition = false);
     void ClearChildren();
+    void SetUIContextToken(uint64_t token)
+    {
+        uiContextToken_ = token;
+    }
     void RemoveFromTree(bool skipTransition = false);
 
     // Add/RemoveCrossParentChild only used as: the child is under multiple parents(e.g. a window cross multi-screens)
@@ -219,6 +224,16 @@ public:
         return filterRegion_;
     }
 
+    inline bool IsRepaintBoundary() const
+    {
+        return isRepaintBoundary_;
+    }
+
+    inline void MarkRepaintBoundary(bool isRepaintBoundary)
+    {
+        isRepaintBoundary_ = isRepaintBoundary;
+    }
+
     inline bool IsWaitSync() const
     {
         return waitSync_;
@@ -229,8 +244,10 @@ public:
     ChildrenListSharedPtr GetChildren() const;
     // return children and disappeared children, sorted by z-index
     virtual ChildrenListSharedPtr GetSortedChildren() const;
+    void CollectAllChildren(const std::shared_ptr<RSRenderNode>& node, std::vector<NodeId>& vec);
     uint32_t GetChildrenCount() const;
     std::shared_ptr<RSRenderNode> GetFirstChild() const;
+    std::list<WeakPtr> GetChildrenList() const;
 
     void DumpTree(int32_t depth, std::string& ou) const;
     void DumpNodeInfo(DfxString& log);
@@ -329,12 +346,19 @@ public:
     void UpdateCurCornerRadius(Vector4f& curCornerRadius);
     void SetDirty(bool forceAddToActiveList = false);
 
+    void ResetDirtyFlag()
+    {
+        SetClean();
+        GetMutableRenderProperties().ResetDirty();
+    }
+
     virtual void AddDirtyType(RSModifierType type)
     {
         dirtyTypes_.set(static_cast<int>(type), true);
     }
 
-    std::tuple<bool, bool, bool> Animate(int64_t timestamp, int64_t period = 0, bool isDisplaySyncEnabled = false);
+    std::tuple<bool, bool, bool> Animate(
+        int64_t timestamp, int64_t& minLeftDelayTime, int64_t period = 0, bool isDisplaySyncEnabled = false);
 
     bool IsClipBound() const;
     // clipRect has value in UniRender when calling PrepareCanvasRenderNode, else it is nullopt
@@ -398,6 +422,8 @@ public:
 
     bool IsDirtyRegionUpdated() const;
     void CleanDirtyRegionUpdated();
+    
+    std::shared_ptr<RSRenderPropertyBase> GetProperty(PropertyId id);
 
     void AddModifier(const std::shared_ptr<RSRenderModifier>& modifier, bool isSingleFrameComposer = false);
     void RemoveModifier(const PropertyId& id);
@@ -421,15 +447,14 @@ public:
     virtual bool IsStaticCached() const;
     void SetNodeName(const std::string& nodeName);
     const std::string& GetNodeName() const;
-    // store prev surface subtree's must-renewed info that need prepare
-    virtual void StoreMustRenewedInfo();
-    bool HasMustRenewedInfo() const;
     bool HasSubSurface() const;
 
     bool NeedInitCacheSurface();
     bool NeedInitCacheCompletedSurface();
     bool IsPureContainer() const;
     bool IsContentNode() const;
+    void SetDrawNodeType(DrawNodeType nodeType);
+    DrawNodeType GetDrawNodeType() const;
 
     inline const RSRenderContent::DrawCmdContainer& GetDrawCmdModifiers() const
     {
@@ -466,9 +491,6 @@ public:
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     void UpdateBackendTexture();
 #endif
-
-    void DrawCacheSurface(RSPaintFilterCanvas& canvas, uint32_t threadIndex = UNI_MAIN_THREAD_INDEX,
-        bool isUIFirst = false);
 
     void SetCacheType(CacheType cacheType);
     CacheType GetCacheType() const;
@@ -527,9 +549,6 @@ public:
     }
 
     std::recursive_mutex& GetSurfaceMutex() const;
-
-    bool HasHardwareNode() const;
-    void SetHasHardwareNode(bool hasHardwareNode);
 
     bool HasAbilityComponent() const;
     void SetHasAbilityComponent(bool hasAbilityComponent);
@@ -590,6 +609,7 @@ public:
     bool IsAIBarFilter() const;
     bool IsAIBarFilterCacheValid() const;
     void MarkForceClearFilterCacheWithInvisible();
+    void MarkFilterInForegroundFilterAndCheckNeedForceClearCache(bool inForegroundFilter);
 
     void CheckGroupableAnimation(const PropertyId& id, bool isAnimAdd);
     bool IsForcedDrawInGroup() const;
@@ -606,7 +626,7 @@ public:
     };
     void MarkNodeGroup(NodeGroupType type, bool isNodeGroup, bool includeProperty);
     void MarkForegroundFilterCache();
-    NodeGroupType GetNodeGroupType();
+    NodeGroupType GetNodeGroupType() const;
     bool IsNodeGroupIncludeProperty() const;
 
     void MarkNodeSingleFrameComposer(bool isNodeSingleFrameComposer, pid_t pid = 0);
@@ -615,11 +635,6 @@ public:
     // mark cross node in physical extended screen model
     bool IsCrossNode() const;
 
-    // mark stable node
-    void OpincSetInAppStateStart(bool& unchangeMarkInApp);
-    void OpincSetInAppStateEnd(bool& unchangeMarkInApp);
-    void OpincQuickMarkStableNode(bool& unchangeMarkInApp, bool& unchangeMarkEnable, bool isAccessibilityChanged);
-    bool IsOpincUnchangeState();
     std::string QuickGetNodeDebugInfo();
 
     // mark support node
@@ -628,16 +643,16 @@ public:
     {
         return isOpincNodeSupportFlag_;
     }
-    bool IsMarkedRenderGroup();
-    bool OpincForcePrepareSubTree(bool autoCacheEnable);
 
-    // sync to drawable
-    void OpincUpdateRootFlag(bool& unchangeMarkEnable);
-    bool OpincGetRootFlag() const;
+    void OpincSetNodeSupportFlag(bool supportFlag)
+    {
+        isOpincNodeSupportFlag_ = supportFlag;
+    }
 
     // arkui mark
     void MarkSuggestOpincNode(bool isOpincNode, bool isNeedCalculate);
-    bool GetSuggestOpincNode() const;
+
+    void UpdateOpincParam();
 
     /////////////////////////////////////////////
 
@@ -673,7 +688,7 @@ public:
     virtual void UpdateRenderParams();
     void SetCrossNodeOffScreenStatus(CrossNodeOffScreenRenderDebugType isCrossNodeOffscreenOn_);
     void UpdateDrawingCacheInfoBeforeChildren(bool isScreenRotation);
-    void UpdateDrawingCacheInfoAfterChildren();
+    void UpdateDrawingCacheInfoAfterChildren(bool isInBlackList = false);
 
     virtual RectI GetFilterRect() const;
     void CalVisibleFilterRect(const std::optional<RectI>& clipRect);
@@ -840,7 +855,7 @@ public:
     {
         isFirstLevelCrossNode_ = isFirstLevelCrossNode;
     }
-    void SetHdrNum(bool flag, NodeId instanceRootNodeId);
+    void SetHdrNum(bool flag, NodeId instanceRootNodeId, HDRComponentType hdrType);
 
     void SetIsAccessibilityConfigChanged(bool isAccessibilityConfigChanged)
     {
@@ -884,13 +899,21 @@ public:
 
     bool HasUnobscuredUEC() const;
     void SetHasUnobscuredUEC();
+    void SetOldDirtyInSurface(RectI oldDirtyInSurface);
+
+    // Enable HWCompose
+    RSHwcRecorder& GetHwcRecorder() { return hwcRecorder_; }
+
+    RSOpincCache& GetOpincCache()
+    {
+        return opincCache_;
+    }
 
 protected:
     // only be called in node's constructor if it's generated by render service
     static NodeId GenerateId();
 
     virtual void OnApplyModifiers() {}
-    void SetOldDirtyInSurface(RectI oldDirtyInSurface);
 
     enum class NodeDirty {
         CLEAN = 0,
@@ -914,6 +937,7 @@ protected:
 
     static void SendCommandFromRT(std::unique_ptr<RSCommand>& command, NodeId nodeId);
     void AddGeometryModifier(const std::shared_ptr<RSRenderModifier>& modifier);
+    void AddUIFilterModifier(const std::shared_ptr<RSRenderModifier>& modifier);
 
     virtual void InitRenderParams();
     virtual void OnSync();
@@ -950,7 +974,6 @@ protected:
     bool isShadowValidLastFrame_ = false;
     bool IsSelfDrawingNode() const;
     bool lastFrameHasAnimation_ = false;
-    bool mustRenewedInfo_ = false;
     bool needClearSurface_ = false;
     bool isBootAnimation_ = false;
     bool lastFrameHasVisibleEffect_ = false;
@@ -983,6 +1006,9 @@ protected:
 
     CurFrameInfoDetail curFrameInfoDetail_;
 
+    // Enable HWCompose
+    RSHwcRecorder hwcRecorder_;
+
 private:
     // mark cross node in physical extended screen model
     bool isCrossNode_ = false;
@@ -1010,8 +1036,7 @@ private:
     bool childHasVisibleFilter_ = false;  // only collect visible children filter status
     bool childHasVisibleEffect_ = false;  // only collect visible children has useeffect
     bool hasChildrenOutOfRect_ = false;
-    // opinc state
-    NodeCacheState nodeCacheState_ = NodeCacheState::STATE_INIT;
+
     bool isSubTreeDirty_ = false;
     bool isContentDirty_ = false;
     bool nodeGroupIncludeProperty_ = false;
@@ -1024,17 +1049,12 @@ private:
     bool isAccumulatedClipFlagChanged_ = false;
     bool hasAccumulatedClipFlag_ = false;
     bool isOpincNodeSupportFlag_ = true;
-    bool isSuggestOpincNode_ = false;
     // since preparation optimization would skip child's dirtyFlag(geoDirty) update
     // it should be recorded and update if marked dirty again
     bool geoUpdateDelay_ = false;
-    bool isOpincRootFlag_ = false;
     bool lastFrameHasChildrenOutOfRect_ = false;
     MultiThreadCacheType lastFrameUifirstFlag_ = MultiThreadCacheType::NONE;
     bool isContainBootAnimation_ = false;
-    bool isUnchangeMarkEnable_ = false;
-    bool isNeedCalculate_ = false;
-    bool isUnchangeMarkInApp_ = false;
     CacheType cacheType_ = CacheType::NONE;
     bool isDrawingCacheChanged_ = false;
     bool drawingCacheNeedUpdate_ = false;
@@ -1044,7 +1064,6 @@ private:
     bool isScale_ = false;
     bool isScaleInPreFrame_ = false;
     bool hasFilter_ = false;
-    bool hasHardwareNode_ = false;
     bool hasAbilityComponent_ = false;
     bool isAncestorDirty_ = false;
     bool isParentLeashWindow_ = false;
@@ -1065,6 +1084,7 @@ private:
     bool childrenHasUIExtension_ = false;
     bool isAccessibilityConfigChanged_ = false;
     const bool isPurgeable_;
+    DrawNodeType drawNodeType_ = DrawNodeType::PureContainerType;
     std::atomic<bool> isTunnelHandleChange_ = false;
     std::atomic<bool> isCacheSurfaceNeedUpdate_ = false;
     std::atomic<bool> commandExecuted_ = false;
@@ -1077,9 +1097,6 @@ private:
     int32_t preparedDisplayOffsetY_ = 0;
     uint32_t disappearingTransitionCount_ = 0;
     float globalAlpha_ = 1.0f;
-    int tryCacheTimes_ = 0;
-    int unchangeCount_ = 0;
-    int unchangeCountUpper_ = 3; // 3 time is the default to cache
     // collect subtree's surfaceNode including itself
     int subSurfaceCnt_ = 0;
     uint32_t cacheSurfaceThreadIndex_ = UNI_MAIN_THREAD_INDEX;
@@ -1089,6 +1106,7 @@ private:
     float boundsWidth_ = 0.0f;
     float boundsHeight_ = 0.0f;
     pid_t appPid_ = 0;
+    uint64_t uiContextToken_ = 0;
     NodeId id_;
     NodeId instanceRootNodeId_ = INVALID_NODEID;
     NodeId firstLevelNodeId_ = INVALID_NODEID;
@@ -1153,9 +1171,13 @@ private:
     std::vector<Drawing::RecordingCanvas::DrawFunc> stagingDrawCmdList_;
     std::vector<NodeId> visibleFilterChild_;
     std::unordered_set<NodeId> visibleEffectChild_;
+    static std::unordered_set<NodeId> pendingPurgeNodeIds_;
     Drawing::Matrix oldAbsMatrix_;
     RSDrawable::Vec drawableVec_;
     RSAnimationManager animationManager_;
+    RSOpincCache opincCache_;
+
+    std::map<PropertyId, std::shared_ptr<RSRenderPropertyBase>> properties_;
 
     std::list<WeakPtr> children_;
     std::set<NodeId> preFirstLevelNodeIdSet_ = {};
@@ -1181,6 +1203,7 @@ private:
     static std::unordered_map<pid_t, size_t> blurEffectCounter_;
     // The angle at which the node rotates about the Z-axis
     float absRotation_ = 0.f;
+    bool isRepaintBoundary_ = false;
     void UpdateBlurEffectCounter(int deltaCount);
     int GetBlurEffectDrawbleCount();
 
@@ -1215,11 +1238,6 @@ private:
     void ValidateLightResources();
     void UpdateShouldPaint(); // update node should paint state in apply modifier stage
 
-    // opinc state func
-    void NodeCacheStateChange(NodeChangeType type);
-    void SetCacheStateByRetrytime();
-    void NodeCacheStateReset(NodeCacheState nodeCacheState);
-
     std::shared_ptr<Drawing::Image> GetCompletedImage(
         RSPaintFilterCanvas& canvas, uint32_t threadIndex, bool isUIFirst);
 
@@ -1231,6 +1249,8 @@ private:
     void RecordCloneCrossNode(SharedPtr node);
 
     void OnRegister(const std::weak_ptr<RSContext>& context);
+
+    void ChildrenListDump(std::string& out) const;
 
     friend class DrawFuncOpItem;
     friend class RSAliasDrawable;

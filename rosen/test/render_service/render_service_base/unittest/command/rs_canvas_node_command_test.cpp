@@ -46,8 +46,8 @@ HWTEST_F(RSCanvasNodeCommandTest, TestRSCanvasNodeCommand001, TestSize.Level1)
     NodeId nodeId = static_cast<NodeId>(-1);
     std::shared_ptr<Drawing::DrawCmdList> drawCmds = nullptr;
     RSModifierType type = RSModifierType::INVALID;
+    EXPECT_EQ(context.GetNodeMap().GetRenderNode<RSCanvasRenderNode>(nodeId), nullptr);
     RSCanvasNodeCommandHelper::UpdateRecording(context, nodeId, drawCmds, static_cast<uint16_t>(type));
-    ASSERT_EQ(nodeId, static_cast<NodeId>(-1));
 }
 
 /**
@@ -73,7 +73,7 @@ HWTEST_F(RSCanvasNodeCommandTest, Create001, TestSize.Level1)
     RSContext context;
     NodeId targetId = static_cast<NodeId>(-1);
     RSCanvasNodeCommandHelper::Create(context, targetId, false);
-    ASSERT_EQ(targetId, static_cast<NodeId>(-1));
+    EXPECT_NE(context.GetNodeMap().GetRenderNode<RSCanvasRenderNode>(targetId), nullptr);
 }
 
 /**
@@ -87,7 +87,7 @@ HWTEST_F(RSCanvasNodeCommandTest, Create002, TestSize.Level1)
     RSContext context;
     NodeId targetId = 0;
     RSCanvasNodeCommandHelper::Create(context, targetId, false);
-    ASSERT_EQ(targetId, static_cast<NodeId>(0));
+    EXPECT_EQ(context.GetNodeMap().GetRenderNode<RSCanvasRenderNode>(targetId), nullptr);
 }
 
 /**
@@ -161,6 +161,25 @@ HWTEST_F(RSCanvasNodeCommandTest, ClearRecording001, TestSize.Level1)
 
     RSCanvasNodeCommandHelper::ClearRecording(context, 0);
     EXPECT_TRUE(id);
+}
+
+/**
+ * @tc.name: SetIsWideColorGamut001
+ * @tc.desc: test results of SetIsWideColorGamut
+ * @tc.type: FUNC
+ * @tc.require: issueI9P2KH
+ */
+HWTEST_F(RSCanvasNodeCommandTest, SetIsWideColorGamut001, TestSize.Level1)
+{
+    RSContext context;
+    NodeId id = static_cast<NodeId>(1);
+    RSCanvasNodeCommandHelper::Create(context, id, true);
+    auto node = context.GetNodeMap().GetRenderNode<RSCanvasRenderNode>(id);
+
+    RSCanvasNodeCommandHelper::SetIsWideColorGamut(context, id, true);
+    ASSERT_EQ(node->isWideColorGamut_, true);
+    RSCanvasNodeCommandHelper::SetIsWideColorGamut(context, id, false);
+    ASSERT_EQ(node->isWideColorGamut_, false);
 }
 
 /**

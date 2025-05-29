@@ -60,6 +60,17 @@ public:
     {
         return grContext_;
     }
+    void UpdateGpuMemoryStatistics();
+    std::unordered_map<pid_t, size_t> GetGpuMemoryOfPid()
+    {
+        std::lock_guard<std::mutex> lock(memMutex_);
+        return gpuMemoryOfPid_;
+    }
+    void ErasePidOfGpuMemory(pid_t pid)
+    {
+        std::lock_guard<std::mutex> lock(memMutex_);
+        gpuMemoryOfPid_.erase(pid);
+    }
 
 private:
     void CreateShareEglContext();
@@ -78,6 +89,8 @@ private:
     std::mutex mutex_;
     std::queue<std::shared_ptr<Drawing::Surface>> tmpSurfaces_;
     std::atomic<unsigned int> doingCacheProcessNum_ = 0;
+    std::unordered_map<pid_t, size_t> gpuMemoryOfPid_;
+    std::mutex memMutex_;
 };
 }
 #endif // RENDER_SERVICE_CORE_PIPELINE_PARALLEL_RENDER_RS_SUB_THREAD_H

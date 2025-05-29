@@ -22,7 +22,6 @@ ohos_unittest("RSRenderServiceBasePropertyTest") {
   module_out_path = module_output_path
 
   sources = [
-    "rs_filter_cache_manager_test.cpp",
     "rs_point_light_manager_test.cpp",
     "rs_properties_painter_test.cpp",
     "rs_properties_test.cpp",
@@ -36,7 +35,7 @@ ohos_unittest("RSRenderServiceBasePropertyTest") {
 
   configs = [
     ":render_test",
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:export_config",
+    "$graphic_2d_root/rosen/modules/render_service_base:export_config",
   ]
 
   cflags = [
@@ -45,21 +44,21 @@ ohos_unittest("RSRenderServiceBasePropertyTest") {
   ]
 
   include_dirs = [
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/include",
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
     "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing/engine_adapter/skia_adapter",
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/src",
-    "//foundation/graphic/graphic_2d/rosen/include",
-    "//foundation/graphic/graphic_2d/rosen/test/include",
+    "$graphic_2d_root/rosen/modules/render_service_base/src",
+    "$graphic_2d_root/rosen/include",
+    "$graphic_2d_root/rosen/test/include",
   ]
 
   deps = [
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base_static",
-    "//third_party/googletest:gtest_main",
   ]
 
   external_deps = [
     "c_utils:utils",
+    "googletest:gtest_main",
     "graphics_effect:graphics_effect_core",
     "hilog:libhilog",
     "init:libbegetutil",
@@ -74,7 +73,7 @@ config("render_test") {
   visibility = [ ":*" ]
   include_dirs = [
     "$ace_root",
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_base",
   ]
 }
 

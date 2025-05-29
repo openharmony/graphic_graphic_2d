@@ -23,6 +23,10 @@
 #include "surface_utils.h"
 #include "transaction/rs_interfaces.h"
 
+#include "accesstoken_kit.h"
+#include "nativetoken_kit.h"
+#include "token_setproc.h"
+
 using namespace testing::ext;
 
 namespace OHOS {
@@ -40,6 +44,22 @@ public:
     static void SetUpTestCase()
     {
         rsInterfaces = &(RSInterfaces::GetInstance());
+        uint64_t tokenId;
+        const char* perms[1];
+        perms[0] = "ohos.permission.CAPTURE_SCREEN";
+        NativeTokenInfoParams infoInstance = {
+            .dcapsNum = 0,
+            .permsNum = 1,
+            .aclsNum = 0,
+            .dcaps = NULL,
+            .perms = perms,
+            .acls = NULL,
+            .processName = "foundation",
+            .aplStr = "system_basic",
+        };
+        tokenId = GetAccessTokenId(&infoInstance);
+        SetSelfTokenID(tokenId);
+        OHOS::Security::AccessToken::AccessTokenKit::ReloadNativeTokenInfo();
     }
 
     static void TearDownTestCase()
@@ -127,6 +147,20 @@ HWTEST_F(RSInterfacesTest, GetScreenType002, Function | SmallTest | Level2)
     RSScreenType type;
     int ret = rsInterfaces->GetScreenType(INVALID_SCREEN_ID, type);
     EXPECT_EQ(ret, StatusCode::SCREEN_NOT_FOUND);
+}
+
+/*
+ * @tc.name: SetPhysicalScreenResolution001
+ * @tc.desc: Test SetPhysicalScreenResolution
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSInterfacesTest, SetPhysicalScreenResolution001, Function | SmallTest | Level2)
+{
+    ScreenId id = INVALID_SCREEN_ID;
+    uint32_t newWidth = 1920;
+    uint32_t newHeight = 1080;
+    auto ret = rsInterfaces->SetPhysicalScreenResolution(id, newWidth, newHeight);
+    EXPECT_EQ(ret, StatusCode::RS_CONNECTION_ERROR);
 }
 
 /*
@@ -540,7 +574,7 @@ HWTEST_F(RSInterfacesTest, SetScreenActiveRect001, Function | SmallTest | Level2
         .w = 0,
         .h = 0,
     };
-    EXPECT_EQ(rsInterfaces->SetScreenActiveRect(screenId, activeRect), StatusCode::HDI_ERROR);
+    EXPECT_EQ(rsInterfaces->SetScreenActiveRect(screenId, activeRect), StatusCode::SUCCESS);
 }
 
 /*
@@ -1147,6 +1181,32 @@ HWTEST_F(RSInterfacesTest, SetScreenRefreshRate001, Function | SmallTest | Level
 }
 
 /*
+ * @tc.name: SetShowRefreshRateEnabled
+ * @tc.desc: Verify the function of SetShowRefreshRateEnabled
+ * @tc.type: FUNC
+ * @tc.require: I7EM2R
+ */
+HWTEST_F(RSInterfacesTest, SetShowRefreshRateEnabled, Function | SmallTest | Level2)
+{
+    bool enabled = true;
+    int32_t type = 0;
+    rsInterfaces->SetShowRefreshRateEnabled(enabled, type);
+    EXPECT_GE(rsInterfaces->GetShowRefreshRateEnabled(), 0);
+}
+
+/*
+ * @tc.name: GetRealtimeRefreshRate
+ * @tc.desc: Verify the function of GetRealtimeRefreshRate
+ * @tc.type: FUNC
+ * @tc.require: I7EM2R
+ */
+HWTEST_F(RSInterfacesTest, GetRealtimeRefreshRate, Function | SmallTest | Level2)
+{
+    ScreenId id = 0;
+    EXPECT_GE(rsInterfaces->GetRealtimeRefreshRate(id), 0);
+}
+
+/*
  * @tc.name: SetScreenRefreshRate002
  * @tc.desc: Verify the function of setting the refreshrate with a very high value
  * @tc.type: FUNC
@@ -1379,6 +1439,67 @@ HWTEST_F(RSInterfacesTest, NotifyRefreshRateEvent001, Function | SmallTest | Lev
 }
 
 /*
+ * @tc.name: NotifySoftVsyncRateDiscountEvent001
+ * @tc.desc: Notify rateDiscount event to hgm to modify rateDiscount
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, NotifySoftVsyncRateDiscountEvent001, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    uint32_t pid = 1;
+    std::string name = "test";
+    uint32_t rateDiscount = 1;
+    rsInterfaces->NotifySoftVsyncRateDiscountEvent(pid, name, rateDiscount);
+    ASSERT_NE(rsInterfaces, nullptr);
+}
+
+/*
+ * @tc.name: SetWindowExpectedRefreshRate001
+ * @tc.desc: Set window expected soft refresh rate by windowId
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, SetWindowExpectedRefreshRate001, Function | SmallTest | Level2)
+{
+    constexpr int32_t maxFps = 1000;
+    constexpr int32_t minFps = 1;
+    constexpr uint64_t windowId = 1;
+    ASSERT_NE(rsInterfaces, nullptr);
+    EventInfo addVote = { "VOTER_VRATE", true, minFps, maxFps };
+    EventInfo delVote = { "VOTER_VRATE", false };
+    std::unordered_map<uint64_t, EventInfo> addVotes;
+    addVotes.insert({ windowId, addVote });
+    std::unordered_map<uint64_t, EventInfo> delVotes;
+    delVotes.insert({ windowId, delVote });
+    rsInterfaces->SetWindowExpectedRefreshRate(addVotes);
+    rsInterfaces->SetWindowExpectedRefreshRate(delVotes);
+    ASSERT_NE(rsInterfaces, nullptr);
+}
+
+/*
+ * @tc.name: SetWindowExpectedRefreshRate002
+ * @tc.desc: Set window expected soft refresh rate by vsyncName
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, SetWindowExpectedRefreshRate002, Function | SmallTest | Level2)
+{
+    constexpr int32_t maxFps = 1000;
+    constexpr int32_t minFps = 1;
+    ASSERT_NE(rsInterfaces, nullptr);
+    EventInfo addVote = { "VOTER_VRATE", true, minFps, maxFps };
+    EventInfo delVote = { "VOTER_VRATE", false };
+    std::unordered_map<std::string, EventInfo> addVotes;
+    addVotes.insert({ "vsync1", addVote });
+    std::unordered_map<std::string, EventInfo> delVotes;
+    delVotes.insert({ "vsync1", delVote });
+    rsInterfaces->SetWindowExpectedRefreshRate(addVotes);
+    rsInterfaces->SetWindowExpectedRefreshRate(delVotes);
+    ASSERT_NE(rsInterfaces, nullptr);
+}
+
+/*
  * @tc.name: NotifyTouchEvent001
  * @tc.desc: Notify touch event to hgm
  * @tc.type: FUNC
@@ -1419,6 +1540,21 @@ HWTEST_F(RSInterfacesTest, NotifyHgmConfigEvent001, Function | SmallTest | Level
     std::string eventName = "HGMCONFIG_HIGH_TEMP";
     bool state = false;
     rsInterfaces->NotifyHgmConfigEvent(eventName, state);
+    ASSERT_NE(rsInterfaces, nullptr);
+}
+
+/*
+ * @tc.name: NotifyXComponentExpectedFrameRate
+ * @tc.desc: Notify hgm config event to hgm
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, NotifyXComponentExpectedFrameRate, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    std::string id = "xcomponent";
+    int32_t expectedFrameRate = 5;
+    rsInterfaces->NotifyXComponentExpectedFrameRate(id, expectedFrameRate);
     ASSERT_NE(rsInterfaces, nullptr);
 }
 
@@ -1757,6 +1893,32 @@ HWTEST_F(RSInterfacesTest, SetVirtualScreenBlackList_Test, Function | SmallTest 
 
     std::vector<NodeId> blackList = {1, 2, 3};
     int32_t ret = rsInterfaces->SetVirtualScreenBlackList(virtualScreenId, blackList);
+    ASSERT_EQ(ret, 0);
+}
+
+/*
+ * @tc.name: SetVirtualScreenTypeBlackList
+ * @tc.desc: Test SetVirtualScreenTypeBlackList
+ * @tc.type: FUNC
+ * @tc.require:issueI9P2VD
+ */
+HWTEST_F(RSInterfacesTest, SetVirtualScreenTypeBlackList_Test, Function | SmallTest | Level2)
+{
+    auto cSurface = IConsumerSurface::Create();
+    ASSERT_NE(cSurface, nullptr);
+
+    auto producer = cSurface->GetProducer();
+    auto pSurface = Surface::CreateSurfaceAsProducer(producer);
+    EXPECT_NE(pSurface, nullptr);
+    uint32_t defaultWidth = 720;
+    uint32_t defaultHeight = 1280;
+
+    ScreenId virtualScreenId = rsInterfaces->CreateVirtualScreen(
+        "virtualScreen0", defaultWidth, defaultHeight, pSurface, INVALID_SCREEN_ID, -1);
+    EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
+
+    std::vector<NodeType> typeBlackList = {1, 2, 3};
+    int32_t ret = rsInterfaces->SetVirtualScreenTypeBlackList(virtualScreenId, typeBlackList);
     ASSERT_EQ(ret, 0);
 }
 
@@ -2248,8 +2410,27 @@ HWTEST_F(RSInterfacesTest, SetScreenSecurityMask_003, Function | SmallTest | Lev
     opts.pixelFormat = Media::PixelFormat::RGBA_8888;
     opts.alphaType = Media::AlphaType::IMAGE_ALPHA_TYPE_OPAQUE;
     std::unique_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(color, colorLength, opts);
-    int32_t ret = rsInterfaces->SetScreenSecurityMask(virtualScreenId, std::move(pixelMap));
-    EXPECT_EQ(ret, RS_CONNECTION_ERROR);
+    if (pixelMap) {
+        int32_t ret = rsInterfaces->SetScreenSecurityMask(virtualScreenId, std::move(pixelMap));
+        EXPECT_EQ(ret, RS_CONNECTION_ERROR);
+    }
+}
+
+/*
+ * @tc.name: TakeSurfaceCaptureTest
+ * @tc.desc: Test TakeSurfaceCapture.
+ * @tc.type: FUNC
+ * @tc.require: issue#IC4P5O
+ */
+HWTEST_F(RSInterfacesTest, TakeSurfaceCaptureTest, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    std::shared_ptr<RSDisplayNode> displayNode;
+    std::shared_ptr<SurfaceCaptureCallback> callback;
+    RSSurfaceCaptureConfig captureConfig;
+
+    bool ret = rsInterfaces->TakeSurfaceCapture(displayNode, callback, captureConfig);
+    EXPECT_EQ(ret, false);
 }
 
 /*
@@ -2302,6 +2483,45 @@ HWTEST_F(RSInterfacesTest, GetMemoryGraphics, Function | SmallTest | Level2)
 {
     ASSERT_NE(rsInterfaces, nullptr);
     rsInterfaces->GetMemoryGraphics();
+}
+
+/*
+ * @tc.name: SetAncoForceDoDirect
+ * @tc.desc: Test SetAncoForceDoDirect
+ * @tc.type: FUNC
+ * @tc.require: issueIBYASC
+ */
+HWTEST_F(RSInterfacesTest, SetAncoForceDoDirect, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    bool res = rsInterfaces->SetAncoForceDoDirect(false);
+    ASSERT_EQ(res, false);
+}
+
+/*
+ * @tc.name: SetColorFollow001
+ * @tc.desc: Test SetColorFollow with false.
+ * @tc.type: FUNC
+ * @tc.require: issueIBZALS
+ */
+HWTEST_F(RSInterfacesTest, SetColorFollow001, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    std::string nodeIdStr = "1";
+    rsInterfaces->SetColorFollow(nodeIdStr, false);
+}
+
+/*
+ * @tc.name: SetColorFollow002
+ * @tc.desc: Test SetColorFollow with true.
+ * @tc.type: FUNC
+ * @tc.require: issueIBZALS
+ */
+HWTEST_F(RSInterfacesTest, SetColorFollow002, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    std::string nodeIdStr = "1";
+    rsInterfaces->SetColorFollow(nodeIdStr, true);
 }
 } // namespace Rosen
 } // namespace OHOS

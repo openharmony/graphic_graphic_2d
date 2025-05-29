@@ -23,11 +23,9 @@
 namespace OHOS {
 namespace {
     constexpr const char* DUE_UPDATE_TYPE_PARAM = "persist.dupdate_engine.update_type";
+    constexpr const char* HMOS_UPDATE_PARAM = "persist.update.hmos_to_next_flag";
     const std::string DUE_UPDATE_TYPE_MANUAL = "manual";
     const std::string DUE_UPDATE_TYPE_NIGHT = "night";
-    constexpr const char* OTA_BMS_COMPILE_SWITCH = "const.bms.optimizing_apps.switch";
-    const std::string OTA_BMS_COMPILE_SWITCH_OFF = "off";
-    const std::string OTA_BMS_COMPILE_SWITCH_ON = "on";
 }
 
 bool BootAnimationStrategy::CheckExitAnimation()
@@ -79,36 +77,13 @@ bool BootAnimationStrategy::CheckExitAnimationExt()
 }
 #endif
 
-bool BootAnimationStrategy::CheckNeedOtaCompile() const
+bool BootAnimationStrategy::IsOtaUpdate() const
 {
-    LOGI("CheckNeedOtaCompile");
-    std::string otaCompileSwitch = system::GetParameter(OTA_BMS_COMPILE_SWITCH, OTA_BMS_COMPILE_SWITCH_OFF);
-    if (otaCompileSwitch != OTA_BMS_COMPILE_SWITCH_ON) {
-        LOGI("ota compile switch is: %{public}s", otaCompileSwitch.c_str());
-        return false;
-    }
-
     std::string dueUpdateType = system::GetParameter(DUE_UPDATE_TYPE_PARAM, "");
     LOGI("dueUpdateType is: %{public}s", dueUpdateType.c_str());
-    bool isOtaUpdate = dueUpdateType == DUE_UPDATE_TYPE_MANUAL || dueUpdateType == DUE_UPDATE_TYPE_NIGHT;
-
-    std::string bmsCompileStatus  = system::GetParameter(BMS_COMPILE_STATUS, "-1");
-    LOGI("bmsCompileStatus is: %{public}s", bmsCompileStatus.c_str());
-    bool isCompileDone = bmsCompileStatus == BMS_COMPILE_STATUS_END;
-
-    if (isOtaUpdate && !isCompileDone) {
-        return true;
-    }
-    return false;
-}
-
-bool BootAnimationStrategy::CheckNeedBundleScan() const
-{
-    LOGI("CheckNeedBundleScan");
-    if (system::GetParameter("bms.scanning_apps.status", "-1") == "1") {
-        LOGI("bundle scan is already done.");
-        return false;
-    }
-    return true;
+    bool isSingleUpdate = dueUpdateType == DUE_UPDATE_TYPE_MANUAL || dueUpdateType == DUE_UPDATE_TYPE_NIGHT;
+    bool isHmosUpdate = system::GetIntParameter(HMOS_UPDATE_PARAM, -1) == 1;
+    LOGI("isSingleUpdate: %{public}d, isHmosUpdate: %{public}d", isSingleUpdate, isHmosUpdate);
+    return isSingleUpdate || isHmosUpdate;
 }
 } // namespace OHOS

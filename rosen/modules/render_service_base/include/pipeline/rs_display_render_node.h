@@ -343,6 +343,7 @@ public:
     void UpdatePartialRenderParams();
     void UpdateScreenRenderParams(ScreenRenderParams& screenRenderParams);
     void UpdateOffscreenRenderParams(bool needOffscreen);
+    Occlusion::Region GetTopSurfaceOpaqueRegion() const;
     void RecordTopSurfaceOpaqueRects(Occlusion::Rect rect);
     void RecordMainAndLeashSurfaces(RSBaseRenderNode::SharedPtr surface);
     std::vector<RSBaseRenderNode::SharedPtr>& GetAllMainAndLeashSurfaces() { return curMainAndLeashSurfaceNodes_;}
@@ -407,6 +408,10 @@ public:
     }
 
     void SetMainAndLeashSurfaceDirty(bool isDirty);
+
+    void SetForceCloseHdr(bool isForceCloseHdr);
+
+    bool GetForceCloseHdr() const;
 
     void SetHDRPresent(bool hdrPresent);
 
@@ -582,6 +587,8 @@ public:
     void SetWindowContainer(std::shared_ptr<RSBaseRenderNode> container);
     std::shared_ptr<RSBaseRenderNode> GetWindowContainer() const;
 
+    void SetNeedForceUpdateHwcNodes(bool needForceUpdate, bool hasVisibleHwcNodes);
+
     void SetTargetSurfaceRenderNodeId(NodeId nodeId)
     {
         targetSurfaceRenderNodeId_ = nodeId;
@@ -593,6 +600,9 @@ public:
     }
 
     void SetTargetSurfaceRenderNodeDrawable(DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr drawable);
+
+    // Enable HWCompose
+    RSHwcDisplayRecorder& HwcDisplayRecorder() { return hwcDisplayRecorder_; }
 
 protected:
     void OnSync() override;
@@ -608,6 +618,7 @@ private:
     bool isMirroredDisplay_ = false;
     bool hasMirroredDisplayChanged_ = false;
     bool isSecurityDisplay_ = false;
+    bool isForceCloseHdr_ = false;
     bool hasUniRenderHdrSurface_ = false;
     bool isLuminanceStatusChange_ = false;
     bool preRotationStatus_ = false;
@@ -692,6 +703,9 @@ private:
 
     // Window Container
     std::shared_ptr<RSBaseRenderNode> windowContainer_;
+
+    // Enable HWCompose
+    RSHwcDisplayRecorder hwcDisplayRecorder_;
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -503,6 +503,7 @@ void RSRenderNodeDrawableAdapter::DrawBackgroundWithoutFilterAndEffect(
             RS_OPTIONAL_TRACE_NAME_FMT(
                 "ClipHoleForBlur filterRect:[%.2f, %.2f]", bounds.GetWidth(), bounds.GetHeight());
             Drawing::AutoCanvasRestore arc(*curCanvas, true);
+            curCanvas->ResetClip();
             curCanvas->ClipRect(bounds, Drawing::ClipOp::INTERSECT, false);
             curCanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
             UpdateFilterInfoForNodeGroup(curCanvas);
@@ -645,6 +646,11 @@ const RectI RSRenderNodeDrawableAdapter::GetFilterCachedRegion() const
 void RSRenderNodeDrawableAdapter::SetSkipCacheLayer(bool hasSkipCacheLayer)
 {
     hasSkipCacheLayer_ = hasSkipCacheLayer;
+}
+
+void RSRenderNodeDrawableAdapter::SetChildInBlackList(bool hasChildInBlackList)
+{
+    hasChildInBlackList_ = hasChildInBlackList;
 }
 
 void RSRenderNodeDrawableAdapter::ApplyForegroundColorIfNeed(Drawing::Canvas& canvas, const Drawing::Rect& rect) const

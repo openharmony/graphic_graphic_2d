@@ -52,7 +52,6 @@ public:
      */
     static std::shared_ptr<FontMgr> CreateDefaultFontMgr();
 
-#ifndef USE_TEXGINE
     /**
      * @brief   Create a dynamic fontMgr.
      * @return  A shared pointer to dynamic fontMgr.
@@ -85,7 +84,6 @@ public:
      * @param typeface    Typeface
     */
     void LoadThemeFont(const std::string& themeName, std::shared_ptr<Drawing::Typeface> typeface);
-#endif
 
     /**
      * @brief             Use the system fallback to find a typeface for the given character.

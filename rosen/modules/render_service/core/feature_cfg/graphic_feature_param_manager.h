@@ -43,6 +43,8 @@
 #include "mem_param.h"
 #include "multiscreen_param_parse.h"
 #include "multiscreen_param.h"
+#include "occlusion_culling_param.h"
+#include "occlusion_culling_param_parse.h"
 #include "opinc_param_parse.h"
 #include "opinc_param.h"
 #include "prevalidate_param_parse.h"
@@ -51,8 +53,6 @@
 #include "rotateoffscreen_param.h"
 #include "speciallayer_param.h"
 #include "speciallayer_param_parse.h"
-#include "stencil_pixel_occlusion_culling_param.h"
-#include "stencil_pixel_occlusion_culling_param_parse.h"
 #include "uifirst_param_parse.h"
 #include "uifirst_param.h"
 #include "vrate_param_parse.h"
@@ -65,10 +65,10 @@
 #include "socperf_param.h"
 #include "surface_capture_param_parse.h"
 #include "surface_capture_param.h"
-#include "gpu_resource_release_param_parse.h"
-#include "gpu_resource_release_param.h"
 #include "ui_capture_param_parse.h"
 #include "ui_capture_param.h"
+#include "loadoptimization_param_parse.h"
+#include "loadoptimization_param.h"
 
 namespace OHOS::Rosen {
 struct ModuleConfig {
@@ -76,29 +76,29 @@ struct ModuleConfig {
     std::function<std::unique_ptr<XMLParserBase>()> xmlParser;
     std::function<std::unique_ptr<FeatureParam>()> featureParam;
 };
-
 // add new module here
 const std::vector<ModuleConfig> FEATURE_MODULES = {
-    {FEATURE_CONFIGS[DIRTYREGION], [] {return std::make_unique<DirtyRegionParamParse>(); },
-        [] {return std::make_unique<DirtyRegionParam>(); }},
+    {FEATURE_CONFIGS[DIRTYREGION], [] { return std::make_unique<DirtyRegionParamParse>(); },
+        [] { return std::make_unique<DirtyRegionParam>(); }},
     {FEATURE_CONFIGS[COLOR_GAMUT], [] {return std::make_unique<ColorGamutParamParse>(); },
         [] {return std::make_unique<ColorGamutParam>(); }},
-    {FEATURE_CONFIGS[DRM], [] {return std::make_unique<DRMParamParse>(); }, [] {return std::make_unique<DRMParam>(); }},
+    {FEATURE_CONFIGS[DRM], [] { return std::make_unique<DRMParamParse>(); },
+        [] { return std::make_unique<DRMParam>(); }},
     {FEATURE_CONFIGS[HWC], [] {return std::make_unique<HWCParamParse>(); }, [] {return std::make_unique<HWCParam>(); }},
     {FEATURE_CONFIGS[HFBC], [] {return std::make_unique<HFBCParamParse>(); },
         [] {return std::make_unique<HFBCParam>(); }},
     {FEATURE_CONFIGS[MEM], [] { return std::make_unique<MEMParamParse>(); },
         [] { return std::make_unique<MEMParam>(); }},
-    {FEATURE_CONFIGS[SPECIALLAYER], [] {return std::make_unique<SpecialLayerParamParse>(); },
-        [] {return std::make_unique<SpecialLayerParam>(); }},
-    {FEATURE_CONFIGS[SPOC], [] {return std::make_unique<StencilPixelOcclusionCullingParamParse>(); },
-        [] {return std::make_unique<StencilPixelOcclusionCullingParam>(); }},
+    {FEATURE_CONFIGS[SPECIALLAYER], [] { return std::make_unique<SpecialLayerParamParse>(); },
+        [] { return std::make_unique<SpecialLayerParam>(); }},
+    {FEATURE_CONFIGS[OCCLUSION_CULLING], [] { return std::make_unique<OcclusionCullingParamParse>(); },
+        [] {return std::make_unique<OcclusionCullingParam>(); }},
     {FEATURE_CONFIGS[OPInc], [] {return std::make_unique<OPIncParamParse>(); },
         [] {return std::make_unique<OPIncParam>(); }},
     {FEATURE_CONFIGS[MULTISCREEN], [] { return std::make_unique<MultiScreenParamParse>(); },
         [] {return std::make_unique<MultiScreenParam>(); }},
-    {FEATURE_CONFIGS[PREVALIDATE], [] {return std::make_unique<PrevalidateParamParse>(); },
-        [] {return std::make_unique<PrevalidateParam>(); }},
+    {FEATURE_CONFIGS[PREVALIDATE], [] { return std::make_unique<PrevalidateParamParse>(); },
+        [] { return std::make_unique<PrevalidateParam>(); }},
     {FEATURE_CONFIGS[UIFirst], [] {return std::make_unique<UIFirstParamParse>(); },
         [] {return std::make_unique<UIFirstParam>(); }},
     {FEATURE_CONFIGS[FILTER], [] { return std::make_unique<FilterParamParse>(); },
@@ -115,14 +115,14 @@ const std::vector<ModuleConfig> FEATURE_MODULES = {
         [] {return std::make_unique<SurfaceCaptureParam>(); }},
     {FEATURE_CONFIGS[UI_CAPTURE], [] {return std::make_unique<UICaptureParamParse>(); },
         [] {return std::make_unique<UICaptureParam>(); }},
-    {FEATURE_CONFIGS[DEEPLY_REL_GPU_RES], [] { return std::make_unique<DeeplyRelGpuResParamParse>(); },
-        [] { return std::make_unique<DeeplyRelGpuResParam>(); }},
     {FEATURE_CONFIGS[ACCESSIBILITY], [] { return std::make_unique<AccessibilityParamParse>(); },
         [] { return std::make_unique<AccessibilityParam>(); }},
     {FEATURE_CONFIGS[VRATE], [] { return std::make_unique<VRateParamParse>(); },
         [] { return std::make_unique<VRateParam>(); }},
     {FEATURE_CONFIGS[ROTATEOFFSCREEN], [] { return std::make_unique<RotateOffScreenParamParse>(); },
         [] { return std::make_unique<RotateOffScreenParam>(); }},
+    {FEATURE_CONFIGS[LOAD_OPTIMIZATION], [] { return std::make_unique<LoadOptimizationParamParse>(); },
+        [] { return std::make_unique<LoadOptimizationParam>(); }},
 };
 
 class GraphicFeatureParamManager : public RefBase {

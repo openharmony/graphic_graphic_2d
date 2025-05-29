@@ -19,10 +19,21 @@ group("unittest") {
   testonly = true
   deps = [
     ":RSProfilerArchiveTest",
+    ":RSProfilerBaseTest",
     ":RSProfilerCaptureDataTest",
     ":RSProfilerPacketTest",
     ":RSProfilerSocketTest",
     ":RSProfilerUtilsTest",
+    "standard:test",
+  ]
+}
+
+group("test") {
+  testonly = true
+  deps = [
+    "reliability/platform/ohos:unittest",
+    "standard/platform/ohos:unittest",
+    "standard/transaction:unittest",
   ]
 }
 
@@ -50,7 +61,6 @@ ohos_unittest("RSProfilerArchiveTest") {
   deps = [
     "$graphic_2d_root/rosen/modules/render_service:librender_service",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
-    "//third_party/googletest:gtest_main",
   ]
 
   external_deps = [
@@ -58,6 +68,37 @@ ohos_unittest("RSProfilerArchiveTest") {
     "init:libbegetutil",
   ]
 
+  subsystem_name = "graphic"
+}
+
+##############################  RSProfilerBaseTest  ##################################
+ohos_unittest("RSProfilerBaseTest") {
+  module_out_path = module_output_path
+
+  defines = [ "RS_PROFILER_ENABLED" ]
+  sources = [ "rs_profiler_base.cpp" ]
+
+  configs = [
+    ":render_test",
+    "$graphic_2d_root/rosen/modules/render_service_base:export_config",
+  ]
+
+  cflags = [
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+
+  deps = [
+    "$graphic_2d_root/rosen/modules/render_service:librender_service",
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+  ]
+
+  external_deps = [
+    "c_utils:utils",
+    "init:libbegetutil",
+  ]
+
+  use_exceptions = true
   subsystem_name = "graphic"
 }
 
@@ -80,7 +121,6 @@ ohos_unittest("RSProfilerCaptureDataTest") {
   deps = [
     "$graphic_2d_root/rosen/modules/render_service:librender_service",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
-    "//third_party/googletest:gtest_main",
   ]
 
   external_deps = [
@@ -110,7 +150,6 @@ ohos_unittest("RSProfilerNetworkTest") {
   deps = [
     "$graphic_2d_root/rosen/modules/render_service:librender_service",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
-    "//third_party/googletest:gtest_main",
   ]
 
   external_deps = [
@@ -140,7 +179,6 @@ ohos_unittest("RSProfilerPacketTest") {
   deps = [
     "$graphic_2d_root/rosen/modules/render_service:librender_service",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
-    "//third_party/googletest:gtest_main",
   ]
 
   external_deps = [
@@ -170,7 +208,6 @@ ohos_unittest("RSProfilerSocketTest") {
   deps = [
     "$graphic_2d_root/rosen/modules/render_service:librender_service",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
-    "//third_party/googletest:gtest_main",
   ]
 
   external_deps = [
@@ -202,12 +239,12 @@ ohos_unittest("RSProfilerTest") {
     "$graphic_2d_root/rosen/modules/render_service:librender_service",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
     "$graphic_2d_root/rosen/test/render_service/render_service/unittest/pipeline:rs_test_common",
-    "//third_party/googletest:gtest_main",
   ]
 
   external_deps = [
     "c_utils:utils",
     "init:libbegetutil",
+    "samgr:samgr_proxy",
   ]
 
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
@@ -232,7 +269,6 @@ ohos_unittest("RSProfilerUtilsTest") {
   deps = [
     "$graphic_2d_root/rosen/modules/render_service:librender_service",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
-    "//third_party/googletest:gtest_main",
   ]
 
   external_deps = [
@@ -257,7 +293,6 @@ ohos_unittest("RSProfilerCommandTest") {
   deps = [
     "$graphic_2d_root/rosen/modules/render_service:librender_service",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
-    "//third_party/googletest:gtest_main",
   ]
 
   external_deps = [

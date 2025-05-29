@@ -21,6 +21,10 @@
 #endif
 
 #include "draw/color.h"
+#include "effect/color_space.h"
+#include "image/image_info.h"
+#include "image/bitmap.h"
+#include "image/image.h"
 #include "rosen_text/font_collection.h"
 #include "txt/platform.h"
 
@@ -270,6 +274,122 @@ napi_value GetFontMetricsAndConvertToJsValue(napi_env env, FontMetrics* metrics)
     }
     return objValue;
 }
+
+#ifdef ROSEN_OHOS
+std::shared_ptr<Drawing::ColorSpace> ColorSpaceToDrawingColorSpace(Media::ColorSpace colorSpace)
+{
+    switch (colorSpace) {
+        case Media::ColorSpace::DISPLAY_P3:
+            return Drawing::ColorSpace::CreateRGB(Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::DCIP3);
+        case Media::ColorSpace::LINEAR_SRGB:
+            return Drawing::ColorSpace::CreateSRGBLinear();
+        case Media::ColorSpace::SRGB:
+            return Drawing::ColorSpace::CreateSRGB();
+        default:
+            return Drawing::ColorSpace::CreateSRGB();
+    }
+}
+
+Drawing::ColorType PixelFormatToDrawingColorType(Media::PixelFormat pixelFormat)
+{
+    switch (pixelFormat) {
+        case Media::PixelFormat::RGB_565:
+            return Drawing::ColorType::COLORTYPE_RGB_565;
+        case Media::PixelFormat::RGBA_8888:
+            return Drawing::ColorType::COLORTYPE_RGBA_8888;
+        case Media::PixelFormat::BGRA_8888:
+            return Drawing::ColorType::COLORTYPE_BGRA_8888;
+        case Media::PixelFormat::ALPHA_8:
+            return Drawing::ColorType::COLORTYPE_ALPHA_8;
+        case Media::PixelFormat::RGBA_F16:
+            return Drawing::ColorType::COLORTYPE_RGBA_F16;
+        case Media::PixelFormat::UNKNOWN:
+        case Media::PixelFormat::ARGB_8888:
+        case Media::PixelFormat::RGB_888:
+        case Media::PixelFormat::NV21:
+        case Media::PixelFormat::NV12:
+        case Media::PixelFormat::CMYK:
+        default:
+            return Drawing::ColorType::COLORTYPE_UNKNOWN;
+    }
+}
+
+Drawing::AlphaType AlphaTypeToDrawingAlphaType(Media::AlphaType alphaType)
+{
+    switch (alphaType) {
+        case Media::AlphaType::IMAGE_ALPHA_TYPE_UNKNOWN:
+            return Drawing::AlphaType::ALPHATYPE_UNKNOWN;
+        case Media::AlphaType::IMAGE_ALPHA_TYPE_OPAQUE:
+            return Drawing::AlphaType::ALPHATYPE_OPAQUE;
+        case Media::AlphaType::IMAGE_ALPHA_TYPE_PREMUL:
+            return Drawing::AlphaType::ALPHATYPE_PREMUL;
+        case Media::AlphaType::IMAGE_ALPHA_TYPE_UNPREMUL:
+            return Drawing::AlphaType::ALPHATYPE_UNPREMUL;
+        default:
+            return Drawing::AlphaType::ALPHATYPE_UNKNOWN;
+    }
+}
+
+bool ExtracetDrawingBitmap(std::shared_ptr<Media::PixelMap> pixelMap, Drawing::Bitmap& bitmap)
+{
+    if (!pixelMap) {
+        ROSEN_LOGE("Drawing_napi ::pixelMap fail");
+        return false;
+    }
+    Media::ImageInfo imageInfo;
+    pixelMap->GetImageInfo(imageInfo);
+    Drawing::ImageInfo drawingImageInfo { imageInfo.size.width, imageInfo.size.height,
+        PixelFormatToDrawingColorType(imageInfo.pixelFormat), AlphaTypeToDrawingAlphaType(imageInfo.alphaType),
+        ColorSpaceToDrawingColorSpace(imageInfo.colorSpace) };
+    bitmap.Build(drawingImageInfo, pixelMap->GetRowStride());
+    bitmap.SetPixels(const_cast<void*>(reinterpret_cast<const void*>(pixelMap->GetPixels())));
+    return true;
+}
+
+struct PixelMapReleaseContext {
+    explicit PixelMapReleaseContext(std::shared_ptr<Media::PixelMap> pixelMap) : pixelMap_(pixelMap) {}
+
+    ~PixelMapReleaseContext()
+    {
+        pixelMap_ = nullptr;
+    }
+
+private:
+    std::shared_ptr<Media::PixelMap> pixelMap_;
+};
+
+static void PixelMapReleaseProc(const void* /* pixels */, void* context)
+{
+    PixelMapReleaseContext* ctx = static_cast<PixelMapReleaseContext*>(context);
+    if (ctx) {
+        delete ctx;
+        ctx = nullptr;
+    }
+}
+
+std::shared_ptr<Drawing::Image> ExtractDrawingImage(std::shared_ptr<Media::PixelMap> pixelMap)
+{
+    if (!pixelMap) {
+        ROSEN_LOGE("Drawing_napi::pixelMap fail");
+        return nullptr;
+    }
+    Media::ImageInfo imageInfo;
+    pixelMap->GetImageInfo(imageInfo);
+    Drawing::ImageInfo drawingImageInfo { imageInfo.size.width, imageInfo.size.height,
+        PixelFormatToDrawingColorType(imageInfo.pixelFormat), AlphaTypeToDrawingAlphaType(imageInfo.alphaType),
+        ColorSpaceToDrawingColorSpace(imageInfo.colorSpace) };
+    Drawing::Pixmap imagePixmap(
+        drawingImageInfo, reinterpret_cast<const void*>(pixelMap->GetPixels()), pixelMap->GetRowStride());
+    PixelMapReleaseContext* releaseContext = new PixelMapReleaseContext(pixelMap);
+    auto image = Drawing::Image::MakeFromRaster(imagePixmap, PixelMapReleaseProc, releaseContext);
+    if (!image) {
+        ROSEN_LOGE("Drawing_napi :RSPixelMapUtil::ExtractDrawingImage fail");
+        delete releaseContext;
+        releaseContext = nullptr;
+    }
+    return image;
+}
+#endif
 
 std::shared_ptr<Font> GetThemeFont(std::shared_ptr<Font> font)
 {

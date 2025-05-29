@@ -19,6 +19,7 @@
 
 #include "common/safuzz_log.h"
 #include "customized/random_animation.h"
+#include "customized/random_draw_cmd_list.h"
 #include "customized/random_pixel_map.h"
 #include "customized/random_surface.h"
 #include "customized/random_typeface.h"
@@ -61,10 +62,14 @@ const std::unordered_map<std::string, std::function<bool(MessageParcel&, const T
     DECLARE_WRITE_RANDOM(UIExtensionCallbackSptr),
     DECLARE_WRITE_RANDOM(ScreenChangeCallbackSptr),
     DECLARE_WRITE_RANDOM(SurfaceCaptureCallbackSptr),
+    DECLARE_WRITE_RANDOM(TransactionDataCallbackSptr),
+    DECLARE_WRITE_RANDOM(SelfDrawingNodeRectChangeCallbackSptr),
 
     DECLARE_WRITE_RANDOM(PixelMapSharedPtr),
     DECLARE_WRITE_RANDOM(SurfaceSptr),
     DECLARE_WRITE_RANDOM(DrawingTypefaceSharedPtr),
+    DECLARE_WRITE_RANDOM(DrawingRect),
+    DECLARE_WRITE_RANDOM(DrawingDrawCmdListSharedPtr),
     DECLARE_WRITE_RANDOM(RSSyncTaskSharedPtr),
 };
 
@@ -354,6 +359,41 @@ bool MessageParcelCustomizedTypeUtils::WriteRandomSurfaceCaptureCallbackSptr(Mes
     return true;
 }
 
+bool MessageParcelCustomizedTypeUtils::WriteRandomTransactionDataCallbackSptr(MessageParcel& messageParcel,
+    const TestCaseParams& /* testCaseParams */)
+{
+    RSRenderServiceClient* rsClient = RSInterfaces::GetInstance().renderServiceClient_.get();
+    if (rsClient == nullptr) {
+        SAFUZZ_LOGE("MessageParcelCustomizedTypeUtils::WriteRandomTransactionDataCallbackSptr "
+            "rsClient is nullptr");
+        return false;
+    }
+    sptr<RSITransactionDataCallback> obj = new TransactionDataCallbackDirector(rsClient);
+    if (!messageParcel.WriteRemoteObject(obj->AsObject())) {
+        SAFUZZ_LOGE("MessageParcelCustomizedTypeUtils::WriteRandomTransactionDataCallbackSptr "
+            "WriteRemoteObject failed");
+        return false;
+    }
+    return true;
+}
+
+bool MessageParcelCustomizedTypeUtils::WriteRandomSelfDrawingNodeRectChangeCallbackSptr(MessageParcel& messageParcel,
+    const TestCaseParams& /* testCaseParams */)
+{
+    SelfDrawingNodeRectChangeCallback callback = [](std::shared_ptr<RSSelfDrawingNodeRectData>) {
+        SAFUZZ_LOGW("MessageParcelCustomizedTypeUtils::WriteRandomSelfDrawingNodeRectChangeCallbackSptr "
+            "enter dead lock");
+        while (true) {}
+    };
+    sptr<RSISelfDrawingNodeRectChangeCallback> obj = new CustomSelfDrawingNodeRectChangeCallback(callback);
+    if (!messageParcel.WriteRemoteObject(obj->AsObject())) {
+        SAFUZZ_LOGE("MessageParcelCustomizedTypeUtils::WriteRandomSelfDrawingNodeRectChangeCallbackSptr "
+            "WriteRemoteObject failed");
+        return false;
+    }
+    return true;
+}
+
 bool MessageParcelCustomizedTypeUtils::WriteRandomPixelMapSharedPtr(MessageParcel& messageParcel,
     const TestCaseParams& /* testCaseParams */)
 {
@@ -392,6 +432,24 @@ bool MessageParcelCustomizedTypeUtils::WriteRandomDrawingTypefaceSharedPtr(Messa
         return false;
     }
     return RSMarshallingHelper::Marshalling(messageParcel, typeface);
+}
+
+bool MessageParcelCustomizedTypeUtils::WriteRandomDrawingRect(MessageParcel& messageParcel,
+    const TestCaseParams& /* testCaseParams */)
+{
+    Drawing::Rect rect = RandomData::GetRandomDrawingRect();
+    return RSMarshallingHelper::Marshalling(messageParcel, rect);
+}
+
+bool MessageParcelCustomizedTypeUtils::WriteRandomDrawingDrawCmdListSharedPtr(MessageParcel& messageParcel,
+    const TestCaseParams& /* testCaseParams */)
+{
+    std::shared_ptr<Drawing::DrawCmdList> drawCmdList = RandomDrawCmdList::GetRandomDrawCmdList();
+    if (drawCmdList == nullptr) {
+        SAFUZZ_LOGE("MessageParcelCustomizedTypeUtils::WriteRandomDrawingDrawCmdListSharedPtr drawCmdList is nullptr");
+        return false;
+    }
+    return RSMarshallingHelper::Marshalling(messageParcel, drawCmdList);
 }
 
 bool MessageParcelCustomizedTypeUtils::WriteRandomRSSyncTaskSharedPtr(MessageParcel& messageParcel,

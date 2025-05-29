@@ -44,6 +44,7 @@ RSEffectNode::SharedPtr RSEffectNode::Create(
         return node;
     }
     transaction->AddCommand(command, node->IsRenderServiceNode());
+    node->SetUIContextToken();
     return node;
 }
 
@@ -53,6 +54,11 @@ void RSEffectNode::SetFreeze(bool isFreeze)
         ROSEN_LOGE("SetFreeze is not supported in separate render");
         return;
     }
+    // The variable preFreeze_ is only used to print the freeze status.
+    if (preFreeze_ != isFreeze) {
+        ROSEN_LOGI("RSEffectNode[%{public}lld]::SetFreeze: %{public}d", static_cast<long long>(GetId()), isFreeze);
+    }
+    preFreeze_ = isFreeze;
     std::unique_ptr<RSCommand> command = std::make_unique<RSSetFreeze>(GetId(), isFreeze);
     auto transaction = GetRSTransaction();
     AddCommand(command, true);

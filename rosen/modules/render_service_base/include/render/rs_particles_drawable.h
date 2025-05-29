@@ -42,6 +42,7 @@ private:
     void DrawParticles(Drawing::Canvas& canvas);
     void DrawCircle(Drawing::Canvas& canvas);
     void DrawImages(Drawing::Canvas& canvas);
+    bool CheckImageNull(std::shared_ptr<Drawing::Image>& image, const std::shared_ptr<Drawing::Image>& drawImage);
 
     std::vector<std::shared_ptr<RSRenderParticle>> particles_;
     std::shared_ptr<Drawing::Image> circleImage_;

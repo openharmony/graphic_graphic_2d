@@ -35,11 +35,11 @@ void RSShaderTest::SetUp() {}
 void RSShaderTest::TearDown() {}
 
 /**
- * @tc.name: CreateRSShaderTest
+ * @tc.name: CreateRSShaderTest001
  * @tc.desc:
  * @tc.type: FUNC
  */
-HWTEST_F(RSShaderTest, CreateRSShaderTest, TestSize.Level1)
+HWTEST_F(RSShaderTest, CreateRSShaderTest001, TestSize.Level1)
 {
     auto rsShader = RSShader::CreateRSShader();
     ASSERT_NE(rsShader, nullptr);
@@ -52,8 +52,36 @@ HWTEST_F(RSShaderTest, CreateRSShaderTest, TestSize.Level1)
  */
 HWTEST_F(RSShaderTest, CreateRSShaderTest002, TestSize.Level1)
 {
+    auto rsShader = RSShader::CreateRSShader();
+    EXPECT_EQ(rsShader->GetDrawingShader(), nullptr);
+}
+
+/**
+ * @tc.name: CreateRSShaderTest003
+ * @tc.desc: Verify function CreateRSShader
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSShaderTest, CreateRSShaderTest003, TestSize.Level1)
+{
     std::shared_ptr<Drawing::ShaderEffect> drShader;
     EXPECT_NE(RSShader::CreateRSShader(drShader), nullptr);
+}
+
+/**
+ * @tc.name: CreateRSShaderTest004
+ * @tc.desc: Verify function CreateRSShader
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSShaderTest, CreateRSShaderTest004, TestSize.Level1)
+{
+    std::vector<RSShader::ShaderType> shaderTypeVec;
+    for (int i = 0; i < static_cast<int>(RSShader::ShaderType::COMPLEX); i++) {
+        shaderTypeVec.push_back(static_cast<RSShader::ShaderType>(i));
+    }
+    for (const auto& shaderType : shaderTypeVec) {
+        auto rsShader = RSShader::CreateRSShader(shaderType);
+        EXPECT_NE(rsShader, nullptr);
+    }
 }
 
 /**
@@ -68,16 +96,4 @@ HWTEST_F(RSShaderTest, SetSkShaderTest, TestSize.Level1)
     shaderPtr->SetDrawingShader(drawingShader);
     ASSERT_EQ(shaderPtr->drShader_, drawingShader);
 }
-
-/**
- * @tc.name: CreateRSShaderTest001
- * @tc.desc: Verify function CreateRSShader
- * @tc.type: FUNC
- */
-HWTEST_F(RSShaderTest, CreateRSShaderTest001, TestSize.Level1)
-{
-    auto rsShader = RSShader::CreateRSShader();
-    EXPECT_EQ(rsShader->GetDrawingShader(), nullptr);
-}
-
 } // namespace OHOS::Rosen

@@ -48,6 +48,19 @@ namespace OHOS {
         return object;
     }
 
+    template<>
+    std::string GetData()
+    {
+        size_t objectSize = GetData<uint8_t>();
+        std::string object(objectSize, '\0');
+        if (data_ == nullptr || objectSize > size_ - pos) {
+            return object;
+        }
+        object.assign(reinterpret_cast<const char*>(data_ + pos), objectSize);
+        pos += objectSize;
+        return object;
+    }
+
     /*
     * get a string from data_
     */
@@ -144,6 +157,32 @@ namespace OHOS {
         vsyncDistributor->SetQosVSyncRateByPidPublic(pid, rateDiscount, isSystemAnimateScene);
         return true;
     }
+
+    bool DoSetVsyncRateDiscountLTPS(const uint8_t* data, size_t size)
+    {
+        if (data == nullptr) {
+            return false;
+        }
+
+        // initialize
+        data_ = data;
+        size_ = size;
+        pos = 0;
+
+        // get data
+        int64_t offset  = GetData<int32_t>();
+        uint32_t pid = GetData<uint32_t>();
+        std::string name = GetData<std::string>();
+        uint32_t rateDiscount = GetData<uint32_t>();
+
+        // test
+        sptr<Rosen::VSyncGenerator> vsyncGenerator = Rosen::CreateVSyncGenerator();
+        sptr<Rosen::VSyncController> vsyncController = new Rosen::VSyncController(vsyncGenerator, offset);
+        sptr<Rosen::VSyncDistributor> vsyncDistributor = new Rosen::VSyncDistributor(vsyncController, "Fuzz");
+        sptr<Rosen::VSyncConnection> conn = new Rosen::VSyncConnection(vsyncDistributor, "Fuzz");
+        vsyncDistributor->SetVsyncRateDiscountLTPS(pid, name, rateDiscount);
+        return true;
+    }
 }
 
 /* Fuzzer entry point */
@@ -152,6 +191,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     /* Run your code on data */
     OHOS::DoSomethingInterestingWithMyAPI(data, size);
     OHOS::DoSetQosVSyncRateByPidPublic(data, size);
+    OHOS::DoSetVsyncRateDiscountLTPS(data, size);
     return 0;
 }
 

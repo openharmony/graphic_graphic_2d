@@ -36,7 +36,9 @@ namespace Rosen {
 namespace Drawing {
 using CmdListData = std::pair<const void*, size_t>;
 using NodeId = uint64_t;
-constexpr size_t MAX_OPITEMSIZE = 10000;
+constexpr size_t MAX_OPITEMSIZE = 170000;
+constexpr size_t RECORD_CMD_MAX_DEPTH = 800;
+constexpr size_t RECORD_CMD_MAX_SIZE = 100000;
 
 class DRAWING_API ExtendImageObject {
 public:
@@ -46,6 +48,12 @@ public:
     virtual void SetNodeId(NodeId id) {};
     virtual void SetPaint(Paint paint) {};
     virtual void Purge() {};
+    virtual bool IsValid() {return false;};
+    virtual void Dump(std::string& dump) {};
+    virtual NodeId GetNodeId() const
+    {
+        return 0;
+    }
 };
 
 class DRAWING_API ExtendImageBaseObj {

@@ -38,9 +38,10 @@ void RSRenderParticleAnimation::DumpAnimationInfo(std::string& out) const
     out += "Type:RSRenderParticleAnimation";
 }
 
-bool RSRenderParticleAnimation::Animate(int64_t time)
+bool RSRenderParticleAnimation::Animate(int64_t time, int64_t& minLeftDelayTime)
 {
     RS_OPTIONAL_TRACE_NAME("RSRenderParticleAnimation::Animate");
+    minLeftDelayTime = 0;
     auto target = GetTarget();
     if (!target) {
         return true;
@@ -96,6 +97,7 @@ void RSRenderParticleAnimation::UpdateEmitter(const std::vector<std::shared_ptr<
                 emitterUpdater->emitRate_.value() != particlesRenderParams_[index]->emitterConfig_.emitRate_) {
                 particlesRenderParams_[index]->emitterConfig_.emitRate_ = emitterUpdater->emitRate_.value();
             }
+            UpdateParamsIfChanged(emitterUpdater->shape_, particlesRenderParams_[index]->emitterConfig_.shape_);
         }
     }
     if (particleSystem_) {

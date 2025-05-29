@@ -83,10 +83,13 @@ private:
     ~RSUniHwcPrevalidateUtil();
 
     bool IsYUVBufferFormat(RSSurfaceRenderNode::SharedPtr node) const;
+    bool IsNeedDssRotate(GraphicTransformType transform) const;
     void CopyCldInfo(CldInfo src, RequestLayerInfo& info);
     void LayerRotate(
         RequestLayerInfo& info, const sptr<IConsumerSurface>& surface, const ScreenInfo &screenInfo);
     bool CheckIfDoArsrPre(const RSSurfaceRenderNode::SharedPtr node);
+    void CheckIfDoCopybit(const RSSurfaceRenderNode::SharedPtr node, GraphicTransformType transform,
+        RequestLayerInfo& info);
     static bool CheckHwcNodeAndGetPointerWindow(
         const RSSurfaceRenderNode::SharedPtr& node, RSSurfaceRenderNode::SharedPtr& pointerWindow);
     static void EmplaceSurfaceNodeLayer(
@@ -99,6 +102,7 @@ private:
     bool loadSuccess_ = false;
     bool isPrevalidateHwcNodeEnable_ = false;
     bool arsrPreEnabled_ = false;
+    bool isCopybitSupported_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

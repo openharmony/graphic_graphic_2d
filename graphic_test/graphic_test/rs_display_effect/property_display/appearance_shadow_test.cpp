@@ -31,7 +31,7 @@ public:
     // called before each tests
     void BeforeEach() override
     {
-        SetScreenSurfaceBounds({ 0, 0, screenWidth, screenHeight });
+        SetScreenSize(screenWidth, screenHeight);
     }
 };
 
@@ -260,6 +260,44 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Shadow_Radius_Test
     }
 }
 
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Shadow_Radius_Test_2)
+{
+    int nodePos = 500;
+    int nodeOffset = 100;
+    int nodeSize = 400;
+
+    std::vector<float> radiusList = { 10, 50, 100, 200 };
+
+    // First column draw normal shadow radius
+    for (int i = 0; i < radiusList.size(); i++) {
+        int x = 0; // first column
+        int y = i * nodePos;
+        auto testNodeRadius = RSCanvasNode::Create();
+        testNodeRadius->SetBounds({ x, y, nodeSize, nodeSize });
+        testNodeRadius->SetTranslate(nodeOffset, nodeOffset, 0);
+        testNodeRadius->SetBackgroundColor(0xffc0c0c0);
+        testNodeRadius->SetShadowColor(0xff000000);
+        testNodeRadius->SetShadowRadius(radiusList[i]);
+        GetRootNode()->AddChild(testNodeRadius);
+        RegisterNode(testNodeRadius);
+    }
+
+    // Second column draw shadow radius with elevation
+    for (int i = 0; i < radiusList.size(); i++) {
+        int x = nodePos; // second column's x position
+        int y = i * nodePos;
+        auto testNodeRadius = RSCanvasNode::Create();
+        testNodeRadius->SetBounds({ x, y, nodeSize, nodeSize });
+        testNodeRadius->SetTranslate(nodeOffset, nodeOffset, 0);
+        testNodeRadius->SetBackgroundColor(0xffc0c0c0);
+        testNodeRadius->SetShadowColor(0xff000000);
+        testNodeRadius->SetShadowRadius(radiusList[i]);
+        testNodeRadius->SetShadowElevation(radiusList[radiusList.size() - i]); // reverse index
+        GetRootNode()->AddChild(testNodeRadius);
+        RegisterNode(testNodeRadius);
+    }
+}
+
 // shadow color strategy
 // 0 -- None
 // 1 -- Average
@@ -338,22 +376,38 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Shadow_Filled_Test
 // shadow mask
 GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Shadow_mask_Test_1)
 {
-    int nodePos = 500;
-    int nodeSize = 400;
+    const int nodePos = 500;
+    const int nodeSize = 400;
+    const int nodeOffset = 100;
 
-    for (int i = 0; i < TWO_; i++) {
-        int x = (i % TWO_) * nodePos;
-        int y = (i / TWO_) * nodePos;
-        auto testNodeMask = RSCanvasNode::Create();
-        testNodeMask->SetBounds({ x, y, nodeSize, nodeSize });
-        auto imageModifier = std::make_shared<ImageCustomModifier>();
-        imageModifier->SetWidth(nodeSize);
-        imageModifier->SetHeight(nodeSize);
-        imageModifier->SetPixelMapPath("/data/local/tmp/appearance_test.jpg");
-        testNodeMask->AddModifier(imageModifier);
+    const int columnCount = TWO_;
+
+    for (int i = 0; i < columnCount; i++) {
+        int x = (i % columnCount) * nodePos;
+        int y = (i / columnCount) * nodePos;
+        auto testNodeMask = SetUpNodeBgImage("/data/local/tmp/appearance_test.jpg", { x, y, nodeSize, nodeSize });
+        testNodeMask->SetTranslate(nodeOffset, nodeOffset, 0);
         testNodeMask->SetShadowMask(i);
         testNodeMask->SetShadowRadius(ONE_HUNDRED_);
         testNodeMask->SetShadowAlpha(0.5);
+        GetRootNode()->AddChild(testNodeMask);
+        RegisterNode(testNodeMask);
+    }
+
+    // With shadowMask, the shadow color will not be shown correctly
+    std::vector<uint32_t> colorList = { 0xffff0000, 0xff00ff00, 0xff0000ff };
+    for (int i = 0; i < SIX_; i++) {
+        int x = (i % columnCount) * nodePos;
+        int y = (i / columnCount) * nodePos + nodePos; // start from the second row
+        auto testNodeMask = SetUpNodeBgImage("/data/local/tmp/appearance_test.jpg", { x, y, nodeSize, nodeSize });
+        testNodeMask->SetTranslate(nodeOffset, nodeOffset, 0);
+        testNodeMask->SetShadowColor(colorList[i / columnCount]);
+        if (i % columnCount == 0) {
+            testNodeMask->SetShadowMask(false);
+        } else {
+            testNodeMask->SetShadowMask(true);
+        }
+        testNodeMask->SetShadowRadius(ONE_HUNDRED_);
         GetRootNode()->AddChild(testNodeMask);
         RegisterNode(testNodeMask);
     }

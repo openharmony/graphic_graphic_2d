@@ -27,6 +27,7 @@ enum class UIFWKType : int32_t {
     FROM_UNKNOWN = 0,
     FROM_SURFACE = 1,
 };
+constexpr uint32_t ACE_ANIMATOR_OFFSET = 16;
 
 class HgmIdleDetector {
 public:
@@ -54,12 +55,7 @@ public:
         return aceAnimatorIdleState_;
     }
 
-    void UpdateAceAnimatorExpectedFrameRate(int32_t aceAnimatorExpectedFrameRate)
-    {
-        if (aceAnimatorExpectedFrameRate > aceAnimatorExpectedFrameRate_) {
-            aceAnimatorExpectedFrameRate_ = aceAnimatorExpectedFrameRate;
-        }
-    }
+    void UpdateAceAnimatorExpectedFrameRate(int32_t aceAnimatorExpectedFrameRate);
 
     void ResetAceAnimatorExpectedFrameRate()
     {

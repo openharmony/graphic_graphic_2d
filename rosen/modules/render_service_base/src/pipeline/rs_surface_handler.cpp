@@ -18,6 +18,7 @@
 #include "metadata_helper.h"
 #endif
 #include "rs_trace.h"
+#include "platform/common/rs_system_properties.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -67,13 +68,33 @@ void RSSurfaceHandler::ConsumeAndUpdateBufferInner(SurfaceBufferEntry& buffer)
     if (MetadataHelper::GetCropRectMetadata(buffer.buffer, crop) == GSERROR_OK) {
         buffer.buffer->SetCropMetadata({crop.left, crop.top, crop.width, crop.height});
     }
-    SetBuffer(buffer.buffer, buffer.acquireFence, buffer.damageRect, buffer.timestamp);
-    SetBufferSizeChanged(buffer.buffer);
+    UpdateBuffer(buffer.buffer, buffer.acquireFence, buffer.damageRect, buffer.timestamp);
     SetCurrentFrameBufferConsumed();
     RS_LOGD_IF(DEBUG_PIPELINE,
         "RsDebug surfaceHandler(id: %{public}" PRIu64 ") buffer update, "
         "buffer[timestamp:%{public}" PRId64 ", seq:%{public}" PRIu32 "]",
         GetNodeId(), buffer.timestamp, buffer.buffer->GetSeqNum());
+}
+
+void RSSurfaceHandler::UpdateBuffer(
+    const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence, const Rect& damage, const int64_t timestamp)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    preBuffer_.Reset(!RSSystemProperties::GetVKImageUseEnabled());
+    preBuffer_ = buffer_;
+    buffer_.buffer = buffer;
+    if (buffer != nullptr) {
+        buffer_.seqNum = buffer->GetSeqNum();
+    }
+    buffer_.acquireFence = acquireFence;
+    buffer_.damageRect = damage;
+    buffer_.timestamp = timestamp;
+
+    if (preBuffer_.buffer == nullptr) {
+        return;
+    }
+    bufferSizeChanged_ =
+        buffer->GetWidth() != preBuffer_.buffer->GetWidth() || buffer->GetHeight() != preBuffer_.buffer->GetHeight();
 }
 #endif
 }

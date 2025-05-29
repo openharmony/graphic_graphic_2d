@@ -24,13 +24,13 @@ public:
     PrevalidateParam() = default;
     ~PrevalidateParam() = default;
 
-    bool IsPrevalidateEnable() const;
+    static bool IsPrevalidateEnable();
 
 protected:
-    void SetPrevalidateEnable(bool isEnable);
+    static void SetPrevalidateEnable(bool isEnable);
 
 private:
-    bool isPrevalidateEnable_ = true;
+    inline static bool isPrevalidateEnable_ = true;
 
     friend class PrevalidateParamParse;
 };

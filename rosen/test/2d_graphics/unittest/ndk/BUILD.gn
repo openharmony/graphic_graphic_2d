@@ -12,6 +12,7 @@
 # limitations under the License.
 
 import("//build/test.gni")
+import("//foundation/graphic/graphic_2d/frameworks/text/config.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 module_output_path = "graphic_2d/graphic_2d/rosen/modules/2d_graphics/ndk/"
@@ -48,22 +49,28 @@ ohos_unittest("2d_graphics_ndk_test") {
     "drawing_shader_effect_test.cpp",
     "drawing_surface_test.cpp",
     "drawing_text_font_descriptor_test.cpp",
+    "drawing_text_global_test.cpp",
     "drawing_text_lineTypography_test.cpp",
     "drawing_text_line_test.cpp",
     "drawing_text_run_test.cpp",
+    "drawing_text_typography_alignment_test.cpp",
+    "drawing_text_typography_paint_attribute_test.cpp",
+    "drawing_text_typography_strut_style_test.cpp",
+    "drawing_text_typography_style_test.cpp",
     "drawing_text_typography_test.cpp",
     "drawing_typeface_test.cpp",
   ]
 
   include_dirs = [
+    "$graphic_2d_root/rosen/frameworks/text/service",
     "$graphic_2d_root/rosen/modules/2d_graphics/drawing_ndk/drawing_utils",
     "$graphic_2d_root/rosen/modules/2d_graphics/drawing_ndk/include",
     "$graphic_2d_root/rosen/modules/2d_graphics/drawing_ndk/src",
     "$graphic_2d_root/rosen/modules/2d_graphics/src",
     "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing/engine_adapter",
     "$graphic_2d_root/rosen/modules/render_service_client",
-    "$graphic_2d_root/rosen/modules/texgine/src",
-    "//third_party/googletest/googletest/include",
+    "$graphic_2d_root/rosen/modules/render_service_base/src",
+    "$rosen_text_root/service/texgine/src",
   ]
 
   cflags_cc = [
@@ -74,12 +81,10 @@ ohos_unittest("2d_graphics_ndk_test") {
 
   if (enable_text_gine) {
     include_dirs += [
-      "$graphic_2d_root/rosen/modules/2d_engine/rosen_text/export",
-      "$graphic_2d_root/rosen/modules/2d_engine/rosen_text/skia_txt",
+      "$rosen_text_root/interface/export",
+      "$rosen_text_root/adapter/skia",
       "$graphic_2d_root/rosen/modules/render_service_base/include",
-      "//third_party/skia",
     ]
-    defines += [ "USE_GRAPHIC_TEXT_GINE" ]
   } else {
     include_dirs += [ "$graphic_2d_root/rosen/modules/2d_engine" ]
   }
@@ -92,7 +97,7 @@ ohos_unittest("2d_graphics_ndk_test") {
     "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
     "$graphic_2d_root/rosen/modules/2d_graphics/drawing_ndk:native_drawing_ndk",
     "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
-    "//third_party/googletest:gtest_main",
+    "$rosen_text_root:rosen_text",
   ]
 
   subsystem_name = "graphic"
@@ -108,7 +113,7 @@ ohos_unittest("2d_graphics_ndk_test") {
 
   platform = current_os
   if (platform == "ohos" || platform == "ohos_ng") {
-    defines += [ "OHOS_TEXT_ENABLE" ]
+    defines += [ "ENABLE_OHOS_ENHANCE" ]
   }
 }
 

@@ -37,29 +37,17 @@ void PrevalidateParamTest::SetUp() {}
 void PrevalidateParamTest::TearDown() {}
 
 /**
- * @tc.name: SetPrevalidateEnable
- * @tc.desc: Verify the SetPrevalidateEnable function
+ * @tc.name: ParamSettingAndGettingTest
+ * @tc.desc: Verify the SetPrevalidateEnable and IsPrevalidateEnable function
  * @tc.type: FUNC
  * @tc.require: #IBMVNU
  */
-HWTEST_F(PrevalidateParamTest, SetPrevalidateEnable, Function | SmallTest | Level1)
+HWTEST_F(PrevalidateParamTest, ParamSettingAndGettingTest, Function | SmallTest | Level1)
 {
-    PrevalidateParam prevalidateParam;
-    prevalidateParam.SetPrevalidateEnable(true);
-    ASSERT_EQ(prevalidateParam.isPrevalidateEnable_, true);
-}
-
-/**
- * @tc.name: IsPrevalidateEnable
- * @tc.desc: Verify the result of IsPrevalidateEnable function
- * @tc.type: FUNC
- * @tc.require: #IBMVNU
- */
-HWTEST_F(PrevalidateParamTest, IsPrevalidateEnable, Function | SmallTest | Level1)
-{
-    PrevalidateParam prevalidateParam;
-    prevalidateParam.isPrevalidateEnable_ = true;
-    ASSERT_TRUE(prevalidateParam.IsPrevalidateEnable());
+    PrevalidateParam::SetPrevalidateEnable(false);
+    ASSERT_FALSE(PrevalidateParam::IsPrevalidateEnable());
+    PrevalidateParam::SetPrevalidateEnable(true);
+    ASSERT_TRUE(PrevalidateParam::IsPrevalidateEnable());
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -26,8 +26,11 @@ using namespace testing::ext;
 namespace OHOS::Rosen {
 class VsyncEnabledScreenIdTest : public testing::Test {
 public:
-   impl::VSyncSampler* GetVSyncSamplerImplPtr();
-   impl::RSScreenManager* GetRSScreenManagerImplPtr();
+    static constexpr uint32_t SLEEP_TIME_FOR_DELAY = 1000000; // 1000ms
+
+    impl::VSyncSampler* GetVSyncSamplerImplPtr();
+    impl::RSScreenManager* GetRSScreenManagerImplPtr();
+    void SetScreenPowerStatusDelay(sptr<RSScreenManager> screenManager, ScreenId id, ScreenPowerStatus status);
 };
 
 impl::VSyncSampler* VsyncEnabledScreenIdTest::GetVSyncSamplerImplPtr()
@@ -46,6 +49,13 @@ impl::RSScreenManager* VsyncEnabledScreenIdTest::GetRSScreenManagerImplPtr()
         return nullptr;
     }
     return static_cast<impl::RSScreenManager*>(screenManager.GetRefPtr());
+}
+
+void VsyncEnabledScreenIdTest::SetScreenPowerStatusDelay(
+    sptr<RSScreenManager> screenManager, ScreenId id, ScreenPowerStatus status)
+{
+    screenManager->SetScreenPowerStatus(id, status);
+    usleep(SLEEP_TIME_FOR_DELAY);
 }
 
 /*
@@ -197,15 +207,15 @@ HWTEST_F(VsyncEnabledScreenIdTest, SetScreenPowerStatusTest001, TestSize.Level1)
     ASSERT_EQ(GetVSyncSamplerImplPtr()->vsyncEnabledScreenId_, 0);
 
     // set screen 0 power on
-    screenManager->SetScreenPowerStatus(0, ScreenPowerStatus::POWER_STATUS_ON);
+    SetScreenPowerStatusDelay(screenManager, 0, ScreenPowerStatus::POWER_STATUS_ON);
     ASSERT_EQ(GetVSyncSamplerImplPtr()->vsyncEnabledScreenId_, 0);
 
     // set screen 1 power on
-    screenManager->SetScreenPowerStatus(1, ScreenPowerStatus::POWER_STATUS_ON);
+    SetScreenPowerStatusDelay(screenManager, 1, ScreenPowerStatus::POWER_STATUS_ON);
     ASSERT_EQ(GetVSyncSamplerImplPtr()->vsyncEnabledScreenId_, 0);
 
     // set screen 2 power on
-    screenManager->SetScreenPowerStatus(2, ScreenPowerStatus::POWER_STATUS_ON);
+    SetScreenPowerStatusDelay(screenManager, 2, ScreenPowerStatus::POWER_STATUS_ON);
     ASSERT_EQ(GetVSyncSamplerImplPtr()->vsyncEnabledScreenId_, 0);
 
     // 1st screen disconnected
@@ -255,11 +265,11 @@ HWTEST_F(VsyncEnabledScreenIdTest, SetScreenPowerStatusTest002, TestSize.Level1)
     ASSERT_EQ(GetVSyncSamplerImplPtr()->vsyncEnabledScreenId_, 0);
 
     // set screen 1 power on
-    screenManager->SetScreenPowerStatus(1, ScreenPowerStatus::POWER_STATUS_ON);
+    SetScreenPowerStatusDelay(screenManager, 1, ScreenPowerStatus::POWER_STATUS_ON);
     ASSERT_EQ(GetVSyncSamplerImplPtr()->vsyncEnabledScreenId_, 0);
 
     // set screen 1 power off
-    screenManager->SetScreenPowerStatus(1, ScreenPowerStatus::POWER_STATUS_OFF);
+    SetScreenPowerStatusDelay(screenManager, 1, ScreenPowerStatus::POWER_STATUS_OFF);
     ASSERT_EQ(GetVSyncSamplerImplPtr()->vsyncEnabledScreenId_, 0);
 
     // 2nd screen connected
@@ -268,7 +278,7 @@ HWTEST_F(VsyncEnabledScreenIdTest, SetScreenPowerStatusTest002, TestSize.Level1)
     ASSERT_EQ(GetVSyncSamplerImplPtr()->vsyncEnabledScreenId_, 0);
 
     // set screen 1 power on
-    screenManager->SetScreenPowerStatus(1, ScreenPowerStatus::POWER_STATUS_ON);
+    SetScreenPowerStatusDelay(screenManager, 1, ScreenPowerStatus::POWER_STATUS_ON);
     ASSERT_EQ(GetVSyncSamplerImplPtr()->vsyncEnabledScreenId_, 1);
 
     // 3rd screen connected
@@ -277,23 +287,23 @@ HWTEST_F(VsyncEnabledScreenIdTest, SetScreenPowerStatusTest002, TestSize.Level1)
     ASSERT_EQ(GetVSyncSamplerImplPtr()->vsyncEnabledScreenId_, 1);
 
     // set screen 2 power on
-    screenManager->SetScreenPowerStatus(2, ScreenPowerStatus::POWER_STATUS_ON);
+    SetScreenPowerStatusDelay(screenManager, 2, ScreenPowerStatus::POWER_STATUS_ON);
     ASSERT_EQ(GetVSyncSamplerImplPtr()->vsyncEnabledScreenId_, 1);
 
     // set screen 0 power on
-    screenManager->SetScreenPowerStatus(0, ScreenPowerStatus::POWER_STATUS_ON);
+    SetScreenPowerStatusDelay(screenManager, 0, ScreenPowerStatus::POWER_STATUS_ON);
     ASSERT_EQ(GetVSyncSamplerImplPtr()->vsyncEnabledScreenId_, 1);
 
     // set screen 1 power off
-    screenManager->SetScreenPowerStatus(1, ScreenPowerStatus::POWER_STATUS_OFF);
+    SetScreenPowerStatusDelay(screenManager, 1, ScreenPowerStatus::POWER_STATUS_OFF);
     ASSERT_EQ(GetVSyncSamplerImplPtr()->vsyncEnabledScreenId_, 0);
 
     // set screen 2 power off
-    screenManager->SetScreenPowerStatus(2, ScreenPowerStatus::POWER_STATUS_OFF);
+    SetScreenPowerStatusDelay(screenManager, 2, ScreenPowerStatus::POWER_STATUS_OFF);
     ASSERT_EQ(GetVSyncSamplerImplPtr()->vsyncEnabledScreenId_, 0);
 
     // set screen 0 power off
-    screenManager->SetScreenPowerStatus(0, ScreenPowerStatus::POWER_STATUS_OFF);
+    SetScreenPowerStatusDelay(screenManager, 0, ScreenPowerStatus::POWER_STATUS_OFF);
     ASSERT_EQ(GetVSyncSamplerImplPtr()->vsyncEnabledScreenId_, 0);
 
     // 1st screen disconnected
@@ -356,47 +366,47 @@ HWTEST_F(VsyncEnabledScreenIdTest, SetScreenPowerStatusTest003, TestSize.Level1)
     ASSERT_EQ(GetVSyncSamplerImplPtr()->vsyncEnabledScreenId_, 0);
 
     // set screen 1 power on
-    screenManager->SetScreenPowerStatus(1, ScreenPowerStatus::POWER_STATUS_ON);
+    SetScreenPowerStatusDelay(screenManager, 1, ScreenPowerStatus::POWER_STATUS_ON);
     ASSERT_EQ(GetVSyncSamplerImplPtr()->vsyncEnabledScreenId_, 1);
 
     // set screen 0 power on
-    screenManager->SetScreenPowerStatus(0, ScreenPowerStatus::POWER_STATUS_ON);
+    SetScreenPowerStatusDelay(screenManager, 0, ScreenPowerStatus::POWER_STATUS_ON);
     ASSERT_EQ(GetVSyncSamplerImplPtr()->vsyncEnabledScreenId_, 1);
 
     // set screen 0 power off
-    screenManager->SetScreenPowerStatus(0, ScreenPowerStatus::POWER_STATUS_OFF);
+    SetScreenPowerStatusDelay(screenManager, 0, ScreenPowerStatus::POWER_STATUS_OFF);
     ASSERT_EQ(GetVSyncSamplerImplPtr()->vsyncEnabledScreenId_, 1);
 
     // set screen 0 power on
-    screenManager->SetScreenPowerStatus(0, ScreenPowerStatus::POWER_STATUS_ON);
+    SetScreenPowerStatusDelay(screenManager, 0, ScreenPowerStatus::POWER_STATUS_ON);
     ASSERT_EQ(GetVSyncSamplerImplPtr()->vsyncEnabledScreenId_, 1);
 
     // set screen 1 power off
-    screenManager->SetScreenPowerStatus(1, ScreenPowerStatus::POWER_STATUS_OFF);
+    SetScreenPowerStatusDelay(screenManager, 1, ScreenPowerStatus::POWER_STATUS_OFF);
     ASSERT_EQ(GetVSyncSamplerImplPtr()->vsyncEnabledScreenId_, 0);
 
     // set screen 1 power on
-    screenManager->SetScreenPowerStatus(1, ScreenPowerStatus::POWER_STATUS_ON);
+    SetScreenPowerStatusDelay(screenManager, 1, ScreenPowerStatus::POWER_STATUS_ON);
     ASSERT_EQ(GetVSyncSamplerImplPtr()->vsyncEnabledScreenId_, 0);
 
     // set screen 0 power off
-    screenManager->SetScreenPowerStatus(0, ScreenPowerStatus::POWER_STATUS_OFF);
+    SetScreenPowerStatusDelay(screenManager, 0, ScreenPowerStatus::POWER_STATUS_OFF);
     ASSERT_EQ(GetVSyncSamplerImplPtr()->vsyncEnabledScreenId_, 1);
 
     // set screen 1 power off
-    screenManager->SetScreenPowerStatus(1, ScreenPowerStatus::POWER_STATUS_OFF);
+    SetScreenPowerStatusDelay(screenManager, 1, ScreenPowerStatus::POWER_STATUS_OFF);
     ASSERT_EQ(GetVSyncSamplerImplPtr()->vsyncEnabledScreenId_, 1);
 
     // set screen 0 power on
-    screenManager->SetScreenPowerStatus(0, ScreenPowerStatus::POWER_STATUS_ON);
+    SetScreenPowerStatusDelay(screenManager, 0, ScreenPowerStatus::POWER_STATUS_ON);
     ASSERT_EQ(GetVSyncSamplerImplPtr()->vsyncEnabledScreenId_, 0);
 
     // set screen 0 power off
-    screenManager->SetScreenPowerStatus(0, ScreenPowerStatus::POWER_STATUS_OFF);
+    SetScreenPowerStatusDelay(screenManager, 0, ScreenPowerStatus::POWER_STATUS_OFF);
     ASSERT_EQ(GetVSyncSamplerImplPtr()->vsyncEnabledScreenId_, 0);
 
     // set screen 0 power on
-    screenManager->SetScreenPowerStatus(0, ScreenPowerStatus::POWER_STATUS_ON);
+    SetScreenPowerStatusDelay(screenManager, 0, ScreenPowerStatus::POWER_STATUS_ON);
     ASSERT_EQ(GetVSyncSamplerImplPtr()->vsyncEnabledScreenId_, 0);
 
     // 3 screen disconnected

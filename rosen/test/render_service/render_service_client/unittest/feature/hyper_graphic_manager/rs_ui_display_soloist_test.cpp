@@ -23,13 +23,17 @@ namespace OHOS::Rosen {
 namespace {
     constexpr uint32_t OLED_MIN_HZ = 0;
     constexpr uint32_t OLED_120_HZ = 120;
+    constexpr uint32_t OLED_90_HZ = 90;
     constexpr uint32_t OLED_60_HZ = 60;
     constexpr uint32_t OLED_30_HZ = 30;
     constexpr uint32_t INTERVAL_TIME = 50000; // us
+    static const std::vector<int32_t> REFRESH_RATE_LIST1{30, 60, 60};
+    static const std::vector<int32_t> REFRESH_RATE_LIST2{30, 120, 60};
     struct NodeInfo {
         int32_t vsyncRate;
         int32_t targetRate;
-        int32_t node;
+        std::vector<int32_t> refreshRateList;
+        int32_t result;
     };
 }
 class RSUIDisplaySoloistTest : public testing::Test {
@@ -215,7 +219,7 @@ HWTEST_F(RSUIDisplaySoloistTest, SetMainFrameRateLinkerEnable, TestSize.Level1)
 }
 
 /**
- * @tc.name: FindAcurateRa
+ * @tc.name: IsCommonDivisor
  * @tc.desc:
  * @tc.type:FUNC
  */
@@ -225,13 +229,23 @@ HWTEST_F(RSUIDisplaySoloistTest, IsCommonDivisor, TestSize.Level1)
     std::shared_ptr<SoloistId> soloistIdObj = OHOS::Rosen::SoloistId::Create();
     int32_t soloistId = soloistIdObj->GetId();
     std::vector<NodeInfo> tests = {
-        {-1, 1, -1},
-        {-1, 3, -1},
-        {-1, 0, -1}
+        {90, 60, {90, 120, 144}, 45},
+        {90, 60, {30, 60, 60}, 45},
+        {90, 60, {30, 120, 60}, 45},
+        {60, 60, {90, 120, 144}, 60},
+        {60, 0, {90, 120, 144}, 60}
     };
+
     for (auto& test : tests) {
+        RATE_TO_FACTORS.clear();
+        RATE_TO_FACTORS.try_emplace(OLED_90_HZ, test.refreshRateList);
         EXPECT_EQ(soloistManager.GetIdToSoloistMap()[soloistId]->FindMatchedRefreshRate(test.vsyncRate,
-            test.targetRate), test.node);
+            test.targetRate), test.result);
     }
+
+    EXPECT_EQ(soloistManager.GetIdToSoloistMap()[soloistId]->IsCommonDivisor(0, 0), false);
+    RSDisplaySoloist rsDisplaySoloist;
+    rsDisplaySoloist.OnVsyncTimeOut();
+    EXPECT_EQ(rsDisplaySoloist.hasRequestedVsync_, false);
 }
 } // namespace OHOS::Rosen

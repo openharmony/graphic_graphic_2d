@@ -663,6 +663,19 @@ HWTEST_F(SkiaCanvasTest, GetDeviceClipBoundsTest001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetParallelRender
+ * @tc.desc: Test for seting parallel render.
+ * @tc.type: FUNC
+ * @tc.require: IC8TIV
+ */
+HWTEST_F(SkiaCanvasTest, SetParallelRender, TestSize.Level1)
+{
+    auto skiaCanvas = std::make_unique<SkiaCanvas>();
+    ASSERT_TRUE(skiaCanvas != nullptr);
+    skiaCanvas->SetParallelRender(true);
+}
+
+/**
  * @tc.name: GetRoundInDeviceClipBoundsTest001
  * @tc.desc: Test for geting bounds of clip in device corrdinates.
  * @tc.type: FUNC
@@ -675,6 +688,33 @@ HWTEST_F(SkiaCanvasTest, GetRoundInDeviceClipBoundsTest001, TestSize.Level1)
 
     skiaCanvas->ImportSkCanvas(nullptr);
     auto rect = skiaCanvas->GetRoundInDeviceClipBounds();
+}
+
+/**
+ * @tc.name: InheriteState
+ * @tc.desc: Test for Canvas Inherite State
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(SkiaCanvasTest, InheriteState, TestSize.Level1)
+{
+    Canvas canvas;
+    auto skiaCanvas = std::make_shared<SkiaCanvas>();
+    ASSERT_TRUE(skiaCanvas != nullptr);
+    skiaCanvas->InheriteState(&canvas);
+}
+
+/**
+ * @tc.name: BuildStateInherite
+ * @tc.desc: Test for Build Inherite State
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(SkiaCanvasTest, BuildStateInherite, TestSize.Level1)
+{
+    auto skiaCanvas = std::make_shared<SkiaCanvas>();
+    ASSERT_TRUE(skiaCanvas != nullptr);
+    skiaCanvas->BuildStateInherite(100.0, 100.0);
 }
 
 #ifdef RS_ENABLE_GPU

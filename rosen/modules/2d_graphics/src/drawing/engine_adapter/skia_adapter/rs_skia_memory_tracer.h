@@ -20,6 +20,7 @@
 #include "include/core/SkString.h"
 #include "include/core/SkTraceMemoryDump.h"
 #include "memory/rs_dfx_string.h"
+#include "memory/rs_tag_tracker.h"
 
 namespace OHOS::Rosen {
 typedef std::pair<const char*, const char*> ResourcePair;
@@ -71,6 +72,7 @@ private:
         int count;
     };
 
+    static std::string SourceType2String(RSTagTracker::SOURCETYPE type);
     const char* MapName(const char* resourceName);
     void ProcessElement();
     TraceValue ConvertUnits(const TraceValue& value);
@@ -82,9 +84,12 @@ private:
 
     TraceValue totalSize_;
     TraceValue purgeableSize_;
+    TraceValue externalTextureSize_;
     std::string currentElement_;
     std::unordered_map<std::string, TraceValue> currentValues_;
     std::unordered_map<std::string, std::unordered_map<std::string, TraceValue>> results_;
+    std::unordered_map<std::string,
+        std::unordered_map<std::string, std::unordered_map<std::string, TraceValue>>> sourceTagResults_;
 };
 
 } // namespace OHOS::Rosen

@@ -70,19 +70,20 @@ private:
         std::vector<std::pair<NodeId, std::string>>& nodeTags);
     //jemalloc info
     static void DumpGpuStats(DfxString& log, const Drawing::GPUContext* gpuContext);
-    static void DumpMallocStat(std::string& log);
     static void DumpMemorySnapshot(DfxString& log);
-    static void MemoryOverReport(const pid_t pid, const MemorySnapshotInfo& info, const std::string& bundleName,
-        const std::string& reportName);
+    static void FillMemorySnapshot();
+    static void MemoryOverReport(const pid_t pid, const MemorySnapshotInfo& info, const std::string& reportName);
     static void TotalMemoryOverReport(const std::unordered_map<pid_t, MemorySnapshotInfo>& infoMap);
     static void ErasePidInfo(const std::set<pid_t>& exitedPidSet);
+    static void MemoryOverForReport(std::unordered_map<pid_t, MemorySnapshotInfo>& infoMap, bool isTotalOver);
 
     static std::mutex mutex_;
-    static std::unordered_map<pid_t, std::pair<std::string, uint64_t>> pidInfo_;
+    static std::unordered_map<pid_t, uint64_t> pidInfo_;
     static uint32_t frameCount_;
     static uint64_t memoryWarning_;
     static uint64_t gpuMemoryControl_;
     static uint64_t totalMemoryReportTime_;
+    static std::unordered_set<pid_t> processKillReportPidSet_;
 };
 
 class RSB_EXPORT RSReclaimMemoryManager {

@@ -17,7 +17,6 @@
 
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "platform/common/rs_log.h"
-#include "include/gpu/vk/GrVulkanTrackerInterface.h"
 
 namespace OHOS::Rosen::DrawableV2 {
 RSEffectRenderNodeDrawable::Registrar RSEffectRenderNodeDrawable::instance_;
@@ -34,6 +33,10 @@ RSRenderNodeDrawable::Ptr RSEffectRenderNodeDrawable::OnGenerate(std::shared_ptr
 void RSEffectRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 {
 #ifdef RS_ENABLE_GPU
+    if (RSUniRenderThread::GetCaptureParam().isSoloNodeUiCapture_) {
+        RS_LOGD("RSEffectRenderNodeDrawable::OnDraw node %{public}" PRIu64 " isSoloNodeUiCapture, skip", nodeId_);
+        return;
+    }
     SetDrawSkipType(DrawSkipType::NONE);
     if (!ShouldPaint()) {
         SetDrawSkipType(DrawSkipType::SHOULD_NOT_PAINT);
@@ -47,14 +50,17 @@ void RSEffectRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         RS_LOGE("RSSurfaceRenderNodeDrawable::OnDraw params is nullptr");
         return;
     }
-    RECORD_GPU_RESOURCE_DRAWABLE_CALLER(GetId())
+    Drawing::GPUResourceTag::SetCurrentNodeId(GetId());
     auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
     RSAutoCanvasRestore acr(paintFilterCanvas, RSPaintFilterCanvas::SaveType::kAll);
 
+    paintFilterCanvas->SetEffectIntersectWithDRM(effectParams->GetEffectIntersectWithDRM());
+    paintFilterCanvas->SetDarkColorMode(effectParams->GetDarkColorMode());
+
     effectParams->ApplyAlphaAndMatrixToCanvas(*paintFilterCanvas);
     auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
-    if ((UNLIKELY(!uniParam) || uniParam->IsOpDropped()) && GetOpDropped() &&
-        QuickReject(canvas, effectParams->GetLocalDrawRect())) {
+    SetOcclusionCullingEnabled((!uniParam || uniParam->IsOpDropped()) && GetOpDropped());
+    if (IsOcclusionCullingEnabled() && QuickReject(canvas, effectParams->GetLocalDrawRect())) {
         SetDrawSkipType(DrawSkipType::OCCLUSION_SKIP);
         return;
     }
@@ -138,6 +144,13 @@ bool RSEffectRenderNodeDrawable::GenerateEffectDataOnDemand(RSEffectRenderParams
 
 void RSEffectRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
 {
+    auto& captureParam = RSUniRenderThread::GetCaptureParam();
+    bool stopDrawForRangeCapture = (canvas.GetUICapture() &&
+        captureParam.endNodeId_ == GetId() &&
+        captureParam.endNodeId_ != INVALID_NODEID);
+    if (stopDrawForRangeCapture) {
+        return;
+    }
     RSEffectRenderNodeDrawable::OnDraw(canvas);
 }
 } // namespace OHOS::Rosen::DrawableV2

@@ -15,7 +15,7 @@ import("//build/test.gni")
 import(
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_client/render_service_client.gni")
 
-module_output_path = "graphic_2d/rosen/modules/render_service_client"
+module_output_path = "graphic_2d/graphic_2d/rosen/modules/render_service_client"
 
 ohos_unittest("RSAnimationTest") {
   module_out_path = module_output_path
@@ -34,7 +34,6 @@ ohos_unittest("RSAnimationTest") {
 
   deps = [
     "$rosen_root/modules/render_service_client:librender_service_client",
-    "//third_party/googletest:gtest_main",
   ]
 
   public_deps =
@@ -44,6 +43,7 @@ ohos_unittest("RSAnimationTest") {
     "eventhandler:libeventhandler",
     "hilog:libhilog",
     "window_manager:libwm",
+    "googletest:gtest_main",
   ]
 
   subsystem_name = "graphic"
@@ -67,7 +67,6 @@ ohos_unittest("RSAnimationTest1") {
 
   deps = [
     "$rosen_root/modules/render_service_client:librender_service_client",
-    "//third_party/googletest:gtest_main",
   ]
 
   public_deps =
@@ -77,6 +76,7 @@ ohos_unittest("RSAnimationTest1") {
     "eventhandler:libeventhandler",
     "hilog:libhilog",
     "window_manager:libwm",
+    "googletest:gtest_main",
   ]
 
   subsystem_name = "graphic"
@@ -99,7 +99,6 @@ ohos_unittest("RSAnimationTest2") {
 
   deps = [
     "$rosen_root/modules/render_service_client:librender_service_client",
-    "//third_party/googletest:gtest_main",
   ]
 
   public_deps =
@@ -109,6 +108,7 @@ ohos_unittest("RSAnimationTest2") {
     "eventhandler:libeventhandler",
     "hilog:libhilog",
     "window_manager:libwm",
+    "googletest:gtest_main",
   ]
 
   subsystem_name = "graphic"
@@ -131,7 +131,6 @@ ohos_unittest("RSAnimationTest3") {
 
   deps = [
     "$rosen_root/modules/render_service_client:librender_service_client",
-    "//third_party/googletest:gtest_main",
   ]
 
   public_deps =
@@ -141,6 +140,7 @@ ohos_unittest("RSAnimationTest3") {
     "eventhandler:libeventhandler",
     "hilog:libhilog",
     "window_manager:libwm",
+    "googletest:gtest_main",
   ]
 
   subsystem_name = "graphic"

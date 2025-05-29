@@ -35,18 +35,32 @@ namespace {
     constexpr const char* OTA_COMPILE_TIME_LIMIT = "persist.bms.optimizing_apps.timing";
     constexpr int32_t OTA_COMPILE_TIME_LIMIT_DEFAULT = 4 * 60;
     constexpr const char* OTA_COMPILE_DISPLAY_INFO = "const.bms.optimizing_apps.display_info";
+    const std::string BOOTEVENT_BMS_MAIN_BUNDLES_READY = "bootevent.bms.main.bundles.ready";
     const std::string OTA_COMPILE_DISPLAY_INFO_DEFAULT = "正在优化应用";
+    const std::string OTA_COMPILE_DISPLAY_INFO_OVERSEA = "Optimizing Apps";
+    constexpr const char* REGION_PARA_STR_CUST = "const.cust.region";
+    constexpr const char* CHINA_REGION = "cn";
+    constexpr const char* OTA_BMS_COMPILE_SWITCH = "const.bms.optimizing_apps.switch";
+    const std::string OTA_BMS_COMPILE_SWITCH_OFF = "off";
+    const std::string OTA_BMS_COMPILE_SWITCH_ON = "on";
+    constexpr const char* BMS_COMPILE_STATUS = "bms.optimizing_apps.status";
+    const std::string BMS_COMPILE_STATUS_END = "1";
     constexpr const int32_t ONE_HUNDRED_PERCENT = 100;
     constexpr const int32_t SEC_MS = 1000;
     constexpr const int32_t CIRCLE_NUM = 3;
-    constexpr const float RADIUS = 10.0f;
-    constexpr const float OFFSET_Y_PERCENT = 0.85f;
+    constexpr const float RADIUS = 3.0f;
+    constexpr const float RADIUS_WEARABLE = 5.0f;
+    constexpr const float OFFSET_Y_PERCENT = 0.2f;
     constexpr const float HEIGHT_PERCENT = 0.05f;
     constexpr const int TEXT_BLOB_OFFSET = 5;
-    constexpr const int FONT_SIZE_VP = 12;
+    constexpr const int FONT_SIZE_PHONE = 12;
+    constexpr const int FONT_SIZE_OTHER = 24;
+    constexpr const int FONT_SIZE_WEARABLE = 24;
+    constexpr const int OFFSET_Y_WEARABLE = 120;
+    constexpr const int MAGIN_WEARABLE = 12;
+    constexpr const int HEIGHT_WEARABLE = FONT_SIZE_WEARABLE + RADIUS_WEARABLE * 2 + MAGIN_WEARABLE;
     constexpr const int32_t MAX_RETRY_TIMES = 5;
     constexpr const int32_t WAIT_MS = 500;
-    constexpr const int32_t WAITING_BMS_TIMEOUT = 30;
     constexpr const int32_t LOADING_FPS = 30;
     constexpr const int32_t PERIOD_FPS = 10;
     constexpr const int32_t CHANGE_FREQ = 4;
@@ -60,34 +74,28 @@ namespace {
         { { 0.5f, 0.2f }, { 0.2f, 1.0f }, { 1.0f, 0.5f } },
         { { 1.0f, 0.5f }, { 0.5f, 0.2f }, { 0.2f, 1.0f } },
     };
-    constexpr const char* BUNDLE_SCAN_PARAM_NAME = "bms.scanning_apps.status";
-    constexpr const int BUNDLE_SCAN_WAITING_TIMEOUT = 3;
 }
 
-void BootCompileProgress::Init(const BootAnimationConfig& config, bool needOtaCompile, bool needBundleScan)
+void BootCompileProgress::Init(const BootAnimationConfig& config)
 {
     LOGI("ota compile, screenId: " BPUBU64 "", config.screenId);
-    needOtaCompile_ = needOtaCompile;
-    needBundleScan_ = needBundleScan;
-    paramNeeded_.clear();
-    if (needOtaCompile_) {
-        paramNeeded_.insert(BMS_COMPILE_STATUS);
-    }
-    if (needBundleScan_) {
-        paramNeeded_.insert(BUNDLE_SCAN_PARAM_NAME);
-    }
+    RecordDeviceType();
     screenId_ = config.screenId;
     rotateDegree_ = config.rotateDegree;
     Rosen::RSInterfaces& interface = Rosen::RSInterfaces::GetInstance();
     Rosen::RSScreenModeInfo modeInfo = interface.GetScreenActiveMode(config.screenId);
     windowWidth_ = modeInfo.GetScreenWidth();
     windowHeight_ = modeInfo.GetScreenHeight();
-    fontSize_ = TransalteVp2Pixel(std::min(windowWidth_, windowHeight_), FONT_SIZE_VP);
+    fontSize_ = TransalteVp2Pixel(std::min(windowWidth_, windowHeight_), isOther_ ? FONT_SIZE_OTHER : FONT_SIZE_PHONE);
 
     timeLimitSec_ = system::GetIntParameter<int32_t>(OTA_COMPILE_TIME_LIMIT, OTA_COMPILE_TIME_LIMIT_DEFAULT);
     tf_ = Rosen::Drawing::Typeface::MakeFromName("HarmonyOS Sans SC", Rosen::Drawing::FontStyle());
 
-    displayInfo_ = system::GetParameter(OTA_COMPILE_DISPLAY_INFO, OTA_COMPILE_DISPLAY_INFO_DEFAULT);
+    std::string defaultDisplayInfo = OTA_COMPILE_DISPLAY_INFO_DEFAULT;
+    if (system::GetParameter(REGION_PARA_STR_CUST, CHINA_REGION) != CHINA_REGION) {
+        defaultDisplayInfo = OTA_COMPILE_DISPLAY_INFO_OVERSEA;
+    }
+    displayInfo_ = system::GetParameter(OTA_COMPILE_DISPLAY_INFO, defaultDisplayInfo);
     sharpCurve_ = std::make_shared<Rosen::RSCubicBezierInterpolator>(
         SHARP_CURVE_CTLX1, SHARP_CURVE_CTLY1, SHARP_CURVE_CTLX2, SHARP_CURVE_CTLY2);
     compileRunner_ = AppExecFwk::EventRunner::Create(false);
@@ -125,7 +133,7 @@ bool BootCompileProgress::CreateCanvasNode()
 
     rsCanvasNode_ = Rosen::RSCanvasNode::Create(true, false, rsUIContext);
     rsCanvasNode_->SetBounds(0, 0, windowWidth_, windowHeight_);
-    rsCanvasNode_->SetFrame(0, windowHeight_ * OFFSET_Y_PERCENT, windowWidth_, windowHeight_ * HEIGHT_PERCENT);
+    SetFrame();
     rsCanvasNode_->SetBackgroundColor(Rosen::Drawing::Color::COLOR_TRANSPARENT);
     rsCanvasNode_->SetPositionZ(positionZ);
     rsSurfaceNode_->AddChild(rsCanvasNode_, 0);
@@ -136,13 +144,13 @@ bool BootCompileProgress::CreateCanvasNode()
 
 bool BootCompileProgress::RegisterVsyncCallback()
 {
-    if (CheckParams()) {
-        LOGI("all param status are COMPLETED");
-        compileRunner_->Stop();
-        return false;
+    std::string otaCompileSwitch = system::GetParameter(OTA_BMS_COMPILE_SWITCH, OTA_BMS_COMPILE_SWITCH_OFF);
+    if (otaCompileSwitch == OTA_BMS_COMPILE_SWITCH_ON) {
+        isSupportBmsCompile_ = true;
+        LOGI("isSupportBmsCompile: %{public}d", isSupportBmsCompile_);
     }
-    if (!WaitParamsIfNeeded()) {
-        LOGI("no param is ready, progress bar stop");
+    if (IsEndFlag()) {
+        LOGI("bms compile and bundle is already done.");
         compileRunner_->Stop();
         return false;
     }
@@ -185,74 +193,16 @@ bool BootCompileProgress::RegisterVsyncCallback()
     return true;
 }
 
-bool BootCompileProgress::CheckParams()
+bool BootCompileProgress::IsBmsBundleReady()
 {
-    bool check1 = CheckBmsStartParam();
-    bool check2 = CheckBundleScanParam();
-    if (check1 && check2) {
-        return true;
-    }
-    return false;
+    return system::GetBoolParameter(BOOTEVENT_BMS_MAIN_BUNDLES_READY, false);
 }
 
-bool BootCompileProgress::CheckBundleScanParam()
+bool BootCompileProgress::IsEndFlag()
 {
-    if (!needBundleScan_) {
-        return true;
-    }
-    if (system::GetParameter(BUNDLE_SCAN_PARAM_NAME, "-1") == "1") {
-        paramNeeded_.erase(BUNDLE_SCAN_PARAM_NAME);
-        return true;
-    }
-    return false;
-}
-
-bool BootCompileProgress::CheckBmsStartParam()
-{
-    if (!needOtaCompile_) {
-        return true;
-    }
-    if (system::GetParameter(BMS_COMPILE_STATUS, "-1") == BMS_COMPILE_STATUS_END) {
-        paramNeeded_.erase(BMS_COMPILE_STATUS);
-        return true;
-    }
-    return false;
-}
-
-bool BootCompileProgress::WaitParamsIfNeeded()
-{
-    bool wait1 = WaitBmsStartIfNeeded();
-    bool wait2 = WaitBundleScanIfNeeded();
-    if (!wait1 && !wait2) {
-        return false;
-    }
-    return true;
-}
-
-bool BootCompileProgress::WaitBundleScanIfNeeded()
-{
-    if (!needBundleScan_) {
-        return true;
-    }
-    if (WaitParameter(BUNDLE_SCAN_PARAM_NAME, "0", BUNDLE_SCAN_WAITING_TIMEOUT) != 0) {
-        paramNeeded_.erase(BUNDLE_SCAN_PARAM_NAME);
-        LOGE("waiting bundle scan failed.");
-        return false;
-    }
-    return true;
-}
-
-bool BootCompileProgress::WaitBmsStartIfNeeded()
-{
-    if (!needOtaCompile_) {
-        return true;
-    }
-    if (WaitParameter(BMS_COMPILE_STATUS, BMS_COMPILE_STATUS_BEGIN.c_str(), WAITING_BMS_TIMEOUT) != 0) {
-        paramNeeded_.erase(BMS_COMPILE_STATUS);
-        LOGE("waiting bms start oat compile failed.");
-        return false;
-    }
-    return true;
+    bool isBmsCompileEnd = (isSupportBmsCompile_ && system::GetParameter(BMS_COMPILE_STATUS, "-1")
+        == BMS_COMPILE_STATUS_END) || !isSupportBmsCompile_;
+    return isBmsCompileEnd && IsBmsBundleReady();
 }
 
 void BootCompileProgress::OnVsync()
@@ -269,8 +219,8 @@ void BootCompileProgress::DrawCompileProgress()
 {
     UpdateCompileProgress();
 
-    auto canvas = static_cast<Rosen::Drawing::RecordingCanvas*>(
-        rsCanvasNode_->BeginRecording(windowWidth_, windowHeight_ * HEIGHT_PERCENT));
+    auto canvas = static_cast<Rosen::Drawing::RecordingCanvas*>(rsCanvasNode_->BeginRecording(windowWidth_,
+        isWearable_ ? HEIGHT_WEARABLE : std::max(windowWidth_, windowHeight_) * HEIGHT_PERCENT));
     if (canvas == nullptr) {
         LOGE("DrawCompileProgress canvas is null");
         return;
@@ -278,7 +228,7 @@ void BootCompileProgress::DrawCompileProgress()
 
     Rosen::Drawing::Font font;
     font.SetTypeface(tf_);
-    font.SetSize(fontSize_);
+    font.SetSize(isWearable_ ? FONT_SIZE_WEARABLE : fontSize_);
     char info[64] = {0};
     int ret = sprintf_s(info, sizeof(info), "%s %d%%", displayInfo_.c_str(), progress_);
     if (ret == -1) {
@@ -303,16 +253,16 @@ void BootCompileProgress::DrawCompileProgress()
     canvas->DrawTextBlob(textBlob.get(), scalarX, scalarY);
     canvas->DetachBrush();
 
-    Rosen::Drawing::Brush grayBrush;
-    grayBrush.SetColor(0x40FFFFFF);
-    grayBrush.SetAntiAlias(true);
+    DrawMaginBrush(canvas);
 
     int32_t freqNum = times_++;
+    float currentRadius = isWearable_ ? RADIUS_WEARABLE :
+        TransalteVp2Pixel(std::min(windowWidth_, windowHeight_), isOther_ ? RADIUS * 2 : RADIUS);
     for (int i = 0; i < CIRCLE_NUM; i++) {
         canvas->AttachBrush(DrawProgressPoint(i, freqNum));
-        int pointX = windowWidth_/2.0f + 4 * RADIUS * (i - 1); // align point in center and 2RADUIS between two points
-        int pointY = rsCanvasNode_->GetPaintHeight() - 2 * RADIUS;
-        canvas->DrawCircle({pointX, pointY}, RADIUS);
+        int pointX = windowWidth_/2.0f + 4 * currentRadius * (i - 1);
+        int pointY = rsCanvasNode_->GetPaintHeight() - currentRadius;
+        canvas->DrawCircle({pointX, pointY}, currentRadius);
         canvas->DetachBrush();
     }
 
@@ -324,10 +274,22 @@ void BootCompileProgress::DrawCompileProgress()
     }
 }
 
+void BootCompileProgress::DrawMaginBrush(Rosen::Drawing::RecordingCanvas* canvas)
+{
+    if (isWearable_) {
+        Rosen::Drawing::Brush maginBrush;
+        maginBrush.SetColor(0x00000000);
+        maginBrush.SetAntiAlias(true);
+        Rosen::Drawing::Rect rect(0, FONT_SIZE_WEARABLE, windowWidth_, FONT_SIZE_WEARABLE + MAGIN_WEARABLE);
+        canvas->AttachBrush(maginBrush);
+        canvas->DrawRect(rect);
+        canvas->DetachBrush();
+    }
+}
+
 void BootCompileProgress::UpdateCompileProgress()
 {
-    (void)CheckParams();
-    if (paramNeeded_.size() > 0) {
+    if (!IsEndFlag()) {
         int64_t now =
             std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch())
             .count();
@@ -364,5 +326,27 @@ Rosen::Drawing::Brush BootCompileProgress::DrawProgressPoint(int32_t idx, int32_
     brush.SetAntiAlias(true);
     brush.SetAlphaF(opacity);
     return brush;
+}
+
+void BootCompileProgress::RecordDeviceType()
+{
+    std::string deviceType = GetDeviceType();
+    LOGI("deviceType: %{public}s", deviceType.c_str());
+    if (deviceType == DEVICE_TYPE_WEARABLE) {
+        isWearable_ = true;
+    } else if (deviceType != DEVICE_TYPE_PHONE) {
+        isOther_ = true;
+    }
+}
+
+void BootCompileProgress::SetFrame()
+{
+    if (isWearable_) {
+        rsCanvasNode_->SetFrame(0, windowHeight_ - OFFSET_Y_WEARABLE - HEIGHT_WEARABLE, windowWidth_, HEIGHT_WEARABLE);
+    } else {
+        int32_t maxLength = std::max(windowWidth_, windowHeight_);
+        rsCanvasNode_->SetFrame(0, windowHeight_ - maxLength * OFFSET_Y_PERCENT, windowWidth_,
+            maxLength * HEIGHT_PERCENT);
+    }
 }
 } // namespace OHOS

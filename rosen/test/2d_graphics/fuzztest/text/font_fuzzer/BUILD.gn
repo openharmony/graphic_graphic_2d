@@ -20,12 +20,12 @@ module_out_path = "graphic_2d/graphic_2d"
 ##############################fuzztest##########################################
 ohos_fuzztest("FontFuzzTest") {
   module_out_path = module_out_path
-  fuzz_config_file = "../../../../../test/2d_graphics/fuzztest/text/font_fuzzer"
+  fuzz_config_file = "$graphic_2d_root/rosen/test/2d_graphics/fuzztest/text/font_fuzzer"
 
   include_dirs = [
-    "../../../../../modules/2d_graphics/include",
-    "../../../../../modules/2d_graphics/src",
-    "../../../../../test/2d_graphics/fuzztest",
+    "$graphic_2d_root/rosen/modules/2d_graphics/include",
+    "$graphic_2d_root/rosen/modules/2d_graphics/src",
+    "$graphic_2d_root/rosen/test/2d_graphics/fuzztest",
   ]
   cflags = [
     "-g",
@@ -38,7 +38,7 @@ ohos_fuzztest("FontFuzzTest") {
     "get_object.h",
   ]
 
-  deps = [ "../../../../../modules/2d_graphics:2d_graphics" ]
+  deps = [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics" ]
 
   part_name = "graphic_2d"
   subsystem_name = "graphic"

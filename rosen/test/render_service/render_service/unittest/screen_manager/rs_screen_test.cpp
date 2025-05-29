@@ -493,6 +493,20 @@ HWTEST_F(RSScreenTest, SurfaceDumpTest, testing::ext::TestSize.Level1)
 }
 
 /*
+ * @tc.name: DumpCurrentFrameLayersTest
+ * @tc.desc: DumpCurrentFrameLayers Test
+ * @tc.type: FUNC
+ * @tc.require: issueIAXTPS
+ */
+HWTEST_F(RSScreenTest, DumpCurrentFrameLayersTest, testing::ext::TestSize.Level1)
+{
+    ScreenId id = 0;
+    auto rsScreen = std::make_shared<impl::RSScreen>(id, false, HdiOutput::CreateHdiOutput(id), nullptr);
+    ASSERT_NE(nullptr, rsScreen);
+    rsScreen->DumpCurrentFrameLayers();
+}
+
+/*
  * @tc.name: FpsDumpTest
  * @tc.desc: FpsDump Test
  * @tc.type: FUNC
@@ -855,7 +869,7 @@ HWTEST_F(RSScreenTest, SetScreenActiveRect001, testing::ext::TestSize.Level1)
         .w = 0,
         .h = 0,
     };
-    EXPECT_EQ(rsScreen->SetScreenActiveRect(activeRect), StatusCode::HDI_ERROR);
+    EXPECT_EQ(rsScreen->SetScreenActiveRect(activeRect), StatusCode::INVALID_ARGUMENTS);
 }
 
 /*
@@ -1145,6 +1159,40 @@ HWTEST_F(RSScreenTest, SetScreenBacklight_002, testing::ext::TestSize.Level1)
     EXPECT_CALL(*hdiDeviceMock_, SetScreenBacklight(_, _)).Times(1).WillOnce(testing::Return(-1));
 
     rsScreen->SetScreenBacklight(1);
+}
+
+/*
+ * @tc.name: SetScreenBacklight_003
+ * @tc.desc: SetScreenBacklight Test, trigger branch -- IsVirtual()
+ * @tc.type: FUNC
+ * @tc.require: issueIC9IVH
+ */
+HWTEST_F(RSScreenTest, SetScreenBacklight_003, testing::ext::TestSize.Level1)
+{
+    ScreenId id = 0;
+    auto rsScreen = std::make_shared<impl::RSScreen>(id, true, nullptr, nullptr);
+    ASSERT_NE(nullptr, rsScreen);
+    rsScreen->SetScreenBacklight(1);
+}
+
+/*
+ * @tc.name: SetScreenBacklight_004
+ * @tc.desc: SetScreenBacklight Test, trigger branch hasLogBackLightAfterPowerStatusChanged_ is true
+ * @tc.type: FUNC
+ * @tc.require: issueIC9IVH
+ */
+HWTEST_F(RSScreenTest, SetScreenBacklight_004, testing::ext::TestSize.Level1)
+{
+    ScreenId id = 0;
+    auto rsScreen = std::make_shared<impl::RSScreen>(id, false, nullptr, nullptr);
+    ASSERT_NE(nullptr, rsScreen);
+    rsScreen->hdiScreen_->device_ = hdiDeviceMock_;
+    EXPECT_CALL(*hdiDeviceMock_, SetScreenBacklight(_, _)).Times(2).WillOnce(testing::Return(1));
+    rsScreen->hasLogBackLightAfterPowerStatusChanged_ = false;
+    rsScreen->SetScreenBacklight(1);
+    EXPECT_EQ(true, rsScreen->hasLogBackLightAfterPowerStatusChanged_);
+    rsScreen->SetScreenBacklight(1);
+    EXPECT_EQ(true, rsScreen->hasLogBackLightAfterPowerStatusChanged_);
 }
 
 /*

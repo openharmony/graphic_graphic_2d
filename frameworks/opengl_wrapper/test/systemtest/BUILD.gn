@@ -40,12 +40,12 @@ ohos_systemtest("opengl_wrapper_api_test") {
     "//foundation/graphic/graphic_2d/frameworks/opengl_wrapper:EGL",
     "//foundation/graphic/graphic_2d/frameworks/opengl_wrapper:GLESv3",
     "//foundation/graphic/graphic_2d/utils:libgraphic_utils",
-    "//third_party/googletest:gtest_main",
   ]
 
   external_deps = [
     "c_utils:utils",
     "graphic_surface:surface",
+    "googletest:gtest_main",
     "hilog:libhilog",
   ]
 }

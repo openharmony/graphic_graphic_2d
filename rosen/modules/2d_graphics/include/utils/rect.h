@@ -312,17 +312,17 @@ public:
 
     /*
      * @brief        If RectF intersects other, sets RectF to intersection.
-     * @param other  limit of result.
+     * @param other  other rectangle.
      * @return       true if other and RectF have area in common.
      */
     inline bool Intersect(const RectF& other);
 
     /*
-    * @brief        If RectF and another RectF do not intersect, the result is [0, 0, 0, 0].
-    * @param other  limit of result.
-    * @return       true if other and RectF have area in common.
-    */
-    inline void IntersectRect(const RectF& other);
+     * @brief        Determine whether this and other intersect.
+     * @param other  other rectangle.
+     * @return       true if other and RectF have area in common.
+     */
+    inline bool IsIntersect(const RectF& other) const;
 
     /*
      * @brief        If other is valid, sets RectF to the union of itself and other.
@@ -330,6 +330,27 @@ public:
      * @return       true if other is valid.
      */
     inline bool Join(const RectF& other);
+
+    /*
+     * @brief Determine if (x, y) is within this rectangle.
+     * @param x x-coordinate.
+     * @param y y-coordinate.
+     * @return true if rectangle contains (x, y), false otherwise.
+     */
+    inline bool Contains(scalar x, scalar y) const;
+
+    /*
+     * @brief Determine if other rectangle is inside this rectangle.
+     * @param other other rectangle.
+     * @return true if rectangle contains other rectangle, false otherwise.
+     */
+    inline bool Contains(const RectF& other) const;
+
+    /*
+     * @brief Swaps left and right if left is greater than right;
+     *        and swaps top and bottom if top is greater than bottom.
+     */
+    inline void Sort();
 
     friend inline bool operator==(const RectF& r1, const RectF& r2);
     friend inline bool operator!=(const RectF& r1, const RectF& r2);
@@ -478,17 +499,11 @@ inline bool RectF::Intersect(const RectF& other)
     return true;
 }
 
-inline void RectF::IntersectRect(const RectF& other)
+inline bool RectF::IsIntersect(const RectF& other) const
 {
-    scalar left = std::max(left_, other.left_);
-    scalar top = std::max(top_, other.top_);
-    scalar right = std::min(right_, other.right_);
-    scalar bottom = std::min(bottom_, other.bottom_);
-    if (right <= left || bottom <= top) {
-        *this = RectF();
-    } else {
-        *this = RectF(left, top, right, bottom);
-    }
+    RectF rectF(left_ > other.left_ ? left_ : other.left_, top_ > other.top_ ? top_ : other.top_,
+                right_ < other.right_ ? right_ : other.right_, bottom_ < other.bottom_ ? bottom_ : other.bottom_);
+    return rectF.IsValid();
 }
 
 inline bool RectF::Join(const RectF& other)
@@ -503,6 +518,29 @@ inline bool RectF::Join(const RectF& other)
             right_ > other.right_ ? right_ : other.right_, bottom_ > other.bottom_ ? bottom_ : other.bottom_);
     }
     return true;
+}
+
+inline bool RectF::Contains(scalar x, scalar y) const
+{
+    return x >= left_ && x < right_ && y >= top_ && y < bottom_;
+}
+
+inline bool RectF::Contains(const RectF& other) const
+{
+    return !other.IsEmpty() && !this->IsEmpty() &&
+        left_ <= other.left_ && top_ <= other.top_ &&
+        right_ >= other.right_ && bottom_ >= other.bottom_;
+}
+
+inline void RectF::Sort()
+{
+    if (left_ > right_) {
+        std::swap(left_, right_);
+    }
+
+    if (top_ > bottom_) {
+        std::swap(top_, bottom_);
+    }
 }
 
 inline std::string RectF::ToString() const

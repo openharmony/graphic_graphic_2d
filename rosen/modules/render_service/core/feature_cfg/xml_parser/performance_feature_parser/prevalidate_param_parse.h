@@ -28,8 +28,7 @@ public:
     int32_t ParseFeatureParam(FeatureParamMapType &featureMap, xmlNode &node) override;
 
 private:
-    int32_t ParsePrevalidateInternal(FeatureParamMapType &featureMap, xmlNode &node);
-    std::shared_ptr<PrevalidateParam> PrevalidateParam_;
+    int32_t ParsePrevalidateInternal(xmlNode &node);
 };
 } // namespace OHOS::Rosen
 #endif // PREVALIDATE_PARAM_PARSE_H

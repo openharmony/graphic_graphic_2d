@@ -13,6 +13,19 @@
  * limitations under the License.
  */
 
+/**
+ * @addtogroup RenderNodeDisplay
+ * @{
+ *
+ * @brief Display render nodes.
+ */
+
+/**
+ * @file rs_canvas_drawing_node.h
+ *
+ * @brief Defines the properties and methods for RSCanvasDrawingNode class.
+ */
+
 #ifndef RENDER_SERVICE_CLIENT_CORE_UI_RS_CANVAS_DRAWING_NODE_H
 #define RENDER_SERVICE_CLIENT_CORE_UI_RS_CANVAS_DRAWING_NODE_H
 
@@ -26,24 +39,74 @@ namespace OHOS {
 namespace Rosen {
 class RSNodeMap;
 
+/**
+ * @class RSCanvasDrawingNode
+ *
+ * @brief Represents a drawing node in the rendering service.
+ *
+ * This class is responsible for handling drawing operations on a canvas.
+ */
 class RSC_EXPORT RSCanvasDrawingNode : public RSCanvasNode {
 public:
     using WeakPtr = std::weak_ptr<RSCanvasDrawingNode>;
     using SharedPtr = std::shared_ptr<RSCanvasDrawingNode>;
     static inline constexpr RSUINodeType Type = RSUINodeType::CANVAS_DRAWING_NODE;
 
+    /**
+     * @brief Gets the type of the RSNode.
+     * 
+     * @return The type of the RSNode.
+     */
     RSUINodeType GetType() const override
     {
         return Type;
     }
 
+    /**
+     * @brief Destructor for RSCanvasDrawingNode.
+     */
     ~RSCanvasDrawingNode() override;
+
+    /**
+     * @brief Create a new RSCanvasDrawingNode instance.
+     * 
+     * @param isRenderServiceNode Indicates if the node is a render service node.
+     * @param isTextureExportNode Indicates if the node is a texture export node.
+     * @param rsUIContext The RSUIContext to be used.
+     * @return A shared pointer to the created RSCanvasDrawingNode instance.
+     */
     static SharedPtr Create(bool isRenderServiceNode = false, bool isTextureExportNode = false,
         std::shared_ptr<RSUIContext> rsUIContext = nullptr);
+    
+    /**
+     * @brief Gets a bitmap representation of the drawing content.
+     *
+     * @param bitmap The bitmap object to store the retrieved drawing content.
+     * @param drawCmdList Optional parameter specifying a list of drawing commands to apply. Defaults to nullptr.
+     * @param rect Optional parameter specifying the rectangular region to retrieve. 
+     * @return true if the bitmap is successfully retrieved; false otherwise.
+     */
     bool GetBitmap(Drawing::Bitmap& bitmap,
         std::shared_ptr<Drawing::DrawCmdList> drawCmdList = nullptr, const Drawing::Rect* rect = nullptr);
+    
+    /**
+     * @brief Gets a pixel map representation of the drawing node.
+     *
+     * @param pixelmap A shared pointer to a Media::PixelMap object where the pixel map data will be stored.
+     * @param drawCmdList An optional shared pointer containing drawing commands to be applied. Defaults to nullptr.
+     * @param rect An optional pointer specifying the region of interest.
+     * @return true if the pixel map was successfully retrieved; false otherwise.
+     */
     bool GetPixelmap(std::shared_ptr<Media::PixelMap> pixelmap,
         std::shared_ptr<Drawing::DrawCmdList> drawCmdList = nullptr, const Drawing::Rect* rect = nullptr);
+    
+    /**
+     * @brief Resets the surface with the specified width and height.
+     *
+     * @param width The new width of the surface.
+     * @param height The new height of the surface.
+     * @return true if the surface was successfully reset; false otherwise.
+     */
     bool ResetSurface(int width, int height);
 
 protected:
@@ -53,11 +116,19 @@ protected:
     RSCanvasDrawingNode(const RSCanvasDrawingNode&&) = delete;
     RSCanvasDrawingNode& operator=(const RSCanvasDrawingNode&) = delete;
     RSCanvasDrawingNode& operator=(const RSCanvasDrawingNode&&) = delete;
+
+    /**
+     * @brief Creates a render node for exporting texture with a switch mechanism.
+     */
     void CreateRenderNodeForTextureExportSwitch() override;
 private:
+    /**
+     * @brief Registers the node in the node map.
+     */
     void RegisterNodeMap() override;
 };
 } // namespace Rosen
 } // namespace OHOS
 
+/** @} */
 #endif // RENDER_SERVICE_CLIENT_CORE_UI_RS_CANVAS_DRAWING_NODE_H

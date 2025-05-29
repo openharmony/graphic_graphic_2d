@@ -155,6 +155,9 @@ public:
     void SetHDRPresent(bool hasHdrPresent);
     bool GetHDRPresent() const;
 
+    void SetHDRStatusChanged(bool isHDRStatusChanged);
+    bool IsHDRStatusChanged() const;
+
     void SetBrightnessRatio (float brightnessRatio);
     float GetBrightnessRatio() const;
 
@@ -199,6 +202,8 @@ public:
     {
         return virtualScreenMuteStatus_;
     }
+    void SetNeedForceUpdateHwcNodes(bool needForceUpdateHwcNodes);
+    bool GetNeedForceUpdateHwcNodes() const;
 
     // dfx
     std::string ToString() const override;
@@ -231,10 +236,12 @@ private:
     bool isFirstVisitCrossNodeDisplay_ = false;
     bool hasChildCrossNode_ = false;
     bool isMainAndLeashSurfaceDirty_ = false;
+    bool needForceUpdateHwcNodes_ = false;
     bool needOffscreen_ = false;
     bool isRotationChanged_ = false;
     bool hasFingerprint_ = false;
     bool hasHdrPresent_ = false;
+    bool isHDRStatusChanged_ = false;
     bool virtualScreenMuteStatus_ = false;
     float brightnessRatio_ = 1.0f;
     float zOrder_ = 0.0f;

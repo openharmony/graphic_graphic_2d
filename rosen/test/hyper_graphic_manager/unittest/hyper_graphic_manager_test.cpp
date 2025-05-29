@@ -16,9 +16,8 @@
 #include <gtest/gtest.h>
 #include <test_header.h>
 
-#include "hgm_core.h"
 #include "hgm_frame_rate_manager.h"
-
+#include "hgm_test_base.h"
 #include "screen_manager/screen_types.h"
 
 using namespace testing;
@@ -40,7 +39,7 @@ namespace {
     constexpr int32_t IDEAL_60_PERIOD = 16666666;
 
 }
-class HyperGraphicManagerTest : public testing::Test {
+class HyperGraphicManagerTest : public HgmTestBase {
 public:
     static void SetUpTestCase();
     static void TearDownTestCase();
@@ -48,7 +47,10 @@ public:
     void TearDown();
 };
 
-void HyperGraphicManagerTest::SetUpTestCase() {}
+void HyperGraphicManagerTest::SetUpTestCase()
+{
+    HgmTestBase::SetUpTestCase();
+}
 void HyperGraphicManagerTest::TearDownTestCase() {}
 void HyperGraphicManagerTest::SetUp() {}
 void HyperGraphicManagerTest::TearDown() {}
@@ -692,27 +694,6 @@ HWTEST_F(HyperGraphicManagerTest, SetEnableDynamicMode, Function | SmallTest | L
     EXPECT_EQ(instance.GetEnableDynamicMode(), true);
     instance.SetEnableDynamicMode(false);
     EXPECT_EQ(instance.GetEnableDynamicMode(), false);
-}
-
-/**
- * @tc.name: SetHfbcConfigMap
- * @tc.desc: Verify the result of SetHfbcConfigMap function
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(HyperGraphicManagerTest, SetHfbcConfigMap, Function | SmallTest | Level2)
-{
-    auto &hgmCore = HgmCore::Instance();
-    EXPECT_EQ(hgmCore.mPolicyConfigData_->hfbcConfig_.size(), 0);
-    std::unordered_map<std::string, std::string> hfbcConfig = {
-        { "com.test.allowapp", "1" }, { "com.test.allowapp2", "1" }
-    };
-    hgmCore.SetHfbcConfigMap(hfbcConfig);
-    EXPECT_EQ(hgmCore.mPolicyConfigData_->hfbcConfig_.size(), hfbcConfig.size());
-    for (const auto& pkg : hfbcConfig) {
-        EXPECT_EQ(hgmCore.mPolicyConfigData_->hfbcConfig_.find(pkg.first) !=
-            hgmCore.mPolicyConfigData_->hfbcConfig_.end(), true);
-    }
 }
 
 /**

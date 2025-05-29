@@ -21,6 +21,8 @@ namespace OHOS::Rosen {
 namespace {
 constexpr uint32_t FPS_MAX = 120;   // for hgm_idle_detector: default max fps of third framework
 constexpr uint32_t XML_STRING_MAX_LENGTH = 8;
+const static std::string S_UP_TIMEOUT_MS = "up_timeout_ms";
+constexpr int32_t UP_TIMEOUT_MS = 3000;
 }
 
 int32_t XMLParser::LoadConfiguration(const char* fileDir)
@@ -54,6 +56,16 @@ int32_t XMLParser::Parse()
 
     if (ParseInternal(*root) == false) {
         return XML_PARSE_INTERNAL_FAIL;
+    }
+    int32_t upTimeoutMs = UP_TIMEOUT_MS;
+    auto& timeoutStrategyConfig = mParsedData_->timeoutStrategyConfig_;
+    if (timeoutStrategyConfig.find(S_UP_TIMEOUT_MS) != timeoutStrategyConfig.end() &&
+        IsNumber(timeoutStrategyConfig[S_UP_TIMEOUT_MS])) {
+        int32_t upTimeoutMsCfg = static_cast<int32_t>(std::stoi(timeoutStrategyConfig[S_UP_TIMEOUT_MS]));
+        upTimeoutMs = upTimeoutMsCfg == 0 ? upTimeoutMs : upTimeoutMsCfg;
+    }
+    for (auto& [_, val] : mParsedData_->strategyConfigs_) {
+        val.upTimeOut = val.upTimeOut == 0 ? upTimeoutMs : val.upTimeOut;
     }
     return EXEC_SUCCESS;
 }
@@ -157,8 +169,12 @@ int32_t XMLParser::ParseSubSequentParams(xmlNode& node, std::string& paraName)
         setResult = ParseSimplex(node, mParsedData_->sourceTuningConfig_);
     } else if (paraName == "rs_solid_color_layer_config") {
         setResult = ParseSimplex(node, mParsedData_->solidLayerConfig_);
+    } else if (paraName == "timeout_strategy_config") {
+        setResult = ParseSimplex(node, mParsedData_->timeoutStrategyConfig_);
     } else if (paraName == "video_call_layer_config") {
         setResult = ParseSimplex(node, mParsedData_->videoCallLayerConfig_);
+    } else if (paraName == "vrate_control_config") {
+        setResult = ParseSimplex(node, mParsedData_->vRateControlList_);
     } else {
         setResult = EXEC_SUCCESS;
     }
@@ -226,37 +242,11 @@ int32_t XMLParser::ParseStrategyConfig(xmlNode& node)
         if (currNode->type != XML_ELEMENT_NODE) {
             continue;
         }
-
         auto name = ExtractPropertyValue("name", *currNode);
-        auto min = ExtractPropertyValue("min", *currNode);
-        auto max = ExtractPropertyValue("max", *currNode);
-        auto dynamicMode = ExtractPropertyValue("dynamicMode", *currNode);
-        auto pointerMode = ExtractPropertyValue("pointerMode", *currNode);
-        auto idleFps = ExtractPropertyValue("idleFps", *currNode);
-        auto isFactor = ExtractPropertyValue("isFactor", *currNode) == "1"; // 1:true, other:false
-        auto drawMin = ExtractPropertyValue("drawMin", *currNode);
-        auto drawMax = ExtractPropertyValue("drawMax", *currNode);
-        auto down = ExtractPropertyValue("down", *currNode);
-        auto supportAS = ExtractPropertyValue("supportAS", *currNode);
-        if (!IsNumber(min) || !IsNumber(max) || !IsNumber(dynamicMode)) {
+        PolicyConfigData::StrategyConfig strategy;
+        if (!BuildStrategyConfig(*currNode, strategy)) {
             return HGM_ERROR;
         }
-
-        PolicyConfigData::StrategyConfig strategy;
-        strategy.min = std::stoi(min);
-        strategy.max = std::stoi(max);
-        strategy.dynamicMode = static_cast<DynamicModeType>(std::stoi(dynamicMode));
-        strategy.pointerMode = IsNumber(pointerMode) ?
-            static_cast<PointerModeType>(std::stoi(pointerMode)) :
-            PointerModeType::POINTER_DISENABLED;
-        strategy.idleFps = IsNumber(idleFps) ?
-            std::clamp(std::stoi(idleFps), strategy.min, strategy.max) :
-            std::max(strategy.min, static_cast<int32_t>(OLED_60_HZ));
-        strategy.isFactor = isFactor;
-        strategy.drawMin = IsNumber(drawMin) ? std::stoi(drawMin) : 0;
-        strategy.drawMax = IsNumber(drawMax) ? std::stoi(drawMax) : 0;
-        strategy.down = IsNumber(down) ? std::stoi(down) : strategy.max;
-        strategy.supportAS = IsNumber(supportAS) ? std::stoi(supportAS) : 0;
         ParseBufferStrategyList(*currNode, strategy);
         mParsedData_->strategyConfigs_[name] = strategy;
         HGM_LOGI("HgmXMLParser ParseStrategyConfig name=%{public}s min=%{public}d drawMin=%{public}d",
@@ -338,13 +328,15 @@ int32_t XMLParser::ParseScreenConfig(xmlNode& node)
         screenConfig[id] = screenSetting;
         HGM_LOGI("HgmXMLParser ParseScreenConfig id=%{public}s", id.c_str());
     }
-    if (size_t pos = type.find(HGM_CONFIG_TYPE_THERMAL_SUFFIX); pos != std::string::npos) {
-        auto defaultScreenConfig = mParsedData_->screenConfigs_.find(type.substr(0, pos));
-        if (defaultScreenConfig != mParsedData_->screenConfigs_.end()) {
-            ReplenishMissThermalConfig(defaultScreenConfig->second, screenConfig);
-        } else {
-            HGM_LOGE("XMLParser failed to ReplenishMissThermalConfig %{public}s", type.c_str());
-            return EXEC_SUCCESS;
+    for (const auto& screenExtStrategy : HGM_CONFIG_SCREENEXT_STRATEGY_MAP) {
+        if (size_t pos = type.find(screenExtStrategy.first); pos != std::string::npos) {
+            auto defaultScreenConfig = mParsedData_->screenConfigs_.find(type.substr(0, pos));
+            if (defaultScreenConfig != mParsedData_->screenConfigs_.end()) {
+                ReplenishMissingScreenConfig(defaultScreenConfig->second, screenConfig);
+            } else {
+                HGM_LOGE("XMLParser failed to ReplenishMissingScreenConfig %{public}s", type.c_str());
+                return EXEC_SUCCESS;
+            }
         }
     }
     mParsedData_->screenConfigs_[type] = screenConfig;
@@ -615,16 +607,73 @@ int32_t XMLParser::ParseAppTypes(xmlNode& node, std::unordered_map<int32_t, std:
     return EXEC_SUCCESS;
 }
 
-int32_t XMLParser::ReplenishMissThermalConfig(const PolicyConfigData::ScreenConfig& screenConfigDefault,
-                                              PolicyConfigData::ScreenConfig& screenConfig)
+void XMLParser::ReplenishMissingScreenAppGameConfig(PolicyConfigData::ScreenSetting& screenSetting,
+    const PolicyConfigData::ScreenSetting& screenSettingDefalut)
 {
-    HGM_LOGD("HgmXMLParser ReplenishMissThermalConfig");
-    for (const auto& [id, screenSettingDefalut] : screenConfigDefault) {
-        if (screenConfig.find(id) == screenConfig.end()) {
-            screenConfig[id] = screenSettingDefalut;
-        }
+    if (screenSetting.appList.empty()) {
+        screenSetting.appList = screenSettingDefalut.appList;
+        screenSetting.multiAppStrategyType = screenSettingDefalut.multiAppStrategyType;
+        screenSetting.multiAppStrategyName = screenSettingDefalut.multiAppStrategyName;
     }
+    if (screenSetting.appTypes.empty()) {
+        screenSetting.appTypes = screenSettingDefalut.appTypes;
+    }
+    if (screenSetting.gameSceneList.empty()) {
+        screenSetting.gameSceneList = screenSettingDefalut.gameSceneList;
+    }
+    if (screenSetting.gameAppNodeList.empty()) {
+        screenSetting.gameAppNodeList = screenSettingDefalut.gameAppNodeList;
+    }
+}
 
+int32_t XMLParser::ReplenishMissingScreenConfig(const PolicyConfigData::ScreenConfig& screenConfigDefault,
+    PolicyConfigData::ScreenConfig& screenConfig)
+{
+    HGM_LOGD("HgmXMLParser ReplenishMissingScreenConfig");
+    for (const auto& [id, screenSettingDefalut] : screenConfigDefault) {
+        const auto& screenSetting = screenConfig.find(id);
+        if (screenSetting == screenConfig.end()) {
+            screenConfig[id] = screenSettingDefalut;
+            continue;
+        }
+        if (screenSetting->second.ltpoConfig.empty()) {
+            screenSetting->second.ltpoConfig = screenSettingDefalut.ltpoConfig;
+        }
+        if (screenSetting->second.sceneList.empty()) {
+            screenSetting->second.sceneList = screenSettingDefalut.sceneList;
+        }
+        if (screenSetting->second.animationDynamicSettings.empty()) {
+            screenSetting->second.animationDynamicSettings = screenSettingDefalut.animationDynamicSettings;
+        }
+        if (screenSetting->second.aceSceneDynamicSettings.empty()) {
+            screenSetting->second.aceSceneDynamicSettings = screenSettingDefalut.aceSceneDynamicSettings;
+        }
+        if (screenSetting->second.smallSizeAnimationDynamicSettings.empty()) {
+            screenSetting->second.smallSizeArea = screenSettingDefalut.smallSizeArea;
+            screenSetting->second.smallSizeLength = screenSettingDefalut.smallSizeLength;
+            screenSetting->second.smallSizeAnimationDynamicSettings =
+                screenSettingDefalut.smallSizeAnimationDynamicSettings;
+        }
+        if (screenSetting->second.animationPowerConfig.empty()) {
+            screenSetting->second.animationPowerConfig = screenSettingDefalut.animationPowerConfig;
+        }
+        if (screenSetting->second.uiPowerConfig.empty()) {
+            screenSetting->second.uiPowerConfig = screenSettingDefalut.uiPowerConfig;
+        }
+        if (screenSetting->second.ancoSceneList.empty()) {
+            screenSetting->second.ancoSceneList = screenSettingDefalut.ancoSceneList;
+        }
+        if (screenSetting->second.componentPowerConfig.empty()) {
+            screenSetting->second.componentPowerConfig = screenSettingDefalut.componentPowerConfig;
+        }
+        if (screenSetting->second.pageUrlConfig.empty()) {
+            screenSetting->second.pageUrlConfig = screenSettingDefalut.pageUrlConfig;
+        }
+        if (screenSetting->second.performanceConfig.empty()) {
+            screenSetting->second.performanceConfig = screenSettingDefalut.performanceConfig;
+        }
+        ReplenishMissingScreenAppGameConfig(screenSetting->second, screenSettingDefalut);
+    }
     return EXEC_SUCCESS;
 }
 
@@ -745,5 +794,37 @@ int32_t XMLParser::ParsePageUrlStrategy(xmlNode& node,
         pageUrlConfigMap[packageName] = pageUrlConfig;
     }
     return EXEC_SUCCESS;
+}
+
+bool XMLParser::BuildStrategyConfig(xmlNode &currNode, PolicyConfigData::StrategyConfig &strategy)
+{
+    auto min = ExtractPropertyValue("min", currNode);
+    auto max = ExtractPropertyValue("max", currNode);
+    auto dynamicMode = ExtractPropertyValue("dynamicMode", currNode);
+    auto pointerMode = ExtractPropertyValue("pointerMode", currNode);
+    auto idleFps = ExtractPropertyValue("idleFps", currNode);
+    auto isFactor = ExtractPropertyValue("isFactor", currNode) == "1"; // 1:true, other:false
+    auto drawMin = ExtractPropertyValue("drawMin", currNode);
+    auto drawMax = ExtractPropertyValue("drawMax", currNode);
+    auto down = ExtractPropertyValue("down", currNode);
+    auto supportAS = ExtractPropertyValue("supportAS", currNode);
+    auto upTimeOut = ExtractPropertyValue("upTimeOut", currNode);
+    if (!IsNumber(min) || !IsNumber(max) || !IsNumber(dynamicMode)) {
+        return false;
+    }
+    strategy.min = std::stoi(min);
+    strategy.max = std::stoi(max);
+    strategy.dynamicMode = static_cast<DynamicModeType>(std::stoi(dynamicMode));
+    strategy.pointerMode = IsNumber(pointerMode) ? static_cast<PointerModeType>(std::stoi(pointerMode)) :
+        PointerModeType::POINTER_DISENABLED;
+    strategy.idleFps = IsNumber(idleFps) ? std::clamp(std::stoi(idleFps), strategy.min, strategy.max) :
+        std::max(strategy.min, static_cast<int32_t>(OLED_60_HZ));
+    strategy.isFactor = isFactor;
+    strategy.drawMin = IsNumber(drawMin) ? std::stoi(drawMin) : 0;
+    strategy.drawMax = IsNumber(drawMax) ? std::stoi(drawMax) : 0;
+    strategy.down = IsNumber(down) ? std::stoi(down) : strategy.max;
+    strategy.supportAS = IsNumber(supportAS) ? std::stoi(supportAS) : 0;
+    strategy.upTimeOut = IsNumber(upTimeOut) ? std::stoi(upTimeOut) : 0;
+    return true;
 }
 } // namespace OHOS::Rosen

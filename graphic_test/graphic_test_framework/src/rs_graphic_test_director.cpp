@@ -146,6 +146,9 @@ void RSGraphicTestDirector::Run()
     vsyncWaiter_ = std::make_shared<VSyncWaiter>(handler_);
     runner_->Run();
 
+    profilerThread_ = std::make_shared<RSGraphicTestProfilerThread>();
+    profilerThread_->Start();
+
     screenId_ = RSInterfaces::GetInstance().GetDefaultScreenId();
 
     auto defaultDisplay = DisplayManager::GetInstance().GetDefaultDisplay();
@@ -172,9 +175,16 @@ void RSGraphicTestDirector::FlushMessage()
     rsUiDirector_->SendMessages();
 }
 
-std::shared_ptr<Media::PixelMap> RSGraphicTestDirector::TakeScreenCaptureAndWait(int ms)
+std::shared_ptr<Media::PixelMap> RSGraphicTestDirector::TakeScreenCaptureAndWait(int ms, bool isScreenShot)
 {
     RS_TRACE_NAME("RSGraphicTestDirector::TakeScreenCaptureAndWait");
+
+    if (isScreenShot) {
+        auto pixelMap =
+            DisplayManager::GetInstance().GetScreenshot(DisplayManager::GetInstance().GetDefaultDisplayId());
+        return pixelMap;
+    }
+
     auto callback = std::make_shared<TestSurfaceCaptureCallback>();
     if (!RSInterfaces::GetInstance().TakeSurfaceCaptureForUI(rootNode_->screenSurfaceNode_, callback)) {
         return nullptr;
@@ -282,6 +292,13 @@ void RSGraphicTestDirector::OnVSync(int64_t time)
     //also have animation request next frame
     if (HasUIRunningAnimation()) {
         RequestNextVSync();
+    }
+}
+
+void RSGraphicTestDirector::SendProfilerCommand(const std::string command, int outTime)
+{
+    if (profilerThread_) {
+        profilerThread_->SendCommand(command, outTime);
     }
 }
 } // namespace Rosen

@@ -19,8 +19,6 @@
 #include <cstdint>
 
 #include "get_object.h"
-#include "rosen_text/typography.h"
-#include "rosen_text/typography_create.h"
 
 #include "drawing_color_filter.h"
 
@@ -99,6 +97,23 @@ void NativeDrawingColorFilterTest003(const uint8_t* data, size_t size)
     OH_Drawing_ColorFilterDestroy(colorFilterOne);
 }
 
+void NativeDrawingColorFilterTest004(const uint8_t* data, size_t size)
+{
+    if (data == nullptr || size < DATA_MIN_SIZE) {
+        return;
+    }
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    uint32_t mulColor = GetObject<uint32_t>();
+    uint32_t addColor = GetObject<uint32_t>();
+    OH_Drawing_ColorFilter* colorFilter = OH_Drawing_ColorFilterCreateLighting(mulColor, addColor);
+
+    OH_Drawing_ColorFilterDestroy(colorFilter);
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
@@ -110,6 +125,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::Drawing::NativeDrawingColorFilterTest001(data, size);
     OHOS::Rosen::Drawing::NativeDrawingColorFilterTest002(data, size);
     OHOS::Rosen::Drawing::NativeDrawingColorFilterTest003(data, size);
+    OHOS::Rosen::Drawing::NativeDrawingColorFilterTest004(data, size);
 
     return 0;
 }

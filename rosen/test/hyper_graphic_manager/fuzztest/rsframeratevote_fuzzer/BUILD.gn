@@ -21,12 +21,13 @@ module_output_path = "graphic_2d/rosen/modules/hyper_graphic_manager"
 ohos_fuzztest("RSFrameRateVoteFuzzTest") {
   module_out_path = module_output_path
   fuzz_config_file =
-      "../../../../test/hyper_graphic_manager/fuzztest/rsframeratevote_fuzzer"
+      "$graphic_2d_root/rosen/test/hyper_graphic_manager/fuzztest/rsframeratevote_fuzzer"
 
   include_dirs = [
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/config",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/frame_rate_manager",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/hgm_screen_manager",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/soft_vsync_manager",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/utils",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/frame_rate_vote",
   ]
@@ -45,6 +46,7 @@ ohos_fuzztest("RSFrameRateVoteFuzzTest") {
     "ffrt:libffrt",
     "graphic_surface:surface",
     "hitrace:hitrace_meter",
+    "samgr:samgr_proxy",
   ]
 }
 

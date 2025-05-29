@@ -153,7 +153,7 @@ public:
         bool adaptiveDVSyncEnable = false);
     static bool ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler,
         uint64_t presentWhen = CONSUME_DIRECTLY, bool dropFrameByPidEnable = false, bool adaptiveDVSyncEnable = false,
-        bool needConsume = true);
+        bool needConsume = true, uint64_t parentNodeId = 0);
     static bool ReleaseBuffer(RSSurfaceHandler& surfaceHandler);
 
     static std::unique_ptr<RSTransactionData> ParseTransactionData(MessageParcel& parcel, uint32_t parcelNumber);
@@ -172,7 +172,6 @@ public:
     static bool IsColorFilterModeValid(ColorFilterMode mode);
 
     static bool WriteSurfaceRenderNodeToPng(const RSSurfaceRenderNode& node);
-    static bool WriteCacheRenderNodeToPng(const RSRenderNode& node);
     static bool WriteSurfaceBufferToPng(sptr<SurfaceBuffer>& buffer, uint64_t id = 0);
 
     static bool WritePixelMapToPng(Media::PixelMap& pixelMap);
@@ -187,14 +186,12 @@ public:
     static GraphicTransformType GetRotateTransform(GraphicTransformType transform);
     static GraphicTransformType GetFlipTransform(GraphicTransformType transform);
 
-    // GraphicTransformType from hdi layer info is clockwise, for surface and surface node is anti-clockwise
-    // need conversion here
-    static GraphicTransformType ClockwiseToAntiClockwiseTransform(GraphicTransformType transform);
     static int RotateEnumToInt(ScreenRotation rotation);
     static int RotateEnumToInt(GraphicTransformType rotation);
     static GraphicTransformType RotateEnumToInt(int angle,
         GraphicTransformType flip = GraphicTransformType::GRAPHIC_ROTATE_NONE);
     static Rect MergeBufferDamages(const std::vector<Rect>& damages);
+    static void MergeBufferDamages(Rect& surfaceDamage, const std::vector<Rect>& damages);
     static bool WriteCacheImageRenderNodeToPng(std::shared_ptr<Drawing::Surface> surface, std::string debugInfo);
     static bool WriteCacheImageRenderNodeToPng(std::shared_ptr<Drawing::Image> image, std::string debugInfo);
     static bool WriteCacheImageRenderNodeToPng(std::shared_ptr<Drawing::Bitmap> bitmap, std::string debugInfo);
@@ -203,6 +200,8 @@ public:
     static void IncAcquiredBufferCount();
     static void DecAcquiredBufferCount();
     static pid_t GetLastSendingPid();
+    static bool PortraitAngle(int angle);
+
 private:
     static bool CreateYuvToRGBABitMap(sptr<OHOS::SurfaceBuffer> buffer, std::vector<uint8_t>& newBuffer,
         Drawing::Bitmap& bitmap);

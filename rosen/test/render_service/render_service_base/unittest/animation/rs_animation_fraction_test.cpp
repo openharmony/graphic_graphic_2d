@@ -155,6 +155,506 @@ HWTEST_F(RSAnimationFractionTest, IsStartRunningTest001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: LeftDelayTimeTest001
+ * @tc.desc: test results of LeftDelayTime
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSAnimationFractionTest, LeftDelayTimeTest001, TestSize.Level1)
+{
+    constexpr int64_t msToNs = 1000000;
+    RSAnimationFraction rsAnimationFraction;
+    int64_t deltaTime = 8;
+    int64_t startDelayNs = 0;
+    float speed = 1.0f;
+    float animationScale = 1.0f;
+    int64_t currentRunningTime = 0;
+    int64_t leftDelayTime = 0;
+
+    rsAnimationFraction.SetDirectionAfterStart(ForwardDirection::NORMAL);
+    rsAnimationFraction.runningTime_ = currentRunningTime;
+    rsAnimationFraction.SetSpeed(speed);
+    rsAnimationFraction.SetAnimationScale(animationScale);
+    rsAnimationFraction.IsStartRunning(deltaTime, startDelayNs);
+
+    currentRunningTime += static_cast<int64_t>(deltaTime * speed / animationScale);
+    leftDelayTime = (currentRunningTime > startDelayNs)
+                        ? 0
+                        : (startDelayNs - currentRunningTime) * animationScale / speed / msToNs;
+    EXPECT_EQ(rsAnimationFraction.CalculateLeftDelayTime(startDelayNs), leftDelayTime);
+
+    currentRunningTime = 10000;
+    rsAnimationFraction.runningTime_ = currentRunningTime;
+    rsAnimationFraction.SetSpeed(speed);
+    rsAnimationFraction.SetAnimationScale(animationScale);
+    rsAnimationFraction.IsStartRunning(deltaTime, startDelayNs);
+
+    currentRunningTime += static_cast<int64_t>(deltaTime * speed / animationScale);
+    leftDelayTime = (currentRunningTime > startDelayNs)
+                        ? 0
+                        : (startDelayNs - currentRunningTime) * animationScale / speed / msToNs;
+    EXPECT_EQ(rsAnimationFraction.CalculateLeftDelayTime(startDelayNs), leftDelayTime);
+
+    currentRunningTime = 0;
+    speed = 0.5f;
+    rsAnimationFraction.runningTime_ = currentRunningTime;
+    rsAnimationFraction.SetSpeed(speed);
+    rsAnimationFraction.SetAnimationScale(animationScale);
+    rsAnimationFraction.IsStartRunning(deltaTime, startDelayNs);
+
+    currentRunningTime += static_cast<int64_t>(deltaTime * speed / animationScale);
+    leftDelayTime = (currentRunningTime > startDelayNs)
+                        ? 0
+                        : (startDelayNs - currentRunningTime) * animationScale / speed / msToNs;
+    EXPECT_EQ(rsAnimationFraction.CalculateLeftDelayTime(startDelayNs), leftDelayTime);
+}
+
+/**
+ * @tc.name: LeftDelayTimeTest002
+ * @tc.desc: test results of LeftDelayTime
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSAnimationFractionTest, LeftDelayTimeTest002, TestSize.Level1)
+{
+    constexpr int64_t msToNs = 1000000;
+    constexpr int maxSpeed = 1000000;
+    RSAnimationFraction rsAnimationFraction;
+    int64_t deltaTime = 8;
+    int64_t startDelayNs = 0;
+    float speed = 1.0f;
+    float animationScale = 1.0f;
+    int64_t currentRunningTime = 0;
+    int64_t leftDelayTime = 0;
+
+    rsAnimationFraction.SetDirectionAfterStart(ForwardDirection::NORMAL);
+    currentRunningTime = 0;
+    speed = 2.0f;
+    rsAnimationFraction.runningTime_ = currentRunningTime;
+    rsAnimationFraction.SetSpeed(speed);
+    rsAnimationFraction.SetAnimationScale(animationScale);
+    rsAnimationFraction.IsStartRunning(deltaTime, startDelayNs);
+
+    currentRunningTime += static_cast<int64_t>(deltaTime * speed / animationScale);
+    leftDelayTime = (currentRunningTime > startDelayNs)
+                        ? 0
+                        : (startDelayNs - currentRunningTime) * animationScale / speed / msToNs;
+    EXPECT_EQ(rsAnimationFraction.CalculateLeftDelayTime(startDelayNs), leftDelayTime);
+
+    currentRunningTime = 0;
+    speed = 2.0f;
+    animationScale = 0.0f;
+    rsAnimationFraction.runningTime_ = currentRunningTime;
+    rsAnimationFraction.SetSpeed(speed);
+    rsAnimationFraction.SetAnimationScale(animationScale);
+    rsAnimationFraction.IsStartRunning(deltaTime, startDelayNs);
+
+    currentRunningTime += static_cast<int64_t>(deltaTime * maxSpeed);
+    leftDelayTime = (currentRunningTime > startDelayNs)
+                        ? 0
+                        : (startDelayNs - currentRunningTime) * animationScale / speed / msToNs;
+    EXPECT_EQ(rsAnimationFraction.CalculateLeftDelayTime(startDelayNs), leftDelayTime);
+}
+
+/**
+ * @tc.name: LeftDelayTimeTest003
+ * @tc.desc: test results of LeftDelayTime
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSAnimationFractionTest, LeftDelayTimeTest003, TestSize.Level1)
+{
+    constexpr int64_t msToNs = 1000000;
+    RSAnimationFraction rsAnimationFraction;
+    int64_t deltaTime = 8;
+    int64_t startDelayNs = 0;
+    float speed = 1.0f;
+    float animationScale = 1.0f;
+    int64_t currentRunningTime = 0;
+    int64_t leftDelayTime = 0;
+
+    rsAnimationFraction.SetDirectionAfterStart(ForwardDirection::NORMAL);
+    currentRunningTime = 0;
+    speed = 2.0f;
+    animationScale = 3.0f;
+    rsAnimationFraction.runningTime_ = currentRunningTime;
+    rsAnimationFraction.SetSpeed(speed);
+    rsAnimationFraction.SetAnimationScale(animationScale);
+    rsAnimationFraction.IsStartRunning(deltaTime, startDelayNs);
+
+    currentRunningTime += static_cast<int64_t>(deltaTime * speed / animationScale);
+    leftDelayTime = (currentRunningTime > startDelayNs)
+                        ? 0
+                        : (startDelayNs - currentRunningTime) * animationScale / speed / msToNs;
+    EXPECT_EQ(rsAnimationFraction.CalculateLeftDelayTime(startDelayNs), leftDelayTime);
+
+    currentRunningTime = 0;
+    deltaTime = 16;
+    rsAnimationFraction.runningTime_ = currentRunningTime;
+    rsAnimationFraction.SetSpeed(speed);
+    rsAnimationFraction.SetAnimationScale(animationScale);
+    rsAnimationFraction.IsStartRunning(deltaTime, startDelayNs);
+
+    currentRunningTime += static_cast<int64_t>(deltaTime * speed / animationScale);
+    leftDelayTime = (currentRunningTime > startDelayNs)
+                        ? 0
+                        : (startDelayNs - currentRunningTime) * animationScale / speed / msToNs;
+    EXPECT_EQ(rsAnimationFraction.CalculateLeftDelayTime(startDelayNs), leftDelayTime);
+}
+
+/**
+ * @tc.name: LeftDelayTimeTest004
+ * @tc.desc: test results of LeftDelayTime
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSAnimationFractionTest, LeftDelayTimeTest004, TestSize.Level1)
+{
+    constexpr int64_t msToNs = 1000000;
+    RSAnimationFraction rsAnimationFraction;
+    int64_t deltaTime = 8;
+    int64_t startDelayNs = 0;
+    float speed = 1.0f;
+    float animationScale = 1.0f;
+    int64_t currentRunningTime = 0;
+    int64_t leftDelayTime = 0;
+
+    rsAnimationFraction.SetDirectionAfterStart(ForwardDirection::NORMAL);
+    currentRunningTime = 0;
+    speed = 2.0f;
+    animationScale = 3.0f;
+    rsAnimationFraction.runningTime_ = currentRunningTime;
+    rsAnimationFraction.SetSpeed(speed);
+    rsAnimationFraction.SetAnimationScale(animationScale);
+    rsAnimationFraction.IsStartRunning(deltaTime, startDelayNs);
+
+    currentRunningTime += static_cast<int64_t>(deltaTime * speed / animationScale);
+    leftDelayTime = (currentRunningTime > startDelayNs)
+                        ? 0
+                        : (startDelayNs - currentRunningTime) * animationScale / speed / msToNs;
+    EXPECT_EQ(rsAnimationFraction.CalculateLeftDelayTime(startDelayNs), leftDelayTime);
+
+    currentRunningTime = 0;
+    deltaTime = 16;
+    rsAnimationFraction.runningTime_ = currentRunningTime;
+    rsAnimationFraction.SetSpeed(speed);
+    rsAnimationFraction.SetAnimationScale(animationScale);
+    rsAnimationFraction.IsStartRunning(deltaTime, startDelayNs);
+
+    currentRunningTime += static_cast<int64_t>(deltaTime * speed / animationScale);
+    leftDelayTime = (currentRunningTime > startDelayNs)
+                        ? 0
+                        : (startDelayNs - currentRunningTime) * animationScale / speed / msToNs;
+    EXPECT_EQ(rsAnimationFraction.CalculateLeftDelayTime(startDelayNs), leftDelayTime);
+
+    currentRunningTime = 0;
+    startDelayNs = 10000;
+    rsAnimationFraction.runningTime_ = currentRunningTime;
+    rsAnimationFraction.SetSpeed(speed);
+    rsAnimationFraction.SetAnimationScale(animationScale);
+    rsAnimationFraction.IsStartRunning(deltaTime, startDelayNs);
+
+    currentRunningTime += static_cast<int64_t>(deltaTime * speed / animationScale);
+    leftDelayTime = (currentRunningTime > startDelayNs)
+                        ? 0
+                        : (startDelayNs - currentRunningTime) * animationScale / speed / msToNs;
+    EXPECT_EQ(rsAnimationFraction.CalculateLeftDelayTime(startDelayNs), leftDelayTime);
+}
+
+/**
+ * @tc.name: LeftDelayTimeTest005
+ * @tc.desc: test results of LeftDelayTime
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSAnimationFractionTest, LeftDelayTimeTest005, TestSize.Level1)
+{
+    constexpr int64_t msToNs = 1000000;
+    RSAnimationFraction rsAnimationFraction;
+    int64_t deltaTime = 8;
+    int64_t startDelayNs = 0;
+    float speed = 1.0f;
+    float animationScale = 1.0f;
+    int64_t currentRunningTime = 0;
+    int64_t leftDelayTime = 0;
+
+    rsAnimationFraction.SetDirectionAfterStart(ForwardDirection::NORMAL);
+    currentRunningTime = 0;
+    speed = 2.0f;
+    animationScale = 3.0f;
+    deltaTime = 16;
+    startDelayNs = 10000;
+    rsAnimationFraction.runningTime_ = currentRunningTime;
+    rsAnimationFraction.SetSpeed(speed);
+    rsAnimationFraction.SetAnimationScale(animationScale);
+    rsAnimationFraction.IsStartRunning(deltaTime, startDelayNs);
+
+    currentRunningTime += static_cast<int64_t>(deltaTime * speed / animationScale);
+    leftDelayTime = (currentRunningTime > startDelayNs)
+                        ? 0
+                        : (startDelayNs - currentRunningTime) * animationScale / speed / msToNs;
+    EXPECT_EQ(rsAnimationFraction.CalculateLeftDelayTime(startDelayNs), leftDelayTime);
+
+    startDelayNs = -10000;
+    currentRunningTime = 0;
+    rsAnimationFraction.runningTime_ = currentRunningTime;
+    rsAnimationFraction.SetSpeed(speed);
+    rsAnimationFraction.SetAnimationScale(animationScale);
+    rsAnimationFraction.IsStartRunning(deltaTime, startDelayNs);
+
+    currentRunningTime += static_cast<int64_t>(deltaTime * speed / animationScale);
+    leftDelayTime = (currentRunningTime > startDelayNs)
+                        ? 0
+                        : (startDelayNs - currentRunningTime) * animationScale / speed / msToNs;
+    EXPECT_EQ(rsAnimationFraction.CalculateLeftDelayTime(startDelayNs), leftDelayTime);
+}
+
+/**
+ * @tc.name: LeftDelayTimeTest006
+ * @tc.desc: test results of LeftDelayTime
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSAnimationFractionTest, LeftDelayTimeTest006, TestSize.Level1)
+{
+    constexpr int64_t msToNs = 1000000;
+    RSAnimationFraction rsAnimationFraction;
+    int64_t deltaTime = 8;
+    int64_t startDelayNs = 0;
+    float speed = 1.0f;
+    float animationScale = 1.0f;
+    int64_t currentRunningTime = 0;
+    int64_t leftDelayTime = 0;
+
+    rsAnimationFraction.SetDirectionAfterStart(ForwardDirection::REVERSE);
+    rsAnimationFraction.runningTime_ = currentRunningTime;
+    rsAnimationFraction.SetSpeed(speed);
+    rsAnimationFraction.SetAnimationScale(animationScale);
+    rsAnimationFraction.IsStartRunning(deltaTime, startDelayNs);
+
+    currentRunningTime -= static_cast<int64_t>(deltaTime * speed / animationScale);
+    leftDelayTime = (currentRunningTime > startDelayNs) ? 0 : currentRunningTime * animationScale / speed / msToNs;
+    EXPECT_EQ(rsAnimationFraction.CalculateLeftDelayTime(startDelayNs), leftDelayTime);
+
+    currentRunningTime = 10000;
+    rsAnimationFraction.runningTime_ = currentRunningTime;
+    rsAnimationFraction.SetSpeed(speed);
+    rsAnimationFraction.SetAnimationScale(animationScale);
+    rsAnimationFraction.IsStartRunning(deltaTime, startDelayNs);
+
+    currentRunningTime -= static_cast<int64_t>(deltaTime * speed / animationScale);
+    leftDelayTime = (currentRunningTime > startDelayNs) ? 0 : currentRunningTime * animationScale / speed / msToNs;
+    EXPECT_EQ(rsAnimationFraction.CalculateLeftDelayTime(startDelayNs), leftDelayTime);
+
+    currentRunningTime = 0;
+    speed = 0.5f;
+    rsAnimationFraction.runningTime_ = currentRunningTime;
+    rsAnimationFraction.SetSpeed(speed);
+    rsAnimationFraction.SetAnimationScale(animationScale);
+    rsAnimationFraction.IsStartRunning(deltaTime, startDelayNs);
+
+    currentRunningTime -= static_cast<int64_t>(deltaTime * speed / animationScale);
+    leftDelayTime = (currentRunningTime > startDelayNs) ? 0 : currentRunningTime * animationScale / speed / msToNs;
+    EXPECT_EQ(rsAnimationFraction.CalculateLeftDelayTime(startDelayNs), leftDelayTime);
+}
+
+/**
+ * @tc.name: LeftDelayTimeTest007
+ * @tc.desc: test results of LeftDelayTime
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSAnimationFractionTest, LeftDelayTimeTest007, TestSize.Level1)
+{
+    constexpr int64_t msToNs = 1000000;
+    constexpr int maxSpeed = 1000000;
+    RSAnimationFraction rsAnimationFraction;
+    int64_t deltaTime = 8;
+    int64_t startDelayNs = 0;
+    float speed = 1.0f;
+    float animationScale = 1.0f;
+    int64_t currentRunningTime = 0;
+    int64_t leftDelayTime = 0;
+
+    rsAnimationFraction.SetDirectionAfterStart(ForwardDirection::REVERSE);
+    currentRunningTime = 0;
+    speed = 2.0f;
+    rsAnimationFraction.runningTime_ = currentRunningTime;
+    rsAnimationFraction.SetSpeed(speed);
+    rsAnimationFraction.SetAnimationScale(animationScale);
+    rsAnimationFraction.IsStartRunning(deltaTime, startDelayNs);
+
+    currentRunningTime -= static_cast<int64_t>(deltaTime * speed / animationScale);
+    leftDelayTime = (currentRunningTime > startDelayNs) ? 0 : currentRunningTime * animationScale / speed / msToNs;
+    EXPECT_EQ(rsAnimationFraction.CalculateLeftDelayTime(startDelayNs), leftDelayTime);
+
+    currentRunningTime = 0;
+    speed = 2.0f;
+    animationScale = 0.0f;
+    rsAnimationFraction.runningTime_ = currentRunningTime;
+    rsAnimationFraction.SetSpeed(speed);
+    rsAnimationFraction.SetAnimationScale(animationScale);
+    rsAnimationFraction.IsStartRunning(deltaTime, startDelayNs);
+
+    currentRunningTime -= static_cast<int64_t>(deltaTime * maxSpeed);
+    leftDelayTime = (currentRunningTime > startDelayNs) ? 0 : currentRunningTime * animationScale / speed / msToNs;
+    EXPECT_EQ(rsAnimationFraction.CalculateLeftDelayTime(startDelayNs), leftDelayTime);
+}
+
+/**
+ * @tc.name: LeftDelayTimeTest008
+ * @tc.desc: test results of LeftDelayTime
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSAnimationFractionTest, LeftDelayTimeTest008, TestSize.Level1)
+{
+    constexpr int64_t msToNs = 1000000;
+    RSAnimationFraction rsAnimationFraction;
+    int64_t deltaTime = 8;
+    int64_t startDelayNs = 0;
+    float speed = 1.0f;
+    float animationScale = 1.0f;
+    int64_t currentRunningTime = 0;
+    int64_t leftDelayTime = 0;
+
+    rsAnimationFraction.SetDirectionAfterStart(ForwardDirection::REVERSE);
+    currentRunningTime = 0;
+    speed = 2.0f;
+    animationScale = 3.0f;
+    rsAnimationFraction.runningTime_ = currentRunningTime;
+    rsAnimationFraction.SetSpeed(speed);
+    rsAnimationFraction.SetAnimationScale(animationScale);
+    rsAnimationFraction.IsStartRunning(deltaTime, startDelayNs);
+
+    currentRunningTime -= static_cast<int64_t>(deltaTime * speed / animationScale);
+    leftDelayTime = (currentRunningTime > startDelayNs) ? 0 : currentRunningTime * animationScale / speed / msToNs;
+    EXPECT_EQ(rsAnimationFraction.CalculateLeftDelayTime(startDelayNs), leftDelayTime);
+
+    currentRunningTime = 0;
+    deltaTime = 16;
+    rsAnimationFraction.runningTime_ = currentRunningTime;
+    rsAnimationFraction.SetSpeed(speed);
+    rsAnimationFraction.SetAnimationScale(animationScale);
+    rsAnimationFraction.IsStartRunning(deltaTime, startDelayNs);
+
+    currentRunningTime -= static_cast<int64_t>(deltaTime * speed / animationScale);
+    leftDelayTime = (currentRunningTime > startDelayNs) ? 0 : currentRunningTime * animationScale / speed / msToNs;
+    EXPECT_EQ(rsAnimationFraction.CalculateLeftDelayTime(startDelayNs), leftDelayTime);
+}
+
+/**
+ * @tc.name: LeftDelayTimeTest009
+ * @tc.desc: test results of LeftDelayTime
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSAnimationFractionTest, LeftDelayTimeTest009, TestSize.Level1)
+{
+    constexpr int64_t msToNs = 1000000;
+    RSAnimationFraction rsAnimationFraction;
+    int64_t deltaTime = 8;
+    int64_t startDelayNs = 0;
+    float speed = 1.0f;
+    float animationScale = 1.0f;
+    int64_t currentRunningTime = 0;
+    int64_t leftDelayTime = 0;
+
+    rsAnimationFraction.SetDirectionAfterStart(ForwardDirection::REVERSE);
+    currentRunningTime = 0;
+    speed = 2.0f;
+    animationScale = 3.0f;
+    rsAnimationFraction.runningTime_ = currentRunningTime;
+    rsAnimationFraction.SetSpeed(speed);
+    rsAnimationFraction.SetAnimationScale(animationScale);
+    rsAnimationFraction.IsStartRunning(deltaTime, startDelayNs);
+
+    currentRunningTime -= static_cast<int64_t>(deltaTime * speed / animationScale);
+    leftDelayTime = (currentRunningTime > startDelayNs) ? 0 : currentRunningTime * animationScale / speed / msToNs;
+    EXPECT_EQ(rsAnimationFraction.CalculateLeftDelayTime(startDelayNs), leftDelayTime);
+
+    currentRunningTime = 0;
+    deltaTime = 16;
+    rsAnimationFraction.runningTime_ = currentRunningTime;
+    rsAnimationFraction.SetSpeed(speed);
+    rsAnimationFraction.SetAnimationScale(animationScale);
+    rsAnimationFraction.IsStartRunning(deltaTime, startDelayNs);
+
+    currentRunningTime -= static_cast<int64_t>(deltaTime * speed / animationScale);
+    leftDelayTime = (currentRunningTime > startDelayNs) ? 0 : currentRunningTime * animationScale / speed / msToNs;
+    EXPECT_EQ(rsAnimationFraction.CalculateLeftDelayTime(startDelayNs), leftDelayTime);
+
+    currentRunningTime = 0;
+    startDelayNs = 10000;
+    rsAnimationFraction.runningTime_ = currentRunningTime;
+    rsAnimationFraction.SetSpeed(speed);
+    rsAnimationFraction.SetAnimationScale(animationScale);
+    rsAnimationFraction.IsStartRunning(deltaTime, startDelayNs);
+
+    currentRunningTime -= static_cast<int64_t>(deltaTime * speed / animationScale);
+    leftDelayTime = (currentRunningTime > startDelayNs) ? 0 : currentRunningTime * animationScale / speed / msToNs;
+    EXPECT_EQ(rsAnimationFraction.CalculateLeftDelayTime(startDelayNs), leftDelayTime);
+}
+
+/**
+ * @tc.name: LeftDelayTimeTest010
+ * @tc.desc: test results of LeftDelayTime
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSAnimationFractionTest, LeftDelayTimeTest010, TestSize.Level1)
+{
+    constexpr int64_t msToNs = 1000000;
+    RSAnimationFraction rsAnimationFraction;
+    int64_t deltaTime = 8;
+    int64_t startDelayNs = 0;
+    float speed = 1.0f;
+    float animationScale = 1.0f;
+    int64_t currentRunningTime = 0;
+    int64_t leftDelayTime = 0;
+
+    rsAnimationFraction.SetDirectionAfterStart(ForwardDirection::NORMAL);
+    currentRunningTime = 0;
+    speed = 2.0f;
+    animationScale = 3.0f;
+    deltaTime = 16;
+    startDelayNs = 10000;
+    rsAnimationFraction.runningTime_ = currentRunningTime;
+    rsAnimationFraction.SetSpeed(speed);
+    rsAnimationFraction.SetAnimationScale(animationScale);
+    rsAnimationFraction.IsStartRunning(deltaTime, startDelayNs);
+
+    currentRunningTime += static_cast<int64_t>(deltaTime * speed / animationScale);
+    leftDelayTime = (currentRunningTime > startDelayNs)
+                        ? 0
+                        : (startDelayNs - currentRunningTime) * animationScale / speed / msToNs;
+    EXPECT_EQ(rsAnimationFraction.CalculateLeftDelayTime(startDelayNs), leftDelayTime);
+
+    startDelayNs = -10000;
+    currentRunningTime = 0;
+    rsAnimationFraction.runningTime_ = currentRunningTime;
+    rsAnimationFraction.SetSpeed(speed);
+    rsAnimationFraction.SetAnimationScale(animationScale);
+    rsAnimationFraction.IsStartRunning(deltaTime, startDelayNs);
+
+    currentRunningTime += static_cast<int64_t>(deltaTime * speed / animationScale);
+    leftDelayTime = (currentRunningTime > startDelayNs)
+                        ? 0
+                        : (startDelayNs - currentRunningTime) * animationScale / speed / msToNs;
+    EXPECT_EQ(rsAnimationFraction.CalculateLeftDelayTime(startDelayNs), leftDelayTime);
+}
+
+/**
+ * @tc.name: LeftDelayTimeTest011
+ * @tc.desc: test results of LeftDelayTime
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSAnimationFractionTest, LeftDelayTimeTest011, TestSize.Level1)
+{
+    RSAnimationFraction animation;
+    animation.speed_ = 0.0f;
+    EXPECT_EQ(animation.CalculateLeftDelayTime(1000), 0);
+
+    animation.speed_ = 1.0f;
+    animation.runningTime_ = 2000;
+    EXPECT_EQ(animation.CalculateLeftDelayTime(1000), 0);
+
+    animation.speed_ = 1.0f;
+    animation.runningTime_ = INT64_MAX;
+    EXPECT_EQ(animation.CalculateLeftDelayTime(1000), 0);
+}
+
+/**
  * @tc.name: GetAnimationFractionTest001
  * @tc.desc: test results of GetAnimationFraction
  * @tc.type: FUNC
@@ -163,7 +663,8 @@ HWTEST_F(RSAnimationFractionTest, GetAnimationFractionTest001, TestSize.Level1)
 {
     RSAnimationFraction rsAnimationFraction;
     int64_t time = 0;
-    rsAnimationFraction.GetAnimationFraction(time);
+    int64_t delayTime = 0;
+    rsAnimationFraction.GetAnimationFraction(time, delayTime);
     ASSERT_FALSE(time);
 }
 

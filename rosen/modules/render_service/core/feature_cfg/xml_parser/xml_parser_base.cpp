@@ -126,14 +126,12 @@ bool XMLParserBase::ParseInternal(xmlNode &node)
         if (currNode->type != XML_ELEMENT_NODE) {
             continue;
         }
-        if (parseSuccess != PARSE_EXEC_SUCCESS) {
-            return false;
-        }
 
         std::string featureName = ExtractPropertyValue("name", *currNode);
         RS_LOGI("XMLParserBase featureName is: %{public}s", featureName.c_str());
         if (featureName == "") {
-            return false;
+            RS_LOGE("XMLParserBase featureName is empty");
+            continue;
         }
         auto parseMap = GraphicFeatureParamManager::GetInstance().featureParseMap_;
         auto featureMap = GraphicFeatureParamManager::GetInstance().featureParamMap_;
@@ -141,6 +139,10 @@ bool XMLParserBase::ParseInternal(xmlNode &node)
         if (iter != parseMap.end()) {
             auto featureObj = iter->second;
             parseSuccess = featureObj->ParseFeatureParam(featureMap, *currNode);
+            if (parseSuccess != PARSE_EXEC_SUCCESS) {
+                RS_LOGE("XMLParserBase current feature : %{public}s parse fail", featureName.c_str());
+                continue;
+            }
         } else {
             RS_LOGD("XMLParserBase featureMap cannot find feature %{public}s", featureName.c_str());
         }

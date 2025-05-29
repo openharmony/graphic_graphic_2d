@@ -23,6 +23,7 @@ using namespace testing::ext;
 using namespace OHOS::Rosen::DrawableV2;
 
 namespace OHOS::Rosen {
+static constexpr uint64_t TEST_ID = 124;
 class RSCanvasRenderNodeDrawableTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -75,7 +76,7 @@ HWTEST(RSCanvasRenderNodeDrawableTest, OnDrawTest, TestSize.Level1)
 
     drawable->isOpDropped_ = false;
     drawable->isDrawingCacheEnabled_ = true;
-    drawable->autoCacheEnable_ = false;
+    drawable->GetOpincDrawCache().autoCacheEnable_ = false;
     drawable->drawBlurForCache_ = false;
     drawable->OnDraw(canvas);
     ASSERT_TRUE(drawable->isDrawingCacheEnabled_);
@@ -135,6 +136,14 @@ HWTEST(RSCanvasRenderNodeDrawableTest, OnCaptureTest002, TestSize.Level1)
     drawable->renderParams_->contentEmpty_ = false;
     ASSERT_FALSE(drawable->isDrawingCacheEnabled_);
     ASSERT_TRUE(drawable->GetRenderParams());
+    drawable->OnCapture(canvas);
+    ASSERT_TRUE(drawable->ShouldPaint());
+    nodeId = TEST_ID;
+    RSUniRenderThread::GetCaptureParam().endNodeId_ = TEST_ID;
+    canvas.SetUICapture(true);
+    drawable->OnCapture(canvas);
+    ASSERT_TRUE(drawable->ShouldPaint());
+    RSUniRenderThread::GetCaptureParam().endNodeId_ = INVALID_NODEID;
     drawable->OnCapture(canvas);
     ASSERT_TRUE(drawable->ShouldPaint());
 }

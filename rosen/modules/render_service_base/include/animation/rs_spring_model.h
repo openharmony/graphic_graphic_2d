@@ -19,6 +19,7 @@
 #include "common/rs_macros.h"
 #include "common/rs_vector2.h"
 #include "common/rs_vector4.h"
+#include <vector>
 
 namespace OHOS {
 namespace Rosen {
@@ -55,6 +56,58 @@ float toFloat(Vector2f value)
     return value.GetLength();
 }
 } // namespace
+
+inline std::vector<float> Add(const std::vector<float> &first, const std::vector<float> &second)
+{
+    std::vector<float> result;
+    if (first.size() == second.size()) {
+        result.reserve(first.size());
+        for (auto i = 0u; i < first.size(); i++) {
+            result.push_back(first.at(i) + second.at(i));
+        }
+    } else {
+        result = second;
+    }
+    return result;
+}
+inline std::vector<float> operator-(const std::vector<float> &first, const std::vector<float> &second)
+{
+    std::vector<float> result;
+    if (first.size() == second.size()) {
+        result.reserve(first.size());
+        for (auto i = 0u; i < first.size(); i++) {
+            result.push_back(first.at(i) - second.at(i));
+        }
+    } else {
+        result = second;
+    }
+    return result;
+}
+inline std::vector<float> operator+(const std::vector<float> &first, const std::vector<float> &second)
+{
+    return Add(first, second);
+}
+inline std::vector<float> operator*(const std::vector<float> &first, float scale)
+{
+    std::vector<float> result;
+    result.reserve(first.size());
+    for (auto i = 0u; i < first.size(); i++) {
+        result.push_back(first.at(i) * scale);
+    }
+    return result;
+}
+inline std::vector<float> operator/(const std::vector<float> &first, float scale)
+{
+    std::vector<float> result;
+    result.reserve(first.size());
+    if (ROSEN_EQ(scale, 0.0f)) {
+        return first;
+    }
+    for (auto i = 0u; i < first.size(); i++) {
+        result.push_back(first.at(i) / scale);
+    }
+    return result;
+}
 
 // RSAnimatableType should have following operators: + - *float ==
 template<typename RSAnimatableType>

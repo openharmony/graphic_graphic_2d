@@ -86,8 +86,11 @@ public:
     virtual void DVSyncRateChanged(uint32_t currRefreshRate, bool &frameRateChanged) = 0;
     virtual VsyncError RemoveDVSyncListener(const sptr<OHOS::Rosen::VSyncGenerator::Callback>& cb) = 0;
     virtual VsyncError AddDVSyncListener(int64_t phase, const sptr<OHOS::Rosen::VSyncGenerator::Callback>& cb) = 0;
+    virtual bool IsUiDvsyncOn() = 0;
     // End of DVSync
     virtual void PrintGeneratorStatus() = 0;
+    virtual bool CheckSampleIsAdaptive(int64_t hardwareVsyncInterval) = 0;
+    virtual bool NeedPreexecuteAndUpdateTs(int64_t& timestamp, int64_t& period, int64_t lastVsyncTime) = 0;
 };
 
 sptr<VSyncGenerator> CreateVSyncGenerator();
@@ -137,8 +140,11 @@ public:
     void DVSyncRateChanged(uint32_t currRefreshRate, bool &frameRateChanged) override;
     VsyncError RemoveDVSyncListener(const sptr<OHOS::Rosen::VSyncGenerator::Callback>& cb) override;
     VsyncError AddDVSyncListener(int64_t phase, const sptr<OHOS::Rosen::VSyncGenerator::Callback>& cb) override;
+    bool IsUiDvsyncOn() override;
     // End of DVSync
     void PrintGeneratorStatus() override;
+    bool CheckSampleIsAdaptive(int64_t hardwareVsyncInterval) override;
+    bool NeedPreexecuteAndUpdateTs(int64_t& timestamp, int64_t& period, int64_t lastVsyncTime) override;
 private:
     friend class OHOS::Rosen::VSyncGenerator;
 

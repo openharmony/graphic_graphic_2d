@@ -26,6 +26,7 @@ using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
+static constexpr uint32_t SET_OPERATION_SLEEP_US = 50000;  // wait for set-operation change
 class RSInterfacesTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -113,6 +114,146 @@ HWTEST_F(RSInterfacesTest, TakeSurfaceCaptureForUI003, TestSize.Level1)
 }
 
 /**
+ * @tc.name: RegisterTransactionDataCallback001
+ * @tc.desc: RegisterTransactionDataCallback Test callback does not exist
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, RegisterTransactionDataCallback001, TestSize.Level1)
+{
+    int32_t pid = 123;
+    uint64_t timeStamp = 456;
+    RSInterfaces& instance = RSInterfaces::GetInstance();
+    instance.renderServiceClient_ = std::make_unique<RSRenderServiceClient>();
+    bool res = instance.RegisterTransactionDataCallback(pid, timeStamp, nullptr);
+    EXPECT_TRUE(res == false);
+}
+
+/**
+ * @tc.name: RegisterTransactionDataCallback002
+ * @tc.desc: RegisterTransactionDataCallback Test callback exist
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, RegisterTransactionDataCallback002, TestSize.Level1)
+{
+    int32_t pid = 123;
+    uint64_t timeStamp = 456;
+    RSInterfaces& instance = RSInterfaces::GetInstance();
+    instance.renderServiceClient_ = std::make_unique<RSRenderServiceClient>();
+    std::function<void()> callback = []() {};
+    bool res = instance.RegisterTransactionDataCallback(pid, timeStamp, callback);
+    EXPECT_TRUE(res == true);
+}
+
+/**
+ * @tc.name: TakeSurfaceCaptureForUIWithConfig001
+ * @tc.desc: test results of TakeSurfaceCaptureForUIWithConfig
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, TakeSurfaceCaptureForUIWithConfig001, TestSize.Level1)
+{
+    class TestSurfaceCapture : public SurfaceCaptureCallback {
+    public:
+        explicit TestSurfaceCapture() {}
+        ~TestSurfaceCapture() {}
+        void OnSurfaceCapture(std::shared_ptr<Media::PixelMap> pixelmap) override {}
+    };
+    RSInterfaces& instance = RSInterfaces::GetInstance();
+    auto callback = std::make_shared<TestSurfaceCapture>();
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.scaleX = 1.f;
+    captureConfig.scaleY = 1.f;
+    captureConfig.isSync = true;
+    captureConfig.useDma = true;
+    bool res = instance.TakeSurfaceCaptureForUIWithConfig(nullptr, callback, captureConfig);
+    EXPECT_TRUE(res == false);
+
+    auto node = std::make_shared<RSNode>(true);
+    res = instance.TakeSurfaceCaptureForUIWithConfig(nullptr, callback, captureConfig);
+    EXPECT_TRUE(res == false);
+
+    RSUINodeType type = node->GetType();
+    type = RSUINodeType::UNKNOW;
+    res = instance.TakeSurfaceCaptureForUIWithConfig(nullptr, callback, captureConfig);
+    EXPECT_TRUE(res == false);
+
+    RSDisplayNodeConfig config;
+    auto rsDisplayNode = RSDisplayNode::Create(config);
+    res = instance.TakeSurfaceCaptureForUIWithConfig(rsDisplayNode, callback, captureConfig);
+    EXPECT_TRUE(res == false);
+}
+
+/**
+ * @tc.name: TakeSurfaceCaptureForUIWithConfig002
+ * @tc.desc: test results of TakeSurfaceCaptureForUIWithConfig
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, TakeSurfaceCaptureForUIWithConfig002, TestSize.Level1)
+{
+    std::shared_ptr<RSNode> node = nullptr;
+    std::shared_ptr<SurfaceCaptureCallback> callback = nullptr;
+    RSInterfaces& instance = RSInterfaces::GetInstance();
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.scaleX = 1.f;
+    captureConfig.scaleY = 1.f;
+    captureConfig.isSync = true;
+    captureConfig.useDma = true;
+    bool res = instance.TakeSurfaceCaptureForUIWithConfig(node, callback, captureConfig);
+    EXPECT_TRUE(res == false);
+
+    node = std::make_shared<RSNode>(true);
+    res = instance.TakeSurfaceCaptureForUIWithConfig(node, callback, captureConfig);
+    EXPECT_TRUE(res == false);
+
+    node = std::make_shared<RSCanvasNode>(true);
+    res = instance.TakeSurfaceCaptureForUIWithConfig(node, callback, captureConfig);
+    EXPECT_FALSE(res);
+}
+
+/**
+ * @tc.name: TakeSurfaceCaptureForUIWithConfig003
+ * @tc.desc: test results of TakeSurfaceCaptureForUIWithConfig
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, TakeSurfaceCaptureForUIWithConfig003, TestSize.Level1)
+{
+    std::shared_ptr<RSNode> node = nullptr;
+    std::shared_ptr<SurfaceCaptureCallback> callback = nullptr;
+    RSInterfaces& instance = RSInterfaces::GetInstance();
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.scaleX = 1.f;
+    captureConfig.scaleY = 1.f;
+    captureConfig.isSync = true;
+    captureConfig.useDma = true;
+    Drawing::Rect specifiedAreaRect(0.f, 0.f, 0.f, 0.f);
+    bool res = instance.TakeSurfaceCaptureForUIWithConfig(node, callback, captureConfig, specifiedAreaRect);
+    EXPECT_TRUE(res == false);
+
+    node = std::make_shared<RSNode>(true);
+    res = instance.TakeSurfaceCaptureForUIWithConfig(node, callback, captureConfig, specifiedAreaRect);
+    EXPECT_TRUE(res == false);
+}
+
+/**
+ * @tc.name: TakeSurfaceCaptureSoloNodeList001
+ * @tc.desc: test results of TakeSurfaceCaptureSoloNodeList
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, TakeSurfaceCaptureSoloNodeList001, TestSize.Level1)
+{
+    std::shared_ptr<RSNode> node = nullptr;
+    RSInterfaces& instance = RSInterfaces::GetInstance();
+    std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>> res =
+        instance.TakeSurfaceCaptureSoloNodeList(node);
+    EXPECT_TRUE(res.size() == 0);
+}
+
+/**
  * @tc.name: SetHwcNodeBoundsTest
  * @tc.desc: test results of SetHwcNodeBounds
  * @tc.type: FUNC
@@ -172,7 +313,11 @@ HWTEST_F(RSInterfacesTest, GetMemoryGraphics001, TestSize.Level1)
     RSInterfaces& instance = RSInterfaces::GetInstance();
     instance.renderServiceClient_ = std::make_unique<RSRenderServiceClient>();
     auto res = instance.GetMemoryGraphics();
-    EXPECT_FALSE(res.empty());
+    if (!instance.renderServiceClient_->GetUniRenderEnabled()) {
+        EXPECT_TRUE(res.empty());
+    } else {
+        EXPECT_FALSE(res.empty());
+    }
 }
 
 /**
@@ -428,6 +573,20 @@ HWTEST_F(RSInterfacesTest, GetRefreshInfo001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetRefreshInfoToSP001
+ * @tc.desc: test results of GetRefreshInfoToSP
+ * @tc.type: FUNC
+ * @tc.require: issueI97N4E
+ */
+HWTEST_F(RSInterfacesTest, GetRefreshInfoToSP001, TestSize.Level1)
+{
+    RSInterfaces& instance = RSInterfaces::GetInstance();
+    NodeId id = 0;
+    std::string str = instance.GetRefreshInfoToSP(id);
+    EXPECT_TRUE(str == "");
+}
+
+/**
  * @tc.name: SetWatermark001
  * @tc.desc: test results of SetWatermark
  * @tc.type: FUNC
@@ -589,4 +748,45 @@ HWTEST_F(RSInterfacesTest, SetOverlayDisplayMode001, TestSize.Level1)
     EXPECT_EQ(res, SUCCESS);
 }
 #endif
+
+/**
+ * @tc.name: GetHighContrastTextState001
+ * @tc.desc: test results of GetHighContrastTextState
+ * @tc.type: FUNC
+ * @tc.require: issueIC3FUZ
+ */
+HWTEST_F(RSInterfacesTest, GetHighContrastTextState001, TestSize.Level1)
+{
+    RSInterfaces& instance = RSInterfaces::GetInstance();
+    instance.renderServiceClient_ = std::make_unique<RSRenderServiceClient>();
+    EXPECT_EQ(instance.GetHighContrastTextState(), false);
+}
+
+/**
+ * @tc.name: SetBehindWindowFilterEnabledTest
+ * @tc.desc: test results of SetBehindWindowFilterEnabledTest
+ * @tc.type: FUNC
+ * @tc.require: issuesIC5OEB
+ */
+HWTEST_F(RSInterfacesTest, SetBehindWindowFilterEnabledTest, TestSize.Level1)
+{
+    RSInterfaces& instance = RSInterfaces::GetInstance();
+    auto res = instance.SetBehindWindowFilterEnabled(true);
+    usleep(SET_OPERATION_SLEEP_US);
+    EXPECT_EQ(res, true);
+}
+
+/**
+ * @tc.name: GetBehindWindowFilterEnabledTest
+ * @tc.desc: test results of GetBehindWindowFilterEnabledTest
+ * @tc.type: FUNC
+ * @tc.require: issuesIC5OEB
+ */
+HWTEST_F(RSInterfacesTest, GetBehindWindowFilterEnabledTest, TestSize.Level1)
+{
+    RSInterfaces& instance = RSInterfaces::GetInstance();
+    bool enabled = false;
+    auto res = instance.GetBehindWindowFilterEnabled(enabled);
+    EXPECT_EQ(res, true);
+}
 } // namespace OHOS::Rosen

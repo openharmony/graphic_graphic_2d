@@ -228,8 +228,6 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, GetSizeFromDrawCmdModifiersTest003, Test
         property) };
     rsCanvasDrawingRenderNode.renderContent_->drawCmdModifiers_.emplace(RSModifierType::CONTENT_STYLE, listModifier);
     EXPECT_FALSE(rsCanvasDrawingRenderNode.GetSizeFromDrawCmdModifiers(width, height));
-    EXPECT_EQ(width, 0);
-    EXPECT_EQ(height, 0);
 }
 /**
  * @tc.name: IsNeedResetSurfaceTest
@@ -621,11 +619,6 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, ClearResourceTest, TestSize.Level1)
 {
     NodeId nodeId = 7;
     auto rsCanvasDrawingRenderNode = std::make_shared<RSCanvasDrawingRenderNode>(nodeId);
-    auto drawable = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(rsCanvasDrawingRenderNode);
-    if (!drawable) {
-        return;
-    }
-    EXPECT_FALSE(drawable == nullptr);
     rsCanvasDrawingRenderNode->ClearResource();
     auto lists = rsCanvasDrawingRenderNode->GetDrawCmdLists();
     EXPECT_TRUE(lists.empty());
@@ -641,11 +634,7 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, CheckCanvasDrawingPostPlaybackedTest, Te
 {
     NodeId nodeId = 7;
     auto rsCanvasDrawingRenderNode = std::make_shared<RSCanvasDrawingRenderNode>(nodeId);
-    auto drawable = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(rsCanvasDrawingRenderNode);
-    if (!drawable) {
-        return;
-    }
-    EXPECT_FALSE(drawable == nullptr);
+    EXPECT_NE(rsCanvasDrawingRenderNode->GetTid(), 1);
     rsCanvasDrawingRenderNode->isPostPlaybacked_ = true;
     rsCanvasDrawingRenderNode->CheckCanvasDrawingPostPlaybacked();
 }

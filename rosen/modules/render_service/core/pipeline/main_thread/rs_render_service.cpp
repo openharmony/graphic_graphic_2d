@@ -32,6 +32,7 @@
 #include "rs_render_service_connection.h"
 #include "vsync_generator.h"
 #include "rs_trace.h"
+#include "ge_mesa_blur_shader_filter.h"
 
 #include "common/rs_singleton.h"
 #ifdef RS_ENABLE_GPU
@@ -40,6 +41,7 @@
 #include "pipeline/hardware_thread/rs_hardware_thread.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_uni_render_judgement.h"
+#include "render/rs_kawase_blur_shader_filter.h"
 #include "system/rs_system_parameters.h"
 #include "gfx/fps_info/rs_surface_fps_manager.h"
 #include "gfx/dump/rs_dump_manager.h"
@@ -91,7 +93,11 @@ bool RSRenderService::Init()
         mallopt(M_SET_THREAD_CACHE, M_THREAD_CACHE_ENABLE);
         mallopt(M_DELAYED_FREE, M_DELAYED_FREE_ENABLE);
     }
-
+#ifdef RS_ENABLE_VK
+if (Drawing::SystemProperties::IsUseVulkan()) {
+    RsVulkanContext::SetRecyclable(false);
+}
+#endif
     RSMainThread::Instance();
     RSUniRenderJudgement::InitUniRenderConfig();
 
@@ -101,10 +107,17 @@ bool RSRenderService::Init()
     // need called after GraphicFeatureParamManager::GetInstance().Init();
     FilterCCMInit();
 
+    // load optimization params init
+    LoadOptParams loadOptParams;
+    InitLoadOptParams(loadOptParams);
+
 #ifdef TP_FEATURE_ENABLE
     TOUCH_SCREEN->InitTouchScreen();
 #endif
     screenManager_ = CreateOrGetScreenManager();
+    if (screenManager_ != nullptr) {
+        screenManager_->InitLoadOptParams(loadOptParams.loadOptParamsForScreen);
+    }
     if (RSUniRenderJudgement::GetUniRenderEnabledType() != UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
         // screenManager initializtion executes in RSHHardwareThread under UNI_RENDER mode
         if (screenManager_ == nullptr || !screenManager_->Init()) {
@@ -179,28 +192,34 @@ bool RSRenderService::Init()
 
 void RSRenderService::InitDVSyncParams(DVSyncFeatureParam &dvsyncParam)
 {
-    std::shared_ptr<FeatureParam> featureParam =
-        GraphicFeatureParamManager::GetInstance().GetFeatureParam(FEATURE_CONFIGS[DVSYNC]);
     std::vector<bool> switchParams = {};
     std::vector<uint32_t> bufferCountParams = {};
     std::unordered_map<std::string, std::string> adaptiveConfigs;
-    if (featureParam != nullptr) {
-        std::shared_ptr<DVSyncParam> dvsyncFeatureParam = std::static_pointer_cast<DVSyncParam>(featureParam);
-        switchParams = {
-            dvsyncFeatureParam->IsDVSyncEnable(),
-            dvsyncFeatureParam->IsUiDVSyncEnable(),
-            dvsyncFeatureParam->IsNativeDVSyncEnable(),
-            dvsyncFeatureParam->IsAdaptiveDVSyncEnable(),
-        };
-        bufferCountParams = {
-            dvsyncFeatureParam->GetUiBufferCount(),
-            dvsyncFeatureParam->GetRsBufferCount(),
-            dvsyncFeatureParam->GetNativeBufferCount(),
-            dvsyncFeatureParam->GetWebBufferCount(),
-        };
-        adaptiveConfigs = dvsyncFeatureParam->GetAdaptiveConfig();
-    }
+    switchParams = {
+        DVSyncParam::IsDVSyncEnable(),
+        DVSyncParam::IsUiDVSyncEnable(),
+        DVSyncParam::IsNativeDVSyncEnable(),
+        DVSyncParam::IsAdaptiveDVSyncEnable(),
+    };
+    bufferCountParams = {
+        DVSyncParam::GetUiBufferCount(),
+        DVSyncParam::GetRsBufferCount(),
+        DVSyncParam::GetNativeBufferCount(),
+        DVSyncParam::GetWebBufferCount(),
+    };
+    adaptiveConfigs = DVSyncParam::GetAdaptiveConfig();
     dvsyncParam = { switchParams, bufferCountParams, adaptiveConfigs };
+}
+
+void RSRenderService::InitLoadOptParams(LoadOptParams& loadOptParams)
+{
+    std::unordered_map<std::string, bool> tempSwitchParams = {};
+    auto& paramsForScreen = loadOptParams.loadOptParamsForScreen;
+    auto& paramsForHdiBackend = paramsForScreen.loadOptParamsForHdiBackend;
+    auto& paramsForHdiOutput = paramsForHdiBackend.loadOptParamsForHdiOutput;
+
+    tempSwitchParams[IS_MERGE_FENCE_SKIPPED] = LoadOptimizationParam::IsMergeFenceSkipped();
+    paramsForHdiOutput.switchParams = { tempSwitchParams };
 }
 
 void RSRenderService::Run()
@@ -319,7 +338,7 @@ void RSRenderService::DumpAllNodesMemSize(std::string& dumpString) const
     });
 }
 
-void RSRenderService::FPSDUMPProcess(std::unordered_set<std::u16string>& argSets,
+void RSRenderService::FPSDumpProcess(std::unordered_set<std::u16string>& argSets,
     std::string& dumpString, const std::u16string& arg) const
 {
     auto iter = argSets.find(arg);
@@ -328,64 +347,37 @@ void RSRenderService::FPSDUMPProcess(std::unordered_set<std::u16string>& argSets
     }
     argSets.erase(iter);
     if (argSets.empty()) {
-        RS_LOGE("RSRenderService::FPSDUMPProcess layer name is not specified");
+        RS_LOGE("RSRenderService::FPSDumpProcess layer name is not specified");
         return ;
     }
-    RS_TRACE_NAME("RSRenderService::FPSDUMPProcess");
-    std::string fpsArg = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}
-        .to_bytes(*argSets.begin());
-    std::unordered_set<std::string> args{"DisplayNode", "composer", "UniRender"};
-    if (args.find(fpsArg) != args.end()) {
-        DumpFps(dumpString, fpsArg);
+    RS_TRACE_NAME("RSRenderService::FPSDumpProcess");
+    auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
+    std::string option("");
+    std::string argStr("");
+    RSSurfaceFpsManager::GetInstance().ProcessParam(argSets, option, argStr);
+    if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL
+        && RSSurfaceFpsManager::GetInstance().IsSurface(option, argStr)) {
+        RSSurfaceFpsManager::GetInstance().DumpSurfaceNodeFps(dumpString, option, argStr);
     } else {
-        DumpSurfaceNodeFps(dumpString, fpsArg);
+        DumpFps(dumpString, argStr);
     }
 }
 
-void RSRenderService::DumpFps(std::string& dumpString, std::string& fpsArg) const
+void RSRenderService::DumpFps(std::string& dumpString, std::string& layerName) const
 {
     auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
     if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
 #ifdef RS_ENABLE_GPU
         RSHardwareThread::Instance().ScheduleTask(
-            [this, &dumpString, &fpsArg]() { return screenManager_->FpsDump(dumpString, fpsArg); }).wait();
+            [this, &dumpString, &layerName]() { return screenManager_->FpsDump(dumpString, layerName); }).wait();
 #endif
     } else {
         mainThread_->ScheduleTask(
-            [this, &dumpString, &fpsArg]() { return screenManager_->FpsDump(dumpString, fpsArg); }).wait();
+            [this, &dumpString, &layerName]() { return screenManager_->FpsDump(dumpString, layerName); }).wait();
     }
 }
 
-void RSRenderService::DumpSurfaceNodeFps(std::string& dumpString, std::string& fpsArg) const
-{
-    dumpString += "\n-- The recently fps records info of screens:\n";
-    auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
-    const auto& nodeMap = mainThread_->GetContext().GetNodeMap();
-    NodeId nodeId = 0;
-    nodeMap.TraverseSurfaceNodesBreakOnCondition(
-        [&nodeId, &fpsArg](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) {
-        if (surfaceNode->GetName() == fpsArg && surfaceNode->IsOnTheTree() == true) {
-            nodeId = surfaceNode->GetId();
-            return true;
-        }
-        return false;
-    });
-    if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
-#ifdef RS_ENABLE_GPU
-        RSHardwareThread::Instance().ScheduleTask(
-            [this, &dumpString, &nodeId]() {
-                return RSSurfaceFpsManager::GetInstance().Dump(dumpString, nodeId);
-            }).wait();
-#endif
-    } else {
-        mainThread_->ScheduleTask(
-            [this, &dumpString, &nodeId]() {
-                return RSSurfaceFpsManager::GetInstance().Dump(dumpString, nodeId);
-            }).wait();
-    }
-}
-
-void RSRenderService::FPSDUMPClearProcess(std::unordered_set<std::u16string>& argSets,
+void RSRenderService::FPSDumpClearProcess(std::unordered_set<std::u16string>& argSets,
     std::string& dumpString, const std::u16string& arg) const
 {
     auto iter = argSets.find(arg);
@@ -394,63 +386,36 @@ void RSRenderService::FPSDUMPClearProcess(std::unordered_set<std::u16string>& ar
     }
     argSets.erase(iter);
     if (argSets.empty()) {
-        RS_LOGE("RSRenderService::FPSDUMPClearProcess layer name is not specified");
+        RS_LOGE("RSRenderService::FPSDumpClearProcess layer name is not specified");
         return ;
     }
-    RS_TRACE_NAME("RSRenderService::FPSDUMPClearProcess");
-    std::string fpsArg = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}
-        .to_bytes(*argSets.begin());
-    std::unordered_set<std::string> args{"DisplayNode", "composer"};
-    if (args.find(fpsArg) != args.end()) {
-        ClearFps(dumpString, fpsArg);
+    RS_TRACE_NAME("RSRenderService::FPSDumpClearProcess");
+    auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
+    std::string option("");
+    std::string argStr("");
+    RSSurfaceFpsManager::GetInstance().ProcessParam(argSets, option, argStr);
+    if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL
+        && RSSurfaceFpsManager::GetInstance().IsSurface(option, argStr)) {
+        RSSurfaceFpsManager::GetInstance().ClearSurfaceNodeFps(dumpString, option, argStr);
     } else {
-        ClearSurfaceNodeFps(dumpString, fpsArg);
+        ClearFps(dumpString, argStr);
     }
 }
 
-void RSRenderService::ClearFps(std::string& dumpString, std::string& fpsArg) const
+void RSRenderService::ClearFps(std::string& dumpString, std::string& layerName) const
 {
     auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
     if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
 #ifdef RS_ENABLE_GPU
         RSHardwareThread::Instance().ScheduleTask(
-            [this, &dumpString, &fpsArg]() {
-                return screenManager_->ClearFpsDump(dumpString, fpsArg);
+            [this, &dumpString, &layerName]() {
+                return screenManager_->ClearFpsDump(dumpString, layerName);
             }).wait();
 #endif
     } else {
         mainThread_->ScheduleTask(
-            [this, &dumpString, &fpsArg]() {
-                return screenManager_->ClearFpsDump(dumpString, fpsArg);
-            }).wait();
-    }
-}
-
-void RSRenderService::ClearSurfaceNodeFps(std::string& dumpString, std::string& fpsArg) const
-{
-    dumpString += "\n-- Clear fps records info of screens:\n";
-    auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
-    const auto& nodeMap = mainThread_->GetContext().GetNodeMap();
-    NodeId nodeId = 0;
-    nodeMap.TraverseSurfaceNodesBreakOnCondition(
-        [&nodeId, &fpsArg](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) {
-        if (surfaceNode->GetName() == fpsArg && surfaceNode->IsOnTheTree() == true) {
-            nodeId = surfaceNode->GetId();
-            return true;
-        }
-        return false;
-    });
-    if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
-#ifdef RS_ENABLE_GPU
-        RSHardwareThread::Instance().ScheduleTask(
-            [this, &dumpString, &nodeId]() {
-                return RSSurfaceFpsManager::GetInstance().ClearDump(dumpString, nodeId);
-            }).wait();
-#endif
-    } else {
-        mainThread_->ScheduleTask(
-            [this, &dumpString, &nodeId]() {
-                return RSSurfaceFpsManager::GetInstance().ClearDump(dumpString, nodeId);
+            [this, &dumpString, &layerName]() {
+                return screenManager_->ClearFpsDump(dumpString, layerName);
             }).wait();
     }
 }
@@ -757,6 +722,7 @@ void RSRenderService::RSGfxDumpInit()
     RegisterMemFuncs();
     RegisterFpsFuncs();
     RegisterGpuFuncs();
+    RegisterBufferFuncs();
 }
 
 void RSRenderService::RegisterRSGfxFuncs()
@@ -922,13 +888,13 @@ void RSRenderService::RegisterFpsFuncs()
     // fps info cmd, [windowname]/composer fps
     RSDumpFunc fpsInfoFunc = [this](const std::u16string &cmd, std::unordered_set<std::u16string> &argSets,
                                            std::string &dumpString) -> void {
-        FPSDUMPProcess(argSets, dumpString, cmd);
+        FPSDumpProcess(argSets, dumpString, cmd);
     };
 
     // fps clear cmd : [surface name]/composer fpsClear
     RSDumpFunc fpsClearFunc = [this](const std::u16string &cmd, std::unordered_set<std::u16string> &argSets,
                                             std::string &dumpString) -> void {
-        FPSDUMPClearProcess(argSets, dumpString, cmd);
+        FPSDumpClearProcess(argSets, dumpString, cmd);
     };
 
     // fps count
@@ -985,20 +951,46 @@ void RSRenderService::RegisterGpuFuncs()
     RSDumpManager::GetInstance().Register(handers);
 }
 
+void RSRenderService::RegisterBufferFuncs()
+{
+    RSDumpFunc currentFrameBufferFunc = [this](const std::u16string &cmd, std::unordered_set<std::u16string> &argSets,
+                                               std::string &dumpString) -> void {
+        auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
+        if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
+#ifdef RS_ENABLE_GPU
+            RSHardwareThread::Instance().ScheduleTask(
+                [this]() {
+                RS_TRACE_NAME("RSRenderService dump current frame buffer in HardwareThread");
+                RS_LOGD("RSRenderService dump current frame buffer in HardwareThread");
+                return screenManager_->DumpCurrentFrameLayers();
+                }).wait();
+#endif
+        } else {
+            mainThread_->ScheduleTask(
+                [this]() {
+                RS_TRACE_NAME("RSRenderService dump current frame buffer in MainThread");
+                RS_LOGD("RSRenderService dump current frame buffer in MainThread");
+                return screenManager_->DumpCurrentFrameLayers();
+                }).wait();
+        }
+    };
+
+    std::vector<RSDumpHander> handers = {
+        { RSDumpID::CURRENT_FRAME_BUFFER, currentFrameBufferFunc },
+    };
+
+    RSDumpManager::GetInstance().Register(handers);
+}
+
 // need called after GraphicFeatureParamManager::GetInstance().Init();
 void RSRenderService::FilterCCMInit()
 {
-    auto filterParam = GraphicFeatureParamManager::GetInstance().featureParamMap_[FEATURE_CONFIGS[FILTER]];
-    if (filterParam == nullptr) {
-        return;
-    }
-    RSFilterCacheManager::isCCMFilterCacheEnable_ =
-        std::static_pointer_cast<FilterParam>(filterParam)->IsFilterCacheEnable();
-    RSFilterCacheManager::isCCMEffectMergeEnable_ =
-        std::static_pointer_cast<FilterParam>(filterParam)->IsEffectMergeEnable();
+    RSFilterCacheManager::isCCMFilterCacheEnable_ = FilterParam::IsFilterCacheEnable();
+    RSFilterCacheManager::isCCMEffectMergeEnable_ = FilterParam::IsEffectMergeEnable();
     RSProperties::SetFilterCacheEnabledByCCM(RSFilterCacheManager::isCCMFilterCacheEnable_);
-    RSProperties::SetBlurAdaptiveAdjustEnabledByCCM(
-        std::static_pointer_cast<FilterParam>(filterParam)->IsBlurAdaptiveAdjust());
+    RSProperties::SetBlurAdaptiveAdjustEnabledByCCM(FilterParam::IsBlurAdaptiveAdjust());
+    RSKawaseBlurShaderFilter::SetMesablurAllEnabledByCCM(FilterParam::IsMesablurAllEnable());
+    GEMESABlurShaderFilter::SetMesaModeByCCM(FilterParam::GetSimplifiedMesaMode());
 }
 } // namespace Rosen
 } // namespace OHOS

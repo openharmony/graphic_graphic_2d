@@ -51,11 +51,11 @@ HWTEST_F(RSTransactionMetricCollectorTest, GetInstance001, TestSize.Level1) {
 }
 
 /**
- * @tc.name: Gollect001
- * @tc.desc: Verify the Gollect
+ * @tc.name: Collect001
+ * @tc.desc: Verify the Collect
  * @tc.type:FUNC
  */
-HWTEST_F(RSTransactionMetricCollectorTest, Gollect001, TestSize.Level1) {
+HWTEST_F(RSTransactionMetricCollectorTest, Collect001, TestSize.Level1) {
     std::unique_ptr<RSTransactionData> transactionData1 = std::make_unique<RSTransactionData>();
     transactionData1->SetSendingPid(1001);
     std::unique_ptr<RSTransactionData> transactionData2 = std::make_unique<RSTransactionData>();
@@ -66,7 +66,11 @@ HWTEST_F(RSTransactionMetricCollectorTest, Gollect001, TestSize.Level1) {
     collector.Collect(transactionData1);
     sleep(1);
     collector.Collect(transactionData2);
-    ASSERT_EQ(collector.pidMetrics_.size(), 2);
+    if (!RSSystemProperties::IsBetaRelease()) {
+        ASSERT_EQ(collector.pidMetrics_.size(), 0);
+    } else {
+        ASSERT_EQ(collector.pidMetrics_.size(), 2);
+    }
 }
 
 /**

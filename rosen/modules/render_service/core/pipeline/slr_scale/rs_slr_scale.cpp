@@ -116,7 +116,7 @@ std::shared_ptr<Drawing::ShaderEffect> RSSLRScaleFunction::GetSLRShaderEffect(fl
         return nullptr;
     }
     Drawing::ImageInfo imageInfo(width, dstWidth,
-        Drawing::ColorType::COLORTYPE_N32, Drawing::AlphaType::ALPHATYPE_OPAQUE, defaultColorSpace_);
+        Drawing::ColorType::COLORTYPE_N32, Drawing::AlphaType::ALPHATYPE_OPAQUE, imageColorSpace_);
     bitmap.InstallPixels(imageInfo, weightW.get(), width * sizeof(uint32_t));
     
     Drawing::Image imagew;
@@ -138,16 +138,35 @@ void RSSLRScaleFunction::RefreshScreenData()
     scaleNum_ = std::min(mirrorWidth_ / srcWidth_, mirrorHeight_ / srcHeight_);
     dstWidth_ = scaleNum_ * srcWidth_;
     dstHeight_ = scaleNum_ * srcHeight_;
-    defaultColorSpace_ = Drawing::ColorSpace::CreateRGB(Drawing::CMSTransferFuncType::SRGB,
-        Drawing::CMSMatrixType::SRGB);
+    
     alpha_ = scaleNum_ > SLR_SCALE_THR_LOW ? SLR_ALPHA_HIGH : SLR_ALPHA_LOW;
     float tao = 1.0f / scaleNum_;
     kernelSize_ = std::min(std::max(SLR_TAO_MAX_SIZE, static_cast<int>(std::floor(tao))), SLR_WIN_BOUND);
 
-    widthEffect_ = GetSLRShaderEffect(scaleNum_, dstWidth_);
-    heightEffect_ = GetSLRShaderEffect(scaleNum_, dstHeight_);
+    RefreshColorSpace(imageColorSpace_ ? colorGamut_ : GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
     isSLRCopy_ = scaleNum_ < SLR_SCALE_THR_HIGH && widthEffect_ && heightEffect_ &&
         MultiScreenParam::IsSlrScaleEnabled();
+}
+
+void RSSLRScaleFunction::RefreshColorSpace(GraphicColorGamut colorGamut)
+{
+    colorGamut_ = colorGamut;
+    Drawing::CMSMatrixType colorMatrixType;
+    switch (colorGamut_) {
+        case GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB:
+            colorMatrixType = Drawing::CMSMatrixType::SRGB;
+            break;
+        case GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3:
+            colorMatrixType = Drawing::CMSMatrixType::DCIP3;
+            break;
+        default:
+            RS_LOGE("RSSLRScaleFunction::RefreshColorSpace error colorSpace is %{pulic}d.", colorGamut_);
+            colorMatrixType = Drawing::CMSMatrixType::SRGB;
+            break;
+    }
+    imageColorSpace_ = Drawing::ColorSpace::CreateRGB(Drawing::CMSTransferFuncType::SRGB, colorMatrixType);
+    widthEffect_ = GetSLRShaderEffect(scaleNum_, dstWidth_);
+    heightEffect_ = GetSLRShaderEffect(scaleNum_, dstHeight_);
 }
 
 void RSSLRScaleFunction::CanvasScale(RSPaintFilterCanvas& canvas)
@@ -196,7 +215,7 @@ std::shared_ptr<Rosen::Drawing::Image> RSSLRScaleFunction::ProcessSLRImage(RSPai
     auto originImageInfo = cacheImageProcessed.GetImageInfo();
     auto ScreenInfo = Drawing::ImageInfo(std::ceil(dstWidth_),
         std::ceil(dstHeight_), originImageInfo.GetColorType(),
-        originImageInfo.GetAlphaType(), defaultColorSpace_);
+        originImageInfo.GetAlphaType(), imageColorSpace_);
     std::shared_ptr<Drawing::Image> tmpImage(builder->MakeImage(
         canvas.GetGPUContext().get(), nullptr, ScreenInfo, false));
     if (tmpImage == nullptr) {
@@ -330,7 +349,7 @@ std::shared_ptr<Drawing::RuntimeEffect> RSSLRScaleFunction::MakeLaplaceShaderEff
             vec4 bottom = imageShader.eval(coord - half2(0.0, 1.0));
             vec4 left = imageShader.eval(coord - half2(1.0, 0.0));
             vec4 right = imageShader.eval(coord + half2(1.0, 0.0));
-            return c + alpha* (4.0 * c - top - bottom - left - right);
+            return clamp(c + alpha * (4.0 * c - top - bottom - left - right), 0.0, 1.0);
         }
     )");
 

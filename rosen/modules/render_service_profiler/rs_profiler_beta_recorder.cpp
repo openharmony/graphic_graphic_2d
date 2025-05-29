@@ -119,6 +119,13 @@ void RSProfiler::BetaRecordOnFrameBegin()
     if (IsBetaRecordStarted() && IsBetaRecordEnabled()) {
         g_mutexBetaRecording.lock();
         g_mutexBetaRecordingLocked = true;
+        if (!IsNoneMode() && IsSecureScreen()) {
+            // don't record secure screens
+            std::vector<std::string> argList;
+            argList.push_back("REMOVELAST");
+            RecordStop(ArgList(argList));
+            EnableBetaRecord();
+        }
     } else {
         g_mutexBetaRecordingLocked = false;
     }
@@ -141,8 +148,10 @@ void RSProfiler::StartBetaRecord()
         LaunchBetaRecordNotificationThread();
         LaunchBetaRecordMetricsUpdateThread();
 
-        // Start recording for the first file
-        RecordStart(ArgList());
+        if (!IsSecureScreen()) {
+            // Start recording for the first file
+            RecordStart(ArgList());
+        }
 
         g_started = true;
 
@@ -171,26 +180,35 @@ void RSProfiler::BetaRecordSetLastParcelTime()
 
 void RSProfiler::SaveBetaRecord()
 {
-    if (g_animationCount) {
-        // doesn't start beta record during animations
+    if (!RSUniRenderThread::Instance().IsTaskQueueEmpty()) {
+        // rendering thread works
         return;
     }
-    constexpr double inactivityThreshold = 0.5;
-    if (g_lastParcelTime + Utils::ToNanoseconds(inactivityThreshold) > Utils::Now()) {
-        // doesn't start beta record if parcels were sent less then 0.5 second ago
+
+    constexpr double recordMinLengthSeconds = 30.0;
+    constexpr double recordMaxLengthSeconds = 50.0;
+    const auto recordLength = Now() - g_recordsTimestamp;
+    bool saveShouldBeDone = recordLength > recordMinLengthSeconds;
+    bool saveMustBeDone = recordLength > recordMaxLengthSeconds;
+    
+    if (g_animationCount && !saveMustBeDone) {
+        // avoid start beta recording during animations
         return;
     }
 
     if (IsNoneMode()) {
         std::unique_lock<std::mutex> lock(g_mutexBetaRecording);
-        RecordStart(ArgList());
+        if (!IsSecureScreen()) {
+            if (RSUniRenderThread::Instance().IsTaskQueueEmpty()) {
+                // rendering thread doesn't work
+                RecordStart(ArgList());
+            }
+        }
         return;
     }
 
-    constexpr double recordMaxLengthSeconds = 30.0;
-    const auto recordLength = Now() - g_recordsTimestamp;
-    if (!IsBetaRecordSavingTriggered() && (recordLength <= recordMaxLengthSeconds)) {
-        // start new beta-record file every recordMaxLengthSeconds
+    if (!IsBetaRecordSavingTriggered() && !saveShouldBeDone) {
+        // start new beta-record file every recordMinLengthSeconds
         return;
     }
 
@@ -215,6 +233,7 @@ bool RSProfiler::OpenBetaRecordFile(RSFile& file)
     }
 
     const auto path = "RECORD_IN_MEMORY";
+    Utils::FileDelete(path);
     file.SetVersion(RSFILE_VERSION_LATEST);
     file.Create(path);
 

@@ -15,35 +15,16 @@
 
 #include "rs_profiler_test_tree.h"
 
-#include <cstddef>
-#include <cstdint>
-#include <filesystem>
-#include <list>
-#include <memory>
-#include <numeric>
-#include <type_traits>
-#include <typeinfo>
-#include <utility>
-
-#include "foundation/graphic/graphic_2d/utils/log/rs_trace.h"
-#include "params/rs_display_render_params.h"
 #include "recording/cmd_list_helper.h"
 #include "recording/draw_cmd.h"
-#include "recording/draw_cmd_list.h"
 #include "recording/recording_handle.h"
 #include "rs_profiler.h"
-#include "rs_profiler_archive.h"
-#include "rs_profiler_cache.h"
 #include "rs_profiler_capture_recorder.h"
 #include "rs_profiler_capturedata.h"
 #include "rs_profiler_command.h"
 #include "rs_profiler_file.h"
-#include "rs_profiler_json.h"
 #include "rs_profiler_log.h"
-#include "rs_profiler_network.h"
-#include "rs_profiler_packet.h"
 #include "rs_profiler_settings.h"
-#include "rs_profiler_telemetry.h"
 
 #include "command/rs_base_node_command.h"
 #include "command/rs_canvas_drawing_node_command.h"
@@ -87,7 +68,7 @@ Drawing::Image TestTreeBuilder::GenerateRandomImage(int width, int height)
     auto pixelsPtr = static_cast<uint8_t*>(bitmap.GetPixels());
     if (pixelsPtr) {
         const auto& imageInfo = bitmap.GetImageInfo();
-        size_t bytesPerPixel = imageInfo.GetBytesPerPixel();
+        size_t bytesPerPixel = static_cast<size_t>(imageInfo.GetBytesPerPixel());
         int heightImage = bitmap.GetHeight();
         int rowBytes = bitmap.GetRowBytes();
 

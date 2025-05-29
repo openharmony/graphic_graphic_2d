@@ -151,7 +151,6 @@ HWTEST_F(RSBaseNodeCommandText, Destroy001, TestSize.Level1)
 
     nodeId = 0;
     BaseNodeCommandHelper::Destroy(context, nodeId);
-    EXPECT_TRUE(nodeId == 0);
 }
 
 /**
@@ -171,11 +170,9 @@ HWTEST_F(RSBaseNodeCommandText, AddChild001, TestSize.Level1)
 
     nodeId = 0;
     BaseNodeCommandHelper::AddChild(context, nodeId, childNodeId, index);
-    EXPECT_TRUE(nodeId == 0);
 
     childNodeId = 0;
     BaseNodeCommandHelper::AddChild(context, nodeId, childNodeId, index);
-    EXPECT_TRUE(nodeId == 0);
 
     nodeId = 1;
     BaseNodeCommandHelper::AddChild(context, nodeId, childNodeId, index);
@@ -199,11 +196,9 @@ HWTEST_F(RSBaseNodeCommandText, MoveChild001, TestSize.Level1)
 
     nodeId = 0;
     BaseNodeCommandHelper::MoveChild(context, nodeId, childNodeId, index);
-    EXPECT_TRUE(nodeId == 0);
 
     childNodeId = 0;
     BaseNodeCommandHelper::MoveChild(context, nodeId, childNodeId, index);
-    EXPECT_TRUE(nodeId == 0);
 
     nodeId = 1;
     BaseNodeCommandHelper::MoveChild(context, nodeId, childNodeId, index);
@@ -226,11 +221,9 @@ HWTEST_F(RSBaseNodeCommandText, RemoveChild001, TestSize.Level1)
 
     nodeId = 0;
     BaseNodeCommandHelper::RemoveChild(context, nodeId, childNodeId);
-    EXPECT_TRUE(nodeId == 0);
 
     childNodeId = 0;
     BaseNodeCommandHelper::RemoveChild(context, nodeId, childNodeId);
-    EXPECT_TRUE(nodeId == 0);
 
     nodeId = 1;
     BaseNodeCommandHelper::RemoveChild(context, nodeId, childNodeId);
@@ -254,11 +247,9 @@ HWTEST_F(RSBaseNodeCommandText, AddCrossParentChild001, TestSize.Level1)
 
     nodeId = 0;
     BaseNodeCommandHelper::AddCrossParentChild(context, nodeId, childId, index);
-    EXPECT_TRUE(nodeId == 0);
 
     childId = 0;
     BaseNodeCommandHelper::AddCrossParentChild(context, nodeId, childId, index);
-    EXPECT_TRUE(nodeId == 0);
 
     nodeId = 1;
     BaseNodeCommandHelper::AddCrossParentChild(context, nodeId, childId, index);
@@ -368,7 +359,6 @@ HWTEST_F(RSBaseNodeCommandText, RemoveFromTree001, TestSize.Level1)
 
     nodeId = 0;
     BaseNodeCommandHelper::RemoveFromTree(context, nodeId);
-    EXPECT_TRUE(nodeId == 0);
 }
 
 /**

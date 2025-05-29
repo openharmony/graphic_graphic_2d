@@ -22,6 +22,7 @@
 #include "common/rs_common_def.h"
 #include "common/rs_macros.h"
 #include "platform/common/rs_log.h"
+#include "platform/common/rs_system_properties.h"
 #ifndef ROSEN_CROSS_PLATFORM
 #include <iconsumer_surface.h>
 #include <surface.h>
@@ -53,14 +54,16 @@ public:
             }
         }
 #endif
-        void Reset()
+        void Reset(bool needBufferDeleteCb = true)
         {
 #ifndef ROSEN_CROSS_PLATFORM
             if (buffer == nullptr) {
                 return;
             }
             if (bufferDeleteCb_) {
-                bufferDeleteCb_(buffer->GetSeqNum());
+                if (!RSSystemProperties::IsUseVulkan() || needBufferDeleteCb) {
+                    bufferDeleteCb_(buffer->GetSeqNum());
+                }
             }
             buffer = nullptr;
             acquireFence = SyncFence::InvalidFence();
@@ -183,6 +186,9 @@ public:
                              buffer->GetHeight() != preBuffer_.buffer->GetHeight();
     }
 
+    void UpdateBuffer(const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence, const Rect& damage,
+        const int64_t timestamp);
+
     void SetBufferTransformTypeChanged(bool flag)
     {
         bufferTransformTypeChanged_ = flag;
@@ -257,6 +263,16 @@ public:
     void SetGlobalZOrder(float globalZOrder);
     float GetGlobalZOrder() const;
 
+    void SetSourceType(uint32_t sourceType)
+    {
+        sourceType_ = sourceType;
+    }
+
+    uint32_t GetSourceType() const
+    {
+        return sourceType_;
+    }
+
     bool GetBufferSizeChanged()
     {
         std::lock_guard<std::mutex> lock(mutex_);
@@ -322,6 +338,7 @@ private:
     std::atomic<int> bufferAvailableCount_ = 0;
     bool bufferSizeChanged_ = false;
     bool bufferTransformTypeChanged_ = false;
+    uint32_t sourceType_ = 0;
     std::shared_ptr<SurfaceBufferEntry> holdBuffer_ = nullptr;
 };
 }

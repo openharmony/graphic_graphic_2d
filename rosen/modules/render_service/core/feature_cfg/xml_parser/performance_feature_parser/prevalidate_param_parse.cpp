@@ -32,7 +32,7 @@ int32_t PrevalidateParamParse::ParseFeatureParam(FeatureParamMapType &featureMap
             continue;
         }
 
-        if (ParsePrevalidateInternal(featureMap, *currNode) != PARSE_EXEC_SUCCESS) {
+        if (ParsePrevalidateInternal(*currNode) != PARSE_EXEC_SUCCESS) {
             RS_LOGE("PrevalidateParamParse stop parsing, parse internal fail");
             return PARSE_INTERNAL_FAIL;
         }
@@ -41,24 +41,16 @@ int32_t PrevalidateParamParse::ParseFeatureParam(FeatureParamMapType &featureMap
     return PARSE_EXEC_SUCCESS;
 }
 
-int32_t PrevalidateParamParse::ParsePrevalidateInternal(FeatureParamMapType &featureMap, xmlNode &node)
+int32_t PrevalidateParamParse::ParsePrevalidateInternal(xmlNode &node)
 {
-    auto iter = featureMap.find(FEATURE_CONFIGS[PREVALIDATE]);
-    if (iter != featureMap.end()) {
-        PrevalidateParam_ = std::static_pointer_cast<PrevalidateParam>(iter->second);
-    } else {
-        RS_LOGE("PrevalidateParamParse stop parsing, no initializing param map");
-        return PARSE_NO_PARAM;
-    }
-
     // Start Parse Feature Params
     int xmlParamType = GetXmlNodeAsInt(node);
     auto name = ExtractPropertyValue("name", node);
     if (xmlParamType == PARSE_XML_FEATURE_SWITCH && name == "PrevalidateEnabled") {
         auto val = ExtractPropertyValue("value", node);
         bool isEnabled = ParseFeatureSwitch(val);
-        PrevalidateParam_->SetPrevalidateEnable(isEnabled);
-        RS_LOGI("PrevalidateEnabled parse PrevalidateEnabled %{public}d", PrevalidateParam_->IsPrevalidateEnable());
+        PrevalidateParam::SetPrevalidateEnable(isEnabled);
+        RS_LOGI("PrevalidateEnabled parse PrevalidateEnabled %{public}d", PrevalidateParam::IsPrevalidateEnable());
     }
 
     return PARSE_EXEC_SUCCESS;

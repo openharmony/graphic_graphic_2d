@@ -27,6 +27,11 @@
 #include "pipeline/rs_node_map.h"
 #include "transaction/rs_transaction_proxy.h"
 #include "ui/rs_ui_context.h"
+#ifdef RS_ENABLE_VK
+#include "modifier_render_thread/rs_modifiers_draw.h"
+#include "modifier_render_thread/rs_modifiers_draw_thread.h"
+#include "media_errors.h"
+#endif
 
 #ifdef _WIN32
 #include <windows.h>
@@ -56,6 +61,7 @@ RSCanvasNode::SharedPtr RSCanvasNode::Create(
 
     std::unique_ptr<RSCommand> command = std::make_unique<RSCanvasNodeCreate>(node->GetId(), isTextureExportNode);
     node->AddCommand(command, node->IsRenderServiceNode());
+    node->SetUIContextToken();
     return node;
 }
 
@@ -75,6 +81,11 @@ RSCanvasNode::RSCanvasNode(bool isRenderServiceNode, NodeId id, bool isTextureEx
 RSCanvasNode::~RSCanvasNode()
 {
     CheckThread();
+#ifdef RS_ENABLE_VK
+    if (IsHybridRenderCanvas()) {
+        RSModifiersDraw::RemoveSurfaceByNodeId(GetId(), true);
+    }
+#endif
 }
 
 void RSCanvasNode::SetHDRPresent(bool hdrPresent)
@@ -86,9 +97,22 @@ void RSCanvasNode::SetHDRPresent(bool hdrPresent)
     }
 }
 
+void RSCanvasNode::SetIsWideColorGamut(bool isWideColorGamut)
+{
+    std::unique_ptr<RSCommand> command = std::make_unique<RSCanvasNodeSetIsWideColorGamut>(GetId(), isWideColorGamut);
+    AddCommand(command, true);
+}
+
 ExtendRecordingCanvas* RSCanvasNode::BeginRecording(int width, int height)
 {
     CheckThread();
+
+    if (recordingCanvas_) {
+        delete recordingCanvas_;
+        recordingCanvas_ = nullptr;
+        RS_LOGE("RSCanvasNode::BeginRecording last beginRecording without finishRecording");
+    }
+
     recordingCanvas_ = new ExtendRecordingCanvas(width, height);
     recordingCanvas_->SetIsCustomTextType(isCustomTextType_);
     recordingCanvas_->SetIsCustomTypeface(isCustomTypeface_);
@@ -221,6 +245,69 @@ void RSCanvasNode::SetBoundsChangedCallback(BoundsChangedCallback callback)
   std::lock_guard<std::mutex> lock(mutex_);
   boundsChangedCallback_ = callback;
 }
+
+#ifdef RS_ENABLE_VK
+bool RSCanvasNode::GetBitmap(Drawing::Bitmap& bitmap, std::shared_ptr<Drawing::DrawCmdList> drawCmdList)
+{
+    if (!IsHybridRenderCanvas()) {
+        return false;
+    }
+    bool ret = false;
+    RSModifiersDrawThread::Instance().PostSyncTask([this, &bitmap, &ret]() {
+        auto pixelMap = RSModifiersDraw::GetPixelMapByNodeId(GetId(), false);
+        if (pixelMap == nullptr) {
+            RS_LOGE("RSCanvasNode::GetBitmap pixelMap is nullptr");
+            return;
+        }
+        Drawing::ImageInfo info(
+            pixelMap->GetWidth(), pixelMap->GetHeight(), Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL);
+        if (!bitmap.InstallPixels(info, pixelMap->GetWritablePixels(), pixelMap->GetRowBytes())) {
+            RS_LOGE("RSCanvasNode::GetBitmap get bitmap fail");
+            return;
+        }
+        ret = true;
+    });
+    return ret;
+}
+
+bool RSCanvasNode::GetPixelmap(std::shared_ptr<Media::PixelMap> pixelMap,
+    std::shared_ptr<Drawing::DrawCmdList> drawCmdList, const Drawing::Rect* rect)
+{
+    if (!IsHybridRenderCanvas()) {
+        return false;
+    }
+    if (pixelMap == nullptr || rect == nullptr) {
+        RS_LOGE("RSCanvasNode::GetPixelmap pixelMap or rect is nullptr");
+        return false;
+    }
+    bool ret = false;
+    RSModifiersDrawThread::Instance().PostSyncTask([this, pixelMap, rect, &ret]() {
+        auto srcPixelMap = RSModifiersDraw::GetPixelMapByNodeId(GetId(), false);
+        if (srcPixelMap == nullptr) {
+            RS_LOGE("RSCanvasNode::GetPixelmap get source pixelMap fail");
+            return;
+        }
+        Media::Rect srcRect = { rect->GetLeft(), rect->GetTop(), rect->GetWidth(), rect->GetHeight() };
+        auto ret =
+            srcPixelMap->ReadPixels(Media::RWPixelsOptions { static_cast<uint8_t*>(pixelMap->GetWritablePixels()),
+                pixelMap->GetByteCount(), 0, pixelMap->GetRowStride(), srcRect, Media::PixelFormat::RGBA_8888 });
+        if (ret != Media::SUCCESS) {
+            RS_LOGE("RSCanvasNode::GetPixelmap get pixelMap fail");
+            return;
+        }
+        ret = true;
+    });
+    return ret;
+}
+
+bool RSCanvasNode::ResetSurface(int width, int height)
+{
+    if (!IsHybridRenderCanvas()) {
+        return false;
+    }
+    return RSModifiersDraw::ResetSurfaceByNodeId(width, height, GetId(), true, true);
+}
+#endif
 
 void RSCanvasNode::CheckThread()
 {

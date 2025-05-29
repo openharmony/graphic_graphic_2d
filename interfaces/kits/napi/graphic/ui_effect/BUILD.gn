@@ -49,6 +49,7 @@ ohos_shared_library("uieffect_napi") {
   sources = [
     "src/effect_napi.cpp",
     "src/filter_napi.cpp",
+    "src/mask_napi.cpp",
     "src/native_module_ohos_ui_effect.cpp",
     "src/ui_effect_napi_utils.cpp",
   ]

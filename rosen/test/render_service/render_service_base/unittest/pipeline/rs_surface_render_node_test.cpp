@@ -85,6 +85,26 @@ public:
 };
 
 /**
+ * @tc.name: RSSurfaceRenderNodeCreate001
+ * @tc.desc: Test RSSurfaceRenderNode
+ * @tc.type: FUNC
+ * @tc.require: issueIAI1VN
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, RSSurfaceRenderNodeCreate001, TestSize.Level1)
+{
+    NodeId id = 1;
+    RSSurfaceNodeType type = RSSurfaceNodeType::ABILITY_MAGNIFICATION_NODE;
+    RSSurfaceRenderNodeConfig config = { .id = id, .nodeType = type };
+    auto node = std::make_shared<RSSurfaceRenderNode>(config);
+    EXPECT_NE(node, nullptr);
+    if (node != nullptr) {
+        auto& properties = node->GetMutableRenderProperties();
+        EXPECT_EQ(properties.localMagnificationCap_, true);
+        EXPECT_EQ(properties.filterNeedUpdate_, true);
+    }
+}
+
+/**
  * @tc.name: SetContextMatrix001
  * @tc.desc: test
  * @tc.type:FUNC
@@ -451,15 +471,15 @@ HWTEST_F(RSSurfaceRenderNodeTest, IsCloneNode, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetClonedNodeId
- * @tc.desc: function test SetClonedNodeId
+ * @tc.name: SetClonedNodeInfo
+ * @tc.desc: function test SetClonedNodeInfo
  * @tc.type:FUNC
  * @tc.require: issueIBKU7U
  */
-HWTEST_F(RSSurfaceRenderNodeTest, SetClonedNodeId, TestSize.Level1)
+HWTEST_F(RSSurfaceRenderNodeTest, SetClonedNodeInfo, TestSize.Level1)
 {
     RSSurfaceRenderNode surfaceRenderNode(id, context);
-    surfaceRenderNode.SetClonedNodeId(id + 1);
+    surfaceRenderNode.SetClonedNodeInfo(id + 1, true);
     bool result = surfaceRenderNode.clonedSourceNodeId_ == id + 1;
     ASSERT_TRUE(result);
 }
@@ -653,32 +673,32 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetGlobalPositionEnabledTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetDRMGlobalPositionEnabledTest
- * @tc.desc: SetDRMGlobalPositionEnabled and GetDRMGlobalPositionEnabled
+ * @tc.name: SetHwcGlobalPositionEnabledTest
+ * @tc.desc: SetHwcGlobalPositionEnabled and GetHwcGlobalPositionEnabled
  * @tc.type:FUNC
  * @tc.require: issueIATYMW
  */
-HWTEST_F(RSSurfaceRenderNodeTest, SetDRMGlobalPositionEnabledTest, TestSize.Level1)
+HWTEST_F(RSSurfaceRenderNodeTest, SetHwcGlobalPositionEnabledTest, TestSize.Level1)
 {
     auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
     node->stagingRenderParams_ = std::make_unique<RSRenderParams>(id);
-    node->SetDRMGlobalPositionEnabled(true);
-    ASSERT_EQ(node->GetDRMGlobalPositionEnabled(), true);
+    node->SetHwcGlobalPositionEnabled(true);
+    ASSERT_EQ(node->GetHwcGlobalPositionEnabled(), true);
 }
 
 /**
- * @tc.name: SetDRMCrossNodeTest
- * @tc.desc: SetDRMCrossNode and GetDRMCrossNode
+ * @tc.name: SetHwcCrossNodeTest
+ * @tc.desc: SetHwcCrossNode and GetDRMCrossNode
  * @tc.type:FUNC
  * @tc.require: issueIATYMW
  */
-HWTEST_F(RSSurfaceRenderNodeTest, SetDRMCrossNodeTest, TestSize.Level1)
+HWTEST_F(RSSurfaceRenderNodeTest, SetHwcCrossNodeTest, TestSize.Level1)
 {
     auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
     node->stagingRenderParams_ = std::make_unique<RSRenderParams>(id);
-    node->SetDRMCrossNode(true);
+    node->SetHwcCrossNode(true);
     ASSERT_EQ(node->IsDRMCrossNode(), true);
-    node->SetDRMCrossNode(false);
+    node->SetHwcCrossNode(false);
     ASSERT_FALSE(node->IsDRMCrossNode());
 }
 
@@ -706,9 +726,8 @@ HWTEST_F(RSSurfaceRenderNodeTest, UpdateSurfaceCacheContentStatic, TestSize.Leve
 {
     auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
     auto subNode = std::make_shared<RSRenderNode>(id + 1, context);
-    if (node == nullptr || subNode == nullptr) {
-        return;
-    }
+    ASSERT_NE(node, nullptr);
+    ASSERT_NE(subNode, nullptr);
     std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> activeNodeIds;
     node->UpdateSurfaceCacheContentStatic(activeNodeIds);
     std::shared_ptr<RSRenderNode> nullNode = nullptr;
@@ -732,9 +751,8 @@ HWTEST_F(RSSurfaceRenderNodeTest, IsContentDirtyNodeLimited, TestSize.Level1)
 {
     auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
     auto subnode = std::make_shared<RSRenderNode>(id + 1, context);
-    if (node == nullptr || subnode == nullptr) {
-        return;
-    }
+    ASSERT_NE(node, nullptr);
+    ASSERT_NE(subnode, nullptr);
     node->AddChild(subnode, 0);
     subnode->isContentDirty_ = true;
     subnode->isNewOnTree_ = true;
@@ -758,6 +776,69 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetSkipLayer001, TestSize.Level2)
 
     node->SetSkipLayer(true);
     ASSERT_TRUE(node->GetSpecialLayerMgr().Find(SpecialLayerType::SKIP));
+}
+
+/**
+ * @tc.name: UpdateBlackListStatus001
+ * @tc.desc: Test UpdateBlackListStatus
+ * @tc.type: FUNC
+ * @tc.require: issueIC9I11
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, UpdateBlackListStatus001, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    ASSERT_NE(rsContext, nullptr);
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, rsContext);
+    ASSERT_NE(node, nullptr);
+    node->InitRenderParams();
+    node->addedToPendingSyncList_ = true;
+    auto params = static_cast<RSSurfaceRenderParams*>(node->stagingRenderParams_.get());
+    EXPECT_NE(params, nullptr);
+    node->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
+
+    auto virtualScreenId = 1;
+    node->UpdateBlackListStatus(virtualScreenId, true);
+    node->UpdateBlackListStatus(virtualScreenId, true);
+    node->UpdateRenderParams();
+    EXPECT_TRUE(params->HasBlackListByScreenId(virtualScreenId));
+    node->UpdateBlackListStatus(virtualScreenId, false);
+    node->UpdateRenderParams();
+    EXPECT_FALSE(params->HasBlackListByScreenId(virtualScreenId));
+}
+
+/**
+ * @tc.name: SyncBlackListInfoToFirstLevelNode001
+ * @tc.desc: Test SyncBlackListInfoToFirstLevelNode
+ * @tc.type: FUNC
+ * @tc.require: issueIC9I11
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SyncBlackListInfoToFirstLevelNode001, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    ASSERT_NE(rsContext, nullptr);
+    auto parentNode = std::make_shared<RSSurfaceRenderNode>(id, rsContext);
+    auto childNode = std::make_shared<RSSurfaceRenderNode>(id + 1, rsContext);
+    ASSERT_NE(parentNode, nullptr);
+    ASSERT_NE(childNode, nullptr);
+
+    NodeId parentNodeId = parentNode->GetId();
+    pid_t parentNodePid = ExtractPid(parentNodeId);
+    NodeId childNodeId = childNode->GetId();
+    pid_t childNodePid = ExtractPid(childNodeId);
+    rsContext->GetMutableNodeMap().renderNodeMap_[parentNodePid][parentNodeId] = parentNode;
+    rsContext->GetMutableNodeMap().renderNodeMap_[childNodePid][childNodeId] = childNode;
+    childNode->firstLevelNodeId_ = parentNodeId;
+    parentNode->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
+    parentNode->AddChild(childNode);
+
+    auto virtualScreenId = 1;
+    childNode->UpdateBlackListStatus(virtualScreenId, true);
+    parentNode->SetIsOnTheTree(true);
+    parentNode->SyncBlackListInfoToFirstLevelNode();
+    childNode->SetIsOnTheTree(true);
+    childNode->SyncBlackListInfoToFirstLevelNode();
+    childNode->SetIsOnTheTree(false);
+    childNode->SyncBlackListInfoToFirstLevelNode();
 }
 
 /**
@@ -882,109 +963,6 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetSecurityLayer002, TestSize.Level2)
     securityLayerNode->SetSecurityLayer(true);
 
     ASSERT_TRUE(parentNode->GetSpecialLayerMgr().Find(SpecialLayerType::HAS_SECURITY));
-}
-
-/**
- * @tc.name: StoreMustRenewedInfo001
- * @tc.desc: Test StoreMustRenewedInfo while has filter
- * @tc.type: FUNC
- * @tc.require: issueI9ABGS
- */
-HWTEST_F(RSSurfaceRenderNodeTest, StoreMustRenewedInfo001, TestSize.Level2)
-{
-    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
-    ASSERT_NE(node, nullptr);
-    node->InitRenderParams();
-    node->SetChildHasVisibleFilter(true);
-    node->RSRenderNode::StoreMustRenewedInfo();
-    node->StoreMustRenewedInfo();
-    ASSERT_TRUE(node->HasMustRenewedInfo());
-}
-
-/**
- * @tc.name: StoreMustRenewedInfo002
- * @tc.desc: Test StoreMustRenewedInfo while has effect node
- * @tc.type: FUNC
- * @tc.require: issueI9ABGS
- */
-HWTEST_F(RSSurfaceRenderNodeTest, StoreMustRenewedInfo002, TestSize.Level2)
-{
-    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
-    ASSERT_NE(node, nullptr);
-
-    node->InitRenderParams();
-    node->SetChildHasVisibleEffect(true);
-    node->RSRenderNode::StoreMustRenewedInfo();
-    node->StoreMustRenewedInfo();
-    ASSERT_TRUE(node->HasMustRenewedInfo());
-}
-
-/**
- * @tc.name: StoreMustRenewedInfo003
- * @tc.desc: Test StoreMustRenewedInfo while has hardware node
- * @tc.type: FUNC
- * @tc.require: issueI9ABGS
- */
-HWTEST_F(RSSurfaceRenderNodeTest, StoreMustRenewedInfo003, TestSize.Level2)
-{
-    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
-    ASSERT_NE(node, nullptr);
-
-    node->SetHasHardwareNode(true);
-    node->RSRenderNode::StoreMustRenewedInfo();
-    node->StoreMustRenewedInfo();
-    ASSERT_TRUE(node->HasMustRenewedInfo());
-}
-
-/**
- * @tc.name: StoreMustRenewedInfo004
- * @tc.desc: Test StoreMustRenewedInfo while is skip layer
- * @tc.type: FUNC
- * @tc.require: issueI9ABGS
- */
-HWTEST_F(RSSurfaceRenderNodeTest, StoreMustRenewedInfo004, TestSize.Level2)
-{
-    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
-    ASSERT_NE(node, nullptr);
-
-    node->SetSkipLayer(true);
-    node->RSRenderNode::StoreMustRenewedInfo();
-    node->StoreMustRenewedInfo();
-    ASSERT_TRUE(node->HasMustRenewedInfo());
-}
-
-/**
- * @tc.name: StoreMustRenewedInfo005
- * @tc.desc: Test StoreMustRenewedInfo while is security layer
- * @tc.type: FUNC
- * @tc.require: issueI9ABGS
- */
-HWTEST_F(RSSurfaceRenderNodeTest, StoreMustRenewedInfo005, TestSize.Level2)
-{
-    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
-    ASSERT_NE(node, nullptr);
-
-    node->SetSecurityLayer(true);
-    node->RSRenderNode::StoreMustRenewedInfo();
-    node->StoreMustRenewedInfo();
-    ASSERT_TRUE(node->HasMustRenewedInfo());
-}
-
-/**
- * @tc.name: StoreMustRenewedInfo006
- * @tc.desc: Test StoreMustRenewedInfo while is protected layer
- * @tc.type: FUNC
- * @tc.require: issueI7ZSC2
- */
-HWTEST_F(RSSurfaceRenderNodeTest, StoreMustRenewedInfo006, TestSize.Level2)
-{
-    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
-    ASSERT_NE(node, nullptr);
-
-    node->SetProtectedLayer(true);
-    node->RSRenderNode::StoreMustRenewedInfo();
-    node->StoreMustRenewedInfo();
-    ASSERT_TRUE(node->HasMustRenewedInfo());
 }
 
 /**
@@ -1196,24 +1174,6 @@ HWTEST_F(RSSurfaceRenderNodeTest, UpdateSrcRectTest, TestSize.Level1)
     auto renderNode = std::make_shared<RSSurfaceRenderNode>(id, context);
     renderNode->UpdateSrcRect(canvas, dstRect, hasRotation);
     ASSERT_TRUE(true);
-}
-
-/**
- * @tc.name: UpdateHwcDisabledBySrcRectTest
- * @tc.desc: test results of UpdateHwcDisabledBySrcRect
- * @tc.type: FUNC
- * @tc.require: issueI9JAFQ
- */
-HWTEST_F(RSSurfaceRenderNodeTest, UpdateHwcDisabledBySrcRectTest, TestSize.Level1)
-{
-    bool hasRotation = false;
-    auto buffer = SurfaceBuffer::Create();
-    auto renderNode = std::make_shared<RSSurfaceRenderNode>(id, context);
-    renderNode->UpdateHwcDisabledBySrcRect(hasRotation);
-
-    renderNode->GetRSSurfaceHandler()->buffer_.buffer = buffer;
-    renderNode->UpdateHwcDisabledBySrcRect(hasRotation);
-    ASSERT_FALSE(renderNode->isHardwareForcedDisabledBySrcRect_);
 }
 
 /**
@@ -2263,10 +2223,52 @@ HWTEST_F(RSSurfaceRenderNodeTest, HDRPresentTest002, TestSize.Level1)
     parentNode->SetIsOnTheTree(true);
     childNode->SetIsOnTheTree(true);
 
-    childNode->IncreaseHDRNum();
-    ASSERT_TRUE(childNode->GetHDRPresent());
-    childNode->ReduceHDRNum();
-    ASSERT_FALSE(childNode->GetHDRPresent());
+    childNode->IncreaseHDRNum(HDRComponentType::IMAGE);
+    EXPECT_TRUE(childNode->GetHDRPresent());
+    childNode->ReduceHDRNum(HDRComponentType::IMAGE);
+    EXPECT_FALSE(childNode->GetHDRPresent());
+
+    childNode->IncreaseHDRNum(HDRComponentType::UICOMPONENT);
+    EXPECT_TRUE(childNode->GetHDRPresent());
+    childNode->ReduceHDRNum(HDRComponentType::UICOMPONENT);
+    EXPECT_FALSE(childNode->GetHDRPresent());
+}
+
+/**
+ * @tc.name: GetIsWideColorGamut001
+ * @tc.desc: GetIsWideColorGamut test
+ * @tc.type: FUNC
+ * @tc.require: issueIB6Y6O
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, GetIsWideColorGamut001, TestSize.Level1)
+{
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id);
+    ASSERT_NE(surfaceNode, nullptr);
+
+    surfaceNode->wideColorGamutNum_ = 0;
+    ASSERT_FALSE(surfaceNode->GetIsWideColorGamut());
+    surfaceNode->wideColorGamutNum_++;
+    ASSERT_TRUE(surfaceNode->GetIsWideColorGamut());
+}
+
+/**
+ * @tc.name: IncreaseWideColorGamutNum001
+ * @tc.desc: IncreaseWideColorGamutNum and ReduceWideColorGamutNum test
+ * @tc.type: FUNC
+ * @tc.require: issueIB6Y6O
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, IncreaseWideColorGamutNum001, TestSize.Level1)
+{
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id);
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->wideColorGamutNum_ = 0;
+    EXPECT_TRUE(surfaceNode->GetContext().lock() == nullptr);
+
+    surfaceNode->firstLevelNodeId_ = id + 1;
+    surfaceNode->IncreaseWideColorGamutNum();
+    ASSERT_TRUE(surfaceNode->GetIsWideColorGamut());
+    surfaceNode->ReduceWideColorGamutNum();
+    ASSERT_FALSE(surfaceNode->GetIsWideColorGamut());
 }
 
 /**
@@ -2342,6 +2344,38 @@ HWTEST_F(RSSurfaceRenderNodeTest, GetOriAncoForceDoDirect, TestSize.Level1)
 {
     RSSurfaceRenderNode::SetAncoForceDoDirect(false);
     EXPECT_FALSE(RSSurfaceRenderNode::GetOriAncoForceDoDirect());
+}
+
+/**
+ * @tc.name: SetTunnelLayerId
+ * @tc.desc: test results of SetTunnelLayerId
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SetTunnelLayerId, TestSize.Level1)
+{
+    auto testNode = std::make_shared<RSSurfaceRenderNode>(id, context);
+    ASSERT_NE(testNode, nullptr);
+    ASSERT_EQ(testNode->GetTunnelLayerId(), 0);
+    testNode->SetTunnelLayerId(1);
+    ASSERT_EQ(testNode->GetTunnelLayerId(), 1);
+}
+ 
+/**
+ * @tc.name: IsHardwareForcedDisabled001
+ * @tc.desc: test results of IsHardwareForcedDisabled001
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, IsHardwareForcedDisabled001, TestSize.Level1)
+{
+    auto testNode = std::make_shared<RSSurfaceRenderNode>(id, context);
+    ASSERT_NE(testNode, nullptr);
+    ASSERT_EQ(testNode->GetTunnelLayerId(), 0);
+ 
+    testNode->SetTunnelLayerId(1);
+    ASSERT_EQ(testNode->GetTunnelLayerId(), 1);
+    ASSERT_EQ(testNode->IsHardwareForcedDisabled(), false);
 }
 
 /**
@@ -2505,6 +2539,31 @@ HWTEST_F(RSSurfaceRenderNodeTest, ResetIsBufferFlushed, TestSize.Level1)
     testNode->ResetIsBufferFlushed();
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(testNode->stagingRenderParams_.get());
     ASSERT_FALSE(surfaceParams->GetIsBufferFlushed());
+}
+
+/**
+ * @tc.name: ResetSurfaceNodeStates
+ * @tc.desc: test if node could Reset Surface Node States correctly
+ * @tc.type: FUNC
+ * @tc.require: #IBZ3UR
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, ResetSurfaceNodeStates, TestSize.Level1)
+{
+    std::shared_ptr<RSSurfaceRenderNode> testNode = std::make_shared<RSSurfaceRenderNode>(id, context);
+    ASSERT_NE(testNode, nullptr);
+    testNode->stagingRenderParams_ = nullptr;
+    ASSERT_EQ(testNode->stagingRenderParams_, nullptr);
+    testNode->ResetSurfaceNodeStates();
+
+    testNode->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(id + 1);
+    ASSERT_NE(testNode->stagingRenderParams_, nullptr);
+
+    testNode->ResetSurfaceNodeStates();
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(testNode->stagingRenderParams_.get());
+    ASSERT_FALSE(surfaceParams->GetIsBufferFlushed());
+    ASSERT_FALSE(testNode->GetAnimateState());
+    ASSERT_FALSE(testNode->IsRotating());
+    ASSERT_FALSE(testNode->IsSpecialLayerChanged());
 }
 
 /**

@@ -151,7 +151,8 @@ VsyncError VSyncReceiver::RequestNextVSync(FrameCallback callback)
     return RequestNextVSync(callback, "unknown", 0);
 }
 
-VsyncError VSyncReceiver::RequestNextVSync(FrameCallback callback, const std::string &fromWhom, int64_t lastVSyncTS)
+VsyncError VSyncReceiver::RequestNextVSync(
+    FrameCallback callback, const std::string& fromWhom, int64_t lastVSyncTS, const int64_t& requestVsyncTime)
 {
     std::lock_guard<std::mutex> locker(initMutex_);
     if (!init_) {
@@ -164,7 +165,7 @@ VsyncError VSyncReceiver::RequestNextVSync(FrameCallback callback, const std::st
     if (OHOS::Rosen::RsFrameReportExt::GetInstance().GetEnable()) {
         OHOS::Rosen::RsFrameReportExt::GetInstance().RequestNextVSync();
     }
-    return connection_->RequestNextVSync(fromWhom, lastVSyncTS);
+    return connection_->RequestNextVSync(fromWhom, lastVSyncTS, requestVsyncTime);
 }
 
 VsyncError VSyncReceiver::RequestNextVSyncWithMultiCallback(FrameCallback callback)

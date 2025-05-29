@@ -73,6 +73,20 @@ typedef enum {
 OH_Drawing_Canvas* OH_Drawing_CanvasCreate(void);
 
 /**
+ * @brief Creates an <b>OH_Drawing_Canvas</b> object from <b>OH_Drawing_PixelMap</b>.
+ * The OH_Drawing_PixelMap should be dissolved by OH_Drawing_PixelMapDissolve after the OH_Drawing_Canvas is destroyed.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param pixelMap Indicates the pointer to an <b>OH_Drawing_PixelMap</b> object.
+ * @return Returns the pointer to the <b>OH_Drawing_Canvas</b> object created.
+ *         If nullptr is returned, the creation fails.
+ *         The possible cause of the failure is that the available memory is empty or pixelMap is nullptr.
+ * @since 20
+ * @version 1.0
+ */
+OH_Drawing_Canvas* OH_Drawing_CanvasCreateWithPixelMap(OH_Drawing_PixelMap* pixelMap);
+
+/**
  * @brief Destroys an <b>OH_Drawing_Canvas</b> object and reclaims the memory occupied by the object.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
@@ -896,6 +910,20 @@ OH_Drawing_ErrorCode OH_Drawing_CanvasGetImageInfo(OH_Drawing_Canvas* canvas, OH
  * @version 1.0
  */
 OH_Drawing_ErrorCode OH_Drawing_CanvasDrawRecordCmd(OH_Drawing_Canvas* canvas, OH_Drawing_RecordCmd* recordCmd);
+
+/**
+ * @brief Replay drawing command, support Nesting.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param canvas Indicates the pointer to an <b>OH_Drawing_Canvas</b> object.
+ * @param recordCmd Indicates the pointer to an <b>OH_Drawing_RecordCmd</b> object.
+ * @return Returns the error code.
+ *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
+ *         Returns {@link OH_DRAWING_ERROR_INVALID_PARAMETER} if canvas or recordCmd is nullptr.
+ * @since 20
+ * @version 1.0
+ */
+OH_Drawing_ErrorCode OH_Drawing_CanvasDrawRecordCmdNesting(OH_Drawing_Canvas* canvas, OH_Drawing_RecordCmd* recordCmd);
 
 /**
  * @brief Checks if the path has been cut off.

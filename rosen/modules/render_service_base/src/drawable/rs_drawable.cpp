@@ -28,178 +28,165 @@ namespace OHOS::Rosen {
 namespace {
 using namespace DrawableV2;
 
-// NOTE: This LUT should always the same size and order as RSModifierType
-// key = RSModifierType, value = RSDrawableSlot
-constexpr int DIRTY_LUT_SIZE = static_cast<int>(RSModifierType::MAX_RS_MODIFIER_TYPE);
-static constexpr std::array<RSDrawableSlot, DIRTY_LUT_SIZE> g_propertyToDrawableLut = {
-    RSDrawableSlot::INVALID,                       // INVALID
-    RSDrawableSlot::CLIP_TO_BOUNDS,                // BOUNDS
-    RSDrawableSlot::FRAME_OFFSET,                  // FRAME
-    RSDrawableSlot::INVALID,                       // POSITION_Z
-    RSDrawableSlot::INVALID,                       // POSITION_Z_APPLICABLE_CAMERA3D
-    RSDrawableSlot::INVALID,                       // PIVOT
-    RSDrawableSlot::INVALID,                       // PIVOT_Z
-    RSDrawableSlot::INVALID,                       // QUATERNION
-    RSDrawableSlot::INVALID,                       // ROTATION
-    RSDrawableSlot::INVALID,                       // ROTATION_X
-    RSDrawableSlot::INVALID,                       // ROTATION_Y
-    RSDrawableSlot::INVALID,                       // CAMERA_DISTANCE
-    RSDrawableSlot::INVALID,                       // SCALE
-    RSDrawableSlot::INVALID,                       // SCALE_Z
-    RSDrawableSlot::INVALID,                       // SKEW
-    RSDrawableSlot::INVALID,                       // PERSP
-    RSDrawableSlot::INVALID,                       // TRANSLATE
-    RSDrawableSlot::INVALID,                       // TRANSLATE_Z
-    RSDrawableSlot::INVALID,                       // SUBLAYER_TRANSFORM
-    RSDrawableSlot::CLIP_TO_BOUNDS,                // CORNER_RADIUS
-    RSDrawableSlot::INVALID,                       // ALPHA
-    RSDrawableSlot::INVALID,                       // ALPHA_OFFSCREEN
-    RSDrawableSlot::FOREGROUND_COLOR,              // FOREGROUND_COLOR
-    RSDrawableSlot::BACKGROUND_COLOR,              // BACKGROUND_COLOR
-    RSDrawableSlot::BACKGROUND_SHADER,             // BACKGROUND_SHADER
-    RSDrawableSlot::BACKGROUND_SHADER,             // BACKGROUND_SHADER_PROGRESS
-    RSDrawableSlot::BACKGROUND_IMAGE,              // BG_IMAGE
-    RSDrawableSlot::BACKGROUND_IMAGE,              // BG_IMAGE_INNER_RECT
-    RSDrawableSlot::BACKGROUND_IMAGE,              // BG_IMAGE_WIDTH
-    RSDrawableSlot::BACKGROUND_IMAGE,              // BG_IMAGE_HEIGHT
-    RSDrawableSlot::BACKGROUND_IMAGE,              // BG_IMAGE_POSITION_X
-    RSDrawableSlot::BACKGROUND_IMAGE,              // BG_IMAGE_POSITION_Y
-    RSDrawableSlot::INVALID,                       // SURFACE_BG_COLOR
-    RSDrawableSlot::BORDER,                        // BORDER_COLOR
-    RSDrawableSlot::BORDER,                        // BORDER_WIDTH
-    RSDrawableSlot::BORDER,                        // BORDER_STYLE
-    RSDrawableSlot::BORDER,                        // BORDER_DASH_WIDTH
-    RSDrawableSlot::BORDER,                        // BORDER_DASH_GAP
-    RSDrawableSlot::COMPOSITING_FILTER,            // FILTER
-    RSDrawableSlot::BACKGROUND_FILTER,             // BACKGROUND_FILTER
-    RSDrawableSlot::COMPOSITING_FILTER,            // LINEAR_GRADIENT_BLUR_PARA
-    RSDrawableSlot::DYNAMIC_LIGHT_UP,              // DYNAMIC_LIGHT_UP_RATE
-    RSDrawableSlot::DYNAMIC_LIGHT_UP,              // DYNAMIC_LIGHT_UP_DEGREE
-    RSDrawableSlot::BLENDER,                       // FG_BRIGHTNESS_RATES
-    RSDrawableSlot::BLENDER,                       // FG_BRIGHTNESS_SATURATION
-    RSDrawableSlot::BLENDER,                       // FG_BRIGHTNESS_POSCOEFF
-    RSDrawableSlot::BLENDER,                       // FG_BRIGHTNESS_NEGCOEFF
-    RSDrawableSlot::BLENDER,                       // FG_BRIGHTNESS_FRACTION
-    RSDrawableSlot::BACKGROUND_COLOR,              // BG_BRIGHTNESS_RATES
-    RSDrawableSlot::BACKGROUND_COLOR,              // BG_BRIGHTNESS_SATURATION
-    RSDrawableSlot::BACKGROUND_COLOR,              // BG_BRIGHTNESS_POSCOEFF
-    RSDrawableSlot::BACKGROUND_COLOR,              // BG_BRIGHTNESS_NEGCOEFF
-    RSDrawableSlot::BACKGROUND_COLOR,              // BG_BRIGHTNESS_FRACTION
-    RSDrawableSlot::FRAME_OFFSET,                  // FRAME_GRAVITY
-    RSDrawableSlot::CLIP_TO_BOUNDS,                // CLIP_RRECT
-    RSDrawableSlot::CLIP_TO_BOUNDS,                // CLIP_BOUNDS
-    RSDrawableSlot::CLIP_TO_BOUNDS,                // CLIP_TO_BOUNDS
-    RSDrawableSlot::CLIP_TO_FRAME,                 // CLIP_TO_FRAME
-    RSDrawableSlot::INVALID,                       // VISIBLE
-    RSDrawableSlot::SHADOW,                        // SHADOW_COLOR
-    RSDrawableSlot::SHADOW,                        // SHADOW_OFFSET_X
-    RSDrawableSlot::SHADOW,                        // SHADOW_OFFSET_Y
-    RSDrawableSlot::SHADOW,                        // SHADOW_ALPHA
-    RSDrawableSlot::SHADOW,                        // SHADOW_ELEVATION
-    RSDrawableSlot::SHADOW,                        // SHADOW_RADIUS
-    RSDrawableSlot::SHADOW,                        // SHADOW_PATH
-    RSDrawableSlot::SHADOW,                        // SHADOW_MASK
-    RSDrawableSlot::SHADOW,                        // SHADOW_COLOR_STRATEGY
-    RSDrawableSlot::MASK,                          // MASK
-    RSDrawableSlot::FOREGROUND_FILTER,             // SPHERIZE
-    RSDrawableSlot::LIGHT_UP_EFFECT,               // LIGHT_UP_EFFECT
-    RSDrawableSlot::PIXEL_STRETCH,                 // PIXEL_STRETCH
-    RSDrawableSlot::PIXEL_STRETCH,                 // PIXEL_STRETCH_PERCENT
-    RSDrawableSlot::PIXEL_STRETCH,                 // PIXEL_STRETCH_TILE_MODE
-    RSDrawableSlot::USE_EFFECT,                    // USE_EFFECT
-    RSDrawableSlot::USE_EFFECT,                    // USE_EFFECT_TYPE
-    RSDrawableSlot::BLENDER,                       // COLOR_BLEND_MODE
-    RSDrawableSlot::BLENDER,                       // COLOR_BLEND_APPLY_TYPE
-    RSDrawableSlot::INVALID,                       // SANDBOX
-    RSDrawableSlot::COLOR_FILTER,                  // GRAY_SCALE
-    RSDrawableSlot::COLOR_FILTER,                  // BRIGHTNESS
-    RSDrawableSlot::COLOR_FILTER,                  // CONTRAST
-    RSDrawableSlot::COLOR_FILTER,                  // SATURATE
-    RSDrawableSlot::COLOR_FILTER,                  // SEPIA
-    RSDrawableSlot::COLOR_FILTER,                  // INVERT
-    RSDrawableSlot::BINARIZATION,                  // AIINVERT
-    RSDrawableSlot::BACKGROUND_FILTER,             // SYSTEMBAREFFECT
-    RSDrawableSlot::BACKGROUND_FILTER,             // WATER_RIPPLE_PROGRESS
-    RSDrawableSlot::BACKGROUND_FILTER,             // WATER_RIPPLE_EFFECT
-    RSDrawableSlot::COLOR_FILTER,                  // HUE_ROTATE
-    RSDrawableSlot::COLOR_FILTER,                  // COLOR_BLEND
-    RSDrawableSlot::PARTICLE_EFFECT,               // PARTICLE
-    RSDrawableSlot::SHADOW,                        // SHADOW_IS_FILLED
-    RSDrawableSlot::OUTLINE,                       // OUTLINE_COLOR
-    RSDrawableSlot::OUTLINE,                       // OUTLINE_WIDTH
-    RSDrawableSlot::OUTLINE,                       // OUTLINE_STYLE
-    RSDrawableSlot::OUTLINE,                       // OUTLINE_DASH_WIDTH
-    RSDrawableSlot::OUTLINE,                       // OUTLINE_DASH_GAP
-    RSDrawableSlot::OUTLINE,                       // OUTLINE_RADIUS
-    RSDrawableSlot::INVALID,                       // GREY_COEF
-    RSDrawableSlot::POINT_LIGHT,                   // LIGHT_INTENSITY
-    RSDrawableSlot::POINT_LIGHT,                   // LIGHT_COLOR
-    RSDrawableSlot::POINT_LIGHT,                   // LIGHT_POSITION
-    RSDrawableSlot::POINT_LIGHT,                   // ILLUMINATED_BORDER_WIDTH
-    RSDrawableSlot::POINT_LIGHT,                   // ILLUMINATED_TYPE
-    RSDrawableSlot::POINT_LIGHT,                   // BLOOM
-    RSDrawableSlot::FOREGROUND_FILTER,             // FOREGROUND_EFFECT_RADIUS
-    RSDrawableSlot::CHILDREN,                      // USE_SHADOW_BATCHING,
-    RSDrawableSlot::FOREGROUND_FILTER,             // MOTION_BLUR_PARA
-    RSDrawableSlot::PARTICLE_EFFECT,               // PARTICLE_EMITTER_UPDATER
-    RSDrawableSlot::PARTICLE_EFFECT,               // PARTICLE_NOISE_FIELD
-    RSDrawableSlot::FOREGROUND_FILTER,             // FLY_OUT_DEGREE
-    RSDrawableSlot::FOREGROUND_FILTER,             // FLY_OUT_PARAMS
-    RSDrawableSlot::FOREGROUND_FILTER,             // DISTORTION_K
-    RSDrawableSlot::DYNAMIC_DIM,                   // DYNAMIC_DIM_DEGREE,
-    RSDrawableSlot::BACKGROUND_FILTER,             // MAGNIFIER_PARA,
-    RSDrawableSlot::BACKGROUND_FILTER,             // BACKGROUND_BLUR_RADIUS,
-    RSDrawableSlot::BACKGROUND_FILTER,             // BACKGROUND_BLUR_SATURATION,
-    RSDrawableSlot::BACKGROUND_FILTER,             // BACKGROUND_BLUR_BRIGHTNESS,
-    RSDrawableSlot::BACKGROUND_FILTER,             // BACKGROUND_BLUR_MASK_COLOR,
-    RSDrawableSlot::BACKGROUND_FILTER,             // BACKGROUND_BLUR_COLOR_MODE,
-    RSDrawableSlot::BACKGROUND_FILTER,             // BACKGROUND_BLUR_RADIUS_X,
-    RSDrawableSlot::BACKGROUND_FILTER,             // BACKGROUND_BLUR_RADIUS_Y,
-    RSDrawableSlot::BACKGROUND_FILTER,             // BG_BLUR_DISABLE_SYSTEM_ADAPTATION,
-    RSDrawableSlot::COMPOSITING_FILTER,            // FOREGROUND_BLUR_RADIUS,
-    RSDrawableSlot::COMPOSITING_FILTER,            // FOREGROUND_BLUR_SATURATION,
-    RSDrawableSlot::COMPOSITING_FILTER,            // FOREGROUND_BLUR_BRIGHTNESS,
-    RSDrawableSlot::COMPOSITING_FILTER,            // FOREGROUND_BLUR_MASK_COLOR,
-    RSDrawableSlot::COMPOSITING_FILTER,            // FOREGROUND_BLUR_COLOR_MODE,
-    RSDrawableSlot::COMPOSITING_FILTER,            // FOREGROUND_BLUR_RADIUS_X,
-    RSDrawableSlot::COMPOSITING_FILTER,            // FOREGROUND_BLUR_RADIUS_Y,
-    RSDrawableSlot::COMPOSITING_FILTER,            // FG_BLUR_DISABLE_SYSTEM_ADAPTATION,
-    RSDrawableSlot::FOREGROUND_FILTER,             // ATTRACTION_FRACTION
-    RSDrawableSlot::FOREGROUND_FILTER,             // ATTRACTION_DSTPOINT
-    RSDrawableSlot::INVALID,                       // CUSTOM
-    RSDrawableSlot::INVALID,                       // EXTENDED
-    RSDrawableSlot::TRANSITION,                    // TRANSITION
-    RSDrawableSlot::BACKGROUND_STYLE,              // BACKGROUND_STYLE
-    RSDrawableSlot::CONTENT_STYLE,                 // CONTENT_STYLE
-    RSDrawableSlot::FOREGROUND_STYLE,              // FOREGROUND_STYLE
-    RSDrawableSlot::OVERLAY,                       // OVERLAY_STYLE
-    RSDrawableSlot::INVALID,                       // NODE_MODIFIER
-    RSDrawableSlot::ENV_FOREGROUND_COLOR,          // ENV_FOREGROUND_COLOR
-    RSDrawableSlot::ENV_FOREGROUND_COLOR_STRATEGY, // ENV_FOREGROUND_COLOR_STRATEGY
-    RSDrawableSlot::INVALID,                       // GEOMETRYTRANS
-    RSDrawableSlot::CUSTOM_CLIP_TO_FRAME,          // CUSTOM_CLIP_TO_FRAME,
-    RSDrawableSlot::INVALID,                       // HDR_BRIGHTNESS
-    RSDrawableSlot::BACKGROUND_FILTER,             // BEHIND_WINDOW_FILTER_RADIUS
-    RSDrawableSlot::BACKGROUND_FILTER,             // BEHIND_WINDOW_FILTER_SATURATION
-    RSDrawableSlot::BACKGROUND_FILTER,             // BEHIND_WINDOW_FILTER_BRIGHTNESS
-    RSDrawableSlot::BACKGROUND_FILTER,             // BEHIND_WINDOW_FILTER_MASK_COLOR
-    RSDrawableSlot::CHILDREN,                      // CHILDREN
+static const std::unordered_map<RSModifierType, RSDrawableSlot> g_propertyToDrawableLut = {
+    { RSModifierType::INVALID,                                   RSDrawableSlot::INVALID },
+    { RSModifierType::BOUNDS,                                    RSDrawableSlot::CLIP_TO_BOUNDS },
+    { RSModifierType::FRAME,                                     RSDrawableSlot::FRAME_OFFSET },
+    { RSModifierType::POSITION_Z,                                RSDrawableSlot::INVALID },
+    { RSModifierType::POSITION_Z_APPLICABLE_CAMERA3D,            RSDrawableSlot::INVALID },
+    { RSModifierType::PIVOT,                                     RSDrawableSlot::INVALID },
+    { RSModifierType::PIVOT_Z,                                   RSDrawableSlot::INVALID },
+    { RSModifierType::QUATERNION,                                RSDrawableSlot::INVALID },
+    { RSModifierType::ROTATION,                                  RSDrawableSlot::INVALID },
+    { RSModifierType::ROTATION_X,                                RSDrawableSlot::INVALID },
+    { RSModifierType::ROTATION_Y,                                RSDrawableSlot::INVALID },
+    { RSModifierType::CAMERA_DISTANCE,                           RSDrawableSlot::INVALID },
+    { RSModifierType::SCALE,                                     RSDrawableSlot::INVALID },
+    { RSModifierType::SCALE_Z,                                   RSDrawableSlot::INVALID },
+    { RSModifierType::SKEW,                                      RSDrawableSlot::INVALID },
+    { RSModifierType::PERSP,                                     RSDrawableSlot::INVALID },
+    { RSModifierType::TRANSLATE,                                 RSDrawableSlot::INVALID },
+    { RSModifierType::TRANSLATE_Z,                               RSDrawableSlot::INVALID },
+    { RSModifierType::SUBLAYER_TRANSFORM,                        RSDrawableSlot::INVALID },
+    { RSModifierType::CORNER_RADIUS,                             RSDrawableSlot::CLIP_TO_BOUNDS },
+    { RSModifierType::ALPHA,                                     RSDrawableSlot::INVALID },
+    { RSModifierType::ALPHA_OFFSCREEN,                           RSDrawableSlot::INVALID },
+    { RSModifierType::FOREGROUND_COLOR,                          RSDrawableSlot::FOREGROUND_COLOR },
+    { RSModifierType::BACKGROUND_COLOR,                          RSDrawableSlot::BACKGROUND_COLOR },
+    { RSModifierType::BACKGROUND_SHADER,                         RSDrawableSlot::BACKGROUND_SHADER },
+    { RSModifierType::BACKGROUND_SHADER_PROGRESS,                RSDrawableSlot::BACKGROUND_SHADER },
+    { RSModifierType::BG_IMAGE,                                  RSDrawableSlot::BACKGROUND_IMAGE },
+    { RSModifierType::BG_IMAGE_INNER_RECT,                       RSDrawableSlot::BACKGROUND_IMAGE },
+    { RSModifierType::BG_IMAGE_WIDTH,                            RSDrawableSlot::BACKGROUND_IMAGE },
+    { RSModifierType::BG_IMAGE_HEIGHT,                           RSDrawableSlot::BACKGROUND_IMAGE },
+    { RSModifierType::BG_IMAGE_POSITION_X,                       RSDrawableSlot::BACKGROUND_IMAGE },
+    { RSModifierType::BG_IMAGE_POSITION_Y,                       RSDrawableSlot::BACKGROUND_IMAGE },
+    { RSModifierType::SURFACE_BG_COLOR,                          RSDrawableSlot::INVALID },
+    { RSModifierType::BORDER_COLOR,                              RSDrawableSlot::BORDER },
+    { RSModifierType::BORDER_WIDTH,                              RSDrawableSlot::BORDER },
+    { RSModifierType::BORDER_STYLE,                              RSDrawableSlot::BORDER },
+    { RSModifierType::BORDER_DASH_WIDTH,                         RSDrawableSlot::BORDER },
+    { RSModifierType::BORDER_DASH_GAP,                           RSDrawableSlot::BORDER },
+    { RSModifierType::FILTER,                                    RSDrawableSlot::COMPOSITING_FILTER },
+    { RSModifierType::BACKGROUND_FILTER,                         RSDrawableSlot::BACKGROUND_FILTER },
+    { RSModifierType::LINEAR_GRADIENT_BLUR_PARA,                 RSDrawableSlot::COMPOSITING_FILTER },
+    { RSModifierType::DYNAMIC_LIGHT_UP_RATE,                     RSDrawableSlot::DYNAMIC_LIGHT_UP },
+    { RSModifierType::DYNAMIC_LIGHT_UP_DEGREE,                   RSDrawableSlot::DYNAMIC_LIGHT_UP },
+    { RSModifierType::FG_BRIGHTNESS_RATES,                       RSDrawableSlot::BLENDER },
+    { RSModifierType::FG_BRIGHTNESS_SATURATION,                  RSDrawableSlot::BLENDER },
+    { RSModifierType::FG_BRIGHTNESS_POSCOEFF,                    RSDrawableSlot::BLENDER },
+    { RSModifierType::FG_BRIGHTNESS_NEGCOEFF,                    RSDrawableSlot::BLENDER },
+    { RSModifierType::FG_BRIGHTNESS_FRACTION,                    RSDrawableSlot::BLENDER },
+    { RSModifierType::BG_BRIGHTNESS_RATES,                       RSDrawableSlot::BACKGROUND_COLOR },
+    { RSModifierType::BG_BRIGHTNESS_SATURATION,                  RSDrawableSlot::BACKGROUND_COLOR },
+    { RSModifierType::BG_BRIGHTNESS_POSCOEFF,                    RSDrawableSlot::BACKGROUND_COLOR },
+    { RSModifierType::BG_BRIGHTNESS_NEGCOEFF,                    RSDrawableSlot::BACKGROUND_COLOR },
+    { RSModifierType::BG_BRIGHTNESS_FRACTION,                    RSDrawableSlot::BACKGROUND_COLOR },
+    { RSModifierType::FRAME_GRAVITY,                             RSDrawableSlot::FRAME_OFFSET },
+    { RSModifierType::CLIP_RRECT,                                RSDrawableSlot::CLIP_TO_BOUNDS },
+    { RSModifierType::CLIP_BOUNDS,                               RSDrawableSlot::CLIP_TO_BOUNDS },
+    { RSModifierType::CLIP_TO_BOUNDS,                            RSDrawableSlot::CLIP_TO_BOUNDS },
+    { RSModifierType::CLIP_TO_FRAME,                             RSDrawableSlot::CLIP_TO_FRAME },
+    { RSModifierType::VISIBLE,                                   RSDrawableSlot::INVALID },
+    { RSModifierType::SHADOW_COLOR,                              RSDrawableSlot::SHADOW },
+    { RSModifierType::SHADOW_OFFSET_X,                           RSDrawableSlot::SHADOW },
+    { RSModifierType::SHADOW_OFFSET_Y,                           RSDrawableSlot::SHADOW },
+    { RSModifierType::SHADOW_ALPHA,                              RSDrawableSlot::SHADOW },
+    { RSModifierType::SHADOW_ELEVATION,                          RSDrawableSlot::SHADOW },
+    { RSModifierType::SHADOW_RADIUS,                             RSDrawableSlot::SHADOW },
+    { RSModifierType::SHADOW_PATH,                               RSDrawableSlot::SHADOW },
+    { RSModifierType::SHADOW_MASK,                               RSDrawableSlot::SHADOW },
+    { RSModifierType::SHADOW_COLOR_STRATEGY,                     RSDrawableSlot::SHADOW },
+    { RSModifierType::MASK,                                      RSDrawableSlot::MASK },
+    { RSModifierType::SPHERIZE,                                  RSDrawableSlot::FOREGROUND_FILTER },
+    { RSModifierType::LIGHT_UP_EFFECT,                           RSDrawableSlot::LIGHT_UP_EFFECT },
+    { RSModifierType::PIXEL_STRETCH,                             RSDrawableSlot::PIXEL_STRETCH },
+    { RSModifierType::PIXEL_STRETCH_PERCENT,                     RSDrawableSlot::PIXEL_STRETCH },
+    { RSModifierType::PIXEL_STRETCH_TILE_MODE,                   RSDrawableSlot::PIXEL_STRETCH },
+    { RSModifierType::USE_EFFECT,                                RSDrawableSlot::USE_EFFECT },
+    { RSModifierType::USE_EFFECT_TYPE,                           RSDrawableSlot::USE_EFFECT },
+    { RSModifierType::COLOR_BLEND_MODE,                          RSDrawableSlot::BLENDER },
+    { RSModifierType::COLOR_BLEND_APPLY_TYPE,                    RSDrawableSlot::BLENDER },
+    { RSModifierType::SANDBOX,                                   RSDrawableSlot::INVALID },
+    { RSModifierType::GRAY_SCALE,                                RSDrawableSlot::COLOR_FILTER },
+    { RSModifierType::BRIGHTNESS,                                RSDrawableSlot::COLOR_FILTER },
+    { RSModifierType::CONTRAST,                                  RSDrawableSlot::COLOR_FILTER },
+    { RSModifierType::SATURATE,                                  RSDrawableSlot::COLOR_FILTER },
+    { RSModifierType::SEPIA,                                     RSDrawableSlot::COLOR_FILTER },
+    { RSModifierType::INVERT,                                    RSDrawableSlot::COLOR_FILTER },
+    { RSModifierType::AIINVERT,                                  RSDrawableSlot::BINARIZATION },
+    { RSModifierType::SYSTEMBAREFFECT,                           RSDrawableSlot::BACKGROUND_FILTER },
+    { RSModifierType::WATER_RIPPLE_PROGRESS,                     RSDrawableSlot::BACKGROUND_FILTER },
+    { RSModifierType::WATER_RIPPLE_PARAMS,                       RSDrawableSlot::BACKGROUND_FILTER },
+    { RSModifierType::HUE_ROTATE,                                RSDrawableSlot::COLOR_FILTER },
+    { RSModifierType::COLOR_BLEND,                               RSDrawableSlot::COLOR_FILTER },
+    { RSModifierType::PARTICLE,                                  RSDrawableSlot::PARTICLE_EFFECT },
+    { RSModifierType::SHADOW_IS_FILLED,                          RSDrawableSlot::SHADOW },
+    { RSModifierType::OUTLINE_COLOR,                             RSDrawableSlot::OUTLINE },
+    { RSModifierType::OUTLINE_WIDTH,                             RSDrawableSlot::OUTLINE },
+    { RSModifierType::OUTLINE_STYLE,                             RSDrawableSlot::OUTLINE },
+    { RSModifierType::OUTLINE_DASH_WIDTH,                        RSDrawableSlot::OUTLINE },
+    { RSModifierType::OUTLINE_DASH_GAP,                          RSDrawableSlot::OUTLINE },
+    { RSModifierType::OUTLINE_RADIUS,                            RSDrawableSlot::OUTLINE },
+    { RSModifierType::GREY_COEF,                                 RSDrawableSlot::INVALID },
+    { RSModifierType::LIGHT_INTENSITY,                           RSDrawableSlot::POINT_LIGHT },
+    { RSModifierType::LIGHT_COLOR,                               RSDrawableSlot::POINT_LIGHT },
+    { RSModifierType::LIGHT_POSITION,                            RSDrawableSlot::POINT_LIGHT },
+    { RSModifierType::ILLUMINATED_BORDER_WIDTH,                  RSDrawableSlot::POINT_LIGHT },
+    { RSModifierType::ILLUMINATED_TYPE,                          RSDrawableSlot::POINT_LIGHT },
+    { RSModifierType::BLOOM,                                     RSDrawableSlot::POINT_LIGHT },
+    { RSModifierType::FOREGROUND_EFFECT_RADIUS,                  RSDrawableSlot::FOREGROUND_FILTER },
+    { RSModifierType::USE_SHADOW_BATCHING,                       RSDrawableSlot::CHILDREN },
+    { RSModifierType::MOTION_BLUR_PARA,                          RSDrawableSlot::FOREGROUND_FILTER },
+    { RSModifierType::PARTICLE_EMITTER_UPDATER,                  RSDrawableSlot::PARTICLE_EFFECT },
+    { RSModifierType::PARTICLE_NOISE_FIELD,                      RSDrawableSlot::PARTICLE_EFFECT },
+    { RSModifierType::FLY_OUT_DEGREE,                            RSDrawableSlot::FOREGROUND_FILTER },
+    { RSModifierType::FLY_OUT_PARAMS,                            RSDrawableSlot::FOREGROUND_FILTER },
+    { RSModifierType::DISTORTION_K,                              RSDrawableSlot::FOREGROUND_FILTER },
+    { RSModifierType::DYNAMIC_DIM_DEGREE,                        RSDrawableSlot::DYNAMIC_DIM },
+    { RSModifierType::MAGNIFIER_PARA,                            RSDrawableSlot::BACKGROUND_FILTER },
+    { RSModifierType::BACKGROUND_BLUR_RADIUS,                    RSDrawableSlot::BACKGROUND_FILTER },
+    { RSModifierType::BACKGROUND_BLUR_SATURATION,                RSDrawableSlot::BACKGROUND_FILTER },
+    { RSModifierType::BACKGROUND_BLUR_BRIGHTNESS,                RSDrawableSlot::BACKGROUND_FILTER },
+    { RSModifierType::BACKGROUND_BLUR_MASK_COLOR,                RSDrawableSlot::BACKGROUND_FILTER },
+    { RSModifierType::BACKGROUND_BLUR_COLOR_MODE,                RSDrawableSlot::BACKGROUND_FILTER },
+    { RSModifierType::BACKGROUND_BLUR_RADIUS_X,                  RSDrawableSlot::BACKGROUND_FILTER },
+    { RSModifierType::BACKGROUND_BLUR_RADIUS_Y,                  RSDrawableSlot::BACKGROUND_FILTER },
+    { RSModifierType::BG_BLUR_DISABLE_SYSTEM_ADAPTATION,         RSDrawableSlot::BACKGROUND_FILTER },
+    { RSModifierType::FOREGROUND_BLUR_RADIUS,                    RSDrawableSlot::COMPOSITING_FILTER },
+    { RSModifierType::FOREGROUND_BLUR_SATURATION,                RSDrawableSlot::COMPOSITING_FILTER },
+    { RSModifierType::FOREGROUND_BLUR_BRIGHTNESS,                RSDrawableSlot::COMPOSITING_FILTER },
+    { RSModifierType::FOREGROUND_BLUR_MASK_COLOR,                RSDrawableSlot::COMPOSITING_FILTER },
+    { RSModifierType::FOREGROUND_BLUR_COLOR_MODE,                RSDrawableSlot::COMPOSITING_FILTER },
+    { RSModifierType::FOREGROUND_BLUR_RADIUS_X,                  RSDrawableSlot::COMPOSITING_FILTER },
+    { RSModifierType::FOREGROUND_BLUR_RADIUS_Y,                  RSDrawableSlot::COMPOSITING_FILTER },
+    { RSModifierType::FG_BLUR_DISABLE_SYSTEM_ADAPTATION,         RSDrawableSlot::COMPOSITING_FILTER },
+    { RSModifierType::ATTRACTION_FRACTION,                       RSDrawableSlot::FOREGROUND_FILTER },
+    { RSModifierType::ATTRACTION_DSTPOINT,                       RSDrawableSlot::FOREGROUND_FILTER },
+    { RSModifierType::ALWAYS_SNAPSHOT,                           RSDrawableSlot::BACKGROUND_FILTER },
+    { RSModifierType::COMPLEX_SHADER_PARAM,                      RSDrawableSlot::BACKGROUND_SHADER },
+    { RSModifierType::BACKGROUND_UI_FILTER,                      RSDrawableSlot::BACKGROUND_FILTER },
+    { RSModifierType::HDR_UI_BRIGHTNESS,                         RSDrawableSlot::FOREGROUND_FILTER },
+    { RSModifierType::FOREGROUND_UI_FILTER,                      RSDrawableSlot::FOREGROUND_FILTER },
+    { RSModifierType::CUSTOM,                                    RSDrawableSlot::INVALID },
+    { RSModifierType::EXTENDED,                                  RSDrawableSlot::INVALID },
+    { RSModifierType::TRANSITION,                                RSDrawableSlot::TRANSITION },
+    { RSModifierType::BACKGROUND_STYLE,                          RSDrawableSlot::BACKGROUND_STYLE },
+    { RSModifierType::CONTENT_STYLE,                             RSDrawableSlot::CONTENT_STYLE },
+    { RSModifierType::FOREGROUND_STYLE,                          RSDrawableSlot::FOREGROUND_STYLE },
+    { RSModifierType::OVERLAY_STYLE,                             RSDrawableSlot::OVERLAY },
+    { RSModifierType::NODE_MODIFIER,                             RSDrawableSlot::INVALID },
+    { RSModifierType::ENV_FOREGROUND_COLOR,                      RSDrawableSlot::ENV_FOREGROUND_COLOR },
+    { RSModifierType::ENV_FOREGROUND_COLOR_STRATEGY,             RSDrawableSlot::ENV_FOREGROUND_COLOR_STRATEGY },
+    { RSModifierType::GEOMETRYTRANS,                             RSDrawableSlot::INVALID },
+    { RSModifierType::CUSTOM_CLIP_TO_FRAME,                      RSDrawableSlot::CUSTOM_CLIP_TO_FRAME },
+    { RSModifierType::HDR_BRIGHTNESS,                            RSDrawableSlot::INVALID },
+    { RSModifierType::BEHIND_WINDOW_FILTER_RADIUS,               RSDrawableSlot::BACKGROUND_FILTER },
+    { RSModifierType::BEHIND_WINDOW_FILTER_SATURATION,           RSDrawableSlot::BACKGROUND_FILTER },
+    { RSModifierType::BEHIND_WINDOW_FILTER_BRIGHTNESS,           RSDrawableSlot::BACKGROUND_FILTER },
+    { RSModifierType::BEHIND_WINDOW_FILTER_MASK_COLOR,           RSDrawableSlot::BACKGROUND_FILTER },
+    { RSModifierType::CHILDREN,                                  RSDrawableSlot::CHILDREN },
 };
-
-// Check if g_propertyToDrawableLut size match and is fully initialized (the last element should not be default value)
-static_assert(g_propertyToDrawableLut.size() == static_cast<size_t>(RSModifierType::MAX_RS_MODIFIER_TYPE));
-static_assert(g_propertyToDrawableLut.back() != RSDrawableSlot {});
-
-// Randomly check some LUT index and value
-static_assert(g_propertyToDrawableLut[static_cast<size_t>(RSModifierType::USE_EFFECT)] == RSDrawableSlot::USE_EFFECT);
-static_assert(
-    g_propertyToDrawableLut[static_cast<size_t>(RSModifierType::FOREGROUND_COLOR)] == RSDrawableSlot::FOREGROUND_COLOR);
-static_assert(
-    g_propertyToDrawableLut[static_cast<size_t>(RSModifierType::CLIP_TO_FRAME)] == RSDrawableSlot::CLIP_TO_FRAME);
-static_assert(
-    g_propertyToDrawableLut[static_cast<size_t>(RSModifierType::USE_SHADOW_BATCHING)] == RSDrawableSlot::CHILDREN);
-static_assert(g_propertyToDrawableLut[static_cast<size_t>(RSModifierType::TRANSITION)] == RSDrawableSlot::TRANSITION);
-static_assert(g_propertyToDrawableLut[static_cast<size_t>(RSModifierType::CHILDREN)] == RSDrawableSlot::CHILDREN);
 
 template<RSModifierType type>
 static inline RSDrawable::Ptr ModifierGenerator(const RSRenderNode& node)
@@ -526,13 +513,9 @@ std::unordered_set<RSDrawableSlot> RSDrawable::CalculateDirtySlots(
 {
     // Step 1.1: calculate dirty slots by looking up g_propertyToDrawableLut
     std::unordered_set<RSDrawableSlot> dirtySlots;
-    for (size_t type = 0; type < static_cast<size_t>(RSModifierType::MAX_RS_MODIFIER_TYPE); type++) {
-        if (!dirtyTypes.test(type)) {
-            continue;
-        }
-        auto dirtySlot = g_propertyToDrawableLut[type];
-        if (dirtySlot != RSDrawableSlot::INVALID) {
-            dirtySlots.emplace(dirtySlot);
+    for (const auto& dirtySlotIt : g_propertyToDrawableLut) {
+        if (dirtyTypes.test(static_cast<size_t>(dirtySlotIt.first)) && dirtySlotIt.second != RSDrawableSlot::INVALID) {
+            dirtySlots.emplace(dirtySlotIt.second);
         }
     }
 

@@ -19,17 +19,20 @@
 #include <set>
 
 #include "common/rs_common_def.h"
+#include <vector>
 
 namespace OHOS {
 namespace Rosen {
 struct MemorySnapshotInfo {
     pid_t pid = 0;
+    std::string bundleName = "";
     size_t cpuMemory = 0;
     size_t gpuMemory = 0;
+    size_t subThreadGpuMemory = 0;
 
     size_t TotalMemory() const
     {
-        return cpuMemory + gpuMemory;
+        return cpuMemory + gpuMemory + subThreadGpuMemory;
     }
 };
 
@@ -41,10 +44,13 @@ public:
     void RemoveCpuMemory(const pid_t pid, const size_t size);
     bool GetMemorySnapshotInfoByPid(const pid_t pid, MemorySnapshotInfo& info);
     void EraseSnapshotInfoByPid(const std::set<pid_t>& exitedPidSet);
-    void UpdateGpuMemoryInfo(const std::unordered_map<pid_t, size_t>& gpuInfo,
+    void UpdateGpuMemoryInfo(const std::unordered_map<pid_t, size_t>& uniRenderGpuInfo,
+        const std::unordered_map<pid_t, size_t>& subThreadGpuInfo,
         std::unordered_map<pid_t, MemorySnapshotInfo>& pidForReport, bool& isTotalOver);
     void InitMemoryLimit(MemoryOverflowCalllback callback, uint64_t warning, uint64_t overflow, uint64_t totalSize);
     void GetMemorySnapshot(std::unordered_map<pid_t, MemorySnapshotInfo>& map);
+    void GetDirtyMemorySnapshot(std::vector<pid_t>& list);
+    void FillMemorySnapshot(std::unordered_map<pid_t, MemorySnapshotInfo>& infoMap);
     size_t GetTotalMemory();
     void PrintMemorySnapshotToHilog();
 private:
@@ -61,6 +67,7 @@ private:
 
     std::mutex mutex_;
     std::unordered_map<pid_t, MemorySnapshotInfo> appMemorySnapshots_;
+    std::vector<pid_t> dirtyMemorySnapshots_;
 
     uint64_t singleMemoryWarning_ = UINT64_MAX; // warning threshold for total memory of a single process
     uint64_t singleCpuMemoryLimit_ = UINT64_MAX; // error threshold for cpu memory of a single process

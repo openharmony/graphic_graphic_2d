@@ -50,6 +50,7 @@ public:
     virtual int32_t StartSample(bool forceReSample) = 0;
     virtual void SetVsyncEnabledScreenId(uint64_t vsyncEnabledScreenId) = 0;
     virtual uint64_t GetVsyncEnabledScreenId() = 0;
+    virtual void SetAdaptive(bool isAdaptive) = 0;
 protected:
     SetScreenVsyncEnabledCallback setScreenVsyncEnabledCallback_ = nullptr;
 };
@@ -84,6 +85,7 @@ public:
     virtual int32_t StartSample(bool forceReSample) override;
     virtual void SetVsyncEnabledScreenId(uint64_t vsyncEnabledScreenId) override;
     virtual uint64_t GetVsyncEnabledScreenId() override;
+    virtual void SetAdaptive(bool isAdaptive) override;
 
 private:
     friend class OHOS::Rosen::VSyncSampler;
@@ -123,6 +125,7 @@ private:
     int64_t pendingPeriod_ = 0;
     std::atomic<bool> enableVsyncSample_ = true;
     uint64_t vsyncEnabledScreenId_ = UINT64_MAX;
+    std::atomic<bool> isAdaptive_ = false;
 };
 } // impl
 } // namespace Rosen

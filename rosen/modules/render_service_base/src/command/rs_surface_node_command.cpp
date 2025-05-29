@@ -303,10 +303,11 @@ void SurfaceNodeCommandHelper::SetSurfaceId(RSContext& context, NodeId nodeId, S
     }
 }
 
-void SurfaceNodeCommandHelper::SetClonedNodeId(RSContext& context, NodeId nodeId, NodeId cloneNodeId)
+void SurfaceNodeCommandHelper::SetClonedNodeInfo(
+    RSContext& context, NodeId nodeId, NodeId cloneNodeId, bool needOffscreen)
 {
     if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
-        node->SetClonedNodeId(cloneNodeId);
+        node->SetClonedNodeInfo(cloneNodeId, needOffscreen);
     }
 }
 
@@ -442,6 +443,22 @@ void SurfaceNodeCommandHelper::DetachFromWindowContainer(RSContext& context, Nod
             }
         }
     );
+}
+
+void SurfaceNodeCommandHelper::SetRegionToBeMagnified(RSContext& context, NodeId id, Vector4f regionToBeMagnified)
+{
+    if (auto surfaceRenderNode = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id)) {
+        surfaceRenderNode->SetRegionToBeMagnified(regionToBeMagnified);
+        RS_LOGI_LIMIT("SurfaceNodeCommandHelper::SetRegionToBeMagnified, regionToBeMagnified left=%f, top=%f, width=%f, hight=%f",
+            regionToBeMagnified.x_, regionToBeMagnified.y_, regionToBeMagnified.z_, regionToBeMagnified.w_);
+    }
+}
+
+void SurfaceNodeCommandHelper::SetFrameGravityNewVersionEnabled(RSContext& context, NodeId nodeId, bool isEnabled)
+{
+    if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
+        node->SetFrameGravityNewVersionEnabled(isEnabled);
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

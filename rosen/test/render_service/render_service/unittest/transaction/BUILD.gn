@@ -15,7 +15,8 @@ import("//build/test.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 import("$graphic_2d_root/rosen/modules/render_service_base/config.gni")
 
-module_output_path = "graphic_2d/rosen_engine/render_service/transaction"
+module_output_path =
+    "graphic_2d/graphic_2d/rosen_engine/render_service/transaction"
 
 group("unittest") {
   testonly = true
@@ -23,7 +24,6 @@ group("unittest") {
   deps = [
     ":RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest",
     ":RSIRenderServiceIpcInterfaceCodeAccessVerifierTest",
-    ":RSIRenderServiceIpcInterfaceCodeTest",
     ":RSRenderServiceConnectionStubTest",
     ":RSRenderServiceStubTest",
     ":RSUnmarshalThreadTest",
@@ -42,7 +42,7 @@ ohos_unittest("RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest") {
     "rs_irender_service_connection_ipc_interface_code_access_verifier_test.cpp",
   ]
   deps = [ ":rs_test_common" ]
-  external_deps = []
+  external_deps = [ "samgr:samgr_proxy" ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
   }
@@ -59,13 +59,7 @@ ohos_unittest("RSIRenderServiceIpcInterfaceCodeAccessVerifierTest") {
   module_out_path = module_output_path
   sources = [ "rs_irender_service_ipc_interface_code_access_verifier_test.cpp" ]
   deps = [ ":rs_test_common" ]
-}
-
-## Build RSIRenderServiceIpcInterfaceCodeTest
-ohos_unittest("RSIRenderServiceIpcInterfaceCodeTest") {
-  module_out_path = module_output_path
-  sources = [ "rs_irender_service_connection_ipc_interface_code_test.cpp" ]
-  deps = [ ":rs_test_common" ]
+  external_deps = [ "samgr:samgr_proxy" ]
 }
 
 ## Build RSRenderServiceConnectionStubTest
@@ -76,7 +70,10 @@ ohos_unittest("RSRenderServiceConnectionStubTest") {
     "rs_render_service_connection_stub_test.cpp",
   ]
   deps = [ ":rs_test_common" ]
-  external_deps = [ "googletest:gmock_main" ]
+  external_deps = [
+    "googletest:gmock_main",
+    "samgr:samgr_proxy", 
+  ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
   }
@@ -89,7 +86,7 @@ ohos_unittest("RSRenderServiceStubTest") {
   module_out_path = module_output_path
   sources = [ "rs_render_service_stub_test.cpp" ]
   deps = [ ":rs_test_common" ]
-  external_deps = []
+  external_deps = [ "samgr:samgr_proxy" ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
   }
@@ -104,6 +101,7 @@ config("rs_test_common_public_config") {
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/config",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/frame_rate_manager",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/hgm_screen_manager",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/soft_vsync_manager",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/utils",
     "$graphic_2d_root/rosen/modules/render_service/core",
     "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg",
@@ -117,11 +115,6 @@ config("rs_test_common_public_config") {
     "$graphic_2d_root/rosen/modules/render_service_base/include",
     "$graphic_2d_root/rosen/modules/render_service_base/src",
     "$graphic_2d_root/rosen/test/include",
-    "$memmgr_plugin_root/interface/innerkits/include",
-    "$memmgr_plugin_root/services/memmgrservice/include/memory_level_manager",
-    "$memmgr_root/interface/innerkits/include",
-    "$memmgr_root/services/memmgrservice/include/memory_level_manager",
-    "//foundation/barrierfree/accessibility/interfaces/innerkits/acfwk/include",
     "$graphic_2d_root/rosen/modules/render_service_base/include/platform/ohos/",
     "$graphic_2d_root/rosen/test/render_service/render_service/unittest/pipeline/mock",
   ]
@@ -144,6 +137,7 @@ ohos_unittest("RSUnmarshalThreadTest") {
     "c_utils:utils",
     "ffrt:libffrt",
     "hilog:libhilog",
+    "samgr:samgr_proxy",
   ]
   defines = []
   defines += gpu_defines
@@ -153,9 +147,10 @@ ohos_unittest("RSUnmarshalThreadTest") {
   if (defined(use_video_processing_engine) && use_video_processing_engine) {
     include_dirs = []
     defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
-    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
-    external_deps +=
-        [ "drivers_interface_display:libdisplay_commontype_proxy_1.0" ]
+    external_deps += [
+      "drivers_interface_display:libdisplay_commontype_proxy_1.0",
+      "video_processing_engine:videoprocessingengine",
+    ]
   }
 }
 
@@ -172,7 +167,6 @@ ohos_static_library("rs_test_common") {
     "$graphic_2d_root/rosen/modules/render_service:librender_service",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
     "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
-    "//third_party/googletest:gtest_main",
   ]
 
   public_external_deps = [
@@ -182,6 +176,10 @@ ohos_static_library("rs_test_common") {
     "init:libbegetutil",
     "ipc:ipc_core",
   ]
+
+  if (use_memmgr_plugin || use_memmgr) {
+    public_external_deps += [ "memmgr:memmgrclient" ]
+  }
 
   subsystem_name = "graphic"
   part_name = "graphic_2d"

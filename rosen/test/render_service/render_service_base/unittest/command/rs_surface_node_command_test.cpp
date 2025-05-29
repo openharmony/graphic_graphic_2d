@@ -48,7 +48,6 @@ HWTEST_F(RSSurfaceNodeCommandTest, TestRSSurfaceNodeCommand002, TestSize.Level1)
     RSContext context;
     NodeId id = static_cast<NodeId>(-1);
     SurfaceNodeCommandHelper::ConnectToNodeInRenderService(context, id);
-    ASSERT_EQ(id, static_cast<NodeId>(-1));
     NodeId id2 = 10;
     auto context2 = std::make_shared<RSContext>();
     SurfaceNodeCommandHelper::Create(*context2, id2);
@@ -67,7 +66,6 @@ HWTEST_F(RSSurfaceNodeCommandTest, TestRSSurfaceNodeCommand003, TestSize.Level1)
     NodeId id = static_cast<NodeId>(-1);
     Drawing::Rect clipRect;
     SurfaceNodeCommandHelper::SetContextClipRegion(context, id, clipRect);
-    ASSERT_EQ(id, static_cast<NodeId>(-1));
     NodeId id2 = 10;
     auto context2 = std::make_shared<RSContext>();
     SurfaceNodeCommandHelper::Create(*context2, id2);
@@ -130,7 +128,6 @@ HWTEST_F(RSSurfaceNodeCommandTest, TestRSSurfaceNodeCommand004, TestSize.Level1)
     NodeId id = static_cast<NodeId>(-1);
     bool isSecurityLayer = false;
     SurfaceNodeCommandHelper::SetSecurityLayer(context, id, isSecurityLayer);
-    ASSERT_EQ(id, static_cast<NodeId>(-1));
     NodeId id2 = 10;
     auto context2 = std::make_shared<RSContext>();
     SurfaceNodeCommandHelper::Create(*context2, id2);
@@ -149,7 +146,6 @@ HWTEST_F(RSSurfaceNodeCommandTest, TestRSSurfaceNodeCommand005, TestSize.Level1)
     NodeId id = static_cast<NodeId>(-1);
     GraphicColorGamut colorSpace = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_INVALID;
     SurfaceNodeCommandHelper::SetColorSpace(context, id, colorSpace);
-    ASSERT_EQ(id, static_cast<NodeId>(-1));
     NodeId id2 = 10;
     auto context2 = std::make_shared<RSContext>();
     SurfaceNodeCommandHelper::Create(*context2, id2);
@@ -169,7 +165,6 @@ HWTEST_F(RSSurfaceNodeCommandTest, TestRSSurfaceNodeCommand006, TestSize.Level1)
     float width = 0;
     float height = 0;
     SurfaceNodeCommandHelper::UpdateSurfaceDefaultSize(context, id, width, height);
-    ASSERT_EQ(id, static_cast<NodeId>(-1));
     NodeId id2 = 10;
     auto context2 = std::make_shared<RSContext>();
     SurfaceNodeCommandHelper::Create(*context2, id2);
@@ -187,7 +182,6 @@ HWTEST_F(RSSurfaceNodeCommandTest, TestRSSurfaceNodeCommand007, TestSize.Level1)
     RSContext context;
     NodeId id = static_cast<NodeId>(-1);
     SurfaceNodeCommandHelper::ConnectToNodeInRenderService(context, id);
-    ASSERT_EQ(id, static_cast<NodeId>(-1));
     NodeId id2 = 10;
     auto context2 = std::make_shared<RSContext>();
     SurfaceNodeCommandHelper::Create(*context2, id2);
@@ -205,7 +199,6 @@ HWTEST_F(RSSurfaceNodeCommandTest, TestRSSurfaceNodeCommand008, TestSize.Level1)
     RSContext context;
     NodeId id = static_cast<NodeId>(-1);
     SurfaceNodeCommandHelper::SetCallbackForRenderThreadRefresh(context, id, true);
-    ASSERT_EQ(id, static_cast<NodeId>(-1));
     NodeId id2 = 10;
     auto context2 = std::make_shared<RSContext>();
     SurfaceNodeCommandHelper::Create(*context2, id2);
@@ -224,7 +217,6 @@ HWTEST_F(RSSurfaceNodeCommandTest, TestRSSurfaceNodeCommand009, TestSize.Level1)
     NodeId id = static_cast<NodeId>(-1);
     Vector4f bounds;
     SurfaceNodeCommandHelper::SetContextBounds(context, id, bounds);
-    ASSERT_EQ(id, static_cast<NodeId>(-1));
     NodeId id2 = 10;
     auto context2 = std::make_shared<RSContext>();
     SurfaceNodeCommandHelper::Create(*context2, id2);
@@ -243,7 +235,6 @@ HWTEST_F(RSSurfaceNodeCommandTest, TestRSSurfaceNodeCommand010, TestSize.Level1)
     NodeId id = static_cast<NodeId>(-1);
     uint8_t alpha = static_cast<uint8_t>(0);
     SurfaceNodeCommandHelper::SetAbilityBGAlpha(context, id, alpha);
-    ASSERT_EQ(id, static_cast<NodeId>(-1));
     NodeId id2 = 10;
     auto context2 = std::make_shared<RSContext>();
     SurfaceNodeCommandHelper::Create(*context2, id2);
@@ -361,9 +352,8 @@ HWTEST_F(RSSurfaceNodeCommandTest, FingerprintTest001, TestSize.Level1)
     NodeId id = static_cast<NodeId>(-1);
     SurfaceNodeCommandHelper::SetFingerprint(context, id, true);
     SurfaceNodeCommandHelper::SetFingerprint(context, id, false);
-    ASSERT_EQ(id, static_cast<NodeId>(-1));
 
-    NodeId id2 = static_cast<NodeId>(1);
+    NodeId id2 = 1;
     SurfaceNodeCommandHelper::Create(context, id2);
     SurfaceNodeCommandHelper::SetFingerprint(context, id2, true);
     ASSERT_EQ(id2, static_cast<NodeId>(1));
@@ -380,7 +370,6 @@ HWTEST_F(RSSurfaceNodeCommandTest, SetSkipLayerTest001, TestSize.Level1)
     NodeId id = static_cast<NodeId>(-1);
     bool isSkipLayer = false;
     SurfaceNodeCommandHelper::SetSkipLayer(context, id, isSkipLayer);
-    ASSERT_EQ(id, static_cast<NodeId>(-1));
     NodeId id2 = 10;
     SurfaceNodeCommandHelper::Create(context, id2);
     SurfaceNodeCommandHelper::SetSkipLayer(context, id2, isSkipLayer);
@@ -398,7 +387,6 @@ HWTEST_F(RSSurfaceNodeCommandTest, SetSnapshotSkipLayerTest001, TestSize.Level1)
     NodeId id = static_cast<NodeId>(-1);
     bool isSnapshotSkipLayer = false;
     SurfaceNodeCommandHelper::SetSnapshotSkipLayer(context, id, isSnapshotSkipLayer);
-    ASSERT_EQ(id, static_cast<NodeId>(-1));
     NodeId id2 = 10;
     SurfaceNodeCommandHelper::Create(context, id2);
     SurfaceNodeCommandHelper::SetSnapshotSkipLayer(context, id2, isSnapshotSkipLayer);
@@ -416,7 +404,6 @@ HWTEST_F(RSSurfaceNodeCommandTest, SetBootAnimation001, TestSize.Level1)
     RSContext context;
     NodeId id = static_cast<NodeId>(-1);
     SurfaceNodeCommandHelper::SetBootAnimation(context, id, false);
-    ASSERT_EQ(id, static_cast<NodeId>(-1));
     NodeId id2 = 10;
     SurfaceNodeCommandHelper::Create(context, id2);
     SurfaceNodeCommandHelper::SetBootAnimation(context, id2, true);
@@ -434,7 +421,6 @@ HWTEST_F(RSSurfaceNodeCommandTest, SetGlobalPositionEnabled001, TestSize.Level1)
     RSContext context;
     NodeId id = static_cast<NodeId>(-1);
     SurfaceNodeCommandHelper::SetGlobalPositionEnabled(context, id, false);
-    ASSERT_EQ(id, static_cast<NodeId>(-1));
     NodeId id2 = 10;
     SurfaceNodeCommandHelper::Create(context, id2);
     SurfaceNodeCommandHelper::SetGlobalPositionEnabled(context, id2, true);
@@ -593,17 +579,7 @@ HWTEST_F(RSSurfaceNodeCommandTest, CreateWithConfigTest, TestSize.Level1)
     std::string name = "name";             // for test
     enum SurfaceWindowType windowType = SurfaceWindowType::DEFAULT_WINDOW;
     SurfaceNodeCommandHelper::CreateWithConfig(context, 1, name, 1, windowType);
-    EXPECT_TRUE([&context]() -> bool {
-        auto& renderNodemap = context.GetMutableNodeMap().renderNodeMap_;
-        auto iter = renderNodemap.find(ExtractPid(1));
-        if (iter != renderNodemap.end()) {
-            auto& submap = iter->second;
-            if (submap.find(1) != submap.end()) {
-                return true;
-            }
-        }
-        return false;
-    }());
+    EXPECT_TRUE(context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(1) != nullptr);
 }
 
 /**
@@ -757,6 +733,37 @@ HWTEST_F(RSSurfaceNodeCommandTest, DetachFromWindowContainer, TestSize.Level1)
     ScreenId screenId = {};
     SurfaceNodeCommandHelper::Create(context, nodeId);
     SurfaceNodeCommandHelper::DetachFromWindowContainer(context, nodeId, screenId);
+    EXPECT_TRUE(context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId) != nullptr);
+}
+
+/**
+ * @tc.name: SetRegionToBeMagnified
+ * @tc.desc: Verify function SetRegionToBeMagnified
+ * @tc.type:FUNC
+ * @tc.require: issueIBIK1X
+ */
+HWTEST_F(RSSurfaceNodeCommandTest, SetRegionToBeMagnified, TestSize.Level1)
+{
+    RSContext context;
+    NodeId nodeId = 1;
+    Vector4f regionToBeMagnified = {0.0, 0.0, 200.0, 200.0};
+    SurfaceNodeCommandHelper::Create(context, nodeId);
+    SurfaceNodeCommandHelper::SetRegionToBeMagnified(context, nodeId, regionToBeMagnified);
+    EXPECT_TRUE(context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId) != nullptr);
+}
+
+/**
+ * @tc.name: SetFrameGravityNewVersionEnabledTest
+ * @tc.desc: Verify function SetFrameGravityNewVersionEnabled
+ * @tc.type: FUNC
+ * @tc.require: issueIC8CDF
+ */
+HWTEST_F(RSSurfaceNodeCommandTest, SetFrameGravityNewVersionEnabledTest, TestSize.Level1)
+{
+    RSContext context;
+    NodeId nodeId = 1;
+    SurfaceNodeCommandHelper::Create(context, nodeId);
+    SurfaceNodeCommandHelper::SetFrameGravityNewVersionEnabled(context, nodeId, true);
     EXPECT_TRUE(context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId) != nullptr);
 }
 } // namespace OHOS::Rosen

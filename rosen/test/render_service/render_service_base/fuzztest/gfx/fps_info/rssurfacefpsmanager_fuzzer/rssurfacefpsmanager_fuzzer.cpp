@@ -84,28 +84,50 @@ bool RSSurfaceFpsManagerFuzzTest(const uint8_t* data, size_t size)
     g_pos = 0;
 
     // getdata
-    std::string result = GetStringFromData(STR_LEN);
-    std::string name = GetStringFromData(STR_LEN);
-    std::string uname = GetStringFromData(STR_LEN);
-    NodeId id = GetData<NodeId>();
-    NodeId uid = GetData<NodeId>();
+    std::string result0 = GetStringFromData(STR_LEN);
+    std::string result1 = GetStringFromData(STR_LEN);
+    std::string result2 = GetStringFromData(STR_LEN);
+    std::string result3 = GetStringFromData(STR_LEN);
+    std::string result4 = GetStringFromData(STR_LEN);
+    std::string result5 = GetStringFromData(STR_LEN);
+    std::string result6 = GetStringFromData(STR_LEN);
+    std::string result7 = GetStringFromData(STR_LEN);
+    std::string name0 = GetStringFromData(STR_LEN);
+    std::string name1 = GetStringFromData(STR_LEN);
+    std::string name2 = GetStringFromData(STR_LEN);
+    std::string name3 = GetStringFromData(STR_LEN);
+    std::string option0 = GetStringFromData(STR_LEN);
+    std::string option1 = GetStringFromData(STR_LEN);
+    std::string arg0 = GetStringFromData(STR_LEN);
+    std::string arg1 = GetStringFromData(STR_LEN);
+    NodeId id0 = GetData<NodeId>();
+    NodeId id1 = GetData<NodeId>();
+    NodeId id2 = GetData<NodeId>();
+    NodeId id3 = GetData<NodeId>();
+    NodeId id4 = GetData<NodeId>();
+    NodeId id5 = GetData<NodeId>();
+    pid_t pid0 = GetData<pid_t>();
+    pid_t pid1 = GetData<pid_t>();
+    pid_t pid2 = GetData<pid_t>();
     uint64_t timestamp = GetData<uint64_t>();
     uint32_t seqNum = GetData<uint32_t>();
+    bool isUnique = GetData<bool>();
 
     RSSurfaceFpsManager& surfaceFpsManager = RSSurfaceFpsManager::GetInstance();
-    surfaceFpsManager.RegisterSurfaceFps(id, name);
-    surfaceFpsManager.RegisterSurfaceFps(id, name);
-    surfaceFpsManager.RecordPresentTime(id, timestamp, seqNum);
-    surfaceFpsManager.RecordPresentTime(uid, timestamp, seqNum);
-    surfaceFpsManager.Dump(result, id);
-    surfaceFpsManager.Dump(result, uid);
-    surfaceFpsManager.ClearDump(result, id);
-    surfaceFpsManager.ClearDump(result, uid);
-    surfaceFpsManager.GetSurfaceFps(id);
-    surfaceFpsManager.GetSurfaceFps(uid);
-    surfaceFpsManager.UnregisterSurfaceFps(id);
-    surfaceFpsManager.UnregisterSurfaceFps(uid);
-
+    surfaceFpsManager.RegisterSurfaceFps(id0, name0);
+    surfaceFpsManager.RecordPresentTime(id1, timestamp, seqNum);
+    surfaceFpsManager.GetSurfaceFps(id2);
+    surfaceFpsManager.GetSurfaceFps(name1, isUnique);
+    surfaceFpsManager.GetSurfaceFpsByPid(pid0);
+    surfaceFpsManager.Dump(result0, id3);
+    surfaceFpsManager.ClearDump(result1, id4);
+    surfaceFpsManager.Dump(result2, name2);
+    surfaceFpsManager.ClearDump(result3, name3);
+    surfaceFpsManager.DumpByPid(result4, pid1);
+    surfaceFpsManager.ClearDumpByPid(result5, pid2);
+    surfaceFpsManager.DumpSurfaceNodeFps(result6, option0, arg0);
+    surfaceFpsManager.ClearSurfaceNodeFps(result7, option1, arg1);
+    surfaceFpsManager.UnregisterSurfaceFps(id5);
     return true;
 }
 

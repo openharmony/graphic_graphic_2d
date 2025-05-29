@@ -63,6 +63,7 @@ public:
     // RSSurfaceNodeCommand params
     static RSSurfaceNodeType GetRandomRSSurfaceNodeType();
     static SurfaceWindowType GetRandomSurfaceWindowType();
+    static Drawing::Rect GetRandomDrawingRect();
     static std::optional<Drawing::Rect> GetRandomOptionalDrawingRect();
     static Vector2f GetRandomVector2f();
     static Vector3f GetRandomVector3f();

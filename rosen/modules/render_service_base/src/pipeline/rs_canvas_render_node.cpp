@@ -25,6 +25,7 @@
 #include "memory/rs_tag_tracker.h"
 #include "params/rs_render_params.h"
 #include "pipeline/rs_paint_filter_canvas.h"
+#include "pipeline/rs_surface_render_node.h"
 #include "property/rs_properties_painter.h"
 #include "render/rs_blur_filter.h"
 #include "render/rs_light_up_effect_filter.h"
@@ -105,6 +106,11 @@ void RSCanvasRenderNode::OnTreeStateChanged()
         AddToPendingSyncList();
     }
     RSRenderNode::OnTreeStateChanged();
+
+    // When the P3 canvasNode is up or down the tree, it transmits color gamut information to appWindow node.
+    if (GetIsWideColorGamut()) {
+        ModifyWideWindowColorGamutNum(IsOnTheTree());
+    }
 }
 
 bool RSCanvasRenderNode::OpincGetNodeSupportFlag()
@@ -116,7 +122,7 @@ bool RSCanvasRenderNode::OpincGetNodeSupportFlag()
         property.NeedFilter() ||
         property.GetUseEffect() ||
         property.GetColorBlend().has_value() ||
-        IsSelfDrawingNode()) {
+        (IsSelfDrawingNode() && GetOpincCache().OpincGetRootFlag())) {
         return false;
     }
     return true && RSRenderNode::OpincGetNodeSupportFlag();
@@ -282,7 +288,7 @@ void RSCanvasRenderNode::SetHDRPresent(bool hasHdrPresent)
         return;
     }
     if (IsOnTheTree()) {
-        SetHdrNum(hasHdrPresent, GetInstanceRootNodeId());
+        SetHdrNum(hasHdrPresent, GetInstanceRootNodeId(), HDRComponentType::IMAGE);
     }
     hasHdrPresent_ = hasHdrPresent;
 }
@@ -290,6 +296,38 @@ void RSCanvasRenderNode::SetHDRPresent(bool hasHdrPresent)
 bool RSCanvasRenderNode::GetHDRPresent() const
 {
     return hasHdrPresent_;
+}
+
+void RSCanvasRenderNode::SetIsWideColorGamut(bool isWideColorGamut)
+{
+    if (isWideColorGamut_ == isWideColorGamut) {
+        return;
+    }
+    if (IsOnTheTree()) {
+        ModifyWideWindowColorGamutNum(isWideColorGamut_);
+    }
+    isWideColorGamut_ = isWideColorGamut;
+}
+
+bool RSCanvasRenderNode::GetIsWideColorGamut() const
+{
+    return isWideColorGamut_;
+}
+
+void RSCanvasRenderNode::ModifyWideWindowColorGamutNum(bool flag)
+{
+    auto parentInstance = GetInstanceRootNode();
+    if (!parentInstance) {
+        RS_LOGE("RSCanvasRenderNode::ModifyWideWindowColorGamutNum get instanceRootNode failed.");
+        return;
+    }
+    if (auto parentSurface = parentInstance->ReinterpretCastTo<RSSurfaceRenderNode>()) {
+        if (flag) {
+            parentSurface->IncreaseWideColorGamutNum();
+        } else {
+            parentSurface->ReduceWideColorGamutNum();
+        }
+    }
 }
 
 // [Attention] Only used in PC window resize scene now

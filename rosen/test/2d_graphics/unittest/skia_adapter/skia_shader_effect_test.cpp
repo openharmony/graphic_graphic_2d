@@ -119,6 +119,28 @@ HWTEST_F(SkiaShaderEffectTest, InitWithLinearGradient001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: InitWithLinearGradient002
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.author:
+ */
+HWTEST_F(SkiaShaderEffectTest, InitWithLinearGradient002, TestSize.Level1)
+{
+    Point startPt;
+    Point endPt;
+    std::vector<Color4f> color;
+    color.push_back({0.1, 0.1, 0.1, 1.0f});
+    std::vector<scalar> pos { 30.0f };
+    std::shared_ptr<ColorSpace> colorSpace = std::make_shared<ColorSpace>();
+    SkiaShaderEffect skiaShaderEffect;
+    skiaShaderEffect.InitWithLinearGradient(startPt, endPt, color, colorSpace, pos, TileMode::MIRROR, nullptr);
+    EXPECT_TRUE(skiaShaderEffect.GetShader() != nullptr);
+    SkiaShaderEffect skiaShaderEffect2;
+    skiaShaderEffect2.InitWithLinearGradient(startPt, endPt, color, nullptr, pos, TileMode::MIRROR, nullptr);
+    EXPECT_TRUE(skiaShaderEffect2.GetShader() != nullptr);
+}
+
+/**
  * @tc.name: InitWithRadialGradient001
  * @tc.desc:
  * @tc.type: FUNC
@@ -134,6 +156,28 @@ HWTEST_F(SkiaShaderEffectTest, InitWithRadialGradient001, TestSize.Level1)
     SkiaShaderEffect skiaShaderEffect;
     skiaShaderEffect.InitWithRadialGradient(centerPt, radius, color, pos, TileMode::REPEAT, nullptr);
     EXPECT_TRUE(skiaShaderEffect.GetShader() != nullptr);
+}
+
+/**
+ * @tc.name: InitWithRadialGradient002
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.author:
+ */
+HWTEST_F(SkiaShaderEffectTest, InitWithRadialGradient002, TestSize.Level1)
+{
+    Point centerPt;
+    scalar radius = 15.0f;
+    std::vector<Color4f> color;
+    color.push_back({0.1, 0.1, 0.1, 1.0f});
+    std::vector<scalar> pos { 16.0f };
+    std::shared_ptr<ColorSpace> colorSpace = std::make_shared<ColorSpace>();
+    SkiaShaderEffect skiaShaderEffect;
+    skiaShaderEffect.InitWithRadialGradient(centerPt, radius, color, colorSpace, pos, TileMode::REPEAT, nullptr);
+    EXPECT_TRUE(skiaShaderEffect.GetShader() != nullptr);
+    SkiaShaderEffect skiaShaderEffect2;
+    skiaShaderEffect2.InitWithRadialGradient(centerPt, radius, color, nullptr, pos, TileMode::REPEAT, nullptr);
+    EXPECT_TRUE(skiaShaderEffect2.GetShader() != nullptr);
 }
 
 /**
@@ -159,6 +203,33 @@ HWTEST_F(SkiaShaderEffectTest, InitWithTwoPointConical001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: InitWithTwoPointConical002
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.author:
+ */
+HWTEST_F(SkiaShaderEffectTest, InitWithTwoPointConical002, TestSize.Level1)
+{
+    Point startPt;
+    scalar startRadius = 10.0f;
+    Point endPt;
+    scalar endRadius = 25.0f;
+    std::vector<Color4f> color;
+    color.push_back({0.1, 0.1, 0.1, 1.0f});
+    std::vector<scalar> pos { 30.0f };
+    SkiaShaderEffect skiaShaderEffect;
+    std::shared_ptr<ColorSpace> colorSpace = std::make_shared<ColorSpace>();
+    Matrix matrix;
+    skiaShaderEffect.InitWithTwoPointConical(startPt, startRadius, endPt, endRadius, color, colorSpace, pos, TileMode::CLAMP,
+        &matrix);
+    EXPECT_TRUE(skiaShaderEffect.GetShader() != nullptr);
+    SkiaShaderEffect skiaShaderEffect2;
+    skiaShaderEffect2.InitWithTwoPointConical(startPt, startRadius, endPt, endRadius, color, nullptr, pos, TileMode::CLAMP,
+        &matrix);
+    EXPECT_TRUE(skiaShaderEffect2.GetShader() != nullptr);
+}
+
+/**
  * @tc.name: InitWithSweepGradient001
  * @tc.desc:
  * @tc.type: FUNC
@@ -174,6 +245,43 @@ HWTEST_F(SkiaShaderEffectTest, InitWithSweepGradient001, TestSize.Level1)
     scalar endAngle = 60.0f;
     SkiaShaderEffect skiaShaderEffect;
     skiaShaderEffect.InitWithSweepGradient(centerPt, color, pos, TileMode::MIRROR, startAngle, endAngle, nullptr);
+    EXPECT_TRUE(skiaShaderEffect.GetShader() != nullptr);
+}
+
+/**
+ * @tc.name: InitWithSweepGradient002
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.author:
+ */
+HWTEST_F(SkiaShaderEffectTest, InitWithSweepGradient002, TestSize.Level1)
+{
+    Point centerPt;
+    std::vector<Color4f> color;
+    color.push_back({0.1, 0.1, 0.1, 1.0f});
+    std::vector<scalar> pos { 30.0f };
+    scalar startAngle = 45.0f;
+    scalar endAngle = 60.0f;
+    SkiaShaderEffect skiaShaderEffect;
+    std::shared_ptr<ColorSpace> colorSpace = std::make_shared<ColorSpace>();
+    skiaShaderEffect.InitWithSweepGradient(centerPt, color, colorSpace, pos, TileMode::MIRROR, startAngle, endAngle, nullptr);
+    EXPECT_TRUE(skiaShaderEffect.GetShader() != nullptr);
+    SkiaShaderEffect skiaShaderEffect2;
+    skiaShaderEffect2.InitWithSweepGradient(centerPt, color, nullptr, pos, TileMode::MIRROR, startAngle, endAngle, nullptr);
+    EXPECT_TRUE(skiaShaderEffect2.GetShader() != nullptr);
+}
+
+/**
+ * @tc.name: InitWithLightUp001
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.author:
+ */
+HWTEST_F(SkiaShaderEffectTest, InitWithLightUp001, TestSize.Level1)
+{
+    const std::shared_ptr<Drawing::ShaderEffect> imageShader = std::make_shared<Drawing::ShaderEffect>();
+    SkiaShaderEffect skiaShaderEffect;
+    skiaShaderEffect.InitWithLightUp(1.0f, *imageShader);
     EXPECT_TRUE(skiaShaderEffect.GetShader() != nullptr);
 }
 

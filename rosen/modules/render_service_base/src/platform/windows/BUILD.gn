@@ -14,7 +14,7 @@
 import("//build/ohos.gni")
 import("//foundation/graphic/graphic_2d/ace_platforms.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
-import("../../../config.gni")
+import("//foundation/graphic/graphic_2d/rosen/modules/render_service_base/config.gni")
 
 ohos_source_set("windows") {
   branch_protector_ret = "pac_ret"

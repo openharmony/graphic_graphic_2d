@@ -1,0 +1,110 @@
+# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+import("//foundation/graphic/graphic_2d/frameworks/text/config.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
+
+## Build libtexgine.so {{{
+config("libtexgine_config") {
+  visibility = [ ":*" ]
+
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-std=c++17",
+  ]
+
+  include_dirs = [ "$rosen_text_root" ]
+}
+
+if (defined(is_arkui_x) && is_arkui_x) {
+  config("libtexgine_public_config") {
+    include_dirs = [
+      "//third_party/icu/icu4c/source/common",
+      "$graphic_2d_root/rosen/modules/render_service_base/include",
+      "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing/engine_adapter",
+      "$graphic_2d_root/rosen/modules/2d_graphics/include",
+      "$graphic_2d_root/rosen/modules/2d_graphics/src",
+      "$rosen_text_root/interface/export/rosen_text",
+    ]
+  }
+} else {
+  config("libtexgine_public_config") {
+    include_dirs = [
+      "$graphic_2d_root/rosen/modules/render_service_base/include",
+      "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing/engine_adapter",
+      "$graphic_2d_root/rosen/modules/2d_graphics/include",
+      "$graphic_2d_root/rosen/modules/2d_graphics/src",
+      "$rosen_text_root/interface/export/rosen_text",
+    ]
+  }
+}
+
+ohos_source_set("libtexgine_source") {
+  sources = [
+    "src/font_config.cpp",
+    "src/font_descriptor_cache.cpp",
+    "src/font_descriptor_mgr.cpp",
+    "src/font_parser.cpp",
+    "src/opentype_parser/opentype_basic_type.cpp",
+  ]
+
+  configs = [
+    ":libtexgine_config",
+    "//build/config/compiler:exceptions",
+    "//build/config/compiler:rtti",
+  ]
+
+  public_configs = [ ":libtexgine_public_config" ]
+
+  public_deps = []
+  defines = []
+
+  if (rs_enable_gpu) {
+    defines += [ "RS_ENABLE_GPU" ]
+  }
+  if (is_arkui_x) {
+    public_deps += [
+      "//third_party/jsoncpp:jsoncpp_static",
+      "//third_party/skia:skia_$platform",
+    ]
+    deps = [
+      "//third_party/bounds_checking_function:libsec_static",
+      "//third_party/cJSON:cjson_static",
+    ]
+  } else {
+    external_deps = [
+      "bounds_checking_function:libsec_shared",
+      "cJSON:cjson",
+      "skia:skia_canvaskit",
+    ]
+  }
+
+  if (platform_is_ohos) {
+    defines += [
+      "BUILD_NON_SDK_VER",
+      "ENABLE_OHOS_ENHANCE",
+    ]
+
+    external_deps += [
+      "c_utils:utils",
+      "hilog:libhilog",
+      "hitrace:hitrace_meter",
+      "icu:shared_icuuc",
+    ]
+  }
+
+  part_name = "graphic_2d"
+  subsystem_name = "graphic"
+}

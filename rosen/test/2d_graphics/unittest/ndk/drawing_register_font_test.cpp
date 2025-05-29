@@ -93,4 +93,37 @@ HWTEST_F(NativeDrawingRegisterFontTest, NativeDrawingRegisterFontTest003, TestSi
     EXPECT_EQ(result, nullFontCollection);
     OH_Drawing_DestroyFontCollection(fontCollection);
 }
+
+/*
+ * @tc.name: NativeDrawingRegisterFontTest004
+ * @tc.desc: test for ohosthemefont
+ * @tc.type: FUNC
+ */
+HWTEST_F(NativeDrawingRegisterFontTest, NativeDrawingRegisterFontTest004, TestSize.Level1)
+{
+    const uint32_t fileCorruption = 9;
+
+    OH_Drawing_FontCollection* fontCollection = OH_Drawing_CreateFontCollection();
+    uint32_t result = OH_Drawing_RegisterFont(fontCollection, "ohosthemefont", existFontPath_);
+    EXPECT_EQ(result, fileCorruption);
+
+    OH_Drawing_DestroyFontCollection(fontCollection);
+}
+
+/*
+ * @tc.name: NativeDrawingRegisterFontTest005
+ * @tc.desc: test for same ttf with different family name
+ * @tc.type: FUNC
+ */
+HWTEST_F(NativeDrawingRegisterFontTest, NativeDrawingRegisterFontTest005, TestSize.Level1)
+{
+    OH_Drawing_FontCollection* fontCollection = OH_Drawing_CreateFontCollection();
+    uint32_t result = OH_Drawing_RegisterFont(fontCollection, "test1", existFontPath_);
+    EXPECT_EQ(result, 0);
+    result = OH_Drawing_RegisterFont(fontCollection, "test2", existFontPath_);
+    EXPECT_EQ(result, 0);
+
+    OH_Drawing_DestroyFontCollection(fontCollection);
+}
+
 } // namespace OHOS

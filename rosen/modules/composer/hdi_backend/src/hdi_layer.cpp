@@ -26,6 +26,7 @@ constexpr float THIRTY_THREE_INTERVAL_IN_MS = 33.f;
 constexpr float SIXTEEN_INTERVAL_IN_MS = 16.67f;
 constexpr float FPS_TO_MS = 1000000.f;
 constexpr size_t MATRIX_SIZE = 9;
+static const std::vector<float> DEFAULT_MATRIX = { 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f };
 const std::string GENERIC_METADATA_KEY_SDR_NIT = "SDRBrightnessNit";
 const std::string GENERIC_METADATA_KEY_SDR_RATIO = "SDRBrightnessRatio";
 const std::string GENERIC_METADATA_KEY_BRIGHTNESS_NIT = "BrightnessNit";
@@ -498,6 +499,38 @@ int32_t HdiLayer::SetLayerTunnelHandle()
     return ret;
 }
 
+int32_t HdiLayer::SetTunnelLayerId()
+{
+    if (prevLayerInfo_ != nullptr) {
+        if (layerInfo_->GetTunnelLayerId() == prevLayerInfo_->GetTunnelLayerId()) {
+            return GRAPHIC_DISPLAY_SUCCESS;
+        }
+    }
+ 
+    int32_t ret = device_->SetTunnelLayerId(screenId_, layerId_, layerInfo_->GetTunnelLayerId());
+    if (ret != GRAPHIC_DISPLAY_SUCCESS) {
+        return ret;
+    }
+
+    return GRAPHIC_DISPLAY_SUCCESS;
+}
+
+int32_t HdiLayer::SetTunnelLayerProperty()
+{
+    if (prevLayerInfo_ != nullptr) {
+        if (layerInfo_->GetTunnelLayerProperty() == prevLayerInfo_->GetTunnelLayerProperty()) {
+            return GRAPHIC_DISPLAY_SUCCESS;
+        }
+    }
+
+    int32_t ret = device_->SetTunnelLayerProperty(screenId_, layerId_, layerInfo_->GetTunnelLayerProperty());
+    if (ret != GRAPHIC_DISPLAY_SUCCESS) {
+        return ret;
+    }
+
+    return GRAPHIC_DISPLAY_SUCCESS;
+}
+
 int32_t HdiLayer::SetLayerPresentTimestamp()
 {
     if (supportedPresentTimestamptype_ == GraphicPresentTimestampType::GRAPHIC_DISPLAY_PTS_UNSUPPORTED) {
@@ -523,7 +556,7 @@ int32_t HdiLayer::SetLayerMaskInfo()
     return device_->SetLayerMaskInfo(screenId_, layerId_, static_cast<uint32_t>(layerInfo_->GetLayerMaskInfo()));
 }
 
-int32_t HdiLayer::SetHdiLayerInfo()
+int32_t HdiLayer::SetHdiLayerInfo(bool isActiveRectSwitching)
 {
     /*
         Some hardware platforms may not support all layer settings.
@@ -537,7 +570,8 @@ int32_t HdiLayer::SetHdiLayerInfo()
     // All layer properities need to set to hwc when the layer is created firstly or the previous layer's composition
     // type is COMPOSITION_DEVICE for COMPOSITION_DEVICE can not reuse COMPOSITION_CLIENT layers info.
     doLayerInfoCompare_ = prevLayerInfo_ != nullptr &&
-                          prevLayerInfo_->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE;
+                          prevLayerInfo_->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE &&
+                          !isActiveRectSwitching;
 
     ret = SetLayerAlpha();
     CheckRet(ret, "SetLayerAlpha");
@@ -806,6 +840,13 @@ int32_t HdiLayer::SetPerFrameParameters()
             CheckRet(ret, "SetLayerSourceTuning");
         }
     }
+
+    if (layerInfo_->GetTunnelLayerId() && layerInfo_->GetTunnelLayerProperty()) {
+        ret = SetTunnelLayerId();
+        CheckRet(ret, "SetTunnelLayerId");
+        ret = SetTunnelLayerProperty();
+        CheckRet(ret, "SetTunnelLayerProperty");
+    }
     return ret;
 }
 
@@ -855,6 +896,10 @@ int32_t HdiLayer::SetPerFrameLayerLinearMatrix()
 {
     if (prevLayerInfo_ != nullptr) {
         if (layerInfo_->GetLayerLinearMatrix() == prevLayerInfo_->GetLayerLinearMatrix()) {
+            return GRAPHIC_DISPLAY_SUCCESS;
+        }
+    } else {
+        if (layerInfo_->GetLayerLinearMatrix().empty() || layerInfo_->GetLayerLinearMatrix() == DEFAULT_MATRIX) {
             return GRAPHIC_DISPLAY_SUCCESS;
         }
     }

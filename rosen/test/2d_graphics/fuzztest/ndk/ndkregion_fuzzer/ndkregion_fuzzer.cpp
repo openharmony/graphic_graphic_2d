@@ -19,8 +19,6 @@
 #include <cstdint>
 
 #include "get_object.h"
-#include "rosen_text/typography.h"
-#include "rosen_text/typography_create.h"
 
 #include "drawing_path.h"
 #include "drawing_rect.h"
@@ -52,6 +50,7 @@ void NativeDrawingRegionTest001(const uint8_t* data, size_t size)
     OH_Drawing_RegionContains(region, x, y);
 
     OH_Drawing_Region* dst = OH_Drawing_RegionCreate();
+    OH_Drawing_Region* region2 = OH_Drawing_RegionCopy(dst);
     uint32_t op = GetObject<uint32_t>();
     OH_Drawing_RegionOp(nullptr, dst, static_cast<OH_Drawing_RegionOpMode>(op % OPMODE_SIZE));
     OH_Drawing_RegionOp(region, dst, static_cast<OH_Drawing_RegionOpMode>(op % OPMODE_SIZE));
@@ -70,6 +69,7 @@ void NativeDrawingRegionTest001(const uint8_t* data, size_t size)
 
     OH_Drawing_RegionDestroy(region);
     OH_Drawing_RegionDestroy(dst);
+    OH_Drawing_RegionDestroy(region2);
     OH_Drawing_RectDestroy(rect);
     OH_Drawing_PathDestroy(path);
     OH_Drawing_RegionDestroy(nullptr);

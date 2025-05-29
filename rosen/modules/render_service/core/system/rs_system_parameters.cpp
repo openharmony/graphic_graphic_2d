@@ -238,6 +238,12 @@ bool RSSystemParameters::GetArsrPreEnabled()
     return flag;
 }
 
+bool RSSystemParameters::GetIsCopybitSupported()
+{
+    static bool flag = system::GetBoolParameter("const.display.support_copybit", false);
+    return flag;
+}
+
 bool RSSystemParameters::GetMultimediaEnableCameraRotationCompensation()
 {
     static bool flag = system::GetBoolParameter("const.multimedia.enable_camera_rotation_compensation", 0);

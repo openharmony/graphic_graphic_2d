@@ -32,7 +32,7 @@ int32_t MEMParamParse::ParseFeatureParam(FeatureParamMapType &featureMap, xmlNod
             continue;
         }
 
-        if (ParseMemInternal(featureMap, *currNode) != PARSE_EXEC_SUCCESS) {
+        if (ParseMemInternal(*currNode) != PARSE_EXEC_SUCCESS) {
             RS_LOGD("MEMParamParse stop parsing, parse internal fail");
             return PARSE_INTERNAL_FAIL;
         }
@@ -41,26 +41,29 @@ int32_t MEMParamParse::ParseFeatureParam(FeatureParamMapType &featureMap, xmlNod
     return PARSE_EXEC_SUCCESS;
 }
 
-int32_t MEMParamParse::ParseMemInternal(FeatureParamMapType &featureMap, xmlNode &node)
+int32_t MEMParamParse::ParseMemInternal(xmlNode &node)
 {
-    xmlNode *currNode = &node;
-
-    auto iter = featureMap.find(FEATURE_CONFIGS[MEM]);
-    if (iter != featureMap.end()) {
-        memParam_ = std::static_pointer_cast<MEMParam>(iter->second);
-    } else {
-        RS_LOGD("MEMParamParse stop parsing, no initializing param map");
-        return PARSE_NO_PARAM;
-    }
-
     // Start Parse Feature Params
-    int xmlParamType = GetXmlNodeAsInt(*currNode);
-    auto name = ExtractPropertyValue("name", *currNode);
-    auto val = ExtractPropertyValue("value", *currNode);
+    int xmlParamType = GetXmlNodeAsInt(node);
+    auto name = ExtractPropertyValue("name", node);
+    auto val = ExtractPropertyValue("value", node);
     if (xmlParamType == PARSE_XML_FEATURE_SINGLEPARAM) {
         if (name == "RsWatchPoint") {
-            memParam_->SetRSWatchPoint(val);
-            RS_LOGI("MEMParamParse parse RSWatchPoint %{public}s", memParam_->GetRSWatchPoint().c_str());
+            MEMParam::SetRSWatchPoint(val);
+            RS_LOGI("MEMParamParse parse RSWatchPoint %{public}s", MEMParam::GetRSWatchPoint().c_str());
+        } else if (name == "RSCacheLimitsResourceSize" && IsNumber(val)) {
+            MEMParam::SetRSCacheLimitsResourceSize(stoi(val));
+            RS_LOGI("RSCacheLimitsResourceSize %{public}d", MEMParam::GetRSCacheLimitsResourceSize());
+        }
+    } else if (xmlParamType == PARSE_XML_FEATURE_SWITCH) {
+        bool isEnabled = ParseFeatureSwitch(val);
+        if (name == "ReclaimEnabled") {
+            MEMParam::SetReclaimEnabled(isEnabled);
+            RS_LOGI("MEMParamParse parse ReclaimEnabled %{public}d", MEMParam::IsReclaimEnabled());
+        } else if (name == "DeeplyReleaseGpuResourceEnabled") {
+            MEMParam::SetDeeplyRelGpuResEnable(isEnabled);
+            RS_LOGI("MEMParamParse parse DeeplyReleaseGpuResourceEnabled %{public}d",
+                MEMParam::IsDeeplyRelGpuResEnable());
         }
     }
 

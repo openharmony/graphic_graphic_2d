@@ -71,10 +71,6 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     RsFrameReport::GetInstance().GetEnable();
     RsFrameReport::GetInstance().RenderStart(timestamp);
     RsFrameReport::GetInstance().SendCommandsStart();
-    RsFrameReport::GetInstance().RSRenderEnd();
-    RsFrameReport::GetInstance().ProcessCommandsStart();
-    RsFrameReport::GetInstance().AnimateStart();
-    RsFrameReport::GetInstance().RSRenderStart();
     RsFrameReport::GetInstance().SetFrameParam(requestId, load, schedFrameNum, value);
     RsFrameReport::GetInstance().LoadLibrary();
     RsFrameReport::GetInstance().RenderEnd();

@@ -31,6 +31,11 @@ using namespace OHOS;
 using namespace Rosen;
 using namespace Drawing;
 
+#ifdef OHOS_PLATFORM
+static std::mutex g_canvasMutex;
+static std::unordered_map<void*, std::shared_ptr<Media::PixelMap>> g_canvasMap;
+#endif
+
 static Canvas* CastToCanvas(OH_Drawing_Canvas* cCanvas)
 {
     return reinterpret_cast<Canvas*>(cCanvas);
@@ -126,11 +131,53 @@ OH_Drawing_Canvas* OH_Drawing_CanvasCreate()
     return (OH_Drawing_Canvas*)new Canvas;
 }
 
+OH_Drawing_Canvas* OH_Drawing_CanvasCreateWithPixelMap(OH_Drawing_PixelMap* pixelMap)
+{
+#ifdef OHOS_PLATFORM
+    if (pixelMap == nullptr) {
+        return nullptr;
+    }
+    std::shared_ptr<Media::PixelMap> p = nullptr;
+    switch (NativePixelMapManager::GetInstance().GetNativePixelMapType(pixelMap)) {
+        case NativePixelMapType::OBJECT_FROM_C:
+            p = reinterpret_cast<OH_PixelmapNative*>(pixelMap)->GetInnerPixelmap();
+            break;
+        case NativePixelMapType::OBJECT_FROM_JS:
+            p = Media::PixelMapNative_GetPixelMap(reinterpret_cast<NativePixelMap_*>(pixelMap));
+            break;
+        default:
+            break;
+    }
+
+    Bitmap bitmap;
+    if (!DrawingCanvasUtils::ExtractDrawingBitmap(p, bitmap)) {
+        LOGE("OH_Drawing_CanvasCreateWithPixelMap: pixelMap is invalid!");
+        return nullptr;
+    }
+    Canvas* canvas = new Canvas();
+    canvas->Bind(bitmap);
+    {
+        std::lock_guard<std::mutex> lock(g_canvasMutex);
+        g_canvasMap.insert({canvas, p});
+    }
+    return (OH_Drawing_Canvas*)canvas;
+#else
+    return nullptr;
+#endif
+}
+
 void OH_Drawing_CanvasDestroy(OH_Drawing_Canvas* cCanvas)
 {
     if (!cCanvas) {
         return;
     }
+#ifdef OHOS_PLATFORM
+    auto iter = g_canvasMap.find(cCanvas);
+    if (iter != g_canvasMap.end()) {
+        std::lock_guard<std::mutex> lock(g_canvasMutex);
+        g_canvasMap.erase(iter);
+    }
+#endif
     delete CastToCanvas(cCanvas);
 }
 
@@ -260,6 +307,12 @@ void OH_Drawing_CanvasDrawLine(OH_Drawing_Canvas* cCanvas, float x1, float y1, f
     Point startPt(x1, y1);
     Point endPt(x2, y2);
     canvas->DrawLine(startPt, endPt);
+#ifdef OHOS_PLATFORM
+    auto iter = g_canvasMap.find(canvas);
+    if (iter != g_canvasMap.end() && iter->second != nullptr) {
+        iter->second->MarkDirty();
+    }
+#endif
 }
 
 void OH_Drawing_CanvasDrawPath(OH_Drawing_Canvas* cCanvas, const OH_Drawing_Path* cPath)
@@ -274,6 +327,12 @@ void OH_Drawing_CanvasDrawPath(OH_Drawing_Canvas* cCanvas, const OH_Drawing_Path
         return;
     }
     canvas->DrawPath(CastToPath(*cPath));
+#ifdef OHOS_PLATFORM
+    auto iter = g_canvasMap.find(canvas);
+    if (iter != g_canvasMap.end() && iter->second != nullptr) {
+        iter->second->MarkDirty();
+    }
+#endif
 }
 
 void OH_Drawing_CanvasDrawPoints(OH_Drawing_Canvas* cCanvas, OH_Drawing_PointMode mode,
@@ -295,6 +354,12 @@ void OH_Drawing_CanvasDrawPoints(OH_Drawing_Canvas* cCanvas, OH_Drawing_PointMod
     }
     const Point* points = reinterpret_cast<const Point*>(pts);
     canvas->DrawPoints(static_cast<PointMode>(mode), count, points);
+#ifdef OHOS_PLATFORM
+    auto iter = g_canvasMap.find(canvas);
+    if (iter != g_canvasMap.end() && iter->second != nullptr) {
+        iter->second->MarkDirty();
+    }
+#endif
 }
 
 void OH_Drawing_CanvasDrawVertices(OH_Drawing_Canvas* cCanvas, OH_Drawing_VertexMode vertexMode,
@@ -350,6 +415,12 @@ void OH_Drawing_CanvasDrawVertices(OH_Drawing_Canvas* cCanvas, OH_Drawing_Vertex
         texsPoint, colors, indices ? indexCount : 0, indices);
     if (result) {
         canvas->DrawVertices(*vertices, static_cast<BlendMode>(mode));
+#ifdef OHOS_PLATFORM
+        auto iter = g_canvasMap.find(canvas);
+        if (iter != g_canvasMap.end() && iter->second != nullptr) {
+            iter->second->MarkDirty();
+        }
+#endif
     }
     delete vertices;
     delete [] positionsPoint;
@@ -368,6 +439,12 @@ void OH_Drawing_CanvasDrawBackground(OH_Drawing_Canvas* cCanvas, const OH_Drawin
         return;
     }
     canvas->DrawBackground(CastToBrush(*cBrush));
+#ifdef OHOS_PLATFORM
+    auto iter = g_canvasMap.find(canvas);
+    if (iter != g_canvasMap.end() && iter->second != nullptr) {
+        iter->second->MarkDirty();
+    }
+#endif
 }
 
 void OH_Drawing_CanvasDrawRegion(OH_Drawing_Canvas* cCanvas, const OH_Drawing_Region* cRegion)
@@ -382,6 +459,12 @@ void OH_Drawing_CanvasDrawRegion(OH_Drawing_Canvas* cCanvas, const OH_Drawing_Re
         return;
     }
     canvas->DrawRegion(CastToRegion(*cRegion));
+#ifdef OHOS_PLATFORM
+    auto iter = g_canvasMap.find(canvas);
+    if (iter != g_canvasMap.end() && iter->second != nullptr) {
+        iter->second->MarkDirty();
+    }
+#endif
 }
 
 void OH_Drawing_CanvasDrawBitmap(OH_Drawing_Canvas* cCanvas, const OH_Drawing_Bitmap* cBitmap, float left, float top)
@@ -396,6 +479,12 @@ void OH_Drawing_CanvasDrawBitmap(OH_Drawing_Canvas* cCanvas, const OH_Drawing_Bi
         return;
     }
     canvas->DrawBitmap(CastToBitmap(*cBitmap), left, top);
+#ifdef OHOS_PLATFORM
+    auto iter = g_canvasMap.find(canvas);
+    if (iter != g_canvasMap.end() && iter->second != nullptr) {
+        iter->second->MarkDirty();
+    }
+#endif
 }
 
 OH_Drawing_ErrorCode OH_Drawing_CanvasDrawPixelMapNine(OH_Drawing_Canvas* cCanvas, OH_Drawing_PixelMap* pixelMap,
@@ -419,8 +508,13 @@ OH_Drawing_ErrorCode OH_Drawing_CanvasDrawPixelMapNine(OH_Drawing_Canvas* cCanva
         default:
             break;
     }
-    return DrawingCanvasUtils::DrawPixelMapNine(canvas, p,
+    OH_Drawing_ErrorCode errorCode = DrawingCanvasUtils::DrawPixelMapNine(canvas, p,
         CastToRect(center), CastToRect(dst), static_cast<FilterMode>(mode));
+    auto iter = g_canvasMap.find(canvas);
+    if (iter != g_canvasMap.end() && iter->second != nullptr) {
+        iter->second->MarkDirty();
+    }
+    return errorCode;
 #else
     return OH_DRAWING_SUCCESS;
 #endif
@@ -446,6 +540,10 @@ void OH_Drawing_CanvasDrawPixelMapRect(OH_Drawing_Canvas* cCanvas, OH_Drawing_Pi
     DrawingCanvasUtils::DrawPixelMapRect(CastToCanvas(cCanvas), p,
         reinterpret_cast<const Drawing::Rect*>(src), reinterpret_cast<const Drawing::Rect*>(dst),
         reinterpret_cast<const Drawing::SamplingOptions*>(cSampingOptions));
+    auto iter = g_canvasMap.find(cCanvas);
+    if (iter != g_canvasMap.end() && iter->second != nullptr) {
+        iter->second->MarkDirty();
+    }
 #endif
 }
 
@@ -469,6 +567,12 @@ void OH_Drawing_CanvasDrawBitmapRect(OH_Drawing_Canvas* cCanvas, const OH_Drawin
         canvas->DrawImageRect(*image, CastToRect(*src),
             CastToRect(*dst), cSampling ? CastToSamplingOptions(*cSampling) : Drawing::SamplingOptions());
     }
+#ifdef OHOS_PLATFORM
+    auto iter = g_canvasMap.find(canvas);
+    if (iter != g_canvasMap.end() && iter->second != nullptr) {
+        iter->second->MarkDirty();
+    }
+#endif
 }
 
 void OH_Drawing_CanvasDrawRect(OH_Drawing_Canvas* cCanvas, const OH_Drawing_Rect* cRect)
@@ -483,6 +587,12 @@ void OH_Drawing_CanvasDrawRect(OH_Drawing_Canvas* cCanvas, const OH_Drawing_Rect
         return;
     }
     canvas->DrawRect(CastToRect(*cRect));
+#ifdef OHOS_PLATFORM
+    auto iter = g_canvasMap.find(canvas);
+    if (iter != g_canvasMap.end() && iter->second != nullptr) {
+        iter->second->MarkDirty();
+    }
+#endif
 }
 
 void OH_Drawing_CanvasDrawCircle(OH_Drawing_Canvas* cCanvas, const OH_Drawing_Point* cPoint, float radius)
@@ -501,6 +611,12 @@ void OH_Drawing_CanvasDrawCircle(OH_Drawing_Canvas* cCanvas, const OH_Drawing_Po
         return;
     }
     canvas->DrawCircle(CastToPoint(*cPoint), radius);
+#ifdef OHOS_PLATFORM
+    auto iter = g_canvasMap.find(canvas);
+    if (iter != g_canvasMap.end() && iter->second != nullptr) {
+        iter->second->MarkDirty();
+    }
+#endif
 }
 
 void OH_Drawing_CanvasDrawOval(OH_Drawing_Canvas* cCanvas, const OH_Drawing_Rect* cRect)
@@ -515,6 +631,12 @@ void OH_Drawing_CanvasDrawOval(OH_Drawing_Canvas* cCanvas, const OH_Drawing_Rect
         return;
     }
     canvas->DrawOval(CastToRect(*cRect));
+#ifdef OHOS_PLATFORM
+    auto iter = g_canvasMap.find(canvas);
+    if (iter != g_canvasMap.end() && iter->second != nullptr) {
+        iter->second->MarkDirty();
+    }
+#endif
 }
 
 void OH_Drawing_CanvasDrawArc(OH_Drawing_Canvas* cCanvas, const OH_Drawing_Rect* cRect,
@@ -530,6 +652,12 @@ void OH_Drawing_CanvasDrawArc(OH_Drawing_Canvas* cCanvas, const OH_Drawing_Rect*
         return;
     }
     canvas->DrawArc(CastToRect(*cRect), startAngle, sweepAngle);
+#ifdef OHOS_PLATFORM
+    auto iter = g_canvasMap.find(canvas);
+    if (iter != g_canvasMap.end() && iter->second != nullptr) {
+        iter->second->MarkDirty();
+    }
+#endif
 }
 
 OH_Drawing_ErrorCode OH_Drawing_CanvasDrawArcWithCenter(OH_Drawing_Canvas* cCanvas, const OH_Drawing_Rect* cRect,
@@ -549,6 +677,12 @@ OH_Drawing_ErrorCode OH_Drawing_CanvasDrawArcWithCenter(OH_Drawing_Canvas* cCanv
     } else {
         canvas->DrawArc(*rect, startAngle, sweepAngle);
     }
+#ifdef OHOS_PLATFORM
+    auto iter = g_canvasMap.find(canvas);
+    if (iter != g_canvasMap.end() && iter->second != nullptr) {
+        iter->second->MarkDirty();
+    }
+#endif
     return OH_DRAWING_SUCCESS;
 }
 
@@ -564,6 +698,12 @@ void OH_Drawing_CanvasDrawRoundRect(OH_Drawing_Canvas* cCanvas, const OH_Drawing
         return;
     }
     canvas->DrawRoundRect(CastToRoundRect(*cRoundRect));
+#ifdef OHOS_PLATFORM
+    auto iter = g_canvasMap.find(canvas);
+    if (iter != g_canvasMap.end() && iter->second != nullptr) {
+        iter->second->MarkDirty();
+    }
+#endif
 }
 
 OH_Drawing_ErrorCode OH_Drawing_CanvasDrawNestedRoundRect(OH_Drawing_Canvas* cCanvas, const OH_Drawing_RoundRect* outer,
@@ -582,6 +722,12 @@ OH_Drawing_ErrorCode OH_Drawing_CanvasDrawNestedRoundRect(OH_Drawing_Canvas* cCa
         return OH_DRAWING_ERROR_INVALID_PARAMETER;
     }
     canvas->DrawNestedRoundRect(*roundRectOuter, *roundRectInner);
+#ifdef OHOS_PLATFORM
+    auto iter = g_canvasMap.find(canvas);
+    if (iter != g_canvasMap.end() && iter->second != nullptr) {
+        iter->second->MarkDirty();
+    }
+#endif
     return OH_DRAWING_SUCCESS;
 }
 
@@ -607,6 +753,12 @@ OH_Drawing_ErrorCode OH_Drawing_CanvasDrawSingleCharacter(OH_Drawing_Canvas* cCa
         font = themeFont.get();
     }
     canvas->DrawSingleCharacter(unicode, *font, x, y);
+#ifdef OHOS_PLATFORM
+    auto iter = g_canvasMap.find(canvas);
+    if (iter != g_canvasMap.end() && iter->second != nullptr) {
+        iter->second->MarkDirty();
+    }
+#endif
     return OH_DRAWING_SUCCESS;
 }
 
@@ -622,6 +774,12 @@ void OH_Drawing_CanvasDrawTextBlob(OH_Drawing_Canvas* cCanvas, const OH_Drawing_
         return;
     }
     canvas->DrawTextBlob(CastToTextBlob(cTextBlob), x, y);
+#ifdef OHOS_PLATFORM
+    auto iter = g_canvasMap.find(canvas);
+    if (iter != g_canvasMap.end() && iter->second != nullptr) {
+        iter->second->MarkDirty();
+    }
+#endif
 }
 
 void OH_Drawing_CanvasClipRect(OH_Drawing_Canvas* cCanvas, const OH_Drawing_Rect* cRect,
@@ -808,6 +966,12 @@ void OH_Drawing_CanvasDrawShadow(OH_Drawing_Canvas* cCanvas, OH_Drawing_Path* cP
     canvas->DrawShadow(*reinterpret_cast<Path*>(cPath), CastToPoint3(cPlaneParams),
         CastToPoint3(cDevLightPos), lightRadius, Color(ambientColor), Color(spotColor),
         static_cast<ShadowFlags>(flag));
+#ifdef OHOS_PLATFORM
+    auto iter = g_canvasMap.find(canvas);
+    if (iter != g_canvasMap.end() && iter->second != nullptr) {
+        iter->second->MarkDirty();
+    }
+#endif
 }
 
 void OH_Drawing_CanvasSetMatrix(OH_Drawing_Canvas* cCanvas, OH_Drawing_Matrix* matrix)
@@ -841,6 +1005,12 @@ void OH_Drawing_CanvasDrawImageRectWithSrc(OH_Drawing_Canvas* cCanvas, const OH_
     }
     canvas->DrawImageRect(CastToImage(*cImage), CastToRect(*src), CastToRect(*dst), cSampling
         ? CastToSamplingOptions(*cSampling) : Drawing::SamplingOptions(), static_cast<SrcRectConstraint>(constraint));
+#ifdef OHOS_PLATFORM
+    auto iter = g_canvasMap.find(canvas);
+    if (iter != g_canvasMap.end() && iter->second != nullptr) {
+        iter->second->MarkDirty();
+    }
+#endif
 }
 
 void OH_Drawing_CanvasDrawImageRect(OH_Drawing_Canvas* cCanvas, OH_Drawing_Image* cImage, OH_Drawing_Rect* dst,
@@ -853,6 +1023,12 @@ void OH_Drawing_CanvasDrawImageRect(OH_Drawing_Canvas* cCanvas, OH_Drawing_Image
     }
     canvas->DrawImageRect(CastToImage(*cImage), CastToRect(*dst),
         cSampling ? CastToSamplingOptions(*cSampling) : Drawing::SamplingOptions());
+#ifdef OHOS_PLATFORM
+    auto iter = g_canvasMap.find(canvas);
+    if (iter != g_canvasMap.end() && iter->second != nullptr) {
+        iter->second->MarkDirty();
+    }
+#endif
 }
 
 bool OH_Drawing_CanvasReadPixels(OH_Drawing_Canvas* cCanvas, OH_Drawing_Image_Info* cImageInfo,
@@ -934,6 +1110,12 @@ OH_Drawing_ErrorCode OH_Drawing_CanvasDrawPoint(OH_Drawing_Canvas* cCanvas, cons
         return OH_DRAWING_ERROR_INVALID_PARAMETER;
     }
     canvas->DrawPoint(CastToPoint(*cPoint));
+#ifdef OHOS_PLATFORM
+    auto iter = g_canvasMap.find(canvas);
+    if (iter != g_canvasMap.end() && iter->second != nullptr) {
+        iter->second->MarkDirty();
+    }
+#endif
     return OH_DRAWING_SUCCESS;
 }
 
@@ -950,6 +1132,12 @@ OH_Drawing_ErrorCode OH_Drawing_CanvasDrawColor(OH_Drawing_Canvas* cCanvas, uint
     }
 
     canvas->DrawColor(color, static_cast<BlendMode>(cBlendMode));
+#ifdef OHOS_PLATFORM
+    auto iter = g_canvasMap.find(canvas);
+    if (iter != g_canvasMap.end() && iter->second != nullptr) {
+        iter->second->MarkDirty();
+    }
+#endif
     return OH_DRAWING_SUCCESS;
 }
 
@@ -964,7 +1152,22 @@ OH_Drawing_ErrorCode OH_Drawing_CanvasDrawRecordCmd(OH_Drawing_Canvas* cCanvas,
     if (recordCmdHandle->value == nullptr) {
         return OH_DRAWING_ERROR_INVALID_PARAMETER;
     }
-    canvas->DrawRecordCmd(recordCmdHandle->value);
+    DrawingCanvasUtils::DrawRecordCmd(canvas, recordCmdHandle->value);
+    return OH_DRAWING_SUCCESS;
+}
+
+OH_Drawing_ErrorCode OH_Drawing_CanvasDrawRecordCmdNesting(OH_Drawing_Canvas* cCanvas,
+    OH_Drawing_RecordCmd* cRecordCmd)
+{
+    if (cCanvas == nullptr || cRecordCmd == nullptr) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    Canvas* canvas = CastToCanvas(cCanvas);
+    auto recordCmdHandle = Helper::CastTo<OH_Drawing_RecordCmd*, NativeHandle<RecordCmd>*>(cRecordCmd);
+    if (recordCmdHandle->value == nullptr) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    DrawingCanvasUtils::DrawRecordCmd(canvas, recordCmdHandle->value, true);
     return OH_DRAWING_SUCCESS;
 }
 

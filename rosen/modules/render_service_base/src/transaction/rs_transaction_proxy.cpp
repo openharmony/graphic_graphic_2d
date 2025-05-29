@@ -145,8 +145,14 @@ void RSTransactionProxy::FlushImplicitTransaction(uint64_t timestamp, const std:
         return;
     }
     timestamp_ = std::max(timestamp, timestamp_);
+#ifdef RS_ENABLE_VK
+    thread_local pid_t tid = gettid();
+#endif
     if (renderThreadClient_ != nullptr && !implicitCommonTransactionData_->IsEmpty()) {
         implicitCommonTransactionData_->timestamp_ = timestamp_;
+#ifdef RS_ENABLE_VK
+        implicitCommonTransactionData_->tid_ = tid;
+#endif
         implicitCommonTransactionData_->abilityName_ = abilityName;
         renderThreadClient_->CommitTransaction(implicitCommonTransactionData_);
         implicitCommonTransactionData_ = std::make_unique<RSTransactionData>();
@@ -156,16 +162,26 @@ void RSTransactionProxy::FlushImplicitTransaction(uint64_t timestamp, const std:
         }
     }
 
-    if (renderServiceClient_ != nullptr && !implicitRemoteTransactionData_->IsEmpty()) {
-        implicitRemoteTransactionData_->timestamp_ = timestamp_;
-        renderServiceClient_->CommitTransaction(implicitRemoteTransactionData_);
-        transactionDataIndex_ = implicitRemoteTransactionData_->GetIndex();
-        implicitRemoteTransactionData_ = std::make_unique<RSTransactionData>();
-    } else {
+    if (renderServiceClient_ == nullptr || implicitRemoteTransactionData_->IsEmpty()) {
         RS_LOGE_LIMIT(__func__, __line__, "FlushImplicitTransaction return, [renderServiceClient_:%{public}d," \
             " transactionData empty:%{public}d]",
             renderServiceClient_ != nullptr, implicitRemoteTransactionData_->IsEmpty());
+        return;
     }
+
+    auto transactionData = std::make_unique<RSTransactionData>();
+    std::swap(implicitRemoteTransactionData_, transactionData);
+    transactionData->timestamp_ = timestamp_;
+#ifdef RS_ENABLE_VK
+    transactionData->tid_ = tid;
+    if (RSSystemProperties::GetHybridRenderEnabled() && commitTransactionCallback_ != nullptr) {
+        commitTransactionCallback_(renderServiceClient_,
+            std::move(transactionData), transactionDataIndex_);
+        return;
+    }
+#endif
+    renderServiceClient_->CommitTransaction(transactionData);
+    transactionDataIndex_ = transactionData->GetIndex();
 }
 
 uint32_t RSTransactionProxy::GetTransactionDataIndex() const

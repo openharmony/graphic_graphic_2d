@@ -109,7 +109,8 @@ HWTEST_F(RSRenderParticleAnimationTest, Animate001, TestSize.Level1)
     auto renderParticleAnimation =
         std::make_shared<RSRenderParticleAnimation>(ANIMATION_ID, PROPERTY_ID, particlesRenderParams);
     ASSERT_TRUE(renderParticleAnimation != nullptr);
-    auto particleAnimate = renderParticleAnimation->Animate(NS_TO_S);
+    int64_t leftDelayTime = 0;
+    auto particleAnimate = renderParticleAnimation->Animate(NS_TO_S, leftDelayTime);
     EXPECT_TRUE(particleAnimate);
 
     particleSystem_ = std::make_shared<RSRenderParticleSystem>(particlesRenderParams);
@@ -192,10 +193,11 @@ HWTEST_F(RSRenderParticleAnimationTest, Animate003, TestSize.Level1)
     auto property = std::make_shared<RSRenderProperty<RSRenderParticleVector>>(particles, PROPERTY_ID);
     ASSERT_TRUE(animation != nullptr);
     animation->AttachRenderProperty(property);
-    EXPECT_TRUE(animation->Animate(NS_TO_S));
+    int64_t leftDelayTime = 0;
+    EXPECT_TRUE(animation->Animate(NS_TO_S, leftDelayTime));
     animation->particleSystem_ = nullptr;
     animation->SetPropertyValue(nullptr);
-    EXPECT_TRUE(animation->Animate(NS_TO_S));
+    EXPECT_TRUE(animation->Animate(NS_TO_S, leftDelayTime));
     GTEST_LOG_(INFO) << "RSRenderParticleAnimationTest Animate003 end";
 }
 
@@ -399,6 +401,41 @@ HWTEST_F(RSRenderParticleAnimationTest, UpdateEmitter006, TestSize.Level1)
     EXPECT_TRUE(particleParams->emitterConfig_.emitSize_ == emitSize);
     EXPECT_TRUE(particleParams->emitterConfig_.emitRate_ == emitRate);
     GTEST_LOG_(INFO) << "RSRenderParticleAnimationTest UpdateEmitter006 end";
+}
+
+/**
+ * @tc.name: UpdateParamsIfChanged001
+ * @tc.desc: Verify the UpdateParamsIfChanged
+ * @tc.type:FUNC
+ * @tc.require: issueIA6IWR
+ */
+HWTEST_F(RSRenderParticleAnimationTest, UpdateParamsIfChanged001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderParticleAnimationTest UpdateParamsIfChanged001 start";
+    uint32_t emitterIndex = 0;
+    Vector2f position = Vector2f(0.f, 0.f);
+    Vector2f emitSize = Vector2f(10.f, 10.f);
+    int emitRate = 20;
+    auto para = std::make_shared<EmitterUpdater>(emitterIndex, position, emitSize, emitRate);
+    AnnulusRegion annulusRegion;
+    std::shared_ptr<AnnulusRegion> region = std::make_shared<AnnulusRegion>(annulusRegion);
+    para->SetShape(region);
+    std::vector<std::shared_ptr<EmitterUpdater>> emitUpdate;
+    emitUpdate.push_back(para);
+    auto renderParticleAnimation =
+        std::make_shared<RSRenderParticleAnimation>(ANIMATION_ID, PROPERTY_ID, particlesRenderParams);
+    renderParticleAnimation->UpdateEmitter(emitUpdate);
+    auto particleSystem = renderParticleAnimation->GetParticleSystem();
+    auto shape = para->shape_;
+    auto annulusPtr = std::static_pointer_cast<AnnulusRegion>(shape);
+    annulusPtr->innerRadius_ = 10;
+    annulusPtr->outerRadius_ = 20;
+    auto configRegion = particlesRenderParams[emitterIndex]->emitterConfig_.shape_;
+    auto annulusRegionPtr = std::static_pointer_cast<AnnulusRegion>(configRegion);
+    renderParticleAnimation->UpdateParamsIfChanged(para->shape_, configRegion);
+    EXPECT_TRUE(annulusRegionPtr->innerRadius_ == 10);
+    EXPECT_TRUE(annulusRegionPtr->outerRadius_ == 20);
+    GTEST_LOG_(INFO) << "RSRenderParticleAnimationTest UpdateParamsIfChanged001 end";
 }
 
 /**

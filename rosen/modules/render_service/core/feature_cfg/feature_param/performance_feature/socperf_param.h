@@ -21,23 +21,19 @@
 namespace OHOS::Rosen {
 class SOCPerfParam : public FeatureParam {
 public:
-    static SOCPerfParam& GetInstance();
     SOCPerfParam() = default;
     ~SOCPerfParam() = default;
 
-    bool IsMultilayersSOCPerfEnable() const;
-    bool IsUnlockSOCPerfEnable() const;
-    bool IsBlurSOCPerfEnable() const;
+    static bool IsMultilayersSOCPerfEnable();
+    static bool IsBlurSOCPerfEnable();
 
 protected:
-    void SetMultilayersSOCPerfEnable(bool isMultilayersSOCPerfEnable);
-    void SetUnlockSOCPerfEnable(bool isUnlockSOCPerfEnable);
-    void SetBlurSOCPerfEnable(bool isBlurSOCPerfEnable);
+    static void SetMultilayersSOCPerfEnable(bool isMultilayersSOCPerfEnable);
+    static void SetBlurSOCPerfEnable(bool isBlurSOCPerfEnable);
 
 private:
-    bool isMultilayersSOCPerfEnable_ = false;
-    bool isUnlockSOCPerfEnable_ = true;
-    bool isBlurSOCPerfEnable_ = true;
+    inline static bool isMultilayersSOCPerfEnable_ = false;
+    inline static bool isBlurSOCPerfEnable_ = true;
 
     friend class SOCPerfParamParse;
 };

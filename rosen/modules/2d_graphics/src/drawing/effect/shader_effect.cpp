@@ -64,12 +64,30 @@ ShaderEffect::ShaderEffect(ShaderEffectType t, const Point& startPt, const Point
     impl_->InitWithLinearGradient(startPt, endPt, colors, pos, mode, matrix);
 }
 
+/* LinearGradient */
+ShaderEffect::ShaderEffect(ShaderEffectType t, const Point& startPt, const Point& endPt,
+    const std::vector<Color4f>& colors, std::shared_ptr<ColorSpace> colorSpace, const std::vector<scalar>& pos,
+    TileMode mode, const Matrix *matrix) noexcept
+    : ShaderEffect(t)
+{
+    impl_->InitWithLinearGradient(startPt, endPt, colors, colorSpace, pos, mode, matrix);
+}
+
 /* RadialGradient */
 ShaderEffect::ShaderEffect(ShaderEffectType t, const Point& centerPt, scalar radius,
     const std::vector<ColorQuad>& colors, const std::vector<scalar>& pos, TileMode mode, const Matrix *matrix) noexcept
     : ShaderEffect(t)
 {
     impl_->InitWithRadialGradient(centerPt, radius, colors, pos, mode, matrix);
+}
+
+/* RadialGradient */
+ShaderEffect::ShaderEffect(ShaderEffectType t, const Point& centerPt, scalar radius,
+    const std::vector<Color4f>& colors, std::shared_ptr<ColorSpace> colorSpace, const std::vector<scalar>& pos,
+    TileMode mode, const Matrix* matrix) noexcept
+    : ShaderEffect(t)
+{
+    impl_->InitWithRadialGradient(centerPt, radius, colors, colorSpace, pos, mode, matrix);
 }
 
 /* TwoPointConicalGradient */
@@ -81,6 +99,15 @@ ShaderEffect::ShaderEffect(ShaderEffectType t, const Point& startPt, scalar star
     impl_->InitWithTwoPointConical(startPt, startRadius, endPt, endRadius, colors, pos, mode, matrix);
 }
 
+/* TwoPointConicalGradient */
+ShaderEffect::ShaderEffect(ShaderEffectType t, const Point& startPt, scalar startRadius, const Point& endPt,
+    scalar endRadius, const std::vector<Color4f>& colors, std::shared_ptr<ColorSpace> colorSpace,
+    const std::vector<scalar>& pos, TileMode mode, const Matrix* matrix) noexcept
+    : ShaderEffect(t)
+{
+    impl_->InitWithTwoPointConical(startPt, startRadius, endPt, endRadius, colors, colorSpace, pos, mode, matrix);
+}
+
 /* SweepGradient */
 ShaderEffect::ShaderEffect(ShaderEffectType t, const Point& centerPt, const std::vector<ColorQuad>& colors,
     const std::vector<scalar>& pos, TileMode mode, scalar startAngle, scalar endAngle, const Matrix *matrix) noexcept
@@ -89,9 +116,25 @@ ShaderEffect::ShaderEffect(ShaderEffectType t, const Point& centerPt, const std:
     impl_->InitWithSweepGradient(centerPt, colors, pos, mode, startAngle, endAngle, matrix);
 }
 
+/* SweepGradient */
+ShaderEffect::ShaderEffect(ShaderEffectType t, const Point& centerPt, const std::vector<Color4f>& colors,
+    std::shared_ptr<ColorSpace> colorSpace, const std::vector<scalar>& pos, TileMode mode, scalar startAngle,
+    scalar endAngle, const Matrix* matrix) noexcept
+    : ShaderEffect(t)
+{
+    impl_->InitWithSweepGradient(centerPt, colors, colorSpace, pos, mode, startAngle, endAngle, matrix);
+}
+
+/* LightUpShader */
+ShaderEffect::ShaderEffect(ShaderEffectType t, const float& lightUpDeg, ShaderEffect& imageShader) noexcept
+    : ShaderEffect(t)
+{
+    impl_->InitWithLightUp(lightUpDeg, imageShader);
+}
+
 /* ExtendShader */
 ShaderEffect::ShaderEffect(ShaderEffectType t, std::shared_ptr<ExtendObject> object) noexcept
-    : type_(t), object_(object) {}
+    : type_(t), impl_(ImplFactory::CreateShaderEffectImpl()), object_(object) {}
 
 /* SdfShader */
 ShaderEffect::ShaderEffect(ShaderEffectType t, const SDFShapeBase& shape) noexcept
@@ -147,11 +190,27 @@ std::shared_ptr<ShaderEffect> ShaderEffect::CreateLinearGradient(const Point& st
         ShaderEffect::ShaderEffectType::LINEAR_GRADIENT, startPt, endPt, colors, pos, mode, matrix);
 }
 
+std::shared_ptr<ShaderEffect> ShaderEffect::CreateLinearGradient(const Point& startPt, const Point& endPt,
+    const std::vector<Color4f>& colors, std::shared_ptr<ColorSpace> colorSpace, const std::vector<scalar>& pos,
+    TileMode mode, const Matrix *matrix)
+{
+    return std::make_shared<ShaderEffect>(
+        ShaderEffect::ShaderEffectType::LINEAR_GRADIENT, startPt, endPt, colors, colorSpace, pos, mode, matrix);
+}
+
 std::shared_ptr<ShaderEffect> ShaderEffect::CreateRadialGradient(const Point& centerPt, scalar radius,
     const std::vector<ColorQuad>& colors, const std::vector<scalar>& pos, TileMode mode, const Matrix *matrix)
 {
     return std::make_shared<ShaderEffect>(
         ShaderEffect::ShaderEffectType::RADIAL_GRADIENT, centerPt, radius, colors, pos, mode, matrix);
+}
+
+std::shared_ptr<ShaderEffect> ShaderEffect::CreateRadialGradient(const Point& centerPt, scalar radius,
+    const std::vector<Color4f>& colors, std::shared_ptr<ColorSpace> colorSpace, const std::vector<scalar>& pos,
+    TileMode mode, const Matrix* matrix)
+{
+    return std::make_shared<ShaderEffect>(
+        ShaderEffect::ShaderEffectType::RADIAL_GRADIENT, centerPt, radius, colors, colorSpace, pos, mode, matrix);
 }
 
 std::shared_ptr<ShaderEffect> ShaderEffect::CreateTwoPointConical(const Point& startPt, scalar startRadius,
@@ -163,12 +222,35 @@ std::shared_ptr<ShaderEffect> ShaderEffect::CreateTwoPointConical(const Point& s
         matrix);
 }
 
+std::shared_ptr<ShaderEffect> ShaderEffect::CreateTwoPointConical(const Point& startPt, scalar startRadius,
+    const Point& endPt, scalar endRadius, const std::vector<Color4f>& colors, std::shared_ptr<ColorSpace> colorSpace,
+    const std::vector<scalar>& pos, TileMode mode, const Matrix *matrix)
+{
+    return std::make_shared<ShaderEffect>(
+        ShaderEffect::ShaderEffectType::CONICAL_GRADIENT, startPt, startRadius, endPt, endRadius, colors, colorSpace,
+        pos, mode, matrix);
+}
+
 std::shared_ptr<ShaderEffect> ShaderEffect::CreateSweepGradient(const Point& centerPt,
     const std::vector<ColorQuad>& colors, const std::vector<scalar>& pos, TileMode mode, scalar startAngle,
     scalar endAngle, const Matrix *matrix)
 {
     return std::make_shared<ShaderEffect>(
         ShaderEffect::ShaderEffectType::SWEEP_GRADIENT, centerPt, colors, pos, mode, startAngle, endAngle, matrix);
+}
+
+std::shared_ptr<ShaderEffect> ShaderEffect::CreateSweepGradient(const Point& centerPt,
+    const std::vector<Color4f>& colors, std::shared_ptr<ColorSpace> colorSpace,const std::vector<scalar>& pos,
+    TileMode mode, scalar startAngle, scalar endAngle, const Matrix* matrix)
+{
+    return std::make_shared<ShaderEffect>(
+        ShaderEffect::ShaderEffectType::SWEEP_GRADIENT, centerPt, colors, colorSpace, pos, mode, startAngle,
+        endAngle, matrix);
+}
+
+std::shared_ptr<ShaderEffect> ShaderEffect::CreateLightUp(const float& lightUpDeg, ShaderEffect& imageShader)
+{
+    return std::make_shared<ShaderEffect>(ShaderEffect::ShaderEffectType::LIGHT_UP, lightUpDeg, imageShader);
 }
 
 std::shared_ptr<ShaderEffect> ShaderEffect::CreateExtendShader(std::shared_ptr<ExtendObject> object)

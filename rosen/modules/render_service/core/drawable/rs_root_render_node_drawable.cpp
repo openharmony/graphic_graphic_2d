@@ -40,7 +40,6 @@ void RSRootRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         windowKeyframeBuffer_.OnDraw(canvas, *params);
         return;
     }
-
     RSCanvasRenderNodeDrawable::OnDraw(canvas);
 }
 

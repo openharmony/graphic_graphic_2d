@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -179,6 +179,36 @@ int Font::TextToGlyphs(const void* text, size_t byteLength, TextEncoding encodin
 scalar Font::MeasureText(const void* text, size_t byteLength, TextEncoding encoding, Rect* bounds) const
 {
     return fontImpl_->MeasureText(text, byteLength, encoding, bounds);
+}
+
+scalar Font::MeasureText(const void* text, size_t byteLength, TextEncoding encoding, Rect* bounds, const Brush* brush,
+    const Pen* pen) const
+{
+    if (brush != nullptr && pen != nullptr) {
+        LOGE("Font::MeasureText brush and pen are both not nullptr");
+        return 0.0f;
+    }
+    return fontImpl_->MeasureText(text, byteLength, encoding, bounds, brush, pen);
+}
+
+void Font::GetWidthsBounds(
+    const uint16_t glyphs[], int count, float widths[], Rect bounds[], const Brush* brush, const Pen* pen) const
+{
+    if (brush != nullptr && pen != nullptr) {
+        LOGE("Font::GetWidthsBounds brush and pen are both not nullptr");
+        return;
+    }
+    fontImpl_->GetWidthsBounds(glyphs, count, widths, bounds, brush, pen);
+}
+
+void Font::GetPos(const uint16_t glyphs[], int count, Point points[], Point origin) const
+{
+    fontImpl_->GetPos(glyphs, count, points, origin);
+}
+
+float Font::GetSpacing() const
+{
+    return fontImpl_->GetSpacing();
 }
 
 scalar Font::MeasureSingleCharacter(int32_t unicode) const

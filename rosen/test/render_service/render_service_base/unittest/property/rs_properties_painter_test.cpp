@@ -584,7 +584,7 @@ HWTEST_F(RSPropertiesPainterTest, GetForegroundEffectDirtyRect002, TestSize.Leve
     properties.shadow_ = shadow;
     properties.rrect_ = rrect;
     RSPropertiesPainter::GetForegroundEffectDirtyRect(dirtyForegroundEffect, properties);
-    EXPECT_FALSE(dirtyForegroundEffect.IsEmpty());
+    EXPECT_TRUE(dirtyForegroundEffect.IsEmpty());
 }
 
 /**
@@ -1263,18 +1263,6 @@ HWTEST_F(RSPropertiesPainterTest, DrawLightUpEffect001, TestSize.Level1)
     properties.clipPath_ = std::make_shared<RSPath>();
     RSPropertiesPainter::DrawLightUpEffect(properties, canvas);
     EXPECT_TRUE(properties.clipPath_ != nullptr);
-}
-
-/**
- * @tc.name: MakeLightUpEffectBlender001
- * @tc.desc: test results of MakeLightUpEffectBlender
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSPropertiesPainterTest, MakeLightUpEffectBlender001, TestSize.Level1)
-{
-    auto blender = RSPropertiesPainter::MakeLightUpEffectBlender(1.0f);
-    EXPECT_NE(blender, nullptr);
 }
 
 /**

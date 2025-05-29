@@ -19,6 +19,7 @@
 #include "common/rs_rect.h"
 #include "pixel_map.h"
 #include "rs_graphic_rootnode.h"
+#include "rs_graphic_test_profiler_thread.h"
 #include "ui/rs_display_node.h"
 #include "ui/rs_ui_director.h"
 
@@ -31,7 +32,7 @@ public:
 
     void Run();
     void FlushMessage();
-    std::shared_ptr<Media::PixelMap> TakeScreenCaptureAndWait(int ms);
+    std::shared_ptr<Media::PixelMap> TakeScreenCaptureAndWait(int ms, bool isScreenShot = false);
     void ResetImagePath();
 
     std::shared_ptr<RSGraphicRootNode> GetRootNode() const;
@@ -49,6 +50,8 @@ public:
     void RequestNextVSync();
     void OnVSync(int64_t time);
 
+    void SendProfilerCommand(const std::string command, int outTime = 0);
+
     static RSGraphicTestDirector& Instance();
 
 private:
@@ -61,6 +64,8 @@ private:
     std::shared_ptr<OHOS::AppExecFwk::EventRunner> runner_;
     std::shared_ptr<OHOS::AppExecFwk::EventHandler> handler_;
     std::shared_ptr<VSyncWaiter> vsyncWaiter_;
+
+    std::shared_ptr<RSGraphicTestProfilerThread> profilerThread_;
 
     friend class RSGraphicTest;
     friend class TestDefManager;

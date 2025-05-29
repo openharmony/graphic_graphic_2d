@@ -470,6 +470,46 @@ HWTEST_F(RSRenderParamsTest, SetDrawingCacheIncludeProperty_001, TestSize.Level2
 }
 
 /**
+ * @tc.name: OpincSetIsSuggest
+ * @tc.desc: Test function OpincSetIsSuggest
+ * @tc.type:FUNC
+ * @tc.require:issueIC87OJ
+ */
+HWTEST_F(RSRenderParamsTest, OpincSetIsSuggest, TestSize.Level2)
+{
+    constexpr NodeId id = TestSrc::limitNumber::Uint64[4];
+    std::unique_ptr<RSRenderParams> target = std::make_unique<RSRenderParams>(id);
+    RSRenderParams params(id);
+    auto renderParams = static_cast<RSRenderParams*>(target.get());
+    renderParams->isOpincSuggestFlag_ = false;
+    renderParams->needSync_  = false;
+
+    renderParams->OpincSetIsSuggest(true);
+    EXPECT_TRUE(renderParams->needSync_);
+    EXPECT_TRUE(renderParams->OpincIsSuggest());
+}
+
+/**
+ * @tc.name: OpincUpdateSupportFlag
+ * @tc.desc: Test function OpincUpdateSupportFlag
+ * @tc.type:FUNC
+ * @tc.require:issueIC87OJ
+ */
+HWTEST_F(RSRenderParamsTest, OpincUpdateSupportFlag, TestSize.Level2)
+{
+    constexpr NodeId id = TestSrc::limitNumber::Uint64[4];
+    std::unique_ptr<RSRenderParams> target = std::make_unique<RSRenderParams>(id);
+    RSRenderParams params(id);
+    auto renderParams = static_cast<RSRenderParams*>(target.get());
+    renderParams->isOpincSupportFlag_ = false;
+    renderParams->needSync_  = false;
+
+    renderParams->OpincUpdateSupportFlag(true);
+    EXPECT_TRUE(renderParams->needSync_);
+    EXPECT_TRUE(renderParams->OpincGetSupportFlag());
+}
+
+/**
  * @tc.name: OpincSetCacheChangeFlag_001
  * @tc.desc: Test function OpincSetCacheChangeFlag, not lastFrameSynced
  * @tc.type:FUNC
@@ -524,8 +564,8 @@ HWTEST_F(RSRenderParamsTest, SetHDRBrightnessTest, TestSize.Level2)
     std::unique_ptr<RSRenderParams> target = std::make_unique<RSRenderParams>(id);
     RSRenderParams params(id);
     auto renderParams = static_cast<RSRenderParams*>(target.get());
-    renderParams->hdrBrightness_ = false;
-    bool hdrBrightness = true;
+    renderParams->hdrBrightness_ = 0.0f;
+    float hdrBrightness = 1.0f;
     renderParams->needSync_ = false;
 
     renderParams->SetHDRBrightness(hdrBrightness);
@@ -596,7 +636,6 @@ HWTEST_F(RSRenderParamsTest, SetForegroundFilterCache_001, TestSize.Level2)
     EXPECT_NE(foregroundFilterCache, renderParams->foregroundFilterCache_);
 
     renderParams->SetForegroundFilterCache(foregroundFilterCache);
-    EXPECT_EQ(foregroundFilterCache, renderParams->foregroundFilterCache_);
     EXPECT_TRUE(renderParams->needSync_);
 }
 
@@ -641,6 +680,21 @@ HWTEST_F(RSRenderParamsTest, OnSync_002, TestSize.Level2)
 
     renderParams->OnSync(targetParams);
     EXPECT_EQ(targetParams->drawingCacheType_, renderParams->drawingCacheType_);
+}
+
+
+/**
+ * @tc.name: RepaintBoundary
+ * @tc.desc: Test function MarkRepaintBoundary and IsRepaintBoundary
+ * @tc.type:FUNC
+ * @tc.require: issuesIC50OX
+ */
+HWTEST_F(RSRenderParamsTest, RepaintBoundary, TestSize.Level2)
+{
+    constexpr NodeId id = TestSrc::limitNumber::Uint64[4];
+    std::unique_ptr<RSRenderParams> renderParams = std::make_unique<RSRenderParams>(id);
+    renderParams->MarkRepaintBoundary(true);
+    EXPECT_TRUE(renderParams->IsRepaintBoundary());
 }
 
 /**

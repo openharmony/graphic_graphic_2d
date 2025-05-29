@@ -140,6 +140,13 @@ bool RSRenderServiceClient::TakeSurfaceCapture(NodeId id, std::shared_ptr<Surfac
     return false;
 }
 
+std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>> RSRenderServiceClient::TakeSurfaceCaptureSoloNode(
+    NodeId id, const RSSurfaceCaptureConfig& captureConfig)
+{
+    std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>> result;
+    return result;
+}
+
 bool RSRenderServiceClient::TakeSelfSurfaceCapture(NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback,
     const RSSurfaceCaptureConfig& captureConfig)
 {
@@ -153,14 +160,19 @@ bool RSRenderServiceClient::SetWindowFreezeImmediately(NodeId id, bool isFreeze,
     return false;
 }
 
+bool RSRenderServiceClient::TakeUICaptureInRange(
+    NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig)
+{
+    return false;
+}
+
 bool RSRenderServiceClient::SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
     float positionZ, float positionW)
 {
     return false;
 }
 
-int32_t RSRenderServiceClient::SetFocusAppInfo(
-    int32_t pid, int32_t uid, const std::string &bundleName, const std::string &abilityName, uint64_t focusNodeId)
+int32_t RSRenderServiceClient::SetFocusAppInfo(const FocusAppInfo& info)
 {
     return false;
 }
@@ -263,6 +275,11 @@ uint32_t RSRenderServiceClient::GetRealtimeRefreshRate(ScreenId id)
 }
 
 std::string RSRenderServiceClient::GetRefreshInfo(pid_t pid)
+{
+    return "";
+}
+
+std::string RSRenderServiceClient::GetRefreshInfoToSP(NodeId id)
 {
     return "";
 }
@@ -639,6 +656,20 @@ void RSRenderServiceClient::NotifyRefreshRateEvent(const EventInfo& eventInfo)
 {
 }
 
+void RSRenderServiceClient::SetWindowExpectedRefreshRate(const std::unordered_map<uint64_t, EventInfo>& eventInfos)
+{
+}
+
+void RSRenderServiceClient::SetWindowExpectedRefreshRate(const std::unordered_map<std::string, EventInfo>& eventInfos)
+{
+}
+
+bool RSRenderServiceClient::NotifySoftVsyncRateDiscountEvent(uint32_t pid,
+    const std::string &name, uint32_t rateDiscount)
+{
+    return {};
+}
+
 void RSRenderServiceClient::NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt)
 {
 }
@@ -648,6 +679,10 @@ void RSRenderServiceClient::NotifyDynamicModeEvent(bool enableDynamicMode)
 }
 
 void RSRenderServiceClient::NotifyHgmConfigEvent(const std::string &eventName, bool state)
+{
+}
+
+void RSRenderServiceClient::NotifyXComponentExpectedFrameRate(const std::string& id, int32_t expectedFrameRate)
 {
 }
 
@@ -743,6 +778,15 @@ void RSRenderServiceClient::SetLayerTop(const std::string &nodeIdStr, bool isTop
 {
 }
 
+bool RSRenderServiceClient::RegisterTransactionDataCallback(int32_t pid, uint64_t timeStamp, std::function<void()> callback)
+{
+    return false;
+}
+
+void RSRenderServiceClient::SetColorFollow(const std::string &nodeIdStr, bool isColorFollow)
+{
+}
+
 void RSRenderServiceClient::NotifyScreenSwitched()
 {
 }
@@ -769,8 +813,19 @@ void RSRenderServiceClient::NotifyPageName(const std::string &packageName,
 {
 }
 
-void RSRenderServiceClient::TestLoadFileSubTreeToNode(NodeId nodeId, const std::string &filePath)
+bool RSRenderServiceClient::GetHighContrastTextState()
 {
+    return false;
+}
+
+bool RSRenderServiceClient::SetBehindWindowFilterEnabled(bool enabled)
+{
+    return false;
+}
+
+bool RSRenderServiceClient::GetBehindWindowFilterEnabled(bool& enabled)
+{
+    return false;
 }
 } // namespace Rosen
 } // namespace OHOS

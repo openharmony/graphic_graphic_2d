@@ -19,14 +19,13 @@
 #include <cinttypes>
 
 #include "graphic_feature_param_manager.h"
+#include "hgm_core.h"
 #include "pipeline/main_thread/rs_main_thread.h"
+#include "platform/common/rs_hisysevent.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "rs_trace.h"
 #include "string_utils.h"
-#include "hisysevent.h"
-#include "hgm_core.h"
-#include "platform/common/rs_hisysevent.h"
 
 #undef LOG_TAG
 #define LOG_TAG "RSScreen"
@@ -111,13 +110,9 @@ RSScreen::RSScreen(const VirtualScreenConfigs &configs)
       whiteList_(configs.whiteList)
 {
     VirtualScreenInit();
-    RS_LOGW("init virtual: {id: %{public}" PRIu64 ", mirroredId: %{public}" PRIu64
-        ", w * h: [%{public}u * %{public}u], name: %{public}s, screenType: %{public}u}",
-        id_, mirroredId_, width_, height_, name_.c_str(), screenType_);
-}
-
-RSScreen::~RSScreen() noexcept
-{
+    RS_LOGW("init virtual screen: {id: %{public}" PRIu64 ", mirroredId: %{public}" PRIu64
+        ", w * h: [%{public}u * %{public}u], name: %{public}s, screenType: %{public}u, whiteList size: %{public}zu}",
+        id_, mirroredId_, width_, height_, name_.c_str(), screenType_, whiteList_.size());
 }
 
 void RSScreen::VirtualScreenInit() noexcept
@@ -150,7 +145,7 @@ void RSScreen::PhysicalScreenInit() noexcept
     }
     std::transform(hdrCapability_.formats.begin(), hdrCapability_.formats.end(),
                    back_inserter(supportedPhysicalHDRFormats_),
-                   [](GraphicHDRFormat item) -> ScreenHDRFormat {return HDI_HDR_FORMAT_TO_RS_MAP[item];});
+                   [](GraphicHDRFormat item) -> ScreenHDRFormat { return HDI_HDR_FORMAT_TO_RS_MAP[item]; });
     auto status = GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_ON;
     if (MultiScreenParam::IsRsSetScreenPowerStatus() || id_ == 0) {
         RS_LOGI("%{public}s: RSScreen(id %{public}" PRIu64 ") start SetScreenPowerStatus to On",
@@ -423,6 +418,10 @@ uint32_t RSScreen::SetScreenActiveRect(const GraphicIRect& activeRect)
 
 bool RSScreen::CalculateMaskRectAndReviseRect(const GraphicIRect& activeRect, GraphicIRect& reviseRect)
 {
+#ifdef ROSEN_EMULATOR
+    RS_LOGD("%{public}s emulator device do not revise rect", __func__);
+    return false;
+#endif
     if (!RSSystemProperties::IsSuperFoldDisplay()) {
         RS_LOGE("device is not super fold display");
         return false;
@@ -471,7 +470,8 @@ void RSScreen::SetRogResolution(uint32_t width, uint32_t height)
 
 int32_t RSScreen::SetResolution(uint32_t width, uint32_t height)
 {
-    RS_LOGI("%{public}s width: %{public}u height: %{public}u", __func__, width, height);
+    RS_LOGI("%{public}s screenId:%{public}" PRIu64 " width: %{public}u height: %{public}u", __func__, id_, width,
+            height);
     std::lock_guard<std::shared_mutex> lock(screenMutex_);
     if (IsVirtual()) {
         width_ = width;
@@ -490,7 +490,7 @@ int32_t RSScreen::SetResolution(uint32_t width, uint32_t height)
             static_cast<float>(phyHeight_) / height_);
         samplingTranslateX_ = (phyWidth_ - width_ * samplingScale_) / 2.f;
         samplingTranslateY_ = (phyHeight_ - height_ * samplingScale_) / 2.f;
-        RS_LOGI("%{public}s: sampling is enable. "
+        RS_LOGI("%{public}s: sampling is enabled. "
             "scale: %{public}f, translateX: %{public}f, translateY: %{public}f",
             __func__, samplingScale_, samplingTranslateX_, samplingTranslateY_);
     }
@@ -514,9 +514,14 @@ int32_t RSScreen::SetPowerStatus(uint32_t powerStatus)
         RS_LOGE("[UL_POWER] %{public}s failed, hdiScreen_ is nullptr", __func__);
         return StatusCode::HDI_ERROR;
     }
+    if (IsVirtual()) {
+        RS_LOGW("[UL_POWER] %{public}s: virtual screen not support SetPowerStatus.", __func__);
+        return StatusCode::HDI_ERROR;
+    }
 
     RS_LOGW("[UL_POWER]RSScreen_%{public}" PRIu64 " SetPowerStatus: %{public}u.", id_, powerStatus);
     RS_TRACE_NAME_FMT("[UL_POWER]Screen_%llu SetPowerStatus %u", id_, powerStatus);
+    hasLogBackLightAfterPowerStatusChanged_ = false;
     if (hdiScreen_->SetScreenPowerStatus(static_cast<GraphicDispPowerStatus>(powerStatus)) < 0) {
         RS_LOGW("[UL_POWER] %{public}s failed to set power status", __func__);
         powerStatus_ = ScreenPowerStatus::INVALID_POWER_STATUS;
@@ -572,6 +577,7 @@ uint32_t RSScreen::GetPowerStatus()
         RS_LOGW("%{public}s: virtual screen not support GetPowerStatus.", __func__);
         return ScreenPowerStatus::INVALID_POWER_STATUS;
     }
+
     if (!hdiScreen_) {
         RS_LOGE("%{public}s failed, hdiScreen_ is nullptr", __func__);
         return INVALID_POWER_STATUS;
@@ -761,6 +767,12 @@ void RSScreen::DisplayDump(int32_t screenIndex, std::string& dumpString)
         skipFrameLock.unlock();
         ModeInfoDump(dumpString);
         CapabilityDump(dumpString);
+        AppendFormat(dumpString,
+                     "isSamplingOn=%d, samplingScale=%.2f, samplingTranslateX=%.2f, samplingTranslateY=%.2f\n",
+                     isSamplingOn_, samplingScale_, samplingTranslateX_, samplingTranslateY_);
+        AppendFormat(dumpString, "enableVisibleRect=%d, mainScreenVisibleRect_=[%d,%d,%d,%d]\n",
+                     enableVisibleRect_.load(), mainScreenVisibleRect_.x, mainScreenVisibleRect_.y,
+                     mainScreenVisibleRect_.w, mainScreenVisibleRect_.h);
     }
 }
 
@@ -794,6 +806,15 @@ void RSScreen::SurfaceDump(int32_t screenIndex, std::string& dumpString)
         return;
     }
     hdiOutput_->Dump(dumpString);
+}
+
+void RSScreen::DumpCurrentFrameLayers()
+{
+    if (hdiOutput_ == nullptr) {
+        RS_LOGW("RSScreen %{public}s: hdiOutput_ is nullptr.", __func__);
+        return;
+    }
+    hdiOutput_->DumpCurrentFrameLayers();
 }
 
 void RSScreen::FpsDump(int32_t screenIndex, std::string& dumpString, std::string& arg)
@@ -844,11 +865,20 @@ void RSScreen::SetScreenBacklight(uint32_t level)
         RS_LOGW("%{public}s: virtual screen not support SetScreenBacklight.", __func__);
         return;
     }
+    if (!hasLogBackLightAfterPowerStatusChanged_) {
+        RS_LOGI("%{public}s id: %{public}" PRIu64 ", level is %{public}u, current level is %{public}d", __func__, id_,
+                level, screenBacklightLevel_);
+    }
 
     RS_LOGD("%{public}s id: %{public}" PRIu64 ", level is %{public}u", __func__, id_, level);
     if (hdiScreen_->SetScreenBacklight(level) < 0) {
         RS_LOGE("RSScreen_%{public}" PRIu64 " SetScreenBacklight error.", id_);
         return;
+    }
+    if (!hasLogBackLightAfterPowerStatusChanged_) {
+        RS_LOGI("%{public}s id: %{public}" PRIu64 ", level is %{public}u done, last level is %{public}d", __func__, id_,
+                level, screenBacklightLevel_);
+        hasLogBackLightAfterPowerStatusChanged_ = true;
     }
     std::lock_guard<std::shared_mutex> lock(screenMutex_);
     screenBacklightLevel_ = static_cast<int32_t>(level);
@@ -1231,6 +1261,7 @@ int32_t RSScreen::SetScreenColorSpace(GraphicCM_ColorSpaceType colorSpace)
     }
     return StatusCode::HDI_ERROR;
 }
+
 const std::unordered_set<uint64_t>& RSScreen::GetWhiteList() const
 {
     return whiteList_;
@@ -1240,6 +1271,12 @@ void RSScreen::SetBlackList(const std::unordered_set<uint64_t>& blackList)
 {
     std::lock_guard<std::mutex> lock(blackListMutex_);
     blackList_ = blackList;
+}
+
+void RSScreen::SetTypeBlackList(const std::unordered_set<uint8_t>& typeBlackList)
+{
+    std::lock_guard<std::mutex> lock(typeBlackListMutex_);
+    typeBlackList_ = typeBlackList;
 }
 
 void RSScreen::AddBlackList(const std::vector<uint64_t>& blackList)
@@ -1272,6 +1309,12 @@ const std::unordered_set<uint64_t> RSScreen::GetBlackList() const
     return blackList_;
 }
 
+const std::unordered_set<uint8_t> RSScreen::GetTypeBlackList() const
+{
+    std::lock_guard<std::mutex> lock(typeBlackListMutex_);
+    return typeBlackList_;
+}
+
 int32_t RSScreen::SetScreenConstraint(uint64_t frameId, uint64_t timestamp, ScreenConstraintType type)
 {
     if (IsVirtual()) {
@@ -1284,20 +1327,6 @@ int32_t RSScreen::SetScreenConstraint(uint64_t frameId, uint64_t timestamp, Scre
         }
     }
     return StatusCode::HDI_ERROR;
-}
-
-bool RSScreen::SetVirtualScreenStatus(VirtualScreenStatus screenStatus)
-{
-    if (IsVirtual()) {
-        screenStatus_ = screenStatus;
-        return true;
-    }
-    return false;
-}
-
-VirtualScreenStatus RSScreen::GetVirtualScreenStatus() const
-{
-    return screenStatus_;
 }
 
 void RSScreen::SetSecurityExemptionList(const std::vector<uint64_t>& securityExemptionList)
@@ -1351,6 +1380,30 @@ Rect RSScreen::GetMainScreenVisibleRect() const
     return mainScreenVisibleRect_;
 }
 
+bool RSScreen::GetVisibleRectSupportRotation() const
+{
+    return isSupportRotation_;
+}
+
+void RSScreen::SetVisibleRectSupportRotation(bool supportRotation)
+{
+    isSupportRotation_ = supportRotation;
+}
+
+bool RSScreen::SetVirtualScreenStatus(VirtualScreenStatus screenStatus)
+{
+    if (IsVirtual()) {
+        screenStatus_ = screenStatus;
+        return true;
+    }
+    return false;
+}
+
+VirtualScreenStatus RSScreen::GetVirtualScreenStatus() const
+{
+    return screenStatus_;
+}
+
 bool RSScreen::GetDisplayPropertyForHardCursor()
 {
     std::call_once(hardCursorSupportedFlag_, [this]() {
@@ -1371,16 +1424,6 @@ void RSScreen::SetHasProtectedLayer(bool hasProtectedLayer)
 bool RSScreen::GetHasProtectedLayer()
 {
     return hasProtectedLayer_;
-}
-
-bool RSScreen::GetVisibleRectSupportRotation() const
-{
-    return isSupportRotation_;
-}
-
-void RSScreen::SetVisibleRectSupportRotation(bool supportRotation)
-{
-    isSupportRotation_ = supportRotation;
 }
 
 int32_t RSScreen::GetDisplayIdentificationData(uint8_t& outPort, std::vector<uint8_t>& edidData) const

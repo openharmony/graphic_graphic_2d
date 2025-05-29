@@ -50,13 +50,6 @@ ohos_systemtest("RSInterfacesSystemTest") {
 config("rs_client_test_common_public_config") {
   include_dirs = [
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_client/core",
-
-    # windowmanager
-    "//foundation/window/window_manager/dm/include",
-    "//foundation/window/window_manager/dmserver/include",
-    "//foundation/window/window_manager/interfaces/innerkits/dm",
-    "//foundation/window/window_manager/interfaces/innerkits/wm",
-    "//foundation/window/window_manager/utils/include",
   ]
 
   cflags = [
@@ -79,13 +72,6 @@ ohos_static_library("rs_client_test_common") {
   public_deps = [
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
-    "//foundation/systemabilitymgr/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
-    "//foundation/window/window_manager/dm:libdm",
-    "//foundation/window/window_manager/dmserver:libdms",
-    "//foundation/window/window_manager/utils:libwmutil",
-    "//foundation/window/window_manager/wm:libwm",
-    "//foundation/window/window_manager/wmserver:libwms",
-    "//third_party/googletest:gtest_main",
   ]
 
   external_deps = [
@@ -94,7 +80,16 @@ ohos_static_library("rs_client_test_common") {
     "image_framework:image_native",
   ]
 
-  public_external_deps = [ "window_manager:libwmutil_base" ]
+  public_external_deps = [
+    "googletest:gtest_main",
+    "samgr:samgr_proxy",
+    "window_manager:libdm",
+    "window_manager:libdms",
+    "window_manager:libwm",
+    "window_manager:libwms",
+    "window_manager:libwmutil",
+    "window_manager:libwmutil_base",
+  ]
 
   subsystem_name = "graphic"
   part_name = "graphic_2d"

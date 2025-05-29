@@ -13,7 +13,7 @@
 
 import("//build/ohos.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
-import("../render_service_base/config.gni")
+import("//foundation/graphic/graphic_2d/rosen/modules/render_service_base/config.gni")
 
 ## Build libframe_analyzer.so {{{
 config("libframe_analyzer_config") {
@@ -48,7 +48,7 @@ ohos_shared_library("libframe_analyzer") {
 
     include_dirs = [ "$graphic_2d_root/utils/sandbox" ]
 
-    deps = [ "../../../utils/sandbox:sandbox_utils" ]
+    deps = [ "$graphic_2d_root/utils/sandbox:sandbox_utils" ]
 
     external_deps = [
       "c_utils:utils",

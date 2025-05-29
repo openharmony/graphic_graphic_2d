@@ -77,7 +77,7 @@ HWTEST_F(RSColorTest, Operator001, TestSize.Level1)
  */
 HWTEST_F(RSColorTest, IsNearEqual001, TestSize.Level1)
 {
-    int16_t red = 10;
+    int16_t red = 100;
     int16_t green = 11;
     int16_t blue = 12;
     int16_t alpha = 13;
@@ -85,13 +85,15 @@ HWTEST_F(RSColorTest, IsNearEqual001, TestSize.Level1)
 
     int16_t threshold = 2;
 
-    int16_t red1 = 11;
-    RSColor ohterColor1(red1, green, blue, alpha);
-    EXPECT_TRUE(color.IsNearEqual(ohterColor1, threshold));
+    int16_t red1 = 101;
+    RSColor otherColor1(red1, green, blue, alpha);
+    EXPECT_TRUE(color.IsNearEqual(otherColor1, threshold));
+    otherColor1.SetColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    EXPECT_FALSE(color.IsNearEqual(otherColor1, threshold));
 
-    int16_t red2 = 15;
-    RSColor ohterColor2(red2, green, blue, alpha);
-    EXPECT_FALSE(color.IsNearEqual(ohterColor2, threshold));
+    int16_t red2 = 150;
+    RSColor otherColor2(red2, green, blue, alpha);
+    EXPECT_FALSE(color.IsNearEqual(otherColor2, threshold));
 }
 
 /**
@@ -264,6 +266,101 @@ HWTEST_F(RSColorTest, AlphaTest, TestSize.Level1)
     EXPECT_EQ(color.GetAlpha(), 0);
     color.SetAlpha(1);
     EXPECT_EQ(color.GetAlpha(), 1);
+}
+
+/**
+ * @tc.name: RedFTest
+ * @tc.desc: Verify function GetRedF
+ * @tc.type: FUNC
+ * @tc.require: issuesIC9OUH
+ */
+HWTEST_F(RSColorTest, RedFTest, TestSize.Level1)
+{
+    RSColor color;
+    EXPECT_EQ(color.GetRedF(), 0.f);
+    color.SetRed(255);
+    EXPECT_EQ(color.GetRedF(), 1.f);
+}
+
+/**
+ * @tc.name: GreenFTest
+ * @tc.desc: Verify function GetGreenF
+ * @tc.type: FUNC
+ * @tc.require: issuesIC9OUH
+ */
+HWTEST_F(RSColorTest, GreenFTest, TestSize.Level1)
+{
+    RSColor color;
+    EXPECT_EQ(color.GetGreenF(), 0.f);
+    color.SetGreen(255);
+    EXPECT_EQ(color.GetGreenF(), 1.f);
+}
+
+/**
+ * @tc.name: BlueFTest
+ * @tc.desc: Verify function GetBlueF
+ * @tc.type: FUNC
+ * @tc.require: issuesIC9OUH
+ */
+HWTEST_F(RSColorTest, BlueFTest, TestSize.Level1)
+{
+    RSColor color;
+    EXPECT_EQ(color.GetBlueF(), 0.f);
+    color.SetBlue(255);
+    EXPECT_EQ(color.GetBlueF(), 1.f);
+}
+
+/**
+ * @tc.name: AlphaFTest
+ * @tc.desc: Verify function GetAlphaF
+ * @tc.type: FUNC
+ * @tc.require: issuesIC9OUH
+ */
+HWTEST_F(RSColorTest, AlphaFTest, TestSize.Level1)
+{
+    RSColor color;
+    EXPECT_EQ(color.GetAlphaF(), 0.f);
+    color.SetAlpha(255);
+    EXPECT_EQ(color.GetAlphaF(), 1.f);
+}
+
+/**
+ * @tc.name: GetColor4fTest
+ * @tc.desc: Verify function GetColor4f
+ * @tc.type: FUNC
+ * @tc.require: issuesIC9OUH
+ */
+HWTEST_F(RSColorTest, GetColor4fTest, TestSize.Level1)
+{
+    RSColor color;
+    auto color4f = color.GetColor4f();
+    EXPECT_EQ(color4f.redF_, 0.f);
+    EXPECT_EQ(color4f.greenF_, 0.f);
+    EXPECT_EQ(color4f.blueF_, 0.f);
+    EXPECT_EQ(color4f.alphaF_, 0.f);
+    color.SetRed(255);
+    color.SetGreen(255);
+    color.SetBlue(255);
+    color.SetAlpha(255);
+    color4f = color.GetColor4f();
+    EXPECT_EQ(color4f.redF_, 1.f);
+    EXPECT_EQ(color4f.greenF_, 1.f);
+    EXPECT_EQ(color4f.blueF_, 1.f);
+    EXPECT_EQ(color4f.alphaF_, 1.f);
+}
+
+/**
+ * @tc.name: ColorSpaceTest
+ * @tc.desc: Verify function GetColorSpace SetColorSpace
+ * @tc.type: FUNC
+ * @tc.require: issuesIC9OUH
+ */
+HWTEST_F(RSColorTest, ColorSpaceTest, TestSize.Level1)
+{
+    RSColor color;
+    EXPECT_EQ(color.GetColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    color.SetColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    EXPECT_EQ(color.GetColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
 }
 
 /**

@@ -26,9 +26,11 @@ public:
     int GetRadius() const;
     std::string GetDescription() const;
     void GenerateGEVisualEffect(std::shared_ptr<Drawing::GEVisualEffectContainer> visualEffectContainer) override;
+    static void SetMesablurAllEnabledByCCM(bool flag);
 
 private:
     int radius_ = 0;
+    static bool isMesablurAllEnable_;
     friend class RSMarshallingHelper;
 };
 } // namespace Rosen

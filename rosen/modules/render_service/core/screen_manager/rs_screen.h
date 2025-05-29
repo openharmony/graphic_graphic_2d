@@ -19,14 +19,15 @@
 #include <memory>
 #include <mutex>
 #include <optional>
-#include <unordered_set>
 #include <shared_mutex>
+#include <unordered_set>
 
-#include <common/rs_rect.h>
-#include <surface_type.h>
+#include <hdi_display_type.h>
 #include <hdi_output.h>
 #include <hdi_screen.h>
-#include <hdi_display_type.h>
+#include <surface_type.h>
+
+#include <common/rs_rect.h>
 #include <screen_manager/screen_types.h>
 
 namespace OHOS {
@@ -41,7 +42,6 @@ struct VirtualScreenConfigs {
     GraphicPixelFormat pixelFormat = GRAPHIC_PIXEL_FMT_RGBA_8888;
     int32_t flags = 0; // reserve flag.
     std::unordered_set<uint64_t> whiteList = {};
-    std::unordered_set<uint64_t> blackListSet = {};
 };
 
 class RSScreen {
@@ -50,57 +50,34 @@ public:
     virtual ~RSScreen() noexcept = default;
 
     virtual ScreenId Id() const = 0;
-    virtual ScreenId MirroredId() const = 0;
-    virtual void SetMirror(ScreenId mirroredId) = 0;
     virtual const std::string& Name() const = 0;
+    virtual void SetMirror(ScreenId mirroredId) = 0;
+    virtual ScreenId MirroredId() const = 0;
+
+    virtual bool IsEnable() const = 0;
+    virtual bool IsVirtual() const = 0;
+    virtual const RSScreenType& GetScreenType() const = 0;
+
+    virtual int32_t SetResolution(uint32_t width, uint32_t height) = 0;
+    virtual void SetRogResolution(uint32_t width, uint32_t height) = 0;
+    // render resolution
     virtual uint32_t Width() const = 0;
     virtual uint32_t Height() const = 0;
+    // physical screen resolution
     virtual uint32_t PhyWidth() const = 0;
     virtual uint32_t PhyHeight() const = 0;
     virtual bool IsSamplingOn() const = 0;
     virtual float GetSamplingTranslateX() const = 0;
     virtual float GetSamplingTranslateY() const = 0;
     virtual float GetSamplingScale() const = 0;
-    virtual RectI GetActiveRect() const = 0;
-    virtual RectI GetMaskRect() const = 0;
-    virtual RectI GetReviseRect() const = 0;
-    virtual bool CalculateMaskRectAndReviseRect(const GraphicIRect& activeRect, GraphicIRect& reviseRect) = 0;
-    virtual bool IsEnable() const = 0;
-    virtual bool IsVirtual() const = 0;
-    virtual uint32_t SetActiveMode(uint32_t modeId) = 0;
-    virtual uint32_t SetScreenActiveRect(const GraphicIRect& activeRect) = 0;
-    virtual int32_t SetResolution(uint32_t width, uint32_t height) = 0;
-    virtual void SetRogResolution(uint32_t width, uint32_t height) = 0;
-    virtual int32_t SetPowerStatus(uint32_t powerStatus) = 0;
-    virtual std::optional<GraphicDisplayModeInfo> GetActiveMode() const = 0;
-    virtual const std::vector<GraphicDisplayModeInfo>& GetSupportedModes() const = 0;
-    virtual const GraphicDisplayCapability& GetCapability() const = 0;
-    virtual uint32_t GetPowerStatus() = 0;
-    virtual std::shared_ptr<HdiOutput> GetOutput() const = 0;
-    virtual sptr<Surface> GetProducerSurface() const = 0;
-    virtual void SetProducerSurface(sptr<Surface> producerSurface) = 0;
-    virtual bool GetAndResetVirtualSurfaceUpdateFlag() = 0;
+
     virtual void DisplayDump(int32_t screenIndex, std::string& dumpString) = 0;
     virtual void SurfaceDump(int32_t screenIndex, std::string& dumpString) = 0;
+    virtual void DumpCurrentFrameLayers() = 0;
     virtual void FpsDump(int32_t screenIndex, std::string& dumpString, std::string& arg) = 0;
     virtual void ClearFpsDump(int32_t screenIndex, std::string& dumpString, std::string& arg) = 0;
     virtual void HitchsDump(int32_t screenIndex, std::string& dumpString, std::string& arg) = 0;
-    virtual void SetScreenBacklight(uint32_t level) = 0;
-    virtual int32_t GetScreenBacklight() const = 0;
-    virtual void ResizeVirtualScreen(uint32_t width, uint32_t height) = 0;
-    virtual int32_t GetScreenSupportedColorGamuts(std::vector<ScreenColorGamut> &mode) const = 0;
-    virtual int32_t GetScreenSupportedMetaDataKeys(std::vector<ScreenHDRMetadataKey> &keys) const = 0;
-    virtual bool GetCanvasRotation() const = 0;
-    virtual ScreenScaleMode GetScaleMode() const = 0;
-    virtual int32_t GetScreenColorGamut(ScreenColorGamut &mode) const = 0;
-    virtual int32_t SetScreenColorGamut(int32_t modeIdx) = 0;
-    virtual int32_t SetScreenGamutMap(ScreenGamutMap mode) = 0;
-    virtual ScreenRotation GetScreenCorrection() const = 0;
-    virtual int32_t GetScreenGamutMap(ScreenGamutMap &mode) const = 0;
-    virtual int32_t GetActiveModePosByModeId(int32_t modeId) const = 0;
-    virtual const GraphicHDRCapability& GetHDRCapability() = 0;
-    virtual const RSScreenType& GetScreenType() const = 0;
-    virtual void SetScreenCorrection(ScreenRotation screenRotation) = 0;
+
     virtual void SetScreenSkipFrameInterval(uint32_t skipFrameInterval) = 0;
     virtual uint32_t GetScreenSkipFrameInterval() const = 0;
     virtual void SetScreenExpectedRefreshRate(uint32_t expectedRefreshRate) = 0;
@@ -109,61 +86,117 @@ public:
     virtual void SetEqualVsyncPeriod(bool isEqualVsyncPeriod) = 0;
     virtual bool GetEqualVsyncPeriod() const = 0;
     virtual void SetScreenVsyncEnabled(bool enabled) const = 0;
-    virtual bool SetVirtualMirrorScreenCanvasRotation(bool canvasRotation) = 0;
-    virtual bool SetVirtualMirrorScreenScaleMode(ScreenScaleMode scaleMode) = 0;
-    virtual int32_t GetScreenSupportedHDRFormats(std::vector<ScreenHDRFormat>& hdrFormats) const = 0;
-    virtual int32_t GetScreenHDRFormat(ScreenHDRFormat& hdrFormat) const = 0;
-    virtual int32_t SetScreenHDRFormat(int32_t modeIdx) = 0;
-    virtual int32_t GetPixelFormat(GraphicPixelFormat& pixelFormat) const = 0;
-    virtual int32_t SetPixelFormat(GraphicPixelFormat pixelFormat) = 0;
-    virtual int32_t GetScreenSupportedColorSpaces(std::vector<GraphicCM_ColorSpaceType>& colorSpaces) const = 0;
-    virtual int32_t GetScreenColorSpace(GraphicCM_ColorSpaceType& colorSpace) const = 0;
-    virtual int32_t SetScreenColorSpace(GraphicCM_ColorSpaceType colorSpace) = 0;
-    virtual const std::unordered_set<uint64_t>& GetWhiteList() const = 0;
-    virtual void SetBlackList(const std::unordered_set<uint64_t>& blackList) = 0;
-    virtual void AddBlackList(const std::vector<uint64_t>& blackList) = 0;
-    virtual void RemoveBlackList(const std::vector<uint64_t>& blackList) = 0;
-    virtual void SetCastScreenEnableSkipWindow(bool enable) = 0;
-    virtual const std::unordered_set<uint64_t> GetBlackList() const = 0;
-    virtual bool GetCastScreenEnableSkipWindow() = 0;
+
+    // physical screen
+    virtual std::shared_ptr<HdiOutput> GetOutput() const = 0;
+
+    virtual uint32_t SetActiveMode(uint32_t modeId) = 0;
+    virtual std::optional<GraphicDisplayModeInfo> GetActiveMode() const = 0;
+    virtual int32_t GetActiveModePosByModeId(int32_t modeId) const = 0;
+    virtual const std::vector<GraphicDisplayModeInfo>& GetSupportedModes() const = 0;
+
+    virtual const GraphicDisplayCapability& GetCapability() const = 0;
+    virtual int32_t GetDisplayIdentificationData(uint8_t& outPort, std::vector<uint8_t>& edidData) const = 0;
+
+    virtual void SetScreenCorrection(ScreenRotation screenRotation) = 0;
+    virtual ScreenRotation GetScreenCorrection() const = 0;
+
+    virtual int32_t SetPowerStatus(uint32_t powerStatus) = 0;
+    virtual uint32_t GetPowerStatus() = 0;
+
+    virtual void SetScreenBacklight(uint32_t level) = 0;
+    virtual int32_t GetScreenBacklight() const = 0;
     virtual int32_t SetScreenConstraint(uint64_t frameId, uint64_t timestamp, ScreenConstraintType type) = 0;
+
+    virtual int32_t SetPixelFormat(GraphicPixelFormat pixelFormat) = 0;
+    virtual int32_t GetPixelFormat(GraphicPixelFormat& pixelFormat) const = 0;
+
+    virtual int32_t SetScreenColorGamut(int32_t modeIdx) = 0;
+    virtual int32_t GetScreenColorGamut(ScreenColorGamut& mode) const = 0;
+    virtual int32_t GetScreenSupportedColorGamuts(std::vector<ScreenColorGamut>& mode) const = 0;
+    virtual int32_t SetScreenGamutMap(ScreenGamutMap mode) = 0;
+    virtual int32_t GetScreenGamutMap(ScreenGamutMap& mode) const = 0;
+
+    virtual int32_t SetScreenHDRFormat(int32_t modeIdx) = 0;
+    virtual int32_t GetScreenHDRFormat(ScreenHDRFormat& hdrFormat) const = 0;
+    virtual int32_t GetScreenSupportedHDRFormats(std::vector<ScreenHDRFormat>& hdrFormats) const = 0;
+    virtual const GraphicHDRCapability& GetHDRCapability() = 0;
+    virtual int32_t GetScreenSupportedMetaDataKeys(std::vector<ScreenHDRMetadataKey>& keys) const = 0;
+
+    virtual int32_t SetScreenColorSpace(GraphicCM_ColorSpaceType colorSpace) = 0;
+    virtual int32_t GetScreenColorSpace(GraphicCM_ColorSpaceType& colorSpace) const = 0;
+    virtual int32_t GetScreenSupportedColorSpaces(std::vector<GraphicCM_ColorSpaceType>& colorSpaces) const = 0;
+
+    virtual uint32_t SetScreenActiveRect(const GraphicIRect& activeRect) = 0;
+    virtual RectI GetActiveRect() const = 0;
+    virtual RectI GetMaskRect() const = 0;
+    virtual RectI GetReviseRect() const = 0;
+    virtual void SetHasProtectedLayer(bool hasProtectedLayer) = 0;
+    virtual bool GetHasProtectedLayer() = 0;
+    virtual int32_t SetScreenLinearMatrix(const std::vector<float>& matrix) = 0;
+    virtual bool GetDisplayPropertyForHardCursor() = 0;
+
+    // virtual screen
+    virtual void SetProducerSurface(sptr<Surface> producerSurface) = 0;
+    virtual sptr<Surface> GetProducerSurface() const = 0;
+    virtual bool GetAndResetVirtualSurfaceUpdateFlag() = 0;
+
+    virtual void ResizeVirtualScreen(uint32_t width, uint32_t height) = 0;
+
+    virtual bool SetVirtualMirrorScreenCanvasRotation(bool canvasRotation) = 0;
+    virtual bool GetCanvasRotation() const = 0;
+
+    virtual bool SetVirtualMirrorScreenScaleMode(ScreenScaleMode scaleMode) = 0;
+    virtual ScreenScaleMode GetScaleMode() const = 0;
+
     virtual bool SetVirtualScreenStatus(VirtualScreenStatus screenStatus) = 0;
     virtual VirtualScreenStatus GetVirtualScreenStatus() const = 0;
-    virtual bool GetDisplayPropertyForHardCursor() = 0;
+
+    virtual void SetCastScreenEnableSkipWindow(bool enable) = 0;
+    virtual bool GetCastScreenEnableSkipWindow() = 0;
+    virtual void SetBlackList(const std::unordered_set<uint64_t>& blackList) = 0;
+    virtual void SetTypeBlackList(const std::unordered_set<uint8_t>& typeBlackList) = 0;
+    virtual void AddBlackList(const std::vector<uint64_t>& blackList) = 0;
+    virtual void RemoveBlackList(const std::vector<uint64_t>& blackList) = 0;
+    virtual const std::unordered_set<uint64_t> GetBlackList() const = 0;
+    virtual const std::unordered_set<uint8_t> GetTypeBlackList() const = 0;
+    virtual const std::unordered_set<uint64_t>& GetWhiteList() const = 0;
+
     virtual void SetSecurityExemptionList(const std::vector<uint64_t>& securityExemptionList) = 0;
     virtual const std::vector<uint64_t> GetSecurityExemptionList() const = 0;
+
     virtual int32_t SetSecurityMask(std::shared_ptr<Media::PixelMap> securityMask) = 0;
     virtual std::shared_ptr<Media::PixelMap> GetSecurityMask() const = 0;
+
     virtual void SetEnableVisibleRect(bool enable) = 0;
     virtual bool GetEnableVisibleRect() const = 0;
     virtual void SetMainScreenVisibleRect(const Rect& mainScreenRect) = 0;
     virtual Rect GetMainScreenVisibleRect() const = 0;
-    virtual void SetHasProtectedLayer(bool hasProtectedLayer) = 0;
-    virtual bool GetHasProtectedLayer() = 0;
     virtual bool GetVisibleRectSupportRotation() const = 0;
     virtual void SetVisibleRectSupportRotation(bool supportRotation) = 0;
-    virtual int32_t GetDisplayIdentificationData(uint8_t& outPort, std::vector<uint8_t>& edidData) const = 0;
-    virtual int32_t SetScreenLinearMatrix(const std::vector<float>& matrix) = 0;
 };
 
 namespace impl {
 class RSScreen : public OHOS::Rosen::RSScreen {
 public:
-    RSScreen(
-        ScreenId id,
-        bool isVirtual,
-        std::shared_ptr<HdiOutput> output,
-        sptr<Surface> surface);
-    RSScreen(const VirtualScreenConfigs &configs);
-    ~RSScreen() noexcept override;
+    RSScreen(ScreenId id, bool isVirtual, std::shared_ptr<HdiOutput> output, sptr<Surface> surface);
+    RSScreen(const VirtualScreenConfigs& configs);
+    ~RSScreen() override = default;
 
-    RSScreen(const RSScreen &) = delete;
-    RSScreen &operator=(const RSScreen &) = delete;
+    RSScreen(const RSScreen&) = delete;
+    RSScreen& operator=(const RSScreen&) = delete;
 
     ScreenId Id() const override;
-    ScreenId MirroredId() const override;
-    void SetMirror(ScreenId mirroredId) override;
     const std::string& Name() const override;
+    void SetMirror(ScreenId mirroredId) override;
+    ScreenId MirroredId() const override;
+
+    bool IsEnable() const override;
+    bool IsVirtual() const override;
+    const RSScreenType& GetScreenType() const override;
+
+    int32_t SetResolution(uint32_t width, uint32_t height) override;
+    void SetRogResolution(uint32_t width, uint32_t height) override;
     // render resolution
     uint32_t Width() const override;
     uint32_t Height() const override;
@@ -174,46 +207,14 @@ public:
     float GetSamplingTranslateX() const override;
     float GetSamplingTranslateY() const override;
     float GetSamplingScale() const override;
-    RectI GetActiveRect() const override;
-    RectI GetMaskRect() const override;
-    RectI GetReviseRect() const override;
-    bool CalculateMaskRectAndReviseRect(const GraphicIRect& activeRect, GraphicIRect& reviseRect) override;
-    bool IsEnable() const override;
-    bool IsVirtual() const override;
-    uint32_t SetActiveMode(uint32_t modeId) override;
-    uint32_t SetScreenActiveRect(const GraphicIRect& activeRect) override;
-    int32_t SetResolution(uint32_t width, uint32_t height) override;
-    void SetRogResolution(uint32_t width, uint32_t height) override;
-    int32_t SetPowerStatus(uint32_t powerStatus) override;
-    std::optional<GraphicDisplayModeInfo> GetActiveMode() const override;
-    const std::vector<GraphicDisplayModeInfo>& GetSupportedModes() const override;
-    const GraphicDisplayCapability& GetCapability() const override;
-    uint32_t GetPowerStatus() override;
-    std::shared_ptr<HdiOutput> GetOutput() const override;
-    sptr<Surface> GetProducerSurface() const override;
-    void SetProducerSurface(sptr<Surface> producerSurface) override;
-    bool GetAndResetVirtualSurfaceUpdateFlag() override;
+
     void DisplayDump(int32_t screenIndex, std::string& dumpString) override;
     void SurfaceDump(int32_t screenIndex, std::string& dumpString) override;
+    void DumpCurrentFrameLayers() override;
     void FpsDump(int32_t screenIndex, std::string& dumpString, std::string& arg) override;
     void ClearFpsDump(int32_t screenIndex, std::string& dumpString, std::string& arg) override;
     void HitchsDump(int32_t screenIndex, std::string& dumpString, std::string& arg) override;
-    void ResizeVirtualScreen(uint32_t width, uint32_t height) override;
-    void SetScreenBacklight(uint32_t level) override;
-    int32_t GetScreenBacklight() const override;
-    int32_t GetScreenSupportedColorGamuts(std::vector<ScreenColorGamut> &mode) const override;
-    int32_t GetScreenSupportedMetaDataKeys(std::vector<ScreenHDRMetadataKey> &keys) const override;
-    bool GetCanvasRotation() const override;
-    ScreenScaleMode GetScaleMode() const override;
-    int32_t GetScreenColorGamut(ScreenColorGamut &mode) const override;
-    int32_t SetScreenColorGamut(int32_t modeIdx) override;
-    int32_t SetScreenGamutMap(ScreenGamutMap mode) override;
-    void SetScreenCorrection(ScreenRotation screenRotation) override;
-    ScreenRotation GetScreenCorrection() const override;
-    int32_t GetScreenGamutMap(ScreenGamutMap &mode) const override;
-    int32_t GetActiveModePosByModeId(int32_t modeId) const override;
-    const GraphicHDRCapability& GetHDRCapability() override;
-    const RSScreenType& GetScreenType() const override;
+
     void SetScreenSkipFrameInterval(uint32_t skipFrameInterval) override;
     uint32_t GetScreenSkipFrameInterval() const override;
     void SetScreenExpectedRefreshRate(uint32_t expectedRefreshRate) override;
@@ -222,55 +223,109 @@ public:
     void SetEqualVsyncPeriod(bool isEqualVsyncPeriod) override;
     bool GetEqualVsyncPeriod() const override;
     void SetScreenVsyncEnabled(bool enabled) const override;
-    bool SetVirtualMirrorScreenCanvasRotation(bool canvasRotation) override;
-    bool SetVirtualMirrorScreenScaleMode(ScreenScaleMode scaleMode) override;
-    int32_t GetScreenSupportedHDRFormats(std::vector<ScreenHDRFormat>& hdrFormats) const override;
-    int32_t GetScreenHDRFormat(ScreenHDRFormat& hdrFormat) const override;
-    int32_t SetScreenHDRFormat(int32_t modeIdx) override;
-    int32_t GetPixelFormat(GraphicPixelFormat& pixelFormat) const override;
-    int32_t SetPixelFormat(GraphicPixelFormat pixelFormat) override;
-    int32_t GetScreenSupportedColorSpaces(std::vector<GraphicCM_ColorSpaceType>& colorSpaces) const override;
-    int32_t GetScreenColorSpace(GraphicCM_ColorSpaceType& colorSpace) const override;
-    int32_t SetScreenColorSpace(GraphicCM_ColorSpaceType colorSpace) override;
-    const std::unordered_set<uint64_t>& GetWhiteList() const override;
-    void SetBlackList(const std::unordered_set<uint64_t>& blackList) override;
-    void AddBlackList(const std::vector<uint64_t>& blackList) override;
-    void RemoveBlackList(const std::vector<uint64_t>& blackList) override;
-    void SetCastScreenEnableSkipWindow(bool enable) override;
-    const std::unordered_set<uint64_t> GetBlackList() const override;
-    bool GetCastScreenEnableSkipWindow() override;
+
+    // physical screen
+    std::shared_ptr<HdiOutput> GetOutput() const override;
+
+    uint32_t SetActiveMode(uint32_t modeId) override;
+    std::optional<GraphicDisplayModeInfo> GetActiveMode() const override;
+    int32_t GetActiveModePosByModeId(int32_t modeId) const override;
+    const std::vector<GraphicDisplayModeInfo>& GetSupportedModes() const override;
+
+    const GraphicDisplayCapability& GetCapability() const override;
+    int32_t GetDisplayIdentificationData(uint8_t& outPort, std::vector<uint8_t>& edidData) const override;
+
+    void SetScreenCorrection(ScreenRotation screenRotation) override;
+    ScreenRotation GetScreenCorrection() const override;
+
+    int32_t SetPowerStatus(uint32_t powerStatus) override;
+    uint32_t GetPowerStatus() override;
+
+    void SetScreenBacklight(uint32_t level) override;
+    int32_t GetScreenBacklight() const override;
     int32_t SetScreenConstraint(uint64_t frameId, uint64_t timestamp, ScreenConstraintType type) override;
+
+    int32_t SetPixelFormat(GraphicPixelFormat pixelFormat) override;
+    int32_t GetPixelFormat(GraphicPixelFormat& pixelFormat) const override;
+
+    int32_t SetScreenColorGamut(int32_t modeIdx) override;
+    int32_t GetScreenColorGamut(ScreenColorGamut& mode) const override;
+    int32_t GetScreenSupportedColorGamuts(std::vector<ScreenColorGamut>& mode) const override;
+    int32_t SetScreenGamutMap(ScreenGamutMap mode) override;
+    int32_t GetScreenGamutMap(ScreenGamutMap& mode) const override;
+
+    int32_t SetScreenHDRFormat(int32_t modeIdx) override;
+    int32_t GetScreenHDRFormat(ScreenHDRFormat& hdrFormat) const override;
+    int32_t GetScreenSupportedHDRFormats(std::vector<ScreenHDRFormat>& hdrFormats) const override;
+    const GraphicHDRCapability& GetHDRCapability() override;
+    int32_t GetScreenSupportedMetaDataKeys(std::vector<ScreenHDRMetadataKey>& keys) const override;
+
+    int32_t SetScreenColorSpace(GraphicCM_ColorSpaceType colorSpace) override;
+    int32_t GetScreenColorSpace(GraphicCM_ColorSpaceType& colorSpace) const override;
+    int32_t GetScreenSupportedColorSpaces(std::vector<GraphicCM_ColorSpaceType>& colorSpaces) const override;
+
+    uint32_t SetScreenActiveRect(const GraphicIRect& activeRect) override;
+    RectI GetActiveRect() const override;
+    RectI GetMaskRect() const override;
+    RectI GetReviseRect() const override;
+    void SetHasProtectedLayer(bool hasProtectedLayer) override;
+    bool GetHasProtectedLayer() override;
+    int32_t SetScreenLinearMatrix(const std::vector<float>& matrix) override;
+    bool GetDisplayPropertyForHardCursor() override;
+
+    // virtual screen
+    void SetProducerSurface(sptr<Surface> producerSurface) override;
+    sptr<Surface> GetProducerSurface() const override;
+    bool GetAndResetVirtualSurfaceUpdateFlag() override;
+
+    void ResizeVirtualScreen(uint32_t width, uint32_t height) override;
+
+    bool SetVirtualMirrorScreenCanvasRotation(bool canvasRotation) override;
+    bool GetCanvasRotation() const override;
+
+    bool SetVirtualMirrorScreenScaleMode(ScreenScaleMode scaleMode) override;
+    ScreenScaleMode GetScaleMode() const override;
+
     bool SetVirtualScreenStatus(VirtualScreenStatus screenStatus) override;
     VirtualScreenStatus GetVirtualScreenStatus() const override;
-    bool GetDisplayPropertyForHardCursor() override;
+
+    void SetCastScreenEnableSkipWindow(bool enable) override;
+    bool GetCastScreenEnableSkipWindow() override;
+    void SetBlackList(const std::unordered_set<uint64_t>& blackList) override;
+    void SetTypeBlackList(const std::unordered_set<uint8_t>& typeBlackList) override;
+    void AddBlackList(const std::vector<uint64_t>& blackList) override;
+    void RemoveBlackList(const std::vector<uint64_t>& blackList) override;
+    const std::unordered_set<uint64_t> GetBlackList() const override;
+    const std::unordered_set<uint8_t> GetTypeBlackList() const override;
+    const std::unordered_set<uint64_t>& GetWhiteList() const override;
+
     void SetSecurityExemptionList(const std::vector<uint64_t>& securityExemptionList) override;
     const std::vector<uint64_t> GetSecurityExemptionList() const override;
+
     int32_t SetSecurityMask(std::shared_ptr<Media::PixelMap> securityMask) override;
     std::shared_ptr<Media::PixelMap> GetSecurityMask() const override;
+
     void SetEnableVisibleRect(bool enable) override;
     bool GetEnableVisibleRect() const override;
     void SetMainScreenVisibleRect(const Rect& mainScreenRect) override;
     Rect GetMainScreenVisibleRect() const override;
-    void SetHasProtectedLayer(bool hasProtectedLayer) override;
-    bool GetHasProtectedLayer() override;
     bool GetVisibleRectSupportRotation() const override;
     void SetVisibleRectSupportRotation(bool supportRotation) override;
-    int32_t GetDisplayIdentificationData(uint8_t& outPort, std::vector<uint8_t>& edidData) const override;
-    int32_t SetScreenLinearMatrix(const std::vector<float>& matrix) override;
 
 private:
     // create hdiScreen and get some information from drivers.
     void PhysicalScreenInit() noexcept;
     void ScreenCapabilityInit() noexcept;
-
     void VirtualScreenInit() noexcept;
+    void WriteHisyseventEpsLcdInfo(GraphicDisplayModeInfo& activeMode);
+    bool CalculateMaskRectAndReviseRect(const GraphicIRect& activeRect, GraphicIRect& reviseRect);
+
     void ModeInfoDump(std::string& dumpString);
     void CapabilityDump(std::string& dumpString);
     void PropDump(std::string& dumpString);
     void PowerStatusDump(std::string& dumpString);
     void CapabilityTypeDump(GraphicInterfaceType capabilityType, std::string& dumpString);
     void ScreenTypeDump(std::string& dumpString);
-    void WriteHisyseventEpsLcdInfo(GraphicDisplayModeInfo& activeMode);
 
     // ScreenId for this screen.
     ScreenId id_ = INVALID_SCREEN_ID;
@@ -317,8 +372,8 @@ private:
     std::atomic<int32_t> currentVirtualColorGamutIdx_ = 0;
     std::atomic<int32_t> currentPhysicalColorGamutIdx_ = 0;
     std::atomic<ScreenGamutMap> currentVirtualGamutMap_ = GAMUT_MAP_CONSTANT;
-    int32_t currentVirtualHDRFormatIdx_ = 0;
-    int32_t currentPhysicalHDRFormatIdx_ = 0;
+    std::atomic<int32_t> currentVirtualHDRFormatIdx_ = 0;
+    std::atomic<int32_t> currentPhysicalHDRFormatIdx_ = 0;
     std::vector<ScreenHDRFormat> supportedVirtualHDRFormats_ = {
         NOT_SUPPORT_HDR };
     std::vector<ScreenHDRFormat> supportedPhysicalHDRFormats_;
@@ -342,6 +397,9 @@ private:
     mutable std::mutex blackListMutex_;
     std::unordered_set<uint64_t> blackList_ = {};
 
+    mutable std::mutex typeBlackListMutex_;
+    std::unordered_set<uint8_t> typeBlackList_ = {};
+
     mutable std::mutex securityExemptionMutex_;
     std::vector<uint64_t> securityExemptionList_ = {};
 
@@ -361,6 +419,8 @@ private:
     std::atomic<bool> hasProtectedLayer_ = false;
 
     std::vector<float> linearMatrix_ = {1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f};
+
+    std::atomic<bool> hasLogBackLightAfterPowerStatusChanged_ = false;
 };
 } // namespace impl
 } // namespace Rosen

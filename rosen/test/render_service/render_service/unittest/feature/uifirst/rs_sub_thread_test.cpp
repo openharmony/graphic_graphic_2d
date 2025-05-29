@@ -18,6 +18,7 @@
 #include "gtest/gtest.h"
 
 #include "pipeline/render_thread/rs_base_render_engine.h"
+#include "pipeline/render_thread/rs_uni_render_engine.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 
 using namespace testing;
@@ -32,7 +33,12 @@ public:
     void TearDown() override;
 };
 
-void RsSubThreadTest::SetUpTestCase() {}
+void RsSubThreadTest::SetUpTestCase()
+{
+#ifdef RS_ENABLE_VK
+    RsVulkanContext::SetRecyclable(false);
+#endif
+}
 void RsSubThreadTest::TearDownTestCase() {}
 void RsSubThreadTest::SetUp() {}
 void RsSubThreadTest::TearDown() {}
@@ -103,7 +109,13 @@ HWTEST_F(RsSubThreadTest, ResetGrContext, TestSize.Level1)
 {
     auto curThread = std::make_shared<RSSubThread>(nullptr, 0);
     ASSERT_TRUE(curThread != nullptr);
+    curThread->grContext_ = nullptr;
     curThread->ResetGrContext();
+    EXPECT_EQ(curThread->grContext_, nullptr);
+
+    curThread->grContext_ = std::make_shared<Drawing::GPUContext>();
+    curThread->ResetGrContext();
+    EXPECT_NE(curThread->grContext_, nullptr);
 }
 
 /**
@@ -162,6 +174,8 @@ HWTEST_F(RsSubThreadTest, DumpMemTest001, TestSize.Level1)
     auto curThread = std::make_shared<RSSubThread>(renderContext.get(), 0);
     DfxString log;
     curThread->grContext_ = std::make_shared<Drawing::GPUContext>();
+    auto renderNode = std::make_shared<RSSurfaceRenderNode>(0);
+    RSMainThread::Instance()->GetContext().GetMutableNodeMap().RegisterRenderNode(renderNode);
     curThread->DumpMem(log);
     EXPECT_TRUE(curThread->grContext_);
 }
@@ -189,9 +203,13 @@ HWTEST_F(RsSubThreadTest, ThreadSafetyReleaseTextureTest001, TestSize.Level1)
 {
     auto renderContext = std::make_shared<RenderContext>();
     auto curThread = std::make_shared<RSSubThread>(renderContext.get(), 0);
+    curThread->grContext_ = nullptr;
+    curThread->ThreadSafetyReleaseTexture();
+    EXPECT_EQ(curThread->grContext_, nullptr);
+
     curThread->grContext_ = std::make_shared<Drawing::GPUContext>();
     curThread->ThreadSafetyReleaseTexture();
-    EXPECT_TRUE(curThread->grContext_);
+    EXPECT_NE(curThread->grContext_, nullptr);
 }
 
 /**
@@ -266,13 +284,44 @@ HWTEST_F(RsSubThreadTest, DrawableCache001, TestSize.Level1)
     curThread->DrawableCache(nodeDrawable);
     EXPECT_TRUE(curThread->grContext_);
 
-    nodeDrawable->renderParams_ = std::make_unique<RSRenderParams>(0);
+    nodeDrawable->renderParams_ = std::make_unique<RSSurfaceRenderParams>(0);
     curThread->DrawableCache(nodeDrawable);
     EXPECT_TRUE(nodeDrawable->GetRenderParams());
 
-    nodeDrawable->SetTaskFrameCount(1);
+    nodeDrawable->GetRsSubThreadCache().SetTaskFrameCount(1);
     curThread->DrawableCache(nodeDrawable);
-    EXPECT_TRUE(nodeDrawable->GetTaskFrameCount());
+    EXPECT_TRUE(nodeDrawable->GetRsSubThreadCache().GetTaskFrameCount());
+}
+
+/**
+ * @tc.name: DrawableCache002
+ * @tc.desc: Test subthread skip draw when frame mismatch
+ * @tc.type: FUNC
+ * @tc.require: issueIBVHE7
+ */
+HWTEST_F(RsSubThreadTest, DrawableCache002, TestSize.Level1)
+{
+    auto renderContext = std::make_shared<RenderContext>();
+    auto curThread = std::make_shared<RSSubThread>(renderContext.get(), 0);
+    curThread->grContext_ = std::make_shared<Drawing::GPUContext>();
+
+    auto node = std::make_shared<const RSSurfaceRenderNode>(0);
+    auto nodeDrawable = std::make_shared<DrawableV2::RSSurfaceRenderNodeDrawable>(std::move(node));
+    nodeDrawable->renderParams_ = std::make_unique<RSSurfaceRenderParams>(0);
+    nodeDrawable->GetRsSubThreadCache().isCacheCompletedValid_ = true;
+
+    // test task done
+    nodeDrawable->GetRsSubThreadCache().SetTaskFrameCount(1);
+    RSUniRenderThread::Instance().IncreaseFrameCount();
+    curThread->DrawableCache(nodeDrawable);
+    EXPECT_FALSE(nodeDrawable->GetRsSubThreadCache().IsSubThreadSkip());
+    EXPECT_EQ(nodeDrawable->GetRsSubThreadCache().GetCacheSurfaceProcessedStatus(), CacheProcessStatus::DONE);
+
+    // test task skipped
+    RSUniRenderThread::Instance().IncreaseFrameCount();
+    curThread->DrawableCache(nodeDrawable);
+    EXPECT_TRUE(nodeDrawable->GetRsSubThreadCache().IsSubThreadSkip());
+    EXPECT_EQ(nodeDrawable->GetRsSubThreadCache().GetCacheSurfaceProcessedStatus(), CacheProcessStatus::SKIPPED);
 }
 
 /**
@@ -306,8 +355,83 @@ HWTEST_F(RsSubThreadTest, ReleaseCacheSurfaceOnly001, TestSize.Level1)
     curThread->ReleaseCacheSurfaceOnly(nodeDrawable);
     EXPECT_FALSE(nodeDrawable->GetRenderParams());
 
-    nodeDrawable->renderParams_ = std::make_unique<RSRenderParams>(0);
+    nodeDrawable->renderParams_ = std::make_unique<RSSurfaceRenderParams>(0);
     curThread->ReleaseCacheSurfaceOnly(nodeDrawable);
     EXPECT_TRUE(nodeDrawable->GetRenderParams());
+}
+
+/**
+ * @tc.name: SetHighContrastIfEnabledTest
+ * @tc.desc: Test high contrast setter
+ * @tc.type: FUNC
+ * @tc.require: issueIBVHE7
+ */
+HWTEST_F(RsSubThreadTest, SetHighContrastIfEnabledTest, TestSize.Level1)
+{
+    auto renderContext = std::make_shared<RenderContext>();
+    auto curThread = std::make_shared<RSSubThread>(renderContext.get(), 0);
+
+    Drawing::Canvas canvas;
+    RSPaintFilterCanvas filterCanvas(&canvas);
+
+    auto renderEngine = std::make_shared<RSUniRenderEngine>();
+    RSUniRenderThread::Instance().uniRenderEngine_ = renderEngine;
+    ASSERT_NE(RSUniRenderThread::Instance().GetRenderEngine(), nullptr);
+
+    RSUniRenderThread::Instance().GetRenderEngine()->SetHighContrast(true);
+    curThread->SetHighContrastIfEnabled(filterCanvas);
+    EXPECT_TRUE(filterCanvas.isHighContrastEnabled());
+
+    RSUniRenderThread::Instance().GetRenderEngine()->SetHighContrast(false);
+    curThread->SetHighContrastIfEnabled(filterCanvas);
+    EXPECT_FALSE(filterCanvas.isHighContrastEnabled());
+}
+
+/**
+ * @tc.name: UpdateGpuMemoryStatisticsTest
+ * @tc.desc: gpu memory statics
+ * @tc.type: FUNC
+ * @tc.require: issueIBVHE7
+ */
+HWTEST_F(RsSubThreadTest, UpdateGpuMemoryStatisticsTest, TestSize.Level1)
+{
+    auto renderContext = std::make_shared<RenderContext>();
+    auto curThread = std::make_shared<RSSubThread>(renderContext.get(), 0);
+    curThread->UpdateGpuMemoryStatistics();
+    EXPECT_TRUE(curThread->gpuMemoryOfPid_.empty());
+}
+
+/**
+ * @tc.name: GetGpuMemoryOfPidTest
+ * @tc.desc: get gpu memory statics map
+ * @tc.type: FUNC
+ * @tc.require: issueIBVHE7
+ */
+HWTEST_F(RsSubThreadTest, GetGpuMemoryOfPidTest, TestSize.Level1)
+{
+    auto renderContext = std::make_shared<RenderContext>();
+    auto curThread = std::make_shared<RSSubThread>(renderContext.get(), 0);
+    pid_t pid = 123;
+    size_t memSize = 2048;
+    curThread->gpuMemoryOfPid_.insert(std::make_pair(pid, memSize));
+    std::unordered_map<pid_t, size_t> memMap = curThread->GetGpuMemoryOfPid();
+    EXPECT_FALSE(memMap.empty());
+}
+
+/**
+ * @tc.name: ErasePidOfGpuMemoryTest
+ * @tc.desc: erase pid of gpu memory statics map
+ * @tc.type: FUNC
+ * @tc.require: issueIBVHE7
+ */
+HWTEST_F(RsSubThreadTest, ErasePidOfGpuMemoryTest, TestSize.Level1)
+{
+    auto renderContext = std::make_shared<RenderContext>();
+    auto curThread = std::make_shared<RSSubThread>(renderContext.get(), 0);
+    pid_t pid = 123;
+    size_t memSize = 2048;
+    curThread->gpuMemoryOfPid_.insert(std::make_pair(pid, memSize));
+    curThread->ErasePidOfGpuMemory(pid);
+    EXPECT_TRUE(curThread->gpuMemoryOfPid_.empty());
 }
 } // namespace OHOS::Rosen

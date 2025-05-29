@@ -35,6 +35,7 @@ class RSTransitionEffect;
 class RSMotionPathOption;
 class RSNode;
 class RSUIContext;
+enum class CancelAnimationStatus;
 
 class RSC_EXPORT RSImplicitAnimator {
 public:
@@ -57,7 +58,7 @@ public:
     // close implicit animation and return all animations
     std::vector<std::shared_ptr<RSAnimation>> CloseImplicitAnimation();
     // close implicit cancel animation and return whether the synchronization was successful
-    bool CloseImplicitCancelAnimation();
+    CancelAnimationStatus CloseImplicitCancelAnimation();
 
     // open implicit animation with given animation options and finish callback
     int OpenInterActiveImplicitAnimation(bool isAddImplictAnimation, const RSAnimationTimingProtocol& timingProtocol,

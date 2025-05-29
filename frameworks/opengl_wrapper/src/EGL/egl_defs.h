@@ -22,20 +22,24 @@
 namespace OHOS {
 struct EglWrapperDispatchTable {
     enum { GLESV1_INDEX = 0, GLESV2_INDEX = 1 };
-    inline EglWrapperDispatchTable() noexcept : isLoad(false) {}
+    inline EglWrapperDispatchTable() noexcept : isLoad(false), useMesa(false) {}
     WrapperHookTable    wrapper;
     EglHookTable        egl;
     GlHookTable         gl;
     bool                isLoad;
+    bool                useMesa;
     EGLint              major;
     EGLint              minor;
 };
 
 extern char const * const gWrapperApiNames[EGL_API_NUM];
 extern char const * const gEglApiNames[EGL_API_NUM];
-extern char const * const gGlApiNames1[GL_API_NUM];
-extern char const * const gGlApiNames2[GL_API_NUM];
-extern char const * const gGlApiNames3[GL_API_NUM];
+extern char const * const gGlApiNames1[GLES_API_NUM];
+extern char const * const gGlApiNames2[GLES_API_NUM];
+extern char const * const gGlApiNames3[GLES_API_NUM];
+#ifdef OPENGL_WRAPPER_ENABLE_GL4
+extern char const * const gGlApiNames4[OPENGL_API_NUM];
+#endif
 extern const std::map<std::string, EglWrapperFuncPointer> gExtensionMap;
 
 extern GlHookTable gGlHookNoContext;

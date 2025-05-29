@@ -33,23 +33,23 @@ ohos_unittest("RSRenderServiceBaseOffscreenRenderTest") {
 
   configs = [
     ":render_test",
-    "../../../../../modules/render_service_base:export_config",
+    "$graphic_2d_root/rosen/modules/render_service_base:export_config",
   ]
 
   include_dirs = [
-    "../../../../../modules/render_service_base/include",
-    "../../../../../include",
-    "../../../../../test/include",
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
+    "$graphic_2d_root/rosen/include",
+    "$graphic_2d_root/rosen/test/include",
   ]
 
   deps = [
-    "../../../../../modules/render_service_base:librender_service_base",
-    "../../../../../modules/render_service_base:render_service_base_src",
-    "//third_party/googletest:gtest_main",
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_base:render_service_base_src",
   ]
 
   external_deps = [
     "c_utils:utils",
+    "googletest:gtest_main",
     "graphic_surface:surface",
     "image_framework:image_native",
     "init:libbegetutil",
@@ -64,7 +64,7 @@ config("render_test") {
   visibility = [ ":*" ]
   include_dirs = [
     "$ace_root",
-    "../../../../../modules/render_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_base",
   ]
 }
 

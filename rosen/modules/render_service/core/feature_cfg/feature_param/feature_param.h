@@ -34,7 +34,7 @@ const std::vector<std::string> FEATURE_CONFIGS = {
     "MemConfig",
     "MultiScreenConfig",
     "SpecialLayerConfig",
-    "SpocConfig",
+    "OcclusionCullingConfig",
     "OPIncConfig",
     "PrevalidateConfig",
     "UIFirstConfig",
@@ -43,10 +43,10 @@ const std::vector<std::string> FEATURE_CONFIGS = {
     "CaptureConfig",
     "SurfaceCaptureConfig",
     "UICaptureConfig",
-    "DeeplyReleaseGpuResourceConfig",
     "VRateConfig",
     "AccessibilityConfig",
     "RotateOffScreenConfig",
+    "LoadOptimizationConfig",
 };
 
 enum FeatureModule {
@@ -59,7 +59,7 @@ enum FeatureModule {
     MEM,
     MULTISCREEN,
     SPECIALLAYER,
-    SPOC,
+    OCCLUSION_CULLING,
     OPInc,
     PREVALIDATE,
     UIFirst,
@@ -69,10 +69,10 @@ enum FeatureModule {
     CAPTURE_BASE,
     SURFACE_CAPTURE,
     UI_CAPTURE,
-    DEEPLY_REL_GPU_RES,
     VRATE,
     ACCESSIBILITY,
     ROTATEOFFSCREEN,
+    LOAD_OPTIMIZATION,
     // Do not change it.
     ENUM_LENGTH,
 };

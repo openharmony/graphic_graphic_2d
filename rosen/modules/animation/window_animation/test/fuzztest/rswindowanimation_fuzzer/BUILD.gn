@@ -23,7 +23,6 @@ ohos_fuzztest("RSWindowAnimationFuzzTest") {
 
   include_dirs = [
     "//foundation/graphic/graphic_2d/modules/animation/window_animation/include",
-    "//foundation/communication/ipc/interfaces/innerkits/ipc_core/include",
   ]
   cflags = [
     "-g",
@@ -33,7 +32,6 @@ ohos_fuzztest("RSWindowAnimationFuzzTest") {
   ]
   sources = [ "rswindowanimation_fuzzer.cpp" ]
   deps = [
-    "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
     "//foundation/graphic/graphic_2d/rosen/modules/animation/window_animation:window_animation",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
   ]
@@ -41,6 +39,7 @@ ohos_fuzztest("RSWindowAnimationFuzzTest") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "ipc:ipc_core",
   ]
 }
 

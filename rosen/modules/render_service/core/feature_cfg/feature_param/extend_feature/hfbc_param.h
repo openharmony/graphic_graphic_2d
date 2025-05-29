@@ -24,14 +24,14 @@ public:
     HFBCParam() = default;
     ~HFBCParam() = default;
 
-    const std::unordered_map<std::string, std::string>& GetHfbcConfigMap() const;
+    static const std::unordered_map<std::string, std::string>& GetHfbcConfigMap();
 
 protected:
-    void SetHfbcConfigForApp(const std::string& appName, const std::string& val);
+    static void SetHfbcConfigForApp(const std::string& appName, const std::string& val);
 
 private:
     // <"pkgName", "1">
-    std::unordered_map<std::string, std::string> hfbcConfig_;
+    inline static std::unordered_map<std::string, std::string> hfbcConfig_ = {};;
 
     friend class HFBCParamParse;
 };

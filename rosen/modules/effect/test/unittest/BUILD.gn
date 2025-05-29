@@ -20,8 +20,6 @@ module_output_path = "graphic_2d/graphic_2d/effect"
 ohos_unittest("EffectTest") {
   module_out_path = module_output_path
 
-  deps = [ "//third_party/googletest:gtest_main" ]
-
   sources = [
     "color_picker_common_unittest.cpp",
     "color_picker_unittest.cpp",
@@ -38,7 +36,7 @@ ohos_unittest("EffectTest") {
     ]
   }
 
-  deps += [
+  deps = [
     "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
     "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
     "$graphic_2d_root/rosen/modules/effect/color_picker:color_picker",
@@ -47,8 +45,6 @@ ohos_unittest("EffectTest") {
     "$graphic_2d_root/rosen/modules/effect/egl:libegl_effect",
     "$graphic_2d_root/rosen/modules/effect/skia_effectChain:skeffectchain",
     "$graphic_2d_root/utils/color_manager:color_manager",
-    "//foundation/multimedia/image_framework/interfaces/innerkits:image_native",
-    "//foundation/multimedia/image_framework/interfaces/kits/js/common:image",
   ]
 
   cflags = [
@@ -63,8 +59,10 @@ ohos_unittest("EffectTest") {
   external_deps = [
     "cJSON:cjson",
     "c_utils:utils",
+    "googletest:gtest_main",
     "hilog:libhilog",
     "image_framework:image",
+    "image_framework:image_native",
     "image_framework:pixelmap",
   ]
 
@@ -74,16 +72,11 @@ ohos_unittest("EffectTest") {
 config("effect_test_config") {
   visibility = [ ":*" ]
   include_dirs = [
-    "//third_party/EGL/api",
-    "//third_party/openGLES/api",
-    "//third_party/skia",
     "$graphic_2d_root/rosen/modules/effect/color_picker/include",
     "$graphic_2d_root/rosen/modules/effect/effect_common/include",
     "$graphic_2d_root/rosen/modules/effect/effect_ndk/include",
     "$graphic_2d_root/rosen/modules/effect/egl/include",
     "$graphic_2d_root/utils/color_manager/export",
-    "//base/hiviewdfx/hilog/interfaces/native/innerkits/include",
-    "//foundation/multimedia/image_framework/interfaces/innerkits/include/",
   ]
 }
 

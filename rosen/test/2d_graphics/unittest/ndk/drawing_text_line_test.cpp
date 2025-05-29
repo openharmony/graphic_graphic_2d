@@ -452,7 +452,7 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest013, TestSize.Level1)
         EXPECT_TRUE(textLine != nullptr);
 
         double width = OH_Drawing_TextLineGetTypographicBounds(textLine, &ascent, &descent, &leading);
-        EXPECT_NEAR(ascent, 27.84, FLOAT_DATA_EPSILON);
+        EXPECT_NEAR(ascent, -27.84, FLOAT_DATA_EPSILON);
         EXPECT_NEAR(descent, 7.32, FLOAT_DATA_EPSILON);
         EXPECT_NEAR(leading, 0.0, FLOAT_DATA_EPSILON);
         EXPECT_NEAR(width, widthArr[index], FLOAT_DATA_EPSILON);
@@ -486,13 +486,13 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest014, TestSize.Level1)
         double width = OH_Drawing_TextLineGetTypographicBounds(textLine, &ascent, &descent, &leading);
         EXPECT_EQ(leading, 0);
         if (index == 4) {
-            EXPECT_NEAR(ascent, 27.84, FLOAT_DATA_EPSILON);
+            EXPECT_NEAR(ascent, -27.84, FLOAT_DATA_EPSILON);
             EXPECT_NEAR(descent, 7.431193, FLOAT_DATA_EPSILON);
         } else if (index == 5) {
-            EXPECT_NEAR(ascent, 35.369999, FLOAT_DATA_EPSILON);
+            EXPECT_NEAR(ascent, -35.369999, FLOAT_DATA_EPSILON);
             EXPECT_NEAR(descent, 9.690001, FLOAT_DATA_EPSILON);
         } else {
-            EXPECT_NEAR(ascent, 27.84, FLOAT_DATA_EPSILON);
+            EXPECT_NEAR(ascent, -27.84, FLOAT_DATA_EPSILON);
             EXPECT_NEAR(descent, 7.32, FLOAT_DATA_EPSILON);
         }
         EXPECT_NEAR(width, widthArr[index], FLOAT_DATA_EPSILON);
@@ -520,7 +520,7 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest015, TestSize.Level1)
         EXPECT_TRUE(textLine != nullptr);
 
         double width = OH_Drawing_TextLineGetTypographicBounds(textLine, &ascent, &descent, &leading);
-        EXPECT_NEAR(ascent, 27.84, FLOAT_DATA_EPSILON);
+        EXPECT_NEAR(ascent, -27.84, FLOAT_DATA_EPSILON);
         EXPECT_NEAR(descent, 7.32, FLOAT_DATA_EPSILON);
         EXPECT_EQ(leading, 0);
         EXPECT_EQ(width, 0);

@@ -24,16 +24,19 @@ public:
     ColorGamutParam() = default;
     ~ColorGamutParam() = default;
 
-    static bool IsCoveredSurfaceCloseP3();
-    static bool IsSLRCloseP3();
+    static bool DisableP3OnWiredExtendedScreen();
+    static bool IsAdaptiveColorGamutEnabled();
+    static bool SkipOccludedNodeDuringColorGamutCollection();
 
 protected:
-    static void SetCoveredSurfaceCloseP3(bool isEnable);
-    static void SetSLRCloseP3(bool isEnable);
+    static void SetDisableP3OnWiredExtendedScreen(bool isEnable);
+    static void SetAdaptiveColorGamutEnable(bool isEnable);
+    static void SetSkipOccludedNodeDuringColorGamutCollection(bool isEnable);
 
 private:
-    inline static bool isCoveredSurfaceCloseP3_ = true;
-    inline static bool isSLRCloseP3_ = true;
+    inline static bool disableP3OnWiredExtendedScreen_ = false;
+    inline static bool isAdaptiveColorGamutEnabled_ = false;
+    inline static bool skipOccludedNodeDuringColorGamutCollection_ = false;
 
     friend class ColorGamutParamParse;
 };

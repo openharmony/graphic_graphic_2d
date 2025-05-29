@@ -167,21 +167,6 @@ bool RSInterfaceCodeAccessVerifierBase::IsSystemCalling(const std::string& calli
     return isSystemCalling;
 }
 
-bool RSInterfaceCodeAccessVerifierBase::IsStartByHdcd(bool isLocalSysCalling)
-{
-    uint32_t tokenId = isLocalSysCalling ?
-        static_cast<uint32_t>(IPCSkeleton::GetSelfTokenID()) :
-        IPCSkeleton::GetCallingTokenID();
-    OHOS::Security::AccessToken::NativeTokenInfo info;
-    if (Security::AccessToken::AccessTokenKit::GetNativeTokenInfo(tokenId, info) != 0) {
-        return false;
-    }
-    if (info.processName.compare("hdcd") == 0) {
-        return true;
-    }
-    return false;
-}
-
 bool RSInterfaceCodeAccessVerifierBase::IsAncoCalling(const std::string& callingCode) const
 {
     static constexpr uint32_t ANCO_UID = 5557;
@@ -252,11 +237,6 @@ bool RSInterfaceCodeAccessVerifierBase::IsStylusServiceCalling(const std::string
 bool RSInterfaceCodeAccessVerifierBase::IsSystemCalling(const std::string& /* callingCode */)
 {
     return true;
-}
-
-bool RSInterfaceCodeAccessVerifierBase::IsStartByHdcd(bool isLocalSysCalling)
-{
-    return false;
 }
 
 bool RSInterfaceCodeAccessVerifierBase::CheckPermission(CodeUnderlyingType code) const
