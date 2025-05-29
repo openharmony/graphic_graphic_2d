@@ -23,7 +23,7 @@
 #include <memory>
 
 namespace OHOS {
-namespace Rosen {                                            
+namespace Rosen {
 
 namespace {
 constexpr size_t STR_LEN = 10;
