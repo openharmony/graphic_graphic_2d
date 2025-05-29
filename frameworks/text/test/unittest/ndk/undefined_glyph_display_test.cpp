@@ -87,7 +87,9 @@ void NdkUndefinedGlyphDisplayTest::BoundsResult(
         OH_Drawing_Rect* rect = OH_Drawing_TextLineGetImageBounds(textLine);
         EXPECT_FLOAT_EQ(rectResult[index][0], OH_Drawing_RectGetLeft(rect));
         EXPECT_FLOAT_EQ(rectResult[index][1], OH_Drawing_RectGetTop(rect));
+        // 2 is the index of right
         EXPECT_FLOAT_EQ(rectResult[index][2], OH_Drawing_RectGetRight(rect));
+        // 3 is the index of bottom
         EXPECT_FLOAT_EQ(rectResult[index][3], OH_Drawing_RectGetBottom(rect));
         OH_Drawing_RectDestroy(rect);
         OH_Drawing_DestroyTextLine(textLine);
