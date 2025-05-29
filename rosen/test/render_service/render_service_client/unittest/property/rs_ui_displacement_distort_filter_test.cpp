@@ -42,9 +42,15 @@ void RSUIDisplacementDistortFilterTest::TearDown() {}
 HWTEST_F(RSUIDisplacementDistortFilterTest, Equal001, TestSize.Level1)
 {
     auto rsUIDispDistortFilterPara1 = std::make_shared<RSUIDispDistortFilterPara>();
+    EXPECT_FALSE(rsUIDispDistortFilterPara1->Equals(nullptr));
+
     auto rsUIDispDistortFilterPara2 = std::make_shared<RSUIDispDistortFilterPara>();
+    rsUIDispDistortFilterPara2->type_ = RSUIFilterType::BLUR;
     auto rsUIFilterParaBase = static_cast<std::shared_ptr<RSUIFilterParaBase>>(rsUIDispDistortFilterPara2);
-    
+    EXPECT_FALSE(rsUIDispDistortFilterPara1->Equals(rsUIFilterParaBase));
+
+    auto rsUIDispDistortFilterPara3 = std::make_shared<RSUIDispDistortFilterPara>();
+    rsUIFilterParaBase = static_cast<std::shared_ptr<RSUIFilterParaBase>>(rsUIDispDistortFilterPara3);
     EXPECT_TRUE(rsUIDispDistortFilterPara1->Equals(rsUIFilterParaBase));
 }
 
@@ -98,7 +104,14 @@ HWTEST_F(RSUIDisplacementDistortFilterTest, SetProperty001, TestSize.Level1)
     auto rsUIDispDistortFilterPara2 = std::make_shared<RSUIDispDistortFilterPara>();
     rsUIDispDistortFilterPara2->SetDisplacementDistort(displacementDistortPara2);
 
-    auto rsUIFilterParaBase = static_cast<std::shared_ptr<RSUIFilterParaBase>>(rsUIDispDistortFilterPara2);
+    rsUIDispDistortFilterPara1->SetProperty(nullptr);
+
+    auto rsUIDispDistortFilterPara3 = std::make_shared<RSUIDispDistortFilterPara>();
+    rsUIDispDistortFilterPara3->type_ = RSUIFilterType::BLUR;
+    auto rsUIFilterParaBase = static_cast<std::shared_ptr<RSUIFilterParaBase>>(rsUIDispDistortFilterPara3);
+    rsUIDispDistortFilterPara1->SetProperty(rsUIFilterParaBase);
+
+    rsUIFilterParaBase = static_cast<std::shared_ptr<RSUIFilterParaBase>>(rsUIDispDistortFilterPara2);
     rsUIDispDistortFilterPara1->SetProperty(rsUIFilterParaBase);
 
     auto iter = rsUIDispDistortFilterPara1->properties_.find(RSUIFilterType::DISPLACEMENT_DISTORT_FACTOR);

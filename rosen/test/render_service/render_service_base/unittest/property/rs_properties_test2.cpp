@@ -18,6 +18,7 @@
 #include "property/rs_properties.h"
 #include "common/rs_obj_abs_geometry.h"
 #include "property/rs_point_light_manager.h"
+#include "render/rs_render_edge_light_filter.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -1029,5 +1030,52 @@ HWTEST_F(PropertiesTest, GenerateRenderFilterColorGradient_001, TestSize.Level1)
     properties.GenerateRenderFilterColorGradient();
     EXPECT_EQ(properties.backgroundFilter_, nullptr);
 }
+
+/**
+ * @tc.name: GenerateRenderFilterEdgeLight_001
+ * @tc.desc: test GenerateRenderFilterEdgeLight
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, GenerateRenderFilterEdgeLight_001, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.GenerateRenderFilterEdgeLight();
+    EXPECT_EQ(properties.backgroundFilter_, nullptr);
+
+    auto renderFilter = std::make_shared<RSRenderFilter>();
+    auto renderFilterBase = RSRenderFilter::CreateRenderFilterPara(RSUIFilterType::BLUR);
+    renderFilter->Insert(RSUIFilterType::BLUR, renderFilterBase);
+    properties.backgroundRenderFilter_ = renderFilter;
+    properties.GenerateRenderFilterEdgeLight();
+    EXPECT_EQ(properties.backgroundFilter_, nullptr);
+
+    renderFilter = std::make_shared<RSRenderFilter>();
+    renderFilterBase = RSRenderFilter::CreateRenderFilterPara(RSUIFilterType::EDGE_LIGHT);
+    renderFilter->Insert(RSUIFilterType::EDGE_LIGHT, renderFilterBase);
+    properties.backgroundRenderFilter_ = renderFilter;
+    properties.GenerateRenderFilter();
+    EXPECT_EQ(properties.backgroundFilter_, nullptr);
+
+    auto renderFilterEdgeLight = std::static_pointer_cast<RSRenderEdgeLightFilterPara>(renderFilterBase);
+
+    auto renderAlpha = std::make_shared<RSRenderAnimatableProperty<float>>(
+        0.5f, 0, RSRenderPropertyType::PROPERTY_FLOAT);
+    renderFilterEdgeLight->Setter(RSUIFilterType::EDGE_LIGHT_ALPHA, renderAlpha);
+    properties.GenerateRenderFilter();
+    EXPECT_NE(properties.backgroundFilter_, nullptr);
+    properties.backgroundFilter_ = nullptr;
+
+    auto renderColor = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(
+        Vector4f(0.5f, 0.5f, 0.5f, 0.5f), 0, RSRenderPropertyType::PROPERTY_VECTOR4F);
+    renderFilterEdgeLight->Setter(RSUIFilterType::EDGE_LIGHT_COLOR, renderColor);
+    properties.GenerateRenderFilter();
+    properties.GenerateRenderFilter();
+    EXPECT_NE(properties.backgroundFilter_, nullptr);
+
+    renderFilterEdgeLight->maskType_ = RSUIFilterType::RIPPLE_MASK;
+    properties.GenerateRenderFilter();
+    EXPECT_NE(properties.backgroundFilter_, nullptr);
+}
+
 } // namespace Rosen
 } // namespace OHOS
