@@ -509,4 +509,38 @@ HWTEST_F(RSPropertyModifierTest, RSForegroundUIFilterModifierTest, TestSize.Leve
     RSModifierType ModifierType = modifier->GetModifierType();
     EXPECT_EQ(ModifierType, RSModifierType::FOREGROUND_UI_FILTER);
 }
+
+/**
+ * @tc.name: RSHDRUIBrightnessModifier001
+ * @tc.desc: test RSHDRUIBrightnessModifier
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertyModifierTest, RSHDRUIBrightnessModifier001, TestSize.Level1)
+{
+    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSPropertyBase>();
+    ASSERT_NE(property, nullptr);
+    std::shared_ptr<RSHDRUIBrightnessModifier> hdrModifier =
+        std::make_shared<RSHDRUIBrightnessModifier>(property);
+    ASSERT_NE(hdrModifier, nullptr);
+    auto res = hdrModifier->CreateRenderModifier();
+    EXPECT_NE(res, nullptr);
+}
+
+/**
+ * @tc.name: RSHDRUIBrightnessModifier002
+ * @tc.desc: test RSHDRUIBrightnessModifier
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertyModifierTest, RSHDRUIBrightnessModifier002, TestSize.Level1)
+{
+    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSPropertyBase>();
+    ASSERT_NE(property, nullptr);
+    std::shared_ptr<RSHDRUIBrightnessModifier> hdrModifier =
+        std::make_shared<RSHDRUIBrightnessModifier>(property);
+    ASSERT_NE(hdrModifier, nullptr);
+    RSModifierType res = hdrModifier->GetModifierType();
+    EXPECT_EQ(res, RSModifierType::HDR_UI_BRIGHTNESS);
+}
 } // namespace OHOS::Rosen

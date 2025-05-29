@@ -15,9 +15,11 @@
 
 #include <gtest/gtest.h>
 
-#include "property/rs_properties.h"
 #include "common/rs_obj_abs_geometry.h"
+#include "pipeline/rs_canvas_render_node.h"
+#include "pipeline/rs_surface_render_node.h"
 #include "property/rs_point_light_manager.h"
+#include "property/rs_properties.h"
 #include "render/rs_render_edge_light_filter.h"
 
 using namespace testing;
@@ -272,6 +274,24 @@ HWTEST_F(PropertiesTest, UpdateFilterTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: UpdateForegroundFilterTest
+ * @tc.desc: test UpdateForegroundFilter
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, UpdateForegroundFilterTest, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.SetHDRUIBrightness(2.0f); // hdr brightness
+    properties.UpdateForegroundFilter();
+    bool isUniRender = RSProperties::IS_UNI_RENDER;
+    if (isUniRender) {
+        EXPECT_FALSE(properties.foregroundFilterCache_ == nullptr);
+    } else {
+        EXPECT_FALSE(properties.foregroundFilter_ == nullptr);
+    }
+}
+
+/**
  * @tc.name: SetParticlesTest
  * @tc.desc: test results of SetParticles
  * @tc.type: FUNC
@@ -375,6 +395,62 @@ HWTEST_F(PropertiesTest, GetBgBrightnessDescriptionTest, TestSize.Level1)
     properties.bgBrightnessParams_ = value;
     properties.GetBgBrightnessDescription();
     EXPECT_TRUE(properties.bgBrightnessParams_ != std::nullopt);
+}
+
+/**
+ * @tc.name: SetHDRUIBrightnessTest
+ * @tc.desc: test SetHDRUIBrightness
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, SetHDRUIBrightnessTest, TestSize.Level1)
+{
+    RSProperties properties;
+    auto canvasNode = std::make_shared<RSCanvasRenderNode>(1);
+    NodeId surfaceNodeId = 2; // surface node id
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceNodeId);
+    properties.backref_ = canvasNode;
+    canvasNode->instanceRootNodeId_ = surfaceNodeId;
+    canvasNode->isOnTheTree_ = true;
+    float hdrBrightness = 2.0f; // hdr brightness
+    properties.SetHDRUIBrightness(hdrBrightness);
+    EXPECT_EQ(properties.GetHDRUIBrightness(), hdrBrightness);
+
+    properties.SetHDRUIBrightness(1.0f);
+    EXPECT_EQ(properties.GetHDRUIBrightness(), 1.0f);
+}
+
+/**
+ * @tc.name: IsHDRUIBrightnessValidTest
+ * @tc.desc: test IsHDRUIBrightnessValid
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, IsHDRUIBrightnessValidTest, TestSize.Level1)
+{
+    RSProperties properties;
+    float hdrBrightness = 2.0f; // hdr brightness
+    properties.SetHDRUIBrightness(hdrBrightness);
+    EXPECT_TRUE(properties.IsHDRUIBrightnessValid());
+    properties.SetHDRUIBrightness(1.0f);
+    EXPECT_FALSE(properties.IsHDRUIBrightnessValid());
+}
+
+/**
+ * @tc.name: CreateHDRUIBrightnessFilterTest
+ * @tc.desc: test CreateHDRUIBrightnessFilter
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, CreateHDRUIBrightnessFilterTest, TestSize.Level1)
+{
+    RSProperties properties;
+    float hdrBrightness = 2.0f; // hdr brightness
+    properties.SetHDRUIBrightness(hdrBrightness);
+    properties.CreateHDRUIBrightnessFilter();
+    bool isUniRender = RSProperties::IS_UNI_RENDER;
+    if (isUniRender) {
+        EXPECT_FALSE(properties.foregroundFilterCache_ == nullptr);
+    } else {
+        EXPECT_FALSE(properties.foregroundFilter_ == nullptr);
+    }
 }
 
 /**

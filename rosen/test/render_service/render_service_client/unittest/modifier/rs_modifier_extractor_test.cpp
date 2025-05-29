@@ -398,4 +398,18 @@ HWTEST_F(RSModifierExtractorTest, GetPersp, TestSize.Level1)
     auto extractor = std::make_shared<RSModifierExtractor>(id);
     EXPECT_EQ(extractor->GetPersp(), Vector4f(0.f, 0.f, 0.f, 1.f));
 }
+
+/**
+ * @tc.name: GetHDRUIBrightnessTest
+ * @tc.desc: test results of GetHDRUIBrightness
+ * @tc.type: FUNC
+ * @tc.require: issueIAP7XJ
+ */
+HWTEST_F(RSModifierExtractorTest, GetHDRUIBrightnessTest, TestSize.Level1)
+{
+    NodeId id = 1;
+    RSModifierExtractor extractor(id);
+    float hdrUIBrightness = extractor.GetHDRUIBrightness();
+    EXPECT_TRUE(hdrUIBrightness == 1.0f);
+}
 } // namespace OHOS::Rosen
