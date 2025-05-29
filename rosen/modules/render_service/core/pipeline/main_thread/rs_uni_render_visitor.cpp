@@ -249,7 +249,7 @@ void RSUniRenderVisitor::MergeRemovedChildDirtyRegion(RSRenderNode& node, bool n
     // [planning] merge removed child's rect instead
     if (needMap) {
         if (auto& geoPtr = node.GetRenderProperties().GetBoundsGeometry()) {
-            dirtyRect = geoPtr->MapAbsRect(dirtyRect.ConvertTo<float>());
+            dirtyRect = geoPtr->MapRect(dirtyRect.ConvertTo<float>(), node.GetOldAbsMatrix());
         }
         if (!node.HasChildrenOutOfRect()) {
             dirtyRect = dirtyRect.IntersectRect(node.GetOldClipRect());
