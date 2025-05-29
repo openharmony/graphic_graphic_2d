@@ -927,7 +927,7 @@ private:
     scalar y_;
     std::shared_ptr<TextBlob> textBlob_;
     uint64_t globalUniqueId_;
-    TextContrast textContrast_;
+    TextContrast textContrast_ = TextContrast::FOLLOW_SYSTEM;
     bool IsHighContrastEnable(Canvas* canvas, TextContrast value) const;
 };
 
