@@ -20,6 +20,7 @@
 namespace OHOS::Rosen::Drawing {
 void UseCustomFontToLayout(OH_Drawing_FontCollection* fc, std::string familyName)
 {
+    constexpr double layoutWidth = 100.0;
     OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
     const char* fontFamilies[] = { familyName.c_str() };
     OH_Drawing_SetTextStyleFontFamilies(txtStyle, 1, fontFamilies);
@@ -28,7 +29,7 @@ void UseCustomFontToLayout(OH_Drawing_FontCollection* fc, std::string familyName
     OH_Drawing_TypographyCreate* handler = OH_Drawing_CreateTypographyHandler(typoStyle, fc);
     OH_Drawing_TypographyHandlerAddText(handler, "const char *");
     OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
-    OH_Drawing_TypographyLayout(typography, 100);
+    OH_Drawing_TypographyLayout(typography, layoutWidth);
     OH_Drawing_DestroyTypography(typography);
     OH_Drawing_DestroyTypographyHandler(handler);
     OH_Drawing_DestroyTypographyStyle(typoStyle);
