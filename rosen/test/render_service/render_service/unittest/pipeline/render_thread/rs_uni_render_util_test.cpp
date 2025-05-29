@@ -1406,7 +1406,7 @@ HWTEST_F(RSUniRenderUtilTest, GetImageRegionsTest, TestSize.Level1)
     ASSERT_EQ(regions.GetHeight(), 100);
 }
 
-/*
+/**
  * @tc.name: SetSrcRectForAnco
  * @tc.desc: SetSrcRectForAnco test for anco node
  * @tc.type: FUNC

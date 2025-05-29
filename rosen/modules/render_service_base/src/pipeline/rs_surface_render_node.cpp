@@ -3745,8 +3745,8 @@ bool RSSurfaceRenderNode::GetFrameGravityNewVersionEnabled() const
 void RSSurfaceRenderNode::UpdateLayerSrcRectForAnco(RSLayerInfo& layer, const RSSurfaceRenderParams& surfaceParams)
 {
     if (surfaceParams.IsAncoSfv()) {
-        const Rect& cropRect = surfaceParams.GetAncoSrcCrop();
         layer.ancoFlags = surfaceParams.GetAncoFlags();
+        const Rect& cropRect = surfaceParams.GetAncoSrcCrop();
         int32_t left = std::max(layer.srcRect.x, cropRect.x);
         int32_t top = std::max(layer.srcRect.y, cropRect.y);
         int32_t right = std::min(layer.srcRect.x + layer.srcRect.w, cropRect.x + cropRect.w);
