@@ -40,10 +40,10 @@ enum class TextEffectStrategy {
     STRATEGY_BUTT
 };
 
-enum class TextEffectFlipDirection {
-    UP,
-    DOWN,
-};
+constexpr int TEXT_EFFECT_SUCCESS = 0;
+constexpr int TEXT_EFFECT_UNKNOWN = -1;
+constexpr int TEXT_EFFECT_INVALID_INPUT = -2;
+constexpr int TEXT_EFFECT_HAS_EFFECT = -3;
 
 struct TypographyConfig {
     std::shared_ptr<Typography> typography{nullptr};
@@ -56,10 +56,13 @@ public:
     virtual int UpdateEffectConfig(const std::unordered_map<TextEffectAttribute, std::string>& config) = 0;
     virtual int AppendTypography(const std::vector<TypographyConfig>& typographyConfigs) = 0;
     virtual void RemoveTypography(const std::vector<TypographyConfig>& typographyConfigs) = 0;
-    virtual int UpdateTypography(std::shared_ptr<Typography> typography,
+    virtual int UpdateTypography(std::shared_ptr<TypographyConfig> typography,
         const std::vector<TypographyConfig>& typographyConfigs) = 0;
     virtual void StartEffect(Drawing::Canvas* canvas, double x, double y) = 0;
     virtual void StopEffect(Drawing::Canvas* canvas, double x, double y) = 0;
+
+    TextEffectStrategy strategy_{TextEffectStrategy::STRATEGY_BUTT};
+    TextEffectState state_{TextEffectState::STOP};
 };
 
 class TextEffectFactory {

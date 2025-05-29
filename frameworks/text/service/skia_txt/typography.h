@@ -82,6 +82,9 @@ public:
     void Relayout(double width, const TypographyStyle& typograhyStyle,
         const std::vector<TextStyle>& textStyles) override;
     void UpdateAllTextStyles(const TextStyle& textStyleTemplate) override;
+    void SetTextEffectState(bool state) override;
+    bool HasEnableTextEffect() const override;
+    std::vector<TextBlobRecordInfo> GetTextBlobRecordInfo() const override;
 private:
     std::unique_ptr<SPText::Paragraph> paragraph_ = nullptr;
     std::vector<TextStyle> lineMetricsStyles_;

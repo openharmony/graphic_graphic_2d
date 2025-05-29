@@ -39,7 +39,7 @@ public:
     int UpdateEffectConfig(const std::unordered_map<TextEffectAttribute, std::string>& config) override { return 0; }
     int AppendTypography(const std::vector<TypographyConfig>& typographyConfigs) override { return 0; }
     void RemoveTypography(const std::vector<TypographyConfig>& typographyConfigs) override {}
-    int UpdateTypography(std::shared_ptr<Typography> typography,
+    int UpdateTypography(std::shared_ptr<TypographyConfig> target,
         const std::vector<TypographyConfig>& typographyConfigs) override { return 0; }
     void StartEffect(Drawing::Canvas* canvas, double x, double y) override {}
     void StopEffect(Drawing::Canvas* canvas, double x, double y) override {}

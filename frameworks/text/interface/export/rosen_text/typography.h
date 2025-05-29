@@ -24,13 +24,13 @@
 #include "draw/canvas.h"
 #include "include/core/SkCanvas.h" // SKIA
 #include "text/font_metrics.h"
-#include "utils/rect.h"
 
 #include "text_style.h"
 #include "text_line_base.h"
 #include "typography_style.h"
 #include "typography_types.h"
 #include "symbol_animation_config.h"
+#include "utils/rect.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -113,6 +113,12 @@ struct LineMetrics {
     std::map<size_t, RunMetrics> runMetrics;
 };
 
+struct TextBlobRecordInfo {
+    std::shared_ptr<RSTextBlob> blob{nullptr};
+    SkPoint offset{0.0f, 0.0f};
+    ParagraphPainter::SkPaintOrID paintId{0};
+};
+
 class Typography {
 public:
     virtual ~Typography() = default;
@@ -169,6 +175,9 @@ public:
     virtual void Relayout(double width, const TypographyStyle& typograhyStyle,
         const std::vector<TextStyle>& textStyles) = 0;
     virtual void UpdateAllTextStyles(const TextStyle& textStyleTemplate) = 0;
+    virtual void SetTextEffectState(bool state) override = 0;
+    virtual bool HasEnableTextEffect() const override = 0;
+    virtual std::vector<TextBlobRecordInfo> GetTextBlobRecordInfo() const = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

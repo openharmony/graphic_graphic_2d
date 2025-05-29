@@ -497,6 +497,24 @@ void ParagraphImpl::UpdateForegroundBrush(const TextStyle& spTextStyle)
     }
 }
 
+std::vector<TextBlobRecordInfo> ParagraphImpl::GetTextBlobRecordInfo() const
+{
+    RecordDifferentPthreadCall(__FUNCTION__);
+    if (paragraph_ == nullptr) {
+        return;
+    }
+    std::vector<TextBlobRecordInfo> textBlobRecordInfos; 
+    std::vector<skt::TextBlobRecordInfo> infos = paragraph_->getTextBlobRecordInfo();
+    for (auto& info : infos) {
+        TextBlobRecordInfo recordInfo;
+        recordInfo.fBlob = info.fBlob;
+        recordInfo.fOffset = info.fOffset;
+        recordInfo.fPaint = info.fPaint;
+        textBlobRecordInfos.emplace_back(recordInfo);
+    }
+    return textBlobRecordInfos;
+}
+
 void ParagraphImpl::RecordDifferentPthreadCall(const char* caller) const
 {
     pthread_t currenetThreadId = pthread_self();
