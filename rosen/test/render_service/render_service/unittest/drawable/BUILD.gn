@@ -77,6 +77,7 @@ ohos_unittest("RSDisplayRenderNodeDrawableTest") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
@@ -92,6 +93,7 @@ ohos_unittest("RSEffectRenderNodeDrawableTest") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
   ]
 }
@@ -104,6 +106,7 @@ ohos_unittest("RSRcdSurfaceRenderNodeDrawableTest") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
     "skia:skia_canvaskit",
   ]
@@ -125,6 +128,7 @@ ohos_unittest("RSRenderNodeDrawableAdapterTest") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
@@ -140,6 +144,7 @@ ohos_unittest("RSRenderNodeDrawableTest") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
   ]
 }
@@ -152,6 +157,7 @@ ohos_unittest("RSRootRenderNodeDrawableTest") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
   ]
 }
@@ -164,6 +170,7 @@ ohos_unittest("RSSurfaceRenderNodeDrawableTest") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
@@ -179,6 +186,7 @@ ohos_unittest("RSDirtyRectsDFXTest") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
@@ -194,6 +202,7 @@ ohos_unittest("RSSkpCaptureDFXTest") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
@@ -221,6 +230,7 @@ config("rs_test_common_public_config") {
     "$graphic_2d_root/rosen/modules/render_service_client/core",
     "$graphic_2d_root/rosen/modules/render_service_base/src",
     "$graphic_2d_root/rosen/test/include",
+    "$graphic_2d_root/utils/socketpair/export",
   ]
 
   cflags = [
@@ -252,7 +262,10 @@ ohos_static_library("rs_test_common") {
     defines += [ "USE_ROSEN_DRAWING" ]
   }
 
-  external_deps = [ "samgr:samgr_proxy" ]
+  external_deps = [
+    "hisysevent:libhisysevent",
+    "samgr:samgr_proxy",
+  ]
 
   public_external_deps = [
     "c_utils:utils",

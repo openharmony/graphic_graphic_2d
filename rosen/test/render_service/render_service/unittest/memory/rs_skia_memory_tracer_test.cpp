@@ -254,4 +254,30 @@ HWTEST_F(RSSkiaMemoryTracerTest, LogOutputTest3, testing::ext::TestSize.Level1)
     skiaMemoryTracer->LogOutput(log);
     EXPECT_TRUE(skiaMemoryTracer->GetGLMemorySize() != -1);
 }
+
+/*
+ * @tc.name: LogOutputTest4
+ * @tc.desc: LogOutput Test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSkiaMemoryTracerTest, LogOutputTest4, testing::ext::TestSize.Level1)
+{
+    bool itemizeType = false;
+    auto skiaMemoryTracer = std::make_shared<SkiaMemoryTracer>("category", itemizeType);
+    ASSERT_TRUE(skiaMemoryTracer != nullptr);
+    skiaMemoryTracer->dumpNumericValue("resourceName1", "size", "bytes", 1);
+    skiaMemoryTracer->dumpNumericValue("resourceName1", "source", "sourcetype", 1);
+    skiaMemoryTracer->dumpStringValue("resourceName1", "category", "Image");
+    skiaMemoryTracer->dumpStringValue("resourceName1", "type", "Texture");
+    skiaMemoryTracer->dumpNumericValue("resourceName2", "size", "bytes", 1);
+    skiaMemoryTracer->dumpNumericValue("resourceName2", "source", "sourcetype", 1);
+    skiaMemoryTracer->dumpStringValue("resourceName2", "category", "Image");
+    skiaMemoryTracer->dumpStringValue("resourceName2", "type", "RenderTarget");
+    skiaMemoryTracer->dumpNumericValue("resourceName3", "size", "bytes", 1);
+    skiaMemoryTracer->dumpStringValue("resourceName3", "type", "kIndex Buffer");
+    DfxString log;
+    skiaMemoryTracer->LogOutput(log);
+    EXPECT_TRUE(skiaMemoryTracer->GetGLMemorySize() != -1);
+}
 } // namespace OHOS::Rosen

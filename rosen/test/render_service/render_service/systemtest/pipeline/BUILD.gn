@@ -36,8 +36,14 @@ ohos_systemtest("RSBaseRenderEngineTest") {
   module_out_path = module_output_path
   include_dirs = []
   sources = [ "rs_base_render_engine_test.cpp" ]
-  deps = [ ":rs_test_common" ]
-  external_deps = [ "samgr:samgr_proxy" ]
+  deps = [
+    ":rs_test_common",
+    "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+  ]
+  external_deps = [
+    "hisysevent:libhisysevent",
+    "samgr:samgr_proxy"
+  ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
   }
@@ -56,8 +62,14 @@ ohos_systemtest("RSBaseRenderEngineTest") {
 ohos_systemtest("RSDropFrameProcessorSystemTest") {
   module_out_path = module_output_path
   sources = [ "rs_drop_frame_processor_test.cpp" ]
-  deps = [ ":rs_test_common" ]
-  external_deps = [ "samgr:samgr_proxy" ]
+  deps = [
+    ":rs_test_common",
+    "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+  ]
+  external_deps = [
+    "hisysevent:libhisysevent",
+    "samgr:samgr_proxy"
+  ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
   }
@@ -77,8 +89,14 @@ ohos_systemtest("RSDropFrameProcessorSystemTest") {
 ohos_systemtest("RSRenderServiceTest") {
   module_out_path = module_output_path
   sources = [ "rs_render_service_test.cpp" ]
-  deps = [ ":rs_test_common" ]
-  external_deps = [ "samgr:samgr_proxy" ]
+  deps = [
+    ":rs_test_common",
+    "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+  ]
+  external_deps = [
+    "hisysevent:libhisysevent",
+    "samgr:samgr_proxy"
+  ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
   }
@@ -153,6 +171,13 @@ ohos_static_library("rs_test_common") {
     "window_manager:libwms",
   ]
 
+  external_deps = [
+    "hisysevent:libhisysevent",
+  ]
+
+  deps = [
+    "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+  ]
   if (use_memmgr_plugin || use_memmgr) {
     public_external_deps += [ "memmgr:memmgrclient" ]
   }

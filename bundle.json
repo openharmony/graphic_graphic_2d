@@ -119,7 +119,8 @@
           "faultloggerd",
           "freetype",
           "rust_cxx",
-          "media_foundation"
+          "media_foundation",
+          "glfw"
         ],
         "third_party": [
           "skia"
@@ -189,6 +190,16 @@
                 "vsync_receiver.h"
               ],
               "header_base": "//foundation/graphic/graphic_2d/interfaces/inner_api/composer"
+            }
+          },
+          {
+            "type": "so",
+            "name": "//foundation/graphic/graphic_2d/rosen/modules/glfw_render_context:libglfw_render_context",
+            "header": {
+              "header_files": [
+                "glfw_render_context.h"
+              ],
+              "header_base": "//foundation/graphic/graphic_2d/rosen/modules/glfw_render_context/export"
             }
           },
           {

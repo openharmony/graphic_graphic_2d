@@ -322,7 +322,10 @@ ohos_shared_library("librender_service") {
   ]
 
   deps = [
+    "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
+    "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
     "$graphic_2d_root/rosen/modules/composer:libcomposer",
+    "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
     "$graphic_2d_root/rosen/modules/create_pixelmap_surface:create_pixelmap_surface",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager:libhyper_graphic_manager",
     "$graphic_2d_root/rosen/modules/render_frame_trace:render_frame_trace",
@@ -519,6 +522,7 @@ ohos_executable("render_service") {
   deps = [
     ":librender_service",
     "$graphic_2d_root/rosen/modules/composer:libcomposer",
+    "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager:libhyper_graphic_manager",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
   ]

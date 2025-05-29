@@ -43,11 +43,17 @@ ohos_unittest("RSRenderServiceClientAnimationTest") {
   ]
 
   deps = [
+    "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
     "$graphic_2d_root/rosen/modules/render_service_client:render_service_client_src",
   ]
 
   subsystem_name = "graphic"
-  external_deps = [ "c_utils:utils" ]
+  external_deps = [
+    "c_utils:utils",
+    "egl:libEGL",
+    "image_framework:image_native",
+    "opengles:libGLES",
+  ]
 }
 
 ###############################################################################

@@ -13,6 +13,7 @@
 
 import("//build/ohos.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
+import("//foundation/graphic/graphic_2d/rosen/modules/platform/config.gni")
 import("render_service_client.gni")
 
 config("render_service_client_config") {
@@ -31,6 +32,12 @@ config("render_service_client_config") {
       "$graphic_2d_root/utils/color_manager/export",
       "//foundation/multimedia/image_framework/interfaces/innerkits/include",
     ]
+  }
+
+  defines += gpu_defines
+
+  if (rs_enable_gpu) {
+    defines += [ "RS_ENABLE_GPU" ]
   }
 }
 
@@ -223,6 +230,7 @@ template("render_service_client_source_set") {
 
     if (rosen_is_ohos) {
       deps += [
+        "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
         "$graphic_2d_root/rosen/modules/frame_analyzer:libframe_analyzer",
         "$graphic_2d_root/utils/color_manager:color_manager",
       ]
@@ -257,10 +265,6 @@ template("render_service_client_source_set") {
         "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
         "$graphic_2d_root/rosen/modules/glfw_render_context:libglfw_render_context",
       ]
-
-      if (rss_enabled) {
-        external_deps = []
-      }
     }
     if (defined(external_deps)) {
       external_deps += [ "hilog:libhilog" ]
@@ -286,7 +290,7 @@ template("render_service_client_source_set") {
     if (is_static_lib) {
       public_deps += [ "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base_static" ]
     } else {
-      public_deps += [ "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base" ]
+      deps += [ "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base" ]
       deps += [ "$rosen_root/modules/platform:eventhandler" ]
     }
 
@@ -364,22 +368,39 @@ ohos_shared_library("librender_service_client") {
     ":render_service_client_config",
     "../2d_graphics:export_config",
   ]
-
-  public_deps = [ ":render_service_client_src" ]
-
+  deps = [ ":render_service_client_src" ]
   external_deps = [ "hilog:libhilog" ]
 
   if (enhanced_opt) {
     configs = [ ":render_service_client_link_config" ]
   }
 
-  public_external_deps = []
   if (rosen_is_ohos) {
-    public_external_deps += [ "graphic_surface:surface" ]
+    public_external_deps = [
+      "c_utils:utils",
+      "graphic_surface:surface",
+      "eventhandler:libeventhandler",
+      "image_framework:image_native",
+    ]
   } else if (rosen_preview) {
-    public_external_deps += [ "graphic_surface:surface_headers" ]
+    public_external_deps = [ "graphic_surface:surface_headers" ]
   }
+  public_external_deps += [
+    "egl:libEGL",
+    "opengles:libGLES",
+  ]
 
+  # build sdk
+  if (rosen_is_win || current_os == "linux" || rosen_is_mac) {
+    public_external_deps += [ "skia:skia_canvaskit" ]
+    public_configs += [
+      "$rosen_root/modules/composer:composer_public_config",
+      "$rosen_root/modules/platform:eventhandler_config",
+      "$rosen_root/modules/platform:utils_config",
+      "$rosen_root/modules/platform:ipc_core_config",
+      "$rosen_root/modules/platform:image_native_config",
+    ]
+  }
   part_name = "graphic_2d"
   subsystem_name = "graphic"
 }

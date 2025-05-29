@@ -167,6 +167,7 @@ ohos_static_library("rs_client_test_common") {
   public_external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "hisysevent:libhisysevent",
   ]
 
   subsystem_name = "graphic"

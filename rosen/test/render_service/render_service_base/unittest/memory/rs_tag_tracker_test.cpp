@@ -234,6 +234,7 @@ HWTEST_F(RSTagTrackerTest, RSTagTracker011, TestSize.Level1)
     RSTagTracker::TAGTYPE tagType = RSTagTracker::TAGTYPE::TAG_DRAW_SURFACENODE;
     RSTagTracker::SOURCETYPE sourceType = RSTagTracker::SOURCETYPE::SOURCE_RSFILTERDRAWABLE;
     auto gpuContext = std::make_shared<Drawing::GPUContext>();
+    RSTagTracker tagTracker0(gpuContext, sourceType);
     RSTagTracker tagTracker1(gpuContext, tagType);
     RSTagTracker tagTracker2(gpuContext, sourceType);
     tagTracker2.SetTagEnd();

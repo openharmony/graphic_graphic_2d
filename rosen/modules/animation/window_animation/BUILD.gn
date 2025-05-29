@@ -34,7 +34,10 @@ ohos_shared_library("window_animation") {
 
   cflags_cc = [ "-std=c++17" ]
 
-  deps = [ "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client" ]
+  deps = [
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
+  ]
 
   external_deps = [
     "c_utils:utils",
