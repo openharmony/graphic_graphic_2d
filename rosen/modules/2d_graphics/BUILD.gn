@@ -292,20 +292,6 @@ template("graphics2d_source_set") {
         "$platform_dir/image_native",
       ]
       defines += [ "NEW_SKIA" ]
-    } else {
-      sources += [
-        "$rosen_text_root/properties/font_collection_txt.cpp",
-        "$rosen_text_root/properties/placeholder_run.cpp",
-        "$rosen_text_root/properties/rosen_converter_txt.cpp",
-        "$rosen_text_root/properties/text_style.cpp",
-        "$rosen_text_root/properties/typography_create_txt.cpp",
-        "$rosen_text_root/properties/typography_style.cpp",
-        "$rosen_text_root/properties/typography_txt.cpp",
-        "$rosen_text_root/ui/font_collection.cpp",
-        "$rosen_text_root/ui/typography.cpp",
-        "$rosen_text_root/ui/typography_create.cpp",
-      ]
-      include_dirs += [ "$rosen_2d_engine_root" ]
     }
     if (graphic_2d_feature_enable_vulkan) {
       defines += [ "RS_ENABLE_VK" ]
