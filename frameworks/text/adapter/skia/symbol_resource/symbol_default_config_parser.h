@@ -42,10 +42,6 @@ public:
 
     void SetInit(const bool init) { isInit_ = init; }
 
-    void Lock() { hmSymbolMut_.lock(); }
-
-    void Unlock() { hmSymbolMut_.unlock(); }
-
     void Clear()
     {
         hmSymbolConfig_.clear();
