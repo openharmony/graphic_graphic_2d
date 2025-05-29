@@ -83,6 +83,7 @@ template("skia_libtxt") {
       "txt/paragraph_builder.cpp",
       "txt/paragraph_style.cpp",
       "txt/placeholder_run.cpp",
+      "txt/platform.cpp",
       "txt/text_bundle_config_parser.cpp",
       "txt/text_style.cpp",
       "txt/typeface_font_asset_provider.cpp",
