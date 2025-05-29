@@ -384,16 +384,7 @@ sk_sp<SkTypeface> SkiaTypeface::DeserializeTypeface(const void* data, size_t len
     TextBlob::Context* textblobCtx = reinterpret_cast<TextBlob::Context*>(ctx);
     if (textblobCtx == nullptr || textblobCtx->GetTypeface() == nullptr) {
         SkMemoryStream stream(data, length);
-#ifdef USE_M133_SKIA
-        auto skFontMgr = SkFontMgr::RefDefault();
-        if (!skFontMgr) {
-            LOGD("SkiaTypeface::DeserializeTypeface, skFontMgr is nullptr.");
-            return nullptr;
-        }
-        return SkTypeface::MakeDeserialize(&stream, skFontMgr);
-#else
         return SkTypeface::MakeDeserialize(&stream);
-#endif
     }
     auto& typeface = textblobCtx->GetTypeface();
     if (typeface == nullptr) {
@@ -429,16 +420,7 @@ std::shared_ptr<Data> SkiaTypeface::Serialize() const
 std::shared_ptr<Typeface> SkiaTypeface::Deserialize(const void* data, size_t size)
 {
     SkMemoryStream stream(data, size);
-#ifdef USE_M133_SKIA
-    auto skFontMgr = SkFontMgr::RefDefault();
-    if (!skFontMgr) {
-        LOGD("SkiaTypeface::Deserialize, skFontMgr is nullptr.");
-        return nullptr;
-    }
-    auto skTypeface = SkTypeface::MakeDeserialize(&stream, skFontMgr);
-#else
     auto skTypeface = SkTypeface::MakeDeserialize(&stream);
-#endif
     if (!skTypeface) {
         LOGD("skTypeface nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
         return nullptr;
