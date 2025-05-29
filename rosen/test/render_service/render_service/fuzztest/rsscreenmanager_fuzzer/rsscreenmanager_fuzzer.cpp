@@ -639,6 +639,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
         return 0;
     }
     using FunctionPtr = void (*)();
+    // init test case
     std::vector<FunctionPtr> funcVector = {
         OHOS::Rosen::InitScreenManger,
         OHOS::Rosen::GetActiveScreenId,
