@@ -198,6 +198,11 @@ public:
         needSkipShadow_ = needSkipShadow;
     }
 
+    void SetHDRBrightnessFactor(float factor);
+    float GetHDRBrightnessFactor() const;
+    void SetCanvasNodeHDRBrightnessFactor(float factor);
+    float GetCanvasNodeHDRBrightnessFactor() const;
+
     // particle properties
     void SetParticles(const RSRenderParticleVector& particles);
     const RSRenderParticleVector& GetParticles() const;
@@ -693,6 +698,8 @@ private:
     bool fgBlurDisableSystemAdaptation = true;
     bool alwaysSnapshot_ = false;
     bool localMagnificationCap_ = false;
+    float hdrBrightnessFactor_ = 1.0f; // for displayNode
+    float canvasNodeHDRBrightnessFactor_ = 1.0f; // for canvasNode
     float frameOffsetX_ = 0.f;
     float frameOffsetY_ = 0.f;
     float alpha_ = 1.f;

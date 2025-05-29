@@ -1419,6 +1419,13 @@ public:
     void SetHDRBrightness(const float& hdrBrightness);
 
     /**
+     * @brief Sets the HDR brightness factor to display node.
+     *
+     * @param factor The HDR brightness factor to set.
+     */
+    void SetHDRBrightnessFactor(float factor);
+
+    /**
      * @brief Sets the visibility of the node.
      *
      * @param visible True to make the node visible; false to hide it.

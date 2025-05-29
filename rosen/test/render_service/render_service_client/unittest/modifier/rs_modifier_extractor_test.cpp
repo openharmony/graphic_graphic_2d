@@ -193,6 +193,20 @@ HWTEST_F(RSModifierExtractorTest, GetOutlineRadius001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetHDRBrightnessFactor001
+ * @tc.desc: test results of GetHDRBrightnessFactor
+ * @tc.type: FUNC
+ * @tc.require: issueI9VXLH
+ */
+HWTEST_F(RSModifierExtractorTest, GetHDRBrightnessFactor001, TestSize.Level1)
+{
+    NodeId id = 1;
+    RSModifierExtractor extractor(id);
+    float hdrBrightnessFactor = extractor.GetHDRBrightnessFactor();
+    EXPECT_TRUE(hdrBrightnessFactor == 1.0f);
+}
+
+/**
  * @tc.name: GetForegroundEffectRadius001
  * @tc.desc: test results of GetForegroundEffectRadius
  * @tc.type: FUNC

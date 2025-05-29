@@ -173,6 +173,38 @@ HWTEST_F(RSPropertyModifierTest, CreateRenderModifier03, TestSize.Level1)
 }
 
 /**
+ * @tc.name: RSHDRBrightnessFactorModifier001
+ * @tc.desc: RSHDRBrightnessFactorModifier Test
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyModifierTest, RSHDRBrightnessFactorModifier, TestSize.Level1)
+{
+    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSPropertyBase>();
+    ASSERT_NE(property, nullptr);
+    std::shared_ptr<RSHDRBrightnessFactorModifier> modifier =
+        std::make_shared<RSHDRBrightnessFactorModifier>(property);
+    ASSERT_NE(modifier, nullptr);
+    RSModifierType modifierType = modifier->GetModifierType();
+    EXPECT_EQ(modifierType, RSModifierType::HDR_BRIGHTNESS_FACTOR);
+}
+
+/**
+ * @tc.name: RSHDRBrightnessFactorModifier002
+ * @tc.desc: RSHDRBrightnessFactorModifier Test
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyModifierTest, RSHDRBrightnessFactorModifier002, TestSize.Level1)
+{
+    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSPropertyBase>();
+    ASSERT_NE(property, nullptr);
+    std::shared_ptr<RSHDRBrightnessFactorModifier> modifier =
+        std::make_shared<RSHDRBrightnessFactorModifier>(property);
+    ASSERT_NE(modifier, nullptr);
+    auto res = modifier->CreateRenderModifier();
+    EXPECT_NE(res, nullptr);
+}
+
+/**
  * @tc.name: Apply01
  * @tc.desc: RSBoundsModifier/RSBoundsSizeModifier/RSBoundsPositionModifier
  * @tc.type: FUNC

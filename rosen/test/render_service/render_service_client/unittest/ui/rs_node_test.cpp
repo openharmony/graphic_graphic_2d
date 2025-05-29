@@ -20,6 +20,7 @@
 #include "modifier/rs_property_modifier.h"
 #include "render/rs_filter.h"
 #include "render/rs_material_filter.h"
+#include "ui/rs_node.h"
 #include "ui/rs_canvas_node.h"
 #include "ui/rs_surface_node.h"
 #include "ui/rs_display_node.h"
@@ -2589,6 +2590,26 @@ HWTEST_F(RSNodeTest, SetandGetPivotY005, TestSize.Level1)
     auto rsNode = RSCanvasNode::Create();
     rsNode->SetPivotY(floatData[0]);
     EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetPivot().y_, floatData[0]));
+}
+
+/**
+ * @tc.name: SetHDRBrightnessFactor
+ * @tc.desc: test results of SetHDRBrightnessFactor
+ * @tc.type: FUNC
+ * @tc.require: issueI9KAZH
+ */
+HWTEST_F(RSNodeTest, SetHDRBrightnessFactor, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    float factor = 0.5f; // for test
+    rsNode->SetHDRBrightnessFactor(factor);
+    EXPECT_EQ(rsNode->GetStagingProperties().GetHDRBrightnessFactor(), 1.0f);
+
+    RSDisplayNodeConfig config  = {0, false, 0};
+    RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(config);
+    ASSERT_TRUE(displayNode != nullptr);
+    displayNode->SetHDRBrightnessFactor(factor);
+    EXPECT_EQ(displayNode->GetStagingProperties().GetHDRBrightnessFactor(), factor);
 }
 
 /**

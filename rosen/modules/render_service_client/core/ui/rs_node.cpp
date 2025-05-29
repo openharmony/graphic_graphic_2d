@@ -2425,6 +2425,16 @@ void RSNode::SetHDRBrightness(const float& hdrBrightness)
         RSModifierType::HDR_BRIGHTNESS, hdrBrightness);
 }
 
+void RSNode::SetHDRBrightnessFactor(float factor)
+{
+    if (!IsInstanceOf<RSDisplayNode>()) {
+        ROSEN_LOGE("SetHDRBrightnessFactor only can be used by RSDisplayNode");
+        return;
+    }
+    SetProperty<RSHDRBrightnessFactorModifier, RSAnimatableProperty<float>>(
+        RSModifierType::HDR_BRIGHTNESS_FACTOR, factor);
+}
+
 void RSNode::SetVisible(bool visible)
 {
     // kick off transition only if it's on tree(has valid parent) and visibility is changed.

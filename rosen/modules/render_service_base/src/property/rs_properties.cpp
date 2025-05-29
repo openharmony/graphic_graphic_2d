@@ -25,6 +25,8 @@
 #include "render/rs_mesa_blur_shader_filter.h"
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_vector4.h"
+#include "pipeline/rs_context.h"
+#include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "platform/common/rs_log.h"
@@ -291,7 +293,9 @@ static const std::unordered_map<RSModifierType, ResetPropertyFunc> g_propertyRes
     { RSModifierType::HDR_UI_BRIGHTNESS,                    [](RSProperties* prop) {
                                                                 prop->SetHDRUIBrightness(1.0f); }},
     { RSModifierType::FOREGROUND_UI_FILTER,                 [](RSProperties* prop) {
-                                                                prop->SetForegroundUIFilter({}); }},                                                                
+                                                                prop->SetForegroundUIFilter({}); }},
+    { RSModifierType::HDR_BRIGHTNESS_FACTOR,                [](RSProperties* prop) {
+                                                                prop->SetHDRBrightnessFactor(1.0f); }},
 };
 
 } // namespace
@@ -2726,6 +2730,48 @@ void RSProperties::SetAttractionFraction(float fraction)
 bool RSProperties::IsAttractionValid() const
 {
     return isAttractionValid_;
+}
+
+void RSProperties::SetHDRBrightnessFactor(float factor)
+{
+    if (ROSEN_EQ(hdrBrightnessFactor_, factor)) {
+        return;
+    }
+    hdrBrightnessFactor_ = factor;
+    if (auto node = RSBaseRenderNode::ReinterpretCast<RSDisplayRenderNode>(backref_.lock())) {
+        auto& hdrNodeList = node->GetHDRNodeList();
+        auto context = node->GetContext().lock();
+        if (!context) {
+            ROSEN_LOGE("RSProperties::SetHDRBrightnessFactor Invalid context");
+            return;
+        }
+        for (auto it = hdrNodeList.begin(); it != hdrNodeList.end();) {
+            auto node = context->GetNodeMap().GetRenderNode(*it);
+            if (!node) {
+                it = hdrNodeList.erase(it);
+                ROSEN_LOGE("RSProperties::SetHDRBrightnessFactor The node is not in NodeMap");
+                continue;
+            }
+            node->SetContentDirty();
+            node->GetMutableRenderProperties().SetCanvasNodeHDRBrightnessFactor(factor);
+            ++it;
+        }
+    }
+}
+
+float RSProperties::GetHDRBrightnessFactor() const
+{
+    return hdrBrightnessFactor_;
+}
+
+void RSProperties::SetCanvasNodeHDRBrightnessFactor(float factor)
+{
+    canvasNodeHDRBrightnessFactor_ = factor;
+}
+
+float RSProperties::GetCanvasNodeHDRBrightnessFactor() const
+{
+    return canvasNodeHDRBrightnessFactor_;
 }
 
 void RSProperties::SetLightUpEffect(float lightUpEffectDegree)

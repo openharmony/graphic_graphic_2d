@@ -15,6 +15,8 @@
 
 #include <gtest/gtest.h>
 
+#include "pipeline/rs_context.h"
+#include "pipeline/rs_display_render_node.h"
 #include "property/rs_properties.h"
 #include "common/rs_obj_abs_geometry.h"
 #include "property/rs_point_light_manager.h"
@@ -409,6 +411,113 @@ HWTEST_F(PropertiesTest, SetGetTest, TestSize.Level1)
     properties.GetOutlineRadius();
 
     EXPECT_NE(nullptr, properties.GetOutline());
+}
+
+/**
+ * @tc.name: SetHDRBrightnessFactor001
+ * @tc.desc: test results of SetHDRBrightnessFactor
+ * @tc.type: FUNC
+ * @tc.require: issueI9W24N
+ */
+HWTEST_F(PropertiesTest, SetHDRBrightnessFactor001, TestSize.Level1)
+{
+    RSProperties properties;
+    float initialFactor = 1.0f;
+    properties.SetHDRBrightnessFactor(initialFactor);
+    properties.SetHDRBrightnessFactor(initialFactor);
+    EXPECT_EQ(properties.GetHDRBrightnessFactor(), initialFactor);
+}
+
+/**
+ * @tc.name: SetHDRBrightnessFactor002
+ * @tc.desc: test results of SetHDRBrightnessFactor
+ * @tc.type: FUNC
+ * @tc.require: issueI9W24N
+ */
+HWTEST_F(PropertiesTest, SetHDRBrightnessFactor002, TestSize.Level1)
+{
+    RSProperties properties;
+    float initialFactor = 1.0f;
+    properties.SetHDRBrightnessFactor(initialFactor);
+    float newFactor = 0.5f;
+    properties.SetHDRBrightnessFactor(newFactor);
+    EXPECT_EQ(properties.GetHDRBrightnessFactor(), newFactor);
+}
+
+/**
+ * @tc.name: SetHDRBrightnessFactor003
+ * @tc.desc: test results of SetHDRBrightnessFactor
+ * @tc.type: FUNC
+ * @tc.require: issueI9W24N
+ */
+HWTEST_F(PropertiesTest, SetHDRBrightnessFactor003, TestSize.Level1)
+{
+    RSProperties properties;
+    float initialFactor = 1.0f;
+
+    std::shared_ptr<RSRenderNode> node = std::make_shared<RSRenderNode>(1);
+    properties.backref_ = node;
+    properties.SetHDRBrightnessFactor(initialFactor);
+
+    NodeId displayRenderNodeId = 2;
+    struct RSDisplayNodeConfig config;
+    auto context = std::make_shared<RSContext>();
+    auto displayRenderNode = std::make_shared<RSDisplayRenderNode>(displayRenderNodeId, config, context);
+
+    properties.backref_ = displayRenderNode;
+    displayRenderNode->InsertHDRNode(displayRenderNodeId);
+    EXPECT_NE(displayRenderNode->hdrNodeList_.find(displayRenderNodeId), displayRenderNode->hdrNodeList_.end());
+    properties.SetHDRBrightnessFactor(0.5f);
+
+    NodeId nodeId1 = 0;
+    auto node1 = std::make_shared<RSRenderNode>(nodeId1);
+    pid_t pid1 = ExtractPid(nodeId1);
+    context->GetMutableNodeMap().renderNodeMap_[pid1][nodeId1] = node1;
+    displayRenderNode->InsertHDRNode(nodeId1);
+    properties.SetHDRBrightnessFactor(0.6f);
+
+    pid_t pid = ExtractPid(displayRenderNodeId);
+    context->GetMutableNodeMap().renderNodeMap_[pid][displayRenderNodeId] = displayRenderNode;
+    properties.SetHDRBrightnessFactor(0.8f);
+
+    struct RSDisplayNodeConfig config2;
+    std::shared_ptr<RSContext> context2;
+    auto displayNode2 = std::make_shared<RSDisplayRenderNode>(3, config2, context2);
+    properties.backref_ = displayNode2;
+    displayRenderNode->InsertHDRNode(3);
+    EXPECT_NE(displayRenderNode->hdrNodeList_.find(3), displayRenderNode->hdrNodeList_.end());
+    properties.SetHDRBrightnessFactor(0.9f);
+}
+
+/**
+ * @tc.name: SetCanvasNodeHDRBrightnessFactor001
+ * @tc.desc: test results of SetCanvasNodeHDRBrightnessFactor
+ * @tc.type: FUNC
+ * @tc.require: issueI9W24N
+ */
+HWTEST_F(PropertiesTest, SetCanvasNodeHDRBrightnessFactor001, TestSize.Level1)
+{
+    RSProperties properties;
+    float initialFactor = 1.0f;
+    properties.SetCanvasNodeHDRBrightnessFactor(initialFactor);
+    properties.SetCanvasNodeHDRBrightnessFactor(initialFactor);
+    EXPECT_EQ(properties.GetCanvasNodeHDRBrightnessFactor(), initialFactor);
+}
+
+/**
+ * @tc.name: SetCanvasNodeHDRBrightnessFactor002
+ * @tc.desc: test results of SetCanvasNodeHDRBrightnessFactor
+ * @tc.type: FUNC
+ * @tc.require: issueI9W24N
+ */
+HWTEST_F(PropertiesTest, SetCanvasNodeHDRBrightnessFactor002, TestSize.Level1)
+{
+    RSProperties properties;
+    float initialFactor = 1.0f;
+    float newFactor = 0.5f;
+    properties.SetCanvasNodeHDRBrightnessFactor(initialFactor);
+    properties.SetCanvasNodeHDRBrightnessFactor(newFactor);
+    EXPECT_EQ(properties.GetCanvasNodeHDRBrightnessFactor(), newFactor);
 }
 
 /**
