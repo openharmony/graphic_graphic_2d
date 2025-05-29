@@ -64,20 +64,25 @@ Canvas* CanvasUtils::CreateLockCanvas(OHNativeWindow* nativeWindow)
 bool CanvasUtils::UnlockCanvas(Canvas* canvas, OHNativeWindow* nativeWindow)
 {
 #ifdef ROSEN_OHOS
+    std::unordered_map<Canvas*, OHNativeWindow*>::iterator iter;
     {
         std::lock_guard<std::mutex> lock(canvasWindowMutex_);
-        auto iter = canvasWindow_.find(canvas);
+        iter = canvasWindow_.find(canvas);
         if (iter == canvasWindow_.end() || iter->second != nativeWindow) {
             LOGE("UnlockCanvas canvas is invalid");
             return false;
         }
-        canvasWindow_.erase(iter);
     }
 
     int32_t ret = NativeWindowUnlockAndFlushBuffer(nativeWindow);
     if (ret != OHOS::GSERROR_OK) {
         LOGE("UnlockCanvas NativeWindowUnlockAndFlushBuffer failed");
         return false;
+    }
+
+    {
+        std::lock_guard<std::mutex> lock(canvasWindowMutex_);
+        canvasWindow_.erase(iter);
     }
     delete canvas;
 
