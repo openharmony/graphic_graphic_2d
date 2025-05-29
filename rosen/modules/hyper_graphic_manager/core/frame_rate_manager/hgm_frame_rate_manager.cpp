@@ -703,6 +703,9 @@ uint32_t HgmFrameRateManager::CalcRefreshRate(const ScreenId id, const FrameRate
         return refreshRate;
     }
     std::sort(supportRefreshRateVec.begin(), supportRefreshRateVec.end());
+    // In stylus mode, refresh is the first value of less than or equal to preferred in supportRefreshRateVec;
+    // supportRefreshRateVec is not empty when stylusFlag is true;
+    // The return value of upper_bound is bigger than preferred, so need subtract one;
     if (stylusFlag) {
         auto item = std::upper_bound(supportRefreshRateVec.begin(), supportRefreshRateVec.end(), range.preferred_);
         if ((item - supportRefreshRateVec.begin()) > 0) {
