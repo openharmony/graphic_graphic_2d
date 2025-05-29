@@ -13,13 +13,11 @@
  * limitations under the License.
  */
 
-#include "display_engine/rs_luminance_control.h"
-
-#include <dlfcn.h>
-#include <string_view>
-
 #include "common/rs_common_def.h"
+#include "display_engine/rs_luminance_control.h"
+#include <dlfcn.h>
 #include "platform/common/rs_log.h"
+#include <string_view>
 
 namespace {
 constexpr float HDR_DEFAULT_TMO_NIT = 1000.0f;
@@ -193,6 +191,12 @@ bool RSLuminanceControl::IsCloseHardwareHdr()
 {
     return (rSLuminanceControlInterface_ != nullptr) ?
         rSLuminanceControlInterface_->IsCloseHardwareHdr() : false;
+}
+
+bool RSLuminanceControl::IsScreenNoHeadroom(ScreenId screenId)
+{
+    return (rSLuminanceControlInterface_ != nullptr) ?
+        rSLuminanceControlInterface_->IsScreenNoHeadroom(screenId) : false;
 }
 } // namespace Rosen
 } // namespace OHOS

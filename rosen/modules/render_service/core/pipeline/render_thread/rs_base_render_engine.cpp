@@ -13,18 +13,16 @@
  * limitations under the License.
  */
 
-#include "rs_base_render_engine.h"
-#include <memory>
-#include <csignal>
-
-#include "v2_1/cm_color_space.h"
-#ifdef RS_ENABLE_EGLIMAGE
-#include "src/gpu/gl/GrGLDefines.h"
-#endif
-
-#include "pipeline/render_thread/rs_divided_render_util.h"
 #include "common/rs_optional_trace.h"
+#include <csignal>
+#include "display_engine/rs_luminance_control.h"
+#ifdef RS_ENABLE_GPU
+#include "drawable/rs_display_render_node_drawable.h"
+#endif
+#include <memory>
 #include "memory/rs_tag_tracker.h"
+#include "metadata_helper.h"
+#include "pipeline/render_thread/rs_divided_render_util.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
@@ -33,19 +31,20 @@
 #endif
 #include "platform/ohos/backend/rs_surface_ohos_raster.h"
 #ifdef RS_ENABLE_VK
-#include "platform/ohos/backend/rs_vulkan_context.h"
 #include "platform/ohos/backend/rs_surface_ohos_vulkan.h"
+#include "platform/ohos/backend/rs_vulkan_context.h"
 #endif
 #ifdef USE_VIDEO_PROCESSING_ENGINE
 #include "render/rs_colorspace_convert.h"
 #endif
 #include "render/rs_drawing_filter.h"
 #include "render/rs_skia_filter.h"
-#include "metadata_helper.h"
-#ifdef RS_ENABLE_GPU
-#include "drawable/rs_display_render_node_drawable.h"
+#include "rs_base_render_engine.h"
+#ifdef RS_ENABLE_EGLIMAGE
+#include "src/gpu/gl/GrGLDefines.h"
 #endif
 #include "utils/graphic_coretrace.h"
+#include "v2_1/cm_color_space.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -579,7 +578,7 @@ void RSBaseRenderEngine::ColorSpaceConvertor(std::shared_ptr<Drawing::ShaderEffe
     }
     if (params.isHdrRedraw) {
         parameter.disableHdrFloatHeadRoom = true;
-    } else if (params.isHdrToSdr) {
+    } else if (params.isTmoNitsFixed) {
         parameter.sdrNits = DEFAULT_DISPLAY_NIT;
         parameter.tmoNits = DEFAULT_DISPLAY_NIT;
         parameter.currentDisplayNits = DEFAULT_DISPLAY_NIT;
@@ -843,10 +842,14 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
         return;
     }
 
-    // HDR to SDR, all xxxNits reset to 500, layerLinearMatrix reset to 3x3 Identity matrix
-    params.isHdrToSdr = canvas.IsOnMultipleScreen() || (!canvas.GetHdrOn() && !params.hasMetadata) ||
+    auto& rsLuminance = RSLuminanceControl::Get();
+    // Fix tonemapping: all xxxNits reset to 500, layerLinearMatrix reset to 3x3 Identity matrix
+    params.isTmoNitsFixed = canvas.IsOnMultipleScreen() ||
+        (!canvas.GetHdrOn() &&
+        !params.hasMetadata &&
+        !rsLuminance.IsScreenNoHeadroom(canvas.GetScreenId())) ||
         !RSSystemProperties::GetHdrVideoEnabled();
-    RS_LOGD_IF(DEBUG_COMPOSER, "  - HDR to SDR: %{public}d", params.isHdrToSdr);
+    RS_LOGD_IF(DEBUG_COMPOSER, "- Fix tonemapping: %{public}d", params.isTmoNitsFixed);
 
     Drawing::Matrix matrix;
     auto srcWidth = params.srcRect.GetWidth();
