@@ -13,22 +13,22 @@
  * limitations under the License.
  */
 
+#include "symbol_resource/symbol_default_config_parser.h"
 #include "text/hm_symbol_config_ohos.h"
-
-#include "static_factory.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
 DrawingSymbolLayersGroups HmSymbolConfigOhos::GetSymbolLayersGroups(uint16_t glyphId)
 {
-    return StaticFactory::GetSymbolLayersGroups(glyphId);
+    return OHOS::Rosen::Symbol::SymbolDefaultConfigParser::GetInstance()->GetSymbolLayersGroups(glyphId);
 }
 
 std::vector<std::vector<DrawingPiecewiseParameter>> HmSymbolConfigOhos::GetGroupParameters(
     DrawingAnimationType type, uint16_t groupSum, uint16_t animationMode, DrawingCommonSubType commonSubType)
 {
-    return StaticFactory::GetGroupParameters(type, groupSum, animationMode, commonSubType);
+    return OHOS::Rosen::Symbol::SymbolDefaultConfigParser::GetInstance()->GetGroupParameters(
+        type, groupSum, animationMode, commonSubType);
 }
 
 } // namespace Drawing

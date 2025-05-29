@@ -20,20 +20,21 @@
 #include <mutex>
 #include <unordered_map>
 
-#include "include/core/HMSymbol.h"
-#include "include/core/SkStream.h"
-#include "include/core/SkString.h"
-#include "include/core/SkTypes.h"
+#include "text/hm_symbol.h"
 
-
+namespace OHOS {
+namespace Rosen {
+namespace Symbol {
+namespace RSDrawing = OHOS::Rosen::Drawing;
 class SymbolDefaultConfigParser {
 public:
     static SymbolDefaultConfigParser* GetInstance();
 
-    SymbolLayersGroups GetSymbolLayersGroups(uint16_t glyphId);
+    RSDrawing::DrawingSymbolLayersGroups GetSymbolLayersGroups(uint16_t glyphId);
 
-    std::vector<std::vector<PiecewiseParameter>> GetGroupParameters(AnimationType type, uint16_t groupSum,
-        uint16_t animationMode = 0, CommonSubType commonSubType = CommonSubType::DOWN);
+    std::vector<std::vector<RSDrawing::DrawingPiecewiseParameter>> GetGroupParameters(
+        RSDrawing::DrawingAnimationType type, uint16_t groupSum, uint16_t animationMode = 0,
+        RSDrawing::DrawingCommonSubType commonSubType = RSDrawing::DrawingCommonSubType::DOWN);
 
     int ParseConfigOfHmSymbol(const char* filePath);
 
@@ -59,8 +60,8 @@ private:
     SymbolDefaultConfigParser(const SymbolDefaultConfigParser&& hsc) = delete;
     SymbolDefaultConfigParser& operator=(const SymbolDefaultConfigParser&& hsc) = delete;
 
-    std::unordered_map<uint16_t, SymbolLayersGroups> hmSymbolConfig_;
-    std::unordered_map<AnimationType, AnimationInfo> animationInfos_;
+    std::unordered_map<uint16_t, RSDrawing::DrawingSymbolLayersGroups> hmSymbolConfig_;
+    std::unordered_map<RSDrawing::DrawingAnimationType, RSDrawing::DrawingAnimationInfo> animationInfos_;
     std::mutex hmSymbolMut_;
     bool isInit_ = false;
 
@@ -72,40 +73,51 @@ private:
 
     int CheckConfigFile(const char* fname, Json::Value& root);
 
-    uint32_t EncodeAnimationAttribute(uint16_t groupSum, uint16_t animationMode, CommonSubType commonSubType);
+    uint32_t EncodeAnimationAttribute(
+        uint16_t groupSum, uint16_t animationMode, RSDrawing::DrawingCommonSubType commonSubType);
 
-    void ParseSymbolAnimations(
-        const Json::Value& root, std::unordered_map<AnimationType, AnimationInfo>* animationInfos);
-    void ParseSymbolAnimationParas(const Json::Value& root, std::map<uint32_t, AnimationPara>& animationParas);
-    void ParseSymbolAnimationPara(const Json::Value& root, AnimationPara& animationPara);
-    void ParseSymbolGroupParas(const Json::Value& root, std::vector<std::vector<PiecewiseParameter>>& groupParameters);
-    void ParseSymbolPiecewisePara(const Json::Value& root, PiecewiseParameter& piecewiseParameter);
+    void ParseSymbolAnimations(const Json::Value& root,
+        std::unordered_map<RSDrawing::DrawingAnimationType, RSDrawing::DrawingAnimationInfo>* animationInfos);
+    void ParseSymbolAnimationParas(
+        const Json::Value& root, std::map<uint32_t, RSDrawing::DrawingAnimationPara>& animationParas);
+    void ParseSymbolAnimationPara(const Json::Value& root, RSDrawing::DrawingAnimationPara& animationPara);
+    void ParseSymbolGroupParas(
+        const Json::Value& root, std::vector<std::vector<RSDrawing::DrawingPiecewiseParameter>>& groupParameters);
+    void ParseSymbolPiecewisePara(const Json::Value& root, RSDrawing::DrawingPiecewiseParameter& piecewiseParameter);
     void ParseSymbolCurveArgs(const Json::Value& root, std::map<std::string, float>& curveArgs);
     void ParseSymbolProperties(const Json::Value& root, std::map<std::string, std::vector<float>>& properties);
 
     void ParseSymbolLayersGrouping(const Json::Value& root);
-    void ParseOneSymbol(const Json::Value& root, std::unordered_map<uint16_t, SymbolLayersGroups>* hmSymbolConfig);
+    void ParseOneSymbol(
+        const Json::Value& root, std::unordered_map<uint16_t, RSDrawing::DrawingSymbolLayersGroups>* hmSymbolConfig);
     void ParseLayers(const Json::Value& root, std::vector<std::vector<size_t>>& layers);
-    void ParseRenderModes(
-        const Json::Value& root, std::map<SymbolRenderingStrategy, std::vector<RenderGroup>>& renderModesGroups);
+    void ParseRenderModes(const Json::Value& root,
+        std::map<RSDrawing::DrawingSymbolRenderingStrategy, std::vector<RSDrawing::DrawingRenderGroup>>&
+            renderModesGroups);
     void ParseComponets(const Json::Value& root, std::vector<size_t>& components);
-    void ParseRenderGroups(const Json::Value& root, std::vector<RenderGroup>& renderGroups);
-    void ParseGroupIndexes(const Json::Value& root, std::vector<GroupInfo>& groupInfos);
+    void ParseRenderGroups(const Json::Value& root, std::vector<RSDrawing::DrawingRenderGroup>& renderGroups);
+    void ParseGroupIndexes(const Json::Value& root, std::vector<RSDrawing::DrawingGroupInfo>& groupInfos);
     void ParseLayerOrMaskIndexes(const Json::Value& root, std::vector<size_t>& indexes);
-    void ParseDefaultColor(const std::string& defaultColorStr, RenderGroup& renderGroup);
-    void ParseAnimationSettings(const Json::Value& root, std::vector<AnimationSetting>& animationSettings);
-    void ParseAnimationSetting(const Json::Value& root, AnimationSetting& animationSetting);
-    void ParseAnimationType(const std::string& animationTypeStr, AnimationType& animationType);
-    void ParseAnimationTypes(const Json::Value& root, std::vector<AnimationType>& animationTypes);
-    void ParseGroupSettings(const Json::Value& root, std::vector<GroupSetting>& groupSettings);
-    void ParseGroupSetting(const Json::Value& root, GroupSetting& groupSetting);
-    void ParseSymbolCommonSubType(const std::string& subTypeStr, CommonSubType& commonSubType);
+    void ParseDefaultColor(const std::string& defaultColorStr, RSDrawing::DrawingRenderGroup& renderGroup);
+    void ParseAnimationSettings(
+        const Json::Value& root, std::vector<RSDrawing::DrawingAnimationSetting>& animationSettings);
+    void ParseAnimationSetting(const Json::Value& root, RSDrawing::DrawingAnimationSetting& animationSetting);
+    void ParseAnimationType(const std::string& animationTypeStr, RSDrawing::DrawingAnimationType& animationType);
+    void ParseAnimationTypes(const Json::Value& root, std::vector<RSDrawing::DrawingAnimationType>& animationTypes);
+    void ParseGroupSettings(const Json::Value& root, std::vector<RSDrawing::DrawingGroupSetting>& groupSettings);
+    void ParseGroupSetting(const Json::Value& root, RSDrawing::DrawingGroupSetting& groupSetting);
+    void ParseSymbolCommonSubType(const std::string& subTypeStr, RSDrawing::DrawingCommonSubType& commonSubType);
 
-    void ParseOneSymbolNativeCase(
-        const char* key, const Json::Value& root, SymbolLayersGroups& symbolLayersGroups, uint16_t& nativeGlyphId);
-    void ParseOneSymbolLayerCase(const char* key, const Json::Value& root, SymbolLayersGroups& symbolLayersGroups);
-    void ParseOneSymbolRenderCase(const char* key, const Json::Value& root, SymbolLayersGroups& symbolLayersGroups);
-    void ParseOneSymbolAnimateCase(const char* key, const Json::Value& root, SymbolLayersGroups& symbolLayersGroups);
+    void ParseOneSymbolNativeCase(const char* key, const Json::Value& root,
+        RSDrawing::DrawingSymbolLayersGroups& symbolLayersGroups, uint16_t& nativeGlyphId);
+    void ParseOneSymbolLayerCase(
+        const char* key, const Json::Value& root, RSDrawing::DrawingSymbolLayersGroups& symbolLayersGroups);
+    void ParseOneSymbolRenderCase(
+        const char* key, const Json::Value& root, RSDrawing::DrawingSymbolLayersGroups& symbolLayersGroups);
+    void ParseOneSymbolAnimateCase(
+        const char* key, const Json::Value& root, RSDrawing::DrawingSymbolLayersGroups& symbolLayersGroups);
 };
-
+} // namespace Symbol
+} // namespace Rosen
+} // namespace OHOS
 #endif

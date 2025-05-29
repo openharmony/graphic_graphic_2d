@@ -176,6 +176,11 @@ ohos_static_library("font_asset") {
   }
 
   include_dirs = [
+    "$rosen_root/modules/render_service_base/include",
+    "$graphic_2d_root/rosen/modules/2d_graphics/include",
+    "$graphic_2d_root/rosen/modules/2d_graphics/src",
+    "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing",
+    "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing/engine_adapter",
     "$rosen_text_root/service/skia_txt",
     "$rosen_text_root/adapter/skia/txt",
     "$rosen_text_root/adapter/skia",

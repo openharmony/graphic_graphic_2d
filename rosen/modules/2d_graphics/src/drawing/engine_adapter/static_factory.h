@@ -89,10 +89,6 @@ public:
     static void GetDrawingGlyphIDforTextBlob(const TextBlob* blob, std::vector<uint16_t>& glyphIds);
     static Path GetDrawingPathforTextBlob(uint16_t glyphId, const TextBlob* blob);
     static void GetDrawingPointsForTextBlob(const TextBlob* blob, std::vector<Point>& points);
-    static DrawingSymbolLayersGroups GetSymbolLayersGroups(uint16_t glyphId);
-    static std::vector<std::vector<DrawingPiecewiseParameter>> GetGroupParameters(
-        DrawingAnimationType type, uint16_t groupSum, uint16_t animationMode = 0,
-        DrawingCommonSubType commonSubType = DrawingCommonSubType::DOWN);
     static std::shared_ptr<Blender> CreateWithBlendMode(BlendMode mode);
     static void SetVmaCacheStatus(bool flag);
     static void RecordCoreTrace(int functionType);

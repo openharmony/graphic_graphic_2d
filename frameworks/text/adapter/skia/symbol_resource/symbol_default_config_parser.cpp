@@ -22,9 +22,13 @@
 #include "symbol_default_config_parser.h"
 #include "utils/text_log.h"
 
-using PiecewiseParaKeyFunc = std::function<void(const char*, const Json::Value&, PiecewiseParameter&)>;
-using SymbolKeyFunc = std::function<void(const char*, const Json::Value&, SymbolLayersGroups&)>;
-using SymnolAniFunc = std::function<void(const char*, const Json::Value&, AnimationPara&)>;
+namespace OHOS {
+namespace Rosen {
+namespace Symbol {
+using PiecewiseParaKeyFunc =
+    std::function<void(const char*, const Json::Value&, RSDrawing::DrawingPiecewiseParameter&)>;
+using SymbolKeyFunc = std::function<void(const char*, const Json::Value&, RSDrawing::DrawingSymbolLayersGroups&)>;
+using SymnolAniFunc = std::function<void(const char*, const Json::Value&, RSDrawing::DrawingAnimationPara&)>;
 
 using SymbolKeyFuncMap = std::unordered_map<std::string, SymbolKeyFunc>;
 const char SPECIAL_ANIMATIONS[] = "special_animations";
@@ -83,14 +87,18 @@ private:
 
 SymbolAutoRegister g_symbolAutoRegister;
 
-static const std::map<std::string, AnimationType> ANIMATIONS_TYPES = {{"scale", AnimationType::SCALE_TYPE},
-    {"appear", AnimationType::APPEAR_TYPE}, {"disappear", AnimationType::DISAPPEAR_TYPE},
-    {"bounce", AnimationType::BOUNCE_TYPE}, {"variable_color", AnimationType::VARIABLE_COLOR_TYPE},
-    {"pulse", AnimationType::PULSE_TYPE}, {"replace_appear", AnimationType::REPLACE_APPEAR_TYPE},
-    {"replace_disappear", AnimationType::REPLACE_DISAPPEAR_TYPE}};
+static const std::map<std::string, RSDrawing::DrawingAnimationType> ANIMATIONS_TYPES = {
+    {"scale", RSDrawing::DrawingAnimationType::SCALE_TYPE}, {"appear", RSDrawing::DrawingAnimationType::APPEAR_TYPE},
+    {"disappear", RSDrawing::DrawingAnimationType::DISAPPEAR_TYPE},
+    {"bounce", RSDrawing::DrawingAnimationType::BOUNCE_TYPE},
+    {"variable_color", RSDrawing::DrawingAnimationType::VARIABLE_COLOR_TYPE},
+    {"pulse", RSDrawing::DrawingAnimationType::PULSE_TYPE},
+    {"replace_appear", RSDrawing::DrawingAnimationType::REPLACE_APPEAR_TYPE},
+    {"replace_disappear", RSDrawing::DrawingAnimationType::REPLACE_DISAPPEAR_TYPE}};
 
-static const std::map<std::string, CurveType> CURVE_TYPES = {{"spring", CurveType::SPRING},
-    {"linear", CurveType::LINEAR}, {"friction", CurveType::FRICTION}, {"sharp", CurveType::SHARP}};
+static const std::map<std::string, RSDrawing::DrawingCurveType> CURVE_TYPES = {
+    {"spring", RSDrawing::DrawingCurveType::SPRING}, {"linear", RSDrawing::DrawingCurveType::LINEAR},
+    {"friction", RSDrawing::DrawingCurveType::FRICTION}, {"sharp", RSDrawing::DrawingCurveType::SHARP}};
 
 /* To get the display text of an error
  * \param err the id of an error
@@ -189,9 +197,9 @@ SymbolDefaultConfigParser* SymbolDefaultConfigParser::GetInstance()
     return &singleton;
 }
 
-SymbolLayersGroups SymbolDefaultConfigParser::GetSymbolLayersGroups(uint16_t glyphId)
+RSDrawing::DrawingSymbolLayersGroups SymbolDefaultConfigParser::GetSymbolLayersGroups(uint16_t glyphId)
 {
-    SymbolLayersGroups symbolLayersGroups;
+    RSDrawing::DrawingSymbolLayersGroups symbolLayersGroups;
     if (hmSymbolConfig_.size() == 0) {
         return symbolLayersGroups;
     }
@@ -202,14 +210,16 @@ SymbolLayersGroups SymbolDefaultConfigParser::GetSymbolLayersGroups(uint16_t gly
     return symbolLayersGroups;
 }
 
-std::vector<std::vector<PiecewiseParameter>> SymbolDefaultConfigParser::GetGroupParameters(
-    AnimationType type, uint16_t groupSum, uint16_t animationMode, CommonSubType commonSubType)
+std::vector<std::vector<RSDrawing::DrawingPiecewiseParameter>> SymbolDefaultConfigParser::GetGroupParameters(
+    RSDrawing::DrawingAnimationType type, uint16_t groupSum, uint16_t animationMode,
+    RSDrawing::DrawingCommonSubType commonSubType)
 {
-    std::vector<std::vector<PiecewiseParameter>> groupParametersOut;
+    std::vector<std::vector<RSDrawing::DrawingPiecewiseParameter>> groupParametersOut;
     if (animationInfos_.empty()) {
         return groupParametersOut;
     }
-    std::unordered_map<AnimationType, AnimationInfo>::iterator iter = animationInfos_.find(type);
+    std::unordered_map<RSDrawing::DrawingAnimationType, RSDrawing::DrawingAnimationInfo>::iterator iter =
+        animationInfos_.find(type);
     if (iter == animationInfos_.end()) {
         return groupParametersOut;
     }
@@ -278,8 +288,8 @@ int SymbolDefaultConfigParser::ParseConfigOfHmSymbol(const char* filePath)
     return NO_ERROR;
 }
 
-void SymbolDefaultConfigParser::ParseSymbolAnimations(
-    const Json::Value& root, std::unordered_map<AnimationType, AnimationInfo>* animationInfos)
+void SymbolDefaultConfigParser::ParseSymbolAnimations(const Json::Value& root,
+    std::unordered_map<RSDrawing::DrawingAnimationType, RSDrawing::DrawingAnimationInfo>* animationInfos)
 {
     for (unsigned int i = 0; i < root.size(); i++) {
         if (!root[i].isObject()) {
@@ -290,7 +300,7 @@ void SymbolDefaultConfigParser::ParseSymbolAnimations(
         if (!root[i].isMember(ANIMATION_TYPE) || !root[i].isMember(ANIMATION_PARAMETERS)) {
             continue;
         }
-        AnimationInfo animationInfo;
+        RSDrawing::DrawingAnimationInfo animationInfo;
         if (!root[i][ANIMATION_TYPE].isString()) {
             TEXT_LOGE("animation_type is not string!");
             continue;
@@ -308,7 +318,7 @@ void SymbolDefaultConfigParser::ParseSymbolAnimations(
 }
 
 uint32_t SymbolDefaultConfigParser::EncodeAnimationAttribute(
-    uint16_t groupSum, uint16_t animationMode, CommonSubType commonSubType)
+    uint16_t groupSum, uint16_t animationMode, RSDrawing::DrawingCommonSubType commonSubType)
 {
     uint32_t result = static_cast<uint32_t>(groupSum);
     result = (result << oneByteBitsLen) + static_cast<uint32_t>(animationMode);
@@ -317,14 +327,14 @@ uint32_t SymbolDefaultConfigParser::EncodeAnimationAttribute(
 }
 
 void SymbolDefaultConfigParser::ParseSymbolAnimationParas(
-    const Json::Value& root, std::map<uint32_t, AnimationPara>& animationParas)
+    const Json::Value& root, std::map<uint32_t, RSDrawing::DrawingAnimationPara>& animationParas)
 {
     for (unsigned int i = 0; i < root.size(); i++) {
         if (!root[i].isObject()) {
             TEXT_LOGE("animation_parameter is not object!");
             continue;
         }
-        AnimationPara animationPara;
+        RSDrawing::DrawingAnimationPara animationPara;
         ParseSymbolAnimationPara(root[i], animationPara);
         uint32_t attributeKey = EncodeAnimationAttribute(
             animationPara.groupParameters.size(), animationPara.animationMode, animationPara.commonSubType);
@@ -332,21 +342,23 @@ void SymbolDefaultConfigParser::ParseSymbolAnimationParas(
     }
 }
 
-void SymbolDefaultConfigParser::ParseSymbolAnimationPara(const Json::Value& root, AnimationPara& animationPara)
+void SymbolDefaultConfigParser::ParseSymbolAnimationPara(
+    const Json::Value& root, RSDrawing::DrawingAnimationPara& animationPara)
 {
     const char* key = nullptr;
     std::vector<std::string> tags = {ANIMATION_MODE, COMMON_SUB_TYPE, GROUP_PARAMETERS};
     using SymnolAniFuncMap = std::unordered_map<std::string, SymnolAniFunc>;
-    SymnolAniFuncMap funcMap = {{ANIMATION_MODE,
-                                    [](const char* key, const Json::Value& root, AnimationPara& animationPara) {
-                                        if (!root[key].isInt()) {
-                                            TEXT_LOGE("animation_mode is not int!");
-                                            return;
-                                        }
-                                        animationPara.animationMode = root[key].asInt();
-                                    }},
+    SymnolAniFuncMap funcMap = {
+        {ANIMATION_MODE,
+            [](const char* key, const Json::Value& root, RSDrawing::DrawingAnimationPara& animationPara) {
+                if (!root[key].isInt()) {
+                    TEXT_LOGE("animation_mode is not int!");
+                    return;
+                }
+                animationPara.animationMode = root[key].asInt();
+            }},
         {COMMON_SUB_TYPE,
-            [this](const char* key, const Json::Value& root, AnimationPara& animationPara) {
+            [this](const char* key, const Json::Value& root, RSDrawing::DrawingAnimationPara& animationPara) {
                 if (!root[key].isString()) {
                     TEXT_LOGE("sub_type is not string!");
                     return;
@@ -354,13 +366,14 @@ void SymbolDefaultConfigParser::ParseSymbolAnimationPara(const Json::Value& root
                 const std::string subTypeStr = root[key].asString();
                 ParseSymbolCommonSubType(subTypeStr, animationPara.commonSubType);
             }},
-        {GROUP_PARAMETERS, [this](const char* key, const Json::Value& root, AnimationPara& animationPara) {
-             if (!root[key].isArray()) {
-                 TEXT_LOGE("group_parameters is not array!");
-                 return;
-             }
-             ParseSymbolGroupParas(root[key], animationPara.groupParameters);
-         }}};
+        {GROUP_PARAMETERS,
+            [this](const char* key, const Json::Value& root, RSDrawing::DrawingAnimationPara& animationPara) {
+                if (!root[key].isArray()) {
+                    TEXT_LOGE("group_parameters is not array!");
+                    return;
+                }
+                ParseSymbolGroupParas(root[key], animationPara.groupParameters);
+            }}};
     for (unsigned int i = 0; i < tags.size(); i++) {
         key = tags[i].c_str();
         if (!root.isMember(key)) {
@@ -372,11 +385,18 @@ void SymbolDefaultConfigParser::ParseSymbolAnimationPara(const Json::Value& root
     }
 }
 
-void SymbolDefaultConfigParser::ParseSymbolCommonSubType(const std::string& subTypeStr, CommonSubType& commonSubType)
+void SymbolDefaultConfigParser::ParseSymbolCommonSubType(
+    const std::string& subTypeStr, RSDrawing::DrawingCommonSubType& commonSubType)
 {
-    using SymbolAniSubFuncMap = std::unordered_map<std::string, std::function<void(CommonSubType&)>>;
-    SymbolAniSubFuncMap funcMap = {{"up", [](CommonSubType& commonSubType) { commonSubType = CommonSubType::UP; }},
-        {"down", [](CommonSubType& commonSubType) { commonSubType = CommonSubType::DOWN; }}};
+    using SymbolAniSubFuncMap = std::unordered_map<std::string, std::function<void(RSDrawing::DrawingCommonSubType&)>>;
+    SymbolAniSubFuncMap funcMap = {
+        {"up", [](RSDrawing::DrawingCommonSubType& commonSubType) {
+             commonSubType = RSDrawing::DrawingCommonSubType::UP;
+         }},
+        {"down", [](RSDrawing::DrawingCommonSubType& commonSubType) {
+             commonSubType = RSDrawing::DrawingCommonSubType::DOWN;
+         }}
+    };
     if (funcMap.count(subTypeStr) > 0) {
         funcMap[subTypeStr](commonSubType);
         return;
@@ -385,20 +405,20 @@ void SymbolDefaultConfigParser::ParseSymbolCommonSubType(const std::string& subT
 }
 
 void SymbolDefaultConfigParser::ParseSymbolGroupParas(
-    const Json::Value& root, std::vector<std::vector<PiecewiseParameter>>& groupParameters)
+    const Json::Value& root, std::vector<std::vector<RSDrawing::DrawingPiecewiseParameter>>& groupParameters)
 {
     for (unsigned int i = 0; i < root.size(); i++) {
         if (!root[i].isArray()) {
             TEXT_LOGE("group_parameter is not array!");
             continue;
         }
-        std::vector<PiecewiseParameter> piecewiseParameters;
+        std::vector<RSDrawing::DrawingPiecewiseParameter> piecewiseParameters;
         for (unsigned int j = 0; j < root[i].size(); j++) {
             if (!root[i][j].isObject()) {
                 TEXT_LOGE("piecewise_parameter is not object!");
                 continue;
             }
-            PiecewiseParameter piecewiseParameter;
+            RSDrawing::DrawingPiecewiseParameter piecewiseParameter;
             ParseSymbolPiecewisePara(root[i][j], piecewiseParameter);
             piecewiseParameters.push_back(piecewiseParameter);
         }
@@ -407,7 +427,8 @@ void SymbolDefaultConfigParser::ParseSymbolGroupParas(
     }
 }
 
-static void PiecewiseParaCurveCase(const char* key, const Json::Value& root, PiecewiseParameter& piecewiseParameter)
+static void PiecewiseParaCurveCase(
+    const char* key, const Json::Value& root, RSDrawing::DrawingPiecewiseParameter& piecewiseParameter)
 {
     if (!root[key].isString()) {
         TEXT_LOGE("curve is not string!");
@@ -422,7 +443,8 @@ static void PiecewiseParaCurveCase(const char* key, const Json::Value& root, Pie
     TEXT_LOGE("curve is invalid value!");
 }
 
-static void PiecewiseParaDurationCase(const char* key, const Json::Value& root, PiecewiseParameter& piecewiseParameter)
+static void PiecewiseParaDurationCase(
+    const char* key, const Json::Value& root, RSDrawing::DrawingPiecewiseParameter& piecewiseParameter)
 {
     if (!root[key].isNumeric()) {
         TEXT_LOGE("duration is not numeric!");
@@ -433,7 +455,8 @@ static void PiecewiseParaDurationCase(const char* key, const Json::Value& root, 
     }
 }
 
-static void PiecewiseParaDelayCase(const char* key, const Json::Value& root, PiecewiseParameter& piecewiseParameter)
+static void PiecewiseParaDelayCase(
+    const char* key, const Json::Value& root, RSDrawing::DrawingPiecewiseParameter& piecewiseParameter)
 {
     if (!root[key].isNumeric()) {
         TEXT_LOGE("delay is not numeric!");
@@ -445,14 +468,14 @@ static void PiecewiseParaDelayCase(const char* key, const Json::Value& root, Pie
 }
 
 void SymbolDefaultConfigParser::ParseSymbolPiecewisePara(
-    const Json::Value& root, PiecewiseParameter& piecewiseParameter)
+    const Json::Value& root, RSDrawing::DrawingPiecewiseParameter& piecewiseParameter)
 {
     const char* key = nullptr;
     std::vector<std::string> tags = {CURVE, CURVE_ARGS, DURATION, DELAY, PROPERTIES};
     using PiecewiseFuncMap = std::unordered_map<std::string, PiecewiseParaKeyFunc>;
     PiecewiseFuncMap funcMap = {{CURVE, PiecewiseParaCurveCase},
         {CURVE_ARGS,
-            [this](const char* key, const Json::Value& root, PiecewiseParameter& piecewiseParameter) {
+            [this](const char* key, const Json::Value& root, RSDrawing::DrawingPiecewiseParameter& piecewiseParameter) {
                 if (!root[key].isObject()) {
                     TEXT_LOGE("curve_args is not object!");
                     return;
@@ -460,13 +483,14 @@ void SymbolDefaultConfigParser::ParseSymbolPiecewisePara(
                 ParseSymbolCurveArgs(root[key], piecewiseParameter.curveArgs);
             }},
         {DURATION, PiecewiseParaDurationCase}, {DELAY, PiecewiseParaDelayCase},
-        {PROPERTIES, [this](const char* key, const Json::Value& root, PiecewiseParameter& piecewiseParameter) {
-             if (!root[key].isObject()) {
-                 TEXT_LOGE("properties is not object!");
-                 return;
-             }
-             ParseSymbolProperties(root[key], piecewiseParameter.properties);
-         }}};
+        {PROPERTIES,
+            [this](const char* key, const Json::Value& root, RSDrawing::DrawingPiecewiseParameter& piecewiseParameter) {
+                if (!root[key].isObject()) {
+                    TEXT_LOGE("properties is not object!");
+                    return;
+                }
+                ParseSymbolProperties(root[key], piecewiseParameter.properties);
+            }}};
 
     for (unsigned int i = 0; i < tags.size(); i++) {
         key = tags[i].c_str();
@@ -522,7 +546,7 @@ void SymbolDefaultConfigParser::ParseSymbolProperties(
 
 void SymbolDefaultConfigParser::ParseSymbolLayersGrouping(const Json::Value& root)
 {
-    std::unordered_map<uint16_t, SymbolLayersGroups>* hmSymbolConfig = &hmSymbolConfig_;
+    std::unordered_map<uint16_t, RSDrawing::DrawingSymbolLayersGroups>* hmSymbolConfig = &hmSymbolConfig_;
     for (unsigned int i = 0; i < root.size(); i++) {
         if (!root[i].isObject()) {
             TEXT_LOGE("symbol_layers_grouping[%{public}d] is not object!", i);
@@ -532,7 +556,8 @@ void SymbolDefaultConfigParser::ParseSymbolLayersGrouping(const Json::Value& roo
     }
 }
 
-static void SymbolGlyphCase(const char* key, const Json::Value& root, SymbolLayersGroups& symbolLayersGroups)
+static void SymbolGlyphCase(
+    const char* key, const Json::Value& root, RSDrawing::DrawingSymbolLayersGroups& symbolLayersGroups)
 {
     if (!root[key].isInt()) {
         TEXT_LOGE("symbol_glyph_id is not int!");
@@ -541,8 +566,8 @@ static void SymbolGlyphCase(const char* key, const Json::Value& root, SymbolLaye
     symbolLayersGroups.symbolGlyphId = root[key].asInt();
 }
 
-void SymbolDefaultConfigParser::ParseOneSymbolNativeCase(
-    const char* key, const Json::Value& root, SymbolLayersGroups& symbolLayersGroups, uint16_t& nativeGlyphId)
+void SymbolDefaultConfigParser::ParseOneSymbolNativeCase(const char* key, const Json::Value& root,
+    RSDrawing::DrawingSymbolLayersGroups& symbolLayersGroups, uint16_t& nativeGlyphId)
 {
     if (!root[key].isInt()) {
         TEXT_LOGE("native_glyph_id is not int!");
@@ -552,7 +577,7 @@ void SymbolDefaultConfigParser::ParseOneSymbolNativeCase(
 }
 
 void SymbolDefaultConfigParser::ParseOneSymbolLayerCase(
-    const char* key, const Json::Value& root, SymbolLayersGroups& symbolLayersGroups)
+    const char* key, const Json::Value& root, RSDrawing::DrawingSymbolLayersGroups& symbolLayersGroups)
 {
     if (!root[key].isArray()) {
         TEXT_LOGE("layers is not array!");
@@ -562,7 +587,7 @@ void SymbolDefaultConfigParser::ParseOneSymbolLayerCase(
 }
 
 void SymbolDefaultConfigParser::ParseOneSymbolRenderCase(
-    const char* key, const Json::Value& root, SymbolLayersGroups& symbolLayersGroups)
+    const char* key, const Json::Value& root, RSDrawing::DrawingSymbolLayersGroups& symbolLayersGroups)
 {
     if (!root[key].isArray()) {
         TEXT_LOGE("render_modes is not array!");
@@ -572,7 +597,7 @@ void SymbolDefaultConfigParser::ParseOneSymbolRenderCase(
 }
 
 void SymbolDefaultConfigParser::ParseOneSymbolAnimateCase(
-    const char* key, const Json::Value& root, SymbolLayersGroups& symbolLayersGroups)
+    const char* key, const Json::Value& root, RSDrawing::DrawingSymbolLayersGroups& symbolLayersGroups)
 {
     if (!root[key].isArray()) {
         TEXT_LOGE("animation_settings is not array!");
@@ -582,30 +607,31 @@ void SymbolDefaultConfigParser::ParseOneSymbolAnimateCase(
 }
 
 void SymbolDefaultConfigParser::ParseOneSymbol(
-    const Json::Value& root, std::unordered_map<uint16_t, SymbolLayersGroups>* hmSymbolConfig)
+    const Json::Value& root, std::unordered_map<uint16_t, RSDrawing::DrawingSymbolLayersGroups>* hmSymbolConfig)
 {
     const char* key = nullptr;
     std::vector<std::string> tags = {NATIVE_GLYPH_ID, SYMBOL_GLYPH_ID, LAYERS, RENDER_MODES, ANIMATION_SETTINGS};
     uint16_t nativeGlyphId;
-    SymbolLayersGroups symbolLayersGroups;
+    RSDrawing::DrawingSymbolLayersGroups symbolLayersGroups;
 
-    SymbolKeyFuncMap funcMap = {
-        {NATIVE_GLYPH_ID,
-            [this, &nativeGlyphId](const char* key, const Json::Value& root, SymbolLayersGroups& symbolLayersGroups) {
-                ParseOneSymbolNativeCase(key, root, symbolLayersGroups, nativeGlyphId);
-            }},
+    SymbolKeyFuncMap funcMap = {{NATIVE_GLYPH_ID,
+                                    [this, &nativeGlyphId](const char* key, const Json::Value& root,
+                                        RSDrawing::DrawingSymbolLayersGroups& symbolLayersGroups) {
+                                        ParseOneSymbolNativeCase(key, root, symbolLayersGroups, nativeGlyphId);
+                                    }},
         {SYMBOL_GLYPH_ID, SymbolGlyphCase},
         {LAYERS,
-            [this](const char* key, const Json::Value& root, SymbolLayersGroups& symbolLayersGroups) {
+            [this](const char* key, const Json::Value& root, RSDrawing::DrawingSymbolLayersGroups& symbolLayersGroups) {
                 ParseOneSymbolLayerCase(key, root, symbolLayersGroups);
             }},
         {RENDER_MODES,
-            [this](const char* key, const Json::Value& root, SymbolLayersGroups& symbolLayersGroups) {
+            [this](const char* key, const Json::Value& root, RSDrawing::DrawingSymbolLayersGroups& symbolLayersGroups) {
                 ParseOneSymbolRenderCase(key, root, symbolLayersGroups);
             }},
-        {ANIMATION_SETTINGS, [this](const char* key, const Json::Value& root, SymbolLayersGroups& symbolLayersGroups) {
-             ParseOneSymbolAnimateCase(key, root, symbolLayersGroups);
-         }}};
+        {ANIMATION_SETTINGS,
+            [this](const char* key, const Json::Value& root, RSDrawing::DrawingSymbolLayersGroups& symbolLayersGroups) {
+                ParseOneSymbolAnimateCase(key, root, symbolLayersGroups);
+            }}};
     for (unsigned int i = 0; i < tags.size(); i++) {
         key = tags[i].c_str();
         if (!root.isMember(key)) {
@@ -651,13 +677,13 @@ void SymbolDefaultConfigParser::ParseComponets(const Json::Value& root, std::vec
     }
 }
 
-void SymbolDefaultConfigParser::ParseRenderModes(
-    const Json::Value& root, std::map<SymbolRenderingStrategy, std::vector<RenderGroup>>& renderModesGroups)
+void SymbolDefaultConfigParser::ParseRenderModes(const Json::Value& root,
+    std::map<RSDrawing::DrawingSymbolRenderingStrategy, std::vector<RSDrawing::DrawingRenderGroup>>& renderModesGroups)
 {
-    std::unordered_map<std::string, SymbolRenderingStrategy> strategeMap = {
-        {"monochrome", SymbolRenderingStrategy::SINGLE},
-        {"multicolor", SymbolRenderingStrategy::MULTIPLE_COLOR},
-        {"hierarchical", SymbolRenderingStrategy::MULTIPLE_OPACITY},
+    std::unordered_map<std::string, RSDrawing::DrawingSymbolRenderingStrategy> strategeMap = {
+        {"monochrome", RSDrawing::DrawingSymbolRenderingStrategy::SINGLE},
+        {"multicolor", RSDrawing::DrawingSymbolRenderingStrategy::MULTIPLE_COLOR},
+        {"hierarchical", RSDrawing::DrawingSymbolRenderingStrategy::MULTIPLE_OPACITY},
     };
     for (unsigned int i = 0; i < root.size(); i++) {
         if (!root[i].isObject()) {
@@ -665,8 +691,8 @@ void SymbolDefaultConfigParser::ParseRenderModes(
             continue;
         }
 
-        SymbolRenderingStrategy renderingStrategy;
-        std::vector<RenderGroup> renderGroups;
+        RSDrawing::DrawingSymbolRenderingStrategy renderingStrategy;
+        std::vector<RSDrawing::DrawingRenderGroup> renderGroups;
         if (root[i].isMember(MODE)) {
             if (!root[i][MODE].isString()) {
                 TEXT_LOGE("mode is not string!");
@@ -691,7 +717,8 @@ void SymbolDefaultConfigParser::ParseRenderModes(
     }
 }
 
-void SymbolDefaultConfigParser::ParseRenderGroups(const Json::Value& root, std::vector<RenderGroup>& renderGroups)
+void SymbolDefaultConfigParser::ParseRenderGroups(
+    const Json::Value& root, std::vector<RSDrawing::DrawingRenderGroup>& renderGroups)
 {
     for (unsigned int i = 0; i < root.size(); i++) {
         if (!root[i].isObject()) {
@@ -699,7 +726,7 @@ void SymbolDefaultConfigParser::ParseRenderGroups(const Json::Value& root, std::
             continue;
         }
 
-        RenderGroup renderGroup;
+        RSDrawing::DrawingRenderGroup renderGroup;
         if (root[i].isMember(GROUP_INDEXES) && root[i][GROUP_INDEXES].isArray()) {
             ParseGroupIndexes(root[i][GROUP_INDEXES], renderGroup.groupInfos);
         }
@@ -714,10 +741,11 @@ void SymbolDefaultConfigParser::ParseRenderGroups(const Json::Value& root, std::
     }
 }
 
-void SymbolDefaultConfigParser::ParseGroupIndexes(const Json::Value& root, std::vector<GroupInfo>& groupInfos)
+void SymbolDefaultConfigParser::ParseGroupIndexes(
+    const Json::Value& root, std::vector<RSDrawing::DrawingGroupInfo>& groupInfos)
 {
     for (unsigned int i = 0; i < root.size(); i++) {
-        GroupInfo groupInfo;
+        RSDrawing::DrawingGroupInfo groupInfo;
         if (root[i].isMember(LAYER_INDEXES)) {
             if (!root[i][LAYER_INDEXES].isArray()) {
                 TEXT_LOGE("layer_indexes is not array!");
@@ -747,7 +775,8 @@ void SymbolDefaultConfigParser::ParseLayerOrMaskIndexes(const Json::Value& root,
     }
 }
 
-void SymbolDefaultConfigParser::ParseDefaultColor(const std::string& defaultColorStr, RenderGroup& renderGroup)
+void SymbolDefaultConfigParser::ParseDefaultColor(
+    const std::string& defaultColorStr, RSDrawing::DrawingRenderGroup& renderGroup)
 {
     char defaultColorHex[defaultColorHexLen];
     defaultColorHex[0] = '0';
@@ -770,20 +799,21 @@ void SymbolDefaultConfigParser::ParseDefaultColor(const std::string& defaultColo
 }
 
 void SymbolDefaultConfigParser::ParseAnimationSettings(
-    const Json::Value& root, std::vector<AnimationSetting>& animationSettings)
+    const Json::Value& root, std::vector<RSDrawing::DrawingAnimationSetting>& animationSettings)
 {
     for (unsigned int i = 0; i < root.size(); i++) {
         if (!root[i].isObject()) {
             TEXT_LOGE("animation_setting is not object!");
             continue;
         }
-        AnimationSetting animationSetting;
+        RSDrawing::DrawingAnimationSetting animationSetting;
         ParseAnimationSetting(root[i], animationSetting);
         animationSettings.push_back(animationSetting);
     }
 }
 
-void SymbolDefaultConfigParser::ParseAnimationSetting(const Json::Value& root, AnimationSetting& animationSetting)
+void SymbolDefaultConfigParser::ParseAnimationSetting(
+    const Json::Value& root, RSDrawing::DrawingAnimationSetting& animationSetting)
 {
     if (root.isMember(ANIMATION_TYPES) && root[ANIMATION_TYPES].isArray()) {
         ParseAnimationTypes(root[ANIMATION_TYPES], animationSetting.animationTypes);
@@ -794,7 +824,8 @@ void SymbolDefaultConfigParser::ParseAnimationSetting(const Json::Value& root, A
     }
 }
 
-void SymbolDefaultConfigParser::ParseAnimationTypes(const Json::Value& root, std::vector<AnimationType>& animationTypes)
+void SymbolDefaultConfigParser::ParseAnimationTypes(
+    const Json::Value& root, std::vector<RSDrawing::DrawingAnimationType>& animationTypes)
 {
     for (unsigned int i = 0; i < root.size(); i++) {
         if (!root[i].isString()) {
@@ -802,13 +833,14 @@ void SymbolDefaultConfigParser::ParseAnimationTypes(const Json::Value& root, std
             continue;
         }
         const std::string animationTypeStr = root[i].asString();
-        AnimationType animationType;
+        RSDrawing::DrawingAnimationType animationType;
         ParseAnimationType(animationTypeStr, animationType);
         animationTypes.push_back(animationType);
     }
 }
 
-void SymbolDefaultConfigParser::ParseAnimationType(const std::string& animationTypeStr, AnimationType& animationType)
+void SymbolDefaultConfigParser::ParseAnimationType(
+    const std::string& animationTypeStr, RSDrawing::DrawingAnimationType& animationType)
 {
     auto iter = ANIMATIONS_TYPES.find(animationTypeStr);
     if (iter != ANIMATIONS_TYPES.end()) {
@@ -818,20 +850,21 @@ void SymbolDefaultConfigParser::ParseAnimationType(const std::string& animationT
     }
 }
 
-void SymbolDefaultConfigParser::ParseGroupSettings(const Json::Value& root, std::vector<GroupSetting>& groupSettings)
+void SymbolDefaultConfigParser::ParseGroupSettings(
+    const Json::Value& root, std::vector<RSDrawing::DrawingGroupSetting>& groupSettings)
 {
     for (unsigned int i = 0; i < root.size(); i++) {
         if (!root[i].isObject()) {
             TEXT_LOGE("group_setting is not object!");
             continue;
         }
-        GroupSetting groupSetting;
+        RSDrawing::DrawingGroupSetting groupSetting;
         ParseGroupSetting(root[i], groupSetting);
         groupSettings.push_back(groupSetting);
     }
 }
 
-void SymbolDefaultConfigParser::ParseGroupSetting(const Json::Value& root, GroupSetting& groupSetting)
+void SymbolDefaultConfigParser::ParseGroupSetting(const Json::Value& root, RSDrawing::DrawingGroupSetting& groupSetting)
 {
     if (root.isMember(GROUP_INDEXES)) {
         if (!root[GROUP_INDEXES].isArray()) {
@@ -849,3 +882,6 @@ void SymbolDefaultConfigParser::ParseGroupSetting(const Json::Value& root, Group
         }
     }
 }
+} // namespace Symbol
+} // namespace Rosen
+} // namespace OHOS

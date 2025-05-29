@@ -30,7 +30,6 @@
 #include "skia_adapter/skia_file_w_stream.h"
 #include "skia_adapter/skia_font.h"
 #include "skia_adapter/skia_font_mgr.h"
-#include "skia_adapter/skia_hm_symbol_config_ohos.h"
 #include "skia_adapter/skia_image.h"
 #include "skia_adapter/skia_image_filter.h"
 #include "skia_adapter/skia_mask_filter.h"

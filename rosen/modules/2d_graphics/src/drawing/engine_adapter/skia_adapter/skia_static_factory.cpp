@@ -23,7 +23,6 @@
 #include "skia_document.h"
 #include "skia_adapter/skia_font_style_set.h"
 #include "skia_adapter/skia_hm_symbol.h"
-#include "skia_adapter/skia_hm_symbol_config_ohos.h"
 #include "skia_adapter/skia_image.h"
 #include "skia_adapter/skia_surface.h"
 #include "skia_adapter/skia_text_blob.h"
@@ -213,17 +212,6 @@ Path SkiaStaticFactory::GetDrawingPathforTextBlob(uint16_t glyphId, const TextBl
 void SkiaStaticFactory::GetDrawingPointsForTextBlob(const TextBlob* blob, std::vector<Point>& points)
 {
     return SkiaTextBlob::GetDrawingPointsForTextBlob(blob, points);
-}
-
-DrawingSymbolLayersGroups SkiaStaticFactory::GetSymbolLayersGroups(uint16_t glyphId)
-{
-    return SkiaHmSymbolConfigOhos::GetSymbolLayersGroups(glyphId);
-}
-
-std::vector<std::vector<DrawingPiecewiseParameter>> SkiaStaticFactory::GetGroupParameters(
-    DrawingAnimationType type, uint16_t groupSum, uint16_t animationMode, DrawingCommonSubType commonSubType)
-{
-    return SkiaHmSymbolConfigOhos::GetGroupParameters(type, groupSum, animationMode, commonSubType);
 }
 
 std::shared_ptr<Blender> SkiaStaticFactory::CreateWithBlendMode(BlendMode mode)
