@@ -87,6 +87,8 @@ public:
     MOCK_CONST_METHOD0(CheckParticipateInOcclusion, bool());
     MOCK_CONST_METHOD0(NeedDrawBehindWindow, bool());
     MOCK_CONST_METHOD0(GetFilterRect, RectI());
+    MOCK_CONST_METHOD0(CheckIfOcclusionChanged, bool());
+    MOCK_CONST_METHOD0(IsNavigationBarTransparentRegionChanged, bool());
 };
 
 void RSUniRenderVisitorTest::SetUpTestCase()
@@ -4083,18 +4085,39 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateNodeVisibleRegion002, TestSize.Level2)
 
 /**
  * @tc.name: UpdateNodeVisibleRegion003
- * @tc.desc: Test UpdateNodeVisibleRegion when needRecalculateOcclusion_ is false
+ * @tc.desc: Test UpdateNodeVisibleRegion when IsNavigationBarTransparentRegionChanged() return true
  * @tc.type: FUNC
  * @tc.require: issueIC9HNQ
  */
 HWTEST_F(RSUniRenderVisitorTest, UpdateNodeVisibleRegion003, TestSize.Level2)
 {
     RSSurfaceRenderNodeConfig config;
-    auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config);
+    auto rsSurfaceRenderNode = std::make_shared<MockRSSurfaceRenderNode>(config.id);
     ASSERT_NE(rsSurfaceRenderNode, nullptr);
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
     rsUniRenderVisitor->needRecalculateOcclusion_ = false;
+    EXPECT_CALL(*rsSurfaceRenderNode, CheckIfOcclusionChanged()).WillRepeatedly(testing::Return(false));
+    EXPECT_CALL(*rsSurfaceRenderNode, IsNavigationBarTransparentRegionChanged()).WillRepeatedly(testing::Return(true));
+    rsUniRenderVisitor->PrepareForUIFirstNode(*rsSurfaceRenderNode);
+}
+
+/**
+ * @tc.name: UpdateNodeVisibleRegion004
+ * @tc.desc: Test UpdateNodeVisibleRegion when IsNavigationBarTransparentRegionChanged() return false
+ * @tc.type: FUNC
+ * @tc.require: issueIC9HNQ
+ */
+HWTEST_F(RSUniRenderVisitorTest, UpdateNodeVisibleRegion004, TestSize.Level2)
+{
+    RSSurfaceRenderNodeConfig config;
+    auto rsSurfaceRenderNode = std::make_shared<MockRSSurfaceRenderNode>(config.id);
+    ASSERT_NE(rsSurfaceRenderNode, nullptr);
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->needRecalculateOcclusion_ = false;
+    EXPECT_CALL(*rsSurfaceRenderNode, CheckIfOcclusionChanged()).WillRepeatedly(testing::Return(false));
+    EXPECT_CALL(*rsSurfaceRenderNode, IsNavigationBarTransparentRegionChanged()).WillRepeatedly(testing::Return(false));
     rsUniRenderVisitor->PrepareForUIFirstNode(*rsSurfaceRenderNode);
 }
 
