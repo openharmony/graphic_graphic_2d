@@ -581,14 +581,13 @@ void RSCanvasDrawingRenderNode::AddDirtyType(RSModifierType modifierType)
 
         cmd->SetCanvasDrawingOpLimitEnable(true);
         drawCmdLists_[modifierType].emplace_back(cmd);
-        ReportOpCount(drawCmdLists_[modifierType]);
         ++cmdCount_;
         SetNeedProcess(true);
     }
     CheckDrawCmdListSize(modifierType, originCmdListSize);
 }
 
-void RSCanvasDrawingRenderNode::ReportOpCount(const std::list<Drawing::DrawCmdListPtr>& cmdLists)
+void RSCanvasDrawingRenderNode::ReportOpCount(const std::list<Drawing::DrawCmdListPtr>& cmdLists)  const
 {
     size_t totalOpCount = 0;
     for (const auto& cmdList : cmdLists) {
