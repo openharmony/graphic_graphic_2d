@@ -78,6 +78,15 @@ public:
     bool UnloadFont(const std::string& familyName) override;
 
 private:
+    struct LoadFontCallback {
+        LoadFontCallback(const FontCollection* fc, const std::string& familyName, const CallbackWithLock& begin,
+            const CallbackWithLock& end);
+        ~LoadFontCallback();
+        const FontCollection* fc_;
+        const std::string& familyName_;
+        const CallbackWithLock& begin_;
+        const CallbackWithLock& end_;
+    };
     RegisterError RegisterTypeface(const TypefaceWithAlias& ta);
 
     std::shared_ptr<txt::FontCollection> fontCollection_ = nullptr;

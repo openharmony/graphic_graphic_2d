@@ -47,6 +47,14 @@ void OH_Drawing_FontCollectionTest::SetUp()
 {
     OHOS::Rosen::Drawing::Typeface::RegisterCallBackFunc([](auto) { return true; });
     OHOS::Rosen::Drawing::Typeface::UnRegisterCallBackFunc([](auto) { return true; });
+    auto callback = [](const FontCollection* fc, const std::string& family) {
+        EXPECT_NE(fc, nullptr);
+        EXPECT_FALSE(family.empty());
+    };
+    FontCollection::RegisterLoadFontStartCallback(callback);
+    FontCollection::RegisterUnloadFontStartCallback(callback);
+    FontCollection::RegisterLoadFontFinishCallback(callback);
+    FontCollection::RegisterUnloadFontFinishCallback(callback);
     fontCollection_ = OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
     ASSERT_NE(fontCollection_, nullptr);
     fontMgr_ = fontCollection_->GetFontMgr();

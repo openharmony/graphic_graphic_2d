@@ -18,7 +18,9 @@
 
 #include <cstddef>
 #include <memory>
+#include <mutex>
 #include <string>
+#include <unordered_set>
 
 #include "common/rs_macros.h"
 #include "symbol_constants.h"
@@ -31,6 +33,8 @@ class FontCollection;
 namespace OHOS {
 namespace Rosen {
 class RS_EXPORT FontCollection {
+    using LoadFontCallback = void (*)(const FontCollection*, const std::string&);
+
 public:
     static std::shared_ptr<FontCollection> From(std::shared_ptr<txt::FontCollection> fontCollection);
     static std::shared_ptr<FontCollection> Create();
@@ -50,6 +54,25 @@ public:
     virtual LoadSymbolErrorCode LoadSymbolJson(const std::string& familyName, const uint8_t* data, size_t datalen) = 0;
     virtual void ClearCaches() = 0;
     virtual bool UnloadFont(const std::string& familyName) = 0;
+
+    static void RegisterUnloadFontStartCallback(LoadFontCallback cb);
+    static void RegisterUnloadFontFinishCallback(LoadFontCallback cb);
+    static void RegisterLoadFontStartCallback(LoadFontCallback cb);
+    static void RegisterLoadFontFinishCallback(LoadFontCallback cb);
+
+protected:
+    struct CallbackWithLock {
+        mutable std::mutex mutex_;
+        std::unordered_set<LoadFontCallback> callback_;
+
+    public:
+        void AddCallback(LoadFontCallback cb);
+        void ExcuteCallback(const FontCollection* fc, const std::string& family) const;
+    };
+    static CallbackWithLock unloadFontStartCallback_;
+    static CallbackWithLock unloadFontFinishCallback_;
+    static CallbackWithLock loadFontStartCallback_;
+    static CallbackWithLock loadFontFinishCallback_;
 };
 } // namespace Rosen
 } // namespace OHOS
