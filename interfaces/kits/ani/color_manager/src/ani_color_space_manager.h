@@ -35,6 +35,7 @@ public:
     static ani_double GetGamma(ani_env *env, ani_object obj);
     static bool ParseColorSpacePrimaries(ani_env *env, ani_object obj, ColorSpacePrimaries& primaries);
     static AniColorSpaceManager* unwrap(ani_env *env, ani_object object);
+    static ani_object Wrap(ani_env *env, AniColorSpaceManager* colorSpaceManager);
     
     inline const std::shared_ptr<ColorSpace>& GetColorSpaceToken() const
     {
