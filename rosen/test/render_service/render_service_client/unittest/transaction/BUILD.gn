@@ -46,6 +46,7 @@ ohos_unittest("RSRenderServiceClientTransactionTest") {
   external_deps = [
     "c_utils:utils",
     "egl:libEGL",
+    "eventhandler:libeventhandler",
     "graphic_surface:surface",
     "hilog:libhilog",
     "image_framework:image_native",

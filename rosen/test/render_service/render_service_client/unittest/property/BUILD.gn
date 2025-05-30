@@ -21,8 +21,8 @@ ohos_unittest("RSRenderServiceClientPropertyTest") {
   module_out_path = module_output_path
 
   sources = [
-    "rs_ui_blur_filter_test.cpp",
     "rs_ui_bezier_warp_filter_test.cpp",
+    "rs_ui_blur_filter_test.cpp",
     "rs_ui_color_gradient_filter_test.cpp",
     "rs_ui_dispersion_filter_test.cpp",
     "rs_ui_displacement_distort_filter_test.cpp",
@@ -55,10 +55,8 @@ ohos_unittest("RSRenderServiceClientPropertyTest") {
   subsystem_name = "graphic"
   external_deps = [
     "c_utils:utils",
-    "googletest:gtest_main",
-    "hilog:libhilog",
-    "image_framework:image",
     "egl:libEGL",
+    "eventhandler:libeventhandler",
     "googletest:gtest_main",
     "graphic_surface:surface",
     "hilog:libhilog",

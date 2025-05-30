@@ -38,6 +38,7 @@ ohos_unittest("RSRenderServiceClientJankDetectorTest") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "hisysevent:libhisysevent",
   ]
 
   cflags = [

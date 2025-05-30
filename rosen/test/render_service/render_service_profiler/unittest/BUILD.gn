@@ -65,6 +65,8 @@ ohos_unittest("RSProfilerArchiveTest") {
 
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
+    "hilog:libhilog",
     "init:libbegetutil",
   ]
 
@@ -95,6 +97,8 @@ ohos_unittest("RSProfilerBaseTest") {
 
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
+    "hilog:libhilog",
     "init:libbegetutil",
   ]
 
@@ -125,6 +129,8 @@ ohos_unittest("RSProfilerCaptureDataTest") {
 
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
+    "hilog:libhilog",
     "init:libbegetutil",
   ]
 
@@ -154,6 +160,8 @@ ohos_unittest("RSProfilerNetworkTest") {
 
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
+    "hilog:libhilog",
     "init:libbegetutil",
   ]
 
@@ -183,6 +191,8 @@ ohos_unittest("RSProfilerPacketTest") {
 
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
+    "hilog:libhilog",
     "init:libbegetutil",
   ]
 
@@ -212,6 +222,8 @@ ohos_unittest("RSProfilerSocketTest") {
 
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
+    "hilog:libhilog",
     "init:libbegetutil",
   ]
 
@@ -243,6 +255,8 @@ ohos_unittest("RSProfilerTest") {
 
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
+    "hilog:libhilog",
     "init:libbegetutil",
     "samgr:samgr_proxy",
   ]
@@ -273,6 +287,8 @@ ohos_unittest("RSProfilerUtilsTest") {
 
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
+    "hilog:libhilog",
     "init:libbegetutil",
   ]
 
@@ -297,6 +313,8 @@ ohos_unittest("RSProfilerCommandTest") {
 
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
+    "hilog:libhilog",
     "init:libbegetutil",
   ]
 

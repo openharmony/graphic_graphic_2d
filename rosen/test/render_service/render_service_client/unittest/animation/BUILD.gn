@@ -51,6 +51,8 @@ ohos_unittest("RSRenderServiceClientAnimationTest") {
   external_deps = [
     "c_utils:utils",
     "egl:libEGL",
+    "eventhandler:libeventhandler",
+    "hisysevent:libhisysevent",
     "image_framework:image_native",
     "opengles:libGLES",
   ]
