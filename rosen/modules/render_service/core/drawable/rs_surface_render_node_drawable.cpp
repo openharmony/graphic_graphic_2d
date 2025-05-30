@@ -350,14 +350,14 @@ Drawing::Region RSSurfaceRenderNodeDrawable::CalculateVisibleDirtyRegion(
 
 void RSSurfaceRenderNodeDrawable::RotateOffScreenDowngradeMaxRenderSize(int& maxRenderSize)
 {
-    if (RotateOffScreenParam::GetRotateOffScreenDowngradeEnabled) {
+    if (RotateOffScreenParam::GetRotateOffScreenDowngradeEnable()) {
         maxRenderSize /= ROTATE_OFF_SCREEN_BUFFER_SIZE_RATIO;
     }
 }
 
 void RSSurfaceRenderNodeDrawable::RotateOffScreenDowngradeZoomRatio()
 {
-    if (RotateOffScreenParam::GetRotateOffScreenDowngradeEnabled) {
+    if (RotateOffScreenParam::GetRotateOffScreenDowngradeEnable()) {
         curCanvas_->Scale(OFF_SCREEN_CANVAS_SCALE, OFF_SCREEN_CANVAS_SCALE);
     }
 }
@@ -441,7 +441,7 @@ void RSSurfaceRenderNodeDrawable::FinishOffscreenRender(const Drawing::SamplingO
     Drawing::Brush paint;
     paint.SetAntiAlias(true);
     canvasBackup_->AttachBrush(paint);
-    if (RotateOffScreenParam::GetRotateOffScreenDowngradeEnabled) {
+    if (RotateOffScreenParam::GetRotateOffScreenDowngradeEnable()) {
         canvasBackup_->Save();
         canvasBackup_->Scale(BACK_MAIN_SCREEN_CANVAS_SCALE, BACK_MAIN_SCREEN_CANVAS_SCALE);
         canvasBackup_->DrawImage(*image, 0, 0, sampling);

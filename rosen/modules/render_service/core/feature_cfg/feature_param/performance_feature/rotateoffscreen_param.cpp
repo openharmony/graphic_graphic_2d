@@ -39,12 +39,12 @@ void RotateOffScreenParam::SetRotateOffScreenSurfaceNodeEnable(bool enable)
     isRotateOffScreenSurfaceNodeEnable_ = enable;
 }
 
-bool RotateOffScreenParam::GetRotateOffScreenDowngradeEnabled()
+bool RotateOffScreenParam::GetRotateOffScreenDowngradeEnable()
 {
     return isRotateOffScreenDowngradeEnable_;
 }
 
-void RotateOffScreenParam::SetRotateOffScreenDowngradeEnabled(bool enable)
+void RotateOffScreenParam::SetRotateOffScreenDowngradeEnable(bool enable)
 {
     isRotateOffScreenDowngradeEnable_ = enable;
 }
