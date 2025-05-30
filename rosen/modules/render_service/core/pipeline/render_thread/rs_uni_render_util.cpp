@@ -51,7 +51,12 @@
 #include "utils/graphic_coretrace.h"
 
 #ifdef RS_ENABLE_VK
+#ifdef USE_M133_SKIA
+#include "include/gpu/ganesh/vk/GrVkBackendSurface.h"
+#include "include/gpu/ganesh/vk/GrVkBackendSemaphore.h"
+#else
 #include "include/gpu/GrBackendSurface.h"
+#endif
 #include "platform/ohos/backend/native_buffer_utils.h"
 #include "platform/ohos/backend/rs_surface_ohos_vulkan.h"
 #include "platform/ohos/backend/rs_vulkan_context.h"

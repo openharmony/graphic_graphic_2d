@@ -17,6 +17,11 @@
 #include "common/rs_color.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 
+#ifdef USE_M133_SKIA
+#include "src/core/SkChecksum.h"
+#else
+#include "src/core/SkOpts.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -31,6 +36,18 @@ RSSoundWaveFilter::RSSoundWaveFilter(RSColor colorA, RSColor colorB, RSColor col
     shockWaveProgressA_(shockWaveProgressA), shockWaveProgressB_(shockWaveProgressB)
 {
     type_ = ShaderFilterType::SOUND_WAVE;
+#ifdef USE_M133_SKIA
+    hash_ = SkChecksum::Hash32(&colorA_, sizeof(colorA_), hash_);
+    hash_ = SkChecksum::Hash32(&colorB_, sizeof(colorB_), hash_);
+    hash_ = SkChecksum::Hash32(&colorC_, sizeof(colorC_), hash_);
+    hash_ = SkChecksum::Hash32(&colorProgress_, sizeof(colorProgress_), hash_);
+    hash_ = SkChecksum::Hash32(&centerBrightness_, sizeof(centerBrightness_), hash_);
+    hash_ = SkChecksum::Hash32(&soundIntensity_, sizeof(soundIntensity_), hash_);
+    hash_ = SkChecksum::Hash32(&shockWaveAlphaA_, sizeof(shockWaveAlphaA_), hash_);
+    hash_ = SkChecksum::Hash32(&shockWaveAlphaB_, sizeof(shockWaveAlphaB_), hash_);
+    hash_ = SkChecksum::Hash32(&shockWaveProgressA_, sizeof(shockWaveProgressA_), hash_);
+    hash_ = SkChecksum::Hash32(&shockWaveProgressB_, sizeof(shockWaveProgressB_), hash_);
+#else
     hash_ = SkOpts::hash(&colorA_, sizeof(colorA_), hash_);
     hash_ = SkOpts::hash(&colorB_, sizeof(colorB_), hash_);
     hash_ = SkOpts::hash(&colorC_, sizeof(colorC_), hash_);
@@ -41,6 +58,7 @@ RSSoundWaveFilter::RSSoundWaveFilter(RSColor colorA, RSColor colorB, RSColor col
     hash_ = SkOpts::hash(&shockWaveAlphaB_, sizeof(shockWaveAlphaB_), hash_);
     hash_ = SkOpts::hash(&shockWaveProgressA_, sizeof(shockWaveProgressA_), hash_);
     hash_ = SkOpts::hash(&shockWaveProgressB_, sizeof(shockWaveProgressB_), hash_);
+#endif
 }
 
 RSSoundWaveFilter::~RSSoundWaveFilter() {}
