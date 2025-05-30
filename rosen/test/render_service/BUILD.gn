@@ -36,6 +36,7 @@ group("test") {
     "render_service_base/fuzztest/bufferclearcallbackstub_fuzzer:fuzztest",
     "render_service_base/fuzztest/gfx/fps_info/rssurfacefps_fuzzer:fuzztest",
     "render_service_base/fuzztest/gfx/fps_info/rssurfacefpsmanager_fuzzer:fuzztest",
+    "render_service_base/fuzztest/gfx/performance/rsperfmonitorreporter_fuzzer:fuzztest",
     "render_service_base/fuzztest/hgmconfigchangecallbackproxy_fuzzer:fuzztest",
     "render_service_base/fuzztest/pipeline/rsbaserendernode01_fuzzer:fuzztest",
     "render_service_base/fuzztest/pipeline/rscrossrendernode01_fuzzer:fuzztest",
