@@ -1679,39 +1679,7 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
                 if (instanceNode && instanceNode->IsOnTheTree()) {
                     hasProtectedLayer_ = true;
                     RSDrmUtil::CollectDrmNodes(surfaceNode);
-                    auto displayLock = surfaceNode->GetAncestorDisplayNode().lock();
-                    std::shared_ptr<RSDisplayRenderNode> ancestor = nullptr;
-                    if (displayLock != nullptr) {
-                        ancestor = displayLock->ReinterpretCastTo<RSDisplayRenderNode>();
-                    }
-                    if (ancestor == nullptr) {
-                        return;
-                    }
-                    auto protectedLayerScreenId = ancestor->GetScreenId();
-                    auto screenManager = CreateOrGetScreenManager();
-                    if (UNLIKELY(screenManager == nullptr)) {
-                        RS_LOGE("screenManager is NULL");
-                        return;
-                    }
-
-                    auto output = screenManager->GetOutput(ToScreenPhysicalId(protectedLayerScreenId));
-                    if (UNLIKELY(output == nullptr)) {
-                        RS_LOGE("output is NULL");
-                        return;
-                    }
-                    if (IsTagEnabled(HITRACE_TAG_GRAPHIC_AGP)) {
-                        RS_TRACE_NAME_FMT("output->GetProtectedFrameBuffer: ret= %d, addr = %p.",
-                            output->GetProtectedFrameBufferState(), output.get());
-                    }
-                    if (output->GetProtectedFrameBufferState()) {
-                        return;
-                    }
-                    auto protectedBuffer = surfaceHandler->GetBuffer();
-                    auto preAllocateProtectedBufferTask = [buffer = protectedBuffer,
-                                                              screenId = protectedLayerScreenId]() {
-                        RSHardwareThread::Instance().PreAllocateProtectedBuffer(buffer, screenId);
-                    };
-                    RSBackgroundThread::Instance().PostTask(preAllocateProtectedBufferTask);
+                    RSDrmUtil::PreAllocateProtectedBuffer(surfaceNode, surfaceHandler);
                 }
             }
 #endif
