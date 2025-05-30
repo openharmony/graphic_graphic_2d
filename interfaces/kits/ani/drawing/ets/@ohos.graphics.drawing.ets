@@ -21,6 +21,21 @@
 import type common2D from '@ohos.graphics.common2D';
 import image from '@ohos.multimedia.image';
 
+class Cleaner {
+  private ptr: long = 0;
+  private className: string;
+  constructor(className: string, ptr: long) {
+    this.ptr = ptr;
+    this.className = className;
+  }
+  native clean(): void;
+}
+
+let destroyRegister = new FinalizationRegistry<Cleaner>((cleaner: Cleaner)=>{
+  cleaner.clean();
+});
+let unregisterToken = new object();
+
 /**
  * Provides functions such as 2D graphics rendering, text drawing, and image display.
  *
@@ -289,12 +304,29 @@ namespace drawing {
   export class SamplingOptions {
     static { loadLibrary("drawing_ani"); }
     private nativeObj : long = 0;
+    private cleaner: Cleaner | null = null;
+
+    registerCleaner(ptr: long): void {
+      this.cleaner = new Cleaner("SamplingOptions", ptr);
+      destroyRegister.register(this, this.cleaner!, unregisterToken);
+    }
+
+    constructor() {
+      this.constructorNative();
+      this.registerCleaner(this.nativeObj);
+    };
+
+    constructor(filterMode: FilterMode) {
+      this.constructorNative(filterMode);
+      this.registerCleaner(this.nativeObj);
+    };
+
     /**
      * Constructor for the samplingOptions.
      * @syscap SystemCapability.Graphics.Drawing
      * @since 12
      */
-    native constructor();
+    native constructorNative(): void;
     /**
      * Constructor for the samplingOptions with filter mode.
      * @param { FilterMode } filterMode - Storage filter mode.
@@ -303,12 +335,23 @@ namespace drawing {
      * @syscap SystemCapability.Graphics.Drawing
      * @since 12
      */
-    native constructor(filterMode: FilterMode);
+    native constructorNative(filterMode: FilterMode): void;
   }
 
   export class Canvas {
     static { loadLibrary("drawing_ani"); }
     private nativeObj : long = 0;
+    private cleaner: Cleaner | null = null;
+
+    registerCleaner(ptr: long): void {
+      this.cleaner = new Cleaner("Canvas", ptr);
+      destroyRegister.register(this, this.cleaner!, unregisterToken);
+    }
+
+    constructor(pixelmap: image.PixelMap) {
+      this.constructorNative(pixelmap);
+      this.registerCleaner(this.nativeObj);
+    };
 
     /**
      * Constructor for the Canvas.
@@ -318,7 +361,7 @@ namespace drawing {
      * @syscap SystemCapability.Graphics.Drawing
      * @since 11
      */
-    native constructor(pixelmap: image.PixelMap);
+    native constructorNative(pixelmap: image.PixelMap): void;
 
     /**
      * If rectangle is stroked, use pen to stroke width describes the line thickness,
@@ -488,6 +531,20 @@ namespace drawing {
   export class ColorFilter {
     static { loadLibrary("drawing_ani"); }
     private nativeObj : long = 0;
+    private cleaner: Cleaner | null = null;
+
+    registerCleaner(ptr: long): void {
+      this.cleaner = new Cleaner("ColorFilter", ptr);
+      destroyRegister.register(this, this.cleaner!, unregisterToken);
+    }
+
+    bindNativePtr(ptr: long): void {
+      if (this.nativeObj == 0) {
+        this.nativeObj = ptr;
+        this.registerCleaner(this.nativeObj);
+      }
+    }
+
     /**
      * Makes a color filter with the give n ARGB color of hexadecimal format and blend mode.
      * @param { common2D.Color | number } color - Number must be ARGB color of hexadecimal format.
@@ -510,13 +567,29 @@ namespace drawing {
   export class Pen {
     static { loadLibrary("drawing_ani"); }
     private nativeObj: long = 0;
+    private cleaner: Cleaner | null = null;
+
+    registerCleaner(ptr: long): void {
+      this.cleaner = new Cleaner("Pen", ptr);
+      destroyRegister.register(this, this.cleaner!, unregisterToken);
+    }
+
+    constructor() {
+      this.constructorNative();
+      this.registerCleaner(this.nativeObj);
+    };
+
+    constructor(pen: Pen) {
+      this.constructorNative(pen);
+      this.registerCleaner(this.nativeObj);
+    };
 
     /**
      * Constructor for the pen.
      * @syscap SystemCapability.Graphics.Drawing
      * @since 12
      */
-    native constructor();
+    native constructorNative(): void;
 
     /**
      * Constructor for the pen from an existing pen object pen.
@@ -526,7 +599,7 @@ namespace drawing {
      * @syscap SystemCapability.Graphics.Drawing
      * @since 12
      */
-    native constructor(pen: Pen);
+    native constructorNative(pen: Pen): void;
 
     /**
     * Replaces alpha, leaving RGB
@@ -585,13 +658,29 @@ namespace drawing {
   export class Brush {
     static { loadLibrary("drawing_ani"); }
     private nativeObj: long = 0;
+    private cleaner: Cleaner | null = null;
+
+    registerCleaner(ptr: long): void {
+      this.cleaner = new Cleaner("Brush", ptr);
+      destroyRegister.register(this, this.cleaner!, unregisterToken);
+    }
+
+    constructor() {
+      this.constructorNative();
+      this.registerCleaner(this.nativeObj);
+    };
+
+    constructor(brush: Brush) {
+      this.constructorNative(brush);
+      this.registerCleaner(this.nativeObj);
+    };
 
     /**
      * Constructor for the Brush.
      * @syscap SystemCapability.Graphics.Drawing
      * @since 12
      */
-    native constructor();
+    native constructorNative(): void;
 
     /**
      * Constructor for the Brush from an existing brush object brush.
@@ -601,7 +690,7 @@ namespace drawing {
      * @syscap SystemCapability.Graphics.Drawing
      * @since 12
      */
-    native constructor(brush: Brush);
+    native constructorNative(brush: Brush): void;
 
     /**
      * Replaces alpha, leaving RGB
@@ -658,6 +747,19 @@ namespace drawing {
   export class Typeface {
     static { loadLibrary("drawing_ani"); }
     private nativeObj: long = 0;
+    private cleaner: Cleaner | null = null;
+
+    registerCleaner(ptr: long): void {
+      this.cleaner = new Cleaner("Typeface", ptr);
+      destroyRegister.register(this, this.cleaner!, unregisterToken);
+    }
+
+    bindNativePtr(ptr: long): void {
+      if (this.nativeObj == 0) {
+        this.nativeObj = ptr;
+        this.registerCleaner(this.nativeObj);
+      }
+    }
 
     /**
      * Get the family name for this typeface.
@@ -700,13 +802,24 @@ namespace drawing {
   export class Font {
     static { loadLibrary("drawing_ani"); }
     private nativeObj: long = 0;
+    private cleaner: Cleaner | null = null;
+
+    registerCleaner(ptr: long): void {
+      this.cleaner = new Cleaner("Font", ptr);
+      destroyRegister.register(this, this.cleaner!, unregisterToken);
+    }
+
+    constructor() {
+      this.constructorNative();
+      this.registerCleaner(this.nativeObj);
+    };
 
     /**
      * Constructor for the Font.
      * @syscap SystemCapability.Graphics.Drawing
      * @since 20
      */
-    native constructor();
+    native constructorNative(): void;
 
     /**
      * Sets text size in points. Has no effect if textSize is not greater than or equal to zero.
@@ -857,6 +970,20 @@ namespace drawing {
   export class Lattice {
     static { loadLibrary("drawing_ani"); }
     private nativeObj: long = 0;
+    private cleaner: Cleaner | null = null;
+
+    registerCleaner(ptr: long): void {
+      this.cleaner = new Cleaner("Lattice", ptr);
+      destroyRegister.register(this, this.cleaner!, unregisterToken);
+    }
+
+    bindNativePtr(ptr: long): void {
+      if (this.nativeObj == 0) {
+        this.nativeObj = ptr;
+        this.registerCleaner(this.nativeObj);
+      }
+    }
+
     /**
      * Divide an image into a rectangular grid. Grid entries on even columns and even rows are fixed;
      * these entries are always drawn at their original size if the destination is large enough. If the destination
@@ -889,12 +1016,29 @@ namespace drawing {
   export class Matrix {
     static { loadLibrary("drawing_ani"); }
     private nativeObj: long = 0;
+    private cleaner: Cleaner | null = null;
+
+    registerCleaner(ptr: long): void {
+      this.cleaner = new Cleaner("Matrix", ptr);
+      destroyRegister.register(this, this.cleaner!, unregisterToken);
+    }
+
+    constructor() {
+      this.constructorNative();
+      this.registerCleaner(this.nativeObj);
+    };
+
+    constructor(matrix: Matrix) {
+      this.constructorNative(matrix);
+      this.registerCleaner(this.nativeObj);
+    };
+
     /**
      * Creates a Matrix object.
      * @syscap SystemCapability.Graphics.Drawing
      * @since 12
      */
-    native constructor();
+    native constructorNative(): void;
 
     /**
      * Creates a deep copy of the specified matrix object.
@@ -903,7 +1047,7 @@ namespace drawing {
      * @crossplatform
      * @since 20
      */
-    native constructor(matrix: Matrix);
+    native constructorNative(matrix: Matrix): void;
 
     /**
      * Resets this matrix to an identity matrix.
@@ -946,13 +1090,25 @@ namespace drawing {
   export class PathIterator {
     static { loadLibrary("drawing_ani"); }
     private nativeObj: long = 0;
+    private cleaner: Cleaner | null = null;
+
+    registerCleaner(ptr: long): void {
+      this.cleaner = new Cleaner("PathIterator", ptr);
+      destroyRegister.register(this, this.cleaner!, unregisterToken);
+    }
+
+    constructor(path: Path) {
+      this.constructorNative(path);
+      this.registerCleaner(this.nativeObj);
+    };
+
     /**
      * Creates an iterator and binds it with a path.
      * @param { Path } path - Path object bound to the iterator.
      * @syscap SystemCapability.Graphics.Drawing
      * @since 18
      */
-    native constructor(path: Path);
+    native constructorNative(path: Path): void;
   }
 
   /**
@@ -964,12 +1120,29 @@ namespace drawing {
   export class Path {
     static { loadLibrary("drawing_ani"); }
     private nativeObj: long = 0;
+    private cleaner: Cleaner | null = null;
+
+    registerCleaner(ptr: long): void {
+      this.cleaner = new Cleaner("Path", ptr);
+      destroyRegister.register(this, this.cleaner!, unregisterToken);
+    }
+
+    constructor() {
+      this.constructorNative();
+      this.registerCleaner(this.nativeObj);
+    };
+
+    constructor(path: Path) {
+      this.constructorNative(path);
+      this.registerCleaner(this.nativeObj);
+    };
+
     /**
      * Constructs a path.
      * @syscap SystemCapability.Graphics.Drawing
      * @since 12
      */
-    native constructor();
+    native constructorNative(): void;
 
     /**
      * Constructs a copy of an existing path.
@@ -977,7 +1150,7 @@ namespace drawing {
      * @syscap SystemCapability.Graphics.Drawing
      * @since 12
      */
-    native constructor(path: Path);
+    native constructorNative(path: Path): void;
 
     /**
      * Draws an arc to this path using angle arc mode. This mode first defines a rectangle and takes its inscribed ellipse.
@@ -1013,13 +1186,35 @@ namespace drawing {
   export class Region {
     static { loadLibrary("drawing_ani"); }
     private nativeObj: long = 0;
+    private cleaner: Cleaner | null = null;
+
+    registerCleaner(ptr: long): void {
+      this.cleaner = new Cleaner("Region", ptr);
+      destroyRegister.register(this, this.cleaner!, unregisterToken);
+    }
+
+    constructor() {
+      this.constructorNative();
+      this.registerCleaner(this.nativeObj);
+    };
+
+    constructor(region: Region) {
+      this.constructorNative(region);
+      this.registerCleaner(this.nativeObj);
+    };
+
+    constructor(left: number, top: number, right: number, bottom: number) {
+      this.constructorNative(left, top, right, bottom);
+      this.registerCleaner(this.nativeObj);
+    };
+
     /**
      * Creates an empty region.
      * @syscap SystemCapability.Graphics.Drawing
      * @crossplatform
      * @since 20
      */
-    native constructor();
+    native constructorNative(): void;
 
     /**
      * Creates a deep copy of the specified region object.
@@ -1028,7 +1223,7 @@ namespace drawing {
      * @crossplatform
      * @since 20
      */
-    native constructor(region: Region);
+    native constructorNative(region: Region): void;
 
     /**
      * Creates a region with a rectangle.
@@ -1040,7 +1235,7 @@ namespace drawing {
      * @crossplatform
      * @since 20
      */
-    native constructor(left: number, top: number, right: number, bottom: number);
+    native constructorNative(left: number, top: number, right: number, bottom: number): void;
   }
 
   /**
@@ -1052,6 +1247,22 @@ namespace drawing {
   export class RoundRect {
     static { loadLibrary("drawing_ani"); }
     private nativeObj: long = 0;
+    private cleaner: Cleaner | null = null;
+
+    registerCleaner(ptr: long): void {
+      this.cleaner = new Cleaner("RoundRect", ptr);
+      destroyRegister.register(this, this.cleaner!, unregisterToken);
+    }
+
+    constructor(roundRect: RoundRect) {
+      this.constructorNative(roundRect);
+      this.registerCleaner(this.nativeObj);
+    };
+
+    constructor(rect: common2D.Rect, xRadii: number, yRadii: number) {
+      this.constructorNative(rect, xRadii, yRadii);
+      this.registerCleaner(this.nativeObj);
+    };
 
     /**
      * Creates a deep copy of the specified round rect object.
@@ -1060,7 +1271,7 @@ namespace drawing {
      * @crossplatform
      * @since 20
      */
-    native constructor(roundRect: RoundRect);
+    native constructorNative(roundRect: RoundRect): void;
 
     /**
      * A constructor used to create a RoundRect object. A rounded rectangle is created when both xRadii and yRadii are greater than 0. Otherwise, only a rectangle is created.
@@ -1072,7 +1283,7 @@ namespace drawing {
      * @syscap SystemCapability.Graphics.Drawing
      * @since 12
      */
-    native constructor(rect: common2D.Rect, xRadii: number, yRadii: number);
+    native constructorNative(rect: common2D.Rect, xRadii: number, yRadii: number): void;
   }
 
   /**
@@ -1084,13 +1295,25 @@ namespace drawing {
   export class TypefaceArguments {
     static { loadLibrary("drawing_ani"); }
     private nativeObj: long = 0;
+    private cleaner: Cleaner | null = null;
+
+    registerCleaner(ptr: long): void {
+      this.cleaner = new Cleaner("TypefaceArguments", ptr);
+      destroyRegister.register(this, this.cleaner!, unregisterToken);
+    }
+
+    constructor() {
+      this.constructorNative();
+      this.registerCleaner(this.nativeObj);
+    };
+
     /**
      * Constructor for the TypefaceArguments.
      * @syscap SystemCapability.Graphics.Drawing
      * @crossplatform
      * @since 20
      */
-    native constructor();
+    native constructorNative(): void;
   }
 
   /**

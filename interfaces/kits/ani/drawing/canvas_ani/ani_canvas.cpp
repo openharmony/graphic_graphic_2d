@@ -239,7 +239,7 @@ ani_status AniCanvas::AniInit(ani_env *env)
     }
 
     std::array methods = {
-        ani_native_function { "<ctor>", nullptr, reinterpret_cast<void*>(Constructor) },
+        ani_native_function { "constructorNative", nullptr, reinterpret_cast<void*>(Constructor) },
         ani_native_function { "drawRect", "L@ohos/graphics/common2D/common2D/Rect;:V",
             reinterpret_cast<void*>(DrawRectWithRect) },
         ani_native_function { "drawRect", "DDDD:V", reinterpret_cast<void*>(DrawRect) },

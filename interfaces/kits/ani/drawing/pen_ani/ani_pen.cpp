@@ -29,8 +29,8 @@ ani_status AniPen::AniInit(ani_env *env)
     }
 
     std::array methods = {
-        ani_native_function { "<ctor>", ":V", reinterpret_cast<void*>(Constructor) },
-        ani_native_function { "<ctor>", "L@ohos/graphics/drawing/drawing/Pen;:V",
+        ani_native_function { "constructorNative", ":V", reinterpret_cast<void*>(Constructor) },
+        ani_native_function { "constructorNative", "L@ohos/graphics/drawing/drawing/Pen;:V",
             reinterpret_cast<void*>(ConstructorWithPen) },
         ani_native_function { "getAlpha", ":D", reinterpret_cast<void*>(GetAlpha) },
         ani_native_function { "reset", ":V", reinterpret_cast<void*>(Reset) },

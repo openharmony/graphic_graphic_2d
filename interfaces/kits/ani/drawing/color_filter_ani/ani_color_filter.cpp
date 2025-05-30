@@ -69,13 +69,7 @@ ani_object AniColorFilter::CreateBlendModeColorFilter(
 
     AniColorFilter* colorFilter = new AniColorFilter(
         ColorFilter::CreateBlendModeColorFilter(color, static_cast<BlendMode>(blendMode)));
-    ani_object aniObj = CreateAniObject(env, ANI_CLASS_COLORFILTER_NAME, nullptr);
-    if (ANI_OK != env->Object_SetFieldByName_Long(aniObj,
-        NATIVE_OBJ, reinterpret_cast<ani_long>(colorFilter))) {
-        ROSEN_LOGE("AniColorFilter::CreateBlendModeColorFilter failed cause by Object_SetFieldByName_Long");
-        delete colorFilter;
-        return CreateAniUndefined(env);
-    }
+    ani_object aniObj = CreateAniObjectStatic(env, ANI_CLASS_COLORFILTER_NAME, colorFilter);
     return aniObj;
 }
 

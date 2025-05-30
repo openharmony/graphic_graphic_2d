@@ -69,13 +69,7 @@ ani_object AniTypeface::MakeFromFile(ani_env* env, ani_object obj, ani_string an
     std::string filePath = CreateStdString(env, aniFilePath);
     std::shared_ptr<Typeface> typeface = Typeface::MakeFromFile(filePath.c_str());
     AniTypeface* aniTypeface = new AniTypeface(typeface);
-    ani_object aniObj = CreateAniObject(env, "L@ohos/graphics/drawing/drawing/Typeface;", nullptr);
-    if (ANI_OK != env->Object_SetFieldByName_Long(aniObj,
-        NATIVE_OBJ, reinterpret_cast<ani_long>(aniTypeface))) {
-        ROSEN_LOGE("AniTypeface::MakeFromFile failed cause by Object_SetFieldByName_Long");
-        delete aniTypeface;
-        return CreateAniUndefined(env);
-    }
+    ani_object aniObj = CreateAniObjectStatic(env, "L@ohos/graphics/drawing/drawing/Typeface;", aniTypeface);
     return aniObj;
 }
 
@@ -92,13 +86,7 @@ ani_object AniTypeface::MakeFromFileWithArguments(ani_env* env, ani_object obj, 
     AniTypefaceArguments::ConvertToFontArguments(aniTypefaceArguments->GetTypefaceArgumentsHelper(), fontArguments);
     std::shared_ptr<Typeface> typeface = Typeface::MakeFromFile(filePath.c_str(), fontArguments);
     AniTypeface* aniTypeface = new AniTypeface(typeface);
-    ani_object aniObj = CreateAniObject(env, "L@ohos/graphics/drawing/drawing/Typeface;", nullptr);
-    if (ANI_OK != env->Object_SetFieldByName_Long(aniObj,
-        NATIVE_OBJ, reinterpret_cast<ani_long>(aniTypeface))) {
-        ROSEN_LOGE("AniTypeface::MakeFromFile failed cause by Object_SetFieldByName_Long");
-        delete aniTypeface;
-        return CreateAniUndefined(env);
-    }
+    ani_object aniObj = CreateAniObjectStatic(env, "L@ohos/graphics/drawing/drawing/Typeface;", aniTypeface);
     return aniObj;
 }
 

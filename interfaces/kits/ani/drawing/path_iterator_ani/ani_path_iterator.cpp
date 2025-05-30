@@ -31,7 +31,7 @@ ani_status AniPathIterator::AniInit(ani_env *env)
     }
 
     std::array methods = {
-        ani_native_function { "<ctor>", "L@ohos/graphics/drawing/drawing/Path;:V",
+        ani_native_function { "constructorNative", "L@ohos/graphics/drawing/drawing/Path;:V",
             reinterpret_cast<void*>(ConstructorWithPath) },
     };
 

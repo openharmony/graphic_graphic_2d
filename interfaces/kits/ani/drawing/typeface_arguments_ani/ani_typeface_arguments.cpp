@@ -29,7 +29,7 @@ ani_status AniTypefaceArguments::AniInit(ani_env *env)
     }
 
     std::array methods = {
-        ani_native_function { "<ctor>", ":V", reinterpret_cast<void*>(Constructor) },
+        ani_native_function { "constructorNative", ":V", reinterpret_cast<void*>(Constructor) },
     };
 
     ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());

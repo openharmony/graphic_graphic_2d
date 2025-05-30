@@ -29,9 +29,9 @@ ani_status AniRoundRect::AniInit(ani_env *env)
     }
 
     std::array methods = {
-        ani_native_function { "<ctor>", "L@ohos/graphics/common2D/common2D/Rect;DD:V",
+        ani_native_function { "constructorNative", "L@ohos/graphics/common2D/common2D/Rect;DD:V",
             reinterpret_cast<void*>(ConstructorWithRect) },
-        ani_native_function { "<ctor>", "L@ohos/graphics/drawing/drawing/RoundRect;:V",
+        ani_native_function { "constructorNative", "L@ohos/graphics/drawing/drawing/RoundRect;:V",
             reinterpret_cast<void*>(ConstructorWithRoundRect) },
     };
 
