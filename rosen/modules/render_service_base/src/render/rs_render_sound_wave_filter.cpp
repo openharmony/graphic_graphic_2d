@@ -90,16 +90,16 @@ namespace Rosen {
     {
         switch (type) {
             case RSUIFilterType::SOUND_WAVE_COLOR_A : {
-                return std::make_shared<RSRenderProperty<Color>>(
-                    RgbPalette::White(), 0, RSRenderPropertyType::PROPERTY_COLOR);
+                return std::make_shared<RSRenderProperty<Vector4f>>(
+                    Vector4f(), 0, RSRenderPropertyType::PROPERTY_VECTOR4F);
             }
             case RSUIFilterType::SOUND_WAVE_COLOR_B : {
-                return std::make_shared<RSRenderProperty<Color>>(
-                    RgbPalette::White(), 0, RSRenderPropertyType::PROPERTY_COLOR);
+                return std::make_shared<RSRenderProperty<Vector4f>>(
+                    Vector4f(), 0, RSRenderPropertyType::PROPERTY_VECTOR4F);
             }
             case RSUIFilterType::SOUND_WAVE_COLOR_C : {
-                return std::make_shared<RSRenderProperty<Color>>(
-                    RgbPalette::White(), 0, RSRenderPropertyType::PROPERTY_COLOR);
+                return std::make_shared<RSRenderProperty<Vector4f>>(
+                    Vector4f(), 0, RSRenderPropertyType::PROPERTY_VECTOR4F);
             }
             case RSUIFilterType::SOUND_WAVE_COLOR_PROGRESS : {
                 return std::make_shared<RSRenderAnimatableProperty<float>>(
@@ -108,10 +108,6 @@ namespace Rosen {
             case RSUIFilterType::SOUND_INTENSITY : {
                 return std::make_shared<RSRenderAnimatableProperty<float>>(
                     0.f, 0, RSRenderPropertyType::PROPERTY_FLOAT);
-            }
-            case RSUIFilterType::SOUND_WAVE_CENTER_BRIGHTNESS : {
-                return std::make_shared<RSRenderProperty<float>>(
-                    1.f, 0, RSRenderPropertyType::PROPERTY_FLOAT);
             }
             case RSUIFilterType::SHOCK_WAVE_ALPHA_A : {
                 return std::make_shared<RSRenderAnimatableProperty<float>>(
@@ -128,6 +124,10 @@ namespace Rosen {
             case RSUIFilterType::SHOCK_WAVE_PROGRESS_B : {
                 return std::make_shared<RSRenderAnimatableProperty<float>>(
                     0.f, 0, RSRenderPropertyType::PROPERTY_FLOAT);
+            }
+            case RSUIFilterType::SHOCK_WAVE_TOTAL_ALPHA : {
+                return std::make_shared<RSRenderAnimatableProperty<float>>(
+                    1.f, 0, RSRenderPropertyType::PROPERTY_FLOAT);
             }
             default: {
                 ROSEN_LOGD("RSRenderSoundWaveFilterPara::CreateRenderProperty mask nullptr");

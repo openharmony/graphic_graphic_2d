@@ -35,14 +35,14 @@ public:
 
     virtual void SetProperty(const std::shared_ptr<RSUIFilterParaBase>& other) override;
 
-    void SetColors(RSColor colorA, RSColor colorB, RSColor colorC);
+    void SetColors(Vector4f colorA, Vector4f colorB, Vector4f colorC);
     void SetColorProgress(float progress);
-    void SetCenterBrightness(float value);
     void SetSoundIntensity(float intensity);
     void SetShockWaveAlphaA(float alpha);
     void SetShockWaveAlphaB(float alpha);
     void SetShockWaveProgressA(float progress);
     void SetShockWaveProgressB(float progress);
+    void SetShockWaveTotalAlpha(float alpha);
 
     virtual std::shared_ptr<RSRenderFilterParaBase> CreateRSRenderFilter() override;
 

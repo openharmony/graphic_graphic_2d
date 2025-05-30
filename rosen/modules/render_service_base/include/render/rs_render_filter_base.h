@@ -58,12 +58,12 @@ enum class RSUIFilterType : int16_t {
     SOUND_WAVE_COLOR_B, //RSCOLOR
     SOUND_WAVE_COLOR_C, //RSCOLOR
     SOUND_WAVE_COLOR_PROGRESS, //float
-    SOUND_WAVE_CENTER_BRIGHTNESS, //float
     SOUND_INTENSITY, //float
     SHOCK_WAVE_ALPHA_A, //float
     SHOCK_WAVE_ALPHA_B, //float
     SHOCK_WAVE_PROGRESS_A, //float
     SHOCK_WAVE_PROGRESS_B, //float
+    SHOCK_WAVE_TOTAL_ALPHA, //float
 
     // edge light value type
     EDGE_LIGHT_ALPHA, // float
