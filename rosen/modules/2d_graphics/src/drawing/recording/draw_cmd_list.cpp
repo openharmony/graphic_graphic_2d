@@ -840,9 +840,10 @@ void DrawCmdList::SetCanvasDrawingOpLimitEnable(bool isEnable)
     isCanvasDrawingOpLimitEnabled_ = isEnable;
 }
 
-const std::vector<std::shared_ptr<DrawOpItem>>& DrawCmdList::GetDrawOpItems() const
+const std::vector<std::shared_ptr<DrawOpItem>> DrawCmdList::GetDrawOpItems() const
 {
-    return drawOpItems_;
+    std::vector<std::shared_ptr<DrawOpItem>> drawOpItems(drawOpItems_);
+    return drawOpItems;
 }
 } // namespace Drawing
 } // namespace Rosen
