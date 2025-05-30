@@ -583,6 +583,7 @@ inline typename Container::size_type EraseIf(Container& container, Predicate pre
 enum class AncoFlags : uint32_t {
     IS_ANCO_NODE = 0x0001,
     ANCO_SFV_NODE = 0x0011,
+    ANCO_NDK_NODE = 0X0111,
     FORCE_REFRESH = 0x0100
 };
 

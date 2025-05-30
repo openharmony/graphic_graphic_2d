@@ -658,6 +658,11 @@ public:
         constexpr uint32_t ANCO_SFV_NODE_FLAG = 0x0011;
         return (ancoFlags_ & ANCO_SFV_NODE_FLAG) == ANCO_SFV_NODE_FLAG;
     }
+    bool IsAncoNDK() const
+    {
+        constexpr uint32_t ANCO_NDK_NODE_FLAG = 0x0111;
+        return (ancoFlags_ & ANCO_NDK_NODE_FLAG) == ANCO_NDK_NODE_FLAG;
+    }
     /* hdiLayer get layer info end */
 
 private:
