@@ -45,7 +45,7 @@ HWTEST_F(RSAlwaysSnapshotShaderFilterTest, RSAlwaysSnapshotShaderFilterTest001, 
 {
     auto filter = std::make_shared<RSAlwaysSnapshotShaderFilter>();
     ASSERT_NE(filter, nullptr);
-    EXPECT_FALSE(filter->GetType(), RSUIFilterType::ALWAYS_SNAPSHOT);
+    EXPECT_TRUE(filter->GetType() == RSUIFilterType::ALWAYS_SNAPSHOT);
 }
 } // namespace Rosen
 } // namespace OHOS

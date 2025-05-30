@@ -34,8 +34,6 @@
 #include "render/rs_render_aibar_filter.h"
 #include "render/rs_render_always_snapshot_filter.h"
 #include "render/rs_colorful_shadow_filter.h"
-#include "render/rs_color_gradient_shader_filter.h"
-#include "render/rs_displacement_distort_filter.h"
 #include "render/rs_filter.h"
 #include "render/rs_foreground_effect_filter.h"
 #include "render/rs_render_grey_filter.h"
@@ -58,10 +56,6 @@
 #include "render/rs_render_water_ripple_filter.h"
 #include "render/rs_fly_out_shader_filter.h"
 #include "render/rs_distortion_shader_filter.h"
-#include "render/rs_sound_wave_filter.h"
-#include "render/rs_edge_light_shader_filter.h"
-#include "render/rs_bezier_warp_filter.h"
-#include "render/rs_dispersion_shader_filter.h"
 #include "drawable/rs_property_drawable_utils.h"
 
 

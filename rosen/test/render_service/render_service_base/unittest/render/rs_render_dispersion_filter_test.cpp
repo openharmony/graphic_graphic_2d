@@ -12,13 +12,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "gtest/gtest.h"
-
 #include "ge_shader_filter_params.h"
 #include "ge_visual_effect.h"
 #include "ge_visual_effect_container.h"
+#include "gtest/gtest.h"
+
 #include "render/rs_render_dispersion_filter.h"
 #include "render/rs_shader_mask.h"
+
 
 using namespace testing;
 using namespace testing::ext;
@@ -160,6 +161,8 @@ HWTEST_F(RSRenderDispersionFilterTest, GenerateGEVisualEffect001, TestSize.Level
 HWTEST_F(RSRenderDispersionFilterTest, GetMask001, TestSize.Level1)
 {
     auto filter = std::make_shared<RSRenderDispersionFilterPara>(0);
+    EXPECT_EQ(filter->GetMask(), nullptr);
+
     auto mask = std::make_shared<RSShaderMask>(std::make_shared<RSRenderMaskPara>(RSUIFilterType::PIXEL_MAP_MASK));
     filter->mask_ = mask;
     EXPECT_EQ(filter->GetMask(), mask);

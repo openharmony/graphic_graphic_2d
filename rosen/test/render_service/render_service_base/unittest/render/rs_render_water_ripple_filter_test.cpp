@@ -55,11 +55,11 @@ HWTEST_F(RSWaterRippleShaderFilterTest, GetProgressTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetwaveCountTest
- * @tc.desc: Verify function GetwaveCount
+ * @tc.name: GetWaveCountTest
+ * @tc.desc: Verify function GetWaveCount
  * @tc.type:FUNC
  */
-HWTEST_F(RSWaterRippleShaderFilterTest, GetwaveCountTest, TestSize.Level1)
+HWTEST_F(RSWaterRippleShaderFilterTest, GetWaveCountTest, TestSize.Level1)
 {
     float progress = 0.1f;
     uint32_t waveCount = 2;
@@ -69,7 +69,7 @@ HWTEST_F(RSWaterRippleShaderFilterTest, GetwaveCountTest, TestSize.Level1)
 
     auto rsWaterRippleShaderFilter = std::make_shared<RSWaterRippleShaderFilter>(progress, waveCount, rippleCenterX,
                                                                                 rippleCenterY, rippleMode);
-    EXPECT_EQ(rsWaterRippleShaderFilter->GetwaveCount(), 2);
+    EXPECT_EQ(rsWaterRippleShaderFilter->GetWaveCount(), 2);
 }
 
 /**

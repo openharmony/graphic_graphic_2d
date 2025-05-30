@@ -164,6 +164,7 @@ HWTEST_F(RSRenderColorGradientFilterTest, RSRenderColorGradientFilterTest001, Te
     std::vector<float> strengths = { 0.5 };      // 0.5 is strength params
 
     auto filter = std::make_shared<RSRenderColorGradientFilterPara>(0);
+    filter->GenerateGEVisualEffect(nullptr);
 
     filter->colors_ = { 1.0, 0.0, 0.0, 1.0 };
     filter->positions_ = { 1.0, 1.0 }; // 1.0, 1.0 is position xy params
@@ -174,11 +175,13 @@ HWTEST_F(RSRenderColorGradientFilterTest, RSRenderColorGradientFilterTest001, Te
     EXPECT_FALSE(filter->GetPositions().empty());
     EXPECT_FALSE(filter->GetStrengths().empty());
 
+    filter->GenerateGEVisualEffect(container);
+    EXPECT_FALSE(container->GetFilters().empty());
+
     filter->mask_ = std::make_shared<RSShaderMask>(std::make_shared<RSRenderMaskPara>(RSUIFilterType::RIPPLE_MASK));
     EXPECT_NE(filter->GetMask(), nullptr);
 
     auto container = std::make_shared<Drawing::GEVisualEffectContainer>();
-    filter->GenerateGEVisualEffect(nullptr);
     filter->GenerateGEVisualEffect(container);
     EXPECT_FALSE(container->GetFilters().empty());
 }

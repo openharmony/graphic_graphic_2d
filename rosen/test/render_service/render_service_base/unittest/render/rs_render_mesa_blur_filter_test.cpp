@@ -38,6 +38,22 @@ void RSMESABlurShaderFilterTest::SetUp() {}
 void RSMESABlurShaderFilterTest::TearDown() {}
 
 /**
+ * @tc.name: RSMESABlurShaderFilterTest01
+ * @tc.desc: Verify function RSMESABlurShaderFilter
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMESABlurShaderFilterTest, RSMESABlurShaderFilterTest01, TestSize.Level1)
+{
+    // 1: blur param
+    int radius = 1;
+    float greyCoefw = 0.1f;
+    float greyCoefh = 0.1f;
+    auto mesaShaderFilter = std::make_shared<RSMESABlurShaderFilter>(radius, greyCoefw, greyCoefh);
+    EXPECT_EQ(mesaShaderFilter->GetRadius(), 1);
+}
+
+/**
  * @tc.name: GetRadiusTest
  * @tc.desc: Verify function GetRadius
  * @tc.type:FUNC

@@ -163,6 +163,19 @@ HWTEST_F(RSRenderDisplacementDistortFilterTest, GetMask001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetMask002
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderDisplacementDistortFilterTest, GetMask002, TestSize.Level1)
+{
+    auto rsDisplacementDistortFilter = std::make_shared<RSRenderDispDistortFilterPara>(0);
+    rsDisplacementDistortFilter->mask_ = nullptr;
+    auto tempMask = rsDisplacementDistortFilter->GetMask();
+    EXPECT_EQ(tempMask, nullptr);
+}
+
+/**
  * @tc.name: ParseFilterValuesTest001
  * @tc.desc: Verify function ParseFilterValues
  * @tc.type:FUNC
@@ -170,9 +183,11 @@ HWTEST_F(RSRenderDisplacementDistortFilterTest, GetMask001, TestSize.Level1)
 HWTEST_F(RSRenderDisplacementDistortFilterTest, ParseFilterValuesTest001, TestSize.Level1)
 {
     auto filter = std::make_shared<RSRenderDispDistortFilterPara>(0, RSUIFilterType::RIPPLE_MASK);
+
+    EXPECT_FALSE(filter->ParseFilterValues());
+
     auto factProperty = std::make_shared<RSRenderAnimatableProperty<Vector2f>>(
         Vector2f(1.f, 1.f), 0, RSRenderPropertyType::PROPERTY_VECTOR2F);
-
     filter->Setter(RSUIFilterType::DISPLACEMENT_DISTORT_FACTOR, factProperty);
     EXPECT_FALSE(filter->ParseFilterValues());
 

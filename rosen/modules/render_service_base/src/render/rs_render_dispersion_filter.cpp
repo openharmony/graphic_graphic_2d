@@ -185,11 +185,11 @@ bool RSRenderDispersionFilterPara::ParseFilterValues()
     redOffsetX_ = redOffset[0];
     redOffsetY_ = redOffset[1];
     auto greenOffset = dispersionGreenOffset->Get();
-    greenOffsetX_ = redOffset[0];
-    greenOffsetY_ = redOffset[1];
+    greenOffsetX_ = greenOffset[0];
+    greenOffsetY_ = greenOffset[1];
     auto blueOffset = dispersionBlueOffset->Get();
-    blueOffsetX_ = redOffset[0];
-    blueOffsetY_ = redOffset[1];
+    blueOffsetX_ = blueOffset[0];
+    blueOffsetY_ = blueOffset[1];
 #ifndef ENABLE_M133_SKIA
     const auto hashFunc = SkOpts::hash;
 #else
