@@ -33,7 +33,7 @@
 #include "string_utils.h"
 #include "metadata_helper.h"
 #include "surface_type.h"
-#include "third_party/libdrm/include/drm/drm.h"
+#include "drm/drm.h"
 
 #include "feature/round_corner_display/rs_rcd_surface_render_node.h"
 #include "feature/round_corner_display/rs_rcd_surface_render_node_drawable.h"

@@ -17,7 +17,7 @@
 #define RS_GRAPHIC_TEST_PROFILER_H
 
 #include <filesystem>
-#include "third_party/cJSON/cJSON.h"
+#include "cJSON.h"
 
 #include "common/rs_color.h"
 #include "common/rs_rect.h"

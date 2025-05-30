@@ -438,12 +438,14 @@ HWTEST_F(RSBaseRenderEngineUnitTest, NeedBilinearInterpolation, TestSize.Level1)
  */
 HWTEST_F(RSBaseRenderEngineUnitTest, SetColorSpaceConverterDisplayParameterTest, TestSize.Level1)
 {
+#ifdef USE_VIDEO_PROCESSING_ENGINE
     auto renderEngine = std::make_shared<RSRenderEngine>();
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
     BufferDrawParam params;
     params.buffer = surfaceNode->GetRSSurfaceHandler()->GetBuffer();
     Media::VideoProcessingEngine::ColorSpaceConverterDisplayParameter parameter;
     ASSERT_EQ(renderEngine->SetColorSpaceConverterDisplayParameter(params, parameter), true);
+#endif
 }
 
 /**

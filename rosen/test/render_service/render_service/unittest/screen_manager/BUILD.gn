@@ -42,6 +42,7 @@ ohos_unittest("VsyncEnabledScreenIdTest") {
 
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "googletest:gtest_main",
     "hilog:libhilog",
     "init:libbegetutil",
@@ -92,6 +93,7 @@ ohos_unittest("RSScreenManagerTest") {
 
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "googletest:gmock_main",
     "hilog:libhilog",
     "init:libbegetutil",
@@ -128,6 +130,7 @@ ohos_unittest("TouchScreenTest") {
 
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "hilog:libhilog",
     "init:libbegetutil",
   ]
@@ -173,6 +176,7 @@ ohos_unittest("RSScreenTest") {
 
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "googletest:gmock_main",
     "hilog:libhilog",
     "init:libbegetutil",

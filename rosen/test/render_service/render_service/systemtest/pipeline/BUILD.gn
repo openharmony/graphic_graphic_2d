@@ -42,7 +42,7 @@ ohos_systemtest("RSBaseRenderEngineTest") {
   ]
   external_deps = [
     "hisysevent:libhisysevent",
-    "samgr:samgr_proxy"
+    "samgr:samgr_proxy",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -68,7 +68,7 @@ ohos_systemtest("RSDropFrameProcessorSystemTest") {
   ]
   external_deps = [
     "hisysevent:libhisysevent",
-    "samgr:samgr_proxy"
+    "samgr:samgr_proxy",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -95,7 +95,7 @@ ohos_systemtest("RSRenderServiceTest") {
   ]
   external_deps = [
     "hisysevent:libhisysevent",
-    "samgr:samgr_proxy"
+    "samgr:samgr_proxy",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -132,6 +132,7 @@ config("rs_test_common_public_config") {
     "$graphic_2d_root/rosen/modules/render_service_client/core",
     "$graphic_2d_root/rosen/modules/render_service_base/src",
     "$graphic_2d_root/rosen/test/include",
+    "$graphic_2d_root/rosen/test/render_service/render_service/unittest",
   ]
 
   cflags = [
@@ -153,6 +154,7 @@ ohos_static_library("rs_test_common") {
 
   public_deps = [
     "$graphic_2d_root/rosen/modules/composer:libcomposer",
+    "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
     "$graphic_2d_root/rosen/modules/render_service:librender_service",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
     "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
@@ -162,8 +164,10 @@ ohos_static_library("rs_test_common") {
 
   public_external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "googletest:gtest_main",
     "hilog:libhilog",
+    "hisysevent:libhisysevent",
     "hitrace:hitrace_meter",
     "init:libbegetutil",
     "ipc:ipc_core",
@@ -171,13 +175,9 @@ ohos_static_library("rs_test_common") {
     "window_manager:libwms",
   ]
 
-  external_deps = [
-    "hisysevent:libhisysevent",
-  ]
+  external_deps = [ "hisysevent:libhisysevent" ]
 
-  deps = [
-    "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
-  ]
+  deps = [ "$graphic_2d_root/rosen/modules/composer/vsync:libvsync" ]
   if (use_memmgr_plugin || use_memmgr) {
     public_external_deps += [ "memmgr:memmgrclient" ]
   }

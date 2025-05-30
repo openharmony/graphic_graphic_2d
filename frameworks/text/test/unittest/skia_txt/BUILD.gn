@@ -54,7 +54,10 @@ ohos_unittest("rosen_text_skia_txt_test") {
     "$rosen_text_root:rosen_text",
   ]
 
-  external_deps = [ "hilog:libhilog" ]
+  external_deps = [
+    "hilog:libhilog",
+    "icu:shared_icuuc",
+  ]
 
   if (platform_is_ohos) {
     external_deps += [

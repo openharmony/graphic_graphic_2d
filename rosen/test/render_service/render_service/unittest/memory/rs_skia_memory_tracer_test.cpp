@@ -16,8 +16,8 @@
 #include "gtest/gtest.h"
 
 #include "src/drawing/engine_adapter/skia_adapter/rs_skia_memory_tracer.h"
-#include "foundation/graphic/graphic_2d/rosen/modules/render_service_base/include/memory/rs_dfx_string.h"
-#include "third_party/skia/include/gpu/GrDirectContext.h"
+#include "memory/rs_dfx_string.h"
+#include "include/gpu/GrDirectContext.h"
 
 using namespace testing;
 using namespace testing::ext;

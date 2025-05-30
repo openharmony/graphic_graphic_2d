@@ -17,6 +17,10 @@ import("//foundation/graphic/graphic_2d/rosen/modules/platform/config.gni")
 import(
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/config.gni")
 
+enable_compiler_rust = !ohos_indep_compiler_enable &&
+                       ((!is_mingw && !is_mac && !is_cross_platform &&
+                        !(host_os == "linux" && host_cpu == "arm64")))
+
 config("export_config") {
   include_dirs = [
     "include",
@@ -31,8 +35,7 @@ config("export_config") {
   }
 }
 
-if (!is_mingw && !is_mac && !is_cross_platform &&
-    !(host_os == "linux" && host_cpu == "arm64")) {
+if (enable_compiler_rust) {
   defines = [ "ENABLE_RUST" ]
   rust_cxx("particle_cxx_gen") {
     sources = [ "rust/src/lib.rs" ]
@@ -180,14 +183,14 @@ ohos_source_set("render_service_base_src") {
     "src/ipc_callbacks/rs_surface_buffer_callback_stub.cpp",
     "src/ipc_callbacks/rs_surface_occlusion_change_callback_proxy.cpp",
     "src/ipc_callbacks/rs_surface_occlusion_change_callback_stub.cpp",
+    "src/ipc_callbacks/rs_transaction_data_callback_proxy.cpp",
+    "src/ipc_callbacks/rs_transaction_data_callback_stub.cpp",
     "src/ipc_callbacks/rs_uiextension_callback_proxy.cpp",
     "src/ipc_callbacks/rs_uiextension_callback_stub.cpp",
     "src/ipc_callbacks/screen_change_callback_proxy.cpp",
     "src/ipc_callbacks/screen_change_callback_stub.cpp",
     "src/ipc_callbacks/surface_capture_callback_proxy.cpp",
     "src/ipc_callbacks/surface_capture_callback_stub.cpp",
-    "src/ipc_callbacks/rs_transaction_data_callback_proxy.cpp",
-    "src/ipc_callbacks/rs_transaction_data_callback_stub.cpp",
 
     #ipc_security
     "src/ipc_security/rs_ipc_interface_code_access_verifier_base.cpp",
@@ -241,6 +244,7 @@ ohos_source_set("render_service_base_src") {
 
     #render
     "src/render/rs_aibar_shader_filter.cpp",
+    "src/render/rs_always_snapshot_shader_filter.cpp",
     "src/render/rs_attraction_effect_filter.cpp",
     "src/render/rs_bezier_warp_filter.cpp",
     "src/render/rs_blur_filter.cpp",
@@ -249,15 +253,15 @@ ohos_source_set("render_service_base_src") {
     "src/render/rs_color_gradient_shader_filter.cpp",
     "src/render/rs_color_picker.cpp",
     "src/render/rs_colorful_shadow_filter.cpp",
-    "src/render/rs_edge_light_shader_filter.cpp",
+    "src/render/rs_complex_shader.cpp",
+    "src/render/rs_dispersion_shader_filter.cpp",
     "src/render/rs_displacement_distort_filter.cpp",
     "src/render/rs_distortion_shader_filter.cpp",
-    "src/render/rs_dispersion_shader_filter.cpp",
     "src/render/rs_dot_matrix_shader.cpp",
     "src/render/rs_drawing_filter.cpp",
+    "src/render/rs_edge_light_shader_filter.cpp",
     "src/render/rs_filter.cpp",
     "src/render/rs_filter_cache_manager.cpp",
-    "src/render/rs_complex_shader.cpp",
     "src/render/rs_flow_light_sweep_shader.cpp",
     "src/render/rs_fly_out_shader_filter.cpp",
     "src/render/rs_foreground_effect_filter.cpp",
@@ -286,9 +290,9 @@ ohos_source_set("render_service_base_src") {
     "src/render/rs_render_bezier_warp_filter.cpp",
     "src/render/rs_render_blur_filter.cpp",
     "src/render/rs_render_color_gradient_filter.cpp",
-    "src/render/rs_render_edge_light_filter.cpp",
-    "src/render/rs_render_displacement_distort_filter.cpp",
     "src/render/rs_render_dispersion_filter.cpp",
+    "src/render/rs_render_displacement_distort_filter.cpp",
+    "src/render/rs_render_edge_light_filter.cpp",
     "src/render/rs_render_filter.cpp",
     "src/render/rs_render_filter_base.cpp",
     "src/render/rs_render_pixel_map_mask.cpp",
@@ -303,7 +307,6 @@ ohos_source_set("render_service_base_src") {
     "src/render/rs_spherize_effect_filter.cpp",
     "src/render/rs_typeface_cache.cpp",
     "src/render/rs_water_ripple_shader_filter.cpp",
-    "src/render/rs_always_snapshot_shader_filter.cpp",
 
     #transaction
     "src/transaction/rs_hgm_config_data.cpp",
@@ -559,8 +562,7 @@ ohos_source_set("render_service_base_src") {
     ]
   }
 
-  if (!is_mingw && !is_mac && !is_cross_platform &&
-      !(host_os == "linux" && host_cpu == "arm64")) {
+  if (enable_compiler_rust) {
     defines += [ "ENABLE_RUST" ]
     sources += get_target_outputs(":particle_cxx_gen")
     include_dirs += [ "${target_gen_dir}/rust/src" ]

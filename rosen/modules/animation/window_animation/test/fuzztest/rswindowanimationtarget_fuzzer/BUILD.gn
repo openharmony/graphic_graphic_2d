@@ -39,6 +39,7 @@ ohos_fuzztest("RSWindowAnimationTargetFuzzTest") {
 
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "hilog:libhilog",
   ]
 }
