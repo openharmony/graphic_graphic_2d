@@ -249,7 +249,7 @@ public:
      */
     bool IsHybridRenderEnabled(uint32_t maxPixelMapWidth, uint32_t maxPixelMapHeight);
 
-    const std::vector<std::shared_ptr<DrawOpItem>>& GetDrawOpItems() const;
+    const std::vector<std::shared_ptr<DrawOpItem>> GetDrawOpItems() const;
 
 private:
     void ClearCache();
