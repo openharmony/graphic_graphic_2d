@@ -49,8 +49,10 @@ ohos_unittest("RSRenderServiceBaseHwcTest") {
 
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "googletest:gtest_main",
     "graphic_surface:surface",
+    "hilog:libhilog",
     "image_framework:image_native",
     "init:libbegetutil",
     "ipc:ipc_core",

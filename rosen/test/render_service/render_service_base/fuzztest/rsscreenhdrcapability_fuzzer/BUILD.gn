@@ -44,6 +44,7 @@ ohos_fuzztest("RSScreenHdrCapabilityFuzzTest") {
 
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "hilog:libhilog",
     "zlib:libz",
   ]

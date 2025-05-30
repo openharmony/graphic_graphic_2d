@@ -40,7 +40,10 @@ ohos_unittest("RSOpincCacheTest") {
     "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
   ]
-
+  external_deps = [
+    "eventhandler:libeventhandler",
+    "hilog:libhilog",
+  ]
   subsystem_name = "graphic"
 }
 
