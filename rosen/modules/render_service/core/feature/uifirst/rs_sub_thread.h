@@ -20,7 +20,11 @@
 #include "EGL/egl.h"
 #include "EGL/eglext.h"
 #include "include/core/SkSurface.h"
+#ifdef USE_M133_SKIA
+#include "include/gpu/ganesh/GrDirectContext.h"
+#else
 #include "include/gpu/GrDirectContext.h"
+#endif
 #ifdef RS_ENABLE_VK
 #include "include/gpu/vk/GrVkBackendContext.h"
 #endif

@@ -47,7 +47,11 @@
 #include "graphic_feature_param_manager.h"
 
 #ifdef RS_ENABLE_EGLIMAGE
+#ifdef USE_M133_SKIA
+#include "src/gpu/ganesh/gl/GrGLDefines.h"
+#else
 #include "src/gpu/gl/GrGLDefines.h"
+#endif
 #endif
 
 #ifdef RS_ENABLE_VK

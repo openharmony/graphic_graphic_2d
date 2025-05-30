@@ -40,7 +40,11 @@
 #include "render/rs_skia_filter.h"
 #include "rs_base_render_engine.h"
 #ifdef RS_ENABLE_EGLIMAGE
+#ifdef USE_M133_SKIA
+#include "src/gpu/ganesh/gl/GrGLDefines.h"
+#else
 #include "src/gpu/gl/GrGLDefines.h"
+#endif
 #endif
 #include "utils/graphic_coretrace.h"
 #include "v2_1/cm_color_space.h"

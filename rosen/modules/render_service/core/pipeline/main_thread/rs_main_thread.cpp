@@ -32,7 +32,6 @@
 #include "hgm_energy_consumption_policy.h"
 #include "hgm_frame_rate_manager.h"
 #include "include/core/SkGraphics.h"
-#include "include/gpu/GrDirectContext.h"
 #include "mem_mgr_client.h"
 #include "render_frame_trace.h"
 #include "rs_frame_report.h"

@@ -21,8 +21,14 @@
 #include "include/core/SkColorSpace.h"
 #include "include/core/SkImageInfo.h"
 #include "include/core/SkSurface.h"
+
+#ifdef USE_M133_SKIA
+#include "include/gpu/ganesh/GrBackendSurface.h"
+#include "include/gpu/ganesh/gl/GrGLInterface.h"
+#else
 #include "include/gpu/GrBackendSurface.h"
 #include "include/gpu/gl/GrGLInterface.h"
+#endif
 
 #include "render_context/shader_cache.h"
 #include "utils/log.h"
@@ -88,11 +94,7 @@ GPUContext* DrawingContext::GetDrawingContext() const
 
 sk_sp<SkSurface> DrawingContext::AcquireSurfaceInGLES(const std::shared_ptr<RSRenderSurfaceFrame>& frame)
 {
-#if defined(NEW_SKIA)
     GrDirectContext* grContext = GetDrawingContext();
-#else
-    GrContext* grContext = GetDrawingContext();
-#endif
     GrGLFramebufferInfo framebufferInfo;
     framebufferInfo.fFBOID = 0;
     framebufferInfo.fFormat = GL_RGBA8;
@@ -106,11 +108,7 @@ sk_sp<SkSurface> DrawingContext::AcquireSurfaceInGLES(const std::shared_ptr<RSRe
     }
     GrBackendRenderTarget backendRenderTarget(frameConfig->width, frameConfig->height, 0, STENCIL_BUFFER_SIZE,
         framebufferInfo);
-#if defined(NEW_SKIA)
     SkSurfaceProps surfaceProps(0, kRGB_H_SkPixelGeometry);
-#else
-    SkSurfaceProps surfaceProps = SkSurfaceProps::kLegacyFontHost_InitType;
-#endif
 
     sk_sp<SkColorSpace> skColorSpace = GetSkColorSpace(frame);
     RSTagTracker tagTracker(gpuContext_, RSTagTracker::TAGTYPE::TAG_ACQUIRE_SURFACE);
@@ -187,11 +185,7 @@ sk_sp<SkColorSpace> DrawingContext::GetSkColorSpace(const std::shared_ptr<RSRend
         // [planning] in order to stay consistant with the colorspace used before, we disabled
         // GRAPHIC_COLOR_GAMUT_SRGB to let the branch to default, then skColorSpace is set to nullptr
         case GRAPHIC_COLOR_GAMUT_DISPLAY_P3:
-#if defined(NEW_SKIA)
             skColorSpace = SkColorSpace::MakeRGB(SkNamedTransferFn::kSRGB, SkNamedGamut::kDisplayP3);
-#else
-            skColorSpace = SkColorSpace::MakeRGB(SkNamedTransferFn::kSRGB, SkNamedGamut::kDCIP3);
-#endif
             break;
         case GRAPHIC_COLOR_GAMUT_ADOBE_RGB:
             skColorSpace = SkColorSpace::MakeRGB(SkNamedTransferFn::kSRGB, SkNamedGamut::kAdobeRGB);

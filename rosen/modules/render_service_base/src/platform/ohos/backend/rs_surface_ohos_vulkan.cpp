@@ -23,7 +23,6 @@
 #include "native_window.h"
 #include "vulkan/vulkan_core.h"
 #include "include/gpu/GrBackendSemaphore.h"
-#include "include/gpu/GrDirectContext.h"
 #include "platform/common/rs_log.h"
 #include "window.h"
 #include "platform/common/rs_system_properties.h"
@@ -31,6 +30,12 @@
 #include "engine_adapter/skia_adapter/skia_surface.h"
 #include "rs_trace.h"
 #include "utils/graphic_coretrace.h"
+
+#ifdef USE_M133_SKIA
+#include "include/gpu/ganesh/GrDirectContext.h"
+#else
+#include "include/gpu/GrDirectContext.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {

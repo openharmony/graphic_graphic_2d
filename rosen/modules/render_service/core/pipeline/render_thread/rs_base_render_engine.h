@@ -25,7 +25,11 @@
 #ifdef RS_ENABLE_VK
 #include "feature/gpuComposition/rs_vk_image_manager.h"
 #endif
+#ifdef USE_M133_SKIA
+#include "include/gpu/ganesh/GrDirectContext.h"
+#else
 #include "include/gpu/GrDirectContext.h"
+#endif
 #include "rs_base_render_util.h"
 
 #include "platform/drawing/rs_surface_frame.h"
