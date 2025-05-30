@@ -588,7 +588,7 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     if (curDrawingCacheRoot_) {
         if (hasSkipCacheLayer_) {
             curDrawingCacheRoot_->SetSkipCacheLayer(true);
-        } else if (surfaceParams->IsInBlackList()) {
+        } else if (surfaceParams->NodeGroupHasChildInBlackList()) {
             curDrawingCacheRoot_->SetChildInBlackList(true);
         }
     }

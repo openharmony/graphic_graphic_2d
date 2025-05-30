@@ -2366,7 +2366,6 @@ void RSDisplayRenderNodeDrawable::FinishOffscreenRender(
         auto shader = MakeBrightnessAdjustmentShader(image, sampling, hdrBrightnessRatio);
         if (shader) {
             paint.SetShaderEffect(shader);
-            RS_LOGI("paint SetShaderEffect Func:%s, Line:%d", __FUNCTION__, __LINE__);
             isUseCustomShader = true;
         } else {
             FinishHdrDraw(paint, hdrBrightnessRatio);

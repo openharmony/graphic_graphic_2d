@@ -376,8 +376,10 @@ void RSRenderNodeDrawable::DrawWithNodeGroupCache(Drawing::Canvas& canvas, const
     }
     const auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
     if (uniParam && uniParam->IsMirrorScreen() && hasChildInBlackList_) {
-        RS_LOGD("RSRenderNodeDrawable::DrawWithNodeGroupCache do not DrawCachedImage on mirror screen if node is in "
-                "blacklist");
+        RS_OPTIONAL_TRACE_NAME_FMT(
+            "RSRenderNodeDrawable::DrawWithNodeGroupCache skip DrawCachedImage on mirror screen if node is in "
+            "wireless screen mirroring blacklist");
+        RSRenderNodeDrawable::OnDraw(canvas);
         return;
     }
 
