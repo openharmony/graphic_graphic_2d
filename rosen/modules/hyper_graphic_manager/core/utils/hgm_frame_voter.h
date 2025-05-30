@@ -24,7 +24,6 @@
 
 namespace OHOS {
 namespace Rosen {
-// ext
 class HgmFrameVoter final {
 public:
     using ChangeRangeCallbackFunc = std::function<void(const std::string&)>;
@@ -32,8 +31,8 @@ public:
     explicit HgmFrameVoter(HgmMultiAppStrategy& multiAppStrategy);
     ~HgmFrameVoter() = default;
 
-    VoteRecord GetVoteRecord() const { return voteRecord_; }
-    std::vector<std::string> GetVoters() const { return voters_; }
+    const VoteRecord& GetVoteRecord() const { return voteRecord_; }
+    const std::vector<std::string>& GetVoters() const { return voters_; }
     bool GetVoterGamesEffective() const { return voterGamesEffective_.load(); }
 
     bool IsDragScene() const { return isDragScene_; }
@@ -41,7 +40,8 @@ public:
 
     void CleanVote(pid_t pid);
     void DeliverVote(const VoteInfo& voteInfo, bool eventStatus);
-    std::pair<VoteInfo, VoteRange> ProcessVote(const std::string& curScreenStrategyId, int32_t curRefreshRateMode);
+    std::pair<VoteInfo, VoteRange> ProcessVote(const std::string& curScreenStrategyId,
+        ScreenId curScreenId, int32_t curRefreshRateMode);
 
     void SetChangeRangeCallback(const ChangeRangeCallbackFunc& func) { markVoteChange_ = func; }
 
@@ -58,6 +58,12 @@ private:
         VoteInfo& resultVoteInfo, VoteRange& voteRange, bool &voterGamesEffective);
     void ChangePriority(uint32_t curScenePriority);
     void UpdateVoteRule(const std::string& curScreenStrategyId, int32_t curRefreshRateMode);
+    void MarkVoteChange(const std::string& voter = "")
+    {
+        if (markVoteChange_) {
+            markVoteChange_(voter);
+        }
+    }
 
     bool isDragScene_ = false;
     std::atomic<bool> voterGamesEffective_ = false;

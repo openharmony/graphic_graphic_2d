@@ -78,9 +78,9 @@ HgmFrameRateManager::HgmFrameRateManager()
             UpdateSoftVSync(false);
         }
     }),
-    hgmFrameVoter_(HgmFrameVoter(multiAppStrategy_))
+    frameVoter_(HgmFrameVoter(multiAppStrategy_))
 {
-    hgmFrameVoter_.SetChangeRangeCallback([this] (const std::string& voter) {
+    frameVoter_.SetChangeRangeCallback([this] (const std::string& voter) {
         MarkVoteChange(voter);
     });
 }
@@ -370,11 +370,11 @@ void HgmFrameRateManager::UpdateGuaranteedPlanVote(uint64_t timestamp)
 
 void HgmFrameRateManager::ProcessLtpoVote(const FrameRateRange& finalRange)
 {
-    hgmFrameVoter_.SetDragScene(finalRange.type_ == DRAG_SCENE_FRAME_RATE_TYPE);
+    frameVoter_.SetDragScene(finalRange.type_ == DRAG_SCENE_FRAME_RATE_TYPE);
     if (finalRange.IsValid()) {
         auto refreshRate = UpdateFrameRateWithDelay(CalcRefreshRate(curScreenId_.load(), finalRange));
         RS_TRACE_NAME_FMT("ProcessLtpoVote isDragScene_: [%d], refreshRate: [%d], lastLTPORefreshRate_: [%d]",
-            hgmFrameVoter_.IsDragScene(), refreshRate, lastLTPORefreshRate_);
+            frameVoter_.IsDragScene(), refreshRate, lastLTPORefreshRate_);
         DeliverRefreshRateVote(
             {"VOTER_LTPO", refreshRate, refreshRate, DEFAULT_PID, finalRange.GetExtInfo()}, ADD_VOTE);
     } else {
@@ -384,7 +384,7 @@ void HgmFrameRateManager::ProcessLtpoVote(const FrameRateRange& finalRange)
 
 uint32_t HgmFrameRateManager::UpdateFrameRateWithDelay(uint32_t refreshRate)
 {
-    if (!hgmFrameVoter_.IsDragScene()) {
+    if (!frameVoter_.IsDragScene()) {
         return refreshRate;
     }
 
@@ -818,15 +818,15 @@ void HgmFrameRateManager::HandlePackageEvent(pid_t pid, const std::vector<std::s
     hfbcConfig.HandleHfbcConfig(packageList);
     if (multiAppStrategy_.HandlePkgsEvent(packageList) == EXEC_SUCCESS) {
         auto sceneListConfig = multiAppStrategy_.GetScreenSetting().sceneList;
-        for (auto scenePid = hgmFrameVoter_.sceneStack_.begin(); scenePid != hgmFrameVoter_.sceneStack_.end();) {
+        for (auto scenePid = frameVoter_.sceneStack_.begin(); scenePid != frameVoter_.sceneStack_.end();) {
             if (auto iter = sceneListConfig.find(scenePid->first);
                 iter != sceneListConfig.end() && iter->second.doNotAutoClear) {
                 ++scenePid;
                 continue;
             }
-            hgmFrameVoter_.gameScenes_.erase(scenePid->first);
-            hgmFrameVoter_.ancoScenes_.erase(scenePid->first);
-            scenePid = hgmFrameVoter_.sceneStack_.erase(scenePid);
+            frameVoter_.gameScenes_.erase(scenePid->first);
+            frameVoter_.ancoScenes_.erase(scenePid->first);
+            scenePid = frameVoter_.sceneStack_.erase(scenePid);
         }
     }
     MarkVoteChange("VOTER_SCENE");
@@ -840,7 +840,7 @@ void HgmFrameRateManager::HandleRefreshRateEvent(pid_t pid, const EventInfo& eve
         HgmEnergyConsumptionPolicy::Instance().SetVideoCallSceneInfo(eventInfo);
         return;
     }
-    auto voters = hgmFrameVoter_.GetVoters();
+    auto voters = frameVoter_.GetVoters();
     auto event = std::find(voters.begin(), voters.end(), eventName);
     if (event == voters.end()) {
         HGM_LOGW("HgmFrameRateManager:unknown event, eventName is %{public}s", eventName.c_str());
@@ -865,10 +865,10 @@ void HgmFrameRateManager::HandleRefreshRateEvent(pid_t pid, const EventInfo& eve
 void HgmFrameRateManager::HandleTouchEvent(pid_t pid, int32_t touchStatus, int32_t touchCnt)
 {
     HGM_LOGD("HandleTouchEvent status:%{public}d", touchStatus);
-    if (hgmFrameVoter_.GetVoterGamesEffective() && touchManager_.GetState() == TouchState::DOWN_STATE) {
+    if (frameVoter_.GetVoterGamesEffective() && touchManager_.GetState() == TouchState::DOWN_STATE) {
         return;
     }
-    if (hgmFrameVoter_.GetVoterGamesEffective() &&
+    if (frameVoter_.GetVoterGamesEffective() &&
         (touchStatus ==  TOUCH_MOVE || touchStatus ==  TOUCH_BUTTON_DOWN || touchStatus ==  TOUCH_BUTTON_UP)) {
         return;
     }
@@ -895,9 +895,9 @@ void HgmFrameRateManager::HandleTouchTask(pid_t pid, int32_t touchStatus, int32_
         if (touchCnt != LAST_TOUCH_CNT) {
             return;
         }
-        auto voteRecord = hgmFrameVoter_.GetVoteRecord();
+        auto voteRecord = frameVoter_.GetVoteRecord();
         if (auto iter = voteRecord.find("VOTER_GAMES"); iter != voteRecord.end() && !iter->second.first.empty() &&
-            hgmFrameVoter_.gameScenes_.empty() && multiAppStrategy_.CheckPidValid(iter->second.first.front().pid)) {
+            frameVoter_.gameScenes_.empty() && multiAppStrategy_.CheckPidValid(iter->second.first.front().pid)) {
             HGM_LOGD("[touch manager] keep down in games");
             return;
         }
@@ -1155,37 +1155,37 @@ void HgmFrameRateManager::HandleSceneEvent(pid_t pid, EventInfo eventInfo)
 
     if (gameSceneList.find(sceneName) != gameSceneList.end()) {
         if (eventInfo.eventStatus == ADD_VOTE) {
-            if (hgmFrameVoter_.gameScenes_.insert(sceneName).second) {
+            if (frameVoter_.gameScenes_.insert(sceneName).second) {
                 MarkVoteChange();
             }
         } else {
-            if (hgmFrameVoter_.gameScenes_.erase(sceneName)) {
+            if (frameVoter_.gameScenes_.erase(sceneName)) {
                 MarkVoteChange();
             }
         }
     }
     if (ancoSceneList.find(sceneName) != ancoSceneList.end()) {
         if (eventInfo.eventStatus == ADD_VOTE) {
-            if (hgmFrameVoter_.ancoScenes_.insert(sceneName).second) {
+            if (frameVoter_.ancoScenes_.insert(sceneName).second) {
                 MarkVoteChange();
             }
         } else {
-            if (hgmFrameVoter_.ancoScenes_.erase(sceneName)) {
+            if (frameVoter_.ancoScenes_.erase(sceneName)) {
                 MarkVoteChange();
             }
         }
     }
 
     std::pair<std::string, pid_t> info = std::make_pair(sceneName, pid);
-    auto scenePos = find(hgmFrameVoter_.sceneStack_.begin(), hgmFrameVoter_.sceneStack_.end(), info);
+    auto scenePos = find(frameVoter_.sceneStack_.begin(), frameVoter_.sceneStack_.end(), info);
     if (eventInfo.eventStatus == ADD_VOTE) {
-        if (scenePos == hgmFrameVoter_.sceneStack_.end()) {
-            hgmFrameVoter_.sceneStack_.push_back(info);
+        if (scenePos == frameVoter_.sceneStack_.end()) {
+            frameVoter_.sceneStack_.emplace_back(info);
             MarkVoteChange("VOTER_SCENE");
         }
     } else {
-        if (scenePos != hgmFrameVoter_.sceneStack_.end()) {
-            hgmFrameVoter_.sceneStack_.erase(scenePos);
+        if (scenePos != frameVoter_.sceneStack_.end()) {
+            frameVoter_.sceneStack_.erase(scenePos);
             MarkVoteChange("VOTER_SCENE");
         }
     }
@@ -1248,7 +1248,7 @@ void HgmFrameRateManager::HandleMultiSelfOwnedScreenEvent(pid_t pid, EventInfo e
 
 void HgmFrameRateManager::MarkVoteChange(const std::string& voter)
 {
-    auto voteRecord = hgmFrameVoter_.GetVoteRecord();
+    auto voteRecord = frameVoter_.GetVoteRecord();
     if (auto iter = voteRecord.find(voter);
         voter != "" && (iter == voteRecord.end() || !iter->second.second) && !voterTouchEffective_) {
         return;
@@ -1295,7 +1295,7 @@ void HgmFrameRateManager::MarkVoteChange(const std::string& voter)
 
 void HgmFrameRateManager::DeliverRefreshRateVote(const VoteInfo& voteInfo, bool eventStatus)
 {
-    hgmFrameVoter_.DeliverVote(voteInfo, eventStatus);
+    frameVoter_.DeliverVote(voteInfo, eventStatus);
 }
 
 bool HgmFrameRateManager::IsCurrentScreenSupportAS()
@@ -1352,7 +1352,7 @@ bool HgmFrameRateManager::CheckAncoVoterStatus() const
         !isAmbientEffect_ || ancoLowBrightVec_.empty()) {
         return false;
     }
-    auto voteRecord = hgmFrameVoter_.GetVoteRecord();
+    auto voteRecord = frameVoter_.GetVoteRecord();
     auto iter = voteRecord.find("VOTER_ANCO");
     if (iter == voteRecord.end() || iter->second.first.empty() || !iter->second.second) {
         return false;
@@ -1362,7 +1362,8 @@ bool HgmFrameRateManager::CheckAncoVoterStatus() const
 
 VoteInfo HgmFrameRateManager::ProcessRefreshRateVote()
 {
-    auto [resultVoteInfo, voteRange] = hgmFrameVoter_.ProcessVote(curScreenStrategyId_, curRefreshRateMode_);
+    auto [resultVoteInfo, voteRange] = frameVoter_.ProcessVote(curScreenStrategyId_,
+        curScreenId_.load(), curRefreshRateMode_);
     auto [min, max] = voteRange;
     SetResultVoteInfo(resultVoteInfo, min, max);
     ProcessAdaptiveSync(resultVoteInfo.voterName);
@@ -1407,7 +1408,7 @@ void HgmFrameRateManager::CleanVote(pid_t pid)
     }
 
     softVSyncManager_.EraseGameRateDiscountMap(pid);
-    hgmFrameVoter_.CleanVote(pid);
+    frameVoter_.CleanVote(pid);
 }
 
 void HgmFrameRateManager::SetResultVoteInfo(VoteInfo& voteInfo, uint32_t min, uint32_t max)
@@ -1442,7 +1443,7 @@ bool HgmFrameRateManager::UpdateUIFrameworkDirtyNodes(
 {
     timestamp_ = timestamp;
     HgmEnergyConsumptionPolicy::Instance().CheckOnlyVideoCallExist();
-    if (!voterTouchEffective_ || hgmFrameVoter_.GetVoterGamesEffective()) {
+    if (!voterTouchEffective_ || frameVoter_.GetVoterGamesEffective()) {
         surfaceData_.clear();
         return false;
     }
@@ -1576,7 +1577,7 @@ void HgmFrameRateManager::CheckNeedUpdateAppOffset(uint32_t refreshRate, uint32_
         isNeedUpdateAppOffset_ = true;
         return;
     }
-    auto voteRecord = hgmFrameVoter_.GetVoteRecord();
+    auto voteRecord = frameVoter_.GetVoteRecord();
     if (auto iter = voteRecord.find("VOTER_THERMAL");
         iter != voteRecord.end() && !iter->second.first.empty() &&
         iter->second.first.back().max > 0 && iter->second.first.back().max <= OLED_60_HZ) {

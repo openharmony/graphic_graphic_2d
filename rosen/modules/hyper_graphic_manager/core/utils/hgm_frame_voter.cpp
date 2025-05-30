@@ -67,7 +67,7 @@ void HgmFrameVoter::CleanVote(pid_t pid)
             if (iter->pid == pid) {
                 auto voter = iter->voterName;
                 iter = voterInfo.first.erase(iter);
-                markVoteChange_(voter);
+                MarkVoteChange(voter);
                 break;
             }
             ++iter;
@@ -95,7 +95,7 @@ void HgmFrameVoter::DeliverVote(const VoteInfo& voteInfo, bool eventStatus)
     if ((voteInfo.pid == 0) && (eventStatus == REMOVE_VOTE)) {
         if (!vec.empty()) {
             vec.clear();
-            markVoteChange_(voter);
+            MarkVoteChange(voter);
         }
         return;
     }
@@ -108,29 +108,28 @@ void HgmFrameVoter::DeliverVote(const VoteInfo& voteInfo, bool eventStatus)
         if (eventStatus == REMOVE_VOTE) {
             // remove
             it = vec.erase(it);
-            markVoteChange_(voter);
-            return;
-        } else {
-            if ((*it).min != voteInfo.min || (*it).max != voteInfo.max) {
-                // modify
-                vec.erase(it);
-                vec.push_back(voteInfo);
-                markVoteChange_(voter);
-            } else if (voteInfo.voterName == "VOTER_PACKAGES") {
-                // force update cause VOTER_PACKAGES is flag of safe_voter
-                markVoteChange_(voter);
-            }
+            MarkVoteChange(voter);
             return;
         }
+
+        if ((*it).min != voteInfo.min || (*it).max != voteInfo.max) {
+            // modify
+            vec.erase(it);
+            vec.push_back(voteInfo);
+            MarkVoteChange(voter);
+        } else if (voteInfo.voterName == "VOTER_PACKAGES") {
+            // force update cause VOTER_PACKAGES is flag of safe_voter
+            MarkVoteChange(voter);
+        }
+        return;
     }
 
     // add
     if (eventStatus == ADD_VOTE) {
         pidRecord_.insert(voteInfo.pid);
         vec.push_back(voteInfo);
-        markVoteChange_(voter);
+        MarkVoteChange(voter);
     }
-    return;
 }
 
 void HgmFrameVoter::ProcessVoteLog(const VoteInfo& curVoteInfo, bool isSkip)
@@ -351,7 +350,7 @@ void HgmFrameVoter::UpdateVoteRule(const std::string& curScreenStrategyId, int32
 }
 
 std::pair<VoteInfo, VoteRange> HgmFrameVoter::ProcessVote(const std::string& curScreenStrategyId,
-    int32_t curRefreshRateMode)
+    ScreenId curScreenId, int32_t curRefreshRateMode)
 {
     UpdateVoteRule(curScreenStrategyId, curRefreshRateMode);
 
@@ -379,8 +378,8 @@ std::pair<VoteInfo, VoteRange> HgmFrameVoter::ProcessVote(const std::string& cur
     if (voteRecord_["VOTER_PACKAGES"].second || voteRecord_["VOTER_LTPO"].second) {
         voteRecord_["VOTER_SCENE"].second = true;
     }
-    //HGM_LOGD("Process: Strategy:%{public}s Screen:%{public}d Mode:%{public}d -- VoteResult:{%{public}d-%{public}d}",
-    //    curScreenStrategyId.c_str(), static_cast<int>(curScreenId_.load()), curRefreshRateMode, min, max);
+    HGM_LOGD("Process: Strategy:%{public}s Screen:%{public}d Mode:%{public}d -- VoteResult:{%{public}d-%{public}d}",
+        curScreenStrategyId.c_str(), static_cast<int>(curScreenId), curRefreshRateMode, min, max);
     return {resultVoteInfo, voteRange};
 }
 } // namespace Rosen

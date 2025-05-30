@@ -126,6 +126,9 @@
       *HgmFrameRateManager::EraseGameRateDiscountMap*;
       *HgmFrameRateManager::CollectGameRateDiscountChange*;
       *HgmFrameRateManager::GetVRateMiniFPS*;
+      *HgmFrameRateManager::CheckNeedUpdateAppOffset*;
+      *HgmFrameRateManager::HandleTouchTask*;
+      *HgmFrameRateManager::MarkVoteChange*;
 
       *HgmHfbcConfig::HandleHfbcConfig*;
       *HgmHfbcConfig::SetHfbcConfigMap*;
@@ -215,6 +218,15 @@
       *HgmVSyncGeneratorController::HgmVSyncGeneratorController*;
       *HgmVSyncGeneratorController::~HgmVSyncGeneratorController*;
 
+      *HgmFrameVoter::HgmFrameVoter*;
+      *HgmFrameVoter::GetVoters*;
+      *HgmFrameVoter::GetVoterGamesEffective*;
+      *HgmFrameVoter::IsDragScene*;
+      *HgmFrameVoter::SetDragScene*;
+      *HgmFrameVoter::CleanVote*;
+      *HgmFrameVoter::DeliverVote*;
+      *HgmFrameVoter::ProcessVote*;
+      *HgmFrameVoter::SetChangeRangeCallback*;
       *HgmFrameVoter::ProcessVoteLog*;
       *HgmFrameVoter::MergeLtpo2IdleVote*;
       *HgmFrameVoter::CheckAncoVoter*;

@@ -287,7 +287,7 @@ private:
     HgmTouchManager touchManager_;
     HgmPointerManager pointerManager_;
     HgmSoftVSyncManager softVSyncManager_;
-    HgmFrameVoter hgmFrameVoter_;
+    HgmFrameVoter frameVoter_;
     std::atomic<bool> voterTouchEffective_ = false;
     // For the power consumption module, only monitor touch up 3s and 600ms without flashing frames
     std::atomic<bool> startCheck_ = false;
