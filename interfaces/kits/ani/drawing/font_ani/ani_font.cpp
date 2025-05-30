@@ -56,7 +56,7 @@ ani_status AniFont::AniInit(ani_env *env)
     }
 
     std::array methods = {
-        ani_native_function { "<ctor>", ":V",
+        ani_native_function { "constructorNative", ":V",
             reinterpret_cast<void*>(Constructor) },
         ani_native_function { "getMetrics", ":L@ohos/graphics/drawing/drawing/FontMetrics;",
             reinterpret_cast<void*>(GetMetrics) },

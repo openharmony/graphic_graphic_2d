@@ -31,8 +31,8 @@ ani_status AniMatrix::AniInit(ani_env *env)
     }
 
     std::array methods = {
-        ani_native_function { "<ctor>", ":V", reinterpret_cast<void*>(Constructor) },
-        ani_native_function { "<ctor>", "L@ohos/graphics/drawing/drawing/Matrix;:V",
+        ani_native_function { "constructorNative", ":V", reinterpret_cast<void*>(Constructor) },
+        ani_native_function { "constructorNative", "L@ohos/graphics/drawing/drawing/Matrix;:V",
             reinterpret_cast<void*>(ConstructorWithMatrix) },
         ani_native_function { "getValue", "D:D", reinterpret_cast<void*>(GetValue) },
         ani_native_function { "reset", ":V", reinterpret_cast<void*>(Reset) },

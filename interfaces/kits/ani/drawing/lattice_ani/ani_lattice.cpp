@@ -209,13 +209,7 @@ ani_object AniLattice::CreateImageLattice(ani_env* env,
     }
 
     AniLattice* aniLattice = new AniLattice(std::make_shared<Lattice>(lat));
-    ani_object aniObj = CreateAniObject(env, ANI_CLASS_ANI_LATTICE_NAME, nullptr);
-    if (ANI_OK != env->Object_SetFieldByName_Long(aniObj,
-        NATIVE_OBJ, reinterpret_cast<ani_long>(aniLattice))) {
-        ROSEN_LOGE("AniLattice::CreateImageLattice failed cause by Object_SetFieldByName_Long");
-        delete aniLattice;
-        return CreateAniUndefined(env);
-    }
+    ani_object aniObj = CreateAniObjectStatic(env, ANI_CLASS_ANI_LATTICE_NAME, aniLattice);
     return aniObj;
 }
 

@@ -29,6 +29,84 @@
 #include "typeface_ani/ani_typeface.h"
 #include "typeface_arguments_ani/ani_typeface_arguments.h"
 
+const char* ANI_CLASS_CLEANER_NAME = "L@ohos/graphics/drawing/Cleaner;";
+
+template <typename T>
+void SafeDelete(ani_long& ptr)
+{
+    if (ptr == 0) {
+        ROSEN_LOGE("SafeDelete ptr is 0");
+        return;
+    }
+    T* pointer = reinterpret_cast<T*>(ptr);
+    delete pointer;
+    pointer = nullptr;
+    ptr = 0;
+}
+
+static void Clean(ani_env* env, ani_object object)
+{
+    ani_long ptr;
+    ani_status ret = env->Object_GetFieldByName_Long(object, "ptr", &ptr);
+    if (ret != ANI_OK) {
+        ROSEN_LOGE("Clean can't find ptr");
+        return;
+    }
+    ani_ref stringRef = nullptr;
+    ret = env->Object_GetFieldByName_Ref(object, "className", &stringRef);
+    if (ret != ANI_OK) {
+        ROSEN_LOGE("Clean can't find className");
+        return;
+    }
+
+    std::string className = OHOS::Rosen::Drawing::CreateStdString(env, reinterpret_cast<ani_string>(stringRef));
+    using DeleteFunc = void (*)(ani_long&);
+    static const std::unordered_map<std::string, DeleteFunc> deleteMap = {
+        {"Brush", SafeDelete<OHOS::Rosen::Drawing::AniBrush>},
+        {"Canvas", SafeDelete<OHOS::Rosen::Drawing::AniCanvas>},
+        {"ColorFilter", SafeDelete<OHOS::Rosen::Drawing::AniColorFilter>},
+        {"Font", SafeDelete<OHOS::Rosen::Drawing::AniFont>},
+        {"Lattice", SafeDelete<OHOS::Rosen::Drawing::AniLattice>},
+        {"Matrix", SafeDelete<OHOS::Rosen::Drawing::AniMatrix>},
+        {"Path", SafeDelete<OHOS::Rosen::Drawing::AniPath>},
+        {"PathIterator", SafeDelete<OHOS::Rosen::Drawing::AniPathIterator>},
+        {"Pen", SafeDelete<OHOS::Rosen::Drawing::AniPen>},
+        {"Region", SafeDelete<OHOS::Rosen::Drawing::AniRegion>},
+        {"RoundRect", SafeDelete<OHOS::Rosen::Drawing::AniRoundRect>},
+        {"SampliongOptions", SafeDelete<OHOS::Rosen::Drawing::AniSamplingOptions>},
+        {"Typeface", SafeDelete<OHOS::Rosen::Drawing::AniTypeface>},
+        {"TypefaceArguments", SafeDelete<OHOS::Rosen::Drawing::AniTypefaceArguments>}};
+
+    auto it = deleteMap.find(className);
+    if (it != deleteMap.end()) {
+        it->second(ptr);
+    } else {
+        ROSEN_LOGE("Clean can't find className: %{public}s in deleteMap", className.c_str());
+    }
+}
+
+static ani_status AniCleanerInit(ani_env* env)
+{
+    ani_class cls = nullptr;
+    ani_status ret = env->FindClass(ANI_CLASS_CLEANER_NAME, &cls);
+    if (ret != ANI_OK) {
+        ROSEN_LOGE("[ANI] can't find class: %{public}s", ANI_CLASS_CLEANER_NAME);
+        return ANI_NOT_FOUND;
+    }
+
+    std::array methods = {
+        ani_native_function{"clean", ":V", reinterpret_cast<void*>(Clean)},
+    };
+
+    ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
+    if (ret != ANI_OK) {
+        ROSEN_LOGE("[ANI] bind methods fail: %{public}s", ANI_CLASS_CLEANER_NAME);
+        return ANI_NOT_FOUND;
+    }
+
+    return ANI_OK;
+}
+
 extern "C" {
 ANI_EXPORT ani_status ANI_Constructor(ani_vm* vm, uint32_t* result)
 {
@@ -38,7 +116,8 @@ ANI_EXPORT ani_status ANI_Constructor(ani_vm* vm, uint32_t* result)
         return ANI_ERROR;
     }
 
-    if (OHOS::Rosen::Drawing::AniBrush::AniInit(env) != ANI_OK ||
+    if (AniCleanerInit(env) != ANI_OK ||
+        OHOS::Rosen::Drawing::AniBrush::AniInit(env) != ANI_OK ||
         OHOS::Rosen::Drawing::AniCanvas::AniInit(env) != ANI_OK ||
         OHOS::Rosen::Drawing::AniColorFilter::AniInit(env) != ANI_OK ||
         OHOS::Rosen::Drawing::AniFont::AniInit(env) != ANI_OK ||

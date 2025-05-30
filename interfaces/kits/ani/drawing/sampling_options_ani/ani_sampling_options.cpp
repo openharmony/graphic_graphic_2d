@@ -30,8 +30,8 @@ ani_status AniSamplingOptions::AniInit(ani_env *env)
     }
 
     std::array methods = {
-        ani_native_function { "<ctor>", ":V", reinterpret_cast<void*>(Constructor) },
-        ani_native_function { "<ctor>", "L@ohos/graphics/drawing/drawing/FilterMode;:V",
+        ani_native_function { "constructorNative", ":V", reinterpret_cast<void*>(Constructor) },
+        ani_native_function { "constructorNative", "L@ohos/graphics/drawing/drawing/FilterMode;:V",
             reinterpret_cast<void*>(ConstructorWithFilterMode) },
     };
 

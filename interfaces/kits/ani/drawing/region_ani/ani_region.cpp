@@ -29,10 +29,10 @@ ani_status AniRegion::AniInit(ani_env *env)
     }
 
     std::array methods = {
-        ani_native_function { "<ctor>", ":V", reinterpret_cast<void*>(Constructor) },
-        ani_native_function { "<ctor>", "L@ohos/graphics/drawing/drawing/Region;:V",
+        ani_native_function { "constructorNative", ":V", reinterpret_cast<void*>(Constructor) },
+        ani_native_function { "constructorNative", "L@ohos/graphics/drawing/drawing/Region;:V",
             reinterpret_cast<void*>(ConstructorWithRegion) },
-        ani_native_function { "<ctor>", "DDDD:V", reinterpret_cast<void*>(ConstructorWithRect) },
+        ani_native_function { "constructorNative", "DDDD:V", reinterpret_cast<void*>(ConstructorWithRect) },
     };
 
     ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
