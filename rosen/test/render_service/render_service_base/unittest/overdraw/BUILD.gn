@@ -42,9 +42,9 @@ ohos_unittest("overdraw_test") {
     public_deps = [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics" ]
   }
   external_deps = [
+    "googletest:gmock",
     "hilog:libhilog",
     "skia:skia_canvaskit",
-    "googletest:gmock",
   ]
   part_name = "graphic_2d"
   subsystem_name = "graphic"

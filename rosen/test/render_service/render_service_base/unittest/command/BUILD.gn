@@ -54,15 +54,14 @@ ohos_unittest("RSNodeCommandTest") {
     "//foundation/graphic/graphic_2d/rosen/test/include",
   ]
 
-  deps = [
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
-  ]
+  deps = [ "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base" ]
 
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
     public_deps = [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics" ]
   }
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "hilog:libhilog",
     "init:libbegetutil",
     "skia:skia_canvaskit",
