@@ -98,6 +98,28 @@ bool RSRenderNode::IsPureContainer() const
     return (drawCmdModifiers_.empty() && !GetRenderProperties().isDrawn_ && !GetRenderProperties().alphaNeedApply_);
 }
 
+bool RSRenderNode::IsPureBackgroundColor() const
+{
+    static const std::unordered_set<RSDrawableSlot> pureBackgroundColorSlots = {
+        RSDrawableSlot::BG_SAVE_BOUNDS,
+        RSDrawableSlot::CLIP_TO_BOUNDS,
+        RSDrawableSlot::BACKGROUND_COLOR,
+        RSDrawableSlot::BG_RESTORE_BOUNDS,
+        RSDrawableSlot::SAVE_FRAME,
+        RSDrawableSlot::FRAME_OFFSET,
+        RSDrawableSlot::CLIP_TO_FRAME,
+        RSDrawableSlot::CHILDREN,
+        RSDrawableSlot::RESTORE_FRAME
+    };
+    for (int8_t i = 0; i < static_cast<int8_t>(RSDrawableSlot::MAX); ++i) {
+        if (drawableVec_[i] &&
+            !pureBackgroundColorSlots.count(static_cast<RSDrawableSlot>(i))) {
+            return false;
+        }
+    }
+    return true;
+}
+
 void RSRenderNode::SetDrawNodeType(DrawNodeType nodeType)
 {
     drawNodeType_ = nodeType;
