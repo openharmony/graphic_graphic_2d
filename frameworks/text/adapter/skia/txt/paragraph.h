@@ -208,6 +208,8 @@ public:
     virtual void SetLayoutState(size_t state) = 0;
     virtual void ApplyTextStyleChanges(const std::vector<OHOS::Rosen::SPText::TextStyle>& textStyles) = 0;
     virtual std::vector<TextBlobRecordInfo> GetTextBlobRecordInfo() const = 0;
+    virtual bool HasEnabledTextEffect() const = 0;
+    virtual void SetTextEffectState(bool state) = 0;
 };
 } // namespace SPText
 } // namespace Rosen

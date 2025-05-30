@@ -533,6 +533,24 @@ std::vector<TextBlobRecordInfo> Typography::GetTextBlobRecordInfo() const
     return paragraph_->GetTextBlobRecordInfo();
 }
 
+bool Typography::HasEnabledTextEffect() const
+{
+    std::shared_lock<std::shared_mutex> readLock(mutex_);
+    if (paragraph_ == nullptr) {
+        return false;
+    }
+    return paragraph_->HasEnabledTextEffect();
+}
+
+void Typography::SetTextEffectState(bool state)
+{
+    std::unique_lock<std::shared_mutex> writeLock(mutex_);
+    if (paragraph_ == nullptr) {
+        return;
+    }
+    paragraph_->SetTextEffectState(state);
+}
+
 } // namespace AdapterTxt
 } // namespace Rosen
 } // namespace OHOS

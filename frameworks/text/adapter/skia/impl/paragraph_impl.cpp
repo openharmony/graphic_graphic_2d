@@ -515,6 +515,24 @@ std::vector<TextBlobRecordInfo> ParagraphImpl::GetTextBlobRecordInfo() const
     return textBlobRecordInfos;
 }
 
+bool ParagraphImpl::HasEnabledTextEffect() const
+{
+    RecordDifferentPthreadCall(__FUNCTION__);
+    if (paragraph_ == nullptr) {
+        return false;
+    }
+    return paragraph_->hasEnabledTextEffect();
+}
+
+void ParagraphImpl::SetTextEffectState(bool state)
+{
+    RecordDifferentPthreadCall(__FUNCTION__);
+    if (paragraph_ == nullptr) {
+        return;
+    }
+    paragraph_->setTextEffectState(state);
+}
+
 void ParagraphImpl::RecordDifferentPthreadCall(const char* caller) const
 {
     pthread_t currenetThreadId = pthread_self();

@@ -141,6 +141,10 @@ public:
 
     std::vector<TextBlobRecordInfo> GetTextBlobRecordInfo() const override;
 
+    bool HasEnabledTextEffect() const override;
+
+    void SetTextEffectState(bool state) override;
+
 private:
     void ParagraphStyleUpdater(skt::Paragraph& skiaParagraph, const ParagraphStyle& spParagraphStyle,
         skt::InternalState& state);

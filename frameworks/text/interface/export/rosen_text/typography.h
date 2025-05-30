@@ -175,8 +175,10 @@ public:
     virtual void Relayout(double width, const TypographyStyle& typograhyStyle,
         const std::vector<TextStyle>& textStyles) = 0;
     virtual void UpdateAllTextStyles(const TextStyle& textStyleTemplate) = 0;
-    virtual void SetTextEffectState(bool state) override = 0;
-    virtual bool HasEnableTextEffect() const override = 0;
+    virtual void SetTextEffectState(bool state) = 0;
+    virtual bool HasEnabledTextEffect() const = 0;
+    virtual void SetTextEffectStrategy(TextEffectStrategy strategy) = 0;
+    virtual TextEffectStrategy GetTextEffectStrategy() const = 0;
     virtual std::vector<TextBlobRecordInfo> GetTextBlobRecordInfo() const = 0;
 };
 } // namespace Rosen
