@@ -750,7 +750,7 @@ bool RSUniHwcComputeUtil::IntersectRect(Drawing::Rect& result, const Drawing::Re
         result = Drawing::Rect();
         return false;
     }
-    result = intersectRect;
+    result = intersectedRect;
     return true;
 }
 
