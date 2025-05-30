@@ -67,6 +67,9 @@
 namespace {
 constexpr int32_t CORNER_SIZE = 4;
 constexpr float GAMMA2_2 = 2.2f;
+constexpr int32_t ROTATE_OFF_SCREEN_BUFFER_SIZE_RATIO = 2;
+constexpr float OFF_SCREEN_CANVAS_SCALE = 0.5f;
+constexpr float BACK_MAIN_SCREEN_CANVAS_SCALE = 2.0f;
 }
 namespace OHOS::Rosen::DrawableV2 {
 RSSurfaceRenderNodeDrawable::Registrar RSSurfaceRenderNodeDrawable::instance_;
@@ -345,6 +348,20 @@ Drawing::Region RSSurfaceRenderNodeDrawable::CalculateVisibleDirtyRegion(
     return resultRegion;
 }
 
+void RSSurfaceRenderNodeDrawable::RotateOffScreenDowngradeMaxRenderSize(int& maxRenderSize)
+{
+    if (OcclusionCullingParam::GetRotateOffScreenDowngradeEnabled) {
+        maxRenderSize /= ROTATE_OFF_SCREEN_BUFFER_SIZE_RATIO;
+    }
+}
+
+void RSSurfaceRenderNodeDrawable::RotateOffScreenDowngradeZoomRatio()
+{
+    if (OcclusionCullingParam::GetRotateOffScreenDowngradeEnabled) {
+        curCanvas_->Scale(OFF_SCREEN_CANVAS_SCALE, OFF_SCREEN_CANVAS_SCALE);
+    }
+}
+
 bool RSSurfaceRenderNodeDrawable::PrepareOffscreenRender()
 {
     // cleanup
@@ -370,6 +387,7 @@ bool RSSurfaceRenderNodeDrawable::PrepareOffscreenRender()
     }
 
     int maxRenderSize = std::max(offscreenWidth, offscreenHeight);
+    PrepareOffscreenDowngradeMaxRenderSize(maxRenderSize);
     // create offscreen surface and canvas
     if (offscreenSurface_ == nullptr || maxRenderSize_ != maxRenderSize) {
         RS_LOGD("PrepareOffscreenRender create offscreen surface offscreenSurface_,\
@@ -396,6 +414,7 @@ bool RSSurfaceRenderNodeDrawable::PrepareOffscreenRender()
     curCanvas_->SetDisableFilterCache(true);
     arc_ = std::make_unique<RSAutoCanvasRestore>(curCanvas_, RSPaintFilterCanvas::SaveType::kCanvasAndAlpha);
     curCanvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
+    RotateOffScreenDowngradeZoomRatio();
     return true;
 }
 
@@ -422,8 +441,16 @@ void RSSurfaceRenderNodeDrawable::FinishOffscreenRender(const Drawing::SamplingO
     Drawing::Brush paint;
     paint.SetAntiAlias(true);
     canvasBackup_->AttachBrush(paint);
-    canvasBackup_->DrawImage(*image, 0, 0, sampling);
-    canvasBackup_->DetachBrush();
+    if (OcclusionCullingParam::GetRotateOffScreenDowngradeEnabled) {
+        canvasBackup_->Save();
+        canvasBackup_->Scale(BACK_MAIN_SCREEN_CANVAS_SCALE, BACK_MAIN_SCREEN_CANVAS_SCALE);
+        canvasBackup_->DrawImage(*image, 0, 0, sampling);
+        canvasBackup_->DetachBrush();
+        canvasBackup_->Restore();
+    } else {
+        canvasBackup_->DrawImage(*image, 0, 0, sampling);
+        canvasBackup_->DetachBrush();
+    }
     arc_ = nullptr;
     curCanvas_ = canvasBackup_;
 }

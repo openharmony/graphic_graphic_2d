@@ -26,14 +26,17 @@ public:
 
     static bool GetRotateOffScreenDisplayNodeEnable();
     static bool GetRotateOffScreenSurfaceNodeEnable();
+    static bool GetRotateOffScreenDowngradeEnabled();
 
 protected:
     static void SetRotateOffScreenDisplayNodeEnable(bool enable);
     static void SetRotateOffScreenSurfaceNodeEnable(bool enable);
+    static void SetRotateOffScreenDowngradeEnabled(bool enable);
 
 private:
     inline static bool isRotateOffScreenDisplayNodeEnable_ = false;
     inline static bool isRotateOffScreenSurfaceNodeEnable_ = true;
+    inline static bool isRotateOffScreenDowngradeEnabled_ = false;
 
     friend class RotateOffScreenParamParse;
 };

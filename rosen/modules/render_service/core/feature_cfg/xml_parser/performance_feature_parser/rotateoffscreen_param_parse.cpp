@@ -53,6 +53,9 @@ int32_t RotateOffScreenParamParse::ParseRotateOffScreenInternal(xmlNode &node)
         } else if (name == "RotateOffScreenSurfaceNodeEnabled") {
             RotateOffScreenParam::SetRotateOffScreenSurfaceNodeEnable(isEnabled);
             RS_LOGI("RotateOffScreenParamParse parse RotateOffScreenSurfaceNodeEnable %{public}d", isEnabled);
+        } else if (name == "RotateOffScreenDowngradeEnabled") {
+            RotateOffScreenParam::SetRotateOffScreenDowngradeEnabled(isEnabled);
+            RS_LOGI("RotateOffScreenParamParse parse RotateOffScreenDowngradeEnabled %{public}d", isEnabled);
         }
     }
     return PARSE_EXEC_SUCCESS;
