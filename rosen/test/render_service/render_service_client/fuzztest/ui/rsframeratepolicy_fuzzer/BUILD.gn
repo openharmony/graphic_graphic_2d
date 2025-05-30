@@ -45,6 +45,7 @@ ohos_fuzztest("RSFrameRatePolicyFuzzTest") {
 
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "hilog:libhilog",
     "zlib:libz",
   ]
