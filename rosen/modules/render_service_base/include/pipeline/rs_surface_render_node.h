@@ -741,7 +741,7 @@ public:
         return visibleRegion_;
     }
 
-    // Get the visible region which include transparent occlusion of the navigation bar
+    // Get the visible region which include transparent occlusion of the navigation bar in the surface
     const Occlusion::Region& GetVisibleRegionIncludeTransparentOcclusion() const
     {
         return visibleRegionIncludeTransparentOcclusion_;
@@ -902,7 +902,7 @@ public:
         visibleRegion_ = region;
     }
 
-    // Set the visible region which include transparent occlusion of the navigation bar
+    // Set the visible region which include transparent occlusion of the navigation bar in the surface
     void SetVisibleRegionIncludeTransparentOcclusion(const Occlusion::Region& region)
     {
         visibleRegionIncludeTransparentOcclusion_ = region;
@@ -1775,6 +1775,7 @@ private:
     std::vector<std::shared_ptr<RSRenderNode>> childrenFilterNodes_;
     // transparent region of the surface, floating window's container window is always treated as transparent
     Occlusion::Region transparentRegion_;
+    // transparent region of the navigation bar in the surface
     Occlusion::Region navigationBarTransparentRegion_;
 
     Occlusion::Region containerRegion_;
