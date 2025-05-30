@@ -148,12 +148,12 @@ void RSUniHwcComputeUtil::DealWithNodeGravity(RSSurfaceRenderNode& node, const D
     Drawing::Rect frame = Drawing::Rect(0.f, 0.f, bufferWidth, bufferHeight);
     Drawing::Rect localIntersectRect;
     gravityMatrix.MapRect(localIntersectRect, frame);
-    localIntersectRect.Intersect(bound);
+    IntersectRect(localIntersectRect, bound);
     Drawing::Rect absIntersectRect;
     totalMatrix.MapRect(absIntersectRect, localIntersectRect);
     const RectI dstRect = node.GetDstRect();
     Drawing::Rect newDstRect(dstRect.left_, dstRect.top_, dstRect.GetRight(), dstRect.GetBottom());
-    newDstRect.Intersect(absIntersectRect);
+    IntersectRect(newDstRect, absIntersectRect);
     node.SetDstRect({std::floor(newDstRect.GetLeft()), std::floor(newDstRect.GetTop()),
         std::ceil(newDstRect.GetWidth()), std::ceil(newDstRect.GetHeight())});
     Drawing::Rect newSrcRect;
@@ -434,9 +434,9 @@ void RSUniHwcComputeUtil::UpdateHwcNodeByScalingMode(RSSurfaceRenderNode& node, 
     Drawing::Rect dstRectWithoutScaling;
     gravityMatrix.MapRect(dstRectWithoutScaling, Drawing::Rect(0.f, 0.f, bufferWidth, bufferHeight));
     totalMatrix.MapRect(dstRectWithoutScaling, dstRectWithoutScaling);
-    newDstRect.Intersect(dstRectWithoutScaling);
+    IntersectRect(newDstRect, dstRectWithoutScaling);
     Drawing::Rect bounds = node.GetDstRectWithoutRenderFit();
-    newDstRect.Intersect(bounds);
+    IntersectRect(newDstRect, bounds);
     node.SetDstRect({std::floor(newDstRect.GetLeft()), std::floor(newDstRect.GetTop()),
         std::ceil(newDstRect.GetWidth()), std::ceil(newDstRect.GetHeight())});
     Drawing::Rect newSrcRect;
@@ -739,14 +739,19 @@ std::optional<Drawing::Matrix> RSUniHwcComputeUtil::GetMatrix(
     }
 }
 
-void RSUniHwcComputeUtil::IntersectRect(Drawing::Rect& rect1, const Drawing::Rect& rect2)
+bool RSUniHwcComputeUtil::IntersectRect(Drawing::Rect& result, const Drawing::Rect& other)
 {
-    float left = std::max(rect1.left_, rect2.left_);
-    float top = std::max(rect1.top_, rect2.top_);
-    float right = std::min(rect1.right_, rect2.right_);
-    float bottom = std::min(rect1.bottom_, rect2.bottom_);
+    float left = std::max(result.left_, other.left_);
+    float top = std::max(result.top_, other.top_);
+    float right = std::min(result.right_, other.right_);
+    float bottom = std::min(result.bottom_, other.bottom_);
     Drawing::Rect intersectedRect(left, top, right, bottom);
-    rect1 = intersectedRect.IsValid() ? intersectedRect : Drawing::Rect();
+    if (!intersectedRect.IsValid()) {
+        result = Drawing::Rect();
+        return false;
+    }
+    result = intersectedRect;
+    return true;
 }
 
 bool RSUniHwcComputeUtil::IsBlendNeedFilter(RSRenderNode& node)

@@ -54,7 +54,7 @@ public:
     static bool HasNonZRotationTransform(const Drawing::Matrix& matrix);
     static GraphicTransformType GetLayerTransform(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo);
     static std::optional<Drawing::Matrix> GetMatrix(const std::shared_ptr<RSRenderNode>& hwcNode);
-    static void IntersectRect(Drawing::Rect& rect1, const Drawing::Rect& rect2);
+    static bool IntersectRect(Drawing::Rect& result, const Drawing::Rect& other);
     static bool IsBlendNeedFilter(RSRenderNode& node);
     static bool IsBlendNeedBackground(RSRenderNode& node);
     static bool IsBlendNeedChildNode(RSRenderNode& node);
