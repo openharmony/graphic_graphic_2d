@@ -122,7 +122,7 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfac
         node->AddCommand(command, isWindow);
         node->SetFrameGravity(Gravity::RESIZE);
         // codes for arkui-x
-#if defined(USE_SURFACE_TEXTURE) && defined(ROSEN_ANDROID) && not defined(SCREENLESS_DEVICE)
+#if defined(USE_SURFACE_TEXTURE) && defined(ROSEN_ANDROID) && !defined(SCREENLESS_DEVICE)
         if (type == RSSurfaceNodeType::SURFACE_TEXTURE_NODE) {
             RSSurfaceExtConfig config = {
                 .type = RSSurfaceExtType::SURFACE_TEXTURE,
@@ -132,7 +132,7 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfac
         }
 #endif
         // codes for arkui-x
-#if defined(USE_SURFACE_TEXTURE) && defined(ROSEN_IOS) && not defined(SCREENLESS_DEVICE)
+#if defined(USE_SURFACE_TEXTURE) && defined(ROSEN_IOS) && !defined(SCREENLESS_DEVICE)
         if ((type == RSSurfaceNodeType::SURFACE_TEXTURE_NODE) &&
             (surfaceNodeConfig.SurfaceNodeName == "PlatformViewSurface")) {
             RSSurfaceExtConfig config = {
