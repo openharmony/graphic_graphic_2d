@@ -33,7 +33,11 @@
 #include "native_window.h"
 #endif
 #ifdef RS_ENABLE_VK
+#ifdef USE_M133_SKIA
+#include "include/gpu/ganesh/GrBackendSemaphore.h"
+#else
 #include "include/gpu/GrBackendSemaphore.h"
+#endif
 #include "platform/ohos/backend/native_buffer_utils.h"
 #include "platform/ohos/backend/rs_vulkan_context.h"
 #endif

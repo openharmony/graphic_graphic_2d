@@ -30,14 +30,17 @@
 #define VK_NO_PROTOTYPES 1
 
 #include "vulkan/vulkan.h"
-#include "include/gpu/vk/GrVkBackendContext.h"
 #include "rs_vulkan_mem_statistic.h"
 
 #include "image/gpu_context.h"
 
 #ifdef USE_M133_SKIA
+#include "include/gpu/vk/VulkanExtensions.h"
+#include "include/gpu/vk/VulkanBackendContext.h"
 #include "include/gpu/ganesh/GrDirectContext.h"
 #else
+#include "include/gpu/vk/GrVkExtensions.h"
+#include "include/gpu/vk/GrVkBackendContext.h"
 #include "include/gpu/GrDirectContext.h"
 #endif
 
@@ -140,14 +143,22 @@ public:
     bool CreateInstance();
     bool SelectPhysicalDevice(bool isProtected = false);
     bool CreateDevice(bool isProtected = false);
+#ifdef USE_M133_SKIA
+    bool CreateSkiaBackendContext(skgpu::VulkanBackendContext* context, bool isProtected = false);
+#else
     bool CreateSkiaBackendContext(GrVkBackendContext* context, bool isProtected = false);
+#endif
     RsVulkanMemStat& GetRsVkMemStat()
     {
         return mVkMemStat;
     }
 
     bool IsValid() const;
+#ifdef USE_M133_SKIA
+    skgpu::VulkanGetProc CreateSkiaGetProc() const;
+#else
     GrVkGetProc CreateSkiaGetProc() const;
+#endif
     const std::shared_ptr<MemoryHandler> GetMemoryHandler() const
     {
         return memHandler_;
@@ -233,7 +244,11 @@ public:
         return backendContext_.fQueue;
     }
 
+#ifdef USE_M133_SKIA
+    inline const skgpu::VulkanBackendContext& GetGrVkBackendContext() const noexcept
+#else
     inline const GrVkBackendContext& GetGrVkBackendContext() const noexcept
+#endif
     {
         return backendContext_;
     }
@@ -278,11 +293,16 @@ private:
     VkPhysicalDeviceTimelineSemaphoreFeatures timelineFeature_;
     std::vector<const char*> deviceExtensions_;
     VkDeviceMemoryExclusiveThresholdHUAWEI deviceMemoryExclusiveThreshold_;
+#ifdef USE_M133_SKIA
+    skgpu::VulkanExtensions skVkExtensions_;
+    skgpu::VulkanBackendContext backendContext_;
+#else
     GrVkExtensions skVkExtensions_;
+    GrVkBackendContext backendContext_;
+#endif
     RsVulkanMemStat mVkMemStat;
 
     // static thread_local GrVkBackendContext backendContext_;
-    GrVkBackendContext backendContext_;
     VulkanInterfaceType interfaceType_ = VulkanInterfaceType::BASIC_RENDER;
     RsVulkanInterface(const RsVulkanInterface &) = delete;
     RsVulkanInterface &operator=(const RsVulkanInterface &) = delete;
@@ -347,7 +367,11 @@ public:
         return GetRsVulkanInterface().IsValid();
     }
 
+#ifdef USE_M133_SKIA
+    skgpu::VulkanGetProc CreateSkiaGetProc()
+#else
     GrVkGetProc CreateSkiaGetProc()
+#endif
     {
         return GetRsVulkanInterface().CreateSkiaGetProc();
     }
@@ -372,7 +396,11 @@ public:
         return GetRsVulkanInterface().GetQueue();
     }
 
+#ifdef USE_M133_SKIA
+    inline const skgpu::VulkanBackendContext& GetGrVkBackendContext() noexcept
+#else
     inline const GrVkBackendContext& GetGrVkBackendContext() noexcept
+#endif
     {
         return GetRsVulkanInterface().GetGrVkBackendContext();
     }
