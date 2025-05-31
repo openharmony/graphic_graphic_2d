@@ -77,9 +77,9 @@ void RSUISoundWaveFilterPara::SetProperty(const std::shared_ptr<RSUIFilterParaBa
     auto shockWaveProgressAAnimation = std::static_pointer_cast<RSAnimatableProperty<float>>(shockWaveProgressA);
     auto shockWaveProgressBAnimation = std::static_pointer_cast<RSAnimatableProperty<float>>(shockWaveProgressB);
     auto shockWaveTotalAlphaAnimation = std::static_pointer_cast<RSAnimatableProperty<float>>(shockWaveTotalAlpha);
-     if (!colorAProperty || !colorBProperty || !colorCProperty || !colorProgressAnimation || !soundIntensityAnimation ||
-         !shockWaveAlphaAAnimation || !shockWaveAlphaBAnimation || !shockWaveProgressAAnimation ||
-         !shockWaveProgressBAnimation || !shockWaveTotalAlphaAnimation) {
+    if (!colorAProperty || !colorBProperty || !colorCProperty || !colorProgressAnimation || !soundIntensityAnimation ||
+        !shockWaveAlphaAAnimation || !shockWaveAlphaBAnimation || !shockWaveProgressAAnimation ||
+        !shockWaveProgressBAnimation || !shockWaveTotalAlphaAnimation) {
         ROSEN_LOGW("RSUISoundWaveFilterPara::SetProperty RSAnimatableProperty null NG!");
         return;
     }
