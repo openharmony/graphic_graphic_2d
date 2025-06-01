@@ -3205,7 +3205,7 @@ ErrCode RSRenderServiceConnection::SetWindowContainer(NodeId nodeId, bool value)
                     PRIu64, displayNodeId);
             }
         } else {
-            RS_LOGE("RSetWindowContainer node is nullptr, nodeId: %{public}" PRIu64,
+            RS_LOGE("SetWindowContainer node is nullptr, nodeId: %{public}" PRIu64,
                 nodeId);
         }
     };
