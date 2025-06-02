@@ -22,87 +22,50 @@
 namespace OHOS::Rosen::ModifierNG {
 enum class RSModifierType : uint8_t {
     INVALID = 0,
-    SAVE_ALL,
 
+    BOUNDS,
+    FRAME,
     TRANSFORM,
     ALPHA,
-    VISIBILITY,
 
-    // Bounds Geometry
-    MASK,
-    TRANSITION,
-    ENV_FOREGROUND_COLOR,
-    SHADOW,
-    BEGIN_FOREGROUND_FILTER,
-    OUTLINE,
-
-    // BG properties in Bounds Clip
-    BG_SAVE_BOUNDS,
-    BOUNDS,
-    CLIP_TO_BOUNDS,
-    BLENDER,
+    FOREGROUND_COLOR,
     BACKGROUND_COLOR,
     BACKGROUND_SHADER,
     BACKGROUND_IMAGE,
-    BEHIND_WINDOW_FILTER,
-    BACKGROUND_FILTER,
-    USE_EFFECT,
-    BACKGROUND_STYLE,
-    DYNAMIC_LIGHT_UP,
-    BG_RESTORE_BOUNDS,
 
-    // Frame Geometry
-    SAVE_FRAME,
-    FRAME,
-    CLIP_TO_FRAME,
-    CUSTOM_CLIP_TO_FRAME,
-    CONTENT_STYLE,
-    CHILDREN,
-    NODE_MODIFIER,
-    FOREGROUND_STYLE,
-    RESTORE_FRAME,
-
-    // FG properties in Bounds clip
-    FG_SAVE_BOUNDS,
-    FG_CLIP_TO_BOUNDS,
-    BINARIZATION,
-    COLOR_FILTER,
-    LIGHT_UP_EFFECT,
-    DYNAMIC_DIM,
-    COMPOSITING_FILTER,
-    FOREGROUND_COLOR,
-    FG_RESTORE_BOUNDS,
-
-    // No clip (unless ClipToBounds is set)
-    POINT_LIGHT,
     BORDER,
-    OVERLAY_STYLE,
-    PARTICLE_EFFECT,
+    OUTLINE,
+    CLIP_TO_BOUNDS,
+    CLIP_TO_FRAME,
+    VISIBILITY,
+
+    DYNAMIC_LIGHT_UP,
+    SHADOW,
+    MASK,
     PIXEL_STRETCH,
+    USE_EFFECT,
+    BLENDER,
 
-    // Restore state
-    RESTORE_BLENDER,
+    POINT_LIGHT,
+    PARTICLE_EFFECT,
+    COMPOSITING_FILTER,
+    BACKGROUND_FILTER,
     FOREGROUND_FILTER,
-    RESTORE_ALL,
 
-    // Annotations: Please remember to update this when new slots are added.
-    // properties before Background, not clipped
-    TRANSITION_PROPERTIES_BEGIN = SHADOW,
-    TRANSITION_PROPERTIES_END   = OUTLINE,
-    // background properties, clipped by bounds by default
-    BG_PROPERTIES_BEGIN         = BLENDER,
-    BG_PROPERTIES_END           = DYNAMIC_LIGHT_UP,
-    // content properties, can be clipped by ClipToFrame and ClipToBounds
-    CONTENT_BEGIN               = FRAME,
-    CONTENT_END                 = FOREGROUND_STYLE,
-    // foreground properties, clipped by bounds by default
-    FG_PROPERTIES_BEGIN         = BINARIZATION,
-    FG_PROPERTIES_END           = FOREGROUND_COLOR,
-    // post-foreground properties, can be clipped by ClipToBounds
-    EXTRA_PROPERTIES_BEGIN      = POINT_LIGHT,
-    EXTRA_PROPERTIES_END        = PIXEL_STRETCH,
+    TRANSITION_STYLE,
+    BACKGROUND_STYLE,
+    CONTENT_STYLE,
+    FOREGROUND_STYLE,
+    OVERLAY_STYLE,
+    NODE_MODIFIER,
 
-    MAX = RESTORE_ALL + 1,
+    ENV_FOREGROUND_COLOR,
+    HDR_BRIGHTNESS,
+    BEHIND_WINDOW_FILTER,
+
+    CHILDREN, // PLACEHOLDER, no such modifier, but we need a dirty flag
+
+    MAX = CHILDREN + 1,
 };
 
 enum class RSPropertyType : uint8_t {
@@ -111,62 +74,185 @@ enum class RSPropertyType : uint8_t {
 #undef X
 };
 
+class ModifierTypeConvertor {
+public:
+    static ModifierNG::RSPropertyType GetPropertyType(ModifierNG::RSModifierType modifierTypeNG)
+    {
+        auto it = modifierToPropertyMap_.find(modifierTypeNG);
+        if (it != modifierToPropertyMap_.end()) {
+            return it->second;
+        }
+        return ModifierNG::RSPropertyType::INVALID;
+    }
+
+private:
+    static inline std::unordered_map<ModifierNG::RSModifierType, ModifierNG::RSPropertyType> modifierToPropertyMap_ = {
+        { ModifierNG::RSModifierType::TRANSITION_STYLE, ModifierNG::RSPropertyType::TRANSITION_STYLE },
+        { ModifierNG::RSModifierType::BACKGROUND_STYLE, ModifierNG::RSPropertyType::BACKGROUND_STYLE },
+        { ModifierNG::RSModifierType::CONTENT_STYLE, ModifierNG::RSPropertyType::CONTENT_STYLE },
+        { ModifierNG::RSModifierType::FOREGROUND_STYLE, ModifierNG::RSPropertyType::FOREGROUND_STYLE },
+        { ModifierNG::RSModifierType::OVERLAY_STYLE, ModifierNG::RSPropertyType::OVERLAY_STYLE },
+    };
+};
+
 class RSModifierTypeString {
 public:
-    static std::string GetModifierTypeString(RSModifierType type)
+    static std::string GetPropertyTypeString(RSPropertyType type)
     {
         switch (type) {
-            case RSModifierType::INVALID: return "Invalid";
-            case RSModifierType::SAVE_ALL: return "SaveAll";
-            case RSModifierType::TRANSFORM: return "Transform";
-            case RSModifierType::ALPHA: return "Alpha";
-            case RSModifierType::VISIBILITY: return "Visibility";
-            case RSModifierType::MASK: return "Mask";
-            case RSModifierType::TRANSITION: return "Transition";
-            case RSModifierType::ENV_FOREGROUND_COLOR: return "EnvForegroundColor";
-            case RSModifierType::SHADOW: return "Shadow";
-            case RSModifierType::BEGIN_FOREGROUND_FILTER: return "BeginForegroundFilter";
-            case RSModifierType::OUTLINE: return "Outline";
-            case RSModifierType::BG_SAVE_BOUNDS: return "BgSaveBounds";
-            case RSModifierType::BOUNDS: return "Bounds";
-            case RSModifierType::CLIP_TO_BOUNDS: return "ClipToBounds";
-            case RSModifierType::BLENDER: return "Blender";
-            case RSModifierType::BACKGROUND_COLOR: return "BackgroundColor";
-            case RSModifierType::BACKGROUND_SHADER: return "BackgroundShader";
-            case RSModifierType::BACKGROUND_IMAGE: return "BackgroundImage";
-            case RSModifierType::BEHIND_WINDOW_FILTER: return "BehindWindowFilter";
-            case RSModifierType::BACKGROUND_FILTER: return "BackgroundFilter";
-            case RSModifierType::USE_EFFECT: return "UseEffect";
-            case RSModifierType::BACKGROUND_STYLE: return "BackgroundStyle";
-            case RSModifierType::DYNAMIC_LIGHT_UP: return "DynamicLightUp";
-            case RSModifierType::BG_RESTORE_BOUNDS: return "BgRestoreBounds";
-            case RSModifierType::SAVE_FRAME: return "SaveFrame";
-            case RSModifierType::FRAME: return "Frame";
-            case RSModifierType::CLIP_TO_FRAME: return "ClipToFrame";
-            case RSModifierType::CUSTOM_CLIP_TO_FRAME: return "CustomClipToFrame";
-            case RSModifierType::CONTENT_STYLE: return "ContentStyle";
-            case RSModifierType::CHILDREN: return "Children";
-            case RSModifierType::NODE_MODIFIER: return "NodeModifier";
-            case RSModifierType::FOREGROUND_STYLE: return "ForegroundStyle";
-            case RSModifierType::RESTORE_FRAME: return "RestoreFrame";
-            case RSModifierType::FG_SAVE_BOUNDS: return "FgSaveBounds";
-            case RSModifierType::FG_CLIP_TO_BOUNDS: return "FgClipToBounds";
-            case RSModifierType::BINARIZATION: return "Binarization";
-            case RSModifierType::COLOR_FILTER: return "Color_filter";
-            case RSModifierType::LIGHT_UP_EFFECT: return "LightUpEffect";
-            case RSModifierType::DYNAMIC_DIM: return "DynamicDim";
-            case RSModifierType::COMPOSITING_FILTER: return "CompositingFilter";
-            case RSModifierType::FOREGROUND_COLOR: return "ForegroundColor";
-            case RSModifierType::FG_RESTORE_BOUNDS: return "FgRestoreBounds";
-            case RSModifierType::POINT_LIGHT: return "PointLight";
-            case RSModifierType::BORDER: return "Border";
-            case RSModifierType::OVERLAY_STYLE: return "OverlayStyle";
-            case RSModifierType::PARTICLE_EFFECT: return "ParticleEffect";
-            case RSModifierType::PIXEL_STRETCH: return "PixelStretch";
-            case RSModifierType::RESTORE_BLENDER: return "RestoreBlender";
-            case RSModifierType::FOREGROUND_FILTER: return "ForegroundFilter";
-            case RSModifierType::RESTORE_ALL: return "RestoreAll";
-            case RSModifierType::MAX: return "Max";
+            case RSPropertyType::INVALID: return "Invalid";
+            case RSPropertyType::BOUNDS: return "Bounds";
+            case RSPropertyType::FRAME: return "Frame";
+            case RSPropertyType::POSITION_Z: return "PositionZ";
+            case RSPropertyType::POSITION_Z_APPLICABLE_CAMERA3D: return "PositionZApplicableCamera3d";
+            case RSPropertyType::PIVOT: return "Pivot";
+            case RSPropertyType::PIVOT_Z: return "PivotZ";
+            case RSPropertyType::QUATERNION: return "Quaternion";
+            case RSPropertyType::ROTATION: return "Rotation";
+            case RSPropertyType::ROTATION_X: return "RotationX";
+            case RSPropertyType::ROTATION_Y: return "RotationY";
+            case RSPropertyType::CAMERA_DISTANCE: return "CameraDistance";
+            case RSPropertyType::SCALE: return "Scale";
+            case RSPropertyType::SCALE_Z: return "ScaleZ";
+            case RSPropertyType::SKEW: return "Skew";
+            case RSPropertyType::PERSP: return "Persp";
+            case RSPropertyType::TRANSLATE: return "Translate";
+            case RSPropertyType::TRANSLATE_Z: return "TranslateZ";
+            case RSPropertyType::SUBLAYER_TRANSFORM: return "SublayerTransform";
+            case RSPropertyType::CORNER_RADIUS: return "CornerRadius";
+            case RSPropertyType::ALPHA: return "Alpha";
+            case RSPropertyType::ALPHA_OFFSCREEN: return "AlphaOffscreen";
+            case RSPropertyType::FOREGROUND_COLOR: return "ForegroundColor";
+            case RSPropertyType::BACKGROUND_COLOR: return "BackgroundColor";
+            case RSPropertyType::BACKGROUND_SHADER: return "BackgroundShader";
+            case RSPropertyType::BACKGROUND_SHADER_PROGRESS: return "BackgroundShaderProgress";
+            case RSPropertyType::BG_IMAGE: return "BgImage";
+            case RSPropertyType::BG_IMAGE_INNER_RECT: return "BgImageInnerRect";
+            case RSPropertyType::BG_IMAGE_WIDTH: return "BgImageWidth";
+            case RSPropertyType::BG_IMAGE_HEIGHT: return "BgImageHeight";
+            case RSPropertyType::BG_IMAGE_POSITION_X: return "BgImagePositionX";
+            case RSPropertyType::BG_IMAGE_POSITION_Y: return "BgImagePositionY";
+            case RSPropertyType::BG_IMAGE_RECT: return "BgImageRect";
+            case RSPropertyType::SURFACE_BG_COLOR: return "SurfaceBgColor";
+            case RSPropertyType::BORDER_COLOR: return "BorderColor";
+            case RSPropertyType::BORDER_WIDTH: return "BorderWidth";
+            case RSPropertyType::BORDER_STYLE: return "BorderStyle";
+            case RSPropertyType::BORDER_DASH_WIDTH: return "BorderDashWidth";
+            case RSPropertyType::BORDER_DASH_GAP: return "BorderDashGap";
+            case RSPropertyType::FILTER: return "Filter";
+            case RSPropertyType::BACKGROUND_FILTER: return "BackgroundFilter";
+            case RSPropertyType::LINEAR_GRADIENT_BLUR_PARA: return "LinearGradientBlurPara";
+            case RSPropertyType::DYNAMIC_LIGHT_UP_RATE: return "DynamicLightUpRate";
+            case RSPropertyType::DYNAMIC_LIGHT_UP_DEGREE: return "DynamicLightUpDegree";
+            case RSPropertyType::FG_BRIGHTNESS_RATES: return "FgBrightnessRates";
+            case RSPropertyType::FG_BRIGHTNESS_SATURATION: return "FgBrightnessSaturation";
+            case RSPropertyType::FG_BRIGHTNESS_POSCOEFF: return "FgBrightnessPoscoeff";
+            case RSPropertyType::FG_BRIGHTNESS_NEGCOEFF: return "FgBrightnessNegcoeff";
+            case RSPropertyType::FG_BRIGHTNESS_FRACTION: return "FgBrightnessFraction";
+            case RSPropertyType::BG_BRIGHTNESS_RATES: return "BgBrightnessRates";
+            case RSPropertyType::BG_BRIGHTNESS_SATURATION: return "BgBrightnessSaturation";
+            case RSPropertyType::BG_BRIGHTNESS_POSCOEFF: return "BgBrightnessPoscoeff";
+            case RSPropertyType::BG_BRIGHTNESS_NEGCOEFF: return "BgBrightnessNegcoeff";
+            case RSPropertyType::BG_BRIGHTNESS_FRACTION: return "BgBrightnessFraction";
+            case RSPropertyType::FRAME_GRAVITY: return "FrameGravity";
+            case RSPropertyType::CLIP_RRECT: return "ClipRrect";
+            case RSPropertyType::CLIP_BOUNDS: return "ClipBounds";
+            case RSPropertyType::CLIP_TO_BOUNDS: return "ClipToBounds";
+            case RSPropertyType::CLIP_TO_FRAME: return "ClipToFrame";
+            case RSPropertyType::VISIBLE: return "Visible";
+            case RSPropertyType::SHADOW_COLOR: return "ShadowColor";
+            case RSPropertyType::SHADOW_OFFSET_X: return "ShadowOffsetX";
+            case RSPropertyType::SHADOW_OFFSET_Y: return "ShadowOffsetY";
+            case RSPropertyType::SHADOW_ALPHA: return "ShadowAlpha";
+            case RSPropertyType::SHADOW_ELEVATION: return "ShadowElevation";
+            case RSPropertyType::SHADOW_RADIUS: return "ShadowRadius";
+            case RSPropertyType::SHADOW_PATH: return "ShadowPath";
+            case RSPropertyType::SHADOW_MASK: return "ShadowMask";
+            case RSPropertyType::SHADOW_COLOR_STRATEGY: return "ShadowColorStrategy";
+            case RSPropertyType::MASK: return "Mask";
+            case RSPropertyType::SPHERIZE: return "Spherize";
+            case RSPropertyType::LIGHT_UP_EFFECT_DEGREE: return "LightUpEffectDegree";
+            case RSPropertyType::PIXEL_STRETCH_SIZE: return "PixelStretchSize";
+            case RSPropertyType::PIXEL_STRETCH_PERCENT: return "PixelStretchPercent";
+            case RSPropertyType::PIXEL_STRETCH_TILE_MODE: return "PixelStretchTileMode";
+            case RSPropertyType::USE_EFFECT: return "UseEffect";
+            case RSPropertyType::USE_EFFECT_TYPE: return "UseEffectType";
+            case RSPropertyType::COLOR_BLEND_MODE: return "ColorBlendMode";
+            case RSPropertyType::COLOR_BLEND_APPLY_TYPE: return "ColorBlendApplyType";
+            case RSPropertyType::SANDBOX: return "Sandbox";
+            case RSPropertyType::GRAY_SCALE: return "GrayScale";
+            case RSPropertyType::BRIGHTNESS: return "Brightness";
+            case RSPropertyType::CONTRAST: return "Contrast";
+            case RSPropertyType::SATURATE: return "Saturate";
+            case RSPropertyType::SEPIA: return "Sepia";
+            case RSPropertyType::INVERT: return "Invert";
+            case RSPropertyType::AIINVERT: return "Aiinvert";
+            case RSPropertyType::SYSTEMBAREFFECT: return "Systembareffect";
+            case RSPropertyType::WATER_RIPPLE_PROGRESS: return "WaterRippleProgress";
+            case RSPropertyType::WATER_RIPPLE_PARAMS: return "WaterRippleParams";
+            case RSPropertyType::HUE_ROTATE: return "HueRotate";
+            case RSPropertyType::COLOR_BLEND: return "ColorBlend";
+            case RSPropertyType::PARTICLE: return "Particle";
+            case RSPropertyType::SHADOW_IS_FILLED: return "ShadowIsFilled";
+            case RSPropertyType::OUTLINE_COLOR: return "OutlineColor";
+            case RSPropertyType::OUTLINE_WIDTH: return "OutlineWidth";
+            case RSPropertyType::OUTLINE_STYLE: return "OutlineStyle";
+            case RSPropertyType::OUTLINE_DASH_WIDTH: return "OutlineDashWidth";
+            case RSPropertyType::OUTLINE_DASH_GAP: return "OutlineDashGap";
+            case RSPropertyType::OUTLINE_RADIUS: return "OutlineRadius";
+            case RSPropertyType::GREY_COEF: return "GreyCoef";
+            case RSPropertyType::LIGHT_INTENSITY: return "LightIntensity";
+            case RSPropertyType::LIGHT_COLOR: return "LightColor";
+            case RSPropertyType::LIGHT_POSITION: return "LightPosition";
+            case RSPropertyType::ILLUMINATED_BORDER_WIDTH: return "IlluminatedBorderWidth";
+            case RSPropertyType::ILLUMINATED_TYPE: return "IlluminatedType";
+            case RSPropertyType::BLOOM: return "Bloom";
+            case RSPropertyType::FOREGROUND_EFFECT_RADIUS: return "ForegroundEffectRadius";
+            case RSPropertyType::USE_SHADOW_BATCHING: return "UseShadowBatching";
+            case RSPropertyType::MOTION_BLUR_PARA: return "MotionBlurPara";
+            case RSPropertyType::PARTICLE_EMITTER_UPDATER: return "ParticleEmitterUpdater";
+            case RSPropertyType::PARTICLE_NOISE_FIELD: return "ParticleNoiseField";
+            case RSPropertyType::FLY_OUT_DEGREE: return "FlyOutDegree";
+            case RSPropertyType::FLY_OUT_PARAMS: return "FlyOutParams";
+            case RSPropertyType::DISTORTION_K: return "DistortionK";
+            case RSPropertyType::DYNAMIC_DIM_DEGREE: return "DynamicDimDegree";
+            case RSPropertyType::MAGNIFIER_PARA: return "MagnifierPara";
+            case RSPropertyType::BACKGROUND_BLUR_RADIUS: return "BackgroundBlurRadius";
+            case RSPropertyType::BACKGROUND_BLUR_SATURATION: return "BackgroundBlurSaturation";
+            case RSPropertyType::BACKGROUND_BLUR_BRIGHTNESS: return "BackgroundBlurBrightness";
+            case RSPropertyType::BACKGROUND_BLUR_MASK_COLOR: return "BackgroundBlurMaskColor";
+            case RSPropertyType::BACKGROUND_BLUR_COLOR_MODE: return "BackgroundBlurColorMode";
+            case RSPropertyType::BACKGROUND_BLUR_RADIUS_X: return "BackgroundBlurRadiusX";
+            case RSPropertyType::BACKGROUND_BLUR_RADIUS_Y: return "BackgroundBlurRadiusY";
+            case RSPropertyType::BG_BLUR_DISABLE_SYSTEM_ADAPTATION: return "BgBlurDisableSystemAdaptation";
+            case RSPropertyType::ALWAYS_SNAPSHOT: return "AlwaysSnapshot";
+            case RSPropertyType::FOREGROUND_BLUR_RADIUS: return "ForegroundBlurRadius";
+            case RSPropertyType::FOREGROUND_BLUR_SATURATION: return "ForegroundBlurSaturation";
+            case RSPropertyType::FOREGROUND_BLUR_BRIGHTNESS: return "ForegroundBlurBrightness";
+            case RSPropertyType::FOREGROUND_BLUR_MASK_COLOR: return "ForegroundBlurMaskColor";
+            case RSPropertyType::FOREGROUND_BLUR_COLOR_MODE: return "ForegroundBlurColorMode";
+            case RSPropertyType::FOREGROUND_BLUR_RADIUS_X: return "ForegroundBlurRadiusX";
+            case RSPropertyType::FOREGROUND_BLUR_RADIUS_Y: return "ForegroundBlurRadiusY";
+            case RSPropertyType::FG_BLUR_DISABLE_SYSTEM_ADAPTATION: return "FgBlurDisableSystemAdaptation";
+            case RSPropertyType::ATTRACTION_FRACTION: return "AttractionFraction";
+            case RSPropertyType::ATTRACTION_DSTPOINT: return "AttractionDstpoint";
+            case RSPropertyType::CUSTOM: return "Custom";
+            case RSPropertyType::TRANSITION_STYLE: return "TransitionStyle";
+            case RSPropertyType::BACKGROUND_STYLE: return "BackgroundStyle";
+            case RSPropertyType::CONTENT_STYLE: return "ContentStyle";
+            case RSPropertyType::FOREGROUND_STYLE: return "ForegroundStyle";
+            case RSPropertyType::OVERLAY_STYLE: return "OverlayStyle";
+            case RSPropertyType::NODE_MODIFIER: return "NodeModifier";
+            case RSPropertyType::ENV_FOREGROUND_COLOR: return "EnvForegroundColor";
+            case RSPropertyType::ENV_FOREGROUND_COLOR_STRATEGY: return "EnvForegroundColorStrategy";
+            case RSPropertyType::GEOMETRYTRANS: return "Geometrytrans";
+            case RSPropertyType::CUSTOM_CLIP_TO_FRAME: return "CustomClipToFrame";
+            case RSPropertyType::HDR_BRIGHTNESS: return "HdrBrightness";
+            case RSPropertyType::BEHIND_WINDOW_FILTER_RADIUS: return "BehindWindowFilterRadius";
+            case RSPropertyType::BEHIND_WINDOW_FILTER_SATURATION: return "BehindWindowFilterSaturation";
+            case RSPropertyType::BEHIND_WINDOW_FILTER_BRIGHTNESS: return "BehindWindowFilterBrightness";
+            case RSPropertyType::BEHIND_WINDOW_FILTER_MASK_COLOR: return "BehindWindowFilterMaskColor";
+            case RSPropertyType::CHILDREN: return "Children";
             default: return "Unknown";
         }
         return "Unknown";
