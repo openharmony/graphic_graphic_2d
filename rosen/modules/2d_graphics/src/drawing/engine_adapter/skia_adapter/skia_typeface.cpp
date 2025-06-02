@@ -61,11 +61,7 @@ std::string SkiaTypeface::GetFontPath() const
         return path;
     }
     SkString skName;
-#ifdef USE_M133_SKIA
-    skTypeface_->getFamilyName(&skName);
-#else
     skTypeface_->getFontPath(&skName);
-#endif
     SkiaConvertUtils::SkStringCastToStdString(skName, path);
     return path;
 }
