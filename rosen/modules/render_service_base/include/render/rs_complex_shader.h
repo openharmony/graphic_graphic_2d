@@ -46,7 +46,7 @@ private:
     std::shared_ptr<Drawing::ShaderEffect> GetShaderEffect(
         const std::vector<float> &effectParam, const Drawing::RectF &rect);
     GexComplexShaderType GetShaderType() const;
-    GexComplexShaderType shaderType_;
+    GexComplexShaderType shaderType_ = GexComplexShaderType::NONE;
     std::shared_ptr<Drawing::ShaderEffect> shaderEffect_;
 };
 }  // namespace Rosen

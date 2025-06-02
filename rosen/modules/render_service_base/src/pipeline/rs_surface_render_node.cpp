@@ -1078,14 +1078,19 @@ void RSSurfaceRenderNode::UpdateSpecialLayerInfoByOnTreeStateChange()
 
 void RSSurfaceRenderNode::UpdateBlackListStatus(ScreenId virtualScreenId, bool isBlackList)
 {
-    SetDirty();
     if (isBlackList) {
+        if (blackListIds_.find(virtualScreenId) != blackListIds_.end() &&
+            blackListIds_[virtualScreenId].find(GetId()) != blackListIds_[virtualScreenId].end()) {
+            return;
+        }
         blackListIds_[virtualScreenId].insert(GetId());
+        SetDirty();
         return;
     }
     for (const auto& [screenId, nodeIdSet] : blackListIds_) {
         if (nodeIdSet.size() > 0 && nodeIdSet.find(GetId()) != nodeIdSet.end()) {
             blackListIds_[screenId].erase(GetId());
+            SetDirty();
         }
     }
 }
@@ -1314,11 +1319,25 @@ bool RSSurfaceRenderNode::GetAncoForceDoDirect() const
 void RSSurfaceRenderNode::SetAncoFlags(uint32_t flags)
 {
     ancoFlags_.store(flags);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (surfaceParams == nullptr) {
+        return;
+    }
+    surfaceParams->SetAncoFlags(flags);
 }
 
 uint32_t RSSurfaceRenderNode::GetAncoFlags() const
 {
     return ancoFlags_.load();
+}
+
+void RSSurfaceRenderNode::SetAncoSrcCrop(const Rect& srcCrop)
+{
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (surfaceParams == nullptr) {
+        return;
+    }
+    surfaceParams->SetAncoSrcCrop(srcCrop);
 }
 
 void RSSurfaceRenderNode::RegisterTreeStateChangeCallback(TreeStateChangeCallback callback)
@@ -1857,6 +1876,7 @@ void RSSurfaceRenderNode::UpdateHwcNodeLayerInfo(GraphicTransformType transform,
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
     auto layer = surfaceParams->GetLayerInfo();
     layer.srcRect = {srcRect_.left_, srcRect_.top_, srcRect_.width_, srcRect_.height_};
+    UpdateLayerSrcRectForAnco(layer, *surfaceParams);
     layer.dstRect = {dstRect_.left_, dstRect_.top_, dstRect_.width_, dstRect_.height_};
     const auto& properties = GetRenderProperties();
     layer.boundRect = {0, 0,
@@ -3725,5 +3745,25 @@ bool RSSurfaceRenderNode::GetFrameGravityNewVersionEnabled() const
 {
     return isFrameGravityNewVersionEnabled_;
 }
+
+#ifndef ROSEN_CROSS_PLATFORM
+void RSSurfaceRenderNode::UpdateLayerSrcRectForAnco(RSLayerInfo& layer, const RSSurfaceRenderParams& surfaceParams)
+{
+    if (surfaceParams.IsAncoSfv()) {
+        layer.ancoFlags = surfaceParams.GetAncoFlags();
+        const Rect& cropRect = surfaceParams.GetAncoSrcCrop();
+        int32_t left = std::max(layer.srcRect.x, cropRect.x);
+        int32_t top = std::max(layer.srcRect.y, cropRect.y);
+        int32_t right = std::min(layer.srcRect.x + layer.srcRect.w, cropRect.x + cropRect.w);
+        int32_t bottom = std::min(layer.srcRect.y + layer.srcRect.h, cropRect.y + cropRect.h);
+        int32_t width = right - left;
+        int32_t height = bottom - top;
+        if (width <= 0 || height <= 0) {
+            return;
+        }
+        layer.srcRect = GraphicIRect { left, top, width, height };
+    }
+}
+#endif
 } // namespace Rosen
 } // namespace OHOS

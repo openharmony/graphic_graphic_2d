@@ -36,6 +36,7 @@ ohos_fuzztest("RSAibarShaderFilterFuzzTest") {
   ]
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "graphic_surface:sync_fence",
     "graphics_effect:graphics_effect_core",
     "hilog:libhilog",

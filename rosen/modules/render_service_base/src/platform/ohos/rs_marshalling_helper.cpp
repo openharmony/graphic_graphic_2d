@@ -2078,6 +2078,8 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Draw
     uint32_t surfaceBufferSize = val->GetAllSurfaceBufferEntry(surfaceBufferEntryVec);
     ret = parcel.WriteUint32(surfaceBufferSize);
     if (surfaceBufferSize > 0) {
+        uint32_t posEntrySizeInBytes = parcel.GetWritePosition();
+        ret &= parcel.WriteUint32(0); // will put total size in bytes of the entry here later
         for (const auto& object : surfaceBufferEntryVec) {
             if (!object) {
                 ROSEN_LOGE("RSMarshallingHelper::Marshalling DrawCmdList surfaceBufferVec has null object");
@@ -2099,6 +2101,10 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Draw
             } else {
                 parcel.WriteBool(false);
             }
+        }
+        if (ret) {
+            *reinterpret_cast<uint32_t*>(parcel.GetData() + posEntrySizeInBytes) =
+                parcel.GetWritePosition() - posEntrySizeInBytes - sizeof(uint32_t);
         }
     }
 #endif
@@ -2348,14 +2354,22 @@ bool RSMarshallingHelper::SafeUnmarshallingDrawCmdList(Parcel& parcel, std::shar
         if (surfaceBufferEntrySize > Drawing::MAX_OPITEMSIZE) {
             return false;
         }
+        uint32_t surfaceBufferEntrySizeInBytes = 0;
+        if (!parcel.ReadUint32(surfaceBufferEntrySizeInBytes)) {
+            ROSEN_LOGE("RSMarshallingHelper::Unmarshalling DrawCmdList Read surfaceBufferEntrySize failed");
+            return false;
+        }
+        if (RS_PROFILER_IF_NEED_TO_SKIP_DRAWCMD_SURFACE(parcel, surfaceBufferEntrySizeInBytes)) {
+            surfaceBufferEntrySize = 0;
+        }
+    }
+
+    if (surfaceBufferEntrySize > 0) {
         auto readSafeFdFunc = [](Parcel& parcel, std::function<int(Parcel&)> readFdDefaultFunc) -> int {
             return AshmemFdContainer::Instance().ReadSafeFd(parcel, readFdDefaultFunc);
         };
         std::vector<std::shared_ptr<Drawing::SurfaceBufferEntry>> surfaceBufferEntryVec;
         for (uint32_t i = 0; i < surfaceBufferEntrySize; ++i) {
-            if (RS_PROFILER_IF_NEED_TO_SKIP_DRAWCMD_SURFACE(parcel)) {
-                continue;
-            }
             sptr<SurfaceBuffer> surfaceBuffer = nullptr;
             bool hasSurfaceBuffer{false};
             if (!parcel.ReadBool(hasSurfaceBuffer)) {

@@ -173,6 +173,38 @@ HWTEST_F(RSPropertyModifierTest, CreateRenderModifier03, TestSize.Level1)
 }
 
 /**
+ * @tc.name: RSHDRBrightnessFactorModifier001
+ * @tc.desc: RSHDRBrightnessFactorModifier Test
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyModifierTest, RSHDRBrightnessFactorModifier, TestSize.Level1)
+{
+    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSPropertyBase>();
+    ASSERT_NE(property, nullptr);
+    std::shared_ptr<RSHDRBrightnessFactorModifier> modifier =
+        std::make_shared<RSHDRBrightnessFactorModifier>(property);
+    ASSERT_NE(modifier, nullptr);
+    RSModifierType modifierType = modifier->GetModifierType();
+    EXPECT_EQ(modifierType, RSModifierType::HDR_BRIGHTNESS_FACTOR);
+}
+
+/**
+ * @tc.name: RSHDRBrightnessFactorModifier002
+ * @tc.desc: RSHDRBrightnessFactorModifier Test
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyModifierTest, RSHDRBrightnessFactorModifier002, TestSize.Level1)
+{
+    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSPropertyBase>();
+    ASSERT_NE(property, nullptr);
+    std::shared_ptr<RSHDRBrightnessFactorModifier> modifier =
+        std::make_shared<RSHDRBrightnessFactorModifier>(property);
+    ASSERT_NE(modifier, nullptr);
+    auto res = modifier->CreateRenderModifier();
+    EXPECT_NE(res, nullptr);
+}
+
+/**
  * @tc.name: Apply01
  * @tc.desc: RSBoundsModifier/RSBoundsSizeModifier/RSBoundsPositionModifier
  * @tc.type: FUNC
@@ -352,19 +384,10 @@ HWTEST_F(RSPropertyModifierTest, Apply05, TestSize.Level1)
     std::shared_ptr<RSPerspModifier> perspModifier = std::make_shared<RSPerspModifier>(property);
     ASSERT_NE(perspModifier, nullptr);
     perspModifier->Apply(geometry);
-    EXPECT_EQ(geometry->trans_->perspX_, 0);
-    EXPECT_EQ(geometry->trans_->perspY_, 0);
-    EXPECT_EQ(geometry->trans_->perspZ_, 0);
-    EXPECT_EQ(geometry->trans_->perspW_, 1);
-
-    auto property02 = std::make_shared<RSProperty<Vector4f>>(INITIAL_VALUE_RECT_4F);
-    ASSERT_NE(property02, nullptr);
-    perspModifier = std::make_shared<RSPerspModifier>(property02);
-    perspModifier->Apply(geometry);
-    EXPECT_EQ(geometry->trans_->perspX_, 0);
-    EXPECT_EQ(geometry->trans_->perspY_, 0);
-    EXPECT_EQ(geometry->trans_->perspZ_, 0);
-    EXPECT_EQ(geometry->trans_->perspW_, 1);
+    EXPECT_EQ(geometry->trans_->perspX_, INITIAL_VALUE_RECT_4F.x_);
+    EXPECT_EQ(geometry->trans_->perspY_, INITIAL_VALUE_RECT_4F.y_);
+    EXPECT_EQ(geometry->trans_->perspZ_, INITIAL_VALUE_RECT_4F.z_);
+    EXPECT_EQ(geometry->trans_->perspW_, INITIAL_VALUE_RECT_4F.w_);
 
     auto property03 = std::make_shared<RSProperty<Vector2f>>(INITIAL_VALUE_SIZE_2F);
     ASSERT_NE(property03, nullptr);
@@ -517,5 +540,39 @@ HWTEST_F(RSPropertyModifierTest, RSForegroundUIFilterModifierTest, TestSize.Leve
     ASSERT_NE(modifier, nullptr);
     RSModifierType ModifierType = modifier->GetModifierType();
     EXPECT_EQ(ModifierType, RSModifierType::FOREGROUND_UI_FILTER);
+}
+
+/**
+ * @tc.name: RSHDRUIBrightnessModifier001
+ * @tc.desc: test RSHDRUIBrightnessModifier
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertyModifierTest, RSHDRUIBrightnessModifier001, TestSize.Level1)
+{
+    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSPropertyBase>();
+    ASSERT_NE(property, nullptr);
+    std::shared_ptr<RSHDRUIBrightnessModifier> hdrModifier =
+        std::make_shared<RSHDRUIBrightnessModifier>(property);
+    ASSERT_NE(hdrModifier, nullptr);
+    auto res = hdrModifier->CreateRenderModifier();
+    EXPECT_NE(res, nullptr);
+}
+
+/**
+ * @tc.name: RSHDRUIBrightnessModifier002
+ * @tc.desc: test RSHDRUIBrightnessModifier
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertyModifierTest, RSHDRUIBrightnessModifier002, TestSize.Level1)
+{
+    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSPropertyBase>();
+    ASSERT_NE(property, nullptr);
+    std::shared_ptr<RSHDRUIBrightnessModifier> hdrModifier =
+        std::make_shared<RSHDRUIBrightnessModifier>(property);
+    ASSERT_NE(hdrModifier, nullptr);
+    RSModifierType res = hdrModifier->GetModifierType();
+    EXPECT_EQ(res, RSModifierType::HDR_UI_BRIGHTNESS);
 }
 } // namespace OHOS::Rosen

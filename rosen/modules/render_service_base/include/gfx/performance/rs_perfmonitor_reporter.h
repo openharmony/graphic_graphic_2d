@@ -52,15 +52,6 @@ public:
     // report except event when this frame to be end
     RSB_EXPORT void ReportAtRsFrameEnd();
 
-    // report blur event
-    void ReportBlurStatEvent();
-    void ReportBlurPerfEvent();
-    void ReportCacheReasonEvent();
-
-    // report texture event
-    void ReportTextureStatEvent();
-    void ReportTexturePerfEvent();
-
     // record blur except event
     void RecordBlurPerfEvent(NodeId nodeId, const std::string& nodeName,
         uint16_t filterType, float blurRadius, int32_t width, int32_t height,
@@ -82,12 +73,20 @@ public:
         NodeId& nodeId, const std::shared_ptr<RSContext>& ctx, int updateTimes);
     // clear rendergroup data map
     RSB_EXPORT void ClearRendergroupDataMap(NodeId& nodeId);
-    // process rendergroup subhealth
-    void ProcessRendergroupSubhealth(NodeId& nodeId, const std::shared_ptr<RSContext>& ctx, int updateTimes,
-        int interval, std::chrono::time_point<high_resolution_clock>& startTime);
 
 protected:
-    //for rendergroup subhealth
+    // report blur event
+    void ReportBlurStatEvent();
+    void ReportBlurPerfEvent();
+    void ReportCacheReasonEvent();
+
+    // report texture event
+    void ReportTextureStatEvent();
+    void ReportTexturePerfEvent();
+
+    // for rendergroup subhealth
+    void ProcessRendergroupSubhealth(NodeId& nodeId, const std::shared_ptr<RSContext>& ctx, int updateTimes,
+        int interval, std::chrono::time_point<high_resolution_clock>& startTime);
     bool NeedReportSubHealth(NodeId& nodeId, int updateTimes,
         std::chrono::time_point<high_resolution_clock>& startTime);
     bool CheckAllDrawingCacheDurationTimeout(NodeId& nodeId);
@@ -101,8 +100,8 @@ private:
     std::map<std::string, std::vector<uint16_t>> statsReason_;
     std::string currentBundleName_ = "invalid";
     std::mutex mtx_;
-    
-    //for rendergroup subhealth
+
+    // for rendergroup subhealth
     std::mutex drawingCacheTimeTakenMapMutex_;
     std::unordered_map<NodeId, std::vector<int64_t>> drawingCacheTimeTakenMap_;
     std::mutex drawingCacheLastTwoTimestampMapMutex_;

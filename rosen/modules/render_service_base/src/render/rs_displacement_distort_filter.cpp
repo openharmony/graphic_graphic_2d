@@ -17,6 +17,12 @@
 #include "common/rs_vector2.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 
+#ifdef USE_M133_SKIA
+#include "src/core/SkChecksum.h"
+#else
+#include "src/core/SkOpts.h"
+#endif
+
 namespace OHOS {
 namespace Rosen {
 RSDisplacementDistortFilter::RSDisplacementDistortFilter(std::shared_ptr<RSShaderMask> mask, Vector2f factor)

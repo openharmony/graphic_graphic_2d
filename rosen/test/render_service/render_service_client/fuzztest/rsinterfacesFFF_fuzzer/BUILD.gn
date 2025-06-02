@@ -49,6 +49,7 @@ ohos_fuzztest("RSInterfacesFFFFuzzTest") {
 
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "hilog:libhilog",
     "zlib:libz",
   ]

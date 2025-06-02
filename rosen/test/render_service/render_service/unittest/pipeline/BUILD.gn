@@ -79,10 +79,14 @@ config("pipeline_test") {
 ohos_unittest("RSVirtualScreenProcessorTest") {
   module_out_path = module_output_path
   sources = [ "render_thread/rs_virtual_screen_processor_test.cpp" ]
-  deps = [ ":rs_test_common" ]
+  deps = [
+    ":rs_test_common",
+    "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+  ]
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
@@ -109,11 +113,13 @@ ohos_unittest("RSRenderServiceUnitTest") {
   sources = [ "rs_render_service_test.cpp" ]
   deps = [
     ":rs_test_common",
+    "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
     "$graphic_2d_root/rosen/modules/render_service_base/src/platform:platform",
   ]
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
@@ -138,10 +144,14 @@ ohos_unittest("RSRenderServiceUnitTest") {
 ohos_unittest("RSUniRenderJudgementTest") {
   module_out_path = module_output_path
   sources = [ "rs_uni_render_judgement_test.cpp" ]
-  deps = [ ":rs_test_common" ]
+  deps = [
+    ":rs_test_common",
+    "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+  ]
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
   ]
   defines = []
@@ -163,10 +173,14 @@ ohos_unittest("RSUniRenderJudgementTest") {
 ohos_unittest("RSUniRenderProcessorTest") {
   module_out_path = module_output_path
   sources = [ "render_thread/rs_uni_render_processor_test.cpp" ]
-  deps = [ ":rs_test_common" ]
+  deps = [
+    ":rs_test_common",
+    "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+  ]
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
@@ -199,10 +213,12 @@ ohos_unittest("RSUniRenderThreadTest") {
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/render_service_base/src/platform:platform",
   ]
-  include_dirs = [ "$graphic_2d_root/rosen/modules/render_service_base/include" ]
+  include_dirs =
+      [ "$graphic_2d_root/rosen/modules/render_service_base/include" ]
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
@@ -230,10 +246,14 @@ ohos_unittest("RSRenderServiceVisitorTest") {
     "$graphic_2d_root/rosen/modules/render_service_base/src/pipeline/rs_canvas_render_node.cpp",
     "main_thread/rs_render_service_visitor_test.cpp",
   ]
-  deps = [ ":rs_test_common" ]
+  deps = [
+    ":rs_test_common",
+    "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+  ]
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
   ]
   include_dirs =
@@ -262,10 +282,14 @@ ohos_unittest("RSComposerAdapterTest") {
     "mock/mock_hdi_device.cpp",
     "render_thread/rs_composer_adapter_test.cpp",
   ]
-  deps = [ ":rs_test_common" ]
+  deps = [
+    ":rs_test_common",
+    "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+  ]
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
@@ -290,10 +314,14 @@ ohos_unittest("RSComposerAdapterTest") {
 ohos_unittest("RSRenderServiceListenerTest") {
   module_out_path = module_output_path
   sources = [ "main_thread/rs_render_service_listener_test.cpp" ]
-  deps = [ ":rs_test_common" ]
+  deps = [
+    ":rs_test_common",
+    "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+  ]
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
   ]
   include_dirs =
@@ -319,10 +347,14 @@ ohos_unittest("RSRenderServiceListenerTest") {
 ohos_unittest("RSProcessorFactoryTest") {
   module_out_path = module_output_path
   sources = [ "rs_processor_factory_test.cpp" ]
-  deps = [ ":rs_test_common" ]
+  deps = [
+    ":rs_test_common",
+    "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+  ]
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
@@ -350,10 +382,14 @@ ohos_unittest("RSPhysicalScreenProcessorTest") {
     "$graphic_2d_root/rosen/test/unittest_main/test_main.cpp",
     "render_thread/rs_physical_screen_processor_test.cpp",
   ]
-  deps = [ ":rs_test_common" ]
+  deps = [
+    ":rs_test_common",
+    "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+  ]
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
@@ -378,10 +414,14 @@ ohos_unittest("RSPhysicalScreenProcessorTest") {
 ohos_unittest("RSDropFrameProcessorTest") {
   module_out_path = module_output_path
   sources = [ "rs_drop_frame_processor_test.cpp" ]
-  deps = [ ":rs_test_common" ]
+  deps = [
+    ":rs_test_common",
+    "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+  ]
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
@@ -406,10 +446,14 @@ ohos_unittest("RSDropFrameProcessorTest") {
 ohos_unittest("RSBaseRenderUtilTest") {
   module_out_path = module_output_path
   sources = [ "render_thread/rs_base_render_util_test.cpp" ]
-  deps = [ ":rs_test_common" ]
+  deps = [
+    ":rs_test_common",
+    "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+  ]
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
@@ -434,11 +478,15 @@ ohos_unittest("RSBaseRenderUtilTest") {
 ohos_unittest("RSUniRenderComposerAdapterTest") {
   module_out_path = module_output_path
   sources = [ "render_thread/rs_uni_render_composer_adapter_test.cpp" ]
-  deps = [ ":rs_test_common" ]
+  deps = [
+    ":rs_test_common",
+    "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+  ]
   external_deps = [
     "c_utils:utils",
     "drivers_interface_display:libdisplay_commontype_proxy_1.0",
     "hilog:libhilog",
+    "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
@@ -463,10 +511,14 @@ ohos_unittest("RSUniRenderComposerAdapterTest") {
 ohos_unittest("RSUniRenderUtilTest") {
   module_out_path = module_output_path
   sources = [ "render_thread/rs_uni_render_util_test.cpp" ]
-  deps = [ ":rs_test_common" ]
+  deps = [
+    ":rs_test_common",
+    "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+  ]
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
@@ -491,10 +543,14 @@ ohos_unittest("RSUniRenderUtilTest") {
 ohos_unittest("RSUniRenderUtilDirtyRegionTest") {
   module_out_path = module_output_path
   sources = [ "rs_uni_render_util_dirty_region_test.cpp" ]
-  deps = [ ":rs_test_common" ]
+  deps = [
+    ":rs_test_common",
+    "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+  ]
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
@@ -506,10 +562,14 @@ ohos_unittest("RSUniRenderUtilDirtyRegionTest") {
 ohos_unittest("RSUniRenderUtilSecUIExtensionTest") {
   module_out_path = module_output_path
   sources = [ "rs_uni_render_util_sec_uiextension_test.cpp" ]
-  deps = [ ":rs_test_common" ]
+  deps = [
+    ":rs_test_common",
+    "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+  ]
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
@@ -525,10 +585,14 @@ ohos_unittest("RSUniRenderVisitorTest") {
     "main_thread/rs_uni_render_visitor_test.cpp",
     "mock/mock_matrix.cpp",
   ]
-  deps = [ ":rs_test_common" ]
+  deps = [
+    ":rs_test_common",
+    "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+  ]
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "hisysevent:libhisysevent",
     "init:libbegetutil",
     "samgr:samgr_proxy",
   ]
@@ -555,10 +619,14 @@ ohos_unittest("RSUniRenderVisitorTest") {
 ohos_unittest("RSPointerWindowManagerTest") {
   module_out_path = module_output_path
   sources = [ "rs_pointer_window_manager_test.cpp" ]
-  deps = [ ":rs_test_common" ]
+  deps = [
+    ":rs_test_common",
+    "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+  ]
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "hisysevent:libhisysevent",
     "init:libbegetutil",
     "samgr:samgr_proxy",
   ]
@@ -589,11 +657,13 @@ ohos_unittest("RSHardwareThreadTest") {
   ]
   deps = [
     ":rs_test_common",
+    "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager:libhyper_graphic_manager",
   ]
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
@@ -625,6 +695,7 @@ ohos_unittest("RSMainThreadTest") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "hisysevent:libhisysevent",
     "init:libbegetutil",
     "samgr:samgr_proxy",
   ]
@@ -654,10 +725,14 @@ ohos_unittest("RSMainThreadTest") {
 ohos_unittest("RSRenderTaskTest") {
   module_out_path = module_output_path
   sources = [ "parallel_render/rs_render_task_test.cpp" ]
-  deps = [ ":rs_test_common" ]
+  deps = [
+    ":rs_test_common",
+    "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+  ]
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
@@ -682,10 +757,14 @@ ohos_unittest("RSRenderTaskTest") {
 ohos_unittest("RSFeatureVkQueuePriorityTest") {
   module_out_path = module_output_path
   sources = [ "feature_render/rs_feature_vkqueue_priority_test.cpp" ]
-  deps = [ ":rs_test_common" ]
+  deps = [
+    ":rs_test_common",
+    "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+  ]
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
@@ -702,10 +781,14 @@ ohos_unittest("RSFeatureVkQueuePriorityTest") {
 ohos_unittest("RSUniRenderVirtualProcessorTest") {
   module_out_path = module_output_path
   sources = [ "render_thread/rs_uni_render_virtual_processor_test.cpp" ]
-  deps = [ ":rs_test_common" ]
+  deps = [
+    ":rs_test_common",
+    "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+  ]
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
@@ -733,10 +816,14 @@ ohos_unittest("RSBaseRenderEngineUnitTest") {
     "$graphic_2d_root/rosen/test/unittest_main/test_main.cpp",
     "render_thread/rs_base_render_engine_test.cpp",
   ]
-  deps = [ ":rs_test_common" ]
+  deps = [
+    ":rs_test_common",
+    "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+  ]
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
@@ -762,13 +849,17 @@ ohos_unittest("RSRoundCornerDisplayTest") {
   module_out_path = module_output_path
   sources = [ "rs_round_corner_display_test.cpp" ]
 
-  deps = [ ":rs_test_common" ]
+  deps = [
+    ":rs_test_common",
+    "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+  ]
 
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
-    "skia:skia_canvaskit",
+    "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
+    "skia:skia_canvaskit",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -798,6 +889,7 @@ ohos_unittest("RSRealtimeRefreshRateManagerTest") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
@@ -825,10 +917,14 @@ ohos_unittest("RSRenderEngineTest") {
     "$graphic_2d_root/rosen/test/unittest_main/test_main.cpp",
     "render_thread/rs_render_engine_test.cpp",
   ]
-  deps = [ ":rs_test_common" ]
+  deps = [
+    ":rs_test_common",
+    "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+  ]
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
@@ -853,10 +949,14 @@ ohos_unittest("RSRenderEngineTest") {
 ohos_unittest("RSDividedRenderUtilTest") {
   module_out_path = module_output_path
   sources = [ "render_thread/rs_divided_render_util_test.cpp" ]
-  deps = [ ":rs_test_common" ]
+  deps = [
+    ":rs_test_common",
+    "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+  ]
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
@@ -882,10 +982,14 @@ ohos_unittest("RSDividedRenderUtilTest") {
 ohos_unittest("RSDrawFrameTest") {
   module_out_path = module_output_path
   sources = [ "render_thread/rs_draw_frame_test.cpp" ]
-  deps = [ ":rs_test_common" ]
+  deps = [
+    ":rs_test_common",
+    "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+  ]
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
@@ -905,10 +1009,14 @@ ohos_unittest("RSUniRenderEngineTest") {
     "$graphic_2d_root/rosen/test/unittest_main/test_main.cpp",
     "render_thread/rs_uni_render_engine_test.cpp",
   ]
-  deps = [ ":rs_test_common" ]
+  deps = [
+    ":rs_test_common",
+    "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+  ]
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
@@ -935,10 +1043,14 @@ ohos_unittest("RSMagicPointerRenderManagerTest") {
   if (defined(input_ext_feature_magiccursor) && input_ext_feature_magiccursor) {
     sources =
         [ "magic_pointer_render/rs_magic_pointer_render_manager_test.cpp" ]
-    deps = [ ":rs_test_common" ]
+    deps = [
+      ":rs_test_common",
+      "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+    ]
     external_deps = [
       "c_utils:utils",
       "hilog:libhilog",
+      "hisysevent:libhisysevent",
       "samgr:samgr_proxy",
     ]
     if (defined(global_parts_info) &&
@@ -969,10 +1081,14 @@ ohos_unittest("RSUniHwcVisitorTest") {
     "hwc/rs_uni_hwc_visitor_test.cpp",
     "mock/mock_matrix.cpp",
   ]
-  deps = [ ":rs_test_common" ]
+  deps = [
+    ":rs_test_common",
+    "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+  ]
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "hisysevent:libhisysevent",
     "init:libbegetutil",
     "samgr:samgr_proxy",
   ]
@@ -1015,6 +1131,8 @@ config("rs_test_common_public_config") {
     "$graphic_2d_root/rosen/modules/render_service_client/core",
     "$graphic_2d_root/rosen/modules/render_service_base/src",
     "$graphic_2d_root/rosen/test/include",
+    "$graphic_2d_root/utils/socketpair/export",
+    "$graphic_2d_root/rosen/test/render_service/render_service/unittest",
   ]
 
   cflags = [
@@ -1036,6 +1154,7 @@ ohos_static_library("rs_test_common") {
 
   public_deps = [
     "$graphic_2d_root/rosen/modules/composer:libcomposer",
+    "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
     "$graphic_2d_root/rosen/modules/render_service:librender_service",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
     "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
@@ -1046,13 +1165,20 @@ ohos_static_library("rs_test_common") {
     defines += [ "USE_ROSEN_DRAWING" ]
   }
 
-  external_deps = [ "samgr:samgr_proxy" ]
+  deps = [ "$graphic_2d_root/rosen/modules/composer/vsync:libvsync" ]
+
+  external_deps = [
+    "hisysevent:libhisysevent",
+    "samgr:samgr_proxy",
+  ]
 
   public_external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "googletest:gmock_main",
     "googletest:gtest_main",
     "hilog:libhilog",
+    "hisysevent:libhisysevent",
     "hitrace:hitrace_meter",
     "init:libbegetutil",
     "ipc:ipc_core",

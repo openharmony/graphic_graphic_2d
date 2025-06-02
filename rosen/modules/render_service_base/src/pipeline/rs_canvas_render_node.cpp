@@ -24,6 +24,8 @@
 #include "memory/rs_memory_track.h"
 #include "memory/rs_tag_tracker.h"
 #include "params/rs_render_params.h"
+#include "pipeline/rs_context.h"
+#include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "property/rs_properties_painter.h"
@@ -282,6 +284,27 @@ void RSCanvasRenderNode::InternalDrawContent(RSPaintFilterCanvas& canvas, bool n
     }
 }
 
+// When the HDR node status changed, update the node list in the ancestor display node.
+// Support to add animation on canvas nodes when display node is forced to close HDR.
+void RSCanvasRenderNode::UpdateDisplayHDRNodeList(bool flag, NodeId displayNodeId) const
+{
+    auto context = GetContext().lock();
+    if (!context) {
+        ROSEN_LOGE("RSCanvasRenderNode::UpdateDisplayHDRNodeList Invalid context");
+        return;
+    }
+    auto displayNode = context->GetNodeMap().GetRenderNode<RSDisplayRenderNode>(displayNodeId);
+    if (!displayNode) {
+        ROSEN_LOGE("RSCanvasRenderNode::UpdateDisplayHDRNodeList Invalid displayNode");
+        return;
+    }
+    if (flag) {
+        displayNode->InsertHDRNode(GetId());
+    } else {
+        displayNode->RemoveHDRNode(GetId());
+    }
+}
+
 void RSCanvasRenderNode::SetHDRPresent(bool hasHdrPresent)
 {
     if (hasHdrPresent_ == hasHdrPresent) {
@@ -289,6 +312,7 @@ void RSCanvasRenderNode::SetHDRPresent(bool hasHdrPresent)
     }
     if (IsOnTheTree()) {
         SetHdrNum(hasHdrPresent, GetInstanceRootNodeId(), HDRComponentType::IMAGE);
+        UpdateDisplayHDRNodeList(hasHdrPresent, GetDisplayNodeId());
     }
     hasHdrPresent_ = hasHdrPresent;
 }

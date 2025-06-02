@@ -114,7 +114,8 @@ void OcclusionNode::CollectNodeProperties(const RSRenderNode& node)
 bool OcclusionNode::IsSubTreeShouldIgnored(const RSRenderNode& node, const RSProperties& renderProperties)
 {
     if (node.GetNodeGroupType() != RSRenderNode::NodeGroupType::NONE ||
-        node.GetIsTextureExportNode() || node.GetSharedTransitionParam() != nullptr) {
+        node.GetIsTextureExportNode() || node.GetSharedTransitionParam() != nullptr ||
+        const_cast<RSRenderNode&>(node).GetOpincCache().IsSuggestOpincNode()) {
         return true;
     }
 

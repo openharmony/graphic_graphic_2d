@@ -16,7 +16,7 @@
 #ifndef HGM_COMMAND_H
 #define HGM_COMMAND_H
 
-#include <inttypes.h>
+#include <cinttypes>
 #include <string>
 #include <unordered_map>
 #include <vector>

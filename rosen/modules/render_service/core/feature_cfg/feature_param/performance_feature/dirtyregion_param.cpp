@@ -56,6 +56,16 @@ void DirtyRegionParam::SetAdvancedDirtyRegionEnable(bool isEnable)
     isAdvancedDirtyRegionEnable_ = isEnable;
 }
 
+bool DirtyRegionParam::IsComposeDirtyRegionEnableInPartialDisplay()
+{
+    return isComposeDirtyRegionEnableInPartialDisplay_;
+}
+
+void DirtyRegionParam::SetComposeDirtyRegionEnableInPartialDisplay(bool isEnable)
+{
+    isComposeDirtyRegionEnableInPartialDisplay_ = isEnable;
+}
+
 bool DirtyRegionParam::IsTileBasedAlignEnable()
 {
     return isTileBasedAlignEnable_;

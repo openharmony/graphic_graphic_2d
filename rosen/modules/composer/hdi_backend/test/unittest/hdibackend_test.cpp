@@ -229,7 +229,14 @@ HWTEST_F(HdiBackendTest, SetPendingMode001, Function | MediumTest | Level3)
 
     OutputPtr output = HdiOutput::CreateHdiOutput(0);
     hdiBackend_->SetPendingMode(output, period, timestamp);
-    output->sampler_->Reset();
+    static_cast<impl::VSyncSampler*>(output->sampler_.GetRefPtr())->period_ = 0;
+    static_cast<impl::VSyncSampler*>(output->sampler_.GetRefPtr())->phase_ = 0;
+    static_cast<impl::VSyncSampler*>(output->sampler_.GetRefPtr())->referenceTime_ = 0;
+    static_cast<impl::VSyncSampler*>(output->sampler_.GetRefPtr())->error_ = 0;
+    static_cast<impl::VSyncSampler*>(output->sampler_.GetRefPtr())->firstSampleIndex_ = 0;
+    static_cast<impl::VSyncSampler*>(output->sampler_.GetRefPtr())->numSamples_ = 0;
+    static_cast<impl::VSyncSampler*>(output->sampler_.GetRefPtr())->modeUpdated_ = false;
+    static_cast<impl::VSyncSampler*>(output->sampler_.GetRefPtr())->hardwareVSyncStatus_ = true;
     auto pendingPeriod = output->sampler_->GetHardwarePeriod();
     EXPECT_EQ(pendingPeriod, period);
 }
@@ -250,8 +257,10 @@ HWTEST_F(HdiBackendTest, StartSample001, Function | MediumTest | Level3)
     hdiBackend_->SetPendingMode(output, 0, 0);
     output->sampler_->SetHardwareVSyncStatus(false);
     output->sampler_->SetVsyncSamplerEnabled(true);
+    VSyncSampler::SetScreenVsyncEnabledCallback cb = [](uint64_t screenId, bool enabled) {};
+    output->sampler_->RegSetScreenVsyncEnabledCallback(cb);
     hdiBackend_->StartSample(output);
-    EXPECT_TRUE(output->sampler_->GetHardwareVSyncStatus());
+    EXPECT_TRUE(static_cast<impl::VSyncSampler*>(output->sampler_.GetRefPtr())->hardwareVSyncStatus_);
 }
 
 /*

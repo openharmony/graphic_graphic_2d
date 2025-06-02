@@ -59,11 +59,11 @@ private:
 
 struct RSB_EXPORT ExceptionCheck {
     void UploadRenderExceptionData();
-    uint32_t pid_ = 0;
-    uint32_t uid_ = 0;
+    int32_t pid_ = 0;
+    int32_t uid_ = 0;
     std::string processName_;
-    uint32_t exceptionCnt_ = 0;
-    uint64_t exceptionMoment_ = 0;
+    int32_t exceptionCnt_ = 0;
+    int64_t exceptionMoment_ = 0;
     std::string exceptionPoint_;
     bool isUpload_ = true;
 };

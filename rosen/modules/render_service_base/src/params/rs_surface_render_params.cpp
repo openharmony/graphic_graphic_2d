@@ -594,6 +594,8 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->isHwcGlobalPositionEnabled_ = isHwcGlobalPositionEnabled_;
     targetSurfaceParams->isHwcCrossNode_ = isHwcCrossNode_;
     targetSurfaceParams->dstRect_ = dstRect_;
+    targetSurfaceParams->ancoSrcCrop_ = ancoSrcCrop_;
+    targetSurfaceParams->ancoFlags_ = ancoFlags_;
     targetSurfaceParams->isSkipDraw_ = isSkipDraw_;
     targetSurfaceParams->isLayerTop_ = isLayerTop_;
     targetSurfaceParams->needHidePrivacyContent_ = needHidePrivacyContent_;

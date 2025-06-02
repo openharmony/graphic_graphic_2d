@@ -101,17 +101,17 @@ HWTEST_F(RSUIPixelMapMaskTest, Set001, TestSize.Level1)
     Vector4f src(0.1, 0.2, 0.6, 0.9);
     EXPECT_EQ(pixelMapMaskPara->GetSrc(), Vector4f());
     pixelMapMaskPara->SetSrc(src);
-    EXPECT_NE(pixelMapMaskPara->GetSrc(), src);
+    EXPECT_EQ(pixelMapMaskPara->GetSrc(), src);
 
     Vector4f dst(0.4, 0.3, 0.7, 0.5);
     EXPECT_EQ(pixelMapMaskPara->GetDst(), Vector4f());
     pixelMapMaskPara->SetDst(dst);
-    EXPECT_NE(pixelMapMaskPara->GetDst(), dst);
+    EXPECT_EQ(pixelMapMaskPara->GetDst(), dst);
 
     Vector4f fillColor(0.3, 0.6, 0.1, 0.7);
     EXPECT_EQ(pixelMapMaskPara->GetFillColor(), Vector4f());
     pixelMapMaskPara->SetFillColor(fillColor);
-    EXPECT_NE(pixelMapMaskPara->GetFillColor(), fillColor);
+    EXPECT_EQ(pixelMapMaskPara->GetFillColor(), fillColor);
 
     auto maskPara = std::static_pointer_cast<MaskPara>(pixelMapMaskPara);
 
@@ -269,6 +269,7 @@ HWTEST_F(RSUIPixelMapMaskTest, GetLeafProperties001, TestSize.Level1)
 
     Vector4f fillColor(0.3, 0.6, 0.1, 0.7);
     rsUIPixelMapMaskPara->SetFillColor(fillColor);
+    rsPropertyBaseVector = rsUIPixelMapMaskPara->GetLeafProperties();
     ASSERT_EQ(rsPropertyBaseVector.size(), 4);
 }
 } // namespace OHOS::Rosen

@@ -57,7 +57,11 @@
 #include "string_utils.h"
 
 #ifdef RS_ENABLE_VK
+#ifdef USE_M133_SKIA
+#include "include/gpu/ganesh/GrBackendSurface.h"
+#else
 #include "include/gpu/GrBackendSurface.h"
+#endif
 #include "platform/ohos/backend/native_buffer_utils.h"
 #include "platform/ohos/backend/rs_vulkan_context.h"
 #endif
@@ -403,6 +407,7 @@ void RSRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId, NodeId f
                 parentNodeId);
             if (canvasNode->GetHDRPresent()) {
                 SetHdrNum(flag, parentNodeId, HDRComponentType::IMAGE);
+                canvasNode->UpdateDisplayHDRNodeList(flag, displayNodeId);
             }
             if (canvasNode->GetRenderProperties().IsHDRUIBrightnessValid()) {
                 SetHdrNum(flag, parentNodeId, HDRComponentType::UICOMPONENT);
@@ -1333,7 +1338,7 @@ void RSRenderNode::UpdateDrawingCacheInfoAfterChildren(bool isInBlackList)
     if (IsUifirstArkTsCardNode() || startingWindowFlag_) {
         SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
     } else if (isInBlackList) {
-        stagingRenderParams_->SetInBlackList(true);
+        stagingRenderParams_->SetNodeGroupHasChildInBlackList(true);
     }
     if (HasChildrenOutOfRect() && GetDrawingCacheType() == RSDrawingCacheType::TARGETED_CACHE) {
         RS_OPTIONAL_TRACE_NAME_FMT("DrawingCacheInfoAfter ChildrenOutOfRect id:%llu", GetId());
@@ -2259,21 +2264,21 @@ void RSRenderNode::CheckBlurFilterCacheNeedForceClearOrSave(bool rotationChanged
 #endif
 }
 
-void RSRenderNode::MarkFilterInForegroundFilterAndCheckNeedForceClearCache(bool inForegroundFilter)
+void RSRenderNode::MarkFilterInForegroundFilterAndCheckNeedForceClearCache(NodeId offscreenCanvasNodeId)
 {
 #ifdef RS_ENABLE_GPU
     const auto& properties = GetRenderProperties();
     if (properties.GetBackgroundFilter()) {
         auto filterDrawable = GetFilterDrawable(false);
         if (filterDrawable != nullptr) {
-            filterDrawable->MarkInForegroundFilterAndCheckNeedForceClearCache(inForegroundFilter);
+            filterDrawable->MarkInForegroundFilterAndCheckNeedForceClearCache(offscreenCanvasNodeId);
         }
     }
 
     if (properties.GetFilter()) {
         auto filterDrawable = GetFilterDrawable(true);
         if (filterDrawable != nullptr) {
-            filterDrawable->MarkInForegroundFilterAndCheckNeedForceClearCache(inForegroundFilter);
+            filterDrawable->MarkInForegroundFilterAndCheckNeedForceClearCache(offscreenCanvasNodeId);
         }
     }
 #endif
@@ -2612,6 +2617,7 @@ void RSRenderNode::AddUIFilterModifier(const std::shared_ptr<RSRenderModifier>& 
         std::static_pointer_cast<RSRenderProperty<std::shared_ptr<RSRenderFilter>>>(modifier->GetProperty());
     if (!renderProperty) {
         ROSEN_LOGW("RSRenderNode::AddUIFilterModifier: null renderProperty.");
+        return;
     }
     auto& renderFilter = renderProperty->GetRef();
     for (auto& type : renderFilter->GetUIFilterTypes()) {
@@ -4208,6 +4214,10 @@ void RSRenderNode::SetOldDirtyInSurface(RectI oldDirtyInSurface)
 {
     oldDirtyInSurface_ = oldDirtyInSurface;
 }
+bool RSRenderNode::IsForegroundFilterEnable()
+{
+    return drawableVec_[static_cast<uint32_t>(RSDrawableSlot::FOREGROUND_FILTER)] != nullptr;
+}
 bool RSRenderNode::IsDirtyRegionUpdated() const
 {
     return isDirtyRegionUpdated_;
@@ -4297,7 +4307,7 @@ void RSRenderNode::ClearCacheSurface(bool isClearCompletedCacheSurface)
             cacheCompletedCleanupHelper_ = nullptr;
         }
 #endif
-#if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+#if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
         isTextureValid_ = false;
 #endif
     }
@@ -4606,7 +4616,8 @@ void RSRenderNode::UpdateRenderParams()
     stagingRenderParams_->SetAlphaOffScreen(GetRenderProperties().GetAlphaOffscreen());
     stagingRenderParams_->SetForegroundFilterCache(GetRenderProperties().GetForegroundFilterCache());
     stagingRenderParams_->SetNeedFilter(GetRenderProperties().NeedFilter());
-    stagingRenderParams_->SetHDRBrightness(GetHDRBrightness());
+    stagingRenderParams_->SetHDRBrightness(GetHDRBrightness() *
+        GetRenderProperties().GetCanvasNodeHDRBrightnessFactor());
     stagingRenderParams_->SetHasBlurFilter(HasBlurFilter());
     stagingRenderParams_->SetNodeType(GetType());
     stagingRenderParams_->SetEffectNodeShouldPaint(EffectNodeShouldPaint());

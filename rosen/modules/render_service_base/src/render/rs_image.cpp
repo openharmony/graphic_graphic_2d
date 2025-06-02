@@ -15,7 +15,6 @@
 
 #include "render/rs_image.h"
 #include <type_traits>
-#include <csignal>
 
 #include "common/rs_common_tools.h"
 #include "common/rs_rect.h"
@@ -41,7 +40,6 @@ namespace {
 constexpr int32_t CORNER_SIZE = 4;
 constexpr float CENTER_ALIGNED_FACTOR = 2.f;
 constexpr int32_t DEGREE_NINETY = 90;
-constexpr int SIGNAL_FOR_OCERAN = 42;
 }
 
 RSImage::~RSImage()
@@ -234,9 +232,8 @@ void RSImage::DrawImageRect(
     }
 
     auto imageShader = GenerateImageShaderForDrawRect(canvas, samplingOptions);
-    pthread_t imageTid = pthread_self();
     if (imageShader != nullptr) {
-        DrawImageShaderRectOnCanvas(canvas, imageShader, imageTid);
+        DrawImageShaderRectOnCanvas(canvas, imageShader);
         return;
     }
 
@@ -655,14 +652,13 @@ void RSImage::CalcRepeatBounds(int& minX, int& maxX, int& minY, int& maxY)
 }
 
 void RSImage::DrawImageShaderRectOnCanvas(
-    Drawing::Canvas& canvas, const std::shared_ptr<Drawing::ShaderEffect>& imageShader, pthread_t imageTid) const
+    Drawing::Canvas& canvas, const std::shared_ptr<Drawing::ShaderEffect>& imageShader) const
 {
     if (imageShader == nullptr) {
         RS_LOGE("RSImage::DrawImageShaderRectOnCanvas image shader is nullptr");
         return;
     }
     Drawing::Paint paint;
-    pthread_t paintTid = pthread_self();
 
     if (imageRepeat_ == ImageRepeat::NO_REPEAT && isFitMatrixValid_ &&
         (fitMatrix_->Get(Drawing::Matrix::Index::SKEW_X) != 0 ||
@@ -674,10 +670,6 @@ void RSImage::DrawImageShaderRectOnCanvas(
         paint.SetFilter(filter);
     }
     
-    if (imageTid != paintTid) {
-        RS_LOGE("SetShaderEffect cross thread, Func:%s, Line:%d", __FUNCTION__, __LINE__);
-        raise(SIGNAL_FOR_OCERAN);
-    }
     paint.SetShaderEffect(imageShader);
     paint.SetStyle(Drawing::Paint::PAINT_FILL_STROKE);
     canvas.AttachPaint(paint);
@@ -698,9 +690,8 @@ void RSImage::DrawImageOnCanvas(
         canvas.DrawRect(dst_);
     } else {
         auto imageShader = GenerateImageShaderForDrawRect(canvas, samplingOptions);
-        pthread_t imageTid = pthread_self();
         if (imageShader != nullptr) {
-            DrawImageShaderRectOnCanvas(canvas, imageShader, imageTid);
+            DrawImageShaderRectOnCanvas(canvas, imageShader);
             return;
         }
 

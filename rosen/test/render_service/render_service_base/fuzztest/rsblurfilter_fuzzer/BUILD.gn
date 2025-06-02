@@ -31,6 +31,10 @@ ohos_fuzztest("RSBlurFilterFuzzTest") {
     "../../../../../modules/render_service_base:librender_service_base",
     "../../../../../modules/render_service_client:librender_service_client",
   ]
+  external_deps = [
+    "eventhandler:libeventhandler",
+    "hilog:libhilog",
+  ]
   cflags = [
     "-g",
     "-O0",

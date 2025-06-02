@@ -25,12 +25,8 @@
 #include "property/rs_properties_painter.h"
 #include "platform/common/rs_system_properties.h"
 
-#if defined(NEW_SKIA)
 #include "include/effects/SkImageFilters.h"
 #include "include/core/SkTileMode.h"
-#else
-#include "include/effects/SkBlurImageFilter.h"
-#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -104,10 +100,10 @@ RSMaterialFilter::RSMaterialFilter(MaterialParam materialParam, BLUR_COLOR_MODE 
     if (colorMode_ == FASTAVERAGE) {
         colorMode_ = AVERAGE;
     }
-
     float radiusForHash = DecreasePrecision(radius_);
     float saturationForHash = DecreasePrecision(saturation_);
     float brightnessForHash = DecreasePrecision(brightness_);
+#ifndef ENABLE_M133_SKIA
     hash_ = SkOpts::hash(&type_, sizeof(type_), 0);
     hash_ = SkOpts::hash(&radiusForHash, sizeof(radiusForHash), hash_);
     hash_ = SkOpts::hash(&saturationForHash, sizeof(saturationForHash), hash_);
@@ -115,6 +111,15 @@ RSMaterialFilter::RSMaterialFilter(MaterialParam materialParam, BLUR_COLOR_MODE 
     hash_ = SkOpts::hash(&maskColor_, sizeof(maskColor_), hash_);
     hash_ = SkOpts::hash(&colorMode_, sizeof(colorMode_), hash_);
     hash_ = SkOpts::hash(&disableSystemAdaptation_, sizeof(disableSystemAdaptation_), hash_);
+#else
+    hash_ = SkChecksum::Hash32(&type_, sizeof(type_), 0);
+    hash_ = SkChecksum::Hash32(&radiusForHash, sizeof(radiusForHash), hash_);
+    hash_ = SkChecksum::Hash32(&saturationForHash, sizeof(saturationForHash), hash_);
+    hash_ = SkChecksum::Hash32(&brightnessForHash, sizeof(brightnessForHash), hash_);
+    hash_ = SkChecksum::Hash32(&maskColor_, sizeof(maskColor_), hash_);
+    hash_ = SkChecksum::Hash32(&colorMode_, sizeof(colorMode_), hash_);
+    hash_ = SkChecksum::Hash32(&disableSystemAdaptation_, sizeof(disableSystemAdaptation_), hash_);
+#endif
 }
 
 RSMaterialFilter::~RSMaterialFilter() = default;

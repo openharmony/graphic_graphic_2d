@@ -45,6 +45,7 @@ ohos_fuzztest("RSCpuOverdrawCanvasListenerFuzzTest") {
 
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "hilog:libhilog",
   ]
 }

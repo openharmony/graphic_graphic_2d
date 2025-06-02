@@ -46,6 +46,7 @@ ohos_fuzztest("HmSymbolTxtFuzzTest") {
   ]
 
   external_deps = [
+    "bounds_checking_function:libsec_shared",
     "skia:skia_canvaskit",
     "skia:skia_paragraph_ohos",
   ]

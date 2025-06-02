@@ -94,6 +94,7 @@ void RSUniRenderProcessor::CreateLayer(const RSSurfaceRenderNode& node, RSSurfac
     layer->SetDisplayNit(params.GetDisplayNit());
     layer->SetBrightnessRatio(params.GetBrightnessRatio());
     layer->SetLayerLinearMatrix(params.GetLayerLinearMatrix());
+    layer->SetAncoFlags(layerInfo.ancoFlags);
 
     uniComposerAdapter_->SetMetaDataInfoToLayer(layer, params.GetBuffer(), surfaceHandler->GetConsumer());
     CreateSolidColorLayer(layer, params);
@@ -159,6 +160,7 @@ void RSUniRenderProcessor::CreateLayerForRenderThread(DrawableV2::RSSurfaceRende
     layer->SetDisplayNit(renderParams.GetDisplayNit());
     layer->SetBrightnessRatio(renderParams.GetBrightnessRatio());
     layer->SetLayerLinearMatrix(renderParams.GetLayerLinearMatrix());
+    layer->SetAncoFlags(layerInfo.ancoFlags);
     uniComposerAdapter_->SetMetaDataInfoToLayer(layer, params.GetBuffer(), surfaceDrawable.GetConsumerOnDraw());
     CreateSolidColorLayer(layer, params);
     layers_.emplace_back(layer);

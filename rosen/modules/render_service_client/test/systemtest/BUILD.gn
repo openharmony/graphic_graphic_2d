@@ -31,6 +31,7 @@ ohos_systemtest("RSInterfacesVirtualScreenTest") {
   deps = [ ":rs_client_test_common" ]
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "hilog:libhilog",
   ]
 }
@@ -42,6 +43,7 @@ ohos_systemtest("RSInterfacesSystemTest") {
   deps = [ ":rs_client_test_common" ]
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "hilog:libhilog",
   ]
 }
@@ -76,6 +78,7 @@ ohos_static_library("rs_client_test_common") {
 
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "hilog:libhilog",
     "image_framework:image_native",
   ]

@@ -4132,4 +4132,20 @@ HWTEST_F(RSScreenManagerTest, OnHotPlugEvent, TestSize.Level1)
     // case2: Same screenId event cover
     screenManagerImpl->RSScreenManager::OnHotPlugEvent(output, true);
 }
+
+/*
+ * @tc.name: ProcessVSyncScreenIdWhilePowerStatusChangedTest
+ * @tc.desc: Test ProcessVSyncScreenIdWhilePowerStatusChanged
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSScreenManagerTest, ProcessVSyncScreenIdWhilePowerStatusChangedTest, TestSize.Level1)
+{
+    auto sampler = CreateVSyncSampler();
+    VSyncSampler::SetScreenVsyncEnabledCallback cb = [](uint64_t screenId, bool enabled) {};
+    sampler->RegSetScreenVsyncEnabledCallback(cb);
+    auto screenManager = CreateOrGetScreenManager();
+    static_cast<impl::RSScreenManager*>(screenManager.GetRefPtr())->ProcessVSyncScreenIdWhilePowerStatusChanged(
+        0, ScreenPowerStatus::POWER_STATUS_OFF);
+    ASSERT_EQ(static_cast<impl::VSyncSampler*>(sampler.GetRefPtr())->hardwareVSyncStatus_, false);
+}
 } // namespace OHOS::Rosen

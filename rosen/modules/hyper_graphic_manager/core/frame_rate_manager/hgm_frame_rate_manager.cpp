@@ -50,9 +50,6 @@ namespace {
     constexpr int32_t LAST_TOUCH_CNT = 1;
 
     constexpr uint32_t FIRST_FRAME_TIME_OUT = 100; // 100ms
-    constexpr uint32_t DEFAULT_PRIORITY = 0;
-    constexpr uint32_t VOTER_SCENE_PRIORITY_BEFORE_PACKAGES = 1;
-    constexpr uint32_t VOTER_LTPO_PRIORITY_BEFORE_PACKAGES = 2;
     constexpr uint64_t BUFFER_IDLE_TIME_OUT = 200000000; // 200ms
     constexpr long DRAG_SCENE_CHANGE_RATE_TIMEOUT = 100; // 100ms
     const static std::string UP_TIME_OUT_TASK_ID = "UP_TIME_OUT_TASK_ID";
@@ -61,43 +58,10 @@ namespace {
     const static std::string LOW_BRIGHT = "LowBright";
     const static std::string ANCO_LOW_BRIGHT = "AncoLowBright";
     const static std::string STYLUS_PEN = "StylusPen";
-    // CAUTION: with priority
-    const std::string VOTER_NAME[] = {
-        "VOTER_THERMAL",
-        "VOTER_VIRTUALDISPLAY_FOR_CAR",
-        "VOTER_VIRTUALDISPLAY",
-        "VOTER_MUTIPHYSICALSCREEN",
-        "VOTER_MULTISELFOWNEDSCREEN",
-        "VOTER_POWER_MODE",
-        "VOTER_DISPLAY_ENGINE",
-        "VOTER_GAMES",
-        "VOTER_ANCO",
-
-        "VOTER_PAGE_URL",
-        "VOTER_PACKAGES",
-        "VOTER_LTPO",
-        "VOTER_TOUCH",
-        "VOTER_POINTER",
-        "VOTER_SCENE",
-        "VOTER_VIDEO",
-        "VOTER_IDLE"
-    };
 
     constexpr int ADAPTIVE_SYNC_PROPERTY = 3;
     constexpr int DISPLAY_SUCCESS = 1;
-
-    constexpr int32_t STYLUS_NO_LINK = 0;
-    constexpr int32_t STYLUS_LINK_UNUSED = 1;
-    constexpr int32_t STYLUS_LINK_WRITE = 2;
-    constexpr int32_t STYLUS_SLEEP = 3;
-    constexpr int32_t STYLUS_WAKEUP = 4;
     constexpr int32_t VIRTUAL_KEYBOARD_FINGERS_MIN_CNT = 8;
-    const std::unordered_map<std::string, int32_t> STYLUS_STATUS_MAP = {
-        {"STYLUS_NO_LINK", STYLUS_NO_LINK},
-        {"STYLUS_LINK_UNUSED", STYLUS_LINK_UNUSED},
-        {"STYLUS_LINK_WRITE", STYLUS_LINK_WRITE},
-        {"STYLUS_SLEEP", STYLUS_SLEEP},
-        {"STYLUS_WAKEUP", STYLUS_WAKEUP}};
     constexpr uint32_t FRAME_RATE_REPORT_MAX_RETRY_TIMES = 3;
     constexpr uint32_t FRAME_RATE_REPORT_DELAY_TIME = 20000;
 }
@@ -114,11 +78,11 @@ HgmFrameRateManager::HgmFrameRateManager()
             UpdateSoftVSync(false);
         }
     }),
-    voters_(std::begin(VOTER_NAME), std::end(VOTER_NAME))
+    frameVoter_(HgmFrameVoter(multiAppStrategy_))
 {
-    for (auto &voter : VOTER_NAME) {
-        voteRecord_[voter] = {{}, true};
-    }
+    frameVoter_.SetChangeRangeCallback([this] (const std::string& voter) {
+        MarkVoteChange(voter);
+    });
 }
 
 void HgmFrameRateManager::Init(sptr<VSyncController> rsController,
@@ -406,11 +370,11 @@ void HgmFrameRateManager::UpdateGuaranteedPlanVote(uint64_t timestamp)
 
 void HgmFrameRateManager::ProcessLtpoVote(const FrameRateRange& finalRange)
 {
-    isDragScene_ = finalRange.type_ == DRAG_SCENE_FRAME_RATE_TYPE;
+    frameVoter_.SetDragScene(finalRange.type_ == DRAG_SCENE_FRAME_RATE_TYPE);
     if (finalRange.IsValid()) {
         auto refreshRate = UpdateFrameRateWithDelay(CalcRefreshRate(curScreenId_.load(), finalRange));
         RS_TRACE_NAME_FMT("ProcessLtpoVote isDragScene_: [%d], refreshRate: [%d], lastLTPORefreshRate_: [%d]",
-            isDragScene_, refreshRate, lastLTPORefreshRate_);
+            frameVoter_.IsDragScene(), refreshRate, lastLTPORefreshRate_);
         DeliverRefreshRateVote(
             {"VOTER_LTPO", refreshRate, refreshRate, DEFAULT_PID, finalRange.GetExtInfo()}, ADD_VOTE);
     } else {
@@ -420,7 +384,7 @@ void HgmFrameRateManager::ProcessLtpoVote(const FrameRateRange& finalRange)
 
 uint32_t HgmFrameRateManager::UpdateFrameRateWithDelay(uint32_t refreshRate)
 {
-    if (!isDragScene_) {
+    if (!frameVoter_.IsDragScene()) {
         return refreshRate;
     }
 
@@ -696,7 +660,7 @@ uint32_t HgmFrameRateManager::CalcRefreshRate(const ScreenId id, const FrameRate
     // of current screen are {30, 60, 90}, the result will be 90.
     uint32_t refreshRate = currRefreshRate_;
     std::vector<uint32_t> supportRefreshRateVec;
-    bool stylusFlag = (stylusMode_ == STYLUS_WAKEUP && !stylusVec_.empty());
+    bool stylusFlag = (isStylusWakeUp_ && !stylusVec_.empty());
     if ((isLtpo_ && isAmbientStatus_ == LightFactorStatus::NORMAL_LOW && isAmbientEffect_) ||
         (!isLtpo_ && isAmbientEffect_ && isAmbientStatus_ != LightFactorStatus::HIGH_LEVEL)) {
         RS_TRACE_NAME_FMT("Replace supported refresh rates from config");
@@ -715,12 +679,19 @@ uint32_t HgmFrameRateManager::CalcRefreshRate(const ScreenId id, const FrameRate
         return refreshRate;
     }
     std::sort(supportRefreshRateVec.begin(), supportRefreshRateVec.end());
+    // In stylus mode, refresh is the first value of less than or equal to preferred in supportRefreshRateVec;
+    // supportRefreshRateVec is not empty when stylusFlag is true;
+    // The return value of upper_bound is bigger than preferred, so need subtract one;
+    if (stylusFlag) {
+        auto item = std::upper_bound(supportRefreshRateVec.begin(), supportRefreshRateVec.end(), range.preferred_);
+        if ((item - supportRefreshRateVec.begin()) > 0) {
+            item--;
+        }
+        return *item;
+    }
     auto iter = std::lower_bound(supportRefreshRateVec.begin(), supportRefreshRateVec.end(), range.preferred_);
     if (iter != supportRefreshRateVec.end()) {
         refreshRate = *iter;
-        if (stylusFlag) {
-            return refreshRate;
-        }
         if (refreshRate > static_cast<uint32_t>(range.max_) &&
             (iter - supportRefreshRateVec.begin()) > 0) {
             iter--;
@@ -847,15 +818,15 @@ void HgmFrameRateManager::HandlePackageEvent(pid_t pid, const std::vector<std::s
     hfbcConfig.HandleHfbcConfig(packageList);
     if (multiAppStrategy_.HandlePkgsEvent(packageList) == EXEC_SUCCESS) {
         auto sceneListConfig = multiAppStrategy_.GetScreenSetting().sceneList;
-        for (auto scenePid = sceneStack_.begin(); scenePid != sceneStack_.end();) {
+        for (auto scenePid = frameVoter_.sceneStack_.begin(); scenePid != frameVoter_.sceneStack_.end();) {
             if (auto iter = sceneListConfig.find(scenePid->first);
                 iter != sceneListConfig.end() && iter->second.doNotAutoClear) {
                 ++scenePid;
                 continue;
             }
-            gameScenes_.erase(scenePid->first);
-            ancoScenes_.erase(scenePid->first);
-            scenePid = sceneStack_.erase(scenePid);
+            frameVoter_.gameScenes_.erase(scenePid->first);
+            frameVoter_.ancoScenes_.erase(scenePid->first);
+            scenePid = frameVoter_.sceneStack_.erase(scenePid);
         }
     }
     MarkVoteChange("VOTER_SCENE");
@@ -869,8 +840,9 @@ void HgmFrameRateManager::HandleRefreshRateEvent(pid_t pid, const EventInfo& eve
         HgmEnergyConsumptionPolicy::Instance().SetVideoCallSceneInfo(eventInfo);
         return;
     }
-    auto event = std::find(voters_.begin(), voters_.end(), eventName);
-    if (event == voters_.end()) {
+    auto voters = frameVoter_.GetVoters();
+    auto event = std::find(voters.begin(), voters.end(), eventName);
+    if (event == voters.end()) {
         HGM_LOGW("HgmFrameRateManager:unknown event, eventName is %{public}s", eventName.c_str());
         return;
     }
@@ -893,10 +865,10 @@ void HgmFrameRateManager::HandleRefreshRateEvent(pid_t pid, const EventInfo& eve
 void HgmFrameRateManager::HandleTouchEvent(pid_t pid, int32_t touchStatus, int32_t touchCnt)
 {
     HGM_LOGD("HandleTouchEvent status:%{public}d", touchStatus);
-    if (voterGamesEffective_ && touchManager_.GetState() == TouchState::DOWN_STATE) {
+    if (frameVoter_.GetVoterGamesEffective() && touchManager_.GetState() == TouchState::DOWN_STATE) {
         return;
     }
-    if (voterGamesEffective_ &&
+    if (frameVoter_.GetVoterGamesEffective() &&
         (touchStatus ==  TOUCH_MOVE || touchStatus ==  TOUCH_BUTTON_DOWN || touchStatus ==  TOUCH_BUTTON_UP)) {
         return;
     }
@@ -923,8 +895,9 @@ void HgmFrameRateManager::HandleTouchTask(pid_t pid, int32_t touchStatus, int32_
         if (touchCnt != LAST_TOUCH_CNT) {
             return;
         }
-        if (auto iter = voteRecord_.find("VOTER_GAMES"); iter != voteRecord_.end() && !iter->second.first.empty() &&
-            gameScenes_.empty() && multiAppStrategy_.CheckPidValid(iter->second.first.front().pid)) {
+        auto voteRecord = frameVoter_.GetVoteRecord();
+        if (auto iter = voteRecord.find("VOTER_GAMES"); iter != voteRecord.end() && !iter->second.first.empty() &&
+            frameVoter_.gameScenes_.empty() && multiAppStrategy_.CheckPidValid(iter->second.first.front().pid)) {
             HGM_LOGD("[touch manager] keep down in games");
             return;
         }
@@ -1161,6 +1134,15 @@ void HgmFrameRateManager::HandleRsFrame()
     pointerManager_.HandleRsFrame();
 }
 
+void HgmFrameRateManager::HandleStylusSceneEvent(const std::string& sceneName)
+{
+    if (sceneName == "STYLUS_SLEEP" || sceneName == "STYLUS_NO_LINK") {
+        isStylusWakeUp_ = false;
+    } else if (sceneName == "STYLUS_WAKEUP") {
+        isStylusWakeUp_ = true;
+    }
+}
+
 void HgmFrameRateManager::HandleSceneEvent(pid_t pid, EventInfo eventInfo)
 {
     std::string sceneName = eventInfo.description;
@@ -1169,44 +1151,41 @@ void HgmFrameRateManager::HandleSceneEvent(pid_t pid, EventInfo eventInfo)
     auto &ancoSceneList = screenSetting.ancoSceneList;
 
     // control the list of supported frame rates for stylus pen, not control frame rate directly
-    if (STYLUS_STATUS_MAP.find(sceneName) != STYLUS_STATUS_MAP.end()) {
-        stylusMode_ = STYLUS_STATUS_MAP.at(sceneName);
-        return;
-    }
+    HandleStylusSceneEvent(sceneName);
 
     if (gameSceneList.find(sceneName) != gameSceneList.end()) {
         if (eventInfo.eventStatus == ADD_VOTE) {
-            if (gameScenes_.insert(sceneName).second) {
+            if (frameVoter_.gameScenes_.insert(sceneName).second) {
                 MarkVoteChange();
             }
         } else {
-            if (gameScenes_.erase(sceneName)) {
+            if (frameVoter_.gameScenes_.erase(sceneName)) {
                 MarkVoteChange();
             }
         }
     }
     if (ancoSceneList.find(sceneName) != ancoSceneList.end()) {
         if (eventInfo.eventStatus == ADD_VOTE) {
-            if (ancoScenes_.insert(sceneName).second) {
+            if (frameVoter_.ancoScenes_.insert(sceneName).second) {
                 MarkVoteChange();
             }
         } else {
-            if (ancoScenes_.erase(sceneName)) {
+            if (frameVoter_.ancoScenes_.erase(sceneName)) {
                 MarkVoteChange();
             }
         }
     }
 
     std::pair<std::string, pid_t> info = std::make_pair(sceneName, pid);
-    auto scenePos = find(sceneStack_.begin(), sceneStack_.end(), info);
+    auto scenePos = find(frameVoter_.sceneStack_.begin(), frameVoter_.sceneStack_.end(), info);
     if (eventInfo.eventStatus == ADD_VOTE) {
-        if (scenePos == sceneStack_.end()) {
-            sceneStack_.push_back(info);
+        if (scenePos == frameVoter_.sceneStack_.end()) {
+            frameVoter_.sceneStack_.emplace_back(info);
             MarkVoteChange("VOTER_SCENE");
         }
     } else {
-        if (scenePos != sceneStack_.end()) {
-            sceneStack_.erase(scenePos);
+        if (scenePos != frameVoter_.sceneStack_.end()) {
+            frameVoter_.sceneStack_.erase(scenePos);
             MarkVoteChange("VOTER_SCENE");
         }
     }
@@ -1269,8 +1248,9 @@ void HgmFrameRateManager::HandleMultiSelfOwnedScreenEvent(pid_t pid, EventInfo e
 
 void HgmFrameRateManager::MarkVoteChange(const std::string& voter)
 {
-    if (auto iter = voteRecord_.find(voter);
-        voter != "" && (iter == voteRecord_.end() || !iter->second.second) && !voterTouchEffective_) {
+    auto voteRecord = frameVoter_.GetVoteRecord();
+    if (auto iter = voteRecord.find(voter);
+        voter != "" && (iter == voteRecord.end() || !iter->second.second) && !voterTouchEffective_) {
         return;
     }
 
@@ -1315,139 +1295,7 @@ void HgmFrameRateManager::MarkVoteChange(const std::string& voter)
 
 void HgmFrameRateManager::DeliverRefreshRateVote(const VoteInfo& voteInfo, bool eventStatus)
 {
-    RS_TRACE_NAME_FMT("Deliver voter:%s(pid:%d extInfo:%s), status:%u, value:[%d-%d]",
-        voteInfo.voterName.c_str(), voteInfo.pid, voteInfo.extInfo.c_str(),
-        eventStatus, voteInfo.min, voteInfo.max);
-    if (voteInfo.min > voteInfo.max) {
-        HGM_LOGW("HgmFrameRateManager:invalid vote %{public}s(%{public}d %{public}s):[%{public}d, %{public}d]",
-            voteInfo.voterName.c_str(), voteInfo.pid, voteInfo.extInfo.c_str(), voteInfo.min, voteInfo.max);
-        return;
-    }
-
-    voteRecord_.try_emplace(voteInfo.voterName, std::pair<std::vector<VoteInfo>, bool>({{}, true}));
-    auto& vec = voteRecord_[voteInfo.voterName].first;
-
-    auto voter = voteInfo.voterName != "VOTER_PACKAGES" ? voteInfo.voterName : "";
-
-    // clear
-    if ((voteInfo.pid == 0) && (eventStatus == REMOVE_VOTE)) {
-        if (!vec.empty()) {
-            vec.clear();
-            MarkVoteChange(voter);
-        }
-        return;
-    }
-
-    for (auto it = vec.begin(); it != vec.end(); it++) {
-        if ((*it).pid != voteInfo.pid) {
-            continue;
-        }
-
-        if (eventStatus == REMOVE_VOTE) {
-            // remove
-            it = vec.erase(it);
-            MarkVoteChange(voter);
-            return;
-        } else {
-            if ((*it).min != voteInfo.min || (*it).max != voteInfo.max) {
-                // modify
-                vec.erase(it);
-                vec.push_back(voteInfo);
-                MarkVoteChange(voter);
-            } else if (voteInfo.voterName == "VOTER_PACKAGES") {
-                // force update cause VOTER_PACKAGES is flag of safe_voter
-                MarkVoteChange(voter);
-            }
-            return;
-        }
-    }
-
-    // add
-    if (eventStatus == ADD_VOTE) {
-        pidRecord_.insert(voteInfo.pid);
-        vec.push_back(voteInfo);
-        MarkVoteChange(voter);
-    }
-}
-
-std::pair<bool, bool> HgmFrameRateManager::MergeRangeByPriority(VoteRange& rangeRes, const VoteRange& curVoteRange)
-{
-    auto &[min, max] = rangeRes;
-    auto &[minTemp, maxTemp] = curVoteRange;
-    bool needMergeVoteInfo = false;
-    if (minTemp > min) {
-        min = minTemp;
-        if (min >= max) {
-            min = max;
-            return {true, needMergeVoteInfo};
-        }
-    }
-    if (maxTemp < max) {
-        max = maxTemp;
-        needMergeVoteInfo = true;
-        if (min >= max) {
-            max = min;
-            return {true, needMergeVoteInfo};
-        }
-    }
-    if (min == max) {
-        return {true, needMergeVoteInfo};
-    }
-    return {false, needMergeVoteInfo};
-}
-
-bool HgmFrameRateManager::MergeLtpo2IdleVote(
-    std::vector<std::string>::iterator &voterIter, VoteInfo& resultVoteInfo, VoteRange &mergedVoteRange)
-{
-    bool mergeSuccess = false;
-    // [VOTER_LTPO, VOTER_IDLE)
-    for (; voterIter != voters_.end() - 1; voterIter++) {
-        if (voteRecord_.find(*voterIter) == voteRecord_.end()) {
-            continue;
-        }
-        voteRecord_[*voterIter].second = true;
-        auto vec = voteRecord_[*voterIter].first;
-        if (vec.empty()) {
-            continue;
-        }
-
-        VoteInfo curVoteInfo = vec.back();
-        if (!multiAppStrategy_.CheckPidValid(curVoteInfo.pid)) {
-            ProcessVoteLog(curVoteInfo, true);
-            continue;
-        }
-        if (curVoteInfo.voterName == "VOTER_VIDEO") {
-            std::string voterPkgName = "";
-            auto foregroundPidApp = multiAppStrategy_.GetForegroundPidApp();
-            if (foregroundPidApp.find(curVoteInfo.pid) != foregroundPidApp.end()) {
-                voterPkgName = foregroundPidApp[curVoteInfo.pid].second;
-            } else if (auto pkgs = multiAppStrategy_.GetPackages(); !pkgs.empty()) { // Get the current package name
-                voterPkgName = std::get<0>(HgmMultiAppStrategy::AnalyzePkgParam(pkgs.front()));
-            }
-            auto configData = HgmCore::Instance().GetPolicyConfigData();
-            if (configData != nullptr &&
-                configData->videoFrameRateList_.find(voterPkgName) == configData->videoFrameRateList_.end()) {
-                ProcessVoteLog(curVoteInfo, true);
-                continue;
-            }
-        }
-        if (isDragScene_ && curVoteInfo.voterName == "VOTER_TOUCH") {
-            continue;
-        }
-        ProcessVoteLog(curVoteInfo, false);
-        if (mergeSuccess) {
-            mergedVoteRange.first = mergedVoteRange.first > curVoteInfo.min ? mergedVoteRange.first : curVoteInfo.min;
-            if (curVoteInfo.max >= mergedVoteRange.second) {
-                mergedVoteRange.second = curVoteInfo.max;
-                resultVoteInfo.Merge(curVoteInfo);
-            }
-        } else {
-            resultVoteInfo.Merge(curVoteInfo);
-            mergedVoteRange = {curVoteInfo.min, curVoteInfo.max};
-        }
-        mergeSuccess = true;
-    }
-    return mergeSuccess;
+    frameVoter_.DeliverVote(voteInfo, eventStatus);
 }
 
 bool HgmFrameRateManager::IsCurrentScreenSupportAS()
@@ -1498,208 +1346,31 @@ void HgmFrameRateManager::ProcessAdaptiveSync(const std::string& voterName)
     RS_TRACE_END();
 }
 
-void HgmFrameRateManager::CheckAncoVoter(const std::string& voter, VoteInfo& curVoteInfo)
-{
-    if (voter == "VOTER_ANCO" && !ancoScenes_.empty()) {
-        // Multiple scene are not considered at this time
-        auto configData = HgmCore::Instance().GetPolicyConfigData();
-        auto screenSetting = multiAppStrategy_.GetScreenSetting();
-        auto ancoSceneIt = screenSetting.ancoSceneList.find(*ancoScenes_.begin());
-        uint32_t min = OLED_60_HZ;
-        uint32_t max = OLED_90_HZ;
-        if (configData != nullptr && ancoSceneIt != screenSetting.ancoSceneList.end() &&
-            configData->strategyConfigs_.find(ancoSceneIt->second.strategy) != configData->strategyConfigs_.end()) {
-            min = static_cast<uint32_t>(configData->strategyConfigs_[ancoSceneIt->second.strategy].min);
-            max = static_cast<uint32_t>(configData->strategyConfigs_[ancoSceneIt->second.strategy].max);
-        }
-        min = std::max(min, curVoteInfo.min);
-        max = std::max(min, max);
-        curVoteInfo.SetRange(min, max);
-    }
-}
-
 bool HgmFrameRateManager::CheckAncoVoterStatus() const
 {
     if (isAmbientStatus_ != LightFactorStatus::NORMAL_LOW || !isLtpo_ ||
         !isAmbientEffect_ || ancoLowBrightVec_.empty()) {
         return false;
     }
-    auto iter = voteRecord_.find("VOTER_ANCO");
-    if (iter == voteRecord_.end() || iter->second.first.empty() || !iter->second.second) {
+    auto voteRecord = frameVoter_.GetVoteRecord();
+    auto iter = voteRecord.find("VOTER_ANCO");
+    if (iter == voteRecord.end() || iter->second.first.empty() || !iter->second.second) {
         return false;
     }
     return true;
 }
 
-bool HgmFrameRateManager::ProcessRefreshRateVote(std::vector<std::string>::iterator& voterIter,
-    VoteInfo& resultVoteInfo, VoteRange& voteRange, bool &voterGamesEffective)
-{
-    VoteRange range;
-    VoteInfo info;
-    if (*voterIter == "VOTER_LTPO" && MergeLtpo2IdleVote(voterIter, info, range)) {
-        auto [mergeVoteRange, mergeVoteInfo] = MergeRangeByPriority(voteRange, range);
-        if (mergeVoteInfo) {
-            resultVoteInfo.Merge(info);
-        }
-        if (mergeVoteRange) {
-            return true;
-        }
-    }
-
-    auto &voter = *voterIter;
-    if (voteRecord_.find(voter) == voteRecord_.end()) {
-        return false;
-    }
-    voteRecord_[voter].second = true;
-    auto& voteInfos = voteRecord_[voter].first;
-    auto firstValidVoteInfoIter = std::find_if(voteInfos.begin(), voteInfos.end(), [this] (auto& voteInfo) {
-        if (!multiAppStrategy_.CheckPidValid(voteInfo.pid)) {
-            ProcessVoteLog(voteInfo, true);
-            return false;
-        }
-        return true;
-    });
-    if (firstValidVoteInfoIter == voteInfos.end()) {
-        return false;
-    }
-    auto curVoteInfo = *firstValidVoteInfoIter;
-    if (voter == "VOTER_GAMES") {
-        if (!gameScenes_.empty() || !multiAppStrategy_.CheckPidValid(curVoteInfo.pid, true)) {
-            ProcessVoteLog(curVoteInfo, true);
-            return false;
-        }
-        voterGamesEffective = true;
-    }
-    CheckAncoVoter(voter, curVoteInfo);
-    ProcessVoteLog(curVoteInfo, false);
-    auto [mergeVoteRange, mergeVoteInfo] = MergeRangeByPriority(voteRange, {curVoteInfo.min, curVoteInfo.max});
-    if (mergeVoteInfo) {
-        resultVoteInfo.Merge(curVoteInfo);
-    }
-    if (mergeVoteRange) {
-        return true;
-    }
-    return false;
-}
-
 VoteInfo HgmFrameRateManager::ProcessRefreshRateVote()
 {
-    UpdateVoteRule();
-
-    VoteInfo resultVoteInfo;
-    VoteRange voteRange = { OLED_MIN_HZ, OLED_MAX_HZ };
-    auto &[min, max] = voteRange;
-
-    bool voterGamesEffective = false;
-    auto voterIter = voters_.begin();
-    for (; voterIter != voters_.end(); ++voterIter) {
-        if (ProcessRefreshRateVote(voterIter, resultVoteInfo, voteRange, voterGamesEffective)) {
-            break;
-        }
-    }
-    voterGamesEffective_ = voterGamesEffective;
-    // update effective status
-    if (voterIter != voters_.end()) {
-        ++voterIter;
-        for (; voterIter != voters_.end(); ++voterIter) {
-            if (auto iter = voteRecord_.find(*voterIter); iter != voteRecord_.end()) {
-                iter->second.second = false;
-            }
-        }
-    }
-    if (voteRecord_["VOTER_PACKAGES"].second || voteRecord_["VOTER_LTPO"].second) {
-        voteRecord_["VOTER_SCENE"].second = true;
-    }
-    HGM_LOGD("Process: Strategy:%{public}s Screen:%{public}d Mode:%{public}d -- VoteResult:{%{public}d-%{public}d}",
-        curScreenStrategyId_.c_str(), static_cast<int>(curScreenId_.load()), curRefreshRateMode_, min, max);
+    auto [resultVoteInfo, voteRange] = frameVoter_.ProcessVote(curScreenStrategyId_,
+        curScreenId_.load(), curRefreshRateMode_);
+    auto [min, max] = voteRange;
     SetResultVoteInfo(resultVoteInfo, min, max);
     ProcessAdaptiveSync(resultVoteInfo.voterName);
 
     auto sampler = CreateVSyncSampler();
     sampler->SetAdaptive(isAdaptive_.load() == SupportASStatus::SUPPORT_AS);
     return resultVoteInfo;
-}
-
-void HgmFrameRateManager::ChangePriority(uint32_t curScenePriority)
-{
-    // restore
-    voters_ = std::vector<std::string>(std::begin(VOTER_NAME), std::end(VOTER_NAME));
-    switch (curScenePriority) {
-        case VOTER_SCENE_PRIORITY_BEFORE_PACKAGES: {
-            auto scenePos1 = find(voters_.begin(), voters_.end(), "VOTER_SCENE");
-            voters_.erase(scenePos1);
-            auto packagesPos1 = find(voters_.begin(), voters_.end(), "VOTER_PACKAGES");
-            voters_.insert(packagesPos1, "VOTER_SCENE");
-            break;
-        }
-        case VOTER_LTPO_PRIORITY_BEFORE_PACKAGES: {
-            auto scenePos2 = find(voters_.begin(), voters_.end(), "VOTER_SCENE");
-            voters_.erase(scenePos2);
-            auto packagesPos2 = find(voters_.begin(), voters_.end(), "VOTER_PACKAGES");
-            voters_.insert(packagesPos2, "VOTER_SCENE");
-            auto ltpoPos2 = find(voters_.begin(), voters_.end(), "VOTER_LTPO");
-            voters_.erase(ltpoPos2);
-            auto packagesPos3 = find(voters_.begin(), voters_.end(), "VOTER_PACKAGES");
-            voters_.insert(packagesPos3, "VOTER_LTPO");
-            break;
-        }
-        default:
-            break;
-    }
-}
-
-void HgmFrameRateManager::UpdateVoteRule()
-{
-    // restore
-    ChangePriority(DEFAULT_PRIORITY);
-    multiAppStrategy_.SetDisableSafeVoteValue(false);
-    // dynamic priority for scene
-    if (sceneStack_.empty()) {
-        // no active scene
-        DeliverRefreshRateVote({"VOTER_SCENE"}, REMOVE_VOTE);
-        return;
-    }
-    auto configData = HgmCore::Instance().GetPolicyConfigData();
-    if (configData == nullptr) {
-        return;
-    }
-    if (configData->screenConfigs_.count(curScreenStrategyId_) == 0 ||
-        configData->screenConfigs_[curScreenStrategyId_].count(std::to_string(curRefreshRateMode_)) == 0) {
-        return;
-    }
-    auto curScreenSceneList =
-        configData->screenConfigs_[curScreenStrategyId_][std::to_string(curRefreshRateMode_)].sceneList;
-    if (curScreenSceneList.empty()) {
-        // no scene configed in cur screen
-        return;
-    }
-
-    std::string lastScene;
-    auto scenePos = sceneStack_.rbegin();
-    for (; scenePos != sceneStack_.rend(); scenePos++) {
-        lastScene = (*scenePos).first;
-        if (curScreenSceneList.count(lastScene) != 0) {
-            break;
-        }
-    }
-    if (scenePos == sceneStack_.rend()) {
-        // no valid scene
-        DeliverRefreshRateVote({"VOTER_SCENE"}, REMOVE_VOTE);
-        return;
-    }
-    auto curSceneConfig = curScreenSceneList[lastScene];
-    if (!XMLParser::IsNumber(curSceneConfig.priority) ||
-        configData->strategyConfigs_.find(curSceneConfig.strategy) == configData->strategyConfigs_.end()) {
-        return;
-    }
-    uint32_t curScenePriority = static_cast<uint32_t>(std::stoi(curSceneConfig.priority));
-    uint32_t min = static_cast<uint32_t>(configData->strategyConfigs_[curSceneConfig.strategy].min);
-    uint32_t max = static_cast<uint32_t>(configData->strategyConfigs_[curSceneConfig.strategy].max);
-    HGM_LOGD("UpdateVoteRule: SceneName:%{public}s", lastScene.c_str());
-    DeliverRefreshRateVote({"VOTER_SCENE", min, max, (*scenePos).second, lastScene}, ADD_VOTE);
-
-    ChangePriority(curScenePriority);
-    multiAppStrategy_.SetDisableSafeVoteValue(curSceneConfig.disableSafeVote);
 }
 
 void HgmFrameRateManager::CleanVote(pid_t pid)
@@ -1737,24 +1408,7 @@ void HgmFrameRateManager::CleanVote(pid_t pid)
     }
 
     softVSyncManager_.EraseGameRateDiscountMap(pid);
-
-    if (pidRecord_.count(pid) == 0) {
-        return;
-    }
-    HGM_LOGW("CleanVote: i am [%{public}d], i died, clean my votes please.", pid);
-    pidRecord_.erase(pid);
-
-    for (auto& [voterName, voterInfo] : voteRecord_) {
-        for (auto iter = voterInfo.first.begin(); iter != voterInfo.first.end();) {
-            if (iter->pid == pid) {
-                auto voter = iter->voterName;
-                iter = voterInfo.first.erase(iter);
-                MarkVoteChange(voter);
-                break;
-            }
-            ++iter;
-        }
-    }
+    frameVoter_.CleanVote(pid);
 }
 
 void HgmFrameRateManager::SetResultVoteInfo(VoteInfo& voteInfo, uint32_t min, uint32_t max)
@@ -1784,20 +1438,12 @@ void HgmFrameRateManager::UpdateEnergyConsumptionConfig()
     HgmEnergyConsumptionPolicy::Instance().SetRefreshRateMode(curRefreshRateMode_, curScreenStrategyId_);
 }
 
-void HgmFrameRateManager::ProcessVoteLog(const VoteInfo& curVoteInfo, bool isSkip)
-{
-    RS_TRACE_NAME_FMT("Process voter:%s(pid:%d), value:[%d-%d]%s",
-        curVoteInfo.voterName.c_str(), curVoteInfo.pid, curVoteInfo.min, curVoteInfo.max, isSkip ? " skip" : "");
-    HGM_LOGD("Process: %{public}s(%{public}d):[%{public}d, %{public}d]%{public}s",
-        curVoteInfo.voterName.c_str(), curVoteInfo.pid, curVoteInfo.min, curVoteInfo.max, isSkip ? " skip" : "");
-}
-
 bool HgmFrameRateManager::UpdateUIFrameworkDirtyNodes(
     std::vector<std::weak_ptr<RSRenderNode>>& uiFwkDirtyNodes, uint64_t timestamp)
 {
     timestamp_ = timestamp;
     HgmEnergyConsumptionPolicy::Instance().CheckOnlyVideoCallExist();
-    if (!voterTouchEffective_ || voterGamesEffective_) {
+    if (!voterTouchEffective_ || frameVoter_.GetVoterGamesEffective()) {
         surfaceData_.clear();
         return false;
     }
@@ -1931,8 +1577,9 @@ void HgmFrameRateManager::CheckNeedUpdateAppOffset(uint32_t refreshRate, uint32_
         isNeedUpdateAppOffset_ = true;
         return;
     }
-    if (auto iter = voteRecord_.find("VOTER_THERMAL");
-        iter != voteRecord_.end() && !iter->second.first.empty() &&
+    auto voteRecord = frameVoter_.GetVoteRecord();
+    if (auto iter = voteRecord.find("VOTER_THERMAL");
+        iter != voteRecord.end() && !iter->second.first.empty() &&
         iter->second.first.back().max > 0 && iter->second.first.back().max <= OLED_60_HZ) {
         isNeedUpdateAppOffset_ = true;
         return;

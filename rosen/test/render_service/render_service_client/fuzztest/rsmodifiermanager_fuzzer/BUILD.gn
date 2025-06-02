@@ -45,7 +45,12 @@ ohos_fuzztest("RSModifierManagerFuzzTest") {
 
   sources = [ "rsmodifiermanager_fuzzer.cpp" ]
 
-  external_deps = [ "zlib:libz" ]
+  external_deps = [
+    "c_utils:utils",
+    "eventhandler:libeventhandler",
+    "hilog:libhilog",
+    "zlib:libz",
+  ]
 }
 
 ###############################################################################

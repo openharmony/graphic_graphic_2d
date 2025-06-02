@@ -1536,7 +1536,7 @@ void RSProfiler::SetTextureRecordType(TextureRecordType type)
     g_textureRecordType = type;
 }
 
-bool RSProfiler::IfNeedToSkipDuringReplay(Parcel& parcel)
+bool RSProfiler::IfNeedToSkipDuringReplay(Parcel& parcel, uint32_t skipBytes)
 {
     if (!IsEnabled()) {
         return false;
@@ -1545,7 +1545,6 @@ bool RSProfiler::IfNeedToSkipDuringReplay(Parcel& parcel)
         return false;
     }
     if (IsReadEmulationMode() || IsReadMode()) {
-        constexpr size_t skipBytes = 388;
         parcel.SkipBytes(skipBytes);
         return true;
     }

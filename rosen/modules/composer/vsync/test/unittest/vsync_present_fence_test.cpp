@@ -25,6 +25,7 @@ namespace Rosen {
 class VSyncPresentFenceTest : public testing::Test {
 public:
     static void SetUpTestCase();
+    static void Reset();
 
     static inline sptr<VSyncSampler> vsyncSampler = nullptr;
 };
@@ -32,6 +33,18 @@ public:
 void VSyncPresentFenceTest::SetUpTestCase()
 {
     vsyncSampler = CreateVSyncSampler();
+}
+
+void VSyncPresentFenceTest::Reset()
+{
+    static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->period_ = 0;
+    static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->phase_ = 0;
+    static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->referenceTime_ = 0;
+    static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->error_ = 0;
+    static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->firstSampleIndex_ = 0;
+    static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->numSamples_ = 0;
+    static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->modeUpdated_ = false;
+    static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->hardwareVSyncStatus_ = true;
 }
 
 namespace {
@@ -44,8 +57,8 @@ namespace {
  */
 HWTEST_F(VSyncPresentFenceTest, AddPresentFenceTimeErrorTest, Function | MediumTest| Level3)
 {
-    vsyncSampler->Reset();
-    vsyncSampler->BeginSample();
+    Reset();
+    vsyncSampler->StartSample(true);
     bool ret = true;
     for (int i = 1; i <= 10; i++) { // add 10 samples
         ret = vsyncSampler->AddSample(i * 16666667); // 16666667ns

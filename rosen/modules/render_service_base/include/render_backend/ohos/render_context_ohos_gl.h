@@ -23,7 +23,11 @@
 #include "EGL/eglext.h"
 #include "GLES3/gl32.h"
 
+#ifdef USE_M133_SKIA
+#include "include/gpu/ganesh/gl/GrGLInterface.h"
+#else
 #include "include/gpu/gl/GrGLInterface.h"
+#endif
 
 #include "common/rs_rect.h"
 #include "render_context_base.h"

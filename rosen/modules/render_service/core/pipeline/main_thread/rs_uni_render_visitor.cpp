@@ -518,7 +518,7 @@ void RSUniRenderVisitor::MarkHardwareForcedDisabled()
 
 void RSUniRenderVisitor::UpdateBlackListRecord(RSSurfaceRenderNode& node)
 {
-    if (!screenManager_) {
+    if (!hasMirrorDisplay_ || !screenManager_) {
         return;
     }
     std::unordered_set<uint64_t> virtualScreens = screenManager_->GetBlackListVirtualScreenByNode(node.GetId());
@@ -1529,7 +1529,7 @@ void RSUniRenderVisitor::QuickPrepareEffectRenderNode(RSEffectRenderNode& node)
 
 void RSUniRenderVisitor::MarkFilterInForegroundFilterAndCheckNeedForceClearCache(RSRenderNode& node)
 {
-    node.MarkFilterInForegroundFilterAndCheckNeedForceClearCache(inForegroundFilter_);
+    node.MarkFilterInForegroundFilterAndCheckNeedForceClearCache(offscreenCanvasNodeId_);
 }
 
 void RSUniRenderVisitor::UpdateDrawingCacheInfoBeforeChildren(RSCanvasRenderNode& node)
@@ -1539,7 +1539,14 @@ void RSUniRenderVisitor::UpdateDrawingCacheInfoBeforeChildren(RSCanvasRenderNode
     }
     node.UpdateDrawingCacheInfoBeforeChildren(isScreenRotationAnimating_);
     if (node.GetDrawingCacheType() == RSDrawingCacheType::FOREGROUND_FILTER_CACHE) {
-        inForegroundFilter_ = true;
+        offscreenCanvasNodeId_ = node.GetId();
+    }
+}
+
+void RSUniRenderVisitor::UpdateOffscreenCanvasNodeId(RSCanvasRenderNode& node)
+{
+    if (node.IsForegroundFilterEnable()) {
+        offscreenCanvasNodeId_ = node.GetId();
     }
 }
 
@@ -1553,7 +1560,7 @@ void RSUniRenderVisitor::QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node)
     auto curCornerRadius = curCornerRadius_;
     curAlpha_ *= std::clamp(node.GetRenderProperties().GetAlpha(), 0.f, 1.f);
     auto preGlobalShouldPaint = globalShouldPaint_;
-    auto preInForegroundFilter = inForegroundFilter_;
+    auto preOffscreenCanvasNodeId = offscreenCanvasNodeId_;
     globalShouldPaint_ &= node.ShouldPaint();
     CheckFilterCacheNeedForceClearOrSave(node);
     if (IsAccessibilityConfigChanged()) {
@@ -1616,7 +1623,7 @@ void RSUniRenderVisitor::QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node)
     node.GetOpincCache().OpincUpdateRootFlag(unchangeMarkEnable_, node.OpincGetNodeSupportFlag());
     node.UpdateOpincParam();
     globalShouldPaint_ = preGlobalShouldPaint;
-    inForegroundFilter_ = preInForegroundFilter;
+    offscreenCanvasNodeId_ = preOffscreenCanvasNodeId;
 
     hwcVisitor_->RestoreIsOffscreen(isCurrOffscreen);
 

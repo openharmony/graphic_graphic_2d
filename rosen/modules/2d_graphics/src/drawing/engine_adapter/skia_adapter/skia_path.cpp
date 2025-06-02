@@ -124,7 +124,7 @@ void SkiaPath::RArcTo(scalar rx, scalar ry, scalar angle, PathDirection directio
 {
     SkPathDirection pathDir = static_cast<SkPathDirection>(direction);
     SkPath::ArcSize arcLarge = SkPath::ArcSize::kSmall_ArcSize;
-    path_.arcTo(rx, ry, angle, arcLarge, pathDir, dx, dy);
+    path_.rArcTo(rx, ry, angle, arcLarge, pathDir, dx, dy);
     isChanged_ = true;
 }
 

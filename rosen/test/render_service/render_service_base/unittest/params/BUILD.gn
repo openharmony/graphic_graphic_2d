@@ -54,6 +54,7 @@ ohos_unittest("RSRenderServiceBaseParamsTest") {
 
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "googletest:gtest_main",
     "hilog:libhilog",
     "init:libbegetutil",

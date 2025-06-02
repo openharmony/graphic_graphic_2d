@@ -17,8 +17,14 @@
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "common/rs_optional_trace.h"
-#include "include/gpu/GrDirectContext.h"
 #include "effect/runtime_shader_builder.h"
+
+#ifdef USE_M133_SKIA
+#include "include/core/SkM44.h"
+#include "include/gpu/ganesh/GrDirectContext.h"
+#else
+#include "include/gpu/GrDirectContext.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {

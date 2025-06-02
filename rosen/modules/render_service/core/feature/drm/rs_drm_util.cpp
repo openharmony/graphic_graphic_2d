@@ -14,9 +14,10 @@
  */
 
 #include "rs_drm_util.h"
-
+#include "common/rs_background_thread.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
+#include "pipeline/hardware_thread/rs_hardware_thread.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -90,6 +91,39 @@ void RSDrmUtil::DRMCreateLayer(std::shared_ptr<RSProcessor> processor, Drawing::
         surfaceParams->SetLayerInfo(layerInfo);
         processor->CreateLayerForRenderThread(*surfaceDrawable);
     }
+}
+
+void RSDrmUtil::PreAllocateProtectedBuffer(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode,
+    const std::shared_ptr<RSSurfaceHandler>& surfaceHandler)
+{
+    auto displayLock = surfaceNode->GetAncestorDisplayNode().lock();
+    std::shared_ptr<RSDisplayRenderNode> ancestor = nullptr;
+    if (displayLock != nullptr) {
+        ancestor = displayLock->ReinterpretCastTo<RSDisplayRenderNode>();
+    }
+    if (ancestor == nullptr) {
+        return;
+    }
+    auto protectedLayerScreenId = ancestor->GetScreenId();
+    auto screenManager = CreateOrGetScreenManager();
+
+    auto output = screenManager->GetOutput(ToScreenPhysicalId(protectedLayerScreenId));
+    if (UNLIKELY(output == nullptr)) {
+        RS_LOGE("output is NULL");
+        return;
+    }
+    if (output->GetProtectedFrameBufferState()) {
+        return;
+    }
+    auto protectedBuffer = surfaceHandler->GetBuffer();
+    if (UNLIKELY(protectedBuffer == nullptr)) {
+        RS_LOGE("buffer is NULL");
+        return;
+    }
+    auto preAllocateProtectedBufferTask = [buffer = protectedBuffer, screenId = protectedLayerScreenId]() {
+        RSHardwareThread::Instance().PreAllocateProtectedBuffer(buffer, screenId);
+    };
+    RSBackgroundThread::Instance().PostTask(preAllocateProtectedBufferTask);
 }
 } // namespace Rosen
 } // namespace OHOS
