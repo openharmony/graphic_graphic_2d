@@ -731,18 +731,18 @@ void RSScreenManager::RegSetScreenVsyncEnabledCallbackForMainThread(ScreenId vsy
         return;
     }
     vsyncSampler->SetVsyncEnabledScreenId(vsyncEnabledScreenId);
-    vsyncSampler->RegSetScreenVsyncEnabledCallback([this, vsyncEnabledScreenId](bool enabled) {
+    vsyncSampler->RegSetScreenVsyncEnabledCallback([this](uint64_t screenId, bool enabled) {
         auto mainThread = RSMainThread::Instance();
         if (mainThread == nullptr) {
             RS_LOGE("%{public}s screenVsyncEnabled:%{public}d set failed, "
                 "get RSMainThread failed", __func__, enabled);
             return;
         }
-        mainThread->PostTask([this, vsyncEnabledScreenId, enabled]() {
-            auto screen = GetScreen(vsyncEnabledScreenId);
+        mainThread->PostTask([this, screenId, enabled]() {
+            auto screen = GetScreen(screenId);
             if (screen == nullptr) {
                 RS_LOGE("SetScreenVsyncEnabled:%{public}d failed, screen %{public}" PRIu64 " not found",
-                    enabled, vsyncEnabledScreenId);
+                    enabled, screenId);
                 return;
             }
             screen->SetScreenVsyncEnabled(enabled);
@@ -759,12 +759,12 @@ void RSScreenManager::RegSetScreenVsyncEnabledCallbackForHardwareThread(ScreenId
     }
     vsyncSampler->SetVsyncEnabledScreenId(vsyncEnabledScreenId);
 #ifdef RS_ENABLE_GPU
-    vsyncSampler->RegSetScreenVsyncEnabledCallback([this, vsyncEnabledScreenId](bool enabled) {
-        RSHardwareThread::Instance().PostTask([this, vsyncEnabledScreenId, enabled]() {
-            auto screen = GetScreen(vsyncEnabledScreenId);
+    vsyncSampler->RegSetScreenVsyncEnabledCallback([this](uint64_t screenId, bool enabled) {
+        RSHardwareThread::Instance().PostTask([this, screenId, enabled]() {
+            auto screen = GetScreen(screenId);
             if (screen == nullptr) {
                 RS_LOGE("SetScreenVsyncEnabled:%{public}d failed, screen %{public}" PRIu64 " not found",
-                    enabled, vsyncEnabledScreenId);
+                    enabled, screenId);
                 return;
             }
             screen->SetScreenVsyncEnabled(enabled);
@@ -1561,6 +1561,31 @@ int32_t RSScreenManager::SetRogScreenResolution(ScreenId id, uint32_t width, uin
     return SUCCESS;
 }
 
+void RSScreenManager::ProcessVSyncScreenIdWhilePowerStatusChanged(ScreenId id, ScreenPowerStatus status)
+{
+    auto vsyncSampler = CreateVSyncSampler();
+    if (vsyncSampler == nullptr) {
+        RS_LOGE("%{public}s failed, vsyncSampler is null.", __func__);
+        return;
+    }
+    RS_TRACE_NAME_FMT("%s, id:%lu, status:%d, isPowerOff:%d, isSuspend:%d", __func__, id, status,
+        (status == ScreenPowerStatus::POWER_STATUS_OFF), (status == ScreenPowerStatus::POWER_STATUS_SUSPEND));
+    if (status == ScreenPowerStatus::POWER_STATUS_OFF || status == ScreenPowerStatus::POWER_STATUS_SUSPEND) {
+        vsyncSampler->SetScreenVsyncEnabledInRSMainThread(id, false);
+    }
+    if (isFoldScreenFlag_) {
+        uint64_t vsyncEnabledScreenId = JudgeVSyncEnabledScreenWhilePowerStatusChanged(id, status);
+        uint64_t lastVsyncEnabledScreenId = vsyncSampler->GetVsyncEnabledScreenId();
+        if (vsyncEnabledScreenId != lastVsyncEnabledScreenId) {
+            RS_TRACE_NAME_FMT("vsyncEnabledScreenId has changed, need disable lastVsyncEnabledScreenId vsync, "
+                "vsyncEnabledScreenId:%lu, lastVsyncEnabledScreenId:%lu",
+                vsyncEnabledScreenId, lastVsyncEnabledScreenId);
+            vsyncSampler->SetScreenVsyncEnabledInRSMainThread(lastVsyncEnabledScreenId, false);
+        }
+        UpdateVsyncEnabledScreenId(vsyncEnabledScreenId);
+    }
+}
+
 void RSScreenManager::UpdateScreenPowerStatus(ScreenId id, ScreenPowerStatus status)
 {
     auto screen = GetScreen(id);
@@ -1578,10 +1603,7 @@ void RSScreenManager::UpdateScreenPowerStatus(ScreenId id, ScreenPowerStatus sta
         return;
     }
 
-    if (isFoldScreenFlag_) {
-        uint64_t vsyncEnabledScreenId = JudgeVSyncEnabledScreenWhilePowerStatusChanged(id, status);
-        UpdateVsyncEnabledScreenId(vsyncEnabledScreenId);
-    }
+    ProcessVSyncScreenIdWhilePowerStatusChanged(id, status);
 
     /*
      * If app adds the first frame when power on the screen, delete the code

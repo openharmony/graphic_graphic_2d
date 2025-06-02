@@ -41,6 +41,7 @@ ohos_fuzztest("RSPathFuzzTest") {
   ]
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "hilog:libhilog",
   ]
   sources = [ "rspath_fuzzer.cpp" ]

@@ -114,9 +114,9 @@ ohos_shared_library("librender_service") {
     "core/feature/hdr/rs_hdr_util.cpp",
     "core/feature/hwc/rs_uni_hwc_compute_util.cpp",
     "core/feature/hyper_graphic_manager/rs_vblank_idle_corrector.cpp",
-    "core/feature/opinc/rs_opinc_draw_cache.cpp",
     "core/feature/occlusion_culling/rs_occlusion_handler.cpp",
     "core/feature/occlusion_culling/rs_occlusion_node.cpp",
+    "core/feature/opinc/rs_opinc_draw_cache.cpp",
     "core/feature/vrate/rs_vsync_rate_reduce_manager.cpp",
     "core/feature/window_keyframe/rs_window_keyframe_buffer.cpp",
     "core/feature/window_keyframe/rs_window_keyframe_node_info.cpp",
@@ -310,7 +310,6 @@ ohos_shared_library("librender_service") {
     "$graphic_2d_root/rosen/modules/render_service_base/include",
     "$graphic_2d_root/rosen/modules/render_service_base/src",
     "$graphic_2d_root/rosen/modules/utils",
-    "$graphic_2d_root/utils/log",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/config",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/frame_rate_manager",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/hgm_screen_manager",
@@ -319,6 +318,9 @@ ohos_shared_library("librender_service") {
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/frame_rate_vote",
     "$graphic_2d_root/rosen/modules/create_pixelmap_surface/include",
     "$graphic_2d_root/rosen/modules/frame_load/include",
+    "$graphic_2d_root/rosen/modules/ressched/include",
+    "$graphic_2d_root/utils/log",
+    "$graphic_2d_root/utils/socketpair/export",
   ]
 
   deps = [
@@ -330,6 +332,7 @@ ohos_shared_library("librender_service") {
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager:libhyper_graphic_manager",
     "$graphic_2d_root/rosen/modules/render_frame_trace:render_frame_trace",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/utils/color_manager:color_manager",
   ]
 
   if (graphic_2d_feature_enable_chipset_vsync) {
@@ -391,6 +394,10 @@ ohos_shared_library("librender_service") {
 
   if (rs_enable_gpu) {
     public_deps = [ "$graphic_2d_root:libvulkan" ]
+    deps += [
+      "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
+      "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
+    ]
   }
 
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
@@ -517,6 +524,7 @@ ohos_executable("render_service") {
     "core",
     "$graphic_2d_root/interfaces/inner_api/common",
     "$graphic_2d_root/utils/color_manager/export",
+    "$graphic_2d_root/utils/socketpair/export",
   ]
 
   deps = [

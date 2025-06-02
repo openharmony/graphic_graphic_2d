@@ -53,6 +53,7 @@ ohos_unittest("RSBaseRenderNodeTest") {
   ]
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "googletest:gtest_main",
     "hilog:libhilog",
     "hitrace:hitrace_meter",
@@ -99,6 +100,7 @@ ohos_unittest("RSCanvasDrawingRenderNodeTest") {
   ]
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "googletest:gtest_main",
     "hilog:libhilog",
     "hitrace:hitrace_meter",
@@ -145,6 +147,7 @@ ohos_unittest("RSCanvasRenderNodeTest") {
   ]
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "googletest:gtest_main",
     "hilog:libhilog",
     "hitrace:hitrace_meter",
@@ -191,6 +194,7 @@ ohos_unittest("RSContextTest") {
   ]
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "googletest:gtest_main",
     "hilog:libhilog",
     "hitrace:hitrace_meter",
@@ -237,6 +241,7 @@ ohos_unittest("RSDirtyRegionManagerTest") {
   ]
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "googletest:gtest_main",
     "hilog:libhilog",
     "hitrace:hitrace_meter",
@@ -283,6 +288,7 @@ ohos_unittest("RSDisplayRenderNodeTest") {
   ]
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "googletest:gtest_main",
     "hilog:libhilog",
     "hitrace:hitrace_meter",
@@ -421,6 +427,7 @@ ohos_unittest("RSEffectRenderNodeTest") {
   ]
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "googletest:gtest_main",
     "hilog:libhilog",
     "hitrace:hitrace_meter",
@@ -467,6 +474,7 @@ ohos_unittest("RSOcclusionConfigTest") {
   ]
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "googletest:gtest_main",
     "hilog:libhilog",
     "hitrace:hitrace_meter",
@@ -513,6 +521,7 @@ ohos_unittest("RSPaintFilterCanvasTest") {
   ]
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "googletest:gtest_main",
     "hilog:libhilog",
     "hitrace:hitrace_meter",
@@ -559,6 +568,7 @@ ohos_unittest("RSProxyRenderNodeTest") {
   ]
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "googletest:gtest_main",
     "hilog:libhilog",
     "hitrace:hitrace_meter",
@@ -605,6 +615,7 @@ ohos_unittest("RSExtendRecordingCanvasTest") {
   ]
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "googletest:gtest_main",
     "hilog:libhilog",
     "hitrace:hitrace_meter",
@@ -651,6 +662,7 @@ ohos_unittest("RSRenderContentTest") {
   ]
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "googletest:gtest_main",
     "hilog:libhilog",
     "hitrace:hitrace_meter",
@@ -697,6 +709,7 @@ ohos_unittest("RSRenderDisplaySyncTest") {
   ]
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "googletest:gtest_main",
     "hilog:libhilog",
     "hitrace:hitrace_meter",
@@ -743,6 +756,7 @@ ohos_unittest("RSRenderFrameRateLinkerMapTest") {
   ]
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "googletest:gtest_main",
     "hilog:libhilog",
     "hitrace:hitrace_meter",
@@ -789,6 +803,7 @@ ohos_unittest("RSRenderFrameRateLinkerTest") {
   ]
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "googletest:gtest_main",
     "hilog:libhilog",
     "hitrace:hitrace_meter",
@@ -835,6 +850,7 @@ ohos_unittest("RSRenderNodeGCTest") {
   ]
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "googletest:gtest_main",
     "hilog:libhilog",
     "hitrace:hitrace_meter",
@@ -881,6 +897,7 @@ ohos_unittest("RSRenderNodeMapTest") {
   ]
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "googletest:gtest_main",
     "hilog:libhilog",
     "hitrace:hitrace_meter",
@@ -927,6 +944,7 @@ ohos_unittest("RSRenderNodeTest") {
   ]
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "googletest:gtest_main",
     "hilog:libhilog",
     "hitrace:hitrace_meter",
@@ -973,6 +991,7 @@ ohos_unittest("RSRenderNodeTest2") {
   ]
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "googletest:gtest_main",
     "hilog:libhilog",
     "hitrace:hitrace_meter",
@@ -1019,6 +1038,7 @@ ohos_unittest("RSRootRenderNodeTest") {
   ]
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "googletest:gtest_main",
     "hilog:libhilog",
     "hitrace:hitrace_meter",
@@ -1065,6 +1085,7 @@ ohos_unittest("RSSingleFrameComposerTest") {
   ]
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "googletest:gtest_main",
     "hilog:libhilog",
     "hitrace:hitrace_meter",
@@ -1111,6 +1132,7 @@ ohos_unittest("RSSurfaceHandlerTest") {
   ]
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "googletest:gtest_main",
     "hilog:libhilog",
     "hitrace:hitrace_meter",
@@ -1157,8 +1179,9 @@ ohos_unittest("RSSurfaceRenderNodeTest") {
   ]
   external_deps = [
     "c_utils:utils",
-    "googletest:gtest_main",
+    "eventhandler:libeventhandler",
     "googletest:gmock",
+    "googletest:gtest_main",
     "hilog:libhilog",
     "hitrace:hitrace_meter",
     "init:libbegetutil",
@@ -1205,6 +1228,7 @@ ohos_unittest("RSSurfaceRenderNodeTwoTest") {
   ]
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "googletest:gtest_main",
     "hilog:libhilog",
     "hitrace:hitrace_meter",
@@ -1251,6 +1275,7 @@ ohos_unittest("RSSurfaceRenderNodeThreeTest") {
   ]
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "googletest:gtest_main",
     "hilog:libhilog",
     "hitrace:hitrace_meter",
@@ -1297,6 +1322,7 @@ ohos_unittest("RSSurfaceRenderNodeFourTest") {
   ]
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "googletest:gtest_main",
     "hilog:libhilog",
     "hitrace:hitrace_meter",
@@ -1343,6 +1369,7 @@ ohos_unittest("RSTaskDispatcherTest") {
   ]
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "googletest:gtest_main",
     "hilog:libhilog",
     "hitrace:hitrace_meter",
@@ -1389,6 +1416,7 @@ ohos_unittest("RSUniRenderJudgementTest") {
   ]
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "googletest:gtest_main",
     "hilog:libhilog",
     "hitrace:hitrace_meter",
@@ -1435,6 +1463,7 @@ ohos_unittest("SKResourceManagerTest") {
   ]
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "googletest:gtest_main",
     "hilog:libhilog",
     "hitrace:hitrace_meter",

@@ -302,6 +302,10 @@ void RSPerfMonitorReporter::ClearRendergroupDataMap(NodeId& nodeId)
         std::lock_guard<std::mutex> lock(drawingCacheLastTwoTimestampMapMutex_);
         drawingCacheLastTwoTimestampMap_.erase(nodeId);
     }
+    {
+        std::lock_guard<std::mutex> lock(drawingCacheLastReportTimeMapMutex_);
+        drawingCacheLastReportTimeMap_.erase(nodeId);
+    }
 #endif
 }
 

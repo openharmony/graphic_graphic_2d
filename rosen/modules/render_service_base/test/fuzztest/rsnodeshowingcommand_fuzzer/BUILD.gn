@@ -40,6 +40,7 @@ ohos_fuzztest("RSNodeShowingCommandFuzzTest") {
 
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "graphic_surface:sync_fence",
     "hilog:libhilog",
     "ipc:ipc_core",

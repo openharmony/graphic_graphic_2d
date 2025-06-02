@@ -58,6 +58,7 @@ ohos_unittest("RSRenderServiceClientModifierTest") {
   external_deps = [
     "c_utils:utils",
     "egl:libEGL",
+    "eventhandler:libeventhandler",
     "googletest:gtest_main",
     "graphic_surface:sync_fence",
     "hilog:libhilog",

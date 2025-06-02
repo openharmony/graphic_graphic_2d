@@ -150,7 +150,7 @@ void RSEffectRenderNode::CheckBlurFilterCacheNeedForceClearOrSave(bool rotationC
 void RSEffectRenderNode::UpdateFilterCacheWithSelfDirty()
 {
 #ifdef RS_ENABLE_GPU
-#if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+#if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     if (!RSProperties::filterCacheEnabled_) {
         ROSEN_LOGE("RSEffectRenderNode::UpdateFilterCacheManagerWithCacheRegion filter cache is disabled.");
         return;
@@ -263,7 +263,7 @@ void RSEffectRenderNode::MarkFilterHasEffectChildren()
         return;
     }
     effectParams->SetHasEffectChildren(ChildHasVisibleEffect());
-#if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+#if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     if (!RSProperties::filterCacheEnabled_) {
         UpdateDirtySlotsAndPendingNodes(RSDrawableSlot::BACKGROUND_FILTER);
     }

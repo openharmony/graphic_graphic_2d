@@ -16,14 +16,20 @@
 
 #include "ge_visual_effect.h"
 #include "ge_visual_effect_container.h"
-#include "include/gpu/GrDirectContext.h"
-#include "src/core/SkOpts.h"
 
 #include "effect/color_matrix.h"
 #include "effect/runtime_shader_builder.h"
-#include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "property/rs_properties.h"
+#include "platform/common/rs_log.h"
+ 
+#ifdef USE_M133_SKIA
+#include "src/core/SkChecksum.h"
+#include "include/gpu/ganesh/GrDirectContext.h"
+#else
+#include "src/core/SkOpts.h"
+#include "include/gpu/GrDirectContext.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -36,11 +42,19 @@ RSWaterRippleShaderFilter::RSWaterRippleShaderFilter(const float progress, const
     rippleCenterX_ = rippleCenterX;
     rippleCenterY_ = rippleCenterY;
     rippleMode_ = rippleMode;
+#ifndef ENABLE_M133_SKIA
     hash_ = SkOpts::hash(&progress_, sizeof(progress_), hash_);
     hash_ = SkOpts::hash(&waveCount_, sizeof(waveCount_), hash_);
     hash_ = SkOpts::hash(&rippleCenterX_, sizeof(rippleCenterX_), hash_);
     hash_ = SkOpts::hash(&rippleCenterY_, sizeof(rippleCenterY_), hash_);
     hash_ = SkOpts::hash(&rippleMode_, sizeof(rippleMode_), hash_);
+#else
+    hash_ = SkChecksum::Hash32(&progress_, sizeof(progress_), hash_);
+    hash_ = SkChecksum::Hash32(&waveCount_, sizeof(waveCount_), hash_);
+    hash_ = SkChecksum::Hash32(&rippleCenterX_, sizeof(rippleCenterX_), hash_);
+    hash_ = SkChecksum::Hash32(&rippleCenterY_, sizeof(rippleCenterY_), hash_);
+    hash_ = SkChecksum::Hash32(&rippleMode_, sizeof(rippleMode_), hash_);
+#endif
 }
 
 float RSWaterRippleShaderFilter::GetProgress() const

@@ -52,7 +52,11 @@
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "static_factory.h"
 #ifdef RS_ENABLE_VK
+#ifdef USE_M133_SKIA
+#include "include/gpu/ganesh/vk/GrVkBackendSurface.h"
+#else
 #include "include/gpu/GrBackendSurface.h"
+#endif
 #include "platform/ohos/backend/native_buffer_utils.h"
 #include "platform/ohos/backend/rs_vulkan_context.h"
 #endif
@@ -588,7 +592,7 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     if (curDrawingCacheRoot_) {
         if (hasSkipCacheLayer_) {
             curDrawingCacheRoot_->SetSkipCacheLayer(true);
-        } else if (surfaceParams->IsInBlackList()) {
+        } else if (surfaceParams->NodeGroupHasChildInBlackList()) {
             curDrawingCacheRoot_->SetChildInBlackList(true);
         }
     }

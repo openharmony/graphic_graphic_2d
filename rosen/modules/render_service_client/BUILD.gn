@@ -375,20 +375,20 @@ ohos_shared_library("librender_service_client") {
     configs = [ ":render_service_client_link_config" ]
   }
 
+  public_external_deps = [
+    "egl:libEGL",
+    "opengles:libGLES",
+  ]
   if (rosen_is_ohos) {
-    public_external_deps = [
+    public_external_deps += [
       "c_utils:utils",
       "graphic_surface:surface",
       "eventhandler:libeventhandler",
       "image_framework:image_native",
     ]
   } else if (rosen_preview) {
-    public_external_deps = [ "graphic_surface:surface_headers" ]
+    public_external_deps += [ "graphic_surface:surface_headers" ]
   }
-  public_external_deps += [
-    "egl:libEGL",
-    "opengles:libGLES",
-  ]
 
   # build sdk
   if (rosen_is_win || current_os == "linux" || rosen_is_mac) {

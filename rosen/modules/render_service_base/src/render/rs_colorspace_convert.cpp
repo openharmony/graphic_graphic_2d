@@ -116,7 +116,6 @@ bool RSColorSpaceConvert::ColorSpaceConvertor(std::shared_ptr<Drawing::ShaderEff
         return false;
     }
     paint.SetShaderEffect(outputShader);
-    RS_LOGI("paint SetShaderEffect Func:%s, Line:%d", __FUNCTION__, __LINE__);
     return true;
 }
 

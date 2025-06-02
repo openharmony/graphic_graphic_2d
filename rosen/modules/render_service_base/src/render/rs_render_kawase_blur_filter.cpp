@@ -12,15 +12,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+ #include "render/rs_render_kawase_blur_filter.h"
+
 #include "ge_visual_effect.h"
 #include "ge_visual_effect_container.h"
 #include "include/gpu/GrDirectContext.h"
-#include "src/core/SkOpts.h"
 
 #include "effect/color_matrix.h"
 #include "effect/runtime_shader_builder.h"
 #include "platform/common/rs_system_properties.h"
-#include "render/rs_render_kawase_blur_filter.h"
+
+#ifdef USE_M133_SKIA
+#include "src/core/SkChecksum.h"
+#include "include/gpu/ganesh/GrDirectContext.h"
+#else
+#include "src/core/SkOpts.h"
+#include "include/gpu/GrDirectContext.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {

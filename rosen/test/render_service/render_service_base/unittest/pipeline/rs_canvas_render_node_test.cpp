@@ -16,6 +16,7 @@
 #include "gtest/gtest.h"
 
 #include "pipeline/rs_canvas_render_node.h"
+#include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_draw_cmd.h"
 #include "render_thread/rs_render_thread_visitor.h"
@@ -194,6 +195,58 @@ HWTEST_F(RSCanvasRenderNodeTest, ProcessShadowBatchingTest, TestSize.Level1)
     RSCanvasRenderNode rsCanvasRenderNode(nodeId, context);
     rsCanvasRenderNode.ProcessShadowBatching(*canvas_);
     ASSERT_TRUE(true);
+}
+
+/**
+ * @tc.name: UpdateDisplayHDRNodeList001
+ * @tc.desc: test UpdateDisplayHDRNodeList
+ * @tc.type: FUNC
+ * @tc.require: #IBPVN9
+ */
+HWTEST_F(RSCanvasRenderNodeTest, UpdateDisplayHDRNodeList001, TestSize.Level1)
+{
+    NodeId nodeId = 0;
+    RSCanvasRenderNode node1(nodeId);
+    node1.UpdateDisplayHDRNodeList(false, 0);
+
+    NodeId displayRenderNodeId = 1;
+    auto context = std::make_shared<RSContext>();
+    RSCanvasRenderNode node(nodeId, context);
+    node.UpdateDisplayHDRNodeList(false, 1);
+
+    auto& nodeMap = context->GetMutableNodeMap();
+    struct RSDisplayNodeConfig config;
+    auto displayRenderNode = std::make_shared<RSDisplayRenderNode>(displayRenderNodeId, config);
+    bool res = nodeMap.RegisterRenderNode(displayRenderNode);
+    ASSERT_EQ(res, true);
+    node.displayNodeId_ = displayRenderNodeId;
+
+    node.UpdateDisplayHDRNodeList(true, 1);
+    EXPECT_NE(displayRenderNode->hdrNodeList_.find(nodeId), displayRenderNode->hdrNodeList_.end());
+
+    node.UpdateDisplayHDRNodeList(false, 1);
+    EXPECT_EQ(displayRenderNode->hdrNodeList_.find(nodeId), displayRenderNode->hdrNodeList_.end());
+
+    displayRenderNode->GetHDRNodeList();
+}
+
+/**
+ * @tc.name: GetHDRNodeList001
+ * @tc.desc: test GetHDRNodeList
+ * @tc.type: FUNC
+ * @tc.require: #IBPVN9
+ */
+HWTEST_F(RSCanvasRenderNodeTest, GetHDRNodeList001, TestSize.Level1)
+{
+    NodeId displayRenderNodeId = 1;
+    struct RSDisplayNodeConfig config;
+    auto displayRenderNode = std::make_shared<RSDisplayRenderNode>(displayRenderNodeId, config);
+
+    auto& hdrNodeList = displayRenderNode->GetHDRNodeList();
+    EXPECT_TRUE(hdrNodeList.empty());
+
+    displayRenderNode->InsertHDRNode(1);
+    EXPECT_NE(displayRenderNode->hdrNodeList_.find(1), displayRenderNode->hdrNodeList_.end());
 }
 
 /**

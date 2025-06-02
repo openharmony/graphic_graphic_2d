@@ -17,12 +17,13 @@
 #define RS_GRAPHIC_TEST_PROFILER_H
 
 #include <filesystem>
-#include "third_party/cJSON/cJSON.h"
+#include "cJSON.h"
 
 #include "common/rs_color.h"
 #include "common/rs_rect.h"
 #include "rs_graphic_rootnode.h"
 #include "rs_graphic_test_ext.h"
+#include "rs_graphic_test_utils.h"
 #include "ui/rs_canvas_node.h"
 #include "ui/rs_surface_node.h"
 
@@ -40,10 +41,12 @@ public:
     };
 
     int RunNodeTreeTest(const std::string& path);
-    int RunPlaybackTest(const std::string& filePath, const std::string& configPath);
+    int RunPlaybackTest(const std::string& filePath);
+    void SetUseBufferDump(bool useBufferDump);
 private:
     void NodeTreeTestSetUp();
     void PlaybackTestSetUp();
+    void TearDown();
 
     void CopyDirectoryAndLoadNodeTreeFile(const std::filesystem::path& src, const std::filesystem::path& dest);
     void AnalysePlaybackInfo(
@@ -55,10 +58,15 @@ private:
     void LoadPlaybackProfilerFile(const std::string& filePath, const std::string& savePath, PlaybackInfo info);
 
     void TestCaseCapture(bool isScreenshot, const std::string& savePath);
+    void TestCaseBufferDump(bool isScreenshot, const std::string& savePath);
+    bool CropRawFile(const std::string& srcFileName, const std::string& dstFileName, Size dumpBufferSize);
+    void DumpBufferSetUp();
+    void DumpBufferTearDown();
     std::string GetImageSavePath();
 
     std::string rootPath_ = "";
     int runTestCaseNum_ = 0;
+    bool useBufferDump_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

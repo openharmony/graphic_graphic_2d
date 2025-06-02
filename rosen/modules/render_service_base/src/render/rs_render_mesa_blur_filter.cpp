@@ -16,12 +16,19 @@
 
 #include "ge_visual_effect.h"
 #include "ge_visual_effect_container.h"
-#include "include/gpu/GrDirectContext.h"
 #include "src/core/SkOpts.h"
 
 #include "effect/color_matrix.h"
 #include "effect/runtime_shader_builder.h"
 #include "platform/common/rs_system_properties.h"
+
+#ifdef USE_M133_SKIA
+#include "include/gpu/ganesh/GrDirectContext.h"
+#include "src/core/SkChecksum.h"
+#else
+#include "src/core/SkOpts.h"
+#include "include/gpu/GrDirectContext.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {

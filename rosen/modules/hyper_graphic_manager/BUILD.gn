@@ -79,6 +79,7 @@ ohos_shared_library("libhyper_graphic_manager") {
     "core/hgm_screen_manager/hgm_screen.cpp",
     "core/hgm_screen_manager/hgm_screen_info.cpp",
     "core/soft_vsync_manager/hgm_soft_vsync_manager.cpp",
+    "core/utils/hgm_frame_voter.cpp",
     "core/utils/hgm_one_shot_timer.cpp",
     "core/utils/hgm_voter.cpp",
     "frame_rate_vote/rs_frame_rate_vote.cpp",

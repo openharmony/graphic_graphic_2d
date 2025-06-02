@@ -13,6 +13,9 @@
  * limitations under the License.
  */
 #include "render/rs_render_maskcolor_filter.h"
+#ifdef USE_M133_SKIA
+#include "include/core/SkColor.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {

@@ -556,7 +556,7 @@ void RSDisplayRenderNode::SetForceCloseHdr(bool isForceCloseHdr)
 
 bool RSDisplayRenderNode::GetForceCloseHdr() const
 {
-    return isForceCloseHdr_;
+    return ROSEN_EQ(GetRenderProperties().GetHDRBrightnessFactor(), 0.0f);
 }
 
 RSRenderNode::ChildrenListSharedPtr RSDisplayRenderNode::GetSortedChildren() const

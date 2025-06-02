@@ -21,6 +21,7 @@ group("unittest") {
   deps = [
     ":RSAncoManagerTest",
     ":RSDrawWindowCacheTest",
+    ":RSDrmUtilTest",
     ":RSHdrUtilTest",
     ":RSOcclusionHandlerTest",
     ":RSOcclusionNodeTest",
@@ -166,6 +167,37 @@ ohos_unittest("RSSurfaceCaptureTaskTest") {
     defines += [ "USE_ROSEN_DRAWING" ]
   }
   if (defined(use_video_processing_engine) && use_video_processing_engine) {
+    defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
+    external_deps += [
+      "drivers_interface_display:libdisplay_commontype_proxy_1.0",
+      "video_processing_engine:videoprocessingengine",
+    ]
+  }
+}
+
+## Build RSDrmUtilTest
+ohos_unittest("RSDrmUtilTest") {
+  module_out_path = module_output_path
+  sources = [ "drm/rs_drm_util_test.cpp" ]
+  deps = [
+    ":rs_test_common",
+    "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+  ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+    "samgr:samgr_proxy",
+  ]
+  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
+    external_deps += [ "sensor:sensor_interface_native" ]
+  }
+  defines = []
+  defines += gpu_defines
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    defines += [ "USE_ROSEN_DRAWING" ]
+  }
+  if (defined(use_video_processing_engine) && use_video_processing_engine) {
+    include_dirs = []
     defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
     external_deps += [
       "drivers_interface_display:libdisplay_commontype_proxy_1.0",
@@ -854,6 +886,7 @@ ohos_static_library("rs_test_common") {
 
   public_deps = [
     "$graphic_2d_root/rosen/modules/composer:libcomposer",
+    "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
     "$graphic_2d_root/rosen/modules/render_service:librender_service",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
     "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
@@ -874,9 +907,11 @@ ohos_static_library("rs_test_common") {
   public_external_deps = [
     "accessibility:accessibilityconfig",
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "googletest:gmock_main",
     "googletest:gtest_main",
     "hilog:libhilog",
+    "hisysevent:libhisysevent",
     "hitrace:hitrace_meter",
     "init:libbegetutil",
     "ipc:ipc_core",
