@@ -54,8 +54,6 @@ void MemorySnapshot::RemoveCpuMemory(const pid_t pid, const size_t size)
     if (it != appMemorySnapshots_.end()) {
         if (it->second.cpuMemory > size) {
             it->second.cpuMemory -= size;
-        } else {
-            appMemorySnapshots_.erase(it);
         }
     }
 }
@@ -106,7 +104,7 @@ void MemorySnapshot::EraseSnapshotInfoByPid(const std::set<pid_t>& exitedPidSet)
     for (auto pid : exitedPidSet) {
         auto it = appMemorySnapshots_.find(pid);
         if (it != appMemorySnapshots_.end()) {
-            totalMemory_ -= it->second.TotalMemory();
+            totalMemory_ -= it->second.gpuMemory;
             appMemorySnapshots_.erase(it);
         }
     }
