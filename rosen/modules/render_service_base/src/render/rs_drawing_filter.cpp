@@ -332,7 +332,7 @@ bool RSDrawingFilter::ApplyImageEffectWithLightBlur(Drawing::Canvas& canvas,
     if (image == nullptr) {
         return false;
     }
-    std::shared_ptr<RSRenderFilterParaBase> lightBlurShaderFilter = GetShaderFilterWithType(RSUIFilterType::LIGHT_BLUR);
+    auto lightBlurShaderFilter = GetShaderFilterWithType(RSUIFilterType::LIGHT_BLUR);
     if (lightBlurShaderFilter == nullptr) {
         return false;
     }
@@ -355,8 +355,7 @@ bool RSDrawingFilter::IsHpsBlurApplied(Drawing::Canvas& canvas, const std::share
         auto hpsParam = Drawing::HpsBlurParameter(attr.src, attr.dst, radius, saturationForHPS_, brightnessForHPS_);
         RSColor maskColorForHPS = RSColor();
         if (ROSEN_EQ(attr.brushAlpha, 1.0f)) {
-            std::shared_ptr<RSRenderFilterParaBase> maskColorShaderFilter =
-                GetShaderFilterWithType(RSUIFilterType::MASK_COLOR);
+            auto maskColorShaderFilter = GetShaderFilterWithType(RSUIFilterType::MASK_COLOR);
             if (maskColorShaderFilter != nullptr) {
                 auto maskColorFilter = std::static_pointer_cast<RSMaskColorShaderFilter>(maskColorShaderFilter);
                 maskColorForHPS = maskColorFilter->GetMaskColor();
@@ -391,7 +390,7 @@ void RSDrawingFilter::ApplyImageEffect(Drawing::Canvas& canvas, const std::share
     if (ApplyImageEffectWithLightBlur(canvas, outImage, attr, brush)) {
         return;
     }
-    std::shared_ptr<RSRenderFilterParaBase> kawaseShaderFilter = GetShaderFilterWithType(RSUIFilterType::KAWASE);
+    auto kawaseShaderFilter = GetShaderFilterWithType(RSUIFilterType::KAWASE);
     if (kawaseShaderFilter != nullptr) {
         auto tmpFilter = std::static_pointer_cast<RSKawaseBlurShaderFilter>(kawaseShaderFilter);
         auto radius = tmpFilter->GetRadius();
@@ -431,7 +430,7 @@ float RSDrawingFilter::PrepareAlphaForOnScreenDraw(RSPaintFilterCanvas& paintFil
     if (ROSEN_EQ(canvasAlpha, 1.0f) || ROSEN_EQ(canvasAlpha, 0.0f)) {
         return newAlpha;
     }
-    std::shared_ptr<RSRenderFilterParaBase> maskColorShaderFilter = GetShaderFilterWithType(RSUIFilterType::MASK_COLOR);
+    auto maskColorShaderFilter = GetShaderFilterWithType(RSUIFilterType::MASK_COLOR);
     if (maskColorShaderFilter != nullptr) {
         auto maskColorFilter = std::static_pointer_cast<RSMaskColorShaderFilter>(maskColorShaderFilter);
         float postAlpha = maskColorFilter->GetPostProcessAlpha();

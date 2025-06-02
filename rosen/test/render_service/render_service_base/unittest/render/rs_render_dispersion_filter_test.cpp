@@ -61,7 +61,7 @@ HWTEST_F(RSRenderDispersionFilterTest, CreateRenderProperty001, TestSize.Level1)
     auto rsRenderDispersionFilterPara = std::make_shared<RSRenderDispersionFilterPara>(0);
 
     auto renderPropert = rsRenderDispersionFilterPara->CreateRenderProperty(RSUIFilterType::PIXEL_MAP_MASK);
-    EXPECT_NE(renderPropert, nullptr);
+    EXPECT_EQ(renderPropert, nullptr);
 
     renderPropert = rsRenderDispersionFilterPara->CreateRenderProperty(RSUIFilterType::RADIAL_GRADIENT_MASK);
     EXPECT_EQ(renderPropert, nullptr);
@@ -119,8 +119,13 @@ HWTEST_F(RSRenderDispersionFilterTest, GetLeafRenderProperties001, TestSize.Leve
  */
 HWTEST_F(RSRenderDispersionFilterTest, GetRenderMask001, TestSize.Level1)
 {
-    auto rsRenderDispersionFilterPara = std::make_shared<RSRenderDispersionFilterPara>(0);
-    auto renderMask = rsRenderDispersionFilterPara->GetRenderMask();
+    auto rsRenderDispersionFilter = std::make_shared<RSRenderDispersionFilterPara>(0, RSUIFilterType::PIXEL_MAP_MASK);
+    auto renderMask = rsRenderDispersionFilter->GetRenderMask();
+    EXPECT_EQ(renderMask, nullptr);
+
+    auto maskRenderProperty = std::make_shared<RSRenderMaskPara>(RSUIFilterType::PIXEL_MAP_MASK);
+    rsRenderDispersionFilter->Setter(RSUIFilterType::PIXEL_MAP_MASK, maskRenderProperty);
+    renderMask = rsRenderDispersionFilter->GetRenderMask();
     EXPECT_NE(renderMask, nullptr);
 }
 
@@ -150,6 +155,7 @@ HWTEST_F(RSRenderDispersionFilterTest, GenerateGEVisualEffect001, TestSize.Level
     EXPECT_FALSE(visualEffectContainer->filterVec_.empty());
 
     filter->mask_ = std::make_shared<RSShaderMask>(std::make_shared<RSRenderMaskPara>(RSUIFilterType::PIXEL_MAP_MASK));
+    filter->GenerateGEVisualEffect(visualEffectContainer);
     EXPECT_FALSE(visualEffectContainer->filterVec_.empty());
 }
 
@@ -163,7 +169,7 @@ HWTEST_F(RSRenderDispersionFilterTest, GetMask001, TestSize.Level1)
     auto filter = std::make_shared<RSRenderDispersionFilterPara>(0);
     EXPECT_EQ(filter->GetMask(), nullptr);
 
-    auto mask = std::make_shared<RSShaderMask>(std::make_shared<RSRenderMaskPara>(RSUIFilterType::PIXEL_MAP_MASK));
+    auto mask = std::make_shared<RSShaderMask>(std::make_shared<RSRenderMaskPara>(RSUIFilterType::RIPPLE_MASK));
     filter->mask_ = mask;
     EXPECT_EQ(filter->GetMask(), mask);
 }
@@ -175,7 +181,7 @@ HWTEST_F(RSRenderDispersionFilterTest, GetMask001, TestSize.Level1)
  */
 HWTEST_F(RSRenderDispersionFilterTest, ParseFilterValuesTest001, TestSize.Level1)
 {
-    auto filter = std::make_shared<RSRenderDispersionFilterPara>(0, RSUIFilterType::PIXEL_MAP_MASK);
+    auto filter = std::make_shared<RSRenderDispersionFilterPara>(0, RSUIFilterType::RIPPLE_MASK);
     EXPECT_FALSE(filter->ParseFilterValues());
 
     auto redOffsetProperty = std::make_shared<RSRenderAnimatableProperty<Vector2f>>(
@@ -198,8 +204,8 @@ HWTEST_F(RSRenderDispersionFilterTest, ParseFilterValuesTest001, TestSize.Level1
     filter->Setter(RSUIFilterType::DISPERSION_OPACITY, opacityProperty);
     EXPECT_TRUE(filter->ParseFilterValues());
 
-    auto maskRenderProperty = std::make_shared<RSRenderMaskPara>(RSUIFilterType::PIXEL_MAP_MASK);
-    filter->Setter(RSUIFilterType::PIXEL_MAP_MASK, maskRenderProperty);
+    auto maskRenderProperty = std::make_shared<RSRenderMaskPara>(RSUIFilterType::RIPPLE_MASK);
+    filter->Setter(RSUIFilterType::RIPPLE_MASK, maskRenderProperty);
     EXPECT_TRUE(filter->ParseFilterValues());
 }
 } // namespace OHOS::Rosen

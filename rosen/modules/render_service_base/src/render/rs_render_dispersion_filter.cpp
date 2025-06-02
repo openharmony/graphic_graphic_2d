@@ -165,7 +165,6 @@ std::shared_ptr<RSRenderMaskPara> RSRenderDispersionFilterPara::GetRenderMask()
 bool RSRenderDispersionFilterPara::ParseFilterValues()
 {
     auto dispersionMask = std::static_pointer_cast<RSRenderMaskPara>(GetRenderPropert(maskType_));
-    mask_ = std::make_shared<RSShaderMask>(dispersionMask);
     auto dispersionOpacity =
         std::static_pointer_cast<RSRenderProperty<float>>(GetRenderPropert(RSUIFilterType::DISPERSION_OPACITY));
     auto dispersionRedOffset =
@@ -195,6 +194,7 @@ bool RSRenderDispersionFilterPara::ParseFilterValues()
 #else
     const auto hashFunc = SkChecksum::Hash32;
 #endif
+    mask_ = mask_ = dispersionMask ? std::make_shared<RSShaderMask>(dispersionMask) : nullptr;
     if (mask_) {
         auto maskHash = mask_->Hash();
         hash_ = hashFunc(&maskHash, sizeof(maskHash), hash_);

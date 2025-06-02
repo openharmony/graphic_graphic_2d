@@ -3307,12 +3307,12 @@ void RSProperties::GenerateBackgroundMaterialBlurFilter()
         std::shared_ptr<RSKawaseBlurShaderFilter> kawaseBlurFilter =
             std::make_shared<RSKawaseBlurShaderFilter>(backgroundBlurRadius_);
         auto colorImageFilter = Drawing::ImageFilter::CreateColorFilterImageFilter(*colorFilter, nullptr);
-        originalFilter = originalFilter ? originalFilter->Compose(colorImageFilter, hash)
-                                        : std::make_shared<RSDrawingFilter>(colorImageFilter, hash);
+        originalFilter = originalFilter?
+            originalFilter->Compose(colorImageFilter, hash) : std::make_shared<RSDrawingFilter>(colorImageFilter, hash);
         originalFilter = originalFilter->Compose(std::static_pointer_cast<RSRenderFilterParaBase>(kawaseBlurFilter));
     } else {
-        originalFilter = originalFilter ? originalFilter->Compose(blurColorFilter, hash)
-                                        : std::make_shared<RSDrawingFilter>(blurColorFilter, hash);
+        originalFilter = originalFilter?
+            originalFilter->Compose(blurColorFilter, hash) : std::make_shared<RSDrawingFilter>(blurColorFilter, hash);
     }
     std::shared_ptr<RSMaskColorShaderFilter> maskColorShaderFilter =
         std::make_shared<RSMaskColorShaderFilter>(backgroundColorMode_, backgroundMaskColor_);
@@ -3412,14 +3412,14 @@ void RSProperties::GenerateForegroundMaterialBlurFilter()
         std::shared_ptr<RSKawaseBlurShaderFilter> kawaseBlurFilter =
             std::make_shared<RSKawaseBlurShaderFilter>(foregroundBlurRadius_);
         auto colorImageFilter = Drawing::ImageFilter::CreateColorFilterImageFilter(*colorFilter, nullptr);
-        originalFilter = originalFilter ? originalFilter->Compose(colorImageFilter, hash)
-                                        : std::make_shared<RSDrawingFilter>(colorImageFilter, hash);
+        originalFilter = originalFilter?
+            originalFilter->Compose(colorImageFilter, hash) : std::make_shared<RSDrawingFilter>(colorImageFilter, hash);
         originalFilter = originalFilter->Compose(std::static_pointer_cast<RSRenderFilterParaBase>(kawaseBlurFilter));
     } else {
         hash = SkOpts::hash(&foregroundBlurSaturation_, sizeof(foregroundBlurSaturation_), hash);
         hash = SkOpts::hash(&foregroundBlurBrightness_, sizeof(foregroundBlurBrightness_), hash);
-        originalFilter = originalFilter ? originalFilter->Compose(blurColorFilter, hash)
-                                        : std::make_shared<RSDrawingFilter>(blurColorFilter, hash);
+        originalFilter = originalFilter?
+            originalFilter->Compose(blurColorFilter, hash) : std::make_shared<RSDrawingFilter>(blurColorFilter, hash);
     }
     std::shared_ptr<RSMaskColorShaderFilter> maskColorShaderFilter = std::make_shared<RSMaskColorShaderFilter>(
         foregroundColorMode_, foregroundMaskColor_);
@@ -4910,16 +4910,14 @@ void RSProperties::ClearFilterCache()
     }
     if (backgroundFilter_ != nullptr) {
         auto drawingFilter = std::static_pointer_cast<RSDrawingFilter>(backgroundFilter_);
-        std::shared_ptr<RSRenderFilterParaBase> rsShaderFilter =
-            drawingFilter->GetShaderFilterWithType(RSUIFilterType::MASK_COLOR);
+        auto rsShaderFilter = drawingFilter->GetShaderFilterWithType(RSUIFilterType::MASK_COLOR);
         if (rsShaderFilter != nullptr) {
             auto maskColorShaderFilter = std::static_pointer_cast<RSMaskColorShaderFilter>(rsShaderFilter);
         }
     }
     if (filter_ != nullptr) {
         auto drawingFilter = std::static_pointer_cast<RSDrawingFilter>(filter_);
-        std::shared_ptr<RSRenderFilterParaBase> rsShaderFilter =
-            drawingFilter->GetShaderFilterWithType(RSUIFilterType::MASK_COLOR);
+        auto rsShaderFilter = drawingFilter->GetShaderFilterWithType(RSUIFilterType::MASK_COLOR);
         if (rsShaderFilter != nullptr) {
             auto maskColorShaderFilter = std::static_pointer_cast<RSMaskColorShaderFilter>(rsShaderFilter);
         }

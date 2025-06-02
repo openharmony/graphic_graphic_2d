@@ -26,7 +26,6 @@
 #include "render/rs_shader_mask.h"
 #include "transaction/rs_marshalling_helper.h"
 
-
 namespace OHOS {
 namespace Rosen {
 static const std::vector<RSUIFilterType> FILTER_TYPE_WITHOUT_MASK = {

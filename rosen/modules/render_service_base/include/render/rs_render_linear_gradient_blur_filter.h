@@ -21,7 +21,7 @@
 
 namespace OHOS {
 namespace Rosen {
-class RSB_EXPORT RSLinearGradientBlurShaderFilter : public RSRenderFilterParaBase {
+class RSLinearGradientBlurShaderFilter : public RSRenderFilterParaBase {
 public:
     RSLinearGradientBlurShaderFilter(const std::shared_ptr<RSLinearGradientBlurPara>& para,
         const float geoWidth, const float geoHeight);

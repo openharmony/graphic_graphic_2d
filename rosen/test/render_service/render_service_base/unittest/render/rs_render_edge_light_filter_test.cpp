@@ -108,6 +108,7 @@ HWTEST_F(RSRenderEdgeLightFilterTest, GenerateGEVisualEffect001, TestSize.Level1
 
     rsEdgeLightFilter->mask_ =
         std::make_shared<RSShaderMask>(std::make_shared<RSRenderMaskPara>(RSUIFilterType::RIPPLE_MASK));
+    rsEdgeLightFilter->GenerateGEVisualEffect(visualEffectContainer);
     EXPECT_FALSE(visualEffectContainer->filterVec_.empty());
 }
 

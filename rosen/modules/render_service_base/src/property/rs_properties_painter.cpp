@@ -652,8 +652,7 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
         auto imageFilter = filter->GetImageFilter();
         // Since using Kawase blur (shader) in the screenshot scene would lead to failure,
         // a Gaussian blur filter (imageFilter) is regenerated here instead.
-        std::shared_ptr<RSRenderFilterParaBase> kawaseShaderFilter =
-            filter->GetShaderFilterWithType(RSUIFilterType::KAWASE);
+        auto kawaseShaderFilter = filter->GetShaderFilterWithType(RSUIFilterType::KAWASE);
         if (kawaseShaderFilter != nullptr) {
             auto tmpFilter = std::static_pointer_cast<RSKawaseBlurShaderFilter>(kawaseShaderFilter);
             auto radius = tmpFilter->GetRadius();
@@ -679,8 +678,7 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
 
     auto clipIBounds = canvas.GetDeviceClipBounds();
     auto imageClipIBounds = clipIBounds;
-    std::shared_ptr<RSRenderFilterParaBase> magnifierShaderFilter =
-        filter->GetShaderFilterWithType(RSUIFilterType::MAGNIFIER);
+    auto magnifierShaderFilter = filter->GetShaderFilterWithType(RSUIFilterType::MAGNIFIER);
     if (magnifierShaderFilter != nullptr) {
         auto tmpFilter = std::static_pointer_cast<RSMagnifierShaderFilter>(magnifierShaderFilter);
         auto canvasMatrix = canvas.GetTotalMatrix();
@@ -692,8 +690,7 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
     // Optional use cacheManager to draw filter
     if (auto& cacheManager = properties.GetFilterCacheManager(filterType == FilterType::FOREGROUND_FILTER);
         cacheManager != nullptr && !canvas.GetDisableFilterCache()) {
-        std::shared_ptr<RSRenderFilterParaBase> rsShaderFilter =
-            filter->GetShaderFilterWithType(RSUIFilterType::LINEAR_GRADIENT_BLUR);
+        auto rsShaderFilter = filter->GetShaderFilterWithType(RSUIFilterType::LINEAR_GRADIENT_BLUR);
         if (rsShaderFilter != nullptr) {
             auto tmpFilter = std::static_pointer_cast<RSLinearGradientBlurShaderFilter>(rsShaderFilter);
             tmpFilter->IsOffscreenCanvas(true);
@@ -706,8 +703,7 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
     }
 #endif
 
-    std::shared_ptr<RSRenderFilterParaBase> rsShaderFilter =
-        filter->GetShaderFilterWithType(RSUIFilterType::LINEAR_GRADIENT_BLUR);
+    auto rsShaderFilter = filter->GetShaderFilterWithType(RSUIFilterType::LINEAR_GRADIENT_BLUR);
     if (rsShaderFilter != nullptr) {
         auto tmpFilter = std::static_pointer_cast<RSLinearGradientBlurShaderFilter>(rsShaderFilter);
         tmpFilter->IsOffscreenCanvas(true);

@@ -12,11 +12,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- #include "render/rs_render_kawase_blur_filter.h"
+#include "render/rs_render_kawase_blur_filter.h"
 
 #include "ge_visual_effect.h"
 #include "ge_visual_effect_container.h"
-#include "include/gpu/GrDirectContext.h"
 
 #include "effect/color_matrix.h"
 #include "effect/runtime_shader_builder.h"
