@@ -3594,9 +3594,9 @@ void RSProperties::GenerateSoundWaveFilter()
         ROSEN_LOGE("RSProperties::GenerateSoundWaveFilter get soundWaveRenderProperty nullptr.");
         return;
     }
-    std::shared_ptr<RSSoundWaveFilter> soundWaveFilter = std::make_shared<RSSoundWaveFilter>(waveColorA->Get(),
-        waveColorB->Get(), waveColorC->Get(), waveColorProgress->Get(), soundIntensity->Get(), shockWaveAlphaA->Get(),
-        shockWaveAlphaB->Get(), shockWaveProgressA->Get(), shockWaveProgressB->Get(), shockWaveTotalAlpha->Get());
+    auto soundWaveFilter = std::make_shared<RSSoundWaveFilter>(waveColorA->Get(), waveColorB->Get(), waveColorC->Get(),
+        waveColorProgress->Get(), soundIntensity->Get(), shockWaveAlphaA->Get(), shockWaveAlphaB->Get(),
+        shockWaveProgressA->Get(), shockWaveProgressB->Get(), shockWaveTotalAlpha->Get());
     std::shared_ptr<RSDrawingFilter> originalFilter = std::make_shared<RSDrawingFilter>(soundWaveFilter);
     if (!backgroundFilter_) {
         backgroundFilter_ = originalFilter;
