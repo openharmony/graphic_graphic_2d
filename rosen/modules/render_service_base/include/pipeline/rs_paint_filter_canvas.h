@@ -38,6 +38,7 @@ public:
     RSPaintFilterCanvasBase(Drawing::Canvas* canvas);
     ~RSPaintFilterCanvasBase() override = default;
 
+    void SetParallelRender(bool parallelEnable) override;
     Drawing::Matrix GetTotalMatrix() const override;
 
     Drawing::Rect GetLocalClipBounds() const override;
@@ -314,6 +315,10 @@ public:
     void SetIsWindowFreezeCapture(bool isWindowFreezeCapture);
     bool GetIsDrawingCache() const;
     void SetIsDrawingCache(bool isDrawingCache);
+    void SetEffectIntersectWithDRM(bool intersect);
+    bool GetEffectIntersectWithDRM() const;
+    void SetDarkColorMode(bool isDark);
+    bool GetDarkColorMode() const;
 
     struct CacheBehindWindowData {
         CacheBehindWindowData() = default;
@@ -326,14 +331,27 @@ public:
     const std::shared_ptr<CacheBehindWindowData>& GetCacheBehindWindowData() const;
 
     // Set culled nodes for control-level occlusion culling
-    void SetCulledNodes(const std::unordered_set<NodeId>&& culledNodes)
+    void SetCulledNodes(std::unordered_set<NodeId>&& culledNodes)
     {
         culledNodes_ = std::move(culledNodes);
     }
+
     // Get culled nodes for control-level occlusion culling
     const std::unordered_set<NodeId>& GetCulledNodes() const
     {
         return culledNodes_;
+    }
+
+    // Set culled entire subtree for control-level occlusion culling
+    void SetCulledEntireSubtree(std::unordered_set<NodeId>&& culledEntireSubtree)
+    {
+        culledEntireSubtree_ = std::move(culledEntireSubtree);
+    }
+
+    // Get culled entire subtree for control-level occlusion culling
+    const std::unordered_set<NodeId>& GetCulledEntireSubtree() const
+    {
+        return culledEntireSubtree_;
     }
 
 protected:
@@ -381,6 +399,8 @@ private:
     bool isWindowFreezeCapture_ = false;
     // Drawing window cache or uifirst cache
     bool isDrawingCache_ = false;
+    bool isIntersectWithDRM_ = false;
+    bool isDarkColorMode_ = false;
     CacheType cacheType_ { RSPaintFilterCanvas::CacheType::UNDEFINED };
     std::atomic_bool isHighContrastEnabled_ { false };
     GraphicColorGamut targetColorGamut_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
@@ -392,6 +412,7 @@ private:
     Drawing::Canvas* storeMainCanvas_ = nullptr; // store main canvas
     Drawing::Rect visibleRect_ = Drawing::Rect();
     std::unordered_set<NodeId> culledNodes_; // store culled nodes for control-level occlusion culling
+    std::unordered_set<NodeId> culledEntireSubtree_; // store culled entire subtree for control-level occlusion culling
 
     std::stack<float> alphaStack_;
     std::stack<Env> envStack_;

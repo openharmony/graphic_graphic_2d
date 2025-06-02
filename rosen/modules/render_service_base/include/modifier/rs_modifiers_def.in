@@ -154,6 +154,8 @@ DECLARE_NOANIMATABLE_MODIFIER(Mask, std::shared_ptr<RSMask>, MASK, Foreground)
 
 DECLARE_ANIMATABLE_MODIFIER(Spherize, float, SPHERIZE, Replace, Appearance, MEDIUM)
 
+DECLARE_ANIMATABLE_MODIFIER(HDRUIBrightness, float, HDR_UI_BRIGHTNESS, Replace, Foreground, COARSE)
+
 DECLARE_ANIMATABLE_MODIFIER(LightUpEffect, float, LIGHT_UP_EFFECT, Replace, Foreground, COARSE)
 
 DECLARE_ANIMATABLE_MODIFIER(PixelStretch, Vector4f, PIXEL_STRETCH, Replace, Geometry, COARSE)
@@ -283,3 +285,5 @@ DECLARE_NOANIMATABLE_MODIFIER(AlwaysSnapshot, bool, ALWAYS_SNAPSHOT, Background)
 DECLARE_ANIMATABLE_MODIFIER(AttractionFraction, float, ATTRACTION_FRACTION, Replace, Appearance, MEDIUM)
 
 DECLARE_ANIMATABLE_MODIFIER(AttractionDstPoint, Vector2f, ATTRACTION_DSTPOINT, Replace, Appearance, MEDIUM)
+
+DECLARE_ANIMATABLE_MODIFIER(HDRBrightnessFactor, float, HDR_BRIGHTNESS_FACTOR, Replace, Foreground, COARSE)

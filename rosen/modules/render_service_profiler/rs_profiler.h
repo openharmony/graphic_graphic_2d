@@ -70,7 +70,10 @@
 #define RS_PROFILER_DRAWING_NODE_ADD_CLEAROP(drawCmdList) RSProfiler::DrawingNodeAddClearOp(drawCmdList)
 #define RS_PROFILER_KEEP_DRAW_CMD(drawCmdListNeedSync) RSProfiler::KeepDrawCmd(drawCmdListNeedSync)
 #define RS_PROFILER_PROCESS_ADD_CHILD(parent, child, index) RSProfiler::ProcessAddChild(parent, child, index)
-#define RS_PROFILER_IF_NEED_TO_SKIP_DRAWCMD_SURFACE(parcel) RSProfiler::IfNeedToSkipDuringReplay(parcel)
+#define RS_PROFILER_IF_NEED_TO_SKIP_DRAWCMD_SURFACE(parcel, skipBytes) \
+    RSProfiler::IfNeedToSkipDuringReplay(parcel, skipBytes)
+#define RS_PROFILER_SURFACE_ON_DRAW_MATCH_OPTIMIZE(useNodeMatchOptimize) \
+    RSProfiler::SurfaceOnDrawMatchOptimize(useNodeMatchOptimize)
 #else
 #define RS_PROFILER_INIT(renderSevice)
 #define RS_PROFILER_ON_FRAME_BEGIN(syncTime)
@@ -109,7 +112,8 @@
 #define RS_PROFILER_DRAWING_NODE_ADD_CLEAROP(drawCmdList) (drawCmdList)->ClearOp()
 #define RS_PROFILER_KEEP_DRAW_CMD(drawCmdListNeedSync) drawCmdListNeedSync = true
 #define RS_PROFILER_PROCESS_ADD_CHILD(parent, child, index) false
-#define RS_PROFILER_IF_NEED_TO_SKIP_DRAWCMD_SURFACE(parcel) false
+#define RS_PROFILER_IF_NEED_TO_SKIP_DRAWCMD_SURFACE(parcel, skipBytes) false
+#define RS_PROFILER_SURFACE_ON_DRAW_MATCH_OPTIMIZE(useNodeMatchOptimize)
 #endif
 
 #ifdef RS_PROFILER_ENABLED
@@ -248,7 +252,8 @@ public:
     RSB_EXPORT static void SetDrawingCanvasNodeRedraw(bool enable);
     RSB_EXPORT static void KeepDrawCmd(bool& drawCmdListNeedSync);
     RSB_EXPORT static void SetRenderNodeKeepDrawCmd(bool enable);
-    RSB_EXPORT static bool IfNeedToSkipDuringReplay(Parcel& parcel);
+    RSB_EXPORT static bool IfNeedToSkipDuringReplay(Parcel& parcel, uint32_t skipBytes);
+    RSB_EXPORT static void SurfaceOnDrawMatchOptimize(bool& useNodeMatchOptimize);
 
 private:
     static const char* GetProcessNameByPid(int pid);
@@ -299,6 +304,8 @@ private:
     RSB_EXPORT static void TimePauseResume(uint64_t curTime);
     RSB_EXPORT static void TimePauseClear();
     RSB_EXPORT static uint64_t TimePauseGet();
+
+    RSB_EXPORT static bool IsSecureScreen();
 
     RSB_EXPORT static std::shared_ptr<RSDisplayRenderNode> GetDisplayNode(const RSContext& context);
     RSB_EXPORT static Vector4f GetScreenRect(const RSContext& context);

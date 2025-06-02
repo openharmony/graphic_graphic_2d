@@ -39,6 +39,7 @@
 #include "render/rs_motion_blur_filter.h"
 #include "render/rs_particles_drawable.h"
 #include "render/rs_path.h"
+#include "render/rs_render_filter.h"
 #include "render/rs_shader.h"
 #include "render/rs_shadow.h"
 #include "render/rs_attraction_effect_filter.h"
@@ -176,6 +177,8 @@ public:
     void SetAlphaOffscreen(bool alphaOffscreen);
     bool GetAlphaOffscreen() const;
 
+    void SetLocalMagnificationCap(bool localMagnificationCap);
+
     void SetSublayerTransform(const std::optional<Matrix3f>& sublayerTransform);
     const std::optional<Matrix3f>& GetSublayerTransform() const;
 
@@ -195,6 +198,11 @@ public:
         needSkipShadow_ = needSkipShadow;
     }
 
+    void SetHDRBrightnessFactor(float factor);
+    float GetHDRBrightnessFactor() const;
+    void SetCanvasNodeHDRBrightnessFactor(float factor);
+    float GetCanvasNodeHDRBrightnessFactor() const;
+
     // particle properties
     void SetParticles(const RSRenderParticleVector& particles);
     const RSRenderParticleVector& GetParticles() const;
@@ -210,6 +218,10 @@ public:
     std::shared_ptr<RSShader> GetBackgroundShader() const;
     void SetBackgroundShaderProgress(const float& progress);
     float GetBackgroundShaderProgress() const;
+
+    void SetComplexShaderParam(const std::vector<float>& param);
+    std::optional<std::vector<float>> GetComplexShaderParam() const;
+
     void SetBgImage(const std::shared_ptr<RSImage>& image);
     std::shared_ptr<RSImage> GetBgImage() const;
     void SetBgImageInnerRect(const Vector4f& rect);
@@ -266,6 +278,11 @@ public:
     void SetDynamicLightUpDegree(const std::optional<float>& lightUpDegree);
     void SetDynamicDimDegree(const std::optional<float>& DimDegree);
 
+    void SetBackgroundUIFilter(const std::shared_ptr<RSRenderFilter>& renderFilter);
+    std::shared_ptr<RSRenderFilter> GetBackgroundUIFilter() const;
+    void SetForegroundUIFilter(const std::shared_ptr<RSRenderFilter>& renderFilter);
+    std::shared_ptr<RSRenderFilter> GetForegroundUIFilter() const;
+
     void SetFgBrightnessRates(const Vector4f& rates);
     Vector4f GetFgBrightnessRates() const;
     void SetFgBrightnessSaturation(const float& saturation);
@@ -318,6 +335,7 @@ public:
     const std::shared_ptr<MotionBlurParam>& GetMotionBlurPara() const;
     const std::shared_ptr<RSMagnifierParams>& GetMagnifierPara() const;
     bool NeedFilter() const;
+    bool NeedHwcFilter() const;
     void SetGreyCoef(const std::optional<Vector2f>& greyCoef);
     const std::optional<Vector2f>& GetGreyCoef() const;
     const std::shared_ptr<RSFilter>& GetForegroundFilter() const;
@@ -479,6 +497,11 @@ public:
     bool IsSpherizeValid() const;
     void CreateSphereEffectFilter();
 
+    void SetHDRUIBrightness(float hdrUIBrightness);
+    float GetHDRUIBrightness() const;
+    bool IsHDRUIBrightnessValid() const;
+    void CreateHDRUIBrightnessFilter();
+
     bool IsAttractionValid() const;
     void SetAttractionFraction(float fraction);
     void SetAttractionDstPoint(Vector2f dstPoint);
@@ -571,7 +594,7 @@ public:
     int GetColorBlendApplyType() const;
     bool IsColorBlendApplyTypeOffscreen() const;
 
-#if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+#if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     const std::unique_ptr<RSFilterCacheManager>& GetFilterCacheManager(bool isForeground) const;
     void ClearFilterCache();
 #endif
@@ -608,6 +631,7 @@ private:
         int colorMode, const RSColor& color);
     void GenerateBackgroundFilter();
     void GenerateForegroundFilter();
+    void GenerateBackgroundMaskFilter();
     void GenerateBackgroundBlurFilter();
     void GenerateForegroundBlurFilter();
     void GenerateBackgroundMaterialBlurFilter();
@@ -620,6 +644,14 @@ private:
     void GenerateWaterRippleFilter();
     void GenerateLinearGradientBlurFilter();
     void GenerateMagnifierFilter();
+    void GenerateRenderFilter();
+    void GenerateDisplacementDistortFilter();
+    void GenerateRenderFilterColorGradient();
+    void GenerateSoundWaveFilter();
+    void GenerateRenderFilterEdgeLight();
+    void GenerateBezierWarpFilter();
+    void GenerateRenderFilterDispersion();
+    void GenerateForegroundRenderFilter();
 
     bool NeedClip() const;
     bool NeedBlurFuzed();
@@ -651,6 +683,7 @@ private:
     bool isDrawn_ = false;
     bool foregroundEffectDirty_ = false;
     bool needFilter_ = false;
+    bool needHwcFilter_ = false;
     bool useEffect_ = false;
     bool needDrawBehindWindow_ = false;
     bool alphaOffscreen_ = false;
@@ -664,6 +697,9 @@ private:
     bool bgBlurDisableSystemAdaptation = true;
     bool fgBlurDisableSystemAdaptation = true;
     bool alwaysSnapshot_ = false;
+    bool localMagnificationCap_ = false;
+    float hdrBrightnessFactor_ = 1.0f; // for displayNode
+    float canvasNodeHDRBrightnessFactor_ = 1.0f; // for canvasNode
     float frameOffsetX_ = 0.f;
     float frameOffsetY_ = 0.f;
     float alpha_ = 1.f;
@@ -676,6 +712,7 @@ private:
     float foregroundEffectRadius_ = 0.f;
     float attractFraction_ = 0.f;
     float spherizeDegree_ = 0.f;
+    float hdrUIBrightness_ = 1.0f;
     float lightUpEffectDegree_ = 1.0f;
     // filter property
     float backgroundBlurRadius_ = 0.f;
@@ -694,7 +731,9 @@ private:
     std::shared_ptr<RSObjAbsGeometry> boundsGeo_;
     std::shared_ptr<RSFilter> foregroundFilter_ = nullptr; // view content filter
     std::shared_ptr<RSFilter> foregroundFilterCache_ = nullptr; // view content filter via cache
+    std::shared_ptr<RSRenderFilter> foregroundRenderFilter_ = nullptr;
     std::shared_ptr<RSFilter> backgroundFilter_ = nullptr;
+    std::shared_ptr<RSRenderFilter> backgroundRenderFilter_ = nullptr;
     std::shared_ptr<RSFilter> filter_ = nullptr;
     std::shared_ptr<RectF> drawRegion_ = nullptr;
     std::shared_ptr<RSLightSource> lightSourcePtr_ = nullptr;
@@ -718,6 +757,9 @@ private:
     std::optional<Vector4f> pixelStretchPercent_;
     std::optional<Vector4f> cornerRadius_;
     std::optional<RSShadow> shadow_;
+
+    std::shared_ptr<Drawing::RuntimeEffect> shaderEffect_ = nullptr;
+    std::optional<std::vector<float>> complexShaderParam_;
 
     std::optional<RSWaterRipplePara> waterRippleParams_ = std::nullopt;
     std::optional<RSFlyOutPara> flyOutParams_ = std::nullopt;
@@ -760,7 +802,7 @@ private:
     Drawing::Matrix prevAbsMatrix_;
     RSRenderParticleVector particles_;
 
-#if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+#if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     void CreateFilterCacheManagerIfNeed();
     std::unique_ptr<RSFilterCacheManager> backgroundFilterCacheManager_;
     std::unique_ptr<RSFilterCacheManager> foregroundFilterCacheManager_;

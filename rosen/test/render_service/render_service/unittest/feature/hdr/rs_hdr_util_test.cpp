@@ -17,6 +17,7 @@
 #include "gtest/gtest.h"
 #include "feature/hdr/rs_hdr_util.h"
 #include "pipeline/render_thread/rs_render_engine.h"
+#include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_test_util.h"
 #include "v2_1/cm_color_space.h"
 #ifdef USE_VIDEO_PROCESSING_ENGINE
@@ -138,6 +139,50 @@ HWTEST_F(RSHdrUtilTest, UpdateSurfaceNodeNitTest, TestSize.Level1)
     ASSERT_NE(node, nullptr);
     node->SetVideoHdrStatus(HdrStatus::HDR_VIDEO);
     RSHdrUtil::UpdateSurfaceNodeNit(*node, 0);
+}
+
+/**
+ * @tc.name: UpdateSurfaceNodeNit001
+ * @tc.desc: Test UpdateSurfaceNodeNit
+ * @tc.type: FUNC
+ * @tc.require: issueI6QM6E
+ */
+HWTEST_F(RSHdrUtilTest, UpdateSurfaceNodeNitTest001, TestSize.Level1)
+{
+    auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(node, nullptr);
+    node->SetVideoHdrStatus(HdrStatus::HDR_VIDEO);
+    EXPECT_EQ(node->GetVideoHdrStatus(), HdrStatus::HDR_VIDEO);
+    RSHdrUtil::UpdateSurfaceNodeNit(*node, 0);
+}
+
+/**
+ * @tc.name: UpdateSurfaceNodeNit002
+ * @tc.desc: Test UpdateSurfaceNodeNit
+ * @tc.type: FUNC
+ * @tc.require: issueI6QM6E
+ */
+HWTEST_F(RSHdrUtilTest, UpdateSurfaceNodeNitTest002, TestSize.Level1)
+{
+    auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(node, nullptr);
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    node->OnRegister(context);
+    node->SetVideoHdrStatus(HdrStatus::HDR_VIDEO);
+    EXPECT_EQ(node->GetVideoHdrStatus(), HdrStatus::HDR_VIDEO);
+    RSHdrUtil::UpdateSurfaceNodeNit(*node, 0);
+
+    auto& nodeMap = context->GetMutableNodeMap();
+    NodeId displayRenderNodeId = 1;
+    struct RSDisplayNodeConfig config;
+    auto displayRenderNode = std::make_shared<RSDisplayRenderNode>(displayRenderNodeId, config);
+    bool res = nodeMap.RegisterRenderNode(displayRenderNode);
+    ASSERT_EQ(res, true);
+    RSHdrUtil::UpdateSurfaceNodeNit(*node, 0); // displayNode is nullptr
+    node->displayNodeId_ = displayRenderNodeId;
+    auto displayNode = context->GetNodeMap().GetRenderNode<RSDisplayRenderNode>(node->GetDisplayNodeId());
+    ASSERT_NE(displayNode, nullptr);
+    RSHdrUtil::UpdateSurfaceNodeNit(*node, 0); // displayNode is nullptr
 }
 
 /**

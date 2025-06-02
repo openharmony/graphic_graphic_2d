@@ -26,6 +26,7 @@ static napi_value Export(napi_env env, napi_value exports)
 {
     FilterNapi::Init(env, exports);
     EffectNapi::Init(env, exports);
+    MaskNapi::Init(env, exports);
     return exports;
 }
 

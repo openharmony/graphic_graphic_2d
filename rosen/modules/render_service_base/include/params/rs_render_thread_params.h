@@ -30,16 +30,18 @@ struct CaptureParam {
     bool isSnapshot_ = false;
     bool isSingleSurface_ = false;
     bool isMirror_ = false;
+    uint64_t virtualScreenId_ = INVALID_SCREEN_ID;
     NodeId rootIdInWhiteList_ = INVALID_NODEID;
     bool isFirstNode_ = false;
     bool isSystemCalling_ = false;
     bool isSelfCapture_ = false;
     bool isNeedBlur_ = false;
     bool isSoloNodeUiCapture_ = false;
+    NodeId endNodeId_ = INVALID_NODEID;
     CaptureParam() {}
     CaptureParam(bool isSnapshot, bool isSingleSurface, bool isMirror, bool isFirstNode = false,
         bool isSystemCalling = false, bool isSelfCapture = false, bool isNeedBlur = false,
-        bool isSoloNodeUiCapture = false)
+        bool isSoloNodeUiCapture = false, NodeId endNodeId = INVALID_NODEID)
         : isSnapshot_(isSnapshot),
         isSingleSurface_(isSingleSurface),
         isMirror_(isMirror),
@@ -47,7 +49,8 @@ struct CaptureParam {
         isSystemCalling_(isSystemCalling),
         isSelfCapture_(isSelfCapture),
         isNeedBlur_(isNeedBlur),
-        isSoloNodeUiCapture_(isSoloNodeUiCapture) {}
+        isSoloNodeUiCapture_(isSoloNodeUiCapture),
+        endNodeId_(endNodeId) {}
 };
 struct HardCursorInfo {
     NodeId id = INVALID_NODEID;
@@ -493,6 +496,7 @@ private:
     bool isDisplayDirtyDfxEnabled_ = false;
     bool isOpaqueRegionDfxEnabled_ = false;
     bool isVisibleRegionDfxEnabled_ = false;
+    bool isMergedDirtyRegionDfxEnabled_ = false;
     bool isAllSurfaceVisibleDebugEnabled_ = false;
     bool isOpDropped_ = false;
     bool isDirtyAlignEnabled_ = false;

@@ -74,6 +74,9 @@ enum RSSurfaceNodeCommandType : uint16_t {
     SURFACE_NODE_DETACH_FROM_WINDOW_CONTAINER = 39,
     SURFACE_NODE_SET_SOURCE_VIRTUAL_DISPLAY_ID = 40,
     SURFACE_NODE_CREATE_SURFACE_EXT = 41,
+    SURFACE_NODE_SET_FRAME_GRAVITY_NEW_VERSION_ENABLED = 42,
+    SURFACE_NODE_SET_REGION_TO_BE_MAGNIFIED = 43,
+    SURFACE_NODE_SET_ANCO_SRC_CROP = 44,
 };
 
 class RSB_EXPORT SurfaceNodeCommandHelper {
@@ -126,6 +129,9 @@ public:
     static void SetSourceVirtualDisplayId(RSContext& context, NodeId nodeId, ScreenId screenId);
     static void AttachToWindowContainer(RSContext& context, NodeId nodeId, ScreenId screenId);
     static void DetachFromWindowContainer(RSContext& context, NodeId nodeId, ScreenId screenId);
+    static void SetRegionToBeMagnified(RSContext& context, NodeId nodeId, Vector4f regionToBeMagnified);
+    static void SetFrameGravityNewVersionEnabled(RSContext& context, NodeId nodeId, bool isEnabled);
+    static void SetAncoSrcCrop(RSContext& context, NodeId nodeId, const Rect& srcCrop);
 };
 
 ADD_COMMAND(RSSurfaceNodeCreate,
@@ -257,6 +263,15 @@ ADD_COMMAND(RSSurfaceNodeDetachFromWindowContainer,
 ADD_COMMAND(RSSurfaceNodeSetSourceVirtualDisplayId,
     ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_SET_SOURCE_VIRTUAL_DISPLAY_ID,
         SurfaceNodeCommandHelper::SetSourceVirtualDisplayId, NodeId, ScreenId))
+ADD_COMMAND(RSSurfaceNodeSetRegionToBeMagnified,
+    ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_SET_REGION_TO_BE_MAGNIFIED,
+        SurfaceNodeCommandHelper::SetRegionToBeMagnified, NodeId, Vector4f))
+ADD_COMMAND(RSSurfaceNodeSetFrameGravityNewVersionEnabled,
+    ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_SET_FRAME_GRAVITY_NEW_VERSION_ENABLED,
+        SurfaceNodeCommandHelper::SetFrameGravityNewVersionEnabled, NodeId, bool))
+ADD_COMMAND(RSSurfaceNodeSetAncoSrcCrop,
+    ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_SET_ANCO_SRC_CROP,
+        SurfaceNodeCommandHelper::SetAncoSrcCrop, NodeId, Rect))
 } // namespace Rosen
 } // namespace OHOS
 #endif // ROSEN_RENDER_SERVICE_BASE_COMMAND_RS_SURFACE_NODE_COMMAND_H

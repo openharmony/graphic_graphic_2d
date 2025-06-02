@@ -1274,21 +1274,20 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest025, TestSize.Level1)
     /**
      * @tc.steps: step1. init
      */
-    bool success = false;
     auto implicitAnimator = std::make_shared<RSImplicitAnimator>();
-    success = implicitAnimator->CloseImplicitCancelAnimation();
-    EXPECT_TRUE(!success);
+    auto ret = implicitAnimator->CloseImplicitCancelAnimation();
+    EXPECT_EQ(ret, CancelAnimationStatus::NO_OPEN_CLOSURE);
 
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(100);
     implicitAnimator->OpenImplicitAnimation(protocol, RSAnimationTimingCurve::LINEAR, nullptr);
-    success = implicitAnimator->CloseImplicitCancelAnimation();
-    EXPECT_TRUE(!success);
+    ret = implicitAnimator->CloseImplicitCancelAnimation();
+    EXPECT_EQ(ret, CancelAnimationStatus::INCORRECT_PARAM_TYPE);
 
     protocol.SetDuration(0);
     implicitAnimator->OpenImplicitAnimation(protocol, RSAnimationTimingCurve::LINEAR, nullptr);
-    success = implicitAnimator->CloseImplicitCancelAnimation();
-    EXPECT_TRUE(!success);
+    ret = implicitAnimator->CloseImplicitCancelAnimation();
+    EXPECT_EQ(ret, CancelAnimationStatus::EMPTY_PENDING_SYNC_LIST);
     GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest025 end";
 }
 

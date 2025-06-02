@@ -4531,4 +4531,119 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyGetLineTextRangeTest002
     OH_Drawing_DestroyTypographyHandler(handler);
     OH_Drawing_DestroyTextStyle(txtStyle);
 }
+
+/*
+ * @tc.name: OH_Drawing_TypographyBadgeTypeTest001
+ * @tc.desc: Test for text's super script
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyBadgeTypeTest001, TestSize.Level1)
+{
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    ASSERT_NE(typoStyle, nullptr);
+    OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
+    ASSERT_NE(txtStyle, nullptr);
+    OH_Drawing_TypographyCreate* handler =
+        OH_Drawing_CreateTypographyHandler(typoStyle, OH_Drawing_CreateFontCollection());
+    ASSERT_NE(handler, nullptr);
+    OH_Drawing_TypographyCreate* superTxtHandler =
+        OH_Drawing_CreateTypographyHandler(typoStyle, OH_Drawing_CreateFontCollection());
+    ASSERT_NE(superTxtHandler, nullptr);
+
+    OH_Drawing_SetTextStyleColor(txtStyle, OH_Drawing_ColorSetArgb(0xFF, 0x00, 0x00, 0xFF));
+    OH_Drawing_SetTextStyleFontSize(txtStyle, DEFAULT_FONT_SIZE);
+    OH_Drawing_SetTextStyleFontWeight(txtStyle, FONT_WEIGHT_400);
+    OH_Drawing_SetTextStyleBadgeType(txtStyle, OH_Drawing_TextBadgeType::TEXT_BADGE_NONE);
+
+    OH_Drawing_TextStyle* superTxtStyle = OH_Drawing_CreateTextStyle();
+    ASSERT_NE(superTxtStyle, nullptr);
+    OH_Drawing_SetTextStyleFontSize(superTxtStyle, DEFAULT_FONT_SIZE);
+    OH_Drawing_SetTextStyleFontWeight(superTxtStyle, FONT_WEIGHT_400);
+    OH_Drawing_SetTextStyleBadgeType(superTxtStyle, OH_Drawing_TextBadgeType::TEXT_SUPERSCRIPT);
+
+    const char* text = "OpenHarmony";
+    OH_Drawing_TypographyHandlerPushTextStyle(handler, txtStyle);
+    OH_Drawing_TypographyHandlerAddText(handler, text);
+    OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
+    ASSERT_NE(typography, nullptr);
+    OH_Drawing_TypographyLayout(typography, MAX_WIDTH);
+
+    OH_Drawing_TypographyHandlerPushTextStyle(superTxtHandler, superTxtStyle);
+    OH_Drawing_TypographyHandlerAddText(superTxtHandler, text);
+    OH_Drawing_Typography* superTxtTypography = OH_Drawing_CreateTypography(superTxtHandler);
+    ASSERT_NE(superTxtTypography, nullptr);
+    OH_Drawing_TypographyLayout(superTxtTypography, MAX_WIDTH);
+
+    EXPECT_TRUE(skia::textlayout::nearlyEqual(OH_Drawing_TypographyGetLongestLine(typography), 334.8996887));
+    EXPECT_TRUE(skia::textlayout::nearlyEqual(OH_Drawing_TypographyGetLongestLine(superTxtTypography), 217.6851959));
+    OH_Drawing_DestroyTypography(typography);
+    OH_Drawing_DestroyTypographyHandler(handler);
+    OH_Drawing_DestroyTextStyle(txtStyle);
+
+    OH_Drawing_DestroyTypography(superTxtTypography);
+    OH_Drawing_DestroyTypographyHandler(superTxtHandler);
+    OH_Drawing_DestroyTextStyle(superTxtStyle);
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographyBadgeTypeTest002
+ * @tc.desc: Test for text's sub script
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyBadgeTypeTest002, TestSize.Level1)
+{
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    ASSERT_NE(typoStyle, nullptr);
+    OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
+    ASSERT_NE(txtStyle, nullptr);
+    OH_Drawing_TypographyCreate* handler =
+        OH_Drawing_CreateTypographyHandler(typoStyle, OH_Drawing_CreateFontCollection());
+    ASSERT_NE(handler, nullptr);
+    OH_Drawing_TypographyCreate* subTxtHandler =
+        OH_Drawing_CreateTypographyHandler(typoStyle, OH_Drawing_CreateFontCollection());
+    ASSERT_NE(subTxtHandler, nullptr);
+
+    OH_Drawing_SetTextStyleColor(txtStyle, OH_Drawing_ColorSetArgb(0xFF, 0x00, 0x00, 0xFF));
+    OH_Drawing_SetTextStyleFontSize(txtStyle, DEFAULT_FONT_SIZE);
+    OH_Drawing_SetTextStyleFontWeight(txtStyle, FONT_WEIGHT_400);
+    OH_Drawing_SetTextStyleBadgeType(txtStyle, OH_Drawing_TextBadgeType::TEXT_BADGE_NONE);
+
+    OH_Drawing_TextStyle* subTxtStyle = OH_Drawing_CreateTextStyle();
+    ASSERT_NE(subTxtStyle, nullptr);
+    OH_Drawing_SetTextStyleFontSize(subTxtStyle, DEFAULT_FONT_SIZE);
+    OH_Drawing_SetTextStyleFontWeight(subTxtStyle, FONT_WEIGHT_400);
+    OH_Drawing_SetTextStyleBadgeType(subTxtStyle, OH_Drawing_TextBadgeType::TEXT_SUBSCRIPT);
+
+    const char* text = "你好世界";
+    OH_Drawing_TypographyHandlerPushTextStyle(handler, txtStyle);
+    OH_Drawing_TypographyHandlerAddText(handler, text);
+    OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
+    OH_Drawing_TypographyLayout(typography, MAX_WIDTH);
+
+    OH_Drawing_TypographyHandlerPushTextStyle(subTxtHandler, subTxtStyle);
+    OH_Drawing_TypographyHandlerAddText(subTxtHandler, text);
+    OH_Drawing_Typography* subTxtTypography = OH_Drawing_CreateTypography(subTxtHandler);
+    ASSERT_NE(subTxtTypography, nullptr);
+    OH_Drawing_TypographyLayout(subTxtTypography, MAX_WIDTH);
+
+    EXPECT_TRUE(skia::textlayout::nearlyEqual(OH_Drawing_TypographyGetLongestLine(typography), 200));
+    EXPECT_TRUE(skia::textlayout::nearlyEqual(OH_Drawing_TypographyGetLongestLine(subTxtTypography), 130)),
+    OH_Drawing_DestroyTypography(typography);
+    OH_Drawing_DestroyTypographyHandler(handler);
+    OH_Drawing_DestroyTextStyle(txtStyle);
+
+    OH_Drawing_DestroyTypography(subTxtTypography);
+    OH_Drawing_DestroyTypographyHandler(subTxtHandler);
+    OH_Drawing_DestroyTextStyle(subTxtStyle);
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographyBadgeTypeTest003
+ * @tc.desc: Test for text's badge valid params
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyBadgeTypeTest003, TestSize.Level1)
+{
+    EXPECT_NO_FATAL_FAILURE(OH_Drawing_SetTextStyleBadgeType(nullptr, OH_Drawing_TextBadgeType::TEXT_BADGE_NONE));
+}
 } // namespace OHOS

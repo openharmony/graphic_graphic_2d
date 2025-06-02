@@ -149,8 +149,6 @@ public:
      */
     std::shared_ptr<Image> GetImageSnapshot(const RectI& bounds, bool allowRefCache = true) const;
 
-    void SetParallelRender(bool parallelEnable);
-
     /**
      * @brief         Returns a compatible Surface, with the specified width and height.
      * @param width   surface width

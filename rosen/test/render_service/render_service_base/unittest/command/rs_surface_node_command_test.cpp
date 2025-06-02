@@ -629,6 +629,22 @@ HWTEST_F(RSSurfaceNodeCommandTest, SetAncoFlagsTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetAncoSrcCropTest
+ * @tc.desc: Verify function SetAncoSrcCrop
+ * @tc.type:FUNC
+ * @tc.require: issueICA0I8
+ */
+HWTEST_F(RSSurfaceNodeCommandTest, SetAncoSrcCropTest, TestSize.Level1)
+{
+    RSContext context;
+    Rect rect{0, 0, 0, 0};
+    SurfaceNodeCommandHelper::SetAncoSrcCrop(context, 0, rect);
+    SurfaceNodeCommandHelper::Create(context, 1);
+    SurfaceNodeCommandHelper::SetAncoSrcCrop(context, 1, rect);
+    EXPECT_TRUE(context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(1) != nullptr);
+}
+
+/**
  * @tc.name: SetHDRPresentTest
  * @tc.desc: Verify function SetHDRPresent
  * @tc.type:FUNC
@@ -733,6 +749,37 @@ HWTEST_F(RSSurfaceNodeCommandTest, DetachFromWindowContainer, TestSize.Level1)
     ScreenId screenId = {};
     SurfaceNodeCommandHelper::Create(context, nodeId);
     SurfaceNodeCommandHelper::DetachFromWindowContainer(context, nodeId, screenId);
+    EXPECT_TRUE(context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId) != nullptr);
+}
+
+/**
+ * @tc.name: SetRegionToBeMagnified
+ * @tc.desc: Verify function SetRegionToBeMagnified
+ * @tc.type:FUNC
+ * @tc.require: issueIBIK1X
+ */
+HWTEST_F(RSSurfaceNodeCommandTest, SetRegionToBeMagnified, TestSize.Level1)
+{
+    RSContext context;
+    NodeId nodeId = 1;
+    Vector4f regionToBeMagnified = {0.0, 0.0, 200.0, 200.0};
+    SurfaceNodeCommandHelper::Create(context, nodeId);
+    SurfaceNodeCommandHelper::SetRegionToBeMagnified(context, nodeId, regionToBeMagnified);
+    EXPECT_TRUE(context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId) != nullptr);
+}
+
+/**
+ * @tc.name: SetFrameGravityNewVersionEnabledTest
+ * @tc.desc: Verify function SetFrameGravityNewVersionEnabled
+ * @tc.type: FUNC
+ * @tc.require: issueIC8CDF
+ */
+HWTEST_F(RSSurfaceNodeCommandTest, SetFrameGravityNewVersionEnabledTest, TestSize.Level1)
+{
+    RSContext context;
+    NodeId nodeId = 1;
+    SurfaceNodeCommandHelper::Create(context, nodeId);
+    SurfaceNodeCommandHelper::SetFrameGravityNewVersionEnabled(context, nodeId, true);
     EXPECT_TRUE(context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId) != nullptr);
 }
 } // namespace OHOS::Rosen

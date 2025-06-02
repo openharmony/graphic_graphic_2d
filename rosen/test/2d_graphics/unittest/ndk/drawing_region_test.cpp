@@ -160,6 +160,26 @@ HWTEST_F(NativeDrawingRegionTest, NativeDrawingSetPathTest_region005, TestSize.L
     OH_Drawing_PathDestroy(path);
     OH_Drawing_RectDestroy(rect);
 }
+
+/*
+ * @tc.name: NativeDrawingRegionTest_region006
+ * @tc.desc: test for create drawing_region by copy.
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingRegionTest, NativeDrawingRegionTest_RegionCopy001, TestSize.Level1)
+{
+    OH_Drawing_Region* region = OH_Drawing_RegionCreate();
+    ASSERT_TRUE(region != nullptr);
+    OH_Drawing_Region* region2 = OH_Drawing_RegionCopy(region);
+    ASSERT_TRUE(region2 != nullptr);
+    OH_Drawing_Region* region3 = OH_Drawing_RegionCopy(nullptr);
+    ASSERT_TRUE(region3 == nullptr);
+
+    OH_Drawing_RegionDestroy(region);
+    OH_Drawing_RegionDestroy(region2);
+    OH_Drawing_RegionDestroy(region3);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

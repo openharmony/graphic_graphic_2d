@@ -51,7 +51,12 @@
 #include "utils/graphic_coretrace.h"
 
 #ifdef RS_ENABLE_VK
+#ifdef USE_M133_SKIA
+#include "include/gpu/ganesh/vk/GrVkBackendSurface.h"
+#include "include/gpu/ganesh/vk/GrVkBackendSemaphore.h"
+#else
 #include "include/gpu/GrBackendSurface.h"
+#endif
 #include "platform/ohos/backend/native_buffer_utils.h"
 #include "platform/ohos/backend/rs_surface_ohos_vulkan.h"
 #include "platform/ohos/backend/rs_vulkan_context.h"
@@ -122,6 +127,7 @@ std::vector<RectI> RSUniRenderUtil::MergeDirtyHistory(DrawableV2::RSDisplayRende
         globalDirtyRegion.OrSelf(region);
         GpuDirtyRegionCollection::GetInstance().UpdateGlobalDirtyInfoForDFX(rect.IntersectRect(screenRectI));
     }
+    rsDirtyRectsDfx.SetDirtyRegion(dirtyRegion);
     Occlusion::Region damageRegion;
     RS_TRACE_NAME_FMT("AdvancedDirtyRegionType is [%d]", static_cast<int>(uniParam->GetAdvancedDirtyType()));
     switch (uniParam->GetAdvancedDirtyType()) {
@@ -153,7 +159,7 @@ std::vector<RectI> RSUniRenderUtil::MergeDirtyHistory(DrawableV2::RSDisplayRende
             damageRegion.GetAlignedRegion(MAX_DIRTY_ALIGNMENT_SIZE) : damageRegion;
     }
     RSUniRenderUtil::SetDrawRegionForQuickReject(curAllSurfaceDrawables, drawnRegion);
-    rsDirtyRectsDfx.SetDirtyRegion(drawnRegion);
+    rsDirtyRectsDfx.SetMergedDirtyRegion(drawnRegion);
     auto damageRegionRects = RSUniDirtyComputeUtil::ScreenIntersectDirtyRects(damageRegion, screenInfo);
     if (damageRegionRects.empty()) {
         // When damageRegionRects is empty, SetDamageRegion function will not take effect and buffer will
@@ -699,6 +705,7 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(
     } else if (scalingMode == ScalingMode::SCALING_MODE_SCALE_FIT) {
         SrcRectScaleFit(params, buffer, consumer, localBounds);
     }
+    SetSrcRectForAnco(*surfaceNodeParams, params);
     RS_LOGD_IF(DEBUG_COMPOSER, "RSUniRenderUtil::CreateBufferDrawParam(DrawableV2::RSSurfaceRenderNodeDrawable):"
         " Parameters creation completed");
     return params;
@@ -895,7 +902,7 @@ BufferDrawParam RSUniRenderUtil::CreateLayerBufferDrawParam(const LayerInfoPtr& 
     } else if (scalingMode == ScalingMode::SCALING_MODE_SCALE_FIT) {
         SrcRectScaleFit(params, buffer, surface, localBounds);
     }
-
+    SetSrcRectForAnco(layer, params);
     RS_LOGD_IF(DEBUG_COMPOSER,
         "RSUniRenderUtil::CreateLayerBufferDrawParam(LayerInfoPtr): Parameters creation completed");
     return params;
@@ -946,14 +953,6 @@ int RSUniRenderUtil::GetRotationDegreeFromMatrix(Drawing::Matrix matrix)
     matrix.GetAll(value);
     return static_cast<int>(-round(atan2(value[Drawing::Matrix::Index::SKEW_X],
         value[Drawing::Matrix::Index::SCALE_X]) * (RS_ROTATION_180 / PI)));
-}
-
-float RSUniRenderUtil::GetFloatRotationDegreeFromMatrix(Drawing::Matrix matrix)
-{
-    Drawing::Matrix::Buffer value;
-    matrix.GetAll(value);
-    return atan2(value[Drawing::Matrix::Index::SKEW_X], value[Drawing::Matrix::Index::SCALE_X]) *
-        (RS_ROTATION_180 / PI);
 }
 
 void RSUniRenderUtil::ClearNodeCacheSurface(std::shared_ptr<Drawing::Surface>&& cacheSurface,
@@ -1404,6 +1403,32 @@ void RSUniRenderUtil::GetSampledDamageAndDrawnRegion(const ScreenInfo& screenInf
         RectI mappedRect = RSObjAbsGeometry::MapRect(rect.ConvertTo<float>(), invertedScaleMatrix);
         Occlusion::Region mappedRegion{mappedRect};
         sampledDrawnRegion.OrSelf(mappedRegion);
+    }
+}
+
+void RSUniRenderUtil::SetSrcRectForAnco(const LayerInfoPtr& layer, BufferDrawParam& params)
+{
+    if (layer != nullptr && layer->IsAncoSfv()) {
+        const auto& srcCrop = layer->GetCropRect();
+        if (srcCrop.w > 0 && srcCrop.h > 0) {
+            params.srcRect = Drawing::Rect(srcCrop.x, srcCrop.y, srcCrop.w + srcCrop.x, srcCrop.h + srcCrop.y);
+        }
+    }
+}
+
+void RSUniRenderUtil::SetSrcRectForAnco(const RSSurfaceRenderParams& surfaceParams, BufferDrawParam& params)
+{
+    if (surfaceParams.IsAncoSfv()) {
+        const Rect& cropRect = surfaceParams.GetAncoSrcCrop();
+        Drawing::Rect srcRect{cropRect.x, cropRect.y, cropRect.w + cropRect.x, cropRect.h + cropRect.y};
+        float left = std::max(params.srcRect.left_, srcRect.left_);
+        float top = std::max(params.srcRect.top_, srcRect.top_);
+        float right = std::min(params.srcRect.right_, srcRect.right_);
+        float bottom = std::min(params.srcRect.bottom_, srcRect.bottom_);
+        Drawing::Rect intersectRect(left, top, right, bottom);
+        if (intersectRect.IsValid()) {
+            params.srcRect = intersectRect;
+        }
     }
 }
 } // namespace Rosen

@@ -988,23 +988,22 @@ HWTEST_F(RSUniRenderUtilTest, FlushDmaSurfaceBuffer002, TestSize.Level2)
  */
 HWTEST_F(RSUniRenderUtilTest, CheckRenderSkipIfScreenOff001, TestSize.Level1)
 {
-    if (!RSSystemProperties::GetSkipDisplayIfScreenOffEnabled()) {
-        return;
-    }
-    ScreenId screenId = 1;
-    auto screenManager = CreateOrGetScreenManager();
-    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
-        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
-    screenManagerImpl.powerOffNeedProcessOneFrame_ = false;
+    if (RSSystemProperties::GetSkipDisplayIfScreenOffEnabled()) {
+        ScreenId screenId = 1;
+        auto screenManager = CreateOrGetScreenManager();
+        OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
+            static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
+        screenManagerImpl.powerOffNeedProcessOneFrame_ = false;
 
-    screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_ON;
-    EXPECT_FALSE(RSUniRenderUtil::CheckRenderSkipIfScreenOff(false, screenId));
-    screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_ON_ADVANCED;
-    EXPECT_FALSE(RSUniRenderUtil::CheckRenderSkipIfScreenOff(false, screenId));
-    screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_SUSPEND;
-    EXPECT_TRUE(RSUniRenderUtil::CheckRenderSkipIfScreenOff(false, screenId));
-    screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_OFF;
-    EXPECT_TRUE(RSUniRenderUtil::CheckRenderSkipIfScreenOff(false, screenId));
+        screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_ON;
+        EXPECT_FALSE(RSUniRenderUtil::CheckRenderSkipIfScreenOff(false, screenId));
+        screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_ON_ADVANCED;
+        EXPECT_FALSE(RSUniRenderUtil::CheckRenderSkipIfScreenOff(false, screenId));
+        screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_SUSPEND;
+        EXPECT_TRUE(RSUniRenderUtil::CheckRenderSkipIfScreenOff(false, screenId));
+        screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_OFF;
+        EXPECT_TRUE(RSUniRenderUtil::CheckRenderSkipIfScreenOff(false, screenId));
+    }
 }
 
 /**
@@ -1015,26 +1014,25 @@ HWTEST_F(RSUniRenderUtilTest, CheckRenderSkipIfScreenOff001, TestSize.Level1)
  */
 HWTEST_F(RSUniRenderUtilTest, CheckRenderSkipIfScreenOff002, TestSize.Level1)
 {
-    if (!RSSystemProperties::GetSkipDisplayIfScreenOffEnabled()) {
-        return;
-    }
-    ScreenId screenId = 1;
-    auto screenManager = CreateOrGetScreenManager();
-    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
-        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
+    if (RSSystemProperties::GetSkipDisplayIfScreenOffEnabled()) {
+        ScreenId screenId = 1;
+        auto screenManager = CreateOrGetScreenManager();
+        OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
+            static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
 
-    screenManagerImpl.powerOffNeedProcessOneFrame_ = true;
-    screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_ON;
-    EXPECT_FALSE(RSUniRenderUtil::CheckRenderSkipIfScreenOff(false, screenId));
-    screenManagerImpl.powerOffNeedProcessOneFrame_ = true;
-    screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_ON_ADVANCED;
-    EXPECT_FALSE(RSUniRenderUtil::CheckRenderSkipIfScreenOff(false, screenId));
-    screenManagerImpl.powerOffNeedProcessOneFrame_ = true;
-    screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_SUSPEND;
-    EXPECT_FALSE(RSUniRenderUtil::CheckRenderSkipIfScreenOff(false, screenId));
-    screenManagerImpl.powerOffNeedProcessOneFrame_ = true;
-    screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_OFF;
-    EXPECT_FALSE(RSUniRenderUtil::CheckRenderSkipIfScreenOff(false, screenId));
+        screenManagerImpl.powerOffNeedProcessOneFrame_ = true;
+        screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_ON;
+        EXPECT_FALSE(RSUniRenderUtil::CheckRenderSkipIfScreenOff(false, screenId));
+        screenManagerImpl.powerOffNeedProcessOneFrame_ = true;
+        screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_ON_ADVANCED;
+        EXPECT_FALSE(RSUniRenderUtil::CheckRenderSkipIfScreenOff(false, screenId));
+        screenManagerImpl.powerOffNeedProcessOneFrame_ = true;
+        screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_SUSPEND;
+        EXPECT_FALSE(RSUniRenderUtil::CheckRenderSkipIfScreenOff(false, screenId));
+        screenManagerImpl.powerOffNeedProcessOneFrame_ = true;
+        screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_OFF;
+        EXPECT_FALSE(RSUniRenderUtil::CheckRenderSkipIfScreenOff(false, screenId));
+    }
 }
 
 /**
@@ -1406,5 +1404,70 @@ HWTEST_F(RSUniRenderUtilTest, GetImageRegionsTest, TestSize.Level1)
     realImageHeight = 10.0f;
     regions = RSUniRenderUtil::GetImageRegions(screenHeight, screenWidth, realImageHeight, realImageWidth);
     ASSERT_EQ(regions.GetHeight(), 100);
+}
+
+/**
+ * @tc.name: SetSrcRectForAnco
+ * @tc.desc: SetSrcRectForAnco test for anco node
+ * @tc.type: FUNC
+ * @tc.require: issueICA0I8
+ */
+HWTEST_F(RSUniRenderUtilTest, SetSrcRectForAnco, TestSize.Level2)
+{
+    BufferDrawParam params;
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(surfaceNode, nullptr);
+    ASSERT_NE(surfaceNode->surfaceHandler_, nullptr);
+    auto buffer = surfaceNode->surfaceHandler_->GetBuffer();
+    ASSERT_NE(buffer, nullptr);
+    buffer->SetSurfaceBufferWidth(100);
+    buffer->SetSurfaceBufferHeight(100);
+    LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
+    LayerInfoPtr nullLayer = nullptr;
+    layer->SetBuffer(buffer, {});
+    auto csurface = IConsumerSurface::Create();
+    ASSERT_NE(csurface, nullptr);
+    layer->SetSurface(csurface);
+    params = RSUniRenderUtil::CreateLayerBufferDrawParam(layer, false);
+    RSUniRenderUtil::SetSrcRectForAnco(layer, params);
+    RSUniRenderUtil::SetSrcRectForAnco(nullLayer, params);
+    layer->SetAncoFlags(static_cast<uint32_t>(AncoFlags::ANCO_SFV_NODE));
+    RSUniRenderUtil::SetSrcRectForAnco(layer, params);
+
+    layer->SetCropRect({0, 0, 100, 0});
+    RSUniRenderUtil::SetSrcRectForAnco(layer, params);
+    ASSERT_TRUE(params.srcRect == Drawing::Rect(0, 0, 100, 100));
+    layer->SetCropRect({0, 0, 0, 100});
+    RSUniRenderUtil::SetSrcRectForAnco(layer, params);
+    ASSERT_TRUE(params.srcRect == Drawing::Rect(0, 0, 100, 100));
+    layer->SetCropRect({0, 0, 50, 50});
+    RSUniRenderUtil::SetSrcRectForAnco(layer, params);
+    ASSERT_TRUE(params.srcRect == Drawing::Rect(0, 0, 50, 50));
+
+    auto drawable = std::make_shared<DrawableV2::RSSurfaceRenderNodeDrawable>(surfaceNode);
+    ASSERT_NE(drawable, nullptr);
+    ASSERT_EQ(drawable->renderParams_, nullptr);
+    drawable->renderParams_ = std::make_unique<RSSurfaceRenderParams>(surfaceNode->GetId() + 1);
+    RSSurfaceRenderParams* surfaceParams = nullptr;
+    surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+    surfaceParams->buffer_ = buffer;
+    drawable->consumerOnDraw_ = surfaceNode->surfaceHandler_->GetConsumer();
+    ASSERT_NE(drawable->consumerOnDraw_, nullptr);
+    params = RSUniRenderUtil::CreateBufferDrawParam(*drawable, false, 1);
+    RSUniRenderUtil::SetSrcRectForAnco(*surfaceParams, params);
+
+    surfaceParams->SetAncoFlags(static_cast<uint32_t>(AncoFlags::ANCO_SFV_NODE));
+    RSUniRenderUtil::SetSrcRectForAnco(*surfaceParams, params);
+    ASSERT_TRUE(params.srcRect == Drawing::Rect(0, 0, 100, 100));
+    surfaceParams->SetAncoSrcCrop({0, 0, 100, 0});
+    RSUniRenderUtil::SetSrcRectForAnco(*surfaceParams, params);
+    ASSERT_TRUE(params.srcRect == Drawing::Rect(0, 0, 100, 100));
+    surfaceParams->SetAncoSrcCrop({0, 0, 0, 100});
+    RSUniRenderUtil::SetSrcRectForAnco(*surfaceParams, params);
+    ASSERT_TRUE(params.srcRect == Drawing::Rect(0, 0, 100, 100));
+    surfaceParams->SetAncoSrcCrop({0, 0, 50, 50});
+    RSUniRenderUtil::SetSrcRectForAnco(*surfaceParams, params);
+    ASSERT_TRUE(params.srcRect == Drawing::Rect(0, 0, 50, 50));
 }
 } // namespace OHOS::Rosen

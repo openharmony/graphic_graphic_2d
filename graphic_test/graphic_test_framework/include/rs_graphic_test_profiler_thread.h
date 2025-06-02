@@ -35,23 +35,26 @@ public:
 
     void Start();
     void Stop();
-    void SendCommand(const std::string command);
+    void SendCommand(const std::string command, int outTime);
 private:
     void MainLoop();
     void SendMessage();
     void RecieveMessage();
     bool RecieveHeader(void* data, size_t& size);
+    bool IsReceiveWaitMessage(const std::string& message);
 private:
     int32_t socket_ = -1;
     std::thread thread_;
     std::queue<std::string> message_queue_;
     bool runnig_ = false;
+    bool waitReceive_ = false;
     std::mutex queue_mutex_;
+    std::mutex wait_mutex_;
     std::condition_variable cv_;
 #else
     void Start() {}
     void Stop() {}
-    void SendCommand(const std::string command) {}
+    void SendCommand(const std::string command, int outTime) {}
 #endif
 };
 

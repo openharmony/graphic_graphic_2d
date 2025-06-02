@@ -467,8 +467,8 @@ void RSDisplayRenderNode::SetNeedForceUpdateHwcNodes(bool needForceUpdate, bool 
     if (displayParams == nullptr) {
         return;
     }
-    needForceUpdateHwcNodes_ = needForceUpdate;
-    hasVisibleHwcNodes_ = hasVisibleHwcNodes;
+    HwcDisplayRecorder().SetNeedForceUpdateHwcNodes(needForceUpdate);
+    HwcDisplayRecorder().SetHasVisibleHwcNodes(hasVisibleHwcNodes);
     displayParams->SetNeedForceUpdateHwcNodes(needForceUpdate);
     if (stagingRenderParams_->NeedSync()) {
         AddToPendingSyncList();
@@ -556,7 +556,7 @@ void RSDisplayRenderNode::SetForceCloseHdr(bool isForceCloseHdr)
 
 bool RSDisplayRenderNode::GetForceCloseHdr() const
 {
-    return isForceCloseHdr_;
+    return ROSEN_EQ(GetRenderProperties().GetHDRBrightnessFactor(), 0.0f);
 }
 
 RSRenderNode::ChildrenListSharedPtr RSDisplayRenderNode::GetSortedChildren() const

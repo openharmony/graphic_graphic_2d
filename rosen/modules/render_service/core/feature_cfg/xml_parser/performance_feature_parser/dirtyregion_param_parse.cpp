@@ -61,6 +61,8 @@ int32_t DirtyRegionParamParse::ParseDirtyRegionInternal(xmlNode &node)
             DirtyRegionParam::SetMirrorScreenDirtyRegionEnable(isEnabled);
         } else if (name == "AdvancedDirtyRegionEnabled") {
             DirtyRegionParam::SetAdvancedDirtyRegionEnable(isEnabled);
+        } else if (name == "ComposeDirtyRegionEnableInPartialDisplay") {
+            DirtyRegionParam::SetComposeDirtyRegionEnableInPartialDisplay(isEnabled);
         } else if (name == "TileBasedAlignEnabled") {
             DirtyRegionParam::SetTileBasedAlignEnable(isEnabled);
         } else {

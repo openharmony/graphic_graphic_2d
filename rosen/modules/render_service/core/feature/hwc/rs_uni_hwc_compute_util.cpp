@@ -14,6 +14,10 @@
  */
 #include "rs_uni_hwc_compute_util.h"
 
+#include "hwc/rs_hwc_recorder.h"
+#include "modifier/rs_render_property.h"
+#include "property/rs_properties_painter.h"
+
 #include "common/rs_optional_trace.h"
 
 #undef LOG_TAG
@@ -21,6 +25,15 @@
 
 namespace OHOS {
 namespace Rosen {
+// Only can be used by smart pointer and raw pointer
+// If any nullptr is found, it will return immediately
+#define CHECK_NULL_VOID(...)                                    \
+    do {                                                        \
+        if (RSUniHwcComputeUtil::IS_ANY_NULLPTR(__VA_ARGS__)) { \
+            return;                                             \
+        }                                                       \
+    } while (0)
+
 GraphicTransformType RSUniHwcComputeUtil::GetRotateTransformForRotationFixed(RSSurfaceRenderNode& node,
     sptr<IConsumerSurface> consumer)
 {
@@ -56,8 +69,8 @@ bool RSUniHwcComputeUtil::IsHwcEnabledByGravity(RSSurfaceRenderNode& node, const
     // When renderfit mode is not Gravity::RESIZE or Gravity::TOP_LEFT,
     // we currently disable hardware composer.
     if (frameGravity != Gravity::RESIZE && frameGravity != Gravity::TOP_LEFT) {
-        RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 "disabled by frameGravity[%d]",
-            node.GetName().c_str(), node.GetId(), static_cast<int>(frameGravity));
+        RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " disabled by frameGravity[%d]",
+            node.GetName().c_str(), node.GetId(), static_cast<int32_t>(frameGravity));
         node.SetHardwareForcedDisabledState(true);
         return false;
     }
@@ -128,20 +141,19 @@ void RSUniHwcComputeUtil::DealWithNodeGravity(RSSurfaceRenderNode& node, const D
     // We don't have to do additional works when renderfit mode is Gravity::RESIZE or frameSize == boundsSize.
     if (frameGravity == Gravity::RESIZE ||
         (ROSEN_EQ(bufferWidth, boundsWidth) && ROSEN_EQ(bufferHeight, boundsHeight)) ||
-        !totalMatrix.Invert(inverseTotalMatrix) || !gravityMatrix.Invert(inverseGravityMatrix) ||
-        !IsHwcEnabledByGravity(node, frameGravity)) {
+        !totalMatrix.Invert(inverseTotalMatrix) || !gravityMatrix.Invert(inverseGravityMatrix)) {
         return;
     }
     Drawing::Rect bound = Drawing::Rect(0.f, 0.f, boundsWidth, boundsHeight);
     Drawing::Rect frame = Drawing::Rect(0.f, 0.f, bufferWidth, bufferHeight);
     Drawing::Rect localIntersectRect;
     gravityMatrix.MapRect(localIntersectRect, frame);
-    localIntersectRect.Intersect(bound);
+    IntersectRect(localIntersectRect, bound);
     Drawing::Rect absIntersectRect;
     totalMatrix.MapRect(absIntersectRect, localIntersectRect);
     const RectI dstRect = node.GetDstRect();
     Drawing::Rect newDstRect(dstRect.left_, dstRect.top_, dstRect.GetRight(), dstRect.GetBottom());
-    newDstRect.Intersect(absIntersectRect);
+    IntersectRect(newDstRect, absIntersectRect);
     node.SetDstRect({std::floor(newDstRect.GetLeft()), std::floor(newDstRect.GetTop()),
         std::ceil(newDstRect.GetWidth()), std::ceil(newDstRect.GetHeight())});
     Drawing::Rect newSrcRect;
@@ -385,8 +397,8 @@ bool RSUniHwcComputeUtil::IsHwcEnabledByScalingMode(RSSurfaceRenderNode& node, c
 {
     // We temporarily disabled HWC when scalingMode is freeze or no_scale_crop
     if (scalingMode == ScalingMode::SCALING_MODE_FREEZE || scalingMode == ScalingMode::SCALING_MODE_NO_SCALE_CROP) {
-        RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 "disabled by scalingMode[%d]",
-            node.GetName().c_str(), node.GetId(), static_cast<int>(scalingMode));
+        RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " disabled by scalingMode[%d]",
+            node.GetName().c_str(), node.GetId(), static_cast<int32_t>(scalingMode));
         node.SetHardwareForcedDisabledState(true);
         return false;
     }
@@ -422,9 +434,9 @@ void RSUniHwcComputeUtil::UpdateHwcNodeByScalingMode(RSSurfaceRenderNode& node, 
     Drawing::Rect dstRectWithoutScaling;
     gravityMatrix.MapRect(dstRectWithoutScaling, Drawing::Rect(0.f, 0.f, bufferWidth, bufferHeight));
     totalMatrix.MapRect(dstRectWithoutScaling, dstRectWithoutScaling);
-    newDstRect.Intersect(dstRectWithoutScaling);
+    IntersectRect(newDstRect, dstRectWithoutScaling);
     Drawing::Rect bounds = node.GetDstRectWithoutRenderFit();
-    newDstRect.Intersect(bounds);
+    IntersectRect(newDstRect, bounds);
     node.SetDstRect({std::floor(newDstRect.GetLeft()), std::floor(newDstRect.GetTop()),
         std::ceil(newDstRect.GetWidth()), std::ceil(newDstRect.GetHeight())});
     Drawing::Rect newSrcRect;
@@ -518,45 +530,65 @@ void RSUniHwcComputeUtil::UpdateRealSrcRect(RSSurfaceRenderNode& node, const Rec
     node.SetSrcRect(newSrcRect);
 }
 
-void RSUniHwcComputeUtil::UpdateHwcNodeProperty(std::shared_ptr<RSSurfaceRenderNode> hwcNode)
+inline void RSUniHwcComputeUtil::UpdateHwcNodeDrawingCache(const std::shared_ptr<RSRenderNode>& parent,
+    HwcPropertyContext& ctx)
+{
+    bool& isNodeRenderByDrawingCache = ctx.isNodeRenderByDrawingCache;
+    if (isNodeRenderByDrawingCache) {
+        return;
+    }
+    // If parentNode of hwcNode is marked as freeze or nodegroup, RS will disable hwcNode's hardware composer
+    isNodeRenderByDrawingCache |= parent->IsStaticCached() ||
+        parent->GetNodeGroupType() != RSRenderNode::NodeGroupType::NONE;
+}
+
+inline void RSUniHwcComputeUtil::UpdateHwcNodeBlendNeedChildNode(const std::shared_ptr<RSRenderNode>& parent,
+    HwcPropertyContext& ctx)
+{
+    bool& isNodeRenderByChildNode = ctx.isNodeRenderByChildNode;
+    if (isNodeRenderByChildNode) {
+        return;
+    }
+    isNodeRenderByChildNode |= IsBlendNeedChildNode(*parent);
+}
+
+inline void RSUniHwcComputeUtil::UpdateHwcNodeAlpha(const std::shared_ptr<RSRenderNode>& parent,
+    HwcPropertyContext& ctx)
+{
+    auto& parentProperty = parent->GetRenderProperties();
+    ctx.alpha *= parentProperty.GetAlpha();
+}
+
+inline void RSUniHwcComputeUtil::UpdateHwcNodeTotalMatrix(const std::shared_ptr<RSRenderNode>& parent,
+    HwcPropertyContext& ctx)
+{
+    if (auto opt = GetMatrix(parent)) {
+        ctx.totalMatrix.PostConcat(opt.value());
+    }
+}
+
+void RSUniHwcComputeUtil::UpdateHwcNodeProperty(const std::shared_ptr<RSSurfaceRenderNode>& hwcNode)
 {
     if (hwcNode == nullptr) {
         RS_LOGE("hwcNode is null.");
         return;
     }
-    auto hwcNodeGeo = hwcNode->GetRenderProperties().GetBoundsGeometry();
-    if (!hwcNodeGeo) {
-        RS_LOGE("hwcNode Geometry is not prepared.");
-        return;
-    }
-    bool hasCornerRadius = !hwcNode->GetRenderProperties().GetCornerRadius().IsZero();
     std::vector<RectI> currIntersectedRoundCornerAABBs = {};
-    float alpha = hwcNode->GetRenderProperties().GetAlpha();
-    Drawing::Matrix totalMatrix = hwcNodeGeo->GetMatrix();
+    bool hasCornerRadius = !hwcNode->GetRenderProperties().GetCornerRadius().IsZero();
+    const auto& hwcNodeGeo = hwcNode->GetRenderProperties().GetBoundsGeometry();
     auto hwcNodeRect = hwcNodeGeo->GetAbsRect();
-    bool isNodeRenderByDrawingCache = false;
-    bool isNodeRenderBySaveLayer = false;
     hwcNode->SetAbsRotation(hwcNode->GetRenderProperties().GetRotation());
+    HwcPropertyContext ctx;
+    ctx.alpha = hwcNode->GetRenderProperties().GetAlpha();
+    ctx.totalMatrix = hwcNodeGeo->GetMatrix();
     RSUniHwcComputeUtil::TraverseParentNodeAndReduce(
         hwcNode,
-        [&isNodeRenderByDrawingCache](std::shared_ptr<RSRenderNode> parent) {
-            if (isNodeRenderByDrawingCache) {
-                return;
-            }
-            // if the parent node of hwcNode is marked freeze or nodegroup, RS closes hardware composer of hwcNode.
-            isNodeRenderByDrawingCache = isNodeRenderByDrawingCache || parent->IsStaticCached() ||
-                (parent->GetNodeGroupType() != RSRenderNode::NodeGroupType::NONE);
-        },
-        [&alpha](std::shared_ptr<RSRenderNode> parent) {
-            auto& parentProperty = parent->GetRenderProperties();
-            alpha *= parentProperty.GetAlpha();
-        },
-        [&totalMatrix](std::shared_ptr<RSRenderNode> parent) {
-            if (auto opt = GetMatrix(parent)) {
-                totalMatrix.PostConcat(opt.value());
-            } else {
-                return;
-            }
+        [&ctx](const std::shared_ptr<RSRenderNode>& parent) { UpdateHwcNodeDrawingCache(parent, ctx); },
+        [&ctx](const std::shared_ptr<RSRenderNode>& parent) { UpdateHwcNodeBlendNeedChildNode(parent, ctx); },
+        [&ctx](const std::shared_ptr<RSRenderNode>& parent) { UpdateHwcNodeAlpha(parent, ctx); },
+        [&ctx](const std::shared_ptr<RSRenderNode>& parent) { UpdateHwcNodeTotalMatrix(parent, ctx); },
+        [hwcNode](std::shared_ptr<RSRenderNode> parent) {
+            hwcNode->SetAbsRotation(hwcNode->GetAbsRotation() + parent->GetRenderProperties().GetRotation());
         },
         [&currIntersectedRoundCornerAABBs, hwcNodeRect](std::shared_ptr<RSRenderNode> parent) {
             auto& parentProperty = parent->GetRenderProperties();
@@ -612,30 +644,19 @@ void RSUniHwcComputeUtil::UpdateHwcNodeProperty(std::shared_ptr<RSSurfaceRenderN
                     checkIntersectWithRoundCorner(parentClipRect, maxClipRRectCornerRadiusX, maxClipRRectCornerRadiusY);
                 }
             }
-        },
-        [hwcNode](std::shared_ptr<RSRenderNode> parent) {
-            hwcNode->SetAbsRotation(hwcNode->GetAbsRotation() + parent->GetRenderProperties().GetRotation());
-        },
-        [&isNodeRenderBySaveLayer](std::shared_ptr<RSRenderNode> parent) {
-            if (isNodeRenderBySaveLayer) {
-                return;
-            }
-            const auto& parentProperty = parent->GetRenderProperties();
-            isNodeRenderBySaveLayer = isNodeRenderBySaveLayer ||
-                (parentProperty.IsColorBlendApplyTypeOffscreen() && !parentProperty.IsColorBlendModeNone());
         });
-    if (isNodeRenderByDrawingCache || isNodeRenderBySaveLayer) {
-        RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%" PRIu64 " disabled by drawing cache or save layer, "
-            "isNodeRenderByDrawingCache[%d], isNodeRenderBySaveLayer[%d]",
-            hwcNode->GetName().c_str(), hwcNode->GetId(), isNodeRenderByDrawingCache, isNodeRenderBySaveLayer);
+    if (ctx.isNodeRenderByDrawingCache || ctx.isNodeRenderByChildNode) {
+        RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%" PRIu64 " disabled by drawing cache or need blend with "
+            "childNode, isNodeRenderByDrawingCache[%d], isNodeRenderByChildNode[%d]",
+            hwcNode->GetName().c_str(), hwcNode->GetId(), ctx.isNodeRenderByDrawingCache, ctx.isNodeRenderByChildNode);
         hwcNode->SetHardwareForcedDisabledState(true);
     }
-    hwcNode->SetTotalMatrix(totalMatrix);
-    hwcNode->SetGlobalAlpha(alpha);
+    hwcNode->SetTotalMatrix(ctx.totalMatrix);
+    hwcNode->SetGlobalAlpha(ctx.alpha);
     hwcNode->SetIntersectedRoundCornerAABBs(std::move(currIntersectedRoundCornerAABBs));
 }
 
-bool RSUniHwcComputeUtil::HasNonZRotationTransform(Drawing::Matrix matrix)
+bool RSUniHwcComputeUtil::HasNonZRotationTransform(const Drawing::Matrix& matrix)
 {
     Drawing::Matrix::Buffer value;
     matrix.GetAll(value);
@@ -677,7 +698,7 @@ GraphicTransformType RSUniHwcComputeUtil::GetLayerTransform(RSSurfaceRenderNode&
     auto buffer = node.GetRSSurfaceHandler()->GetBuffer();
     if (consumer != nullptr && buffer != nullptr) {
         if (consumer->GetSurfaceBufferTransformType(buffer, &transformType) != GSERROR_OK) {
-            RS_LOGE("RSUniHwcComputeUtil::GetLayerTransform GetSurfaceBufferTransformType failed");
+            RS_LOGE("GetLayerTransform GetSurfaceBufferTransformType failed");
         }
     }
     int consumerTransform = RSBaseRenderUtil::RotateEnumToInt(RSBaseRenderUtil::GetRotateTransform(transformType));
@@ -695,7 +716,7 @@ GraphicTransformType RSUniHwcComputeUtil::GetLayerTransform(RSSurfaceRenderNode&
 }
 
 std::optional<Drawing::Matrix> RSUniHwcComputeUtil::GetMatrix(
-    std::shared_ptr<RSRenderNode> hwcNode)
+    const std::shared_ptr<RSRenderNode>& hwcNode)
 {
     if (!hwcNode) {
         return std::nullopt;
@@ -718,14 +739,91 @@ std::optional<Drawing::Matrix> RSUniHwcComputeUtil::GetMatrix(
     }
 }
 
-void RSUniHwcComputeUtil::IntersectRect(Drawing::Rect& rect1, const Drawing::Rect& rect2)
+bool RSUniHwcComputeUtil::IntersectRect(Drawing::Rect& result, const Drawing::Rect& other)
 {
-    float left = std::max(rect1.left_, rect2.left_);
-    float top = std::max(rect1.top_, rect2.top_);
-    float right = std::min(rect1.right_, rect2.right_);
-    float bottom = std::min(rect1.bottom_, rect2.bottom_);
+    float left = std::max(result.left_, other.left_);
+    float top = std::max(result.top_, other.top_);
+    float right = std::min(result.right_, other.right_);
+    float bottom = std::min(result.bottom_, other.bottom_);
     Drawing::Rect intersectedRect(left, top, right, bottom);
-    rect1 = intersectedRect.IsValid() ? intersectedRect : Drawing::Rect();
+    if (!intersectedRect.IsValid()) {
+        result = Drawing::Rect();
+        return false;
+    }
+    result = intersectedRect;
+    return true;
 }
+
+bool RSUniHwcComputeUtil::IsBlendNeedFilter(RSRenderNode& node)
+{
+    const auto& property = node.GetRenderProperties();
+    return property.NeedFilter() || node.GetHwcRecorder().IsBlendWithBackground() ||
+        IsForegroundColorStrategyValid(node);
+}
+
+bool RSUniHwcComputeUtil::IsBlendNeedBackground(RSRenderNode& node)
+{
+    const auto& property = node.GetRenderProperties();
+    return property.NeedHwcFilter() || node.GetHwcRecorder().IsBlendWithBackground() ||
+        IsForegroundColorStrategyValid(node);
+}
+
+bool RSUniHwcComputeUtil::IsBlendNeedChildNode(RSRenderNode& node)
+{
+    const auto& property = node.GetRenderProperties();
+    return (property.IsColorBlendApplyTypeOffscreen() && !property.IsColorBlendModeNone()) ||
+        IsDangerousBlendMode(
+            property.GetColorBlendMode(), property.GetColorBlendApplyType()) ||
+        property.GetForegroundFilter() != nullptr ||
+        property.GetForegroundFilterCache() != nullptr ||
+        property.GetMask() != nullptr ||
+        property.GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE ||
+        property.GetFilter() != nullptr ||
+        property.IsLightUpEffectValid() ||
+        property.GetLinearGradientBlurPara() != nullptr ||
+        property.IsDynamicDimValid() ||
+        property.IsFgBrightnessValid() ||
+        property.IsWaterRippleValid() ||
+        property.GetColorFilter() != nullptr;
+}
+
+template<typename T>
+std::shared_ptr<RSRenderProperty<T>> RSUniHwcComputeUtil::GetPropertyFromModifier(
+    const RSRenderNode& node, RSModifierType type)
+{
+    auto& drawCmdModifiers = node.GetDrawCmdModifiers();
+    auto itr = drawCmdModifiers.find(type);
+    if (itr == drawCmdModifiers.end() || itr->second.empty()) {
+        return nullptr;
+    }
+    const auto& modifier = itr->second.back();
+    return std::static_pointer_cast<RSRenderProperty<T>>(modifier->GetProperty());
+}
+
+bool RSUniHwcComputeUtil::IsForegroundColorStrategyValid(RSRenderNode& node)
+{
+    auto property = GetPropertyFromModifier<ForegroundColorStrategyType>(
+        node, RSModifierType::ENV_FOREGROUND_COLOR_STRATEGY);
+    return (property == nullptr) ? false : property->Get() != ForegroundColorStrategyType::INVALID;
+}
+
+bool RSUniHwcComputeUtil::IsDangerousBlendMode(int32_t blendMode, int32_t blendApplyType)
+{
+    // The NONE blend mode does not create an offscreen buffer
+    if (blendMode == static_cast<int32_t>(RSColorBlendMode::NONE)) {
+        return false;
+    }
+    return RSPropertiesPainter::IsDangerousBlendMode(blendMode - 1, blendApplyType);
+}
+
+float RSUniHwcComputeUtil::GetFloatRotationDegreeFromMatrix(const Drawing::Matrix& matrix)
+{
+    Drawing::Matrix::Buffer value;
+    matrix.GetAll(value);
+    return std::atan2(value[Drawing::Matrix::Index::SKEW_X], value[Drawing::Matrix::Index::SCALE_X]) *
+        (RS_ROTATION_180 / PI);
+}
+
+#undef CHECK_NULL_VOID
 } // namespace Rosen
 } // namespace OHOS

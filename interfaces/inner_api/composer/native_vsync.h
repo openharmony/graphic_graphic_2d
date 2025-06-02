@@ -46,6 +46,22 @@ typedef struct OH_NativeVSync OH_NativeVSync;
 typedef void (*OH_NativeVSync_FrameCallback)(long long timestamp, void *data);
 
 /**
+ * @brief Defines the expected frame rate range struct.
+ *
+ * @since 20
+ * @version 1.0
+ */
+ typedef struct {
+    /**The minimum frame rate of dynamical callback rate range */
+    int32_t min;
+    /**The maximum frame rate of dynamical callback rate range */
+    int32_t max;
+    /**The expected frame rate of dynamical callback rate range */
+    int32_t expected;
+} OH_NativeVSync_ExpectedRateRange;
+
+
+/**
  * @brief Creates a <b>NativeVsync</b> instance.\n
  * A new <b>NativeVsync</b> instance is created each time this function is called.
  *
@@ -155,6 +171,24 @@ int OH_NativeVSync_GetPeriod(OH_NativeVSync* nativeVsync, long long* period);
  * @version 1.0
  */
 int OH_NativeVSync_DVSyncSwitch(OH_NativeVSync* nativeVsync, bool enable);
+
+/**
+ * @brief Set Vsync expected frame rate range.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeVsync
+ * @param nativeVsync Indicates the pointer to a NativeVsync
+ * @param range Indicates the pointer to an expected rate range.
+ *              Valid range is 0 <= min <= expected <= max <= 144.
+ *              expected == 0 indicates cancle vote.
+ *              This pointer needs to be released by developer.
+ * @return {@link NATIVE_ERROR_OK} 0 - Success.
+ *      {@link NATIVE_ERROR_INVALID_ARGUMENTS} 40001000 - the parameter is NULL or range is invalid.
+ *      {@link NATIVE_ERROR_NOT_SUPPORT} 50102000 -the object nativeVSync does not support this interface
+ *                                                 Consider using other methods to create nativeVSync instead.
+ * @since 20
+ * @version 1.0
+ */
+int OH_NativeVSync_SetExpectedFrameRateRange(OH_NativeVSync* nativeVsync, OH_NativeVSync_ExpectedRateRange *range);
 #ifdef __cplusplus
 }
 #endif

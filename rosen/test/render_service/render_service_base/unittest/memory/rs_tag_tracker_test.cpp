@@ -234,10 +234,44 @@ HWTEST_F(RSTagTrackerTest, RSTagTracker011, TestSize.Level1)
     RSTagTracker::TAGTYPE tagType = RSTagTracker::TAGTYPE::TAG_DRAW_SURFACENODE;
     RSTagTracker::SOURCETYPE sourceType = RSTagTracker::SOURCETYPE::SOURCE_RSFILTERDRAWABLE;
     auto gpuContext = std::make_shared<Drawing::GPUContext>();
+    RSTagTracker tagTracker0(gpuContext, sourceType);
     RSTagTracker tagTracker1(gpuContext, tagType);
     RSTagTracker tagTracker2(gpuContext, sourceType);
     tagTracker2.SetTagEnd();
     EXPECT_TRUE(tagTracker2.gpuContext_ != nullptr);
+}
+
+/**
+ * @tc.name: RSTagTracker012
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTagTrackerTest, RSTagTracker012, TestSize.Level1)
+{
+    RSTagTracker::SOURCETYPE sourceType = RSTagTracker::SOURCETYPE::SOURCE_OTHER;
+    std::shared_ptr<Drawing::GPUContext> gpuContext = nullptr;
+    RSTagTracker tagTracker(gpuContext, sourceType);
+    tagTracker.SetTagEnd();
+    EXPECT_TRUE(tagTracker.gpuContext_ == nullptr);
+}
+
+/**
+ * @tc.name: RSTagTracker013
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTagTrackerTest, RSTagTracker013, TestSize.Level1)
+{
+    RSTagTracker::TAGTYPE tagType = RSTagTracker::TAGTYPE::TAG_DRAW_SURFACENODE;
+    auto gpuContext = std::make_shared<Drawing::GPUContext>();
+    RSTagTracker tagTracker1(gpuContext, tagType);
+    RSTagTracker::SOURCETYPE sourceType = RSTagTracker::SOURCETYPE::SOURCE_RSBEGINBLENDERDRAWABLE;
+    tagTracker1.UpdateReleaseResourceEnabled(false);
+    RSTagTracker tagTracker2(gpuContext, sourceType);
+    tagTracker1.SetTagEnd();
+    EXPECT_TRUE(tagTracker1.gpuContext_ != nullptr);
 }
 
 /**

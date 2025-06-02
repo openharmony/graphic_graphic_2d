@@ -139,8 +139,6 @@ public:
         return isSplitScreenScene_.load();
     }
 
-    void AddCapturedNodes(NodeId id);
-
     void AddCardNodes(NodeId id, MultiThreadCacheType currentFrameCacheType)
     {
         if (currentFrameCacheType != MultiThreadCacheType::ARKTS_CARD) {
@@ -184,6 +182,9 @@ public:
     void CheckHwcChildrenType(RSSurfaceRenderNode& node, SurfaceHwcNodeType& enabledType);
     void MarkSubHighPriorityType(RSSurfaceRenderNode& node);
     void MarkPostNodesPriority();
+    bool SubThreadControlFrameRate(NodeId id,
+    std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable>& drawable,
+    std::shared_ptr<RSSurfaceRenderNode>& node);
     void RecordScreenRect(RSSurfaceRenderNode& node, RectI rect);
     void RecordDirtyRegionMatrix(RSSurfaceRenderNode& node, const Drawing::Matrix& matrix);
     CacheProcessStatus GetCacheSurfaceProcessedStatus(const RSSurfaceRenderParams& surfaceParams);
@@ -330,7 +331,6 @@ private:
         { "ecoengine" },
     };
 
-    std::vector<NodeId> capturedNodes_;
     std::vector<NodeId> currentFrameDeletedCardNodes_;
 };
 class RSB_EXPORT RSUiFirstProcessStateCheckerHelper {

@@ -148,6 +148,7 @@ bool DoSurfacenodecommand002(const uint8_t* data, size_t size)
     SurfaceNodeCommandHelper::SetAnimationFinished(context, id);
     SurfaceNodeCommandHelper::SetSurfaceNodeType(context, id, surfaceNodeType);
     SurfaceNodeCommandHelper::MarkUIHidden(context, id, isHidden);
+    SurfaceNodeCommandHelper::SetFrameGravityNewVersionEnabled(context, id, isEnabled);
     return true;
 }
 } // namespace Rosen

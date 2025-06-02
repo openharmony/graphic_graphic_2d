@@ -52,13 +52,12 @@ void RSUniRenderProcessorTest::TearDown() {}
  */
 HWTEST(RSUniRenderProcessorTest, ProcessorInit001, TestSize.Level1)
 {
-    if (!RSUniRenderJudgement::IsUniRender()) {
-        return;
+    if (RSUniRenderJudgement::IsUniRender()) {
+        auto processor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::UNI_RENDER_COMPOSITE);
+        RSDisplayNodeConfig config;
+        RSDisplayRenderNode node(1, config);
+        EXPECT_EQ(processor->Init(node, 0, 0, 0, nullptr), false);
     }
-    auto processor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::UNI_RENDER_COMPOSITE);
-    RSDisplayNodeConfig config;
-    RSDisplayRenderNode node(1, config);
-    EXPECT_EQ(processor->Init(node, 0, 0, 0, nullptr), false);
 }
 
 /**
@@ -69,17 +68,16 @@ HWTEST(RSUniRenderProcessorTest, ProcessorInit001, TestSize.Level1)
  */
 HWTEST(RSUniRenderProcessorTest, ProcessSurface001, TestSize.Level1)
 {
-    if (!RSUniRenderJudgement::IsUniRender()) {
-        return;
+    if (RSUniRenderJudgement::IsUniRender()) {
+        auto processor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::UNI_RENDER_COMPOSITE);
+        ASSERT_NE(processor, nullptr);
+        RSDisplayNodeConfig config;
+        RSDisplayRenderNode node(1, config);
+        auto uniRenderEngine = std::make_shared<RSUniRenderEngine>();
+        processor->Init(node, 0, 0, 0, uniRenderEngine);
+        RSSurfaceRenderNode surfaceNode(2);
+        processor->ProcessSurface(surfaceNode);
     }
-    auto processor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::UNI_RENDER_COMPOSITE);
-    ASSERT_NE(processor, nullptr);
-    RSDisplayNodeConfig config;
-    RSDisplayRenderNode node(1, config);
-    auto uniRenderEngine = std::make_shared<RSUniRenderEngine>();
-    processor->Init(node, 0, 0, 0, uniRenderEngine);
-    RSSurfaceRenderNode surfaceNode(2);
-    processor->ProcessSurface(surfaceNode);
 }
 
 /**
@@ -90,14 +88,13 @@ HWTEST(RSUniRenderProcessorTest, ProcessSurface001, TestSize.Level1)
  */
 HWTEST(RSUniRenderProcessorTest, InitTest, TestSize.Level1)
 {
-    if (!RSUniRenderJudgement::IsUniRender()) {
-        return;
+    if (RSUniRenderJudgement::IsUniRender()) {
+        auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
+        RSDisplayNodeConfig config;
+        RSDisplayRenderNode node(1, config);
+        auto renderEngine = std::make_shared<RSUniRenderEngine>();
+        EXPECT_EQ(renderProcessor->Init(node, 0, 0, 0, renderEngine), false);
     }
-    auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
-    RSDisplayNodeConfig config;
-    RSDisplayRenderNode node(1, config);
-    auto renderEngine = std::make_shared<RSUniRenderEngine>();
-    EXPECT_EQ(renderProcessor->Init(node, 0, 0, 0, renderEngine), false);
 }
 
 /**
@@ -108,18 +105,17 @@ HWTEST(RSUniRenderProcessorTest, InitTest, TestSize.Level1)
  */
 HWTEST(RSUniRenderProcessorTest, ProcessSurfaceTest, TestSize.Level1)
 {
-    if (!RSUniRenderJudgement::IsUniRender()) {
-        return;
+    if (RSUniRenderJudgement::IsUniRender()) {
+        auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
+        ASSERT_NE(renderProcessor, nullptr);
+        RSDisplayNodeConfig config;
+        RSDisplayRenderNode node(1, config);
+        auto uniRenderEngine = std::make_shared<RSUniRenderEngine>();
+        renderProcessor->Init(node, 0, 0, 0, uniRenderEngine);
+        // for test
+        RSSurfaceRenderNode surfaceNode(2);
+        renderProcessor->ProcessSurface(surfaceNode);
     }
-    auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
-    ASSERT_NE(renderProcessor, nullptr);
-    RSDisplayNodeConfig config;
-    RSDisplayRenderNode node(1, config);
-    auto uniRenderEngine = std::make_shared<RSUniRenderEngine>();
-    renderProcessor->Init(node, 0, 0, 0, uniRenderEngine);
-    // for test
-    RSSurfaceRenderNode surfaceNode(2);
-    renderProcessor->ProcessSurface(surfaceNode);
 }
 
 /**
@@ -130,32 +126,31 @@ HWTEST(RSUniRenderProcessorTest, ProcessSurfaceTest, TestSize.Level1)
  */
 HWTEST(RSUniRenderProcessorTest, CreateLayerTest, TestSize.Level1)
 {
-    if (!RSUniRenderJudgement::IsUniRender()) {
-        return;
+    if (RSUniRenderJudgement::IsUniRender()) {
+        auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
+        HdiBackend hdiBackend;
+        auto output = std::make_shared<HdiOutput>(1);
+        renderProcessor->uniComposerAdapter_->hdiBackend_ = &hdiBackend;
+        renderProcessor->uniComposerAdapter_->output_ = output;
+        RSSurfaceRenderNode node(0);
+        auto iConsumerSurface = IConsumerSurface::Create();
+        node.GetRSSurfaceHandler()->SetConsumer(iConsumerSurface);
+        sptr<SurfaceBuffer> buffer = OHOS::SurfaceBuffer::Create();
+        sptr<SyncFence> acquireFence = SyncFence::InvalidFence();
+        int64_t timestamp = 0;
+        Rect damage;
+        node.GetRSSurfaceHandler()->SetBuffer(buffer, acquireFence, damage, timestamp);
+        RSSurfaceRenderParams params(0);
+        RSLayerInfo layerInfo;
+        sptr<SurfaceBuffer> bufferTest = OHOS::SurfaceBuffer::Create();
+        sptr<SurfaceBuffer> preBufferTest = OHOS::SurfaceBuffer::Create();
+        params.SetBuffer(bufferTest, {});
+        params.SetPreBuffer(preBufferTest);
+        layerInfo.zOrder = 0;
+        params.SetLayerInfo(layerInfo);
+        renderProcessor->CreateLayer(node, params);
+        EXPECT_TRUE(params.GetLayerCreated());
     }
-    auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
-    HdiBackend hdiBackend;
-    auto output = std::make_shared<HdiOutput>(1);
-    renderProcessor->uniComposerAdapter_->hdiBackend_ = &hdiBackend;
-    renderProcessor->uniComposerAdapter_->output_ = output;
-    RSSurfaceRenderNode node(0);
-    auto iConsumerSurface = IConsumerSurface::Create();
-    node.GetRSSurfaceHandler()->SetConsumer(iConsumerSurface);
-    sptr<SurfaceBuffer> buffer = OHOS::SurfaceBuffer::Create();
-    sptr<SyncFence> acquireFence = SyncFence::InvalidFence();
-    int64_t timestamp = 0;
-    Rect damage;
-    node.GetRSSurfaceHandler()->SetBuffer(buffer, acquireFence, damage, timestamp);
-    RSSurfaceRenderParams params(0);
-    RSLayerInfo layerInfo;
-    sptr<SurfaceBuffer> bufferTest = OHOS::SurfaceBuffer::Create();
-    sptr<SurfaceBuffer> preBufferTest = OHOS::SurfaceBuffer::Create();
-    params.SetBuffer(bufferTest, {});
-    params.SetPreBuffer(preBufferTest);
-    layerInfo.zOrder = 0;
-    params.SetLayerInfo(layerInfo);
-    renderProcessor->CreateLayer(node, params);
-    EXPECT_TRUE(params.GetLayerCreated());
 }
 
 /**
@@ -166,15 +161,14 @@ HWTEST(RSUniRenderProcessorTest, CreateLayerTest, TestSize.Level1)
  */
 HWTEST(RSUniRenderProcessorTest, ProcessDisplaySurfaceTest, TestSize.Level1)
 {
-    if (!RSUniRenderJudgement::IsUniRender()) {
-        return;
+    if (RSUniRenderJudgement::IsUniRender()) {
+        auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
+        constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[0];
+        RSDisplayNodeConfig config;
+        RSDisplayRenderNode node(nodeId, config);
+        renderProcessor->ProcessDisplaySurface(node);
+        EXPECT_FALSE(renderProcessor->uniComposerAdapter_->CreateLayer(node));
     }
-    auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
-    constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[0];
-    RSDisplayNodeConfig config;
-    RSDisplayRenderNode node(nodeId, config);
-    renderProcessor->ProcessDisplaySurface(node);
-    EXPECT_FALSE(renderProcessor->uniComposerAdapter_->CreateLayer(node));
 }
 
 /**
@@ -185,18 +179,17 @@ HWTEST(RSUniRenderProcessorTest, ProcessDisplaySurfaceTest, TestSize.Level1)
  */
 HWTEST(RSUniRenderProcessorTest, ProcessRcdSurfaceTest, TestSize.Level1)
 {
-    if (!RSUniRenderJudgement::IsUniRender()) {
-        return;
+    if (RSUniRenderJudgement::IsUniRender()) {
+        auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
+        constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[0];
+        RCDSurfaceType type = RCDSurfaceType::INVALID;
+        auto node = std::make_shared<RSRcdSurfaceRenderNode>(nodeId, type);
+        renderProcessor->ProcessRcdSurface(*node);
+        EXPECT_FALSE(renderProcessor->uniComposerAdapter_->CreateLayer(*node));
+        DrawableV2::RSRcdSurfaceRenderNodeDrawable drawable(node);
+        renderProcessor->ProcessRcdSurfaceForRenderThread(drawable);
+        EXPECT_FALSE(renderProcessor->uniComposerAdapter_->CreateLayer(drawable));
     }
-    auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
-    constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[0];
-    RCDSurfaceType type = RCDSurfaceType::INVALID;
-    auto node = std::make_shared<RSRcdSurfaceRenderNode>(nodeId, type);
-    renderProcessor->ProcessRcdSurface(*node);
-    EXPECT_FALSE(renderProcessor->uniComposerAdapter_->CreateLayer(*node));
-    DrawableV2::RSRcdSurfaceRenderNodeDrawable drawable(node);
-    renderProcessor->ProcessRcdSurfaceForRenderThread(drawable);
-    EXPECT_FALSE(renderProcessor->uniComposerAdapter_->CreateLayer(drawable));
 }
 
 /**
@@ -207,19 +200,18 @@ HWTEST(RSUniRenderProcessorTest, ProcessRcdSurfaceTest, TestSize.Level1)
  */
 HWTEST(RSUniRenderProcessorTest, InitForRenderThread001, TestSize.Level1)
 {
-    if (!RSUniRenderJudgement::IsUniRender()) {
-        return;
-    }
-    NodeId nodeId = 1;
-    auto node = std::make_shared<RSRenderNode>(nodeId);
-    DrawableV2::RSDisplayRenderNodeDrawable drawable(node);
-    drawable.renderParams_ = std::make_unique<RSRenderParams>(nodeId);
-    ASSERT_NE(drawable.renderParams_, nullptr);
-    ScreenId mirroredId = 1;
+    if (RSUniRenderJudgement::IsUniRender()) {
+        NodeId nodeId = 1;
+        auto node = std::make_shared<RSRenderNode>(nodeId);
+        DrawableV2::RSDisplayRenderNodeDrawable drawable(node);
+        drawable.renderParams_ = std::make_unique<RSRenderParams>(nodeId);
+        ASSERT_NE(drawable.renderParams_, nullptr);
+        ScreenId mirroredId = 1;
 
-    auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
-    ASSERT_NE(renderProcessor, nullptr);
-    renderProcessor->InitForRenderThread(drawable, mirroredId, nullptr);
+        auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
+        ASSERT_NE(renderProcessor, nullptr);
+        renderProcessor->InitForRenderThread(drawable, mirroredId, nullptr);
+    }
 }
 
 /**
@@ -230,22 +222,20 @@ HWTEST(RSUniRenderProcessorTest, InitForRenderThread001, TestSize.Level1)
  */
 HWTEST(RSUniRenderProcessorTest, InitForRenderThread002, TestSize.Level1)
 {
-    if (!RSUniRenderJudgement::IsUniRender()) {
-        return;
+    if (RSUniRenderJudgement::IsUniRender()) {
+        NodeId nodeId = 1;
+        auto node = std::make_shared<RSRenderNode>(nodeId);
+        DrawableV2::RSDisplayRenderNodeDrawable drawable(node);
+        drawable.renderParams_ = nullptr;
+        ASSERT_EQ(drawable.renderParams_, nullptr);
+        ScreenId mirroredId = 1;
+        auto renderEngine = std::make_shared<RSRenderEngine>();
+        ASSERT_NE(renderEngine, nullptr);
+        
+        auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
+        ASSERT_NE(renderProcessor, nullptr);
+        renderProcessor->InitForRenderThread(drawable, mirroredId, renderEngine);
     }
-
-    NodeId nodeId = 1;
-    auto node = std::make_shared<RSRenderNode>(nodeId);
-    DrawableV2::RSDisplayRenderNodeDrawable drawable(node);
-    drawable.renderParams_ = nullptr;
-    ASSERT_EQ(drawable.renderParams_, nullptr);
-    ScreenId mirroredId = 1;
-    auto renderEngine = std::make_shared<RSRenderEngine>();
-    ASSERT_NE(renderEngine, nullptr);
-    
-    auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
-    ASSERT_NE(renderProcessor, nullptr);
-    renderProcessor->InitForRenderThread(drawable, mirroredId, renderEngine);
 }
 
 /**
@@ -256,16 +246,15 @@ HWTEST(RSUniRenderProcessorTest, InitForRenderThread002, TestSize.Level1)
  */
 HWTEST(RSUniRenderProcessorTest, ProcessDisplaySurfaceForRenderThread001, TestSize.Level1)
 {
-    if (!RSUniRenderJudgement::IsUniRender()) {
-        return;
+    if (RSUniRenderJudgement::IsUniRender()) {
+        NodeId nodeId = 1;
+        auto node = std::make_shared<RSRenderNode>(nodeId);
+        DrawableV2::RSDisplayRenderNodeDrawable drawable(node);
+        
+        auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
+        ASSERT_NE(renderProcessor, nullptr);
+        renderProcessor->ProcessDisplaySurfaceForRenderThread(drawable);
     }
-    NodeId nodeId = 1;
-    auto node = std::make_shared<RSRenderNode>(nodeId);
-    DrawableV2::RSDisplayRenderNodeDrawable drawable(node);
-    
-    auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
-    ASSERT_NE(renderProcessor, nullptr);
-    renderProcessor->ProcessDisplaySurfaceForRenderThread(drawable);
 }
 
 /**
@@ -276,19 +265,18 @@ HWTEST(RSUniRenderProcessorTest, ProcessDisplaySurfaceForRenderThread001, TestSi
  */
 HWTEST(RSUniRenderProcessorTest, ProcessDisplaySurfaceForRenderThread002, TestSize.Level1)
 {
-    if (!RSUniRenderJudgement::IsUniRender()) {
-        return;
+    if (RSUniRenderJudgement::IsUniRender()) {
+        NodeId nodeId = 1;
+        auto node = std::make_shared<RSRenderNode>(nodeId);
+        DrawableV2::RSDisplayRenderNodeDrawable drawable(node);
+        drawable.renderParams_= nullptr;
+        
+        auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
+        ASSERT_NE(renderProcessor, nullptr);
+        auto output = std::make_shared<HdiOutput>(1);
+        renderProcessor->uniComposerAdapter_->output_ = output;
+        renderProcessor->ProcessDisplaySurfaceForRenderThread(drawable);
     }
-    NodeId nodeId = 1;
-    auto node = std::make_shared<RSRenderNode>(nodeId);
-    DrawableV2::RSDisplayRenderNodeDrawable drawable(node);
-    drawable.renderParams_= nullptr;
-    
-    auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
-    ASSERT_NE(renderProcessor, nullptr);
-    auto output = std::make_shared<HdiOutput>(1);
-    renderProcessor->uniComposerAdapter_->output_ = output;
-    renderProcessor->ProcessDisplaySurfaceForRenderThread(drawable);
 }
 
 /**
@@ -299,20 +287,19 @@ HWTEST(RSUniRenderProcessorTest, ProcessDisplaySurfaceForRenderThread002, TestSi
  */
 HWTEST(RSUniRenderProcessorTest, ProcessDisplaySurfaceForRenderThread003, TestSize.Level1)
 {
-    if (!RSUniRenderJudgement::IsUniRender()) {
-        return;
-    }
-    NodeId nodeId = 1;
-    auto node = std::make_shared<RSRenderNode>(nodeId);
-    DrawableV2::RSDisplayRenderNodeDrawable drawable(node);
-    drawable.renderParams_= std::make_unique<RSRenderParams>(0);
+    if (RSUniRenderJudgement::IsUniRender()) {
+        NodeId nodeId = 1;
+        auto node = std::make_shared<RSRenderNode>(nodeId);
+        DrawableV2::RSDisplayRenderNodeDrawable drawable(node);
+        drawable.renderParams_= std::make_unique<RSRenderParams>(0);
 
-    auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
-    ASSERT_NE(renderProcessor, nullptr);
-    auto output = std::make_shared<HdiOutput>(1);
-    ASSERT_NE(output, nullptr);
-    renderProcessor->uniComposerAdapter_->output_ = output;
-    renderProcessor->ProcessDisplaySurfaceForRenderThread(drawable);
+        auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
+        ASSERT_NE(renderProcessor, nullptr);
+        auto output = std::make_shared<HdiOutput>(1);
+        ASSERT_NE(output, nullptr);
+        renderProcessor->uniComposerAdapter_->output_ = output;
+        renderProcessor->ProcessDisplaySurfaceForRenderThread(drawable);
+    }
 }
 
 /**
@@ -323,23 +310,22 @@ HWTEST(RSUniRenderProcessorTest, ProcessDisplaySurfaceForRenderThread003, TestSi
  */
 HWTEST(RSUniRenderProcessorTest, ProcessDisplaySurfaceForRenderThread004, TestSize.Level1)
 {
-    if (!RSUniRenderJudgement::IsUniRender()) {
-        return;
+    if (RSUniRenderJudgement::IsUniRender()) {
+        NodeId nodeId = 1;
+        auto node = std::make_shared<RSRenderNode>(nodeId);
+        DrawableV2::RSDisplayRenderNodeDrawable drawable(node);
+        drawable.renderParams_= std::make_unique<RSRenderParams>(0);
+        drawable.renderParams_->SetFingerprint(true);
+        drawable.surfaceHandler_ = std::make_shared<RSSurfaceHandler>(0);
+        ASSERT_NE(drawable.surfaceHandler_, nullptr);
+        
+        auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
+        ASSERT_NE(renderProcessor, nullptr);
+        auto output = std::make_shared<HdiOutput>(1);
+        ASSERT_NE(output, nullptr);
+        renderProcessor->uniComposerAdapter_->output_ = output;
+        renderProcessor->ProcessDisplaySurfaceForRenderThread(drawable);
     }
-    NodeId nodeId = 1;
-    auto node = std::make_shared<RSRenderNode>(nodeId);
-    DrawableV2::RSDisplayRenderNodeDrawable drawable(node);
-    drawable.renderParams_= std::make_unique<RSRenderParams>(0);
-    drawable.renderParams_->SetFingerprint(true);
-    drawable.surfaceHandler_ = std::make_shared<RSSurfaceHandler>(0);
-    ASSERT_NE(drawable.surfaceHandler_, nullptr);
-    
-    auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
-    ASSERT_NE(renderProcessor, nullptr);
-    auto output = std::make_shared<HdiOutput>(1);
-    ASSERT_NE(output, nullptr);
-    renderProcessor->uniComposerAdapter_->output_ = output;
-    renderProcessor->ProcessDisplaySurfaceForRenderThread(drawable);
 }
 
 /**
@@ -350,17 +336,16 @@ HWTEST(RSUniRenderProcessorTest, ProcessDisplaySurfaceForRenderThread004, TestSi
  */
 HWTEST(RSUniRenderProcessorTest, ProcessSurfaceForRenderThread001, TestSize.Level1)
 {
-    if (!RSUniRenderJudgement::IsUniRender()) {
-        return;
+    if (RSUniRenderJudgement::IsUniRender()) {
+        NodeId id = 0;
+        auto node = std::make_shared<RSSurfaceRenderNode>(id);
+        ASSERT_NE(node, nullptr);
+        auto surfaceDrawable = std::make_shared<DrawableV2::RSSurfaceRenderNodeDrawable>(node);
+        ASSERT_NE(surfaceDrawable, nullptr);
+        auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
+        ASSERT_NE(renderProcessor, nullptr);
+        renderProcessor->ProcessSurfaceForRenderThread(*surfaceDrawable);
     }
-    NodeId id = 0;
-    auto node = std::make_shared<RSSurfaceRenderNode>(id);
-    ASSERT_NE(node, nullptr);
-    auto surfaceDrawable = std::make_shared<DrawableV2::RSSurfaceRenderNodeDrawable>(node);
-    ASSERT_NE(surfaceDrawable, nullptr);
-    auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
-    ASSERT_NE(renderProcessor, nullptr);
-    renderProcessor->ProcessSurfaceForRenderThread(*surfaceDrawable);
 }
 
 /**
@@ -371,21 +356,20 @@ HWTEST(RSUniRenderProcessorTest, ProcessSurfaceForRenderThread001, TestSize.Leve
  */
 HWTEST(RSUniRenderProcessorTest, CreateLayerForRenderThread001, TestSize.Level1)
 {
-    if (!RSUniRenderJudgement::IsUniRender()) {
-        return;
-    }
-    NodeId id = 0;
-    auto node = std::make_shared<RSSurfaceRenderNode>(id);
-    ASSERT_NE(node, nullptr);
-    auto surfaceDrawable = std::make_shared<DrawableV2::RSSurfaceRenderNodeDrawable>(node);
-    ASSERT_NE(surfaceDrawable, nullptr);
+    if (RSUniRenderJudgement::IsUniRender()) {
+        NodeId id = 0;
+        auto node = std::make_shared<RSSurfaceRenderNode>(id);
+        ASSERT_NE(node, nullptr);
+        auto surfaceDrawable = std::make_shared<DrawableV2::RSSurfaceRenderNodeDrawable>(node);
+        ASSERT_NE(surfaceDrawable, nullptr);
 
-    surfaceDrawable->renderParams_ = nullptr;
-    auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
-    ASSERT_NE(renderProcessor, nullptr);
-    renderProcessor->CreateLayerForRenderThread(*surfaceDrawable);
-    surfaceDrawable->renderParams_= std::make_unique<RSRenderParams>(0);
-    renderProcessor->CreateLayerForRenderThread(*surfaceDrawable);
+        surfaceDrawable->renderParams_ = nullptr;
+        auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
+        ASSERT_NE(renderProcessor, nullptr);
+        renderProcessor->CreateLayerForRenderThread(*surfaceDrawable);
+        surfaceDrawable->renderParams_= std::make_unique<RSRenderParams>(0);
+        renderProcessor->CreateLayerForRenderThread(*surfaceDrawable);
+    }
 }
 
 /**
@@ -396,22 +380,21 @@ HWTEST(RSUniRenderProcessorTest, CreateLayerForRenderThread001, TestSize.Level1)
  */
 HWTEST(RSUniRenderProcessorTest, CreateLayerForRenderThread002, TestSize.Level1)
 {
-    if (!RSUniRenderJudgement::IsUniRender()) {
-        return;
-    }
-    RSSurfaceRenderParams params(0);
-    sptr<SurfaceBuffer> bufferTest = OHOS::SurfaceBuffer::Create();
-    params.SetBuffer(bufferTest, {});
-    NodeId id = 1;
-    auto node = std::make_shared<RSSurfaceRenderNode>(id);
-    ASSERT_NE(node, nullptr);
-    auto surfaceDrawable = std::make_shared<DrawableV2::RSSurfaceRenderNodeDrawable>(node);
-    ASSERT_EQ(surfaceDrawable->renderParams_, nullptr);
-    surfaceDrawable->renderParams_ = std::make_unique<RSRenderParams>(1);
+    if (RSUniRenderJudgement::IsUniRender()) {
+        RSSurfaceRenderParams params(0);
+        sptr<SurfaceBuffer> bufferTest = OHOS::SurfaceBuffer::Create();
+        params.SetBuffer(bufferTest, {});
+        NodeId id = 1;
+        auto node = std::make_shared<RSSurfaceRenderNode>(id);
+        ASSERT_NE(node, nullptr);
+        auto surfaceDrawable = std::make_shared<DrawableV2::RSSurfaceRenderNodeDrawable>(node);
+        ASSERT_EQ(surfaceDrawable->renderParams_, nullptr);
+        surfaceDrawable->renderParams_ = std::make_unique<RSRenderParams>(1);
 
-    auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
-    ASSERT_NE(renderProcessor, nullptr);
-    renderProcessor->CreateLayerForRenderThread(*surfaceDrawable);
+        auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
+        ASSERT_NE(renderProcessor, nullptr);
+        renderProcessor->CreateLayerForRenderThread(*surfaceDrawable);
+    }
 }
 
 /**
@@ -422,14 +405,13 @@ HWTEST(RSUniRenderProcessorTest, CreateLayerForRenderThread002, TestSize.Level1)
  */
 HWTEST(RSUniRenderProcessorTest, GetForceClientForDRM001, TestSize.Level1)
 {
-    if (!RSUniRenderJudgement::IsUniRender()) {
-        return;
+    if (RSUniRenderJudgement::IsUniRender()) {
+        auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
+        ASSERT_NE(renderProcessor, nullptr);
+        RSSurfaceRenderParams params(0);
+        params.GetMultableSpecialLayerMgr().Set(SpecialLayerType::PROTECTED, false);
+        ASSERT_FALSE(renderProcessor->GetForceClientForDRM(params));
     }
-    auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
-    ASSERT_NE(renderProcessor, nullptr);
-    RSSurfaceRenderParams params(0);
-    params.GetMultableSpecialLayerMgr().Set(SpecialLayerType::PROTECTED, false);
-    ASSERT_FALSE(renderProcessor->GetForceClientForDRM(params));
 }
 
 /**
@@ -440,15 +422,14 @@ HWTEST(RSUniRenderProcessorTest, GetForceClientForDRM001, TestSize.Level1)
  */
 HWTEST(RSUniRenderProcessorTest, GetForceClientForDRM002, TestSize.Level1)
 {
-    if (!RSUniRenderJudgement::IsUniRender()) {
-        return;
+    if (RSUniRenderJudgement::IsUniRender()) {
+        auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
+        ASSERT_NE(renderProcessor, nullptr);
+        RSSurfaceRenderParams params(0);
+        params.GetMultableSpecialLayerMgr().Set(SpecialLayerType::PROTECTED, true);
+        params.animateState_ = true;
+        ASSERT_TRUE(renderProcessor->GetForceClientForDRM(params));
     }
-    auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
-    ASSERT_NE(renderProcessor, nullptr);
-    RSSurfaceRenderParams params(0);
-    params.GetMultableSpecialLayerMgr().Set(SpecialLayerType::PROTECTED, true);
-    params.animateState_ = true;
-    ASSERT_TRUE(renderProcessor->GetForceClientForDRM(params));
 }
 
 /**
@@ -459,18 +440,17 @@ HWTEST(RSUniRenderProcessorTest, GetForceClientForDRM002, TestSize.Level1)
  */
 HWTEST(RSUniRenderProcessorTest, GetForceClientForDRM003, TestSize.Level1)
 {
-    if (!RSUniRenderJudgement::IsUniRender()) {
-        return;
+    if (RSUniRenderJudgement::IsUniRender()) {
+        auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
+        ASSERT_NE(renderProcessor, nullptr);
+        RSSurfaceRenderParams params(0);
+        params.GetMultableSpecialLayerMgr().Set(SpecialLayerType::PROTECTED, true);
+        params.animateState_ = false;
+        ASSERT_FALSE(renderProcessor->GetForceClientForDRM(params));
+        // set totalMatrix to 30 degrees
+        params.totalMatrix_.PostRotate(30.0f);
+        ASSERT_TRUE(renderProcessor->GetForceClientForDRM(params));
     }
-    auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
-    ASSERT_NE(renderProcessor, nullptr);
-    RSSurfaceRenderParams params(0);
-    params.GetMultableSpecialLayerMgr().Set(SpecialLayerType::PROTECTED, true);
-    params.animateState_ = false;
-    ASSERT_FALSE(renderProcessor->GetForceClientForDRM(params));
-    // set totalMatrix to 30 degrees
-    params.totalMatrix_.PostRotate(30.0f);
-    ASSERT_TRUE(renderProcessor->GetForceClientForDRM(params));
 }
 
 /**
@@ -481,25 +461,24 @@ HWTEST(RSUniRenderProcessorTest, GetForceClientForDRM003, TestSize.Level1)
  */
 HWTEST(RSUniRenderProcessorTest, GetForceClientForDRM004, TestSize.Level1)
 {
-    if (!RSUniRenderJudgement::IsUniRender()) {
-        return;
+    if (RSUniRenderJudgement::IsUniRender()) {
+        auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
+        ASSERT_NE(renderProcessor, nullptr);
+        RSSurfaceRenderParams params(0);
+        params.GetMultableSpecialLayerMgr().Set(SpecialLayerType::PROTECTED, true);
+        params.animateState_ = false;
+        RSDisplayNodeConfig config;
+        NodeId id = 1;
+        auto node = std::make_shared<RSDisplayRenderNode>(id, config);
+        std::shared_ptr<DrawableV2::RSDisplayRenderNodeDrawable> displayDrawable(
+            static_cast<DrawableV2::RSDisplayRenderNodeDrawable*>(
+            DrawableV2::RSDisplayRenderNodeDrawable::OnGenerate(node)));
+        ASSERT_NE(displayDrawable, nullptr);
+        params.ancestorDisplayDrawable_ = displayDrawable;
+        displayDrawable->renderParams_ = std::make_unique<RSDisplayRenderParams>(id);
+        ASSERT_NE(displayDrawable->GetRenderParams(), nullptr);
+        ASSERT_FALSE(renderProcessor->GetForceClientForDRM(params));
     }
-    auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
-    ASSERT_NE(renderProcessor, nullptr);
-    RSSurfaceRenderParams params(0);
-    params.GetMultableSpecialLayerMgr().Set(SpecialLayerType::PROTECTED, true);
-    params.animateState_ = false;
-    RSDisplayNodeConfig config;
-    NodeId id = 1;
-    auto node = std::make_shared<RSDisplayRenderNode>(id, config);
-    std::shared_ptr<DrawableV2::RSDisplayRenderNodeDrawable> displayDrawable(
-        static_cast<DrawableV2::RSDisplayRenderNodeDrawable*>(
-        DrawableV2::RSDisplayRenderNodeDrawable::OnGenerate(node)));
-    ASSERT_NE(displayDrawable, nullptr);
-    params.ancestorDisplayDrawable_ = displayDrawable;
-    displayDrawable->renderParams_ = std::make_unique<RSDisplayRenderParams>(id);
-    ASSERT_NE(displayDrawable->GetRenderParams(), nullptr);
-    ASSERT_FALSE(renderProcessor->GetForceClientForDRM(params));
 }
 
 /**
@@ -510,19 +489,124 @@ HWTEST(RSUniRenderProcessorTest, GetForceClientForDRM004, TestSize.Level1)
  */
 HWTEST(RSUniRenderProcessorTest, GetForceClientForDRM005, TestSize.Level1)
 {
-    if (!RSUniRenderJudgement::IsUniRender()) {
-        return;
+    if (RSUniRenderJudgement::IsUniRender()) {
+        auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
+        ASSERT_NE(renderProcessor, nullptr);
+        RSSurfaceRenderParams params(0);
+        params.GetMultableSpecialLayerMgr().Set(SpecialLayerType::PROTECTED, true);
+        params.animateState_ = false;
+        ASSERT_FALSE(renderProcessor->GetForceClientForDRM(params));
+        // set drm out of screen
+        params.isOutOfScreen_ = false;
+        ASSERT_FALSE(renderProcessor->GetForceClientForDRM(params));
+        params.isOutOfScreen_ = true;
+        ASSERT_TRUE(renderProcessor->GetForceClientForDRM(params));
     }
+}
+
+/**
+ * @tc.name: HandleTunnelLayerParameters001
+ * @tc.desc: Test RSUniRenderProcessorTest.HandleTunnelLayerParameters
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST(RSUniRenderProcessorTest, HandleTunnelLayerParameters001, TestSize.Level1)
+{
     auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
     ASSERT_NE(renderProcessor, nullptr);
     RSSurfaceRenderParams params(0);
-    params.GetMultableSpecialLayerMgr().Set(SpecialLayerType::PROTECTED, true);
-    params.animateState_ = false;
-    ASSERT_FALSE(renderProcessor->GetForceClientForDRM(params));
-    // set drm out of screen
-    params.isOutOfScreen_ = false;
-    ASSERT_FALSE(renderProcessor->GetForceClientForDRM(params));
-    params.isOutOfScreen_ = true;
-    ASSERT_TRUE(renderProcessor->GetForceClientForDRM(params));
+    LayerInfoPtr layer = nullptr;
+    renderProcessor->HandleTunnelLayerParameters(params, layer);
+    EXPECT_EQ(layer, nullptr);
+}
+ 
+/**
+ * @tc.name: HandleTunnelLayerParameters002
+ * @tc.desc: Test RSUniRenderProcessorTest.HandleTunnelLayerParameters
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST(RSUniRenderProcessorTest, HandleTunnelLayerParameters002, TestSize.Level1)
+{
+    auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
+    ASSERT_NE(renderProcessor, nullptr);
+    RSSurfaceRenderParams params(0);
+    LayerInfoPtr layer;
+    params.SetTunnelLayerId(0);
+    renderProcessor->HandleTunnelLayerParameters(params, layer);
+    EXPECT_EQ(layer->GetTunnelLayerId(), 0);
+    EXPECT_EQ(layer->GetTunnelLayerProperty(), 0);
+}
+ 
+/**
+ * @tc.name: HandleTunnelLayerParameters003
+ * @tc.desc: Test RSUniRenderProcessorTest.HandleTunnelLayerParameters
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST(RSUniRenderProcessorTest, HandleTunnelLayerParameters003, TestSize.Level1)
+{
+    auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
+    ASSERT_NE(renderProcessor, nullptr);
+    RSSurfaceRenderParams params(0);
+    LayerInfoPtr layer;
+    params.SetTunnelLayerId(1);
+    renderProcessor->HandleTunnelLayerParameters(params, layer);
+    EXPECT_EQ(layer->GetTunnelLayerId(), 1);
+    ASSERT_NE(layer->GetTunnelLayerProperty(), 0);
+}
+ 
+/**
+ * @tc.name: GetLayerInfo001
+ * @tc.desc: Test RSUniRenderProcessorTest.GetLayerInfo
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST(RSUniRenderProcessorTest, GetLayerInfo001, TestSize.Level1)
+{
+    auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
+    ASSERT_NE(renderProcessor, nullptr);
+    RSSurfaceRenderParams params(0);
+    params.SetTunnelLayerId(1);
+    sptr<SurfaceBuffer> buffer = nullptr;
+    sptr<SurfaceBuffer> preBuffer = nullptr;
+    sptr<IConsumerSurface> consumer = nullptr;
+    sptr<SyncFence> acquireFence = nullptr;
+ 
+    LayerInfoPtr result = renderProcessor->GetLayerInfo(params, buffer, preBuffer, consumer, acquireFence);
+    EXPECT_EQ(result->GetType(), GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL);
+}
+
+/**
+ * @tc.name: CreateLayer_Anco
+ * @tc.desc: Test RSUniRenderProcessorTest.CreateLayerForRenderThread for anco
+ * @tc.type:FUNC
+ * @tc.require: issueICA0I8
+ */
+HWTEST(RSUniRenderProcessorTest, CreateLayer_Anco, TestSize.Level1)
+{
+    if (RSUniRenderJudgement::IsUniRender()) {
+        auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
+        ASSERT_NE(renderProcessor, nullptr);
+        auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+        ASSERT_NE(surfaceNode, nullptr);
+        ASSERT_NE(surfaceNode->surfaceHandler_, nullptr);
+        ASSERT_NE(surfaceNode->surfaceHandler_->GetConsumer(), nullptr);
+        auto buffer = surfaceNode->surfaceHandler_->GetBuffer();
+        ASSERT_NE(buffer, nullptr);
+        buffer->SetSurfaceBufferWidth(100);
+        buffer->SetSurfaceBufferHeight(100);
+        RSSurfaceRenderParams params(surfaceNode->GetId());
+        renderProcessor->CreateLayer(*surfaceNode, params);
+
+        auto drawable = std::make_shared<DrawableV2::RSSurfaceRenderNodeDrawable>(surfaceNode);
+        ASSERT_NE(drawable, nullptr);
+        ASSERT_EQ(drawable->renderParams_, nullptr);
+        drawable->renderParams_ = std::make_unique<RSSurfaceRenderParams>(surfaceNode->GetId() + 1);
+        auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable->renderParams_.get());
+        ASSERT_NE(surfaceParams, nullptr);
+        surfaceParams->buffer_ = buffer;
+        renderProcessor->CreateLayerForRenderThread(*drawable);
+    }
 }
 }

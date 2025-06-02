@@ -49,7 +49,7 @@ public:
 
     bool OpincGetNodeSupportFlag() override
     {
-        return false;
+        return !GetOpincCache().OpincGetRootFlag();
     }
 
     Drawing::Bitmap GetBitmap();
@@ -87,6 +87,7 @@ private:
     bool GetSizeFromDrawCmdModifiers(int& width, int& height);
     bool IsNeedResetSurface() const;
     void InitRenderParams() override;
+    void ReportOpCount(const std::list<Drawing::DrawCmdListPtr>& cmdLists) const;
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     bool ResetSurfaceWithTexture(int width, int height, RSPaintFilterCanvas& canvas);
 #endif

@@ -134,6 +134,7 @@ public:
     bool IsCustomTypeface() const;
 
     void SetIsRecordCmd(bool isRecordCmd);
+    bool IsRecordCmd() const { return isRecordCmd_; };
 
     void ResetHybridRenderSize(float width, float height);
 

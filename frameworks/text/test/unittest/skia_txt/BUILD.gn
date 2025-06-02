@@ -54,7 +54,10 @@ ohos_unittest("rosen_text_skia_txt_test") {
     "$rosen_text_root:rosen_text",
   ]
 
-  external_deps = [ "hilog:libhilog" ]
+  external_deps = [
+    "hilog:libhilog",
+    "icu:shared_icuuc",
+  ]
 
   if (platform_is_ohos) {
     external_deps += [
@@ -64,7 +67,7 @@ ohos_unittest("rosen_text_skia_txt_test") {
       "samgr:samgr_proxy",
       "skia:skia_paragraph_ohos",
     ]
-    defines = [ "OHOS_TEXT_ENABLE" ]
+    defines = [ "ENABLE_OHOS_ENHANCE" ]
   }
 
   part_name = "graphic_2d"

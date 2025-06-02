@@ -16,7 +16,7 @@
 #ifndef HGM_COMMAND_H
 #define HGM_COMMAND_H
 
-#include <inttypes.h>
+#include <cinttypes>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -202,10 +202,6 @@ public:
     // <"VIRTUAL_AXX", "4">
     std::unordered_map<std::string, std::string> virtualDisplayConfigs_;
     bool virtualDisplaySwitch_;
-    // <"p3NodeCount", "0">
-    bool p3NodeCountSwitch_ = false;
-    // <"isCoveredSurfaceCloseP3", "0">
-    bool isCoveredSurfaceCloseP3_ = false;
     // <"screen0_LTPO", "LTPO-DEFAULT">
     std::unordered_map<std::string, std::string> screenStrategyConfigs_;
     std::unordered_map<std::string, std::string> sourceTuningConfig_;

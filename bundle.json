@@ -120,7 +120,7 @@
           "freetype",
           "rust_cxx",
           "media_foundation",
-          "mesa3d"
+          "selinux_adapter"
         ],
         "third_party": [
           "skia"
@@ -129,7 +129,6 @@
       "build": {
         "group_type": {
           "base_group": [
-            "//third_party/libpng:libpng",
             "//foundation/graphic/graphic_2d/interfaces/kits/napi:napi_packages",
             "//foundation/graphic/graphic_2d/interfaces/kits/cj:ffi_packages",
             "//foundation/graphic/graphic_2d/rosen/modules/effect/effect_common:effect_common",
@@ -190,6 +189,16 @@
                 "vsync_receiver.h"
               ],
               "header_base": "//foundation/graphic/graphic_2d/interfaces/inner_api/composer"
+            }
+          },
+          {
+            "type": "so",
+            "name": "//foundation/graphic/graphic_2d/rosen/modules/glfw_render_context:libglfw_render_context",
+            "header": {
+              "header_files": [
+                "glfw_render_context.h"
+              ],
+              "header_base": "//foundation/graphic/graphic_2d/rosen/modules/glfw_render_context/export"
             }
           },
           {

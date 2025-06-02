@@ -251,7 +251,6 @@ HWTEST_F(RSPropertyDrawableUtilsTest, RSPropertyDrawableUtilsTest008, testing::e
     ASSERT_NE(lastBlurCnt, 0);
     cacheManager->renderClearFilteredCacheAfterDrawing_ = false;
     rsPropertyDrawableUtils->DrawBackgroundEffect(nullptr, rsFilter, cacheManager, bounds);
-    ASSERT_EQ(lastBlurCnt, lastBlurCnt);
 }
 
 /**
@@ -728,7 +727,6 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawBackgroundEffectTest002, testing::ext:
     ASSERT_NE(lastBlurCnt, 0);
     cacheManager->renderClearFilteredCacheAfterDrawing_ = false;
     rsPropertyDrawableUtils->DrawBackgroundEffect(nullptr, rsFilter, cacheManager, bounds);
-    ASSERT_EQ(lastBlurCnt, lastBlurCnt);
 }
 
 /**

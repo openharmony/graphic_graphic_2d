@@ -18,6 +18,7 @@
 #include <cstdint>
 #include "get_object.h"
 #include "effect/image_filter.h"
+#include "image/image.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -240,6 +241,7 @@ bool ImageFilterFuzzTest004(const uint8_t* data, size_t size)
 /*
  * 测试以下 ImageFilter 接口：
  * 1. CreateShaderImageFilter(...)
+ * 2. CreateImageImageFilter(...)
  */
 bool ImageFilterFuzzTest005(const uint8_t* data, size_t size)
 {
@@ -263,6 +265,12 @@ bool ImageFilterFuzzTest005(const uint8_t* data, size_t size)
     ColorQuad colorQuad = GetObject<ColorQuad>();
     std::shared_ptr<ShaderEffect> shaderEffect = ShaderEffect::CreateColorShader(colorQuad);
     std::shared_ptr<ImageFilter> imageFilterOne = ImageFilter::CreateShaderImageFilter(shaderEffect, rect);
+
+    std::shared_ptr<Image> image = std::make_shared<Image>();
+    Rect rect2 { GetObject<float>(), GetObject<float>(), GetObject<float>(), GetObject<float>() };
+    SamplingOptions options;
+    auto imageFilter = ImageFilter::CreateImageImageFilter(image, rect, rect2, options);
+    auto imageFilter2 = ImageFilter::CreateImageImageFilter(nullptr, rect, rect2, options);
     return true;
 }
 } // namespace Drawing

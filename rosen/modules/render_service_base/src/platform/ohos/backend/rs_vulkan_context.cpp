@@ -23,7 +23,11 @@
 #include "common/rs_optional_trace.h"
 #include "platform/common/rs_log.h"
 #include "render_context/memory_handler.h"
+#ifdef USE_M133_SKIA
+#include "include/gpu/vk/VulkanExtensions.h"
+#else
 #include "include/gpu/vk/GrVkExtensions.h"
+#endif
 #include "unistd.h"
 #include "vulkan/vulkan_core.h"
 #include "vulkan/vulkan_ohos.h"
@@ -45,7 +49,8 @@ std::map<int, std::shared_ptr<Drawing::GPUContext>> RsVulkanContext::protectedDr
 std::mutex RsVulkanContext::drawingContextMutex_;
 std::unique_ptr<RsVulkanContext> RsVulkanContext::recyclableSingleton_ = nullptr;
 std::mutex RsVulkanContext::recyclableSingletonMutex_;
-bool RsVulkanContext::isRecyclable_ = true;
+bool RsVulkanContext::isRecyclable_ = false;
+std::atomic<bool> RsVulkanContext::isInited_ = false;
 void* RsVulkanInterface::handle_ = nullptr;
 VkInstance RsVulkanInterface::instance_ = VK_NULL_HANDLE;
 
@@ -331,7 +336,11 @@ bool RsVulkanInterface::CreateDevice(bool isProtected)
     return true;
 }
 
+#ifdef USE_M133_SKIA
+bool RsVulkanInterface::CreateSkiaBackendContext(skgpu::VulkanBackendContext* context, bool isProtected)
+#else
 bool RsVulkanInterface::CreateSkiaBackendContext(GrVkBackendContext* context, bool isProtected)
+#endif
 {
     auto getProc = CreateSkiaGetProc();
     if (getProc == nullptr) {
@@ -373,8 +382,12 @@ bool RsVulkanInterface::CreateSkiaBackendContext(GrVkBackendContext* context, bo
     context->fDeviceFeatures2 = &physicalDeviceFeatures2_;
     context->fFeatures = fFeatures;
     context->fGetProc = std::move(getProc);
+#ifdef USE_M133_SKIA
+    context->fProtectedContext = isProtected ? skgpu::Protected::kYes : skgpu::Protected::kNo;
+#else
     context->fOwnsInstanceAndDevice = false;
     context->fProtectedContext = isProtected ? GrProtected::kYes : GrProtected::kNo;
+#endif
 
     return true;
 }
@@ -466,7 +479,11 @@ PFN_vkVoidFunction RsVulkanInterface::AcquireProc(
     return vkGetDeviceProcAddr(device, procName);
 }
 
+#ifdef USE_M133_SKIA
+skgpu::VulkanGetProc RsVulkanInterface::CreateSkiaGetProc() const
+#else
 GrVkGetProc RsVulkanInterface::CreateSkiaGetProc() const
+#endif
 {
     if (!IsValid()) {
         return nullptr;
@@ -587,6 +604,14 @@ RsVulkanContext::RsVulkanContext(std::string cacheDir)
     } else {
         InitVulkanContextForUniRender(cacheDir);
     }
+    RsVulkanContext::isInited_ = true;
+}
+
+RsVulkanContext::~RsVulkanContext()
+{
+    std::lock_guard<std::mutex> lock(drawingContextMutex_);
+    drawingContextMap_.clear();
+    protectedDrawingContextMap_.clear();
 }
 
 void RsVulkanContext::InitVulkanContextForHybridRender(const std::string& cacheDir)
@@ -648,7 +673,20 @@ void RsVulkanContext::ReleaseRecyclableSingleton()
     }
     {
         std::lock_guard<std::mutex> lock(drawingContextMutex_);
+        for (auto& [_, context] : drawingContextMap_) {
+            if (context == nullptr) {
+                continue;
+            }
+            context->FlushAndSubmit(true);
+        }
         drawingContextMap_.clear();
+
+        for (auto& [_, protectedContext] : protectedDrawingContextMap_) {
+            if (protectedContext == nullptr) {
+                continue;
+            }
+            protectedContext->FlushAndSubmit(true);
+        }
         protectedDrawingContextMap_.clear();
     }
     {
@@ -676,6 +714,11 @@ void RsVulkanContext::CleanUpRecyclableDrawingContext(int tid)
     std::lock_guard<std::mutex> lock(drawingContextMutex_);
     drawingContextMap_.erase(tid);
     protectedDrawingContextMap_.erase(tid);
+}
+
+bool RsVulkanContext::GetIsInited()
+{
+    return isInited_.load();
 }
 
 RsVulkanInterface& RsVulkanContext::GetRsVulkanInterface()

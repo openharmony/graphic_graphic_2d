@@ -20,6 +20,7 @@
 #include "display_engine/rs_luminance_control.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
 #include "gfx/performance/rs_perfmonitor_reporter.h"
+#include "include/gpu/vk/GrVulkanTrackerInterface.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
 #include "pipeline/rs_paint_filter_canvas.h"
@@ -33,7 +34,11 @@
 
 namespace OHOS::Rosen::DrawableV2 {
 #ifdef RS_ENABLE_VK
+#ifdef USE_M133_SKIA
+#include "include/gpu/ganesh/vk/GrVkBackendSurface.h"
+#else
 #include "include/gpu/GrBackendSurface.h"
+#endif
 
 #include "platform/ohos/backend/native_buffer_utils.h"
 #include "platform/ohos/backend/rs_vulkan_context.h"
@@ -41,6 +46,7 @@ namespace OHOS::Rosen::DrawableV2 {
 RSRenderNodeDrawable::Registrar RSRenderNodeDrawable::instance_;
 thread_local bool RSRenderNodeDrawable::drawBlurForCache_ = false;
 thread_local bool RSRenderNodeDrawable::isOpDropped_ = true;
+thread_local bool RSRenderNodeDrawable::occlusionCullingEnabled_ = false;
 thread_local bool RSRenderNodeDrawable::isOffScreenWithClipHole_ = false;
 
 namespace {
@@ -85,7 +91,7 @@ void RSRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     RSRenderNodeDrawable::TotalProcessedNodeCountInc();
     Drawing::Rect bounds = GetRenderParams() ? GetRenderParams()->GetFrameRect() : Drawing::Rect(0, 0, 0, 0);
     // Skip nodes that were culled by the control-level occlusion.
-    if (SkipCulledNodeAndDrawChildren(canvas, bounds)) {
+    if (SkipCulledNodeOrEntireSubtree(canvas, bounds)) {
         return;
     }
 
@@ -95,24 +101,30 @@ void RSRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
     DrawContent(canvas, bounds);
 
-    if (!RSUniRenderThread::GetCaptureParam().isSoloNodeUiCapture_) {
+    auto& captureParam = RSUniRenderThread::GetCaptureParam();
+    bool stopDrawForRangeCapture = (canvas.GetUICapture() &&
+        captureParam.endNodeId_ == GetId() &&
+        captureParam.endNodeId_ != INVALID_NODEID);
+    if (!captureParam.isSoloNodeUiCapture_ && !stopDrawForRangeCapture) {
         DrawChildren(canvas, bounds);
     }
 
     DrawForeground(canvas, bounds);
 }
 
-bool RSRenderNodeDrawable::SkipCulledNodeAndDrawChildren(Drawing::Canvas& canvas, Drawing::Rect& bounds)
+bool RSRenderNodeDrawable::SkipCulledNodeOrEntireSubtree(Drawing::Canvas& canvas, Drawing::Rect& bounds)
 {
     auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
     auto id = GetId();
-    // Control-level occlusion culling, active exclusively in the uni render thread and
-    // disabled during capture or off-screen rendering.
-    if (id != 0 && paintFilterCanvas->GetParallelThreadIdx() == UNI_RENDER_THREAD_INDEX &&
-        LIKELY(!RSUniRenderThread::IsInCaptureProcess()) && GetOpDropped()) {
+    if (LIKELY(id != INVALID_NODEID) && IsOcclusionCullingEnabled()) {
+        if (paintFilterCanvas->GetCulledEntireSubtree().count(id) > 0) {
+            RS_OPTIONAL_TRACE_NAME_FMT("%s, id: %" PRIu64 " culled entire subtree success", __func__, id);
+            SetDrawSkipType(DrawSkipType::OCCLUSION_SKIP);
+            return true;
+        }
         if (paintFilterCanvas->GetCulledNodes().count(id) > 0) {
-            RS_OPTIONAL_TRACE_NAME_FMT("RSRenderNodeDrawable::SkipCulledNode id: %lu culled success", id);
-            CollectInfoForUnobscuredUEC(canvas);
+            RS_OPTIONAL_TRACE_NAME_FMT("%s, id: %" PRIu64 " culled success", __func__, id);
+            SetDrawSkipType(DrawSkipType::OCCLUSION_SKIP);
             DrawChildren(canvas, bounds);
             return true;
         }
@@ -368,8 +380,10 @@ void RSRenderNodeDrawable::DrawWithNodeGroupCache(Drawing::Canvas& canvas, const
     }
     const auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
     if (uniParam && uniParam->IsMirrorScreen() && hasChildInBlackList_) {
-        RS_LOGD("RSRenderNodeDrawable::DrawWithNodeGroupCache do not DrawCachedImage on mirror screen if node is in "
-                "blacklist");
+        RS_OPTIONAL_TRACE_NAME_FMT(
+            "RSRenderNodeDrawable::DrawWithNodeGroupCache skip DrawCachedImage on mirror screen if node is in "
+            "wireless screen mirroring blacklist");
+        RSRenderNodeDrawable::OnDraw(canvas);
         return;
     }
 
@@ -627,9 +641,11 @@ void RSRenderNodeDrawable::InitCachedSurface(Drawing::GPUContext* gpuContext, co
         }
         vulkanCleanupHelper_ = new NativeBufferUtils::VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
             vkTextureInfo->vkImage, vkTextureInfo->vkAlloc.memory, vkTextureInfo->vkAlloc.statName);
+        REAL_ALLOC_CONFIG_SET_STATUS(true);
         cachedSurface_ = Drawing::Surface::MakeFromBackendTexture(gpuContext, cachedBackendTexture_.GetTextureInfo(),
             Drawing::TextureOrigin::BOTTOM_LEFT, 1, colorType, colorSpace,
             NativeBufferUtils::DeleteVkImage, vulkanCleanupHelper_);
+        REAL_ALLOC_CONFIG_SET_STATUS(false);
     }
 #endif
 #else
@@ -979,6 +995,23 @@ void RSRenderNodeDrawable::ProcessedNodeCountInc()
 void RSRenderNodeDrawable::ClearProcessedNodeCount()
 {
     processedNodeCount_ = 0;
+}
+
+int RSRenderNodeDrawable::GetSnapshotProcessedNodeCount()
+{
+    return snapshotProcessedNodeCount_;
+}
+
+void RSRenderNodeDrawable::SnapshotProcessedNodeCountInc()
+{
+    if (RSUniRenderThread::GetCaptureParam().isSingleSurface_) {
+        ++snapshotProcessedNodeCount_;
+    }
+}
+
+void RSRenderNodeDrawable::ClearSnapshotProcessedNodeCount()
+{
+    snapshotProcessedNodeCount_ = 0;
 }
 
 bool RSRenderNodeDrawable::ShouldPaint() const

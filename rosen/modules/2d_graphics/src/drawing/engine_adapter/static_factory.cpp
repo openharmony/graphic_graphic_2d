@@ -100,6 +100,17 @@ std::vector<std::shared_ptr<Typeface>> StaticFactory::GetSystemFonts()
     return EngineStaticFactory::GetSystemFonts();
 }
 
+std::shared_ptr<Typeface> StaticFactory::MakeFromStream(std::unique_ptr<MemoryStream> memoryStream,
+    const FontArguments& fontArguments)
+{
+#ifdef ENABLE_DDGR_OPTIMIZE
+    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return DDGRStaticFactory::MakeFromStream(std::move(memoryStream), fontArguments);
+    }
+#endif
+    return EngineStaticFactory::MakeFromStream(std::move(memoryStream), fontArguments);
+}
+
 std::shared_ptr<Typeface> StaticFactory::MakeFromStream(std::unique_ptr<MemoryStream> memoryStream, int32_t index)
 {
 #ifdef ENABLE_DDGR_OPTIMIZE

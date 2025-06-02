@@ -31,15 +31,22 @@ public:
     RegionImpl() {}
     ~RegionImpl() override {}
     virtual bool Contains(int32_t x, int32_t y) const = 0;
+    virtual bool Equals(const Region& other) const = 0;
+    virtual void SetEmpty() = 0;
     virtual bool SetRect(const RectI& rectI) = 0;
+    virtual bool SetRegion(const Region& region) = 0;
     virtual bool SetPath(const Path& path, const Region& clip) = 0;
     virtual bool GetBoundaryPath(Path* path) const = 0;
+    virtual RectI GetBounds() const = 0;
+    virtual bool IsComplex() const = 0;
     virtual bool IsIntersects(const Region& other) const = 0;
     virtual bool IsEmpty() const = 0;
     virtual bool IsRect() const = 0;
     virtual bool IsRegionContained(const Region& other) const = 0;
     virtual bool Op(const Region& region, const RegionOp op) = 0;
     virtual bool QuickReject(const RectI& rectI) const = 0;
+    virtual bool QuickReject(const Region& region) const = 0;
+    virtual void Translate(int32_t x, int32_t y) = 0;
     virtual void Clone(const Region& other) = 0;
     virtual std::shared_ptr<Data> Serialize() const = 0;
     virtual bool Deserialize(std::shared_ptr<Data> data) = 0;

@@ -264,12 +264,10 @@ std::shared_ptr<FontMgrImpl> SkiaImplFactory::CreateDefaultFontMgr()
     return SkiaFontMgr::CreateDefaultFontMgr();
 }
 
-#ifndef USE_TEXGINE
 std::shared_ptr<FontMgrImpl> SkiaImplFactory::CreateDynamicFontMgr()
 {
     return SkiaFontMgr::CreateDynamicFontMgr();
 }
-#endif
 
 std::unique_ptr<VerticesImpl> SkiaImplFactory::CreateVertices()
 {

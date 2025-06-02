@@ -28,10 +28,11 @@ struct MemorySnapshotInfo {
     std::string bundleName = "";
     size_t cpuMemory = 0;
     size_t gpuMemory = 0;
+    size_t subThreadGpuMemory = 0;
 
     size_t TotalMemory() const
     {
-        return cpuMemory + gpuMemory;
+        return cpuMemory + gpuMemory + subThreadGpuMemory;
     }
 };
 
@@ -43,7 +44,8 @@ public:
     void RemoveCpuMemory(const pid_t pid, const size_t size);
     bool GetMemorySnapshotInfoByPid(const pid_t pid, MemorySnapshotInfo& info);
     void EraseSnapshotInfoByPid(const std::set<pid_t>& exitedPidSet);
-    void UpdateGpuMemoryInfo(const std::unordered_map<pid_t, size_t>& gpuInfo,
+    void UpdateGpuMemoryInfo(const std::unordered_map<pid_t, size_t>& uniRenderGpuInfo,
+        const std::unordered_map<pid_t, size_t>& subThreadGpuInfo,
         std::unordered_map<pid_t, MemorySnapshotInfo>& pidForReport, bool& isTotalOver);
     void InitMemoryLimit(MemoryOverflowCalllback callback, uint64_t warning, uint64_t overflow, uint64_t totalSize);
     void GetMemorySnapshot(std::unordered_map<pid_t, MemorySnapshotInfo>& map);

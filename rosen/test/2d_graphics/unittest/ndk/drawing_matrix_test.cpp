@@ -886,6 +886,27 @@ HWTEST_F(NativeDrawingMatrixTest, NativeDrawingMatrixTest_MapRect026, TestSize.L
     OH_Drawing_RectDestroy(dst);
     OH_Drawing_MatrixDestroy(matrix);
 }
+
+/**
+ * @tc.name: NativeDrawingMatrixTest_OH_Drawing_MatrixCopy027
+ * @tc.desc: test for sets create matrix by copy.
+ * @tc.type: FUNC
+ * @tc.require: AR20240104201189
+ */
+HWTEST_F(NativeDrawingMatrixTest, NativeDrawingMatrixTest_OH_Drawing_MatrixCopy001, TestSize.Level1)
+{
+    OH_Drawing_Matrix* matrix = OH_Drawing_MatrixCreate();
+    ASSERT_TRUE(matrix != nullptr);
+    OH_Drawing_Matrix* matrix2 = OH_Drawing_MatrixCopy(matrix);
+    ASSERT_TRUE(matrix2 != nullptr);
+    OH_Drawing_Matrix* matrix3 = OH_Drawing_MatrixCopy(nullptr);
+    ASSERT_TRUE(matrix3 == nullptr);
+
+    OH_Drawing_MatrixDestroy(matrix);
+    OH_Drawing_MatrixDestroy(matrix2);
+    OH_Drawing_MatrixDestroy(matrix3);
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

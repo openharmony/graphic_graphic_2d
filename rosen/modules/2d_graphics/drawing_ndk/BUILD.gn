@@ -20,13 +20,16 @@ drawing_root = "$rosen_root/modules/2d_graphics"
 drawing_ndk_include_dir = "$rosen_root/modules/2d_graphics/drawing_ndk/include"
 drawing_ndk_src_dir = "$rosen_root/modules/2d_graphics/drawing_ndk/src"
 drawing_utils_root = "$rosen_root/modules/2d_graphics/drawing_ndk/drawing_utils"
+if (ohos_indep_compiler_enable) {
+  drawing_indep_build_path = [ "//binarys/third_party/icu/innerapis/shared_icuuc/includes/common" ]
+}
 
 config("export_config") {
   include_dirs = [ "$drawing_ndk_include_dir" ]
 }
 
 if (enable_text_gine) {
-  defines = [ "USE_GRAPHIC_TEXT_GINE" ]
+  defines = []
 }
 
 template("drawing_ndk_source_set") {
@@ -35,9 +38,7 @@ template("drawing_ndk_source_set") {
   ohos_source_set(target_name) {
     defines += invoker.defines
     cflags_cc += invoker.cflags_cc
-    if (use_texgine) {
-      defines += [ "USE_TEXGINE" ]
-    } else if (use_skia_txt) {
+    if (use_skia_txt) {
       defines += [ "USE_SKIA_TXT" ]
     }
 
@@ -49,6 +50,10 @@ template("drawing_ndk_source_set") {
       blocklist = "./drawingndk_blocklist.txt"
     }
 
+    include_dirs = []
+    if (ohos_indep_compiler_enable) {
+      include_dirs += drawing_indep_build_path
+    }
     public_deps = [
       "$drawing_root:2d_graphics",
       "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
@@ -90,6 +95,7 @@ template("drawing_ndk_source_set") {
       "$drawing_ndk_src_dir/drawing_surface.cpp",
       "$drawing_ndk_src_dir/drawing_text_blob.cpp",
       "$drawing_ndk_src_dir/drawing_text_font_descriptor.cpp",
+      "$drawing_ndk_src_dir/drawing_text_global.cpp",
       "$drawing_ndk_src_dir/drawing_text_line.cpp",
       "$drawing_ndk_src_dir/drawing_text_lineTypography.cpp",
       "$drawing_ndk_src_dir/drawing_text_run.cpp",
@@ -115,18 +121,15 @@ template("drawing_ndk_source_set") {
       defines += [ "ROSEN_EMULATOR" ]
     }
 
-    include_dirs = [
+    include_dirs += [
       "$drawing_utils_root",
       "$graphic_2d_root/rosen/modules/render_service_base/include",
       "$graphic_2d_root/rosen/modules/render_service_base/src",
       "$rosen_text_root/service/texgine/src",
+      "$graphic_2d_root/frameworks/text/service/global_config",
     ]
 
     if (enable_text_gine) {
-      defines += [ "USE_GRAPHIC_TEXT_GINE" ]
-      if (use_texgine) {
-        defines += [ "USE_TEXGINE" ]
-      }
       include_dirs += [
         "$rosen_text_root",
         "$rosen_text_root/service",
@@ -162,12 +165,9 @@ template("drawing_ndk_source_set") {
 
       external_deps += [ "bounds_checking_function:libsec_static" ]
       defines += [ "MODULE_DRAWING" ]
-
-      defines += [ "USE_GRAPHIC_TEXT_GINE" ]
     }
     if (enable_text_gine) {
       deps = [ "$rosen_text_root:rosen_text" ]
-      defines += [ "USE_GRAPHIC_TEXT_GINE" ]
       if (use_skia_txt) {
         include_dirs += [ "$rosen_text_root/adapter/skia" ]
       }

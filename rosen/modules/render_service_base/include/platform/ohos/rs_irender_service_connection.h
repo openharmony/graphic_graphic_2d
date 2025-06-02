@@ -32,6 +32,7 @@
 #include "ipc_callbacks/rs_iframe_rate_linker_expected_fps_update_callback.h"
 #include "ipc_callbacks/screen_change_callback.h"
 #include "ipc_callbacks/surface_capture_callback.h"
+#include "ipc_callbacks/rs_transaction_data_callback.h"
 #include "memory/rs_memory_graphic.h"
 #include "screen_manager/rs_screen_capability.h"
 #include "screen_manager/rs_screen_data.h"
@@ -193,6 +194,9 @@ public:
     virtual ErrCode SetWindowFreezeImmediately(NodeId id, bool isFreeze, sptr<RSISurfaceCaptureCallback> callback,
         const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam = {}) = 0;
 
+    virtual void TakeUICaptureInRange(
+        NodeId id, sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig) = 0;
+
     virtual ErrCode SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
         float positionZ, float positionW) = 0;
 
@@ -319,6 +323,10 @@ public:
 
     virtual void NotifyRefreshRateEvent(const EventInfo& eventInfo) = 0;
 
+    virtual void SetWindowExpectedRefreshRate(const std::unordered_map<uint64_t, EventInfo>& eventInfos) = 0;
+
+    virtual void SetWindowExpectedRefreshRate(const std::unordered_map<std::string, EventInfo>& eventInfos) = 0;
+
     virtual ErrCode NotifySoftVsyncEvent(uint32_t pid, uint32_t rateDiscount) = 0;
 
     virtual bool NotifySoftVsyncRateDiscountEvent(uint32_t pid, const std::string &name, uint32_t rateDiscount) = 0;
@@ -328,6 +336,8 @@ public:
     virtual void NotifyDynamicModeEvent(bool enableDynamicMode) = 0;
 
     virtual ErrCode NotifyHgmConfigEvent(const std::string &eventName, bool state) = 0;
+
+    virtual ErrCode NotifyXComponentExpectedFrameRate(const std::string& id, int32_t expectedFrameRate) = 0;
 
     virtual ErrCode ReportEventResponse(DataBaseRs info) = 0;
 
@@ -397,6 +407,8 @@ public:
         sptr<RSISurfaceBufferCallback> callback) = 0;
 
     virtual ErrCode UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid) = 0;
+
+    virtual void RegisterTransactionDataCallback(int32_t pid, uint64_t timeStamp, sptr<RSITransactionDataCallback> callback) = 0;
 
     virtual ErrCode NotifyScreenSwitched() = 0;
 

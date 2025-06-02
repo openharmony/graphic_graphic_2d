@@ -32,6 +32,9 @@
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
 
+#undef LOG_TAG
+#define LOG_TAG "RSUniHwcPrevalidateUtil"
+
 namespace OHOS {
 namespace Rosen {
 namespace {
@@ -83,7 +86,7 @@ bool RSUniHwcPrevalidateUtil::PreValidate(
     ScreenId id, std::vector<RequestLayerInfo> infos, std::map<uint64_t, RequestCompositionType> &strategy)
 {
     if (!preValidateFunc_) {
-        RS_LOGI_IF(DEBUG_PREVALIDATE, "RSUniHwcPrevalidateUtil::PreValidate preValidateFunc is null");
+        RS_LOGI_IF(DEBUG_PREVALIDATE, "PreValidate preValidateFunc is null");
         ClearCldInfo(infos);
         return false;
     }
@@ -146,7 +149,7 @@ bool RSUniHwcPrevalidateUtil::CreateSurfaceNodeLayerInfo(uint32_t zorder,
         node->SetArsrTag(true);
     }
     CheckIfDoCopybit(node, transform, info);
-    RS_LOGD_IF(DEBUG_PREVALIDATE, "RSUniHwcPrevalidateUtil::CreateSurfaceNodeLayerInfo %{public}s,"
+    RS_LOGD_IF(DEBUG_PREVALIDATE, "CreateSurfaceNodeLayerInfo %{public}s,"
         " %{public}" PRIu64 ", src: %{public}s, dst: %{public}s, z: %{public}" PRIu32 ","
         " usage: %{public}" PRIu64 ", format: %{public}d, transform: %{public}d, fps: %{public}d",
         node->GetName().c_str(), node->GetId(),
@@ -203,7 +206,7 @@ bool RSUniHwcPrevalidateUtil::CreateDisplayNodeLayerInfo(uint32_t zorder,
     info.format = buffer->GetFormat();
     info.fps = fps;
     LayerRotate(info, surfaceHandler->GetConsumer(), screenInfo);
-    RS_LOGD_IF(DEBUG_PREVALIDATE, "RSUniHwcPrevalidateUtil::CreateDisplayNodeLayerInfo %{public}" PRIu64 ","
+    RS_LOGD_IF(DEBUG_PREVALIDATE, "CreateDisplayNodeLayerInfo %{public}" PRIu64 ","
         " src: %{public}d,%{public}d,%{public}d,%{public}d"
         " dst: %{public}d,%{public}d,%{public}d,%{public}d, z: %{public}" PRIu32 ","
         " usage: %{public}" PRIu64 ", format: %{public}d, transform: %{public}d, fps: %{public}d",
@@ -236,7 +239,7 @@ bool RSUniHwcPrevalidateUtil::CreateRCDLayerInfo(
     info.fps = fps;
     CopyCldInfo(node->GetCldInfo(), info);
     LayerRotate(info, surfaceHandler->GetConsumer(), screenInfo);
-    RS_LOGD_IF(DEBUG_PREVALIDATE, "RSUniHwcPrevalidateUtil::CreateRCDLayerInfo %{public}" PRIu64 ","
+    RS_LOGD_IF(DEBUG_PREVALIDATE, "CreateRCDLayerInfo %{public}" PRIu64 ","
         " src: %{public}d,%{public}d,%{public}d,%{public}d"
         " dst: %{public}d,%{public}d,%{public}d,%{public}d, z: %{public}" PRIu32 ","
         " usage: %{public}" PRIu64 ", format: %{public}d, transform: %{public}d, fps: %{public}d",

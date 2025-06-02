@@ -39,6 +39,31 @@ void RSOpincDrawCacheTest::TearDownTestCase() {}
 void RSOpincDrawCacheTest::SetUp() {}
 void RSOpincDrawCacheTest::TearDown() {}
 
+
+/**
+ * @tc.name: GetOpincCacheMaxWidth
+ * @tc.desc: Test GetOpincCacheMaxWidth
+ * @tc.type: FUNC
+ * @tc.require: issueIC87OJ
+ */
+HWTEST_F(RSOpincDrawCacheTest, GetOpincCacheMaxWidth, TestSize.Level1)
+{
+    DrawableV2::RSOpincDrawCache opincDrawCache;
+    ASSERT_EQ(opincDrawCache.GetOpincCacheMaxWidth(), 0);
+}
+
+/**
+ * @tc.name: GetOpincCacheMaxHeight
+ * @tc.desc: Test GetOpincCacheMaxHeight
+ * @tc.type: FUNC
+ * @tc.require: issueIC87OJ
+ */
+HWTEST_F(RSOpincDrawCacheTest, GetOpincCacheMaxHeight, TestSize.Level1)
+{
+    DrawableV2::RSOpincDrawCache opincDrawCache;
+    ASSERT_EQ(opincDrawCache.GetOpincCacheMaxHeight(), 0);
+}
+
 /**
  * @tc.name: OpincCalculateBefore
  * @tc.desc: Test OpincCalculateBefore
@@ -263,7 +288,7 @@ HWTEST_F(RSOpincDrawCacheTest, BeforeDrawCacheFindRootNode, TestSize.Level1)
     params.SetCacheSize({100, 100});
     paintFilterCanvas.SetCacheType(Drawing::CacheType::ENABLED);
     opincDrawCache.BeforeDrawCacheFindRootNode(paintFilterCanvas, params, isOpincDropNodeExt);
-    ASSERT_TRUE(opincDrawCache.recordState_ == NodeRecordState::RECORD_CALCULATE);
+    ASSERT_TRUE(opincDrawCache.recordState_ != NodeRecordState::RECORD_CALCULATE);
 }
  
 /**
@@ -286,6 +311,24 @@ HWTEST_F(RSOpincDrawCacheTest, BeforeDrawCache, TestSize.Level1)
     opincDrawCache.recordState_ = NodeRecordState::RECORD_NONE;
     opincDrawCache.BeforeDrawCache(canvas, params, isOpincDropNodeExt);
     ASSERT_EQ(opincDrawCache.temNodeStragyType_, NodeStrategyType::CACHE_NONE);
+}
+
+/**
+ * @tc.name: IsOpincNodeInScreenRect
+ * @tc.desc: Test IsOpincNodeInScreenRect
+ * @tc.type: FUNC
+ * @tc.require: issueIC87OJ
+ */
+HWTEST_F(RSOpincDrawCacheTest, IsOpincNodeInScreenRect, TestSize.Level1)
+{
+    DrawableV2::RSOpincDrawCache opincDrawCache;
+    Drawing::Canvas canvas;
+    RSRenderParams params(id);
+    ASSERT_FALSE(opincDrawCache.IsOpincNodeInScreenRect(params));
+
+    RectI absRect = {10, 10, 10, 10};
+    params.SetAbsDrawRect(absRect);
+    ASSERT_FALSE(opincDrawCache.IsOpincNodeInScreenRect(params));
 }
  
 /**
@@ -372,7 +415,7 @@ HWTEST_F(RSOpincDrawCacheTest, DrawAutoCache, TestSize.Level1)
     ASSERT_TRUE(opincDrawCache.DrawAutoCache(paintFilterCanvas, image, samplingOptions,
         Drawing::SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT));
 }
- 
+
 /**
  * @tc.name: DrawAutoCacheDfx
  * @tc.desc: Test DrawAutoCacheDfx
@@ -389,6 +432,21 @@ HWTEST_F(RSOpincDrawCacheTest, DrawAutoCacheDfx, TestSize.Level1)
     Drawing::Canvas canvas;
     RSPaintFilterCanvas paintFilterCanvas(&canvas);
     opincDrawCache.DrawAutoCacheDfx(paintFilterCanvas, autoCacheRenderNodeInfos);
+    ASSERT_TRUE(opincDrawCache.GetOpListUnionArea().IsEmpty());
+}
+
+/**
+ * @tc.name: DrawOpincDisabledDfx
+ * @tc.desc: Test DrawOpincDisabledDfx
+ * @tc.type: FUNC
+ * @tc.require: issueIC87OJ
+ */
+HWTEST_F(RSOpincDrawCacheTest, DrawOpincDisabledDfx, TestSize.Level1)
+{
+    DrawableV2::RSOpincDrawCache opincDrawCache;
+    Drawing::Canvas canvas;
+    RSRenderParams params(id);
+    opincDrawCache.DrawOpincDisabledDfx(canvas, params);
     ASSERT_TRUE(opincDrawCache.GetOpListUnionArea().IsEmpty());
 }
 } // namespace Rosen

@@ -114,7 +114,7 @@ bool DoSetHardwareEnabledByBackgroundAlphaFlag(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoSetSurfaceCloseP3Node(const uint8_t* data, size_t size)
+bool DoSetAdaptiveColorGamutEnable(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
         return false;
@@ -125,12 +125,9 @@ bool DoSetSurfaceCloseP3Node(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
 
-    bool p3NodeCountFlag = GetData<bool>();
-    bool isCoveredSurfaceCloseP3 = GetData<bool>();
-    RsCommonHook::Instance().SetP3NodeCountFlag(p3NodeCountFlag);
-    RsCommonHook::Instance().GetP3NodeCountFlag();
-    RsCommonHook::Instance().SetIsCoveredSurfaceCloseP3(isCoveredSurfaceCloseP3);
-    RsCommonHook::Instance().GetIsCoveredSurfaceCloseP3();
+    bool isAdaptiveColorGamutEnable = GetData<bool>();
+    RsCommonHook::Instance().SetAdaptiveColorGamutEnable(isAdaptiveColorGamutEnable);
+    RsCommonHook::Instance().IsAdaptiveColorGamutEnabled();
     return true;
 }
 

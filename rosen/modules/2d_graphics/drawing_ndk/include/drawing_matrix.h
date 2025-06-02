@@ -55,6 +55,17 @@ extern "C" {
 OH_Drawing_Matrix* OH_Drawing_MatrixCreate(void);
 
 /**
+ * @brief Creates an <b>OH_Drawing_Matrix</b> copy object.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param matrix Indicates the pointer to an <b>OH_Drawing_Matrix</b> object.
+ * @return Returns the pointer to the <b>OH_Drawing_Matrix</b> object created.
+ * @since 20
+ * @version 1.0
+ */
+OH_Drawing_Matrix* OH_Drawing_MatrixCopy(const OH_Drawing_Matrix* matrix);
+
+/**
  * @brief Creates an <b>OH_Drawing_Matrix</b> object with rotation. Sets matrix to
  * rotate by degrees about a pivot point at (px, py).
  *

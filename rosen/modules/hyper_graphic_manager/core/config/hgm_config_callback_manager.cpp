@@ -114,6 +114,24 @@ void HgmConfigCallbackManager::RegisterHgmRefreshRateUpdateCallback(
     callback->OnHgmRefreshRateUpdate(currentRefreshRate);
 }
 
+void HgmConfigCallbackManager::RegisterXComponentExpectedFrameRateCallback(pid_t listenerPid, pid_t dstPid,
+    const sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback>& callback)
+{
+    if (callback == nullptr) {
+        if (auto iter = xcomponentExpectedFrameRateCallbacks_.find(dstPid);
+            iter != xcomponentExpectedFrameRateCallbacks_.end()) {
+            iter->second.erase(listenerPid);
+            HGM_LOGD("refreshRateUpdateCallbacks unregister succ, remove pid %{public}u", listenerPid);
+        }
+        return;
+    }
+    xcomponentExpectedFrameRateCallbacks_[dstPid][listenerPid] = callback;
+    if (auto iter = xcomponentExpectedFrameRate_.find(dstPid); iter != xcomponentExpectedFrameRate_.end()) {
+        HGM_LOGD("%{public}d: %{public}d", dstPid, iter->second);
+        callback->OnFrameRateLinkerExpectedFpsUpdate(dstPid, iter->second);
+    }
+}
+
 void HgmConfigCallbackManager::SyncHgmConfigChangeCallback()
 {
     pendingAnimDynamicCfgCallbacks_ = animDynamicCfgCallbacks_;
@@ -199,6 +217,22 @@ void HgmConfigCallbackManager::SyncRefreshRateUpdateCallback(int32_t refreshRate
     }
 }
 
+void HgmConfigCallbackManager::SyncXComponentExpectedFrameRateCallback(
+    pid_t pid, const std::string& id, int32_t expectedFrameRate)
+{
+    if (auto iter = xcomponentExpectedFrameRateCallbacks_.find(pid);
+        iter != xcomponentExpectedFrameRateCallbacks_.end()) {
+        for (auto &[listenerPid, cb] : iter->second) {
+            if (cb == nullptr) {
+                continue;
+            }
+            HGM_LOGD(" -> %{public}d: %{public}d, %{public}d", listenerPid, pid, expectedFrameRate);
+            cb->OnFrameRateLinkerExpectedFpsUpdate(pid, expectedFrameRate);
+        }
+    }
+    xcomponentExpectedFrameRate_[pid] = expectedFrameRate;
+}
+
 void HgmConfigCallbackManager::UnRegisterHgmConfigChangeCallback(pid_t pid)
 {
     if (animDynamicCfgCallbacks_.find(pid) != animDynamicCfgCallbacks_.end()) {
@@ -213,6 +247,13 @@ void HgmConfigCallbackManager::UnRegisterHgmConfigChangeCallback(pid_t pid)
         refreshRateModeCallbacks_.erase(pid);
         HGM_LOGD("HgmRefreshRateModeCallbackManager %{public}s : remove a remote callback succeed.", __func__);
     }
+
+    for (auto &[_, listenerPidCb] : xcomponentExpectedFrameRateCallbacks_) {
+        listenerPidCb.erase(pid);
+    }
+    SyncXComponentExpectedFrameRateCallback(pid, "", 0);
+    xcomponentExpectedFrameRateCallbacks_.erase(pid);
+    xcomponentExpectedFrameRate_.erase(pid);
 }
 } // namespace OHOS::Rosen
 

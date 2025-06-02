@@ -30,7 +30,10 @@ ohos_unittest("RSRenderServiceClientModifierTest") {
     "rs_property_test.cpp",
   ]
 
-  include_dirs = [ "$graphic_2d_root/rosen/test/include" ]
+  include_dirs = [
+    "$graphic_2d_root/rosen/test/include",
+    "$graphic_2d_root/interfaces/inner_api/surface",
+  ]
 
   configs = [
     ":modifier_test",
@@ -43,6 +46,7 @@ ohos_unittest("RSRenderServiceClientModifierTest") {
   ]
 
   deps = [
+    "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
     "$graphic_2d_root/rosen/modules/render_service_client:render_service_client_src",
   ]
 
@@ -53,16 +57,20 @@ ohos_unittest("RSRenderServiceClientModifierTest") {
   subsystem_name = "graphic"
   external_deps = [
     "c_utils:utils",
+    "egl:libEGL",
+    "eventhandler:libeventhandler",
     "googletest:gtest_main",
+    "graphic_surface:sync_fence",
     "hilog:libhilog",
+    "image_framework:image_native",
+    "opengles:libGLES",
   ]
 }
 
 ###############################################################################
 config("modifier_test") {
   visibility = [ ":*" ]
-  include_dirs =
-      [ "$graphic_2d_root/rosen/modules/render_service_client" ]
+  include_dirs = [ "$graphic_2d_root/rosen/modules/render_service_client" ]
 }
 
 group("unittest") {

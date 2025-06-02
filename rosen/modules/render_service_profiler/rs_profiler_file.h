@@ -32,7 +32,8 @@ namespace OHOS::Rosen {
 #define RSFILE_VERSION_RENDER_METRICS_ADDED 0x240701
 #define RSFILE_VERSION_RENDER_ANIMESTARTTIMES_ADDED 0x240723
 #define RSFILE_VERSION_RENDER_TYPEFACE_FIX 0x240801
-#define RSFILE_VERSION_LATEST RSFILE_VERSION_RENDER_TYPEFACE_FIX
+#define RSFILE_VERSION_ISREPAINT_BOUNDARY 0x250516
+#define RSFILE_VERSION_LATEST RSFILE_VERSION_ISREPAINT_BOUNDARY
 
 struct RSFileLayer final {
     std::pair<uint32_t, uint32_t> layerHeader; // to put in GLOBAL HEADER
@@ -80,6 +81,8 @@ public:
 
     uint32_t AddLayer();
     void LayerAddHeaderProperty(uint32_t layer, const std::string& name, const std::string& value);
+
+    void UnwriteRSData();
 
     void WriteRSData(double time, const void* data, size_t size);
     void WriteOGLData(uint32_t layer, double time, const void* data, size_t size);
@@ -167,6 +170,7 @@ private:
         LayerTrackMarkupPtr markup;
     };
 
+    void UnwriteTrackData(LayerTrackMarkupPtr trackMarkup, uint32_t layer);
     void WriteTrackData(LayerTrackMarkupPtr trackMarkup, uint32_t layer, double time, const void* data, size_t size);
     bool ReadTrackData(
         LayerTrackPtr track, double untilTime, uint32_t layer, std::vector<uint8_t>& data, double& readTime);

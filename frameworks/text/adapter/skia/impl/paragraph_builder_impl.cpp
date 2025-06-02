@@ -186,6 +186,7 @@ skt::ParagraphStyle ParagraphBuilderImpl::TextStyleToSkStyle(const ParagraphStyl
     skStyle.setParagraphSpacing(txt.paragraphSpacing);
     skStyle.setIsEndAddParagraphSpacing(txt.isEndAddParagraphSpacing);
     skStyle.setTrailingSpaceOptimized(txt.isTrailingSpaceOptimized);
+    skStyle.setEnableAutoSpace(txt.enableAutoSpace);
 
     return skStyle;
 }
@@ -250,6 +251,8 @@ skt::TextStyle ParagraphBuilderImpl::ConvertTextStyleToSkStyle(const TextStyle& 
     if (txt.symbol.GetSymbolType() == SymbolType::CUSTOM) {
         skStyle.setCustomSymbol(true);
     }
+
+    skStyle.setTextBadgeType(static_cast<skt::TextBadgeType>(txt.badgeType));
 
     return skStyle;
 }

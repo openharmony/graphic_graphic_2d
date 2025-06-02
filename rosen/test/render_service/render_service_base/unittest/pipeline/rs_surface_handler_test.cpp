@@ -143,6 +143,20 @@ HWTEST_F(RSSurfaceHandlerTest, SetBufferSizeChanged001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetSourceType
+ * @tc.desc: test set source type
+ * @tc.type: FUNC
+ * @tc.require: issueI9IUKU
+ */
+HWTEST_F(RSSurfaceHandlerTest, SetSourceType, TestSize.Level1)
+{
+    ASSERT_NE(rSSurfaceHandlerPtr_, nullptr);
+    ASSERT_EQ(rSSurfaceHandlerPtr_->GetSourceType(), 0);
+    rSSurfaceHandlerPtr_->SetSourceType(5);
+    ASSERT_EQ(rSSurfaceHandlerPtr_->GetSourceType(), 5);
+}
+
+/**
  * @tc.name: UpdateBuffer001
  * @tc.desc: test update buffer
  * @tc.type: FUNC

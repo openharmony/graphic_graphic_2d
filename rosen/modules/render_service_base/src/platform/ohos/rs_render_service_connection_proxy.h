@@ -166,6 +166,9 @@ public:
     ErrCode SetWindowFreezeImmediately(NodeId id, bool isFreeze, sptr<RSISurfaceCaptureCallback> callback,
         const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam) override;
 
+    void TakeUICaptureInRange(
+        NodeId id, sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig) override;
+
     bool WriteSurfaceCaptureConfig(const RSSurfaceCaptureConfig& captureConfig, MessageParcel& data);
 
     bool WriteSurfaceCaptureBlurParam(const RSSurfaceCaptureBlurParam& blurParam, MessageParcel& data);
@@ -292,6 +295,10 @@ public:
 
     void NotifyRefreshRateEvent(const EventInfo& eventInfo) override;
 
+    void SetWindowExpectedRefreshRate(const std::unordered_map<uint64_t, EventInfo>& eventInfos) override;
+
+    void SetWindowExpectedRefreshRate(const std::unordered_map<std::string, EventInfo>& eventInfos) override;
+
     ErrCode NotifySoftVsyncEvent(uint32_t pid, uint32_t rateDiscount) override;
 
     bool NotifySoftVsyncRateDiscountEvent(uint32_t pid, const std::string &name, uint32_t rateDiscount) override;
@@ -301,6 +308,8 @@ public:
     void NotifyDynamicModeEvent(bool enableDynamicMode) override;
 
     ErrCode NotifyHgmConfigEvent(const std::string &eventName, bool state) override;
+
+    ErrCode NotifyXComponentExpectedFrameRate(const std::string& id, int32_t expectedFrameRate) override;
 
     ErrCode ReportEventResponse(DataBaseRs info) override;
 
@@ -357,6 +366,9 @@ public:
         sptr<RSISurfaceBufferCallback> callback) override;
 
     ErrCode UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid) override;
+
+    void RegisterTransactionDataCallback(int32_t pid,
+        uint64_t timeStamp, sptr<RSITransactionDataCallback> callback) override;
 
     ErrCode NotifyScreenSwitched() override;
 

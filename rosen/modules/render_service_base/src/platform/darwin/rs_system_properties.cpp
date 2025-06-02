@@ -206,13 +206,6 @@ bool RSSystemProperties::GetCacheEnabledForRotation()
     return {};
 }
 
-#ifndef NEW_SKIA
-bool RSSystemProperties::GetReleaseResourceEnabled()
-{
-    return {};
-}
-#endif
-
 ParallelRenderingType RSSystemProperties::GetPrepareParallelRenderingEnabled()
 {
     return {};
@@ -705,6 +698,11 @@ int32_t RSSystemProperties::GetHybridRenderSwitch(ComponentEnableSwitch bitSeq)
     return 0;
 }
 
+bool RSSystemProperties::ViewDrawNodeType()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetVKImageUseEnabled()
 {
     return false;
@@ -729,5 +727,14 @@ bool RSSystemProperties::GetBehindWindowFilterEnabled()
     return false;
 }
 
+bool RSSystemProperties::GetSubThreadControlFrameRate()
+{
+    return false;
+}
+
+int RSSystemProperties::GetSubThreadDropFrameInterval()
+{
+    return 0;
+}
 } // namespace Rosen
 } // namespace OHOS

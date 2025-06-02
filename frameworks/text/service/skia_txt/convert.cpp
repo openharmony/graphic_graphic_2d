@@ -22,6 +22,8 @@ namespace Rosen {
 namespace AdapterTxt {
 const std::string WGHT_AXIS = "wght";
 constexpr float FONT_WEIGHT_MULTIPLE = 100.0;
+const std::string SUPS{"sups"};
+const std::string SUBS{"subs"};
 
 std::shared_ptr<OHOS::Rosen::AdapterTxt::FontCollection> Convert(
     const std::shared_ptr<OHOS::Rosen::FontCollection>& fontCollection)
@@ -57,47 +59,49 @@ SPText::RectWidthStyle Convert(const TextRectWidthStyle& style)
 
 SPText::ParagraphStyle Convert(const TypographyStyle& style)
 {
-    return {
-        .fontWeight = static_cast<SPText::FontWeight>(style.fontWeight),
-        .fontWidth = static_cast<SPText::FontWidth>(style.fontWidth),
-        .fontStyle = static_cast<SPText::FontStyle>(style.fontStyle),
-        .wordBreakType = static_cast<SPText::WordBreakType>(style.wordBreakType),
-        .fontFamily = style.fontFamily,
-        .fontSize = style.fontSize,
-        .height = style.heightScale,
-        .heightOverride = style.heightOnly,
-        .strutEnabled = style.useLineStyle,
-        .strutFontWeight = static_cast<SPText::FontWeight>(style.lineStyleFontWeight),
-        .strutFontWidth = static_cast<SPText::FontWidth>(style.lineStyleFontWidth),
-        .strutFontStyle = static_cast<SPText::FontStyle>(style.lineStyleFontStyle),
-        .strutFontFamilies = style.lineStyleFontFamilies,
-        .strutFontSize = style.lineStyleFontSize,
-        .strutHeight = style.lineStyleHeightScale,
-        .strutHeightOverride = style.lineStyleHeightOnly,
-        .strutHalfLeading = style.lineStyleHalfLeading,
-        .strutLeading = style.lineStyleSpacingScale,
-        .forceStrutHeight = style.lineStyleOnly,
-        .textAlign = static_cast<SPText::TextAlign>(style.textAlign),
-        .textDirection = static_cast<SPText::TextDirection>(style.textDirection),
-        .ellipsisModal = static_cast<SPText::EllipsisModal>(style.ellipsisModal),
-        .maxLines = style.maxLines,
-        .ellipsis = style.ellipsis,
-        .locale = style.locale,
-        .textSplitRatio = style.textSplitRatio,
-        .textOverflower = style.Ellipsized(),
-        .spTextStyle = Convert(style.insideTextStyle),
-        .customSpTextStyle = style.customTextStyle,
-        .textHeightBehavior = static_cast<SPText::TextHeightBehavior>(style.textHeightBehavior),
-        .hintingIsOn = style.hintingIsOn,
-        .breakStrategy = static_cast<SPText::BreakStrategy>(style.breakStrategy),
-        .tab = Convert(style.tab),
-        .paragraphSpacing = style.paragraphSpacing,
-        .isEndAddParagraphSpacing = style.isEndAddParagraphSpacing,
-        .relayoutChangeBitmap = style.relayoutChangeBitmap,
-        .defaultTextStyleUid = style.defaultTextStyleUid,
-        .halfLeading = style.halfLeading,
-        .isTrailingSpaceOptimized = style.isTrailingSpaceOptimized,
-    };
+    SPText::ParagraphStyle paragraphStyle;
+    paragraphStyle.fontWeight = static_cast<SPText::FontWeight>(style.fontWeight);
+    paragraphStyle.fontWidth = static_cast<SPText::FontWidth>(style.fontWidth);
+    paragraphStyle.fontStyle = static_cast<SPText::FontStyle>(style.fontStyle);
+    paragraphStyle.wordBreakType = static_cast<SPText::WordBreakType>(style.wordBreakType);
+    paragraphStyle.fontFamily = style.fontFamily;
+    paragraphStyle.fontSize = style.fontSize;
+    paragraphStyle.height = style.heightScale;
+    paragraphStyle.heightOverride = style.heightOnly;
+    paragraphStyle.strutEnabled = style.useLineStyle;
+    paragraphStyle.strutFontWeight = static_cast<SPText::FontWeight>(style.lineStyleFontWeight);
+    paragraphStyle.strutFontWidth = static_cast<SPText::FontWidth>(style.lineStyleFontWidth);
+    paragraphStyle.strutFontStyle = static_cast<SPText::FontStyle>(style.lineStyleFontStyle);
+    paragraphStyle.strutFontFamilies = style.lineStyleFontFamilies;
+    paragraphStyle.strutFontSize = style.lineStyleFontSize;
+    paragraphStyle.strutHeight = style.lineStyleHeightScale;
+    paragraphStyle.strutHeightOverride = style.lineStyleHeightOnly;
+    paragraphStyle.strutHalfLeading = style.lineStyleHalfLeading;
+    paragraphStyle.strutLeading = style.lineStyleSpacingScale;
+    paragraphStyle.forceStrutHeight = style.lineStyleOnly;
+    paragraphStyle.textAlign = static_cast<SPText::TextAlign>(style.textAlign);
+    paragraphStyle.textDirection = static_cast<SPText::TextDirection>(style.textDirection);
+    paragraphStyle.ellipsisModal = static_cast<SPText::EllipsisModal>(style.ellipsisModal);
+    paragraphStyle.maxLines = style.maxLines;
+    paragraphStyle.ellipsis = style.ellipsis;
+    paragraphStyle.locale = style.locale;
+    paragraphStyle.textSplitRatio = style.textSplitRatio;
+    paragraphStyle.textOverflower = style.Ellipsized();
+    paragraphStyle.spTextStyle = Convert(style.insideTextStyle);
+    paragraphStyle.customSpTextStyle = style.customTextStyle;
+    paragraphStyle.textHeightBehavior = static_cast<SPText::TextHeightBehavior>(style.textHeightBehavior);
+    paragraphStyle.hintingIsOn = style.hintingIsOn;
+    paragraphStyle.breakStrategy = static_cast<SPText::BreakStrategy>(style.breakStrategy);
+    paragraphStyle.tab = Convert(style.tab);
+    paragraphStyle.paragraphSpacing = style.paragraphSpacing;
+    paragraphStyle.isEndAddParagraphSpacing = style.isEndAddParagraphSpacing;
+    paragraphStyle.relayoutChangeBitmap = style.relayoutChangeBitmap;
+    paragraphStyle.defaultTextStyleUid = style.defaultTextStyleUid;
+    paragraphStyle.halfLeading = style.halfLeading;
+    paragraphStyle.isTrailingSpaceOptimized = style.isTrailingSpaceOptimized;
+    paragraphStyle.enableAutoSpace = style.enableAutoSpace;
+
+    return paragraphStyle;
 }
 
 SPText::PlaceholderRun Convert(const PlaceholderSpan& run)
@@ -157,7 +161,12 @@ void SplitTextStyleConvert(SPText::TextStyle& textStyle, const TextStyle& style)
     }
 
     for (const auto& [tag, value] : style.fontFeatures.GetFontFeatures()) {
-        textStyle.fontFeatures.SetFeature(RemoveQuotes(tag), value);
+        std::string featureName = RemoveQuotes(tag);
+        textStyle.fontFeatures.SetFeature(featureName, value);
+        if (textStyle.badgeType != TextBadgeType::BADGE_NONE && ((featureName == SUPS && value == 1) ||
+            (featureName == SUBS && value == 1))) {
+            textStyle.badgeType = TextBadgeType::BADGE_NONE;
+        }
     }
 
     if (!style.fontVariations.GetAxisValues().empty()) {
@@ -201,6 +210,7 @@ SPText::TextStyle Convert(const TextStyle& style)
     textStyle.baseLineShift = style.baseLineShift;
     textStyle.isPlaceholder = style.isPlaceholder;
     textStyle.relayoutChangeBitmap = style.relayoutChangeBitmap;
+    textStyle.badgeType = style.badgeType;
     SplitTextStyleConvert(textStyle, style);
 
     return textStyle;
@@ -281,6 +291,7 @@ TextStyle Convert(const SPText::TextStyle& style)
     textStyle.isSymbolGlyph = style.isSymbolGlyph;
     textStyle.baseLineShift = style.baseLineShift;
     textStyle.isPlaceholder = style.isPlaceholder;
+    textStyle.badgeType = style.badgeType;
     SplitTextStyleConvert(textStyle, style);
 
     return textStyle;

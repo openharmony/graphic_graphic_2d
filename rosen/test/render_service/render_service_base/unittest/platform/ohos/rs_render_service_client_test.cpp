@@ -142,6 +142,23 @@ HWTEST_F(RSClientTest, TakeSurfaceCapture01, TestSize.Level1)
 }
 
 /**
+ * @tc.name: TakeUICaptureInRangeTest
+ * @tc.desc: TakeUICaptureInRangeTest
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientTest, TakeUICaptureInRangeTest, TestSize.Level1)
+{
+    ASSERT_NE(rsClient, nullptr);
+    RSSurfaceCaptureConfig captureConfig;
+    bool ret = rsClient->TakeUICaptureInRange(TEST_ID, nullptr, captureConfig);
+    ASSERT_NE(ret, true);
+    std::shared_ptr<TestSurfaceCaptureCallback> cb = std::make_shared<TestSurfaceCaptureCallback>();
+    ret = rsClient->TakeUICaptureInRange(TEST_ID, cb, captureConfig);
+    ASSERT_EQ(ret, true);
+}
+
+/**
  * @tc.name: SetHwcNodeBounds_Test
  * @tc.desc: Test Set HwcNode Bounds
  * @tc.type:FUNC
@@ -205,6 +222,108 @@ HWTEST_F(RSClientTest, UnregisterBufferAvailableListener_False, TestSize.Level1)
     BufferAvailableCallback cb = [](){};
     bool ret = rsClient->UnregisterBufferAvailableListener(TEST_ID); // test a notfound number: 123
     ASSERT_EQ(ret, true);
+}
+
+/**
+ * @tc.name: RegisterTransactionDataCallback01
+ * @tc.desc: RegisterTransactionDataCallback Test callback is null
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientTest, RegisterTransactionDataCallback01, TestSize.Level1)
+{
+    ASSERT_NE(rsClient, nullptr);
+    bool ret = rsClient->RegisterTransactionDataCallback(1, 789, nullptr);
+    EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.name: RegisterTransactionDataCallback02
+ * @tc.desc: RegisterTransactionDataCallback Test callback does not exist
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientTest, RegisterTransactionDataCallback02, TestSize.Level1)
+{
+    ASSERT_NE(rsClient, nullptr);
+    std::function<void()> callback = []() {};
+    bool ret = rsClient->RegisterTransactionDataCallback(1, 789, callback);
+    EXPECT_TRUE(ret);
+}
+
+/**
+ * @tc.name: RegisterTransactionDataCallback03
+ * @tc.desc: RegisterTransactionDataCallback Test renderService is null
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientTest, RegisterTransactionDataCallback03, TestSize.Level1)
+{
+    ASSERT_NE(rsClient, nullptr);
+    std::function<void()> callback = []() {};
+    int32_t pid = 123;
+    uint64_t timeStamp = 456;
+    auto connHub = RSRenderServiceConnectHub::GetInstance();
+    connHub->Destroy();
+    bool ret = rsClient->RegisterTransactionDataCallback(pid, timeStamp, callback);
+    EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.name: RegisterTransactionDataCallback04
+ * @tc.desc: RegisterTransactionDataCallback Test callback already exists
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientTest, RegisterTransactionDataCallback04, TestSize.Level1)
+{
+    ASSERT_NE(rsClient, nullptr);
+    std::function<void()> callback = []() {};
+    int32_t pid = 123;
+    uint64_t timeStamp = 456;
+    rsClient->transactionDataCallbacks_[std::make_pair(pid, timeStamp)] = []() {};
+    bool ret = rsClient->RegisterTransactionDataCallback(pid, timeStamp, callback);
+    EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.name: TriggerTransactionDataCallbackAndErase01
+ * @tc.desc: TriggerTransactionDataCallbackAndErase Test callback exist
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientTest, TriggerTransactionDataCallbackAndErase01, TestSize.Level1)
+{
+    int32_t pid = 123;
+    uint64_t timeStamp = 456;
+    bool callbackInvoked = false;
+    rsClient->transactionDataCallbacks_[std::make_pair(pid, timeStamp)] = [&callbackInvoked]() {
+        callbackInvoked = true;
+    };
+    rsClient->TriggerTransactionDataCallbackAndErase(pid, timeStamp);
+    EXPECT_TRUE(callbackInvoked);
+    EXPECT_EQ(rsClient->transactionDataCallbacks_.find(std::make_pair(pid, timeStamp)), rsClient->transactionDataCallbacks_.end());
+}
+
+/**
+ * @tc.name: TriggerTransactionDataCallbackAndErase02
+ * @tc.desc: TriggerTransactionDataCallbackAndErase Test callback does not exist
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientTest, TriggerTransactionDataCallbackAndErase02, TestSize.Level1)
+{
+    int32_t pid = 123;
+    uint64_t timeStamp = 456;
+    bool callbackInvoked = false;
+    rsClient->transactionDataCallbacks_[std::make_pair(pid, timeStamp)] = [&callbackInvoked]() {
+        callbackInvoked = true;
+    };
+    rsClient->transactionDataCallbacks_.clear();
+
+    rsClient->TriggerTransactionDataCallbackAndErase(pid, timeStamp);
+    EXPECT_FALSE(callbackInvoked);
+    EXPECT_TRUE(rsClient->transactionDataCallbacks_.empty());
 }
 
 /**
@@ -444,6 +563,67 @@ HWTEST_F(RSClientTest, SetVirtualScreenSurface001, TestSize.Level1)
     int32_t ret = rsClient->SetVirtualScreenSurface(TEST_ID, psurface); // 123 for test
     ASSERT_EQ(ret, 0);
     rsClient->RemoveVirtualScreen(TEST_ID);
+}
+
+/**
+ * @tc.name: SetVirtualScreenBlackList Test
+ * @tc.desc: SetVirtualScreenBlackList Test
+ * @tc.type:FUNC
+ * @tc.require: issues#IC98BX
+ */
+HWTEST_F(RSClientTest, SetVirtualScreenBlackListTest, TestSize.Level1)
+{
+    ASSERT_NE(rsClient, nullptr);
+    ScreenId screenId = 100;
+    std::vector<NodeId> blackListVector({1, 2, 3});
+    int32_t ret = rsClient->SetVirtualScreenBlackList(screenId, blackListVector);
+    ASSERT_EQ(ret, 0);
+}
+
+/**
+ * @tc.name: AddVirtualScreenBlackList Test
+ * @tc.desc: AddVirtualScreenBlackList Test
+ * @tc.type:FUNC
+ * @tc.require: issues#IC98BX
+ */
+HWTEST_F(RSClientTest, AddVirtualScreenBlackListTest, TestSize.Level1)
+{
+    ASSERT_NE(rsClient, nullptr);
+    ScreenId screenId = 100;
+    std::vector<NodeId> blackListVector({1, 2, 3});
+    int32_t ret = rsClient->AddVirtualScreenBlackList(screenId, blackListVector);
+    ASSERT_EQ(ret, 0);
+}
+
+/**
+ * @tc.name: RemoveVirtualScreenBlackList Test
+ * @tc.desc: RemoveVirtualScreenBlackList Test
+ * @tc.type:FUNC
+ * @tc.require: issues#IC98BX
+ */
+HWTEST_F(RSClientTest, RemoveVirtualScreenBlackListTest, TestSize.Level1)
+{
+    ASSERT_NE(rsClient, nullptr);
+    ScreenId screenId = 100;
+    std::vector<NodeId> blackListVector({1, 2, 3});
+    int32_t ret = rsClient->RemoveVirtualScreenBlackList(screenId, blackListVector);
+    ASSERT_EQ(ret, 0);
+}
+
+/**
+ * @tc.name: ResizeVirtualScreen Test
+ * @tc.desc: ResizeVirtualScreen Test
+ * @tc.type:FUNC
+ * @tc.require: issues#IC98BX
+ */
+HWTEST_F(RSClientTest, ResizeVirtualScreenTest, TestSize.Level1)
+{
+    ASSERT_NE(rsClient, nullptr);
+    ScreenId screenId = 100;
+    uint32_t width = 500;
+    uint32_t height = 500;
+    int32_t ret = rsClient->ResizeVirtualScreen(screenId, width, height);
+    ASSERT_EQ(ret, SCREEN_NOT_FOUND);
 }
 
 /**

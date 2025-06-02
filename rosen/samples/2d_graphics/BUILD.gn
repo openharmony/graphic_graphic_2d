@@ -178,7 +178,6 @@ ohos_executable("drawing_sample_canvaskit0310") {
   ]
 
   deps = [
-    "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics_canvaskit0310",
     "$graphic_2d_root/rosen/modules/composer:libcomposer",
     "$graphic_2d_root/utils:libgraphic_utils",
   ]

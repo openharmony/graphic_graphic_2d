@@ -420,7 +420,7 @@ napi_value JsTextBlob::OnBounds(napi_env env, napi_callback_info info)
         ROSEN_LOGE("JsTextBlob::OnBounds rect is nullptr");
         return nullptr;
     }
-    return GetRectAndConvertToJsValue(env, rect);
+    return GetRectAndConvertToJsValue(env, *rect);
 }
 
 std::shared_ptr<TextBlob> JsTextBlob::GetTextBlob()

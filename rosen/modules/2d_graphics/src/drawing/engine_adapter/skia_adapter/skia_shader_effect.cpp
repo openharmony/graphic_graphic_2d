@@ -139,10 +139,45 @@ void SkiaShaderEffect::InitWithLinearGradient(const Point& startPt, const Point&
         p.emplace_back(pos[i]);
     }
     const SkMatrix *skMatrix = nullptr;
-    if (matrix != nullptr) {
+    if (matrix != nullptr && matrix->GetImpl<SkiaMatrix>() != nullptr) {
         skMatrix = &matrix->GetImpl<SkiaMatrix>()->ExportSkiaMatrix();
     }
     shader_ = SkGradientShader::MakeLinear(pts, &c[0], pos.empty() ? nullptr : &p[0],
+        colorsCount, static_cast<SkTileMode>(mode), 0, skMatrix);
+}
+
+void SkiaShaderEffect::InitWithLinearGradient(const Point& startPt, const Point& endPt,
+    const std::vector<Color4f>& colors, std::shared_ptr<ColorSpace> colorSpace,
+    const std::vector<scalar>& pos, TileMode mode, const Matrix *matrix)
+{
+    SkPoint pts[2];
+    pts[0].set(startPt.GetX(), startPt.GetY());
+    pts[1].set(endPt.GetX(), endPt.GetY());
+
+    if (colors.empty()) {
+        return;
+    }
+    size_t colorsCount = colors.size();
+
+    std::vector<SkColor4f> c;
+    std::vector<SkScalar> p;
+    for (size_t i = 0; i < colorsCount; ++i) {
+        const SkColor4f& skC4f = { .fR = colors[i].redF_, .fG = colors[i].greenF_, .fB = colors[i].blueF_,
+            .fA = colors[i].alphaF_ };
+        c.emplace_back(skC4f);
+    }
+    for (size_t i = 0; i < pos.size(); ++i) {
+        p.emplace_back(pos[i]);
+    }
+    sk_sp<SkColorSpace> skColorSpace = nullptr;
+    if (colorSpace != nullptr && colorSpace->GetImpl<SkiaColorSpace>() != nullptr) {
+        skColorSpace = colorSpace->GetImpl<SkiaColorSpace>()->GetSkColorSpace();
+    }
+    const SkMatrix *skMatrix = nullptr;
+    if (matrix != nullptr && matrix->GetImpl<SkiaMatrix>() != nullptr) {
+        skMatrix = &matrix->GetImpl<SkiaMatrix>()->ExportSkiaMatrix();
+    }
+    shader_ = SkGradientShader::MakeLinear(pts, &c[0], skColorSpace, pos.empty() ? nullptr : &p[0],
         colorsCount, static_cast<SkTileMode>(mode), 0, skMatrix);
 }
 
@@ -166,10 +201,44 @@ void SkiaShaderEffect::InitWithRadialGradient(const Point& centerPt, scalar radi
         p.emplace_back(pos[i]);
     }
     const SkMatrix *skMatrix = nullptr;
-    if (matrix != nullptr) {
+    if (matrix != nullptr && matrix->GetImpl<SkiaMatrix>() != nullptr) {
         skMatrix = &matrix->GetImpl<SkiaMatrix>()->ExportSkiaMatrix();
     }
     shader_ = SkGradientShader::MakeRadial(center, radius, &c[0],
+        pos.empty() ? nullptr : &p[0], colorsCount, static_cast<SkTileMode>(mode), 0, skMatrix);
+}
+
+void SkiaShaderEffect::InitWithRadialGradient(const Point& centerPt, scalar radius, const std::vector<Color4f>& colors,
+    std::shared_ptr<ColorSpace> colorSpace, const std::vector<scalar>& pos, TileMode mode,
+    const Matrix *matrix)
+{
+    SkPoint center;
+    center.set(centerPt.GetX(), centerPt.GetY());
+
+    if (colors.empty()) {
+        return;
+    }
+    size_t colorsCount = colors.size();
+
+    std::vector<SkColor4f> c;
+    std::vector<SkScalar> p;
+    for (size_t i = 0; i < colorsCount; ++i) {
+        const SkColor4f& skC4f = { .fR = colors[i].redF_, .fG = colors[i].greenF_, .fB = colors[i].blueF_,
+            .fA = colors[i].alphaF_ };
+        c.emplace_back(skC4f);
+    }
+    for (size_t i = 0; i < pos.size(); ++i) {
+        p.emplace_back(pos[i]);
+    }
+    sk_sp<SkColorSpace> skColorSpace = nullptr;
+    if (colorSpace != nullptr && colorSpace->GetImpl<SkiaColorSpace>() != nullptr) {
+        skColorSpace = colorSpace->GetImpl<SkiaColorSpace>()->GetSkColorSpace();
+    }
+    const SkMatrix *skMatrix = nullptr;
+    if (matrix != nullptr && matrix->GetImpl<SkiaMatrix>() != nullptr) {
+        skMatrix = &matrix->GetImpl<SkiaMatrix>()->ExportSkiaMatrix();
+    }
+    shader_ = SkGradientShader::MakeRadial(center, radius, &c[0], skColorSpace,
         pos.empty() ? nullptr : &p[0], colorsCount, static_cast<SkTileMode>(mode), 0, skMatrix);
 }
 
@@ -196,12 +265,48 @@ void SkiaShaderEffect::InitWithTwoPointConical(const Point& startPt, scalar star
         p.emplace_back(pos[i]);
     }
     const SkMatrix *skMatrix = nullptr;
-    if (matrix != nullptr) {
+    if (matrix != nullptr && matrix->GetImpl<SkiaMatrix>() != nullptr) {
         skMatrix = &matrix->GetImpl<SkiaMatrix>()->ExportSkiaMatrix();
     }
 
     shader_ = SkGradientShader::MakeTwoPointConical(start, startRadius, end, endRadius,
         &c[0], pos.empty() ? nullptr : &p[0], colorsCount, static_cast<SkTileMode>(mode), 0, skMatrix);
+}
+
+void SkiaShaderEffect::InitWithTwoPointConical(const Point& startPt, scalar startRadius, const Point& endPt,
+    scalar endRadius, const std::vector<Color4f>& colors, std::shared_ptr<ColorSpace> colorSpace,
+    const std::vector<scalar>& pos, TileMode mode, const Matrix *matrix)
+{
+    SkPoint start;
+    SkPoint end;
+    start.set(startPt.GetX(), startPt.GetY());
+    end.set(endPt.GetX(), endPt.GetY());
+
+    if (colors.empty()) {
+        return;
+    }
+    size_t colorsCount = colors.size();
+
+    std::vector<SkColor4f> c;
+    std::vector<SkScalar> p;
+    for (size_t i = 0; i < colorsCount; ++i) {
+        const SkColor4f& skC4f = { .fR = colors[i].redF_, .fG = colors[i].greenF_, .fB = colors[i].blueF_,
+            .fA = colors[i].alphaF_ };
+        c.emplace_back(skC4f);
+    }
+    for (size_t i = 0; i < pos.size(); ++i) {
+        p.emplace_back(pos[i]);
+    }
+    sk_sp<SkColorSpace> skColorSpace = nullptr;
+    if (colorSpace != nullptr && colorSpace->GetImpl<SkiaColorSpace>() != nullptr) {
+        skColorSpace = colorSpace->GetImpl<SkiaColorSpace>()->GetSkColorSpace();
+    }
+    const SkMatrix *skMatrix = nullptr;
+    if (matrix != nullptr && matrix->GetImpl<SkiaMatrix>() != nullptr) {
+        skMatrix = &matrix->GetImpl<SkiaMatrix>()->ExportSkiaMatrix();
+    }
+    shader_ = SkGradientShader::MakeTwoPointConical(start, startRadius, end, endRadius,
+        &c[0], skColorSpace, pos.empty() ? nullptr : &p[0], colorsCount, static_cast<SkTileMode>(mode), 0, skMatrix);
 }
 
 void SkiaShaderEffect::InitWithSweepGradient(const Point& centerPt, const std::vector<ColorQuad>& colors,
@@ -221,10 +326,42 @@ void SkiaShaderEffect::InitWithSweepGradient(const Point& centerPt, const std::v
         p.emplace_back(pos[i]);
     }
     const SkMatrix *skMatrix = nullptr;
-    if (matrix != nullptr) {
+    if (matrix != nullptr && matrix->GetImpl<SkiaMatrix>() != nullptr) {
         skMatrix = &matrix->GetImpl<SkiaMatrix>()->ExportSkiaMatrix();
     }
     shader_ = SkGradientShader::MakeSweep(centerPt.GetX(), centerPt.GetY(), &c[0],
+        pos.empty() ? nullptr : &p[0], colorsCount,
+        static_cast<SkTileMode>(mode), startAngle, endAngle, 0, skMatrix);
+}
+
+void SkiaShaderEffect::InitWithSweepGradient(const Point& centerPt, const std::vector<Color4f>& colors,
+    std::shared_ptr<ColorSpace> colorSpace, const std::vector<scalar>& pos, TileMode mode, scalar startAngle,
+    scalar endAngle, const Matrix *matrix)
+{
+    if (colors.empty()) {
+        return;
+    }
+    size_t colorsCount = colors.size();
+
+    std::vector<SkColor4f> c;
+    std::vector<SkScalar> p;
+    for (size_t i = 0; i < colorsCount; ++i) {
+        const SkColor4f& skC4f = { .fR = colors[i].redF_, .fG = colors[i].greenF_, .fB = colors[i].blueF_,
+            .fA = colors[i].alphaF_ };
+        c.emplace_back(skC4f);
+    }
+    for (size_t i = 0; i < pos.size(); ++i) {
+        p.emplace_back(pos[i]);
+    }
+    sk_sp<SkColorSpace> skColorSpace = nullptr;
+    if (colorSpace != nullptr && colorSpace->GetImpl<SkiaColorSpace>() != nullptr) {
+        skColorSpace = colorSpace->GetImpl<SkiaColorSpace>()->GetSkColorSpace();
+    }
+    const SkMatrix *skMatrix = nullptr;
+    if (matrix != nullptr && matrix->GetImpl<SkiaMatrix>() != nullptr) {
+        skMatrix = &matrix->GetImpl<SkiaMatrix>()->ExportSkiaMatrix();
+    }
+    shader_ = SkGradientShader::MakeSweep(centerPt.GetX(), centerPt.GetY(), &c[0], skColorSpace,
         pos.empty() ? nullptr : &p[0], colorsCount,
         static_cast<SkTileMode>(mode), startAngle, endAngle, 0, skMatrix);
 }

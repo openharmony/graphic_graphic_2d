@@ -54,7 +54,7 @@ int64_t VSyncSampleTest::GetHardwareVsyncTimestamp(int32_t refreshRate)
  */
 HWTEST_F(VSyncSampleTest, VSyncSample_30Hz_Test, Function | MediumTest | Level2)
 {
-    vsyncSampler->BeginSample();
+    vsyncSampler->StartSample(true);
     for (int i = 0; i < 20; i++) { // test 20 times
         bool keepSampling = vsyncSampler->AddSample(GetHardwareVsyncTimestamp(30));
         if (!keepSampling) {
@@ -75,7 +75,7 @@ HWTEST_F(VSyncSampleTest, VSyncSample_30Hz_Test, Function | MediumTest | Level2)
  */
 HWTEST_F(VSyncSampleTest, VSyncSample_60Hz_Test, Function | MediumTest | Level2)
 {
-    vsyncSampler->BeginSample();
+    vsyncSampler->StartSample(true);
     for (int i = 0; i < 20; i++) { // test 20 times
         bool keepSampling = vsyncSampler->AddSample(GetHardwareVsyncTimestamp(60));
         if (!keepSampling) {
@@ -96,7 +96,7 @@ HWTEST_F(VSyncSampleTest, VSyncSample_60Hz_Test, Function | MediumTest | Level2)
  */
 HWTEST_F(VSyncSampleTest, VSyncSample_90Hz_Test, Function | MediumTest | Level2)
 {
-    vsyncSampler->BeginSample();
+    vsyncSampler->StartSample(true);
     for (int i = 0; i < 20; i++) { // test 20 times
         bool keepSampling = vsyncSampler->AddSample(GetHardwareVsyncTimestamp(90));
         if (!keepSampling) {
@@ -117,7 +117,7 @@ HWTEST_F(VSyncSampleTest, VSyncSample_90Hz_Test, Function | MediumTest | Level2)
  */
 HWTEST_F(VSyncSampleTest, VSyncSample_120Hz_Test, Function | MediumTest | Level2)
 {
-    vsyncSampler->BeginSample();
+    vsyncSampler->StartSample(true);
     for (int i = 0; i < 20; i++) { // test 20 times
         bool keepSampling = vsyncSampler->AddSample(GetHardwareVsyncTimestamp(120));
         if (!keepSampling) {

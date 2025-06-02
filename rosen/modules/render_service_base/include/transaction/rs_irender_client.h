@@ -37,7 +37,7 @@ public:
     static RSB_EXPORT std::shared_ptr<RSIRenderClient> CreateRenderServiceClient();
     static RSB_EXPORT std::unique_ptr<RSIRenderClient> CreateRenderThreadClient();
 
-private:
+protected:
     static std::shared_ptr<RSIRenderClient> client_;
 };
 

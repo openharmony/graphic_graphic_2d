@@ -73,17 +73,33 @@ public:
         const std::vector<ColorQuad>& colors, const std::vector<scalar>& pos, TileMode mode,
         const Matrix *matrix = nullptr);
 
+    static std::shared_ptr<ShaderEffect> CreateLinearGradient(const Point& startPt, const Point& endPt,
+        const std::vector<Color4f>& colors, std::shared_ptr<ColorSpace> colorSpace,
+        const std::vector<scalar>& pos, TileMode mode, const Matrix *matrix = nullptr);
+
     static std::shared_ptr<ShaderEffect> CreateRadialGradient(const Point& centerPt, scalar radius,
         const std::vector<ColorQuad>& colors, const std::vector<scalar>& pos, TileMode mode,
         const Matrix *matrix = nullptr);
+
+    static std::shared_ptr<ShaderEffect> CreateRadialGradient(const Point& centerPt, scalar radius,
+        const std::vector<Color4f>& colors, std::shared_ptr<ColorSpace> colorSpace, const std::vector<scalar>& pos,
+        TileMode mode, const Matrix *matrix = nullptr);
 
     static std::shared_ptr<ShaderEffect> CreateTwoPointConical(const Point& startPt, scalar startRadius,
         const Point& endPt, scalar endRadius, const std::vector<ColorQuad>& colors, const std::vector<scalar>& pos,
         TileMode mode, const Matrix *matrix = nullptr);
 
+    static std::shared_ptr<ShaderEffect> CreateTwoPointConical(const Point& startPt, scalar startRadius,
+        const Point& endPt, scalar endRadius, const std::vector<Color4f>& colors, std::shared_ptr<ColorSpace> colorSpace,
+        const std::vector<scalar>& pos, TileMode mode, const Matrix *matrix = nullptr);
+
     static std::shared_ptr<ShaderEffect> CreateSweepGradient(const Point& centerPt,
         const std::vector<ColorQuad>& colors, const std::vector<scalar>& pos, TileMode mode, scalar startAngle,
         scalar endAngle, const Matrix* matrix = nullptr);
+
+    static std::shared_ptr<ShaderEffect> CreateSweepGradient(const Point& centerPt,
+        const std::vector<Color4f>& colors, std::shared_ptr<ColorSpace> colorSpace,const std::vector<scalar>& pos,
+        TileMode mode, scalar startAngle, scalar endAngle, const Matrix* matrix = nullptr);
 
     static std::shared_ptr<ShaderEffect> CreateLightUp(const float& lightUpDeg, ShaderEffect& imageShader);
 
@@ -127,19 +143,39 @@ public:
     ShaderEffect(ShaderEffectType t, const Point& startPt, const Point& endPt, const std::vector<ColorQuad>& colors,
         const std::vector<scalar>& pos, TileMode mode, const Matrix *matrix = nullptr) noexcept;
 
+    /* LinearGradient */
+    ShaderEffect(ShaderEffectType t, const Point& startPt, const Point& endPt, const std::vector<Color4f>& colors,
+        std::shared_ptr<ColorSpace> colorSpace, const std::vector<scalar>& pos, TileMode mode,
+        const Matrix *matrix = nullptr) noexcept;
+
     /* RadialGradient */
     ShaderEffect(ShaderEffectType t, const Point& centerPt, scalar radius, const std::vector<ColorQuad>& colors,
         const std::vector<scalar>& pos, TileMode mode, const Matrix *matrix = nullptr) noexcept;
+
+    /* RadialGradient */
+    ShaderEffect(ShaderEffectType t, const Point& centerPt, scalar radius, const std::vector<Color4f>& colors,
+        std::shared_ptr<ColorSpace> colorSpace, const std::vector<scalar>& pos, TileMode mode,
+        const Matrix *matrix = nullptr) noexcept;
 
     /* TwoPointConicalGradient */
     ShaderEffect(ShaderEffectType t, const Point& startPt, scalar startRadius, const Point& endPt, scalar endRadius,
         const std::vector<ColorQuad>& colors, const std::vector<scalar>& pos, TileMode mode,
         const Matrix *matrix = nullptr) noexcept;
 
+    /* TwoPointConicalGradient */
+    ShaderEffect(ShaderEffectType t, const Point& startPt, scalar startRadius, const Point& endPt, scalar endRadius,
+        const std::vector<Color4f>& colors, std::shared_ptr<ColorSpace> colorSpace, const std::vector<scalar>& pos,
+        TileMode mode, const Matrix *matrix = nullptr) noexcept;
+
     /* SweepGradient */
     ShaderEffect(ShaderEffectType t, const Point& centerPt, const std::vector<ColorQuad>& colors,
         const std::vector<scalar>& pos, TileMode mode, scalar startAngle, scalar endAngle,
         const Matrix *matrix = nullptr) noexcept;
+
+    /* SweepGradient */
+    ShaderEffect(ShaderEffectType t, const Point& centerPt, const std::vector<Color4f>& colors,
+        std::shared_ptr<ColorSpace> colorSpace, const std::vector<scalar>& pos, TileMode mode,
+        scalar startAngle, scalar endAngle, const Matrix *matrix = nullptr) noexcept;
 
     /* LightUpShader */
     ShaderEffect(ShaderEffectType t, const float& lightUpDeg, ShaderEffect& imageShader) noexcept;

@@ -37,6 +37,10 @@
 #include "utils/object_mgr.h"
 #include "utils/string_util.h"
 
+#ifdef USE_M133_SKIA
+#include "recording/recording_canvas.h"
+#endif
+
 using namespace OHOS::Rosen;
 
 namespace {
@@ -928,6 +932,14 @@ void OH_Drawing_SetTextStyleEllipsisModal(OH_Drawing_TextStyle* style, int ellip
         }
     }
     ConvertToOriginalText<TextStyle>(style)->ellipsisModal = rosenEllipsisModal;
+}
+
+void OH_Drawing_SetTextStyleBadgeType(OH_Drawing_TextStyle* style, OH_Drawing_TextBadgeType textBadgeType)
+{
+    if (style == nullptr) {
+        return;
+    }
+    ConvertToOriginalText<TextStyle>(style)->badgeType = static_cast<TextBadgeType>(textBadgeType);
 }
 
 void OH_Drawing_SetTypographyTextBreakStrategy(OH_Drawing_TypographyStyle* style, int breakStrategy)
@@ -2200,6 +2212,86 @@ void OH_Drawing_TypographyUpdateFontSize(OH_Drawing_Typography* typography, size
         return;
     }
     ConvertToOriginalText<Typography>(typography)->UpdateFontSize(from, to, fontSize);
+}
+
+void OH_Drawing_TypographyUpdateFontColor(OH_Drawing_Typography* typography, uint32_t color)
+{
+    if (typography == nullptr) {
+        return;
+    }
+
+    TextStyle textStyleTemplate;
+    textStyleTemplate.relayoutChangeBitmap.set(static_cast<size_t>(RelayoutTextStyleAttribute::FONT_COLOR));
+    textStyleTemplate.color.SetColorQuad(color);
+    ConvertToOriginalText<Typography>(typography)->UpdateAllTextStyles(textStyleTemplate);
+}
+
+void OH_Drawing_TypographyUpdateDecoration(OH_Drawing_Typography* typography, OH_Drawing_TextDecoration decoration)
+{
+    if (typography == nullptr || (decoration & (~(TextDecoration::UNDERLINE | TextDecoration::OVERLINE |
+        TextDecoration::LINE_THROUGH)))) {
+        LOGE("Invalid Decoration type: %{public}d", decoration);
+        return;
+    }
+
+    TextStyle textStyleTemplate;
+    textStyleTemplate.relayoutChangeBitmap.set(static_cast<size_t>(RelayoutTextStyleAttribute::DECORATION));
+    textStyleTemplate.decoration = static_cast<TextDecoration>(decoration);
+    ConvertToOriginalText<Typography>(typography)->UpdateAllTextStyles(textStyleTemplate);
+}
+
+void OH_Drawing_TypographyUpdateDecorationThicknessScale(OH_Drawing_Typography* typography,
+    double decorationThicknessScale)
+{
+    if (typography == nullptr) {
+        return;
+    }
+
+    TextStyle textStyleTemplate;
+    textStyleTemplate.relayoutChangeBitmap.set(static_cast<size_t>(RelayoutTextStyleAttribute::DECORATION_THICKNESS_SCALE));
+    textStyleTemplate.decorationThicknessScale = decorationThicknessScale;
+    ConvertToOriginalText<Typography>(typography)->UpdateAllTextStyles(textStyleTemplate);
+}
+
+void OH_Drawing_TypographyUpdateDecorationStyle(OH_Drawing_Typography* typography,
+    OH_Drawing_TextDecorationStyle decorationStyle)
+{
+    if (typography == nullptr) {
+        return;
+    }
+
+    TextDecorationStyle textDecorationStyle;
+    switch (decorationStyle) {
+        case TEXT_DECORATION_STYLE_SOLID: {
+            textDecorationStyle = TextDecorationStyle::SOLID;
+            break;
+        }
+        case TEXT_DECORATION_STYLE_DOUBLE: {
+            textDecorationStyle = TextDecorationStyle::DOUBLE;
+            break;
+        }
+        case TEXT_DECORATION_STYLE_DOTTED: {
+            textDecorationStyle = TextDecorationStyle::DOTTED;
+            break;
+        }
+        case TEXT_DECORATION_STYLE_DASHED: {
+            textDecorationStyle = TextDecorationStyle::DASHED;
+            break;
+        }
+        case TEXT_DECORATION_STYLE_WAVY: {
+            textDecorationStyle = TextDecorationStyle::WAVY;
+            break;
+        }
+        default: {
+            LOGE("Invalid Decoration style type: %{public}d", decorationStyle);
+            return;
+        }
+    }
+
+    TextStyle textStyleTemplate;
+    textStyleTemplate.relayoutChangeBitmap.set(static_cast<size_t>(RelayoutTextStyleAttribute::DECORATION_STYLE));
+    textStyleTemplate.decorationStyle = textDecorationStyle;
+    ConvertToOriginalText<Typography>(typography)->UpdateAllTextStyles(textStyleTemplate);
 }
 
 bool OH_Drawing_TypographyTextGetLineStyle(OH_Drawing_TypographyStyle* style)
@@ -3524,4 +3616,12 @@ void OH_Drawing_SetTypographyTextTrailingSpaceOptimized(OH_Drawing_TypographySty
         return;
     }
     ConvertToOriginalText<TypographyStyle>(style)->isTrailingSpaceOptimized = trailingSpaceOptimized;
+}
+
+void OH_Drawing_SetTypographyTextAutoSpace(OH_Drawing_TypographyStyle* style, bool enableAutoSpace)
+{
+    if (style == nullptr || ConvertToOriginalText<TypographyStyle>(style) == nullptr) {
+        return;
+    }
+    ConvertToOriginalText<TypographyStyle>(style)->enableAutoSpace = enableAutoSpace;
 }

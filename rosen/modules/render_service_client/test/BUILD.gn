@@ -908,3 +908,32 @@ ohos_executable("render_service_client_multi_instance_demo") {
   part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
+
+ohos_executable("render_service_client_surface_local_magnification_demo") {
+  sources = [ "render_service_client_surface_local_magnification_demo.cpp" ]
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
+  deps = [
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
+  ]
+
+  external_deps = [
+    "access_token:libaccesstoken_sdk",
+    "access_token:libnativetoken",
+    "access_token:libtoken_setproc",
+    "c_utils:utils",
+    "eventhandler:libeventhandler",
+    "hilog:libhilog",
+    "image_framework:image_native",
+    "window_manager:libwm",
+  ]
+
+  part_name = "graphic_2d"
+  subsystem_name = "graphic"
+}

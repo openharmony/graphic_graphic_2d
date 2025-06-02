@@ -27,22 +27,15 @@
 
 namespace {
 #ifdef OPENGL_WRAPPER_ENABLE_GL4
-bool CheckIfWhiteAPP()
+bool CheckIfNeedOpengl()
 {
-    std::string processName;
-    constexpr int pnameLen = 512;
-    char pname[pnameLen + 1] = {0};
-    bool ret = OHOS::EglSystemLayersManager::GetProcessName(getpid(), pname, pnameLen);
-    if (!ret) {
-        WLOGE("Failed to get the process name");
-        return false;
-    } else {
-        processName = pname;
+    const char* needOpenglEnv = "NEED_OPENGL";
+    const char* needOpenglEnvValue = getenv(needOpenglEnv);
+    if (needOpenglEnvValue && std::string(needOpenglEnvValue) == "1") {
+        return true;
     }
-
-    return processName == std::string("com.zwsoft.zwcad.PE")
-        || processName == std::string("com.gstarcad.hmos.gcad")
-        || processName == std::string("glcts");
+    WLOGI("Failed to get env NEED_OPENGL or the value of NEED_OPENGL is not 1");
+    return false;
 }
 #endif
 }
@@ -129,7 +122,7 @@ bool EglCoreInit()
     }
 
 #ifdef OPENGL_WRAPPER_ENABLE_GL4
-    gWrapperHook.useMesa = CheckIfWhiteAPP();
+    gWrapperHook.useMesa = CheckIfNeedOpengl();
     if (gWrapperHook.useMesa) {
         ThreadPrivateDataCtl::SetGlHookTable(&OHOS::gWrapperHook.gl);
         EglWrapperLoader& loader(EglWrapperLoader::GetInstance());

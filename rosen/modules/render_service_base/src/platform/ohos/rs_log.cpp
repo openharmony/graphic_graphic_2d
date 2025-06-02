@@ -85,7 +85,7 @@ RSLogManager::RSLogManager()
     if (IsFlagValid(flag)) {
         unsigned long value = 0;
         std::string subFlag = flag.substr(INPUT_FLAG_MIN_LENGTH);
-        if (ConvertToLongUint(subFlag, value, NUMERICAL_BASE)) {
+        if (!ConvertToLongUint(subFlag, value, NUMERICAL_BASE)) {
             RS_LOGD("RSLogManager %{public}s ConvertToLongUint failed", subFlag.c_str());
         }
         logFlag_ = static_cast<uint32_t>(value);
@@ -108,7 +108,7 @@ bool RSLogManager::SetRSLogFlag(std::string& flag)
 #endif
         unsigned long value = 0;
         std::string subFlag = flag.substr(INPUT_FLAG_MIN_LENGTH);
-        if (ConvertToLongUint(subFlag, value, NUMERICAL_BASE)) {
+        if (!ConvertToLongUint(subFlag, value, NUMERICAL_BASE)) {
             RS_LOGD("RSLogManager %{public}s ConvertToLongUint failed", subFlag.c_str());
         }
         logFlag_ = static_cast<uint32_t>(value);

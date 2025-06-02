@@ -84,7 +84,8 @@ public:
     void CalculateTransform(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable);
     void ScaleMirrorIfNeed(const ScreenRotation angle, RSPaintFilterCanvas& canvas);
     void ProcessVirtualDisplaySurface(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable);
-    void CanvasClipRegionForUniscaleMode();
+    void CanvasClipRegionForUniscaleMode(const Drawing::Matrix& visibleClipRectMatrix = Drawing::Matrix(),
+        const ScreenInfo& mainScreenInfo = ScreenInfo());
     void ProcessCacheImage(Drawing::Image& cacheImage);
     void SetDrawVirtualMirrorCopy(bool drawMirrorCopy)
     {

@@ -56,6 +56,7 @@ struct DVSyncFeatureParam {
 
 class VSyncConnection : public VSyncConnectionStub {
 public:
+    using RequestNativeVSyncCallback = std::function<void()>;
     // id for LTPO, windowNodeId for vsync rate control
     VSyncConnection(const sptr<VSyncDistributor>& distributor, std::string name,
                     const sptr<IRemoteObject>& token = nullptr, uint64_t id = 0, uint64_t windowNodeId = 0);
@@ -79,6 +80,7 @@ public:
         gcNotifyTask_ = hook;
     }
     void RegisterDeathRecipient();
+    void RegisterRequestNativeVSyncCallback(const RequestNativeVSyncCallback &callback);
 
     int32_t rate_; // used for LTPS
     int32_t highPriorityRate_ = -1;
@@ -116,6 +118,7 @@ private:
     std::recursive_mutex vsyncTimeMutex_;
     bool isFirstRequestVsync_ = true;
     bool isFirstSendVsync_ = true;
+    RequestNativeVSyncCallback requestNativeVSyncCallback_ = nullptr;
 };
 
 class VSyncDistributor : public RefBase, public VSyncController::Callback {
@@ -129,6 +132,7 @@ public:
 
     VsyncError AddConnection(const sptr<VSyncConnection>& connection, uint64_t windowNodeId = 0);
     VsyncError RemoveConnection(const sptr<VSyncConnection> &connection);
+    uint64_t CheckVsyncTsAndReceived(uint64_t timestamp);
 
     // fromWhom indicates whether the source is animate or non-animate
     // lastVSyncTS indicates last vsync time, 0 when non-animate
@@ -137,8 +141,10 @@ public:
     VsyncError SetVSyncRate(int32_t rate, const sptr<VSyncConnection>& connection);
     VsyncError SetHighPriorityVSyncRate(int32_t highPriorityRate, const sptr<VSyncConnection>& connection);
     VsyncError SetQosVSyncRate(uint64_t windowNodeId, int32_t rate, bool isSystemAnimateScene = false);
+    VsyncError SetQosVSyncRateByConnId(uint64_t connId, int32_t rate);
     VsyncError SetQosVSyncRateByPidPublic(uint32_t pid, uint32_t rate, bool isSystemAnimateScene);
     VsyncError SetVsyncRateDiscountLTPS(uint32_t pid, const std::string &name, uint32_t rateDiscount);
+    sptr<VSyncConnection> GetVSyncConnection(uint64_t id);
 
     // used by DVSync
     bool IsDVsyncOn();
@@ -161,7 +167,7 @@ public:
     void PrintConnectionsStatus();
     void FirstRequestVsync();
     void NotifyPackageEvent(const std::vector<std::string>& packageList);
-    void NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt);
+    void HandleTouchEvent(int32_t touchStatus, int32_t touchCnt);
     void SetBufferInfo(uint64_t id, const std::string &name, uint32_t queueSize,
         int32_t bufferCount, int64_t lastConsumeTime);
     bool AdaptiveDVSyncEnable(const std::string &nodeName, int64_t timeStamp, int32_t bufferCount, bool &needConsume);
@@ -215,6 +221,7 @@ private:
     std::mutex mutex_;
     std::condition_variable con_;
     std::vector<sptr<VSyncConnection> > connections_;
+    std::unordered_map<uint64_t, sptr<VSyncConnection>> connMap_;
     std::map<uint64_t, std::vector<sptr<VSyncConnection>>> connectionsMap_;
     std::map<uint64_t, std::vector<uint64_t>> pidWindowIdMap_;
     VSyncEvent event_;

@@ -190,6 +190,8 @@ private:
     void RenderOverDraw();
     bool SkipFrameByInterval(uint32_t refreshRate, uint32_t skipFrameInterval);
     bool SkipFrameByRefreshRate(uint32_t refreshRate, uint32_t expectedRefreshRate);
+    void UpdateSurfaceDrawRegion(std::shared_ptr<RSPaintFilterCanvas>& mainCanvas,
+        RSDisplayRenderParams* params);
 
     void MirrorRedrawDFX(bool mirrorRedraw, ScreenId screenId);
 
@@ -213,6 +215,7 @@ private:
     bool isDisplayNodeSkipStatusChanged_ = false;
     Drawing::Matrix lastMatrix_;
     Drawing::Matrix lastMirrorMatrix_;
+    Drawing::Matrix visibleClipRectMatrix_;
     bool useFixedOffscreenSurfaceSize_ = false;
     std::shared_ptr<RSDisplayRenderNodeDrawable> mirrorSourceDrawable_ = nullptr;
     uint64_t virtualSurfaceUniqueId_ = 0;

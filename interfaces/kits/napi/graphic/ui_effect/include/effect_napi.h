@@ -30,7 +30,7 @@ namespace OHOS {
 namespace Rosen {
 
 #undef LOG_DOMAIN
-#define LOG_DOMAIN 0xD001499
+#define LOG_DOMAIN 0xD001405
 
 #undef LOG_TAG
 #define LOG_TAG "UiEffect_Effect"
@@ -53,6 +53,7 @@ private:
     static napi_value CreateBrightnessBlender(napi_env env, napi_callback_info info);
     static napi_value SetBackgroundColorBlender(napi_env env, napi_callback_info info);
     static bool ParseBrightnessBlender(napi_env env, napi_value jsObject, BrightnessBlender* blender);
+    static napi_value SetHDRUIBrightness(napi_env env, napi_callback_info info);
 
     std::shared_ptr<VisualEffect> m_EffectObj = nullptr;
 };

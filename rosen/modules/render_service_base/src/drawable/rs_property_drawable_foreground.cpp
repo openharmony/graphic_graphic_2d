@@ -544,7 +544,8 @@ void RSPointLightDrawable::OnSync()
     if (illuminatedType_ == IlluminatedType::BORDER_CONTENT ||
         illuminatedType_ == IlluminatedType::BORDER ||
         illuminatedType_ == IlluminatedType::BLEND_BORDER ||
-        illuminatedType_ == IlluminatedType::BLEND_BORDER_CONTENT) {
+        illuminatedType_ == IlluminatedType::BLEND_BORDER_CONTENT ||
+        illuminatedType_ == IlluminatedType::FEATHERING_BORDER) {
         // half width and half height requires divide by 2.0f
         Vector4f width = { borderWidth_ / 2.0f };
         auto borderRRect = rrect.Inset(width);
@@ -569,6 +570,14 @@ void RSPointLightDrawable::DrawLight(Drawing::Canvas* canvas) const
     auto phongShaderBuilder = GetPhongShaderBuilder();
     if (!phongShaderBuilder) {
         return;
+    }
+    if (illuminatedType_ == IlluminatedType::FEATHERING_BORDER) {
+        phongShaderBuilder = GetFeatheringBoardLightShaderBuilder();
+        float rectWidth = borderRRect_.GetRect().GetWidth() + borderWidth_;
+        float rectHeight = borderRRect_.GetRect().GetHeight() + borderWidth_;
+        phongShaderBuilder->SetUniform("iResolution", rectWidth, rectHeight);
+        phongShaderBuilder->SetUniform("borderRadius",
+            borderRRect_.GetCornerRadius(Drawing::RoundRect::CornerPos::TOP_LEFT_POS).GetX());
     }
     constexpr int vectorLen = 4;
     float lightPosArray[vectorLen * MAX_LIGHT_SOURCES] = { 0 };
@@ -609,7 +618,8 @@ void RSPointLightDrawable::DrawLight(Drawing::Canvas* canvas) const
         (illuminatedType_ == IlluminatedType::BLEND_CONTENT)) {
         DrawContentLight(*canvas, phongShaderBuilder, brush, lightIntensityArray);
     } else if ((illuminatedType_ == IlluminatedType::BORDER) ||
-        (illuminatedType_ == IlluminatedType::BLEND_BORDER)) {
+        (illuminatedType_ == IlluminatedType::BLEND_BORDER) ||
+        (illuminatedType_ == IlluminatedType::FEATHERING_BORDER)) {
         DrawBorderLight(*canvas, phongShaderBuilder, pen, lightIntensityArray);
     }
 }
@@ -664,6 +674,79 @@ const std::shared_ptr<Drawing::RuntimeShaderBuilder>& RSPointLightDrawable::GetP
     lightEffect = std::move(effect);
     phongShaderBuilder = std::make_shared<Drawing::RuntimeShaderBuilder>(lightEffect);
     return phongShaderBuilder;
+}
+
+const std::shared_ptr<Drawing::RuntimeShaderBuilder>& RSPointLightDrawable::GetFeatheringBoardLightShaderBuilder()
+{
+    thread_local std::shared_ptr<Drawing::RuntimeShaderBuilder> featheringBoardLightShaderBuilder;
+    if (featheringBoardLightShaderBuilder) {
+        return featheringBoardLightShaderBuilder;
+    }
+    std::shared_ptr<Drawing::RuntimeEffect> lightEffect;
+    const static std::string lightString(R"(
+        uniform vec2 iResolution;
+        uniform float borderRadius;
+        uniform vec4 lightPos[12];
+        uniform vec4 viewPos[12];
+        uniform vec4 specularLightColor[12];
+        uniform float specularStrength[12];
+
+        float sdRoundedBox(vec2 p, vec2 b, vec4 r, float inOffset)
+        {
+            r.xy = (p.x>0.0)?r.xy : r.zw;
+            r.x  = (p.y>0.0)?r.x  : r.y;
+            vec2 q = abs(p)-b+r.x;
+            return (min(max(q.x, q.y), 0.0) +
+                length(max(q, 0.0)) - r.x) + inOffset;
+        }
+
+        float smin(float a, float b, float k)
+        {
+            k *= 6.0;
+            float h = max(k-abs(a-b), 0.0)/k;
+            return min(a, b) - h*h*h*k*(1.0/6.0);
+        }
+
+        mediump vec4 main(vec2 drawing_coord) {
+            vec4 lightColor = vec4(1.0, 1.0, 1.0, 1.0);
+            float ambientStrength = 0.0;
+            vec4 diffuseColor = vec4(1.0, 1.0, 1.0, 1.0);
+            float diffuseStrength = 0.0;
+            float shininess = 8.0;
+            mediump vec4 fragColor = vec4(0.0, 0.0, 0.0, 0.0);
+            vec4 NormalMap = vec4(0.0, 0.0, 1.0, 0.0);
+            // ambient
+            vec4 ambient = lightColor * ambientStrength;
+            vec3 norm = normalize(NormalMap.rgb);
+            float sd = sdRoundedBox(drawing_coord.xy - iResolution.xy/2.0,
+                vec2(iResolution.x/2.0, iResolution.y/2.0),
+                vec4(borderRadius), 0.0)/(iResolution.y*0.5);
+
+            for (int i = 0; i < 12; i++) {
+                if (abs(specularStrength[i]) > 0.01) {
+                    vec3 lightDir = normalize(vec3(lightPos[i].xy - drawing_coord, lightPos[i].z));
+                    float diff = max(dot(norm, lightDir), 0.0);
+                    vec4 diffuse = diff * lightColor;
+                    vec3 viewDir = normalize(vec3(viewPos[i].xy - drawing_coord, viewPos[i].z)); // view vector
+                    vec3 halfwayDir = normalize(lightDir + viewDir); // half vector
+                    float spec = pow(max(dot(norm, halfwayDir), 0.0), shininess); // exponential relationship of angle
+                    spec = ((-smin(1.0-spec, abs(sd), 0.3)-0.018)/0.282);
+                    vec4 specular = lightColor * spec; // multiply color of incident light
+                    vec4 o = ambient + diffuse * diffuseStrength * diffuseColor; // diffuse reflection
+                    vec4 specularColor = specularLightColor[i];
+                    fragColor = fragColor + o + specular * specularStrength[i] * specularColor;
+                }
+            }
+            return fragColor;
+        }
+    )");
+    std::shared_ptr<Drawing::RuntimeEffect> effect = Drawing::RuntimeEffect::CreateForShader(lightString);
+    if (!effect) {
+        ROSEN_LOGE("light effect error");
+        return featheringBoardLightShaderBuilder;
+    }
+    featheringBoardLightShaderBuilder = std::make_shared<Drawing::RuntimeShaderBuilder>(effect);
+    return featheringBoardLightShaderBuilder;
 }
 
 void RSPointLightDrawable::DrawContentLight(Drawing::Canvas& canvas,

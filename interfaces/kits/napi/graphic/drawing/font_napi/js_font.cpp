@@ -19,7 +19,11 @@
 #include "js_typeface.h"
 #include "native_value.h"
 #include "path_napi/js_path.h"
+#ifdef USE_M133_SKIA
+#include "src/base/SkUTF.h"
+#else
 #include "src/utils/SkUTF.h"
+#endif
 
 namespace OHOS::Rosen {
 namespace Drawing {
@@ -685,7 +689,7 @@ napi_value JsFont::OnGetBounds(napi_env env, napi_callback_info info)
         return nullptr;
     }
     for (uint32_t i = 0; i < glyphscnt; i++) {
-        napi_value element = GetRectAndConvertToJsValue(env, std::make_shared<Rect>(rectPtr[i]));
+        napi_value element = GetRectAndConvertToJsValue(env, rectPtr[i]);
         status = napi_set_element(env, rectJsArray, i, element);
         if (status != napi_ok) {
             ROSEN_LOGE("failed to set array element");

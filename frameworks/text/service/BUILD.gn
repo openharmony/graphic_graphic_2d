@@ -53,6 +53,7 @@ ohos_source_set("rosen_text_skia") {
     "common/hm_symbol_txt.cpp",
     "common/text_style.cpp",
     "common/typography_style.cpp",
+    "global_config/text_global_config.cpp",
     "skia_txt/convert.cpp",
     "skia_txt/custom_symbol_config.cpp",
     "skia_txt/font_collection.cpp",
@@ -61,6 +62,7 @@ ohos_source_set("rosen_text_skia") {
     "skia_txt/text_line_base.cpp",
     "skia_txt/typography.cpp",
     "skia_txt/typography_create.cpp",
+    "text_effect/text_effect_factory_creator.cpp",
   ]
 
   external_deps = [
@@ -80,7 +82,7 @@ ohos_source_set("rosen_text_skia") {
       "hitrace:hitrace_meter",
       "init:libbegetutil",
     ]
-    defines = [ "OHOS_TEXT_ENABLE" ]
+    defines = [ "ENABLE_OHOS_ENHANCE" ]
   }
 
   part_name = "graphic_2d"

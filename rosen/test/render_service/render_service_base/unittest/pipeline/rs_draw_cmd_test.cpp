@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "foundation/graphic/graphic_surface/surface/include/surface_buffer_impl.h"
+#include "surface_buffer_impl.h"
 #include "gtest/gtest.h"
 #include "image_source.h"
 #include "pixel_map.h"

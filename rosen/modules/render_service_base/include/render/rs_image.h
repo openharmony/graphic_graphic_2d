@@ -16,8 +16,6 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_RENDER_RS_IMAGE_H
 #define RENDER_SERVICE_CLIENT_CORE_RENDER_RS_IMAGE_H
 
-#include <pthread.h>
-
 #include "draw/canvas.h"
 #include "effect/color_filter.h"
 #include "image/image.h"
@@ -133,7 +131,7 @@ public:
     [[nodiscard]] static RSImage* Unmarshalling(Parcel& parcel);
 #endif
     std::string PixelSamplingDump() const;
-    void dump(std::string &desc, int depth) const
+    void Dump(std::string &desc, uint8_t depth) const
     {
         std::string split(depth, '\t');
         desc += split + "RSImage:{ ";
@@ -171,7 +169,7 @@ private:
     std::shared_ptr<Drawing::ShaderEffect> GenerateImageShaderForDrawRect(
         const Drawing::Canvas& canvas, const Drawing::SamplingOptions& sampling) const;
     void DrawImageShaderRectOnCanvas(
-        Drawing::Canvas& canvas, const std::shared_ptr<Drawing::ShaderEffect>& imageShader, pthread_t imageTid) const;
+        Drawing::Canvas& canvas, const std::shared_ptr<Drawing::ShaderEffect>& imageShader) const;
     void DrawImageWithFirMatrixRotateOnCanvas(
         const Drawing::SamplingOptions& samplingOptions, Drawing::Canvas& canvas) const;
     void ApplyImageOrientation(Drawing::Canvas& canvas);
@@ -200,6 +198,7 @@ private:
     bool isFitMatrixValid_ = false;
     OrientationFit orientationFit_ = OrientationFit::NONE;
     bool isOrientationValid_ = false;
+    Drawing::Rect rectForDrawShader_;
 };
 
 template<>

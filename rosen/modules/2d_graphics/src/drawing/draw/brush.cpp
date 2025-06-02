@@ -15,6 +15,7 @@
 
 #include "draw/brush.h"
 
+#include "config/DrawingConfig.h"
 #include "static_factory.h"
 
 namespace OHOS {
@@ -118,6 +119,12 @@ const Filter& Brush::GetFilter() const
 
 void Brush::SetShaderEffect(std::shared_ptr<ShaderEffect> e)
 {
+#ifdef DRAWING_DISABLE_API
+    if (DrawingConfig::IsDisabled(DrawingConfig::DrawingDisableFlag::DISABLE_SHADER)) {
+        shaderEffect_ = nullptr;
+        return;
+    }
+#endif
     shaderEffect_ = e;
 }
 
@@ -133,6 +140,12 @@ std::shared_ptr<BlurDrawLooper> Brush::GetLooper() const
 
 void Brush::SetBlender(std::shared_ptr<Blender> blender)
 {
+#ifdef DRAWING_DISABLE_API
+    if (DrawingConfig::IsDisabled(DrawingConfig::DrawingDisableFlag::DISABLE_BLENDER)) {
+        blender_ = nullptr;
+        return;
+    }
+#endif
     blender_ = blender;
 }
 

@@ -345,6 +345,50 @@ HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_003, TestSize.Level2)
 }
 
 /*
+ * @tc.name: ConsumeAndUpdateBuffer_004
+ * @tc.desc: Test ConsumeAndUpdateBuffer while need surfaceNode
+ * @tc.type: FUNC
+ * @tc.require: issueIC8HC4
+ */
+HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_004, TestSize.Level2)
+{
+    // create producer and consumer
+    auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(rsSurfaceRenderNode, nullptr);
+    const auto& surfaceConsumer = rsSurfaceRenderNode->GetRSSurfaceHandler()->GetConsumer();
+    ASSERT_NE(surfaceConsumer, nullptr);
+    auto producer = surfaceConsumer->GetProducer();
+    ASSERT_NE(producer, nullptr);
+    psurf = Surface::CreateSurfaceAsProducer(producer);
+    ASSERT_NE(psurf, nullptr);
+    psurf->SetQueueSize(1);
+
+    // request buffer
+    sptr<SurfaceBuffer> buffer;
+    sptr<SyncFence> requestFence = SyncFence::INVALID_FENCE;
+    GSError ret = psurf->RequestBuffer(buffer, requestFence, requestConfig);
+    ASSERT_EQ(ret, GSERROR_OK);
+
+    // flush buffer
+    sptr<SyncFence> flushFence = SyncFence::INVALID_FENCE;
+    ret = psurf->FlushBuffer(buffer, flushFence, flushConfig);
+    ASSERT_EQ(ret, GSERROR_OK);
+
+    // acquire buffer
+    if (RSUniRenderJudgement::IsUniRender() && RSSystemParameters::GetControlBufferConsumeEnabled()) {
+        auto& surfaceHandler = *(rsSurfaceRenderNode->GetRSSurfaceHandler());
+        surfaceHandler.SetConsumer(surfaceConsumer);
+        uint64_t presentWhen = 100; // let presentWhen smaller than INT64_MAX
+        uint64_t parentNodeId = 0;
+        RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, presentWhen, true, false, false, parentNodeId);
+        ASSERT_EQ(surfaceConsumer->GetAvailableBufferCount(), 0);
+    }
+
+    // release buffer
+    surfaceConsumer->ReleaseBuffer(buffer, SyncFence::INVALID_FENCE);
+}
+
+/*
  * @tc.name: ReleaseBuffer_001
  * @tc.desc: Test ReleaseBuffer
  * @tc.type: FUNC
@@ -1270,6 +1314,26 @@ HWTEST_F(RSBaseRenderUtilTest, GetAccumulatedBufferCount_001, TestSize.Level2)
     RSBaseRenderUtil::DecAcquiredBufferCount();
     RSBaseRenderUtil::DecAcquiredBufferCount();
     ASSERT_EQ(0, RSBaseRenderUtil::GetAccumulatedBufferCount());
+}
+
+/*
+ * @tc.name: WriteCacheImageRenderNodeToPngTest
+ * @tc.desc: Test WriteCacheImageRenderNodeToPng
+ * @tc.type: FUNC
+ * @tc.require: IC9VB0
+ */
+HWTEST_F(RSBaseRenderUtilTest, WriteCacheImageRenderNodeToPngTest, TestSize.Level2)
+{
+    std::shared_ptr<Drawing::Bitmap> bitmap = nullptr;
+    std::string debugInfo = "";
+    bool result = RSBaseRenderUtil::WriteCacheImageRenderNodeToPng(bitmap, debugInfo);
+    ASSERT_EQ(false, result);
+
+    auto bitmap2 = std::make_shared<Drawing::Bitmap>();
+    Drawing::BitmapFormat bitmapFormat { Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_OPAQUE };
+    bitmap2->Build(10, 10, bitmapFormat);
+    bool result2 = RSBaseRenderUtil::WriteCacheImageRenderNodeToPng(bitmap2, debugInfo);
+    ASSERT_EQ(true, result2);
 }
 
 } // namespace OHOS::Rosen

@@ -25,6 +25,8 @@
 #include "text/typeface.h"
 #include "utils/rect.h"
 #include "utils/scalar.h"
+#include "draw/brush.h"
+#include "draw/pen.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -232,6 +234,47 @@ public:
      * @return            The width of text.
      */
     scalar MeasureText(const void* text, size_t byteLength, TextEncoding encoding, Rect* bounds = nullptr) const;
+
+    /**
+     * @brief             Measures the width of text with brush or pen, brush and pen are both not nullptr.
+     * @param text        Character storage encoded with TextEncoding
+     * @param byteLength  Length of character storage in bytes
+     * @param encoding    Text encoding.
+     * @param bounds      Bounding box relative to (0, 0)
+     * @param Brush       Brush to apply transparency, filtering, and so on.
+     * @param Pen         Pen to apply transparency, filtering, and so on.
+     * @return            The width of text.
+     */
+    scalar MeasureText(const void* text, size_t byteLength, TextEncoding encoding, Rect* bounds, const Brush* brush,
+        const Pen* pen) const;
+
+    /**
+     * @brief           Retrieves the positions for each glyph, beginning at the specified origin,
+     *                  brush and pen are both not nullptr.
+     * @param glyphs    Indicates the array of glyph indices to be measured.
+     * @param count     Indicates the number of glyphs.
+     * @param widths    Indicates the text advances for each glyph returned to the caller.
+     * @param bounds    Indicates the text bounding box for each glyph returned to caller.
+     * @param brush     Brush to apply transparency, filtering, and so on.
+     * @param pen       Pen to apply transparency, filtering, and so on.
+     */
+    void GetWidthsBounds(
+        const uint16_t glyphs[], int count, float widths[], Rect bounds[], const Brush* brush, const Pen* pen) const;
+
+    /**
+     * @brief           Retrieves the positions for each glyph, beginning at the specified origin.
+     * @param glyphs    Indicates the array of glyph indices to be measured.
+     * @param count     Indicates the number of glyphs.
+     * @param origin    Indicates the location of the first glyph.
+     * @param points    Indicates the relative position for each glyph returned to tha caller.
+     */
+    void GetPos(const uint16_t glyphs[], int count, Point points[], Point origin) const;
+
+    /**
+     * @brief     Returns the recommended spacing between lines.
+     * @return    Spacing between lines.
+     */
+    float GetSpacing() const;
 
     /**
      * @brief          Measure the width of a single character.

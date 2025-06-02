@@ -44,24 +44,15 @@ bool RsCommonHook::GetVideoSurfaceFlag() const
     return videoSurfaceFlag_;
 }
 
-void RsCommonHook::SetP3NodeCountFlag(bool p3NodeCountFlag)
+// use to implement product isolation for the adaptive P3 scheme
+void RsCommonHook::SetAdaptiveColorGamutEnable(bool isAdaptiveColorGamutEnable)
 {
-    p3NodeCountFlag_ = p3NodeCountFlag;
+    isAdaptiveColorGamutEnable_ = isAdaptiveColorGamutEnable;
 }
 
-bool RsCommonHook::GetP3NodeCountFlag() const
+bool RsCommonHook::IsAdaptiveColorGamutEnabled() const
 {
-    return p3NodeCountFlag_;
-}
-
-void RsCommonHook::SetIsCoveredSurfaceCloseP3(bool isCoveredSurfaceCloseP3)
-{
-    isCoveredSurfaceCloseP3_ = isCoveredSurfaceCloseP3;
-}
-
-bool RsCommonHook::GetIsCoveredSurfaceCloseP3() const
-{
-    return isCoveredSurfaceCloseP3_;
+    return isAdaptiveColorGamutEnable_;
 }
 
 // skip hwcnode hardware state updating

@@ -30,6 +30,7 @@ ohos_unittest("frame_analyzer_test") {
     "$graphic_2d_root/utils/test_header:test_header",
   ]
   external_deps = [
+    "bounds_checking_function:libsec_shared",
     "hilog:libhilog",
     "skia:skia_canvaskit",
   ]

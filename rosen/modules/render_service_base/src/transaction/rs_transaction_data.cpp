@@ -13,8 +13,6 @@
  * limitations under the License.
  */
 
-#include "transaction/rs_transaction_data.h"
-
 #include "command/rs_canvas_node_command.h"
 #include "command/rs_command.h"
 #include "command/rs_command_factory.h"
@@ -23,6 +21,9 @@
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "rs_profiler.h"
+#include "rs_trace.h"
+#include "transaction/rs_transaction_data.h"
+#include "transaction/rs_transaction_data_callback_manager.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -194,6 +195,7 @@ void RSTransactionData::Process(RSContext& context)
             command->Process(context);
         }
     }
+    RSTransactionDataCallbackManager::Instance().TriggerTransactionDataCallback(pid_, timestamp_);
 }
 
 void RSTransactionData::Clear()

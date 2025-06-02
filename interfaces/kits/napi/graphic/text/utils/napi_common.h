@@ -507,11 +507,17 @@ bool OnMakeFontFamilies(napi_env& env, napi_value jsValue, std::vector<std::stri
 
 bool SetColorFromJS(napi_env env, napi_value argValue, const std::string& str, Drawing::Color& colorSrc);
 
+bool SetColorFromJS(napi_env env, napi_value argValue, Drawing::Color& colorSrc);
+
 bool GetDecorationFromJS(napi_env env, napi_value argValue, TextStyle& textStyle);
+
+bool GetDecorationFromJSForUpdate(napi_env env, napi_value argValue, TextStyle& textStyle);
 
 bool GetTextStyleFromJS(napi_env env, napi_value argValue, TextStyle& textStyle);
 
 bool GetParagraphStyleFromJS(napi_env env, napi_value argValue, TypographyStyle& pographyStyle);
+
+void HandleExtentParagraphStyleProperties(napi_env env, napi_value argValue, TypographyStyle& pographyStyle);
 
 bool GetPlaceholderSpanFromJS(napi_env env, napi_value argValue, PlaceholderSpan& placeholderSpan);
 

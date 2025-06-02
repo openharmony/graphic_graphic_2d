@@ -23,9 +23,11 @@
       *HgmConfigCallbackManager::RegisterHgmConfigChangeCallback*;
       *HgmConfigCallbackManager::RegisterHgmRefreshRateModeChangeCallback*;
       *HgmConfigCallbackManager::RegisterHgmRefreshRateUpdateCallback*;
+      *HgmConfigCallbackManager::RegisterXComponentExpectedFrameRateCallback*;
       *HgmConfigCallbackManager::SyncHgmConfigChangeCallback*;
       *HgmConfigCallbackManager::SyncRefreshRateModeChangeCallback*;
       *HgmConfigCallbackManager::SyncRefreshRateUpdateCallback*;
+      *HgmConfigCallbackManager::SyncXComponentExpectedFrameRateCallback*;
       *HgmConfigCallbackManager::UnRegisterHgmConfigChangeCallback*;
 
       *HgmCore::AddScreen*;
@@ -69,20 +71,22 @@
       *HgmEnergyConsumptionPolicy::GetVideoCallFrameRate*;
       *HgmEnergyConsumptionPolicy::SetCurrentPkgName*;
 
-      *HgmFrameRateManager::AvoidChangeRateFrequent*;
       *HgmFrameRateManager::CalcRefreshRate*;
       *HgmFrameRateManager::ChangePriority*;
       *HgmFrameRateManager::CleanPageUrlVote*;
       *HgmFrameRateManager::CleanVote*;
       *HgmFrameRateManager::CollectFrameRateChange*;
       *HgmFrameRateManager::CollectVRateChange*;
+      *HgmFrameRateManager::CheckAncoVoterStatus*;
       *HgmFrameRateManager::DeliverRefreshRateVote*;
       *HgmFrameRateManager::FrameRateReport*;
+      *HgmFrameRateManager::GetAncoLowBrightVec*;
       *HgmFrameRateManager::GetDrawingFrameRate*;
       *HgmFrameRateManager::GetExpectedFrameRate*;
       *HgmFrameRateManager::GetLowBrightVec*;
       *HgmFrameRateManager::GetPreferredFps*;
       *HgmFrameRateManager::GetStylusVec*;
+      *HgmFrameRateManager::GetSupportedRefreshRates*;
       *HgmFrameRateManager::HandleAppStrategyConfigEvent*;
       *HgmFrameRateManager::HandleDynamicModeEvent*;
       *HgmFrameRateManager::HandleFrameRateChangeForLTPO*;
@@ -117,10 +121,14 @@
       *HgmFrameRateManager::UpdateVoteRule*;
       *HgmFrameRateManager::HandleGameNode*;
       *HgmFrameRateManager::UpdateSoftVSync*;
+      *HgmFrameRateManager::UpdateFrameRateWithDelay*;
       *HgmFrameRateManager::SetVsyncRateDiscountLTPO*;
       *HgmFrameRateManager::EraseGameRateDiscountMap*;
       *HgmFrameRateManager::CollectGameRateDiscountChange*;
       *HgmFrameRateManager::GetVRateMiniFPS*;
+      *HgmFrameRateManager::CheckNeedUpdateAppOffset*;
+      *HgmFrameRateManager::HandleTouchTask*;
+      *HgmFrameRateManager::MarkVoteChange*;
 
       *HgmHfbcConfig::HandleHfbcConfig*;
       *HgmHfbcConfig::SetHfbcConfigMap*;
@@ -186,6 +194,18 @@
       *HgmTouchManager::SetRsIdleTimeout*;
       *HgmTouchManager::State2String*;
 
+      *HgmSoftVSyncManager::HgmSoftVSyncManager*;
+      *HgmSoftVSyncManager::InitController*;
+      *HgmSoftVSyncManager::SetWindowExpectedRefreshRate*;
+      *HgmSoftVSyncManager::CollectVRateChange*;
+      *HgmSoftVSyncManager::SetVsyncRateDiscountLTPO*;
+      *HgmSoftVSyncManager::GetDrawingFrameRate*;
+      *HgmSoftVSyncManager::UniProcessDataForLtpo*;
+      *HgmSoftVSyncManager::CollectFrameRateChange*;
+      *HgmSoftVSyncManager::GetVRateMiniFPS*;
+      *HgmSoftVSyncManager::EraseGameRateDiscountMap*;
+      *HgmSoftVSyncManager::CollectGameRateDiscountChange*;
+
       *HgmPointerManager::CheckChangeStateValid*;
       *HgmPointerManager::HandleRsFrame*;
       *HgmPointerManager::HandleTimerReset*;
@@ -197,6 +217,24 @@
       *HgmVSyncGeneratorController::GetAppOffset*;
       *HgmVSyncGeneratorController::HgmVSyncGeneratorController*;
       *HgmVSyncGeneratorController::~HgmVSyncGeneratorController*;
+
+      *HgmFrameVoter::HgmFrameVoter*;
+      *HgmFrameVoter::GetVoters*;
+      *HgmFrameVoter::GetVoterGamesEffective*;
+      *HgmFrameVoter::IsDragScene*;
+      *HgmFrameVoter::SetDragScene*;
+      *HgmFrameVoter::CleanVote*;
+      *HgmFrameVoter::DeliverVote*;
+      *HgmFrameVoter::ProcessVote*;
+      *HgmFrameVoter::SetChangeRangeCallback*;
+      *HgmFrameVoter::ProcessVoteLog*;
+      *HgmFrameVoter::MergeLtpo2IdleVote*;
+      *HgmFrameVoter::CheckAncoVoter*;
+      *HgmFrameVoter::ProcessVoteIter*;
+      *HgmFrameVoter::ChangePriority*;
+      *HgmFrameVoter::UpdateVoteRule*;
+
+      *HgmVoter::MergeRangeByPriority*;
 
       *RSFrameRateVote::CancelVoteRate*;
       *RSFrameRateVote::NotifyRefreshRateEvent*;

@@ -19,7 +19,10 @@
 
 #include "include/core/SkCanvas.h"
 #include "src/image/SkImage_Base.h"
-#ifdef NEW_SKIA
+#ifdef USE_M133_SKIA
+#include "include/gpu/ganesh/GrBackendSurface.h"
+#include "include/gpu/ganesh/GrDirectContext.h"
+#else
 #include "include/gpu/GrBackendSurface.h"
 #include "include/gpu/GrDirectContext.h"
 #endif
@@ -46,6 +49,7 @@ namespace Rosen {
 static std::mutex drawingMutex_;
 namespace {
 constexpr uint32_t DRAWCMDLIST_COUNT_LIMIT = 300;
+constexpr uint32_t DRAWCMDLIST_OPSIZE_TOTAL_COUNT_LIMIT = 10000;
 }
 RSCanvasDrawingRenderNode::RSCanvasDrawingRenderNode(
     NodeId id, const std::weak_ptr<RSContext>& context, bool isTextureExportNode)
@@ -564,6 +568,7 @@ void RSCanvasDrawingRenderNode::AddDirtyType(RSModifierType modifierType)
     }
 
     size_t originCmdListSize = drawCmdLists_[modifierType].size();
+    ReportOpCount(drawCmdLists_[modifierType]);
     for (const auto& modifier : itr->second) {
         if (modifier == nullptr) {
             continue;
@@ -583,6 +588,20 @@ void RSCanvasDrawingRenderNode::AddDirtyType(RSModifierType modifierType)
         SetNeedProcess(true);
     }
     CheckDrawCmdListSize(modifierType, originCmdListSize);
+}
+
+void RSCanvasDrawingRenderNode::ReportOpCount(const std::list<Drawing::DrawCmdListPtr>& cmdLists) const
+{
+    size_t totalOpCount = 0;
+    for (const auto& cmdList : cmdLists) {
+        if (cmdList != nullptr) {
+            totalOpCount += cmdList->GetOpItemSize();
+        }
+    }
+    if (totalOpCount > DRAWCMDLIST_OPSIZE_TOTAL_COUNT_LIMIT) {
+        RS_LOGI_LIMIT("CanvasDrawingNode OpCount oversize, NodeId[%{public}" PRIu64 "] totalOpCount[%{public}zu]",
+            GetId(), totalOpCount);
+    }
 }
 
 void RSCanvasDrawingRenderNode::ClearOp()

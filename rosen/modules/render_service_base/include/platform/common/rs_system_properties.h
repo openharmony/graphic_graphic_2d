@@ -39,8 +39,9 @@ enum class DirtyRegionDebugType {
     MULTI_HISTORY,
     CURRENT_SUB_AND_WHOLE,
     CURRENT_WHOLE_AND_MULTI_HISTORY,
-    EGL_DAMAGE, // all dirty region infomation, includes detailed app dirty region and global dirty.
+    EGL_DAMAGE, // all dirty region information, includes detailed app dirty region and global dirty.
     DISPLAY_DIRTY, // detailed global dirty (before merge rect).
+    MERGED_DIRTY, // advanced dirty region information, includes merged dirty region
     CUR_DIRTY_DETAIL_ONLY_TRACE = 10,
     UPDATE_DIRTY_REGION, // dirty region for each node.
     OVERLAY_RECT,   // drawRegion
@@ -139,6 +140,7 @@ enum class ComponentEnableSwitch {
     SVG,
     HMSYMBOL,
     CANVAS,
+    SWITCH_MAX,
 };
 
 struct GetComponentSwitch {
@@ -335,6 +337,7 @@ public:
         return RSSystemProperties::GetGpuApiType() != GpuApiType::OPENGL;
     }
 
+    static bool ViewDrawNodeType();
     static bool GetJankLoadOptimizeEnabled();
     static int GetRSNodeLimit();
     static std::string GetVersionType();
@@ -365,6 +368,8 @@ public:
     static bool GetVKImageUseEnabled();
     static void SetBehindWindowFilterEnabled(bool enabled);
     static bool GetBehindWindowFilterEnabled();
+    static bool GetSubThreadControlFrameRate();
+    static int GetSubThreadDropFrameInterval();
 private:
     RSSystemProperties() = default;
 

@@ -13,6 +13,8 @@
 
 import("//build/ohos.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
+import(
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/config.gni")
 
 ## Build libglfw_render_context.so {{{
 config("libglfw_render_context_config") {
@@ -30,17 +32,25 @@ config("libglfw_render_context_public_config") {
   include_dirs = [ "export" ]
 }
 
-ohos_shared_library("libglfw_render_context") {
-  sources = [ "src/glfw_render_context.cpp" ]
+if (rosen_preview) {
+  ohos_shared_library("libglfw_render_context") {
+    sources = [ "src/glfw_render_context.cpp" ]
 
-  configs = [ ":libglfw_render_context_config" ]
+    configs = [ ":libglfw_render_context_config" ]
 
-  public_configs = [ ":libglfw_render_context_public_config" ]
+    public_configs = [ ":libglfw_render_context_public_config" ]
 
-  deps = [ "//third_party/glfw:glfw" ]
-  external_deps = [ "hilog:libhilog" ]
+    deps = [ "//third_party/glfw:glfw" ]
 
-  part_name = "graphic_2d"
-  subsystem_name = "graphic"
+    external_deps = [
+      "hilog:libhilog",
+    ]
+
+    part_name = "graphic_2d"
+    subsystem_name = "graphic"
+  }
+} else {
+  group("libglfw_render_context") {
+  }
 }
 ## Build libglfw_render_context.so }}}

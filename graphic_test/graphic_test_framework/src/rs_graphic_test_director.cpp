@@ -295,10 +295,10 @@ void RSGraphicTestDirector::OnVSync(int64_t time)
     }
 }
 
-void RSGraphicTestDirector::SendProfilerCommand(const std::string command)
+void RSGraphicTestDirector::SendProfilerCommand(const std::string command, int outTime)
 {
     if (profilerThread_) {
-        profilerThread_->SendCommand(command);
+        profilerThread_->SendCommand(command, outTime);
     }
 }
 } // namespace Rosen

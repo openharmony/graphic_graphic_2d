@@ -66,10 +66,12 @@ HWTEST_F(EglCoreTest, EglCoreInit002, Level2)
  */
 HWTEST_F(EglCoreTest, EglCoreInit003, Level2)
 {
+    auto temp = gWrapperHook.isLoad;
     gWrapperHook.isLoad = true;
     gWrapperHook.useMesa = true;
     auto result = EglCoreInit();
     ASSERT_TRUE(result);
+    gWrapperHook.isLoad = temp;
 }
 #endif
 } // OHOS::Rosen

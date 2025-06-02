@@ -50,10 +50,18 @@ int32_t ColorGamutParamParse::ParseColorGamutInternal(xmlNode &node)
     auto val = ExtractPropertyValue("value", *currNode);
     if (xmlParamType == PARSE_XML_FEATURE_SWITCH) {
         bool isEnabled = ParseFeatureSwitch(val);
-        if (name == "WiredExtendScreenCloseP3") {
-            ColorGamutParam::SetWiredExtendScreenCloseP3(isEnabled);
-            RS_LOGI("ColorGamutParamParse parse WiredExtendScreenCloseP3 %{public}d",
-                ColorGamutParam::IsWiredExtendScreenCloseP3());
+        if (name == "DisableP3OnWiredExtendedScreen") {
+            ColorGamutParam::SetDisableP3OnWiredExtendedScreen(isEnabled);
+            RS_LOGI("ColorGamutParamParse parse DisableP3OnWiredExtendedScreen %{public}d",
+                ColorGamutParam::DisableP3OnWiredExtendedScreen());
+        } else if (name == "AdaptiveColorGamutEnable") {
+            ColorGamutParam::SetAdaptiveColorGamutEnable(isEnabled);
+            RS_LOGI("ColorGamutParamParse parse AdaptiveColorGamutEnable %{public}d",
+                ColorGamutParam::IsAdaptiveColorGamutEnabled());
+        } else if (name == "SkipOccludedNodeDuringColorGamutCollection") {
+            ColorGamutParam::SetSkipOccludedNodeDuringColorGamutCollection(isEnabled);
+            RS_LOGI("ColorGamutParamParse parse SkipOccludedNodeDuringColorGamutCollection %{public}d",
+                ColorGamutParam::SkipOccludedNodeDuringColorGamutCollection());
         }
     }
 

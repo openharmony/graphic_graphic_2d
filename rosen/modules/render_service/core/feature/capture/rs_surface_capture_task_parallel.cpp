@@ -235,6 +235,9 @@ bool RSSurfaceCaptureTaskParallel::Run(
             captureParam.isSelfCapture, captureParam.blurParam.isNeedBlur));
         canvas.SetIsWindowFreezeCapture(captureParam.isFreeze);
         surfaceNodeDrawable_->OnCapture(canvas);
+        RS_LOGI("RSSurfaceCaptureTaskParallel::Run: the number of total processedNodes: %{public}d",
+            DrawableV2::RSRenderNodeDrawable::GetSnapshotProcessedNodeCount());
+        DrawableV2::RSRenderNodeDrawable::ClearSnapshotProcessedNodeCount();
         if (captureParam.isFreeze) {
             surfaceNodeDrawable_->SetCacheImageByCapture(surface->GetImageSnapshot());
         }
@@ -243,7 +246,11 @@ bool RSSurfaceCaptureTaskParallel::Run(
         }
     } else if (displayNodeDrawable_) {
         RSUniRenderThread::SetCaptureParam(CaptureParam(true, false, false));
+        // Screenshot blacklist, exclude surfaceNode in blacklist while capturing displaynode
+        std::unordered_set<NodeId> blackList(captureConfig_.blackList.begin(), captureConfig_.blackList.end());
+        RSUniRenderThread::Instance().SetBlackList(blackList);
         displayNodeDrawable_->OnCapture(canvas);
+        RSUniRenderThread::Instance().SetBlackList({});
     } else {
         RS_LOGE("RSSurfaceCaptureTaskParallel::Run: Invalid RSRenderNodeDrawable!");
         return false;
@@ -254,9 +261,6 @@ bool RSSurfaceCaptureTaskParallel::Run(
     (defined(RS_ENABLE_EGLIMAGE) && defined(RS_ENABLE_UNI_RENDER))
     RSUniRenderUtil::OptimizedFlushAndSubmit(surface, gpuContext_.get(), GetFeatureParamValue("CaptureConfig",
         &CaptureBaseParam::IsSnapshotWithDMAEnabled).value_or(false));
-    if (curNodeParams && curNodeParams->IsNodeToBeCaptured()) {
-        RSUifirstManager::Instance().AddCapturedNodes(curNodeParams->GetId());
-    }
     bool snapshotDmaEnabled = system::GetBoolParameter("rosen.snapshotDma.enabled", true);
     bool isEnableFeature = GetFeatureParamValue("CaptureConfig",
         &CaptureBaseParam::IsSnapshotWithDMAEnabled).value_or(false);
@@ -363,10 +367,10 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTaskParallel::CreatePixelMapByD
         " origin pixelmap size: [%{public}u, %{public}u],"
         " scale: [%{public}f, %{public}f],"
         " ScreenRect: [%{public}f, %{public}f, %{public}f, %{public}f],"
-        " useDma: [%{public}d], screenRotation: [%{public}d], screenCorrection: [%{public}d]",
+        " useDma: [%{public}d], screenRotation: [%{public}d], screenCorrection: [%{public}d], blackList: [%{public}zu]",
         node->GetId(), pixmapWidth, pixmapHeight, captureConfig_.scaleX, captureConfig_.scaleY,
         rect.GetLeft(), rect.GetTop(), rect.GetWidth(), rect.GetHeight(),
-        captureConfig_.useDma, screenRotation_, screenCorrection_);
+        captureConfig_.useDma, screenRotation_, screenCorrection_, captureConfig_.blackList.size());
     std::unique_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(opts);
     if (pixelMap) {
         GraphicColorGamut windowColorGamut = node->GetColorSpace();

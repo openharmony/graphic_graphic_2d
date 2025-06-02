@@ -49,7 +49,7 @@ HWTEST_F(TextBundleConfigParserTest, BundleManagerTest001, TestSize.Level1)
     EXPECT_FALSE(TextBundleConfigParser::GetInstance().IsAdapterTextHeightEnabled());
 }
 
-#ifdef OHOS_TEXT_ENABLE
+#ifdef ENABLE_OHOS_ENHANCE
 /*
  * @tc.name: IsTargetApiVersionText001
  * @tc.desc: test for IsTargetApiVersion

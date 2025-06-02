@@ -232,6 +232,21 @@ HWTEST_F(RSProfilerTest, RSTreeTest, testing::ext::TestSize.Level1)
     });
 }
 
+
+/*
+ * @tc.name: RSTreeTest
+ * @tc.desc: Test SecureScreen
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSProfilerTest, SecureScreen, testing::ext::TestSize.Level1)
+{
+    RSProfiler::testing_ = true;
+    EXPECT_NO_THROW({
+        EXPECT_FALSE(RSProfiler::IsSecureScreen());
+    });
+}
+
 /*
  * @tc.name: RSDoubleTransformationTest
  * @tc.desc: Test double use of FirstFrameMarshalling & FirstFrameUnmarshalling with test tree
@@ -287,5 +302,33 @@ HWTEST_F(RSProfilerTest, RSDoubleTransformationTest, Function | Reliability | La
 
         EXPECT_TRUE(isDrawCmdModifiersEqual);
     });
+}
+
+/*
+ * @tc.name: IfNeedToSkipDuringReplay
+ * @tc.desc: Test IfNeedToSkipDuringReplay method
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSProfilerTest, IfNeedToSkipDuringReplay, Function | Reliability | LargeTest | Level2)
+{
+    RSProfiler::testing_ = true;
+
+    RSProfiler::SetMode(Mode::READ_EMUL);
+
+    auto data = std::make_shared<Drawing::Data>();
+    constexpr size_t length = 40'000;
+    constexpr size_t position = 36;
+
+    void* allocated = malloc(length);
+    EXPECT_TRUE(data->BuildFromMalloc(allocated, length));
+
+    auto* buffer = new[std::nothrow] uint8_t[sizeof(MessageParcel) + 1];
+    MessageParcel* messageParcel = new (buffer + 1) MessageParcel;
+
+    EXPECT_TRUE(RSMarshallingHelper::Marshalling(*messageParcel, data));
+
+    EXPECT_TRUE(RSProfiler::IfNeedToSkipDuringReplay(*messageParcel, position));
+    EXPECT_EQ(messageParcel->GetWritePosition(), position);
 }
 } // namespace OHOS::Rosen

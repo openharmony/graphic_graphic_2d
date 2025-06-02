@@ -40,6 +40,8 @@ enum class FrameSchedEvent {
     RS_BLUR_PREDICT = 10013,
     RS_MODIFIER_INFO = 10014,
     RS_DDGR_TASK = 10017,
+    GPU_SCB_SCENE_INFO = 40001,
+    SCHED_EVENT_MAX,
 };
 
 using InitFunc = void (*)();
@@ -58,7 +60,7 @@ public:
 #endif
     void SendCommandsStart();
     void SetFrameParam(int requestId, int load, int schedFrameNum, int value);
-    void RenderStart(uint64_t timestamp);
+    void RenderStart(uint64_t timestamp, int skipFirstFrame = 0);
     void RenderEnd();
     void DirectRenderEnd();
     void UniRenderStart();
@@ -68,8 +70,9 @@ public:
     void BeginFlush();
     void ReportBufferCount(int count);
     void ReportHardwareInfo(int tid);
-    void ReportFrameDeadline(int deadline);
+    void ReportFrameDeadline(int deadline, uint32_t currentRate);
     void ReportDDGRTaskInfo();
+    void ReportScbSceneInfo(std::string description, bool eventStatus);
 
 private:
     RsFrameReport();

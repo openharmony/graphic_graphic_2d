@@ -36,6 +36,7 @@ group("test") {
     "render_service_base/fuzztest/bufferclearcallbackstub_fuzzer:fuzztest",
     "render_service_base/fuzztest/gfx/fps_info/rssurfacefps_fuzzer:fuzztest",
     "render_service_base/fuzztest/gfx/fps_info/rssurfacefpsmanager_fuzzer:fuzztest",
+    "render_service_base/fuzztest/gfx/performance/rsperfmonitorreporter_fuzzer:fuzztest",
     "render_service_base/fuzztest/hgmconfigchangecallbackproxy_fuzzer:fuzztest",
     "render_service_base/fuzztest/pipeline/rsbaserendernode01_fuzzer:fuzztest",
     "render_service_base/fuzztest/pipeline/rscrossrendernode01_fuzzer:fuzztest",
@@ -77,6 +78,7 @@ group("test") {
     "render_service_base/fuzztest/rslineargradientblurshaderfilter_fuzzer:fuzztest",
     "render_service_base/fuzztest/rslog_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsmarshallinghelper_fuzzer:fuzztest",
+    "render_service_base/fuzztest/rsmemoryflowcontrol_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsmemorysnapshot_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsoverdrawcontroller_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsparticlenoise_fuzzer:fuzztest",
@@ -125,6 +127,7 @@ group("test") {
     "render_service_base/unittest/drawable:unittest",
     "render_service_base/unittest/feature:unittest",
     "render_service_base/unittest/gfx:unittest",
+    "render_service_base/unittest/hwc:unittest",
     "render_service_base/unittest/ipc_callbacks:unittest",
     "render_service_base/unittest/memory:unittest",
     "render_service_base/unittest/modifier:unittest",
@@ -167,6 +170,7 @@ group("test") {
     "render_service_client/unittest/feature:unittest",
     "render_service_client/unittest/modifier:unittest",
     "render_service_client/unittest/pipeline:unittest",
+    "render_service_client/unittest/property:unittest",
     "render_service_client/unittest/render_thread:unittest",
     "render_service_client/unittest/render_thread/jank_detector:unittest",
     "render_service_client/unittest/transaction:unittest",
@@ -178,6 +182,7 @@ group("test") {
 
   if (graphic_2d_feature_enable_vulkan) {
     deps += [
+      "render_service/fuzztest/rsvkimagemanager_fuzzer:fuzztest",
       "render_service_base/fuzztest/nativebufferutils_fuzzer:fuzztest",
       "render_service_base/fuzztest/rssurfaceohosvulkan_fuzzer:fuzztest",
       "render_service_base/fuzztest/rsvulkancontext_fuzzer:fuzztest",

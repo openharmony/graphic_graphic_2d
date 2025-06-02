@@ -13,7 +13,10 @@
  * limitations under the License.
  */
 
+#include <cstdint>
+
 #include "napi_common.h"
+#include "text_style.h"
 
 namespace OHOS::Rosen {
 void BindNativeFunction(napi_env env, napi_value object, const char* name, const char* moduleName, napi_callback func)
@@ -66,22 +69,28 @@ bool OnMakeFontFamilies(napi_env& env, napi_value jsValue, std::vector<std::stri
 bool SetColorFromJS(napi_env env, napi_value argValue, const std::string& str, Drawing::Color& colorSrc)
 {
     napi_value tempValue = nullptr;
-    napi_value tempValueChild = nullptr;
     napi_get_named_property(env, argValue, str.c_str(), &tempValue);
-    if (tempValue == nullptr) {
+    return SetColorFromJS(env, tempValue, colorSrc);
+}
+
+bool SetColorFromJS(napi_env env, napi_value argValue, Drawing::Color& colorSrc)
+{
+    napi_value tempValueChild = nullptr;
+    if (argValue == nullptr) {
         return false;
     }
+
     int32_t alpha = 0;
     int32_t red = 0;
     int32_t green = 0;
     int32_t blue = 0;
-    napi_get_named_property(env, tempValue, "alpha", &tempValueChild);
+    napi_get_named_property(env, argValue, "alpha", &tempValueChild);
     bool isAlphaOk = ConvertClampFromJsValue(env, tempValueChild, alpha, 0, Drawing::Color::RGB_MAX);
-    napi_get_named_property(env, tempValue, "red", &tempValueChild);
+    napi_get_named_property(env, argValue, "red", &tempValueChild);
     bool isRedOk = ConvertClampFromJsValue(env, tempValueChild, red, 0, Drawing::Color::RGB_MAX);
-    napi_get_named_property(env, tempValue, "green", &tempValueChild);
+    napi_get_named_property(env, argValue, "green", &tempValueChild);
     bool isGreenOk = ConvertClampFromJsValue(env, tempValueChild, green, 0, Drawing::Color::RGB_MAX);
-    napi_get_named_property(env, tempValue, "blue", &tempValueChild);
+    napi_get_named_property(env, argValue, "blue", &tempValueChild);
     bool isBlueOk = ConvertClampFromJsValue(env, tempValueChild, blue, 0, Drawing::Color::RGB_MAX);
     if (isAlphaOk && isRedOk && isGreenOk && isBlueOk) {
         Drawing::Color color(Drawing::Color::ColorQuadSetARGB(alpha, red, green, blue));
@@ -118,6 +127,42 @@ bool GetDecorationFromJS(napi_env env, napi_value argValue, const std::string& s
         textStyle.decorationStyle = TextDecorationStyle(decorationStyle);
     }
     SetDoubleValueFromJS(env, tempValue, "decorationThicknessScale", textStyle.decorationThicknessScale);
+    return true;
+}
+
+bool GetDecorationFromJSForUpdate(napi_env env, napi_value argValue, TextStyle& textStyle)
+{
+    if (argValue == nullptr) {
+        return false;
+    }
+
+    napi_value tempValueChild = nullptr;
+    napi_get_named_property(env, argValue, "textDecoration", &tempValueChild);
+    uint32_t textDecoration = 0;
+    if (tempValueChild != nullptr && napi_get_value_uint32(env, tempValueChild, &textDecoration) == napi_ok) {
+        textStyle.decoration = TextDecoration(textDecoration);
+        textStyle.relayoutChangeBitmap.set(static_cast<size_t>(RelayoutTextStyleAttribute::DECORATION));
+    }
+
+    if (SetColorFromJS(env, argValue, "color", textStyle.decorationColor)) {
+        textStyle.relayoutChangeBitmap.set(static_cast<size_t>(RelayoutTextStyleAttribute::DECORATION_COLOR));
+    }
+
+    tempValueChild = nullptr;
+    napi_get_named_property(env, argValue, "decorationStyle", &tempValueChild);
+    uint32_t decorationStyle = 0;
+    if (tempValueChild != nullptr && napi_get_value_uint32(env, tempValueChild, &decorationStyle) == napi_ok) {
+        textStyle.decorationStyle = TextDecorationStyle(decorationStyle);
+        textStyle.relayoutChangeBitmap.set(static_cast<size_t>(RelayoutTextStyleAttribute::DECORATION_STYLE));
+    }
+
+    tempValueChild = nullptr;
+    napi_get_named_property(env, argValue, "decorationThicknessScale", &tempValueChild);
+    double decorationThicknessScale = 1.0;
+    if (tempValueChild != nullptr && napi_get_value_double(env, tempValueChild, &decorationThicknessScale) == napi_ok) {
+        textStyle.decorationThicknessScale = decorationThicknessScale;
+        textStyle.relayoutChangeBitmap.set(static_cast<size_t>(RelayoutTextStyleAttribute::DECORATION_THICKNESS_SCALE));
+    }
     return true;
 }
 
@@ -220,6 +265,34 @@ void SetTextStyleBaseType(napi_env env, napi_value argValue, TextStyle& textStyl
     textStyle.heightScale = textStyle.heightScale < 0 ? 0 : textStyle.heightScale;
 }
 
+void SetTextStyleFontType(napi_env env, napi_value argValue, TextStyle& textStyle)
+{
+    napi_value tempValue = nullptr;
+    napi_get_named_property(env, argValue, "fontWeight", &tempValue);
+    uint32_t fontWeight = 0;
+    if (tempValue != nullptr && napi_get_value_uint32(env, tempValue, &fontWeight) == napi_ok) {
+        textStyle.fontWeight = FontWeight(fontWeight);
+    }
+
+    napi_get_named_property(env, argValue, "fontStyle", &tempValue);
+    uint32_t fontStyle = 0;
+    if (tempValue != nullptr && napi_get_value_uint32(env, tempValue, &fontStyle) == napi_ok) {
+        textStyle.fontStyle = FontStyle(fontStyle);
+        // Let OBLIQUE be equal to ITALIC, it's a temp modify.
+        if (textStyle.fontStyle == FontStyle::OBLIQUE) {
+            textStyle.fontStyle = FontStyle::ITALIC;
+        }
+    }
+
+    SetDoubleValueFromJS(env, argValue, "fontSize", textStyle.fontSize);
+
+    std::vector<std::string> fontFamilies;
+    napi_get_named_property(env, argValue, "fontFamilies", &tempValue);
+    if (tempValue != nullptr && OnMakeFontFamilies(env, tempValue, fontFamilies)) {
+        textStyle.fontFamilies = fontFamilies;
+    }
+}
+
 void ScanShadowValue(napi_env env, napi_value allShadowValue, uint32_t arrayLength, TextStyle& textStyle)
 {
     textStyle.shadows.clear();
@@ -279,35 +352,15 @@ void SetTextShadowProperty(napi_env env, napi_value argValue, TextStyle& textSty
 void ParsePartTextStyle(napi_env env, napi_value argValue, TextStyle& textStyle)
 {
     napi_value tempValue = nullptr;
-    napi_get_named_property(env, argValue, "fontWeight", &tempValue);
-    uint32_t fontWeight = 0;
-    if (tempValue != nullptr && napi_get_value_uint32(env, tempValue, &fontWeight) == napi_ok) {
-        textStyle.fontWeight = FontWeight(fontWeight);
-    }
-    napi_get_named_property(env, argValue, "fontStyle", &tempValue);
-    uint32_t fontStyle = 0;
-    if (tempValue != nullptr && napi_get_value_uint32(env, tempValue, &fontStyle) == napi_ok) {
-        textStyle.fontStyle = FontStyle(fontStyle);
-
-        // Let OBLIQUE be equal to ITALIC, it's a temp modify.
-        if (textStyle.fontStyle == FontStyle::OBLIQUE) {
-            textStyle.fontStyle = FontStyle::ITALIC;
-        }
-    }
     napi_get_named_property(env, argValue, "baseline", &tempValue);
     uint32_t baseline = 0;
     if (tempValue != nullptr && napi_get_value_uint32(env, tempValue, &baseline) == napi_ok) {
         textStyle.baseline = TextBaseline(baseline);
     }
-    SetDoubleValueFromJS(env, argValue, "fontSize", textStyle.fontSize);
 
-    std::vector<std::string> fontFamilies;
-    napi_get_named_property(env, argValue, "fontFamilies", &tempValue);
-    if (tempValue != nullptr && OnMakeFontFamilies(env, tempValue, fontFamilies)) {
-        textStyle.fontFamilies = fontFamilies;
-    }
     GetDecorationFromJS(env, argValue, "decoration", textStyle);
     SetTextStyleBaseType(env, argValue, textStyle);
+    SetTextStyleFontType(env, argValue, textStyle);
     ReceiveFontFeature(env, argValue, textStyle);
     ReceiveFontVariation(env, argValue, textStyle);
     napi_get_named_property(env, argValue, "ellipsis", &tempValue);
@@ -324,6 +377,11 @@ void ParsePartTextStyle(napi_env env, napi_value argValue, TextStyle& textStyle)
     std::string textLocale = "";
     if (tempValue != nullptr && ConvertFromJsValue(env, tempValue, textLocale)) {
         textStyle.locale = textLocale;
+    }
+    napi_get_named_property(env, argValue, "badgeType", &tempValue);
+    size_t textBadgeType = 0;
+    if (tempValue != nullptr && ConvertFromJsValue(env, tempValue, textBadgeType)) {
+        textStyle.badgeType = static_cast<TextBadgeType>(textBadgeType);
     }
 }
 
@@ -403,12 +461,15 @@ bool GetParagraphStyleFromJS(napi_env env, napi_value argValue, TypographyStyle&
     if (tempValue != nullptr && GetTextTabFromJS(env, tempValue, textTab)) {
         pographyStyle.tab = textTab;
     }
-
-    SetEnumValueFromJS(env, argValue, "textHeightBehavior", pographyStyle.textHeightBehavior);
-
-    SetBoolValueFromJS(env, argValue, "trailingSpaceOptimized", pographyStyle.isTrailingSpaceOptimized);
-
+    HandleExtentParagraphStyleProperties(env, argValue, pographyStyle);
     return true;
+}
+
+void HandleExtentParagraphStyleProperties(napi_env env, napi_value argValue, TypographyStyle& pographyStyle)
+{
+    SetEnumValueFromJS(env, argValue, "textHeightBehavior", pographyStyle.textHeightBehavior);
+    SetBoolValueFromJS(env, argValue, "trailingSpaceOptimized", pographyStyle.isTrailingSpaceOptimized);
+    SetBoolValueFromJS(env, argValue, "autoSpace", pographyStyle.enableAutoSpace);
 }
 
 bool GetPlaceholderSpanFromJS(napi_env env, napi_value argValue, PlaceholderSpan& placeholderSpan)
@@ -708,6 +769,8 @@ napi_value CreateTextStyleJsValue(napi_env env, TextStyle textStyle)
         napi_set_named_property(env, objValue, "textShadows", CreateShadowArrayJsValue(env, textStyle.shadows));
         napi_set_named_property(
             env, objValue, "fontFeatures", CreateFontFeatureArrayJsValue(env, textStyle.fontFeatures));
+        napi_set_named_property(env, objValue, "badgeType", CreateJsNumber(
+            env, static_cast<uint32_t>(textStyle.badgeType)));
     }
     return objValue;
 }
@@ -952,7 +1015,8 @@ bool GetStartEndParams(napi_env env, napi_value arg, int64_t &start, int64_t &en
     }
     bool isEndOk = ConvertFromJsValue(env, tempValue, end);
     if (!isStartOk || !isEndOk || start < 0 || end < 0) {
-        TEXT_LOGE("Invalid parameter, is start %{public}d, is end %{public}d, start %{public}lld, end %{public}lld",
+        TEXT_LOGE("Invalid parameter, is start %{public}d, is end %{public}d, start %{public}" PRId64
+        ", end %{public}" PRId64,
             isStartOk, isEndOk, start, end);
         return false;
     }

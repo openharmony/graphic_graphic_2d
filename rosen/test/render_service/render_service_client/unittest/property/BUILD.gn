@@ -1,0 +1,78 @@
+# Copyright (c) 2025 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+import("//build/test.gni")
+
+module_output_path = "graphic_2d/graphic_2d/render_service_client/property"
+
+##############################  RSRenderServiceClientPropertyTest  ##################################
+ohos_unittest("RSRenderServiceClientPropertyTest") {
+  module_out_path = module_output_path
+
+  sources = [
+    "rs_ui_bezier_warp_filter_test.cpp",
+    "rs_ui_blur_filter_test.cpp",
+    "rs_ui_color_gradient_filter_test.cpp",
+    "rs_ui_dispersion_filter_test.cpp",
+    "rs_ui_displacement_distort_filter_test.cpp",
+    "rs_ui_edge_light_filter_test.cpp",
+    "rs_ui_filter_para_base_test.cpp",
+    "rs_ui_filter_test.cpp",
+    "rs_ui_mask_para_test.cpp",
+    "rs_ui_pixel_map_mask_test.cpp",
+    "rs_ui_ripple_mask_test.cpp",
+    "rs_ui_sound_wave_filter_test.cpp",
+  ]
+
+  include_dirs = [ "//foundation/graphic/graphic_2d/rosen/test/include" ]
+
+  configs = [
+    ":property_test",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:render_service_client_config",
+  ]
+
+  cflags = [
+    "-Dprivate = public",
+    "-Dprotected = public",
+  ]
+
+  deps = [
+    "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics:2d_graphics",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:render_service_client_src",
+  ]
+
+  subsystem_name = "graphic"
+  external_deps = [
+    "c_utils:utils",
+    "egl:libEGL",
+    "eventhandler:libeventhandler",
+    "googletest:gtest_main",
+    "graphic_surface:surface",
+    "hilog:libhilog",
+    "image_framework:image_native",
+    "opengles:libGLES",
+  ]
+}
+
+###############################################################################
+config("property_test") {
+  visibility = [ ":*" ]
+  include_dirs =
+      [ "//foundation/graphic/graphic_2d/rosen/modules/render_service_client" ]
+}
+
+group("unittest") {
+  testonly = true
+  deps = [ ":RSRenderServiceClientPropertyTest" ]
+}

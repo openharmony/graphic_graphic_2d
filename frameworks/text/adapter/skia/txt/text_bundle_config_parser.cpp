@@ -16,7 +16,7 @@
 #include "text_bundle_config_parser.h"
 #include "modules/skparagraph/include/TextGlobalConfig.h"
 
-#ifdef OHOS_TEXT_ENABLE
+#ifdef ENABLE_OHOS_ENHANCE
 #include "application_info.h"
 #include "hap_module_info.h"
 #include "iservice_registry.h"
@@ -27,7 +27,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace SPText {
-#ifdef OHOS_TEXT_ENABLE
+#ifdef ENABLE_OHOS_ENHANCE
 const std::string ADAPTER_TEXT_HEIGHT_META_DATA = "ohos.graphics2d.text.adapter_text_height";
 const size_t VERSION_DIVISOR = 100;
 
@@ -88,7 +88,7 @@ bool TextBundleConfigParser::IsTargetApiVersion(size_t targetVersion) const
     return initStatus_ && bundleApiVersion_ >= targetVersion;
 }
 
-#ifdef OHOS_TEXT_ENABLE
+#ifdef ENABLE_OHOS_ENHANCE
 void TextBundleConfigParser::InitTextBundleConfig()
 {
     AppExecFwk::BundleInfo bundleInfo;
@@ -113,7 +113,7 @@ void TextBundleConfigParser::InitTextBundleFailed()
 
 void TextBundleConfigParser::InitBundleInfo()
 {
-#ifdef OHOS_TEXT_ENABLE
+#ifdef ENABLE_OHOS_ENHANCE
     InitTextBundleConfig();
 #else
     InitTextBundleFailed();

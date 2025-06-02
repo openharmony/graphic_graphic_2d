@@ -720,6 +720,34 @@ HWTEST_F(RSMemoryManagerTest, SetGpuMemoryLimit002, testing::ext::TestSize.Level
 }
 
 /**
+ * @tc.name: MemoryOverflow001
+ * @tc.desc: Test MemoryOverflow
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryManagerTest, MemoryOverflow001, testing::ext::TestSize.Level1)
+{
+    logMsg.clear();
+    LOG_SetCallback(MyLogCallback);
+    MemoryManager::MemoryOverflow(1433, 1024, true);
+    EXPECT_TRUE(logMsg.find("RSMemoryOverflow pid[1433]") != std::string::npos);
+}
+
+/**
+ * @tc.name: MemoryOverflow002
+ * @tc.desc: Test pid = 0
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryManagerTest, MemoryOverflow002, testing::ext::TestSize.Level1)
+{
+    logMsg.clear();
+    LOG_SetCallback(MyLogCallback);
+    MemoryManager::MemoryOverflow(0, 1024, true);
+    EXPECT_TRUE(logMsg.find("RSMemoryOverflow pid[") == std::string::npos);
+}
+
+/**
  * @tc.name: DumpExitPidMem001
  * @tc.desc: Verify DumpExitPidMem logs correct trace info
  * @tc.type: FUNC
@@ -760,5 +788,25 @@ HWTEST_F(RSMemoryManagerTest, InterruptReclaimTaskTest001, testing::ext::TestSiz
     RSReclaimMemoryManager::Instance().InterruptReclaimTask("GESTURE_TO_RECENTS");
     ASSERT_FALSE(RSReclaimMemoryManager::Instance().IsReclaimInterrupt());
     RSReclaimMemoryManager::Instance().SetReclaimInterrupt(false);
+}
+
+/**
+ * @tc.name: MemoryOverForReportTest00
+ * @tc.desc: memory over report
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryManagerTest, MemoryOverForReportTest001, testing::ext::TestSize.Level1)
+{
+    std::unordered_map<pid_t, MemorySnapshotInfo> infoMap;
+    pid_t pid = 123;
+    MemorySnapshotInfo info;
+    info.cpuMemory = 1;
+    info.gpuMemory = 2048;
+    infoMap.insert(std::make_pair(pid, info));
+    MemoryManager::memoryWarning_ = 800;
+    MemoryManager::gpuMemoryControl_ = 2000;
+    MemoryManager::MemoryOverForReport(infoMap, false);
+    ASSERT_TRUE(MemoryManager::processKillReportPidSet_.count(pid));
 }
 } // namespace OHOS::Rosen

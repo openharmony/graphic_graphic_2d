@@ -141,6 +141,7 @@ public:
 
     void UpdateDrawingCacheInfoBeforeChildren(RSCanvasRenderNode& node);
 
+    void UpdateOffscreenCanvasNodeId(RSCanvasRenderNode& node);
 private:
     /* Prepare relevant calculation */
     // considering occlusion info for app surface as well as widget
@@ -188,7 +189,6 @@ private:
     bool CheckLuminanceStatusChange(ScreenId id);
     bool CheckSkipCrossNode(RSSurfaceRenderNode& node);
     bool CheckSkipAndPrepareForCrossNode(RSSurfaceRenderNode& node);
-    bool IsFirstFrameOfPartialRender() const;
     bool IsFirstFrameOfOverdrawSwitch() const;
     bool IsFirstFrameOfDrawingCacheDfxSwitch() const;
     bool IsAccessibilityConfigChanged() const;
@@ -269,6 +269,7 @@ private:
 
     bool IsHardwareComposerEnabled();
     void UpdateSpecialLayersRecord(RSSurfaceRenderNode& node);
+    void UpdateBlackListRecord(RSSurfaceRenderNode& node);
     void SendRcdMessage(RSDisplayRenderNode& node);
 
     bool ForcePrepareSubTree()
@@ -323,7 +324,8 @@ private:
     void CollectNodeForOcclusion(RSRenderNode& node);
 
     // Used to initialize the handler of control-level occlusion culling.
-    void InitializeOcclusionHandler(RSRootRenderNode& node);
+    void InitializeOcclusionHandler(RSSurfaceRenderNode& node);
+    void HandleTunnelLayerId(RSSurfaceRenderNode& node);
 
     friend class RSUniHwcVisitor;
     std::unique_ptr<RSUniHwcVisitor> hwcVisitor_;
@@ -409,6 +411,7 @@ private:
     bool hasDisplayHdrOn_ = false;
     std::vector<NodeId> hasVisitedCrossNodeIds_;
     bool isDirtyRegionDfxEnabled_ = false; // dirtyRegion DFX visualization
+    bool isMergedDirtyRegionDfxEnabled_ = false;
     bool isTargetDirtyRegionDfxEnabled_ = false;
     bool isOpaqueRegionDfxEnabled_ = false;
     bool isVisibleRegionDfxEnabled_ = false;
@@ -465,15 +468,15 @@ private:
     // used in uifirst for checking whether leashwindow or its parent should paint or not
     bool globalShouldPaint_ = true;
 
-    int32_t rsDisplayNodeChildNum_ = 0;
+    uint32_t rsDisplayNodeChildNum_ = 0;
 
     int32_t appWindowZOrder_ = 0;
 
     // Used for control-level occlusion culling.
     std::shared_ptr<RSOcclusionHandler> curOcclusionHandler_;
 
-    // in foregroundFilter subtree
-    bool inForegroundFilter_ = false;
+    // record OffscreenCanvas's NodeId
+    NodeId offscreenCanvasNodeId_ = INVALID_NODEID;
 };
 } // namespace Rosen
 } // namespace OHOS

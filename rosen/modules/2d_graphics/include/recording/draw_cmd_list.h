@@ -142,7 +142,12 @@ public:
     /**
      * @brief   Marshalling Draw Ops Param from vector to contiguous buffers.
      */
-    void MarshallingDrawOps(Drawing::DrawCmdList *cmdlist = nullptr);
+    void MarshallingDrawOps();
+
+    /**
+     * @brief   Marshalling Draw Ops Param from vector to contiguous buffers. For Profiler Only.
+     */
+     void ProfilerMarshallingDrawOps(Drawing::DrawCmdList *cmdlist);
 
     /**
      * @brief   Unmarshalling Draw Ops from contiguous buffers to vector
@@ -234,7 +239,17 @@ public:
 
     void SetCanvasDrawingOpLimitEnable(bool isEnable);
 
-    bool GetBounds(Rect& rect);
+    /**
+     * @brief Gets the pixelmap rect for hybrid render.
+     */
+    void GetBounds(Rect& rect);
+
+    /**
+     * @brief Check whether enable hybrid render.
+     */
+    bool IsHybridRenderEnabled(uint32_t maxPixelMapWidth, uint32_t maxPixelMapHeight);
+
+    const std::vector<std::shared_ptr<DrawOpItem>> GetDrawOpItems() const;
 
 private:
     void ClearCache();

@@ -1340,6 +1340,26 @@ HWTEST_F(RSRenderNodeTest2, ProcessBehindWindowAfterApplyModifiersTest, TestSize
 }
 
 /**
+ * @tc.name: SetIsOnTheTree
+ * @tc.desc: SetIsOnTheTree ResetChildRelevantFlags and UpdateChildrenRect test
+ * @tc.type: FUNC
+ * @tc.require: issueI9US6V
+ */
+HWTEST_F(RSRenderNodeTest2, SetIsOnTheTree, TestSize.Level1)
+{
+    auto node = std::make_shared<RSCanvasRenderNode>(0);
+    node->isOnTheTree_ = false;
+    node->hasHdrPresent_ = true;
+    node->renderContent_->renderProperties_.hdrUIBrightness_ = 2.0f; // hdr brightness
+    node->SetIsOnTheTree(true, 0, 1, 1, 1);
+    EXPECT_EQ(node->isOnTheTree_, true);
+
+    node->hasHdrPresent_ = false;
+    node->SetIsOnTheTree(false, 0, 1, 1, 1);
+    EXPECT_EQ(node->isOnTheTree_, false);
+}
+
+/**
  * @tc.name: SetIsOnTheTreeTest
  * @tc.desc: SetIsOnTheTree ResetChildRelevantFlags and UpdateChildrenRect test
  * @tc.type: FUNC
@@ -1409,18 +1429,26 @@ HWTEST_F(RSRenderNodeTest2, SetIsOnTheTreeTest02, TestSize.Level1)
 
 /**
  * @tc.name: SetHdrNum
- * @tc.desc: SetIsOnTheTree ResetChildRelevantFlags and UpdateChildrenRect test
+ * @tc.desc: SetHdrNum test
  * @tc.type: FUNC
  * @tc.require: issueI9US6V
  */
 HWTEST_F(RSRenderNodeTest2, SetHdrNum, TestSize.Level1)
 {
-    // SetIsOnTheTree test
-    auto canvasNode = std::make_shared<RSCanvasRenderNode>(DEFAULT_NODE_ID, context);
-    canvasNode->InitRenderParams();
-    EXPECT_NE(canvasNode, nullptr);
-
-    canvasNode->SetHdrNum(true, 0);
+    auto rsContext = std::make_shared<RSContext>();
+    EXPECT_NE(rsContext, nullptr);
+    auto node = std::make_shared<RSRenderNode>(0, rsContext);
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(1);
+    EXPECT_NE(surfaceNode, nullptr);
+    rsContext->nodeMap.renderNodeMap_[ExtractPid(1)][1] = surfaceNode;
+    node->SetHdrNum(true, 1, HDRComponentType::IMAGE);
+    EXPECT_EQ(surfaceNode->hdrPhotoNum_, 1);
+    node->SetHdrNum(true, 1, HDRComponentType::UICOMPONENT);
+    EXPECT_EQ(surfaceNode->hdrUIComponentNum_, 1);
+    node->SetHdrNum(false, 1, HDRComponentType::IMAGE);
+    EXPECT_EQ(surfaceNode->hdrPhotoNum_, 0);
+    node->SetHdrNum(false, 1, HDRComponentType::UICOMPONENT);
+    EXPECT_EQ(surfaceNode->hdrUIComponentNum_, 0);
 }
 
 /**
@@ -2220,56 +2248,6 @@ HWTEST_F(RSRenderNodeTest2, InitCacheSurfaceTest02, TestSize.Level1)
     nodeTest->completedSurfaceThreadIndex_ = 1;
     nodeTest->InitCacheSurface(gpuContextTest3, funcTest3, 1);
     EXPECT_EQ(nodeTest->cacheSurface_, nullptr);
-}
-
-/**
- * @tc.name: DrawCacheSurfaceTest02
- * @tc.desc: DrawCacheSurface test
- * @tc.type: FUNC
- * @tc.require: issueIA61E9
- */
-HWTEST_F(RSRenderNodeTest2, DrawCacheSurfaceTest02, TestSize.Level1)
-{
-    std::shared_ptr<RSRenderNode> node = std::make_shared<RSRenderNode>(0);
-    EXPECT_NE(node, nullptr);
-    node->boundsModifier_ = nullptr;
-    node->frameModifier_ = nullptr;
-    Drawing::Canvas canvasTest1;
-    std::shared_ptr<Drawing::GPUContext> gpuContextTest1 = std::make_shared<Drawing::GPUContext>();
-    canvasTest1.gpuContext_ = gpuContextTest1;
-    RSPaintFilterCanvas paintFilterCanvasTest1(&canvasTest1);
-
-    //set bounds width 5
-    node->boundsWidth_ = 5.0f;
-    node->DrawCacheSurface(paintFilterCanvasTest1, 0, true);
-    //set bounds width 15
-    node->boundsWidth_ = 15.0f;
-    node->DrawCacheSurface(paintFilterCanvasTest1, 0, false);
-    //set bounds 15*15
-    node->boundsWidth_ = 15.0f;
-    node->boundsHeight_ = 15.0f;
-    node->cacheCompletedBackendTexture_.isValid_ = false;
-    paintFilterCanvasTest1.canvas_->paintBrush_.hasFilter_ = true;
-    node->DrawCacheSurface(paintFilterCanvasTest1, 0, true);
-    EXPECT_TRUE(paintFilterCanvasTest1.canvas_->paintBrush_.hasFilter_);
-
-    // RSSystemPrperties:GetRecordongEnabled() is false
-    node->cacheCompletedBackendTexture_.isValid_ = true;
-    RSShadow rsShadow;
-    std::optional <RSShadow>shadow(rsShadow);
-    node->renderContent_->renderProperties_.shadow_ = shadow;
-    node->renderContent_->renderProperties_.shadow_->radius_ = 1.0f;
-    node->cacheType_ = CacheType::ANIMATE_PROPERTY;
-    Drawing::Canvas canvasTest2;
-    std::shared_ptr<Drawing::GPUContext> gpuContextTest2 = std::make_shared<Drawing::GPUContext>();
-    canvasTest2.gpuContext_ = gpuContextTest2;
-    RSPaintFilterCanvas paintFilterCanvasTest2(&canvasTest2);
-    std::shared_ptr<Drawing::SkiaCanvas> implTest1 = std::make_shared<Drawing::SkiaCanvas>();
-    implTest1->skCanvas_ = nullptr;
-    paintFilterCanvasTest2.canvas_->impl_ = implTest1;
-    paintFilterCanvasTest2.canvas_->paintBrush_.hasFilter_ = true;
-    node->DrawCacheSurface(paintFilterCanvasTest2, 0, true);
-    EXPECT_NE(paintFilterCanvasTest2.canvas_, nullptr);
 }
 
 /**

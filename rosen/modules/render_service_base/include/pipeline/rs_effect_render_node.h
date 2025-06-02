@@ -69,6 +69,11 @@ public:
     bool CheckFilterCacheNeedForceClear();
     bool CheckFilterCacheNeedForceSave();
 
+    void SetEffectIntersectWithDRM(bool intersect);
+    bool GetEffectIntersectWithDRM() const;
+    void SetDarkColorMode(bool isDark);
+    bool GetDarkColorMode() const;
+
     // planning: delte when freeze enabled for all nodes.
     bool IsStaticCached() const override
     {
@@ -98,6 +103,8 @@ private:
     bool isRotationChanged_ = false;
     bool preRotationStatus_ = false;
     bool preStaticStatus_ = false;
+    bool isIntersectWithDRM_ = false;
+    bool isDarkColorMode_ = false;
 
     uint64_t currentAttachedScreenId_ = INVALID_SCREEN_ID; // the current screen this node attached.
     bool foldStatusChanged_ = false; // fold or expand screen.

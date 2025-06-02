@@ -82,6 +82,8 @@ void HdiLayerTest::SetUpTestCase()
     EXPECT_CALL(*hdiDeviceMock_, GetSupportedLayerPerFrameParameterKey()).WillRepeatedly(testing::ReturnRef(paramKey_));
     EXPECT_CALL(*hdiDeviceMock_, SetLayerPerFrameParameter(_, _, _, _)).WillRepeatedly(testing::Return(0));
     EXPECT_CALL(*hdiDeviceMock_, SetLayerTunnelHandle(_, _, _)).WillRepeatedly(testing::Return(0));
+    EXPECT_CALL(*hdiDeviceMock_, SetTunnelLayerId(_, _, _)).WillRepeatedly(testing::Return(0));
+    EXPECT_CALL(*hdiDeviceMock_, SetTunnelLayerProperty(_, _, _)).WillRepeatedly(testing::Return(0));
     EXPECT_CALL(*hdiDeviceMock_, GetSupportedPresentTimestampType(_, _, _)).WillRepeatedly(testing::Return(0));
     EXPECT_CALL(*hdiDeviceMock_, GetPresentTimestamp(_, _, _)).WillRepeatedly(testing::Return(0));
     EXPECT_CALL(*hdiDeviceMock_, SetLayerMaskInfo(_, _, _)).WillRepeatedly(testing::Return(0));
@@ -182,6 +184,56 @@ HWTEST_F(HdiLayerTest, SetLayerTunnelHandle001, Function | MediumTest| Level3)
 }
 
 /*
+* Function: SetTunnelLayerId001
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetTunnelLayerId()
+*                  2. check ret
+*/
+HWTEST_F(HdiLayerTest, SetTunnelLayerId001, Function | MediumTest| Level1)
+{
+    HdiLayerTest::hdiLayer_->prevLayerInfo_ = nullptr;
+    ASSERT_EQ(HdiLayerTest::hdiLayer_->SetTunnelLayerId(), GRAPHIC_DISPLAY_SUCCESS);
+}
+ 
+/*
+* Function: SetTunnelLayerId002
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetTunnelLayerId()
+*                  2. check ret
+*/
+HWTEST_F(HdiLayerTest, SetTunnelLayerId002, Function | MediumTest| Level1)
+{
+    uint32_t devId = 1;
+    uint32_t layerId = 2;
+    uint64_t tunnelId = 3;
+ 
+    EXPECT_CALL(*hdiDeviceMock_, SetTunnelLayerId(devId, layerId, tunnelId)).WillOnce(Return(0));
+    ASSERT_EQ(HdiLayerTest::hdiLayer_->SetTunnelLayerId(), 0);
+}
+ 
+/*
+* Function: SetTunnelLayerProperty001
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetTunnelLayerProperty()
+*                  2. check ret
+*/
+HWTEST_F(HdiLayerTest, SetTunnelLayerProperty001, Function | MediumTest| Level1)
+{
+    uint32_t devId = 1;
+    uint32_t layerId = 2;
+    uint32_t property = 3;
+ 
+    EXPECT_CALL(*hdiDeviceMock_, SetTunnelLayerProperty(devId, layerId, property)).WillOnce(Return(0));
+    ASSERT_EQ(HdiLayerTest::hdiLayer_->SetTunnelLayerProperty(), 0);
+}
+
+/*
 * Function: GetLayerStatus001
 * Type: Function
 * Rank: Important(3)
@@ -253,6 +305,92 @@ HWTEST_F(HdiLayerTest, ClearBufferCache001, Function | MediumTest| Level1)
 {
     HdiLayerTest::hdiLayer_->ClearBufferCache();
     EXPECT_EQ(hdiLayer_->bufferCache_.size(), 0);
+}
+
+/*
+ * Function: SetPerFrameParameters001
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call SetPerFrameParameters()
+ *                  2. check ret
+ */
+HWTEST_F(HdiLayerTest, SetPerFrameParameters001, Function | MediumTest| Level1)
+{
+    int32_t result = HdiLayerTest::hdiLayer_->SetPerFrameParameters();
+    EXPECT_EQ(result, GRAPHIC_DISPLAY_SUCCESS);
+}
+ 
+/*
+ * Function: SetPerFrameParameters002
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call SetPerFrameParameters()
+ *                  2. check ret
+ */
+HWTEST_F(HdiLayerTest, SetPerFrameParameters002, Function | MediumTest| Level1)
+{
+    paramKey_.clear();
+    layerInfo_->SetTunnelLayerId(0);
+    layerInfo_->SetTunnelLayerProperty(0);
+    int32_t result = HdiLayerTest::hdiLayer_->SetPerFrameParameters();
+    EXPECT_EQ(result, GRAPHIC_DISPLAY_SUCCESS);
+    EXPECT_CALL(*hdiDeviceMock_, GetSupportedLayerPerFrameParameterKey()).WillRepeatedly(testing::ReturnRef(paramKey_));
+}
+ 
+/*
+ * Function: SetPerFrameParameters003
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call SetPerFrameParameters()
+ *                  2. check ret
+ */
+HWTEST_F(HdiLayerTest, SetPerFrameParameters003, Function | MediumTest| Level1)
+{
+    paramKey_.clear();
+    layerInfo_->SetTunnelLayerId(1);
+    layerInfo_->SetTunnelLayerProperty(0);
+    int32_t result = HdiLayerTest::hdiLayer_->SetPerFrameParameters();
+    EXPECT_EQ(result, GRAPHIC_DISPLAY_SUCCESS);
+    EXPECT_CALL(*hdiDeviceMock_, GetSupportedLayerPerFrameParameterKey()).WillRepeatedly(testing::ReturnRef(paramKey_));
+}
+ 
+/*
+ * Function: SetPerFrameParameters004
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call SetPerFrameParameters()
+ *                  2. check ret
+ */
+HWTEST_F(HdiLayerTest, SetPerFrameParameters004, Function | MediumTest| Level1)
+{
+    paramKey_.clear();
+    layerInfo_->SetTunnelLayerId(0);
+    layerInfo_->SetTunnelLayerProperty(1);
+    int32_t result = HdiLayerTest::hdiLayer_->SetPerFrameParameters();
+    EXPECT_EQ(result, GRAPHIC_DISPLAY_SUCCESS);
+    EXPECT_CALL(*hdiDeviceMock_, GetSupportedLayerPerFrameParameterKey()).WillRepeatedly(testing::ReturnRef(paramKey_));
+}
+ 
+/*
+ * Function: SetPerFrameParameters005
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call SetPerFrameParameters()
+ *                  2. check ret
+ */
+HWTEST_F(HdiLayerTest, SetPerFrameParameters005, Function | MediumTest| Level1)
+{
+    paramKey_.clear();
+    layerInfo_->SetTunnelLayerId(1);
+    layerInfo_->SetTunnelLayerProperty(1);
+    int32_t result = HdiLayerTest::hdiLayer_->SetPerFrameParameters();
+    EXPECT_EQ(result, GRAPHIC_DISPLAY_SUCCESS);
+    EXPECT_CALL(*hdiDeviceMock_, GetSupportedLayerPerFrameParameterKey()).WillRepeatedly(testing::ReturnRef(paramKey_));
 }
 } // namespace
 } // namespace Rosen

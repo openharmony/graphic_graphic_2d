@@ -172,13 +172,6 @@ bool RSSystemProperties::GetHighContrastStatus()
     return {};
 }
 
-#ifndef NEW_SKIA
-bool RSSystemProperties::GetReleaseResourceEnabled()
-{
-    return {};
-}
-#endif
-
 uint32_t RSSystemProperties::GetCorrectionMode()
 {
     return {};
@@ -665,6 +658,11 @@ uint32_t RSSystemProperties::GetHybridRenderTextBlobLenCount()
     return 0;
 }
 
+bool RSSystemProperties::ViewDrawNodeType()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetHybridRenderParallelConvertEnabled()
 {
     return false;
@@ -726,6 +724,16 @@ void RSSystemProperties::SetBehindWindowFilterEnabled(bool enabled)
 bool RSSystemProperties::GetBehindWindowFilterEnabled()
 {
     return false;
+}
+
+bool RSSystemProperties::GetSubThreadControlFrameRate()
+{
+    return false;
+}
+
+int RSSystemProperties::GetSubThreadDropFrameInterval()
+{
+    return 0;
 }
 } // namespace Rosen
 } // namespace OHOS

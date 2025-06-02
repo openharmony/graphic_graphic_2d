@@ -21,7 +21,7 @@
 #include <limits>
 #include <string>
 
-#ifdef OHOS_TEXT_ENABLE
+#ifdef ENABLE_OHOS_ENHANCE
 #include "bundlemgr/bundle_mgr_interface.h"
 #endif
 
@@ -62,7 +62,7 @@ private:
     void InitTextBundleConfig();
     void InitTextBundleFailed();
 
-#ifdef OHOS_TEXT_ENABLE
+#ifdef ENABLE_OHOS_ENHANCE
     bool IsMetaDataExistInModule(const std::string& metaData, const AppExecFwk::BundleInfo& bundleInfo);
     bool GetBundleInfo(AppExecFwk::BundleInfo& bundleInfo);
 #endif

@@ -49,6 +49,14 @@ rosen/modules/render_service_client/core/animation/ @comicchang
 rosen/modules/render_service/core/feature/uifirst/ @conan13234
 rosen/modules/render_service/core/drawable/rs_ui_first_surface_render_node_drawable.cpp @conan13234
 
+[main_thread]
+rosen/modules/render_service/core/pipeline/main_thread/rs_main_thread.h @aslklw
+rosen/modules/render_service/core/pipeline/main_thread/rs_main_thread.cpp @aslklw
+rosen/modules/render_service/core/pipeline/main_thread/rs_render_service.h @aslklw
+rosen/modules/render_service/core/pipeline/main_thread/rs_render_service.cpp @aslklw
+rosen/modules/render_service/core/pipeline/main_thread/rs_render_service_connection.h @aslklw
+rosen/modules/render_service/core/pipeline/main_thread/rs_render_service_connection.cpp @aslklw
+
 [render_thread]
 rosen/modules/render_service/core/pipeline/render_thread/rs_base_render_engine.cpp @charlielou
 rosen/modules/render_service/core/pipeline/render_thread/rs_base_render_engine.h @charlielou

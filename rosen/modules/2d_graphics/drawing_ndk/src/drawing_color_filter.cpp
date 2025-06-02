@@ -16,6 +16,7 @@
 #include "drawing_color_filter.h"
 
 #include "drawing_canvas_utils.h"
+#include "drawing_helper.h"
 
 #include "utils/log.h"
 #include "effect/color_filter.h"
@@ -24,20 +25,15 @@ using namespace OHOS;
 using namespace Rosen;
 using namespace Drawing;
 
-static ColorFilter* CastToColorFilter(OH_Drawing_ColorFilter* cColorFilter)
-{
-    return reinterpret_cast<ColorFilter*>(cColorFilter);
-}
-
-static ColorFilter& CastToColorFilter(OH_Drawing_ColorFilter& cColorFilter)
-{
-    return reinterpret_cast<ColorFilter&>(cColorFilter);
-}
-
 OH_Drawing_ColorFilter* OH_Drawing_ColorFilterCreateBlendMode(uint32_t color, OH_Drawing_BlendMode cBlendMode)
 {
-    return (OH_Drawing_ColorFilter*)new ColorFilter(ColorFilter::FilterType::BLEND_MODE, color,
-        static_cast<BlendMode>(cBlendMode));
+    NativeHandle<ColorFilter>* colorFilterHandle = new NativeHandle<ColorFilter>;
+    colorFilterHandle->value = ColorFilter::CreateBlendModeColorFilter(color, static_cast<BlendMode>(cBlendMode));
+    if (colorFilterHandle->value == nullptr) {
+        delete colorFilterHandle;
+        return nullptr;
+    }
+    return Helper::CastTo<NativeHandle<ColorFilter>*, OH_Drawing_ColorFilter*>(colorFilterHandle);
 }
 
 OH_Drawing_ColorFilter* OH_Drawing_ColorFilterCreateCompose(OH_Drawing_ColorFilter* colorFilter1,
@@ -47,8 +43,22 @@ OH_Drawing_ColorFilter* OH_Drawing_ColorFilterCreateCompose(OH_Drawing_ColorFilt
         g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return nullptr;
     }
-    return (OH_Drawing_ColorFilter*)new ColorFilter(ColorFilter::FilterType::COMPOSE, CastToColorFilter(*colorFilter1),
-        CastToColorFilter(*colorFilter2));
+    NativeHandle<ColorFilter>* colorFilterHandle1 = Helper::CastTo<OH_Drawing_ColorFilter*,
+        NativeHandle<ColorFilter>*>(colorFilter1);
+    NativeHandle<ColorFilter>* colorFilterHandle2 = Helper::CastTo<OH_Drawing_ColorFilter*,
+        NativeHandle<ColorFilter>*>(colorFilter2);
+    if (colorFilterHandle1->value == nullptr || colorFilterHandle2->value == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
+        return nullptr;
+    }
+    NativeHandle<ColorFilter>* colorFilterHandle = new NativeHandle<ColorFilter>;
+    colorFilterHandle->value = ColorFilter::CreateComposeColorFilter(*colorFilterHandle1->value,
+        *colorFilterHandle2->value);
+    if (colorFilterHandle->value == nullptr) {
+        delete colorFilterHandle;
+        return nullptr;
+    }
+    return Helper::CastTo<NativeHandle<ColorFilter>*, OH_Drawing_ColorFilter*>(colorFilterHandle);
 }
 
 OH_Drawing_ColorFilter* OH_Drawing_ColorFilterCreateMatrix(const float matrix[20])
@@ -57,22 +67,58 @@ OH_Drawing_ColorFilter* OH_Drawing_ColorFilterCreateMatrix(const float matrix[20
         g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return nullptr;
     }
-    return (OH_Drawing_ColorFilter*)new ColorFilter(ColorFilter::FilterType::MATRIX, matrix);
+    const float(&arrayRef)[20] = *reinterpret_cast<const float(*)[20]>(matrix);
+    NativeHandle<ColorFilter>* colorFilterHandle = new NativeHandle<ColorFilter>;
+    colorFilterHandle->value = ColorFilter::CreateFloatColorFilter(arrayRef);
+    if (colorFilterHandle->value == nullptr) {
+        delete colorFilterHandle;
+        return nullptr;
+    }
+    return Helper::CastTo<NativeHandle<ColorFilter>*, OH_Drawing_ColorFilter*>(colorFilterHandle);
 }
 
 OH_Drawing_ColorFilter* OH_Drawing_ColorFilterCreateLinearToSrgbGamma()
 {
-    return (OH_Drawing_ColorFilter*)new ColorFilter(ColorFilter::FilterType::LINEAR_TO_SRGB_GAMMA);
+    NativeHandle<ColorFilter>* colorFilterHandle = new NativeHandle<ColorFilter>;
+    colorFilterHandle->value = ColorFilter::CreateLinearToSrgbGamma();
+    if (colorFilterHandle->value == nullptr) {
+        delete colorFilterHandle;
+        return nullptr;
+    }
+    return Helper::CastTo<NativeHandle<ColorFilter>*, OH_Drawing_ColorFilter*>(colorFilterHandle);
 }
 
 OH_Drawing_ColorFilter* OH_Drawing_ColorFilterCreateSrgbGammaToLinear()
 {
-    return (OH_Drawing_ColorFilter*)new ColorFilter(ColorFilter::FilterType::SRGB_GAMMA_TO_LINEAR);
+    NativeHandle<ColorFilter>* colorFilterHandle = new NativeHandle<ColorFilter>;
+    colorFilterHandle->value = ColorFilter::CreateSrgbGammaToLinear();
+    if (colorFilterHandle->value == nullptr) {
+        delete colorFilterHandle;
+        return nullptr;
+    }
+    return Helper::CastTo<NativeHandle<ColorFilter>*, OH_Drawing_ColorFilter*>(colorFilterHandle);
 }
 
 OH_Drawing_ColorFilter* OH_Drawing_ColorFilterCreateLuma()
 {
-    return (OH_Drawing_ColorFilter*)new ColorFilter(ColorFilter::FilterType::LUMA);
+    NativeHandle<ColorFilter>* colorFilterHandle = new NativeHandle<ColorFilter>;
+    colorFilterHandle->value = ColorFilter::CreateLumaColorFilter();
+    if (colorFilterHandle->value == nullptr) {
+        delete colorFilterHandle;
+        return nullptr;
+    }
+    return Helper::CastTo<NativeHandle<ColorFilter>*, OH_Drawing_ColorFilter*>(colorFilterHandle);
+}
+
+OH_Drawing_ColorFilter* OH_Drawing_ColorFilterCreateLighting(uint32_t mulColor, uint32_t addColor)
+{
+    NativeHandle<ColorFilter>* colorFilterHandle = new NativeHandle<ColorFilter>;
+    colorFilterHandle->value = ColorFilter::CreateLightingColorFilter(mulColor, addColor);
+    if (colorFilterHandle->value == nullptr) {
+        delete colorFilterHandle;
+        return nullptr;
+    }
+    return Helper::CastTo<NativeHandle<ColorFilter>*, OH_Drawing_ColorFilter*>(colorFilterHandle);
 }
 
 void OH_Drawing_ColorFilterDestroy(OH_Drawing_ColorFilter* cColorFilter)
@@ -80,5 +126,5 @@ void OH_Drawing_ColorFilterDestroy(OH_Drawing_ColorFilter* cColorFilter)
     if (!cColorFilter) {
         return;
     }
-    delete CastToColorFilter(cColorFilter);
+    delete Helper::CastTo<OH_Drawing_ColorFilter*, NativeHandle<ColorFilter>*>(cColorFilter);
 }

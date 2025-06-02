@@ -21,6 +21,7 @@ config("libhyper_graphic_manager_config") {
     "core/config",
     "core/frame_rate_manager",
     "core/hgm_screen_manager",
+    "core/soft_vsync_manager",
     "core/utils",
     "$graphic_2d_root/rosen/modules/composer/hdi_backend/include",
     "$graphic_2d_root/rosen/modules/platform/ipc_core",
@@ -77,7 +78,10 @@ ohos_shared_library("libhyper_graphic_manager") {
     "core/hgm_screen_manager/hgm_core.cpp",
     "core/hgm_screen_manager/hgm_screen.cpp",
     "core/hgm_screen_manager/hgm_screen_info.cpp",
+    "core/soft_vsync_manager/hgm_soft_vsync_manager.cpp",
+    "core/utils/hgm_frame_voter.cpp",
     "core/utils/hgm_one_shot_timer.cpp",
+    "core/utils/hgm_voter.cpp",
     "frame_rate_vote/rs_frame_rate_vote.cpp",
     "frame_rate_vote/rs_video_frame_rate_vote.cpp",
   ]
@@ -95,6 +99,7 @@ ohos_shared_library("libhyper_graphic_manager") {
 
   deps = [
     "$graphic_2d_root/rosen/modules/composer:libcomposer",
+    "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
     "$graphic_2d_root/rosen/modules/render_frame_trace:render_frame_trace",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
   ]

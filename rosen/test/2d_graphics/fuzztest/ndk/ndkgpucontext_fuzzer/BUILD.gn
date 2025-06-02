@@ -48,7 +48,10 @@ ohos_fuzztest("NdkGpuContextFuzzTest") {
     "$graphic_2d_root/rosen/modules/2d_graphics/drawing_ndk:native_drawing_ndk",
   ]
 
-  external_deps = [ "openssl:libcrypto_shared" ]
+  external_deps = [
+    "bounds_checking_function:libsec_shared",
+    "openssl:libcrypto_shared",
+  ]
 
   part_name = "graphic_2d"
   subsystem_name = "graphic"

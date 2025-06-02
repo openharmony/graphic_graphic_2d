@@ -24,6 +24,7 @@
 #include "pipeline/rs_draw_cmd.h"
 #include "recording/cmd_list_helper.h"
 #include "recording/draw_cmd_list.h"
+#include "recording/draw_cmd.h"
 #include "surface_buffer.h"
 
 namespace OHOS {
@@ -37,7 +38,7 @@ public:
     static void RemoveSurfaceByNodeId(NodeId nodeId, bool postTask = false);
 
     static bool ResetSurfaceByNodeId(
-        int32_t width, int32_t height, NodeId nodeId, bool needResetMatrix = false, bool postTask = false);
+        int32_t width, int32_t height, NodeId nodeId, bool needResetOpItems = false, bool postTask = false);
 
     static std::unique_ptr<Media::PixelMap> GetPixelMapByNodeId(NodeId nodeId, bool useDMA = false);
 
@@ -51,6 +52,12 @@ public:
 
     static void MergeOffTreeNodeSet();
 
+    static void AddDrawRegions(NodeId nodeId, std::shared_ptr<RectF> rect);
+
+    static void EraseDrawRegions(NodeId nodeId);
+
+    static bool CheckIfModifiersDrawThreadInited();
+
     static void InsertForegroundRoot(NodeId nodeId);
 
     static void EraseForegroundRoot(NodeId nodeId);
@@ -58,6 +65,10 @@ public:
     static bool IsBackground();
 
     static void ClearBackGroundMemory();
+
+    static void DestroySemaphore();
+
+    static void PurgeContextResource();
 private:
     struct SurfaceEntry {
         std::shared_ptr<Drawing::Surface> surface = nullptr;
@@ -69,7 +80,8 @@ private:
         sptr<SurfaceBuffer> currentSurfaceBuffer = nullptr;
         sptr<SurfaceBuffer> preAllocSurfaceBuffer = nullptr;
         bool isNeedGenSnapshot = false;
-        std::optional<Drawing::Matrix> matrix;
+        std::vector<std::shared_ptr<Drawing::DrawOpItem>> preDrawOpItems;
+        uint32_t saveLayerCnt = 0;
     };
 
     static sptr<SurfaceBuffer> DmaMemAlloc(
@@ -109,6 +121,9 @@ private:
 
     static void UpdateSize(const std::shared_ptr<Drawing::DrawCmdList>& cmdList, int32_t& width, int32_t& height);
 
+    static void ConvertDrawOpItems(const std::vector<std::shared_ptr<Drawing::DrawOpItem>>& drawOpItems,
+        std::vector<std::shared_ptr<Drawing::DrawOpItem>>& dstOpItems, uint32_t& saveLayerCnt);
+
     static std::unordered_map<NodeId, SurfaceEntry> surfaceEntryMap_;
 
     static std::mutex surfaceEntryMutex_;
@@ -129,6 +144,13 @@ private:
 
     static std::mutex foregroundRootSetMutex_;
     static bool needClearBackgroundMemory_;
+
+    static std::mutex semaphoreInfoMutex_;
+    static std::vector<DestroySemaphoreInfo*> semaphoreInfoVec_;
+
+    static std::unordered_map<NodeId, std::shared_ptr<RectF>> drawRegions_;
+
+    static std::unordered_set<uint32_t> typesToSave_;
 };
 } // namespace Rosen
 } // namespace OHOS

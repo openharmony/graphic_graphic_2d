@@ -81,7 +81,7 @@ public:
     Drawing::RectI GeneratePaintRegion(double x, double y) const override;
     void Relayout(double width, const TypographyStyle& typograhyStyle,
         const std::vector<TextStyle>& textStyles) override;
-
+    void UpdateAllTextStyles(const TextStyle& textStyleTemplate) override;
 private:
     std::unique_ptr<SPText::Paragraph> paragraph_ = nullptr;
     std::vector<TextStyle> lineMetricsStyles_;

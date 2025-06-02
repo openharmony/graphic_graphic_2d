@@ -16,6 +16,7 @@
 #include "gtest/gtest.h"
 
 #include "effect/image_filter.h"
+#include "image/image.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -298,6 +299,24 @@ HWTEST_F(ImageFilterTest, CreateShaderImageFilterTest003, TestSize.Level1)
     Rect rect {0, 0, 100.0f, 100.0f};
     auto imageFilter = ImageFilter::CreateShaderImageFilter(effect, rect);
     EXPECT_TRUE(imageFilter != nullptr);
+}
+
+/*
+ * @tc.name: CreateImageImageFilterTest001
+ * @tc.desc: test for creating a filter that with image.
+ * @tc.type: FUNC
+ * @tc.require: I77M3W
+ */
+HWTEST_F(ImageFilterTest, CreateImageImageFilterTest001, TestSize.Level1)
+{
+    std::shared_ptr<Image> image = std::make_shared<Image>();
+    Rect rect {0, 0, 100.0f, 100.0f};
+    Rect rect2 {0, 0, 10.0f, 10.0f};
+    SamplingOptions options;
+    auto imageFilter = ImageFilter::CreateImageImageFilter(image, rect, rect2, options);
+    EXPECT_TRUE(imageFilter != nullptr);
+    auto imageFilter2 = ImageFilter::CreateImageImageFilter(nullptr, rect, rect2, options);
+    EXPECT_TRUE(imageFilter2 != nullptr);
 }
 } // namespace Drawing
 } // namespace Rosen

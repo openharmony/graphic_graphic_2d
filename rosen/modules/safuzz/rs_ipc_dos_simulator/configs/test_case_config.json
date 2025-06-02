@@ -2289,9 +2289,23 @@
     "messageOption": "TF_ASYNC"
   },
   {
+    "testCaseDesc": "NOTIFY_XCOMPONENT_EXPECTED_FRAMERATE_TEST_001",
+    "interfaceName": "NOTIFY_XCOMPONENT_EXPECTED_FRAMERATE",
+    "inputParams": "WriteString;WriteInt32",
+    "writeInterfaceToken": true,
+    "messageOption": "TF_ASYNC"
+  },
+  {
     "testCaseDesc": "NOTIFY_SCREEN_SWITCHED_TEST_001",
     "interfaceName": "NOTIFY_SCREEN_SWITCHED",
     "inputParams": "",
+    "writeInterfaceToken": true,
+    "messageOption": "TF_ASYNC"
+  },
+  {
+    "testCaseDesc": "REGISTER_TRANSACTION_DATA_CALLBACK_TEST_001",
+    "interfaceName": "REGISTER_TRANSACTION_DATA_CALLBACK",
+    "inputParams": "WriteInt32;WriteUint64;WriteTransactionDataCallbackSptr",
     "writeInterfaceToken": true,
     "messageOption": "TF_ASYNC"
   }

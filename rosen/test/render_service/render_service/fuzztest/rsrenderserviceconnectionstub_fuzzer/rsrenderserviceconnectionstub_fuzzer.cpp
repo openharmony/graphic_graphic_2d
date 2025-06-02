@@ -3009,6 +3009,38 @@ bool DoNotifyHgmConfigEvent(const uint8_t* data, size_t size)
     return true;
 }
 
+bool DoNotifyXComponentExpectedFrameRate(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    FuzzedDataProvider fdp(data, size);
+    uint32_t code = static_cast<uint32_t>(
+        RSIRenderServiceConnectionInterfaceCode::NOTIFY_XCOMPONENT_EXPECTED_FRAMERATE);
+    auto newPid = getpid();
+
+    sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSRenderServiceConnectionStub> connectionStub_ =
+        new RSRenderServiceConnection(newPid, nullptr, nullptr, nullptr, token_->AsObject(), nullptr);
+
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+
+    std::vector<uint8_t> subData =
+        fdp.ConsumeBytes<uint8_t>(fdp.ConsumeIntegralInRange<size_t>(0, fdp.remaining_bytes()));
+    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteBuffer(subData.data(), subData.size());
+    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    return true;
+}
+
 bool DoSetFocusAppInfo()
 {
     int32_t pid = GetData<int32_t>();
@@ -3209,6 +3241,7 @@ bool DoTakeSurfaceCapture(const uint8_t* data, size_t size)
     float top = GetData<float>();
     float right = GetData<float>();
     float bottom = GetData<float>();
+    std::vector<NodeId> blackList{GetData<NodeId>()};
     float areaRectLeft = GetData<float>();
     float areaRectTop = GetData<float>();
     float areaRectRight = GetData<float>();
@@ -3226,6 +3259,7 @@ bool DoTakeSurfaceCapture(const uint8_t* data, size_t size)
     dataParcel.WriteFloat(top);
     dataParcel.WriteFloat(right);
     dataParcel.WriteFloat(bottom);
+    dataParcel.WriteUInt64Vector(blackList);
     dataParcel.WriteBool(isNeedBlur);
     dataParcel.WriteFloat(blurRadius);
     dataParcel.WriteFloat(areaRectLeft);
@@ -3847,6 +3881,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoSetScreenColorSpace(data, size);
     OHOS::Rosen::DoSetFocusAppInfo();
     OHOS::Rosen::DoNotifyHgmConfigEvent(data, size);
+    OHOS::Rosen::DoNotifyXComponentExpectedFrameRate(data, size);
     OHOS::Rosen::DoGetScreenSupportedColorGamuts();
     OHOS::Rosen::DoSetGlobalDarkColorMode();
     OHOS::Rosen::DoSetSystemAnimatedScenes();

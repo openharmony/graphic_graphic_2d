@@ -73,6 +73,13 @@ public:
         FLY_OUT,
         DISTORT,
         ALWAYS_SNAPSHOT,
+        DISPLACEMENT_DISTORT,
+        COLOR_GRADIENT,
+        SOUND_WAVE,
+        EDGE_LIGHT,
+        HDR_UI_BRIGHTNESS,
+        BEZIER_WARP,
+        DISPERSION,
     };
     FilterType GetFilterType() const
     {

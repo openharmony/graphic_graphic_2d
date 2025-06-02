@@ -476,6 +476,15 @@ void RSProfiler::OnProcessCommand()
     }
 }
 
+bool RSProfiler::IsSecureScreen()
+{
+    std::shared_ptr<RSDisplayRenderNode> displayNode = GetDisplayNode(*context_);
+    if (displayNode) {
+        return (displayNode->GetMultableSpecialLayerMgr().Find(SpecialLayerType::HAS_SECURITY)) ? true : false;
+    }
+    return false;
+}
+
 void RSProfiler::OnRenderBegin()
 {
     if (!IsEnabled()) {
@@ -593,7 +602,7 @@ void RSProfiler::ProcessPauseMessage()
         if (deltaTime > g_replayLastPauseTimeReported) {
             int64_t vsyncId = g_playbackFile.ConvertTime2VsyncId(deltaTime);
             if (vsyncId) {
-                SendMessage("Replay timer paused vsyncId=%lld", vsyncId); // DO NOT TOUCH!
+                SendMessage("Replay timer paused vsyncId=%" PRId64, vsyncId); // DO NOT TOUCH!
             }
             g_replayLastPauseTimeReported = deltaTime;
         }
@@ -1716,6 +1725,10 @@ void RSProfiler::RecordStop(const ArgList& args)
     }
 
     SetMode(Mode::SAVING);
+    if (args.String() == "REMOVELAST") {
+        g_recordFile.UnwriteRSData(); // remove last commands they may start animation with password depiction
+        g_recordFile.UnwriteRSData();
+    }
 
     bool isBetaRecordingStarted = IsBetaRecordStarted();
     std::thread thread([isBetaRecordingStarted]() {
@@ -1734,7 +1747,7 @@ void RSProfiler::RecordStop(const ArgList& args)
         ImageCache::Reset();
 
         SendMessage("Record: Stopped");
-        SendMessage("Network: record_vsync_range %llu %llu", g_recordMinVsync, g_recordMaxVsync); // DO NOT TOUCH!
+        SendMessage("Network: record_vsync_range %" PRIu64 "%" PRIu64, g_recordMinVsync, g_recordMaxVsync); // DO NOT TOUCH!
 
         SetMode(Mode::NONE);
     });
@@ -1987,7 +2000,7 @@ void RSProfiler::PlaybackPause(const ArgList& args)
 
     int64_t vsyncId = g_playbackFile.ConvertTime2VsyncId(recordPlayTime);
     if (vsyncId) {
-        SendMessage("Replay timer paused vsyncId=%lld", vsyncId); // DO NOT TOUCH!
+        SendMessage("Replay timer paused vsyncId=%" PRId64, vsyncId); // DO NOT TOUCH!
     }
     g_replayLastPauseTimeReported = recordPlayTime;
 }
@@ -2019,7 +2032,7 @@ void RSProfiler::PlaybackPauseAt(const ArgList& args)
 
     TimePauseAt(currentTimeNano, pauseAfterTimeNano, g_playbackImmediate);
     ResetAnimationStamp();
-    Respond("OK");
+    Respond("PlaybackPauseAt OK");
 }
 
 

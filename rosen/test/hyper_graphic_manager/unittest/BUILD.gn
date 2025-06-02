@@ -39,7 +39,6 @@ ohos_unittest("hyper_graphic_manager_test") {
   sources = [
     "hgm_app_page_url_strategy_test.cpp",
     "hgm_energy_consumption_policy_test.cpp",
-    "hgm_frame_rate_manager_test.cpp",
     "hgm_hfbc_config_test.cpp",
     "hgm_idle_detector_test.cpp",
     "hgm_lru_cache_test.cpp",
@@ -57,6 +56,7 @@ ohos_unittest("hyper_graphic_manager_test") {
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/config",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/frame_rate_manager",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/hgm_screen_manager",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/soft_vsync_manager",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/utils",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/frame_rate_vote",
     "$graphic_2d_root/rosen/modules/render_service_base/include",
@@ -79,6 +79,69 @@ ohos_unittest("hyper_graphic_manager_test") {
     "init:libbeget_proxy",
     "init:libbegetutil",
     "libxml2:libxml2",
+    "samgr:samgr_proxy",
+  ]
+
+  part_name = "graphic_2d"
+  subsystem_name = "graphic"
+}
+
+ohos_unittest("frame_rate_manager_test") {
+  module_out_path = "graphic_2d/graphic_2d/hyper_graphic_manager"
+
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+
+  if (is_ohos && is_clang && (target_cpu == "arm" || target_cpu == "arm64")) {
+    if (!use_libfuzzer) {
+      cflags += [ "-flto=thin" ]
+    }
+    if (enhanced_opt) {
+      if (!use_libfuzzer) {
+        cflags += [ "-fwhole-program-vtables" ]
+      }
+    }
+  }
+
+  sources = [
+    "hgm_frame_rate_manager_test.cpp",
+    "hgm_soft_vsync_manager_test.cpp",
+  ]
+
+  include_dirs = [
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/config",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/frame_rate_manager",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/hgm_screen_manager",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/soft_vsync_manager",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/utils",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/frame_rate_vote",
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
+    "$graphic_2d_root/rosen/modules/render_service_base/src",
+  ]
+
+  deps = [
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager:libhyper_graphic_manager",
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_base:render_service_base_src",
+    "$graphic_2d_root/utils/test_header:test_header",
+  ]
+
+  external_deps = [
+    "c_utils:utils",
+    "eventhandler:libeventhandler",
+    "ffrt:libffrt",
+    "graphic_surface:surface",
+    "hilog:libhilog",
+    "hitrace:hitrace_meter",
+    "init:libbeget_proxy",
+    "init:libbegetutil",
+    "libxml2:libxml2",
+    "samgr:samgr_proxy",
   ]
 
   part_name = "graphic_2d"
@@ -115,6 +178,7 @@ ohos_unittest("hgm_pointer_manager_test") {
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/config",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/frame_rate_manager",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/hgm_screen_manager",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/soft_vsync_manager",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/utils",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/frame_rate_vote",
     "$graphic_2d_root/rosen/modules/render_service_base/include",
@@ -137,6 +201,7 @@ ohos_unittest("hgm_pointer_manager_test") {
     "init:libbeget_proxy",
     "init:libbegetutil",
     "libxml2:libxml2",
+    "samgr:samgr_proxy",
   ]
 
   part_name = "graphic_2d"
@@ -173,6 +238,7 @@ ohos_unittest("hgm_touch_manager_test") {
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/config",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/frame_rate_manager",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/hgm_screen_manager",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/soft_vsync_manager",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/utils",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/frame_rate_vote",
     "$graphic_2d_root/rosen/modules/render_service_base/include",
@@ -195,6 +261,68 @@ ohos_unittest("hgm_touch_manager_test") {
     "init:libbeget_proxy",
     "init:libbegetutil",
     "libxml2:libxml2",
+    "samgr:samgr_proxy",
+  ]
+
+  part_name = "graphic_2d"
+  subsystem_name = "graphic"
+}
+
+ohos_unittest("hgm_frame_voter_test") {
+  module_out_path = "graphic_2d/graphic_2d/hyper_graphic_manager"
+
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+
+  if (is_ohos && is_clang && (target_cpu == "arm" || target_cpu == "arm64")) {
+    if (!use_libfuzzer) {
+      cflags += [ "-flto=thin" ]
+    }
+    if (enhanced_opt) {
+      if (!use_libfuzzer) {
+        cflags += [ "-fwhole-program-vtables" ]
+      }
+    }
+  }
+
+  sources = [
+    "hgm_frame_voter_test.cpp",
+  ]
+
+  include_dirs = [
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/config",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/frame_rate_manager",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/hgm_screen_manager",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/soft_vsync_manager",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/utils",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/frame_rate_vote",
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
+    "$graphic_2d_root/rosen/modules/render_service_base/src",
+  ]
+
+  deps = [
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager:libhyper_graphic_manager",
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_base:render_service_base_src",
+    "$graphic_2d_root/utils/test_header:test_header",
+  ]
+
+  external_deps = [
+    "c_utils:utils",
+    "eventhandler:libeventhandler",
+    "ffrt:libffrt",
+    "graphic_surface:surface",
+    "hilog:libhilog",
+    "hitrace:hitrace_meter",
+    "init:libbeget_proxy",
+    "init:libbegetutil",
+    "libxml2:libxml2",
+    "samgr:samgr_proxy",
   ]
 
   part_name = "graphic_2d"
@@ -208,5 +336,7 @@ group("unittest") {
     ":hyper_graphic_manager_test",
     ":hgm_pointer_manager_test",
     ":hgm_touch_manager_test",
+    ":frame_rate_manager_test",
+    ":hgm_frame_voter_test"
   ]
 }

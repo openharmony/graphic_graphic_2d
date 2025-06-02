@@ -207,6 +207,7 @@ int32_t RSInterfaces::UnRegisterPointerLuminanceChangeCallback()
 
 int32_t RSInterfaces::SetScreenChangeCallback(const ScreenChangeCallback &callback)
 {
+    ROSEN_LOGI("RSInterfaces::%{public}s", __func__);
     return renderServiceClient_->SetScreenChangeCallback(callback);
 }
 
@@ -447,6 +448,46 @@ std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>>
     }
 }
 
+bool RSInterfaces::TakeUICaptureInRange(std::shared_ptr<RSNode> beginNode, std::shared_ptr<RSNode> endNode,
+    bool useBeginNodeSize, std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY, bool isSync)
+{
+    if (!beginNode) {
+        ROSEN_LOGW("RSInterfaces::TakeUICaptureInRange beginNode is nullpter return");
+        return false;
+    }
+    if (!endNode) {
+        return TakeSurfaceCaptureForUI(beginNode, callback, scaleX, scaleY, isSync);
+    }
+    // textureExportNode process cmds in renderThread of application, isSync is unnecessary.
+    if (beginNode->IsTextureExportNode()) {
+        ROSEN_LOGD("RSInterfaces::TakeUICaptureInRange beginNode [%{public}" PRIu64
+            "] is textureExportNode, set isSync false", beginNode->GetId());
+        isSync = false;
+    }
+    if (!((beginNode->GetType() == RSUINodeType::ROOT_NODE) ||
+          (beginNode->GetType() == RSUINodeType::CANVAS_NODE) ||
+          (beginNode->GetType() == RSUINodeType::CANVAS_DRAWING_NODE) ||
+          (beginNode->GetType() == RSUINodeType::SURFACE_NODE))) {
+        ROSEN_LOGE("RSInterfaces::TakeUICaptureInRange unsupported node type return");
+        return false;
+    }
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.scaleX = scaleX;
+    captureConfig.scaleY = scaleY;
+    captureConfig.captureType = SurfaceCaptureType::UICAPTURE;
+    captureConfig.isSync = isSync;
+    captureConfig.uiCaptureInRangeParam.endNodeId = endNode->GetId();
+    captureConfig.uiCaptureInRangeParam.useBeginNodeSize = useBeginNodeSize;
+    if (RSSystemProperties::GetUniRenderEnabled()) {
+        if (isSync) {
+            beginNode->SetTakeSurfaceForUIFlag();
+        }
+        return renderServiceClient_->TakeUICaptureInRange(beginNode->GetId(), callback, captureConfig);
+    } else {
+        return TakeSurfaceCaptureForUIWithoutUni(beginNode->GetId(), callback, scaleX, scaleY);
+    }
+}
+
 bool RSInterfaces::RegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface)
 {
     static std::function<std::shared_ptr<Drawing::Typeface> (uint64_t)> customTypefaceQueryfunc =
@@ -506,6 +547,8 @@ bool RSInterfaces::SetGlobalDarkColorMode(bool isDark)
 #ifndef ROSEN_ARKUI_X
 int32_t RSInterfaces::SetPhysicalScreenResolution(ScreenId id, uint32_t width, uint32_t height)
 {
+    RS_LOGI("RSInterfaces:%{public}s, screenId:%{public}" PRIu64 ", width:%{public}u, height:%{public}u", __func__, id,
+            width, height);
     return renderServiceClient_->SetPhysicalScreenResolution(id, width, height);
 }
 
@@ -901,6 +944,16 @@ void RSInterfaces::NotifyRefreshRateEvent(const EventInfo& eventInfo)
     renderServiceClient_->NotifyRefreshRateEvent(eventInfo);
 }
 
+void RSInterfaces::SetWindowExpectedRefreshRate(const std::unordered_map<uint64_t, EventInfo>& eventInfos)
+{
+    renderServiceClient_->SetWindowExpectedRefreshRate(eventInfos);
+}
+
+void RSInterfaces::SetWindowExpectedRefreshRate(const std::unordered_map<std::string, EventInfo>& eventInfos)
+{
+    renderServiceClient_->SetWindowExpectedRefreshRate(eventInfos);
+}
+
 bool RSInterfaces::NotifySoftVsyncRateDiscountEvent(uint32_t pid, const std::string &name, uint32_t rateDiscount)
 {
     return renderServiceClient_->NotifySoftVsyncRateDiscountEvent(pid, name, rateDiscount);
@@ -922,6 +975,11 @@ void RSInterfaces::NotifyDynamicModeEvent(bool enableDynamicMode)
 void RSInterfaces::NotifyHgmConfigEvent(const std::string &eventName, bool state)
 {
     renderServiceClient_->NotifyHgmConfigEvent(eventName, state);
+}
+
+void RSInterfaces::NotifyXComponentExpectedFrameRate(const std::string& id, int32_t expectedFrameRate)
+{
+    renderServiceClient_->NotifyXComponentExpectedFrameRate(id, expectedFrameRate);
 }
 
 void RSInterfaces::DisableCacheForRotation()
@@ -1014,6 +1072,13 @@ void RSInterfaces::SetFreeMultiWindowStatus(bool enable)
     renderServiceClient_->SetFreeMultiWindowStatus(enable);
 }
 
+bool RSInterfaces::RegisterTransactionDataCallback(int32_t pid, uint64_t timeStamp, std::function<void()> callback)
+{
+    RS_LOGD("interface::RegisterTransactionDataCallback, timeStamp: %{public}"
+        PRIu64 " pid: %{public}d", timeStamp, pid);
+    return renderServiceClient_->RegisterTransactionDataCallback(pid, timeStamp, callback);
+}
+
 bool RSInterfaces::RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid,
     std::shared_ptr<SurfaceBufferCallback> callback)
 {
@@ -1052,6 +1117,8 @@ void RSInterfaces::SetColorFollow(const std::string &nodeIdStr, bool isColorFoll
 
 void RSInterfaces::NotifyScreenSwitched()
 {
+    RS_TRACE_NAME("NotifyScreenSwitched");
+    ROSEN_LOGI("RSInterfaces::%{public}s", __func__);
     renderServiceClient_->NotifyScreenSwitched();
 }
 

@@ -145,9 +145,17 @@ HWTEST_F(RSOpincCacheTest, OpincQuickMarkStableNode002, TestSize.Level1)
     opincCache.OpincQuickMarkStableNode(unchangeMarkInApp, unchangeMarkEnable, false);
     EXPECT_TRUE(opincCache.isUnchangeMarkEnable_);
 
+    opincCache.waitCount_ = 60;
+    opincCache.OpincQuickMarkStableNode(unchangeMarkInApp, unchangeMarkEnable, false);
+    EXPECT_TRUE(opincCache.waitCount_ == 59);
+    opincCache.waitCount_ = 0;
+
     renderNode.isSubTreeDirty_ = true;
     opincCache.OpincQuickMarkStableNode(unchangeMarkInApp, unchangeMarkEnable, false);
     EXPECT_TRUE(renderNode.isSubTreeDirty_);
+
+    opincCache.OpincQuickMarkStableNode(unchangeMarkInApp, unchangeMarkEnable, true);
+    EXPECT_TRUE(opincCache.isReseted_);
 }
 
 /**
@@ -323,7 +331,11 @@ HWTEST_F(RSOpincCacheTest, SetCacheStateByRetrytime001, TestSize.Level1)
     opincCache.tryCacheTimes_ = 4;
     opincCache.unchangeCountUpper_ = 3;
     opincCache.SetCacheStateByRetrytime();
-    EXPECT_TRUE(opincCache.unchangeCountUpper_ == 63);
+    EXPECT_TRUE(opincCache.unchangeCountUpper_ == 23);
+
+    opincCache.unchangeCountUpper_ = 200;
+    opincCache.SetCacheStateByRetrytime();
+    EXPECT_TRUE(opincCache.unchangeCountUpper_ == 200);
 }
 
 /**

@@ -231,6 +231,20 @@ int32_t RSSurfaceRenderParams::GetLayerSourceTuning() const
     return layerSource_;
 }
 
+void RSSurfaceRenderParams::SetTunnelLayerId(const uint64_t& tunnelLayerId)
+{
+    if (tunnelLayerId_ == tunnelLayerId) {
+        return;
+    }
+    tunnelLayerId_ = tunnelLayerId;
+    needSync_ = true;
+}
+
+uint64_t RSSurfaceRenderParams::GetTunnelLayerId() const
+{
+    return tunnelLayerId_;
+}
+
 bool RSSurfaceRenderParams::GetLastFrameHardwareEnabled() const
 {
     return isLastFrameHardwareEnabled_;
@@ -424,16 +438,6 @@ bool RSSurfaceRenderParams::IsDRMCrossNode() const
     return isHwcCrossNode_;
 }
 
-void RSSurfaceRenderParams::SetIsNodeToBeCaptured(bool isNodeToBeCaptured)
-{
-    isNodeToBeCaptured_ = isNodeToBeCaptured;
-}
-
-bool RSSurfaceRenderParams::IsNodeToBeCaptured() const
-{
-    return isNodeToBeCaptured_;
-}
-
 void RSSurfaceRenderParams::SetSkipDraw(bool skip)
 {
     isSkipDraw_ = skip;
@@ -576,6 +580,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->isOutOfScreen_ = isOutOfScreen_;
     targetSurfaceParams->isRotating_ = isRotating_;
     targetSurfaceParams->specialLayerManager_ = specialLayerManager_;
+    targetSurfaceParams->blackListIds_ = blackListIds_;
     targetSurfaceParams->privacyContentLayerIds_ = privacyContentLayerIds_;
     targetSurfaceParams->name_ = name_;
     targetSurfaceParams->bundleName_ = bundleName_;
@@ -586,10 +591,11 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->isGpuOverDrawBufferOptimizeNode_ = isGpuOverDrawBufferOptimizeNode_;
     targetSurfaceParams->isSubSurfaceNode_ = isSubSurfaceNode_;
     targetSurfaceParams->isGlobalPositionEnabled_ = isGlobalPositionEnabled_;
-    targetSurfaceParams->isNodeToBeCaptured_ = isNodeToBeCaptured_;
     targetSurfaceParams->isHwcGlobalPositionEnabled_ = isHwcGlobalPositionEnabled_;
     targetSurfaceParams->isHwcCrossNode_ = isHwcCrossNode_;
     targetSurfaceParams->dstRect_ = dstRect_;
+    targetSurfaceParams->ancoSrcCrop_ = ancoSrcCrop_;
+    targetSurfaceParams->ancoFlags_ = ancoFlags_;
     targetSurfaceParams->isSkipDraw_ = isSkipDraw_;
     targetSurfaceParams->isLayerTop_ = isLayerTop_;
     targetSurfaceParams->needHidePrivacyContent_ = needHidePrivacyContent_;
@@ -598,6 +604,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->roundedCornerRegion_ = roundedCornerRegion_;
     targetSurfaceParams->needOffscreen_ = needOffscreen_;
     targetSurfaceParams->layerSource_ = layerSource_;
+    targetSurfaceParams->tunnelLayerId_ = tunnelLayerId_;
     targetSurfaceParams->hasHdrPresent_ = hasHdrPresent_;
     targetSurfaceParams->totalMatrix_ = totalMatrix_;
     targetSurfaceParams->visibleFilterChild_ = visibleFilterChild_;
@@ -619,11 +626,16 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->allSubSurfaceNodeIds_ = allSubSurfaceNodeIds_;
     targetSurfaceParams->crossNodeSkipDisplayConversionMatrices_ = crossNodeSkipDisplayConversionMatrices_;
     targetSurfaceParams->apiCompatibleVersion_ = apiCompatibleVersion_;
+    targetSurfaceParams->isOcclusionCullingOn_ = isOcclusionCullingOn_;
+    targetSurfaceParams->culledNodes_ = std::move(culledNodes_);
+    targetSurfaceParams->culledEntireSubtree_ = std::move(culledEntireSubtree_);
     targetSurfaceParams->isBufferFlushed_ = isBufferFlushed_;
     targetSurfaceParams->colorFollow_ = colorFollow_;
     targetSurfaceParams->screenRect_ = screenRect_;
     targetSurfaceParams->dirtyRegionMatrix_ = dirtyRegionMatrix_;
     targetSurfaceParams->uiFirstFrameGravity_ = uiFirstFrameGravity_;
+    targetSurfaceParams->regionToBeMagnified_ = regionToBeMagnified_;
+    targetSurfaceParams->isFrameGravityNewVersionEnabled_ = isFrameGravityNewVersionEnabled_;
     RSRenderParams::OnSync(target);
 }
 
@@ -678,6 +690,16 @@ void RSSurfaceRenderParams::SetNeedCacheSurface(bool needCacheSurface)
 bool RSSurfaceRenderParams::GetNeedCacheSurface() const
 {
     return needCacheSurface_;
+}
+
+void RSSurfaceRenderParams::SetFrameGravityNewVersionEnabled(bool isEnabled)
+{
+    isFrameGravityNewVersionEnabled_ = isEnabled;
+}
+
+bool RSSurfaceRenderParams::GetFrameGravityNewVersionEnabled() const
+{
+    return isFrameGravityNewVersionEnabled_;
 }
 
 } // namespace OHOS::Rosen

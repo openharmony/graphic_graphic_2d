@@ -33,6 +33,10 @@ ohos_fuzztest("RSPropertyDrawableBoundsGeometryFuzzTest") {
     "../../../../../modules/render_service_client:librender_service_client",
     "../../../../../modules/render_service_client:render_service_client_src",
   ]
+  external_deps = [
+    "eventhandler:libeventhandler",
+    "hilog:libhilog",
+  ]
   cflags = [
     "-g",
     "-O0",

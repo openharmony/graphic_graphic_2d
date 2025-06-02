@@ -304,7 +304,9 @@ void SkiaGPUContext::RegisterVulkanErrorCallback(const std::function<void()>& vu
         LOGD("SkiaGPUContext::RegisterVulkanErrorCallback, grContext_ is nullptr");
         return;
     }
+#ifndef USE_M133_SKIA
     grContext_->registerVulkanErrorCallback(vulkanErrorCallback);
+#endif
 }
 
 void SkiaGPUContext::PurgeUnlockAndSafeCacheGpuResources()

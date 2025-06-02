@@ -2120,4 +2120,20 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, SetSecurityMaskTest, TestSize.Level2)
     auto virtualProcesser = std::make_shared<RSUniRenderVirtualProcessor>();
     displayDrawable_->SetSecurityMask(*virtualProcesser);
 }
+
+/**
+ * @tc.name: UpdateSurfaceDrawRegion
+ * @tc.desc: Test UpdateSurfaceDrawRegion
+ * @tc.type: FUNC
+ * @tc.require: issueIBCH1W
+ */
+HWTEST_F(RSDisplayRenderNodeDrawableTest, UpdateSurfaceDrawRegion, TestSize.Level2)
+{
+    ASSERT_NE(displayDrawable_, nullptr);
+    drawingCanvas_ = std::make_unique<Drawing::Canvas>(DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
+    auto canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas_.get());
+    RSDisplayRenderParams* params = static_cast<RSDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());;
+    displayDrawable_->UpdateSurfaceDrawRegion(canvas, params);
+}
+
 }

@@ -475,6 +475,10 @@ public:
      */
     virtual void Reset();
 
+    void SetLastPoint(scalar x, scalar y);
+
+    void ReWind();
+
     /**
      * @brief A closed contour connects the first and last Point with line, forming a continuous loop.
      */
@@ -514,6 +518,12 @@ public:
      * @return Returns true if the current contour is closed, otherwise false.
      */
     bool IsClosed(bool forceClosed) const;
+
+    bool IsEmpty() const;
+
+    void SetPath(const Path& path);
+
+    bool IsRect(Rect* rect, bool* isClosed = nullptr, PathDirection* direction = nullptr) const;
 
     bool GetMatrix(bool forceClosed, float distance, Matrix* matrix,
         PathMeasureMatrixFlags flags = PathMeasureMatrixFlags::GET_POS_AND_TAN_MATRIX);

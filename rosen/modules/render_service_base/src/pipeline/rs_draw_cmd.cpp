@@ -33,12 +33,20 @@
 #include "native_window.h"
 #endif
 #ifdef RS_ENABLE_VK
+#ifdef USE_M133_SKIA
+#include "include/gpu/ganesh/GrBackendSemaphore.h"
+#else
 #include "include/gpu/GrBackendSemaphore.h"
+#endif
 #include "platform/ohos/backend/native_buffer_utils.h"
 #include "platform/ohos/backend/rs_vulkan_context.h"
 #endif
 
+#ifdef USE_M133_SKIA
+#include "include/gpu/ganesh/GrDirectContext.h"
+#else
 #include "include/gpu/GrDirectContext.h"
+#endif
 #include "utils/graphic_coretrace.h"
 
 namespace OHOS {
@@ -169,7 +177,7 @@ void RSExtendImageObject::Dump(std::string& dump)
         dump += " rsImage is nullptr";
     } else {
         std::string rsImageDump;
-        rsImage_->dump(rsImageDump, 0);
+        rsImage_->Dump(rsImageDump, 0);
         rsImageDump.erase(
             std::remove_if(rsImageDump.begin(),
             rsImageDump.end(),
@@ -792,7 +800,7 @@ void DrawPixelMapWithParmOpItem::DumpItems(std::string& out) const
     sampling_.Dump(out);
 
     if (objectHandle_ == nullptr) {
-        out += " objectHandle_ is nullptr";   
+        out += " objectHandle_ is nullptr";
     } else {
         objectHandle_->Dump(out);
     }

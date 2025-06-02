@@ -20,9 +20,17 @@
 #include "EGL/egl.h"
 #include "EGL/eglext.h"
 #include "include/core/SkSurface.h"
+#ifdef USE_M133_SKIA
+#include "include/gpu/ganesh/GrDirectContext.h"
+#else
 #include "include/gpu/GrDirectContext.h"
+#endif
 #ifdef RS_ENABLE_VK
+#ifdef USE_M133_SKIA
+#include "include/gpu/vk/VulkanBackendContext.h"
+#else
 #include "include/gpu/vk/GrVkBackendContext.h"
+#endif
 #endif
 #include "pipeline/parallel_render/rs_render_task.h"
 #include "render_context/render_context.h"
@@ -60,6 +68,17 @@ public:
     {
         return grContext_;
     }
+    void UpdateGpuMemoryStatistics();
+    std::unordered_map<pid_t, size_t> GetGpuMemoryOfPid()
+    {
+        std::lock_guard<std::mutex> lock(memMutex_);
+        return gpuMemoryOfPid_;
+    }
+    void ErasePidOfGpuMemory(pid_t pid)
+    {
+        std::lock_guard<std::mutex> lock(memMutex_);
+        gpuMemoryOfPid_.erase(pid);
+    }
 
 private:
     void CreateShareEglContext();
@@ -78,6 +97,8 @@ private:
     std::mutex mutex_;
     std::queue<std::shared_ptr<Drawing::Surface>> tmpSurfaces_;
     std::atomic<unsigned int> doingCacheProcessNum_ = 0;
+    std::unordered_map<pid_t, size_t> gpuMemoryOfPid_;
+    std::mutex memMutex_;
 };
 }
 #endif // RENDER_SERVICE_CORE_PIPELINE_PARALLEL_RENDER_RS_SUB_THREAD_H
