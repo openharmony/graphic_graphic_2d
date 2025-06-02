@@ -39,8 +39,10 @@ public:
     int UpdateEffectConfig(const std::unordered_map<TextEffectAttribute, std::string>& config) override { return 0; }
     int AppendTypography(const std::vector<TypographyConfig>& typographyConfigs) override { return 0; }
     void RemoveTypography(const std::vector<TypographyConfig>& typographyConfigs) override {}
-    int UpdateTypography(TypographyConfig target,
-        const std::vector<TypographyConfig>& typographyConfigs) override { return 0; }
+    int UpdateTypography(std::vector<std::pair<TypographyConfig, TypographyConfig>>& typographyConfigs) override
+    {
+        return 0;
+    }
     void StartEffect(Drawing::Canvas* canvas, double x, double y) override {}
     void StopEffect(Drawing::Canvas* canvas, double x, double y) override {}
 };
@@ -55,12 +57,13 @@ HWTEST_F(TextEffectFactoryCreatorTest, TextEffectFactoryCreatorTest001, TestSize
 {
     REGISTER_TEXT_EFFECT_FACTORY_IMPL(Test, TextEffectStrategy::STRATEGY_BUTT);
     TextEffectFactoryCreator& creator = TextEffectFactoryCreator::GetInstance();
+    std::shared_ptr<TextEffect> factory = creator.factoryTable_[TextEffectStrategy::STRATEGY_BUTT];
     bool result = creator.RegisterFactory(TextEffectStrategy::STRATEGY_BUTT, nullptr);
     EXPECT_FALSE(result);
     creator.factoryTable_.erase(TextEffectStrategy::STRATEGY_BUTT);
-    result = creator.RegisterFactory(TextEffectStrategy::STRATEGY_BUTT, g_textTestFactory);
+    result = creator.RegisterFactory(TextEffectStrategy::STRATEGY_BUTT, factory);
     EXPECT_TRUE(result);
-    result = creator.RegisterFactory(TextEffectStrategy::STRATEGY_BUTT, g_textTestFactory);
+    result = creator.RegisterFactory(TextEffectStrategy::STRATEGY_BUTT, factory);
     EXPECT_FALSE(result);
 }
 

@@ -56,7 +56,7 @@ public:
     virtual int UpdateEffectConfig(const std::unordered_map<TextEffectAttribute, std::string>& config) = 0;
     virtual int AppendTypography(const std::vector<TypographyConfig>& typographyConfigs) = 0;
     virtual void RemoveTypography(const std::vector<TypographyConfig>& typographyConfigs) = 0;
-    virtual int UpdateTypography(TypographyConfig target, const std::vector<TypographyConfig>& typographyConfigs) = 0;
+    virtual int UpdateTypography(std::vector<std::pair<TypographyConfig, TypographyConfig>>& typographyConfigs) = 0;
     virtual void StartEffect(Drawing::Canvas* canvas, double x, double y) = 0;
     virtual void StopEffect(Drawing::Canvas* canvas, double x, double y) = 0;
 
@@ -75,6 +75,7 @@ public:
     static TextEffectFactoryCreator& GetInstance();
     ~TextEffectFactoryCreator() = default;
     bool RegisterFactory(TextEffectStrategy strategy, std::shared_ptr<TextEffectFactory> factory);
+    void UnregisterFactory(TextEffectStrategy strategy);
     std::shared_ptr<TextEffect> CreateTextEffect(TextEffectStrategy strategy);
 
 private:

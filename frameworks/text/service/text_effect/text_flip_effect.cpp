@@ -16,7 +16,6 @@
 #include "text_flip_effect.h"
 
 #include <algorithm>
-#include <tuple>
 
 #include "text_effect.h"
 #include "text_effect_marco.h"
@@ -34,7 +33,7 @@ TextFlipEffect::~TextFlipEffect()
     typographyConfig_.rawTextRange = {0, 0};
 }
 
-bool TextFlipEffect::CheckInputParams(const std::unordered_map<TextEffectAttribute, std::string>& config) const
+bool TextFlipEffect::CheckInputParams(const std::unordered_map<TextEffectAttribute, std::string>& config)
 {
     for (const auto& [key, value] : config) {
         auto iter = std::find_if(supportAttributes_.begin(), supportAttributes_.end(),
@@ -49,7 +48,7 @@ bool TextFlipEffect::CheckInputParams(const std::unordered_map<TextEffectAttribu
     return true;
 }
 
-bool TextFlipEffect::CheckDirection(const std::string& direction) const
+bool TextFlipEffect::CheckDirection(const std::string& direction)
 {
     return direction == "up" || direction == "down";
 }
@@ -63,7 +62,7 @@ void TextFlipEffect::SetDirection(const std::string& direction)
     }
 }
 
-bool TextFlipEffect::CheckBlurEnable(const std::string& enable) const
+bool TextFlipEffect::CheckBlurEnable(const std::string& enable)
 {
     return enable == "true" || enable == "false";
 }
@@ -109,12 +108,12 @@ int TextFlipEffect::AppendTypography(const std::vector<TypographyConfig>& typogr
     return TEXT_EFFECT_SUCCESS;
 }
 
-int TextFlipEffect::UpdateTypography(TypographyConfig target, const std::vector<TypographyConfig>& typographyConfigs) 
+int TextFlipEffect::UpdateTypography(std::vector<std::pair<TypographyConfig, TypographyConfig>>& typographyConfigs) 
 {
-    if (typographyConfig_.typography != target.typography || typographyConfigs.empty()) {
+    if (typographyConfigs.empty() || typographyConfigs[0].first.typography != typographyConfig_.typography) {
         return TEXT_EFFECT_INVALID_INPUT;
     }
-    typographyConfig_ = typographyConfigs[0];
+    typographyConfig_ = typographyConfigs[0].second;
     return TEXT_EFFECT_SUCCESS;
 }
 

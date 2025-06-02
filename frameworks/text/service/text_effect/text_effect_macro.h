@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_ROSEN_TEXT_TEXT_EFFECT_MARCO_H
-#define OHOS_ROSEN_TEXT_TEXT_EFFECT_MARCO_H
+#ifndef OHOS_ROSEN_TEXT_TEXT_EFFECT_MACRO_H
+#define OHOS_ROSEN_TEXT_TEXT_EFFECT_MACRO_H
 
 #include "text_effect.h"
 
@@ -26,8 +26,18 @@ namespace OHOS::Rosen {
             return std::make_shared<Text##EFFECT_TYPE##Effect>();                                   \
         }                                                                                           \
     };                                                                                              \
-    auto g_text##EFFECT_TYPE##Factory = std::make_shared<Text##EFFECT_TYPE##EffectFactory>();       \
-    TextEffectFactoryCreator::GetInstance().RegisterFactory(STRATEGY, g_text##EFFECT_TYPE##Factory)
-
+    class Text##EFFECT_TYPE##EffectInit final {                                                     \
+    public:                                                                                         \
+        Text##EFFECT_TYPE##EffectInit()                                                             \
+        {                                                                                           \
+            auto factory = std::make_shared<Text##EFFECT_TYPE##EffectFactory>();                    \
+            TextEffectFactoryCreator::GetInstance().RegisterFactory(STRATEGY, factory);             \
+        }                                                                                           \
+        ~Text##EFFECT_TYPE##EffectInit()                                                            \
+        {                                                                                           \
+            TextEffectFactoryCreator::GetInstance().UnregisterFactory(STRATEGY);                    \
+        }                                                                                           \
+    };                                                                                              \
+    Text##EFFECT_TYPE##EffectInit g_text##EFFECT_TYPE##EffectInit
 } // namespace OHOS::Rosen
-#endif // OHOS_ROSEN_TEXT_TEXT_EFFECT_MARCO_H
+#endif // OHOS_ROSEN_TEXT_TEXT_EFFECT_MACRO_H

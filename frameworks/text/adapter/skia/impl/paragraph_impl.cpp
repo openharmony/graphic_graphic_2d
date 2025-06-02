@@ -503,14 +503,14 @@ std::vector<TextBlobRecordInfo> ParagraphImpl::GetTextBlobRecordInfo() const
     if (paragraph_ == nullptr) {
         return {};
     }
-    std::vector<TextBlobRecordInfo> textBlobRecordInfos; 
+    std::vector<TextBlobRecordInfo> textBlobRecordInfos;
     std::vector<skt::TextBlobRecordInfo> infos = paragraph_->getTextBlobRecordInfo();
     for (auto& info : infos) {
         TextBlobRecordInfo recordInfo;
         recordInfo.blob = info.fBlob;
         recordInfo.offset = info.fOffset;
         int index = std::get<int>(info.fPaint);
-        if (index>0 && index < static_cast<int>(paints_.size())) {
+        if (index > 0 && index < static_cast<int>(paints_.size())) {
             recordInfo.color = paints_[index].color;
         }
         textBlobRecordInfos.emplace_back(recordInfo);

@@ -43,33 +43,38 @@ public:
     int UpdateEffectConfig(const std::unordered_map<TextEffectAttribute, std::string>& config) override;
     int AppendTypography(const std::vector<TypographyConfig>& typographyConfigs) override;
     void RemoveTypography(const std::vector<TypographyConfig>& typographyConfigs) override;
-    int UpdateTypography(TypographyConfig target, const std::vector<TypographyConfig>& typographyConfigs) override;
+    int UpdateTypography(std::vector<std::pair<TypographyConfig, TypographyConfig>>& typographyConfigs) override;
     void StartEffect(Drawing::Canvas* canvas, double x, double y) override;
     void StopEffect(Drawing::Canvas* canvas, double x, double y) override;
 
 private:
-    bool CheckInputParams(const std::unordered_map<TextEffectAttribute, std::string>& config) const;
-    bool CheckDirection(const std::string& direction) const;
+    bool CheckInputParams(const std::unordered_map<TextEffectAttribute, std::string>& config);
+    bool CheckDirection(const std::string& direction);
     void SetDirection(const std::string& direction);
-    bool CheckBlurEnable(const std::string& enable) const;
+    bool CheckBlurEnable(const std::string& enable);
     void SetBlurEnable(const std::string& enable);
 
     TypographyConfig typographyConfig_;
     TextEffectFlipDirection direction_{TextEffectFlipDirection::UP};
-    int delay_{0};
     bool blurEnable_{false};
     TextFlipEffectCharConfig inChar_;
     TextFlipEffectCharConfig outChar_;
     std::vector<TextBlobRecordInfo> lastTextBlobRecordInfos_;
 
     struct FlipAttributeFunction {
+        FlipAttributeFunction() = default;
+        FlipAttributeFunction(TextEffectAttribute inputAttribute,
+            std::function<bool(TextFlipEffect*, const std::string&)> inputCheck,
+            std::function<void(TextFlipEffect*, const std::string&)> inputSet)
+                : attribute(inputAttribute), checkFunc(inputCheck), setFunc(inputSet) {}
+
         TextEffectAttribute attribute{TextEffectAttribute::FLIP_DIRECTION};
         std::function<bool(TextFlipEffect*, const std::string&)> checkFunc{nullptr};
         std::function<void(TextFlipEffect*, const std::string&)> setFunc{nullptr};
     };
     const std::vector<FlipAttributeFunction> supportAttributes_ = { 
         {TextEffectAttribute::FLIP_DIRECTION, &TextFlipEffect::CheckDirection, &TextFlipEffect::SetDirection},
-        {TextEffectAttribute::BLUR_ENABLE, &TextFlipEffect::SetBlurEnable, &TextFlipEffect::SetBlurEnable},
+        {TextEffectAttribute::BLUR_ENABLE, &TextFlipEffect::CheckBlurEnable, &TextFlipEffect::SetBlurEnable},
     };
 };
 } // namespace OHOS::Rosen
