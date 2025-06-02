@@ -35,6 +35,11 @@ using namespace testing::ext;
 
 namespace OHOS {
 
+namespace {
+constexpr int32_t KFLOAT_PRECISION = 1000000;
+constexpr static float FLOAT_DATA_EPSILON = 1e-6f;
+}
+
 class NativeDrawingLineTest : public testing::Test {
 public:
     void SetUp() override
@@ -81,6 +86,7 @@ public:
     }
 
     void PrepareCreateTextLine(const std::string& text);
+    bool DrawingRectEquals(OH_Drawing_Rect* rect1, OH_Drawing_Rect* rect2);
 
 protected:
     OH_Drawing_TypographyStyle* typoStyle_ = nullptr;
@@ -129,6 +135,18 @@ void NativeDrawingLineTest::PrepareCreateTextLine(const std::string& text)
     OH_Drawing_CanvasBind(canvas_, cBitmap_);
     OH_Drawing_CanvasClear(canvas_, OH_Drawing_ColorSetArgb(0xFF, 0xFF, 0xFF, 0xFF));
     OH_Drawing_TypographyPaint(typography_, canvas_, position[0], position[1]);
+}
+
+bool NativeDrawingLineTest::DrawingRectEquals(OH_Drawing_Rect* rect1, OH_Drawing_Rect* rect2)
+{
+    return std::round(OH_Drawing_RectGetLeft(rect1) * KFLOAT_PRECISION) / KFLOAT_PRECISION ==
+        OH_Drawing_RectGetLeft(rect2) &&
+        std::round(OH_Drawing_RectGetTop(rect1) * KFLOAT_PRECISION) / KFLOAT_PRECISION ==
+        OH_Drawing_RectGetTop(rect2) &&
+        std::round(OH_Drawing_RectGetBottom(rect1) * KFLOAT_PRECISION) / KFLOAT_PRECISION ==
+        OH_Drawing_RectGetBottom(rect2) &&
+        std::round(OH_Drawing_RectGetRight(rect1) * KFLOAT_PRECISION) / KFLOAT_PRECISION ==
+        OH_Drawing_RectGetRight(rect2);
 }
 
 /*
@@ -232,13 +250,19 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest006, TestSize.Level1)
     OH_Drawing_Array* textLines = OH_Drawing_TypographyGetTextLines(typography_);
     size_t size = OH_Drawing_GetDrawingArraySize(textLines);
     EXPECT_EQ(size, 3);
-    for (size_t index = 0; index < size; index++) {
-        OH_Drawing_TextLine* textLine = OH_Drawing_GetTextLineByIndex(textLines, index);
-        EXPECT_TRUE(textLine != nullptr);
 
-        double count = OH_Drawing_TextLineGetGlyphCount(textLine);
-        EXPECT_GE(count, 10);
-    }
+    OH_Drawing_TextLine* textLine0 = OH_Drawing_GetTextLineByIndex(textLines, 0);
+    double count0 = OH_Drawing_TextLineGetGlyphCount(textLine0);
+    EXPECT_EQ(count0, 13);
+
+    OH_Drawing_TextLine* textLine1 = OH_Drawing_GetTextLineByIndex(textLines, 1);
+    double count1 = OH_Drawing_TextLineGetGlyphCount(textLine1);
+    EXPECT_EQ(count1, 34);
+
+    OH_Drawing_TextLine* textLine2 = OH_Drawing_GetTextLineByIndex(textLines, 2);
+    double count2 = OH_Drawing_TextLineGetGlyphCount(textLine2);
+    EXPECT_EQ(count2, 29);
+    
     OH_Drawing_DestroyTextLines(textLines);
 }
 
@@ -314,8 +338,16 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest009, TestSize.Level1)
         EXPECT_TRUE(textLine != nullptr);
 
         OH_Drawing_TextLineGetTextRange(textLine, &start, &end);
-        EXPECT_GE(start, 0);
-        EXPECT_GT(end, 0);
+        if (index == 0) {
+            EXPECT_EQ(start, 0);
+            EXPECT_EQ(end, 16);
+        } else if (index == 1) {
+            EXPECT_EQ(start, 17);
+            EXPECT_EQ(end, 51);
+        } else {
+            EXPECT_EQ(start, 52);
+            EXPECT_EQ(end, 87);
+        }
     }
     OH_Drawing_DestroyTextLines(textLines);
 }
@@ -337,13 +369,15 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest010, TestSize.Level1)
 
     size_t start = 0;
     size_t end = 0;
+    std::vector<int32_t> startArr = {0, 26, 62, 98, 99, 176, 219};
+    std::vector<int32_t> endArr = {25, 61, 97, 98, 176, 218, 222};
     for (size_t index = 0; index < size; index++) {
         OH_Drawing_TextLine* textLine = OH_Drawing_GetTextLineByIndex(textLines, index);
         EXPECT_TRUE(textLine != nullptr);
 
         OH_Drawing_TextLineGetTextRange(textLine, &start, &end);
-        EXPECT_GE(start, 0);
-        EXPECT_GT(end, 0);
+        EXPECT_EQ(start, startArr[index]);
+        EXPECT_EQ(end, endArr[index]);
     }
     OH_Drawing_DestroyTextLines(textLines);
 }
@@ -414,16 +448,16 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest013, TestSize.Level1)
     double ascent = 0.0;
     double descent = 0.0;
     double leading = 0.0;
+    std::vector<float> widthArr = {206.639786, 490.139404, 459.509460};
     for (size_t index = 0; index < size; index++) {
         OH_Drawing_TextLine* textLine = OH_Drawing_GetTextLineByIndex(textLines, index);
         EXPECT_TRUE(textLine != nullptr);
 
         double width = OH_Drawing_TextLineGetTypographicBounds(textLine, &ascent, &descent, &leading);
-        EXPECT_GT(ascent, 0);
-        EXPECT_GT(descent, 0);
-        EXPECT_EQ(leading, 0);
-        EXPECT_GT(width, 0);
-        EXPECT_LE(width, 500.0);
+        EXPECT_NEAR(ascent, -27.84, FLOAT_DATA_EPSILON);
+        EXPECT_NEAR(descent, 7.32, FLOAT_DATA_EPSILON);
+        EXPECT_NEAR(leading, 0.0, FLOAT_DATA_EPSILON);
+        EXPECT_NEAR(width, widthArr[index], FLOAT_DATA_EPSILON);
     }
     OH_Drawing_DestroyTextLines(textLines);
 }
@@ -446,20 +480,24 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest014, TestSize.Level1)
     double ascent = 0.0;
     double descent = 0.0;
     double leading = 0.0;
+    std::vector<float> widthArr = {290.939697, 498.239380, 458.309509, 0.0, 497.952301, 409.497314, 51.300049};
     for (size_t index = 0; index < size; index++) {
         OH_Drawing_TextLine* textLine = OH_Drawing_GetTextLineByIndex(textLines, index);
         EXPECT_TRUE(textLine != nullptr);
 
         double width = OH_Drawing_TextLineGetTypographicBounds(textLine, &ascent, &descent, &leading);
-        EXPECT_GT(ascent, 0);
-        EXPECT_GT(descent, 0);
         EXPECT_EQ(leading, 0);
-        if (index == 3) {
-            EXPECT_EQ(width, 0);
+        if (index == 4) {
+            EXPECT_NEAR(ascent, -27.84, FLOAT_DATA_EPSILON);
+            EXPECT_NEAR(descent, 7.431193, FLOAT_DATA_EPSILON);
+        } else if (index == 5) {
+            EXPECT_NEAR(ascent, -35.369999, FLOAT_DATA_EPSILON);
+            EXPECT_NEAR(descent, 9.690001, FLOAT_DATA_EPSILON);
         } else {
-            EXPECT_GT(width, 0);
+            EXPECT_NEAR(ascent, -27.84, FLOAT_DATA_EPSILON);
+            EXPECT_NEAR(descent, 7.32, FLOAT_DATA_EPSILON);
         }
-        EXPECT_LE(width, 500.0);
+        EXPECT_NEAR(width, widthArr[index], FLOAT_DATA_EPSILON);
     }
     OH_Drawing_DestroyTextLines(textLines);
 }
@@ -484,8 +522,8 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest015, TestSize.Level1)
         EXPECT_TRUE(textLine != nullptr);
 
         double width = OH_Drawing_TextLineGetTypographicBounds(textLine, &ascent, &descent, &leading);
-        EXPECT_GT(ascent, 0);
-        EXPECT_GT(descent, 0);
+        EXPECT_NEAR(ascent, -27.84, FLOAT_DATA_EPSILON);
+        EXPECT_NEAR(descent, 7.32, FLOAT_DATA_EPSILON);
         EXPECT_EQ(leading, 0);
         EXPECT_EQ(width, 0);
     }
@@ -545,10 +583,19 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest017, TestSize.Level1)
         EXPECT_TRUE(textLine != nullptr);
 
         OH_Drawing_Rect *rect = OH_Drawing_TextLineGetImageBounds(textLine);
-        EXPECT_GT(OH_Drawing_RectGetRight(rect), OH_Drawing_RectGetLeft(rect));
-        EXPECT_GT(OH_Drawing_RectGetBottom(rect), OH_Drawing_RectGetTop(rect));
-        EXPECT_LT(OH_Drawing_RectGetWidth(rect), 500.0);
-        EXPECT_LE(OH_Drawing_RectGetHeight(rect), 40);
+        if (index == 0) {
+            auto lineRect = OH_Drawing_RectCreate(2.0, 2.0, 196.329819, 29.0);
+            EXPECT_TRUE(DrawingRectEquals(rect, lineRect));
+            OH_Drawing_RectDestroy(lineRect);
+        } else if (index == 1) {
+            auto lineRect = OH_Drawing_RectCreate(1.0, 5.0, 481.109436, 37.0);
+            EXPECT_TRUE(DrawingRectEquals(rect, lineRect));
+            OH_Drawing_RectDestroy(lineRect);
+        } else if (index == 2) {
+            auto lineRect = OH_Drawing_RectCreate(1.0, 8.0, 441.099548, 42.0);
+            EXPECT_TRUE(DrawingRectEquals(rect, lineRect));
+            OH_Drawing_RectDestroy(lineRect);
+        }
         OH_Drawing_RectDestroy(rect);
     }
     OH_Drawing_DestroyTextLines(textLines);
@@ -569,21 +616,18 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest018, TestSize.Level1)
     size_t size = OH_Drawing_GetDrawingArraySize(textLines);
     EXPECT_EQ(size, 7);
 
+    std::vector<OH_Drawing_Rect *> lineRectArr = {OH_Drawing_RectCreate(2.0, 3.0, 280.629761, 32.0),
+        OH_Drawing_RectCreate(9.099991, 5.0, 489.209412, 37.0), OH_Drawing_RectCreate(1.0, 8.0, 447.999573, 42.0),
+        OH_Drawing_RectCreate(0.0, 0.0, 0.0, 0.0), OH_Drawing_RectCreate(24.299973, 8.0, 498.514801, 44.0),
+        OH_Drawing_RectCreate(0.0, 8.0, 409.497314, 44.0), OH_Drawing_RectCreate(2.0, 1.0, 50.199951, 25.0)};
     for (size_t index = 0; index < size; index++) {
         OH_Drawing_TextLine* textLine = OH_Drawing_GetTextLineByIndex(textLines, index);
         EXPECT_TRUE(textLine != nullptr);
 
         OH_Drawing_Rect *rect = OH_Drawing_TextLineGetImageBounds(textLine);
-        if (index == 3) {
-            EXPECT_EQ(OH_Drawing_RectGetLeft(rect), 0);
-            EXPECT_EQ(OH_Drawing_RectGetRight(rect), 0);
-            EXPECT_EQ(OH_Drawing_RectGetBottom(rect), OH_Drawing_RectGetTop(rect));
-        } else {
-            EXPECT_GT(OH_Drawing_RectGetRight(rect), OH_Drawing_RectGetLeft(rect));
-            EXPECT_GT(OH_Drawing_RectGetBottom(rect), OH_Drawing_RectGetTop(rect));
-        }
-        EXPECT_LT(OH_Drawing_RectGetWidth(rect), 500.0);
-        EXPECT_LE(OH_Drawing_RectGetHeight(rect), 40);
+        auto lineRect = lineRectArr[index];
+        EXPECT_TRUE(DrawingRectEquals(rect, lineRect));
+        OH_Drawing_RectDestroy(lineRect);
         OH_Drawing_RectDestroy(rect);
     }
     OH_Drawing_DestroyTextLines(textLines);
@@ -630,12 +674,13 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest020, TestSize.Level1)
     size_t size = OH_Drawing_GetDrawingArraySize(textLines);
     EXPECT_EQ(size, 3);
 
+    std::vector<float> widthArr = {8.099991, 8.099976, 16.199951};
     for (size_t index = 0; index < size; index++) {
         OH_Drawing_TextLine* textLine = OH_Drawing_GetTextLineByIndex(textLines, index);
         EXPECT_TRUE(textLine != nullptr);
 
         double width = OH_Drawing_TextLineGetTrailingSpaceWidth(textLine);
-        EXPECT_GT(width, 1);
+        EXPECT_NEAR(width, widthArr[index], FLOAT_DATA_EPSILON);
     }
     OH_Drawing_DestroyTextLines(textLines);
 }
@@ -661,7 +706,7 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest021, TestSize.Level1)
 
         double width = OH_Drawing_TextLineGetTrailingSpaceWidth(textLine);
         if (index < 3) {
-            EXPECT_GT(width, 1.0);
+            EXPECT_NEAR(width, 8.099976, FLOAT_DATA_EPSILON);
         } else {
             EXPECT_EQ(width, 0.0);
         }
@@ -707,22 +752,21 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest023, TestSize.Level1)
     EXPECT_EQ(size, 3);
 
     const int maxCharacterNum = 88;
+    std::vector<int32_t> leftPointIndexArr = {0, 15, 50};
+    std::vector<int32_t> rightPointIndexArr = {6, 20, 55};
     for (size_t index = 0; index < size; index++) {
         OH_Drawing_TextLine* textLine = OH_Drawing_GetTextLineByIndex(textLines, index);
         EXPECT_TRUE(textLine != nullptr);
 
         OH_Drawing_Point *point = OH_Drawing_PointCreate(1.0, 2.0);
         int32_t characterIndex = OH_Drawing_TextLineGetStringIndexForPosition(textLine, point);
-        if (index == 0) {
-            EXPECT_EQ(characterIndex, 0);
-        } else {
-            EXPECT_GT(characterIndex, 0);
-        }
+        EXPECT_EQ(characterIndex, leftPointIndexArr[index]);
+
         EXPECT_LT(characterIndex, maxCharacterNum);
         OH_Drawing_PointSet(point, 90.0, 4.0);
         characterIndex = OH_Drawing_TextLineGetStringIndexForPosition(textLine, point);
-        EXPECT_GT(characterIndex, 1);
-        EXPECT_LT(characterIndex, maxCharacterNum);
+        EXPECT_EQ(characterIndex, rightPointIndexArr[index]);
+
         OH_Drawing_PointDestroy(point);
     }
     OH_Drawing_DestroyTextLines(textLines);
@@ -742,24 +786,19 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest024, TestSize.Level1)
     OH_Drawing_Array* textLines = OH_Drawing_TypographyGetTextLines(typography_);
     size_t size = OH_Drawing_GetDrawingArraySize(textLines);
     EXPECT_EQ(size, 7);
-
-    const int maxCharacterNum = 223;
+    std::vector<int32_t> leftPointIndexArr = {0, 20, 56, 89, 89, 113, 134};
+    std::vector<int32_t> rightPointIndexArr = {20, 47, 83, 89, 110, 133, 137};
     for (size_t index = 0; index < size; index++) {
         OH_Drawing_TextLine* textLine = OH_Drawing_GetTextLineByIndex(textLines, index);
         EXPECT_TRUE(textLine != nullptr);
 
         OH_Drawing_Point *point = OH_Drawing_PointCreate(1.0, 2.0);
         int32_t characterIndex = OH_Drawing_TextLineGetStringIndexForPosition(textLine, point);
-        if (index == 0) {
-            EXPECT_EQ(characterIndex, 0);
-        } else {
-            EXPECT_GT(characterIndex, 0);
-        }
-        EXPECT_LT(characterIndex, maxCharacterNum);
+        EXPECT_EQ(characterIndex, leftPointIndexArr[index]);
+
         OH_Drawing_PointSet(point, 400.0, 4.0);
         characterIndex = OH_Drawing_TextLineGetStringIndexForPosition(textLine, point);
-        EXPECT_GT(characterIndex, 1);
-        EXPECT_LT(characterIndex, maxCharacterNum);
+        EXPECT_EQ(characterIndex, rightPointIndexArr[index]);
         OH_Drawing_PointDestroy(point);
     }
     OH_Drawing_DestroyTextLines(textLines);
@@ -834,6 +873,7 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest027, TestSize.Level1)
     EXPECT_EQ(size, 3);
 
     const int maxCharacterNum = 88;
+    std::vector<float> offSetArr = {206.639786, 490.139404, 459.509460};
     for (size_t index = 0; index < size; index++) {
         OH_Drawing_TextLine* textLine = OH_Drawing_GetTextLineByIndex(textLines, index);
         EXPECT_TRUE(textLine != nullptr);
@@ -842,14 +882,13 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest027, TestSize.Level1)
         EXPECT_EQ(offset, 0.0);
         offset = OH_Drawing_TextLineGetOffsetForStringIndex(textLine, 10);
         if (index == 0) {
-            EXPECT_GT(offset, 1.0);
+            EXPECT_NEAR(offset, 161.939835, FLOAT_DATA_EPSILON);
         } else {
             EXPECT_EQ(offset, 0.0);
         }
         EXPECT_LE(offset, 500.0);
         offset = OH_Drawing_TextLineGetOffsetForStringIndex(textLine, maxCharacterNum);
-        EXPECT_GT(offset, 1.0);
-        EXPECT_LE(offset, 500.0);
+        EXPECT_NEAR(offset, offSetArr[index], FLOAT_DATA_EPSILON);
         offset = OH_Drawing_TextLineGetOffsetForStringIndex(textLine, -2);
         EXPECT_EQ(offset, 0.0);
     }
@@ -872,6 +911,7 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest028, TestSize.Level1)
     EXPECT_EQ(size, 7);
 
     const int maxCharacterNum = 88;
+    std::vector<float> offSetArr = {290.939697, 498.239380, 458.309509};
     for (size_t index = 0; index < size; index++) {
         OH_Drawing_TextLine* textLine = OH_Drawing_GetTextLineByIndex(textLines, index);
         EXPECT_TRUE(textLine != nullptr);
@@ -880,14 +920,14 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest028, TestSize.Level1)
         EXPECT_EQ(offset, 0.0);
         offset = OH_Drawing_TextLineGetOffsetForStringIndex(textLine, 10);
         if (index == 0) {
-            EXPECT_GT(offset, 1.0);
+            EXPECT_NEAR(offset, 155.129852, FLOAT_DATA_EPSILON);
         } else {
             EXPECT_EQ(offset, 0.0);
         }
         EXPECT_LE(offset, 500.0);
         offset = OH_Drawing_TextLineGetOffsetForStringIndex(textLine, maxCharacterNum);
-        if (index < 3) {
-            EXPECT_GT(offset, 1.0);
+        if (index <= 2) {
+            EXPECT_NEAR(offset, offSetArr[index], FLOAT_DATA_EPSILON);
         } else {
             EXPECT_EQ(offset, 0.0);
         }
@@ -937,6 +977,7 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest030, TestSize.Level1)
     size_t size = OH_Drawing_GetDrawingArraySize(textLines);
     EXPECT_EQ(size, 3);
 
+    std::vector<float> offSetArr = {250.730103, 108.980286, 128.345245};
     for (size_t index = 0; index < size; index++) {
         OH_Drawing_TextLine* textLine = OH_Drawing_GetTextLineByIndex(textLines, index);
         EXPECT_TRUE(textLine != nullptr);
@@ -944,7 +985,7 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest030, TestSize.Level1)
         double offset = OH_Drawing_TextLineGetAlignmentOffset(textLine, 0.0, 600);
         EXPECT_EQ(offset, 0.0);
         offset = OH_Drawing_TextLineGetAlignmentOffset(textLine, 0.5, 700);
-        EXPECT_GT(offset, 100.0);
+        EXPECT_NEAR(offset, offSetArr[index], FLOAT_DATA_EPSILON);
         offset = OH_Drawing_TextLineGetAlignmentOffset(textLine, -1.0, 700);
         EXPECT_EQ(offset, 0.0);
         offset = OH_Drawing_TextLineGetAlignmentOffset(textLine, 2.0, 20);
@@ -968,6 +1009,7 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest031, TestSize.Level1)
     size_t size = OH_Drawing_GetDrawingArraySize(textLines);
     EXPECT_EQ(size, 7);
 
+    std::vector<float> offSetArr = {208.580139, 104.930298, 124.895233, 350.000000, 101.023849, 145.251343, 324.349976};
     for (size_t index = 0; index < size; index++) {
         OH_Drawing_TextLine* textLine = OH_Drawing_GetTextLineByIndex(textLines, index);
         EXPECT_TRUE(textLine != nullptr);
@@ -975,7 +1017,7 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest031, TestSize.Level1)
         double offset = OH_Drawing_TextLineGetAlignmentOffset(textLine, 0.0, 600);
         EXPECT_EQ(offset, 0.0);
         offset = OH_Drawing_TextLineGetAlignmentOffset(textLine, 0.5, 700);
-        EXPECT_GT(offset, 100.0);
+        EXPECT_NEAR(offset, offSetArr[index], FLOAT_DATA_EPSILON);
         offset = OH_Drawing_TextLineGetAlignmentOffset(textLine, -1.0, 700);
         EXPECT_EQ(offset, 0.0);
         offset = OH_Drawing_TextLineGetAlignmentOffset(textLine, 2.0, 20);
@@ -1026,31 +1068,30 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest032, TestSize.Level1)
  */
 HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest033, TestSize.Level1)
 {
-    PrepareCreateTextLine("Hello 测 World \n!@#$%^&*~(){}[] 123 4567890 - = ,. < >、/Drawing testlp 试 Drawing  ");
+    PrepareCreateTextLine("H测😀مرحب\n!@#$%^&*~(){}[] 123 4567890 - = ,. < >、/Drawing testlp 试 Drawing  ");
     OH_Drawing_Array* textLines = OH_Drawing_TypographyGetTextLines(typography_);
     size_t size = OH_Drawing_GetDrawingArraySize(textLines);
     EXPECT_EQ(size, 3);
-
-    for (size_t index = 0; index < size; index++) {
-        OH_Drawing_TextLine* textLine = OH_Drawing_GetTextLineByIndex(textLines, index);
-        EXPECT_TRUE(textLine != nullptr);
-
-        OH_Drawing_TextLineEnumerateCaretOffsets(textLine, [](double offset, int32_t index, bool leadingEdge) {
-            static int offsetNum = 0;
-            if (index == 0 && leadingEdge) {
-                EXPECT_EQ(offset, 0.0);
-            } else {
-                EXPECT_LE(offset, 500.0);
-            }
-            if (offsetNum++ % 2 == 0) {
-                EXPECT_TRUE(leadingEdge);
-            } else {
-                EXPECT_FALSE(leadingEdge);
-            }
-            EXPECT_LE(index, 51);
-            return index > 50;
-        });
-    }
+    OH_Drawing_TextLine* textLine1 = OH_Drawing_GetTextLineByIndex(textLines, 0);
+    OH_Drawing_TextLineEnumerateCaretOffsets(textLine1, [](double offset, int32_t index, bool leadingEdge) {
+        static int offsetNum = 0;
+        if (index == 0 && leadingEdge) {
+            EXPECT_NEAR(offset, 0.0, FLOAT_DATA_EPSILON);
+        } else if (index == 1 && leadingEdge) {
+            EXPECT_NEAR(offset, 22.349976, FLOAT_DATA_EPSILON);
+        } else if (index == 2 && leadingEdge) {
+            EXPECT_NEAR(offset, 52.349945, FLOAT_DATA_EPSILON);
+        } else {
+            EXPECT_LE(offset, 500.0);
+        }
+        if (offsetNum++ % 2 == 0) {
+            EXPECT_TRUE(leadingEdge);
+        } else {
+            EXPECT_FALSE(leadingEdge);
+        }
+        EXPECT_LE(index, 51);
+        return index > 50;
+    });
     OH_Drawing_DestroyTextLines(textLines);
 }
 
@@ -1143,6 +1184,8 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest037, TestSize.Level1)
     size_t size = OH_Drawing_GetDrawingArraySize(textLines);
     EXPECT_EQ(size, 3);
 
+    std::vector<int32_t> countArr1 = {7, 10, 7};
+    std::vector<int32_t> countArr2 = {4, 4, 5};
     for (size_t index = 0; index < size; index++) {
         OH_Drawing_TextLine* textLine = OH_Drawing_GetTextLineByIndex(textLines, index);
         EXPECT_TRUE(textLine != nullptr);
@@ -1152,15 +1195,17 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest037, TestSize.Level1)
         EXPECT_TRUE(truncatedLine != nullptr);
         OH_Drawing_TextLinePaint(truncatedLine, canvas_, 30, 250);
         double count = OH_Drawing_TextLineGetGlyphCount(truncatedLine);
-        EXPECT_GT(count, 0);
+        EXPECT_EQ(count, countArr1[index]);
+        
         OH_Drawing_DestroyTextLine(truncatedLine);
         truncatedLine = OH_Drawing_TextLineCreateTruncatedLine(textLine, 80, ELLIPSIS_MODAL_MIDDLE, "...");
         EXPECT_TRUE(truncatedLine == nullptr);
+        OH_Drawing_DestroyTextLine(truncatedLine);
         truncatedLine = OH_Drawing_TextLineCreateTruncatedLine(textLine, 50, ELLIPSIS_MODAL_TAIL, "...");
         EXPECT_TRUE(truncatedLine != nullptr);
         OH_Drawing_TextLinePaint(truncatedLine, canvas_, 30, 550);
         count = OH_Drawing_TextLineGetGlyphCount(truncatedLine);
-        EXPECT_GT(count, 0);
+        EXPECT_EQ(count, countArr2[index]);
         OH_Drawing_DestroyTextLine(truncatedLine);
     }
     OH_Drawing_DestroyTextLines(textLines);
@@ -1192,7 +1237,7 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest038, TestSize.Level1)
         if (index == 3) {
             EXPECT_EQ(count, 0);
         } else {
-            EXPECT_GT(count, 0);
+            EXPECT_EQ(count, 3);
         }
         OH_Drawing_DestroyTextLine(truncatedLine);
         truncatedLine = OH_Drawing_TextLineCreateTruncatedLine(textLine, 30, ELLIPSIS_MODAL_HEAD, "测试");
@@ -1202,7 +1247,7 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest038, TestSize.Level1)
         if (index == 3) {
             EXPECT_EQ(count, 0);
         } else {
-            EXPECT_GT(count, 0);
+            EXPECT_EQ(count, 3);
         }
         OH_Drawing_DestroyTextLine(truncatedLine);
     }
@@ -1248,6 +1293,7 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest040, TestSize.Level1)
     size_t size = OH_Drawing_GetDrawingArraySize(textLines);
     EXPECT_EQ(size, 3);
 
+    std::vector<int32_t> sizeArr = {4, 1, 6};
     for (size_t index = 0; index < size; index++) {
         OH_Drawing_TextLine* textLine = OH_Drawing_GetTextLineByIndex(textLines, index);
         EXPECT_TRUE(textLine != nullptr);
@@ -1255,11 +1301,7 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest040, TestSize.Level1)
         OH_Drawing_Array *runs = OH_Drawing_TextLineGetGlyphRuns(textLine);
         EXPECT_TRUE(runs != nullptr);
         size_t runsSize = OH_Drawing_GetDrawingArraySize(runs);
-        if (index == 1) {
-            EXPECT_EQ(runsSize, 1);
-        } else {
-            EXPECT_GT(runsSize, 1);
-        }
+        EXPECT_EQ(runsSize, sizeArr[index]);
         OH_Drawing_DestroyRuns(runs);
     }
     OH_Drawing_DestroyTextLines(textLines);
@@ -1279,6 +1321,7 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest041, TestSize.Level1)
     size_t size = OH_Drawing_GetDrawingArraySize(textLines);
     EXPECT_EQ(size, 7);
 
+    std::vector<int32_t> sizeArr = {6, 1, 6, 0, 7, 8, 1};
     for (size_t index = 0; index < size; index++) {
         OH_Drawing_TextLine* textLine = OH_Drawing_GetTextLineByIndex(textLines, index);
         EXPECT_TRUE(textLine != nullptr);
@@ -1295,6 +1338,7 @@ HWTEST_F(NativeDrawingLineTest, NativeDrawingLineTest041, TestSize.Level1)
             EXPECT_TRUE(runs != nullptr);
             EXPECT_GE(runsSize, 6);
         }
+        EXPECT_EQ(runsSize, sizeArr[index]);
         OH_Drawing_DestroyRuns(runs);
     }
     OH_Drawing_DestroyTextLines(textLines);

@@ -69,6 +69,7 @@ ohos_unittest("rosen_text_adapt_test") {
       defines += [
         "USE_ROSEN_DRAWING",
         "ENABLE_DRAWING_ADAPTER",
+        "ENABLE_TEXT_ENHANCE",
         "USE_M133_SKIA",
       ]
     } else {
