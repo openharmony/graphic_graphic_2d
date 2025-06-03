@@ -140,7 +140,7 @@ HWTEST_F(NativeDrawingRegisterFontTest, NativeDrawingRegisterFontTest006, TestSi
     EXPECT_EQ(result, 0);
     EXPECT_EQ(OH_Drawing_UnregisterFont(fontCollection, "test1"), 0);
     EXPECT_EQ(OH_Drawing_UnregisterFont(fontCollection, "test2"), 0);
-    EXPECT_EQ(OH_Drawing_UnregisterFont(fontCollection, "test3"), 1);
+    EXPECT_EQ(OH_Drawing_UnregisterFont(fontCollection, "test3"), 0);
 
     OH_Drawing_DestroyFontCollection(fontCollection);
 }
@@ -158,6 +158,7 @@ HWTEST_F(NativeDrawingRegisterFontTest, NativeDrawingRegisterFontTest007, TestSi
     EXPECT_EQ(OH_Drawing_UnregisterFont(nullptr, ""), nullFontCollection);
     EXPECT_EQ(OH_Drawing_UnregisterFont(nullptr, nullptr), nullFontCollection);
     EXPECT_EQ(OH_Drawing_UnregisterFont(fontCollection, nullptr), nullFontCollection);
+    EXPECT_EQ(OH_Drawing_UnregisterFont(fontCollection, ""), 1);
     OH_Drawing_DestroyFontCollection(fontCollection);
 }
 } // namespace OHOS
