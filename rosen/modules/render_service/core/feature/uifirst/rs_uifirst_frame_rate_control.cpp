@@ -72,6 +72,8 @@ void RSUifirstFrameRateControl::SetAnimationEndInfo(const DataBaseRs& eventInfo)
             SetMultTaskAnimation(false);
             break;
 
+        case SceneId::AOD_TO_LAUNCHER:
+        case SceneId::LOCKSCREEN_TO_LAUNCHER:
         case SceneId::EXIT_RECENT_2_HOME_ANI:
         case SceneId::CLEAR_1_RECENT_ANI:
         case SceneId::CLEAR_ALL_RECENT_ANI:
