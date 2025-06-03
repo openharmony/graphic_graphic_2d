@@ -19,6 +19,9 @@ namespace OHOS{
 namespace Rosen {
 void RSUifirstFrameRateControl::SetAnimationStartInfo(const DataBaseRs& eventInfo)
 {
+    if (!RSSystemProperties::GetSubThreadControlFrameRate()) {
+        return;
+    }
     auto sceneId = hasSceneId(eventInfo.sceneId);
 
     switch (sceneId) {
@@ -47,6 +50,9 @@ void RSUifirstFrameRateControl::SetAnimationStartInfo(const DataBaseRs& eventInf
 
 void RSUifirstFrameRateControl::SetAnimationEndInfo(const DataBaseRs& eventInfo)
 {
+    if (!RSSystemProperties::GetSubThreadControlFrameRate()) {
+        return;
+    }
     auto sceneId = hasSceneId(eventInfo.sceneId);
 
     switch (sceneId) {
