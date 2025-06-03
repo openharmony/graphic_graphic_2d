@@ -115,6 +115,10 @@ std::shared_ptr<Drawing::Typeface> FontCollection::LoadFont(
 {
     TEXT_TRACE_FUNC();
     std::shared_ptr<Drawing::Typeface> typeface(dfmanager_->LoadDynamicFont(familyName, data, datalen));
+    if (typeface == nullptr) {
+        TEXT_LOGE("Failed to load font %{public}s", familyName.c_str());
+        return nullptr;
+    }
     TypefaceWithAlias ta(familyName, typeface);
     LoadFontCallback cb(this, ta.GetAlias(), loadFontStartCallback_, loadFontFinishCallback_);
     RegisterError err = RegisterTypeface(ta);

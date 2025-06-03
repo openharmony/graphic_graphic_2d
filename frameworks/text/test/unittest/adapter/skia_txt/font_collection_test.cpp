@@ -456,7 +456,7 @@ HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest013, TestSi
     EXPECT_TRUE(fontCollection_->UnloadFont("Noto Sans Mono"));
     OHOS::Rosen::Drawing::Typeface::UnRegisterCallBackFunc(nullptr);
     EXPECT_FALSE(fontCollection_->UnloadFont(""));
-    EXPECT_TRUE(fontCollection_->UnloadFont("Noto Sans"));
+    EXPECT_FALSE(fontCollection_->UnloadFont("Noto Sans"));
 }
 } // namespace Rosen
 } // namespace OHOS
