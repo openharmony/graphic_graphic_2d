@@ -2796,11 +2796,11 @@ ErrCode RSRenderServiceConnection::ReportEventResponse(DataBaseRs info)
     auto task = [info]() -> void {
         RSJankStats::GetInstance().SetReportEventResponse(info);
     };
-    RSUifirstFrameRateControl::Instance().SetAnimationStartInfo(info);
 #ifdef RS_ENABLE_GPU
     renderThread_.PostTask(task);
     RSUifirstManager::Instance().OnProcessEventResponse(info);
 #endif
+    RSUifirstFrameRateControl::Instance().SetAnimationStartInfo(info);
     return ERR_OK;
 }
 
@@ -2818,7 +2818,6 @@ ErrCode RSRenderServiceConnection::ReportEventComplete(DataBaseRs info)
 
 ErrCode RSRenderServiceConnection::ReportEventJankFrame(DataBaseRs info)
 {
-    RSUifirstFrameRateControl::Instance().SetAnimationEndInfo(info);
 #ifdef RS_ENABLE_GPU
     bool isReportTaskDelayed = renderThread_.IsMainLooping();
     auto task = [info, isReportTaskDelayed]() -> void {
@@ -2826,6 +2825,7 @@ ErrCode RSRenderServiceConnection::ReportEventJankFrame(DataBaseRs info)
     };
     renderThread_.PostTask(task);
 #endif
+    RSUifirstFrameRateControl::Instance().SetAnimationEndInfo(info);
     return ERR_OK;
 }
 
