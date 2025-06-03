@@ -213,6 +213,10 @@ HWTEST_F(ShaderEffectTest, CreateLinearGradient003, TestSize.Level1)
     auto newShaderEffect = ShaderEffect::CreateLinearGradient(startPoint, endPoint, colors, colorSpace,
         position,TileMode::REPEAT);
     EXPECT_TRUE(newShaderEffect != nullptr);
+    colors.clear();
+    auto newShaderEffect2 = ShaderEffect::CreateLinearGradient(startPoint, endPoint, colors, colorSpace,
+        position,TileMode::REPEAT);
+    EXPECT_TRUE(newShaderEffect2 != nullptr);
 }
 
 /*
@@ -271,6 +275,10 @@ HWTEST_F(ShaderEffectTest, CreateRadialGradient003, TestSize.Level1)
     auto newShaderEffect = ShaderEffect::CreateRadialGradient(centerPoint, radius, colors, colorSpace, position,
         tileMode, &matrix);
     EXPECT_TRUE(newShaderEffect != nullptr);
+    colors.clear();
+    auto newShaderEffect2 = ShaderEffect::CreateRadialGradient(centerPoint, radius, colors, colorSpace, position,
+        tileMode, &matrix);
+    EXPECT_TRUE(newShaderEffect2 != nullptr);
 }
 
 /*
@@ -339,6 +347,10 @@ HWTEST_F(ShaderEffectTest, CreateTwoPointConical003, TestSize.Level1)
     auto newShaderEffect = ShaderEffect::CreateTwoPointConical(startPoint, startRadius, endPoint, endRadius, colors,
         colorSpace, position, tileMode, &matrix);
     EXPECT_TRUE(newShaderEffect != nullptr);
+    colors.clear();
+    auto newShaderEffect2 = ShaderEffect::CreateTwoPointConical(startPoint, startRadius, endPoint, endRadius, colors,
+        colorSpace, position, tileMode, &matrix);
+    EXPECT_TRUE(newShaderEffect2 != nullptr);
 }
 
 /*
@@ -402,6 +414,11 @@ HWTEST_F(ShaderEffectTest, CreateSweepGradient003, TestSize.Level1)
         ShaderEffect::CreateSweepGradient(centerPoint, colors, colorSpace, position, tileMode, startAngle,
         endAngle, nullptr);
     EXPECT_TRUE(newShaderEffect != nullptr);
+    colors.clear();
+    auto newShaderEffect2 =
+        ShaderEffect::CreateSweepGradient(centerPoint, colors, colorSpace, position, tileMode, startAngle,
+        endAngle, nullptr);
+    EXPECT_TRUE(newShaderEffect2 != nullptr);
 }
 
 /*
