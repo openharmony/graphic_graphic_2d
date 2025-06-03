@@ -17,13 +17,63 @@
 
 namespace OHOS{
 namespace Rosen {
-void RSUifirstFrameRateControl::SetAnimationInfo(const EventInfo& eventInfo) {
-    if (eventInfo.description == "START_APP_ANIMATION") {
-        SetStartAnimation(eventInfo.eventStatus);
-    } else if (eventInfo.description == "BACK_APP_ANIMATION") {
-        SetStopAnimation(eventInfo.eventStatus);
-    } else if (eventInfo.description == "MULTIPLE_TASK") {
-        SetMultTaskAnimation(eventInfo.eventStatus);
+void RSUifirstFrameRateControl::SetAnimationStartInfo(const DataBaseRs& eventInfo)
+{
+    auto sceneId = hasSceneId(eventInfo.sceneId);
+
+    switch (sceneId) {
+        case SceneId::LAUNCHER_APP_LAUNCH_FROM_ICON:
+            forceRefreshOnce_ = true;
+            SetStartAnimation(true);
+            break;
+
+        case SceneId::LAUNCHER_APP_SWIPE_TO_HOME:
+            forceRefreshOnce_ = true;
+            SetStopAnimation(true);
+            break;
+        
+        case SceneId::GESTURE_TO_RECENTS:
+            forceRefreshOnce_ = true;
+            SetMultTaskAnimation(true);
+            break;
+        
+        case SceneId::LAUNCHER_APP_LAUNCH_FROM_RECENT:
+            forceRefreshOnce_ = false;
+            break;
+        default:
+            break;
+    }
+}
+
+void RSUifirstFrameRateControl::SetAnimationEndInfo(const DataBaseRs& eventInfo)
+{
+    auto sceneId = hasSceneId(eventInfo.sceneId);
+
+    switch (sceneId) {
+        case SceneId::LAUNCHER_APP_LAUNCH_FROM_ICON:
+            SetStartAnimation(false);
+            break;
+
+        case SceneId::LAUNCHER_APP_SWIPE_TO_HOME:
+            SetStopAnimation(false);
+            break;
+
+        case SceneId::GESTURE_TO_RECENTS:
+            break;
+  
+        case SceneId::LAUNCHER_APP_LAUNCH_FROM_RECENT:
+            forceRefreshOnce_ = true;
+            SetMultTaskAnimation(false);
+            break;
+
+        case SceneId::EXIT_RECENT_2_HOME_ANI:
+        case SceneId::CLEAR_1_RECENT_ANI:
+        case SceneId::CLEAR_ALL_RECENT_ANI:
+            SetMultTaskAnimation(false);
+            break;
+
+        default:
+            break;
     }
 }
 
@@ -48,7 +98,7 @@ bool RSUifirstFrameRateControl::SubThreadFrameDropDecision(RSSurfaceRenderNode& 
     bool hasMultipleSubSurfaces = JudgeMultiSubSurface(node);
     bool canDropFrame = GetUifirstFrameDropInternal(RSSystemProperties::GetSubThreadDropFrameInterval());
     
-    return inAnimation && (forceFreashOnce_ || (!hasMultipleSubSurfaces && canDropFrame));
+    return inAnimation && (forceRefreshOnce_ || (!hasMultipleSubSurfaces && canDropFrame));
 }
 
 bool RSUifirstFrameRateControl::NeedRSUifirstControlFrameDrop(RSSurfaceRenderNode& node)

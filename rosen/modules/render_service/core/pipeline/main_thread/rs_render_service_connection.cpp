@@ -2662,8 +2662,6 @@ void RSRenderServiceConnection::NotifyRefreshRateEvent(const EventInfo& eventInf
             frameRateMgr->HandleRefreshRateEvent(pid, eventInfo);
         }
     });
-
-    RSUifirstFrameRateControl::Instance().SetAnimationInfo(eventInfo);
 }
 
 void RSRenderServiceConnection::SetWindowExpectedRefreshRate(
@@ -2798,6 +2796,7 @@ ErrCode RSRenderServiceConnection::ReportEventResponse(DataBaseRs info)
     auto task = [info]() -> void {
         RSJankStats::GetInstance().SetReportEventResponse(info);
     };
+    RSUifirstFrameRateControl::Instance().SetAnimationStartInfo(info);
 #ifdef RS_ENABLE_GPU
     renderThread_.PostTask(task);
     RSUifirstManager::Instance().OnProcessEventResponse(info);
@@ -2819,6 +2818,7 @@ ErrCode RSRenderServiceConnection::ReportEventComplete(DataBaseRs info)
 
 ErrCode RSRenderServiceConnection::ReportEventJankFrame(DataBaseRs info)
 {
+    RSUifirstFrameRateControl::Instance().SetAnimationEndInfo(info);
 #ifdef RS_ENABLE_GPU
     bool isReportTaskDelayed = renderThread_.IsMainLooping();
     auto task = [info, isReportTaskDelayed]() -> void {

@@ -18,17 +18,43 @@
 #include <string>
 #include "pipeline/rs_surface_render_node.h"
 #include "variable_frame_rate/rs_variable_frame_rate.h"
+#include "transaction/rs_render_service_client.h"
 
 namespace OHOS::Rosen {
 class RSUifirstFrameRateControl {
 public:
+    enum class SceneId
+    {
+        LAUNCHER_APP_LAUNCH_FROM_ICON,
+        LAUNCHER_APP_SWIPE_TO_HOME,
+        GESTURE_TO_RECENTS,
+        LAUNCHER_APP_LAUNCH_FROM_RECENT,
+        EXIT_RECENT_2_HOME_ANI,
+        CLEAR_1_RECENT_ANI,
+        CLEAR_ALL_RECENT_ANI,
+        UNKNOWN
+    };
+
+    SceneId hasSceneId(const std::string& sceneId)
+    {
+        if (sceneId == "LAUNCHER_APP_LAUNCH_FROM_ICON") { return SceneId::LAUNCHER_APP_LAUNCH_FROM_ICON; }
+        if (sceneId == "LAUNCHER_APP_SWIPE_TO_HOME") { return SceneId::LAUNCHER_APP_SWIPE_TO_HOME; }
+        if (sceneId == "GESTURE_TO_RECENTS") { return SceneId::GESTURE_TO_RECENTS; }
+        if (sceneId == "LAUNCHER_APP_LAUNCH_FROM_RECENT") { return SceneId::LAUNCHER_APP_LAUNCH_FROM_RECENT; }
+        if (sceneId == "EXIT_RECENT_2_HOME_ANI") { return SceneId::EXIT_RECENT_2_HOME_ANI; }
+        if (sceneId == "CLEAR_1_RECENT_ANI") { return SceneId::CLEAR_1_RECENT_ANI; }
+        if (sceneId == "CLEAR_ALL_RECENT_ANI") { return SceneId::CLEAR_ALL_RECENT_ANI; }
+        return SceneId::UNKNOWN;
+    }
+
     static RSUifirstFrameRateControl& Instance()
     {
         static RSUifirstFrameRateControl instance;
         return instance;
     }
 
-    void SetAnimationInfo(const EventInfo& eventInfo);
+    void SetAnimationStartInfo(const DataBaseRs& eventInfo);
+    void SetAnimationEndInfo(const DataBaseRs& eventInfo);
     bool JudgeMultiSubSurface(RSSurfaceRenderNode& node);
     bool SubThreadFrameDropDecision(RSSurfaceRenderNode& node);
     bool NeedRSUifirstControlFrameDrop(RSSurfaceRenderNode& node);
@@ -68,6 +94,6 @@ private:
     bool startAnimationStatus_ = false;
     bool stopAnimationStatus_ = false;
     bool multTaskAnimationStatus_ = false;
-    bool forceFreashOnce_ = true;
+    bool forceRefreshOnce_ = true;
 };
 }
