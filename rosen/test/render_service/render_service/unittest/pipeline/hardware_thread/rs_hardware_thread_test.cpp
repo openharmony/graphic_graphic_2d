@@ -252,6 +252,90 @@ HWTEST_F(RSHardwareThreadTest, Start005, TestSize.Level1)
     ASSERT_TRUE(count != hardwareThread.refreshRateCounts_);
 }
 
+
+/**
+ * @tc.name: HardcursorLayerTest001
+ * @tc.desc: Test Hardcursor layer zorder is not max
+ * @tc.type: FUNC
+ * @tc.require: issueI6R49K
+ */
+HWTEST_F(RSHardwareThreadTest, HardcursorLayerTest001, TestSize.Level1)
+{
+    auto& hardwareThread = RSHardwareThread::Instance();
+    hardwareThread.Start();
+    SetUp();
+    auto surfaceNode1 = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    auto surfaceNode2 = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    auto surfaceNode3 = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    RectI dstRect{0, 0, 400, 600};
+    surfaceNode1->SetSrcRect(dstRect);
+    surfaceNode1->SetDstRect(dstRect);
+    surfaceNode2->SetSrcRect(dstRect);
+    surfaceNode2->SetDstRect(dstRect);
+    surfaceNode3->SetSrcRect(dstRect);
+    surfaceNode3->SetDstRect(dstRect);
+    auto layer1 = composerAdapter_->CreateLayer(*surfaceNode1);
+    ASSERT_NE(layer1, nullptr);
+    auto layer2 = composerAdapter_->CreateLayer(*surfaceNode2);
+    ASSERT_NE(layer2, nullptr);
+    auto layer3 = composerAdapter_->CreateLayer(*surfaceNode3);
+    ASSERT_NE(layer3, nullptr);
+
+    layer1->SetZorder(1);
+    layer2->SetZorder(2);
+    layer2->SetType(GraphicLayerType::GRAPHIC_LAYER_TYPE_CURSOR);
+    layer3->SetZorder(3);
+
+    std::vector<LayerInfoPtr> layers;
+    layers.emplace_back(layer1);
+    layers.emplace_back(layer2);
+    layers.emplace_back(layer3);
+    std::string res = hardwareThread.GetSurfaceNameInLayersForTrace(layers);
+    ASSERT_NE(res.find("zorder: 2"), -1);
+}
+
+/**
+ * @tc.name: HardcursorLayerTest002
+ * @tc.desc: Test Hardcursor layer zorder is max
+ * @tc.type: FUNC
+ * @tc.require: issueI6R49K
+ */
+HWTEST_F(RSHardwareThreadTest, HardcursorLayerTest002, TestSize.Level1)
+{
+    auto& hardwareThread = RSHardwareThread::Instance();
+    hardwareThread.Start();
+    SetUp();
+    auto surfaceNode1 = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    auto surfaceNode2 = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    auto surfaceNode3 = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    RectI dstRect{0, 0, 400, 600};
+    surfaceNode1->SetSrcRect(dstRect);
+    surfaceNode1->SetDstRect(dstRect);
+    surfaceNode2->SetSrcRect(dstRect);
+    surfaceNode2->SetDstRect(dstRect);
+    surfaceNode3->SetSrcRect(dstRect);
+    surfaceNode3->SetDstRect(dstRect);
+    auto layer1 = composerAdapter_->CreateLayer(*surfaceNode1);
+    ASSERT_NE(layer1, nullptr);
+    auto layer2 = composerAdapter_->CreateLayer(*surfaceNode2);
+    ASSERT_NE(layer2, nullptr);
+    auto layer3 = composerAdapter_->CreateLayer(*surfaceNode3);
+    ASSERT_NE(layer3, nullptr);
+
+    layer1->SetZorder(1);
+    layer2->SetZorder(8);
+    layer2->SetType(GraphicLayerType::GRAPHIC_LAYER_TYPE_CURSOR);
+    layer3->SetZorder(3);
+
+    std::vector<LayerInfoPtr> layers;
+    layers.emplace_back(layer1);
+    layers.emplace_back(layer2);
+    layers.emplace_back(layer3);
+    std::string res = hardwareThread.GetSurfaceNameInLayersForTrace(layers);
+    ASSERT_NE(res.find("zorder: 8"), -1);
+}
+
+
 /**
  * @tc.name: ClearFrameBuffers002
  * @tc.desc: Test RSHardwareThreadTest.ClearFrameBuffers
