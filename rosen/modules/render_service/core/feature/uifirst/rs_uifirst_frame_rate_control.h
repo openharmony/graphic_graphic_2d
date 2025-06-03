@@ -31,6 +31,8 @@ public:
         EXIT_RECENT_2_HOME_ANI,
         CLEAR_1_RECENT_ANI,
         CLEAR_ALL_RECENT_ANI,
+        AOD_TO_LAUNCHER,
+        LOCKSCREEN_TO_LAUNCHER,
         UNKNOWN
     };
 
@@ -43,6 +45,8 @@ public:
         if (sceneId == "EXIT_RECENT_2_HOME_ANI") { return SceneId::EXIT_RECENT_2_HOME_ANI; }
         if (sceneId == "CLEAR_1_RECENT_ANI") { return SceneId::CLEAR_1_RECENT_ANI; }
         if (sceneId == "CLEAR_ALL_RECENT_ANI") { return SceneId::CLEAR_ALL_RECENT_ANI; }
+        if (sceneId == "AOD_TO_LAUNCHER") { return SceneId::AOD_TO_LAUNCHER; }
+        if (sceneId == "LOCKSCREEN_TO_LAUNCHER") { return SceneId::LOCKSCREEN_TO_LAUNCHER; }
         return SceneId::UNKNOWN;
     }
 
