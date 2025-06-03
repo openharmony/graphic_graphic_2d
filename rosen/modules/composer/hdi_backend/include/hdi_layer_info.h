@@ -660,13 +660,11 @@ public:
     uint32_t GetAncoFlags() const { return ancoFlags_; }
     bool IsAncoSfv() const
     {
-        constexpr uint32_t ANCO_SFV_NODE_FLAG = AncoFlags::ANCO_SFV_NODE;
-        return (ancoFlags_ & ANCO_SFV_NODE_FLAG) == ANCO_SFV_NODE_FLAG;
+        return (ancoFlags_ & AncoFlags::ANCO_SFV_NODE) == AncoFlags::ANCO_SFV_NODE;
     }
     bool IsAncoNDK() const
     {
-        constexpr uint32_t ANCO_NDK_NODE_FLAG = AncoFlags::ANCO_NDK_NODE;
-        return (ancoFlags_ & ANCO_NDK_NODE_FLAG) == ANCO_NDK_NODE_FLAG;
+        return (ancoFlags_ & AncoFlags::ANCO_NDK_NODE) == AncoFlags::ANCO_NDK_NODE;
     }
     /* hdiLayer get layer info end */
 
