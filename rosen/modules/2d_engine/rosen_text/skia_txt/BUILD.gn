@@ -230,6 +230,12 @@ ohos_source_set("skia_paragraph") {
     "$skia_root/modules/skparagraph/src/TypefaceFontProvider.cpp",
   ]
 
+  if (use_new_skia) {
+    sources += [
+      "$skia_root/modules/skparagraph/src/TextGlobalConfig.cpp",
+    ]
+  }
+
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
     if (use_new_skia) {
       defines += [

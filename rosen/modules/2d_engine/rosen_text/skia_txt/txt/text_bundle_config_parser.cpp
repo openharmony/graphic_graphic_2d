@@ -14,6 +14,9 @@
  */
 
 #include "text_bundle_config_parser.h"
+#ifdef USE_M133_SKIA
+#include "modules/skparagraph/include/TextGlobalConfig.h"
+#endif
 
 #ifdef OHOS_TEXT_ENABLE
 #include "application_info.h"
@@ -116,6 +119,10 @@ void TextBundleConfigParser::InitBundleInfo()
     InitTextBundleConfig();
 #else
     InitTextBundleFailed();
+#endif
+
+#ifdef USE_M133_SKIA
+    skia::textlayout::TextGlobalConfig::SetTargetVersion(bundleApiVersion_);
 #endif
 }
 } // namespace SPText
