@@ -74,7 +74,6 @@ void RSUifirstFrameRateControl::SetAnimationEndInfo(const DataBaseRs& eventInfo)
         case SceneId::CLEAR_ALL_RECENT_ANI:
             SetMultTaskAnimation(false);
             break;
-        case SceneId::GESTURE_TO_RECENTS:
         default:
             break;
     }
