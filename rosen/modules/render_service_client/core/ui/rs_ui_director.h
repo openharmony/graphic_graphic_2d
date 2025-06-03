@@ -87,6 +87,7 @@ public:
     std::shared_ptr<RSUIContext> GetRSUIContext() const;
     void SetRSRootNode(std::shared_ptr<RSRootNode> rootNode);
 private:
+    void ReportUiSkipEvent(const std::string& abilityName);
     void AttachSurface();
     static void RecvMessages();
     static void RecvMessages(std::shared_ptr<RSTransactionData> cmds, bool useMultiInstance = false);
