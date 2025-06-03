@@ -104,6 +104,17 @@ HWTEST_F(RSRenderDispersionFilterTest, GetLeafRenderProperties001, TestSize.Leve
     auto rsRenderDispersionFilterPara = std::make_shared<RSRenderDispersionFilterPara>(0);
     auto rsRenderPropertyBaseVec = rsRenderDispersionFilterPara->GetLeafRenderProperties();
     EXPECT_TRUE(rsRenderPropertyBaseVec.empty());
+
+    rsRenderDispersionFilterPara->maskType_ = RSUIFilterType::PIXEL_MAP_MASK;
+    rsRenderPropertyBaseVec = rsRenderDispersionFilterPara->GetLeafRenderProperties();
+    EXPECT_TRUE(rsRenderPropertyBaseVec.empty());
+
+    rsRenderDispersionFilterPara->properties_[RSUIFilterType::PIXEL_MAP_MASK] =
+        rsRenderDispersionFilterPara->CreateRenderProperty(RSUIFilterType::PIXEL_MAP_MASK);
+    rsRenderDispersionFilterPara->properties_[RSUIFilterType::DISPERSION_OPACITY] =
+        rsRenderDispersionFilterPara->CreateRenderProperty(RSUIFilterType::DISPERSION_OPACITY);
+    rsRenderPropertyBaseVec = rsRenderDispersionFilterPara->GetLeafRenderProperties();
+    EXPECT_EQ(rsRenderPropertyBaseVec.empty(), 1);
 }
 
 /**

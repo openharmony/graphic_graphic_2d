@@ -802,6 +802,12 @@ napi_value FilterNapi::SetEdgeLight(napi_env env, napi_callback_info info)
 
 napi_value FilterNapi::SetMaskDispersion(napi_env env, napi_callback_info info)
 {
+    if (!UIEffectNapiUtils::IsSystemApp()) {
+        FILTER_LOG_E("SetMaskDispersion failed, is not system app");
+        napi_throw_error(env, std::to_string(ERR_NOT_SYSTEM_APP).c_str(),
+            "FilterNapi SetMaskDispersion failed, is not system app");
+        return nullptr;
+    }
     static const size_t requireArgc = NUM_5;
     size_t realArgc = NUM_5;
     napi_value result = nullptr;
