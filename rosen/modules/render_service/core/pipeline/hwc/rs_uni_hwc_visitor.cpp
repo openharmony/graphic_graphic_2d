@@ -351,7 +351,7 @@ void RSUniHwcVisitor::ProcessSolidLayerEnabled(RSSurfaceRenderNode& node)
         RS_LOGD("solidLayer: solidLayer enabling condition is met, but the switch is disabled! name: %{public}s",
             node.GetName().c_str());
         RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " parentId:%" PRIu64 "disabled by solidLayer "
-            "enabling condition is met, but the switch is disabled!",node.GetName().c_str(), node.GetId(),
+            "enabling condition is met, but the switch is disabled!", node.GetName().c_str(), node.GetId(),
             parentNode ? parentNode->GetId() : 0);
         node.SetHardwareForcedDisabledState(true);
         Statistics().UpdateHwcDisabledReasonForDFX(
@@ -762,7 +762,7 @@ void RSUniHwcVisitor::UpdateHardwareStateByHwcNodeBackgroundAlpha(
         if (!hwcNodePtr) {
             continue;
         }
-        auto parentNode = node->GetParent().lock();
+        auto parentNode = hwcNodePtr->GetParent().lock();
         bool isIntersect = !backgroundAlphaRect.IntersectRect(
             hwcNodePtr->GetRenderProperties().GetBoundsGeometry()->GetAbsRect()
             ).IsEmpty();
@@ -772,7 +772,7 @@ void RSUniHwcVisitor::UpdateHardwareStateByHwcNodeBackgroundAlpha(
                 "cannot cover above transparent hwc node", hwcNodePtr->GetName().c_str(),
                 hwcNodePtr->GetId(), parentNode ? parentNode->GetId() : 0);
             Statistics().UpdateHwcDisabledReasonForDFX(node->GetId(),
-                HwcDisabledReasons::DISABLED_BY_FLITER_RECT, node->GetName());
+                HwcDisabledReasons::DISABLED_BY_NO_COVER_HWC_NODE, node->GetName());
             continue;
         }
 
@@ -790,7 +790,7 @@ void RSUniHwcVisitor::UpdateHardwareStateByHwcNodeBackgroundAlpha(
                 "hwc node backgound alpha", hwcNodePtr->GetName().c_str(), hwcNodePtr->GetId(),
                 parentNode ? parentNode->GetId() : 0);
             Statistics().UpdateHwcDisabledReasonForDFX(node->GetId(),
-                HwcDisabledReasons::DISABLED_BY_FLITER_RECT, node->GetName());
+                HwcDisabledReasons::DISABLED_BY_NODE_BACKGROUND_ALPHA, node->GetName());
         }
     }
 }
