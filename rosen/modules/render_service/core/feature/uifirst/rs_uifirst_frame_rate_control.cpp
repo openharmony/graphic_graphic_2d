@@ -45,6 +45,7 @@ void RSUifirstFrameRateControl::SetAnimationStartInfo(const DataBaseRs& eventInf
             SetStartAnimation(false);
             SetStopAnimation(false);
             SetMultTaskAnimation(false);
+            break;
         default:
             break;
     }
