@@ -1223,6 +1223,49 @@ HWTEST_F(VSyncGeneratorTest, IsUiDvsyncOnTest001, Function | MediumTest| Level0)
     vsyncGeneratorImpl->rsVSyncDistributor_ = rsVSyncDistributor;
     ASSERT_EQ(ret, false);
 }
+
+/*
+ * @tc.name: GetVsyncRefreshRate
+ * @tc.desc: Test For GetVsyncRefreshRate001
+ * @tc.type: FUNC
+ * @tc.require: issueICAANX
+ */
+HWTEST_F(VSyncGeneratorTest, GetVsyncRefreshRate001, Function | MediumTest| Level0)
+{
+    auto vsyncGeneratorImpl = static_cast<impl::VSyncGenerator*>(VSyncGeneratorTest::vsyncGenerator_.GetRefPtr());
+    vsyncGeneratorImpl->period_ = 0;
+    uint32_t refreshRate = vsyncGeneratorImpl->GetVsyncRefreshRate();
+    ASSERT_EQ(refreshRate, UINT32_MAX);
+}
+
+/*
+ * @tc.name: GetVsyncRefreshRate
+ * @tc.desc: Test For GetVsyncRefreshRate002
+ * @tc.type: FUNC
+ * @tc.require: issueICAANX
+ */
+HWTEST_F(VSyncGeneratorTest, GetVsyncRefreshRate002, Function | MediumTest| Level0)
+{
+    auto vsyncGeneratorImpl = static_cast<impl::VSyncGenerator*>(VSyncGeneratorTest::vsyncGenerator_.GetRefPtr());
+    vsyncGeneratorImpl->period_ = 20000000; // 20000000ns
+    uint32_t refreshRate = vsyncGeneratorImpl->GetVsyncRefreshRate();
+    ASSERT_EQ(refreshRate, 50);
+}
+
+/*
+ * @tc.name: WaitForTimeoutConNotifyLockedForListener
+ * @tc.desc: Test For WaitForTimeoutConNotifyLockedForListener
+ * @tc.type: FUNC
+ * @tc.require: issueICAANX
+ */
+HWTEST_F(VSyncGeneratorTest, WaitForTimeoutConNotifyLockedForListener001, Function | MediumTest| Level0)
+{
+    auto vsyncGeneratorImpl = static_cast<impl::VSyncGenerator*>(VSyncGeneratorTest::vsyncGenerator_.GetRefPtr());
+    int64_t time = 8333333; // 8333333ns
+    vsyncGeneratorImpl->nextTimeStamp_ = time;
+    vsyncGeneratorImpl->WaitForTimeoutConNotifyLockedForListener();
+    ASSERT_EQ(vsyncGeneratorImpl->nextTimeStamp_, time);
+}
 } // namespace
 } // namespace Rosen
 } // namespace OHOS

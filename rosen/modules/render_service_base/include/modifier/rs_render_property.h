@@ -24,6 +24,9 @@
 #include "modifier/rs_modifier_type.h"
 #include "recording/draw_cmd_list.h"
 #include "transaction/rs_marshalling_helper.h"
+#ifdef USE_M133_SKIA
+#include "include/core/SkMatrix.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {

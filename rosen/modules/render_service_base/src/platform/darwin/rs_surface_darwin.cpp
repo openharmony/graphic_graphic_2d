@@ -17,7 +17,11 @@
 
 #include <glfw_render_context.h>
 #include <include/core/SkColorSpace.h>
+#ifdef USE_M133_SKIA
+#include <include/gpu/ganesh/gl/GrGLInterface.h>
+#else
 #include <include/gpu/gl/GrGLInterface.h>
+#endif
 
 #include "platform/common/rs_log.h"
 #include "rs_surface_frame_darwin.h"

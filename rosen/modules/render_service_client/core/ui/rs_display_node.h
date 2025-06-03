@@ -35,6 +35,13 @@
 namespace OHOS {
 namespace Rosen {
 
+/**
+ * @class RSDisplayNode
+ *
+ * @brief Represents a display node in the rendering service.
+ *
+ * Each screen corresponds to a display node.
+ */
 class RSC_EXPORT RSDisplayNode : public RSNode {
 public:
     using WeakPtr = std::weak_ptr<RSDisplayNode>;

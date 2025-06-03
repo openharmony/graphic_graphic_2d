@@ -35,7 +35,10 @@ ohos_fuzztest("VsyncSamplerFuzzTest") {
   deps = [
     "//foundation/graphic/graphic_2d/rosen/modules/composer/vsync:libvsync",
   ]
-  external_deps = [ "c_utils:utils" ]
+  external_deps = [
+    "c_utils:utils",
+    "samgr:samgr_proxy",
+  ]
 }
 
 ###############################################################################

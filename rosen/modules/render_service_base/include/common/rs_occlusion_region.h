@@ -22,7 +22,6 @@
 
 #include "rs_rect.h"
 #include "common/rs_macros.h"
-#include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -30,7 +29,7 @@ namespace Occlusion {
 
 constexpr int MAX_REGION_VALUE = 1000000;       // normal region value should not exceed 1000000
 constexpr int MIN_REGION_VALUE = -1000000;      // normal region value should not less than -1000000
-class Rect {
+class RSB_EXPORT Rect {
 public:
     // assumption: left-top is [0,0]
     int left_ = 0;
@@ -39,31 +38,8 @@ public:
     int bottom_ = 0;
 
     Rect() : left_(0), top_(0), right_(0), bottom_(0) {}
-    Rect(int l, int t, int r, int b, bool checkValue = true)
-        : left_(l), top_(t), right_(r), bottom_(b)
-    {
-        if (checkValue) {
-            CheckAndCorrectValue();
-            if (left_ != l || top_ != t || right_ != r || bottom_ != b) {
-                RS_LOGE("Occlusion::Rect initialized with invalid value, ltrb[%{public}d, %{public}d, %{public}d, "
-                    "%{public}d], should in range [%{public}d, %{public}d]",
-                    l, t, t, b, MIN_REGION_VALUE, MAX_REGION_VALUE);
-            }
-        }
-    }
-
-    Rect(const RectI& r, bool checkValue = true)
-        : left_(r.left_), top_(r.top_), right_(r.GetRight()), bottom_(r.GetBottom())
-    {
-        if (checkValue) {
-            CheckAndCorrectValue();
-            if (left_ != r.left_ || top_ != r.top_ || right_ != r.GetRight() || bottom_ != r.GetBottom()) {
-                RS_LOGE("Occlusion::Rect initialized with invalid value, ltrb[%{public}d, %{public}d, %{public}d, "
-                    "%{public}d], should in range [%{public}d, %{public}d]",
-                    r.left_, r.top_, r.GetRight(), r.GetBottom(), MIN_REGION_VALUE, MAX_REGION_VALUE);
-            }
-        }
-    }
+    Rect(int l, int t, int r, int b, bool checkValue = true);
+    Rect(const RectI& r, bool checkValue = true);
 
     void SetEmpty()
     {

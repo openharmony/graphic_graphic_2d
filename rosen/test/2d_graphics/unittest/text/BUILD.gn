@@ -29,6 +29,7 @@ ohos_unittest("2d_graphics_text_test") {
     "skfontmgr_test.cpp",
     "text_blob_test.cpp",
     "typeface_test.cpp",
+    "font_test.cpp",
   ]
 
   external_deps = [

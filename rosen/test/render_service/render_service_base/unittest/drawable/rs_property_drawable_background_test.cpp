@@ -21,7 +21,7 @@
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_effect_render_node.h"
 #include "render/rs_drawing_filter.h"
-#include "third_party/skia/include/core/SkStream.h"
+#include "include/core/SkStream.h"
 #include "surface_buffer_impl.h"
 #include "buffer_handle.h"
 #include "buffer_handle_utils.h"
@@ -347,7 +347,8 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSBackgroundFilterDrawable, TestSize.Leve
     RSRenderNode node(id);
     std::shared_ptr<RSDrawable> drawable = DrawableV2::RSBackgroundFilterDrawable::OnGenerate(node);
     ASSERT_EQ(drawable, nullptr);
-    std::shared_ptr<RSFilter> backgroundFilter = std::make_shared<RSDrawingFilter>(std::make_shared<RSShaderFilter>());
+    std::shared_ptr<RSFilter> backgroundFilter =
+        std::make_shared<RSDrawingFilter>(std::make_shared<RSRenderFilterParaBase>());
     node.renderContent_->GetMutableRenderProperties().SetBackgroundFilter(backgroundFilter);
     ASSERT_NE(DrawableV2::RSBackgroundFilterDrawable::OnGenerate(node), nullptr);
     RSEffectRenderNode nodeTwo(id);

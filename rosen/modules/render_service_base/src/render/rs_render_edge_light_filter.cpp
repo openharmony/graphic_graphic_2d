@@ -12,12 +12,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include "render/rs_render_edge_light_filter.h"
+
 #include <memory>
+
+#include "ge_visual_effect.h"
+#include "ge_visual_effect_container.h"
+
 #include "modifier/rs_render_property.h"
 #include "platform/common/rs_log.h"
-#include "render/rs_render_edge_light_filter.h"
 #include "render/rs_render_filter_base.h"
 #include "render/rs_render_pixel_map_mask.h"
+#include "render/rs_shader_mask.h"
 #include "transaction/rs_marshalling_helper.h"
 
 namespace OHOS {
@@ -189,5 +195,71 @@ std::vector<std::shared_ptr<RSRenderPropertyBase>> RSRenderEdgeLightFilterPara::
     }
     return out;
 }
+
+bool RSRenderEdgeLightFilterPara::ParseFilterValues()
+{
+    auto edgeLightAlpha =
+        std::static_pointer_cast<RSRenderAnimatableProperty<float>>(GetRenderPropert(RSUIFilterType::EDGE_LIGHT_ALPHA));
+    if (!edgeLightAlpha) {
+        ROSEN_LOGE("RSRenderEdgeLightFilterPara::ParseFilterValues alpha is null.");
+        return false;
+    }
+    alpha_ = edgeLightAlpha->Get();
+    // color
+    auto edgeLightColor = std::static_pointer_cast<RSRenderAnimatableProperty<Vector4f>>(
+        GetRenderPropert(RSUIFilterType::EDGE_LIGHT_COLOR));
+    if (edgeLightColor == nullptr) {
+        return false;
+    }
+    color_ = edgeLightColor->Get();
+
+    // mask
+    if (maskType_ != RSUIFilterType::NONE) {
+        auto edgeLightMask = std::static_pointer_cast<RSRenderMaskPara>(GetRenderPropert(maskType_));
+        if (edgeLightMask == nullptr) {
+            ROSEN_LOGE("RSRenderEdgeLightFilterPara::ParseFilterValues mask is null, maskType: %{public}d.",
+                static_cast<int>(maskType_));
+            return false;
+        }
+        mask_ = std::make_shared<RSShaderMask>(edgeLightMask);
+    }
+#ifndef ENABLE_M133_SKIA
+    const auto hashFunc = SkOpts::hash;
+#else
+    const auto hashFunc = SkChecksum::Hash32;
+#endif
+    hash_ = hashFunc(&alpha_, sizeof(alpha_), hash_);
+    hash_ = hashFunc(&color_, sizeof(color_), hash_);
+    if (mask_) {
+        auto maskHash = mask_->Hash();
+        hash_ = hashFunc(&maskHash, sizeof(maskHash), hash_);
+    }
+    return true;
+}
+
+void RSRenderEdgeLightFilterPara::GenerateGEVisualEffect(
+    std::shared_ptr<Drawing::GEVisualEffectContainer> visualEffectContainer)
+{
+    if (visualEffectContainer == nullptr) {
+        return;
+    }
+
+    Vector4f color;
+    if (color_.has_value()) {
+        color = color_.value();
+    }
+
+    auto edgeLightShaderFilter = std::make_shared<Drawing::GEVisualEffect>(
+        Drawing::GE_FILTER_EDGE_LIGHT, Drawing::DrawingPaintType::BRUSH);
+    edgeLightShaderFilter->SetParam(Drawing::GE_FILTER_EDGE_LIGHT_ALPHA, alpha_);
+    edgeLightShaderFilter->SetParam(Drawing::GE_FILTER_EDGE_LIGHT_EDGE_COLOR_R, color.x_);
+    edgeLightShaderFilter->SetParam(Drawing::GE_FILTER_EDGE_LIGHT_EDGE_COLOR_G, color.y_);
+    edgeLightShaderFilter->SetParam(Drawing::GE_FILTER_EDGE_LIGHT_EDGE_COLOR_B, color.z_);
+    edgeLightShaderFilter->SetParam(Drawing::GE_FILTER_EDGE_LIGHT_USE_RAW_COLOR, !color_.has_value());
+    edgeLightShaderFilter->SetParam(Drawing::GE_FILTER_EDGE_LIGHT_MASK,
+        mask_ != nullptr ? mask_->GenerateGEShaderMask() : nullptr);
+    visualEffectContainer->AddToChainedFilter(edgeLightShaderFilter);
+}
+
 } // namespace Rosen
 } // namespace OHOS

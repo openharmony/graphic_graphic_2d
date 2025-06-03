@@ -13,12 +13,24 @@
  * limitations under the License.
  */
 
-#include "platform/common/rs_log.h"
 #include "render/rs_render_dispersion_filter.h"
+
+#include "ge_visual_effect.h"
+#include "ge_visual_effect_container.h"
+
+#include "platform/common/rs_log.h"
 #include "render/rs_render_mask.h"
+#include "render/rs_shader_mask.h"
 
 namespace OHOS {
 namespace Rosen {
+
+constexpr RSUIFilterType DISPERSION_FILTER_TYPE[] = {
+    RSUIFilterType::DISPERSION_OPACITY,
+    RSUIFilterType::DISPERSION_RED_OFFSET,
+    RSUIFilterType::DISPERSION_GREEN_OFFSET,
+    RSUIFilterType::DISPERSION_BLUE_OFFSET,
+};
 
 void RSRenderDispersionFilterPara::GetDescription(std::string& out) const
 {
@@ -67,13 +79,7 @@ bool RSRenderDispersionFilterPara::WriteToParcel(Parcel& parcel)
         return false;
     }
 
-    RSUIFilterType filterTypes[] = {
-        RSUIFilterType::DISPERSION_OPACITY,
-        RSUIFilterType::DISPERSION_RED_OFFSET,
-        RSUIFilterType::DISPERSION_GREEN_OFFSET,
-        RSUIFilterType::DISPERSION_BLUE_OFFSET,
-    };
-    for (auto type : filterTypes) {
+    for (auto type : DISPERSION_FILTER_TYPE) {
         auto property = GetRenderPropert(type);
         if (property == nullptr) {
             ROSEN_LOGE("RSRenderDispersionFilterPara::WriteToParcel empty type: %{public}d", static_cast<int>(type));
@@ -116,13 +122,7 @@ bool RSRenderDispersionFilterPara::ReadFromParcel(Parcel& parcel)
     }
     Setter(maskType_, maskProperty);
 
-    RSUIFilterType filterTypes[] = {
-        RSUIFilterType::DISPERSION_OPACITY,
-        RSUIFilterType::DISPERSION_RED_OFFSET,
-        RSUIFilterType::DISPERSION_GREEN_OFFSET,
-        RSUIFilterType::DISPERSION_BLUE_OFFSET,
-    };
-    for (auto type : filterTypes) {
+    for (auto type : DISPERSION_FILTER_TYPE) {
         RSUIFilterType realType = RSUIFilterType::NONE;
         if (!RSMarshallingHelper::Unmarshalling(parcel, realType)) {
             ROSEN_LOGE("RSRenderDispersionFilterPara::ReadFromParcel empty type: %{public}d", static_cast<int>(type));
@@ -142,8 +142,21 @@ bool RSRenderDispersionFilterPara::ReadFromParcel(Parcel& parcel)
 std::vector<std::shared_ptr<RSRenderPropertyBase>> RSRenderDispersionFilterPara::GetLeafRenderProperties()
 {
     std::vector<std::shared_ptr<RSRenderPropertyBase>> out;
-    for (auto& [k, v] : properties_) {
-        out.emplace_back(v);
+    if (maskType_ != RSUIFilterType::NONE) {
+        auto mask = std::static_pointer_cast<RSRenderMaskPara>(GetRenderPropert(maskType_));
+        if (mask == nullptr) {
+            ROSEN_LOGE("RSRenderDispersionFilterPara::GetLeafRenderProperties mask not found, maskType: %{public}d",
+                static_cast<int>(maskType_));
+            return {};
+        }
+        out = mask->GetLeafRenderProperties();
+    }
+    for (const auto& filterType : DISPERSION_FILTER_TYPE) {
+        auto value = GetRenderPropert(filterType);
+        if (value == nullptr) {
+            continue;
+        }
+        out.emplace_back(value);
     }
     return out;
 }
@@ -155,6 +168,82 @@ std::shared_ptr<RSRenderMaskPara> RSRenderDispersionFilterPara::GetRenderMask()
         return nullptr;
     }
     return std::static_pointer_cast<RSRenderMaskPara>(property);
+}
+
+bool RSRenderDispersionFilterPara::ParseFilterValues()
+{
+    auto dispersionMask = std::static_pointer_cast<RSRenderMaskPara>(GetRenderPropert(maskType_));
+    auto dispersionOpacity =
+        std::static_pointer_cast<RSRenderProperty<float>>(GetRenderPropert(RSUIFilterType::DISPERSION_OPACITY));
+    auto dispersionRedOffset =
+        std::static_pointer_cast<RSRenderProperty<Vector2f>>(GetRenderPropert(RSUIFilterType::DISPERSION_RED_OFFSET));
+    auto dispersionGreenOffset =
+        std::static_pointer_cast<RSRenderProperty<Vector2f>>(GetRenderPropert(RSUIFilterType::DISPERSION_GREEN_OFFSET));
+    auto dispersionBlueOffset =
+        std::static_pointer_cast<RSRenderProperty<Vector2f>>(GetRenderPropert(RSUIFilterType::DISPERSION_BLUE_OFFSET));
+
+    bool hasNull = !dispersionOpacity || !dispersionRedOffset || !dispersionGreenOffset || !dispersionBlueOffset;
+    if (hasNull) {
+        ROSEN_LOGE("RSRenderDispersionFilterPara::ParseFilterValues GetRenderPropert has some nullptr.");
+        return false;
+    }
+    opacity_ = dispersionOpacity->Get();
+    auto redOffset = dispersionRedOffset->Get();
+    redOffsetX_ = redOffset[0];
+    redOffsetY_ = redOffset[1];
+    auto greenOffset = dispersionGreenOffset->Get();
+    greenOffsetX_ = greenOffset[0];
+    greenOffsetY_ = greenOffset[1];
+    auto blueOffset = dispersionBlueOffset->Get();
+    blueOffsetX_ = blueOffset[0];
+    blueOffsetY_ = blueOffset[1];
+#ifndef ENABLE_M133_SKIA
+    const auto hashFunc = SkOpts::hash;
+#else
+    const auto hashFunc = SkChecksum::Hash32;
+#endif
+    mask_ = mask_ = dispersionMask ? std::make_shared<RSShaderMask>(dispersionMask) : nullptr;
+    if (mask_) {
+        auto maskHash = mask_->Hash();
+        hash_ = hashFunc(&maskHash, sizeof(maskHash), hash_);
+    }
+    hash_ = hashFunc(&opacity_, sizeof(opacity_), hash_);
+    hash_ = hashFunc(&redOffsetX_, sizeof(redOffsetX_), hash_);
+    hash_ = hashFunc(&redOffsetY_, sizeof(redOffsetY_), hash_);
+    hash_ = hashFunc(&greenOffsetX_, sizeof(greenOffsetX_), hash_);
+    hash_ = hashFunc(&greenOffsetY_, sizeof(greenOffsetY_), hash_);
+    hash_ = hashFunc(&blueOffsetX_, sizeof(blueOffsetX_), hash_);
+    hash_ = hashFunc(&blueOffsetY_, sizeof(blueOffsetY_), hash_);
+    return true;
+}
+
+void RSRenderDispersionFilterPara::GenerateGEVisualEffect(
+    std::shared_ptr<Drawing::GEVisualEffectContainer> visualEffectContainer)
+{
+    if (visualEffectContainer == nullptr) {
+        return;
+    }
+    if (mask_ == nullptr) {
+        ROSEN_LOGW("RSRenderDispersionFilterPara::GenerateGEVisualEffect mask_ is nullptr.");
+    }
+
+    auto dispersionShaderFilter = std::make_shared<Drawing::GEVisualEffect>(
+        Drawing::GE_FILTER_DISPERSION, Drawing::DrawingPaintType::BRUSH);
+    dispersionShaderFilter->SetParam(Drawing::GE_FILTER_DISPERSION_MASK,
+        mask_ != nullptr ? mask_->GenerateGEShaderMask() : nullptr);
+    dispersionShaderFilter->SetParam(Drawing::GE_FILTER_DISPERSION_OPACITY, opacity_);
+    dispersionShaderFilter->SetParam(Drawing::GE_FILTER_DISPERSION_RED_OFFSET_X, redOffsetX_);
+    dispersionShaderFilter->SetParam(Drawing::GE_FILTER_DISPERSION_RED_OFFSET_Y, redOffsetY_);
+    dispersionShaderFilter->SetParam(Drawing::GE_FILTER_DISPERSION_GREEN_OFFSET_X, greenOffsetX_);
+    dispersionShaderFilter->SetParam(Drawing::GE_FILTER_DISPERSION_GREEN_OFFSET_Y, greenOffsetY_);
+    dispersionShaderFilter->SetParam(Drawing::GE_FILTER_DISPERSION_BLUE_OFFSET_X, blueOffsetX_);
+    dispersionShaderFilter->SetParam(Drawing::GE_FILTER_DISPERSION_BLUE_OFFSET_Y, blueOffsetY_);
+    visualEffectContainer->AddToChainedFilter(dispersionShaderFilter);
+}
+
+const std::shared_ptr<Rosen::RSShaderMask>& RSRenderDispersionFilterPara::GetMask() const
+{
+    return mask_;
 }
 
 } // namespace Rosen

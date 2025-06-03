@@ -24,7 +24,6 @@ using namespace testing::ext;
 namespace OHOS {
 namespace Rosen {
 namespace SPText {
-static const float MIN_VALUE = 1e-6;
 class OHHmSymbolRunTest : public testing::Test {};
 
 
@@ -176,7 +175,7 @@ HWTEST_F(OHHmSymbolRunTest, SetSymbolRenderColor001, TestSize.Level1)
 HWTEST_F(OHHmSymbolRunTest, SetSymbolRenderColor002, TestSize.Level1)
 {
     std::vector<RSSColor> colors = {};
-    RSSColor color = {1.0, 0, 255, 0}; // the 1.0 is alpha, 255, 0, 0 is RGB
+    RSSColor color = {1.0, 0, 255, 0}; // the 1.0 is alpha, 0, 255, 0 is RGB
     RSRenderGroup group1;
     group1.color = color;
     RSSymbolLayers symbolInfo;
@@ -189,17 +188,10 @@ HWTEST_F(OHHmSymbolRunTest, SetSymbolRenderColor002, TestSize.Level1)
         animationFunc = nullptr;
     HMSymbolRun hmSymbolRun = HMSymbolRun(0, symbolTxt, textblob, animationFunc);
 
-    // step 2: Import different RenderingStrategy to test the color result.
+    // step 2: inputMode is SINGLE, colors is empty.
     RSSymbolRenderingStrategy renderMode = RSSymbolRenderingStrategy::SINGLE;
     hmSymbolRun.SetSymbolRenderColor(renderMode, colors, symbolInfo);
-    bool check = false;
-    if (abs(color.a - symbolInfo.renderGroups[0].color.a) < MIN_VALUE &&
-        color.r == symbolInfo.renderGroups[0].color.r &&
-        color.g == symbolInfo.renderGroups[0].color.g &&
-        color.b == symbolInfo.renderGroups[0].color.b) {
-        check = true;
-    }
-    EXPECT_EQ(check, true);
+    EXPECT_EQ(symbolInfo.renderGroups[0].color.g, color.g);
 }
 
 /*

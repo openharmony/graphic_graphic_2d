@@ -15,9 +15,15 @@
 
 #include <gtest/gtest.h>
 
+#include "pipeline/rs_context.h"
+#include "pipeline/rs_display_render_node.h"
 #include "property/rs_properties.h"
 #include "common/rs_obj_abs_geometry.h"
+#include "pipeline/rs_canvas_render_node.h"
+#include "pipeline/rs_surface_render_node.h"
 #include "property/rs_point_light_manager.h"
+#include "render/rs_render_edge_light_filter.h"
+#include "render/rs_render_sound_wave_filter.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -271,6 +277,24 @@ HWTEST_F(PropertiesTest, UpdateFilterTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: UpdateForegroundFilterTest
+ * @tc.desc: test UpdateForegroundFilter
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, UpdateForegroundFilterTest, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.SetHDRUIBrightness(2.0f); // hdr brightness
+    properties.UpdateForegroundFilter();
+    bool isUniRender = RSProperties::IS_UNI_RENDER;
+    if (isUniRender) {
+        EXPECT_FALSE(properties.foregroundFilterCache_ == nullptr);
+    } else {
+        EXPECT_FALSE(properties.foregroundFilter_ == nullptr);
+    }
+}
+
+/**
  * @tc.name: SetParticlesTest
  * @tc.desc: test results of SetParticles
  * @tc.type: FUNC
@@ -377,6 +401,62 @@ HWTEST_F(PropertiesTest, GetBgBrightnessDescriptionTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetHDRUIBrightnessTest
+ * @tc.desc: test SetHDRUIBrightness
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, SetHDRUIBrightnessTest, TestSize.Level1)
+{
+    RSProperties properties;
+    auto canvasNode = std::make_shared<RSCanvasRenderNode>(1);
+    NodeId surfaceNodeId = 2; // surface node id
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceNodeId);
+    properties.backref_ = canvasNode;
+    canvasNode->instanceRootNodeId_ = surfaceNodeId;
+    canvasNode->isOnTheTree_ = true;
+    float hdrBrightness = 2.0f; // hdr brightness
+    properties.SetHDRUIBrightness(hdrBrightness);
+    EXPECT_EQ(properties.GetHDRUIBrightness(), hdrBrightness);
+
+    properties.SetHDRUIBrightness(1.0f);
+    EXPECT_EQ(properties.GetHDRUIBrightness(), 1.0f);
+}
+
+/**
+ * @tc.name: IsHDRUIBrightnessValidTest
+ * @tc.desc: test IsHDRUIBrightnessValid
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, IsHDRUIBrightnessValidTest, TestSize.Level1)
+{
+    RSProperties properties;
+    float hdrBrightness = 2.0f; // hdr brightness
+    properties.SetHDRUIBrightness(hdrBrightness);
+    EXPECT_TRUE(properties.IsHDRUIBrightnessValid());
+    properties.SetHDRUIBrightness(1.0f);
+    EXPECT_FALSE(properties.IsHDRUIBrightnessValid());
+}
+
+/**
+ * @tc.name: CreateHDRUIBrightnessFilterTest
+ * @tc.desc: test CreateHDRUIBrightnessFilter
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, CreateHDRUIBrightnessFilterTest, TestSize.Level1)
+{
+    RSProperties properties;
+    float hdrBrightness = 2.0f; // hdr brightness
+    properties.SetHDRUIBrightness(hdrBrightness);
+    properties.CreateHDRUIBrightnessFilter();
+    bool isUniRender = RSProperties::IS_UNI_RENDER;
+    if (isUniRender) {
+        EXPECT_FALSE(properties.foregroundFilterCache_ == nullptr);
+    } else {
+        EXPECT_FALSE(properties.foregroundFilter_ == nullptr);
+    }
+}
+
+/**
  * @tc.name: SetGetTest
  * @tc.desc: test results of SetGet
  * @tc.type: FUNC
@@ -409,6 +489,113 @@ HWTEST_F(PropertiesTest, SetGetTest, TestSize.Level1)
     properties.GetOutlineRadius();
 
     EXPECT_NE(nullptr, properties.GetOutline());
+}
+
+/**
+ * @tc.name: SetHDRBrightnessFactor001
+ * @tc.desc: test results of SetHDRBrightnessFactor
+ * @tc.type: FUNC
+ * @tc.require: issueI9W24N
+ */
+HWTEST_F(PropertiesTest, SetHDRBrightnessFactor001, TestSize.Level1)
+{
+    RSProperties properties;
+    float initialFactor = 1.0f;
+    properties.SetHDRBrightnessFactor(initialFactor);
+    properties.SetHDRBrightnessFactor(initialFactor);
+    EXPECT_EQ(properties.GetHDRBrightnessFactor(), initialFactor);
+}
+
+/**
+ * @tc.name: SetHDRBrightnessFactor002
+ * @tc.desc: test results of SetHDRBrightnessFactor
+ * @tc.type: FUNC
+ * @tc.require: issueI9W24N
+ */
+HWTEST_F(PropertiesTest, SetHDRBrightnessFactor002, TestSize.Level1)
+{
+    RSProperties properties;
+    float initialFactor = 1.0f;
+    properties.SetHDRBrightnessFactor(initialFactor);
+    float newFactor = 0.5f;
+    properties.SetHDRBrightnessFactor(newFactor);
+    EXPECT_EQ(properties.GetHDRBrightnessFactor(), newFactor);
+}
+
+/**
+ * @tc.name: SetHDRBrightnessFactor003
+ * @tc.desc: test results of SetHDRBrightnessFactor
+ * @tc.type: FUNC
+ * @tc.require: issueI9W24N
+ */
+HWTEST_F(PropertiesTest, SetHDRBrightnessFactor003, TestSize.Level1)
+{
+    RSProperties properties;
+    float initialFactor = 1.0f;
+
+    std::shared_ptr<RSRenderNode> node = std::make_shared<RSRenderNode>(1);
+    properties.backref_ = node;
+    properties.SetHDRBrightnessFactor(initialFactor);
+
+    NodeId displayRenderNodeId = 2;
+    struct RSDisplayNodeConfig config;
+    auto context = std::make_shared<RSContext>();
+    auto displayRenderNode = std::make_shared<RSDisplayRenderNode>(displayRenderNodeId, config, context);
+
+    properties.backref_ = displayRenderNode;
+    displayRenderNode->InsertHDRNode(displayRenderNodeId);
+    EXPECT_NE(displayRenderNode->hdrNodeList_.find(displayRenderNodeId), displayRenderNode->hdrNodeList_.end());
+    properties.SetHDRBrightnessFactor(0.5f);
+
+    NodeId nodeId1 = 0;
+    auto node1 = std::make_shared<RSRenderNode>(nodeId1);
+    pid_t pid1 = ExtractPid(nodeId1);
+    context->GetMutableNodeMap().renderNodeMap_[pid1][nodeId1] = node1;
+    displayRenderNode->InsertHDRNode(nodeId1);
+    properties.SetHDRBrightnessFactor(0.6f);
+
+    pid_t pid = ExtractPid(displayRenderNodeId);
+    context->GetMutableNodeMap().renderNodeMap_[pid][displayRenderNodeId] = displayRenderNode;
+    properties.SetHDRBrightnessFactor(0.8f);
+
+    struct RSDisplayNodeConfig config2;
+    std::shared_ptr<RSContext> context2;
+    auto displayNode2 = std::make_shared<RSDisplayRenderNode>(3, config2, context2);
+    properties.backref_ = displayNode2;
+    displayRenderNode->InsertHDRNode(3);
+    EXPECT_NE(displayRenderNode->hdrNodeList_.find(3), displayRenderNode->hdrNodeList_.end());
+    properties.SetHDRBrightnessFactor(0.9f);
+}
+
+/**
+ * @tc.name: SetCanvasNodeHDRBrightnessFactor001
+ * @tc.desc: test results of SetCanvasNodeHDRBrightnessFactor
+ * @tc.type: FUNC
+ * @tc.require: issueI9W24N
+ */
+HWTEST_F(PropertiesTest, SetCanvasNodeHDRBrightnessFactor001, TestSize.Level1)
+{
+    RSProperties properties;
+    float initialFactor = 1.0f;
+    properties.SetCanvasNodeHDRBrightnessFactor(initialFactor);
+    properties.SetCanvasNodeHDRBrightnessFactor(initialFactor);
+    EXPECT_EQ(properties.GetCanvasNodeHDRBrightnessFactor(), initialFactor);
+}
+
+/**
+ * @tc.name: SetCanvasNodeHDRBrightnessFactor002
+ * @tc.desc: test results of SetCanvasNodeHDRBrightnessFactor
+ * @tc.type: FUNC
+ * @tc.require: issueI9W24N
+ */
+HWTEST_F(PropertiesTest, SetCanvasNodeHDRBrightnessFactor002, TestSize.Level1)
+{
+    RSProperties properties;
+    float initialFactor = 1.0f;
+    float newFactor = 0.5f;
+    properties.SetCanvasNodeHDRBrightnessFactor(initialFactor);
+    properties.SetCanvasNodeHDRBrightnessFactor(newFactor);
+    EXPECT_EQ(properties.GetCanvasNodeHDRBrightnessFactor(), newFactor);
 }
 
 /**
@@ -1009,6 +1196,17 @@ HWTEST_F(PropertiesTest, GenerateRenderFilter_001, TestSize.Level1)
     properties.backgroundRenderFilter_ = renderFilter1;
     properties.GenerateRenderFilter();
     EXPECT_EQ(properties.backgroundFilter_, nullptr);
+
+    auto renderFilter2 = std::make_shared<RSRenderFilter>();
+    auto renderFilterBase2 = RSRenderFilter::CreateRenderFilterPara(RSUIFilterType::SOUND_WAVE);
+    properties.GenerateRenderFilter();
+    EXPECT_EQ(properties.backgroundFilter_, nullptr);
+    properties.backgroundRenderFilter_ = renderFilter2;
+    properties.GenerateRenderFilter();
+    EXPECT_EQ(properties.backgroundFilter_, nullptr);
+    renderFilter2->Insert(RSUIFilterType::SOUND_WAVE, renderFilterBase2);
+    properties.GenerateRenderFilter();
+    EXPECT_EQ(properties.backgroundFilter_, nullptr);
 }
 
 /**
@@ -1029,5 +1227,148 @@ HWTEST_F(PropertiesTest, GenerateRenderFilterColorGradient_001, TestSize.Level1)
     properties.GenerateRenderFilterColorGradient();
     EXPECT_EQ(properties.backgroundFilter_, nullptr);
 }
+
+/**
+ * @tc.name: GenerateRenderFilterEdgeLight_001
+ * @tc.desc: test GenerateRenderFilterEdgeLight
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, GenerateRenderFilterEdgeLight_001, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.GenerateRenderFilterEdgeLight();
+    EXPECT_EQ(properties.backgroundFilter_, nullptr);
+
+    auto renderFilter = std::make_shared<RSRenderFilter>();
+    auto renderFilterBase = RSRenderFilter::CreateRenderFilterPara(RSUIFilterType::BLUR);
+    renderFilter->Insert(RSUIFilterType::BLUR, renderFilterBase);
+    properties.backgroundRenderFilter_ = renderFilter;
+    properties.GenerateRenderFilterEdgeLight();
+    EXPECT_EQ(properties.backgroundFilter_, nullptr);
+
+    renderFilter = std::make_shared<RSRenderFilter>();
+    renderFilterBase = RSRenderFilter::CreateRenderFilterPara(RSUIFilterType::EDGE_LIGHT);
+    renderFilter->Insert(RSUIFilterType::EDGE_LIGHT, renderFilterBase);
+    properties.backgroundRenderFilter_ = renderFilter;
+    properties.GenerateRenderFilter();
+    EXPECT_EQ(properties.backgroundFilter_, nullptr);
+
+    auto renderFilterEdgeLight = std::static_pointer_cast<RSRenderEdgeLightFilterPara>(renderFilterBase);
+
+    auto renderAlpha = std::make_shared<RSRenderAnimatableProperty<float>>(
+        0.5f, 0, RSRenderPropertyType::PROPERTY_FLOAT);
+    renderFilterEdgeLight->Setter(RSUIFilterType::EDGE_LIGHT_ALPHA, renderAlpha);
+    properties.GenerateRenderFilter();
+    EXPECT_EQ(properties.backgroundFilter_, nullptr);
+    properties.backgroundFilter_ = nullptr;
+
+    auto renderColor = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(
+        Vector4f(0.5f, 0.5f, 0.5f, 0.5f), 0, RSRenderPropertyType::PROPERTY_VECTOR4F);
+    renderFilterEdgeLight->Setter(RSUIFilterType::EDGE_LIGHT_COLOR, renderColor);
+    properties.GenerateRenderFilter();
+    properties.GenerateRenderFilter();
+    EXPECT_NE(properties.backgroundFilter_, nullptr);
+
+    renderFilterEdgeLight->maskType_ = RSUIFilterType::RIPPLE_MASK;
+    properties.GenerateRenderFilter();
+    EXPECT_NE(properties.backgroundFilter_, nullptr);
+}
+
+/**
+ * @tc.name: GenerateSoundWaveFilter_001
+ * @tc.desc: test GenerateSoundWaveFilter
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, GenerateSoundWaveFilter_001, TestSize.Level1)
+{
+    RSProperties properties;
+    auto renderFilter = std::make_shared<RSRenderFilter>();
+    auto renderFilterBase = RSRenderFilter::CreateRenderFilterPara(RSUIFilterType::SOUND_WAVE);
+    properties.backgroundRenderFilter_ = renderFilter;
+    auto waveColorA = RSRenderSoundWaveFilterPara::CreateRenderProperty(RSUIFilterType::SOUND_WAVE_COLOR_A);
+    renderFilterBase->properties_[RSUIFilterType::SOUND_WAVE_COLOR_A] = waveColorA;
+    properties.GenerateSoundWaveFilter();
+    EXPECT_EQ(properties.backgroundFilter_, nullptr);
+    auto waveColorB = RSRenderSoundWaveFilterPara::CreateRenderProperty(RSUIFilterType::SOUND_WAVE_COLOR_B);
+    renderFilterBase->properties_[RSUIFilterType::SOUND_WAVE_COLOR_B] = waveColorB;
+    properties.GenerateSoundWaveFilter();
+    EXPECT_EQ(properties.backgroundFilter_, nullptr);
+    auto waveColorC = RSRenderSoundWaveFilterPara::CreateRenderProperty(RSUIFilterType::SOUND_WAVE_COLOR_C);
+    renderFilterBase->properties_[RSUIFilterType::SOUND_WAVE_COLOR_C] = waveColorC;
+    properties.GenerateSoundWaveFilter();
+    EXPECT_EQ(properties.backgroundFilter_, nullptr);
+    auto waveColorProgress =
+        RSRenderSoundWaveFilterPara::CreateRenderProperty(RSUIFilterType::SOUND_WAVE_COLOR_PROGRESS);
+    renderFilterBase->properties_[RSUIFilterType::SOUND_WAVE_COLOR_PROGRESS] = waveColorProgress;
+    properties.GenerateSoundWaveFilter();
+    EXPECT_EQ(properties.backgroundFilter_, nullptr);
+    auto soundIntensity = RSRenderSoundWaveFilterPara::CreateRenderProperty(RSUIFilterType::SOUND_INTENSITY);
+    renderFilterBase->properties_[RSUIFilterType::SOUND_INTENSITY] = soundIntensity;
+    properties.GenerateSoundWaveFilter();
+    EXPECT_EQ(properties.backgroundFilter_, nullptr);
+    auto shockWaveAlphaA = RSRenderSoundWaveFilterPara::CreateRenderProperty(RSUIFilterType::SHOCK_WAVE_ALPHA_A);
+    renderFilterBase->properties_[RSUIFilterType::SHOCK_WAVE_ALPHA_A] = shockWaveAlphaA;
+    properties.GenerateSoundWaveFilter();
+    EXPECT_EQ(properties.backgroundFilter_, nullptr);
+    auto shockWaveAlphaB = RSRenderSoundWaveFilterPara::CreateRenderProperty(RSUIFilterType::SHOCK_WAVE_ALPHA_B);
+    renderFilterBase->properties_[RSUIFilterType::SHOCK_WAVE_ALPHA_B] = shockWaveAlphaB;
+    properties.GenerateSoundWaveFilter();
+    EXPECT_EQ(properties.backgroundFilter_, nullptr);
+    auto shockWaveProgressA = RSRenderSoundWaveFilterPara::CreateRenderProperty(RSUIFilterType::SHOCK_WAVE_PROGRESS_A);
+    renderFilterBase->properties_[RSUIFilterType::SHOCK_WAVE_PROGRESS_A] = shockWaveProgressA;
+    properties.GenerateSoundWaveFilter();
+    EXPECT_EQ(properties.backgroundFilter_, nullptr);
+    auto shockWaveProgressB = RSRenderSoundWaveFilterPara::CreateRenderProperty(RSUIFilterType::SHOCK_WAVE_PROGRESS_B);
+    renderFilterBase->properties_[RSUIFilterType::SHOCK_WAVE_PROGRESS_B] = shockWaveProgressB;
+    properties.GenerateSoundWaveFilter();
+    EXPECT_EQ(properties.backgroundFilter_, nullptr);
+    auto shockWaveTotalAlpha =
+        RSRenderSoundWaveFilterPara::CreateRenderProperty(RSUIFilterType::SHOCK_WAVE_TOTAL_ALPHA);
+    renderFilterBase->properties_[RSUIFilterType::SHOCK_WAVE_TOTAL_ALPHA] = shockWaveTotalAlpha;
+    properties.GenerateSoundWaveFilter();
+    EXPECT_EQ(properties.backgroundFilter_, nullptr);
+}
+
+/**
+ * @tc.name: GenerateSoundWaveFilter_002
+ * @tc.desc: test GenerateSoundWaveFilter
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, GenerateSoundWaveFilter_002, TestSize.Level1)
+{
+    RSProperties properties;
+    auto renderFilter = std::make_shared<RSRenderFilter>();
+    auto renderFilterBase = RSRenderFilter::CreateRenderFilterPara(RSUIFilterType::SOUND_WAVE);
+    properties.backgroundRenderFilter_ = renderFilter;
+    auto waveColorA = RSRenderSoundWaveFilterPara::CreateRenderProperty(RSUIFilterType::SOUND_WAVE_COLOR_A);
+    renderFilterBase->properties_[RSUIFilterType::SOUND_WAVE_COLOR_A] = waveColorA;
+    auto waveColorB = RSRenderSoundWaveFilterPara::CreateRenderProperty(RSUIFilterType::SOUND_WAVE_COLOR_B);
+    renderFilterBase->properties_[RSUIFilterType::SOUND_WAVE_COLOR_B] = waveColorB;
+    auto waveColorC = RSRenderSoundWaveFilterPara::CreateRenderProperty(RSUIFilterType::SOUND_WAVE_COLOR_C);
+    renderFilterBase->properties_[RSUIFilterType::SOUND_WAVE_COLOR_C] = waveColorC;
+    auto waveColorProgress =
+        RSRenderSoundWaveFilterPara::CreateRenderProperty(RSUIFilterType::SOUND_WAVE_COLOR_PROGRESS);
+    renderFilterBase->properties_[RSUIFilterType::SOUND_WAVE_COLOR_PROGRESS] = waveColorProgress;
+    auto soundIntensity = RSRenderSoundWaveFilterPara::CreateRenderProperty(RSUIFilterType::SOUND_INTENSITY);
+    renderFilterBase->properties_[RSUIFilterType::SOUND_INTENSITY] = soundIntensity;
+    auto shockWaveAlphaA = RSRenderSoundWaveFilterPara::CreateRenderProperty(RSUIFilterType::SHOCK_WAVE_ALPHA_A);
+    renderFilterBase->properties_[RSUIFilterType::SHOCK_WAVE_ALPHA_A] = shockWaveAlphaA;
+    auto shockWaveAlphaB = RSRenderSoundWaveFilterPara::CreateRenderProperty(RSUIFilterType::SHOCK_WAVE_ALPHA_B);
+    renderFilterBase->properties_[RSUIFilterType::SHOCK_WAVE_ALPHA_B] = shockWaveAlphaB;
+    auto shockWaveProgressA = RSRenderSoundWaveFilterPara::CreateRenderProperty(RSUIFilterType::SHOCK_WAVE_PROGRESS_A);
+    renderFilterBase->properties_[RSUIFilterType::SHOCK_WAVE_PROGRESS_A] = shockWaveProgressA;
+    auto shockWaveProgressB = RSRenderSoundWaveFilterPara::CreateRenderProperty(RSUIFilterType::SHOCK_WAVE_PROGRESS_B);
+    renderFilterBase->properties_[RSUIFilterType::SHOCK_WAVE_PROGRESS_B] = shockWaveProgressB;
+    auto shockWaveTotalAlpha =
+        RSRenderSoundWaveFilterPara::CreateRenderProperty(RSUIFilterType::SHOCK_WAVE_TOTAL_ALPHA);
+    renderFilterBase->properties_[RSUIFilterType::SHOCK_WAVE_TOTAL_ALPHA] = shockWaveTotalAlpha;
+
+    renderFilter->Insert(RSUIFilterType::SOUND_WAVE, renderFilterBase);
+    properties.GenerateSoundWaveFilter();
+    EXPECT_NE(properties.backgroundFilter_, nullptr);
+    properties.GenerateSoundWaveFilter();
+    EXPECT_NE(properties.backgroundFilter_, nullptr);
+}
+
 } // namespace Rosen
 } // namespace OHOS

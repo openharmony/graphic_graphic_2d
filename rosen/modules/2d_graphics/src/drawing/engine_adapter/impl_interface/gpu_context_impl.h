@@ -23,7 +23,11 @@
 #include "base_impl.h"
 #include "image/trace_memory_dump.h"
 #ifdef RS_ENABLE_VK
+#ifdef USE_M133_SKIA
+#include "include/gpu/vk/VulkanBackendContext.h"
+#else
 #include "include/gpu/vk/GrVkBackendContext.h"
+#endif
 #endif
 
 namespace OHOS {
@@ -42,8 +46,13 @@ public:
 
     virtual bool BuildFromGL(const GPUContextOptions& options) = 0;
 #ifdef RS_ENABLE_VK
+#ifdef USE_M133_SKIA
+    virtual bool BuildFromVK(const skgpu::VulkanBackendContext& context) = 0;
+    virtual bool BuildFromVK(const skgpu::VulkanBackendContext& context, const GPUContextOptions& options) = 0;
+#else
     virtual bool BuildFromVK(const GrVkBackendContext& context) = 0;
     virtual bool BuildFromVK(const GrVkBackendContext& context, const GPUContextOptions& options) = 0;
+#endif
 #endif
     virtual void Flush() = 0;
     virtual void FlushAndSubmit(bool syncCpu) = 0;

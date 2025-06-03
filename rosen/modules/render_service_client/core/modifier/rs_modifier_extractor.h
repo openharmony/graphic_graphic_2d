@@ -39,6 +39,11 @@ namespace Rosen {
 class RSNode;
 class RSUIContext;
 
+/**
+ * @class RSModifierExtractor
+ *
+ * @brief The class for extracting properties from a modifier.
+ */
 class RSC_EXPORT RSModifierExtractor {
 public:
     /**
@@ -471,6 +476,13 @@ public:
     float GetHDRUIBrightness() const;
 
     /**
+     * @brief Gets the HDR brightness factor of displayNode.
+     *
+     * @return The HDR brightness factor of displayNode.
+     */
+    float GetHDRBrightnessFactor() const;
+
+    /**
      * @brief Gets the degree of light up effect.
      *
      * @return The light up effect degree.
@@ -484,8 +496,18 @@ public:
      */
     float GetDynamicDimDegree() const;
 
+    /**
+     * @brief Gets the transformation progress of the meteor animation effect.
+     *
+     * @return The transformation progress of the meteor animation effect.
+     */
     float GetAttractionFractionValue() const;
 
+    /**
+     * @brief Gets the destination point of the meteor animation effect.
+     *
+     * @return The destination point of the meteor animation effect.
+     */
     Vector2f GetAttractionDstPointValue() const;
 
     /**

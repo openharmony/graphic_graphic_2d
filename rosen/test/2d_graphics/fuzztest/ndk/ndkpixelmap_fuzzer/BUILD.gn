@@ -44,6 +44,7 @@ ohos_fuzztest("NdkPixelMapFuzzTest") {
   deps = [
     "$graphic_2d_root/rosen/modules/2d_graphics/drawing_ndk:native_drawing_ndk",
   ]
+  external_deps = [ "bounds_checking_function:libsec_shared" ]
 
   part_name = "graphic_2d"
   subsystem_name = "graphic"

@@ -41,6 +41,7 @@ ohos_unittest("text_effect_test") {
   ]
 
   external_deps = [
+    "bounds_checking_function:libsec_shared",
     "googletest:gmock",
     "hilog:libhilog",
   ]

@@ -49,6 +49,7 @@ ohos_source_set("create_pixelmap_surface_src") {
   external_deps = [
     "eventhandler:libeventhandler",
     "graphic_surface:sync_fence",
+    "hilog:libhilog",
   ]
 
   if (use_video_processing_engine) {

@@ -206,13 +206,6 @@ bool RSSystemProperties::GetCacheEnabledForRotation()
     return {};
 }
 
-#ifndef NEW_SKIA
-bool RSSystemProperties::GetReleaseResourceEnabled()
-{
-    return {};
-}
-#endif
-
 ParallelRenderingType RSSystemProperties::GetPrepareParallelRenderingEnabled()
 {
     return {};
@@ -734,5 +727,14 @@ bool RSSystemProperties::GetBehindWindowFilterEnabled()
     return false;
 }
 
+bool RSSystemProperties::GetSubThreadControlFrameRate()
+{
+    return false;
+}
+
+int RSSystemProperties::GetSubThreadDropFrameInterval()
+{
+    return 0;
+}
 } // namespace Rosen
 } // namespace OHOS

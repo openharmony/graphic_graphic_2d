@@ -1673,6 +1673,40 @@ HWTEST_F(RSMainThreadTest, UniRender002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: UniRender003
+ * @tc.desc: UniRender test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, UniRender003, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    auto& uniRenderThread = RSUniRenderThread::Instance();
+    uniRenderThread.uniRenderEngine_ = std::make_shared<RSUniRenderEngine>();
+    mainThread->renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
+    // prepare nodes
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    const std::shared_ptr<RSBaseRenderNode> rootNode = context->GetGlobalRootRenderNode();
+    NodeId id = 1;
+    RSDisplayNodeConfig config;
+    auto childDisplayNode = std::make_shared<RSDisplayRenderNode>(id, config);
+    rootNode->AddChild(childDisplayNode, 0);
+    rootNode->InitRenderParams();
+    childDisplayNode->InitRenderParams();
+    if (RSSystemProperties::GetSkipDisplayIfScreenOffEnabled()) {
+        ScreenId screenId = 1;
+        auto screenManager = CreateOrGetScreenManager();
+        impl::RSScreenManager& screenManagerImpl =
+            static_cast<impl::RSScreenManager&>(*screenManager);
+        screenManagerImpl.powerOffNeedProcessOneFrame_ = false;
+        screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_OFF;
+    }
+    mainThread->UniRender(rootNode);
+    ASSERT_FALSE(mainThread->doDirectComposition_);
+}
+
+/**
  * @tc.name: IsFirstFrameOfOverdrawSwitch
  * @tc.desc: test IsFirstFrameOfOverdrawSwitch
  * @tc.type: FUNC
@@ -2238,6 +2272,21 @@ HWTEST_F(RSMainThreadTest, CheckSurfaceOcclusionNeedProcess003, TestSize.Level1)
     ASSERT_FALSE(result1);
     bool result2 = mainThread->CheckSurfaceOcclusionNeedProcess(2);
     ASSERT_FALSE(result2);
+}
+
+/**
+ * @tc.name: GetVsyncRefreshRate
+ * @tc.desc: GetVsyncRefreshRate Test
+ * @tc.type: FUNC
+ * @tc.require: issueICAANX
+ */
+HWTEST_F(RSMainThreadTest, GetVsyncRefreshRate001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->vsyncGenerator_ = nullptr;
+    uint32_t refreshRate = mainThread->GetVsyncRefreshRate();
+    ASSERT_EQ(refreshRate, 0);
 }
 
 /**
@@ -4987,5 +5036,92 @@ HWTEST_F(RSMainThreadTest, GetForceCommitReasonTest, TestSize.Level1)
     mainThread->forceUpdateUniRenderFlag_ = true;
     forceCommitReason |= ForceCommitReason::FORCED_BY_UNI_RENDER_FLAG;
     EXPECT_EQ(mainThread->GetForceCommitReason(), forceCommitReason);
+}
+
+/**
+ * @tc.name: HandleTunnelLayerId001
+ * @tc.desc: HandleTunnelLayerId001
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, HandleTunnelLayerId001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+ 
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(0, mainThread->context_);
+    auto surfaceHandler = surfaceNode->surfaceHandler_;
+ 
+    mainThread->HandleTunnelLayerId(surfaceHandler, surfaceNode);
+    EXPECT_EQ(surfaceNode->GetTunnelLayerId(), 0);
+}
+ 
+/**
+ * @tc.name: HandleTunnelLayerId002
+ * @tc.desc: HandleTunnelLayerId002
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, HandleTunnelLayerId002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+ 
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(0, mainThread->context_);
+    auto surfaceHandler = surfaceNode->surfaceHandler_;
+    ASSERT_NE(surfaceHandler, nullptr);
+    surfaceHandler->consumer_ = nullptr;
+ 
+    EXPECT_EQ(surfaceHandler->sourceType_, 0);
+ 
+    mainThread->HandleTunnelLayerId(surfaceHandler, surfaceNode);
+    EXPECT_EQ(surfaceNode->GetTunnelLayerId(), 0);
+}
+ 
+/**
+ * @tc.name: HandleTunnelLayerId003
+ * @tc.desc: HandleTunnelLayerId003
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, HandleTunnelLayerId003, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+ 
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(0, mainThread->context_);
+    auto surfaceHandler = surfaceNode->surfaceHandler_;
+    ASSERT_NE(surfaceHandler, nullptr);
+    auto consumer = surfaceHandler->GetConsumer();
+    ASSERT_NE(consumer, nullptr);
+ 
+    EXPECT_EQ(surfaceHandler->sourceType_, 0);
+ 
+    mainThread->HandleTunnelLayerId(surfaceHandler, surfaceNode);
+    EXPECT_EQ(surfaceNode->GetTunnelLayerId(), 0);
+}
+ 
+/**
+ * @tc.name: HandleTunnelLayerId004
+ * @tc.desc: HandleTunnelLayerId004
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, HandleTunnelLayerId004, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+ 
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(0, mainThread->context_);
+    auto surfaceHandler = surfaceNode->surfaceHandler_;
+    ASSERT_NE(surfaceHandler, nullptr);
+    auto consumer = surfaceHandler->GetConsumer();
+    ASSERT_NE(consumer, nullptr);
+ 
+    EXPECT_EQ(surfaceHandler->sourceType_, 0);
+ 
+    surfaceHandler->sourceType_ = 5;
+    EXPECT_EQ(surfaceHandler->GetSourceType(), 5);
+    mainThread->HandleTunnelLayerId(surfaceHandler, surfaceNode);
 }
 } // namespace OHOS::Rosen

@@ -225,25 +225,25 @@ HWTEST_F(RSClientTest, UnregisterBufferAvailableListener_False, TestSize.Level1)
 }
 
 /**
- * @tc.name: RegisterTransactionDataCallback Test a notfound id
- * @tc.desc: RegisterTransactionDataCallback Test a notfound id
+ * @tc.name: RegisterTransactionDataCallback01
+ * @tc.desc: RegisterTransactionDataCallback Test callback is null
  * @tc.type:FUNC
  * @tc.require:
  */
-HWTEST_F(RSClientTest, RegisterTransactionDataCallback_Test01, TestSize.Level1)
+HWTEST_F(RSClientTest, RegisterTransactionDataCallback01, TestSize.Level1)
 {
     ASSERT_NE(rsClient, nullptr);
-    bool ret = rsClient->RegisterTransactionDataCallback(1, 789, nullptr); // test a notfound number: 123
+    bool ret = rsClient->RegisterTransactionDataCallback(1, 789, nullptr);
     EXPECT_FALSE(ret);
 }
 
 /**
- * @tc.name: RegisterTransactionDataCallback Test a notfound id
- * @tc.desc: RegisterTransactionDataCallback Test a notfound id
+ * @tc.name: RegisterTransactionDataCallback02
+ * @tc.desc: RegisterTransactionDataCallback Test callback does not exist
  * @tc.type:FUNC
  * @tc.require:
  */
-HWTEST_F(RSClientTest, RegisterTransactionDataCallback_Test02, TestSize.Level1)
+HWTEST_F(RSClientTest, RegisterTransactionDataCallback02, TestSize.Level1)
 {
     ASSERT_NE(rsClient, nullptr);
     std::function<void()> callback = []() {};
@@ -252,66 +252,78 @@ HWTEST_F(RSClientTest, RegisterTransactionDataCallback_Test02, TestSize.Level1)
 }
 
 /**
- * @tc.name: RegisterTransactionDataCallback Test a notfound id
- * @tc.desc: RegisterTransactionDataCallback Test a notfound id
+ * @tc.name: RegisterTransactionDataCallback03
+ * @tc.desc: RegisterTransactionDataCallback Test renderService is null
  * @tc.type:FUNC
  * @tc.require:
  */
-HWTEST_F(RSClientTest, RegisterTransactionDataCallback_Test03, TestSize.Level1)
+HWTEST_F(RSClientTest, RegisterTransactionDataCallback03, TestSize.Level1)
 {
     ASSERT_NE(rsClient, nullptr);
-    auto callback = []() {
-        RS_LOGD("invoke callback");
-    };
+    std::function<void()> callback = []() {};
     int32_t pid = 123;
     uint64_t timeStamp = 456;
-    rsClient->transactionDataCallbacks_[std::make_pair(pid, timeStamp)] = callback;
+    auto connHub = RSRenderServiceConnectHub::GetInstance();
+    connHub->Destroy();
     bool ret = rsClient->RegisterTransactionDataCallback(pid, timeStamp, callback);
-    EXPECT_TRUE(ret);
+    EXPECT_FALSE(ret);
 }
 
 /**
- * @tc.name: TriggerTransactionDataCallbackAndErase Test a notfound id
- * @tc.desc: TriggerTransactionDataCallbackAndErase Test a notfound id
+ * @tc.name: RegisterTransactionDataCallback04
+ * @tc.desc: RegisterTransactionDataCallback Test callback already exists
  * @tc.type:FUNC
  * @tc.require:
  */
-HWTEST_F(RSClientTest, TriggerTransactionDataCallbackAndErase_Test01, TestSize.Level1)
+HWTEST_F(RSClientTest, RegisterTransactionDataCallback04, TestSize.Level1)
 {
     ASSERT_NE(rsClient, nullptr);
-    rsClient->TriggerTransactionDataCallbackAndErase(123, 789);
+    std::function<void()> callback = []() {};
+    int32_t pid = 123;
+    uint64_t timeStamp = 456;
+    rsClient->transactionDataCallbacks_[std::make_pair(pid, timeStamp)] = []() {};
+    bool ret = rsClient->RegisterTransactionDataCallback(pid, timeStamp, callback);
+    EXPECT_FALSE(ret);
 }
 
 /**
- * @tc.name: TriggerTransactionDataCallbackAndErase Test a notfound id
- * @tc.desc: TriggerTransactionDataCallbackAndErase Test a notfound id
+ * @tc.name: TriggerTransactionDataCallbackAndErase01
+ * @tc.desc: TriggerTransactionDataCallbackAndErase Test callback exist
  * @tc.type:FUNC
  * @tc.require:
  */
-HWTEST_F(RSClientTest, TriggerTransactionDataCallbackAndErase_Test02, TestSize.Level1)
+HWTEST_F(RSClientTest, TriggerTransactionDataCallbackAndErase01, TestSize.Level1)
 {
     int32_t pid = 123;
     uint64_t timeStamp = 456;
-    auto callback = []() {
-        RS_LOGD("invoke callback");
+    bool callbackInvoked = false;
+    rsClient->transactionDataCallbacks_[std::make_pair(pid, timeStamp)] = [&callbackInvoked]() {
+        callbackInvoked = true;
     };
-    rsClient->transactionDataCallbacks_[std::make_pair(pid, timeStamp)] = callback;
     rsClient->TriggerTransactionDataCallbackAndErase(pid, timeStamp);
+    EXPECT_TRUE(callbackInvoked);
+    EXPECT_EQ(rsClient->transactionDataCallbacks_.find(std::make_pair(pid, timeStamp)), rsClient->transactionDataCallbacks_.end());
 }
 
 /**
- * @tc.name: TriggerTransactionDataCallbackAndErase Test a notfound id
- * @tc.desc: TriggerTransactionDataCallbackAndErase Test a notfound id
+ * @tc.name: TriggerTransactionDataCallbackAndErase02
+ * @tc.desc: TriggerTransactionDataCallbackAndErase Test callback does not exist
  * @tc.type:FUNC
  * @tc.require:
  */
-HWTEST_F(RSClientTest, TriggerTransactionDataCallbackAndErase_Test03, TestSize.Level1)
+HWTEST_F(RSClientTest, TriggerTransactionDataCallbackAndErase02, TestSize.Level1)
 {
     int32_t pid = 123;
     uint64_t timeStamp = 456;
-    std::function<void()> callback = nullptr;
-    rsClient->transactionDataCallbacks_[std::make_pair(pid, timeStamp)] = callback;
+    bool callbackInvoked = false;
+    rsClient->transactionDataCallbacks_[std::make_pair(pid, timeStamp)] = [&callbackInvoked]() {
+        callbackInvoked = true;
+    };
+    rsClient->transactionDataCallbacks_.clear();
+
     rsClient->TriggerTransactionDataCallbackAndErase(pid, timeStamp);
+    EXPECT_FALSE(callbackInvoked);
+    EXPECT_TRUE(rsClient->transactionDataCallbacks_.empty());
 }
 
 /**

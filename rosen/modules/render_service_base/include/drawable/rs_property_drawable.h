@@ -132,7 +132,7 @@ public:
     void MarkNodeIsOccluded(bool isOccluded);
     void MarkNeedClearFilterCache();
     void MarkBlurIntersectWithDRM(bool IsIntersectWithDRM, bool isDark);
-    void MarkInForegroundFilterAndCheckNeedForceClearCache(bool inForegroundFilter);
+    void MarkInForegroundFilterAndCheckNeedForceClearCache(NodeId offscreenCanvasNodeId);
 
     bool IsFilterCacheValid() const;
     bool IsForceClearFilterCache() const;

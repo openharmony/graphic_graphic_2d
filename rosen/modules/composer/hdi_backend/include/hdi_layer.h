@@ -120,6 +120,8 @@ private:
     int32_t SetLayerMetaDataSet();
     sptr<SyncFence> Merge(const sptr<SyncFence> &fence1, const sptr<SyncFence> &fence2);
     int32_t SetLayerTunnelHandle();
+    int32_t SetTunnelLayerId();
+    int32_t SetTunnelLayerProperty();
     int32_t SetLayerPresentTimestamp();
     int32_t InitDevice();
     bool IsSameLayerMetaData();

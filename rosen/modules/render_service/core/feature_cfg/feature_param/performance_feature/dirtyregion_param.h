@@ -33,6 +33,8 @@ public:
 
     static bool IsAdvancedDirtyRegionEnable();
 
+    static bool IsComposeDirtyRegionEnableInPartialDisplay();
+
     static bool IsTileBasedAlignEnable();
 
     static int GetTileBasedAlignBits();
@@ -46,6 +48,8 @@ protected:
 
     static void SetAdvancedDirtyRegionEnable(bool isEnable);
 
+    static void SetComposeDirtyRegionEnableInPartialDisplay(bool isEnable);
+
     static void SetTileBasedAlignEnable(bool isEnable);
 
     static void SetTileBasedAlignBits(int tileBasedAlignBits);
@@ -55,6 +59,9 @@ private:
     inline static bool isExpandScreenDirtyRegionEnable_ = true;
     inline static bool isMirrorScreenDirtyRegionEnable_ = true;
     inline static bool isAdvancedDirtyRegionEnable_ = false;
+    // Controls whether compose dirty region is enabled in partial display mode
+    // Partial display mode: the screen's active rect is not full screen
+    inline static bool isComposeDirtyRegionEnableInPartialDisplay_ = false;
     inline static bool isTileBasedAlignEnable_ = false;
     inline static int tileBasedAlignBits_ = 128;
     friend class DirtyRegionParamParse;

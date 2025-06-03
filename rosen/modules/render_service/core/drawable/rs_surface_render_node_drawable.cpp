@@ -52,7 +52,11 @@
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "static_factory.h"
 #ifdef RS_ENABLE_VK
+#ifdef USE_M133_SKIA
+#include "include/gpu/ganesh/vk/GrVkBackendSurface.h"
+#else
 #include "include/gpu/GrBackendSurface.h"
+#endif
 #include "platform/ohos/backend/native_buffer_utils.h"
 #include "platform/ohos/backend/rs_vulkan_context.h"
 #endif
@@ -67,6 +71,9 @@
 namespace {
 constexpr int32_t CORNER_SIZE = 4;
 constexpr float GAMMA2_2 = 2.2f;
+constexpr int32_t ROTATION_OFFSCREEN_BUFFER_SIZE_RATIO = 2;
+constexpr float OFFSCREEN_CANVAS_SCALE = 0.5f;
+constexpr float BACK_MAIN_SCREEN_CANVAS_SCALE = 2.0f;
 }
 namespace OHOS::Rosen::DrawableV2 {
 RSSurfaceRenderNodeDrawable::Registrar RSSurfaceRenderNodeDrawable::instance_;
@@ -345,6 +352,23 @@ Drawing::Region RSSurfaceRenderNodeDrawable::CalculateVisibleDirtyRegion(
     return resultRegion;
 }
 
+int RSSurfaceRenderNodeDrawable::GetMaxRenderSizeForRotationOffscreen(int& offscreenWidth,
+    int& offscreenHeight)
+{
+    int maxRenderSize = std::max(offscreenWidth, offscreenHeight);
+    if (RotateOffScreenParam::GetRotateOffScreenDowngradeEnable()) {
+        maxRenderSize /= ROTATION_OFFSCREEN_BUFFER_SIZE_RATIO;
+    }
+    return maxRenderSize;
+}
+
+void RSSurfaceRenderNodeDrawable::ApplyCanvasScalingIfDownscaleEnabled()
+{
+    if (RotateOffScreenParam::GetRotateOffScreenDowngradeEnable()) {
+        curCanvas_->Scale(OFFSCREEN_CANVAS_SCALE, OFFSCREEN_CANVAS_SCALE);
+    }
+}
+
 bool RSSurfaceRenderNodeDrawable::PrepareOffscreenRender()
 {
     // cleanup
@@ -369,7 +393,7 @@ bool RSSurfaceRenderNodeDrawable::PrepareOffscreenRender()
         return false;
     }
 
-    int maxRenderSize = std::max(offscreenWidth, offscreenHeight);
+    int maxRenderSize = GetMaxRenderSizeForRotationOffscreen(offscreenWidth, offscreenHeight);
     // create offscreen surface and canvas
     if (offscreenSurface_ == nullptr || maxRenderSize_ != maxRenderSize) {
         RS_LOGD("PrepareOffscreenRender create offscreen surface offscreenSurface_,\
@@ -396,6 +420,7 @@ bool RSSurfaceRenderNodeDrawable::PrepareOffscreenRender()
     curCanvas_->SetDisableFilterCache(true);
     arc_ = std::make_unique<RSAutoCanvasRestore>(curCanvas_, RSPaintFilterCanvas::SaveType::kCanvasAndAlpha);
     curCanvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
+    ApplyCanvasScalingIfDownscaleEnabled();
     return true;
 }
 
@@ -422,8 +447,16 @@ void RSSurfaceRenderNodeDrawable::FinishOffscreenRender(const Drawing::SamplingO
     Drawing::Brush paint;
     paint.SetAntiAlias(true);
     canvasBackup_->AttachBrush(paint);
-    canvasBackup_->DrawImage(*image, 0, 0, sampling);
-    canvasBackup_->DetachBrush();
+    if (RotateOffScreenParam::GetRotateOffScreenDowngradeEnable()) {
+        canvasBackup_->Save();
+        canvasBackup_->Scale(BACK_MAIN_SCREEN_CANVAS_SCALE, BACK_MAIN_SCREEN_CANVAS_SCALE);
+        canvasBackup_->DrawImage(*image, 0, 0, sampling);
+        canvasBackup_->DetachBrush();
+        canvasBackup_->Restore();
+    } else {
+        canvasBackup_->DrawImage(*image, 0, 0, sampling);
+        canvasBackup_->DetachBrush();
+    }
     arc_ = nullptr;
     curCanvas_ = canvasBackup_;
 }
@@ -588,7 +621,7 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     if (curDrawingCacheRoot_) {
         if (hasSkipCacheLayer_) {
             curDrawingCacheRoot_->SetSkipCacheLayer(true);
-        } else if (surfaceParams->IsInBlackList()) {
+        } else if (surfaceParams->NodeGroupHasChildInBlackList()) {
             curDrawingCacheRoot_->SetChildInBlackList(true);
         }
     }

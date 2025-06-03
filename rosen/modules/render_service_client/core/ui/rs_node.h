@@ -49,11 +49,11 @@
 #include "render/rs_mask.h"
 #include "render/rs_path.h"
 #include "ui_effect/effect/include/background_color_effect_para.h"
-#include "ui_effect/effect/include/hdr_ui_brightness_para.h"
 #include "ui_effect/effect/include/visual_effect.h"
 #include "ui_effect/filter/include/filter.h"
 #include "ui_effect/filter/include/filter_pixel_stretch_para.h"
 #include "ui_effect/filter/include/filter_blur_para.h"
+#include "ui_effect/filter/include/filter_hdr_para.h"
 #include "ui_effect/filter/include/filter_water_ripple_para.h"
 #include "ui_effect/filter/include/filter_fly_out_para.h"
 #include "ui_effect/filter/include/filter_distort_para.h"
@@ -80,6 +80,11 @@ class RSUIContext;
 class RSUIFilter;
 enum class CancelAnimationStatus;
 
+/**
+ * @class RSNode
+ *
+ * @brief The class for RSNode(render service node).
+ */
 class RSC_EXPORT RSNode : public std::enable_shared_from_this<RSNode> {
 public:
     using WeakPtr = std::weak_ptr<RSNode>;
@@ -1412,6 +1417,13 @@ public:
      * @param hdrBrightness The HDR brightness value to set.
      */
     void SetHDRBrightness(const float& hdrBrightness);
+
+    /**
+     * @brief Sets the HDR brightness factor to display node.
+     *
+     * @param factor The HDR brightness factor to set.
+     */
+    void SetHDRBrightnessFactor(float factor);
 
     /**
      * @brief Sets the visibility of the node.

@@ -151,13 +151,24 @@ void RSHdrUtil::UpdateSurfaceNodeNit(RSSurfaceRenderNode& surfaceNode, ScreenId 
     RSColorSpaceConvert::Instance().GetHDRDynamicMetadata(surfaceBuffer, hdrDynamicMetadataVec, ret);
 #endif
     float scaler = DEFAULT_SCALER;
+    auto context = surfaceNode.GetContext().lock();
+    if (!context) {
+        RS_LOGE("RSHdrUtil::UpdateSurfaceNodeNit context is null");
+        return;
+    }
+    auto displayNode = context->GetNodeMap().GetRenderNode<RSDisplayRenderNode>(surfaceNode.GetDisplayNodeId());
+    if (!displayNode) {
+        RS_LOGE("RSHdrUtil::UpdateSurfaceNodeNit displayNode is null");
+        return;
+    }
+    float brightnessFactor = displayNode->GetRenderProperties().GetHDRBrightnessFactor();
     if (hdrStaticMetadataVec.size() != sizeof(HdrStaticMetadata) || hdrStaticMetadataVec.data() == nullptr) {
         RS_LOGD("hdrStaticMetadataVec is invalid");
-        scaler = surfaceNode.GetHDRBrightness() * (scaler - 1.0f) + 1.0f;
+        scaler = surfaceNode.GetHDRBrightness() * brightnessFactor * (scaler - 1.0f) + 1.0f;
     } else {
         const auto& data = *reinterpret_cast<HdrStaticMetadata*>(hdrStaticMetadataVec.data());
         scaler = rsLuminance.CalScaler(data.cta861.maxContentLightLevel, ret == GSERROR_OK ?
-            hdrDynamicMetadataVec : std::vector<uint8_t>{}, surfaceNode.GetHDRBrightness());
+            hdrDynamicMetadataVec : std::vector<uint8_t>{}, surfaceNode.GetHDRBrightness() * brightnessFactor);
     }
 
     float sdrNits = rsLuminance.GetSdrDisplayNits(screenId);
@@ -174,8 +185,8 @@ void RSHdrUtil::UpdateSurfaceNodeNit(RSSurfaceRenderNode& surfaceNode, ScreenId 
     // color temperature
     UpdateSurfaceNodeLayerLinearMatrix(surfaceNode, screenId);
     RS_LOGD("RSHdrUtil::UpdateSurfaceNodeNit layerNits: %{public}.2f, displayNits: %{public}.2f,"
-        " sdrNits: %{public}.2f, scaler: %{public}.2f, HDRBrightness: %{public}f", layerNits, displayNits, sdrNits,
-        scaler, surfaceNode.GetHDRBrightness());
+        " sdrNits: %{public}.2f, scaler: %{public}.2f, HDRBrightness: %{public}f, brightnessFactor: %{public}f",
+        layerNits, displayNits, sdrNits, scaler, surfaceNode.GetHDRBrightness(), brightnessFactor);
 }
 
 void RSHdrUtil::UpdateSurfaceNodeLayerLinearMatrix(RSSurfaceRenderNode& surfaceNode, ScreenId screenId)

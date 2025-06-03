@@ -40,9 +40,12 @@ ohos_fuzztest("BlenderFuzzTest") {
     "$graphic_2d_root/rosen/modules/2d_graphics/src",
     "$graphic_2d_root/rosen/test/2d_graphics/fuzztest",
   ]
-  
+
   deps = [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics" ]
-  external_deps = [ "skia:skia_canvaskit" ]
+  external_deps = [
+    "bounds_checking_function:libsec_shared",
+    "skia:skia_canvaskit",
+  ]
 
   part_name = "graphic_2d"
   subsystem_name = "graphic"

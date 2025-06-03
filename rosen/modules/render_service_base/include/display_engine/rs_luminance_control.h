@@ -17,10 +17,9 @@
 #define RENDER_SERVICE_BASE_DISPLAY_ENGINE_RS_LUMINANCE_CONTROL_H
 
 #include <cinttypes>
-#include <vector>
-
 #include "common/rs_macros.h"
 #include "screen_manager/screen_types.h"
+#include <vector>
 
 namespace OHOS {
 namespace Rosen {
@@ -63,6 +62,7 @@ public:
     virtual bool IsForceCloseHdr() const = 0;
     virtual void ForceCloseHdr(uint32_t closeHdrSceneId, bool forceCloseHdr) = 0;
     virtual bool IsCloseHardwareHdr() const = 0;
+    virtual bool IsScreenNoHeadroom(ScreenId) = 0;
 };
 
 class RSB_EXPORT RSLuminanceControl {
@@ -94,6 +94,7 @@ public:
     RSB_EXPORT bool IsForceCloseHdr();
     RSB_EXPORT void ForceCloseHdr(uint32_t closeHdrSceneId, bool forceCloseHdr);
     RSB_EXPORT bool IsCloseHardwareHdr();
+    RSB_EXPORT bool IsScreenNoHeadroom(ScreenId screenId);
 
 private:
     RSLuminanceControl() = default;

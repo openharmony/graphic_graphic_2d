@@ -34,6 +34,12 @@
 namespace OHOS {
 namespace Rosen {
 class RSSurfaceNode;
+
+/**
+ * @class RSRootNode
+ *
+ * @brief Represents the root node in the rendering service.
+ */
 class RSC_EXPORT RSRootNode : public RSCanvasNode {
 public:
     using WeakPtr = std::weak_ptr<RSRootNode>;

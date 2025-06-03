@@ -55,10 +55,10 @@ ohos_unittest("RSRenderServiceBaseAnimationTest") {
   ]
   external_deps = [
     "c_utils:utils",
+    "googletest:gtest_main",
     "graphic_surface:surface",
     "init:libbegetutil",
     "skia:skia_canvaskit",
-    "googletest:gtest_main",
   ]
 
   subsystem_name = "graphic"

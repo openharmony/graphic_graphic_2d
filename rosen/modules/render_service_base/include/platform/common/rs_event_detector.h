@@ -16,11 +16,11 @@
 #ifndef RENDER_SERVICE_BASE_COMMON_RS_DETECTOR_H
 #define RENDER_SERVICE_BASE_COMMON_RS_DETECTOR_H
 
+#include <atomic>
 #include <map>
 #include <memory>
-#include <atomic>
+#include "hisysevent.h"
 #include "rs_log.h"
-#include "base/hiviewdfx/hisysevent/interfaces/native/innerkits/hisysevent/include/hisysevent.h"
 
 namespace OHOS {
 namespace Rosen {

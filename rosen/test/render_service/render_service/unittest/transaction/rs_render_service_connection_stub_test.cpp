@@ -766,7 +766,7 @@ HWTEST_F(RSRenderServiceConnectionStubTest, TestRSRenderServiceConnectionStub024
 
 /**
  * @tc.name: TestRSRenderServiceConnectionStub025
- * @tc.desc: Test
+ * @tc.desc: Test callback is null
  * @tc.type: FUNC
  * @tc.require: issueIBRN69
  */
@@ -779,6 +779,34 @@ HWTEST_F(RSRenderServiceConnectionStubTest, TestRSRenderServiceConnectionStub025
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_TRANSACTION_DATA_CALLBACK);
     data.WriteInt32(123);
     data.WriteUint64(456);
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, ERR_NULL_OBJECT);
+}
+
+class RSTransactionDataCallbackStubMock : public RSTransactionDataCallbackStub {
+public:
+    RSTransactionDataCallbackStubMock() = default;
+    virtual ~RSTransactionDataCallbackStubMock() = default;
+    void OnAfterProcess(int32_t pid, uint64_t timeStamp) override {};
+};
+
+/**
+ * @tc.name: TestRSRenderServiceConnectionStub026
+ * @tc.desc: Test callback exit
+ * @tc.type: FUNC
+ * @tc.require: issueIBRN69
+ */
+HWTEST_F(RSRenderServiceConnectionStubTest, TestRSRenderServiceConnectionStub026, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_TRANSACTION_DATA_CALLBACK);
+    data.WriteInt32(123);
+    data.WriteUint64(456);
+    sptr<RSTransactionDataCallbackStubMock> callback = new RSTransactionDataCallbackStubMock();
+    data.WriteRemoteObject(callback->AsObject());
     int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(res, NO_ERROR);
 }

@@ -35,6 +35,11 @@
 namespace OHOS {
 namespace Rosen {
 
+/**
+ * @class RSSurfaceExtractor
+ *
+ * @brief The class for extracting RSSurface from a RSSurfaceNode.
+ */
 class RSC_EXPORT RSSurfaceExtractor {
 public:
     /**

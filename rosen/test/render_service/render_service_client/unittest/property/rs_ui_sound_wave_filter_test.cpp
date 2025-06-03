@@ -83,24 +83,24 @@ HWTEST_F(RSUISoundWaveFilterTest, SetProperty001, TestSize.Level1)
     rsUISoundWaveFilterPara1->SetProperty(nullptr);
     rsUISoundWaveFilterPara1->SetProperty(rsUIFilterParaBase);
 
-    RSColor colorA = RSColor(0XFFFF0000);
-    RSColor colorB = RSColor(0XFF00FF00);
-    RSColor colorC = RSColor(0XFF0000FF);
+    Vector4f colorA = { 1.0f, 1.0f, 1.0f, 1.0f };
+    Vector4f colorB = { 1.0f, 1.0f, 1.0f, 1.0f };
+    Vector4f colorC = { 1.0f, 1.0f, 1.0f, 1.0f };
     float colorProgress = 1.0f;
-    float centerBrightness = 0.5f;
     float soundIntensity = 1.5f;
     float shockWaveAlphaA = 0.6f;
     float shockWaveAlphaB = 0.8f;
     float shockWaveProgressA = 0.7f;
     float shockWaveProgressB = 1.0f;
+    float shockWaveTotalAlpha = 0.5f;
     rsUISoundWaveFilterPara2->SetColors(colorA, colorB, colorC);
     rsUISoundWaveFilterPara2->SetColorProgress(colorProgress);
-    rsUISoundWaveFilterPara2->SetCenterBrightness(centerBrightness);
     rsUISoundWaveFilterPara2->SetSoundIntensity(soundIntensity);
     rsUISoundWaveFilterPara2->SetShockWaveAlphaA(shockWaveAlphaA);
     rsUISoundWaveFilterPara2->SetShockWaveAlphaB(shockWaveAlphaB);
     rsUISoundWaveFilterPara2->SetShockWaveProgressA(shockWaveProgressA);
     rsUISoundWaveFilterPara2->SetShockWaveProgressB(shockWaveProgressB);
+    rsUISoundWaveFilterPara2->SetShockWaveTotalAlpha(shockWaveTotalAlpha);
     auto rsUIFilterParaBase2 = static_cast<std::shared_ptr<RSUIFilterParaBase>>(rsUISoundWaveFilterPara2);
     rsUISoundWaveFilterPara1->SetProperty(rsUIFilterParaBase2);
 
@@ -118,24 +118,24 @@ HWTEST_F(RSUISoundWaveFilterTest, CreateRSRenderFilter001, TestSize.Level1)
 {
     auto rsUISoundWaveFilterPara1 = std::make_shared<RSUISoundWaveFilterPara>();
     
-    RSColor colorA = RSColor(0XFFFF0000);
-    RSColor colorB = RSColor(0XFF00FF00);
-    RSColor colorC = RSColor(0XFF0000FF);
+    Vector4f colorA = { 1.0f, 1.0f, 1.0f, 1.0f };
+    Vector4f colorB = { 1.0f, 1.0f, 1.0f, 1.0f };
+    Vector4f colorC = { 1.0f, 1.0f, 1.0f, 1.0f };
     float colorProgress = 1.0f;
-    float centerBrightness = 0.5f;
     float soundIntensity = 1.5f;
     float shockWaveAlphaA = 0.6f;
     float shockWaveAlphaB = 0.8f;
     float shockWaveProgressA = 0.7f;
     float shockWaveProgressB = 1.0f;
+    float shockWaveTotalAlpha = 0.5f;
     rsUISoundWaveFilterPara1->SetColors(colorA, colorB, colorC);
     rsUISoundWaveFilterPara1->SetColorProgress(colorProgress);
-    rsUISoundWaveFilterPara1->SetCenterBrightness(centerBrightness);
     rsUISoundWaveFilterPara1->SetSoundIntensity(soundIntensity);
     rsUISoundWaveFilterPara1->SetShockWaveAlphaA(shockWaveAlphaA);
     rsUISoundWaveFilterPara1->SetShockWaveAlphaB(shockWaveAlphaB);
     rsUISoundWaveFilterPara1->SetShockWaveProgressA(shockWaveProgressA);
     rsUISoundWaveFilterPara1->SetShockWaveProgressB(shockWaveProgressB);
+    rsUISoundWaveFilterPara1->SetShockWaveTotalAlpha(shockWaveTotalAlpha);
 
     auto rsRenderFilterParaBase = rsUISoundWaveFilterPara1->CreateRSRenderFilter();
     EXPECT_NE(rsRenderFilterParaBase, nullptr);

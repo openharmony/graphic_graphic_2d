@@ -28,6 +28,7 @@
 #include "text/font_style.h"
 #include "text/font_mgr.h"
 #include "utils/text_log.h"
+#include "utils/text_trace.h"
 
 #define INSTALL_FONT_CONFIG_FILE "/data/service/el1/public/for-all-app/fonts/install_fontconfig.json"
 
@@ -206,6 +207,7 @@ bool FontDescriptorCache::ProcessSystemFontType(int32_t systemFontType, int32_t&
 void FontDescriptorCache::GetSystemFontFullNamesByType(
     int32_t systemFontType, std::unordered_set<std::string> &fontList)
 {
+    TEXT_TRACE_FUNC();
     if (systemFontType < 0) {
         TEXT_LOGE("Invalid system font type %{public}d", systemFontType);
         return;
@@ -279,6 +281,7 @@ bool FontDescriptorCache::GetFontTypeFromParams(const std::string& fullName,
 void FontDescriptorCache::GetFontDescSharedPtrByFullName(const std::string& fullName,
     int32_t systemFontType, FontDescSharedPtr& result)
 {
+    TEXT_TRACE_FUNC();
     int32_t fontType = 0;
     if (!GetFontTypeFromParams(fullName, systemFontType, fontType)) {
         return;

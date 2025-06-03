@@ -22,30 +22,30 @@
 
 #include "animation/rs_render_particle_animation.h"
 #include "common/rs_common_def.h"
-#include "render/rs_mesa_blur_shader_filter.h"
+#include "render/rs_render_mesa_blur_filter.h"
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_vector4.h"
+#include "pipeline/rs_context.h"
 #include "pipeline/rs_canvas_render_node.h"
+#include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "property/rs_point_light_manager.h"
 #include "property/rs_properties_def.h"
-#include "render/rs_aibar_shader_filter.h"
-#include "render/rs_always_snapshot_shader_filter.h"
+#include "render/rs_render_aibar_filter.h"
+#include "render/rs_render_always_snapshot_filter.h"
 #include "render/rs_colorful_shadow_filter.h"
-#include "render/rs_color_gradient_shader_filter.h"
-#include "render/rs_displacement_distort_filter.h"
 #include "render/rs_filter.h"
 #include "render/rs_foreground_effect_filter.h"
-#include "render/rs_grey_shader_filter.h"
+#include "render/rs_render_grey_filter.h"
 #include "render/rs_hdr_ui_brightness_filter.h"
-#include "render/rs_kawase_blur_shader_filter.h"
+#include "render/rs_render_kawase_blur_filter.h"
 #include "render/rs_material_filter.h"
-#include "render/rs_light_blur_shader_filter.h"
-#include "render/rs_linear_gradient_blur_shader_filter.h"
-#include "render/rs_magnifier_shader_filter.h"
-#include "render/rs_maskcolor_shader_filter.h"
+#include "render/rs_render_light_blur_filter.h"
+#include "render/rs_render_linear_gradient_blur_filter.h"
+#include "render/rs_render_magnifier_filter.h"
+#include "render/rs_render_maskcolor_filter.h"
 #include "render/rs_render_color_gradient_filter.h"
 #include "render/rs_render_displacement_distort_filter.h"
 #include "render/rs_render_edge_light_filter.h"
@@ -55,13 +55,9 @@
 #include "render/rs_spherize_effect_filter.h"
 #include "render/rs_attraction_effect_filter.h"
 #include "src/core/SkOpts.h"
-#include "render/rs_water_ripple_shader_filter.h"
+#include "render/rs_render_water_ripple_filter.h"
 #include "render/rs_fly_out_shader_filter.h"
 #include "render/rs_distortion_shader_filter.h"
-#include "render/rs_sound_wave_filter.h"
-#include "render/rs_edge_light_shader_filter.h"
-#include "render/rs_bezier_warp_filter.h"
-#include "render/rs_dispersion_shader_filter.h"
 #include "drawable/rs_property_drawable_utils.h"
 
 
@@ -291,13 +287,15 @@ static const std::unordered_map<RSModifierType, ResetPropertyFunc> g_propertyRes
     { RSModifierType::HDR_UI_BRIGHTNESS,                    [](RSProperties* prop) {
                                                                 prop->SetHDRUIBrightness(1.0f); }},
     { RSModifierType::FOREGROUND_UI_FILTER,                 [](RSProperties* prop) {
-                                                                prop->SetForegroundUIFilter({}); }},                                                                
+                                                                prop->SetForegroundUIFilter({}); }},
+    { RSModifierType::HDR_BRIGHTNESS_FACTOR,                [](RSProperties* prop) {
+                                                                prop->SetHDRBrightnessFactor(1.0f); }},
 };
 
 } // namespace
 
 // Only enable filter cache when uni-render is enabled and filter cache is enabled
-#if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+#if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
 #ifndef ROSEN_ARKUI_X
 bool RSProperties::filterCacheEnabled_ =
     RSSystemProperties::GetFilterCacheEnabled() && RSUniRenderJudgement::IsUniRender();
@@ -2728,6 +2726,48 @@ bool RSProperties::IsAttractionValid() const
     return isAttractionValid_;
 }
 
+void RSProperties::SetHDRBrightnessFactor(float factor)
+{
+    if (ROSEN_EQ(hdrBrightnessFactor_, factor)) {
+        return;
+    }
+    hdrBrightnessFactor_ = factor;
+    auto node = RSBaseRenderNode::ReinterpretCast<RSDisplayRenderNode>(backref_.lock());
+    if (node == nullptr) {
+        return;
+    }
+    auto& hdrNodeList = node->GetHDRNodeList();
+    auto context = node->GetContext().lock();
+    if (!context) {
+        ROSEN_LOGE("RSProperties::SetHDRBrightnessFactor Invalid context");
+        return;
+    }
+    EraseIf(hdrNodeList, [context, factor](const auto& nodeId) -> bool {
+        auto canvasNode = context->GetNodeMap().GetRenderNode(nodeId);
+        if (!canvasNode) {
+            return true;
+        }
+        canvasNode->SetContentDirty();
+        canvasNode->GetMutableRenderProperties().SetCanvasNodeHDRBrightnessFactor(factor);
+        return false;
+    });
+}
+
+float RSProperties::GetHDRBrightnessFactor() const
+{
+    return hdrBrightnessFactor_;
+}
+
+void RSProperties::SetCanvasNodeHDRBrightnessFactor(float factor)
+{
+    canvasNodeHDRBrightnessFactor_ = factor;
+}
+
+float RSProperties::GetCanvasNodeHDRBrightnessFactor() const
+{
+    return canvasNodeHDRBrightnessFactor_;
+}
+
 void RSProperties::SetLightUpEffect(float lightUpEffectDegree)
 {
     lightUpEffectDegree_ = lightUpEffectDegree;
@@ -3157,12 +3197,13 @@ std::shared_ptr<RSFilter> RSProperties::GenerateMaterialLightBlurFilter(
     }
 
     std::shared_ptr<RSLightBlurShaderFilter> lightBlurFilter = std::make_shared<RSLightBlurShaderFilter>(radius);
-    originalFilter = originalFilter->Compose(std::static_pointer_cast<RSShaderFilter>(lightBlurFilter));
+    originalFilter = originalFilter->Compose(std::static_pointer_cast<RSRenderFilterParaBase>(lightBlurFilter));
 
     if (colorMode == BLUR_COLOR_MODE::PRE_DEFINED) {
         std::shared_ptr<RSMaskColorShaderFilter> maskColorShaderFilter = std::make_shared<RSMaskColorShaderFilter>(
             colorMode, color);
-        originalFilter = originalFilter->Compose(std::static_pointer_cast<RSShaderFilter>(maskColorShaderFilter));
+        originalFilter =
+            originalFilter->Compose(std::static_pointer_cast<RSRenderFilterParaBase>(maskColorShaderFilter));
     }
 
     originalFilter->SetSkipFrame(RSDrawingFilter::CanSkipFrame(radius));
@@ -3210,7 +3251,8 @@ void RSProperties::GenerateBackgroundBlurFilter()
         if (originalFilter == nullptr) {
             originalFilter = std::make_shared<RSDrawingFilter>(kawaseBlurFilter);
         } else {
-            originalFilter = originalFilter->Compose(std::static_pointer_cast<RSShaderFilter>(kawaseBlurFilter));
+            originalFilter =
+                originalFilter->Compose(std::static_pointer_cast<RSRenderFilterParaBase>(kawaseBlurFilter));
         }
     } else {
         if (originalFilter == nullptr) {
@@ -3267,14 +3309,14 @@ void RSProperties::GenerateBackgroundMaterialBlurFilter()
         auto colorImageFilter = Drawing::ImageFilter::CreateColorFilterImageFilter(*colorFilter, nullptr);
         originalFilter = originalFilter?
             originalFilter->Compose(colorImageFilter, hash) : std::make_shared<RSDrawingFilter>(colorImageFilter, hash);
-        originalFilter = originalFilter->Compose(std::static_pointer_cast<RSShaderFilter>(kawaseBlurFilter));
+        originalFilter = originalFilter->Compose(std::static_pointer_cast<RSRenderFilterParaBase>(kawaseBlurFilter));
     } else {
         originalFilter = originalFilter?
             originalFilter->Compose(blurColorFilter, hash) : std::make_shared<RSDrawingFilter>(blurColorFilter, hash);
     }
-    std::shared_ptr<RSMaskColorShaderFilter> maskColorShaderFilter = std::make_shared<RSMaskColorShaderFilter>(
-        backgroundColorMode_, backgroundMaskColor_);
-    originalFilter = originalFilter->Compose(std::static_pointer_cast<RSShaderFilter>(maskColorShaderFilter));
+    std::shared_ptr<RSMaskColorShaderFilter> maskColorShaderFilter =
+        std::make_shared<RSMaskColorShaderFilter>(backgroundColorMode_, backgroundMaskColor_);
+    originalFilter = originalFilter->Compose(std::static_pointer_cast<RSRenderFilterParaBase>(maskColorShaderFilter));
     originalFilter->SetSkipFrame(RSDrawingFilter::CanSkipFrame(backgroundBlurRadius_));
     originalFilter->SetSaturationForHPS(backgroundBlurSaturation_);
     originalFilter->SetBrightnessForHPS(backgroundBlurBrightness_);
@@ -3321,7 +3363,8 @@ void RSProperties::GenerateForegroundBlurFilter()
         if (originalFilter == nullptr) {
             originalFilter = std::make_shared<RSDrawingFilter>(kawaseBlurFilter);
         } else {
-            originalFilter = originalFilter->Compose(std::static_pointer_cast<RSShaderFilter>(kawaseBlurFilter));
+            originalFilter =
+                originalFilter->Compose(std::static_pointer_cast<RSRenderFilterParaBase>(kawaseBlurFilter));
         }
     } else {
         if (originalFilter == nullptr) {
@@ -3371,7 +3414,7 @@ void RSProperties::GenerateForegroundMaterialBlurFilter()
         auto colorImageFilter = Drawing::ImageFilter::CreateColorFilterImageFilter(*colorFilter, nullptr);
         originalFilter = originalFilter?
             originalFilter->Compose(colorImageFilter, hash) : std::make_shared<RSDrawingFilter>(colorImageFilter, hash);
-        originalFilter = originalFilter->Compose(std::static_pointer_cast<RSShaderFilter>(kawaseBlurFilter));
+        originalFilter = originalFilter->Compose(std::static_pointer_cast<RSRenderFilterParaBase>(kawaseBlurFilter));
     } else {
         hash = SkOpts::hash(&foregroundBlurSaturation_, sizeof(foregroundBlurSaturation_), hash);
         hash = SkOpts::hash(&foregroundBlurBrightness_, sizeof(foregroundBlurBrightness_), hash);
@@ -3380,7 +3423,7 @@ void RSProperties::GenerateForegroundMaterialBlurFilter()
     }
     std::shared_ptr<RSMaskColorShaderFilter> maskColorShaderFilter = std::make_shared<RSMaskColorShaderFilter>(
         foregroundColorMode_, foregroundMaskColor_);
-    originalFilter = originalFilter->Compose(std::static_pointer_cast<RSShaderFilter>(maskColorShaderFilter));
+    originalFilter = originalFilter->Compose(std::static_pointer_cast<RSRenderFilterParaBase>(maskColorShaderFilter));
     originalFilter->SetSkipFrame(RSDrawingFilter::CanSkipFrame(foregroundBlurRadius_));
     originalFilter->SetSaturationForHPS(foregroundBlurSaturation_);
     originalFilter->SetBrightnessForHPS(foregroundBlurBrightness_);
@@ -3406,7 +3449,7 @@ void RSProperties::GenerateBackgroundMaterialFuzedBlurFilter()
     originalFilter = originalFilter->Compose(colorImageFilter, hash);
     std::shared_ptr<RSMaskColorShaderFilter> maskColorShaderFilter = std::make_shared<RSMaskColorShaderFilter>(
         backgroundColorMode_, backgroundMaskColor_);
-    originalFilter = originalFilter->Compose(std::static_pointer_cast<RSShaderFilter>(maskColorShaderFilter));
+    originalFilter = originalFilter->Compose(std::static_pointer_cast<RSRenderFilterParaBase>(maskColorShaderFilter));
     originalFilter->SetSkipFrame(RSDrawingFilter::CanSkipFrame(backgroundBlurRadius_));
     backgroundFilter_ = originalFilter;
     backgroundFilter_->SetFilterType(RSFilter::MATERIAL);
@@ -3430,7 +3473,7 @@ void RSProperties::GenerateCompositingMaterialFuzedBlurFilter()
     originalFilter = originalFilter->Compose(colorImageFilter, hash);
     std::shared_ptr<RSMaskColorShaderFilter> maskColorShaderFilter = std::make_shared<RSMaskColorShaderFilter>(
         foregroundColorMode_, foregroundMaskColor_);
-    originalFilter = originalFilter->Compose(std::static_pointer_cast<RSShaderFilter>(maskColorShaderFilter));
+    originalFilter = originalFilter->Compose(std::static_pointer_cast<RSRenderFilterParaBase>(maskColorShaderFilter));
     originalFilter->SetSkipFrame(RSDrawingFilter::CanSkipFrame(foregroundBlurRadius_));
     filter_ = originalFilter;
     filter_->SetFilterType(RSFilter::MATERIAL);
@@ -3448,7 +3491,7 @@ void RSProperties::GenerateAIBarFilter()
     if (RSSystemProperties::GetKawaseEnabled()) {
         std::shared_ptr<RSKawaseBlurShaderFilter> kawaseBlurFilter =
             std::make_shared<RSKawaseBlurShaderFilter>(aiBarRadius);
-        originalFilter = originalFilter->Compose(std::static_pointer_cast<RSShaderFilter>(kawaseBlurFilter));
+        originalFilter = originalFilter->Compose(std::static_pointer_cast<RSRenderFilterParaBase>(kawaseBlurFilter));
     } else {
         uint32_t hash = SkOpts::hash(&aiBarRadius, sizeof(aiBarRadius), 0);
         originalFilter = originalFilter->Compose(blurFilter, hash);
@@ -3515,46 +3558,16 @@ void RSProperties::GenerateSoundWaveFilter()
         ROSEN_LOGE("RSProperties::GenerateSoundWaveFilter get backgroundRenderFilter_ nullptr.");
         return;
     }
-    auto soundWaveFilterPara = backgroundRenderFilter_->GetRenderFilterPara(RSUIFilterType::SOUND_WAVE);
-    if (!soundWaveFilterPara) {
-        ROSEN_LOGE("RSProperties::GenerateSoundWaveFilter get soundWaveFilterPara nullptr.");
+    auto soundWaveFilter = backgroundRenderFilter_->GetRenderFilterPara(RSUIFilterType::SOUND_WAVE);
+    if (!soundWaveFilter) {
+        ROSEN_LOGE("RSProperties::GenerateSoundWaveFilter get soundWaveFilter nullptr.");
         return;
     }
-
-    auto waveColorA = std::static_pointer_cast<RSRenderProperty<Color>>(
-        soundWaveFilterPara->GetRenderPropert(RSUIFilterType::SOUND_WAVE_COLOR_A));
-    auto waveColorB = std::static_pointer_cast<RSRenderProperty<Color>>(
-        soundWaveFilterPara->GetRenderPropert(RSUIFilterType::SOUND_WAVE_COLOR_B));
-    auto waveColorC = std::static_pointer_cast<RSRenderProperty<Color>>(
-        soundWaveFilterPara->GetRenderPropert(RSUIFilterType::SOUND_WAVE_COLOR_C));
-    auto waveColorProgress = std::static_pointer_cast<RSRenderAnimatableProperty<float>>(
-        soundWaveFilterPara->GetRenderPropert(RSUIFilterType::SOUND_WAVE_COLOR_PROGRESS));
-    auto wavecenterBrightness = std::static_pointer_cast<RSRenderProperty<float>>(
-        soundWaveFilterPara->GetRenderPropert(RSUIFilterType::SOUND_WAVE_CENTER_BRIGHTNESS));
-    auto soundIntensity = std::static_pointer_cast<RSRenderAnimatableProperty<float>>(
-        soundWaveFilterPara->GetRenderPropert(RSUIFilterType::SOUND_INTENSITY));
-    auto shockWaveAlphaA = std::static_pointer_cast<RSRenderAnimatableProperty<float>>(
-        soundWaveFilterPara->GetRenderPropert(RSUIFilterType::SHOCK_WAVE_ALPHA_A));
-    auto shockWaveAlphaB = std::static_pointer_cast<RSRenderAnimatableProperty<float>>(
-        soundWaveFilterPara->GetRenderPropert(RSUIFilterType::SHOCK_WAVE_ALPHA_B));
-    auto shockWaveProgressA = std::static_pointer_cast<RSRenderAnimatableProperty<float>>(
-        soundWaveFilterPara->GetRenderPropert(RSUIFilterType::SHOCK_WAVE_PROGRESS_A));
-    auto shockWaveProgressB = std::static_pointer_cast<RSRenderAnimatableProperty<float>>(
-        soundWaveFilterPara->GetRenderPropert(RSUIFilterType::SHOCK_WAVE_PROGRESS_B));
-    if (!waveColorA || !waveColorB || !waveColorC || !waveColorProgress || !wavecenterBrightness || !soundIntensity ||
-        !shockWaveAlphaA || !shockWaveAlphaB || !shockWaveProgressA || !shockWaveProgressB) {
-        ROSEN_LOGE("RSProperties::GenerateSoundWaveFilter get soundWaveRenderProperty nullptr.");
+    if (!soundWaveFilter->ParseFilterValues()) {
         return;
     }
-    std::shared_ptr<RSSoundWaveFilter> soundWaveFilter =
-        std::make_shared<RSSoundWaveFilter>(waveColorA->Get(), waveColorB->Get(), waveColorC->Get(),
-                                            waveColorProgress->Get(), wavecenterBrightness->Get(),
-                                            soundIntensity->Get(), shockWaveAlphaA->Get(),
-                                            shockWaveAlphaB->Get(), shockWaveProgressA->Get(),
-                                            shockWaveProgressB->Get());
-    std::shared_ptr<RSDrawingFilter> originalFilter = std::make_shared<RSDrawingFilter>(soundWaveFilter);
     if (!backgroundFilter_) {
-        backgroundFilter_ = originalFilter;
+        backgroundFilter_ = std::make_shared<RSDrawingFilter>(soundWaveFilter);
         backgroundFilter_->SetFilterType(RSFilter::SOUND_WAVE);
     } else {
         auto backgroundDrawingFilter = std::static_pointer_cast<RSDrawingFilter>(backgroundFilter_);
@@ -3571,31 +3584,17 @@ void RSProperties::GenerateRenderFilterColorGradient()
         return;
     }
 
-    auto colorGradientFilterPara = backgroundRenderFilter_->GetRenderFilterPara(RSUIFilterType::COLOR_GRADIENT);
-    if (!colorGradientFilterPara) {
-        ROSEN_LOGE("RSProperties::GenerateRenderFilterColorGradient get colorGradientFilterPara nullptr.");
+    auto colorGradientFilter = backgroundRenderFilter_->GetRenderFilterPara(RSUIFilterType::COLOR_GRADIENT);
+    if (!colorGradientFilter) {
+        ROSEN_LOGE("RSProperties::GenerateRenderFilterColorGradient get colorGradientFilter nullptr.");
         return;
     }
 
-    auto colorProperty = std::static_pointer_cast<RSRenderProperty<std::vector<float>>>(
-        colorGradientFilterPara->GetRenderPropert(RSUIFilterType::COLOR_GRADIENT_COLOR));
-    auto positionProperty = std::static_pointer_cast<RSRenderProperty<std::vector<float>>>(
-        colorGradientFilterPara->GetRenderPropert(RSUIFilterType::COLOR_GRADIENT_POSITION));
-    auto strengthProperty = std::static_pointer_cast<RSRenderProperty<std::vector<float>>>(
-        colorGradientFilterPara->GetRenderPropert(RSUIFilterType::COLOR_GRADIENT_STRENGTH));
-    if (!colorProperty || !positionProperty || !strengthProperty) {
-        ROSEN_LOGE("RSProperties::GenerateRenderFilterColorGradient GetRenderPropert has some nullptr.");
+    if (!colorGradientFilter->ParseFilterValues()) {
         return;
     }
-
-    auto rsRenderColorGradientPara = std::static_pointer_cast<RSRenderColorGradientFilterPara>(colorGradientFilterPara);
-    auto colorGradientFilterMask = std::make_shared<RSShaderMask>(rsRenderColorGradientPara->GetRenderMask());
-    std::shared_ptr<RSColorGradientShaderFilter> colorGradientFilter = std::make_shared<RSColorGradientShaderFilter>(
-        colorProperty->Get(), positionProperty->Get(), strengthProperty->Get(), colorGradientFilterMask);
-
-    std::shared_ptr<RSDrawingFilter> originalFilter = std::make_shared<RSDrawingFilter>(colorGradientFilter);
     if (!backgroundFilter_) {
-        backgroundFilter_ = originalFilter;
+        backgroundFilter_ = std::make_shared<RSDrawingFilter>(colorGradientFilter);
         backgroundFilter_->SetFilterType(RSFilter::COLOR_GRADIENT);
     } else {
         auto backgroundDrawingFilter = std::static_pointer_cast<RSDrawingFilter>(backgroundFilter_);
@@ -3611,33 +3610,16 @@ void RSProperties::GenerateDisplacementDistortFilter()
         ROSEN_LOGE("RSProperties::GenerateDisplacementDistortFilter get backgroundRenderFilter_ nullptr.");
         return;
     }
-    auto displacementDistortFilterPara =
-        backgroundRenderFilter_->GetRenderFilterPara(RSUIFilterType::DISPLACEMENT_DISTORT);
-    if (!displacementDistortFilterPara) {
+    auto displacementDistortFilter = backgroundRenderFilter_->GetRenderFilterPara(RSUIFilterType::DISPLACEMENT_DISTORT);
+    if (!displacementDistortFilter) {
         ROSEN_LOGE("RSProperties::GenerateDisplacementDistortFilter get displacementDistortFilterPara nullptr.");
         return;
     }
-
-    auto displacementDistortFactor = std::static_pointer_cast<RSRenderAnimatableProperty<Vector2f>>(
-        displacementDistortFilterPara->GetRenderPropert(RSUIFilterType::DISPLACEMENT_DISTORT_FACTOR));
-    if (!displacementDistortFactor) {
-        ROSEN_LOGE("RSProperties::GenerateDisplacementDistortFilter GetRenderPropert has nullptr.");
+    if (!displacementDistortFilter->ParseFilterValues()) {
         return;
     }
-    auto rsRenderDisplacementDistortPara =
-        std::static_pointer_cast<RSRenderDispDistortFilterPara>(displacementDistortFilterPara);
-    if (!rsRenderDisplacementDistortPara) {
-        ROSEN_LOGE("RSProperties::GenerateDisplacementDistortFilter get rsRenderDisplacementDistortPara nullptr.");
-        return;
-    }
-    auto displacementDistortShaderMask =
-        std::make_shared<RSShaderMask>(rsRenderDisplacementDistortPara->GetRenderMask());
-
-    std::shared_ptr<RSDisplacementDistortFilter> displacementDistortFilter =
-        std::make_shared<RSDisplacementDistortFilter>(displacementDistortShaderMask, displacementDistortFactor->Get());
-    std::shared_ptr<RSDrawingFilter> originalFilter = std::make_shared<RSDrawingFilter>(displacementDistortFilter);
     if (!backgroundFilter_) {
-        backgroundFilter_ = originalFilter;
+        backgroundFilter_ = std::make_shared<RSDrawingFilter>(displacementDistortFilter);
         backgroundFilter_->SetFilterType(RSFilter::DISPLACEMENT_DISTORT);
     } else {
         auto backgroundDrawingFilter = std::static_pointer_cast<RSDrawingFilter>(backgroundFilter_);
@@ -3653,46 +3635,16 @@ void RSProperties::GenerateRenderFilterEdgeLight()
         ROSEN_LOGE("RSProperties::GenerateRenderFilterEdgeLight backgroundRenderFilter_ nullptr.");
         return;
     }
-    auto filterPara = backgroundRenderFilter_->GetRenderFilterPara(RSUIFilterType::EDGE_LIGHT);
-    if (!filterPara) {
+    auto elFilter = backgroundRenderFilter_->GetRenderFilterPara(RSUIFilterType::EDGE_LIGHT);
+    if (!elFilter) {
         ROSEN_LOGE("RSProperties::GenerateRenderFilterEdgeLight EDGE_LIGHT filter para not found.");
         return;
     }
-    auto edgeLightFilterPara = std::static_pointer_cast<RSRenderEdgeLightFilterPara>(filterPara);
-
-    // alpha
-    auto edgeLightAlpha = std::static_pointer_cast<RSRenderAnimatableProperty<float>>(
-        edgeLightFilterPara->GetRenderPropert(RSUIFilterType::EDGE_LIGHT_ALPHA));
-    if (!edgeLightAlpha) {
-        ROSEN_LOGE("RSProperties::GenerateRenderFilterEdgeLight alpha is null.");
+    if (!elFilter->ParseFilterValues()) {
         return;
     }
-    EdgeLightShaderFilterParams elParas;
-    elParas.alpha = edgeLightAlpha->Get();
-
-    // color
-    auto edgeLightColor = std::static_pointer_cast<RSRenderAnimatableProperty<Vector4f>>(
-        edgeLightFilterPara->GetRenderPropert(RSUIFilterType::EDGE_LIGHT_COLOR));
-    if (edgeLightColor != nullptr) {
-        elParas.color = edgeLightColor->Get();
-    }
-
-    // mask
-    if (edgeLightFilterPara->GetMaskType() != RSUIFilterType::NONE) {
-        auto edgeLightMask = std::static_pointer_cast<RSRenderMaskPara>(
-            edgeLightFilterPara->GetRenderPropert(edgeLightFilterPara->GetMaskType()));
-        if (edgeLightMask == nullptr) {
-            ROSEN_LOGE("RSProperties::GenerateRenderFilterEdgeLight mask is null, maskType: %{public}d.",
-                static_cast<int>(edgeLightFilterPara->GetMaskType()));
-            return;
-        }
-        elParas.mask = std::make_shared<RSShaderMask>(edgeLightMask);
-    }
-    std::shared_ptr<RSEdgeLightShaderFilter> elFilter = std::make_shared<RSEdgeLightShaderFilter>(elParas);
-
-    std::shared_ptr<RSDrawingFilter> originalFilter = std::make_shared<RSDrawingFilter>(elFilter);
     if (!backgroundFilter_) {
-        backgroundFilter_ = originalFilter;
+        backgroundFilter_ = std::make_shared<RSDrawingFilter>(elFilter);
         backgroundFilter_->SetFilterType(RSFilter::EDGE_LIGHT);
     } else {
         auto backgroundDrawingFilter = std::static_pointer_cast<RSDrawingFilter>(backgroundFilter_);
@@ -3708,43 +3660,20 @@ void RSProperties::GenerateRenderFilterDispersion()
         ROSEN_LOGE("RSProperties::GenerateRenderFilterDispersion backgroundRenderFilter_ nullptr.");
         return;
     }
-    auto dispersionFilterPara = std::static_pointer_cast<RSRenderDispersionFilterPara>(
-        backgroundRenderFilter_->GetRenderFilterPara(RSUIFilterType::DISPERSION));
-    if (!dispersionFilterPara) {
-        ROSEN_LOGE("RSProperties::GenerateRenderFilterDispersion DISPERSION filter para not found.");
+    auto dispersionFilter = backgroundRenderFilter_->GetRenderFilterPara(RSUIFilterType::DISPERSION);
+    if (!dispersionFilter) {
+        ROSEN_LOGE("RSProperties::GenerateRenderFilterDispersion dispersionFilter not found.");
         return;
     }
-
-    auto dispersionMask = std::static_pointer_cast<RSRenderMaskPara>(
-        dispersionFilterPara->GetRenderPropert(dispersionFilterPara->GetMaskType()));
-    auto dispersionShaderMask = std::make_shared<RSShaderMask>(dispersionMask);
-    auto dispersionOpacity = std::static_pointer_cast<RSRenderProperty<float>>(
-        dispersionFilterPara->GetRenderPropert(RSUIFilterType::DISPERSION_OPACITY));
-    auto dispersionRedOffset = std::static_pointer_cast<RSRenderProperty<Vector2f>>(
-        dispersionFilterPara->GetRenderPropert(RSUIFilterType::DISPERSION_RED_OFFSET));
-    auto dispersionGreenOffset = std::static_pointer_cast<RSRenderProperty<Vector2f>>(
-        dispersionFilterPara->GetRenderPropert(RSUIFilterType::DISPERSION_GREEN_OFFSET));
-    auto dispersionBlueOffset = std::static_pointer_cast<RSRenderProperty<Vector2f>>(
-        dispersionFilterPara->GetRenderPropert(RSUIFilterType::DISPERSION_BLUE_OFFSET));
-    
-    bool hasNull = !dispersionShaderMask || !dispersionOpacity || !dispersionRedOffset || !dispersionGreenOffset ||
-        !dispersionBlueOffset;
-    if (hasNull) {
-        ROSEN_LOGE("RSProperties::GenerateRenderFilterDispersion GetRenderPropert has some nullptr.");
+    if (!dispersionFilter->ParseFilterValues()) {
         return;
     }
-
-    DispersionShaderFilterParams dspParas = { dispersionShaderMask, dispersionOpacity->Get(), dispersionRedOffset->Get(), 
-        dispersionGreenOffset->Get(), dispersionBlueOffset->Get() };
-    std::shared_ptr<RSDispersionShaderFilter> dspFilter = std::make_shared<RSDispersionShaderFilter>(dspParas);
-
-    std::shared_ptr<RSDrawingFilter> originalFilter = std::make_shared<RSDrawingFilter>(dspFilter);
     if (!backgroundFilter_) {
-        backgroundFilter_ = originalFilter;
+        backgroundFilter_ = std::make_shared<RSDrawingFilter>(dispersionFilter);
         backgroundFilter_->SetFilterType(RSFilter::DISPERSION);
     } else {
         auto backgroundDrawingFilter = std::static_pointer_cast<RSDrawingFilter>(backgroundFilter_);
-        backgroundDrawingFilter = backgroundDrawingFilter->Compose(dspFilter);
+        backgroundDrawingFilter = backgroundDrawingFilter->Compose(dispersionFilter);
         backgroundDrawingFilter->SetFilterType(RSFilter::COMPOUND_EFFECT);
         backgroundFilter_ = backgroundDrawingFilter;
     }
@@ -3804,45 +3733,17 @@ void RSProperties::GenerateBezierWarpFilter()
         ROSEN_LOGE("RSProperties::GenerateBezierWarpFilter get foregroundRenderFilter_ nullptr.");
         return;
     }
-    auto bezierWarpPara = foregroundRenderFilter_->GetRenderFilterPara(RSUIFilterType::BEZIER_WARP);
-    if (bezierWarpPara == nullptr) {
-        ROSEN_LOGE("RSProperties::GenerateBezierWarpFilter BEZIER_WARP filter para not found.");
+    auto bezierWarpFilter = foregroundRenderFilter_->GetRenderFilterPara(RSUIFilterType::BEZIER_WARP);
+    if (bezierWarpFilter == nullptr) {
+        ROSEN_LOGE("RSProperties::GenerateBezierWarpFilter bezierWarpFilter not found.");
         return;
     }
-
-    std::array<RSUIFilterType, INDEX_12> ctrlPointsType = {
-        RSUIFilterType::BEZIER_CONTROL_POINT0,
-        RSUIFilterType::BEZIER_CONTROL_POINT1,
-        RSUIFilterType::BEZIER_CONTROL_POINT2,
-        RSUIFilterType::BEZIER_CONTROL_POINT3,
-        RSUIFilterType::BEZIER_CONTROL_POINT4,
-        RSUIFilterType::BEZIER_CONTROL_POINT5,
-        RSUIFilterType::BEZIER_CONTROL_POINT6,
-        RSUIFilterType::BEZIER_CONTROL_POINT7,
-        RSUIFilterType::BEZIER_CONTROL_POINT8,
-        RSUIFilterType::BEZIER_CONTROL_POINT9,
-        RSUIFilterType::BEZIER_CONTROL_POINT10,
-        RSUIFilterType::BEZIER_CONTROL_POINT11,
-    };
-    std::array<Drawing::Point, INDEX_12> ctrlPoints;
-    Vector2f tmpBezierCtrlPoint;
-    std::shared_ptr<RSRenderAnimatableProperty<Vector2f>> ctrlPointProperty;
-    for (size_t i = 0; i < INDEX_12; ++i) {
-        ctrlPointProperty = std::static_pointer_cast<RSRenderAnimatableProperty<Vector2f>>(
-            bezierWarpPara->GetRenderPropert(ctrlPointsType[i]));
-        if (ctrlPointProperty == nullptr) {
-            ROSEN_LOGE("RSProperties::GenerateBezierWarpFilter GetRenderPropert nullptr, index:%zu", i);
-            return;
-        }
-        tmpBezierCtrlPoint = ctrlPointProperty->Get();
-        ctrlPoints[i].Set(tmpBezierCtrlPoint.x_, tmpBezierCtrlPoint.y_);
+    if (!bezierWarpFilter->ParseFilterValues()) {
+        return;
     }
-    std::shared_ptr<RSBezierWarpFilter> bezierWarpFilter = std::make_shared<RSBezierWarpFilter>(ctrlPoints);
-
-    std::shared_ptr<RSDrawingFilter> originalFilter = std::make_shared<RSDrawingFilter>(bezierWarpFilter);
     foregroundFilter_.reset();
     if (!foregroundFilter_) {
-        foregroundFilter_ = originalFilter;
+        foregroundFilter_ = std::make_shared<RSDrawingFilter>(bezierWarpFilter);
         foregroundFilter_->SetFilterType(RSFilter::BEZIER_WARP);
     } else {
         auto foregroundDrawingFilter = std::static_pointer_cast<RSDrawingFilter>(foregroundFilter_);
@@ -4966,7 +4867,7 @@ std::string RSProperties::Dump() const
 }
 
 // planning: need to delete, cachemanager moved to filter drawable
-#if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+#if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
 void RSProperties::CreateFilterCacheManagerIfNeed()
 {
     if (!filterCacheEnabled_) {
@@ -5007,16 +4908,14 @@ void RSProperties::ClearFilterCache()
     }
     if (backgroundFilter_ != nullptr) {
         auto drawingFilter = std::static_pointer_cast<RSDrawingFilter>(backgroundFilter_);
-        std::shared_ptr<RSShaderFilter> rsShaderFilter =
-            drawingFilter->GetShaderFilterWithType(RSShaderFilter::MASK_COLOR);
+        auto rsShaderFilter = drawingFilter->GetShaderFilterWithType(RSUIFilterType::MASK_COLOR);
         if (rsShaderFilter != nullptr) {
             auto maskColorShaderFilter = std::static_pointer_cast<RSMaskColorShaderFilter>(rsShaderFilter);
         }
     }
     if (filter_ != nullptr) {
         auto drawingFilter = std::static_pointer_cast<RSDrawingFilter>(filter_);
-        std::shared_ptr<RSShaderFilter> rsShaderFilter =
-            drawingFilter->GetShaderFilterWithType(RSShaderFilter::MASK_COLOR);
+        auto rsShaderFilter = drawingFilter->GetShaderFilterWithType(RSUIFilterType::MASK_COLOR);
         if (rsShaderFilter != nullptr) {
             auto maskColorShaderFilter = std::static_pointer_cast<RSMaskColorShaderFilter>(rsShaderFilter);
         }
@@ -5271,7 +5170,7 @@ bool RSProperties::GetHaveEffectRegion() const
 
 void RSProperties::SetHaveEffectRegion(bool haveEffectRegion)
 {
-#if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+#if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     // clear cache if new region is null or outside current region
     if (auto& manager = GetFilterCacheManager(false);
         manager && manager->IsCacheValid() && haveEffectRegion == false) {

@@ -182,6 +182,9 @@ public:
     void CheckHwcChildrenType(RSSurfaceRenderNode& node, SurfaceHwcNodeType& enabledType);
     void MarkSubHighPriorityType(RSSurfaceRenderNode& node);
     void MarkPostNodesPriority();
+    bool SubThreadControlFrameRate(NodeId id,
+    std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable>& drawable,
+    std::shared_ptr<RSSurfaceRenderNode>& node);
     void RecordScreenRect(RSSurfaceRenderNode& node, RectI rect);
     void RecordDirtyRegionMatrix(RSSurfaceRenderNode& node, const Drawing::Matrix& matrix);
     CacheProcessStatus GetCacheSurfaceProcessedStatus(const RSSurfaceRenderParams& surfaceParams);

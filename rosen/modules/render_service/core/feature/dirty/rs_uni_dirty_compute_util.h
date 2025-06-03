@@ -24,6 +24,7 @@
 #include "common/rs_obj_abs_geometry.h"
 #include "drawable/rs_surface_render_node_drawable.h"
 #include "params/rs_display_render_params.h"
+#include "common/rs_occlusion_region.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -36,6 +37,19 @@ public:
     static std::vector<RectI> GetFilpDirtyRects(const std::vector<RectI>& srcRects, const ScreenInfo& screenInfo);
     static std::vector<RectI> FilpRects(const std::vector<RectI>& srcRects, const ScreenInfo& screenInfo);
     static GraphicIRect IntersectRect(const GraphicIRect& first, const GraphicIRect& second);
+};
+
+class RSUniFilterDirtyComputeUtil {
+public:
+    static FilterDirtyRegionInfo GenerateFilterDirtyRegionInfo(
+        RSRenderNode& filterNode, const std::optional<Occlusion::Region>& preDirty);
+    inline static void SetFilterAlignMode(bool align)
+    {
+        dirtyAlignEnabled_ = align;
+    }
+private:
+    static Occlusion::Region GetVisibleEffectRegion(RSRenderNode& filterNode);
+    inline static bool dirtyAlignEnabled_ = false;
 };
 }
 }

@@ -854,6 +854,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoGetAttractionDstPointValue(data, size);
     OHOS::Rosen::DoGetLightUpEffectDegree(data, size);
     OHOS::Rosen::DoGetDynamicDimDegree(data, size);
+    OHOS::Rosen::DoGetHDRUIBrightness(data, size);
     return 0;
 }
 

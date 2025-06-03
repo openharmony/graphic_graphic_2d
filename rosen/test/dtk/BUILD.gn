@@ -14,6 +14,10 @@
 import("//build/ohos.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
+if (ohos_indep_compiler_enable) {
+  dtk_test_indep_build_path = [ "//binarys/third_party/vulkan-headers/innerapis/vulkan-headers/includes" ]
+}
+
 ohos_executable("dtk") {
   sanitize = {
     cfi = true
@@ -25,6 +29,11 @@ ohos_executable("dtk") {
     "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing/engine_adapter",
     "$graphic_2d_root/rosen/test/dtk",
   ]
+
+  if (ohos_indep_compiler_enable) {
+    defines = [ "GRAPHIC_2D_INDEP_BUILD" ]
+    include_dirs += dtk_test_indep_build_path
+  }
 
   # function demo
   sources = [
@@ -111,6 +120,7 @@ ohos_executable("dtk") {
 
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "hilog:libhilog",
     "hitrace:hitrace_meter",
     "image_framework:image_native",
@@ -128,6 +138,7 @@ ohos_executable("dtk") {
   public_deps = [
     "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
     "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
+    "$graphic_2d_root/rosen/modules/platform:ipc_core"
   ]
 
   part_name = "graphic_2d"

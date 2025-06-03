@@ -17,7 +17,11 @@
 #include "drawing_path.h"
 #include "drawing_rect.h"
 
+#ifdef USE_M133_SKIA
+#include "src/base/SkUTF.h"
+#else
 #include "src/utils/SkUTF.h"
+#endif
 
 #include "drawing_canvas_utils.h"
 #include "drawing_font_utils.h"

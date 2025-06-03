@@ -79,6 +79,7 @@ struct VoteInfo {
         return !(*this == other);
     }
 };
+using VoteRecord = std::unordered_map<std::string, std::pair<std::vector<VoteInfo>, bool>>;
 
 class HgmVoter {
 public:
@@ -87,11 +88,11 @@ public:
 
     bool DeliverVote(const VoteInfo& voteInfo, bool eventStatus);
     VoteInfo ProcessVote();
-private:
     static std::pair<bool, bool> MergeRangeByPriority(VoteRange& rangeRes, const VoteRange& curVoteRange);
+private:
     bool ProcessVote(std::vector<std::string>::iterator& voterIter, VoteInfo& resultVoteInfo, VoteRange& voteRange);
 
-    std::unordered_map<std::string, std::pair<std::vector<VoteInfo>, bool>>  voteRecord_;
+    VoteRecord voteRecord_;
     std::vector<std::string> voters_;
 };
 }

@@ -124,6 +124,7 @@ void RSOpincCache::MarkSuggestOpincNode(bool isOpincNode, bool isNeedCalculate)
 {
     isSuggestOpincNode_ = isOpincNode;
     isNeedCalculate_ = isNeedCalculate;
+    NodeCacheStateReset(NodeCacheState::STATE_CHANGE);
 }
 
 bool RSOpincCache::IsSuggestOpincNode() const

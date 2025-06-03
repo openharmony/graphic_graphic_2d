@@ -68,6 +68,29 @@ namespace {
 }
 
 namespace OHOS::Rosen {
+class RSChildrenDrawableAdapter : public RSDrawable {
+public:
+    RSChildrenDrawableAdapter() = default;
+    ~RSChildrenDrawableAdapter() override = default;
+    bool OnUpdate(const RSRenderNode& content) override
+    {
+        return true;
+    }
+    void OnSync() override {}
+    Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override
+    {
+        auto ptr = std::static_pointer_cast<const RSChildrenDrawableAdapter>(shared_from_this());
+        return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {};
+    }
+
+private:
+    bool OnSharedTransition(const std::shared_ptr<RSRenderNode>& node)
+    {
+        return true;
+    }
+    friend class RSRenderNode;
+};
+
 class RSUniRenderVisitorTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -5053,5 +5076,72 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodesIfVisibleForAppTest, TestSize.Lev
         needForceUpdateHwcNodes);
     EXPECT_FALSE(hasVisibleHwcNodes);
     EXPECT_FALSE(needForceUpdateHwcNodes);
+}
+
+/*
+ * @tc.name: HandleTunnelLayerId001
+ * @tc.desc: Test HandleTunnelLayerId
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniRenderVisitorTest, HandleTunnelLayerId001, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+ 
+    RSSurfaceRenderNodeConfig surfaceConfig;
+    surfaceConfig.id = 1;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceConfig);
+    ASSERT_NE(surfaceNode, nullptr);
+ 
+    rsUniRenderVisitor->HandleTunnelLayerId(*surfaceNode);
+    EXPECT_EQ(surfaceNode->GetTunnelLayerId(), 0);
+}
+ 
+/*
+ * @tc.name: HandleTunnelLayerId002
+ * @tc.desc: Test HandleTunnelLayerId002
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniRenderVisitorTest, HandleTunnelLayerId002, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+ 
+    RSSurfaceRenderNodeConfig surfaceConfig;
+    surfaceConfig.id = 1;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceConfig);
+    ASSERT_NE(surfaceNode, nullptr);
+ 
+    surfaceNode->SetTunnelLayerId(1);
+    rsUniRenderVisitor->HandleTunnelLayerId(*surfaceNode);
+    const auto nodeParams = static_cast<RSSurfaceRenderParams*>(surfaceNode->GetStagingRenderParams().get());
+    if (nodeParams != nullptr) {
+        EXPECT_EQ(surfaceNode->GetTunnelLayerId(), 1);
+    } else {
+        EXPECT_EQ(surfaceNode->GetTunnelLayerId(), 0);
+    }
+}
+
+/*
+ * @tc.name: UpdateOffscreenCanvasNodeId001
+ * @tc.desc: Test function UpdateOffscreenCanvasNodeId
+ * @tc.type: FUNC
+ * @tc.require: issueICB4RP
+ */
+HWTEST_F(RSUniRenderVisitorTest, UpdateOffscreenCanvasNodeId001, TestSize.Level2)
+{
+    NodeId nodeId = 1;
+    auto rsCanvasRenderNode = std::make_shared<RSCanvasRenderNode>(nodeId);
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    rsUniRenderVisitor->UpdateOffscreenCanvasNodeId(*rsCanvasRenderNode);
+    EXPECT_EQ(rsUniRenderVisitor->offscreenCanvasNodeId_, INVALID_NODEID);
+
+    auto rsChildrenDrawable = std::make_shared<RSChildrenDrawableAdapter>();
+    rsCanvasRenderNode->drawableVec_[static_cast<uint32_t>(RSDrawableSlot::FOREGROUND_FILTER)]
+        = std::move(rsChildrenDrawable);
+    rsUniRenderVisitor->UpdateOffscreenCanvasNodeId(*rsCanvasRenderNode);
+    EXPECT_EQ(rsUniRenderVisitor->offscreenCanvasNodeId_, nodeId);
 }
 } // OHOS::Rosen

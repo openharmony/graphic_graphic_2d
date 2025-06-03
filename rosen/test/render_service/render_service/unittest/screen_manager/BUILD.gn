@@ -34,6 +34,7 @@ ohos_unittest("VsyncEnabledScreenIdTest") {
 
   deps = [
     "$graphic_2d_root/rosen/modules/composer:libcomposer",
+    "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
     "$graphic_2d_root/rosen/modules/render_service:librender_service",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
     "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
@@ -41,6 +42,7 @@ ohos_unittest("VsyncEnabledScreenIdTest") {
 
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "googletest:gtest_main",
     "hilog:libhilog",
     "init:libbegetutil",
@@ -83,6 +85,7 @@ ohos_unittest("RSScreenManagerTest") {
 
   deps = [
     "$graphic_2d_root/rosen/modules/composer:libcomposer",
+    "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
     "$graphic_2d_root/rosen/modules/render_service:librender_service",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
     "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
@@ -90,6 +93,7 @@ ohos_unittest("RSScreenManagerTest") {
 
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "googletest:gmock_main",
     "hilog:libhilog",
     "init:libbegetutil",
@@ -126,9 +130,15 @@ ohos_unittest("TouchScreenTest") {
 
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "hilog:libhilog",
     "init:libbegetutil",
   ]
+
+  defines = []
+  if (tp_feature_enable) {
+    defines += tp_defines
+  }
 
   cflags = [
     "-Wall",
@@ -171,6 +181,7 @@ ohos_unittest("RSScreenTest") {
 
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "googletest:gmock_main",
     "hilog:libhilog",
     "init:libbegetutil",
@@ -190,8 +201,7 @@ ohos_unittest("RSScreenTest") {
 ###############################################################################
 config("screen_manager_test") {
   #visibility = [ ":*" ]
-  include_dirs =
-      [ "$graphic_2d_root/rosen/modules/render_service/core" ]
+  include_dirs = [ "$graphic_2d_root/rosen/modules/render_service/core" ]
 }
 
 ###############################################################################
@@ -203,8 +213,7 @@ config("touch_screen_test") {
 ###############################################################################
 config("screen_test") {
   #visibility = [ ":*" ]
-  include_dirs =
-      [ "$graphic_2d_root/rosen/modules/render_service/core" ]
+  include_dirs = [ "$graphic_2d_root/rosen/modules/render_service/core" ]
 }
 
 group("unittest") {

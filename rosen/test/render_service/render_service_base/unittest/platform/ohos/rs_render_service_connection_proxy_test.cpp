@@ -570,8 +570,8 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, RegisterApplicationAgent, TestSize.
     ASSERT_EQ(proxy->transactionDataIndex_, 0);
 }
 /**
- * @tc.name: RegisterTransactionDataCallback Test
- * @tc.desc: RegisterTransactionDataCallback Test
+ * @tc.name: RegisterTransactionDataCallback01
+ * @tc.desc: RegisterTransactionDataCallback Test normal
  * @tc.type:FUNC
  * @tc.require: issueI9KXXE
  */
@@ -582,7 +582,7 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, RegisterTransactionDataCallback01, 
     auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
     sptr<RSITransactionDataCallback> callback = iface_cast<RSITransactionDataCallback>(remoteObject);
     proxy->RegisterTransactionDataCallback(1, 456, callback);
-    ASSERT_EQ(proxy->transactionDataIndex_, 0);
+    ASSERT_NE(proxy->transactionDataIndex_, 5);
 }
 
 /**

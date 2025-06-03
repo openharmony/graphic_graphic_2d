@@ -47,7 +47,11 @@
 #include "graphic_feature_param_manager.h"
 
 #ifdef RS_ENABLE_EGLIMAGE
+#ifdef USE_M133_SKIA
+#include "src/gpu/ganesh/gl/GrGLDefines.h"
+#else
 #include "src/gpu/gl/GrGLDefines.h"
+#endif
 #endif
 
 #ifdef RS_ENABLE_VK
@@ -305,7 +309,8 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
         } else {
             output->SetLayerInfo(layers);
         }
-        if (output->IsDeviceValid() && !isScreenPoweringOff) {
+        bool doRepaint = output->IsDeviceValid() && !isScreenPoweringOff && !IsDropDirtyFrame(output);
+        if (doRepaint) {
             hdiBackend_->Repaint(output);
             RecordTimestamp(layers);
         }
@@ -750,6 +755,46 @@ void RSHardwareThread::OnScreenVBlankIdleCallback(ScreenId screenId, uint64_t ti
     RS_TRACE_NAME_FMT("RSHardwareThread::OnScreenVBlankIdleCallback screenId: %" PRIu64" now: %" PRIu64"",
         screenId, timestamp);
     vblankIdleCorrector_.SetScreenVBlankIdle(screenId);
+}
+
+bool RSHardwareThread::IsDropDirtyFrame(OutputPtr output)
+{
+    if (!RSSystemProperties::IsSuperFoldDisplay()) {
+        return false;
+    }
+    if (output == nullptr) {
+        RS_LOGW("%{public}s: output is null", __func__);
+        return false;
+    }
+    auto screenManager = CreateOrGetScreenManager();
+    if (screenManager == nullptr) {
+        RS_LOGW("%{public}s: screenManager is null", __func__);
+        return false;
+    }
+
+    auto screenId = output->GetScreenId();
+    auto rect = screenManager->QueryScreenInfo(screenId).activeRect;
+    if (rect.IsEmpty()) {
+        RS_LOGW("%{public}s: activeRect is empty", __func__);
+        return false;
+    }
+    GraphicIRect activeRect = {rect.left_, rect.top_, rect.width_, rect.height_};
+    std::vector<LayerInfoPtr> layerInfos;
+    output->GetLayerInfos(layerInfos);
+    if (layerInfos.empty()) {
+        RS_LOGI("%{public}s: layerInfos is empty", __func__);
+        return false;
+    }
+    for (const auto& info : layerInfos) {
+        auto layerSize = info->GetLayerSize();
+        if (info->GetDisplayNodeFlag() && !(activeRect == layerSize)) {
+            RS_LOGI("%{publkic}s: Drop dirty frame cause activeRect:[%{public}d, %{public}d, %{public}d, %{public}d]" \
+                "layerSize:[%{public}d, %{public}d, %{public}d, %{public}d]", __func__, activeRect.x, activeRect.y,
+                activeRect.w, activeRect.h, layerSize.x, layerSize.y, layerSize.w, layerSize.h);
+            return true;
+        }
+    }
+    return false;
 }
 
 void RSHardwareThread::ExecuteSwitchRefreshRate(const OutputPtr& output, uint32_t refreshRate)

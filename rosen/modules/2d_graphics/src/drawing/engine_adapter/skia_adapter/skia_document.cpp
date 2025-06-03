@@ -17,12 +17,19 @@
 
 #include "include/core/SkSerialProcs.h"
 #include "tools/SkSharingProc.h"
+#ifdef USE_M133_SKIA
+#include "include/docs/SkMultiPictureDocument.h"
+#else
 #include "src/utils/SkMultiPictureDocument.h"
+#endif
 
 #include "skia_document.h"
 #include "skia_file_w_stream.h"
 #include "skia_serial_procs.h"
 #include "skia_sharing_serial_context.h"
+#ifdef USE_M133_SKIA
+#include "include/core/SkTypeface.h"
+#endif
 
 #include "draw/canvas.h"
 #include "skia_canvas.h"
@@ -56,10 +63,17 @@ std::shared_ptr<Document> SkiaDocument::MakeMultiPictureDocument(
         return nullptr;
     }
     SkFILEWStream* dst = skiaFileWStream->GetSkFileWStream();
+#ifdef USE_M133_SKIA
+    auto skDocument = SkMultiPictureDocument::Make(dst, skProc, [sharingCtx = serialContext_.get()]
+    (const SkPicture* pic) {
+        SkSharingSerialContext::collectNonTextureImagesFromPicture(pic, sharingCtx);
+    });
+#else
     auto skDocument = SkMakeMultiPictureDocument(dst, skProc, [sharingCtx = serialContext_.get()]
         (const SkPicture* pic) {
         SkSharingSerialContext::collectNonTextureImagesFromPicture(pic, sharingCtx);
     });
+#endif
     std::shared_ptr<DocumentImpl> documentImpl = std::make_shared<SkiaDocument>(skDocument);
     return std::make_shared<Document>(documentImpl);
 }

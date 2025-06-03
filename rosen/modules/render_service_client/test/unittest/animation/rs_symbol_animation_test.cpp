@@ -1326,7 +1326,7 @@ HWTEST_F(RSSymbolAnimationTest, PopNodeFromFlipListTest001, TestSize.Level1)
 
 /**
  * @tc.name: SetTextFlipAnimation001
- * @tc.desc: Test text filp animation respectively through invalid and valid parameters
+ * @tc.desc: Test text flip animation respectively through invalid and valid parameters
  * @tc.type: FUNC
  */
 HWTEST_F(RSSymbolAnimationTest, SetTextFlipAnimation001, TestSize.Level1)
@@ -1410,7 +1410,7 @@ HWTEST_F(RSSymbolAnimationTest, SetTextFlipAnimation002, TestSize.Level1)
 
 /**
  * @tc.name: SetFlipAppear001
- * @tc.desc: Test SetFlipAppear of text filp animation
+ * @tc.desc: Test SetFlipAppear of text flip animation
  * @tc.type: FUNC
  */
 HWTEST_F(RSSymbolAnimationTest, SetFlipAppear001, TestSize.Level1)
@@ -1447,7 +1447,7 @@ HWTEST_F(RSSymbolAnimationTest, SetFlipAppear001, TestSize.Level1)
 
 /**
  * @tc.name: DrawPathOnCanvas002
- * @tc.desc: Test DrawPathOnCanvas of text filp animation
+ * @tc.desc: Test DrawPathOnCanvas of text flip animation
  * @tc.type: FUNC
  */
 HWTEST_F(RSSymbolAnimationTest, DrawPathOnCanvas002, TestSize.Level1)

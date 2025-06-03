@@ -329,7 +329,7 @@ OH_Drawing_ErrorCode OH_Drawing_FontGetWidthsBounds(const OH_Drawing_Font* font,
  * @param glyphs Indicates the array of glyph indices to be measured.
  * @param count Indicates the number of glyphs.
  * @param origin Indicates the location of the first glyph.
- * @param points Indicates the relative position for each glyph returned to tha caller.
+ * @param points Indicates the relative position for each glyph returned to the caller.
  * @return Returns the error code.
  *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
  *         Returns {@link OH_DRAWING_ERROR_INVALID_PARAMETER} if any of font, glyphs and points is nullptr or
@@ -338,7 +338,7 @@ OH_Drawing_ErrorCode OH_Drawing_FontGetWidthsBounds(const OH_Drawing_Font* font,
  * @version 1.0
  */
 OH_Drawing_ErrorCode OH_Drawing_FontGetPos(const OH_Drawing_Font* font, const uint16_t* glyphs, int count,
-    const OH_Drawing_Point* origin, OH_Drawing_Point2D* bounds);
+    const OH_Drawing_Point* origin, OH_Drawing_Point2D* points);
 
 /**
  * @brief Returns the recommended spacing between lines.

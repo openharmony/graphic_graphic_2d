@@ -1340,6 +1340,26 @@ HWTEST_F(RSRenderNodeTest2, ProcessBehindWindowAfterApplyModifiersTest, TestSize
 }
 
 /**
+ * @tc.name: SetIsOnTheTree
+ * @tc.desc: SetIsOnTheTree ResetChildRelevantFlags and UpdateChildrenRect test
+ * @tc.type: FUNC
+ * @tc.require: issueI9US6V
+ */
+HWTEST_F(RSRenderNodeTest2, SetIsOnTheTree, TestSize.Level1)
+{
+    auto node = std::make_shared<RSCanvasRenderNode>(0);
+    node->isOnTheTree_ = false;
+    node->hasHdrPresent_ = true;
+    node->renderContent_->renderProperties_.hdrUIBrightness_ = 2.0f; // hdr brightness
+    node->SetIsOnTheTree(true, 0, 1, 1, 1);
+    EXPECT_EQ(node->isOnTheTree_, true);
+
+    node->hasHdrPresent_ = false;
+    node->SetIsOnTheTree(false, 0, 1, 1, 1);
+    EXPECT_EQ(node->isOnTheTree_, false);
+}
+
+/**
  * @tc.name: SetIsOnTheTreeTest
  * @tc.desc: SetIsOnTheTree ResetChildRelevantFlags and UpdateChildrenRect test
  * @tc.type: FUNC
@@ -1425,6 +1445,10 @@ HWTEST_F(RSRenderNodeTest2, SetHdrNum, TestSize.Level1)
     EXPECT_EQ(surfaceNode->hdrPhotoNum_, 1);
     node->SetHdrNum(true, 1, HDRComponentType::UICOMPONENT);
     EXPECT_EQ(surfaceNode->hdrUIComponentNum_, 1);
+    node->SetHdrNum(false, 1, HDRComponentType::IMAGE);
+    EXPECT_EQ(surfaceNode->hdrPhotoNum_, 0);
+    node->SetHdrNum(false, 1, HDRComponentType::UICOMPONENT);
+    EXPECT_EQ(surfaceNode->hdrUIComponentNum_, 0);
 }
 
 /**

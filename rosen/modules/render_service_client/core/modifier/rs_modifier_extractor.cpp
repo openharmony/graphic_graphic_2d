@@ -381,6 +381,11 @@ Vector2f RSModifierExtractor::GetAttractionDstPointValue() const
     GET_PROPERTY_FROM_MODIFIERS(Vector2f, ATTRACTION_DSTPOINT, Vector2f(0.f, 0.f), =);
 }
 
+float RSModifierExtractor::GetHDRBrightnessFactor() const
+{
+    GET_PROPERTY_FROM_MODIFIERS_EQRETURN(float, HDR_BRIGHTNESS_FACTOR, 1.0f, =);
+}
+
 float RSModifierExtractor::GetLightUpEffectDegree() const
 {
     GET_PROPERTY_FROM_MODIFIERS_EQRETURN(float, LIGHT_UP_EFFECT, 0.f, =);

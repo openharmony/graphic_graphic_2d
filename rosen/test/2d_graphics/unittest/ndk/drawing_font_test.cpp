@@ -667,10 +667,10 @@ HWTEST_F(NativeFontTest, NativeFontTest_FontGetBounds001, TestSize.Level1)
         OH_Drawing_Rect* iter = nullptr;
         EXPECT_EQ(OH_Drawing_RectGetArrayElement(outRectarr, i, &iter), OH_DRAWING_SUCCESS);
         ASSERT_NE(iter, nullptr);
-        EXPECT_EQ((int)OH_Drawing_RectGetWidth(iter), arr[i][0]);
-        EXPECT_EQ((int)OH_Drawing_RectGetHeight(iter), arr[i][1]);
-        EXPECT_EQ((int)OH_Drawing_RectGetTop(iter), arr[i][2]);
-        EXPECT_EQ((int)OH_Drawing_RectGetLeft(iter), arr[i][3]);
+        EXPECT_EQ(static_cast<int>(OH_Drawing_RectGetWidth(iter)), arr[i][0]);
+        EXPECT_EQ(static_cast<int>(OH_Drawing_RectGetHeight(iter)), arr[i][1]);
+        EXPECT_EQ(static_cast<int>(OH_Drawing_RectGetTop(iter)), arr[i][2]);
+        EXPECT_EQ(static_cast<int>(OH_Drawing_RectGetLeft(iter)), arr[i][3]);
         EXPECT_EQ(OH_Drawing_RectGetBottom(iter) - OH_Drawing_RectGetTop(iter), OH_Drawing_RectGetHeight(iter));
         EXPECT_EQ(OH_Drawing_RectGetRight(iter) - OH_Drawing_RectGetLeft(iter), OH_Drawing_RectGetWidth(iter));
     }
@@ -954,23 +954,37 @@ HWTEST_F(NativeFontTest, NativeFontTest_FontMeasureTextWithBrushOrPen001, TestSi
         TEXT_ENCODING_UTF8, brush, nullptr, nullptr, &textWidth), OH_DRAWING_ERROR_INVALID_PARAMETER);
     EXPECT_EQ(OH_Drawing_FontMeasureTextWithBrushOrPen(nullptr, text, strlen(text),
         TEXT_ENCODING_UTF8, brush, pen, nullptr, &textWidth), OH_DRAWING_ERROR_INVALID_PARAMETER);
-
     OH_Drawing_ErrorCode errorCode = OH_Drawing_FontMeasureTextWithBrushOrPen(font, text, strlen(text),
+        static_cast<OH_Drawing_TextEncoding>(10), nullptr, nullptr, nullptr, &textWidth);
+    EXPECT_EQ(errorCode, OH_DRAWING_SUCCESS);
+    EXPECT_EQ(static_cast<int>(textWidth), 0);
+
+    errorCode = OH_Drawing_FontMeasureTextWithBrushOrPen(font, text, strlen(text),
         TEXT_ENCODING_UTF8, nullptr, nullptr, nullptr, &textWidth);
     EXPECT_EQ(errorCode, OH_DRAWING_SUCCESS);
-    EXPECT_EQ((int)textWidth, 200);
+    EXPECT_EQ(static_cast<int>(textWidth), 200);
 
     const char* text1 = "hello world";
     errorCode = OH_Drawing_FontMeasureTextWithBrushOrPen(font, text1, strlen(text),
         TEXT_ENCODING_UTF8, brush, nullptr, nullptr, &textWidth);
     EXPECT_EQ(errorCode, OH_DRAWING_SUCCESS);
-    EXPECT_EQ((int)textWidth, 304);
+    EXPECT_EQ(static_cast<int>(textWidth), 304);
+
+    OH_Drawing_Rect* bounds = OH_Drawing_RectCreate(0, 0, 200, 200);
+    errorCode = OH_Drawing_FontMeasureTextWithBrushOrPen(font, text1, strlen(text),
+        TEXT_ENCODING_UTF8, brush, nullptr, bounds, &textWidth);
+    EXPECT_EQ(errorCode, OH_DRAWING_SUCCESS);
+    EXPECT_EQ(static_cast<int>(textWidth), 304);
+    EXPECT_EQ(static_cast<int>(OH_Drawing_RectGetLeft(bounds)), 3);
+    EXPECT_EQ(static_cast<int>(OH_Drawing_RectGetRight(bounds)), 251);
+    EXPECT_EQ(static_cast<int>(OH_Drawing_RectGetRight(bounds)), 251);
+    EXPECT_EQ(static_cast<int>(OH_Drawing_RectGetBottom(bounds)), 1);
 
     const char* text2 = "1234567890 !@#$%^&*(";
     errorCode = OH_Drawing_FontMeasureTextWithBrushOrPen(font, text2, strlen(text2),
         TEXT_ENCODING_UTF8, nullptr, pen, nullptr, &textWidth);
     EXPECT_EQ(errorCode, OH_DRAWING_SUCCESS);
-    EXPECT_EQ((int)textWidth, 555);
+    EXPECT_EQ(static_cast<int>(textWidth), 555);
     OH_Drawing_BrushDestroy(brush);
     OH_Drawing_PenDestroy(pen);
     OH_Drawing_FontDestroy(font);
@@ -982,7 +996,7 @@ HWTEST_F(NativeFontTest, NativeFontTest_FontMeasureTextWithBrushOrPen001, TestSi
  * @tc.type: FUNC
  * @tc.require: AR20250515745872
  */
-HWTEST_F(NativeFontTest, OH_Drawing_FontGetWidthsBounds001, TestSize.Level1)
+HWTEST_F(NativeFontTest, NativeFontTest_OH_Drawing_FontGetWidthsBounds001, TestSize.Level1)
 {
     OH_Drawing_Font *font = OH_Drawing_FontCreate();
     OH_Drawing_FontSetTextSize(font, 50);
@@ -1013,7 +1027,7 @@ HWTEST_F(NativeFontTest, OH_Drawing_FontGetWidthsBounds001, TestSize.Level1)
         font, glyphs, glyphsCount, brush, nullptr, widths, nullptr);
     EXPECT_EQ(errorCode, OH_DRAWING_SUCCESS);
     for (int i = 0; i < count; i++) {
-        EXPECT_EQ((int)widths[i], widthArr[i]);
+        EXPECT_EQ(static_cast<int>(widths[i]), widthArr[i]);
     }
 
     errorCode = OH_Drawing_FontGetWidthsBounds(
@@ -1025,10 +1039,10 @@ HWTEST_F(NativeFontTest, OH_Drawing_FontGetWidthsBounds001, TestSize.Level1)
         OH_Drawing_Rect* iter = nullptr;
         EXPECT_EQ(OH_Drawing_RectGetArrayElement(outRectarr, i, &iter), OH_DRAWING_SUCCESS);
         ASSERT_NE(iter, nullptr);
-        EXPECT_EQ((int)OH_Drawing_RectGetLeft(iter), arr[i][0]);
-        EXPECT_EQ((int)OH_Drawing_RectGetTop(iter), arr[i][1]);
-        EXPECT_EQ((int)OH_Drawing_RectGetRight(iter), arr[i][2]);
-        EXPECT_EQ((int)OH_Drawing_RectGetBottom(iter), arr[i][3]);
+        EXPECT_EQ(static_cast<int>(OH_Drawing_RectGetLeft(iter)), arr[i][0]);
+        EXPECT_EQ(static_cast<int>(OH_Drawing_RectGetTop(iter)), arr[i][1]);
+        EXPECT_EQ(static_cast<int>(OH_Drawing_RectGetRight(iter)), arr[i][2]);
+        EXPECT_EQ(static_cast<int>(OH_Drawing_RectGetBottom(iter)), arr[i][3]);
         EXPECT_EQ(OH_Drawing_RectGetBottom(iter) - OH_Drawing_RectGetTop(iter), OH_Drawing_RectGetHeight(iter));
         EXPECT_EQ(OH_Drawing_RectGetRight(iter) - OH_Drawing_RectGetLeft(iter), OH_Drawing_RectGetWidth(iter));
     }
@@ -1043,7 +1057,7 @@ HWTEST_F(NativeFontTest, OH_Drawing_FontGetWidthsBounds001, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: AR20250515745872
  */
-HWTEST_F(NativeFontTest, OH_Drawing_FontGetPos001, TestSize.Level1)
+HWTEST_F(NativeFontTest, NativeFontTest_OH_Drawing_FontGetPos001, TestSize.Level1)
 {
     OH_Drawing_Font *font = OH_Drawing_FontCreate();
     OH_Drawing_FontSetTextSize(font, 50);
@@ -1067,8 +1081,8 @@ HWTEST_F(NativeFontTest, OH_Drawing_FontGetPos001, TestSize.Level1)
     OH_Drawing_ErrorCode errorCode = OH_Drawing_FontGetPos(font, glyphs, glyphsCount, point, points);
     EXPECT_EQ(errorCode, OH_DRAWING_SUCCESS);
     for (int i = 0; i < count; i++) {
-        EXPECT_EQ((int)points[i].x, testPoints[i][0]);
-        EXPECT_EQ((int)points[i].y, testPoints[i][1]);
+        EXPECT_EQ(static_cast<int>(points[i].x), testPoints[i][0]);
+        EXPECT_EQ(static_cast<int>(points[i].y), testPoints[i][1]);
     }
     OH_Drawing_PointDestroy(point);
     if (points != nullptr) {
@@ -1083,7 +1097,7 @@ HWTEST_F(NativeFontTest, OH_Drawing_FontGetPos001, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: AR20250515745872
  */
-HWTEST_F(NativeFontTest, OH_Drawing_FontGetSpacing001, TestSize.Level1)
+HWTEST_F(NativeFontTest, NativeFontTest_OH_Drawing_FontGetSpacing001, TestSize.Level1)
 {
     OH_Drawing_Font *font = OH_Drawing_FontCreate();
     OH_Drawing_FontSetTextSize(font, 30);

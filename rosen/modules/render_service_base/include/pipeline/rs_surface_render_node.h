@@ -45,6 +45,7 @@
 #ifndef ROSEN_CROSS_PLATFORM
 #include "surface_buffer.h"
 #include "sync_fence.h"
+#include "params/rs_surface_render_params.h"
 #endif
 #include "ipc_security/rs_ipc_interface_code_access_verifier_base.h"
 #ifdef ENABLE_FULL_SCREEN_RECONGNIZE
@@ -394,6 +395,9 @@ public:
 
     bool IsHardwareForcedDisabled() const
     {
+        if (GetTunnelLayerId()) {
+            return false;
+        }
         // a protected node not on the tree need to release buffer when producer produce buffers
         // release buffer in ReleaseSelfDrawingNodeBuffer function
         if ((specialLayerManager_.Find(SpecialLayerType::PROTECTED) || isHardwareEnableHint_) && IsOnTheTree()) {
@@ -667,11 +671,22 @@ public:
     void SetForceUIFirstChanged(bool forceUIFirstChanged);
     bool GetForceUIFirstChanged();
 
+    // Unified DSS synthesis switch for Anco nodes
     static void SetAncoForceDoDirect(bool direct);
+    // Obtain whether the Anco node is using the DSS synthesis flag
     static bool GetOriAncoForceDoDirect();
+    // Whether to use DSS synthesis to obtain anco nodes. only anco node can be true.
     bool GetAncoForceDoDirect() const;
+    // Used to distinguish whether this node is an Anco node
     void SetAncoFlags(uint32_t flags);
+    // Determine whether it is an Anco node
     uint32_t GetAncoFlags() const;
+    // Set the buffer srcRect of the anco node. Only used on anco nodes.
+    void SetAncoSrcCrop(const Rect& srcCrop);
+#ifndef ROSEN_CROSS_PLATFORM
+    // When updating the hwcLayer information of anco node, SrcCrop takes effect.
+    void UpdateLayerSrcRectForAnco(RSLayerInfo& layer, const RSSurfaceRenderParams& surfaceParams);
+#endif
 
     void SetHDRPresent(bool hasHdrPresent);
     bool GetHDRPresent() const;
@@ -1281,6 +1296,16 @@ public:
         return surfaceId_;
     }
 
+    void SetTunnelLayerId(SurfaceId tunnelLayerId)
+    {
+        tunnelLayerId_ = tunnelLayerId;
+    }
+
+    SurfaceId GetTunnelLayerId() const
+    {
+        return tunnelLayerId_;
+    }
+
     bool GetIsForeground() const
     {
         return isForeground_;
@@ -1749,6 +1774,7 @@ private:
     Drawing::GPUContext* grContext_ = nullptr;
     ScreenId screenId_ = INVALID_SCREEN_ID;
     SurfaceId surfaceId_ = 0;
+    SurfaceId tunnelLayerId_ = 0;
     uint64_t leashPersistentId_ = INVALID_LEASH_PERSISTENTID;
     size_t dirtyContentNodeNum_ = 0;
     size_t dirtyGeoNodeNum_ = 0;

@@ -21,6 +21,7 @@
 #include "txt/platform.h"
 #include "text/typeface.h"
 #include "utils/text_log.h"
+#include "utils/text_trace.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -107,6 +108,7 @@ RegisterError FontCollection::RegisterTypeface(const TypefaceWithAlias& ta)
 std::shared_ptr<Drawing::Typeface> FontCollection::LoadFont(
     const std::string& familyName, const uint8_t* data, size_t datalen)
 {
+    TEXT_TRACE_FUNC();
     std::shared_ptr<Drawing::Typeface> typeface(dfmanager_->LoadDynamicFont(familyName, data, datalen));
     TypefaceWithAlias ta(familyName, typeface);
     RegisterError err = RegisterTypeface(ta);
@@ -122,6 +124,7 @@ std::shared_ptr<Drawing::Typeface> FontCollection::LoadFont(
 
 LoadSymbolErrorCode FontCollection::LoadSymbolFont(const std::string& familyName, const uint8_t* data, size_t datalen)
 {
+    TEXT_TRACE_FUNC();
     std::shared_ptr<Drawing::Typeface> typeface(dfmanager_->LoadDynamicFont(familyName, data, datalen));
     if (typeface == nullptr) {
         return LoadSymbolErrorCode::LOAD_FAILED;
@@ -137,6 +140,7 @@ LoadSymbolErrorCode FontCollection::LoadSymbolFont(const std::string& familyName
 
 LoadSymbolErrorCode FontCollection::LoadSymbolJson(const std::string& familyName, const uint8_t* data, size_t datalen)
 {
+    TEXT_TRACE_FUNC();
     return CustomSymbolConfig::GetInstance()->ParseConfig(familyName, data, datalen);
 }
 
@@ -153,6 +157,7 @@ static std::shared_ptr<Drawing::Typeface> CreateTypeface(const uint8_t *data, si
 std::shared_ptr<Drawing::Typeface> FontCollection::LoadThemeFont(
     const std::string& familyName, const uint8_t* data, size_t datalen)
 {
+    TEXT_TRACE_FUNC();
     auto res = LoadThemeFont(familyName, { { data, datalen } });
     return res.empty() ? nullptr : res[0];
 }

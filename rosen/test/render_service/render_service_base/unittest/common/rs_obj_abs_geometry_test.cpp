@@ -1107,4 +1107,33 @@ HWTEST_F(RSObjAbsGeometryTest, MapRectWithoutRounding003, TestSize.Level1)
     EXPECT_TRUE(dstRect.GetRight() == expectDstRectRight);
     EXPECT_TRUE(dstRect.GetBottom() == expectDstRectBottom);
 }
+
+/**
+ * @tc.name: MapRegion001
+ * @tc.desc: Verify function MapRegion, expecting behavior: map with inflate.
+ * @tc.type: FUNC
+ * @tc.require: issuesICA3L1
+ */
+HWTEST_F(RSObjAbsGeometryTest, MapRegion001, TestSize.Level1)
+{
+    constexpr float scaleX = 0.125f;
+    constexpr float scaleY = 0.5f;
+    Drawing::Matrix matrix;
+    matrix.Set(Drawing::Matrix::SCALE_X, scaleX);
+    matrix.Set(Drawing::Matrix::SCALE_Y, scaleY);
+
+    const RectI srcRect1 = { 0, 0, 100, 200 };
+    const RectI srcRect2 = { 100, 200, 100, 100 };
+    const RectI expectRect1 = RSObjAbsGeometry::MapRect(srcRect1.ConvertTo<float>(), matrix);
+    const RectI expectRect2 = RSObjAbsGeometry::MapRect(srcRect2.ConvertTo<float>(), matrix);
+
+    Occlusion::Region srcRegion;
+    srcRegion.OrSelf(Occlusion::Region(Occlusion::Rect(srcRect1)));
+    srcRegion.OrSelf(Occlusion::Region(Occlusion::Rect(srcRect2)));
+
+    Occlusion::Region dstRegion = RSObjAbsGeometry::MapRegion(srcRegion, matrix);
+    for (auto rect : dstRegion.GetRegionRectIs()) {
+        EXPECT_TRUE(rect == expectRect1 || rect == expectRect2);
+    }
+}
 } // namespace OHOS::Rosen
