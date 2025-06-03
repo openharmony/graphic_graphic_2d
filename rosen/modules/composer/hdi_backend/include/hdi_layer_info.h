@@ -650,6 +650,7 @@ public:
     {
         nodeId_ = nodeId;
     }
+
     enum class AncoFlags : uint32_t {
         IS_ANCO_NODE = 0x0001,
         ANCO_SFV_NODE = 0x0011,
