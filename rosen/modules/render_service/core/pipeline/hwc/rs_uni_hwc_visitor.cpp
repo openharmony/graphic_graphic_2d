@@ -771,8 +771,8 @@ void RSUniHwcVisitor::UpdateHardwareStateByHwcNodeBackgroundAlpha(
             RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " parentId:%" PRIu64 " disabled by "
                 "cannot cover above transparent hwc node", hwcNodePtr->GetName().c_str(),
                 hwcNodePtr->GetId(), parentNode ? parentNode->GetId() : 0);
-            Statistics().UpdateHwcDisabledReasonForDFX(node->GetId(),
-                HwcDisabledReasons::DISABLED_BY_HWC_NODE_ABOVE, node->GetName());
+            Statistics().UpdateHwcDisabledReasonForDFX(hwcNodePtr->GetId(),
+                HwcDisabledReasons::DISABLED_BY_HWC_NODE_ABOVE, hwcNodePtr->GetName());
             continue;
         }
 
@@ -789,8 +789,8 @@ void RSUniHwcVisitor::UpdateHardwareStateByHwcNodeBackgroundAlpha(
             RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " parentId:%" PRIu64 " disabled by "
                 "hwc node backgound alpha", hwcNodePtr->GetName().c_str(), hwcNodePtr->GetId(),
                 parentNode ? parentNode->GetId() : 0);
-            Statistics().UpdateHwcDisabledReasonForDFX(node->GetId(),
-                HwcDisabledReasons::DISABLED_BY_BACKGROUND_ALPHA, node->GetName());
+            Statistics().UpdateHwcDisabledReasonForDFX(hwcNodePtr->GetId(),
+                HwcDisabledReasons::DISABLED_BY_BACKGROUND_ALPHA, hwcNodePtr->GetName());
         }
     }
 }
