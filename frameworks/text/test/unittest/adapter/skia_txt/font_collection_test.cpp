@@ -55,6 +55,7 @@ void OH_Drawing_FontCollectionTest::SetUp()
     FontCollection::RegisterUnloadFontStartCallback(callback);
     FontCollection::RegisterLoadFontFinishCallback(callback);
     FontCollection::RegisterUnloadFontFinishCallback(callback);
+    FontCollection::RegisterLoadFontStartCallback(nullptr);
     fontCollection_ = OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
     ASSERT_NE(fontCollection_, nullptr);
     fontMgr_ = fontCollection_->GetFontMgr();
@@ -449,9 +450,13 @@ HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest012, TestSi
  */
 HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest013, TestSize.Level1)
 {
+    EXPECT_EQ(fontCollection_->LoadFont("", nullptr, 0), nullptr);
     EXPECT_FALSE(fontCollection_->UnloadFont(""));
     EXPECT_TRUE(fontCollection_->UnloadFont("Noto Sans"));
     EXPECT_TRUE(fontCollection_->UnloadFont("Noto Sans Mono"));
+    OHOS::Rosen::Drawing::Typeface::UnRegisterCallBackFunc(nullptr);
+    EXPECT_FALSE(fontCollection_->UnloadFont(""));
+    EXPECT_TRUE(fontCollection_->UnloadFont("Noto Sans"));
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -242,11 +242,9 @@ bool FontCollection::UnloadFont(const std::string& familyName)
             dfmanager_->LoadDynamicFont(familyName, nullptr, 0);
             FontDescriptorMgrInstance.DeleteDynamicTypefaceFromCache(familyName);
             ClearCaches();
+            Drawing::Typeface::GetTypefaceUnRegisterCallBack()(it->GetTypeface());
             familyNames_.erase(it->GetHash());
             typefaceSet_.erase(it++);
-            if (!Drawing::Typeface::GetTypefaceUnRegisterCallBack()(it->GetTypeface())) {
-                TEXT_LOGE("Failed to unload font in rs: %{public}s", familyName.c_str());
-            }
         } else {
             ++it;
         }
