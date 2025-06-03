@@ -142,11 +142,7 @@ Typeface* SkiaFontMgr::LoadDynamicFont(const std::string& familyName, const uint
         return nullptr;
     }
     auto stream = std::make_unique<SkMemoryStream>(data, dataLength, true);
-#ifdef USE_M133_SKIA
-    auto typeface = skFontMgr_->makeFromStream(std::move(stream));
-#else
     auto typeface = SkTypeface::MakeFromStream(std::move(stream));
-#endif
     if (!CheckDynamicFontValid(familyName, typeface)) {
         return nullptr;
     }
@@ -155,9 +151,7 @@ Typeface* SkiaFontMgr::LoadDynamicFont(const std::string& familyName, const uint
     } else {
         dynamicFontMgr->font_provider().RegisterTypeface(typeface, familyName);
     }
-#ifndef USE_M133_SKIA
     typeface->setIsCustomTypeface(true);
-#endif
     std::shared_ptr<TypefaceImpl> typefaceImpl = std::make_shared<SkiaTypeface>(typeface);
     return new Typeface(typefaceImpl);
 }
