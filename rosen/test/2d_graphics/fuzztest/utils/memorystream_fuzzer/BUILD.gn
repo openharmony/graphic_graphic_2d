@@ -42,6 +42,7 @@ ohos_fuzztest("MemoryStreamFuzzTest") {
   ]
 
   deps = [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics" ]
+  external_deps = [ "bounds_checking_function:libsec_shared" ]
 
   part_name = "graphic_2d"
   subsystem_name = "graphic"

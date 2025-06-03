@@ -198,6 +198,11 @@ public:
         needSkipShadow_ = needSkipShadow;
     }
 
+    void SetHDRBrightnessFactor(float factor);
+    float GetHDRBrightnessFactor() const;
+    void SetCanvasNodeHDRBrightnessFactor(float factor);
+    float GetCanvasNodeHDRBrightnessFactor() const;
+
     // particle properties
     void SetParticles(const RSRenderParticleVector& particles);
     const RSRenderParticleVector& GetParticles() const;
@@ -587,7 +592,7 @@ public:
     int GetColorBlendApplyType() const;
     bool IsColorBlendApplyTypeOffscreen() const;
 
-#if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+#if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     const std::unique_ptr<RSFilterCacheManager>& GetFilterCacheManager(bool isForeground) const;
     void ClearFilterCache();
 #endif
@@ -691,6 +696,8 @@ private:
     bool fgBlurDisableSystemAdaptation = true;
     bool alwaysSnapshot_ = false;
     bool localMagnificationCap_ = false;
+    float hdrBrightnessFactor_ = 1.0f; // for displayNode
+    float canvasNodeHDRBrightnessFactor_ = 1.0f; // for canvasNode
     float frameOffsetX_ = 0.f;
     float frameOffsetY_ = 0.f;
     float alpha_ = 1.f;
@@ -793,7 +800,7 @@ private:
     Drawing::Matrix prevAbsMatrix_;
     RSRenderParticleVector particles_;
 
-#if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+#if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     void CreateFilterCacheManagerIfNeed();
     std::unique_ptr<RSFilterCacheManager> backgroundFilterCacheManager_;
     std::unique_ptr<RSFilterCacheManager> foregroundFilterCacheManager_;

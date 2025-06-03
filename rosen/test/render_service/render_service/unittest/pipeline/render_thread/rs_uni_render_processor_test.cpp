@@ -576,4 +576,37 @@ HWTEST(RSUniRenderProcessorTest, GetLayerInfo001, TestSize.Level1)
     LayerInfoPtr result = renderProcessor->GetLayerInfo(params, buffer, preBuffer, consumer, acquireFence);
     EXPECT_EQ(result->GetType(), GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL);
 }
+
+/**
+ * @tc.name: CreateLayer_Anco
+ * @tc.desc: Test RSUniRenderProcessorTest.CreateLayerForRenderThread for anco
+ * @tc.type:FUNC
+ * @tc.require: issueICA0I8
+ */
+HWTEST(RSUniRenderProcessorTest, CreateLayer_Anco, TestSize.Level1)
+{
+    if (RSUniRenderJudgement::IsUniRender()) {
+        auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
+        ASSERT_NE(renderProcessor, nullptr);
+        auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+        ASSERT_NE(surfaceNode, nullptr);
+        ASSERT_NE(surfaceNode->surfaceHandler_, nullptr);
+        ASSERT_NE(surfaceNode->surfaceHandler_->GetConsumer(), nullptr);
+        auto buffer = surfaceNode->surfaceHandler_->GetBuffer();
+        ASSERT_NE(buffer, nullptr);
+        buffer->SetSurfaceBufferWidth(100);
+        buffer->SetSurfaceBufferHeight(100);
+        RSSurfaceRenderParams params(surfaceNode->GetId());
+        renderProcessor->CreateLayer(*surfaceNode, params);
+
+        auto drawable = std::make_shared<DrawableV2::RSSurfaceRenderNodeDrawable>(surfaceNode);
+        ASSERT_NE(drawable, nullptr);
+        ASSERT_EQ(drawable->renderParams_, nullptr);
+        drawable->renderParams_ = std::make_unique<RSSurfaceRenderParams>(surfaceNode->GetId() + 1);
+        auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable->renderParams_.get());
+        ASSERT_NE(surfaceParams, nullptr);
+        surfaceParams->buffer_ = buffer;
+        renderProcessor->CreateLayerForRenderThread(*drawable);
+    }
+}
 }

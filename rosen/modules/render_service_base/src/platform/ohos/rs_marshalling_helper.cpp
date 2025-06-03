@@ -2335,7 +2335,7 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Draw
 {
     if (++recordCmdDepth > Drawing::RECORD_CMD_MAX_DEPTH) {
         ROSEN_LOGE("RSMarshallingHelper::Marshalling RecordCmd failed, "
-            "exceed max depth, cur depth[%{public}u]", recordCmdDepth);
+            "exceed max depth, cur depth[%{public}d]", recordCmdDepth);
         return false;
     }
     if (!val) {
@@ -2357,7 +2357,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
 {
     if (++recordCmdDepth > Drawing::RECORD_CMD_MAX_DEPTH) {
         ROSEN_LOGE("RSMarshallingHelper::Unmarshalling RecordCmd failed, "
-            "exceed max depth, cur depth[%{public}u]", recordCmdDepth);
+            "exceed max depth, cur depth[%{public}d]", recordCmdDepth);
         return false;
     }
 

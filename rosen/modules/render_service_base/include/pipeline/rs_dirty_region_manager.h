@@ -20,6 +20,7 @@
 
 #include "common/rs_macros.h"
 #include "common/rs_rect.h"
+#include "dirty_region/rs_filter_dirty_collector.h"
 #include "platform/common/rs_system_properties.h"
 
 namespace OHOS {
@@ -258,6 +259,11 @@ public:
         advancedDirtyRegionType_ = advancedDirtyRegionType;
     }
 
+    RSFilterDirtyCollector& GetFilterCollector()
+    {
+        return filterCollector_;
+    }
+
     void SetPartialRenderEnabled(bool isPartialRenderEnabled)
     {
         isEnabledChanged_ = (isPartialRenderEnabled_ != isPartialRenderEnabled);
@@ -328,6 +334,8 @@ private:
     std::vector<std::map<NodeId, RectI>> dirtySurfaceNodeInfo_;
     std::vector<bool> debugRegionEnabled_;
     std::vector<RectI> dirtyHistory_;
+
+    RSFilterDirtyCollector filterCollector_;
 };
 } // namespace Rosen
 } // namespace OHOS

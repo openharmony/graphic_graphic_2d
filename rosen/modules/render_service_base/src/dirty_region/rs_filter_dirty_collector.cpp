@@ -12,34 +12,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef UIEFFECT_EFFECT_HDR_UI_BRIGHTNESS_PARA_H
-#define UIEFFECT_EFFECT_HDR_UI_BRIGHTNESS_PARA_H
 
-#include "visual_effect_para.h"
+#include "dirty_region/rs_filter_dirty_collector.h"
 
 namespace OHOS {
 namespace Rosen {
-class HDRUIBrightnessPara : public VisualEffectPara {
-public:
-    HDRUIBrightnessPara()
-    {
-        this->type_ = VisualEffectPara::ParaType::HDR_UI_BRIGHTNESS;
-    }
-    ~HDRUIBrightnessPara() override = default;
+void RSFilterDirtyCollector::CollectFilterDirtyRegionInfo(const FilterDirtyRegionInfo& filterInfo, bool syncToRT)
+{
+    auto& list = syncToRT ? pureCleanFilters_ : filtersWithBelowDirty_;
+    list.emplace_back(filterInfo);
+}
 
-    void SetHDRUIBrightness(float hdrUIBrightness)
-    {
-        hdrUIBrightness_ = hdrUIBrightness;
-    }
+FilterDirtyRegionInfoList& RSFilterDirtyCollector::GetFilterDirtyRegionInfoList(bool syncToRT)
+{
+    return syncToRT ? pureCleanFilters_ : filtersWithBelowDirty_;
+}
 
-    float GetHDRUIBrightness() const
-    {
-        return hdrUIBrightness_;
-    }
+void RSFilterDirtyCollector::OnSync(RSFilterDirtyCollector& target) const
+{
+    target.pureCleanFilters_ = pureCleanFilters_;
+}
 
-private:
-    float hdrUIBrightness_ = 1.0f;
-};
+void RSFilterDirtyCollector::Clear()
+{
+    filtersWithBelowDirty_.clear();
+    pureCleanFilters_.clear();
+}
 } // namespace Rosen
 } // namespace OHOS
-#endif // UIEFFECT_EFFECT_HDR_UI_BRIGHTNESS_PARA_H

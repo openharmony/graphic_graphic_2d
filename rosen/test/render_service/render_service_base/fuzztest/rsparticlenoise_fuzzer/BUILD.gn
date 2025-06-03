@@ -43,6 +43,7 @@ ohos_fuzztest("RSParticleNoiseFuzzTest") {
   ]
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "hilog:libhilog",
   ]
   sources = [ "rsparticlenoise_fuzzer.cpp" ]

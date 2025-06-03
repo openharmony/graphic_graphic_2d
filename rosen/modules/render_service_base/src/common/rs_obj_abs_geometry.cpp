@@ -407,6 +407,21 @@ RectI RSObjAbsGeometry::MapRect(const RectF& rect, const Drawing::Matrix& matrix
 }
 
 /**
+ * Map a set of rectangles (i.e. region) with specific matrix.
+ * @param region: the region to map
+ * @return the mapped region
+ */
+Occlusion::Region RSObjAbsGeometry::MapRegion(const Occlusion::Region& region, const Drawing::Matrix& matrix)
+{
+    std::vector<RectI> regionRects = region.GetRegionRectIs();
+    Occlusion::Region mappedRegion;
+    for (const auto& rect : regionRects) {
+        mappedRegion.OrSelf(Occlusion::Region{ Occlusion::Rect { MapRect(rect.ConvertTo<float>(), matrix) } });
+    }
+    return mappedRegion;
+}
+
+/**
  * Map the absolute rectangle
  * @param rect the rectangle to map
  * @return the mapped absolute rectangle
@@ -414,6 +429,16 @@ RectI RSObjAbsGeometry::MapRect(const RectF& rect, const Drawing::Matrix& matrix
 RectI RSObjAbsGeometry::MapAbsRect(const RectF& rect) const
 {
     return MapRect(rect, GetAbsMatrix());
+}
+
+/**
+ * Map a set of rectangles (i.e. region) to the absolute coordinates.
+ * @param region: the region to map
+ * @return the mapped absolute region
+ */
+Occlusion::Region RSObjAbsGeometry::MapAbsRegion(const Occlusion::Region& region) const
+{
+    return MapRegion(region, GetAbsMatrix());
 }
 
 Vector2f RSObjAbsGeometry::GetDataRange(float d0, float d1, float d2, float d3)

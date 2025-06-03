@@ -462,6 +462,13 @@ public:
     float GetHDRUIBrightness() const;
 
     /**
+     * @brief Gets the HDR brightness factor of displayNode.
+     *
+     * @return The HDR brightness factor of displayNode.
+     */
+    float GetHDRBrightnessFactor() const;
+
+    /**
      * @brief Gets the degree of light up effect.
      *
      * @return The light up effect degree.

@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 #include "gtest/gtest.h"
+#include "gmock/gmock.h"
 
 #include "drawable/rs_display_render_node_drawable.h"
 #include "drawable/rs_surface_render_node_drawable.h"
@@ -20,6 +21,7 @@
 #include "params/rs_surface_render_params.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
+#include "pipeline/rs_effect_render_node.h"
 #include "pipeline/rs_test_util.h"
 
 using namespace testing;
@@ -33,9 +35,8 @@ public:
     static void TearDownTestCase();
     void SetUp() override;
     void TearDown() override;
-    static inline Occlusion::Rect DEFAULT_RECT1 {0, 0, 500, 500};
-    static inline Occlusion::Rect DEFAULT_RECT2 {500, 500, 1000, 1000};
-    static inline Occlusion::Rect DEFAULT_RECT3 {1, 1, 501, 501};
+    static inline RectI DEFAULT_RECT1 {0, 0, 500, 500};
+    static inline RectI DEFAULT_RECT2 {500, 500, 1000, 1000};
 };
 
 RSDisplayRenderNodeDrawable* GenerateDisplayDrawableById(NodeId id, RSDisplayNodeConfig config)
@@ -58,6 +59,17 @@ void RSUniDirtyComputeUtilTest::SetUpTestCase()
 void RSUniDirtyComputeUtilTest::TearDownTestCase() {}
 void RSUniDirtyComputeUtilTest::SetUp() {}
 void RSUniDirtyComputeUtilTest::TearDown() {}
+
+class MockRSSurfaceRenderNode : public RSSurfaceRenderNode {
+public:
+    explicit MockRSSurfaceRenderNode(NodeId id,
+        const std::weak_ptr<RSContext>& context = {}, bool isTextureExportNode = false)
+        : RSSurfaceRenderNode(id, context, isTextureExportNode) {}
+    ~MockRSSurfaceRenderNode() override {}
+    MOCK_CONST_METHOD0(NeedDrawBehindWindow, bool());
+    MOCK_CONST_METHOD0(GetFilterRect, RectI());
+    MOCK_CONST_METHOD0(GetOldDirtyInSurface, RectI());
+};
 
 /**
  * @tc.name: GetCurrentFrameVisibleDirty001
@@ -141,5 +153,56 @@ HWTEST_F(RSUniDirtyComputeUtilTest, IntersectRect, TestSize.Level2)
     result = RSUniDirtyComputeUtil::IntersectRect(srcRect, rect);
     expect = { 500, 500, 580, 1420 };
     ASSERT_EQ(result, expect);
+}
+
+/**
+ * @tc.name: GetCurrentFrameVisibleDirty001
+ * @tc.desc: test GenerateFilterDirtyRegionInfo, for effect node, filterRegion and DirtyRegion differs.
+ * @tc.type: FUNC
+ * @tc.require: #issuesICA3L1
+ */
+HWTEST_F(RSUniDirtyComputeUtilTest, GenerateFilterDirtyRegionInfo_001, TestSize.Level1)
+{
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    ASSERT_NE(context, nullptr);
+    auto& nodeMap = context->GetMutableNodeMap();
+
+    NodeId id = 1;
+    auto effectNode = std::make_shared<RSEffectRenderNode>(id, context->weak_from_this());
+    ASSERT_NE(effectNode, nullptr);
+    effectNode->childHasVisibleEffect_ = true;
+    effectNode->GetMutableRenderProperties().boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
+    effectNode->GetMutableRenderProperties().boundsGeo_->absRect_ = DEFAULT_RECT1;  // mock filter rect.
+
+    auto subNode = std::make_shared<RSBaseRenderNode>(++id, context->weak_from_this());
+    ASSERT_NE(subNode, nullptr);
+    subNode->oldDirtyInSurface_ = DEFAULT_RECT2;  // mock child effect rect.
+    effectNode->visibleEffectChild_.emplace(subNode->GetId());
+    nodeMap.RegisterRenderNode(subNode);
+
+    FilterDirtyRegionInfo filterInfo =
+        RSUniFilterDirtyComputeUtil::GenerateFilterDirtyRegionInfo(*effectNode, std::nullopt);
+    ASSERT_TRUE(filterInfo.intersectRegion_.Sub(Occlusion::Region(Occlusion::Rect(DEFAULT_RECT2))).IsEmpty());
+    ASSERT_FALSE(filterInfo.filterDirty_.Sub(filterInfo.intersectRegion_).IsEmpty());
+}
+
+/**
+ * @tc.name: GenerateFilterDirtyRegionInfo_002
+ * @tc.desc: test GenerateFilterDirtyRegionInfo, for surface node with side bar, filterRegion and DirtyRegion differs.
+ * @tc.type: FUNC
+ * @tc.require: #issuesICA3L1
+ */
+HWTEST_F(RSUniDirtyComputeUtilTest, GenerateFilterDirtyRegionInfo_002, TestSize.Level1)
+{
+    NodeId id = 1;
+    auto testNode = std::make_shared<MockRSSurfaceRenderNode>(id);
+    ASSERT_NE(testNode, nullptr);
+    EXPECT_CALL(*testNode, GetOldDirtyInSurface()).WillRepeatedly(testing::Return(DEFAULT_RECT1));
+    EXPECT_CALL(*testNode, NeedDrawBehindWindow()).WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(*testNode, GetFilterRect()).WillRepeatedly(testing::Return(DEFAULT_RECT2));
+
+    FilterDirtyRegionInfo filterInfo =
+        RSUniFilterDirtyComputeUtil::GenerateFilterDirtyRegionInfo(*testNode, std::nullopt);
+    ASSERT_FALSE(filterInfo.filterDirty_.Sub(Occlusion::Region(Occlusion::Rect(DEFAULT_RECT1))).IsEmpty());
 }
 } // namespace OHOS::Rosen

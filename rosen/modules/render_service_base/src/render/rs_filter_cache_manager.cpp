@@ -18,7 +18,11 @@
 #include "render/rs_filter.h"
 
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+#ifdef USE_M133_SKIA
+#include "include/gpu/ganesh/GrBackendSurface.h"
+#else
 #include "include/gpu/GrBackendSurface.h"
+#endif
 #include "src/image/SkImage_Base.h"
 
 #include "common/rs_optional_trace.h"
@@ -431,9 +435,9 @@ void RSFilterCacheManager::MarkFilterRegionIsLargeArea()
     stagingIsLargeArea_ = true;
 }
 
-void RSFilterCacheManager::MarkInForegroundFilterAndCheckNeedForceClearCache(bool inForegroundFilter)
+void RSFilterCacheManager::MarkInForegroundFilterAndCheckNeedForceClearCache(NodeId offscreenCanvasNodeId)
 {
-    stagingInForegroundFilter_ = inForegroundFilter;
+    stagingInForegroundFilter_ = offscreenCanvasNodeId;
     if (stagingInForegroundFilter_ != lastInForegroundFilter_ && lastCacheType_ != FilterCacheType::NONE) {
         MarkFilterForceClearCache();
     }
@@ -534,7 +538,7 @@ void RSFilterCacheManager::MarkNeedClearFilterCache(NodeId nodeId)
     RS_TRACE_NAME_FMT("RSFilterCacheManager::MarkNeedClearFilterCache nodeId[%llu] forceUseCache_:%d,"
         "forceClearCache_:%d, hashChanged:%d, regionChanged_:%d, belowDirty_:%d,"
         "lastCacheType:%d, cacheUpdateInterval_:%d, canSkip:%d, isLargeArea:%d, filterType_:%d, pendingPurge_:%d,"
-        "forceClearCacheWithLastFrame:%d, rotationChanged:%d, inForegroundFilter:%d", nodeId,
+        "forceClearCacheWithLastFrame:%d, rotationChanged:%d, offscreenCanvasNodeId:%llu", nodeId,
         stagingForceUseCache_, stagingForceClearCache_, stagingFilterHashChanged_,
         stagingFilterRegionChanged_, stagingFilterInteractWithDirty_,
         lastCacheType_, cacheUpdateInterval_, canSkipFrame_, stagingIsLargeArea_,
@@ -545,7 +549,8 @@ void RSFilterCacheManager::MarkNeedClearFilterCache(NodeId nodeId)
         "forceClearCache_:%{public}d, hashChanged:%{public}d, regionChanged_:%{public}d, belowDirty_:%{public}d,"
         "lastCacheType:%{public}hhu, cacheUpdateInterval_:%{public}d, canSkip:%{public}d, isLargeArea:%{public}d,"
         "filterType_:%{public}d, pendingPurge_:%{public}d,"
-        "forceClearCacheWithLastFrame:%{public}d, rotationChanged:%{public}d, inForegroundFilter:%{public}d",
+        "forceClearCacheWithLastFrame:%{public}d, rotationChanged:%{public}d,"
+        "offscreenCanvasNodeId:%{public}" PRIu64 "",
         stagingForceUseCache_, stagingForceClearCache_,
         stagingFilterHashChanged_, stagingFilterRegionChanged_, stagingFilterInteractWithDirty_,
         lastCacheType_, cacheUpdateInterval_, canSkipFrame_, stagingIsLargeArea_,

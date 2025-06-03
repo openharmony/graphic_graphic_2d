@@ -21,7 +21,7 @@
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_effect_render_node.h"
 #include "render/rs_drawing_filter.h"
-#include "third_party/skia/include/core/SkStream.h"
+#include "include/core/SkStream.h"
 #include "surface_buffer_impl.h"
 #include "buffer_handle.h"
 #include "buffer_handle_utils.h"

@@ -109,10 +109,6 @@ HWTEST_F(RSRenderSoundWaveFilterTest, CreateRenderPropert001, TestSize.Level1)
     EXPECT_NE(renderPropert, nullptr);
 
     renderPropert = nullptr;
-    renderPropert = rsRenderSoundWaveFilterPara->CreateRenderProperty(RSUIFilterType::SOUND_WAVE_CENTER_BRIGHTNESS);
-    EXPECT_NE(renderPropert, nullptr);
-
-    renderPropert = nullptr;
     renderPropert = rsRenderSoundWaveFilterPara->CreateRenderProperty(RSUIFilterType::SHOCK_WAVE_ALPHA_A);
     EXPECT_NE(renderPropert, nullptr);
 
@@ -126,6 +122,10 @@ HWTEST_F(RSRenderSoundWaveFilterTest, CreateRenderPropert001, TestSize.Level1)
 
     renderPropert = nullptr;
     renderPropert = rsRenderSoundWaveFilterPara->CreateRenderProperty(RSUIFilterType::SHOCK_WAVE_PROGRESS_B);
+    EXPECT_NE(renderPropert, nullptr);
+
+    renderPropert = nullptr;
+    renderPropert = rsRenderSoundWaveFilterPara->CreateRenderProperty(RSUIFilterType::SHOCK_WAVE_TOTAL_ALPHA);
     EXPECT_NE(renderPropert, nullptr);
 }
 

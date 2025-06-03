@@ -642,7 +642,11 @@ void RSRenderProperty<ForegroundColorStrategyType>::Dump(std::string& out) const
 template<>
 void RSRenderProperty<SkMatrix>::Dump(std::string& out) const
 {
+#ifdef USE_M133_SKIA
+    (void)out; // todo : Intrusive modification of the waiting turn
+#else
     Get().dump(out, 0);
+#endif
 }
 
 template<>

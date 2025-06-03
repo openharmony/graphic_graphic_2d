@@ -25,7 +25,9 @@
 #include "render/rs_mesa_blur_shader_filter.h"
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_vector4.h"
+#include "pipeline/rs_context.h"
 #include "pipeline/rs_canvas_render_node.h"
+#include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
@@ -289,13 +291,15 @@ static const std::unordered_map<RSModifierType, ResetPropertyFunc> g_propertyRes
     { RSModifierType::HDR_UI_BRIGHTNESS,                    [](RSProperties* prop) {
                                                                 prop->SetHDRUIBrightness(1.0f); }},
     { RSModifierType::FOREGROUND_UI_FILTER,                 [](RSProperties* prop) {
-                                                                prop->SetForegroundUIFilter({}); }},                                                                
+                                                                prop->SetForegroundUIFilter({}); }},
+    { RSModifierType::HDR_BRIGHTNESS_FACTOR,                [](RSProperties* prop) {
+                                                                prop->SetHDRBrightnessFactor(1.0f); }},
 };
 
 } // namespace
 
 // Only enable filter cache when uni-render is enabled and filter cache is enabled
-#if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+#if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
 #ifndef ROSEN_ARKUI_X
 bool RSProperties::filterCacheEnabled_ =
     RSSystemProperties::GetFilterCacheEnabled() && RSUniRenderJudgement::IsUniRender();
@@ -2704,6 +2708,48 @@ bool RSProperties::IsAttractionValid() const
     return isAttractionValid_;
 }
 
+void RSProperties::SetHDRBrightnessFactor(float factor)
+{
+    if (ROSEN_EQ(hdrBrightnessFactor_, factor)) {
+        return;
+    }
+    hdrBrightnessFactor_ = factor;
+    auto node = RSBaseRenderNode::ReinterpretCast<RSDisplayRenderNode>(backref_.lock());
+    if (node == nullptr) {
+        return;
+    }
+    auto& hdrNodeList = node->GetHDRNodeList();
+    auto context = node->GetContext().lock();
+    if (!context) {
+        ROSEN_LOGE("RSProperties::SetHDRBrightnessFactor Invalid context");
+        return;
+    }
+    EraseIf(hdrNodeList, [context, factor](const auto& nodeId) -> bool {
+        auto canvasNode = context->GetNodeMap().GetRenderNode(nodeId);
+        if (!canvasNode) {
+            return true;
+        }
+        canvasNode->SetContentDirty();
+        canvasNode->GetMutableRenderProperties().SetCanvasNodeHDRBrightnessFactor(factor);
+        return false;
+    });
+}
+
+float RSProperties::GetHDRBrightnessFactor() const
+{
+    return hdrBrightnessFactor_;
+}
+
+void RSProperties::SetCanvasNodeHDRBrightnessFactor(float factor)
+{
+    canvasNodeHDRBrightnessFactor_ = factor;
+}
+
+float RSProperties::GetCanvasNodeHDRBrightnessFactor() const
+{
+    return canvasNodeHDRBrightnessFactor_;
+}
+
 void RSProperties::SetLightUpEffect(float lightUpEffectDegree)
 {
     lightUpEffectDegree_ = lightUpEffectDegree;
@@ -3497,16 +3543,14 @@ void RSProperties::GenerateSoundWaveFilter()
         return;
     }
 
-    auto waveColorA = std::static_pointer_cast<RSRenderProperty<Color>>(
+    auto waveColorA = std::static_pointer_cast<RSRenderProperty<Vector4f>>(
         soundWaveFilterPara->GetRenderPropert(RSUIFilterType::SOUND_WAVE_COLOR_A));
-    auto waveColorB = std::static_pointer_cast<RSRenderProperty<Color>>(
+    auto waveColorB = std::static_pointer_cast<RSRenderProperty<Vector4f>>(
         soundWaveFilterPara->GetRenderPropert(RSUIFilterType::SOUND_WAVE_COLOR_B));
-    auto waveColorC = std::static_pointer_cast<RSRenderProperty<Color>>(
+    auto waveColorC = std::static_pointer_cast<RSRenderProperty<Vector4f>>(
         soundWaveFilterPara->GetRenderPropert(RSUIFilterType::SOUND_WAVE_COLOR_C));
     auto waveColorProgress = std::static_pointer_cast<RSRenderAnimatableProperty<float>>(
         soundWaveFilterPara->GetRenderPropert(RSUIFilterType::SOUND_WAVE_COLOR_PROGRESS));
-    auto wavecenterBrightness = std::static_pointer_cast<RSRenderProperty<float>>(
-        soundWaveFilterPara->GetRenderPropert(RSUIFilterType::SOUND_WAVE_CENTER_BRIGHTNESS));
     auto soundIntensity = std::static_pointer_cast<RSRenderAnimatableProperty<float>>(
         soundWaveFilterPara->GetRenderPropert(RSUIFilterType::SOUND_INTENSITY));
     auto shockWaveAlphaA = std::static_pointer_cast<RSRenderAnimatableProperty<float>>(
@@ -3517,17 +3561,18 @@ void RSProperties::GenerateSoundWaveFilter()
         soundWaveFilterPara->GetRenderPropert(RSUIFilterType::SHOCK_WAVE_PROGRESS_A));
     auto shockWaveProgressB = std::static_pointer_cast<RSRenderAnimatableProperty<float>>(
         soundWaveFilterPara->GetRenderPropert(RSUIFilterType::SHOCK_WAVE_PROGRESS_B));
-    if (!waveColorA || !waveColorB || !waveColorC || !waveColorProgress || !wavecenterBrightness || !soundIntensity ||
-        !shockWaveAlphaA || !shockWaveAlphaB || !shockWaveProgressA || !shockWaveProgressB) {
+    auto shockWaveTotalAlpha = std::static_pointer_cast<RSRenderAnimatableProperty<float>>(
+        soundWaveFilterPara->GetRenderPropert(RSUIFilterType::SHOCK_WAVE_TOTAL_ALPHA));
+    bool soundWavePropertyIsValid = waveColorA && waveColorB && waveColorC && waveColorProgress && soundIntensity &&
+                                    shockWaveAlphaA && shockWaveAlphaB && shockWaveProgressA && shockWaveProgressB &&
+                                    shockWaveTotalAlpha;
+    if (!soundWavePropertyIsValid) {
         ROSEN_LOGE("RSProperties::GenerateSoundWaveFilter get soundWaveRenderProperty nullptr.");
         return;
     }
-    std::shared_ptr<RSSoundWaveFilter> soundWaveFilter =
-        std::make_shared<RSSoundWaveFilter>(waveColorA->Get(), waveColorB->Get(), waveColorC->Get(),
-                                            waveColorProgress->Get(), wavecenterBrightness->Get(),
-                                            soundIntensity->Get(), shockWaveAlphaA->Get(),
-                                            shockWaveAlphaB->Get(), shockWaveProgressA->Get(),
-                                            shockWaveProgressB->Get());
+    auto soundWaveFilter = std::make_shared<RSSoundWaveFilter>(waveColorA->Get(), waveColorB->Get(), waveColorC->Get(),
+        waveColorProgress->Get(), soundIntensity->Get(), shockWaveAlphaA->Get(), shockWaveAlphaB->Get(),
+        shockWaveProgressA->Get(), shockWaveProgressB->Get(), shockWaveTotalAlpha->Get());
     std::shared_ptr<RSDrawingFilter> originalFilter = std::make_shared<RSDrawingFilter>(soundWaveFilter);
     if (!backgroundFilter_) {
         backgroundFilter_ = originalFilter;
@@ -4942,7 +4987,7 @@ std::string RSProperties::Dump() const
 }
 
 // planning: need to delete, cachemanager moved to filter drawable
-#if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+#if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
 void RSProperties::CreateFilterCacheManagerIfNeed()
 {
     if (!filterCacheEnabled_) {
@@ -5247,7 +5292,7 @@ bool RSProperties::GetHaveEffectRegion() const
 
 void RSProperties::SetHaveEffectRegion(bool haveEffectRegion)
 {
-#if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+#if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     // clear cache if new region is null or outside current region
     if (auto& manager = GetFilterCacheManager(false);
         manager && manager->IsCacheValid() && haveEffectRegion == false) {

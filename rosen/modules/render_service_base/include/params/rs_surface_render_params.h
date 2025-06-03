@@ -49,6 +49,7 @@ struct RSLayerInfo {
     int32_t layerSource;
     bool arsrTag = true;
     bool copybitTag = false;
+    uint32_t ancoFlags = 0;
     bool operator==(const RSLayerInfo& layerInfo) const
     {
         return (srcRect == layerInfo.srcRect) && (dstRect == layerInfo.dstRect) &&
@@ -56,7 +57,8 @@ struct RSLayerInfo {
             (zOrder == layerInfo.zOrder) && (blendType == layerInfo.blendType) &&
             (transformType == layerInfo.transformType) && (ROSEN_EQ(alpha, layerInfo.alpha)) &&
             (layerSource == layerInfo.layerSource) && (layerType == layerInfo.layerType) &&
-            (arsrTag == layerInfo.arsrTag) && (copybitTag == layerInfo.copybitTag);
+            (arsrTag == layerInfo.arsrTag) && (copybitTag == layerInfo.copybitTag) &&
+            (ancoFlags == layerInfo.ancoFlags);
     }
 #endif
 };
@@ -294,6 +296,17 @@ public:
     {
         return dstRect_;
     }
+
+    void SetAncoSrcCrop(const Rect& srcCrop) { ancoSrcCrop_ = srcCrop; }
+    const Rect& GetAncoSrcCrop() const { return ancoSrcCrop_; }
+    void SetAncoFlags(const uint32_t ancoFlags) { ancoFlags_ = ancoFlags; }
+    uint32_t GetAncoFlags() const { return ancoFlags_; }
+    bool IsAncoSfv() const
+    {
+        return (ancoFlags_ & static_cast<uint32_t>(AncoFlags::ANCO_SFV_NODE)) ==
+                static_cast<uint32_t>(AncoFlags::ANCO_SFV_NODE);
+    }
+
     void SetSurfaceCacheContentStatic(bool contentStatic, bool lastFrameSynced);
     bool GetSurfaceCacheContentStatic() const;
     bool GetPreSurfaceCacheContentStatic() const;
@@ -780,6 +793,8 @@ private:
     RectI childrenDirtyRect_;
     RectI absDrawRect_;
     RRect rrect_;
+    Rect ancoSrcCrop_{};
+    uint32_t ancoFlags_ = 0;
     Vector4f regionToBeMagnified_;
     NodeId uifirstUseStarting_ = INVALID_NODEID;
     Occlusion::Region transparentRegion_;

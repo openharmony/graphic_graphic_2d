@@ -310,7 +310,11 @@ void RSProfiler::DumpNodeDrawCmdModifier(
         auto propertyPtr = std::static_pointer_cast<RSRenderProperty<SkMatrix>>(modifier.GetProperty());
         if (propertyPtr) {
             std::string str;
+#ifdef USE_M133_SKIA
+            propertyPtr->Get(); // todo : Intrusive modification of the waiting turn
+#else
             propertyPtr->Get().dump(str, 0);
+#endif
             out.PushObject();
             out["GEOMETRYTRANS"] = str;
             out.PopObject();
@@ -331,6 +335,15 @@ void RSProfiler::DumpNodeDrawCmdModifier(
             propertyPtr->Dump(str);
             out.PushObject();
             out["HDR_BRIGHTNESS"] = str;
+            out.PopObject();
+        }
+    } else if (modType == RSModifierType::HDR_BRIGHTNESS_FACTOR) {
+        auto propertyPtr = std::static_pointer_cast<RSRenderAnimatableProperty<float>>(modifier.GetProperty());
+        if (propertyPtr) {
+            std::string str;
+            propertyPtr->Dump(str);
+            out.PushObject();
+            out["HDR_BRIGHTNESS_FACTOR"] = str;
             out.PopObject();
         }
     }

@@ -560,6 +560,7 @@ public:
         needBilinearInterpolation_ = layerInfo->GetNeedBilinearInterpolation();
         tunnelLayerId_ = layerInfo->GetTunnelLayerId();
         tunnelLayerProperty_ = layerInfo->GetTunnelLayerProperty();
+        ancoFlags_ = layerInfo->GetAncoFlags();
     }
 
     void Dump(std::string &result) const
@@ -610,6 +611,7 @@ public:
         }
         result += " displayNit = " + std::to_string(displayNit_) +
             ", brightnessRatio = " + std::to_string(brightnessRatio_) + ", ";
+        result += " ancoFlags = " + std::to_string(ancoFlags_) + ", ";
     }
 
     void DumpCurrentFrameLayer() const
@@ -647,6 +649,14 @@ public:
     void SetNodeId(uint64_t nodeId)
     {
         nodeId_ = nodeId;
+    }
+
+    void SetAncoFlags(const uint32_t ancoFlags) { ancoFlags_ = ancoFlags; }
+    uint32_t GetAncoFlags() const { return ancoFlags_; }
+    bool IsAncoSfv() const
+    {
+        constexpr uint32_t ANCO_SFV_NODE_FLAG = 0x0011;
+        return (ancoFlags_ & ANCO_SFV_NODE_FLAG) == ANCO_SFV_NODE_FLAG;
     }
     /* hdiLayer get layer info end */
 
@@ -699,6 +709,7 @@ private:
     bool arsrTag_ = true;
     bool copybitTag_ = false;
     std::vector<float> drmCornerRadiusInfo_;
+    uint32_t ancoFlags_ = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -206,13 +206,6 @@ bool RSSystemProperties::GetCacheEnabledForRotation()
     return {};
 }
 
-#ifndef NEW_SKIA
-bool RSSystemProperties::GetReleaseResourceEnabled()
-{
-    return {};
-}
-#endif
-
 ParallelRenderingType RSSystemProperties::GetPrepareParallelRenderingEnabled()
 {
     return {};

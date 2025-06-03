@@ -17,7 +17,7 @@
 
 #include "rs_trace.h"
 #ifdef ROSEN_OHOS
-#include "base/hiviewdfx/hisysevent/interfaces/native/innerkits/hisysevent/include/hisysevent.h"
+#include "hisysevent.h"
 #include "sandbox_utils.h"
 #endif
 #include "command/rs_display_node_command.h"

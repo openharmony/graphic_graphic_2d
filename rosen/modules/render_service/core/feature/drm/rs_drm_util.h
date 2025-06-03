@@ -32,6 +32,8 @@ public:
     static void AddDrmCloneCrossNode(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode,
         DrawablesVec& hardwareEnabledDrawables);
     static void DRMCreateLayer(std::shared_ptr<RSProcessor> processor, Drawing::Matrix hwcMatrix);
+    static void PreAllocateProtectedBuffer(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode,
+        const std::shared_ptr<RSSurfaceHandler>& surfaceHandler);
 private:
     inline static std::unordered_map<NodeId, // map<first level node ID, drm surface node>
         std::vector<std::shared_ptr<RSSurfaceRenderNode>>> drmNodes_ = {};

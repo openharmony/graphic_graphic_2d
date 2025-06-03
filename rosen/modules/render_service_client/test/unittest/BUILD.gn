@@ -46,8 +46,10 @@ ohos_unittest("RSVirtualScreenRefreshRateTest") {
     "access_token:libaccesstoken_sdk",
     "access_token:libnativetoken",
     "access_token:libtoken_setproc",
+    "cJSON:cjson",
     "c_utils:utils",
     "hilog:libhilog",
+    "selinux_adapter:librestorecon",
   ]
 }
 
@@ -60,8 +62,10 @@ ohos_unittest("RSScreenSkipFrameTest") {
     "access_token:libaccesstoken_sdk",
     "access_token:libnativetoken",
     "access_token:libtoken_setproc",
+    "cJSON:cjson",
     "c_utils:utils",
     "hilog:libhilog",
+    "selinux_adapter:librestorecon",
   ]
 }
 
@@ -88,7 +92,9 @@ ohos_unittest("RSInterfacesTest") {
     "access_token:libaccesstoken_sdk",
     "access_token:libnativetoken",
     "access_token:libtoken_setproc",
+    "cJSON:cjson",
     "graphic_surface:surface",
+    "selinux_adapter:librestorecon",
   ]
 }
 
@@ -166,7 +172,9 @@ ohos_static_library("rs_client_test_common") {
 
   public_external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "hilog:libhilog",
+    "hisysevent:libhisysevent",
   ]
 
   subsystem_name = "graphic"

@@ -29,11 +29,11 @@ namespace OHOS::Rosen {
 
 const static std::string RS_ENERGY_ASSURANCE_TASK_ID = "RS_ENERGY_ASSURANCE_TASK_ID";
 const static std::string DESCISION_VIDEO_CALL_TASK_ID = "DESCISION_VIDEO_CALL_TASK_ID";
-static const std::unordered_map<std::string, uint32_t> UI_RATE_TYPE_NAME_MAP = {
-    {"ui_animation", UI_ANIMATION_FRAME_RATE_TYPE },
-    {"display_sync", DISPLAY_SYNC_FRAME_RATE_TYPE },
-    {"ace_component", ACE_COMPONENT_FRAME_RATE_TYPE },
-    {"display_soloist", DISPLAY_SOLOIST_FRAME_RATE_TYPE },
+static const std::unordered_map<std::string, std::vector<uint32_t>> UI_RATE_TYPE_NAME_MAP = {
+    {"ui_animation", { UI_ANIMATION_FRAME_RATE_TYPE, DRAG_SCENE_FRAME_RATE_TYPE } },
+    {"display_sync", { DISPLAY_SYNC_FRAME_RATE_TYPE } },
+    {"ace_component", { ACE_COMPONENT_FRAME_RATE_TYPE } },
+    {"display_soloist", { DISPLAY_SOLOIST_FRAME_RATE_TYPE } },
 };
 constexpr int DEFAULT_ENERGY_ASSURANCE_IDLE_FPS = 60;
 constexpr int DEFAULT_ANIMATION_IDLE_DURATION = 2000;
@@ -116,7 +116,9 @@ void HgmEnergyConsumptionPolicy::SetUiEnergyConsumptionConfig(
         }
         int idleFps = 60;
         ConverStrToInt(idleFps, config.second, DEFAULT_ENERGY_ASSURANCE_IDLE_FPS);
-        uiEnergyAssuranceMap_[it->second] = std::make_pair(true, idleFps);
+        for (const auto& type : it->second) {
+            uiEnergyAssuranceMap_[type] = std::make_pair(true, idleFps);
+        }
     }
 }
 

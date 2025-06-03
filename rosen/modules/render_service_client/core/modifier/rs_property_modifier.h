@@ -3409,6 +3409,41 @@ protected:
 };
 
 /**
+ * @class RSHDRBrightnessFactorModifier
+ *
+ * @brief The class for HDR brightness factor modifiers.
+ */
+class RS_EXPORT RSHDRBrightnessFactorModifier : public RSForegroundModifier {
+public:
+    /**
+     * @brief Construct a new RSHDRBrightnessFactorModifier instance.
+     *
+     * @param property A shared pointer to the RSPropertyBase object.
+     */
+    explicit RSHDRBrightnessFactorModifier(const std::shared_ptr<RSPropertyBase>& property);
+
+    /**
+     * @brief Destructor for RSHDRBrightnessFactorModifier.
+     */
+    virtual ~RSHDRBrightnessFactorModifier() = default;
+
+protected:
+    /**
+     * @brief Get the type of the modifier.
+     *
+     * @return The type of the modifier.
+     */
+    RSModifierType GetModifierType() const override;
+
+    /**
+     * @brief Create a new render modifier.
+     *
+     * @return A shared pointer to the created RSRenderModifier.
+     */
+    std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
+};
+
+/**
  * @class RSHDRBrightnessModifier
  *
  * @brief The class for HDR brightness modifiers.

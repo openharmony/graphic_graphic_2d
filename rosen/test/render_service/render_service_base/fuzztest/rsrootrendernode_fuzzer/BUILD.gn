@@ -42,6 +42,7 @@ ohos_fuzztest("RSRootRenderNodeFuzzTest") {
   ]
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "hilog:libhilog",
   ]
   sources = [ "rsrootrendernode_fuzzer.cpp" ]

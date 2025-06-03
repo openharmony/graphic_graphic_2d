@@ -172,13 +172,6 @@ bool RSSystemProperties::GetHighContrastStatus()
     return {};
 }
 
-#ifndef NEW_SKIA
-bool RSSystemProperties::GetReleaseResourceEnabled()
-{
-    return {};
-}
-#endif
-
 uint32_t RSSystemProperties::GetCorrectionMode()
 {
     return {};

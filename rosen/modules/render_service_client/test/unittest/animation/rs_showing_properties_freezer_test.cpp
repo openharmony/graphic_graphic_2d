@@ -427,6 +427,22 @@ HWTEST_F(RSShowingPropertiesFreezerTest, GetDegreeTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetHDRUIBrightnessTest
+ * @tc.desc: Get the brightness.
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSShowingPropertiesFreezerTest, GetHDRUIBrightnessTest, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSShowingPropertiesFreezerTest GetHDRUIBrightnessTest start";
+    auto canvasNode = RSCanvasNode::Create();
+    canvasNode->SetHDRUIBrightness(SHOWING_FLOAT_NUM);
+    auto result1 = canvasNode->GetShowingProperties().GetHDRUIBrightness();
+    ASSERT_TRUE(result1.has_value());
+    EXPECT_FLOAT_EQ(result1.value(), SHOWING_FLOAT_NUM);
+    GTEST_LOG_(INFO) << "RSShowingPropertiesFreezerTest GetHDRUIBrightnessTest end";
+}
+
+/**
  * @tc.name: GetAttractionValueTest
  * @tc.desc: Verify the GetAttractionValue
  * @tc.type:FUNC

@@ -41,6 +41,7 @@ ohos_unittest("RenderServiceMemoryTest") {
   defines = []
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "googletest:gtest_main",
     "graphic_2d:librender_service_base",
     "hilog:libhilog",

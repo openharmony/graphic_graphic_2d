@@ -55,19 +55,6 @@ VSyncSampler::VSyncSampler()
 {
 }
 
-void VSyncSampler::Reset()
-{
-    std::lock_guard<std::mutex> lock(mutex_);
-    period_ = 0;
-    phase_ = 0;
-    referenceTime_ = 0;
-    error_ = 0;
-    firstSampleIndex_ = 0;
-    numSamples_ = 0;
-    modeUpdated_ = false;
-    hardwareVSyncStatus_ = true;
-}
-
 void VSyncSampler::ResetErrorLocked()
 {
     presentFenceTimeOffset_ = 0;
@@ -115,24 +102,17 @@ int32_t VSyncSampler::StartSample(bool forceReSample)
         RS_TRACE_NAME_FMT("disabled vsyncSample");
         return VSYNC_ERROR_API_FAILED;
     }
-    bool alreadyStartSample = GetHardwareVSyncStatus();
-    if (!forceReSample && alreadyStartSample) {
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (!forceReSample && hardwareVSyncStatus_) {
+        RS_TRACE_NAME("Already Start Sample.");
         VLOGD("Already Start Sample.");
         return VSYNC_ERROR_OK;
     }
     VLOGD("Enable Screen Vsync");
-    SetScreenVsyncEnabledInRSMainThread(true);
-    BeginSample();
-    return VSYNC_ERROR_OK;
-}
-
-void VSyncSampler::BeginSample()
-{
-    ScopedBytrace func("BeginSample");
-    std::lock_guard<std::mutex> lock(mutex_);
     numSamples_ = 0;
     modeUpdated_ = false;
-    hardwareVSyncStatus_ = true;
+    SetScreenVsyncEnabledInRSMainThreadLocked(vsyncEnabledScreenId_, true);
+    return VSYNC_ERROR_OK;
 }
 
 void VSyncSampler::ClearAllSamples()
@@ -148,10 +128,16 @@ void VSyncSampler::SetHardwareVSyncStatus(bool enabled)
     hardwareVSyncStatus_ = enabled;
 }
 
-bool VSyncSampler::GetHardwareVSyncStatus() const
+void VSyncSampler::RecordDisplayVSyncStatus(bool enabled)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    return hardwareVSyncStatus_;
+    displayVSyncStatus_ = enabled;
+}
+
+void VSyncSampler::RollbackHardwareVSyncStatus()
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    hardwareVSyncStatus_ = displayVSyncStatus_;
 }
 
 void VSyncSampler::RegSetScreenVsyncEnabledCallback(VSyncSampler::SetScreenVsyncEnabledCallback cb)
@@ -160,23 +146,20 @@ void VSyncSampler::RegSetScreenVsyncEnabledCallback(VSyncSampler::SetScreenVsync
     setScreenVsyncEnabledCallback_ = cb;
 }
 
-void VSyncSampler::SetScreenVsyncEnabledInRSMainThread(bool enabled)
+void VSyncSampler::SetScreenVsyncEnabledInRSMainThread(uint64_t screenId, bool enabled)
 {
-    SetScreenVsyncEnabledCallback cb;
-    {
-        std::lock_guard<std::mutex> lock(mutex_);
-        cb = setScreenVsyncEnabledCallback_;
-    }
-    SetScreenVsyncEnabledInRSMainThreadInternal(cb, enabled);
+    std::lock_guard<std::mutex> lock(mutex_);
+    SetScreenVsyncEnabledInRSMainThreadLocked(screenId, enabled);
 }
 
-void VSyncSampler::SetScreenVsyncEnabledInRSMainThreadInternal(SetScreenVsyncEnabledCallback cb, bool enabled)
+void VSyncSampler::SetScreenVsyncEnabledInRSMainThreadLocked(uint64_t screenId, bool enabled)
 {
-    if (cb == nullptr) {
+    if (setScreenVsyncEnabledCallback_ == nullptr) {
         VLOGE("SetScreenVsyncEnabled:%{public}d failed, cb is null", enabled);
         return;
     }
-    cb(enabled);
+    hardwareVSyncStatus_ = enabled;
+    setScreenVsyncEnabledCallback_(screenId, enabled);
 }
 
 bool VSyncSampler::AddSample(int64_t timeStamp)
@@ -184,53 +167,51 @@ bool VSyncSampler::AddSample(int64_t timeStamp)
     if (timeStamp < 0) {
         return true;
     }
-    SetScreenVsyncEnabledCallback cb;
-    bool shouldDisableScreenVsync;
-    {
-        std::lock_guard<std::mutex> lock(mutex_);
-        if (numSamples_ > 0) {
-            auto preSample = samples_[(firstSampleIndex_ + numSamples_ - 1) % MAX_SAMPLES];
-            auto intervalStamp = timeStamp - preSample;
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (!hardwareVSyncStatus_) {
+        return true;
+    }
+    if (numSamples_ > 0) {
+        auto preSample = samples_[(firstSampleIndex_ + numSamples_ - 1) % MAX_SAMPLES];
+        auto intervalStamp = timeStamp - preSample;
 
-            if (intervalStamp <= 0) {
-                RS_TRACE_NAME_FMT("VSyncSampler::AddSample, invalid sample, preSample is larger");
-                numSamples_ = 0;
-                return true;
-            }
-            
-            if (isAdaptive_.load() && CreateVSyncGenerator()->CheckSampleIsAdaptive(intervalStamp)) {
-                RS_TRACE_NAME_FMT("VSyncSampler::AddSample, adaptive sample, intervalStamp:%ld", intervalStamp);
-                numSamples_ = 0;
-                return true;
-            }
-        }
-
-        if (numSamples_ < MAX_SAMPLES - 1) {
-            numSamples_++;
-        } else {
-            firstSampleIndex_ = (firstSampleIndex_ + 1) % MAX_SAMPLES;
-        }
-
-        if (firstSampleIndex_ + numSamples_ >= 1) {
-            uint32_t index = (firstSampleIndex_ + numSamples_ - 1) % MAX_SAMPLES;
-            samples_[index] = timeStamp;
+        if (intervalStamp <= 0) {
+            RS_TRACE_NAME_FMT("VSyncSampler::AddSample, invalid sample, preSample is larger");
+            numSamples_ = 0;
+            return true;
         }
         
-        UpdateReferenceTimeLocked();
-        UpdateModeLocked();
-
-        if (numResyncSamplesSincePresent_++ > MAX_SAMPLES_WITHOUT_PRESENT) {
-            ResetErrorLocked();
+        if (isAdaptive_.load() && CreateVSyncGenerator()->CheckSampleIsAdaptive(intervalStamp)) {
+            RS_TRACE_NAME_FMT("VSyncSampler::AddSample, adaptive sample, intervalStamp:%ld", intervalStamp);
+            numSamples_ = 0;
+            return true;
         }
-
-        // 1/2 just a empirical value
-        shouldDisableScreenVsync = modeUpdated_ && (error_ < ERROR_THRESHOLD / 2);
-        cb = setScreenVsyncEnabledCallback_;
     }
+
+    if (numSamples_ < MAX_SAMPLES - 1) {
+        numSamples_++;
+    } else {
+        firstSampleIndex_ = (firstSampleIndex_ + 1) % MAX_SAMPLES;
+    }
+
+    if (firstSampleIndex_ + numSamples_ >= 1) {
+        uint32_t index = (firstSampleIndex_ + numSamples_ - 1) % MAX_SAMPLES;
+        samples_[index] = timeStamp;
+    }
+    
+    UpdateReferenceTimeLocked();
+    UpdateModeLocked();
+
+    if (numResyncSamplesSincePresent_++ > MAX_SAMPLES_WITHOUT_PRESENT) {
+        ResetErrorLocked();
+    }
+
+    // 1/2 just a empirical value
+    bool shouldDisableScreenVsync = modeUpdated_ && (error_ < ERROR_THRESHOLD / 2);
     if (shouldDisableScreenVsync) {
         // disabled screen vsync in rsMainThread
         VLOGD("Disable Screen Vsync");
-        SetScreenVsyncEnabledInRSMainThreadInternal(cb, false);
+        SetScreenVsyncEnabledInRSMainThreadLocked(vsyncEnabledScreenId_, false);
     }
 
     return !shouldDisableScreenVsync;

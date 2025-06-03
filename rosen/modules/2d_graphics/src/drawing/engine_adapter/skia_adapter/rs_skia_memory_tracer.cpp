@@ -218,13 +218,11 @@ void SkiaMemoryTracer::LogOutput(DfxString& log)
             }
         } else {
             for (const auto& tagItem: sourceItem.second) {
-                auto result = tagItem.second.find("size");
-                if (result != tagItem.second.end()) {
-                    TraceValue traceValue = ConvertUnits(result->second);
-                    const char* entry = (traceValue.count > 1) ? "entries" : "entry";
-                    log.AppendFormat("  %s: %.2f %s (%d %s)\n", tagItem.first.c_str(), traceValue.value,
-                        traceValue.units.c_str(), traceValue.count, entry);
-                }
+                auto result = tagItem.second.find("size"); // Logically not empty
+                TraceValue traceValue = ConvertUnits(result->second);
+                const char* entry = (traceValue.count > 1) ? "entries" : "entry";
+                log.AppendFormat("  %s: %.2f %s (%d %s)\n", tagItem.first.c_str(), traceValue.value,
+                    traceValue.units.c_str(), traceValue.count, entry);
             }
         }
     }

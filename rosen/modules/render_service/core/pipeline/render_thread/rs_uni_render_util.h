@@ -36,6 +36,7 @@
 #include "rs_base_render_util.h"
 #include "transaction/rs_uiextension_data.h"
 #include "utils/matrix.h"
+#include "params/rs_surface_render_params.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -122,6 +123,10 @@ public:
     static void MultiLayersPerf(size_t layerNum);
     static Drawing::Rect GetImageRegions(float screenWidth, float screenHeight,
         float realImageWidth, float realImageHeight);
+    // When the anco node is redraw using DSS synthesis, modify params.srcRect according to layer.CropRect.
+    static void SetSrcRectForAnco(const LayerInfoPtr& layer, BufferDrawParam& params);
+    // When the anco node is rendered in a unified way, modify params.srcRect according to ancoSrcCrop.
+    static void SetSrcRectForAnco(const RSSurfaceRenderParams& surfaceParams, BufferDrawParam& params);
 
 private:
     static void SetSrcRect(BufferDrawParam& params, const sptr<SurfaceBuffer>& buffer);

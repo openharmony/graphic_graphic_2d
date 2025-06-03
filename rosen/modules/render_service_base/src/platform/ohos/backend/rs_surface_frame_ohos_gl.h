@@ -18,10 +18,10 @@
 
 #include <surface.h>
 
-#ifdef NEW_SKIA
-#include "include/gpu/GrDirectContext.h"
+#ifdef USE_M133_SKIA
+#include "include/gpu/ganesh/GrDirectContext.h"
 #else
-#include "include/gpu/GrContext.h"
+#include "include/gpu/GrDirectContext.h"
 #endif
 
 #include "platform/drawing/rs_surface_frame.h"

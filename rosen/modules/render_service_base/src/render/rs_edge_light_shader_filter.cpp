@@ -17,6 +17,12 @@
 #include "common/rs_vector4.h"
 #include "ge_shader_filter_params.h"
 
+#ifdef USE_M133_SKIA
+#include "src/core/SkChecksum.h"
+#else
+#include "src/core/SkOpts.h"
+#endif
+
 namespace OHOS {
 namespace Rosen {
 RSEdgeLightShaderFilter::RSEdgeLightShaderFilter(const EdgeLightShaderFilterParams& param)

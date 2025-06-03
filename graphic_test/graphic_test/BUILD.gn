@@ -58,9 +58,6 @@ rs_display_effect_sources = [
   "rs_display_effect/property_display/geom_skew_test.cpp",
   "rs_display_effect/property_display/geom_transform_test.cpp",
   "rs_display_effect/property_display/geom_translation_test.cpp",
-  "rs_display_effect/restore_playback_display/playback_recover_test.cpp",
-  "rs_display_effect/restore_tree_display/load_render_node_tree_file_test.cpp",
-  "rs_display_effect/restore_tree_display/restore_node_tree_file_test.cpp",
 ]
 rs_framework_sources = []
 rs_func_feature_sources = [
@@ -93,6 +90,7 @@ ohos_unittest("RSGraphicTest") {
   defines = []
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "hilog:libhilog",
     "init:libbegetutil",
   ]
