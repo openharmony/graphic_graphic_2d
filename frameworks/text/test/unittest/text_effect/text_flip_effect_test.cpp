@@ -63,14 +63,18 @@ protected:
  */
 HWTEST_F(TextFlipEffectTest, TextFlipEffectTest001, TestSize.Level1)
 {
-    std::unordered_map<TextEffectAttribute, std::string> config = {
+    std::unordered_map<TextEffectAttribute, std::string> config1 = {
         {TextEffectAttribute::FLIP_DIRECTION, "up"},
-        {TextEffectAttribute::FLIP_DIRECTION, "down"},
         {TextEffectAttribute::BLUR_ENABLE, "false"},
-        {TextEffectAttribute::BLUR_ENABLE, "true"}
     };
 
-    EXPECT_EQ(effect_->UpdateEffectConfig(config), TEXT_EFFECT_SUCCESS);
+    std::unordered_map<TextEffectAttribute, std::string> config2 = {
+        {TextEffectAttribute::FLIP_DIRECTION, "down"},
+        {TextEffectAttribute::BLUR_ENABLE, "true"},
+    };
+
+    EXPECT_EQ(effect_->UpdateEffectConfig(config1), TEXT_EFFECT_SUCCESS);
+    EXPECT_EQ(effect_->UpdateEffectConfig(config2), TEXT_EFFECT_SUCCESS);
     EXPECT_EQ(effect_->direction_, TextEffectFlipDirection::DOWN);
     EXPECT_TRUE(effect_->blurEnable_);
 
@@ -94,7 +98,7 @@ HWTEST_F(TextFlipEffectTest, TextFlipEffectTest001, TestSize.Level1)
 HWTEST_F(TextFlipEffectTest, TextFlipEffectTest002, TestSize.Level1)
 {
     TypographyConfig config = CreateConfig();
-    EXPECT_CALL(*mockTypography_, SetTextEffectAssociation(true));
+    EXPECT_CALL(*mockTypography_, SetTextEffectAssociation(true)).Times(1);
     EXPECT_EQ(effect_->AppendTypography({config}), TEXT_EFFECT_SUCCESS);
     EXPECT_EQ(effect_->typographyConfig_.typography, mockTypography_);
 
@@ -103,6 +107,8 @@ HWTEST_F(TextFlipEffectTest, TextFlipEffectTest002, TestSize.Level1)
     EXPECT_EQ(effect_->AppendTypography({anotherConfig}), TEXT_EFFECT_UNKNOWN);
 
     EXPECT_EQ(effect_->AppendTypography({}), TEXT_EFFECT_INVALID_INPUT);
+    TypographyConfig nullptrConfig = { nullptr, {0, 0} };
+    EXPECT_EQ(effect_->AppendTypography({nullptrConfig}), TEXT_EFFECT_INVALID_INPUT);
 }
 
 /*
@@ -112,6 +118,7 @@ HWTEST_F(TextFlipEffectTest, TextFlipEffectTest002, TestSize.Level1)
  */
 HWTEST_F(TextFlipEffectTest, TextFlipEffectTest003, TestSize.Level1)
 {
+    EXPECT_CALL(*mockTypography_, SetTextEffectAssociation(true)).Times(1);
     effect_->AppendTypography({CreateConfig()});
     TypographyConfig newConfig = { mockTypography_, {5, 15} };
     std::vector<std::pair<TypographyConfig, TypographyConfig>> update = {
@@ -140,10 +147,10 @@ HWTEST_F(TextFlipEffectTest, TextFlipEffectTest003, TestSize.Level1)
  */
 HWTEST_F(TextFlipEffectTest, TextFlipEffectTest004, TestSize.Level1)
 {
+    EXPECT_CALL(*mockTypography_, SetTextEffectAssociation(false)).Times(1);
+    EXPECT_CALL(*mockTypography_, SetTextEffectAssociation(true)).Times(2);
     TypographyConfig config = CreateConfig();
     effect_->AppendTypography({config});
-    
-    EXPECT_CALL(*mockTypography_, SetTextEffectAssociation(false));
     effect_->RemoveTypography({config});
     
     EXPECT_EQ(effect_->typographyConfig_.typography, nullptr);
@@ -166,20 +173,20 @@ HWTEST_F(TextFlipEffectTest, TextFlipEffectTest004, TestSize.Level1)
  */
 HWTEST_F(TextFlipEffectTest, TextFlipEffectTest005, TestSize.Level1)
 {
+    EXPECT_CALL(*mockTypography_, SetTextEffectAssociation(true)).Times(1);
     effect_->StartEffect(mockCanvas_.get(), 100.0, 200.0);
     effect_->StopEffect(mockCanvas_.get(), 100.0, 200.0);
 
     effect_->AppendTypography({CreateConfig()});
-    EXPECT_CALL(*mockTypography_, SetTextEffectState(true));
-    EXPECT_CALL(*mockTypography_, Paint(mockCanvas_.get(), 100.0, 200.0));
+    EXPECT_CALL(*mockTypography_, SetTextEffectState(true)).Times(1);
+    EXPECT_CALL(*mockTypography_, Paint(mockCanvas_.get(), 100.0, 200.0)).Times(2);
     std::vector<TextBlobRecordInfo> records = { TextBlobRecordInfo() };
     EXPECT_CALL(*mockTypography_, GetTextBlobRecordInfo()).WillOnce(Return(records));
 
     effect_->StartEffect(mockCanvas_.get(), 100.0, 200.0);
     EXPECT_FALSE(effect_->lastTextBlobRecordInfos_.empty());
 
-    EXPECT_CALL(*mockTypography_, SetTextEffectState(false));
-    EXPECT_CALL(*mockTypography_, Paint(mockCanvas_.get(), 100.0, 200.0));
+    EXPECT_CALL(*mockTypography_, SetTextEffectState(false)).Times(1);
     
     effect_->StopEffect(mockCanvas_.get(), 100.0, 200.0);
     EXPECT_TRUE(effect_->lastTextBlobRecordInfos_.empty());

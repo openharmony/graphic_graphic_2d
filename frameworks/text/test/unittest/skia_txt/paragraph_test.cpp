@@ -811,6 +811,8 @@ HWTEST_F(ParagraphTest, ParagraphTestRelayoutBrush003, TestSize.Level1)
  */
 HWTEST_F(ParagraphTest, ParagraphTestTextEffect001, TestSize.Level1)
 {
+    Canvas canvas;
+    paragraph_->Paint(&canvas, 0.0, 0.0);
     OHOS::Rosen::SPText::ParagraphImpl* paragraphImpl = GetParagraphImpl(paragraph_);
     ASSERT_NE(paragraphImpl, nullptr);
     std::unique_ptr<skt::Paragraph> temp = nullptr;
