@@ -22,7 +22,7 @@ void RSUifirstFrameRateControl::SetAnimationStartInfo(const DataBaseRs& eventInf
     if (!RSSystemProperties::GetSubThreadControlFrameRate()) {
         return;
     }
-    auto sceneId = hasSceneId(eventInfo.sceneId);
+    auto sceneId = HasSceneId(eventInfo.sceneId);
 
     switch (sceneId) {
         case SceneId::LAUNCHER_APP_LAUNCH_FROM_ICON:
@@ -53,7 +53,7 @@ void RSUifirstFrameRateControl::SetAnimationEndInfo(const DataBaseRs& eventInfo)
     if (!RSSystemProperties::GetSubThreadControlFrameRate()) {
         return;
     }
-    auto sceneId = hasSceneId(eventInfo.sceneId);
+    auto sceneId = HasSceneId(eventInfo.sceneId);
 
     switch (sceneId) {
         case SceneId::LAUNCHER_APP_LAUNCH_FROM_ICON:
