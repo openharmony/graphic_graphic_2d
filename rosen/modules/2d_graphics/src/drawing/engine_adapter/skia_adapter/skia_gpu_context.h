@@ -66,8 +66,13 @@ public:
     bool BuildFromGL(const GPUContextOptions& options) override;
 
 #ifdef RS_ENABLE_VK
+#ifdef USE_M133_SKIA
+    bool BuildFromVK(const skgpu::VulkanBackendContext& context) override;
+    bool BuildFromVK(const skgpu::VulkanBackendContext& context, const GPUContextOptions& options) override;
+#else
     bool BuildFromVK(const GrVkBackendContext& context) override;
     bool BuildFromVK(const GrVkBackendContext& context, const GPUContextOptions& options) override;
+#endif
 #endif
 
     void Flush() override;

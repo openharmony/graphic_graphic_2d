@@ -180,7 +180,11 @@ void SkiaRegion::Clone(const Region& other)
 
 std::shared_ptr<Data> SkiaRegion::Serialize() const
 {
+#ifdef USE_M133_SKIA
+    SkBinaryWriteBuffer writer({});
+#else
     SkBinaryWriteBuffer writer;
+#endif
     writer.writeRegion(*skRegion_);
     size_t length = writer.bytesWritten();
     std::shared_ptr<Data> data = std::make_shared<Data>();

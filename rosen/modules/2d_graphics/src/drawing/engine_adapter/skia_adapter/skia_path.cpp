@@ -53,7 +53,11 @@ bool SkiaPath::InitWithSVGString(const std::string& str)
 std::string SkiaPath::ConvertToSVGString() const
 {
     SkString skString;
+#ifdef USE_M133_SKIA
+    skString = SkParsePath::ToSVGString(path_);
+#else
     SkParsePath::ToSVGString(path_, &skString);
+#endif
 
     return skString.c_str();
 }
@@ -523,7 +527,11 @@ std::shared_ptr<Data> SkiaPath::Serialize() const
     if (path_.isEmpty()) {
         LOGE("SkiaPath::Serialize, path is empty!");
     }
+#ifdef USE_M133_SKIA
+    SkBinaryWriteBuffer writer({});
+#else
     SkBinaryWriteBuffer writer;
+#endif
     writer.writePath(path_);
     size_t length = writer.bytesWritten();
     std::shared_ptr<Data> data = std::make_shared<Data>();

@@ -125,14 +125,22 @@ public:
     bool BuildFromGL(const GPUContextOptions& options);
 
 #ifdef RS_ENABLE_VK
+#ifdef USE_M133_SKIA
+    bool BuildFromVK(const skgpu::VulkanBackendContext& context);
+#else
     bool BuildFromVK(const GrVkBackendContext& context);
+#endif
 
     /**
      * @brief           Creates a VK GPUContext for a backend context.
      * @param context   An existed VK Context used to create a VK GPUContext.
      * @param options   Option to create a VK GPUContext.
      */
+#ifdef USE_M133_SKIA
+    bool BuildFromVK(const skgpu::VulkanBackendContext& context, const GPUContextOptions& options);
+#else
     bool BuildFromVK(const GrVkBackendContext& context, const GPUContextOptions& options);
+#endif
 #endif
 
     /**
