@@ -74,6 +74,7 @@ public:
     void UpdatePrepareClip(RSRenderNode& node);
     void UpdateTopSurfaceSrcRect(RSSurfaceRenderNode& node,
         const Drawing::Matrix& absMatrix, const RectI& absRect);
+    void UpdateHwcNodePtr(const std::shared_ptr<RSSurfaceRenderNode>& hwcNodePtr, const RSRenderNode& rootNode);
 
     bool IsDisableHwcOnExpandScreen() const;
 
