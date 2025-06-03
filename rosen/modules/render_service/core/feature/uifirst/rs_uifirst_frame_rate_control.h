@@ -36,18 +36,29 @@ public:
         UNKNOWN
     };
 
-    SceneId HasSceneId(const std::string& sceneId)
+    SceneId GetSceneId(const std::string& sceneId)
     {
-        if (sceneId == "LAUNCHER_APP_LAUNCH_FROM_ICON") { return SceneId::LAUNCHER_APP_LAUNCH_FROM_ICON; }
-        if (sceneId == "LAUNCHER_APP_SWIPE_TO_HOME") { return SceneId::LAUNCHER_APP_SWIPE_TO_HOME; }
-        if (sceneId == "GESTURE_TO_RECENTS") { return SceneId::GESTURE_TO_RECENTS; }
-        if (sceneId == "LAUNCHER_APP_LAUNCH_FROM_RECENT") { return SceneId::LAUNCHER_APP_LAUNCH_FROM_RECENT; }
-        if (sceneId == "EXIT_RECENT_2_HOME_ANI") { return SceneId::EXIT_RECENT_2_HOME_ANI; }
-        if (sceneId == "CLEAR_1_RECENT_ANI") { return SceneId::CLEAR_1_RECENT_ANI; }
-        if (sceneId == "CLEAR_ALL_RECENT_ANI") { return SceneId::CLEAR_ALL_RECENT_ANI; }
-        if (sceneId == "AOD_TO_LAUNCHER") { return SceneId::AOD_TO_LAUNCHER; }
-        if (sceneId == "LOCKSCREEN_TO_LAUNCHER") { return SceneId::LOCKSCREEN_TO_LAUNCHER; }
-        return SceneId::UNKNOWN;
+        if (sceneId == "LAUNCHER_APP_LAUNCH_FROM_ICON") {
+            return SceneId::LAUNCHER_APP_LAUNCH_FROM_ICON;
+        } else if (sceneId == "LAUNCHER_APP_SWIPE_TO_HOME") {
+            return SceneId::LAUNCHER_APP_SWIPE_TO_HOME;
+        } else if (sceneId == "GESTURE_TO_RECENTS") {
+            return SceneId::GESTURE_TO_RECENTS;
+        } else if (sceneId == "LAUNCHER_APP_LAUNCH_FROM_RECENT") {
+            return SceneId::LAUNCHER_APP_LAUNCH_FROM_RECENT;
+        } else if (sceneId == "EXIT_RECENT_2_HOME_ANI") {
+            return SceneId::EXIT_RECENT_2_HOME_ANI;
+        } else if (sceneId == "CLEAR_1_RECENT_ANI") {
+            return SceneId::CLEAR_1_RECENT_ANI;
+        } else if (sceneId == "CLEAR_ALL_RECENT_ANI") {
+            return SceneId::CLEAR_ALL_RECENT_ANI;
+        } else if (sceneId == "AOD_TO_LAUNCHER") {
+            return SceneId::AOD_TO_LAUNCHER;
+        } else if (sceneId == "LOCKSCREEN_TO_LAUNCHER") {
+            return SceneId::LOCKSCREEN_TO_LAUNCHER;
+        } else {
+            return SceneId::UNKNOWN;
+        }
     }
 
     static RSUifirstFrameRateControl& Instance()
