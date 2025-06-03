@@ -151,16 +151,16 @@ HWTEST_F(RSRenderEdgeLightFilterTest, CreateRenderProperty001, TestSize.Level1)
     auto renderProperty = rsRenderEdgeLightFilterPara->CreateRenderProperty(RSUIFilterType::RIPPLE_MASK);
     EXPECT_NE(renderProperty, nullptr);
 
-    auto renderProperty = rsRenderEdgeLightFilterPara->CreateRenderProperty(RSUIFilterType::RADIAL_GRADIENT_MASK);
+    renderProperty = rsRenderEdgeLightFilterPara->CreateRenderProperty(RSUIFilterType::RADIAL_GRADIENT_MASK);
     EXPECT_NE(renderProperty, nullptr);
 
-    auto renderProperty = rsRenderEdgeLightFilterPara->CreateRenderProperty(RSUIFilterType::PIXEL_MAP_MASK);
+    renderProperty = rsRenderEdgeLightFilterPara->CreateRenderProperty(RSUIFilterType::PIXEL_MAP_MASK);
     EXPECT_NE(renderProperty, nullptr);
     
-    auto renderProperty = rsRenderEdgeLightFilterPara->CreateRenderProperty(RSUIFilterType::EDGE_LIGHT_ALPHA);
+    renderProperty = rsRenderEdgeLightFilterPara->CreateRenderProperty(RSUIFilterType::EDGE_LIGHT_ALPHA);
     EXPECT_NE(renderProperty, nullptr);
     
-    auto renderProperty = rsRenderEdgeLightFilterPara->CreateRenderProperty(RSUIFilterType::EDGE_LIGHT_COLOR);
+    renderProperty = rsRenderEdgeLightFilterPara->CreateRenderProperty(RSUIFilterType::EDGE_LIGHT_COLOR);
     EXPECT_NE(renderProperty, nullptr);
 }
 } // namespace OHOS::Rosen
