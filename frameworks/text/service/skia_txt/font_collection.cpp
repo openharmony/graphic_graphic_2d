@@ -203,6 +203,7 @@ std::vector<std::shared_ptr<Drawing::Typeface>> FontCollection::LoadThemeFont(
 
 void FontCollection::ClearThemeFont()
 {
+    std::unique_lock lock(mutex_);
     for (const auto& themeFamily : SPText::DefaultFamilyNameMgr::GetInstance().GetThemeFontFamilies()) {
         std::shared_ptr<Drawing::Typeface> face(dfmanager_->MatchFamilyStyle(themeFamily.c_str(), {}));
         TypefaceWithAlias ta(themeFamily, face);
@@ -226,11 +227,13 @@ bool FontCollection::UnloadFont(const std::string& familyName)
         return false;
     }
 
+    std::shared_lock readLock(mutex_);
     if (std::none_of(typefaceSet_.begin(), typefaceSet_.end(),
         [&familyName](const auto& ta) { return ta.GetAlias() == familyName; })) {
         TEXT_LOGE("Unload a font which is not loaded: %{public}s", familyName.c_str());
         return true;
     }
+    readLock.unlock();
 
     LoadFontCallback cb(this, familyName, unloadFontStartCallback_, unloadFontFinishCallback_);
     std::unique_lock<std::shared_mutex> lock(mutex_);
