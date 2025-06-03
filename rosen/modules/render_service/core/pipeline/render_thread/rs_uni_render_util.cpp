@@ -45,7 +45,7 @@
 #include "platform/common/rs_log.h"
 #include "property/rs_properties.h"
 #include "render/rs_drawing_filter.h"
-#include "render/rs_maskcolor_shader_filter.h"
+#include "render/rs_render_maskcolor_filter.h"
 #include "render/rs_material_filter.h"
 #include "render/rs_path.h"
 #include "utils/graphic_coretrace.h"

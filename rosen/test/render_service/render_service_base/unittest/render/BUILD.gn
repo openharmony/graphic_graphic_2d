@@ -23,7 +23,7 @@ ohos_unittest("RSAibarShaderFilterTest") {
   module_out_path = module_output_path
 
   sources = [
-    "rs_aibar_shader_filter_test.cpp",
+    "rs_render_aibar_filter_test.cpp",
     "rs_attraction_effect_filter_test.cpp",
     "rs_blur_filter_test.cpp",
     "rs_color_gradient_shader_filter_test.cpp",
@@ -80,7 +80,7 @@ ohos_unittest("RSAibarShaderFilterTest") {
 ohos_unittest("RSAlwaysSnapshotShaderFilterTest") {
   module_out_path = module_output_path
 
-  sources = [ "rs_always_snapshot_shader_filter_test.cpp" ]
+  sources = [ "rs_render_always_snapshot_filter_test.cpp" ]
 
   cflags = [
     "-Dprivate=public",
@@ -501,7 +501,7 @@ ohos_unittest("RSHveFilterTest") {
 ohos_unittest("RSMESABlurShaderFilterTest") {
   module_out_path = module_output_path
 
-  sources = [ "rs_mesa_blur_shader_filter_test.cpp" ]
+  sources = [ "rs_render_mesa_blur_filter_test.cpp" ]
 
   cflags = [
     "-Dprivate=public",
@@ -552,7 +552,7 @@ ohos_unittest("RSMESABlurShaderFilterTest") {
 ohos_unittest("RSLightBlurShaderFilterTest") {
   module_out_path = module_output_path
 
-  sources = [ "rs_light_blur_shader_filter_test.cpp" ]
+  sources = [ "rs_render_light_blur_filter_test.cpp" ]
 
   cflags = [
     "-Dprivate=public",
@@ -657,9 +657,9 @@ ohos_unittest("RSMagnifierShaderFilterTest") {
 
   sources = [
     "rs_flow_light_sweep_shader_test.cpp",
-    "rs_magnifier_shader_filter_test.cpp",
+    "rs_render_magnifier_filter_test.cpp",
     "rs_mask_test.cpp",
-    "rs_maskcolor_shader_filter_test.cpp",
+    "rs_render_maskcolor_filter_test.cpp",
   ]
 
   cflags = [
@@ -788,7 +788,7 @@ ohos_unittest("RSPixelMapUtilTest") {
     "rs_skia_filter_test.cpp",
     "rs_spherize_effect_filter_test.cpp",
     "rs_typeface_cache_test.cpp",
-    "rs_water_ripple_shader_filter_test.cpp",
+    "rs_render_water_ripple_filter_test.cpp",
   ]
 
   cflags = [

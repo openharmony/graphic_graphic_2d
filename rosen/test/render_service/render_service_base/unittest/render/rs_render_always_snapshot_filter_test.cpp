@@ -15,7 +15,7 @@
 
 #include "gtest/gtest.h"
 
-#include "render/rs_always_snapshot_shader_filter.h"
+#include "render/rs_render_always_snapshot_filter.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -37,7 +37,7 @@ void RSAlwaysSnapshotShaderFilterTest::TearDown() {}
 
 /**
  * @tc.name: RSAlwaysSnapshotShaderFilterTest001
- * @tc.desc: Verify function GetShaderFilterType
+ * @tc.desc: Verify function GetType
  * @tc.type: FUNC
  * @tc.require: issueIC5TKO
  */
@@ -45,7 +45,7 @@ HWTEST_F(RSAlwaysSnapshotShaderFilterTest, RSAlwaysSnapshotShaderFilterTest001, 
 {
     auto filter = std::make_shared<RSAlwaysSnapshotShaderFilter>();
     ASSERT_NE(filter, nullptr);
-    EXPECT_FALSE(filter->GetShaderFilterType(), RSShaderFilter::ShaderFilterType::ALWAYS_SNAPSHOT);
+    EXPECT_TRUE(filter->GetType() == RSUIFilterType::ALWAYS_SNAPSHOT);
 }
 } // namespace Rosen
 } // namespace OHOS

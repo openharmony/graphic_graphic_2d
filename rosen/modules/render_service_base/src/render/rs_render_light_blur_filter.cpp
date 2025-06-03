@@ -13,9 +13,14 @@
  * limitations under the License.
  */
 
+#include "render/rs_render_light_blur_filter.h"
+
+#include "ge_visual_effect.h"
+#include "ge_visual_effect_container.h"
+
 #include "draw/surface.h"
 #include "platform/common/rs_log.h"
-#include "render/rs_light_blur_shader_filter.h"
+
 namespace OHOS {
 namespace Rosen {
 namespace {
@@ -27,11 +32,6 @@ const Drawing::SamplingOptions SAMPLING_OPTIONS(Drawing::FilterMode::LINEAR, Dra
 }
 std::shared_ptr<Drawing::RuntimeEffect> RSLightBlurShaderFilter::downSample4xAndMixShader_ = nullptr;
 std::shared_ptr<Drawing::RuntimeEffect> RSLightBlurShaderFilter::downSample4xShader_ = nullptr;
-
-RSLightBlurShaderFilter::RSLightBlurShaderFilter(int radius) : radius_(radius)
-{
-    type_ = ShaderFilterType::LIGHT_BLUR;
-}
 
 bool RSLightBlurShaderFilter::InitDownSample4xAndMixShader()
 {

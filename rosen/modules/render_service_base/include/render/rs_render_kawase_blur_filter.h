@@ -16,15 +16,16 @@
 #define RENDER_SERVICE_CLIENT_CORE_RENDER_RS_KAWASE_BLUR_SHADER_FILTER_H
 
 #include "render/rs_drawing_filter.h"
+#include "render/rs_render_filter_base.h"
 
 namespace OHOS {
 namespace Rosen {
-class RSB_EXPORT RSKawaseBlurShaderFilter : public RSShaderFilter {
+class RSB_EXPORT RSKawaseBlurShaderFilter : public RSRenderFilterParaBase {
 public:
     RSKawaseBlurShaderFilter(int radius);
-    ~RSKawaseBlurShaderFilter() override;
+    ~RSKawaseBlurShaderFilter() override = default;
     int GetRadius() const;
-    std::string GetDescription() const;
+    void GetDescription(std::string& out) const override;
     void GenerateGEVisualEffect(std::shared_ptr<Drawing::GEVisualEffectContainer> visualEffectContainer) override;
     static void SetMesablurAllEnabledByCCM(bool flag);
 

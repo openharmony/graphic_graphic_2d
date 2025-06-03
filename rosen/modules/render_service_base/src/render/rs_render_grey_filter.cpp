@@ -12,7 +12,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "render/rs_grey_shader_filter.h"
+#include "render/rs_render_grey_filter.h"
+
+#include "ge_visual_effect.h"
+#include "ge_visual_effect_container.h"
 
 #include "pipeline/rs_paint_filter_canvas.h"
 
@@ -20,14 +23,11 @@
 namespace OHOS {
 namespace Rosen {
 RSGreyShaderFilter::RSGreyShaderFilter(float greyCoefLow, float greyCoefHigh)
-    : greyCoefLow_(greyCoefLow), greyCoefHigh_(greyCoefHigh)
+    : RSRenderFilterParaBase(RSUIFilterType::GREY), greyCoefLow_(greyCoefLow), greyCoefHigh_(greyCoefHigh)
 {
-    type_ = ShaderFilterType::GREY;
     hash_ = SkOpts::hash(&greyCoefLow_, sizeof(greyCoefLow_), hash_);
     hash_ = SkOpts::hash(&greyCoefHigh_, sizeof(greyCoefHigh_), hash_);
 }
-
-RSGreyShaderFilter::~RSGreyShaderFilter() {};
 
 float RSGreyShaderFilter::GetGreyCoefLow() const
 {

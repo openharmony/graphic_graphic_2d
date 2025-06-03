@@ -15,23 +15,23 @@
 
 #include "drawable/rs_property_drawable_utils.h"
 
-#include "common/rs_optional_trace.h"
 #include "common/rs_obj_abs_geometry.h"
+#include "common/rs_optional_trace.h"
 #include "platform/common/rs_log.h"
 #include "property/rs_properties_painter.h"
 #include "render/rs_blur_filter.h"
+#include "render/rs_color_picker.h"
 #include "render/rs_drawing_filter.h"
 #include "render/rs_foreground_effect_filter.h"
-#include "render/rs_kawase_blur_shader_filter.h"
-#include "render/rs_mesa_blur_shader_filter.h"
-#include "render/rs_linear_gradient_blur_shader_filter.h"
-#include "render/rs_magnifier_shader_filter.h"
 #include "render/rs_material_filter.h"
 #include "render/rs_motion_blur_filter.h"
-#include "render/rs_shader_filter.h"
-#include "render/rs_color_picker.h"
-#include "render/rs_maskcolor_shader_filter.h"
+#include "render/rs_render_kawase_blur_filter.h"
+#include "render/rs_render_linear_gradient_blur_filter.h"
+#include "render/rs_render_magnifier_filter.h"
+#include "render/rs_render_maskcolor_filter.h"
+#include "render/rs_render_mesa_blur_filter.h"
 #include "utils/graphic_coretrace.h"
+
 
 namespace OHOS {
 namespace Rosen {
@@ -316,8 +316,7 @@ void RSPropertyDrawableUtils::DrawFilter(Drawing::Canvas* canvas,
         paintFilterCanvas->SetAlpha(1.0);
     }
     auto imageClipIBounds = clipIBounds;
-    std::shared_ptr<RSShaderFilter> magnifierShaderFilter =
-        filter->GetShaderFilterWithType(RSShaderFilter::MAGNIFIER);
+    auto magnifierShaderFilter = filter->GetShaderFilterWithType(RSUIFilterType::MAGNIFIER);
     if (magnifierShaderFilter != nullptr) {
         auto tmpFilter = std::static_pointer_cast<RSMagnifierShaderFilter>(magnifierShaderFilter);
         auto canvasMatrix = canvas->GetTotalMatrix();
@@ -331,8 +330,7 @@ void RSPropertyDrawableUtils::DrawFilter(Drawing::Canvas* canvas,
         if (cacheManager->GetCachedType() == FilterCacheType::FILTERED_SNAPSHOT) {
             g_blurCnt--;
         }
-        std::shared_ptr<RSShaderFilter> rsShaderFilter =
-            filter->GetShaderFilterWithType(RSShaderFilter::LINEAR_GRADIENT_BLUR);
+        auto rsShaderFilter = filter->GetShaderFilterWithType(RSUIFilterType::LINEAR_GRADIENT_BLUR);
         if (rsShaderFilter != nullptr) {
             auto tmpFilter = std::static_pointer_cast<RSLinearGradientBlurShaderFilter>(rsShaderFilter);
             tmpFilter->IsOffscreenCanvas(true);
@@ -343,8 +341,7 @@ void RSPropertyDrawableUtils::DrawFilter(Drawing::Canvas* canvas,
     }
 #endif
 
-    std::shared_ptr<RSShaderFilter> rsShaderFilter =
-        filter->GetShaderFilterWithType(RSShaderFilter::LINEAR_GRADIENT_BLUR);
+    auto rsShaderFilter = filter->GetShaderFilterWithType(RSUIFilterType::LINEAR_GRADIENT_BLUR);
     if (rsShaderFilter != nullptr) {
         auto tmpFilter = std::static_pointer_cast<RSLinearGradientBlurShaderFilter>(rsShaderFilter);
         tmpFilter->IsOffscreenCanvas(true);
@@ -1365,8 +1362,7 @@ bool RSPropertyDrawableUtils::RSFilterSetPixelStretch(const RSProperties& proper
         return false;
     }
     auto drawingFilter = std::static_pointer_cast<RSDrawingFilter>(filter);
-    std::shared_ptr<RSShaderFilter> mesaShaderFilter =
-        drawingFilter->GetShaderFilterWithType(RSShaderFilter::MESA);
+    auto mesaShaderFilter = drawingFilter->GetShaderFilterWithType(RSUIFilterType::MESA);
     if (!mesaShaderFilter) {
         return false;
     }
@@ -1402,8 +1398,7 @@ void RSPropertyDrawableUtils::RSFilterRemovePixelStretch(const std::shared_ptr<R
         return;
     }
     auto drawingFilter = std::static_pointer_cast<RSDrawingFilter>(filter);
-    std::shared_ptr<RSShaderFilter> mesaShaderFilter =
-        drawingFilter->GetShaderFilterWithType(RSShaderFilter::MESA);
+    auto mesaShaderFilter = drawingFilter->GetShaderFilterWithType(RSUIFilterType::MESA);
     if (!mesaShaderFilter) {
         return;
     }
@@ -1431,7 +1426,7 @@ std::shared_ptr<RSFilter> RSPropertyDrawableUtils::GenerateBehindWindowFilter(fl
         auto colorImageFilter = Drawing::ImageFilter::CreateColorFilterImageFilter(*colorFilter, nullptr);
         filter = filter?
             filter->Compose(colorImageFilter, hash) : std::make_shared<RSDrawingFilter>(colorImageFilter, hash);
-        filter = filter->Compose(std::static_pointer_cast<RSShaderFilter>(kawaseBlurFilter));
+        filter = filter->Compose(std::static_pointer_cast<RSRenderFilterParaBase>(kawaseBlurFilter));
     } else {
         hash = SkOpts::hash(&saturation, sizeof(saturation), hash);
         hash = SkOpts::hash(&brightness, sizeof(brightness), hash);
@@ -1440,7 +1435,7 @@ std::shared_ptr<RSFilter> RSPropertyDrawableUtils::GenerateBehindWindowFilter(fl
     }
     std::shared_ptr<RSMaskColorShaderFilter> maskColorShaderFilter = std::make_shared<RSMaskColorShaderFilter>(
         BLUR_COLOR_MODE::DEFAULT, maskColor);
-    filter = filter->Compose(std::static_pointer_cast<RSShaderFilter>(maskColorShaderFilter));
+    filter = filter->Compose(std::static_pointer_cast<RSRenderFilterParaBase>(maskColorShaderFilter));
     filter->SetSkipFrame(RSDrawingFilter::CanSkipFrame(radius));
     filter->SetSaturationForHPS(saturation);
     filter->SetBrightnessForHPS(brightness);
@@ -1491,8 +1486,7 @@ float RSPropertyDrawableUtils::GetBlurFilterRadius(const std::shared_ptr<RSFilte
         case RSFilter::LINEAR_GRADIENT_BLUR :
             {
                 auto filter = std::static_pointer_cast<RSDrawingFilter>(rsFilter);
-                std::shared_ptr<RSShaderFilter> rsShaderFilter =
-                    filter->GetShaderFilterWithType(RSShaderFilter::LINEAR_GRADIENT_BLUR);
+                auto rsShaderFilter = filter->GetShaderFilterWithType(RSUIFilterType::LINEAR_GRADIENT_BLUR);
                 if (rsShaderFilter != nullptr) {
                     auto tmpFilter = std::static_pointer_cast<RSLinearGradientBlurShaderFilter>(rsShaderFilter);
                     return tmpFilter->GetLinearGradientBlurRadius();

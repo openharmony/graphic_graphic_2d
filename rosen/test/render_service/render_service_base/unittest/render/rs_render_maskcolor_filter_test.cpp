@@ -18,7 +18,7 @@
 #include "inner_event.h"
 #include "gtest/gtest.h"
 
-#include "render/rs_maskcolor_shader_filter.h"
+#include "render/rs_render_maskcolor_filter.h"
 using namespace testing;
 using namespace testing::ext;
 namespace OHOS {

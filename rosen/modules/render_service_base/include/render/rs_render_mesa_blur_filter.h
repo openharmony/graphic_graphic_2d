@@ -17,11 +17,12 @@
 
 #include "rs_pixel_stretch_params.h"
 #include "render/rs_drawing_filter.h"
+#include "render/rs_render_filter_base.h"
 #include <mutex>
 
 namespace OHOS {
 namespace Rosen {
-class RSB_EXPORT RSMESABlurShaderFilter : public RSShaderFilter {
+class RSB_EXPORT RSMESABlurShaderFilter : public RSRenderFilterParaBase {
 public:
     RSMESABlurShaderFilter(int radius);
     RSMESABlurShaderFilter(int radius, float greyCoefLow, float greyCoefHigh);

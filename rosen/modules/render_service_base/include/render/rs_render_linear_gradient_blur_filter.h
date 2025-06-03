@@ -16,18 +16,18 @@
 #define RENDER_SERVICE_CLIENT_CORE_RENDER_RS_LINEAR_GRADIENT_BLUR_SHADER_FILTER_H
 
 #include "render/rs_gradient_blur_para.h"
-#include "render/rs_shader_filter.h"
+#include "render/rs_render_filter_base.h"
 
 
 namespace OHOS {
 namespace Rosen {
-class RSLinearGradientBlurShaderFilter : public RSShaderFilter {
+class RSLinearGradientBlurShaderFilter : public RSRenderFilterParaBase {
 public:
     RSLinearGradientBlurShaderFilter(const std::shared_ptr<RSLinearGradientBlurPara>& para,
         const float geoWidth, const float geoHeight);
     RSLinearGradientBlurShaderFilter(const RSLinearGradientBlurShaderFilter&) = delete;
     RSLinearGradientBlurShaderFilter operator=(const RSLinearGradientBlurShaderFilter&) = delete;
-    ~RSLinearGradientBlurShaderFilter() override;
+    ~RSLinearGradientBlurShaderFilter() override = default;
 
     void GenerateGEVisualEffect(std::shared_ptr<Drawing::GEVisualEffectContainer> visualEffectContainer) override;
     void SetGeometry(Drawing::Canvas& canvas, float geoWidth, float geoHeight)

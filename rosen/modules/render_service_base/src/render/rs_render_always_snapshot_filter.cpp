@@ -12,13 +12,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "render/rs_always_snapshot_shader_filter.h"
+#include "render/rs_render_always_snapshot_filter.h"
 
 namespace OHOS {
 namespace Rosen {
-RSAlwaysSnapshotShaderFilter::RSAlwaysSnapshotShaderFilter()
+RSAlwaysSnapshotShaderFilter::RSAlwaysSnapshotShaderFilter() : RSRenderFilterParaBase(RSUIFilterType::ALWAYS_SNAPSHOT)
 {
-    type_ = ShaderFilterType::ALWAYS_SNAPSHOT;
     hash_ = SkOpts::hash(&type_, sizeof(type_), 0);
 }
 

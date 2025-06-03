@@ -14,24 +14,23 @@
  */
 #ifndef RENDER_SERVICE_CLIENT_CORE_RENDER_RS_WATER_RIPPLE_SHADER_FILTER_H
 #define RENDER_SERVICE_CLIENT_CORE_RENDER_RS_WATER_RIPPLE_SHADER_FILTER_H
- 
-#include "render/rs_drawing_filter.h"
-#include "property/rs_properties.h"
+
+#include "render/rs_render_filter_base.h"
  
 namespace OHOS {
 namespace Rosen {
-class RSB_EXPORT RSWaterRippleShaderFilter : public RSShaderFilter {
+class RSB_EXPORT RSWaterRippleShaderFilter : public RSRenderFilterParaBase {
 public:
     RSWaterRippleShaderFilter(const float progress, const uint32_t waveCount, const float rippleCenterX,
         const float rippleCenterY, const uint32_t rippleMode);
-    ~RSWaterRippleShaderFilter() override;
+    ~RSWaterRippleShaderFilter() override = default;
     float GetProgress() const;
-    uint32_t GetwaveCount() const;
+    uint32_t GetWaveCount() const;
     float GetRippleCenterX() const;
     float GetRippleCenterY() const;
     uint32_t GetRippleMode() const;
     void GenerateGEVisualEffect(std::shared_ptr<Drawing::GEVisualEffectContainer> visualEffectContainer) override;
- 
+
 private:
     static constexpr char RS_FILTER_WATER_RIPPLE_PROGRESS[] = "PROGRESS";
     static constexpr char RS_FILTER_WATER_RIPPLE_WAVE_NUM[] = "WAVE_NUM";

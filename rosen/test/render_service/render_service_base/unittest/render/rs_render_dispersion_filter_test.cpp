@@ -12,8 +12,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include "ge_shader_filter_params.h"
+#include "ge_visual_effect.h"
+#include "ge_visual_effect_container.h"
 #include "gtest/gtest.h"
+
 #include "render/rs_render_dispersion_filter.h"
+#include "render/rs_shader_mask.h"
+
 
 using namespace testing;
 using namespace testing::ext;
@@ -55,7 +61,7 @@ HWTEST_F(RSRenderDispersionFilterTest, CreateRenderProperty001, TestSize.Level1)
     auto rsRenderDispersionFilterPara = std::make_shared<RSRenderDispersionFilterPara>(0);
 
     auto renderPropert = rsRenderDispersionFilterPara->CreateRenderProperty(RSUIFilterType::PIXEL_MAP_MASK);
-    EXPECT_NE(renderPropert, nullptr);
+    EXPECT_EQ(renderPropert, nullptr);
 
     renderPropert = rsRenderDispersionFilterPara->CreateRenderProperty(RSUIFilterType::RADIAL_GRADIENT_MASK);
     EXPECT_EQ(renderPropert, nullptr);
@@ -113,9 +119,93 @@ HWTEST_F(RSRenderDispersionFilterTest, GetLeafRenderProperties001, TestSize.Leve
  */
 HWTEST_F(RSRenderDispersionFilterTest, GetRenderMask001, TestSize.Level1)
 {
-    auto rsRenderDispersionFilterPara = std::make_shared<RSRenderDispersionFilterPara>(0);
-    auto renderMask = rsRenderDispersionFilterPara->GetRenderMask();
+    auto rsRenderDispersionFilter = std::make_shared<RSRenderDispersionFilterPara>(0, RSUIFilterType::PIXEL_MAP_MASK);
+    auto renderMask = rsRenderDispersionFilter->GetRenderMask();
+    EXPECT_EQ(renderMask, nullptr);
+
+    auto maskRenderProperty = std::make_shared<RSRenderMaskPara>(RSUIFilterType::PIXEL_MAP_MASK);
+    rsRenderDispersionFilter->Setter(RSUIFilterType::PIXEL_MAP_MASK, maskRenderProperty);
+    renderMask = rsRenderDispersionFilter->GetRenderMask();
     EXPECT_NE(renderMask, nullptr);
 }
 
+/**
+ * @tc.name: GenerateGEVisualEffect001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderDispersionFilterTest, GenerateGEVisualEffect001, TestSize.Level1)
+{
+    auto filter = std::make_shared<RSRenderDispersionFilterPara>(0);
+
+    filter->mask_ = nullptr;
+    filter->opacity_ = 0.5f;
+    filter->redOffsetX_ = 0.5f;
+    filter->redOffsetY_ = 0.5f;
+    filter->greenOffsetX_ = 0.5f;
+    filter->greenOffsetY_ = 0.5f;
+    filter->blueOffsetX_ = 0.5f;
+    filter->blueOffsetY_ = 0.5f;
+
+    auto visualEffectContainer = std::make_shared<Drawing::GEVisualEffectContainer>();
+    filter->GenerateGEVisualEffect(nullptr);
+    EXPECT_TRUE(visualEffectContainer->filterVec_.empty());
+
+    filter->GenerateGEVisualEffect(visualEffectContainer);
+    EXPECT_FALSE(visualEffectContainer->filterVec_.empty());
+
+    filter->mask_ = std::make_shared<RSShaderMask>(std::make_shared<RSRenderMaskPara>(RSUIFilterType::PIXEL_MAP_MASK));
+    filter->GenerateGEVisualEffect(visualEffectContainer);
+    EXPECT_FALSE(visualEffectContainer->filterVec_.empty());
+}
+
+/**
+ * @tc.name: GetMask001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderDispersionFilterTest, GetMask001, TestSize.Level1)
+{
+    auto filter = std::make_shared<RSRenderDispersionFilterPara>(0);
+    EXPECT_EQ(filter->GetMask(), nullptr);
+
+    auto mask = std::make_shared<RSShaderMask>(std::make_shared<RSRenderMaskPara>(RSUIFilterType::RIPPLE_MASK));
+    filter->mask_ = mask;
+    EXPECT_EQ(filter->GetMask(), mask);
+}
+
+/**
+ * @tc.name: ParseFilterValuesTest001
+ * @tc.desc: Verify function ParseFilterValues
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderDispersionFilterTest, ParseFilterValuesTest001, TestSize.Level1)
+{
+    auto filter = std::make_shared<RSRenderDispersionFilterPara>(0, RSUIFilterType::RIPPLE_MASK);
+    EXPECT_FALSE(filter->ParseFilterValues());
+
+    auto redOffsetProperty = std::make_shared<RSRenderAnimatableProperty<Vector2f>>(
+        Vector2f(0.5f, 0.5f), 0, RSRenderPropertyType::PROPERTY_VECTOR2F);
+    filter->Setter(RSUIFilterType::DISPERSION_RED_OFFSET, redOffsetProperty);
+    EXPECT_FALSE(filter->ParseFilterValues());
+
+    auto greenOffsetProperty = std::make_shared<RSRenderAnimatableProperty<Vector2f>>(
+        Vector2f(0.5f, 0.5f), 0, RSRenderPropertyType::PROPERTY_VECTOR2F);
+    filter->Setter(RSUIFilterType::DISPERSION_GREEN_OFFSET, greenOffsetProperty);
+    EXPECT_FALSE(filter->ParseFilterValues());
+
+    auto blueOffsetProperty = std::make_shared<RSRenderAnimatableProperty<Vector2f>>(
+        Vector2f(0.5f, 0.5f), 0, RSRenderPropertyType::PROPERTY_VECTOR2F);
+    filter->Setter(RSUIFilterType::DISPERSION_BLUE_OFFSET, blueOffsetProperty);
+    EXPECT_FALSE(filter->ParseFilterValues());
+
+    auto opacityProperty =
+        std::make_shared<RSRenderAnimatableProperty<float>>(0.5f, 0, RSRenderPropertyType::PROPERTY_VECTOR2F);
+    filter->Setter(RSUIFilterType::DISPERSION_OPACITY, opacityProperty);
+    EXPECT_TRUE(filter->ParseFilterValues());
+
+    auto maskRenderProperty = std::make_shared<RSRenderMaskPara>(RSUIFilterType::RIPPLE_MASK);
+    filter->Setter(RSUIFilterType::RIPPLE_MASK, maskRenderProperty);
+    EXPECT_TRUE(filter->ParseFilterValues());
+}
 } // namespace OHOS::Rosen

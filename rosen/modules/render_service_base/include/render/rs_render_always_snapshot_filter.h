@@ -15,11 +15,11 @@
 #ifndef RENDER_SERVICE_BASE_CORE_RENDER_RS_ALWAYS_SNAPSHOT_SHADER_FILTER_H
 #define RENDER_SERVICE_BASE_CORE_RENDER_RS_ALWAYS_SNAPSHOT_SHADER_FILTER_H
 
-#include "render/rs_shader_filter.h"
+#include "render/rs_render_filter_base.h"
 
 namespace OHOS {
 namespace Rosen {
-class RSB_EXPORT RSAlwaysSnapshotShaderFilter : public RSShaderFilter {
+class RSB_EXPORT RSAlwaysSnapshotShaderFilter : public RSRenderFilterParaBase {
 public:
     RSAlwaysSnapshotShaderFilter();
     RSAlwaysSnapshotShaderFilter(const RSAlwaysSnapshotShaderFilter&) = delete;

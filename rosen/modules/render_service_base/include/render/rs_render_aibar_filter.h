@@ -12,27 +12,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef RENDER_SERVICE_CLIENT_CORE_RENDER_RS_GREY_SHADER_FILTER_H
-#define RENDER_SERVICE_CLIENT_CORE_RENDER_RS_GREY_SHADER_FILTER_H
+#ifndef RENDER_SERVICE_CLIENT_CORE_RENDER_RS_AIBAR_SHADER_FILTER_H
+#define RENDER_SERVICE_CLIENT_CORE_RENDER_RS_AIBAR_SHADER_FILTER_H
 
-#include "render/rs_shader_filter.h"
+#include "render/rs_render_filter_base.h"
 
 namespace OHOS {
 namespace Rosen {
-class RSB_EXPORT RSGreyShaderFilter : public RSShaderFilter {
+class RSB_EXPORT RSAIBarShaderFilter : public RSRenderFilterParaBase {
 public:
-    RSGreyShaderFilter(float greyCoefLow, float greyCoefHigh);
-    ~RSGreyShaderFilter() override;
+    RSAIBarShaderFilter() : RSRenderFilterParaBase(RSUIFilterType::AIBAR) {}
+    RSAIBarShaderFilter(const RSAIBarShaderFilter&) = delete;
+    RSAIBarShaderFilter operator=(const RSAIBarShaderFilter&) = delete;
+    ~RSAIBarShaderFilter() override = default;
 
-    float GetGreyCoefLow() const;
-    float GetGreyCoefHigh() const;
     void GenerateGEVisualEffect(std::shared_ptr<Drawing::GEVisualEffectContainer> visualEffectContainer) override;
+
+    static bool IsAiInvertCoefValid(const std::vector<float>& aiInvertCoef);
+    static std::vector<float> GetAiInvertCoef();
+
 private:
-    float greyCoefLow_ = 0.f;
-    float greyCoefHigh_ = 0.f;
     friend class RSMarshallingHelper;
 };
 } // namespace Rosen
 } // namespace OHOS
 
-#endif // RENDER_SERVICE_CLIENT_CORE_RENDER_RS_GREY_SHADER_FILTER_H
+#endif // RENDER_SERVICE_CLIENT_CORE_RENDER_RS_AIBAR_SHADER_FILTER_H

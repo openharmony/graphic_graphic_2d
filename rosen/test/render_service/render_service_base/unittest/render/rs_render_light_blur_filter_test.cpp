@@ -18,9 +18,8 @@
 
 #include "draw/brush.h"
 #include "image/image.h"
-#include "render/rs_kawase_blur_shader_filter.h"
-#include "render/rs_light_blur_shader_filter.h"
-#include "render/rs_shader_filter.h"
+#include "render/rs_render_kawase_blur_filter.h"
+#include "render/rs_render_light_blur_filter.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -42,7 +41,7 @@ void RSLightBlurShaderFilterTest::TearDown() {}
 
 /**
  * @tc.name: RSLightBlurShaderFilterTest001
- * @tc.desc: Verify function GetRadius and GetShaderFilterType
+ * @tc.desc: Verify function GetRadius and GetType
  * @tc.type:FUNC
  * @tc.require: issuesI9UWCD
  */
@@ -50,7 +49,7 @@ HWTEST_F(RSLightBlurShaderFilterTest, RSLightBlurShaderFilterTest001, TestSize.L
 {
     int radius = 1;
     auto filter = std::make_shared<RSLightBlurShaderFilter>(radius);
-    EXPECT_EQ(filter->GetShaderFilterType(), RSShaderFilter::ShaderFilterType::LIGHT_BLUR);
+    EXPECT_EQ(filter->GetType(), RSUIFilterType::LIGHT_BLUR);
     EXPECT_EQ(filter->GetRadius(), 1);
 }
 

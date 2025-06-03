@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "render/rs_maskcolor_shader_filter.h"
+#include "render/rs_render_maskcolor_filter.h"
 #ifdef USE_M133_SKIA
 #include "include/core/SkColor.h"
 #endif
@@ -23,9 +23,8 @@ namespace Rosen {
 constexpr float MAX_ALPHA = 255.0f;
 
 RSMaskColorShaderFilter::RSMaskColorShaderFilter(int colorMode, RSColor maskColor)
-    : colorMode_(colorMode), maskColor_(maskColor)
+    : RSRenderFilterParaBase(RSUIFilterType::MASK_COLOR), colorMode_(colorMode), maskColor_(maskColor)
 {
-    type_ = ShaderFilterType::MASK_COLOR;
     hash_ = SkOpts::hash(&type_, sizeof(type_), 0);
     hash_ = SkOpts::hash(&colorMode_, sizeof(colorMode_), hash_);
     hash_ = SkOpts::hash(&maskColor_, sizeof(maskColor_), hash_);

@@ -12,23 +12,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "render/rs_aibar_shader_filter.h"
+#include "render/rs_render_aibar_filter.h"
 
 #include <unordered_map>
 
-#include "common/rs_common_def.h"
-#include "platform/common/rs_system_properties.h"
-#include "pipeline/rs_paint_filter_canvas.h"
+#include "ge_visual_effect.h"
+#include "ge_visual_effect_container.h"
 #include "src/core/SkOpts.h"
 
+#include "common/rs_common_def.h"
+#include "pipeline/rs_paint_filter_canvas.h"
+#include "platform/common/rs_system_properties.h"
 
 namespace OHOS {
 namespace Rosen {
-RSAIBarShaderFilter::RSAIBarShaderFilter()
-{
-    type_ = ShaderFilterType::AIBAR;
-}
-RSAIBarShaderFilter::~RSAIBarShaderFilter() = default;
 
 std::vector<float> RSAIBarShaderFilter::GetAiInvertCoef()
 {

@@ -20,11 +20,11 @@
 #include "effect/color_filter.h"
 #include "effect/color_matrix.h"
 #include "pipeline/rs_paint_filter_canvas.h"
-#include "render/rs_shader_filter.h"
+#include "render/rs_render_filter_base.h"
 
 namespace OHOS {
 namespace Rosen {
-class RSB_EXPORT RSMaskColorShaderFilter : public RSShaderFilter {
+class RSB_EXPORT RSMaskColorShaderFilter : public RSRenderFilterParaBase {
 public:
     RSMaskColorShaderFilter(int colorMode, RSColor maskColor);
     RSMaskColorShaderFilter(const RSMaskColorShaderFilter&) = delete;

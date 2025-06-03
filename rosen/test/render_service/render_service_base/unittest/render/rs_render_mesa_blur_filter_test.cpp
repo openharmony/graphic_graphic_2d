@@ -14,7 +14,9 @@
  */
 #include "gtest/gtest.h"
 
-#include "render/rs_mesa_blur_shader_filter.h"
+#include "ge_visual_effect.h"
+#include "ge_visual_effect_container.h"
+#include "render/rs_render_mesa_blur_filter.h"
 #include "render/rs_pixel_stretch_params.h"
 
 using namespace testing;
@@ -34,6 +36,22 @@ void RSMESABlurShaderFilterTest::SetUpTestCase() {}
 void RSMESABlurShaderFilterTest::TearDownTestCase() {}
 void RSMESABlurShaderFilterTest::SetUp() {}
 void RSMESABlurShaderFilterTest::TearDown() {}
+
+/**
+ * @tc.name: RSMESABlurShaderFilterTest01
+ * @tc.desc: Verify function RSMESABlurShaderFilter
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMESABlurShaderFilterTest, RSMESABlurShaderFilterTest01, TestSize.Level1)
+{
+    // 1: blur param
+    int radius = 1;
+    float greyCoefw = 0.1f;
+    float greyCoefh = 0.1f;
+    auto mesaShaderFilter = std::make_shared<RSMESABlurShaderFilter>(radius, greyCoefw, greyCoefh);
+    EXPECT_EQ(mesaShaderFilter->GetRadius(), 1);
+}
 
 /**
  * @tc.name: GetRadiusTest

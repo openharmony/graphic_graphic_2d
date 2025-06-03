@@ -16,17 +16,17 @@
 #define RENDER_SERVICE_CLIENT_CORE_RENDER_RS_MAGNIFIER_SHADER_FILTER_H
 
 #include "render/rs_magnifier_para.h"
-#include "render/rs_shader_filter.h"
+#include "render/rs_render_filter_base.h"
 
 namespace OHOS {
 namespace Rosen {
 
-class RSB_EXPORT RSMagnifierShaderFilter : public RSShaderFilter {
+class RSB_EXPORT RSMagnifierShaderFilter : public RSRenderFilterParaBase {
 public:
     RSMagnifierShaderFilter(const std::shared_ptr<RSMagnifierParams>& para);
     RSMagnifierShaderFilter(const RSMagnifierShaderFilter&) = delete;
     RSMagnifierShaderFilter operator=(const RSMagnifierShaderFilter&) = delete;
-    ~RSMagnifierShaderFilter() override;
+    ~RSMagnifierShaderFilter() override = default;
 
     void GenerateGEVisualEffect(std::shared_ptr<Drawing::GEVisualEffectContainer> visualEffectContainer) override;
     void SetMagnifierOffset(Drawing::Matrix& mat);

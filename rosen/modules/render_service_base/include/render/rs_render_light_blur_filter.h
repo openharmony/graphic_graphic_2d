@@ -16,7 +16,7 @@
 #define RENDER_SERVICE_BASE_CORE_RENDER_RS_LIGHT_BLUR_SHADER_FILTER_H
 
 #include "common/rs_macros.h"
-#include "render/rs_shader_filter.h"
+#include "render/rs_render_filter_base.h"
 namespace OHOS {
 namespace Rosen {
 struct LightBlurParameter {
@@ -25,10 +25,14 @@ struct LightBlurParameter {
     Drawing::Brush brush;
 };
 
-class RSB_EXPORT RSLightBlurShaderFilter : public RSShaderFilter {
+namespace Drawing {
+class RuntimeEffect;
+}
+
+class RSB_EXPORT RSLightBlurShaderFilter : public RSRenderFilterParaBase {
 public:
-    RSLightBlurShaderFilter(int radius);
-    ~RSLightBlurShaderFilter() = default;
+    RSLightBlurShaderFilter(int radius) : RSRenderFilterParaBase(RSUIFilterType::LIGHT_BLUR), radius_(radius) {}
+    ~RSLightBlurShaderFilter() override = default;
     int GetRadius() const;
     void ApplyLightBlur(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
         const LightBlurParameter& param);

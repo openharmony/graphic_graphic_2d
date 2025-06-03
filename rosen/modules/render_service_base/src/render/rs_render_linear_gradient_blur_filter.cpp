@@ -12,8 +12,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "render/rs_linear_gradient_blur_shader_filter.h"
+#include "render/rs_render_linear_gradient_blur_filter.h"
 
+#include "ge_visual_effect.h"
+#include "ge_visual_effect_container.h"
 #include "src/core/SkOpts.h"
 
 
@@ -21,17 +23,14 @@ namespace OHOS {
 namespace Rosen {
 RSLinearGradientBlurShaderFilter::RSLinearGradientBlurShaderFilter(
     const std::shared_ptr<RSLinearGradientBlurPara>& para, const float geoWidth, const float geoHeight)
-    : linearGradientBlurPara_(para)
+    : RSRenderFilterParaBase(RSUIFilterType::LINEAR_GRADIENT_BLUR), linearGradientBlurPara_(para)
 {
-    type_ = ShaderFilterType::LINEAR_GRADIENT_BLUR;
     geoWidth_ = geoWidth;
     geoHeight_ = geoHeight;
     hash_ = SkOpts::hash(&linearGradientBlurPara_, sizeof(linearGradientBlurPara_), 0);
     hash_ = SkOpts::hash(&geoWidth_, sizeof(geoWidth_), hash_);
     hash_ = SkOpts::hash(&geoHeight_, sizeof(geoHeight_), hash_);
 }
-
-RSLinearGradientBlurShaderFilter::~RSLinearGradientBlurShaderFilter() = default;
 
 void RSLinearGradientBlurShaderFilter::GenerateGEVisualEffect(
     std::shared_ptr<Drawing::GEVisualEffectContainer> visualEffectContainer)

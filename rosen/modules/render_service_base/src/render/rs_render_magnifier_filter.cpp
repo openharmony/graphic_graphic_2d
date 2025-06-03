@@ -12,10 +12,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "render/rs_magnifier_shader_filter.h"
+#include "render/rs_render_magnifier_filter.h"
+
+#include "ge_visual_effect.h"
+#include "ge_visual_effect_container.h"
+#include "src/core/SkOpts.h"
 
 #include "platform/common/rs_log.h"
-#include "src/core/SkOpts.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -24,13 +27,10 @@ constexpr static float FLOAT_ZERO_THRESHOLD = 0.001f;
 } // namespace
 
 RSMagnifierShaderFilter::RSMagnifierShaderFilter(const std::shared_ptr<RSMagnifierParams>& para)
-    : magnifierPara_(para)
+    : RSRenderFilterParaBase(RSUIFilterType::MAGNIFIER), magnifierPara_(para)
 {
-    type_ = ShaderFilterType::MAGNIFIER;
     hash_ = SkOpts::hash(&magnifierPara_, sizeof(magnifierPara_), hash_);
 }
-
-RSMagnifierShaderFilter::~RSMagnifierShaderFilter() = default;
 
 void RSMagnifierShaderFilter::GenerateGEVisualEffect(
     std::shared_ptr<Drawing::GEVisualEffectContainer> visualEffectContainer)

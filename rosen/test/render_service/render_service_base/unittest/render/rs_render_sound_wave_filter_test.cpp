@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 #include "gtest/gtest.h"
+#include "ge_visual_effect.h"
+#include "ge_visual_effect_container.h"
 #include "render/rs_render_sound_wave_filter.h"
 
 using namespace testing;
@@ -141,4 +143,96 @@ HWTEST_F(RSRenderSoundWaveFilterTest, GetLeafRenderProperties001, TestSize.Level
     EXPECT_TRUE(rsRenderPropertyBaseVec.empty());
 }
 
+/**
+ * @tc.name: RSRenderSoundWaveFilter001
+ * @tc.desc: Verify function RSRenderSoundWaveFilter
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderSoundWaveFilterTest, RSRenderSoundWaveFilter001, TestSize.Level1)
+{
+    Vector4f colorA = { 1.0f, 1.0f, 1.0f, 1.0f };
+    Vector4f colorB = { 1.0f, 1.0f, 1.0f, 1.0f };
+    Vector4f colorC = { 1.0f, 1.0f, 1.0f, 1.0f };
+    float colorProgress = 1.0f;
+    float soundIntensity = 1.5f;
+    float shockWaveAlphaA = 0.6f;
+    float shockWaveAlphaB = 0.8f;
+    float shockWaveProgressA = 0.7f;
+    float shockWaveProgressB = 1.0f;
+    float shockWaveTotalAlpha = 1.0f;
+    auto filter = std::make_shared<RSRenderSoundWaveFilterPara>(0);
+    EXPECT_NE(filter, nullptr);
+    EXPECT_TRUE(ROSEN_EQ<float>(filter->GetColorProgress(), colorProgress));
+    EXPECT_TRUE(ROSEN_EQ<float>(filter->GetSoundIntensity(), soundIntensity));
+    EXPECT_TRUE(ROSEN_EQ<float>(filter->GetShockWaveAlphaA(), shockWaveAlphaA));
+    EXPECT_TRUE(ROSEN_EQ<float>(filter->GetShockWaveAlphaB(), shockWaveAlphaB));
+    EXPECT_TRUE(ROSEN_EQ<float>(filter->GetShockWaveProgressA(), shockWaveProgressA));
+    EXPECT_TRUE(ROSEN_EQ<float>(filter->GetShockWaveProgressB(), shockWaveProgressB));
+    EXPECT_TRUE(ROSEN_EQ<float>(filter->GetShockWaveTotalAlpha(), shockWaveTotalAlpha));
+}
+
+/**
+ * @tc.name: ParseFilterValuesTest001
+ * @tc.desc: Verify function ParseFilterValues
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderSoundWaveFilterTest, ParseFilterValuesTest001, TestSize.Level1)
+{
+    auto filter = std::make_shared<RSRenderSoundWaveFilterPara>(0);
+    EXPECT_FALSE(filter->ParseFilterValues());
+
+    auto colorAProperty = std::make_shared<RSRenderProperty<Vector4f>>(
+        Vector4f(1.f, 1.f, 1.f, 1.f), 0, RSRenderPropertyType::PROPERTY_COLOR);
+    filter->Setter(RSUIFilterType::SOUND_WAVE_COLOR_A, colorAProperty);
+    EXPECT_FALSE(filter->ParseFilterValues());
+
+    auto colorBProperty = std::make_shared<RSRenderProperty<Vector4f>>(
+        Vector4f(1.f, 1.f, 1.f, 1.f), 0, RSRenderPropertyType::PROPERTY_COLOR);
+    filter->Setter(RSUIFilterType::SOUND_WAVE_COLOR_B, colorBProperty);
+    EXPECT_FALSE(filter->ParseFilterValues());
+
+    auto colorCProperty = std::make_shared<RSRenderProperty<Vector4f>>(
+        Vector4f(1.f, 1.f, 1.f, 1.f), 0, RSRenderPropertyType::PROPERTY_COLOR);
+    filter->Setter(RSUIFilterType::SOUND_WAVE_COLOR_C, colorCProperty);
+    EXPECT_FALSE(filter->ParseFilterValues());
+
+    auto colorProgressProperty =
+        std::make_shared<RSRenderAnimatableProperty<float>>(1.0f, 0, RSRenderPropertyType::PROPERTY_FLOAT);
+    filter->Setter(RSUIFilterType::SOUND_WAVE_COLOR_PROGRESS, colorProgressProperty);
+    EXPECT_FALSE(filter->ParseFilterValues());
+
+    auto soundIntensityProperty =
+        std::make_shared<RSRenderAnimatableProperty<float>>(1.0f, 0, RSRenderPropertyType::PROPERTY_FLOAT);
+    filter->Setter(RSUIFilterType::SOUND_INTENSITY, soundIntensityProperty);
+    EXPECT_FALSE(filter->ParseFilterValues());
+
+    auto shockWaveAlphaAProperty =
+        std::make_shared<RSRenderAnimatableProperty<float>>(1.0f, 0, RSRenderPropertyType::PROPERTY_FLOAT);
+    filter->Setter(RSUIFilterType::SHOCK_WAVE_ALPHA_A, shockWaveAlphaAProperty);
+    EXPECT_FALSE(filter->ParseFilterValues());
+
+    auto shockWaveAlphaBProperty =
+        std::make_shared<RSRenderAnimatableProperty<float>>(1.0f, 0, RSRenderPropertyType::PROPERTY_FLOAT);
+    filter->Setter(RSUIFilterType::SHOCK_WAVE_ALPHA_B, shockWaveAlphaBProperty);
+    EXPECT_FALSE(filter->ParseFilterValues());
+
+    auto shockWaveProgressAProperty =
+        std::make_shared<RSRenderAnimatableProperty<float>>(1.0f, 0, RSRenderPropertyType::PROPERTY_FLOAT);
+    filter->Setter(RSUIFilterType::SHOCK_WAVE_PROGRESS_A, shockWaveProgressAProperty);
+    EXPECT_FALSE(filter->ParseFilterValues());
+
+    auto shockWaveTotalProperty =
+        std::make_shared<RSRenderProperty<float>>(1.0f, 0, RSRenderPropertyType::PROPERTY_FLOAT);
+    filter->Setter(RSUIFilterType::SHOCK_WAVE_TOTAL_ALPHA, shockWaveTotalProperty);
+    EXPECT_FALSE(filter->ParseFilterValues());
+
+    auto shockWaveProgressBProperty =
+        std::make_shared<RSRenderAnimatableProperty<float>>(1.0f, 0, RSRenderPropertyType::PROPERTY_FLOAT);
+    filter->Setter(RSUIFilterType::SHOCK_WAVE_PROGRESS_B, shockWaveProgressBProperty);
+    EXPECT_TRUE(filter->ParseFilterValues());
+
+    auto visualEffectContainer = std::make_shared<Drawing::GEVisualEffectContainer>();
+    filter->GenerateGEVisualEffect(visualEffectContainer);
+    EXPECT_FALSE(visualEffectContainer->filterVec_.empty());
+}
 } // namespace OHOS::Rosen

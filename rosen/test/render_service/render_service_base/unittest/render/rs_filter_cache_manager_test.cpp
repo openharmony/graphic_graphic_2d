@@ -19,8 +19,8 @@
 #include "render/rs_filter_cache_manager.h"
 #include "render/rs_drawing_filter.h"
 #include "render/rs_filter.h"
-#include "render/rs_kawase_blur_shader_filter.h"
-#include "render/rs_magnifier_shader_filter.h"
+#include "render/rs_render_kawase_blur_filter.h"
+#include "render/rs_render_magnifier_filter.h"
 #include "skia_adapter/skia_surface.h"
 #include "skia_canvas.h"
 #include "skia_surface.h"
@@ -162,7 +162,7 @@ HWTEST_F(RSFilterCacheManagerTest, DrawFilterWithoutSnapshotTest, TestSize.Level
     auto rsFilterCacheManager = std::make_shared<RSFilterCacheManager>();
     Drawing::Canvas canvas;
     RSPaintFilterCanvas filterCanvas(&canvas);
-    auto shaderFilter = std::make_shared<RSShaderFilter>();
+    auto shaderFilter = std::make_shared<RSRenderFilterParaBase>();
     auto filter = std::make_shared<RSDrawingFilter>(shaderFilter);
     Drawing::RectI src;
     Drawing::RectI dst;
@@ -211,7 +211,7 @@ HWTEST_F(RSFilterCacheManagerTest, DrawFilterTest, TestSize.Level1)
     auto rsFilterCacheManager = std::make_shared<RSFilterCacheManager>();
     Drawing::Canvas canvas;
     RSPaintFilterCanvas filterCanvas(&canvas);
-    auto shaderFilter = std::make_shared<RSShaderFilter>();
+    auto shaderFilter = std::make_shared<RSRenderFilterParaBase>();
     auto filter = std::make_shared<RSDrawingFilter>(shaderFilter);
     bool shouldClearFilteredCache = false;
     // for test
@@ -265,7 +265,7 @@ HWTEST_F(RSFilterCacheManagerTest, GeneratedCachedEffectDataTest, TestSize.Level
     auto rsFilterCacheManager = std::make_shared<RSFilterCacheManager>();
     Drawing::Canvas canvas;
     RSPaintFilterCanvas filterCanvas(&canvas);
-    auto shaderFilter = std::make_shared<RSShaderFilter>();
+    auto shaderFilter = std::make_shared<RSRenderFilterParaBase>();
     auto filter = std::make_shared<RSDrawingFilter>(shaderFilter);
     // for test
     std::optional<Drawing::RectI> srcRect(Drawing::RectI { 0, 0, 100, 100 });
@@ -316,7 +316,7 @@ HWTEST_F(RSFilterCacheManagerTest, TakeSnapshotTest, TestSize.Level1)
     auto rsFilterCacheManager = std::make_shared<RSFilterCacheManager>();
     Drawing::Canvas canvas;
     RSPaintFilterCanvas filterCanvas(&canvas);
-    auto shaderFilter = std::make_shared<RSShaderFilter>();
+    auto shaderFilter = std::make_shared<RSRenderFilterParaBase>();
     auto filter = std::make_shared<RSDrawingFilter>(shaderFilter);
     // for test
     Drawing::RectI srcRect(0, 0, 100, 100);
@@ -329,7 +329,7 @@ HWTEST_F(RSFilterCacheManagerTest, TakeSnapshotTest, TestSize.Level1)
     auto rsMagnifierShaderFilter = std::make_shared<RSMagnifierShaderFilter>(para);
     filter = std::make_shared<RSDrawingFilter>(rsMagnifierShaderFilter);
     rsFilterCacheManager->TakeSnapshot(filterCanvas, filter, srcRect);
-    EXPECT_NE(filter->GetShaderFilterWithType(RSShaderFilter::MAGNIFIER), nullptr);
+    EXPECT_NE(filter->GetShaderFilterWithType(RSUIFilterType::MAGNIFIER), nullptr);
 }
 
 /**
@@ -343,7 +343,7 @@ HWTEST_F(RSFilterCacheManagerTest, TakeSnapshotTest002, TestSize.Level1)
     auto rsFilterCacheManager = std::make_shared<RSFilterCacheManager>();
     Drawing::Canvas canvas;
     RSPaintFilterCanvas filterCanvas(&canvas);
-    auto shaderFilter = std::make_shared<RSShaderFilter>();
+    auto shaderFilter = std::make_shared<RSRenderFilterParaBase>();
     auto filter = std::make_shared<RSDrawingFilter>(shaderFilter);
 
     Drawing::RectI srcRect(0, 0, 100, 100);
@@ -437,7 +437,7 @@ HWTEST_F(RSFilterCacheManagerTest, DrawCachedFilteredSnapshotTest, TestSize.Leve
     auto manager = std::make_shared<RSFilterCacheManager>();
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
-    auto shaderFilter = std::make_shared<RSShaderFilter>();
+    auto shaderFilter = std::make_shared<RSRenderFilterParaBase>();
     auto filter = std::make_shared<RSDrawingFilter>(shaderFilter);
     std::shared_ptr<Drawing::ImageFilter> imageFilter = std::make_shared<Drawing::ImageFilter>();
     Drawing::RectI dstRect;
@@ -805,7 +805,7 @@ HWTEST_F(RSFilterCacheManagerTest, RecordFilterInfosTest, TestSize.Level1)
     EXPECT_NE(rsFilterCacheManager, nullptr);
     std::shared_ptr<RSDrawingFilter> rsFilter = nullptr;
     rsFilterCacheManager->RecordFilterInfos(rsFilter);
-    std::shared_ptr<RSShaderFilter> shaderFilter = std::make_shared<RSShaderFilter>();
+    std::shared_ptr<RSRenderFilterParaBase> shaderFilter = std::make_shared<RSRenderFilterParaBase>();
     EXPECT_NE(shaderFilter, nullptr);
     rsFilterCacheManager->stagingCachedFilterHash_ = 1;
     rsFilter = std::make_shared<RSDrawingFilter>(shaderFilter);
