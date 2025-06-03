@@ -43,7 +43,11 @@ Typeface* SkiaFontStyleSet::CreateTypeface(int index)
     if (!skTypeface) {
         return nullptr;
     }
+#ifdef USE_M133_SKIA
+    std::shared_ptr<TypefaceImpl> typefaceImpl = std::make_shared<SkiaTypeface>(skTypeface);
+#else
     std::shared_ptr<TypefaceImpl> typefaceImpl = std::make_shared<SkiaTypeface>(sk_sp(skTypeface));
+#endif
     return new Typeface(typefaceImpl);
 }
 
@@ -87,7 +91,11 @@ Typeface* SkiaFontStyleSet::MatchStyle(const FontStyle& pattern)
     if (!skTypeface) {
         return nullptr;
     }
+#ifdef USE_M133_SKIA
+    std::shared_ptr<TypefaceImpl> typefaceImpl = std::make_shared<SkiaTypeface>(skTypeface);
+#else
     std::shared_ptr<TypefaceImpl> typefaceImpl = std::make_shared<SkiaTypeface>(sk_sp(skTypeface));
+#endif
     return new Typeface(typefaceImpl);
 }
 
