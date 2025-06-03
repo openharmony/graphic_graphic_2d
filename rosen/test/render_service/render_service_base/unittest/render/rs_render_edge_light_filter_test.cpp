@@ -83,4 +83,28 @@ HWTEST_F(RSRenderEdgeLightFilterTest, GetLeafRenderProperties001, TestSize.Level
     EXPECT_TRUE(rsRenderPropertyBaseVec.empty());
 }
 
+/**
+ * @tc.name: CreateRenderProperty001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderEdgeLightFilterTest, CreateRenderProperty001, TestSize.Level1)
+{
+    auto rsRenderEdgeLightFilterPara = std::make_shared<RSRenderEdgeLightFilterPara>(0);
+
+    auto renderProperty = rsRenderEdgeLightFilterPara->CreateRenderProperty(RSUIFilterType::RIPPLE_MASK);
+    EXPECT_NE(renderProperty, nullptr);
+
+    auto renderProperty = rsRenderEdgeLightFilterPara->CreateRenderProperty(RSUIFilterType::RADIAL_GRADIENT_MASK);
+    EXPECT_NE(renderProperty, nullptr);
+
+    auto renderProperty = rsRenderEdgeLightFilterPara->CreateRenderProperty(RSUIFilterType::PIXEL_MAP_MASK);
+    EXPECT_NE(renderProperty, nullptr);
+    
+    auto renderProperty = rsRenderEdgeLightFilterPara->CreateRenderProperty(RSUIFilterType::EDGE_LIGHT_ALPHA);
+    EXPECT_NE(renderProperty, nullptr);
+    
+    auto renderProperty = rsRenderEdgeLightFilterPara->CreateRenderProperty(RSUIFilterType::EDGE_LIGHT_COLOR);
+    EXPECT_NE(renderProperty, nullptr);
+}
 } // namespace OHOS::Rosen

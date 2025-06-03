@@ -72,6 +72,23 @@ HWTEST_F(RSRenderBlurFilterTest, ReadFromParcel001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: ReadFromParcel002
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderBlurFilterTest, ReadFromParcel002, TestSize.Level1)
+{
+    auto sendPara = std::make_shared<RSRenderBlurFilterPara>(0);
+    sendPara->modifierType_ = RSModifierType::BACKGROUND_UI_FILTER;
+    Parcel parcel;
+    auto ret = sendPara->WriteToParcel(parcel);
+    EXPECT_TRUE(ret);
+    auto receivedPara = std::make_shared<RSRenderBlurFilterPara>(1);
+    ret = rsRenderBlurFilterPara->ReadFromParcel(parcel);
+    EXPECT_TRUE(ret);
+}
+
+/**
  * @tc.name: GetLeafRenderProperties001
  * @tc.desc:
  * @tc.type:FUNC

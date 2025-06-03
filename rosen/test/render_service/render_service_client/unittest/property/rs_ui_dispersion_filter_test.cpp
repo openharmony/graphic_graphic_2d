@@ -168,11 +168,11 @@ HWTEST_F(RSUIDispersionFilterTest, SetOffsetTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: CreateRSRenderFilterTest
+ * @tc.name: CreateRSRenderFilterTest001
  * @tc.desc:
  * @tc.type:FUNC
  */
-HWTEST_F(RSUIDispersionFilterTest, CreateRSRenderFilterTest, TestSize.Level1)
+HWTEST_F(RSUIDispersionFilterTest, CreateRSRenderFilterTest001, TestSize.Level1)
 {
     auto dispersionPara = std::make_shared<DispersionPara>();
 
@@ -189,6 +189,31 @@ HWTEST_F(RSUIDispersionFilterTest, CreateRSRenderFilterTest, TestSize.Level1)
     auto rsRenderFilterParaBase = rsUIDispersionFilterPara->CreateRSRenderFilter();
     EXPECT_EQ(rsRenderFilterParaBase, nullptr);
 }
+
+/**
+ * @tc.name: CreateRSRenderFilterTest002
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSUIDispersionFilterTest, CreateRSRenderFilterTest002, TestSize.Level1)
+{
+    auto dispersionPara = std::make_shared<DispersionPara>();
+    auto mask = std::make_shared<MaskPara>();
+    mask->type_ = MaskPara::Type::RIPPLE_MASK;
+    dispersionPara->SetMask(mask);
+    dispersionPara->SetOpacity(0.5f);
+    Vector2f offset = Vector2f(0.5f, 0.5f);
+    dispersionPara->SetRedOffset(offset);
+    dispersionPara->SetGreenOffset(offset);
+    dispersionPara->SetBlueOffset(offset);
+
+    auto rsUIDispersionFilterPara = std::make_shared<RSUIDispersionFilterPara>();
+    rsUIDispersionFilterPara->SetDispersion(dispersionPara);
+
+    auto rsRenderFilterParaBase = rsUIDispersionFilterPara->CreateRSRenderFilter();
+    EXPECT_EQ(rsRenderFilterParaBase, nullptr);
+}
+
 
 /**
  * @tc.name: GetLeafPropertiesTest
