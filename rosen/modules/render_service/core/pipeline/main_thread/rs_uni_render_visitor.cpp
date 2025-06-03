@@ -1669,7 +1669,7 @@ bool RSUniRenderVisitor::IsLeashAndHasMainSubNode(RSRenderNode& node) const
 
 bool RSUniRenderVisitor::NeedPrepareChindrenInReverseOrder(RSRenderNode& node) const
 {
-    if (!curSurfaceNode_ && node.GetType() != RSRenderNodeType::RS_NODE) {
+    if ((!curSurfaceNode_ && !curSurfaceNode_->IsMainWindowType()) && node.GetType() != RSRenderNodeType::RS_NODE) {
         return true;
     }
     return IsLeashAndHasMainSubNode(node);
