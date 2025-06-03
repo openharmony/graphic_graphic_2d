@@ -16,46 +16,43 @@
 #include "touch_screen.h"
 
 #include "platform/common/rs_log.h"
+#ifdef TP_FEATURE_ENABLE
+#include "v1_1/itp_interfaces.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
-namespace {
-constexpr std::string_view TOUCHSCREEN_WRAPPER_PATH = "../../vendor/lib64/chipsetsdk/libhw_touchscreen.default.so";
+TouchScreen::TouchScreen() = default;
+TouchScreen::~TouchScreen() = default;
 
-template<typename Handle>
-void GetHandleBySymbol(void* dlHandle, Handle& handle, const char* symbol)
+#ifdef TP_FEATURE_ENABLE
+int32_t TouchScreen::SetFeatureConfig(int32_t feature, const char *config)
 {
-    handle = reinterpret_cast<Handle>(dlsym(dlHandle, symbol));
-    if (handle == nullptr) {
-        RS_LOGE("touch screen get handle by %{public}s failed, error: %{public}s",
-            symbol, dlerror());
-    } else {
-        RS_LOGI("touch screen get handle by %{public}s success", symbol);
+    int32_t code = -1;
+    auto client = OHOS::HDI::Tp::V1_1::ITpInterfaces::Get(false);
+    if (client == nullptr) {
+        RS_LOGW("TouchScreen %{public}s: client failed.", __func__);
+        return code;
     }
-}
-} // namespace
-
-TouchScreen::TouchScreen() {}
-TouchScreen::~TouchScreen()
-{
-    if (touchScreenHandle_ != nullptr) {
-        dlclose(touchScreenHandle_);
-        touchScreenHandle_ = nullptr;
-        setFeatureConfigHandle_ = nullptr;
-        setAftConfigHandle_ = nullptr;
+    if (client->HwSetFeatureConfig(feature, config, code) < 0) {
+        RS_LOGW("TouchScreen %{public}s: HwSetFeatureConfig failed.", __func__);
     }
+    return code;
 }
 
-void TouchScreen::InitTouchScreen()
+int32_t TouchScreen::SetAftConfig(const char *config)
 {
-    touchScreenHandle_ = dlopen(TOUCHSCREEN_WRAPPER_PATH.data(), RTLD_NOW);
-    if (touchScreenHandle_ == nullptr) {
-        RS_LOGE("libhw_touchscreen.default.so was not loaded, error: %{public}s", dlerror());
-        return;
+    int32_t code = -1;
+    auto client = OHOS::HDI::Tp::V1_1::ITpInterfaces::Get(false);
+    if (client == nullptr) {
+        RS_LOGW("TouchScreen %{public}s: client failed.", __func__);
+        return code;
     }
-
-    GetHandleBySymbol(touchScreenHandle_, setFeatureConfigHandle_, "ts_set_feature_config");
-    GetHandleBySymbol(touchScreenHandle_, setAftConfigHandle_, "ts_set_aft_config");
+    if (client->HwTsSetAftConfig(config, code) < 0) {
+        RS_LOGW("TouchScreen %{public}s: HwTsSetAftConfig failed.", __func__);
+    }
+    return code;
 }
+#endif
 } // namespace Rosen
 } // namespace OHOS

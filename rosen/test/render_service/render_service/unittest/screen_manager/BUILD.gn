@@ -135,6 +135,11 @@ ohos_unittest("TouchScreenTest") {
     "init:libbegetutil",
   ]
 
+  defines = []
+  if (tp_feature_enable) {
+    defines += tp_defines
+  }
+
   cflags = [
     "-Wall",
     "-Werror",

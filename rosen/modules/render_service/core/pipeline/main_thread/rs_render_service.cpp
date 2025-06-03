@@ -49,9 +49,6 @@
 
 #include "text/font_mgr.h"
 
-#ifdef TP_FEATURE_ENABLE
-#include "screen_manager/touch_screen.h"
-#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -111,9 +108,6 @@ if (Drawing::SystemProperties::IsUseVulkan()) {
     LoadOptParams loadOptParams;
     InitLoadOptParams(loadOptParams);
 
-#ifdef TP_FEATURE_ENABLE
-    TOUCH_SCREEN->InitTouchScreen();
-#endif
     screenManager_ = CreateOrGetScreenManager();
     if (screenManager_ != nullptr) {
         screenManager_->InitLoadOptParams(loadOptParams.loadOptParamsForScreen);
