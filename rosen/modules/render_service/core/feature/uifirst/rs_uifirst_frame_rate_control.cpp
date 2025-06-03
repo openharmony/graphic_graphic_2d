@@ -29,20 +29,22 @@ void RSUifirstFrameRateControl::SetAnimationStartInfo(const DataBaseRs& eventInf
             forceRefreshOnce_ = true;
             SetStartAnimation(true);
             break;
-
         case SceneId::LAUNCHER_APP_SWIPE_TO_HOME:
             forceRefreshOnce_ = true;
             SetStopAnimation(true);
             break;
-        
         case SceneId::GESTURE_TO_RECENTS:
             forceRefreshOnce_ = true;
             SetMultTaskAnimation(true);
             break;
-        
         case SceneId::LAUNCHER_APP_LAUNCH_FROM_RECENT:
             forceRefreshOnce_ = false;
             break;
+        case SceneId::AOD_TO_LAUNCHER:
+        case SceneId::LOCKSCREEN_TO_LAUNCHER:
+            SetStartAnimation(false);
+            SetStopAnimation(false);
+            SetMultTaskAnimation(false);
         default:
             break;
     }
@@ -59,27 +61,19 @@ void RSUifirstFrameRateControl::SetAnimationEndInfo(const DataBaseRs& eventInfo)
         case SceneId::LAUNCHER_APP_LAUNCH_FROM_ICON:
             SetStartAnimation(false);
             break;
-
         case SceneId::LAUNCHER_APP_SWIPE_TO_HOME:
             SetStopAnimation(false);
             break;
-
-        case SceneId::GESTURE_TO_RECENTS:
-            break;
-  
         case SceneId::LAUNCHER_APP_LAUNCH_FROM_RECENT:
             forceRefreshOnce_ = true;
             SetMultTaskAnimation(false);
             break;
-
-        case SceneId::AOD_TO_LAUNCHER:
-        case SceneId::LOCKSCREEN_TO_LAUNCHER:
         case SceneId::EXIT_RECENT_2_HOME_ANI:
         case SceneId::CLEAR_1_RECENT_ANI:
         case SceneId::CLEAR_ALL_RECENT_ANI:
             SetMultTaskAnimation(false);
             break;
-
+        case SceneId::GESTURE_TO_RECENTS:
         default:
             break;
     }
