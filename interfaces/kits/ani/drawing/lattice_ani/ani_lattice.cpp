@@ -210,6 +210,12 @@ ani_object AniLattice::CreateImageLattice(ani_env* env,
 
     AniLattice* aniLattice = new AniLattice(std::make_shared<Lattice>(lat));
     ani_object aniObj = CreateAniObjectStatic(env, ANI_CLASS_ANI_LATTICE_NAME, aniLattice);
+    ani_boolean objIsUndefined;
+    env->Reference_IsUndefined(aniObj, &objIsUndefined);
+    if (objIsUndefined) {
+        delete aniLattice;
+        ROSEN_LOGE("AniLattice::CreateImageLattice failed cause aniObj is undefined");
+    }
     return aniObj;
 }
 

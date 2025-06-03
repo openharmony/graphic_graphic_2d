@@ -125,33 +125,28 @@ ani_object CreateAniObjectStatic(ani_env* env, const char* className, T* obj)
     ani_class aniClass;
     if (env->FindClass(className, &aniClass) != ANI_OK) {
         ROSEN_LOGE("[Drawing] CreateAniObjectStatic FindClass failed");
-        delete obj;
         return CreateAniUndefined(env);
     }
 
     ani_method aniConstructor;
     if (env->Class_FindMethod(aniClass, "<ctor>", nullptr, &aniConstructor) != ANI_OK) {
         ROSEN_LOGE("[Drawing] CreateAniObjectStatic Class_FindMethod constructor failed");
-        delete obj;
         return CreateAniUndefined(env);
     }
 
     ani_object aniObject;
     if (env->Object_New(aniClass, aniConstructor, &aniObject) != ANI_OK) {
         ROSEN_LOGE("[Drawing] CreateAniObjectStatic Object_New failed");
-        delete obj;
         return CreateAniUndefined(env);
     }
 
     ani_method innerMethod;
     if (env->Class_FindMethod(aniClass, "bindNativePtr", "J:V", &innerMethod) != ANI_OK) {
         ROSEN_LOGE("[Drawing] CreateAniObjectStatic Class_FindMethod bindNativePtr failed");
-        delete obj;
         return CreateAniUndefined(env);
     }
     if (env->Object_CallMethod_Void(aniObject, innerMethod, reinterpret_cast<ani_long>(obj)) != ANI_OK) {
         ROSEN_LOGE("[Drawing] CreateAniObjectStatic Object_CallMethod_Void failed");
-        delete obj;
         return CreateAniUndefined(env);
     }
 

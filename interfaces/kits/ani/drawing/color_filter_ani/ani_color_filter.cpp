@@ -70,6 +70,12 @@ ani_object AniColorFilter::CreateBlendModeColorFilter(
     AniColorFilter* colorFilter = new AniColorFilter(
         ColorFilter::CreateBlendModeColorFilter(color, static_cast<BlendMode>(blendMode)));
     ani_object aniObj = CreateAniObjectStatic(env, ANI_CLASS_COLORFILTER_NAME, colorFilter);
+    ani_boolean isUndefined;
+    env->Reference_IsUndefined(aniObj, &isUndefined);
+    if (isUndefined) {
+        delete colorFilter;
+        ROSEN_LOGE("AniColorFilter::CreateBlendModeColorFilter failed cause aniObj is undefined");
+    }
     return aniObj;
 }
 
