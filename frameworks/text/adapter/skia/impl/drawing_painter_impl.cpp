@@ -28,6 +28,7 @@
 #include "skia_adapter/skia_path.h"
 #include "skia_adapter/skia_text_blob.h"
 #include "symbol_engine/hm_symbol_run.h"
+#include "utils/text_trace.h"
 
 #ifdef HM_SYMBOL_TXT_ENABLE
 #include <parameters.h>
@@ -131,6 +132,7 @@ void RSCanvasParagraphPainter::DrawSymbolSkiaTxt(const std::shared_ptr<RSTextBlo
 void RSCanvasParagraphPainter::drawTextBlob(const std::shared_ptr<RSTextBlob>& blob, SkScalar x, SkScalar y,
     const SkPaintOrID& paint)
 {
+    TEXT_TRACE_FUNC();
     SkASSERT(!std::holds_alternative<SkPaint>(paint));
     const PaintRecord& pr = paints_[std::get<PaintID>(paint)];
 

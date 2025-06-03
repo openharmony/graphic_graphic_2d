@@ -20,9 +20,8 @@
 #include "pipeline/rs_recording_canvas.h"
 #include "pipeline/rs_render_node.h"
 #include "render/rs_drawing_filter.h"
-#include "render/rs_shader_filter.h"
-#include "render/rs_aibar_shader_filter.h"
-#include "render/rs_linear_gradient_blur_shader_filter.h"
+#include "render/rs_render_aibar_filter.h"
+#include "render/rs_render_linear_gradient_blur_filter.h"
 #include "drawable/rs_property_drawable_utils.h"
 
 using namespace testing;

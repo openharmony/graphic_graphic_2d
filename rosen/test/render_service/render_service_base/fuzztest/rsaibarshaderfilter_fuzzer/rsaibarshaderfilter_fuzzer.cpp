@@ -29,7 +29,7 @@
 #include "draw/canvas.h"
 #include "ge_render.h"
 #include "pipeline/rs_paint_filter_canvas.h"
-#include "render/rs_aibar_shader_filter.h"
+#include "render/rs_render_aibar_filter.h"
 
 namespace OHOS {
 namespace Rosen {

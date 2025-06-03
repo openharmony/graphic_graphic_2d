@@ -71,7 +71,7 @@ private:
     static napi_value SetMaskDispersion(napi_env env, napi_callback_info info);
     static Drawing::TileMode ParserArgumentType(napi_env env, napi_value argv);
     static GradientDirection ParserGradientDirection(napi_env env, napi_value argv);
-    static napi_value SetHdrBrightnessRatio(napi_env env, napi_callback_info info);
+    static napi_value SetHDRBrightnessRatio(napi_env env, napi_callback_info info);
 
     static float GetSpecialValue(napi_env env, napi_value argValue);
     static uint32_t GetSpecialIntValue(napi_env env, napi_value argValue);

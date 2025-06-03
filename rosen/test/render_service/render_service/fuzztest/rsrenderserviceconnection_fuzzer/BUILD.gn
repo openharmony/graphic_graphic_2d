@@ -76,6 +76,7 @@ ohos_fuzztest("RSRenderServiceConnectionFuzzTest") {
     "ability_runtime:abilitykit_native",
     "ability_runtime:app_manager",
     "access_token:libaccesstoken_sdk",
+    "cJSON:cjson",
     "c_utils:utils",
     "common_event_service:cesfwk_core",
     "common_event_service:cesfwk_innerkits",
@@ -85,6 +86,7 @@ ohos_fuzztest("RSRenderServiceConnectionFuzzTest") {
     "ipc:ipc_core",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
+    "selinux_adapter:librestorecon",
   ]
 
   if (use_memmgr_plugin || use_memmgr) {

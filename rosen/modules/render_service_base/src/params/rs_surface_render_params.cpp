@@ -14,6 +14,7 @@
  */
 
 #include "params/rs_surface_render_params.h"
+#include "platform/common/rs_log.h"
 #include "rs_trace.h"
 
 namespace OHOS::Rosen {

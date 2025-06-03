@@ -40,9 +40,13 @@ public:
 
     void getStyle(int index, SkFontStyle* style, SkString* name) override;
 
+#ifdef USE_M133_SKIA
+    sk_sp<SkTypeface> createTypeface(int index) override;
+    sk_sp<SkTypeface> matchStyle(const SkFontStyle& pattern) override;
+#else
     SkTypeface* createTypeface(int index) override;
-
     SkTypeface* matchStyle(const SkFontStyle& pattern) override;
+#endif
 
 private:
     std::vector<sk_sp<SkTypeface>> typefaces_;

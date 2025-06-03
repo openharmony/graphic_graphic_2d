@@ -44,6 +44,7 @@ ohos_unittest("RSCanvasDrawingNodeTest") {
   external_deps = [
     "c_utils:utils",
     "egl:libEGL",
+    "eventhandler:libeventhandler",
     "googletest:gtest_main",
     "graphic_surface:surface",
     "hilog:libhilog",
@@ -83,6 +84,7 @@ ohos_unittest("RSCanvasNodeTest") {
   external_deps = [
     "c_utils:utils",
     "egl:libEGL",
+    "eventhandler:libeventhandler",
     "googletest:gtest_main",
     "graphic_surface:surface",
     "hilog:libhilog",
@@ -118,6 +120,7 @@ ohos_unittest("RSDisplayNodeTest") {
   external_deps = [
     "c_utils:utils",
     "egl:libEGL",
+    "eventhandler:libeventhandler",
     "googletest:gtest_main",
     "graphic_surface:surface",
     "hilog:libhilog",
@@ -153,6 +156,7 @@ ohos_unittest("RSEffectNodeTest") {
   external_deps = [
     "c_utils:utils",
     "egl:libEGL",
+    "eventhandler:libeventhandler",
     "googletest:gtest_main",
     "graphic_surface:surface",
     "hilog:libhilog",
@@ -192,6 +196,7 @@ ohos_unittest("RSNodeTest") {
   external_deps = [
     "c_utils:utils",
     "egl:libEGL",
+    "eventhandler:libeventhandler",
     "googletest:gtest_main",
     "graphic_surface:surface",
     "hilog:libhilog",
@@ -227,6 +232,7 @@ ohos_unittest("RSProxyNodeTest") {
   external_deps = [
     "c_utils:utils",
     "egl:libEGL",
+    "eventhandler:libeventhandler",
     "googletest:gtest_main",
     "graphic_surface:surface",
     "hilog:libhilog",
@@ -262,6 +268,7 @@ ohos_unittest("RSRootNodeTest") {
   external_deps = [
     "c_utils:utils",
     "egl:libEGL",
+    "eventhandler:libeventhandler",
     "googletest:gtest_main",
     "graphic_surface:surface",
     "hilog:libhilog",
@@ -297,6 +304,7 @@ ohos_unittest("RSSurfaceExtractorTest") {
   external_deps = [
     "c_utils:utils",
     "egl:libEGL",
+    "eventhandler:libeventhandler",
     "googletest:gtest_main",
     "graphic_surface:surface",
     "hilog:libhilog",
@@ -332,6 +340,7 @@ ohos_unittest("RSSurfaceNodeTest") {
   external_deps = [
     "c_utils:utils",
     "egl:libEGL",
+    "eventhandler:libeventhandler",
     "googletest:gtest_main",
     "graphic_surface:surface",
     "hilog:libhilog",
@@ -347,10 +356,7 @@ ohos_unittest("RSTextureExportTest") {
 
   sources = [ "rs_texture_export_test.cpp" ]
 
-  include_dirs = [
-    "$graphic_2d_root/rosen/test/include",
-    "$graphic_2d_root/rosen/modules/render_service_base/src",
-  ]
+  include_dirs = ["$graphic_2d_root/rosen/test/include"]
 
   configs = [
     ":ui_test",
@@ -371,6 +377,7 @@ ohos_unittest("RSTextureExportTest") {
   external_deps = [
     "c_utils:utils",
     "egl:libEGL",
+    "eventhandler:libeventhandler",
     "googletest:gtest_main",
     "graphic_surface:surface",
     "hilog:libhilog",
@@ -413,6 +420,7 @@ ohos_unittest("RSUIDirectorTest") {
   external_deps = [
     "c_utils:utils",
     "egl:libEGL",
+    "eventhandler:libeventhandler",
     "googletest:gtest_main",
     "graphic_surface:surface",
     "hilog:libhilog",

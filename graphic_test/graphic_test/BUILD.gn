@@ -90,6 +90,7 @@ ohos_unittest("RSGraphicTest") {
   defines = []
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "hilog:libhilog",
     "init:libbegetutil",
   ]

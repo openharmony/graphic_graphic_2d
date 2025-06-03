@@ -589,7 +589,7 @@ void RSUniHwcVisitor::UpdateHwcNodeEnableByNodeBelow()
         (RSBaseRenderNode::SharedPtr& nodePtr) {
         auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(nodePtr);
         if (!surfaceNode) {
-            RS_LOGE("RSUniRenderVisitor::UpdateHwcNodeEnableByNodeBelow surfaceNode is nullptr");
+            RS_LOGE("%{public}s: surfaceNode is nullptr", __func__);
             return;
         }
         // use in temporary scheme to realize DSS
@@ -608,7 +608,7 @@ void RSUniHwcVisitor::UpdateHwcNodeEnableByNodeBelow()
         [this, &hwcRects](RSBaseRenderNode::SharedPtr& nodePtr) {
         auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(nodePtr);
         if (!surfaceNode) {
-            RS_LOGE("RSUniRenderVisitor::UpdateHwcNodeEnableByNodeBelow surfaceNode is nullptr");
+            RS_LOGE("%{public}s: surfaceNode is nullptr", __func__);
             return;
         }
         // use end
@@ -668,7 +668,7 @@ void RSUniHwcVisitor::UpdateHwcNodeEnableByHwcNodeBelowSelf(std::vector<RectI>& 
     std::shared_ptr<RSSurfaceRenderNode>& hwcNode, bool isIntersectWithRoundCorner)
 {
     if (!uniRenderVisitor_.curDisplayNode_) {
-        RS_LOGE("RSUniRenderVisitor::UpdateHwcNodeEnableByHwcNodeBelowSelf curDisplayNode is null");
+        RS_LOGE("%{public}s: curDisplayNode is null", __func__);
         return;
     }
     bool isForceCloseHdr = uniRenderVisitor_.curDisplayNode_->GetForceCloseHdr();
@@ -885,14 +885,14 @@ void RSUniHwcVisitor::UpdateHwcNodeEnableByGlobalCleanFilter(
         if (!geo->GetAbsRect().IntersectRect(filter->second).IsEmpty()) {
             auto& rendernode = nodeMap.GetRenderNode<RSRenderNode>(filter->first);
             if (rendernode == nullptr) {
-                ROSEN_LOGD("RSUniHwcVisitor::UpdateHwcNodeByFilter: rendernode is null");
+                ROSEN_LOGD("UpdateHwcNodeByFilter: rendernode is null");
                 continue;
             }
 
             if (rendernode->IsAIBarFilter()) {
                 intersectedWithAIBar = true;
                 if (rendernode->IsAIBarFilterCacheValid()) {
-                    ROSEN_LOGD("RSUniHwcVisitor::UpdateHwcNodeByFilter: skip intersection for using cache");
+                    ROSEN_LOGD("UpdateHwcNodeByFilter: skip intersection for using cache");
                     continue;
                 } else if (RSSystemProperties::GetHveFilterEnabled()) {
                     checkDrawAIBar = true;

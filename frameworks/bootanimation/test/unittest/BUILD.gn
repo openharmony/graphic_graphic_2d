@@ -14,7 +14,7 @@
 import("//build/test.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
-module_output_path = "graphic_2d/graphic_2d/bootanimation"
+module_output_path = "graphic_2d/OH-bootanimation"
 
 group("unittest") {
   testonly = true
@@ -58,14 +58,16 @@ ohos_unittest("bootanimation_test") {
   public_external_deps = [ "cJSON:cjson" ]
 
   external_deps = [
-    "cJSON:cjson_static",
+    "cJSON:cjson",
     "c_utils:utils",
     "config_policy:configpolicy_util",
+    "eventhandler:libeventhandler",
+    "googletest:gtest_main",
+    "hilog:libhilog",
     "hitrace:hitrace_meter",
     "init:libbegetutil",
     "samgr:samgr_proxy",
-    "zlib:libz",    
-    "googletest:gtest_main",
+    "zlib:libz",
   ]
 
   if (player_framework_enable) {

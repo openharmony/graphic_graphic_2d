@@ -35,11 +35,19 @@ Typeface* SkiaFontStyleSet::CreateTypeface(int index)
         LOGD("SkiaFontStyleSet::CreateTypeface, skFontStyleSet_ nullptr");
         return nullptr;
     }
+#ifdef USE_M133_SKIA
+    sk_sp<SkTypeface> skTypeface = skFontStyleSet_->createTypeface(index);
+#else
     SkTypeface* skTypeface = skFontStyleSet_->createTypeface(index);
+#endif
     if (!skTypeface) {
         return nullptr;
     }
+#ifdef USE_M133_SKIA
+    std::shared_ptr<TypefaceImpl> typefaceImpl = std::make_shared<SkiaTypeface>(skTypeface);
+#else
     std::shared_ptr<TypefaceImpl> typefaceImpl = std::make_shared<SkiaTypeface>(sk_sp(skTypeface));
+#endif
     return new Typeface(typefaceImpl);
 }
 
@@ -74,11 +82,20 @@ Typeface* SkiaFontStyleSet::MatchStyle(const FontStyle& pattern)
     }
     SkFontStyle skFontStyle;
     SkiaConvertUtils::DrawingFontStyleCastToSkFontStyle(pattern, skFontStyle);
+
+#ifdef USE_M133_SKIA
+    sk_sp<SkTypeface> skTypeface = skFontStyleSet_->matchStyle(skFontStyle);
+#else
     SkTypeface* skTypeface = skFontStyleSet_->matchStyle(skFontStyle);
+#endif
     if (!skTypeface) {
         return nullptr;
     }
+#ifdef USE_M133_SKIA
+    std::shared_ptr<TypefaceImpl> typefaceImpl = std::make_shared<SkiaTypeface>(skTypeface);
+#else
     std::shared_ptr<TypefaceImpl> typefaceImpl = std::make_shared<SkiaTypeface>(sk_sp(skTypeface));
+#endif
     return new Typeface(typefaceImpl);
 }
 

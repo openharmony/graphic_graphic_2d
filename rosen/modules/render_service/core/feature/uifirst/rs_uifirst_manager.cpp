@@ -1537,7 +1537,7 @@ bool RSUifirstManager::IsNonFocusWindowCache(RSSurfaceRenderNode& node, bool ani
     bool modalAnimation = animation && node.GetUIFirstSwitch() == RSUIFirstSwitch::MODAL_WINDOW_CLOSE;
     bool optFocus = focus || UNLIKELY(node.GetUIFirstSwitch() == RSUIFirstSwitch::FORCE_DISABLE_NONFOCUS);
     if (optFocus && (node.GetHasSharedTransitionNode() ||
-        RSUifirstManager::Instance().IsVMSurfaceName(surfaceName) ||
+        (RSUifirstManager::Instance().IsVMSurfaceName(surfaceName) && !animation) ||
         !animation || modalAnimation)) {
         RS_TRACE_NAME_FMT("IsNonFocusWindowCache: surfaceName[%s] focus:%d optFocus:%d animation:%d switch:%d",
             surfaceName.c_str(), focus, optFocus, animation, node.GetUIFirstSwitch());

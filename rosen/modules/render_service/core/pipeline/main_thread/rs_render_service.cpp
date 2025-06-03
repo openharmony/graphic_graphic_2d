@@ -41,7 +41,7 @@
 #include "pipeline/hardware_thread/rs_hardware_thread.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_uni_render_judgement.h"
-#include "render/rs_kawase_blur_shader_filter.h"
+#include "render/rs_render_kawase_blur_filter.h"
 #include "system/rs_system_parameters.h"
 #include "gfx/fps_info/rs_surface_fps_manager.h"
 #include "gfx/dump/rs_dump_manager.h"
@@ -49,9 +49,6 @@
 
 #include "text/font_mgr.h"
 
-#ifdef TP_FEATURE_ENABLE
-#include "screen_manager/touch_screen.h"
-#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -111,9 +108,6 @@ if (Drawing::SystemProperties::IsUseVulkan()) {
     LoadOptParams loadOptParams;
     InitLoadOptParams(loadOptParams);
 
-#ifdef TP_FEATURE_ENABLE
-    TOUCH_SCREEN->InitTouchScreen();
-#endif
     screenManager_ = CreateOrGetScreenManager();
     if (screenManager_ != nullptr) {
         screenManager_->InitLoadOptParams(loadOptParams.loadOptParamsForScreen);

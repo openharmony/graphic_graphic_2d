@@ -45,13 +45,18 @@
 #include "platform/common/rs_log.h"
 #include "property/rs_properties.h"
 #include "render/rs_drawing_filter.h"
-#include "render/rs_maskcolor_shader_filter.h"
+#include "render/rs_render_maskcolor_filter.h"
 #include "render/rs_material_filter.h"
 #include "render/rs_path.h"
 #include "utils/graphic_coretrace.h"
 
 #ifdef RS_ENABLE_VK
+#ifdef USE_M133_SKIA
+#include "include/gpu/ganesh/vk/GrVkBackendSurface.h"
+#include "include/gpu/ganesh/vk/GrVkBackendSemaphore.h"
+#else
 #include "include/gpu/GrBackendSurface.h"
+#endif
 #include "platform/ohos/backend/native_buffer_utils.h"
 #include "platform/ohos/backend/rs_surface_ohos_vulkan.h"
 #include "platform/ohos/backend/rs_vulkan_context.h"
@@ -76,7 +81,6 @@ constexpr uint32_t PERF_LEVEL_2 = 2;
 constexpr int32_t PERF_LEVEL_1_REQUESTED_CODE = 10013;
 constexpr int32_t PERF_LEVEL_2_REQUESTED_CODE = 10014;
 constexpr int32_t PERF_LEVEL_3_REQUESTED_CODE = 10015;
-constexpr int MAX_DIRTY_ALIGNMENT_SIZE = 128;
 void PerfRequest(int32_t perfRequestCode, bool onOffTag)
 {
 #ifdef SOC_PERF_ENABLE

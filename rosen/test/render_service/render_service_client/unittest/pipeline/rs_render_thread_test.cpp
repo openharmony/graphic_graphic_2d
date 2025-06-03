@@ -413,4 +413,16 @@ HWTEST_F(RSRenderThreadTest, HighContrastSettingsAndChanges, TestSize.Level1)
     RSRenderThread::Instance().ResetHighContrastChanged();
     EXPECT_FALSE(RSRenderThread::Instance().IsHighContrastChanged());
 }
+
+/**
+ * @tc.name: GetIsRunning001
+ * @tc.desc: test GetIsRunning while start thread
+ * @tc.type: FUNC
+ * @tc.require: issueICB7BS
+ */
+HWTEST_F(RSRenderThreadTest, GetIsRunning001, TestSize.Level1)
+{
+    RSRenderThread::Instance().running_.store(true);
+    ASSERT_TRUE(RSRenderThread::Instance().GetIsRunning());
+}
 } // namespace OHOS::Rosen

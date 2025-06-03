@@ -2027,7 +2027,7 @@ void RSNode::SetUIForegroundFilter(const OHOS::Rosen::Filter* foregroundFilter)
             uiFilter->Insert(bezierWarpProperty);
         }
         if (filterPara->GetParaType() == FilterPara::HDR_BRIGHTNESS_RATIO) {
-            auto hdrBrightnessRatioPara = std::static_pointer_cast<HdrBrightnessRatioPara>(filterPara);
+            auto hdrBrightnessRatioPara = std::static_pointer_cast<HDRBrightnessRatioPara>(filterPara);
             auto brightnessRatio = hdrBrightnessRatioPara->GetBrightnessRatio();
             SetHDRUIBrightness(brightnessRatio);
         }
@@ -2421,6 +2421,16 @@ void RSNode::SetHDRBrightness(const float& hdrBrightness)
 {
     SetProperty<RSHDRBrightnessModifier, RSAnimatableProperty<float>>(
         RSModifierType::HDR_BRIGHTNESS, hdrBrightness);
+}
+
+void RSNode::SetHDRBrightnessFactor(float factor)
+{
+    if (!IsInstanceOf<RSDisplayNode>()) {
+        ROSEN_LOGE("SetHDRBrightnessFactor only can be used by RSDisplayNode");
+        return;
+    }
+    SetProperty<RSHDRBrightnessFactorModifier, RSAnimatableProperty<float>>(
+        RSModifierType::HDR_BRIGHTNESS_FACTOR, factor);
 }
 
 void RSNode::SetVisible(bool visible)

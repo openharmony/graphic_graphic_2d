@@ -65,14 +65,12 @@ void HdiScreen::OnVsync(uint32_t sequence, uint64_t ns, void *data)
         return;
     }
 
-    // trigger vsync
-    // if the sampler->GetHardwareVSyncStatus() is false, this OnVsync callback will be disable
-    // we need to add this process
     auto sampler = CreateVSyncSampler();
-    if (sampler->GetHardwareVSyncStatus()) {
-        bool enable = sampler->AddSample(ns);
-        sampler->SetHardwareVSyncStatus(enable);
+    if (sampler == nullptr) {
+        HLOGE("OnVsync failed, sampler is null");
+        return;
     }
+    sampler->AddSample(ns);
 }
 
 bool HdiScreen::Init()
@@ -198,6 +196,16 @@ int32_t HdiScreen::SetScreenVsyncEnabled(bool enabled) const
         HLOGE("SetScreenVsyncEnabled Failed, screenId:%{public}u, enabled:%{public}d, ret:%{public}d",
             screenId_, enabled, ret);
         RS_TRACE_NAME_FMT("SetScreenVsyncEnabled Failed, screenId:%u, enabled:%d, ret:%d", screenId_, enabled, ret);
+    }
+    auto sampler = CreateVSyncSampler();
+    if (sampler != nullptr) {
+        return ret;
+    }
+    if (ret == HDF_SUCCESS) {
+        sampler->SetHardwareVSyncStatus(enabled);
+        sampler->RecordDisplayVSyncStatus(enabled);
+    } else {
+        sampler->RollbackHardwareVSyncStatus();
     }
     return ret;
 }

@@ -17,6 +17,9 @@
 
 #include <map>
 #include "include/core/SkFontTypes.h"
+#ifdef USE_M133_SKIA
+#include "include/core/SkPaint.h"
+#endif
 #include "include/core/SkRSXform.h"
 #include "include/core/SkSerialProcs.h"
 
@@ -188,7 +191,9 @@ void SkiaTextBlob::GetDrawingGlyphIDforTextBlob(const TextBlob* blob, std::vecto
             skTextBlob = skiaBlobImpl->GetTextBlob().get();
         }
     }
+#ifndef USE_M133_SKIA
     GetGlyphIDforTextBlob(skTextBlob, glyphIds);
+#endif
 }
 
 Path SkiaTextBlob::GetDrawingPathforTextBlob(uint16_t glyphId, const TextBlob* blob)
@@ -200,10 +205,14 @@ Path SkiaTextBlob::GetDrawingPathforTextBlob(uint16_t glyphId, const TextBlob* b
             skTextBlob = skiaBlobImpl->GetTextBlob().get();
         }
     }
+#ifndef USE_M133_SKIA
     SkPath skPath = GetPathforTextBlob(glyphId, skTextBlob);
     Path path;
     path.GetImpl<SkiaPath>()->SetPath(skPath);
     return path;
+#else
+    return Path();
+#endif
 }
 
 void SkiaTextBlob::GetDrawingPointsForTextBlob(const TextBlob* blob, std::vector<Point>& points)
@@ -219,7 +228,9 @@ void SkiaTextBlob::GetDrawingPointsForTextBlob(const TextBlob* blob, std::vector
         }
     }
     std::vector<SkPoint> skPoints;
+#ifndef USE_M133_SKIA
     GetPointsForTextBlob(skTextBlob, skPoints);
+#endif
 
     points.reserve(skPoints.size());
     for (const auto& p : skPoints) {

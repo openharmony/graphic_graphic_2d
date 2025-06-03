@@ -163,35 +163,6 @@ ohos_executable("drawing_sample_rs") {
   subsystem_name = "graphic"
 }
 
-ohos_executable("drawing_sample_canvaskit0310") {
-  install_enable = true
-
-  sources = [ "drawing_sample_canvaskit0310.cpp" ]
-
-  include_dirs = [
-    "$graphic_2d_root/rosen/modules/composer/hdi_backend/include",
-    "$graphic_2d_root/rosen/include/common",
-    "$graphic_2d_root/interfaces/inner_api/common",
-    "$graphic_2d_root/rosen/modules/composer/vsync/include",
-    "$graphic_2d_root/rosen/modules/2d_graphics/include",
-    "$graphic_2d_root/rosen/modules/2d_graphics/src",
-  ]
-
-  deps = [
-    "$graphic_2d_root/rosen/modules/composer:libcomposer",
-    "$graphic_2d_root/utils:libgraphic_utils",
-  ]
-
-  external_deps = [
-    "graphic_surface:surface",
-    "hilog:libhilog",
-    "ipc:ipc_core",
-  ]
-
-  part_name = "graphic_2d"
-  subsystem_name = "graphic"
-}
-
 ohos_executable("drawing_sample_replayer") {
   install_enable = true
   cflags = [

@@ -37,7 +37,10 @@ ohos_unittest("text_effect_test") {
     "$rosen_text_root:rosen_text",
   ]
 
-  external_deps = [ "hilog:libhilog" ]
+  external_deps = [
+    "bounds_checking_function:libsec_shared",
+    "hilog:libhilog",
+  ]
 
   part_name = "graphic_2d"
   subsystem_name = "graphic"

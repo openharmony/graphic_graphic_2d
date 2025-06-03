@@ -79,6 +79,7 @@ std::thread::id g_tid = std::thread::id();
 std::mutex g_writeMutex;
 constexpr size_t PIXELMAP_UNMARSHALLING_DEBUG_OFFSET = 12;
 thread_local pid_t g_callingPid = 0;
+constexpr size_t NUM_ITEMS_IN_VERSION = 4;
 }
 
 static std::vector<uint8_t> supportedParcelVerFlags = { RSPARCELVER_ADD_ANIMTOKEN };
@@ -2420,7 +2421,7 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Draw
 {
     if (++recordCmdDepth > Drawing::RECORD_CMD_MAX_DEPTH) {
         ROSEN_LOGE("RSMarshallingHelper::Marshalling RecordCmd failed, "
-            "exceed max depth, cur depth[%{public}u]", recordCmdDepth);
+            "exceed max depth, cur depth[%{public}d]", recordCmdDepth);
         return false;
     }
     if (!val) {
@@ -2442,7 +2443,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
 {
     if (++recordCmdDepth > Drawing::RECORD_CMD_MAX_DEPTH) {
         ROSEN_LOGE("RSMarshallingHelper::Unmarshalling RecordCmd failed, "
-            "exceed max depth, cur depth[%{public}u]", recordCmdDepth);
+            "exceed max depth, cur depth[%{public}d]", recordCmdDepth);
         return false;
     }
 
@@ -3091,12 +3092,12 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSRender
 bool RSMarshallingHelper::MarshallingTransactionVer(Parcel& parcel)
 {
     parcel.WriteInt64(-1);
-    uint64_t flags[4] = { 0 };
+    uint64_t flags[NUM_ITEMS_IN_VERSION] = { 0 };
     constexpr uint8_t bitsPerUint64 = 64;
     for (auto supportedFlag : supportedParcelVerFlags) {
         flags[supportedFlag / bitsPerUint64] |= static_cast<uint64_t>(1) << (supportedFlag % bitsPerUint64);
     }
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < NUM_ITEMS_IN_VERSION; i++) {
         parcel.WriteUint64(flags[i]);
     }
     return true;
@@ -3108,7 +3109,7 @@ bool RSMarshallingHelper::UnmarshallingTransactionVer(Parcel& parcel)
     size_t offset = parcel.GetReadPosition();
     headerCode = parcel.ReadInt64();
     if (headerCode == -1) {
-        for (int i = 0; i < 4; i++) {
+        for (int i = 0; i < NUM_ITEMS_IN_VERSION; i++) {
             parcel.ReadUint64();
         }
     } else {
@@ -3119,8 +3120,10 @@ bool RSMarshallingHelper::UnmarshallingTransactionVer(Parcel& parcel)
 
 bool RSMarshallingHelper::TransactionVersionCheck(Parcel& parcel, uint8_t supportedFlag)
 {
+    constexpr size_t startPositionOffset = 4;
+
     size_t offset = parcel.GetReadPosition();
-    parcel.RewindRead(4);
+    parcel.RewindRead(startPositionOffset);
     int64_t headerCode = parcel.ReadInt64();
     if (headerCode == -1) {
         uint64_t flags = 0;

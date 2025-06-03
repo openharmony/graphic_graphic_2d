@@ -15,8 +15,12 @@
 
 #include "render/rs_render_color_gradient_filter.h"
 
+#include "ge_visual_effect.h"
+#include "ge_visual_effect_container.h"
+
 #include "platform/common/rs_log.h"
 #include "render/rs_render_ripple_mask.h"
+#include "render/rs_shader_mask.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -205,6 +209,76 @@ std::shared_ptr<RSRenderMaskPara> RSRenderColorGradientFilterPara::GetRenderMask
         return nullptr;
     }
     return std::static_pointer_cast<RSRenderMaskPara>(property);
+}
+
+bool RSRenderColorGradientFilterPara::ParseFilterValues()
+{
+    auto colorProperty = std::static_pointer_cast<RSRenderProperty<std::vector<float>>>(
+        GetRenderPropert(RSUIFilterType::COLOR_GRADIENT_COLOR));
+    auto positionProperty = std::static_pointer_cast<RSRenderProperty<std::vector<float>>>(
+        GetRenderPropert(RSUIFilterType::COLOR_GRADIENT_POSITION));
+    auto strengthProperty = std::static_pointer_cast<RSRenderProperty<std::vector<float>>>(
+        GetRenderPropert(RSUIFilterType::COLOR_GRADIENT_STRENGTH));
+    auto maskProperty = std::static_pointer_cast<RSRenderMaskPara>(GetRenderPropert(maskType_));
+    if (!colorProperty || !positionProperty || !strengthProperty) {
+        ROSEN_LOGE("RSRenderColorGradientFilterPara::ParseFilterValues GetRenderPropert has some nullptr.");
+        return false;
+    }
+    colors_ = colorProperty->Get();
+    positions_ = positionProperty->Get();
+    strengths_ = strengthProperty->Get();
+    mask_ = maskProperty ? std::make_shared<RSShaderMask>(maskProperty) : nullptr;
+#ifndef ENABLE_M133_SKIA
+    const auto hashFunc = SkOpts::hash;
+#else
+    const auto hashFunc = SkChecksum::Hash32;
+#endif
+    hash_ = hashFunc(colors_.data(), colors_.size() * sizeof(float), hash_);
+    hash_ = hashFunc(positions_.data(), positions_.size() * sizeof(float), hash_);
+    hash_ = hashFunc(strengths_.data(), strengths_.size() * sizeof(float), hash_);
+    if (mask_) {
+        auto maskHash = mask_->Hash();
+        hash_ = hashFunc(&maskHash, sizeof(maskHash), hash_);
+    }
+    return true;
+}
+
+void RSRenderColorGradientFilterPara::GenerateGEVisualEffect(
+    std::shared_ptr<Drawing::GEVisualEffectContainer> visualEffectContainer)
+{
+    if (visualEffectContainer == nullptr) {
+        return;
+    }
+    auto colorGradientFilter = std::make_shared<Drawing::GEVisualEffect>("COLOR_GRADIENT",
+        Drawing::DrawingPaintType::BRUSH);
+    colorGradientFilter->SetParam("COLOR", colors_);
+    colorGradientFilter->SetParam("POSITION", positions_);
+    colorGradientFilter->SetParam("STRENGTH", strengths_);
+    if (mask_) {
+        colorGradientFilter->SetParam("MASK", mask_->GenerateGEShaderMask());
+    }
+
+    visualEffectContainer->AddToChainedFilter(colorGradientFilter);
+}
+
+const std::vector<float> RSRenderColorGradientFilterPara::GetColors() const
+{
+    return colors_;
+}
+
+const std::vector<float> RSRenderColorGradientFilterPara::GetPositions() const
+{
+    return positions_;
+}
+
+const std::vector<float> RSRenderColorGradientFilterPara::GetStrengths() const
+{
+    return strengths_;
+}
+
+const std::shared_ptr<RSShaderMask>& RSRenderColorGradientFilterPara::GetMask() const
+{
+    return mask_;
 }
 
 } // namespace Rosen

@@ -698,7 +698,7 @@ GraphicTransformType RSUniHwcComputeUtil::GetLayerTransform(RSSurfaceRenderNode&
     auto buffer = node.GetRSSurfaceHandler()->GetBuffer();
     if (consumer != nullptr && buffer != nullptr) {
         if (consumer->GetSurfaceBufferTransformType(buffer, &transformType) != GSERROR_OK) {
-            RS_LOGE("RSUniHwcComputeUtil::GetLayerTransform GetSurfaceBufferTransformType failed");
+            RS_LOGE("GetLayerTransform GetSurfaceBufferTransformType failed");
         }
     }
     int consumerTransform = RSBaseRenderUtil::RotateEnumToInt(RSBaseRenderUtil::GetRotateTransform(transformType));

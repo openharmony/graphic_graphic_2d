@@ -59,7 +59,8 @@
         "graphic_2d_feature_vkqueue_priority_enable",
         "graphic_2d_feature_bootanimation_ext_enable",
         "graphic_2d_feature_overlay_display_enable",
-        "graphic_2d_feature_enable_opengl_to_vulkan"
+        "graphic_2d_feature_enable_opengl_to_vulkan",
+        "graphic_2d_feature_tv_metadata_enable"
       ],
       "rom": "10000KB",
       "ram": "10000KB",
@@ -119,7 +120,8 @@
           "faultloggerd",
           "freetype",
           "rust_cxx",
-          "media_foundation"
+          "media_foundation",
+          "selinux_adapter"
         ],
         "third_party": [
           "skia"
@@ -128,7 +130,6 @@
       "build": {
         "group_type": {
           "base_group": [
-            "//third_party/libpng:libpng",
             "//foundation/graphic/graphic_2d/interfaces/kits/napi:napi_packages",
             "//foundation/graphic/graphic_2d/interfaces/kits/cj:ffi_packages",
             "//foundation/graphic/graphic_2d/rosen/modules/effect/effect_common:effect_common",

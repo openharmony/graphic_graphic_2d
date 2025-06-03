@@ -416,6 +416,7 @@ private:
     void UpdateFoldScreenConnectStatusLocked(ScreenId screenId, bool connected);
     uint64_t JudgeVSyncEnabledScreenWhileHotPlug(ScreenId screenId, bool connected);
     uint64_t JudgeVSyncEnabledScreenWhilePowerStatusChanged(ScreenId screenId, ScreenPowerStatus status);
+    void ProcessVSyncScreenIdWhilePowerStatusChanged(ScreenId id, ScreenPowerStatus status);
 
     void AddScreenToHgm(std::shared_ptr<HdiOutput>& output);
     void RemoveScreenFromHgm(std::shared_ptr<HdiOutput>& output);

@@ -17,6 +17,7 @@
 
 #include "params/rs_render_params.h"
 #include "pipeline/rs_render_node.h"
+#include "platform/common/rs_log.h"
 #include "rs_trace.h"
 #include <csignal>
 

@@ -19,7 +19,11 @@
 #include "include/effects/SkColorMatrixFilter.h"
 #include "include/effects/SkLumaColorFilter.h"
 #include "include/effects/SkOverdrawColorFilter.h"
+#ifdef USE_M133_SKIA
+#include "src/effects/colorfilters/SkColorFilterBase.h"
+#else
 #include "src/core/SkColorFilterBase.h"
+#endif
 
 #include "effect/color_filter.h"
 #include "utils/data.h"

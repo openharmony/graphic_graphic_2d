@@ -592,8 +592,8 @@ ohos_unittest("RSUniRenderVisitorTest") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
-    "init:libbegetutil",
     "hisysevent:libhisysevent",
+    "init:libbegetutil",
     "samgr:samgr_proxy",
   ]
   include_dirs =
@@ -626,8 +626,8 @@ ohos_unittest("RSPointerWindowManagerTest") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
-    "init:libbegetutil",
     "hisysevent:libhisysevent",
+    "init:libbegetutil",
     "samgr:samgr_proxy",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
@@ -695,8 +695,8 @@ ohos_unittest("RSMainThreadTest") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
-    "init:libbegetutil",
     "hisysevent:libhisysevent",
+    "init:libbegetutil",
     "samgr:samgr_proxy",
   ]
   defines = []
@@ -858,8 +858,8 @@ ohos_unittest("RSRoundCornerDisplayTest") {
     "c_utils:utils",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
-    "skia:skia_canvaskit",
     "samgr:samgr_proxy",
+    "skia:skia_canvaskit",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -1044,9 +1044,9 @@ ohos_unittest("RSMagicPointerRenderManagerTest") {
     sources =
         [ "magic_pointer_render/rs_magic_pointer_render_manager_test.cpp" ]
     deps = [
-    ":rs_test_common",
-    "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
-  ]
+      ":rs_test_common",
+      "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+    ]
     external_deps = [
       "c_utils:utils",
       "hilog:libhilog",
@@ -1088,8 +1088,8 @@ ohos_unittest("RSUniHwcVisitorTest") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
-    "init:libbegetutil",
     "hisysevent:libhisysevent",
+    "init:libbegetutil",
     "samgr:samgr_proxy",
   ]
   include_dirs =
@@ -1132,6 +1132,7 @@ config("rs_test_common_public_config") {
     "$graphic_2d_root/rosen/modules/render_service_base/src",
     "$graphic_2d_root/rosen/test/include",
     "$graphic_2d_root/utils/socketpair/export",
+    "$graphic_2d_root/rosen/test/render_service/render_service/unittest",
   ]
 
   cflags = [
@@ -1153,6 +1154,7 @@ ohos_static_library("rs_test_common") {
 
   public_deps = [
     "$graphic_2d_root/rosen/modules/composer:libcomposer",
+    "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
     "$graphic_2d_root/rosen/modules/render_service:librender_service",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
     "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
@@ -1163,9 +1165,7 @@ ohos_static_library("rs_test_common") {
     defines += [ "USE_ROSEN_DRAWING" ]
   }
 
-  deps = [
-    "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
-  ]
+  deps = [ "$graphic_2d_root/rosen/modules/composer/vsync:libvsync" ]
 
   external_deps = [
     "hisysevent:libhisysevent",
@@ -1174,9 +1174,11 @@ ohos_static_library("rs_test_common") {
 
   public_external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "googletest:gmock_main",
     "googletest:gtest_main",
     "hilog:libhilog",
+    "hisysevent:libhisysevent",
     "hitrace:hitrace_meter",
     "init:libbegetutil",
     "ipc:ipc_core",

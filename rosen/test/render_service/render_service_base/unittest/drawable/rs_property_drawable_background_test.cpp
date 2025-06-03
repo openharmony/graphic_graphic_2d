@@ -347,7 +347,8 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSBackgroundFilterDrawable, TestSize.Leve
     RSRenderNode node(id);
     std::shared_ptr<RSDrawable> drawable = DrawableV2::RSBackgroundFilterDrawable::OnGenerate(node);
     ASSERT_EQ(drawable, nullptr);
-    std::shared_ptr<RSFilter> backgroundFilter = std::make_shared<RSDrawingFilter>(std::make_shared<RSShaderFilter>());
+    std::shared_ptr<RSFilter> backgroundFilter =
+        std::make_shared<RSDrawingFilter>(std::make_shared<RSRenderFilterParaBase>());
     node.renderContent_->GetMutableRenderProperties().SetBackgroundFilter(backgroundFilter);
     ASSERT_NE(DrawableV2::RSBackgroundFilterDrawable::OnGenerate(node), nullptr);
     RSEffectRenderNode nodeTwo(id);

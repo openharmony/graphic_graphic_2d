@@ -1862,7 +1862,7 @@ HWTEST_F(RSMarshallingHelperTest, UnmarshallingTest051, TestSize.Level1)
     EXPECT_TRUE(RSMarshallingHelper::Marshalling(*parcel2, drawCmdList2));
     std::shared_ptr<Drawing::DrawCmdList> outDrawCmdList2 = nullptr;
     // exceed max recordCmd count
-    EXPECT_FALSE(RSMarshallingHelper::Unmarshalling(*parcel, outDrawCmdList2));
+    EXPECT_FALSE(RSMarshallingHelper::Unmarshalling(*parcel2, outDrawCmdList2));
     RSMarshallingHelper::EndNoSharedMem();
 }
 

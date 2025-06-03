@@ -443,7 +443,11 @@ std::shared_ptr<Data> SkiaShaderEffect::Serialize() const
         return nullptr;
     }
 
+#ifdef USE_M133_SKIA
+    SkBinaryWriteBuffer writer({});
+#else
     SkBinaryWriteBuffer writer;
+#endif
     writer.writeFlattenable(shader_.get());
     size_t length = writer.bytesWritten();
     std::shared_ptr<Data> data = std::make_shared<Data>();

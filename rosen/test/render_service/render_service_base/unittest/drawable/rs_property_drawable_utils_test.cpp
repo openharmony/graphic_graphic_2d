@@ -22,9 +22,9 @@
 #include "skia_adapter/skia_image.h"
 #include "skia_adapter/skia_image_info.h"
 #include "skia_adapter/skia_surface.h"
-#include "render/rs_linear_gradient_blur_shader_filter.h"
-#include "render/rs_magnifier_shader_filter.h"
-#include "render/rs_mesa_blur_shader_filter.h"
+#include "render/rs_render_linear_gradient_blur_filter.h"
+#include "render/rs_render_magnifier_filter.h"
+#include "render/rs_render_mesa_blur_filter.h"
 
 namespace OHOS::Rosen {
 class RSPropertyDrawableUtilsTest : public testing::Test {
@@ -140,7 +140,7 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawAndBeginForegroundFilterTest006, testi
     std::vector<std::pair<float, float>> fractionStops;
     auto para = std::make_shared<RSLinearGradientBlurPara>(1.f, fractionStops, GradientDirection::LEFT);
     auto rsFilterTest = std::make_shared<RSLinearGradientBlurShaderFilter>(para, 1.f, 1.f);
-    rsFilterTest->type_ = RSShaderFilter::LINEAR_GRADIENT_BLUR;
+    rsFilterTest->type_ = RSUIFilterType::LINEAR_GRADIENT_BLUR;
     EXPECT_NE(rsFilterTest, nullptr);
     rsFilter = std::make_shared<RSDrawingFilter>(rsFilterTest);
     EXPECT_NE(rsFilter, nullptr);
@@ -161,7 +161,7 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawAndBeginForegroundFilterTest006, testi
     rsPropertyDrawableUtils->DrawFilter(&paintFilterCanvasTest1, rsFilter, cacheManager, false);
     auto magnifierParams = std::make_shared<RSMagnifierParams>();
     auto magnifierFilter = std::make_shared<RSMagnifierShaderFilter>(magnifierParams);
-    magnifierFilter->type_ = RSShaderFilter::MAGNIFIER;
+    magnifierFilter->type_ = RSUIFilterType::MAGNIFIER;
     rsFilter = std::make_shared<RSDrawingFilter>(magnifierFilter);
     rsFilter->type_ = RSFilter::BLUR;
     rsFilter->imageFilter_ = std::make_shared<Drawing::ImageFilter>();
@@ -638,12 +638,12 @@ HWTEST_F(RSPropertyDrawableUtilsTest, RSFilterSetPixelStretchTest021, testing::e
     std::shared_ptr<RSFilter> rsFilter = nullptr;
     EXPECT_FALSE(rsPropertyDrawableUtils->RSFilterSetPixelStretch(properties, rsFilter));
 
-    std::shared_ptr<RSShaderFilter> rsFilterTest = std::make_shared<RSShaderFilter>();
+    std::shared_ptr<RSRenderFilterParaBase> rsFilterTest = std::make_shared<RSRenderFilterParaBase>();
     std::shared_ptr<RSDrawingFilter> filter = std::make_shared<RSDrawingFilter>(rsFilterTest);
     EXPECT_FALSE(rsPropertyDrawableUtils->RSFilterSetPixelStretch(properties, filter));
 
-    std::shared_ptr<RSShaderFilter> rsFilterTest2 = std::make_shared<RSShaderFilter>();
-    rsFilterTest2->type_ = RSShaderFilter::MESA;
+    std::shared_ptr<RSRenderFilterParaBase> rsFilterTest2 = std::make_shared<RSRenderFilterParaBase>();
+    rsFilterTest2->type_ = RSUIFilterType::MESA;
     std::shared_ptr<RSDrawingFilter> filter2 = std::make_shared<RSDrawingFilter>(rsFilterTest2);
     EXPECT_FALSE(rsPropertyDrawableUtils->RSFilterSetPixelStretch(properties, filter2));
 
@@ -677,7 +677,7 @@ HWTEST_F(RSPropertyDrawableUtilsTest, RSFilterRemovePixelStretchTest022, testing
     std::shared_ptr<RSFilter> rsFilter = nullptr;
     rsPropertyDrawableUtils->RSFilterRemovePixelStretch(rsFilter);
 
-    std::shared_ptr<RSShaderFilter> rsFilterTest = std::make_shared<RSShaderFilter>();
+    std::shared_ptr<RSRenderFilterParaBase> rsFilterTest = std::make_shared<RSRenderFilterParaBase>();
     std::shared_ptr<RSDrawingFilter> filter = std::make_shared<RSDrawingFilter>(rsFilterTest);
     rsPropertyDrawableUtils->RSFilterRemovePixelStretch(filter);
 

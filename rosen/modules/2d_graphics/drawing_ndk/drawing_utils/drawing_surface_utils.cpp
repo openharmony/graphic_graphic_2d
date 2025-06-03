@@ -18,6 +18,9 @@
 #ifdef RS_ENABLE_VK
 #include "platform/ohos/backend/native_buffer_utils.h"
 #include "sync_fence.h"
+#ifdef USE_M133_SKIA
+#include "include/gpu/ganesh/vk/GrVkBackendSemaphore.h"
+#endif
 #endif
 
 #include "utils/log.h"
