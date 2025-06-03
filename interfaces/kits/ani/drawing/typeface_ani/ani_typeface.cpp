@@ -70,6 +70,12 @@ ani_object AniTypeface::MakeFromFile(ani_env* env, ani_object obj, ani_string an
     std::shared_ptr<Typeface> typeface = Typeface::MakeFromFile(filePath.c_str());
     AniTypeface* aniTypeface = new AniTypeface(typeface);
     ani_object aniObj = CreateAniObjectStatic(env, "L@ohos/graphics/drawing/drawing/Typeface;", aniTypeface);
+    ani_boolean isUndefined;
+    env->Reference_IsUndefined(aniObj, &isUndefined);
+    if (isUndefined) {
+        delete aniTypeface;
+        ROSEN_LOGE("AniTypeface::MakeFromFile failed cause aniObj is undefined");
+    }
     return aniObj;
 }
 
@@ -87,6 +93,12 @@ ani_object AniTypeface::MakeFromFileWithArguments(ani_env* env, ani_object obj, 
     std::shared_ptr<Typeface> typeface = Typeface::MakeFromFile(filePath.c_str(), fontArguments);
     AniTypeface* aniTypeface = new AniTypeface(typeface);
     ani_object aniObj = CreateAniObjectStatic(env, "L@ohos/graphics/drawing/drawing/Typeface;", aniTypeface);
+    ani_boolean isUndefined;
+    env->Reference_IsUndefined(aniObj, &isUndefined);
+    if (isUndefined) {
+        delete aniTypeface;
+        ROSEN_LOGE("AniTypeface::MakeFromFileWithArguments failed cause aniObj is undefined");
+    }
     return aniObj;
 }
 
