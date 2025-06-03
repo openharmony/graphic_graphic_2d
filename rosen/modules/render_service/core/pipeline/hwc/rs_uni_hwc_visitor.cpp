@@ -988,7 +988,7 @@ void RSUniHwcVisitor::UpdateHwcNodeRectInSkippedSubTree(const RSRenderNode& root
 }
 
 void RSUniHwcVisitor::UpdateHwcNodeGeometryAndMatrix(const std::shared_ptr<RSSurfaceRenderNode>& hwcNodePtr,
-    const RSRenderNode& rootNode, const std::shared_ptr<RSRenderNode>& parent)
+    const RSRenderNode& rootNode, std::shared_ptr<RSRenderNode>& parent)
 {
     const auto& property = hwcNodePtr->GetRenderProperties();
     auto geoPtr = property.GetBoundsGeometry();
