@@ -25,6 +25,13 @@
 namespace OHOS {
 namespace Rosen {
 
+constexpr RSUIFilterType DISPERSION_FILTER_TYPE[] = {
+    RSUIFilterType::DISPERSION_OPACITY,
+    RSUIFilterType::DISPERSION_RED_OFFSET,
+    RSUIFilterType::DISPERSION_GREEN_OFFSET,
+    RSUIFilterType::DISPERSION_BLUE_OFFSET,
+};
+
 void RSRenderDispersionFilterPara::GetDescription(std::string& out) const
 {
     out += "RSRenderDispersionFilterPara::[maskType_:" + std::to_string(static_cast<int>(maskType_)) + "]";
@@ -72,13 +79,7 @@ bool RSRenderDispersionFilterPara::WriteToParcel(Parcel& parcel)
         return false;
     }
 
-    RSUIFilterType filterTypes[] = {
-        RSUIFilterType::DISPERSION_OPACITY,
-        RSUIFilterType::DISPERSION_RED_OFFSET,
-        RSUIFilterType::DISPERSION_GREEN_OFFSET,
-        RSUIFilterType::DISPERSION_BLUE_OFFSET,
-    };
-    for (auto type : filterTypes) {
+    for (auto type : DISPERSION_FILTER_TYPE) {
         auto property = GetRenderPropert(type);
         if (property == nullptr) {
             ROSEN_LOGE("RSRenderDispersionFilterPara::WriteToParcel empty type: %{public}d", static_cast<int>(type));
@@ -121,13 +122,7 @@ bool RSRenderDispersionFilterPara::ReadFromParcel(Parcel& parcel)
     }
     Setter(maskType_, maskProperty);
 
-    RSUIFilterType filterTypes[] = {
-        RSUIFilterType::DISPERSION_OPACITY,
-        RSUIFilterType::DISPERSION_RED_OFFSET,
-        RSUIFilterType::DISPERSION_GREEN_OFFSET,
-        RSUIFilterType::DISPERSION_BLUE_OFFSET,
-    };
-    for (auto type : filterTypes) {
+    for (auto type : DISPERSION_FILTER_TYPE) {
         RSUIFilterType realType = RSUIFilterType::NONE;
         if (!RSMarshallingHelper::Unmarshalling(parcel, realType)) {
             ROSEN_LOGE("RSRenderDispersionFilterPara::ReadFromParcel empty type: %{public}d", static_cast<int>(type));
@@ -147,8 +142,21 @@ bool RSRenderDispersionFilterPara::ReadFromParcel(Parcel& parcel)
 std::vector<std::shared_ptr<RSRenderPropertyBase>> RSRenderDispersionFilterPara::GetLeafRenderProperties()
 {
     std::vector<std::shared_ptr<RSRenderPropertyBase>> out;
-    for (auto& [k, v] : properties_) {
-        out.emplace_back(v);
+    if (maskType_ != RSUIFilterType::NONE) {
+        auto mask = std::static_pointer_cast<RSRenderMaskPara>(GetRenderPropert(maskType_));
+        if (mask == nullptr) {
+            ROSEN_LOGE("RSRenderDispersionFilterPara::GetLeafRenderProperties mask not found, maskType: %{public}d",
+                static_cast<int>(maskType_));
+            return {};
+        }
+        out = mask->GetLeafRenderProperties();
+    }
+    for (const auto& filterType : DISPERSION_FILTER_TYPE) {
+        auto value = GetRenderPropert(filterType);
+        if (value == nullptr) {
+            continue;
+        }
+        out.emplace_back(value);
     }
     return out;
 }
