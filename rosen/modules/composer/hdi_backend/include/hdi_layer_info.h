@@ -654,7 +654,7 @@ public:
     enum class AncoFlags : uint32_t {
         IS_ANCO_NODE = 0x0001,
         ANCO_SFV_NODE = 0x0011,
-        ANCO_NDK_NODE = 0X0111,
+        ANCO_NDK_NODE = 0x0111,
         FORCE_REFRESH = 0x1000
     };
     void SetAncoFlags(const uint32_t ancoFlags) { ancoFlags_ = ancoFlags; }
@@ -664,7 +664,7 @@ public:
         constexpr uint32_t ANCO_SFV_NODE_FLAG = static_cast<uint32_t>(AncoFlags::ANCO_SFV_NODE);
         return (ancoFlags_ & ANCO_SFV_NODE_FLAG) == ANCO_SFV_NODE_FLAG;
     }
-    bool IsAncoNDK() const
+    bool IsAncoNdk() const
     {
         constexpr uint32_t ANCO_NDK_NODE_FLAG = static_cast<uint32_t>(AncoFlags::ANCO_NDK_NODE);
         return (ancoFlags_ & ANCO_NDK_NODE_FLAG) == ANCO_NDK_NODE_FLAG;
