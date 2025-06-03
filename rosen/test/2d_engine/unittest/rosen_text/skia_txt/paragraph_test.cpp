@@ -649,5 +649,20 @@ HWTEST_F(ParagraphTest, ParagraphTestMiddleEllipsis014, TestSize.Level1)
     EXPECT_EQ(range.start, std::numeric_limits<size_t>::max());
     EXPECT_EQ(range.end, std::numeric_limits<size_t>::max());
 }
+
+/*
+ * @tc.name: ParagraphTestMiddleEllipsis015
+ * @tc.desc: test for Middle Ellipsis 015, get glyph position
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParagraphTest, ParagraphTestMiddleEllipsis015, TestSize.Level1)
+{
+    size_t maxLines = 1;
+    PrepareMiddleEllipsis(maxLines, u"...", u"你好世界 Hello World");
+    paragraphMiddleEllipsis_->Layout(280);
+    EXPECT_EQ(paragraphMiddleEllipsis_->GetGlyphPositionAtCoordinate(50, 0.0).position, 2.0);
+    EXPECT_EQ(paragraphMiddleEllipsis_->GetGlyphPositionAtCoordinate(150, 0.0).position, 7.0);
+    EXPECT_EQ(paragraphMiddleEllipsis_->GetGlyphPositionAtCoordinate(270, 0.0).position, 16.0);
+}
 #endif
 } // namespace txt
