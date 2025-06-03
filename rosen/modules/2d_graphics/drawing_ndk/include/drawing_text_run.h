@@ -227,7 +227,6 @@ uint32_t OH_Drawing_GetRunGlyphCount(OH_Drawing_Run* run);
  * @param run Indicates the pointer to an <b>OH_Drawing_Run</b> object.
  * @return The Font Object of run.
  * @since 20
- * @version 1.0
  */
 OH_Drawing_Font* OH_Drawing_GetRunFont(OH_Drawing_Run* run);
 

@@ -228,8 +228,8 @@ napi_value JsRun::GetAdvances(napi_env env, napi_callback_info info)
 napi_value JsRun::OnGetAdvances(napi_env env, napi_callback_info info)
 {
     if (!run_) {
-        TEXT_LOGE("Null run");
-        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Failed run is nullptr.");
+        TEXT_LOGE("Failed run is nullptr");
+        return NapiGetUndefined(env);
     }
 
     size_t argc = ARGC_ONE;
@@ -237,13 +237,12 @@ napi_value JsRun::OnGetAdvances(napi_env env, napi_callback_info info)
     int64_t end = 0;
     napi_value argv[ARGC_ONE] = {nullptr};
     napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
-    if (status != napi_ok) {
-        TEXT_LOGE("Failed to get the info");
+    if (status != napi_ok || argc < ARGC_ONE) {
+        TEXT_LOGE("Failed to get parameter, argc %{public}zu, ret %{public}d", argc, status);
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
-    } else if (argc == ARGC_ONE) {
-        if (!GetStartEndParams(env, argv[0], start, end)) {
-            return NapiGetUndefined(env);
-        }
+    }
+    if (!GetStartEndParams(env, argv[0], start, end)) {
+        return NapiGetUndefined(env);
     }
 
     std::vector<Drawing::Point> advances = run_->GetAdvances(start, end);
@@ -266,8 +265,8 @@ napi_value JsRun::GetTextDirection(napi_env env, napi_callback_info info)
 napi_value JsRun::OnGetTextDirection(napi_env env, napi_callback_info info)
 {
     if (!run_) {
-        TEXT_LOGE("Null run");
-        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Failed run is nullptr.");
+        TEXT_LOGE("Failed run is nullptr");
+        return NapiGetUndefined(env);
     }
 
     TextDirection textDirection = run_->GetTextDirection();

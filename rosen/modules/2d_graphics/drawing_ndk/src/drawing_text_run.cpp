@@ -276,7 +276,7 @@ OH_Drawing_Array* OH_Drawing_GetRunGlyphAdvances(OH_Drawing_Run* run, uint32_t s
 OH_Drawing_Point* OH_Drawing_GetRunGlyphAdvanceByIndex(OH_Drawing_Array* advances, size_t index)
 {
     ObjectArray* advancesArray = reinterpret_cast<ObjectArray*>(advances);
-    if (advancesArray && advancesArray->type == ObjectType::TEXT_RUN &&
+    if (advancesArray != nullptr && advancesArray->type == ObjectType::TEXT_RUN &&
         index < advancesArray->num && advancesArray->addr) {
         Drawing::Point* advancesArr =  reinterpret_cast<Drawing::Point*>(advancesArray->addr);
         return reinterpret_cast<OH_Drawing_Point*>(&advancesArr[index]);
@@ -287,7 +287,7 @@ OH_Drawing_Point* OH_Drawing_GetRunGlyphAdvanceByIndex(OH_Drawing_Array* advance
 void OH_Drawing_DestroyRunGlyphAdvances(OH_Drawing_Array* advances)
 {
     ObjectArray* advancesArray = reinterpret_cast<ObjectArray*>(advances);
-    if (advancesArray && advancesArray->addr && advancesArray->type == ObjectType::TEXT_RUN) {
+    if (advancesArray != nullptr && advancesArray->addr && advancesArray->type == ObjectType::TEXT_RUN) {
         delete[] reinterpret_cast<Drawing::Point*>(advancesArray->addr);
         advancesArray->num = 0;
         advancesArray->type = ObjectType::INVALID;
