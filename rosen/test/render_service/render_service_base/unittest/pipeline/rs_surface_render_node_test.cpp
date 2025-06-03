@@ -408,12 +408,12 @@ HWTEST_F(RSSurfaceRenderNodeTest, ResetSurfaceOpaqueRegion08, TestSize.Level1)
                                  static_cast<int>(std::ceil(cornerRadius.y_)),
                                  static_cast<int>(std::ceil(cornerRadius.z_)),
                                  static_cast<int>(std::ceil(cornerRadius.w_)));
-    surfaceRenderNode->navigationBarTransparentRegion_ = Occlusion::Region(Occlusion::Rect(defaultLargeRect));
+    surfaceRenderNode->occlusionRegionBehindWindow_ = Occlusion::Region(Occlusion::Rect(defaultLargeRect));
     EXPECT_CALL(*surfaceRenderNode, NeedDrawBehindWindow()).WillRepeatedly(testing::Return(true));
     EXPECT_CALL(*surfaceRenderNode, GetFilterRect()).WillRepeatedly(testing::Return(defaultSmallRect));
     surfaceRenderNode->ResetSurfaceOpaqueRegion(
         screenRect, absRect, ScreenRotation::ROTATION_0, false, dstCornerRadius);
-    ASSERT_TRUE(surfaceRenderNode->IsNavigationBarTransparentRegionChanged());
+    ASSERT_TRUE(surfaceRenderNode->IsBehindWindowOcclusionChanged());
 }
 
 /**
@@ -436,16 +436,16 @@ HWTEST_F(RSSurfaceRenderNodeTest, ResetSurfaceOpaqueRegion09, TestSize.Level1)
                                  static_cast<int>(std::ceil(cornerRadius.y_)),
                                  static_cast<int>(std::ceil(cornerRadius.z_)),
                                  static_cast<int>(std::ceil(cornerRadius.w_)));
-    surfaceRenderNode->navigationBarTransparentRegion_ = Occlusion::Region(Occlusion::Rect(defaultLargeRect));
+    surfaceRenderNode->occlusionRegionBehindWindow_ = Occlusion::Region(Occlusion::Rect(defaultLargeRect));
     EXPECT_CALL(*surfaceRenderNode, NeedDrawBehindWindow()).WillRepeatedly(testing::Return(false));
     surfaceRenderNode->ResetSurfaceOpaqueRegion(
         screenRect, absRect, ScreenRotation::ROTATION_0, false, dstCornerRadius);
-    ASSERT_TRUE(surfaceRenderNode->IsNavigationBarTransparentRegionChanged());
+    ASSERT_TRUE(surfaceRenderNode->IsBehindWindowOcclusionChanged());
 }
 
 /**
  * @tc.name: ResetSurfaceOpaqueRegion10
- * @tc.desc: function test when NeedDrawBehindWindow() return true and navigationBarTransparentRegion has not changed
+ * @tc.desc: function test when NeedDrawBehindWindow() return true and occlusionRegionBehindWindow has not changed
  * @tc.type:FUNC
  * @tc.require: issueIC9HNQ
  */
@@ -463,12 +463,12 @@ HWTEST_F(RSSurfaceRenderNodeTest, ResetSurfaceOpaqueRegion10, TestSize.Level1)
                                  static_cast<int>(std::ceil(cornerRadius.y_)),
                                  static_cast<int>(std::ceil(cornerRadius.z_)),
                                  static_cast<int>(std::ceil(cornerRadius.w_)));
-    surfaceRenderNode->navigationBarTransparentRegion_ = Occlusion::Region(Occlusion::Rect(defaultLargeRect));
+    surfaceRenderNode->occlusionRegionBehindWindow_ = Occlusion::Region(Occlusion::Rect(defaultLargeRect));
     EXPECT_CALL(*surfaceRenderNode, NeedDrawBehindWindow()).WillRepeatedly(testing::Return(true));
     EXPECT_CALL(*surfaceRenderNode, GetFilterRect()).WillRepeatedly(testing::Return(defaultLargeRect));
     surfaceRenderNode->ResetSurfaceOpaqueRegion(
         screenRect, absRect, ScreenRotation::ROTATION_0, false, dstCornerRadius);
-    ASSERT_FALSE(surfaceRenderNode->IsNavigationBarTransparentRegionChanged());
+    ASSERT_FALSE(surfaceRenderNode->IsBehindWindowOcclusionChanged());
 }
 
 /**

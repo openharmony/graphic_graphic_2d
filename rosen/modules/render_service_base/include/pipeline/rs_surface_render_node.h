@@ -741,10 +741,9 @@ public:
         return visibleRegion_;
     }
 
-    // Get the visible region which include transparent occlusion of the navigation bar in the surface
-    const Occlusion::Region& GetVisibleRegionIncludeTransparentOcclusion() const
+    const Occlusion::Region& GetVisibleRegionBehindWindow() const
     {
-        return visibleRegionIncludeTransparentOcclusion_;
+        return visibleRegionBehindWindow_;
     }
 
     const Occlusion::Region& GetVisibleRegionInVirtual() const
@@ -902,10 +901,9 @@ public:
         visibleRegion_ = region;
     }
 
-    // Set the visible region which include transparent occlusion of the navigation bar in the surface
-    void SetVisibleRegionIncludeTransparentOcclusion(const Occlusion::Region& region)
+    void SetVisibleRegionBehindWindow(const Occlusion::Region& region)
     {
-        visibleRegionIncludeTransparentOcclusion_ = region;
+        visibleRegionBehindWindow_ = region;
     }
 
     void SetVisibleRegionInVirtual(const Occlusion::Region& region)
@@ -992,9 +990,9 @@ public:
         opaqueRegionChanged_ = false;
     }
 
-    bool IsNavigationBarTransparentRegionChanged() const
+    bool IsBehindWindowOcclusionChanged() const
     {
-        return navigationBarTransparentRegionChanged_;
+        return behindWindowOcclusionChanged_;
     }
 
     // [planning] Remove this after skia is upgraded, the clipRegion is supported
@@ -1591,7 +1589,7 @@ private:
     bool isUIHidden_ = false;
     bool extraDirtyRegionAfterAlignmentIsEmpty_ = true;
     bool opaqueRegionChanged_ = false;
-    bool navigationBarTransparentRegionChanged_ = false;
+    bool behindWindowOcclusionChanged_ = false;
     bool isFilterCacheFullyCovered_ = false;
     bool isFilterCacheValidForOcclusion_ = false;
     bool isOccludedByFilterCache_ = false;
@@ -1757,7 +1755,7 @@ private:
     different under filter cache surfacenode layer.
     */
     Occlusion::Region visibleRegion_;
-    Occlusion::Region visibleRegionIncludeTransparentOcclusion_;
+    Occlusion::Region visibleRegionBehindWindow_;
     Occlusion::Region extendVisibleRegion_;
     Occlusion::Region visibleRegionInVirtual_;
     Occlusion::Region visibleRegionForCallBack_;
@@ -1775,8 +1773,7 @@ private:
     std::vector<std::shared_ptr<RSRenderNode>> childrenFilterNodes_;
     // transparent region of the surface, floating window's container window is always treated as transparent
     Occlusion::Region transparentRegion_;
-    // transparent region of the navigation bar in the surface
-    Occlusion::Region navigationBarTransparentRegion_;
+    Occlusion::Region occlusionRegionBehindWindow_;
 
     Occlusion::Region containerRegion_;
     std::unordered_set<NodeId> abilityNodeIds_;

@@ -1357,19 +1357,19 @@ void RSUniRenderVisitor::UpdateNodeVisibleRegion(RSSurfaceRenderNode& node)
     Occlusion::Rect selfDrawRect = node.GetSurfaceOcclusionRect(true);
     Occlusion::Region selfDrawRegion { selfDrawRect };
     needRecalculateOcclusion_ = needRecalculateOcclusion_ || node.CheckIfOcclusionChanged() ||
-        node.IsNavigationBarTransparentRegionChanged();
+        node.IsBehindWindowOcclusionChanged();
     if (needRecalculateOcclusion_) {
         Occlusion::Region subResult = selfDrawRegion.Sub(accumulatedOcclusionRegion_);
         node.SetVisibleRegion(subResult);
-        node.SetVisibleRegionIncludeTransparentOcclusion(subResult.Sub(accumulatedTransparentRegion_));
+        node.SetVisibleRegionBehindWindow(subResult.Sub(accumulatedOcclusionRegionBehindWindow_));
         Occlusion::Region subResultWithoutSkipLayer = selfDrawRegion.Sub(occlusionRegionWithoutSkipLayer_);
         node.SetVisibleRegionInVirtual(subResultWithoutSkipLayer);
     }
     RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(TRACE_LEVEL_THREE,
         "RSUniRenderVisitor::UpdateNodeVisibleRegion name[%s] visibleRegion[%s] "
-        "visibleRegionIncludeTransparentOcclusion[%s]",
+        "visibleRegionBehindWindow[%s]",
         node.GetName().c_str(), node.GetVisibleRegion().GetRegionInfo().c_str(),
-        node.GetVisibleRegionIncludeTransparentOcclusion().GetRegionInfo().c_str());
+        node.GetVisibleRegionBehindWindow().GetRegionInfo().c_str());
 }
 
 CM_INLINE void RSUniRenderVisitor::CalculateOpaqueAndTransparentRegion(RSSurfaceRenderNode& node)
@@ -1404,7 +1404,7 @@ CM_INLINE void RSUniRenderVisitor::CalculateOpaqueAndTransparentRegion(RSSurface
             node.GetName().c_str(), node.GetOpaqueRegion().GetRegionInfo().c_str());
         accumulatedOcclusionRegion_.OrSelf(node.GetOpaqueRegion());
         if (node.NeedDrawBehindWindow()) {
-            accumulatedTransparentRegion_.OrSelf(Occlusion::Region(Occlusion::Rect(node.GetFilterRect())));
+            accumulatedOcclusionRegionBehindWindow_.OrSelf(Occlusion::Region(Occlusion::Rect(node.GetFilterRect())));
         }
         if (IsValidInVirtualScreen(node)) {
             occlusionRegionWithoutSkipLayer_.OrSelf(node.GetOpaqueRegion());
@@ -1755,7 +1755,7 @@ bool RSUniRenderVisitor::InitDisplayInfo(RSDisplayRenderNode& node)
     // 3 init Occlusion info
     needRecalculateOcclusion_ = false;
     accumulatedOcclusionRegion_.Reset();
-    accumulatedTransparentRegion_.Reset();
+    accumulatedOcclusionRegionBehindWindow_.Reset();
     occlusionRegionWithoutSkipLayer_.Reset();
     if (!curMainAndLeashWindowNodesIds_.empty()) {
         std::queue<NodeId>().swap(curMainAndLeashWindowNodesIds_);

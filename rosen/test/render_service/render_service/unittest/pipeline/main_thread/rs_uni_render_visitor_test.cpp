@@ -88,7 +88,7 @@ public:
     MOCK_CONST_METHOD0(NeedDrawBehindWindow, bool());
     MOCK_CONST_METHOD0(GetFilterRect, RectI());
     MOCK_CONST_METHOD0(CheckIfOcclusionChanged, bool());
-    MOCK_CONST_METHOD0(IsNavigationBarTransparentRegionChanged, bool());
+    MOCK_CONST_METHOD0(IsBehindWindowOcclusionChanged, bool());
 };
 
 void RSUniRenderVisitorTest::SetUpTestCase()
@@ -4085,7 +4085,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateNodeVisibleRegion002, TestSize.Level2)
 
 /**
  * @tc.name: UpdateNodeVisibleRegion003
- * @tc.desc: Test UpdateNodeVisibleRegion when IsNavigationBarTransparentRegionChanged() return true
+ * @tc.desc: Test UpdateNodeVisibleRegion when IsBehindWindowOcclusionChanged() return true
  * @tc.type: FUNC
  * @tc.require: issueIC9HNQ
  */
@@ -4102,7 +4102,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateNodeVisibleRegion003, TestSize.Level2)
     rsUniRenderVisitor->curDisplayNode_->isFirstVisitCrossNodeDisplay_ = true;
     rsUniRenderVisitor->needRecalculateOcclusion_ = false;
     EXPECT_CALL(*rsSurfaceRenderNode, CheckIfOcclusionChanged()).WillRepeatedly(testing::Return(false));
-    EXPECT_CALL(*rsSurfaceRenderNode, IsNavigationBarTransparentRegionChanged()).WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(*rsSurfaceRenderNode, IsBehindWindowOcclusionChanged()).WillRepeatedly(testing::Return(true));
     rsSurfaceRenderNode->oldDirtyInSurface_ = RectI();
     rsSurfaceRenderNode->absDrawRect_ = DEFAULT_RECT;
     rsSurfaceRenderNode->isFirstLevelCrossNode_ = true;
@@ -4113,7 +4113,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateNodeVisibleRegion003, TestSize.Level2)
 
 /**
  * @tc.name: UpdateNodeVisibleRegion004
- * @tc.desc: Test UpdateNodeVisibleRegion when IsNavigationBarTransparentRegionChanged() return false
+ * @tc.desc: Test UpdateNodeVisibleRegion when IsBehindWindowOcclusionChanged() return false
  * @tc.type: FUNC
  * @tc.require: issueIC9HNQ
  */
@@ -4130,7 +4130,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateNodeVisibleRegion004, TestSize.Level2)
     rsUniRenderVisitor->curDisplayNode_->isFirstVisitCrossNodeDisplay_ = true;
     rsUniRenderVisitor->needRecalculateOcclusion_ = false;
     EXPECT_CALL(*rsSurfaceRenderNode, CheckIfOcclusionChanged()).WillRepeatedly(testing::Return(false));
-    EXPECT_CALL(*rsSurfaceRenderNode, IsNavigationBarTransparentRegionChanged()).WillRepeatedly(testing::Return(false));
+    EXPECT_CALL(*rsSurfaceRenderNode, IsBehindWindowOcclusionChanged()).WillRepeatedly(testing::Return(false));
     rsSurfaceRenderNode->oldDirtyInSurface_ = RectI();
     rsSurfaceRenderNode->absDrawRect_ = DEFAULT_RECT;
     rsSurfaceRenderNode->isFirstLevelCrossNode_ = true;
@@ -4210,7 +4210,7 @@ HWTEST_F(RSUniRenderVisitorTest, CalculateOpaqueAndTransparentRegion006, TestSiz
     ASSERT_NE(rsUniRenderVisitor, nullptr);
 
     auto regionFilter = Occlusion::Region(Occlusion::Rect(DEFAULT_RECT));
-    rsUniRenderVisitor->accumulatedTransparentRegion_ = regionFilter;
+    rsUniRenderVisitor->accumulatedOcclusionRegionBehindWindow_ = regionFilter;
 
     rsUniRenderVisitor->ancestorNodeHasAnimation_ = false;
     rsUniRenderVisitor->isAllSurfaceVisibleDebugEnabled_ = false;
@@ -4219,7 +4219,7 @@ HWTEST_F(RSUniRenderVisitorTest, CalculateOpaqueAndTransparentRegion006, TestSiz
     EXPECT_CALL(*rsSurfaceRenderNode, GetFilterRect()).WillRepeatedly(testing::Return(DEFAULT_FILTER_RECT));
 
     rsUniRenderVisitor->CalculateOpaqueAndTransparentRegion(*rsSurfaceRenderNode);
-    ASSERT_FALSE(rsUniRenderVisitor->accumulatedTransparentRegion_.Sub(regionFilter).IsEmpty());
+    ASSERT_FALSE(rsUniRenderVisitor->accumulatedOcclusionRegionBehindWindow_ .Sub(regionFilter).IsEmpty());
 }
 
 /**
@@ -4237,7 +4237,7 @@ HWTEST_F(RSUniRenderVisitorTest, CalculateOpaqueAndTransparentRegion007, TestSiz
     ASSERT_NE(rsUniRenderVisitor, nullptr);
 
     auto regionFilter = Occlusion::Region(Occlusion::Rect(DEFAULT_RECT));
-    rsUniRenderVisitor->accumulatedTransparentRegion_ = regionFilter;
+    rsUniRenderVisitor->accumulatedOcclusionRegionBehindWindow_ = regionFilter;
 
     rsUniRenderVisitor->ancestorNodeHasAnimation_ = false;
     rsUniRenderVisitor->isAllSurfaceVisibleDebugEnabled_ = false;
@@ -4245,7 +4245,7 @@ HWTEST_F(RSUniRenderVisitorTest, CalculateOpaqueAndTransparentRegion007, TestSiz
     EXPECT_CALL(*rsSurfaceRenderNode, NeedDrawBehindWindow()).WillRepeatedly(testing::Return(false));
 
     rsUniRenderVisitor->CalculateOpaqueAndTransparentRegion(*rsSurfaceRenderNode);
-    ASSERT_TRUE(rsUniRenderVisitor->accumulatedTransparentRegion_.Sub(regionFilter).IsEmpty());
+    ASSERT_TRUE(rsUniRenderVisitor->accumulatedOcclusionRegionBehindWindow_.Sub(regionFilter).IsEmpty());
 }
 
 /**
