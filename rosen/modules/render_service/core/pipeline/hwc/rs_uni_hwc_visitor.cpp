@@ -983,12 +983,12 @@ void RSUniHwcVisitor::UpdateHwcNodeRectInSkippedSubTree(const RSRenderNode& root
                 HwcDisabledReasons::DISABLED_BY_INVALID_PARAM, hwcNodePtr->GetName());
             continue;
         }
-        UpdateHwcNodePtr(hwcNodePtr, rootNode);
+        UpdateHwcNodeGeometryAndMatrix(hwcNodePtr, rootNode, parent);
     }
 }
 
-void RSUniHwcVisitor::UpdateHwcNodePtr(const std::shared_ptr<RSSurfaceRenderNode>& hwcNodePtr,
-    const RSRenderNode& rootNode)
+void RSUniHwcVisitor::UpdateHwcNodeGeometryAndMatrix(const std::shared_ptr<RSSurfaceRenderNode>& hwcNodePtr,
+    const RSRenderNode& rootNode, const std::shared_ptr<RSRenderNode>& parent)
 {
     const auto& property = hwcNodePtr->GetRenderProperties();
     auto geoPtr = property.GetBoundsGeometry();
@@ -998,11 +998,7 @@ void RSUniHwcVisitor::UpdateHwcNodePtr(const std::shared_ptr<RSSurfaceRenderNode
     auto originalMatrix = geoPtr->GetMatrix();
     auto matrix = Drawing::Matrix();
     if (!FindRootAndUpdateMatrix(parent, matrix, rootNode)) {
-        continue;
-    }
-    auto parent = hwcNodePtr->GetCurCloneNodeParent().lock();
-    if (parent == nullptr) {
-        parent = hwcNodePtr->GetParent().lock();
+        return;
     }
     if (parent) {
         const auto& parentGeoPtr = parent->GetRenderProperties().GetBoundsGeometry();
