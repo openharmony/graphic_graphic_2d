@@ -23,8 +23,7 @@
 namespace OHOS::Rosen {
 class RSUifirstFrameRateControl {
 public:
-    enum class SceneId
-    {
+    enum class SceneId {
         LAUNCHER_APP_LAUNCH_FROM_ICON,
         LAUNCHER_APP_SWIPE_TO_HOME,
         GESTURE_TO_RECENTS,
@@ -35,7 +34,7 @@ public:
         UNKNOWN
     };
 
-    SceneId hasSceneId(const std::string& sceneId)
+    SceneId HasSceneId(const std::string& sceneId)
     {
         if (sceneId == "LAUNCHER_APP_LAUNCH_FROM_ICON") { return SceneId::LAUNCHER_APP_LAUNCH_FROM_ICON; }
         if (sceneId == "LAUNCHER_APP_SWIPE_TO_HOME") { return SceneId::LAUNCHER_APP_SWIPE_TO_HOME; }
