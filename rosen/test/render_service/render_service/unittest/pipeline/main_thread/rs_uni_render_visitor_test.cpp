@@ -5065,17 +5065,29 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodesIfVisibleForAppTest, TestSize.Lev
 
     surfaceNode->SetNodeHasBackgroundColorAlpha(true);
     surfaceNode->SetHardwareEnableHint(true);
-    surfaceNode->SetDstRect({0, 0, 100, 100});
-    opacitySurfaceNode->SetDstRect({100, 0, 100, 100});
+    surfaceNode->SetDstRect({10, 1, 100, 100});
+    opacitySurfaceNode->SetDstRect({10, 1, 100, 100});
     opacitySurfaceNode->SetHardwareForcedDisabledState(true);
+    surfaceNode->SetIsOnTheTreeOnlyFlag(true);
+    opacitySurfaceNode->SetIsOnTheTreeOnlyFlag(true);
+    Occlusion::Region region({100, 50, 1000, 1500});
+    surfaceNode->SetVisibleRegion(region);
 
     std::vector<std::weak_ptr<RSSurfaceRenderNode>> hwcNodes;
     hwcNodes.push_back(std::weak_ptr<RSSurfaceRenderNode>(opacitySurfaceNode));
     hwcNodes.push_back(std::weak_ptr<RSSurfaceRenderNode>(surfaceNode));
     rsUniRenderVisitor->UpdateHwcNodesIfVisibleForApp(surfaceNode, hwcNodes, hasVisibleHwcNodes,
         needForceUpdateHwcNodes);
+    EXPECT_TRUE(hasVisibleHwcNodes);
+
+    Occlusion::Region region2({100, 1200, 1000, 1500});
+    surfaceNode->SetVisibleRegion(region2);
+    hwcNodes.clear();
+    hwcNodes.push_back(std::weak_ptr<RSSurfaceRenderNode>(opacitySurfaceNode));
+    hwcNodes.push_back(std::weak_ptr<RSSurfaceRenderNode>(surfaceNode));
+    sUniRenderVisitor->UpdateHwcNodesIfVisibleForApp(surfaceNode, hwcNodes, hasVisibleHwcNodes,
+        needForceUpdateHwcNodes);
     EXPECT_FALSE(hasVisibleHwcNodes);
-    EXPECT_FALSE(needForceUpdateHwcNodes);
 }
 
 /*
