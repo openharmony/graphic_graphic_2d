@@ -592,7 +592,7 @@ bool RSUniRenderVisitor::IsSubTreeOccluded(RSRenderNode& node) const
             if (isOccluded && curSurfaceDirtyManager_) {
                 curSurfaceDirtyManager_->Clear();
             }
-            surfaceNode.AccmulateDirtyInOcclusion(isOccluded);
+            surfaceNode.AccumulateDirtyInOcclusion(isOccluded);
             return isOccluded;
         }
     }

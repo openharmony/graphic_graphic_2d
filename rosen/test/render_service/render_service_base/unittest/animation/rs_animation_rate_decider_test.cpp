@@ -112,14 +112,14 @@ HWTEST_F(RSAnimationRateDeciderTest, AddDecisionElement, TestSize.Level1)
 
     rsAnimationRateDecider.SetEnable(true);
     velocity = std::make_shared<RSRenderAnimatableProperty<float>>(
-        0.0, 1, RSRenderPropertyType::PROPERTY_FLOAT, RSPropertyUnit::PIXEL_POSITION);
+        0.0, 1, RSPropertyType::FLOAT, RSPropertyUnit::PIXEL_POSITION);
     range.Set(0, 0, 1);
     rsAnimationRateDecider.AddDecisionElement(id, velocity, range);
     EXPECT_EQ(rsAnimationRateDecider.isEnabled_, true);
 
     rsAnimationRateDecider.SetEnable(true);
     velocity = std::make_shared<RSRenderAnimatableProperty<float>>(
-        0.0, 1, RSRenderPropertyType::PROPERTY_FLOAT, RSPropertyUnit::PIXEL_POSITION);
+        0.0, 1, RSPropertyType::FLOAT, RSPropertyUnit::PIXEL_POSITION);
     range.Set(0, 0, 1);
     rsAnimationRateDecider.AddDecisionElement(id, velocity, range);
     EXPECT_EQ(rsAnimationRateDecider.isEnabled_, true);
@@ -137,16 +137,16 @@ HWTEST_F(RSAnimationRateDeciderTest, MakeDecision, TestSize.Level1)
 
     rateDecider_->Reset();
     PropertyValue value1 = std::make_shared<RSRenderAnimatableProperty<float>>(
-        0.0, 1, RSRenderPropertyType::PROPERTY_FLOAT, RSPropertyUnit::PIXEL_POSITION);
+        0.0, 1, RSPropertyType::FLOAT, RSPropertyUnit::PIXEL_POSITION);
     rateDecider_->AddDecisionElement(1, value1, {0, 120, 60});
     PropertyValue value2 = std::make_shared<RSRenderAnimatableProperty<float>>(
-        10.0, 1, RSRenderPropertyType::PROPERTY_FLOAT, RSPropertyUnit::PIXEL_POSITION);
+        10.0, 1, RSPropertyType::FLOAT, RSPropertyUnit::PIXEL_POSITION);
     rateDecider_->AddDecisionElement(1, value2, {0, 120, 60});
     PropertyValue value3 = std::make_shared<RSRenderAnimatableProperty<float>>(
-        10.0, 2, RSRenderPropertyType::PROPERTY_FLOAT, RSPropertyUnit::PIXEL_POSITION);
+        10.0, 2, RSPropertyType::FLOAT, RSPropertyUnit::PIXEL_POSITION);
     rateDecider_->AddDecisionElement(2, value3, {0, 120, 120});
     PropertyValue value4 = std::make_shared<RSRenderAnimatableProperty<float>>(
-        10.0, 2, RSRenderPropertyType::PROPERTY_FLOAT, RSPropertyUnit::PIXEL_POSITION);
+        10.0, 2, RSPropertyType::FLOAT, RSPropertyUnit::PIXEL_POSITION);
     rateDecider_->AddDecisionElement(2, value4, {0, 0, 0});
     rateDecider_->AddDecisionElement(2, nullptr, {0, 120, 120});
     rateDecider_->AddDecisionElement(3, nullptr, {0, 0, 0});
@@ -183,23 +183,23 @@ HWTEST_F(RSAnimationRateDeciderTest, CalculatePreferredRate, TestSize.Level1)
         return 0;
     };
     PropertyValue property = std::make_shared<RSRenderAnimatableProperty<float>>(
-        0.0, 1, RSRenderPropertyType::PROPERTY_FLOAT, RSPropertyUnit::PIXEL_POSITION);
-    RSRenderPropertyType type = RSRenderPropertyType::PROPERTY_VECTOR4F;
+        0.0, 1, RSPropertyType::FLOAT, RSPropertyUnit::PIXEL_POSITION);
+    RSPropertyType type = RSPropertyType::VECTOR4F;
     property->SetPropertyType(type);
     int32_t res = rsAnimationRateDecider.CalculatePreferredRate(property, frameRateGetFunc);
     EXPECT_EQ(res, 0);
 
-    type = RSRenderPropertyType::PROPERTY_VECTOR2F;
+    type = RSPropertyType::VECTOR2F;
     property->SetPropertyType(type);
     res = rsAnimationRateDecider.CalculatePreferredRate(property, frameRateGetFunc);
     EXPECT_EQ(res, 0);
 
-    type = RSRenderPropertyType::PROPERTY_FLOAT;
+    type = RSPropertyType::FLOAT;
     property->SetPropertyType(type);
     res = rsAnimationRateDecider.CalculatePreferredRate(property, frameRateGetFunc);
     EXPECT_EQ(res, 0);
 
-    type = RSRenderPropertyType::INVALID;
+    type = RSPropertyType::INVALID;
     property->SetPropertyType(type);
     res = rsAnimationRateDecider.CalculatePreferredRate(property, frameRateGetFunc);
     EXPECT_EQ(res, 0);
@@ -214,7 +214,7 @@ HWTEST_F(RSAnimationRateDeciderTest, ProcessVector4f, TestSize.Level1)
 {
     RSAnimationRateDecider rsAnimationRateDecider;
     PropertyValue property = std::make_shared<RSRenderAnimatableProperty<float>>(
-        0.0, 1, RSRenderPropertyType::PROPERTY_FLOAT, RSPropertyUnit::PIXEL_POSITION);
+        0.0, 1, RSPropertyType::FLOAT, RSPropertyUnit::PIXEL_POSITION);
     auto frameRateGetFunc = [](const RSPropertyUnit unit, float velocity, int32_t area, int32_t length) -> int32_t {
         return 0;
     };
@@ -236,7 +236,7 @@ HWTEST_F(RSAnimationRateDeciderTest, ProcessVector2f, TestSize.Level1)
 {
     RSAnimationRateDecider rsAnimationRateDecider;
     PropertyValue property = std::make_shared<RSRenderAnimatableProperty<float>>(
-        0.0, 1, RSRenderPropertyType::PROPERTY_FLOAT, RSPropertyUnit::PIXEL_POSITION);
+        0.0, 1, RSPropertyType::FLOAT, RSPropertyUnit::PIXEL_POSITION);
     auto frameRateGetFunc = [](const RSPropertyUnit unit, float velocity, int32_t area, int32_t length) -> int32_t {
         return 0;
     };
@@ -260,7 +260,7 @@ HWTEST_F(RSAnimationRateDeciderTest, ProcessFloat, TestSize.Level1)
 {
     RSAnimationRateDecider rsAnimationRateDecider;
     PropertyValue property = std::make_shared<RSRenderAnimatableProperty<float>>(
-        0.0, 1, RSRenderPropertyType::PROPERTY_FLOAT, RSPropertyUnit::PIXEL_POSITION);
+        0.0, 1, RSPropertyType::FLOAT, RSPropertyUnit::PIXEL_POSITION);
     auto frameRateGetFunc = [](const RSPropertyUnit unit, float velocity, int32_t area, int32_t length) -> int32_t {
         return 0;
     };

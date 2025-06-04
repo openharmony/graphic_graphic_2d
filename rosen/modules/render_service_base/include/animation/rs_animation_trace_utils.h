@@ -46,14 +46,14 @@ public:
         const std::shared_ptr<RSRenderPropertyBase>& value) const;
 
     std::string ParseRenderPropertyVaule(const std::shared_ptr<RSRenderPropertyBase>& value,
-        const RSRenderPropertyType type = RSRenderPropertyType::INVALID) const;
+        const RSPropertyType type = RSPropertyType::INVALID) const;
 
 private:
     RSAnimationTraceUtils();
     ~RSAnimationTraceUtils() = default;
 
     std::string ParseRenderPropertyVauleInner(const std::shared_ptr<RSRenderPropertyBase>& value,
-        const RSRenderPropertyType type = RSRenderPropertyType::INVALID) const;
+        const RSPropertyType type = RSPropertyType::INVALID) const;
 
     static RSAnimationTraceUtils instance_;
     bool isDebugOpen_ = false;

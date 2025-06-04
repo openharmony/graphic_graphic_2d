@@ -104,15 +104,6 @@ enum class ThresholdType {
     ZERO,
 };
 
-namespace {
-constexpr float DEFAULT_NEAR_ZERO_THRESHOLD = 1.0f / 256.0f;
-constexpr float FLOAT_NEAR_ZERO_COARSE_THRESHOLD = 1.0f / 256.0f;
-constexpr float FLOAT_NEAR_ZERO_MEDIUM_THRESHOLD = 1.0f / 1000.0f;
-constexpr float FLOAT_NEAR_ZERO_FINE_THRESHOLD = 1.0f / 3072.0f;
-constexpr float COLOR_NEAR_ZERO_THRESHOLD = 0.0f;
-constexpr float LAYOUT_NEAR_ZERO_THRESHOLD = 0.5f;
-constexpr float ZERO = 0.0f;
-} // namespace
 
 template<class...>
 struct make_void { using type = void; };
@@ -211,9 +202,9 @@ protected:
 
     virtual void SetMotionPathOption(const std::shared_ptr<RSMotionPathOption>& motionPathOption) {}
 
-    virtual RSRenderPropertyType GetPropertyType() const
+    virtual RSPropertyType GetPropertyType() const
     {
-        return RSRenderPropertyType::INVALID;
+        return RSPropertyType::INVALID;
     }
 
     float GetThresholdByModifierType() const;
@@ -429,7 +420,7 @@ class RSAnimatableProperty : public RSProperty<T> {
     static_assert(std::is_integral_v<T> || std::is_floating_point_v<T> || std::is_same_v<Color, T> ||
                   std::is_same_v<Matrix3f, T> || std::is_same_v<Vector2f, T> ||
                   std::is_same_v<Vector3f, T> || std::is_same_v<Vector4f, T> ||
-                  std::is_same_v<Quaternion, T> || std::is_same_v<std::shared_ptr<RSFilter>, T> ||
+                  std::is_same_v<Quaternion, T> ||
                   std::is_same_v<Vector4<Color>, T> || std::is_base_of_v<RSAnimatableArithmetic<T>, T> ||
                   supports_animatable_arithmetic<T>::value || std::is_same_v<RRect, T> ||
                   std::is_same_v<std::vector<float>, T>);
@@ -805,9 +796,9 @@ protected:
     RSPropertyUnit propertyUnit_ { RSPropertyUnit::UNKNOWN };
 
 private:
-    RSRenderPropertyType GetPropertyType() const override
+    RSPropertyType GetPropertyType() const override
     {
-        return RSRenderPropertyType::INVALID;
+        return RSPropertyType::INVALID;
     }
 
     std::shared_ptr<RSPropertyBase> Add(const std::shared_ptr<const RSPropertyBase>& value) override
@@ -866,9 +857,6 @@ template<>
 RSC_EXPORT void RSProperty<Matrix3f>::UpdateToRender(const Matrix3f& value, PropertyUpdateType type) const;
 template<>
 RSC_EXPORT void RSProperty<Quaternion>::UpdateToRender(const Quaternion& value, PropertyUpdateType type) const;
-template<>
-RSC_EXPORT void RSProperty<std::shared_ptr<RSFilter>>::UpdateToRender(
-    const std::shared_ptr<RSFilter>& value, PropertyUpdateType type) const;
 template<>
 RSC_EXPORT void RSProperty<std::shared_ptr<RSImage>>::UpdateToRender(
     const std::shared_ptr<RSImage>& value, PropertyUpdateType type) const;
@@ -931,27 +919,25 @@ template<>
 RSC_EXPORT bool RSProperty<Vector4f>::IsValid(const Vector4f& value);
 
 template<>
-RSC_EXPORT RSRenderPropertyType RSAnimatableProperty<float>::GetPropertyType() const;
+RSC_EXPORT RSPropertyType RSAnimatableProperty<float>::GetPropertyType() const;
 template<>
-RSC_EXPORT RSRenderPropertyType RSAnimatableProperty<Color>::GetPropertyType() const;
+RSC_EXPORT RSPropertyType RSAnimatableProperty<Color>::GetPropertyType() const;
 template<>
-RSC_EXPORT RSRenderPropertyType RSAnimatableProperty<Matrix3f>::GetPropertyType() const;
+RSC_EXPORT RSPropertyType RSAnimatableProperty<Matrix3f>::GetPropertyType() const;
 template<>
-RSC_EXPORT RSRenderPropertyType RSAnimatableProperty<Vector2f>::GetPropertyType() const;
+RSC_EXPORT RSPropertyType RSAnimatableProperty<Vector2f>::GetPropertyType() const;
 template<>
-RSC_EXPORT RSRenderPropertyType RSAnimatableProperty<Vector3f>::GetPropertyType() const;
+RSC_EXPORT RSPropertyType RSAnimatableProperty<Vector3f>::GetPropertyType() const;
 template<>
-RSC_EXPORT RSRenderPropertyType RSAnimatableProperty<Vector4f>::GetPropertyType() const;
+RSC_EXPORT RSPropertyType RSAnimatableProperty<Vector4f>::GetPropertyType() const;
 template<>
-RSC_EXPORT RSRenderPropertyType RSAnimatableProperty<Quaternion>::GetPropertyType() const;
+RSC_EXPORT RSPropertyType RSAnimatableProperty<Quaternion>::GetPropertyType() const;
 template<>
-RSC_EXPORT RSRenderPropertyType RSAnimatableProperty<std::shared_ptr<RSFilter>>::GetPropertyType() const;
+RSC_EXPORT RSPropertyType RSAnimatableProperty<Vector4<Color>>::GetPropertyType() const;
 template<>
-RSC_EXPORT RSRenderPropertyType RSAnimatableProperty<Vector4<Color>>::GetPropertyType() const;
+RSC_EXPORT RSPropertyType RSAnimatableProperty<RRect>::GetPropertyType() const;
 template<>
-RSC_EXPORT RSRenderPropertyType RSAnimatableProperty<RRect>::GetPropertyType() const;
-template<>
-RSC_EXPORT RSRenderPropertyType RSAnimatableProperty<std::vector<float>>::GetPropertyType() const;
+RSC_EXPORT RSPropertyType RSAnimatableProperty<std::vector<float>>::GetPropertyType() const;
 } // namespace Rosen
 } // namespace OHOS
 

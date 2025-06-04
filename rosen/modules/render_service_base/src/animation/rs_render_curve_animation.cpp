@@ -31,7 +31,7 @@ RSRenderCurveAnimation::RSRenderCurveAnimation(AnimationId id, const PropertyId&
 void RSRenderCurveAnimation::DumpAnimationInfo(std::string& out) const
 {
     out += "Type:RSRenderCurveAnimation";
-    RSRenderPropertyType type = RSRenderPropertyType::INVALID;
+    RSPropertyType type = RSPropertyType::INVALID;
     if (property_ != nullptr) {
         type = property_->GetPropertyType();
         out += ", ModifierType: " + std::to_string(static_cast<int16_t>(property_->GetModifierType()));

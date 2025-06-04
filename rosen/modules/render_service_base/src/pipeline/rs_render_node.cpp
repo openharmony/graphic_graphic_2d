@@ -2724,19 +2724,19 @@ void RSRenderNode::DumpNodeInfo(DfxString& log)
     // Drawing is not supported
 }
 
-void RSRenderNode::AccmulateDirtyInOcclusion(bool isOccluded)
+void RSRenderNode::AccumulateDirtyInOcclusion(bool isOccluded)
 {
     if (isOccluded) {
-        // accmulate dirtytypes for modifiers
-        AccmulateDirtyTypes();
-        // accmulate dirtystatus in rendernode
-        AccmulateDirtyStatus();
-        // accmulate dirtystatus in render properties(isDirty, geoDirty, contentDirty)
-        GetMutableRenderProperties().AccmulateDirtyStatus();
+        // accumulate dirtytypes for modifiers
+        AccumulateDirtyTypes();
+        // accumulate dirtystatus in rendernode
+        AccumulateDirtyStatus();
+        // accumulate dirtystatus in render properties(isDirty, geoDirty, contentDirty)
+        GetMutableRenderProperties().AccumulateDirtyStatus();
         return;
     }
-    ResetAccmulateDirtyTypes();
-    ResetAccmulateDirtyStatus();
+    ResetAccumulateDirtyTypes();
+    ResetAccumulateDirtyStatus();
 }
 
 void RSRenderNode::RecordCurDirtyStatus()
@@ -2745,16 +2745,16 @@ void RSRenderNode::RecordCurDirtyStatus()
     GetMutableRenderProperties().RecordCurDirtyStatus();
 }
 
-void RSRenderNode::AccmulateDirtyStatus()
+void RSRenderNode::AccumulateDirtyStatus()
 {
-    GetMutableRenderProperties().AccmulateDirtyStatus();
+    GetMutableRenderProperties().AccumulateDirtyStatus();
     if (curDirtyStatus_ == NodeDirty::CLEAN) {
         return;
     }
     SetDirty();
 }
 
-void RSRenderNode::ResetAccmulateDirtyStatus()
+void RSRenderNode::ResetAccumulateDirtyStatus()
 {
     dirtyStatus_ = NodeDirty::CLEAN;
     GetMutableRenderProperties().ResetDirty();
@@ -2770,7 +2770,7 @@ void RSRenderNode::RecordCurDirtyTypes()
     }
 }
 
-void RSRenderNode::AccmulateDirtyTypes()
+void RSRenderNode::AccumulateDirtyTypes()
 {
     for (int i = 0; i < (int)RSModifierType::MAX_RS_MODIFIER_TYPE; i++) {
         if (curDirtyTypes_.test(static_cast<size_t>(i))) {
@@ -2780,7 +2780,7 @@ void RSRenderNode::AccmulateDirtyTypes()
     }
 }
 
-void RSRenderNode::ResetAccmulateDirtyTypes()
+void RSRenderNode::ResetAccumulateDirtyTypes()
 {
     dirtyTypes_.reset();
 }

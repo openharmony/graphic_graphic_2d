@@ -22,20 +22,20 @@ namespace Rosen {
         switch (type) {
             case RSUIFilterType::RIPPLE_MASK_RADIUS : {
                 return std::make_shared<RSRenderAnimatableProperty<float>>(
-                    0.f, 0, RSRenderPropertyType::PROPERTY_FLOAT);
+                    0.f, 0, RSPropertyType::FLOAT);
             }
             case RSUIFilterType::RIPPLE_MASK_WIDTH : {
                 return std::make_shared<RSRenderAnimatableProperty<float>>(
-                    0.f, 0, RSRenderPropertyType::PROPERTY_FLOAT);
+                    0.f, 0, RSPropertyType::FLOAT);
             }
             case RSUIFilterType::RIPPLE_MASK_CENTER : {
                 Vector2f value = {0.f, 0.f};
                 return std::make_shared<RSRenderAnimatableProperty<Vector2f>>(
-                    value, 0, RSRenderPropertyType::PROPERTY_VECTOR2F);
+                    value, 0, RSPropertyType::VECTOR2F);
             }
             case RSUIFilterType::RIPPLE_MASK_WIDTH_CENTER_OFFSET : {
                 return std::make_shared<RSRenderAnimatableProperty<float>>(
-                    0.f, 0, RSRenderPropertyType::PROPERTY_FLOAT);
+                    0.f, 0, RSPropertyType::FLOAT);
             }
             default:
                 ROSEN_LOGE("RSRenderRippleMaskPara::CreateRenderPropert mask nullptr");

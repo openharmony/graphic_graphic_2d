@@ -271,16 +271,6 @@ float RSModifierExtractor::GetForegroundEffectRadius() const
     GET_PROPERTY_FROM_MODIFIERS(float, FOREGROUND_EFFECT_RADIUS, 0.f, =);
 }
 
-std::shared_ptr<RSFilter> RSModifierExtractor::GetBackgroundFilter() const
-{
-    GET_PROPERTY_FROM_MODIFIERS_EQRETURN(std::shared_ptr<RSFilter>, BACKGROUND_FILTER, nullptr, =);
-}
-
-std::shared_ptr<RSFilter> RSModifierExtractor::GetFilter() const
-{
-    GET_PROPERTY_FROM_MODIFIERS_EQRETURN(std::shared_ptr<RSFilter>, FILTER, nullptr, =);
-}
-
 Color RSModifierExtractor::GetShadowColor() const
 {
     GET_PROPERTY_FROM_MODIFIERS_EQRETURN(Color, SHADOW_COLOR, Color::FromArgbInt(DEFAULT_SPOT_COLOR), =);

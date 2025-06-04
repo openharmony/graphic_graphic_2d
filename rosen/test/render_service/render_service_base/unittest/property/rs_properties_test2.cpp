@@ -725,25 +725,6 @@ HWTEST_F(PropertiesTest, SetNGetDynamicDimDegreeTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetFilterTest
- * @tc.desc: test results of SetFilter
- * @tc.type: FUNC
- * @tc.require: issueI9W24N
- */
-HWTEST_F(PropertiesTest, SetFilterTest, TestSize.Level1)
-{
-    RSProperties properties;
-    std::shared_ptr<RSFilter> filter = std::make_shared<RSFilter>();
-    properties.SetFilter(filter);
-    EXPECT_NE(properties.filter_, nullptr);
-    EXPECT_EQ(properties.GetFilter(), filter);
-
-    filter = nullptr;
-    properties.SetFilter(filter);
-    EXPECT_EQ(properties.filter_, nullptr);
-}
-
-/**
  * @tc.name: SetShadowIsFilledTest
  * @tc.desc: test results of SetShadowIsFilled
  * @tc.type: FUNC
@@ -1256,14 +1237,14 @@ HWTEST_F(PropertiesTest, GenerateRenderFilterEdgeLight_001, TestSize.Level1)
     auto renderFilterEdgeLight = std::static_pointer_cast<RSRenderEdgeLightFilterPara>(renderFilterBase);
 
     auto renderAlpha = std::make_shared<RSRenderAnimatableProperty<float>>(
-        0.5f, 0, RSRenderPropertyType::PROPERTY_FLOAT);
+        0.5f, 0, RSPropertyType::FLOAT);
     renderFilterEdgeLight->Setter(RSUIFilterType::EDGE_LIGHT_ALPHA, renderAlpha);
     properties.GenerateRenderFilter();
     EXPECT_EQ(properties.backgroundFilter_, nullptr);
     properties.backgroundFilter_ = nullptr;
 
     auto renderColor = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(
-        Vector4f(0.5f, 0.5f, 0.5f, 0.5f), 0, RSRenderPropertyType::PROPERTY_VECTOR4F);
+        Vector4f(0.5f, 0.5f, 0.5f, 0.5f), 0, RSPropertyType::VECTOR4F);
     renderFilterEdgeLight->Setter(RSUIFilterType::EDGE_LIGHT_COLOR, renderColor);
     properties.GenerateRenderFilter();
     properties.GenerateRenderFilter();

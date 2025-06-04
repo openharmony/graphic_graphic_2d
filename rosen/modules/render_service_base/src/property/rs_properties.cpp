@@ -134,8 +134,6 @@ static const std::unordered_map<RSModifierType, ResetPropertyFunc> g_propertyRes
     { RSModifierType::BORDER_DASH_WIDTH,                    [](RSProperties* prop) {
                                                                 prop->SetBorderDashWidth({-1.f}); }},
     { RSModifierType::BORDER_DASH_GAP,                      [](RSProperties* prop) { prop->SetBorderDashGap({-1.f}); }},
-    { RSModifierType::FILTER,                               [](RSProperties* prop) { prop->SetFilter({}); }},
-    { RSModifierType::BACKGROUND_FILTER,                    [](RSProperties* prop) { prop->SetBackgroundFilter({}); }},
     { RSModifierType::LINEAR_GRADIENT_BLUR_PARA,            [](RSProperties* prop) {
                                                                 prop->SetLinearGradientBlurPara({}); }},
     { RSModifierType::DYNAMIC_LIGHT_UP_RATE,                [](RSProperties* prop) {
@@ -1461,17 +1459,6 @@ void RSProperties::SetForegroundFilterCache(const std::shared_ptr<RSFilter>& for
     contentDirty_ = true;
 }
 
-void RSProperties::SetBackgroundFilter(const std::shared_ptr<RSFilter>& backgroundFilter)
-{
-    backgroundFilter_ = backgroundFilter;
-    if (backgroundFilter_) {
-        isDrawn_ = true;
-    }
-    SetDirty();
-    filterNeedUpdate_ = true;
-    contentDirty_ = true;
-}
-
 void RSProperties::SetLinearGradientBlurPara(const std::shared_ptr<RSLinearGradientBlurPara>& para)
 {
     linearGradientBlurPara_ = para;
@@ -1915,17 +1902,6 @@ void RSProperties::SetDynamicDimDegree(const std::optional<float>& DimDegree)
     }
     filterNeedUpdate_ = true;
     SetDirty();
-    contentDirty_ = true;
-}
-
-void RSProperties::SetFilter(const std::shared_ptr<RSFilter>& filter)
-{
-    filter_ = filter;
-    if (filter) {
-        isDrawn_ = true;
-    }
-    SetDirty();
-    filterNeedUpdate_ = true;
     contentDirty_ = true;
 }
 
@@ -2462,7 +2438,7 @@ void RSProperties::RecordCurDirtyStatus()
     curSubTreeAllDirty_ = subTreeAllDirty_;
 }
 
-void RSProperties::AccmulateDirtyStatus()
+void RSProperties::AccumulateDirtyStatus()
 {
     isDirty_ = isDirty_ || curIsDirty_;
     geoDirty_ = geoDirty_ || curGeoDirty_;

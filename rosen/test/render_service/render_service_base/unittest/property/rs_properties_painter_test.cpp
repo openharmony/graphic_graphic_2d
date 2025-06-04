@@ -723,7 +723,7 @@ HWTEST_F(RSPropertiesPainterTest, DrawFilter001, TestSize.Level1)
     RSPaintFilterCanvas canvas(&drawingCanvas);
     std::shared_ptr<RSFilter> rsFilter = RSFilter::CreateBlurFilter(1.f, 1.f);
     RSProperties properties;
-    properties.SetBackgroundFilter(rsFilter);
+    properties.backgroundFilter_ = rsFilter;
     EXPECT_NE(properties.GetBackgroundFilter(), nullptr);
     properties.GenerateBackgroundFilter();
     RSPropertiesPainter::DrawFilter(
@@ -744,7 +744,7 @@ HWTEST_F(RSPropertiesPainterTest, DrawFilter002, TestSize.Level1)
     RSPaintFilterCanvas canvas(&drawingCanvas);
     std::shared_ptr<RSFilter> rsFilter = RSFilter::CreateBlurFilter(1.f, 1.f);
     RSProperties properties;
-    properties.SetBackgroundFilter(rsFilter);
+    properties.backgroundFilter_ = rsFilter;
     properties.GenerateBackgroundFilter();
     std::shared_ptr<RSPath> rsPath = std::make_shared<RSPath>();
     properties.SetClipBounds(rsPath);
@@ -782,7 +782,7 @@ HWTEST_F(RSPropertiesPainterTest, DrawBackgroundEffect001, TestSize.Level1)
     EXPECT_TRUE(true);
 
     auto backgroundFilter = std::make_shared<RSFilter>();
-    properties.SetBackgroundFilter(backgroundFilter);
+    properties.backgroundFilter_ = backgroundFilter;
     RSPropertiesPainter::DrawBackgroundEffect(properties, canvas);
     EXPECT_TRUE(backgroundFilter != nullptr);
 
@@ -813,7 +813,7 @@ HWTEST_F(RSPropertiesPainterTest, ApplyBackgroundEffectFallback001, TestSize.Lev
     EXPECT_TRUE(true);
 
     auto backgroundFilter = std::make_shared<RSFilter>();
-    properties.SetBackgroundFilter(backgroundFilter);
+    properties.backgroundFilter_ = backgroundFilter;
     RSPropertiesPainter::ApplyBackgroundEffectFallback(properties, drCanvas);
     EXPECT_TRUE(true);
 }

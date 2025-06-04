@@ -171,11 +171,11 @@ void RSPathAnimation::InitInterpolationValue()
     }
 
     if (isNeedPath_) {
-        if (startValue_->GetPropertyType() == RSRenderPropertyType::PROPERTY_VECTOR2F &&
+        if (startValue_->GetPropertyType() == RSPropertyType::VECTOR2F &&
             InitInterpolationVector2f(startValue_, endValue_)) {
             return;
         }
-        if (startValue_->GetPropertyType() == RSRenderPropertyType::PROPERTY_VECTOR4F &&
+        if (startValue_->GetPropertyType() == RSPropertyType::VECTOR4F &&
             InitInterpolationVector4f(startValue_, endValue_)) {
             return;
         }
@@ -316,7 +316,7 @@ const std::shared_ptr<RSPath> RSPathAnimation::PreProcessPath(const std::string&
 {
     auto startVector2f = std::static_pointer_cast<RSProperty<Vector2f>>(startValue);
     auto endVector2f = std::static_pointer_cast<RSProperty<Vector2f>>(endValue);
-    if (startValue->GetPropertyType() == RSRenderPropertyType::PROPERTY_VECTOR2F && startVector2f != nullptr &&
+    if (startValue->GetPropertyType() == RSPropertyType::VECTOR2F && startVector2f != nullptr &&
         endVector2f != nullptr) {
         return ProcessPath(path, startVector2f->Get()[0], startVector2f->Get()[1], endVector2f->Get()[0],
             endVector2f->Get()[1]);
@@ -324,7 +324,7 @@ const std::shared_ptr<RSPath> RSPathAnimation::PreProcessPath(const std::string&
 
     auto startVector4f = std::static_pointer_cast<RSProperty<Vector4f>>(startValue);
     auto endVector4f = std::static_pointer_cast<RSProperty<Vector4f>>(endValue);
-    if (startValue->GetPropertyType() == RSRenderPropertyType::PROPERTY_VECTOR4F && startVector4f != nullptr &&
+    if (startValue->GetPropertyType() == RSPropertyType::VECTOR4F && startVector4f != nullptr &&
         endVector4f != nullptr) {
         return ProcessPath(path, startVector4f->Get()[0], startVector4f->Get()[1], endVector4f->Get()[0],
             endVector4f->Get()[1]);
@@ -342,7 +342,7 @@ void RSPathAnimation::InitNeedPath(const std::shared_ptr<RSPropertyBase>& startV
     }
     auto startVector4f = std::static_pointer_cast<RSProperty<Vector4f>>(startValue);
     auto endVector4f = std::static_pointer_cast<RSProperty<Vector4f>>(endValue);
-    if (startValue->GetPropertyType() == RSRenderPropertyType::PROPERTY_VECTOR4F &&
+    if (startValue->GetPropertyType() == RSPropertyType::VECTOR4F &&
         startVector4f != nullptr && endVector4f != nullptr) {
         Vector2f start(startVector4f->Get()[0], startVector4f->Get()[1]);
         Vector2f end(endVector4f->Get()[0], endVector4f->Get()[1]);

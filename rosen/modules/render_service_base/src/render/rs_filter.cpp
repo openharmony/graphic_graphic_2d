@@ -69,34 +69,5 @@ float RSFilter::RadiusVp2Sigma(float radiusVp, float dipScale)
     return radiusPx > 0.0f ? BLUR_SIGMA_SCALE * radiusPx + 0.5f : 0.0f;
 }
 
-std::shared_ptr<RSFilter> operator+(const std::shared_ptr<RSFilter>& lhs, const std::shared_ptr<RSFilter>& rhs)
-{
-    if (lhs == nullptr) {
-        return rhs;
-    }
-    if (rhs == nullptr) {
-        return lhs;
-    }
-    return lhs->Add(rhs);
-}
-
-std::shared_ptr<RSFilter> operator-(const std::shared_ptr<RSFilter>& lhs, const std::shared_ptr<RSFilter>& rhs)
-{
-    if (rhs == nullptr) {
-        return lhs;
-    }
-    if (lhs == nullptr) {
-        return rhs->Negate();
-    }
-    return lhs->Sub(rhs);
-}
-
-std::shared_ptr<RSFilter> operator*(const std::shared_ptr<RSFilter>& lhs, float rhs)
-{
-    if (lhs == nullptr) {
-        return nullptr;
-    }
-    return lhs->Multiply(rhs);
-}
 } // namespace Rosen
 } // namespace OHOS

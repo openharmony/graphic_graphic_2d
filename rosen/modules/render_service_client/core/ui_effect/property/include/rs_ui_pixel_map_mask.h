@@ -45,7 +45,7 @@ public:
 
     template<class T>
     std::shared_ptr<RSRenderAnimatableProperty<T>> GetAnimatableRenderProperty(
-        const RSUIFilterType type, const RSRenderPropertyType proType)
+        const RSUIFilterType type, const RSPropertyType proType)
     {
         auto proX = std::static_pointer_cast<RSAnimatableProperty<T>>(GetRSProperty(type));
         if (proX == nullptr) {

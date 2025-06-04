@@ -31,30 +31,30 @@ RSAnimationTraceUtils::RSAnimationTraceUtils()
 }
 
 std::string RSAnimationTraceUtils::ParseRenderPropertyVauleInner(
-    const std::shared_ptr<RSRenderPropertyBase>& value, const RSRenderPropertyType type) const
+    const std::shared_ptr<RSRenderPropertyBase>& value, const RSPropertyType type) const
 {
     std::string str;
-    auto propertyType = value->GetPropertyType() == RSRenderPropertyType::INVALID ? type : value->GetPropertyType();
+    auto propertyType = value->GetPropertyType() == RSPropertyType::INVALID ? type : value->GetPropertyType();
     switch (propertyType) {
-        case RSRenderPropertyType::PROPERTY_FLOAT: {
+        case RSPropertyType::FLOAT: {
             auto property = std::static_pointer_cast<RSRenderAnimatableProperty<float>>(value);
             if (property) {
                 str = "float:" + std::to_string(property->Get());
             }
             break;
         }
-        case RSRenderPropertyType::PROPERTY_COLOR: {
+        case RSPropertyType::RS_COLOR: {
             auto property = std::static_pointer_cast<RSRenderAnimatableProperty<Color>>(value);
             if (property) {
                 str = "Color:" + std::to_string(property->Get().AsRgbaInt());
             }
             break;
         }
-        case RSRenderPropertyType::PROPERTY_MATRIX3F: {
+        case RSPropertyType::MATRIX3F: {
             str = "Matrix3f";
             break;
         }
-        case RSRenderPropertyType::PROPERTY_QUATERNION: {
+        case RSPropertyType::QUATERNION: {
             auto property = std::static_pointer_cast<RSRenderAnimatableProperty<Quaternion>>(value);
             if (property) {
                 str = "Quaternion:x:" + std::to_string(property->Get().x_) + "," +
@@ -64,16 +64,7 @@ std::string RSAnimationTraceUtils::ParseRenderPropertyVauleInner(
             }
             break;
         }
-        case RSRenderPropertyType::PROPERTY_FILTER: {
-            auto property = std::static_pointer_cast<RSRenderAnimatableProperty<std::shared_ptr<RSFilter>>>(value);
-            if (property && property->Get()) {
-                str = property->Get()->GetDescription();
-            } else {
-                str = "FILTER";
-            }
-            break;
-        }
-        case RSRenderPropertyType::PROPERTY_VECTOR2F: {
+        case RSPropertyType::VECTOR2F: {
             auto property = std::static_pointer_cast<RSRenderAnimatableProperty<Vector2f>>(value);
             if (property) {
                 str = "Vector2f:x:" + std::to_string(property->Get().x_) + "," +
@@ -81,7 +72,7 @@ std::string RSAnimationTraceUtils::ParseRenderPropertyVauleInner(
             }
             break;
         }
-        case RSRenderPropertyType::PROPERTY_VECTOR4F: {
+        case RSPropertyType::VECTOR4F: {
             auto property = std::static_pointer_cast<RSRenderAnimatableProperty<Vector4f>>(value);
             if (property) {
                 str = "Vector4f:x:" + std::to_string(property->Get().x_) + "," +
@@ -91,7 +82,7 @@ std::string RSAnimationTraceUtils::ParseRenderPropertyVauleInner(
             }
             break;
         }
-        case RSRenderPropertyType::PROPERTY_VECTOR4_COLOR: {
+        case RSPropertyType::VECTOR4_COLOR: {
             auto property = std::static_pointer_cast<RSRenderAnimatableProperty<Vector4<Color>>>(value);
             if (property) {
                 str = "Vector4<Color>:x:" + std::to_string(property->Get().x_.AsRgbaInt()) + "," +
@@ -110,7 +101,7 @@ std::string RSAnimationTraceUtils::ParseRenderPropertyVauleInner(
 }
 
 std::string RSAnimationTraceUtils::ParseRenderPropertyVaule(
-    const std::shared_ptr<RSRenderPropertyBase>& value, const RSRenderPropertyType type) const
+    const std::shared_ptr<RSRenderPropertyBase>& value, const RSPropertyType type) const
 {
     if (value == nullptr) {
         return std::string();
@@ -171,7 +162,7 @@ void RSAnimationTraceUtils::addSpringInitialVelocityTrace(const uint64_t propert
     const std::shared_ptr<RSRenderPropertyBase>& value) const
 {
     if (isDebugOpen_) {
-        auto type = (value == nullptr) ? RSRenderPropertyType::INVALID : value->GetPropertyType();
+        auto type = (value == nullptr) ? RSPropertyType::INVALID : value->GetPropertyType();
         auto propertyValue = ParseRenderPropertyVaule(initialVelocity, type);
         RS_TRACE_NAME_FMT("spring pro[%llu] animate[%llu], initialVelocity[%s]",
             propertyId, animationId, propertyValue.c_str());

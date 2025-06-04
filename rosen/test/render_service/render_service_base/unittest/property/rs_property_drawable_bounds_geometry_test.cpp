@@ -1208,7 +1208,7 @@ HWTEST_F(RSBackgroundFilterDrawableTest, Generate001, TestSize.Level1)
     EXPECT_EQ(properties.GetBackgroundFilter(), nullptr);
 
     auto backgroundFilter = std::make_shared<RSFilter>();
-    properties.SetBackgroundFilter(backgroundFilter);
+    properties.backgroundFilter_ = backgroundFilter;
     RSBackgroundFilterDrawable::Generate(content);
     EXPECT_NE(properties.GetBackgroundFilter(), nullptr);
 
@@ -1230,7 +1230,7 @@ HWTEST_F(RSBackgroundFilterDrawableTest, Update001, TestSize.Level1)
     RSProperties& properties = content.GetMutableRenderProperties();
     EXPECT_FALSE(drawable.Update(content));
     auto backgroundFilter = std::make_shared<RSFilter>();
-    properties.SetBackgroundFilter(backgroundFilter);
+    properties.backgroundFilter_ = backgroundFilter;
     EXPECT_TRUE(drawable.Update(content));
 }
 
@@ -1285,7 +1285,7 @@ HWTEST_F(RSCompositingFilterDrawableTest, Update001, TestSize.Level1)
     EXPECT_FALSE(drawable.Update(content));
     RSProperties& properties = content.GetMutableRenderProperties();
     auto filter = std::make_shared<RSFilter>();
-    properties.SetFilter(filter);
+    properties.filter_ = filter;
     EXPECT_TRUE(drawable.Update(content));
 }
 
@@ -1434,7 +1434,7 @@ HWTEST_F(RSEffectDataGenerateDrawableTest, Update001, TestSize.Level1)
     RSEffectDataGenerateDrawable drawable;
     EXPECT_FALSE(drawable.Update(content));
     auto backgroundFilter = std::make_shared<RSFilter>();
-    properties.SetBackgroundFilter(backgroundFilter);
+    properties.backgroundFilter_ = backgroundFilter;
     EXPECT_TRUE(drawable.Update(content));
 }
 
@@ -1459,7 +1459,7 @@ HWTEST_F(RSEffectDataGenerateDrawableTest, Draw001, TestSize.Level1)
     EXPECT_TRUE(properties.GetHaveEffectRegion());
     EXPECT_EQ(properties.GetBackgroundFilter(), nullptr);
     auto backgroundFilter = std::make_shared<RSFilter>();
-    properties.SetBackgroundFilter(backgroundFilter);
+    properties.backgroundFilter_ = backgroundFilter;
     properties.SetHaveEffectRegion(false);
     drawable.Draw(content, filterCanvas);
     EXPECT_FALSE(properties.GetHaveEffectRegion());

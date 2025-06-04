@@ -249,18 +249,6 @@ HWTEST_F(RSMaterialFilterTest, CreateMaterialStyle002, TestSize.Level1)
 
     auto rsMaterialFilter2 = std::make_shared<RSMaterialFilter>(style, dipScale, mode, ratio);
     EXPECT_NE(rsMaterialFilter2->GetImageFilter(), nullptr);
-    auto filter = rsMaterialFilter.Add(rsMaterialFilter2);
-    EXPECT_TRUE(filter != nullptr);
-
-    filter = rsMaterialFilter.Sub(rsMaterialFilter2);
-    EXPECT_TRUE(filter != nullptr);
-
-    filter = rsMaterialFilter.Multiply(1.0f);
-    EXPECT_TRUE(filter != nullptr);
-
-    filter = rsMaterialFilter.Negate();
-    EXPECT_TRUE(filter != nullptr);
-
     auto result = rsMaterialFilter.Compose(rsMaterialFilter2);
     EXPECT_TRUE(result != nullptr);
 }
@@ -285,18 +273,6 @@ HWTEST_F(RSMaterialFilterTest, CreateMaterialStyle003, TestSize.Level1)
 
     auto rsMaterialFilter2 = std::make_shared<RSMaterialFilter>(style, dipScale, mode, ratio);
     EXPECT_NE(rsMaterialFilter2->GetImageFilter(), nullptr);
-    auto filter = rsMaterialFilter.Add(rsMaterialFilter2);
-    EXPECT_TRUE(filter != nullptr);
-
-    filter = rsMaterialFilter.Sub(rsMaterialFilter2);
-    EXPECT_TRUE(filter != nullptr);
-
-    filter = rsMaterialFilter.Multiply(1.0f);
-    EXPECT_TRUE(filter != nullptr);
-
-    filter = rsMaterialFilter.Negate();
-    EXPECT_TRUE(filter != nullptr);
-
     auto result = rsMaterialFilter.Compose(rsMaterialFilter2);
     EXPECT_TRUE(result != nullptr);
 }
@@ -321,18 +297,6 @@ HWTEST_F(RSMaterialFilterTest, CreateMaterialStyleSTYLE_BACKGROUND_SMALL_LIGHT, 
 
     auto rsMaterialFilter2 = std::make_shared<RSMaterialFilter>(style, dipScale, mode, ratio);
     EXPECT_NE(rsMaterialFilter2->GetImageFilter(), nullptr);
-    auto filter = rsMaterialFilter.Add(rsMaterialFilter2);
-    EXPECT_TRUE(filter != nullptr);
-
-    filter = rsMaterialFilter.Sub(rsMaterialFilter2);
-    EXPECT_TRUE(filter != nullptr);
-
-    filter = rsMaterialFilter.Multiply(1.0f);
-    EXPECT_TRUE(filter != nullptr);
-
-    filter = rsMaterialFilter.Negate();
-    EXPECT_TRUE(filter != nullptr);
-
     auto result = rsMaterialFilter.Compose(rsMaterialFilter2);
     EXPECT_TRUE(result != nullptr);
 }
@@ -357,18 +321,6 @@ HWTEST_F(RSMaterialFilterTest, CreateMaterialStyleSTYLE_BACKGROUND_MEDIUM_LIGHT,
 
     auto rsMaterialFilter2 = std::make_shared<RSMaterialFilter>(style, dipScale, mode, ratio);
     EXPECT_NE(rsMaterialFilter2->GetImageFilter(), nullptr);
-    auto filter = rsMaterialFilter.Add(rsMaterialFilter2);
-    EXPECT_TRUE(filter != nullptr);
-
-    filter = rsMaterialFilter.Sub(rsMaterialFilter2);
-    EXPECT_TRUE(filter != nullptr);
-
-    filter = rsMaterialFilter.Multiply(1.0f);
-    EXPECT_TRUE(filter != nullptr);
-
-    filter = rsMaterialFilter.Negate();
-    EXPECT_TRUE(filter != nullptr);
-
     auto result = rsMaterialFilter.Compose(rsMaterialFilter2);
     EXPECT_TRUE(result != nullptr);
 }
@@ -393,18 +345,6 @@ HWTEST_F(RSMaterialFilterTest, CreateMaterialStyleSTYLE_BACKGROUND_LARGE_LIGHT, 
 
     auto rsMaterialFilter2 = std::make_shared<RSMaterialFilter>(style, dipScale, mode, ratio);
     EXPECT_NE(rsMaterialFilter2->GetImageFilter(), nullptr);
-    auto filter = rsMaterialFilter.Add(rsMaterialFilter2);
-    EXPECT_TRUE(filter != nullptr);
-
-    filter = rsMaterialFilter.Sub(rsMaterialFilter2);
-    EXPECT_TRUE(filter != nullptr);
-
-    filter = rsMaterialFilter.Multiply(1.0f);
-    EXPECT_TRUE(filter != nullptr);
-
-    filter = rsMaterialFilter.Negate();
-    EXPECT_TRUE(filter != nullptr);
-
     auto result = rsMaterialFilter.Compose(rsMaterialFilter2);
     EXPECT_TRUE(result != nullptr);
 }
@@ -429,18 +369,6 @@ HWTEST_F(RSMaterialFilterTest, CreateMaterialStyleSTYLE_BACKGROUND_XLARGE_LIGHT,
 
     auto rsMaterialFilter2 = std::make_shared<RSMaterialFilter>(style, dipScale, mode, ratio);
     EXPECT_NE(rsMaterialFilter2->GetImageFilter(), nullptr);
-    auto filter = rsMaterialFilter.Add(rsMaterialFilter2);
-    EXPECT_TRUE(filter != nullptr);
-
-    filter = rsMaterialFilter.Sub(rsMaterialFilter2);
-    EXPECT_TRUE(filter != nullptr);
-
-    filter = rsMaterialFilter.Multiply(1.0f);
-    EXPECT_TRUE(filter != nullptr);
-
-    filter = rsMaterialFilter.Negate();
-    EXPECT_TRUE(filter != nullptr);
-
     auto result = rsMaterialFilter.Compose(rsMaterialFilter2);
     EXPECT_TRUE(result != nullptr);
 }
@@ -465,18 +393,6 @@ HWTEST_F(RSMaterialFilterTest, CreateMaterialStyleSTYLE_BACKGROUND_SMALL_DARK, T
 
     auto rsMaterialFilter2 = std::make_shared<RSMaterialFilter>(style, dipScale, mode, ratio);
     EXPECT_NE(rsMaterialFilter2->GetImageFilter(), nullptr);
-    auto filter = rsMaterialFilter.Add(rsMaterialFilter2);
-    EXPECT_TRUE(filter != nullptr);
-
-    filter = rsMaterialFilter.Sub(rsMaterialFilter2);
-    EXPECT_TRUE(filter != nullptr);
-
-    filter = rsMaterialFilter.Multiply(1.0f);
-    EXPECT_TRUE(filter != nullptr);
-
-    filter = rsMaterialFilter.Negate();
-    EXPECT_TRUE(filter != nullptr);
-
     auto result = rsMaterialFilter.Compose(rsMaterialFilter2);
     EXPECT_TRUE(result != nullptr);
 }
@@ -501,18 +417,6 @@ HWTEST_F(RSMaterialFilterTest, CreateMaterialStyleSTYLE_BACKGROUND_MEDIUM_DARK, 
 
     auto rsMaterialFilter2 = std::make_shared<RSMaterialFilter>(style, dipScale, mode, ratio);
     EXPECT_NE(rsMaterialFilter2->GetImageFilter(), nullptr);
-    auto filter = rsMaterialFilter.Add(rsMaterialFilter2);
-    EXPECT_TRUE(filter != nullptr);
-
-    filter = rsMaterialFilter.Sub(rsMaterialFilter2);
-    EXPECT_TRUE(filter != nullptr);
-
-    filter = rsMaterialFilter.Multiply(1.0f);
-    EXPECT_TRUE(filter != nullptr);
-
-    filter = rsMaterialFilter.Negate();
-    EXPECT_TRUE(filter != nullptr);
-
     auto result = rsMaterialFilter.Compose(rsMaterialFilter2);
     EXPECT_TRUE(result != nullptr);
 }
@@ -537,18 +441,6 @@ HWTEST_F(RSMaterialFilterTest, CreateMaterialStyleSTYLE_BACKGROUND_XLARGE_DARK, 
 
     auto rsMaterialFilter2 = std::make_shared<RSMaterialFilter>(style, dipScale, mode, ratio);
     EXPECT_NE(rsMaterialFilter2->GetImageFilter(), nullptr);
-    auto filter = rsMaterialFilter.Add(rsMaterialFilter2);
-    EXPECT_TRUE(filter != nullptr);
-
-    filter = rsMaterialFilter.Sub(rsMaterialFilter2);
-    EXPECT_TRUE(filter != nullptr);
-
-    filter = rsMaterialFilter.Multiply(1.0f);
-    EXPECT_TRUE(filter != nullptr);
-
-    filter = rsMaterialFilter.Negate();
-    EXPECT_TRUE(filter != nullptr);
-
     auto result = rsMaterialFilter.Compose(rsMaterialFilter2);
     EXPECT_TRUE(result != nullptr);
 }
@@ -862,558 +754,6 @@ HWTEST_F(RSMaterialFilterTest, IsValidTest002, TestSize.Level1)
 }
 
 /**
- * @tc.name: AddTest001
- * @tc.desc: Verify function Add
- * @tc.type:FUNC
- */
-HWTEST_F(RSMaterialFilterTest, AddTest001, TestSize.Level1)
-{
-    MaterialParam materialParam;
-    auto rhs = std::make_shared<RSFilter>();
-    rhs->type_ = RSDrawingFilterOriginal::FilterType::NONE;
-    auto rsMaterialFilter = std::make_shared<RSMaterialFilter>(materialParam, BLUR_COLOR_MODE::AVERAGE);
-    EXPECT_NE(rsMaterialFilter->Add(rhs), nullptr);
-    rhs->type_ = RSDrawingFilterOriginal::FilterType::MATERIAL;
-    EXPECT_NE(rsMaterialFilter->Add(rhs), nullptr);
-    EXPECT_EQ(rsMaterialFilter->Add(nullptr), rsMaterialFilter);
-}
-
-/**
- * @tc.name: AddTestBLUR
- * @tc.desc: Verify function Add
- * @tc.type:FUNC
- */
-HWTEST_F(RSMaterialFilterTest, AddTestBLUR, TestSize.Level1)
-{
-    MaterialParam materialParam;
-    auto rhs = std::make_shared<RSFilter>();
-    rhs->type_ = RSDrawingFilterOriginal::FilterType::BLUR;
-    auto rsMaterialFilter = std::make_shared<RSMaterialFilter>(materialParam, BLUR_COLOR_MODE::AVERAGE);
-    EXPECT_NE(rsMaterialFilter->Add(rhs), nullptr);
-    rhs->type_ = RSDrawingFilterOriginal::FilterType::MATERIAL;
-    EXPECT_NE(rsMaterialFilter->Add(rhs), nullptr);
-    EXPECT_EQ(rsMaterialFilter->Add(nullptr), rsMaterialFilter);
-}
-
-/**
- * @tc.name: AddTestMATERIAL
- * @tc.desc: Verify function Add
- * @tc.type:FUNC
- */
-HWTEST_F(RSMaterialFilterTest, AddTestMATERIAL, TestSize.Level1)
-{
-    MaterialParam materialParam;
-    auto rhs = std::make_shared<RSFilter>();
-    rhs->type_ = RSDrawingFilterOriginal::FilterType::MATERIAL;
-    auto rsMaterialFilter = std::make_shared<RSMaterialFilter>(materialParam, BLUR_COLOR_MODE::AVERAGE);
-    EXPECT_NE(rsMaterialFilter->Add(rhs), nullptr);
-    rhs->type_ = RSDrawingFilterOriginal::FilterType::MATERIAL;
-    EXPECT_NE(rsMaterialFilter->Add(rhs), nullptr);
-    EXPECT_EQ(rsMaterialFilter->Add(nullptr), rsMaterialFilter);
-}
-
-/**
- * @tc.name: AddTestLIGHT_UP_EFFECT
- * @tc.desc: Verify function Add
- * @tc.type:FUNC
- */
-HWTEST_F(RSMaterialFilterTest, AddTestLIGHT_UP_EFFECT, TestSize.Level1)
-{
-    MaterialParam materialParam;
-    auto rhs = std::make_shared<RSFilter>();
-    rhs->type_ = RSDrawingFilterOriginal::FilterType::LIGHT_UP_EFFECT;
-    auto rsMaterialFilter = std::make_shared<RSMaterialFilter>(materialParam, BLUR_COLOR_MODE::AVERAGE);
-    EXPECT_NE(rsMaterialFilter->Add(rhs), nullptr);
-    rhs->type_ = RSDrawingFilterOriginal::FilterType::MATERIAL;
-    EXPECT_NE(rsMaterialFilter->Add(rhs), nullptr);
-    EXPECT_EQ(rsMaterialFilter->Add(nullptr), rsMaterialFilter);
-}
-
-/**
- * @tc.name: AddTestAIBAR
- * @tc.desc: Verify function Add
- * @tc.type:FUNC
- */
-HWTEST_F(RSMaterialFilterTest, AddTestAIBAR, TestSize.Level1)
-{
-    MaterialParam materialParam;
-    auto rhs = std::make_shared<RSFilter>();
-    rhs->type_ = RSDrawingFilterOriginal::FilterType::AIBAR;
-    auto rsMaterialFilter = std::make_shared<RSMaterialFilter>(materialParam, BLUR_COLOR_MODE::AVERAGE);
-    EXPECT_NE(rsMaterialFilter->Add(rhs), nullptr);
-    rhs->type_ = RSDrawingFilterOriginal::FilterType::MATERIAL;
-    EXPECT_NE(rsMaterialFilter->Add(rhs), nullptr);
-    EXPECT_EQ(rsMaterialFilter->Add(nullptr), rsMaterialFilter);
-}
-
-/**
- * @tc.name: AddTestLINEAR_GRADIENT_BLUR
- * @tc.desc: Verify function Add
- * @tc.type:FUNC
- */
-HWTEST_F(RSMaterialFilterTest, AddTestLINEAR_GRADIENT_BLUR, TestSize.Level1)
-{
-    MaterialParam materialParam;
-    auto rhs = std::make_shared<RSFilter>();
-    rhs->type_ = RSDrawingFilterOriginal::FilterType::LINEAR_GRADIENT_BLUR;
-    auto rsMaterialFilter = std::make_shared<RSMaterialFilter>(materialParam, BLUR_COLOR_MODE::AVERAGE);
-    EXPECT_NE(rsMaterialFilter->Add(rhs), nullptr);
-    rhs->type_ = RSDrawingFilterOriginal::FilterType::MATERIAL;
-    EXPECT_NE(rsMaterialFilter->Add(rhs), nullptr);
-    EXPECT_EQ(rsMaterialFilter->Add(nullptr), rsMaterialFilter);
-}
-
-/**
- * @tc.name: AddTestFOREGROUND_EFFECT
- * @tc.desc: Verify function Add
- * @tc.type:FUNC
- */
-HWTEST_F(RSMaterialFilterTest, AddTestFOREGROUND_EFFECT, TestSize.Level1)
-{
-    MaterialParam materialParam;
-    auto rhs = std::make_shared<RSFilter>();
-    rhs->type_ = RSDrawingFilterOriginal::FilterType::FOREGROUND_EFFECT;
-    auto rsMaterialFilter = std::make_shared<RSMaterialFilter>(materialParam, BLUR_COLOR_MODE::AVERAGE);
-    EXPECT_NE(rsMaterialFilter->Add(rhs), nullptr);
-    rhs->type_ = RSDrawingFilterOriginal::FilterType::MATERIAL;
-    EXPECT_NE(rsMaterialFilter->Add(rhs), nullptr);
-    EXPECT_EQ(rsMaterialFilter->Add(nullptr), rsMaterialFilter);
-}
-
-/**
- * @tc.name: AddTestMOTION_BLUR
- * @tc.desc: Verify function Add
- * @tc.type:FUNC
- */
-HWTEST_F(RSMaterialFilterTest, AddTestMOTION_BLUR, TestSize.Level1)
-{
-    MaterialParam materialParam;
-    auto rhs = std::make_shared<RSFilter>();
-    rhs->type_ = RSDrawingFilterOriginal::FilterType::MOTION_BLUR;
-    auto rsMaterialFilter = std::make_shared<RSMaterialFilter>(materialParam, BLUR_COLOR_MODE::AVERAGE);
-    EXPECT_NE(rsMaterialFilter->Add(rhs), nullptr);
-    rhs->type_ = RSDrawingFilterOriginal::FilterType::MATERIAL;
-    EXPECT_NE(rsMaterialFilter->Add(rhs), nullptr);
-    EXPECT_EQ(rsMaterialFilter->Add(nullptr), rsMaterialFilter);
-}
-
-/**
- * @tc.name: AddTestSPHERIZE_EFFECT
- * @tc.desc: Verify function Add
- * @tc.type:FUNC
- */
-HWTEST_F(RSMaterialFilterTest, AddTestSPHERIZE_EFFECT, TestSize.Level1)
-{
-    MaterialParam materialParam;
-    auto rhs = std::make_shared<RSFilter>();
-    rhs->type_ = RSDrawingFilterOriginal::FilterType::SPHERIZE_EFFECT;
-    auto rsMaterialFilter = std::make_shared<RSMaterialFilter>(materialParam, BLUR_COLOR_MODE::AVERAGE);
-    EXPECT_NE(rsMaterialFilter->Add(rhs), nullptr);
-    rhs->type_ = RSDrawingFilterOriginal::FilterType::MATERIAL;
-    EXPECT_NE(rsMaterialFilter->Add(rhs), nullptr);
-    EXPECT_EQ(rsMaterialFilter->Add(nullptr), rsMaterialFilter);
-}
-
-/**
- * @tc.name: AddTestCOLORFUL_SHADOW
- * @tc.desc: Verify function Add
- * @tc.type:FUNC
- */
-HWTEST_F(RSMaterialFilterTest, AddTestCOLORFUL_SHADOW, TestSize.Level1)
-{
-    MaterialParam materialParam;
-    auto rhs = std::make_shared<RSFilter>();
-    rhs->type_ = RSDrawingFilterOriginal::FilterType::COLORFUL_SHADOW;
-    auto rsMaterialFilter = std::make_shared<RSMaterialFilter>(materialParam, BLUR_COLOR_MODE::AVERAGE);
-    EXPECT_NE(rsMaterialFilter->Add(rhs), nullptr);
-    rhs->type_ = RSDrawingFilterOriginal::FilterType::MATERIAL;
-    EXPECT_NE(rsMaterialFilter->Add(rhs), nullptr);
-    EXPECT_EQ(rsMaterialFilter->Add(nullptr), rsMaterialFilter);
-}
-
-/**
- * @tc.name: AddTestATTRACTION_EFFECT
- * @tc.desc: Verify function Add
- * @tc.type:FUNC
- */
-HWTEST_F(RSMaterialFilterTest, AddTestATTRACTION_EFFECT, TestSize.Level1)
-{
-    MaterialParam materialParam;
-    auto rhs = std::make_shared<RSFilter>();
-    rhs->type_ = RSDrawingFilterOriginal::FilterType::ATTRACTION_EFFECT;
-    auto rsMaterialFilter = std::make_shared<RSMaterialFilter>(materialParam, BLUR_COLOR_MODE::AVERAGE);
-    EXPECT_NE(rsMaterialFilter->Add(rhs), nullptr);
-    rhs->type_ = RSDrawingFilterOriginal::FilterType::MATERIAL;
-    EXPECT_NE(rsMaterialFilter->Add(rhs), nullptr);
-    EXPECT_EQ(rsMaterialFilter->Add(nullptr), rsMaterialFilter);
-}
-
-/**
- * @tc.name: AddTestWATER_RIPPLE
- * @tc.desc: Verify function Add
- * @tc.type:FUNC
- */
-HWTEST_F(RSMaterialFilterTest, AddTestWATER_RIPPLE, TestSize.Level1)
-{
-    MaterialParam materialParam;
-    auto rhs = std::make_shared<RSFilter>();
-    rhs->type_ = RSDrawingFilterOriginal::FilterType::WATER_RIPPLE;
-    auto rsMaterialFilter = std::make_shared<RSMaterialFilter>(materialParam, BLUR_COLOR_MODE::AVERAGE);
-    EXPECT_NE(rsMaterialFilter->Add(rhs), nullptr);
-    rhs->type_ = RSDrawingFilterOriginal::FilterType::MATERIAL;
-    EXPECT_NE(rsMaterialFilter->Add(rhs), nullptr);
-    EXPECT_EQ(rsMaterialFilter->Add(nullptr), rsMaterialFilter);
-}
-
-/**
- * @tc.name: AddTestCOMPOUND_EFFECT
- * @tc.desc: Verify function Add
- * @tc.type:FUNC
- */
-HWTEST_F(RSMaterialFilterTest, AddTestCOMPOUND_EFFECT, TestSize.Level1)
-{
-    MaterialParam materialParam;
-    auto rhs = std::make_shared<RSFilter>();
-    rhs->type_ = RSDrawingFilterOriginal::FilterType::COMPOUND_EFFECT;
-    auto rsMaterialFilter = std::make_shared<RSMaterialFilter>(materialParam, BLUR_COLOR_MODE::AVERAGE);
-    EXPECT_NE(rsMaterialFilter->Add(rhs), nullptr);
-    rhs->type_ = RSDrawingFilterOriginal::FilterType::MATERIAL;
-    EXPECT_NE(rsMaterialFilter->Add(rhs), nullptr);
-    EXPECT_EQ(rsMaterialFilter->Add(nullptr), rsMaterialFilter);
-}
-
-/**
- * @tc.name: AddTestMAGNIFIER
- * @tc.desc: Verify function Add
- * @tc.type:FUNC
- */
-HWTEST_F(RSMaterialFilterTest, AddTestMAGNIFIER, TestSize.Level1)
-{
-    MaterialParam materialParam;
-    auto rhs = std::make_shared<RSFilter>();
-    rhs->type_ = RSDrawingFilterOriginal::FilterType::MAGNIFIER;
-    auto rsMaterialFilter = std::make_shared<RSMaterialFilter>(materialParam, BLUR_COLOR_MODE::AVERAGE);
-    EXPECT_NE(rsMaterialFilter->Add(rhs), nullptr);
-    rhs->type_ = RSDrawingFilterOriginal::FilterType::MATERIAL;
-    EXPECT_NE(rsMaterialFilter->Add(rhs), nullptr);
-    EXPECT_EQ(rsMaterialFilter->Add(nullptr), rsMaterialFilter);
-}
-
-/**
- * @tc.name: AddTestFLY_OUT
- * @tc.desc: Verify function Add
- * @tc.type:FUNC
- */
-HWTEST_F(RSMaterialFilterTest, AddTestFLY_OUT, TestSize.Level1)
-{
-    MaterialParam materialParam;
-    auto rhs = std::make_shared<RSFilter>();
-    rhs->type_ = RSDrawingFilterOriginal::FilterType::FLY_OUT;
-    auto rsMaterialFilter = std::make_shared<RSMaterialFilter>(materialParam, BLUR_COLOR_MODE::AVERAGE);
-    EXPECT_NE(rsMaterialFilter->Add(rhs), nullptr);
-    rhs->type_ = RSDrawingFilterOriginal::FilterType::MATERIAL;
-    EXPECT_NE(rsMaterialFilter->Add(rhs), nullptr);
-    EXPECT_EQ(rsMaterialFilter->Add(nullptr), rsMaterialFilter);
-}
-
-/**
- * @tc.name: AddTestDISTORTDISTORT
- * @tc.desc: Verify function Add
- * @tc.type:FUNC
- */
-HWTEST_F(RSMaterialFilterTest, AddTestDISTORTDISTORT, TestSize.Level1)
-{
-    MaterialParam materialParam;
-    auto rhs = std::make_shared<RSFilter>();
-    rhs->type_ = RSDrawingFilterOriginal::FilterType::DISTORT;
-    auto rsMaterialFilter = std::make_shared<RSMaterialFilter>(materialParam, BLUR_COLOR_MODE::AVERAGE);
-    EXPECT_NE(rsMaterialFilter->Add(rhs), nullptr);
-    rhs->type_ = RSDrawingFilterOriginal::FilterType::DISTORT;
-    EXPECT_NE(rsMaterialFilter->Add(rhs), nullptr);
-    EXPECT_EQ(rsMaterialFilter->Add(nullptr), rsMaterialFilter);
-}
-
-
-/**
- * @tc.name: AddTestBLURFLY_OUT
- * @tc.desc: Verify function Add
- * @tc.type:FUNC
- */
-HWTEST_F(RSMaterialFilterTest, AddTestBLURFLY_OUT, TestSize.Level1)
-{
-    MaterialParam materialParam;
-    auto rhs = std::make_shared<RSFilter>();
-    rhs->type_ = RSDrawingFilterOriginal::FilterType::BLUR;
-    auto rsMaterialFilter = std::make_shared<RSMaterialFilter>(materialParam, BLUR_COLOR_MODE::AVERAGE);
-    EXPECT_NE(rsMaterialFilter->Add(rhs), nullptr);
-    rhs->type_ = RSDrawingFilterOriginal::FilterType::FLY_OUT;
-    EXPECT_NE(rsMaterialFilter->Add(rhs), nullptr);
-    EXPECT_EQ(rsMaterialFilter->Add(nullptr), rsMaterialFilter);
-}
-
-/**
- * @tc.name: AddTestLIGHT_UP_EFFECTCOMPOUND_EFFECT
- * @tc.desc: Verify function Add
- * @tc.type:FUNC
- */
-HWTEST_F(RSMaterialFilterTest, AddTestLIGHT_UP_EFFECTCOMPOUND_EFFECT, TestSize.Level1)
-{
-    MaterialParam materialParam;
-    auto rhs = std::make_shared<RSFilter>();
-    rhs->type_ = RSDrawingFilterOriginal::FilterType::LIGHT_UP_EFFECT;
-    auto rsMaterialFilter = std::make_shared<RSMaterialFilter>(materialParam, BLUR_COLOR_MODE::AVERAGE);
-    EXPECT_NE(rsMaterialFilter->Add(rhs), nullptr);
-    rhs->type_ = RSDrawingFilterOriginal::FilterType::COMPOUND_EFFECT;
-    EXPECT_NE(rsMaterialFilter->Add(rhs), nullptr);
-    EXPECT_EQ(rsMaterialFilter->Add(nullptr), rsMaterialFilter);
-}
-
-/**
- * @tc.name: AddTestAIBARWATER_RIPPLE
- * @tc.desc: Verify function Add
- * @tc.type:FUNC
- */
-HWTEST_F(RSMaterialFilterTest, AddTestAIBARWATER_RIPPLE, TestSize.Level1)
-{
-    MaterialParam materialParam;
-    auto rhs = std::make_shared<RSFilter>();
-    rhs->type_ = RSDrawingFilterOriginal::FilterType::AIBAR;
-    auto rsMaterialFilter = std::make_shared<RSMaterialFilter>(materialParam, BLUR_COLOR_MODE::AVERAGE);
-    EXPECT_NE(rsMaterialFilter->Add(rhs), nullptr);
-    rhs->type_ = RSDrawingFilterOriginal::FilterType::WATER_RIPPLE;
-    EXPECT_NE(rsMaterialFilter->Add(rhs), nullptr);
-    EXPECT_EQ(rsMaterialFilter->Add(nullptr), rsMaterialFilter);
-}
-
-/**
- * @tc.name: AddTestLINEAR_GRADIENT_BLURATTRACTION_EFFECT
- * @tc.desc: Verify function Add
- * @tc.type:FUNC
- */
-HWTEST_F(RSMaterialFilterTest, AddTestLINEAR_GRADIENT_BLURATTRACTION_EFFECT, TestSize.Level1)
-{
-    MaterialParam materialParam;
-    auto rhs = std::make_shared<RSFilter>();
-    rhs->type_ = RSDrawingFilterOriginal::FilterType::LINEAR_GRADIENT_BLUR;
-    auto rsMaterialFilter = std::make_shared<RSMaterialFilter>(materialParam, BLUR_COLOR_MODE::AVERAGE);
-    EXPECT_NE(rsMaterialFilter->Add(rhs), nullptr);
-    rhs->type_ = RSDrawingFilterOriginal::FilterType::ATTRACTION_EFFECT;
-    EXPECT_NE(rsMaterialFilter->Add(rhs), nullptr);
-    EXPECT_EQ(rsMaterialFilter->Add(nullptr), rsMaterialFilter);
-}
-
-/**
- * @tc.name: AddTestFOREGROUND_EFFECTCOLORFUL_SHADOW
- * @tc.desc: Verify function Add
- * @tc.type:FUNC
- */
-HWTEST_F(RSMaterialFilterTest, AddTestFOREGROUND_EFFECTCOLORFUL_SHADOW, TestSize.Level1)
-{
-    MaterialParam materialParam;
-    auto rhs = std::make_shared<RSFilter>();
-    rhs->type_ = RSDrawingFilterOriginal::FilterType::FOREGROUND_EFFECT;
-    auto rsMaterialFilter = std::make_shared<RSMaterialFilter>(materialParam, BLUR_COLOR_MODE::AVERAGE);
-    EXPECT_NE(rsMaterialFilter->Add(rhs), nullptr);
-    rhs->type_ = RSDrawingFilterOriginal::FilterType::COLORFUL_SHADOW;
-    EXPECT_NE(rsMaterialFilter->Add(rhs), nullptr);
-    EXPECT_EQ(rsMaterialFilter->Add(nullptr), rsMaterialFilter);
-}
-
-/**
- * @tc.name: AddTestMOTION_BLURSPHERIZE_EFFECT
- * @tc.desc: Verify function Add
- * @tc.type:FUNC
- */
-HWTEST_F(RSMaterialFilterTest, AddTestMOTION_BLURSPHERIZE_EFFECT, TestSize.Level1)
-{
-    MaterialParam materialParam;
-    auto rhs = std::make_shared<RSFilter>();
-    rhs->type_ = RSDrawingFilterOriginal::FilterType::MOTION_BLUR;
-    auto rsMaterialFilter = std::make_shared<RSMaterialFilter>(materialParam, BLUR_COLOR_MODE::AVERAGE);
-    EXPECT_NE(rsMaterialFilter->Add(rhs), nullptr);
-    rhs->type_ = RSDrawingFilterOriginal::FilterType::SPHERIZE_EFFECT;
-    EXPECT_NE(rsMaterialFilter->Add(rhs), nullptr);
-    EXPECT_EQ(rsMaterialFilter->Add(nullptr), rsMaterialFilter);
-}
-
-/**
- * @tc.name: AddTestSPHERIZE_EFFECTMOTION_BLUR
- * @tc.desc: Verify function Add
- * @tc.type:FUNC
- */
-HWTEST_F(RSMaterialFilterTest, AddTestSPHERIZE_EFFECTMOTION_BLUR, TestSize.Level1)
-{
-    MaterialParam materialParam;
-    auto rhs = std::make_shared<RSFilter>();
-    rhs->type_ = RSDrawingFilterOriginal::FilterType::SPHERIZE_EFFECT;
-    auto rsMaterialFilter = std::make_shared<RSMaterialFilter>(materialParam, BLUR_COLOR_MODE::AVERAGE);
-    EXPECT_NE(rsMaterialFilter->Add(rhs), nullptr);
-    rhs->type_ = RSDrawingFilterOriginal::FilterType::MOTION_BLUR;
-    EXPECT_NE(rsMaterialFilter->Add(rhs), nullptr);
-    EXPECT_EQ(rsMaterialFilter->Add(nullptr), rsMaterialFilter);
-}
-
-/**
- * @tc.name: AddTestCOLORFUL_SHADOWMOTION_BLUR
- * @tc.desc: Verify function Add
- * @tc.type:FUNC
- */
-HWTEST_F(RSMaterialFilterTest, AddTestCOLORFUL_SHADOWMOTION_BLUR, TestSize.Level1)
-{
-    MaterialParam materialParam;
-    auto rhs = std::make_shared<RSFilter>();
-    rhs->type_ = RSDrawingFilterOriginal::FilterType::COLORFUL_SHADOW;
-    auto rsMaterialFilter = std::make_shared<RSMaterialFilter>(materialParam, BLUR_COLOR_MODE::AVERAGE);
-    EXPECT_NE(rsMaterialFilter->Add(rhs), nullptr);
-    rhs->type_ = RSDrawingFilterOriginal::FilterType::MOTION_BLUR;
-    EXPECT_NE(rsMaterialFilter->Add(rhs), nullptr);
-    EXPECT_EQ(rsMaterialFilter->Add(nullptr), rsMaterialFilter);
-}
-
-/**
- * @tc.name: AddTestATTRACTION_EFFECTFOREGROUND_EFFECT
- * @tc.desc: Verify function Add
- * @tc.type:FUNC
- */
-HWTEST_F(RSMaterialFilterTest, AddTestATTRACTION_EFFECTFOREGROUND_EFFECT, TestSize.Level1)
-{
-    MaterialParam materialParam;
-    auto rhs = std::make_shared<RSFilter>();
-    rhs->type_ = RSDrawingFilterOriginal::FilterType::ATTRACTION_EFFECT;
-    auto rsMaterialFilter = std::make_shared<RSMaterialFilter>(materialParam, BLUR_COLOR_MODE::AVERAGE);
-    EXPECT_NE(rsMaterialFilter->Add(rhs), nullptr);
-    rhs->type_ = RSDrawingFilterOriginal::FilterType::FOREGROUND_EFFECT;
-    EXPECT_NE(rsMaterialFilter->Add(rhs), nullptr);
-    EXPECT_EQ(rsMaterialFilter->Add(nullptr), rsMaterialFilter);
-}
-
-/**
- * @tc.name: AddTestWATER_RIPPLELINEAR_GRADIENT_BLUR
- * @tc.desc: Verify function Add
- * @tc.type:FUNC
- */
-HWTEST_F(RSMaterialFilterTest, AddTestWATER_RIPPLELINEAR_GRADIENT_BLUR, TestSize.Level1)
-{
-    MaterialParam materialParam;
-    auto rhs = std::make_shared<RSFilter>();
-    rhs->type_ = RSDrawingFilterOriginal::FilterType::WATER_RIPPLE;
-    auto rsMaterialFilter = std::make_shared<RSMaterialFilter>(materialParam, BLUR_COLOR_MODE::AVERAGE);
-    EXPECT_NE(rsMaterialFilter->Add(rhs), nullptr);
-    rhs->type_ = RSDrawingFilterOriginal::FilterType::LINEAR_GRADIENT_BLUR;
-    EXPECT_NE(rsMaterialFilter->Add(rhs), nullptr);
-    EXPECT_EQ(rsMaterialFilter->Add(nullptr), rsMaterialFilter);
-}
-
-/**
- * @tc.name: AddTestCOMPOUND_EFFECTAIBAR
- * @tc.desc: Verify function Add
- * @tc.type:FUNC
- */
-HWTEST_F(RSMaterialFilterTest, AddTestCOMPOUND_EFFECTAIBAR, TestSize.Level1)
-{
-    MaterialParam materialParam;
-    auto rhs = std::make_shared<RSFilter>();
-    rhs->type_ = RSDrawingFilterOriginal::FilterType::COMPOUND_EFFECT;
-    auto rsMaterialFilter = std::make_shared<RSMaterialFilter>(materialParam, BLUR_COLOR_MODE::AVERAGE);
-    EXPECT_NE(rsMaterialFilter->Add(rhs), nullptr);
-    rhs->type_ = RSDrawingFilterOriginal::FilterType::AIBAR;
-    EXPECT_NE(rsMaterialFilter->Add(rhs), nullptr);
-    EXPECT_EQ(rsMaterialFilter->Add(nullptr), rsMaterialFilter);
-}
-
-/**
- * @tc.name: AddTestMAGNIFIERLIGHT_UP_EFFECT
- * @tc.desc: Verify function Add
- * @tc.type:FUNC
- */
-HWTEST_F(RSMaterialFilterTest, AddTestMAGNIFIERLIGHT_UP_EFFECT, TestSize.Level1)
-{
-    MaterialParam materialParam;
-    auto rhs = std::make_shared<RSFilter>();
-    rhs->type_ = RSDrawingFilterOriginal::FilterType::MAGNIFIER;
-    auto rsMaterialFilter = std::make_shared<RSMaterialFilter>(materialParam, BLUR_COLOR_MODE::AVERAGE);
-    EXPECT_NE(rsMaterialFilter->Add(rhs), nullptr);
-    rhs->type_ = RSDrawingFilterOriginal::FilterType::LIGHT_UP_EFFECT;
-    EXPECT_NE(rsMaterialFilter->Add(rhs), nullptr);
-    EXPECT_EQ(rsMaterialFilter->Add(nullptr), rsMaterialFilter);
-}
-
-/**
- * @tc.name: AddTestFLY_OUTLIGHT_UP_EFFECT
- * @tc.desc: Verify function Add
- * @tc.type:FUNC
- */
-HWTEST_F(RSMaterialFilterTest, AddTestFLY_OUTLIGHT_UP_EFFECT, TestSize.Level1)
-{
-    MaterialParam materialParam;
-    auto rhs = std::make_shared<RSFilter>();
-    rhs->type_ = RSDrawingFilterOriginal::FilterType::FLY_OUT;
-    auto rsMaterialFilter = std::make_shared<RSMaterialFilter>(materialParam, BLUR_COLOR_MODE::AVERAGE);
-    EXPECT_NE(rsMaterialFilter->Add(rhs), nullptr);
-    rhs->type_ = RSDrawingFilterOriginal::FilterType::LIGHT_UP_EFFECT;
-    EXPECT_NE(rsMaterialFilter->Add(rhs), nullptr);
-    EXPECT_EQ(rsMaterialFilter->Add(nullptr), rsMaterialFilter);
-}
-
-/**
- * @tc.name: AddTestDISTORTNONE
- * @tc.desc: Verify function Add
- * @tc.type:FUNC
- */
-HWTEST_F(RSMaterialFilterTest, AddTestDISTORTNONE, TestSize.Level1)
-{
-    MaterialParam materialParam;
-    auto rhs = std::make_shared<RSFilter>();
-    rhs->type_ = RSDrawingFilterOriginal::FilterType::DISTORT;
-    auto rsMaterialFilter = std::make_shared<RSMaterialFilter>(materialParam, BLUR_COLOR_MODE::AVERAGE);
-    EXPECT_NE(rsMaterialFilter->Add(rhs), nullptr);
-    rhs->type_ = RSDrawingFilterOriginal::FilterType::NONE;
-    EXPECT_NE(rsMaterialFilter->Add(rhs), nullptr);
-    EXPECT_EQ(rsMaterialFilter->Add(nullptr), rsMaterialFilter);
-}
-
-/**
- * @tc.name: SubTest001
- * @tc.desc: Verify function Sub
- * @tc.type:FUNC
- */
-HWTEST_F(RSMaterialFilterTest, SubTest001, TestSize.Level1)
-{
-    MaterialParam materialParam;
-    auto rhs = std::make_shared<RSFilter>();
-    rhs->type_ = RSDrawingFilterOriginal::FilterType::NONE;
-    auto rsMaterialFilter = std::make_shared<RSMaterialFilter>(materialParam, BLUR_COLOR_MODE::AVERAGE);
-    EXPECT_NE(rsMaterialFilter->Sub(rhs), nullptr);
-    rhs->type_ = RSDrawingFilterOriginal::FilterType::MATERIAL;
-    EXPECT_NE(rsMaterialFilter->Sub(rhs), nullptr);
-    EXPECT_EQ(rsMaterialFilter->Sub(nullptr), rsMaterialFilter);
-}
-
-/**
- * @tc.name: MultiplyTest001
- * @tc.desc: Verify function Multiply
- * @tc.type:FUNC
- */
-HWTEST_F(RSMaterialFilterTest, MultiplyTest001, TestSize.Level1)
-{
-    MaterialParam materialParam;
-    auto rsMaterialFilter = std::make_shared<RSMaterialFilter>(materialParam, BLUR_COLOR_MODE::AVERAGE);
-    EXPECT_NE(rsMaterialFilter->Multiply(1.0f), nullptr);
-}
-
-/**
- * @tc.name: NegateTest001
- * @tc.desc: Verify function Negate
- * @tc.type:FUNC
- */
-HWTEST_F(RSMaterialFilterTest, NegateTest001, TestSize.Level1)
-{
-    MaterialParam materialParam;
-    auto rsMaterialFilter = std::make_shared<RSMaterialFilter>(materialParam, BLUR_COLOR_MODE::AVERAGE);
-    EXPECT_NE(rsMaterialFilter->Negate(), nullptr);
-}
-
-/**
  * @tc.name: DrawImageRectTest001
  * @tc.desc: Verify function DrawImageRect
  * @tc.type:FUNC
@@ -1493,54 +833,6 @@ HWTEST_F(RSMaterialFilterTest, CanSkipFrameTest002, TestSize.Level1)
 }
 
 /**
- * @tc.name: IsNearEqual001
- * @tc.desc: Verify function IsNearEqual
- * @tc.type:FUNC
- */
-HWTEST_F(RSMaterialFilterTest, IsNearEqual001, TestSize.Level1)
-{
-    int16_t red = 10;
-    int16_t green = 11;
-    int16_t blue = 12;
-    int16_t alpha = 13;
-    RSColor color(red, green, blue, alpha);
-    float radius = 0.5f;
-    float saturation = 1.0f;
-    float brightness = 1.0f;
-    struct MaterialParam materialParam = { radius, saturation, brightness, color };
-    BLUR_COLOR_MODE mode = BLUR_COLOR_MODE::DEFAULT;
-    std::shared_ptr<RSFilter> rsMaterialFilter = std::make_shared<RSMaterialFilter>(materialParam, mode);
-    float saturation1 = 1.2f;
-    struct MaterialParam materialParam1 = { radius, saturation1, brightness, color };
-    float threshold = 1.0f;
-    std::shared_ptr<RSFilter> rsMaterialFilter1 = std::make_shared<RSMaterialFilter>(materialParam1, mode);
-    EXPECT_TRUE(rsMaterialFilter->IsNearEqual(rsMaterialFilter1, threshold));
-    EXPECT_TRUE(rsMaterialFilter->IsNearEqual(nullptr, threshold));
-}
-
-/**
- * @tc.name: IsNearZero001
- * @tc.desc: Verify function IsNearZero
- * @tc.type:FUNC
- */
-HWTEST_F(RSMaterialFilterTest, IsNearZero001, TestSize.Level1)
-{
-    int16_t red = 10;
-    int16_t green = 11;
-    int16_t blue = 12;
-    int16_t alpha = 13;
-    RSColor color(red, green, blue, alpha);
-    float radius = 0.5f;
-    float saturation = 1.0f;
-    float brightness = 1.0f;
-    struct MaterialParam materialParam = { radius, saturation, brightness, color };
-    BLUR_COLOR_MODE mode = BLUR_COLOR_MODE::DEFAULT;
-    std::shared_ptr<RSFilter> rsMaterialFilter = std::make_shared<RSMaterialFilter>(materialParam, mode);
-    float threshold = 1.0f;
-    EXPECT_TRUE(rsMaterialFilter->IsNearZero(threshold));
-}
-
-/**
  * @tc.name: GetDetailedDescription001
  * @tc.desc: Verify function GetDetailedDescription
  * @tc.type:FUNC
@@ -1555,39 +847,6 @@ HWTEST_F(RSMaterialFilterTest, GetDetailedDescription001, TestSize.Level1)
 
     ASSERT_EQ(rsMaterialFilter.colorMode_, mode);
     ASSERT_EQ(rsMaterialFilter.type_, RSDrawingFilterOriginal::FilterType::MATERIAL);
-}
-
-/**
- * @tc.name: IsEqual001
- * @tc.desc: Verify function IsEqual
- * @tc.type:FUNC
- */
-HWTEST_F(RSMaterialFilterTest, IsEqual001, TestSize.Level1)
-{
-    float radius = 1.0f;
-    float saturation = 1.0f;
-    float brightness = 1.0f;
-    struct MaterialParam materialParam = { radius, saturation, brightness, RSColor() };
-    BLUR_COLOR_MODE mode = BLUR_COLOR_MODE::DEFAULT;
-    std::shared_ptr<RSFilter> rsMaterialFilter = std::make_shared<RSMaterialFilter>(materialParam, mode);
-    std::shared_ptr<RSFilter> rsMaterialFilterOhter = std::make_shared<RSMaterialFilter>(materialParam, mode);
-    EXPECT_TRUE(rsMaterialFilter->IsEqual(rsMaterialFilterOhter));
-}
-
-/**
- * @tc.name: IsEqual002
- * @tc.desc: Verify function IsEqual
- * @tc.type:FUNC
- */
-HWTEST_F(RSMaterialFilterTest, IsEqual002, TestSize.Level1)
-{
-    float radius = 1.0f;
-    float saturation = 1.0f;
-    float brightness = 1.0f;
-    struct MaterialParam materialParam = { radius, saturation, brightness, RSColor() };
-    BLUR_COLOR_MODE mode = BLUR_COLOR_MODE::DEFAULT;
-    std::shared_ptr<RSFilter> rsMaterialFilter = std::make_shared<RSMaterialFilter>(materialParam, mode);
-    EXPECT_TRUE(rsMaterialFilter->IsEqual(nullptr));
 }
 
 /**
@@ -1623,6 +882,4 @@ HWTEST_F(RSMaterialFilterTest, GetDetailedDescription003, TestSize.Level1)
         "RSMaterialFilterBlur, radius: 29.367500 sigma, saturation: 2.150000, brightness: 1.000000, greyCoef1: "
         "0.000000, greyCoef2: 0.000000, color: D11F1F1F, colorMode: 1");
 }
-
-
 } // namespace OHOS::Rosen

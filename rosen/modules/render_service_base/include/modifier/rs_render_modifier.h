@@ -19,6 +19,7 @@
 #include <memory>
 
 #include "parcel.h"
+#include "recording/draw_cmd_list.h"
 #include "rs_modifier_type.h"
 
 #include "common/rs_color.h"
@@ -26,8 +27,6 @@
 #include "common/rs_rect.h"
 #include "modifier/rs_modifier_type.h"
 #include "modifier/rs_render_property.h"
-
-#include "recording/draw_cmd_list.h"
 #include "utils/matrix.h"
 
 namespace OHOS {

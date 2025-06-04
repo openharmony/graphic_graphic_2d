@@ -748,13 +748,13 @@ public:
     const std::unique_ptr<RSRenderParams>& GetRenderParams() const;
 #endif
     void UpdatePointLightDirtySlot();
-    void AccmulateDirtyInOcclusion(bool isOccluded);
+    void AccumulateDirtyInOcclusion(bool isOccluded);
     void RecordCurDirtyStatus();
-    void AccmulateDirtyStatus();
-    void ResetAccmulateDirtyStatus();
+    void AccumulateDirtyStatus();
+    void ResetAccumulateDirtyStatus();
     void RecordCurDirtyTypes();
-    void AccmulateDirtyTypes();
-    void ResetAccmulateDirtyTypes();
+    void AccumulateDirtyTypes();
+    void ResetAccumulateDirtyTypes();
     void SetUifirstSyncFlag(bool needSync);
     void SetUifirstSkipPartialSync(bool skip)
     {

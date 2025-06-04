@@ -39,8 +39,6 @@ DECLARE_RENDER_PROPERTY(Vector4<uint32_t>, RandomData, Uint32Vector4)
 
 DECLARE_RENDER_PROPERTY(Vector4f, RandomData, Vector4f)
 
-DECLARE_ANIMATABLE_RENDER_PROPERTY(std::shared_ptr<RSFilter>, RandomRSFilter, RSFilter)
-
 DECLARE_RENDER_PROPERTY(std::shared_ptr<RSLinearGradientBlurPara>, RandomRSLinearGradientBlurPara, RSLinearGradientBlurPara)
 
 DECLARE_RENDER_PROPERTY(std::shared_ptr<MotionBlurParam>, RandomData, MotionBlurParamSharedPtr)

@@ -220,48 +220,6 @@ HWTEST_F(RSKeyframeAnimationTest, AddKeyFramesTest002, TestSize.Level1)
 }
 
 /**
- * @tc.name: AddKeyFramesTest003
- * @tc.desc: Verify the AddKeyFrames of KeyframeAnimation
- * @tc.type: FUNC
- */
-HWTEST_F(RSKeyframeAnimationTest, AddKeyFramesTest003, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "RSKeyframeAnimationTest AddKeyFramesTest003 start";
-    /**
-     * @tc.steps: step1. init AddKeyFrames
-     */
-    auto startProperty =
-        std::make_shared<RSAnimatableProperty<std::shared_ptr<RSFilter>>>(RSFilter::CreateBlurFilter(10.f, 10.f));
-    auto endProperty =
-        std::make_shared<RSAnimatableProperty<std::shared_ptr<RSFilter>>>(RSFilter::CreateBlurFilter(25.f, 25.f));
-    auto secondProperty =
-        std::make_shared<RSAnimatableProperty<std::shared_ptr<RSFilter>>>(RSFilter::CreateBlurFilter(50.f, 50.f));
-    auto modifier = std::make_shared<RSBackgroundFilterModifier>(startProperty);
-    canvasNode->AddModifier(modifier);
-    rsUiDirector->SendMessages();
-    sleep(DELAY_TIME_ONE);
-
-    auto keyframeAnimation = std::make_shared<RSKeyframeAnimation>(startProperty);
-    keyframeAnimation->SetDuration(ANIMATION_DURATION_2);
-
-    std::vector<std::tuple<float, std::shared_ptr<RSPropertyBase>, RSAnimationTimingCurve>> keyframes;
-    keyframes.push_back(std::make_tuple(FRACTION_MIN - 0.1f, startProperty, RSAnimationTimingCurve::EASE_IN));
-    keyframes.push_back(std::make_tuple(FRACTION_MAX / 2, secondProperty, RSAnimationTimingCurve::EASE_IN));
-    keyframes.push_back(std::make_tuple(FRACTION_MAX + 0.1f, endProperty, RSAnimationTimingCurve::EASE_IN));
-    keyframeAnimation->AddKeyFrames(keyframes);
-    keyframeAnimation->Start(canvasNode);
-    keyframeAnimation->AddKeyFrames({});
-    /**
-     * @tc.steps: step2. start AddKeyFrames test
-     */
-    EXPECT_TRUE(keyframeAnimation != nullptr);
-    EXPECT_TRUE(keyframeAnimation->IsRunning());
-    NotifyStartAnimation();
-    GTEST_LOG_(INFO) << "RSKeyframeAnimationTest AddKeyFramesTest003 end";
-}
-
-
-/**
  * @tc.name: RSNodeAnimateTest001
  * @tc.desc: Verify the RSNodeAnimate of KeyframeAnimation
  * @tc.type: FUNC

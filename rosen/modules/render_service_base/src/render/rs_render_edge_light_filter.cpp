@@ -43,11 +43,11 @@ std::shared_ptr<RSRenderPropertyBase> RSRenderEdgeLightFilterPara::CreateRenderP
     switch (type) {
         case RSUIFilterType::EDGE_LIGHT_ALPHA : {
             return std::make_shared<RSRenderAnimatableProperty<float>>(
-                0.f, 0, RSRenderPropertyType::PROPERTY_FLOAT);
+                0.f, 0, RSPropertyType::FLOAT);
         }
         case RSUIFilterType::EDGE_LIGHT_COLOR : {
             return std::make_shared<RSRenderAnimatableProperty<Vector4f>>(
-                Vector4f(), 0, RSRenderPropertyType::PROPERTY_VECTOR4F);
+                Vector4f(), 0, RSPropertyType::VECTOR4F);
         }
         case RSUIFilterType::RIPPLE_MASK : {
             return std::make_shared<RSRenderRippleMaskPara>(0);

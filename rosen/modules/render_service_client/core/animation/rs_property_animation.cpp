@@ -170,7 +170,7 @@ void RSPropertyAnimation::InitAdditiveMode()
 void RSPropertyAnimation::DumpAnimationInfo(std::string& dumpInfo) const
 {
     dumpInfo += ", isCustom:" + std::to_string(isCustom_);
-    RSRenderPropertyType type = RSRenderPropertyType::INVALID;
+    RSPropertyType type = RSPropertyType::INVALID;
     if (property_) {
         type = property_->GetPropertyType();
         dumpInfo += ", ModifierType: " + std::to_string(static_cast<int16_t>(property_->type_));

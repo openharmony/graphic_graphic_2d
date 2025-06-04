@@ -128,36 +128,33 @@ HWTEST_F(RSRenderAnimationDebugTraceTest, ParseRenderPropertyVaule001, TestSize.
     float val = 1.0f;
     auto floatProperty = std::make_shared<RSRenderAnimatableProperty<float>>(val);
     EXPECT_EQ(RSAnimationTraceUtils::GetInstance().ParseRenderPropertyVaule(floatProperty,
-        RSRenderPropertyType::PROPERTY_FLOAT), "float:" + std::to_string(val));
+        RSPropertyType::FLOAT), "float:" + std::to_string(val));
     auto red = RgbPalette::Red();
     auto colorProperty = std::make_shared<RSRenderAnimatableProperty<Color>>(red);
     EXPECT_EQ(RSAnimationTraceUtils::GetInstance().ParseRenderPropertyVaule(colorProperty,
-        RSRenderPropertyType::PROPERTY_COLOR), "Color:4278190335");
+        RSPropertyType::RS_COLOR), "Color:4278190335");
     auto matrixProperty = std::make_shared<RSRenderAnimatableProperty<Matrix3f>>();
     EXPECT_EQ(RSAnimationTraceUtils::GetInstance().ParseRenderPropertyVaule(matrixProperty,
-        RSRenderPropertyType::PROPERTY_MATRIX3F), "Matrix3f");
+        RSPropertyType::MATRIX3F), "Matrix3f");
     auto quaternionProperty = std::make_shared<RSRenderAnimatableProperty<Quaternion>>(
         Quaternion(1.0f, 2.0f, 3.0f, 4.0f));
     EXPECT_NE(RSAnimationTraceUtils::GetInstance().ParseRenderPropertyVaule(quaternionProperty,
-        RSRenderPropertyType::PROPERTY_QUATERNION), "None");
-    auto filterProperty = std::make_shared<RSRenderAnimatableProperty<std::shared_ptr<RSFilter>>>(nullptr);
-    EXPECT_EQ(RSAnimationTraceUtils::GetInstance().ParseRenderPropertyVaule(filterProperty,
-        RSRenderPropertyType::PROPERTY_FILTER), "FILTER");
+        RSPropertyType::QUATERNION), "None");
     auto vector2fProperty = std::make_shared<RSRenderAnimatableProperty<Vector2f>>(Vector2f(1.0f, 2.0f));
     EXPECT_NE(RSAnimationTraceUtils::GetInstance().ParseRenderPropertyVaule(vector2fProperty,
-        RSRenderPropertyType::PROPERTY_VECTOR2F), "None");
+        RSPropertyType::VECTOR2F), "None");
     auto vector4fProperty = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(1.0f, 2.0f, 3.0f, 4.0f));
     EXPECT_NE(RSAnimationTraceUtils::GetInstance().ParseRenderPropertyVaule(vector4fProperty,
-        RSRenderPropertyType::PROPERTY_VECTOR4F), "None");
+        RSPropertyType::VECTOR4F), "None");
     auto vector4ColorProperty = std::make_shared<RSRenderAnimatableProperty<Vector4<Color>>>(Vector4<Color>(red));
     EXPECT_EQ(RSAnimationTraceUtils::GetInstance().ParseRenderPropertyVaule(vector4ColorProperty,
-        RSRenderPropertyType::PROPERTY_VECTOR4_COLOR),
+        RSPropertyType::VECTOR4_COLOR),
         "Vector4<Color>:x:4278190335,y:4278190335,z:4278190335,w:4278190335");
 
     RRect rect;
     auto invalidProperty = std::make_shared<RSRenderAnimatableProperty<RRect>>(rect);
     EXPECT_EQ(RSAnimationTraceUtils::GetInstance().ParseRenderPropertyVaule(invalidProperty,
-        RSRenderPropertyType::INVALID), "None");
+        RSPropertyType::INVALID), "None");
 
     GTEST_LOG_(INFO) << "RSRenderSpringAnimationTest ParseRenderPropertyVaule001 end";
 }

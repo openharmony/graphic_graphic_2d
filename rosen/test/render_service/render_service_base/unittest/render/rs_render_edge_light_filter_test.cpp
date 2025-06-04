@@ -123,12 +123,12 @@ HWTEST_F(RSRenderEdgeLightFilterTest, ParseFilterValuesTest001, TestSize.Level1)
     EXPECT_FALSE(filter->ParseFilterValues());
 
     auto alphaRenderProperty =
-        std::make_shared<RSRenderAnimatableProperty<float>>(1.0f, 0, RSRenderPropertyType::PROPERTY_FLOAT);
+        std::make_shared<RSRenderAnimatableProperty<float>>(1.0f, 0, RSPropertyType::FLOAT);
     filter->Setter(RSUIFilterType::EDGE_LIGHT_ALPHA, alphaRenderProperty);
     EXPECT_FALSE(filter->ParseFilterValues());
 
     auto colorRenderProperty = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(
-        Vector4f(0.5f, 0.5f, 0.5f, 0.0f), 0, RSRenderPropertyType::PROPERTY_VECTOR4F);
+        Vector4f(0.5f, 0.5f, 0.5f, 0.0f), 0, RSPropertyType::VECTOR4F);
     filter->Setter(RSUIFilterType::EDGE_LIGHT_COLOR, colorRenderProperty);
     EXPECT_TRUE(filter->ParseFilterValues());
 
@@ -138,5 +138,29 @@ HWTEST_F(RSRenderEdgeLightFilterTest, ParseFilterValuesTest001, TestSize.Level1)
     auto maskRenderProperty = std::make_shared<RSRenderRippleMaskPara>(0);
     filter->Setter(RSUIFilterType::RIPPLE_MASK, maskRenderProperty);
     EXPECT_TRUE(filter->ParseFilterValues());
+}
+/**
+ * @tc.name: CreateRenderProperty001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderEdgeLightFilterTest, CreateRenderProperty001, TestSize.Level1)
+{
+    auto rsRenderEdgeLightFilterPara = std::make_shared<RSRenderEdgeLightFilterPara>(0);
+
+    auto renderProperty = rsRenderEdgeLightFilterPara->CreateRenderProperty(RSUIFilterType::RIPPLE_MASK);
+    EXPECT_NE(renderProperty, nullptr);
+
+    renderProperty = rsRenderEdgeLightFilterPara->CreateRenderProperty(RSUIFilterType::RADIAL_GRADIENT_MASK);
+    EXPECT_NE(renderProperty, nullptr);
+
+    renderProperty = rsRenderEdgeLightFilterPara->CreateRenderProperty(RSUIFilterType::PIXEL_MAP_MASK);
+    EXPECT_NE(renderProperty, nullptr);
+    
+    renderProperty = rsRenderEdgeLightFilterPara->CreateRenderProperty(RSUIFilterType::EDGE_LIGHT_ALPHA);
+    EXPECT_NE(renderProperty, nullptr);
+    
+    renderProperty = rsRenderEdgeLightFilterPara->CreateRenderProperty(RSUIFilterType::EDGE_LIGHT_COLOR);
+    EXPECT_NE(renderProperty, nullptr);
 }
 } // namespace OHOS::Rosen

@@ -108,27 +108,6 @@ public:
         return hash_;
     }
 
-    virtual bool IsNearEqual(
-        const std::shared_ptr<RSFilter>& other, float threshold = std::numeric_limits<float>::epsilon()) const
-    {
-        return true;
-    }
-
-    virtual bool IsNearZero(float threshold = std::numeric_limits<float>::epsilon()) const
-    {
-        return true;
-    }
-
-    virtual bool IsEqual(const std::shared_ptr<RSFilter>& other) const
-    {
-        return true;
-    }
-
-    virtual bool IsEqualZero() const
-    {
-        return true;
-    }
-
     bool NeedSnapshotOutset() const
     {
         return needSnapshotOutset_;
@@ -144,15 +123,6 @@ protected:
     uint32_t hash_ = 0;
     bool needSnapshotOutset_ = true;
     RSFilter();
-    virtual std::shared_ptr<RSFilter> Add(const std::shared_ptr<RSFilter>& rhs) { return nullptr; }
-    virtual std::shared_ptr<RSFilter> Sub(const std::shared_ptr<RSFilter>& rhs) { return nullptr; }
-    virtual std::shared_ptr<RSFilter> Multiply(float rhs) { return nullptr; }
-    virtual std::shared_ptr<RSFilter> Negate() { return nullptr; }
-    friend RSB_EXPORT std::shared_ptr<RSFilter> operator+(const std::shared_ptr<RSFilter>& lhs,
-                                                         const std::shared_ptr<RSFilter>& rhs);
-    friend RSB_EXPORT std::shared_ptr<RSFilter> operator-(const std::shared_ptr<RSFilter>& lhs,
-                                                         const std::shared_ptr<RSFilter>& rhs);
-    friend RSB_EXPORT std::shared_ptr<RSFilter> operator*(const std::shared_ptr<RSFilter>& lhs, float rhs);
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -1342,8 +1342,8 @@ HWTEST_F(RSPropertiesTest, UpdateSandBoxMatrix001, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetBackgroundFilter001
- * @tc.desc: test results of SetBackgroundFilter
+ * @tc.name: GetBackgroundFilter001
+ * @tc.desc: test results of GetBackgroundFilter
  * @tc.type:FUNC
  * @tc.require:
  */
@@ -1351,7 +1351,7 @@ HWTEST_F(RSPropertiesTest, SetBackgroundFilter001, TestSize.Level1)
 {
     RSProperties properties;
     std::shared_ptr<RSFilter> backgroundFilter = std::make_shared<RSFilter>();
-    properties.SetBackgroundFilter(backgroundFilter);
+    properties.backgroundFilter_ = backgroundFilter;
     EXPECT_NE(properties.backgroundFilter_, nullptr);
     EXPECT_EQ(properties.GetBackgroundFilter(), backgroundFilter);
 }
@@ -1688,8 +1688,8 @@ HWTEST_F(RSPropertiesTest, SetNGetDynamicDimDegree001, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetFilter001
- * @tc.desc: test results of SetFilter
+ * @tc.name: GetFilter001
+ * @tc.desc: test results of GetFilter
  * @tc.type:FUNC
  * @tc.require:
  */
@@ -1697,7 +1697,7 @@ HWTEST_F(RSPropertiesTest, SetFilter001, TestSize.Level1)
 {
     RSProperties properties;
     std::shared_ptr<RSFilter> filter = std::make_shared<RSFilter>();
-    properties.SetFilter(filter);
+    properties.filter_ = filter;
     EXPECT_NE(properties.filter_, nullptr);
     EXPECT_EQ(properties.GetFilter(), filter);
 }

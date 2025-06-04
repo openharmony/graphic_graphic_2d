@@ -173,7 +173,7 @@ HWTEST_F(RSUniRenderVisitorTest, ProcessFilterNodeObscured, TestSize.Level1)
     RSDisplayNodeConfig config;
     rsUniRenderVisitor->curDisplayNode_ = std::make_shared<RSDisplayRenderNode>(id, config);
     ASSERT_NE(rsUniRenderVisitor->curDisplayNode_, nullptr);
-    surfaceNode->renderContent_->renderProperties_.SetBackgroundFilter(filter);
+    surfaceNode->renderContent_->renderProperties_.backgroundFilter_ = filter;
     Occlusion::Region extendRegion;
     Occlusion::Region region{ Occlusion::Rect{ 0, 0, 100, 100 } };
     surfaceNode->SetVisibleRegion(region);
@@ -195,9 +195,9 @@ HWTEST_F(RSUniRenderVisitorTest, ProcessFilterNodeObscured, TestSize.Level1)
     nodeMap.RegisterRenderNode(filterNode1);
     nodeMap.RegisterRenderNode(filterNode3);
     nodeMap.RegisterRenderNode(filterNode4);
-    filterNode1->renderContent_->renderProperties_.SetBackgroundFilter(filter);
-    filterNode3->renderContent_->renderProperties_.SetBackgroundFilter(filter);
-    filterNode4->renderContent_->renderProperties_.SetBackgroundFilter(filter);
+    filterNode1->renderContent_->renderProperties_.backgroundFilter_ = filter;
+    filterNode3->renderContent_->renderProperties_.backgroundFilter_ = filter;
+    filterNode4->renderContent_->renderProperties_.backgroundFilter_ = filter;
     surfaceNode->visibleFilterChild_.push_back(filterNode1->GetId());
     surfaceNode->visibleFilterChild_.push_back(filterNode2->GetId());
     surfaceNode->visibleFilterChild_.push_back(filterNode3->GetId());
@@ -933,7 +933,7 @@ HWTEST_F(RSUniRenderVisitorTest, CalcDirtyRegionForFilterNode, TestSize.Level1)
     float blurRadiusX = 30.0f;
     float blurRadiusY = 30.0f;
     auto filter = RSFilter::CreateBlurFilter(blurRadiusX, blurRadiusY);
-    rsCanvasRenderNode->GetMutableRenderProperties().SetFilter(filter);
+    rsCanvasRenderNode->GetMutableRenderProperties().filter_ = filter;
     rsDisplayRenderNode->AddChild(rsSurfaceRenderNode, -1);
     rsSurfaceRenderNode->AddChild(rsCanvasRenderNode, -1);
 
@@ -3116,7 +3116,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateOccludedStatusWithFilterNode002, TestSize
     ASSERT_NE(surfaceNode1, nullptr);
     std::shared_ptr<RSFilter> filter = RSFilter::CreateBlurFilter(1.0f, 1.0f);
     ASSERT_NE(surfaceNode1->renderContent_, nullptr);
-    surfaceNode1->renderContent_->renderProperties_.SetBackgroundFilter(filter);
+    surfaceNode1->renderContent_->renderProperties_.backgroundFilter_ = filter;
     surfaceNode1->isOccludedByFilterCache_ = true;
     auto& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
     NodeId id1 = 2;
@@ -3129,7 +3129,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateOccludedStatusWithFilterNode002, TestSize
     auto filterNode2 = std::make_shared<RSRenderNode>(id2);
     ASSERT_NE(filterNode2, nullptr);
     ASSERT_NE(filterNode2->renderContent_, nullptr);
-    filterNode2->renderContent_->renderProperties_.SetBackgroundFilter(filter);
+    filterNode2->renderContent_->renderProperties_.backgroundFilter_ = filter;
     nodeMap.renderNodeMap_[pid2][id2] = filterNode2;
     surfaceNode1->visibleFilterChild_.emplace_back(filterNode1->GetId());
     surfaceNode1->visibleFilterChild_.emplace_back(filterNode2->GetId());
@@ -3236,8 +3236,8 @@ HWTEST_F(RSUniRenderVisitorTest, CheckMergeDisplayDirtyByTransparentFilter002, T
     float blurRadiusY = 1.0f;
     std::shared_ptr<RSFilter> filter = RSFilter::CreateBlurFilter(blurRadiusX, blurRadiusY);
     ASSERT_NE(node2->renderContent_, nullptr);
-    node2->renderContent_->renderProperties_.SetBackgroundFilter(filter);
-    node2->renderContent_->renderProperties_.SetFilter(filter);
+    node2->renderContent_->renderProperties_.backgroundFilter_ = filter;
+    node2->renderContent_->renderProperties_.filter_ = filter;
     NodeId displayNodeId = 3;
     RSDisplayNodeConfig config;
     rsUniRenderVisitor->curDisplayNode_ = std::make_shared<RSDisplayRenderNode>(displayNodeId, config);
@@ -4293,7 +4293,7 @@ HWTEST_F(RSUniRenderVisitorTest, CheckFilterCacheNeedForceClearOrSave001, TestSi
     rsUniRenderVisitor->CheckFilterCacheNeedForceClearOrSave(*node);
 
     std::shared_ptr<RSFilter> filter = RSFilter::CreateBlurFilter(1.0f, 1.0f);
-    node->renderContent_->renderProperties_.SetBackgroundFilter(filter);
+    node->renderContent_->renderProperties_.backgroundFilter_ = filter;
     ASSERT_NE(node->renderContent_, nullptr);
     rsUniRenderVisitor->CheckFilterCacheNeedForceClearOrSave(*node);
 }

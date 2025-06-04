@@ -16,6 +16,7 @@
 #include "gtest/gtest.h"
 
 #include "pipeline/rs_paint_filter_canvas.h"
+#include "render/rs_filter.h"
 
 using namespace testing;
 using namespace testing::ext;

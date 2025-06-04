@@ -1026,12 +1026,6 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest020, TestSize.Level1)
     auto data2 = MyData();
     [[maybe_unused]] bool ret = data1 == data2;
 
-    RSFilter filter1;
-    filter1.IsNearEqual(nullptr, ANIMATION_DEFAULT_VALUE);
-    filter1.IsNearZero(ANIMATION_DEFAULT_VALUE);
-    filter1.IsEqual(nullptr);
-    filter1.IsEqualZero();
-
     RSImageBase imageBase;
     Parcel parcel;
     imageBase.Marshalling(parcel);
@@ -1057,12 +1051,6 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest020, TestSize.Level1)
 
     auto mask = RSMask::Unmarshalling(parcel);
     delete mask;
-
-    RSLightUpEffectFilter filter3(ANIMATION_DEFAULT_VALUE);
-    filter3.IsNearEqual(nullptr, ANIMATION_DEFAULT_VALUE);
-    filter3.IsNearZero(ANIMATION_DEFAULT_VALUE);
-    filter3.IsEqual(nullptr);
-    filter3.IsEqualZero();
 
     NodeId id = 1;
     RSModifierExtractor extractor(id);
@@ -1102,17 +1090,11 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest021, TestSize.Level1)
     option.SetPathNeedAddOrigin(true);
     option.GetPathNeedAddOrigin();
 
-    RSBlurFilter filter(0, 0);
-    filter.IsEqual(nullptr);
-    filter.IsEqualZero();
-
     float dipScale = 1.0;
     BLUR_COLOR_MODE mode = BLUR_COLOR_MODE::DEFAULT;
     MATERIAL_BLUR_STYLE style = static_cast<MATERIAL_BLUR_STYLE>(0);
     float ratio = 1.0;
     RSMaterialFilter rsMaterialFilter(style, dipScale, mode, ratio);
-    rsMaterialFilter.IsEqual(nullptr);
-    rsMaterialFilter.IsEqualZero();
     EXPECT_EQ(rsMaterialFilter.colorMode_, mode);
 
     GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest021 end";

@@ -110,34 +110,31 @@ namespace OHOS {
     {
         // get data
     auto floatProperty = std::make_shared<RSRenderAnimatableProperty<float>>(GetData<float>());
-    RSAnimationTraceUtils::GetInstance().ParseRenderPropertyVaule(floatProperty, RSRenderPropertyType::PROPERTY_FLOAT);
+    RSAnimationTraceUtils::GetInstance().ParseRenderPropertyVaule(floatProperty, RSPropertyType::FLOAT);
     auto red = RgbPalette::Red();
     auto colorProperty = std::make_shared<RSRenderAnimatableProperty<Color>>(red);
-    RSAnimationTraceUtils::GetInstance().ParseRenderPropertyVaule(colorProperty, RSRenderPropertyType::PROPERTY_COLOR);
+    RSAnimationTraceUtils::GetInstance().ParseRenderPropertyVaule(colorProperty, RSPropertyType::RS_COLOR);
     auto matrixProperty = std::make_shared<RSRenderAnimatableProperty<Matrix3f>>();
     RSAnimationTraceUtils::GetInstance().ParseRenderPropertyVaule(matrixProperty,
-        RSRenderPropertyType::PROPERTY_MATRIX3F);
+        RSPropertyType::MATRIX3F);
     auto quaternionProperty = std::make_shared<RSRenderAnimatableProperty<Quaternion>>(
         Quaternion(GetData<float>(), GetData<float>(), GetData<float>(), GetData<float>()));
     RSAnimationTraceUtils::GetInstance().ParseRenderPropertyVaule(quaternionProperty,
-        RSRenderPropertyType::PROPERTY_QUATERNION);
-    auto filterProperty = std::make_shared<RSRenderAnimatableProperty<std::shared_ptr<RSFilter>>>(nullptr);
-    RSAnimationTraceUtils::GetInstance().ParseRenderPropertyVaule(filterProperty,
-        RSRenderPropertyType::PROPERTY_FILTER);
+        RSPropertyType::QUATERNION);
     auto vector2fProperty = std::make_shared<RSRenderAnimatableProperty<Vector2f>>(
         Vector2f(GetData<float>(), GetData<float>()));
     RSAnimationTraceUtils::GetInstance().ParseRenderPropertyVaule(vector2fProperty,
-        RSRenderPropertyType::PROPERTY_VECTOR2F);
+        RSPropertyType::VECTOR2F);
     auto vector4fProperty = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(
         Vector4f(GetData<float>(), GetData<float>(), GetData<float>(), GetData<float>()));
     RSAnimationTraceUtils::GetInstance().ParseRenderPropertyVaule(vector4fProperty,
-        RSRenderPropertyType::PROPERTY_VECTOR4F);
+        RSPropertyType::VECTOR4F);
     auto vector4ColorProperty = std::make_shared<RSRenderAnimatableProperty<Vector4<Color>>>(Vector4<Color>(red));
     RSAnimationTraceUtils::GetInstance().ParseRenderPropertyVaule(vector4ColorProperty,
-        RSRenderPropertyType::PROPERTY_VECTOR4_COLOR);
+        RSPropertyType::VECTOR4_COLOR);
     RRect rect;
     auto invalidProperty = std::make_shared<RSRenderAnimatableProperty<RRect>>(rect);
-    RSAnimationTraceUtils::GetInstance().ParseRenderPropertyVaule(invalidProperty, RSRenderPropertyType::INVALID);
+    RSAnimationTraceUtils::GetInstance().ParseRenderPropertyVaule(invalidProperty, RSPropertyType::INVALID);
     }
 
     bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)

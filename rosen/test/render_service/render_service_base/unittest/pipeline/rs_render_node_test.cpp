@@ -748,7 +748,7 @@ HWTEST_F(RSRenderNodeTest, OnTreeStateChangedTest, TestSize.Level1)
 {
     RSRenderNode node(id, context); // isOnTheTree_ false
     std::shared_ptr<RSFilter> filter = RSFilter::CreateBlurFilter(floatData[0], floatData[1]);
-    node.renderContent_->renderProperties_.SetFilter(filter);
+    node.renderContent_->renderProperties_.filter_ = filter;
     node.OnTreeStateChanged();
     EXPECT_FALSE(node.isOnTheTree_);
     EXPECT_TRUE(node.HasBlurFilter());
@@ -2164,22 +2164,22 @@ HWTEST_F(RSRenderNodeTest, ProcessTest014, TestSize.Level1)
 }
 
 /**
- * @tc.name: AccmulateDirtyInOcclusionTest015
- * @tc.desc: AccmulateDirtyInOcclusion
+ * @tc.name: AccumulateDirtyInOcclusionTest015
+ * @tc.desc: AccumulateDirtyInOcclusion
  * @tc.type: FUNC
  * @tc.require: issueI9US6V
  */
-HWTEST_F(RSRenderNodeTest, AccmulateDirtyInOcclusionTest015, TestSize.Level1)
+HWTEST_F(RSRenderNodeTest, AccumulateDirtyInOcclusionTest015, TestSize.Level1)
 {
-    // AccmulateDirtyInOcclusion AccmulateDirtyTypes AccmulateDirtyStatus GetMutableRenderProperties
-    // ResetAccmulateDirtyTypes ResetAccmulateDirtyStatus RecordCurDirtyTypes test
+    // AccumulateDirtyInOcclusion AccumulateDirtyTypes AccumulateDirtyStatus GetMutableRenderProperties
+    // ResetAccumulateDirtyTypes ResetAccumulateDirtyStatus RecordCurDirtyTypes test
     std::shared_ptr<RSRenderNode> nodeTest = std::make_shared<RSRenderNode>(0);
     EXPECT_NE(nodeTest, nullptr);
     nodeTest->curDirtyTypes_.set(static_cast<size_t>(RSModifierType::PIVOT_Z), true);
     nodeTest->curDirtyTypes_.set(static_cast<size_t>(RSModifierType::PERSP), true);
 
-    nodeTest->AccmulateDirtyInOcclusion(true);
-    nodeTest->AccmulateDirtyInOcclusion(false);
+    nodeTest->AccumulateDirtyInOcclusion(true);
+    nodeTest->AccumulateDirtyInOcclusion(false);
 
     nodeTest->dirtyTypes_.set(static_cast<size_t>(RSModifierType::PIVOT_Z), true);
     nodeTest->dirtyTypes_.set(static_cast<size_t>(RSModifierType::PERSP), true);

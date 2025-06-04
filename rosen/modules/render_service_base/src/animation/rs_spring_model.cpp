@@ -323,7 +323,6 @@ template class RSSpringModel<Color>;
 template class RSSpringModel<Matrix3f>;
 template class RSSpringModel<RRect>;
 template class RSSpringModel<Vector4<Color>>;
-template class RSSpringModel<std::shared_ptr<RSFilter>>;
 template class RSSpringModel<std::shared_ptr<RSRenderPropertyBase>>;
 } // namespace Rosen
 } // namespace OHOS

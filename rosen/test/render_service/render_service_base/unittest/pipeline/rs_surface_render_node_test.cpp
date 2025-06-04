@@ -2006,12 +2006,12 @@ HWTEST_F(RSSurfaceRenderNodeTest, UpdateFilterCacheStatusIfNodeStatic, TestSize.
     node->filterNodes_.emplace_back(mockNode2);
     auto mockNode3 = std::make_shared<RSRenderNode>(id + 3);
     mockNode3->isOnTheTree_ = true;
-    mockNode3->GetMutableRenderProperties().SetBackgroundFilter(std::make_shared<RSFilter>());
+    mockNode3->GetMutableRenderProperties().backgroundFilter_ = std::make_shared<RSFilter>();
     node->filterNodes_.emplace_back(mockNode3);
     auto mockNode4 = std::make_shared<RSRenderNode>(id + 4);
     mockNode4->isOnTheTree_ = true;
     mockNode4->GetMutableRenderProperties().needFilter_ = true;
-    mockNode4->GetMutableRenderProperties().SetFilter(std::make_shared<RSFilter>());
+    mockNode4->GetMutableRenderProperties().filter_ = std::make_shared<RSFilter>();
     node->filterNodes_.emplace_back(mockNode4);
     std::shared_ptr<RSRenderNode> mockNode5 = nullptr;
     node->filterNodes_.emplace_back(mockNode5);
@@ -2020,7 +2020,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, UpdateFilterCacheStatusIfNodeStatic, TestSize.
     std::shared_ptr<RSRenderNode> mockNode6 = std::make_shared<RSEffectRenderNode>(id + 6);
     mockNode6->isOnTheTree_ = true;
     mockNode6->GetMutableRenderProperties().needFilter_ = true;
-    mockNode6->GetMutableRenderProperties().SetBackgroundFilter(std::make_shared<RSFilter>());
+    mockNode6->GetMutableRenderProperties().backgroundFilter_ = std::make_shared<RSFilter>();
     node->filterNodes_.emplace_back(mockNode6);
     node->UpdateFilterCacheStatusIfNodeStatic(RectI(0, 0, 100, 100), false);
     ASSERT_NE(node->filterNodes_.size(), 0);

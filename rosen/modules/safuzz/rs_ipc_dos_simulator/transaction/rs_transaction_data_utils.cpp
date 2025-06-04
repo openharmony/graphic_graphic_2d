@@ -64,7 +64,6 @@ const std::unordered_map<std::string, std::function<bool(std::unique_ptr<RSTrans
     DECLARE_ADD_RANDOM(RSNodeCommand, RSUpdatePropertyGravity),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSUpdatePropertyMatrix3f),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSUpdatePropertyQuaternion),
-    DECLARE_ADD_RANDOM(RSNodeCommand, RSUpdatePropertyFilter),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSUpdatePropertyImage),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSUpdatePropertyMask),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSUpdatePropertyPath),

@@ -286,7 +286,6 @@ public:
     DECLARE_FUNCTION_OVERLOAD(std::vector<std::shared_ptr<EmitterUpdater>>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<ParticleNoiseField>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<ParticleNoiseFields>)
-    DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSFilter>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSRenderFilter>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSMask>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSImage>)

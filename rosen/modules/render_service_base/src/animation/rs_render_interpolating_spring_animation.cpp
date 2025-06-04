@@ -42,7 +42,7 @@ RSRenderInterpolatingSpringAnimation::RSRenderInterpolatingSpringAnimation(Anima
 void RSRenderInterpolatingSpringAnimation::DumpAnimationInfo(std::string& out) const
 {
     out += "Type:RSRenderInterpolatingSpringAnimation";
-    RSRenderPropertyType type = RSRenderPropertyType::INVALID;
+    RSPropertyType type = RSPropertyType::INVALID;
     if (property_ != nullptr) {
         type = property_->GetPropertyType();
         out += ", ModifierType: " + std::to_string(static_cast<int16_t>(property_->GetModifierType()));
