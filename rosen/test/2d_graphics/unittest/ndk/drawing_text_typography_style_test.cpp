@@ -320,7 +320,7 @@ HWTEST_F(OhDrawingTypographyStyleTest, OH_Drawing_SetTypographyTextAutoSpaceTest
     double textLine2Width4 = OH_Drawing_TextLineGetOffsetForStringIndex(textLine2, 5) -
         OH_Drawing_TextLineGetOffsetForStringIndex(textLine2, 4);
     EXPECT_NEAR(textLineWidth3, textLine2Width3 + DEFAULT_FONT_SIZE / 8, FLOAT_DATA_EPSILON);
-    EXPECT_NEAR(textLineWidth4, textLine2Width4, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(textLineWidth4, textLine2Width4 + DEFAULT_FONT_SIZE / 8, FLOAT_DATA_EPSILON);
 
     OH_Drawing_DestroyTextLines(textLines);
     OH_Drawing_DestroyTextLines(textLines2);
@@ -362,7 +362,7 @@ HWTEST_F(OhDrawingTypographyStyleTest, OH_Drawing_SetTypographyTextAutoSpaceTest
     ASSERT_GT(runsSize2, 0);
 
     // compare paragraph1 and paragraph2
-    std::vector<float> widthAddArr = { 0, DEFAULT_FONT_SIZE / 8 * 2, DEFAULT_FONT_SIZE / 8 * 2 };
+    std::vector<float> widthAddArr = { 0, DEFAULT_FONT_SIZE / 8, DEFAULT_FONT_SIZE / 8 };
     for (int i = 0; i < runsSize; i++) {
         OH_Drawing_Run* run = OH_Drawing_GetRunByIndex(runs, i);
         OH_Drawing_Run* run2 = OH_Drawing_GetRunByIndex(runs2, i);
