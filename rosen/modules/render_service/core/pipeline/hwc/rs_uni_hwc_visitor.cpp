@@ -322,7 +322,7 @@ void RSUniHwcVisitor::ProcessSolidLayerDisabled(RSSurfaceRenderNode& node)
         bool isSpecialNodeType = RsCommonHook::Instance().GetHardwareEnabledByBackgroundAlphaFlag() ||
             node.IsHardwareEnableHint();
         if (!isSpecialNodeType || node.IsRosenWeb()) {
-            RS_OPTIONAL_TRACE_FMT("hwcde bug: name:%s id:%" PRIu64 " parentId:%" PRIu64 " disabled by "
+            RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " parentId:%" PRIu64 " disabled by "
                 "background color alpha < 1", node.GetName().c_str(), node.GetId(), parentNode ? parentNode->GetId() : 0);
             RS_LOGD("solidLayer: disabled by background color alpha < 1: %{public}s", node.GetName().c_str());
             PrintHiperfLog(&node, "background color alpha < 1");
@@ -350,7 +350,7 @@ void RSUniHwcVisitor::ProcessSolidLayerEnabled(RSSurfaceRenderNode& node)
     if (!GetSolidLayerEnabled()) {
         RS_LOGD("solidLayer: solidLayer enabling condition is met, but the switch is disabled! name: %{public}s",
             node.GetName().c_str());
-        RS_OPTIONAL_TRACE_FMT("hwcde bug: name:%s id:%" PRIu64 " parentId:%" PRIu64 "disabled by solidLayer "
+        RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " parentId:%" PRIu64 "disabled by solidLayer "
             "enabling condition is met, but the switch is disabled!", node.GetName().c_str(), node.GetId(),
             parentNode ? parentNode->GetId() : 0);
         node.SetHardwareForcedDisabledState(true);
@@ -508,7 +508,7 @@ void RSUniHwcVisitor::UpdateHwcNodeEnableByAlpha(const std::shared_ptr<RSSurface
     }
     if (const auto alpha = hwcNode->GetGlobalAlpha(); ROSEN_LNE(alpha, 1.0f)) {
         auto parentNode = hwcNode->GetParent().lock();
-        RS_OPTIONAL_TRACE_FMT("hwcde bug: name:%s id:%" PRIu64 " parentId:%" PRIu64 " disabled by "
+        RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " parentId:%" PRIu64 " disabled by "
             "accumulated alpha:%f", hwcNode->GetName().c_str(), hwcNode->GetId(),
             parentNode ? parentNode->GetId() : 0, alpha);
         PrintHiperfLog(hwcNode, "accumulated alpha");
@@ -699,7 +699,7 @@ void RSUniHwcVisitor::UpdateHwcNodeEnableByHwcNodeBelowSelf(std::vector<RectI>& 
                     continue;
                 }
                 auto parentNode = hwcNode->GetParent().lock();
-                RS_OPTIONAL_TRACE_FMT("hwcde bug: name:%s id:%" PRIu64 " parentId:%" PRIu64 " disabled by "
+                RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " parentId:%" PRIu64 " disabled by "
                     "corner radius + hwc node below, rect:%s", hwcNode->GetName().c_str(), hwcNode->GetId(),
                     parentNode ? parentNode->GetId() : 0, rect.ToString().c_str());
                 PrintHiperfLog(hwcNode, "corner radius + hwc node below");
@@ -769,7 +769,7 @@ void RSUniHwcVisitor::UpdateHardwareStateByHwcNodeBackgroundAlpha(
         auto parentNode = hwcNodePtr->GetParent().lock();
         if (isHardwareEnableByBackgroundAlpha && !hwcNodePtr->IsHardwareForcedDisabled() && isIntersect) {
             hwcNodePtr->SetHardwareForcedDisabledState(true);
-            RS_OPTIONAL_TRACE_FMT("hwcde bug: name:%s id:%" PRIu64 " parentId:%" PRIu64 " disabled by "
+            RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " parentId:%" PRIu64 " disabled by "
                 "cannot cover above transparent hwc node", hwcNodePtr->GetName().c_str(),
                 hwcNodePtr->GetId(), parentNode ? parentNode->GetId() : 0);
             Statistics().UpdateHwcDisabledReasonForDFX(hwcNodePtr->GetId(),
@@ -806,7 +806,7 @@ void RSUniHwcVisitor::CalcHwcNodeEnableByFilterRect(std::shared_ptr<RSSurfaceRen
     bool isIntersect = !bound.IntersectRect(filterNode.GetOldDirtyInSurface()).IsEmpty();
     if (isIntersect) {
         auto parentNode = node->GetParent().lock();
-        RS_OPTIONAL_TRACE_FMT("hwcNode debug: name:%s id:%" PRIu64 " parentId:%" PRIu64 " disabled by "
+        RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " parentId:%" PRIu64 " disabled by "
             "filter rect, filterId:%" PRIu64, node->GetName().c_str(), node->GetId(),
             parentNode ? parentNode->GetId() : 0, filterNode.GetId());
         PrintHiperfLog(node, "filter rect");
