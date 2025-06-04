@@ -78,10 +78,13 @@ public:
     bool UnloadFont(const std::string& familyName) override;
 
 private:
-    struct FontCallbackGuard {
+    class FontCallbackGuard {
+    public:
         FontCallbackGuard(const FontCollection* fc, const std::string& familyName, const FontCallback& begin,
             const FontCallback& end);
         ~FontCallbackGuard();
+
+    private:
         const FontCollection* fc_;
         const std::string& familyName_;
         const FontCallback& begin_;
