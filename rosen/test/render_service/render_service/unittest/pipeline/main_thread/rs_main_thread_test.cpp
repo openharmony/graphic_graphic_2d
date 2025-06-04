@@ -23,8 +23,8 @@
 #include "pipeline/rs_test_util.h"
 #include "consumer_surface.h"
 
-#include "drawable/rs_display_render_node_drawable.h"
 #include "command/rs_base_node_command.h"
+#include "drawable/rs_display_render_node_drawable.h"
 #include "memory/rs_memory_track.h"
 #include "pipeline/render_thread/rs_render_engine.h"
 #include "pipeline/render_thread/rs_uni_render_engine.h"
@@ -60,7 +60,7 @@ public:
     void SetUp() override;
     void TearDown() override;
     static void* CreateParallelSyncSignal(uint32_t count);
-    static std::share_ptr<RSDisplayRenderNode> GetAndInitDisplayRenderNode();
+    static std::share_ptr<RSDisplayRenderNode> GetAndInitDisplayRenderNode(BufferHander* handler);
     static inline Mock::HdiDeviceMock* hdiDeviceMock_;
 
 private:
@@ -124,8 +124,6 @@ std::share_ptr<RSDisplayRenderNode> RSMainThreadTest::GetAndInitDisplayRenderNod
     auto drawable = DrawableV2::RSDisplayRenderNodeDrawable::OnGenerate(otherNode);
     auto displayDrawable = static_cast<DrawableV2::RSDisplayRenderNodeDrawable*>(drawable);
     displayNode->surfaceHandler_->buffer_.buffer = SurfaceBuffer::Create();
-    auto handler = new BufferHander();
-    handler->usage = BUFFER_USAGE_CPU_READ;
     auto buffer = displayDrawable->surfaceHandler_->GetBuffer();
     displayDrawable->surfaceHandler_->buffer_.buffer->SetBufferHander(handler);
     displayNode->renderDrawable_.reset(displayDrawable);
@@ -5171,7 +5169,8 @@ HWTEST_F(RSMainThreadTest, DoDirectComposition003, TestSize.Level1)
     ASSERT_NE(mainThread, nullptr);
     NodeId rootId = 0;
     auto rootNode = std::make_shared<RSBaseRenderNode>(rootId);
-    auto displayNode = GetAndInitDisplayRenderNode();
+    auto handle = new BufferHandle();
+    auto displayNode = GetAndInitDisplayRenderNode(handle);
     rootNode->AddChild(displayNode);
     rootNode->GenerateFullChildrenList();
     auto childNode = RSRenderNode::ReinterpretCast<RSDisplayRenderNode>(rootNode->GetChildren()->front());
@@ -5213,5 +5212,6 @@ HWTEST_F(RSMainThreadTest, DoDirectComposition003, TestSize.Level1)
 
     ASSERT_FALSE(mainThread->DoDirectComposition(rootNode, false));
     system::SetParameter("persist.sys.graphic.anco.disableHebc", "0");
+    delete handle;
 }
 } // namespace OHOS::Rosen

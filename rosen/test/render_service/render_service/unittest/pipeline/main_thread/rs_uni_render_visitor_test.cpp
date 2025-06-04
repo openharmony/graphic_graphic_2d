@@ -5085,6 +5085,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodesIfVisibleForAppTest, TestSize.Lev
     hwcNodes.clear();
     hwcNodes.push_back(std::weak_ptr<RSSurfaceRenderNode>(opacitySurfaceNode));
     hwcNodes.push_back(std::weak_ptr<RSSurfaceRenderNode>(surfaceNode));
+    hasVisibleHwcNodes = false;
     sUniRenderVisitor->UpdateHwcNodesIfVisibleForApp(surfaceNode, hwcNodes, hasVisibleHwcNodes,
         needForceUpdateHwcNodes);
     EXPECT_FALSE(hasVisibleHwcNodes);
