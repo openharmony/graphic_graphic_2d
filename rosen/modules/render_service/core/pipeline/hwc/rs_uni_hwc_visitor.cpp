@@ -447,7 +447,6 @@ void RSUniHwcVisitor::UpdateHwcNodeEnableByBufferSize(RSSurfaceRenderNode& node)
     if (!node.IsRosenWeb() || node.IsHardwareForcedDisabled() || !node.GetRSSurfaceHandler()) {
         return;
     }
-    auto parentNode = node.GetParent().lock();
     auto surfaceHandler = node.GetRSSurfaceHandler();
     auto buffer = surfaceHandler->GetBuffer();
     auto consumer = surfaceHandler->GetConsumer();
@@ -467,6 +466,7 @@ void RSUniHwcVisitor::UpdateHwcNodeEnableByBufferSize(RSSurfaceRenderNode& node)
         std::swap(bufferWidth, bufferHeight);
     }
     if (ROSEN_LNE(bufferWidth, boundsWidth) || ROSEN_LNE(bufferHeight, boundsHeight)) {
+        auto parentNode = node.GetParent().lock();
         RS_OPTIONAL_TRACE_FMT(
             "hwcdebug: name:%s id:%" PRIu64 " parentId:%" PRIu64 " bounds:[%f, %f] buffer:[%d, %d] "
             "disabled by rosenWeb buffer nonmatching", node.GetName().c_str(), node.GetId(),
@@ -485,11 +485,11 @@ void RSUniHwcVisitor::UpdateHwcNodeEnableByRotate(const std::shared_ptr<RSSurfac
     }
     // [planning] degree only multiples of 90 now
     const auto& totalMatrix = hwcNode->GetTotalMatrix();
-    auto parentNode = hwcNode->GetParent().lock();
     float degree = RSUniHwcComputeUtil::GetFloatRotationDegreeFromMatrix(totalMatrix);
     bool hasRotate = !ROSEN_EQ(std::remainder(degree, 90.f), 0.f, EPSILON) ||
                      RSUniHwcComputeUtil::HasNonZRotationTransform(totalMatrix);
     if (hasRotate) {
+        auto parentNode = hwcNode->GetParent().lock();
         RS_OPTIONAL_TRACE_FMT("hwcdebug: name:%s id:%" PRIu64 " parentId:%" PRIu64 " disabled by "
             "surfaceNode rotation:%f", hwcNode->GetName().c_str(), hwcNode->GetId(),
             parentNode ? parentNode->GetId() : 0, degree);
@@ -506,8 +506,8 @@ void RSUniHwcVisitor::UpdateHwcNodeEnableByAlpha(const std::shared_ptr<RSSurface
     if (hwcNode->IsHardwareForcedDisabled()) {
         return;
     }
-    auto parentNode = hwcNode->GetParent().lock();
     if (const auto alpha = hwcNode->GetGlobalAlpha(); ROSEN_LNE(alpha, 1.0f)) {
+        auto parentNode = hwcNode->GetParent().lock();
         RS_OPTIONAL_TRACE_FMT("hwcdebug: name:%s id:%" PRIu64 " parentId:%" PRIu64 " disabled by "
             "accumulated alpha:%f", hwcNode->GetName().c_str(), hwcNode->GetId(),
             parentNode ? parentNode->GetId() : 0, alpha);
@@ -762,10 +762,10 @@ void RSUniHwcVisitor::UpdateHardwareStateByHwcNodeBackgroundAlpha(
         if (!hwcNodePtr) {
             continue;
         }
-        auto parentNode = hwcNodePtr->GetParent().lock();
         bool isIntersect = !backgroundAlphaRect.IntersectRect(
             hwcNodePtr->GetRenderProperties().GetBoundsGeometry()->GetAbsRect()
             ).IsEmpty();
+        auto parentNode = hwcNodePtr->GetParent().lock();
         if (isHardwareEnableByBackgroundAlpha && !hwcNodePtr->IsHardwareForcedDisabled() && isIntersect) {
             hwcNodePtr->SetHardwareForcedDisabledState(true);
             RS_OPTIONAL_TRACE_FMT("hwcdebug: name:%s id:%" PRIu64 " parentId:%" PRIu64 " disabled by "
