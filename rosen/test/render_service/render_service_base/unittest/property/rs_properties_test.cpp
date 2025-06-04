@@ -2111,7 +2111,7 @@ HWTEST_F(RSPropertiesTest, Dirty002, TestSize.Level1)
     EXPECT_FALSE(properties.IsContentDirty());
     EXPECT_FALSE(properties.IsSubTreeAllDirty());
 
-    properties.AccmulateDirtyStatus();
+    properties.AccumulateDirtyStatus();
     EXPECT_TRUE(properties.IsDirty());
     EXPECT_TRUE(properties.IsGeoDirty());
     EXPECT_TRUE(properties.IsContentDirty());
