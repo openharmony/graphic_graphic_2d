@@ -21,6 +21,7 @@
 
 #include "drawing_register_font.h"
 #include "rosen_text/font_collection.h"
+#include "txt/platform.h"
 
 #include "text/font_mgr.h"
 #include "text/typeface.h"
@@ -162,6 +163,10 @@ uint32_t OH_Drawing_RegisterFontBuffer(OH_Drawing_FontCollection* fontCollection
 uint32_t OH_Drawing_UnregisterFont(OH_Drawing_FontCollection* fontCollection, const char* fontFamily)
 {
     if (fontCollection == nullptr || fontFamily == nullptr) {
+        return ERROR_NULL_FONT_COLLECTION;
+    }
+    std::string family(fontFamily);
+    if (family.empty() || SPText::DefaultFamilyNameMgr::IsThemeFontFamily(family)) {
         return ERROR_NULL_FONT_COLLECTION;
     }
 

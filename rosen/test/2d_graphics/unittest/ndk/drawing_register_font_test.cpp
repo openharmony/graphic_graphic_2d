@@ -19,6 +19,7 @@
 #include "drawing_register_font.h"
 #include "drawing_text_declaration.h"
 #include "gtest/gtest.h"
+#include "txt/platform.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -158,7 +159,8 @@ HWTEST_F(NativeDrawingRegisterFontTest, NativeDrawingRegisterFontTest007, TestSi
     EXPECT_EQ(OH_Drawing_UnregisterFont(nullptr, ""), nullFontCollection);
     EXPECT_EQ(OH_Drawing_UnregisterFont(nullptr, nullptr), nullFontCollection);
     EXPECT_EQ(OH_Drawing_UnregisterFont(fontCollection, nullptr), nullFontCollection);
-    EXPECT_EQ(OH_Drawing_UnregisterFont(fontCollection, ""), 1);
+    EXPECT_EQ(OH_Drawing_UnregisterFont(fontCollection, ""), nullFontCollection);
+    EXPECT_EQ(OH_Drawing_UnregisterFont(fontCollection, Rosen::SPText::OHOS_THEME_FONT), nullFontCollection);
     OH_Drawing_DestroyFontCollection(fontCollection);
 }
 } // namespace OHOS
