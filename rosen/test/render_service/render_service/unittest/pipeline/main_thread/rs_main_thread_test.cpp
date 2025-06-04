@@ -63,8 +63,8 @@ public:
     void TearDown() override;
     static void* CreateParallelSyncSignal(uint32_t count);
     static std::shared_ptr<RSDisplayRenderNode> GetAndInitDisplayRenderNode();
-    static void ChangeHardwareEnabledNodesBufferData(std::vector<std::shared_ptr<RSSurfaceRenderNode>>& 
-        hardwareEnabledNodes);
+    static void ChangeHardwareEnabledNodesBufferData(
+        std::vector<std::shared_ptr<RSSurfaceRenderNode>>& hardwareEnabledNodes);
 
 private:
     static inline BufferRequestConfig requestConfig = {
@@ -129,18 +129,17 @@ std::shared_ptr<RSDisplayRenderNode> RSMainThreadTest::GetAndInitDisplayRenderNo
     return displayNode;
 }
 
-void RSMainThreadTest::ChangeHardwareEnabledNodesBufferData(std::vector<std::shared_ptr<RSSurfaceRenderNode>>& 
-    hardwareEnabledNodes)
+void RSMainThreadTest::ChangeHardwareEnabledNodesBufferData(
+    std::vector<std::shared_ptr<RSSurfaceRenderNode>>& hardwareEnabledNodes)
 {
     if (hardwareEnabledNodes.empty()) {
         return;
     }
     for (auto& surfaceNode : hardwareEnabledNodes) {
-        if (surfaceNode == nullptr || surfaceNode->GetRSSurfaceHandler() == nullptr ||
-            surfaceNode->HwcSurfaceRecorder() == nullptr) {
+        if (surfaceNode == nullptr || surfaceNode->GetRSSurfaceHandler() == nullptr) {
             continue;
         }
-        if (surfaceNode->GetRSSurfaceHandler()->IsCurrentFrameBufferConsumed() && 
+        if (surfaceNode->GetRSSurfaceHandler()->IsCurrentFrameBufferConsumed() &&
             surfaceNode->HwcSurfaceRecorder().GetLastFrameHasVisibleRegion()) {
             surfaceNode->GetRSSurfaceHandler()->ResetCurrentFrameBufferConsumed();
             surfaceNode->HwcSurfaceRecorder().SetLastFrameHasVisibleRegion(false);
