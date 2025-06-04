@@ -320,12 +320,12 @@ void TestTreeBuilder::CreateNode08(RSContext& context, std::vector<std::shared_p
 
     auto drawCmds =
         std::make_shared<Drawing::DrawCmdList>(width13, height13, Drawing::DrawCmdList::UnmarshalMode::DEFERRED);
-    const float signle_radius = 0.5f;
+    const float single_radius = 0.5f;
     std::vector<Drawing::Point> radius = {
-        { signle_radius, signle_radius },
-        { signle_radius, signle_radius },
-        { signle_radius, signle_radius },
-        { signle_radius, signle_radius },
+        { single_radius, single_radius },
+        { single_radius, single_radius },
+        { single_radius, single_radius },
+        { single_radius, single_radius },
     };
     auto clipAdaptiveRoundRectOpItem = Drawing::ClipAdaptiveRoundRectOpItem(radius);
     auto clipAdaptiveRoundRectOpItemPtr =
