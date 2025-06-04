@@ -98,6 +98,8 @@ int32_t LocalSocketPair::CreateChannel(size_t sendSize, size_t receiveSize)
         LOGE("%{public}s create socketpair failed", __func__);
         return -1;
     }
+    fdsan_exchange_owner_tag(socketPair[0], 0, LOG_DOMAIN);
+    fdsan_exchange_owner_tag(socketPair[1], 0, LOG_DOMAIN);
     if (socketPair[0] == 0 || socketPair[1] == 0) {
         int32_t unusedFds[SOCKET_PAIR_SIZE] = {socketPair[0], socketPair[1]};
         int32_t err = socketpair(AF_UNIX, SOCK_SEQPACKET, 0, socketPair);
@@ -108,6 +110,8 @@ int32_t LocalSocketPair::CreateChannel(size_t sendSize, size_t receiveSize)
             LOGE("%{public}s create socketpair failed", __func__);
             return -1;
         }
+        fdsan_exchange_owner_tag(socketPair[0], 0, LOG_DOMAIN);
+        fdsan_exchange_owner_tag(socketPair[1], 0, LOG_DOMAIN);
     }
 
     // set socket attr
@@ -202,7 +206,7 @@ int32_t LocalSocketPair::ReceiveToBinder(MessageParcel &data)
 void LocalSocketPair::CloseFd(int32_t &fd)
 {
     if (fd != INVALID_FD) {
-        close(fd);
+        fdsan_close_with_tag(fd, LOG_DOMAIN);
         fd = INVALID_FD;
     }
 }

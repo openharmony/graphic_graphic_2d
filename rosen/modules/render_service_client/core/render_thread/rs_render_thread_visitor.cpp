@@ -574,12 +574,13 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
         RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
         auto fenceFd = std::static_pointer_cast<RSSurfaceOhosVulkan>(rsSurface)->DupReservedFlushFd();
+        fdsan_exchange_owner_tag(fenceFd, 0, LOG_DOMAIN);
         auto rootId = GetActiveSubtreeRootId();
         if (rootId != INVALID_NODEID) {
             RSSurfaceBufferCallbackManager::Instance().SetReleaseFenceForVulkan(fenceFd, rootId);
             RSSurfaceBufferCallbackManager::Instance().RunSurfaceBufferSubCallbackForVulkan(rootId);
         }
-        ::close(fenceFd);
+        fdsan_close_with_tag(fenceFd, LOG_DOMAIN);
     }
 #endif
 #ifdef ROSEN_OHOS

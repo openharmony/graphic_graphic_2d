@@ -54,7 +54,7 @@ RSSurfaceOhosVulkan::~RSSurfaceOhosVulkan()
     DestoryNativeWindow(mNativeWindow);
     mNativeWindow = nullptr;
     if (mReservedFlushFd != -1) {
-        ::close(mReservedFlushFd);
+        fdsan_close_with_tag(mReservedFlushFd, LOG_DOMAIN);
         mReservedFlushFd = -1;
     }
 }
@@ -308,7 +308,7 @@ bool RSSurfaceOhosVulkan::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uin
     
     int fenceFd = -1;
     if (mReservedFlushFd != -1) {
-        ::close(mReservedFlushFd);
+        fdsan_close_with_tag(mReservedFlushFd, LOG_DOMAIN);
         mReservedFlushFd = -1;
     }
     auto queue = vkContext.GetQueue();
@@ -326,6 +326,7 @@ bool RSSurfaceOhosVulkan::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uin
     callbackInfo->mFenceFd = ::dup(fenceFd);
     RsVulkanInterface::callbackSemaphoreInfoCnt_.fetch_add(+1, std::memory_order_relaxed);
     mReservedFlushFd = ::dup(fenceFd);
+    fdsan_exchange_owner_tag(mReservedFlushFd, 0, LOG_DOMAIN);
 
     auto ret = NativeWindowFlushBuffer(surface.window, surface.nativeWindowBuffer, fenceFd, {});
     if (ret != OHOS::GSERROR_OK) {

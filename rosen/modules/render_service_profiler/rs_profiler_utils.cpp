@@ -511,7 +511,8 @@ FILE* Utils::FileOpen(const std::string& path, const std::string& options)
     if (ShouldFileBeCreated(options) && !FileExists(realPath)) {
         auto file = open(realPath.data(), O_CREAT | O_EXCL | O_RDWR, S_IRUSR | S_IWUSR);
         if (file != -1) {
-            close(file);
+            fdsan_exchange_owner_tag(file, 0, LOG_DOMAIN);
+            fdsan_close_with_tag(file, LOG_DOMAIN);
         }
     }
 #endif
