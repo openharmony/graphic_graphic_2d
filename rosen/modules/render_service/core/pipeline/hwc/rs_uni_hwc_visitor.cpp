@@ -762,6 +762,7 @@ void RSUniHwcVisitor::UpdateHardwareStateByHwcNodeBackgroundAlpha(
         if (!hwcNodePtr) {
             continue;
         }
+
         bool isIntersect = !backgroundAlphaRect.IntersectRect(
             hwcNodePtr->GetRenderProperties().GetBoundsGeometry()->GetAbsRect()
             ).IsEmpty();
