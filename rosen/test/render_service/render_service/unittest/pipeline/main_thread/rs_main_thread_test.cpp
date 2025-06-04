@@ -132,6 +132,9 @@ std::shared_ptr<RSDisplayRenderNode> RSMainThreadTest::GetAndInitDisplayRenderNo
 void RSMainThreadTest::ChangeHardwareEnabledNodesBufferData(std::vector<std::shared_ptr<RSSurfaceRenderNode>>& 
     hardwareEnabledNodes)
 {
+    if (hardwareEnabledNodes.empty()) {
+        return;
+    }
     for (auto& surfaceNode : hardwareEnabledNodes) {
         if (surfaceNode == nullptr || surfaceNode->GetRSSurfaceHandler() == nullptr ||
             surfaceNode->HwcSurfaceRecorder() == nullptr) {
