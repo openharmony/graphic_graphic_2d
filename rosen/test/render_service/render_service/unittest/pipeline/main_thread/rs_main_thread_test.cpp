@@ -60,7 +60,7 @@ public:
     void SetUp() override;
     void TearDown() override;
     static void* CreateParallelSyncSignal(uint32_t count);
-    static std::share_ptr<RSDisplayRenderNode> GetAndInitDisplayRenderNode(BufferHander* handler);
+    static std::shared_ptr<RSDisplayRenderNode> GetAndInitDisplayRenderNode(BufferHandle* handle);
     static inline Mock::HdiDeviceMock* hdiDeviceMock_;
 
 private:
@@ -103,7 +103,7 @@ void* RSMainThreadTest::CreateParallelSyncSignal(uint32_t count)
     return nullptr;
 }
 
-std::share_ptr<RSDisplayRenderNode> RSMainThreadTest::GetAndInitDisplayRenderNode()
+std::shared_ptr<RSDisplayRenderNode> RSMainThreadTest::GetAndInitDisplayRenderNode(BufferHandle* handle)
 {
     NodeId displayId = 1;
     RSDisplayNodeConfig config;
@@ -111,7 +111,7 @@ std::share_ptr<RSDisplayRenderNode> RSMainThreadTest::GetAndInitDisplayRenderNod
     auto screenManager = CreateOrGetScreenManager();
     ScreenId screenId = 0xFFFF;
     auto hdiOutput = HdiOutput::CreateHdiOutput(screenId);
-    auto rsScreen = std::make_share<impl::RSScreen>(screenId, false, hdiOutput, nullptr);
+    auto rsScreen = std::make_shared<impl::RSScreen>(screenId, false, hdiOutput, nullptr);
     rsScreen->hdiScreen_->device_ = hdiDeviceMock_;
     rsScreen->phyWidth_ = 10;
     rsScreen->phyHeight_ = 10;
@@ -123,7 +123,7 @@ std::share_ptr<RSDisplayRenderNode> RSMainThreadTest::GetAndInitDisplayRenderNod
 
     auto drawable = DrawableV2::RSDisplayRenderNodeDrawable::OnGenerate(otherNode);
     auto displayDrawable = static_cast<DrawableV2::RSDisplayRenderNodeDrawable*>(drawable);
-    displayNode->surfaceHandler_->buffer_.buffer = SurfaceBuffer::Create();
+    displayDrawable->surfaceHandler_->buffer_.buffer = SurfaceBuffer::Create();
     auto buffer = displayDrawable->surfaceHandler_->GetBuffer();
     displayDrawable->surfaceHandler_->buffer_.buffer->SetBufferHandle(handle);
     displayNode->renderDrawable_.reset(displayDrawable);
@@ -5185,7 +5185,7 @@ HWTEST_F(RSMainThreadTest, DoDirectComposition003, TestSize.Level1)
     ASSERT_FALSE(mainThread->DoDirectComposition(rootNode, false));
 
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledNodes = mainThread->hardwareEnabledNodes_;
-    for(auto& sufaceNode : hardwareEnabledNodes) {
+    for(auto& surfaceNode : hardwareEnabledNodes) {
         if (surfaceNode == nullptr) {
             continue;
         }
