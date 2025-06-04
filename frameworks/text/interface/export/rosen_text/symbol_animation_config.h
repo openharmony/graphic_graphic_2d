@@ -60,6 +60,7 @@ struct SymbolAnimationConfig {
     int repeatCount = 1;
     bool animationStart = false;
     Drawing::DrawingCommonSubType commonSubType = Drawing::DrawingCommonSubType::DOWN;
+    double slope = 0.0;
     bool currentAnimationHasPlayed = false;
 };
 }

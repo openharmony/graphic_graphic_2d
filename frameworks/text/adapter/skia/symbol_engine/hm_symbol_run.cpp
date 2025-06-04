@@ -303,6 +303,10 @@ bool HMSymbolRun::SymbolAnimation(const RSHMSymbolData& symbol, const std::pair<
     symbolNode.SetAnimationStart(symbolTxt_.GetAnimationStart());
     symbolNode.SetCommonSubType(symbolTxt_.GetCommonSubType());
     symbolNode.SetCurrentAnimationHasPlayed(currentAnimationHasPlayed_);
+    symbolNode.SetSlope(animationSetting.slope);
+    if (effectMode == RSEffectStrategy::DISABLE) {
+        symbolNode.SetCommonSubType(animationSetting.commonSubType);
+    }
     return symbolNode.DecomposeSymbolAndDraw();
 }
 

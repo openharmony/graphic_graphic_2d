@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 #include "hm_symbol_node_build.h"
+
+#include "common/rs_common_def.h"
 #include "include/pathops/SkPathOps.h"
 #include "utils/text_log.h"
 
@@ -200,6 +202,21 @@ void SymbolNodeBuild::AddWholeAnimation(const RSHMSymbolData &symbolData, const 
     symbolAnimationConfig->numNodes = symbolAnimationConfig->symbolNodes.size();
 }
 
+void SymbolNodeBuild::SetSymbolNodeColors(const TextEngine::SymbolNode& symbolNode,
+    TextEngine::SymbolNode& outSymbolNode)
+{
+    bool isNoNeed = symbolNode.pathsInfo.empty() || outSymbolNode.pathsInfo.empty() ||
+        ROSEN_GNE(outSymbolNode.pathsInfo[0].color.a, 0.0f); // If color.a > 0.0 is no need to set
+    if (isNoNeed) {
+        return;
+    }
+
+    const auto& color = symbolNode.pathsInfo[0].color;
+    for (auto& pathInfo: outSymbolNode.pathsInfo) {
+        pathInfo.color = color;
+    }
+}
+
 void SymbolNodeBuild::AddHierarchicalAnimation(RSHMSymbolData &symbolData, const Vector4f &nodeBounds,
     const std::vector<RSGroupSetting> &groupSettings,
     std::shared_ptr<TextEngine::SymbolAnimationConfig> symbolAnimationConfig)
@@ -231,6 +248,13 @@ void SymbolNodeBuild::AddHierarchicalAnimation(RSHMSymbolData &symbolData, const
         symbolNode.animationIndex = groupSetting.animationIndex;
         symbolNode.isMask = isMask;
         symbolAnimationConfig->symbolNodes.push_back(symbolNode);
+    }
+    bool isDisableType = effectStrategy_ == RSEffectStrategy::DISABLE &&
+        symbolAnimationConfig->symbolNodes.size() > 2; // 2: disableType symbol nodes size must be greater than 2
+    if (isDisableType) {
+        uint32_t last = symbolAnimationConfig->symbolNodes.size() - 1; // the last
+        uint32_t last3 = symbolAnimationConfig->symbolNodes.size() - 3; // 3: the third form the bottom
+        SetSymbolNodeColors(symbolAnimationConfig->symbolNodes[last3], symbolAnimationConfig->symbolNodes[last]);
     }
     symbolAnimationConfig->numNodes = symbolAnimationConfig->symbolNodes.size();
 }
@@ -281,6 +305,7 @@ bool SymbolNodeBuild::DecomposeSymbolAndDraw()
     symbolAnimationConfig->symbolSpanId = symblSpanId_;
     symbolAnimationConfig->commonSubType = commonSubType_;
     symbolAnimationConfig->currentAnimationHasPlayed = currentAnimationHasPlayed_;
+    symbolAnimationConfig->slope = slope_;
     return animationFunc_(symbolAnimationConfig);
 }
 }

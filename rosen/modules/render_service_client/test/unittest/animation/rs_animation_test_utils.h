@@ -79,6 +79,7 @@ const std::string SUCCESS_STRING = "success";
 constexpr bool SUCCESS_BOOL = true;
 const unsigned int INVALID_STATUS = 0;  // invalid status label for replace animation
 const unsigned int APPEAR_STATUS = 1 ;   // appear status label for replace animation
+const std::string TRANSLATE_PROP_X = "tx";
 
 const Drawing::DrawingPiecewiseParameter BOUNCE_FIRST_PHASE_PARAS = {
     OHOS::Rosen::Drawing::DrawingCurveType::LINEAR, // animation curve type
@@ -219,6 +220,27 @@ const Drawing::DrawingPiecewiseParameter BLUR_SECOND_PARAS = {
     {},
     100, 150,                        // 100 is animation duration, 150 is animation delay
     {{"blur", {20, 0}}}            // blur radius is from 20 to 0
+};
+
+const Drawing::DrawingPiecewiseParameter DISABLE_TRANSLATE_RATIO = {
+    OHOS::Rosen::Drawing::DrawingCurveType::LINEAR, // animation curve type
+    {},
+    200, 0,                        // 200 is animation duration, 0 is animation delay
+    {{"tr", {0, -0.125}}}            // translate ratio is from 0 to -0.125
+};
+
+const Drawing::DrawingPiecewiseParameter DISABLE_CLIP_PROP = {
+    OHOS::Rosen::Drawing::DrawingCurveType::LINEAR, // animation curve type
+    {},
+    200, 0,                        // 200 is animation duration, 0 is animation delay
+    {{"clip", {0, -0.9}}}            // clip ratio is from 0 to -0.9
+};
+
+const Drawing::DrawingPiecewiseParameter DISABLE_ALPHA_PROP = {
+    OHOS::Rosen::Drawing::DrawingCurveType::LINEAR, // animation curve type
+    {},
+    200, 0,                        // 200 is animation duration, 0 is animation delay
+    {{"alpha", {1, 0}}}            // alpha is from 1 to 0
 };
 } // ANIMATIONTEST
 } // namespace Rosen

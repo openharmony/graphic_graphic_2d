@@ -497,6 +497,45 @@ void ParagraphImpl::UpdateForegroundBrush(const TextStyle& spTextStyle)
     }
 }
 
+std::vector<TextBlobRecordInfo> ParagraphImpl::GetTextBlobRecordInfo() const
+{
+    RecordDifferentPthreadCall(__FUNCTION__);
+    if (paragraph_ == nullptr) {
+        return {};
+    }
+    std::vector<TextBlobRecordInfo> textBlobRecordInfos;
+    std::vector<skt::TextBlobRecordInfo> infos = paragraph_->getTextBlobRecordInfo();
+    for (auto& info : infos) {
+        TextBlobRecordInfo recordInfo;
+        recordInfo.blob = info.fBlob;
+        recordInfo.offset = info.fOffset;
+        int index = std::get<int>(info.fPaint);
+        if (index > 0 && index < static_cast<int>(paints_.size())) {
+            recordInfo.color = paints_[index].color;
+        }
+        textBlobRecordInfos.emplace_back(recordInfo);
+    }
+    return textBlobRecordInfos;
+}
+
+bool ParagraphImpl::HasEnabledTextEffect() const
+{
+    RecordDifferentPthreadCall(__FUNCTION__);
+    if (paragraph_ == nullptr) {
+        return false;
+    }
+    return paragraph_->hasEnabledTextEffect();
+}
+
+void ParagraphImpl::SetTextEffectState(bool state)
+{
+    RecordDifferentPthreadCall(__FUNCTION__);
+    if (paragraph_ == nullptr) {
+        return;
+    }
+    paragraph_->setTextEffectState(state);
+}
+
 void ParagraphImpl::RecordDifferentPthreadCall(const char* caller) const
 {
     pthread_t currenetThreadId = pthread_self();
