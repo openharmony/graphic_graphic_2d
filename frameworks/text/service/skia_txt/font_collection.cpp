@@ -25,6 +25,11 @@
 
 namespace OHOS {
 namespace Rosen {
+FontCollection::FontCallback FontCollection::loadFontStartCallback_ {};
+FontCollection::FontCallback FontCollection::loadFontFinishCallback_ {};
+FontCollection::FontCallback FontCollection::unloadFontStartCallback_ {};
+FontCollection::FontCallback FontCollection::unloadFontFinishCallback_ {};
+
 std::shared_ptr<FontCollection> FontCollection::Create()
 {
     static std::shared_ptr<FontCollection> instance = std::make_shared<AdapterTxt::FontCollection>();
@@ -110,14 +115,19 @@ std::shared_ptr<Drawing::Typeface> FontCollection::LoadFont(
 {
     TEXT_TRACE_FUNC();
     std::shared_ptr<Drawing::Typeface> typeface(dfmanager_->LoadDynamicFont(familyName, data, datalen));
-    TypefaceWithAlias ta(familyName, typeface);
-    RegisterError err = RegisterTypeface(ta);
-    if (err != RegisterError::SUCCESS && err != RegisterError::ALREADY_EXIST) {
-        TEXT_LOGE("Failed to register typeface %{public}s", familyName.c_str());
+    if (typeface == nullptr) {
+        TEXT_LOGE("Failed to load font %{public}s", familyName.c_str());
         return nullptr;
     }
-    FontDescriptorMgrInstance.CacheDynamicTypeface(typeface, familyName);
-    familyNames_.emplace(ta.GetHash(), familyName);
+    TypefaceWithAlias ta(familyName, typeface);
+    FontCallbackGuard cb(this, ta.GetAlias(), loadFontStartCallback_, loadFontFinishCallback_);
+    RegisterError err = RegisterTypeface(ta);
+    if (err != RegisterError::SUCCESS && err != RegisterError::ALREADY_EXIST) {
+        TEXT_LOGE("Failed to register typeface %{public}s", ta.GetAlias().c_str());
+        return nullptr;
+    }
+    FontDescriptorMgrInstance.CacheDynamicTypeface(typeface, ta.GetAlias());
+    familyNames_.emplace(ta.GetHash(), ta.GetAlias());
     fontCollection_->ClearFontFamilyCache();
     return typeface;
 }
@@ -131,6 +141,7 @@ LoadSymbolErrorCode FontCollection::LoadSymbolFont(const std::string& familyName
     }
     std::unique_lock<std::shared_mutex> lock(mutex_);
     TypefaceWithAlias ta(familyName, typeface);
+    FontCallbackGuard cb(this, familyName, loadFontStartCallback_, loadFontFinishCallback_);
     if (typefaceSet_.count(ta)) {
         return LoadSymbolErrorCode::SUCCESS;
     }
@@ -196,6 +207,7 @@ std::vector<std::shared_ptr<Drawing::Typeface>> FontCollection::LoadThemeFont(
 
 void FontCollection::ClearThemeFont()
 {
+    std::unique_lock lock(mutex_);
     for (const auto& themeFamily : SPText::DefaultFamilyNameMgr::GetInstance().GetThemeFontFamilies()) {
         std::shared_ptr<Drawing::Typeface> face(dfmanager_->MatchFamilyStyle(themeFamily.c_str(), {}));
         TypefaceWithAlias ta(themeFamily, face);
@@ -211,9 +223,59 @@ void FontCollection::ClearCaches()
     fontCollection_->ClearFontFamilyCache();
 }
 
+bool FontCollection::UnloadFont(const std::string& familyName)
+{
+    if (Drawing::Typeface::GetTypefaceUnRegisterCallBack() == nullptr ||
+        SPText::DefaultFamilyNameMgr::IsThemeFontFamily(familyName) || familyName.empty()) {
+        TEXT_LOGE("Failed to unload font: %{public}s", familyName.c_str());
+        return false;
+    }
+
+    std::shared_lock readLock(mutex_);
+    if (std::none_of(typefaceSet_.begin(), typefaceSet_.end(),
+        [&familyName](const auto& ta) { return ta.GetAlias() == familyName; })) {
+        TEXT_LOGE("Unload a font which is not loaded: %{public}s", familyName.c_str());
+        return true;
+    }
+    readLock.unlock();
+
+    FontCallbackGuard cb(this, familyName, unloadFontStartCallback_, unloadFontFinishCallback_);
+    std::unique_lock<std::shared_mutex> lock(mutex_);
+    for (auto it = typefaceSet_.begin(); it != typefaceSet_.end();) {
+        if (it->GetAlias() == familyName) {
+            dfmanager_->LoadDynamicFont(familyName, nullptr, 0);
+            FontDescriptorMgrInstance.DeleteDynamicTypefaceFromCache(familyName);
+            ClearCaches();
+            Drawing::Typeface::GetTypefaceUnRegisterCallBack()(it->GetTypeface());
+            familyNames_.erase(it->GetHash());
+            typefaceSet_.erase(it++);
+        } else {
+            ++it;
+        }
+    }
+
+    return true;
+}
+
+FontCollection::FontCallbackGuard::FontCallbackGuard(
+    const FontCollection* fc, const std::string& familyName, const FontCallback& begin, const FontCallback& end)
+    : fc_(fc), familyName_(familyName), begin_(begin), end_(end)
+{
+    begin_.ExcuteCallback(fc_, familyName_);
+}
+
+FontCollection::FontCallbackGuard::~FontCallbackGuard()
+{
+    end_.ExcuteCallback(fc_, familyName_);
+}
+
 TypefaceWithAlias::TypefaceWithAlias(const std::string& alias, const std::shared_ptr<Drawing::Typeface>& typeface)
     : alias_(alias), typeface_(typeface)
-{}
+{
+    if (alias.empty() && typeface != nullptr) {
+        alias_ = typeface->GetFamilyName();
+    }
+}
 
 uint32_t TypefaceWithAlias::GetHash() const
 {
@@ -247,5 +309,43 @@ bool TypefaceWithAlias::operator==(const TypefaceWithAlias& other) const
     return other.alias_ == this->alias_ && other.GetHash() == this->GetHash();
 }
 } // namespace AdapterTxt
+
+void FontCollection::RegisterLoadFontStartCallback(FontCallbackType cb)
+{
+    loadFontStartCallback_.AddCallback(cb);
+}
+
+void FontCollection::RegisterUnloadFontStartCallback(FontCallbackType cb)
+{
+    unloadFontStartCallback_.AddCallback(cb);
+}
+
+void FontCollection::RegisterLoadFontFinishCallback(FontCallbackType cb)
+{
+    loadFontFinishCallback_.AddCallback(cb);
+}
+
+void FontCollection::RegisterUnloadFontFinishCallback(FontCallbackType cb)
+{
+    unloadFontFinishCallback_.AddCallback(cb);
+}
+
+void FontCollection::FontCallback::AddCallback(FontCallbackType cb)
+{
+    std::lock_guard lock(mutex_);
+    if (cb != nullptr) {
+        callback_.emplace(cb);
+    } else {
+        TEXT_LOGE("Failed to register callback, cb is nullptr");
+    }
+}
+
+void FontCollection::FontCallback::ExcuteCallback(const FontCollection* fc, const std::string& family) const
+{
+    std::lock_guard lock(mutex_);
+    for (auto& cb : callback_) {
+        cb(fc, family);
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -36,11 +36,15 @@ public:
     static napi_value GetGlobalInstance(napi_env env, napi_callback_info info);
     static napi_value ClearCaches(napi_env env, napi_callback_info info);
     static napi_value LoadFontAsync(napi_env env, napi_callback_info info);
+    static napi_value UnloadFontSync(napi_env env, napi_callback_info info);
+    static napi_value UnloadFontAsync(napi_env env, napi_callback_info info);
 
     std::shared_ptr<FontCollection> GetFontCollection();
 private:
     static thread_local napi_ref constructor_;
     napi_value OnLoadFont(napi_env env, napi_callback_info info);
+    napi_value OnUnloadFont(napi_env env, napi_callback_info info);
+    napi_value OnUnloadFontAsync(napi_env env, napi_callback_info info);
     napi_value OnClearCaches(napi_env env, napi_callback_info info);
     std::shared_ptr<Global::Resource::ResourceManager> GetResourceManager() const;
     bool SplitAbsoluteFontPath(std::string& absolutePath);
