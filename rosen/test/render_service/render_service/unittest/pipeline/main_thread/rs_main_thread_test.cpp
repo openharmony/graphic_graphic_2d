@@ -49,7 +49,6 @@ constexpr int32_t INVISBLE_WINDOW_RATE = 10;
 constexpr int32_t SCREEN_PHYSICAL_HEIGHT = 10;
 constexpr int32_t SCREEN_PHYSICAL_WIDTH = 10;
 constexpr int32_t SIMI_VISIBLE_RATE = 2;
-constexpr int32_t SIMI_VISIBLE_RATE = 2;
 constexpr int32_t SYSTEM_ANIMATED_SCENES_RATE = 2;
 constexpr ScreenId DEFAULT_DISPLAY_SCREEN_ID = 0;
 constexpr uint32_t MULTI_WINDOW_PERF_END_NUM = 4;
