@@ -21,6 +21,12 @@ import { CanvasDrawRect, CanvasDrawLine, CanvasDrawPath, CanvasDrawPoint, Canvas
   CreateBlurImageFilter, CreateColorImageFilter, CanvasDrawImageRect, CanvasDrawImageRectWithSrc, CanvasClipRegion,
   CanvasDrawShadow, CanvasCreateLattice, CanvasSetColor, CanvasQuickRejectPath, CanvasQuickRejectRect,
   CanvasDrawArcWithCenter, CanvasDrawImageNine, CanvasDrawImageLattice, CanvasClear } from '../testcase/interface/canvastest';
+import {
+  ColorSpacePenSetColor4fTest, ColorSpacePenSetColor4f1Test, ColorSpacePenSetColor4f2Test,
+  ColorSpacePenSetColor4fAbnormalTest, ColorSpacePenSetColor4fBoundaryTest, ColorSpacePenGetColor4fTest,
+  ColorSpaceBrushSetColor4fTest, ColorSpaceBrushSetColor4f1Test, ColorSpaceBrushSetColor4f2Test,
+  ColorSpaceBrushSetColor4fAbnormalTest, ColorSpaceBrushSetColor4fBoundaryTest, ColorSpaceBrushGetColor4fTest }
+  from '../testcase/interface/colorspacetest';
 import { PathEffectCreateComposePathEffect, PathEffectCreateDiscretePathEffect, PathEffectCreatePathDashEffect, PathEffectCreateSumPathEffect } from '../testcase/interface/patheffecttest';
 import { PathLineTo, PathArcTo, PathQuadTo, PathCubicTo,PathClose, PathReset, PathIsClosed, PathGetPositionAndTangent, PathGetMatrix, PathBuildFromSvgString, PathConstructor, PathGetPathIterator } from '../testcase/interface/pathtest';
 import { PathIteratorConstructor, PathIteratorNext, PathIteratorHasNext, PathIteratorPeek } from '../testcase/interface/pathiteratortest';
@@ -161,6 +167,18 @@ export class CaseFactory {
       ['textblob_createfrom_string', () => { return new MakeFromString(StyleType.DRAW_STYLE_COMPLEX); }],
       ['brushgetcolorfilter', () => { return new BrushGetColorFilter(); }],
       ['brushsetimagefilter', () => { return new BrushSetImageFilter(); }],
+      ['brushSetColor4f', () => { return new ColorSpaceBrushSetColor4fTest(); }],
+      ['brushSetColor4f1', () => { return new ColorSpaceBrushSetColor4f1Test(); }],
+      ['brushSetColor4f2', () => { return new ColorSpaceBrushSetColor4f2Test(); }],
+      ['brushSetColor4fAbnormal', () => { return new ColorSpaceBrushSetColor4fAbnormalTest(); }],
+      ['brushSetColor4fBoundary', () => { return new ColorSpaceBrushSetColor4fBoundaryTest(); }],
+      ['brushGetColor4f', () => { return new ColorSpaceBrushGetColor4fTest(); }],
+      ['penSetColor4f', () => { return new ColorSpacePenSetColor4fTest(); }],
+      ['penSetColor4f1', () => { return new ColorSpacePenSetColor4f1Test(); }],
+      ['penSetColor4f2', () => { return new ColorSpacePenSetColor4f2Test(); }],
+      ['penSetColor4fAbnormal', () => { return new ColorSpacePenSetColor4fAbnormalTest(); }],
+      ['penSetColor4fBoundary', () => { return new ColorSpacePenSetColor4fBoundaryTest(); }],
+      ['penGetColor4f', () => { return new ColorSpacePenGetColor4fTest(); }],
       ['pengetcolorfilter', () => { return new PenGetColorFilter(); }],
       ['pensetimagefilter', () => { return new PenSetImageFilter(); }],
       ['createblurimagefilter', () => { return new CreateBlurImageFilter(); }],
@@ -384,6 +402,8 @@ export class CaseFactory {
       ['performance_path_constructor', () => { return new PerformancePathConstructor(StyleType.DRAW_STYLE_PERFORMANCE_TEST); }],
       ['performance_path_constructor_withpath', () => { return new PerformancePathConstructorWithPath(StyleType.DRAW_STYLE_PERFORMANCE_TEST); }],
 
+      ['performance_penSetColor4f', () => { return new ColorSpacePenSetColor4fTest(StyleType.DRAW_STYLE_COMPLEX); }],
+      ['performance_brushSetColor4f', () => { return new ColorSpaceBrushSetColor4fTest(StyleType.DRAW_STYLE_COMPLEX); }],
       ['brush_get_color_filter', () => { return new BrushGetColorFilter(StyleType.DRAW_STYLE_COMPLEX); }],
       ['brush_set_image_filter', () => { return new BrushSetImageFilter(StyleType.DRAW_STYLE_COMPLEX); }],
       ['pen_get_color_filter', () => { return new PenGetColorFilter(StyleType.DRAW_STYLE_COMPLEX); }],
@@ -602,6 +622,8 @@ export class CaseFactory {
       ['stabilityBrushRandInvoke', () => {
         return new StabilityBrushRandInvoke();
       }],
+      ['stabilityPenSetColor4f', () => { return new ColorSpacePenSetColor4fTest(StyleType.DRAW_STYLE_COMPLEX); }],
+      ['stabilityBrushSetColor4f', () => { return new ColorSpaceBrushSetColor4fTest(StyleType.DRAW_STYLE_COMPLEX); }]
     ]
   );
 

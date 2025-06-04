@@ -209,6 +209,11 @@ public:
         return transferFunc.g;
     }
 
+    TransferFunc GetTransferFunction() const
+    {
+        return transferFunc;
+    }
+
     Vector3 ToLinear(Vector3 color) const;
     Vector3 ToNonLinear(Vector3 color) const;
 

@@ -16,6 +16,7 @@ group("fuzztest") {
 
   deps = [
     "camera3d_fuzzer:fuzztest",
+    "colorspaceconvertor_fuzzer:fuzztest",
     "data_fuzzer:fuzztest",
     "matrix44_fuzzer:fuzztest",
     "matrix_fuzzer:fuzztest",

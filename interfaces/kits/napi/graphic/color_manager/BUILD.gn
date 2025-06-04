@@ -77,6 +77,7 @@ if (current_os == "ohos") {
     ]
 
     include_dirs = [ "$hilog_root/interfaces/native/innerkits/include" ]
+    public_configs = [ ":color_space_object_convertor_public_config" ]
     configs = [
       ":color_space_object_config",
       "$arkui_root/napi:ace_napi_config",
@@ -84,9 +85,15 @@ if (current_os == "ohos") {
     ]
 
     external_deps = [ "skia:skia_canvaskit" ]
-
+    deps = []
+    if (is_arkui_x) {
+      deps += [ "//foundation/arkui/napi:ace_napi" ]
+    } else {
+      external_deps += [ "napi:ace_napi" ]
+    }
+    deps += [ "$rosen_root/modules/platform:hilog" ]
     cflags_cc = [ "-std=c++17" ]
-    deps = [ "$graphic_2d_root/utils/color_manager:color_manager" ]
+    deps += [ "$graphic_2d_root/utils/color_manager:color_manager" ]
     part_name = "graphic_2d"
     subsystem_name = "graphic"
   }
