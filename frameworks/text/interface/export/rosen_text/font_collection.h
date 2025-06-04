@@ -33,7 +33,7 @@ class FontCollection;
 namespace OHOS {
 namespace Rosen {
 class RS_EXPORT FontCollection {
-    using LoadFontCallback = void (*)(const FontCollection*, const std::string&);
+    using FontCallbackType = void (*)(const FontCollection*, const std::string&);
 
 public:
     static std::shared_ptr<FontCollection> From(std::shared_ptr<txt::FontCollection> fontCollection);
@@ -55,24 +55,24 @@ public:
     virtual void ClearCaches() = 0;
     virtual bool UnloadFont(const std::string& familyName) = 0;
 
-    static void RegisterUnloadFontStartCallback(LoadFontCallback cb);
-    static void RegisterUnloadFontFinishCallback(LoadFontCallback cb);
-    static void RegisterLoadFontStartCallback(LoadFontCallback cb);
-    static void RegisterLoadFontFinishCallback(LoadFontCallback cb);
+    static void RegisterUnloadFontStartCallback(FontCallbackType cb);
+    static void RegisterUnloadFontFinishCallback(FontCallbackType cb);
+    static void RegisterLoadFontStartCallback(FontCallbackType cb);
+    static void RegisterLoadFontFinishCallback(FontCallbackType cb);
 
 protected:
-    struct CallbackWithLock {
+    struct FontCallback {
         mutable std::mutex mutex_;
-        std::unordered_set<LoadFontCallback> callback_;
+        std::unordered_set<FontCallbackType> callback_;
 
     public:
-        void AddCallback(LoadFontCallback cb);
+        void AddCallback(FontCallbackType cb);
         void ExcuteCallback(const FontCollection* fc, const std::string& family) const;
     };
-    static CallbackWithLock unloadFontStartCallback_;
-    static CallbackWithLock unloadFontFinishCallback_;
-    static CallbackWithLock loadFontStartCallback_;
-    static CallbackWithLock loadFontFinishCallback_;
+    static FontCallback unloadFontStartCallback_;
+    static FontCallback unloadFontFinishCallback_;
+    static FontCallback loadFontStartCallback_;
+    static FontCallback loadFontFinishCallback_;
 };
 } // namespace Rosen
 } // namespace OHOS

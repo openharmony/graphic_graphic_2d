@@ -25,10 +25,10 @@
 
 namespace OHOS {
 namespace Rosen {
-FontCollection::CallbackWithLock FontCollection::loadFontStartCallback_ {};
-FontCollection::CallbackWithLock FontCollection::loadFontFinishCallback_ {};
-FontCollection::CallbackWithLock FontCollection::unloadFontStartCallback_ {};
-FontCollection::CallbackWithLock FontCollection::unloadFontFinishCallback_ {};
+FontCollection::FontCallback FontCollection::loadFontStartCallback_ {};
+FontCollection::FontCallback FontCollection::loadFontFinishCallback_ {};
+FontCollection::FontCallback FontCollection::unloadFontStartCallback_ {};
+FontCollection::FontCallback FontCollection::unloadFontFinishCallback_ {};
 
 std::shared_ptr<FontCollection> FontCollection::Create()
 {
@@ -120,7 +120,7 @@ std::shared_ptr<Drawing::Typeface> FontCollection::LoadFont(
         return nullptr;
     }
     TypefaceWithAlias ta(familyName, typeface);
-    LoadFontCallback cb(this, ta.GetAlias(), loadFontStartCallback_, loadFontFinishCallback_);
+    FontCallbackGuard cb(this, ta.GetAlias(), loadFontStartCallback_, loadFontFinishCallback_);
     RegisterError err = RegisterTypeface(ta);
     if (err != RegisterError::SUCCESS && err != RegisterError::ALREADY_EXIST) {
         TEXT_LOGE("Failed to register typeface %{public}s", ta.GetAlias().c_str());
@@ -141,7 +141,7 @@ LoadSymbolErrorCode FontCollection::LoadSymbolFont(const std::string& familyName
     }
     std::unique_lock<std::shared_mutex> lock(mutex_);
     TypefaceWithAlias ta(familyName, typeface);
-    LoadFontCallback cb(this, familyName, loadFontStartCallback_, loadFontFinishCallback_);
+    FontCallbackGuard cb(this, familyName, loadFontStartCallback_, loadFontFinishCallback_);
     if (typefaceSet_.count(ta)) {
         return LoadSymbolErrorCode::SUCCESS;
     }
@@ -239,7 +239,7 @@ bool FontCollection::UnloadFont(const std::string& familyName)
     }
     readLock.unlock();
 
-    LoadFontCallback cb(this, familyName, unloadFontStartCallback_, unloadFontFinishCallback_);
+    FontCallbackGuard cb(this, familyName, unloadFontStartCallback_, unloadFontFinishCallback_);
     std::unique_lock<std::shared_mutex> lock(mutex_);
     for (auto it = typefaceSet_.begin(); it != typefaceSet_.end();) {
         if (it->GetAlias() == familyName) {
@@ -257,14 +257,14 @@ bool FontCollection::UnloadFont(const std::string& familyName)
     return true;
 }
 
-FontCollection::LoadFontCallback::LoadFontCallback(
-    const FontCollection* fc, const std::string& familyName, const CallbackWithLock& begin, const CallbackWithLock& end)
+FontCollection::FontCallbackGuard::FontCallbackGuard(
+    const FontCollection* fc, const std::string& familyName, const FontCallback& begin, const FontCallback& end)
     : fc_(fc), familyName_(familyName), begin_(begin), end_(end)
 {
     begin_.ExcuteCallback(fc_, familyName_);
 }
 
-FontCollection::LoadFontCallback::~LoadFontCallback()
+FontCollection::FontCallbackGuard::~FontCallbackGuard()
 {
     end_.ExcuteCallback(fc_, familyName_);
 }
@@ -310,27 +310,27 @@ bool TypefaceWithAlias::operator==(const TypefaceWithAlias& other) const
 }
 } // namespace AdapterTxt
 
-void FontCollection::RegisterLoadFontStartCallback(LoadFontCallback cb)
+void FontCollection::RegisterLoadFontStartCallback(FontCallbackType cb)
 {
     loadFontStartCallback_.AddCallback(cb);
 }
 
-void FontCollection::RegisterUnloadFontStartCallback(LoadFontCallback cb)
+void FontCollection::RegisterUnloadFontStartCallback(FontCallbackType cb)
 {
     unloadFontStartCallback_.AddCallback(cb);
 }
 
-void FontCollection::RegisterLoadFontFinishCallback(LoadFontCallback cb)
+void FontCollection::RegisterLoadFontFinishCallback(FontCallbackType cb)
 {
     loadFontFinishCallback_.AddCallback(cb);
 }
 
-void FontCollection::RegisterUnloadFontFinishCallback(LoadFontCallback cb)
+void FontCollection::RegisterUnloadFontFinishCallback(FontCallbackType cb)
 {
     unloadFontFinishCallback_.AddCallback(cb);
 }
 
-void FontCollection::CallbackWithLock::AddCallback(LoadFontCallback cb)
+void FontCollection::FontCallback::AddCallback(FontCallbackType cb)
 {
     std::lock_guard lock(mutex_);
     if (cb != nullptr) {
@@ -340,7 +340,7 @@ void FontCollection::CallbackWithLock::AddCallback(LoadFontCallback cb)
     }
 }
 
-void FontCollection::CallbackWithLock::ExcuteCallback(const FontCollection* fc, const std::string& family) const
+void FontCollection::FontCallback::ExcuteCallback(const FontCollection* fc, const std::string& family) const
 {
     std::lock_guard lock(mutex_);
     for (auto& cb : callback_) {

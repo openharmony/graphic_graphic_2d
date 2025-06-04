@@ -78,14 +78,14 @@ public:
     bool UnloadFont(const std::string& familyName) override;
 
 private:
-    struct LoadFontCallback {
-        LoadFontCallback(const FontCollection* fc, const std::string& familyName, const CallbackWithLock& begin,
-            const CallbackWithLock& end);
-        ~LoadFontCallback();
+    struct FontCallbackGuard {
+        FontCallbackGuard(const FontCollection* fc, const std::string& familyName, const FontCallback& begin,
+            const FontCallback& end);
+        ~FontCallbackGuard();
         const FontCollection* fc_;
         const std::string& familyName_;
-        const CallbackWithLock& begin_;
-        const CallbackWithLock& end_;
+        const FontCallback& begin_;
+        const FontCallback& end_;
     };
     RegisterError RegisterTypeface(const TypefaceWithAlias& ta);
 
