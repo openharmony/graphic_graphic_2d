@@ -510,7 +510,7 @@ std::vector<TextBlobRecordInfo> ParagraphImpl::GetTextBlobRecordInfo() const
         recordInfo.blob = info.fBlob;
         recordInfo.offset = info.fOffset;
         int index = std::get<int>(info.fPaint);
-        if (index > 0 && index < static_cast<int>(paints_.size())) {
+        if (index >= 0 && index < static_cast<int>(paints_.size())) {
             recordInfo.color = paints_[index].color;
         }
         textBlobRecordInfos.emplace_back(recordInfo);
