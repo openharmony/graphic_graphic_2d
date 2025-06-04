@@ -3818,7 +3818,7 @@ void RSNode::Dump(std::string& out) const
     out += "[" + std::to_string(id_);
     out += "], parent[" + std::to_string(parent_.lock() ? parent_.lock()->GetId() : -1);
     out += "], instanceId[" + std::to_string(instanceId_);
-    out += "], UIContext[" + std::to_string(rsUIContext_.lock() ? rsUIContext_.lock()->GetToken() : -1);
+    out += "], UIContext[" + (rsUIContext_.lock() ? std::to_string(rsUIContext_.lock()->GetToken()) : "null");
     if (auto node = ReinterpretCastTo<RSSurfaceNode>()) {
         out += "], name[" + node->GetName();
     } else if (!nodeName_.empty()) {
@@ -3885,7 +3885,7 @@ std::string RSNode::DumpNode(int depth) const
             ss << " animationInfo:" << animation->DumpAnimation();
         }
     }
-    ss << " token:" << std::to_string((rsUIContext_.lock() != nullptr) ? rsUIContext_.lock()->GetToken() : -1);
+    ss << " token:" << (rsUIContext_.lock() ? std::to_string(rsUIContext_.lock()->GetToken()) : "null");
     ss << " " << GetStagingProperties().Dump();
     return ss.str();
 }
