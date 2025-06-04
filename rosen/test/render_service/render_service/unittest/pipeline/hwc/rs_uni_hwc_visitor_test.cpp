@@ -393,9 +393,6 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeByTransform_005, TestSize.Level2)
     ASSERT_FALSE(!node->GetRSSurfaceHandler() || !node->GetRSSurfaceHandler()->GetBuffer());
     ASSERT_NE(node->GetRSSurfaceHandler()->GetConsumer(), nullptr);
 
-    auto nodeParams = static_cast<RSSurfaceRenderParams*>(node->GetStagingRenderParams().get());
-    ASSERT_NE(nodeParams, nullptr);
-
     ScalingMode scalingMode = ScalingMode::SCALING_MODE_SCALE_FIT;
     auto& buffer = node->surfaceHandler_->buffer_.buffer;
     auto surface = static_cast<ConsumerSurface*>(node->surfaceHandler_->consumer_.refs_);
