@@ -329,6 +329,7 @@ void DrawCmdList::UnmarshallingDrawOps(uint32_t* opItemCount)
     do {
         count++;
         if (opItemCount && ++(*opItemCount) > MAX_OPITEMSIZE) {
+            LOGE("DrawCmdList::UnmarshallingOps failed, opItem count exceed limit");
             break;
         }
         void* itemPtr = opAllocator_.OffsetToAddr(offset, sizeof(OpItem));
@@ -837,6 +838,12 @@ size_t DrawCmdList::GetSize()
 void DrawCmdList::SetCanvasDrawingOpLimitEnable(bool isEnable)
 {
     isCanvasDrawingOpLimitEnabled_ = isEnable;
+}
+
+const std::vector<std::shared_ptr<DrawOpItem>> DrawCmdList::GetDrawOpItems() const
+{
+    std::vector<std::shared_ptr<DrawOpItem>> drawOpItems(drawOpItems_);
+    return drawOpItems;
 }
 } // namespace Drawing
 } // namespace Rosen

@@ -726,9 +726,8 @@ HWTEST_F(RSSurfaceRenderNodeTest, UpdateSurfaceCacheContentStatic, TestSize.Leve
 {
     auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
     auto subNode = std::make_shared<RSRenderNode>(id + 1, context);
-    if (node == nullptr || subNode == nullptr) {
-        return;
-    }
+    ASSERT_NE(node, nullptr);
+    ASSERT_NE(subNode, nullptr);
     std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> activeNodeIds;
     node->UpdateSurfaceCacheContentStatic(activeNodeIds);
     std::shared_ptr<RSRenderNode> nullNode = nullptr;
@@ -752,9 +751,8 @@ HWTEST_F(RSSurfaceRenderNodeTest, IsContentDirtyNodeLimited, TestSize.Level1)
 {
     auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
     auto subnode = std::make_shared<RSRenderNode>(id + 1, context);
-    if (node == nullptr || subnode == nullptr) {
-        return;
-    }
+    ASSERT_NE(node, nullptr);
+    ASSERT_NE(subnode, nullptr);
     node->AddChild(subnode, 0);
     subnode->isContentDirty_ = true;
     subnode->isNewOnTree_ = true;
@@ -778,6 +776,69 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetSkipLayer001, TestSize.Level2)
 
     node->SetSkipLayer(true);
     ASSERT_TRUE(node->GetSpecialLayerMgr().Find(SpecialLayerType::SKIP));
+}
+
+/**
+ * @tc.name: UpdateBlackListStatus001
+ * @tc.desc: Test UpdateBlackListStatus
+ * @tc.type: FUNC
+ * @tc.require: issueIC9I11
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, UpdateBlackListStatus001, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    ASSERT_NE(rsContext, nullptr);
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, rsContext);
+    ASSERT_NE(node, nullptr);
+    node->InitRenderParams();
+    node->addedToPendingSyncList_ = true;
+    auto params = static_cast<RSSurfaceRenderParams*>(node->stagingRenderParams_.get());
+    EXPECT_NE(params, nullptr);
+    node->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
+
+    auto virtualScreenId = 1;
+    node->UpdateBlackListStatus(virtualScreenId, true);
+    node->UpdateBlackListStatus(virtualScreenId, true);
+    node->UpdateRenderParams();
+    EXPECT_TRUE(params->HasBlackListByScreenId(virtualScreenId));
+    node->UpdateBlackListStatus(virtualScreenId, false);
+    node->UpdateRenderParams();
+    EXPECT_FALSE(params->HasBlackListByScreenId(virtualScreenId));
+}
+
+/**
+ * @tc.name: SyncBlackListInfoToFirstLevelNode001
+ * @tc.desc: Test SyncBlackListInfoToFirstLevelNode
+ * @tc.type: FUNC
+ * @tc.require: issueIC9I11
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SyncBlackListInfoToFirstLevelNode001, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    ASSERT_NE(rsContext, nullptr);
+    auto parentNode = std::make_shared<RSSurfaceRenderNode>(id, rsContext);
+    auto childNode = std::make_shared<RSSurfaceRenderNode>(id + 1, rsContext);
+    ASSERT_NE(parentNode, nullptr);
+    ASSERT_NE(childNode, nullptr);
+
+    NodeId parentNodeId = parentNode->GetId();
+    pid_t parentNodePid = ExtractPid(parentNodeId);
+    NodeId childNodeId = childNode->GetId();
+    pid_t childNodePid = ExtractPid(childNodeId);
+    rsContext->GetMutableNodeMap().renderNodeMap_[parentNodePid][parentNodeId] = parentNode;
+    rsContext->GetMutableNodeMap().renderNodeMap_[childNodePid][childNodeId] = childNode;
+    childNode->firstLevelNodeId_ = parentNodeId;
+    parentNode->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
+    parentNode->AddChild(childNode);
+
+    auto virtualScreenId = 1;
+    childNode->UpdateBlackListStatus(virtualScreenId, true);
+    parentNode->SetIsOnTheTree(true);
+    parentNode->SyncBlackListInfoToFirstLevelNode();
+    childNode->SetIsOnTheTree(true);
+    childNode->SyncBlackListInfoToFirstLevelNode();
+    childNode->SetIsOnTheTree(false);
+    childNode->SyncBlackListInfoToFirstLevelNode();
 }
 
 /**
@@ -2286,6 +2347,38 @@ HWTEST_F(RSSurfaceRenderNodeTest, GetOriAncoForceDoDirect, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetTunnelLayerId
+ * @tc.desc: test results of SetTunnelLayerId
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SetTunnelLayerId, TestSize.Level1)
+{
+    auto testNode = std::make_shared<RSSurfaceRenderNode>(id, context);
+    ASSERT_NE(testNode, nullptr);
+    ASSERT_EQ(testNode->GetTunnelLayerId(), 0);
+    testNode->SetTunnelLayerId(1);
+    ASSERT_EQ(testNode->GetTunnelLayerId(), 1);
+}
+ 
+/**
+ * @tc.name: IsHardwareForcedDisabled001
+ * @tc.desc: test results of IsHardwareForcedDisabled001
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, IsHardwareForcedDisabled001, TestSize.Level1)
+{
+    auto testNode = std::make_shared<RSSurfaceRenderNode>(id, context);
+    ASSERT_NE(testNode, nullptr);
+    ASSERT_EQ(testNode->GetTunnelLayerId(), 0);
+ 
+    testNode->SetTunnelLayerId(1);
+    ASSERT_EQ(testNode->GetTunnelLayerId(), 1);
+    ASSERT_EQ(testNode->IsHardwareForcedDisabled(), false);
+}
+
+/**
  * @tc.name: SetStencilVal
  * @tc.desc: test SetStencilVal
  * @tc.type: FUNC
@@ -2527,5 +2620,53 @@ HWTEST_F(RSSurfaceRenderNodeTest, GetSourceDisplayRenderNodeId, TestSize.Level1)
     testNode->SetSourceDisplayRenderNodeId(sourceDisplayRenderNodeId);
     ASSERT_EQ(testNode->GetSourceDisplayRenderNodeId(), sourceDisplayRenderNodeId);
 }
+
+#ifndef ROSEN_CROSS_PLATFORM
+/**
+ * @tc.name: UpdateLayerSrcRectForAnco
+ * @tc.desc: test results of UpdateLayerSrcRectForAnco
+ * @tc.type: FUNC
+ * @tc.require: issueICA0I8
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, UpdateLayerSrcRectForAnco, TestSize.Level1)
+{
+    std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(0);
+    ASSERT_NE(node, nullptr);
+    ASSERT_EQ(node->stagingRenderParams_, nullptr);
+    node->SetAncoFlags(static_cast<uint32_t>(AncoFlags::ANCO_SFV_NODE));
+    node->SetAncoSrcCrop({0, 0, 0, 0});
+    node->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(1);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(node->stagingRenderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+    RSLayerInfo layerInfo{};
+    node->UpdateLayerSrcRectForAnco(layerInfo, *surfaceParams);
+    node->SetAncoFlags(static_cast<uint32_t>(AncoFlags::ANCO_SFV_NODE));
+    node->SetAncoSrcCrop({0, 0, 0, 0});
+    GraphicIRect rect{0, 0, 100, 100};
+    layerInfo.srcRect = rect;
+    surfaceParams->SetLayerInfo(layerInfo);
+    node->UpdateLayerSrcRectForAnco(layerInfo, *surfaceParams);
+    auto layer = node->stagingRenderParams_->GetLayerInfo();
+    ASSERT_TRUE(layer.srcRect == rect);
+
+    node->SetAncoSrcCrop({0, 0, 50, 0});
+    node->UpdateLayerSrcRectForAnco(layerInfo, *surfaceParams);
+    layer = node->stagingRenderParams_->GetLayerInfo();
+    ASSERT_TRUE(layer.srcRect == rect);
+
+    node->SetAncoSrcCrop({0, 0, 0, 50});
+    node->UpdateLayerSrcRectForAnco(layerInfo, *surfaceParams);
+    layer = node->stagingRenderParams_->GetLayerInfo();
+    ASSERT_TRUE(layer.srcRect == rect);
+
+    node->SetAncoSrcCrop({0, 0, 50, 50});
+    rect = GraphicIRect {0, 0, 50, 50};
+    node->UpdateLayerSrcRectForAnco(layerInfo, *surfaceParams);
+    layer = node->stagingRenderParams_->GetLayerInfo();
+    ASSERT_TRUE(layer.srcRect == rect);
+    GraphicTransformType transform{};
+    node->UpdateHwcNodeLayerInfo(transform);
+}
+#endif
 } // namespace Rosen
 } // namespace OHOS

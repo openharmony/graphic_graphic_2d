@@ -25,7 +25,9 @@
 #include "effect/blender.h"
 #include "image/pixmap.h"
 #include "image/yuv_info.h"
+#ifndef USE_M133_SKIA
 #include "src/gpu/GrPerfMonitorReporter.h"
+#endif
 #include "text/font_style_set.h"
 #include "text/text_blob.h"
 #include "text/typeface.h"
@@ -108,10 +110,12 @@ public:
     static bool IsOpenPerf();
     static int64_t GetCurrentTime();
     static void SetCurrentNodeId(uint64_t nodeId);
+#ifndef USE_M133_SKIA
     static void GrTextureEventConvert2Rs(std::map<std::string, RsTextureEvent>& rsTextureEvent,
        const std::map<std::string, TextureEvent>& grTextureEvent);
     static void GrBlurEventConvert2Rs(std::map<std::string, RsBlurEvent>& rsBlurEvent,
         const std::map<std::string, BlurEvent>& grBlurEvent);
+#endif
 };
 } // namespace Drawing
 } // namespace Rosen

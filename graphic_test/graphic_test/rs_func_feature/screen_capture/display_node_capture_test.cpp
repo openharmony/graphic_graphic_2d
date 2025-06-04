@@ -147,6 +147,10 @@ GRAPHIC_N_TEST(RSScreenCaptureTest, CONTENT_DISPLAY_TEST, DISPLAY_NODE_CAPTURE_T
 
     RSDisplayNodeConfig displayNodeConfig = {screenId, false, 0, true};
     auto displayNode = RSDisplayNode::Create(displayNodeConfig);
+    if (!displayNode) {
+        LOGE("displayNode is nullptr");
+        return;
+    }
     RegisterNode(displayNode);
     displayNode->SetBounds({0, 0, 1000, 1000});
     displayNode->SetFrame({0, 0, 1000, 1000});
@@ -215,6 +219,10 @@ GRAPHIC_N_TEST(RSScreenCaptureTest, CONTENT_DISPLAY_TEST, DISPLAY_NODE_CAPTURE_T
 
     RSDisplayNodeConfig displayNodeConfig = {screenId, false, 0, true};
     auto displayNode = RSDisplayNode::Create(displayNodeConfig);
+    if (!displayNode) {
+        LOGE("displayNode is nullptr");
+        return;
+    }
     RegisterNode(displayNode);
     displayNode->SetBounds({0, 0, 1000, 1000});
     displayNode->SetFrame({0, 0, 1000, 1000});

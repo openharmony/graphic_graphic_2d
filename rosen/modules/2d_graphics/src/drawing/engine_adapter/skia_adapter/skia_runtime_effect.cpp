@@ -64,8 +64,12 @@ void SkiaRuntimeEffect::InitForShader(const std::string& sl, const RuntimeEffect
     GlslToSksl(sksl, glsl);
 
     SkRuntimeEffect::Options skOptions;
+#ifdef USE_M133_SKIA
+    skOptions.forceUnoptimized = options.forceNoInline;
+#else
     skOptions.useAF = options.useAF;
     skOptions.forceNoInline = options.forceNoInline;
+#endif
     auto [effect, err] = SkRuntimeEffect::MakeForShader(SkString(sksl.c_str()), skOptions);
     skRuntimeEffect_ = effect;
 }
@@ -113,9 +117,14 @@ std::shared_ptr<ShaderEffect> SkiaRuntimeEffect::MakeShader(std::shared_ptr<Data
                 skChildren[i] = sk_sp<SkShader>(skShaderImpl->GetShader());
             }
         }
+#ifdef USE_M133_SKIA
+        sk_sp<SkShader> skShader = skRuntimeEffect_->makeShader(data, skChildren,
+            childCount, localMatrix ? &localMatrix->GetImpl<SkiaMatrix>()->ExportSkiaMatrix() : nullptr);
+#else
         sk_sp<SkShader> skShader = skRuntimeEffect_->makeShader(data, skChildren,
             childCount, localMatrix ? &localMatrix->GetImpl<SkiaMatrix>()->ExportSkiaMatrix() : nullptr,
             isOpaque);
+#endif
         shader->GetImpl<SkiaShaderEffect>()->SetSkShader(skShader);
     }
     return shader;

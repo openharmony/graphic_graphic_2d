@@ -21,22 +21,21 @@ ohos_unittest("RSRenderServiceClientPropertyTest") {
   module_out_path = module_output_path
 
   sources = [
-    "rs_ui_blur_filter_test.cpp",
     "rs_ui_bezier_warp_filter_test.cpp",
+    "rs_ui_blur_filter_test.cpp",
     "rs_ui_color_gradient_filter_test.cpp",
+    "rs_ui_dispersion_filter_test.cpp",
     "rs_ui_displacement_distort_filter_test.cpp",
     "rs_ui_edge_light_filter_test.cpp",
+    "rs_ui_filter_para_base_test.cpp",
+    "rs_ui_filter_test.cpp",
     "rs_ui_mask_para_test.cpp",
     "rs_ui_pixel_map_mask_test.cpp",
     "rs_ui_ripple_mask_test.cpp",
-    "rs_ui_filter_test.cpp",
-    "rs_ui_filter_para_base_test.cpp",
     "rs_ui_sound_wave_filter_test.cpp",
   ]
 
-  include_dirs = [
-    "//foundation/graphic/graphic_2d/rosen/test/include",
-  ]
+  include_dirs = [ "//foundation/graphic/graphic_2d/rosen/test/include" ]
 
   configs = [
     ":property_test",
@@ -49,29 +48,31 @@ ohos_unittest("RSRenderServiceClientPropertyTest") {
   ]
 
   deps = [
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:render_service_client_src"
+    "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics:2d_graphics",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:render_service_client_src",
   ]
 
   subsystem_name = "graphic"
   external_deps = [
     "c_utils:utils",
+    "egl:libEGL",
+    "eventhandler:libeventhandler",
     "googletest:gtest_main",
+    "graphic_surface:surface",
     "hilog:libhilog",
-    "image_framework:image",
+    "image_framework:image_native",
+    "opengles:libGLES",
   ]
 }
 
 ###############################################################################
 config("property_test") {
   visibility = [ ":*" ]
-  include_dirs = [
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_client"
-  ]
+  include_dirs =
+      [ "//foundation/graphic/graphic_2d/rosen/modules/render_service_client" ]
 }
 
 group("unittest") {
   testonly = true
-  deps = [
-    ":RSRenderServiceClientPropertyTest",
-  ]
+  deps = [ ":RSRenderServiceClientPropertyTest" ]
 }

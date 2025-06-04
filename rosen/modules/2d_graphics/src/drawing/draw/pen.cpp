@@ -15,6 +15,7 @@
 
 #include "draw/pen.h"
 
+#include "config/DrawingConfig.h"
 #include "static_factory.h"
 
 namespace OHOS {
@@ -183,6 +184,7 @@ void Pen::SetPathEffect(std::shared_ptr<PathEffect> e)
 {
 #ifdef DRAWING_DISABLE_API
     if (DrawingConfig::IsDisabled(DrawingConfig::DrawingDisableFlag::DISABLE_PATH_EFFECT)) {
+        pathEffect_ = nullptr;
         return;
     }
 #endif

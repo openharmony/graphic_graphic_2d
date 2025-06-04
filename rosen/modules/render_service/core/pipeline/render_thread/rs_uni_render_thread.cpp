@@ -29,7 +29,11 @@
 #include "graphic_common_c.h"
 #include "hgm_core.h"
 #include "include/core/SkGraphics.h"
+#ifdef USE_M133_SKIA
+#include "include/gpu/ganesh/GrDirectContext.h"
+#else
 #include "include/gpu/GrDirectContext.h"
+#endif
 #include "utils/graphic_coretrace.h"
 #include "memory/rs_memory_manager.h"
 #include "mem_param.h"
@@ -389,8 +393,8 @@ void RSUniRenderThread::CollectReleaseTasks(std::vector<std::function<void()>>& 
         if (needRelease && lastHardWareEnabled) {
             surfaceParams->releaseInHardwareThreadTaskNum_ = RELEASE_IN_HARDWARE_THREAD_TASK_NUM;
         }
-        if (curHardWareEnabled != lastHardWareEnabled) {
-            RS_LOGI("name:%{public}s id:%{public}" PRIu64" hwcEnabled changed to:%{public}d needRelease:%{public}d",
+        if (curHardWareEnabled != lastHardWareEnabled && params->GetIsOnTheTree()) {
+            RS_LOGI("name:%{public}s id:%{public}" PRIu64 " hwcEnabled changed to:%{public}d needRelease:%{public}d",
                 surfaceDrawable->GetName().c_str(), surfaceDrawable->GetId(), curHardWareEnabled, needRelease);
         }
         if (needRelease) {

@@ -33,6 +33,12 @@
 
 namespace OHOS {
 namespace Rosen {
+
+/**
+ * @class RSBoundsModifier
+ *
+ * @brief The class for bounds modifiers.
+ */
 class RSC_EXPORT RSBoundsModifier : public RSGeometryModifier {
 public:
     /**
@@ -70,6 +76,11 @@ protected:
     void Apply(const std::shared_ptr<RSObjAbsGeometry>& geometry) override;
 };
 
+/**
+ * @class RSBoundsModifier
+ *
+ * @brief The class for bounds modifiers.
+ */
 class RSC_EXPORT RSBoundsSizeModifier : public RSGeometryModifier {
 public:
     /**
@@ -106,6 +117,11 @@ protected:
     void Apply(const std::shared_ptr<RSObjAbsGeometry>& geometry) override;
 };
 
+/**
+ * @class RSBoundsPositionModifier
+ *
+ * @brief The class for bounds position modifiers.
+ */
 class RSC_EXPORT RSBoundsPositionModifier : public RSGeometryModifier {
 public:
     /**
@@ -142,6 +158,11 @@ protected:
     void Apply(const std::shared_ptr<RSObjAbsGeometry>& geometry) override;
 };
 
+/**
+ * @class RSFrameModifier
+ *
+ * @brief The class for frame modifiers.
+ */
 class RSC_EXPORT RSFrameModifier : public RSGeometryModifier {
 public:
     /**
@@ -171,6 +192,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSPositionZModifier
+ *
+ * @brief The class for position Z modifiers.
+ */
 class RSC_EXPORT RSPositionZModifier : public RSGeometryModifier {
 public:
     /**
@@ -200,6 +226,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSPositionZApplicableCamera3DModifier
+ *
+ * @brief The class for position Z applicable camera 3D modifiers.
+ */
 class RSC_EXPORT RSPositionZApplicableCamera3DModifier : public RSGeometryModifier {
 public:
     /**
@@ -229,6 +260,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSSandBoxModifier
+ *
+ * @brief The class for sandbox modifiers.
+ */
 class RSC_EXPORT RSSandBoxModifier : public RSGeometryModifier {
 public:
     /**
@@ -258,6 +294,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSPivotModifier
+ *
+ * @brief The class for pivot modifiers.
+ */
 class RSC_EXPORT RSPivotModifier : public RSGeometryModifier {
 public:
     /**
@@ -294,6 +335,11 @@ protected:
     void Apply(const std::shared_ptr<RSObjAbsGeometry>& geometry) override;
 };
 
+/**
+ * @class RSPivotModifier
+ *
+ * @brief The class for pivot modifiers.
+ */
 class RSC_EXPORT RSPivotZModifier : public RSGeometryModifier {
 public:
     /**
@@ -330,6 +376,11 @@ protected:
     void Apply(const std::shared_ptr<RSObjAbsGeometry>& geometry) override;
 };
 
+/**
+ * @class RSQuaternionModifier
+ *
+ * @brief The class for quaternion modifiers.
+ */
 class RSC_EXPORT RSQuaternionModifier : public RSGeometryModifier {
 public:
     /**
@@ -366,6 +417,11 @@ protected:
     void Apply(const std::shared_ptr<RSObjAbsGeometry>& geometry) override;
 };
 
+/**
+ * @class RSRotationModifier
+ *
+ * @brief The class for rotation modifiers.
+ */
 class RSC_EXPORT RSRotationModifier : public RSGeometryModifier {
 public:
     /**
@@ -402,6 +458,11 @@ protected:
     void Apply(const std::shared_ptr<RSObjAbsGeometry>& geometry) override;
 };
 
+/**
+ * @class RSRotationXModifier
+ *
+ * @brief The class for rotation X modifiers.
+ */
 class RSC_EXPORT RSRotationXModifier : public RSGeometryModifier {
 public:
     /**
@@ -438,6 +499,11 @@ protected:
     void Apply(const std::shared_ptr<RSObjAbsGeometry>& geometry) override;
 };
 
+/**
+ * @class RSRotationYModifier
+ *
+ * @brief The class for rotation Y modifiers.
+ */
 class RSC_EXPORT RSRotationYModifier : public RSGeometryModifier {
 public:
     /**
@@ -474,6 +540,11 @@ protected:
     void Apply(const std::shared_ptr<RSObjAbsGeometry>& geometry) override;
 };
 
+/**
+ * @class RSCameraDistanceModifier
+ *
+ * @brief The class for camera distance modifiers.
+ */
 class RSC_EXPORT RSCameraDistanceModifier : public RSGeometryModifier {
 public:
     /**
@@ -510,6 +581,11 @@ protected:
     void Apply(const std::shared_ptr<RSObjAbsGeometry>& geometry) override;
 };
 
+/**
+ * @class RSScaleModifier
+ *
+ * @brief The class for scale modifiers.
+ */
 class RSC_EXPORT RSScaleModifier : public RSGeometryModifier {
 public:
     /**
@@ -546,6 +622,11 @@ protected:
     void Apply(const std::shared_ptr<RSObjAbsGeometry>& geometry) override;
 };
 
+/**
+ * @class RSScaleZModifier
+ *
+ * @brief The class for scale Z modifiers.
+ */
 class RSC_EXPORT RSScaleZModifier : public RSGeometryModifier {
 public:
     /**
@@ -582,6 +663,11 @@ protected:
     void Apply(const std::shared_ptr<RSObjAbsGeometry>& geometry) override;
 };
 
+/**
+ * @class RSSkewModifier
+ *
+ * @brief The class for skew modifiers.
+ */
 class RSC_EXPORT RSSkewModifier : public RSGeometryModifier {
 public:
     /**
@@ -618,6 +704,11 @@ protected:
     void Apply(const std::shared_ptr<RSObjAbsGeometry>& geometry) override;
 };
 
+/**
+ * @class RSPerspModifier
+ *
+ * @brief The class for perspective modifiers.
+ */
 class RSC_EXPORT RSPerspModifier : public RSGeometryModifier {
 public:
     /**
@@ -654,6 +745,11 @@ protected:
     void Apply(const std::shared_ptr<RSObjAbsGeometry>& geometry) override;
 };
 
+/**
+ * @class RSTranslateModifier
+ *
+ * @brief The class for translate modifiers.
+ */
 class RSC_EXPORT RSTranslateModifier : public RSGeometryModifier {
 public:
     /**
@@ -690,6 +786,11 @@ protected:
     void Apply(const std::shared_ptr<RSObjAbsGeometry>& geometry) override;
 };
 
+/**
+ * @class RSTranslateZModifier
+ *
+ * @brief The class for translate Z modifiers.
+ */
 class RSC_EXPORT RSTranslateZModifier : public RSGeometryModifier {
 public:
     /**
@@ -726,6 +827,11 @@ protected:
     void Apply(const std::shared_ptr<RSObjAbsGeometry>& geometry) override;
 };
 
+/**
+ * @class RSCornerRadiusModifier
+ *
+ * @brief The class for corner radius modifiers.
+ */
 class RSC_EXPORT RSCornerRadiusModifier : public RSAppearanceModifier {
 public:
     /**
@@ -755,6 +861,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSAlphaModifier
+ *
+ * @brief The class for alpha modifiers.
+ */
 class RSC_EXPORT RSAlphaModifier : public RSAppearanceModifier {
 public:
     /**
@@ -784,6 +895,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSAlphaOffscreenModifier
+ *
+ * @brief The class for alpha offscreen modifiers.
+ */
 class RSC_EXPORT RSAlphaOffscreenModifier : public RSAppearanceModifier {
 public:
     /**
@@ -813,6 +929,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSEnvForegroundColorModifier
+ *
+ * @brief The class for environment foreground color modifiers.
+ */
 class RS_EXPORT RSEnvForegroundColorModifier : public RSForegroundModifier {
 public:
     /**
@@ -843,6 +964,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSEnvForegroundColorStrategyModifier
+ *
+ * @brief The class for environment foreground color strategy modifiers.
+ */
 class RS_EXPORT RSEnvForegroundColorStrategyModifier : public RSForegroundModifier {
 public:
     /**
@@ -873,6 +999,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSForegroundColorModifier
+ *
+ * @brief The class for foreground color modifiers.
+ */
 class RSC_EXPORT RSForegroundColorModifier : public RSForegroundModifier {
 public:
     /**
@@ -935,6 +1066,11 @@ private:
     void OnDetachFromNode() override;
 };
 
+/**
+ * @class RSUseShadowBatchingModifier
+ *
+ * @brief The class for shadow batching modifiers.
+ */
 class RSC_EXPORT RSUseShadowBatchingModifier : public RSBackgroundModifier {
 public:
     /**
@@ -964,6 +1100,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSBackgroundColorModifier
+ *
+ * @brief The class for background color modifiers.
+ */
 class RSC_EXPORT RSBackgroundColorModifier : public RSBackgroundModifier {
 public:
     /**
@@ -993,6 +1134,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSBackgroundShaderModifier
+ *
+ * @brief The class for background shader modifiers.
+ */
 class RSC_EXPORT RSBackgroundShaderModifier : public RSBackgroundModifier {
 public:
     /**
@@ -1022,6 +1168,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSBackgroundShaderProgressModifier
+ *
+ * @brief The class for background shader progress modifiers.
+ */
 class RSC_EXPORT RSBackgroundShaderProgressModifier : public RSBackgroundModifier {
 public:
     /**
@@ -1051,6 +1202,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSBgImageModifier
+ *
+ * @brief The class for background image modifiers.
+ */
 class RSC_EXPORT RSBgImageModifier : public RSBackgroundModifier {
 public:
     /**
@@ -1080,6 +1236,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSBgImageInnerRectModifier
+ *
+ * @brief The class for background image inner rectangle modifiers.
+ */
 class RSC_EXPORT RSBgImageInnerRectModifier : public RSBackgroundModifier {
 public:
     /**
@@ -1109,6 +1270,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSBgImageWidthModifier
+ *
+ * @brief The class for background image width modifiers.
+ */
 class RSC_EXPORT RSBgImageWidthModifier : public RSBackgroundModifier {
 public:
     /**
@@ -1167,6 +1333,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSBgImagePositionXModifier
+ *
+ * @brief The class for background image position X modifiers.
+ */
 class RSC_EXPORT RSBgImagePositionXModifier : public RSBackgroundModifier {
 public:
     /**
@@ -1196,6 +1367,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSBgImagePositionYModifier
+ *
+ * @brief The class for background image position Y modifiers.
+ */
 class RSC_EXPORT RSBgImagePositionYModifier : public RSBackgroundModifier {
 public:
     /**
@@ -1225,6 +1401,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSBorderColorModifier
+ *
+ * @brief The class for border color modifiers.
+ */
 class RSC_EXPORT RSBorderColorModifier : public RSForegroundModifier {
 public:
     /**
@@ -1254,6 +1435,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSBorderWidthModifier
+ *
+ * @brief The class for border width modifiers.
+ */
 class RSC_EXPORT RSBorderWidthModifier : public RSForegroundModifier {
 public:
     /**
@@ -1283,6 +1469,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSBorderStyleModifier
+ *
+ * @brief The class for border style modifiers.
+ */
 class RSC_EXPORT RSBorderStyleModifier : public RSForegroundModifier {
 public:
     /**
@@ -1312,6 +1503,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSBorderDashWidthModifier
+ *
+ * @brief The class for border dash width modifiers.
+ */
 class RSC_EXPORT RSBorderDashWidthModifier : public RSForegroundModifier {
 public:
     /**
@@ -1341,6 +1537,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSBorderDashGapModifier
+ *
+ * @brief The class for border dash gap modifiers.
+ */
 class RSC_EXPORT RSBorderDashGapModifier : public RSForegroundModifier {
 public:
     /**
@@ -1370,6 +1571,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSOutlineColorModifier
+ *
+ * @brief The class for outline color modifiers.
+ */
 class RSC_EXPORT RSOutlineColorModifier : public RSForegroundModifier {
 public:
     /**
@@ -1399,6 +1605,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSOutlineWidthModifier
+ *
+ * @brief The class for outline width modifiers.
+ */
 class RSC_EXPORT RSOutlineWidthModifier : public RSForegroundModifier {
 public:
     /**
@@ -1428,6 +1639,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSOutlineDashWidthModifier
+ *
+ * @brief The class for outline dash width modifiers.
+ */
 class RSC_EXPORT RSOutlineDashWidthModifier : public RSForegroundModifier {
 public:
     /**
@@ -1457,6 +1673,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSOutlineDashGapModifier
+ *
+ * @brief The class for outline dash gap modifiers.
+ */
 class RSC_EXPORT RSOutlineDashGapModifier : public RSForegroundModifier {
 public:
     /**
@@ -1486,6 +1707,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSOutlineStyleModifier
+ *
+ * @brief The class for outline style modifiers.
+ */
 class RSC_EXPORT RSOutlineStyleModifier : public RSForegroundModifier {
 public:
     /**
@@ -1515,6 +1741,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSOutlineRadiusModifier
+ *
+ * @brief The class for outline radius modifiers.
+ */
 class RSC_EXPORT RSOutlineRadiusModifier : public RSForegroundModifier {
 public:
     /**
@@ -1544,6 +1775,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSForegroundEffectRadiusModifier
+ *
+ * @brief The class for foreground effect radius modifiers.
+ */
 class RSC_EXPORT RSForegroundEffectRadiusModifier : public RSForegroundModifier {
 public:
     /**
@@ -1573,6 +1809,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSFilterModifier
+ *
+ * @brief The class for filter modifiers.
+ */
 class RSC_EXPORT RSFilterModifier : public RSForegroundModifier {
 public:
     /**
@@ -1602,6 +1843,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSBackgroundBlurRadiusModifier
+ *
+ * @brief The class for background blur radius modifiers.
+ */
 class RSC_EXPORT RSBackgroundBlurRadiusModifier : public RSBackgroundModifier {
 public:
     /**
@@ -1631,6 +1877,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSBackgroundBlurSaturationModifier
+ *
+ * @brief The class for background blur saturation modifiers.
+ */
 class RSC_EXPORT RSBackgroundBlurSaturationModifier : public RSBackgroundModifier {
 public:
     /**
@@ -1660,6 +1911,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSBackgroundBlurBrightnessModifier
+ *
+ * @brief The class for background blur brightness modifiers.
+ */
 class RSC_EXPORT RSBackgroundBlurBrightnessModifier : public RSBackgroundModifier {
 public:
     /**
@@ -1689,6 +1945,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSBackgroundBlurMaskColorModifier
+ *
+ * @brief The class for background blur mask color modifiers.
+ */
 class RSC_EXPORT RSBackgroundBlurMaskColorModifier : public RSBackgroundModifier {
 public:
     /**
@@ -1718,6 +1979,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSBackgroundBlurColorModeModifier
+ *
+ * @brief The class for background blur color mode modifiers.
+ */
 class RSC_EXPORT RSBackgroundBlurColorModeModifier : public RSBackgroundModifier {
 public:
     /**
@@ -1747,6 +2013,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSBackgroundBlurRadiusXModifier
+ *
+ * @brief The background blur radius modifier in the X direction
+ */
 class RSC_EXPORT RSBackgroundBlurRadiusXModifier : public RSBackgroundModifier {
 public:
     /**
@@ -1776,6 +2047,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSBackgroundBlurRadiusYModifier
+ *
+ * @brief The background blur radius modifier in the Y direction
+ */
 class RSC_EXPORT RSBackgroundBlurRadiusYModifier : public RSBackgroundModifier {
 public:
     /**
@@ -1805,6 +2081,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSBgBlurDisableSystemAdaptationModifier
+ *
+ * @brief The class for background blur disable system adaptation modifiers.
+ */
 class RSC_EXPORT RSBgBlurDisableSystemAdaptationModifier : public RSBackgroundModifier {
 public:
     /**
@@ -1834,6 +2115,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSAlwaysSnapshotModifier
+ *
+ * @brief The class for always snapshot modifiers.
+ */
 class RSC_EXPORT RSAlwaysSnapshotModifier : public RSBackgroundModifier {
 public:
     /**
@@ -1863,6 +2149,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSForegroundBlurRadiusModifier
+ *
+ * @brief The class for foreground blur radius modifiers.
+ */
 class RSC_EXPORT RSForegroundBlurRadiusModifier : public RSForegroundModifier {
 public:
     /**
@@ -1892,6 +2183,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSForegroundBlurSaturationModifier
+ *
+ * @brief The class for foreground blur saturation modifiers.
+ */
 class RSC_EXPORT RSForegroundBlurSaturationModifier : public RSForegroundModifier {
 public:
     /**
@@ -1921,6 +2217,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSForegroundBlurBrightnessModifier
+ *
+ * @brief The class for foreground blur brightness modifiers.
+ */
 class RSC_EXPORT RSForegroundBlurBrightnessModifier : public RSForegroundModifier {
 public:
     /**
@@ -1950,6 +2251,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSForegroundBlurMaskColorModifier
+ *
+ * @brief The class for foreground blur mask color modifiers.
+ */
 class RSC_EXPORT RSForegroundBlurMaskColorModifier : public RSForegroundModifier {
 public:
     /**
@@ -1979,6 +2285,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSForegroundBlurColorModeModifier
+ *
+ * @brief The class for foreground blur color mode modifiers.
+ */
 class RSC_EXPORT RSForegroundBlurColorModeModifier : public RSForegroundModifier {
  public:
     /**
@@ -2008,6 +2319,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSForegroundBlurRadiusXModifier
+ *
+ * @brief The foreground blur radius modifier in the X direction
+ */
 class RSC_EXPORT RSForegroundBlurRadiusXModifier : public RSForegroundModifier {
 public:
     /**
@@ -2037,6 +2353,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSForegroundBlurRadiusYModifier
+ *
+ * @brief The foreground blur radius modifier in the Y direction
+ */
 class RSC_EXPORT RSForegroundBlurRadiusYModifier : public RSForegroundModifier {
 public:
     /**
@@ -2066,6 +2387,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSFgBlurDisableSystemAdaptationModifier
+ *
+ * @brief The class for figure blur disable system adaptation modifiers.
+ */
 class RSC_EXPORT RSFgBlurDisableSystemAdaptationModifier : public RSForegroundModifier {
 public:
     /**
@@ -2095,6 +2421,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSLightUpEffectModifier
+ *
+ * @brief The class for light up effect modifiers.
+ */
 class RSC_EXPORT RSLightUpEffectModifier : public RSForegroundModifier {
 public:
     /**
@@ -2124,6 +2455,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSDynamicLightUpRateModifier
+ *
+ * @brief The class for dynamic light up rate modifiers.
+ */
 class RSC_EXPORT RSDynamicLightUpRateModifier : public RSForegroundModifier {
 public:
     /**
@@ -2153,6 +2489,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSDynamicLightUpDegreeModifier
+ *
+ * @brief The class for dynamic light up degree modifiers.
+ */ 
 class RSC_EXPORT RSDynamicLightUpDegreeModifier : public RSForegroundModifier {
 public:
     /**
@@ -2182,6 +2523,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSWaterRippleParamsModifier
+ *
+ * @brief The class for water ripple parameters modifiers.
+ */
 class RSC_EXPORT RSWaterRippleParamsModifier : public RSBackgroundModifier {
 public:
     /**
@@ -2211,6 +2557,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSWaterRippleProgressModifier
+ *
+ * @brief The class for water ripple progress modifiers.
+ */
 class RSC_EXPORT RSWaterRippleProgressModifier : public RSBackgroundModifier {
 public:
     /**
@@ -2240,6 +2591,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSFlyOutParamsModifier
+ *
+ * @brief The class for fly out parameters modifiers.
+ */
 class RSC_EXPORT RSFlyOutParamsModifier : public RSForegroundModifier {
 public:
     /**
@@ -2269,6 +2625,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSFlyOutDegreeModifier
+ *
+ * @brief The class for fly out degree modifiers.
+ */
 class RSC_EXPORT RSFlyOutDegreeModifier : public RSForegroundModifier {
 public:
     /**
@@ -2298,6 +2659,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSDistortionKModifier
+ *
+ * @brief The class for distortion K modifiers.
+ */
 class RSC_EXPORT RSDistortionKModifier : public RSForegroundModifier {
 public:
     /**
@@ -2327,6 +2693,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSFgBrightnessRatesModifier
+ *
+ * @brief The class for foreground brightness rates modifiers.
+ */
 class RSC_EXPORT RSFgBrightnessRatesModifier : public RSForegroundModifier {
 public:
     /**
@@ -2356,6 +2727,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSFgBrightnessSaturationModifier
+ *
+ * @brief The class for foreground brightness saturation modifiers.
+ */
 class RSC_EXPORT RSFgBrightnessSaturationModifier : public RSForegroundModifier {
 public:
     /**
@@ -2385,6 +2761,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSFgBrightnessPosCoeffModifier
+ *
+ * @brief The class for figure brightness positive coefficient modifiers.
+ */
 class RSC_EXPORT RSFgBrightnessPosCoeffModifier : public RSForegroundModifier {
 public:
     /**
@@ -2414,6 +2795,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSFgBrightnessNegCoeffModifier
+ *
+ * @brief The class for figure brightness negative coefficient modifiers.
+ */
 class RSC_EXPORT RSFgBrightnessNegCoeffModifier : public RSForegroundModifier {
 public:
     /**
@@ -2443,6 +2829,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSFgBrightnessFractModifier
+ *
+ * @brief The class for figure brightness fraction modifiers.
+ */
 class RSC_EXPORT RSFgBrightnessFractModifier : public RSForegroundModifier {
 public:
     /**
@@ -2472,6 +2863,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSBgBrightnessRatesModifier
+ *
+ * @brief The class for background brightness rates modifiers.
+ */
 class RSC_EXPORT RSBgBrightnessRatesModifier : public RSBackgroundModifier {
 public:
     /**
@@ -2501,6 +2897,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSBgBrightnessSaturationModifier
+ *
+ * @brief The class for background brightness saturation modifiers.
+ */
 class RSC_EXPORT RSBgBrightnessSaturationModifier : public RSBackgroundModifier {
 public:
     /**
@@ -2530,6 +2931,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSBgBrightnessPosCoeffModifier
+ *
+ * @brief The class for background brightness positive coefficient modifiers.
+ */
 class RSC_EXPORT RSBgBrightnessPosCoeffModifier : public RSBackgroundModifier {
 public:
     /**
@@ -2559,6 +2965,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSBgBrightnessNegCoeffModifier
+ *
+ * @brief The class for background brightness negative coefficient modifiers.
+ */
 class RSC_EXPORT RSBgBrightnessNegCoeffModifier : public RSBackgroundModifier {
 public:
     /**
@@ -2588,6 +2999,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSBgBrightnessFractModifier
+ *
+ * @brief The class for background brightness fraction modifiers.
+ */
 class RSC_EXPORT RSBgBrightnessFractModifier : public RSBackgroundModifier {
 public:
     /**
@@ -2617,6 +3033,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSDynamicDimDegreeModifier
+ *
+ * @brief The class for dynamic dim degree modifiers.
+ */
 class RSC_EXPORT RSDynamicDimDegreeModifier : public RSForegroundModifier {
 public:
     /**
@@ -2646,6 +3067,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSEmitterUpdaterModifier
+ *
+ * @brief The class for emitter updater modifiers.
+ */
 class RSC_EXPORT RSEmitterUpdaterModifier : public RSForegroundModifier {
 public:
     /**
@@ -2675,6 +3101,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSParticleNoiseFieldsModifier
+ *
+ * @brief The class for particle noise fields modifiers.
+ */
 class RSC_EXPORT RSParticleNoiseFieldsModifier : public RSForegroundModifier {
 public:
     /**
@@ -2704,6 +3135,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSLinearGradientBlurParaModifier
+ *
+ * @brief The class for linear gradient blur parameter modifiers.
+ */
 class RSC_EXPORT RSLinearGradientBlurParaModifier : public RSForegroundModifier {
 public:
     /**
@@ -2733,6 +3169,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSMotionBlurParaModifier
+ *
+ * @brief The class for motion blur parameter modifiers.
+ */
 class RSC_EXPORT RSMotionBlurParaModifier : public RSForegroundModifier {
 public:
     /**
@@ -2762,6 +3203,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSMagnifierParamsModifier
+ *
+ * @brief The class for magnifier parameter modifiers.
+ */
 class RSC_EXPORT RSMagnifierParamsModifier : public RSForegroundModifier {
 public:
     /**
@@ -2791,6 +3237,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSBackgroundFilterModifier
+ *
+ * @brief The class for background filter modifiers.
+ */
 class RSC_EXPORT RSBackgroundFilterModifier : public RSBackgroundModifier {
 public:
     /**
@@ -2820,6 +3271,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSFrameGravityModifier
+ *
+ * @brief The class for frame gravity modifiers.
+ */
 class RSC_EXPORT RSFrameGravityModifier : public RSAppearanceModifier {
 public:
     /**
@@ -2849,6 +3305,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSClipRRectModifier
+ *
+ * @brief The class for clip rounded rectangle modifiers.
+ */
 class RSC_EXPORT RSClipRRectModifier : public RSAppearanceModifier {
 public:
     /**
@@ -2878,6 +3339,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSClipBoundsModifier
+ *
+ * @brief The class for clip bounds modifiers.
+ */
 class RSC_EXPORT RSClipBoundsModifier : public RSAppearanceModifier {
 public:
     /**
@@ -2907,6 +3373,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSClipToBoundsModifier
+ *
+ * @brief The class for clip to bounds modifiers.
+ */
 class RSC_EXPORT RSClipToBoundsModifier : public RSAppearanceModifier {
 public:
     /**
@@ -2936,6 +3407,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSClipToFrameModifier
+ *
+ * @brief The class for clip to frame modifiers.
+ */
 class RSC_EXPORT RSClipToFrameModifier : public RSAppearanceModifier {
 public:
     /**
@@ -2965,6 +3441,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSCustomClipToFrameModifier
+ *
+ * @brief The class for custom clip to frame modifiers.
+ */
 class RS_EXPORT RSCustomClipToFrameModifier : public RSForegroundModifier {
 public:
     /**
@@ -2995,6 +3476,46 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSHDRBrightnessFactorModifier
+ *
+ * @brief The class for HDR brightness factor modifiers.
+ */
+class RS_EXPORT RSHDRBrightnessFactorModifier : public RSForegroundModifier {
+public:
+    /**
+     * @brief Construct a new RSHDRBrightnessFactorModifier instance.
+     *
+     * @param property A shared pointer to the RSPropertyBase object.
+     */
+    explicit RSHDRBrightnessFactorModifier(const std::shared_ptr<RSPropertyBase>& property);
+
+    /**
+     * @brief Destructor for RSHDRBrightnessFactorModifier.
+     */
+    virtual ~RSHDRBrightnessFactorModifier() = default;
+
+protected:
+    /**
+     * @brief Get the type of the modifier.
+     *
+     * @return The type of the modifier.
+     */
+    RSModifierType GetModifierType() const override;
+
+    /**
+     * @brief Create a new render modifier.
+     *
+     * @return A shared pointer to the created RSRenderModifier.
+     */
+    std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
+};
+
+/**
+ * @class RSHDRBrightnessModifier
+ *
+ * @brief The class for HDR brightness modifiers.
+ */
 class RS_EXPORT RSHDRBrightnessModifier : public RSForegroundModifier {
 public:
     /**
@@ -3055,6 +3576,11 @@ class RS_EXPORT RSHDRUIBrightnessModifier : public RSForegroundModifier {
         std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
     };
 
+/**
+ * @class RSVisibleModifier
+ *
+ * @brief The class for visibility modifiers.
+ */
 class RSC_EXPORT RSVisibleModifier : public RSAppearanceModifier {
 public:
     /**
@@ -3084,6 +3610,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSSpherizeModifier
+ *
+ * @brief The class for spherize modifiers.
+ */
 class RSC_EXPORT RSSpherizeModifier : public RSAppearanceModifier {
 public:
     /**
@@ -3113,6 +3644,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSAttractionFractionModifier
+ *
+ * @brief The class for attraction fraction modifiers.
+ */
 class RSC_EXPORT RSAttractionFractionModifier : public RSAppearanceModifier {
 public:
     /**
@@ -3142,6 +3678,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSAttractionDstPointModifier
+ *
+ * @brief The class for attraction destination point modifiers.
+ */
 class RSC_EXPORT RSAttractionDstPointModifier : public RSAppearanceModifier {
 public:
     /**
@@ -3171,6 +3712,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSShadowColorModifier
+ *
+ * @brief The class for shadow color modifiers.
+ */
 class RSC_EXPORT RSShadowColorModifier : public RSBackgroundModifier {
 public:
     /**
@@ -3200,6 +3746,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSShadowOffsetXModifier
+ *
+ * @brief The class for shadow offset X modifiers.
+ */
 class RSC_EXPORT RSShadowOffsetXModifier : public RSBackgroundModifier {
 public:
     /**
@@ -3229,6 +3780,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSShadowOffsetYModifier
+ *
+ * @brief The class for shadow offset Y modifiers.
+ */
 class RSC_EXPORT RSShadowOffsetYModifier : public RSBackgroundModifier {
 public:
     /**
@@ -3258,6 +3814,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSShadowAlphaModifier
+ *
+ * @brief The class for shadow alpha modifiers.
+ */
 class RSC_EXPORT RSShadowAlphaModifier : public RSBackgroundModifier {
 public:
     /**
@@ -3287,6 +3848,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSShadowElevationModifier
+ *
+ * @brief The class for shadow elevation modifiers.
+ */
 class RSC_EXPORT RSShadowElevationModifier : public RSBackgroundModifier {
 public:
     /**
@@ -3316,6 +3882,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSShadowRadiusModifier
+ *
+ * @brief The class for shadow radius modifiers.
+ */
 class RSC_EXPORT RSShadowRadiusModifier : public RSBackgroundModifier {
 public:
     /**
@@ -3345,6 +3916,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSShadowPathModifier
+ *
+ * @brief The class for shadow path modifiers.
+ */
 class RSC_EXPORT RSShadowPathModifier : public RSBackgroundModifier {
 public:
     /**
@@ -3374,6 +3950,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSShadowMaskModifier
+ *
+ * @brief The class for shadow mask modifiers.
+ */
 class RSC_EXPORT RSShadowMaskModifier : public RSBackgroundModifier {
 public:
     /**
@@ -3403,6 +3984,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSShadowIsFilledModifier
+ *
+ * @brief The class for shadow filled modifiers.
+ */
 class RSC_EXPORT RSShadowIsFilledModifier : public RSBackgroundModifier {
 public:
     /**
@@ -3432,6 +4018,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSGreyCoefModifier
+ *
+ * @brief The class for grey coefficient modifiers.
+ */
 class RSC_EXPORT RSGreyCoefModifier : public RSBackgroundModifier {
 public:
     /**
@@ -3461,6 +4052,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSMaskModifier
+ *
+ * @brief The class for mask modifiers.
+ */
 class RSC_EXPORT RSMaskModifier : public RSForegroundModifier {
 public:
     /**
@@ -3490,6 +4086,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSPixelStretchModifier
+ *
+ * @brief The class for pixel stretch modifiers.
+ */
 class RSC_EXPORT RSPixelStretchModifier : public RSGeometryModifier {
 public:
     /**
@@ -3519,6 +4120,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSPixelStretchPercentModifier
+ *
+ * @brief The class for pixel stretch percent modifiers.
+ */
 class RSC_EXPORT RSPixelStretchPercentModifier : public RSGeometryModifier {
 public:
     /**
@@ -3548,6 +4154,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSPixelStretchTileModeModifier
+ *
+ * @brief The class for pixel stretch tile mode modifiers.
+ */
 class RSC_EXPORT RSPixelStretchTileModeModifier : public RSGeometryModifier {
 public:
     /**
@@ -3577,6 +4188,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSGrayScaleModifier
+ *
+ * @brief The class for gray scale modifiers.
+ */
 class RSC_EXPORT RSGrayScaleModifier : public RSForegroundModifier {
 public:
     /**
@@ -3606,6 +4222,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSLightIntensityModifier
+ *
+ * @brief The class for light intensity modifiers.
+ */
 class RSC_EXPORT RSLightIntensityModifier : public RSForegroundModifier {
 public:
     /**
@@ -3635,6 +4256,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSLightColorModifier
+ *
+ * @brief The class for light color modifiers.
+ */
 class RSC_EXPORT RSLightColorModifier : public RSForegroundModifier {
 public:
     /**
@@ -3664,6 +4290,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSIlluminatedTypeModifier
+ *
+ * @brief The class for illuminated type modifiers.
+ */
 class RSC_EXPORT RSIlluminatedTypeModifier : public RSForegroundModifier {
 public:
     /**
@@ -3693,6 +4324,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSLightPositionModifier
+ *
+ * @brief The class for light position modifiers.
+ */
 class RSC_EXPORT RSLightPositionModifier : public RSForegroundModifier {
 public:
     /**
@@ -3722,6 +4358,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSIlluminatedBorderWidthModifier
+ *
+ * @brief The class for illuminated border width modifiers.
+ */
 class RSC_EXPORT RSIlluminatedBorderWidthModifier : public RSForegroundModifier {
 public:
     /**
@@ -3751,6 +4392,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSBloomModifier
+ *
+ * @brief The class for bloom modifiers.
+ */
 class RSC_EXPORT RSBloomModifier : public RSForegroundModifier {
 public:
     /**
@@ -3780,6 +4426,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSBrightnessModifier
+ *
+ * @brief The class for brightness modifiers.
+ */
 class RSC_EXPORT RSBrightnessModifier : public RSForegroundModifier {
 public:
     /**
@@ -3809,6 +4460,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSContrastModifier
+ *
+ * @brief The class for contrast modifiers.
+ */
 class RSC_EXPORT RSContrastModifier : public RSForegroundModifier {
 public:
     /**
@@ -3838,6 +4494,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSSaturateModifier
+ *
+ * @brief The class for saturate modifiers.
+ */
 class RSC_EXPORT RSSaturateModifier : public RSForegroundModifier {
 public:
     /**
@@ -3867,6 +4528,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSSepiaModifier
+ *
+ * @brief The class for sepia modifiers.
+ */
 class RSC_EXPORT RSSepiaModifier : public RSForegroundModifier {
 public:
     /**
@@ -3896,6 +4562,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSInvertModifier
+ *
+ * @brief The class for invert modifiers.
+ */
 class RSC_EXPORT RSInvertModifier : public RSForegroundModifier {
 public:
     /**
@@ -3925,6 +4596,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSAiInvertModifier
+ *
+ * @brief The class for AI invert modifiers.
+ */
 class RSC_EXPORT RSAiInvertModifier : public RSForegroundModifier {
 public:
     /**
@@ -3954,6 +4630,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSSystemBarEffectModifier
+ *
+ * @brief The class for system bar effect modifiers.
+ */
 class RSC_EXPORT RSSystemBarEffectModifier : public RSBackgroundModifier {
 public:
     /**
@@ -3983,6 +4664,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSHueRotateModifier
+ *
+ * @brief The class for hue rotate modifiers.
+ */
 class RSC_EXPORT RSHueRotateModifier : public RSForegroundModifier {
 public:
     /**
@@ -4012,6 +4698,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSColorBlendModifier
+ *
+ * @brief The class for color blend modifiers.
+ */
 class RSC_EXPORT RSColorBlendModifier : public RSForegroundModifier {
 public:
     /**
@@ -4041,6 +4732,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSUseEffectModifier
+ *
+ * @brief The class for use effect modifiers.
+ */
 class RSC_EXPORT RSUseEffectModifier : public RSBackgroundModifier {
 public:
     /**
@@ -4070,6 +4766,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSUseEffectTypeModifier
+ *
+ * @brief The class for use effect type modifiers.
+ */
 class RSC_EXPORT RSUseEffectTypeModifier : public RSBackgroundModifier {
 public:
     /**
@@ -4099,6 +4800,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSBehindWindowFilterRadiusModifier
+ *
+ * @brief The class for behind window filter radius modifiers.
+ */
 class RSC_EXPORT RSBehindWindowFilterRadiusModifier : public RSBackgroundModifier {
 public:
     /**
@@ -4128,6 +4834,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSBehindWindowFilterSaturationModifier
+ *
+ * @brief The class for behind window filter saturation modifiers.
+ */
 class RSC_EXPORT RSBehindWindowFilterSaturationModifier : public RSBackgroundModifier {
 public:
     /**
@@ -4157,6 +4868,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSBehindWindowFilterBrightnessModifier
+ *
+ * @brief The class for behind window filter brightness modifiers.
+ */
 class RSC_EXPORT RSBehindWindowFilterBrightnessModifier : public RSBackgroundModifier {
 public:
     /**
@@ -4186,6 +4902,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSBehindWindowFilterMaskColorModifier
+ *
+ * @brief The class for behind window filter mask color modifiers.
+ */
 class RSC_EXPORT RSBehindWindowFilterMaskColorModifier : public RSBackgroundModifier {
 public:
     /**
@@ -4215,6 +4936,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSColorBlendModeModifier
+ *
+ * @brief The class for color blend mode modifiers.
+ */
 class RSC_EXPORT RSColorBlendModeModifier : public RSBackgroundModifier {
 public:
     /**
@@ -4244,6 +4970,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSColorBlendApplyTypeModifier
+ *
+ * @brief The class for color blend apply type modifiers.
+ */
 class RSC_EXPORT RSColorBlendApplyTypeModifier : public RSBackgroundModifier {
 public:
     /**
@@ -4273,6 +5004,11 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+/**
+ * @class RSShadowColorStrategyModifier
+ *
+ * @brief The class for shadow color strategy modifiers.
+ */
 class RSC_EXPORT RSShadowColorStrategyModifier : public RSBackgroundModifier {
 public:
     /**

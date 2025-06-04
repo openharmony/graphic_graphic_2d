@@ -259,28 +259,4 @@ HWTEST_F(RSVKImageManagerTest, CreateImageCacheFromBuffer001, TestSize.Level1)
     // invalid buffer
     EXPECT_EQ(vkImageManager_->CreateImageCacheFromBuffer(new SurfaceBufferImpl(), SyncFence::INVALID_FENCE), nullptr);
 }
-
-/**
- * @tc.name: ShrinkCachesIfNeeded001
- * @tc.desc: Map 50 VKImages, call ShrinkCachesIfNeeded, check cacheQueue size
- * @tc.type: FUNC
- * @tc.require: issueI6QHNP
- */
-HWTEST_F(RSVKImageManagerTest, ShrinkCachesIfNeeded001, TestSize.Level1)
-{
-    const uint32_t cacheNums = 50;
-    uint32_t bufferSeqNums[50] = { 0 };
-    const uint32_t MAX_CACHE_SIZE = 16;
-    for (uint32_t i = 1; i <= cacheNums; i++) {
-        auto buffer = CreateBuffer();
-        ASSERT_NE(buffer, nullptr);
-
-        bufferSeqNums[i - 1] = buffer->GetSeqNum();
-        auto imageCache = vkImageManager_->MapVkImageFromSurfaceBuffer(buffer, SyncFence::INVALID_FENCE, fakeTid_);
-        EXPECT_NE(imageCache, nullptr);
-        EXPECT_EQ(i, vkImageManager_->cacheQueue_.size());
-    }
-    vkImageManager_->ShrinkCachesIfNeeded();
-    EXPECT_EQ(MAX_CACHE_SIZE, vkImageManager_->cacheQueue_.size());
-}
 } // namespace OHOS::Rosen

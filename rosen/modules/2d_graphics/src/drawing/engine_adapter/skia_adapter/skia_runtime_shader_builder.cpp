@@ -43,8 +43,13 @@ std::shared_ptr<ShaderEffect> SkiaRuntimeShaderBuilder::MakeShader(const Matrix*
     if (!skRuntimeShaderBuilder_) {
         return nullptr;
     }
+#ifdef USE_M133_SKIA
+    sk_sp<SkShader> skShader = skRuntimeShaderBuilder_->makeShader(
+        localMatrix ? &localMatrix->GetImpl<SkiaMatrix>()->ExportSkiaMatrix() : nullptr);
+#else
     sk_sp<SkShader> skShader = skRuntimeShaderBuilder_->makeShader(
         localMatrix ? &localMatrix->GetImpl<SkiaMatrix>()->ExportSkiaMatrix() : nullptr, isOpaque);
+#endif
     auto shader = std::make_shared<ShaderEffect>();
     shader->GetImpl<SkiaShaderEffect>()->SetSkShader(skShader);
 
@@ -58,6 +63,9 @@ std::shared_ptr<Image> SkiaRuntimeShaderBuilder::MakeImage(GPUContext* grContext
         return nullptr;
     }
 #ifdef RS_ENABLE_GPU
+#ifdef USE_M133_SKIA
+    return std::make_shared<Image>();
+#else
     sk_sp<SkImage> skImage = skRuntimeShaderBuilder_->makeImage(
         grContext->GetImpl<SkiaGPUContext>()->GetGrContext().get(),
         localMatrix ? &localMatrix->GetImpl<SkiaMatrix>()->ExportSkiaMatrix() : nullptr,
@@ -66,6 +74,7 @@ std::shared_ptr<Image> SkiaRuntimeShaderBuilder::MakeImage(GPUContext* grContext
     image->GetImpl<SkiaImage>()->SetSkImage(skImage);
 
     return image;
+#endif
 #else
     return {};
 #endif

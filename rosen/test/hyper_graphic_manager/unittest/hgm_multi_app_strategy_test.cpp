@@ -134,8 +134,8 @@ HgmErrCode HgmMultiAppStrategyTest::GetTouchVoteInfo(VoteInfo& touchVoteInfo)
     if (frameRateMgr == nullptr) {
         return HGM_ERROR;
     }
-    auto iter = frameRateMgr->voteRecord_.find("VOTER_TOUCH");
-    if (iter == frameRateMgr->voteRecord_.end()) {
+    auto iter = frameRateMgr->frameVoter_.voteRecord_.find("VOTER_TOUCH");
+    if (iter == frameRateMgr->frameVoter_.voteRecord_.end()) {
         return HGM_ERROR;
     }
     auto& [voteInfos, _] = iter->second;

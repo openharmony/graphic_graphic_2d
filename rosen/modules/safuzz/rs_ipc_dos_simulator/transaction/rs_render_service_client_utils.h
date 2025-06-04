@@ -275,20 +275,16 @@ private:
 
 class TransactionDataCallbackDirector : public RSTransactionDataCallbackStub {
 public:
-    explicit TransactionDataCallbackDirector (std::shared_ptr<RSRenderServiceClient> client) : client_(client) {}
+    explicit TransactionDataCallbackDirector(RSRenderServiceClient* client) : client_(client) {}
     ~TransactionDataCallbackDirector() noexcept override = default;
     void OnAfterProcess(int32_t pid, uint64_t timeStamp) override
     {
-        if (auto shared_client = client_.lock()) {
-            shared_client->TriggerTransactionDataCallbackAndErase(pid, timeStamp);
-        } else {
-            RS_LOGD("OnAfterProcess: TriggerTransactionDataCallbackAndErase, timeStamp: %{public}"
-                PRIu64 " pid: %{public}d", timeStamp, pid);
-        }
+        SAFUZZ_LOGD("OnAfterProcess: TriggerTransactionDataCallbackAndErase");
+        client_->TriggerTransactionDataCallbackAndErase(pid, timeStamp);
     }
 
 private:
-    std::weak_ptr<RSRenderServiceClient> client_;
+    RSRenderServiceClient* client_;
 };
 
 class CustomSelfDrawingNodeRectChangeCallback : public RSSelfDrawingNodeRectChangeCallbackStub {

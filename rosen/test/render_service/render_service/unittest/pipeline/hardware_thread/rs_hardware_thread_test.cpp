@@ -799,4 +799,32 @@ HWTEST_F(RSHardwareThreadTest, EndCheck001, TestSize.Level1)
     hardwareThread.EndCheck(timer);
     ASSERT_EQ(hardwareThread.hardwareCount_, 1); // timeout count 1
 }
+
+/*
+ * @tc.name: IsDropDirtyFrame
+ * @tc.desc: Test RSHardwareThreadTest.IsDropDirtyFrame
+ * @tc.type: FUNC
+ * @tc.require: issueIC5RYI
+ */
+HWTEST_F(RSHardwareThreadTest, IsDropDirtyFrame, TestSize.Level1)
+{
+    auto &hardwareThread = RSHardwareThread::Instance();
+    OutputPtr output = HdiOutput::CreateHdiOutput(screenId_);
+
+    if (!RSSystemProperties::IsSuperFoldDisplay()) {
+        ASSERT_EQ(hardwareThread.IsDropDirtyFrame(output), false);
+    } else {
+        GraphicIRect activeRect = {0, 0, 0, 0};
+        ASSERT_EQ(hardwareThread.IsDropDirtyFrame(output), false);
+
+        auto screenInfo = screenManager_->QueryScreenInfo(screenId_);
+        activeRect = {0, 0, screenInfo.width, screenInfo.height};
+        screenManager_->SetScreenActiveRect(screenId_, activeRect);
+        ASSERT_EQ(hardwareThread.IsDropDirtyFrame(output), false);
+
+        activeRect = {0, 0, screenInfo.width/2, screenInfo.height/2};
+        screenManager_->SetScreenActiveRect(screenId_, activeRect);
+        ASSERT_EQ(hardwareThread.IsDropDirtyFrame(output), true);
+    }
+}
 } // namespace OHOS::Rosen

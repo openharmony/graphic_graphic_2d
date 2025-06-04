@@ -219,33 +219,48 @@ HWTEST_F(RSVulkanContextTest, CreateDrawingContext001, TestSize.Level1)
  * @tc.name: GetRecyclableSingleton001
  * @tc.desc: test GetRecyclableSingleton
  * @tc.type:FUNC
- * @tc.require: issueIC3PRG
+ * @tc.require: issueICB7BS
  */
 HWTEST_F(RSVulkanContextTest, GetRecyclableSingleton001, TestSize.Level2)
 {
     RsVulkanContext::SetRecyclable(true);
-    RsVulkanContext::GetRecyclableSingleton();
-    ASSERT_NE(RsVulkanContext::recyclableSingleton_, nullptr);
+    ASSERT_NE(&RsVulkanContext::GetRecyclableSingleton(), nullptr);
 
     // reset recyclable singleton
     RsVulkanContext::ReleaseRecyclableSingleton();
 }
 
 /**
- * @tc.name: GetRecyclableSingleton002
- * @tc.desc: test GetRecyclableSingleton repeatedly
+ * @tc.name: GetRecyclableSingletonPtr001
+ * @tc.desc: test GetRecyclableSingletonPtr when called for the first time
  * @tc.type:FUNC
- * @tc.require: issueIC3PRG
+ * @tc.require: issueICB7BS
  */
-HWTEST_F(RSVulkanContextTest, GetRecyclableSingleton002, TestSize.Level2)
+HWTEST_F(RSVulkanContextTest, GetRecyclableSingletonPtr001, TestSize.Level2)
 {
     RsVulkanContext::SetRecyclable(true);
+    RsVulkanContext::ReleaseRecyclableSingleton();
+    ASSERT_NE(RsVulkanContext::GetRecyclableSingletonPtr(), nullptr);
 
-    // get recyclable singleton repeatedly
-    RsVulkanContext::GetRecyclableSingleton();
-    RsVulkanContext::GetRecyclableSingleton();
-    ASSERT_NE(RsVulkanContext::recyclableSingleton_, nullptr);
-    
+    // reset recyclable singleton
+    RsVulkanContext::ReleaseRecyclableSingleton();
+}
+
+/**
+ * @tc.name: GetRecyclableSingletonPtr002
+ * @tc.desc: test GetRecyclableSingletonPtr when singleton already init
+ * @tc.type:FUNC
+ * @tc.require: issueICB7BS
+ */
+HWTEST_F(RSVulkanContextTest, GetRecyclableSingletonPtr002, TestSize.Level2)
+{
+    RsVulkanContext::SetRecyclable(true);
+    RsVulkanContext::ReleaseRecyclableSingleton();
+    // GetRecyclableSingletonPtr init singleton
+    RsVulkanContext::GetRecyclableSingletonPtr();
+    // GetRecyclableSingletonPtr return the same singleton
+    ASSERT_NE(RsVulkanContext::GetRecyclableSingletonPtr(), nullptr);
+
     // reset recyclable singleton
     RsVulkanContext::ReleaseRecyclableSingleton();
 }
@@ -259,10 +274,12 @@ HWTEST_F(RSVulkanContextTest, GetRecyclableSingleton002, TestSize.Level2)
 HWTEST_F(RSVulkanContextTest, ReleaseRecyclableSingleton001, TestSize.Level2)
 {
     RsVulkanContext::SetRecyclable(true);
-
     RsVulkanContext::GetRecyclableSingleton();
     RsVulkanContext::ReleaseRecyclableSingleton();
-    ASSERT_EQ(RsVulkanContext::recyclableSingleton_, nullptr);
+    ASSERT_TRUE(RsVulkanContext::drawingContextMap_.empty());
+
+    // restore
+    RsVulkanContext::SetRecyclable(false);
 }
 
 
@@ -274,17 +291,10 @@ HWTEST_F(RSVulkanContextTest, ReleaseRecyclableSingleton001, TestSize.Level2)
  */
 HWTEST_F(RSVulkanContextTest, ReleaseRecyclableSingleton002, TestSize.Level2)
 {
-    RsVulkanContext::SetRecyclable(true);
-    RsVulkanContext::GetRecyclableSingleton();
-
     RsVulkanContext::SetRecyclable(false);
+    RsVulkanContext::GetSingleton();
     RsVulkanContext::ReleaseRecyclableSingleton();
-    ASSERT_NE(RsVulkanContext::recyclableSingleton_, nullptr);
-
-    // restore
-    RsVulkanContext::SetRecyclable(true);
-    RsVulkanContext::ReleaseRecyclableSingleton();
-    RsVulkanContext::SetRecyclable(false);
+    ASSERT_FALSE(RsVulkanContext::drawingContextMap_.empty());
 }
 
 /**
@@ -298,8 +308,8 @@ HWTEST_F(RSVulkanContextTest, ReleaseRecyclableSingleton003, TestSize.Level2)
     RsVulkanContext::SetRecyclable(true);
     RsVulkanContext::GetRecyclableSingleton();
 
-    RsVulkanContext::drawingContextMap_[gettid()] = nullptr;
-    RsVulkanContext::protectedDrawingContextMap_[gettid()] = nullptr;
+    RsVulkanContext::drawingContextMap_[gettid()] = {nullptr, false};
+    RsVulkanContext::protectedDrawingContextMap_[gettid()] = {nullptr, false};
 
     RsVulkanContext::ReleaseRecyclableSingleton();
     ASSERT_TRUE(RsVulkanContext::drawingContextMap_.empty());
@@ -320,10 +330,10 @@ HWTEST_F(RSVulkanContextTest, ReleaseRecyclableSingleton004, TestSize.Level2)
     RsVulkanContext::GetRecyclableSingleton();
 
     auto drawingContext = std::make_shared<Drawing::GPUContext>();
-    RsVulkanContext::drawingContextMap_[gettid()] = drawingContext;
+    RsVulkanContext::drawingContextMap_[gettid()] = {drawingContext, false};
 
     auto protectDrawingContext = std::make_shared<Drawing::GPUContext>();
-    RsVulkanContext::protectedDrawingContextMap_[gettid()] = protectDrawingContext;
+    RsVulkanContext::protectedDrawingContextMap_[gettid()] = {drawingContext, false};
 
     RsVulkanContext::ReleaseRecyclableSingleton();
     ASSERT_TRUE(RsVulkanContext::drawingContextMap_.empty());
@@ -354,30 +364,158 @@ HWTEST_F(RSVulkanContextTest, ReleaseRecyclableSingleton005, TestSize.Level2)
 }
 
 /**
- * @tc.name: SaveNewDrawingContext001
- * @tc.desc: test SaveNewDrawingContext
+ * @tc.name: GetRecyclableDrawingContext001
+ * @tc.desc: test GetRecyclableDrawingContext for protected context
  * @tc.type:FUNC
- * @tc.require: issueIC3PRG
+ * @tc.require: issueICB7BS
+ */
+HWTEST_F(RSVulkanContextTest, GetRecyclableDrawingContext001, TestSize.Level2)
+{
+    RsVulkanContext::isProtected_ = true;
+    auto context = RsVulkanContext::GetSingleton().GetRecyclableDrawingContext();
+    ASSERT_NE(context, nullptr);
+
+    // restore
+    RsVulkanContext::isProtected_ = false;
+}
+
+/**
+ * @tc.name: GetRecyclableDrawingContext002
+ * @tc.desc: test GetRecyclableDrawingContext for unprotected context
+ * @tc.type:FUNC
+ * @tc.require: issueICB7BS
+ */
+HWTEST_F(RSVulkanContextTest, GetRecyclableDrawingContext002, TestSize.Level2)
+{
+    RsVulkanContext::isProtected_ = false;
+    auto context = RsVulkanContext::GetSingleton().GetRecyclableDrawingContext();
+
+    ASSERT_NE(context, nullptr);
+}
+
+/**
+ * @tc.name: GetRecyclableDrawingContext003
+ * @tc.desc: test GetRecyclableDrawingContext while drawingContextMap_ is empty
+ * @tc.type:FUNC
+ * @tc.require: issueICB7BS
+ */
+HWTEST_F(RSVulkanContextTest, GetRecyclableDrawingContext003, TestSize.Level2)
+{
+    RsVulkanContext::isProtected_ = false;
+    auto drawingContext = RsVulkanContext::GetSingleton().CreateDrawingContext();
+    ASSERT_NE(drawingContext, nullptr);
+    RsVulkanContext::ReleaseDrawingContextMap();
+
+    auto recyclableContext = RsVulkanContext::GetSingleton().GetRecyclableDrawingContext();
+    ASSERT_NE(recyclableContext, nullptr);
+}
+
+/**
+ * @tc.name: ReleaseRecyclableDrawingContext001
+ * @tc.desc: test ReleaseRecyclableDrawingContext for protected context
+ * @tc.type:FUNC
+ * @tc.require: issueICB7BS
+ */
+HWTEST_F(RSVulkanContextTest, ReleaseRecyclableDrawingContext001, TestSize.Level2)
+{
+    RsVulkanContext::isProtected_ = true;
+    RsVulkanContext::ReleaseRecyclableDrawingContext();
+    ASSERT_TRUE(RsVulkanContext::protectedDrawingContextMap_.empty());
+
+    // restore
+    RsVulkanContext::isProtected_ = false;
+}
+
+/**
+ * @tc.name: ReleaseRecyclableDrawingContext002
+ * @tc.desc: test ReleaseRecyclableDrawingContext while drawingContextMap is empty
+ * @tc.type:FUNC
+ * @tc.require: issueICB7BS
+ */
+HWTEST_F(RSVulkanContextTest, ReleaseRecyclableDrawingContext002, TestSize.Level2)
+{
+    RsVulkanContext::isProtected_ = false;
+    RsVulkanContext::GetSingleton();
+    RsVulkanContext::drawingContextMap_.clear();
+    RsVulkanContext::ReleaseRecyclableDrawingContext();
+    ASSERT_TRUE(RsVulkanContext::protectedDrawingContextMap_.empty());
+}
+
+/**
+ * @tc.name: ReleaseRecyclableDrawingContext003
+ * @tc.desc: test ReleaseRecyclableDrawingContext while drawingContextMap isn't empty
+ * @tc.type:FUNC
+ * @tc.require: issueICB7BS
+ */
+HWTEST_F(RSVulkanContextTest, ReleaseRecyclableDrawingContext003, TestSize.Level2)
+{
+    RsVulkanContext::isProtected_ = false;
+    auto drawingContext = std::make_shared<Drawing::GPUContext>();
+    RsVulkanContext::drawingContextMap_[gettid()] = {drawingContext, true};
+
+    RsVulkanContext::ReleaseRecyclableDrawingContext();
+    ASSERT_TRUE(RsVulkanContext::drawingContextMap_.empty());
+}
+
+/**
+ * @tc.name: ReleaseRecyclableDrawingContext004
+ * @tc.desc: test ReleaseRecyclableDrawingContext while drawingContextMap isn't recyclable
+ * @tc.type:FUNC
+ * @tc.require: issueICB7BS
+ */
+HWTEST_F(RSVulkanContextTest, ReleaseRecyclableDrawingContext004, TestSize.Level2)
+{
+    RsVulkanContext::isProtected_ = false;
+    auto drawingContext = std::make_shared<Drawing::GPUContext>();
+    RsVulkanContext::drawingContextMap_[gettid()] = {drawingContext, false};
+
+    RsVulkanContext::ReleaseRecyclableDrawingContext();
+    ASSERT_FALSE(RsVulkanContext::drawingContextMap_.empty());
+}
+
+/**
+ * @tc.name: SaveNewDrawingContext001
+ * @tc.desc: test SaveNewDrawingContext for protected context
+ * @tc.type:FUNC
+ * @tc.require: issueICB7BS
  */
 HWTEST_F(RSVulkanContextTest, SaveNewDrawingContext001, TestSize.Level2)
 {
+    RsVulkanContext::isProtected_ = true;
+    auto gpuContext = std::make_shared<Drawing::GPUContext>();
+    RsVulkanContext::SaveNewDrawingContext(gettid(), gpuContext);
+    ASSERT_FALSE(RsVulkanContext::drawingContextMap_.empty());
+
+    // restore
+    RsVulkanContext::isProtected_ = false;
+}
+
+/**
+ * @tc.name: SaveNewDrawingContext002
+ * @tc.desc: test SaveNewDrawingContext for unprotected context
+ * @tc.type:FUNC
+ * @tc.require: issueICB7BS
+ */
+HWTEST_F(RSVulkanContextTest, SaveNewDrawingContext002, TestSize.Level2)
+{
+    RsVulkanContext::isProtected_ = false;
     auto gpuContext = std::make_shared<Drawing::GPUContext>();
     RsVulkanContext::SaveNewDrawingContext(gettid(), gpuContext);
     ASSERT_FALSE(RsVulkanContext::drawingContextMap_.empty());
 }
 
 /**
- * @tc.name: CleanUpRecyclableDrawingContext001
- * @tc.desc: test CleanUpRecyclableDrawingContext
+ * @tc.name: ReleaseDrawingContextForThread001
+ * @tc.desc: test ReleaseDrawingContextForThread
  * @tc.type:FUNC
  * @tc.require: issueIC3PRG
  */
-HWTEST_F(RSVulkanContextTest, CleanUpRecyclableDrawingContext001, TestSize.Level2)
+HWTEST_F(RSVulkanContextTest, ReleaseDrawingContextForThread001, TestSize.Level2)
 {
     auto gpuContext = std::make_shared<Drawing::GPUContext>();
     RsVulkanContext::SaveNewDrawingContext(gettid(), gpuContext);
 
-    RsVulkanContext::CleanUpRecyclableDrawingContext(gettid());
+    RsVulkanContext::ReleaseDrawingContextForThread(gettid());
     ASSERT_TRUE(RsVulkanContext::drawingContextMap_.empty());
 }
 
@@ -403,10 +541,9 @@ HWTEST_F(RSVulkanContextTest, RSVulkanContextDestruction, TestSize.Level2)
 {
     // create recyclable vulkan context
     RsVulkanContext::SetRecyclable(true);
-    RsVulkanContext::GetSingleton();
-    ASSERT_NE(RsVulkanContext::recyclableSingleton_, nullptr);
+    ASSERT_NE(RsVulkanContext::GetRecyclableSingletonPtr(), nullptr);
 
-    RsVulkanContext::recyclableSingleton_ = nullptr;
+    RsVulkanContext::ReleaseRecyclableSingleton();
     ASSERT_TRUE(RsVulkanContext::drawingContextMap_.empty());
 
     // restore

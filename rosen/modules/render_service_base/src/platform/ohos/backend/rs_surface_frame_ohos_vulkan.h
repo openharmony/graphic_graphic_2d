@@ -18,7 +18,11 @@
 
 #include <surface.h>
 
+#ifdef USE_M133_SKIA
+#include "include/gpu/ganesh/GrDirectContext.h"
+#else
 #include "include/gpu/GrDirectContext.h"
+#endif
 
 #include "platform/ohos/rs_surface_frame_ohos.h"
 

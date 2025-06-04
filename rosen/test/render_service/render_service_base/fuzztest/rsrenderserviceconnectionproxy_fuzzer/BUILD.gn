@@ -36,7 +36,9 @@ ohos_fuzztest("RSRenderServiceConnectionProxyFuzzTest") {
   ]
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "hilog:libhilog",
+    "samgr:samgr_proxy",
   ]
   cflags = [
     "-g",

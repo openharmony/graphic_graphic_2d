@@ -22,8 +22,13 @@
 #include "sync_fence.h"
 #include "rs_vulkan_context.h"
 #include "native_window.h"
+#ifdef USE_M133_SKIA
+#include "include/gpu/ganesh/GrDirectContext.h"
+#include "include/gpu/ganesh/GrBackendSemaphore.h"
+#else
 #include "include/gpu/GrDirectContext.h"
 #include "include/gpu/GrBackendSemaphore.h"
+#endif
 #include "include/core/SkSurface.h"
 #include "draw/surface.h"
 #include "image/image.h"

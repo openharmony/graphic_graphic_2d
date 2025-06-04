@@ -32,6 +32,7 @@ static const std::map<uint32_t, Drawing::DrawingEffectStrategy> EFFECT_TYPES = {
     {5, Drawing::DrawingEffectStrategy::BOUNCE},
     {6, Drawing::DrawingEffectStrategy::PULSE},
     {7, Drawing::DrawingEffectStrategy::REPLACE_APPEAR},
+    {8, Drawing::DrawingEffectStrategy::DISABLE},
     {9, Drawing::DrawingEffectStrategy::QUICK_REPLACE_APPEAR}
 };
 

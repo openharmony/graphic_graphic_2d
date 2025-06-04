@@ -41,6 +41,7 @@ ohos_fuzztest("RSSpecialLayerManagerFuzzTest") {
   ]
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "hilog:libhilog",
   ]
   sources = [ "rsspeciallayermanager_fuzzer.cpp" ]

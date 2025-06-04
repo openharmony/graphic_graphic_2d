@@ -15,6 +15,8 @@
 
 #ifndef RENDER_SERVICE_BASE_RENDER_FILTER_BASE_H
 #define RENDER_SERVICE_BASE_RENDER_FILTER_BASE_H
+#include "draw/canvas.h"
+#include "effect/runtime_shader_builder.h"
 #include "modifier/rs_render_property.h"
 #include "transaction/rs_marshalling_helper.h"
 namespace OHOS {
@@ -27,9 +29,26 @@ enum class RSUIFilterType : int16_t {
     DISPLACEMENT_DISTORT,
     COLOR_GRADIENT,
     SOUND_WAVE,
+
     EDGE_LIGHT,
     BEZIER_WARP,
+    DISPERSION,
 
+    AIBAR,
+    GREY,
+    MATERIAL,
+    MAGNIFIER,
+    MESA,
+    MASK_COLOR,
+    KAWASE,
+    LIGHT_BLUR,
+    PIXEL_STRETCH,
+    WATER_RIPPLE,
+
+    LINEAR_GRADIENT_BLUR,
+    FLY_OUT,
+    DISTORTION,
+    ALWAYS_SNAPSHOT,
     // mask type
     RIPPLE_MASK,
     RADIAL_GRADIENT_MASK,
@@ -56,12 +75,12 @@ enum class RSUIFilterType : int16_t {
     SOUND_WAVE_COLOR_B, //RSCOLOR
     SOUND_WAVE_COLOR_C, //RSCOLOR
     SOUND_WAVE_COLOR_PROGRESS, //float
-    SOUND_WAVE_CENTER_BRIGHTNESS, //float
     SOUND_INTENSITY, //float
     SHOCK_WAVE_ALPHA_A, //float
     SHOCK_WAVE_ALPHA_B, //float
     SHOCK_WAVE_PROGRESS_A, //float
     SHOCK_WAVE_PROGRESS_B, //float
+    SHOCK_WAVE_TOTAL_ALPHA, //float
 
     // edge light value type
     EDGE_LIGHT_ALPHA, // float
@@ -86,12 +105,23 @@ enum class RSUIFilterType : int16_t {
     PIXEL_MAP_MASK_SRC, // Vector4f
     PIXEL_MAP_MASK_DST, // Vector4f
     PIXEL_MAP_MASK_FILL_COLOR, // Vector4f
+
+    // dispersion value type
+    DISPERSION_OPACITY, // float
+    DISPERSION_RED_OFFSET, // Vector2f
+    DISPERSION_GREEN_OFFSET, // Vector2f
+    DISPERSION_BLUE_OFFSET, // Vector2f
 };
+
+namespace Drawing {
+class GEVisualEffectContainer;
+class GEVisualEffect;
+} // namespace Drawing
 
 class RSB_EXPORT RSRenderFilterParaBase : public RSRenderPropertyBase,
     public std::enable_shared_from_this<RSRenderFilterParaBase> {
 public:
-
+    RSRenderFilterParaBase() = default;
     RSRenderFilterParaBase(RSUIFilterType type) : type_(type) {}
     virtual ~RSRenderFilterParaBase() = default;
 
@@ -119,9 +149,29 @@ public:
 
     virtual std::vector<std::shared_ptr<RSRenderPropertyBase>> GetLeafRenderProperties();
 
+    virtual bool ParseFilterValues()
+    {
+        return false;
+    }
+
+    virtual void PreProcess(std::shared_ptr<Drawing::Image>& image) {};
+    virtual std::shared_ptr<Drawing::Image> ProcessImage(Drawing::Canvas& canvas,
+        const std::shared_ptr<Drawing::Image> image, const Drawing::Rect& src, const Drawing::Rect& dst)
+    {
+        return image;
+    }
+
+    virtual void GenerateGEVisualEffect(std::shared_ptr<Drawing::GEVisualEffectContainer> visualEffectContainer) {};
+    virtual void PostProcess(Drawing::Canvas& canvas) {};
+
+    uint32_t Hash() const
+    {
+        return hash_;
+    }
 protected:
     RSUIFilterType type_;
     std::map<RSUIFilterType, std::shared_ptr<RSRenderPropertyBase>> properties_;
+    uint32_t hash_ = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

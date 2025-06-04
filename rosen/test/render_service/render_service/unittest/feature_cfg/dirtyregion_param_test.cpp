@@ -65,6 +65,11 @@ HWTEST_F(DirtyRegionParamTest, ParamSettingAndGettingTest, Function | SmallTest 
     DirtyRegionParam::SetAdvancedDirtyRegionEnable(false);
     ASSERT_FALSE(DirtyRegionParam::IsAdvancedDirtyRegionEnable());
 
+    DirtyRegionParam::SetComposeDirtyRegionEnableInPartialDisplay(true);
+    ASSERT_TRUE(DirtyRegionParam::IsComposeDirtyRegionEnableInPartialDisplay());
+    DirtyRegionParam::SetComposeDirtyRegionEnableInPartialDisplay(false);
+    ASSERT_FALSE(DirtyRegionParam::IsComposeDirtyRegionEnableInPartialDisplay());
+
     DirtyRegionParam::SetTileBasedAlignEnable(true);
     ASSERT_TRUE(DirtyRegionParam::IsTileBasedAlignEnable());
     DirtyRegionParam::SetTileBasedAlignEnable(false);

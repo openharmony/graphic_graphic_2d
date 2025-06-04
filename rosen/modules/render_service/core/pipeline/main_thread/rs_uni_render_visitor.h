@@ -141,6 +141,7 @@ public:
 
     void UpdateDrawingCacheInfoBeforeChildren(RSCanvasRenderNode& node);
 
+    void UpdateOffscreenCanvasNodeId(RSCanvasRenderNode& node);
 private:
     /* Prepare relevant calculation */
     // considering occlusion info for app surface as well as widget
@@ -268,6 +269,7 @@ private:
 
     bool IsHardwareComposerEnabled();
     void UpdateSpecialLayersRecord(RSSurfaceRenderNode& node);
+    void UpdateBlackListRecord(RSSurfaceRenderNode& node);
     void SendRcdMessage(RSDisplayRenderNode& node);
 
     bool ForcePrepareSubTree()
@@ -323,6 +325,7 @@ private:
 
     // Used to initialize the handler of control-level occlusion culling.
     void InitializeOcclusionHandler(RSSurfaceRenderNode& node);
+    void HandleTunnelLayerId(RSSurfaceRenderNode& node);
 
     friend class RSUniHwcVisitor;
     std::unique_ptr<RSUniHwcVisitor> hwcVisitor_;
@@ -472,8 +475,8 @@ private:
     // Used for control-level occlusion culling.
     std::shared_ptr<RSOcclusionHandler> curOcclusionHandler_;
 
-    // in foregroundFilter subtree
-    bool inForegroundFilter_ = false;
+    // record OffscreenCanvas's NodeId
+    NodeId offscreenCanvasNodeId_ = INVALID_NODEID;
 };
 } // namespace Rosen
 } // namespace OHOS

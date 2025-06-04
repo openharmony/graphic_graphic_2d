@@ -52,6 +52,7 @@ ohos_shared_library("libnative_color_space_manager") {
   deps = [
     "$graphic_2d_root/interfaces/kits/napi/graphic/color_manager:color_space_object_convertor",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/utils/color_manager:color_manager",
   ]
 
   innerapi_tags = [ "ndk" ]

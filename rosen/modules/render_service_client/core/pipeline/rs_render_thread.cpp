@@ -214,6 +214,11 @@ void RSRenderThread::ReleasePixelMapInBackgroundThread()
     }
 }
 
+bool RSRenderThread::GetIsRunning()
+{
+    return running_.load();
+}
+
 void RSRenderThread::Stop()
 {
     running_.store(false);

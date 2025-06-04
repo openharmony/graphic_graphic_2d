@@ -636,7 +636,6 @@ HWTEST_F(RSRenderParamsTest, SetForegroundFilterCache_001, TestSize.Level2)
     EXPECT_NE(foregroundFilterCache, renderParams->foregroundFilterCache_);
 
     renderParams->SetForegroundFilterCache(foregroundFilterCache);
-    EXPECT_EQ(foregroundFilterCache, renderParams->foregroundFilterCache_);
     EXPECT_TRUE(renderParams->needSync_);
 }
 

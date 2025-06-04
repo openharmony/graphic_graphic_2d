@@ -223,6 +223,7 @@ void RSDirtyRegionManager::OnSync(std::shared_ptr<RSDirtyRegionManager> targetMa
     ptr->maxNumOfDirtyRects_ = maxNumOfDirtyRects_;
     ptr->dirtyRegionForQuickReject_ = {};
     ptr->debugRect_ = debugRect_;
+    filterCollector_.OnSync(ptr->filterCollector_);
     if (RSSystemProperties::GetDirtyRegionDebugType() != DirtyRegionDebugType::DISABLED) {
         ptr->dirtySurfaceNodeInfo_ = dirtySurfaceNodeInfo_;
         ptr->dirtyCanvasNodeInfo_ = dirtyCanvasNodeInfo_;
@@ -299,6 +300,7 @@ void RSDirtyRegionManager::Clear()
     dirtySurfaceNodeInfo_.resize(DirtyRegionType::TYPE_AMOUNT);
     isDfxTarget_ = false;
     isFilterCacheRectValid_ = true;
+    filterCollector_.Clear();
 }
 
 bool RSDirtyRegionManager::IsCurrentFrameDirty() const

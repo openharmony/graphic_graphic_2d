@@ -43,6 +43,11 @@ namespace OHOS {
 namespace Rosen {
 using TaskRunner = std::function<void(const std::function<void()>&, uint32_t)>;
 
+/**
+ * @class RSUIContext
+ *
+ * @brief Represents the context for UI operations in the rendering service.
+ */
 class RSC_EXPORT RSUIContext : public std::enable_shared_from_this<RSUIContext> {
 public:
     /**

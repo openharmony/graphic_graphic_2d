@@ -13,18 +13,15 @@
  * limitations under the License.
  */
 
-#include "rs_base_render_engine.h"
-#include <memory>
-#include <csignal>
-
-#include "v2_1/cm_color_space.h"
-#ifdef RS_ENABLE_EGLIMAGE
-#include "src/gpu/gl/GrGLDefines.h"
-#endif
-
-#include "pipeline/render_thread/rs_divided_render_util.h"
 #include "common/rs_optional_trace.h"
+#include "display_engine/rs_luminance_control.h"
+#ifdef RS_ENABLE_GPU
+#include "drawable/rs_display_render_node_drawable.h"
+#endif
+#include <memory>
 #include "memory/rs_tag_tracker.h"
+#include "metadata_helper.h"
+#include "pipeline/render_thread/rs_divided_render_util.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
@@ -33,24 +30,31 @@
 #endif
 #include "platform/ohos/backend/rs_surface_ohos_raster.h"
 #ifdef RS_ENABLE_VK
-#include "platform/ohos/backend/rs_vulkan_context.h"
 #include "platform/ohos/backend/rs_surface_ohos_vulkan.h"
+#include "platform/ohos/backend/rs_vulkan_context.h"
 #endif
 #ifdef USE_VIDEO_PROCESSING_ENGINE
 #include "render/rs_colorspace_convert.h"
 #endif
 #include "render/rs_drawing_filter.h"
 #include "render/rs_skia_filter.h"
-#include "metadata_helper.h"
-#ifdef RS_ENABLE_GPU
-#include "drawable/rs_display_render_node_drawable.h"
+#include "rs_base_render_engine.h"
+#ifdef RS_ENABLE_EGLIMAGE
+#ifdef USE_M133_SKIA
+#include "src/gpu/ganesh/gl/GrGLDefines.h"
+#else
+#include "src/gpu/gl/GrGLDefines.h"
+#endif
+#endif
+#ifdef RS_ENABLE_TV_PQ_METADATA
+#include "feature/tv_metadata/rs_tv_metadata_manager.h"
 #endif
 #include "utils/graphic_coretrace.h"
+#include "v2_1/cm_color_space.h"
 
 namespace OHOS {
 namespace Rosen {
 constexpr float DEFAULT_DISPLAY_NIT = 500.0f;
-constexpr int SIGNAL_FOR_OCERAN = 42;
 
 RSBaseRenderEngine::RSBaseRenderEngine()
 {
@@ -482,6 +486,16 @@ void RSBaseRenderEngine::DrawBuffer(RSPaintFilterCanvas& canvas, BufferDrawParam
         Drawing::SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);
 }
 
+std::shared_ptr<Drawing::ColorSpace> RSBaseRenderEngine::GetCanvasColorSpace(const RSPaintFilterCanvas& canvas)
+{
+    auto surface = canvas.GetSurface();
+    if (surface == nullptr) {
+        return nullptr;
+    }
+
+    return surface->GetImageInfo().GetColorSpace();
+}
+
 #ifdef USE_VIDEO_PROCESSING_ENGINE
 bool RSBaseRenderEngine::ConvertDrawingColorSpaceToSpaceInfo(const std::shared_ptr<Drawing::ColorSpace>& colorSpace,
     HDI::Display::Graphic::Common::V1_0::CM_ColorSpaceInfo& colorSpaceInfo)
@@ -512,16 +526,6 @@ bool RSBaseRenderEngine::ConvertDrawingColorSpaceToSpaceInfo(const std::shared_p
     }
 
     return true;
-}
-
-std::shared_ptr<Drawing::ColorSpace> RSBaseRenderEngine::GetCanvasColorSpace(const RSPaintFilterCanvas& canvas)
-{
-    auto surface = canvas.GetSurface();
-    if (surface == nullptr) {
-        return nullptr;
-    }
-
-    return surface->GetImageInfo().GetColorSpace();
 }
 
 bool RSBaseRenderEngine::SetColorSpaceConverterDisplayParameter(
@@ -579,7 +583,7 @@ void RSBaseRenderEngine::ColorSpaceConvertor(std::shared_ptr<Drawing::ShaderEffe
     }
     if (params.isHdrRedraw) {
         parameter.disableHdrFloatHeadRoom = true;
-    } else if (params.isHdrToSdr) {
+    } else if (params.isTmoNitsFixed) {
         parameter.sdrNits = DEFAULT_DISPLAY_NIT;
         parameter.tmoNits = DEFAULT_DISPLAY_NIT;
         parameter.currentDisplayNits = DEFAULT_DISPLAY_NIT;
@@ -599,7 +603,6 @@ void RSBaseRenderEngine::ColorSpaceConvertor(std::shared_ptr<Drawing::ShaderEffe
         return;
     }
     params.paint.SetShaderEffect(outputShader);
-    RS_LOGI("paint SetShaderEffect Func:%s, Line:%d", __FUNCTION__, __LINE__);
     RS_OPTIONAL_TRACE_END();
 }
 #endif
@@ -700,6 +703,11 @@ std::shared_ptr<Drawing::Image> RSBaseRenderEngine::CreateImageFromBuffer(RSPain
             vkImageManager_->UnMapVkImageFromSurfaceBuffer(params.buffer->GetSeqNum());
         }
         auto bitmapFormat = RSBaseRenderUtil::GenerateDrawingBitmapFormat(params.buffer);
+        auto screenColorSpace = GetCanvasColorSpace(canvas);
+        if (screenColorSpace && videoInfo.drawingColorSpace_ &&
+            videoInfo.drawingColorSpace_->IsSRGB() != screenColorSpace->IsSRGB()) {
+            bitmapFormat.alphaType = Drawing::AlphaType::ALPHATYPE_OPAQUE;
+        }
         RS_LOGD_IF(DEBUG_COMPOSER, "  - Generated bitmap format: colorType = %{public}d, alphaType = %{public}d",
             bitmapFormat.colorType, bitmapFormat.alphaType);
 #ifndef ROSEN_EMULATOR
@@ -763,6 +771,15 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
     if (image == nullptr) {
         return;
     }
+
+    // add for tv metadata
+#ifdef RS_ENABLE_TV_PQ_METADATA
+    TvPQMetadata info;
+    if (MetadataHelper::GetVideoTVMetadata(params.buffer, info) == GSERROR_OK) {
+        RSTvMetadataManager::Instance().RecordAndCombineMetadata(info);
+        RS_LOGD("RSBaseRenderEngine::DrawImage record metadata: buffer seq:%{public}d", params.buffer->GetSeqNum());
+    }
+#endif
     Drawing::SamplingOptions samplingOptions;
     if (!RSSystemProperties::GetUniRenderEnabled()) {
         samplingOptions = Drawing::SamplingOptions();
@@ -843,10 +860,14 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
         return;
     }
 
-    // HDR to SDR, all xxxNits reset to 500, layerLinearMatrix reset to 3x3 Identity matrix
-    params.isHdrToSdr = canvas.IsOnMultipleScreen() || (!canvas.GetHdrOn() && !params.hasMetadata) ||
+    auto& rsLuminance = RSLuminanceControl::Get();
+    // Fix tonemapping: all xxxNits reset to 500, layerLinearMatrix reset to 3x3 Identity matrix
+    params.isTmoNitsFixed = canvas.IsOnMultipleScreen() ||
+        (!canvas.GetHdrOn() &&
+        !params.hasMetadata &&
+        !rsLuminance.IsScreenNoHeadroom(canvas.GetScreenId())) ||
         !RSSystemProperties::GetHdrVideoEnabled();
-    RS_LOGD_IF(DEBUG_COMPOSER, "  - HDR to SDR: %{public}d", params.isHdrToSdr);
+    RS_LOGD_IF(DEBUG_COMPOSER, "- Fix tonemapping: %{public}d", params.isTmoNitsFixed);
 
     Drawing::Matrix matrix;
     auto srcWidth = params.srcRect.GetWidth();
@@ -863,16 +884,11 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
     RS_LOGD_IF(DEBUG_COMPOSER, "  - Image shader transformation:"
         "sx=%{public}.2f, sy=%{public}.2f, tx=%{public}.2f, ty=%{public}.2f", sx, sy, tx, ty);
 
-    auto gpuCtx = canvas.GetGPUContext();
     auto imageShader = Drawing::ShaderEffect::CreateImageShader(
         *image, Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP, samplingOptions, matrix);
     if (imageShader == nullptr) {
         RS_LOGW("RSBaseRenderEngine::DrawImage imageShader is nullptr.");
     } else {
-        if (gpuCtx.get() && !image->IsValid(gpuCtx.get())) {
-            RS_LOGE("SetShaderEffect cross thread, Func:%s, Line:%d", __FUNCTION__, __LINE__);
-            raise(SIGNAL_FOR_OCERAN);
-        }
         params.paint.SetShaderEffect(imageShader);
         ColorSpaceConvertor(imageShader, params, videoInfo.parameter_);
     }
@@ -981,15 +997,6 @@ void RSBaseRenderEngine::RegisterDeleteBufferListener(RSSurfaceHandler& handler)
 
 void RSBaseRenderEngine::ShrinkCachesIfNeeded(bool isForUniRedraw)
 {
-#ifdef RS_ENABLE_VK
-    if (RSSystemProperties::IsUseVulkan()) {
-        if (vkImageManager_ != nullptr) {
-            vkImageManager_->ShrinkCachesIfNeeded();
-        }
-        return;
-    }
-#endif // RS_ENABLE_VK
-
 #if (defined(RS_ENABLE_EGLIMAGE) && defined(RS_ENABLE_GPU))
     if (eglImageManager_ != nullptr) {
         eglImageManager_->ShrinkCachesIfNeeded(isForUniRedraw);

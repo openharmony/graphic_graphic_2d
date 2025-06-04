@@ -36,6 +36,12 @@
 
 namespace OHOS {
 namespace Rosen {
+
+/**
+ * @class RSProxyNode
+ *
+ * @brief Represents a proxy node in the rendering service.
+ */
 class RSC_EXPORT RSProxyNode : public RSNode {
 public:
     using WeakPtr = std::weak_ptr<RSProxyNode>;

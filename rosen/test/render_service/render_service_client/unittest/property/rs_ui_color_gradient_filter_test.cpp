@@ -16,6 +16,7 @@
 #include "gtest/gtest.h"
 #include "ui_effect/property/include/rs_ui_color_gradient_filter.h"
 #include "ui_effect/mask/include/ripple_mask_para.h"
+#include "ui_effect/property/include/rs_ui_ripple_mask.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -42,11 +43,22 @@ void RSUIColorGradientFilterTest::TearDown() {}
 HWTEST_F(RSUIColorGradientFilterTest, Equal001, TestSize.Level1)
 {
     auto filterPara1 = std::make_shared<RSUIColorGradientFilterPara>();
+    EXPECT_FALSE(filterPara1->Equals(nullptr));
+
     auto filterPara2 = std::make_shared<RSUIColorGradientFilterPara>();
     auto filterParaBase = static_cast<std::shared_ptr<RSUIFilterParaBase>>(filterPara2);
     
-    EXPECT_FALSE(filterPara1->Equals(filterParaBase));
+    EXPECT_TRUE(filterPara1->Equals(filterParaBase));
     EXPECT_FALSE(filterPara1->Equals(nullptr));
+
+    filterParaBase->maskType_ = RSUIFilterType::RIPPLE_MASK;
+    EXPECT_FALSE(filterPara1->Equals(filterParaBase));
+
+    filterPara1->maskType_ = RSUIFilterType::RIPPLE_MASK;
+    filterPara2->properties_[RSUIFilterType::RIPPLE_MASK] = nullptr;
+    auto rippleMaskPara = std::make_shared<RSUIRippleMaskPara>();
+    filterPara2->properties_[RSUIFilterType::RIPPLE_MASK] = rippleMaskPara;
+    EXPECT_FALSE(filterPara1->Equals(filterParaBase));
 }
 
 /**

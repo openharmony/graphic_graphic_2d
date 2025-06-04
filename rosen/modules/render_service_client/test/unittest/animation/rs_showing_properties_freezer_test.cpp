@@ -290,7 +290,9 @@ HWTEST_F(RSShowingPropertiesFreezerTest, GetColorTest, TestSize.Level1)
     ASSERT_TRUE(result1.has_value());
     EXPECT_TRUE(result1.value().GetRed() == SHOWING_COLOR_NUM);
 
-    canvasNode->SetBackgroundColor(SK_ColorRED);
+    RSColor color = Color::FromArgbInt(SK_ColorRED);
+    color.SetColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    canvasNode->SetBackgroundColor(color);
     auto result2 = canvasNode->GetShowingProperties().GetBackgroundColor();
     ASSERT_TRUE(result2.has_value());
     EXPECT_TRUE(result2.value().GetRed() == SHOWING_COLOR_NUM);
@@ -444,6 +446,22 @@ HWTEST_F(RSShowingPropertiesFreezerTest, GetDegreeTest, TestSize.Level1)
     ASSERT_TRUE(result3.has_value());
     EXPECT_FLOAT_EQ(result3.value(), SHOWING_FLOAT_NUM);
     GTEST_LOG_(INFO) << "RSShowingPropertiesFreezerTest GetDegreeTest end";
+}
+
+/**
+ * @tc.name: GetHDRUIBrightnessTest
+ * @tc.desc: Get the brightness.
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSShowingPropertiesFreezerTest, GetHDRUIBrightnessTest, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSShowingPropertiesFreezerTest GetHDRUIBrightnessTest start";
+    auto canvasNode = RSCanvasNode::Create();
+    canvasNode->SetHDRUIBrightness(SHOWING_FLOAT_NUM);
+    auto result1 = canvasNode->GetShowingProperties().GetHDRUIBrightness();
+    ASSERT_TRUE(result1.has_value());
+    EXPECT_FLOAT_EQ(result1.value(), SHOWING_FLOAT_NUM);
+    GTEST_LOG_(INFO) << "RSShowingPropertiesFreezerTest GetHDRUIBrightnessTest end";
 }
 
 /**

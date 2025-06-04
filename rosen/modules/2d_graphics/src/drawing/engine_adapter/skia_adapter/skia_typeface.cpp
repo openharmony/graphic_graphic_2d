@@ -19,7 +19,11 @@
 #include "include/core/SkFontStyle.h"
 #include "include/core/SkStream.h"
 #include "include/core/SkString.h"
+#ifdef USE_M133_SKIA
+#include "src/core/SkTHash.h"
+#else
 #include "include/private/SkTHash.h"
+#endif
 #include "skia_adapter/skia_convert_utils.h"
 #include "skia_adapter/skia_data.h"
 #include "skia_adapter/skia_memory_stream.h"
@@ -57,7 +61,11 @@ std::string SkiaTypeface::GetFontPath() const
         return path;
     }
     SkString skName;
+#ifdef USE_M133_SKIA
+    skTypeface_->getFamilyName(&skName);
+#else
     skTypeface_->getFontPath(&skName);
+#endif
     SkiaConvertUtils::SkStringCastToStdString(skName, path);
     return path;
 }
@@ -133,7 +141,9 @@ std::shared_ptr<Typeface> SkiaTypeface::MakeClone(const FontArguments& args) con
     if (!cloned) {
         return nullptr;
     }
+#ifndef USE_M133_SKIA
     cloned->setIsCustomTypeface(skTypeface_->isCustomTypeface());
+#endif
     std::shared_ptr<TypefaceImpl> typefaceImpl = std::make_shared<SkiaTypeface>(cloned);
     return std::make_shared<Typeface>(typefaceImpl);
 }
@@ -144,7 +154,11 @@ bool SkiaTypeface::IsCustomTypeface() const
         LOGD("skTypeface nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
         return false;
     }
+#ifdef USE_M133_SKIA
+    return false;
+#else
     return skTypeface_->isCustomTypeface();
+#endif
 }
 
 bool SkiaTypeface::IsThemeTypeface() const
@@ -153,7 +167,11 @@ bool SkiaTypeface::IsThemeTypeface() const
         LOGD("skTypeface nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
         return false;
     }
+#ifdef USE_M133_SKIA
+    return false;
+#else
     return skTypeface_->isThemeTypeface();
+#endif
 }
 
 sk_sp<SkTypeface> SkiaTypeface::GetSkTypeface()
@@ -178,12 +196,19 @@ std::shared_ptr<Typeface> SkiaTypeface::MakeDefault()
 
 std::shared_ptr<Typeface> SkiaTypeface::MakeFromFile(const char path[], int index)
 {
+    if (!path) {
+        LOGD("SkiaTypeface::MakeFromFile, path is nullptr.");
+        return nullptr;
+    }
     sk_sp<SkTypeface> skTypeface = SkTypeface::MakeFromFile(path, index);
+
     if (!skTypeface) {
         LOGD("skTypeface nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
         return nullptr;
     }
+
     skTypeface->setIsCustomTypeface(true);
+
     std::shared_ptr<TypefaceImpl> typefaceImpl = std::make_shared<SkiaTypeface>(skTypeface);
     return std::make_shared<Typeface>(typefaceImpl);
 }
@@ -207,18 +232,21 @@ std::shared_ptr<Typeface> SkiaTypeface::MakeFromFile(const char path[], const Fo
         LOGD("SkiaTypeface::MakeFromFile, skTypeface nullptr.");
         return nullptr;
     }
+#ifndef USE_M133_SKIA
     skTypeface->setIsCustomTypeface(true);
+#endif
     std::shared_ptr<TypefaceImpl> typefaceImpl = std::make_shared<SkiaTypeface>(skTypeface);
     return std::make_shared<Typeface>(typefaceImpl);
 }
 
 std::vector<std::shared_ptr<Typeface>> SkiaTypeface::GetSystemFonts()
 {
+    std::vector<std::shared_ptr<Typeface>> typefaces;
     std::vector<sk_sp<SkTypeface>> skTypefaces = SkTypeface::GetSystemFonts();
     if (skTypefaces.empty()) {
         return {};
     }
-    std::vector<std::shared_ptr<Typeface>> typefaces;
+
     typefaces.reserve(skTypefaces.size());
     for (auto& item : skTypefaces) {
         item->setIsCustomTypeface(false);
@@ -235,12 +263,27 @@ std::shared_ptr<Typeface> SkiaTypeface::MakeFromStream(std::unique_ptr<MemoryStr
         return nullptr;
     }
     std::unique_ptr<SkStreamAsset> skMemoryStream = memoryStream->GetImpl<SkiaMemoryStream>()->GetSkMemoryStream();
+    if (!skMemoryStream) {
+        LOGD("SkiaTypeface::MakeFromStream, skMemoryStream nullptr");
+        return nullptr;
+    }
+#ifdef USE_M133_SKIA
+    auto skFontMgr = SkFontMgr::RefDefault();
+    if (!skFontMgr) {
+        LOGD("SkiaTypeface::MakeFromStream, skFontMgr is nullptr.");
+        return nullptr;
+    }
+    sk_sp<SkTypeface> skTypeface = skFontMgr->makeFromStream(std::move(skMemoryStream), index);
+#else
     sk_sp<SkTypeface> skTypeface = SkTypeface::MakeFromStream(std::move(skMemoryStream), index);
+#endif
     if (!skTypeface) {
         LOGD("SkiaTypeface::MakeFromStream, skTypeface nullptr");
         return nullptr;
     }
+#ifndef USE_M133_SKIA
     skTypeface->setIsCustomTypeface(true);
+#endif
     std::shared_ptr<TypefaceImpl> typefaceImpl = std::make_shared<SkiaTypeface>(skTypeface);
     return std::make_shared<Typeface>(typefaceImpl);
 }
@@ -279,7 +322,20 @@ std::shared_ptr<Typeface> SkiaTypeface::MakeFromName(const char familyName[], Fo
 {
     SkFontStyle skFontStyle;
     SkiaConvertUtils::DrawingFontStyleCastToSkFontStyle(fontStyle, skFontStyle);
+#ifdef USE_M133_SKIA
+    if (familyName == nullptr) {
+        LOGD("SkiaTypeface::MakeFromName, familyName is nullptr.");
+        return nullptr;
+    }
+    auto skFontMgr = SkFontMgr::RefDefault();
+    if (!skFontMgr) {
+        LOGD("SkiaTypeface::MakeFromName, skFontMgr is nullptr.");
+        return nullptr;
+    }
+    sk_sp<SkTypeface> skTypeface = skFontMgr->legacyMakeTypeface(familyName, skFontStyle);
+#else
     sk_sp<SkTypeface> skTypeface = SkTypeface::MakeFromName(familyName, skFontStyle);
+#endif
     if (!skTypeface) {
         LOGD("SkiaTypeface::MakeFromName, skTypeface nullptr");
         return nullptr;
@@ -295,7 +351,11 @@ sk_sp<SkData> SkiaTypeface::SerializeTypeface(SkTypeface* typeface, void* ctx)
         return nullptr;
     }
     TextBlob::Context* textblobCtx = reinterpret_cast<TextBlob::Context*>(ctx);
+#ifdef USE_M133_SKIA
+    if (textblobCtx != nullptr) {
+#else
     if (textblobCtx != nullptr && typeface->isCustomTypeface()) {
+#endif
         sk_sp<SkTypeface> typefacePtr = sk_ref_sp(typeface);
         auto typefaceImpl = std::make_shared<SkiaTypeface>(typefacePtr);
         auto customTypeface = std::make_shared<Typeface>(typefaceImpl);
@@ -365,7 +425,11 @@ uint32_t SkiaTypeface::GetHash() const
         LOGD("skTypeface nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
         return 0;
     }
+#ifdef USE_M133_SKIA
+    return 0;
+#else
     return skTypeface_->GetHash();
+#endif
 }
 
 void SkiaTypeface::SetHash(uint32_t hash)
@@ -374,9 +438,10 @@ void SkiaTypeface::SetHash(uint32_t hash)
         LOGD("skTypeface nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
         return;
     }
+#ifndef USE_M133_SKIA
     skTypeface_->SetHash(hash);
+#endif
 }
-
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

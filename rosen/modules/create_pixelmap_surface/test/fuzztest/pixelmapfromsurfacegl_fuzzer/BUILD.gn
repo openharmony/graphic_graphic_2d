@@ -53,7 +53,9 @@ ohos_fuzztest("PixelMapFromSurfaceGLFuzzTest") {
   public_deps = [ "$graphic_2d_root/rosen/modules/composer:libcomposer" ]
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "graphic_surface:surface",
+    "hilog:libhilog",
     "image_framework:image_native",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {

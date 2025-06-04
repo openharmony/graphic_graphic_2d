@@ -34,6 +34,7 @@ std::unordered_set<NodeId> RSModifiersDraw::foregroundRootSet_;
 std::mutex RSModifiersDraw::foregroundRootSetMutex_;
 std::vector<DestroySemaphoreInfo*> RSModifiersDraw::semaphoreInfoVec_;
 std::mutex RSModifiersDraw::semaphoreInfoMutex_;
+std::unordered_set<uint32_t> RSModifiersDraw::typesToSave_;
 
 sptr<SurfaceBuffer> RSModifiersDraw::DmaMemAlloc(
     int32_t width, int32_t height, const std::unique_ptr<Media::PixelMap>& pixelMap)
@@ -61,6 +62,16 @@ std::shared_ptr<Drawing::Surface> RSModifiersDraw::CreateSurfaceFromCpuContext(
     const std::unique_ptr<Media::PixelMap>& pixelMap)
 {
     return nullptr;
+}
+
+void RSModifiersDraw::ClearCanvasDrawingNodeMemory()
+{
+    return;
+}
+
+void RSModifiersDraw::ClearDrawingContextMemory()
+{
+    return;
 }
 
 std::shared_ptr<Drawing::Surface> RSModifiersDraw::CreateSurface(std::unique_ptr<Media::PixelMap>& pixelMap,
@@ -166,7 +177,7 @@ void RSModifiersDraw::RemoveSurfaceByNodeId(NodeId nodeId, bool postTask)
 }
 
 bool RSModifiersDraw::ResetSurfaceByNodeId(
-    int32_t width, int32_t height, NodeId nodeId, bool needResetMatrix, bool postTask)
+    int32_t width, int32_t height, NodeId nodeId, bool needResetOpItems, bool postTask)
 {
     return false;
 }

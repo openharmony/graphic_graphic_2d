@@ -35,6 +35,11 @@
 
 namespace OHOS {
 namespace Rosen {
+/**
+ * @class RSUIContextManager
+ *
+ * @brief Manages the lifecycle and access to RSUIContext instances.
+ */
 class RSC_EXPORT RSUIContextManager final {
 public:
 

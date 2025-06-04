@@ -41,6 +41,7 @@ ohos_fuzztest("PenFuzzTest") {
   deps = [
     "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics:2d_graphics",
   ]
+  external_deps = [ "bounds_checking_function:libsec_shared" ]
 
   part_name = "graphic_2d"
   subsystem_name = "graphic"

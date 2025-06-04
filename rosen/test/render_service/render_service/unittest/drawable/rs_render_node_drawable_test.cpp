@@ -184,7 +184,7 @@ HWTEST_F(RSRenderNodeDrawableTest, UpdateCacheInfoForDfxTest, TestSize.Level1)
     drawable->UpdateCacheInfoForDfx(canvas, params.GetBounds(), params.GetId());
     drawable->isDrawingCacheDfxEnabled_ = true;
     drawable->UpdateCacheInfoForDfx(canvas, params.GetBounds(), params.GetId());
-    ASSERT_EQ(drawable->isDrawingCacheDfxEnabled_, true);
+    ASSERT_EQ(drawable->isDrawingCacheEnabled_, false);
 }
 
 /**
@@ -472,6 +472,71 @@ HWTEST_F(RSRenderNodeDrawableTest, DrawWithoutNodeGroupCache, TestSize.Level1)
     drawable->curDrawingCacheRoot_ = rootDrawable;
     drawable->DrawWithoutNodeGroupCache(canvas, params, originalCacheType);
     ASSERT_TRUE(drawable->GetCacheType() == DrawableCacheType::CONTENT);
+}
+
+/**
+ * @tc.name: SkipCulledNodeOrEntireSubtree001
+ * @tc.desc: Test SkipCulledNodeOrEntireSubtree with node can not be skipped
+ * @tc.type: FUNC
+ * @tc.require: issueICA6FQ
+ */
+HWTEST_F(RSRenderNodeDrawableTest, SkipCulledNodeOrEntireSubtree001, TestSize.Level1)
+{
+    auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
+    ASSERT_NE(drawable, nullptr);
+    drawable->SetOcclusionCullingEnabled(true);
+    Drawing::Canvas canvas;
+    RSPaintFilterCanvas paintFilterCanvas(&canvas);
+
+    std::unordered_set<NodeId> culledNodes{INVALID_NODEID};
+    paintFilterCanvas.SetCulledNodes(std::move(culledNodes));
+    std::unordered_set<NodeId> culledEntireSubtree{INVALID_NODEID};
+    paintFilterCanvas.SetCulledEntireSubtree(std::move(culledEntireSubtree));
+
+    Drawing::Rect bounds;
+    EXPECT_EQ(drawable->SkipCulledNodeOrEntireSubtree(paintFilterCanvas, bounds), false);
+}
+
+/**
+ * @tc.name: SkipCulledNodeOrEntireSubtree002
+ * @tc.desc: Test SkipCulledNodeOrEntireSubtree with node can be skipped
+ * @tc.type: FUNC
+ * @tc.require: issueICA6FQ
+ */
+HWTEST_F(RSRenderNodeDrawableTest, SkipCulledNodeOrEntireSubtree002, TestSize.Level1)
+{
+    auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
+    ASSERT_NE(drawable, nullptr);
+    drawable->SetOcclusionCullingEnabled(true);
+    Drawing::Canvas canvas;
+    RSPaintFilterCanvas paintFilterCanvas(&canvas);
+
+    std::unordered_set<NodeId> culledNodes{drawable->GetId()};
+    paintFilterCanvas.SetCulledNodes(std::move(culledNodes));
+
+    Drawing::Rect bounds;
+    EXPECT_EQ(drawable->SkipCulledNodeOrEntireSubtree(paintFilterCanvas, bounds), true);
+}
+
+/**
+ * @tc.name: SkipCulledNodeOrEntireSubtree003
+ * @tc.desc: Test SkipCulledNodeOrEntireSubtree with entire subtree can be skipped
+ * @tc.type: FUNC
+ * @tc.require: issueICA6FQ
+ */
+HWTEST_F(RSRenderNodeDrawableTest, SkipCulledNodeOrEntireSubtree003, TestSize.Level1)
+{
+    auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
+    ASSERT_NE(drawable, nullptr);
+    drawable->SetOcclusionCullingEnabled(true);
+    Drawing::Canvas canvas;
+    RSPaintFilterCanvas paintFilterCanvas(&canvas);
+
+    std::unordered_set<NodeId> culledEntireSubtree{drawable->GetId()};
+    paintFilterCanvas.SetCulledEntireSubtree(std::move(culledEntireSubtree));
+
+    Drawing::Rect bounds;
+    EXPECT_EQ(drawable->SkipCulledNodeOrEntireSubtree(paintFilterCanvas, bounds), true);
 }
 
 /**

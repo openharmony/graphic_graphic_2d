@@ -41,6 +41,7 @@ ohos_fuzztest("RSSingleFrameComposerFuzzTest") {
   ]
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "hilog:libhilog",
   ]
   sources = [ "rssingleframecomposer_fuzzer.cpp" ]

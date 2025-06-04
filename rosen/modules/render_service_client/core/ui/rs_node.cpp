@@ -65,6 +65,7 @@
 #include "ui_effect/property/include/rs_ui_bezier_warp_filter.h"
 #include "ui_effect/property/include/rs_ui_displacement_distort_filter.h"
 #include "ui_effect/property/include/rs_ui_edge_light_filter.h"
+#include "ui_effect/property/include/rs_ui_dispersion_filter.h"
 
 #ifdef RS_ENABLE_VK
 #include "modifier_render_thread/rs_modifiers_draw.h"
@@ -1910,6 +1911,13 @@ void RSNode::SetUIBackgroundFilter(const OHOS::Rosen::Filter* backgroundFilter)
                 uiFilter->Insert(edgeLightProperty);
                 break;
             }
+            case FilterPara::DISPERSION: {
+                auto dispersionProperty = std::make_shared<RSUIDispersionFilterPara>();
+                auto filterDispersionPara = std::static_pointer_cast<DispersionPara>(filterPara);
+                dispersionProperty->SetDispersion(filterDispersionPara);
+                uiFilter->Insert(dispersionProperty);
+                break;
+            }
             default:
                 break;
         }
@@ -2018,6 +2026,11 @@ void RSNode::SetUIForegroundFilter(const OHOS::Rosen::Filter* foregroundFilter)
             bezierWarpProperty->SetBezierWarp(bezierWarpPara);
             uiFilter->Insert(bezierWarpProperty);
         }
+        if (filterPara->GetParaType() == FilterPara::HDR_BRIGHTNESS_RATIO) {
+            auto hdrBrightnessRatioPara = std::static_pointer_cast<HDRBrightnessRatioPara>(filterPara);
+            auto brightnessRatio = hdrBrightnessRatioPara->GetBrightnessRatio();
+            SetHDRUIBrightness(brightnessRatio);
+        }
     }
     if (!uiFilter->GetAllTypes().empty()) {
         SetForegroundUIFilter(uiFilter);
@@ -2067,17 +2080,10 @@ void RSNode::SetVisualEffect(const VisualEffect* visualEffect)
         ROSEN_LOGE("Failed to set visualEffect, visualEffect is null!");
         return;
     }
-    // To do: generate composed visual effect here. Now we just set background and HDR UI brightness in v2.0.
+    // To do: generate composed visual effect here. Now we just set background brightness in v1.0.
     auto visualEffectParas = visualEffect->GetAllPara();
     for (const auto& visualEffectPara : visualEffectParas) {
         if (visualEffectPara == nullptr) {
-            continue;
-        }
-        if (visualEffectPara->GetParaType() == VisualEffectPara::HDR_UI_BRIGHTNESS) {
-            auto hdrUIBrightnessPara = std::static_pointer_cast<HDRUIBrightnessPara>(visualEffectPara);
-            if (hdrUIBrightnessPara) {
-                SetHDRUIBrightness(hdrUIBrightnessPara->GetHDRUIBrightness());
-            }
             continue;
         }
         if (visualEffectPara->GetParaType() != VisualEffectPara::BACKGROUND_COLOR_EFFECT) {
@@ -2415,6 +2421,16 @@ void RSNode::SetHDRBrightness(const float& hdrBrightness)
 {
     SetProperty<RSHDRBrightnessModifier, RSAnimatableProperty<float>>(
         RSModifierType::HDR_BRIGHTNESS, hdrBrightness);
+}
+
+void RSNode::SetHDRBrightnessFactor(float factor)
+{
+    if (!IsInstanceOf<RSDisplayNode>()) {
+        ROSEN_LOGE("SetHDRBrightnessFactor only can be used by RSDisplayNode");
+        return;
+    }
+    SetProperty<RSHDRBrightnessFactorModifier, RSAnimatableProperty<float>>(
+        RSModifierType::HDR_BRIGHTNESS_FACTOR, factor);
 }
 
 void RSNode::SetVisible(bool visible)

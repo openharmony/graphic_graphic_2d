@@ -16,6 +16,9 @@
 #include <securec.h>
 
 #include "drawing_font_collection.h"
+#include "drawing_rect.h"
+#include "drawing_text_line.h"
+#include "drawing_text_run.h"
 #include "drawing_text_typography.h"
 #include "gtest/gtest.h"
 
@@ -31,6 +34,7 @@ class OhDrawingTypographyStyleTest : public testing::Test {
 public:
     void TearDown() override;
     void PrepareWorkForTypographyStyleTest();
+    void PrepareWorkForAutoSpaceTest(std::string& text, double layoutWidth);
 
 protected:
     OH_Drawing_FontCollection* fontCollection_{nullptr};
@@ -50,6 +54,33 @@ void OhDrawingTypographyStyleTest::PrepareWorkForTypographyStyleTest()
     fontCollection_ = OH_Drawing_CreateSharedFontCollection();
     ASSERT_NE(fontCollection_, nullptr);
     OH_Drawing_SetTextStyleFontSize(txtStyle_, DEFAULT_FONT_SIZE);
+}
+void OhDrawingTypographyStyleTest::PrepareWorkForAutoSpaceTest(std::string& text, double layoutWidth)
+{
+    PrepareWorkForTypographyStyleTest();
+    // paragraph1 with autospace
+    typoStyle_ = OH_Drawing_CreateTypographyStyle();
+    ASSERT_NE(typoStyle_, nullptr);
+    OH_Drawing_SetTypographyTextAutoSpace(typoStyle_, true);
+    handler_ = OH_Drawing_CreateTypographyHandler(typoStyle_, fontCollection_);
+    ASSERT_NE(handler_, nullptr);
+    OH_Drawing_TypographyHandlerPushTextStyle(handler_, txtStyle_);
+    OH_Drawing_TypographyHandlerAddText(handler_, text.c_str());
+    typography_ = OH_Drawing_CreateTypography(handler_);
+    ASSERT_NE(typography_, nullptr);
+    OH_Drawing_TypographyLayout(typography_, layoutWidth);
+
+    // paragraph2 without autospace
+    typoStyle2_ = OH_Drawing_CreateTypographyStyle();
+    ASSERT_NE(typoStyle2_, nullptr);
+    OH_Drawing_SetTypographyTextAutoSpace(typoStyle2_, false);
+    handler2_ = OH_Drawing_CreateTypographyHandler(typoStyle2_, fontCollection_);
+    ASSERT_NE(handler2_, nullptr);
+    OH_Drawing_TypographyHandlerPushTextStyle(handler2_, txtStyle_);
+    OH_Drawing_TypographyHandlerAddText(handler2_, text.c_str());
+    typography2_ = OH_Drawing_CreateTypography(handler2_);
+    ASSERT_NE(typography2_, nullptr);
+    OH_Drawing_TypographyLayout(typography2_, DEFAULT_LAYOUT_WIDTH);
 }
 
 void OhDrawingTypographyStyleTest::TearDown()
@@ -95,35 +126,16 @@ void OhDrawingTypographyStyleTest::TearDown()
  */
 HWTEST_F(OhDrawingTypographyStyleTest, OH_Drawing_SetTypographyTextAutoSpaceTest001, TestSize.Level1)
 {
+    // Prepare Paragraph 1 and Paragraph 2, and turn on autospace and turn off autospace respectively.
     std::string text = "SingRun©2002-2001";
-    PrepareWorkForTypographyStyleTest();
+    PrepareWorkForAutoSpaceTest(text, DEFAULT_LAYOUT_WIDTH);
 
     // paragraph1
-    typoStyle_ = OH_Drawing_CreateTypographyStyle();
-    ASSERT_NE(typoStyle_, nullptr);
-    OH_Drawing_SetTypographyTextAutoSpace(typoStyle_, true);
-    handler_ = OH_Drawing_CreateTypographyHandler(typoStyle_, fontCollection_);
-    ASSERT_NE(handler_, nullptr);
-    OH_Drawing_TypographyHandlerPushTextStyle(handler_, txtStyle_);
-    OH_Drawing_TypographyHandlerAddText(handler_, text.c_str());
-    typography_ = OH_Drawing_CreateTypography(handler_);
-    ASSERT_NE(typography_, nullptr);
-    OH_Drawing_TypographyLayout(typography_, DEFAULT_LAYOUT_WIDTH);
     double longestLineTrue = OH_Drawing_TypographyGetLongestLine(typography_);
     double line1True = OH_Drawing_TypographyGetLineWidth(typography_, 0);
     EXPECT_NEAR(longestLineTrue, line1True, FLOAT_DATA_EPSILON);
 
     // paragraph2
-    typoStyle2_ = OH_Drawing_CreateTypographyStyle();
-    ASSERT_NE(typoStyle2_, nullptr);
-    OH_Drawing_SetTypographyTextAutoSpace(typoStyle2_, false);
-    handler2_ = OH_Drawing_CreateTypographyHandler(typoStyle2_, fontCollection_);
-    ASSERT_NE(handler2_, nullptr);
-    OH_Drawing_TypographyHandlerPushTextStyle(handler2_, txtStyle_);
-    OH_Drawing_TypographyHandlerAddText(handler2_, text.c_str());
-    typography2_ = OH_Drawing_CreateTypography(handler2_);
-    ASSERT_NE(typography2_, nullptr);
-    OH_Drawing_TypographyLayout(typography2_, DEFAULT_LAYOUT_WIDTH);
     double longestLineFalse = OH_Drawing_TypographyGetLongestLine(typography2_);
     double line1False = OH_Drawing_TypographyGetLineWidth(typography2_, 0);
     EXPECT_NEAR(longestLineFalse, line1False, FLOAT_DATA_EPSILON);
@@ -140,22 +152,13 @@ HWTEST_F(OhDrawingTypographyStyleTest, OH_Drawing_SetTypographyTextAutoSpaceTest
  */
 HWTEST_F(OhDrawingTypographyStyleTest, OH_Drawing_SetTypographyTextAutoSpaceTest002, TestSize.Level1)
 {
-    std::string text = "SingRun©2002-2001";
-    PrepareWorkForTypographyStyleTest();
-
     // test boundary value：Use longestline without autospace as layout width when autospace enabled, line count + 1
-    // paragraph1
-    typoStyle_ = OH_Drawing_CreateTypographyStyle();
-    ASSERT_NE(typoStyle_, nullptr);
-    OH_Drawing_SetTypographyTextAutoSpace(typoStyle_, true);
-    handler_ = OH_Drawing_CreateTypographyHandler(typoStyle_, fontCollection_);
-    ASSERT_NE(handler_, nullptr);
-    OH_Drawing_TypographyHandlerPushTextStyle(handler_, txtStyle_);
-    OH_Drawing_TypographyHandlerAddText(handler_, text.c_str());
-    typography_ = OH_Drawing_CreateTypography(handler_);
-    ASSERT_NE(typography_, nullptr);
+    // Prepare Paragraph 1 and Paragraph 2, and turn on autospace and turn off autospace respectively.
+    std::string text = "SingRun©2002-2001";
     double layoutWidth = 388.319641; // boundary value
-    OH_Drawing_TypographyLayout(typography_, layoutWidth);
+    PrepareWorkForAutoSpaceTest(text, layoutWidth);
+
+    // paragraph1
     double longestLineTrue = OH_Drawing_TypographyGetLongestLine(typography_);
     double line1True = OH_Drawing_TypographyGetLineWidth(typography_, 0);
     double line2True = OH_Drawing_TypographyGetLineWidth(typography_, 1);
@@ -166,16 +169,6 @@ HWTEST_F(OhDrawingTypographyStyleTest, OH_Drawing_SetTypographyTextAutoSpaceTest
     EXPECT_GT(line2True, 0);
 
     // paragraph2
-    typoStyle2_ = OH_Drawing_CreateTypographyStyle();
-    ASSERT_NE(typoStyle2_, nullptr);
-    OH_Drawing_SetTypographyTextAutoSpace(typoStyle2_, false);
-    handler2_ = OH_Drawing_CreateTypographyHandler(typoStyle2_, fontCollection_);
-    ASSERT_NE(handler2_, nullptr);
-    OH_Drawing_TypographyHandlerPushTextStyle(handler2_, txtStyle_);
-    OH_Drawing_TypographyHandlerAddText(handler2_, text.c_str());
-    typography2_ = OH_Drawing_CreateTypography(handler2_);
-    ASSERT_NE(typography2_, nullptr);
-    OH_Drawing_TypographyLayout(typography2_, layoutWidth);
     double longestLineFalse2 = OH_Drawing_TypographyGetLongestLine(typography2_);
     double line1False2 = OH_Drawing_TypographyGetLineWidth(typography2_, 0);
     size_t lineCount2 = OH_Drawing_TypographyGetLineCount(typography2_);
@@ -196,20 +189,11 @@ HWTEST_F(OhDrawingTypographyStyleTest, OH_Drawing_SetTypographyTextAutoSpaceTest
  */
 HWTEST_F(OhDrawingTypographyStyleTest, OH_Drawing_SetTypographyTextAutoSpaceTest003, TestSize.Level1)
 {
+    // Prepare Paragraph 1 and Paragraph 2, and turn on autospace and turn off autospace respectively.
     std::string text = "嫌疑者X的牺牲\n版权所有©2002-2001华为技术有限公司保留一切权利\n卸载USB设备";
-    PrepareWorkForTypographyStyleTest();
+    PrepareWorkForAutoSpaceTest(text, DEFAULT_LAYOUT_WIDTH);
 
     // paragraph1
-    typoStyle_ = OH_Drawing_CreateTypographyStyle();
-    ASSERT_NE(typoStyle_, nullptr);
-    OH_Drawing_SetTypographyTextAutoSpace(typoStyle_, true);
-    handler_ = OH_Drawing_CreateTypographyHandler(typoStyle_, fontCollection_);
-    ASSERT_NE(handler_, nullptr);
-    OH_Drawing_TypographyHandlerPushTextStyle(handler_, txtStyle_);
-    OH_Drawing_TypographyHandlerAddText(handler_, text.c_str());
-    typography_ = OH_Drawing_CreateTypography(handler_);
-    ASSERT_NE(typography_, nullptr);
-    OH_Drawing_TypographyLayout(typography_, DEFAULT_LAYOUT_WIDTH);
     double longestLineTrue = OH_Drawing_TypographyGetLongestLine(typography_);
     double line1True = OH_Drawing_TypographyGetLineWidth(typography_, 0);
     double line2True = OH_Drawing_TypographyGetLineWidth(typography_, 1);
@@ -217,13 +201,6 @@ HWTEST_F(OhDrawingTypographyStyleTest, OH_Drawing_SetTypographyTextAutoSpaceTest
     EXPECT_NEAR(longestLineTrue, std::max(line1True, std::max(line2True, line3True)), FLOAT_DATA_EPSILON);
 
     // paragraph2
-    typoStyle2_ = OH_Drawing_CreateTypographyStyle();
-    OH_Drawing_SetTypographyTextAutoSpace(typoStyle2_, false);
-    handler2_ = OH_Drawing_CreateTypographyHandler(typoStyle2_, fontCollection_);
-    OH_Drawing_TypographyHandlerPushTextStyle(handler2_, txtStyle_);
-    OH_Drawing_TypographyHandlerAddText(handler2_, text.c_str());
-    typography2_ = OH_Drawing_CreateTypography(handler2_);
-    OH_Drawing_TypographyLayout(typography2_, DEFAULT_LAYOUT_WIDTH);
     double longestLineFalse = OH_Drawing_TypographyGetLongestLine(typography2_);
     double line1False = OH_Drawing_TypographyGetLineWidth(typography2_, 0);
     double line2False = OH_Drawing_TypographyGetLineWidth(typography2_, 1);
@@ -244,22 +221,13 @@ HWTEST_F(OhDrawingTypographyStyleTest, OH_Drawing_SetTypographyTextAutoSpaceTest
  */
 HWTEST_F(OhDrawingTypographyStyleTest, OH_Drawing_SetTypographyTextAutoSpaceTest004, TestSize.Level1)
 {
-    std::string text = "嫌疑者X的牺牲\n版权所有©2002-2001华为技术有限公司保留一切权利\n卸载USB设备";
-    PrepareWorkForTypographyStyleTest();
-
     // test boundary value：Use longestline without autospace as layout width when autospace enabled, line count + 1
-    // paragraph2
-    typoStyle_ = OH_Drawing_CreateTypographyStyle();
-    ASSERT_NE(typoStyle_, nullptr);
-    OH_Drawing_SetTypographyTextAutoSpace(typoStyle_, true);
-    handler_ = OH_Drawing_CreateTypographyHandler(typoStyle_, fontCollection_);
-    ASSERT_NE(handler_, nullptr);
-    OH_Drawing_TypographyHandlerPushTextStyle(handler_, txtStyle_);
-    OH_Drawing_TypographyHandlerAddText(handler_, text.c_str());
-    typography_ = OH_Drawing_CreateTypography(handler_);
-    ASSERT_NE(typography_, nullptr);
+    // Prepare Paragraph 1 and Paragraph 2, and turn on autospace and turn off autospace respectively.
+    std::string text = "嫌疑者X的牺牲\n版权所有©2002-2001华为技术有限公司保留一切权利\n卸载USB设备";
     double layoutWidth = 956.159546; // boundary value
-    OH_Drawing_TypographyLayout(typography_, layoutWidth);
+    PrepareWorkForAutoSpaceTest(text, layoutWidth);
+
+    // paragraph1
     double longestLineTrue = OH_Drawing_TypographyGetLongestLine(typography_);
     double line1True = OH_Drawing_TypographyGetLineWidth(typography_, 0);
     double line2True = OH_Drawing_TypographyGetLineWidth(typography_, 1);
@@ -271,16 +239,6 @@ HWTEST_F(OhDrawingTypographyStyleTest, OH_Drawing_SetTypographyTextAutoSpaceTest
     EXPECT_GT(line3True, 0);
 
     // paragraph2
-    typoStyle2_ = OH_Drawing_CreateTypographyStyle();
-    ASSERT_NE(typoStyle2_, nullptr);
-    OH_Drawing_SetTypographyTextAutoSpace(typoStyle2_, false);
-    handler2_ = OH_Drawing_CreateTypographyHandler(typoStyle2_, fontCollection_);
-    ASSERT_NE(handler2_, nullptr);
-    OH_Drawing_TypographyHandlerPushTextStyle(handler2_, txtStyle_);
-    OH_Drawing_TypographyHandlerAddText(handler2_, text.c_str());
-    typography2_ = OH_Drawing_CreateTypography(handler2_);
-    ASSERT_NE(typography2_, nullptr);
-    OH_Drawing_TypographyLayout(typography2_, layoutWidth);
     double longestLineFalse2 = OH_Drawing_TypographyGetLongestLine(typography2_);
     double line1False2 = OH_Drawing_TypographyGetLineWidth(typography2_, 0);
     double line2False2 = OH_Drawing_TypographyGetLineWidth(typography2_, 1);
@@ -296,5 +254,189 @@ HWTEST_F(OhDrawingTypographyStyleTest, OH_Drawing_SetTypographyTextAutoSpaceTest
     EXPECT_GT(line2False2, line2True);
     EXPECT_GT(line4True, line3False2);
     EXPECT_EQ(lineCount, lineCount2 + 1);
+}
+
+/*
+ * @tc.name: OH_Drawing_SetTypographyTextAutoSpaceTest005
+ * @tc.desc: test for width from OH_Drawing_TextLineGetImageBounds when set auto space
+ * @tc.type: FUNC
+ */
+HWTEST_F(OhDrawingTypographyStyleTest, OH_Drawing_SetTypographyTextAutoSpaceTest005, TestSize.Level1)
+{
+    // Prepare Paragraph 1 and Paragraph 2, and turn on autospace and turn off autospace respectively.
+    std::string text = "嫌疑者X的牺牲";
+    PrepareWorkForAutoSpaceTest(text, DEFAULT_LAYOUT_WIDTH);
+    OH_Drawing_Array* textLines = OH_Drawing_TypographyGetTextLines(typography_);
+    ASSERT_NE(textLines, nullptr);
+    OH_Drawing_Array* textLines2 = OH_Drawing_TypographyGetTextLines(typography2_);
+    ASSERT_NE(textLines2, nullptr);
+    OH_Drawing_TextLine* textLine = OH_Drawing_GetTextLineByIndex(textLines, 0);
+    ASSERT_NE(textLine, nullptr);
+    OH_Drawing_TextLine* textLine2 = OH_Drawing_GetTextLineByIndex(textLines2, 0);
+    ASSERT_NE(textLine2, nullptr);
+
+    // compare paragraph1 and paragraph2
+    OH_Drawing_Rect* rect = nullptr;
+    OH_Drawing_Rect* rect2 = nullptr;
+
+    rect = OH_Drawing_TextLineGetImageBounds(textLine);
+    rect2 = OH_Drawing_TextLineGetImageBounds(textLine2);
+    EXPECT_NEAR(OH_Drawing_RectGetLeft(rect), OH_Drawing_RectGetLeft(rect2), FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(
+        OH_Drawing_RectGetRight(rect), OH_Drawing_RectGetRight(rect2) + DEFAULT_FONT_SIZE / 8 * 2, FLOAT_DATA_EPSILON);
+
+    OH_Drawing_DestroyTextLines(textLines);
+    OH_Drawing_DestroyTextLines(textLines2);
+    OH_Drawing_DestroyRunImageBounds(rect);
+    OH_Drawing_DestroyRunImageBounds(rect2);
+}
+
+/*
+ * @tc.name: OH_Drawing_SetTypographyTextAutoSpaceTest006
+ * @tc.desc: test for width from OH_Drawing_TextLineGetOffsetForStringIndex when set auto space
+ * @tc.type: FUNC
+ */
+HWTEST_F(OhDrawingTypographyStyleTest, OH_Drawing_SetTypographyTextAutoSpaceTest006, TestSize.Level1)
+{
+    // Prepare Paragraph 1 and Paragraph 2, and turn on autospace and turn off autospace respectively.
+    std::string text = "嫌疑者X的牺牲";
+    PrepareWorkForAutoSpaceTest(text, DEFAULT_LAYOUT_WIDTH);
+    OH_Drawing_Array* textLines = OH_Drawing_TypographyGetTextLines(typography_);
+    ASSERT_NE(textLines, nullptr);
+    OH_Drawing_Array* textLines2 = OH_Drawing_TypographyGetTextLines(typography2_);
+    ASSERT_NE(textLines2, nullptr);
+    OH_Drawing_TextLine* textLine = OH_Drawing_GetTextLineByIndex(textLines, 0);
+    ASSERT_NE(textLine, nullptr);
+    OH_Drawing_TextLine* textLine2 = OH_Drawing_GetTextLineByIndex(textLines2, 0);
+    ASSERT_NE(textLine2, nullptr);
+
+    // compare paragraph1 and paragraph2
+    double textLineWidth3 = OH_Drawing_TextLineGetOffsetForStringIndex(textLine, 4) -
+        OH_Drawing_TextLineGetOffsetForStringIndex(textLine, 3);
+    double textLineWidth4 = OH_Drawing_TextLineGetOffsetForStringIndex(textLine, 5) -
+        OH_Drawing_TextLineGetOffsetForStringIndex(textLine, 4);
+    double textLine2Width3 = OH_Drawing_TextLineGetOffsetForStringIndex(textLine2, 4) -
+        OH_Drawing_TextLineGetOffsetForStringIndex(textLine2, 3);
+    double textLine2Width4 = OH_Drawing_TextLineGetOffsetForStringIndex(textLine2, 5) -
+        OH_Drawing_TextLineGetOffsetForStringIndex(textLine2, 4);
+    EXPECT_NEAR(textLineWidth3, textLine2Width3 + DEFAULT_FONT_SIZE / 8, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(textLineWidth4, textLine2Width4 + DEFAULT_FONT_SIZE / 8, FLOAT_DATA_EPSILON);
+
+    OH_Drawing_DestroyTextLines(textLines);
+    OH_Drawing_DestroyTextLines(textLines2);
+}
+
+/*
+ * @tc.name: OH_Drawing_SetTypographyTextAutoSpaceTest007
+ * @tc.desc: test for width from OH_Drawing_GetRunTypographicBounds when set auto space
+ * @tc.type: FUNC
+ */
+HWTEST_F(OhDrawingTypographyStyleTest, OH_Drawing_SetTypographyTextAutoSpaceTest007, TestSize.Level1)
+{
+    // Prepare Paragraph 1 and Paragraph 2, and turn on autospace and turn off autospace respectively.
+    std::string text = "嫌疑者X的牺牲";
+    PrepareWorkForAutoSpaceTest(text, DEFAULT_LAYOUT_WIDTH);
+
+    // paragraph1
+    OH_Drawing_Array* textLines = OH_Drawing_TypographyGetTextLines(typography_);
+    ASSERT_NE(textLines, nullptr);
+    size_t size = OH_Drawing_GetDrawingArraySize(textLines);
+    ASSERT_GT(size, 0);
+    OH_Drawing_TextLine* textLine = OH_Drawing_GetTextLineByIndex(textLines, 0);
+    ASSERT_NE(textLine, nullptr);
+    OH_Drawing_Array* runs = OH_Drawing_TextLineGetGlyphRuns(textLine);
+    ASSERT_NE(runs, nullptr);
+    size_t runsSize = OH_Drawing_GetDrawingArraySize(runs);
+    ASSERT_GT(runsSize, 0);
+
+    // paragraph2
+    OH_Drawing_Array* textLines2 = OH_Drawing_TypographyGetTextLines(typography2_);
+    ASSERT_NE(textLines2, nullptr);
+    size_t size2 = OH_Drawing_GetDrawingArraySize(textLines2);
+    ASSERT_GT(size2, 0);
+    OH_Drawing_TextLine* textLine2 = OH_Drawing_GetTextLineByIndex(textLines2, 0);
+    ASSERT_NE(textLine2, nullptr);
+    OH_Drawing_Array* runs2 = OH_Drawing_TextLineGetGlyphRuns(textLine2);
+    ASSERT_NE(runs2, nullptr);
+    size_t runsSize2 = OH_Drawing_GetDrawingArraySize(runs2);
+    ASSERT_GT(runsSize2, 0);
+
+    // compare paragraph1 and paragraph2
+    std::vector<float> widthAddArr = { 0, DEFAULT_FONT_SIZE / 8, DEFAULT_FONT_SIZE / 8 };
+    for (int i = 0; i < runsSize; i++) {
+        OH_Drawing_Run* run = OH_Drawing_GetRunByIndex(runs, i);
+        OH_Drawing_Run* run2 = OH_Drawing_GetRunByIndex(runs2, i);
+        ASSERT_NE(run, nullptr);
+        ASSERT_NE(run2, nullptr);
+        float ascent = 0.0;
+        float descent = 0.0;
+        float leading = 0.0;
+        float width = OH_Drawing_GetRunTypographicBounds(run, &ascent, &descent, &leading);
+        float width2 = OH_Drawing_GetRunTypographicBounds(run2, &ascent, &descent, &leading);
+        EXPECT_NEAR(width, width2 + widthAddArr[i], FLOAT_DATA_EPSILON);
+    }
+    OH_Drawing_DestroyRuns(runs);
+    OH_Drawing_DestroyTextLines(textLines);
+    OH_Drawing_DestroyRuns(runs2);
+    OH_Drawing_DestroyTextLines(textLines2);
+}
+
+/*
+ * @tc.name: OH_Drawing_SetTypographyTextAutoSpaceTest008
+ * @tc.desc: test for width from OH_Drawing_GetRunImageBounds when set auto space
+ * @tc.type: FUNC
+ */
+HWTEST_F(OhDrawingTypographyStyleTest, OH_Drawing_SetTypographyTextAutoSpaceTest008, TestSize.Level1)
+{
+    // Prepare Paragraph 1 and Paragraph 2, and turn on autospace and turn off autospace respectively.
+    std::string text = "嫌疑者X的牺牲";
+    PrepareWorkForAutoSpaceTest(text, DEFAULT_LAYOUT_WIDTH);
+
+    // paragraph1
+    OH_Drawing_Array* textLines = OH_Drawing_TypographyGetTextLines(typography_);
+    ASSERT_NE(textLines, nullptr);
+    size_t size = OH_Drawing_GetDrawingArraySize(textLines);
+    ASSERT_GT(size, 0);
+    OH_Drawing_TextLine* textLine = OH_Drawing_GetTextLineByIndex(textLines, 0);
+    ASSERT_NE(textLine, nullptr);
+    OH_Drawing_Array* runs = OH_Drawing_TextLineGetGlyphRuns(textLine);
+    ASSERT_NE(runs, nullptr);
+    size_t runsSize = OH_Drawing_GetDrawingArraySize(runs);
+    ASSERT_GT(runsSize, 0);
+
+    // paragraph2
+    OH_Drawing_Array* textLines2 = OH_Drawing_TypographyGetTextLines(typography2_);
+    ASSERT_NE(textLines2, nullptr);
+    size_t size2 = OH_Drawing_GetDrawingArraySize(textLines2);
+    ASSERT_GT(size2, 0);
+    OH_Drawing_TextLine* textLine2 = OH_Drawing_GetTextLineByIndex(textLines2, 0);
+    ASSERT_NE(textLine2, nullptr);
+    OH_Drawing_Array* runs2 = OH_Drawing_TextLineGetGlyphRuns(textLine2);
+    ASSERT_NE(runs2, nullptr);
+    size_t runsSize2 = OH_Drawing_GetDrawingArraySize(runs2);
+    ASSERT_GT(runsSize2, 0);
+
+    // compare paragraph1 and paragraph2
+    std::vector<float> leftAddArr = { 0, 0, DEFAULT_FONT_SIZE / 8 };
+    std::vector<float> rightAddArr = { 0, DEFAULT_FONT_SIZE / 8, DEFAULT_FONT_SIZE / 8 * 2 };
+    OH_Drawing_Rect* rect = nullptr;
+    OH_Drawing_Rect* rect2 = nullptr;
+    for (int i = 0; i < runsSize; i++) {
+        OH_Drawing_Run* run = OH_Drawing_GetRunByIndex(runs, i);
+        OH_Drawing_Run* run2 = OH_Drawing_GetRunByIndex(runs2, i);
+        ASSERT_NE(run, nullptr);
+        ASSERT_NE(run2, nullptr);
+        rect = OH_Drawing_GetRunImageBounds(run);
+        rect2 = OH_Drawing_GetRunImageBounds(run2);
+        // It will accumulate as the number of autospaces needs to be increased.
+        EXPECT_NEAR(OH_Drawing_RectGetLeft(rect), OH_Drawing_RectGetLeft(rect2) + leftAddArr[i], FLOAT_DATA_EPSILON);
+        EXPECT_NEAR(OH_Drawing_RectGetRight(rect), OH_Drawing_RectGetRight(rect2) + rightAddArr[i], FLOAT_DATA_EPSILON);
+    }
+    OH_Drawing_DestroyRuns(runs);
+    OH_Drawing_DestroyTextLines(textLines);
+    OH_Drawing_DestroyRuns(runs2);
+    OH_Drawing_DestroyTextLines(textLines2);
+    OH_Drawing_DestroyRunImageBounds(rect);
+    OH_Drawing_DestroyRunImageBounds(rect2);
 }
 } // namespace OHOS

@@ -63,11 +63,12 @@ public:
         ScreenId mirrorId = 0,
         int flags = 0,
         std::vector<NodeId> whiteList = {});
-    
+
     /**
      * @brief Set list of surface node id, these nodes will be excluded from this screen.
      * @param id Valid screen id: set screen record black list; INVALID_SCREEN_ID: set screen cast black list.
-     * @param blackListVector List of surface node id.
+     * @param blackListVector List of surface node id. If the screen id is INVALID_SCREEN_ID, the blackListVector will
+     * apply to all virtual screens.
      * @return 0 means success.
      */
     int32_t SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector);
@@ -80,7 +81,7 @@ public:
     int32_t RemoveVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector);
 
     int32_t SetVirtualScreenSecurityExemptionList(ScreenId id, const std::vector<NodeId>& securityExemptionList);
-    
+
     /**
      * @brief Set mask image displayed on virtual mirror screen when security layer is present.
      * @param id Virtual screen id.
@@ -90,7 +91,7 @@ public:
     int32_t SetScreenSecurityMask(ScreenId id, std::shared_ptr<Media::PixelMap> securityMask);
 
     int32_t SetMirrorScreenVisibleRect(ScreenId id, const Rect& mainScreenRect, bool supportRotation = false);
-    
+
     /**
      * @brief Set if cast screen black list is enabled, surface node in black list will not be drawn.
      * @param id Virtual screen id.
@@ -98,7 +99,7 @@ public:
      * @return 0 means success.
      */
     int32_t SetCastScreenEnableSkipWindow(ScreenId id, bool enable);
-    
+
     /**
      * @brief Set producer surface for virtual screen.
      * @param id Virtual screen id.
@@ -107,7 +108,7 @@ public:
      */
     int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface);
 #endif
-    
+
     /**
      * @brief Remove virtual screen.
      * @param id Virtual screen id.
@@ -143,7 +144,7 @@ public:
     bool TakeSurfaceCaptureWithBlur(std::shared_ptr<RSSurfaceNode> node,
         std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig = {},
         float blurRadius = 1E-6);
-    
+
     /**
      * @brief Take display node capture.
      * @param node Display node.
@@ -200,7 +201,7 @@ public:
      * @return StatusCode. Returns value, return value == 0 success, otherwise, failed.
      */
     int32_t SetPhysicalScreenResolution(ScreenId id, uint32_t width, uint32_t height);
-    
+
     /**
      * @brief Set virtual screen resolution.
      * @param id Virtual screen id.
@@ -210,7 +211,7 @@ public:
      */
     int32_t SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height);
 #endif // !ROSEN_ARKUI_X
-    
+
     /**
      * @brief Set if auto rotation is enabled for virtual mirror screen, keep content always horizontal.
      * @param id Virtual screen id.
@@ -302,7 +303,7 @@ public:
     int32_t SetScreenColorGamut(ScreenId id, int32_t modeIdx);
 
     int32_t SetScreenGamutMap(ScreenId id, ScreenGamutMap mode);
-    
+
     /**
      * @brief Set screen correction, used to correct screen rotation.
      * @param id Screen id.
@@ -487,7 +488,7 @@ public:
     void SetVirtualScreenUsingStatus(bool isVirtualScreenUsingStatus);
 
     int32_t RegisterUIExtensionCallback(uint64_t userId, const UIExtensionCallback& callback, bool unobscured = false);
-    
+
     /**
      * @brief Set virtual screen status.
      * @param id Virtual screen id.

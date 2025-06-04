@@ -20,7 +20,11 @@
 #include "include/core/SkColorSpace.h"
 #include "native_buffer_inner.h"
 #include "platform/common/rs_log.h"
+#ifdef USE_M133_SKIA
+#include "include/gpu/ganesh/vk/GrVkBackendSurface.h"
+#else
 #include "include/gpu/GrBackendSurface.h"
+#endif
 #include "pipeline/hardware_thread/rs_hardware_thread.h"
 #include "pipeline/rs_task_dispatcher.h"
 #include "rs_trace.h"
@@ -186,18 +190,8 @@ std::shared_ptr<NativeVkImageRes> RSVkImageManager::NewImageCacheFromBuffer(
     if (imageCacheSeqSize <= MAX_CACHE_SIZE_FOR_REUSE) {
         imageCacheSeqs_.emplace(bufferId, imageCache);
     }
-    cacheQueue_.push(bufferId);
 
     return imageCache;
-}
-
-void RSVkImageManager::ShrinkCachesIfNeeded()
-{
-    while (cacheQueue_.size() > MAX_CACHE_SIZE) {
-        const uint32_t id = cacheQueue_.front();
-        UnMapVkImageFromSurfaceBuffer(id);
-        cacheQueue_.pop();
-    }
 }
 
 void RSVkImageManager::UnMapVkImageFromSurfaceBuffer(uint32_t seqNum)

@@ -34,6 +34,7 @@
 #include "params/rs_surface_render_params.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/render_thread/rs_base_render_util.h"
+#include "pipeline/rs_effect_render_node.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
@@ -147,6 +148,44 @@ GraphicIRect RSUniDirtyComputeUtil::IntersectRect(const GraphicIRect& first, con
     } else {
         return GraphicIRect { left, top, width, height };
     }
+}
+
+FilterDirtyRegionInfo RSUniFilterDirtyComputeUtil::GenerateFilterDirtyRegionInfo(
+    RSRenderNode& filterNode, const std::optional<Occlusion::Region>& preDirty)
+{
+    bool effectNodeExpandDirty =
+        filterNode.IsInstanceOf<RSEffectRenderNode>() && !filterNode.FirstFrameHasEffectChildren();
+    auto filterRegion = effectNodeExpandDirty ?
+        GetVisibleEffectRegion(filterNode) : Occlusion::Region(Occlusion::Rect(filterNode.GetOldDirtyInSurface()));
+    auto dirtyRegion = effectNodeExpandDirty ?
+        filterRegion.Or(Occlusion::Region(Occlusion::Rect(filterNode.GetFilterRect()))) : filterRegion;
+    if (filterNode.NeedDrawBehindWindow()) {
+        filterRegion = Occlusion::Region(Occlusion::Rect(filterNode.GetFilterRect()));
+        dirtyRegion = filterRegion;
+    }
+    FilterDirtyRegionInfo filterInfo = {
+        .id_ = filterNode.GetId(),
+        .intersectRegion_ = filterRegion,
+        .filterDirty_ = dirtyRegion,
+        .alignedFilterDirty_ = dirtyRegion.GetAlignedRegion(MAX_DIRTY_ALIGNMENT_SIZE),
+        .belowDirty_ = preDirty.value_or(Occlusion::Region())
+    };
+    return filterInfo;
+}
+
+Occlusion::Region RSUniFilterDirtyComputeUtil::GetVisibleEffectRegion(RSRenderNode& filterNode)
+{
+    auto context = filterNode.GetContext().lock();
+    if (!context) {
+        RS_LOGE("GetVisibleEffectRegion filter node%{public}" PRIu64 " context is nullptr", filterNode.GetId());
+    }
+    Occlusion::Region childEffectRegion;
+    for (auto& nodeId : filterNode.GetVisibleEffectChild()) {
+        if (auto& subNode = context->GetNodeMap().GetRenderNode<RSRenderNode>(nodeId)) {
+            childEffectRegion = childEffectRegion.OrSelf(Occlusion::Region(subNode->GetOldDirtyInSurface()));
+        }
+    }
+    return childEffectRegion;
 }
 } // namespace Rosen
 } // namespace OHOS

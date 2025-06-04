@@ -14,7 +14,7 @@
 import("//build/test.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
-module_output_path = "graphic_2d/graphic_2d/bootanimation"
+module_output_path = "graphic_2d/OH-bootanimation"
 
 group("unittest") {
   testonly = true
@@ -50,16 +50,23 @@ ohos_unittest("bootanimation_test") {
     "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
     "$graphic_2d_root/rosen/modules/composer:libcomposer",
     "$graphic_2d_root/rosen/modules/render_service:librender_service",
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
     "$graphic_2d_root/rosen/modules/render_service_base/src/platform:platform",
     "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
   ]
 
+  public_external_deps = [ "cJSON:cjson" ]
+
   external_deps = [
-    "cJSON:cjson_static",
+    "cJSON:cjson",
     "c_utils:utils",
     "config_policy:configpolicy_util",
+    "eventhandler:libeventhandler",
+    "googletest:gtest_main",
+    "hilog:libhilog",
     "hitrace:hitrace_meter",
     "init:libbegetutil",
+    "samgr:samgr_proxy",
     "zlib:libz",
   ]
 
@@ -82,6 +89,7 @@ config("bootanimation_test_config") {
   include_dirs = [
     "$graphic_2d_root/frameworks/bootanimation/include",
     "$graphic_2d_root/interfaces/inner_api/bootanimation",
+    "${graphic_2d_root}/utils/log",
   ]
 
   cflags = [

@@ -556,6 +556,20 @@ public:
         return displayTotalHdrStatus_;
     }
 
+    void InsertHDRNode(NodeId id)
+    {
+        hdrNodeList_.insert(id);
+    }
+
+    void RemoveHDRNode(NodeId id)
+    {
+        hdrNodeList_.erase(id);
+    }
+
+    std::unordered_set<NodeId>& GetHDRNodeList()
+    {
+        return hdrNodeList_;
+    }
     using ScreenStatusNotifyTask = std::function<void(bool)>;
 
     static void SetScreenStatusNotifyTask(ScreenStatusNotifyTask task);
@@ -647,6 +661,8 @@ private:
     int32_t lastScbPid_ = -1;
     HdrStatus displayTotalHdrStatus_ = HdrStatus::NO_HDR;
     uint64_t screenId_ = 0;
+    // save children hdr canvasNode id
+    std::unordered_set<NodeId> hdrNodeList_;
     // Use in MultiLayersPerf
     size_t surfaceCountForMultiLayersPerf_ = 0;
     int64_t lastRefreshTime_ = 0;

@@ -20,6 +20,7 @@
 #include "render/rs_render_ripple_mask.h"
 namespace OHOS {
 namespace Rosen {
+class RSShaderMask;
 
 class RSB_EXPORT RSRenderDispDistortFilterPara : public RSRenderFilterParaBase {
 
@@ -42,7 +43,18 @@ public:
     virtual std::vector<std::shared_ptr<RSRenderPropertyBase>> GetLeafRenderProperties() override;
 
     std::shared_ptr<RSRenderMaskPara> GetRenderMask();
+
+    bool ParseFilterValues() override;
+    void GenerateGEVisualEffect(std::shared_ptr<Drawing::GEVisualEffectContainer> visualEffectContainer) override;
+
+    const Vector2f& GetFactor() const;
+    const std::shared_ptr<RSShaderMask>& GetMask() const;
+
 private:
+    static constexpr char GE_FILTER_DISPLACEMENT_DISTORT_FACTOR[] = "DISTORT_FACTOR";
+    static constexpr char GE_FILTER_DISPLACEMENT_DISTORT_MASK[] = "DISTORT_MASK";
+    std::shared_ptr<RSShaderMask> mask_ = nullptr;
+    Vector2f factor_ = {1.f, 1.f};
     RSUIFilterType maskType_ = RSUIFilterType::NONE;
 };
 } // namespace Rosen

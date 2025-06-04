@@ -14,6 +14,7 @@
  */
 
 #include "params/rs_surface_render_params.h"
+#include "platform/common/rs_log.h"
 #include "rs_trace.h"
 
 namespace OHOS::Rosen {
@@ -229,6 +230,20 @@ void RSSurfaceRenderParams::SetLayerSourceTuning(int32_t needSourceTuning)
 int32_t RSSurfaceRenderParams::GetLayerSourceTuning() const
 {
     return layerSource_;
+}
+
+void RSSurfaceRenderParams::SetTunnelLayerId(const uint64_t& tunnelLayerId)
+{
+    if (tunnelLayerId_ == tunnelLayerId) {
+        return;
+    }
+    tunnelLayerId_ = tunnelLayerId;
+    needSync_ = true;
+}
+
+uint64_t RSSurfaceRenderParams::GetTunnelLayerId() const
+{
+    return tunnelLayerId_;
 }
 
 bool RSSurfaceRenderParams::GetLastFrameHardwareEnabled() const
@@ -566,6 +581,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->isOutOfScreen_ = isOutOfScreen_;
     targetSurfaceParams->isRotating_ = isRotating_;
     targetSurfaceParams->specialLayerManager_ = specialLayerManager_;
+    targetSurfaceParams->blackListIds_ = blackListIds_;
     targetSurfaceParams->privacyContentLayerIds_ = privacyContentLayerIds_;
     targetSurfaceParams->name_ = name_;
     targetSurfaceParams->bundleName_ = bundleName_;
@@ -579,6 +595,8 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->isHwcGlobalPositionEnabled_ = isHwcGlobalPositionEnabled_;
     targetSurfaceParams->isHwcCrossNode_ = isHwcCrossNode_;
     targetSurfaceParams->dstRect_ = dstRect_;
+    targetSurfaceParams->ancoSrcCrop_ = ancoSrcCrop_;
+    targetSurfaceParams->ancoFlags_ = ancoFlags_;
     targetSurfaceParams->isSkipDraw_ = isSkipDraw_;
     targetSurfaceParams->isLayerTop_ = isLayerTop_;
     targetSurfaceParams->needHidePrivacyContent_ = needHidePrivacyContent_;
@@ -587,6 +605,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->roundedCornerRegion_ = roundedCornerRegion_;
     targetSurfaceParams->needOffscreen_ = needOffscreen_;
     targetSurfaceParams->layerSource_ = layerSource_;
+    targetSurfaceParams->tunnelLayerId_ = tunnelLayerId_;
     targetSurfaceParams->hasHdrPresent_ = hasHdrPresent_;
     targetSurfaceParams->totalMatrix_ = totalMatrix_;
     targetSurfaceParams->visibleFilterChild_ = visibleFilterChild_;

@@ -95,6 +95,10 @@ void RSUIDispDistortFilterPara::SetDisplacementDistort(
     }
     maskType_ = RSUIMaskPara::ConvertMaskType(maskPara->GetMaskParaType());
     std::shared_ptr<RSUIMaskPara> maskProperty = CreateMask(maskType_);
+    if (maskProperty == nullptr) {
+        ROSEN_LOGW("RSUIDispDistortFilterPara::SetDisplacementDistort maskProperty nullptr");
+        return;
+    }
     maskProperty->SetPara(maskPara);
     SetMask(maskProperty);
 }

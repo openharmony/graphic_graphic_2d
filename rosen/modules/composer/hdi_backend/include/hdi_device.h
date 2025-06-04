@@ -102,6 +102,8 @@ public:
     virtual int32_t SetLayerTunnelHandle(uint32_t screenId, uint32_t layerId, GraphicExtDataHandle *handle) = 0;
     virtual int32_t GetSupportedPresentTimestampType(uint32_t screenId, uint32_t layerId,
                                                      GraphicPresentTimestampType &type) = 0;
+    virtual int32_t SetTunnelLayerId(uint32_t devId, uint32_t layerId, uint64_t tunnleId) = 0;
+    virtual int32_t SetTunnelLayerProperty(uint32_t devId, uint32_t layerId, uint32_t property) = 0;
     virtual int32_t GetPresentTimestamp(uint32_t screenId, uint32_t layerId, GraphicPresentTimestamp &timestamp) = 0;
     virtual int32_t SetLayerMaskInfo(uint32_t screenId, uint32_t layerId, uint32_t maskInfo) = 0;
     /* set & get device layer info end */

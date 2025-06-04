@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,12 +17,17 @@
 #include "drawing_path.h"
 #include "drawing_rect.h"
 
+#ifdef USE_M133_SKIA
+#include "src/base/SkUTF.h"
+#else
 #include "src/utils/SkUTF.h"
+#endif
 
 #include "drawing_canvas_utils.h"
 #include "drawing_font_utils.h"
 #include "drawing_path.h"
 #include "text/font.h"
+#include "utils/log.h"
 
 using namespace OHOS;
 using namespace Rosen;
@@ -278,6 +283,101 @@ OH_Drawing_ErrorCode OH_Drawing_FontMeasureText(const OH_Drawing_Font* cFont, co
 
     *textWidth = font->MeasureText(text, byteLength,
         static_cast<TextEncoding>(encoding), reinterpret_cast<Drawing::Rect*>(bounds));
+    return OH_DRAWING_SUCCESS;
+}
+
+OH_Drawing_ErrorCode OH_Drawing_FontMeasureTextWithBrushOrPen(const OH_Drawing_Font* cFont, const void* text,
+    size_t byteLength, OH_Drawing_TextEncoding encoding, const OH_Drawing_Brush* brush, const OH_Drawing_Pen* pen,
+    OH_Drawing_Rect* bounds, float* textWidth)
+{
+    if (cFont == nullptr || text == nullptr || byteLength == 0 || (brush != nullptr && pen != nullptr) ||
+        textWidth == nullptr) {
+        LOGE("OH_Drawing_FontMeasureTextWithBrushOrPen: Any of font, text and textWidth is nullptr or "
+            "byteLength is 0 or brush and pen are both not nullptr.");
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    const Font* font = CastToFont(cFont);
+    std::shared_ptr<Font> themeFont = DrawingFontUtils::GetThemeFont(font);
+    if (themeFont != nullptr) {
+        font = themeFont.get();
+    }
+    *textWidth = font->MeasureText(text, byteLength, static_cast<TextEncoding>(encoding),
+        reinterpret_cast<Drawing::Rect*>(bounds), reinterpret_cast<const Drawing::Brush*>(brush),
+        reinterpret_cast<const Drawing::Pen*>(pen));
+    return OH_DRAWING_SUCCESS;
+}
+
+OH_Drawing_ErrorCode OH_Drawing_FontGetWidthsBounds(const OH_Drawing_Font* cFont, const uint16_t* glyphs, int count,
+    const OH_Drawing_Brush* brush, const OH_Drawing_Pen* pen, float* widths, OH_Drawing_Array* bounds)
+{
+    if (cFont == nullptr || glyphs == nullptr || count <= 0 || (brush != nullptr && pen != nullptr) ||
+        (widths == nullptr && bounds == nullptr)) {
+        LOGE("OH_Drawing_FontGetWidthsBounds: Any of font and glyphs is nullptr or count is no larger than 0 or "
+            "brush and pen are both not nullptr.");
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    size_t size = 0;
+    OH_Drawing_Rect* rectArr = nullptr;
+    if (bounds) {
+        if (OH_Drawing_RectGetArraySize(bounds, &size) != OH_DRAWING_SUCCESS) {
+            return OH_DRAWING_ERROR_INVALID_PARAMETER;
+        }
+        if (size < static_cast<uint32_t>(count)) {
+            return OH_DRAWING_ERROR_INVALID_PARAMETER;
+        }
+        if (OH_Drawing_RectGetArrayElement(bounds, 0, &rectArr) != OH_DRAWING_SUCCESS) {
+            return OH_DRAWING_ERROR_INVALID_PARAMETER;
+        }
+        if (rectArr == nullptr) {
+            return OH_DRAWING_ERROR_INVALID_PARAMETER;
+        }
+    }
+    const Font* font = CastToFont(cFont);
+    std::shared_ptr<Font> themeFont = DrawingFontUtils::GetThemeFont(font);
+    if (themeFont != nullptr) {
+        font = themeFont.get();
+    }
+    font->GetWidthsBounds(glyphs, count, widths, reinterpret_cast<Drawing::Rect*>(rectArr),
+        reinterpret_cast<const Drawing::Brush*>(brush), reinterpret_cast<const Drawing::Pen*>(pen));
+    return OH_DRAWING_SUCCESS;
+}
+
+OH_Drawing_ErrorCode OH_Drawing_FontGetPos(const OH_Drawing_Font* cFont, const uint16_t* glyphs, int count,
+    const OH_Drawing_Point* cOrigin, OH_Drawing_Point2D* cPoints)
+{
+    if (cFont == nullptr || glyphs == nullptr || count <= 0 || cPoints == nullptr) {
+        LOGE("OH_Drawing_FontGetPos: Any of font, glyphs and points is nullptr or count is not larger than 0.");
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    const Font* font = CastToFont(cFont);
+    std::shared_ptr<Font> themeFont = DrawingFontUtils::GetThemeFont(font);
+    if (themeFont != nullptr) {
+        font = themeFont.get();
+    }
+
+    Point* points = reinterpret_cast<Point*>(cPoints);
+    Point origin(0, 0);
+    if (cOrigin) {
+        auto tempOrigin = reinterpret_cast<const Point*>(cOrigin);
+        origin.SetX(tempOrigin->GetX());
+        origin.SetY(tempOrigin->GetY());
+    }
+    font->GetPos(glyphs, count, points, origin);
+    return OH_DRAWING_SUCCESS;
+}
+
+OH_Drawing_ErrorCode OH_Drawing_FontGetSpacing(const OH_Drawing_Font* cFont, float* spacing)
+{
+    if (cFont == nullptr || spacing == nullptr) {
+        LOGE("OH_Drawing_FontGetSpacing: any of font and spacing is nullptr.");
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    const Font* font = CastToFont(cFont);
+    std::shared_ptr<Font> themeFont = DrawingFontUtils::GetThemeFont(font);
+    if (themeFont != nullptr) {
+        font = themeFont.get();
+    }
+    *spacing = font->GetSpacing();
     return OH_DRAWING_SUCCESS;
 }
 

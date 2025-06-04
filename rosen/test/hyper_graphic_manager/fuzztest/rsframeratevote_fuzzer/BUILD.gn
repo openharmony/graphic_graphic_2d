@@ -20,8 +20,7 @@ module_output_path = "graphic_2d/rosen/modules/hyper_graphic_manager"
 ##############################fuzztest##########################################
 ohos_fuzztest("RSFrameRateVoteFuzzTest") {
   module_out_path = module_output_path
-  fuzz_config_file =
-      "$graphic_2d_root/rosen/test/hyper_graphic_manager/fuzztest/rsframeratevote_fuzzer"
+  fuzz_config_file = "$graphic_2d_root/rosen/test/hyper_graphic_manager/fuzztest/rsframeratevote_fuzzer"
 
   include_dirs = [
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/config",
@@ -39,13 +38,17 @@ ohos_fuzztest("RSFrameRateVoteFuzzTest") {
   ]
   sources = [ "rsframeratevote_fuzzer.cpp" ]
   deps = [
+    "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager:libhyper_graphic_manager",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
   ]
   external_deps = [
+    "eventhandler:libeventhandler",
     "ffrt:libffrt",
     "graphic_surface:surface",
+    "hilog:libhilog",
     "hitrace:hitrace_meter",
+    "samgr:samgr_proxy",
   ]
 }
 

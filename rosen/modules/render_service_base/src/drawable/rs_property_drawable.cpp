@@ -27,7 +27,7 @@
 #include "platform/common/rs_log.h"
 #include "render/rs_filter_cache_manager.h"
 #include "render/rs_drawing_filter.h"
-#include "render/rs_linear_gradient_blur_shader_filter.h"
+#include "render/rs_render_linear_gradient_blur_filter.h"
 
 namespace OHOS::Rosen {
 namespace DrawableV2 {
@@ -277,8 +277,8 @@ Drawing::RecordingCanvas::DrawFunc RSFilterDrawable::CreateDrawFunc() const
             RS_TRACE_NAME_FMT("RSFilterDrawable::CreateDrawFunc node[%llu] ", ptr->renderNodeId_);
             if (ptr->filter_->GetFilterType() == RSFilter::LINEAR_GRADIENT_BLUR && rect != nullptr) {
                 auto filter = std::static_pointer_cast<RSDrawingFilter>(ptr->filter_);
-                std::shared_ptr<RSShaderFilter> rsShaderFilter =
-                    filter->GetShaderFilterWithType(RSShaderFilter::LINEAR_GRADIENT_BLUR);
+                std::shared_ptr<RSRenderFilterParaBase> rsShaderFilter =
+                    filter->GetShaderFilterWithType(RSUIFilterType::LINEAR_GRADIENT_BLUR);
                 if (rsShaderFilter != nullptr) {
                     auto tmpFilter = std::static_pointer_cast<RSLinearGradientBlurShaderFilter>(rsShaderFilter);
                     tmpFilter->SetGeometry(*canvas, rect->GetWidth(), rect->GetHeight());
@@ -413,12 +413,12 @@ void RSFilterDrawable::MarkBlurIntersectWithDRM(bool intersectWithDRM, bool isDa
     stagingIsDarkColorMode_ = isDark;
 }
 
-void RSFilterDrawable::MarkInForegroundFilterAndCheckNeedForceClearCache(bool inForegroundFilter)
+void RSFilterDrawable::MarkInForegroundFilterAndCheckNeedForceClearCache(NodeId offscreenCanvasNodeId)
 {
     if (stagingCacheManager_ == nullptr) {
         return;
     }
-    stagingCacheManager_->MarkInForegroundFilterAndCheckNeedForceClearCache(inForegroundFilter);
+    stagingCacheManager_->MarkInForegroundFilterAndCheckNeedForceClearCache(offscreenCanvasNodeId);
 }
 
 bool RSFilterDrawable::IsFilterCacheValid() const

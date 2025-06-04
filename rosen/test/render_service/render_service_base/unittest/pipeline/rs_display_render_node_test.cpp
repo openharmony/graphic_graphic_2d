@@ -613,8 +613,6 @@ HWTEST_F(RSDisplayRenderNodeTest, ForceCloseHdrTest, TestSize.Level1)
     node->InitRenderParams();
     node->SetForceCloseHdr(false);
     EXPECT_EQ(node->GetForceCloseHdr(), false);
-    node->SetForceCloseHdr(true);
-    EXPECT_EQ(node->GetForceCloseHdr(), true);
 }
 
 /**

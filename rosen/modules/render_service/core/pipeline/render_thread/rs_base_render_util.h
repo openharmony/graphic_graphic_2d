@@ -16,21 +16,20 @@
 #ifndef RENDER_SERVICE_CORE_PIPELINE_RS_BASE_RENDER_UTIL_H
 #define RENDER_SERVICE_CORE_PIPELINE_RS_BASE_RENDER_UTIL_H
 
-#include <vector>
 #include <atomic>
+#include "draw/pen.h"
 #include "image/bitmap.h"
 #include "metadata_helper.h"
 #include "params/rs_surface_render_params.h"
-#include "utils/matrix.h"
-#include "utils/rect.h"
-#include "draw/pen.h"
-
-#include "screen_manager/rs_screen_manager.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_surface_handler.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pixel_map.h"
+#include "screen_manager/rs_screen_manager.h"
 #include "sync_fence.h"
+#include "utils/matrix.h"
+#include "utils/rect.h"
+#include <vector>
 
 namespace OHOS {
 namespace Rosen {
@@ -98,7 +97,7 @@ struct BufferDrawParam {
     float brightnessRatio = DEFAULT_BRIGHTNESS_RATIO;
     std::vector<float> layerLinearMatrix;
     bool isHdrRedraw = false;
-    bool isHdrToSdr = false;
+    bool isTmoNitsFixed = false;
     bool hasMetadata = false; // SDR has metadata
 #endif
     bool colorFollow = false;

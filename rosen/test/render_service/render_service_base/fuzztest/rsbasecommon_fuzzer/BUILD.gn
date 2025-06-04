@@ -30,9 +30,10 @@ ohos_fuzztest("RSBaseCommonFuzzTest") {
     "$graphic_2d_root/rosen/modules/render_service_base/src/common",
   ]
   deps = [
-    "$graphic_2d_root/rosen/modules/render_service_base:render_service_base_src",
     "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
     "$graphic_2d_root/rosen/modules/render_service:librender_service",
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_base:render_service_base_src",
     "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
   ]
   cflags = [
@@ -45,6 +46,7 @@ ohos_fuzztest("RSBaseCommonFuzzTest") {
 
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "hilog:libhilog",
     "zlib:libz",
   ]

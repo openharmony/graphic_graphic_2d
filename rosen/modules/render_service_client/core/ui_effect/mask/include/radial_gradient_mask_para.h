@@ -70,9 +70,9 @@ public:
     }
 
 private:
-    Vector2f center_;
-    float radiusX_;
-    float radiusY_;
+    Vector2f center_ = { 0.0f, 0.0f };
+    float radiusX_ = 0.0f;
+    float radiusY_ = 0.0f;
     std::vector<Vector2f> values_;
 };
 } // namespace Rosen

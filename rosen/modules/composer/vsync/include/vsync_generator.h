@@ -68,6 +68,7 @@ public:
     virtual VsyncError SetVSyncMode(VSyncMode vsyncMode) = 0;
     virtual VSyncMode GetVSyncMode() = 0;
     virtual VsyncError SetVSyncPhaseByPulseNum(int32_t phaseByPulseNum) = 0;
+    virtual uint32_t GetVsyncRefreshRate() = 0;
     virtual uint32_t GetVSyncMaxRefreshRate() = 0;
     virtual VsyncError SetVSyncMaxRefreshRate(uint32_t refreshRate) = 0;
     virtual void Dump(std::string &result) = 0;
@@ -121,6 +122,7 @@ public:
     VsyncError SetVSyncMode(VSyncMode vsyncMode) override;
     VSyncMode GetVSyncMode() override;
     VsyncError SetVSyncPhaseByPulseNum(int32_t phaseByPulseNum) override;
+    uint32_t GetVsyncRefreshRate() override;
     uint32_t GetVSyncMaxRefreshRate() override;
     VsyncError SetVSyncMaxRefreshRate(uint32_t refreshRate) override;
     void Dump(std::string &result) override;
@@ -183,6 +185,7 @@ private:
     void ClearAllSamplesInternal(bool clearAllSamplesFlag);
     void CalculateReferenceTimeOffsetPulseNumLocked(int64_t referenceTime);
     void WaitForTimeoutConNotifyLocked();
+    void WaitForTimeoutConNotifyLockedForListener();
 
     sptr<VSyncSystemAbilityListener> saStatusChangeListener_ = nullptr;
     int64_t period_ = 0;

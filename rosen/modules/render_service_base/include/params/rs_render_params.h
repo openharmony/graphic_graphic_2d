@@ -168,14 +168,14 @@ public:
         return globalAlpha_;
     }
 
-    inline bool IsInBlackList() const
+    inline bool NodeGroupHasChildInBlackList() const
     {
-        return isInBlackList_;
+        return isNodeGroupHasChildInBlackList_;
     }
 
-    inline void SetInBlackList(bool isInBlackList)
+    inline void SetNodeGroupHasChildInBlackList(bool isInBlackList)
     {
-        isInBlackList_ = isInBlackList;
+        isNodeGroupHasChildInBlackList_ = isInBlackList;
     }
     
     inline bool IsSnapshotSkipLayer() const
@@ -386,6 +386,9 @@ public:
     void SetCacheNodeFrameRect(const Drawing::RectF& cacheNodeFrameRect);
     const Drawing::RectF& GetCacheNodeFrameRect() const;
 
+    void SetIsOnTheTree(bool isOnTheTree);
+    bool GetIsOnTheTree() const;
+
 protected:
     bool needSync_ = false;
     std::bitset<RSRenderParamsDirtyType::MAX_DIRTY_TYPE> dirtyType_;
@@ -413,7 +416,7 @@ private:
     bool isDrawingCacheChanged_ = false;
     std::atomic_bool isNeedUpdateCache_ = false;
     bool drawingCacheIncludeProperty_ = false;
-    bool isInBlackList_ = false;
+    bool isNodeGroupHasChildInBlackList_ = false;
     bool isSnapshotSkipLayer_ = false;
     bool shouldPaint_ = false;
     bool contentEmpty_  = false;
@@ -448,6 +451,9 @@ private:
     bool needSwapBuffer_ = false;
     Drawing::RectF cacheNodeFrameRect_;
     bool isRepaintBoundary_ = false;
+
+    // used for DFX
+    bool isOnTheTree_ = false;
 };
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_PARAMS_RS_RENDER_PARAMS_H

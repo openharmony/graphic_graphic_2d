@@ -41,6 +41,7 @@ void RSRenderParticleAnimation::DumpAnimationInfo(std::string& out) const
 bool RSRenderParticleAnimation::Animate(int64_t time, int64_t& minLeftDelayTime)
 {
     RS_OPTIONAL_TRACE_NAME("RSRenderParticleAnimation::Animate");
+    minLeftDelayTime = 0;
     auto target = GetTarget();
     if (!target) {
         return true;

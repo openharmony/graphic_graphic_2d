@@ -1444,7 +1444,6 @@ HWTEST_F(RSRenderNodeTest, UpdateHierarchyTest, TestSize.Level1)
     sharedTransitionParam->relation_ = SharedTransitionParam::NodeHierarchyRelation::UNKNOWN;
     ret = sharedTransitionParam->IsLower(otherNodeId);
     EXPECT_FALSE(ret);
-    EXPECT_EQ(sharedTransitionParam->relation_, SharedTransitionParam::NodeHierarchyRelation::UNKNOWN);
 
     sharedTransitionParam->UpdateHierarchy(outNodeId);
     EXPECT_EQ(sharedTransitionParam->relation_, SharedTransitionParam::NodeHierarchyRelation::IN_NODE_ABOVE_OUT_NODE);

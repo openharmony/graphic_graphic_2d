@@ -18,13 +18,18 @@
 #include "egl_manager.h"
 #endif
 #endif
-
-#if defined(NEW_SKIA)
-#include <include/gpu/GrDirectContext.h>
+ 
+#ifdef USE_M133_SKIA
+#include "include/gpu/ganesh/GrDirectContext.h"
+#include "include/gpu/ganesh/gl/GrGLDirectContext.h"
+#include "include/gpu/ganesh/gl/GrGLInterface.h"
+#include "include/gpu/ganesh/SkSurfaceGanesh.h"
+#include "include/gpu/GpuTypes.h"
+#include "include/core/SkSurface.h"
 #else
-#include <include/gpu/GrContext.h>
-#endif
+#include <include/gpu/GrDirectContext.h>
 #include "include/gpu/gl/GrGLInterface.h"
+#endif
 
 #if (!defined(ANDROID_PLATFORM)) && (!defined(IOS_PLATFORM))
 #include "rs_trace.h"
@@ -82,7 +87,11 @@ DrawError SKImageChain::InitWithoutCanvas()
     SkPixmap srcPixmap(imageInfo_, srcPixelMap_->GetPixels(), srcPixelMap_->GetRowStride());
     SkBitmap srcBitmap;
     srcBitmap.installPixels(srcPixmap);
+#ifdef USE_M133_SKIA
+    image_ = SkImages::RasterFromBitmap(srcBitmap);
+#else
     image_ = SkImage::MakeFromBitmap(srcBitmap);
+#endif
     Media::InitializationOptions opts;
     opts.size.width = srcPixelMap_->GetWidth();
     opts.size.height = srcPixelMap_->GetHeight();
@@ -105,8 +114,13 @@ bool SKImageChain::CreateCPUCanvas()
         LOGE("The dstPixmap_ is nullptr.");
         return false;
     }
+#ifdef USE_M133_SKIA
+    cpuSurface_ = SkSurfaces::WrapPixels(imageInfo_, const_cast<void*>(dstPixmap_->addr()),
+    dstPixelMap_->GetRowStride());
+#else
     cpuSurface_ = SkSurface::MakeRasterDirect(imageInfo_, const_cast<void*>(dstPixmap_->addr()),
     dstPixelMap_->GetRowStride());
+#endif
     if (!cpuSurface_) {
         LOGE("Failed to create surface for CPU.");
         return false;
@@ -127,13 +141,15 @@ bool SKImageChain::CreateGPUCanvas()
         LOGE("Failed to init for GPU.");
         return false;
     }
-    sk_sp<const GrGLInterface> glInterface(GrGLCreateNativeInterface());
-#if defined(NEW_SKIA)
-    sk_sp<GrDirectContext> grContext(GrDirectContext::MakeGL(std::move(glInterface)));
+#ifdef USE_M133_SKIA
+    sk_sp<const GrGLInterface> glInterface(GrGLMakeNativeInterface());
+    sk_sp<GrDirectContext> grContext(GrDirectContexts::MakeGL(std::move(glInterface)));
+    gpuSurface_ = SkSurfaces::RenderTarget(grContext.get(), skgpu::Budgeted::kNo, imageInfo_);
 #else
-    sk_sp<GrContext> grContext(GrContext::MakeGL(std::move(glInterface)));
-#endif
+    sk_sp<const GrGLInterface> glInterface(GrGLCreateNativeInterface());
+    sk_sp<GrDirectContext> grContext(GrDirectContext::MakeGL(std::move(glInterface)));
     gpuSurface_ = SkSurface::MakeRenderTarget(grContext.get(), SkBudgeted::kNo, imageInfo_);
+#endif
     if (!gpuSurface_) {
         LOGE("Failed to create surface for GPU.");
         return false;
@@ -263,11 +279,7 @@ bool SKImageChain::DrawImage(SkPaint& paint)
 {
     canvas_->save();
     canvas_->resetMatrix();
-#if defined(NEW_SKIA)
     canvas_->drawImage(image_.get(), 0, 0, SkSamplingOptions(), &paint);
-#else
-    canvas_->drawImage(image_.get(), 0, 0, &paint);
-#endif
     if (!forceCPU_ && dstPixmap_ != nullptr) {
         if (!canvas_->readPixels(*dstPixmap_.get(), 0, 0)) {
             LOGE("Failed to readPixels to target Pixmap.");

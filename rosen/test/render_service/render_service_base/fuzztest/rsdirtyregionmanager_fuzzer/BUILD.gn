@@ -41,6 +41,7 @@ ohos_fuzztest("RSDirtyRegionManagerFuzzTest") {
   ]
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "hilog:libhilog",
   ]
   sources = [ "rsdirtyregionmanager_fuzzer.cpp" ]
