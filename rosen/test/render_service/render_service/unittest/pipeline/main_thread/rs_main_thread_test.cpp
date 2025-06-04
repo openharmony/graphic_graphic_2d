@@ -5210,6 +5210,7 @@ HWTEST_F(RSMainThreadTest, DoDirectComposition003, TestSize.Level1)
     ASSERT_TRUE(mainThread->DoDirectComposition(rootNode, false));
 
     displayNode->HwcDisplayRecorder().SetHasVisibleHwcNodes(true);
+    auto type = system::GetParameter("persist.sys.graphic.anco.disableHebc", "-1");
     system::SetParameter("persist.sys.graphic.anco.disableHebc", "1");
     RSSurfaceRenderNode::SetAncoForceDoDirect(true);
     ASSERT_FALSE(mainThread->DoDirectComposition(rootNode, false));
@@ -5230,7 +5231,7 @@ HWTEST_F(RSMainThreadTest, DoDirectComposition003, TestSize.Level1)
     rootNode->GenerateFullChildrenList();
 
     ASSERT_FALSE(mainThread->DoDirectComposition(rootNode, false));
-    system::SetParameter("persist.sys.graphic.anco.disableHebc", "0");
+    system::SetParameter("persist.sys.graphic.anco.disableHebc", type);
     delete handle;
 }
 } // namespace OHOS::Rosen
