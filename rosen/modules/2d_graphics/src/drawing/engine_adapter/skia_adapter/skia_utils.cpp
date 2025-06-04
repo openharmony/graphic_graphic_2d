@@ -13,10 +13,6 @@
  * limitations under the License.
  */
 
-#ifndef USE_M133_SKIA
-#include "include/gpu/vk/GrVkGraphicCoreTrace.h"
-#endif
-#include "utils/graphic_coretrace.h"
 #include "skia_utils.h"
 
 #ifdef USE_M133_SKIA
@@ -33,20 +29,6 @@ void SkiaUtils::SetVmaCacheStatus(bool flag)
 {
 #ifndef USE_M133_SKIA
     SkSetVmaCacheFlag(flag);
-#endif
-}
-
-void SkiaUtils::RecordCoreTrace(int functionType)
-{
-#if defined(SK_VULKAN) && defined(SKIA_DFX_FOR_GPURESOURCE_CORETRACE)
-    GraphicCoreTrace::RecordCoreTrace(functionType);
-#endif
-}
-
-void SkiaUtils::RecordCoreTrace(int functionType, uint64_t nodeId)
-{
-#if defined(SK_VULKAN) && defined(SKIA_DFX_FOR_GPURESOURCE_CORETRACE)
-    GraphicCoreTrace::RecordCoreTrace(functionType, nodeId);
 #endif
 }
 } // namespace Drawing

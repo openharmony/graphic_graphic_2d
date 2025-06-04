@@ -236,16 +236,6 @@ void SkiaStaticFactory::SetVmaCacheStatus(bool flag)
     SkiaUtils::SetVmaCacheStatus(flag);
 }
 
-void SkiaStaticFactory::RecordCoreTrace(int functionType)
-{
-    SkiaUtils::RecordCoreTrace(functionType);
-}
-
-void SkiaStaticFactory::RecordCoreTrace(int functionType, uint64_t nodeId)
-{
-    SkiaUtils::RecordCoreTrace(functionType, nodeId);
-}
-
 void SkiaStaticFactory::ResetStatsData()
 {
 #ifndef USE_M133_SKIA

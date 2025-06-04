@@ -28,7 +28,6 @@
 #include "drawing/engine_adapter/skia_adapter/skia_gpu_context.h"
 #include "engine_adapter/skia_adapter/skia_surface.h"
 #include "rs_trace.h"
-#include "utils/graphic_coretrace.h"
 
 #ifdef USE_M133_SKIA
 #include "include/gpu/ganesh/GrDirectContext.h"
@@ -167,8 +166,6 @@ bool RSSurfaceOhosVulkan::PreAllocateProtectedBuffer(int32_t width, int32_t heig
 std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosVulkan::RequestFrame(
     int32_t width, int32_t height, uint64_t uiTimestamp, bool useAFBC, bool isProtected)
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        RS_RSSURFACEOHOSVULKAN_REQUESTFRAME);
     if (mNativeWindow == nullptr) {
         mNativeWindow = CreateNativeWindowFromSurface(&producer_);
         ROSEN_LOGD("RSSurfaceOhosVulkan: create native window");
@@ -265,8 +262,6 @@ void RSSurfaceOhosVulkan::SetUiTimeStamp(const std::unique_ptr<RSSurfaceFrame>& 
 
 bool RSSurfaceOhosVulkan::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uint64_t uiTimestamp)
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        RS_RSSURFACEOHOSVULKAN_FLUSHFRAME);
     if (mSurfaceList.empty()) {
         return false;
     }

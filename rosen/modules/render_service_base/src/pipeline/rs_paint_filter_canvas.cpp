@@ -20,7 +20,6 @@
 #include "draw/canvas.h"
 
 #include "platform/common/rs_log.h"
-#include "utils/graphic_coretrace.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -239,8 +238,6 @@ void RSPaintFilterCanvasBase::DrawCircle(const Point& centerPt, scalar radius)
 
 void RSPaintFilterCanvasBase::DrawPath(const Path& path)
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        RS_RSPAINTFILTERCANVASBASE_DRAWPATH);
 #ifdef SKP_RECORDING_ENABLED
     for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
         if ((*iter) != nullptr && OnFilter()) {
@@ -304,8 +301,6 @@ void RSPaintFilterCanvasBase::DrawShadow(const Path& path, const Point3& planePa
 void RSPaintFilterCanvasBase::DrawShadowStyle(const Path& path, const Point3& planeParams, const Point3& devLightPos,
     scalar lightRadius, Color ambientColor, Color spotColor, ShadowFlags flag, bool isLimitElevation)
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        RS_RSPAINTFILTERCANVASBASE_DRAWSHADOWSTYLE);
 #ifdef SKP_RECORDING_ENABLED
     for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
         if ((*iter) != nullptr && OnFilter()) {
@@ -433,8 +428,6 @@ void RSPaintFilterCanvasBase::DrawBitmap(const Bitmap& bitmap, const scalar px, 
 void RSPaintFilterCanvasBase::DrawImageNine(const Drawing::Image* image, const Drawing::RectI& center,
     const Drawing::Rect& dst, Drawing::FilterMode filter, const Drawing::Brush* brush)
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        RS_RSPAINTFILTERCANVASBASE_DRAWIMAGENINE);
 #ifdef SKP_RECORDING_ENABLED
     for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
         if ((*iter) != nullptr && OnFilter()) {
@@ -511,8 +504,6 @@ void RSPaintFilterCanvasBase::DrawImageWithStencil(const Drawing::Image& image, 
 void RSPaintFilterCanvasBase::DrawImageRect(const Image& image, const Rect& src, const Rect& dst,
     const SamplingOptions& sampling, SrcRectConstraint constraint)
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        RS_RSPAINTFILTERCANVASBASE_DRAWIMAGERECT);
 #ifdef SKP_RECORDING_ENABLED
     for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
         if ((*iter) != nullptr && OnFilter()) {
@@ -800,8 +791,6 @@ void RSPaintFilterCanvasBase::Shear(scalar sx, scalar sy)
 
 void RSPaintFilterCanvasBase::Flush()
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        RS_RSPAINTFILTERCANVASBASE_FLUSH);
 #ifdef SKP_RECORDING_ENABLED
     for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
         if ((*iter) != nullptr) {

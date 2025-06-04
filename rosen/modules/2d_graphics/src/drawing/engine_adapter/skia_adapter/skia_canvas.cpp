@@ -34,7 +34,6 @@
 #include "draw/canvas.h"
 #include "image/bitmap.h"
 #include "image/image.h"
-#include "utils/graphic_coretrace.h"
 #include "utils/log.h"
 #include "utils/performanceCaculate.h"
 #include "SkOverdrawCanvas.h"
@@ -413,8 +412,6 @@ void SkiaCanvas::DrawCircle(const Point& centerPt, scalar radius, const Paint& p
 
 void SkiaCanvas::DrawPath(const Path& path, const Paint& paint)
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        GRAPHIC2D_SKIACANVAS_DRAWPATH);
     if (!skCanvas_) {
         LOGD("skCanvas_ is null, return on line %{public}d", __LINE__);
         return;
@@ -484,8 +481,6 @@ void SkiaCanvas::DrawShadow(const Path& path, const Point3& planeParams, const P
 void SkiaCanvas::DrawShadowStyle(const Path& path, const Point3& planeParams, const Point3& devLightPos,
     scalar lightRadius, Color ambientColor, Color spotColor, ShadowFlags flag, bool isLimitElevation)
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        GRAPHIC2D_SKIACANVAS_DRAWSHADOWSTYLE);
     if (!skCanvas_) {
         LOGD("skCanvas_ is null, return on line %{public}d", __LINE__);
         return;
@@ -605,8 +600,6 @@ void SkiaCanvas::DrawVertices(const Vertices& vertices, BlendMode mode, const Pa
 void SkiaCanvas::DrawImageNine(const Image* image, const RectI& center, const Rect& dst,
     FilterMode filter, const Brush* brush)
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        GRAPHIC2D_SKIACANVAS_DRAWIMAGENINE);
     if (!skCanvas_) {
         LOGD("skCanvas_ is null, return on line %{public}d", __LINE__);
         return;
@@ -874,8 +867,6 @@ void SkiaCanvas::DrawImageWithStencil(const Image& image, const scalar px, const
 void SkiaCanvas::DrawImageRect(const Image& image, const Rect& src, const Rect& dst,
     const SamplingOptions& sampling, SrcRectConstraint constraint, const Paint& paint)
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        GRAPHIC2D_SKIACANVAS_DRAWIMAGERECT);
     if (!skCanvas_) {
         LOGD("skCanvas_ is null, return on line %{public}d", __LINE__);
         return;

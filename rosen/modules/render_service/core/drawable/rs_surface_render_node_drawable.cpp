@@ -45,7 +45,6 @@
 
 #include "platform/common/rs_log.h"
 #include "platform/ohos/rs_node_stats.h"
-#include "utils/graphic_coretrace.h"
 #include "utils/rect.h"
 #include "utils/region.h"
 
@@ -126,8 +125,6 @@ bool RSSurfaceRenderNodeDrawable::CheckDrawAndCacheWindowContent(RSSurfaceRender
 void RSSurfaceRenderNodeDrawable::OnGeneralProcess(RSPaintFilterCanvas& canvas,
     RSSurfaceRenderParams& surfaceParams, RSRenderThreadParams& uniParams, bool isSelfDrawingSurface)
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        RS_RSSURFACERENDERNODEDRAWABLE_ONGENERALPROCESS);
     auto bounds = surfaceParams.GetFrameRect();
 
     if (surfaceParams.GetGlobalPositionEnabled()) {
@@ -525,8 +522,6 @@ bool RSSurfaceRenderNodeDrawable::DrawCacheImageForMultiScreenView(RSPaintFilter
 
 void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER_WITHNODEID(Drawing::CoreFunction::
-        RS_RSSURFACERENDERNODEDRAWABLE_ONDRAW, GetId());
     SetDrawSkipType(DrawSkipType::NONE);
     if (!ShouldPaint()) {
         SetDrawSkipType(DrawSkipType::SHOULD_NOT_PAINT);
@@ -869,8 +864,6 @@ void RSSurfaceRenderNodeDrawable::SetSurfaceDrawRegion(const Drawing::Region& re
 
 void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        RS_RSSURFACERENDERNODEDRAWABLE_ONCAPTURE);
     if (RSUniRenderThread::GetCaptureParam().isSoloNodeUiCapture_) {
         RSRenderNodeDrawable::OnDraw(canvas);
         return;
@@ -1073,8 +1066,6 @@ bool RSSurfaceRenderNodeDrawable::IsVisibleRegionEqualOnPhysicalAndVirtual(RSSur
 
 void RSSurfaceRenderNodeDrawable::CaptureSurface(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams)
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        RS_RSSURFACERENDERNODEDRAWABLE_CAPTURESURFACE);
     auto& uniParams = RSUniRenderThread::Instance().GetRSRenderThreadParams();
     if (UNLIKELY(!uniParams)) {
         RS_LOGE("RSSurfaceRenderNodeDrawable::CaptureSurface uniParams is nullptr");
@@ -1213,8 +1204,6 @@ GraphicColorGamut RSSurfaceRenderNodeDrawable::GetAncestorDisplayColorGamut(cons
 void RSSurfaceRenderNodeDrawable::DealWithSelfDrawingNodeBuffer(
     RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams)
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        RS_RSSURFACERENDERNODEDRAWABLE_DEALWITHSELFDRAWINGNODEBUFFER);
     if ((surfaceParams.GetHardwareEnabled() || surfaceParams.GetHardCursorStatus()) &&
         RSUniRenderThread::IsExpandScreenMode()) {
         if (!IsHardwareEnabledTopSurface() && !surfaceParams.IsLayerTop()) {
@@ -1367,8 +1356,6 @@ void RSSurfaceRenderNodeDrawable::DrawBufferForRotationFixed(RSPaintFilterCanvas
 void RSSurfaceRenderNodeDrawable::DrawSelfDrawingNodeBuffer(
     RSPaintFilterCanvas& canvas, const RSSurfaceRenderParams& surfaceParams, BufferDrawParam& params)
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        RS_RSSURFACERENDERNODEDRAWABLE_DRAWSELFDRAWINGNODEBUFFER);
 #ifdef RS_ENABLE_GPU
     RSTagTracker tagTracker(canvas.GetGPUContext(), RSTagTracker::SOURCETYPE::SOURCE_DRAWSELFDRAWINGNODEBUFFER);
 #endif
