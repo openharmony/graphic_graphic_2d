@@ -18,7 +18,10 @@ import("//foundation/graphic/graphic_2d/graphic_config.gni")
 ohos_unittest("text_effect_test") {
   module_out_path = text_test_out_path
   configs = [ "$rosen_text_root/adapter/skia:skia_libtxt_config" ]
-  sources = [ "text_effect_factory_creator_test.cpp" ]
+  sources = [
+    "text_effect_factory_creator_test.cpp",
+    "text_flip_effect_test.cpp",
+  ]
   include_dirs = [
     "$rosen_text_root",
     "$rosen_text_root/service/skia_txt",
@@ -39,6 +42,7 @@ ohos_unittest("text_effect_test") {
 
   external_deps = [
     "bounds_checking_function:libsec_shared",
+    "googletest:gmock",
     "hilog:libhilog",
   ]
 
