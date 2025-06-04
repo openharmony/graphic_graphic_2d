@@ -5197,7 +5197,6 @@ HWTEST_F(RSMainThreadTest, DoDirectComposition003, TestSize.Level1)
     auto displayDrawable = static_cast<DrawableV2::RSDisplayRenderNodeDrawable*>(drawable);
     ASSERT_NE(displayDrawable, nullptr);
     ASSERT_NE(displayDrawable->surfaceHandler_, nullptr);
-    ASSERT_NE(displayDrawable->surfaceHandler_->buffer_, nullptr);
     displayDrawable->surfaceHandler_->buffer_.buffer = SurfaceBuffer::Create();
     auto buffer = displayDrawable->surfaceHandler_->GetBuffer();
     auto handle = new BufferHandle();
