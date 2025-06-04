@@ -190,13 +190,13 @@ bool RSUniHwcVisitor::CheckNodeOcclusion(const std::shared_ptr<RSRenderNode>& no
     const auto& nodeProperties = node->GetRenderProperties();
     auto absRect = nodeProperties.GetBoundsGeometry()->GetAbsRect();
     // The canvas node intersects with the surface node.
-    if (!absRect.IsEmpty() && !surfaceNodeAbsRect.IsEmpty() && absRect.Intersect(surfaceNodeAbsRect)) {
+    if (!absRect.IsEmpty() && !surfaceNodeAbsRect.IsEmpty() && !absRect.IntersectRect(surfaceNodeAbsRect).IsEmpty()) {
         if (node->GetType() != RSRenderNodeType::CANVAS_NODE) {
             RS_LOGD("solidLayer: node type isn't canvas node, id:%{public}" PRIu64 " ", node->GetId());
             return true;
         }
 
-        bool willNotDraw = (node->GetDrawCmdModifiers().size() == 0);
+        bool willNotDraw = node->IsPureBackgroundColor();
         RS_LOGD("solidLayer: id:%{public}" PRIu64 ", willNotDraw: %{public}d", node->GetId(), willNotDraw);
         if (!willNotDraw) {
             RS_LOGD("solidLayer: presence drawing, id:%{public}" PRIu64, node->GetId());
@@ -421,19 +421,22 @@ void RSUniHwcVisitor::UpdateHwcNodeEnableByBackgroundAlpha(RSSurfaceRenderNode& 
         }
         return false;
     };
+    bool isNodeOpaque = ROSEN_EQ(renderProperties.GetAlpha(), 1.f);
     bool isSolidLayerEnabled =
-        isTargetNodeType && isTargetColor && renderProperties.GetAlpha() == 1 && !isSpecialNodeType;
+        isTargetNodeType && isTargetColor && isNodeOpaque && !isSpecialNodeType;
     bool isHdrOn = false;
+    bool hasBrightness = false;
     if (isSolidLayerEnabled) {
         isHdrOn = uniRenderVisitor_.curDisplayNode_->GetHasUniRenderHdrSurface() || GetHwcNodeHdrEnabled();
-        if (!isHdrOn) {
+        hasBrightness = renderProperties.GetBgBrightnessParams().has_value();
+        if (!isHdrOn && !hasBrightness) {
             ProcessSolidLayerEnabled(node);
             return;
         }
     }
     RS_LOGD("solidLayer: SolidLayer enabling conditions, isTargetNodeType:%{public}d, isTargetColor:%{public}d, "
-        "Alpha:%{public}d, !isSpecialNodeType:%{public}d, !isHdrOn: %{public}d", isTargetNodeType, isTargetColor,
-        renderProperties.GetAlpha() == 1, !isSpecialNodeType, !isHdrOn);
+        "Alpha: %{public}d, !isSpecialNodeType: %{public}d, !isHdrOn: %{public}d, !hasBrightness: %{public}d",
+        isTargetNodeType, isTargetColor, isNodeOpaque, !isSpecialNodeType, !isHdrOn, !hasBrightness);
     ProcessSolidLayerDisabled(node);
 }
 
