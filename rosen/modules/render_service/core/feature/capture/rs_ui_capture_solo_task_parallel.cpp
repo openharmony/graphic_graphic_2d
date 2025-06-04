@@ -46,7 +46,6 @@
 #include "render/rs_skia_filter.h"
 #include "screen_manager/rs_screen_manager.h"
 #include "screen_manager/rs_screen_mode_info.h"
-#include "utils/graphic_coretrace.h"
 
 #ifdef RS_ENABLE_VK
 #include "platform/ohos/backend/native_buffer_utils.h"

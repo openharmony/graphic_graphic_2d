@@ -35,7 +35,6 @@
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/main_thread/rs_uni_render_visitor.h"
 #include "rs_trace.h"
-#include "utils/graphic_coretrace.h"
 
 #ifdef RES_SCHED_ENABLE
 #include "qos.h"
@@ -160,7 +159,6 @@ void RSSubThread::DestroyShareEglContext()
 
 void RSSubThread::DrawableCache(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> nodeDrawable)
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::RS_RSSUBTHREAD_DRAWABLECACHE);
     if (grContext_ == nullptr) {
         grContext_ = CreateShareGrContext();
         if (grContext_ == nullptr) {
@@ -264,8 +262,6 @@ std::shared_ptr<Drawing::GPUContext> RSSubThread::CreateShareGrContext()
 
 void RSSubThread::DrawableCacheWithSkImage(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> nodeDrawable)
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        RS_RSSUBTHREAD_DRAWABLECACHEWITHSKIMAGE);
     if (!nodeDrawable) {
         RS_LOGE("RSSubThread::DrawableCacheWithSkImage nodeDrawable is nullptr");
         return;

@@ -24,7 +24,6 @@
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_task_dispatcher.h"
 #include "memory/rs_memory_manager.h"
-#include "utils/graphic_coretrace.h"
 
 namespace OHOS::Rosen {
 static constexpr uint32_t SUB_THREAD_NUM = 3;
@@ -262,8 +261,6 @@ std::unordered_map<uint32_t, pid_t> RSSubThreadManager::GetReThreadIndexMap() co
 void RSSubThreadManager::ScheduleRenderNodeDrawable(
     std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> nodeDrawable)
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        RS_RSSUBTHREADMANAGER_SCHEDULERENDERNODEDRAWABLE);
     if (UNLIKELY(!nodeDrawable)) {
         RS_LOGE("RSSubThreadManager::ScheduleRenderNodeDrawable nodeDrawable nullptr");
         return;

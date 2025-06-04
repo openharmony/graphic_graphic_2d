@@ -74,7 +74,6 @@
 #include "drawable/dfx/rs_dirty_rects_dfx.h"
 #include "drawable/dfx/rs_skp_capture_dfx.h"
 #include "platform/ohos/overdraw/rs_overdraw_controller.h"
-#include "utils/graphic_coretrace.h"
 #include "utils/performanceCaculate.h"
 // cpu boost
 #include "c/ffrt_cpu_boost.h"
@@ -168,8 +167,6 @@ RSRenderNodeDrawable::Ptr RSDisplayRenderNodeDrawable::OnGenerate(std::shared_pt
 std::unique_ptr<RSRenderFrame> RSDisplayRenderNodeDrawable::RequestFrame(
     RSDisplayRenderParams& params, std::shared_ptr<RSProcessor> processor)
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        RS_RSDISPLAYRENDERNODEDRAWABLE_REQUESTFRAME);
     RS_TRACE_NAME("RSDisplayRenderNodeDrawable:RequestFrame");
     auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
     if (UNLIKELY(!renderEngine)) {
@@ -529,8 +526,6 @@ void RSDisplayRenderNodeDrawable::CheckAndUpdateFilterCacheOcclusion(
 
 void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER_WITHNODEID(Drawing::CoreFunction::
-        RS_RSDISPLAYRENDERNODEDRAWABLE_ONDRAW, GetId());
     Drawing::GPUResourceTag::SetCurrentNodeId(GetId());
     std::shared_ptr<Drawing::GPUContext> gpuContext = nullptr;
     auto realTid = gettid();
@@ -1744,8 +1739,6 @@ void RSDisplayRenderNodeDrawable::RotateMirrorCanvas(ScreenRotation& rotation, f
 
 void RSDisplayRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        RS_RSDISPLAYRENDERNODEDRAWABLE_ONCAPTURE);
     auto params = static_cast<RSDisplayRenderParams*>(GetRenderParams().get());
     if (!params) {
         RS_LOGE("RSDisplayRenderNodeDrawable::OnCapture params is null!");
@@ -1801,8 +1794,6 @@ void RSDisplayRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
 
 void RSDisplayRenderNodeDrawable::DrawHardwareEnabledNodes(Drawing::Canvas& canvas, RSDisplayRenderParams& params)
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        RS_RSDISPLAYRENDERNODEDRAWABLE_DRAWHARDWAREENABLEDNODES);
     auto rscanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
     if (!rscanvas) {
         RS_LOGE("RSDisplayRenderNodeDrawable::DrawHardwareEnabledNodes, rscanvas us nullptr");
@@ -2050,8 +2041,6 @@ void RSDisplayRenderNodeDrawable::AdjustZOrderAndDrawSurfaceNode(
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& drawables,
     Drawing::Canvas& canvas, RSDisplayRenderParams& params) const
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        RS_RSDISPLAYRENDERNODEDRAWABLE_ADJUSTZORDERANDDRAWSURFACENODE);
     if (!RSSystemProperties::GetHardwareComposerEnabled()) {
         RS_LOGW("RSDisplayRenderNodeDrawable::AdjustZOrderAndDrawSurfaceNode: \
             HardwareComposer is not enabled.");

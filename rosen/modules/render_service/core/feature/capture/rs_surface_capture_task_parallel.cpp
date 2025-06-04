@@ -44,7 +44,6 @@
 #include "render/rs_skia_filter.h"
 #include "screen_manager/rs_screen_manager.h"
 #include "screen_manager/rs_screen_mode_info.h"
-#include "utils/graphic_coretrace.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -108,8 +107,6 @@ void RSSurfaceCaptureTaskParallel::CheckModifiers(NodeId id, bool useCurWindow)
 void RSSurfaceCaptureTaskParallel::Capture(
     sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureParam& captureParam)
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        RS_RSSURFACECAPTURETASKPARALLEL_CAPTURE);
     if (callback == nullptr) {
         RS_LOGE(
             "RSSurfaceCaptureTaskParallel::Capture nodeId:[%{public}" PRIu64 "], callback is nullptr", captureParam.id);
@@ -203,8 +200,6 @@ bool RSSurfaceCaptureTaskParallel::CreateResources()
 bool RSSurfaceCaptureTaskParallel::Run(
     sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureParam& captureParam)
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        RS_RSSURFACECAPTURETASKPARALLEL_RUN);
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     SetupGpuContext();
     std::string nodeName("RSSurfaceCaptureTaskParallel");
@@ -475,8 +470,6 @@ void RSSurfaceCaptureTaskParallel::AddBlur(
         const RSSurfaceCaptureConfig& captureConfig, sptr<RSISurfaceCaptureCallback> callback,
         int32_t rotation)
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        RS_RSSURFACECAPTURETASKPARALLEL_CREATESURFACESYNCCOPYTASK);
     if (surface == nullptr) {
         RS_LOGE("RSSurfaceCaptureTaskParallel: nodeId:[%{public}" PRIu64 "], surface is nullptr", id);
         return {};
