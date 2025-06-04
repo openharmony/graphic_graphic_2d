@@ -2662,8 +2662,6 @@ void RSRenderServiceConnection::NotifyRefreshRateEvent(const EventInfo& eventInf
             frameRateMgr->HandleRefreshRateEvent(pid, eventInfo);
         }
     });
-
-    RSUifirstFrameRateControl::Instance().SetAnimationInfo(eventInfo);
 }
 
 void RSRenderServiceConnection::SetWindowExpectedRefreshRate(
@@ -2802,6 +2800,7 @@ ErrCode RSRenderServiceConnection::ReportEventResponse(DataBaseRs info)
     renderThread_.PostTask(task);
     RSUifirstManager::Instance().OnProcessEventResponse(info);
 #endif
+    RSUifirstFrameRateControl::Instance().SetAnimationStartInfo(info);
     return ERR_OK;
 }
 
@@ -2826,6 +2825,7 @@ ErrCode RSRenderServiceConnection::ReportEventJankFrame(DataBaseRs info)
     };
     renderThread_.PostTask(task);
 #endif
+    RSUifirstFrameRateControl::Instance().SetAnimationEndInfo(info);
     return ERR_OK;
 }
 

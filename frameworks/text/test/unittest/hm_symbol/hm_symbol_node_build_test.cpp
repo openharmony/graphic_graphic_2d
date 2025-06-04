@@ -500,6 +500,64 @@ HWTEST_F(OHHmSymbolNodeBuildTest, SetCommonSubType002, TestSize.Level1)
     EXPECT_EQ(symbolNode.commonSubType_, Drawing::DrawingCommonSubType::UP);
 }
 
+/*
+ * @tc.name: AddHierarchicalAnimation001
+ * @tc.desc: test AddHierarchicalAnimation with animation DISABLE
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolNodeBuildTest, AddHierarchicalAnimation001, TestSize.Level1)
+{
+    std::pair<float, float> offset = {100.0f, 100.0f}; // 100.0f, 100.0f is the offset
+    RSPath path;
+    path.AddCircle(100.0f, 100.0f, 50.0f); // 100.0f x, 100.0f y, 50.0f radius
+    // 100.0f x, 100.0f y, 30.0f radius
+    path.AddCircle(100.0f, 100.0f, 30.0f, Drawing::PathDirection::CCW_DIRECTION);
+    RSHMSymbolData symbol;
+    symbol.path_ = path;
+    symbol.symbolInfo_.layers = layers_;
+    std::vector<size_t> layer = {2}; // 2: add a new layer
+    symbol.symbolInfo_.layers.push_back(layer);
+    symbol.symbolInfo_.renderGroups = renderGroupsMaskLayer_;
+
+    RSEffectStrategy effectMode = RSEffectStrategy::DISABLE;
+    Drawing::DrawingGroupSetting groupSetting = {{{{2}, {}}}, 1};
+    auto animationSetting = animationSettingMaskLayer_;
+    animationSetting.groupSettings.push_back(groupSetting); // add a new animation layer
+    SymbolNodeBuild symbolNode = SymbolNodeBuild(animationSetting, symbol, effectMode, offset);
+    symbolNode.SetAnimation(&SetSymbolAnimationTwo);
+    symbolNode.SetAnimationMode(0); // 0 is byLayer effect
+    auto symbolAnimationConfig = std::make_shared<TextEngine::SymbolAnimationConfig>();
+    Vector4f nodeBounds = {10.0f, 10.0f, 15.0f, 15.0f}; // 10.0f 10.0f: first offset, 15.0f 15.0f: width height
+
+    symbolNode.AddHierarchicalAnimation(symbol, nodeBounds, animationSetting.groupSettings, symbolAnimationConfig);
+    bool result = symbolNode.DecomposeSymbolAndDraw();
+    EXPECT_FALSE(result);
+}
+
+/*
+ * @tc.name: SetSymbolNodeColors001
+ * @tc.desc: test SetSymbolNodeColors
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolNodeBuildTest, SetSymbolNodeColors001, TestSize.Level1)
+{
+    std::pair<float, float> offset = {100.0f, 100.0f}; // 100.0f, 100.0f is the offset
+    RSHMSymbolData symbol;
+    RSEffectStrategy effectMode = RSEffectStrategy::DISABLE;
+    SymbolNodeBuild symbolNodeBuild = SymbolNodeBuild(animationSettingOneMask_, symbol, effectMode, offset);
+    RSPath path;
+    path.AddCircle(100.0f, 100.0f, 50.0f); // 100.0f x, 100.0f y, 50.0f radius
+    TextEngine::NodeLayerInfo layerInfo;
+    layerInfo.path = path;
+    TextEngine::SymbolNode symbolNode;
+    symbolNode.pathsInfo.push_back(layerInfo);
+    TextEngine::SymbolNode symbolNode1 = symbolNode;
+
+    symbolNodeBuild.SetSymbolNodeColors(symbolNode, symbolNode1);
+    symbolNode1.pathsInfo[0].color.a = 0.0f;
+    symbolNodeBuild.SetSymbolNodeColors(symbolNode, symbolNode1);
+    EXPECT_EQ(symbolNode.pathsInfo[0].color.a, symbolNode1.pathsInfo[0].color.a);
+}
 } // namespace SPText
 } // namespace Rosen
 } // namespace OHOS

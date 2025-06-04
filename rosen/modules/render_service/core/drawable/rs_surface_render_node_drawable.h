@@ -157,6 +157,9 @@ private:
     void ClipHoleForSelfDrawingNode(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams);
     void DrawBufferForRotationFixed(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams);
 
+    int GetMaxRenderSizeForRotationOffscreen(int& offscreenWidth, int& offscreenHeight);
+    void ApplyCanvasScalingIfDownscaleEnabled();
+
     std::string name_;
     RSSurfaceNodeType surfaceNodeType_ = RSSurfaceNodeType::DEFAULT;
 #ifndef ROSEN_CROSS_PLATFORM
