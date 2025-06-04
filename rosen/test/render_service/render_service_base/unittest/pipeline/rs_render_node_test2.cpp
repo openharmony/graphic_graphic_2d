@@ -1013,7 +1013,7 @@ HWTEST_F(RSRenderNodeTest2, UpdateFilterCacheWithBelowDirty, TestSize.Level1)
     RSRenderNode node(id, context);
     std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
     bool isForeground = true;
-    node.UpdateFilterCacheWithBelowDirty(*rsDirtyManager, isForeground);
+    node.UpdateFilterCacheWithBelowDirty(Occlusion::Rect(rsDirtyManager->GetCurrentFrameDirtyRegion()), isForeground);
     ASSERT_TRUE(true);
 }
 

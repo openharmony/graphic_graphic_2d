@@ -156,6 +156,9 @@ std::vector<RectI> RSUniRenderUtil::MergeDirtyHistory(DrawableV2::RSDisplayRende
         drawnRegion = uniParam->IsDirtyAlignEnabled() ?
             damageRegion.GetAlignedRegion(MAX_DIRTY_ALIGNMENT_SIZE) : damageRegion;
     }
+    // [Attention]: filter dirty process must be the last step.
+    RSUniFilterDirtyComputeUtil::DealWithFilterDirtyRegion(
+        damageRegion, drawnRegion, displayDrawable, std::nullopt, uniParam->IsDirtyAlignEnabled());
     RSUniRenderUtil::SetDrawRegionForQuickReject(curAllSurfaceDrawables, drawnRegion);
     rsDirtyRectsDfx.SetMergedDirtyRegion(drawnRegion);
     auto damageRegionRects = RSUniDirtyComputeUtil::ScreenIntersectDirtyRects(damageRegion, screenInfo);

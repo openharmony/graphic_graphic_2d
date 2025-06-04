@@ -89,7 +89,7 @@ constexpr int32_t CAPTURE_WINDOW = 2; // To be deleted after captureWindow being
 constexpr int64_t MAX_JITTER_NS = 2000000; // 2ms
 constexpr const float HALF = 2.0f;
 
-std::string RectVectorToString(std::vector<RectI>& regionRects)
+std::string RectVectorToString(const std::vector<RectI>& regionRects)
 {
     std::string results = "";
     for (auto& rect : regionRects) {
@@ -1132,7 +1132,7 @@ std::vector<RectI> RSDisplayRenderNodeDrawable::CalculateVirtualDirty(
     Drawing::Matrix canvasMatrix)
 {
     // uniParam/drawable/mirroredParams not null in caller
-    std::vector<RectI> mappedDamageRegionRects;
+    Occlusion::Region mappedDamageRegion;
     auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
     auto drawable = params.GetMirrorSourceDrawable().lock();
     auto mirroredDrawable = std::static_pointer_cast<RSDisplayRenderNodeDrawable>(drawable);
@@ -1140,14 +1140,14 @@ std::vector<RectI> RSDisplayRenderNodeDrawable::CalculateVirtualDirty(
     sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
     if (!screenManager) {
         RS_LOGE("RSDisplayRenderNodeDrawable::CalculateVirtualDirty ScreenManager is nullptr");
-        virtualProcesser->SetRoiRegionToCodec(mappedDamageRegionRects);
-        return mappedDamageRegionRects;
+        virtualProcesser->SetRoiRegionToCodec(mappedDamageRegion.GetRegionRectIs());
+        return mappedDamageRegion.GetRegionRectIs();
     }
     ScreenInfo curScreenInfo = screenManager->QueryScreenInfo(params.GetScreenId());
     if (!curScreenInfo.isEqualVsyncPeriod) {
         RS_LOGD("RSDisplayRenderNodeDrawable::CalculateVirtualDirty frame rate is irregular");
-        virtualProcesser->SetRoiRegionToCodec(mappedDamageRegionRects);
-        return mappedDamageRegionRects;
+        virtualProcesser->SetRoiRegionToCodec(mappedDamageRegion.GetRegionRectIs());
+        return mappedDamageRegion.GetRegionRectIs();
     }
     ScreenInfo mainScreenInfo = screenManager->QueryScreenInfo(mirrorParams->GetScreenId());
     int32_t bufferAge = virtualProcesser->GetBufferAge();
@@ -1156,7 +1156,7 @@ std::vector<RectI> RSDisplayRenderNodeDrawable::CalculateVirtualDirty(
     std::shared_ptr<RSObjAbsGeometry> tmpGeo = std::make_shared<RSObjAbsGeometry>();
     for (auto& rect : damageRegionRects) {
         RectI mappedRect = tmpGeo->MapRect(rect.ConvertTo<float>(), canvasMatrix);
-        mappedDamageRegionRects.emplace_back(mappedRect);
+        mappedDamageRegion.OrSelf(Occlusion::Region(Occlusion::Rect(mappedRect)));
     }
     if (!(lastMatrix_ == canvasMatrix) || !(lastMirrorMatrix_ == mirrorParams->GetMatrix()) ||
         uniParam->GetForceMirrorScreenDirty() || lastBlackList_ != currentBlackList_ ||
@@ -1184,9 +1184,13 @@ std::vector<RectI> RSDisplayRenderNodeDrawable::CalculateVirtualDirty(
     }
     UpdateDisplayDirtyManager(bufferAge, false);
     auto extraDirty = GetSyncDirtyManager()->GetDirtyRegion();
-    if (!extraDirty.IsEmpty()) {
-        mappedDamageRegionRects.emplace_back(extraDirty);
+    mappedDamageRegion.OrSelf(Occlusion::Region(Occlusion::Rect(extraDirty)));
+
+    if (!virtualProcesser->GetDrawVirtualMirrorCopy()) {
+        RSUniFilterDirtyComputeUtil::DealWithFilterDirtyRegion(
+            mappedDamageRegion, mappedDamageRegion, *mirroredDrawable, canvasMatrix, false);
     }
+    auto mappedDamageRegionRects = mappedDamageRegion.GetRegionRectIs();
     if (!uniParam->IsVirtualDirtyDfxEnabled()) {
         virtualProcesser->SetDirtyInfo(mappedDamageRegionRects);
         RS_TRACE_NAME_FMT("SetDamageRegion damageRegionrects num: %zu, info: %s",
@@ -1583,6 +1587,7 @@ std::vector<RectI> RSDisplayRenderNodeDrawable::CalculateVirtualDirtyForWiredScr
     if (!extraDirty.IsEmpty()) {
         damageRegionRects.emplace_back(extraDirty);
     }
+    // Planning: if wired screen projection REDRAW pipeline shall enable dirty region, filter dirty must be considered.
     if (!uniParam->IsVirtualDirtyDfxEnabled()) {
         renderFrame->SetDamageRegion(damageRegionRects);
         RS_TRACE_NAME_FMT("SetDamageRegion damageRegionrects num: %zu, info: %s",

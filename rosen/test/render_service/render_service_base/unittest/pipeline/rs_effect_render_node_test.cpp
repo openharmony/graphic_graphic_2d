@@ -266,11 +266,13 @@ HWTEST_F(RSEffectRenderNodeTest, UpdateFilterCacheWithBelowDirty, TestSize.Level
     RSEffectRenderNode rsEffectRenderNode(nodeId, context);
     RSDirtyRegionManager dirtyManager;
     bool isForeground = true;
-    rsEffectRenderNode.UpdateFilterCacheWithBelowDirty(dirtyManager, isForeground);
+    rsEffectRenderNode.UpdateFilterCacheWithBelowDirty(
+        Occlusion::Rect(dirtyManager.GetCurrentFrameDirtyRegion()), isForeground);
 
     rsEffectRenderNode.isRotationChanged_ = true;
     rsEffectRenderNode.preRotationStatus_ = true;
-    rsEffectRenderNode.UpdateFilterCacheWithBelowDirty(dirtyManager, isForeground);
+    rsEffectRenderNode.UpdateFilterCacheWithBelowDirty(
+        Occlusion::Rect(dirtyManager.GetCurrentFrameDirtyRegion()), isForeground);
     ASSERT_TRUE(true);
 }
 

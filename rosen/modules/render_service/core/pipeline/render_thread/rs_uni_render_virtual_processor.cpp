@@ -262,7 +262,7 @@ GSError RSUniRenderVirtualProcessor::SetColorSpaceForMetadata(GraphicColorGamut 
     return buffer->SetMetadata(ATTRKEY_COLORSPACE_INFO, colorSpaceVec);
 }
 
-void RSUniRenderVirtualProcessor::SetDirtyInfo(std::vector<RectI>& damageRegion)
+void RSUniRenderVirtualProcessor::SetDirtyInfo(const std::vector<RectI>& damageRegion)
 {
     if (renderFrame_ == nullptr) {
         RS_LOGW("RSUniRenderVirtualProcessor::SetDirtyInfo renderFrame_ is null.");
@@ -274,7 +274,7 @@ void RSUniRenderVirtualProcessor::SetDirtyInfo(std::vector<RectI>& damageRegion)
     }
 }
 
-GSError RSUniRenderVirtualProcessor::SetRoiRegionToCodec(std::vector<RectI>& damageRegion)
+GSError RSUniRenderVirtualProcessor::SetRoiRegionToCodec(const std::vector<RectI>& damageRegion)
 {
     if (renderFrame_ == nullptr) {
         RS_LOGD("RSUniRenderVirtualProcessor::SetRoiRegionToCodec renderFrame is null.");
