@@ -95,6 +95,10 @@ private:
     static std::shared_ptr<Drawing::Surface> CreateSurfaceFromCpuContext(
         const std::unique_ptr<Media::PixelMap>& pixelMap);
 
+    static void ClearCanvasDrawingNodeMemory();
+
+    static void ClearDrawingContextMemory();
+
     static std::shared_ptr<Drawing::Surface> CreateSurface(std::unique_ptr<Media::PixelMap>& pixelMap,
         int32_t width, int32_t height, sptr<SurfaceBuffer> surfaceBufferTmp);
 
@@ -143,7 +147,6 @@ private:
     static std::unordered_set<NodeId> foregroundRootSet_;
 
     static std::mutex foregroundRootSetMutex_;
-    static bool needClearBackgroundMemory_;
 
     static std::mutex semaphoreInfoMutex_;
     static std::vector<DestroySemaphoreInfo*> semaphoreInfoVec_;

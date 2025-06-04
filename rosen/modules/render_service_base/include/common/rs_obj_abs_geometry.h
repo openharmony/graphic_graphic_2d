@@ -26,6 +26,7 @@
 #include "common/rs_matrix3.h"
 #include "common/rs_obj_geometry.h"
 #include "common/rs_rect.h"
+#include "common/rs_occlusion_region.h"
 #include "common/rs_vector2.h"
 
 namespace OHOS {
@@ -46,6 +47,7 @@ public:
     }
     RectI MapAbsRectWithMatrix(const RectF& rect, const Drawing::Matrix& matrix) const;
     RectI MapAbsRect(const RectF& rect) const;
+    Occlusion::Region MapAbsRegion(const Occlusion::Region& region) const;
 
     // Converts RectF to RectI by inward rounding (ceil for left/top, floor for right/bottom)
     // to ensure the resulting integer rect is fully contained within the original floating-point rect.
@@ -59,6 +61,7 @@ public:
 
     static RectF MapRectWithoutRounding(const RectF& rect, const Drawing::Matrix& matrix);
     static RectI MapRect(const RectF& rect, const Drawing::Matrix& matrix);
+    static Occlusion::Region MapRegion(const Occlusion::Region& region, const Drawing::Matrix& matrix);
 
     // return transform matrix (context + self)
     // warning: If the parent node does not have the SandBox attribute, this interface does

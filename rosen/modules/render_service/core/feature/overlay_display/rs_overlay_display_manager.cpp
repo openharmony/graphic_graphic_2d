@@ -18,6 +18,9 @@
 #include <dlfcn.h>
 
 #include "platform/common/rs_log.h"
+#ifdef RS_ENABLE_TV_PQ_METADATA
+#include "feature/tv_metadata/rs_tv_metadata_manager.h"
+#endif
 
 namespace OHOS::Rosen {
 const std::string OVERLAY_DISPLAY_SO_PATH = "liboverlay_display.z.so";
@@ -86,6 +89,12 @@ void RSOverlayDisplayManager::PostProcFilter(RSPaintFilterCanvas& canvas)
         return;
     }
     postProcFunc_(canvas);
+
+#ifdef RS_ENABLE_TV_PQ_METADATA
+    TvPQMetadata info = { 0 };
+    info.dpPixFmt = 2; // 0x2 : ARGB private frame format
+    RSTvMetadataManager::Instance().RecordAndCombineMetadata(info);
+#endif
 }
 
 void RSOverlayDisplayManager::ExpandDirtyRegion(

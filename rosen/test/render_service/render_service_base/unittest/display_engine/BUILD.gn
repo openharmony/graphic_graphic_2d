@@ -62,6 +62,7 @@ ohos_unittest("RSRenderServiceBaseDisplayEngineTest") {
   if (defined(use_video_processing_engine) && use_video_processing_engine) {
     sources += [ "rs_vpe_manager_test.cpp" ]
     external_deps += [
+      "eventhandler:libeventhandler",
       "media_foundation:media_foundation",
       "video_processing_engine:videoprocessingengine",
     ]

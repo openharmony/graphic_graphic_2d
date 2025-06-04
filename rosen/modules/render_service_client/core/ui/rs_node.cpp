@@ -2027,7 +2027,7 @@ void RSNode::SetUIForegroundFilter(const OHOS::Rosen::Filter* foregroundFilter)
             uiFilter->Insert(bezierWarpProperty);
         }
         if (filterPara->GetParaType() == FilterPara::HDR_BRIGHTNESS_RATIO) {
-            auto hdrBrightnessRatioPara = std::static_pointer_cast<HdrBrightnessRatioPara>(filterPara);
+            auto hdrBrightnessRatioPara = std::static_pointer_cast<HDRBrightnessRatioPara>(filterPara);
             auto brightnessRatio = hdrBrightnessRatioPara->GetBrightnessRatio();
             SetHDRUIBrightness(brightnessRatio);
         }

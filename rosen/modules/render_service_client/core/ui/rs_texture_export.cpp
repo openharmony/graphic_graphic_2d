@@ -17,17 +17,10 @@
 
 #include "platform/common/rs_log.h"
 #include "ui/rs_root_node.h"
-#include "ui/rs_surface_extractor.h"
 #include "ui/rs_surface_node.h"
-
-#ifdef RS_ENABLE_VK
-#include "platform/ohos/backend/rs_surface_ohos_vulkan.h"
-#endif
 
 namespace OHOS {
 namespace Rosen {
-std::unordered_set<std::shared_ptr<RSSurfaceNode>> RSTextureExport::virtualSurfaceNodeSet_;
-std::mutex RSTextureExport::virtualSurfaceNodeSetMutex_;
 RSTextureExport::RSTextureExport(std::shared_ptr<RSNode> rootNode, SurfaceId surfaceId)
 {
     if (rootNode == nullptr) {
@@ -43,19 +36,11 @@ RSTextureExport::RSTextureExport(std::shared_ptr<RSNode> rootNode, SurfaceId sur
         .surfaceId = surfaceId_
     };
     virtualSurfaceNode_ = RSSurfaceNode::Create(config, false, rootNode_->GetRSUIContext());
-    {
-        std::lock_guard<std::mutex> lock(virtualSurfaceNodeSetMutex_);
-        virtualSurfaceNodeSet_.insert(virtualSurfaceNode_);
-    }
     rootNode_->SyncTextureExport(true);
 }
 
 RSTextureExport::~RSTextureExport()
 {
-    {
-        std::lock_guard<std::mutex> lock(virtualSurfaceNodeSetMutex_);
-        virtualSurfaceNodeSet_.erase(virtualSurfaceNode_);
-    }
     rsUiDirector_->Destroy(true);
 }
 
@@ -98,30 +83,5 @@ void RSTextureExport::StopTextureExport()
     rsUiDirector_->Destroy(true);
     rootNode_->RemoveFromTree();
 }
-
-#ifdef RS_ENABLE_VK
-void RSTextureExport::ClearContext()
-{
-    if (!RSSystemProperties::IsUseVulkan()) {
-        return;
-    }
-
-    std::lock_guard<std::mutex> lock(virtualSurfaceNodeSetMutex_);
-    for (auto& node : virtualSurfaceNodeSet_) {
-        if (node == nullptr) {
-            continue;
-        }
-        std::shared_ptr<RSSurface> rsSurface = RSSurfaceExtractor::ExtractRSSurface(node);
-        if (rsSurface == nullptr) {
-            continue;
-        }
-        auto rsSurfaceVulkan = std::static_pointer_cast<RSSurfaceOhosVulkan>(rsSurface);
-        if (rsSurfaceVulkan == nullptr) {
-            continue;
-        }
-        rsSurfaceVulkan->ClearSurfaceResource();
-    }
-}
-#endif
 } // namespace Rosen
 } // namespace OHOS

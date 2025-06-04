@@ -18,6 +18,9 @@
 #include "limit_number.h"
 #include "parameters.h"
 #include "feature/overlay_display/rs_overlay_display_manager.h"
+#ifdef RS_ENABLE_TV_PQ_METADATA
+#include "feature/tv_metadata/rs_tv_metadata_manager.h"
+#endif
 
 using namespace testing;
 using namespace testing::ext;
@@ -118,6 +121,10 @@ HWTEST_F(OverlayDisplayTest, OverlayProc_001, TestSize.Level1)
     ASSERT_EQ(0, dirtyRegion.GetBound().top_);
     ASSERT_EQ(200, dirtyRegion.GetBound().right_);
     ASSERT_EQ(400, dirtyRegion.GetBound().bottom_);
+#ifdef RS_ENABLE_TV_PQ_METADATA
+    auto metadata = RSTvMetadataManager::Instance().GetMetadata();
+    ASSERT_EQ(0, metadata.dpPixFmt);
+#endif
 }
 
 /*
@@ -144,5 +151,9 @@ HWTEST_F(OverlayDisplayTest, OverlayProc_002, TestSize.Level1)
     ASSERT_EQ(0, dirtyRegion.GetBound().top_);
     ASSERT_EQ(3840, dirtyRegion.GetBound().right_);
     ASSERT_EQ(400, dirtyRegion.GetBound().bottom_);
+#ifdef RS_ENABLE_TV_PQ_METADATA
+    auto metadata = RSTvMetadataManager::Instance().GetMetadata();
+    ASSERT_EQ(2, metadata.dpPixFmt);
+#endif
 }
 }

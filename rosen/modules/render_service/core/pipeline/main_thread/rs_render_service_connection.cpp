@@ -2662,8 +2662,6 @@ void RSRenderServiceConnection::NotifyRefreshRateEvent(const EventInfo& eventInf
             frameRateMgr->HandleRefreshRateEvent(pid, eventInfo);
         }
     });
-
-    RSUifirstFrameRateControl::Instance().SetAnimationInfo(eventInfo);
 }
 
 void RSRenderServiceConnection::SetWindowExpectedRefreshRate(
@@ -2802,6 +2800,7 @@ ErrCode RSRenderServiceConnection::ReportEventResponse(DataBaseRs info)
     renderThread_.PostTask(task);
     RSUifirstManager::Instance().OnProcessEventResponse(info);
 #endif
+    RSUifirstFrameRateControl::Instance().SetAnimationStartInfo(info);
     return ERR_OK;
 }
 
@@ -2826,6 +2825,7 @@ ErrCode RSRenderServiceConnection::ReportEventJankFrame(DataBaseRs info)
     };
     renderThread_.PostTask(task);
 #endif
+    RSUifirstFrameRateControl::Instance().SetAnimationEndInfo(info);
     return ERR_OK;
 }
 
@@ -2970,10 +2970,6 @@ ErrCode RSRenderServiceConnection::SetTpFeatureConfig(int32_t feature, const cha
 {
     switch (tpFeatureConfigType) {
         case TpFeatureConfigType::DEFAULT_TP_FEATURE: {
-            if (!TOUCH_SCREEN->IsSetFeatureConfigHandleValid()) {
-                RS_LOGW("SetTpFeatureConfig: SetFeatureConfigHandl is nullptr");
-                return ERR_INVALID_VALUE;
-            }
             if (TOUCH_SCREEN->SetFeatureConfig(feature, config) < 0) {
                 RS_LOGW("SetTpFeatureConfig: SetFeatureConfig failed");
                 return ERR_INVALID_VALUE;
@@ -2981,10 +2977,6 @@ ErrCode RSRenderServiceConnection::SetTpFeatureConfig(int32_t feature, const cha
             return ERR_OK;
         }
         case TpFeatureConfigType::AFT_TP_FEATURE: {
-            if (!TOUCH_SCREEN->IsSetAftConfigHandleValid()) {
-                RS_LOGW("SetTpFeatureConfig: SetAftConfigHandl is nullptr");
-                return ERR_INVALID_VALUE;
-            }
             if (TOUCH_SCREEN->SetAftConfig(config) < 0) {
                 RS_LOGW("SetTpFeatureConfig: SetAftConfig failed");
                 return ERR_INVALID_VALUE;

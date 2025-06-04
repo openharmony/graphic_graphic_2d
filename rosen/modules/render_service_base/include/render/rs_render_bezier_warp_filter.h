@@ -18,7 +18,7 @@
 #include "render/rs_render_filter_base.h"
 namespace OHOS {
 namespace Rosen {
-
+constexpr size_t BEZIER_WARP_POINT_NUM = 12; // 12 anchor points of a patch
 class RSB_EXPORT RSRenderBezierWarpFilterPara : public RSRenderFilterParaBase {
 public:
     RSRenderBezierWarpFilterPara(PropertyId id) : RSRenderFilterParaBase(RSUIFilterType::BEZIER_WARP)
@@ -37,6 +37,13 @@ public:
     static std::shared_ptr<RSRenderPropertyBase> CreateRenderProperty(RSUIFilterType type);
 
     virtual std::vector<std::shared_ptr<RSRenderPropertyBase>> GetLeafRenderProperties() override;
+
+    bool ParseFilterValues() override;
+    void GenerateGEVisualEffect(std::shared_ptr<Drawing::GEVisualEffectContainer> visualEffectContainer) override;
+    const std::array<Drawing::Point, BEZIER_WARP_POINT_NUM>& GetBezierWarpPoints() const;
+
+private:
+    std::array<Drawing::Point, BEZIER_WARP_POINT_NUM> destinationPatch_;
 };
 } // namespace Rosen
 } // namespace OHOS

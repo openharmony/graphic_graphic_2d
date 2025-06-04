@@ -64,6 +64,16 @@ std::shared_ptr<Drawing::Surface> RSModifiersDraw::CreateSurfaceFromCpuContext(
     return nullptr;
 }
 
+void RSModifiersDraw::ClearCanvasDrawingNodeMemory()
+{
+    return;
+}
+
+void RSModifiersDraw::ClearDrawingContextMemory()
+{
+    return;
+}
+
 std::shared_ptr<Drawing::Surface> RSModifiersDraw::CreateSurface(std::unique_ptr<Media::PixelMap>& pixelMap,
     int32_t width, int32_t height, sptr<SurfaceBuffer> surfaceBufferTmp)
 {

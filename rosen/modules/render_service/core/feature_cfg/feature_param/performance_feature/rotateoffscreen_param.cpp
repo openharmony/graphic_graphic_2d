@@ -38,4 +38,14 @@ void RotateOffScreenParam::SetRotateOffScreenSurfaceNodeEnable(bool enable)
 {
     isRotateOffScreenSurfaceNodeEnable_ = enable;
 }
+
+bool RotateOffScreenParam::GetRotateOffScreenDowngradeEnable()
+{
+    return isRotateOffScreenDowngradeEnable_;
+}
+
+void RotateOffScreenParam::SetRotateOffScreenDowngradeEnable(bool enable)
+{
+    isRotateOffScreenDowngradeEnable_ = enable;
+}
 } // namespace OHOS::Rosen

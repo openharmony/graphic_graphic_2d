@@ -345,6 +345,10 @@ ohos_shared_library("librender_service") {
     sources += [ "core/feature/overlay_display/rs_overlay_display_manager.cpp" ]
   }
 
+  if (graphic_2d_feature_tv_metadata_enable) {
+    sources += [ "core/feature/tv_metadata/rs_tv_metadata_manager.cpp" ]
+  }
+
   if (rosen_is_ohos) {
     sources += [ "$rosen_root/modules/frame_report/src/rs_frame_report.cpp" ]
   } else if (!is_arkui_x) {
@@ -441,6 +445,9 @@ ohos_shared_library("librender_service") {
   }
   if (use_video_processing_engine) {
     external_deps += [ "video_processing_engine:videoprocessingengine" ]
+  }
+  if (tp_feature_enable) {
+    external_deps += [ "drivers_interface_tp_extra:libtp_proxy_1.1"]
   }
 
   if (defined(ddgr_ext_configs)) {

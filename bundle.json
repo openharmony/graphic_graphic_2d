@@ -59,7 +59,8 @@
         "graphic_2d_feature_vkqueue_priority_enable",
         "graphic_2d_feature_bootanimation_ext_enable",
         "graphic_2d_feature_overlay_display_enable",
-        "graphic_2d_feature_enable_opengl_to_vulkan"
+        "graphic_2d_feature_enable_opengl_to_vulkan",
+        "graphic_2d_feature_tv_metadata_enable"
       ],
       "rom": "10000KB",
       "ram": "10000KB",

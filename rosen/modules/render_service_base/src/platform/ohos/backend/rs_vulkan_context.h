@@ -345,7 +345,6 @@ public:
         std::function<void()> destructCallback_;
     };
     static RsVulkanContext& GetSingleton(const std::string& cacheDir = "");
-    static RsVulkanContext& GetRecyclableSingleton(const std::string& cacheDir = "");
     static void ReleaseRecyclableSingleton();
     explicit RsVulkanContext(std::string cacheDir = "");
     void InitVulkanContextForHybridRender(const std::string& cacheDir);
@@ -412,6 +411,10 @@ public:
 
     std::shared_ptr<Drawing::GPUContext> CreateDrawingContext();
     std::shared_ptr<Drawing::GPUContext> GetDrawingContext();
+    std::shared_ptr<Drawing::GPUContext> GetRecyclableDrawingContext();
+    static void ReleaseDrawingContextMap();
+    static void ReleaseRecyclableDrawingContext();
+    static void ReleaseDrawingContextForThread(int tid);
 
     void ClearGrContext(bool isProtected = false);
 
@@ -434,23 +437,23 @@ public:
 
     static void SaveNewDrawingContext(int tid, std::shared_ptr<Drawing::GPUContext> drawingContext);
 
-    static void CleanUpRecyclableDrawingContext(int tid);
-
     static bool GetIsInited();
 
 private:
+    static RsVulkanContext& GetRecyclableSingleton(const std::string& cacheDir = "");
+    static std::unique_ptr<RsVulkanContext>& GetRecyclableSingletonPtr(const std::string& cacheDir = "");
     static thread_local bool isProtected_;
     static thread_local VulkanInterfaceType vulkanInterfaceType_;
     std::vector<std::shared_ptr<RsVulkanInterface>> vulkanInterfaceVec_;
     // drawing context
     static thread_local std::weak_ptr<Drawing::GPUContext> drawingContext_;
     static thread_local std::weak_ptr<Drawing::GPUContext> protectedDrawingContext_;
-    static std::map<int, std::shared_ptr<Drawing::GPUContext>> drawingContextMap_;
-    static std::map<int, std::shared_ptr<Drawing::GPUContext>> protectedDrawingContextMap_;
+    // drawingContextMap_ : <tid, <drawingContext, isRecyclable>>
+    static std::map<int, std::pair<std::shared_ptr<Drawing::GPUContext>, bool>> drawingContextMap_;
+    static std::map<int, std::pair<std::shared_ptr<Drawing::GPUContext>, bool>> protectedDrawingContextMap_;
     static std::mutex drawingContextMutex_;
     // use for recyclable singleton
-    static std::unique_ptr<RsVulkanContext> recyclableSingleton_;
-    static std::mutex recyclableSingletonMutex_;
+    static std::recursive_mutex recyclableSingletonMutex_;
     static bool isRecyclable_;
     // use to mark current process has created vulkan context at least once
     static std::atomic<bool> isInited_;

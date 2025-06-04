@@ -17,11 +17,12 @@
 
 #include "common/rs_common_def.h"
 #include "modifier/rs_modifier_type.h"
-#include "pipeline/rs_paint_filter_canvas.h"
 #include "modifier_render_thread/rs_modifiers_draw.h"
 #include "modifier_render_thread/rs_modifiers_draw_thread.h"
-#include "transaction/rs_transaction_data.h"
+#include "pipeline/rs_paint_filter_canvas.h"
+#include "pipeline/rs_render_thread.h"
 #include "platform/common/rs_system_properties.h"
+#include "transaction/rs_transaction_data.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -300,6 +301,88 @@ HWTEST_F(RSModifiersDrawTest, PurgeContextResource, TestSize.Level2)
 {
     RSModifiersDraw::PurgeContextResource();
     ASSERT_NE(RsVulkanContext::GetSingleton().GetDrawingContext(), nullptr);
+}
+
+/**
+ * @tc.name: ClearDrawingContextMemory001
+ * @tc.desc: Test ClearDrawingContextMemory
+ * @tc.type:FUNC
+ * @tc.require:issueICB7BS
+*/
+HWTEST_F(RSModifiersDrawTest, ClearDrawingContextMemory001, TestSize.Level2)
+{
+    RSModifiersDraw::ClearDrawingContextMemory();
+    ASSERT_TRUE(RsVulkanContext::drawingContextMap_.empty());
+}
+
+/**
+ * @tc.name: ClearBackgroundMemory001
+ * @tc.desc: Test ClearBackgroundMemory while render thread start
+ * @tc.type:FUNC
+ * @tc.require:issueICB7BS
+*/
+HWTEST_F(RSModifiersDrawTest, ClearBackgroundMemory001, TestSize.Level2)
+{
+    RSRenderThread::Instance().running_.store(true);
+    RSModifiersDraw::ClearBackGroundMemory();
+    ASSERT_TRUE(RsVulkanContext::drawingContextMap_.empty());
+}
+
+/**
+ * @tc.name: ClearBackgroundMemory002
+ * @tc.desc: Test ClearBackgroundMemory while render thread stop
+ * @tc.type:FUNC
+ * @tc.require:issueICB7BS
+*/
+HWTEST_F(RSModifiersDrawTest, ClearBackgroundMemory002, TestSize.Level2)
+{
+    RSRenderThread::Instance().running_.store(false);
+    RSModifiersDraw::ClearBackGroundMemory();
+    ASSERT_TRUE(RsVulkanContext::drawingContextMap_.empty());
+
+    // restore
+    RSRenderThread::Instance().running_.store(true);
+}
+
+/**
+ * @tc.name: ClearCanvasDrawingNodeMemory001
+ * @tc.desc: Test ClearCanvasDrawingNodeMemory while surfaceEntryMap is empty
+ * @tc.type:FUNC
+ * @tc.require:issueICB7BS
+*/
+HWTEST_F(RSModifiersDrawTest, ClearCanvasDrawingNodeMemory001, TestSize.Level2)
+{
+    RSModifiersDraw::surfaceEntryMap_.clear();
+    RSModifiersDraw::ClearCanvasDrawingNodeMemory();
+    ASSERT_TRUE(RSModifiersDraw::surfaceEntryMap_.empty());
+}
+
+/**
+ * @tc.name: ClearCanvasDrawingNodeMemory002
+ * @tc.desc: Test ClearCanvasDrawingNodeMemory while surfaceEntry's snapshot is empty
+ * @tc.type:FUNC
+ * @tc.require:issueICB7BS
+*/
+HWTEST_F(RSModifiersDrawTest, ClearCanvasDrawingNodeMemory002, TestSize.Level2)
+{
+    RSModifiersDraw::SurfaceEntry surfaceEntry {};
+    RSModifiersDraw::surfaceEntryMap_.emplace(0, surfaceEntry);
+    RSModifiersDraw::ClearCanvasDrawingNodeMemory();
+    ASSERT_FALSE(RSModifiersDraw::surfaceEntryMap_.empty());
+}
+
+/**
+ * @tc.name: ClearCanvasDrawingNodeMemory003
+ * @tc.desc: Test ClearCanvasDrawingNodeMemory while surfaceEntry's snapshot is empty
+ * @tc.type:FUNC
+ * @tc.require:issueICB7BS
+*/
+HWTEST_F(RSModifiersDrawTest, ClearCanvasDrawingNodeMemory003, TestSize.Level2)
+{
+    RSModifiersDraw::SurfaceEntry surfaceEntry {.snapshot = std::make_shared<Drawing::Image>()};
+    RSModifiersDraw::surfaceEntryMap_.emplace(0, surfaceEntry);
+    RSModifiersDraw::ClearCanvasDrawingNodeMemory();
+    ASSERT_FALSE(RSModifiersDraw::surfaceEntryMap_.empty());
 }
 } // namespace Rosen
 } // namespace OHOS

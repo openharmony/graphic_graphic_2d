@@ -32,6 +32,9 @@
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
 #include "feature/overlay_display/rs_overlay_display_manager.h"
 #endif
+#ifdef RS_ENABLE_TV_PQ_METADATA
+#include "feature/tv_metadata/rs_tv_metadata_manager.h"
+#endif
 #include "hgm_core.h"
 #include "memory/rs_tag_tracker.h"
 #include "params/rs_display_render_params.h"
@@ -943,6 +946,12 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     RS_TRACE_BEGIN("RSDisplayRenderNodeDrawable Flush");
     Drawing::GPUResourceTag::SetCurrentNodeId(GetId());
     RsFrameReport::GetInstance().BeginFlush();
+
+#ifdef RS_ENABLE_TV_PQ_METADATA
+    // set tv meta data to buffer
+    auto surface = renderFrame->GetSurface();
+    RSTvMetadataManager::Instance().CopyTvMetadataToSurface(surface);
+#endif
     renderFrame->Flush();
     RS_TRACE_END();
     if (Drawing::PerformanceCaculate::GetDrawingFlushPrint()) {
