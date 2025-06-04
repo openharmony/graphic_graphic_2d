@@ -1022,6 +1022,8 @@ void RSProperties::SetAlpha(float alpha)
         alphaNeedApply_ = true;
     }
     SetDirty();
+    // The alpha value of parent node affects all child node
+    subTreeAllDirty_ = true;
 }
 
 float RSProperties::GetAlpha() const
@@ -2449,6 +2451,7 @@ void RSProperties::ResetDirty()
     isDirty_ = false;
     geoDirty_ = false;
     contentDirty_ = false;
+    subTreeAllDirty_ = false;
 }
 
 void RSProperties::RecordCurDirtyStatus()
@@ -2456,6 +2459,7 @@ void RSProperties::RecordCurDirtyStatus()
     curIsDirty_ = isDirty_;
     curGeoDirty_ = geoDirty_;
     curContentDirty_ = contentDirty_;
+    curSubTreeAllDirty_ = subTreeAllDirty_;
 }
 
 void RSProperties::AccmulateDirtyStatus()
@@ -2463,6 +2467,7 @@ void RSProperties::AccmulateDirtyStatus()
     isDirty_ = isDirty_ || curIsDirty_;
     geoDirty_ = geoDirty_ || curGeoDirty_;
     contentDirty_ = contentDirty_ || curContentDirty_;
+    subTreeAllDirty_ = subTreeAllDirty_ || curSubTreeAllDirty_;
 }
 
 bool RSProperties::IsDirty() const
@@ -2483,6 +2488,11 @@ bool RSProperties::IsCurGeoDirty() const
 bool RSProperties::IsContentDirty() const
 {
     return contentDirty_;
+}
+
+bool RSProperties::IsSubTreeAllDirty() const
+{
+    return subTreeAllDirty_;
 }
 
 RectI RSProperties::GetDirtyRect() const
