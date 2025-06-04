@@ -109,12 +109,12 @@ std::share_ptr<RSDisplayRenderNode> RSMainThreadTest::GetAndInitDisplayRenderNod
     RSDisplayNodeConfig config;
     auto displayNode = std::make_shared<RSDisplayRenderNode>(displayId, config);
     auto screenManager = CreateOrGetScreenManager();
-    ScreenId screenID = 0xFFFF;
+    ScreenId screenId = 0xFFFF;
     auto hdiOutput = HdiOutput::CreateHdiOutput(screenId);
     auto rsScreen = std::make_share<impl::RSScreen>(screenId, false, hdiOutput, nullptr);
     rsScreen->hdiScreen_->device_ = hdiDeviceMock_;
     rsScreen->phyWidth_ = 10;
-    rsScreen->phyWidth_ = 10;
+    rsScreen->phyHeight_ = 10;
     screenManager->MockHdiScreenConnected(rsScreen);
     displayNode->SetScreenId(screenId);
 
@@ -125,7 +125,7 @@ std::share_ptr<RSDisplayRenderNode> RSMainThreadTest::GetAndInitDisplayRenderNod
     auto displayDrawable = static_cast<DrawableV2::RSDisplayRenderNodeDrawable*>(drawable);
     displayNode->surfaceHandler_->buffer_.buffer = SurfaceBuffer::Create();
     auto buffer = displayDrawable->surfaceHandler_->GetBuffer();
-    displayDrawable->surfaceHandler_->buffer_.buffer->SetBufferHander(handler);
+    displayDrawable->surfaceHandler_->buffer_.buffer->SetBufferHandle(handle);
     displayNode->renderDrawable_.reset(displayDrawable);
     return displayNode;
 }
@@ -5170,6 +5170,7 @@ HWTEST_F(RSMainThreadTest, DoDirectComposition003, TestSize.Level1)
     NodeId rootId = 0;
     auto rootNode = std::make_shared<RSBaseRenderNode>(rootId);
     auto handle = new BufferHandle();
+    handle->usage = BUFFER_USAGE_CPU_READ;
     auto displayNode = GetAndInitDisplayRenderNode(handle);
     rootNode->AddChild(displayNode);
     rootNode->GenerateFullChildrenList();
@@ -5180,10 +5181,10 @@ HWTEST_F(RSMainThreadTest, DoDirectComposition003, TestSize.Level1)
 
     displayNode->HwcDisplayRecorder().SetHasVisibleHwcNodes(true);
     system::SetParameter("persist.sys.graphic.anco.disableHebc", "1");
-    RSSurfaceRenderNode::SetAncoForcrDoDirect(true);
+    RSSurfaceRenderNode::SetAncoForceDoDirect(true);
     ASSERT_FALSE(mainThread->DoDirectComposition(rootNode, false));
 
-    syd::vector<std::share_ptr<RSSurfaceRenderNode>> hardwareEnabledNodes = mainThread->hardwareEnabledNodes_;
+    std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledNodes = mainThread->hardwareEnabledNodes_;
     for(auto& sufaceNode : hardwareEnabledNodes) {
         if (surfaceNode == nullptr) {
             continue;
@@ -5192,9 +5193,9 @@ HWTEST_F(RSMainThreadTest, DoDirectComposition003, TestSize.Level1)
             continue;
         }
         if( surfaceNode->GetRSSurfaceHandler()->IsCurrentFrameBufferConsumed() && 
-            surfaceNode->GetRSSurfaceHandler()->GetLastFrameHasVisibleRegin()) {
+            surfaceNode->HwcSurfaceRecorder().GetLastFrameHasVisibleRegion()) {
             surfaceNode->GetRSSurfaceHandler()->ResetcurrentFrameBufferConsumed();
-            surfaceNode->GetRSSurfaceHandler()->SetLastFrameHasVisibleRegin(false);
+            surfaceNode->HwcSurfaceRecorder().SetLastFrameHasVisibleRegion(false);
         }
     }
 
@@ -5204,7 +5205,7 @@ HWTEST_F(RSMainThreadTest, DoDirectComposition003, TestSize.Level1)
     displayNode->HwcDisplayRecorder().SetHasVisibleHwcNodes(false);
     ASSERT_TRUE(mainThread->DoDirectComposition(rootNode, false));
 
-    NodeId displayId2 = 1;
+    NodeId displayId2 = 2;
     RSDisplayNodeConfig config;
     auto displayNode2 = std::make_shared<RSDisplayRenderNode>(displayId2, config);
     rootNode->AddChild(displayNode2);
