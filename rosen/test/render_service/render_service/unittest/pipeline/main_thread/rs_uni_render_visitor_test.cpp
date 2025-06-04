@@ -5068,8 +5068,8 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodesIfVisibleForAppTest, TestSize.Lev
     surfaceNode->SetDstRect({10, 1, 100, 100});
     opacitySurfaceNode->SetDstRect({10, 1, 100, 100});
     opacitySurfaceNode->SetHardwareForcedDisabledState(true);
-    surfaceNode->SetIsOnTheTreeOnlyFlag(true);
-    opacitySurfaceNode->SetIsOnTheTreeOnlyFlag(true);
+    surfaceNode->SetIsOntheTreeOnlyFlag(true);
+    opacitySurfaceNode->SetIsOntheTreeOnlyFlag(true);
     Occlusion::Region region({100, 50, 1000, 1500});
     surfaceNode->SetVisibleRegion(region);
 

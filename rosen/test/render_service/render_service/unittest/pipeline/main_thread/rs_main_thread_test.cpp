@@ -29,7 +29,6 @@
 #include "pipeline/render_thread/rs_render_engine.h"
 #include "pipeline/render_thread/rs_uni_render_engine.h"
 #include "pipeline/main_thread/rs_main_thread.h"
-#include "pipeline/mock/mock_hdi_device.h"
 #include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "platform/common/rs_innovation.h"
@@ -64,7 +63,6 @@ public:
     void TearDown() override;
     static void* CreateParallelSyncSignal(uint32_t count);
     static std::shared_ptr<RSDisplayRenderNode> GetAndInitDisplayRenderNode(BufferHandle* handle);
-    static inline Mock::HdiDeviceMock* hdiDeviceMock_;
 
 private:
     static inline BufferRequestConfig requestConfig = {
@@ -115,7 +113,6 @@ std::shared_ptr<RSDisplayRenderNode> RSMainThreadTest::GetAndInitDisplayRenderNo
     ScreenId screenId = 0xFFFF;
     auto hdiOutput = HdiOutput::CreateHdiOutput(screenId);
     auto rsScreen = std::make_shared<impl::RSScreen>(screenId, false, hdiOutput, nullptr);
-    rsScreen->hdiScreen_->device_ = hdiDeviceMock_;
     rsScreen->phyWidth_ = SCREEN_PHYSICAL_WIDTH;
     rsScreen->phyHeight_ = SCREEN_PHYSICAL_HEIGHT;
     screenManager->MockHdiScreenConnected(rsScreen);
@@ -5195,9 +5192,9 @@ HWTEST_F(RSMainThreadTest, DoDirectComposition003, TestSize.Level1)
         if (surfaceNode->GetRSSurfaceHandler() == nullptr) {
             continue;
         }
-        if ( surfaceNode->GetRSSurfaceHandler()->IsCurrentFrameBufferConsumed() && 
+        if (surfaceNode->GetRSSurfaceHandler()->IsCurrentFrameBufferConsumed() && 
             surfaceNode->HwcSurfaceRecorder().GetLastFrameHasVisibleRegion()) {
-            surfaceNode->GetRSSurfaceHandler()->ResetcurrentFrameBufferConsumed();
+            surfaceNode->GetRSSurfaceHandler()->ResetCurrentFrameBufferConsumed();
             surfaceNode->HwcSurfaceRecorder().SetLastFrameHasVisibleRegion(false);
         }
     }
