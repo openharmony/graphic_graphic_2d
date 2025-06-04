@@ -1012,7 +1012,7 @@ HWTEST_F(RSClientTest, GetScreenSupportedMetaDataKeys001, TestSize.Level1)
 {
     auto screenId = rsClient->GetDefaultScreenId();
     EXPECT_NE(screenId, INVALID_SCREEN_ID);
-    std::vector<ScreenHDRMetadataKey> keys;
+    std::vector<ScreenHDRMetadataKey> keys = {ScreenHDRMetadataKey::MATAKEY_RED_PRIMARY_X};
     int ret = rsClient->GetScreenSupportedMetaDataKeys(screenId, keys);
     EXPECT_EQ(ret, StatusCode::SUCCESS);
     EXPECT_EQ(keys[0], ScreenHDRMetadataKey::MATAKEY_RED_PRIMARY_X);
