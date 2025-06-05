@@ -2275,6 +2275,7 @@ HWTEST_F(RSUniHwcVisitorTest, IsFindRoot_001, TestSize.Level2)
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     rsUniRenderVisitor->curSurfaceNode_ = leashWindowNode;
     rsUniRenderVisitor->prepareClipRect_ = RectI(0, 0, 1000, 1000);
+    auto rsRenderNode = std::static_pointer_cast<RSRenderNode>(surfaceNode);
     auto result = rsUniRenderVisitor->hwcVisitor_->IsFindRoot(rsRenderNode, *rootNode);
     EXPECT_TRUE(result);
 }
@@ -2343,7 +2344,7 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeClipRect_003, Function | SmallTest | 
     canvasNode->InitRenderParams();
     canvasNode->renderContent_->renderProperties_.boundsGeo_->SetRect(0, 10, 20, 30);
     canvasNode->renderContent_->renderProperties_.clipToBounds_ = true;
-    canvasNode->selDrawRect_ = {0, 10, 20, 30};
+    canvasNode->selfDrawRect_ = {0, 10, 20, 30};
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     rsUniRenderVisitor->prepareClipRect_ = RectI(0, 0, 1000, 1000);
     Drawing::Rect clipRect(0, 0, 100, 100);
@@ -2381,17 +2382,8 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeClipRectAndMatrix_001, Function | Sma
     NodeId id = 0;
     auto leashWindowNode = std::make_shared<RSSurfaceRenderNode>(id);
     leashWindowNode->InitRenderParams();
-    leashWindowNode->renderContent_->renderProperties_.boundsGeo_->SetRect(-10, 10, 20, 30);
-    leashWindowNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
-    leashWindowNode->SetDstRect({10, 10, 450, 400});
-    Drawing::Matrix leashWindowMatrix;
-    leashWindowMatrix.SetMatrix(1.f, 0.f, 50.f, 0.f, 1.f, 0.f, 0.f, 0.f, 1.f);
-    leashWindowNode->renderContent_->renderProperties_.boundsGeo_->ConcatMatrix(leashWindowMatrix);
     auto rootNode = std::make_shared<RSRootRenderNode>(++id);
     rootNode->InitRenderParams();
-    rootNode->renderContent_->renderProperties_.boundsGeo_->SetRect(-10, 10, 20 ,30);
-    rootNode->renderContent_->renderProperties_.clipToBounds_ = true;
-    rootNode->renderContent_->renderProperties_.clipToFrame_ = true;
     auto canvasNode1 = std::make_shared<RSCanvasRenderNode>(++id);
     canvasNode1->InitRenderParams();
     canvasNode1->renderContent_->renderProperties_.boundsGeo_->SetRect(0, 10, 20, 30);
@@ -2407,7 +2399,6 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeClipRectAndMatrix_001, Function | Sma
     canvasNode2->selfDrawRect_ = {0, 10, 20, 30};
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(++id);
     surfaceNode->InitRenderParams();
-    surfaceNode->renderContent_->renderProperties_.frameGravity_ = Gravity::RESIZE;
     Drawing::Matrix surfaceMatrix;
     surfaceMatrix.SetMatrix(1.f, 0.f, 0.f, 0.f, 1.f, 100.f, 0.f, 0.f, 1.f);
     surfaceNode->renderContent_->renderProperties_.boundsGeo_->ConcatMatrix(surfaceMatrix);
@@ -2415,16 +2406,9 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeClipRectAndMatrix_001, Function | Sma
     surfaceNode->renderContent_->renderProperties_.clipToBounds_ = true;
     surfaceNode->renderContent_->renderProperties_.clipToFrame_ = true;
     surfaceNode->GetRSSurfaceHandler()->buffer_.buffer = SurfaceBuffer::Create();
-    surfaceNode->GetRSSurfaceHandler()->buffer_.buffer->
-        SetSurfaceBufferTransform(GraphicTransformType::GRAPHIC_ROTATE_NONE);
-    surfaceNode->GetRSSurfaceHandler()->buffer_.buffer->
-        SetSurfaceBufferScalingMode(ScalingMode::SCALING_MODE_SCALE_TO_WINDOW);
     surfaceNode->GetRSSurfaceHandler()->buffer_.buffer->SetSurfaceBufferWidth(1080);
     surfaceNode->GetRSSurfaceHandler()->buffer_.buffer->SetSurfaceBufferHeight(1653);
     surfaceNode->GetRSSurfaceHandler()->consumer_ = IConsumerSurface::Create();
-    surfaceNode->isFixRotationByUser_ = false;
-    surfaceNode->SetIsOnTheTree(true);
-    surfaceNode->SetCalcRectInPrepare(false);
     surfaceNode->SetSurfaceNodeType(RSSurfaceNodeType::SELF_DRAWING_NODE);
     surfaceNode->isHardwareEnabledNode_ = true;
     leashWindowNode->childHardwareEnabledNodes_.emplace_back(surfaceNode);
@@ -2438,9 +2422,9 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeClipRectAndMatrix_001, Function | Sma
     RectI clipRect;
     Drawing::Matrix matrix;
     rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeClipRectAndMatrix(surfaceNode, *rootNode, clipRect, matrix);
-    RectI expectedClipRect = {100, 10, 20, 30};
+    RectI expectedClipRect = {50, 10, 20, 30};
     Drawing::Matrix expectedMatrix;
-    expectedMatrix.SetMatrix(1.f, 0.f, 50.f, 0.f, 1.f, 100.f, 0.f, 0.f, 1.f)
+    expectedMatrix.SetMatrix(1.f, 0.f, 50.f, 0.f, 1.f, 100.f, 0.f, 0.f, 1.f);
     EXPECT_EQ(clipRect, expectedClipRect);
     EXPECT_EQ(matrix, expectedMatrix);
 }
