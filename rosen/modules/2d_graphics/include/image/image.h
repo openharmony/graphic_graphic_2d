@@ -41,6 +41,7 @@ enum class CompressedType {
     ASTC_RGBA8_4x4,
     ASTC_RGBA8_6x6,
     ASTC_RGBA8_8x8,
+    ASTC_RGBA10_4x4,
 };
 
 enum class TextureOrigin {
