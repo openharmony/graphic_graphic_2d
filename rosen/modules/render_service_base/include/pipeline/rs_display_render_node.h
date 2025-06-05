@@ -613,6 +613,13 @@ public:
         return targetSurfaceRenderNodeId_;
     }
 
+    bool HasMirrorDisplay() const
+    {
+        return hasMirrorDisplay_;
+    }
+
+    void SetHasMirrorDisplay(bool hasMirrorDisplay);
+
     void SetTargetSurfaceRenderNodeDrawable(DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr drawable);
 
     // Enable HWCompose
@@ -707,6 +714,8 @@ private:
     std::vector<NodeId> lastSurfaceIds_;
 
     std::vector<int32_t> oldScbPids_ {};
+
+    bool hasMirrorDisplay_ = false;
 
     // Use in round corner display
     // removed later due to rcd node will be handled by RS tree in OH 6.0 rcd refactoring

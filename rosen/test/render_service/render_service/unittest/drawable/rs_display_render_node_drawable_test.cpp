@@ -806,7 +806,7 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, DrawMirrorTest, TestSize.Level1)
 
 /**
  * @tc.name: DrawExpandScreen001
- * @tc.desc: Test DrawExpandScreen
+ * @tc.desc: Test DrawExpandScreen when canvas is null
  * @tc.type: FUNC
  * @tc.require: #I9NVOG
  */
@@ -814,20 +814,15 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, DrawExpandScreenTest001, TestSize.Leve
 {
     ASSERT_NE(displayDrawable_, nullptr);
     NodeId id = 1;
-    auto virtualProcesser = std::make_shared<RSUniRenderVirtualProcessor>();
-    auto renderNode = std::make_shared<RSRenderNode>(id);
-    ASSERT_NE(renderNode, nullptr);
-    auto surfaceRenderNodeDrawable = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(renderNode);
-    ASSERT_NE(surfaceRenderNodeDrawable, nullptr);
     auto displayRenderParams = std::make_shared<RSDisplayRenderParams>(id);
-    displayRenderParams->SetTargetSurfaceRenderNodeDrawable(surfaceRenderNodeDrawable);
+    auto virtualProcesser = std::make_shared<RSUniRenderVirtualProcessor>();
     displayDrawable_->DrawExpandScreen(*displayRenderParams, *virtualProcesser);
-    ASSERT_EQ(displayDrawable_->GetCacheImgForMultiScreenView(), nullptr);
+    EXPECT_EQ(displayDrawable_->GetCacheImgForCapture(), nullptr);
 }
 
 /**
  * @tc.name: DrawExpandScreen002
- * @tc.desc: Test DrawExpandScreen
+ * @tc.desc: Test DrawExpandScreen 
  * @tc.type: FUNC
  * @tc.require: #I9NVOG
  */
@@ -835,11 +830,53 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, DrawExpandScreenTest002, TestSize.Leve
 {
     ASSERT_NE(displayDrawable_, nullptr);
     NodeId id = 1;
-    auto virtualProcesser = std::make_shared<RSUniRenderVirtualProcessor>();
     auto displayRenderParams = std::make_shared<RSDisplayRenderParams>(id);
-    displayRenderParams->SetTargetSurfaceRenderNodeDrawable(std::weak_ptr<RSSurfaceRenderNodeDrawable>());
+    auto virtualProcesser = std::make_shared<RSUniRenderVirtualProcessor>();
+    virtualProcesser->canvas_ = std::make_shared<RSPaintFilterCanvas>(drawingCanvas_.get());
     displayDrawable_->DrawExpandScreen(*displayRenderParams, *virtualProcesser);
-    ASSERT_EQ(displayDrawable_->GetCacheImgForMultiScreenView(), nullptr);
+    EXPECT_EQ(displayDrawable_->GetCacheImgForCapture(), nullptr);
+}
+
+/**
+ * @tc.name: DrawExpandScreen003
+ * @tc.desc: Test DrawExpandScreen when targetSurfaceRenderNodeDrawable not null
+ * @tc.type: FUNC
+ * @tc.require: #I9NVOG
+ */
+HWTEST_F(RSDisplayRenderNodeDrawableTest, DrawExpandScreenTest003, TestSize.Level1)
+{
+    ASSERT_NE(displayDrawable_, nullptr);
+    NodeId id = 1;
+    auto virtualProcesser = std::make_shared<RSUniRenderVirtualProcessor>();
+    virtualProcesser->canvas_ = std::make_shared<RSPaintFilterCanvas>(drawingCanvas_.get());
+    auto surface = std::make_shared<Drawing::Surface>();
+    virtualProcesser->canvas_->surface_ = surface.get();
+    auto renderNode = std::make_shared<RSRenderNode>(id);
+    ASSERT_NE(renderNode, nullptr);
+    auto surfaceRenderNodeDrawable = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(renderNode);
+    ASSERT_NE(surfaceRenderNodeDrawable, nullptr);
+    auto displayRenderParams = std::make_shared<RSDisplayRenderParams>(id);
+    displayRenderParams->SetTargetSurfaceRenderNodeDrawable(surfaceRenderNodeDrawable);
+    displayDrawable_->DrawExpandScreen(*displayRenderParams, *virtualProcesser);
+    EXPECT_EQ(displayDrawable_->GetCacheImgForCapture(), nullptr);
+}
+
+/**
+ * @tc.name: DrawExpandScreen004
+ * @tc.desc: Test DrawExpandScreen when hasMirrorDisplay is true
+ * @tc.type: FUNC
+ * @tc.require: #I9NVOG
+ */
+HWTEST_F(RSDisplayRenderNodeDrawableTest, DrawExpandScreenTest004, TestSize.Level1)
+{
+    ASSERT_NE(displayDrawable_, nullptr);
+    NodeId id = 1;
+    auto virtualProcesser = std::make_shared<RSUniRenderVirtualProcessor>();
+    virtualProcesser->canvas_ = std::make_shared<RSPaintFilterCanvas>(drawingCanvas_.get());
+    auto displayRenderParams = std::make_shared<RSDisplayRenderParams>(id);
+    displayRenderParams->SetHasMirrorDisplay(true);
+    displayDrawable_->DrawExpandScreen(*displayRenderParams, *virtualProcesser);
+    EXPECT_EQ(displayDrawable_->GetCacheImgForCapture(), nullptr);
 }
 
 /**

@@ -1342,7 +1342,7 @@ const std::unordered_set<NodeId> RSScreenManager::GetVirtualScreenBlackList(Scre
     std::unordered_set<uint64_t> virtualScreenBlackList = virtualScreen->GetBlackList();
     // if the skipWindow flag is enabled, the global blacklist takes effect in addition
     if (virtualScreen->GetCastScreenEnableSkipWindow()) {
-        RS_LOGW("%{public}s: Cast screen blacklists for id %{public}" PRIu64, __func__, id);
+        RS_LOGD("%{public}s: Cast screen blacklists for id %{public}" PRIu64, __func__, id);
         std::lock_guard<std::mutex> lock(blackListMutex_);
         virtualScreenBlackList.insert(castScreenBlackList_.begin(), castScreenBlackList_.end());
     }
@@ -1358,7 +1358,7 @@ const std::unordered_set<NodeType> RSScreenManager::GetVirtualScreenTypeBlackLis
         return {};
     }
     if (virtualScreen->GetCastScreenEnableSkipWindow()) {
-        RS_LOGW("%{public}s: Cast screen typeblacklists for id %{public}" PRIu64, __func__, id);
+        RS_LOGD("%{public}s: Cast screen typeblacklists for id %{public}" PRIu64, __func__, id);
         std::lock_guard<std::mutex> lock(typeBlackListMutex_);
         return castScreenTypeBlackList_;
     }

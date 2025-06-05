@@ -169,6 +169,9 @@ public:
     void SetZoomed(bool isZoomed);
     bool GetZoomed() const;
 
+    bool HasMirrorDisplay() const;
+    void SetHasMirrorDisplay(bool hasMirrorDisplay);
+
     void SetTargetSurfaceRenderNodeDrawable(DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr drawable);
     DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr GetTargetSurfaceRenderNodeDrawable() const;
 
@@ -246,6 +249,7 @@ private:
     float brightnessRatio_ = 1.0f;
     float zOrder_ = 0.0f;
     bool isZoomed_ = false;
+    bool hasMirrorDisplay_ = false;
     // vector of rcd drawable, should be removed in OH 6.0 rcd refactoring
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> roundCornerSurfaceDrawables_;
     DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr targetSurfaceRenderNodeDrawable_;

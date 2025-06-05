@@ -1062,7 +1062,7 @@ void RSDisplayRenderNodeDrawable::DrawMirrorScreen(
     }
 
     auto hardwareDrawables = uniParam->GetHardwareEnabledTypeDrawables();
-    //if specialLayer is visible and no CacheImg
+    // if specialLayer is visible and no CacheImg
     if ((mirroredParams->GetSecurityDisplay() != params.GetSecurityDisplay() &&
         specialLayerType_ == HAS_SPECIAL_LAYER) || !mirroredDrawable->GetCacheImgForCapture() ||
         params.GetVirtualScreenMuteStatus()) {
@@ -1363,11 +1363,11 @@ void RSDisplayRenderNodeDrawable::DrawExpandScreen(
     curCanvas_->SetOnMultipleScreen(true);
     auto targetSurfaceRenderNodeDrawable =
         std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(params.GetTargetSurfaceRenderNodeDrawable().lock());
-    if (targetSurfaceRenderNodeDrawable && curCanvas_->GetSurface()) {
-        RS_TRACE_NAME("DrawExpandScreen cacheImgForMultiScreenView");
-        cacheImgForMultiScreenView_ = curCanvas_->GetSurface()->GetImageSnapshot();
+    if ((targetSurfaceRenderNodeDrawable || params.HasMirrorDisplay()) && curCanvas_->GetSurface()) {
+        RS_TRACE_NAME("DrawExpandScreen cache image");
+        cacheImgForCapture_ = curCanvas_->GetSurface()->GetImageSnapshot();
     } else {
-        cacheImgForMultiScreenView_ = nullptr;
+        cacheImgForCapture_ = nullptr;
     }
     // Restore the initial state of the canvas to avoid state accumulation
     curCanvas_->RestoreToCount(0);
