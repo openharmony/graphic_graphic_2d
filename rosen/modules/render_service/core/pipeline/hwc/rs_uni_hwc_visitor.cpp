@@ -317,11 +317,11 @@ void RSUniHwcVisitor::ProcessSolidLayerDisabled(RSSurfaceRenderNode& node)
         RS_LOGD("solidLayer: solid color surface node: %{public}s, go hwc directly", node.GetName().c_str());
         return;
     }
-    auto parentNode = node.GetParent().lock();
     if (static_cast<uint8_t>(appBackgroundColor.GetAlpha()) < MAX_ALPHA) {
         bool isSpecialNodeType = RsCommonHook::Instance().GetHardwareEnabledByBackgroundAlphaFlag() ||
             node.IsHardwareEnableHint();
         if (!isSpecialNodeType || node.IsRosenWeb()) {
+            auto parentNode = node.GetParent().lock();
             RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " parentId:%" PRIu64 " disabled by "
                 "background color alpha < 1", node.GetName().c_str(), node.GetId(), parentNode ? parentNode->GetId() : 0);
             RS_LOGD("solidLayer: disabled by background color alpha < 1: %{public}s", node.GetName().c_str());
@@ -334,6 +334,7 @@ void RSUniHwcVisitor::ProcessSolidLayerDisabled(RSSurfaceRenderNode& node)
         uniRenderVisitor_.curSurfaceNode_->SetExistTransparentHardwareEnabledNode(true);
         node.SetNodeHasBackgroundColorAlpha(true);
     } else {
+        auto parentNode = node.GetParent().lock();
         RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " parentId:%" PRIu64 " disabled by background "
             "solidColor && HDR", node.GetName().c_str(), node.GetId(), parentNode ? parentNode->GetId() : 0);
         RS_LOGD("solidLayer: disabled by background solidColor && HDR: %{public}s", node.GetName().c_str());
@@ -346,11 +347,11 @@ void RSUniHwcVisitor::ProcessSolidLayerDisabled(RSSurfaceRenderNode& node)
 
 void RSUniHwcVisitor::ProcessSolidLayerEnabled(RSSurfaceRenderNode& node)
 {
-    auto parentNode = node.GetParent().lock();
     if (!GetSolidLayerEnabled()) {
         RS_LOGD("solidLayer: solidLayer enabling condition is met, but the switch is disabled! name: %{public}s",
             node.GetName().c_str());
-        RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " parentId:%" PRIu64 "disabled by solidLayer "
+        auto parentNode = node.GetParent().lock();
+        RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " parentId:%" PRIu64 " disabled by solidLayer "
             "enabling condition is met, but the switch is disabled!", node.GetName().c_str(), node.GetId(),
             parentNode ? parentNode->GetId() : 0);
         node.SetHardwareForcedDisabledState(true);
@@ -365,6 +366,7 @@ void RSUniHwcVisitor::ProcessSolidLayerEnabled(RSSurfaceRenderNode& node)
     Color appBackgroundColor = renderProperties.GetBackgroundColor();
     if (static_cast<uint8_t>(appBackgroundColor.GetAlpha()) == 0) {
         appBackgroundColor = FindAppBackgroundColor(node);
+        auto parentNode = node.GetParent().lock();
         RS_OPTIONAL_TRACE_FMT("solidLayer: background color found upwards in a transparent situation, name:%s "
             "id:%" PRIu64 " parentId:%" PRIu64 " color:%08x", node.GetName().c_str(), node.GetId(),
             parentNode ? parentNode->GetId() : 0, appBackgroundColor.AsArgbInt());
@@ -766,9 +768,9 @@ void RSUniHwcVisitor::UpdateHardwareStateByHwcNodeBackgroundAlpha(
         bool isIntersect = !backgroundAlphaRect.IntersectRect(
             hwcNodePtr->GetRenderProperties().GetBoundsGeometry()->GetAbsRect()
             ).IsEmpty();
-        auto parentNode = hwcNodePtr->GetParent().lock();
         if (isHardwareEnableByBackgroundAlpha && !hwcNodePtr->IsHardwareForcedDisabled() && isIntersect) {
             hwcNodePtr->SetHardwareForcedDisabledState(true);
+            auto parentNode = hwcNodePtr->GetParent().lock();
             RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " parentId:%" PRIu64 " disabled by "
                 "cannot cover above transparent hwc node", hwcNodePtr->GetName().c_str(),
                 hwcNodePtr->GetId(), parentNode ? parentNode->GetId() : 0);
@@ -787,6 +789,7 @@ void RSUniHwcVisitor::UpdateHardwareStateByHwcNodeBackgroundAlpha(
             continue;
         } else {
             hwcNodePtr->SetHardwareForcedDisabledState(true);
+            auto parentNode = hwcNodePtr->GetParent().lock();
             RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " parentId:%" PRIu64 " disabled by "
                 "hwc node backgound alpha", hwcNodePtr->GetName().c_str(), hwcNodePtr->GetId(),
                 parentNode ? parentNode->GetId() : 0);
@@ -970,14 +973,11 @@ void RSUniHwcVisitor::UpdateHwcNodeRectInSkippedSubTree(const RSRenderNode& root
         if (!hwcNodePtr || !hwcNodePtr->IsOnTheTree() || hwcNodePtr->GetCalcRectInPrepare()) {
             continue;
         }
-        auto parent = hwcNodePtr->GetCurCloneNodeParent().lock();
-        if (parent == nullptr) {
-            parent = hwcNodePtr->GetParent().lock();
-        }
         if (!hwcNodePtr->GetRSSurfaceHandler() || !hwcNodePtr->GetRSSurfaceHandler()->GetBuffer()) {
+            auto parentNode = hwcNodePtr->GetParent().lock();
             RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " parentId:%" PRIu64 " disabled by "
                 "no buffer in skippedSubTree, HasBuffer[%d]", hwcNodePtr->GetName().c_str(),
-                hwcNodePtr->GetId(), parent ? parent->GetId() : 0,
+                hwcNodePtr->GetId(), parentNode ? parentNode->GetId() : 0,
                 hwcNodePtr->GetRSSurfaceHandler() && hwcNodePtr->GetRSSurfaceHandler()->GetBuffer());
             hwcNodePtr->SetHardwareForcedDisabledState(true);
             Statistics().UpdateHwcDisabledReasonForDFX(hwcNodePtr->GetId(),
@@ -993,6 +993,10 @@ void RSUniHwcVisitor::UpdateHwcNodeRectInSkippedSubTree(const RSRenderNode& root
         auto matrix = Drawing::Matrix();
         if (!FindRootAndUpdateMatrix(parent, matrix, rootNode)) {
             continue;
+        }
+        auto parent = hwcNodePtr->GetCurCloneNodeParent().lock();
+        if (parent == nullptr) {
+            parent = hwcNodePtr->GetParent().lock();
         }
         if (parent) {
             const auto& parentGeoPtr = parent->GetRenderProperties().GetBoundsGeometry();
