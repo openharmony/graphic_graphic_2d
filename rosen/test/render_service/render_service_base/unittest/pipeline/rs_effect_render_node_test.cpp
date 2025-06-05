@@ -17,6 +17,7 @@
 
 #include "common/rs_obj_abs_geometry.h"
 #include "drawable/rs_drawable.h"
+#include "drawable/rs_property_drawable_background.h"
 #include "params/rs_effect_render_params.h"
 #include "pipeline/rs_effect_render_node.h"
 #include "render_thread/rs_render_thread_visitor.h"
@@ -323,5 +324,27 @@ HWTEST_F(RSEffectRenderNodeTest, SetDarkColorMode001, TestSize.Level1)
     rsEffectRenderNode.stagingRenderParams_ = std::make_unique<RSEffectRenderParams>(rsEffectRenderNode.GetId());
     rsEffectRenderNode.SetDarkColorMode(true);
     EXPECT_NE(rsEffectRenderNode.stagingRenderParams_, nullptr);
+}
+
+/**
+ * @tc.name: NotForceClearBackgroundFilterCacheWhenDirty
+ * @tc.desc: Test function CheckBlurFilterCacheNeedForceClearOrSave
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSEffectRenderNodeTest, ForceClearForegroundFilterCacheWhenDirty, TestSize.Level1)
+{
+    auto renderNode = std::make_shared<RSEffectRenderNode>(1);
+    ASSERT_NE(renderNode, nullptr);
+    auto& properties = renderNode->GetMutableRenderProperties();
+    properties.backgroundFilter_ = std::make_shared<RSFilter>();
+
+    auto backgroundFilterDrawable = std::make_shared<DrawableV2::RSBackgroundFilterDrawable>();
+    EXPECT_NE(backgroundFilterDrawable, nullptr);
+    renderNode->drawableVec_[static_cast<uint32_t>(RSDrawableSlot::BACKGROUND_FILTER)] = backgroundFilterDrawable;
+    renderNode->CheckBlurFilterCacheNeedForceClearOrSave(true);
+
+    EXPECT_NE(backgroundFilterDrawable->stagingCacheManager_, nullptr);
+    ASSERT_EQ(backgroundFilterDrawable->stagingCacheManager_->stagingForceClearCache_, false);
 }
 } // namespace OHOS::Rosen

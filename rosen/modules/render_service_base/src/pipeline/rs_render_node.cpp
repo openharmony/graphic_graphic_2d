@@ -2478,8 +2478,14 @@ void RSRenderNode::MarkFilterCacheFlags(std::shared_ptr<DrawableV2::RSFilterDraw
         return;
     }
 
-    RS_OPTIONAL_TRACE_NAME_FMT("MarkFilterCacheFlags:node[%llu], NeedPendingPurge:%d, forceClearWithoutNextVsync:%d",
-        GetId(), filterDrawable->NeedPendingPurge(), (!needRequestNextVsync && filterDrawable->IsSkippingFrame()));
+    RS_OPTIONAL_TRACE_NAME_FMT("MarkFilterCacheFlags:node[%llu], NeedPendingPurge:%d,"
+        " forceClearWithoutNextVsync:%d, filterRegion: %s",
+        GetId(), filterDrawable->NeedPendingPurge(), (!needRequestNextVsync && filterDrawable->IsSkippingFrame()),
+        filterRegion_.ToString().c_str());
+    ROSEN_LOGD("MarkFilterCacheFlags:node[%{public}llu], NeedPendingPurge:%{public}d,"
+        " forceClearWithoutNextVsync:%{public}d, filterRegion: %{public}s",
+        static_cast<long long>(GetId()), filterDrawable->NeedPendingPurge(),
+        (!needRequestNextVsync && filterDrawable->IsSkippingFrame()), filterRegion_.ToString().c_str());
     // force update if last frame use cache because skip-frame and current frame background is not dirty
     if (filterDrawable->NeedPendingPurge()) {
         dirtyManager.MergeDirtyRect(filterRegion_);
