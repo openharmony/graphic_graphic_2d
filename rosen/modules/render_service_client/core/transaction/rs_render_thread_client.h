@@ -13,6 +13,11 @@
  * limitations under the License.
  */
 
+/**
+* @file rs_render_thread_client.h
+* @brief Client used to communicate with the RenderThread in the application.
+*/
+
 #ifndef RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_RENDER_THREAD_CLIENT_H
 #define RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_RENDER_THREAD_CLIENT_H
 
@@ -25,8 +30,15 @@ class RSRenderThreadClient : public RSIRenderClient {
 public:
     RSRenderThreadClient() = default;
     ~RSRenderThreadClient() = default;
-
+    /**
+     * @brief Commit transaction to the renderThread.
+     * @param transactionData Application needs to send to RenderThread.
+     */
     void CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData) override;
+    /**
+     * @brief Excute the Synchronous task in renderThread.
+     * @param task Synchronous task. must transfer maximum execution duration in ns.
+     */
     void ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task) override;
 };
 
