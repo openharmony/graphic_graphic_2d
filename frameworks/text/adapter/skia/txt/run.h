@@ -16,6 +16,7 @@
 #ifndef ROSEN_MODULES_SPTEXT_RUN_H
 #define ROSEN_MODULES_SPTEXT_RUN_H
 
+#include "txt/text_types.h"
 #include "draw/canvas.h"
 
 namespace OHOS {
@@ -33,6 +34,8 @@ public:
     virtual std::vector<uint16_t> GetGlyphs(int64_t start, int64_t length) const = 0;
     virtual std::vector<Drawing::Point> GetPositions(int64_t start, int64_t length) const = 0;
     virtual void GetStringRange(uint64_t* location, uint64_t* length) const = 0;
+    virtual std::vector<Drawing::Point> GetAdvances(uint32_t start, uint32_t length) const = 0;
+    virtual TextDirection GetTextDirection() const = 0;
     virtual std::vector<uint64_t> GetStringIndices(int64_t start, int64_t length) const = 0;
     virtual Drawing::Rect GetImageBounds() const = 0;
     virtual float GetTypographicBounds(float* ascent, float* descent, float* leading) const = 0;

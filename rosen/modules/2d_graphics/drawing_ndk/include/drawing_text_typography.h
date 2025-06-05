@@ -2388,6 +2388,17 @@ void OH_Drawing_TypographyUpdateDecorationStyle(OH_Drawing_Typography* typograph
     OH_Drawing_TextDecorationStyle decorationStyle);
 
 /**
+ * @brief Updates the decoration color of the paragraph.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param typography Indicates the pointer to the text <b>OH_Drawing_Typography</b> object.
+ * @param color Indicates the text decoration color to update.
+ * @since 20
+ * @version 1.0
+ */
+void OH_Drawing_TypographyUpdateDecorationColor(OH_Drawing_Typography* typography, uint32_t color);
+
+/**
  * @brief Get whether the text layout enables line styles.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing

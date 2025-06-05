@@ -2294,6 +2294,18 @@ void OH_Drawing_TypographyUpdateDecorationStyle(OH_Drawing_Typography* typograph
     ConvertToOriginalText<Typography>(typography)->UpdateAllTextStyles(textStyleTemplate);
 }
 
+void OH_Drawing_TypographyUpdateDecorationColor(OH_Drawing_Typography* typography, uint32_t color)
+{
+    if (typography == nullptr) {
+        return;
+    }
+
+    TextStyle textStyleTemplate;
+    textStyleTemplate.relayoutChangeBitmap.set(static_cast<size_t>(RelayoutTextStyleAttribute::DECORATION_COLOR));
+    textStyleTemplate.decorationColor.SetColorQuad(color);
+    ConvertToOriginalText<Typography>(typography)->UpdateAllTextStyles(textStyleTemplate);
+}
+
 bool OH_Drawing_TypographyTextGetLineStyle(OH_Drawing_TypographyStyle* style)
 {
     if (style == nullptr || ConvertToOriginalText<TypographyStyle>(style) == nullptr) {
