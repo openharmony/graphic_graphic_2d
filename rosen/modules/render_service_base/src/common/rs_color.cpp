@@ -239,7 +239,6 @@ void RSColor::Dump(std::string& out) const
             out += " colorSpace: OTHER]";
             break;
     }
-    
 }
 } // namespace Rosen
 } // namespace OHOS
