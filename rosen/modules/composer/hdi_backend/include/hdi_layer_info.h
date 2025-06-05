@@ -658,7 +658,7 @@ public:
         constexpr uint32_t ANCO_SFV_NODE_FLAG = 0x0011;
         return (ancoFlags_ & ANCO_SFV_NODE_FLAG) == ANCO_SFV_NODE_FLAG;
     }
-    bool IsAncoNdk() const
+    bool IsAncoNative() const
     {
         constexpr uint32_t ANCO_NATIVE_NODE_FLAG = 0x0111;
         return (ancoFlags_ & ANCO_NATIVE_NODE_FLAG) == ANCO_NATIVE_NODE_FLAG;
