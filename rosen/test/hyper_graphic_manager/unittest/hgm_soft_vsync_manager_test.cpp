@@ -364,14 +364,16 @@ HWTEST_F(HgmSoftVSyncManagerTest, GetVRateMiniFPS, Function | SmallTest | Level2
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmSoftVSyncManagerTest, CollectVRateChange, Function | SmallTest | Level2)
+HWTEST_F(HgmSoftVSyncManagerTest, CollectVRateChange01, Function | SmallTest | Level2)
 {
     HgmSoftVSyncManager mgr;
     FrameRateRange finalRange = {OLED_60_HZ, OLED_120_HZ, OLED_60_HZ};
     mgr.vRatesMap_ = {
         {0, 0},
         {1, 1},
-        {2, 2}
+        {2, 2},
+        {3, 3},
+        {4, std::numeric_limits<int>::max()}
     };
     uint64_t linkerId = 2;
     mgr.CollectVRateChange(linkerId, finalRange);
@@ -403,13 +405,49 @@ HWTEST_F(HgmSoftVSyncManagerTest, CollectVRateChange, Function | SmallTest | Lev
     EXPECT_EQ(finalRange.min_, OLED_NULL_HZ);
     EXPECT_EQ(finalRange.max_, OLED_144_HZ);
     EXPECT_EQ(finalRange.preferred_, mgr.vrateControlMinifpsValue_);
+}
 
+/**
+ * @tc.name: CollectVRateChange
+ * @tc.desc: Verify the result of CollectVRateChange
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmSoftVSyncManagerTest, CollectVRateChange02, Function | SmallTest | Level2)
+{
+    HgmSoftVSyncManager mgr;
+    FrameRateRange finalRange = {OLED_60_HZ, OLED_120_HZ, OLED_60_HZ};
+    mgr.vRatesMap_ = {
+        {0, 0},
+        {1, 1},
+        {2, 2},
+        {3, 3},
+        {4, std::numeric_limits<int>::max()}
+    };
+
+    uint64_t linkerId = 2;
     finalRange.preferred_ = 0;
     mgr.controllerRate_ = 100;
     mgr.CollectVRateChange(linkerId, finalRange);
     EXPECT_EQ(finalRange.min_, OLED_NULL_HZ);
     EXPECT_EQ(finalRange.max_, OLED_144_HZ);
     EXPECT_EQ(finalRange.preferred_, 50);
+
+    linkerId = 3;
+    finalRange.type_ = 6;
+    finalRange.preferred_ = 60;
+    mgr.CollectVRateChange(linkerId, finalRange);
+    EXPECT_EQ(finalRange.min_, OLED_NULL_HZ);
+    EXPECT_EQ(finalRange.max_, OLED_144_HZ);
+    EXPECT_EQ(finalRange.preferred_, OLED_60_HZ);
+
+    linkerId = 4;
+    finalRange.type_ = 6;
+    mgr.controllerRate_ = 120;
+    mgr.CollectVRateChange(linkerId, finalRange);
+    EXPECT_EQ(finalRange.min_, OLED_NULL_HZ);
+    EXPECT_EQ(finalRange.max_, OLED_144_HZ);
+    EXPECT_EQ(finalRange.preferred_, 1);
 }
 
 /**
