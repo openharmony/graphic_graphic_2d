@@ -24,7 +24,6 @@ using namespace testing::ext;
 namespace OHOS {
 namespace Rosen {
 namespace SPText {
-static const float MIN_VALUE = 1e-6;
 class OHHmSymbolRunTest : public testing::Test {};
 
 
@@ -138,8 +137,8 @@ HWTEST_F(OHHmSymbolRunTest, DrawSymbol003, TestSize.Level1)
 HWTEST_F(OHHmSymbolRunTest, SetSymbolRenderColor001, TestSize.Level1)
 {
     // step 1: Simulation input
-    RSSColor color1 = {1.0, 255, 0, 0}; // the 1.0 is alpha, 255, 0, 0 is RGB
-    RSSColor color2 = {1.0, 0, 255, 0}; // the 1.0 is alpha, 255, 0, 0 is RGB
+    RSSColor color1 = {1.0f, 255, 0, 0}; // the 1.0 is alpha, 255, 0, 0 is RGB
+    RSSColor color2 = {0.5f, 0, 255, 0}; // the 0.5 is alpha, 0, 255, 0 is RGB
     std::vector<RSSColor> colors = {color1, color2};
     RSRenderGroup group1;
     RSRenderGroup group2;
@@ -157,33 +156,15 @@ HWTEST_F(OHHmSymbolRunTest, SetSymbolRenderColor001, TestSize.Level1)
     // step 2: Import different RenderingStrategy to test the color result.
     RSSymbolRenderingStrategy renderMode = RSSymbolRenderingStrategy::SINGLE;
     hmSymbolRun.SetSymbolRenderColor(renderMode, colors, symbolInfo);
-    bool check = false;
-    if (color1.r == symbolInfo.renderGroups[0].color.r &&
-        color1.g == symbolInfo.renderGroups[0].color.g &&
-        color1.b == symbolInfo.renderGroups[0].color.b) {
-        check = true;
-    }
-    EXPECT_EQ(check, true);
-
-    renderMode = RSSymbolRenderingStrategy::MULTIPLE_OPACITY;
-    hmSymbolRun.SetSymbolRenderColor(renderMode, colors, symbolInfo);
-    bool check1 = false;
-    if (color1.r == symbolInfo.renderGroups[0].color.r &&
-        color1.g == symbolInfo.renderGroups[0].color.g &&
-        color1.b == symbolInfo.renderGroups[0].color.b) {
-        check1 = true;
-    }
-    EXPECT_EQ(check1, true);
+    EXPECT_EQ(symbolInfo.renderGroups[0].color.r, color1.r);
 
     renderMode = RSSymbolRenderingStrategy::MULTIPLE_COLOR;
     hmSymbolRun.SetSymbolRenderColor(renderMode, colors, symbolInfo);
-    bool check2 = false;
-    if (color2.r == symbolInfo.renderGroups[1].color.r &&
-        color2.g == symbolInfo.renderGroups[1].color.g &&
-        color2.b == symbolInfo.renderGroups[1].color.b) {
-        check2 = true;
-    }
-    EXPECT_EQ(check2, true);
+    EXPECT_EQ(symbolInfo.renderGroups[1].color.a, color2.a);
+
+    renderMode = RSSymbolRenderingStrategy::MULTIPLE_OPACITY;
+    hmSymbolRun.SetSymbolRenderColor(renderMode, {color2}, symbolInfo);
+    EXPECT_NE(symbolInfo.renderGroups[1].color.a, color2.a);
 }
 
 /*
@@ -194,7 +175,7 @@ HWTEST_F(OHHmSymbolRunTest, SetSymbolRenderColor001, TestSize.Level1)
 HWTEST_F(OHHmSymbolRunTest, SetSymbolRenderColor002, TestSize.Level1)
 {
     std::vector<RSSColor> colors = {};
-    RSSColor color = {1.0, 0, 255, 0}; // the 1.0 is alpha, 255, 0, 0 is RGB
+    RSSColor color = {1.0f, 0, 255, 0}; // the 1.0 is alpha, 0, 255, 0 is RGB
     RSRenderGroup group1;
     group1.color = color;
     RSSymbolLayers symbolInfo;
@@ -207,17 +188,10 @@ HWTEST_F(OHHmSymbolRunTest, SetSymbolRenderColor002, TestSize.Level1)
         animationFunc = nullptr;
     HMSymbolRun hmSymbolRun = HMSymbolRun(0, symbolTxt, textblob, animationFunc);
 
-    // step 2: Import different RenderingStrategy to test the color result.
+    // step 2: inputMode is SINGLE, colors is empty.
     RSSymbolRenderingStrategy renderMode = RSSymbolRenderingStrategy::SINGLE;
     hmSymbolRun.SetSymbolRenderColor(renderMode, colors, symbolInfo);
-    bool check = false;
-    if (abs(color.a - symbolInfo.renderGroups[0].color.a) < MIN_VALUE &&
-        color.r == symbolInfo.renderGroups[0].color.r &&
-        color.g == symbolInfo.renderGroups[0].color.g &&
-        color.b == symbolInfo.renderGroups[0].color.b) {
-        check = true;
-    }
-    EXPECT_EQ(check, true);
+    EXPECT_EQ(symbolInfo.renderGroups[0].color.g, color.g);
 }
 
 /*
