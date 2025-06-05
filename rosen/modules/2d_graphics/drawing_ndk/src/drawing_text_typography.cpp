@@ -31,6 +31,7 @@
 #include "rosen_text/typography.h"
 #include "rosen_text/typography_create.h"
 #include "txt/text_bundle_config_parser.h"
+#include "typography_style.h"
 #include "unicode/putil.h"
 
 #include "utils/log.h"
@@ -940,6 +941,15 @@ void OH_Drawing_SetTextStyleBadgeType(OH_Drawing_TextStyle* style, OH_Drawing_Te
         return;
     }
     ConvertToOriginalText<TextStyle>(style)->badgeType = static_cast<TextBadgeType>(textBadgeType);
+}
+
+void OH_Drawing_SetTypographyVerticalAlignment(OH_Drawing_TypographyStyle* style,
+    OH_Drawing_TextVerticalAlignment align)
+{
+    if (style == nullptr) {
+        return;
+    }
+    ConvertToOriginalText<TypographyStyle>(style)->verticalAlignment = static_cast<TextVerticalAlign>(align);
 }
 
 void OH_Drawing_SetTypographyTextBreakStrategy(OH_Drawing_TypographyStyle* style, int breakStrategy)
