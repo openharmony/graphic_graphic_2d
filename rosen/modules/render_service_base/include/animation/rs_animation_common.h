@@ -39,6 +39,17 @@ enum class RSInteractiveAnimationPosition : uint8_t {
     END,
 };
 
+enum class ImplicitAnimationParamType {
+    INVALID,
+    CURVE,
+    KEYFRAME,
+    PATH,
+    SPRING,
+    INTERPOLATING_SPRING,
+    TRANSITION,
+    CANCEL
+};
+
 } // namespace Rosen
 } // namespace OHOS
 

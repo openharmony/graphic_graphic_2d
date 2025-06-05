@@ -33,6 +33,7 @@
 #include <unistd.h>
 
 #include "animation/rs_animation_callback.h"
+#include "animation/rs_animation_trace_utils.h"
 #include "animation/rs_implicit_animator.h"
 #include "animation/rs_implicit_animator_map.h"
 #include "animation/rs_motion_path_option.h"
@@ -486,6 +487,9 @@ public:
         T sendValue = value;
         if (hasPropertyAnimation) {
             sendValue = value - RSProperty<T>::stagingValue_;
+            auto endValue = std::make_shared<RSAnimatableProperty<T>>(value);
+            RSAnimationTraceUtils::GetInstance().AddChangeAnimationValueTrace(
+                RSProperty<T>::id_, endValue->GetRenderProperty());
         }
         RSProperty<T>::stagingValue_ = value;
         if (RSProperty<T>::isCustom_) {

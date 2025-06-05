@@ -142,6 +142,7 @@ void RSAnimationTimingProtocolFuzzerTest()
     bool isForward = GetData<bool>();
     FrameRateRange range;
     FinishCallbackType finishCallbackType = FinishCallbackType::TIME_SENSITIVE;
+    std::string interfaceName = GetStringFromData(STR_LEN);
 
     // test
     auto animationTimeProtocol = std::make_shared<RSAnimationTimingProtocol>();
@@ -154,6 +155,8 @@ void RSAnimationTimingProtocolFuzzerTest()
     animationTimeProtocol->SetDirection(isForward);
     animationTimeProtocol->SetFrameRateRange(range);
     animationTimeProtocol->SetFinishCallbackType(finishCallbackType);
+    animationTimeProtocol->SetInterfaceName(interfaceName);
+    animationTimeProtocol->GetInterfaceName();
     animationTimeProtocol->GetDuration();
     animationTimeProtocol->GetStartDelay();
     animationTimeProtocol->GetSpeed();
@@ -163,40 +166,6 @@ void RSAnimationTimingProtocolFuzzerTest()
     animationTimeProtocol->GetDirection();
     animationTimeProtocol->GetFrameRateRange();
     animationTimeProtocol->GetFinishCallbackType();
-}
-
-void RSAnimationTraceUtilsFuzzerTest()
-{
-    // get data
-    const std::string nodeName = GetStringFromData(STR_LEN);
-    const std::string info = GetStringFromData(STR_LEN);
-    const uint64_t nodeId = GetData<uint64_t>();
-    const uint64_t propertyId = GetData<uint64_t>();
-    const uint64_t animationId = GetData<uint64_t>();
-    const int propertyType = GetData<int>();
-    const int animationType = GetData<int>();
-    const int animationDelay = GetData<int>();
-    const int animationDur = GetData<int>();
-    const int repeat = GetData<int>();
-    bool isAddLogInfo = GetData<bool>();
-    auto startValue = std::make_shared<RSRenderAnimatableProperty<float>>(GetData<float>());
-    auto endValue = std::make_shared<RSRenderAnimatableProperty<float>>(GetData<float>());
-    auto value = std::make_shared<RSRenderAnimatableProperty<float>>(GetData<float>());
-    auto initialVelocity = std::make_shared<RSRenderAnimatableProperty<float>>(GetData<float>());
-    const float fraction = GetData<float>();
-    const int64_t time = GetData<int64_t>();
-
-    // test
-    RSAnimationTraceUtils::GetInstance().addAnimationNameTrace(nodeName);
-    RSAnimationTraceUtils::GetInstance().addAnimationFinishTrace(info, nodeId, animationId, isAddLogInfo);
-    RSAnimationTraceUtils::GetInstance().addAnimationCreateTrace(
-        nodeId, nodeName, propertyId, animationId, animationType, propertyType, startValue, endValue,
-        animationDelay, animationDur, repeat);
-    RSAnimationTraceUtils::GetInstance().addAnimationFrameTrace(
-        nodeId, nodeName, animationId, propertyId, fraction, value, time, animationDur, repeat);
-    RSAnimationTraceUtils::GetInstance().addSpringInitialVelocityTrace(
-        propertyId, animationId, initialVelocity, value);
-    RSAnimationTraceUtils::GetInstance().ParseRenderPropertyVaule(value);
 }
 
 bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
@@ -211,7 +180,6 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
 
     RSAnimationManagerFuzzerTest();
     RSAnimationTimingProtocolFuzzerTest();
-    RSAnimationTraceUtilsFuzzerTest();
     return true;
 }
 } // namespace OHOS

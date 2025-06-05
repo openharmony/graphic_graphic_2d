@@ -124,6 +124,7 @@ ohos_unittest("RSAnimationTest3") {
     "rs_symbol_animation_test.cpp",
     "rs_transition_effect_test.cpp",
     "rs_transition_test.cpp",
+    "rs_time_protocol_test.cpp",
   ]
 
   configs = [ ":rs_animation_test_config" ]

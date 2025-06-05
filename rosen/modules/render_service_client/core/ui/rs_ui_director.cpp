@@ -650,7 +650,7 @@ void RSUIDirector::ProcessMessages(std::shared_ptr<RSTransactionData> cmds, bool
 void RSUIDirector::AnimationCallbackProcessor(NodeId nodeId, AnimationId animId, uint64_t token,
     AnimationCallbackEvent event)
 {
-    RSAnimationTraceUtils::GetInstance().addAnimationFinishTrace(
+    RSAnimationTraceUtils::GetInstance().AddAnimationFinishTrace(
         "Animation FinishCallback Processor", nodeId, animId, false);
     auto rsUIContext = RSUIContextManager::Instance().GetRSUIContext(token);
     // try find the node by nodeId

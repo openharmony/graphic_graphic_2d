@@ -171,7 +171,7 @@ void RSModifierManager::OnAnimationFinished(const std::shared_ptr<RSRenderAnimat
     uint64_t token = animation->GetToken();
     displaySyncs_.erase(animationId);
 
-    RSAnimationTraceUtils::GetInstance().addAnimationFinishTrace(
+    RSAnimationTraceUtils::GetInstance().AddAnimationFinishTrace(
         "Animation Send Finish", targetId, animationId, false);
     std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCallback>(targetId, animationId, token, FINISHED);
     RSMessageProcessor::Instance().AddUIMessage(ExtractPid(animationId), command);
