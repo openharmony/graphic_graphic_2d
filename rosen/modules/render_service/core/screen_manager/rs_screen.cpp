@@ -104,6 +104,7 @@ RSScreen::RSScreen(const VirtualScreenConfigs &configs)
       width_(configs.width),
       height_(configs.height),
       isVirtual_(true),
+      virtualSecLayerOption_(configs.flags),
       producerSurface_(configs.surface),
       pixelFormat_(configs.pixelFormat),
       screenType_(RSScreenType::VIRTUAL_TYPE_SCREEN),
@@ -1463,6 +1464,11 @@ int32_t RSScreen::SetScreenLinearMatrix(const std::vector<float> &matrix)
 
     linearMatrix_ = matrix;
     return StatusCode::SUCCESS;
+}
+
+int32_t RSScreen::GetVirtualSecLayerOption() const
+{
+    return virtualSecLayerOption_;
 }
 } // namespace impl
 } // namespace Rosen

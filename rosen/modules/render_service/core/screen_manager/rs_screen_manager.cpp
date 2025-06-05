@@ -1286,6 +1286,20 @@ std::shared_ptr<Media::PixelMap> RSScreenManager::GetScreenSecurityMask(ScreenId
     return screen->GetSecurityMask();
 }
 
+int32_t RSScreenManager::GetVirtualScreenSecLayerOption(ScreenId id) const
+{
+    if (id == INVALID_SCREEN_ID) {
+        RS_LOGW("%{public}s: INVALID_SCREEN_ID.", __func__);
+        return INVALID_ARGUMENTS;
+    }
+    auto virtualScreen = GetScreen(id);
+    if (virtualScreen == nullptr || !virtualScreen->IsVirtual()) {
+        RS_LOGW("%{public}s: There is no virtual screen for id %{public}" PRIu64, __func__, id);
+        return SCREEN_NOT_FOUND;
+    }
+    return virtualScreen->GetVirtualSecLayerOption();
+}
+
 int32_t RSScreenManager::SetMirrorScreenVisibleRect(ScreenId id, const Rect& mainScreenRect, bool supportRotation)
 {
     if (id == INVALID_SCREEN_ID) {

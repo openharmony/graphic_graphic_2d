@@ -51,7 +51,7 @@ public:
      * @param height Virtual screen height, max: MAX_VIRTUAL_SCREEN_HEIGHT.
      * @param surface Virtual screen surface, if not nullptr, vote for 60Hz.
      * @param mirrorId Decide which screen id to mirror, INVALID_SCREEN_ID means do not mirror any screen.
-     * @param flags Reserved for future use.
+     * @param flags Virtual screen security layer option, 0: screen level, 1: window level.
      * @param whiteList List of surface node id, only these nodes can be drawn on this screen.
      * @return Virtual screen id, INVALID_SCREEN_ID means failed.
      */

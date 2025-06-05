@@ -174,6 +174,7 @@ public:
     virtual Rect GetMainScreenVisibleRect() const = 0;
     virtual bool GetVisibleRectSupportRotation() const = 0;
     virtual void SetVisibleRectSupportRotation(bool supportRotation) = 0;
+    virtual int32_t GetVirtualSecLayerOption() const = 0;
 };
 
 namespace impl {
@@ -311,6 +312,7 @@ public:
     Rect GetMainScreenVisibleRect() const override;
     bool GetVisibleRectSupportRotation() const override;
     void SetVisibleRectSupportRotation(bool supportRotation) override;
+    int32_t GetVirtualSecLayerOption() const override;
 
 private:
     // create hdiScreen and get some information from drivers.
@@ -352,6 +354,7 @@ private:
 
     bool isVirtual_ = true;
     std::atomic<bool> isVirtualSurfaceUpdateFlag_ = false;
+    int32_t virtualSecLayerOption_ = 0;
     std::shared_ptr<HdiOutput> hdiOutput_ = nullptr; // has value if the screen is physical
     std::unique_ptr<HdiScreen> hdiScreen_ = nullptr; // has value if the screen is physical
     std::vector<GraphicDisplayModeInfo> supportedModes_;

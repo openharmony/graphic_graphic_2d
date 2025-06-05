@@ -1082,12 +1082,15 @@ void RSSurfaceRenderNodeDrawable::CaptureSurface(RSPaintFilterCanvas& canvas, RS
     // Draw Black
     bool isScreenshot = RSUniRenderThread::GetCaptureParam().isSnapshot_ &&
         !RSUniRenderThread::GetCaptureParam().isSingleSurface_;
-    if (specialLayerManager.Find(SpecialLayerType::PROTECTED) || UNLIKELY(isSecLayersNotExempted && isScreenshot)) {
+    bool isMirrorSecLayer = RSUniRenderThread::GetCaptureParam().isMirror_ && isSecLayersNotExempted;
+    if (specialLayerManager.Find(SpecialLayerType::PROTECTED) || UNLIKELY(isSecLayersNotExempted && isScreenshot) ||
+        isMirrorSecLayer) {
         RS_LOGD("RSSurfaceRenderNodeDrawable::CaptureSurface: "
             "process RSSurfaceRenderNode(id:[%{public}" PRIu64 "] name:[%{public}s])"
             "draw black with protected layer or screenshot security layer", surfaceParams.GetId(), name_.c_str());
         RS_TRACE_NAME_FMT("CaptureSurface: RSSurfaceRenderNode(id:[%" PRIu64 "] name:[%s])"
-            "draw black with protected layer or screenshot security layer", surfaceParams.GetId(), name_.c_str());
+            "draw black with protected layer or screenshot security layer or virtual screen security layer",
+            surfaceParams.GetId(), name_.c_str());
 
         Drawing::Brush rectBrush;
         rectBrush.SetColor(Drawing::Color::COLOR_BLACK);
