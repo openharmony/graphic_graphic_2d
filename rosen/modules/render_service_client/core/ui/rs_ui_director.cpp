@@ -200,6 +200,8 @@ void RSUIDirector::GoForeground(bool isTextureExport)
 {
     ROSEN_LOGD("RSUIDirector::GoForeground");
     if (!isActive_) {
+        auto nowTime = std::chrono::system_clock::now().time_since_epoch();
+        lastUiSkipTimestamp_ = std::chrono::duration_cast<std::chrono::milliseconds>(nowTime).count();
         if (!isUniRenderEnabled_ || isTextureExport) {
             RSRenderThread::Instance().UpdateWindowStatus(true);
         }
@@ -219,6 +221,16 @@ void RSUIDirector::GoForeground(bool isTextureExport)
 #endif
 }
 
+void RSUIDirector::ReportUiSkipEvent(const std::string& abilityName)
+{
+    auto nowTime = std::chrono::system_clock::now().time_since_epoch();
+    uint64_t nowMs = std::chrono::duration_cast<std::chrono::milliseconds>(nowTime).count();
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr && nowMs - lastUiSkipTimestamp_ > 1000) { // 1000 ms
+        transactionProxy->ReportUiSkipEvent(abilityName, nowMs, lastUiSkipTimestamp_);
+    }
+}
+
 void RSUIDirector::GoBackground(bool isTextureExport)
 {
     ROSEN_LOGD("RSUIDirector::GoBackground");
@@ -227,6 +239,7 @@ void RSUIDirector::GoBackground(bool isTextureExport)
             RSRenderThread::Instance().UpdateWindowStatus(false);
         }
         isActive_ = false;
+        ReportUiSkipEvent(abilityName_);
         auto node = rootNode_.lock();
         if (node) {
             node->SetEnableRender(false);
@@ -637,7 +650,7 @@ void RSUIDirector::ProcessMessages(std::shared_ptr<RSTransactionData> cmds, bool
 void RSUIDirector::AnimationCallbackProcessor(NodeId nodeId, AnimationId animId, uint64_t token,
     AnimationCallbackEvent event)
 {
-    RSAnimationTraceUtils::GetInstance().addAnimationFinishTrace(
+    RSAnimationTraceUtils::GetInstance().AddAnimationFinishTrace(
         "Animation FinishCallback Processor", nodeId, animId, false);
     auto rsUIContext = RSUIContextManager::Instance().GetRSUIContext(token);
     // try find the node by nodeId

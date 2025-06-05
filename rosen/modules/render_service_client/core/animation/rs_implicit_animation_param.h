@@ -20,22 +20,14 @@
 #include <memory>
 #include <vector>
 
+#include "animation/rs_animation_common.h"
 #include "animation/rs_animation_timing_curve.h"
 #include "animation/rs_animation_timing_protocol.h"
+#include "command/rs_node_showing_command.h"
 #include "modifier/rs_property.h"
 
 namespace OHOS {
 namespace Rosen {
-enum class ImplicitAnimationParamType {
-    INVALID,
-    CURVE,
-    KEYFRAME,
-    PATH,
-    SPRING,
-    INTERPOLATING_SPRING,
-    TRANSITION,
-    CANCEL
-};
 enum class CancelAnimationStatus {
     SUCCESS = 0,
     NULL_ANIMATOR,

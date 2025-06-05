@@ -224,6 +224,7 @@ target_link_libraries(entry PUBLIC libpixelmap_ndk.z.so)
 target_link_libraries(entry PUBLIC libimage_source.so)
 target_link_libraries(entry PUBLIC libimage_packer.so)
 target_link_libraries(entry PUBLIC libpixelmap.so)
+target_link_libraries(entry PUBLIC libnative_color_space_manager.so)
 
 
 target_link_libraries(myxnode PUBLIC ${hilog-lib})
@@ -236,3 +237,4 @@ target_link_libraries(myxnode PUBLIC libpixelmap_ndk.z.so)
 target_link_libraries(myxnode PUBLIC libimage_source.so)
 target_link_libraries(myxnode PUBLIC libimage_packer.so)
 target_link_libraries(myxnode PUBLIC libpixelmap.so)
+target_link_libraries(myxnode PUBLIC libnative_color_space_manager.so)

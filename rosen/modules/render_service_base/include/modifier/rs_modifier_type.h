@@ -209,31 +209,6 @@ enum class RSPropertyModifierType : uint8_t {
 
 using ModifierDirtyTypes = std::bitset<static_cast<int>(RSModifierType::MAX_RS_MODIFIER_TYPE)>;
 
-enum class RSRenderPropertyType : int16_t {
-    INVALID = 0,
-    PROPERTY_FLOAT,
-    PROPERTY_COLOR,
-    PROPERTY_MATRIX3F,
-    PROPERTY_QUATERNION,
-    PROPERTY_FILTER,
-    PROPERTY_VECTOR2F,
-    PROPERTY_VECTOR3F,
-    PROPERTY_VECTOR4F,
-    PROPERTY_VECTOR4_COLOR,
-    PROPERTY_SKMATRIX,
-    PROPERTY_RRECT,
-    PROPERTY_SHADER_PARAM,
-    PROPERTY_UI_FILTER,
-};
-
-enum class RSPropertyUnit : int16_t {
-    UNKNOWN = 0,
-    PIXEL_POSITION,
-    PIXEL_SIZE,
-    RATIO_SCALE,
-    ANGLE_ROTATION,
-};
-
 class RSModifierTypeString {
 public:
     std::string GetModifierTypeString(RSModifierType type) const

@@ -48,7 +48,6 @@
 #include "render/rs_render_maskcolor_filter.h"
 #include "render/rs_material_filter.h"
 #include "render/rs_path.h"
-#include "utils/graphic_coretrace.h"
 
 #ifdef RS_ENABLE_VK
 #ifdef USE_M133_SKIA
@@ -1025,8 +1024,6 @@ void RSUniRenderUtil::DrawRectForDfx(RSPaintFilterCanvas& canvas, const RectI& r
 void RSUniRenderUtil::OptimizedFlushAndSubmit(std::shared_ptr<Drawing::Surface>& surface,
     Drawing::GPUContext* const grContext, bool optFenceWait)
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        RS_RSUNIRENDERUTIL_OPTIMIZEDFLUSHANDSUBMIT);
     if (!surface || !grContext) {
         RS_LOGE("RSUniRenderUtil::OptimizedFlushAndSubmit cacheSurface or grContext are nullptr");
         return;

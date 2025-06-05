@@ -166,6 +166,7 @@ template("graphics2d_source_set") {
       "$drawing_core_src_dir/text/text_blob_builder.cpp",
       "$drawing_core_src_dir/text/typeface.cpp",
       "$drawing_core_src_dir/utils/camera3d.cpp",
+      "$drawing_core_src_dir/utils/colorspace_convertor.cpp",
       "$drawing_core_src_dir/utils/data.cpp",
       "$drawing_core_src_dir/utils/document.cpp",
       "$drawing_core_src_dir/utils/file_w_stream.cpp",
@@ -211,6 +212,7 @@ template("graphics2d_source_set") {
       "$src_dir",
       "$drawing_core_src_dir",
       "$drawing_core_src_dir/engine_adapter",
+      "$graphic_2d_root/utils/color_manager/export",
       "$rosen_root/modules/render_service_base/include",
       "$rosen_text_root/texgine/src",
       "$rosen_root/../interfaces/kits/napi/graphic/drawing/common_napi",
@@ -221,6 +223,7 @@ template("graphics2d_source_set") {
       defines += [ "USE_M133_SKIA" ]
     }
 
+    deps = [ "$graphic_2d_root/utils/color_manager:color_manager"]
     if (defined(graphic_2d_feature_enable_sdf) &&
         graphic_2d_feature_enable_sdf) {
       deps += [ "graphic_2d_ext:libsdf" ]
@@ -309,15 +312,15 @@ template("graphics2d_source_set") {
         "skia:skia_canvaskit",
       ]
 
-      defines += [ "ENABLE_OHOS_ENHANCE" ]
       deps = []
+      defines += [ "ENABLE_OHOS_ENHANCE" ]
+      defines += [ "OHOS_TEXT_ENABLE" ]
       defines += [
         "SUPPORT_OHOS_PIXMAP",
         "ROSEN_OHOS",
       ]
 
     } else {
-      deps = []
       cflags += [ "-std=c++17" ]
 
       deps += [ "$rosen_root/modules/platform:hilog" ]

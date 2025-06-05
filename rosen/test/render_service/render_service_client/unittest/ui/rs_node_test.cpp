@@ -4360,7 +4360,7 @@ HWTEST_F(RSNodeTest, SetUIForegroundFilter002, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
     Filter* filterObj = new(std::nothrow) Filter();
-    std::shared_ptr<HdrBrightnessRatioPara> para = std::make_shared<HdrBrightnessRatioPara>();
+    std::shared_ptr<HDRBrightnessRatioPara> para = std::make_shared<HDRBrightnessRatioPara>();
     float hdrBrightness = 2.0f; // hdr brightness
     para->SetBrightnessRatio(hdrBrightness);
     filterObj->AddPara(para);

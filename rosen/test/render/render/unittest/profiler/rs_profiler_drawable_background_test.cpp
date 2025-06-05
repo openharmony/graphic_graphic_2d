@@ -347,11 +347,12 @@ HWTEST_F(RSProfilerDrawableBackgroundTest, RSBackgroundFilterDrawable, TestSize.
     RSRenderNode node(id);
     std::shared_ptr<RSDrawable> drawable = DrawableV2::RSBackgroundFilterDrawable::OnGenerate(node);
     ASSERT_EQ(drawable, nullptr);
-    std::shared_ptr<RSFilter> backgroundFilter = std::make_shared<RSDrawingFilter>(std::make_shared<RSShaderFilter>());
-    node.renderContent_->GetMutableRenderProperties().SetBackgroundFilter(backgroundFilter);
+    std::shared_ptr<RSFilter> backgroundFilter =
+        std::make_shared<RSDrawingFilter>(std::make_shared<RSRenderFilterParaBase>());
+    node.renderContent_->GetMutableRenderProperties().backgroundFilter_ = backgroundFilter;
     ASSERT_NE(DrawableV2::RSBackgroundFilterDrawable::OnGenerate(node), nullptr);
     RSEffectRenderNode nodeTwo(id);
-    nodeTwo.renderContent_->GetMutableRenderProperties().SetBackgroundFilter(backgroundFilter);
+    nodeTwo.renderContent_->GetMutableRenderProperties().backgroundFilter_ = backgroundFilter;
     ASSERT_TRUE(nodeTwo.IsInstanceOf<RSEffectRenderNode>());
     ASSERT_TRUE(nodeTwo.GetRenderProperties().GetBackgroundFilter());
     auto drawableTwo = std::static_pointer_cast<DrawableV2::RSBackgroundEffectDrawable>(
@@ -360,7 +361,7 @@ HWTEST_F(RSProfilerDrawableBackgroundTest, RSBackgroundFilterDrawable, TestSize.
     drawableTwo->OnSync();
     ASSERT_TRUE(drawableTwo->CreateDrawFunc());
     auto drawableThree = std::make_shared<DrawableV2::RSBackgroundFilterDrawable>();
-    node.renderContent_->GetMutableRenderProperties().SetBackgroundFilter(nullptr);
+    node.renderContent_->GetMutableRenderProperties().backgroundFilter_ = nullptr;
     ASSERT_FALSE(drawableThree->OnUpdate(node));
     auto drawableFour = std::make_shared<DrawableV2::RSBackgroundEffectDrawable>();
     ASSERT_FALSE(drawableFour->OnUpdate(node));

@@ -27,9 +27,9 @@
 namespace OHOS::Rosen::SPText {
 class TextAnimationConfig {
 public:
-    ~TextAnimationConfig() {};
+    ~TextAnimationConfig() = default;
 
-    TextAnimationConfig() {};
+    TextAnimationConfig() = default;
 
     void SetUniqueId(uint64_t uniqueId);
 

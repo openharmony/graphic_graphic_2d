@@ -94,8 +94,6 @@ public:
 
     void DumpAllResource(std::stringstream& dump) override;
 
-    void DumpAllCoreTrace(std::stringstream& dump) override;
-
     void ReleaseResourcesAndAbandonContext() override;
 
     void PurgeUnlockedResources(bool scratchResourcesOnly) override;

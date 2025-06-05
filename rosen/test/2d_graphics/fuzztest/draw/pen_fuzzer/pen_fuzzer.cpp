@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -139,15 +139,18 @@ void PenFuzzTestInner03(Pen& pen)
  * 5. GetColor()
  * 6. GetColorSpacePtr()
  * 7. GetAlphaF()
- * 8. SetBlender(...)
- * 9. GetBlender()
- * 10. GetBlenderPtr()
- * 11. HasFilter()
- * 12. SetLooper(...)
- * 13. GetLooper()
- * 14. GetFillPath(...)
- * 15. operator==
- * 16. operator!=
+ * 8. GetRedF()
+ * 9. GetGreenF()
+ * 10. GetBlueF()
+ * 11. SetBlender(...)
+ * 12. GetBlender()
+ * 13. GetBlenderPtr()
+ * 14. HasFilter()
+ * 15. SetLooper(...)
+ * 16. GetLooper()
+ * 17. GetFillPath(...)
+ * 18. operator==
+ * 19. operator!=
  */
 void PenFuzzTestInner04(Pen& pen)
 {
@@ -163,6 +166,9 @@ void PenFuzzTestInner04(Pen& pen)
     PenTwo.GetColor();
     PenTwo.GetColorSpacePtr();
     PenTwo.GetAlphaF();
+    PenTwo.GetRedF();
+    PenTwo.GetGreenF();
+    PenTwo.GetBlueF();
     BlendMode mode = GetObject<BlendMode>();
     std::shared_ptr<Blender> blender = Blender::CreateWithBlendMode(mode);
     PenTwo.SetBlender(blender);

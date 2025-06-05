@@ -15,7 +15,6 @@
 
 #include "customized/random_animation.h"
 
-#include "customized/random_rs_filter.h"
 #include "customized/random_rs_path.h"
 #include "customized/random_rs_render_particle.h"
 #include "random/random_data.h"
@@ -47,46 +46,42 @@ void UpdateParamToRenderAnimation(const std::shared_ptr<RSRenderAnimation>& anim
 
 std::shared_ptr<RSRenderPropertyBase> GetAnimatableProperty()
 {
-    int randomIndex = RandomEngine::GetRandomIndex(static_cast<int>(RSRenderPropertyType::PROPERTY_RRECT));
-    RSRenderPropertyType propertyTypeRandom = static_cast<RSRenderPropertyType>(randomIndex);
+    int randomIndex = RandomEngine::GetRandomIndex(static_cast<int>(RSPropertyType::RRECT));
+    RSPropertyType propertyTypeRandom = static_cast<RSPropertyType>(randomIndex);
     switch (propertyTypeRandom) {
-        case RSRenderPropertyType::PROPERTY_FLOAT: {
+        case RSPropertyType::FLOAT: {
             float value = RandomData::GetRandomFloat();
             return std::make_shared<RSRenderAnimatableProperty<float>>(value);
         }
-        case RSRenderPropertyType::PROPERTY_COLOR: {
+        case RSPropertyType::RS_COLOR: {
             Color value = RandomData::GetRandomColor();
             return std::make_shared<RSRenderAnimatableProperty<Color>>(value);
         }
-        case RSRenderPropertyType::PROPERTY_MATRIX3F: {
+        case RSPropertyType::MATRIX3F: {
             Matrix3f value = RandomData::GetRandomMatrix3f();
             return std::make_shared<RSRenderAnimatableProperty<Matrix3f>>(value);
         }
-        case RSRenderPropertyType::PROPERTY_QUATERNION: {
+        case RSPropertyType::QUATERNION: {
             Quaternion value = RandomData::GetRandomQuaternion();
             return std::make_shared<RSRenderAnimatableProperty<Quaternion>>(value);
         }
-        case RSRenderPropertyType::PROPERTY_FILTER: {
-            std::shared_ptr<RSFilter> value = RandomRSFilter::GetRandomRSFilter();
-            return std::make_shared<RSRenderAnimatableProperty<std::shared_ptr<RSFilter>>>(value);
-        }
-        case RSRenderPropertyType::PROPERTY_VECTOR2F: {
+        case RSPropertyType::VECTOR2F: {
             Vector2f value = RandomData::GetRandomVector2f();
             return std::make_shared<RSRenderAnimatableProperty<Vector2f>>(value);
         }
-        case RSRenderPropertyType::PROPERTY_VECTOR3F: {
+        case RSPropertyType::VECTOR3F: {
             Vector3f value = RandomData::GetRandomVector3f();
             return std::make_shared<RSRenderAnimatableProperty<Vector3f>>(value);
         }
-        case RSRenderPropertyType::PROPERTY_VECTOR4F: {
+        case RSPropertyType::VECTOR4F: {
             Vector4f value = RandomData::GetRandomVector4f();
             return std::make_shared<RSRenderAnimatableProperty<Vector4f>>(value);
         }
-        case RSRenderPropertyType::PROPERTY_VECTOR4_COLOR: {
+        case RSPropertyType::VECTOR4_COLOR: {
             Vector4<Color> value = RandomData::GetRandomColorVector4();
             return std::make_shared<RSRenderAnimatableProperty<Vector4<Color>>>(value);
         }
-        case RSRenderPropertyType::PROPERTY_RRECT: {
+        case RSPropertyType::RRECT: {
             RRect value = RandomData::GetRandomRRect();
             return std::make_shared<RSRenderAnimatableProperty<RRect>>(value);
         }

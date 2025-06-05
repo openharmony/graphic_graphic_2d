@@ -51,7 +51,6 @@
 #include "include/core/SkColorSpace.h"
 #include "include/core/SkImageInfo.h"
 #include "include/core/SkSurface.h"
-#include "utils/graphic_coretrace.h"
 #ifdef USE_M133_SKIA
 #include "include/gpu/ganesh/gl/GrGLBackendSurface.h"
 #include "include/gpu/ganesh/gl/GrGLInterface.h"
@@ -471,8 +470,6 @@ bool PixelMapFromSurface::DrawImageRectVK(const std::shared_ptr<Drawing::Image> 
     OHNativeWindowBuffer *nativeWindowBufferTmp, const sptr<SurfaceBuffer> &surfaceBufferTmp,
     const OHOS::Media::Rect &srcRect)
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        PIXELMAP_PIXELMAPFROMSURFACE_DRAWIMAGERECTVK);
 #if defined(RS_ENABLE_VK)
     ScopedBytrace trace1(__func__);
     if (RSBackgroundThread::Instance().GetShareGPUContext() == nullptr) {
@@ -519,8 +516,6 @@ bool PixelMapFromSurface::DrawImageRectVK(const std::shared_ptr<Drawing::Image> 
 
 std::shared_ptr<Drawing::Image> PixelMapFromSurface::CreateDrawingImage()
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        PIXELMAP_PIXELMAPFROMSURFACE_CREATEDRAWINGIMAGE);
 #if defined(RS_ENABLE_VK) && defined(RS_ENABLE_UNI_RENDER)
     ScopedBytrace trace(__func__);
     if (RSBackgroundThread::Instance().GetShareGPUContext() == nullptr) {
@@ -570,8 +565,6 @@ std::shared_ptr<Drawing::Image> PixelMapFromSurface::CreateDrawingImage()
 std::unique_ptr<OHOS::Media::PixelMap> PixelMapFromSurface::CreateForVK(const sptr<Surface> &surface,
     const OHOS::Media::Rect &srcRect)
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        PIXELMAP_PIXELMAPFROMSURFACE_CREATEFORVK);
 #if defined(RS_ENABLE_VK)
     ScopedBytrace trace(__func__);
     nativeWindowBuffer_ = GetNativeWindowBufferFromSurface(surfaceBuffer_, surface, srcRect);
@@ -584,8 +577,6 @@ std::unique_ptr<OHOS::Media::PixelMap> PixelMapFromSurface::CreateForVK(const sp
 std::unique_ptr<OHOS::Media::PixelMap> PixelMapFromSurface::CreateForVK(const sptr<SurfaceBuffer> &surfaceBuffer,
     const OHOS::Media::Rect &srcRect)
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        PIXELMAP_PIXELMAPFROMSURFACE_CREATEFORVK);
 #if defined(RS_ENABLE_VK)
     ScopedBytrace trace(__func__);
     surfaceBuffer_ = surfaceBuffer;
@@ -833,8 +824,6 @@ std::unique_ptr<PixelMap> PixelMapFromSurface::Create(sptr<Surface> surface, con
 std::unique_ptr<PixelMap> PixelMapFromSurface::Create(
     sptr<SurfaceBuffer> surfaceBuffer, const OHOS::Media::Rect &srcRect)
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        PIXELMAP_PIXELMAPFROMSURFACE_CREATE);
     ScopedBytrace trace(__func__);
     if (surfaceBuffer == nullptr) {
         RS_LOGE("surfaceBuffer invalid argument: surfaceBuffer is nullptr");
@@ -878,8 +867,6 @@ std::unique_ptr<PixelMap> PixelMapFromSurface::Create(
 std::shared_ptr<OHOS::Media::PixelMap> CreatePixelMapFromSurface(sptr<Surface> surface,
     const OHOS::Media::Rect &srcRect)
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        PIXELMAP_CREATEPIXELMAPFROMSURFACE);
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     auto helper = std::make_unique<PixelMapFromSurface>();
     return helper->Create(surface, srcRect);

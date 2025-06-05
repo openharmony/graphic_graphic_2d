@@ -1351,8 +1351,8 @@ HWTEST_F(RSPropertiesTest, UpdateSandBoxMatrix001, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetBackgroundFilter001
- * @tc.desc: test results of SetBackgroundFilter
+ * @tc.name: GetBackgroundFilter001
+ * @tc.desc: test results of GetBackgroundFilter
  * @tc.type:FUNC
  * @tc.require:
  */
@@ -1360,7 +1360,7 @@ HWTEST_F(RSPropertiesTest, SetBackgroundFilter001, TestSize.Level1)
 {
     RSProperties properties;
     std::shared_ptr<RSFilter> backgroundFilter = std::make_shared<RSFilter>();
-    properties.SetBackgroundFilter(backgroundFilter);
+    properties.backgroundFilter_ = backgroundFilter;
     EXPECT_NE(properties.backgroundFilter_, nullptr);
     EXPECT_EQ(properties.GetBackgroundFilter(), backgroundFilter);
 }
@@ -1697,8 +1697,8 @@ HWTEST_F(RSPropertiesTest, SetNGetDynamicDimDegree001, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetFilter001
- * @tc.desc: test results of SetFilter
+ * @tc.name: GetFilter001
+ * @tc.desc: test results of GetFilter
  * @tc.type:FUNC
  * @tc.require:
  */
@@ -1706,7 +1706,7 @@ HWTEST_F(RSPropertiesTest, SetFilter001, TestSize.Level1)
 {
     RSProperties properties;
     std::shared_ptr<RSFilter> filter = std::make_shared<RSFilter>();
-    properties.SetFilter(filter);
+    properties.filter_ = filter;
     EXPECT_NE(properties.filter_, nullptr);
     EXPECT_EQ(properties.GetFilter(), filter);
 }
@@ -2085,11 +2085,46 @@ HWTEST_F(RSPropertiesTest, Dirty001, TestSize.Level1)
 {
     RSProperties properties;
     properties.SetDirty();
+    properties.geoDirty_ = true;
+    properties.contentDirty_ = true;
+    properties.subTreeAllDirty_ = true;
     EXPECT_TRUE(properties.IsDirty());
+    EXPECT_TRUE(properties.IsGeoDirty());
+    EXPECT_TRUE(properties.IsContentDirty());
+    EXPECT_TRUE(properties.IsSubTreeAllDirty());
     properties.ResetDirty();
     EXPECT_FALSE(properties.IsDirty());
     EXPECT_FALSE(properties.IsGeoDirty());
     EXPECT_FALSE(properties.IsContentDirty());
+    EXPECT_FALSE(properties.IsSubTreeAllDirty());
+}
+
+/**
+ * @tc.name: Dirty002
+ * @tc.desc: test RecordCurDirtyStatus and AccmulateDirtyStatus
+ * @tc.type: FUNC
+ * @tc.require: issueICAJPW
+ */
+HWTEST_F(RSPropertiesTest, Dirty002, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.SetDirty();
+    properties.geoDirty_ = true;
+    properties.contentDirty_ = true;
+    properties.subTreeAllDirty_ = true;
+    properties.RecordCurDirtyStatus();
+
+    properties.ResetDirty();
+    EXPECT_FALSE(properties.IsDirty());
+    EXPECT_FALSE(properties.IsGeoDirty());
+    EXPECT_FALSE(properties.IsContentDirty());
+    EXPECT_FALSE(properties.IsSubTreeAllDirty());
+
+    properties.AccumulateDirtyStatus();
+    EXPECT_TRUE(properties.IsDirty());
+    EXPECT_TRUE(properties.IsGeoDirty());
+    EXPECT_TRUE(properties.IsContentDirty());
+    EXPECT_TRUE(properties.IsSubTreeAllDirty());
 }
 
 /**
@@ -3167,8 +3202,7 @@ HWTEST_F(RSPropertiesTest, GenerateDisplacementDistortFilter001, TestSize.Level1
     EXPECT_EQ(properties.backgroundFilter_, nullptr);
 
     auto filter = std::make_shared<RSRenderDispDistortFilterPara>(0, RSUIFilterType::RIPPLE_MASK);
-    auto factProperty = std::make_shared<RSRenderAnimatableProperty<Vector2f>>(
-        Vector2f(1.f, 1.f), 0, RSRenderPropertyType::PROPERTY_VECTOR2F);
+    auto factProperty = std::make_shared<RSRenderAnimatableProperty<Vector2f>>(Vector2f(1.f, 1.f), 0);
     filter->Setter(RSUIFilterType::DISPLACEMENT_DISTORT_FACTOR, factProperty);
     renderFilter->Insert(RSUIFilterType::DISPLACEMENT_DISTORT, filter);
     properties.GenerateDisplacementDistortFilter();
@@ -3202,22 +3236,18 @@ HWTEST_F(RSPropertiesTest, GenerateRenderFilterDispersion001, TestSize.Level1)
     EXPECT_EQ(properties.backgroundFilter_, nullptr);
 
     auto dispersionFilter = RSRenderFilter::CreateRenderFilterPara(RSUIFilterType::DISPERSION);
-    auto redOffsetProperty = std::make_shared<RSRenderAnimatableProperty<Vector2f>>(
-        Vector2f(0.5f, 0.5f), 0, RSRenderPropertyType::PROPERTY_VECTOR2F);
+    auto redOffsetProperty = std::make_shared<RSRenderAnimatableProperty<Vector2f>>(Vector2f(0.5f, 0.5f), 0);
     dispersionFilter->Setter(RSUIFilterType::DISPERSION_RED_OFFSET, redOffsetProperty);
-    auto greenOffsetProperty = std::make_shared<RSRenderAnimatableProperty<Vector2f>>(
-        Vector2f(0.5f, 0.5f), 0, RSRenderPropertyType::PROPERTY_VECTOR2F);
+    auto greenOffsetProperty = std::make_shared<RSRenderAnimatableProperty<Vector2f>>(Vector2f(0.5f, 0.5f), 0);
     dispersionFilter->Setter(RSUIFilterType::DISPERSION_GREEN_OFFSET, greenOffsetProperty);
-    auto blueOffsetProperty = std::make_shared<RSRenderAnimatableProperty<Vector2f>>(
-        Vector2f(0.5f, 0.5f), 0, RSRenderPropertyType::PROPERTY_VECTOR2F);
+    auto blueOffsetProperty = std::make_shared<RSRenderAnimatableProperty<Vector2f>>(Vector2f(0.5f, 0.5f), 0);
     dispersionFilter->Setter(RSUIFilterType::DISPERSION_BLUE_OFFSET, blueOffsetProperty);
 
     renderFilter->Insert(RSUIFilterType::DISPERSION, dispersionFilter);
     properties.GenerateRenderFilterDispersion();
     EXPECT_EQ(properties.backgroundFilter_, nullptr);
 
-    auto opacityProperty =
-        std::make_shared<RSRenderAnimatableProperty<float>>(0.5f, 0, RSRenderPropertyType::PROPERTY_VECTOR2F);
+    auto opacityProperty = std::make_shared<RSRenderAnimatableProperty<float>>(0.5f, 0);
     dispersionFilter->Setter(RSUIFilterType::DISPERSION_OPACITY, opacityProperty);
     properties.GenerateRenderFilterDispersion();
     EXPECT_NE(properties.backgroundFilter_, nullptr);

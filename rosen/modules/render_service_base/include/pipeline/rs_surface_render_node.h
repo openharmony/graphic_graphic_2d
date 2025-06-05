@@ -812,6 +812,11 @@ public:
         return visibleRegion_;
     }
 
+    const Occlusion::Region& GetVisibleRegionBehindWindow() const
+    {
+        return visibleRegionBehindWindow_;
+    }
+
     const Occlusion::Region& GetVisibleRegionInVirtual() const
     {
         return visibleRegionInVirtual_;
@@ -967,6 +972,11 @@ public:
         visibleRegion_ = region;
     }
 
+    void SetVisibleRegionBehindWindow(const Occlusion::Region& region)
+    {
+        visibleRegionBehindWindow_ = region;
+    }
+
     void SetVisibleRegionInVirtual(const Occlusion::Region& region)
     {
         visibleRegionInVirtual_ = region;
@@ -1049,6 +1059,11 @@ public:
     void CleanOpaqueRegionChanged()
     {
         opaqueRegionChanged_ = false;
+    }
+
+    bool IsBehindWindowOcclusionChanged() const
+    {
+        return behindWindowOcclusionChanged_;
     }
 
     // [planning] Remove this after skia is upgraded, the clipRegion is supported
@@ -1665,6 +1680,7 @@ private:
     bool isUIHidden_ = false;
     bool extraDirtyRegionAfterAlignmentIsEmpty_ = true;
     bool opaqueRegionChanged_ = false;
+    bool behindWindowOcclusionChanged_ = false;
     bool isFilterCacheFullyCovered_ = false;
     bool isFilterCacheValidForOcclusion_ = false;
     bool isOccludedByFilterCache_ = false;
@@ -1829,6 +1845,7 @@ private:
     different under filter cache surfacenode layer.
     */
     Occlusion::Region visibleRegion_;
+    Occlusion::Region visibleRegionBehindWindow_;
     Occlusion::Region extendVisibleRegion_;
     Occlusion::Region visibleRegionInVirtual_;
     Occlusion::Region visibleRegionForCallBack_;
@@ -1846,6 +1863,7 @@ private:
     std::vector<std::shared_ptr<RSRenderNode>> childrenFilterNodes_;
     // transparent region of the surface, floating window's container window is always treated as transparent
     Occlusion::Region transparentRegion_;
+    Occlusion::Region occlusionRegionBehindWindow_;
 
     Occlusion::Region containerRegion_;
     std::unordered_set<NodeId> abilityNodeIds_;

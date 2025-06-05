@@ -28,7 +28,6 @@
 #include "rs_trace.h"
 #include "sandbox_utils.h"
 #include "rs_profiler.h"
-#include "utils/graphic_coretrace.h"
 
 #ifdef USE_VIDEO_PROCESSING_ENGINE
 #include "render/rs_colorspace_convert.h"
@@ -140,8 +139,6 @@ bool RSImage::HDRConvert(const Drawing::SamplingOptions& sampling, Drawing::Canv
 void RSImage::CanvasDrawImage(Drawing::Canvas& canvas, const Drawing::Rect& rect,
     const Drawing::SamplingOptions& samplingOptions, bool isBackground)
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        RS_RSIMAGE_CANVASDRAWIMAGE);
     if (canvas.GetRecordingState() && RSSystemProperties::GetDumpUICaptureEnabled() && pixelMap_) {
         CommonTools::SavePixelmapToFile(pixelMap_, "/data/rsImage_");
     }
@@ -535,8 +532,6 @@ static std::shared_ptr<Drawing::ColorSpace> ColorSpaceToDrawingColorSpace(ColorM
 
 void RSImage::UploadGpu(Drawing::Canvas& canvas)
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        RS_RSIMAGE_UPLOADGPU);
 #if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     if (compressData_) {
         auto cache = RSImageCache::Instance().GetRenderDrawingImageCacheByPixelMapId(uniqueId_, gettid());
@@ -578,8 +573,6 @@ void RSImage::UploadGpu(Drawing::Canvas& canvas)
 
 void RSImage::DrawImageRepeatRect(const Drawing::SamplingOptions& samplingOptions, Drawing::Canvas& canvas)
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        RS_RSIMAGE_DRAWIMAGEREPEATRECT);
     int minX = 0;
     int minY = 0;
     int maxX = 0;

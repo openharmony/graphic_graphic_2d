@@ -24,7 +24,6 @@
 #include "pipeline/rs_render_node.h"
 
 #include "rs_profiler.h"
-#include "utils/graphic_coretrace.h"
 
 namespace OHOS::Rosen {
 namespace DrawableV2 {
@@ -137,8 +136,6 @@ void RSChildrenDrawable::OnSync()
 
 Drawing::RecordingCanvas::DrawFunc RSChildrenDrawable::CreateDrawFunc() const
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        RS_RSCHILDRENDRAWABLE_CREATEDRAWFUNC);
     auto ptr = std::static_pointer_cast<const RSChildrenDrawable>(shared_from_this());
     return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
         for (size_t i = 0; i < ptr->childrenDrawableVec_.size(); i++) {
@@ -226,8 +223,6 @@ void RSCustomModifierDrawable::OnPurge()
 
 Drawing::RecordingCanvas::DrawFunc RSCustomModifierDrawable::CreateDrawFunc() const
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        RS_RSCUSTOMMODIFIERDRAWABLE_CREATEDRAWFUNC);
     auto ptr = std::static_pointer_cast<const RSCustomModifierDrawable>(shared_from_this());
     return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
 #ifdef RS_ENABLE_GPU

@@ -87,6 +87,8 @@ private:
     bool isOutOfRootRect_ = false;
     bool isAlphaNeed_ = false;
     bool isBgOpaque_ = false;
+    // Indicates whether the node was inserted or updated in the current frame.
+    // Nodes not inserted or updated in the current frame will be removed from the occlusion tree.
     bool isValidInCurrentFrame_ = false;
 
     // Spatial information

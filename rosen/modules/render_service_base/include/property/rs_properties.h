@@ -270,7 +270,6 @@ public:
     const std::shared_ptr<RSFilter>& GetForegroundFilterCache() const;
 
     // filter properties
-    void SetBackgroundFilter(const std::shared_ptr<RSFilter>& backgroundFilter);
     void SetLinearGradientBlurPara(const std::shared_ptr<RSLinearGradientBlurPara>& para);
     void SetEmitterUpdater(const std::vector<std::shared_ptr<EmitterUpdater>>& para);
     void SetParticleNoiseFields(const std::shared_ptr<ParticleNoiseFields>& para);
@@ -323,7 +322,6 @@ public:
     void SetBgBrightnessParams(const std::optional<RSDynamicBrightnessPara>& params);
     std::optional<RSDynamicBrightnessPara> GetBgBrightnessParams() const;
 
-    void SetFilter(const std::shared_ptr<RSFilter>& filter);
     void SetMotionBlurPara(const std::shared_ptr<MotionBlurParam>& para);
     void SetMagnifierParams(const std::shared_ptr<RSMagnifierParams>& para);
     const std::shared_ptr<RSFilter>& GetBackgroundFilter() const;
@@ -491,6 +489,7 @@ public:
     bool IsGeoDirty() const;
     bool IsCurGeoDirty() const;
     bool IsContentDirty() const;
+    bool IsSubTreeAllDirty() const;
 
     void SetSpherize(float spherizeDegree);
     float GetSpherize() const;
@@ -621,7 +620,7 @@ private:
     void SetDirty();
     void ResetDirty();
     bool IsDirty() const;
-    void AccmulateDirtyStatus();
+    void AccumulateDirtyStatus();
     void RecordCurDirtyStatus();
 
     // generate filter
@@ -666,9 +665,11 @@ private:
     bool isDirty_ = false;
     bool geoDirty_ = false;
     bool contentDirty_ = false;
+    bool subTreeAllDirty_ = false;
     bool curIsDirty_ = false;
     bool curGeoDirty_ = false;
     bool curContentDirty_ = false;
+    bool curSubTreeAllDirty_ = false;
     bool hasBounds_ = false;
     bool isSpherizeValid_ = false;
     bool clipToBounds_ = false;

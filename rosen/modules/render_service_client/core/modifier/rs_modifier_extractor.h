@@ -341,20 +341,6 @@ public:
     float GetForegroundEffectRadius() const;
 
     /**
-     * @brief Gets the background filter.
-     *
-     * @return The pointer to background filter.
-     */
-    std::shared_ptr<RSFilter> GetBackgroundFilter() const;
-
-    /**
-     * @brief Gets the filter.
-     *
-     * @return The pointer to filter.
-     */
-    std::shared_ptr<RSFilter> GetFilter() const;
-
-    /**
      * @brief Gets the color of shadow.
      *
      * @return The color of shadow.

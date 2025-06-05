@@ -12,21 +12,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef UIEFFECT_FILTER_HDR_PARA_H
-#define UIEFFECT_FILTER_HDR_PARA_H
+#ifndef UIEFFECT_FILTER_HDR_BRIGHTNESS_RATIO_PARA_H
+#define UIEFFECT_FILTER_HDR_BRIGHTNESS_RATIO_PARA_H
 
 #include "filter_para.h"
 
 
 namespace OHOS {
 namespace Rosen {
-class HdrBrightnessRatioPara : public FilterPara {
+class HDRBrightnessRatioPara : public FilterPara {
 public:
-    HdrBrightnessRatioPara()
+    HDRBrightnessRatioPara()
     {
         this->type_ = FilterPara::ParaType::HDR_BRIGHTNESS_RATIO;
     }
-    ~HdrBrightnessRatioPara() override = default;
+    ~HDRBrightnessRatioPara() override = default;
 
     void SetBrightnessRatio(const float& ratio)
     {
@@ -43,4 +43,4 @@ private:
 };
 } // namespace Rosen
 } // namespace OHOS
-#endif // UIEFFECT_FILTER_HDR_PARA_H
+#endif // UIEFFECT_FILTER_HDR_BRIGHTNESS_RATIO_PARA_H

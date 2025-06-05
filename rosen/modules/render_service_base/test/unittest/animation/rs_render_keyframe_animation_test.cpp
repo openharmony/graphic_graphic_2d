@@ -113,9 +113,9 @@ HWTEST_F(RSRenderKeyframeAnimationTest, AddKeyframe002, TestSize.Level1)
 HWTEST_F(RSRenderKeyframeAnimationTest, AddKeyframeTest003, Level1)
 {
     auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
     auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.1f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
 
     auto renderKeyframeAnimation = std::make_shared<RSRenderKeyframeAnimation>(
         ANIMATION_ID, PROPERTY_ID, property);
@@ -198,9 +198,9 @@ HWTEST_F(RSRenderKeyframeAnimationTest, Marshalling001, TestSize.Level1)
 HWTEST_F(RSRenderKeyframeAnimationTest, Marshalling002, TestSize.Level1)
 {
     auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
     auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.1f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
 
     auto renderKeyframeAnimation = std::make_shared<RSRenderKeyframeAnimation>(
         ANIMATION_ID, PROPERTY_ID, property);
@@ -278,9 +278,9 @@ HWTEST_F(RSRenderKeyframeAnimationTest, Unmarshalling001, TestSize.Level1)
 HWTEST_F(RSRenderKeyframeAnimationTest, Unmarshalling002, TestSize.Level1)
 {
     auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
     auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.1f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
 
     auto renderKeyframeAnimation = std::make_shared<RSRenderKeyframeAnimation>(
         ANIMATION_ID, PROPERTY_ID, property);
@@ -415,9 +415,9 @@ HWTEST_F(RSRenderKeyframeAnimationTest, DumpAnimationInfo002, TestSize.Level1)
 HWTEST_F(RSRenderKeyframeAnimationTest, ParseParam001, TestSize.Level1)
 {
     auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
     auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.1f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
 
     auto renderKeyframeAnimation = std::make_shared<RSRenderKeyframeAnimation>(
         ANIMATION_ID, PROPERTY_ID, property);
@@ -448,9 +448,9 @@ HWTEST_F(RSRenderKeyframeAnimationTest, ParseParam001, TestSize.Level1)
 HWTEST_F(RSRenderKeyframeAnimationTest, ParseParam002, TestSize.Level1)
 {
     auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
     auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.1f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
 
     auto renderKeyframeAnimation = std::make_shared<RSRenderKeyframeAnimation>(
         ANIMATION_ID, PROPERTY_ID, property);
@@ -477,9 +477,9 @@ HWTEST_F(RSRenderKeyframeAnimationTest, ParseParam002, TestSize.Level1)
 HWTEST_F(RSRenderKeyframeAnimationTest, ParseParam003, TestSize.Level1)
 {
     auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
     auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.1f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
 
     auto renderKeyframeAnimation = std::make_shared<RSRenderKeyframeAnimation>(
         ANIMATION_ID, PROPERTY_ID, property);

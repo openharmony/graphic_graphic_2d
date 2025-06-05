@@ -69,7 +69,7 @@ void RSAnimation::SetFinishCallback(const std::shared_ptr<AnimationFinishCallbac
     finishCallback_ = finishCallback;
     auto target = target_.lock();
     if (target != nullptr) {
-        RSAnimationTraceUtils::GetInstance().addAnimationFinishTrace(
+        RSAnimationTraceUtils::GetInstance().AddAnimationFinishTrace(
             "Animation Set FinishCallback", target->GetId(), id_, true);
     }
 }
@@ -93,8 +93,7 @@ void RSAnimation::CallFinishCallback()
     OnCallFinishCallback();
     auto target = target_.lock();
     if (target != nullptr) {
-        RSAnimationTraceUtils::GetInstance().addAnimationFinishTrace(
-            "Animation Call FinishCallback", target->GetId(), id_, true);
+        RSAnimationTraceUtils::GetInstance().AddAnimationCallFinishTrace(target->GetId(), id_, GetModifierType(), true);
     }
 }
 

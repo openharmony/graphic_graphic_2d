@@ -269,48 +269,6 @@ HWTEST_F(RSSpringModelTest, RSSpringModelVector4ColorTest001, TestSize.Level1)
 }
 
 /**
- * @tc.name: RSSpringModelRSFilterTest001
- * @tc.desc: Verify the RSSpringModelRSFilter
- * @tc.type:FUNC
- */
-HWTEST_F(RSSpringModelTest, RSSpringModelRSFilterTest001, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "RSSpringModelTest RSSpringModelRSFilterTest001 start";
-
-    auto model1 = std::make_shared<RSSpringModel<std::shared_ptr<RSFilter>>>(1.0f, 2.0f, nullptr, nullptr, 1.0f);
-    auto result = model1->CalculateDisplacement(1.0f);
-    EXPECT_TRUE(result == nullptr);
-    auto duration = model1->EstimateDuration();
-    EXPECT_TRUE(duration != 0.0f);
-
-    auto initialOffset = RSFilter::CreateBlurFilter(0.f, 0.f);
-    auto initialVelocity = RSFilter::CreateBlurFilter(10.f, 10.f);
-
-    auto model2 =
-        std::make_shared<RSSpringModel<std::shared_ptr<RSFilter>>>(0.0f, 0.0f, initialOffset, initialVelocity, 0.0f);
-    result = model2->CalculateDisplacement(1.0f);
-    EXPECT_TRUE(result != initialOffset);
-    duration = model2->EstimateDuration();
-    EXPECT_TRUE(duration != 0.0f);
-
-    auto model3 =
-        std::make_shared<RSSpringModel<std::shared_ptr<RSFilter>>>(1.0f, 1.0f, initialOffset, initialVelocity, 1.0f);
-    result = model3->CalculateDisplacement(1.0f);
-    EXPECT_TRUE(result != initialOffset);
-    duration = model3->EstimateDuration();
-    EXPECT_TRUE(duration != 0.0f);
-
-    auto model4 =
-        std::make_shared<RSSpringModel<std::shared_ptr<RSFilter>>>(1.0f, 2.0f, initialOffset, initialVelocity, 1.0f);
-    result = model4->CalculateDisplacement(1.0f);
-    EXPECT_TRUE(result != initialOffset);
-    duration = model4->EstimateDuration();
-    EXPECT_TRUE(duration != 0.0f);
-
-    GTEST_LOG_(INFO) << "RSSpringModelTest RSSpringModelRSFilterTest001 end";
-}
-
-/**
  * @tc.name: RSSpringModelRSRSRenderPropertyBaseTest001
  * @tc.desc: Verify the RSSpringModelRSRenderPropertyBase
  * @tc.type:FUNC

@@ -667,9 +667,6 @@ bool DoGetPropertyType(const uint8_t* data, size_t size)
     Quaternion valueQuaternion = GetData<Quaternion>();
     RSAnimatableProperty rsAnimatablePropertyQuaternion(valueQuaternion);
     rsAnimatablePropertyQuaternion.GetPropertyType();
-    auto rsFilter = std::make_shared<RSFilter>();
-    RSAnimatableProperty rsAnimatablePropertyRSFilter(rsFilter);
-    rsAnimatablePropertyRSFilter.GetPropertyType();
     Vector4<Color> valueVector4Color = GetData<Vector4<Color>>();
     RSAnimatableProperty rsAnimatablePropertyVector4Color(valueVector4Color);
     rsAnimatablePropertyVector4Color.GetPropertyType();

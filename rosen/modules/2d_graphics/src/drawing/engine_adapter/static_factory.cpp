@@ -15,7 +15,6 @@
 
 #include "static_factory.h"
 
-#include "utils/graphic_coretrace.h"
 #include "skia_adapter/skia_static_factory.h"
 #ifdef USE_M133_SKIA
 #include "src/base/SkUtils.h"
@@ -416,26 +415,6 @@ void StaticFactory::SetVmaCacheStatus(bool flag)
         EngineStaticFactory::SetVmaCacheStatus(flag);
     }
 #endif
-}
-
-void StaticFactory::RecordCoreTrace(int functionType)
-{
-#ifdef ENABLE_DDGR_OPTIMIZE
-    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-        return;
-    }
-#endif
-    EngineStaticFactory::RecordCoreTrace(functionType);
-}
-
-void StaticFactory::RecordCoreTrace(int functionType, uint64_t nodeId)
-{
-#ifdef ENABLE_DDGR_OPTIMIZE
-    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-        return;
-    }
-#endif
-    EngineStaticFactory::RecordCoreTrace(functionType, nodeId);
 }
 
 void StaticFactory::ResetStatsData()

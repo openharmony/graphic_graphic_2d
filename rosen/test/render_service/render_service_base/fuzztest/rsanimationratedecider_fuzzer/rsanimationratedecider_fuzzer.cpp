@@ -83,11 +83,11 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     rsAnimationRateDecider.MakeDecision(frameRateGetFunc);
     rsAnimationRateDecider.GetFrameRateRange();
     PropertyValue property = std::make_shared<RSRenderAnimatableProperty<float>>(
-        0.0, 1, RSRenderPropertyType::PROPERTY_FLOAT, RSPropertyUnit::PIXEL_POSITION);
-    RSRenderPropertyType type = RSRenderPropertyType::PROPERTY_VECTOR4F;
+        0.0, 1, RSPropertyType::FLOAT, RSPropertyUnit::PIXEL_POSITION);
+    RSPropertyType type = RSPropertyType::VECTOR4F;
     property->SetPropertyType(type);
     rsAnimationRateDecider.CalculatePreferredRate(property, frameRateGetFunc);
-    type = RSRenderPropertyType::PROPERTY_VECTOR2F;
+    type = RSPropertyType::VECTOR2F;
     property->SetPropertyType(type);
     rsAnimationRateDecider.CalculatePreferredRate(property, frameRateGetFunc);
     return true;

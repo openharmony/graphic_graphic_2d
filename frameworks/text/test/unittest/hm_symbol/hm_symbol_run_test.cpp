@@ -1115,6 +1115,34 @@ HWTEST_F(OHHmSymbolRunTest, SymbolTxt001, TestSize.Level1)
     EXPECT_EQ(hmSymbolRun.GetSymbolTxt().GetRenderMode(), Drawing::DrawingSymbolRenderingStrategy::MULTIPLE_COLOR);
 }
 
+/*
+ * @tc.name: SymbolAnimationTest001
+ * @tc.desc: test SymbolAnimation with disable effectStrategy
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolRunTest, SymbolAnimationTest001, TestSize.Level1)
+{
+    // init data
+    HMSymbolRun hmSymbolRun = HMSymbolRun();
+    hmSymbolRun.SetSymbolEffect(RSEffectStrategy::DISABLE);
+    RSHMSymbolData symbol;
+    std::pair<float, float> offsetXY(10.0f, 15.0f);
+    Drawing::DrawingAnimationSetting animationSettingOne = {
+        // animationTypes
+        {
+            Drawing::DrawingAnimationType::DISABLE_TYPE
+        },
+        // groupSettings
+        {
+            // {0, 1}: layerIndes, 0: animationIndex
+            {{{{0, 1}}}, 0}
+        }
+    };
+    hmSymbolRun.symbolLayersGroups_.animationSettings.push_back(animationSettingOne);
+    // test SymbolAnimation by DISABLE
+    bool restul = hmSymbolRun.SymbolAnimation(symbol, offsetXY);
+    EXPECT_FALSE(restul);
+}
 } // namespace SPText
 } // namespace Rosen
 } // namespace OHOS

@@ -107,7 +107,7 @@ std::shared_ptr<RSRenderPropertyBase> RSRenderBezierWarpFilterPara::CreateRender
         case RSUIFilterType::BEZIER_CONTROL_POINT10 :
         case RSUIFilterType::BEZIER_CONTROL_POINT11 : {
             return std::make_shared<RSRenderAnimatableProperty<Vector2f>>(
-                Vector2f(0.f, 0.f), 0, RSRenderPropertyType::PROPERTY_VECTOR2F);
+                Vector2f(0.f, 0.f), 0, RSPropertyType::VECTOR2F);
         }
         default: {
             ROSEN_LOGD("RSRenderBezierWarpFilterPara::CreateRenderProperty is nullptr");

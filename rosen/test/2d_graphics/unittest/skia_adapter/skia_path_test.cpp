@@ -302,6 +302,50 @@ HWTEST_F(SkiaPathTest, SkiaPathIsRect001, TestSize.Level1)
     ASSERT_FALSE(skiaPath2.IsRect(&rect, nullptr, &dir));
 }
 
+/**
+ * @tc.name: SkiaPathSetLastPoint001
+ * @tc.desc: Test SetLastPoint
+ * @tc.type: FUNC
+ * @tc.require: I8VQSW
+ */
+HWTEST_F(SkiaPathTest, SkiaPathSetLastPoint001, TestSize.Level1)
+{
+    SkiaPath skiaPath;
+    ASSERT_TRUE(skiaPath.IsEmpty());
+    skiaPath.SetLastPoint(1.0f, 2.0f);
+    ASSERT_TRUE(!skiaPath.IsEmpty());
+}
+
+/**
+ * @tc.name: SkiaPathReWind001
+ * @tc.desc: Test SetLastPoint
+ * @tc.type: FUNC
+ * @tc.require: I8VQSW
+ */
+HWTEST_F(SkiaPathTest, SkiaPathReWind001, TestSize.Level1)
+{
+    SkiaPath skiaPath;
+    skiaPath.SetLastPoint(1.0f, 2.0f);
+    ASSERT_TRUE(!skiaPath.IsEmpty());
+    skiaPath.ReWind();
+    ASSERT_TRUE(skiaPath.IsEmpty());
+}
+
+/**
+ * @tc.name: SkiaPathSetPath001
+ * @tc.desc: Test SkiaPathSetPath
+ * @tc.type: FUNC
+ * @tc.require: I8VQSW
+ */
+HWTEST_F(SkiaPathTest, SkiaPathSetPath001, TestSize.Level1)
+{
+    SkiaPath skiaPath;
+    Path path;
+    path.MoveTo(10.0f, 20.0f);
+    skiaPath.SetPath(path);
+    SkPath skPath = skiaPath.GetPath();
+    ASSERT_TRUE(!skPath.isEmpty());
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

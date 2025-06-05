@@ -152,6 +152,8 @@ public:
     void Dump(std::string& out) const;
 
 private:
+    void UpdateValueToFloat();
+    void UpdateValueToInt();
     uint32_t alpha_;
     uint32_t red_;
     uint32_t green_;

@@ -74,10 +74,22 @@ public:
     std::shared_ptr<Drawing::FontMgr> GetFontMgr() override;
     LoadSymbolErrorCode LoadSymbolFont(const std::string& familyName, const uint8_t* data, size_t datalen) override;
     LoadSymbolErrorCode LoadSymbolJson(const std::string& familyName, const uint8_t* data, size_t datalen) override;
-
     void ClearCaches() override;
+    bool UnloadFont(const std::string& familyName) override;
 
 private:
+    class FontCallbackGuard {
+    public:
+        FontCallbackGuard(const FontCollection* fc, const std::string& familyName, const FontCallback& begin,
+            const FontCallback& end);
+        ~FontCallbackGuard();
+
+    private:
+        const FontCollection* fc_;
+        const std::string& familyName_;
+        const FontCallback& begin_;
+        const FontCallback& end_;
+    };
     RegisterError RegisterTypeface(const TypefaceWithAlias& ta);
 
     std::shared_ptr<txt::FontCollection> fontCollection_ = nullptr;

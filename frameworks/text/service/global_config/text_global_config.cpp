@@ -14,6 +14,9 @@
  */
 
 #include "text_global_config.h"
+
+#include "modules/skparagraph/include/TextGlobalConfig.h"
+
 #include "text/text_blob.h"
 #include "utils/text_log.h"
 
@@ -31,4 +34,12 @@ uint32_t TextGlobalConfig::SetTextHighContrast(uint32_t textHighContrast)
     return TEXT_SUCCESS;
 }
 
+uint32_t TextGlobalConfig::SetTextUndefinedGlyphDisplay(uint32_t textUndefinedGlyphDisplay)
+{
+    if (textUndefinedGlyphDisplay >= UNDEFINED_GLYPH_BUTT) {
+        return TEXT_ERR_PARA_INVALID;
+    }
+    skia::textlayout::TextGlobalConfig::SetUndefinedGlyphDisplay(textUndefinedGlyphDisplay);
+    return TEXT_SUCCESS;
+}
 } // namespace OHOS::Rosen::SrvText

@@ -686,6 +686,21 @@ HWTEST_F(ParagraphTest, ParagraphTestMiddleEllipsis014, TestSize.Level1)
     EXPECT_EQ(range.end, std::numeric_limits<size_t>::max());
 }
 
+/*
+ * @tc.name: ParagraphTestMiddleEllipsis015
+ * @tc.desc: test for Middle Ellipsis 015, get glyph position
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParagraphTest, ParagraphTestMiddleEllipsis015, TestSize.Level1)
+{
+    size_t maxLines = 1;
+    PrepareMiddleEllipsis(maxLines, u"...", u"你好世界 Hello World");
+    paragraphMiddleEllipsis_->Layout(280);
+    EXPECT_EQ(paragraphMiddleEllipsis_->GetGlyphPositionAtCoordinate(50, 0.0).position, 2.0);
+    EXPECT_EQ(paragraphMiddleEllipsis_->GetGlyphPositionAtCoordinate(150, 0.0).position, 7.0);
+    EXPECT_EQ(paragraphMiddleEllipsis_->GetGlyphPositionAtCoordinate(270, 0.0).position, 16.0);
+}
+
 OHOS::Rosen::SPText::ParagraphImpl* ProcessRelayout(std::shared_ptr<Paragraph> paragraph, std::optional<RSBrush> brush)
 {
     std::vector<OHOS::Rosen::SPText::TextStyle> textStyles;
@@ -802,5 +817,28 @@ HWTEST_F(ParagraphTest, ParagraphTestRelayoutBrush003, TestSize.Level1)
     EXPECT_EQ(paragraphImpl->paints_.size(), 3);
     EXPECT_EQ(paragraphImpl->paints_[0].brush.has_value(), false);
     EXPECT_EQ(paragraphImpl->paints_[1].brush.has_value(), false);
+}
+
+/*
+ * @tc.name: ParagraphTestTextEffect001
+ * @tc.desc: test for text effect state
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParagraphTest, ParagraphTestTextEffect001, TestSize.Level1)
+{
+    Canvas canvas;
+    paragraph_->Paint(&canvas, 0.0, 0.0);
+    OHOS::Rosen::SPText::ParagraphImpl* paragraphImpl = GetParagraphImpl(paragraph_);
+    ASSERT_NE(paragraphImpl, nullptr);
+    std::unique_ptr<skt::Paragraph> temp = nullptr;
+    paragraphImpl->paragraph_.swap(temp);
+    EXPECT_EQ(paragraphImpl->GetTextBlobRecordInfo().size(), 0);
+    paragraphImpl->SetTextEffectState(true);
+    EXPECT_FALSE(paragraphImpl->HasEnabledTextEffect());
+
+    paragraphImpl->paragraph_.swap(temp);
+    EXPECT_NE(paragraphImpl->GetTextBlobRecordInfo().size(), 0);
+    paragraphImpl->SetTextEffectState(true);
+    EXPECT_TRUE(paragraphImpl->HasEnabledTextEffect());
 }
 } // namespace txt

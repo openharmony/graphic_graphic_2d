@@ -851,7 +851,6 @@ std::string RSProfiler::UnmarshalNode(RSContext& context, std::stringstream& dat
         node->GetMutableRenderProperties().SetPositionZ(positionZ);
         node->GetMutableRenderProperties().SetPivotZ(pivotZ);
         node->SetPriority(priority);
-        node->RSRenderNode::SetIsOnTheTree(isOnTree);
         node->nodeGroupType_ = nodeGroupType;
         node->MarkRepaintBoundary(isRepaintBoundary);
         return UnmarshalNodeModifiers(*node, data, fileVersion);

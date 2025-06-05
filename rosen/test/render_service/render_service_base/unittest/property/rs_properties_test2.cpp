@@ -726,25 +726,6 @@ HWTEST_F(PropertiesTest, SetNGetDynamicDimDegreeTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetFilterTest
- * @tc.desc: test results of SetFilter
- * @tc.type: FUNC
- * @tc.require: issueI9W24N
- */
-HWTEST_F(PropertiesTest, SetFilterTest, TestSize.Level1)
-{
-    RSProperties properties;
-    std::shared_ptr<RSFilter> filter = std::make_shared<RSFilter>();
-    properties.SetFilter(filter);
-    EXPECT_NE(properties.filter_, nullptr);
-    EXPECT_EQ(properties.GetFilter(), filter);
-
-    filter = nullptr;
-    properties.SetFilter(filter);
-    EXPECT_EQ(properties.filter_, nullptr);
-}
-
-/**
  * @tc.name: SetShadowIsFilledTest
  * @tc.desc: test results of SetShadowIsFilled
  * @tc.type: FUNC
@@ -1232,18 +1213,15 @@ HWTEST_F(PropertiesTest, GenerateRenderFilterColorGradient_001, TestSize.Level1)
     auto filter = RSRenderFilter::CreateRenderFilterPara(RSUIFilterType::COLOR_GRADIENT);
     renderFilter1->Insert(RSUIFilterType::COLOR_GRADIENT, filter);
 
-    auto colorsProperty = std::make_shared<RSRenderAnimatableProperty<std::vector<float>>>(
-        colors, 0, RSRenderPropertyType::PROPERTY_SHADER_PARAM);
+    auto colorsProperty = std::make_shared<RSRenderAnimatableProperty<std::vector<float>>>(colors, 0);
     filter->Setter(RSUIFilterType::COLOR_GRADIENT_COLOR, colorsProperty);
 
-    auto positionsProperty = std::make_shared<RSRenderAnimatableProperty<std::vector<float>>>(
-        positions, 0, RSRenderPropertyType::PROPERTY_SHADER_PARAM);
+    auto positionsProperty = std::make_shared<RSRenderAnimatableProperty<std::vector<float>>>(positions, 0);
     filter->Setter(RSUIFilterType::COLOR_GRADIENT_POSITION, positionsProperty);
     properties.GenerateRenderFilterColorGradient();
     EXPECT_EQ(properties.backgroundFilter_, nullptr);
 
-    auto strengthsProperty = std::make_shared<RSRenderAnimatableProperty<std::vector<float>>>(
-        strengths, 0, RSRenderPropertyType::PROPERTY_SHADER_PARAM);
+    auto strengthsProperty = std::make_shared<RSRenderAnimatableProperty<std::vector<float>>>(strengths, 0);
     filter->Setter(RSUIFilterType::COLOR_GRADIENT_STRENGTH, strengthsProperty);
     properties.GenerateRenderFilterColorGradient();
     EXPECT_NE(properties.backgroundFilter_, nullptr);
@@ -1279,15 +1257,13 @@ HWTEST_F(PropertiesTest, GenerateRenderFilterEdgeLight_001, TestSize.Level1)
 
     auto renderFilterEdgeLight = std::static_pointer_cast<RSRenderEdgeLightFilterPara>(renderFilterBase);
 
-    auto renderAlpha = std::make_shared<RSRenderAnimatableProperty<float>>(
-        0.5f, 0, RSRenderPropertyType::PROPERTY_FLOAT);
+    auto renderAlpha = std::make_shared<RSRenderAnimatableProperty<float>>(0.5f, 0);
     renderFilterEdgeLight->Setter(RSUIFilterType::EDGE_LIGHT_ALPHA, renderAlpha);
     properties.GenerateRenderFilter();
     EXPECT_EQ(properties.backgroundFilter_, nullptr);
     properties.backgroundFilter_ = nullptr;
 
-    auto renderColor = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(
-        Vector4f(0.5f, 0.5f, 0.5f, 0.5f), 0, RSRenderPropertyType::PROPERTY_VECTOR4F);
+    auto renderColor = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(0.5f, 0.5f, 0.5f, 0.5f), 0);
     renderFilterEdgeLight->Setter(RSUIFilterType::EDGE_LIGHT_COLOR, renderColor);
     properties.GenerateRenderFilter();
     properties.GenerateRenderFilter();
@@ -1432,16 +1408,14 @@ HWTEST_F(PropertiesTest, GenerateBezierWarpFilter_001, TestSize.Level1)
         RSUIFilterType::BEZIER_CONTROL_POINT10,
     };
     for (int i = 0; i < BEZIER_WARP_POINT_NUM; i++) {
-        auto renderProperty = std::make_shared<RSRenderAnimatableProperty<Vector2f>>(
-            Vector2f(0.f, 0.f), 0, RSRenderPropertyType::PROPERTY_VECTOR2F);
+        auto renderProperty = std::make_shared<RSRenderAnimatableProperty<Vector2f>>(Vector2f(0.f, 0.f), 0);
         rsBezierWarpFilter->Setter(ctrlPointsType[i], renderProperty);
     }
     renderFilter->Insert(RSUIFilterType::BEZIER_WARP, rsBezierWarpFilter);
     properties.GenerateBezierWarpFilter();
     EXPECT_EQ(properties.foregroundFilter_, nullptr);
 
-    auto renderProperty = std::make_shared<RSRenderAnimatableProperty<Vector2f>>(
-        Vector2f(0.f, 0.f), 0, RSRenderPropertyType::PROPERTY_VECTOR2F);
+    auto renderProperty = std::make_shared<RSRenderAnimatableProperty<Vector2f>>(Vector2f(0.f, 0.f), 0);
     rsBezierWarpFilter->Setter(RSUIFilterType::BEZIER_CONTROL_POINT11, renderProperty);
     properties.GenerateBezierWarpFilter();
     EXPECT_NE(properties.foregroundFilter_, nullptr);

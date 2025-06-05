@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -38,10 +38,17 @@
  */
 
 #include "drawing_types.h"
+#include "drawing_error_code.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/**
+ * @brief Defines a colorspace manager. Introduces the color space information defined by ColorManager.
+ * @since 20
+ */
+typedef struct OH_NativeColorSpaceManager OH_NativeColorSpaceManager;
 
 /**
  * @brief Creates an <b>OH_Drawing_Pen</b> object.
@@ -363,6 +370,83 @@ void OH_Drawing_PenSetBlendMode(OH_Drawing_Pen*, OH_Drawing_BlendMode);
  */
 bool OH_Drawing_PenGetFillPath(OH_Drawing_Pen*, const OH_Drawing_Path* src, OH_Drawing_Path* dst,
     const OH_Drawing_Rect*, const OH_Drawing_Matrix*);
+
+/**
+ * @brief Sets the color for a pen. The color will be used by the pen to fill in a shape.
+ * The color is an ARGB structure described by floating point numbers and interpreted as being in the colorSpaceManager.
+ * If colorSpaceManager is nullptr, then color is assumed to be in the sRGB color space.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param pen Indicates the pointer to an <b>OH_Drawing_Pen</b> object.
+ * @param a Indicates the alpha component of color, represented as a floating point number between 0 and 1.
+ * @param r Indicates the red component of color, represented as a floating point number between 0 and 1.
+ * @param g Indicates the green component of color, represented as a floating point number between 0 and 1.
+ * @param b Indicates the blue component of color, represented as a floating point number between 0 and 1.
+ * @param colorSpaceManager Indicates the pointer to an <b>OH_NativeColorSpaceManager</b> object.
+ * @return Returns the error code.
+ *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
+ *         Returns {@link OH_DRAWING_ERROR_INVALID_PARAMETER} if pen is nullptr.
+ * @since 20
+ * @version 1.0
+ */
+OH_Drawing_ErrorCode OH_Drawing_PenSetColor4f(OH_Drawing_Pen* pen, float a, float r, float g, float b,
+    OH_NativeColorSpaceManager* colorSpaceManager);
+
+/**
+ * @brief Obtains the alpha component of a pen.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param pen Indicates the pointer to an <b>OH_Drawing_Pen</b> object.
+ * @param a Indicates the alpha component of color.
+ * @return Returns the error code.
+ *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
+ *         Returns {@link OH_DRAWING_ERROR_INVALID_PARAMETER} if pen or a is nullptr.
+ * @since 20
+ * @version 1.0
+ */
+OH_Drawing_ErrorCode OH_Drawing_PenGetAlphaFloat(OH_Drawing_Pen* pen, float* a);
+
+/**
+ * @brief Obtains the red component of a pen.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param pen Indicates the pointer to an <b>OH_Drawing_Pen</b> object.
+ * @param r Indicates the red component of color.
+ * @return Returns the error code.
+ *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
+ *         Returns {@link OH_DRAWING_ERROR_INVALID_PARAMETER} if pen or r is nullptr.
+ * @since 20
+ * @version 1.0
+ */
+OH_Drawing_ErrorCode OH_Drawing_PenGetRedFloat(OH_Drawing_Pen* pen, float* r);
+
+/**
+ * @brief Obtains the green component of a pen.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param pen Indicates the pointer to an <b>OH_Drawing_Pen</b> object.
+ * @param g Indicates the green component of color.
+ * @return Returns the error code.
+ *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
+ *         Returns {@link OH_DRAWING_ERROR_INVALID_PARAMETER} if pen or g is nullptr.
+ * @since 20
+ * @version 1.0
+ */
+OH_Drawing_ErrorCode OH_Drawing_PenGetGreenFloat(OH_Drawing_Pen* pen, float* g);
+
+/**
+ * @brief Obtains the blue component of a pen.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param pen Indicates the pointer to an <b>OH_Drawing_Pen</b> object.
+ * @param b Indicates the blue component of color.
+ * @return Returns the error code.
+ *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
+ *         Returns {@link OH_DRAWING_ERROR_INVALID_PARAMETER} if pen or b is nullptr.
+ * @since 20
+ * @version 1.0
+ */
+OH_Drawing_ErrorCode OH_Drawing_PenGetBlueFloat(OH_Drawing_Pen* pen, float* b);
 
 /**
  * @brief Resets all pen contents to their initial values.

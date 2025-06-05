@@ -2188,7 +2188,13 @@ void RSProfiler::TestLoadSubTree(const ArgList& args)
         return;
     }
 
-    std::ifstream file(filePath);
+    char realPath[PATH_MAX] = {0};
+    if (!realpath(filePath.c_str(), realPath)) {
+        Respond("Error: Path is invalid");
+        return;
+    }
+
+    std::ifstream file(realPath);
     if (!file.is_open()) {
         std::error_code ec(errno, std::system_category());
         RS_LOGE("RSProfiler::TestLoadSubTree read file failed: %{public}s", ec.message().c_str());

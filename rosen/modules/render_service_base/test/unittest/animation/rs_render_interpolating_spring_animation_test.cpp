@@ -100,11 +100,11 @@ HWTEST_F(RSRenderInterpolatingSpringAnimationTest, Marshalling001, TestSize.Leve
 HWTEST_F(RSRenderInterpolatingSpringAnimationTest, Marshalling002, TestSize.Level1)
 {
     auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
     auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
     auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
 
     auto renderInterpolatingSpringAnimation = std::make_shared<RSRenderInterpolatingSpringAnimation>(
         ANIMATION_ID, PROPERTY_ID, property, property1, property2);
@@ -124,11 +124,11 @@ HWTEST_F(RSRenderInterpolatingSpringAnimationTest, Marshalling002, TestSize.Leve
 HWTEST_F(RSRenderInterpolatingSpringAnimationTest, Marshalling003, TestSize.Level1)
 {
     auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
-        PROPERTY_ID, RSRenderPropertyType::INVALID);
+        PROPERTY_ID, RSPropertyType::INVALID);
     auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
     auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
 
     auto renderInterpolatingSpringAnimation = std::make_shared<RSRenderInterpolatingSpringAnimation>(
         ANIMATION_ID, PROPERTY_ID, property, property1, property2);
@@ -149,11 +149,11 @@ HWTEST_F(RSRenderInterpolatingSpringAnimationTest, Marshalling003, TestSize.Leve
 HWTEST_F(RSRenderInterpolatingSpringAnimationTest, Marshalling004, TestSize.Level1)
 {
     auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
-        PROPERTY_ID, RSRenderPropertyType::INVALID);
+        PROPERTY_ID, RSPropertyType::INVALID);
     auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
     auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
 
     auto renderInterpolatingSpringAnimation = std::make_shared<RSRenderInterpolatingSpringAnimation>(
         ANIMATION_ID, PROPERTY_ID, property, property1, property2);
@@ -174,11 +174,11 @@ HWTEST_F(RSRenderInterpolatingSpringAnimationTest, Marshalling004, TestSize.Leve
 HWTEST_F(RSRenderInterpolatingSpringAnimationTest, Marshalling005, TestSize.Level1)
 {
     auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
     auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
-        PROPERTY_ID, RSRenderPropertyType::INVALID);
+        PROPERTY_ID, RSPropertyType::INVALID);
     auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
 
     auto renderInterpolatingSpringAnimation = std::make_shared<RSRenderInterpolatingSpringAnimation>(
         ANIMATION_ID, PROPERTY_ID, property, property1, property2);
@@ -199,11 +199,11 @@ HWTEST_F(RSRenderInterpolatingSpringAnimationTest, Marshalling005, TestSize.Leve
 HWTEST_F(RSRenderInterpolatingSpringAnimationTest, Marshalling006, TestSize.Level1)
 {
     auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
     auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
     auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f,
-        PROPERTY_ID, RSRenderPropertyType::INVALID);
+        PROPERTY_ID, RSPropertyType::INVALID);
 
     auto renderInterpolatingSpringAnimation = std::make_shared<RSRenderInterpolatingSpringAnimation>(
         ANIMATION_ID, PROPERTY_ID, property, property1, property2);
@@ -224,11 +224,11 @@ HWTEST_F(RSRenderInterpolatingSpringAnimationTest, Marshalling006, TestSize.Leve
 HWTEST_F(RSRenderInterpolatingSpringAnimationTest, Unmarshalling001, TestSize.Level1)
 {
     auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
     auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
     auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
 
     auto renderInterpolatingSpringAnimation = std::make_shared<RSRenderInterpolatingSpringAnimation>(
         ANIMATION_ID, PROPERTY_ID, property, property1, property2);
@@ -251,11 +251,11 @@ HWTEST_F(RSRenderInterpolatingSpringAnimationTest, Unmarshalling001, TestSize.Le
 HWTEST_F(RSRenderInterpolatingSpringAnimationTest, SetFraction001, TestSize.Level1)
 {
     auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
     auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
     auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
 
     auto renderInterpolatingSpringAnimation = std::make_shared<RSRenderInterpolatingSpringAnimationMock>(
         ANIMATION_ID, PROPERTY_ID, property, property1, property2);
@@ -295,11 +295,11 @@ HWTEST_F(RSRenderInterpolatingSpringAnimationTest, SetFraction001, TestSize.Leve
 HWTEST_F(RSRenderInterpolatingSpringAnimationTest, OnInitialize001, TestSize.Level1)
 {
     auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
     auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
     auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
 
     auto renderInterpolatingSpringAnimation = std::make_shared<RSRenderInterpolatingSpringAnimationMock>(
         ANIMATION_ID, PROPERTY_ID, property, property1, property2);
@@ -317,11 +317,11 @@ HWTEST_F(RSRenderInterpolatingSpringAnimationTest, OnInitialize001, TestSize.Lev
 HWTEST_F(RSRenderInterpolatingSpringAnimationTest, SetZeroThreshold001, TestSize.Level1)
 {
     auto property =
-        std::make_shared<RSRenderAnimatableProperty<float>>(0.0f, PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        std::make_shared<RSRenderAnimatableProperty<float>>(0.0f, PROPERTY_ID, RSPropertyType::FLOAT);
     auto property1 =
-        std::make_shared<RSRenderAnimatableProperty<float>>(0.0f, PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        std::make_shared<RSRenderAnimatableProperty<float>>(0.0f, PROPERTY_ID, RSPropertyType::FLOAT);
     auto property2 =
-        std::make_shared<RSRenderAnimatableProperty<float>>(1.0f, PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        std::make_shared<RSRenderAnimatableProperty<float>>(1.0f, PROPERTY_ID, RSPropertyType::FLOAT);
 
     auto renderInterpolatingSpringAnimation = std::make_shared<RSRenderInterpolatingSpringAnimationMock>(
         ANIMATION_ID, PROPERTY_ID, property, property1, property2);
@@ -343,11 +343,11 @@ HWTEST_F(RSRenderInterpolatingSpringAnimationTest, SetZeroThreshold001, TestSize
 HWTEST_F(RSRenderInterpolatingSpringAnimationTest, UpdateFractionAfterContinue001, TestSize.Level1)
 {
     auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
     auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
     auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
 
     auto renderInterpolatingSpringAnimation = std::make_shared<RSRenderInterpolatingSpringAnimationMock>(
         ANIMATION_ID, PROPERTY_ID, property, property1, property2);
@@ -367,11 +367,11 @@ HWTEST_F(RSRenderInterpolatingSpringAnimationTest, UpdateFractionAfterContinue00
 HWTEST_F(RSRenderInterpolatingSpringAnimationTest, UpdateFractionAfterContinue002, TestSize.Level1)
 {
     auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
     auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
     auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
 
     auto renderInterpolatingSpringAnimation = std::make_shared<RSRenderInterpolatingSpringAnimationMock>(
         ANIMATION_ID, PROPERTY_ID, property, property1, property2);
@@ -397,11 +397,11 @@ HWTEST_F(RSRenderInterpolatingSpringAnimationTest, UpdateFractionAfterContinue00
 HWTEST_F(RSRenderInterpolatingSpringAnimationTest, CalculateTimeFraction001, TestSize.Level1)
 {
     auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
     auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
     auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
 
     auto renderInterpolatingSpringAnimation = std::make_shared<RSRenderInterpolatingSpringAnimationMock>(
         ANIMATION_ID, PROPERTY_ID, property, property1, property2);
@@ -422,11 +422,11 @@ HWTEST_F(RSRenderInterpolatingSpringAnimationTest, CalculateTimeFraction001, Tes
 HWTEST_F(RSRenderInterpolatingSpringAnimationTest, CalculateTimeFraction002, TestSize.Level1)
 {
     auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
     auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
     auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
 
     auto renderInterpolatingSpringAnimation = std::make_shared<RSRenderInterpolatingSpringAnimationMock>(
         ANIMATION_ID, PROPERTY_ID, property, property1, property2);
@@ -445,11 +445,11 @@ HWTEST_F(RSRenderInterpolatingSpringAnimationTest, CalculateTimeFraction002, Tes
 HWTEST_F(RSRenderInterpolatingSpringAnimationTest, CalculateTimeFraction003, TestSize.Level1)
 {
     auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
     auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
     auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
 
     auto renderInterpolatingSpringAnimation = std::make_shared<RSRenderInterpolatingSpringAnimationMock>(
         ANIMATION_ID, PROPERTY_ID, property, property1, property2);
@@ -468,11 +468,11 @@ HWTEST_F(RSRenderInterpolatingSpringAnimationTest, CalculateTimeFraction003, Tes
 HWTEST_F(RSRenderInterpolatingSpringAnimationTest, CalculateVelocity001, TestSize.Level1)
 {
     auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
     auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
     auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
 
     auto renderInterpolatingSpringAnimation = std::make_shared<RSRenderInterpolatingSpringAnimationMock>(
         ANIMATION_ID, PROPERTY_ID, property, property1, property2);
@@ -523,11 +523,11 @@ HWTEST_F(RSRenderInterpolatingSpringAnimationTest, DumpAnimationInfo002, TestSiz
 HWTEST_F(RSRenderInterpolatingSpringAnimationTest, OnAnimate001, TestSize.Level1)
 {
     auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
     auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
     auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
 
     auto renderInterpolatingSpringAnimation = std::make_shared<RSRenderInterpolatingSpringAnimation>(
         ANIMATION_ID, PROPERTY_ID, property, property1, property2);
@@ -553,11 +553,11 @@ HWTEST_F(RSRenderInterpolatingSpringAnimationTest, OnAnimate001, TestSize.Level1
 HWTEST_F(RSRenderInterpolatingSpringAnimationTest, OnAnimate002, TestSize.Level1)
 {
     auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
     auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
     auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
 
     auto renderInterpolatingSpringAnimation = std::make_shared<RSRenderInterpolatingSpringAnimation>(
         ANIMATION_ID, PROPERTY_ID, property, property1, property2);
@@ -583,11 +583,11 @@ HWTEST_F(RSRenderInterpolatingSpringAnimationTest, OnAnimate002, TestSize.Level1
 HWTEST_F(RSRenderInterpolatingSpringAnimationTest, OnAnimate003, TestSize.Level1)
 {
     auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
     auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
     auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
 
     auto renderInterpolatingSpringAnimation = std::make_shared<RSRenderInterpolatingSpringAnimation>(
         ANIMATION_ID, PROPERTY_ID, property, property1, property2);
@@ -613,11 +613,11 @@ HWTEST_F(RSRenderInterpolatingSpringAnimationTest, OnAnimate003, TestSize.Level1
 HWTEST_F(RSRenderInterpolatingSpringAnimationTest, OnAnimate004, TestSize.Level1)
 {
     auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
     auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
     auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
 
     auto renderInterpolatingSpringAnimation = std::make_shared<RSRenderInterpolatingSpringAnimation>(
         ANIMATION_ID, PROPERTY_ID, property, property1, property2);

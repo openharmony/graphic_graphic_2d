@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -291,6 +291,16 @@ std::unordered_map<std::string, std::function<std::shared_ptr<TestBase>()>> Func
     // SUB_BASIC_GRAPHICS_FUNCTION_DRAWING_NDK_BRUSH_1301
     { "functionBrushSetShaderEffect",
         []() -> std::shared_ptr<TestBase> { return std::make_shared<FunctionBrushSetShaderEffect>(); } },
+    { "functionBrushSetColor4f",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<FunctionBrushSetColor4f>(); } },
+    { "functionBrushGetAlphaFloat",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<FunctionBrushGetAlphaFloat>(); } },
+    { "functionBrushGetRedFloat",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<FunctionBrushGetRedFloat>(); } },
+    { "functionBrushGetBlueFloat",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<FunctionBrushGetBlueFloat>(); } },
+    { "functionBrushGetGreenFloat",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<FunctionBrushGetGreenFloat>(); } },
     // SUB_BASIC_GRAPHICS_FUNCTION_DRAWING_NDK_CANVAS_3601
     { "functionCanvasDrawLine",
         []() -> std::shared_ptr<TestBase> { return std::make_shared<FunctionCanvasDrawLine>(); } },
@@ -492,6 +502,16 @@ std::unordered_map<std::string, std::function<std::shared_ptr<TestBase>()>> Func
     // SUB_BASIC_GRAPHICS_FUNCTION_DRAWING_NDK_PEN_2001
     { "functionPenSetShaderEffectNullTest",
         []() -> std::shared_ptr<TestBase> { return std::make_shared<FunctionPenSetShaderEffectNullTest>(); } },
+    { "functionPenSetColor4fNullTest",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<FunctionPenSetColor4fNullTest>(); } },
+    { "functionPenGetAlphaFloatNullTest",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<FunctionPenGetAlphaFloatNullTest>(); } },
+    { "functionPenGetRedFloatNullTest",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<FunctionPenGetRedFloatNullTest>(); } },
+    { "functionPenGetBlueFloatNullTest",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<FunctionPenGetBlueFloatNullTest>(); } },
+    { "functionPenGetGreenFloatNullTest",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<FunctionPenGetGreenFloatNullTest>(); } },
 
     // path effect
     { "patheffectcreatecornerpatheffect",
@@ -903,6 +923,20 @@ std::unordered_map<std::string, std::function<std::shared_ptr<TestBase>()>> Perf
     // pen
     { "pen_reset",
         []() -> std::shared_ptr<TestBase> { return std::make_shared<PenReset>(TestBase::DRAW_STYLE_COMPLEX); } },
+    { "pen_set_color4f",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<PenSetColor4f>(TestBase::DRAW_STYLE_COMPLEX); } },
+    { "pen_get_alpha_float",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<PenGetAlphaFloat>(TestBase::DRAW_STYLE_COMPLEX);
+        } },
+    { "pen_get_red_float",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<PenGetRedFloat>(TestBase::DRAW_STYLE_COMPLEX); } },
+    { "pen_get_blue_float",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<PenGetBlueFloat>(TestBase::DRAW_STYLE_COMPLEX); } },
+    { "pen_get_green_float",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<PenGetGreenFloat>(TestBase::DRAW_STYLE_COMPLEX);
+        } },
 
     // sampling_option
     { "sampling_options_create",
@@ -928,6 +962,24 @@ std::unordered_map<std::string, std::function<std::shared_ptr<TestBase>()>> Perf
     // brush
     { "brushreset",
         []() -> std::shared_ptr<TestBase> { return std::make_shared<BrushReset>(TestBase::DRAW_STYLE_COMPLEX); } },
+    { "brush_set_color4f",
+        []() -> std::shared_ptr<TestBase> { return std::make_shared<BrushSetColor4f>(TestBase::DRAW_STYLE_COMPLEX); } },
+    { "brush_get_alpha_float",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<BrushGetAlphaFloat>(TestBase::DRAW_STYLE_COMPLEX);
+        } },
+    { "brush_get_red_float",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<BrushGetRedFloat>(TestBase::DRAW_STYLE_COMPLEX);
+        } },
+    { "brush_get_blue_float",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<BrushGetBlueFloat>(TestBase::DRAW_STYLE_COMPLEX);
+        } },
+    { "brush_get_green_float",
+        []() -> std::shared_ptr<TestBase> {
+            return std::make_shared<BrushGetGreenFloat>(TestBase::DRAW_STYLE_COMPLEX);
+        } },
     // todo: test count is 10,SUB_BASIC_GRAPHICS_SPECIAL_PERFORMANCE_C_OPSWITCH_0200
     { "opsWitchTest",
         []() -> std::shared_ptr<TestBase> {

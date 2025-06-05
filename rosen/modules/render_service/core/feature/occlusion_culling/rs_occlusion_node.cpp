@@ -72,12 +72,11 @@ bool OcclusionNode::RemoveChild(const std::shared_ptr<OcclusionNode>& child)
 
 void OcclusionNode::RemoveSubTree(std::unordered_map<NodeId, std::shared_ptr<OcclusionNode>>& occlusionNodes)
 {
-    auto parentShared = parentOcNode_.lock();
-    if (parentShared == nullptr) {
-        return;
-    }
     std::shared_ptr<OcclusionNode> child = lastChild_;
-    parentShared->RemoveChild(shared_from_this());
+    auto parentShared = parentOcNode_.lock();
+    if (parentShared) {
+        parentShared->RemoveChild(shared_from_this());
+    }
     while (child) {
         auto childLeft = child->leftSibling_.lock();
         child->RemoveSubTree(occlusionNodes);
@@ -266,7 +265,9 @@ void OcclusionNode::UpdateSubTreeProp()
         CalculateNodeAllBounds();
     }
     std::shared_ptr<OcclusionNode> child = lastChild_;
-    while (child) {
+    // Update the subtree properties of the current node and its children
+    // Each child node is only updated once per frame.
+    while (child && !child->isValidInCurrentFrame_) {
         child->UpdateSubTreeProp();
         child = child->leftSibling_.lock();
     }

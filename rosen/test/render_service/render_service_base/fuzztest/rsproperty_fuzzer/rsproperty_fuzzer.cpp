@@ -232,8 +232,6 @@ void RSPropertiesFuzzTestInner03(RSProperties& properties)
     properties.SetOutlineDashWidth(widthVector);
     properties.SetOutlineDashGap(widthVector);
     properties.SetBorderStyle(style);
-    properties.SetBackgroundFilter(backgroundFilter);
-    properties.SetFilter(filter);
     properties.SetShadowColor(color1);
     properties.SetShadowOffsetX(offsetX);
     properties.SetShadowOffsetY(offsetY);

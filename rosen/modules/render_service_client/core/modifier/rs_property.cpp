@@ -15,17 +15,28 @@
 
 #include "modifier/rs_property.h"
 
+#include "sandbox_utils.h"
+#include "ui_effect/property/include/rs_ui_filter.h"
+
 #include "command/rs_node_command.h"
 #include "modifier/rs_modifier.h"
 #include "modifier/rs_modifier_manager_map.h"
-#include "sandbox_utils.h"
 #include "platform/common/rs_log.h"
-#include "ui_effect/property/include/rs_ui_filter.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace {
 constexpr int PID_SHIFT = 32;
+
+namespace {
+constexpr float DEFAULT_NEAR_ZERO_THRESHOLD = 1.0f / 256.0f;
+constexpr float FLOAT_NEAR_ZERO_COARSE_THRESHOLD = 1.0f / 256.0f;
+constexpr float FLOAT_NEAR_ZERO_MEDIUM_THRESHOLD = 1.0f / 1000.0f;
+constexpr float FLOAT_NEAR_ZERO_FINE_THRESHOLD = 1.0f / 3072.0f;
+constexpr float COLOR_NEAR_ZERO_THRESHOLD = 0.0f;
+constexpr float LAYOUT_NEAR_ZERO_THRESHOLD = 0.5f;
+constexpr float ZERO = 0.0f;
+} // namespace
 
 PropertyId GeneratePropertyId()
 {
@@ -252,12 +263,6 @@ void RSProperty<Quaternion>::UpdateToRender(const Quaternion& value, PropertyUpd
     UPDATE_TO_RENDER(RSUpdatePropertyQuaternion, value, type);
 }
 template<>
-void RSProperty<std::shared_ptr<RSFilter>>::UpdateToRender(
-    const std::shared_ptr<RSFilter>& value, PropertyUpdateType type) const
-{
-    UPDATE_TO_RENDER(RSUpdatePropertyFilter, value, type);
-}
-template<>
 void RSProperty<std::shared_ptr<RSImage>>::UpdateToRender(
     const std::shared_ptr<RSImage>& value, PropertyUpdateType type) const
 {
@@ -388,59 +393,54 @@ bool RSProperty<Vector4f>::IsValid(const Vector4f& value)
 }
 
 template<>
-RSRenderPropertyType RSAnimatableProperty<float>::GetPropertyType() const
+RSPropertyType RSAnimatableProperty<float>::GetPropertyType() const
 {
-    return RSRenderPropertyType::PROPERTY_FLOAT;
+    return RSPropertyType::FLOAT;
 }
 template<>
-RSRenderPropertyType RSAnimatableProperty<Color>::GetPropertyType() const
+RSPropertyType RSAnimatableProperty<Color>::GetPropertyType() const
 {
-    return RSRenderPropertyType::PROPERTY_COLOR;
+    return RSPropertyType::RS_COLOR;
 }
 template<>
-RSRenderPropertyType RSAnimatableProperty<Matrix3f>::GetPropertyType() const
+RSPropertyType RSAnimatableProperty<Matrix3f>::GetPropertyType() const
 {
-    return RSRenderPropertyType::PROPERTY_MATRIX3F;
+    return RSPropertyType::MATRIX3F;
 }
 template<>
-RSRenderPropertyType RSAnimatableProperty<Vector2f>::GetPropertyType() const
+RSPropertyType RSAnimatableProperty<Vector2f>::GetPropertyType() const
 {
-    return RSRenderPropertyType::PROPERTY_VECTOR2F;
+    return RSPropertyType::VECTOR2F;
 }
 template<>
-RSRenderPropertyType RSAnimatableProperty<Vector3f>::GetPropertyType() const
+RSPropertyType RSAnimatableProperty<Vector3f>::GetPropertyType() const
 {
-    return RSRenderPropertyType::PROPERTY_VECTOR3F;
+    return RSPropertyType::VECTOR3F;
 }
 template<>
-RSRenderPropertyType RSAnimatableProperty<Vector4f>::GetPropertyType() const
+RSPropertyType RSAnimatableProperty<Vector4f>::GetPropertyType() const
 {
-    return RSRenderPropertyType::PROPERTY_VECTOR4F;
+    return RSPropertyType::VECTOR4F;
 }
 template<>
-RSRenderPropertyType RSAnimatableProperty<Quaternion>::GetPropertyType() const
+RSPropertyType RSAnimatableProperty<Quaternion>::GetPropertyType() const
 {
-    return RSRenderPropertyType::PROPERTY_QUATERNION;
+    return RSPropertyType::QUATERNION;
 }
 template<>
-RSRenderPropertyType RSAnimatableProperty<std::shared_ptr<RSFilter>>::GetPropertyType() const
+RSPropertyType RSAnimatableProperty<Vector4<Color>>::GetPropertyType() const
 {
-    return RSRenderPropertyType::PROPERTY_FILTER;
+    return RSPropertyType::VECTOR4_COLOR;
 }
 template<>
-RSRenderPropertyType RSAnimatableProperty<Vector4<Color>>::GetPropertyType() const
+RSPropertyType RSAnimatableProperty<RRect>::GetPropertyType() const
 {
-    return RSRenderPropertyType::PROPERTY_VECTOR4_COLOR;
+    return RSPropertyType::RRECT;
 }
 template<>
-RSRenderPropertyType RSAnimatableProperty<RRect>::GetPropertyType() const
+RSPropertyType RSAnimatableProperty<std::vector<float>>::GetPropertyType() const
 {
-    return RSRenderPropertyType::PROPERTY_RRECT;
-}
-template<>
-RSRenderPropertyType RSAnimatableProperty<std::vector<float>>::GetPropertyType() const
-{
-    return RSRenderPropertyType::PROPERTY_SHADER_PARAM;
+    return RSPropertyType::SHADER_PARAM;
 }
 } // namespace Rosen
 } // namespace OHOS

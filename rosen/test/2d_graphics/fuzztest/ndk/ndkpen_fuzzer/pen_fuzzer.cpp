@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -29,7 +29,8 @@
 #include "drawing_shader_effect.h"
 #include "drawing_shadow_layer.h"
 #include "drawing_types.h"
-#include "draw/brush.h"
+#include "draw/pen.h"
+#include "native_color_space_manager.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -197,6 +198,43 @@ void PenFuzzTest003(const uint8_t* data, size_t size)
     OH_Drawing_PenDestroy(pen);
     OH_Drawing_PenDestroy(pen1);
 }
+
+void PenFuzzTest004(const uint8_t* data, size_t size)
+{
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    OH_Drawing_Pen* pen = OH_Drawing_PenCreate();
+    float a = GetObject<float>();
+    float r = GetObject<float>();
+    float b = GetObject<float>();
+    float g = GetObject<float>();
+    OH_NativeColorSpaceManager* colorSpaceManager =
+        OH_NativeColorSpaceManager_CreateFromName(ColorSpaceName::ADOBE_RGB);
+    OH_Drawing_PenSetColor4f(pen, a, r, g, b, colorSpaceManager);
+    OH_Drawing_PenSetColor4f(nullptr, a, r, g, b, colorSpaceManager);
+    OH_Drawing_PenSetColor4f(pen, a, r, g, b, nullptr);
+    OH_Drawing_PenGetAlphaFloat(pen, &a);
+    OH_Drawing_PenGetAlphaFloat(nullptr, &a);
+    OH_Drawing_PenGetAlphaFloat(nullptr, nullptr);
+    OH_Drawing_PenGetAlphaFloat(pen, nullptr);
+    OH_Drawing_PenGetRedFloat(pen, &r);
+    OH_Drawing_PenGetRedFloat(nullptr, &r);
+    OH_Drawing_PenGetRedFloat(nullptr, nullptr);
+    OH_Drawing_PenGetRedFloat(pen, nullptr);
+    OH_Drawing_PenGetGreenFloat(nullptr, nullptr);
+    OH_Drawing_PenGetGreenFloat(pen, nullptr);
+    OH_Drawing_PenGetGreenFloat(pen, &g);
+    OH_Drawing_PenGetGreenFloat(nullptr, &g);
+    OH_Drawing_PenGetBlueFloat(nullptr, nullptr);
+    OH_Drawing_PenGetBlueFloat(pen, &b);
+    OH_Drawing_PenGetBlueFloat(nullptr, &b);
+    OH_Drawing_PenGetBlueFloat(pen, nullptr);
+    OH_Drawing_PenDestroy(pen);
+    OH_NativeColorSpaceManager_Destroy(colorSpaceManager);
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
@@ -209,5 +247,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::Drawing::PenFuzzTest001(data, size);
     OHOS::Rosen::Drawing::PenFuzzTest002(data, size);
     OHOS::Rosen::Drawing::PenFuzzTest003(data, size);
+    OHOS::Rosen::Drawing::PenFuzzTest004(data, size);
     return 0;
 }

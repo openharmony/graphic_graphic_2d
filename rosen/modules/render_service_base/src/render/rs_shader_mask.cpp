@@ -14,12 +14,15 @@
  */
 
 #include "render/rs_shader_mask.h"
-#include "ge_ripple_shader_mask.h"
+
 #include "ge_pixel_map_shader_mask.h"
+#include "ge_ripple_shader_mask.h"
+#include "src/core/SkOpts.h"
+
 #include "common/rs_vector4.h"
-#include "render/rs_render_ripple_mask.h"
-#include "render/rs_render_pixel_map_mask.h"
 #include "platform/common/rs_log.h"
+#include "render/rs_render_pixel_map_mask.h"
+#include "render/rs_render_ripple_mask.h"
 #include "utils/rect.h"
 
 namespace OHOS {

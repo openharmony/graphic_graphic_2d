@@ -53,7 +53,7 @@ HWTEST_F(BootAnimationControllerTest, BootAnimationControllerTest_001, TestSize.
  * @tc.desc: Verify the GetBootType
  * @tc.type:FUNC
  */
-HWTEST_F(BootAnimationControllerTest, BootAnimationControllerTest_002, TestSize.Level1)
+HWTEST_F(BootAnimationControllerTest, BootAnimationControllerTest_002, TestSize.Level0)
 {
     BootAnimationController controller;
     controller.isCompatible_ = true;
@@ -66,7 +66,7 @@ HWTEST_F(BootAnimationControllerTest, BootAnimationControllerTest_002, TestSize.
  * @tc.desc: Verify the GetBootType
  * @tc.type:FUNC
  */
-HWTEST_F(BootAnimationControllerTest, BootAnimationControllerTest_003, TestSize.Level1)
+HWTEST_F(BootAnimationControllerTest, BootAnimationControllerTest_003, TestSize.Level0)
 {
     BootAnimationController controller;
     controller.isMultiDisplay_ = true;
@@ -79,7 +79,7 @@ HWTEST_F(BootAnimationControllerTest, BootAnimationControllerTest_003, TestSize.
  * @tc.desc: Verify the GetBootType
  * @tc.type:FUNC
  */
-HWTEST_F(BootAnimationControllerTest, BootAnimationControllerTest_004, TestSize.Level1)
+HWTEST_F(BootAnimationControllerTest, BootAnimationControllerTest_004, TestSize.Level0)
 {
     BootAnimationController controller;
     BootAnimationConfig config;
@@ -93,7 +93,7 @@ HWTEST_F(BootAnimationControllerTest, BootAnimationControllerTest_004, TestSize.
  * @tc.desc: Verify the GetBootType
  * @tc.type:FUNC
  */
-HWTEST_F(BootAnimationControllerTest, BootAnimationControllerTest_005, TestSize.Level1)
+HWTEST_F(BootAnimationControllerTest, BootAnimationControllerTest_005, TestSize.Level0)
 {
     BootAnimationController controller;
     BootAnimationConfig first_config;

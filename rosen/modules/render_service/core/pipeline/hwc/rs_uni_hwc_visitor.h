@@ -90,6 +90,9 @@ public:
     // DFX
     HwcDisabledReasonCollection& Statistics() { return hwcDisabledReasonCollection_; }
 
+    void IncreaseSolidLayerHwcEnableCount() { solidLayerHwcEnableCount_++; }
+    size_t GetSolidLayerHwcEnableCount() const { return solidLayerHwcEnableCount_; }
+
 private:
     friend class RSUniRenderVisitor;
     RSUniRenderVisitor& uniRenderVisitor_;
@@ -109,6 +112,8 @@ private:
     std::unordered_map<NodeId, std::vector<std::pair<NodeId, RectI>>> transparentHwcDirtyFilter_;
 
     int32_t curZOrderForHwcEnableByFilter_ = 0;
+
+    size_t solidLayerHwcEnableCount_ = 0;
 
     bool isOffscreen_ = false;
 

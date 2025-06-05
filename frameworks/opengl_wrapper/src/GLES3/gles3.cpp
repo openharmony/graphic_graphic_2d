@@ -40,7 +40,7 @@ Func GetEglApi(const char* procname)
     if (func) {
         return reinterpret_cast<Func>(func);
     };
-
+    dlclose(dlEglHandle);
     return nullptr;
 }
 static GetGlHookTableFunc g_pfnGetGlHookTable = GetEglApi<GetGlHookTableFunc>("GetHookTable");

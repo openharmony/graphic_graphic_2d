@@ -226,5 +226,24 @@ HWTEST_F(RSRenderPropertyAnimationTest, RSRenderPropertyAnimation_Constructor002
     EXPECT_NE(animation.GetOriginValue(), nullptr);
     EXPECT_NE(animation.GetLastValue(), nullptr);
 }
+
+/**
+ * @tc.name: RSRenderPropertyAnimation_DumpAnimationInfo001
+ * @tc.desc: Verify the RSRenderPropertyAnimation_DumpAnimationInfo001
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderPropertyAnimationTest, RSRenderPropertyAnimation_DumpAnimationInfo001, TestSize.Level1)
+{
+    RSRenderPropertyAnimation animation(ANIMATION_ID, PROPERTY_ID, nullptr);
+    std::string out1;
+    animation.DumpAnimationInfo(out1);
+    EXPECT_EQ(out1, "Type:RSRenderPropertyAnimation, ModifierType: INVALID");
+    auto prop = std::make_shared<RSRenderProperty<float>>();
+    prop->type_ = RSPropertyType::FLOAT;
+    animation.property_ = prop;
+    std::string out2;
+    animation.DumpAnimationInfo(out2);
+    EXPECT_NE(out2, "Type:RSRenderPropertyAnimation, ModifierType: INVALID");
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -19,6 +19,7 @@
 #include "drawing_register_font.h"
 #include "drawing_text_declaration.h"
 #include "gtest/gtest.h"
+#include "txt/platform.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -126,4 +127,40 @@ HWTEST_F(NativeDrawingRegisterFontTest, NativeDrawingRegisterFontTest005, TestSi
     OH_Drawing_DestroyFontCollection(fontCollection);
 }
 
+/*
+ * @tc.name: NativeDrawingRegisterFontTest006
+ * @tc.desc: test for unregister font
+ * @tc.type: FUNC
+ */
+HWTEST_F(NativeDrawingRegisterFontTest, NativeDrawingRegisterFontTest006, TestSize.Level1)
+{
+    OH_Drawing_FontCollection* fontCollection = OH_Drawing_CreateFontCollection();
+    uint32_t result = OH_Drawing_RegisterFont(fontCollection, "test1", existFontPath_);
+    EXPECT_EQ(result, 0);
+    result = OH_Drawing_RegisterFont(fontCollection, "test2", existFontPath_);
+    EXPECT_EQ(result, 0);
+    EXPECT_EQ(OH_Drawing_UnregisterFont(fontCollection, "test1"), 0);
+    EXPECT_EQ(OH_Drawing_UnregisterFont(fontCollection, "test2"), 0);
+    EXPECT_EQ(OH_Drawing_UnregisterFont(fontCollection, "test3"), 0);
+
+    OH_Drawing_DestroyFontCollection(fontCollection);
+}
+
+/*
+ * @tc.name: NativeDrawingRegisterFontTest007
+ * @tc.desc: test for unregister font
+ * @tc.type: FUNC
+ */
+HWTEST_F(NativeDrawingRegisterFontTest, NativeDrawingRegisterFontTest007, TestSize.Level1)
+{
+    // ERROR_NULL_FONT_COLLECTION is 8
+    const uint32_t nullFontCollection = 8;
+    OH_Drawing_FontCollection* fontCollection = OH_Drawing_CreateFontCollection();
+    EXPECT_EQ(OH_Drawing_UnregisterFont(nullptr, ""), nullFontCollection);
+    EXPECT_EQ(OH_Drawing_UnregisterFont(nullptr, nullptr), nullFontCollection);
+    EXPECT_EQ(OH_Drawing_UnregisterFont(fontCollection, nullptr), nullFontCollection);
+    EXPECT_EQ(OH_Drawing_UnregisterFont(fontCollection, ""), nullFontCollection);
+    EXPECT_EQ(OH_Drawing_UnregisterFont(fontCollection, Rosen::SPText::OHOS_THEME_FONT), nullFontCollection);
+    OH_Drawing_DestroyFontCollection(fontCollection);
+}
 } // namespace OHOS

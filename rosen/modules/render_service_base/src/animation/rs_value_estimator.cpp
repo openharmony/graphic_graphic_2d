@@ -29,37 +29,6 @@ Quaternion RSValueEstimator::Estimate(float fraction,
     return value.Slerp(endValue, fraction);
 }
 
-std::shared_ptr<RSFilter> RSValueEstimator::Estimate(
-    float fraction, const std::shared_ptr<RSFilter>& startValue, const std::shared_ptr<RSFilter>& endValue)
-{
-    if ((startValue == nullptr || !startValue->IsValid()) && (endValue == nullptr || !endValue->IsValid())) {
-        return endValue;
-    }
-
-    if (startValue == nullptr || !startValue->IsValid()) {
-        if (endValue->GetFilterType() == RSFilter::MATERIAL) {
-            auto material = std::static_pointer_cast<RSMaterialFilter>(endValue)->TransformFilter(fraction);
-            return material;
-        }
-        return endValue * fraction;
-    }
-
-    if (endValue == nullptr || !endValue->IsValid()) {
-        if (startValue->GetFilterType() == RSFilter::MATERIAL) {
-            auto material =
-                std::static_pointer_cast<RSMaterialFilter>(startValue)->TransformFilter(1.0f - fraction);
-            return material;
-        }
-        return startValue * (1.0f - fraction);
-    }
-
-    if (startValue->GetFilterType() == endValue->GetFilterType()) {
-        return startValue * (1.0f - fraction) + endValue * fraction;
-    } else {
-        return (fraction < 0.5f) ? startValue * (1.0f - fraction * 2) : endValue * (fraction * 2 - 1.0f);
-    }
-}
-
 template<>
 float RSCurveValueEstimator<float>::EstimateFraction(const std::shared_ptr<RSInterpolator>& interpolator)
 {

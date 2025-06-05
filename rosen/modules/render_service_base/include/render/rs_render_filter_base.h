@@ -18,6 +18,7 @@
 #include "draw/canvas.h"
 #include "effect/runtime_shader_builder.h"
 #include "modifier/rs_render_property.h"
+#include "render/rs_filter.h"
 #include "transaction/rs_marshalling_helper.h"
 namespace OHOS {
 namespace Rosen {
