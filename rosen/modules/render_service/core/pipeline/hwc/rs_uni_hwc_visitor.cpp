@@ -954,7 +954,7 @@ void RSUniHwcVisitor::UpdateHwcNodeRectInSkippedSubTree(const RSRenderNode& root
             continue;
         }
         RectI clipRect;
-        Drawing::Matrix matrix;
+        Drawing::Matrix matrix = rootNode.GetRenderProperties().GetBoundsGeometry()->GetAbsMatrix();
         UpdateHwcNodeClipRectAndMatrix(hwcNodePtr, rootNode, clipRect, matrix);
         auto surfaceHandler = hwcNodePtr->GetMutableRSSurfaceHandler();
         auto& properties = hwcNodePtr->GetMutableRenderProperties();
@@ -1074,7 +1074,7 @@ void RSUniHwcVisitor::UpdateHwcNodeClipRectAndMatrix(const std::shared_ptr<RSSur
     clipRect.top_ = static_cast<int>(std::floor(absClipRect.GetTop()));
     clipRect.width_ = static_cast<int>(std::ceil(absClipRect.GetRight() - clipRect.left_));
     clipRect.height_ = static_cast<int>(std::ceil(absClipRect.GetBottom() - clipRect.top_));
-    matrix = rootNodeAbsMatrix.PreConcat(accumulatedMatrix);
+    matrix.PreConcat(accumulatedMatrix);
 }
 
 void RSUniHwcVisitor::UpdatePrepareClip(RSRenderNode& node)
