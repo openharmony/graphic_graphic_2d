@@ -379,6 +379,7 @@ void RSUniHwcVisitor::ProcessSolidLayerEnabled(RSSurfaceRenderNode& node)
     }
     // No background color available
     if (static_cast<uint8_t>(appBackgroundColor.GetAlpha()) < MAX_ALPHA) {
+        auto parentNode = node.GetParent().lock();
         RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " parentId:%" PRIu64 " disabled by background "
             "color not found", node.GetName().c_str(), node.GetId(), parentNode ? parentNode->GetId() : 0);
         RS_LOGD("solidLayer: disabled by background color not found: %{public}s", node.GetName().c_str());
@@ -991,12 +992,12 @@ void RSUniHwcVisitor::UpdateHwcNodeRectInSkippedSubTree(const RSRenderNode& root
         }
         auto originalMatrix = geoPtr->GetMatrix();
         auto matrix = Drawing::Matrix();
-        if (!FindRootAndUpdateMatrix(parent, matrix, rootNode)) {
-            continue;
-        }
         auto parent = hwcNodePtr->GetCurCloneNodeParent().lock();
         if (parent == nullptr) {
             parent = hwcNodePtr->GetParent().lock();
+        }
+        if (!FindRootAndUpdateMatrix(parent, matrix, rootNode)) {
+            continue;
         }
         if (parent) {
             const auto& parentGeoPtr = parent->GetRenderProperties().GetBoundsGeometry();
