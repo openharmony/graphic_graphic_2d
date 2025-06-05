@@ -50,7 +50,7 @@ HWTEST_F(OH_Drawing_FontMgrTest, OH_Drawing_FontMgrTest002, TestSize.Level1)
     OH_Drawing_FontMgr *mgr = OH_Drawing_FontMgrCreate();
     EXPECT_NE(mgr, nullptr);
     int count = OH_Drawing_FontMgrGetFamilyCount(mgr);
-    EXPECT_EQ(count, 9);
+    EXPECT_EQ(count, 10);
 
     char *familyName = OH_Drawing_FontMgrGetFamilyName(mgr, 0);
     std::string result = { 0x48, 0x61, 0x72, 0x6d, 0x6f, 0x6e, 0x79, 0x4f, 0x53, 0x2d, 0x53, 0x61, 0x6e, 0x73 };

@@ -81,7 +81,7 @@ HWTEST_F(SkFontMgrOhosTest, GetFontFullName001, TestSize.Level1)
 HWTEST_F(SkFontMgrOhosTest, CountFamilies001, TestSize.Level1)
 {
     int count = m_fontMgrOhosImpl->countFamilies();
-    ASSERT_EQ(count, 9);
+    ASSERT_EQ(count, 10);
 }
 
 /**
@@ -120,7 +120,7 @@ HWTEST_F(SkFontMgrOhosTest, CreateStyleSet001, TestSize.Level1)
     SkFontStyleSet* styleSet = m_fontMgrOhosImpl->createStyleSet(9);
 #endif
     ASSERT_NE(styleSet, nullptr);
-    ASSERT_EQ(styleSet->count(), 0);
+    ASSERT_EQ(styleSet->count(), 1);
 #ifndef USE_M133_SKIA
     delete styleSet;
 #endif
