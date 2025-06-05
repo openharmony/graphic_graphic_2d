@@ -2198,4 +2198,46 @@ HWTEST_F(RSUifirstManagerTest, CheckHasTransAndFilter002, TestSize.Level1)
     result = uifirstManager_.CheckHasTransAndFilter(*parentNode);
     ASSERT_EQ(result, true);
 }
+
+/**
+ * @tc.name: IsArkTsCardCache
+ * @tc.desc: Test if ArkTsCard node should enable uifirst
+ * @tc.type: FUNC
+ * @tc.require: issueICCSTG
+*/
+HWTEST_F(RSUifirstManagerTest, IsArkTsCardCache, TestSize.Level1)
+{
+    RSSurfaceRenderNode node(100);
+    RSDisplayNodeConfig displayConfig;
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(10, displayConfig);
+    node.SetAncestorDisplayNode(displayNode);
+
+    // leash window doesn't
+    uifirstManager_.SetUiFirstType(static_cast<int>(UiFirstCcmType::SINGLE));
+    node.nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
+    node.name_ = "ArkTSCardNode";
+    EXPECT_FALSE(RSUifirstManager::IsArkTsCardCache(node, true));
+
+    // uifirst type doesn't match
+    uifirstManager_.SetUiFirstType(static_cast<int>(UiFirstCcmType::MULTI));
+    node.nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
+    node.name_ = "ArkTSCardNode";
+    EXPECT_FALSE(RSUifirstManager::IsArkTsCardCache(node, true));
+
+    // node name doesn't match
+    uifirstManager_.SetUiFirstType(static_cast<int>(UiFirstCcmType::SINGLE));
+    node.nodeType_ = RSSurfaceNodeType::ABILITY_COMPONENT_NODE;
+    node.name_ = "TestNode";
+    EXPECT_FALSE(RSUifirstManager::IsArkTsCardCache(node, true));
+
+    uifirstManager_.entryViewNodeId_ = 1;
+    uifirstManager_.negativeScreenNodeId_ = 1;
+    node.instanceRootNodeId_ = 1;
+    node.shouldPaint_ = true;
+
+    uifirstManager_.SetUiFirstType(static_cast<int>(UiFirstCcmType::SINGLE));
+    node.nodeType_ = RSSurfaceNodeType::ABILITY_COMPONENT_NODE;
+    node.name_ = "ArkTSCardNode";
+    EXPECT_TRUE(RSUifirstManager::IsArkTsCardCache(node, true));
+}
 }
