@@ -186,18 +186,18 @@ void RSTransactionProxy::FlushImplicitTransaction(uint64_t timestamp, const std:
     transactionDataIndex_ = transactionData->GetIndex();
 }
 
-void RSTransactionProxy::ReportUiSkipEvent(const std::string& ability, uint64_t nowMs, uint64_t lastTimestamp)
+void RSTransactionProxy::ReportUiSkipEvent(const std::string& ability, int64_t nowMs, int64_t lastTimestamp)
 {
     static uint32_t lastCount = 0;
     uint32_t nowCount = uiSkipCount_;
     int64_t duration = (nowMs > lastTimestamp) ? nowMs - lastTimestamp : 0;
     if (duration > 60 * 1000 && nowCount > lastCount && nowCount - lastCount > 100) { // 60 * 1000 ms, gt 100 frame
-        int32_t count = nowCount - lastCount;
+        int32_t count = static_cast<int32_t>(nowCount - lastCount);
         RS_LOGE_LIMIT(__func__, __line__, "ui_skip count:%{public}d", count);
 #ifdef ROSEN_OHOS
         using namespace OHOS::HiviewDFX;
         HiSysEventWrite(HiSysEvent::Domain::GRAPHIC, "RS_UI_SKIP_ANOMALY",
-            HiSysEvent::EventType::FAULT, "ABILITY", ability, "COUNT", count, "DURATION", duration);
+            HiSysEvent::EventType::STATISTIC, "ABILITY", ability, "COUNT", count, "DURATION", duration);
 #endif
     }
     lastCount = nowCount;

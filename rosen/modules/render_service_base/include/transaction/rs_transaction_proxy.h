@@ -81,7 +81,7 @@ public:
 
     void SetParentPid(const int32_t parentPid);
 
-    void ReportUiSkipEvent(const std::string& ability, uint64_t nowMs, uint64_t lastTimestamp);
+    void ReportUiSkipEvent(const std::string& ability, int64_t nowMs, int64_t lastTimestamp);
     uint32_t GetTransactionDataIndex() const;
 
     bool IsEmpty() const;

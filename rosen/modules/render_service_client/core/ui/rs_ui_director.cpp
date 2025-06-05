@@ -224,7 +224,7 @@ void RSUIDirector::GoForeground(bool isTextureExport)
 void RSUIDirector::ReportUiSkipEvent(const std::string& abilityName)
 {
     auto nowTime = std::chrono::system_clock::now().time_since_epoch();
-    uint64_t nowMs = std::chrono::duration_cast<std::chrono::milliseconds>(nowTime).count();
+    int64_t nowMs = std::chrono::duration_cast<std::chrono::milliseconds>(nowTime).count();
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr && nowMs - lastUiSkipTimestamp_ > 1000) { // 1000 ms
         transactionProxy->ReportUiSkipEvent(abilityName, nowMs, lastUiSkipTimestamp_);
