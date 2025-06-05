@@ -50,7 +50,7 @@ public:
             return SceneId::EXIT_RECENT_2_HOME_ANI;
         } else if (sceneId == "CLEAR_1_RECENT_ANI") {
             return SceneId::CLEAR_1_RECENT_ANI;
-        } else if (sceneId == "CLEAR_ALL_RECENT_ANI") {
+        } else if (sceneId == "CLEAR_All_RECENT_ANI") {
             return SceneId::CLEAR_ALL_RECENT_ANI;
         } else if (sceneId == "AOD_TO_LAUNCHER") {
             return SceneId::AOD_TO_LAUNCHER;
