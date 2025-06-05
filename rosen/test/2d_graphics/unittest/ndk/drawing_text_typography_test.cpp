@@ -4659,7 +4659,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyVerticalTest001, TestSi
     EXPECT_NO_FATAL_FAILURE(OH_Drawing_SetTypographyVerticalAlignment(nullptr,
         OH_Drawing_TextVerticalAlignment::TEXT_VERTICAL_ALIGNMENT_BOTTOM));
 }
- 
+
 OH_Drawing_Typography* PrepareParagraphForVerticalAlign(OH_Drawing_TextVerticalAlignment align, bool addPlaceholder,
     OH_Drawing_PlaceholderVerticalAlignment placeholderAlign =
     OH_Drawing_PlaceholderVerticalAlignment::ALIGNMENT_ABOVE_BASELINE)
@@ -4668,7 +4668,7 @@ OH_Drawing_Typography* PrepareParagraphForVerticalAlign(OH_Drawing_TextVerticalA
     OH_Drawing_SetTypographyVerticalAlignment(typoStyle, align);
     OH_Drawing_TypographyCreate* handler =
         OH_Drawing_CreateTypographyHandler(typoStyle, OH_Drawing_CreateFontCollection());
- 
+
     if (addPlaceholder) {
         OH_Drawing_PlaceholderSpan placeholderSpan{20, 20, placeholderAlign, TEXT_BASELINE_IDEOGRAPHIC, 0};
         OH_Drawing_TypographyHandlerAddPlaceholder(handler, &placeholderSpan);
@@ -4696,7 +4696,7 @@ OH_Drawing_Typography* PrepareParagraphForVerticalAlign(OH_Drawing_TextVerticalA
     OH_Drawing_TypographyPaint(typography, cCanvas, position[0], position[1]);
     return typography;
 }
- 
+
 bool CompareRunBoundsBetweenTwoParagraphs(OH_Drawing_Typography* defaultParagraph,
     OH_Drawing_Typography* comparedParagraph)
 {
@@ -4719,7 +4719,7 @@ bool CompareRunBoundsBetweenTwoParagraphs(OH_Drawing_Typography* defaultParagrap
     return skia::textlayout::nearlyEqual(ascent, comparedAscent) &&
         skia::textlayout::nearlyEqual(descent, comparedDescent);
 }
- 
+
 bool ComparePlaceholderRectsBetweenTwoParagraphs(OH_Drawing_Typography* defaultParagraph,
     OH_Drawing_Typography* comparedParagraph)
 {
@@ -4728,8 +4728,7 @@ bool ComparePlaceholderRectsBetweenTwoParagraphs(OH_Drawing_Typography* defaultP
     return skia::textlayout::nearlyEqual(OH_Drawing_GetTopFromTextBox(defaultPlaceholderRect, 0),
         OH_Drawing_GetTopFromTextBox(comparedPlaceholderRect, 0));
 }
- 
- 
+
 /*
  * @tc.name: OH_Drawing_TypographyVerticalTest002
  * @tc.desc: Test for vertical align
