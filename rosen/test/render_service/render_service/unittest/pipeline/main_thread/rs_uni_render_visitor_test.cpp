@@ -1035,8 +1035,7 @@ HWTEST_F(RSUniRenderVisitorTest, CollectSubTreeAndProcessOcclusion001, TestSize.
     rsUniRenderVisitor->InitializeOcclusionHandler(*surfaceNode);
     ASSERT_NE(rsUniRenderVisitor->curOcclusionHandler_, nullptr);
     rsUniRenderVisitor->curOcclusionHandler_->rootNodeId_ = surfaceNode->GetId();
-    
-    
+
     auto rsContext = std::make_shared<RSContext>();
     auto canvasNodeId = surfaceNode->GetId();
     ++canvasNodeId;
