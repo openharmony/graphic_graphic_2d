@@ -14,6 +14,7 @@
  */
 
 #include "gtest/gtest.h"
+#include "pipeline/rs_render_thread.h"
 #include "ui/rs_texture_export.h"
 #include "limit_number.h"
 #include "ui/rs_root_node.h"
@@ -49,8 +50,10 @@ HWTEST_F(RSTextureExportTest, DoTextureExport001, TestSize.Level1)
 {
     bool isRenderServiceNode = false;
     std::shared_ptr<RSNode> rootNode = std::make_shared<RSNode>(isRenderServiceNode);
+    rootNode->isTextureExportNode_ = false;
     SurfaceId surfaceId = 0;
     RSTextureExport text(rootNode, surfaceId);
+    RSRenderThread::Instance().thread_ = std::make_unique<std::thread>([]{});
     bool res = text.DoTextureExport();
     ASSERT_TRUE(res == true);
 }
@@ -64,9 +67,11 @@ HWTEST_F(RSTextureExportTest, DoTextureExport002, TestSize.Level1)
 {
     bool isRenderServiceNode = false;
     std::shared_ptr<RSNode> rootNode = std::make_shared<RSNode>(isRenderServiceNode);
+    rootNode->isTextureExportNode_ = true;
+    RSUINodeType type = rootNode->GetType();
+    type = RSUINodeType::ROOT_NODE;
     SurfaceId surfaceId = 0;
     RSTextureExport text(rootNode, surfaceId);
-    rootNode->isTextureExportNode_ = true;
     bool res = text.DoTextureExport();
     ASSERT_TRUE(res == true);
 }
@@ -79,11 +84,35 @@ HWTEST_F(RSTextureExportTest, DoTextureExport002, TestSize.Level1)
 HWTEST_F(RSTextureExportTest, DoTextureExport003, TestSize.Level1)
 {
     bool isRenderServiceNode = false;
-    std::shared_ptr<RSRootNode> RSNode = std::make_shared<RSRootNode>(isRenderServiceNode);
+    std::shared_ptr<RSNode> rootNode = std::make_shared<RSNode>(isRenderServiceNode);
+    rootNode->isTextureExportNode_ = true;
+    RSUINodeType type = rootNode->GetType();
+    type = RSUINodeType::UNKNOW;
     SurfaceId surfaceId = 0;
-    RSTextureExport text(RSNode, surfaceId);
+    RSTextureExport text(rootNode, surfaceId);
     bool res = text.DoTextureExport();
     ASSERT_TRUE(res == true);
+}
+
+/**
+ * @tc.name: UpdateBufferInfo
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSTextureExportTest, UpdateBufferInfo, TestSize.Level1)
+{
+    bool isRenderServiceNode = false;
+    std::shared_ptr<RSNode> rootNode = std::make_shared<RSNode>(isRenderServiceNode);
+    rootNode->isTextureExportNode_ = false;
+    SurfaceId surfaceId = 0;
+    RSTextureExport text(rootNode, surfaceId);
+    float x = 1.0;
+    float y = 2.0;
+    float width = 3.0;
+    float height = 4.0;
+    text.virtualRootNode_ = RSRootNode::Create(false, true);
+    text.UpdateBufferInfo(x, y, width, height);
+    ASSERT_NE(rootNode, nullptr);
 }
 
 /**

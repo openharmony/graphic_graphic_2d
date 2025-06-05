@@ -632,6 +632,11 @@ bool RSSystemProperties::GetTimeVsyncDisabled()
     return false;
 }
 
+bool RSSystemProperties::GetTextureExportDFXEnabled()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetHybridRenderEnabled()
 {
     return false;

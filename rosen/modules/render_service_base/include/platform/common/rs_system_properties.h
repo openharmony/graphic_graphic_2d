@@ -350,6 +350,7 @@ public:
     static bool GetNodeGroupGroupedByUIEnabled();
     static bool GetTimeVsyncDisabled();
     static void SetDebugFmtTraceEnabled(bool flag);
+    static bool GetTextureExportDFXEnabled();
     static bool GetDebugFmtTraceEnabled();
 
     static bool GetHybridRenderEnabled();

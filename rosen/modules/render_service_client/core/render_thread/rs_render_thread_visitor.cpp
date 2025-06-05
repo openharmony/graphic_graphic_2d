@@ -564,6 +564,21 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
     fpainter.Draw(*canvas_);
     FrameCollector::GetInstance().MarkFrameEvent(FrameEventType::ReleaseEnd);
     FrameCollector::GetInstance().MarkFrameEvent(FrameEventType::FlushStart);
+
+    canvas_->Restore();
+    if (RSSystemProperties::GetTextureExportDFXEnabled()) {
+        constexpr auto COLOR = Drawing::Color::COLOR_BLUE;
+        constexpr auto ALPHA = 0.3f;
+
+        auto dstRect = Drawing::Rect(0, 0, bufferWidth, bufferHeight);
+        Drawing::Brush rectBrush;
+        rectBrush.SetColor(COLOR);
+        rectBrush.SetAntiAlias(true);
+        rectBrush.SetAlphaF(ALPHA);
+        canvas_->AttachBrush(rectBrush);
+        canvas_->DrawRect(dstRect);
+        canvas_->DetachBrush();
+    }
 #endif
 
     RS_TRACE_BEGIN(ptr->GetName() + " rsSurface->FlushFrame");
@@ -588,7 +603,6 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
 #endif
     RS_TRACE_END();
 
-    canvas_->Restore();
     canvas_ = nullptr;
     isIdle_ = true;
 }

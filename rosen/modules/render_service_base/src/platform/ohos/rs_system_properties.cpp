@@ -1392,6 +1392,13 @@ bool RSSystemProperties::GetTimeVsyncDisabled()
     return timeVsyncDisabled;
 }
 
+bool RSSystemProperties::GetTextureExportDFXEnabled()
+{
+    static bool textureexportDFXEnabled =
+        std::atoi((system::GetParameter("persist.rosen.textureexportdfx.enabled", "0")).c_str()) != 0;
+    return textureexportDFXEnabled;
+}
+
 bool RSSystemProperties::GetHybridRenderEnabled()
 {
     return GetHybridRenderSystemEnabled() || GetHybridRenderCcmEnabled();
