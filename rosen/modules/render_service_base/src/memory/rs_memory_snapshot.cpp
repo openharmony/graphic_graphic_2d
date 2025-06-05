@@ -52,7 +52,7 @@ void MemorySnapshot::RemoveCpuMemory(const pid_t pid, const size_t size)
     std::lock_guard<std::mutex> lock(mutex_);
     auto it = appMemorySnapshots_.find(pid);
     if (it != appMemorySnapshots_.end()) {
-        if (it->second.cpuMemory > size) {
+        if (it->second.cpuMemory >= size) {
             it->second.cpuMemory -= size;
         }
     }
@@ -140,6 +140,7 @@ void MemorySnapshot::FillMemorySnapshot(std::unordered_map<pid_t, MemorySnapshot
         auto it = appMemorySnapshots_.find(*pPid);
         if (it != appMemorySnapshots_.end()) {
             it->second.bundleName = infoMap[it->first].bundleName;
+            it->second.uid = infoMap[it->first].uid;
         }
         pPid = dirtyMemorySnapshots_.erase(pPid);
     }

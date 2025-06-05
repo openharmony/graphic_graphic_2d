@@ -74,6 +74,7 @@ namespace {
 const std::string KERNEL_CONFIG_PATH = "/system/etc/hiview/kernel_leak_config.json";
 const std::string GPUMEM_INFO_PATH = "/proc/gpumem_process_info";
 const std::string EVENT_ENTER_RECENTS = "GESTURE_TO_RECENTS";
+const std::string GPU_RS_LEAK = "ResourceLeak(GpuRsLeak)";
 constexpr uint32_t MEMUNIT_RATE = 1024;
 constexpr uint32_t MEMORY_REPORT_INTERVAL = 24 * 60 * 60 * 1000; // Each process can report at most once a day.
 constexpr uint32_t FRAME_NUMBER = 10; // Check memory every ten frames.
@@ -575,7 +576,8 @@ void MemoryManager::DumpMemorySnapshot(DfxString& log)
     std::unordered_map<pid_t, MemorySnapshotInfo> memorySnapshotInfo;
     MemorySnapshot::Instance().GetMemorySnapshot(memorySnapshotInfo);
     for (auto& [pid, snapshotInfo] : memorySnapshotInfo) {
-        std::string infoStr = "pid: " + std::to_string(pid) + " " + snapshotInfo.bundleName +
+        std::string infoStr = "pid: " + std::to_string(pid) +
+            ", uid: " + std::to_string(snapshotInfo.uid) + ", bundleName: " + snapshotInfo.bundleName +
             ", cpu: " + std::to_string(snapshotInfo.cpuMemory / MEMUNIT_RATE) +
             "KB, gpu: " + std::to_string(snapshotInfo.gpuMemory / MEMUNIT_RATE) + "KB";
         log.AppendFormat("%s\n", infoStr.c_str());
@@ -739,30 +741,30 @@ void MemoryManager::FillMemorySnapshot()
     std::unordered_map<pid_t, MemorySnapshotInfo> infoMap;
     for (auto& pid : pidList) {
         MemorySnapshotInfo& mInfo = infoMap[pid];
-        int32_t uid;
         auto& appMgrClient = RSSingleton<AppExecFwk::AppMgrClient>::GetInstance();
-        appMgrClient.GetBundleNameByPid(pid, mInfo.bundleName, uid);
+        appMgrClient.GetBundleNameByPid(pid, mInfo.bundleName, mInfo.uid);
     }
     MemorySnapshot::Instance().FillMemorySnapshot(infoMap);
 }
 
-static void KillProcessByPid(const pid_t pid, const std::string& processName, const std::string& reason)
+static void KillProcessByPid(const pid_t pid, const MemorySnapshotInfo& info, const std::string& reason)
 {
 #ifdef RS_ENABLE_UNI_RENDER
     if (pid > 0) {
         int32_t eventWriteStatus = -1;
         AAFwk::ExitReason killReason{AAFwk::Reason::REASON_RESOURCE_CONTROL, KILL_PROCESS_TYPE, reason};
         int32_t ret = (int32_t)AAFwk::AbilityManagerClient::GetInstance()->KillProcessWithReason(pid, killReason);
-        if (ret != ERR_OK) {
+        if (ret == ERR_OK) {
             RS_TRACE_NAME("KillProcessByPid HiSysEventWrite");
             eventWriteStatus = HiSysEventWrite(HiviewDFX::HiSysEvent::Domain::FRAMEWORK, "PROCESS_KILL",
-                HiviewDFX::HiSysEvent::EventType::FAULT, "PID", pid, "PROCESS_NAME", processName,
-                "MSG", reason, "FOREGROUND", false);
+                HiviewDFX::HiSysEvent::EventType::FAULT, "PID", pid, "PROCESS_NAME", info.bundleName,
+                "MSG", reason, "FOREGROUND", false, "UID", info.uid, "BUNDLE_NAME", info.bundleName,
+                "REASON", GPU_RS_LEAK);
         }
         // To prevent the print from being filtered, use RS_LOGE.
         RS_LOGE("KillProcessByPid, pid: %{public}d, process name: %{public}s, "
             "killStatus: %{public}d, eventWriteStatus: %{public}d, reason: %{public}s",
-            static_cast<int32_t>(pid), processName.c_str(), ret, eventWriteStatus, reason.c_str());
+            static_cast<int32_t>(pid), info.bundleName.c_str(), ret, eventWriteStatus, reason.c_str());
     }
 #endif
 }
@@ -797,12 +799,11 @@ void MemoryManager::MemoryOverflow(pid_t pid, size_t overflowMemory, bool isGpu)
         + std::to_string(info.TotalMemory()) + "]";
 
     if (info.bundleName.empty()) {
-        int32_t uid;
         auto& appMgrClient = RSSingleton<AppExecFwk::AppMgrClient>::GetInstance();
-        appMgrClient.GetBundleNameByPid(pid, info.bundleName, uid);
+        appMgrClient.GetBundleNameByPid(pid, info.bundleName, info.uid);
     }
     MemoryOverReport(pid, info, RSEventName::RENDER_MEMORY_OVER_ERROR);
-    KillProcessByPid(pid, info.bundleName, reason);
+    KillProcessByPid(pid, info, reason);
     {
         std::lock_guard<std::mutex> lock(mutex_);
         processKillReportPidSet_.emplace(pid);
