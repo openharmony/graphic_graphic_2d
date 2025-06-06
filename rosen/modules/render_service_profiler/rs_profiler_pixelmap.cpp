@@ -769,7 +769,7 @@ Media::PixelMap* RSProfiler::UnmarshalPixelMapNstd(Parcel& parcel,
     PIXEL_MAP_ERR error;
     auto map = Media::PixelMapRecordParcel::StartUnmarshalling(parcel, info, memory, error);
 
-    if (IsReadMode() || IsReadEmulationMode()) {
+    if ((IsReadMode() || IsReadEmulationMode()) && IsParcelMock(parcel)) {
         size_t skipBytes = 0u;
         if (PixelMapStorage::Pull(id, info, memory, skipBytes)) {
             parcel.SkipBytes(skipBytes);
