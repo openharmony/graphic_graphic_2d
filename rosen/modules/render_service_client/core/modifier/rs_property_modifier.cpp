@@ -422,7 +422,7 @@ void RSQuaternionModifier::Apply(const std::shared_ptr<RSObjAbsGeometry>& geomet
 
 void RSRotationModifier::Apply(const std::shared_ptr<RSObjAbsGeometry>& geometry)
 {
-     if (geometry == nullptr) {
+    if (geometry == nullptr) {
         ROSEN_LOGE("RSRotationModifier::Apply geometry is null");
         return;
     }
