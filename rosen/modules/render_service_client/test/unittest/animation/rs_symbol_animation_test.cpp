@@ -146,6 +146,7 @@ HWTEST_F(RSSymbolAnimationTest, SetSymbolAnimation003, TestSize.Level1)
      * @tc.steps: step2.1 test TEXT FLip animation
      */
     symbolAnimationConfig->effectStrategy = Drawing::DrawingEffectStrategy::TEXT_FLIP;
+    symbolAnimationConfig->animationStart = true;
     bool flag1 = symbolAnimation.SetSymbolAnimation(symbolAnimationConfig);
     EXPECT_FALSE(flag1);
 }
@@ -1495,6 +1496,7 @@ HWTEST_F(RSSymbolAnimationTest, SetTextFlipAnimation001, TestSize.Level1)
      * @tc.steps: step2.1 test Text FLip animation with Invalid animation parameters
      */
     symbolAnimationConfig->effectStrategy = Drawing::DrawingEffectStrategy::TEXT_FLIP;
+    symbolAnimationConfig->animationStart = true;
     bool flag = symbolAnimation.SetTextFlipAnimation(symbolAnimationConfig);
     EXPECT_FALSE(flag);
 
@@ -1541,6 +1543,7 @@ HWTEST_F(RSSymbolAnimationTest, SetTextFlipAnimation002, TestSize.Level1)
     symbolAnimationConfig->effectElement.height = 40; // 40 height of path
     symbolAnimationConfig->effectElement.path = path;
     symbolAnimationConfig-> effectElement.offset = offset;
+    symbolAnimationConfig->animationStart = true;
     /**
      * @tc.steps: step2.1 test Text FLip animation with nullptr node
      */
@@ -1562,6 +1565,27 @@ HWTEST_F(RSSymbolAnimationTest, SetTextFlipAnimation002, TestSize.Level1)
     bool flag4 = symbolAnimation.SetTextFlipAnimation(symbolAnimationConfig);
     EXPECT_TRUE(flag4);
     NotifyStartAnimation();
+}
+
+/**
+ * @tc.name: SetTextFlipTestStartFalse
+ * @tc.desc: Test text flip animation with animationStart is false
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSymbolAnimationTest, SetTextFlipTestStartFalse, TestSize.Level1)
+{
+    /**
+     * @tc.steps: step1. init data
+     */
+    auto symbolAnimation = RSSymbolAnimation();
+    symbolAnimation.SetNode(rootNode);
+    auto symbolAnimationConfig = std::make_shared<TextEngine::SymbolAnimationConfig>();
+    /**
+     * @tc.steps: step2.1 test Text FLip animation with animationStart is false
+     */
+    symbolAnimationConfig->animationStart = false;
+    bool flag = symbolAnimation.SetTextFlipAnimation(symbolAnimationConfig);
+    EXPECT_TRUE(flag);
 }
 
 /**

@@ -143,4 +143,22 @@ HWTEST_F(OHTextAnimationConfigTest, SetColor, TestSize.Level1)
     EXPECT_TRUE(color == textEffect.color_);
 }
 
+/*
+ * @tc.name: ClearAllTextAnimation
+ * @tc.desc: Test ClearAllTextAnimation with invalid and valid animationFunc_
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHTextAnimationConfigTest, ClearAllTextAnimation, TestSize.Level1)
+{
+    // test animationFunc_ is nullptr
+    SPText::TextAnimationConfig textEffect;
+    textEffect.ClearAllTextAnimation();
+    EXPECT_EQ(textEffect.animationFunc_, nullptr);
+   
+    // test animationFunc_ not is nullptr
+    textEffect.SetAnimation(&SetSymbolAnimation);
+    textEffect.ClearAllTextAnimation();
+    EXPECT_EQ(textEffect.animationFunc_, nullptr);
+}
+
 } // namespace OHOS::Rosen

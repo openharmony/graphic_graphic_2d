@@ -512,6 +512,12 @@ bool RSSymbolAnimation::SetPublicAnimation(
 bool RSSymbolAnimation::SetTextFlipAnimation(
     const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig)
 {
+    if (!symbolAnimationConfig->animationStart) {
+        ROSEN_LOGD("Clear all text animation");
+        std::lock_guard<std::mutex> lock(rsNode_->childrenNodeLock_);
+        rsNode_->canvasNodesListMap_.clear();
+        return true;
+    }
     if (symbolAnimationConfig->parameters.size() < PROPERTIES) {
         ROSEN_LOGE("Invalid animation parameters of text flip, parameters.size: %{public}zu ",
             symbolAnimationConfig->parameters.size());

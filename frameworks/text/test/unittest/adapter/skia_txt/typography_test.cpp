@@ -984,13 +984,15 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest024, TestSize.Level
     AdapterTxt::Typography* typographyImpl = static_cast<AdapterTxt::Typography*>(typography.get());
     typographyImpl->paragraph_.swap(paragraphTemp);
     EXPECT_EQ(typography->GetTextBlobRecordInfo().size(), 0);
-    typography->SetTextEffectState(true);
-    EXPECT_FALSE(typography->HasEnabledTextEffect());
+    auto animationFunc = typographyImpl->GetAnimation();
+    EXPECT_EQ(animationFunc, nullptr);
+    typography->SetSkipTextBlobDrawing(true);
+    EXPECT_FALSE(typography->HasSkipTextBlobDrawing());
 
     typographyImpl->paragraph_.swap(paragraphTemp);
     EXPECT_NE(typography->GetTextBlobRecordInfo().size(), 0);
-    typography->SetTextEffectState(true);
-    EXPECT_TRUE(typography->HasEnabledTextEffect());
+    typography->SetSkipTextBlobDrawing(true);
+    EXPECT_TRUE(typography->HasSkipTextBlobDrawing());
     typography->SetTextEffectAssociation(true);
     EXPECT_TRUE(typography->GetTextEffectAssociation());
 }

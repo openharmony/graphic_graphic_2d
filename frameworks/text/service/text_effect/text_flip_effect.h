@@ -19,6 +19,7 @@
 #include <functional>
 #include <vector>
 
+#include "rosen_text/symbol_animation_config.h"
 #include "text_effect.h"
 
 namespace OHOS::Rosen {
@@ -45,7 +46,7 @@ public:
     void RemoveTypography(const std::vector<TypographyConfig>& typographyConfigs) override;
     int UpdateTypography(std::vector<std::pair<TypographyConfig, TypographyConfig>>& typographyConfigs) override;
     void StartEffect(Drawing::Canvas* canvas, double x, double y) override;
-    void StopEffect(Drawing::Canvas* canvas, double x, double y) override;
+    void StopEffect() override;
 
 private:
     bool CheckInputParams(const std::unordered_map<TextEffectAttribute, std::string>& config);
@@ -53,13 +54,26 @@ private:
     void SetDirection(const std::string& direction);
     bool CheckBlurEnable(const std::string& enable);
     void SetBlurEnable(const std::string& enable);
+    void DrawTextFlip(std::vector<TextBlobRecordInfo>& infos, Drawing::Canvas* canvas, double x, double y);
+    void DrawResidualText(Drawing::Canvas* canvas, double height,
+        const std::function<bool(const std::shared_ptr<TextEngine::SymbolAnimationConfig>&)>& func);
+    void DrawTextFlipElements(Drawing::Canvas* canvas, double height, const Drawing::Color& color,
+        const std::function<bool(const std::shared_ptr<TextEngine::SymbolAnimationConfig>&)>& func,
+        const std::vector<std::vector<TextEngine::TextEffectElement>>& effectElements);
+    void ClearTypography();
+    std::vector<std::vector<TextEngine::TextEffectElement>> GenerateChangeElements(
+        const std::shared_ptr<Drawing::TextBlob>& blob, double x, double y);
+    std::vector<std::vector<Drawing::DrawingPiecewiseParameter>> GenerateFlipConfig(double height);
 
     TypographyConfig typographyConfig_;
     TextEffectFlipDirection direction_{TextEffectFlipDirection::UP};
     bool blurEnable_{false};
     TextFlipEffectCharConfig inChar_;
     TextFlipEffectCharConfig outChar_;
-    std::vector<TextBlobRecordInfo> lastTextBlobRecordInfos_;
+    std::vector<uint16_t> lastAllBlobGlyphIds_;
+    std::vector<uint16_t> currentBlobGlyphIds_;
+    size_t currentGlyphIndex_{0};
+    size_t changeNumber_{0};
 
     struct FlipAttributeFunction {
         FlipAttributeFunction() = default;

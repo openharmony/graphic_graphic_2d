@@ -44,7 +44,7 @@ public:
         return 0;
     }
     void StartEffect(Drawing::Canvas* canvas, double x, double y) override {}
-    void StopEffect(Drawing::Canvas* canvas, double x, double y) override {}
+    void StopEffect() override {}
 };
 
 
