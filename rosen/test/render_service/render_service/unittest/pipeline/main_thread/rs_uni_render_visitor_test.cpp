@@ -1098,6 +1098,91 @@ HWTEST_F(RSUniRenderVisitorTest, CollectTopOcclusionSurfacesInfo004, TestSize.Le
     EXPECT_EQ(parentSurfaceNode->stencilVal_, DEFAULT_OCCLUSION_SURFACE_ORDER);
 }
 
+/*
+ * @tc.name: GetSurfaceTransparentFilterRegion
+ * @tc.desc: Test RSUniRenderVisitorTest.GetSurfaceTransparentFilterRegion
+ * @tc.type: FUNC
+ * @tc.require: #issuesICCYYL
+ */
+HWTEST_F(RSUniRenderVisitorTest, GetSurfaceTransparentFilterRegion, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->dirtyManager_ = std::make_shared<RSDirtyRegionManager>();
+    ASSERT_NE(surfaceNode->dirtyManager_, nullptr);
+
+
+    // default, surface node is transparent.
+    Occlusion::Region filterRegion = Occlusion::Region(Occlusion::Rect(DEFAULT_RECT));
+    FilterDirtyRegionInfo filterInfo = {
+        .intersectRegion_ = filterRegion,
+        .filterDirty_ = filterRegion
+    };
+    surfaceNode->dirtyManager_->GetFilterCollector().CollectFilterDirtyRegionInfo(filterInfo, false);
+    ASSERT_FALSE(rsUniRenderVisitor->GetSurfaceTransparentFilterRegion(*surfaceNode).IsEmpty());
+    // if non-transparent, get empty region.
+    surfaceNode->abilityBgAlpha_ = 255;
+    surfaceNode->globalAlpha_ = 1.f;
+    ASSERT_TRUE(rsUniRenderVisitor->GetSurfaceTransparentFilterRegion(*surfaceNode).IsEmpty());
+}
+
+/*
+ * @tc.name: CheckMergeFilterDirtyWithPreDirty_001
+ * @tc.desc: Test RSUniRenderVisitorTest.CheckMergeFilterDirtyWithPreDirty, test nullptr side case.
+ * @tc.type: FUNC
+ * @tc.require: #issuesICCYYL
+ */
+HWTEST_F(RSUniRenderVisitorTest, CheckMergeFilterDirtyWithPreDirty_001, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+
+    auto dirtyManager = std::make_shared<RSDirtyRegionManager>();
+    FilterDirtyRegionInfo filterInfo;
+    dirtyManager->GetFilterCollector().CollectFilterDirtyRegionInfo(filterInfo, false);
+    rsUniRenderVisitor->CheckMergeFilterDirtyWithPreDirty(
+        dirtyManager, Occlusion::Region(), FilterDirtyType::CONTAINER_FILTER);
+    ASSERT_TRUE(dirtyManager->GetCurrentFrameDirtyRegion().IsEmpty());
+}
+
+/*
+ * @tc.name: CheckMergeFilterDirtyWithPreDirty_002
+ * @tc.desc: Test RSUniRenderVisitorTest.CheckMergeFilterDirtyWithPreDirty, test if intersect.
+ * @tc.type: FUNC
+ * @tc.require: #issuesICCYYL
+ */
+HWTEST_F(RSUniRenderVisitorTest, CheckMergeFilterDirtyWithPreDirty_002, TestSize.Level2)
+{
+    ASSERT_NE(RSMainThread::Instance(), nullptr);
+    auto& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+
+    auto dirtyManager = std::make_shared<RSDirtyRegionManager>();
+    // mock different filter, case1: no below dirty. case2: below dirty.
+    NodeId id = 1;
+    auto filterNode1 = std::make_shared<RSRenderNode>(++id);
+    auto filterNode2 = std::make_shared<RSRenderNode>(++id);
+    filterNode1->GetMutableRenderProperties().backgroundFilter_ = std::make_shared<RSFilter>();
+    filterNode2->GetMutableRenderProperties().needDrawBehindWindow_ = true;
+    filterNode2->GetMutableRenderProperties().filter_ = std::make_shared<RSFilter>();
+
+    // register filter node
+    nodeMap.RegisterRenderNode(filterNode1);
+    nodeMap.RegisterRenderNode(filterNode2);
+    FilterDirtyRegionInfo filterInfo1 = { .id_ = filterNode1->GetId() };
+    FilterDirtyRegionInfo filterInfo2 = { .id_ = filterNode2->GetId() };
+    dirtyManager->GetFilterCollector().CollectFilterDirtyRegionInfo(filterInfo1, false);
+    dirtyManager->GetFilterCollector().CollectFilterDirtyRegionInfo(filterInfo2, false);
+
+    rsUniRenderVisitor->CheckMergeFilterDirtyWithPreDirty(
+        dirtyManager, Occlusion::Region(), FilterDirtyType::OPAQUE_SURFACE_FILTER);
+    ASSERT_FALSE(dirtyManager->GetFilterCollector().GetFilterDirtyRegionInfoList(true).size() == 0);
+}
+
 /**
  * @tc.name: InitializeOcclusionHandler001
  * @tc.desc: test InitializeOcclusionHandler with the switch is enabled or not enabled

@@ -156,7 +156,7 @@ HWTEST_F(RSUniDirtyComputeUtilTest, IntersectRect, TestSize.Level2)
 }
 
 /**
- * @tc.name: GetCurrentFrameVisibleDirty001
+ * @tc.name: GenerateFilterDirtyRegionInfo_001
  * @tc.desc: test GenerateFilterDirtyRegionInfo, for effect node, filterRegion and DirtyRegion differs.
  * @tc.type: FUNC
  * @tc.require: #issuesICA3L1
@@ -204,5 +204,163 @@ HWTEST_F(RSUniDirtyComputeUtilTest, GenerateFilterDirtyRegionInfo_002, TestSize.
     FilterDirtyRegionInfo filterInfo =
         RSUniFilterDirtyComputeUtil::GenerateFilterDirtyRegionInfo(*testNode, std::nullopt);
     ASSERT_FALSE(filterInfo.filterDirty_.Sub(Occlusion::Region(Occlusion::Rect(DEFAULT_RECT1))).IsEmpty());
+}
+
+/**
+ * @tc.name: DealWithFilterDirtyRegion_001
+ * @tc.desc: test DealWithFilterDirtyRegion_001, test for display side case.
+ * @tc.type: FUNC
+ * @tc.require: #issuesICCYYL
+ */
+HWTEST_F(RSUniDirtyComputeUtilTest, DealWithFilterDirtyRegion_001, TestSize.Level1)
+{
+    NodeId defaultDisplayId = 1;
+    RSDisplayNodeConfig config;
+    RSDisplayRenderNodeDrawable* displayDrawable = GenerateDisplayDrawableById(defaultDisplayId, config);
+    ASSERT_NE(displayDrawable, nullptr);
+    Occlusion::Region damageRegion;
+    Occlusion::Region drawRegion;
+    // test with null param.
+    RSUniFilterDirtyComputeUtil::DealWithFilterDirtyRegion(damageRegion, drawRegion, *displayDrawable, std::nullopt);
+    ASSERT_TRUE(damageRegion.IsEmpty());
+    // test with non-null param.
+    displayDrawable->renderParams_ = std::make_unique<RSDisplayRenderParams>(defaultDisplayId);
+    RSUniFilterDirtyComputeUtil::DealWithFilterDirtyRegion(damageRegion, drawRegion, *displayDrawable, std::nullopt);
+    ASSERT_TRUE(damageRegion.IsEmpty());
+}
+
+/**
+ * @tc.name: DealWithFilterDirtyRegion_002
+ * @tc.desc: test DealWithFilterDirtyRegion_002, test if display has empty/non-empty damage region.
+ * @tc.type: FUNC
+ * @tc.require: #issuesICCYYL
+ */
+HWTEST_F(RSUniDirtyComputeUtilTest, DealWithFilterDirtyRegion_002, TestSize.Level1)
+{
+    NodeId defaultDisplayId = 1;
+    RSDisplayNodeConfig config;
+    RSDisplayRenderNodeDrawable* displayDrawable = GenerateDisplayDrawableById(defaultDisplayId, config);
+    ASSERT_NE(displayDrawable, nullptr);
+    displayDrawable->renderParams_ = std::make_unique<RSDisplayRenderParams>(defaultDisplayId);
+    ASSERT_NE(displayDrawable->renderParams_, nullptr);
+    displayDrawable->syncDirtyManager_ = std::make_shared<RSDirtyRegionManager>();
+    ASSERT_NE(displayDrawable->syncDirtyManager_, nullptr);
+
+    Occlusion::Region filterRegion = Occlusion::Region(Occlusion::Rect(DEFAULT_RECT1));
+    FilterDirtyRegionInfo filterInfo = {
+        .intersectRegion_ = filterRegion,
+        .filterDirty_ = filterRegion
+    };
+    displayDrawable->syncDirtyManager_->GetFilterCollector().CollectFilterDirtyRegionInfo(filterInfo, true);
+    Occlusion::Region damageRegion = Occlusion::Region();
+    // test with empty damageRegion.
+    RSUniFilterDirtyComputeUtil::DealWithFilterDirtyRegion(damageRegion, damageRegion, *displayDrawable, std::nullopt);
+    ASSERT_TRUE(damageRegion.IsEmpty());
+
+    // test with non-empty damageRegion.
+    damageRegion = Occlusion::Region(Occlusion::Rect{0, 0, 1, 1});
+    RSUniFilterDirtyComputeUtil::DealWithFilterDirtyRegion(damageRegion, damageRegion, *displayDrawable, std::nullopt);
+    ASSERT_FALSE(damageRegion.Area() == 1);
+}
+
+/**
+ * @tc.name: DealWithFilterDirtyRegion_003
+ * @tc.desc: test DealWithFilterDirtyRegion_003, test if surface has empty/non-empty damage region.
+ * @tc.type: FUNC
+ * @tc.require: #issuesICCYYL
+ */
+HWTEST_F(RSUniDirtyComputeUtilTest, DealWithFilterDirtyRegion_003, TestSize.Level1)
+{
+    NodeId nodeId = 1;
+    RSDisplayNodeConfig config;
+    RSDisplayRenderNodeDrawable* displayDrawable = GenerateDisplayDrawableById(nodeId, config);
+    ASSERT_NE(displayDrawable, nullptr);
+    displayDrawable->renderParams_ = std::make_unique<RSDisplayRenderParams>(nodeId);
+    ASSERT_NE(displayDrawable->renderParams_, nullptr);
+    auto& surfaceDrawables = displayDrawable->renderParams_->GetAllMainAndLeashSurfaceDrawables();
+
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(++nodeId);
+    auto surfaceDrawable = std::make_shared<RSSurfaceRenderNodeDrawable>(surfaceNode);
+    ASSERT_NE(surfaceDrawable, nullptr);
+    surfaceDrawables.push_back(surfaceDrawable);
+
+    Occlusion::Region damageRegion = Occlusion::Region();
+    RSUniFilterDirtyComputeUtil::DealWithFilterDirtyRegion(damageRegion, damageRegion, *displayDrawable, std::nullopt);
+    ASSERT_TRUE(damageRegion.IsEmpty());
+}
+
+/**
+ * @tc.name: DealWithFilterDirtyRegion_004
+ * @tc.desc: test DealWithFilterDirtyRegion_004, test for surface ivisible/visible
+ * @tc.type: FUNC
+ * @tc.require: #issuesICCYYL
+ */
+HWTEST_F(RSUniDirtyComputeUtilTest, DealWithFilterDirtyRegion_004, TestSize.Level1)
+{
+    NodeId nodeId = 1;
+    RSDisplayNodeConfig config;
+    RSDisplayRenderNodeDrawable* displayDrawable = GenerateDisplayDrawableById(nodeId, config);
+    ASSERT_NE(displayDrawable, nullptr);
+    displayDrawable->renderParams_ = std::make_unique<RSDisplayRenderParams>(nodeId);
+    ASSERT_NE(displayDrawable->renderParams_, nullptr);
+    auto& surfaceDrawables = displayDrawable->renderParams_->GetAllMainAndLeashSurfaceDrawables();
+
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(++nodeId);
+    auto surfaceDrawable = std::make_shared<RSSurfaceRenderNodeDrawable>(surfaceNode);
+    ASSERT_NE(surfaceDrawable, nullptr);
+    surfaceDrawable->renderParams_ = std::make_unique<RSSurfaceRenderParams>(nodeId);
+    surfaceDrawable->syncDirtyManager_ = std::make_shared<RSDirtyRegionManager>();
+
+    // filter info1
+    Occlusion::Region filterRegion = Occlusion::Region(Occlusion::Rect(DEFAULT_RECT1));
+    FilterDirtyRegionInfo filterInfo1 = {
+        .intersectRegion_ = filterRegion,
+        .filterDirty_ = filterRegion
+    };
+    surfaceDrawable->syncDirtyManager_->GetFilterCollector().CollectFilterDirtyRegionInfo(filterInfo1, true);
+    // filter info2, addedToDirty_ = true
+    FilterDirtyRegionInfo filterInfo2 = {
+        .intersectRegion_ = filterRegion,
+        .filterDirty_ = filterRegion,
+        .addToDirty_ = true
+    };
+    surfaceDrawable->syncDirtyManager_->GetFilterCollector().CollectFilterDirtyRegionInfo(filterInfo2, true);
+    surfaceDrawables.push_back(surfaceDrawable);
+
+    Occlusion::Region damageRegion = Occlusion::Region(Occlusion::Rect{0, 0, 1, 1});
+    RSUniFilterDirtyComputeUtil::DealWithFilterDirtyRegion(damageRegion, damageRegion, *displayDrawable, std::nullopt);
+    ASSERT_TRUE(damageRegion.Area() == 1);
+
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+    surfaceParams->SetVisibleRegion(Occlusion::Region(Occlusion::Rect(DEFAULT_RECT1)));
+    RSUniFilterDirtyComputeUtil::DealWithFilterDirtyRegion(damageRegion, damageRegion, *displayDrawable, std::nullopt);
+    ASSERT_FALSE(damageRegion.Area() == 1);
+}
+
+/**
+ * @tc.name: DealWithFilterDirtyRegion_005
+ * @tc.desc: test DealWithFilterDirtyRegion_005, test for nullptr side cases.
+ * @tc.type: FUNC
+ * @tc.require: #issuesICCYYL
+ */
+HWTEST_F(RSUniDirtyComputeUtilTest, DealWithFilterDirtyRegion_005, TestSize.Level1)
+{
+    NodeId nodeId = 1;
+    RSDisplayNodeConfig config;
+    RSDisplayRenderNodeDrawable* displayDrawable = GenerateDisplayDrawableById(nodeId, config);
+    ASSERT_NE(displayDrawable, nullptr);
+    displayDrawable->syncDirtyManager_ = nullptr;
+    displayDrawable->renderParams_ = std::make_unique<RSDisplayRenderParams>(nodeId);
+    ASSERT_NE(displayDrawable->renderParams_, nullptr);
+    auto& surfaceDrawables = displayDrawable->renderParams_->GetAllMainAndLeashSurfaceDrawables();
+    surfaceDrawables.push_back(nullptr);
+
+    Occlusion::Region damageRegion;
+    ASSERT_FALSE(RSUniFilterDirtyComputeUtil::DealWithFilterDirtyForDisplay(
+        damageRegion, damageRegion, *displayDrawable, std::nullopt));
+    ASSERT_FALSE(RSUniFilterDirtyComputeUtil::DealWithFilterDirtyForSurface(
+        damageRegion, damageRegion, surfaceDrawables, std::nullopt));
+    RSUniFilterDirtyComputeUtil::ResetFilterInfoStatus(*displayDrawable, surfaceDrawables);
 }
 } // namespace OHOS::Rosen
