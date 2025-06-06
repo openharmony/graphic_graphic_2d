@@ -97,25 +97,25 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
 
     // prepare test functions
     std::vector<std::function<void(RSDirtyRegionManager&)>> testFunctions;
-    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager){
+    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager) {
         rsDirtyRegionManager.MergeDirtyRect(GetRectI());
     });
-    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager){
+    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager) {
         rsDirtyRegionManager.MergeDirtyRectIfIntersect(GetRectI());
     });
-    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager){
+    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager) {
         rsDirtyRegionManager.MergeDirtyRectAfterMergeHistory(GetRectI());
     });
-    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager){
+    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager) {
         rsDirtyRegionManager.IntersectDirtyRect(GetRectI());
     });
-    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager){
+    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager) {
         rsDirtyRegionManager.ClipDirtyRectWithinSurface();
     });
-    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager){
+    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager) {
         rsDirtyRegionManager.Clear();
     });
-    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager){
+    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager) {
         std::vector<RectI> rects;
         auto size = GetData<uint8_t>();
         for (uint8_t i = 0; i < size; ++i) {
@@ -123,95 +123,95 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
         }
         rsDirtyRegionManager.UpdateVisitedDirtyRects(rects);
     });
-    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager){
+    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager) {
         rsDirtyRegionManager.GetIntersectedVisitedDirtyRect(GetRectI());
     });
-    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager){
+    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager) {
         rsDirtyRegionManager.UpdateCacheableFilterRect(GetRectI());
     });
-    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager){
+    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager) {
         rsDirtyRegionManager.IfCacheableFilterRectFullyCover(GetRectI());
     });
-    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager){
+    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager) {
         rsDirtyRegionManager.IsCacheableFilterRectEmpty();
     });
-    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager){
+    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager) {
         rsDirtyRegionManager.InvalidateFilterCacheRect();
     });
-    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager){
+    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager) {
         rsDirtyRegionManager.IsFilterCacheRectValid();
     });
-    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager){
+    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager) {
         rsDirtyRegionManager.GetCurrentFrameDirtyRegion();
     });
-    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager){
+    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager) {
         rsDirtyRegionManager.GetDirtyRegion();
     });
-    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager){
+    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager) {
         rsDirtyRegionManager.SetCurrentFrameDirtyRect(GetRectI());
     });
-    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager){
+    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager) {
         rsDirtyRegionManager.GetDirtyRegionFlipWithinSurface();
     });
-    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager){
+    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager) {
         rsDirtyRegionManager.GetLatestDirtyRegion();
     });
-    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager){
+    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager) {
         rsDirtyRegionManager.GetRectFlipWithinSurface(GetRectI());
     });
-    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager){
+    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager) {
         rsDirtyRegionManager.IsDirty();
     });
-    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager){
+    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager) {
         rsDirtyRegionManager.UpdateDirty();
     });
-    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager){
+    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager) {
         rsDirtyRegionManager.UpdateDirtyByAligned(GetData<int32_t>());
     });
-    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager){
+    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager) {
         rsDirtyRegionManager.SetBufferAge(GetData<int>());
     });
-    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager){
+    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager) {
         rsDirtyRegionManager.SetSurfaceSize(GetData<int32_t>(), GetData<int32_t>());
     });
-    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager){
+    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager) {
         rsDirtyRegionManager.GetSurfaceRect();
     });
-    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager){
+    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager) {
         rsDirtyRegionManager.MergeSurfaceRect();
     });
-    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager){
+    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager) {
         rsDirtyRegionManager.ResetDirtyAsSurfaceSize();
     });
-    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager){
+    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager) {
         rsDirtyRegionManager.UpdateDebugRegionTypeEnable(GetData<DirtyRegionDebugType>());
     });
-    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager){
+    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager) {
         rsDirtyRegionManager.IsDebugRegionTypeEnable(GetData<DebugRegionType>());
     });
-    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager){
+    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager) {
         std::shared_ptr<RSDirtyRegionManager> targetManager;
         if (GetData<bool>()) {
             targetManager = std::make_shared<RSDirtyRegionManager>();
         }
         rsDirtyRegionManager.OnSync(targetManager);
     });
-    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager){
+    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager) {
         rsDirtyRegionManager.UpdateDirtyRegionInfoForDfx(GetData<uint64_t>());
     });
-    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager){
+    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager) {
         rsDirtyRegionManager.MarkAsTargetForDfx();
     });
-    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager){
+    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager) {
         rsDirtyRegionManager.IsTargetForDfx();
     });
-    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager){
+    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager) {
         rsDirtyRegionManager.HasOffset();
     });
-    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager){
+    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager) {
         rsDirtyRegionManager.SetOffset(GetData<int>(), GetData<int>());
     });
-    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager){
+    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager) {
         std::vector<RectI> rects;
         auto size = GetData<uint8_t>();
         for (uint8_t i = 0; i < size; ++i) {
@@ -219,81 +219,81 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
         }
         rsDirtyRegionManager.SetDirtyRegionForQuickReject(rects);
     });
-    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager){
+    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager) {
         rsDirtyRegionManager.GetDirtyRegionForQuickReject();
     });
-    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager){
+    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager) {
         rsDirtyRegionManager.GetAdvancedDirtyRegion();
     });
-    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager){
+    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager) {
         rsDirtyRegionManager.GetCurrentFrameAdvancedDirtyRegion();
     });
-    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager){
+    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager) {
         rsDirtyRegionManager.MergeHwcDirtyRect(GetRectI());
     });
-    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager){
+    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager) {
         RSDirtyRegionManager::GetPixelAlignedRect(GetRectI());
     });
-    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager){
+    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager) {
         rsDirtyRegionManager.AlignHistory();
     });
-    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager){
+    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager) {
         rsDirtyRegionManager.GetHistory(GetData<int>());
     });
-    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager){
+    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager) {
         rsDirtyRegionManager.PushHistory(GetRectI());
     });
-    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager){
+    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager) {
         rsDirtyRegionManager.MergeHistory(GetData<int>(), GetRectI());
     });
-    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager){
+    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager) {
         rsDirtyRegionManager.GetMergedDirtyRegions();
     });
-    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager){
+    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager) {
         rsDirtyRegionManager.GetOffsetedDirtyRegion();
     });
-    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager){
+    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager) {
         rsDirtyRegionManager.GetUifirstFrameDirtyRegion();
     });
-    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager){
+    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager) {
         rsDirtyRegionManager.SetUifirstFrameDirtyRect(GetRectI());
     });
-    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager){
+    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager) {
         rsDirtyRegionManager.SetMaxNumOfDirtyRects(GetData<int>());
     });
-    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager){
+    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager) {
         rsDirtyRegionManager.SetAdvancedDirtyRegionType(GetData<AdvancedDirtyRegionType>());
     });
-    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager){
+    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager) {
         rsDirtyRegionManager.GetHwcDirtyRegion();
     });
-    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager){
+    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager) {
     });
-    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager){
+    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager) {
         rsDirtyRegionManager.GetDirtyRegionInVirtual();
     });
-    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager){
+    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager) {
         rsDirtyRegionManager.MergeDirtyHistoryInVirtual(GetData<unsigned int>());
     });
-    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager){
+    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager) {
         rsDirtyRegionManager.IsSurfaceRectChanged();
     });
-    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager){
+    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager) {
         rsDirtyRegionManager.GetActiveSurfaceRect();
     });
-    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager){
+    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager) {
         rsDirtyRegionManager.GetLastActiveSurfaceRect();
     });
-    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager){
+    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager) {
         rsDirtyRegionManager.IsActiveSurfaceRectChanged();
     });
-    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager){
+    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager) {
         rsDirtyRegionManager.SetActiveSurfaceRect(GetRectI());
     });
-    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager){
+    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager) {
         rsDirtyRegionManager.GetUiLatestHistoryDirtyRegions(GetData<int>());
     });
-    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager){
+    AddTestFunction(testFunctions, [](RSDirtyRegionManager& rsDirtyRegionManager) {
         std::map<NodeId, RectI> target;
         rsDirtyRegionManager.GetDirtyRegionInfo(target, GetData<RSRenderNodeType>(), GetData<DirtyRegionType>());
     });

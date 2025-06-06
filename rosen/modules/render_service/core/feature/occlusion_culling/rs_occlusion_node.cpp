@@ -129,7 +129,7 @@ bool OcclusionNode::IsSubTreeShouldIgnored(const RSRenderNode& node, const RSPro
         !ROSEN_EQ(perspective[0], 0.f) || !ROSEN_EQ(perspective[1], 0.f) ||
         !ROSEN_EQ(degree, 0.f) || !ROSEN_EQ(degreeX, 0.f) || !ROSEN_EQ(degreeY, 0.f) ||
         renderProperties.GetClipBounds()) {
-       return true;
+        return true;
     }
 
     // Skip this subtree if the node has any properties that may cause it to be drawn outside of its bounds.
