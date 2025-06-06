@@ -103,7 +103,7 @@ static void MergePathByLayerColor(const std::vector<RSGroupInfo>& groupInfos,
                 isFirst = false;
                 continue;
             }
-            // If the groupIndex of two paths is different, updata pathsColor and tempLayer
+            // If the groupIndex of two paths is different, update pathsColor and tempLayer
             if (groupIndexes[currentIndex] != groupIndexes[layerIndex]) {
                 pathsColor.push_back(tempLayer);
                 tempLayer.path.Reset();
@@ -219,7 +219,13 @@ void SymbolNodeBuild::SetSymbolNodeColors(const TextEngine::SymbolNode& symbolNo
         return;
     }
 
-    const auto& color = symbolNode.pathsInfo[0].color;
+    std::shared_ptr<SymbolGradient> color;
+    if (disableSlashColor_ != nullptr) {
+        disableSlashColor_->Make(outSymbolNode.pathsInfo[0].path.GetBounds());
+        color = disableSlashColor_;
+    } else {
+        color = symbolNode.pathsInfo[0].color;
+    }
     for (auto& pathInfo: outSymbolNode.pathsInfo) {
         pathInfo.color = color;
     }
@@ -233,7 +239,7 @@ void SymbolNodeBuild::AddHierarchicalAnimation(const RSHMSymbolData &symbolData,
     RSHMSymbol::PathOutlineDecompose(symbolData.path_, paths);
     std::vector<RSPath> pathLayers;
     RSHMSymbol::MultilayerPath(symbolData.symbolInfo_.layers, paths, pathLayers);
-    UpdataGradient(symbolData.symbolInfo_.renderGroups, pathLayers, symbolData.path_);
+    UpdateGradient(symbolData.symbolInfo_.renderGroups, pathLayers, symbolData.path_);
 
     // Obtain the group id of layer
     std::vector<size_t> groupIds(pathLayers.size(), pathLayers.size());
@@ -281,7 +287,7 @@ std::shared_ptr<SymbolGradient> SymbolNodeBuild::CreateGradient(
         outGradient = std::make_shared<SymbolLineGradient>(lineGradient->GetAngle());
     }
 
-    if (gradient->GetGradientType() == GradientType::LINE_GRADIENT) {
+    if (gradient->GetGradientType() == GradientType::RADIAL_GRADIENT) {
         auto radiaGradient = std::static_pointer_cast<SymbolRadialGradient>(gradient);
         outGradient = std::make_shared<SymbolRadialGradient>(radiaGradient->GetCenterPoint(),
             radiaGradient->GetRadiusRatio());
@@ -294,7 +300,7 @@ std::shared_ptr<SymbolGradient> SymbolNodeBuild::CreateGradient(
     return outGradient;
 }
 
-void SymbolNodeBuild::UpdataGradient(const std::vector<RSRenderGroup>& groups,
+void SymbolNodeBuild::UpdateGradient(const std::vector<RSRenderGroup>& groups,
     std::vector<RSPath>& pathLayers, const RSPath& path)
 {
     if (gradients_.empty()) {

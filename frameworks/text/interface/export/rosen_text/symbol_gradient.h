@@ -51,12 +51,12 @@ public:
         tileMode_ = tileMode;
     }
 
-    std::vector<Drawing::ColorQuad> GetColors() const
+    const std::vector<Drawing::ColorQuad>& GetColors() const
     {
         return colors_;
     }
 
-    std::vector<float> GetPositions() const
+    const std::vector<float>& GetPositions() const
     {
         return positions_;
     }
@@ -142,7 +142,6 @@ protected:
 
 class SymbolLineGradient : public SymbolGradient {
 public:
-    SymbolLineGradient() = default;
     SymbolLineGradient(float rangle) : rangle_(rangle)
     {
         gradientType_ = GradientType::LINE_GRADIENT;
@@ -175,7 +174,6 @@ private:
 
 class SymbolRadialGradient : public SymbolGradient {
 public:
-    SymbolRadialGradient() = default;
     SymbolRadialGradient(const Drawing::Point& centerPtRatio, float radiusRatio)
         : centerPtRatio_(centerPtRatio), radiusRatio_(radiusRatio)
     {

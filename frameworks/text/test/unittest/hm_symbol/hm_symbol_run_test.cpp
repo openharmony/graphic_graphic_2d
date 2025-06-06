@@ -1142,6 +1142,15 @@ HWTEST_F(OHHmSymbolRunTest, SymbolAnimationTest001, TestSize.Level1)
     // test SymbolAnimation by DISABLE
     bool result = hmSymbolRun.SymbolAnimation(symbol, offsetXY);
     EXPECT_FALSE(result);
+
+    std::vector<std::shared_ptr<SymbolGradient>> gradients;
+    gradients.push_back(std::make_shared<SymbolGradient>());
+    hmSymbolRun.gradients_ = gradients;
+    gradients.push_back(std::make_shared<SymbolGradient>());
+    hmSymbolRun.SetGradients(gradients);
+    hmSymbolRun.SetRenderMode(RSSymbolRenderingStrategy::MULTIPLE_COLOR);
+    result = hmSymbolRun.SymbolAnimation(symbol, offsetXY);
+    EXPECT_FALSE(result);
 }
 
 /*
@@ -1238,6 +1247,7 @@ HWTEST_F(OHHmSymbolRunTest, SetDrawPath001, TestSize.Level1)
     // test renderMode is MULTIPLE_COLOR
     renderMode = RSSymbolRenderingStrategy::MULTIPLE_COLOR;
     hmSymbolRun.SetRenderMode(renderMode);
+    hmSymbolRun.gradients_ = gradients;
     hmSymbolRun.DrawPaths(rsCanvas.get(), multPaths, path);
     EXPECT_EQ(hmSymbolRun.symbolTxt_.GetRenderMode(), RSSymbolRenderingStrategy::MULTIPLE_COLOR);
 }

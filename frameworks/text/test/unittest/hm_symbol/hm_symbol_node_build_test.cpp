@@ -563,14 +563,21 @@ HWTEST_F(OHHmSymbolNodeBuildTest, SetSymbolNodeColors001, TestSize.Level1)
     symbolNode1.pathsInfo[0].color = nullptr;
     symbolNodeBuild.SetSymbolNodeColors(symbolNode, symbolNode1);
     EXPECT_NE(symbolNode1.pathsInfo[0].color, nullptr);
+
+    auto slashColor = std::make_shared<SymbolGradient>();
+    slashColor->SetColors({0XFF0000FF}); // 0XFF0000FF is ARGB
+    symbolNodeBuild.SetDisableSlashColor(slashColor);
+    symbolNode1.pathsInfo[0].color = nullptr;
+    symbolNodeBuild.SetSymbolNodeColors(symbolNode, symbolNode1);
+    EXPECT_NE(symbolNode1.pathsInfo[0].color, nullptr);
 }
 
 /*
- * @tc.name: UpdataGradient001
- * @tc.desc: test UpdataGradient
+ * @tc.name: UpdateGradient001
+ * @tc.desc: test UpdateGradient
  * @tc.type: FUNC
  */
-HWTEST_F(OHHmSymbolNodeBuildTest, UpdataGradient001, TestSize.Level1)
+HWTEST_F(OHHmSymbolNodeBuildTest, UpdateGradient001, TestSize.Level1)
 {
     std::pair<float, float> offset = {100.0f, 100.0f}; // 100.0f, 100.0f is the offset
     RSHMSymbolData symbol;
@@ -589,26 +596,26 @@ HWTEST_F(OHHmSymbolNodeBuildTest, UpdataGradient001, TestSize.Level1)
     symbolNode.SetRenderMode(RSSymbolRenderingStrategy::SINGLE);
     std::vector<std::shared_ptr<SymbolGradient>> gradients = {nullptr};
     symbolNode.SetGradients(gradients);
-    symbolNode.UpdataGradient(groups, pathLayers, path);
+    symbolNode.UpdateGradient(groups, pathLayers, path);
     EXPECT_TRUE(symbolNode.gradients_.empty());
 
     // test renderMode is MULTIPLE_COLOR
     groups = {group};
     symbolNode.SetRenderMode(RSSymbolRenderingStrategy::MULTIPLE_COLOR);
-    symbolNode.UpdataGradient(groups, pathLayers, path);
+    symbolNode.UpdateGradient(groups, pathLayers, path);
     EXPECT_TRUE(symbolNode.gradients_.empty());
 
     // test gradients not is empty()
     gradients = {};
     gradients.push_back(std::make_shared<SymbolGradient>());
     symbolNode.SetGradients(gradients);
-    symbolNode.UpdataGradient(groups, pathLayers, path);
+    symbolNode.UpdateGradient(groups, pathLayers, path);
     EXPECT_FALSE(symbolNode.gradients_.empty());
 
-    // test gradient is nullptr 
+    // test gradient is nullptr
     gradients[0] = nullptr;
     symbolNode.SetGradients(gradients);
-    symbolNode.UpdataGradient(groups, pathLayers, path);
+    symbolNode.UpdateGradient(groups, pathLayers, path);
     EXPECT_TRUE(symbolNode.gradients_.empty());
 }
 
@@ -624,7 +631,7 @@ HWTEST_F(OHHmSymbolNodeBuildTest, CreateGradient001, TestSize.Level1)
     EXPECT_EQ(result, nullptr);
 
     // test input base color
-    auto gradient1 = std::make_shared<SymbolGradient>();   
+    auto gradient1 = std::make_shared<SymbolGradient>();
     result = SymbolNodeBuild::CreateGradient(gradient1);
     EXPECT_NE(result, nullptr);
 

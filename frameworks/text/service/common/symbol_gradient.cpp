@@ -93,10 +93,10 @@ void SymbolLineGradient::PointsFromAngle(float angle, const Drawing::Rect& bound
     }
     // The Angle is calculated clockwise from point 0
     float slope = tan(AngleToRadian(90.0f - angle)); // Convert to Cartesian coordinates
-    float perpendicularSlope = -1 / slope;
+    float perpendicularSlope = ROSEN_NE<float>(slope, 0.0f) ? -1 / slope : 1.0f; // the slope will not be zero
 
-    float halfHeight = height / 2;
-    float halfWidth = width / 2;
+    float halfHeight = height / 2; // 2 is half
+    float halfWidth = width / 2; // 2 is half
     Drawing::Point cornerPoint { 0.0f, 0.0f };
     if (angle < 90.0f) { // 90.0f: the first term on the coordinate axis
         cornerPoint = Drawing::Point(halfWidth, halfHeight);

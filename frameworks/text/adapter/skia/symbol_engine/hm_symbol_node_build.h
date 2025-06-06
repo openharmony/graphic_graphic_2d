@@ -102,6 +102,11 @@ public:
         renderMode_ = renderMode;
     }
 
+    void SetDisableSlashColor(std::shared_ptr<SymbolGradient> color)
+    {
+        disableSlashColor_ = color;
+    }
+
 private:
     RSAnimationSetting animationSetting_;
     RSHMSymbolData symbolData_;
@@ -121,10 +126,11 @@ private:
 
     RSSymbolRenderingStrategy renderMode_ = RSSymbolRenderingStrategy::SINGLE;
     std::vector<std::shared_ptr<SymbolGradient>> gradients_;
+    std::shared_ptr<SymbolGradient> disableSlashColor_ = nullptr;
 
     void SetSymbolNodeColors(const TextEngine::SymbolNode& symbolNode, TextEngine::SymbolNode& outSymbolNode);
 
-    void UpdataGradient(const std::vector<RSRenderGroup>& groups,
+    void UpdateGradient(const std::vector<RSRenderGroup>& groups,
         std::vector<RSPath>& pathLayers, const RSPath& path);
 };
 }

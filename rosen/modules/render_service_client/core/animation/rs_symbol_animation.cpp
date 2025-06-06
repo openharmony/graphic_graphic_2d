@@ -823,11 +823,10 @@ bool RSSymbolAnimation::SetClipAnimation(const std::shared_ptr<RSNode>& rsNode,
         std::vector<std::shared_ptr<RSAnimation>> groupAnimation = {};
         std::shared_ptr<RSAnimatableProperty<Vector2f>> translateRatioProperty = nullptr;
         TranslateAnimationBase(canvasNode, translateRatioProperty, parameters[0], groupAnimation);
+        // 1: the second section of parameters
+        TranslateAnimationBase(canvasNode, translateRatioProperty, parameters[1], groupAnimation);
 
         std::vector<std::shared_ptr<RSAnimation>> groupAnimation1 = {};
-        std::shared_ptr<RSAnimatableProperty<float>> alphaProperty = nullptr;
-        // 1: the second section of parameters
-        AlphaAnimationBase(canvasNodeLine, alphaProperty, parameters[1], groupAnimation1);
         std::shared_ptr<RSAnimatableProperty<Vector2f>> clipProperty = nullptr;
         // 2: the third section of parameters
         TranslateAnimationBase(canvasNodeLine, clipProperty, parameters[2], groupAnimation1);

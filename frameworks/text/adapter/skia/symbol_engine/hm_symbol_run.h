@@ -77,6 +77,7 @@ public:
     void SetSymbolTxt(const HMSymbolTxt& hmsymbolTxt)
     {
         symbolTxt_ = hmsymbolTxt;
+        symbolId_ = symbolTxt_.GetSymbolUid();
     }
 
     const HMSymbolTxt& GetSymbolTxt()

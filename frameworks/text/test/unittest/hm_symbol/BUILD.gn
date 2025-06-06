@@ -23,6 +23,7 @@ ohos_unittest("hm_symbol_engine_test") {
     "hm_symbol_run_test.cpp",
     "hm_symbol_txt_test.cpp",
     "text_animation_config_test.cpp",
+    "symbol_gradient_test.cpp",
   ]
   include_dirs = [
     "$rosen_text_root",

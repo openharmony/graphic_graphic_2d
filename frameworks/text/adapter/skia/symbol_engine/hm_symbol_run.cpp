@@ -392,6 +392,12 @@ bool HMSymbolRun::SymbolAnimation(const RSHMSymbolData& symbol, const std::pair<
     if (effectMode == RSEffectStrategy::DISABLE) {
         symbolNode.SetCommonSubType(animationSetting.commonSubType);
     }
+    bool isNeed = (symbolTxt_.GetRenderMode() != RSSymbolRenderingStrategy::SINGLE &&
+        gradients_.size() < symbolTxt_.GetGradients().size());
+    if (isNeed) {
+        auto gradients = symbolTxt_.GetGradients();
+        symbolNode.SetDisableSlashColor(gradients[gradients_.size()]);
+    }
     return symbolNode.DecomposeSymbolAndDraw();
 }
 
