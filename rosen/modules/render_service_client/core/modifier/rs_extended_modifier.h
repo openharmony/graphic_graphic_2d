@@ -34,6 +34,7 @@
 #include "common/rs_macros.h"
 #include "modifier/rs_modifier.h"
 #include "pipeline/rs_draw_cmd_list.h"
+#include "platform/common/rs_log.h"
 #include "transaction/rs_transaction_proxy.h"
 #include "ui/rs_canvas_node.h"
 
@@ -154,6 +155,7 @@ protected:
     {
         auto node = property_->target_.lock();
         if (node == nullptr) {
+            RS_LOGE("RSExtendedModifier::CreateRenderModifier node is nullptr");
             return nullptr;
         }
         std::weak_ptr<RSCanvasNode> canvasnode = RSBaseNode::ReinterpretCast<RSCanvasNode>(node);
@@ -166,6 +168,7 @@ protected:
     {
         auto node = property_->target_.lock();
         if (node == nullptr) {
+            RS_LOGE("RSExtendedModifier::UpdateToRender node is nullptr");
             return;
         }
         std::weak_ptr<RSCanvasNode> canvasnode = RSBaseNode::ReinterpretCast<RSCanvasNode>(node);
@@ -246,6 +249,7 @@ protected:
     {
         auto node = property_->target_.lock();
         if (node == nullptr) {
+            RS_LOGE("RSGeometryTransModifier::CreateRenderModifier node is nullptr");
             return nullptr;
         }
         std::shared_ptr<RSCanvasNode> canvasnode;
@@ -256,6 +260,7 @@ protected:
             canvasnode = uiContext->GetNodeMap().GetNode<RSCanvasNode>(node->GetId());
         }
         if (canvasnode == nullptr) {
+            RS_LOGE("RSGeometryTransModifier::CreateRenderModifier canvasnode is nullptr");
             return nullptr;
         }
         auto renderProperty = std::make_shared<RSRenderProperty<Drawing::Matrix>>(
@@ -268,6 +273,7 @@ protected:
     {
         auto node = property_->target_.lock();
         if (node == nullptr) {
+            RS_LOGE("RSGeometryTransModifier::UpdateToRender node is nullptr");
             return;
         }
         std::shared_ptr<RSCanvasNode> canvasnode;
@@ -278,6 +284,7 @@ protected:
             canvasnode = uiContext->GetNodeMap().GetNode<RSCanvasNode>(node->GetId());
         }
         if (canvasnode == nullptr) {
+            RS_LOGE("RSGeometryTransModifier::UpdateToRender canvasnode is nullptr");
             return;
         }
         auto matrix = GeometryEffect(canvasnode->GetPaintWidth(), canvasnode->GetPaintHeight());
@@ -462,6 +469,7 @@ private:
     {
         auto node = target_.lock();
         if (node == nullptr) {
+            RS_LOGE("RSNodeModifier::UpdateToRender node is nullptr");
             return;
         }
         Modify(*node);

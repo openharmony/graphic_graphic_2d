@@ -218,6 +218,7 @@ HWTEST_F(RSPropertyModifierTest, Apply01, TestSize.Level1)
     ASSERT_NE(property, nullptr);
     std::shared_ptr<RSModifier> boundsModifier = std::make_shared<RSBoundsModifier>(property);
     ASSERT_NE(boundsModifier, nullptr);
+    boundsModifier->Apply(nullptr);
     boundsModifier->Apply(geometry);
     EXPECT_EQ(geometry->x_, 10.f);
     EXPECT_EQ(geometry->y_, 10.f);
@@ -228,6 +229,7 @@ HWTEST_F(RSPropertyModifierTest, Apply01, TestSize.Level1)
     ASSERT_NE(property02, nullptr);
     std::shared_ptr<RSModifier> boundsSizeModifier = std::make_shared<RSBoundsSizeModifier>(property02);
     ASSERT_NE(boundsSizeModifier, nullptr);
+    boundsSizeModifier->Apply(nullptr);
     boundsSizeModifier->Apply(geometry);
     EXPECT_EQ(geometry->width_, 60.f);
     EXPECT_EQ(geometry->height_, 30.f);
@@ -237,6 +239,7 @@ HWTEST_F(RSPropertyModifierTest, Apply01, TestSize.Level1)
     std::shared_ptr<RSModifier> boundsPositionModifier =
         std::make_shared<RSBoundsPositionModifier>(property03);
     ASSERT_NE(boundsPositionModifier, nullptr);
+    boundsPositionModifier->Apply(nullptr);
     boundsPositionModifier->Apply(geometry);
     EXPECT_EQ(geometry->x_, 50.f);
     EXPECT_EQ(geometry->y_, 50.f);
@@ -256,6 +259,7 @@ HWTEST_F(RSPropertyModifierTest, Apply02, TestSize.Level1)
     ASSERT_NE(property, nullptr);
     std::shared_ptr<RSPivotModifier> pivotModifier = std::make_shared<RSPivotModifier>(property);
     ASSERT_NE(pivotModifier, nullptr);
+    pivotModifier->Apply(nullptr);
     pivotModifier->Apply(geometry);
     EXPECT_EQ(geometry->trans_->pivotX_, 70.f);
     EXPECT_EQ(geometry->trans_->pivotY_, 80.f);
@@ -264,6 +268,7 @@ HWTEST_F(RSPropertyModifierTest, Apply02, TestSize.Level1)
     ASSERT_NE(property02, nullptr);
     std::shared_ptr<RSPivotZModifier> pivotZModifier = std::make_shared<RSPivotZModifier>(property02);
     ASSERT_NE(pivotZModifier, nullptr);
+    pivotZModifier->Apply(nullptr);
     pivotZModifier->Apply(geometry);
     EXPECT_EQ(geometry->trans_->pivotZ_, 90.f);
 
@@ -272,6 +277,7 @@ HWTEST_F(RSPropertyModifierTest, Apply02, TestSize.Level1)
     ASSERT_NE(property03, nullptr);
     std::shared_ptr<RSQuaternionModifier> quaternionModifier = std::make_shared<RSQuaternionModifier>(property03);
     ASSERT_NE(quaternionModifier, nullptr);
+    quaternionModifier->Apply(nullptr);
     quaternionModifier->Apply(geometry);
     EXPECT_EQ(geometry->trans_->quaternion_, value);
 }
@@ -290,6 +296,7 @@ HWTEST_F(RSPropertyModifierTest, Apply03, TestSize.Level1)
     ASSERT_NE(property, nullptr);
     std::shared_ptr<RSRotationModifier> rotationModifier = std::make_shared<RSRotationModifier>(property);
     ASSERT_NE(rotationModifier, nullptr);
+    rotationModifier->Apply(nullptr);
     rotationModifier->Apply(geometry);
     EXPECT_EQ(geometry->trans_->rotation_, 30);
 
@@ -303,6 +310,7 @@ HWTEST_F(RSPropertyModifierTest, Apply03, TestSize.Level1)
     ASSERT_NE(propertyX, nullptr);
     std::shared_ptr<RSRotationXModifier> rotationXModifier = std::make_shared<RSRotationXModifier>(propertyX);
     ASSERT_NE(rotationXModifier, nullptr);
+    rotationXModifier->Apply(nullptr);
     rotationXModifier->Apply(geometry);
     EXPECT_EQ(geometry->trans_->rotationX_, 60);
 
@@ -316,6 +324,7 @@ HWTEST_F(RSPropertyModifierTest, Apply03, TestSize.Level1)
     ASSERT_NE(propertyY, nullptr);
     std::shared_ptr<RSRotationYModifier> rotationYModifier = std::make_shared<RSRotationYModifier>(propertyY);
     ASSERT_NE(rotationYModifier, nullptr);
+    rotationYModifier->Apply(nullptr);
     rotationYModifier->Apply(geometry);
     EXPECT_EQ(geometry->trans_->rotationY_, 40);
 
@@ -341,6 +350,7 @@ HWTEST_F(RSPropertyModifierTest, Apply04, TestSize.Level1)
     std::shared_ptr<RSCameraDistanceModifier> cameraDistanceModifier =
         std::make_shared<RSCameraDistanceModifier>(property);
     ASSERT_NE(cameraDistanceModifier, nullptr);
+    cameraDistanceModifier->Apply(nullptr);
     cameraDistanceModifier->Apply(geometry);
     EXPECT_EQ(geometry->trans_->cameraDistance_, 10);
 
@@ -348,6 +358,7 @@ HWTEST_F(RSPropertyModifierTest, Apply04, TestSize.Level1)
     ASSERT_NE(property02, nullptr);
     std::shared_ptr<RSScaleModifier> scaleModifier = std::make_shared<RSScaleModifier>(property02);
     ASSERT_NE(scaleModifier, nullptr);
+    scaleModifier->Apply(nullptr);
     scaleModifier->Apply(geometry);
     EXPECT_EQ(geometry->trans_->scaleX_, 2);
     EXPECT_EQ(geometry->trans_->scaleY_, 2);
@@ -356,6 +367,7 @@ HWTEST_F(RSPropertyModifierTest, Apply04, TestSize.Level1)
     ASSERT_NE(property03, nullptr);
     std::shared_ptr<RSSkewModifier> skewModifier = std::make_shared<RSSkewModifier>(property03);
     ASSERT_NE(skewModifier, nullptr);
+    skewModifier->Apply(nullptr);
     skewModifier->Apply(geometry);
     EXPECT_EQ(geometry->trans_->skewX_, 30);
     EXPECT_EQ(geometry->trans_->skewY_, 30);
@@ -365,6 +377,7 @@ HWTEST_F(RSPropertyModifierTest, Apply04, TestSize.Level1)
     ASSERT_NE(property04, nullptr);
     std::shared_ptr<RSScaleZModifier> scalezModifier = std::make_shared<RSScaleZModifier>(property04);
     ASSERT_NE(scalezModifier, nullptr);
+    scalezModifier->Apply(nullptr);
     scalezModifier->Apply(geometry);
     EXPECT_EQ(geometry->trans_->scaleZ_, 1.f);
 }
@@ -383,6 +396,7 @@ HWTEST_F(RSPropertyModifierTest, Apply05, TestSize.Level1)
     ASSERT_NE(property, nullptr);
     std::shared_ptr<RSPerspModifier> perspModifier = std::make_shared<RSPerspModifier>(property);
     ASSERT_NE(perspModifier, nullptr);
+    perspModifier->Apply(nullptr);
     perspModifier->Apply(geometry);
     EXPECT_EQ(geometry->trans_->perspX_, INITIAL_VALUE_RECT_4F.x_);
     EXPECT_EQ(geometry->trans_->perspY_, INITIAL_VALUE_RECT_4F.y_);
@@ -393,6 +407,7 @@ HWTEST_F(RSPropertyModifierTest, Apply05, TestSize.Level1)
     ASSERT_NE(property03, nullptr);
     std::shared_ptr<RSTranslateModifier> translateModifier = std::make_shared<RSTranslateModifier>(property03);
     ASSERT_NE(translateModifier, nullptr);
+    translateModifier->Apply(nullptr);
     translateModifier->Apply(geometry);
     EXPECT_EQ(geometry->trans_->translateX_, 60);
     EXPECT_EQ(geometry->trans_->translateY_, 30);
@@ -408,6 +423,7 @@ HWTEST_F(RSPropertyModifierTest, Apply05, TestSize.Level1)
     ASSERT_NE(property05, nullptr);
     std::shared_ptr<RSTranslateZModifier> translateZModifier = std::make_shared<RSTranslateZModifier>(property05);
     ASSERT_NE(translateZModifier, nullptr);
+    translateZModifier->Apply(nullptr);
     translateZModifier->Apply(geometry);
     EXPECT_EQ(geometry->trans_->translateZ_, 20);
 

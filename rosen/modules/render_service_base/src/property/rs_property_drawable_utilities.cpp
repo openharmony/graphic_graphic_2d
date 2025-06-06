@@ -18,6 +18,7 @@
 #include "pipeline/rs_single_frame_composer.h"
 #include "property/rs_properties.h"
 #include "property/rs_properties_painter.h"
+#include "platform/common/rs_log.h"
 
 namespace OHOS::Rosen {
 // ============================================================================
@@ -68,6 +69,7 @@ void RSModifierDrawable::Draw(const RSRenderContent& content, RSPaintFilterCanva
     // PLANNING: this is a temporarily workaround, should refactor later
     auto nodePtr = content.GetRenderProperties().backref_.lock();
     if (nodePtr == nullptr) {
+        ROSEN_LOGE("RSModifierDrawable::Draw nodePtr is nullptr");
         return;
     }
     auto& drawCmdModifiers = const_cast<RSRenderContent::DrawCmdContainer&>(content.drawCmdModifiers_);

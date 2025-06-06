@@ -338,6 +338,53 @@ HWTEST_F(DrawCmdListTest, ProfilerMarshallingDrawOps, TestSize.Level1)
     EXPECT_EQ(secondDrawCmdList->drawOpItems_.size(), 1);
     delete drawCmdList;
 }
+
+/**
+ * @tc.name: Dump003
+ * @tc.desc: Test the Dump function.
+ * @tc.type: FUNC
+ */
+HWTEST_F(DrawCmdListTest, Dump003, TestSize.Level1)
+{
+    auto drawCmdList = new DrawCmdList(DrawCmdList::UnmarshalMode::IMMEDIATE);
+    drawCmdList->opAllocator_.size_ = drawCmdList->offset_ + 1;
+    EXPECT_FALSE(drawCmdList->IsEmpty());
+    EXPECT_TRUE(drawCmdList->drawOpItems_.empty());
+    
+    std::string out;
+    drawCmdList->Dump(out);
+    EXPECT_TRUE(out.empty());
+    delete drawCmdList;
+}
+
+/**
+ * @tc.name: UnmarshallingDrawOpsSimpleForDumpTest
+ * @tc.desc: Test the UnmarshallingDrawOpsSimpleForDump function.
+ * @tc.type: FUNC
+ */
+HWTEST_F(DrawCmdListTest, UnmarshallingDrawOpsSimpleForDumpTest, TestSize.Level1)
+{
+    auto drawCmdList = new DrawCmdList(DrawCmdList::UnmarshalMode::IMMEDIATE);
+    auto drawOpItems = drawCmdList=>UnmarshallingDrawOpsSimpleForDump();
+    EXPECT_EQ(drawOpItems.empty(), true);
+
+    size_t offset = 2 * sizeof(int32_t);
+    drawCmdList->opAllocator_.size_ = drawCmdList->offset_ + offset;
+    EXPECT_TRUE(drawCmdList->opAllocator_.GetSize() != drawCmdList->lastOpGenSize_);
+
+    auto drawOpItems = drawCmdList=>UnmarshallingDrawOpsSimpleForDump();
+    EXPECT_EQ(drawOpItems.empty(), true);
+
+    drawCmdList->lastOpGenSize_ = drawCmdList->opAllocator_.GetSize();
+    Brush brush;
+    drawCmdList->drawOpItems_.emplace_back(std::make_shared<DrawBackgroundOpItem>(brush));
+    Rect rect = Rect(0.0f, 0.0f, 100.0f, 100.0f);
+    auto opItem = std::make_shared<HybridRenderPixelMapSizeOpItem>(rect.GetWidth(), rect.GetHeight());
+    drawCmdList->drawOpItems_.emplace_back(opItem);
+    auto drawOpItems = drawCmdList=>UnmarshallingDrawOpsSimpleForDump();
+    EXPECT_EQ(drawOpItems.empty(), true);
+    delete drawCmdList;
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

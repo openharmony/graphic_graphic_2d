@@ -48,6 +48,7 @@
 #include "modifier/rs_render_property.h"
 #include "pipeline/rs_node_map.h"
 #include "property/rs_properties_def.h"
+#include "platform/common/rs_log.h"
 #include "render/rs_border.h"
 #include "render/rs_filter.h"
 #include "render/rs_image.h"
@@ -343,6 +344,7 @@ public:
         stagingValue_ = value;
         auto node = target_.lock();
         if (node == nullptr) {
+            ROSEN_LOGE("RSProperty::Set node is null");
             return;
         }
 
@@ -507,6 +509,7 @@ public:
     {
         auto node = RSProperty<T>::target_.lock();
         if (node == nullptr) {
+            ROSEN_LOGE("RSAnimatableProperty::RequestCancelAnimation node is null");
             return;
         }
         auto rsUIContext = node->GetRSUIContext();
@@ -598,6 +601,7 @@ public:
     {
         auto renderProperty = std::static_pointer_cast<const RSRenderAnimatableProperty<T>>(rsRenderPropertyBase);
         if (!renderProperty) {
+            ROSEN_LOGE("RSAnimatableProperty::SetValueFromRender renderProperty is null");
             return;
         }
         RSProperty<T>::stagingValue_ = renderProperty->Get();

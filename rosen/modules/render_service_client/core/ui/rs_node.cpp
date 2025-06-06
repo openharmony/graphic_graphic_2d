@@ -3861,6 +3861,21 @@ void RSNode::Dump(std::string& out) const
     if (!animations_.empty()) {
         out.pop_back();
     }
+    
+    out += "], modifiers[";
+    for (const auto& [id, modifier] : modifiers_) {
+        if (modifier == nullptr) {
+            continue;
+        }
+
+        auto renderModifier = modifier->CreateRenderModifier();
+        if (renderModifier == nullptr) {
+            continue;
+        }
+        out += " " + modifier->GetModifierTypeString();
+        out += " :";
+        renderModifier->Dump(out);
+    }
     out += "]";
 }
 

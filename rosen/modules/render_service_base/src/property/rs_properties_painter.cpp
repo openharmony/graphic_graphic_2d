@@ -602,6 +602,7 @@ void RSPropertiesPainter::DrawForegroundFilter(const RSProperties& properties, R
 
     auto& RSFilter = properties.GetForegroundFilter();
     if (RSFilter == nullptr) {
+        ROSEN_LOGD("RSPropertiesPainter::DrawForegroundFilter RSFilter null");
         return;
     }
 
@@ -780,6 +781,7 @@ void RSPropertiesPainter::DrawBackgroundEffect(
 {
     auto& RSFilter = properties.GetBackgroundFilter();
     if (RSFilter == nullptr) {
+        ROSEN_LOGE("RSPropertiesPainter::DrawBackgroundEffect RSFilter null");
         return;
     }
     g_blurCnt++;
@@ -1173,6 +1175,7 @@ void RSPropertiesPainter::DrawFrame(
     const RSProperties& properties, RSPaintFilterCanvas& canvas, Drawing::DrawCmdListPtr& cmds)
 {
     if (cmds == nullptr) {
+        ROSEN_LOGE("RSPropertiesPainter::DrawFrame cmds null");
         return;
     }
     Drawing::Matrix mat;

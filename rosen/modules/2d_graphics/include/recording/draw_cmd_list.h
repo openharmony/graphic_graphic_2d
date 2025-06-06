@@ -263,6 +263,7 @@ private:
     void CaculatePerformanceOpType();
 
     void ProfilerTextBlob(void* handle, uint32_t count, std::shared_ptr<Drawing::DrawCmdList> refDrawCmdList = nullptr);
+    std::vector<std::shared_ptr<DrawOpItem>> UnmarshallingDrawOpsSimpleForDump();
 
     int32_t width_;
     int32_t height_;

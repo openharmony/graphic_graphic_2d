@@ -645,6 +645,38 @@ void DrawCmdList::PlaybackByVector(Canvas& canvas, const Rect* rect)
     canvas.DetachPaint();
 }
 
+std::vector<std::shared_ptr<DrawOpItem>> DrawCmdList::UnmarshallingDrawOpsSimpleForDump()
+{
+    std::vector<std::shared_ptr<DrawOpItem>> drawOpItems;
+    size_t lastOpGenSize = lastOpGenSize_;
+
+    if (opAllocator_.GetSize() <= offset_) {
+        return drawOpItems;
+    }
+    size_t offset = offset_;
+    if (lastOpGenSize != opAllocator_.GetSize()) {
+        uint32_t count = 0;
+        UnmarshallingPlayer player = { *this };
+        do {
+            count++;
+            void* itemPtr = opAllocator_.OffsetToAddr(offset, sizeof(OpItem));
+            auto* curOpItemPtr = static_cast<OpItem*>(itemPtr);
+            if (curOpItemPtr == nullptr) {
+                break;
+            }
+            uint32_t type = curOpItemPtr->GetType();
+            if (auto op = player.Unmarshalling(type, itemPtr, opAllocator_.GetSize() - offset)) {
+                drawOpItems.emplace_back(op);
+            }
+            if (curOpItemPtr->GetNextOpItemOffset() < offset + sizeof(OpItem)) {
+                break;
+            }
+            offset = curOpItemPtr->GetNextOpItemOffset();
+        } while (offset != 0 && count <= MAX_OPITEMSIZE);
+    }
+    return drawOpItems;
+}
+
 bool DrawCmdList::UnmarshallingDrawOpsSimple()
 {
     if (opAllocator_.GetSize() <= offset_) {
