@@ -16,7 +16,11 @@
 
 #include "ge_visual_effect.h"
 #include "ge_visual_effect_container.h"
+#ifdef USE_M133_SKIA
+#include "src/core/SkChecksum.h"
+#else
 #include "src/core/SkOpts.h"
+#endif
 
 #include "platform/common/rs_log.h"
 
@@ -29,7 +33,12 @@ constexpr static float FLOAT_ZERO_THRESHOLD = 0.001f;
 RSMagnifierShaderFilter::RSMagnifierShaderFilter(const std::shared_ptr<RSMagnifierParams>& para)
     : RSRenderFilterParaBase(RSUIFilterType::MAGNIFIER), magnifierPara_(para)
 {
-    hash_ = SkOpts::hash(&magnifierPara_, sizeof(magnifierPara_), hash_);
+#ifdef USE_M133_SKIA
+    const auto hashFunc = SkChecksum::Hash32;
+#else
+    const auto hashFunc = SkOpts::hash;
+#endif
+    hash_ = hashFunc(&magnifierPara_, sizeof(magnifierPara_), hash_);
 }
 
 void RSMagnifierShaderFilter::GenerateGEVisualEffect(

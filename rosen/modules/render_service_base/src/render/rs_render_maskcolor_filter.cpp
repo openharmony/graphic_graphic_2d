@@ -15,6 +15,9 @@
 #include "render/rs_render_maskcolor_filter.h"
 #ifdef USE_M133_SKIA
 #include "include/core/SkColor.h"
+#include "src/core/SkChecksum.h"
+#else
+#include "src/core/SkOpts.h"
 #endif
 
 namespace OHOS {
@@ -25,9 +28,14 @@ constexpr float MAX_ALPHA = 255.0f;
 RSMaskColorShaderFilter::RSMaskColorShaderFilter(int colorMode, RSColor maskColor)
     : RSRenderFilterParaBase(RSUIFilterType::MASK_COLOR), colorMode_(colorMode), maskColor_(maskColor)
 {
-    hash_ = SkOpts::hash(&type_, sizeof(type_), 0);
-    hash_ = SkOpts::hash(&colorMode_, sizeof(colorMode_), hash_);
-    hash_ = SkOpts::hash(&maskColor_, sizeof(maskColor_), hash_);
+#ifdef USE_M133_SKIA
+    const auto hashFunc = SkChecksum::Hash32;
+#else
+    const auto hashFunc = SkOpts::hash;
+#endif
+    hash_ = hashFunc(&type_, sizeof(type_), 0);
+    hash_ = hashFunc(&colorMode_, sizeof(colorMode_), hash_);
+    hash_ = hashFunc(&maskColor_, sizeof(maskColor_), hash_);
 }
 
 RSMaskColorShaderFilter::~RSMaskColorShaderFilter() = default;

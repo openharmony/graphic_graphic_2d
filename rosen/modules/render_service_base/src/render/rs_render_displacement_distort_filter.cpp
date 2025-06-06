@@ -156,10 +156,10 @@ namespace Rosen {
         }
         factor_ = displacementDistortFactor->Get();
         mask_ = std::make_shared<RSShaderMask>(maskProperty);
-#ifndef ENABLE_M133_SKIA
-        const auto hashFunc = SkOpts::hash;
-#else
+#ifdef USE_M133_SKIA
         const auto hashFunc = SkChecksum::Hash32;
+#else
+        const auto hashFunc = SkOpts::hash;
 #endif
         hash_ = hashFunc(&factor_, sizeof(factor_), hash_);
         auto maskHash = mask_->Hash();

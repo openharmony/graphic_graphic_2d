@@ -17,6 +17,11 @@
 #include "common/rs_optional_trace.h"
 #include "common/rs_common_def.h"
 #include "platform/common/rs_log.h"
+#ifdef USE_M133_SKIA
+#include "src/core/SkChecksum.h"
+#else
+#include "src/core/SkOpts.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -28,11 +33,16 @@ RSDistortionFilter::RSDistortionFilter(float distortionK)
 {
     type_ = FilterType::DISTORT;
 
-    hash_ = SkOpts::hash(&type_, sizeof(type_), 0);
-    hash_ = SkOpts::hash(&distortionK_, sizeof(distortionK_), hash_);
-    hash_ = SkOpts::hash(&scaleCoord_, sizeof(scaleCoord_), hash_);
-    hash_ = SkOpts::hash(&offsetX_, sizeof(offsetX_), hash_);
-    hash_ = SkOpts::hash(&offsetY_, sizeof(offsetY_), hash_);
+#ifdef USE_M133_SKIA
+    const auto hashFunc = SkChecksum::Hash32;
+#else
+    const auto hashFunc = SkOpts::hash;
+#endif
+    hash_ = hashFunc(&type_, sizeof(type_), 0);
+    hash_ = hashFunc(&distortionK_, sizeof(distortionK_), hash_);
+    hash_ = hashFunc(&scaleCoord_, sizeof(scaleCoord_), hash_);
+    hash_ = hashFunc(&offsetX_, sizeof(offsetX_), hash_);
+    hash_ = hashFunc(&offsetY_, sizeof(offsetY_), hash_);
 }
 
 RSDistortionFilter::~RSDistortionFilter() = default;

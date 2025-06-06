@@ -31,7 +31,11 @@
 #include "render/rs_render_mesa_blur_filter.h"
 #include "render/rs_render_linear_gradient_blur_filter.h"
 #include "render/rs_render_maskcolor_filter.h"
+#ifdef USE_M133_SKIA
+#include "src/core/SkChecksum.h"
+#else
 #include "src/core/SkOpts.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -88,7 +92,12 @@ RSDrawingFilter::RSDrawingFilter(std::shared_ptr<Drawing::ImageFilter> imageFilt
     shaderFilters_ = shaderFilters;
     for (const auto& shaderFilter : shaderFilters_) {
         uint32_t hash = shaderFilter->Hash();
-        hash_ = SkOpts::hash(&hash, sizeof(hash), hash_);
+#ifdef USE_M133_SKIA
+        const auto hashFunc = SkChecksum::Hash32;
+#else
+        const auto hashFunc = SkOpts::hash;
+#endif
+        hash_ = hashFunc(&hash, sizeof(hash), hash_);
     }
     imageFilterHash_ = hash;
 }
@@ -208,7 +217,12 @@ bool RSDrawingFilter::CanSkipFrame(float radius)
 
 uint32_t RSDrawingFilter::Hash() const
 {
-    auto hash = SkOpts::hash(&imageFilterHash_, sizeof(imageFilterHash_), hash_);
+#ifdef USE_M133_SKIA
+    const auto hashFunc = SkChecksum::Hash32;
+#else
+    const auto hashFunc = SkOpts::hash;
+#endif
+    auto hash = hashFunc(&imageFilterHash_, sizeof(imageFilterHash_), hash_);
     return hash;
 }
 
@@ -236,8 +250,13 @@ std::shared_ptr<RSDrawingFilter> RSDrawingFilter::Compose(const std::shared_ptr<
     }
     auto otherShaderHash = other->ShaderHash();
     auto otherImageHash = other->ImageHash();
-    result->hash_ = SkOpts::hash(&otherShaderHash, sizeof(otherShaderHash), hash_);
-    result->imageFilterHash_ = SkOpts::hash(&otherImageHash, sizeof(otherImageHash), imageFilterHash_);
+#ifdef USE_M133_SKIA
+    const auto hashFunc = SkChecksum::Hash32;
+#else
+    const auto hashFunc = SkOpts::hash;
+#endif
+    result->hash_ = hashFunc(&otherShaderHash, sizeof(otherShaderHash), hash_);
+    result->imageFilterHash_ = hashFunc(&otherImageHash, sizeof(otherImageHash), imageFilterHash_);
     return result;
 }
 
@@ -251,7 +270,12 @@ std::shared_ptr<RSDrawingFilter> RSDrawingFilter::Compose(const std::shared_ptr<
     }
     result->InsertShaderFilter(other);
     auto otherHash = other->Hash();
-    result->hash_ = SkOpts::hash(&otherHash, sizeof(otherHash), hash_);
+#ifdef USE_M133_SKIA
+    const auto hashFunc = SkChecksum::Hash32;
+#else
+    const auto hashFunc = SkOpts::hash;
+#endif
+    result->hash_ = hashFunc(&otherHash, sizeof(otherHash), hash_);
     return result;
 }
 
@@ -265,7 +289,12 @@ std::shared_ptr<RSDrawingFilter> RSDrawingFilter::Compose(
         return result;
     }
     result->imageFilter_ = Drawing::ImageFilter::CreateComposeImageFilter(imageFilter_, other);
-    result->imageFilterHash_ = SkOpts::hash(&hash, sizeof(hash), imageFilterHash_);
+#ifdef USE_M133_SKIA
+    const auto hashFunc = SkChecksum::Hash32;
+#else
+    const auto hashFunc = SkOpts::hash;
+#endif
+    result->imageFilterHash_ = hashFunc(&hash, sizeof(hash), imageFilterHash_);
     return result;
 }
 

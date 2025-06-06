@@ -15,6 +15,11 @@
 #include "render/rs_dispersion_shader_filter.h"
 #include "ge_shader_filter_params.h"
 #include "platform/common/rs_log.h"
+#ifdef USE_M133_SKIA
+#include "src/core/SkChecksum.h"
+#else
+#include "src/core/SkOpts.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -25,10 +30,10 @@ RSDispersionShaderFilter::RSDispersionShaderFilter(const DispersionShaderFilterP
 {
     type_ = ShaderFilterType::DISPERSION;
 
-#ifndef ENABLE_M133_SKIA
-    const auto hashFunc = SkOpts::hash;
-#else
+#ifdef USE_M133_SKIA
     const auto hashFunc = SkChecksum::Hash32;
+#else
+    const auto hashFunc = SkOpts::hash;
 #endif
     if (mask_) {
         auto maskHash = mask_->Hash();
