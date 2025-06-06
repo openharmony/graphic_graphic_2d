@@ -200,9 +200,12 @@ void DrawCmdList::Dump(std::string& out)
 {
     bool found = false;
     std::lock_guard<std::recursive_mutex> lock(mutex_);
-    std::vector<std::shared_ptr<DrawOpItem>> dumpDrawOpItems = drawOpItems_;
-    if (!IsEmpty() && dumpDrawOpItems.empty()) {
-        dumpDrawOpItems = UnmarshallingDrawOpsSimpleForDump();
+    std::vector<std::shared_ptr<DrawOpItem>> dumpDrawOpItems;
+    size_t lastOpGenSize = lastOpGenSize_;
+    if (dumpDrawOpItems.empty() && !IsEmpty()) {
+        UnmarshallingDrawOpsSimple(dumpDrawOpItems, lastOpGenSize);
+    } else {
+        dumpDrawOpItems = drawOpItems_;
     }
     
     for (auto& item : dumpDrawOpItems) {
@@ -650,18 +653,17 @@ void DrawCmdList::PlaybackByVector(Canvas& canvas, const Rect* rect)
     canvas.DetachPaint();
 }
 
-std::vector<std::shared_ptr<DrawOpItem>> DrawCmdList::UnmarshallingDrawOpsSimpleForDump()
+bool DrawCmdList::UnmarshallingDrawOpsSimple(
+    std::vector<std::shared_ptr<DrawOpItem>> drawOpItems&, size_t& lastOpGenSize)
 {
-    std::vector<std::shared_ptr<DrawOpItem>> drawOpItems;
-    size_t lastOpGenSize = lastOpGenSize_;
-
     if (opAllocator_.GetSize() <= offset_) {
-        return drawOpItems;
+        return false;
     }
     size_t offset = offset_;
     if (lastOpGenSize != opAllocator_.GetSize()) {
         uint32_t count = 0;
         UnmarshallingPlayer player = { *this };
+        drawOpItems.clear();
         do {
             count++;
             void* itemPtr = opAllocator_.OffsetToAddr(offset, sizeof(OpItem));
@@ -678,44 +680,14 @@ std::vector<std::shared_ptr<DrawOpItem>> DrawCmdList::UnmarshallingDrawOpsSimple
             }
             offset = curOpItemPtr->GetNextOpItemOffset();
         } while (offset != 0 && count <= MAX_OPITEMSIZE);
-    }
-    return drawOpItems;
-}
-
-bool DrawCmdList::UnmarshallingDrawOpsSimple()
-{
-    if (opAllocator_.GetSize() <= offset_) {
-        return false;
-    }
-    size_t offset = offset_;
-    if (lastOpGenSize_ != opAllocator_.GetSize()) {
-        uint32_t count = 0;
-        UnmarshallingPlayer player = { *this };
-        drawOpItems_.clear();
-        do {
-            count++;
-            void* itemPtr = opAllocator_.OffsetToAddr(offset, sizeof(OpItem));
-            auto* curOpItemPtr = static_cast<OpItem*>(itemPtr);
-            if (curOpItemPtr == nullptr) {
-                break;
-            }
-            uint32_t type = curOpItemPtr->GetType();
-            if (auto op = player.Unmarshalling(type, itemPtr, opAllocator_.GetSize() - offset)) {
-                drawOpItems_.emplace_back(op);
-            }
-            if (curOpItemPtr->GetNextOpItemOffset() < offset + sizeof(OpItem)) {
-                break;
-            }
-            offset = curOpItemPtr->GetNextOpItemOffset();
-        } while (offset != 0 && count <= MAX_OPITEMSIZE);
-        lastOpGenSize_ = opAllocator_.GetSize();
+        lastOpGenSize = opAllocator_.GetSize();
     }
     return true;
 }
 
 void DrawCmdList::PlaybackByBuffer(Canvas& canvas, const Rect* rect)
 {
-    if (!UnmarshallingDrawOpsSimple()) {
+    if (!UnmarshallingDrawOpsSimple(drawOpItems_, lastOpGenSize_)) {
         return;
     }
     uint32_t opCount = 0;
@@ -758,7 +730,7 @@ bool DrawCmdList::IsHybridRenderEnabled(uint32_t maxPixelMapWidth, uint32_t maxP
     if (hybridRenderType_ == HybridRenderType::CANVAS) {
         return true;
     }
-    if (!UnmarshallingDrawOpsSimple()) {
+    if (!UnmarshallingDrawOpsSimple(drawOpItems_, lastOpGenSize_)) {
         return false;
     }
     // check whiteList
