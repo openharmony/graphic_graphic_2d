@@ -960,7 +960,7 @@ void RSUniHwcVisitor::UpdateHwcNodeRectInSkippedSubTree(const RSRenderNode& root
         auto& properties = hwcNodePtr->GetMutableRenderProperties();
         auto offset = std::nullopt;
         properties.UpdateGeometryByParent(&matrix, offset);
-        auto originalMatrix = properties.GetBoundsGeometry()->GetMatrix();
+        const auto& originalMatrix = properties.GetBoundsGeometry()->GetMatrix();
         matrix.PreConcat(originalMatrix);
         Drawing::Rect bounds = Drawing::Rect(0, 0, properties.GetBoundsWidth(), properties.GetBoundsHeight());
         Drawing::Rect absRect;
@@ -988,13 +988,13 @@ void RSUniHwcVisitor::UpdateHwcNodeRectInSkippedSubTree(const RSRenderNode& root
 bool RSUniHwcVisitor::IsFindRoot(std::shared_ptr<RSRenderNode>& parent, const RSRenderNode& rootNode)
 {
     bool isFindInRootSubTree = parent ? parent->GetId() == rootNode.GetId() : false;
-    while (parent && parent->GetType() != RSRenderNodeType::DISPLAY_NODE && !isFindInRootSubTree) {
+    while (parent && parent != uniRenderVisitor_.curSurfaceNode_ && !isFindInRootSubTree) {
         auto cloneNodeParent = parent->GetCurCloneNodeParent().lock();
         parent = cloneNodeParent ? cloneNodeParent : parent->GetParent().lock();
         if (!parent) {
             break;
         }
-        isFindInRootSubTree = parent->GetId() == rootNode.GetId() ? true : isFindInRootSubTree;
+        isFindInRootSubTree |= parent->GetId() == rootNode.GetId();
     }
     return isFindInRootSubTree;
 }
@@ -1002,23 +1002,23 @@ bool RSUniHwcVisitor::IsFindRoot(std::shared_ptr<RSRenderNode>& parent, const RS
 void RSUniHwcVisitor::UpdateHwcNodeClipRect(const std::shared_ptr<RSRenderNode>& hwcNodeParent,
     Drawing::Rect& childRectMapped)
 {
-    if (hwcNodeParent->GetType() == RSRenderNodeType::CANVAS_NODE) {
+    if (hwcNodeParent->GetType() != RSRenderNodeType::CANVAS_NODE) {
         return;
     }
 
     const auto& parentProperties = hwcNodeParent->GetRenderProperties();
     const auto& parentGeoPtr = parentProperties.GetBoundsGeometry();
-    const auto matrix = parentGeoPtr->GetMatrix();
+    const auto& matrix = parentGeoPtr->GetMatrix();
     matrix.MapRect(childRectMapped, childRectMapped);
 
-    const auto ApplyClip = [&childRectMapped, &matrix](Drawing::Rect rect) {
+    const auto ApplyClip = [&childRectMapped, &matrix](const Drawing::Rect& rect) {
         Drawing::Rect clipRect;
         matrix.MapRect(clipRect, rect);
         RSUniHwcComputeUtil::IntersectRect(childRectMapped, clipRect);
     };
 
     if (parentProperties.GetClipToBounds()) {
-        auto selfDrawRectF = hwcNodeParent->GetSelfDrawRect();
+        const auto& selfDrawRectF = hwcNodeParent->GetSelfDrawRect();
         Drawing::Rect clipSelfDrawRect(selfDrawRectF.left_, selfDrawRectF.top_,
             selfDrawRectF.GetRight(), selfDrawRectF.GetBottom());
         ApplyClip(clipSelfDrawRect);
@@ -1031,7 +1031,7 @@ void RSUniHwcVisitor::UpdateHwcNodeClipRect(const std::shared_ptr<RSRenderNode>&
         ApplyClip(clipFrameRect);
     }
     if (parentProperties.GetClipToRRect()) {
-        RectF rectF = parentProperties.GetClipRRect().rect_;
+        const RectF& rectF = parentProperties.GetClipRRect().rect_;
         Drawing::Rect clipRect(rectF.left_, rectF.top_, rectF.GetRight(), rectF.GetBottom());
         ApplyClip(clipRect);
     }
