@@ -171,8 +171,7 @@ bool RSProfiler::IsParcelMock(const Parcel& parcel)
 
 bool RSProfiler::IsPlaybackParcel(const Parcel& parcel)
 {
-    return IsEnabled()
-        && (IsReadMode() || IsReadEmulationMode())
+    return (IsReadMode() || IsReadEmulationMode())
         && IsParcelMock(parcel);
 }
 
