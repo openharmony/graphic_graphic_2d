@@ -654,7 +654,7 @@ void DrawCmdList::PlaybackByVector(Canvas& canvas, const Rect* rect)
 }
 
 bool DrawCmdList::UnmarshallingDrawOpsSimple(
-    std::vector<std::shared_ptr<DrawOpItem>> drawOpItems&, size_t& lastOpGenSize)
+    std::vector<std::shared_ptr<DrawOpItem>>& drawOpItems, size_t& lastOpGenSize)
 {
     if (opAllocator_.GetSize() <= offset_) {
         return false;
