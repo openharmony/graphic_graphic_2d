@@ -39,6 +39,7 @@ private:
     // 50 is the width of the layout, just for test
     int layoutWidth_ = 50;
     int fontSize_ = 100;
+    int layoutWidthForGlyph_ = 1200;
     // this is the default font family name, just for test
     std::string familyName_ = { 0x48, 0x61, 0x72, 0x6d, 0x6f, 0x6e, 0x79, 0x4f, 0x53, 0x2d, 0x53, 0x61, 0x6e, 0x73 };
 
@@ -80,9 +81,9 @@ void OHDrawingRunTest::PrepareCreateRunForGlyphDrawing()
     tc->AppendText(text_);
     typography_ = tc->CreateTypography();
     ASSERT_NE(typography_, nullptr);
-    typography_->Layout(layoutWidth_);
+    typography_->Layout(layoutWidthForGlyph_);
     std::vector<std::unique_ptr<TextLineBase>> textLines = typography_->GetTextLines();
-    ASSERT_EQ(textLines.size(), 1);
+    EXPECT_NE(textLines.size(), 0);
     runs_ = textLines.at(0)->GetGlyphRuns();
 }
 

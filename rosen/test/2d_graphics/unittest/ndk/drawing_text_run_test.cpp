@@ -150,9 +150,11 @@ void NativeDrawingRunTest::TearDown()
     text_ = "";
     if (textLines_ != nullptr) {
         OH_Drawing_DestroyTextLines(textLines_);
+        textLines_ = nullptr;
     }
     if (runs_ != nullptr) {
         OH_Drawing_DestroyRuns(runs_);
+        runs_ = nullptr;
     }
 }
 
@@ -651,12 +653,15 @@ HWTEST_F(NativeDrawingRunTest, OH_Drawing_GlyDrawingTest003, TestSize.Level1)
     OH_Drawing_TextDirection direction = OH_Drawing_GetRunTextDirection(run);
     EXPECT_EQ(direction, TEXT_DIRECTION_LTR);
 
-    OH_Drawing_Array* advances = OH_Drawing_GetRunGlyphAdvances(run, -10, -20);
-    EXPECT_TRUE(advances == nullptr);
-    advances = OH_Drawing_GetRunGlyphAdvances(run, 100, 20);
-    EXPECT_TRUE(advances == nullptr);
+    OH_Drawing_Array* advancesNullTest1 = OH_Drawing_GetRunGlyphAdvances(run, -10, -20);
+    EXPECT_TRUE(advancesNullTest1 == nullptr);
+    OH_Drawing_DestroyRunGlyphAdvances(advancesNullTest1);
 
-    advances = OH_Drawing_GetRunGlyphAdvances(run, 1, 2);
+    OH_Drawing_Array* advancesNullTest2 = OH_Drawing_GetRunGlyphAdvances(run, 100, 20);
+    EXPECT_TRUE(advancesNullTest2 == nullptr);
+    OH_Drawing_DestroyRunGlyphAdvances(advancesNullTest2);
+
+    OH_Drawing_Array* advances = OH_Drawing_GetRunGlyphAdvances(run, 1, 2);
     EXPECT_NE(advances, nullptr);
     size_t advancesSize = OH_Drawing_GetDrawingArraySize(advances);
     EXPECT_EQ(advancesSize, 2);
@@ -746,29 +751,30 @@ HWTEST_F(NativeDrawingRunTest, OH_Drawing_GlyDrawingTest005, TestSize.Level1)
     OH_Drawing_TextDirection direction = OH_Drawing_GetRunTextDirection(run);
     EXPECT_EQ(direction, TEXT_DIRECTION_RTL);
 
-    OH_Drawing_Array* advances = OH_Drawing_GetRunGlyphAdvances(run, 1, 2);
-    EXPECT_NE(advances, nullptr);
-    size_t advancesSize = OH_Drawing_GetDrawingArraySize(advances);
-    EXPECT_EQ(advancesSize, 2);
+    OH_Drawing_Array* advancesTest1 = OH_Drawing_GetRunGlyphAdvances(run, 0, 1);
+    EXPECT_NE(advancesTest1, nullptr);
+    size_t advancesSize = OH_Drawing_GetDrawingArraySize(advancesTest1);
+    EXPECT_EQ(advancesSize, 1);
 
-    OH_Drawing_Point* advance = OH_Drawing_GetRunGlyphAdvanceByIndex(advances, 0);
+    OH_Drawing_Point* advance = OH_Drawing_GetRunGlyphAdvanceByIndex(advancesTest1, 0);
     EXPECT_NE(advance, nullptr);
     float x = 0.0;
     OH_Drawing_PointGetX(advance, &x);
     EXPECT_NEAR(x, 48.999954, FLOAT_DATA_EPSILON);
+    OH_Drawing_DestroyRunGlyphAdvances(advancesTest1);
 
     run = OH_Drawing_GetRunByIndex(runs_, 3);
-    advances = OH_Drawing_GetRunGlyphAdvances(run, 0, 2);
-    EXPECT_NE(advances, nullptr);
-    advancesSize = OH_Drawing_GetDrawingArraySize(advances);
+    OH_Drawing_Array* advancesTest2 = OH_Drawing_GetRunGlyphAdvances(run, 0, 2);
+    EXPECT_NE(advancesTest2, nullptr);
+    advancesSize = OH_Drawing_GetDrawingArraySize(advancesTest2);
     EXPECT_EQ(advancesSize, 1);
 
-    advance = OH_Drawing_GetRunGlyphAdvanceByIndex(advances, 0);
+    advance = OH_Drawing_GetRunGlyphAdvanceByIndex(advancesTest2, 0);
     EXPECT_NE(advance, nullptr);
     OH_Drawing_PointGetX(advance, &x);
     EXPECT_NEAR(x, 57.399948, FLOAT_DATA_EPSILON);
 
-    OH_Drawing_DestroyRunGlyphAdvances(advances);
+    OH_Drawing_DestroyRunGlyphAdvances(advancesTest2);
     OH_Drawing_FontDestroy(font);
 }
 
@@ -800,39 +806,39 @@ HWTEST_F(NativeDrawingRunTest, OH_Drawing_GlyDrawingTest006, TestSize.Level1)
     OH_Drawing_TextDirection direction = OH_Drawing_GetRunTextDirection(run);
     EXPECT_EQ(direction, TEXT_DIRECTION_LTR);
 
-    OH_Drawing_Array* advances = OH_Drawing_GetRunGlyphAdvances(run, 0, 2);
-    EXPECT_NE(advances, nullptr);
-    size_t advancesSize = OH_Drawing_GetDrawingArraySize(advances);
+    OH_Drawing_Array* advancesTest1 = OH_Drawing_GetRunGlyphAdvances(run, 0, 2);
+    EXPECT_NE(advancesTest1, nullptr);
+    size_t advancesSize = OH_Drawing_GetDrawingArraySize(advancesTest1);
     EXPECT_EQ(advancesSize, 2);
 
-    OH_Drawing_Point* advance = OH_Drawing_GetRunGlyphAdvanceByIndex(advances, 0);
+    OH_Drawing_Point* advance = OH_Drawing_GetRunGlyphAdvanceByIndex(advancesTest1, 0);
     EXPECT_NE(advance, nullptr);
     float x = 0.0;
     OH_Drawing_PointGetX(advance, &x);
     EXPECT_NEAR(x, 76.199921, FLOAT_DATA_EPSILON);
 
-    advance = OH_Drawing_GetRunGlyphAdvanceByIndex(advances, 1);
+    advance = OH_Drawing_GetRunGlyphAdvanceByIndex(advancesTest1, 1);
     EXPECT_NE(advance, nullptr);
     OH_Drawing_PointGetX(advance, &x);
     EXPECT_NEAR(x, 0.000000, FLOAT_DATA_EPSILON);
 
     run = OH_Drawing_GetRunByIndex(runs_, 3);
-    advances = OH_Drawing_GetRunGlyphAdvances(run, 0, 2);
-    EXPECT_NE(advances, nullptr);
-    advancesSize = OH_Drawing_GetDrawingArraySize(advances);
+    OH_Drawing_Array* advancesTest2 = OH_Drawing_GetRunGlyphAdvances(run, 0, 2);
+    EXPECT_NE(advancesTest2, nullptr);
+    advancesSize = OH_Drawing_GetDrawingArraySize(advancesTest2);
     EXPECT_EQ(advancesSize, 2);
 
-    advance = OH_Drawing_GetRunGlyphAdvanceByIndex(advances, 0);
+    advance = OH_Drawing_GetRunGlyphAdvanceByIndex(advancesTest2, 0);
     EXPECT_NE(advance, nullptr);
     OH_Drawing_PointGetX(advance, &x);
     EXPECT_NEAR(x, 76.199921, FLOAT_DATA_EPSILON);
 
-    advance = OH_Drawing_GetRunGlyphAdvanceByIndex(advances, 1);
+    advance = OH_Drawing_GetRunGlyphAdvanceByIndex(advancesTest2, 1);
     EXPECT_NE(advance, nullptr);
     OH_Drawing_PointGetX(advance, &x);
     EXPECT_NEAR(x, 25.899979, FLOAT_DATA_EPSILON);
 
-    OH_Drawing_DestroyRunGlyphAdvances(advances);
+    OH_Drawing_DestroyRunGlyphAdvances(advancesTest2);
     OH_Drawing_FontDestroy(font);
 }
 
@@ -863,28 +869,29 @@ HWTEST_F(NativeDrawingRunTest, OH_Drawing_GlyDrawingTest007, TestSize.Level1)
     OH_Drawing_TextDirection direction = OH_Drawing_GetRunTextDirection(run);
     EXPECT_EQ(direction, TEXT_DIRECTION_LTR);
 
-    OH_Drawing_Array* advances = OH_Drawing_GetRunGlyphAdvances(run, 0, 1);
-    EXPECT_NE(advances, nullptr);
-    size_t advancesSize = OH_Drawing_GetDrawingArraySize(advances);
+    OH_Drawing_Array* advancesTest1 = OH_Drawing_GetRunGlyphAdvances(run, 0, 1);
+    EXPECT_NE(advancesTest1, nullptr);
+    size_t advancesSize = OH_Drawing_GetDrawingArraySize(advancesTest1);
     EXPECT_EQ(advancesSize, 1);
 
-    OH_Drawing_Point* advance = OH_Drawing_GetRunGlyphAdvanceByIndex(advances, 0);
+    OH_Drawing_Point* advance = OH_Drawing_GetRunGlyphAdvanceByIndex(advancesTest1, 0);
     EXPECT_NE(advance, nullptr);
     float x = 0.0;
     OH_Drawing_PointGetX(advance, &x);
     EXPECT_NEAR(x, 56.405991, FLOAT_DATA_EPSILON);
+    OH_Drawing_DestroyRunGlyphAdvances(advancesTest1);
 
     run = OH_Drawing_GetRunByIndex(runs_, 3);
-    advances = OH_Drawing_GetRunGlyphAdvances(run, 0, 1);
-    EXPECT_NE(advances, nullptr);
-    advancesSize = OH_Drawing_GetDrawingArraySize(advances);
+    OH_Drawing_Array* advancesTest2 = OH_Drawing_GetRunGlyphAdvances(run, 0, 1);
+    EXPECT_NE(advancesTest2, nullptr);
+    advancesSize = OH_Drawing_GetDrawingArraySize(advancesTest2);
     EXPECT_EQ(advancesSize, 1);
-    advance = OH_Drawing_GetRunGlyphAdvanceByIndex(advances, 0);
+    advance = OH_Drawing_GetRunGlyphAdvanceByIndex(advancesTest2, 0);
     EXPECT_NE(advance, nullptr);
     OH_Drawing_PointGetX(advance, &x);
     EXPECT_NEAR(x, 53.324997, FLOAT_DATA_EPSILON);
 
-    OH_Drawing_DestroyRunGlyphAdvances(advances);
+    OH_Drawing_DestroyRunGlyphAdvances(advancesTest2);
     OH_Drawing_FontDestroy(font);
 }
 

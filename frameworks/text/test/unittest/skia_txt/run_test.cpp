@@ -40,6 +40,7 @@ private:
     // 50 is the width of the layout, just for test
     int layoutWidth_ = 50;
     int fontSize_ = 100;
+    int layoutWidthForGlyph_ = 1200;
     // this is the default font family name, just for test
     std::string familyName_ = { 0x48, 0x61, 0x72, 0x6d, 0x6f, 0x6e, 0x79, 0x4f, 0x53, 0x2d, 0x53, 0x61, 0x6e, 0x73 };
 
@@ -83,7 +84,7 @@ void RunTest::PrepareCreateRunForGlyphDrawing()
     paragraphBuilder->AddText(text_);
     paragraph_ = paragraphBuilder->Build();
     ASSERT_NE(paragraph_, nullptr);
-    paragraph_->Layout(layoutWidth_);
+    paragraph_->Layout(layoutWidthForGlyph_);
     auto textLineBases = paragraph_->GetTextLines();
     runs_ = textLineBases[0]->GetGlyphRuns();
 }
