@@ -1681,6 +1681,35 @@ HWTEST_F(RSRenderNodeTest, RSRenderNodeDumpTest002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: RSRenderNodeDumpTest003
+ * @tc.desc: DumpNodeType DumpTree and DumpSubClassNode test
+ * @tc.type: FUNC
+ * @tc.require: issueICCYNK
+ */
+HWTEST_F(RSRenderNodeTest, RSRenderNodeDumpTest003, TestSize.Level1)
+{
+    std::string outTest = "";
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(0);
+    auto consumerSurfacePtr = IConsumerSurface::Create();
+    auto buffer = SurfaceBuffer::Create();
+    ASSERT_TRUE(surfaceNode->GetRSSurfaceHandler() != nullptr);
+    surfaceNode->GetRSSurfaceHandler()->buffer_.buffer = buffer;
+    ASSERT_TRUE(surfaceNode->GetRSSurfaceHandler()->GetBuffer() != nullptr);
+    ASSERT_FALSE(surfaceNode->GetRSSurfaceHandler()->GetConsumer() != nullptr);
+    surfaceNode->DumpTree(0, outTest);
+    ASSERT_TRUE(outTest.find("ScalingMode") != string::npos);
+    ASSERT_FALSE(outTest.find("TransformType") != string::npos);
+
+    outTest = "";
+    surfaceNode->GetRSSurfaceHandler()->SetConsumer(consumerSurfacePtr);
+    ASSERT_TRUE(surfaceNode->GetRSSurfaceHandler()->GetBuffer() != nullptr);
+    ASSERT_TRUE(surfaceNode->GetRSSurfaceHandler()->GetConsumer() != nullptr);
+    surfaceNode->DumpTree(0, outTest);
+    ASSERT_TRUE(outTest.find("ScalingMode") != string::npos);
+    ASSERT_TRUE(outTest.find("TransformType") != string::npos);
+}
+
+/**
  * @tc.name: RSSurfaceRenderNodeDumpTest
  * @tc.desc: DumpNodeType DumpTree and DumpSubClassNode test
  * @tc.type: FUNC

@@ -836,7 +836,14 @@ void RSRenderNode::DumpTree(int32_t depth, std::string& out) const
         if (surfaceNode->GetRSSurfaceHandler() && surfaceNode->GetRSSurfaceHandler()->GetBuffer()) {
             out += ", ScalingMode: " + std::to_string(
                 surfaceNode->GetRSSurfaceHandler()->GetBuffer()->GetSurfaceBufferScalingMode());
+            if (surfaceNode->GetRSSurfaceHandler()->GetConsumer()) {
+                auto transformType = GraphicTransformType::GRAPHIC_ROTATE_NONE;
+                surfaceNode->GetRSSurfaceHandler()->GetConsumer()->GetSurfaceBufferTransformType(
+                    surfaceNode->GetRSSurfaceHandler()->GetBuffer(), &transformType);
+                out += ", TransformType: " + std::to_string(transformType);
+            }
         }
+        out += ", AbsRotation: " + std::to_string(surfaceNode->GetAbsRotation());
 #endif
     }
     if (sharedTransitionParam_) {
