@@ -120,7 +120,7 @@ private:
     std::mutex mutex_;
     std::atomic<uint32_t> unExecuteTaskNum_ = 0;
     int hardwareTid_ = -1;
-    std::unordered_map<uint64_t,std::shared_ptr<RSSurfaceOhos>> frameBufferSurfaceOhosMap_;
+    std::unordered_map<uint64_t, std::shared_ptr<RSSurfaceOhos>> frameBufferSurfaceOhosMap_;
 
     HgmRefreshRates hgmRefreshRates_ = HgmRefreshRates::SET_RATE_NULL;
     RSVBlankIdleCorrector vblankIdleCorrector_;

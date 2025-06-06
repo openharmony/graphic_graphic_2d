@@ -3004,7 +3004,6 @@ void RSUniRenderVisitor::MarkBlurIntersectWithDRM(std::shared_ptr<RSRenderNode> 
     }
     auto effectNode = node->IsInstanceOf<RSEffectRenderNode>() && node->ReinterpretCastTo<RSEffectRenderNode>() ?
         node->ReinterpretCastTo<RSEffectRenderNode>() : nullptr;
-
     if (effectNode) {
         effectNode->SetEffectIntersectWithDRM(false);
         effectNode->SetDarkColorMode(RSMainThread::Instance()->GetGlobalDarkColorMode());
