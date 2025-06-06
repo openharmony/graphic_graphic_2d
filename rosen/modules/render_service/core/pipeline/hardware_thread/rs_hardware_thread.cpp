@@ -138,6 +138,12 @@ void RSHardwareThread::Start()
 #endif
                 uniRenderEngine_ = std::make_shared<RSUniRenderEngine>();
                 uniRenderEngine_->Init(true);
+#ifdef RS_ENABLE_VK
+                // posttask for multithread safely release surface and image
+                if (RSSystemProperties::IsUseVulkan()) {
+                    ContextRegisterPostTask();
+                }
+#endif
                 hardwareTid_ = gettid();
             }).wait();
     }
@@ -1262,6 +1268,21 @@ bool RSHardwareThread::ConvertColorGamutToSpaceType(const GraphicColorGamut& col
 
     colorSpaceType = RS_TO_COMMON_COLOR_SPACE_TYPE_MAP.at(colorGamut);
     return true;
+}
+#endif
+
+#ifdef RS_ENABLE_VK
+void RSHardwareThread::ContextRegisterPostTask()
+{
+    RsVulkanContext::GetSingleton().SetIsProtected(true);
+    auto context = RsVulkanContext::GetSingleton().GetDrawingContext();
+    if (context) {
+        context->RegisterPostFunc([this](const std::function<void()>& task) { PostTask(task); });
+    }
+    RsVulkanContext::GetSingleton().SetIsProtected(false);
+    if (context) {
+        context->RegisterPostFunc([this](const std::function<void()>& task) { PostTask(task); });
+    }
 }
 #endif
 }
