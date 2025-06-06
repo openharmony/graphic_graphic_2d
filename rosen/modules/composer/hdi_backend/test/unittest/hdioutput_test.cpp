@@ -742,7 +742,7 @@ HWTEST_F(HdiOutputTest, ANCOTransactionOnComplete001, Function | MediumTest | Le
     output->ANCOTransactionOnComplete(layerInfo, nullptr);
     layerInfo->SetAncoFlags(static_cast<uint32_t>(AncoFlags::ANCO_NATIVE_NODE));
     output->ANCOTransactionOnComplete(layerInfo, nullptr);
-    sptr<SyncFence> previousReleaseFence = new SyncFence(-1);
+    auto previousReleaseFence = sptr<SyncFence>::MakeSptr(-1);
     auto consumer = IConsumerSurface::Create("xcomponentIdSurface");
     layerInfo->SetSurface(consumer);
     output->ANCOTransactionOnComplete(layerInfo, previousReleaseFence);
