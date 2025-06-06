@@ -195,23 +195,19 @@ HWTEST_F(RSRenderDispersionFilterTest, ParseFilterValuesTest001, TestSize.Level1
     auto filter = std::make_shared<RSRenderDispersionFilterPara>(0, RSUIFilterType::RIPPLE_MASK);
     EXPECT_FALSE(filter->ParseFilterValues());
 
-    auto redOffsetProperty = std::make_shared<RSRenderAnimatableProperty<Vector2f>>(
-        Vector2f(0.5f, 0.5f), 0, RSPropertyType::VECTOR2F);
+    auto redOffsetProperty = std::make_shared<RSRenderAnimatableProperty<Vector2f>>(Vector2f(0.5f, 0.5f), 0);
     filter->Setter(RSUIFilterType::DISPERSION_RED_OFFSET, redOffsetProperty);
     EXPECT_FALSE(filter->ParseFilterValues());
 
-    auto greenOffsetProperty = std::make_shared<RSRenderAnimatableProperty<Vector2f>>(
-        Vector2f(0.5f, 0.5f), 0, RSPropertyType::VECTOR2F);
+    auto greenOffsetProperty = std::make_shared<RSRenderAnimatableProperty<Vector2f>>(Vector2f(0.5f, 0.5f), 0);
     filter->Setter(RSUIFilterType::DISPERSION_GREEN_OFFSET, greenOffsetProperty);
     EXPECT_FALSE(filter->ParseFilterValues());
 
-    auto blueOffsetProperty = std::make_shared<RSRenderAnimatableProperty<Vector2f>>(
-        Vector2f(0.5f, 0.5f), 0, RSPropertyType::VECTOR2F);
+    auto blueOffsetProperty = std::make_shared<RSRenderAnimatableProperty<Vector2f>>(Vector2f(0.5f, 0.5f), 0);
     filter->Setter(RSUIFilterType::DISPERSION_BLUE_OFFSET, blueOffsetProperty);
     EXPECT_FALSE(filter->ParseFilterValues());
 
-    auto opacityProperty =
-        std::make_shared<RSRenderAnimatableProperty<float>>(0.5f, 0, RSPropertyType::VECTOR2F);
+    auto opacityProperty = std::make_shared<RSRenderAnimatableProperty<float>>(0.5f, 0);
     filter->Setter(RSUIFilterType::DISPERSION_OPACITY, opacityProperty);
     EXPECT_TRUE(filter->ParseFilterValues());
 

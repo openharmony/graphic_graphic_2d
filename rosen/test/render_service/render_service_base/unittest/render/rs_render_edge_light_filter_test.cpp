@@ -122,13 +122,12 @@ HWTEST_F(RSRenderEdgeLightFilterTest, ParseFilterValuesTest001, TestSize.Level1)
     auto filter = std::make_shared<RSRenderEdgeLightFilterPara>(0);
     EXPECT_FALSE(filter->ParseFilterValues());
 
-    auto alphaRenderProperty =
-        std::make_shared<RSRenderAnimatableProperty<float>>(1.0f, 0, RSPropertyType::FLOAT);
+    auto alphaRenderProperty = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f, 0);
     filter->Setter(RSUIFilterType::EDGE_LIGHT_ALPHA, alphaRenderProperty);
     EXPECT_FALSE(filter->ParseFilterValues());
 
-    auto colorRenderProperty = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(
-        Vector4f(0.5f, 0.5f, 0.5f, 0.0f), 0, RSPropertyType::VECTOR4F);
+    auto colorRenderProperty =
+        std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(0.5f, 0.5f, 0.5f, 0.0f), 0);
     filter->Setter(RSUIFilterType::EDGE_LIGHT_COLOR, colorRenderProperty);
     EXPECT_TRUE(filter->ParseFilterValues());
 

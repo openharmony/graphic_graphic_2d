@@ -186,8 +186,7 @@ HWTEST_F(RSRenderDisplacementDistortFilterTest, ParseFilterValuesTest001, TestSi
 
     EXPECT_FALSE(filter->ParseFilterValues());
 
-    auto factProperty = std::make_shared<RSRenderAnimatableProperty<Vector2f>>(
-        Vector2f(1.f, 1.f), 0, RSPropertyType::VECTOR2F);
+    auto factProperty = std::make_shared<RSRenderAnimatableProperty<Vector2f>>(Vector2f(1.f, 1.f), 0);
     filter->Setter(RSUIFilterType::DISPLACEMENT_DISTORT_FACTOR, factProperty);
     EXPECT_FALSE(filter->ParseFilterValues());
 

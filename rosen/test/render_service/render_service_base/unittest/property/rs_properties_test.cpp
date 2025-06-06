@@ -18,6 +18,9 @@
 #include "property/rs_properties.h"
 #include "common/rs_obj_abs_geometry.h"
 #include "property/rs_point_light_manager.h"
+#include "render/rs_drawing_filter.h"
+#include "render/rs_render_displacement_distort_filter.h"
+#include "render/rs_render_maskcolor_filter.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -422,6 +425,12 @@ HWTEST_F(RSPropertiesTest, ClearFilterCache001, TestSize.Level1)
     properties.backgroundFilterCacheManager_ = std::make_unique<RSFilterCacheManager>();
     properties.ClearFilterCache();
     EXPECT_TRUE(properties.backgroundFilterCacheManager_ != nullptr);
+
+    auto maskColorShaderFilter = std::make_shared<RSMaskColorShaderFilter>(BLUR_COLOR_MODE::DEFAULT, RSColor());
+    properties.backgroundFilter_ = std::make_shared<RSDrawingFilter>(maskColorShaderFilter);
+    properties.filter_ = std::make_shared<RSDrawingFilter>(maskColorShaderFilter);
+    properties.ClearFilterCache();
+    EXPECT_NE(maskColorShaderFilter, nullptr);
 }
 #endif
 
@@ -2525,6 +2534,21 @@ HWTEST_F(RSPropertiesTest, GenerateForegroundMaterialBlurFilter001, TestSize.Lev
 }
 
 /**
+ * @tc.name: GenerateMaterialLightBlurFilter001
+ * @tc.desc: test results of GenerateMaterialLightBlurFilter
+ * @tc.type: FUNC
+ * @tc.require: issueI9QKVM
+ */
+HWTEST_F(RSPropertiesTest, GenerateMaterialLightBlurFilter001, TestSize.Level1)
+{
+    RSProperties properties;
+    auto colorFilter = std::make_shared<Drawing::ColorFilter>();
+    auto filter =
+        properties.GenerateMaterialLightBlurFilter(colorFilter, 1, 1.5f, BLUR_COLOR_MODE::PRE_DEFINED, RSColor());
+    EXPECT_NE(filter, nullptr);
+}
+
+/**
  * @tc.name: GenerateAIBarFilter001
  * @tc.desc: test results of GenerateAIBarFilter
  * @tc.type: FUNC
@@ -3170,9 +3194,27 @@ HWTEST_F(RSPropertiesTest, GenerateDisplacementDistortFilter001, TestSize.Level1
     RSProperties properties;
     properties.GenerateDisplacementDistortFilter();
     EXPECT_EQ(properties.backgroundFilter_, nullptr);
-    properties.backgroundRenderFilter_ = std::make_shared<RSRenderFilter>();
+
+    auto renderFilter = std::make_shared<RSRenderFilter>();
+    properties.backgroundRenderFilter_ = renderFilter;
+    renderFilter->Insert(RSUIFilterType::DISPLACEMENT_DISTORT, nullptr);
     properties.GenerateDisplacementDistortFilter();
     EXPECT_EQ(properties.backgroundFilter_, nullptr);
+
+    auto filter = std::make_shared<RSRenderDispDistortFilterPara>(0, RSUIFilterType::RIPPLE_MASK);
+    auto factProperty = std::make_shared<RSRenderAnimatableProperty<Vector2f>>(Vector2f(1.f, 1.f), 0);
+    filter->Setter(RSUIFilterType::DISPLACEMENT_DISTORT_FACTOR, factProperty);
+    renderFilter->Insert(RSUIFilterType::DISPLACEMENT_DISTORT, filter);
+    properties.GenerateDisplacementDistortFilter();
+    EXPECT_EQ(properties.backgroundFilter_, nullptr);
+
+    auto maskRenderProperty = std::make_shared<RSRenderMaskPara>(RSUIFilterType::RIPPLE_MASK);
+    filter->Setter(RSUIFilterType::RIPPLE_MASK, maskRenderProperty);
+    properties.GenerateDisplacementDistortFilter();
+    EXPECT_NE(properties.backgroundFilter_, nullptr);
+
+    properties.GenerateDisplacementDistortFilter();
+    EXPECT_NE(properties.backgroundFilter_, nullptr);
 }
 
 /**
@@ -3186,6 +3228,32 @@ HWTEST_F(RSPropertiesTest, GenerateRenderFilterDispersion001, TestSize.Level1)
     RSProperties properties;
     properties.GenerateRenderFilterDispersion();
     EXPECT_EQ(properties.backgroundFilter_, nullptr);
+
+    auto renderFilter = std::make_shared<RSRenderFilter>();
+    properties.backgroundRenderFilter_ = renderFilter;
+    renderFilter->Insert(RSUIFilterType::DISPERSION, nullptr);
+    properties.GenerateRenderFilterDispersion();
+    EXPECT_EQ(properties.backgroundFilter_, nullptr);
+
+    auto dispersionFilter = RSRenderFilter::CreateRenderFilterPara(RSUIFilterType::DISPERSION);
+    auto redOffsetProperty = std::make_shared<RSRenderAnimatableProperty<Vector2f>>(Vector2f(0.5f, 0.5f), 0);
+    dispersionFilter->Setter(RSUIFilterType::DISPERSION_RED_OFFSET, redOffsetProperty);
+    auto greenOffsetProperty = std::make_shared<RSRenderAnimatableProperty<Vector2f>>(Vector2f(0.5f, 0.5f), 0);
+    dispersionFilter->Setter(RSUIFilterType::DISPERSION_GREEN_OFFSET, greenOffsetProperty);
+    auto blueOffsetProperty = std::make_shared<RSRenderAnimatableProperty<Vector2f>>(Vector2f(0.5f, 0.5f), 0);
+    dispersionFilter->Setter(RSUIFilterType::DISPERSION_BLUE_OFFSET, blueOffsetProperty);
+
+    renderFilter->Insert(RSUIFilterType::DISPERSION, dispersionFilter);
+    properties.GenerateRenderFilterDispersion();
+    EXPECT_EQ(properties.backgroundFilter_, nullptr);
+
+    auto opacityProperty = std::make_shared<RSRenderAnimatableProperty<float>>(0.5f, 0);
+    dispersionFilter->Setter(RSUIFilterType::DISPERSION_OPACITY, opacityProperty);
+    properties.GenerateRenderFilterDispersion();
+    EXPECT_NE(properties.backgroundFilter_, nullptr);
+
+    properties.GenerateRenderFilterDispersion();
+    EXPECT_NE(properties.backgroundFilter_, nullptr);
 }
 
 /**

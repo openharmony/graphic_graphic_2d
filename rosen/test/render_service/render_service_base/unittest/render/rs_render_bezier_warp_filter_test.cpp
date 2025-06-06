@@ -187,8 +187,7 @@ HWTEST_F(RSRenderBezierWarpFilterTest, ParseFilterValuesTest001, TestSize.Level1
         RSUIFilterType::BEZIER_CONTROL_POINT11,
     };
     for (int i = 0; i < BEZIER_WARP_POINT_NUM; i++) {
-        auto renderProperty = std::make_shared<RSRenderAnimatableProperty<Vector2f>>(
-            Vector2f(0.f, 0.f), 0, RSPropertyType::VECTOR2F);
+        auto renderProperty = std::make_shared<RSRenderAnimatableProperty<Vector2f>>(Vector2f(0.f, 0.f), 0);
         rsBezierWarpFilter->Setter(ctrlPointsType[i], renderProperty);
     }
     EXPECT_TRUE(rsBezierWarpFilter->ParseFilterValues());
@@ -219,8 +218,7 @@ HWTEST_F(RSRenderBezierWarpFilterTest, ParseFilterValuesTest002, TestSize.Level1
         RSUIFilterType::BEZIER_CONTROL_POINT11,
     };
     for (int i = 0; i < BEZIER_WARP_POINT_NUM - 1; i++) {
-        auto renderProperty = std::make_shared<RSRenderAnimatableProperty<Vector2f>>(
-            Vector2f(0.f, 0.f), 0, RSPropertyType::VECTOR2F);
+        auto renderProperty = std::make_shared<RSRenderAnimatableProperty<Vector2f>>(Vector2f(0.f, 0.f), 0);
         rsBezierWarpFilter->Setter(ctrlPointsType[i], renderProperty);
     }
     EXPECT_FALSE(rsBezierWarpFilter->ParseFilterValues());

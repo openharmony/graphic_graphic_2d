@@ -194,18 +194,15 @@ HWTEST_F(RSRenderColorGradientFilterTest, ParseFilterValuesTest001, TestSize.Lev
     auto filter = std::make_shared<RSRenderColorGradientFilterPara>(0, RSUIFilterType::RIPPLE_MASK);
     EXPECT_FALSE(filter->ParseFilterValues());
 
-    auto colorsProperty = std::make_shared<RSRenderAnimatableProperty<std::vector<float>>>(
-        colors, 0, RSPropertyType::SHADER_PARAM);
+    auto colorsProperty = std::make_shared<RSRenderAnimatableProperty<std::vector<float>>>(colors, 0);
     filter->Setter(RSUIFilterType::COLOR_GRADIENT_COLOR, colorsProperty);
     EXPECT_FALSE(filter->ParseFilterValues());
 
-    auto positionsProperty = std::make_shared<RSRenderAnimatableProperty<std::vector<float>>>(
-        positions, 0, RSPropertyType::SHADER_PARAM);
+    auto positionsProperty = std::make_shared<RSRenderAnimatableProperty<std::vector<float>>>(positions, 0);
     filter->Setter(RSUIFilterType::COLOR_GRADIENT_POSITION, positionsProperty);
     EXPECT_FALSE(filter->ParseFilterValues());
 
-    auto strengthsProperty = std::make_shared<RSRenderAnimatableProperty<std::vector<float>>>(
-        strengths, 0, RSPropertyType::SHADER_PARAM);
+    auto strengthsProperty = std::make_shared<RSRenderAnimatableProperty<std::vector<float>>>(strengths, 0);
     filter->Setter(RSUIFilterType::COLOR_GRADIENT_STRENGTH, strengthsProperty);
     EXPECT_TRUE(filter->ParseFilterValues());
 
