@@ -435,7 +435,7 @@ HWTEST_F(HgmSoftVSyncManagerTest, CollectVRateChange02, Function | SmallTest | L
 
     linkerId = 3;
     finalRange.type_ = 6;
-    finalRange.preferred_ = 60;
+    finalRange.preferred_ = OLED_60_HZ;
     mgr.CollectVRateChange(linkerId, finalRange);
     EXPECT_EQ(finalRange.min_, OLED_NULL_HZ);
     EXPECT_EQ(finalRange.max_, OLED_144_HZ);
@@ -443,7 +443,7 @@ HWTEST_F(HgmSoftVSyncManagerTest, CollectVRateChange02, Function | SmallTest | L
 
     linkerId = 4;
     finalRange.type_ = 6;
-    mgr.controllerRate_ = 120;
+    mgr.controllerRate_ = OLED_120_HZ;
     mgr.CollectVRateChange(linkerId, finalRange);
     EXPECT_EQ(finalRange.min_, OLED_NULL_HZ);
     EXPECT_EQ(finalRange.max_, OLED_144_HZ);
