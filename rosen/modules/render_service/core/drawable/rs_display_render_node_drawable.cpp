@@ -2081,11 +2081,16 @@ void RSDisplayRenderNodeDrawable::AdjustZOrderAndDrawSurfaceNode(
         // SelfDrawingNodes need to use LayerMatrix(totalMatrix) when doing capturing
         auto matrix = surfaceParams->GetLayerInfo().matrix;
         // Use for mirror screen visible rect projection
-        auto rect = surfaceParams->GetLayerInfo().dstRect;
-        auto dstRect = Drawing::RectI(rect.x, rect.y, rect.x + rect.w, rect.y + rect.h);
-        const auto &visibleRect = RSUniRenderThread::Instance().GetVisibleRect();
-        if (dstRect.Intersect(visibleRect)) {
-            matrix.PostTranslate(-visibleRect.GetLeft(), -visibleRect.GetTop());
+        if (RSUniRenderThread::Instance().GetEnableVisiableRect()) {
+            auto rect = surfaceParams->GetLayerInfo().dstRect;
+            auto dstRect = Drawing::RectI(rect.x, rect.y, rect.x + rect.w, rect.y + rect.h);
+            const auto& visibleRect = RSUniRenderThread::Instance().GetVisibleRect();
+            float samplingScale = params.GetScreenInfo().samplingScale;
+            if (dstRect.Intersect(visibleRect) && ROSEN_NE(samplingScale, 0.f)) {
+                matrix.PostTranslate(-visibleRect.GetLeft() / samplingScale, -visibleRect.GetTop() / samplingScale);
+            } else {
+                continue;
+            }
         }
         canvas.ConcatMatrix(matrix);
         auto surfaceNodeDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(drawable);
