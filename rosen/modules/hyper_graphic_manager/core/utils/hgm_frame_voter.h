@@ -27,6 +27,8 @@ namespace Rosen {
 class HgmFrameVoter final {
 public:
     using ChangeRangeCallbackFunc = std::function<void(const std::string&)>;
+    using UpdateVoteRuleFunc = std::function<void(std::vector<std::string>&)>; // voters
+    using CheckVoteFunc = std::function<bool(const std::string&, VoteInfo&)>; // vote, voteInfo
 
     explicit HgmFrameVoter(HgmMultiAppStrategy& multiAppStrategy);
     ~HgmFrameVoter() = default;
@@ -44,20 +46,15 @@ public:
         ScreenId curScreenId, int32_t curRefreshRateMode);
 
     void SetChangeRangeCallback(const ChangeRangeCallbackFunc& func) { markVoteChange_ = func; }
+    void SetUpdateVoteRuleCallback(const UpdateVoteRuleFunc& func) { updateVoteRule_ = func; }
+    void SetCheckVoteCallback(const CheckVoteFunc& func) { checkVote_ = func; }
 
-    std::unordered_set<std::string> ancoScenes_;
-    std::unordered_set<std::string> gameScenes_;
-    // FORMAT: <sceneName, pid>
-    std::vector<std::pair<std::string, pid_t>> sceneStack_;
 private:
     void ProcessVoteLog(const VoteInfo& curVoteInfo, bool isSkip);
     bool MergeLtpo2IdleVote(
         std::vector<std::string>::iterator &voterIter, VoteInfo& resultVoteInfo, VoteRange &mergedVoteRange);
-    void CheckAncoVoter(const std::string& voter, VoteInfo& curVoteInfo);
     bool ProcessVoteIter(std::vector<std::string>::iterator& voterIter,
         VoteInfo& resultVoteInfo, VoteRange& voteRange, bool &voterGamesEffective);
-    void ChangePriority(uint32_t curScenePriority);
-    void UpdateVoteRule(const std::string& curScreenStrategyId, int32_t curRefreshRateMode);
     void MarkVoteChange(const std::string& voter = "")
     {
         if (markVoteChange_) {
@@ -74,6 +71,10 @@ private:
     HgmMultiAppStrategy& multiAppStrategy_;
 
     ChangeRangeCallbackFunc markVoteChange_{ nullptr };
+    // param: voters
+    UpdateVoteRuleFunc updateVoteRule_{ nullptr };
+    // return: false means vote is invalid, should be skip
+    CheckVoteFunc checkVote_{ nullptr };
 };
 } // namespace Rosen
 } // namespace OHOS

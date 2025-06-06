@@ -235,7 +235,7 @@ HWTEST_F(HgmFrameVoterTest, TestMergeLtpo2IdleVote, Function | SmallTest | Level
     hgmFrameVoter.DeliverVote({"VOTER_TOUCH", OLED_30_HZ, OLED_90_HZ, 1}, true);
     hgmFrameVoter.multiAppStrategy_.pkgs_.push_back("testPkg");
     auto result = hgmFrameVoter.MergeLtpo2IdleVote(voterIter, info, range);
-    EXPECT_EQ(result, false);
+    EXPECT_EQ(result, true);
     
     HgmCore::Instance().mPolicyConfigData_->videoFrameRateList_["testPkg"] = "1";
     voterIter = std::find(hgmFrameVoter.voters_.begin(), hgmFrameVoter.voters_.end(), "VOTER_TOUCH");
@@ -254,48 +254,13 @@ HWTEST_F(HgmFrameVoterTest, TestMergeLtpo2IdleVote, Function | SmallTest | Level
     EXPECT_EQ(range.second, OLED_120_HZ);
     EXPECT_EQ(info.voterName, "VOTER_SCENE");
 
-    HgmCore::Instance().mPolicyConfigData_ = std::move(policyConfigData);
-}
-
-/**
- * @tc.name: TestCheckAncoVoter
- * @tc.desc: Verify the result of CheckAncoVoter function
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(HgmFrameVoterTest, TestCheckAncoVoter, Function | SmallTest | Level1)
-{
-    HgmFrameRateManager mgr;
-    HgmFrameVoter hgmFrameVoter(HgmFrameVoter(mgr.multiAppStrategy_));
-
-    VoteInfo info = { .min = OLED_NULL_HZ, .max = OLED_MAX_HZ};
-    hgmFrameVoter.CheckAncoVoter("VOTER_ANCO1", info);
-    hgmFrameVoter.CheckAncoVoter("VOTER_ANCO", info);
-    EXPECT_EQ(info.min, OLED_NULL_HZ);
-    hgmFrameVoter.ancoScenes_.insert("SCENE0");
-    hgmFrameVoter.CheckAncoVoter("VOTER_ANCO", info);
-    EXPECT_EQ(info.min, OLED_60_HZ);
-
-    std::shared_ptr<PolicyConfigData> policyConfigData = std::move(HgmCore::Instance().mPolicyConfigData_);
-    HgmCore::Instance().mPolicyConfigData_ = nullptr;
-    hgmFrameVoter.CheckAncoVoter("VOTER_ANCO", info);
-    EXPECT_EQ(info.min, OLED_60_HZ);
-
-    HgmCore::Instance().mPolicyConfigData_ = std::make_unique<PolicyConfigData>();
-    hgmFrameVoter.CheckAncoVoter("VOTER_ANCO", info);
-    EXPECT_EQ(info.min, OLED_60_HZ);
-
-    auto screenSetting = mgr.GetMultiAppStrategy().GetScreenSetting();
-    screenSetting.ancoSceneList["SCENE0"] = {"1000", "1"};
-    mgr.GetMultiAppStrategy().SetScreenSetting(screenSetting);
-    hgmFrameVoter.CheckAncoVoter("VOTER_ANCO", info);
-    EXPECT_EQ(info.min, OLED_60_HZ);
-
-    PolicyConfigData::StrategyConfigMap strategyConfigs;
-    strategyConfigs["1000"] = { .min = OLED_90_HZ, .max = OLED_90_HZ, .dynamicMode = DynamicModeType::TOUCH_ENABLED};
-    HgmCore::Instance().mPolicyConfigData_->strategyConfigs_ = strategyConfigs;
-    hgmFrameVoter.CheckAncoVoter("VOTER_ANCO", info);
-    EXPECT_EQ(info.min, OLED_90_HZ);
+    // checkVote
+    hgmFrameVoter.SetCheckVoteCallback([] (const std::string&, VoteInfo&) { return true; });
+    hgmFrameVoter.MergeLtpo2IdleVote(voterIter, info, range);
+    hgmFrameVoter.SetCheckVoteCallback([] (const std::string&, VoteInfo&) { return false; });
+    hgmFrameVoter.MergeLtpo2IdleVote(voterIter, info, range);
+    hgmFrameVoter.SetCheckVoteCallback(nullptr);
+    hgmFrameVoter.MergeLtpo2IdleVote(voterIter, info, range);
 
     HgmCore::Instance().mPolicyConfigData_ = std::move(policyConfigData);
 }
@@ -345,117 +310,16 @@ HWTEST_F(HgmFrameVoterTest, TestProcessVoteIter, Function | SmallTest | Level1)
 
     hgmFrameVoter.DeliverVote({"VOTER_GAMES", OLED_60_HZ, OLED_120_HZ, 3}, true);
     voterIter = std::find(hgmFrameVoter.voters_.begin(), hgmFrameVoter.voters_.end(), "VOTER_GAMES");
-    EXPECT_EQ(hgmFrameVoter.ProcessVoteIter(voterIter, info, voteRange0, voterGamesEffective), false);
+    EXPECT_EQ(hgmFrameVoter.ProcessVoteIter(voterIter, info, voteRange0, voterGamesEffective), true);
 
     hgmFrameVoter.multiAppStrategy_.foregroundPidAppMap_[3] = { 1, "testGame" };
     voterIter = std::find(hgmFrameVoter.voters_.begin(), hgmFrameVoter.voters_.end(), "VOTER_GAMES");
     EXPECT_EQ(hgmFrameVoter.ProcessVoteIter(voterIter, info, voteRange0, voterGamesEffective), true);
     EXPECT_EQ(voterGamesEffective, true);
 
-    hgmFrameVoter.gameScenes_.insert("sceneName");
-    voterIter = std::find(hgmFrameVoter.voters_.begin(), hgmFrameVoter.voters_.end(), "VOTER_GAMES");
-    EXPECT_EQ(hgmFrameVoter.ProcessVoteIter(voterIter, info, voteRange0, voterGamesEffective), false);
-
     hgmFrameVoter.voters_.insert(hgmFrameVoter.voters_.begin(), "NULL");
     voterIter = std::find(hgmFrameVoter.voters_.begin(), hgmFrameVoter.voters_.end(), "NULL");
     EXPECT_EQ(hgmFrameVoter.ProcessVoteIter(voterIter, info, voteRange0, voterGamesEffective), false);
-}
-
-/**
- * @tc.name: ChangePriority
- * @tc.desc: Verify the result of ChangePriority
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(HgmFrameVoterTest, TestChangePriority, Function | SmallTest | Level1)
-{
-    constexpr uint32_t DEFAULT_PRIORITY = 0;
-    constexpr uint32_t VOTER_SCENE_PRIORITY_BEFORE_PACKAGES = 1;
-    constexpr uint32_t VOTER_LTPO_PRIORITY_BEFORE_PACKAGES = 2;
-
-    HgmFrameRateManager mgr;
-    HgmFrameVoter hgmFrameVoter(HgmFrameVoter(mgr.multiAppStrategy_));
-
-    hgmFrameVoter.ChangePriority(DEFAULT_PRIORITY);
-    auto packagesPos = find(hgmFrameVoter.voters_.begin(), hgmFrameVoter.voters_.end(), "VOTER_PACKAGES");
-    auto ltpoPos = find(hgmFrameVoter.voters_.begin(), hgmFrameVoter.voters_.end(), "VOTER_LTPO");
-    auto scenePos = find(hgmFrameVoter.voters_.begin(), hgmFrameVoter.voters_.end(), "VOTER_SCENE");
-    ASSERT_LT(packagesPos, ltpoPos);
-    ASSERT_LT(ltpoPos, scenePos);
-    hgmFrameVoter.ChangePriority(VOTER_SCENE_PRIORITY_BEFORE_PACKAGES);
-    auto packagesPos1 = find(hgmFrameVoter.voters_.begin(), hgmFrameVoter.voters_.end(), "VOTER_PACKAGES");
-    auto ltpoPos1 = find(hgmFrameVoter.voters_.begin(), hgmFrameVoter.voters_.end(), "VOTER_LTPO");
-    auto scenePos1 = find(hgmFrameVoter.voters_.begin(), hgmFrameVoter.voters_.end(), "VOTER_SCENE");
-    ASSERT_LT(scenePos1, packagesPos1);
-    ASSERT_LT(packagesPos1, ltpoPos1);
-    hgmFrameVoter.ChangePriority(VOTER_LTPO_PRIORITY_BEFORE_PACKAGES);
-    auto packagesPos2 = find(hgmFrameVoter.voters_.begin(), hgmFrameVoter.voters_.end(), "VOTER_PACKAGES");
-    auto ltpoPos2 = find(hgmFrameVoter.voters_.begin(), hgmFrameVoter.voters_.end(), "VOTER_LTPO");
-    auto scenePos2 = find(hgmFrameVoter.voters_.begin(), hgmFrameVoter.voters_.end(), "VOTER_SCENE");
-    ASSERT_LT(scenePos2, ltpoPos2);
-    ASSERT_LT(ltpoPos2, packagesPos2);
-}
-
-/**
- * @tc.name: TestUpdateVoteRule
- * @tc.desc: Verify the result of UpdateVoteRule function
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(HgmFrameVoterTest, TestUpdateVoteRule, Function | SmallTest | Level1)
-{
-    HgmFrameRateManager mgr;
-    HgmFrameVoter hgmFrameVoter(HgmFrameVoter(mgr.multiAppStrategy_));
-    std::string screenStrategyId = "LTPO-test";
-    std::string screenStrategyId2 = "LTPO-test";
-    int32_t mode = 1;
-    int32_t mode2 = 1;
-    std::string strMode = "1";
-
-    std::shared_ptr<PolicyConfigData> policyConfigData = std::move(HgmCore::Instance().mPolicyConfigData_);
-    HgmCore::Instance().mPolicyConfigData_ = nullptr;
-
-    hgmFrameVoter.UpdateVoteRule(screenStrategyId, mode);
-    EXPECT_EQ(hgmFrameVoter.multiAppStrategy_.disableSafeVote_, false);
-
-    hgmFrameVoter.sceneStack_.push_back(std::make_pair("sceneName", 0));
-    hgmFrameVoter.UpdateVoteRule(screenStrategyId, mode);
-    EXPECT_EQ(hgmFrameVoter.multiAppStrategy_.disableSafeVote_, false);
-
-    HgmCore::Instance().mPolicyConfigData_ = std::make_unique<PolicyConfigData>();
-    HgmCore::Instance().mPolicyConfigData_->screenConfigs_[screenStrategyId][strMode] = {};
-
-    hgmFrameVoter.UpdateVoteRule(screenStrategyId2, mode);
-    EXPECT_EQ(hgmFrameVoter.multiAppStrategy_.disableSafeVote_, false);
-
-    hgmFrameVoter.UpdateVoteRule(screenStrategyId, mode2);
-    EXPECT_EQ(hgmFrameVoter.multiAppStrategy_.disableSafeVote_, false);
-
-    hgmFrameVoter.UpdateVoteRule(screenStrategyId, mode);
-    EXPECT_EQ(hgmFrameVoter.multiAppStrategy_.disableSafeVote_, false);
-
-    PolicyConfigData::SceneConfigMap sceneList;
-    sceneList["sceneName1"] = {"1", "a", false, true};
-    sceneList["sceneName2"] = {"1", "1", false, true};
-    HgmCore::Instance().mPolicyConfigData_->screenConfigs_[screenStrategyId][strMode].sceneList = sceneList;
-    hgmFrameVoter.UpdateVoteRule(screenStrategyId, mode);
-    EXPECT_EQ(hgmFrameVoter.multiAppStrategy_.disableSafeVote_, false);
-
-    hgmFrameVoter.sceneStack_.push_back(std::make_pair("sceneName1", 0));
-    hgmFrameVoter.UpdateVoteRule(screenStrategyId, mode);
-    EXPECT_EQ(hgmFrameVoter.multiAppStrategy_.disableSafeVote_, false);
-
-    hgmFrameVoter.sceneStack_.push_back(std::make_pair("sceneName2", 0));
-    hgmFrameVoter.UpdateVoteRule(screenStrategyId, mode);
-    EXPECT_EQ(hgmFrameVoter.multiAppStrategy_.disableSafeVote_, false);
-
-    PolicyConfigData::StrategyConfigMap strategyConfigs;
-    strategyConfigs["1"] = { .min = OLED_NULL_HZ, .max = OLED_120_HZ, .dynamicMode = DynamicModeType::TOUCH_ENABLED};
-    HgmCore::Instance().mPolicyConfigData_->strategyConfigs_ = strategyConfigs;
-    hgmFrameVoter.UpdateVoteRule(screenStrategyId, mode);
-    EXPECT_EQ(hgmFrameVoter.multiAppStrategy_.disableSafeVote_, true);
-
-    HgmCore::Instance().mPolicyConfigData_ = std::move(policyConfigData);
 }
 
 /**
@@ -490,6 +354,35 @@ HWTEST_F(HgmFrameVoterTest, TestProcessVote, Function | SmallTest | Level1)
     hgmFrameVoter.DeliverVote({"VOTER_PACKAGES", OLED_90_HZ, OLED_90_HZ, 3}, true);
     auto [voteInfo4, voteRange4] = hgmFrameVoter.ProcessVote(screenStrategyId, screenId, mode);
     EXPECT_EQ(voteRange4.first, OLED_90_HZ);
+}
+
+/**
+ * @tc.name: Callback
+ * @tc.desc: Verify the result of Callback function
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameVoterTest, Callback, Function | SmallTest | Level1)
+{
+    HgmFrameRateManager mgr;
+    HgmFrameVoter hgmFrameVoter(HgmFrameVoter(mgr.multiAppStrategy_));
+    std::string screenStrategyId = "LTPO-test";
+    ScreenId screenId = 1;
+    int32_t mode = 1;
+
+    hgmFrameVoter.ProcessVote(screenStrategyId, screenId, mode);
+
+    hgmFrameVoter.DeliverVote({"VOTER_THERMAL", OLED_60_HZ, OLED_120_HZ, 0}, true);
+    hgmFrameVoter.DeliverVote({"VOTER_GAMES", OLED_60_HZ, OLED_120_HZ, 0}, true);
+    hgmFrameVoter.DeliverVote({"VOTER_TOUCH", OLED_90_HZ, OLED_120_HZ, 0}, true);
+
+    hgmFrameVoter.SetUpdateVoteRuleCallback([] (std::vector<std::string>&) {});
+    hgmFrameVoter.SetCheckVoteCallback([] (const std::string&, VoteInfo&) -> bool { return true; });
+    auto [voteInfo, voteRange] = hgmFrameVoter.ProcessVote(screenStrategyId, screenId, mode);
+    hgmFrameVoter.ProcessVote(screenStrategyId, screenId, mode);
+    hgmFrameVoter.SetCheckVoteCallback([] (const std::string&, VoteInfo&) -> bool { return false; });
+    auto [voteInfo1, voteRange1] = hgmFrameVoter.ProcessVote(screenStrategyId, screenId, mode);
+    EXPECT_EQ(voteRange1.first, OLED_MIN_HZ);
 }
 } // namespace Rosen
 } // namespace OHOS

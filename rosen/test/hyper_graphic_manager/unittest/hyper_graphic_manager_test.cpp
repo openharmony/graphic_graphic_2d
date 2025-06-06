@@ -709,7 +709,6 @@ HWTEST_F(HyperGraphicManagerTest, TestAbnormalCase, Function | SmallTest | Level
 
     auto mgr = hgm.GetFrameRateMgr();
     std::string savedScreenStrategyId = mgr->curScreenStrategyId_;
-    EXPECT_EQ(savedScreenStrategyId, "LTPO-DEFAULT");
     std::string invalidScreenStrategyId = "DEFAULT-INVALID";
     mgr->curScreenStrategyId_ = invalidScreenStrategyId;
     hgm.CheckCustomFrameRateModeValid();

@@ -91,6 +91,9 @@ void HgmCore::Init()
             }
             CheckCustomFrameRateModeValid();
         }
+        if (mPolicyConfigVisitor_ != nullptr) {
+            mPolicyConfigVisitor_->SetXmlModeId(std::to_string(customFrameRateMode_));
+        }
 
         SetLtpoConfig();
         HGM_LOGI("HgmCore initialization success!!!");
@@ -145,6 +148,9 @@ int32_t HgmCore::InitXmlConfig()
 
     if (!mPolicyConfigData_) {
         mPolicyConfigData_ = mParser_->GetParsedData();
+    }
+    if (mPolicyConfigData_ != nullptr) {
+        mPolicyConfigVisitor_ = std::make_shared<PolicyConfigVisitorImpl>(*mPolicyConfigData_);
     }
 
     return EXEC_SUCCESS;
@@ -344,6 +350,9 @@ int32_t HgmCore::SetRateAndResolution(ScreenId id, int32_t sceneId, int32_t rate
 
 int32_t HgmCore::SetRefreshRateMode(int32_t refreshRateMode)
 {
+    if (mPolicyConfigVisitor_ != nullptr) {
+        mPolicyConfigVisitor_->SetSettingModeId(refreshRateMode);
+    }
     // setting mode to xml modeid
     if (refreshRateMode != HGM_REFRESHRATE_MODE_AUTO
         && mPolicyConfigData_ != nullptr && mPolicyConfigData_->xmlCompatibleMode_) {

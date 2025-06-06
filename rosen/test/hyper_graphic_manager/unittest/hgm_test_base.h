@@ -51,7 +51,7 @@ const std::string TEST_XML_CONTENT = (R"(<?xml version="1.0" encoding="UTF-8" st
         <Strategy name="aaa"/>
     </Params>
     <Params name="refreshRate_strategy_config">
-        <Strategy name="8" min="60" max="120" dynamicMode="1"/>
+        <Strategy name="8" min="60" max="120" dynamicMode="1" pointerMode="1"/>
         <Strategy name="12" min="120" max="120" dynamicMode="0"/>
     </Params>
     <Params name="refreshRate_virtual_display_config" switch="1">
@@ -112,9 +112,12 @@ const std::string TEST_XML_CONTENT = (R"(<?xml version="1.0" encoding="UTF-8" st
         </Category>
         <Category name="app_list" multi_app_strategy="focus">
             <App name="aaa" strategy="12"/>
+            <App name="bbb" nodeName="12"/>
         </Category>
         <Category name="app_types">
             <App name="aaa" strategy="12" />
+            <App name="111" strategy="12" />
+            <App name="333" strategy="33" />
         </Category>
         <Category name="app_page_url_config">
             <App name="aaa" strategy="12" />
@@ -175,6 +178,7 @@ public:
         parser->Parse();
         hgmCore.mPolicyConfigData_ = parser->GetParsedData();
         hgmCore.mParser_ = std::move(parser);
+        hgmCore.InitXmlConfig();
     }
     static void TearDownTestCase() {}
     void SetUp() {}
