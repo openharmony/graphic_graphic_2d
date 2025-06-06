@@ -451,6 +451,30 @@ HWTEST_F(RSRenderNodeDrawableTest, TraverseSubTreeAndDrawFilterWithClipTest, Tes
 }
 
 /**
+ * @tc.name: DrawWithNodeGroupCache
+ * @tc.desc: Test If DrawWithNodeGroupCache Can Run
+ * @tc.type: FUNC
+ * @tc.require: issueIAVPAJ
+ */
+HWTEST_F(RSRenderNodeDrawableTest, DrawWithNodeGroupCacheTest, TestSize.Level1)
+{
+    auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
+    Drawing::Canvas canvas;
+    RSRenderParams params(RSRenderNodeDrawableTest::id);
+    DrawableCacheType originalCacheType = DrawableCacheType::CONTENT;
+    drawable->DrawWithoutNodeGroupCache(canvas, params, originalCacheType);
+    ASSERT_TRUE(drawable->GetCacheType() == DrawableCacheType::CONTENT);
+
+    NodeId id = 1;
+    auto rootRenderNode = std::make_shared<RSRenderNode>(id);
+    auto rootDrawable = RSRenderNodeDrawable::OnGenerate(rootRenderNode);
+    drawable->drawBlurForCache_ = true;
+    drawable->curDrawingCacheRoot_ = rootDrawable;
+    drawable->DrawWithoutNodeGroupCache(canvas, params, originalCacheType);
+    ASSERT_TRUE(drawable->GetCacheType() == DrawableCacheType::CONTENT);
+}
+
+/**
  * @tc.name: DrawWithoutNodeGroupCache
  * @tc.desc: Test If DrawWithoutNodeGroupCache Can Run
  * @tc.type: FUNC

@@ -172,6 +172,20 @@ public:
     bool TakeSelfSurfaceCapture(std::shared_ptr<RSSurfaceNode> node, std::shared_ptr<SurfaceCaptureCallback> callback,
         RSSurfaceCaptureConfig captureConfig = {});
 
+    /**
+     * @brief Freeze window content immediately and capture interface snapshot
+     *
+     * Used in window transition scenarios to quickly freeze current frame and generate
+     * blurred snapshots. Maintains frozen state until explicit unfreeze.
+     *
+     * @param node Target surface node (must be valid window node)
+     * @param isFreeze Freeze control flag:
+     *                - true: Freeze and generate snapshot
+     *                - false: Resume dynamic updates
+     * @param callback Async completion callback (executed in render thread)
+     * @param captureConfig Capture parameters including scaling factors
+     * @param blurRadius Gaussian blur radius (in dp), effect enabled when ≥1.0f
+     */
     bool SetWindowFreezeImmediately(std::shared_ptr<RSSurfaceNode> node, bool isFreeze,
         std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig = {},
         float blurRadius = 1E-6);
