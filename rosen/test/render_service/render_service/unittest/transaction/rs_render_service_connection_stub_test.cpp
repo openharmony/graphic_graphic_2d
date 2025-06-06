@@ -160,7 +160,7 @@ void g_WriteSurfaceCaptureConfigMock(RSSurfaceCaptureConfig& captureConfig, Mess
  * @tc.name: NotifySurfaceCaptureRemoteTest001
  * @tc.desc: NotifySurfaceCaptureRemoteTest001.
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require: issueI60KUK
  */
 HWTEST_F(RSRenderServiceConnectionStubTest, NotifySurfaceCaptureRemoteTest001, TestSize.Level1)
 {

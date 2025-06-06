@@ -484,7 +484,7 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreateClientPixelMap, TestSize.Level2
 
     // TEST2:: InVaild scalex01
     {
-        Drawing::Rect rect = {0, 0 ,1260, 2720};
+        Drawing::Rect rect = {0, 0, 1260, 2720};
         RSSurfaceCaptureConfig captureConfig;
         captureConfig.scaleX = 2;
         auto pixelMap = RSCapturePixelMapManager::GetClientCapturePixelMap(rect, captureConfig,

@@ -290,7 +290,7 @@ bool RSCapturePixelMapManager::AttachShareMem(const std::unique_ptr<Media::Pixel
     }
     void* fdPtr = new (std::nothrow) int32_t();
     if (fdPtr == nullptr) {
-        ::munmap(ptr,size);
+        ::munmap(ptr, size);
         ::close(fd);
         return false;
     }

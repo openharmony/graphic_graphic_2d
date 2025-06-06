@@ -512,7 +512,8 @@ HWTEST_F(RSUiCaptureTaskParallelTest, CreateResources002, Function | SmallTest |
     auto canvasRenderNode = std::make_shared<RSCanvasRenderNode>(canvasRenderNodeId, std::make_shared<RSContext>(),
         true);
     nodeMap.RegisterRenderNode(canvasRenderNode);
-    auto canvasRenderNodeHandle = std::make_shared<RSUiCaptureTaskParallel>(canvasRenderNodeId, config2, rsCapturePixelMap);
+    auto canvasRenderNodeHandle = std::make_shared<RSUiCaptureTaskParallel>(canvasRenderNodeId,
+        config2, rsCapturePixelMap);
     Drawing::Rect canvasRect(0.f, 0.f, 0.f, 0.f);
     ASSERT_EQ(canvasRenderNodeHandle->CreateResources(canvasRect), false);
 }
@@ -622,7 +623,8 @@ HWTEST_F(RSUiCaptureTaskParallelTest, RSUiCaptureTaskParallel_IsRectValid002, Fu
         true);
     nodeMap.RegisterRenderNode(surfaceRenderNode);
     auto rsCapturePixelMap = std::make_shared<RSCapturePixelMap>();
-    auto surfaceRenderNodeHandle = std::make_shared<RSUiCaptureTaskParallel>(surfaceRenderNodeId, config, rsCapturePixelMap);
+    auto surfaceRenderNodeHandle = std::make_shared<RSUiCaptureTaskParallel>(surfaceRenderNodeId,
+        config, rsCapturePixelMap);
     Drawing::Rect specifiedAreaRect(0.f, 0.f, 0.f, 0.f);
     ASSERT_EQ(surfaceRenderNodeHandle->IsRectValid(surfaceRenderNodeId, specifiedAreaRect), false);
 }
