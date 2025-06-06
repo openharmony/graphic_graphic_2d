@@ -29,7 +29,6 @@ declare_args() {
   graphic_2d_feature_freemem_enable = false
   graphic_2d_feature_parallel_render_enable = true
   graphic_2d_feature_enable_vulkan = false
-  graphic_2d_feature_enable_flutter_vulkan = false
   graphic_2d_feature_enable_opengl = true
   graphic_2d_feature_enable_sdf = false
   graphic_2d_feature_enable_opinc = false
@@ -87,9 +86,6 @@ if (graphic_2d_feature_product == "tablet") {
 gpu_defines = []
 accessibility_defines = []
 if (graphic_2d_feature_ace_enable_gpu) {
-  if (graphic_2d_feature_enable_flutter_vulkan) {
-    gpu_defines += [ "RS_ENABLE_OLD_VK" ]
-  }
   if (graphic_2d_feature_enable_vulkan) {
     gpu_defines += [
       "ACE_ENABLE_VK",

@@ -141,7 +141,7 @@ void RSHardwareThread::Start()
                 SubScribeSystemAbility();
 #endif
                 uniRenderEngine_ = std::make_shared<RSUniRenderEngine>();
-                uniRenderEngine_->Init(true);
+                uniRenderEngine_->Init();
                 hardwareTid_ = gettid();
             }).wait();
     }
