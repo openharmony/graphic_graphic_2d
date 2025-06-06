@@ -1576,7 +1576,7 @@ HWTEST_F(DrawCmdTest, ClipRectOpItem_Marshalling001, TestSize.Level1)
 /**
  * @tc.name: UnmarshallingPlayer
  * @tc.desc: Test UnmarshallingPlayer
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(DrawCmdTest, UnmarshallingPlayer, TestSize.Level1)
 {
@@ -1604,7 +1604,7 @@ HWTEST_F(DrawCmdTest, UnmarshallingPlayer, TestSize.Level1)
         auto player = UnmarshallingPlayer(*drawCmdList);
         auto drawOpItem = player.Unmarshalling(type, static_cast<void*>(handle.get()), size, false);
         EXPECT_EQ(drawOpItem->GetOpDesc(), "RECT_OPITEM");
-   }
+    }
 }
 } // namespace Drawing
 } // namespace Rosen
