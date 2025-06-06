@@ -113,6 +113,8 @@ public:
 
     void SetActiveRectSwitchStatus(bool flag);
 
+    void ANCOTransactionOnComplete(const LayerInfoPtr& layerInfo, const sptr<SyncFence>& previousReleaseFence);
+
 private:
     HdiDevice *device_ = nullptr;
     sptr<VSyncSampler> sampler_ = nullptr;
