@@ -1351,9 +1351,12 @@ void RSRenderNode::UpdateDrawingCacheInfoBeforeChildren(bool isScreenRotation)
         RS_LOGD("RSRenderNode::UpdateDrawingCacheInfoBC drawingCacheType is %{public}d", GetDrawingCacheType());
         return;
     }
-    RS_OPTIONAL_TRACE_NAME_FMT("DrawingCacheInfo id:%llu contentDirty:%d subTreeDirty:%d nodeGroupType:%d",
-        GetId(), IsContentDirty(), IsSubTreeDirty(), nodeGroupType_);
     SetDrawingCacheChanged((IsContentDirty() || IsSubTreeDirty() || IsAccessibilityConfigChanged()));
+    RS_OPTIONAL_TRACE_NAME_FMT(
+        "SetDrawingCacheChanged id:%llu nodeGroupType:%d contentDirty:%d propertyDirty:%d subTreeDirty:%d "
+        "AccessibilityConfigChanged:%d",
+        GetId(), nodeGroupType_, isContentDirty_, GetRenderProperties().IsContentDirty(), IsSubTreeDirty(),
+        IsAccessibilityConfigChanged());
 #ifdef RS_ENABLE_GPU
     stagingRenderParams_->SetDrawingCacheIncludeProperty(nodeGroupIncludeProperty_);
 #endif
