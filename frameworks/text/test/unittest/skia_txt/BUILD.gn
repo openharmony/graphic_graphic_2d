@@ -11,6 +11,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import("//build/ohos_var.gni")
 import("//build/test.gni")
 import("//foundation/graphic/graphic_2d/frameworks/text/config.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
@@ -65,8 +66,16 @@ ohos_unittest("rosen_text_skia_txt_test") {
       "bundle_framework:appexecfwk_core",
       "c_utils:utils",
       "samgr:samgr_proxy",
-      "skia:skia_paragraph_ohos",
     ]
+    if (use_new_skia) {
+      external_deps += [
+        "skia:skia_paragraph_ohos_new",
+      ]
+    } else {
+      external_deps += [
+        "skia:skia_paragraph_ohos",
+      ]
+    }      
     defines = [ "ENABLE_OHOS_ENHANCE" ]
   }
 
