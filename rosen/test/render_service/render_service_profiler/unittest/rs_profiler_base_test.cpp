@@ -24,8 +24,7 @@ class RSProfilerBaseTest : public testing::Test {
 public:
     static void SetUpTestCase() {};
     static void TearDownTestCase() {};
-    void SetUp() override
-    {};
+    void SetUp() override {};
     void TearDown() override {};
 };
 
