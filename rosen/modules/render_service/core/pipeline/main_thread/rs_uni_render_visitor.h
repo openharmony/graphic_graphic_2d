@@ -142,6 +142,7 @@ public:
     void UpdateDrawingCacheInfoBeforeChildren(RSCanvasRenderNode& node);
 
     void UpdateOffscreenCanvasNodeId(RSCanvasRenderNode& node);
+
 private:
     /* Prepare relevant calculation */
     // considering occlusion info for app surface as well as widget

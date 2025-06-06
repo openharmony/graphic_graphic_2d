@@ -45,10 +45,10 @@ void RSRenderColorGradientFilterTest::TearDown() {}
 HWTEST_F(RSRenderColorGradientFilterTest, GetDescription001, TestSize.Level1)
 {
     auto rsRenderFilterPara = std::make_shared<RSRenderColorGradientFilterPara>(0);
+    std::string temp = "RSRenderColorGradientFilterPara";
     std::string out;
     rsRenderFilterPara->GetDescription(out);
-    std::cout << out << std::endl;
-    EXPECT_TRUE(out.length() > 0);
+    EXPECT_EQ(out, temp);
 }
 
 /**
