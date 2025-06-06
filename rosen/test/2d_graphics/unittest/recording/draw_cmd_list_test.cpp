@@ -338,6 +338,20 @@ HWTEST_F(DrawCmdListTest, ProfilerMarshallingDrawOps, TestSize.Level1)
     EXPECT_EQ(secondDrawCmdList->drawOpItems_.size(), 1);
     delete drawCmdList;
 }
+
+/**
+ * @tc.name: SetIsReplayMode
+ * @tc.desc: Test SetIsReplayMode
+ * @tc.require:
+ */
+HWTEST_F(DrawCmdListTest, SetIsReplayMode, Level1)
+{
+    auto drawCmdList = new DrawCmdList();
+    drawCmdList->SetIsReplayMode(true);
+    EXPECT_TRUE(drawCmdList->isReplayMode);
+    drawCmdList->SetIsReplayMode(false);
+    EXPECT_FALSE(drawCmdList->isReplayMode);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

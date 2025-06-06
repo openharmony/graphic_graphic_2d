@@ -244,6 +244,11 @@ public:
      */
     void GetBounds(Rect& rect);
 
+    void SetIsReplayMode(bool mode)
+    {
+        isReplayMode = mode;
+    }
+
     /**
      * @brief Check whether enable hybrid render.
      */
@@ -278,6 +283,7 @@ private:
     uint32_t performanceCaculateOpType_ = 0;
     bool isNeedUnmarshalOnDestruct_ = false;
     bool noNeedUICaptured_ = false;
+    bool isReplayMode = false;
     bool isCanvasDrawingOpLimitEnabled_ = false;
 
     DrawCmdList::HybridRenderType hybridRenderType_ = DrawCmdList::HybridRenderType::NONE;

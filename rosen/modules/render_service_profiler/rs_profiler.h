@@ -42,6 +42,7 @@
     RSProfiler::OnRemoteRequest(connection, code, data, reply, option)
 #define RS_PROFILER_ON_PARCEL_RECEIVE(parcel, data) RSProfiler::OnRecvParcel(parcel, data)
 #define RS_PROFILER_COPY_PARCEL(parcel) RSProfiler::CopyParcel(parcel)
+#define RS_PROFILER_IS_PARCEL_MOCK(parcel) RSProfiler::IsPlaybackParcel(parcel)
 #define RS_PROFILER_PATCH_NODE_ID(parcel, id) id = RSProfiler::PatchNodeId(parcel, id)
 #define RS_PROFILER_PATCH_TYPEFACE_GLOBALID(parcel, id) id = RSProfiler::PatchNodeId(parcel, id)
 #define RS_PROFILER_PATCH_PID(parcel, pid) pid = RSProfiler::PatchPid(parcel, pid)
@@ -85,6 +86,7 @@
 #define RS_PROFILER_ON_REMOTE_REQUEST(connection, code, data, reply, option) 0
 #define RS_PROFILER_ON_PARCEL_RECEIVE(parcel, data)
 #define RS_PROFILER_COPY_PARCEL(parcel) std::make_shared<MessageParcel>()
+#define RS_PROFILER_IS_PARCEL_MOCK(parcel) false
 #define RS_PROFILER_PATCH_NODE_ID(parcel, id)
 #define RS_PROFILER_PATCH_TYPEFACE_GLOBALID(parcel, id)
 #define RS_PROFILER_PATCH_PID(parcel, pid)
@@ -233,6 +235,7 @@ public:
     RSB_EXPORT static std::vector<RSRenderNode::WeakPtr>& GetChildOfDisplayNodesPostponed();
 public:
     RSB_EXPORT static bool IsParcelMock(const Parcel& parcel);
+    RSB_EXPORT static bool IsPlaybackParcel(const Parcel& parcel);
     RSB_EXPORT static bool IsSharedMemoryEnabled();
     RSB_EXPORT static bool IsBetaRecordEnabled();
     RSB_EXPORT static bool IsBetaRecordEnabledWithMetrics();

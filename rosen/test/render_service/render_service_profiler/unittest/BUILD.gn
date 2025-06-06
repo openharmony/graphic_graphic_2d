@@ -78,7 +78,7 @@ ohos_unittest("RSProfilerBaseTest") {
   module_out_path = module_output_path
 
   defines = [ "RS_PROFILER_ENABLED" ]
-  sources = [ "rs_profiler_base.cpp" ]
+  sources = [ "rs_profiler_base_test.cpp" ]
 
   configs = [
     ":render_test",

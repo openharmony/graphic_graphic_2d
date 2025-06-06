@@ -339,7 +339,7 @@ void DrawCmdList::UnmarshallingDrawOps(uint32_t* opItemCount)
             break;
         }
         uint32_t type = curOpItemPtr->GetType();
-        auto op = player.Unmarshalling(type, itemPtr, opAllocator_.GetSize() - offset);
+        auto op = player.Unmarshalling(type, itemPtr, opAllocator_.GetSize() - offset, isReplayMode);
         if (!op) {
             if (curOpItemPtr->GetNextOpItemOffset() < offset + sizeof(OpItem)) {
                 break;
@@ -357,7 +357,7 @@ void DrawCmdList::UnmarshallingDrawOps(uint32_t* opItemCount)
             }
             auto* replaceOpItemPtr = static_cast<OpItem*>(replacePtr);
             size_t avaliableSize = opAllocator_.GetSize() - replacedOpListForBuffer_[opReplaceIndex].second;
-            auto replaceOp = player.Unmarshalling(replaceOpItemPtr->GetType(), replacePtr, avaliableSize);
+            auto replaceOp = player.Unmarshalling(replaceOpItemPtr->GetType(), replacePtr, avaliableSize, isReplayMode);
             if (replaceOp) {
                 drawOpItems_.emplace_back(replaceOp);
                 replacedOpListForVector_.emplace_back((drawOpItems_.size() - 1), op);
@@ -666,7 +666,7 @@ bool DrawCmdList::UnmarshallingDrawOpsSimple()
                 break;
             }
             uint32_t type = curOpItemPtr->GetType();
-            if (auto op = player.Unmarshalling(type, itemPtr, opAllocator_.GetSize() - offset)) {
+            if (auto op = player.Unmarshalling(type, itemPtr, opAllocator_.GetSize() - offset, isReplayMode)) {
                 drawOpItems_.emplace_back(op);
             }
             if (curOpItemPtr->GetNextOpItemOffset() < offset + sizeof(OpItem)) {

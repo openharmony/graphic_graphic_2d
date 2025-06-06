@@ -2408,6 +2408,7 @@ bool RSMarshallingHelper::SafeUnmarshallingDrawCmdList(Parcel& parcel, std::shar
         return ret;
     }
     RS_PROFILER_PATCH_TYPEFACE_ID(parcel, val);
+    val->SetIsReplayMode(RS_PROFILER_IS_PARCEL_MOCK(parcel));
     val->UnmarshallingDrawOps(opItemCount);
     if (opItemCount && (*opItemCount) > Drawing::MAX_OPITEMSIZE) {
         return false;
