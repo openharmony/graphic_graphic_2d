@@ -38,7 +38,6 @@ public:
 */
 HWTEST_F(RSProfilerBaseTest, IsPlaybackParcel, Level1)
 {
-    RSProfiler::testing_ = true;
     RSProfiler::SetMode(Mode::READ_EMUL);
     Parcel parcel;
     EXPECT_FALSE(RSProfiler::IsPlaybackParcel(parcel));
