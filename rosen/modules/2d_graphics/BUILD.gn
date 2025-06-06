@@ -1,4 +1,4 @@
-# Copyright (c) 2022-2023 Huawei Device Co., Ltd.. All rights reserved.
+# Copyright (c) 2022-2025 Huawei Device Co., Ltd.. All rights reserved.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -143,6 +143,7 @@ template("graphics2d_source_set") {
       "$drawing_core_src_dir/engine_adapter/skia_adapter/skia_utils.cpp",
       "$drawing_core_src_dir/engine_adapter/skia_adapter/skia_vertices.cpp",
       "$drawing_core_src_dir/engine_adapter/static_factory.cpp",
+      "$drawing_core_src_dir/engine_adapter/utils/utils_path.cpp",
       "$drawing_core_src_dir/image/bitmap.cpp",
       "$drawing_core_src_dir/image/image.cpp",
       "$drawing_core_src_dir/image/picture.cpp",

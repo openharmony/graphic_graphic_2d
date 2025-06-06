@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,9 +17,14 @@
 
 #include "impl_factory.h"
 
+#include "utils/log.h"
+#include "utils/utils_path.h"
+
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
+static constexpr int FRACTION_DIM = 3;
+static constexpr int MAX_APPROXIMATE_VALUES = 1000000; // max number of values to approximate a curve
 Path::Path() noexcept : impl_(ImplFactory::CreatePathImpl()) {}
 
 Path::Path(const Path& other) noexcept
@@ -223,6 +228,95 @@ PathFillType Path::GetFillStyle() const
 bool Path::Interpolate(const Path& ending, scalar weight, Path& out)
 {
     return impl_->Interpolate(ending, weight, out);
+}
+
+int Path::CountVerbs() const
+{
+    return impl_->CountVerbs();
+}
+
+Point Path::GetPoint(int index) const
+{
+    return impl_->GetPoint(index);
+}
+
+bool Path::IsInterpolate(const Path& other)
+{
+    return impl_->IsInterpolate(other);
+}
+
+static void HandlePathVerbSegments(PathVerb verb, PathIter& pathIter, const Point* points,
+    std::vector<Point>& approxPoints, std::vector<float>& approxLengths, float errorSquared, float errorConic)
+{
+    switch (verb) {
+        case PathVerb::MOVE:
+            UtilsPath::AddMove(points[0], approxPoints, approxLengths);
+            break;
+        case PathVerb::CLOSE:
+            UtilsPath::AddLine(points[0], approxPoints, approxLengths);
+            break;
+        case PathVerb::LINE:
+            UtilsPath::AddLine(points[1], approxPoints, approxLengths);
+            break;
+        case PathVerb::QUAD:
+            UtilsPath::AddBezier(points, UtilsPath::CalculateQuadraticBezier, approxPoints, approxLengths,
+                errorSquared, false);
+            break;
+        case PathVerb::CUBIC:
+            UtilsPath::AddBezier(points, UtilsPath::CalculationCubicBezier, approxPoints, approxLengths,
+                errorSquared, true);
+            break;
+        case PathVerb::CONIC:
+            UtilsPath::AddConic(pathIter, points, approxPoints, approxLengths, errorConic);
+            break;
+        default:
+            break;
+    }
+}
+
+void Path::Approximate(scalar acceptableError, std::vector<scalar>& outApproxVals)
+{
+    if (acceptableError < 0.0f) {
+        LOGE("Path::Approximate acceptableError is invalid");
+        return;
+    }
+    std::vector<Point> approxPoints;
+    std::vector<float> approxLengths;
+    float errorSquared = acceptableError * acceptableError;
+    float errorConic = acceptableError / 2; // 2 Conic error is half of the quadratic error
+    PathIter pathIter(*this, false);
+    Point tpoints[4]; // 4 points for cubic and quad
+    PathVerb verb;
+    while ((verb = pathIter.Next(tpoints)) != PathVerb::DONE) {
+        HandlePathVerbSegments(verb, pathIter, tpoints, approxPoints, approxLengths, errorSquared, errorConic);
+    }
+    if (approxPoints.empty()) {
+        size_t verbCount = this->CountVerbs();
+        if (verbCount == 1) {
+            Point pt = this->GetPoint(0);
+            UtilsPath::AddMove(pt, approxPoints, approxLengths);
+        } else {
+            UtilsPath::AddMove(Point(0, 0), approxPoints, approxLengths);
+        }
+    }
+    float totalLength = approxLengths.empty() ? 1.0f : approxLengths.back();
+    if (totalLength <= 0.0f) {
+        totalLength = 1.0f;
+        approxPoints.push_back(approxPoints.empty() ? Point(0, 0) : approxPoints.back());
+        approxLengths.push_back(totalLength);
+    }
+    size_t numPoints = approxPoints.size();
+    size_t numValues = numPoints * FRACTION_DIM;
+    if (numValues > MAX_APPROXIMATE_VALUES) {
+        LOGW("Path::Approximate numValues is too large");
+        return;
+    }
+    outApproxVals.resize(numValues);
+    for (size_t i = 0; i < numPoints; i++) {
+        outApproxVals[i * FRACTION_DIM] = approxLengths[i] / totalLength;
+        outApproxVals[i * FRACTION_DIM + 1] = approxPoints[i].GetX();
+        outApproxVals[i * FRACTION_DIM + 2] = approxPoints[i].GetY(); // 2 is y coordinate
+    }
 }
 
 bool Path::BuildFromInterpolate(const Path& src, const Path& ending, scalar weight)

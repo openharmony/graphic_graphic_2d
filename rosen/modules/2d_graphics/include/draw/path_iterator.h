@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -53,6 +53,23 @@ public:
     }
 private:
     std::shared_ptr<PathIteratorImpl> impl_;
+};
+
+class DRAWING_API PathIter {
+public:
+    PathIter(const Path& path, bool forceClose) noexcept;
+    virtual ~PathIter();
+    scalar ConicWeight() const;
+    PathVerb Next(Point* points);
+
+    template<typename T>
+    T* GetImpl() const
+    {
+        return impl_->DowncastingTo<T>();
+    }
+
+private:
+    std::shared_ptr<PathIterImpl> impl_;
 };
 } // namespace Drawing
 } // namespace Rosen

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -1254,6 +1254,100 @@ HWTEST_F(PathTest, IsRect001, TestSize.Level1)
     ASSERT_FALSE(path2.IsRect(&rect, &isClosed));
     ASSERT_FALSE(path2.IsRect(&rect, &isClosed, nullptr));
     ASSERT_FALSE(path2.IsRect(&rect, &isClosed, &dir));
+}
+
+/**
+ * @tc.name: CountVerbs001
+ * @tc.desc: Test for checking the count of verbs in the path.
+ * @tc.type: FUNC
+ * @tc.require: ICAWXU
+ */
+HWTEST_F(PathTest, CountVerbs001, TestSize.Level1)
+{
+    Path path1;
+    path1.MoveTo(1.0f, 2.0f);         // Start point of the path.
+    path1.LineTo(3.0f, 4.0f);         // End point of the path.
+    path1.LineTo(5.0f, 6.0f);         // End point of the path.
+    path1.LineTo(7.0f, 8.0f);         // End point of the path.
+    ASSERT_EQ(path1.CountVerbs(), 4); // There are 4 verbs in the path.
+}
+
+/**
+ * @tc.name: GetPoint001
+ * @tc.desc: Test for getting the point of the path.
+ * @tc.type: FUNC
+ * @tc.require: ICAWXU
+ */
+HWTEST_F(PathTest, GetPoint001, TestSize.Level1)
+{
+    Path path1;
+    path1.MoveTo(1.0f, 2.0f); // Start point of the path.
+    path1.LineTo(3.0f, 4.0f); // End point of the path.
+    Point point1 = path1.GetPoint(0);
+    Point point2 = path1.GetPoint(1);
+    Point point3 = path1.GetPoint(-1);
+    ASSERT_EQ(point1, Point(1.0f, 2.0f)); // Start point of the path.
+    ASSERT_EQ(point2, Point(3.0f, 4.0f)); // End point of the path.
+    ASSERT_EQ(point3, Point(0.0f, 0.0f));
+}
+
+/**
+ * @tc.name: IsInterpolate001
+ * @tc.desc: Test for checking the interpolation of the Path.
+ * @tc.type: FUNC
+ * @tc.require: ICAWXU
+ */
+HWTEST_F(PathTest, IsInterpolate001, TestSize.Level1)
+{
+    Path path1;
+    path1.MoveTo(1.0f, 2.0f); // Start point of the path.
+    path1.LineTo(3.0f, 4.0f); // End point of the path.
+    Path path2;
+    path2.MoveTo(5.0f, 6.0f); // Start point of the path.
+    path2.LineTo(7.0f, 8.0f); // End point of the path.
+    ASSERT_TRUE(path1.IsInterpolate(path2));
+}
+
+/**
+ * @tc.name: ApproximateTest001
+ * @tc.desc: test for Approximate func.
+ * @tc.type: FUNC
+ * @tc.require: ICAWXU
+ */
+HWTEST_F(PathTest, ApproximateTest001, TestSize.Level1)
+{
+    auto path = std::make_unique<Path>();
+    std::vector<scalar> approximatedPoints;
+    path->Approximate(-1.0f, approximatedPoints); // -1.0f is the tolerance value.
+    ASSERT_EQ(approximatedPoints.size(), 0);
+
+    path->Reset();
+    approximatedPoints.clear();
+    path->MoveTo(10.0f, 10.0f);                  // 10.0f, 10.0f is the end point.
+    path->Approximate(0.5f, approximatedPoints); // 0.5f is the tolerance value.
+    ASSERT_EQ(approximatedPoints.size(), 6);     // 6 for the test.
+
+    path->Reset();
+    approximatedPoints.clear();
+    path->MoveTo(0.0f, 0.0f);
+    path->LineTo(5.0f, 5.0f);                   // 5.0f, 5.0f is the end point.
+    path->QuadTo(10.0f, 50.0f, 100.0f, 100.0f); // 10.0f, 50.0f is the control point, 100.0f, 100.0f is the end point.
+    // 150.0f, 200.0f is the control point, 250.0f, 350.0f is the end point, 0.5f is the weight.
+    path->ConicTo(150.0f, 200.0f, 250.0f, 350.0f, 0.5f);
+    // 350.0f, 450.0f, 450.0f, 550.0f is the control point, 550.0f, 650.0f is the end point.
+    path->CubicTo(350.0f, 450.0f, 450.0f, 550.0f, 550.0f, 650.0f);
+    path->Close();
+    path->Approximate(-1.0f, approximatedPoints); // 1.0f is the tolerance value.
+    ASSERT_EQ(approximatedPoints.size(), 0);
+    approximatedPoints.clear();
+    path->Approximate(0.5f, approximatedPoints); // 0.5f is the tolerance value.
+    uint32_t count = approximatedPoints.size();
+    ASSERT_EQ(count % 3, 0);                  // The count of the approximated points should be a multiple of 3.
+    for (uint32_t i = 0; i < count; i += 3) { // Check each point.
+        scalar fraction = approximatedPoints[i];
+        ASSERT_GE(fraction, 0.0f);
+        ASSERT_LE(fraction, 1.0f);
+    }
 }
 
 } // namespace Drawing

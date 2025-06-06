@@ -33,6 +33,7 @@ ohos_unittest("2d_graphics_utils_test") {
     "round_rect_test.cpp",
     "sampling_options_test.cpp",
     "size_test.cpp",
+    "utils_path_test.cpp",
     "vertices_test.cpp",
   ]
 

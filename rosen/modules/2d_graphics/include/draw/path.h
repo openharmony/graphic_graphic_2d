@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -417,6 +417,41 @@ public:
      * @return true if Path contain same number of Point
      */
     bool Interpolate(const Path& ending, scalar weight, Path& out);
+
+    /**
+     * @brief Gets the number of verbs in the current path object.
+     * @return The number of verbs in the current path object. If there are no verbs, it returns 0.
+     */
+    int CountVerbs() const;
+
+    /**
+     * @brief Gets the point at the specified index.
+     * @param index The index of the point to get.
+     * @return The point at the specified index. If the index is out of range, it returns a Point with coordinates
+     *         (0.0, 0.0).
+     */
+    Point GetPoint(int index) const;
+
+    /**
+     * @brief  Checks whether the current path is compatible with other path for interpolation.
+     * @param other The path to be compared.
+     * @return true if the Path is interpolated, otherwise false.
+     */
+    bool IsInterpolate(const Path& other);
+
+    /**
+     * @brief Approximates the path into a series of points.
+     * Each point is represented by three values:
+     * - Fractional length along the path (0.0 to 1.0).
+     * - X coordinate of the point.
+     * - Y coordinate of the point.
+     *
+     * @param acceptableError The acceptable error for approximation. Smaller values result in more points.
+     * @param points A reference to a vector where the approximated points will be stored.
+     *               Each point contributes three values to the vector: fractional length, X coordinate, and Y
+     *               coordinate.
+     */
+    void Approximate(scalar acceptableError, std::vector<scalar>& points);
 
     /**
      * @brief Two equal number of point set path objects are weighted interpolated, and the sets Path.
