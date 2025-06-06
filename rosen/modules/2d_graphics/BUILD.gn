@@ -219,7 +219,7 @@ template("graphics2d_source_set") {
     ]
 
     external_deps += [ "skia:skia_canvaskit" ]
-    if (defined(use_m133_skia) && use_m133_skia) {
+    if (defined(use_new_skia) && use_new_skia) {
       defines += [ "USE_M133_SKIA" ]
     }
 

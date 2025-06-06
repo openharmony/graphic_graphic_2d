@@ -196,10 +196,6 @@ std::shared_ptr<Typeface> SkiaTypeface::MakeDefault()
 
 std::shared_ptr<Typeface> SkiaTypeface::MakeFromFile(const char path[], int index)
 {
-    if (!path) {
-        LOGD("SkiaTypeface::MakeFromFile, path is nullptr.");
-        return nullptr;
-    }
     sk_sp<SkTypeface> skTypeface = SkTypeface::MakeFromFile(path, index);
 
     if (!skTypeface) {
@@ -263,10 +259,6 @@ std::shared_ptr<Typeface> SkiaTypeface::MakeFromStream(std::unique_ptr<MemoryStr
         return nullptr;
     }
     std::unique_ptr<SkStreamAsset> skMemoryStream = memoryStream->GetImpl<SkiaMemoryStream>()->GetSkMemoryStream();
-    if (!skMemoryStream) {
-        LOGD("SkiaTypeface::MakeFromStream, skMemoryStream nullptr");
-        return nullptr;
-    }
 #ifdef USE_M133_SKIA
     auto skFontMgr = SkFontMgr::RefDefault();
     if (!skFontMgr) {

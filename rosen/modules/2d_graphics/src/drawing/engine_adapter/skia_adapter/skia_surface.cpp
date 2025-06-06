@@ -593,6 +593,7 @@ void SkiaSurface::Flush(FlushInfo *drawingflushInfo)
         auto rContext = skSurface_->recordingContext();
         if (!rContext) {
             LOGD("rContext is nullptr");
+            return;
         }
         rContext->asDirectContext()->flush(flushInfo);
 #else
@@ -607,6 +608,7 @@ void SkiaSurface::Flush(FlushInfo *drawingflushInfo)
     auto rContext = skSurface_->recordingContext();
     if (!rContext) {
         LOGD("rContext is nullptr");
+        return;
     }
     rContext->asDirectContext()->flush();
 #else
