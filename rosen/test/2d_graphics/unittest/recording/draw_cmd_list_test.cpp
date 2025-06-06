@@ -365,14 +365,14 @@ HWTEST_F(DrawCmdListTest, Dump003, TestSize.Level1)
 HWTEST_F(DrawCmdListTest, UnmarshallingDrawOpsSimpleForDumpTest, TestSize.Level1)
 {
     auto drawCmdList = new DrawCmdList(DrawCmdList::UnmarshalMode::IMMEDIATE);
-    auto drawOpItems = drawCmdList=>UnmarshallingDrawOpsSimpleForDump();
+    auto drawOpItems = drawCmdList->UnmarshallingDrawOpsSimpleForDump();
     EXPECT_EQ(drawOpItems.empty(), true);
 
     size_t offset = 2 * sizeof(int32_t);
     drawCmdList->opAllocator_.size_ = drawCmdList->offset_ + offset;
     EXPECT_TRUE(drawCmdList->opAllocator_.GetSize() != drawCmdList->lastOpGenSize_);
 
-    auto drawOpItems = drawCmdList=>UnmarshallingDrawOpsSimpleForDump();
+    drawOpItems = drawCmdList->UnmarshallingDrawOpsSimpleForDump();
     EXPECT_EQ(drawOpItems.empty(), true);
 
     drawCmdList->lastOpGenSize_ = drawCmdList->opAllocator_.GetSize();
@@ -381,7 +381,7 @@ HWTEST_F(DrawCmdListTest, UnmarshallingDrawOpsSimpleForDumpTest, TestSize.Level1
     Rect rect = Rect(0.0f, 0.0f, 100.0f, 100.0f);
     auto opItem = std::make_shared<HybridRenderPixelMapSizeOpItem>(rect.GetWidth(), rect.GetHeight());
     drawCmdList->drawOpItems_.emplace_back(opItem);
-    auto drawOpItems = drawCmdList=>UnmarshallingDrawOpsSimpleForDump();
+    drawOpItems = drawCmdList->UnmarshallingDrawOpsSimpleForDump();
     EXPECT_EQ(drawOpItems.empty(), true);
     delete drawCmdList;
 }
