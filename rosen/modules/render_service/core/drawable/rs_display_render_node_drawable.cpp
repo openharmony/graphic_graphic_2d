@@ -35,6 +35,7 @@
 #ifdef RS_ENABLE_TV_PQ_METADATA
 #include "feature/tv_metadata/rs_tv_metadata_manager.h"
 #endif
+#include "feature/hpae/rs_hpae_manager.h"
 #include "hgm_core.h"
 #include "memory/rs_tag_tracker.h"
 #include "params/rs_display_render_params.h"
@@ -769,6 +770,19 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     CheckAndUpdateFilterCacheOcclusion(*params, curScreenInfo);
     if (isHdrOn) {
         params->SetNewPixelFormat(GRAPHIC_PIXEL_FMT_RGBA_1010102);
+    }
+
+    if (!isHdrOn && RSHpaeManager::GetInstance().HasHpaeBlurNode()) {
+        bool isHebc = true;
+        if (RSAncoManager::Instance()->GetAncoHebcStatus() == AncoHebcStatus::NOT_USE_HEBC) {
+            // check this before DisplayRenderNodeDrawable::RequestFrame
+            isHebc = false;
+            RS_LOGI("anco request frame not use hebc");
+        }
+        // GraphicPixelFormat pixelFormat = params->GetNewPixelFormat();
+        GraphicPixelFormat pixelFormat = GRAPHIC_PIXEL_FMT_RGBA_8888;
+        GraphicColorGamut colorSpace = params->GetNewColorSpace();
+        RSHpaeManager::Getinstance().SetUpHpaeSurface(pixelFormat, colorSpace, isHebc);
     }
     RSUniRenderThread::Instance().WaitUntilDisplayNodeBufferReleased(*this);
     // displayNodeSp to get  rsSurface witch only used in renderThread
