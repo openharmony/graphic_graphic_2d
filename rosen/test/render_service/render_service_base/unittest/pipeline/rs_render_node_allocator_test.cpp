@@ -15,7 +15,7 @@
 #include "gtest/gtest.h"
 
 #include "pipeline/rs_canvas_render_node.h"
-#include "drawable/rs_render_node_allocator.h"
+#include "pipeline/rs_render_node_allocator.h"
 
 using namespace testing;
 using namespace testing::ext;

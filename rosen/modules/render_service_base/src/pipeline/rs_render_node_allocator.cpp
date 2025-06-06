@@ -55,13 +55,13 @@ std::shared_ptr<RSCanvasRenderNode> RSRenderNodeAllocator::CreateRSCanvasRenderN
         nodeAllocatorSpinlock_.unlock();
         RS_TRACE_NAME("CreateRSCanvasRenderNode nodeAllocator is empty.");
         return std::shared_ptr<RSCanvasRenderNode>(new RSCanvasRenderNode(id,
-            context, isTextureExportNode), NodeDestructor);
+            context, isTextureExportNode), RSRenderNodeGC::NodeDestructor);
     }
     auto front = nodeAllocator_.front();
     nodeAllocator_.pop();
     nodeAllocatorSpinlock_.unlock();
     return std::shared_ptr<RSCanvasRenderNode>(new (front)RSCanvasRenderNode(id,
-        context, isTextureExportNode), NodeDestructor);
+        context, isTextureExportNode), RSRenderNodeGC::NodeDestructor);
 }
 
 } // namespace Rosen
