@@ -799,10 +799,13 @@ void SymbolDefaultConfigParser::ParseDefaultColor(
     }
 
     char* endPtr = nullptr;
-    int defaultColorInt = strtol(defaultColorHex, &endPtr, hexFlag);
-    renderGroup.color.r = (defaultColorInt >> twoBytesBitsLen) & 0xFF;
-    renderGroup.color.g = (defaultColorInt >> oneByteBitsLen) & 0xFF;
-    renderGroup.color.b = defaultColorInt & 0xFF;
+    uint32_t defaultColor = std::strtoul(defaultColorHex, &endPtr, hexFlag);
+    if (endPtr == nullptr || *endPtr != '\0') {
+        return;
+    }
+    renderGroup.color.r = (defaultColor >> twoBytesBitsLen) & 0xFF;
+    renderGroup.color.g = (defaultColor >> oneByteBitsLen) & 0xFF;
+    renderGroup.color.b = defaultColor & 0xFF;
 }
 
 void SymbolDefaultConfigParser::ParseAnimationSettings(
