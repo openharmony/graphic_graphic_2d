@@ -1230,11 +1230,16 @@ void RSDisplayRenderNodeDrawable::DrawMirror(RSDisplayRenderParams& params,
     curCanvas_->SetDisableFilterCache(true);
     auto hasSecSurface = static_cast<RSDisplayRenderParams*>
         (mirroredParams.get())->GetSpecialLayerMgr().Find(SpecialLayerType::HAS_SECURITY);
+    auto screenManager = CreateOrGetScreenManager();
+    if (!screenManager) {
+        RS_LOGE("RSDisplayRenderNodeDrawable::DrawMirror ScreenManager is nullptr");
+        return;
+    }
+    int32_t virtualSecLayerOption = screenManager->GetVirtualScreenSecLayerOption(params.GetScreenId());
     if ((((!enableVisibleRect_ && hasSecSurface) || (enableVisibleRect_ && params.HasSecLayerInVisibleRect())) &&
-        !uniParam.GetSecExemption()) || params.GetVirtualScreenMuteStatus()) {
+        !uniParam.GetSecExemption() && !virtualSecLayerOption) || params.GetVirtualScreenMuteStatus()) {
         std::vector<RectI> emptyRects = {};
         virtualProcesser->SetRoiRegionToCodec(emptyRects);
-        auto screenManager = CreateOrGetScreenManager();
         if (screenManager->GetScreenSecurityMask(params.GetScreenId())) {
             SetSecurityMask(*virtualProcesser);
         } else {

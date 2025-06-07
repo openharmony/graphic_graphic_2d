@@ -847,6 +847,104 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, DrawMirrorTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: DrawMirror001
+ * @tc.desc: Test DrawMirror
+ * @tc.type: FUNC
+ * @tc.require: issueICCRA8
+ */
+HWTEST_F(RSDisplayRenderNodeDrawableTest, DrawMirrorTest001, TestSize.Level1)
+{
+    ASSERT_NE(displayDrawable_, nullptr);
+    ASSERT_NE(displayDrawable_->renderParams_, nullptr);
+    ASSERT_NE(mirroredDisplayDrawable_, nullptr);
+    ASSERT_NE(mirroredDisplayDrawable_->renderParams_, nullptr);
+
+    displayDrawable_->PrepareOffscreenRender(*displayDrawable_);
+    auto params = static_cast<RSDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
+    auto processor = RSProcessorFactory::CreateProcessor(params->GetCompositeType());
+    auto virtualProcesser = std::make_shared<RSUniRenderVirtualProcessor>();
+    RSRenderThreadParams uniParam;
+
+    Drawing::Canvas drawingCanvas;
+    virtualProcesser->canvas_ = std::make_unique<RSPaintFilterCanvas>(&drawingCanvas);
+    ASSERT_NE(virtualProcesser->GetCanvas(), nullptr);
+
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    auto csurface = IConsumerSurface::Create();
+    ASSERT_NE(csurface, nullptr);
+    auto producer = csurface->GetProducer();
+    auto psurface = Surface::CreateSurfaceAsProducer(producer);
+    ASSERT_NE(psurface, nullptr);
+    auto id = screenManager->CreateVirtualScreen("virtualScreen01", 480, 320, psurface);
+    params->screenId_ = id;
+    ASSERT_EQ(params->GetScreenId(), id);
+    int32_t virtualSecLayerOption = screenManager->GetVirtualScreenSecLayerOption(params->GetScreenId());
+    ASSERT_EQ(virtualSecLayerOption, 0);
+
+    auto drawable = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(mirroredNode_);
+    ASSERT_NE(drawable, nullptr);
+    params->mirrorSourceDrawable_ = drawable;
+    RSSpecialLayerManager slManager;
+    slManager.specialLayerType_ = SpecialLayerType::HAS_SECURITY;
+    auto mirroredParams = static_cast<RSDisplayRenderParams*>(drawable->GetRenderParams().get());
+    ASSERT_NE(mirroredParams, nullptr);
+    mirroredParams->specialLayerManager_ = slManager;
+    bool hasSecSurface = mirroredParams->GetSpecialLayerMgr().Find(SpecialLayerType::HAS_SECURITY);
+    ASSERT_EQ(hasSecSurface, true);
+    displayDrawable_->DrawMirror(*params, virtualProcesser, &RSDisplayRenderNodeDrawable::OnCapture, uniParam);
+}
+
+/**
+ * @tc.name: DrawMirror002
+ * @tc.desc: Test DrawMirror
+ * @tc.type: FUNC
+ * @tc.require: issueICCRA8
+ */
+HWTEST_F(RSDisplayRenderNodeDrawableTest, DrawMirrorTest002, TestSize.Level1)
+{
+    ASSERT_NE(displayDrawable_, nullptr);
+    ASSERT_NE(displayDrawable_->renderParams_, nullptr);
+    ASSERT_NE(mirroredDisplayDrawable_, nullptr);
+    ASSERT_NE(mirroredDisplayDrawable_->renderParams_, nullptr);
+
+    displayDrawable_->PrepareOffscreenRender(*displayDrawable_);
+    auto params = static_cast<RSDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
+    auto processor = RSProcessorFactory::CreateProcessor(params->GetCompositeType());
+    auto virtualProcesser = std::make_shared<RSUniRenderVirtualProcessor>();
+    RSRenderThreadParams uniParam;
+
+    Drawing::Canvas drawingCanvas;
+    virtualProcesser->canvas_ = std::make_unique<RSPaintFilterCanvas>(&drawingCanvas);
+    ASSERT_NE(virtualProcesser->GetCanvas(), nullptr);
+
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    auto csurface = IConsumerSurface::Create();
+    ASSERT_NE(csurface, nullptr);
+    auto producer = csurface->GetProducer();
+    auto psurface = Surface::CreateSurfaceAsProducer(producer);
+    ASSERT_NE(psurface, nullptr);
+    auto id = screenManager->CreateVirtualScreen("virtualScreen02", 480, 320, psurface, 0, 1);
+    params->screenId_ = id;
+    ASSERT_EQ(params->GetScreenId(), id);
+    int32_t virtualSecLayerOption = screenManager->GetVirtualScreenSecLayerOption(params->GetScreenId());
+    ASSERT_EQ(virtualSecLayerOption, 1);
+
+    auto drawable = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(mirroredNode_);
+    ASSERT_NE(drawable, nullptr);
+    params->mirrorSourceDrawable_ = drawable;
+    RSSpecialLayerManager slManager;
+    slManager.specialLayerType_ = SpecialLayerType::HAS_SECURITY;
+    auto mirroredParams = static_cast<RSDisplayRenderParams*>(drawable->GetRenderParams().get());
+    ASSERT_NE(mirroredParams, nullptr);
+    mirroredParams->specialLayerManager_ = slManager;
+    bool hasSecSurface = mirroredParams->GetSpecialLayerMgr().Find(SpecialLayerType::HAS_SECURITY);
+    ASSERT_EQ(hasSecSurface, true);
+    displayDrawable_->DrawMirror(*params, virtualProcesser, &RSDisplayRenderNodeDrawable::OnCapture, uniParam);
+}
+
+/**
  * @tc.name: DrawExpandScreen001
  * @tc.desc: Test DrawExpandScreen when canvas is null
  * @tc.type: FUNC
