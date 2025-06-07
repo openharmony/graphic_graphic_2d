@@ -97,6 +97,8 @@ public:
     RSImage() = default;
     ~RSImage();
 
+    using RSImageBase::SetCompressData;
+
     bool IsEqual(const RSImage& other) const;
     void CanvasDrawImage(Drawing::Canvas& canvas, const Drawing::Rect& rect,
         const Drawing::SamplingOptions& samplingOptions, bool isBackground = false);
@@ -108,7 +110,6 @@ public:
     void SetInnerRect(const std::optional<Drawing::RectI>& innerRect) { innerRect_ = innerRect;}
 
     void SetCompressData(const std::shared_ptr<Drawing::Data> data, uint32_t id, int width, int height);
-    void SetCompressData(const std::shared_ptr<Drawing::Data> compressData);
 
     bool HDRConvert(const Drawing::SamplingOptions& sampling, Drawing::Canvas& canvas);
     void SetPaint(Drawing::Paint paint);
@@ -157,7 +158,6 @@ public:
 private:
     bool HasRadius() const;
     void ApplyCanvasClip(Drawing::Canvas& canvas);
-    void UploadGpu(Drawing::Canvas& canvas);
     std::pair<float, float> CalculateByDegree(const Drawing::Rect& rect);
     void DrawImageRect(
             Drawing::Canvas& canvas, const Drawing::Rect& rect, const Drawing::SamplingOptions& samplingOptions);
@@ -182,7 +182,6 @@ private:
     static void ProcessImageAfterCreation(RSImage* rsImage, const uint64_t uniqueId, const bool useSkImage,
         const std::shared_ptr<Media::PixelMap>& pixelMap);
 #endif
-    std::shared_ptr<Drawing::Data> compressData_;
     ImageFit imageFit_ = ImageFit::COVER;
     ImageRepeat imageRepeat_ = ImageRepeat::NO_REPEAT;
     std::vector<Drawing::Point> radius_ = std::vector<Drawing::Point>(4);

@@ -210,7 +210,7 @@ HWTEST_F(RSSystemPropertiesTest, GetDirtyRegionDebugType, TestSize.Level1)
 /**
  * @tc.name: GetPartialRenderEnabled
  * @tc.desc: GetPartialRenderEnabled Test
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issueI9JZWC
  */
 HWTEST_F(RSSystemPropertiesTest, GetPartialRenderEnabled, TestSize.Level1)
@@ -221,13 +221,37 @@ HWTEST_F(RSSystemPropertiesTest, GetPartialRenderEnabled, TestSize.Level1)
 /**
  * @tc.name: GetUniPartialRenderEnabled
  * @tc.desc: GetUniPartialRenderEnabled Test
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issueI9JZWC
  */
 HWTEST_F(RSSystemPropertiesTest, GetUniPartialRenderEnabled, TestSize.Level1)
 {
     ASSERT_EQ(
         RSSystemProperties::GetUniPartialRenderEnabled(), PartialRenderType::SET_DAMAGE_AND_DROP_OP_NOT_VISIBLEDIRTY);
+}
+
+/**
+ * @tc.name: GetVirtualDirtyEnabled
+ * @tc.desc: GetVirtualDirtyEnabled Test
+ * @tc.type: FUNC
+ * @tc.require: issueICCV9N
+ */
+HWTEST_F(RSSystemPropertiesTest, GetVirtualDirtyEnabled, TestSize.Level1)
+{
+    auto type = system::GetParameter("rosen.uni.virtualdirty.enabled", "1");
+    ASSERT_EQ(std::to_string(RSSystemProperties::GetVirtualDirtyEnabled()), type);
+}
+
+/**
+ * @tc.name: GetVirtualExpandScreenSkipEnabled
+ * @tc.desc: GetVirtualExpandScreenSkipEnabled Test
+ * @tc.type: FUNC
+ * @tc.require: issueICCV9N
+ */
+HWTEST_F(RSSystemPropertiesTest, GetVirtualExpandScreenSkipEnabled, TestSize.Level1)
+{
+    auto type = system::GetParameter("rosen.uni.virtualexpandscreenskip.enabled", "1");
+    ASSERT_EQ(std::to_string(RSSystemProperties::GetVirtualExpandScreenSkipEnabled()), type);
 }
 
 /**

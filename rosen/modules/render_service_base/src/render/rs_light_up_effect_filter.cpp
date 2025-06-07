@@ -14,7 +14,11 @@
  */
 #include "render/rs_light_up_effect_filter.h"
 
+#ifdef USE_M133_SKIA
+#include "src/core/SkChecksum.h"
+#else
 #include "src/core/SkOpts.h"
+#endif
 
 #include "platform/common/rs_log.h"
 #include "effect/color_matrix.h"
@@ -27,8 +31,13 @@ RSLightUpEffectFilter::RSLightUpEffectFilter(float lightUpDegree)
 {
     type_ = FilterType::LIGHT_UP_EFFECT;
 
-    hash_ = SkOpts::hash(&type_, sizeof(type_), 0);
-    hash_ = SkOpts::hash(&lightUpDegree_, sizeof(lightUpDegree_), hash_);
+#ifdef USE_M133_SKIA
+    const auto hashFunc = SkChecksum::Hash32;
+#else
+    const auto hashFunc = SkOpts::hash;
+#endif
+    hash_ = hashFunc(&type_, sizeof(type_), 0);
+    hash_ = hashFunc(&lightUpDegree_, sizeof(lightUpDegree_), hash_);
 }
 
 RSLightUpEffectFilter::~RSLightUpEffectFilter() = default;
@@ -63,7 +72,12 @@ std::shared_ptr<RSDrawingFilterOriginal> RSLightUpEffectFilter::Compose(
     std::shared_ptr<RSLightUpEffectFilter> result = std::make_shared<RSLightUpEffectFilter>(lightUpDegree_);
     result->imageFilter_ = Drawing::ImageFilter::CreateComposeImageFilter(imageFilter_, other->GetImageFilter());
     auto otherHash = other->Hash();
-    result->hash_ = SkOpts::hash(&otherHash, sizeof(otherHash), hash_);
+#ifdef USE_M133_SKIA
+    const auto hashFunc = SkChecksum::Hash32;
+#else
+    const auto hashFunc = SkOpts::hash;
+#endif
+    result->hash_ = hashFunc(&otherHash, sizeof(otherHash), hash_);
     return result;
 }
 } // namespace Rosen

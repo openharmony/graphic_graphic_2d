@@ -152,6 +152,33 @@ void RSUIDirector::InitHybridRender()
                 transactionDataIndex = transactionData->GetIndex();
                 // destroy semaphore after commitTransaction for which syncFence was duped
                 RSModifiersDraw::DestroySemaphore();
+                std::shared_ptr<RSUIContext> rsUICtx;
+                {
+                    int32_t instanceId = INSTANCE_ID_UNDEFINED;
+                    for (auto& [id, _, cmd] : transactionData->GetPayload()) {
+                        if (cmd == nullptr) {
+                            continue;
+                        }
+                        uint64_t token = cmd->GetToken();
+                        rsUICtx = RSUIContextManager::Instance().GetRSUIContext(token);
+                        if (rsUICtx != nullptr) {
+                            break;
+                        }
+                        if (instanceId == INSTANCE_ID_UNDEFINED) {
+                            NodeId realId = id == 0 ? cmd->GetNodeId() : id;
+                            instanceId = RSNodeMap::Instance().GetNodeInstanceId(realId);
+                            instanceId == INSTANCE_ID_UNDEFINED ?
+                                RSNodeMap::Instance().GetInstanceIdForReleasedNode(realId) : instanceId;
+                        }
+                    }
+                    auto dataHolder = std::make_shared<TransactionDataHolder>(std::move(transactionData));
+                    std::unique_lock<std::mutex> lock(RSModifiersDrawThread::transactionDataMutex_);
+                    auto task = [dataHolder]() {
+                        std::unique_lock<std::mutex> lock(RSModifiersDrawThread::transactionDataMutex_);
+                        (void) dataHolder;
+                    };
+                    rsUICtx == nullptr ? RSUIDirector::PostTask(task, instanceId) : rsUICtx->PostTask(task);
+                }
             };
             RSModifiersDrawThread::Instance().ScheduleTask(task);
         };

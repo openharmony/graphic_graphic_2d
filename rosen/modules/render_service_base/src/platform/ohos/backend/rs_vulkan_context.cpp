@@ -655,6 +655,7 @@ std::unique_ptr<RsVulkanContext>& RsVulkanContext::GetRecyclableSingletonPtr(con
         static std::string cacheDirInit = cacheDir;
         recyclableSingleton = std::make_unique<RsVulkanContext>(cacheDirInit);
     }
+    RsVulkanContext::isRecyclableSingletonValid_ = true;
     return recyclableSingleton;
 }
 
@@ -683,6 +684,7 @@ void RsVulkanContext::ReleaseRecyclableSingleton()
         auto& recyclableSingleton = GetRecyclableSingletonPtr();
         recyclableSingleton.reset();
     }
+    RsVulkanContext::isRecyclableSingletonValid_ = false;
 }
 
 std::shared_ptr<Drawing::GPUContext> RsVulkanContext::GetRecyclableDrawingContext()
@@ -762,6 +764,11 @@ void RsVulkanContext::SaveNewDrawingContext(int tid, std::shared_ptr<Drawing::GP
 bool RsVulkanContext::GetIsInited()
 {
     return isInited_.load();
+}
+
+bool RsVulkanContext::IsRecyclableSingletonValid()
+{
+    return isRecyclableSingletonValid_.load();
 }
 
 RsVulkanInterface& RsVulkanContext::GetRsVulkanInterface()

@@ -32,13 +32,19 @@
 
 namespace OHOS {
 namespace Rosen {
+std::atomic<bool> RSModifiersDrawThread::isStarted_ = false;
+std::mutex RSModifiersDrawThread::transactionDataMutex_;
+
 constexpr uint32_t DEFAULT_MODIFIERS_DRAW_THREAD_LOOP_NUM = 3;
 constexpr float HYBRID_RENDER_DISABLED_BY_ALPHA = 0.8f;
-RSModifiersDrawThread::RSModifiersDrawThread() {}
+RSModifiersDrawThread::RSModifiersDrawThread()
+{
+    ::atexit(&RSModifiersDrawThread::Destroy);
+}
 
 RSModifiersDrawThread::~RSModifiersDrawThread()
 {
-    if (!isStarted_) {
+    if (!RSModifiersDrawThread::isStarted_) {
         return;
     }
     if (handler_ != nullptr) {
@@ -54,10 +60,41 @@ RSModifiersDrawThread::~RSModifiersDrawThread()
 #endif
 }
 
+void RSModifiersDrawThread::Destroy()
+{
+    if (!RSModifiersDrawThread::isStarted_) {
+        return;
+    }
+    auto task = []() {
+        RSModifiersDrawThread::Instance().ClearEventResource();
+    };
+    RSModifiersDrawThread::Instance().PostSyncTask(task);
+    auto& instancePtr = RSModifiersDrawThread::InstancePtr();
+    instancePtr.reset();
+}
+
+void RSModifiersDrawThread::ClearEventResource()
+{
+    if (handler_ != nullptr) {
+        handler_->RemoveAllEvents();
+        handler_ = nullptr;
+    }
+    if (runner_ != nullptr) {
+        runner_->Stop();
+        runner_ = nullptr;
+    }
+}
+
 RSModifiersDrawThread& RSModifiersDrawThread::Instance()
 {
     static RSModifiersDrawThread instance;
     return instance;
+}
+
+std::unique_ptr<RSModifiersDrawThread>& RSModifiersDrawThread::InstancePtr()
+{
+    static std::unique_ptr<RSModifiersDrawThread> instancePtr = std::make_unique<RSModifiersDrawThread>();
+    return instancePtr;
 }
 
 void RSModifiersDrawThread::SetCacheDir(const std::string& path)
@@ -112,13 +149,13 @@ bool RSModifiersDrawThread::GetHighContrast() const
 
 bool RSModifiersDrawThread::GetIsStarted() const
 {
-    return isStarted_;
+    return RSModifiersDrawThread::isStarted_;
 }
 
 void RSModifiersDrawThread::Start()
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    if (isStarted_) {
+    if (RSModifiersDrawThread::isStarted_) {
         return;
     }
     runner_ = AppExecFwk::EventRunner::Create("ModifiersDraw");
@@ -127,7 +164,7 @@ void RSModifiersDrawThread::Start()
 #ifdef ACCESSIBILITY_ENABLE
     SubscribeHighContrastChange();
 #endif
-    isStarted_ = true;
+    RSModifiersDrawThread::isStarted_ = true;
     PostTask([] {
         RsFrameReport::GetInstance().ModifierReportSchedEvent(FrameSchedEvent::RS_MODIFIER_INFO, {});
         SetThreadQos(QOS::QosLevel::QOS_USER_INTERACTIVE);
@@ -169,7 +206,7 @@ uint32_t RSModifiersDrawThread::GetMaxPixelMapHeight() const
 
 void RSModifiersDrawThread::PostTask(const std::function<void()>&& task, const std::string& name, int64_t delayTime)
 {
-    if (!isStarted_) {
+    if (!RSModifiersDrawThread::isStarted_) {
         Start();
     }
     if (handler_ != nullptr) {
@@ -186,7 +223,7 @@ void RSModifiersDrawThread::RemoveTask(const std::string& name)
 
 void RSModifiersDrawThread::PostSyncTask(const std::function<void()>&& task)
 {
-    if (!isStarted_) {
+    if (!RSModifiersDrawThread::isStarted_) {
         Start();
     }
     if (handler_ != nullptr) {

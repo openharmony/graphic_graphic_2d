@@ -2099,6 +2099,32 @@ HWTEST_F(RSScreenTest, GetSecurityMask001, testing::ext::TestSize.Level1)
     ASSERT_EQ(SecurityMaskGet, nullptr);
 }
 
+/*
+ * @tc.name: GetVirtualSecLayerOption001
+ * @tc.desc: GetVirtualSecLayerOption Test
+ * @tc.type: FUNC
+ * @tc.require: issueICCRA8
+ */
+HWTEST_F(RSScreenTest, GetVirtualSecLayerOption001, testing::ext::TestSize.Level1)
+{
+    auto csurface = IConsumerSurface::Create();
+    ASSERT_NE(csurface, nullptr);
+    auto producer = csurface->GetProducer();
+    auto psurface = Surface::CreateSurfaceAsProducer(producer);
+    ASSERT_NE(psurface, nullptr);
+    VirtualScreenConfigs configs;
+    configs.id = 1;
+    configs.mirrorId = 0;
+    configs.name = "virtualScreen02";
+    configs.width = 480;
+    configs.height = 320;
+    configs.surface = psurface;
+    configs.flags = 1;
+    auto rsScreen = std::make_shared<impl::RSScreen>(configs);
+    ASSERT_NE(nullptr, rsScreen);
+    ASSERT_EQ(rsScreen->GetVirtualSecLayerOption(), 1);
+}
+
 //yangning
 /*
  * @tc.name: SetScreenLinearMatrix

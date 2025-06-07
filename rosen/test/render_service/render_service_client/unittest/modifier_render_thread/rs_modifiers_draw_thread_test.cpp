@@ -157,6 +157,24 @@ HWTEST_F(RSModifiersDrawThreadTest, PostTask002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: PostTask003
+ * @tc.desc: test results of PostTask, if not started
+ * @tc.type: FUNC
+ * @tc.require: issueICCICO
+ */
+HWTEST_F(RSModifiersDrawThreadTest, PostTask003, TestSize.Level1)
+{
+    RSModifiersDrawThread::Instance().Start();
+    ASSERT_EQ(RSModifiersDrawThread::Instance().isStarted_, true);
+    // manually change member variable
+    RSModifiersDrawThread::Instance().isStarted_ = false;
+    bool testResult = false;
+    auto testFunc = [&testResult]() { testResult = true; };
+    RSModifiersDrawThread::Instance().PostTask(testFunc);
+    ASSERT_FALSE(testResult);
+}
+
+/**
  * @tc.name: ScheduleTask001
  * @tc.desc: test results of ScheduleTask
  * @tc.type: FUNC
@@ -222,7 +240,8 @@ HWTEST_F(RSModifiersDrawThreadTest, ConvertTransactionTest001, TestSize.Level1)
     auto cmd = std::make_unique<RSCanvasNodeUpdateRecording>(nodeId, cmdList, static_cast<uint16_t>(mType));
     auto transactionData = std::make_unique<RSTransactionData>();
     transactionData->AddCommand(std::move(cmd), nodeId, FollowType::NONE);
-    RSModifiersDrawThread::ConvertTransaction(transactionData);
+    RSModifiersDrawThread::Instance().PostSyncTask(
+        [&]() { RSModifiersDrawThread::ConvertTransaction(transactionData); });
     ASSERT_NE(transactionData, nullptr);
 }
 
@@ -241,7 +260,8 @@ HWTEST_F(RSModifiersDrawThreadTest, ConvertTransactionTest002, TestSize.Level1)
     auto cmd = std::make_unique<RSCanvasNodeUpdateRecording>(nodeId, cmdList, static_cast<uint16_t>(mType));
     auto transactionData = std::make_unique<RSTransactionData>();
     transactionData->AddCommand(std::move(cmd), nodeId, FollowType::NONE);
-    RSModifiersDrawThread::ConvertTransaction(transactionData);
+    RSModifiersDrawThread::Instance().PostSyncTask(
+        [&]() { RSModifiersDrawThread::ConvertTransaction(transactionData); });
     ASSERT_NE(transactionData, nullptr);
 }
 
@@ -282,5 +302,23 @@ HWTEST_F(RSModifiersDrawThreadTest, RemoveTask002, TestSize.Level1)
     RSModifiersDrawThread::Instance().PostTask(task, TASK_NAME, DELAY_TIME);
     RSModifiersDrawThread::Instance().RemoveTask(TASK_NAME);
     ASSERT_FALSE(tag);
+}
+
+/**
+ * @tc.name: ClearEventResource001
+ * @tc.desc: test results of ClearEventResource, while handler/runner are(not) nullptr.
+ * @tc.type: FUNC
+ * @tc.require: issueICCICO
+ */
+HWTEST_F(RSModifiersDrawThreadTest, ClearEventResource001, TestSize.Level1)
+{
+    RSModifiersDrawThread::Instance().Start();
+    ASSERT_NE(RSModifiersDrawThread::Instance().handler_, nullptr);
+    ASSERT_NE(RSModifiersDrawThread::Instance().runner_, nullptr);
+    RSModifiersDrawThread::Instance().ClearEventResource();
+    ASSERT_EQ(RSModifiersDrawThread::Instance().handler_, nullptr);
+    ASSERT_EQ(RSModifiersDrawThread::Instance().runner_, nullptr);
+    RSModifiersDrawThread::Instance().ClearEventResource();
+    RSModifiersDrawThread::Instance().Destroy();
 }
 } // namespace OHOS::Rosen

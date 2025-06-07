@@ -94,6 +94,7 @@ private:
 
     friend class RSCanvasNodeCommandHelper;
     friend class RSColorfulShadowDrawable;
+    friend class RSRenderNodeAllocator;
     friend class RSRenderTransition;
     friend class RSPropertiesPainter;
     bool hasHdrPresent_ = false;

@@ -723,6 +723,33 @@ HWTEST_F(HdiOutputTest, InitLoadOptParams001, Function | MediumTest | Level1)
     hdiOutput->InitLoadOptParams(params);
     EXPECT_TRUE(hdiOutput->isMergeFenceSkipped_);
 }
+
+/*
+ * Function: ANCOTransactionOnComplete001
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1.call ANCOTransactionOnComplete()
+ *                  2.no crash
+ */
+HWTEST_F(HdiOutputTest, ANCOTransactionOnComplete001, Function | MediumTest | Level3)
+{
+    std::shared_ptr<HdiOutput> output = HdiOutput::CreateHdiOutput(0);
+    ASSERT_NE(output, nullptr);
+    LayerInfoPtr layerInfo = nullptr;
+    output->ANCOTransactionOnComplete(layerInfo, nullptr);
+    layerInfo = std::make_shared<HdiLayerInfo>();
+    output->ANCOTransactionOnComplete(layerInfo, nullptr);
+    layerInfo->SetAncoFlags(static_cast<uint32_t>(HdiAncoFlags::ANCO_NATIVE_NODE));
+    output->ANCOTransactionOnComplete(layerInfo, nullptr);
+    auto previousReleaseFence = sptr<SyncFence>::MakeSptr(-1);
+    auto consumer = IConsumerSurface::Create("xcomponentIdSurface");
+    layerInfo->SetSurface(consumer);
+    output->ANCOTransactionOnComplete(layerInfo, previousReleaseFence);
+    auto buffer = new SurfaceBufferImpl();
+    layerInfo->SetBuffer(buffer, nullptr);
+    output->ANCOTransactionOnComplete(layerInfo, previousReleaseFence);
+}
 } // namespace
 } // namespace Rosen
 } // namespace OHOS

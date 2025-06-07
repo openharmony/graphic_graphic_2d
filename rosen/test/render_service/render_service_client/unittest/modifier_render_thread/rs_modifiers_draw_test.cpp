@@ -305,14 +305,28 @@ HWTEST_F(RSModifiersDrawTest, PurgeContextResource, TestSize.Level2)
 
 /**
  * @tc.name: ClearDrawingContextMemory001
- * @tc.desc: Test ClearDrawingContextMemory
+ * @tc.desc: Test ClearDrawingContextMemory while recyclable single valid
  * @tc.type:FUNC
  * @tc.require:issueICB7BS
 */
 HWTEST_F(RSModifiersDrawTest, ClearDrawingContextMemory001, TestSize.Level2)
 {
     RSModifiersDraw::ClearDrawingContextMemory();
-    ASSERT_TRUE(RsVulkanContext::drawingContextMap_.empty());
+    RsVulkanContext::GetRecyclableSingletonPtr();
+    ASSERT_FALSE(RsVulkanContext::drawingContextMap_.empty());
+}
+
+/**
+ * @tc.name: ClearDrawingContextMemory002
+ * @tc.desc: Test ClearDrawingContextMemorywhile recyclable single invalid
+ * @tc.type:FUNC
+ * @tc.require:issueICB7BS
+*/
+HWTEST_F(RSModifiersDrawTest, ClearDrawingContextMemory002, TestSize.Level2)
+{
+    RSModifiersDraw::ClearDrawingContextMemory();
+    RsVulkanContext::ReleaseRecyclableSingleton();
+    ASSERT_FALSE(RsVulkanContext::drawingContextMap_.empty());
 }
 
 /**
@@ -325,7 +339,7 @@ HWTEST_F(RSModifiersDrawTest, ClearBackgroundMemory001, TestSize.Level2)
 {
     RSRenderThread::Instance().running_.store(true);
     RSModifiersDraw::ClearBackGroundMemory();
-    ASSERT_TRUE(RsVulkanContext::drawingContextMap_.empty());
+    ASSERT_FALSE(RsVulkanContext::drawingContextMap_.empty());
 }
 
 /**
@@ -337,8 +351,26 @@ HWTEST_F(RSModifiersDrawTest, ClearBackgroundMemory001, TestSize.Level2)
 HWTEST_F(RSModifiersDrawTest, ClearBackgroundMemory002, TestSize.Level2)
 {
     RSRenderThread::Instance().running_.store(false);
+    RsVulkanContext::GetRecyclableSingletonPtr();
     RSModifiersDraw::ClearBackGroundMemory();
-    ASSERT_TRUE(RsVulkanContext::drawingContextMap_.empty());
+    ASSERT_FALSE(RsVulkanContext::drawingContextMap_.empty());
+
+    // restore
+    RSRenderThread::Instance().running_.store(true);
+}
+
+/**
+ * @tc.name: ClearBackgroundMemory003
+ * @tc.desc: Test ClearBackgroundMemory while recyclable singleton invalid
+ * @tc.type:FUNC
+ * @tc.require:issueICB7BS
+*/
+HWTEST_F(RSModifiersDrawTest, ClearBackgroundMemory003, TestSize.Level2)
+{
+    RSRenderThread::Instance().running_.store(false);
+    RsVulkanContext::ReleaseRecyclableSingleton();
+    RSModifiersDraw::ClearBackGroundMemory();
+    ASSERT_FALSE(RsVulkanContext::drawingContextMap_.empty());
 
     // restore
     RSRenderThread::Instance().running_.store(true);

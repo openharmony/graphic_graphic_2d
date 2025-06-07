@@ -54,7 +54,8 @@ constexpr uint32_t MULTI_WINDOW_PERF_END_NUM = 4;
 constexpr uint32_t MULTI_WINDOW_PERF_START_NUM = 2;
 constexpr uint64_t REFRESH_PERIOD = 16666667;
 constexpr uint64_t SKIP_COMMAND_FREQ_LIMIT = 30;
-
+constexpr uint32_t DEFAULT_SCREEN_WEIGHT = 480;
+constexpr uint32_t DEFAULT_SCREEN_HEIGHT = 320;
 class RSMainThreadTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -83,8 +84,28 @@ private:
 void RSMainThreadTest::SetUpTestCase()
 {
     RSTestUtil::InitRenderNodeGC();
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    std::string name = "virtualScreen01";
+    uint32_t width = DEFAULT_SCREEN_WEIGHT;
+    uint32_t height = DEFAULT_SCREEN_HEIGHT;
+    auto csurface = IConsumerSurface::Create();
+    ASSERT_NE(csurface, nullptr);
+    auto producer = csurface->GetProducer();
+    auto psurface = Surface::CreateSurfaceAsProducer(producer);
+    ASSERT_NE(psurface, nullptr);
+    auto id = screenManager->CreateVirtualScreen(name, width, height, psurface);
+    ASSERT_NE(INVALID_SCREEN_ID, id);
+    screenManager->SetDefaultScreenId(id);
 }
-void RSMainThreadTest::TearDownTestCase() {}
+
+void RSMainThreadTest::TearDownTestCase() 
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    screenManager->SetDefaultScreenId(INVALID_SCREEN_ID);
+}
+
 void RSMainThreadTest::SetUp() {}
 void RSMainThreadTest::TearDown()
 {
@@ -925,6 +946,79 @@ HWTEST_F(RSMainThreadTest, ShowWatermark, TestSize.Level1)
     ASSERT_EQ(mainThread->GetWatermarkFlag(), false);
 }
 
+/**
+ * @tc.name: ShowWatermark01
+ * @tc.desc: ShowWatermark test
+ * @tc.type: FUNC
+ * @tc.require: issueI78T3Z
+ */
+HWTEST_F(RSMainThreadTest, ShowWatermark01, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    Media::InitializationOptions opts;
+    opts.size.width = DEFAULT_SCREEN_WEIGHT * 2.5;
+    opts.size.height = DEFAULT_SCREEN_HEIGHT * 2.5;
+    std::unique_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(opts);
+    ASSERT_NE(pixelMap, nullptr);
+    mainThread->watermarkFlag_ = false;
+    mainThread->ShowWatermark(std::move(pixelMap), true);
+    ASSERT_EQ(mainThread->GetWatermarkFlag(), true);
+}
+
+/**
+ * @tc.name: ShowWatermark02
+ * @tc.desc: ShowWatermark test
+ * @tc.type: FUNC
+ * @tc.require: issueI78T3Z
+ */
+HWTEST_F(RSMainThreadTest, ShowWatermark02, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    Media::InitializationOptions opts;
+    opts.size.width = 1;
+    opts.size.height = 1;
+    std::unique_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(opts);
+    ASSERT_NE(pixelMap, nullptr);
+    mainThread->ShowWatermark(std::move(pixelMap), true);
+    ASSERT_EQ(mainThread->GetWatermarkFlag(), true);
+}
+
+/**
+ * @tc.name: ShowWatermark03
+ * @tc.desc: ShowWatermark test
+ * @tc.type: FUNC
+ * @tc.require: issueI78T3Z
+ */
+HWTEST_F(RSMainThreadTest, ShowWatermark03, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    Media::InitializationOptions opts;
+    opts.size.width = DEFAULT_SCREEN_WEIGHT;
+    opts.size.height = DEFAULT_SCREEN_WEIGHT;
+    std::unique_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(opts);
+    ASSERT_NE(pixelMap, nullptr);
+    mainThread->ShowWatermark(std::move(pixelMap), true);
+    ASSERT_EQ(mainThread->GetWatermarkFlag(), true);
+}
+
+/**
+ * @tc.name: ShowWatermark05
+ * @tc.desc: ShowWatermark test
+ * @tc.type: FUNC
+ * @tc.require: issueI78T3Z
+ */
+HWTEST_F(RSMainThreadTest, ShowWatermark05, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    Media::InitializationOptions opts;
+    opts.size.width = DEFAULT_SCREEN_WEIGHT;
+    opts.size.height = DEFAULT_SCREEN_WEIGHT;
+    std::unique_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(opts);
+    ASSERT_NE(pixelMap, nullptr);
+    mainThread->watermarkFlag_ = false;
+    mainThread->ShowWatermark(nullptr, true);
+    ASSERT_EQ(mainThread->GetWatermarkFlag(), true);
+}
 /**
  * @tc.name: MergeToEffectiveTransactionDataMap001
  * @tc.desc: Test RSMainThreadTest.MergeToEffectiveTransactionDataMap

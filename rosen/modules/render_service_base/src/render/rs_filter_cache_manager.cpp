@@ -155,6 +155,10 @@ bool RSFilterCacheManager::DrawFilterWithoutSnapshot(RSPaintFilterCanvas& canvas
     Drawing::Rect srcRect = Drawing::Rect(0, 0, cachedSnapshot_->cachedImage_->GetWidth(),
             cachedSnapshot_->cachedImage_->GetHeight());
     Drawing::Rect dstRect = clipIBounds;
+    RS_OPTIONAL_TRACE_NAME_FMT("DrawFilterWithoutSnapshot srcRect:%s, dstRect:%s",
+        srcRect.ToString().c_str(), dstRect.ToString().c_str());
+    ROSEN_LOGD("DrawFilterWithoutSnapshot srcRect:%{public}s, dstRect:%{public}s",
+        srcRect.ToString().c_str(), dstRect.ToString().c_str());
     bool discardCanvas = CanDiscardCanvas(canvas, dst);
     filter->DrawImageRect(canvas, cachedSnapshot_->cachedImage_, srcRect, dstRect, { discardCanvas, false });
     filter->PostProcess(canvas);
@@ -633,6 +637,11 @@ void RSFilterCacheManager::ClearFilterCache()
         " isOccluded_:%d, lastCacheType:%d needClearMemoryForGpu:%d ClearFilteredCacheAfterDrawing:%d",
         renderClearType_, stagingIsOccluded_, lastCacheType_, needClearMemoryForGpu,
         renderClearFilteredCacheAfterDrawing_);
+    ROSEN_LOGD("RSFilterCacheManager::ClearFilterCache, clearType:%{public}d,"
+        " isOccluded_:%{public}d, lastCacheType:%{public}d needClearMemoryForGpu:%{public}d"
+        " ClearFilteredCacheAfterDrawing:%{public}d",
+        static_cast<int>(renderClearType_), stagingIsOccluded_, static_cast<int>(lastCacheType_),
+        needClearMemoryForGpu, renderClearFilteredCacheAfterDrawing_);
 }
 
 bool RSFilterCacheManager::IsSkippingFrame() const
@@ -651,6 +660,8 @@ bool RSFilterCacheManager::IsFilterCacheValidForOcclusion()
     auto cacheType = GetCachedType();
     RS_OPTIONAL_TRACE_NAME_FMT("RSFilterCacheManager::IsFilterCacheValidForOcclusion cacheType:%d renderClearType_:%d",
         cacheType, renderClearType_);
+    ROSEN_LOGD("RSFilterCacheManager::IsFilterCacheValidForOcclusion cacheType:%{public}d renderClearType_:%{public}d",
+        static_cast<int>(cacheType), static_cast<int>(renderClearType_));
 
     return cacheType != FilterCacheType::NONE;
 }
@@ -670,6 +681,9 @@ bool RSFilterCacheManager::WouldDrawLargeAreaBlur()
     RS_TRACE_NAME_FMT("wouldDrawLargeAreaBlur stagingIsLargeArea:%d canSkipFrame:%d"
         " stagingUpdateInterval:%d stagingFilterInteractWithDirty:%d",
         stagingIsLargeArea_, canSkipFrame_, cacheUpdateInterval_, stagingFilterInteractWithDirty_);
+    ROSEN_LOGD("wouldDrawLargeAreaBlur stagingIsLargeArea:%{public}d canSkipFrame:%{public}d"
+        " stagingUpdateInterval:%{public}d stagingFilterInteractWithDirty:%{public}d",
+        stagingIsLargeArea_, canSkipFrame_, cacheUpdateInterval_, stagingFilterInteractWithDirty_);
     if (stagingIsLargeArea_) {
         if (!canSkipFrame_) {
             return true;
@@ -686,6 +700,12 @@ bool RSFilterCacheManager::WouldDrawLargeAreaBlurPrecisely()
         " stagingUpdateInterval:%d stagingLastCacheType:%d", stagingIsLargeArea_,
         stagingForceClearCache_, canSkipFrame_, stagingFilterHashChanged_, stagingFilterInteractWithDirty_,
         stagingFilterRegionChanged_, cacheUpdateInterval_, lastCacheType_);
+    ROSEN_LOGD("wouldDrawLargeAreaBlurPrecisely stagingIsLargeArea:%{public}d stagingForceClearCache:%{public}d"
+        " canSkipFrame:%{public}d stagingFilterHashChanged:%{public}d stagingFilterInteractWithDirty:%{public}d"
+        " stagingFilterRegionChanged:%{public}d stagingUpdateInterval:%{public}d stagingLastCacheType:%{public}d",
+        stagingIsLargeArea_, stagingForceClearCache_, canSkipFrame_, stagingFilterHashChanged_,
+        stagingFilterInteractWithDirty_, stagingFilterRegionChanged_, cacheUpdateInterval_,
+        static_cast<int>(lastCacheType_));
     if (!stagingIsLargeArea_) {
         return false;
     }

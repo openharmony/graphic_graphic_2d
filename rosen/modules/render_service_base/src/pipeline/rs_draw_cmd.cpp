@@ -15,6 +15,7 @@
 
 #include <sstream>
 
+#include "common/rs_optional_trace.h"
 #include "pipeline/rs_draw_cmd.h"
 #include "pipeline/rs_recording_canvas.h"
 #include "platform/common/rs_log.h"
@@ -254,6 +255,10 @@ void RSExtendImageObject::PreProcessPixelMap(Drawing::Canvas& canvas, const std:
         return;
     }
     auto colorSpace = RSPixelMapUtil::GetPixelmapColorSpace(pixelMap);
+    RS_OPTIONAL_TRACE_NAME_FMT("RSExtendImageObject::PreProcessPixelMap pixelMap width: %d, height: %d,"
+        " colorSpaceName: %d, isHDR: %d",
+        pixelMap->GetWidth(), pixelMap->GetHeight(), pixelMap->InnerGetGrColorSpace().GetColorSpaceName(),
+        pixelMap->IsHdr());
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     if (pixelMap->IsHdr()) {
         colorSpace = Drawing::ColorSpace::CreateSRGB();

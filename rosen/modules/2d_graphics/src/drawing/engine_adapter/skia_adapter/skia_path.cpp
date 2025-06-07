@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -301,6 +301,27 @@ bool SkiaPath::Interpolate(const Path& ending, scalar weight, Path& out)
         isSuccess = path_.interpolate(skPathImpl1->GetPath(), weight, &interp);
         skPathImpl2->SetPath(interp);
         isChanged_ = true;
+    }
+    return isSuccess;
+}
+
+int SkiaPath::CountVerbs() const
+{
+    return path_.countVerbs();
+}
+
+Point SkiaPath::GetPoint(int index) const
+{
+    SkPoint point = path_.getPoint(index);
+    return Point(point.x(), point.y());
+}
+
+bool SkiaPath::IsInterpolate(const Path& other)
+{
+    bool isSuccess = false;
+    auto skPathImpl = other.GetImpl<SkiaPath>();
+    if (skPathImpl != nullptr) {
+        isSuccess = path_.isInterpolatable(skPathImpl->GetPath());
     }
     return isSuccess;
 }

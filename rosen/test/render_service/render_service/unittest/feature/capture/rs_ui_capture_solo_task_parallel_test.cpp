@@ -40,7 +40,8 @@
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_uni_render_judgement.h"
-
+#include "draw/surface.h"
+#include "image/image_info.h"
 using namespace testing::ext;
 
 namespace OHOS {
@@ -370,5 +371,35 @@ HWTEST_F(RSUiCaptureSoloTaskParallelTest, TestCreateSurfaceSyncCopyTask, Functio
     mainThread->context_->nodeMap.UnregisterRenderNode(node->GetId());
 #endif
 }
+/*
+* @tc.name: TestCopyDataToPixelMap
+* @tc.desc: Test RSUiCaptureSoloTaskParallel::TestCopyDataToPixelMap
+* @tc.type: FUNC
+* @tc.require:
+*/
+HWTEST_F(RSUiCaptureSoloTaskParallelTest, TestCopyDataToPixelMap, Function | SmallTest | Level2)
+{
+    RSSurfaceCaptureConfig captureConfig;
+    Drawing::Rect rect = {0, 0, 1260, 2720};
+    auto pixelMap = RSCapturePixelMapManager::CreatePixelMap(rect, captureConfig);
+
+    const Drawing::ImageInfo info =
+        Drawing::ImageInfo{rect.GetWidth(), rect.GetHeight(), Drawing::COLORTYPE_N32, Drawing::ALPHATYPE_OPAQUE};
+    auto surface = Drawing::Surface::MakeRaster(info);
+    ASSERT_EQ(surface != nullptr, true);
+
+    std::shared_ptr<Drawing::Image> image(surface.get()->GetImageSnapshot());
+    bool ret = RSUiCaptureSoloTaskParallel::CopyDataToPixelMap(image, pixelMap);
+    EXPECT_EQ(ret, true);
+
+    // Test image == nullptr
+    ret = RSUiCaptureSoloTaskParallel::CopyDataToPixelMap(nullptr, pixelMap);
+    EXPECT_EQ(ret, false);
+
+    // Test pixelMap == nullptr
+    ret = RSUiCaptureSoloTaskParallel::CopyDataToPixelMap(image, nullptr);
+    EXPECT_EQ(ret, false);
+}
+
 } // namespace Rosen
 } // namespace OHOS

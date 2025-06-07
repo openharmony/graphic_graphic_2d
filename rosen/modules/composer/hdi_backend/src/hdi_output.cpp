@@ -690,6 +690,7 @@ void HdiOutput::ReleaseSurfaceBuffer(sptr<SyncFence>& releaseFence)
         if (layer != nullptr) {
             auto preBuffer = layer->GetPreBuffer();
             auto consumer = layer->GetSurface();
+            ANCOTransactionOnComplete(layer, fence);
             releaseBuffer(preBuffer, fence, consumer);
             if (layer->GetUniRenderFlag()) {
                 releaseFence = fence;
@@ -981,6 +982,21 @@ void HdiOutput::InitLoadOptParams(LoadOptParamsForHdiOutput& loadOptParamsForHdi
                                ? switchParams.at(IS_MERGE_FENCE_SKIPPED)
                                : false;
     HLOGD("[%{public}s] %{public}s is %{public}d", __func__, IS_MERGE_FENCE_SKIPPED.c_str(), isMergeFenceSkipped_);
+}
+
+void HdiOutput::ANCOTransactionOnComplete(const LayerInfoPtr& layerInfo, const sptr<SyncFence>& previousReleaseFence)
+{
+    if (layerInfo == nullptr) {
+        return;
+    }
+    if (layerInfo->IsAncoNative()) {
+        auto consumer = layerInfo->GetSurface();
+        auto curBuffer = layerInfo->GetBuffer();
+        if (consumer == nullptr || curBuffer == nullptr) {
+            return;
+        }
+        consumer->ReleaseBuffer(curBuffer, previousReleaseFence);
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

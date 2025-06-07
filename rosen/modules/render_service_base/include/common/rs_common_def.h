@@ -247,6 +247,7 @@ struct RSSurfaceCaptureConfig {
     bool useCurWindow = true;
     SurfaceCaptureType captureType = SurfaceCaptureType::DEFAULT_CAPTURE;
     bool isSync = false;
+    bool isClientPixelMap = false; // Create pixelMap in client
     Drawing::Rect mainScreenRect = {};
     std::vector<NodeId> blackList = {}; // exclude surfacenode in screenshot
     bool isSoloNodeUiCapture = false;
@@ -584,7 +585,8 @@ inline typename Container::size_type EraseIf(Container& container, Predicate pre
 enum class AncoFlags : uint32_t {
     IS_ANCO_NODE = 0x0001,
     ANCO_SFV_NODE = 0x0011,
-    FORCE_REFRESH = 0x0100
+    ANCO_NATIVE_NODE = 0x0111,
+    FORCE_REFRESH = 0x1000
 };
 
 enum class AncoHebcStatus : int32_t {

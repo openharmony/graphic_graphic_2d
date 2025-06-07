@@ -253,7 +253,11 @@ skt::TextStyle ParagraphBuilderImpl::ConvertTextStyleToSkStyle(const TextStyle& 
         skStyle.setCustomSymbol(true);
     }
 
+#ifdef TODO_M133_SKIA
+    (void)txt.badgeType;
+#else
     skStyle.setTextBadgeType(static_cast<skt::TextBadgeType>(txt.badgeType));
+#endif
 
     return skStyle;
 }

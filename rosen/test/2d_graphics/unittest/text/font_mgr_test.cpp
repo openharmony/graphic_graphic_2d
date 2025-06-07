@@ -102,7 +102,7 @@ HWTEST_F(FontMgrTest, CountFamilies001, TestSize.Level1)
 {
     std::shared_ptr<FontMgr> FontMgr = FontMgr::CreateDefaultFontMgr();
     int familyCount = FontMgr->CountFamilies();
-    EXPECT_EQ(familyCount, 9);
+    EXPECT_EQ(familyCount, 10);
 }
 
 /**

@@ -23,6 +23,7 @@
 #include "command/rs_node_command.h"
 #include "platform/common/rs_log.h"
 #include "common/rs_obj_geometry.h"
+#include "common/rs_optional_trace.h"
 #include "pipeline/rs_draw_cmd_list.h"
 #include "pipeline/rs_node_map.h"
 #include "transaction/rs_transaction_proxy.h"
@@ -225,6 +226,7 @@ void RSCanvasNode::SetFreeze(bool isFreeze)
         ROSEN_LOGE("SetFreeze is not supported in separate render");
         return;
     }
+    RS_OPTIONAL_TRACE_NAME_FMT("RSCanvasNode::SetFreeze id:%llu", GetId());
     CheckThread();
     RSNode::SetDrawNode();
     std::unique_ptr<RSCommand> command = std::make_unique<RSSetFreeze>(GetId(), isFreeze);

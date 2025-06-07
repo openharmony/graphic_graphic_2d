@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -26,6 +26,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
+constexpr float MAX_FLOAT_SIZE = 1000.0f;
 constexpr size_t MAX_ARRAY_SIZE = 5000;
 constexpr size_t DIRECTION_SIZE = 2;
 constexpr size_t FILLTYPE_SIZE = 4;
@@ -450,6 +451,83 @@ bool PathFuzzTest009(const uint8_t* data, size_t size)
     return true;
 }
 
+/*
+ * 测试以下 Path 接口：
+ * 1. Path()
+ * 2. IsInterpolate(...)
+ * 3. CountVerbs()
+ * 4. CountPoints()
+ */
+bool PathFuzzTest010(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    Path path;
+    Path otherPath;
+    path.MoveTo(GetObject<scalar>(), GetObject<scalar>());
+    path.LineTo(GetObject<scalar>(), GetObject<scalar>());
+    path.LineTo(GetObject<scalar>(), GetObject<scalar>());
+    otherPath.MoveTo(GetObject<scalar>(), GetObject<scalar>());
+    otherPath.LineTo(GetObject<scalar>(), GetObject<scalar>());
+    path.IsInterpolate(otherPath);
+    path.CountVerbs();
+    int count = GetObject<int>();
+    path.GetPoint(count);
+    return true;
+}
+
+/*
+ * 测试以下 Path 接口：
+ * 1. Approximate(...)
+ */
+bool PathFuzzTest011(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    Path path;
+    path.MoveTo(GetObject<scalar>(), GetObject<scalar>());
+    path.LineTo(GetObject<scalar>(), GetObject<scalar>());
+    scalar pOneX = std::max(0.0f, std::min(MAX_FLOAT_SIZE, GetObject<scalar>()));
+    scalar pOneY = std::max(0.0f, std::min(MAX_FLOAT_SIZE, GetObject<scalar>()));
+    scalar pTwoX = std::max(0.0f, std::min(MAX_FLOAT_SIZE, GetObject<scalar>()));
+    scalar pTwoY = std::max(0.0f, std::min(MAX_FLOAT_SIZE, GetObject<scalar>()));
+    scalar pThreeX = std::max(0.0f, std::min(MAX_FLOAT_SIZE, GetObject<scalar>()));
+    scalar pThreeY = std::max(0.0f, std::min(MAX_FLOAT_SIZE, GetObject<scalar>()));
+    scalar acceptableError = std::abs(GetObject<scalar>());
+    if (acceptableError < 1e-3f || std::isnan(acceptableError) || std::isinf(acceptableError)) {
+        acceptableError = 1.0f;
+    }
+    std::vector<scalar> points = {};
+    path.ArcTo(pOneX, pOneY, pTwoX, pTwoY, GetObject<scalar>(), GetObject<scalar>());
+    path.Approximate(acceptableError, points);
+    path.Reset();
+    points.clear();
+    path.QuadTo(pThreeX, pThreeY, pTwoX, pTwoY);
+    path.Approximate(acceptableError, points);
+    path.Reset();
+    points.clear();
+    path.ConicTo(pOneX, pOneY, pTwoX, pTwoY, GetObject<scalar>());
+    path.Approximate(acceptableError, points);
+    path.Reset();
+    points.clear();
+    path.CubicTo(pOneX, pOneY, pTwoX, pTwoY, pThreeX, pThreeY);
+    path.Approximate(acceptableError, points);
+    return true;
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
@@ -469,5 +547,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::Drawing::PathFuzzTest007(data, size);
     OHOS::Rosen::Drawing::PathFuzzTest008(data, size);
     OHOS::Rosen::Drawing::PathFuzzTest009(data, size);
+    OHOS::Rosen::Drawing::PathFuzzTest010(data, size);
+    OHOS::Rosen::Drawing::PathFuzzTest011(data, size);
     return 0;
 }

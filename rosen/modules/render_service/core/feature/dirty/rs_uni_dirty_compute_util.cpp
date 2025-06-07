@@ -29,6 +29,7 @@
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
 #include "feature/overlay_display/rs_overlay_display_manager.h"
 #endif
+#include "feature/uifirst/rs_uifirst_manager.h"
 #include "info_collection/rs_gpu_dirty_region_collection.h"
 #include "params/rs_display_render_params.h"
 #include "params/rs_surface_render_params.h"
@@ -43,6 +44,9 @@
 
 namespace OHOS {
 namespace Rosen {
+namespace {
+constexpr int32_t NO_SPECIAL_LAYER = 0;
+}
 std::vector<RectI> RSUniDirtyComputeUtil::GetCurrentFrameVisibleDirty(
     DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable, ScreenInfo& screenInfo, RSDisplayRenderParams& params)
 {
@@ -297,6 +301,40 @@ Occlusion::Region RSUniFilterDirtyComputeUtil::GetVisibleEffectRegion(RSRenderNo
         }
     }
     return childEffectRegion;
+}
+
+void RSUniDirtyComputeUtil::UpdateVirtualExpandDisplayAccumulatedParams(
+    RSDisplayRenderParams& params, DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable)
+{
+    // All other factors that may prevent skipping virtual expand display need to be considered
+    // update accumulated dirty region
+    params.SetAccumulatedDirty(params.GetAccumulatedDirty() ||
+        (displayDrawable.GetSyncDirtyManager()->IsCurrentFrameDirty() || params.GetMainAndLeashSurfaceDirty()));
+
+    // update accumulated UIFirst force update
+    params.SetAccumulatedUifirstForceUpdate(params.GetAccumulatedUifirstForceUpdate() ||
+        RSUifirstManager::Instance().HasForceUpdateNode());
+
+    // update accumulated hdr status changed
+    params.SetAccumulatedHdrStatusChanged(params.GetAccumulatedHdrStatusChanged() || params.IsHDRStatusChanged());
+}
+
+bool RSUniDirtyComputeUtil::CheckVirtualExpandDisplaySkip(
+    RSDisplayRenderParams& params, DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable)
+{
+    // Regardless of whether the current frame is skipped, the state needs to be accumulated
+    if (!RSSystemProperties::GetVirtualExpandScreenSkipEnabled()) {
+        return false;
+    }
+    if (displayDrawable.GetSpecialLayerType(params) != NO_SPECIAL_LAYER) {
+        RS_TRACE_NAME("CheckVirtualExpandDisplaySkip has special layer can not skip");
+        return false;
+    }
+    RS_TRACE_NAME_FMT("CheckVirtualExpandDisplaySkip isAccumulatedDirty: %d, isAccumulatedUifirstForceUpdate: %d, "
+        "isAccumulatedHdrStatusChanged: %d", params.GetAccumulatedDirty(), params.GetAccumulatedUifirstForceUpdate(),
+        params.GetAccumulatedHdrStatusChanged());
+    return !params.GetAccumulatedDirty() && !params.GetAccumulatedUifirstForceUpdate() &&
+        !params.GetAccumulatedHdrStatusChanged();
 }
 } // namespace Rosen
 } // namespace OHOS

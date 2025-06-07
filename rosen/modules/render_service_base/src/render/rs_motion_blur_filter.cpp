@@ -20,7 +20,11 @@
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "rs_trace.h"
+#ifdef USE_M133_SKIA
+#include "src/core/SkChecksum.h"
+#else
 #include "src/core/SkOpts.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -35,8 +39,13 @@ RSMotionBlurFilter::RSMotionBlurFilter(const std::shared_ptr<MotionBlurParam>& p
     : RSDrawingFilterOriginal(nullptr), motionBlurPara_(para)
 {
     type_ = FilterType::MOTION_BLUR;
-    hash_ = SkOpts::hash(&type_, sizeof(type_), 0);
-    hash_ = SkOpts::hash(&motionBlurPara_, sizeof(motionBlurPara_), hash_);
+#ifdef USE_M133_SKIA
+    const auto hashFunc = SkChecksum::Hash32;
+#else
+    const auto hashFunc = SkOpts::hash;
+#endif
+    hash_ = hashFunc(&type_, sizeof(type_), 0);
+    hash_ = hashFunc(&motionBlurPara_, sizeof(motionBlurPara_), hash_);
 }
 
 RSMotionBlurFilter::~RSMotionBlurFilter() = default;

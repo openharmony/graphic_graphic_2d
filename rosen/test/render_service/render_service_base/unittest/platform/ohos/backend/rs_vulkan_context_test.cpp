@@ -532,6 +532,18 @@ HWTEST_F(RSVulkanContextTest, SetAndGetRecyclable, TestSize.Level2)
 }
 
 /**
+ * @tc.name: IsRecyclableSingletonValid
+ * @tc.desc: test IsRecyclableSingletonValid
+ * @tc.type:FUNC
+ * @tc.require: issueICD3VN
+ */
+HWTEST_F(RSVulkanContextTest, IsRecyclableSingletonValid, TestSize.Level2)
+{
+    RsVulkanContext::ReleaseRecyclableDrawingContext();
+    ASSERT_FALSE(RsVulkanContext::IsRecyclableSingletonValid());
+}
+
+/**
  * @tc.name: RSVulkanContextDestruction
  * @tc.desc: Test RSVulkanContext destruction
  * @tc.type:FUNC

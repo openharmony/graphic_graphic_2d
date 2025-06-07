@@ -555,6 +555,31 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, ResetSurfaceTest002, TestSize.Le
 }
 
 /**
+ * @tc.name: ResetSurface
+ * @tc.desc: Test If ResetSurface Can Run
+ * @tc.type: FUNC
+ * @tc.require: #ICDBD1
+ */
+HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, ResetSurfaceTest003, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(0);
+    auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    int width = 1;
+    int height = 1;
+    canvas.recordingState_ = true;
+    auto result = drawable->ResetSurfaceForGL(width, height, canvas);
+    EXPECT_EQ(result, true);
+
+    drawable->renderParams_ = std::make_unique<RSRenderParams>(0);
+    drawable->renderParams_->surfaceParams_.colorSpace = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
+    ASSERT_TRUE(drawable->GetRenderParams());
+    auto resultVK = drawable->ResetSurfaceForVK(width, height, canvas);
+    EXPECT_EQ(resultVK, true);
+}
+
+/**
  * @tc.name: ResetSurfaceForGL
  * @tc.desc: Test If ResetSurfaceForGL Can Run
  * @tc.type: FUNC

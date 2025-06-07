@@ -3786,7 +3786,6 @@ void RSNode::AccumulateAlpha(float& alpha)
 {
     // avoid loop
     if (visitedForTotalAlpha_) {
-        RS_LOGE("RSNode::AccumulateAlpha: %{public}" PRIu64 "has loop tree", GetId());
         return;
     }
     visitedForTotalAlpha_ = true;
@@ -3867,6 +3866,21 @@ void RSNode::Dump(std::string& out) const
     }
     if (!animations_.empty()) {
         out.pop_back();
+    }
+    
+    out += "], modifiers[";
+    for (const auto& [id, modifier] : modifiers_) {
+        if (modifier == nullptr) {
+            continue;
+        }
+
+        auto renderModifier = modifier->CreateRenderModifier();
+        if (renderModifier == nullptr) {
+            continue;
+        }
+        out += " " + modifier->GetModifierTypeString();
+        out += ":";
+        renderModifier->Dump(out);
     }
     out += "]";
 }

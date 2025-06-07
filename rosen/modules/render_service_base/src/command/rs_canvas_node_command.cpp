@@ -16,6 +16,7 @@
 #include "command/rs_canvas_node_command.h"
 
 #include "pipeline/rs_canvas_render_node.h"
+#include "pipeline/rs_render_node_allocator.h"
 #include "pipeline/rs_render_node_gc.h"
 
 #include "platform/common/rs_log.h"
@@ -26,8 +27,8 @@ namespace Rosen {
 
 void RSCanvasNodeCommandHelper::Create(RSContext& context, NodeId id, bool isTextureExportNode)
 {
-    auto node = std::shared_ptr<RSCanvasRenderNode>(new RSCanvasRenderNode(id,
-        context.weak_from_this(), isTextureExportNode), RSRenderNodeGC::NodeDestructor);
+    auto node = RSRenderNodeAllocator::Instance().CreateRSCanvasRenderNode(id,
+        context.weak_from_this(), isTextureExportNode);
     if (context.GetMutableNodeMap().UnRegisterUnTreeNode(id)) {
         RS_LOGE("RSCanvasNodeCommandHelper::Create after add, id:%{public}" PRIu64 " ", id);
         RS_TRACE_NAME_FMT("RSCanvasNodeCommandHelper::Create after add, id:%" PRIu64 " ", id);

@@ -461,6 +461,7 @@ void RSRenderParams::OnCanvasDrawingSurfaceChange(const std::unique_ptr<RSRender
     target->canvasDrawingNodeSurfaceChanged_ = true;
     target->surfaceParams_.width = surfaceParams_.width;
     target->surfaceParams_.height = surfaceParams_.height;
+    target->surfaceParams_.colorSpace = surfaceParams_.colorSpace;
     if (GetParamsType() == RSRenderParamsType::RS_PARAM_OWNED_BY_DRAWABLE) {
         return;
     }
@@ -509,10 +510,11 @@ RSRenderParams::SurfaceParam RSRenderParams::GetCanvasDrawingSurfaceParams()
     return surfaceParams_;
 }
 
-void RSRenderParams::SetCanvasDrawingSurfaceParams(int width, int height)
+void RSRenderParams::SetCanvasDrawingSurfaceParams(int width, int height, GraphicColorGamut colorSpace)
 {
     surfaceParams_.width = width;
     surfaceParams_.height = height;
+    surfaceParams_.colorSpace = colorSpace;
 }
 
 void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
