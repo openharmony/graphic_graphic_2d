@@ -19,6 +19,9 @@
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "platform/common/rs_log.h"
 
+#undef LOG_TAG
+#define LOG_TAG "RSUniRenderListener"
+
 namespace OHOS {
 namespace Rosen {
 RSUniRenderListener::~RSUniRenderListener() {}
@@ -30,10 +33,10 @@ void RSUniRenderListener::OnBufferAvailable()
 {
     auto surfaceHandler = surfaceHandler_.lock();
     if (surfaceHandler == nullptr) {
-        RS_LOGE("RSUniRenderListener::OnBufferAvailable surfaceHandler is nullptr");
+        RS_LOGE("OnBufferAvailable surfaceHandler is nullptr");
         return;
     }
-    RS_LOGD("RSUniRenderListener::OnBufferAvailable node id:%{public}" PRIu64, surfaceHandler->GetNodeId());
+    RS_LOGD("OnBufferAvailable node id:%{public}" PRIu64, surfaceHandler->GetNodeId());
     surfaceHandler->IncreaseAvailableBuffer();
 }
 }
