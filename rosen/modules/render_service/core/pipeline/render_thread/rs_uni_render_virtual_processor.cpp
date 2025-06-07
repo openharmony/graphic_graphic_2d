@@ -125,8 +125,6 @@ bool RSUniRenderVirtualProcessor::InitForRenderThread(DrawableV2::RSDisplayRende
             rsSurface = renderEngine_->MakeRSSurface(producerSurface_, forceCPU_);
             displayDrawable.SetVirtualSurface(rsSurface, pSurfaceUniqueId);
         }
-        RS_OPTIONAL_TRACE_NAME_FMT("RSUniRenderVirtualProcessor::Init Make virtual screen colorSpace: %d",
-            renderFrameConfig_.colorGamut);
         renderFrame_ = renderEngine_->RequestFrame(
             std::static_pointer_cast<RSSurfaceOhos>(rsSurface), renderFrameConfig_, forceCPU_, false,
             frameContextConfig);
@@ -138,7 +136,8 @@ bool RSUniRenderVirtualProcessor::InitForRenderThread(DrawableV2::RSDisplayRende
     }
 
     RS_LOGD("RSUniRenderVirtualProcessor::Init, RequestFrame succeed.");
-    RS_OPTIONAL_TRACE_NAME_FMT("RSUniRenderVirtualProcessor::Init, RequestFrame succeed.");
+    RS_OPTIONAL_TRACE_NAME_FMT("RSUniRenderVirtualProcessor::Init, RequestFrame succeed, colorSpace: %d.",
+        renderFrameConfig_.colorGamut);
     uint64_t pSurfaceUniqueId = producerSurface_->GetUniqueId();
     auto rsSurface = displayDrawable.GetVirtualSurface(pSurfaceUniqueId);
     if (rsSurface != nullptr && SetColorSpaceForMetadata(rsSurface->GetColorSpace()) != GSERROR_OK) {
