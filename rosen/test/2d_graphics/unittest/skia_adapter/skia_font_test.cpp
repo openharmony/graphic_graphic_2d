@@ -212,6 +212,99 @@ HWTEST_F(SkiaFontTest, MeasureText001, TestSize.Level1)
     auto size = skiaFont->MeasureText("11", 2, TextEncoding::UTF8, nullptr); // 2:byteLength
     ASSERT_TRUE(size > 0);
 }
+
+/**
+ * @tc.name: MeasureText002
+ * @tc.desc: Test MeasureText
+ * @tc.type: FUNC
+ * @tc.require: AR20250515745872
+ */
+HWTEST_F(SkiaFontTest, MeasureText002, TestSize.Level1)
+{
+    std::shared_ptr<Typeface> typeface = Typeface::MakeDefault();
+    auto skiaFont = std::make_shared<SkiaFont>(typeface, 1, 1, 1);
+    auto size = skiaFont->MeasureText(nullptr, 2, TextEncoding::UTF8, nullptr, nullptr, nullptr); // 2:byteLength
+    EXPECT_EQ(static_cast<int>(size), 0);
+
+    size = skiaFont->MeasureText("11", 2, TextEncoding::UTF8, nullptr, nullptr, nullptr); // 2:byteLength
+    EXPECT_EQ((size - 1.1399231) < 1e-6, true);
+
+    Brush brush;
+    size = skiaFont->MeasureText("11", 2, TextEncoding::UTF8, nullptr, &brush, nullptr); // 2:byteLength
+    EXPECT_EQ((size - 1.1399231) < 1e-6, true);
+
+    Pen pen;
+    size = skiaFont->MeasureText("11", 2, TextEncoding::UTF8, nullptr, nullptr, &pen); // 2:byteLength
+    EXPECT_EQ((size - 1.13999796) < 1e-6, true);
+}
+
+/**
+ * @tc.name: GetWidthsBoundsTest001
+ * @tc.desc: Test GetWidthsBounds
+ * @tc.type: FUNC
+ * @tc.require: AR20250515745872
+ */
+HWTEST_F(SkiaFontTest, GetWidthsBoundsTest001, TestSize.Level1)
+{
+    std::shared_ptr<Typeface> typeface = Typeface::MakeDefault();
+    auto skiaFont = std::make_shared<SkiaFont>(typeface, 1, 1, 1);
+    uint16_t glyphs[] = { 0, 0 };
+    scalar widths[] = { 0, 0 };
+    Rect rect1;
+    Rect rect2;
+    Rect bounds[] = { rect1, rect2 };
+    skiaFont->GetWidthsBounds(glyphs, 0, widths, nullptr, nullptr, nullptr);
+    EXPECT_EQ(static_cast<int>(widths[0]), 0);
+
+    skiaFont->GetWidthsBounds(glyphs, 2, widths, nullptr, nullptr, nullptr); // 2:count
+    EXPECT_EQ(static_cast<int>(widths[0]), 0);
+
+    skiaFont->GetWidthsBounds(glyphs, 2, widths, bounds, nullptr, nullptr); // 2:count
+    EXPECT_EQ(rect1.GetWidth(), 0);
+
+    Brush brush;
+    skiaFont->GetWidthsBounds(glyphs, 2, widths, bounds, &brush, nullptr); // 2:count
+    EXPECT_EQ(rect1.GetWidth(), 0);
+
+    Pen pen;
+    skiaFont->GetWidthsBounds(glyphs, 2, widths, bounds, nullptr, &pen); // 2:count
+    EXPECT_EQ(rect1.GetWidth(), 0);
+}
+
+/**
+ * @tc.name: GetPosTest001
+ * @tc.desc: Test GetPos
+ * @tc.type: FUNC
+ * @tc.require: AR20250515745872
+ */
+HWTEST_F(SkiaFontTest, GetPosTest001, TestSize.Level1)
+{
+    std::shared_ptr<Typeface> typeface = Typeface::MakeDefault();
+    auto skiaFont = std::make_shared<SkiaFont>(typeface, 1, 1, 1);
+    uint16_t glyphs[] = { 0, 0 };
+    Point points[] = { {0, 0}, {0, 0} };
+    skiaFont->GetPos(glyphs, 0, points);
+    EXPECT_EQ(points[0].GetX(), 0);
+    EXPECT_EQ(points[0].GetY(), 0);
+    Point origin(10, 10);
+    skiaFont->GetPos(glyphs, 2, points, origin); // 2:count
+    EXPECT_EQ(points[0].GetX(), 10);
+    EXPECT_EQ(points[0].GetY(), 10);
+}
+
+/**
+ * @tc.name: GetSpacingTest001
+ * @tc.desc: Test GetSpacing
+ * @tc.type: FUNC
+ * @tc.require: AR20250515745872
+ */
+HWTEST_F(SkiaFontTest, GetSpacingTest001, TestSize.Level1)
+{
+    std::shared_ptr<Typeface> typeface = Typeface::MakeDefault();
+    auto skiaFont = std::make_shared<SkiaFont>(typeface, 1, 1, 1);
+    auto space = skiaFont->GetSpacing();
+    EXPECT_EQ(static_cast<int>(space), 1);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
