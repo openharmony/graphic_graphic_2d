@@ -228,7 +228,7 @@ bool RSUniFilterDirtyComputeUtil::CheckMergeFilterDirty(Occlusion::Region& damag
             return false;
         }
         // case - 3. Add this filter into both damage region (for GPU) and draw region (for RS).
-        RS_TRACE_NAME_FMT("Filter [%" PRIu64 "], intersected with draw region: %s, add %s to damage.",
+        RS_OPTIONAL_TRACE_NAME_FMT("Filter [%" PRIu64 "], intersected with draw region: %s, add %s to damage.",
             info.id_, drawRegion.GetRegionInfo().c_str(), info.filterDirty_.GetRegionInfo().c_str());
         Occlusion::Region dirtyRegion = matrix.has_value() ?
             RSObjAbsGeometry::MapRegion(info.filterDirty_, matrix.value()) : info.filterDirty_;

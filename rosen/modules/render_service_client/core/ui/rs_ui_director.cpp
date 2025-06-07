@@ -167,8 +167,8 @@ void RSUIDirector::InitHybridRender()
                         if (instanceId == INSTANCE_ID_UNDEFINED) {
                             NodeId realId = id == 0 ? cmd->GetNodeId() : id;
                             instanceId = RSNodeMap::Instance().GetNodeInstanceId(realId);
-                            instanceId == INSTANCE_ID_UNDEFINED ?
-                                RSNodeMap::Instance().GetInstanceIdForReleasedNode(realId) : instanceId;
+                            instanceId = (instanceId == INSTANCE_ID_UNDEFINED ?
+                                RSNodeMap::Instance().GetInstanceIdForReleasedNode(realId) : instanceId);
                         }
                     }
                     auto dataHolder = std::make_shared<TransactionDataHolder>(std::move(transactionData));
