@@ -118,9 +118,8 @@ RSNode::RSNode(bool isRenderServiceNode, NodeId id, bool isTextureExportNode, st
       showingPropertiesFreezer_(id, rsUIContext), isOnTheTree_(isOnTheTree)
 {
     InitUniRenderEnabled();
-
-    if (rsUIContext_.lock() != nullptr) {
-        auto transaction = rsUIContext_.lock()->GetRSTransaction();
+    if (auto rsUIContextPtr = rsUIContext_.lock()) {
+        auto transaction = rsUIContextPtr->GetRSTransaction();
         if (transaction != nullptr && g_isUniRenderEnabled && isTextureExportNode) {
             std::call_once(flag_, [transaction]() {
                 auto renderThreadClient = RSIRenderClient::CreateRenderThreadClient();
@@ -3820,11 +3819,12 @@ void RSNode::DumpTree(int depth, std::string& out) const
 void RSNode::Dump(std::string& out) const
 {
     auto iter = RSUINodeTypeStrs.find(GetType());
+    auto rsUIContextPtr = rsUIContext_.lock();
     out += (iter != RSUINodeTypeStrs.end() ? iter->second : "RSNode");
     out += "[" + std::to_string(id_);
     out += "], parent[" + std::to_string(parent_.lock() ? parent_.lock()->GetId() : -1);
     out += "], instanceId[" + std::to_string(instanceId_);
-    out += "], UIContext[" + (rsUIContext_.lock() ? std::to_string(rsUIContext_.lock()->GetToken()) : "null");
+    out += "], UIContext[" + (rsUIContextPtr ? std::to_string(rsUIContextPtr->GetToken()) : "null");
     if (auto node = ReinterpretCastTo<RSSurfaceNode>()) {
         out += "], name[" + node->GetName();
     } else if (!nodeName_.empty()) {
@@ -3906,7 +3906,8 @@ std::string RSNode::DumpNode(int depth) const
             ss << " animationInfo:" << animation->DumpAnimation();
         }
     }
-    ss << " token:" << (rsUIContext_.lock() ? std::to_string(rsUIContext_.lock()->GetToken()) : "null");
+    auto rsUIContextPtr = rsUIContext_.lock();
+    ss << " token:" << (rsUIContextPtr ? std::to_string(rsUIContextPtr->GetToken()) : "null");
     ss << " " << GetStagingProperties().Dump();
     return ss.str();
 }
