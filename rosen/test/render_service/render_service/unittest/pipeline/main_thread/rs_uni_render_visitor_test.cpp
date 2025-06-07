@@ -275,8 +275,6 @@ HWTEST_F(RSUniRenderVisitorTest, AfterUpdateSurfaceDirtyCalc_002, TestSize.Level
     rsUniRenderVisitor->curDisplayNode_ = displayNode;
 
     ASSERT_NE(node->renderContent_, nullptr);
-    auto& property = node->renderContent_->renderProperties_;
-    property.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
     ASSERT_NE(node->GetRenderProperties().GetBoundsGeometry(), nullptr);
 
     node->isHardwareEnabledNode_ = true;
@@ -322,8 +320,6 @@ HWTEST_F(RSUniRenderVisitorTest, AfterUpdateSurfaceDirtyCalc_003, TestSize.Level
     rsUniRenderVisitor->curDisplayNode_ = displayNode;
 
     ASSERT_NE(node->renderContent_, nullptr);
-    auto& property = node->renderContent_->renderProperties_;
-    property.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
     ASSERT_NE(node->GetRenderProperties().GetBoundsGeometry(), nullptr);
 
     node->isHardwareEnabledNode_ = true;
@@ -4107,7 +4103,6 @@ HWTEST_F(RSUniRenderVisitorTest, QuickPrepareDisplayRenderNode001, TestSize.Leve
     ASSERT_NE(rsDisplayRenderNode, nullptr);
     rsDisplayRenderNode->dirtyManager_ = std::make_shared<RSDirtyRegionManager>();
     ASSERT_NE(rsDisplayRenderNode->dirtyManager_, nullptr);
-    rsDisplayRenderNode->GetMutableRenderProperties().boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
 
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
@@ -4138,7 +4133,6 @@ HWTEST_F(RSUniRenderVisitorTest, QuickPrepareDisplayRenderNode002, TestSize.Leve
     ASSERT_NE(rsDisplayRenderNode, nullptr);
     rsDisplayRenderNode->dirtyManager_ = std::make_shared<RSDirtyRegionManager>();
     ASSERT_NE(rsDisplayRenderNode->dirtyManager_, nullptr);
-    rsDisplayRenderNode->GetMutableRenderProperties().boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
 
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
@@ -4501,8 +4495,6 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateSubSurfaceNodeRectInSkippedSubTree, TestS
 
     rsUniRenderVisitor->curSurfaceNode_ = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(node->renderContent_, nullptr);
-    auto& property = node->renderContent_->renderProperties_;
-    property.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
     ASSERT_NE(node->GetRenderProperties().GetBoundsGeometry(), nullptr);
     rsUniRenderVisitor->UpdateSubSurfaceNodeRectInSkippedSubTree(*node);
     rsUniRenderVisitor->curSurfaceDirtyManager_ = rsUniRenderVisitor->curSurfaceNode_->GetDirtyManager();

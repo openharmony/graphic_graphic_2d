@@ -348,10 +348,7 @@ HWTEST_F(RSPropertyDrawableForegroundTest, OnSyncTest003, TestSize.Level1)
     illuminatedPtrTest2->illuminatedType_ = IlluminatedType::BORDER_CONTENT;
     propertiesTest2.illuminatedPtr_ = illuminatedPtrTest2;
 
-    std::shared_ptr<RSObjAbsGeometry> boundsGeo = std::make_shared<RSObjAbsGeometry>();
-    EXPECT_NE(boundsGeo, nullptr);
-    boundsGeo->absRect_ = RectI(0, 1, 2, 3);
-    propertiesTest2.boundsGeo_ = boundsGeo;
+    propertiesTest2.boundsGeo_->absRect_ = RectI(0, 1, 2, 3);
 
     std::shared_ptr<DrawableV2::RSPointLightDrawable> pointLightDrawableTest2 =
         std::make_shared<DrawableV2::RSPointLightDrawable>(propertiesTest2);

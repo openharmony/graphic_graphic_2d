@@ -535,7 +535,6 @@ HWTEST_F(RSRenderNodeTest2, UpdateDirtyRegionInfoForDFX001, TestSize.Level1)
     std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
     auto& properties = node.GetMutableRenderProperties();
     properties.drawRegion_ = std::make_shared<RectF>();
-    properties.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
     node.UpdateDirtyRegionInfoForDFX(*rsDirtyManager);
     ASSERT_TRUE(true);
 }
@@ -707,7 +706,6 @@ HWTEST_F(RSRenderNodeTest2, MapAndUpdateChildrenRect002, TestSize.Level1)
     RSRenderNode node(id, context);
     node.shouldPaint_ = false;
     auto& properties = node.GetMutableRenderProperties();
-    properties.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
     node.selfDrawRect_ = {0, 0, 1000, 1000};
     node.MapAndUpdateChildrenRect();
     ASSERT_TRUE(true);
@@ -726,7 +724,6 @@ HWTEST_F(RSRenderNodeTest2, MapAndUpdateChildrenRect003, TestSize.Level1)
 
     surfaceNode->shouldPaint_ = true;
     auto& properties = nodeTest->GetMutableRenderProperties();
-    properties.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
     properties.SetClipToFrame(true);
     surfaceNode->selfDrawRect_ = {0, 0, 1000, 1100};
     surfaceNode->childrenRect_ = {0, 0, 1000, 1000};
@@ -749,7 +746,6 @@ HWTEST_F(RSRenderNodeTest2, MapAndUpdateChildrenRect004, TestSize.Level1)
 
     surfaceNode->shouldPaint_ = true;
     auto& properties = nodeTest->GetMutableRenderProperties();
-    properties.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
     properties.SetClipToFrame(false);
     surfaceNode->selfDrawRect_ = {0, 0, 1000, 1100};
     surfaceNode->childrenRect_ = {0, 0, 1000, 1000};
@@ -860,11 +856,7 @@ HWTEST_F(RSRenderNodeTest2, UpdateLastFilterCacheRegion, TestSize.Level1)
 HWTEST_F(RSRenderNodeTest2, GetAbsMatrixReverse001, TestSize.Level1)
 {
     RSRenderNode node(id, context);
-    auto& properties = node.GetMutableRenderProperties();
-    properties.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
     RSBaseRenderNode rootNode(id + 1, context);
-    auto& properties1 = node.GetMutableRenderProperties();
-    properties1.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
     Drawing::Matrix absMatrix;
     node.GetAbsMatrixReverse(rootNode, absMatrix);
     ASSERT_TRUE(true);
@@ -879,11 +871,7 @@ HWTEST_F(RSRenderNodeTest2, GetAbsMatrixReverse001, TestSize.Level1)
 HWTEST_F(RSRenderNodeTest2, GetAbsMatrixReverse002, TestSize.Level1)
 {
     RSRenderNode node(id, context);
-    auto& properties = node.GetMutableRenderProperties();
-    properties.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
     RSBaseRenderNode rootNode(id + 1, context);
-    auto& properties1 = rootNode.GetMutableRenderProperties();
-    properties1.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
     Drawing::Matrix absMatrix;
     node.GetAbsMatrixReverse(rootNode, absMatrix);
     ASSERT_TRUE(true);
@@ -898,12 +886,8 @@ HWTEST_F(RSRenderNodeTest2, GetAbsMatrixReverse002, TestSize.Level1)
 HWTEST_F(RSRenderNodeTest2, UpdateFilterRegionInSkippedSubTree001, TestSize.Level1)
 {
     RSRenderNode node(id, context);
-    auto& properties = node.GetMutableRenderProperties();
-    properties.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
     std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
     RSBaseRenderNode subTreeRoot(id + 1, context);
-    auto& properties1 = subTreeRoot.GetMutableRenderProperties();
-    properties1.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
     RectI filterRect{0, 0, 1000, 1000};
     RectI clipRect{0, 0, 1000, 1000};
     node.UpdateFilterRegionInSkippedSubTree(*rsDirtyManager, subTreeRoot, filterRect, clipRect);
@@ -919,12 +903,8 @@ HWTEST_F(RSRenderNodeTest2, UpdateFilterRegionInSkippedSubTree001, TestSize.Leve
 HWTEST_F(RSRenderNodeTest2, UpdateFilterRegionInSkippedSubTree002, TestSize.Level1)
 {
     RSRenderNode node(id, context);
-    auto& properties = node.GetMutableRenderProperties();
-    properties.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
     std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
     RSBaseRenderNode subTreeRoot(id + 1, context);
-    auto& properties1 = subTreeRoot.GetMutableRenderProperties();
-    properties1.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
     RectI filterRect{0, 0, 1000, 1000};
     node.lastFilterRegion_ = filterRect;
     RectI clipRect{0, 0, 1000, 1000};
@@ -1189,7 +1169,6 @@ HWTEST_F(RSRenderNodeTest2, ForceMergeSubTreeDirtyRegionTest033, TestSize.Level1
     RSDirtyRegionManager dirtyManagerTest2;
     RectI clipRectTest2 = RectI { 0, 0, 1, 1 };
     nodeTest->lastFrameHasChildrenOutOfRect_ = false;
-    nodeTest->renderContent_->renderProperties_.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
     EXPECT_NE(nodeTest->renderContent_->renderProperties_.boundsGeo_, nullptr);
     nodeTest->hasChildrenOutOfRect_ = true;
     nodeTest->SubTreeSkipPrepare(dirtyManagerTest2, true, true, clipRectTest2);
@@ -1517,7 +1496,6 @@ HWTEST_F(RSRenderNodeTest2, ForceMergeSubTreeDirtyRegionTest02, TestSize.Level1)
     RSDirtyRegionManager dirtyManagerTest2;
     RectI clipRectTest2 = RectI { 0, 0, 1, 1 };
     nodeTest->lastFrameHasChildrenOutOfRect_ = false;
-    nodeTest->renderContent_->renderProperties_.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
     EXPECT_NE(nodeTest->renderContent_->renderProperties_.boundsGeo_, nullptr);
     nodeTest->hasChildrenOutOfRect_ = true;
     nodeTest->SubTreeSkipPrepare(dirtyManagerTest2, false, false, clipRectTest2);
@@ -1640,7 +1618,6 @@ HWTEST_F(RSRenderNodeTest2, ForceMergeSubTreeDirtyRegionTest03, TestSize.Level1)
     RSDirtyRegionManager dirtyManagerTest2;
     RectI clipRectTest2 = RectI { 0, 0, 1, 1 };
     nodeTest->lastFrameHasChildrenOutOfRect_ = true;
-    nodeTest->renderContent_->renderProperties_.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
     EXPECT_NE(nodeTest->renderContent_->renderProperties_.boundsGeo_, nullptr);
     nodeTest->hasChildrenOutOfRect_ = true;
     nodeTest->SubTreeSkipPrepare(dirtyManagerTest2, true, true, clipRectTest2);
@@ -1675,7 +1652,6 @@ HWTEST_F(RSRenderNodeTest2, ForceMergeSubTreeDirtyRegionTest04, TestSize.Level1)
     RSDirtyRegionManager dirtyManagerTest2;
     RectI clipRectTest2 = RectI { 0, 0, 1, 1 };
     nodeTest4->lastFrameHasChildrenOutOfRect_ = false;
-    nodeTest4->renderContent_->renderProperties_.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
     EXPECT_NE(nodeTest4->renderContent_->renderProperties_.boundsGeo_, nullptr);
     nodeTest4->hasChildrenOutOfRect_ = true;
     nodeTest4->SubTreeSkipPrepare(dirtyManagerTest2, false, false, clipRectTest2);
@@ -1902,7 +1878,6 @@ HWTEST_F(RSRenderNodeTest2, UpdateDirtyRegionTest02, TestSize.Level1)
     node.shouldPaint_ = false;
     RectI absRect = RectI{0, 0, 100, 100};
     auto& properties = node.GetMutableRenderProperties();
-    properties.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
     properties.boundsGeo_->absRect_ = absRect;
     properties.clipToBounds_ = true;
     bool geoDirty = false;

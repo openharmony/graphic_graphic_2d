@@ -525,7 +525,6 @@ HWTEST_F(RSRenderNodeTest, UpdateDirtyRegionTest03, TestSize.Level1)
     node.shouldPaint_ = true;
     RectI absRect = RectI{0, 0, 100, 100};
     auto& properties = node.GetMutableRenderProperties();
-    properties.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
     properties.boundsGeo_->absRect_ = absRect;
     properties.clipToBounds_ = true;
     bool geoDirty = true;
@@ -550,7 +549,6 @@ HWTEST_F(RSRenderNodeTest, UpdateDirtyRegionTest04, TestSize.Level1)
     node.shouldPaint_ = true;
     RectI absRect = RectI{0, 0, 100, 100};
     auto& properties = node.GetMutableRenderProperties();
-    properties.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
     properties.boundsGeo_->absRect_ = absRect;
     properties.clipToBounds_ = true;
     properties.SetShadowOffsetX(10.0f);
@@ -577,7 +575,6 @@ HWTEST_F(RSRenderNodeTest, UpdateDirtyRegionTest05, TestSize.Level1)
     node.shouldPaint_ = true;
     RectI absRect = RectI{0, 0, 100, 100};
     auto& properties = node.GetMutableRenderProperties();
-    properties.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
     properties.boundsGeo_->absRect_ = absRect;
     properties.clipToBounds_ = true;
     properties.SetOutlineWidth(10.0f);
@@ -608,7 +605,6 @@ HWTEST_F(RSRenderNodeTest, UpdateDirtyRegionTest06, TestSize.Level1)
     node.shouldPaint_ = true;
     RectI absRect = RectI{0, 0, 50, 50};
     auto& properties = node.GetMutableRenderProperties();
-    properties.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
     properties.boundsGeo_->absRect_ = absRect;
     properties.clipToBounds_ = true;
     //set border width 5
@@ -641,7 +637,6 @@ HWTEST_F(RSRenderNodeTest, UpdateDirtyRegionTest07, TestSize.Level1)
     canvasNode->shouldPaint_ = true;
     RectI absRect = RectI{0, 0, 100, 100};
     auto& properties = canvasNode->GetMutableRenderProperties();
-    properties.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
     properties.boundsGeo_->absRect_ = absRect;
     properties.clipToBounds_ = true;
     //set border width 8
@@ -673,7 +668,6 @@ HWTEST_F(RSRenderNodeTest, UpdateDirtyRegionTest08, TestSize.Level1)
     surfaceNode->shouldPaint_ = true;
     RectI absRect = RectI{0, 0, 100, 100};
     auto& properties = surfaceNode->GetMutableRenderProperties();
-    properties.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
     properties.boundsGeo_->absRect_ = absRect;
     properties.clipToBounds_ = true;
     //set border width 10
@@ -2436,8 +2430,6 @@ HWTEST_F(RSRenderNodeTest, UpdateRenderingTest021, TestSize.Level1)
     region = rectI;
     nodeTest->UpdateEffectRegion(region, false);
     nodeTest->renderContent_->renderProperties_.useEffect_ = true;
-    std::shared_ptr<RSObjAbsGeometry> boundsGeo = std::make_shared<RSObjAbsGeometry>();
-    nodeTest->renderContent_->renderProperties_.boundsGeo_ = boundsGeo;
     nodeTest->UpdateEffectRegion(region, true);
 
     // GetModifier test
