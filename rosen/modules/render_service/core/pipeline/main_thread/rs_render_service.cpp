@@ -663,7 +663,7 @@ void RSRenderService::DumpVkTextureLimit(std::string& dumpString) const
 {
     dumpString.append("\n");
     dumpString.append("-- vktextureLimit:\n");
-    auto& vkContext = OHOS::Rosen::RsVulkanContext::GetSingleton().GetRsVulkanInterface();
+    auto& vkContext = RsVulkanContext::GetSingleton().GetRsVulkanInterface();
     VkPhysicalDevice physicalDevice = vkContext.GetPhysicalDevice();
     VkPhysicalDeviceProperties deviceProperties;
     vkGetPhysicalDeviceProperties(physicalDevice, &deviceProperties);
