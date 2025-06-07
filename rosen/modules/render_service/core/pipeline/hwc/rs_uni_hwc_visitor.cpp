@@ -696,12 +696,7 @@ void RSUniHwcVisitor::UpdateHwcNodeEnableByHwcNodeBelowSelf(std::vector<RectI>& 
         }
         return;
     }
-    auto absBound = RectI();
-    if (auto geo = hwcNode->GetRenderProperties().GetBoundsGeometry()) {
-        absBound = geo->GetAbsRect();
-    } else {
-        return;
-    }
+    auto absBound = hwcNode->GetRenderProperties().GetBoundsGeometry()->GetAbsRect();
     if (hwcNode->GetAncoForceDoDirect() || !isIntersectWithRoundCorner) {
         hwcRects.emplace_back(absBound);
         return;
@@ -778,8 +773,7 @@ void RSUniHwcVisitor::UpdateHardwareStateByHwcNodeBackgroundAlpha(
         }
 
         bool isIntersect = !backgroundAlphaRect.IntersectRect(
-            hwcNodePtr->GetRenderProperties().GetBoundsGeometry()->GetAbsRect()
-            ).IsEmpty();
+            hwcNodePtr->GetRenderProperties().GetBoundsGeometry()->GetAbsRect()).IsEmpty();
         if (isHardwareEnableByBackgroundAlpha && !hwcNodePtr->IsHardwareForcedDisabled() && isIntersect) {
             hwcNodePtr->SetHardwareForcedDisabledState(true);
             auto parentNode = hwcNodePtr->GetParent().lock();
@@ -877,10 +871,9 @@ void RSUniHwcVisitor::UpdateHwcNodeEnableByGlobalFilter(std::shared_ptr<RSSurfac
         if (hwcNodes.empty()) {
             continue;
         }
-        for (auto hwcNode : hwcNodes) {
+        for (auto& hwcNode : hwcNodes) {
             auto hwcNodePtr = hwcNode.lock();
-            if (!hwcNodePtr || hwcNodePtr->IsHardwareForcedDisabled() ||
-                !hwcNodePtr->GetRenderProperties().GetBoundsGeometry()) {
+            if (!hwcNodePtr || hwcNodePtr->IsHardwareForcedDisabled()) {
                 continue;
             }
             if (cleanFilterFound) {
@@ -907,9 +900,6 @@ void RSUniHwcVisitor::UpdateHwcNodeEnableByGlobalCleanFilter(
     bool checkDrawAIBar = false;
     for (auto filter = cleanFilter.begin(); filter != cleanFilter.end(); ++filter) {
         auto geo = hwcNode.GetRenderProperties().GetBoundsGeometry();
-        if (!geo) {
-            return;
-        }
         if (!geo->GetAbsRect().IntersectRect(filter->second).IsEmpty()) {
             auto& rendernode = nodeMap.GetRenderNode<RSRenderNode>(filter->first);
             if (rendernode == nullptr) {
@@ -954,9 +944,6 @@ void RSUniHwcVisitor::UpdateHwcNodeEnableByGlobalDirtyFilter(
     const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
     for (auto filter = dirtyFilter.begin(); filter != dirtyFilter.end(); ++filter) {
         auto geo = hwcNode.GetRenderProperties().GetBoundsGeometry();
-        if (!geo) {
-            return;
-        }
         if (!geo->GetAbsRect().IntersectRect(filter->second).IsEmpty()) {
             auto parentNode = hwcNode.GetParent().lock();
             RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " parentId:%" PRIu64 " disabled by "
@@ -998,9 +985,6 @@ void RSUniHwcVisitor::UpdateHwcNodeRectInSkippedSubTree(const RSRenderNode& root
         }
         const auto& property = hwcNodePtr->GetRenderProperties();
         auto geoPtr = property.GetBoundsGeometry();
-        if (geoPtr == nullptr) {
-            return;
-        }
         auto originalMatrix = geoPtr->GetMatrix();
         auto matrix = Drawing::Matrix();
         auto parent = hwcNodePtr->GetCurCloneNodeParent().lock();
