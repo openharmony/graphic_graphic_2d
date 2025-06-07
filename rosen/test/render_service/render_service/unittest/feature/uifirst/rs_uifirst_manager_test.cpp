@@ -1728,8 +1728,8 @@ HWTEST_F(RSUifirstManagerTest, IsCurFirstLevelMatch, TestSize.Level1)
 }
 
 /**
-@tc.name: IsCurFirstLevelMatch
-@tc.desc: Test IsCurFirstLevelMatch
+@tc.name: CheckHwcChildrenType
+@tc.desc: Test CheckHwcChildrenType
 @tc.type: FUNC
 @tc.require: #IBJQV8
 */
@@ -1741,12 +1741,36 @@ HWTEST_F(RSUifirstManagerTest, CheckHwcChildrenType, TestSize.Level1)
     uifirstManager_.CheckHwcChildrenType(*surfaceNode, enabledType);
     
     surfaceNode->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
-    enabledType = SurfaceHwcNodeType::DEFAULT_HWC_VIDEO;
+    auto surfaceNode1 = RSTestUtil::CreateSurfaceNode();
+    surfaceNode->AddChildHardwareEnabledNode(surfaceNode1);
+    ASSERT_EQ(surfaceNode->childHardwareEnabledNodes_.size(), 1);
+    enabledType = SurfaceHwcNodeType::DEFAULT_HWC_TYPE;
     uifirstManager_.CheckHwcChildrenType(*surfaceNode, enabledType);
-    ASSERT_EQ(surfaceNode->childHardwareEnabledNodes_.size(), 0);
+
+    surfaceNode1->name_ = "hipreview";
+    uifirstManager_.CheckHwcChildrenType(*surfaceNode, enabledType);
+    ASSERT_EQ(enabledType, SurfaceHwcNodeType::DEFAULT_HWC_VIDEO);
+
+    surfaceNode1->name_ = "RosenWeb";
+    uifirstManager_.CheckHwcChildrenType(*surfaceNode, enabledType);
+    ASSERT_EQ(enabledType, SurfaceHwcNodeType::DEFAULT_HWC_ROSENWEB);
+
+    enabledType = SurfaceHwcNodeType::DEFAULT_HWC_TYPE;
+    surfaceNode->name_ = "hipreview";
+    uifirstManager_.CheckHwcChildrenType(*surfaceNode, enabledType);
+    ASSERT_EQ(enabledType, SurfaceHwcNodeType::DEFAULT_HWC_VIDEO);
+
+    surfaceNode->name_ = "RosenWeb";
+    uifirstManager_.CheckHwcChildrenType(*surfaceNode, enabledType);
+    ASSERT_EQ(enabledType, SurfaceHwcNodeType::DEFAULT_HWC_ROSENWEB);
 
     surfaceNode->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
+    auto surfaceNdoe2 = RSTestUtil::CreateSurfaceNode();
+    surfaceNode->AddChild(surfaceNdoe2);
+    surfaceNode->GenerateFullChildrenList();
     uifirstManager_.CheckHwcChildrenType(*surfaceNode, enabledType);
+    ASSERT_EQ(enabledType, SurfaceHwcNodeType::DEFAULT_HWC_ROSENWEB);
+    surfaceNode->ResetChildHardwareEnabledNodes();
 }
 
 /**
@@ -2239,5 +2263,82 @@ HWTEST_F(RSUifirstManagerTest, IsArkTsCardCache, TestSize.Level1)
     node.nodeType_ = RSSurfaceNodeType::ABILITY_COMPONENT_NODE;
     node.name_ = "ArkTSCardNode";
     EXPECT_TRUE(RSUifirstManager::IsArkTsCardCache(node, true));
+}
+
+/**
+ * @tc.name: ProcessDoneNodeInnerTest
+ * @tc.desc: Test ProcessDoneNodeInner
+ * @tc.type: FUNC
+ * @tc.require: issueIC4F7H
+*/
+HWTEST_F(RSUifirstManagerTest, ProcessDoneNodeInnerTest, TestSize.Level1)
+{
+    uifirstManager_.subthreadProcessDoneNode_.clear();
+    uifirstManager_.ProcessDoneNodeInner();
+    ASSERT_EQ(uifirstManager_.subthreadProcessDoneNode_.size(), 0);
+    auto surfaceNode1 = RSTestUtil::CreateSurfaceNode();
+    uifirstManager_.subthreadProcessDoneNode_.push_back(surfaceNode1->GetId());
+    uifirstManager_.subthreadProcessDoneNode_.push_back(++RSTestUtil::id);
+    auto tmp = uifirstManager_.subthreadProcessDoneNode_;
+    uifirstManager_.ProcessDoneNodeInner();
+    ASSERT_EQ(uifirstManager_.pendingForceUpdateNode_.size(), 0);
+
+    uifirstManager_.subthreadProcessDoneNode_ = tmp;
+    auto drawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(surfaceNode1->renderDrawable_);
+    drawable->GetRsSubThreadCache().SetCacheSurfaceNeedUpdated(true);
+    uifirstManager_.ProcessDoneNodeInner();
+    ASSERT_EQ(uifirstManager_.pendingForceUpdateNode_.size(), 0);
+
+    uifirstManager_.subthreadProcessDoneNode_ = tmp;
+    drawable->GetRsSubThreadCache().cacheSurface_ = std::make_shared<Drawing::Surface>();
+    uifirstManager_.ProcessDoneNodeInner();
+    ASSERT_EQ(uifirstManager_.pendingForceUpdateNode_.size(), 1);
+
+    uifirstManager_.subthreadProcessDoneNode_.clear();
+    uifirstManager_.pendingForceUpdateNode_.clear();
+}
+
+/**
+ * @tc.name: ProcessSkippedNodeTest
+ * @tc.desc: Test ProcessSkippedNode
+ * @tc.type: FUNC
+ * @tc.require: issueIC4F7H
+*/
+HWTEST_F(RSUifirstManagerTest, ProcessSkippedNodeTest, TestSize.Level1)
+{
+    uifirstManager_.subthreadProcessSkippedNode_.clear();
+    uifirstManager_.ProcessSkippedNode();
+    ASSERT_EQ(uifirstManager_.subthreadProcessSkippedNode_.size(), 0);
+
+    auto surfaceNode1 = RSTestUtil::CreateSurfaceNode();
+    uifirstManager_.subthreadProcessSkippedNode_.insert(surfaceNode1->GetId());
+    mainThread_->context_->nodeMap.RegisterRenderNode(surfaceNode1);
+    auto surfaceNode2 = RSTestUtil::CreateSurfaceNode();
+    surfaceNode2->isOnTheTree_ = true;
+    surfaceNode2->lastFrameUifirstFlag_ = MultiThreadCacheType::ARKTS_CARD;
+    uifirstManager_.subthreadProcessSkippedNode_.insert(surfaceNode2->GetId());
+    mainThread_->context_->nodeMap.RegisterRenderNode(surfaceNode2);
+    auto canvasNode = std::make_shared<RSCanvasRenderNode>(++RSTestUtil::id);
+    uifirstManager_.subthreadProcessSkippedNode_.insert(canvasNode->GetId());
+    mainThread_->context_->nodeMap.RegisterRenderNode(canvasNode);
+    auto tmp = uifirstManager_.subthreadProcessSkippedNode_;
+    uifirstManager_.ProcessSkippedNode();
+    ASSERT_EQ(uifirstManager_.pendingPostCardNodes_.size(), 1);
+
+    auto surfaceNode3 = RSTestUtil::CreateSurfaceNode();
+    surfaceNode2->isOnTheTree_ = true;
+    surfaceNode2->lastFrameUifirstFlag_ = MultiThreadCacheType::LEASH_WINDOW;
+    tmp.insert(surfaceNode3->GetId());
+    uifirstManager_.subthreadProcessSkippedNode_ = tmp;
+    mainThread_->context_->nodeMap.RegisterRenderNode(surfaceNode3);
+    uifirstManager_.ProcessSkippedNode();
+    ASSERT_EQ(uifirstManager_.pendingPostNodes_.size(), 1);
+    uifirstManager_.pendingPostCardNodes_.clear();
+    uifirstManager_.pendingPostNodes_.clear();
+    mainThread_->context_->nodeMap.UnRegisterUnTreeNode(surfaceNode1->GetId());
+    mainThread_->context_->nodeMap.UnRegisterUnTreeNode(surfaceNode2->GetId());
+    mainThread_->context_->nodeMap.UnRegisterUnTreeNode(surfaceNode3->GetId());
+    mainThread_->context_->nodeMap.UnRegisterUnTreeNode(canvasNode->GetId());
+    uifirstManager_.subthreadProcessSkippedNode_.clear();
 }
 }
