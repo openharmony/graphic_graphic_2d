@@ -167,7 +167,8 @@ RSRenderNodeDrawable::Ptr RSDisplayRenderNodeDrawable::OnGenerate(std::shared_pt
 std::unique_ptr<RSRenderFrame> RSDisplayRenderNodeDrawable::RequestFrame(
     RSDisplayRenderParams& params, std::shared_ptr<RSProcessor> processor)
 {
-    RS_TRACE_NAME("RSDisplayRenderNodeDrawable:RequestFrame");
+    RS_TRACE_NAME("RSDisplayRenderNodeDrawable:RequestFrame with colorSpace: %d, pixelformat: %d",
+        params.GetNewColorSpace(), params.GetNewPixelFormat());
     auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
     if (UNLIKELY(!renderEngine)) {
         RS_LOGE("RSDisplayRenderNodeDrawable::RequestFrame RenderEngine is null!");
@@ -196,8 +197,6 @@ std::unique_ptr<RSRenderFrame> RSDisplayRenderNodeDrawable::RequestFrame(
         params.GetNewColorSpace(), params.GetNewPixelFormat());
     RS_LOGD("RequestFrame colorspace is %{public}d, pixelformat is %{public}d", params.GetNewColorSpace(),
         params.GetNewPixelFormat());
-    RS_OPTIONAL_TRACE_NAME_FMT("RSDisplayRenderNodeDrawable::RequestFrame colorSpace is %d, pixelformat is %d",
-        params.GetNewColorSpace(), params.GetNewPixelFormat());
 
     bool isHebc = true;
     if (RSAncoManager::Instance()->GetAncoHebcStatus() == AncoHebcStatus::NOT_USE_HEBC) {
