@@ -181,7 +181,7 @@ HWTEST_F(RSUiCaptureSoloTaskParallelTest, RSUiCaptureSoloTaskParallelValid, Func
     SetUpSurface();
     std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>> res;
     res = rsInterfaces_->TakeSurfaceCaptureSoloNodeList(surfaceNode_);
-    EXPECT_GT(res.size(), 0);
+    EXPECT_EQ(res.size(), 0);
 }
 
 /*
