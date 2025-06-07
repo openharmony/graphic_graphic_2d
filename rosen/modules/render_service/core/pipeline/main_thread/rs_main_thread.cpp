@@ -4456,11 +4456,7 @@ bool RSMainThread::CheckAdaptiveCompose()
         context_->GetNodeMap().GetVisibleLeashWindowCount() < MULTI_WINDOW_PERF_START_NUM;
     // in game adaptive sync mode and ignore animation scenario and mult-window scenario
     // selfdrawing node request next vsync as UrgentSelfdrawing
-    if (isNeedAdaptiveCompose) {
-        RequestNextVSync("UrgentSelfdrawing");
-        return true;
-    }
-    return false;
+    return isNeedAdaptiveCompose;
 }
 
 
@@ -5286,9 +5282,9 @@ void RSMainThread::HandleTouchEvent(int32_t touchStatus, int32_t touchCnt)
 }
 
 void RSMainThread::SetBufferInfo(uint64_t id, const std::string &name, uint32_t queueSize,
-    int32_t bufferCount, int64_t lastConsumeTime)
+    int32_t bufferCount, int64_t lastConsumeTime, bool isUrgent)
 {
-    rsVSyncDistributor_->SetBufferInfo(id, name, queueSize, bufferCount, lastConsumeTime);
+    rsVSyncDistributor_->SetBufferInfo(id, name, queueSize, bufferCount, lastConsumeTime, isUrgent);
 }
 
 void RSMainThread::OnFmtTraceSwitchCallback(const char *key, const char *value, void *context)
