@@ -809,6 +809,7 @@ void RSRenderNodeDrawable::ClearCachedSurface()
     if (cachedSurface_ == nullptr) {
         return;
     }
+    RS_OPTIONAL_TRACE_NAME_FMT("ClearCachedSurface id:%llu", GetId());
 
     auto clearTask = [surface = cachedSurface_]() mutable { surface = nullptr; };
     cachedSurface_ = nullptr;

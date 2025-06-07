@@ -450,6 +450,7 @@ HWTEST_F(RSRenderNodeDrawableTest, TraverseSubTreeAndDrawFilterWithClipTest, Tes
     ASSERT_FALSE(drawable->filterInfoVec_.empty());
 }
 
+
 /**
  * @tc.name: DrawWithoutNodeGroupCache
  * @tc.desc: Test If DrawWithoutNodeGroupCache Can Run
@@ -472,6 +473,62 @@ HWTEST_F(RSRenderNodeDrawableTest, DrawWithoutNodeGroupCache, TestSize.Level1)
     drawable->curDrawingCacheRoot_ = rootDrawable;
     drawable->DrawWithoutNodeGroupCache(canvas, params, originalCacheType);
     ASSERT_TRUE(drawable->GetCacheType() == DrawableCacheType::CONTENT);
+}
+
+/**
+ * @tc.name: ClearDrawingCacheDataMapTest
+ * @tc.desc: Test If ClearDrawingCacheDataMap Can Run
+ * @tc.type: FUNC
+ * @tc.require: issueIAVPAJ
+ */
+HWTEST_F(RSRenderNodeDrawableTest, ClearDrawingCacheDataMapTest, TestSize.Level1)
+{
+    auto renderNode1 = std::make_shared<RSRenderNode>(1);
+    auto renderNode2 = std::make_shared<RSRenderNode>(2);
+
+    auto drawable1 = std::static_pointer_cast<RSRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(renderNode1));
+    auto drawable2 = std::static_pointer_cast<RSRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(renderNode2));
+    EXPECT_NE(drawable1, nullptr);
+    EXPECT_NE(drawable2, nullptr);
+
+    RSRenderNodeDrawable::drawingCacheUpdateTimeMap_[drawable1->GetId()]++;
+    RSRenderNodeDrawable::drawingCacheUpdateTimeMap_[drawable2->GetId()]++;
+    EXPECT_EQ(RSRenderNodeDrawable::drawingCacheUpdateTimeMap_[drawable1->GetId()], 1);
+    EXPECT_EQ(RSRenderNodeDrawable::drawingCacheUpdateTimeMap_[drawable2->GetId()], 1);
+
+    drawable1->ClearDrawingCacheDataMap();
+    EXPECT_EQ(RSRenderNodeDrawable::drawingCacheUpdateTimeMap_.count(id), 0);
+    EXPECT_EQ(RSRenderNodeDrawable::drawingCacheUpdateTimeMap_.count(drawable2->GetId()), 1);
+}
+
+/**
+ * @tc.name: ClearDrawingCacheContiUpdateTimeMapTest
+ * @tc.desc: Test If ClearDrawingCacheContiUpdateTimeMap Can Run
+ * @tc.type: FUNC
+ * @tc.require: issueIAVPAJ
+ */
+HWTEST_F(RSRenderNodeDrawableTest, ClearDrawingCacheContiUpdateTimeMapTest, TestSize.Level1)
+{
+    auto renderNode1 = std::make_shared<RSRenderNode>(1);
+    auto renderNode2 = std::make_shared<RSRenderNode>(2);
+
+    auto drawable1 = std::static_pointer_cast<RSRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(renderNode1));
+    auto drawable2 = std::static_pointer_cast<RSRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(renderNode2));
+    EXPECT_NE(drawable1, nullptr);
+    EXPECT_NE(drawable2, nullptr);
+
+    RSRenderNodeDrawable::drawingCacheContinuousUpdateTimeMap_[drawable1->GetId()]++;
+    RSRenderNodeDrawable::drawingCacheContinuousUpdateTimeMap_[drawable2->GetId()]++;
+    EXPECT_EQ(RSRenderNodeDrawable::drawingCacheContinuousUpdateTimeMap_[drawable1->GetId()], 1);
+    EXPECT_EQ(RSRenderNodeDrawable::drawingCacheContinuousUpdateTimeMap_[drawable2->GetId()], 1);
+
+    drawable1->ClearDrawingCacheContiUpdateTimeMap();
+    EXPECT_EQ(RSRenderNodeDrawable::drawingCacheContinuousUpdateTimeMap_.count(id), 0);
+    EXPECT_EQ(RSRenderNodeDrawable::drawingCacheContinuousUpdateTimeMap_.count(drawable2->GetId()), 1);
 }
 
 /**
