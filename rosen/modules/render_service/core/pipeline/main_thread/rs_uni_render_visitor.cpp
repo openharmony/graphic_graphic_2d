@@ -727,11 +727,11 @@ void RSUniRenderVisitor::UpdateVirtualScreenSecurityExemption(RSDisplayRenderNod
     auto securityLayerList = mirrorNode.GetSecurityLayerList();
     for (const auto& exemptionLayer : securityExemptionList) {
         RS_LOGD("UpdateVirtualScreenSecurityExemption::node:%{public}" PRIu64
-            "securityExemption nodeId %{public}" PRIu64 ".", node.GetId(), exemptionLayer);
+            " securityExemption nodeId %{public}" PRIu64 ".", node.GetId(), exemptionLayer);
     }
     for (const auto& secLayer : securityLayerList) {
         RS_LOGD("UpdateVirtualScreenSecurityExemption::node:%{public}" PRIu64
-            "securityLayer nodeId %{public}" PRIu64 ".", mirrorNode.GetId(), secLayer);
+            " securityLayer nodeId %{public}" PRIu64 ".", mirrorNode.GetId(), secLayer);
     }
     bool isSecurityExemption = false;
     if (securityExemptionList.size() >= securityLayerList.size()) {
@@ -1320,8 +1320,8 @@ void RSUniRenderVisitor::UpdateNodeVisibleRegion(RSSurfaceRenderNode& node)
     }
     // occlusion - 0. Calculate node visible region considering accumulated opaque region of upper surface nodes.
     if (!curDisplayNode_->IsFirstVisitCrossNodeDisplay() && node.IsFirstLevelCrossNode()) {
-        RS_LOGD("UpdateNodeVisibleRegion NodeName: %{public}s, NodeId: %{public}" PRIu64 ""
-            "not paticipate in occlusion when cross node in expand screen", node.GetName().c_str(), node.GetId());
+        RS_LOGD("UpdateNodeVisibleRegion NodeName: %{public}s, NodeId: %{public}" PRIu64
+            " not paticipate in occlusion when cross node in expand screen", node.GetName().c_str(), node.GetId());
         return;
     }
     Occlusion::Rect selfDrawRect = node.GetSurfaceOcclusionRect(true);
@@ -1352,7 +1352,7 @@ CM_INLINE void RSUniRenderVisitor::CalculateOpaqueAndTransparentRegion(RSSurface
     if ((!curDisplayNode_->IsFirstVisitCrossNodeDisplay() && node.IsFirstLevelCrossNode()) ||
         !node.IsMainWindowType()) {
         RS_LOGD("CalculateOpaqueAndTransparentRegion Node: %{public}s, NodeId: %{public}" PRIu64
-            "not paticipate in occlusion", node.GetName().c_str(), node.GetId());
+            " not paticipate in occlusion", node.GetName().c_str(), node.GetId());
         return;
     }
 
@@ -3348,8 +3348,7 @@ void RSUniRenderVisitor::CheckMergeDebugRectforRefreshRate(std::vector<RSBaseRen
 void RSUniRenderVisitor::CheckMergeDisplayDirtyByRoundCornerDisplay() const
 {
     if (!screenManager_ || !curDisplayNode_) {
-        RS_LOGE(
-            "CheckMergeDisplayDirtyByRoundCornerDisplay screenmanager or displaynode is nullptr");
+        RS_LOGE("CheckMergeDisplayDirtyByRoundCornerDisplay screenmanager or displaynode is nullptr");
         return;
     }
 
