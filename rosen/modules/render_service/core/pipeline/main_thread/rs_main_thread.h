@@ -673,7 +673,7 @@ private:
     sptr<VSyncDistributor> appVSyncDistributor_ = nullptr;
     std::shared_ptr<RSBaseRenderEngine> renderEngine_;
     std::shared_ptr<RSBaseEventDetector> rsCompositionTimeoutDetector_;
-    std::shared_ptr<Drawing::Image> watermarkImg_ = nullptr;
+    std::shared_ptr<Drawing::Image> watermarkImg_ = nullptr; // display safterWatermask(true) or hide it(false)
     std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker_ = nullptr; // modify by HgmThread
     std::shared_ptr<RSAppStateListener> rsAppStateListener_;
     std::unique_ptr<RSVsyncClient> vsyncClient_ = nullptr;
