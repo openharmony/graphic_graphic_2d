@@ -25,6 +25,7 @@ namespace OHOS {
 namespace Rosen {
 struct MemorySnapshotInfo {
     pid_t pid = 0;
+    int32_t uid;
     std::string bundleName = "";
     size_t cpuMemory = 0;
     size_t gpuMemory = 0;
