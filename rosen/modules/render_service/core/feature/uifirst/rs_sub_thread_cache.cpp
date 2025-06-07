@@ -280,7 +280,8 @@ void RsSubThreadCache::InitCacheSurface(Drawing::GPUContext* gpuContext,
     std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> nodeDrawable,
     ClearCacheSurfaceFunc func, uint32_t threadIndex, bool isNeedFP16)
 {
-    RS_TRACE_NAME_FMT("InitCacheSurface id:%" PRIu64, nodeId_);
+    RS_TRACE_NAME_FMT("InitCanvasSurface id:%" PRIu64" targetColorGamut:%d isNeedFP16:%d",
+        nodeId_, targetColorGamut_, isNeedFP16);
     if (!nodeDrawable) {
         RS_LOGE("InitCacheSurface nodeDrawable is nullptr");
         return;
@@ -347,8 +348,6 @@ void RsSubThreadCache::InitCacheSurface(Drawing::GPUContext* gpuContext,
             colorSpace =
                 Drawing::ColorSpace::CreateRGB(Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::DCIP3);
         }
-        RS_OPTIONAL_TRACE_NAME_FMT("RsSubThreadCache::InitCacheSurface sub thread cache's targetColorGamut: %d,"
-            " isNeedFP16: %d", targetColorGamut_, isNeedFP16);
         cacheBackendTexture_ = NativeBufferUtils::MakeBackendTexture(
             width, height, ExtractPid(nodeDrawable->nodeId_), format);
         auto vkTextureInfo = cacheBackendTexture_.GetTextureInfo().GetVKTextureInfo();
