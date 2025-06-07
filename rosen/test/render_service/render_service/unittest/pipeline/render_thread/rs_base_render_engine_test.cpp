@@ -275,6 +275,8 @@ HWTEST_F(RSBaseRenderEngineUnitTest, ConvertColorGamutToDrawingColorSpace, TestS
     std::shared_ptr<Drawing::ColorSpace> colorSpace;
     colorSpace = RSBaseRenderEngine::ConvertColorGamutToDrawingColorSpace(GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
     ASSERT_NE(colorSpace, nullptr);
+    colorSpace = RSBaseRenderEngine::ConvertColorGamutToDrawingColorSpace(GRAPHIC_COLOR_GAMUT_DCI_P3);
+    ASSERT_NE(colorSpace, nullptr);
     colorSpace = RSBaseRenderEngine::ConvertColorGamutToDrawingColorSpace(GRAPHIC_COLOR_GAMUT_ADOBE_RGB);
     ASSERT_NE(colorSpace, nullptr);
     colorSpace = RSBaseRenderEngine::ConvertColorGamutToDrawingColorSpace(GRAPHIC_COLOR_GAMUT_BT2020);

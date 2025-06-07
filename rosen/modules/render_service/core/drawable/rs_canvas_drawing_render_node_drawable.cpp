@@ -704,8 +704,14 @@ bool RSCanvasDrawingRenderNodeDrawable::ReleaseSurfaceVK(int width, int height)
 
 bool RSCanvasDrawingRenderNodeDrawable::ResetSurfaceForVK(int width, int height, RSPaintFilterCanvas& canvas)
 {
-    Drawing::ImageInfo info =
-        Drawing::ImageInfo { width, height, Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
+    const auto& params = GetRenderParams();
+    GraphicColorGamut colorSpace = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+    if (params) {
+        colorSpace = params->GetCanvasDrawingSurfaceParams().colorSpace;
+    }
+    auto drawingColorSpace = RSBaseRenderEngine::ConvertColorGamutToDrawingColorSpace(colorSpace);
+    Drawing::ImageInfo info = Drawing::ImageInfo { width, height, Drawing::COLORTYPE_RGBA_8888,
+        Drawing::ALPHATYPE_PREMUL, drawingColorSpace };
 
     bool isNewCreate = false;
 #ifdef RS_ENABLE_VK
@@ -727,7 +733,7 @@ bool RSCanvasDrawingRenderNodeDrawable::ResetSurfaceForVK(int width, int height,
         }
         REAL_ALLOC_CONFIG_SET_STATUS(true);
         surface_ = Drawing::Surface::MakeFromBackendTexture(gpuContext.get(), backendTexture_.GetTextureInfo(),
-            Drawing::TextureOrigin::TOP_LEFT, 1, Drawing::ColorType::COLORTYPE_RGBA_8888, nullptr,
+            Drawing::TextureOrigin::TOP_LEFT, 1, Drawing::ColorType::COLORTYPE_RGBA_8888, drawingColorSpace,
             NativeBufferUtils::DeleteVkImage, isNewCreate ? vulkanCleanupHelper_ : vulkanCleanupHelper_->Ref());
         REAL_ALLOC_CONFIG_SET_STATUS(false);
         if (!surface_) {
