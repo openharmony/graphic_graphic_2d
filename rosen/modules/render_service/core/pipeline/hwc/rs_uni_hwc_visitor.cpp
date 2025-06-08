@@ -34,7 +34,7 @@ constexpr int32_t MAX_ALPHA = 255;
 constexpr uint32_t API18 = 18;
 constexpr uint32_t INVALID_API_COMPATIBLE_VERSION = 0;
 constexpr size_t MAX_NUM_SOLID_LAYER = 1;
-cosntexpr int MIN_OVERLAP = 2;
+constexpr int MIN_OVERLAP = 2;
 
 bool GetSolidLayerEnabled()
 {
@@ -582,7 +582,7 @@ void RSUniHwcVisitor::UpdateHwcNodeEnable()
             RSUniHwcComputeUtil::UpdateHwcNodeProperty(hwcNodePtr);
             UpdateHwcNodeEnableByAlpha(hwcNodePtr);
             UpdateHwcNodeEnableByRotate(hwcNodePtr);
-            if (!RsCommonHook::Instance().GetIsWhiteListForEnableHwcNodeInAppFlag()) {
+            if (!RsCommonHook::Instance().GetIsWhiteListForEnableHwcNodeBelowSelfInAppFlag()) {
                 UpdateHwcNodeEnableByHwcNodeBelowSelfInApp(hwcRects, hwcNodePtr);
             }
             if ((hwcNodePtr->GetAncoFlags() & static_cast<uint32_t>(AncoFlags::IS_ANCO_NODE)) != 0) {
