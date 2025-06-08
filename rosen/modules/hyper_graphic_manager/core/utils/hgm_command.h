@@ -211,7 +211,7 @@ public:
     std::unordered_map<std::string, std::string> enableHwcNodeBelowSelfInAppConfig_;
     // <"up_timeout_ms", 3000>
     std::unordered_map<std::string, std::string> timeoutStrategyConfig_;
-    std::unordered_map<std::string, std::string> videoCallLayerConfig_;   
+    std::unordered_map<std::string, std::string> videoCallLayerConfig_;
     StrategyConfigMap strategyConfigs_;
     ScreenConfigMap screenConfigs_;
     SupportedModeMap supportedModeConfigs_;
