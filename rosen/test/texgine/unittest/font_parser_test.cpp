@@ -151,6 +151,36 @@ HWTEST_F(FontParserTest, OpenTypeBasicTypeTest1, TestSize.Level1)
     std::copy(test, test + sizeof(tag.tags), tag.tags);
     EXPECT_EQ(tag.Get(), test);
 }
+
+/**
+ * @tc.name: CheckFullNameParamInvalidTest1
+ * @tc.desc: test for check full name
+ * @tc.type: FUNC
+ */
+HWTEST_F(FontParserTest, CheckFullNameParamInvalidTest1, TestSize.Level1)
+{
+    FontParser::FontDescriptor fd;
+    fd.requestedFullname = "testName";
+    fd.fullName = "testName";
+    fd.requestedLid = LANGUAGE_SC;
+    EXPECT_TRUE(FontParser::CheckFullNameParamInvalid(fd, LANGUAGE_SC, "non-empty"));
+
+    fd.requestedFullname = "";
+    EXPECT_TRUE(FontParser::CheckFullNameParamInvalid(fd, LANGUAGE_SC, ""));
+    fd.requestedLid = LANGUAGE_EN;
+    EXPECT_TRUE(FontParser::CheckFullNameParamInvalid(fd, LANGUAGE_SC, "non-empty"));
+    fd.fullName = "";
+    EXPECT_TRUE(FontParser::CheckFullNameParamInvalid(fd, LANGUAGE_TC, "non-empty"));
+
+    fd.requestedFullname = "testName";
+    fd.fullName = "otherName";
+    fd.requestedLid = LANGUAGE_EN;
+    EXPECT_TRUE(FontParser::CheckFullNameParamInvalid(fd, LANGUAGE_EN, "non-empty"));
+
+    fd.requestedFullname = "";
+    fd.requestedLid = LANGUAGE_DEFAULT;
+    EXPECT_FALSE(FontParser::CheckFullNameParamInvalid(fd, LANGUAGE_TC, "non-empty"));
+}
 } // namespace TextEngine
 } // namespace Rosen
 } // namespace OHOS
