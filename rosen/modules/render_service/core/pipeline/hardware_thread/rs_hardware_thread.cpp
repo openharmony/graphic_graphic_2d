@@ -432,6 +432,7 @@ void RSHardwareThread::ChangeLayersForActiveRectOutside(std::vector<LayerInfoPtr
         solidColorLayer->SetTransform(GraphicTransformType::GRAPHIC_ROTATE_NONE);
         GraphicIRect dstRect = {maskRect.left_, maskRect.top_, maskRect.width_, maskRect.height_};
         solidColorLayer->SetLayerSize(dstRect);
+        solidColorLayer->SetIsMaskLayer(true);
         solidColorLayer->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_SOLID_COLOR);
         bool debugFlag = (system::GetParameter("debug.foldscreen.shaft.color", "0") == "1");
         if (debugFlag) {

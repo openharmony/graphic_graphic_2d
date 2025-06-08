@@ -115,6 +115,11 @@ public:
 
     void ANCOTransactionOnComplete(const LayerInfoPtr& layerInfo, const sptr<SyncFence>& previousReleaseFence);
 
+    void SetMaskLayer(LayerPtr maskLayer)
+    {
+        maskLayer_ = maskLayer;
+    }
+    
 private:
     HdiDevice *device_ = nullptr;
     sptr<VSyncSampler> sampler_ = nullptr;
@@ -157,6 +162,8 @@ private:
     LoadOptParamsForHdiOutput loadOptParamsForHdiOutput_ = {};
     bool isMergeFenceSkipped_ = false;
     bool isMergeFenceSkippedDfx_ = true;
+
+    LayerPtr maskLayer_ = nullptr;
 
     int32_t CreateLayerLocked(uint64_t surfaceId, const LayerInfoPtr &layerInfo);
     void DeletePrevLayersLocked();

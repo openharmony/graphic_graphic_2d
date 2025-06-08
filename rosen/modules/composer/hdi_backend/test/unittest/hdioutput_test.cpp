@@ -319,13 +319,37 @@ HWTEST_F(HdiOutputTest, DumpHitchs, Function | MediumTest | Level1)
 {
     std::vector<LayerInfoPtr> layerInfos;
     for (size_t i = 0; i < 3; i++) {
-        layerInfos.emplace_back(std::make_shared<HdiLayerInfo>());
+        auto layerInfo_ = HdiLayerInfo::CreateHdiLayerInfo();
+        layerInfo_->SetIsMaskLayer(true);
+        layerInfos.emplace_back(layerInfo_);
     }
+    HdiOutputTest::hdiOutput_->SetLayerInfo(layerInfos);
+    LayerPtr maskLayer_ = HdiLayer::CreateHdiLayer(0);
+    maskLayer_->SetLayerStatus(false);
+    HdiOutputTest::hdiOutput_->SetMaskLayer(maskLayer_);
     HdiOutputTest::hdiOutput_->SetLayerInfo(layerInfos);
     std::string ret = "";
     HdiOutputTest::hdiOutput_->DumpHitchs(ret, "UniRender");
     EXPECT_EQ(ret, "\n");
     HdiOutputTest::hdiOutput_->DumpFps(ret, "UniRender");
+}
+
+/*
+* Function: CreateLayerLocked
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1.call CreateLayerLocked()
+*                  2.check ret
+*/
+HWTEST_F(HdiOutputTest, CreateLayerLocked, Function | MediumTest | Level1)
+{
+    LayerPtr layer_ = std::make_shared<HdiLayer>(0);
+    auto layerInfo_ = HdiLayerInfo::CreateHdiLayerInfo();
+    layerInfo_->SetIsMaskLayer(true);
+    layer_->layerInfo_ = layerInfo_;
+    uint32_t ret = HdiOutputTest::hdiOutput_->CreateLayerLocked(0, layerInfo_);
+    EXPECT_EQ(ret, GRAPHIC_DISPLAY_SUCCESS);
 }
 
 /*
@@ -405,6 +429,11 @@ HWTEST_F(HdiOutputTest, DeletePrevLayersLocked001, Function | MediumTest | Level
     layer->isInUsing_ = true;
     surfaceIdMap[id] = layer;
     layerIdMap[id] = layer;
+
+    LayerPtr maskLayer_ = HdiLayer::CreateHdiLayer(0);
+    maskLayer_->SetLayerStatus(false);
+    hdiOutput->SetMaskLayer(maskLayer_);
+
 
     hdiOutput->DeletePrevLayersLocked();
     EXPECT_EQ(surfaceIdMap.count(id), 1);
