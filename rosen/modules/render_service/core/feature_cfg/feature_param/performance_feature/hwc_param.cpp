@@ -51,7 +51,7 @@ void HWCParam::MoveDataToHgmCore()
     if (!hgmCore.mPolicyConfigData_) {
         hgmCore.mPolicyConfigData_->hwcSourceTuningConfig_ = std::move(sourceTuningMap_);
         hgmCore.mPolicyConfigData_->hwcSolidLayerConfig_ = std::move(solidColorLayerMap_);
-        hgmCore.mPolicyConfigData_->enableHwcNodeBelowSelfInAppConfig_ = std::move(enableHwcNodeBelowSelfInAppMap_);      
+        hgmCore.mPolicyConfigData_->enableHwcNodeBelowSelfInAppConfig_ = std::move(enableHwcNodeBelowSelfInAppMap_);
     }
 }
 
