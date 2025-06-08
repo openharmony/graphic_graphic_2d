@@ -46,6 +46,8 @@ public:
     void GetComponentPowerFps(FrameRateRange& range);
     bool GetIsWhiteListForSolidColorLayerFlag() const;
     void SetIsWhiteListForSolidColorLayerFlag(bool isWhiteListForSolidColorLayerFlag);
+    bool GetIsWhiteListForEnableHwcNodeBelowSelfInAppFlag() const;
+    void SetIsWhiteListForEnableHwcNodeBelowSelfInAppFlag(bool isWhiteListForEnableHwcNodeBelowSelfInAppFlag);
 
 private:
     std::function<void(const std::string&)> startNewAniamtionFunc_ = nullptr;
@@ -60,6 +62,9 @@ private:
     std::atomic<bool> hardwareEnabledByBackgroundAlphaSkippedFlag_{false};
     std::atomic<bool> isWhiteListForSolidColorLayerFlag_{false};
     std::function<void(FrameRateRange& range)> componentPowerFpsFunc_ = nullptr;
+
+    // use in updating hwcnode hardware state with hwc node above in app
+    std::atomic<bool> isWhiteListForEnableHwcNodeBelowSelfInAppFlag_{false};
 };
 } // namespace OHOS::Rosen
 #endif

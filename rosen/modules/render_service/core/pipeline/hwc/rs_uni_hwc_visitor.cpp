@@ -34,6 +34,7 @@ constexpr int32_t MAX_ALPHA = 255;
 constexpr uint32_t API18 = 18;
 constexpr uint32_t INVALID_API_COMPATIBLE_VERSION = 0;
 constexpr size_t MAX_NUM_SOLID_LAYER = 1;
+cosntexpr int MIN_OVERLAP = 2;
 
 bool GetSolidLayerEnabled()
 {
@@ -581,6 +582,9 @@ void RSUniHwcVisitor::UpdateHwcNodeEnable()
             RSUniHwcComputeUtil::UpdateHwcNodeProperty(hwcNodePtr);
             UpdateHwcNodeEnableByAlpha(hwcNodePtr);
             UpdateHwcNodeEnableByRotate(hwcNodePtr);
+            if (!RsCommonHook::Instance().GetIsWhiteListForEnableHwcNodeInAppFlag()) {
+                UpdateHwcNodeEnableByHwcNodeBelowSelfInApp(hwcRects, hwcNodePtr);
+            }
             if ((hwcNodePtr->GetAncoFlags() & static_cast<uint32_t>(AncoFlags::IS_ANCO_NODE)) != 0) {
                 ancoNodes.insert(hwcNodePtr);
             }
@@ -728,6 +732,38 @@ void RSUniHwcVisitor::UpdateHwcNodeEnableByHwcNodeBelowSelf(std::vector<RectI>& 
         }
     }
     hwcRects.emplace_back(absBound);
+}
+
+void RSUniHwcVisitor::UpdateHwcNodeEnableByHwcNodeBelowSelfInApp(std::vector<RectI>& hwcRects,
+    std::shared_ptr<RSSurfaceRenderNode>& hwcNode)
+{
+    if (hwcNode->IsHardwareForcedDisabled()) {
+        return;
+    }
+    auto dst = hwcNode->GetDstRect();
+    if (hwcNode->GetAncoForceDoDirect()) {
+        hwcRects.emplace_back(dst);
+        return;
+    }
+    for (const auto& rect : hwcRects) {
+        const bool isIntersect = !dst.IntersectRect(rect).IsEmpty();
+        if (isIntersect && !RsCommonHook::Instance().GetHardwareEnabledByHwcnodeBelowSelfInAppFlag() &&
+            !hwcNode->IsHardwareEnableHint()) {
+            if (RsCommonHook::Instance().GetVideoSurfaceFlag() &&
+                ((dst.GetBottom() - rect.GetTop() <= MIN_OVERLAP && dst.GetBottom() - rect.GetTop() >= 0) ||
+                (rect.GetBottom() - dst.GetTop() <= MIN_OVERLAP && rect.GetBottom() - dst.GetTop() >= 0))) {
+                return;
+            }
+            RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:" PRIu64 " disabled by hwc node above",
+                hwcNode->GetName().c_str(), hwcNode->GetId());
+            PrintHiperfLog(hwcNode, "hwc node above");
+            hwcNode->SetHardwareForcedDisabledState(true);
+            Statistics().UpdateHwcDisabledReasonForDFX(hwcNode->GetId(),
+                HwcDisabledReasons::DISABLED_BY_HWC_NODE_ABOVE, hwcNode->GetName());
+            return;
+        }
+    }
+    hwcRects.emplace_back(dst);
 }
 
 // called by windows from Top to Down

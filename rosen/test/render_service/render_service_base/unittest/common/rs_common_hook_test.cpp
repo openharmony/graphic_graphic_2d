@@ -93,4 +93,18 @@ HWTEST_F(RsCommonHookTest, SetAdaptiveColorGamutEnableTest, TestSize.Level1)
     RsCommonHook::Instance().SetAdaptiveColorGamutEnable(false);
     ASSERT_EQ(RsCommonHook::Instance().IsAdaptiveColorGamutEnabled(), false);
 }
+
+/**
+ * @tc.name: GetIsWhiteListForEnableHwcNodeBelowSelfInAppFlagTest
+ * @tc.desc: Verify GetIsWhiteListForEnableHwcNodeBelowSelfInAppFlag
+ * @tc.type:FUNC
+ * @tc.require: issuesIC82H3
+ */
+HWTEST_F(RsCommonHookTest, GetIsWhiteListForEnableHwcNodeBelowSelfInAppFlagTest, TestSize.Level1)
+{
+    RsCommonHook::Instance().SetIsWhiteListForEnableHwcNodeBelowSelfInAppFlag(true);
+    ASSERT_EQ(RsCommonHook::Instance().GetIsWhiteListForEnableHwcNodeBelowSelfInAppFlag(), true);
+    RsCommonHook::Instance().SetIsWhiteListForEnableHwcNodeBelowSelfInAppFlag(false);
+    ASSERT_EQ(RsCommonHook::Instance().GetIsWhiteListForEnableHwcNodeBelowSelfInAppFlag(), false);
+}
 } // namespace OHOS::Rosen

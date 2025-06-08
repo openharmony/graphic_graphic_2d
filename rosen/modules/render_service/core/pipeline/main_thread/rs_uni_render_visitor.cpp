@@ -86,7 +86,6 @@ constexpr int TRACE_LEVEL_THREE = 3;
 constexpr float EPSILON_SCALE = 0.00001f;
 static const std::string CAPTURE_WINDOW_NAME = "CapsuleWindow";
 constexpr const char* RELIABLE_GESTURE_BACK_SURFACE_NAME = "SCBGestureBack";
-constexpr int MIN_OVERLAP = 2;
 constexpr uint64_t INPUT_HWC_LAYERS = 3;
 constexpr uint32_t HIGHEST_Z_ORDER = 999;
 
