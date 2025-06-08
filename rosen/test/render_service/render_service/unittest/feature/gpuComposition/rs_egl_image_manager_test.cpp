@@ -67,11 +67,11 @@ void RSEglImageManagerTest::TearDown() {}
  */
 HWTEST_F(RSEglImageManagerTest, CreateInvalidImageCache001, TestSize.Level1)
 {
-    std::unique_ptr<ImageCacheSeq> invalidCache =
-        std::make_unique<ImageCacheSeq>(renderContext_->GetEGLDisplay(), EGL_NO_IMAGE_KHR, nullptr);
-    auto ret = invalidCache->TextureId();
+    std::shared_ptr<EglImageResource> invalidCache =
+        std::make_shared<EglImageResource>(renderContext_->GetEGLDisplay(), EGL_NO_IMAGE_KHR, nullptr);
+    auto ret = invalidCache->GetTextureId();
     ASSERT_EQ(ret, 0);
-    invalidCache.release();
+    invalidCache.reset();
 }
 
 /**
@@ -106,12 +106,12 @@ HWTEST_F(RSEglImageManagerTest, CreateAndShrinkImageCacheFromBuffer001, TestSize
         // create image with null fence
         auto invalidFenceCache = eglImageManager_->CreateImageCacheFromBuffer(buffer, nullptr);
         ASSERT_NE(invalidFenceCache, nullptr);
-        invalidFenceCache.release();
+        invalidFenceCache.reset();
         // create image with valid fence
         sptr<SyncFence> acquireFence;
         auto validCache = eglImageManager_->CreateImageCacheFromBuffer(buffer, acquireFence);
         ASSERT_NE(validCache, nullptr);
-        validCache.release();
+        validCache.reset();
         eglImageManager_->ShrinkCachesIfNeeded(true);
 
         // create cache from buffer directly
@@ -122,12 +122,12 @@ HWTEST_F(RSEglImageManagerTest, CreateAndShrinkImageCacheFromBuffer001, TestSize
 }
 
 /**
- * @tc.name: MapEglImageFromSurfaceBuffer001
+ * @tc.name: MapImageFromSurfaceBuffer001
  * @tc.desc: Map egl image from buffer.
  * @tc.type: FUNC
  * @tc.require: issueI6QHNP
  */
-HWTEST_F(RSEglImageManagerTest, MapEglImageFromSurfaceBuffer001, TestSize.Level1)
+HWTEST_F(RSEglImageManagerTest, MapImageFromSurfaceBuffer001, TestSize.Level1)
 {
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
         RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR || !RSUniRenderJudgement::IsUniRender()) {
@@ -200,22 +200,23 @@ HWTEST_F(RSEglImageManagerTest, UnMapEglImage001, TestSize.Level1)
 {
     ASSERT_NE(eglImageManager_, nullptr);
     const int invalidSeqNum = -1;
-    eglImageManager_->UnMapEglImageFromSurfaceBuffer(invalidSeqNum);
+    eglImageManager_->UnMapImageFromSurfaceBuffer(invalidSeqNum);
     eglImageManager_->UnMapEglImageFromSurfaceBufferForUniRedraw(invalidSeqNum);
 }
 
 /**
  * @tc.name: ImageCacheSeqCreate001
- * @tc.desc: Create ImageCacheSeq
+ * @tc.desc: Create EglImageResource
  * @tc.type: FUNC
  * @tc.require: issueI7A39J
  */
 HWTEST_F(RSEglImageManagerTest, ImageCacheSeqCreate001, TestSize.Level1)
 {
     auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    auto imageCache = ImageCacheSeq::Create(EGL_NO_DISPLAY, EGL_NO_IMAGE_KHR, node->GetRSSurfaceHandler()->GetBuffer());
+    auto imageCache = EglImageResource::Create(
+        EGL_NO_DISPLAY, EGL_NO_IMAGE_KHR, node->GetRSSurfaceHandler()->GetBuffer());
     ASSERT_EQ(imageCache, nullptr);
-    imageCache = ImageCacheSeq::Create(
+    imageCache = EglImageResource::Create(
         renderContext_->GetEGLDisplay(), EGL_NO_CONTEXT, node->GetRSSurfaceHandler()->GetBuffer());
     ASSERT_NE(imageCache, nullptr);
 }
@@ -229,11 +230,55 @@ HWTEST_F(RSEglImageManagerTest, ImageCacheSeqCreate001, TestSize.Level1)
 HWTEST_F(RSEglImageManagerTest, ImageCacheSeqBindToTexture001, TestSize.Level1)
 {
     auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    auto imageCache = ImageCacheSeq::Create(
+    auto imageCache = EglImageResource::Create(
         renderContext_->GetEGLDisplay(), EGL_NO_CONTEXT, node->GetRSSurfaceHandler()->GetBuffer());
     ASSERT_NE(imageCache, nullptr);
     ASSERT_EQ(imageCache->BindToTexture(), true);
-    imageCache->eglImage_ =  EGL_NO_IMAGE_KHR;
+    std::static_pointer_cast<EglImageResource>(imageCache)->eglImage_ = EGL_NO_IMAGE_KHR;
     ASSERT_EQ(imageCache->BindToTexture(), false);
+}
+
+/**
+ * @tc.name: CreateTest
+ * @tc.desc: CreateTest
+ * @tc.type: FUNC
+ * @tc.require: issueI6QHNP
+ */
+HWTEST_F(RSEglImageManagerTest, CreateTest, TestSize.Level1)
+{
+    std::shared_ptr<RSImageManager> imageManager;
+#ifdef RS_ENABLE_VK
+    imageManager = RSImageManager::Create();
+    ASSERT_NE(imageManager, nullptr);
+#endif // RS_ENABLE_VK
+#ifdef RS_ENABLE_GL
+    imageManager = RSImageManager::Create();
+    ASSERT_NE(imageManager, nullptr);
+#endif // RS_ENABLE_GL
+}
+
+/**
+ * @tc.name: CreateImageResourceTest
+ * @tc.desc: CreateImageResourceTest
+ * @tc.type: FUNC
+ * @tc.require: issueI6QHNP
+ */
+HWTEST_F(RSEglImageManagerTest, CreateImageResourceTest, TestSize.Level1)
+{
+    std::shared_ptr<ImageResource> imageResource;
+#ifdef RS_ENABLE_VK
+    NativeWindowBuffer* nativeWindowBuffer = nullptr;
+    Drawing::BackendTexture backendTexture = Drawing::BackendTexture();
+    NativeBufferUtils::VulkanCleanupHelper* vulkanCleanupHelper = nullptr;
+    imageResource = ImageResource::VkCreate(nativeWindowBuffer, backendTexture, vulkanCleanupHelper);
+    ASSERT_NE(imageResource, nullptr);
+#endif // RS_ENABLE_VK
+#ifdef RS_ENABLE_GL
+    EGLDisplay eglDisplay = EGL_NO_DISPLAY;
+    EGLImageKHR eglImage = EGL_NO_IMAGE_KHR;
+    EGLClientBuffer eglClientBuffer = nullptr;
+    imageResource = ImageResource::EglCreate(eglDisplay, eglImage, eglClientBuffer);
+    ASSERT_NE(imageResource, nullptr);
+#endif // RS_ENABLE_GL
 }
 } // namespace OHOS::Rosen

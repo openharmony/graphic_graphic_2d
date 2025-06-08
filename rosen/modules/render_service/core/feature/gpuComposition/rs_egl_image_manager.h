@@ -21,77 +21,65 @@
 #include <queue>
 #include <unordered_map>
 
-#include <surface.h>
-#include "EGL/egl.h"
-#include "EGL/eglext.h"
-#include "GLES/gl.h"
+#include "rs_image_manager.h"
+
 #include "GLES/glext.h"
 #include "GLES3/gl32.h"
-#include "sync_fence.h"
-#include "pipeline/rs_context.h"
 
 namespace OHOS {
 namespace Rosen {
-class ImageCacheSeq {
+class EglImageResource : public ImageResource {
 public:
-    static std::unique_ptr<ImageCacheSeq> Create(
+    static std::shared_ptr<ImageResource> Create(
         EGLDisplay eglDisplay,
         EGLContext eglContext,
         const sptr<OHOS::SurfaceBuffer>& buffer);
+    EglImageResource(EGLDisplay eglDisplay, EGLImageKHR eglImage, EGLClientBuffer eglClientBuffer)
+    {
+        eglDisplay_ = eglDisplay;
+        eglImage_ = eglImage;
+        eglClientBuffer_ = eglClientBuffer;
+    }
+    ~EglImageResource() noexcept override;
 
-    ImageCacheSeq(
-        EGLDisplay eglDisplay,
-        EGLImageKHR eglImage,
-        EGLClientBuffer eglClientBuffer);
-    ~ImageCacheSeq() noexcept;
-
-    GLuint TextureId() const
+    GLuint GetTextureId() const override
     {
         return textureId_;
     }
 
-    pid_t GetThreadIndex() const
+    void SetTextureId(GLuint textureId) override
     {
-        return threadIndex_;
-    }
-
-    void SetThreadIndex(const pid_t threadIndex)
-    {
-        threadIndex_ = threadIndex;
+        textureId_ = textureId;
     }
 private:
     // generate a texture and bind eglImage to it.
-    bool BindToTexture();
+    bool BindToTexture() override;
 
-    EGLDisplay eglDisplay_ = EGL_NO_DISPLAY;
-    EGLImageKHR eglImage_ = EGL_NO_IMAGE_KHR;
-    EGLClientBuffer eglClientBuffer_ = nullptr;
-    GLuint textureId_ = 0;
-    pid_t threadIndex_ = 0;
+    friend class RSImageManager;
 };
 
-class RSEglImageManager {
+class RSEglImageManager : public RSImageManager {
 public:
-    explicit RSEglImageManager(EGLDisplay display);
-    ~RSEglImageManager() noexcept = default;
+    explicit RSEglImageManager(EGLDisplay display) : eglDisplay_(display) {};
+    ~RSEglImageManager() noexcept override = default;
 
     GLuint MapEglImageFromSurfaceBuffer(const sptr<OHOS::SurfaceBuffer>& buffer,
-        const sptr<SyncFence>& acquireFence, pid_t threadIndex);
-    void UnMapEglImageFromSurfaceBuffer(int32_t seqNum);
-    void UnMapEglImageFromSurfaceBufferForUniRedraw(int32_t seqNum);
-    void ShrinkCachesIfNeeded(bool isForUniRedraw = false); // only used for divided_render
-    std::unique_ptr<ImageCacheSeq> CreateImageCacheFromBuffer(const sptr<OHOS::SurfaceBuffer>& buffer,
-        const sptr<SyncFence>& acquireFence);
+        const sptr<SyncFence>& acquireFence, pid_t threadIndex) override;
+    void UnMapImageFromSurfaceBuffer(int32_t seqNum) override;
+    std::shared_ptr<ImageResource> CreateImageCacheFromBuffer(const sptr<OHOS::SurfaceBuffer>& buffer,
+        const sptr<SyncFence>& acquireFence) override;
+
+    void UnMapEglImageFromSurfaceBufferForUniRedraw(int32_t seqNum) override;
+    void ShrinkCachesIfNeeded(bool isForUniRedraw = false) override; // only used for divided_render
+
 private:
     void WaitAcquireFence(const sptr<SyncFence>& acquireFence);
-    GLuint CreateImageCacheFromBuffer(const sptr<OHOS::SurfaceBuffer>& buffer,
-        const pid_t threadIndex);
+    GLuint CreateImageCacheFromBuffer(
+        const sptr<OHOS::SurfaceBuffer>& buffer, const pid_t threadIndex);
 
-    mutable std::mutex opMutex_;
     static constexpr size_t MAX_CACHE_SIZE = 16;
-    std::queue<int32_t> cacheQueue_; // fifo, size restricted by MAX_CACHE_SIZE
-    std::unordered_map<int32_t, std::unique_ptr<ImageCacheSeq>> imageCacheSeqs_; // guarded by opMutex_.
     EGLDisplay eglDisplay_ = EGL_NO_DISPLAY;
+    friend class RSImageManager;
 };
 } // namespace Rosen
 } // namespace OHOS

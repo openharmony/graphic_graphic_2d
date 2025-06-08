@@ -216,7 +216,7 @@ HWTEST_F(RSBaseRenderEngineUnitTest, CreateEglImageFromBuffer001, TestSize.Level
     auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
     std::unique_ptr<Drawing::Canvas> drawingCanvas = std::make_unique<Drawing::Canvas>(10, 10);
     std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
-    EGLDisplay display;
+    EGLDisplay display = EGL_NO_DISPLAY;
     renderEngine->eglImageManager_ = std::make_shared<RSEglImageManager>(display);
     auto img = renderEngine->CreateEglImageFromBuffer(*canvas, node->GetRSSurfaceHandler()->GetBuffer(), nullptr);
     ASSERT_EQ(nullptr, img);

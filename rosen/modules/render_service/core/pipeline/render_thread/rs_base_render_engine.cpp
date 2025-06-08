@@ -27,6 +27,7 @@
 #include "platform/common/rs_system_properties.h"
 #if (defined(RS_ENABLE_GPU) && defined(RS_ENABLE_GL))
 #include "platform/ohos/backend/rs_surface_ohos_gl.h"
+#include "feature/gpuComposition/rs_image_manager.h"
 #endif
 #include "platform/ohos/backend/rs_surface_ohos_raster.h"
 #ifdef RS_ENABLE_VK
@@ -692,10 +693,14 @@ std::shared_ptr<Drawing::Image> RSBaseRenderEngine::CreateImageFromBuffer(RSPain
     if (RSSystemProperties::IsUseVulkan()) {
         auto imageCache = vkImageManager_->MapVkImageFromSurfaceBuffer(params.buffer,
             params.acquireFence, params.threadIndex, canvas.GetSurface());
+        if (imageCache == nullptr) {
+            RS_LOGE("RSBaseRenderEngine::MapImageFromSurfaceBuffer failed!");
+            return nullptr;
+        }
         if (params.buffer != nullptr && params.buffer->GetBufferDeleteFromCacheFlag()) {
             RS_LOGD_IF(DEBUG_COMPOSER, "  - Buffer %{public}u marked for deletion from cache, unmapping",
                 params.buffer->GetSeqNum());
-            vkImageManager_->UnMapVkImageFromSurfaceBuffer(params.buffer->GetSeqNum());
+            vkImageManager_->UnMapImageFromSurfaceBuffer(params.buffer->GetSeqNum());
         }
         auto bitmapFormat = RSBaseRenderUtil::GenerateDrawingBitmapFormat(params.buffer);
         auto screenColorSpace = GetCanvasColorSpace(canvas);
@@ -1004,7 +1009,7 @@ void RSBaseRenderEngine::ClearCacheSet(const std::set<uint32_t>& unmappedCache)
         RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
         if (vkImageManager_ != nullptr) {
             for (auto id : unmappedCache) {
-                vkImageManager_->UnMapVkImageFromSurfaceBuffer(id);
+                vkImageManager_->UnMapImageFromSurfaceBuffer(id);
             }
         }
     }
@@ -1013,7 +1018,7 @@ void RSBaseRenderEngine::ClearCacheSet(const std::set<uint32_t>& unmappedCache)
 #if (defined(RS_ENABLE_EGLIMAGE) && defined(RS_ENABLE_GPU))
     if (eglImageManager_ != nullptr) {
         for (auto id : unmappedCache) {
-            eglImageManager_->UnMapEglImageFromSurfaceBuffer(id);
+            eglImageManager_->UnMapImageFromSurfaceBuffer(id);
         }
     }
 #endif // RS_ENABLE_EGLIMAGE
