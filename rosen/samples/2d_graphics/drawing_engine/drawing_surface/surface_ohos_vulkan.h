@@ -16,9 +16,6 @@
 #ifndef SURFACE_OHOS_VULKAN_H
 #define SURFACE_OHOS_VULKAN_H
 
-#ifdef RS_ENABLE_OLD_VK
-#include <vulkan_window.h>
-#endif
 #include "surface.h"
 #include "window.h"
 #include "surface_ohos.h"
@@ -54,9 +51,6 @@ private:
     void SetNativeWindowInfo(int32_t width, int32_t height);
     std::unique_ptr<SurfaceFrameOhosVulkan> frame_;
     struct NativeWindow *mNativeWindow_ = nullptr;
-#ifdef RS_ENABLE_OLD_VK
-    vulkan::RSVulkanWindow *mVulkanWindow_ = nullptr;
-#endif
     std::list<NativeWindowBuffer*> surfaceList_;
     std::unordered_map<NativeWindowBuffer*, NativeBufferUtils::NativeSurfaceInfo> surfaceMap_;
     std::shared_ptr<Drawing::GPUContext> drContext_;

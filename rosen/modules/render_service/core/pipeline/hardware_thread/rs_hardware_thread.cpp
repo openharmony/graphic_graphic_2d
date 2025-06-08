@@ -141,7 +141,7 @@ void RSHardwareThread::Start()
                 SubScribeSystemAbility();
 #endif
                 uniRenderEngine_ = std::make_shared<RSUniRenderEngine>();
-                uniRenderEngine_->Init(true);
+                uniRenderEngine_->Init();
 #ifdef RS_ENABLE_VK
                 // posttask for multithread safely release surface and image
                 if (RSSystemProperties::IsUseVulkan()) {

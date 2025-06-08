@@ -18,10 +18,6 @@
 #include "rs_trace.h"
 #include "screen_manager/rs_screen_manager.h"
 
-#ifdef RS_ENABLE_OLD_VK
-#include <vulkan_window.h>
-#endif
-
 #include "common/rs_common_def.h"
 #include "common/rs_common_hook.h"
 #include "common/rs_obj_abs_geometry.h"

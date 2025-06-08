@@ -445,8 +445,7 @@ std::shared_ptr<Drawing::Surface> RSSurfaceCaptureTaskParallel::CreateSurface(
             RS_LOGE("RSSurfaceCaptureTaskParallel::CreateSurface: renderEngine is nullptr");
             return nullptr;
         }
-#if (defined(RS_ENABLE_GPU) && (defined(NEW_RENDER_CONTEXT) || \
-    defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)))
+#if (defined(RS_ENABLE_GPU) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)))
         auto renderContext = renderEngine->GetRenderContext();
 #else
         auto renderContext = nullptr;

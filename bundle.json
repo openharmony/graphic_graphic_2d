@@ -48,7 +48,6 @@
         "graphic_2d_feature_tp_switch_enbale",
         "graphic_2d_feature_rs_enable_profiler",
         "graphic_2d_feature_enable_chipset_vsync",
-        "graphic_2d_feature_enable_flutter_vulkan",
         "graphic_2d_feature_enable_opengl",
         "graphic_2d_feature_enable_opinc",
         "graphic_2d_feature_enable_rspipeline",

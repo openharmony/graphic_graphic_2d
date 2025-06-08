@@ -181,7 +181,7 @@ HWTEST_F(RSBaseRenderEngineUnitTest, DrawDisplayNodeWithParams001, TestSize.Leve
         param.buffer = surfaceNode->GetRSSurfaceHandler()->GetBuffer();
 
         auto renderEngine = std::make_shared<RSRenderEngine>();
-        renderEngine->Init(true);
+        renderEngine->Init();
         auto drawingRecordingCanvas = std::make_unique<Drawing::RecordingCanvas>(10, 10);
         drawingRecordingCanvas->SetGrRecordingContext(renderEngine->GetRenderContext()->GetSharedDrGPUContext());
         auto recordingCanvas = std::make_shared<RSPaintFilterCanvas>(drawingRecordingCanvas.get());
