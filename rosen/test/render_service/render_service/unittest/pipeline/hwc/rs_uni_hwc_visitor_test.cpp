@@ -668,7 +668,7 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByHwcNodeBelowSelfInApp001, Tes
     std::vector<RectI> hwcRects;
     hwcRects.emplace_back(0, 0, 0, 0);
     rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeEnableByHwcNodeBelowSelfInApp(hwcRects, surfaceNode);
-    ASSERT_FALSE(node->isHardwareForcedDisabled_);
+    ASSERT_FALSE(surfaceNode->isHardwareForcedDisabled_);
 
     hwcRects.clear();
     hwcRects.emplace_back(0, 100, 100, 200);
