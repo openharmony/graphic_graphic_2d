@@ -271,6 +271,10 @@ ohos_shared_library("librender_service") {
     ]
   }
 
+  if ((rs_enable_eglimage && rs_enable_gpu) || graphic_2d_feature_enable_vulkan) {
+    sources += [ "core/feature/gpuComposition/rs_image_manager.cpp" ]
+  }
+
   if (graphic_2d_feature_product != "wearable") {
     defines += [ "IS_ENABLE_DRM" ]
   }
