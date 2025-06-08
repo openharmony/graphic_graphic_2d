@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,9 +18,10 @@
 #ifdef RS_ENABLE_VK
 #include "rs_vk_image_manager.h"
 #endif // RS_ENABLE_VK
+
 #include "EGL/egl.h"
-#include "rs_egl_image_manager.h"
 #include "platform/common/rs_system_properties.h"
+#include "rs_egl_image_manager.h"
 
 namespace OHOS {
 namespace Rosen {
