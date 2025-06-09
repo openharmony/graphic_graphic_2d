@@ -437,7 +437,10 @@ namespace {
             skiaTextStyle.setBackgroundRect({spTextStyle.backgroundRect.color, spTextStyle.backgroundRect.leftTopRadius,
                 spTextStyle.backgroundRect.rightTopRadius, spTextStyle.backgroundRect.rightBottomRadius,
                 spTextStyle.backgroundRect.leftBottomRadius});
-            if (paragraph.isRunCombinated())
+            if (paragraph.isRunCombinated()) {
+                state = std::min(skt::InternalState::kIndexed, state);
+                return;
+            }
             state = std::min(skt::InternalState::kFormatted, state);
         },
 
