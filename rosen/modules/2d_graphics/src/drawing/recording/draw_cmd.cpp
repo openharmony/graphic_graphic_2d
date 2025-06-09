@@ -394,16 +394,25 @@ std::shared_ptr<DrawOpItem> UnmarshallingPlayer::Unmarshalling(uint32_t type, vo
     }
     if (unmarshallingPair.second > avaliableSize) {
         if (isReplayMode) {
-            uint8_t data[unmarshallingPair.second];
+            auto data = malloc(unmarshallingPair.second);
+            if (!data) {
+                return nullptr;
+            }
             auto ret = memset_s(data, sizeof(data), 0, unmarshallingPair.second);
             if (ret != EOK) {
+                free(data);
                 return nullptr;
             }
             ret = memmove_s(data, sizeof(data), handle, avaliableSize);
             if (ret != EOK) {
+                free(data);
                 return nullptr;
             }
-            return (*unmarshallingPair.first)(this->cmdList_, data);
+
+            auto result = (*unmarshallingPair.first)(this->cmdList_, data);
+            free(data);
+
+            return result;
         }
         return nullptr;
     }
