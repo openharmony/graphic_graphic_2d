@@ -734,7 +734,7 @@ void RSUniHwcVisitor::UpdateHwcNodeEnableByHwcNodeBelowSelf(std::vector<RectI>& 
     hwcRects.emplace_back(absBound);
 }
 
-void RSUniHwcVisitor::UpdateHwcNodeEnableByHwcNodeBelowSelfInApp(std::shared_ptr<RSSurfaceRenderNode>& hwcNode,
+void RSUniHwcVisitor::UpdateHwcNodeEnableByHwcNodeBelowSelfInApp(const std::shared_ptr<RSSurfaceRenderNode>& hwcNode,
     std::vector<RectI>& hwcRects)
 {
     if (hwcNode->IsHardwareForcedDisabled()) {

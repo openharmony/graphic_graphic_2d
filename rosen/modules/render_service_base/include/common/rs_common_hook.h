@@ -65,7 +65,6 @@ private:
     std::atomic<bool> isWhiteListForEnableHwcNodeBelowSelfInApp_{false};
     
     std::function<void(FrameRateRange& range)> componentPowerFpsFunc_ = nullptr;
-
 };
 } // namespace OHOS::Rosen
 #endif
