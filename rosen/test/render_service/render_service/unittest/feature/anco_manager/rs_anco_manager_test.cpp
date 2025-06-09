@@ -284,4 +284,105 @@ HWTEST_F(RSAncoManagerTest, AncoOptimizeCheck, TestSize.Level2)
     ASSERT_EQ(ancoManager->AncoOptimizeCheck(false, 3, 2), false);
     ASSERT_EQ(ancoManager->AncoOptimizeCheck(false, 4, 2), true);
 }
+
+/**
+ * @tc.name: IsAncoSfv
+ * @tc.desc: test IsAncoSfv
+ * @tc.type: FUNC
+ * @tc.require: issueICDOZS
+ */
+HWTEST_F(RSAncoManagerTest, IsAncoSfv, TestSize.Level2)
+{
+    uint32_t flag = 0;
+    ASSERT_FALSE(RSAncoManager::IsAncoSfv(flag));
+    flag = static_cast<uint32_t>(AncoFlags::IS_ANCO_NODE);
+    ASSERT_FALSE(RSAncoManager::IsAncoSfv(flag));
+    flag = static_cast<uint32_t>(AncoFlags::IS_ANCO_NODE) | static_cast<uint32_t>(AncoFlags::FORCE_REFRESH);
+    ASSERT_FALSE(RSAncoManager::IsAncoSfv(flag));
+    flag = static_cast<uint32_t>(AncoFlags::ANCO_SFV_NODE);
+    ASSERT_TRUE(RSAncoManager::IsAncoSfv(flag));
+    flag = static_cast<uint32_t>(AncoFlags::ANCO_SFV_NODE) | static_cast<uint32_t>(AncoFlags::FORCE_REFRESH);
+    ASSERT_TRUE(RSAncoManager::IsAncoSfv(flag));
+    flag = static_cast<uint32_t>(AncoFlags::ANCO_NATIVE_NODE);
+    ASSERT_TRUE(RSAncoManager::IsAncoSfv(flag));
+    flag = static_cast<uint32_t>(AncoFlags::ANCO_NATIVE_NODE) | static_cast<uint32_t>(AncoFlags::FORCE_REFRESH);
+    ASSERT_TRUE(RSAncoManager::IsAncoSfv(flag));
+}
+
+/**
+ * @tc.name: EnableCropRectForAnco_001
+ * @tc.desc: test UpdateCropRectForAnco
+ * @tc.type: FUNC
+ * @tc.require: issueICDOZS
+ */
+HWTEST_F(RSAncoManagerTest, EnableCropRectForAnco_001, TestSize.Level2)
+{
+    uint32_t flag = 0;
+    Rect cropRect{};
+    Drawing::Rect srcRect{};
+    RSAncoManager::UpdateCropRectForAnco(flag, cropRect, srcRect);
+    flag = static_cast<uint32_t>(AncoFlags::ANCO_SFV_NODE);
+    RSAncoManager::UpdateCropRectForAnco(flag, cropRect, srcRect);
+    cropRect.w = 100;
+    cropRect.h = 100;
+    srcRect.right_ = 200;
+    srcRect.bottom_ = 200;
+    RSAncoManager::UpdateCropRectForAnco(flag, cropRect, srcRect);
+    ASSERT_TRUE(srcRect == Drawing::Rect(0, 0, 100, 100));
+    cropRect.w = 100;
+    cropRect.h = 100;
+    srcRect.right_ = 50;
+    srcRect.bottom_ = 50;
+    RSAncoManager::UpdateCropRectForAnco(flag, cropRect, srcRect);
+    ASSERT_TRUE(srcRect == Drawing::Rect(0, 0, 50, 50));
+}
+
+/**
+ * @tc.name: EnableCropRectForAnco_002
+ * @tc.desc: test UpdateCropRectForAnco
+ * @tc.type: FUNC
+ * @tc.require: issueICDOZS
+ */
+HWTEST_F(RSAncoManagerTest, EnableCropRectForAnco_002, TestSize.Level2)
+{
+    uint32_t flag = 0;
+    GraphicIRect cropRect{};
+    Drawing::Rect srcRect{};
+    RSAncoManager::UpdateCropRectForAnco(flag, cropRect, srcRect);
+    flag = static_cast<uint32_t>(AncoFlags::ANCO_SFV_NODE);
+    cropRect.w = -1;
+    cropRect.h = -1;
+    RSAncoManager::UpdateCropRectForAnco(flag, cropRect, srcRect);
+    ASSERT_TRUE(srcRect == Drawing::Rect());
+    cropRect.w = 100;
+    cropRect.h = 100;
+    srcRect.right_ = 50;
+    srcRect.bottom_ = 50;
+    RSAncoManager::UpdateCropRectForAnco(flag, cropRect, srcRect);
+    ASSERT_TRUE(srcRect == Drawing::Rect(0, 0, 100, 100));
+}
+
+/**
+ * @tc.name: UpdateLayerSrcRectForAnco
+ * @tc.desc: test UpdateLayerSrcRectForAnco
+ * @tc.type: FUNC
+ * @tc.require: issueICDOZS
+ */
+HWTEST_F(RSAncoManagerTest, UpdateLayerSrcRectForAnco, TestSize.Level2)
+{
+    uint32_t flag = 0;
+    GraphicIRect cropRect{};
+    GraphicIRect srcRect{};
+    RSAncoManager::UpdateLayerSrcRectForAnco(flag, cropRect, srcRect);
+    flag = static_cast<uint32_t>(AncoFlags::ANCO_SFV_NODE);
+    RSAncoManager::UpdateLayerSrcRectForAnco(flag, cropRect, srcRect);
+    cropRect.w = 100;
+    srcRect.w = 200;
+    srcRect.h = 200;
+    RSAncoManager::UpdateLayerSrcRectForAnco(flag, cropRect, srcRect);
+    ASSERT_FALSE(srcRect == cropRect);
+    cropRect.h = 100;
+    RSAncoManager::UpdateLayerSrcRectForAnco(flag, cropRect, srcRect);
+    ASSERT_TRUE(srcRect == cropRect);
+}
 } // namespace OHOS::Rosen

@@ -28,6 +28,7 @@
 #include <vector>
 
 #include "common/rs_macros.h"
+#include "common/rs_anco_type.h"
 
 namespace OHOS {
 class Surface;
@@ -581,19 +582,6 @@ inline typename Container::size_type EraseIf(Container& container, Predicate pre
     }
     return oldSize - container.size();
 }
-
-enum class AncoFlags : uint32_t {
-    IS_ANCO_NODE = 0x0001,
-    ANCO_SFV_NODE = 0x0011,
-    ANCO_NATIVE_NODE = 0x0111,
-    FORCE_REFRESH = 0x1000
-};
-
-enum class AncoHebcStatus : int32_t {
-    INITIAL,
-    NOT_USE_HEBC,
-    USE_HEBC
-};
 
 enum class RSInterfaceErrorCode : uint32_t {
 #undef NO_ERROR

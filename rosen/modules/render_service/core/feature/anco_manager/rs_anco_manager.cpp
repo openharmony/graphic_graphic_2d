@@ -131,4 +131,53 @@ bool RSAncoManager::AncoOptimizeDisplayNode(std::shared_ptr<RSSurfaceHandler>& s
 
     return AncoOptimizeCheck(isHebc, nodesCnt, sfvNodesCnt);
 }
+
+void RSAncoManager::UpdateCropRectForAnco(const uint32_t ancoFlags, const Rect& cropRect, Drawing::Rect& srcRect)
+{
+    if (IsAncoSfv(ancoFlags)) {
+        Drawing::Rect srcCrop{cropRect.x, cropRect.y, cropRect.w + cropRect.x, cropRect.h + cropRect.y};
+        float left = std::max(srcCrop.left_, srcRect.left_);
+        float top = std::max(srcCrop.top_, srcRect.top_);
+        float right = std::min(srcCrop.right_, srcRect.right_);
+        float bottom = std::min(srcCrop.bottom_, srcRect.bottom_);
+        Drawing::Rect intersectedRect(left, top, right, bottom);
+        if (intersectedRect.IsValid()) {
+            srcRect = intersectedRect;
+        }
+    }
+}
+
+void RSAncoManager::UpdateCropRectForAnco(const uint32_t ancoFlags,
+                                          const GraphicIRect& cropRect, Drawing::Rect& srcRect)
+{
+    if (IsAncoSfv(ancoFlags)) {
+        Drawing::Rect srcCrop{cropRect.x, cropRect.y, cropRect.w + cropRect.x, cropRect.h + cropRect.y};
+        if (srcCrop.IsValid()) {
+            srcRect = srcCrop;
+        }
+    }
+}
+
+void RSAncoManager::UpdateLayerSrcRectForAnco(const uint32_t ancoFlags,
+                                              const GraphicIRect& cropRect, GraphicIRect& srcRect)
+{
+    if (IsAncoSfv(ancoFlags)) {
+        int32_t left = std::max(srcRect.x, cropRect.x);
+        int32_t top = std::max(srcRect.y, cropRect.y);
+        int32_t right = std::min(srcRect.x + srcRect.w, cropRect.x + cropRect.w);
+        int32_t bottom = std::min(srcRect.y + srcRect.h, cropRect.y + cropRect.h);
+        int32_t width = right - left;
+        int32_t height = bottom - top;
+        if (width <= 0 || height <= 0) {
+            return;
+        }
+        srcRect = { left, top, width, height };
+    }
+}
+
+bool RSAncoManager::IsAncoSfv(const uint32_t ancoFlags)
+{
+    return (ancoFlags & static_cast<uint32_t>(AncoFlags::ANCO_SFV_NODE)) ==
+           static_cast<uint32_t>(AncoFlags::ANCO_SFV_NODE);
+}
 } // namespace OHOS::Rosen
