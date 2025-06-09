@@ -260,7 +260,7 @@ public:
     }
 
 protected:
-    T stagingValue_;
+    T stagingValue_{};
     RSPropertyType type_ = RSPropertyType::INVALID;
     std::function<void(const std::shared_ptr<RSRenderPropertyBase>&)> updateUIPropertyFunc_;
     RSPropertyType GetPropertyType() const override
