@@ -95,16 +95,16 @@ HWTEST_F(RsCommonHookTest, SetAdaptiveColorGamutEnableTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetIsWhiteListForEnableHwcNodeBelowSelfInAppFlagTest
- * @tc.desc: Verify GetIsWhiteListForEnableHwcNodeBelowSelfInAppFlag
+ * @tc.name: GetIsWhiteListForEnableHwcNodeBelowSelfInAppTest
+ * @tc.desc: Verify GetIsWhiteListForEnableHwcNodeBelowSelfInApp
  * @tc.type:FUNC
  * @tc.require: issuesIC82H3
  */
-HWTEST_F(RsCommonHookTest, GetIsWhiteListForEnableHwcNodeBelowSelfInAppFlagTest, TestSize.Level1)
+HWTEST_F(RsCommonHookTest, GetIsWhiteListForEnableHwcNodeBelowSelfInAppTest, TestSize.Level1)
 {
-    RsCommonHook::Instance().SetIsWhiteListForEnableHwcNodeBelowSelfInAppFlag(true);
-    ASSERT_EQ(RsCommonHook::Instance().GetIsWhiteListForEnableHwcNodeBelowSelfInAppFlag(), true);
-    RsCommonHook::Instance().SetIsWhiteListForEnableHwcNodeBelowSelfInAppFlag(false);
-    ASSERT_EQ(RsCommonHook::Instance().GetIsWhiteListForEnableHwcNodeBelowSelfInAppFlag(), false);
+    RsCommonHook::Instance().SetIsWhiteListForEnableHwcNodeBelowSelfInApp(true);
+    ASSERT_EQ(RsCommonHook::Instance().GetIsWhiteListForEnableHwcNodeBelowSelfInApp(), true);
+    RsCommonHook::Instance().SetIsWhiteListForEnableHwcNodeBelowSelfInApp(false);
+    ASSERT_EQ(RsCommonHook::Instance().GetIsWhiteListForEnableHwcNodeBelowSelfInApp(), false);
 }
 } // namespace OHOS::Rosen

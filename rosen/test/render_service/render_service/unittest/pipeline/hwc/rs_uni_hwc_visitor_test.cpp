@@ -688,11 +688,11 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByHwcNodeBelowSelfInApp001, Tes
     hwcRects.emplace_back(0, 100, 100, 200);
     surfaceNode->SetDstRect(RectI(0, 150, 100, 200));
     surfaceNode->SetHardwareForcedDisabledState(false);
-    RsCommonHook::Instance().SetIsWhiteListForEnableHwcNodeBelowSelfInAppFlag(false);
+    RsCommonHook::Instance().SetIsWhiteListForEnableHwcNodeBelowSelfInApp(false);
     rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeEnableByHwcNodeBelowSelfInApp(hwcRects, surfaceNode);
 }
 
-/*
+/**
  * @tc.name: UpdateHwcNodeEnableByHwcNodeBelowSelfInApp002
  * @tc.desc: Test UpdateHwcNodeEnableByHwcNodeBelowSelfInApp when hwcNode is hardware forced disabled.
  * @tc.type: FUNC
@@ -712,7 +712,7 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByHwcNodeBelowSelfInApp002, Tes
     EXPECT_EQ(hwcRects.size(), 0);
 }
 
-/*
+/**
  * @tc.name: UpdateHwcNodeEnableByHwcNodeBelowSelfInApp003
  * @tc.desc: Test UpdateHwcNodeEnableByHwcNodeBelowSelfInApp when hwcNode is anco force do direct.
  * @tc.type: FUNC
@@ -738,7 +738,7 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByHwcNodeBelowSelfInApp003, Tes
     EXPECT_EQ(hwcRects.size(), 1);
 }
 
-/*
+/**
  * @tc.name: UpdateHwcNodeEnableByHwcNodeBelowSelfInApp004
  * @tc.desc: Test UpdateHwcNodeEnableByHwcNodeBelowSelfInApp when dst.Intersect(rect) equals true.
  * @tc.type: FUNC
@@ -760,14 +760,14 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByHwcNodeBelowSelfInApp004, Tes
 
     surfaceNode->SetDstRect(RectI(0, 0, 100, 100));
     std::vector<RectI> hwcRects;
-    hwcRects.emplace_back(RectI(50, 50, 100, 100));
+    hwcRects.emplace_back(50, 50, 100, 100);
     ASSERT_TRUE(surfaceNode->GetDstRect().Intersect(RectI(50, 50, 100, 100)));
 
     rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeEnableByHwcNodeBelowSelfInApp(hwcRects, surfaceNode);
     EXPECT_EQ(hwcRects.size(), 1);
 }
 
-/*
+/**
  * @tc.name: UpdateHwcNodeEnableByHwcNodeBelowSelfInApp005
  * @tc.desc: Test UpdateHwcNodeEnableByHwcNodeBelowSelfInApp when dst.Intersect(rect) equals false.
  * @tc.type: FUNC
@@ -789,7 +789,7 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByHwcNodeBelowSelfInApp005, Tes
 
     surfaceNode->SetDstRect(RectI());
     std::vector<RectI> hwcRects;
-    hwcRects.emplace_back(RectI(50, 50, 100, 100));
+    hwcRects.emplace_back(50, 50, 100, 100);
     ASSERT_FALSE(surfaceNode->GetDstRect().Intersect(RectI(50, 50, 100, 100)));
 
     rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeEnableByHwcNodeBelowSelfInApp(hwcRects, surfaceNode);

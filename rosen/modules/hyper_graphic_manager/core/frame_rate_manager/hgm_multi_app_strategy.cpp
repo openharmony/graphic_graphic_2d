@@ -465,7 +465,7 @@ void HgmMultiAppStrategy::CheckPackageInConfigList(const std::vector<std::string
     rsCommonHook.SetHardwareEnabledByHwcnodeBelowSelfInAppFlag(false);
     rsCommonHook.SetHardwareEnabledByBackgroundAlphaFlag(false);
     rsCommonHook.SetIsWhiteListForSolidColorLayerFlag(false);
-    rsCommonHook.SetIsWhiteListForEnableHwcNodeBelowSelfInAppFlag(false);
+    rsCommonHook.SetIsWhiteListForEnableHwcNodeBelowSelfInApp(false);
     std::unordered_map<std::string, std::string>& videoConfigFromHgm = configData->sourceTuningConfig_;
     std::unordered_map<std::string, std::string>& solidLayerConfigFromHgm = configData->solidLayerConfig_;
     std::unordered_map<std::string, std::string>& hwcVideoConfigFromHgm = configData->hwcSourceTuningConfig_;
@@ -499,8 +499,8 @@ void HgmMultiAppStrategy::CheckPackageInConfigList(const std::vector<std::string
         }
         // 1 means skip hardware disabled by hwc node above
         auto hwcEnableIter = enableHwcNodeBelowSelfInAppConfigFromHgm.find(pkgNameForCheck);
-        if ((hwcEnableIter != enableHwcNodeBelowSelfInAppConfigFromHgm.end() && hwcEnableIter->second == "1")) {
-            rsCommonHook.SetIsWhiteListForEnableHwcNodeBelowSelfInAppFlag(true);
+        if (hwcEnableIter != enableHwcNodeBelowSelfInAppConfigFromHgm.end() && hwcEnableIter->second == "1") {
+            rsCommonHook.SetIsWhiteListForEnableHwcNodeBelowSelfInApp(true);
         }
     }
 }

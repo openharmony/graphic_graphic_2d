@@ -582,8 +582,8 @@ void RSUniHwcVisitor::UpdateHwcNodeEnable()
             RSUniHwcComputeUtil::UpdateHwcNodeProperty(hwcNodePtr);
             UpdateHwcNodeEnableByAlpha(hwcNodePtr);
             UpdateHwcNodeEnableByRotate(hwcNodePtr);
-            if (!RsCommonHook::Instance().GetIsWhiteListForEnableHwcNodeBelowSelfInAppFlag()) {
-                UpdateHwcNodeEnableByHwcNodeBelowSelfInApp(hwcRects, hwcNodePtr);
+            if (!RsCommonHook::Instance().GetIsWhiteListForEnableHwcNodeBelowSelfInApp()) {
+                UpdateHwcNodeEnableByHwcNodeBelowSelfInApp(hwcNodePtr, hwcRects);
             }
             if ((hwcNodePtr->GetAncoFlags() & static_cast<uint32_t>(AncoFlags::IS_ANCO_NODE)) != 0) {
                 ancoNodes.insert(hwcNodePtr);
@@ -734,8 +734,8 @@ void RSUniHwcVisitor::UpdateHwcNodeEnableByHwcNodeBelowSelf(std::vector<RectI>& 
     hwcRects.emplace_back(absBound);
 }
 
-void RSUniHwcVisitor::UpdateHwcNodeEnableByHwcNodeBelowSelfInApp(std::vector<RectI>& hwcRects,
-    std::shared_ptr<RSSurfaceRenderNode>& hwcNode)
+void RSUniHwcVisitor::UpdateHwcNodeEnableByHwcNodeBelowSelfInApp(std::shared_ptr<RSSurfaceRenderNode>& hwcNode,
+    std::vector<RectI>& hwcRects)
 {
     if (hwcNode->IsHardwareForcedDisabled()) {
         return;
@@ -751,15 +751,15 @@ void RSUniHwcVisitor::UpdateHwcNodeEnableByHwcNodeBelowSelfInApp(std::vector<Rec
             !hwcNode->IsHardwareEnableHint()) {
             if (RsCommonHook::Instance().GetVideoSurfaceFlag() &&
                 ((dst.GetBottom() - rect.GetTop() <= MIN_OVERLAP && dst.GetBottom() - rect.GetTop() >= 0) ||
-                (rect.GetBottom() - dst.GetTop() <= MIN_OVERLAP && rect.GetBottom() - dst.GetTop() >= 0))) {
+                 (rect.GetBottom() - dst.GetTop() <= MIN_OVERLAP && rect.GetBottom() - dst.GetTop() >= 0))) {
                 return;
             }
-            RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:" PRIu64 " disabled by hwc node above",
+            RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:" PRIu64 " disabled by hwc node below self in app",
                 hwcNode->GetName().c_str(), hwcNode->GetId());
-            PrintHiperfLog(hwcNode, "hwc node above");
+            PrintHiperfLog(hwcNode, "hwc node below self in app");
             hwcNode->SetHardwareForcedDisabledState(true);
             Statistics().UpdateHwcDisabledReasonForDFX(hwcNode->GetId(),
-                HwcDisabledReasons::DISABLED_BY_HWC_NODE_ABOVE, hwcNode->GetName());
+                HwcDisabledReasons::DISABLED_BY_HWC_NODE_BELOW_SELF_IN_APP, hwcNode->GetName());
             return;
         }
     }

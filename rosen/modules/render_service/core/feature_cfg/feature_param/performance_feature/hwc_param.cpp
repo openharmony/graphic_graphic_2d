@@ -32,7 +32,7 @@ void HWCParam::SetSolidColorLayerForApp(std::string appName, std::string val)
 
 void HWCParam::SetEnableHwcNodeBelowSelfInAppForApp(std::string appName, std::string val)
 {
-    enableHwcNodeBelowSelfInAppMap_[std::move(appName)] = std::move(val);
+    enableHwcNodeBelowSelfInAppMap_.insert_or_assign(std::move(appName), std::move(val));
 }
 
 void HWCParam::SetDisableHwcOnExpandScreen(bool isEnable)
@@ -48,7 +48,7 @@ bool HWCParam::IsDisableHwcOnExpandScreen()
 void HWCParam::MoveDataToHgmCore()
 {
     HgmCore& hgmCore = HgmCore::Instance();
-    if (!hgmCore.mPolicyConfigData_) {
+    if (hgmCore.mPolicyConfigData_ != nullptr) {
         hgmCore.mPolicyConfigData_->hwcSourceTuningConfig_ = std::move(sourceTuningMap_);
         hgmCore.mPolicyConfigData_->hwcSolidLayerConfig_ = std::move(solidColorLayerMap_);
         hgmCore.mPolicyConfigData_->enableHwcNodeBelowSelfInAppConfig_ = std::move(enableHwcNodeBelowSelfInAppMap_);
