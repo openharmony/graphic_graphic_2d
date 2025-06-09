@@ -344,9 +344,6 @@ HWTEST_F(RSMarshallingTest, SkPaintSerialization001, Function | MediumTest | Lev
     Drawing::Pen penUnmarshal;
     ASSERT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, penUnmarshal));
     ASSERT_EQ(penUnmarshal.GetColor(), pen.GetColor());
-#ifndef NEW_SKIA
-    ASSERT_EQ(penUnmarshal.GetBlendMode(), pen.GetBlendMode());
-#endif
     ASSERT_EQ(penUnmarshal.GetWidth(), pen.GetWidth());
 }
 

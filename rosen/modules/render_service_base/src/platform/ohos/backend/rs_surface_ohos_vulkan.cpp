@@ -272,8 +272,12 @@ bool RSSurfaceOhosVulkan::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uin
 
     VkSemaphore semaphore = vkContext.RequireSemaphore();
 
+#ifdef USE_M133_SKIA
+    GrBackendSemaphore backendSemaphore = GrBackendSemaphores::MakeVk(semaphore);
+#else
     GrBackendSemaphore backendSemaphore;
     backendSemaphore.initVulkan(semaphore);
+#endif
 
     if (mSurfaceMap.find(mSurfaceList.front()) == mSurfaceMap.end()) {
         ROSEN_LOGE("RSSurfaceOhosVulkan Can not find drawingsurface");

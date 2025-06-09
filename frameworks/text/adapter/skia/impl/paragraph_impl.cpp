@@ -32,10 +32,6 @@
 #include "utils/text_log.h"
 #include "utils/text_trace.h"
 
-#ifdef USE_M133_SKIA
-#include "include/private/base/SkTArray.h"
-#endif
-
 namespace OHOS {
 namespace Rosen {
 namespace SPText {

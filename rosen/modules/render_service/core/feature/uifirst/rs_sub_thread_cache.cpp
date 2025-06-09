@@ -481,7 +481,7 @@ void RsSubThreadCache::ClearCacheSurface(bool isClearCompletedCacheSurface)
             cacheCompletedCleanupHelper_ = nullptr;
         }
 #endif
-#if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+#if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
         isTextureValid_.store(false);
 #endif
     }

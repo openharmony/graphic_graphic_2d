@@ -235,6 +235,9 @@ void SkiaGPUContext::SetResourceCacheLimits(int maxResource, size_t maxResourceB
 
 void SkiaGPUContext::SetPurgeableResourceLimit(int purgeableMaxCount)
 {
+#ifdef TODO_M133_SKIA
+    (void)purgeableMaxCount;
+#else
 #ifdef SKIA_OHOS
     if (!grContext_) {
         LOGD("SkiaGPUContext::SetPurgeableResourceLimit, grContext_ is nullptr");
@@ -248,6 +251,7 @@ void SkiaGPUContext::SetPurgeableResourceLimit(int purgeableMaxCount)
 #else
     static_cast<void>(purgeableMaxCount);
     LOGD("SkiaGPUContext::SetPurgeableResourceLimit, unsupported");
+#endif
 #endif
 }
 

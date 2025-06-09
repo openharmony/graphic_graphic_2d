@@ -31,6 +31,8 @@
 
 #ifdef USE_M133_SKIA
 #include "include/private/base/SkTArray.h"
+#else
+#include "include/private/SkTArray.h"
 #endif
 
 namespace OHOS {

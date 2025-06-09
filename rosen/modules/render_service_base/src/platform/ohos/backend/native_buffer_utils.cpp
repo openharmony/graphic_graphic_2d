@@ -20,7 +20,11 @@
 #include "pipeline/sk_resource_manager.h"
 
 #ifdef RS_ENABLE_VK
+#ifdef USE_M133_SKIA
+#include "include/gpu/ganesh/vk/GrVkBackendSurface.h"
+#else
 #include "include/gpu/GrBackendSurface.h"
+#endif
 #include "platform/ohos/backend/rs_vulkan_context.h"
 #endif
 

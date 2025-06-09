@@ -680,7 +680,9 @@ void SkiaSurface::SetDrawingArea(const std::vector<RectI>& rects)
         SkIRect skIRect = {rect.GetLeft(), rect.GetTop(), rect.GetRight(), rect.GetBottom()};
         skIRects.push_back(skIRect);
     }
+#ifndef TODO_M133_SKIA
     skSurface_->setDrawingArea(skIRects);
+#endif
 }
 
 void SkiaSurface::ClearDrawingArea()

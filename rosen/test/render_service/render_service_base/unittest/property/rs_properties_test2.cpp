@@ -119,7 +119,7 @@ HWTEST_F(PropertiesTest, SetClipToBoundsTest, TestSize.Level1)
     EXPECT_TRUE(properties.geoDirty_);
 }
 
-#if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+#if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
 /**
  * @tc.name: CreateFilterCacheManagerIfNeedTest
  * @tc.desc: test results of CreateFilterCacheManagerIfNeed

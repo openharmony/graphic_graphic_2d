@@ -31,10 +31,10 @@
 #include "render/rs_filter.h"
 #include "skia_adapter/skia_canvas.h"
 #include "parameters.h"
-#ifdef NEW_SKIA
-#include "include/gpu/GrDirectContext.h"
+#ifdef USE_M133_SKIA
+#include "include/ganesh/gpu/GrDirectContext.h"
 #else
-#include "third_party/flutter/skia/include/gpu/GrContext.h"
+#include "include/gpu/GrDirectContext.h"
 #endif
 
 using namespace testing;

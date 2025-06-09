@@ -165,8 +165,12 @@ bool FlushVulkanSurface(Drawing::Surface* surface)
     auto& vkContext = RsVulkanContext::GetSingleton().GetRsVulkanInterface();
     VkSemaphore semaphore = vkContext.RequireSemaphore();
 
+#ifdef USE_M133_SKIA
+    GrBackendSemaphore backendSemaphore = GrBackendSemaphores::MakeVk(semaphore);
+#else
     GrBackendSemaphore backendSemaphore;
     backendSemaphore.initVulkan(semaphore);
+#endif
 
     auto* callbackInfo = new RsVulkanInterface::CallbackSemaphoreInfo(vkContext, semaphore, -1);
 

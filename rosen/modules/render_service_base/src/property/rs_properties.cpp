@@ -61,6 +61,12 @@
 #include "render/rs_shader_mask.h"
 #include "render/rs_spherize_effect_filter.h"
 
+#ifdef USE_M133_SKIA
+#include "src/core/SkChecksum.h"
+#else
+#include "src/core/SkOpts.h"
+#endif
+
 namespace OHOS {
 namespace Rosen {
 namespace {
