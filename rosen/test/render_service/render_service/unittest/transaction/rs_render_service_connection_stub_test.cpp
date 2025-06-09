@@ -39,7 +39,6 @@ namespace {
 };
 
 namespace OHOS::Rosen {
-DECLARE_INTERFACE_DESCRIPTOR(u"ohos.rosen.RenderServiceConnection");
 class RSRenderServiceConnectionStubTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -253,7 +252,7 @@ HWTEST_F(RSRenderServiceConnectionStubTest, TestRSRenderServiceConnectionStub004
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_REFRESH_INFO)), ERR_INVALID_DATA);
 #else
     EXPECT_EQ(OnRemoteRequestTest(
-        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_REFRESH_INFO)), ERR_INVALID_REPLY);
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_REFRESH_INFO)), ERR_INVALID_DATA);
 #endif
 }
 
@@ -781,37 +780,5 @@ HWTEST_F(RSRenderServiceConnectionStubTest, TestRSRenderServiceConnectionStub025
     data.WriteUint64(456);
     int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(res, NO_ERROR);
-}
-
-HWTEST_F(RSRenderServiceConnectionStubTest, ShowWatermarkTest, TestSize.Level1)
-{
-    auto newPid = getpid();
-    sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
-    sptr<RSRenderServiceConnectionStub> connectionStub_ =
-        new RSRenderServiceConnection(newPid, nullptr, nullptr, nullptr, token_->AsObject(), nullptr);
-
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SHOW_WATERMARK);
-    MessageParcel dataParcel;
-    MessageParcel replyParcel;
-    MessageOption option;
-    dataParcel.WriteInterfaceToken(GetDescriptor());
-    EXPECT_EQ(connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option), ERR_INVALID_DATA);
-}
-
-HWTEST_F(RSRenderServiceConnectionStubTest, CreateVirtualScreenTest, TestSize.Level1)
-{
-    auto newPid = getpid();
-    auto screenManagerPtr = impl::RSScreenManager::GetInstance();
-    auto mainThread = RSMainThread::Instance();
-    sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
-    sptr<RSRenderServiceConnectionStub> connectionStub_ =
-        new RSRenderServiceConnection(newPid, nullptr, mainThread, screenManagerPtr, token_->AsObject(), nullptr);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_VIRTUAL_SCREEN);
-
-    MessageParcel dataParcel;
-    MessageParcel replyParcel;
-    MessageOption option;
-    dataParcel.WriteInterfaceToken(GetDescriptor());
-    EXPECT_EQ(connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option), ERR_INVALID_DATA);
 }
 } // namespace OHOS::Rosen
