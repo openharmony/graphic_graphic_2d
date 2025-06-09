@@ -319,8 +319,14 @@ HWTEST_F(HdiOutputTest, DumpHitchs, Function | MediumTest | Level1)
 {
     std::vector<LayerInfoPtr> layerInfos;
     for (size_t i = 0; i < 3; i++) {
-        layerInfos.emplace_back(std::make_shared<HdiLayerInfo>());
+        auto layerInfo_ = HdiLayerInfo::CreateHdiLayerInfo();
+        layerInfo_->SetIsMaskLayer(true);
+        layerInfos.emplace_back(layerInfo_);
     }
+    HdiOutputTest::hdiOutput_->SetLayerInfo(layerInfos);
+    LayerPtr maskLayer_ = HdiLayer::CreateHdiLayer(0);
+    maskLayer_->SetLayerStatus(false);
+    HdiOutputTest::hdiOutput_->SetMaskLayer(maskLayer_);
     HdiOutputTest::hdiOutput_->SetLayerInfo(layerInfos);
     std::string ret = "";
     HdiOutputTest::hdiOutput_->DumpHitchs(ret, "UniRender");
@@ -405,6 +411,10 @@ HWTEST_F(HdiOutputTest, DeletePrevLayersLocked001, Function | MediumTest | Level
     layer->isInUsing_ = true;
     surfaceIdMap[id] = layer;
     layerIdMap[id] = layer;
+
+    LayerPtr maskLayer_ = HdiLayer::CreateHdiLayer(0);
+    maskLayer_->SetLayerStatus(false);
+    hdiOutput->SetMaskLayer(maskLayer_);
 
     hdiOutput->DeletePrevLayersLocked();
     EXPECT_EQ(surfaceIdMap.count(id), 1);

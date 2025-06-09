@@ -531,6 +531,16 @@ public:
         return needBilinearInterpolation_;
     }
 
+    void SetIsMaskLayer(bool isMaskLayer)
+    {
+        isMaskLayer_ = isMaskLayer;
+    }
+
+    bool IsMaskLayer() const
+    {
+        return isMaskLayer_;
+    }
+
     void CopyLayerInfo(const std::shared_ptr<HdiLayerInfo> &layerInfo)
     {
         std::lock_guard<std::mutex> lock(mutex_);
@@ -723,6 +733,7 @@ private:
     bool copybitTag_ = false;
     std::vector<float> drmCornerRadiusInfo_;
     uint32_t ancoFlags_ = 0;
+    bool isMaskLayer_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS
