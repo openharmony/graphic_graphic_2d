@@ -1181,7 +1181,6 @@ private:
     std::vector<Drawing::RecordingCanvas::DrawFunc> stagingDrawCmdList_;
     std::vector<NodeId> visibleFilterChild_;
     std::unordered_set<NodeId> visibleEffectChild_;
-    static std::unordered_set<NodeId> pendingPurgeNodeIds_;
     Drawing::Matrix oldMatrix_;
     Drawing::Matrix oldAbsMatrix_;
     RSDrawable::Vec drawableVec_;

@@ -461,14 +461,6 @@ bool RSFilterDrawable::NeedPendingPurge() const
     return stagingCacheManager_->NeedPendingPurge();
 }
 
-bool RSFilterDrawable::IsPendingPurge() const
-{
-    if (stagingCacheManager_ == nullptr) {
-        return false;
-    }
-    return stagingCacheManager_->IsPendingPurge();
-}
-
 void RSFilterDrawable::MarkEffectNode()
 {
     if (stagingCacheManager_ != nullptr) {

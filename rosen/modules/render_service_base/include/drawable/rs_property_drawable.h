@@ -138,7 +138,6 @@ public:
     bool IsForceClearFilterCache() const;
     bool IsForceUseFilterCache() const;
     bool NeedPendingPurge() const;
-    bool IsPendingPurge() const;
     bool IsSkippingFrame() const;
     bool IsAIBarFilter() const;
     bool IsAIBarCacheValid();
