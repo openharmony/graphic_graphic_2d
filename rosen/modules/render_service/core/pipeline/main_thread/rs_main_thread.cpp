@@ -1082,21 +1082,21 @@ void RSMainThread::PrintCurrentStatus()
 {
 #ifdef RS_ENABLE_GPU
     std::string gpuType = "";
-    switch (OHOS::Rosen::RSSystemProperties::GetGpuApiType()) {
-        case OHOS::Rosen::GpuApiType::OPENGL:
+    switch (RSSystemProperties::GetGpuApiType()) {
+        case GpuApiType::OPENGL:
             gpuType = "opengl";
             break;
-        case OHOS::Rosen::GpuApiType::VULKAN:
+        case GpuApiType::VULKAN:
             gpuType = "vulkan";
             break;
-        case OHOS::Rosen::GpuApiType::DDGR:
+        case GpuApiType::DDGR:
             gpuType = "ddgr";
             break;
         default:
             break;
     }
     RS_LOGI("[Drawing] Version: Non-released");
-    RS_LOGE("PrintCurrentStatus:  drawing is opened, gpu type is %{public}s", gpuType.c_str());
+    RS_LOGE("PrintCurrentStatus: drawing is opened, gpu type is %{public}s", gpuType.c_str());
 #endif
 }
 
@@ -1956,7 +1956,7 @@ uint32_t RSMainThread::GetRefreshRate() const
         RS_LOGE("GetRefreshRate screenManager is nullptr");
         return STANDARD_REFRESH_RATE;
     }
-    uint32_t refreshRate = OHOS::Rosen::HgmCore::Instance().GetScreenCurrentRefreshRate(
+    uint32_t refreshRate = HgmCore::Instance().GetScreenCurrentRefreshRate(
         screenManager->GetDefaultScreenId());
     if (refreshRate == 0) {
         RS_LOGE("GetRefreshRate refreshRate is invalid");
@@ -1967,7 +1967,7 @@ uint32_t RSMainThread::GetRefreshRate() const
 
 uint32_t RSMainThread::GetDynamicRefreshRate() const
 {
-    uint32_t refreshRate = OHOS::Rosen::HgmCore::Instance().GetScreenCurrentRefreshRate(displayNodeScreenId_);
+    uint32_t refreshRate = HgmCore::Instance().GetScreenCurrentRefreshRate(displayNodeScreenId_);
     if (refreshRate == 0) {
         RS_LOGE("GetDynamicRefreshRate refreshRate is invalid");
         return STANDARD_REFRESH_RATE;
@@ -2593,7 +2593,7 @@ void RSMainThread::Render()
     }
     if (isUniRender_) {
 #ifdef RS_ENABLE_GPU
-        auto& hgmCore = OHOS::Rosen::HgmCore::Instance();
+        auto& hgmCore = HgmCore::Instance();
         renderThreadParams_->SetTimestamp(hgmCore.GetCurrentTimestamp());
         renderThreadParams_->SetActualTimestamp(hgmCore.GetActualTimestamp());
         renderThreadParams_->SetVsyncId(hgmCore.GetVsyncId());
@@ -3399,7 +3399,7 @@ void RSMainThread::SetVsyncInfo(uint64_t timestamp)
             context_->GetNodeMap().GetVisibleLeashWindowCount() < MULTI_WINDOW_PERF_START_NUM;
     }
     OHOS::Camera::ChipsetVsyncImpl::Instance().SetVsyncImpl(timestamp, curTime_, vsyncPeriod, allowFramerateChange);
-    RS_LOGD("UpdateVsyncTime = %{public}lld, curTime_ = %{public}lld,"
+    RS_LOGD("UpdateVsyncTime = %{public}lld, curTime_ = %{public}lld, "
         "period = %{public}lld, allowFramerateChange = %{public}d",
         static_cast<long long>(timestamp), static_cast<long long>(curTime_),
         static_cast<long long>(vsyncPeriod), allowFramerateChange);
@@ -5176,11 +5176,11 @@ void RSMainThread::SetFrameInfo(uint64_t frameCount, bool forceRefreshFlag)
 {
     // use the same function as vsync to get current time
     int64_t currentTimestamp = SystemTime();
-    auto &hgmCore = OHOS::Rosen::HgmCore::Instance();
+    auto &hgmCore = HgmCore::Instance();
     hgmCore.SetActualTimestamp(currentTimestamp);
     hgmCore.SetVsyncId(frameCount);
 
-    auto &frameDeadline = OHOS::Rosen::RsFrameDeadlinePredict::GetInstance();
+    auto &frameDeadline = RsFrameDeadlinePredict::GetInstance();
     frameDeadline.ReportRsFrameDeadline(hgmCore, forceRefreshFlag);
 }
 

@@ -38,7 +38,7 @@ constexpr size_t MAX_NUM_SOLID_LAYER = 1;
 bool GetSolidLayerEnabled()
 {
     return (HWCParam::IsSolidLayerEnable() || RsCommonHook::Instance().GetIsWhiteListForSolidColorLayerFlag()) &&
-        OHOS::Rosen::RSSystemParameters::GetSolidLayerHwcEnabled();
+        RSSystemParameters::GetSolidLayerHwcEnabled();
 }
 }
 

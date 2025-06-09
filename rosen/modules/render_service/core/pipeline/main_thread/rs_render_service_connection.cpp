@@ -598,7 +598,7 @@ ErrCode RSRenderServiceConnection::GetPixelMapByProcessId(
             OHOS::Media::Rect rect = {0, 0, surfaceBuffer->GetWidth(), surfaceBuffer->GetHeight()};
             std::shared_ptr<Media::PixelMap> pixelmap = nullptr;
             RSBackgroundThread::Instance().PostSyncTask([&surfaceBuffer, rect, &pixelmap]() {
-                pixelmap = OHOS::Rosen::CreatePixelMapFromSurfaceBuffer(surfaceBuffer, rect);
+                pixelmap = Rosen::CreatePixelMapFromSurfaceBuffer(surfaceBuffer, rect);
             });
             PixelMapInfo info;
             info.pixelMap = pixelmap;
@@ -624,7 +624,7 @@ ErrCode RSRenderServiceConnection::CreatePixelMapFromSurface(sptr<Surface> surfa
         .height = srcRect.h,
     };
     RSBackgroundThread::Instance().PostSyncTask([surface, rect, &pixelMap]() {
-        pixelMap = OHOS::Rosen::CreatePixelMapFromSurface(surface, rect);
+        pixelMap = Rosen::CreatePixelMapFromSurface(surface, rect);
     });
     return ERR_OK;
 }
@@ -913,7 +913,7 @@ void RSRenderServiceConnection::SetScreenRefreshRate(ScreenId id, int32_t sceneI
 {
     ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSRenderService::SetScreenRefreshRate");
     HgmTaskHandleThread::Instance().PostTask([id, sceneId, rate] () {
-        int32_t setResult = OHOS::Rosen::HgmCore::Instance().SetScreenRefreshRate(id, sceneId, rate);
+        int32_t setResult = HgmCore::Instance().SetScreenRefreshRate(id, sceneId, rate);
         if (setResult != 0) {
             RS_LOGW("SetScreenRefreshRate request of screen %{public}" PRIu64 " of rate %{public}d is refused",
                 id, rate);
@@ -927,7 +927,7 @@ void RSRenderServiceConnection::SetRefreshRateMode(int32_t refreshRateMode)
 {
     ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSRenderService::SetRefreshRateMode");
     HgmTaskHandleThread::Instance().PostTask([refreshRateMode] () {
-        int32_t setResult = OHOS::Rosen::HgmCore::Instance().SetRefreshRateMode(refreshRateMode);
+        int32_t setResult = HgmCore::Instance().SetRefreshRateMode(refreshRateMode);
         RSSystemProperties::SetHgmRefreshRateModesEnabled(std::to_string(refreshRateMode));
         if (setResult != 0) {
             RS_LOGW("SetRefreshRateMode mode %{public}d is not supported", refreshRateMode);
@@ -1005,7 +1005,7 @@ void RSRenderServiceConnection::UnregisterFrameRateLinker(FrameRateLinkerId id)
 uint32_t RSRenderServiceConnection::GetScreenCurrentRefreshRate(ScreenId id)
 {
     uint32_t rate = HgmTaskHandleThread::Instance().ScheduleTask([id] () -> uint32_t {
-        return OHOS::Rosen::HgmCore::Instance().GetScreenCurrentRefreshRate(id);
+        return HgmCore::Instance().GetScreenCurrentRefreshRate(id);
     }).get();
     if (rate == 0) {
         RS_LOGW("GetScreenCurrentRefreshRate failed to get current refreshrate of"
@@ -1017,7 +1017,7 @@ uint32_t RSRenderServiceConnection::GetScreenCurrentRefreshRate(ScreenId id)
 std::vector<int32_t> RSRenderServiceConnection::GetScreenSupportedRefreshRates(ScreenId id)
 {
     return HgmTaskHandleThread::Instance().ScheduleTask([id] () -> std::vector<int32_t> {
-        return OHOS::Rosen::HgmCore::Instance().GetScreenComponentRefreshRates(id);
+        return HgmCore::Instance().GetScreenComponentRefreshRates(id);
     }).get();
 }
 
@@ -1123,7 +1123,7 @@ ErrCode RSRenderServiceConnection::GetRefreshInfoToSP(NodeId id, std::string& en
 int32_t RSRenderServiceConnection::GetCurrentRefreshRateMode()
 {
     return HgmTaskHandleThread::Instance().ScheduleTask([] () -> int32_t {
-        return OHOS::Rosen::HgmCore::Instance().GetCurrentRefreshRateMode();
+        return HgmCore::Instance().GetCurrentRefreshRateMode();
     }).get();
 }
 
@@ -1249,7 +1249,7 @@ void RSRenderServiceConnection::SetScreenPowerStatus(ScreenId id, ScreenPowerSta
         mainThread_->SetDiscardJankFrames(true);
         RSJankStatsRenderFrameHelper::GetInstance().SetDiscardJankFrames(true);
         HgmTaskHandleThread::Instance().PostTask([id, status]() {
-            OHOS::Rosen::HgmCore::Instance().NotifyScreenPowerStatus(id, status);
+            HgmCore::Instance().NotifyScreenPowerStatus(id, status);
         });
 #endif
     } else {
@@ -2413,7 +2413,7 @@ ErrCode RSRenderServiceConnection::SetScreenActiveRect(ScreenId id, const Rect& 
     mainThread_->ScheduleTask(task).wait();
 
     HgmTaskHandleThread::Instance().PostTask([id, dstActiveRect]() {
-            OHOS::Rosen::HgmCore::Instance().NotifyScreenRectFrameRateChange(id, dstActiveRect);
+        HgmCore::Instance().NotifyScreenRectFrameRateChange(id, dstActiveRect);
     });
     repCode = StatusCode::SUCCESS;
     return ERR_OK;
