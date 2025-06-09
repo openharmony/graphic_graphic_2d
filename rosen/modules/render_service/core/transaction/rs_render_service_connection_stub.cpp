@@ -49,6 +49,7 @@ constexpr size_t FILE_DESCRIPTOR_LIMIT = 15;
 constexpr size_t MAX_OBJECTNUM = 512;
 constexpr size_t MAX_DATA_SIZE = 1024 * 1024; // 1MB
 static constexpr int MAX_SECURITY_EXEMPTION_LIST_NUMBER = 1024; // securityExemptionList size not exceed 1024
+const uint32_t MAX_VOTER_SIZE = 100;
 #ifdef RES_SCHED_ENABLE
 const uint32_t RS_IPC_QOS_LEVEL = 7;
 constexpr const char* RS_BUNDLE_NAME = "render_service";
@@ -1285,6 +1286,16 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 RS_LOGE("RSRenderServiceConnectionStub::TakeSurfaceCapture read specifiedAreaRect failed");
                 break;
             }
+
+            std::unique_ptr<Media::PixelMap> clientPixelMap;
+            if (captureConfig.isClientPixelMap) {
+                clientPixelMap = std::unique_ptr<Media::PixelMap>(data.ReadParcelable<Media::PixelMap>());
+                if (clientPixelMap == nullptr) {
+                    ret = ERR_INVALID_DATA;
+                    RS_LOGE("RSRenderServiceConnectionStub::TakeSurfaceCapture read clientPixelMap failed");
+                    break;
+                }
+            }
             RSSurfaceCapturePermissions permissions;
             permissions.screenCapturePermission = accessible;
             permissions.isSystemCalling = RSInterfaceCodeAccessVerifierBase::IsSystemCalling(
@@ -1293,7 +1304,8 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             // we temporarily add a white list to avoid abnormal functionality or abnormal display.
             // The white list will be removed after GetCallingPid interface can return real PID.
             permissions.selfCapture = (ExtractPid(id) == callingPid || callingPid == 0);
-            TakeSurfaceCapture(id, cb, captureConfig, blurParam, specifiedAreaRect, permissions);
+            TakeSurfaceCapture(id, cb, captureConfig, blurParam, specifiedAreaRect,
+                std::move(clientPixelMap), permissions);
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::TAKE_SURFACE_CAPTURE_SOLO): {
@@ -2862,7 +2874,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            const uint32_t MAX_VOTER_SIZE = 100;
             if (mapSize > MAX_VOTER_SIZE) {
                 ret = ERR_INVALID_STATE;
                 break;
@@ -2899,7 +2910,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            const uint32_t MAX_VOTER_SIZE = 100;
             if (mapSize > MAX_VOTER_SIZE) {
                 ret = ERR_INVALID_STATE;
                 break;
@@ -3642,6 +3652,7 @@ bool RSRenderServiceConnectionStub::ReadSurfaceCaptureConfig(RSSurfaceCaptureCon
     if (!data.ReadFloat(captureConfig.scaleX) || !data.ReadFloat(captureConfig.scaleY) ||
         !data.ReadBool(captureConfig.useDma) || !data.ReadBool(captureConfig.useCurWindow) ||
         !data.ReadUint8(captureType) || !data.ReadBool(captureConfig.isSync) ||
+        !data.ReadBool(captureConfig.isClientPixelMap) ||
         !data.ReadFloat(captureConfig.mainScreenRect.left_) ||
         !data.ReadFloat(captureConfig.mainScreenRect.top_) ||
         !data.ReadFloat(captureConfig.mainScreenRect.right_) ||

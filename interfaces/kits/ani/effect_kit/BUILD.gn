@@ -1,0 +1,101 @@
+# Copyright (C) 2025 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/config/components/ets_frontend/ets2abc_config.gni")
+import("//build/ohos.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
+
+## Build effectKit_ani.so
+config("graphic_ani_effect_kit_config") {
+  visibility = [ ":*" ]
+
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+    "-Wno-pointer-arith",
+    "-Wno-non-virtual-dtor",
+    "-Wno-missing-field-initializers",
+    "-Wno-c++11-narrowing",
+    "-Wno-unused-but-set-variable",
+  ]
+
+  defines = [ "EGL_EGLEXT_PROTOTYPES" ]
+}
+
+ohos_shared_library("effectKit_ani") {
+  branch_protector_ret = "pac_ret"
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    cfi_vcall_icall_only = true
+    debug = false
+  }
+
+  include_dirs = [
+    "./include",
+    "$graphic_2d_root/rosen/modules/effect/effectChain/include",
+    "$graphic_2d_root/rosen/modules/effect/egl/include",
+    "$graphic_2d_root/rosen/modules/effect/color_picker/include",
+    "$graphic_2d_root/rosen/modules/effect/skia_effectChain/include",
+    "$graphic_2d_root/utils/color_manager/export",
+  ]
+
+  public_configs = []
+
+  configs = [ ":graphic_ani_effect_kit_config" ]
+
+  sources = [
+    "./src/ani_effect_kit_module.cpp",
+    "./src/ani_effect_kit_utils.cpp",
+    "./src/ani_filter.cpp",
+  ]
+
+  deps = [
+    "$graphic_2d_root/rosen/modules/effect/color_picker:color_picker",
+    "$graphic_2d_root/rosen/modules/effect/skia_effectChain:skeffectchain",
+  ]
+
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+    "image_framework:image",
+    "image_framework:image_ani",
+    "runtime_core:ani",
+    "runtime_core:libarkruntime",
+  ]
+
+  part_name = "graphic_2d"
+  subsystem_name = "graphic"
+  output_extension = "so"
+}
+
+## Build effectKit_ani.so
+
+generate_static_abc("effectKit") {
+  base_url = "./ets"  # base_url需配置到导出接口文件的所在目录
+  files = [
+    "./ets/@ohos.effectKit.ets",
+    "./ets/effectKit_entry.ets",
+  ]
+  is_boot_abc = "True"
+  device_dst_file = "/system/framework/effectKit.abc"
+}
+ohos_prebuilt_etc("effectKit_etc") {
+  source = "$target_out_dir/effectKit.abc"
+  module_install_dir = "framework"
+  part_name = "graphic_2d"
+  subsystem_name = "graphic"
+  deps = [ ":effectKit" ]
+}

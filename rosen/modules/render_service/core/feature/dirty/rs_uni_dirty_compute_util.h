@@ -37,17 +37,35 @@ public:
     static std::vector<RectI> GetFilpDirtyRects(const std::vector<RectI>& srcRects, const ScreenInfo& screenInfo);
     static std::vector<RectI> FilpRects(const std::vector<RectI>& srcRects, const ScreenInfo& screenInfo);
     static GraphicIRect IntersectRect(const GraphicIRect& first, const GraphicIRect& second);
+    static void UpdateVirtualExpandDisplayAccumulatedParams(
+        RSDisplayRenderParams& params, DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable);
+    static bool CheckVirtualExpandDisplaySkip(
+        RSDisplayRenderParams& params, DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable);
 };
 
 class RSUniFilterDirtyComputeUtil {
 public:
     static FilterDirtyRegionInfo GenerateFilterDirtyRegionInfo(
         RSRenderNode& filterNode, const std::optional<Occlusion::Region>& preDirty);
-    inline static void SetFilterAlignMode(bool align)
-    {
-        dirtyAlignEnabled_ = align;
-    }
+    // Entry for filter dirty region process
+    static void DealWithFilterDirtyRegion(Occlusion::Region& damageRegion, Occlusion::Region& drawRegion,
+        DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable, const std::optional<Drawing::Matrix>& matrix,
+        bool dirtyAlign = false);
 private:
+    static bool DealWithFilterDirtyForDisplay(Occlusion::Region& damageRegion, Occlusion::Region& drawRegion,
+        DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable, const std::optional<Drawing::Matrix>& matrix);
+
+    static bool DealWithFilterDirtyForSurface(Occlusion::Region& damageRegion, Occlusion::Region& drawRegion,
+        std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& drawables,
+        const std::optional<Drawing::Matrix>& matrix);
+    // basic check point
+    static bool CheckMergeFilterDirty(Occlusion::Region& damageRegion, Occlusion::Region& drawRegion,
+        FilterDirtyRegionInfoList& filterList, const std::optional<Drawing::Matrix>& matrix,
+        const std::optional<Occlusion::Region>& visibleRegion);
+
+    static void ResetFilterInfoStatus(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable,
+        std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& surfaceDrawables);
+
     static Occlusion::Region GetVisibleEffectRegion(RSRenderNode& filterNode);
     inline static bool dirtyAlignEnabled_ = false;
 };

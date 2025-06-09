@@ -37,6 +37,12 @@ bool TextEffectFactoryCreator::RegisterFactory(TextEffectStrategy strategy,
     return true;
 }
 
+void TextEffectFactoryCreator::UnregisterFactory(TextEffectStrategy strategy)
+{
+    std::unique_lock<std::shared_mutex> lock(mutex_);
+    factoryTable_.erase(strategy);
+}
+
 std::shared_ptr<TextEffect> TextEffectFactoryCreator::CreateTextEffect(TextEffectStrategy strategy)
 {
     std::shared_lock<std::shared_mutex> lock(mutex_);

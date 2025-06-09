@@ -22,7 +22,6 @@
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "platform/common/rs_log.h"
-#include "utils/graphic_coretrace.h"
 #include "utils/rect.h"
 #include "utils/region.h"
 #include "include/gpu/vk/GrVulkanTrackerInterface.h"
@@ -45,8 +44,6 @@ RSRenderNodeDrawable::Ptr RSCanvasRenderNodeDrawable::OnGenerate(std::shared_ptr
  */
 void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER_WITHNODEID(Drawing::CoreFunction::
-        RS_RSCANVASRENDERNODEDRAWABLE_ONDRAW, GetId());
 #ifdef RS_ENABLE_GPU
     SetDrawSkipType(DrawSkipType::NONE);
     if (!ShouldPaint()) {
@@ -120,8 +117,6 @@ void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
  */
 void RSCanvasRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        RS_RSCANVASRENDERNODEDRAWABLE_ONCAPTURE);
 #ifdef RS_ENABLE_GPU
     if (!ShouldPaint()) {
         return;

@@ -34,7 +34,7 @@
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "platform/common/rs_system_properties.h"
-
+#include "feature/capture/rs_capture_pixelmap_manager.h"
 using namespace testing::ext;
 using namespace OHOS::Rosen::DrawableV2;
 
@@ -933,6 +933,12 @@ HWTEST_F(RSSurfaceCaptureTaskTest, TakeSurfaceCaptureWithBlurTest, Function | Sm
 #if defined(RS_ENABLE_UNI_RENDER)
     ASSERT_EQ(surfaceCaptureCb_->IsTestSuccess(), true);
 #endif
+    // Test Invaild Scale
+    captureConfig.scaleX = 0;
+    blurRadius = 1000;
+    ret = rsInterfaces_->TakeSurfaceCaptureWithBlur(surfaceNode_, surfaceCaptureCb_, captureConfig, blurRadius);
+    // code
+    EXPECT_EQ(ret, true);
 }
 
 /*
@@ -1050,5 +1056,20 @@ HWTEST_F(RSSurfaceCaptureTaskTest, TakeSelfSurfaceCaptureTest004, Function | Sma
     ASSERT_EQ(surfaceCaptureCb_->IsTestSuccess(), true);
 #endif
 }
+
+/*
+ * @tc.name: CreateClientPixelMap
+ * @tc.desc: Test CreateClientPixelMap
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceCaptureTaskTest, CreateClientPixelMap, Function | SmallTest | Level2)
+{
+    Drawing::Rect rect = {0, 0, 1260, 2720};
+    RSSurfaceCaptureConfig captureConfig;
+    auto pixelMap = RSCapturePixelMapManager::GetClientCapturePixelMap(rect, captureConfig,
+        UniRenderEnabledType::UNI_RENDER_DISABLED);
+    EXPECT_EQ(pixelMap == nullptr, true);
+}
+
 } // namespace Rosen
 } // namespace OHOS

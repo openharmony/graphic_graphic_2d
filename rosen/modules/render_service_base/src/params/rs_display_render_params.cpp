@@ -198,6 +198,20 @@ bool RSDisplayRenderParams::GetZoomed() const
     return isZoomed_;
 }
 
+void RSDisplayRenderParams::SetHasMirrorDisplay(bool hasMirrorDisplay)
+{
+    if (hasMirrorDisplay_ == hasMirrorDisplay) {
+        return;
+    }
+    needSync_ = true;
+    hasMirrorDisplay_ = hasMirrorDisplay;
+}
+
+bool RSDisplayRenderParams::HasMirrorDisplay() const
+{
+    return hasMirrorDisplay_;
+}
+
 void RSDisplayRenderParams::SetTargetSurfaceRenderNodeDrawable(
     DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr drawable)
 {
@@ -262,6 +276,7 @@ void RSDisplayRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetDisplayParams->brightnessRatio_ = brightnessRatio_;
     targetDisplayParams->zOrder_ = zOrder_;
     targetDisplayParams->isZoomed_ = isZoomed_;
+    targetDisplayParams->hasMirrorDisplay_ = hasMirrorDisplay_;
     targetDisplayParams->targetSurfaceRenderNodeDrawable_ = targetSurfaceRenderNodeDrawable_;
     targetDisplayParams->roundCornerSurfaceDrawables_ = roundCornerSurfaceDrawables_;
     targetDisplayParams->virtualScreenMuteStatus_ = virtualScreenMuteStatus_;

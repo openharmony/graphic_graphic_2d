@@ -165,6 +165,29 @@ HWTEST_F(RSTransactionProxyTest, FlushImplicitTransaction004, TestSize.Level1)
 }
 
 /**
+ * @tc.name: ReportUiSkipEvent001
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionProxyTest, ReportUiSkipEvent001, TestSize.Level1)
+{
+    RSTransactionProxy::GetInstance()->uiSkipCount_ = 10;
+    RSTransactionProxy::GetInstance()->ReportUiSkipEvent("test", 1000, 2000);
+    EXPECT_EQ(RSTransactionProxy::GetInstance()->uiSkipCount_, 10);
+
+    RSTransactionProxy::GetInstance()->uiSkipCount_ = 20;
+    RSTransactionProxy::GetInstance()->ReportUiSkipEvent("test", 2000, 1000);
+    RSTransactionProxy::GetInstance()->uiSkipCount_ = 30;
+    RSTransactionProxy::GetInstance()->ReportUiSkipEvent("test", 3000 + 60 * 1000, 2000);
+    RSTransactionProxy::GetInstance()->uiSkipCount_ = 500;
+    RSTransactionProxy::GetInstance()->ReportUiSkipEvent("test", 3000 + 60 * 1000, 1000);
+    RSTransactionProxy::GetInstance()->uiSkipCount_ = 100;
+    RSTransactionProxy::GetInstance()->ReportUiSkipEvent("test", 3000 + 60 * 1000, 2000);
+    EXPECT_EQ(RSTransactionProxy::GetInstance()->uiSkipCount_, 100);
+}
+
+/**
  * @tc.name: IsEmpty001
  * @tc.desc: test
  * @tc.type:FUNC

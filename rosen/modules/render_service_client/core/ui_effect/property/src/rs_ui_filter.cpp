@@ -50,7 +50,7 @@ std::shared_ptr<RSRenderPropertyBase> RSUIFilter::CreateRenderProperty(const Pro
     }
     std::shared_ptr<RSRenderPropertyBase> renderProperty =
         std::make_shared<RSRenderProperty<std::shared_ptr<RSRenderFilter>>>(
-            rsRenderFilter, id, RSRenderPropertyType::PROPERTY_UI_FILTER);
+            rsRenderFilter, id, RSPropertyType::UI_FILTER);
     return renderProperty;
 }
 

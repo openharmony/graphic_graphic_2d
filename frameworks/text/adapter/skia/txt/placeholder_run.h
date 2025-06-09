@@ -28,6 +28,7 @@ enum class PlaceholderAlignment {
     TOP,
     BOTTOM,
     MIDDLE,
+    FOLLOW_PARAGRAPH
 };
 
 class PlaceholderRun {

@@ -18,6 +18,11 @@
 #include "ge_visual_effect_container.h"
 
 #include "platform/common/rs_log.h"
+#ifdef USE_M133_SKIA
+#include "src/core/SkChecksum.h"
+#else
+#include "src/core/SkOpts.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -107,7 +112,7 @@ std::shared_ptr<RSRenderPropertyBase> RSRenderBezierWarpFilterPara::CreateRender
         case RSUIFilterType::BEZIER_CONTROL_POINT10 :
         case RSUIFilterType::BEZIER_CONTROL_POINT11 : {
             return std::make_shared<RSRenderAnimatableProperty<Vector2f>>(
-                Vector2f(0.f, 0.f), 0, RSRenderPropertyType::PROPERTY_VECTOR2F);
+                Vector2f(0.f, 0.f), 0, RSPropertyType::VECTOR2F);
         }
         default: {
             ROSEN_LOGD("RSRenderBezierWarpFilterPara::CreateRenderProperty is nullptr");
@@ -154,7 +159,12 @@ bool RSRenderBezierWarpFilterPara::ParseFilterValues()
         tmpBezierCtrlPoint = ctrlPointProperty->Get();
         destinationPatch_[i].Set(tmpBezierCtrlPoint.x_, tmpBezierCtrlPoint.y_);
     }
-    hash_ = SkOpts::hash(&destinationPatch_, sizeof(destinationPatch_), hash_);
+#ifdef USE_M133_SKIA
+    const auto hashFunc = SkChecksum::Hash32;
+#else
+    const auto hashFunc = SkOpts::hash;
+#endif
+    hash_ = hashFunc(&destinationPatch_, sizeof(destinationPatch_), hash_);
     return true;
 }
 

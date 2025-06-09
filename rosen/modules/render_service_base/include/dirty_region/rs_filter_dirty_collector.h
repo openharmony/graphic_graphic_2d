@@ -31,7 +31,7 @@ namespace Rosen {
  */
 typedef enum : uint8_t {
     OPAQUE_SURFACE_FILTER       = 0,
-    TRANSPARENT_SURFACE_fILTER  = 1,
+    TRANSPARENT_SURFACE_FILTER  = 1,
     CONTAINER_FILTER            = 2,
     MAX_FILTER_DIRTY_TYPE
 } FilterDirtyType;

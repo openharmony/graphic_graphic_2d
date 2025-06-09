@@ -181,7 +181,7 @@ HWTEST_F(RSBaseRenderEngineUnitTest, DrawDisplayNodeWithParams001, TestSize.Leve
         param.buffer = surfaceNode->GetRSSurfaceHandler()->GetBuffer();
 
         auto renderEngine = std::make_shared<RSRenderEngine>();
-        renderEngine->Init(true);
+        renderEngine->Init();
         auto drawingRecordingCanvas = std::make_unique<Drawing::RecordingCanvas>(10, 10);
         drawingRecordingCanvas->SetGrRecordingContext(renderEngine->GetRenderContext()->GetSharedDrGPUContext());
         auto recordingCanvas = std::make_shared<RSPaintFilterCanvas>(drawingRecordingCanvas.get());
@@ -216,7 +216,7 @@ HWTEST_F(RSBaseRenderEngineUnitTest, CreateEglImageFromBuffer001, TestSize.Level
     auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
     std::unique_ptr<Drawing::Canvas> drawingCanvas = std::make_unique<Drawing::Canvas>(10, 10);
     std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
-    EGLDisplay display;
+    EGLDisplay display = EGL_NO_DISPLAY;
     renderEngine->eglImageManager_ = std::make_shared<RSEglImageManager>(display);
     auto img = renderEngine->CreateEglImageFromBuffer(*canvas, node->GetRSSurfaceHandler()->GetBuffer(), nullptr);
     ASSERT_EQ(nullptr, img);
@@ -274,6 +274,8 @@ HWTEST_F(RSBaseRenderEngineUnitTest, ConvertColorGamutToDrawingColorSpace, TestS
 {
     std::shared_ptr<Drawing::ColorSpace> colorSpace;
     colorSpace = RSBaseRenderEngine::ConvertColorGamutToDrawingColorSpace(GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    ASSERT_NE(colorSpace, nullptr);
+    colorSpace = RSBaseRenderEngine::ConvertColorGamutToDrawingColorSpace(GRAPHIC_COLOR_GAMUT_DCI_P3);
     ASSERT_NE(colorSpace, nullptr);
     colorSpace = RSBaseRenderEngine::ConvertColorGamutToDrawingColorSpace(GRAPHIC_COLOR_GAMUT_ADOBE_RGB);
     ASSERT_NE(colorSpace, nullptr);

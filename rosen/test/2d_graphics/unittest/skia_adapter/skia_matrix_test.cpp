@@ -372,6 +372,59 @@ HWTEST_F(SkiaMatrixTest, Invert001, TestSize.Level1)
     ASSERT_TRUE(skiaMatrix.Invert(inverse) == true);
 }
 
+/**
+ * @tc.name: SetSinCos001
+ * @tc.desc: Test SetSinCos
+ * @tc.type: FUNC
+ * @tc.require: I91EH1
+ */
+HWTEST_F(SkiaMatrixTest, SetSinCos001, TestSize.Level1)
+{
+    SkiaMatrix skiaMatrix;
+    skiaMatrix.SetSinCos(2, 0.5, 0.5, 2);
+    ASSERT_TRUE(skiaMatrix.Get(Matrix::SCALE_X) == 0.5);
+    ASSERT_TRUE(skiaMatrix.Get(Matrix::SCALE_Y) == 0.5);
+}
+
+/**
+ * @tc.name: MapRadius001
+ * @tc.desc: Test MapRadius
+ * @tc.type: FUNC
+ * @tc.require: I91EH1
+ */
+HWTEST_F(SkiaMatrixTest, MapRadius001, TestSize.Level1)
+{
+    SkiaMatrix skiaMatrix;
+    skiaMatrix.SetSkew(2, 0.5, 0.5, 2);
+    float error = skiaMatrix.MapRadius(1) - 1.581139;
+    ASSERT_TRUE(error <= 1e-4);
+}
+
+/**
+ * @tc.name: IsAffine001
+ * @tc.desc: Test IsAffine
+ * @tc.type: FUNC
+ * @tc.require: I91EH1
+ */
+HWTEST_F(SkiaMatrixTest, IsAffine001, TestSize.Level1)
+{
+    SkiaMatrix skiaMatrix;
+    skiaMatrix.SetSkew(2, 0.5, 0.5, 2);
+    ASSERT_TRUE(skiaMatrix.IsAffine());
+}
+
+/**
+ * @tc.name: RectStayRect001
+ * @tc.desc: Test RectStayRect
+ * @tc.type: FUNC
+ * @tc.require: I91EH1
+ */
+HWTEST_F(SkiaMatrixTest, RectStayRect001, TestSize.Level1)
+{
+    SkiaMatrix skiaMatrix;
+    skiaMatrix.SetSkew(2, 0.5, 0.5, 2);
+    ASSERT_FALSE(skiaMatrix.RectStaysRect());
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

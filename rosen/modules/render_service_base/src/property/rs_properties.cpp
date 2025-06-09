@@ -20,46 +20,52 @@
 #include <optional>
 #include <securec.h>
 
+#include "src/core/SkOpts.h"
+
 #include "animation/rs_render_particle_animation.h"
 #include "common/rs_common_def.h"
-#include "render/rs_render_mesa_blur_filter.h"
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_vector4.h"
-#include "pipeline/rs_context.h"
+#include "drawable/rs_property_drawable_utils.h"
 #include "pipeline/rs_canvas_render_node.h"
+#include "pipeline/rs_context.h"
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "property/rs_point_light_manager.h"
 #include "property/rs_properties_def.h"
+#include "render/rs_attraction_effect_filter.h"
+#include "render/rs_colorful_shadow_filter.h"
+#include "render/rs_distortion_shader_filter.h"
+#include "render/rs_filter.h"
+#include "render/rs_fly_out_shader_filter.h"
+#include "render/rs_foreground_effect_filter.h"
+#include "render/rs_hdr_ui_brightness_filter.h"
+#include "render/rs_material_filter.h"
 #include "render/rs_render_aibar_filter.h"
 #include "render/rs_render_always_snapshot_filter.h"
-#include "render/rs_colorful_shadow_filter.h"
-#include "render/rs_filter.h"
-#include "render/rs_foreground_effect_filter.h"
+#include "render/rs_render_color_gradient_filter.h"
+#include "render/rs_render_dispersion_filter.h"
+#include "render/rs_render_displacement_distort_filter.h"
+#include "render/rs_render_edge_light_filter.h"
+#include "render/rs_render_filter_base.h"
 #include "render/rs_render_grey_filter.h"
-#include "render/rs_hdr_ui_brightness_filter.h"
 #include "render/rs_render_kawase_blur_filter.h"
-#include "render/rs_material_filter.h"
 #include "render/rs_render_light_blur_filter.h"
 #include "render/rs_render_linear_gradient_blur_filter.h"
 #include "render/rs_render_magnifier_filter.h"
 #include "render/rs_render_maskcolor_filter.h"
-#include "render/rs_render_color_gradient_filter.h"
-#include "render/rs_render_displacement_distort_filter.h"
-#include "render/rs_render_edge_light_filter.h"
-#include "render/rs_render_dispersion_filter.h"
-#include "render/rs_render_filter_base.h"
+#include "render/rs_render_mesa_blur_filter.h"
+#include "render/rs_render_water_ripple_filter.h"
 #include "render/rs_shader_mask.h"
 #include "render/rs_spherize_effect_filter.h"
-#include "render/rs_attraction_effect_filter.h"
-#include "src/core/SkOpts.h"
-#include "render/rs_render_water_ripple_filter.h"
-#include "render/rs_fly_out_shader_filter.h"
-#include "render/rs_distortion_shader_filter.h"
-#include "drawable/rs_property_drawable_utils.h"
 
+#ifdef USE_M133_SKIA
+#include "src/core/SkChecksum.h"
+#else
+#include "src/core/SkOpts.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -134,8 +140,6 @@ static const std::unordered_map<RSModifierType, ResetPropertyFunc> g_propertyRes
     { RSModifierType::BORDER_DASH_WIDTH,                    [](RSProperties* prop) {
                                                                 prop->SetBorderDashWidth({-1.f}); }},
     { RSModifierType::BORDER_DASH_GAP,                      [](RSProperties* prop) { prop->SetBorderDashGap({-1.f}); }},
-    { RSModifierType::FILTER,                               [](RSProperties* prop) { prop->SetFilter({}); }},
-    { RSModifierType::BACKGROUND_FILTER,                    [](RSProperties* prop) { prop->SetBackgroundFilter({}); }},
     { RSModifierType::LINEAR_GRADIENT_BLUR_PARA,            [](RSProperties* prop) {
                                                                 prop->SetLinearGradientBlurPara({}); }},
     { RSModifierType::DYNAMIC_LIGHT_UP_RATE,                [](RSProperties* prop) {
@@ -1022,6 +1026,8 @@ void RSProperties::SetAlpha(float alpha)
         alphaNeedApply_ = true;
     }
     SetDirty();
+    // The alpha value of parent node affects all child node
+    subTreeAllDirty_ = true;
 }
 
 float RSProperties::GetAlpha() const
@@ -1452,17 +1458,6 @@ void RSProperties::SetForegroundFilterCache(const std::shared_ptr<RSFilter>& for
 {
     foregroundFilterCache_ = foregroundFilterCache;
     if (foregroundFilterCache) {
-        isDrawn_ = true;
-    }
-    SetDirty();
-    filterNeedUpdate_ = true;
-    contentDirty_ = true;
-}
-
-void RSProperties::SetBackgroundFilter(const std::shared_ptr<RSFilter>& backgroundFilter)
-{
-    backgroundFilter_ = backgroundFilter;
-    if (backgroundFilter_) {
         isDrawn_ = true;
     }
     SetDirty();
@@ -1913,17 +1908,6 @@ void RSProperties::SetDynamicDimDegree(const std::optional<float>& DimDegree)
     }
     filterNeedUpdate_ = true;
     SetDirty();
-    contentDirty_ = true;
-}
-
-void RSProperties::SetFilter(const std::shared_ptr<RSFilter>& filter)
-{
-    filter_ = filter;
-    if (filter) {
-        isDrawn_ = true;
-    }
-    SetDirty();
-    filterNeedUpdate_ = true;
     contentDirty_ = true;
 }
 
@@ -2449,6 +2433,7 @@ void RSProperties::ResetDirty()
     isDirty_ = false;
     geoDirty_ = false;
     contentDirty_ = false;
+    subTreeAllDirty_ = false;
 }
 
 void RSProperties::RecordCurDirtyStatus()
@@ -2456,13 +2441,15 @@ void RSProperties::RecordCurDirtyStatus()
     curIsDirty_ = isDirty_;
     curGeoDirty_ = geoDirty_;
     curContentDirty_ = contentDirty_;
+    curSubTreeAllDirty_ = subTreeAllDirty_;
 }
 
-void RSProperties::AccmulateDirtyStatus()
+void RSProperties::AccumulateDirtyStatus()
 {
     isDirty_ = isDirty_ || curIsDirty_;
     geoDirty_ = geoDirty_ || curGeoDirty_;
     contentDirty_ = contentDirty_ || curContentDirty_;
+    subTreeAllDirty_ = subTreeAllDirty_ || curSubTreeAllDirty_;
 }
 
 bool RSProperties::IsDirty() const
@@ -2483,6 +2470,11 @@ bool RSProperties::IsCurGeoDirty() const
 bool RSProperties::IsContentDirty() const
 {
     return contentDirty_;
+}
+
+bool RSProperties::IsSubTreeAllDirty() const
+{
+    return subTreeAllDirty_;
 }
 
 RectI RSProperties::GetDirtyRect() const
@@ -3215,7 +3207,12 @@ void RSProperties::GenerateBackgroundBlurFilter()
 {
     std::shared_ptr<Drawing::ImageFilter> blurFilter = Drawing::ImageFilter::CreateBlurImageFilter(
         backgroundBlurRadiusX_, backgroundBlurRadiusY_, Drawing::TileMode::CLAMP, nullptr);
-    uint32_t hash = SkOpts::hash(&backgroundBlurRadiusX_, sizeof(backgroundBlurRadiusX_), 0);
+#ifdef USE_M133_SKIA
+    const auto hashFunc = SkChecksum::Hash32;
+#else
+    const auto hashFunc = SkOpts::hash;
+#endif
+    uint32_t hash = hashFunc(&backgroundBlurRadiusX_, sizeof(backgroundBlurRadiusX_), 0);
     std::shared_ptr<RSDrawingFilter> originalFilter = nullptr;
 
     if (NeedLightBlur(bgBlurDisableSystemAdaptation)) {
@@ -3275,9 +3272,14 @@ void RSProperties::GenerateBackgroundMaterialBlurFilter()
     float radiusForHash = DecreasePrecision(backgroundBlurRadius_);
     float saturationForHash = DecreasePrecision(backgroundBlurSaturation_);
     float brightnessForHash = DecreasePrecision(backgroundBlurBrightness_);
-    uint32_t hash = SkOpts::hash(&radiusForHash, sizeof(radiusForHash), 0);
-    hash = SkOpts::hash(&saturationForHash, sizeof(saturationForHash), hash);
-    hash = SkOpts::hash(&brightnessForHash, sizeof(brightnessForHash), hash);
+#ifdef USE_M133_SKIA
+    const auto hashFunc = SkChecksum::Hash32;
+#else
+    const auto hashFunc = SkOpts::hash;
+#endif
+    uint32_t hash = hashFunc(&radiusForHash, sizeof(radiusForHash), 0);
+    hash = hashFunc(&saturationForHash, sizeof(saturationForHash), hash);
+    hash = hashFunc(&brightnessForHash, sizeof(brightnessForHash), hash);
 
     std::shared_ptr<Drawing::ColorFilter> colorFilter = GetMaterialColorFilter(
         backgroundBlurSaturation_, backgroundBlurBrightness_);
@@ -3333,7 +3335,12 @@ void RSProperties::GenerateForegroundBlurFilter()
 
     std::shared_ptr<Drawing::ImageFilter> blurFilter = Drawing::ImageFilter::CreateBlurImageFilter(
         foregroundBlurRadiusX_, foregroundBlurRadiusY_, Drawing::TileMode::CLAMP, nullptr);
-    uint32_t hash = SkOpts::hash(&foregroundBlurRadiusX_, sizeof(foregroundBlurRadiusX_), 0);
+#ifdef USE_M133_SKIA
+    const auto hashFunc = SkChecksum::Hash32;
+#else
+    const auto hashFunc = SkOpts::hash;
+#endif
+    uint32_t hash = hashFunc(&foregroundBlurRadiusX_, sizeof(foregroundBlurRadiusX_), 0);
     std::shared_ptr<RSDrawingFilter> originalFilter = nullptr;
 
     // fuse grey-adjustment and pixel-stretch with blur filter
@@ -3383,7 +3390,12 @@ void RSProperties::GenerateForegroundMaterialBlurFilter()
     if (foregroundColorMode_ == BLUR_COLOR_MODE::FASTAVERAGE) {
         foregroundColorMode_ = BLUR_COLOR_MODE::AVERAGE;
     }
-    uint32_t hash = SkOpts::hash(&foregroundBlurRadius_, sizeof(foregroundBlurRadius_), 0);
+#ifdef USE_M133_SKIA
+    const auto hashFunc = SkChecksum::Hash32;
+#else
+    const auto hashFunc = SkOpts::hash;
+#endif
+    uint32_t hash = hashFunc(&foregroundBlurRadius_, sizeof(foregroundBlurRadius_), 0);
     std::shared_ptr<Drawing::ColorFilter> colorFilter = GetMaterialColorFilter(
         foregroundBlurSaturation_, foregroundBlurBrightness_);
     if (NeedLightBlur(fgBlurDisableSystemAdaptation)) {
@@ -3416,8 +3428,8 @@ void RSProperties::GenerateForegroundMaterialBlurFilter()
             originalFilter->Compose(colorImageFilter, hash) : std::make_shared<RSDrawingFilter>(colorImageFilter, hash);
         originalFilter = originalFilter->Compose(std::static_pointer_cast<RSRenderFilterParaBase>(kawaseBlurFilter));
     } else {
-        hash = SkOpts::hash(&foregroundBlurSaturation_, sizeof(foregroundBlurSaturation_), hash);
-        hash = SkOpts::hash(&foregroundBlurBrightness_, sizeof(foregroundBlurBrightness_), hash);
+        hash = hashFunc(&foregroundBlurSaturation_, sizeof(foregroundBlurSaturation_), hash);
+        hash = hashFunc(&foregroundBlurBrightness_, sizeof(foregroundBlurBrightness_), hash);
         originalFilter = originalFilter?
             originalFilter->Compose(blurColorFilter, hash) : std::make_shared<RSDrawingFilter>(blurColorFilter, hash);
     }
@@ -3442,7 +3454,12 @@ void RSProperties::GenerateBackgroundMaterialFuzedBlurFilter()
         mesaBlurShaderFilter = std::make_shared<RSMESABlurShaderFilter>(backgroundBlurRadius_);
     }
     originalFilter = std::make_shared<RSDrawingFilter>(mesaBlurShaderFilter);
-    uint32_t hash = SkOpts::hash(&backgroundBlurRadius_, sizeof(backgroundBlurRadius_), 0);
+#ifdef USE_M133_SKIA
+    const auto hashFunc = SkChecksum::Hash32;
+#else
+    const auto hashFunc = SkOpts::hash;
+#endif
+    uint32_t hash = hashFunc(&backgroundBlurRadius_, sizeof(backgroundBlurRadius_), 0);
     std::shared_ptr<Drawing::ColorFilter> colorFilter = GetMaterialColorFilter(
         backgroundBlurSaturation_, backgroundBlurBrightness_);
     auto colorImageFilter = Drawing::ImageFilter::CreateColorFilterImageFilter(*colorFilter, nullptr);
@@ -3466,7 +3483,12 @@ void RSProperties::GenerateCompositingMaterialFuzedBlurFilter()
         mesaBlurShaderFilter = std::make_shared<RSMESABlurShaderFilter>(foregroundBlurRadius_);
     }
     originalFilter = std::make_shared<RSDrawingFilter>(mesaBlurShaderFilter);
-    uint32_t hash = SkOpts::hash(&foregroundBlurRadius_, sizeof(foregroundBlurRadius_), 0);
+#ifdef USE_M133_SKIA
+    const auto hashFunc = SkChecksum::Hash32;
+#else
+    const auto hashFunc = SkOpts::hash;
+#endif
+    uint32_t hash = hashFunc(&foregroundBlurRadius_, sizeof(foregroundBlurRadius_), 0);
     std::shared_ptr<Drawing::ColorFilter> colorFilter = GetMaterialColorFilter(
         foregroundBlurSaturation_, foregroundBlurBrightness_);
     auto colorImageFilter = Drawing::ImageFilter::CreateColorFilterImageFilter(*colorFilter, nullptr);
@@ -3493,7 +3515,12 @@ void RSProperties::GenerateAIBarFilter()
             std::make_shared<RSKawaseBlurShaderFilter>(aiBarRadius);
         originalFilter = originalFilter->Compose(std::static_pointer_cast<RSRenderFilterParaBase>(kawaseBlurFilter));
     } else {
-        uint32_t hash = SkOpts::hash(&aiBarRadius, sizeof(aiBarRadius), 0);
+#ifdef USE_M133_SKIA
+        const auto hashFunc = SkChecksum::Hash32;
+#else
+        const auto hashFunc = SkOpts::hash;
+#endif
+        uint32_t hash = hashFunc(&aiBarRadius, sizeof(aiBarRadius), 0);
         originalFilter = originalFilter->Compose(blurFilter, hash);
     }
     backgroundFilter_ = originalFilter;
@@ -3741,7 +3768,6 @@ void RSProperties::GenerateBezierWarpFilter()
     if (!bezierWarpFilter->ParseFilterValues()) {
         return;
     }
-    foregroundFilter_.reset();
     if (!foregroundFilter_) {
         foregroundFilter_ = std::make_shared<RSDrawingFilter>(bezierWarpFilter);
         foregroundFilter_->SetFilterType(RSFilter::BEZIER_WARP);

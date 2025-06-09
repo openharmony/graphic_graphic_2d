@@ -289,8 +289,8 @@ private:
 };
 
 bool RSRenderServiceClient::TakeSurfaceCapture(NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback,
-    const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam,
-    const Drawing::Rect& specifiedAreaRect)
+    const RSSurfaceCaptureConfig& captureConfig, std::unique_ptr<Media::PixelMap> clientCapturePixelMap,
+    const RSSurfaceCaptureBlurParam& blurParam, const Drawing::Rect& specifiedAreaRect)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
@@ -316,7 +316,8 @@ bool RSRenderServiceClient::TakeSurfaceCapture(NodeId id, std::shared_ptr<Surfac
     if (surfaceCaptureCbDirector_ == nullptr) {
         surfaceCaptureCbDirector_ = new SurfaceCaptureCallbackDirector(this);
     }
-    renderService->TakeSurfaceCapture(id, surfaceCaptureCbDirector_, captureConfig, blurParam, specifiedAreaRect);
+    renderService->TakeSurfaceCapture(id, surfaceCaptureCbDirector_, captureConfig, blurParam,
+        specifiedAreaRect, std::move(clientCapturePixelMap));
     return true;
 }
 

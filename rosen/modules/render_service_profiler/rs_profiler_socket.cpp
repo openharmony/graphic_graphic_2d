@@ -91,11 +91,11 @@ SocketState Socket::GetState() const
 void Socket::Shutdown()
 {
     shutdown(socket_, SHUT_RDWR);
-    close(socket_);
+    fdsan_close_with_tag(socket_, LOG_DOMAIN);
     socket_ = -1;
 
     shutdown(client_, SHUT_RDWR);
-    close(client_);
+    fdsan_close_with_tag(client_, LOG_DOMAIN);
     client_ = -1;
 
     state_ = SocketState::SHUTDOWN;
@@ -108,6 +108,7 @@ void Socket::Open(uint16_t port)
         Shutdown();
         return;
     }
+    fdsan_exchange_owner_tag(socket_, 0, LOG_DOMAIN);
 
     const std::string socketName = "render_service_" + std::to_string(port);
     sockaddr_un address {};
@@ -142,6 +143,7 @@ void Socket::AcceptClient()
         }
         return;
     }
+    fdsan_exchange_owner_tag(client_, 0, LOG_DOMAIN);
 
     SetBlocking(client_, false);
     SetCloseOnExec(client_, true);

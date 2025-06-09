@@ -48,7 +48,6 @@
 #include "render/rs_render_maskcolor_filter.h"
 #include "render/rs_material_filter.h"
 #include "render/rs_path.h"
-#include "utils/graphic_coretrace.h"
 
 #ifdef RS_ENABLE_VK
 #ifdef USE_M133_SKIA
@@ -157,6 +156,9 @@ std::vector<RectI> RSUniRenderUtil::MergeDirtyHistory(DrawableV2::RSDisplayRende
         drawnRegion = uniParam->IsDirtyAlignEnabled() ?
             damageRegion.GetAlignedRegion(MAX_DIRTY_ALIGNMENT_SIZE) : damageRegion;
     }
+    // [Attention]: filter dirty process must be the last step.
+    RSUniFilterDirtyComputeUtil::DealWithFilterDirtyRegion(
+        damageRegion, drawnRegion, displayDrawable, std::nullopt, uniParam->IsDirtyAlignEnabled());
     RSUniRenderUtil::SetDrawRegionForQuickReject(curAllSurfaceDrawables, drawnRegion);
     rsDirtyRectsDfx.SetMergedDirtyRegion(drawnRegion);
     auto damageRegionRects = RSUniDirtyComputeUtil::ScreenIntersectDirtyRects(damageRegion, screenInfo);
@@ -1025,8 +1027,6 @@ void RSUniRenderUtil::DrawRectForDfx(RSPaintFilterCanvas& canvas, const RectI& r
 void RSUniRenderUtil::OptimizedFlushAndSubmit(std::shared_ptr<Drawing::Surface>& surface,
     Drawing::GPUContext* const grContext, bool optFenceWait)
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        RS_RSUNIRENDERUTIL_OPTIMIZEDFLUSHANDSUBMIT);
     if (!surface || !grContext) {
         RS_LOGE("RSUniRenderUtil::OptimizedFlushAndSubmit cacheSurface or grContext are nullptr");
         return;
@@ -1050,8 +1050,12 @@ void RSUniRenderUtil::OptimizedFlushAndSubmit(std::shared_ptr<Drawing::Surface>&
         semaphoreInfo.flags = 0;
         VkSemaphore semaphore;
         vkContext.vkCreateSemaphore(vkContext.GetDevice(), &semaphoreInfo, nullptr, &semaphore);
+#ifdef USE_M133_SKIA
+        GrBackendSemaphore backendSemaphore = GrBackendSemaphores::MakeVk(semaphore);
+#else
         GrBackendSemaphore backendSemaphore;
         backendSemaphore.initVulkan(semaphore);
+#endif
 
         DestroySemaphoreInfo* destroyInfo =
             new DestroySemaphoreInfo(vkContext.vkDestroySemaphore, vkContext.GetDevice(), semaphore);

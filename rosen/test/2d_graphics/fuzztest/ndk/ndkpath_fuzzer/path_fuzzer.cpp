@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Huawei Device Co., Ltd.
+ * Copyright (C) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -28,6 +28,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
+constexpr float MAX_FLOAT_SIZE = 1000.0f;
 constexpr size_t DATA_MIN_SIZE = 2;
 constexpr size_t PATH_DIRECTION_ENUM_SIZE = 2;
 constexpr size_t PATH_ADD_MODE_ENUM_SIZE = 2;
@@ -525,6 +526,120 @@ void NativeDrawingPathTest011(const uint8_t* data, size_t size)
     OH_Drawing_RectDestroy(rect);
 }
 
+void NativeDrawingPathTest012(const uint8_t* data, size_t size)
+{
+    if (data == nullptr || size < DATA_MIN_SIZE) {
+        return;
+    }
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    OH_Drawing_Path* path = OH_Drawing_PathCreate();
+    OH_Drawing_PathMoveTo(path, GetObject<float>(), GetObject<float>());
+    OH_Drawing_PathLineTo(path, GetObject<float>(), GetObject<float>());
+    OH_Drawing_PathLineTo(path, GetObject<float>(), GetObject<float>());
+    float acceptableError = GetObject<float>();
+    uint32_t count = 0;
+    OH_Drawing_PathApproximate(path, acceptableError, nullptr, &count);
+    if (count > 0 && count < MAX_ARRAY_SIZE) {
+        float* vals = new float[count];
+        OH_Drawing_PathApproximate(nullptr, acceptableError, vals, &count);
+        OH_Drawing_PathApproximate(path, acceptableError, vals, nullptr);
+        OH_Drawing_PathApproximate(path, acceptableError, vals, &count);
+        if (vals != nullptr) {
+            delete[] vals;
+            vals = nullptr;
+        }
+    }
+    OH_Drawing_PathReset(path);
+    float pOneX = GetObject<float>();
+    pOneX = pOneX > MAX_FLOAT_SIZE ? MAX_FLOAT_SIZE : pOneX;
+    float pOneY = GetObject<float>();
+    pOneY = pOneY > MAX_FLOAT_SIZE ? MAX_FLOAT_SIZE : pOneY;
+    float pTwoX = GetObject<float>();
+    pTwoX = pTwoX > MAX_FLOAT_SIZE ? MAX_FLOAT_SIZE : pTwoX;
+    float pTwoY = GetObject<float>();
+    pTwoY = pTwoY > MAX_FLOAT_SIZE ? MAX_FLOAT_SIZE : pTwoY;
+    OH_Drawing_PathConicTo(path, pOneX, pOneY, pTwoX, pTwoY, GetObject<float>());
+    uint32_t count2 = 0;
+    OH_Drawing_PathApproximate(path, acceptableError, nullptr, &count2);
+    if (count2 > 0 && count2 < MAX_ARRAY_SIZE) {
+        float* vals2 = new float[count2];
+        OH_Drawing_PathApproximate(path, acceptableError, vals2, &count2);
+        if (vals2 != nullptr) {
+            delete[] vals2;
+            vals2 = nullptr;
+        }
+    }
+    OH_Drawing_PathDestroy(path);
+}
+
+void NativeDrawingPathTest013(const uint8_t* data, size_t size)
+{
+    if (data == nullptr || size < DATA_MIN_SIZE) {
+        return;
+    }
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    OH_Drawing_Path* path = OH_Drawing_PathCreate();
+    OH_Drawing_PathMoveTo(path, GetObject<float>(), GetObject<float>());
+    OH_Drawing_PathLineTo(path, GetObject<float>(), GetObject<float>());
+    OH_Drawing_PathLineTo(path, GetObject<float>(), GetObject<float>());
+    OH_Drawing_Path* otherPath1 = OH_Drawing_PathCreate();
+    OH_Drawing_PathMoveTo(otherPath1, GetObject<float>(), GetObject<float>());
+    OH_Drawing_PathLineTo(otherPath1, GetObject<float>(), GetObject<float>());
+    OH_Drawing_Path* otherPath2 = OH_Drawing_PathCreate();
+    OH_Drawing_PathMoveTo(otherPath2, GetObject<float>(), GetObject<float>());
+    OH_Drawing_PathLineTo(otherPath2, GetObject<float>(), GetObject<float>());
+    OH_Drawing_PathLineTo(otherPath2, GetObject<float>(), GetObject<float>());
+    OH_Drawing_Path* interpolatedPath = OH_Drawing_PathCreate();
+    float weight = GetObject<float>();
+    bool success = false;
+
+    OH_Drawing_PathInterpolate(nullptr, otherPath2, weight, &success, interpolatedPath);
+    OH_Drawing_PathInterpolate(path, nullptr, weight, &success, interpolatedPath);
+    OH_Drawing_PathInterpolate(path, otherPath2, weight, nullptr, interpolatedPath);
+    OH_Drawing_PathInterpolate(path, otherPath2, weight, &success, nullptr);
+
+    OH_Drawing_PathInterpolate(path, otherPath1, weight, &success, interpolatedPath);
+    OH_Drawing_PathInterpolate(path, otherPath2, weight, &success, interpolatedPath);
+
+    OH_Drawing_PathDestroy(path);
+    OH_Drawing_PathDestroy(otherPath1);
+    OH_Drawing_PathDestroy(otherPath2);
+    OH_Drawing_PathDestroy(interpolatedPath);
+}
+
+void NativeDrawingPathTest014(const uint8_t* data, size_t size)
+{
+    if (data == nullptr || size < DATA_MIN_SIZE) {
+        return;
+    }
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    OH_Drawing_Path* path = OH_Drawing_PathCreate();
+    OH_Drawing_PathMoveTo(path, GetObject<float>(), GetObject<float>());
+    OH_Drawing_PathLineTo(path, GetObject<float>(), GetObject<float>());
+    OH_Drawing_PathLineTo(path, GetObject<float>(), GetObject<float>());
+    OH_Drawing_Path* otherPath = OH_Drawing_PathCreate();
+    OH_Drawing_PathMoveTo(otherPath, GetObject<float>(), GetObject<float>());
+    OH_Drawing_PathLineTo(otherPath, GetObject<float>(), GetObject<float>());
+    bool result = false;
+
+    OH_Drawing_PathIsInterpolate(nullptr, otherPath, &result);
+    OH_Drawing_PathIsInterpolate(path, nullptr, &result);
+    OH_Drawing_PathIsInterpolate(path, otherPath, nullptr);
+    OH_Drawing_PathIsInterpolate(path, otherPath, &result);
+
+    OH_Drawing_PathDestroy(path);
+    OH_Drawing_PathDestroy(otherPath);
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
@@ -544,5 +659,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::Drawing::NativeDrawingPathTest009(data, size);
     OHOS::Rosen::Drawing::NativeDrawingPathTest010(data, size);
     OHOS::Rosen::Drawing::NativeDrawingPathTest011(data, size);
+    OHOS::Rosen::Drawing::NativeDrawingPathTest012(data, size);
+    OHOS::Rosen::Drawing::NativeDrawingPathTest013(data, size);
+    OHOS::Rosen::Drawing::NativeDrawingPathTest014(data, size);
     return 0;
 }

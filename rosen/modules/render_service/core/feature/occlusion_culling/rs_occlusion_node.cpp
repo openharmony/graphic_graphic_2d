@@ -72,12 +72,11 @@ bool OcclusionNode::RemoveChild(const std::shared_ptr<OcclusionNode>& child)
 
 void OcclusionNode::RemoveSubTree(std::unordered_map<NodeId, std::shared_ptr<OcclusionNode>>& occlusionNodes)
 {
-    auto parentShared = parentOcNode_.lock();
-    if (parentShared == nullptr) {
-        return;
-    }
     std::shared_ptr<OcclusionNode> child = lastChild_;
-    parentShared->RemoveChild(shared_from_this());
+    auto parentShared = parentOcNode_.lock();
+    if (parentShared) {
+        parentShared->RemoveChild(shared_from_this());
+    }
     while (child) {
         auto childLeft = child->leftSibling_.lock();
         child->RemoveSubTree(occlusionNodes);
@@ -130,7 +129,7 @@ bool OcclusionNode::IsSubTreeShouldIgnored(const RSRenderNode& node, const RSPro
         !ROSEN_EQ(perspective[0], 0.f) || !ROSEN_EQ(perspective[1], 0.f) ||
         !ROSEN_EQ(degree, 0.f) || !ROSEN_EQ(degreeX, 0.f) || !ROSEN_EQ(degreeY, 0.f) ||
         renderProperties.GetClipBounds()) {
-       return true;
+        return true;
     }
 
     // Skip this subtree if the node has any properties that may cause it to be drawn outside of its bounds.
@@ -266,7 +265,9 @@ void OcclusionNode::UpdateSubTreeProp()
         CalculateNodeAllBounds();
     }
     std::shared_ptr<OcclusionNode> child = lastChild_;
-    while (child) {
+    // Update the subtree properties of the current node and its children
+    // Each child node is only updated once per frame.
+    while (child && !child->isValidInCurrentFrame_) {
         child->UpdateSubTreeProp();
         child = child->leftSibling_.lock();
     }

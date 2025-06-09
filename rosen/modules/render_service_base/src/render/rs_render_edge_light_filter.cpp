@@ -43,11 +43,11 @@ std::shared_ptr<RSRenderPropertyBase> RSRenderEdgeLightFilterPara::CreateRenderP
     switch (type) {
         case RSUIFilterType::EDGE_LIGHT_ALPHA : {
             return std::make_shared<RSRenderAnimatableProperty<float>>(
-                0.f, 0, RSRenderPropertyType::PROPERTY_FLOAT);
+                0.f, 0, RSPropertyType::FLOAT);
         }
         case RSUIFilterType::EDGE_LIGHT_COLOR : {
             return std::make_shared<RSRenderAnimatableProperty<Vector4f>>(
-                Vector4f(), 0, RSRenderPropertyType::PROPERTY_VECTOR4F);
+                Vector4f(), 0, RSPropertyType::VECTOR4F);
         }
         case RSUIFilterType::RIPPLE_MASK : {
             return std::make_shared<RSRenderRippleMaskPara>(0);
@@ -223,10 +223,10 @@ bool RSRenderEdgeLightFilterPara::ParseFilterValues()
         }
         mask_ = std::make_shared<RSShaderMask>(edgeLightMask);
     }
-#ifndef ENABLE_M133_SKIA
-    const auto hashFunc = SkOpts::hash;
-#else
+#ifdef USE_M133_SKIA
     const auto hashFunc = SkChecksum::Hash32;
+#else
+    const auto hashFunc = SkOpts::hash;
 #endif
     hash_ = hashFunc(&alpha_, sizeof(alpha_), hash_);
     hash_ = hashFunc(&color_, sizeof(color_), hash_);

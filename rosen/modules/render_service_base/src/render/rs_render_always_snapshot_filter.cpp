@@ -14,11 +14,22 @@
  */
 #include "render/rs_render_always_snapshot_filter.h"
 
+#ifdef USE_M133_SKIA
+#include "src/core/SkChecksum.h"
+#else
+#include "src/core/SkOpts.h"
+#endif
+
 namespace OHOS {
 namespace Rosen {
 RSAlwaysSnapshotShaderFilter::RSAlwaysSnapshotShaderFilter() : RSRenderFilterParaBase(RSUIFilterType::ALWAYS_SNAPSHOT)
 {
-    hash_ = SkOpts::hash(&type_, sizeof(type_), 0);
+#ifdef USE_M133_SKIA
+    const auto hashFunc = SkChecksum::Hash32;
+#else
+    const auto hashFunc = SkOpts::hash;
+#endif
+    hash_ = hashFunc(&type_, sizeof(type_), 0);
 }
 
 RSAlwaysSnapshotShaderFilter::~RSAlwaysSnapshotShaderFilter() = default;

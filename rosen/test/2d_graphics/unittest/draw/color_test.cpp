@@ -89,6 +89,10 @@ HWTEST_F(ColorTest, CreateInstance001, TestSize.Level1)
     EXPECT_EQ(23, color->GetGreen());
     EXPECT_EQ(56, color->GetBlue());
     EXPECT_EQ(0, color->GetAlpha());
+    EXPECT_FLOAT_EQ(44.0f / 255, color->GetRedF());
+    EXPECT_FLOAT_EQ(23.0f / 255, color->GetGreenF());
+    EXPECT_FLOAT_EQ(56.0f / 255, color->GetBlueF());
+    EXPECT_FLOAT_EQ(0, color->GetAlphaF());
 }
 
 /*
@@ -106,6 +110,10 @@ HWTEST_F(ColorTest, CreateInstance002, TestSize.Level1)
     EXPECT_EQ(33, color2->GetGreen());
     EXPECT_EQ(50, color2->GetBlue());
     EXPECT_EQ(1, color2->GetAlpha());
+    EXPECT_FLOAT_EQ(123.0f / 255, color2->GetRedF());
+    EXPECT_FLOAT_EQ(33.0f / 255, color2->GetGreenF());
+    EXPECT_FLOAT_EQ(50.0f / 255, color2->GetBlueF());
+    EXPECT_FLOAT_EQ(1.0f / 255, color2->GetAlphaF());
 }
 
 /*
@@ -134,6 +142,10 @@ HWTEST_F(ColorTest, CopyConstructor002, TestSize.Level1)
     Color color = Color(123, 33, 50, 1);
     Color color2(color);
     EXPECT_TRUE(color == color2);
+    EXPECT_FLOAT_EQ(123.0f / 255, color2.GetRedF());
+    EXPECT_FLOAT_EQ(33.0f / 255, color2.GetGreenF());
+    EXPECT_FLOAT_EQ(50.0f / 255, color2.GetBlueF());
+    EXPECT_FLOAT_EQ(1.0f / 255, color2.GetAlphaF());
 }
 
 /*
@@ -179,6 +191,10 @@ HWTEST_F(ColorTest, ConstructorRGBA001, TestSize.Level1)
     EXPECT_EQ(255, color->GetGreen());
     EXPECT_EQ(100, color->GetBlue());
     EXPECT_EQ(1, color->GetAlpha());
+    EXPECT_FLOAT_EQ(1.0, color->GetRedF());
+    EXPECT_FLOAT_EQ(1.0, color->GetGreenF());
+    EXPECT_FLOAT_EQ(100.0f / 255, color->GetBlueF());
+    EXPECT_FLOAT_EQ(1.0f / 255, color->GetAlphaF());
 }
 
 /*
@@ -238,6 +254,7 @@ HWTEST_F(ColorTest, GetterAndSetterOfRed001, TestSize.Level1)
     color->SetRed(155);
     auto red = color->GetRed();
     EXPECT_TRUE(red == 155);
+    EXPECT_FLOAT_EQ(155.0f / 255, color->GetRedF());
 }
 
 /*
@@ -251,9 +268,12 @@ HWTEST_F(ColorTest, GetterAndSetterOfRed002, TestSize.Level1)
 {
     auto color = std::make_unique<Color>();
     ASSERT_TRUE(color != nullptr);
+    color->SetRed(256);
+    EXPECT_TRUE(color->GetRed() == 255);
     color->SetRed(250);
     auto red = color->GetRed();
     EXPECT_TRUE(red == 250);
+    EXPECT_FLOAT_EQ(250.0f / 255, color->GetRedF());
 }
 
 /*
@@ -270,6 +290,7 @@ HWTEST_F(ColorTest, GetterAndSetterOfGreen001, TestSize.Level1)
     color->SetGreen(250);
     auto green = color->GetGreen();
     EXPECT_TRUE(green == 250);
+    EXPECT_FLOAT_EQ(250.0f / 255, color->GetGreenF());
 }
 
 /*
@@ -283,9 +304,12 @@ HWTEST_F(ColorTest, GetterAndSetterOfGreen002, TestSize.Level1)
 {
     auto color = std::make_unique<Color>();
     ASSERT_TRUE(color != nullptr);
+    color->SetGreen(256);
+    EXPECT_TRUE(color->GetGreen() == 255);
     color->SetGreen(100);
     auto green = color->GetGreen();
     EXPECT_TRUE(green == 100);
+    EXPECT_FLOAT_EQ(100.0f / 255, color->GetGreenF());
 }
 
 /*
@@ -299,9 +323,12 @@ HWTEST_F(ColorTest, GetterAndSetterOfBlue001, TestSize.Level1)
 {
     auto color = std::make_unique<Color>();
     ASSERT_TRUE(color != nullptr);
+    color->SetBlue(256);
+    EXPECT_TRUE(color->GetBlue() == 255);
     color->SetBlue(100);
     auto blue = color->GetBlue();
     EXPECT_TRUE(blue == 100);
+    EXPECT_FLOAT_EQ(100.0f / 255, color->GetBlueF());
 }
 
 /*
@@ -318,6 +345,7 @@ HWTEST_F(ColorTest, GetterAndSetterOfBlue002, TestSize.Level1)
     color->SetBlue(10);
     auto blue = color->GetBlue();
     EXPECT_TRUE(blue == 10);
+    EXPECT_FLOAT_EQ(10.0f / 255, color->GetBlueF());
 }
 
 /*
@@ -331,9 +359,12 @@ HWTEST_F(ColorTest, GetterAndSetterOfAlpha001, TestSize.Level1)
 {
     auto color = std::make_unique<Color>();
     ASSERT_TRUE(color != nullptr);
+    color->SetAlpha(256);
+    EXPECT_TRUE(color->GetAlpha() == 255);
     color->SetAlpha(0);
     auto alpha = color->GetAlpha();
     EXPECT_TRUE(alpha == 0);
+    EXPECT_FLOAT_EQ(0, color->GetAlphaF());
 }
 
 /*
@@ -350,6 +381,7 @@ HWTEST_F(ColorTest, GetterAndSetterOfAlpha002, TestSize.Level1)
     color->SetAlpha(1);
     auto alpha = color->GetAlpha();
     EXPECT_TRUE(alpha == 1);
+    EXPECT_FLOAT_EQ(1.0f / 255, color->GetAlphaF());
 }
 
 /*
@@ -366,6 +398,7 @@ HWTEST_F(ColorTest, GetterAndSetterOfRedF001, TestSize.Level1)
     color->SetRedF(10.0f);
     Color4f expectColor4f = {1.0f, 0.0f, 0.0f, 0.0f};
     ASSERT_EQ(expectColor4f.redF_, color->GetRedF());
+    EXPECT_EQ(255, color->GetRed());
 }
 
 /*
@@ -382,6 +415,7 @@ HWTEST_F(ColorTest, GetterAndSetterOfRedF002, TestSize.Level1)
     color->SetRedF(-21.0f);
     Color4f expectColor4f = {0.0f, 0.0f, 0.0f, 0.0f};
     ASSERT_EQ(expectColor4f.redF_, color->GetRedF());
+    EXPECT_EQ(0, color->GetRed());
 }
 
 /*
@@ -398,6 +432,7 @@ HWTEST_F(ColorTest, GetterAndSetterOfRedF003, TestSize.Level1)
     color->SetRedF(0.5f);
     Color4f expectColor4f = {0.5f, 0.0f, 0.0f, 0.0f};
     ASSERT_TRUE(std::abs(expectColor4f.redF_ - color->GetRedF()) < 0.01);
+    EXPECT_EQ(128, color->GetRed());
 }
 
 /*
@@ -414,6 +449,7 @@ HWTEST_F(ColorTest, GetterAndSetterOfGreenF001, TestSize.Level1)
     color->SetGreenF(10.0f);
     Color4f expectColor4f = {0.0f, 1.0f, 0.0f, 0.0f};
     ASSERT_EQ(expectColor4f.greenF_, color->GetGreenF());
+    EXPECT_EQ(255, color->GetGreen());
 }
 
 /*
@@ -430,6 +466,7 @@ HWTEST_F(ColorTest, GetterAndSetterOfGreenF002, TestSize.Level1)
     color->SetGreenF(-102.0f);
     Color4f expectColor4f = {0.0f, 0.0f, 0.0f, 0.0f};
     ASSERT_EQ(expectColor4f.greenF_, color->GetGreenF());
+    EXPECT_EQ(0, color->GetGreen());
 }
 
 /*
@@ -446,6 +483,7 @@ HWTEST_F(ColorTest, GetterAndSetterOfGreenF003, TestSize.Level1)
     color->SetGreenF(0.3f);
     Color4f expectColor4f = {0.0f, 0.3f, 0.0f, 0.0f};
     ASSERT_TRUE(std::abs(expectColor4f.greenF_ - color->GetGreenF()) < 0.01);
+    EXPECT_EQ(77, color->GetGreen()); // 77 = round(0.3 * 255)
 }
 
 /*
@@ -462,6 +500,7 @@ HWTEST_F(ColorTest, GetterAndSetterOfBlueF001, TestSize.Level1)
     color->SetBlueF(11.5f);
     Color4f expectColor4f = {0.0f, 0.0f, 1.0f, 0.0f};
     ASSERT_EQ(expectColor4f.blueF_, color->GetBlueF());
+    EXPECT_EQ(255, color->GetBlue());
 }
 
 /*
@@ -478,6 +517,7 @@ HWTEST_F(ColorTest, GetterAndSetterOfBlueF002, TestSize.Level1)
     color->SetBlueF(-10.0f);
     Color4f expectColor4f = {0.0f, 0.0f, 0.0f, 0.0f};
     ASSERT_EQ(expectColor4f.blueF_, color->GetBlueF());
+    EXPECT_EQ(0, color->GetBlue());
 }
 
 /*
@@ -494,6 +534,7 @@ HWTEST_F(ColorTest, GetterAndSetterOfBlueF003, TestSize.Level1)
     color->SetBlueF(0.5f);
     Color4f expectColor4f = {0.0f, 0.0f, 0.5f, 0.0f};
     ASSERT_TRUE(std::abs(expectColor4f.blueF_ - color->GetBlueF()) < 0.01);
+    EXPECT_EQ(128, color->GetBlue()); // 128 = round(0.5 * 255)
 }
 
 /*
@@ -510,6 +551,7 @@ HWTEST_F(ColorTest, GetterAndSetterOfAlphaF001, TestSize.Level1)
     color->SetAlphaF(55.0f);
     Color4f expectColor4f = {0.0f, 0.0f, 0.0f, 1.0f};
     ASSERT_EQ(expectColor4f.alphaF_, color->GetAlphaF());
+    EXPECT_EQ(255, color->GetAlpha());
 }
 
 /*
@@ -526,6 +568,7 @@ HWTEST_F(ColorTest, GetterAndSetterOfAlphaF002, TestSize.Level1)
     color->SetAlphaF(-1.0f);
     Color4f expectColor4f = {0.0f, 0.0f, 0.0f, 0.0f};
     ASSERT_EQ(expectColor4f.alphaF_, color->GetAlphaF());
+    EXPECT_EQ(0, color->GetAlpha());
 }
 
 /*
@@ -542,6 +585,8 @@ HWTEST_F(ColorTest, GetterAndSetterOfAlphaF003, TestSize.Level1)
     color->SetAlphaF(0.6f);
     Color4f expectColor4f = {0.0f, 0.0f, 0.0f, 0.6f};
     ASSERT_TRUE(std::abs(expectColor4f.alphaF_ - color->GetAlphaF()) < 0.01);
+    color->SetAlphaF(0.5f);
+    EXPECT_EQ(128, color->GetAlpha()); // 128 = round(0.5 * 255)
 }
 
 /*
@@ -556,6 +601,10 @@ HWTEST_F(ColorTest, SetRgb001, TestSize.Level1)
     auto color = std::make_unique<Color>();
     ASSERT_TRUE(color != nullptr);
     color->SetRgb(255, 255, 255, 255);
+    EXPECT_FLOAT_EQ(1, color->GetAlphaF());
+    EXPECT_FLOAT_EQ(1, color->GetRedF());
+    EXPECT_FLOAT_EQ(1, color->GetGreenF());
+    EXPECT_FLOAT_EQ(1, color->GetBlueF());
 }
 
 /*
@@ -570,6 +619,10 @@ HWTEST_F(ColorTest, SetRgb002, TestSize.Level1)
     auto color = std::make_unique<Color>();
     ASSERT_TRUE(color != nullptr);
     color->SetRgb(0, 0, 0);
+    EXPECT_FLOAT_EQ(1.0, color->GetAlphaF());
+    EXPECT_FLOAT_EQ(0, color->GetRedF());
+    EXPECT_FLOAT_EQ(0, color->GetGreenF());
+    EXPECT_FLOAT_EQ(0, color->GetBlueF());
 }
 
 /*
@@ -584,6 +637,32 @@ HWTEST_F(ColorTest, SetRgbF002, TestSize.Level1)
     auto color = std::make_unique<Color>(121);
     ASSERT_TRUE(color != nullptr);
     color->SetRgbF(55.3f, 23.4f, 50.5f, 0.5f);
+    EXPECT_FLOAT_EQ(1.0f, color->GetRedF());
+    EXPECT_FLOAT_EQ(1.0f, color->GetGreenF());
+    EXPECT_FLOAT_EQ(1.0f, color->GetBlueF());
+    EXPECT_FLOAT_EQ(0.5f, color->GetAlphaF());
+}
+
+/*
+ * @tc.name: SetRgbF003
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require: AR000GGNV3
+ * @tc.author:
+ */
+HWTEST_F(ColorTest, SetRgbF003, TestSize.Level1)
+{
+    auto color = std::make_unique<Color>(121);
+    ASSERT_TRUE(color != nullptr);
+    color->SetRgbF(0.5f, 0.3f, 0.1f, 0.7f);
+    EXPECT_FLOAT_EQ(0.5f, color->GetRedF());
+    EXPECT_FLOAT_EQ(0.3f, color->GetGreenF());
+    EXPECT_FLOAT_EQ(0.1f, color->GetBlueF());
+    EXPECT_FLOAT_EQ(0.7f, color->GetAlphaF());
+    EXPECT_EQ(128, color->GetRed());
+    EXPECT_EQ(77, color->GetGreen());
+    EXPECT_EQ(26, color->GetBlue());
+    EXPECT_EQ(179, color->GetAlpha());
 }
 
 /*
@@ -599,6 +678,10 @@ HWTEST_F(ColorTest, SetColorQuad001, TestSize.Level1)
     ASSERT_TRUE(color != nullptr);
     color->SetColorQuad(Color::COLOR_WHITE);
     ASSERT_EQ(color->CastToColorQuad(), Color::COLOR_WHITE);
+    EXPECT_FLOAT_EQ(1.0f, color->GetRedF());
+    EXPECT_FLOAT_EQ(1.0f, color->GetGreenF());
+    EXPECT_FLOAT_EQ(1.0f, color->GetBlueF());
+    EXPECT_FLOAT_EQ(1.0f, color->GetAlphaF());
 }
 
 /*
@@ -613,7 +696,11 @@ HWTEST_F(ColorTest, SetColorQuad002, TestSize.Level1)
     auto color = std::make_unique<Color>();
     ASSERT_TRUE(color != nullptr);
     color->SetColorQuad(Color::COLOR_DKGRAY);
-    ASSERT_EQ(color->CastToColorQuad(), Color::COLOR_DKGRAY);
+    ASSERT_EQ(color->CastToColorQuad(), Color::COLOR_DKGRAY); // 0xFF444444
+    EXPECT_FLOAT_EQ(1.0f, color->GetAlphaF());
+    EXPECT_FLOAT_EQ(68.0f / 255, color->GetRedF()); // 68.0f = 4 *16 + 4;
+    EXPECT_FLOAT_EQ(68.0f / 255, color->GetGreenF()); // 68.0f = 4 *16 + 4;
+    EXPECT_FLOAT_EQ(68.0f / 255, color->GetBlueF()); // 68.0f = 4 *16 + 4;
 }
 
 /*

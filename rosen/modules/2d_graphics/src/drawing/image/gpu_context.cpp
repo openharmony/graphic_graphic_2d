@@ -154,11 +154,6 @@ void GPUContext::DumpAllResource(std::stringstream& dump) const
 #endif
 }
 
-void GPUContext::DumpAllCoreTrace(std::stringstream& dump) const
-{
-    impl_->DumpAllCoreTrace(dump);
-}
-
 void GPUContext::DumpGpuStats(std::string& out) const
 {
     impl_->DumpGpuStats(out);

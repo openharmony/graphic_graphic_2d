@@ -34,6 +34,7 @@
 #define DRAW_COLORMAGENTA 0xFFFF00FF
 #define DRAW_COLORGRAY 0xFF888888
 #define DRAW_COLORTRANSPARENT 0x00000000
+#define DRAW_FLOAT_MIN 0.01
 
 template<typename ENUM>
 ENUM DrawGetEnum(ENUM start, ENUM end, int index)

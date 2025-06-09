@@ -18,6 +18,7 @@
 #include "paragraph_builder.h"
 #include "paragraph_style.h"
 #include "run_impl.h"
+#include "typography_types.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -26,19 +27,26 @@ using namespace OHOS::Rosen::Drawing;
 using namespace OHOS::Rosen::SPText;
 
 namespace txt {
+namespace {
+    constexpr static float FLOAT_DATA_EPSILON = 1e-6f;
+}
 class RunTest : public testing::Test {
 public:
     void SetUp() override;
     void TearDown() override;
+    void PrepareCreateRunForGlyphDrawing();
 
 private:
     // 50 is the width of the layout, just for test
     int layoutWidth_ = 50;
+    int fontSize_ = 100;
+    int layoutWidthForGlyph_ = 1200;
     // this is the default font family name, just for test
     std::string familyName_ = { 0x48, 0x61, 0x72, 0x6d, 0x6f, 0x6e, 0x79, 0x4f, 0x53, 0x2d, 0x53, 0x61, 0x6e, 0x73 };
 
     std::shared_ptr<Paragraph> paragraph_;
     std::vector<std::unique_ptr<SPText::Run>> runs_;
+    std::u16string text_ = u"RunTest";
 };
 
 void RunTest::SetUp()
@@ -62,6 +70,23 @@ void RunTest::TearDown()
 {
     paragraph_.reset();
     runs_.clear();
+}
+
+void RunTest::PrepareCreateRunForGlyphDrawing()
+{
+    ParagraphStyle paragraphStyle;
+    paragraphStyle.fontSize = fontSize_;
+    std::shared_ptr<FontCollection> fontCollection = std::make_shared<FontCollection>();
+    ASSERT_NE(fontCollection, nullptr);
+    fontCollection->SetupDefaultFontManager();
+    std::shared_ptr<ParagraphBuilder> paragraphBuilder = ParagraphBuilder::Create(paragraphStyle, fontCollection);
+    ASSERT_NE(paragraphBuilder, nullptr);
+    paragraphBuilder->AddText(text_);
+    paragraph_ = paragraphBuilder->Build();
+    ASSERT_NE(paragraph_, nullptr);
+    paragraph_->Layout(layoutWidthForGlyph_);
+    auto textLineBases = paragraph_->GetTextLines();
+    runs_ = textLineBases[0]->GetGlyphRuns();
 }
 
 /*
@@ -192,5 +217,52 @@ HWTEST_F(RunTest, RunTest008, TestSize.Level1)
 
     EXPECT_EQ(runs_[0]->GetStringIndices(-1, 10), std::vector<uint64_t>());
     EXPECT_EQ(runs_[0]->GetStringIndices(0, -1), std::vector<uint64_t>());
+}
+
+/*
+ * @tc.name: RunGlyphDrawingTest001
+ * @tc.desc: Test for the glyph drawing of the English text.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RunTest, RunGlyphDrawingTest001, TestSize.Level1)
+{
+    text_ = u"Hello你好";
+    PrepareCreateRunForGlyphDrawing();
+    EXPECT_EQ(runs_[0]->GetTextDirection(), OHOS::Rosen::SPText::TextDirection::LTR);
+    std::vector<Drawing::Point> pointResult = runs_[0]->GetAdvances(0, 0);
+    EXPECT_EQ(pointResult.size(), 5);
+    EXPECT_NEAR(pointResult[0].GetX(), 74.4999237, FLOAT_DATA_EPSILON);
+    pointResult = runs_[0]->GetAdvances(0, 1);
+    EXPECT_EQ(pointResult.size(), 1);
+}
+ 
+/*
+ * @tc.name: RunGlyphDrawingTest002
+ * @tc.desc: Test for the glyph drawing of the RTL text.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RunTest, RunGlyphDrawingTest002, TestSize.Level1)
+{
+    text_ = u"مرحبا";
+    PrepareCreateRunForGlyphDrawing();
+    EXPECT_EQ(runs_[0]->GetTextDirection(), OHOS::Rosen::SPText::TextDirection::RTL);
+    std::vector<Drawing::Point> pointResult = runs_[0]->GetAdvances(0, 0);
+    EXPECT_EQ(pointResult.size(), 5);
+    EXPECT_NEAR(pointResult[0].GetX(), 27.3999786, FLOAT_DATA_EPSILON);
+    pointResult = runs_[0]->GetAdvances(0, 1);
+    EXPECT_EQ(pointResult.size(), 1);
+}
+
+/*
+ * @tc.name: RunGlyphDrawingTest003
+ * @tc.desc: test for nullptr, only for the branch coverage
+ * @tc.type: FUNC
+ */
+HWTEST_F(RunTest, RunGlyphDrawingTest003, TestSize.Level1)
+{
+    std::vector<PaintRecord> testVec;
+    std::unique_ptr<SPText::Run> runNull = std::make_unique<SPText::RunImpl>(nullptr, testVec);
+    EXPECT_EQ(runNull->GetTextDirection(), OHOS::Rosen::SPText::TextDirection::LTR);
+    EXPECT_EQ(runNull->GetAdvances(0, 0), std::vector<Drawing::Point>());
 }
 } // namespace txt

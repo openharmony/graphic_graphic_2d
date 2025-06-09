@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -302,6 +302,104 @@ HWTEST_F(SkiaPathTest, SkiaPathIsRect001, TestSize.Level1)
     ASSERT_FALSE(skiaPath2.IsRect(&rect, nullptr, &dir));
 }
 
+/**
+ * @tc.name: SkiaPathCountVerbs001
+ * @tc.desc: Test CountVerbs
+ * @tc.type: FUNC
+ * @tc.require: ICAWXU
+ */
+HWTEST_F(SkiaPathTest, SkiaPathCountVerbs001, TestSize.Level1)
+{
+    SkiaPath skiaPath;
+    skiaPath.MoveTo(1.0f, 2.0f); // 1.0f: x, 2.0f: y
+    skiaPath.LineTo(3.0f, 4.0f); // 3.0f: x, 4.0f: y
+    skiaPath.LineTo(5.0f, 6.0f); // 5.0f: x, 6.0f: y
+    skiaPath.Close();
+    int count = skiaPath.CountVerbs();
+    ASSERT_EQ(count, 4); // There are 4 verbs in the path.
+}
+
+/**
+ * @tc.name: SkiaPathGetPoint001
+ * @tc.desc: Test GetPoint
+ * @tc.type: FUNC
+ * @tc.require: ICAWXU
+ */
+HWTEST_F(SkiaPathTest, SkiaPathGetPoint001, TestSize.Level1)
+{
+    SkiaPath skiaPath;
+    skiaPath.MoveTo(1.0f, 2.0f); // 1.0f: x, 2.0f: y
+    skiaPath.LineTo(3.0f, 4.0f); // 3.0f: x, 4.0f: y
+    Point point1 = skiaPath.GetPoint(0);
+    Point point2 = skiaPath.GetPoint(1);
+    Point point3 = skiaPath.GetPoint(-1);
+    ASSERT_EQ(point1, Point(1.0f, 2.0f)); // 1.0f: x, 2.0f: y
+    ASSERT_EQ(point2, Point(3.0f, 4.0f)); // 3.0f: x, 4.0f: y
+    ASSERT_EQ(point3, Point(0.0f, 0.0f));
+}
+
+/**
+ * @tc.name: SkiaPathIsInterpolate001
+ * @tc.desc: Test IsInterpolate
+ * @tc.type: FUNC
+ * @tc.require: ICAWXU
+ */
+HWTEST_F(SkiaPathTest, SkiaPathIsInterpolate001, TestSize.Level1)
+{
+    SkiaPath skiaPath1;
+    Path path;
+    skiaPath1.MoveTo(1.0f, 2.0f); // Start point of the path.
+    skiaPath1.LineTo(3.0f, 4.0f); // End point of the path.
+    path.MoveTo(3.0f, 4.0f); // Start point of the path.
+    path.LineTo(1.0f, 2.0f); // End point of the path.
+    bool ret = skiaPath1.IsInterpolate(path);
+    ASSERT_TRUE(ret);
+}
+
+/**
+ * @tc.name: SkiaPathSetLastPoint001
+ * @tc.desc: Test SetLastPoint
+ * @tc.type: FUNC
+ * @tc.require: I8VQSW
+ */
+HWTEST_F(SkiaPathTest, SkiaPathSetLastPoint001, TestSize.Level1)
+{
+    SkiaPath skiaPath;
+    ASSERT_TRUE(skiaPath.IsEmpty());
+    skiaPath.SetLastPoint(1.0f, 2.0f);
+    ASSERT_TRUE(!skiaPath.IsEmpty());
+}
+
+/**
+ * @tc.name: SkiaPathReWind001
+ * @tc.desc: Test SetLastPoint
+ * @tc.type: FUNC
+ * @tc.require: I8VQSW
+ */
+HWTEST_F(SkiaPathTest, SkiaPathReWind001, TestSize.Level1)
+{
+    SkiaPath skiaPath;
+    skiaPath.SetLastPoint(1.0f, 2.0f);
+    ASSERT_TRUE(!skiaPath.IsEmpty());
+    skiaPath.ReWind();
+    ASSERT_TRUE(skiaPath.IsEmpty());
+}
+
+/**
+ * @tc.name: SkiaPathSetPath001
+ * @tc.desc: Test SkiaPathSetPath
+ * @tc.type: FUNC
+ * @tc.require: I8VQSW
+ */
+HWTEST_F(SkiaPathTest, SkiaPathSetPath001, TestSize.Level1)
+{
+    SkiaPath skiaPath;
+    Path path;
+    path.MoveTo(10.0f, 20.0f);
+    skiaPath.SetPath(path);
+    SkPath skPath = skiaPath.GetPath();
+    ASSERT_TRUE(!skPath.isEmpty());
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

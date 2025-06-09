@@ -631,7 +631,7 @@ void RSProfiler::OnFrameEnd()
     g_renderServiceCpuId = Utils::GetCpuId();
 
     std::string value;
-    constexpr int maxMsgPerFrame = 32;
+    constexpr int maxMsgPerFrame = 1024;
     value = SendMessageBase();
     for (int i = 0; value != "" && i < maxMsgPerFrame; value = SendMessageBase(), i++) {
         if (!value.length()) {
@@ -1366,7 +1366,7 @@ void RSProfiler::KillPid(const ArgList& args)
         const std::string out =
             "parentPid=" + std::to_string(GetPid(parent)) + " parentNode=" + std::to_string(GetNodeId(parent));
 
-        context_->GetMutableNodeMap().FilterNodeByPid(pid);
+        context_->GetMutableNodeMap().FilterNodeByPid(pid, true);
         AwakeRenderServiceThread();
         Respond(out);
     }
@@ -2188,7 +2188,13 @@ void RSProfiler::TestLoadSubTree(const ArgList& args)
         return;
     }
 
-    std::ifstream file(filePath);
+    char realPath[PATH_MAX] = {0};
+    if (!realpath(filePath.c_str(), realPath)) {
+        Respond("Error: Path is invalid");
+        return;
+    }
+
+    std::ifstream file(realPath);
     if (!file.is_open()) {
         std::error_code ec(errno, std::system_category());
         RS_LOGE("RSProfiler::TestLoadSubTree read file failed: %{public}s", ec.message().c_str());

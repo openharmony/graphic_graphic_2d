@@ -24,6 +24,7 @@
 #include "consumer_surface.h"
 
 #include "command/rs_base_node_command.h"
+#include "drawable/rs_display_render_node_drawable.h"
 #include "memory/rs_memory_track.h"
 #include "pipeline/render_thread/rs_render_engine.h"
 #include "pipeline/render_thread/rs_uni_render_engine.h"
@@ -32,6 +33,7 @@
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "platform/common/rs_innovation.h"
 #include "platform/common/rs_system_properties.h"
+#include "screen_manager/rs_screen.h"
 #if defined(ACCESSIBILITY_ENABLE)
 #include "accessibility_config.h"
 #endif
@@ -40,16 +42,20 @@ using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
-constexpr uint64_t REFRESH_PERIOD = 16666667;
-constexpr uint64_t SKIP_COMMAND_FREQ_LIMIT = 30;
-constexpr uint32_t MULTI_WINDOW_PERF_START_NUM = 2;
-constexpr uint32_t MULTI_WINDOW_PERF_END_NUM = 4;
-constexpr int32_t SIMI_VISIBLE_RATE = 2;
-constexpr int32_t SYSTEM_ANIMATED_SCENES_RATE = 2;
-constexpr int32_t INVISBLE_WINDOW_RATE = 10;
 constexpr int32_t DEFAULT_RATE = 1;
 constexpr int32_t INVALID_VALUE = -1;
+constexpr int32_t INVISBLE_WINDOW_RATE = 10;
+constexpr int32_t SCREEN_PHYSICAL_HEIGHT = 10;
+constexpr int32_t SCREEN_PHYSICAL_WIDTH = 10;
+constexpr int32_t SIMI_VISIBLE_RATE = 2;
+constexpr int32_t SYSTEM_ANIMATED_SCENES_RATE = 2;
 constexpr ScreenId DEFAULT_DISPLAY_SCREEN_ID = 0;
+constexpr uint32_t MULTI_WINDOW_PERF_END_NUM = 4;
+constexpr uint32_t MULTI_WINDOW_PERF_START_NUM = 2;
+constexpr uint64_t REFRESH_PERIOD = 16666667;
+constexpr uint64_t SKIP_COMMAND_FREQ_LIMIT = 30;
+constexpr uint32_t DEFAULT_SCREEN_WIDTH = 480;
+constexpr uint32_t DEFAULT_SCREEN_HEIGHT = 320;
 class RSMainThreadTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -57,6 +63,9 @@ public:
     void SetUp() override;
     void TearDown() override;
     static void* CreateParallelSyncSignal(uint32_t count);
+    static std::shared_ptr<RSDisplayRenderNode> GetAndInitDisplayRenderNode();
+    static void ChangeHardwareEnabledNodesBufferData(
+        std::vector<std::shared_ptr<RSSurfaceRenderNode>>& hardwareEnabledNodes);
 
 private:
     static inline BufferRequestConfig requestConfig = {
@@ -75,8 +84,28 @@ private:
 void RSMainThreadTest::SetUpTestCase()
 {
     RSTestUtil::InitRenderNodeGC();
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    std::string name = "virtualScreen01";
+    uint32_t width = DEFAULT_SCREEN_WIDTH;
+    uint32_t height = DEFAULT_SCREEN_HEIGHT;
+    auto csurface = IConsumerSurface::Create();
+    ASSERT_NE(csurface, nullptr);
+    auto producer = csurface->GetProducer();
+    auto psurface = Surface::CreateSurfaceAsProducer(producer);
+    ASSERT_NE(psurface, nullptr);
+    auto id = screenManager->CreateVirtualScreen(name, width, height, psurface);
+    ASSERT_NE(INVALID_SCREEN_ID, id);
+    screenManager->SetDefaultScreenId(id);
 }
-void RSMainThreadTest::TearDownTestCase() {}
+
+void RSMainThreadTest::TearDownTestCase() 
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    screenManager->SetDefaultScreenId(INVALID_SCREEN_ID);
+}
+
 void RSMainThreadTest::SetUp() {}
 void RSMainThreadTest::TearDown()
 {
@@ -96,6 +125,47 @@ void* RSMainThreadTest::CreateParallelSyncSignal(uint32_t count)
 {
     (void)(count);
     return nullptr;
+}
+
+std::shared_ptr<RSDisplayRenderNode> RSMainThreadTest::GetAndInitDisplayRenderNode()
+{
+    NodeId displayId = 1;
+    RSDisplayNodeConfig config;
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(displayId, config);
+    auto screenManager = CreateOrGetScreenManager();
+    ScreenId screenId = 0xFFFF;
+    auto hdiOutput = HdiOutput::CreateHdiOutput(screenId);
+    if (hdiOutput == nullptr) {
+        return displayNode;
+    }
+    auto rsScreen = std::make_shared<impl::RSScreen>(screenId, false, hdiOutput, nullptr);
+    if (rsScreen == nullptr) {
+        return displayNode;
+    }
+
+    rsScreen->phyWidth_ = SCREEN_PHYSICAL_WIDTH;
+    rsScreen->phyHeight_ = SCREEN_PHYSICAL_HEIGHT;
+    screenManager->MockHdiScreenConnected(rsScreen);
+    displayNode->SetScreenId(screenId);
+    return displayNode;
+}
+
+void RSMainThreadTest::ChangeHardwareEnabledNodesBufferData(
+    std::vector<std::shared_ptr<RSSurfaceRenderNode>>& hardwareEnabledNodes)
+{
+    if (hardwareEnabledNodes.empty()) {
+        return;
+    }
+    for (auto& surfaceNode : hardwareEnabledNodes) {
+        if (surfaceNode == nullptr || surfaceNode->GetRSSurfaceHandler() == nullptr) {
+            continue;
+        }
+        if (surfaceNode->GetRSSurfaceHandler()->IsCurrentFrameBufferConsumed() &&
+            surfaceNode->HwcSurfaceRecorder().GetLastFrameHasVisibleRegion()) {
+            surfaceNode->GetRSSurfaceHandler()->ResetCurrentFrameBufferConsumed();
+            surfaceNode->HwcSurfaceRecorder().SetLastFrameHasVisibleRegion(false);
+        }
+    }
 }
 
 class ApplicationAgentImpl : public IRemoteStub<IApplicationAgent> {
@@ -877,6 +947,80 @@ HWTEST_F(RSMainThreadTest, ShowWatermark, TestSize.Level1)
 }
 
 /**
+ * @tc.name: ShowWatermark01
+ * @tc.desc: ShowWatermark test
+ * @tc.type: FUNC
+ * @tc.require: issueI78T3Z
+ */
+HWTEST_F(RSMainThreadTest, ShowWatermark01, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    Media::InitializationOptions opts;
+    opts.size.width = DEFAULT_SCREEN_WIDTH * 2.5;
+    opts.size.height = DEFAULT_SCREEN_HEIGHT * 2.5;
+    std::unique_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(opts);
+    ASSERT_NE(pixelMap, nullptr);
+    mainThread->watermarkFlag_ = false;
+    mainThread->ShowWatermark(std::move(pixelMap), true);
+    ASSERT_EQ(mainThread->GetWatermarkFlag(), false);
+}
+
+/**
+ * @tc.name: ShowWatermark02
+ * @tc.desc: ShowWatermark test
+ * @tc.type: FUNC
+ * @tc.require: issueI78T3Z
+ */
+HWTEST_F(RSMainThreadTest, ShowWatermark02, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    Media::InitializationOptions opts;
+    opts.size.width = 1;
+    opts.size.height = 1;
+    std::unique_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(opts);
+    ASSERT_NE(pixelMap, nullptr);
+    mainThread->ShowWatermark(std::move(pixelMap), true);
+    ASSERT_EQ(mainThread->GetWatermarkFlag(), true);
+}
+
+/**
+ * @tc.name: ShowWatermark03
+ * @tc.desc: ShowWatermark test
+ * @tc.type: FUNC
+ * @tc.require: issueI78T3Z
+ */
+HWTEST_F(RSMainThreadTest, ShowWatermark03, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    Media::InitializationOptions opts;
+    opts.size.width = DEFAULT_SCREEN_WIDTH;
+    opts.size.height = DEFAULT_SCREEN_WIDTH;
+    std::unique_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(opts);
+    ASSERT_NE(pixelMap, nullptr);
+    mainThread->ShowWatermark(std::move(pixelMap), true);
+    ASSERT_EQ(mainThread->GetWatermarkFlag(), true);
+}
+
+/**
+ * @tc.name: ShowWatermark05
+ * @tc.desc: ShowWatermark test
+ * @tc.type: FUNC
+ * @tc.require: issueI78T3Z
+ */
+HWTEST_F(RSMainThreadTest, ShowWatermark05, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    Media::InitializationOptions opts;
+    opts.size.width = DEFAULT_SCREEN_WIDTH;
+    opts.size.height = DEFAULT_SCREEN_WIDTH;
+    std::unique_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(opts);
+    ASSERT_NE(pixelMap, nullptr);
+    mainThread->watermarkFlag_ = false;
+    mainThread->ShowWatermark(nullptr, true);
+    ASSERT_EQ(mainThread->GetWatermarkFlag(), true);
+}
+
+/**
  * @tc.name: MergeToEffectiveTransactionDataMap001
  * @tc.desc: Test RSMainThreadTest.MergeToEffectiveTransactionDataMap
  * @tc.type: FUNC
@@ -997,20 +1141,6 @@ HWTEST_F(RSMainThreadTest, DoParallelComposition, TestSize.Level1)
     if (RSInnovation::GetParallelCompositionEnabled(mainThread->isUniRender_)) {
         mainThread->DoParallelComposition(node);
     }
-}
-
-/**
- * @tc.name: SetIdleTimerExpiredFlag
- * @tc.desc: SetIdleTimerExpiredFlag test
- * @tc.type: FUNC
- * @tc.require: issueI7HDVG
- */
-HWTEST_F(RSMainThreadTest, SetIdleTimerExpiredFlag, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    mainThread->SetIdleTimerExpiredFlag(true);
-    ASSERT_TRUE(mainThread->idleTimerExpiredFlag_);
 }
 
 /**
@@ -4709,7 +4839,7 @@ HWTEST_F(RSMainThreadTest, ProcessHgmFrameRate, TestSize.Level2)
 
     uint64_t timestamp = 0;
     FrameRateLinkerId id = 0;
-    mainThread->rsFrameRateLinker_ = std::make_shared<RSRenderFrameRateLinker>(id);
+    mainThread->hgmContext_.rsFrameRateLinker_ = std::make_shared<RSRenderFrameRateLinker>(id);
     mainThread->ProcessHgmFrameRate(timestamp);
 
     auto vsyncGenerator = CreateVSyncGenerator();
@@ -5123,5 +5253,66 @@ HWTEST_F(RSMainThreadTest, HandleTunnelLayerId004, TestSize.Level1)
     surfaceHandler->sourceType_ = 5;
     EXPECT_EQ(surfaceHandler->GetSourceType(), 5);
     mainThread->HandleTunnelLayerId(surfaceHandler, surfaceNode);
+}
+
+/**
+ * @tc.name: DoDirectComposition003
+ * @tc.desc: Test DoDirectComposition
+ * @tc.type: FUNC
+ * @tc.require: icc3sm
+ */
+HWTEST_F(RSMainThreadTest, DoDirectComposition003, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    NodeId rootId = 0;
+    auto rootNode = std::make_shared<RSBaseRenderNode>(rootId);
+    ASSERT_NE(rootNode, nullptr);
+    auto displayNode = GetAndInitDisplayRenderNode();
+    ASSERT_NE(displayNode, nullptr);
+    auto otherNode = std::make_shared<RSRenderNode>(2);
+    displayNode->renderDrawable_ = std::make_shared<DrawableV2::RSRenderNodeDrawable>(otherNode);
+
+    auto drawable = DrawableV2::RSDisplayRenderNodeDrawable::OnGenerate(otherNode);
+    auto displayDrawable = static_cast<DrawableV2::RSDisplayRenderNodeDrawable*>(drawable);
+    ASSERT_NE(displayDrawable, nullptr);
+    ASSERT_NE(displayDrawable->surfaceHandler_, nullptr);
+    displayDrawable->surfaceHandler_->buffer_.buffer = SurfaceBuffer::Create();
+    auto handle = new BufferHandle();
+    handle->usage = BUFFER_USAGE_CPU_READ;
+    displayDrawable->surfaceHandler_->buffer_.buffer->SetBufferHandle(handle);
+    displayNode->renderDrawable_.reset(displayDrawable);
+
+    rootNode->AddChild(displayNode);
+    rootNode->GenerateFullChildrenList();
+    auto childNode = RSRenderNode::ReinterpretCast<RSDisplayRenderNode>(rootNode->GetChildren()->front());
+    childNode->SetCompositeType(RSDisplayRenderNode::CompositeType::UNI_RENDER_COMPOSITE);
+    displayNode->HwcDisplayRecorder().SetHasVisibleHwcNodes(false);
+    ASSERT_TRUE(mainThread->DoDirectComposition(rootNode, false));
+
+    displayNode->HwcDisplayRecorder().SetHasVisibleHwcNodes(true);
+    auto type = system::GetParameter("persist.sys.graphic.anco.disableHebc", "-1");
+    system::SetParameter("persist.sys.graphic.anco.disableHebc", "1");
+    RSSurfaceRenderNode::SetAncoForceDoDirect(true);
+    ASSERT_FALSE(mainThread->DoDirectComposition(rootNode, false));
+
+    std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledNodes = mainThread->hardwareEnabledNodes_;
+    ChangeHardwareEnabledNodesBufferData(hardwareEnabledNodes);
+
+    displayNode->HwcDisplayRecorder().SetHasVisibleHwcNodes(true);
+    ASSERT_TRUE(mainThread->DoDirectComposition(rootNode, false));
+
+    displayNode->HwcDisplayRecorder().SetHasVisibleHwcNodes(false);
+    ASSERT_TRUE(mainThread->DoDirectComposition(rootNode, false));
+
+    NodeId displayId2 = 2;
+    RSDisplayNodeConfig config;
+    auto displayNode2 = std::make_shared<RSDisplayRenderNode>(displayId2, config);
+    rootNode->AddChild(displayNode2);
+    rootNode->GenerateFullChildrenList();
+
+    ASSERT_FALSE(mainThread->DoDirectComposition(rootNode, false));
+    system::SetParameter("persist.sys.graphic.anco.disableHebc", type);
+    delete handle;
 }
 } // namespace OHOS::Rosen

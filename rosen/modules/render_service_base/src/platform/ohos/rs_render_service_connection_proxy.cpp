@@ -1750,7 +1750,8 @@ ErrCode RSRenderServiceConnectionProxy::RegisterApplicationAgent(uint32_t pid, s
 
 void RSRenderServiceConnectionProxy::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
     const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam,
-    const Drawing::Rect& specifiedAreaRect, RSSurfaceCapturePermissions /* permissions */)
+    const Drawing::Rect& specifiedAreaRect,
+    std::unique_ptr<Media::PixelMap> pixelMap, RSSurfaceCapturePermissions /* permissions */)
 {
     if (callback == nullptr) {
         ROSEN_LOGE("%{public}s callback == nullptr", __func__);
@@ -1781,6 +1782,12 @@ void RSRenderServiceConnectionProxy::TakeSurfaceCapture(NodeId id, sptr<RSISurfa
         ROSEN_LOGE("%{public}s write specifiedAreaRect failed", __func__);
         return;
     }
+
+    if (!WriteClientSurfacePixelMap(pixelMap, captureConfig.isClientPixelMap, data)) {
+        ROSEN_LOGE("%{public}s write pixelMap failed", __func__);
+        return;
+    }
+    
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::TAKE_SURFACE_CAPTURE);
     int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
@@ -1931,6 +1938,7 @@ bool RSRenderServiceConnectionProxy::WriteSurfaceCaptureConfig(
     if (!data.WriteFloat(captureConfig.scaleX) || !data.WriteFloat(captureConfig.scaleY) ||
         !data.WriteBool(captureConfig.useDma) || !data.WriteBool(captureConfig.useCurWindow) ||
         !data.WriteUint8(static_cast<uint8_t>(captureConfig.captureType)) || !data.WriteBool(captureConfig.isSync) ||
+        !data.WriteBool(captureConfig.isClientPixelMap) ||
         !data.WriteFloat(captureConfig.mainScreenRect.left_) ||
         !data.WriteFloat(captureConfig.mainScreenRect.top_) ||
         !data.WriteFloat(captureConfig.mainScreenRect.right_) ||
@@ -1965,6 +1973,27 @@ bool RSRenderServiceConnectionProxy::WriteSurfaceCaptureAreaRect(
     return true;
 }
 
+bool RSRenderServiceConnectionProxy::WriteClientSurfacePixelMap(
+    const std::unique_ptr<Media::PixelMap>& pixelMap, bool isUsedClientPixelMap, MessageParcel& data)
+{
+    // use service create pixelmap
+    if (!isUsedClientPixelMap) {
+        return true;
+    }
+
+    // vaild pixelMap and flag appear in pairs
+    if (pixelMap == nullptr) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::WriteClientSurfacePixelMap pixelMap is nullptr");
+        return false;
+    }
+
+    if (!data.WriteParcelable(pixelMap.get())) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::WriteClientSurfacePixelMap WriteParcelable fail");
+        return false;
+    }
+
+    return true;
+}
 ErrCode RSRenderServiceConnectionProxy::SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
     float positionZ, float positionW)
 {
@@ -5154,6 +5183,10 @@ int32_t RSRenderServiceConnectionProxy::RegisterSelfDrawingNodeRectChangeCallbac
     if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
         ROSEN_LOGE("RegisterSelfDrawingNodeRectChangeCallback: WriteInterfaceToken GetDescriptor err.");
         return RS_CONNECTION_ERROR;
+    }
+    if (!callback) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::RegisterSelfDrawingNodeRectChangeCallback callback is nullptr");
+        return ERR_INVALID_VALUE;
     }
     option.SetFlags(MessageOption::TF_SYNC);
     if (!data.WriteRemoteObject(callback->AsObject())) {

@@ -206,6 +206,9 @@
       *HgmSoftVSyncManager::EraseGameRateDiscountMap*;
       *HgmSoftVSyncManager::CollectGameRateDiscountChange*;
 
+      *HgmVoter::HgmVoter*;
+      *HgmVoter::DeliverVote*;
+
       *HgmPointerManager::CheckChangeStateValid*;
       *HgmPointerManager::HandleRsFrame*;
       *HgmPointerManager::HandleTimerReset*;

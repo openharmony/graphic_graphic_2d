@@ -28,7 +28,6 @@
 #include "rs_trace.h"
 #include "sandbox_utils.h"
 #include "rs_profiler.h"
-#include "utils/graphic_coretrace.h"
 
 #ifdef USE_VIDEO_PROCESSING_ENGINE
 #include "render/rs_colorspace_convert.h"
@@ -140,8 +139,6 @@ bool RSImage::HDRConvert(const Drawing::SamplingOptions& sampling, Drawing::Canv
 void RSImage::CanvasDrawImage(Drawing::Canvas& canvas, const Drawing::Rect& rect,
     const Drawing::SamplingOptions& samplingOptions, bool isBackground)
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        RS_RSIMAGE_CANVASDRAWIMAGE);
     if (canvas.GetRecordingState() && RSSystemProperties::GetDumpUICaptureEnabled() && pixelMap_) {
         CommonTools::SavePixelmapToFile(pixelMap_, "/data/rsImage_");
     }
@@ -504,82 +501,8 @@ std::string RSImage::PixelSamplingDump() const
     return oss.str().c_str();
 }
 
-#if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
-static Drawing::CompressedType PixelFormatToCompressedType(Media::PixelFormat pixelFormat)
-{
-    switch (pixelFormat) {
-        case Media::PixelFormat::ASTC_4x4: return Drawing::CompressedType::ASTC_RGBA8_4x4;
-        case Media::PixelFormat::ASTC_6x6: return Drawing::CompressedType::ASTC_RGBA8_6x6;
-        case Media::PixelFormat::ASTC_8x8: return Drawing::CompressedType::ASTC_RGBA8_8x8;
-        case Media::PixelFormat::UNKNOWN:
-        default: return Drawing::CompressedType::NoneType;
-    }
-}
-
-static std::shared_ptr<Drawing::ColorSpace> ColorSpaceToDrawingColorSpace(ColorManager::ColorSpaceName
- colorSpaceName)
-{
-    switch (colorSpaceName) {
-        case ColorManager::ColorSpaceName::DISPLAY_P3:
-            return Drawing::ColorSpace::CreateRGB(
-                Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::DCIP3);
-        case ColorManager::ColorSpaceName::LINEAR_SRGB:
-            return Drawing::ColorSpace::CreateSRGBLinear();
-        case ColorManager::ColorSpaceName::SRGB:
-            return Drawing::ColorSpace::CreateSRGB();
-        default:
-            return Drawing::ColorSpace::CreateSRGB();
-    }
-}
-#endif
-
-void RSImage::UploadGpu(Drawing::Canvas& canvas)
-{
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        RS_RSIMAGE_UPLOADGPU);
-#if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
-    if (compressData_) {
-        auto cache = RSImageCache::Instance().GetRenderDrawingImageCacheByPixelMapId(uniqueId_, gettid());
-        std::lock_guard<std::mutex> lock(mutex_);
-        if (cache) {
-            image_ = cache;
-        } else {
-            if (canvas.GetGPUContext() == nullptr) {
-                return;
-            }
-            RS_TRACE_NAME("make compress img");
-            Media::ImageInfo imageInfo;
-            pixelMap_->GetImageInfo(imageInfo);
-            Media::Size realSize;
-            pixelMap_->GetAstcRealSize(realSize);
-            auto image = std::make_shared<Drawing::Image>();
-            std::shared_ptr<Drawing::ColorSpace> colorSpace =
-                ColorSpaceToDrawingColorSpace(pixelMap_->InnerGetGrColorSpace().GetColorSpaceName());
-            bool result = image->BuildFromCompressed(*canvas.GetGPUContext(), compressData_,
-                static_cast<int>(realSize.width), static_cast<int>(realSize.height),
-                PixelFormatToCompressedType(imageInfo.pixelFormat), colorSpace);
-            if (result) {
-                image_ = image;
-                SKResourceManager::Instance().HoldResource(image);
-                RSImageCache::Instance().CacheRenderDrawingImageByPixelMapId(uniqueId_, image, gettid());
-            } else {
-                RS_LOGE("make astc image %{public}d (%{public}d, %{public}d) failed",
-                    (int)uniqueId_, (int)srcRect_.width_, (int)srcRect_.height_);
-            }
-            compressData_ = nullptr;
-        }
-        return;
-    }
-    if (isYUVImage_) {
-        ProcessYUVImage(canvas.GetGPUContext());
-    }
-#endif
-}
-
 void RSImage::DrawImageRepeatRect(const Drawing::SamplingOptions& samplingOptions, Drawing::Canvas& canvas)
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        RS_RSIMAGE_DRAWIMAGEREPEATRECT);
     int minX = 0;
     int minY = 0;
     int maxX = 0;
@@ -737,15 +660,6 @@ void RSImage::SetCompressData(
     }
 #endif
 }
-
-#if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined (RS_ENABLE_VK))
-void RSImage::SetCompressData(const std::shared_ptr<Drawing::Data> compressData)
-{
-    isDrawn_ = false;
-    compressData_ = compressData;
-    canPurgeShareMemFlag_ = CanPurgeFlag::DISABLED;
-}
-#endif
 
 void RSImage::SetImageFit(int fitNum)
 {

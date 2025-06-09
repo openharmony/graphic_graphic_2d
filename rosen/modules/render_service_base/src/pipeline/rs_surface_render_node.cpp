@@ -2004,6 +2004,7 @@ void RSSurfaceRenderNode::ResetSurfaceOpaqueRegion(const RectI& screeninfo, cons
 {
     Occlusion::Region absRegion { absRect };
     Occlusion::Region oldOpaqueRegion { opaqueRegion_ };
+    Occlusion::Region oldOcclusionRegionBehindWindow { occlusionRegionBehindWindow_ };
 
     // The transparent region of surfaceNode should include shadow area
     Occlusion::Rect dirtyRect { GetOldDirty() };
@@ -2043,7 +2044,11 @@ void RSSurfaceRenderNode::ResetSurfaceOpaqueRegion(const RectI& screeninfo, cons
     Occlusion::Region screenRegion{screen};
     transparentRegion_.AndSelf(screenRegion);
     opaqueRegion_.AndSelf(screenRegion);
+    occlusionRegionBehindWindow_ = Occlusion::Region(Occlusion::Rect(
+        NeedDrawBehindWindow() ? GetFilterRect() : RectI()));
     opaqueRegionChanged_ = !oldOpaqueRegion.Xor(opaqueRegion_).IsEmpty();
+    behindWindowOcclusionChanged_ = !oldOcclusionRegionBehindWindow.Xor(
+        occlusionRegionBehindWindow_).IsEmpty();
     ResetSurfaceContainerRegion(screeninfo, absRect, screenRotation);
 }
 
@@ -2208,10 +2213,10 @@ void RSSurfaceRenderNode::UpdateFilterCacheStatusIfNodeStatic(const RectI& clipR
             }
         }
         if (node->GetRenderProperties().GetBackgroundFilter()) {
-            node->UpdateFilterCacheWithBelowDirty(*dirtyManager_);
+            node->UpdateFilterCacheWithBelowDirty(Occlusion::Rect(dirtyManager_->GetCurrentFrameDirtyRegion()));
         }
         if (node->GetRenderProperties().GetFilter()) {
-            node->UpdateFilterCacheWithBelowDirty(*dirtyManager_);
+            node->UpdateFilterCacheWithBelowDirty(Occlusion::Rect(dirtyManager_->GetCurrentFrameDirtyRegion()));
         }
         node->UpdateFilterCacheWithSelfDirty();
     }

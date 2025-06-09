@@ -25,7 +25,7 @@ namespace Rosen {
 namespace SPText {
 static const std::vector<RSEffectStrategy> COMMON_ANIMATION_TYPES = {
     RSEffectStrategy::SCALE, RSEffectStrategy::APPEAR, RSEffectStrategy::DISAPPEAR,
-    RSEffectStrategy::BOUNCE, RSEffectStrategy::REPLACE_APPEAR};
+    RSEffectStrategy::BOUNCE, RSEffectStrategy::REPLACE_APPEAR, RSEffectStrategy::QUICK_REPLACE_APPEAR};
 
 HMSymbolRun::HMSymbolRun(uint64_t symbolId,
     const HMSymbolTxt& symbolTxt,
@@ -303,6 +303,10 @@ bool HMSymbolRun::SymbolAnimation(const RSHMSymbolData& symbol, const std::pair<
     symbolNode.SetAnimationStart(symbolTxt_.GetAnimationStart());
     symbolNode.SetCommonSubType(symbolTxt_.GetCommonSubType());
     symbolNode.SetCurrentAnimationHasPlayed(currentAnimationHasPlayed_);
+    symbolNode.SetSlope(animationSetting.slope);
+    if (effectMode == RSEffectStrategy::DISABLE) {
+        symbolNode.SetCommonSubType(animationSetting.commonSubType);
+    }
     return symbolNode.DecomposeSymbolAndDraw();
 }
 

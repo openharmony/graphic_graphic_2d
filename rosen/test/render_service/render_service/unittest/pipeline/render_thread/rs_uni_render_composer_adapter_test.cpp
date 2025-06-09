@@ -1158,24 +1158,6 @@ HWTEST_F(RSUniRenderComposerAdapterTest, SrcRectRotateTransform006, TestSize.Lev
 }
 
 /**
- * @tc.name: CheckStatusBeforeCreateLayer008
- * @tc.desc: Test RSUniRenderComposerAdapterTest.CheckStatusBeforeCreateLayer while
- *           bounds geometry is nullptr
- * @tc.type: FUNC
- * @tc.require: issuesI7T9RE
- */
-HWTEST_F(RSUniRenderComposerAdapterTest, CheckStatusBeforeCreateLayer008, TestSize.Level2)
-{
-    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    ASSERT_NE(surfaceNode, nullptr);
-    surfaceNode->GetMutableRenderProperties().boundsGeo_ = nullptr;
-    RectI dstRect{0, 0, DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT};
-    surfaceNode->SetSrcRect(dstRect);
-    surfaceNode->SetDstRect(dstRect);
-    ASSERT_FALSE(composerAdapter_->CheckStatusBeforeCreateLayer(*surfaceNode));
-}
-
-/**
  * @tc.name: LayerScaleDown004
  * @tc.desc: Test RSUniRenderComposerAdapterTest.LayerScaleDown while
  *           scaling mode is SCALING_MODE_SCALE_CROP

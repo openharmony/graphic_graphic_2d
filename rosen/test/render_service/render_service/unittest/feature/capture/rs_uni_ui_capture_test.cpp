@@ -22,7 +22,7 @@
 #include "limit_number.h"
 
 #include "pipeline/rs_test_util.h"
-
+#include "feature/capture/rs_capture_pixelmap_manager.h"
 using namespace testing;
 using namespace testing::ext;
 
@@ -445,4 +445,22 @@ HWTEST_F(RSUniUiCaptureTest, ProcessSurfaceRenderNodeWithoutUniTest, TestSize.Le
     rsUniUICaptureVisitor->ProcessSurfaceViewWithoutUni(node);
     ASSERT_NE(rsUniUICaptureVisitor->canvas_, nullptr);
 }
+
+/**
+ * @tc.name: CreateClientPixelMap
+ * @tc.desc: Test CreateClientPixelMap
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniUiCaptureTest, CreateClientPixelMap, TestSize.Level1)
+{
+    Drawing::Rect rect = {0, 0, 1260, 2720};
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.captureType = SurfaceCaptureType::UICAPTURE;
+
+    auto pixelMap = RSCapturePixelMapManager::GetClientCapturePixelMap(rect, captureConfig,
+        UniRenderEnabledType::UNI_RENDER_DISABLED);
+    EXPECT_EQ(pixelMap == nullptr, true);
+}
+
 } // namespace OHOS::Rosen

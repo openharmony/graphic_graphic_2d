@@ -1810,40 +1810,6 @@ protected:
 };
 
 /**
- * @class RSFilterModifier
- *
- * @brief The class for filter modifiers.
- */
-class RSC_EXPORT RSFilterModifier : public RSForegroundModifier {
-public:
-    /**
-     * @brief Construct a new RSFilterModifier instance.
-     *
-     * @param property A shared pointer to the RSPropertyBase object.
-     */
-    explicit RSFilterModifier(const std::shared_ptr<RSPropertyBase>& property);
-
-    /**
-     * @brief Destructor for RSFilterModifier.
-     */
-    virtual ~RSFilterModifier() = default;
-protected:
-    /**
-     * @brief Get the type of the modifier.
-     *
-     * @return The type of the modifier.
-     */
-    RSModifierType GetModifierType() const override;
-
-    /**
-     * @brief Create a new render modifier.
-     *
-     * @return A shared pointer to the created RSRenderModifier.
-     */
-    std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
-};
-
-/**
  * @class RSBackgroundBlurRadiusModifier
  *
  * @brief The class for background blur radius modifiers.
@@ -3221,40 +3187,6 @@ public:
      * @brief Destructor for RSMagnifierParamsModifier.
      */
     virtual ~RSMagnifierParamsModifier() = default;
-protected:
-    /**
-     * @brief Get the type of the modifier.
-     *
-     * @return The type of the modifier.
-     */
-    RSModifierType GetModifierType() const override;
-
-    /**
-     * @brief Create a new render modifier.
-     *
-     * @return A shared pointer to the created RSRenderModifier.
-     */
-    std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
-};
-
-/**
- * @class RSBackgroundFilterModifier
- *
- * @brief The class for background filter modifiers.
- */
-class RSC_EXPORT RSBackgroundFilterModifier : public RSBackgroundModifier {
-public:
-    /**
-     * @brief Construct a new RSBackgroundFilterModifier instance.
-     *
-     * @param property A shared pointer to the RSPropertyBase object.
-     */
-    explicit RSBackgroundFilterModifier(const std::shared_ptr<RSPropertyBase>& property);
-
-    /**
-     * @brief Destructor for RSBackgroundFilterModifier.
-     */
-    virtual ~RSBackgroundFilterModifier() = default;
 protected:
     /**
      * @brief Get the type of the modifier.

@@ -15,20 +15,24 @@
 
 #include <gtest/gtest.h>
 
+#include "skia_adapter/skia_surface.h"
+#include "skia_image.h"
+#include "skia_image_info.h"
+#include "skia_runtime_effect.h"
+
 #include "common/rs_obj_abs_geometry.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "property/rs_point_light_manager.h"
 #include "property/rs_properties_painter.h"
+#include "render/rs_colorful_shadow_filter.h"
 #include "render/rs_foreground_effect_filter.h"
+#include "render/rs_render_kawase_blur_filter.h"
+#include "render/rs_render_linear_gradient_blur_filter.h"
+#include "render/rs_render_magnifier_filter.h"
 #include "render/rs_shadow.h"
 #include "render/rs_skia_filter.h"
-#include "skia_adapter/skia_surface.h"
-#include "skia_image.h"
-#include "skia_image_info.h"
-#include "skia_runtime_effect.h"
-#include "render/rs_colorful_shadow_filter.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -723,7 +727,7 @@ HWTEST_F(RSPropertiesPainterTest, DrawFilter001, TestSize.Level1)
     RSPaintFilterCanvas canvas(&drawingCanvas);
     std::shared_ptr<RSFilter> rsFilter = RSFilter::CreateBlurFilter(1.f, 1.f);
     RSProperties properties;
-    properties.SetBackgroundFilter(rsFilter);
+    properties.backgroundFilter_ = rsFilter;
     EXPECT_NE(properties.GetBackgroundFilter(), nullptr);
     properties.GenerateBackgroundFilter();
     RSPropertiesPainter::DrawFilter(
@@ -744,12 +748,56 @@ HWTEST_F(RSPropertiesPainterTest, DrawFilter002, TestSize.Level1)
     RSPaintFilterCanvas canvas(&drawingCanvas);
     std::shared_ptr<RSFilter> rsFilter = RSFilter::CreateBlurFilter(1.f, 1.f);
     RSProperties properties;
-    properties.SetBackgroundFilter(rsFilter);
+    properties.backgroundFilter_ = rsFilter;
     properties.GenerateBackgroundFilter();
     std::shared_ptr<RSPath> rsPath = std::make_shared<RSPath>();
     properties.SetClipBounds(rsPath);
     RSPropertiesPainter::DrawFilter(properties, canvas, FilterType::BACKGROUND_FILTER);
     EXPECT_NE(properties.clipPath_, nullptr);
+}
+
+/**
+ * @tc.name: DrawFilter003
+ * @tc.desc: test results of DrawFilter
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesPainterTest, DrawFilter003, TestSize.Level1)
+{
+    RSProperties properties;
+    auto kawaseBlurFilter = std::make_shared<RSKawaseBlurShaderFilter>(1.0f);
+    properties.backgroundFilter_ = std::make_shared<RSDrawingFilter>(kawaseBlurFilter);
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    canvas.surface_ = nullptr;
+    RSPropertiesPainter::DrawFilter(properties, canvas, FilterType::BACKGROUND_FILTER);
+    EXPECT_NE(kawaseBlurFilter, nullptr);
+}
+
+/**
+ * @tc.name: DrawFilter004
+ * @tc.desc: test results of DrawFilter
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesPainterTest, DrawFilter004, TestSize.Level1)
+{
+    RSProperties properties;
+    auto magnifierPara = std::make_shared<RSMagnifierParams>();
+    auto magnifierFilter = std::make_shared<RSMagnifierShaderFilter>(magnifierPara);
+    properties.backgroundFilter_ = std::make_shared<RSDrawingFilter>(magnifierFilter);
+    Drawing::Canvas drawingCanvas(100, 100);
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    Drawing::RectI srcRect { 0, 0, 100, 100 };
+    Drawing::RectI dstRect { 0, 0, 100, 100 };
+    int width = 100;
+    int height = 100;
+    Drawing::ImageInfo imageInfo { width, height, Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
+    std::shared_ptr<Drawing::Surface> surface = Drawing::Surface::MakeRaster(imageInfo);
+    canvas.surface_ = surface.get();
+    EXPECT_NE(canvas.GetSurface(), nullptr);
+    RSPropertiesPainter::DrawFilter(properties, canvas, FilterType::BACKGROUND_FILTER);
+    EXPECT_NE(magnifierFilter, nullptr);
 }
 
 /**
@@ -782,7 +830,7 @@ HWTEST_F(RSPropertiesPainterTest, DrawBackgroundEffect001, TestSize.Level1)
     EXPECT_TRUE(true);
 
     auto backgroundFilter = std::make_shared<RSFilter>();
-    properties.SetBackgroundFilter(backgroundFilter);
+    properties.backgroundFilter_ = backgroundFilter;
     RSPropertiesPainter::DrawBackgroundEffect(properties, canvas);
     EXPECT_TRUE(backgroundFilter != nullptr);
 
@@ -813,7 +861,7 @@ HWTEST_F(RSPropertiesPainterTest, ApplyBackgroundEffectFallback001, TestSize.Lev
     EXPECT_TRUE(true);
 
     auto backgroundFilter = std::make_shared<RSFilter>();
-    properties.SetBackgroundFilter(backgroundFilter);
+    properties.backgroundFilter_ = backgroundFilter;
     RSPropertiesPainter::ApplyBackgroundEffectFallback(properties, drCanvas);
     EXPECT_TRUE(true);
 }
@@ -925,7 +973,7 @@ HWTEST_F(RSPropertiesPainterTest, CalcAverageColor001, TestSize.Level1)
 HWTEST_F(RSPropertiesPainterTest, GetAndResetBlurCnt001, TestSize.Level1)
 {
     int res = RSPropertiesPainter::GetAndResetBlurCnt();
-    EXPECT_EQ(res, 2);
+    EXPECT_EQ(res, 4);
 }
 
 /**
@@ -1371,19 +1419,30 @@ HWTEST_F(RSPropertiesPainterTest, IsDangerousBlendMode001, TestSize.Level1)
  */
 HWTEST_F(RSPropertiesPainterTest, DrawLinearGradientBlurFilter001, TestSize.Level1)
 {
-    Drawing::Canvas drawingCanvas;
-    RSPaintFilterCanvas canvas(&drawingCanvas);
-
+    RSProperties properties;
     std::vector<std::pair<float, float>> fractionStops;
     fractionStops.push_back(std::make_pair(0.f, 0.f));
     fractionStops.push_back(std::make_pair(1.f, 1.f));
-    std::shared_ptr<RSLinearGradientBlurPara> linearGradientBlurPara =
-        std::make_shared<RSLinearGradientBlurPara>(16, fractionStops, GradientDirection::BOTTOM);
-    RSProperties properties;
-    properties.SetLinearGradientBlurPara(linearGradientBlurPara);
-    EXPECT_TRUE(properties.isDrawn_);
+    auto para = std::make_shared<RSLinearGradientBlurPara>(16, fractionStops, GradientDirection::BOTTOM);
+    auto linearGradientFilter = std::make_shared<RSLinearGradientBlurShaderFilter>(para, 1.0f, 1.0f);
+    properties.filter_ = std::make_shared<RSDrawingFilter>(linearGradientFilter);
 
+    Drawing::Canvas drawingCanvas(100, 100);
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    Drawing::RectI srcRect { 0, 0, 100, 100 };
+    Drawing::RectI dstRect { 0, 0, 100, 100 };
+    int width = 100;
+    int height = 100;
+    Drawing::ImageInfo imageInfo { width, height, Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
+    std::shared_ptr<Drawing::Surface> surface = Drawing::Surface::MakeRaster(imageInfo);
+    canvas.surface_ = surface.get();
+    EXPECT_NE(canvas.GetSurface(), nullptr);
     RSPropertiesPainter::DrawFilter(properties, canvas, FilterType::FOREGROUND_FILTER);
+
+    canvas.disableFilterCache_ = false;
+    properties.foregroundFilterCacheManager_ = std::make_unique<RSFilterCacheManager>();
+    RSPropertiesPainter::DrawFilter(properties, canvas, FilterType::FOREGROUND_FILTER);
+    EXPECT_NE(linearGradientFilter, nullptr);
 }
 
 /**

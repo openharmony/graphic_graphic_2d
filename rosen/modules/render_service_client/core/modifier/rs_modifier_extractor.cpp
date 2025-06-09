@@ -33,8 +33,9 @@ RSModifierExtractor::RSModifierExtractor(NodeId id, std::shared_ptr<RSUIContext>
 constexpr uint32_t DEBUG_MODIFIER_SIZE = 20;
 #define GET_PROPERTY_FROM_MODIFIERS(T, propertyType, defaultValue, operator)                                        \
     do {                                                                                                            \
-        auto node = rsUIContext_.lock() ? rsUIContext_.lock()->GetNodeMap().GetNode<RSNode>(id_)                    \
-            : RSNodeMap::Instance().GetNode<RSNode>(id_);                                                           \
+        auto rsUIContextPtr = rsUIContext_.lock();                                                                  \
+        auto node = rsUIContextPtr ? rsUIContextPtr->GetNodeMap().GetNode<RSNode>(id_)                              \
+                                   : RSNodeMap::Instance().GetNode<RSNode>(id_);                                    \
         if (!node) {                                                                                                \
             return defaultValue;                                                                                    \
         }                                                                                                           \
@@ -54,8 +55,9 @@ constexpr uint32_t DEBUG_MODIFIER_SIZE = 20;
 
 #define GET_PROPERTY_FROM_MODIFIERS_EQRETURN(T, propertyType, defaultValue, operator)                               \
     do {                                                                                                            \
-        auto node = rsUIContext_.lock() ? rsUIContext_.lock()->GetNodeMap().GetNode<RSNode>(id_)                    \
-            : RSNodeMap::Instance().GetNode<RSNode>(id_);                                                           \
+        auto rsUIContextPtr = rsUIContext_.lock();                                                                  \
+        auto node = rsUIContextPtr ? rsUIContextPtr->GetNodeMap().GetNode<RSNode>(id_)                              \
+                                   : RSNodeMap::Instance().GetNode<RSNode>(id_);                                    \
         if (!node) {                                                                                                \
             return defaultValue;                                                                                    \
         }                                                                                                           \
@@ -269,16 +271,6 @@ Vector4f RSModifierExtractor::GetOutlineRadius() const
 float RSModifierExtractor::GetForegroundEffectRadius() const
 {
     GET_PROPERTY_FROM_MODIFIERS(float, FOREGROUND_EFFECT_RADIUS, 0.f, =);
-}
-
-std::shared_ptr<RSFilter> RSModifierExtractor::GetBackgroundFilter() const
-{
-    GET_PROPERTY_FROM_MODIFIERS_EQRETURN(std::shared_ptr<RSFilter>, BACKGROUND_FILTER, nullptr, =);
-}
-
-std::shared_ptr<RSFilter> RSModifierExtractor::GetFilter() const
-{
-    GET_PROPERTY_FROM_MODIFIERS_EQRETURN(std::shared_ptr<RSFilter>, FILTER, nullptr, =);
 }
 
 Color RSModifierExtractor::GetShadowColor() const
@@ -525,13 +517,12 @@ std::string RSModifierExtractor::Dump() const
 {
     std::string dumpInfo;
     char buffer[UINT8_MAX] = { 0 };
-    if (sprintf_s(buffer, UINT8_MAX, "modifierExtractor rsUIContext token is %lu",
-                  rsUIContext_.lock() ? rsUIContext_.lock()->GetToken() : -1) != -1) {
-        dumpInfo.append(buffer);
-    }
-
-    if (rsUIContext_.lock()) {
-        if (rsUIContext_.lock()->GetNodeMap().GetNode<RSNode>(id_) != nullptr) {
+    if (auto rsUIContextPtr = rsUIContext_.lock()) {
+        if (sprintf_s(buffer, UINT8_MAX, "modifierExtractor rsUIContext token is %lu",
+                      rsUIContextPtr ? rsUIContextPtr->GetToken() : 0) != -1) {
+            dumpInfo.append(buffer);
+        }
+        if (rsUIContextPtr->GetNodeMap().GetNode<RSNode>(id_) != nullptr) {
             sprintf_s(buffer, UINT8_MAX, "node Is %d ", 1);
         } else {
             sprintf_s(buffer, UINT8_MAX, "node Is %d ", 0);

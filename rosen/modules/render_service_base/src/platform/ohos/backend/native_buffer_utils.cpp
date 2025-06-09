@@ -18,10 +18,13 @@
 #include "platform/common/rs_log.h"
 #include "render_context/render_context.h"
 #include "pipeline/sk_resource_manager.h"
-#include "utils/graphic_coretrace.h"
 
 #ifdef RS_ENABLE_VK
+#ifdef USE_M133_SKIA
+#include "include/gpu/ganesh/vk/GrVkBackendSurface.h"
+#else
 #include "include/gpu/GrBackendSurface.h"
+#endif
 #include "platform/ohos/backend/rs_vulkan_context.h"
 #endif
 
@@ -193,8 +196,6 @@ bool BindImageMemory(VkDevice device, RsVulkanContext& vkContext, VkImage& image
 bool MakeFromNativeWindowBuffer(std::shared_ptr<Drawing::GPUContext> skContext, NativeWindowBuffer* nativeWindowBuffer,
     NativeSurfaceInfo& nativeSurface, int width, int height, bool isProtected)
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        RS_NATIVEBUFFERUTILS_MAKEFROMNATIVEWINDOWBUFFER);
     OH_NativeBuffer* nativeBuffer = OH_NativeBufferFromNativeWindowBuffer(nativeWindowBuffer);
     if (nativeBuffer == nullptr) {
         ROSEN_LOGE("MakeFromNativeWindowBuffer: OH_NativeBufferFromNativeWindowBuffer failed");

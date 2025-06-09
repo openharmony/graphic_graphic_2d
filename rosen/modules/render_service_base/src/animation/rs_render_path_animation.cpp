@@ -139,7 +139,7 @@ void RSRenderPathAnimation::OnAnimate(float fraction)
     float tangent = 0.0;
     GetPosTanValue(fraction, position, tangent);
     auto valueVector2f = std::static_pointer_cast<RSRenderAnimatableProperty<Vector2f>>(GetOriginValue());
-    if (GetOriginValue()->GetPropertyType() == RSRenderPropertyType::PROPERTY_VECTOR2F) {
+    if (GetOriginValue()->GetPropertyType() == RSPropertyType::VECTOR2F) {
         UpdateVector2fPathValue(position);
         SetPathValue(position, tangent);
         return;

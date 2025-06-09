@@ -20,18 +20,18 @@
 #include <stack>
 #include <vector>
 
-#include "draw/canvas.h"
-#include "draw/surface.h"
+#include "surface_type.h"
 
 #include "common/rs_color.h"
 #include "common/rs_macros.h"
-#include "render/rs_filter.h"
+#include "draw/canvas.h"
+#include "draw/surface.h"
 #include "screen_manager/screen_types.h"
-#include "surface_type.h"
 #include "utils/region.h"
 
 namespace OHOS {
 namespace Rosen {
+class RSFilter;
 
 class RSB_EXPORT RSPaintFilterCanvasBase : public Drawing::Canvas {
 public:

@@ -47,8 +47,8 @@ enum class FuzzMethod {
 void CalculatePreferredRate(FuzzedDataProvider& FD, RSAnimationRateDecider& decider)
 {
     PropertyValue property = std::make_shared<RSRenderAnimatableProperty<float>>(
-        0.0, 1, RSRenderPropertyType::PROPERTY_FLOAT, RSPropertyUnit::PIXEL_POSITION);
-    property->SetPropertyType(RSRenderPropertyType::PROPERTY_VECTOR4F);
+        0.0, 1, RSPropertyType::FLOAT, RSPropertyUnit::PIXEL_POSITION);
+    property->SetPropertyType(RSPropertyType::VECTOR4F);
     int32_t frameRate = FD.ConsumeIntegral<int32_t>();
     auto frameRateGetFunc =
         [frameRate](const RSPropertyUnit unit, float velocity, int32_t area, int32_t length) -> int32_t {

@@ -152,6 +152,33 @@ void RSUIDirector::InitHybridRender()
                 transactionDataIndex = transactionData->GetIndex();
                 // destroy semaphore after commitTransaction for which syncFence was duped
                 RSModifiersDraw::DestroySemaphore();
+                std::shared_ptr<RSUIContext> rsUICtx;
+                {
+                    int32_t instanceId = INSTANCE_ID_UNDEFINED;
+                    for (auto& [id, _, cmd] : transactionData->GetPayload()) {
+                        if (cmd == nullptr) {
+                            continue;
+                        }
+                        uint64_t token = cmd->GetToken();
+                        rsUICtx = RSUIContextManager::Instance().GetRSUIContext(token);
+                        if (rsUICtx != nullptr) {
+                            break;
+                        }
+                        if (instanceId == INSTANCE_ID_UNDEFINED) {
+                            NodeId realId = id == 0 ? cmd->GetNodeId() : id;
+                            instanceId = RSNodeMap::Instance().GetNodeInstanceId(realId);
+                            instanceId == INSTANCE_ID_UNDEFINED ?
+                                RSNodeMap::Instance().GetInstanceIdForReleasedNode(realId) : instanceId;
+                        }
+                    }
+                    auto dataHolder = std::make_shared<TransactionDataHolder>(std::move(transactionData));
+                    std::unique_lock<std::mutex> lock(RSModifiersDrawThread::transactionDataMutex_);
+                    auto task = [dataHolder]() {
+                        std::unique_lock<std::mutex> lock(RSModifiersDrawThread::transactionDataMutex_);
+                        (void) dataHolder;
+                    };
+                    rsUICtx == nullptr ? RSUIDirector::PostTask(task, instanceId) : rsUICtx->PostTask(task);
+                }
             };
             RSModifiersDrawThread::Instance().ScheduleTask(task);
         };
@@ -200,6 +227,8 @@ void RSUIDirector::GoForeground(bool isTextureExport)
 {
     ROSEN_LOGD("RSUIDirector::GoForeground");
     if (!isActive_) {
+        auto nowTime = std::chrono::system_clock::now().time_since_epoch();
+        lastUiSkipTimestamp_ = std::chrono::duration_cast<std::chrono::milliseconds>(nowTime).count();
         if (!isUniRenderEnabled_ || isTextureExport) {
             RSRenderThread::Instance().UpdateWindowStatus(true);
         }
@@ -219,6 +248,16 @@ void RSUIDirector::GoForeground(bool isTextureExport)
 #endif
 }
 
+void RSUIDirector::ReportUiSkipEvent(const std::string& abilityName)
+{
+    auto nowTime = std::chrono::system_clock::now().time_since_epoch();
+    int64_t nowMs = std::chrono::duration_cast<std::chrono::milliseconds>(nowTime).count();
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr && nowMs - lastUiSkipTimestamp_ > 1000) { // 1000 ms
+        transactionProxy->ReportUiSkipEvent(abilityName, nowMs, lastUiSkipTimestamp_);
+    }
+}
+
 void RSUIDirector::GoBackground(bool isTextureExport)
 {
     ROSEN_LOGD("RSUIDirector::GoBackground");
@@ -227,6 +266,7 @@ void RSUIDirector::GoBackground(bool isTextureExport)
             RSRenderThread::Instance().UpdateWindowStatus(false);
         }
         isActive_ = false;
+        ReportUiSkipEvent(abilityName_);
         auto node = rootNode_.lock();
         if (node) {
             node->SetEnableRender(false);
@@ -637,7 +677,7 @@ void RSUIDirector::ProcessMessages(std::shared_ptr<RSTransactionData> cmds, bool
 void RSUIDirector::AnimationCallbackProcessor(NodeId nodeId, AnimationId animId, uint64_t token,
     AnimationCallbackEvent event)
 {
-    RSAnimationTraceUtils::GetInstance().addAnimationFinishTrace(
+    RSAnimationTraceUtils::GetInstance().AddAnimationFinishTrace(
         "Animation FinishCallback Processor", nodeId, animId, false);
     auto rsUIContext = RSUIContextManager::Instance().GetRSUIContext(token);
     // try find the node by nodeId

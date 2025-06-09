@@ -1,4 +1,4 @@
-# Copyright (c) 2022-2024 Huawei Device Co., Ltd.
+# Copyright (c) 2022-2025 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -71,6 +71,7 @@ ohos_unittest("2d_graphics_ndk_test") {
     "$graphic_2d_root/rosen/modules/render_service_client",
     "$graphic_2d_root/rosen/modules/render_service_base/src",
     "$rosen_text_root/service/texgine/src",
+    "$graphic_2d_root/interfaces/inner_api/color_manager",
   ]
 
   cflags_cc = [
@@ -99,6 +100,7 @@ ohos_unittest("2d_graphics_ndk_test") {
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
     "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
     "$rosen_text_root:rosen_text",
+    "$graphic_2d_root/utils/color_manager/ndk:libnative_color_space_manager",
   ]
 
   subsystem_name = "graphic"

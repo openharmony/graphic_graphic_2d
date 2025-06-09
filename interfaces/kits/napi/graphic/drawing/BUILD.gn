@@ -94,6 +94,7 @@ if (is_arkui_x) {
     deps = [
       "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
       "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base_static",
+      "$graphic_2d_root/interfaces/kits/napi/graphic/color_manager:color_space_object_convertor",
       "//foundation/arkui/napi:ace_napi",
     ]
     defines += [ "MODULE_DRAWING" ]
@@ -139,6 +140,7 @@ if (is_arkui_x) {
       "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
       "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
       "$rosen_text_root:rosen_text",
+      "$graphic_2d_root/interfaces/kits/napi/graphic/color_manager:color_space_object_convertor",
     ]
 
     external_deps = [ "napi:ace_napi" ]

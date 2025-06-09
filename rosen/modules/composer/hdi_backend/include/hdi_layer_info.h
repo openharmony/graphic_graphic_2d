@@ -73,6 +73,14 @@ static const std::map<GraphicBlendType, std::string> BlendTypeStrs = {
     {GRAPHIC_BLEND_BUTT,                     "16 <Uninitialized>"},
 };
 
+// ANCO node HdiAncoFlags
+enum class HdiAncoFlags : uint32_t {
+    IS_ANCO_NODE = 0x0001,
+    ANCO_SFV_NODE = 0x0011,
+    ANCO_NATIVE_NODE = 0x0111,
+    FORCE_REFRESH = 0x1000
+};
+
 class HdiLayerInfo {
 public:
     HdiLayerInfo() = default;
@@ -523,6 +531,16 @@ public:
         return needBilinearInterpolation_;
     }
 
+    void SetIsMaskLayer(bool isMaskLayer)
+    {
+        isMaskLayer_ = isMaskLayer;
+    }
+
+    bool IsMaskLayer() const
+    {
+        return isMaskLayer_;
+    }
+
     void CopyLayerInfo(const std::shared_ptr<HdiLayerInfo> &layerInfo)
     {
         std::lock_guard<std::mutex> lock(mutex_);
@@ -655,8 +673,13 @@ public:
     uint32_t GetAncoFlags() const { return ancoFlags_; }
     bool IsAncoSfv() const
     {
-        constexpr uint32_t ANCO_SFV_NODE_FLAG = 0x0011;
+        constexpr uint32_t ANCO_SFV_NODE_FLAG = static_cast<uint32_t>(HdiAncoFlags::ANCO_SFV_NODE);
         return (ancoFlags_ & ANCO_SFV_NODE_FLAG) == ANCO_SFV_NODE_FLAG;
+    }
+    bool IsAncoNative() const
+    {
+        constexpr uint32_t ANCO_NATIVE_NODE_FLAG = static_cast<uint32_t>(HdiAncoFlags::ANCO_NATIVE_NODE);
+        return (ancoFlags_ & ANCO_NATIVE_NODE_FLAG) == ANCO_NATIVE_NODE_FLAG;
     }
     /* hdiLayer get layer info end */
 
@@ -710,6 +733,7 @@ private:
     bool copybitTag_ = false;
     std::vector<float> drmCornerRadiusInfo_;
     uint32_t ancoFlags_ = 0;
+    bool isMaskLayer_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -32,6 +32,7 @@ public:
 protected:
     void SetSourceTuningForApp(std::string appName, std::string val);
     void SetSolidColorLayerForApp(std::string appName, std::string val);
+    void SetEnableHwcNodeBelowSelfInAppForApp(std::string appName, std::string val);
     static void SetSolidLayerEnable(bool isEnable);
     static void SetDisableHwcOnExpandScreen(bool isEnable);
     void MoveDataToHgmCore();
@@ -41,6 +42,7 @@ private:
     inline static bool isDisableHwcOnExpandScreen_ = false;
     std::unordered_map<std::string, std::string> sourceTuningMap_;
     std::unordered_map<std::string, std::string> solidColorLayerMap_;
+    std::unordered_map<std::string, std::string> enableHwcNodeBelowSelfInAppMap_;
 
     friend class HWCParamParse;
 };

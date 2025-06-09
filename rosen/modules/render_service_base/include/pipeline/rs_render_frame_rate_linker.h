@@ -81,7 +81,7 @@ private:
     uint32_t frameRate_ = 0;
     int32_t animatorExpectedFrameRate_ = -1;
     std::string vsyncName_;
-    uint64_t windowNodeId_;
+    uint64_t windowNodeId_ = 0;
     mutable std::mutex mutex_;
     TimePoint nativeVSyncTimePoint_ = std::chrono::steady_clock::time_point::min();
 

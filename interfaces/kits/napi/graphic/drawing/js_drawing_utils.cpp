@@ -113,6 +113,19 @@ bool ConvertFromJsColor(napi_env env, napi_value jsValue, int32_t* argb, size_t 
     return true;
 }
 
+bool ConvertFromJsColor4F(napi_env env, napi_value jsValue, double* argbF, size_t size)
+{
+    napi_value tempValue = nullptr;
+    for (size_t idx = 0; idx < size; idx++) {
+        double* curChannel = argbF + idx;
+        napi_get_named_property(env, jsValue, g_argbString[idx], &tempValue);
+        if (napi_get_value_double(env, tempValue, curChannel) != napi_ok) {
+            return false;
+        }
+    }
+    return true;
+}
+
 bool ConvertFromAdaptHexJsColor(napi_env env, napi_value jsValue, Drawing::ColorQuad& jsColor)
 {
     bool isJsColor = false;
@@ -128,6 +141,26 @@ bool ConvertFromAdaptHexJsColor(napi_env env, napi_value jsValue, Drawing::Color
             return false;
         }
     }
+    return true;
+}
+
+bool ConvertFromAdaptJsColor4F(napi_env env, napi_value jsValue, Drawing::Color4f& jsColor4F)
+{
+    bool isJsColor4F = false;
+    napi_has_named_property(env, jsValue, JSCOLOR[0], &isJsColor4F);
+    if (!isJsColor4F) {
+        return false;
+    }
+
+    double argbF[ARGC_FOUR] = {0};
+    if (!ConvertFromJsColor4F(env, jsValue, argbF, ARGC_FOUR)) {
+        return false;
+    }
+    jsColor4F.alphaF_ = static_cast<float>(argbF[ARGC_ZERO]);
+    jsColor4F.redF_ = static_cast<float>(argbF[ARGC_ONE]);
+    jsColor4F.greenF_ = static_cast<float>(argbF[ARGC_TWO]);
+    jsColor4F.blueF_ = static_cast<float>(argbF[ARGC_THREE]);
+
     return true;
 }
 

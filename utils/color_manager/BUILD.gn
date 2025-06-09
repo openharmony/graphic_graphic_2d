@@ -57,6 +57,9 @@ template("color_manager_source_set") {
 
     external_deps = [ "skia:skia_canvaskit" ]
 
+    cflags_cc = [
+      "-std=c++17",
+    ]
     part_name = "graphic_2d"
     subsystem_name = "graphic"
   }

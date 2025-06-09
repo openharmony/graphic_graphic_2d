@@ -100,6 +100,7 @@ SPText::ParagraphStyle Convert(const TypographyStyle& style)
     paragraphStyle.halfLeading = style.halfLeading;
     paragraphStyle.isTrailingSpaceOptimized = style.isTrailingSpaceOptimized;
     paragraphStyle.enableAutoSpace = style.enableAutoSpace;
+    paragraphStyle.verticalAlignment = style.verticalAlignment;
 
     return paragraphStyle;
 }

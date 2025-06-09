@@ -119,17 +119,17 @@ HWTEST_F(RSRenderPropertyTest, PropertyOp001, TestSize.Level1)
 template<typename T>
 class MockRSRenderProperty : public RSRenderProperty<T> {
 public:
-    explicit MockRSRenderProperty(const RSRenderPropertyType type) : RSRenderProperty<T>(), type_(type) {}
+    explicit MockRSRenderProperty(const RSPropertyType type) : RSRenderProperty<T>(), type_(type) {}
     virtual ~MockRSRenderProperty() = default;
 protected:
-    RSRenderPropertyType type_;
+    RSPropertyType type_;
 };
 
 template<typename T>
 class MockRSRenderAnimatableProperty : public RSRenderAnimatableProperty<T> {
 public:
     explicit MockRSRenderAnimatableProperty(const T& value) : RSRenderAnimatableProperty<T>(value) {}
-    explicit MockRSRenderAnimatableProperty(const RSRenderPropertyType type) : RSRenderAnimatableProperty<T>()
+    explicit MockRSRenderAnimatableProperty(const RSPropertyType type) : RSRenderAnimatableProperty<T>()
     {
         RSRenderAnimatableProperty<T>::SetPropertyType(type);
     }
@@ -167,24 +167,14 @@ HWTEST_F(RSRenderPropertyTest, PropertyOp002, TestSize.Level1)
 HWTEST_F(RSRenderPropertyTest, PropertyIPC001, TestSize.Level1)
 {
     std::vector<std::shared_ptr<RSRenderPropertyBase>> props;
-    props.push_back(std::make_shared<MockRSRenderAnimatableProperty<float>>(
-        RSRenderPropertyType::PROPERTY_FLOAT));
-    props.push_back(std::make_shared<MockRSRenderAnimatableProperty<Color>>(
-        RSRenderPropertyType::PROPERTY_COLOR));
-    props.push_back(std::make_shared<MockRSRenderAnimatableProperty<Matrix3f>>(
-        RSRenderPropertyType::PROPERTY_MATRIX3F));
-    props.push_back(std::make_shared<MockRSRenderAnimatableProperty<Quaternion>>(
-        RSRenderPropertyType::PROPERTY_QUATERNION));
-    props.push_back(std::make_shared<MockRSRenderAnimatableProperty<std::shared_ptr<RSFilter>>>(
-        RSRenderPropertyType::PROPERTY_FILTER));
-    props.push_back(std::make_shared<MockRSRenderAnimatableProperty<std::vector<float>>>(
-        RSRenderPropertyType::PROPERTY_SHADER_PARAM));
-    props.push_back(std::make_shared<MockRSRenderAnimatableProperty<Vector2f>>(
-        RSRenderPropertyType::PROPERTY_VECTOR2F));
-    props.push_back(std::make_shared<MockRSRenderAnimatableProperty<Vector4f>>(
-        RSRenderPropertyType::PROPERTY_VECTOR4F));
-    props.push_back(std::make_shared<MockRSRenderAnimatableProperty<Vector4<Color>>>(
-        RSRenderPropertyType::PROPERTY_VECTOR4_COLOR));
+    props.push_back(std::make_shared<MockRSRenderAnimatableProperty<float>>(RSPropertyType::FLOAT));
+    props.push_back(std::make_shared<MockRSRenderAnimatableProperty<Color>>(RSPropertyType::RS_COLOR));
+    props.push_back(std::make_shared<MockRSRenderAnimatableProperty<Matrix3f>>(RSPropertyType::MATRIX3F));
+    props.push_back(std::make_shared<MockRSRenderAnimatableProperty<Quaternion>>(RSPropertyType::QUATERNION));
+    props.push_back(std::make_shared<MockRSRenderAnimatableProperty<std::vector<float>>>(RSPropertyType::SHADER_PARAM));
+    props.push_back(std::make_shared<MockRSRenderAnimatableProperty<Vector2f>>(RSPropertyType::VECTOR2F));
+    props.push_back(std::make_shared<MockRSRenderAnimatableProperty<Vector4f>>(RSPropertyType::VECTOR4F));
+    props.push_back(std::make_shared<MockRSRenderAnimatableProperty<Vector4<Color>>>(RSPropertyType::VECTOR4_COLOR));
 
     for (auto& prop : props) {
         MessageParcel parcel;
@@ -212,24 +202,15 @@ HWTEST_F(RSRenderPropertyTest, PropertyIPC001, TestSize.Level1)
 HWTEST_F(RSRenderPropertyTest, PropertyIPC002, TestSize.Level1)
 {
     std::vector<std::shared_ptr<RSRenderPropertyBase>> props;
-    props.push_back(std::make_shared<MockRSRenderProperty<float>>(
-        RSRenderPropertyType::PROPERTY_MATRIX3F));
-    props.push_back(std::make_shared<MockRSRenderProperty<Color>>(
-        RSRenderPropertyType::PROPERTY_FLOAT));
-    props.push_back(std::make_shared<MockRSRenderProperty<Matrix3f>>(
-        RSRenderPropertyType::PROPERTY_FLOAT));
-    props.push_back(std::make_shared<MockRSRenderProperty<Quaternion>>(
-        RSRenderPropertyType::PROPERTY_FLOAT));
-    props.push_back(std::make_shared<MockRSRenderProperty<std::shared_ptr<RSFilter>>>(
-        RSRenderPropertyType::PROPERTY_FLOAT));
-    props.push_back(std::make_shared<MockRSRenderProperty<Vector2f>>(
-        RSRenderPropertyType::PROPERTY_FLOAT));
-    props.push_back(std::make_shared<MockRSRenderProperty<Vector4f>>(
-        RSRenderPropertyType::PROPERTY_FLOAT));
-    props.push_back(std::make_shared<MockRSRenderProperty<Vector4<Color>>>(
-        RSRenderPropertyType::PROPERTY_FLOAT));
-    props.push_back(std::make_shared<MockRSRenderProperty<std::shared_ptr<RSRenderFilter>>>(
-        RSRenderPropertyType::PROPERTY_UI_FILTER));
+    props.push_back(std::make_shared<MockRSRenderProperty<float>>(RSPropertyType::MATRIX3F));
+    props.push_back(std::make_shared<MockRSRenderProperty<Color>>(RSPropertyType::FLOAT));
+    props.push_back(std::make_shared<MockRSRenderProperty<Matrix3f>>(RSPropertyType::FLOAT));
+    props.push_back(std::make_shared<MockRSRenderProperty<Quaternion>>(RSPropertyType::FLOAT));
+    props.push_back(std::make_shared<MockRSRenderProperty<std::shared_ptr<RSFilter>>>(RSPropertyType::FLOAT));
+    props.push_back(std::make_shared<MockRSRenderProperty<Vector2f>>(RSPropertyType::FLOAT));
+    props.push_back(std::make_shared<MockRSRenderProperty<Vector4f>>(RSPropertyType::FLOAT));
+    props.push_back(std::make_shared<MockRSRenderProperty<Vector4<Color>>>(RSPropertyType::FLOAT));
+    props.push_back(std::make_shared<MockRSRenderProperty<std::shared_ptr<RSRenderFilter>>>(RSPropertyType::FLOAT));
 
     for (auto& prop : props) {
         MessageParcel parcel;
@@ -278,8 +259,6 @@ HWTEST_F(RSRenderPropertyTest, IsNearEqual, TestSize.Level1)
     RSRenderAnimatableProperty<Matrix3f> propertyMatrix3f(matrix3f);
     Color color;
     RSRenderAnimatableProperty<Color> propertyColor(color);
-    std::shared_ptr<RSFilter> rsFilter = std::make_shared<RSFilter>();
-    RSRenderAnimatableProperty<std::shared_ptr<RSFilter>> propertyRSFilter(rsFilter);
     Vector4<Color> vector4;
     RSRenderAnimatableProperty<Vector4<Color>> propertyVector4Color(vector4);
     RRect rect;
@@ -290,7 +269,6 @@ HWTEST_F(RSRenderPropertyTest, IsNearEqual, TestSize.Level1)
     EXPECT_TRUE(propertyTwo.IsNearEqual(value, 1.f));
     EXPECT_TRUE(propertyMatrix3f.IsNearEqual(value, 1.f));
     EXPECT_TRUE(propertyColor.IsNearEqual(value, 1.f));
-    EXPECT_TRUE(propertyRSFilter.IsNearEqual(value, 1.f));
     EXPECT_TRUE(propertyVector4Color.IsNearEqual(value, 1.f));
     EXPECT_TRUE(propertyRect.IsNearEqual(value, 1.f));
 
@@ -332,8 +310,7 @@ HWTEST_F(RSRenderPropertyTest, OnChange001, TestSize.Level1)
     std::shared_ptr<RSRenderPropertyBase> base = std::make_shared<RSRenderPropertyBase>();
     Parcel parcel;
     std::vector<std::shared_ptr<RSRenderPropertyBase>> props;
-    props.push_back(std::make_shared<MockRSRenderProperty<Color>>(
-        RSRenderPropertyType::PROPERTY_FLOAT));
+    props.push_back(std::make_shared<MockRSRenderProperty<Color>>(RSPropertyType::FLOAT));
     
     const std::shared_ptr<RSRenderPropertyBase> val = nullptr;
     bool ret = base->Marshalling(parcel, val);
@@ -351,8 +328,7 @@ HWTEST_F(RSRenderPropertyTest, OnChange002, TestSize.Level1)
     std::shared_ptr<RSRenderPropertyBase> base = std::make_shared<RSRenderPropertyBase>();
     Parcel parcel;
     std::vector<std::shared_ptr<RSRenderPropertyBase>> props;
-    props.push_back(std::make_shared<MockRSRenderProperty<Color>>(
-        RSRenderPropertyType::PROPERTY_RRECT));
+    props.push_back(std::make_shared<MockRSRenderProperty<Color>>(RSPropertyType::RRECT));
     for (auto& prop : props) {
         MessageParcel parcel;
         ASSERT_FALSE(RSRenderPropertyBase::Marshalling(parcel, prop));
@@ -375,10 +351,8 @@ HWTEST_F(RSRenderPropertyTest, IsNearEqual001, TestSize.Level1)
     RSRenderAnimatableProperty<Vector4f> property4;
     RSRenderAnimatableProperty<Matrix3f> property5;
     RSRenderAnimatableProperty<Color> property6;
-    RSRenderAnimatableProperty<std::shared_ptr<RSFilter>> property7;
-    RSRenderAnimatableProperty<Vector4<Color>> property8;
-    RSRenderAnimatableProperty<RRect> property9;
-    RSRenderAnimatableProperty<std::shared_ptr<RSFilter>> property10;
+    RSRenderAnimatableProperty<Vector4<Color>> property7;
+    RSRenderAnimatableProperty<RRect> property8;
     const std::shared_ptr<RSRenderPropertyBase> value = nullptr;
     float zeroThreshold = 0.0;
     ASSERT_TRUE(property1.IsNearEqual(value, zeroThreshold));
@@ -390,8 +364,6 @@ HWTEST_F(RSRenderPropertyTest, IsNearEqual001, TestSize.Level1)
     ASSERT_TRUE(property6.IsNearEqual(value, zeroThreshold));
     ASSERT_TRUE(property7.IsNearEqual(value, zeroThreshold));
     ASSERT_TRUE(property8.IsNearEqual(value, zeroThreshold));
-    ASSERT_TRUE(property9.IsNearEqual(value, zeroThreshold));
-    ASSERT_TRUE(property10.IsEqual(value));
 }
 
 /**
@@ -413,12 +385,10 @@ HWTEST_F(RSRenderPropertyTest, IsNearEqual002, TestSize.Level1)
     RSRenderAnimatableProperty<Matrix3f> property5(matrix3f);
     Color color;
     RSRenderAnimatableProperty<Color> property6(color);
-    std::shared_ptr<RSFilter> pFilter = std::make_shared<RSFilter>();
-    RSRenderAnimatableProperty<std::shared_ptr<RSFilter>> property7(pFilter);
     Vector4<Color> vectorColor;
-    RSRenderAnimatableProperty<Vector4<Color>> property8(vectorColor);
+    RSRenderAnimatableProperty<Vector4<Color>> property7(vectorColor);
     RRect rect;
-    RSRenderAnimatableProperty<RRect> property9(rect);
+    RSRenderAnimatableProperty<RRect> property8(rect);
     float zeroThreshold = 0.0001;
 
     std::shared_ptr<RSRenderProperty<float>> floatValue = std::make_shared<RSRenderProperty<float>>();
@@ -431,9 +401,6 @@ HWTEST_F(RSRenderPropertyTest, IsNearEqual002, TestSize.Level1)
     vector4Value->Set(vector4);
     std::shared_ptr<RSRenderProperty<Matrix3f>> matrix3fValue = std::make_shared<RSRenderProperty<Matrix3f>>();
     matrix3fValue->Set(matrix3f);
-    std::shared_ptr<RSRenderProperty<std::shared_ptr<RSFilter>>> pFilterValue
-    = std::make_shared<RSRenderProperty<std::shared_ptr<RSFilter>>>();
-    pFilterValue->Set(pFilter);
     std::shared_ptr<RSRenderProperty<Color>> colorValue = std::make_shared<RSRenderProperty<Color>>();
     colorValue->Set(color);
     std::shared_ptr<RSRenderProperty<Vector4<Color>>> vector4ColorValue
@@ -448,10 +415,8 @@ HWTEST_F(RSRenderPropertyTest, IsNearEqual002, TestSize.Level1)
     EXPECT_TRUE(property4.IsNearEqual(vector4Value, zeroThreshold));
     EXPECT_TRUE(property5.IsNearEqual(matrix3fValue, zeroThreshold));
     EXPECT_TRUE(property6.IsNearEqual(colorValue, zeroThreshold));
-    EXPECT_TRUE(property7.IsNearEqual(pFilterValue, zeroThreshold));
-    EXPECT_TRUE(property8.IsNearEqual(vector4ColorValue, zeroThreshold));
-    EXPECT_TRUE(property9.IsNearEqual(rectValue, zeroThreshold));
-    ASSERT_TRUE(property7.IsEqual(pFilterValue));
+    EXPECT_TRUE(property7.IsNearEqual(vector4ColorValue, zeroThreshold));
+    EXPECT_TRUE(property8.IsNearEqual(rectValue, zeroThreshold));
 }
 
 /**

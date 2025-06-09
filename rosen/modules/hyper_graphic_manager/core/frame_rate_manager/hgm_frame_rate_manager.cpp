@@ -1256,7 +1256,7 @@ void HgmFrameRateManager::MarkVoteChange(const std::string& voter)
 
     VoteInfo resultVoteInfo = ProcessRefreshRateVote();
     if (lastVoteInfo_ == resultVoteInfo) {
-        if (!voterTouchEffective_) {
+        if (isAmbientStatus_ < LightFactorStatus::LOW_LEVEL && !voterTouchEffective_) {
             return;
         }
     } else {
@@ -1268,7 +1268,7 @@ void HgmFrameRateManager::MarkVoteChange(const std::string& voter)
     // max used here
     FrameRateRange finalRange = {resultVoteInfo.max, resultVoteInfo.max, resultVoteInfo.max};
     auto refreshRate = CalcRefreshRate(curScreenId_.load(), finalRange);
-    if (refreshRate == currRefreshRate_ && isAmbientStatus_ < LightFactorStatus::LOW_LEVEL && !voterTouchEffective_) {
+    if (refreshRate == currRefreshRate_ && !voterTouchEffective_) {
         return;
     }
 

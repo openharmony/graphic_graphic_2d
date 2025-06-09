@@ -610,10 +610,7 @@ void RSMainThread::Init()
     RS_LOGI("VSync init");
     sptr<VSyncIConnectionToken> token = new IRemoteStub<VSyncIConnectionToken>();
     sptr<VSyncConnection> conn = new VSyncConnection(rsVSyncDistributor_, "rs", token->AsObject());
-    rsFrameRateLinker_ = std::make_shared<RSRenderFrameRateLinker>([this] (const RSRenderFrameRateLinker& linker) {
-        HgmCore::Instance().SetHgmTaskFlag(true);
-    });
-    conn->id_ = rsFrameRateLinker_->GetId();
+    conn->id_ = hgmContext_.GetRSFrameRateLinker()->GetId();
     rsVSyncDistributor_->AddConnection(conn);
     receiver_ = std::make_shared<VSyncReceiver>(conn, token->AsObject(), handler_, "rs");
     receiver_->Init();
@@ -720,22 +717,8 @@ void RSMainThread::Init()
     RSOverdrawController::GetInstance().SetDelegate(delegate);
 
     RS_LOGI("HgmTaskHandleThread init");
-    HgmTaskHandleThread::Instance().PostSyncTask([this] () {
-        auto frameRateMgr = OHOS::Rosen::HgmCore::Instance().GetFrameRateMgr();
-        if (frameRateMgr == nullptr) {
-            return;
-        }
-        frameRateMgr->SetForceUpdateCallback([this](bool idleTimerExpired, bool forceUpdate) {
-            RSMainThread::Instance()->PostTask([this, idleTimerExpired, forceUpdate]() {
-                RS_TRACE_NAME_FMT("RSMainThread::TimerExpiredCallback Run idleTimerExpiredFlag: %s forceUpdateFlag: %s",
-                    idleTimerExpired ? "True" : "False", forceUpdate ? "True" : "False");
-                RSMainThread::Instance()->SetForceUpdateUniRenderFlag(forceUpdate);
-                RSMainThread::Instance()->SetIdleTimerExpiredFlag(idleTimerExpired);
-                RSMainThread::Instance()->RequestNextVSync("ltpoForceUpdate");
-            });
-        });
-        frameRateMgr->Init(rsVSyncController_, appVSyncController_, vsyncGenerator_, appVSyncDistributor_);
-    });
+    hgmContext_.InitHgmTaskHandleThread(
+        rsVSyncController_, appVSyncController_, vsyncGenerator_, appVSyncDistributor_);
     SubscribeAppState();
     PrintCurrentStatus();
     RS_LOGI("UpdateGpuContextCacheSize");
@@ -1099,21 +1082,21 @@ void RSMainThread::PrintCurrentStatus()
 {
 #ifdef RS_ENABLE_GPU
     std::string gpuType = "";
-    switch (OHOS::Rosen::RSSystemProperties::GetGpuApiType()) {
-        case OHOS::Rosen::GpuApiType::OPENGL:
+    switch (RSSystemProperties::GetGpuApiType()) {
+        case GpuApiType::OPENGL:
             gpuType = "opengl";
             break;
-        case OHOS::Rosen::GpuApiType::VULKAN:
+        case GpuApiType::VULKAN:
             gpuType = "vulkan";
             break;
-        case OHOS::Rosen::GpuApiType::DDGR:
+        case GpuApiType::DDGR:
             gpuType = "ddgr";
             break;
         default:
             break;
     }
     RS_LOGI("[Drawing] Version: Non-released");
-    RS_LOGE("PrintCurrentStatus:  drawing is opened, gpu type is %{public}s", gpuType.c_str());
+    RS_LOGE("PrintCurrentStatus: drawing is opened, gpu type is %{public}s", gpuType.c_str());
 #endif
 }
 
@@ -1973,7 +1956,7 @@ uint32_t RSMainThread::GetRefreshRate() const
         RS_LOGE("GetRefreshRate screenManager is nullptr");
         return STANDARD_REFRESH_RATE;
     }
-    uint32_t refreshRate = OHOS::Rosen::HgmCore::Instance().GetScreenCurrentRefreshRate(
+    uint32_t refreshRate = HgmCore::Instance().GetScreenCurrentRefreshRate(
         screenManager->GetDefaultScreenId());
     if (refreshRate == 0) {
         RS_LOGE("GetRefreshRate refreshRate is invalid");
@@ -1984,7 +1967,7 @@ uint32_t RSMainThread::GetRefreshRate() const
 
 uint32_t RSMainThread::GetDynamicRefreshRate() const
 {
-    uint32_t refreshRate = OHOS::Rosen::HgmCore::Instance().GetScreenCurrentRefreshRate(displayNodeScreenId_);
+    uint32_t refreshRate = HgmCore::Instance().GetScreenCurrentRefreshRate(displayNodeScreenId_);
     if (refreshRate == 0) {
         RS_LOGE("GetDynamicRefreshRate refreshRate is invalid");
         return STANDARD_REFRESH_RATE;
@@ -2140,59 +2123,7 @@ bool RSMainThread::IsRequestedNextVSync()
 
 void RSMainThread::ProcessHgmFrameRate(uint64_t timestamp)
 {
-    int changed = 0;
-    if (bool enable = RSSystemParameters::GetShowRefreshRateEnabled(&changed); changed != 0) {
-        RSRealtimeRefreshRateManager::Instance().SetShowRefreshRateEnabled(enable, 1);
-    }
-    // Start of DVSync
-    bool isUiDvsyncOn = rsVSyncDistributor_ != nullptr ? rsVSyncDistributor_->IsUiDvsyncOn() : false;
-    // End of DVSync
-    auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
-    if (frameRateMgr == nullptr || rsVSyncDistributor_ == nullptr) {
-        return;
-    }
-
-    static std::once_flag initUIFwkTableFlag;
-    std::call_once(initUIFwkTableFlag, [this]() {
-        if (auto config = HgmCore::Instance().GetPolicyConfigData(); config != nullptr) {
-            GetContext().SetUiFrameworkTypeTable(config->appBufferList_);
-        }
-    });
-    // Check and processing refresh rate task.
-    frameRateMgr->ProcessPendingRefreshRate(timestamp, vsyncId_, rsVSyncDistributor_->GetRefreshRate(), isUiDvsyncOn);
-
-    if (rsFrameRateLinker_ != nullptr) {
-        auto rsCurrRange = rsCurrRange_;
-        rsCurrRange.type_ = RS_ANIMATION_FRAME_RATE_TYPE;
-        HgmEnergyConsumptionPolicy::Instance().GetAnimationIdleFps(rsCurrRange);
-        rsFrameRateLinker_->SetExpectedRange(rsCurrRange);
-        RS_TRACE_NAME_FMT("rsCurrRange = (%d, %d, %d)", rsCurrRange.min_, rsCurrRange.max_, rsCurrRange.preferred_);
-    }
-
-    if (rsCurrRange_.IsValid()) {
-        frameRateMgr->GetRsFrameRateTimer().Start();
-    } else {
-        frameRateMgr->GetRsFrameRateTimer().Stop();
-    }
-
-    bool needRefresh = frameRateMgr->UpdateUIFrameworkDirtyNodes(GetContext().GetUiFrameworkDirtyNodes(), timestamp_);
-    bool setHgmTaskFlag = HgmCore::Instance().SetHgmTaskFlag(false);
-    bool vrateStatusChange = rsVsyncRateReduceManager_.SetVSyncRatesChangeStatus(false);
-    bool isVideoCallVsyncChange = HgmEnergyConsumptionPolicy::Instance().GetVideoCallVsyncChange();
-
-    if (!vrateStatusChange && !setHgmTaskFlag && !needRefresh && !isVideoCallVsyncChange &&
-        HgmCore::Instance().GetPendingScreenRefreshRate() == frameRateMgr->GetCurrRefreshRate()) {
-        return;
-    }
-
-    HgmTaskHandleThread::Instance().PostTask([timestamp, rsFrameRateLinker = rsFrameRateLinker_,
-                                        appFrameRateLinkers = GetContext().GetFrameRateLinkerMap().Get(),
-                                        linkers = rsVsyncRateReduceManager_.GetVrateMap() ]() mutable {
-        RS_TRACE_NAME("ProcessHgmFrameRate");
-        if (auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr(); frameRateMgr != nullptr) {
-            frameRateMgr->UniProcessDataForLtpo(timestamp, rsFrameRateLinker, appFrameRateLinkers, linkers);
-        }
-    });
+    hgmContext_.ProcessHgmFrameRate(timestamp, rsVSyncDistributor_, vsyncId_);
 }
 
 void RSMainThread::SetFrameIsRender(bool isRender)
@@ -2469,7 +2400,6 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
     PrepareUiCaptureTasks(uniVisitor);
     screenPowerOnChanged_ = false;
     forceUpdateUniRenderFlag_ = false;
-    idleTimerExpiredFlag_ = false;
     if (context_) {
         context_->SetUnirenderVisibleLeashWindowCount(context_->GetNodeMap().GetVisibleLeashWindowCount());
     }
@@ -2663,7 +2593,7 @@ void RSMainThread::Render()
     }
     if (isUniRender_) {
 #ifdef RS_ENABLE_GPU
-        auto& hgmCore = OHOS::Rosen::HgmCore::Instance();
+        auto& hgmCore = HgmCore::Instance();
         renderThreadParams_->SetTimestamp(hgmCore.GetCurrentTimestamp());
         renderThreadParams_->SetActualTimestamp(hgmCore.GetActualTimestamp());
         renderThreadParams_->SetVsyncId(hgmCore.GetVsyncId());
@@ -3469,7 +3399,7 @@ void RSMainThread::SetVsyncInfo(uint64_t timestamp)
             context_->GetNodeMap().GetVisibleLeashWindowCount() < MULTI_WINDOW_PERF_START_NUM;
     }
     OHOS::Camera::ChipsetVsyncImpl::Instance().SetVsyncImpl(timestamp, curTime_, vsyncPeriod, allowFramerateChange);
-    RS_LOGD("UpdateVsyncTime = %{public}lld, curTime_ = %{public}lld,"
+    RS_LOGD("UpdateVsyncTime = %{public}lld, curTime_ = %{public}lld, "
         "period = %{public}lld, allowFramerateChange = %{public}d",
         static_cast<long long>(timestamp), static_cast<long long>(curTime_),
         static_cast<long long>(vsyncPeriod), allowFramerateChange);
@@ -3480,7 +3410,7 @@ void RSMainThread::Animate(uint64_t timestamp)
 {
     RS_TRACE_FUNC();
     lastAnimateTimestamp_ = timestamp;
-    rsCurrRange_.Reset();
+    hgmContext_.GetRSCurrRangeRef().Reset();
     if (context_->animatingNodeList_.empty()) {
         doWindowAnimate_ = false;
         context_->SetRequestedNextVsyncAnimate(false);
@@ -3514,20 +3444,13 @@ void RSMainThread::Animate(uint64_t timestamp)
             return true;
         }
         if (cacheCmdSkippedInfo_.count(ExtractPid(node->GetId())) > 0) {
-            rsCurrRange_.Merge(node->animationManager_.GetDecideFrameRateRange());
+            hgmContext_.GetRSCurrRangeRef().Merge(node->animationManager_.GetDecideFrameRateRange());
             RS_LOGD("Animate skip the cached node");
             return false;
         }
         totalAnimationSize += node->animationManager_.GetAnimationsSize();
-        auto frameRateGetFunc =
-            [this](const RSPropertyUnit unit, float velocity, int32_t area, int32_t length) -> int32_t {
-            auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
-            if (frameRateMgr != nullptr) {
-                return frameRateMgr->GetExpectedFrameRate(unit, velocity, area, length);
-            }
-            return 0;
-        };
-        node->animationManager_.SetRateDeciderEnable(isRateDeciderEnabled, frameRateGetFunc);
+        node->animationManager_.SetRateDeciderEnable(
+            isRateDeciderEnabled, hgmContext_.FrameRateGetFunc);
         auto [hasRunningAnimation, nodeNeedRequestNextVsync, nodeCalculateAnimationValue] =
             node->Animate(timestamp, minLeftDelayTime, period, isDisplaySyncEnabled);
         if (!hasRunningAnimation) {
@@ -3535,7 +3458,7 @@ void RSMainThread::Animate(uint64_t timestamp)
             RS_LOGD("Animate removing finished animating node %{public}" PRIu64, node->GetId());
         } else {
             node->UpdateDisplaySyncRange();
-            rsCurrRange_.Merge(node->animationManager_.GetDecideFrameRateRange());
+            hgmContext_.GetRSCurrRangeRef().Merge(node->animationManager_.GetDecideFrameRateRange());
         }
         // request vsync if: 1. node has running animation, or 2. transition animation just ended
         needRequestNextVsync = needRequestNextVsync || nodeNeedRequestNextVsync || (node.use_count() == 1);
@@ -4456,11 +4379,7 @@ bool RSMainThread::CheckAdaptiveCompose()
         context_->GetNodeMap().GetVisibleLeashWindowCount() < MULTI_WINDOW_PERF_START_NUM;
     // in game adaptive sync mode and ignore animation scenario and mult-window scenario
     // selfdrawing node request next vsync as UrgentSelfdrawing
-    if (isNeedAdaptiveCompose) {
-        RequestNextVSync("UrgentSelfdrawing");
-        return true;
-    }
-    return false;
+    return isNeedAdaptiveCompose;
 }
 
 
@@ -5257,11 +5176,11 @@ void RSMainThread::SetFrameInfo(uint64_t frameCount, bool forceRefreshFlag)
 {
     // use the same function as vsync to get current time
     int64_t currentTimestamp = SystemTime();
-    auto &hgmCore = OHOS::Rosen::HgmCore::Instance();
+    auto &hgmCore = HgmCore::Instance();
     hgmCore.SetActualTimestamp(currentTimestamp);
     hgmCore.SetVsyncId(frameCount);
 
-    auto &frameDeadline = OHOS::Rosen::RsFrameDeadlinePredict::GetInstance();
+    auto &frameDeadline = RsFrameDeadlinePredict::GetInstance();
     frameDeadline.ReportRsFrameDeadline(hgmCore, forceRefreshFlag);
 }
 
@@ -5286,9 +5205,9 @@ void RSMainThread::HandleTouchEvent(int32_t touchStatus, int32_t touchCnt)
 }
 
 void RSMainThread::SetBufferInfo(uint64_t id, const std::string &name, uint32_t queueSize,
-    int32_t bufferCount, int64_t lastConsumeTime)
+    int32_t bufferCount, int64_t lastConsumeTime, bool isUrgent)
 {
-    rsVSyncDistributor_->SetBufferInfo(id, name, queueSize, bufferCount, lastConsumeTime);
+    rsVSyncDistributor_->SetBufferInfo(id, name, queueSize, bufferCount, lastConsumeTime, isUrgent);
 }
 
 void RSMainThread::OnFmtTraceSwitchCallback(const char *key, const char *value, void *context)

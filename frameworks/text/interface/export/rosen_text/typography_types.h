@@ -20,6 +20,13 @@
 
 namespace OHOS {
 namespace Rosen {
+enum class TextVerticalAlign {
+    BASELINE = 0,
+    BOTTOM = 1,
+    CENTER = 2,
+    TOP = 3
+};
+
 enum class TextDirection {
     RTL,
     LTR,

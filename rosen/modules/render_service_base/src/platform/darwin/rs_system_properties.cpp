@@ -158,6 +158,11 @@ bool RSSystemProperties::GetExpandScreenDirtyEnabled()
     return false;
 }
 
+bool RSSystemProperties::GetVirtualExpandScreenSkipEnabled()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetOcclusionEnabled()
 {
     return {};
@@ -629,6 +634,11 @@ bool RSSystemProperties::GetNodeGroupGroupedByUIEnabled()
 }
 
 bool RSSystemProperties::GetTimeVsyncDisabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetTextureExportDFXEnabled()
 {
     return false;
 }

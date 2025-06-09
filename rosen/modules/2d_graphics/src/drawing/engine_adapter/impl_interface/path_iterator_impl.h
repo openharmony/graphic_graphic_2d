@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -24,6 +24,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
+class PathIter;
 class PathIterator;
 enum class PathVerb;
 class PathIteratorImpl : public BaseImpl {
@@ -33,6 +34,14 @@ public:
     virtual scalar ConicWeight() const = 0;
     virtual PathVerb Next(Point* points) = 0;
     virtual PathVerb Peek() = 0;
+};
+
+class PathIterImpl : public BaseImpl {
+public:
+    ~PathIterImpl() override {}
+    explicit PathIterImpl(const Path& p, bool forceClose) {}
+    virtual scalar ConicWeight() const = 0;
+    virtual PathVerb Next(Point* points) = 0;
 };
 } // namespace Drawing
 } // namespace Rosen

@@ -77,32 +77,6 @@ std::string GetStringFromData(int strlen)
     return str;
 }
 
-bool RSBlurFilterFuzzTest(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    float blurRadiusX1 = GetData<float>();
-    float blurRadiusY1 = GetData<float>();
-    RSBlurFilter blurFilter(blurRadiusX1, blurRadiusY1);
-    float blurRadiusX2 = GetData<float>();
-    float blurRadiusY2 = GetData<float>();
-    std::shared_ptr<RSFilter> rhs = RSFilter::CreateBlurFilter(blurRadiusX2, blurRadiusY2);
-    float fRhs = GetData<float>();
-
-    blurFilter.Add(rhs);
-    blurFilter.Sub(rhs);
-    blurFilter.Multiply(fRhs);
-
-    return true;
-}
-
 bool RSBorderFuzzTest(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -368,7 +342,6 @@ bool RSShadowFuzzTest(const uint8_t* data, size_t size)
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
-    OHOS::Rosen::RSBlurFilterFuzzTest(data, size);
     OHOS::Rosen::RSBorderFuzzTest(data, size);
     OHOS::Rosen::RSImageCacheFuzzTest(data, size);
     OHOS::Rosen::RSImageFuzzTest(data, size);

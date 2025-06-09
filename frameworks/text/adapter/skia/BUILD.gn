@@ -12,15 +12,23 @@
 # limitations under the License.
 
 import("//build/ohos.gni")
+import("//build/ohos_var.gni")
 import("//foundation/graphic/graphic_2d/ace_platforms.gni")
 import("//foundation/graphic/graphic_2d/frameworks/text/config.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 config("skia_libtxt_config") {
-  defines = [
-    "OHOS_SUPPORT",
-    "USE_SKIA_TXT",
-  ]
+  if (use_new_skia) {
+    defines = [
+      "ENABLE_TEXT_ENHANCE",
+      "ENABLE_DRAWING_ADAPTER",
+    ]
+  } else {
+    defines = [
+      "OHOS_SUPPORT",
+      "USE_SKIA_TXT",
+    ]
+  }
 
   if (rs_enable_gpu) {
     defines += [ "RS_ENABLE_GPU" ]
@@ -37,6 +45,12 @@ config("skia_libtxt_config") {
     "-fvisibility-inlines-hidden",
     "-std=c++17",
   ]
+}
+
+if (use_new_skia) {
+  skia_root = "//third_party/skia/m133"
+} else {
+  skia_root = "//third_party/skia"
 }
 
 template("skia_libtxt") {
@@ -113,17 +127,33 @@ template("skia_libtxt") {
       deps = [
         "//third_party/bounds_checking_function:libsec_static",
         "//third_party/jsoncpp:jsoncpp_static",
-        "//third_party/skia:skia_$platform",
-        "//third_party/skia/modules/skparagraph:skia_paragraph_ohos",
+        "$skia_root:skia_$platform",
       ]
+      if (use_new_skia) {
+        deps += [
+          "//third_party/skia/m133/modules/skparagraph:skia_paragraph_ohos_new",
+        ]
+      } else {
+        deps += [
+          "//third_party/skia/modules/skparagraph:skia_paragraph_ohos",
+        ]
+      }      
     } else {
       external_deps += [
         "bounds_checking_function:libsec_shared",
         "hilog:libhilog",
         "jsoncpp:jsoncpp",
         "skia:skia_canvaskit",
-        "skia:skia_paragraph_ohos",
       ]
+      if (use_new_skia) {
+        external_deps += [
+          "skia:skia_paragraph_ohos_new",
+        ]
+      } else {
+        external_deps += [
+          "skia:skia_paragraph_ohos",
+        ]
+      }      
       defines += [ "TEXT_SYSTEM_OHOS" ]
     }
   }
@@ -161,7 +191,7 @@ ohos_static_library("font_asset") {
       "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog_${target_os}",
       "//third_party/bounds_checking_function:libsec_static",
       "//third_party/cJSON:cjson_static",
-      "//third_party/skia:skia_$platform",
+      "$skia_root:skia_$platform",
     ]
   } else {
     external_deps = [
@@ -177,6 +207,8 @@ ohos_static_library("font_asset") {
     "$rosen_text_root/adapter/skia/txt",
     "$rosen_text_root/adapter/skia",
     "$rosen_text_root/service/texgine/src",
+    "$graphic_2d_root/rosen/modules/2d_graphics/include",
+    "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing/engine_adapter",
   ]
 
   if (platform_is_ohos) {
@@ -195,5 +227,6 @@ ohos_static_library("font_asset") {
     "$rosen_text_root/adapter/skia/txt/font_asset_provider.cpp",
     "$rosen_text_root/adapter/skia/txt/typeface_font_asset_provider.cpp",
     "$rosen_text_root/service/texgine/src/font_config.cpp",
+    "txt/platform.cpp",
   ]
 }

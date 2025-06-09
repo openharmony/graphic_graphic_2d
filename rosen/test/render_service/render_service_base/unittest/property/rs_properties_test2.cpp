@@ -22,6 +22,7 @@
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "property/rs_point_light_manager.h"
+#include "render/rs_render_bezier_warp_filter.h"
 #include "render/rs_render_edge_light_filter.h"
 #include "render/rs_render_sound_wave_filter.h"
 
@@ -118,7 +119,7 @@ HWTEST_F(PropertiesTest, SetClipToBoundsTest, TestSize.Level1)
     EXPECT_TRUE(properties.geoDirty_);
 }
 
-#if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+#if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
 /**
  * @tc.name: CreateFilterCacheManagerIfNeedTest
  * @tc.desc: test results of CreateFilterCacheManagerIfNeed
@@ -725,25 +726,6 @@ HWTEST_F(PropertiesTest, SetNGetDynamicDimDegreeTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetFilterTest
- * @tc.desc: test results of SetFilter
- * @tc.type: FUNC
- * @tc.require: issueI9W24N
- */
-HWTEST_F(PropertiesTest, SetFilterTest, TestSize.Level1)
-{
-    RSProperties properties;
-    std::shared_ptr<RSFilter> filter = std::make_shared<RSFilter>();
-    properties.SetFilter(filter);
-    EXPECT_NE(properties.filter_, nullptr);
-    EXPECT_EQ(properties.GetFilter(), filter);
-
-    filter = nullptr;
-    properties.SetFilter(filter);
-    EXPECT_EQ(properties.filter_, nullptr);
-}
-
-/**
  * @tc.name: SetShadowIsFilledTest
  * @tc.desc: test results of SetShadowIsFilled
  * @tc.type: FUNC
@@ -1221,11 +1203,31 @@ HWTEST_F(PropertiesTest, GenerateRenderFilterColorGradient_001, TestSize.Level1)
     EXPECT_EQ(properties.backgroundFilter_, nullptr);
 
     auto renderFilter1 = std::make_shared<RSRenderFilter>();
-    auto renderFilterBase1 = RSRenderFilter::CreateRenderFilterPara(RSUIFilterType::COLOR_GRADIENT);
-    renderFilter1->Insert(RSUIFilterType::COLOR_GRADIENT, renderFilterBase1);
     properties.backgroundRenderFilter_ = renderFilter1;
     properties.GenerateRenderFilterColorGradient();
     EXPECT_EQ(properties.backgroundFilter_, nullptr);
+
+    std::vector<float> colors = { 1.0f, 0.0f, 0.0f, 1.0f };
+    std::vector<float> positions = { 1.0f, 1.0f }; // 1.0, 1.0 is position xy params
+    std::vector<float> strengths = { 0.5f };       // 0.5 is strength params
+    auto filter = RSRenderFilter::CreateRenderFilterPara(RSUIFilterType::COLOR_GRADIENT);
+    renderFilter1->Insert(RSUIFilterType::COLOR_GRADIENT, filter);
+
+    auto colorsProperty = std::make_shared<RSRenderAnimatableProperty<std::vector<float>>>(colors, 0);
+    filter->Setter(RSUIFilterType::COLOR_GRADIENT_COLOR, colorsProperty);
+
+    auto positionsProperty = std::make_shared<RSRenderAnimatableProperty<std::vector<float>>>(positions, 0);
+    filter->Setter(RSUIFilterType::COLOR_GRADIENT_POSITION, positionsProperty);
+    properties.GenerateRenderFilterColorGradient();
+    EXPECT_EQ(properties.backgroundFilter_, nullptr);
+
+    auto strengthsProperty = std::make_shared<RSRenderAnimatableProperty<std::vector<float>>>(strengths, 0);
+    filter->Setter(RSUIFilterType::COLOR_GRADIENT_STRENGTH, strengthsProperty);
+    properties.GenerateRenderFilterColorGradient();
+    EXPECT_NE(properties.backgroundFilter_, nullptr);
+
+    properties.GenerateRenderFilterColorGradient();
+    EXPECT_NE(properties.backgroundFilter_, nullptr);
 }
 
 /**
@@ -1255,21 +1257,22 @@ HWTEST_F(PropertiesTest, GenerateRenderFilterEdgeLight_001, TestSize.Level1)
 
     auto renderFilterEdgeLight = std::static_pointer_cast<RSRenderEdgeLightFilterPara>(renderFilterBase);
 
-    auto renderAlpha = std::make_shared<RSRenderAnimatableProperty<float>>(
-        0.5f, 0, RSRenderPropertyType::PROPERTY_FLOAT);
+    auto renderAlpha = std::make_shared<RSRenderAnimatableProperty<float>>(0.5f, 0);
     renderFilterEdgeLight->Setter(RSUIFilterType::EDGE_LIGHT_ALPHA, renderAlpha);
     properties.GenerateRenderFilter();
     EXPECT_EQ(properties.backgroundFilter_, nullptr);
     properties.backgroundFilter_ = nullptr;
 
-    auto renderColor = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(
-        Vector4f(0.5f, 0.5f, 0.5f, 0.5f), 0, RSRenderPropertyType::PROPERTY_VECTOR4F);
+    auto renderColor = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(0.5f, 0.5f, 0.5f, 0.5f), 0);
     renderFilterEdgeLight->Setter(RSUIFilterType::EDGE_LIGHT_COLOR, renderColor);
     properties.GenerateRenderFilter();
     properties.GenerateRenderFilter();
     EXPECT_NE(properties.backgroundFilter_, nullptr);
 
     renderFilterEdgeLight->maskType_ = RSUIFilterType::RIPPLE_MASK;
+    properties.GenerateRenderFilter();
+    EXPECT_NE(properties.backgroundFilter_, nullptr);
+
     properties.GenerateRenderFilter();
     EXPECT_NE(properties.backgroundFilter_, nullptr);
 }
@@ -1282,6 +1285,9 @@ HWTEST_F(PropertiesTest, GenerateRenderFilterEdgeLight_001, TestSize.Level1)
 HWTEST_F(PropertiesTest, GenerateSoundWaveFilter_001, TestSize.Level1)
 {
     RSProperties properties;
+    properties.GenerateSoundWaveFilter();
+    EXPECT_EQ(properties.backgroundFilter_, nullptr);
+
     auto renderFilter = std::make_shared<RSRenderFilter>();
     auto renderFilterBase = RSRenderFilter::CreateRenderFilterPara(RSUIFilterType::SOUND_WAVE);
     properties.backgroundRenderFilter_ = renderFilter;
@@ -1370,5 +1376,52 @@ HWTEST_F(PropertiesTest, GenerateSoundWaveFilter_002, TestSize.Level1)
     EXPECT_NE(properties.backgroundFilter_, nullptr);
 }
 
+/**
+ * @tc.name: GenerateBezierWarpFilter_001
+ * @tc.desc: test GenerateBezierWarpFilter
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, GenerateBezierWarpFilter_001, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.GenerateBezierWarpFilter();
+    EXPECT_EQ(properties.foregroundFilter_, nullptr);
+
+    auto renderFilter = std::make_shared<RSRenderFilter>();
+    properties.foregroundRenderFilter_ = renderFilter;
+    renderFilter->Insert(RSUIFilterType::BEZIER_WARP, nullptr);
+    properties.GenerateBezierWarpFilter();
+    EXPECT_EQ(properties.foregroundFilter_, nullptr);
+
+    auto rsBezierWarpFilter = RSRenderFilter::CreateRenderFilterPara(RSUIFilterType::BEZIER_WARP);
+    std::array<RSUIFilterType, BEZIER_WARP_POINT_NUM> ctrlPointsType = {
+        RSUIFilterType::BEZIER_CONTROL_POINT0,
+        RSUIFilterType::BEZIER_CONTROL_POINT1,
+        RSUIFilterType::BEZIER_CONTROL_POINT2,
+        RSUIFilterType::BEZIER_CONTROL_POINT3,
+        RSUIFilterType::BEZIER_CONTROL_POINT4,
+        RSUIFilterType::BEZIER_CONTROL_POINT5,
+        RSUIFilterType::BEZIER_CONTROL_POINT6,
+        RSUIFilterType::BEZIER_CONTROL_POINT7,
+        RSUIFilterType::BEZIER_CONTROL_POINT8,
+        RSUIFilterType::BEZIER_CONTROL_POINT9,
+        RSUIFilterType::BEZIER_CONTROL_POINT10,
+    };
+    for (int i = 0; i < BEZIER_WARP_POINT_NUM; i++) {
+        auto renderProperty = std::make_shared<RSRenderAnimatableProperty<Vector2f>>(Vector2f(0.f, 0.f), 0);
+        rsBezierWarpFilter->Setter(ctrlPointsType[i], renderProperty);
+    }
+    renderFilter->Insert(RSUIFilterType::BEZIER_WARP, rsBezierWarpFilter);
+    properties.GenerateBezierWarpFilter();
+    EXPECT_EQ(properties.foregroundFilter_, nullptr);
+
+    auto renderProperty = std::make_shared<RSRenderAnimatableProperty<Vector2f>>(Vector2f(0.f, 0.f), 0);
+    rsBezierWarpFilter->Setter(RSUIFilterType::BEZIER_CONTROL_POINT11, renderProperty);
+    properties.GenerateBezierWarpFilter();
+    EXPECT_NE(properties.foregroundFilter_, nullptr);
+
+    properties.GenerateBezierWarpFilter();
+    EXPECT_NE(properties.foregroundFilter_, nullptr);
+}
 } // namespace Rosen
 } // namespace OHOS

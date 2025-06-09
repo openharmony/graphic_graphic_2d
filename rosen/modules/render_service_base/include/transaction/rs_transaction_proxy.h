@@ -81,6 +81,7 @@ public:
 
     void SetParentPid(const int32_t parentPid);
 
+    void ReportUiSkipEvent(const std::string& ability, int64_t nowMs, int64_t lastTimestamp);
     uint32_t GetTransactionDataIndex() const;
 
     bool IsEmpty() const;
@@ -124,6 +125,7 @@ private:
 #ifdef RS_ENABLE_VK
     CommitTransactionCallback commitTransactionCallback_ = nullptr;
 #endif
+    std::atomic<uint32_t> uiSkipCount_ = 0;
     uint32_t transactionDataIndex_ = 0;
     std::queue<std::string> taskNames_ {};
 };

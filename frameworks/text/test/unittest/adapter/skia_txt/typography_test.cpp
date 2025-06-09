@@ -957,5 +957,42 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest023, TestSize.Level
     EXPECT_NEAR(typography0->GetLongestLineWithIndent() + style.fontSize / 8 * 2,
         typography1->GetLongestLineWithIndent(), 1e-6f);
 }
+
+/*
+ * @tc.name: OH_Drawing_TypographyTest024
+ * @tc.desc: test for text effect
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest024, TestSize.Level1)
+{
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    ASSERT_NE(typographyCreate, nullptr);
+    std::u16string text = u"test effect.";
+    typographyCreate->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
+    ASSERT_NE(typography, nullptr);
+    double maxWidth = 100;
+    typography->Layout(maxWidth);
+    OHOS::Rosen::Drawing::Canvas canvas;
+    typography->Paint(&canvas, 0, 0);
+
+    std::unique_ptr<SPText::Paragraph> paragraphTemp = nullptr;
+    AdapterTxt::Typography* typographyImpl = static_cast<AdapterTxt::Typography*>(typography.get());
+    typographyImpl->paragraph_.swap(paragraphTemp);
+    EXPECT_EQ(typography->GetTextBlobRecordInfo().size(), 0);
+    typography->SetTextEffectState(true);
+    EXPECT_FALSE(typography->HasEnabledTextEffect());
+
+    typographyImpl->paragraph_.swap(paragraphTemp);
+    EXPECT_NE(typography->GetTextBlobRecordInfo().size(), 0);
+    typography->SetTextEffectState(true);
+    EXPECT_TRUE(typography->HasEnabledTextEffect());
+    typography->SetTextEffectAssociation(true);
+    EXPECT_TRUE(typography->GetTextEffectAssociation());
+}
 } // namespace Rosen
 } // namespace OHOS

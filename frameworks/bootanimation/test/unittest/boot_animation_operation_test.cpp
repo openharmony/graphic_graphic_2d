@@ -40,7 +40,7 @@ void BootAnimationOperationTest::TearDown() {}
  * @tc.desc: Verify the SetSoundEnable
  * @tc.type:FUNC
  */
-HWTEST_F(BootAnimationOperationTest, BootAnimationOperationTest_001, TestSize.Level1)
+HWTEST_F(BootAnimationOperationTest, BootAnimationOperationTest_001, TestSize.Level0)
 {
     BootAnimationOperation operation;
     operation.SetSoundEnable(true);
@@ -52,7 +52,7 @@ HWTEST_F(BootAnimationOperationTest, BootAnimationOperationTest_001, TestSize.Le
  * @tc.desc: Verify the SetSoundEnable
  * @tc.type:FUNC
  */
-HWTEST_F(BootAnimationOperationTest, BootAnimationOperationTest_002, TestSize.Level1)
+HWTEST_F(BootAnimationOperationTest, BootAnimationOperationTest_002, TestSize.Level0)
 {
     BootAnimationOperation operation;
     operation.SetSoundEnable(false);
@@ -105,7 +105,7 @@ HWTEST_F(BootAnimationOperationTest, BootAnimationOperationTest_005, TestSize.Le
  * @tc.desc: Verify the IsBootVideoEnabled
  * @tc.type:FUNC
  */
-HWTEST_F(BootAnimationOperationTest, BootAnimationOperationTest_006, TestSize.Level1)
+HWTEST_F(BootAnimationOperationTest, BootAnimationOperationTest_006, TestSize.Level0)
 {
     BootAnimationOperation operation;
     BootAnimationConfig config;
@@ -118,7 +118,7 @@ HWTEST_F(BootAnimationOperationTest, BootAnimationOperationTest_006, TestSize.Le
  * @tc.desc: Verify the IsBootVideoEnabled
  * @tc.type:FUNC
  */
-HWTEST_F(BootAnimationOperationTest, BootAnimationOperationTest_007, TestSize.Level1)
+HWTEST_F(BootAnimationOperationTest, BootAnimationOperationTest_007, TestSize.Level0)
 {
     BootAnimationOperation operation;
     BootAnimationConfig config;

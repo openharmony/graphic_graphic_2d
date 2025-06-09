@@ -37,7 +37,7 @@ namespace Drawing {
 using CmdListData = std::pair<const void*, size_t>;
 using NodeId = uint64_t;
 constexpr size_t MAX_OPITEMSIZE = 170000;
-constexpr size_t RECORD_CMD_MAX_DEPTH = 800;
+constexpr int32_t RECORD_CMD_MAX_DEPTH = 800;
 constexpr size_t RECORD_CMD_MAX_SIZE = 100000;
 
 class DRAWING_API ExtendImageObject {

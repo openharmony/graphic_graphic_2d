@@ -29,6 +29,7 @@
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
 #include "feature/overlay_display/rs_overlay_display_manager.h"
 #endif
+#include "feature/uifirst/rs_uifirst_manager.h"
 #include "info_collection/rs_gpu_dirty_region_collection.h"
 #include "params/rs_display_render_params.h"
 #include "params/rs_surface_render_params.h"
@@ -43,6 +44,9 @@
 
 namespace OHOS {
 namespace Rosen {
+namespace {
+constexpr int32_t NO_SPECIAL_LAYER = 0;
+}
 std::vector<RectI> RSUniDirtyComputeUtil::GetCurrentFrameVisibleDirty(
     DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable, ScreenInfo& screenInfo, RSDisplayRenderParams& params)
 {
@@ -150,6 +154,116 @@ GraphicIRect RSUniDirtyComputeUtil::IntersectRect(const GraphicIRect& first, con
     }
 }
 
+void RSUniFilterDirtyComputeUtil::DealWithFilterDirtyRegion(Occlusion::Region& damageRegion,
+    Occlusion::Region& drawRegion, DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable,
+    const std::optional<Drawing::Matrix>& matrix, bool dirtyAlign)
+{
+    dirtyAlignEnabled_ = dirtyAlign;
+    auto& displayParams = displayDrawable.GetRenderParams();
+    if (UNLIKELY(displayParams == nullptr)) {
+        return;
+    }
+    auto& surfaceDrawables = displayParams->GetAllMainAndLeashSurfaceDrawables();
+    // Iteratively process filters recorded in display manager and surface manager, until convergence.
+    bool elementChanged = false;
+    do {
+        elementChanged = false;
+        elementChanged |= DealWithFilterDirtyForDisplay(damageRegion, drawRegion, displayDrawable, matrix);
+        elementChanged |= DealWithFilterDirtyForSurface(damageRegion, drawRegion, surfaceDrawables, matrix);
+    } while (elementChanged);
+    ResetFilterInfoStatus(displayDrawable, surfaceDrawables);
+}
+
+bool RSUniFilterDirtyComputeUtil::DealWithFilterDirtyForDisplay(Occlusion::Region& damageRegion,
+    Occlusion::Region& drawRegion, DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable,
+    const std::optional<Drawing::Matrix>& matrix)
+{
+    auto displayDirtyManager = displayDrawable.GetSyncDirtyManager();
+    if (UNLIKELY(displayDirtyManager == nullptr)) {
+        return false;
+    }
+    return CheckMergeFilterDirty(damageRegion, drawRegion,
+        displayDirtyManager->GetFilterCollector().GetFilterDirtyRegionInfoList(true), matrix, std::nullopt);
+}
+
+bool RSUniFilterDirtyComputeUtil::DealWithFilterDirtyForSurface(Occlusion::Region& damageRegion,
+    Occlusion::Region& drawRegion, std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& drawables,
+    const std::optional<Drawing::Matrix>& matrix)
+{
+    bool elementChanged = false;
+    for (auto it = drawables.begin(); it != drawables.end(); ++it) {
+        auto surfaceNodeDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(*it);
+        if (UNLIKELY(surfaceNodeDrawable == nullptr)) {
+            RS_LOGI("DealWithFilterDirtyForSurface surfaceNodeDrawable is nullptr");
+            continue;
+        }
+        auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceNodeDrawable->GetRenderParams().get());
+        auto surfaceDirtyManager = surfaceNodeDrawable->GetSyncDirtyManager();
+        if (UNLIKELY(surfaceParams == nullptr || surfaceDirtyManager == nullptr)) {
+            RS_LOGI("DealWithFilterDirtyForSurface surface param or dirty manager is nullptr");
+            continue;
+        }
+        elementChanged |= CheckMergeFilterDirty(damageRegion, drawRegion,
+            surfaceDirtyManager->GetFilterCollector().GetFilterDirtyRegionInfoList(true),
+            matrix, surfaceParams->GetVisibleRegion());
+    }
+    return elementChanged;
+}
+
+bool RSUniFilterDirtyComputeUtil::CheckMergeFilterDirty(Occlusion::Region& damageRegion, Occlusion::Region& drawRegion,
+    FilterDirtyRegionInfoList& filterList, const std::optional<Drawing::Matrix>& matrix,
+    const std::optional<Occlusion::Region>& visibleRegion)
+{
+    auto addDirtyInIntersect = [&] (FilterDirtyRegionInfo& info) {
+        // case - 1. If this filter is already counted in damage region, skip it.
+        if (info.addToDirty_) {
+            return false;
+        }
+        // case - 2. If this filter is not intersected with drawRegion, skip it.
+        Occlusion::Region intersectRegion = matrix.has_value() ?
+            RSObjAbsGeometry::MapRegion(info.intersectRegion_, matrix.value()) : info.intersectRegion_;
+        intersectRegion = visibleRegion.has_value() ?
+            intersectRegion.And(visibleRegion.value()) : intersectRegion;
+        if (drawRegion.And(intersectRegion).IsEmpty()) {
+            return false;
+        }
+        // case - 3. Add this filter into both damage region (for GPU) and draw region (for RS).
+        RS_TRACE_NAME_FMT("Filter [%" PRIu64 "], intersected with draw region: %s, add %s to damage.",
+            info.id_, drawRegion.GetRegionInfo().c_str(), info.filterDirty_.GetRegionInfo().c_str());
+        Occlusion::Region dirtyRegion = matrix.has_value() ?
+            RSObjAbsGeometry::MapRegion(info.filterDirty_, matrix.value()) : info.filterDirty_;
+        Occlusion::Region alignedDirtyRegion = matrix.has_value() ?
+            RSObjAbsGeometry::MapRegion(info.alignedFilterDirty_, matrix.value()) : info.alignedFilterDirty_;
+        damageRegion.OrSelf(dirtyRegion);
+        drawRegion.OrSelf(dirtyAlignEnabled_ ? alignedDirtyRegion : dirtyRegion);
+        info.addToDirty_ = true;
+        return true;
+    };
+    // return if any filter is added to damage region and draw region.
+    return std::find_if(filterList.begin(), filterList.end(), addDirtyInIntersect) != filterList.end();
+}
+
+void RSUniFilterDirtyComputeUtil::ResetFilterInfoStatus(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable,
+    std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& surfaceDrawables)
+{
+    auto resetFilterStatus = [] (FilterDirtyRegionInfo& filterInfo) { filterInfo.addToDirty_ = false; };
+    if (auto displayDirtyManager = displayDrawable.GetSyncDirtyManager()) {
+        auto& displayFilterList = displayDirtyManager->GetFilterCollector().GetFilterDirtyRegionInfoList(true);
+        std::for_each(displayFilterList.begin(), displayFilterList.end(), resetFilterStatus);
+    }
+    for (auto it = surfaceDrawables.rbegin(); it != surfaceDrawables.rend(); ++it) {
+        auto surfaceNodeDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(*it);
+        if (UNLIKELY(surfaceNodeDrawable == nullptr)) {
+            RS_LOGI("ResetFilterInfoStatus surfaceNodeDrawable is nullptr");
+            continue;
+        }
+        if (auto surfaceDirtyManager = surfaceNodeDrawable->GetSyncDirtyManager()) {
+            auto& surfaceFilterList = surfaceDirtyManager->GetFilterCollector().GetFilterDirtyRegionInfoList(true);
+            std::for_each(surfaceFilterList.begin(), surfaceFilterList.end(), resetFilterStatus);
+        }
+    }
+}
+
 FilterDirtyRegionInfo RSUniFilterDirtyComputeUtil::GenerateFilterDirtyRegionInfo(
     RSRenderNode& filterNode, const std::optional<Occlusion::Region>& preDirty)
 {
@@ -176,16 +290,51 @@ FilterDirtyRegionInfo RSUniFilterDirtyComputeUtil::GenerateFilterDirtyRegionInfo
 Occlusion::Region RSUniFilterDirtyComputeUtil::GetVisibleEffectRegion(RSRenderNode& filterNode)
 {
     auto context = filterNode.GetContext().lock();
+    Occlusion::Region childEffectRegion;
     if (!context) {
         RS_LOGE("GetVisibleEffectRegion filter node%{public}" PRIu64 " context is nullptr", filterNode.GetId());
+        return childEffectRegion;
     }
-    Occlusion::Region childEffectRegion;
     for (auto& nodeId : filterNode.GetVisibleEffectChild()) {
         if (auto& subNode = context->GetNodeMap().GetRenderNode<RSRenderNode>(nodeId)) {
             childEffectRegion = childEffectRegion.OrSelf(Occlusion::Region(subNode->GetOldDirtyInSurface()));
         }
     }
     return childEffectRegion;
+}
+
+void RSUniDirtyComputeUtil::UpdateVirtualExpandDisplayAccumulatedParams(
+    RSDisplayRenderParams& params, DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable)
+{
+    // All other factors that may prevent skipping virtual expand display need to be considered
+    // update accumulated dirty region
+    params.SetAccumulatedDirty(params.GetAccumulatedDirty() ||
+        (displayDrawable.GetSyncDirtyManager()->IsCurrentFrameDirty() || params.GetMainAndLeashSurfaceDirty()));
+
+    // update accumulated UIFirst force update
+    params.SetAccumulatedUifirstForceUpdate(params.GetAccumulatedUifirstForceUpdate() ||
+        RSUifirstManager::Instance().HasForceUpdateNode());
+
+    // update accumulated hdr status changed
+    params.SetAccumulatedHdrStatusChanged(params.GetAccumulatedHdrStatusChanged() || params.IsHDRStatusChanged());
+}
+
+bool RSUniDirtyComputeUtil::CheckVirtualExpandDisplaySkip(
+    RSDisplayRenderParams& params, DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable)
+{
+    // Regardless of whether the current frame is skipped, the state needs to be accumulated
+    if (!RSSystemProperties::GetVirtualExpandScreenSkipEnabled()) {
+        return false;
+    }
+    if (displayDrawable.GetSpecialLayerType(params) != NO_SPECIAL_LAYER) {
+        RS_TRACE_NAME("CheckVirtualExpandDisplaySkip has special layer can not skip");
+        return false;
+    }
+    RS_TRACE_NAME_FMT("CheckVirtualExpandDisplaySkip isAccumulatedDirty: %d, isAccumulatedUifirstForceUpdate: %d, "
+        "isAccumulatedHdrStatusChanged: %d", params.GetAccumulatedDirty(), params.GetAccumulatedUifirstForceUpdate(),
+        params.GetAccumulatedHdrStatusChanged());
+    return !params.GetAccumulatedDirty() && !params.GetAccumulatedUifirstForceUpdate() &&
+        !params.GetAccumulatedHdrStatusChanged();
 }
 } // namespace Rosen
 } // namespace OHOS

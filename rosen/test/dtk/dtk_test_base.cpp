@@ -128,7 +128,7 @@ void TestBase::Init(std::shared_ptr<RSUIDirector> rsUiDirector, int width, int h
     rootNode_->SetBounds(0, 0, width, height);
     rootNode_->SetFrame(0, 0, width, height);
     rootNode_->SetBackgroundColor(Drawing::Color::COLOR_WHITE);
-    rsUiDirector->SetRoot(rootNode_->GetId());
+    rsUiDirector->SetRSRootNode(rootNode_->ReinterpretCastTo<RSRootNode>());
     canvasNode_ = RSCanvasNode::Create();
     canvasNode_->SetFrame(0, 0, width, height);
     rootNode_->AddChild(canvasNode_, -1);

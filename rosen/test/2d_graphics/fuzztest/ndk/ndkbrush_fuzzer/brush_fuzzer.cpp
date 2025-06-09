@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -26,6 +26,7 @@
 #include "drawing_shadow_layer.h"
 #include "drawing_types.h"
 #include "draw/brush.h"
+#include "native_color_space_manager.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -108,6 +109,42 @@ void BrushFuzzTest001(const uint8_t* data, size_t size)
     OH_Drawing_ShaderEffectDestroy(ShaderEffect);
     OH_Drawing_BrushDestroy(brush);
 }
+
+void BrushFuzzTest002(const uint8_t* data, size_t size)
+{
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    OH_Drawing_Brush* brush = OH_Drawing_BrushCreate();
+    float a = GetObject<float>();
+    float r = GetObject<float>();
+    float b = GetObject<float>();
+    float g = GetObject<float>();
+    OH_NativeColorSpaceManager* colorSpaceManager =
+        OH_NativeColorSpaceManager_CreateFromName(ColorSpaceName::ADOBE_RGB);
+    OH_Drawing_BrushSetColor4f(nullptr, a, r, g, b, colorSpaceManager);
+    OH_Drawing_BrushSetColor4f(brush, a, r, g, b, colorSpaceManager);
+    OH_Drawing_BrushSetColor4f(brush, a, r, g, b, nullptr);
+    OH_Drawing_BrushGetAlphaFloat(brush, &a);
+    OH_Drawing_BrushGetAlphaFloat(nullptr, &a);
+    OH_Drawing_BrushGetAlphaFloat(nullptr, nullptr);
+    OH_Drawing_BrushGetAlphaFloat(brush, nullptr);
+    OH_Drawing_BrushGetRedFloat(brush, &r);
+    OH_Drawing_BrushGetRedFloat(nullptr, &r);
+    OH_Drawing_BrushGetRedFloat(nullptr, nullptr);
+    OH_Drawing_BrushGetRedFloat(brush, nullptr);
+    OH_Drawing_BrushGetGreenFloat(nullptr, nullptr);
+    OH_Drawing_BrushGetGreenFloat(brush, nullptr);
+    OH_Drawing_BrushGetGreenFloat(brush, &g);
+    OH_Drawing_BrushGetGreenFloat(nullptr, &g);
+    OH_Drawing_BrushGetBlueFloat(nullptr, nullptr);
+    OH_Drawing_BrushGetBlueFloat(brush, &b);
+    OH_Drawing_BrushGetBlueFloat(nullptr, &b);
+    OH_Drawing_BrushGetBlueFloat(brush, nullptr);
+    OH_Drawing_BrushDestroy(brush);
+    OH_NativeColorSpaceManager_Destroy(colorSpaceManager);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
@@ -118,5 +155,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     /* Run your code on data */
     OHOS::Rosen::Drawing::BrushFuzzTest000(data, size);
     OHOS::Rosen::Drawing::BrushFuzzTest001(data, size);
+    OHOS::Rosen::Drawing::BrushFuzzTest002(data, size);
     return 0;
 }

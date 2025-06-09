@@ -479,11 +479,15 @@ public:
     virtual void SetFramePositionY(float positionY);
 
     /**
-     * @brief Sets the freeze state of the node.
+     * @brief Freezes current frame data when enabled, preventing content refresh until unfrozen.
      *
-     * The property is valid only for CanvasNode and SurfaceNode in uniRender.
+     * This property is valid only for CanvasNode and SurfaceNode in uniRender.
      *
-     * @param isFreeze If true, the node will be frozen; if false, the node will be unfrozen.
+     * @param isFreeze Freeze state flag
+     *                - true: Freeze current frame content
+     *                - false: Resume dynamic updates
+     * @see RSCanvasNode::SetFreeze(bool isFreeze)
+     * @see RSSurfaceNode::SetFreeze(bool isFreeze)
      */
     virtual void SetFreeze(bool isFreeze);
 
@@ -1537,7 +1541,19 @@ public:
      */
     void SetDrawRegion(std::shared_ptr<RectF> rect);
 
-    // Mark preferentially draw node and childrens
+    /**
+     * @brief Mark the node as a group node for rendering pipeline optimization
+     *
+     * NodeGroup generates off-screen cache containing this node and its entire subtree
+     * Off-screen cache may exhibit conflicts between background effects
+     * When using node group optimization, be aware of rendering effect limitations:
+     *     - Avoid co-occurrence of surface capture, blur, brightness adjustment and blend operations
+     *     - These effects may produce visual artifacts or performance degradation
+     *
+     * @param isNodeGroup       Whether to enable group rendering optimization for this node
+     * @param isForced          When true, forces group marking ignoring system property checks
+     * @param includeProperty   When true, packages node properties with the group
+     */
     void MarkNodeGroup(bool isNodeGroup, bool isForced = true, bool includeProperty = false);
 
     // Mark opinc node
@@ -1719,11 +1735,6 @@ public:
         return isOnTheTree_;
     }
 
-    float GetTotalAlpha() const
-    {
-        return totalAlpha_;
-    }
-
     /**
      * @brief Enables/disables control-level occlusion culling for the node's subtree
      *
@@ -1897,7 +1908,6 @@ private:
     void MarkAllExtendModifierDirty();
     void ResetExtendModifierDirty();
     void SetParticleDrawRegion(std::vector<ParticleParams>& particleParams);
-    void AccumulateAlpha(float &alpha);
 
     /**
      * @brief Clears all modifiers associated with this node.
@@ -1913,9 +1923,6 @@ private:
 
     float globalPositionX_ = 0.f;
     float globalPositionY_ = 0.f;
-    float alpha_ = 1.f;
-    float totalAlpha_ = 1.f;
-    bool visitedForTotalAlpha_ = false;
 
     bool extendModifierIsDirty_ { false };
 

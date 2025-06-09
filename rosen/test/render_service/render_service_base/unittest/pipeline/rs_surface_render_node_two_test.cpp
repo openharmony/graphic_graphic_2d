@@ -453,6 +453,94 @@ HWTEST_F(RSSurfaceRenderNodeTwoTest, SetForceHardwareTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetInFixedRotationTest001
+ * @tc.desc: test results of SetInFixedRotation
+ * @tc.type: FUNC
+ * @tc.require: issueICCYNK
+ */
+HWTEST_F(RSSurfaceRenderNodeTwoTest, SetInFixedRotationTest001, TestSize.Level1)
+{
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(0);
+    surfaceNode->InitRenderParams();
+    RectI srcRect1 { 0, 0, 10, 10 };
+    RectI dstRect1 { 5, 5, 15, 15 };
+    surfaceNode->SetSrcRect(srcRect1);
+    surfaceNode->SetDstRect(dstRect1);
+    surfaceNode->UpdateHwcNodeLayerInfo(GraphicTransformType::GRAPHIC_ROTATE_NONE, true);
+    surfaceNode->SetForceHardwareAndFixRotation(true);
+    EXPECT_TRUE(surfaceNode->isFixRotationByUser_);
+    surfaceNode->SetInFixedRotation(true);
+    EXPECT_TRUE(surfaceNode->isInFixedRotation_);
+    auto oriSrcRect = surfaceNode->GetOriginalSrcRect();
+    auto oriDstRect = surfaceNode->GetOriginalDstRect();
+    ASSERT_TRUE(srcRect1.left_ == oriSrcRect.left_ && srcRect1.top_ == oriSrcRect.top_ &&
+                srcRect1.width_ == oriSrcRect.width_ && srcRect1.height_ == oriSrcRect.height_);
+    ASSERT_TRUE(dstRect1.left_ == oriDstRect.left_ && dstRect1.top_ == oriDstRect.top_ &&
+                dstRect1.width_ == oriDstRect.width_ && dstRect1.height_ == oriDstRect.height_);
+
+    RectI srcRect2 { 10, 10, 20, 20 };
+    RectI dstRect2 { 20, 20, 40, 40 };
+    surfaceNode->SetSrcRect(srcRect2);
+    surfaceNode->SetDstRect(dstRect2);
+    surfaceNode->UpdateHwcNodeLayerInfo(GraphicTransformType::GRAPHIC_ROTATE_NONE, true);
+    oriSrcRect = surfaceNode->GetOriginalSrcRect();
+    oriDstRect = surfaceNode->GetOriginalDstRect();
+    ASSERT_TRUE(srcRect1.left_ == oriSrcRect.left_ && srcRect1.top_ == oriSrcRect.top_ &&
+                srcRect1.width_ == oriSrcRect.width_ && srcRect1.height_ == oriSrcRect.height_);
+    ASSERT_TRUE(dstRect1.left_ == oriDstRect.left_ && dstRect1.top_ == oriDstRect.top_ &&
+                dstRect1.width_ == oriDstRect.width_ && dstRect1.height_ == oriDstRect.height_);
+    ASSERT_FALSE(srcRect2.left_ == oriSrcRect.left_ || srcRect2.top_ == oriSrcRect.top_ ||
+                 srcRect2.width_ == oriSrcRect.width_ || srcRect2.height_ == oriSrcRect.height_);
+    ASSERT_FALSE(dstRect2.left_ == oriDstRect.left_ || dstRect2.top_ == oriDstRect.top_ ||
+                 dstRect2.width_ == oriDstRect.width_ || dstRect2.height_ == oriDstRect.height_);
+}
+
+/**
+ * @tc.name: SetInFixedRotationTest002
+ * @tc.desc: test results of SetInFixedRotation
+ * @tc.type: FUNC
+ * @tc.require: issueICCYNK
+ */
+HWTEST_F(RSSurfaceRenderNodeTwoTest, SetInFixedRotationTest002, TestSize.Level1)
+{
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(0);
+    surfaceNode->InitRenderParams();
+    RectI srcRect1 { 0, 0, 10, 10 };
+    RectI dstRect1 { 5, 5, 15, 15 };
+    surfaceNode->SetSrcRect(srcRect1);
+    surfaceNode->SetDstRect(dstRect1);
+    surfaceNode->UpdateHwcNodeLayerInfo(GraphicTransformType::GRAPHIC_ROTATE_NONE, true);
+    surfaceNode->SetForceHardwareAndFixRotation(true);
+    EXPECT_TRUE(surfaceNode->isFixRotationByUser_);
+    surfaceNode->SetInFixedRotation(true);
+    EXPECT_TRUE(surfaceNode->isInFixedRotation_);
+    auto oriSrcRect = surfaceNode->GetOriginalSrcRect();
+    auto oriDstRect = surfaceNode->GetOriginalDstRect();
+    ASSERT_TRUE(srcRect1.left_ == oriSrcRect.left_ && srcRect1.top_ == oriSrcRect.top_ &&
+                srcRect1.width_ == oriSrcRect.width_ && srcRect1.height_ == oriSrcRect.height_);
+    ASSERT_TRUE(dstRect1.left_ == oriDstRect.left_ && dstRect1.top_ == oriDstRect.top_ &&
+                dstRect1.width_ == oriDstRect.width_ && dstRect1.height_ == oriDstRect.height_);
+
+    surfaceNode->SetInFixedRotation(false);
+    RectI srcRect2 { 10, 10, 20, 20 };
+    RectI dstRect2 { 20, 20, 40, 40 };
+    surfaceNode->SetSrcRect(srcRect2);
+    surfaceNode->SetDstRect(dstRect2);
+    surfaceNode->UpdateHwcNodeLayerInfo(GraphicTransformType::GRAPHIC_ROTATE_NONE, true);
+    surfaceNode->SetInFixedRotation(true);
+    oriSrcRect = surfaceNode->GetOriginalSrcRect();
+    oriDstRect = surfaceNode->GetOriginalDstRect();
+    ASSERT_FALSE(srcRect1.left_ == oriSrcRect.left_ || srcRect1.top_ == oriSrcRect.top_ ||
+                 srcRect1.width_ == oriSrcRect.width_ || srcRect1.height_ == oriSrcRect.height_);
+    ASSERT_FALSE(dstRect1.left_ == oriDstRect.left_ || dstRect1.top_ == oriDstRect.top_ ||
+                 dstRect1.width_ == oriDstRect.width_ || dstRect1.height_ == oriDstRect.height_);
+    ASSERT_TRUE(srcRect2.left_ == oriSrcRect.left_ && srcRect2.top_ == oriSrcRect.top_ &&
+                srcRect2.width_ == oriSrcRect.width_ && srcRect2.height_ == oriSrcRect.height_);
+    ASSERT_TRUE(dstRect2.left_ == oriDstRect.left_ && dstRect2.top_ == oriDstRect.top_ &&
+                dstRect2.width_ == oriDstRect.width_ && dstRect2.height_ == oriDstRect.height_);
+}
+
+/**
  * @tc.name: SetForceUIFirstTest
  * @tc.desc: test results of SetForceUIFirst
  * @tc.type: FUNC

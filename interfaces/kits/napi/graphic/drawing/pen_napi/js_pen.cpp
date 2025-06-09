@@ -19,6 +19,7 @@
 
 #include "color_filter_napi/js_color_filter.h"
 #include "image_filter_napi/js_image_filter.h"
+#include "js_color_space.h"
 #include "js_drawing_utils.h"
 #include "mask_filter_napi/js_mask_filter.h"
 #include "matrix_napi/js_matrix.h"
@@ -26,6 +27,8 @@
 #include "path_napi/js_path.h"
 #include "shader_effect_napi/js_shader_effect.h"
 #include "shadow_layer_napi/js_shadow_layer.h"
+
+#include "utils/colorspace_convertor.h"
 
 namespace OHOS::Rosen {
 namespace Drawing {
@@ -42,6 +45,8 @@ napi_value JsPen::Init(napi_env env, napi_value exportObj)
         DECLARE_NAPI_FUNCTION("getCapStyle", GetCapStyle),
         DECLARE_NAPI_FUNCTION("setColor", SetColor),
         DECLARE_NAPI_FUNCTION("getColor", GetColor),
+        DECLARE_NAPI_FUNCTION("setColor4f", SetColor4f),
+        DECLARE_NAPI_FUNCTION("getColor4f", GetColor4f),
         DECLARE_NAPI_FUNCTION("getHexColor", GetHexColor),
         DECLARE_NAPI_FUNCTION("setColorFilter", SetColorFilter),
         DECLARE_NAPI_FUNCTION("getColorFilter", GetColorFilter),
@@ -723,6 +728,56 @@ napi_value JsPen::GetColor(napi_env env, napi_callback_info info)
 
     Color color = pen->GetColor();
     return GetColorAndConvertToJsValue(env, color);
+}
+
+napi_value JsPen::SetColor4f(napi_env env, napi_callback_info info)
+{
+    JsPen* jsPen = CheckParamsAndGetThis<JsPen>(env, info);
+    if (!jsPen) {
+        return nullptr;
+    }
+    Pen* pen = jsPen->GetPen();
+    if (pen == nullptr) {
+        ROSEN_LOGE("JsPen::SetColor4f pen is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+    napi_value argv[ARGC_TWO] = { nullptr };
+    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_TWO);
+
+    Drawing::Color4f drawingColor4f;
+    if (!ConvertFromAdaptJsColor4F(env, argv[ARGC_ZERO], drawingColor4f)) {
+        ROSEN_LOGE("JsPen::SetColor4f Argv[0] is invalid");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Parameter verification failed.");
+    }
+    std::shared_ptr<Drawing::ColorSpace> drawingColorSpace = nullptr;
+    ColorManager::JsColorSpace* jsColorSpace = nullptr;
+    GET_UNWRAP_PARAM_OR_NULL(ARGC_ONE, jsColorSpace);
+    if (jsColorSpace != nullptr) {
+        auto colorManagerColorSpace = jsColorSpace->GetColorSpaceToken();
+        if (colorManagerColorSpace != nullptr) {
+            drawingColorSpace = Drawing::ColorSpaceConvertor::
+                ColorSpaceConvertToDrawingColorSpace(colorManagerColorSpace);
+        }
+    }
+    pen->SetColor(drawingColor4f, drawingColorSpace);
+    return nullptr;
+}
+
+napi_value JsPen::GetColor4f(napi_env env, napi_callback_info info)
+{
+    JsPen* jsPen = CheckParamsAndGetThis<JsPen>(env, info);
+    if (jsPen == nullptr) {
+        ROSEN_LOGE("JsPen::GetColor4f jsPen is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+    Pen* pen = jsPen->GetPen();
+    if (pen == nullptr) {
+        ROSEN_LOGE("JsPen::GetColor4f pen is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    const Color4f& color4f = pen->GetColor4f();
+    return GetColor4FAndConvertToJsValue(env, color4f);
 }
 
 napi_value JsPen::GetHexColor(napi_env env, napi_callback_info info)

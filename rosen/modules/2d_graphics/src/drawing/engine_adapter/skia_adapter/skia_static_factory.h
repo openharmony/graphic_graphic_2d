@@ -98,8 +98,6 @@ public:
         DrawingCommonSubType commonSubType = DrawingCommonSubType::DOWN);
     static std::shared_ptr<Blender> CreateWithBlendMode(BlendMode mode);
     static void SetVmaCacheStatus(bool flag);
-    static void RecordCoreTrace(int functionType);
-    static void RecordCoreTrace(int functionType, uint64_t nodeId);
     static void ResetStatsData();
     static void ResetPerfEventData();
     static std::map<std::string, std::vector<uint16_t>> GetBlurStatsData();

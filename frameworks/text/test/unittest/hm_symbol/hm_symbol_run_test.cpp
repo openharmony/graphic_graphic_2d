@@ -636,6 +636,33 @@ HWTEST_F(OHHmSymbolRunTest, SetSymbolEffect008, TestSize.Level1)
 }
 
 /*
+ * @tc.name: SetSymbolEffect009
+ * @tc.desc: test SetSymbolEffect with different DrawingEffectStrategy::QUICK_REPLACE_APPEAR
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolRunTest, SetSymbolEffect009, TestSize.Level1)
+{
+    std::shared_ptr<RSCanvas> rsCanvas = std::make_shared<RSCanvas>();
+    RSPoint paint_ = {100, 100}; // 100, 100 is the offset
+    const char* str = "A";
+    Drawing::Font font;
+    auto textblob = Drawing::TextBlob::MakeFromText(str, strlen(str), font, Drawing::TextEncoding::UTF8);
+    HMSymbolTxt symbolTxt;
+    std::function<bool(const std::shared_ptr<TextEngine::SymbolAnimationConfig>&)> animationFunc =
+        [](const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig) {
+            return true;
+        };
+    HMSymbolRun hmSymbolRun = HMSymbolRun(0, symbolTxt, textblob, animationFunc);
+    hmSymbolRun.SetAnimationStart(true);
+    hmSymbolRun.currentAnimationHasPlayed_ = true;
+
+    hmSymbolRun.SetSymbolEffect(Drawing::DrawingEffectStrategy::QUICK_REPLACE_APPEAR);
+    EXPECT_EQ(hmSymbolRun.symbolTxt_.GetEffectStrategy(), Drawing::DrawingEffectStrategy::QUICK_REPLACE_APPEAR);
+    EXPECT_FALSE(hmSymbolRun.currentAnimationHasPlayed_);
+    hmSymbolRun.DrawSymbol(rsCanvas.get(), paint_);
+}
+
+/*
  * @tc.name: SetAnimationMode001
  * @tc.desc: test SetAnimationMode with wholeSymbol
  * @tc.type: FUNC
@@ -1115,6 +1142,34 @@ HWTEST_F(OHHmSymbolRunTest, SymbolTxt001, TestSize.Level1)
     EXPECT_EQ(hmSymbolRun.GetSymbolTxt().GetRenderMode(), Drawing::DrawingSymbolRenderingStrategy::MULTIPLE_COLOR);
 }
 
+/*
+ * @tc.name: SymbolAnimationTest001
+ * @tc.desc: test SymbolAnimation with disable effectStrategy
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolRunTest, SymbolAnimationTest001, TestSize.Level1)
+{
+    // init data
+    HMSymbolRun hmSymbolRun = HMSymbolRun();
+    hmSymbolRun.SetSymbolEffect(RSEffectStrategy::DISABLE);
+    RSHMSymbolData symbol;
+    std::pair<float, float> offsetXY(10.0f, 15.0f);
+    Drawing::DrawingAnimationSetting animationSettingOne = {
+        // animationTypes
+        {
+            Drawing::DrawingAnimationType::DISABLE_TYPE
+        },
+        // groupSettings
+        {
+            // {0, 1}: layerIndes, 0: animationIndex
+            {{{{0, 1}}}, 0}
+        }
+    };
+    hmSymbolRun.symbolLayersGroups_.animationSettings.push_back(animationSettingOne);
+    // test SymbolAnimation by DISABLE
+    bool restul = hmSymbolRun.SymbolAnimation(symbol, offsetXY);
+    EXPECT_FALSE(restul);
+}
 } // namespace SPText
 } // namespace Rosen
 } // namespace OHOS

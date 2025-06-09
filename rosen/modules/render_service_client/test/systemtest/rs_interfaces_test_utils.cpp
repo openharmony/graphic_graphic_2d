@@ -116,7 +116,7 @@ void RSInterfacesTestUtils::RootNodeInit(std::shared_ptr<RSUIDirector> rsUiDirec
     rootNode_->SetBounds(0, 0, width, height);
     rootNode_->SetFrame(0, 0, width, height);
     rootNode_->SetBackgroundColor(SK_ColorRED);
-    rsUiDirector->SetRoot(rootNode_->GetId());
+    rsUiDirector->SetRSRootNode(rootNode_->ReinterpretCastTo<RSRootNode>());
 }
 
 sptr<Window> RSInterfacesTestUtils::CreateWindowByDisplayParam(DisplayId displayId, std::string name,

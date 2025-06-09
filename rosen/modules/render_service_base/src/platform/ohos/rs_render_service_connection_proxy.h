@@ -154,6 +154,7 @@ public:
     void TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
         const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam,
         const Drawing::Rect& specifiedAreaRect = Drawing::Rect(0.f, 0.f, 0.f, 0.f),
+        std::unique_ptr<Media::PixelMap> pixelMap = nullptr,
         RSSurfaceCapturePermissions permissions = RSSurfaceCapturePermissions()) override;
 
     std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>>
@@ -175,6 +176,9 @@ public:
 
     bool WriteSurfaceCaptureAreaRect(const Drawing::Rect& specifiedAreaRect, MessageParcel& data);
 
+    bool WriteClientSurfacePixelMap(const std::unique_ptr<Media::PixelMap>& pixelMap,
+        bool isUsedClientPixelMap, MessageParcel& data);
+        
     ErrCode SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
         float positionZ, float positionW) override;
 

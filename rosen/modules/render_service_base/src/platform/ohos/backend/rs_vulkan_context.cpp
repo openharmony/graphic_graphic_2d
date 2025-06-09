@@ -346,7 +346,7 @@ bool RsVulkanInterface::CreateSkiaBackendContext(GrVkBackendContext* context, bo
         ROSEN_LOGE("CreateSkiaBackendContext getProc is null");
         return false;
     }
-
+#ifndef TODO_M133_SKIA
     VkPhysicalDeviceFeatures features;
     vkGetPhysicalDeviceFeatures(physicalDevice_, &features);
 
@@ -360,18 +360,23 @@ bool RsVulkanInterface::CreateSkiaBackendContext(GrVkBackendContext* context, bo
     if (features.sampleRateShading) {
         fFeatures |= kSampleRateShading_GrVkFeatureFlag;
     }
+#endif
 
     context->fInstance = instance_;
     context->fPhysicalDevice = physicalDevice_;
     context->fDevice = device_;
     context->fQueue = queue_;
     context->fGraphicsQueueIndex = graphicsQueueFamilyIndex_;
+#ifndef TODO_M133_SKIA
     context->fMinAPIVersion = VK_API_VERSION_1_2;
 
     uint32_t extensionFlags = kKHR_surface_GrVkExtensionFlag;
     extensionFlags |= kKHR_ohos_surface_GrVkExtensionFlag;
 
     context->fExtensions = extensionFlags;
+#else
+    context->fMaxAPIVersion = VK_API_VERSION_1_2;
+#endif
 
     skVkExtensions_.init(getProc, instance_, physicalDevice_,
         gInstanceExtensions.size(), gInstanceExtensions.data(),
@@ -379,7 +384,9 @@ bool RsVulkanInterface::CreateSkiaBackendContext(GrVkBackendContext* context, bo
 
     context->fVkExtensions = &skVkExtensions_;
     context->fDeviceFeatures2 = &physicalDeviceFeatures2_;
+#ifndef TODO_M133_SKIA
     context->fFeatures = fFeatures;
+#endif
     context->fGetProc = std::move(getProc);
 #ifdef USE_M133_SKIA
     context->fProtectedContext = isProtected ? skgpu::Protected::kYes : skgpu::Protected::kNo;
@@ -655,6 +662,7 @@ std::unique_ptr<RsVulkanContext>& RsVulkanContext::GetRecyclableSingletonPtr(con
         static std::string cacheDirInit = cacheDir;
         recyclableSingleton = std::make_unique<RsVulkanContext>(cacheDirInit);
     }
+    RsVulkanContext::isRecyclableSingletonValid_ = true;
     return recyclableSingleton;
 }
 
@@ -683,6 +691,7 @@ void RsVulkanContext::ReleaseRecyclableSingleton()
         auto& recyclableSingleton = GetRecyclableSingletonPtr();
         recyclableSingleton.reset();
     }
+    RsVulkanContext::isRecyclableSingletonValid_ = false;
 }
 
 std::shared_ptr<Drawing::GPUContext> RsVulkanContext::GetRecyclableDrawingContext()
@@ -762,6 +771,11 @@ void RsVulkanContext::SaveNewDrawingContext(int tid, std::shared_ptr<Drawing::GP
 bool RsVulkanContext::GetIsInited()
 {
     return isInited_.load();
+}
+
+bool RsVulkanContext::IsRecyclableSingletonValid()
+{
+    return isRecyclableSingletonValid_.load();
 }
 
 RsVulkanInterface& RsVulkanContext::GetRsVulkanInterface()

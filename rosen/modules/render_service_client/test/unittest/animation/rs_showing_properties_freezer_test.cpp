@@ -358,28 +358,6 @@ HWTEST_F(RSShowingPropertiesFreezerTest, GetBorderTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetFilterTest
- * @tc.desc: Verify the GetFilter
- * @tc.type:FUNC
- */
-HWTEST_F(RSShowingPropertiesFreezerTest, GetFilterTest, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "RSShowingPropertiesFreezerTest GetFilterTest start";
-    std::shared_ptr<RSFilter> filter = RSFilter::CreateBlurFilter(1.0f, 1.0f);
-    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
-    canvasNode->SetFilter(filter);
-    auto result1 = canvasNode->GetShowingProperties().GetFilter();
-    EXPECT_NE(result1, nullptr);
- 
-    std::shared_ptr<RSFilter> backgroundFilter = RSFilter::CreateBlurFilter(1.0f, 1.0f);
-    canvasNode->SetBackgroundFilter(backgroundFilter);
-    auto result2 = canvasNode->GetShowingProperties().GetBackgroundFilter();
-    EXPECT_NE(result2, nullptr);
- 
-    GTEST_LOG_(INFO) << "RSShowingPropertiesFreezerTest GetFilterTest end";
-}
-
-/**
  * @tc.name: GetShadowTest
  * @tc.desc: Verify the GetShadow
  * @tc.type:FUNC

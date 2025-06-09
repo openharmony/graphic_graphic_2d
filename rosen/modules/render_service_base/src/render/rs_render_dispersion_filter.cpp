@@ -21,6 +21,11 @@
 #include "platform/common/rs_log.h"
 #include "render/rs_render_mask.h"
 #include "render/rs_shader_mask.h"
+#ifdef USE_M133_SKIA
+#include "src/core/SkChecksum.h"
+#else
+#include "src/core/SkOpts.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -197,10 +202,10 @@ bool RSRenderDispersionFilterPara::ParseFilterValues()
     auto blueOffset = dispersionBlueOffset->Get();
     blueOffsetX_ = blueOffset[0];
     blueOffsetY_ = blueOffset[1];
-#ifndef ENABLE_M133_SKIA
-    const auto hashFunc = SkOpts::hash;
-#else
+#ifdef USE_M133_SKIA
     const auto hashFunc = SkChecksum::Hash32;
+#else
+    const auto hashFunc = SkOpts::hash;
 #endif
     mask_ = mask_ = dispersionMask ? std::make_shared<RSShaderMask>(dispersionMask) : nullptr;
     if (mask_) {

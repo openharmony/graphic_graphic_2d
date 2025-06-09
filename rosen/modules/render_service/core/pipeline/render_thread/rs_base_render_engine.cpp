@@ -27,6 +27,7 @@
 #include "platform/common/rs_system_properties.h"
 #if (defined(RS_ENABLE_GPU) && defined(RS_ENABLE_GL))
 #include "platform/ohos/backend/rs_surface_ohos_gl.h"
+#include "feature/gpuComposition/rs_image_manager.h"
 #endif
 #include "platform/ohos/backend/rs_surface_ohos_raster.h"
 #ifdef RS_ENABLE_VK
@@ -49,7 +50,6 @@
 #ifdef RS_ENABLE_TV_PQ_METADATA
 #include "feature/tv_metadata/rs_tv_metadata_manager.h"
 #endif
-#include "utils/graphic_coretrace.h"
 #include "v2_1/cm_color_space.h"
 
 namespace OHOS {
@@ -64,9 +64,8 @@ RSBaseRenderEngine::~RSBaseRenderEngine() noexcept
 {
 }
 
-void RSBaseRenderEngine::Init(bool independentContext)
+void RSBaseRenderEngine::Init()
 {
-    (void)independentContext;
 #if (defined RS_ENABLE_GL) || (defined RS_ENABLE_VK)
     renderContext_ = std::make_shared<RenderContext>();
 #ifdef RS_ENABLE_GL
@@ -226,8 +225,6 @@ std::unique_ptr<RSRenderFrame> RSBaseRenderEngine::RequestFrame(
     const BufferRequestConfig& config, bool forceCPU, bool useAFBC,
     const FrameContextConfig& frameContextConfig)
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        RS_RSBASERENDERENGINE_REQUESTFRAME);
 #ifdef RS_ENABLE_VK
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
         RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
@@ -389,8 +386,6 @@ void RSBaseRenderEngine::DrawDisplayNodeWithParams(RSPaintFilterCanvas& canvas, 
 void RSBaseRenderEngine::DrawDisplayNodeWithParams(RSPaintFilterCanvas& canvas, RSSurfaceHandler& surfaceHandler,
     BufferDrawParam& drawParam)
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        RS_RSBASERENDERENGINE_DRAWDISPLAYNODEWITHPARAMS);
     if (drawParam.useCPU) {
         DrawBuffer(canvas, drawParam);
     } else {
@@ -613,6 +608,7 @@ std::shared_ptr<Drawing::ColorSpace> RSBaseRenderEngine::ConvertColorGamutToDraw
     std::shared_ptr<Drawing::ColorSpace>  colorSpace = nullptr;
     switch (colorGamut) {
         case GRAPHIC_COLOR_GAMUT_DISPLAY_P3:
+        case GRAPHIC_COLOR_GAMUT_DCI_P3:
             colorSpace = Drawing::ColorSpace::CreateRGB(
                 Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::DCIP3);
             break;
@@ -697,10 +693,14 @@ std::shared_ptr<Drawing::Image> RSBaseRenderEngine::CreateImageFromBuffer(RSPain
     if (RSSystemProperties::IsUseVulkan()) {
         auto imageCache = vkImageManager_->MapVkImageFromSurfaceBuffer(params.buffer,
             params.acquireFence, params.threadIndex, canvas.GetSurface());
+        if (imageCache == nullptr) {
+            RS_LOGE("RSBaseRenderEngine::MapImageFromSurfaceBuffer failed!");
+            return nullptr;
+        }
         if (params.buffer != nullptr && params.buffer->GetBufferDeleteFromCacheFlag()) {
             RS_LOGD_IF(DEBUG_COMPOSER, "  - Buffer %{public}u marked for deletion from cache, unmapping",
                 params.buffer->GetSeqNum());
-            vkImageManager_->UnMapVkImageFromSurfaceBuffer(params.buffer->GetSeqNum());
+            vkImageManager_->UnMapImageFromSurfaceBuffer(params.buffer->GetSeqNum());
         }
         auto bitmapFormat = RSBaseRenderUtil::GenerateDrawingBitmapFormat(params.buffer);
         auto screenColorSpace = GetCanvasColorSpace(canvas);
@@ -749,8 +749,6 @@ std::shared_ptr<Drawing::Image> RSBaseRenderEngine::CreateImageFromBuffer(RSPain
 
 void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam& params)
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        RS_RSBASERENDERENGINE_DRAWIMAGE);
     RS_TRACE_NAME_FMT("RSBaseRenderEngine::DrawImage(GPU) targetColorGamut=%d", params.targetColorGamut);
 
     RS_LOGD_IF(DEBUG_COMPOSER, "RSBaseRenderEngine::DrawImage: Starting to draw image with gamut:%{public}d, "
@@ -1011,7 +1009,7 @@ void RSBaseRenderEngine::ClearCacheSet(const std::set<uint32_t>& unmappedCache)
         RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
         if (vkImageManager_ != nullptr) {
             for (auto id : unmappedCache) {
-                vkImageManager_->UnMapVkImageFromSurfaceBuffer(id);
+                vkImageManager_->UnMapImageFromSurfaceBuffer(id);
             }
         }
     }
@@ -1020,7 +1018,7 @@ void RSBaseRenderEngine::ClearCacheSet(const std::set<uint32_t>& unmappedCache)
 #if (defined(RS_ENABLE_EGLIMAGE) && defined(RS_ENABLE_GPU))
     if (eglImageManager_ != nullptr) {
         for (auto id : unmappedCache) {
-            eglImageManager_->UnMapEglImageFromSurfaceBuffer(id);
+            eglImageManager_->UnMapImageFromSurfaceBuffer(id);
         }
     }
 #endif // RS_ENABLE_EGLIMAGE

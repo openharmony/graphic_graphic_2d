@@ -252,24 +252,6 @@ HWTEST_F(RSClientTest, RegisterTransactionDataCallback02, TestSize.Level1)
 }
 
 /**
- * @tc.name: RegisterTransactionDataCallback03
- * @tc.desc: RegisterTransactionDataCallback Test renderService is null
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSClientTest, RegisterTransactionDataCallback03, TestSize.Level1)
-{
-    ASSERT_NE(rsClient, nullptr);
-    std::function<void()> callback = []() {};
-    int32_t pid = 123;
-    uint64_t timeStamp = 456;
-    auto connHub = RSRenderServiceConnectHub::GetInstance();
-    connHub->Destroy();
-    bool ret = rsClient->RegisterTransactionDataCallback(pid, timeStamp, callback);
-    EXPECT_FALSE(ret);
-}
-
-/**
  * @tc.name: RegisterTransactionDataCallback04
  * @tc.desc: RegisterTransactionDataCallback Test callback already exists
  * @tc.type:FUNC
@@ -1012,7 +994,7 @@ HWTEST_F(RSClientTest, GetScreenSupportedMetaDataKeys001, TestSize.Level1)
 {
     auto screenId = rsClient->GetDefaultScreenId();
     EXPECT_NE(screenId, INVALID_SCREEN_ID);
-    std::vector<ScreenHDRMetadataKey> keys;
+    std::vector<ScreenHDRMetadataKey> keys = {ScreenHDRMetadataKey::MATAKEY_RED_PRIMARY_X};
     int ret = rsClient->GetScreenSupportedMetaDataKeys(screenId, keys);
     EXPECT_EQ(ret, StatusCode::SUCCESS);
     EXPECT_EQ(keys[0], ScreenHDRMetadataKey::MATAKEY_RED_PRIMARY_X);

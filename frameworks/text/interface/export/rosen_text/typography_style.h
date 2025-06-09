@@ -111,10 +111,12 @@ struct TypographyStyle {
     bool isEndAddParagraphSpacing{false};
     bool isTrailingSpaceOptimized{false};
     bool enableAutoSpace{false};
+    TextVerticalAlign verticalAlignment{TextVerticalAlign::BASELINE};
 
     bool operator==(const TypographyStyle &rhs) const
     {
         return
+            this->verticalAlignment == rhs.verticalAlignment &&
             this->ELLIPSIS == rhs.ELLIPSIS &&
             this->fontWeight == rhs.fontWeight &&
             this->fontStyle == rhs.fontStyle &&

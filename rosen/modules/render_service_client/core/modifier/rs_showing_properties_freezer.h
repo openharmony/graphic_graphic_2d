@@ -262,20 +262,6 @@ public:
     std::optional<Vector4f> GetBorderWidth() const;
 
     /**
-     * @brief Gets the background filter.
-     *
-     * @return The pointer to background filter.
-     */
-    std::optional<std::shared_ptr<RSFilter>> GetBackgroundFilter() const;
-
-    /**
-     * @brief Gets the filter.
-     *
-     * @return The pointer to filter.
-     */
-    std::optional<std::shared_ptr<RSFilter>> GetFilter() const;
-
-    /**
      * @brief Gets the color of shadow.
      *
      * @return The color of shadow.

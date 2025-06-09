@@ -470,6 +470,7 @@ void HandleExtentParagraphStyleProperties(napi_env env, napi_value argValue, Typ
     SetEnumValueFromJS(env, argValue, "textHeightBehavior", pographyStyle.textHeightBehavior);
     SetBoolValueFromJS(env, argValue, "trailingSpaceOptimized", pographyStyle.isTrailingSpaceOptimized);
     SetBoolValueFromJS(env, argValue, "autoSpace", pographyStyle.enableAutoSpace);
+    SetEnumValueFromJS(env, argValue, "verticalAlign", pographyStyle.verticalAlignment);
 }
 
 bool GetPlaceholderSpanFromJS(napi_env env, napi_value argValue, PlaceholderSpan& placeholderSpan)

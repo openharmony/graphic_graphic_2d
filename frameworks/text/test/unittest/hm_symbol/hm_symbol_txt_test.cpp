@@ -304,6 +304,22 @@ HWTEST_F(OHHmSymbolTxtTest, SetEffectStrategy009, TestSize.Level1)
 }
 
 /*
+ * @tc.name: SetEffectStrategy0010
+ * @tc.desc: test SetEffectStrategy for replace_appear animation
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolTxtTest, SetEffectStrategy0010, TestSize.Level1)
+{
+    TextStyle style;
+    style.isSymbolGlyph = true;
+    SPText::TextStyle textStyle;
+
+    style.symbol.SetSymbolEffect(9); // this 9 is quick_replace_appear animation
+    textStyle = AdapterTxt::Convert(style);
+    EXPECT_EQ(textStyle.symbol.GetEffectStrategy(), Drawing::DrawingEffectStrategy::QUICK_REPLACE_APPEAR);
+}
+
+/*
  * @tc.name: SetAnimationMode001
  * @tc.desc: test for SetAnimationMode with cumulative effect
  * @tc.type: FUNC

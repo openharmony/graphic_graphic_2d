@@ -37,6 +37,7 @@
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_recording_canvas.h"
+#include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_task_dispatcher.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "pipeline/sk_resource_manager.h"
@@ -619,9 +620,16 @@ void RSCanvasDrawingRenderNode::ResetSurface(int width, int height)
     }
     surface_ = nullptr;
     recordingCanvas_ = nullptr;
+    GraphicColorGamut colorSpace = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+#ifndef ROSEN_CROSS_PLATFORM
+    auto appSurfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(GetInstanceRootNode());
+    if (appSurfaceNode) {
+        colorSpace = appSurfaceNode->GetColorSpace();
+    }
+#endif
 #ifdef RS_ENABLE_GPU
     stagingRenderParams_->SetCanvasDrawingSurfaceChanged(true);
-    stagingRenderParams_->SetCanvasDrawingSurfaceParams(width, height);
+    stagingRenderParams_->SetCanvasDrawingSurfaceParams(width, height, colorSpace);
 #endif
 }
 

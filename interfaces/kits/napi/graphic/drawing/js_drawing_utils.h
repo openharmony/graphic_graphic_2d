@@ -370,7 +370,11 @@ bool ConvertFromJsValue(napi_env env, napi_value jsValue, T& value)
 
 bool ConvertFromJsColor(napi_env env, napi_value jsValue, int32_t* argb, size_t size);
 
+bool ConvertFromJsColor4F(napi_env env, napi_value jsValue, double* argbF, size_t size);
+
 bool ConvertFromAdaptHexJsColor(napi_env env, napi_value jsValue, Drawing::ColorQuad& jsColor);
+
+bool ConvertFromAdaptJsColor4F(napi_env env, napi_value jsValue, Drawing::Color4f& jsColor4F);
 
 bool ConvertFromJsRect(napi_env env, napi_value jsValue, double* ltrb, size_t size);
 
@@ -501,6 +505,19 @@ inline napi_value GetColorAndConvertToJsValue(napi_env env, const Color& color)
         napi_set_named_property(env, objValue, "red", CreateJsNumber(env, color.GetRed()));
         napi_set_named_property(env, objValue, "green", CreateJsNumber(env, color.GetGreen()));
         napi_set_named_property(env, objValue, "blue", CreateJsNumber(env, color.GetBlue()));
+    }
+    return objValue;
+}
+
+inline napi_value GetColor4FAndConvertToJsValue(napi_env env, const Color4f& color4f)
+{
+    napi_value objValue = nullptr;
+    napi_create_object(env, &objValue);
+    if (objValue != nullptr) {
+        napi_set_named_property(env, objValue, "alpha", CreateJsNumber(env, color4f.alphaF_));
+        napi_set_named_property(env, objValue, "red", CreateJsNumber(env, color4f.redF_));
+        napi_set_named_property(env, objValue, "green", CreateJsNumber(env, color4f.greenF_));
+        napi_set_named_property(env, objValue, "blue", CreateJsNumber(env, color4f.blueF_));
     }
     return objValue;
 }

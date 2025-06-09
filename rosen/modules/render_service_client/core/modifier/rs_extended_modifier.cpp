@@ -29,6 +29,7 @@ RSDrawingContext RSExtendedModifierHelper::CreateDrawingContext(std::weak_ptr<RS
 {
     auto node = canvasnode.lock();
     if (!node) {
+        RS_LOGW("RSExtendedModifierHelper::CreateDrawingContext node is nullptr");
         return { nullptr };
     }
     auto recordingCanvas = new ExtendRecordingCanvas(node->GetPaintWidth(), node->GetPaintHeight());

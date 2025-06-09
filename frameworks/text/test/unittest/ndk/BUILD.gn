@@ -15,11 +15,14 @@ import("//build/test.gni")
 import("//foundation/graphic/graphic_2d/frameworks/text/config.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
-ohos_unittest("add_text_test") {
+ohos_unittest("text_ndk_test") {
   module_out_path = text_test_out_path
 
   defines = []
-  sources = [ "add_text_test.cpp" ]
+  sources = [
+    "add_text_test.cpp",
+    "undefined_glyph_display_test.cpp",
+  ]
 
   include_dirs = [
     "$graphic_2d_root/rosen/modules/2d_graphics/drawing_ndk/drawing_utils",
@@ -61,5 +64,5 @@ ohos_unittest("add_text_test") {
 group("unittest") {
   testonly = true
 
-  deps = [ ":add_text_test" ]
+  deps = [ ":text_ndk_test" ]
 }

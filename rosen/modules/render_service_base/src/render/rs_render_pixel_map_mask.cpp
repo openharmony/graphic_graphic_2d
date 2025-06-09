@@ -36,7 +36,7 @@ std::shared_ptr<RSRenderPropertyBase> RSRenderPixelMapMaskPara::CreateRenderProp
         case RSUIFilterType::PIXEL_MAP_MASK_DST:
         case RSUIFilterType::PIXEL_MAP_MASK_FILL_COLOR: {
             return std::make_shared<RSRenderAnimatableProperty<Vector4f>>(
-                Vector4f(), 0, RSRenderPropertyType::PROPERTY_VECTOR4F);
+                Vector4f(), 0, RSPropertyType::VECTOR4F);
         }
         default:
             ROSEN_LOGE("RSRenderPixelMapMaskPara::CreateRenderProperty mask nullptr");

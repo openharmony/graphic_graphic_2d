@@ -48,7 +48,6 @@
         "graphic_2d_feature_tp_switch_enbale",
         "graphic_2d_feature_rs_enable_profiler",
         "graphic_2d_feature_enable_chipset_vsync",
-        "graphic_2d_feature_enable_flutter_vulkan",
         "graphic_2d_feature_enable_opengl",
         "graphic_2d_feature_enable_opinc",
         "graphic_2d_feature_enable_rspipeline",
@@ -121,7 +120,8 @@
           "freetype",
           "rust_cxx",
           "media_foundation",
-          "selinux_adapter"
+          "selinux_adapter",
+          "runtime_core"
         ],
         "third_party": [
           "skia"
@@ -132,6 +132,7 @@
           "base_group": [
             "//foundation/graphic/graphic_2d/interfaces/kits/napi:napi_packages",
             "//foundation/graphic/graphic_2d/interfaces/kits/cj:ffi_packages",
+            "//foundation/graphic/graphic_2d/interfaces/kits/ani:ani_packages",
             "//foundation/graphic/graphic_2d/rosen/modules/effect/effect_common:effect_common",
             "//foundation/graphic/graphic_2d/rosen/modules/composer:libcomposer",
             "//foundation/graphic/graphic_2d/rosen/modules/composer/native_vsync:libnative_vsync",

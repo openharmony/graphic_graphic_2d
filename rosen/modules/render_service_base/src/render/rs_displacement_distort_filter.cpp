@@ -29,10 +29,10 @@ RSDisplacementDistortFilter::RSDisplacementDistortFilter(std::shared_ptr<RSShade
     : mask_(mask), factor_(factor)
 {
     type_ = ShaderFilterType::DISPLACEMENT_DISTORT;
-#ifndef ENABLE_M133_SKIA
-    const auto hashFunc = SkOpts::hash;
-#else
+#ifdef USE_M133_SKIA
     const auto hashFunc = SkChecksum::Hash32;
+#else
+    const auto hashFunc = SkOpts::hash;
 #endif
     hash_ = hashFunc(&factor_, sizeof(factor_), hash_);
     if (mask_) {

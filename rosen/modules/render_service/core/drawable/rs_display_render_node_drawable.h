@@ -59,11 +59,6 @@ public:
         cacheImgForCapture_ = cacheImgForCapture;
     }
 
-    std::shared_ptr<Drawing::Image> GetCacheImgForMultiScreenView() const
-    {
-        return cacheImgForMultiScreenView_;
-    }
-
     const std::shared_ptr<RSSurfaceHandler> GetRSSurfaceHandlerOnDraw() const
     {
         return surfaceHandler_;
@@ -130,6 +125,7 @@ public:
         return originScreenRotation_;
     }
     bool SkipFrame(uint32_t refreshRate, ScreenInfo screenInfo);
+    int32_t GetSpecialLayerType(RSDisplayRenderParams& params, bool isSecLayerInVisivleRect = true);
 
 private:
     explicit RSDisplayRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
@@ -178,7 +174,6 @@ private:
         bool isSamplingOn = false, float hdrBrightnessRatio = 1.0f);
     void PrepareHdrDraw(int32_t offscreenWidth, int32_t offscreenHeight);
     void FinishHdrDraw(Drawing::Brush& paint, float hdrBrightnessRatio);
-    int32_t GetSpecialLayerType(RSDisplayRenderParams& params, bool isSecLayerInVisivleRect = true);
     void SetDisplayNodeSkipFlag(RSRenderThreadParams& uniParam, bool flag);
     void UpdateDisplayDirtyManager(int32_t bufferage, bool useAlignedDirtyRegion = false);
     static void CheckFilterCacheFullyCovered(RSSurfaceRenderParams& surfaceParams, RectI screenRect);
@@ -208,7 +203,6 @@ private:
     bool curSecExemption_ = false;
     bool lastSecExemption_ = false;
     std::shared_ptr<Drawing::Image> cacheImgForCapture_ = nullptr;
-    std::shared_ptr<Drawing::Image> cacheImgForMultiScreenView_ = nullptr;
     int32_t specialLayerType_ = 0;
     bool castScreenEnableSkipWindow_ = false;
     bool isDisplayNodeSkip_ = false;

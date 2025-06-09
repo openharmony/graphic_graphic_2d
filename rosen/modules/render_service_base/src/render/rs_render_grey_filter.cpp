@@ -18,15 +18,24 @@
 #include "ge_visual_effect_container.h"
 
 #include "pipeline/rs_paint_filter_canvas.h"
-
+#ifdef USE_M133_SKIA
+#include "src/core/SkChecksum.h"
+#else
+#include "src/core/SkOpts.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
 RSGreyShaderFilter::RSGreyShaderFilter(float greyCoefLow, float greyCoefHigh)
     : RSRenderFilterParaBase(RSUIFilterType::GREY), greyCoefLow_(greyCoefLow), greyCoefHigh_(greyCoefHigh)
 {
-    hash_ = SkOpts::hash(&greyCoefLow_, sizeof(greyCoefLow_), hash_);
-    hash_ = SkOpts::hash(&greyCoefHigh_, sizeof(greyCoefHigh_), hash_);
+#ifdef USE_M133_SKIA
+    const auto hashFunc = SkChecksum::Hash32;
+#else
+    const auto hashFunc = SkOpts::hash;
+#endif
+    hash_ = hashFunc(&greyCoefLow_, sizeof(greyCoefLow_), hash_);
+    hash_ = hashFunc(&greyCoefHigh_, sizeof(greyCoefHigh_), hash_);
 }
 
 float RSGreyShaderFilter::GetGreyCoefLow() const

@@ -31,7 +31,6 @@
 #include "property/rs_properties.h"
 #include "property/rs_properties_def.h"
 #include "property/rs_properties_painter.h"
-#include "render/rs_filter.h"
 #include "render/rs_image.h"
 #include "render/rs_mask.h"
 #include "render/rs_path.h"
@@ -525,7 +524,7 @@ bool RSBackgroundUIFilterRenderModifier::Marshalling(Parcel& parcel)
     auto prop =
         std::static_pointer_cast<RSRenderProperty<std::shared_ptr<RSRenderFilter>>>(property_);
     auto renderFilter = std::make_shared<RSRenderProperty<std::shared_ptr<RSRenderFilter>>>(
-        prop->Get(), prop->GetId(), RSRenderPropertyType::PROPERTY_UI_FILTER);
+        prop->Get(), prop->GetId(), RSPropertyType::UI_FILTER);
     bool flag = parcel.WriteInt16(static_cast<int16_t>(RSModifierType::BACKGROUND_UI_FILTER)) &&
         RSRenderPropertyBase::Marshalling(parcel, renderFilter);
     if (!flag) {
@@ -554,7 +553,7 @@ bool RSForegroundUIFilterRenderModifier::Marshalling(Parcel& parcel)
     auto prop =
         std::static_pointer_cast<RSRenderProperty<std::shared_ptr<RSRenderFilter>>>(property_);
     auto renderFilter = std::make_shared<RSRenderProperty<std::shared_ptr<RSRenderFilter>>>(
-        prop->Get(), prop->GetId(), RSRenderPropertyType::PROPERTY_UI_FILTER);
+        prop->Get(), prop->GetId(), RSPropertyType::UI_FILTER);
     bool flag = parcel.WriteInt16(static_cast<int16_t>(RSModifierType::FOREGROUND_UI_FILTER)) &&
         RSRenderPropertyBase::Marshalling(parcel, renderFilter);
     if (!flag) {
