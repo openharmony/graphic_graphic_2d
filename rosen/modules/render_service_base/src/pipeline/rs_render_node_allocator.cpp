@@ -39,6 +39,7 @@ bool RSRenderNodeAllocator::AddNodeToAllocator(RSRenderNode* ptr)
 
     nodeAllocatorSpinlock_.lock();
     if (nodeAllocator_.size() >= NODE_ALLOCATOR_LIMIT) {
+        nodeAllocatorSpinlock_.unlock();
         RS_OPTIONAL_TRACE_NAME("AddNodeToAllocator nodeAllocator is full.");
         return false;
     }

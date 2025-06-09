@@ -34,19 +34,30 @@ public:
 void RSRenderNodeAllocatorTest::SetUpTestCase() {}
 void RSRenderNodeAllocatorTest::TearDownTestCase() {}
 void RSRenderNodeAllocatorTest::SetUp() {}
-void RSRenderNodeAllocatorTest::TearDown()
+void RSRenderNodeAllocatorTest::TearDown() {}
+
+/**
+ * @tc.name: CreateRSCanvasRenderNodeTest
+ * @tc.desc: test CreateRSCanvasRenderNode
+ * @tc.type: FUNC
+ * @tc.require: issueICD9PG
+ */
+HWTEST_F(RSRenderNodeAllocatorTest, CreateRSCanvasRenderNodeTest, TestSize.Level1)
 {
     auto& nodeAllocator = RSRenderNodeAllocator::Instance();
-    while (nodeAllocator.nodeAllocator_.size() > 0) {
-        nodeAllocator.nodeAllocator_.pop();
-    }
+    auto node = nodeAllocator.CreateRSCanvasRenderNode(0);
+    ASSERT_NE(node, nullptr);
+
+    nodeAllocator.AddNodeToAllocator(node.get());
+    auto newNode = nodeAllocator.CreateRSCanvasRenderNode(1);
+    ASSERT_NE(newNode, nullptr);
 }
 
 /**
  * @tc.name: AddNodeToAllocatorTest
  * @tc.desc: test AddNodeToAllocator
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueICD9PG
  */
 HWTEST_F(RSRenderNodeAllocatorTest, AddNodeToAllocatorTest, TestSize.Level1)
 {
@@ -64,27 +75,6 @@ HWTEST_F(RSRenderNodeAllocatorTest, AddNodeToAllocatorTest, TestSize.Level1)
     }
     EXPECT_FALSE(nodeAllocator.AddNodeToAllocator(newCanvasNodePtr.get()));
 }
-
-/**
- * @tc.name: CreateRSCanvasRenderNodeTest
- * @tc.desc: test CreateRSCanvasRenderNode
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSRenderNodeAllocatorTest, CreateRSCanvasRenderNodeTest, TestSize.Level1)
-{
-    auto& nodeAllocator = RSRenderNodeAllocator::Instance();
-    while (nodeAllocator.nodeAllocator_.size() > 0) {
-        nodeAllocator.nodeAllocator_.pop();
-    }
-    auto node = nodeAllocator.CreateRSCanvasRenderNode(0);
-    ASSERT_NE(node, nullptr);
-
-    nodeAllocator.AddNodeToAllocator(node.get());
-    auto newNode = nodeAllocator.CreateRSCanvasRenderNode(1);
-    ASSERT_NE(newNode, nullptr);
-}
- 
 
 } // namespace Rosen
 } // namespace OHOS

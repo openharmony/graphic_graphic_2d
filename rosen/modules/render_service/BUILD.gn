@@ -113,6 +113,8 @@ ohos_shared_library("librender_service") {
     "core/feature/drm/rs_drm_util.cpp",
     "core/feature/hdr/rs_hdr_util.cpp",
     "core/feature/hwc/rs_uni_hwc_compute_util.cpp",
+    "core/feature/hyper_graphic_manager/hgm_context.cpp",
+    "core/feature/hyper_graphic_manager/hgm_hardware_utils.cpp",
     "core/feature/hyper_graphic_manager/rs_vblank_idle_corrector.cpp",
     "core/feature/occlusion_culling/rs_occlusion_handler.cpp",
     "core/feature/occlusion_culling/rs_occlusion_node.cpp",
@@ -269,6 +271,10 @@ ohos_shared_library("librender_service") {
       "core/feature/gpuComposition/rs_vk_image_manager.cpp",
       "core/pipeline/rs_vk_pipeline_config.cpp",
     ]
+  }
+
+  if ((rs_enable_eglimage && rs_enable_gpu) || graphic_2d_feature_enable_vulkan) {
+    sources += [ "core/feature/gpuComposition/rs_image_manager.cpp" ]
   }
 
   if (graphic_2d_feature_product != "wearable") {

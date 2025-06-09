@@ -93,10 +93,19 @@ private:
 #endif
 } // namespace Detail
 
+class TransactionDataHolder {
+public:
+    TransactionDataHolder(const TransactionDataHolder&) = delete;
+    TransactionDataHolder& operator=(const TransactionDataHolder&) = delete;
+    explicit TransactionDataHolder(std::unique_ptr<RSTransactionData>&& transactionData)
+        : data_(std::move(transactionData)) {}
+private:
+    std::unique_ptr<RSTransactionData> data_;
+};
+
 class RSB_EXPORT RSModifiersDrawThread final {
 public:
     static RSModifiersDrawThread& Instance();
-
     void SetCacheDir(const std::string& path);
 #ifdef ACCESSIBILITY_ENABLE
     bool GetHighContrast() const;
@@ -116,22 +125,23 @@ public:
 
     static std::unique_ptr<RSTransactionData>& ConvertTransaction(std::unique_ptr<RSTransactionData>& transactionData);
 
-    uint32_t GetMaxPixelMapWidth() const;
-
-    uint32_t GetMaxPixelMapHeight() const;
-
-private:
+    // [Attention] Do not call constructor of this class directly. The constructor and destructor are
+    // only used for InstancePtr() function with unique_ptr.
     RSModifiersDrawThread();
     ~RSModifiersDrawThread();
 
+    static std::mutex transactionDataMutex_;
+private:
+    static std::unique_ptr<RSModifiersDrawThread>& InstancePtr();
+    static void Destroy();
     RSModifiersDrawThread(const RSModifiersDrawThread&) = delete;
     RSModifiersDrawThread(const RSModifiersDrawThread&&) = delete;
     RSModifiersDrawThread& operator=(const RSModifiersDrawThread&) = delete;
     RSModifiersDrawThread& operator=(const RSModifiersDrawThread&&) = delete;
+    void ClearEventResource();
 
     static bool TargetCommand(
         Drawing::DrawCmdList::HybridRenderType hybridRenderType, uint16_t type, uint16_t subType, bool cmdListEmpty);
-    bool CheckTotalAlpha(NodeId id, Drawing::DrawCmdList::HybridRenderType hybridRenderType);
 #ifdef ACCESSIBILITY_ENABLE
     void SubscribeHighContrastChange();
     void UnsubscribeHighContrastChange();
@@ -140,7 +150,7 @@ private:
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
     std::mutex mutex_;
-    std::atomic<bool> isStarted_ = false;
+    static std::atomic<bool> isStarted_;
 
 #ifdef ACCESSIBILITY_ENABLE
     bool highContrast_ = false;
@@ -148,10 +158,6 @@ private:
 #endif
 
     void Start();
-    void InitMaxPixelMapSize();
-    uint32_t maxPixelMapWidth_ = 0;
-    uint32_t maxPixelMapHeight_ = 0;
-    bool isFirst_ = true;
 };
 } // namespace Rosen
 } // namespace OHOS

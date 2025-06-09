@@ -280,7 +280,6 @@ HWTEST_F(RSUniDirtyComputeUtilTest, GenerateFilterDirtyRegionInfo_001, TestSize.
     auto effectNode = std::make_shared<RSEffectRenderNode>(id, context->weak_from_this());
     ASSERT_NE(effectNode, nullptr);
     effectNode->childHasVisibleEffect_ = true;
-    effectNode->GetMutableRenderProperties().boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
     effectNode->GetMutableRenderProperties().boundsGeo_->absRect_ = DEFAULT_RECT1;  // mock filter rect.
 
     auto subNode = std::make_shared<RSBaseRenderNode>(++id, context->weak_from_this());

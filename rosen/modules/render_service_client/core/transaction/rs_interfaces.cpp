@@ -886,8 +886,16 @@ void RSInterfaces::SetAppWindowNum(uint32_t num)
     renderServiceClient_->SetAppWindowNum(num);
 }
 
+/**
+ * @brief Display safe Watermark
+ * @param watermarkImg, The image width and height are less than twice the screen size
+ * @param isShow, flag indicating whether to display the watermark identifier(true) or hide it(false)
+*/
 void RSInterfaces::ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow)
 {
+    if (watermarkImg == nullptr) {
+        ROSEN_LOGE("RSInterfaces::ShowWatermark watermarkImg is nullptr");
+    }
     renderServiceClient_->ShowWatermark(watermarkImg, isShow);
 }
 

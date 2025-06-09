@@ -64,6 +64,7 @@ public:
     struct SurfaceParam {
         int width = 0;
         int height = 0;
+        GraphicColorGamut colorSpace = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     };
 
     void SetDirtyType(RSRenderParamsDirtyType dirtyType);
@@ -235,7 +236,8 @@ public:
     bool GetCanvasDrawingSurfaceChanged() const;
     void SetCanvasDrawingSurfaceChanged(bool changeFlag);
     SurfaceParam GetCanvasDrawingSurfaceParams();
-    void SetCanvasDrawingSurfaceParams(int width, int height);
+    void SetCanvasDrawingSurfaceParams(int width, int height,
+        GraphicColorGamut colorSpace = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
 
     void SetStartingWindowFlag(bool b)
     {

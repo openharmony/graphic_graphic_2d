@@ -108,7 +108,9 @@ bool SkiaGPUContext::BuildFromGL(const GPUContextOptions& options)
     grOptions.fPersistentCache = skiaPersistentCache_.get();
     grOptions.fExecutor = &g_defaultExecutor;
 #ifdef SKIA_OHOS
+#ifndef TODO_M133_SKIA
     grOptions.clearSmallTexture = options.GetIsUniRender();
+#endif
 #endif
 #ifdef USE_M133_SKIA
     grContext_ = GrDirectContexts::MakeGL(std::move(glInterface), grOptions);
@@ -238,7 +240,11 @@ void SkiaGPUContext::SetPurgeableResourceLimit(int purgeableMaxCount)
         LOGD("SkiaGPUContext::SetPurgeableResourceLimit, grContext_ is nullptr");
         return;
     }
+#ifdef TODO_M133_SKIA
+    (void)purgeableMaxCount;
+#else
     grContext_->setPurgeableResourceLimit(purgeableMaxCount);
+#endif
 #else
     static_cast<void>(purgeableMaxCount);
     LOGD("SkiaGPUContext::SetPurgeableResourceLimit, unsupported");
@@ -454,8 +460,14 @@ GPUResourceTag SkiaGPUContext::GetCurrentGpuResourceTag() const
         return {};
     }
     GrGpuResourceTag grTag = grContext_->getCurrentGrResourceTag();
+#ifdef TODO_M133_SKIA
+    (void)grTag;
+    GPUResourceTag tag;
+    return tag;
+#else
     GPUResourceTag tag(grTag.fPid, grTag.fTid, grTag.fWid, grTag.fFid, grTag.fName);
     return tag;
+#endif
 }
 
 sk_sp<GrDirectContext> SkiaGPUContext::GetGrContext() const

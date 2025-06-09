@@ -69,17 +69,22 @@ void RSMESABlurShaderFilter::SetPixelStretchParams(std::shared_ptr<RSPixelStretc
 
 void RSMESABlurShaderFilter::CalculateHash()
 {
-    hash_ = SkOpts::hash(&radius_, sizeof(radius_), 0);
-    hash_ = SkOpts::hash(&greyCoefLow_, sizeof(greyCoefLow_), hash_);
-    hash_ = SkOpts::hash(&greyCoefHigh_, sizeof(greyCoefHigh_), hash_);
+#ifdef USE_M133_SKIA
+    const auto hashFunc = SkChecksum::Hash32;
+#else
+    const auto hashFunc = SkOpts::hash;
+#endif
+    hash_ = hashFunc(&radius_, sizeof(radius_), 0);
+    hash_ = hashFunc(&greyCoefLow_, sizeof(greyCoefLow_), hash_);
+    hash_ = hashFunc(&greyCoefHigh_, sizeof(greyCoefHigh_), hash_);
     if (auto localParams = GetPixelStretchParams()) {
-        hash_ = SkOpts::hash(&localParams->offsetX_, sizeof(localParams->offsetX_), hash_);
-        hash_ = SkOpts::hash(&localParams->offsetY_, sizeof(localParams->offsetY_), hash_);
-        hash_ = SkOpts::hash(&localParams->offsetZ_, sizeof(localParams->offsetZ_), hash_);
-        hash_ = SkOpts::hash(&localParams->offsetW_, sizeof(localParams->offsetW_), hash_);
-        hash_ = SkOpts::hash(&localParams->tileMode_, sizeof(localParams->tileMode_), hash_);
-        hash_ = SkOpts::hash(&localParams->width_, sizeof(localParams->width_), hash_);
-        hash_ = SkOpts::hash(&localParams->height_, sizeof(localParams->height_), hash_);
+        hash_ = hashFunc(&localParams->offsetX_, sizeof(localParams->offsetX_), hash_);
+        hash_ = hashFunc(&localParams->offsetY_, sizeof(localParams->offsetY_), hash_);
+        hash_ = hashFunc(&localParams->offsetZ_, sizeof(localParams->offsetZ_), hash_);
+        hash_ = hashFunc(&localParams->offsetW_, sizeof(localParams->offsetW_), hash_);
+        hash_ = hashFunc(&localParams->tileMode_, sizeof(localParams->tileMode_), hash_);
+        hash_ = hashFunc(&localParams->width_, sizeof(localParams->width_), hash_);
+        hash_ = hashFunc(&localParams->height_, sizeof(localParams->height_), hash_);
     }
 }
 

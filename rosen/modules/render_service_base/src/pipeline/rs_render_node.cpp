@@ -1081,6 +1081,8 @@ void RSRenderNode::DumpSubClassNode(std::string& out) const
         out += ", SpecialLayer: " + std::to_string(specialLayerManager.Get());
         out += ", surfaceType: " + std::to_string((int)surfaceNode->GetSurfaceNodeType());
         out += ", ContainerConfig: " + surfaceNode->GetContainerConfigDump();
+        out += ", colorSpace: " + std::to_string(surfaceNode->GetColorSpace());
+        out += ", uifirstColorGamut: " + std::to_string(surfaceNode->GetFirstLevelNodeColorGamut());
     } else if (GetType() == RSRenderNodeType::ROOT_NODE) {
         auto rootNode = static_cast<const RSRootRenderNode*>(this);
         out += ", Visible: " + std::to_string(rootNode->GetRenderProperties().GetVisible());
@@ -1092,6 +1094,7 @@ void RSRenderNode::DumpSubClassNode(std::string& out) const
         out += ", skipLayer: " + std::to_string(displayNode->GetSecurityDisplay());
         out += ", securityExemption: " + std::to_string(displayNode->GetSecurityExemption());
         out += ", virtualScreenMuteStatus: " + std::to_string(displayNode->GetVirtualScreenMuteStatus());
+        out += ", colorSpace: " + std::to_string(displayNode->GetColorSpace());
     } else if (GetType() == RSRenderNodeType::CANVAS_NODE) {
         auto canvasNode = static_cast<const RSCanvasRenderNode*>(this);
         NodeId linkedRootNodeId = canvasNode->GetLinkedRootNodeId();
@@ -2481,8 +2484,14 @@ void RSRenderNode::MarkFilterCacheFlags(std::shared_ptr<DrawableV2::RSFilterDraw
         return;
     }
 
-    RS_OPTIONAL_TRACE_NAME_FMT("MarkFilterCacheFlags:node[%llu], NeedPendingPurge:%d, forceClearWithoutNextVsync:%d",
-        GetId(), filterDrawable->NeedPendingPurge(), (!needRequestNextVsync && filterDrawable->IsSkippingFrame()));
+    RS_OPTIONAL_TRACE_NAME_FMT("MarkFilterCacheFlags:node[%llu], NeedPendingPurge:%d,"
+        " forceClearWithoutNextVsync:%d, filterRegion: %s",
+        GetId(), filterDrawable->NeedPendingPurge(), (!needRequestNextVsync && filterDrawable->IsSkippingFrame()),
+        filterRegion_.ToString().c_str());
+    ROSEN_LOGD("MarkFilterCacheFlags:node[%{public}" PRIu64 "], NeedPendingPurge:%{public}d,"
+        " forceClearWithoutNextVsync:%{public}d, filterRegion: %{public}s",
+        GetId(), filterDrawable->NeedPendingPurge(), (!needRequestNextVsync && filterDrawable->IsSkippingFrame()),
+        filterRegion_.ToString().c_str());
     // force update if last frame use cache because skip-frame and current frame background is not dirty
     if (filterDrawable->NeedPendingPurge()) {
         dirtyManager.MergeDirtyRect(filterRegion_);

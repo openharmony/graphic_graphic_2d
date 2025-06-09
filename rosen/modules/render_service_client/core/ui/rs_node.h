@@ -1735,11 +1735,6 @@ public:
         return isOnTheTree_;
     }
 
-    float GetTotalAlpha() const
-    {
-        return totalAlpha_;
-    }
-
     /**
      * @brief Enables/disables control-level occlusion culling for the node's subtree
      *
@@ -1913,7 +1908,6 @@ private:
     void MarkAllExtendModifierDirty();
     void ResetExtendModifierDirty();
     void SetParticleDrawRegion(std::vector<ParticleParams>& particleParams);
-    void AccumulateAlpha(float &alpha);
 
     /**
      * @brief Clears all modifiers associated with this node.
@@ -1929,9 +1923,6 @@ private:
 
     float globalPositionX_ = 0.f;
     float globalPositionY_ = 0.f;
-    float alpha_ = 1.f;
-    float totalAlpha_ = 1.f;
-    bool visitedForTotalAlpha_ = false;
 
     bool extendModifierIsDirty_ { false };
 

@@ -898,7 +898,6 @@ void RSNode::SetProperty(RSModifierType modifierType, T value)
 // alpha
 void RSNode::SetAlpha(float alpha)
 {
-    alpha_ = alpha;
     SetProperty<RSAlphaModifier, RSAnimatableProperty<float>>(RSModifierType::ALPHA, alpha);
     if (alpha < 1) {
         SetDrawNode();
@@ -3444,7 +3443,6 @@ void RSNode::SetIsOnTheTree(bool flag)
         if (childPtr == nullptr) {
             continue;
         }
-        childPtr->totalAlpha_ = childPtr->alpha_ * totalAlpha_;
         childPtr->SetIsOnTheTree(flag);
     }
 }
@@ -3497,10 +3495,6 @@ void RSNode::AddChild(SharedPtr child, int index)
             id_, childId, surfaceNode->GetName().c_str());
         RS_TRACE_NAME_FMT("RSNode::AddChild, Id: %" PRIu64 ", SurfaceNode:[Id: %" PRIu64 ", name: %s]",
             id_, childId, surfaceNode->GetName().c_str());
-    }
-    totalAlpha_ = alpha_;
-    if (isOnTheTree_) {
-        AccumulateAlpha(totalAlpha_);
     }
     child->SetIsOnTheTree(isOnTheTree_);
 }
@@ -3782,20 +3776,6 @@ void RSNode::SetParent(WeakPtr parent)
     parent_ = parent;
 }
 
-void RSNode::AccumulateAlpha(float& alpha)
-{
-    // avoid loop
-    if (visitedForTotalAlpha_) {
-        return;
-    }
-    visitedForTotalAlpha_ = true;
-    alpha *= alpha_;
-    if (auto parent = GetParent()) {
-        parent->AccumulateAlpha(totalAlpha_);
-    }
-    visitedForTotalAlpha_ = false;
-}
-
 RSNode::SharedPtr RSNode::GetParent()
 {
     return parent_.lock();
@@ -3830,8 +3810,6 @@ void RSNode::Dump(std::string& out) const
     } else if (!nodeName_.empty()) {
         out += "], nodeName[" + nodeName_;
     }
-    out += "], alpha[" + std::to_string(alpha_);
-    out += "], totalAlpha[" + std::to_string(totalAlpha_);
     out += "], frameNodeId[" + std::to_string(frameNodeId_);
     out += "], frameNodeTag[" + frameNodeTag_;
     out += "], extendModifierIsDirty[";
@@ -3879,7 +3857,7 @@ void RSNode::Dump(std::string& out) const
             continue;
         }
         out += " " + modifier->GetModifierTypeString();
-        out += " :";
+        out += ":";
         renderModifier->Dump(out);
     }
     out += "]";

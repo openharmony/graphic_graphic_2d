@@ -16,6 +16,8 @@
 #include <gtest/gtest.h>
 
 #include "common/rs_obj_abs_geometry.h"
+#include "drawable/rs_property_drawable.h"
+#include "drawable/rs_property_drawable_background.h"
 #include "drawable/rs_property_drawable_foreground.h"
 #include "offscreen_render/rs_offscreen_render_thread.h"
 #include "params/rs_render_params.h"
@@ -26,6 +28,7 @@
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
+#include "render/rs_filter.h"
 #include "skia_adapter/skia_canvas.h"
 #include "parameters.h"
 #ifdef NEW_SKIA
@@ -525,7 +528,6 @@ HWTEST_F(RSRenderNodeTest, UpdateDirtyRegionTest03, TestSize.Level1)
     node.shouldPaint_ = true;
     RectI absRect = RectI{0, 0, 100, 100};
     auto& properties = node.GetMutableRenderProperties();
-    properties.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
     properties.boundsGeo_->absRect_ = absRect;
     properties.clipToBounds_ = true;
     bool geoDirty = true;
@@ -550,7 +552,6 @@ HWTEST_F(RSRenderNodeTest, UpdateDirtyRegionTest04, TestSize.Level1)
     node.shouldPaint_ = true;
     RectI absRect = RectI{0, 0, 100, 100};
     auto& properties = node.GetMutableRenderProperties();
-    properties.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
     properties.boundsGeo_->absRect_ = absRect;
     properties.clipToBounds_ = true;
     properties.SetShadowOffsetX(10.0f);
@@ -577,7 +578,6 @@ HWTEST_F(RSRenderNodeTest, UpdateDirtyRegionTest05, TestSize.Level1)
     node.shouldPaint_ = true;
     RectI absRect = RectI{0, 0, 100, 100};
     auto& properties = node.GetMutableRenderProperties();
-    properties.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
     properties.boundsGeo_->absRect_ = absRect;
     properties.clipToBounds_ = true;
     properties.SetOutlineWidth(10.0f);
@@ -608,7 +608,6 @@ HWTEST_F(RSRenderNodeTest, UpdateDirtyRegionTest06, TestSize.Level1)
     node.shouldPaint_ = true;
     RectI absRect = RectI{0, 0, 50, 50};
     auto& properties = node.GetMutableRenderProperties();
-    properties.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
     properties.boundsGeo_->absRect_ = absRect;
     properties.clipToBounds_ = true;
     //set border width 5
@@ -641,7 +640,6 @@ HWTEST_F(RSRenderNodeTest, UpdateDirtyRegionTest07, TestSize.Level1)
     canvasNode->shouldPaint_ = true;
     RectI absRect = RectI{0, 0, 100, 100};
     auto& properties = canvasNode->GetMutableRenderProperties();
-    properties.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
     properties.boundsGeo_->absRect_ = absRect;
     properties.clipToBounds_ = true;
     //set border width 8
@@ -673,7 +671,6 @@ HWTEST_F(RSRenderNodeTest, UpdateDirtyRegionTest08, TestSize.Level1)
     surfaceNode->shouldPaint_ = true;
     RectI absRect = RectI{0, 0, 100, 100};
     auto& properties = surfaceNode->GetMutableRenderProperties();
-    properties.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
     properties.boundsGeo_->absRect_ = absRect;
     properties.clipToBounds_ = true;
     //set border width 10
@@ -1722,7 +1719,7 @@ HWTEST_F(RSRenderNodeTest, RSSurfaceRenderNodeDumpTest, TestSize.Level1)
     renderNode->DumpSubClassNode(outTest);
     EXPECT_EQ(outTest, ", Parent [null], Name [SurfaceNode], hasConsumer: 0, Alpha: 1.000000, Visible: 1, "
 	    "VisibleRegion [Empty], OpaqueRegion [Empty], OcclusionBg: 0, SpecialLayer: 0, surfaceType: 0, "
-        "ContainerConfig: [outR: 0 inR: 0 x: 0 y: 0 w: 0 h: 0]");
+        "ContainerConfig: [outR: 0 inR: 0 x: 0 y: 0 w: 0 h: 0], colorSpace: 4, uifirstColorGamut: 4");
 }
 
 /**
@@ -1737,7 +1734,7 @@ HWTEST_F(RSRenderNodeTest, RSDisplayRenderNodeDumpTest, TestSize.Level1)
     RSDisplayNodeConfig config;
     auto renderNode = std::make_shared<RSDisplayRenderNode>(0, config);
     renderNode->DumpSubClassNode(outTest);
-    EXPECT_EQ(outTest, ", skipLayer: 0, securityExemption: 0, virtualScreenMuteStatus: 0");
+    EXPECT_EQ(outTest, ", skipLayer: 0, securityExemption: 0, virtualScreenMuteStatus: 0, colorSpace: 4");
 }
 
 /**
@@ -2436,8 +2433,6 @@ HWTEST_F(RSRenderNodeTest, UpdateRenderingTest021, TestSize.Level1)
     region = rectI;
     nodeTest->UpdateEffectRegion(region, false);
     nodeTest->renderContent_->renderProperties_.useEffect_ = true;
-    std::shared_ptr<RSObjAbsGeometry> boundsGeo = std::make_shared<RSObjAbsGeometry>();
-    nodeTest->renderContent_->renderProperties_.boundsGeo_ = boundsGeo;
     nodeTest->UpdateEffectRegion(region, true);
 
     // GetModifier test
@@ -3149,5 +3144,123 @@ HWTEST_F(RSRenderNodeTest, RepaintBoundary, TestSize.Level1)
     ASSERT_EQ(renderNode->IsRepaintBoundary(), true);
 }
 
+/**
+ * @tc.name: UpdateFilterCacheForceClearWithBackgroundAndAlphaDirtyTest
+ * @tc.desc: Test function UpdateFilterCacheWithBackgroundDirty
+ * @tc.type: FUNC
+ * @tc.require: issueICD8D6
+ */
+HWTEST_F(RSRenderNodeTest, UpdateFilterCacheForceClearWithBackgroundAndAlphaDirtyTest, TestSize.Level1)
+{
+    auto renderNode = std::make_shared<RSRenderNode>(1);
+    ASSERT_NE(renderNode, nullptr);
+    renderNode->dirtyTypes_.set(static_cast<size_t>(RSModifierType::ALPHA), true);
+
+    auto backgroundColorDrawable = std::make_shared<DrawableV2::RSBackgroundColorDrawable>();
+    EXPECT_NE(backgroundColorDrawable, nullptr);
+    renderNode->drawableVec_[static_cast<uint32_t>(RSDrawableSlot::BACKGROUND_COLOR)] = backgroundColorDrawable;
+
+    renderNode->dirtySlots_.emplace(RSDrawableSlot::BACKGROUND_FILTER);
+    auto backgroundFilterDrawable = std::make_shared<DrawableV2::RSBackgroundFilterDrawable>();
+    EXPECT_NE(backgroundFilterDrawable, nullptr);
+    renderNode->drawableVec_[static_cast<uint32_t>(RSDrawableSlot::BACKGROUND_FILTER)] = backgroundFilterDrawable;
+    renderNode->UpdateFilterCacheWithBackgroundDirty();
+
+    EXPECT_NE(backgroundFilterDrawable->stagingCacheManager_, nullptr);
+    EXPECT_EQ(backgroundFilterDrawable->stagingCacheManager_->stagingForceClearCache_, true);
+}
+
+/**
+ * @tc.name: NotForceClearFilterCacheWithoutBackgroundDirtyTest
+ * @tc.desc: Test function UpdateFilterCacheWithBackgroundDirty
+ * @tc.type: FUNC
+ * @tc.require: issueICD8D6
+ */
+HWTEST_F(RSRenderNodeTest, NotForceClearFilterCacheWithoutBackgroundDirtyTest, TestSize.Level1)
+{
+    auto renderNode = std::make_shared<RSRenderNode>(1);
+    ASSERT_NE(renderNode, nullptr);
+    renderNode->dirtyTypes_.set(static_cast<size_t>(RSModifierType::ALPHA), true);
+
+    renderNode->dirtySlots_.emplace(RSDrawableSlot::BACKGROUND_FILTER);
+    auto backgroundFilterDrawable = std::make_shared<DrawableV2::RSBackgroundFilterDrawable>();
+    EXPECT_NE(backgroundFilterDrawable, nullptr);
+    renderNode->drawableVec_[static_cast<uint32_t>(RSDrawableSlot::BACKGROUND_FILTER)] = backgroundFilterDrawable;
+    renderNode->UpdateFilterCacheWithBackgroundDirty();
+
+    EXPECT_NE(backgroundFilterDrawable->stagingCacheManager_, nullptr);
+    EXPECT_EQ(backgroundFilterDrawable->stagingCacheManager_->stagingForceClearCache_, false);
+}
+
+/**
+ * @tc.name: NotForceClearFilterCacheWithoutAlphaDirtyTest
+ * @tc.desc: Test function UpdateFilterCacheWithBackgroundDirty
+ * @tc.type: FUNC
+ * @tc.require: issueICD8D6
+ */
+HWTEST_F(RSRenderNodeTest, NotForceClearFilterCacheWithoutAlphaDirtyTest, TestSize.Level1)
+{
+    auto renderNode = std::make_shared<RSRenderNode>(1);
+    ASSERT_NE(renderNode, nullptr);
+
+    auto backgroundColorDrawable = std::make_shared<DrawableV2::RSBackgroundColorDrawable>();
+    EXPECT_NE(backgroundColorDrawable, nullptr);
+    renderNode->drawableVec_[static_cast<uint32_t>(RSDrawableSlot::BACKGROUND_COLOR)] = backgroundColorDrawable;
+
+    renderNode->dirtySlots_.emplace(RSDrawableSlot::BACKGROUND_FILTER);
+    auto backgroundFilterDrawable = std::make_shared<DrawableV2::RSBackgroundFilterDrawable>();
+    EXPECT_NE(backgroundFilterDrawable, nullptr);
+    renderNode->drawableVec_[static_cast<uint32_t>(RSDrawableSlot::BACKGROUND_FILTER)] = backgroundFilterDrawable;
+    renderNode->UpdateFilterCacheWithBackgroundDirty();
+
+    EXPECT_NE(backgroundFilterDrawable->stagingCacheManager_, nullptr);
+    EXPECT_EQ(backgroundFilterDrawable->stagingCacheManager_->stagingForceClearCache_, false);
+}
+
+/**
+ * @tc.name: ForceClearFilterCacheWhenBackgroundDirty
+ * @tc.desc: Test function UpdateFilterCacheWithBackgroundDirty
+ * @tc.type: FUNC
+ * @tc.require: issueICD8D6
+ */
+HWTEST_F(RSRenderNodeTest, ForceClearFilterCacheWhenBackgroundDirty, TestSize.Level1)
+{
+    auto renderNode = std::make_shared<RSRenderNode>(1);
+    ASSERT_NE(renderNode, nullptr);
+    auto& properties = renderNode->GetMutableRenderProperties();
+    properties.backgroundFilter_ = std::make_shared<RSFilter>();
+
+    renderNode->dirtySlots_.emplace(RSDrawableSlot::BACKGROUND_COLOR);
+    auto backgroundFilterDrawable = std::make_shared<DrawableV2::RSBackgroundFilterDrawable>();
+    EXPECT_NE(backgroundFilterDrawable, nullptr);
+    renderNode->drawableVec_[static_cast<uint32_t>(RSDrawableSlot::BACKGROUND_FILTER)] = backgroundFilterDrawable;
+    renderNode->CheckBlurFilterCacheNeedForceClearOrSave();
+
+    EXPECT_NE(backgroundFilterDrawable->stagingCacheManager_, nullptr);
+    EXPECT_EQ(backgroundFilterDrawable->stagingCacheManager_->stagingForceClearCache_, true);
+}
+
+/**
+ * @tc.name: ForceClearForegroundFilterCacheWhenDirty
+ * @tc.desc: Test function CheckBlurFilterCacheNeedForceClearOrSave
+ * @tc.type: FUNC
+ * @tc.require: issueICD8D6
+ */
+HWTEST_F(RSRenderNodeTest, ForceClearForegroundFilterCacheWhenDirty, TestSize.Level1)
+{
+    auto renderNode = std::make_shared<RSRenderNode>(1);
+    ASSERT_NE(renderNode, nullptr);
+    auto& properties = renderNode->GetMutableRenderProperties();
+    properties.filter_ = std::make_shared<RSFilter>();
+
+    renderNode->dirtySlots_.emplace(RSDrawableSlot::CHILDREN);
+    auto compositingFilterDrawable = std::make_shared<DrawableV2::RSCompositingFilterDrawable>();
+    EXPECT_NE(compositingFilterDrawable, nullptr);
+    renderNode->drawableVec_[static_cast<uint32_t>(RSDrawableSlot::COMPOSITING_FILTER)] = compositingFilterDrawable;
+    renderNode->CheckBlurFilterCacheNeedForceClearOrSave();
+
+    EXPECT_NE(compositingFilterDrawable->stagingCacheManager_, nullptr);
+    EXPECT_EQ(compositingFilterDrawable->stagingCacheManager_->stagingForceClearCache_, true);
+}
 } // namespace Rosen
 } // namespace OHOS

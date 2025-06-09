@@ -15,7 +15,7 @@
 
 #include "gtest/gtest.h"
 
-#include "pipeline/rs_single_frame_composer.h"
+#include "feature/single_frame_composer/rs_single_frame_composer.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 

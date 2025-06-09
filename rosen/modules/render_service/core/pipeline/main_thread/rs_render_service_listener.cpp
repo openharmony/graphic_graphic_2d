@@ -89,14 +89,11 @@ void RSRenderServiceListener::OnBufferAvailable()
             }
         }
     }
-    if (RSMainThread::Instance()->CheckAdaptiveCompose()) {
-        return;
-    }
     SetBufferInfoAndRequest(node, surfaceHandler, surfaceHandler->GetConsumer());
 }
 
-void RSRenderServiceListener::SetBufferInfoAndRequest(std::shared_ptr<RSSurfaceRenderNode> &node,
-    std::shared_ptr<RSSurfaceHandler> &surfaceHandler, const sptr<IConsumerSurface> &consumer)
+void RSRenderServiceListener::SetBufferInfoAndRequest(const std::shared_ptr<RSSurfaceRenderNode> &node,
+    const std::shared_ptr<RSSurfaceHandler> &surfaceHandler, const sptr<IConsumerSurface> &consumer)
 {
     uint64_t id = 0;
     int64_t lastConsumeTime = 0;
@@ -108,10 +105,15 @@ void RSRenderServiceListener::SetBufferInfoAndRequest(std::shared_ptr<RSSurfaceR
     }
     int32_t bufferCount = surfaceHandler->GetAvailableBufferCount();
     std::string name = node->GetName();
-    RSMainThread::Instance()->SetBufferInfo(id, name, queueSize, bufferCount, lastConsumeTime);
-    int64_t desiredPresentTimestamp = 0;
-    RSMainThread::Instance()->GetFrontBufferDesiredPresentTimeStamp(consumer, desiredPresentTimestamp);
-    RSMainThread::Instance()->RequestNextVSync("selfdrawing", 0, desiredPresentTimestamp);
+    if (RSMainThread::Instance()->CheckAdaptiveCompose()) {
+        RSMainThread::Instance()->SetBufferInfo(id, name, queueSize, bufferCount, lastConsumeTime, true);
+        RSMainThread::Instance()->RequestNextVSync("UrgentSelfdrawing");
+    } else {
+        RSMainThread::Instance()->SetBufferInfo(id, name, queueSize, bufferCount, lastConsumeTime, false);
+        int64_t desiredPresentTimestamp = 0;
+        RSMainThread::Instance()->GetFrontBufferDesiredPresentTimeStamp(consumer, desiredPresentTimestamp);
+        RSMainThread::Instance()->RequestNextVSync("selfdrawing", 0, desiredPresentTimestamp);
+    }
 }
 
 void RSRenderServiceListener::OnTunnelHandleChange()

@@ -39,7 +39,12 @@ bool RSKawaseBlurShaderFilter::isMesablurAllEnable_ = false;
 RSKawaseBlurShaderFilter::RSKawaseBlurShaderFilter(int radius)
     : RSRenderFilterParaBase(RSUIFilterType::KAWASE), radius_(radius)
 {
-    hash_ = SkOpts::hash(&radius_, sizeof(radius_), 0);
+#ifdef USE_M133_SKIA
+    const auto hashFunc = SkChecksum::Hash32;
+#else
+    const auto hashFunc = SkOpts::hash;
+#endif
+    hash_ = hashFunc(&radius_, sizeof(radius_), 0);
 }
 
 void RSKawaseBlurShaderFilter::SetMesablurAllEnabledByCCM(bool flag)

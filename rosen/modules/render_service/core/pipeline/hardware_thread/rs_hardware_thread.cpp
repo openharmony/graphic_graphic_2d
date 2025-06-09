@@ -88,7 +88,6 @@ constexpr int64_t COMMIT_DELTA_TIME = 2; // 2ms
 constexpr int64_t MAX_DELAY_TIME = 100; // 100ms
 constexpr int64_t NS_MS_UNIT_CONVERSION = 1000000;
 constexpr int64_t UNI_RENDER_VSYNC_OFFSET_DELAY_MODE = 3300000; // 3.3ms
-constexpr uint32_t DELAY_TIME_OFFSET = 100; // 5ms
 constexpr uint32_t MAX_TOTAL_SURFACE_NAME_LENGTH = 320;
 constexpr uint32_t MAX_SINGLE_SURFACE_NAME_LENGTH = 20;
 // Threshold for abnormal time in the hardware pipeline
@@ -141,7 +140,13 @@ void RSHardwareThread::Start()
                 SubScribeSystemAbility();
 #endif
                 uniRenderEngine_ = std::make_shared<RSUniRenderEngine>();
-                uniRenderEngine_->Init(true);
+                uniRenderEngine_->Init();
+#ifdef RS_ENABLE_VK
+                // posttask for multithread safely release surface and image
+                if (RSSystemProperties::IsUseVulkan()) {
+                    ContextRegisterPostTask();
+                }
+#endif
                 hardwareTid_ = gettid();
             }).wait();
     }
@@ -151,16 +156,7 @@ void RSHardwareThread::Start()
     if (hdiBackend_ != nullptr) {
         hdiBackend_->RegPrepareComplete(onPrepareCompleteFunc, this);
     }
-    auto changeDssRefreshRateCb = [this] (ScreenId screenId, uint32_t refreshRate, bool followPipline) {
-        PostTask([this, screenId, refreshRate, followPipline] () {
-            ChangeDssRefreshRate(screenId, refreshRate, followPipline);
-        });
-    };
-    HgmTaskHandleThread::Instance().PostTask([changeDssRefreshRateCb] () {
-        if (auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr(); frameRateMgr != nullptr) {
-            frameRateMgr->SetChangeDssRefreshRateCb(changeDssRefreshRateCb);
-        }
-    });
+    hgmHardwareUtils_.RegisterChangeDssRefreshRateCb();
 }
 
 int RSHardwareThread::GetHardwareTid() const
@@ -250,8 +246,8 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
     delayTime_ = 0;
     RSTimer timer("Hardware", HARDWARE_TIMEOUT);
     LayerComposeCollection::GetInstance().UpdateUniformOrOfflineComposeFrameNumberForDFX(layers.size());
-    RefreshRateParam param = GetRefreshRateParam();
-    refreshRateParam_ = param;
+    hgmHardwareUtils_.UpdateRefreshRateParam();
+    RefreshRateParam param = hgmHardwareUtils_.GetRefreshRateParam();
     auto& hgmCore = OHOS::Rosen::HgmCore::Instance();
     ScreenId curScreenId = hgmCore.GetActiveScreenId();
     uint32_t currentRate = hgmCore.GetScreenCurrentRefreshRate(curScreenId);
@@ -297,8 +293,9 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
         }
 
         if (!isScreenPoweringOff) {
-            ExecuteSwitchRefreshRate(output, param.rate);
-            PerformSetActiveMode(output, param.frameTimestamp, param.constraintRelativeTime);
+            hgmHardwareUtils_.ExecuteSwitchRefreshRate(output, param.rate);
+            hgmHardwareUtils_.PerformSetActiveMode(
+                output, param.frameTimestamp, param.constraintRelativeTime);
             AddRefreshRateCount(output);
         }
 
@@ -715,46 +712,11 @@ int32_t RSHardwareThread::AdaptiveModeStatus(const OutputPtr &output)
     return SupportASStatus::NOT_SUPPORT;
 }
 
-RefreshRateParam RSHardwareThread::GetRefreshRateParam()
-{
-    // need to sync the hgm data from main thread.
-    // Temporary sync the timestamp to fix the duplicate time stamp issue.
-    auto& hgmCore = OHOS::Rosen::HgmCore::Instance();
-    bool directComposition = hgmCore.GetDirectCompositionFlag();
-    RS_LOGI_IF(DEBUG_COMPOSER, "GetRefreshRateData period is %{public}d", directComposition);
-    if (directComposition) {
-        hgmCore.SetDirectCompositionFlag(false);
-    }
-    RefreshRateParam param;
-    if (directComposition) {
-        param = {
-            .rate = hgmCore.GetPendingScreenRefreshRate(),
-            .frameTimestamp = hgmCore.GetCurrentTimestamp(),
-            .actualTimestamp = hgmCore.GetActualTimestamp(),
-            .vsyncId = hgmCore.GetVsyncId(),
-            .constraintRelativeTime = hgmCore.GetPendingConstraintRelativeTime(),
-            .isForceRefresh = hgmCore.GetForceRefreshFlag(),
-            .fastComposeTimeStampDiff = hgmCore.GetFastComposeTimeStampDiff()
-        };
-    } else {
-        param = {
-            .rate = RSUniRenderThread::Instance().GetPendingScreenRefreshRate(),
-            .frameTimestamp = RSUniRenderThread::Instance().GetCurrentTimestamp(),
-            .actualTimestamp = RSUniRenderThread::Instance().GetActualTimestamp(),
-            .vsyncId = RSUniRenderThread::Instance().GetVsyncId(),
-            .constraintRelativeTime = RSUniRenderThread::Instance().GetPendingConstraintRelativeTime(),
-            .isForceRefresh = RSUniRenderThread::Instance().GetForceRefreshFlag(),
-            .fastComposeTimeStampDiff = RSUniRenderThread::Instance().GetFastComposeTimeStampDiff()
-        };
-    }
-    return param;
-}
-
 void RSHardwareThread::OnScreenVBlankIdleCallback(ScreenId screenId, uint64_t timestamp)
 {
     RS_TRACE_NAME_FMT("RSHardwareThread::OnScreenVBlankIdleCallback screenId: %" PRIu64" now: %" PRIu64"",
         screenId, timestamp);
-    vblankIdleCorrector_.SetScreenVBlankIdle(screenId);
+    hgmHardwareUtils_.SetScreenVBlankIdle(screenId);
 }
 
 bool RSHardwareThread::IsDropDirtyFrame(OutputPtr output)
@@ -795,128 +757,6 @@ bool RSHardwareThread::IsDropDirtyFrame(OutputPtr output)
         }
     }
     return false;
-}
-
-void RSHardwareThread::ExecuteSwitchRefreshRate(const OutputPtr& output, uint32_t refreshRate)
-{
-    static bool refreshRateSwitch = system::GetBoolParameter("persist.hgm.refreshrate.enabled", true);
-    if (!refreshRateSwitch) {
-        RS_LOGD("refreshRateSwitch is off, currRefreshRate is %{public}d", refreshRate);
-        return;
-    }
-
-    auto& hgmCore = OHOS::Rosen::HgmCore::Instance();
-    if (hgmCore.GetFrameRateMgr() == nullptr) {
-        RS_LOGD("FrameRateMgr is null");
-        return;
-    }
-    ScreenId id = output->GetScreenId();
-    outputMap_[id] = output;
-    auto screen = hgmCore.GetScreen(id);
-    if (!screen || !screen->GetSelfOwnedScreenFlag()) {
-        return;
-    }
-    auto screenRefreshRateImme = hgmCore.GetScreenRefreshRateImme();
-    if (screenRefreshRateImme > 0) {
-        RS_LOGD("ExecuteSwitchRefreshRate:rate change: %{public}u -> %{public}u", refreshRate, screenRefreshRateImme);
-        refreshRate = screenRefreshRateImme;
-    }
-    ScreenId curScreenId = hgmCore.GetFrameRateMgr()->GetCurScreenId();
-    ScreenId lastCurScreenId = hgmCore.GetFrameRateMgr()->GetLastCurScreenId();
-    hgmCore.SetScreenSwitchDssEnable(id, true);
-    if (refreshRate != hgmCore.GetScreenCurrentRefreshRate(id) || lastCurScreenId != curScreenId ||
-        needRetrySetRate_) {
-        RS_LOGD("CommitAndReleaseLayers screenId %{public}d refreshRate %{public}d \
-            needRetrySetRate %{public}d", static_cast<int>(id), refreshRate, needRetrySetRate_);
-        int32_t sceneId = (lastCurScreenId != curScreenId || needRetrySetRate_) ? SWITCH_SCREEN_SCENE : 0;
-        hgmCore.GetFrameRateMgr()->SetLastCurScreenId(curScreenId);
-        int32_t status = hgmCore.SetScreenRefreshRate(id, sceneId, refreshRate);
-        needRetrySetRate_ = false;
-        if (status < EXEC_SUCCESS) {
-            RS_LOGD("RSHardwareThread: failed to set refreshRate %{public}d, screenId %{public}" PRIu64 "", refreshRate,
-                id);
-        }
-    }
-}
-
-void RSHardwareThread::PerformSetActiveMode(OutputPtr output, uint64_t timestamp, uint64_t constraintRelativeTime)
-{
-    auto &hgmCore = OHOS::Rosen::HgmCore::Instance();
-    auto screenManager = CreateOrGetScreenManager();
-    if (screenManager == nullptr) {
-        return;
-    }
-
-    vblankIdleCorrector_.ProcessScreenConstraint(timestamp, constraintRelativeTime);
-    HgmRefreshRates newRate = RSSystemProperties::GetHgmRefreshRatesEnabled();
-    if (hgmRefreshRates_ != newRate) {
-        hgmRefreshRates_ = newRate;
-        hgmCore.SetScreenRefreshRate(screenManager->GetDefaultScreenId(), 0, static_cast<int32_t>(hgmRefreshRates_));
-    }
-
-    std::unique_ptr<std::unordered_map<ScreenId, int32_t>> modeMap(hgmCore.GetModesToApply());
-    if (modeMap == nullptr) {
-        return;
-    }
-
-    RS_TRACE_NAME_FMT("RSHardwareThread::PerformSetActiveMode setting active mode. rate: %d",
-        HgmCore::Instance().GetScreenCurrentRefreshRate(HgmCore::Instance().GetActiveScreenId()));
-    for (auto mapIter = modeMap->begin(); mapIter != modeMap->end(); ++mapIter) {
-        ScreenId id = mapIter->first;
-        int32_t modeId = mapIter->second;
-
-        auto supportedModes = screenManager->GetScreenSupportedModes(id);
-        for (auto mode : supportedModes) {
-            RS_OPTIONAL_TRACE_NAME_FMT("RSHardwareThread check modes w: %" PRId32", h: %" PRId32", rate: %" PRId32", id: %" PRId32"",
-                mode.GetScreenWidth(), mode.GetScreenHeight(), mode.GetScreenRefreshRate(), mode.GetScreenModeId());
-        }
-
-        uint32_t ret = screenManager->SetScreenActiveMode(id, modeId);
-        needRetrySetRate_ = (ret == StatusCode::SET_RATE_ERROR);
-        RS_LOGD_IF(needRetrySetRate_, "RSHardwareThread: need retry set modeId %{public}d", modeId);
-
-        auto pendingPeriod = hgmCore.GetIdealPeriod(hgmCore.GetScreenCurrentRefreshRate(id));
-        int64_t pendingTimestamp = static_cast<int64_t>(timestamp);
-        if (hdiBackend_) {
-            hdiBackend_->SetPendingMode(output, pendingPeriod, pendingTimestamp);
-            hdiBackend_->StartSample(output);
-        }
-    }
-}
-
-void RSHardwareThread::ChangeDssRefreshRate(ScreenId screenId, uint32_t refreshRate, bool followPipline)
-{
-    if (followPipline) {
-        auto& hgmCore = OHOS::Rosen::HgmCore::Instance();
-        auto task = [this, screenId, refreshRate, vsyncId = refreshRateParam_.vsyncId] () {
-            if (vsyncId != refreshRateParam_.vsyncId || !HgmCore::Instance().IsSwitchDssEnable(screenId)) {
-                return;
-            }
-            // switch hardware vsync
-            ChangeDssRefreshRate(screenId, refreshRate, false);
-        };
-        int64_t period = hgmCore.GetIdealPeriod(hgmCore.GetScreenCurrentRefreshRate(screenId));
-        PostDelayTask(task, period / NS_MS_UNIT_CONVERSION + delayTime_ + DELAY_TIME_OFFSET);
-    } else {
-        auto outputIter = outputMap_.find(screenId);
-        if (outputIter == outputMap_.end()) {
-            return;
-        }
-        auto output = outputIter->second.lock();
-        if (output == nullptr) {
-            outputMap_.erase(screenId);
-            return;
-        }
-        if (HgmCore::Instance().GetActiveScreenId() != screenId) {
-            return;
-        }
-        ExecuteSwitchRefreshRate(output, refreshRate);
-        PerformSetActiveMode(
-            output, refreshRateParam_.frameTimestamp, refreshRateParam_.constraintRelativeTime);
-        if (output->IsDeviceValid()) {
-            hdiBackend_->Repaint(output);
-        }
-    }
 }
 
 void RSHardwareThread::OnPrepareComplete(sptr<Surface>& surface,
@@ -1266,6 +1106,21 @@ bool RSHardwareThread::ConvertColorGamutToSpaceType(const GraphicColorGamut& col
 
     colorSpaceType = RS_TO_COMMON_COLOR_SPACE_TYPE_MAP.at(colorGamut);
     return true;
+}
+#endif
+
+#ifdef RS_ENABLE_VK
+void RSHardwareThread::ContextRegisterPostTask()
+{
+    RsVulkanContext::GetSingleton().SetIsProtected(true);
+    auto context = RsVulkanContext::GetSingleton().GetDrawingContext();
+    if (context) {
+        context->RegisterPostFunc([this](const std::function<void()>& task) { PostTask(task); });
+    }
+    RsVulkanContext::GetSingleton().SetIsProtected(false);
+    if (context) {
+        context->RegisterPostFunc([this](const std::function<void()>& task) { PostTask(task); });
+    }
 }
 #endif
 }

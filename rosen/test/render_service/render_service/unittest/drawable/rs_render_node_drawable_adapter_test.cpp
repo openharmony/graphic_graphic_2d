@@ -622,4 +622,22 @@ HWTEST(RSRenderNodeDrawableAdapterTest, GetFilterCachedRegionTest, TestSize.Leve
     EXPECT_EQ(adapter->GetFilterCachedRegion(), RectI());
 }
 
+/**
+ * @tc.name: DrawableOnDrawMultiAccessEventReportTest
+ * @tc.desc: Test RSRenderNodeSingleDrawableLocker::DrawableOnDrawMultiAccessEventReport
+ * @tc.type: FUNC
+ * @tc.require: issueIALKED
+ */
+HWTEST(RSRenderNodeDrawableAdapterTest, DrawableOnDrawMultiAccessEventReportTest, TestSize.Level1)
+{
+    NodeId id = 20;
+    auto node = std::make_shared<RSRenderNode>(id);
+    auto adapter =
+        std::dynamic_pointer_cast<RSRenderNodeDrawableAdapter>(std::make_shared<RSRenderNodeDrawable>(std::move(node)));
+    ASSERT_NE(adapter, nullptr);
+
+    RSRenderNodeSingleDrawableLocker singleLocker(adapter.get());
+    singleLocker.DrawableOnDrawMultiAccessEventReport(" ");
+}
+
 } // namespace OHOS::Rosen

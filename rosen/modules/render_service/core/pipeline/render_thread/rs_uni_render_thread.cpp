@@ -700,23 +700,15 @@ static void TrimMemEmptyType(Drawing::GPUContext* gpuContext)
     SkGraphics::PurgeAllCaches();
     gpuContext->FreeGpuResources();
     gpuContext->PurgeUnlockedResources(true);
-#ifdef NEW_RENDER_CONTEXT
-    MemoryHandler::ClearShader();
-#else
     std::shared_ptr<RenderContext> rendercontext = std::make_shared<RenderContext>();
     rendercontext->CleanAllShaderCache();
-#endif
     gpuContext->FlushAndSubmit(true);
 }
 
 static void TrimMemShaderType()
 {
-#ifdef NEW_RENDER_CONTEXT
-    MemoryHandler::ClearShader();
-#else
     std::shared_ptr<RenderContext> rendercontext = std::make_shared<RenderContext>();
     rendercontext->CleanAllShaderCache();
-#endif
 }
 
 static void TrimMemGpuLimitType(Drawing::GPUContext* gpuContext, std::string& dumpString,

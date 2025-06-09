@@ -28,6 +28,7 @@
 #include "common/rs_vector4.h"
 #include "modifier/rs_modifier.h"
 #include "modifier/rs_property_modifier.h"
+#include "modifier/rs_extended_modifier.h"
 #include "render/rs_filter.h"
 #include "render/rs_material_filter.h"
 #include "ui/rs_node.h"
@@ -89,6 +90,14 @@ public:
         auto borderOutlineGap = rsNode->GetStagingProperties().GetOutlineDashGap();
         EXPECT_TRUE(borderOutlineWidth.IsNearEqual(params));
         EXPECT_TRUE(borderOutlineGap.IsNearEqual(params));
+    }
+};
+
+class ContentStyleModifierTest : public RSContentStyleModifier {
+public:
+    void Draw(RSDrawingContext& context) const override
+    {
+        return;
     }
 };
 
@@ -8516,10 +8525,14 @@ HWTEST_F(RSNodeTest, Dump002Test, TestSize.Level1)
     std::shared_ptr<RSModifier> modifier2 = std::make_shared<RSBackgroundShaderModifier>(property);
     rsNode->AddModifier(modifier2);
 
+    auto contentStyleModifier = std::make_shared<ContentStyleModifierTest>();
+    contentStyleModifier->property_->target_.lock() = nullptr;
+    rsNode->AddModifier(contentStyleModifier);
+
     std::string out3;
     rsNode->Dump(out3);
     pos = out3.find("modifiers[ Bounds:[x:100.0 y:100.0 width:100.0 height:100.0]"
-        " Alpha:[1.0] BackgroundShader:]");
+        " Alpha:[1.0] BackgroundShader: ContentStyle:drawCmdList[]]");
     EXPECT_TRUE(pos != std::string::npos);
 }
 } // namespace OHOS::Rosen
