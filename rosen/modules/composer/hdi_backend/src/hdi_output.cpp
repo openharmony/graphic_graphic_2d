@@ -182,6 +182,7 @@ void HdiOutput::SetLayerInfo(const std::vector<LayerInfoPtr> &layerInfos)
             return;
         }
     }
+    
     DeletePrevLayersLocked();
     ResetLayerStatusLocked();
 }
