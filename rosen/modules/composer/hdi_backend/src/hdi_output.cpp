@@ -141,17 +141,7 @@ void HdiOutput::SetLayerInfo(const std::vector<LayerInfoPtr> &layerInfos)
             continue;
         }
         if (layerInfo->IsMaskLayer()) {
-            std::vector<GraphicIRect> dirtyRegions;
-            if (maskLayer_) {
-                dirtyRegions.emplace_back(GraphicIRect {0, 0, 0, 0});
-                layerInfo->SetDirtyRegions(dirtyRegions);
-                maskLayer_->UpdateLayerInfo(layerInfo);
-            } else {
-                auto laysize = layerInfo->GetLayerSize();
-                dirtyRegions.emplace_back(laysize);
-                layerInfo->SetDirtyRegions(dirtyRegions);
-                CreateLayerLocked(solidLayerCount++, layerInfo);
-            }
+            DirtyRegions(solidLayerCount, layerInfo);
             continue;
         }
         if (layerInfo->GetSurface() == nullptr) {
@@ -185,6 +175,21 @@ void HdiOutput::SetLayerInfo(const std::vector<LayerInfoPtr> &layerInfos)
     
     DeletePrevLayersLocked();
     ResetLayerStatusLocked();
+}
+
+void HdiOutput::DirtyRegions(uint32_t solidLayerCount, const std::shared_ptr<HdiLayerInfo> &layerInfo)
+{
+    std::vector<GraphicIRect> dirtyRegions;
+    if (maskLayer_) {
+        dirtyRegions.emplace_back(GraphicIRect {0, 0, 0, 0});
+        layerInfo->SetDirtyRegions(dirtyRegions);
+        maskLayer_->UpdateLayerInfo(layerInfo);
+    } else {
+        auto laysize = layerInfo->GetLayerSize();
+        dirtyRegions.emplace_back(laysize);
+        layerInfo->SetDirtyRegions(dirtyRegions);
+        CreateLayerLocked(solidLayerCount++, layerInfo);
+    }
 }
 
 void HdiOutput::CleanLayerBufferBySurfaceId(uint64_t surfaceId)
