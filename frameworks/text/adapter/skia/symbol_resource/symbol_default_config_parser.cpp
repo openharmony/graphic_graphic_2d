@@ -97,7 +97,9 @@ static const std::map<std::string, RSDrawing::DrawingAnimationType> ANIMATIONS_T
     {"pulse", RSDrawing::DrawingAnimationType::PULSE_TYPE},
     {"replace_appear", RSDrawing::DrawingAnimationType::REPLACE_APPEAR_TYPE},
     {"replace_disappear", RSDrawing::DrawingAnimationType::REPLACE_DISAPPEAR_TYPE},
-    {"disable", RSDrawing::DrawingAnimationType::DISABLE_TYPE}
+    {"disable", RSDrawing::DrawingAnimationType::DISABLE_TYPE},
+    {"quick_replace_appear", RSDrawing::DrawingAnimationType::QUICK_REPLACE_APPEAR_TYPE},
+    {"quick_replace_disappear", RSDrawing::DrawingAnimationType::QUICK_REPLACE_DISAPPEAR_TYPE}
 };
 
 static const std::map<std::string, RSDrawing::DrawingCurveType> CURVE_TYPES = {
