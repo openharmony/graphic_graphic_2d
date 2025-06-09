@@ -114,6 +114,17 @@ HWTEST_F(RSSystemPropertiesTest, GetProfilerEnabled, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetPixelCheckEnabled
+ * @tc.desc: GetPixelCheckEnabled Test
+ * @tc.type:FUNC
+ * @tc.require: issueIC7V62
+ */
+HWTEST_F(RSSystemPropertiesTest, GetPixelCheckEnabled, TestSize.Level1)
+{
+    ASSERT_EQ(RSSystemProperties::GetProfilerPixelCheckMode(), 0);
+}
+
+/**
  * @tc.name: SetInstantRecording
  * @tc.desc: SetInstantRecording Test
  * @tc.type:FUNC

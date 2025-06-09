@@ -111,6 +111,13 @@ int RSSystemProperties::GetSceneJankFrameThreshold()
     return sceneJankFrameThreshold;
 }
 
+bool RSSystemProperties::GetProfilerPixelCheckMode()
+{
+    static CachedHandle handle = CachedParameterCreate("persist.graphic.profiler.pixelcheck", "0");
+    int32_t changed = 0;
+    return ConvertToInt(CachedParameterGetChanged(handle, &changed), 0) != 0;
+}
+
 int RSSystemProperties::GetRecordingEnabled()
 {
     static CachedHandle g_Handle = CachedParameterCreate("debug.graphic.recording.enabled", "0");
@@ -118,7 +125,6 @@ int RSSystemProperties::GetRecordingEnabled()
     const char *num = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(num, 0);
 }
-
 
 void RSSystemProperties::SetRecordingDisenabled()
 {

@@ -166,6 +166,7 @@ public:
     static bool GetProfilerEnabled();
     static void SetProfilerDisabled();
     static bool GetInstantRecording();
+    static bool GetProfilerPixelCheckMode();
     static void SetInstantRecording(bool flag);
     static uint32_t GetBetaRecordingMode();
     static void SetBetaRecordingMode(uint32_t param);
