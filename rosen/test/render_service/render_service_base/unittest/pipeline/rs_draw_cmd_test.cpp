@@ -259,6 +259,23 @@ HWTEST_F(RSDrawCmdTest, Unmarshalling004, TestSize.Level1)
 }
 
 /**
+ * @tc.name: Unmarshalling006
+ * @tc.desc: test results of Unmarshalling
+ * @tc.type:FUNC
+ * @tc.require: ICDP3G
+ */
+HWTEST_F(RSDrawCmdTest, Unmarshalling006, TestSize.Level1)
+{
+    Drawing::DrawCmdList list;
+    uint32_t funcObjectId = 1;
+    Drawing::DrawFuncOpItem::ConstructorHandle constructorHandle(funcObjectId);
+    Drawing::DrawFuncOpItem drawFuncOpItem(list, &constructorHandle);
+    ASSERT_NE(drawFuncOpItem.Unmarshalling(list, &constructorHandle), nullptr);
+    Drawing::DrawFuncOpItem drawFuncOpItem1(list, nullptr);
+    ASSERT_EQ(drawFuncOpItem1.Unmarshalling(list, nullptr), nullptr);
+}
+
+/**
  * @tc.name: Playback003
  * @tc.desc: test results of Playback
  * @tc.type:FUNC
@@ -610,4 +627,21 @@ HWTEST_F(RSDrawCmdTest, Playback010, TestSize.Level1)
     drawHybridPixelMapOpItem.Playback(&canvas, &rect);
 }
 #endif
+
+/**
+ * @tc.name: DrawFuncOpItem_Playback
+ * @tc.desc: test results of Playback
+ * @tc.type:FUNC
+ * @tc.require: ICDP3G
+ */
+HWTEST_F(RSDrawCmdTest, Playback011, TestSize.Level1)
+{
+    Drawing::DrawCmdList list;
+    uint32_t funcObjectId = 1;
+    Drawing::DrawFuncOpItem::ConstructorHandle constructorHandle(funcObjectId);
+    Drawing::DrawFuncOpItem drawFuncOpItem(list, &constructorHandle);
+    ASSERT_NE(drawFuncOpItem.objectHandle_, nullptr);
+    Drawing::DrawFuncOpItem drawFuncOpItem1(list, nullptr);
+    ASSERT_EQ(drawFuncOpItem1.objectHandle_, nullptr);
+}
 } // namespace OHOS::Rosen

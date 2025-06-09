@@ -243,6 +243,10 @@ void RecordingCanvas::DrawVertices(const Vertices& vertices, BlendMode mode)
 void RecordingCanvas::DrawImageNine(const Image* image, const RectI& center, const Rect& dst,
     FilterMode filterMode, const Brush* brush)
 {
+    if (image == nullptr) {
+        LOGE("RecordingCanvas::DrawImageNine, image is nullptr!");
+        return;
+    }
     if (!addDrawOpImmediate_) {
         cmdList_->AddDrawOp(std::make_shared<DrawImageNineOpItem>(image, center, dst, filterMode, brush));
         return;
