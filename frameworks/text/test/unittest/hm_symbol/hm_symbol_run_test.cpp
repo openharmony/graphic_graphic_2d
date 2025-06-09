@@ -636,6 +636,33 @@ HWTEST_F(OHHmSymbolRunTest, SetSymbolEffect008, TestSize.Level1)
 }
 
 /*
+ * @tc.name: SetSymbolEffect009
+ * @tc.desc: test SetSymbolEffect with different DrawingEffectStrategy::QUICK_REPLACE_APPEAR
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolRunTest, SetSymbolEffect009, TestSize.Level1)
+{
+    std::shared_ptr<RSCanvas> rsCanvas = std::make_shared<RSCanvas>();
+    RSPoint paint_ = {100, 100}; // 100, 100 is the offset
+    const char* str = "A";
+    Drawing::Font font;
+    auto textblob = Drawing::TextBlob::MakeFromText(str, strlen(str), font, Drawing::TextEncoding::UTF8);
+    HMSymbolTxt symbolTxt;
+    std::function<bool(const std::shared_ptr<TextEngine::SymbolAnimationConfig>&)> animationFunc =
+        [](const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig) {
+            return true;
+        };
+    HMSymbolRun hmSymbolRun = HMSymbolRun(0, symbolTxt, textblob, animationFunc);
+    hmSymbolRun.SetAnimationStart(true);
+    hmSymbolRun.currentAnimationHasPlayed_ = true;
+
+    hmSymbolRun.SetSymbolEffect(Drawing::DrawingEffectStrategy::QUICK_REPLACE_APPEAR);
+    EXPECT_EQ(hmSymbolRun.symbolTxt_.GetEffectStrategy(), Drawing::DrawingEffectStrategy::QUICK_REPLACE_APPEAR);
+    EXPECT_FALSE(hmSymbolRun.currentAnimationHasPlayed_);
+    hmSymbolRun.DrawSymbol(rsCanvas.get(), paint_);
+}
+
+/*
  * @tc.name: SetAnimationMode001
  * @tc.desc: test SetAnimationMode with wholeSymbol
  * @tc.type: FUNC

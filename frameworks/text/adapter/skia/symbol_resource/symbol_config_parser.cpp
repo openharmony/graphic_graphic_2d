@@ -68,7 +68,9 @@ const std::unordered_map<std::string, RSAnimationType> ANIMATIONS_TYPES = {
     {"variable_color", RSAnimationType::VARIABLE_COLOR_TYPE},
     {"pulse", RSAnimationType::PULSE_TYPE},
     {"replace_appear", RSAnimationType::REPLACE_APPEAR_TYPE},
-    {"replace_disappear", RSAnimationType::REPLACE_DISAPPEAR_TYPE}
+    {"replace_disappear", RSAnimationType::REPLACE_DISAPPEAR_TYPE},
+    {"quick_replace_appear", RSAnimationType::QUICK_REPLACE_APPEAR_TYPE},
+    {"quick_replace_disappear", RSAnimationType::QUICK_REPLACE_DISAPPEAR_TYPE}
 };
 
 const std::unordered_map<std::string, RSDrawing::DrawingCurveType> CURVE_TYPES = {
