@@ -121,6 +121,8 @@ private:
     bool SetFontDescriptor(const unsigned int languageId);
     std::unique_ptr<FontParser::FontDescriptor> ParseFontDescriptor(
         const std::string& fontName, const unsigned int languageId);
+    static bool CheckFullNameParamInvalid(FontParser::FontDescriptor& fontDescriptor, unsigned int languageId,
+        const std::string& nameString);
     static void SetNameString(FontParser::FontDescriptor& fontDescriptor, std::string& field, unsigned int& fieldLid,
         unsigned int languageId, const std::string& nameString);
     int GetLanguageId(const std::string& locale)
