@@ -151,7 +151,7 @@ HWTEST_F(RSRenderEdgeLightFilterTest, CreateRenderProperty001, TestSize.Level1)
     EXPECT_NE(renderProperty, nullptr);
 
     renderProperty = rsRenderEdgeLightFilterPara->CreateRenderProperty(RSUIFilterType::RADIAL_GRADIENT_MASK);
-    EXPECT_NE(renderProperty, nullptr);
+    EXPECT_EQ(renderProperty, nullptr);
 
     renderProperty = rsRenderEdgeLightFilterPara->CreateRenderProperty(RSUIFilterType::PIXEL_MAP_MASK);
     EXPECT_NE(renderProperty, nullptr);

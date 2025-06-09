@@ -108,6 +108,9 @@ std::string RSDrawingFilter::GetDescription()
 {
     std::string filterString = GetFilterTypeString();
     for (const auto& shaderFilter : shaderFilters_) {
+        if (shaderFilter == nullptr) {
+            continue;
+        }
         switch (shaderFilter->GetType()) {
             case RSUIFilterType::KAWASE: {
                 auto filter = std::static_pointer_cast<RSKawaseBlurShaderFilter>(shaderFilter);

@@ -73,10 +73,7 @@ class RSChildrenDrawableAdapter : public RSDrawable {
 public:
     RSChildrenDrawableAdapter() = default;
     ~RSChildrenDrawableAdapter() override = default;
-    bool OnUpdate(const RSRenderNode& content) override
-    {
-        return true;
-    }
+    bool OnUpdate(const RSRenderNode& content) override { return true; }
     void OnSync() override {}
     Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override
     {
@@ -85,10 +82,7 @@ public:
     }
 
 private:
-    bool OnSharedTransition(const std::shared_ptr<RSRenderNode>& node)
-    {
-        return true;
-    }
+    bool OnSharedTransition(const std::shared_ptr<RSRenderNode>& node) { return true; }
     friend class RSRenderNode;
 };
 
@@ -5296,8 +5290,8 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateOffscreenCanvasNodeId001, TestSize.Level2
     EXPECT_EQ(rsUniRenderVisitor->offscreenCanvasNodeId_, INVALID_NODEID);
 
     auto rsChildrenDrawable = std::make_shared<RSChildrenDrawableAdapter>();
-    rsCanvasRenderNode->drawableVec_[static_cast<uint32_t>(RSDrawableSlot::FOREGROUND_FILTER)]
-        = std::move(rsChildrenDrawable);
+    rsCanvasRenderNode->drawableVec_[static_cast<uint32_t>(RSDrawableSlot::FOREGROUND_FILTER)] =
+        std::move(rsChildrenDrawable);
     rsUniRenderVisitor->UpdateOffscreenCanvasNodeId(*rsCanvasRenderNode);
     EXPECT_EQ(rsUniRenderVisitor->offscreenCanvasNodeId_, nodeId);
 }

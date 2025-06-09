@@ -4273,10 +4273,12 @@ void RSRenderNode::SetOldDirtyInSurface(RectI oldDirtyInSurface)
 {
     oldDirtyInSurface_ = oldDirtyInSurface;
 }
+
 bool RSRenderNode::IsForegroundFilterEnable()
 {
     return drawableVec_[static_cast<uint32_t>(RSDrawableSlot::FOREGROUND_FILTER)] != nullptr;
 }
+
 bool RSRenderNode::IsDirtyRegionUpdated() const
 {
     return isDirtyRegionUpdated_;
