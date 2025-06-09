@@ -185,7 +185,7 @@ private:
     std::map<LayerInfoPtr, sptr<SyncFence>> GetLayersReleaseFenceLocked();
 
     bool isActiveRectSwitching_ = false;
-    void DirtyRegions(uint32_t solidLayerCount, const std::shared_ptr<HdiLayerInfo> &layerInfo);
+    void DirtyRegions(uint32_t solidLayerCount, const LayerInfoPtr &layerInfo);
 };
 } // namespace Rosen
 } // namespace OHOS
