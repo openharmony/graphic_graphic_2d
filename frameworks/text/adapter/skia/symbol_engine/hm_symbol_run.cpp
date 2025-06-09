@@ -89,12 +89,12 @@ void HMSymbolRun::SetRenderColor(const RSSymbolRenderingStrategy& renderMode, RS
     std::vector<std::shared_ptr<SymbolGradient>> gradients;
     for (const auto& group : symbolInfo.renderGroups) {
         auto gradient = std::make_shared<SymbolGradient>();
-        std::vector<Drawing::ColorQuad> colors;
-        Drawing::Color color1;
-        color1.SetRgb(group.color.r, group.color.g, group.color.b);
-        color1.SetAlphaF(group.color.a);
-        colors.push_back(color1.CastToColorQuad());
-        gradient->SetColors(colors);
+        std::vector<Drawing::ColorQuad> colorQuads;
+        Drawing::Color color;
+        color.SetRgb(group.color.r, group.color.g, group.color.b);
+        color.SetAlphaF(group.color.a);
+        colorQuads.push_back(color.CastToColorQuad());
+        gradient->SetColors(colorQuads);
         gradients.push_back(gradient);
     }
     gradients_ = gradients;
@@ -114,7 +114,7 @@ void HMSymbolRun::SetGradientColor(const RSSymbolRenderingStrategy& renderMode, 
     }
 
     size_t i = 0;
-    size_t n = symbolColor.gradients.size() - 1;
+    const size_t n = symbolColor.gradients.size() - 1;
     for (size_t index = 0; index < symbolInfo.renderGroups.size(); index++) {
         std::shared_ptr<SymbolGradient> gradient = nullptr;
         if (i <= n) {
@@ -302,7 +302,7 @@ void HMSymbolRun::DrawPaths(RSCanvas* canvas, const std::vector<RSPath>& multPat
     pen.SetAntiAlias(true);
 
     size_t n = gradients_.size();
-    bool isSingle = symbolTxt_.GetRenderMode() == RSSymbolRenderingStrategy::SINGLE && n &&
+    bool isSingle = symbolTxt_.GetRenderMode() == RSSymbolRenderingStrategy::SINGLE && n > 0 &&
         gradients_[0] != nullptr;
     if (isSingle) { // if renderMode is SINGLE only set one color
         gradients_[0]->Make(path.GetBounds());

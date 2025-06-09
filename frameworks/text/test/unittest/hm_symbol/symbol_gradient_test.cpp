@@ -103,6 +103,9 @@ HWTEST_F(OHHmSymbolGradientTest, IsNearlyEqual001, TestSize.Level1)
 
     gradient1->SetPositions(positions);
     EXPECT_TRUE(gradient1->IsNearlyEqual(gradient2));
+
+    // test nullptr
+    EXPECT_FALSE(gradient1->IsNearlyEqual(nullptr));
 }
 
 

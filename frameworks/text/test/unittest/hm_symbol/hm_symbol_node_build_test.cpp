@@ -526,11 +526,16 @@ HWTEST_F(OHHmSymbolNodeBuildTest, AddHierarchicalAnimation001, TestSize.Level1)
     SymbolNodeBuild symbolNode = SymbolNodeBuild(animationSetting, symbol, effectMode, offset);
     symbolNode.SetAnimation(&SetSymbolAnimationTwo);
     symbolNode.SetAnimationMode(0); // 0 is byLayer effect
-    auto symbolAnimationConfig = std::make_shared<TextEngine::SymbolAnimationConfig>();
     Vector4f nodeBounds = {10.0f, 10.0f, 15.0f, 15.0f}; // 10.0f 10.0f: first offset, 15.0f 15.0f: width height
 
+    std::shared_ptr<TextEngine::SymbolAnimationConfig> symbolAnimationConfig = nullptr;
     symbolNode.AddHierarchicalAnimation(symbol, nodeBounds, animationSetting.groupSettings, symbolAnimationConfig);
     bool result = symbolNode.DecomposeSymbolAndDraw();
+    EXPECT_FALSE(result);
+
+    symbolAnimationConfig = std::make_shared<TextEngine::SymbolAnimationConfig>();
+    symbolNode.AddHierarchicalAnimation(symbol, nodeBounds, animationSetting.groupSettings, symbolAnimationConfig);
+    result = symbolNode.DecomposeSymbolAndDraw();
     EXPECT_FALSE(result);
 }
 

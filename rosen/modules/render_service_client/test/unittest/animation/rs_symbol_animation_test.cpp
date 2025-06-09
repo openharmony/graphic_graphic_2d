@@ -408,7 +408,7 @@ HWTEST_F(RSSymbolAnimationTest, SetReplaceAnimation002, TestSize.Level1)
     Drawing::Path path1;
     path1.AddCircle(100, 100, 50); // 100 x, 100 y, 50 radius
     auto color = std::make_shared<SymbolGradient>();
-    color->SetColors({0XFFFF0000}); // 0XFFFF0000 is ARGB
+    color->colors_ = {0XFFFF0000}; // 0XFFFF0000 is ARGB
     TextEngine::SymbolNode symbolNode;
     symbolNode.pathsInfo = {{path1, color}};
     symbolNode.nodeBoundary = {100, 100, 50, 50}; // 100 x, 100 y, 50 width, 50 height
@@ -1230,7 +1230,7 @@ HWTEST_F(RSSymbolAnimationTest, DrawPathOnCanvas001, TestSize.Level1)
     Drawing::DrawingHMSymbolData symbol;
     symbol.path_ = path;
     auto color = std::make_shared<SymbolGradient>();
-    color->SetColors({0XFFFF0000}); // 0XFFFF0000 is ARGB
+    color->colors_ = {0XFFFF0000}; // 0XFFFF0000 is ARGB
     TextEngine::NodeLayerInfo layerinfo;
     layerinfo.path = path;
     layerinfo.color = color;

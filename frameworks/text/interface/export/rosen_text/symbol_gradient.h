@@ -36,103 +36,34 @@ public:
     SymbolGradient() = default;
     virtual ~SymbolGradient() = default;
 
-    void SetColors(const std::vector<Drawing::ColorQuad>& colors)
-    {
-        colors_ = colors;
-    }
+    void SetColors(const std::vector<Drawing::ColorQuad>& colors);
 
-    void SetPositions(const std::vector<float>& positions)
-    {
-        positions_ = positions;
-    }
+    void SetPositions(const std::vector<float>& positions);
 
-    void SetTileMode(Drawing::TileMode tileMode)
-    {
-        tileMode_ = tileMode;
-    }
+    void SetTileMode(Drawing::TileMode tileMode);
 
-    const std::vector<Drawing::ColorQuad>& GetColors() const
-    {
-        return colors_;
-    }
+    const std::vector<Drawing::ColorQuad>& GetColors() const;
 
-    const std::vector<float>& GetPositions() const
-    {
-        return positions_;
-    }
+    const std::vector<float>& GetPositions() const;
 
-    Drawing::TileMode GetTileMode() const
-    {
-        return tileMode_;
-    }
+    Drawing::TileMode GetTileMode() const;
 
-    GradientType GetGradientType() const
-    {
-        return gradientType_;
-    }
+    GradientType GetGradientType() const;
 
-    Drawing::Brush CreateGradientBrush()
-    {
-        Drawing::Point offset;
-        return CreateGradientBrush(offset);
-    }
+    Drawing::Brush CreateGradientBrush();
 
-    Drawing::Pen CreateGradientPen()
-    {
-        Drawing::Point offset;
-        return CreateGradientPen(offset);
-    }
+    Drawing::Pen CreateGradientPen();
 
     virtual void Make(const Drawing::Rect& bounds) {}
 
-    virtual Drawing::Brush CreateGradientBrush(const Drawing::Point& offset)
-    {
-        Drawing::Brush brush;
-        brush.SetAntiAlias(true);
-        if (!colors_.empty()) {
-            brush.SetColor(colors_[0]);
-        }
-        return brush;
-    }
+    virtual Drawing::Brush CreateGradientBrush(const Drawing::Point& offset);
 
-    virtual Drawing::Pen CreateGradientPen(const Drawing::Point& offset)
-    {
-        Drawing::Pen pen;
-        pen.SetAntiAlias(true);
-        if (!colors_.empty()) {
-            pen.SetColor(colors_[0]);
-        }
-        return pen;
-    }
+    virtual Drawing::Pen CreateGradientPen(const Drawing::Point& offset);
 
-    virtual std::shared_ptr<Drawing::ShaderEffect> CreateGradientShader(const Drawing::Point& offset)
-    {
-        return nullptr;
-    }
+    virtual std::shared_ptr<Drawing::ShaderEffect> CreateGradientShader(const Drawing::Point& offset);
 
-    bool IsNearlyEqual(const std::shared_ptr<SymbolGradient>& gradient)
-    {
-        bool isUnequal = gradientType_ != gradient->GetGradientType() || tileMode_ != gradient->GetTileMode() ||
-            colors_.size() != gradient->GetColors().size() || positions_.size() != gradient->GetPositions().size();
-        if (isUnequal) {
-            return false;
-        }
+    bool IsNearlyEqual(const std::shared_ptr<SymbolGradient>& gradient);
 
-        auto colors = gradient->GetColors();
-        for (size_t i = 0; i < colors_.size(); i++) {
-            if (colors_[i] != colors[i]) {
-                return false;
-            }
-        }
-
-        auto positions = gradient->GetPositions();
-        for (size_t i = 0; i < positions_.size(); i++) {
-            if (ROSEN_NE<float>(positions_[i], positions[i])) {
-                return false;
-            }
-        }
-        return true;
-    }
 protected:
     GradientType gradientType_ = GradientType::NONE_GRADIENT;
     Drawing::TileMode tileMode_ = Drawing::TileMode::CLAMP;
@@ -142,21 +73,12 @@ protected:
 
 class SymbolLineGradient : public SymbolGradient {
 public:
-    SymbolLineGradient(float rangle) : rangle_(rangle)
-    {
-        gradientType_ = GradientType::LINE_GRADIENT;
-    }
+    SymbolLineGradient(float rangle);
     ~SymbolLineGradient() override = default;
 
-    void SetAngle(float rangle)
-    {
-        rangle_ = rangle;
-    }
+    void SetAngle(float rangle);
 
-    float GetAngle()
-    {
-        return rangle_;
-    }
+    float GetAngle();
 
     void Make(const Drawing::Rect& bounds) override;
     Drawing::Brush CreateGradientBrush(const Drawing::Point& offset) override;
@@ -174,44 +96,20 @@ private:
 
 class SymbolRadialGradient : public SymbolGradient {
 public:
-    SymbolRadialGradient(const Drawing::Point& centerPtRatio, float radiusRatio)
-        : centerPtRatio_(centerPtRatio), radiusRatio_(radiusRatio)
-    {
-        gradientType_ = GradientType::RADIAL_GRADIENT;
-    }
+    SymbolRadialGradient(const Drawing::Point& centerPtRatio, float radiusRatio);
     ~SymbolRadialGradient() override = default;
 
-    void SetCenterPoint(const Drawing::Point& centerPtRatio)
-    {
-        centerPtRatio_ = centerPtRatio;
-    }
+    void SetCenterPoint(const Drawing::Point& centerPtRatio);
 
-    void SetRadiusRatio(float radiusRatio)
-    {
-        radiusRatio_ = radiusRatio;
-        isRadiusRatio_ = true;
-    }
+    void SetRadiusRatio(float radiusRatio);
 
-    void SetRadius(float radius)
-    {
-        radius_ = radius;
-        isRadiusRatio_ = false;
-    }
+    void SetRadius(float radius);
 
-    Drawing::Point GetCenterPoint()
-    {
-        return centerPtRatio_;
-    }
+    Drawing::Point GetCenterPoint();
 
-    float GetRadius()
-    {
-        return radius_;
-    }
+    float GetRadius();
 
-    float GetRadiusRatio()
-    {
-        return radiusRatio_;
-    }
+    float GetRadiusRatio();
 
     void Make(const Drawing::Rect& bounds) override;
     Drawing::Brush CreateGradientBrush(const Drawing::Point& offset) override;

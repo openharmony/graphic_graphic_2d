@@ -185,7 +185,7 @@ void SymbolNodeBuild::AddWholeAnimation(const RSHMSymbolData &symbolData, const 
     symbolNode.nodeBoundary = nodeBounds;
 
     std::shared_ptr<SymbolGradient> color;
-    bool isValid = !gradients_.empty() && gradients_[0];
+    bool isValid = !gradients_.empty() && gradients_[0] != nullptr;
     if (isValid) {
         gradients_[0]->Make(symbolData.path_.GetBounds());
         color = gradients_[0];
@@ -235,6 +235,9 @@ void SymbolNodeBuild::AddHierarchicalAnimation(const RSHMSymbolData &symbolData,
     const std::vector<RSGroupSetting> &groupSettings,
     std::shared_ptr<TextEngine::SymbolAnimationConfig> symbolAnimationConfig)
 {
+    if (symbolAnimationConfig == nullptr) {
+        symbolAnimationConfig = std::make_shared<TextEngine::SymbolAnimationConfig>();
+    }
     std::vector<RSPath> paths;
     RSHMSymbol::PathOutlineDecompose(symbolData.path_, paths);
     std::vector<RSPath> pathLayers;
@@ -264,7 +267,7 @@ void SymbolNodeBuild::AddHierarchicalAnimation(const RSHMSymbolData &symbolData,
         symbolNode.isMask = isMask;
         symbolAnimationConfig->symbolNodes.push_back(symbolNode);
     }
-    bool isDisableType = (effectStrategy_ == RSEffectStrategy::DISABLE &&
+    bool isDisableType = (effectStrategy_ == RSEffectStrategy::DISABLE) && (
         symbolAnimationConfig->symbolNodes.size() > 2); // 2: disableType symbol nodes size must be greater than 2
     if (isDisableType) {
         uint32_t last = symbolAnimationConfig->symbolNodes.size() - 1; // the last
@@ -281,7 +284,7 @@ std::shared_ptr<SymbolGradient> SymbolNodeBuild::CreateGradient(
         return nullptr;
     }
 
-    std::shared_ptr<SymbolGradient> outGradient = std::make_shared<SymbolGradient>();
+    std::shared_ptr<SymbolGradient> outGradient = nullptr;
     if (gradient->GetGradientType() == GradientType::LINE_GRADIENT) {
         auto lineGradient = std::static_pointer_cast<SymbolLineGradient>(gradient);
         outGradient = std::make_shared<SymbolLineGradient>(lineGradient->GetAngle());
@@ -291,6 +294,10 @@ std::shared_ptr<SymbolGradient> SymbolNodeBuild::CreateGradient(
         auto radiaGradient = std::static_pointer_cast<SymbolRadialGradient>(gradient);
         outGradient = std::make_shared<SymbolRadialGradient>(radiaGradient->GetCenterPoint(),
             radiaGradient->GetRadiusRatio());
+    }
+
+    if (outGradient == nullptr) {
+        outGradient = std::make_shared<SymbolGradient>();
     }
 
     outGradient->SetTileMode(gradient->GetTileMode());

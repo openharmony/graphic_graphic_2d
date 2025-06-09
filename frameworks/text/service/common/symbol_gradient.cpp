@@ -17,6 +17,121 @@
 #include "utils/text_log.h"
 
 namespace OHOS::Rosen {
+
+void SymbolGradient::SetColors(const std::vector<Drawing::ColorQuad>& colors)
+{
+    colors_ = colors;
+}
+
+void SymbolGradient::SetPositions(const std::vector<float>& positions)
+{
+    positions_ = positions;
+}
+
+void SymbolGradient::SetTileMode(Drawing::TileMode tileMode)
+{
+    tileMode_ = tileMode;
+}
+
+const std::vector<Drawing::ColorQuad>& SymbolGradient::GetColors() const
+{
+    return colors_;
+}
+
+const std::vector<float>& SymbolGradient::GetPositions() const
+{
+    return positions_;
+}
+
+Drawing::TileMode SymbolGradient::GetTileMode() const
+{
+    return tileMode_;
+}
+
+GradientType SymbolGradient::GetGradientType() const
+{
+    return gradientType_;
+}
+
+Drawing::Brush SymbolGradient::CreateGradientBrush()
+{
+    Drawing::Point offset;
+    return CreateGradientBrush(offset);
+}
+
+Drawing::Pen SymbolGradient::CreateGradientPen()
+{
+    Drawing::Point offset;
+    return CreateGradientPen(offset);
+}
+
+Drawing::Brush SymbolGradient::CreateGradientBrush(const Drawing::Point& offset)
+{
+    Drawing::Brush brush;
+    brush.SetAntiAlias(true);
+    if (!colors_.empty()) {
+        brush.SetColor(colors_[0]);
+    }
+    return brush;
+}
+
+Drawing::Pen SymbolGradient::CreateGradientPen(const Drawing::Point& offset)
+{
+    Drawing::Pen pen;
+    pen.SetAntiAlias(true);
+    if (!colors_.empty()) {
+        pen.SetColor(colors_[0]);
+    }
+    return pen;
+}
+
+std::shared_ptr<Drawing::ShaderEffect> SymbolGradient::CreateGradientShader(const Drawing::Point& offset)
+{
+    return nullptr;
+}
+
+bool SymbolGradient::IsNearlyEqual(const std::shared_ptr<SymbolGradient>& gradient)
+{
+    if (gradient == nullptr) {
+        return false;
+    }
+    bool isUnequal = gradientType_ != gradient->GetGradientType() || tileMode_ != gradient->GetTileMode() ||
+        colors_.size() != gradient->GetColors().size() || positions_.size() != gradient->GetPositions().size();
+    if (isUnequal) {
+        return false;
+    }
+
+    auto colors = gradient->GetColors();
+    for (size_t i = 0; i < colors_.size(); i++) {
+        if (colors_[i] != colors[i]) {
+            return false;
+        }
+    }
+
+    auto positions = gradient->GetPositions();
+    for (size_t i = 0; i < positions_.size(); i++) {
+        if (ROSEN_NE<float>(positions_[i], positions[i])) {
+            return false;
+        }
+    }
+    return true;
+}
+
+SymbolLineGradient::SymbolLineGradient(float rangle) : rangle_(rangle)
+{
+    gradientType_ = GradientType::LINE_GRADIENT;
+}
+
+void SymbolLineGradient::SetAngle(float rangle)
+{
+    rangle_ = rangle;
+}
+
+float SymbolLineGradient::GetAngle()
+{
+    return rangle_;
+}
+
 void SymbolLineGradient::Make(const Drawing::Rect& bounds)
 {
     PointsFromAngle(rangle_, bounds, startPoint_, endPoint_);
@@ -115,6 +230,45 @@ void SymbolLineGradient::PointsFromAngle(float angle, const Drawing::Rect& bound
 
     secondPoint = Drawing::Point(halfWidth + endX, halfHeight - endY);
     firstPoint = Drawing::Point(halfWidth - endX, halfHeight + endY);
+}
+
+
+SymbolRadialGradient::SymbolRadialGradient(const Drawing::Point& centerPtRatio, float radiusRatio)
+    : centerPtRatio_(centerPtRatio), radiusRatio_(radiusRatio)
+{
+    gradientType_ = GradientType::RADIAL_GRADIENT;
+}
+
+void SymbolRadialGradient::SetCenterPoint(const Drawing::Point& centerPtRatio)
+{
+    centerPtRatio_ = centerPtRatio;
+}
+
+void SymbolRadialGradient::SetRadiusRatio(float radiusRatio)
+{
+    radiusRatio_ = radiusRatio;
+    isRadiusRatio_ = true;
+}
+
+void SymbolRadialGradient::SetRadius(float radius)
+{
+    radius_ = radius;
+    isRadiusRatio_ = false;
+}
+
+Drawing::Point SymbolRadialGradient::GetCenterPoint()
+{
+    return centerPtRatio_;
+}
+
+float SymbolRadialGradient::GetRadius()
+{
+    return radius_;
+}
+
+float SymbolRadialGradient::GetRadiusRatio()
+{
+    return radiusRatio_;
 }
 
 void SymbolRadialGradient::Make(const Drawing::Rect& bounds)
