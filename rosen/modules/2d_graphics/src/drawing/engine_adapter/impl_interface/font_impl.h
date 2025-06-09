@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,6 +19,8 @@
 #include <cstdint>
 
 #include "draw/path.h"
+#include "draw/brush.h"
+#include "draw/pen.h"
 #include "impl_interface/base_impl.h"
 #include "text/font_metrics.h"
 #include "text/font_types.h"
@@ -72,6 +74,12 @@ public:
 
     virtual scalar MeasureText(const void* text, size_t byteLength, TextEncoding encoding,
         Rect* bounds = nullptr) const = 0;
+    virtual scalar MeasureText(const void* text, size_t byteLength, TextEncoding encoding, Rect* bounds,
+        const Brush* brush, const Pen* pen) const = 0;
+    virtual void GetWidthsBounds(const uint16_t glyphs[], int count, float widths[], Rect bounds[],
+        const Brush* brush, const Pen* pen) const = 0;
+    virtual void GetPos(const uint16_t glyphs[], int count, Point points[], Point origin = {0, 0}) const = 0;
+    virtual float GetSpacing() const = 0;
     virtual int CountText(const void* text, size_t byteLength, TextEncoding encoding) const = 0;
     
     virtual void GetTextPath(const void* text, size_t byteLength,
