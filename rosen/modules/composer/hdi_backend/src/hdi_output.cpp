@@ -177,7 +177,7 @@ void HdiOutput::SetLayerInfo(const std::vector<LayerInfoPtr> &layerInfos)
     ResetLayerStatusLocked();
 }
 
-void HdiOutput::DirtyRegions(uint32_t solidLayerCount, const std::shared_ptr<HdiLayerInfo> &layerInfo)
+void HdiOutput::DirtyRegions(uint32_t solidLayerCount, const LayerInfoPtr &layerInfo)
 {
     std::vector<GraphicIRect> dirtyRegions;
     if (maskLayer_) {
