@@ -946,7 +946,8 @@ void RSUniHwcVisitor::UpdateHwcNodeRectInSkippedSubTree(const RSRenderNode& root
                 HwcDisabledReasons::DISABLED_BY_INVALID_PARAM, hwcNodePtr->GetName());
             continue;
         }
-        if (!IsFindRootSuccess(hwcNodePtr, rootNode)) {
+        auto renderNode = hwcNodePtr->ReinterpretCastTo<RSRenderNode>();
+        if (!IsFindRootSuccess(renderNode, rootNode)) {
             continue;
         }
         RectI clipRect;
