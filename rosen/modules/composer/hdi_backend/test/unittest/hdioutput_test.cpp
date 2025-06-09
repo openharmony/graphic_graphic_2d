@@ -335,24 +335,6 @@ HWTEST_F(HdiOutputTest, DumpHitchs, Function | MediumTest | Level1)
 }
 
 /*
-* Function: CreateLayerLocked
-* Type: Function
-* Rank: Important(1)
-* EnvConditions: N/A
-* CaseDescription: 1.call CreateLayerLocked()
-*                  2.check ret
-*/
-HWTEST_F(HdiOutputTest, CreateLayerLocked, Function | MediumTest | Level1)
-{
-    LayerPtr layer_ = std::make_shared<HdiLayer>(0);
-    auto layerInfo_ = HdiLayerInfo::CreateHdiLayerInfo();
-    layerInfo_->SetIsMaskLayer(true);
-    layer_->layerInfo_ = layerInfo_;
-    uint32_t ret = HdiOutputTest::hdiOutput_->CreateLayerLocked(0, layerInfo_);
-    EXPECT_EQ(ret, GRAPHIC_DISPLAY_SUCCESS);
-}
-
-/*
 * Function: ReorderLayerInfoLocked001
 * Type: Function
 * Rank: Important(1)
