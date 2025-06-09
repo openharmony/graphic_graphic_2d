@@ -946,11 +946,7 @@ void RSUniHwcVisitor::UpdateHwcNodeRectInSkippedSubTree(const RSRenderNode& root
                 HwcDisabledReasons::DISABLED_BY_INVALID_PARAM, hwcNodePtr->GetName());
             continue;
         }
-        auto parent = hwcNodePtr->GetCurCloneNodeParent().lock();
-        if (parent == nullptr) {
-            parent = hwcNodePtr->GetParent().lock();
-        }
-        if (!IsFindRoot(parent, rootNode)) {
+        if (!IsFindRootSuccess(hwcNodePtr, rootNode)) {
             continue;
         }
         RectI clipRect;
@@ -986,17 +982,17 @@ void RSUniHwcVisitor::UpdateHwcNodeRectInSkippedSubTree(const RSRenderNode& root
     }
 }
 
-bool RSUniHwcVisitor::IsFindRoot(std::shared_ptr<RSRenderNode>& parent, const RSRenderNode& rootNode)
+bool RSUniHwcVisitor::IsFindRootSuccess(std::shared_ptr<RSRenderNode>& parent, const RSRenderNode& rootNode)
 {
-    bool isFindInRootSubTree = parent ? parent->GetId() == rootNode.GetId() : false;
-    while (parent && parent != uniRenderVisitor_.curSurfaceNode_ && !isFindInRootSubTree) {
+    bool isFindInRootSubTree = false;
+    do {
         auto cloneNodeParent = parent->GetCurCloneNodeParent().lock();
         parent = cloneNodeParent ? cloneNodeParent : parent->GetParent().lock();
         if (!parent) {
             break;
         }
         isFindInRootSubTree |= parent->GetId() == rootNode.GetId();
-    }
+    } while (!isFindInRootSubTree && parent != uniRenderVisitor_.curSurfaceNode_);
     return isFindInRootSubTree;
 }
 
@@ -1061,11 +1057,11 @@ void RSUniHwcVisitor::UpdateHwcNodeClipRectAndMatrix(const std::shared_ptr<RSSur
         if (hwcNodePtr->GetId() != hwcNodeParent->GetId()) {
             UpdateHwcNodeMatrix(hwcNodeParent, accumulatedMatrix);
         }
-        hwcNodeParent = hwcNodeParent->GetParent().lock();
+        auto cloneNodeParent = hwcNodeParent->GetCurCloneNodeParent().lock();
+        hwcNodeParent = cloneNodeParent ? cloneNodeParent : hwcNodeParent->GetParent().lock();
     }
-    Drawing::Matrix rootNodeAbsMatrix = rootNode.GetRenderProperties().GetBoundsGeometry()->GetAbsMatrix();
     Drawing::Rect absClipRect;
-    rootNodeAbsMatrix.MapRect(absClipRect, childRectMapped);
+    matrix.MapRect(absClipRect, childRectMapped);
     Drawing::Rect prepareClipRect(uniRenderVisitor_.prepareClipRect_.left_,
                                   uniRenderVisitor_.prepareClipRect_.top_,
                                   uniRenderVisitor_.prepareClipRect_.GetRight(),

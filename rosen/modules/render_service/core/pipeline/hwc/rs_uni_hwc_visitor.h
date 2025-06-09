@@ -91,7 +91,7 @@ private:
     RSUniRenderVisitor& uniRenderVisitor_;
 
     // Functions
-    bool IsFindRoot(std::shared_ptr<RSRenderNode>& parent, const RSRenderNode& rootNode);
+    bool IsFindRootSuccess(std::shared_ptr<RSRenderNode>& parent, const RSRenderNode& rootNode);
     void UpdateHwcNodeClipRect(const std::shared_ptr<RSRenderNode>& hwcNodeParent,
         Drawing::Rect& childRectMapped);
     void UpdateHwcNodeMatrix(const std::shared_ptr<RSRenderNode>& hwcNodeParent,
