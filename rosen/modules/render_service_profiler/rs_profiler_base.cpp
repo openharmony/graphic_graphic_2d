@@ -416,7 +416,7 @@ void RSProfiler::FilterMockNode(RSContext& context)
     });
 
     for (auto pid : pidSet) {
-        nodeMap.FilterNodeByPid(pid);
+        nodeMap.FilterNodeByPid(pid, true);
     }
 
     if (auto fallbackNode = nodeMap.GetAnimationFallbackNode()) {

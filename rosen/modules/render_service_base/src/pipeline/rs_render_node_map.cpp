@@ -247,11 +247,11 @@ void RSRenderNodeMap::MoveRenderNodeMap(
     }
 }
 
-void RSRenderNodeMap::FilterNodeByPid(pid_t pid)
+void RSRenderNodeMap::FilterNodeByPid(pid_t pid, bool immediate)
 {
     ROSEN_LOGD("RSRenderNodeMap::FilterNodeByPid removing all nodes belong to pid %{public}llu",
         (unsigned long long)pid);
-    bool useBatchRemoving =
+    bool useBatchRemoving = !immediate &&
         RSUniRenderJudgement::IsUniRender() && RSSystemProperties::GetBatchRemovingOnRemoteDiedEnabled();
     // remove all nodes belong to given pid (by matching higher 32 bits of node id)
     auto iter = renderNodeMap_.find(pid);

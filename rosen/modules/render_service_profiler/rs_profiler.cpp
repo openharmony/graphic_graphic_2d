@@ -631,7 +631,7 @@ void RSProfiler::OnFrameEnd()
     g_renderServiceCpuId = Utils::GetCpuId();
 
     std::string value;
-    constexpr int maxMsgPerFrame = 32;
+    constexpr int maxMsgPerFrame = 1024;
     value = SendMessageBase();
     for (int i = 0; value != "" && i < maxMsgPerFrame; value = SendMessageBase(), i++) {
         if (!value.length()) {
@@ -1366,7 +1366,7 @@ void RSProfiler::KillPid(const ArgList& args)
         const std::string out =
             "parentPid=" + std::to_string(GetPid(parent)) + " parentNode=" + std::to_string(GetNodeId(parent));
 
-        context_->GetMutableNodeMap().FilterNodeByPid(pid);
+        context_->GetMutableNodeMap().FilterNodeByPid(pid, true);
         AwakeRenderServiceThread();
         Respond(out);
     }

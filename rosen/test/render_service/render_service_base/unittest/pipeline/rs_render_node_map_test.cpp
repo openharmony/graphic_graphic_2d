@@ -207,6 +207,40 @@ HWTEST_F(RSRenderNodeMapTest, FilterNodeByPid, TestSize.Level1)
     EXPECT_TRUE(true);
 }
 
+/*
+ * @tc.name: FilterNodeByPid
+ * @tc.desc: Test FilterNodeByPid
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeMapTest, FilterNodeByPidImmediate, Level1)
+{
+    auto renderNodeMap = RSRenderNodeMap();
+    auto displayId = 1;
+    RSDisplayNodeConfig config;
+    auto displayRenderNode = std::make_shared<RSDisplayRenderNode>(displayId, config);
+    renderNodeMap.RegisterDisplayRenderNode(displayRenderNode);
+
+    constexpr uint32_t bits = 32u;
+    constexpr uint64_t nodeId = 1;
+    constexpr uint64_t pid1 = 1;
+    constexpr uint64_t pid2 = 2;
+
+    auto registerNode = [&renderNodeMap](uint64_t pid, uint64_t nodeId) {
+        auto renderNodeId = NodeId((pid << bits) | nodeId);
+        auto renderNode = std::make_shared<RSRenderNode>(renderNodeId);
+        renderNodeMap.RegisterRenderNode(renderNode);
+    };
+
+    registerNode(pid1, nodeId);
+    registerNode(pid2, nodeId);
+
+    EXPECT_EQ(renderNodeMap.GetSize(), 4);
+    renderNodeMap.FilterNodeByPid(pid1, true);
+    EXPECT_EQ(renderNodeMap.GetSize(), 3);
+    renderNodeMap.FilterNodeByPid(pid2, true);
+    EXPECT_EQ(renderNodeMap.GetSize(), 2);
+}
+
 /**
  * @tc.name: FilterNodeByPid
  * @tc.desc: test results of GetRenderNode
