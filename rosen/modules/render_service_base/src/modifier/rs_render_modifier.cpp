@@ -73,6 +73,10 @@ static std::unordered_map<RSModifierType, ModifierUnmarshallingFunc> funcLUT = {
                 ROSEN_LOGE("RSModifierType::EXTENDE Unmarshalling or ReadInt16 failed");
                 return nullptr;
             }
+            if (!prop) {
+                ROSEN_LOGE("RSModifierType::EXTENDE prop is nullptr");
+                return nullptr;
+            }
             RSDrawCmdListRenderModifier* modifier = new RSDrawCmdListRenderModifier(prop);
             modifier->SetType(static_cast<RSModifierType>(type));
             return modifier;
@@ -82,6 +86,10 @@ static std::unordered_map<RSModifierType, ModifierUnmarshallingFunc> funcLUT = {
             std::shared_ptr<RSRenderAnimatableProperty<Color>> prop;
             if (!RSMarshallingHelper::Unmarshalling(parcel, prop)) {
                 ROSEN_LOGE("RSModifierType::ENV_FOREGROUND_COLOR Unmarshalling failed");
+                return nullptr;
+            }
+            if (!prop) {
+                ROSEN_LOGE("RSModifierType::ENV_FOREGROUND_COLOR prop is nullptr");
                 return nullptr;
             }
             auto modifier = new RSEnvForegroundColorRenderModifier(prop);
@@ -94,6 +102,10 @@ static std::unordered_map<RSModifierType, ModifierUnmarshallingFunc> funcLUT = {
                 ROSEN_LOGE("RSModifierType::ENV_FOREGROUND_COLOR_STRATEGY Unmarshalling failed");
                 return nullptr;
             }
+            if (!prop) {
+                ROSEN_LOGE("RSModifierType::ENV_FOREGROUND_COLOR_STRATEGY prop is nullptr");
+                return nullptr;
+            }
             auto modifier = new RSEnvForegroundColorStrategyRenderModifier(prop);
             return modifier;
         },
@@ -104,6 +116,10 @@ static std::unordered_map<RSModifierType, ModifierUnmarshallingFunc> funcLUT = {
                 ROSEN_LOGE("RSModifierType::CUSTOM_CLIP_TO_FRAME Unmarshalling failed");
                 return nullptr;
             }
+            if (!prop) {
+                ROSEN_LOGE("RSModifierType::CUSTOM_CLIP_TO_FRAME prop is nullptr");
+                return nullptr;
+            }
             auto modifier = new RSCustomClipToFrameRenderModifier(prop);
             return modifier;
         },
@@ -112,6 +128,10 @@ static std::unordered_map<RSModifierType, ModifierUnmarshallingFunc> funcLUT = {
             std::shared_ptr<RSRenderAnimatableProperty<float>> prop;
             if (!RSMarshallingHelper::Unmarshalling(parcel, prop)) {
                 ROSEN_LOGE("RSModifierType::HDR_BRIGHTNESS Unmarshalling failed");
+                return nullptr;
+            }
+            if (!prop) {
+                ROSEN_LOGE("RSModifierType::HDR_BRIGHTNESS prop is nullptr");
                 return nullptr;
             }
             auto modifier = new RSHDRBrightnessRenderModifier(prop);
@@ -125,6 +145,10 @@ static std::unordered_map<RSModifierType, ModifierUnmarshallingFunc> funcLUT = {
                 ROSEN_LOGE("RSModifierType::GEOMETRYTRANS Unmarshalling or ReadInt16 failed");
                 return nullptr;
             }
+            if (!prop) {
+                ROSEN_LOGE("RSModifierType::GEOMETRYTRANS prop is nullptr");
+                return nullptr;
+            }
             auto modifier = new RSGeometryTransRenderModifier(prop);
             modifier->SetType(static_cast<RSModifierType>(type));
             return modifier;
@@ -134,6 +158,10 @@ static std::unordered_map<RSModifierType, ModifierUnmarshallingFunc> funcLUT = {
             std::shared_ptr<RSRenderAnimatableProperty<float>> prop;
             if (!RSMarshallingHelper::Unmarshalling(parcel, prop)) {
                 ROSEN_LOGE("RSModifierType::BEHIND_WINDOW_FILTER_RADIUS Unmarshalling failed");
+                return nullptr;
+            }
+            if (!prop) {
+                ROSEN_LOGE("RSModifierType::BEHIND_WINDOW_FILTER_RADIUS prop is nullptr");
                 return nullptr;
             }
             auto modifier = new RSBehindWindowFilterRadiusRenderModifier(prop);
@@ -146,6 +174,10 @@ static std::unordered_map<RSModifierType, ModifierUnmarshallingFunc> funcLUT = {
                 ROSEN_LOGE("RSModifierType::BEHIND_WINDOW_FILTER_SATURATION Unmarshalling failed");
                 return nullptr;
             }
+            if (!prop) {
+                ROSEN_LOGE("RSModifierType::BEHIND_WINDOW_FILTER_SATURATION prop is nullptr");
+                return nullptr;
+            }
             auto modifier = new RSBehindWindowFilterSaturationRenderModifier(prop);
             return modifier;
         },
@@ -154,6 +186,10 @@ static std::unordered_map<RSModifierType, ModifierUnmarshallingFunc> funcLUT = {
             std::shared_ptr<RSRenderAnimatableProperty<float>> prop;
             if (!RSMarshallingHelper::Unmarshalling(parcel, prop)) {
                 ROSEN_LOGE("RSModifierType::BEHIND_WINDOW_FILTER_BRIGHTNESS Unmarshalling failed");
+                return nullptr;
+            }
+            if (!prop) {
+                ROSEN_LOGE("RSModifierType::BEHIND_WINDOW_FILTER_BRIGHTNESS prop is nullptr");
                 return nullptr;
             }
             auto modifier = new RSBehindWindowFilterBrightnessRenderModifier(prop);
@@ -166,6 +202,10 @@ static std::unordered_map<RSModifierType, ModifierUnmarshallingFunc> funcLUT = {
                 ROSEN_LOGE("RSModifierType::BEHIND_WINDOW_FILTER_MASK_COLOR Unmarshalling failed");
                 return nullptr;
             }
+            if (!prop) {
+                ROSEN_LOGE("RSModifierType::BEHIND_WINDOW_FILTER_MASK_COLOR prop is nullptr");
+                return nullptr;
+            }
             auto modifier = new RSBehindWindowFilterMaskColorRenderModifier(prop);
             return modifier;
         },
@@ -174,6 +214,10 @@ static std::unordered_map<RSModifierType, ModifierUnmarshallingFunc> funcLUT = {
             std::shared_ptr<RSRenderAnimatableProperty<std::vector<float>>> prop;
             if (!RSMarshallingHelper::Unmarshalling(parcel, prop)) {
                 ROSEN_LOGE("RSModifierType::COMPLEX_SHADER_PARAM Unmarshalling failed");
+                return nullptr;
+            }
+            if (!prop) {
+                ROSEN_LOGE("RSModifierType::COMPLEX_SHADER_PARAM prop is nullptr");
                 return nullptr;
             }
             auto modifier = new RSComplexShaderParamRenderModifier(prop);
@@ -187,6 +231,10 @@ static std::unordered_map<RSModifierType, ModifierUnmarshallingFunc> funcLUT = {
                 ROSEN_LOGE("RSModifierType::BACKGROUND_UI_FILTER Unmarshalling failed");
                 return nullptr;
             }
+            if (!prop) {
+                ROSEN_LOGE("RSModifierType::BACKGROUND_UI_FILTER prop is nullptr");
+                return nullptr;
+            }
             auto modifier = new RSBackgroundUIFilterRenderModifier(prop);
             return modifier;
         },
@@ -196,6 +244,10 @@ static std::unordered_map<RSModifierType, ModifierUnmarshallingFunc> funcLUT = {
                 std::make_shared<RSRenderProperty<std::shared_ptr<RSRenderFilter>>>();
             if (!RSRenderPropertyBase::Unmarshalling(parcel, prop)) {
                 ROSEN_LOGE("RSModifierType::FOREGROUND_UI_FILTER Unmarshalling failed");
+                return nullptr;
+            }
+            if (!prop) {
+                ROSEN_LOGE("RSModifierType::FOREGROUND_UI_FILTER prop is nullptr");
                 return nullptr;
             }
             auto modifier = new RSForegroundUIFilterRenderModifier(prop);
