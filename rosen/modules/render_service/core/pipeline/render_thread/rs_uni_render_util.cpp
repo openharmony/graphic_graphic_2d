@@ -30,6 +30,7 @@
 #include "drawable/dfx/rs_dirty_rects_dfx.h"
 #include "drawable/rs_display_render_node_drawable.h"
 #include "drawable/rs_surface_render_node_drawable.h"
+#include "feature/anco_manager/rs_anco_manager.h"
 #include "feature/dirty/rs_uni_dirty_compute_util.h"
 #include "feature/uifirst/rs_sub_thread_manager.h"
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
