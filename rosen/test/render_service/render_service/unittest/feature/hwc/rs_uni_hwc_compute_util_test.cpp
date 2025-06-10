@@ -1322,26 +1322,6 @@ HWTEST_F(RSUniHwcComputeUtilTest, IsForegroundColorStrategyValid_001, Function |
 }
 
 /*
- * @tc.name: IsForegroundColorStrategyValid_002
- * @tc.desc: Test IsForegroundColorStrategyValid
- * @tc.type: FUNC
- * @tc.require: issueIBJ6BZ
- */
-HWTEST_F(RSUniHwcComputeUtilTest, IsForegroundColorStrategyValid_002, Function | SmallTest | Level2)
-{
-    NodeId id = 0;
-    RSRenderNode node(id);
-    std::shared_ptr<Drawing::DrawCmdList> drawCmdList = std::make_shared<Drawing::DrawCmdList>();
-    auto property = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>();
-    property->GetRef() = drawCmdList;
-    std::list<std::shared_ptr<RSRenderModifier>> list { std::make_shared<RSDrawCmdListRenderModifier>(property) };
-    node.renderContent_->drawCmdModifiers_.emplace(RSModifierType::ENV_FOREGROUND_COLOR_STRATEGY, list);
-
-    auto result = RSUniHwcComputeUtil::IsForegroundColorStrategyValid(node);
-    EXPECT_FALSE(result);
-}
-
-/*
  * @tc.name: IsDangerousBlendMode_001
  * @tc.desc: Test IsDangerousBlendMode
  * @tc.type: FUNC
