@@ -343,11 +343,7 @@ sk_sp<SkData> SkiaTypeface::SerializeTypeface(SkTypeface* typeface, void* ctx)
         return nullptr;
     }
     TextBlob::Context* textblobCtx = reinterpret_cast<TextBlob::Context*>(ctx);
-#ifdef USE_M133_SKIA
-    if (textblobCtx != nullptr) {
-#else
     if (textblobCtx != nullptr && typeface->isCustomTypeface()) {
-#endif
         sk_sp<SkTypeface> typefacePtr = sk_ref_sp(typeface);
         auto typefaceImpl = std::make_shared<SkiaTypeface>(typefacePtr);
         auto customTypeface = std::make_shared<Typeface>(typefaceImpl);
