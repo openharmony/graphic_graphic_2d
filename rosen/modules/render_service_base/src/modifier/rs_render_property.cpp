@@ -356,10 +356,6 @@ void RSRenderProperty<Vector3f>::Dump(std::string& out) const
 }
 
 template<>
-void RSRenderProperty<Matrix3f>::Dump(std::string& out) const
-{}
-
-template<>
 void RSRenderProperty<Color>::Dump(std::string& out) const
 {
     Get().Dump(out);
@@ -682,7 +678,9 @@ bool RSRenderAnimatableProperty<RRect>::IsNearEqual(
 }
 
 #define DECLARE_PROPERTY(T, TYPE_ENUM) template class RSRenderProperty<T>
-#define DECLARE_ANIMATABLE_PROPERTY(T, TYPE_ENUM) template class RSRenderAnimatableProperty<T>
+#define DECLARE_ANIMATABLE_PROPERTY(T, TYPE_ENUM) \
+    template class RSRenderAnimatableProperty<T>; \
+    template class RSRenderProperty<T>
 
 #include "modifier/rs_property_def.in"
 

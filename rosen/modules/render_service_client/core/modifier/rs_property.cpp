@@ -391,5 +391,16 @@ bool RSProperty<Vector4f>::IsValid(const Vector4f& value)
 {
     return !value.IsInfinite();
 }
+
+#define DECLARE_PROPERTY(T, TYPE_ENUM) template class RSProperty<T>
+#define DECLARE_ANIMATABLE_PROPERTY(T, TYPE_ENUM) \
+    template class RSAnimatableProperty<T>;       \
+    template class RSProperty<T>
+
+#include "modifier/rs_property_def.in"
+
+#undef DECLARE_PROPERTY
+#undef DECLARE_ANIMATABLE_PROPERTY
+
 } // namespace Rosen
 } // namespace OHOS

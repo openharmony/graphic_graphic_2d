@@ -210,7 +210,7 @@ bool RSRenderEdgeLightFilterPara::ParseFilterValues()
 
     // bloom
     auto edgeLightBloom = std::static_pointer_cast<RSRenderProperty<bool>>(
-        GetRenderPropert(RSUIFilterType::EDGE_LIGHT_BLOOM));
+        GetRenderProperty(RSUIFilterType::EDGE_LIGHT_BLOOM));
     if (edgeLightBloom == nullptr) {
         return false;
     }

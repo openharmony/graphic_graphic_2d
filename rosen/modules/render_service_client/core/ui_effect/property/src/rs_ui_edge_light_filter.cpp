@@ -207,8 +207,7 @@ bool RSUIEdgeLightFilterPara::CreateRSRenderFilterBloom(
         return false;
     }
 
-    auto renderBloom = std::make_shared<RSRenderProperty<bool>>(
-        bloom->Get(), bloom->GetId(), RSPropertyType::BOOL);
+    auto renderBloom = std::make_shared<RSRenderProperty<bool>>(bloom->Get(), bloom->GetId());
     frProperty->Setter(RSUIFilterType::EDGE_LIGHT_BLOOM, renderBloom);
     return true;
 }

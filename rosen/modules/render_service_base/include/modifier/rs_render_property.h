@@ -148,7 +148,7 @@ public:
     virtual size_t GetSize() const = 0;
 
 protected:
-    virtual bool RSB_EXPORT Marshalling(Parcel& parcel) = 0;
+    virtual bool Marshalling(Parcel& parcel) = 0;
     [[nodiscard]] static bool Unmarshalling(Parcel& parcel, std::shared_ptr<RSRenderPropertyBase>& val);
 
     void OnChange() const;
@@ -303,16 +303,16 @@ public:
         updateUIPropertyFunc_ = updateUIPropertyFunc;
     }
 
+protected:
+    T stagingValue_{};
+    inline static const RSPropertyType type_ = RSPropertyType::INVALID;
+    std::function<void(const std::shared_ptr<RSRenderPropertyBase>&)> updateUIPropertyFunc_;
+
     RSPropertyType GetPropertyType() const override
     {
         return type_;
     }
 
-protected:
-    T stagingValue_;
-    inline static const RSPropertyType type_ = RSPropertyType::INVALID;
-
-    std::function<void(const std::shared_ptr<RSRenderPropertyBase>&)> updateUIPropertyFunc_;
     bool Marshalling(Parcel& parcel) override
     {
         // Planning: use static_assert to limit the types that can be used with RSRenderProperty.
@@ -504,8 +504,6 @@ RSB_EXPORT void RSRenderProperty<Vector3f>::Dump(std::string& out) const;
 template<>
 RSB_EXPORT void RSRenderProperty<Vector4f>::Dump(std::string& out) const;
 template<>
-RSB_EXPORT void RSRenderProperty<Matrix3f>::Dump(std::string& out) const;
-template<>
 RSB_EXPORT void RSRenderProperty<Color>::Dump(std::string& out) const;
 template<>
 RSB_EXPORT void RSRenderProperty<Vector4<Color>>::Dump(std::string& out) const;
@@ -574,7 +572,9 @@ RSB_EXPORT size_t RSRenderProperty<Drawing::DrawCmdListPtr>::GetSize() const;
 
 #if defined(_WIN32)
 #define DECLARE_PROPERTY(T, TYPE_ENUM) extern template class RSRenderProperty<T>
-#define DECLARE_ANIMATABLE_PROPERTY(T, TYPE_ENUM) extern template class RSRenderAnimatableProperty<T>
+#define DECLARE_ANIMATABLE_PROPERTY(T, TYPE_ENUM)        \
+    extern template class RSRenderAnimatableProperty<T>; \
+    extern template class RSRenderProperty<T>
 #else
 #define DECLARE_PROPERTY(T, TYPE_ENUM) \
     template<>                         \

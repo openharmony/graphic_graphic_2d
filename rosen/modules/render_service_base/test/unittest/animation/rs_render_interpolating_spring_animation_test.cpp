@@ -138,7 +138,7 @@ HWTEST_F(RSRenderInterpolatingSpringAnimationTest, Marshalling003, TestSize.Leve
     Parcel parcel;
     renderInterpolatingSpringAnimation->isAdditive_ = true;
     auto result = renderInterpolatingSpringAnimation->Marshalling(parcel);
-    EXPECT_FALSE(result);
+    EXPECT_TRUE(result);
 }
 
 /**
@@ -163,7 +163,7 @@ HWTEST_F(RSRenderInterpolatingSpringAnimationTest, Marshalling004, TestSize.Leve
     Parcel parcel;
     renderInterpolatingSpringAnimation->isAdditive_ = false;
     auto result = renderInterpolatingSpringAnimation->Marshalling(parcel);
-    EXPECT_FALSE(result);
+    EXPECT_TRUE(result);
 }
 
 /**
@@ -188,7 +188,7 @@ HWTEST_F(RSRenderInterpolatingSpringAnimationTest, Marshalling005, TestSize.Leve
     Parcel parcel;
     renderInterpolatingSpringAnimation->isAdditive_ = true;
     auto result = renderInterpolatingSpringAnimation->Marshalling(parcel);
-    EXPECT_FALSE(result);
+    EXPECT_TRUE(result);
 }
 
 /**
@@ -213,7 +213,7 @@ HWTEST_F(RSRenderInterpolatingSpringAnimationTest, Marshalling006, TestSize.Leve
     Parcel parcel;
     renderInterpolatingSpringAnimation->isAdditive_ = true;
     auto result = renderInterpolatingSpringAnimation->Marshalling(parcel);
-    EXPECT_FALSE(result);
+    EXPECT_TRUE(result);
 }
 
 /**

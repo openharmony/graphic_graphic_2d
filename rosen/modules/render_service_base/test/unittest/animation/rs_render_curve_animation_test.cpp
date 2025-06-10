@@ -146,7 +146,7 @@ HWTEST_F(RSRenderCurveAnimationTest, Marshalling004, TestSize.Level1)
 
     Parcel parcel;
     auto result = renderCurveAnimation->Marshalling(parcel);
-    EXPECT_FALSE(result);
+    EXPECT_TRUE(result);
 }
 
 /**
@@ -377,7 +377,7 @@ HWTEST_F(RSRenderCurveAnimationTest, ParseParam002, TestSize.Level1)
 
     Parcel parcel;
     auto result = renderCurveAnimation->Marshalling(parcel);
-    EXPECT_FALSE(result);
+    EXPECT_TRUE(result);
     auto renderCurveAnimation1 = std::make_shared<RSRenderCurveAnimation>();
     result = renderCurveAnimation1->ParseParam(parcel);
     EXPECT_FALSE(result);
