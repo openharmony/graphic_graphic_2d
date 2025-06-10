@@ -224,7 +224,6 @@ template("graphics2d_source_set") {
       defines += [ "USE_M133_SKIA" ]
     }
 
-    deps = [ "$graphic_2d_root/utils/color_manager:color_manager"]
     if (defined(graphic_2d_feature_enable_sdf) &&
         graphic_2d_feature_enable_sdf) {
       deps += [ "graphic_2d_ext:libsdf" ]
@@ -322,6 +321,7 @@ template("graphics2d_source_set") {
       ]
 
     } else {
+      deps = []
       cflags += [ "-std=c++17" ]
 
       deps += [ "$rosen_root/modules/platform:hilog" ]
@@ -364,6 +364,7 @@ template("graphics2d_source_set") {
       ]
       external_deps += [ "c_utils:utils" ]
       public_external_deps += [ "graphic_surface:surface" ]
+      deps += [ "$graphic_2d_root/utils/color_manager:color_manager"]
     }
 
     part_name = "graphic_2d"

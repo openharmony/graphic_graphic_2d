@@ -263,7 +263,7 @@ static void HandlePathVerbSegments(PathVerb verb, PathIter& pathIter, const Poin
                 errorSquared, false);
             break;
         case PathVerb::CUBIC:
-            UtilsPath::AddBezier(points, UtilsPath::CalculationCubicBezier, approxPoints, approxLengths,
+            UtilsPath::AddBezier(points, UtilsPath::CalculateCubicBezier, approxPoints, approxLengths,
                 errorSquared, true);
             break;
         case PathVerb::CONIC:
@@ -291,7 +291,7 @@ void Path::Approximate(scalar acceptableError, std::vector<scalar>& outApproxVal
         HandlePathVerbSegments(verb, pathIter, tpoints, approxPoints, approxLengths, errorSquared, errorConic);
     }
     if (approxPoints.empty()) {
-        size_t verbCount = this->CountVerbs();
+        int verbCount = this->CountVerbs();
         if (verbCount == 1) {
             Point pt = this->GetPoint(0);
             UtilsPath::AddMove(pt, approxPoints, approxLengths);

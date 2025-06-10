@@ -33,7 +33,7 @@ public:
     static void AddMove(const Point& toPoint, std::vector<Point>& approxPoints, std::vector<float>& approxLengths);
     static void AddLine(const Point& toPoint, std::vector<Point>& approxPoints, std::vector<float>& approxLengths);
     static Point CalculateQuadraticBezier(float t, const Point* points);
-    static Point CalculationCubicBezier(float t, const Point* points);
+    static Point CalculateCubicBezier(float t, const Point* points);
     static void AddBezier(const Point* points, BezierFunction calculationBezier, std::vector<Point>& approxPoints,
         std::vector<float>& approxLengths, float errorSquared, bool doubleCheckDivision);
     static void AddConic(PathIter& pathIter, const Point* points, std::vector<Point>& approxPoints,

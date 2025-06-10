@@ -111,19 +111,19 @@ HWTEST_F(UtilsPathTest, UtilsPathCalculateQuadraticBezier001, TestSize.Level1)
 }
 
 /**
- * @tc.name: UtilsPathCalculationCubicBezier001
- * @tc.desc: Test CalculationCubicBezier
+ * @tc.name: UtilsPathCalculateCubicBezier001
+ * @tc.desc: Test CalculateCubicBezier
  * @tc.type: FUNC
  * @tc.require: ICAWXU
  */
-HWTEST_F(UtilsPathTest, UtilsPathCalculationCubicBezier001, TestSize.Level1)
+HWTEST_F(UtilsPathTest, UtilsPathCalculateCubicBezier001, TestSize.Level1)
 {
     Point pts[4] = { Point(0, 0), Point(1, 3), Point(3, 3), Point(4, 0) }; // 1, 3, 4 are x, y coordinates
-    Point p0 = UtilsPath::CalculationCubicBezier(0.0f, pts);
+    Point p0 = UtilsPath::CalculateCubicBezier(0.0f, pts);
     EXPECT_EQ(p0, pts[0]);
-    Point p1 = UtilsPath::CalculationCubicBezier(1.0f, pts);
+    Point p1 = UtilsPath::CalculateCubicBezier(1.0f, pts);
     EXPECT_EQ(p1, pts[3]);
-    Point pmid = UtilsPath::CalculationCubicBezier(0.5f, pts); // 0.5f should be the midpoint
+    Point pmid = UtilsPath::CalculateCubicBezier(0.5f, pts); // 0.5f should be the midpoint
     EXPECT_EQ(pmid, Point(2.0f, 2.25f));                       // 2.0f, 2.25f are x, y coordinates
 }
 
