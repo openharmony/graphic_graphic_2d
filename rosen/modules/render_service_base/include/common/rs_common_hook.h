@@ -57,11 +57,11 @@ private:
     // use to implement product isolation for the adaptive P3 scheme
     std::atomic<bool> isAdaptiveColorGamutEnable_{false};
 
-    // use in updating hwcnode hardware state with background alpha
+    // use in updating hwc node hardware state with background alpha
     std::atomic<bool> hardwareEnabledByHwcnodeSkippedFlag_{false};
     std::atomic<bool> hardwareEnabledByBackgroundAlphaSkippedFlag_{false};
     std::atomic<bool> isWhiteListForSolidColorLayerFlag_{false};
-    // use in updating hwcnode hardware state with hwc node below self in app
+    // use in updating hwc node hardware state with hwc node below self in app
     std::atomic<bool> isWhiteListForEnableHwcNodeBelowSelfInApp_{false};
     
     std::function<void(FrameRateRange& range)> componentPowerFpsFunc_ = nullptr;
