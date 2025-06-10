@@ -1125,10 +1125,10 @@ HWTEST_F(RSUniHwcComputeUtilTest, IntersectRect_002, Function | SmallTest | Leve
     Drawing::Rect rectf1(1.0f, 2.0f, 3.0f, 4.0f);
     Drawing::Rect rectf2(1.0f, 2.0f, 3.0f, 5.0f);
     RSUniHwcComputeUtil::IntersectRect(rectf1, rectf2);
-    EXPECT_EQ(1.0f, rectf2.GetLeft());
-    EXPECT_EQ(2.0f, rectf2.GetTop());
-    EXPECT_EQ(3.0f, rectf2.GetRight());
-    EXPECT_EQ(4.0f, rectf2.GetBottom());
+    EXPECT_EQ(1.0f, rectf1.GetLeft());
+    EXPECT_EQ(2.0f, rectf1.GetTop());
+    EXPECT_EQ(3.0f, rectf1.GetRight());
+    EXPECT_EQ(4.0f, rectf1.GetBottom());
 }
 
 /**
@@ -1207,7 +1207,7 @@ HWTEST_F(RSUniHwcComputeUtilTest, IS_ANY_NULLPTR_002, Function | SmallTest | Lev
     char* ptr2 = nullptr;
     float* ptr3 = new float;
     auto result = RSUniHwcComputeUtil::IS_ANY_NULLPTR(ptr1, ptr2, ptr3);
-    EXPECT_FALSE(result);
+    EXPECT_TRUE(result);
     delete ptr1;
     delete ptr2;
     delete ptr3;
