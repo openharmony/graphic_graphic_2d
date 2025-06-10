@@ -480,6 +480,7 @@ HWTEST_F(RSPropertyDrawableForegroundTest, DrawLightTest001, TestSize.Level1)
     pointLightDrawableTest->lightSourcesAndPosVec_.emplace_back(
         std::make_shared<RSLightSource>(), Vector4f(0.0f, 0.0f, 1.0f, 1.0f));
     pointLightDrawableTest->DrawLight(&canvasTest4);
+    pointLightDrawableTest->lightSourcesAndPosVec_.clear();
 
     Drawing::Canvas canvasTest5;
     pointLightDrawableTest->illuminatedType_ = IlluminatedType::FEATHERING_BORDER;
