@@ -59,6 +59,7 @@ rs_display_effect_sources = [
   "rs_display_effect/property_display/geom_transform_test.cpp",
   "rs_display_effect/property_display/geom_translation_test.cpp",
 ]
+rs_effect_feature_sources = [ "rs_effect_feature/effect_background_blur_test.cpp" ]
 rs_framework_sources = []
 rs_func_feature_sources = [
   "rs_func_feature/component_capture/demo.cpp",
@@ -79,6 +80,7 @@ ohos_unittest("RSGraphicTest") {
   sources += hardware_manager_sources
   sources += open_capability_sources
   sources += rs_display_effect_sources
+  sources += rs_effect_feature_sources
   sources += rs_framework_sources
   sources += rs_func_feature_sources
   sources += rs_perform_feature_sources
