@@ -546,6 +546,19 @@ namespace drawing {
     }
 
     /**
+     * Creates a ColorFilter object with a given color and blend mode.
+     * @param { common2D.Color } color - Color in ARGB format. The value of each color channel is an integer ranging from 0 to 255.
+     * @param { BlendMode } mode - Blend mode.
+     * @returns { ColorFilter } Colorfilter object.
+     * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
+     * <br>2. Incorrect parameter types; 3. Parameter verification failed.
+     * @static
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 11
+     */
+    static native createBlendModeColorFilter(color: common2D.Color, mode: BlendMode): ColorFilter;
+
+    /**
      * Makes a color filter with the give n ARGB color of hexadecimal format and blend mode.
      * @param { common2D.Color | number } color - Number must be ARGB color of hexadecimal format.
      * @param { BlendMode } mode - BlendMode.
