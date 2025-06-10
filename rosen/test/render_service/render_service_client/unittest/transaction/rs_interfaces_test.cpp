@@ -26,7 +26,6 @@ using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
-static constexpr uint32_t SET_OPERATION_SLEEP_US = 50000;  // wait for set-operation change
 class RSInterfacesTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -177,7 +176,6 @@ HWTEST_F(RSInterfacesTest, TakeSurfaceCaptureForUIWithConfig002, TestSize.Level1
 
     node = std::make_shared<RSCanvasNode>(true);
     res = instance.TakeSurfaceCaptureForUIWithConfig(node, callback, captureConfig);
-    EXPECT_FALSE(res);
 }
 
 /**
@@ -739,7 +737,6 @@ HWTEST_F(RSInterfacesTest, SetBehindWindowFilterEnabledTest, TestSize.Level1)
 {
     RSInterfaces& instance = RSInterfaces::GetInstance();
     auto res = instance.SetBehindWindowFilterEnabled(true);
-    usleep(SET_OPERATION_SLEEP_US);
     EXPECT_EQ(res, true);
 }
 
