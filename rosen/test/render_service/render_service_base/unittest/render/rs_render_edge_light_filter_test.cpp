@@ -190,14 +190,12 @@ HWTEST_F(RSRenderEdgeLightFilterTest, ParcelBoolTest001, TestSize.Level1)
     ASSERT_NE(v4fProperty1, nullptr);
     Parcel parcel2;
     EXPECT_TRUE(RSMarshallingHelper::Marshalling(parcel2, v4fProperty1));
-    v4fProperty1->SetPropertyType(RSPropertyType::BOOL);
     EXPECT_TRUE(RSMarshallingHelper::Unmarshalling(parcel2, v4fProperty1));
 
     auto boolProperty2 = rsRenderEdgeLightFilterPara->CreateRenderProperty(RSUIFilterType::EDGE_LIGHT_BLOOM);
     ASSERT_NE(boolProperty2, nullptr);
     auto v4fProperty2 = rsRenderEdgeLightFilterPara->CreateRenderProperty(RSUIFilterType::EDGE_LIGHT_COLOR);
     ASSERT_NE(v4fProperty2, nullptr);
-    v4fProperty2->SetPropertyType(RSPropertyType::BOOL);
     Parcel parcel3;
     EXPECT_TRUE(RSMarshallingHelper::Marshalling(parcel3, v4fProperty2));
     EXPECT_TRUE(RSMarshallingHelper::Unmarshalling(parcel3, boolProperty2));
