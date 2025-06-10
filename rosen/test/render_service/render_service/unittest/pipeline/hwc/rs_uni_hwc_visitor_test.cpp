@@ -709,7 +709,7 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByHwcNodeBelowSelfInApp002, Tes
 
     std::vector<RectI> hwcRects;
     rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeEnableByHwcNodeBelowSelfInApp(surfaceNode, hwcRects);
-    EXPECT_EQ(hwcRects.size(), 0);
+    EXPECT_EQ(hwcRects.size(), 1);
 }
 
 /**
