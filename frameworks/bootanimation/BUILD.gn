@@ -151,13 +151,3 @@ ohos_prebuilt_etc("bootanimation_para") {
   subsystem_name = "graphic"
 }
 ## Install boot animation para to /system/etc/param/ }}}
-
-## Install bootanimation.rc to /system/etc/init/bootanimation.rc {{{
-ohos_prebuilt_etc("bootanimation.rc") {
-  source = "bootanimation.cfg"
-  relative_install_dir = "init"
-  part_name = "graphic_2d"
-  subsystem_name = "graphic"
-}
-
-## Install bootanimation.rc to /system/etc/init/bootanimation.rc }}}
