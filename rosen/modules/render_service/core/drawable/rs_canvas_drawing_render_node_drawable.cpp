@@ -724,6 +724,7 @@ bool RSCanvasDrawingRenderNodeDrawable::ResetSurfaceForVK(int width, int height,
             surface_ = Drawing::Surface::MakeRaster(info);
             if (!surface_) {
                 RS_LOGE("RSCanvasDrawingRenderNodeDrawable::ResetSurface surface is nullptr");
+                ResetSurface();
                 return false;
             }
             recordingCanvas_ = std::make_shared<ExtendRecordingCanvas>(width, height, false);
@@ -736,6 +737,7 @@ bool RSCanvasDrawingRenderNodeDrawable::ResetSurfaceForVK(int width, int height,
 #endif
     if (!surface_) {
         RS_LOGE("RSCanvasDrawingRenderNodeDrawable::ResetSurface surface is nullptr");
+        ResetSurface();
         return false;
     }
     recordingCanvas_ = nullptr;
@@ -855,6 +857,7 @@ bool RSCanvasDrawingRenderNodeDrawable::GpuContextResetVK(
         if (!surface_) {
             RS_LOGE("RSCanvasDrawingRenderNodeDrawable::VK Reset surface is nullptr, nodeId[%{public}" PRIu64 "]",
                 GetId());
+            ResetSurface();
             return false;
         }
         recordingCanvas_ = std::make_shared<ExtendRecordingCanvas>(width, height, false);
