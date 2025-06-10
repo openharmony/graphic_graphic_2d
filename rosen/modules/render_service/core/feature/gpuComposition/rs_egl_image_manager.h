@@ -30,7 +30,7 @@ namespace OHOS {
 namespace Rosen {
 class EglImageResource : public ImageResource {
 public:
-    static std::shared_ptr<ImageResource> Create(EGLDisplay eglDisplay, EGLContext eglContext,
+    static std::unique_ptr<ImageResource> Create(EGLDisplay eglDisplay, EGLContext eglContext,
         const sptr<OHOS::SurfaceBuffer>& buffer);
 
     EglImageResource(EGLDisplay eglDisplay, EGLImageKHR eglImage, EGLClientBuffer eglClientBuffer)
@@ -49,8 +49,6 @@ private:
     EGLImageKHR eglImage_ = EGL_NO_IMAGE_KHR;
     EGLClientBuffer eglClientBuffer_ = nullptr;
     GLuint textureId_ = 0;
-
-    friend class RSImageManager;
 };
 
 class RSEglImageManager : public RSImageManager {
@@ -59,8 +57,6 @@ public:
     ~RSEglImageManager() noexcept override = default;
 
     void UnMapImageFromSurfaceBuffer(int32_t seqNum) override;
-    std::shared_ptr<ImageResource> CreateImageCacheFromBuffer(const sptr<OHOS::SurfaceBuffer>& buffer,
-        const sptr<SyncFence>& acquireFence) override;
     std::shared_ptr<Drawing::Image> CreateImageFromBuffer(
         RSPaintFilterCanvas& canvas, const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence,
         const uint32_t threadIndex, const std::shared_ptr<Drawing::ColorSpace>& drawingColorSpace) override;
@@ -69,6 +65,8 @@ public:
         const sptr<SyncFence>& acquireFence, pid_t threadIndex);
     void UnMapEglImageFromSurfaceBufferForUniRedraw(int32_t seqNum);
     void ShrinkCachesIfNeeded(bool isForUniRedraw = false) override; // only used for divided_render
+    std::unique_ptr<ImageResource> CreateImageCacheFromBuffer(const sptr<OHOS::SurfaceBuffer>& buffer,
+        const sptr<SyncFence>& acquireFence) override;
 
 private:
     void WaitAcquireFence(const sptr<SyncFence>& acquireFence);
@@ -78,6 +76,7 @@ private:
     static constexpr size_t MAX_CACHE_SIZE = 16;
     EGLDisplay eglDisplay_ = EGL_NO_DISPLAY;
     std::queue<int32_t> cacheQueue_; // fifo, size restricted by MAX_CACHE_SIZE
+    std::unordered_map<int32_t, std::unique_ptr<ImageResource>> imageCacheSeqs_; // guarded by opMutex_
 };
 } // namespace Rosen
 } // namespace OHOS

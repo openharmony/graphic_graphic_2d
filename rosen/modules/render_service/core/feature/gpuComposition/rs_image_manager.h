@@ -68,9 +68,9 @@ public:
     // EGL virtual functions
     virtual GLuint GetTextureId() const { return 0; }
 
-    pid_t threadIndex_;
 protected:
     ImageResource() = default;
+    pid_t threadIndex_;
 };
 
 class RSImageManager {
@@ -80,8 +80,6 @@ public:
     virtual ~RSImageManager() = default;
 
     virtual void UnMapImageFromSurfaceBuffer(int32_t seqNum) = 0;
-    virtual std::shared_ptr<ImageResource> CreateImageCacheFromBuffer(const sptr<OHOS::SurfaceBuffer>& buffer,
-        const sptr<SyncFence>& acquireFence) = 0;
     virtual std::shared_ptr<Drawing::Image> CreateImageFromBuffer(
         RSPaintFilterCanvas& canvas, const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence,
         const uint32_t threadIndex, const std::shared_ptr<Drawing::ColorSpace>& drawingColorSpace) = 0;
@@ -89,16 +87,17 @@ public:
     // Vulkan specific functions
 #ifdef RS_ENABLE_VK
     virtual void DumpVkImageInfo(std::string &dumpString) { return; }
+    virtual std::shared_ptr<ImageResource> CreateImageCacheFromBuffer(const sptr<OHOS::SurfaceBuffer> buffer,
+        const sptr<SyncFence>& acquireFence) { return nullptr; }
 #endif // RS_ENABLE_VK
 
     // EGL specific functions
     virtual void ShrinkCachesIfNeeded(bool isForUniRedraw = false) { return; }
-
-    bool isUseVulkan = false;
+    virtual std::unique_ptr<ImageResource> CreateImageCacheFromBuffer(const sptr<OHOS::SurfaceBuffer>& buffer,
+        const sptr<SyncFence>& acquireFence) { return nullptr; }
 protected:
     RSImageManager() = default;
     mutable std::mutex opMutex_;
-    std::unordered_map<int32_t, std::shared_ptr<ImageResource>> imageCacheSeqs_;
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -283,38 +283,14 @@ HWTEST_F(RSVKImageManagerTest, CreateImageCacheFromBuffer001, TestSize.Level1)
 HWTEST_F(RSVKImageManagerTest, CreateTest, TestSize.Level1)
 {
     std::shared_ptr<RSImageManager> imageManager;
+    std::shared_ptr<RenderContext> renderContext = std::make_shared<RenderContext>;
 #ifdef RS_ENABLE_VK
-    imageManager = RSImageManager::Create();
+    imageManager = RSImageManager::Create(renderContext);
     ASSERT_NE(imageManager, nullptr);
 #endif // RS_ENABLE_VK
 #ifdef RS_ENABLE_GL
-    imageManager = RSImageManager::Create();
+    imageManager = RSImageManager::Create(renderContext);
     ASSERT_NE(imageManager, nullptr);
-#endif // RS_ENABLE_GL
-}
-
-/**
- * @tc.name: CreateImageResourceTest
- * @tc.desc: CreateImageResourceTest
- * @tc.type: FUNC
- * @tc.require: issueI6QHNP
- */
-HWTEST_F(RSVKImageManagerTest, CreateImageResourceTest, TestSize.Level1)
-{
-    std::shared_ptr<ImageResource> imageResource;
-#ifdef RS_ENABLE_VK
-    NativeWindowBuffer* nativeWindowBuffer = nullptr;
-    Drawing::BackendTexture backendTexture = Drawing::BackendTexture();
-    NativeBufferUtils::VulkanCleanupHelper* vulkanCleanupHelper = nullptr;
-    imageResource = ImageResource::VkCreate(nativeWindowBuffer, backendTexture, vulkanCleanupHelper);
-    ASSERT_NE(imageResource, nullptr);
-#endif // RS_ENABLE_VK
-#ifdef RS_ENABLE_GL
-    EGLDisplay eglDisplay = EGL_NO_DISPLAY;
-    EGLImageKHR eglImage = EGL_NO_IMAGE_KHR;
-    EGLClientBuffer eglClientBuffer = nullptr;
-    imageResource = ImageResource::EglCreate(eglDisplay, eglImage, eglClientBuffer);
-    ASSERT_NE(imageResource, nullptr);
 #endif // RS_ENABLE_GL
 }
 } // namespace OHOS::Rosen

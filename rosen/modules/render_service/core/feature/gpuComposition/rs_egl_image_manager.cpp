@@ -208,7 +208,7 @@ bool EglImageResource::BindToTexture()
     return true;
 }
 
-std::shared_ptr<ImageResource> EglImageResource::Create(
+std::unique_ptr<ImageResource> EglImageResource::Create(
     EGLDisplay eglDisplay,
     EGLContext eglContext,
     const sptr<OHOS::SurfaceBuffer>& buffer)
@@ -225,12 +225,12 @@ std::shared_ptr<ImageResource> EglImageResource::Create(
         return nullptr;
     }
 
-    auto imageCache = std::make_shared<EglImageResource>(
+    auto imageCache = std::make_unique<EglImageResource>(
         eglDisplay, img, Detail::CastToEGLClientBuffer(nativeBuffer.Release()));
     if (!imageCache->BindToTexture()) {
         return nullptr;
     }
-    return std::static_pointer_cast<ImageResource>(imageCache);
+    return imageCache;
 }
 
 void RSEglImageManager::WaitAcquireFence(const sptr<SyncFence>& acquireFence)
@@ -261,7 +261,7 @@ GLuint RSEglImageManager::CreateImageCacheFromBuffer(const sptr<OHOS::SurfaceBuf
     return textureId;
 }
 
-std::shared_ptr<ImageResource> RSEglImageManager::CreateImageCacheFromBuffer(const sptr<OHOS::SurfaceBuffer>& buffer,
+std::unique_ptr<ImageResource> RSEglImageManager::CreateImageCacheFromBuffer(const sptr<OHOS::SurfaceBuffer>& buffer,
     const sptr<SyncFence>& acquireFence)
 {
     WaitAcquireFence(acquireFence);
@@ -321,7 +321,7 @@ void RSEglImageManager::UnMapImageFromSurfaceBuffer(int32_t seqNum)
         }
     }
     auto func = [this, seqNum]() {
-        std::shared_ptr<ImageResource> imageCacheSeq;
+        std::unique_ptr<ImageResource> imageCacheSeq;
         {
             std::lock_guard<std::mutex> lock(opMutex_);
             if (imageCacheSeqs_.count(seqNum) == 0) {
@@ -352,13 +352,11 @@ std::shared_ptr<Drawing::Image> RSEglImageManager::CreateImageFromBuffer(
     RSPaintFilterCanvas& canvas, const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence,
     const uint32_t threadIndex, const std::shared_ptr<Drawing::ColorSpace>& drawingColorSpace)
 {
-#if (defined(RS_ENABLE_EGLIMAGE) && defined(RS_ENABLE_GPU))
-#if defined(RS_ENABLE_GL)
+#if defined(RS_ENABLE_EGLIMAGE) && defined(RS_ENABLE_GPU) && defined(RS_ENABLE_GL)
     if (!RSSystemProperties::IsUseVulkan() && canvas.GetGPUContext() == nullptr) {
         RS_LOGE("RSBaseRenderEngine::CreateEglImageFromBuffer GrContext is null!");
         return nullptr;
     }
-#endif // RS_ENABLE_GL
     auto eglTextureId = MapEglImageFromSurfaceBuffer(buffer, acquireFence, threadIndex);
     if (eglTextureId == 0) {
         RS_LOGE("RSBaseRenderEngine::CreateEglImageFromBuffer MapEglImageFromSurfaceBuffer return invalid texture ID");
@@ -377,8 +375,6 @@ std::shared_ptr<Drawing::Image> RSEglImageManager::CreateImageFromBuffer(
 #else
     auto surfaceOrigin = Drawing::TextureOrigin::BOTTOM_LEFT;
 #endif
-
-#if defined(RS_ENABLE_GL)
     externalTextureInfo.SetIsMipMapped(false);
     externalTextureInfo.SetTarget(GL_TEXTURE_EXTERNAL_OES);
     externalTextureInfo.SetID(eglTextureId);
@@ -395,7 +391,6 @@ std::shared_ptr<Drawing::Image> RSEglImageManager::CreateImageFromBuffer(
         RS_LOGE("RSBaseRenderEngine::CreateEglImageFromBuffer image BuildFromTexture failed");
         return nullptr;
     }
-#endif
     return image;
 #else
     return nullptr;

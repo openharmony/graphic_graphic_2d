@@ -83,7 +83,7 @@ std::shared_ptr<ImageResource> VkImageResource::Create(sptr<OHOS::SurfaceBuffer>
         DestroyNativeWindowBuffer(nativeWindowBuffer);
         return nullptr;
     }
-    return std::make_shared<VkImageResource>(
+    return std::unique_ptr<VkImageResource>(
         nativeWindowBuffer,
         backendTexture,
         new NativeBufferUtils::VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
@@ -153,7 +153,7 @@ std::shared_ptr<ImageResource> RSVkImageManager::MapVkImageFromSurfaceBuffer(
     }
 }
 
-std::shared_ptr<ImageResource> RSVkImageManager::CreateImageCacheFromBuffer(const sptr<OHOS::SurfaceBuffer>& buffer,
+std::shared_ptr<ImageResource> RSVkImageManager::CreateImageCacheFromBuffer(const sptr<OHOS::SurfaceBuffer> buffer,
     const sptr<SyncFence>& acquireFence)
 {
     WaitAcquireFence(acquireFence);
