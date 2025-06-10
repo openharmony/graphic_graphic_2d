@@ -4060,7 +4060,7 @@ HWTEST_F(RSScreenManagerTest, OnRefresh, TestSize.Level1)
     EXPECT_NE(screenManagerImpl, nullptr);
 
     ScreenId sId = 100;
-    RSScreenManager* screenManager = new OHOS::Rosen::impl::RSScreenManager();
+    auto screenManager = sptr<impl::RSScreenManager>::MakeSptr();
     screenManagerImpl->RSScreenManager::OnRefresh(sId, nullptr);
     screenManagerImpl->RSScreenManager::OnRefresh(sId, screenManager);
     EXPECT_NE(screenManager, nullptr);
