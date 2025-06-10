@@ -717,20 +717,22 @@ const std::shared_ptr<Drawing::RuntimeShaderBuilder>& RSPointLightDrawable::GetF
             vec2 grad = sdRoundedBoxGradient(drawing_coord.xy - halfResolution,
                 halfResolution, borderRadius);
             for (int i = 0; i < 12; i++) {
-                vec2 lightGrad = sdRoundedBoxGradient(lightPos[i].xy - halfResolution,
-                    halfResolution, borderRadius); // lightGrad could be pre-computed
-                float angleEfficient = dot(grad, lightGrad);
-                if (angleEfficient > 0.0) {
-                    vec3 lightDir = normalize(vec3(lightPos[i].xy - drawing_coord, lightPos[i].z));
-                    vec3 viewDir = normalize(vec3(viewPos[i].xy - drawing_coord, viewPos[i].z)); // view vector
-                    vec3 halfwayDir = normalize(lightDir + viewDir); // half vector
-                    // exponential relationship of angle
-                    float spec = pow(max(halfwayDir.z, 0.0), shininess); // norm is (0.0, 0.0, 1.0)
-                    spec *= specularStrength[i];
-                    spec *= smoothstep(-0.28, 0.0, sd);
-                    spec *= (smoothstep(1.0, 0.0, spec) * 0.2 + 0.8);
-                    vec4 specularColor = specularLightColor[i];
-                    fragColor += specularColor * (spec * angleEfficient);
+                if (abs(specularStrength[i]) > 0.01) {
+                    vec2 lightGrad = sdRoundedBoxGradient(lightPos[i].xy - halfResolution,
+                        halfResolution, borderRadius); // lightGrad could be pre-computed
+                    float angleEfficient = dot(grad, lightGrad);
+                    if (angleEfficient > 0.0) {
+                        vec3 lightDir = normalize(vec3(lightPos[i].xy - drawing_coord, lightPos[i].z));
+                        vec3 viewDir = normalize(vec3(viewPos[i].xy - drawing_coord, viewPos[i].z)); // view vector
+                        vec3 halfwayDir = normalize(lightDir + viewDir); // half vector
+                        // exponential relationship of angle
+                        float spec = pow(max(halfwayDir.z, 0.0), shininess); // norm is (0.0, 0.0, 1.0)
+                        spec *= specularStrength[i];
+                        spec *= smoothstep(-0.28, 0.0, sd);
+                        spec *= (smoothstep(1.0, 0.0, spec) * 0.2 + 0.8);
+                        vec4 specularColor = specularLightColor[i];
+                        fragColor += specularColor * (spec * angleEfficient);
+                    }
                 }
             }
             return fragColor;
