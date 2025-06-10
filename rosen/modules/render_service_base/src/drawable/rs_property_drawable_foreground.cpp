@@ -577,7 +577,7 @@ void RSPointLightDrawable::DrawLight(Drawing::Canvas* canvas) const
         float rectWidth = contentRRect_.GetRect().GetWidth();
         float rectHeight = contentRRect_.GetRect().GetHeight();
         phongShaderBuilder->SetUniform("iResolution", rectWidth, rectHeight);
-        phongShaderBuilder->SetUniform("borderRadius",
+        phongShaderBuilder->SetUniform("contentBorderRadius",
             contentRRect_.GetCornerRadius(Drawing::RoundRect::CornerPos::TOP_LEFT_POS).GetX());
     }
     constexpr int vectorLen = 4;
@@ -686,7 +686,7 @@ const std::shared_ptr<Drawing::RuntimeShaderBuilder>& RSPointLightDrawable::GetF
     std::shared_ptr<Drawing::RuntimeEffect> lightEffect;
     const static std::string lightString(R"(
         uniform vec2 iResolution;
-        uniform float borderRadius;
+        uniform float contentBorderRadius;
         uniform vec4 lightPos[12];
         uniform vec4 viewPos[12];
         uniform vec4 specularLightColor[12];
@@ -694,7 +694,7 @@ const std::shared_ptr<Drawing::RuntimeShaderBuilder>& RSPointLightDrawable::GetF
 
         float sdRoundedBox(vec2 p, vec2 b, float r)
         {
-            vec2 q = abs(p)-b+r;
+            vec2 q = abs(p) - b + r;
             return (min(max(q.x, q.y), 0.0) + length(max(q, 0.0)) - r);
         }
 
@@ -707,24 +707,22 @@ const std::shared_ptr<Drawing::RuntimeShaderBuilder>& RSPointLightDrawable::GetF
             return signs * nor;
         }
 
-        mediump vec4 main(vec2 drawing_coord) {
+        mediump vec4 main(vec2 drawing_coord)
+        {
             float shininess = 8.0;
             mediump vec4 fragColor = vec4(0.0, 0.0, 0.0, 0.0);
             vec2 halfResolution = iResolution.xy * 0.5;
-            float sd = sdRoundedBox(drawing_coord.xy - halfResolution,
-                halfResolution,
-                borderRadius) / halfResolution.y;
-            vec2 grad = sdRoundedBoxGradient(drawing_coord.xy - halfResolution,
-                halfResolution, borderRadius);
+            float sd = sdRoundedBox(drawing_coord.xy - halfResolution, halfResolution, contentBorderRadius) / halfResolution.y;
+            vec2 grad = sdRoundedBoxGradient(drawing_coord.xy - halfResolution, halfResolution, contentBorderRadius);
             for (int i = 0; i < 12; i++) {
                 if (abs(specularStrength[i]) > 0.01) {
-                    vec2 lightGrad = sdRoundedBoxGradient(lightPos[i].xy - halfResolution,
-                        halfResolution, borderRadius); // lightGrad could be pre-computed
+                    vec2 lightGrad = sdRoundedBoxGradient(lightPos[i].xy - halfResolution, halfResolution,
+                        contentBorderRadius); // lightGrad could be pre-computed
                     float angleEfficient = dot(grad, lightGrad);
                     if (angleEfficient > 0.0) {
                         vec3 lightDir = normalize(vec3(lightPos[i].xy - drawing_coord, lightPos[i].z));
                         vec3 viewDir = normalize(vec3(viewPos[i].xy - drawing_coord, viewPos[i].z)); // view vector
-                        vec3 halfwayDir = normalize(lightDir + viewDir); // half vector
+                        vec3 halfwayDir = normalize(lightDir + viewDir);                             // half vector
                         // exponential relationship of angle
                         float spec = pow(max(halfwayDir.z, 0.0), shininess); // norm is (0.0, 0.0, 1.0)
                         spec *= specularStrength[i];
