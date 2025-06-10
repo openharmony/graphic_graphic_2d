@@ -20,6 +20,7 @@
 #include "draw/color.h"
 #include "text/hm_symbol.h"
 #include "common/rs_vector4.h"
+#include "symbol_gradient.h"
 
 
 namespace OHOS {
@@ -28,7 +29,7 @@ namespace TextEngine {
 
 struct NodeLayerInfo {
     Drawing::Path path;
-    Drawing::DrawingSColor color;
+    std::shared_ptr<SymbolGradient> color = nullptr;
 };
 
 struct SymbolNode {
@@ -60,6 +61,7 @@ struct SymbolAnimationConfig {
     int repeatCount = 1;
     bool animationStart = false;
     Drawing::DrawingCommonSubType commonSubType = Drawing::DrawingCommonSubType::DOWN;
+    double slope = 0.0;
     bool currentAnimationHasPlayed = false;
 };
 }

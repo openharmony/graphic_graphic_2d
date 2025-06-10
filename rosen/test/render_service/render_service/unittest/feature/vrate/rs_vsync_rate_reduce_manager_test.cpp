@@ -651,7 +651,7 @@ HWTEST_F(RSVsyncRateReduceManagerTest, CollectSurfaceVsyncInfo003, TestSize.Leve
 
     surfaceNode = std::make_shared<RSSurfaceRenderNode>(config, rsContext->weak_from_this());
     buildFunc(surfaceNode);
-    auto& properties = surfaceNode->renderContent_->renderProperties_;
+    auto& properties = surfaceNode->renderProperties_;
     properties.boundsGeo_ = nullptr;
     rateReduceManager.CollectSurfaceVsyncInfo(screenInfo, *surfaceNode);
     EXPECT_EQ(true, rateReduceManager.surfaceVRateMap_.empty());

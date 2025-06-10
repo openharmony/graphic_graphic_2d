@@ -22,15 +22,20 @@
 #include "native_buffer_inner.h"
 #include "native_window.h"
 #include "vulkan/vulkan_core.h"
-#include "include/gpu/GrBackendSemaphore.h"
-#include "include/gpu/GrDirectContext.h"
 #include "platform/common/rs_log.h"
 #include "window.h"
 #include "platform/common/rs_system_properties.h"
 #include "drawing/engine_adapter/skia_adapter/skia_gpu_context.h"
 #include "engine_adapter/skia_adapter/skia_surface.h"
 #include "rs_trace.h"
-#include "utils/graphic_coretrace.h"
+
+#ifdef USE_M133_SKIA
+#include "include/gpu/ganesh/GrDirectContext.h"
+#include "include/gpu/ganesh/vk/GrVkBackendSemaphore.h"
+#else
+#include "include/gpu/GrDirectContext.h"
+#include "include/gpu/GrBackendSemaphore.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -49,7 +54,7 @@ RSSurfaceOhosVulkan::~RSSurfaceOhosVulkan()
     DestoryNativeWindow(mNativeWindow);
     mNativeWindow = nullptr;
     if (mReservedFlushFd != -1) {
-        ::close(mReservedFlushFd);
+        fdsan_close_with_tag(mReservedFlushFd, LOG_DOMAIN);
         mReservedFlushFd = -1;
     }
 }
@@ -161,8 +166,6 @@ bool RSSurfaceOhosVulkan::PreAllocateProtectedBuffer(int32_t width, int32_t heig
 std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosVulkan::RequestFrame(
     int32_t width, int32_t height, uint64_t uiTimestamp, bool useAFBC, bool isProtected)
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        RS_RSSURFACEOHOSVULKAN_REQUESTFRAME);
     if (mNativeWindow == nullptr) {
         mNativeWindow = CreateNativeWindowFromSurface(&producer_);
         ROSEN_LOGD("RSSurfaceOhosVulkan: create native window");
@@ -259,8 +262,6 @@ void RSSurfaceOhosVulkan::SetUiTimeStamp(const std::unique_ptr<RSSurfaceFrame>& 
 
 bool RSSurfaceOhosVulkan::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uint64_t uiTimestamp)
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        RS_RSSURFACEOHOSVULKAN_FLUSHFRAME);
     if (mSurfaceList.empty()) {
         return false;
     }
@@ -271,8 +272,12 @@ bool RSSurfaceOhosVulkan::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uin
 
     VkSemaphore semaphore = vkContext.RequireSemaphore();
 
+#ifdef USE_M133_SKIA
+    GrBackendSemaphore backendSemaphore = GrBackendSemaphores::MakeVk(semaphore);
+#else
     GrBackendSemaphore backendSemaphore;
     backendSemaphore.initVulkan(semaphore);
+#endif
 
     if (mSurfaceMap.find(mSurfaceList.front()) == mSurfaceMap.end()) {
         ROSEN_LOGE("RSSurfaceOhosVulkan Can not find drawingsurface");
@@ -307,7 +312,7 @@ bool RSSurfaceOhosVulkan::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uin
     
     int fenceFd = -1;
     if (mReservedFlushFd != -1) {
-        ::close(mReservedFlushFd);
+        fdsan_close_with_tag(mReservedFlushFd, LOG_DOMAIN);
         mReservedFlushFd = -1;
     }
     auto queue = vkContext.GetQueue();
@@ -325,6 +330,7 @@ bool RSSurfaceOhosVulkan::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uin
     callbackInfo->mFenceFd = ::dup(fenceFd);
     RsVulkanInterface::callbackSemaphoreInfoCnt_.fetch_add(+1, std::memory_order_relaxed);
     mReservedFlushFd = ::dup(fenceFd);
+    fdsan_exchange_owner_tag(mReservedFlushFd, 0, LOG_DOMAIN);
 
     auto ret = NativeWindowFlushBuffer(surface.window, surface.nativeWindowBuffer, fenceFd, {});
     if (ret != OHOS::GSERROR_OK) {

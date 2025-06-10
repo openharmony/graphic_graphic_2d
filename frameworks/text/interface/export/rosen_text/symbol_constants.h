@@ -33,6 +33,11 @@ enum class SymbolType {
     CUSTOM,
 };
 
+enum class SymbolColorType {
+    COLOR_TYPE = 0,
+    GRADIENT_TYPE = 1,
+};
+
 } // namespace Rosen
 } // namespace OHOS
 

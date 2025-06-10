@@ -29,7 +29,6 @@ declare_args() {
   graphic_2d_feature_freemem_enable = false
   graphic_2d_feature_parallel_render_enable = true
   graphic_2d_feature_enable_vulkan = false
-  graphic_2d_feature_enable_flutter_vulkan = false
   graphic_2d_feature_enable_opengl = true
   graphic_2d_feature_enable_sdf = false
   graphic_2d_feature_enable_opinc = false
@@ -52,7 +51,8 @@ declare_args() {
   graphic_2d_feature_overlay_display_enable = false
   enable_full_screen_recongnize = false
   graphic_2d_feature_enable_opengl_to_vulkan = false
-  graphic_2d_feature_screenless_enable = false
+  graphic_2d_feature_screenless_enable = false,
+  graphic_2d_feature_tv_metadata_enable = false
 
   if (defined(is_arkui_x) && is_arkui_x) {
     is_cross_platform = true
@@ -97,9 +97,6 @@ if (graphic_2d_feature_screenless_enable) {
   gpu_defines += ["SCREENLESS_DEVICE"]
 }
 if (graphic_2d_feature_ace_enable_gpu) {
-  if (graphic_2d_feature_enable_flutter_vulkan) {
-    gpu_defines += [ "RS_ENABLE_OLD_VK" ]
-  }
   if (graphic_2d_feature_enable_vulkan) {
     gpu_defines += [
       "ACE_ENABLE_VK",
@@ -203,6 +200,10 @@ if (graphic_2d_feature_tp_switch_enbale) {
 
 if (graphic_2d_feature_overlay_display_enable) {
   gpu_defines += [ "RS_ENABLE_OVERLAY_DISPLAY" ]
+}
+
+if (graphic_2d_feature_tv_metadata_enable) {
+  gpu_defines += [ "RS_ENABLE_TV_PQ_METADATA" ]
 }
 
 check_graphic_ext_file_script = "//build/ohos/file_exists.py"
@@ -408,17 +409,22 @@ _ace_adapter_dir = rebase_path("$ace_root/adapter", root_build_dir)
 _graphic_2d_adapter_dir =
     rebase_path("$graphic_2d_root/adapter", root_build_dir)
 
-if (defined(is_arkui_x) && is_arkui_x) {
-  # In case of arkui-x compilation, copy android and ios adapters from ace_engine
-  exec_script("$graphic_2d_root/utils/build/copy_arkui_adapters.py",
-              [
-                _ace_adapter_dir,
-                _graphic_2d_adapter_dir,
-              ])
+if (!ohos_indep_compiler_enable) {
+  if (defined(is_arkui_x) && is_arkui_x) {
+    # In case of arkui-x compilation, copy android and ios adapters from ace_engine
+    exec_script("$graphic_2d_root/utils/build/copy_arkui_adapters.py",
+                [
+                  _ace_adapter_dir,
+                  _graphic_2d_adapter_dir,
+                ])
+  }
+  adapters = exec_script("$ace_root/build/search.py",
+                        [ _graphic_2d_adapter_dir ],
+                        "list lines")
+} else {
+  adapters = ["preview", "ohos"]
 }
-adapters = exec_script("$ace_root/build/search.py",
-                       [ _graphic_2d_adapter_dir ],
-                       "list lines")
+
 if (defined(use_clang_coverage) && use_clang_coverage) {
   graphic_2d_feature_rs_enable_profiler = false
 }

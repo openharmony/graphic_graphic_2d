@@ -23,19 +23,20 @@
 #include "screen_manager/screen_types.h"
 #include "screen_manager/rs_screen_manager.h"
 #include "feature/round_corner_display/rs_rcd_surface_render_node.h"
+#include "feature/round_corner_display/rs_rcd_surface_render_node_drawable.h"
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 
 namespace OHOS {
 namespace Rosen {
- 
+
 struct RequestRect {
     uint32_t x = 0;
     uint32_t y = 0;
     uint32_t w = 0;
     uint32_t h = 0;
 };
- 
+
 typedef struct RequestLayerInfo {
     uint64_t id;                          /**< Layer ID */
     RequestRect srcRect;                         /**< Source Rect of Surface */
@@ -44,11 +45,13 @@ typedef struct RequestLayerInfo {
     int format;                           /**< Format of Surface Buffer */
     int transform;                        /**< Transform of Surface Buffer */
     int compressType;                     /**< CompressType of Surface Buffer */
-    uint64_t usage;                       /**< Usage of Surface Buffer */
+    uint64_t bufferUsage;                 /**< Usage of Surface Buffer */
+    uint64_t layerUsage;                  /**< Usage of RequestLayerInfo */
     /**< Extra parameters of frame, format: [key, parameter] */
     std::unordered_map<std::string, std::vector<int8_t>> perFrameParameters;
-    CldInfo *cldInfo = nullptr;
+    CldInfo cldInfo;
     uint32_t fps = 120;
+    BufferHandle* bufferHandle = nullptr;
 } RequestLayerInfo;
 
 using RequestCompositionType = enum class RequestComposition : int32_t {
@@ -84,7 +87,7 @@ private:
 
     bool IsYUVBufferFormat(RSSurfaceRenderNode::SharedPtr node) const;
     bool IsNeedDssRotate(GraphicTransformType transform) const;
-    void CopyCldInfo(CldInfo src, RequestLayerInfo& info);
+    void CopyCldInfo(const CldInfo& src, RequestLayerInfo& info);
     void LayerRotate(
         RequestLayerInfo& info, const sptr<IConsumerSurface>& surface, const ScreenInfo &screenInfo);
     bool CheckIfDoArsrPre(const RSSurfaceRenderNode::SharedPtr node);
@@ -95,7 +98,6 @@ private:
     static void EmplaceSurfaceNodeLayer(
         std::vector<RequestLayerInfo>& prevalidLayers, RSSurfaceRenderNode::SharedPtr node,
         uint32_t curFps, uint32_t& zOrder, const ScreenInfo& screenInfo);
-    void ClearCldInfo(std::vector<RequestLayerInfo>& infos);
 
     void *preValidateHandle_ = nullptr;
     PreValidateFunc preValidateFunc_ = nullptr;

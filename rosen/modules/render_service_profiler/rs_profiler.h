@@ -70,7 +70,8 @@
 #define RS_PROFILER_DRAWING_NODE_ADD_CLEAROP(drawCmdList) RSProfiler::DrawingNodeAddClearOp(drawCmdList)
 #define RS_PROFILER_KEEP_DRAW_CMD(drawCmdListNeedSync) RSProfiler::KeepDrawCmd(drawCmdListNeedSync)
 #define RS_PROFILER_PROCESS_ADD_CHILD(parent, child, index) RSProfiler::ProcessAddChild(parent, child, index)
-#define RS_PROFILER_IF_NEED_TO_SKIP_DRAWCMD_SURFACE(parcel) RSProfiler::IfNeedToSkipDuringReplay(parcel)
+#define RS_PROFILER_IF_NEED_TO_SKIP_DRAWCMD_SURFACE(parcel, skipBytes) \
+    RSProfiler::IfNeedToSkipDuringReplay(parcel, skipBytes)
 #define RS_PROFILER_SURFACE_ON_DRAW_MATCH_OPTIMIZE(useNodeMatchOptimize) \
     RSProfiler::SurfaceOnDrawMatchOptimize(useNodeMatchOptimize)
 #else
@@ -111,7 +112,7 @@
 #define RS_PROFILER_DRAWING_NODE_ADD_CLEAROP(drawCmdList) (drawCmdList)->ClearOp()
 #define RS_PROFILER_KEEP_DRAW_CMD(drawCmdListNeedSync) drawCmdListNeedSync = true
 #define RS_PROFILER_PROCESS_ADD_CHILD(parent, child, index) false
-#define RS_PROFILER_IF_NEED_TO_SKIP_DRAWCMD_SURFACE(parcel) false
+#define RS_PROFILER_IF_NEED_TO_SKIP_DRAWCMD_SURFACE(parcel, skipBytes) false
 #define RS_PROFILER_SURFACE_ON_DRAW_MATCH_OPTIMIZE(useNodeMatchOptimize)
 #endif
 
@@ -251,7 +252,7 @@ public:
     RSB_EXPORT static void SetDrawingCanvasNodeRedraw(bool enable);
     RSB_EXPORT static void KeepDrawCmd(bool& drawCmdListNeedSync);
     RSB_EXPORT static void SetRenderNodeKeepDrawCmd(bool enable);
-    RSB_EXPORT static bool IfNeedToSkipDuringReplay(Parcel& parcel);
+    RSB_EXPORT static bool IfNeedToSkipDuringReplay(Parcel& parcel, uint32_t skipBytes);
     RSB_EXPORT static void SurfaceOnDrawMatchOptimize(bool& useNodeMatchOptimize);
 
 private:
@@ -262,6 +263,8 @@ private:
 
     RSB_EXPORT static bool BaseSetPlaybackSpeed(double speed);
     RSB_EXPORT static double BaseGetPlaybackSpeed();
+    RSB_EXPORT static Media::PixelMap* UnmarshalPixelMapNstd(Parcel& parcel,
+        std::function<int(Parcel& parcel, std::function<int(Parcel&)> readFdDefaultFunc)> readSafeFdFunc);
 
     // Beta record
     RSB_EXPORT static void EnableBetaRecord();

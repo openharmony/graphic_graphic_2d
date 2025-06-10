@@ -17,6 +17,7 @@
 
 #include "common/rs_obj_abs_geometry.h"
 #include "display_engine/rs_luminance_control.h"
+#include "params/rs_display_render_params.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_display_render_node.h"
 #include "render_thread/rs_render_thread_visitor.h"
@@ -231,7 +232,49 @@ HWTEST_F(RSDisplayRenderNodeTest, SetMirrorSourceTest, TestSize.Level1)
 
     rsDisplayRenderNode = std::make_shared<RSDisplayRenderNode>(id + 1, config, context);
     node->SetMirrorSource(rsDisplayRenderNode);
-    ASSERT_NE(node->mirrorSource_.lock(), nullptr);
+    EXPECT_NE(node->mirrorSource_.lock(), nullptr);
+}
+
+/**
+ * @tc.name: ResetMirrorSourceTest
+ * @tc.desc: test results of ResetMirrorSourceTest
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSDisplayRenderNodeTest, ResetMirrorSourceTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    node->SetMirrorSource(nullptr);
+    EXPECT_EQ(node->mirrorSource_.lock(), nullptr);
+    node->ResetMirrorSource();
+    EXPECT_EQ(node->mirrorSource_.lock(), nullptr);
+
+    auto rsDisplayRenderNode = std::make_shared<RSDisplayRenderNode>(id + 1, config, context);
+    node->isMirroredDisplay_ = true;
+    node->SetMirrorSource(rsDisplayRenderNode);
+    EXPECT_NE(node->mirrorSource_.lock(), nullptr);
+    node->ResetMirrorSource();
+    EXPECT_EQ(node->mirrorSource_.lock(), nullptr);
+}
+
+/**
+ * @tc.name: SetHasMirrorDisplay
+ * @tc.desc: test results of SetHasMirrorDisplay
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSDisplayRenderNodeTest, SetHasMirrorDisplayTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    node->stagingRenderParams_ = std::make_unique<RSDisplayRenderParams>(node->GetId());
+    ASSERT_NE(node->stagingRenderParams_, nullptr);
+    auto displayParams = static_cast<RSDisplayRenderParams*>(node->stagingRenderParams_.get());
+    node->stagingRenderParams_->SetNeedSync(true);
+    node->SetHasMirrorDisplay(true);
+    EXPECT_TRUE(displayParams->HasMirrorDisplay());
+    node->stagingRenderParams_->SetNeedSync(false);
+    node->SetHasMirrorDisplay(false);
+    EXPECT_FALSE(displayParams->HasMirrorDisplay());
 }
 
 /**
@@ -613,8 +656,6 @@ HWTEST_F(RSDisplayRenderNodeTest, ForceCloseHdrTest, TestSize.Level1)
     node->InitRenderParams();
     node->SetForceCloseHdr(false);
     EXPECT_EQ(node->GetForceCloseHdr(), false);
-    node->SetForceCloseHdr(true);
-    EXPECT_EQ(node->GetForceCloseHdr(), true);
 }
 
 /**

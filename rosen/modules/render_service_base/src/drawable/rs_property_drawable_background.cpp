@@ -40,10 +40,13 @@
 #endif
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+#ifdef USE_M133_SKIA
+#include "include/gpu/ganesh/vk/GrVkBackendSemaphore.h"
+#else
 #include "include/gpu/GrBackendSemaphore.h"
 #endif
+#endif
 #include "common/rs_rect.h"
-#include "utils/graphic_coretrace.h"
 
 namespace OHOS::Rosen {
 namespace DrawableV2 {
@@ -106,8 +109,6 @@ void RSShadowDrawable::OnSync()
 
 Drawing::RecordingCanvas::DrawFunc RSShadowDrawable::CreateDrawFunc() const
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        RS_RSSHADOWDRAWABLE_CREATEDRAWFUNC);
     auto ptr = std::static_pointer_cast<const RSShadowDrawable>(shared_from_this());
     return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
         // skip shadow if cache is enabled
@@ -351,8 +352,6 @@ void RSBackgroundImageDrawable::ReleaseNativeWindowBuffer()
 std::shared_ptr<Drawing::Image> RSBackgroundImageDrawable::MakeFromTextureForVK(
     Drawing::Canvas& canvas, SurfaceBuffer* surfaceBuffer)
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        RS_RSBACKGROUNDIMAGEDRAWABLE_MAKEFROMTEXTUREFORVK);
     if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
         RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
         return nullptr;
@@ -470,8 +469,6 @@ void RSBackgroundImageDrawable::OnSync()
 
 Drawing::RecordingCanvas::DrawFunc RSBackgroundImageDrawable::CreateDrawFunc() const
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        RS_RSBACKGROUNDIMAGEDRAWABLE_CREATEDRAWFUNC);
     auto ptr = std::const_pointer_cast<RSBackgroundImageDrawable>(
         std::static_pointer_cast<const RSBackgroundImageDrawable>(shared_from_this()));
     return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
@@ -566,7 +563,7 @@ std::shared_ptr<RSFilter> RSBackgroundFilterDrawable::GetBehindWindowFilter(cons
 template <typename T>
 bool RSBackgroundFilterDrawable::GetModifierProperty(const RSRenderNode& node, RSModifierType type, T& property)
 {
-    auto& drawCmdModifiers = const_cast<RSRenderContent::DrawCmdContainer&>(node.GetDrawCmdModifiers());
+    auto& drawCmdModifiers = const_cast<RSRenderNode::DrawCmdContainer&>(node.GetDrawCmdModifiers());
     auto iter = drawCmdModifiers.find(type);
     if (iter == drawCmdModifiers.end() || iter->second.empty()) {
         RS_LOGE("RSBackgroundFilterDrawable::GetModifierProperty fail to get, modifierType = %{public}hd.", type);

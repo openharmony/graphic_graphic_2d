@@ -1,4 +1,4 @@
-# Copyright (c) 2022-2023 Huawei Device Co., Ltd.. All rights reserved.
+# Copyright (c) 2022-2025 Huawei Device Co., Ltd.. All rights reserved.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -111,7 +111,6 @@ template("graphics2d_source_set") {
       "$drawing_core_src_dir/engine_adapter/skia_adapter/skia_graphics.cpp",
       "$drawing_core_src_dir/engine_adapter/skia_adapter/skia_helper.cpp",
       "$drawing_core_src_dir/engine_adapter/skia_adapter/skia_hm_symbol.cpp",
-      "$drawing_core_src_dir/engine_adapter/skia_adapter/skia_hm_symbol_config_ohos.cpp",
       "$drawing_core_src_dir/engine_adapter/skia_adapter/skia_image.cpp",
       "$drawing_core_src_dir/engine_adapter/skia_adapter/skia_image_filter.cpp",
       "$drawing_core_src_dir/engine_adapter/skia_adapter/skia_impl_factory.cpp",
@@ -143,6 +142,7 @@ template("graphics2d_source_set") {
       "$drawing_core_src_dir/engine_adapter/skia_adapter/skia_utils.cpp",
       "$drawing_core_src_dir/engine_adapter/skia_adapter/skia_vertices.cpp",
       "$drawing_core_src_dir/engine_adapter/static_factory.cpp",
+      "$drawing_core_src_dir/engine_adapter/utils/utils_path.cpp",
       "$drawing_core_src_dir/image/bitmap.cpp",
       "$drawing_core_src_dir/image/image.cpp",
       "$drawing_core_src_dir/image/picture.cpp",
@@ -166,6 +166,7 @@ template("graphics2d_source_set") {
       "$drawing_core_src_dir/text/text_blob_builder.cpp",
       "$drawing_core_src_dir/text/typeface.cpp",
       "$drawing_core_src_dir/utils/camera3d.cpp",
+      "$drawing_core_src_dir/utils/colorspace_convertor.cpp",
       "$drawing_core_src_dir/utils/data.cpp",
       "$drawing_core_src_dir/utils/document.cpp",
       "$drawing_core_src_dir/utils/file_w_stream.cpp",
@@ -211,13 +212,18 @@ template("graphics2d_source_set") {
       "$src_dir",
       "$drawing_core_src_dir",
       "$drawing_core_src_dir/engine_adapter",
+      "$graphic_2d_root/utils/color_manager/export",
       "$rosen_root/modules/render_service_base/include",
       "$rosen_text_root/texgine/src",
       "$rosen_root/../interfaces/kits/napi/graphic/drawing/common_napi",
     ]
 
     external_deps += [ "skia:skia_canvaskit" ]
+    if (defined(use_new_skia) && use_new_skia) {
+      defines += [ "USE_M133_SKIA" ]
+    }
 
+    deps = [ "$graphic_2d_root/utils/color_manager:color_manager"]
     if (defined(graphic_2d_feature_enable_sdf) &&
         graphic_2d_feature_enable_sdf) {
       deps += [ "graphic_2d_ext:libsdf" ]
@@ -291,9 +297,7 @@ template("graphics2d_source_set") {
         "$rosen_text_root/interface/export",
         "$platform_dir/image_native",
       ]
-      if (defined(use_new_skia) && use_new_skia) {
-        defines += [ "NEW_SKIA" ]
-      }
+      defines += [ "NEW_SKIA" ]
     }
     if (graphic_2d_feature_enable_vulkan) {
       defines += [ "RS_ENABLE_VK" ]
@@ -308,18 +312,15 @@ template("graphics2d_source_set") {
         "skia:skia_canvaskit",
       ]
 
-      defines += [ "ENABLE_OHOS_ENHANCE" ]
       deps = []
+      defines += [ "ENABLE_OHOS_ENHANCE" ]
+      defines += [ "OHOS_TEXT_ENABLE" ]
       defines += [
         "SUPPORT_OHOS_PIXMAP",
         "ROSEN_OHOS",
       ]
 
-      if (!defined(use_new_skia) || !use_new_skia) {
-        include_dirs += [ "$flutter_root/engine/flutter/third_party/txt/src" ]
-      }
     } else {
-      deps = []
       cflags += [ "-std=c++17" ]
 
       deps += [ "$rosen_root/modules/platform:hilog" ]
@@ -410,11 +411,12 @@ if (!is_arkui_x) {
     }
     deps = [ ":2d_graphics_source_$platform" ]
 
-    external_deps = [
-      "bounds_checking_function:libsec_static",
+    external_deps = [ "bounds_checking_function:libsec_static" ]
+    public_external_deps = [
       "hilog:libhilog",
+      "skia:skia_canvaskit",
     ]
-    public_external_deps = [ "skia:skia_canvaskit" ]
+
     public_configs = [ ":export_config" ]
 
     if (platform == "ohos") {

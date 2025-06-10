@@ -21,6 +21,7 @@
 #include "params/rs_render_params.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_context.h"
+#include "pipeline/rs_surface_render_node.h"
 #include "property/rs_properties_painter.h"
 
 using namespace testing;
@@ -107,7 +108,7 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, ProcessRenderContentsOtherTest, TestSize
     property->GetRef() = drawCmdList;
     std::list<std::shared_ptr<RSRenderModifier>> listModifier { std::make_shared<RSDrawCmdListRenderModifier>(
         property) };
-    rsCanvasDrawingRenderNode.renderContent_->drawCmdModifiers_.emplace(RSModifierType::CONTENT_STYLE, listModifier);
+    rsCanvasDrawingRenderNode.drawCmdModifiers_.emplace(RSModifierType::CONTENT_STYLE, listModifier);
     std::function<void(std::shared_ptr<Drawing::Surface>)> callbackFunc = [](std::shared_ptr<Drawing::Surface>) {
         printf("ProcessRenderContentsTest callbackFunc\n");
     };
@@ -137,12 +138,12 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, ProcessRenderContentsOtherTest, TestSize
 }
 
 /**
- * @tc.name: ResetSurfaceTest
+ * @tc.name: ResetSurfaceTest001
  * @tc.desc: test results of ResetSurface
  * @tc.type:FUNC
  * @tc.require:
  */
-HWTEST_F(RSCanvasDrawingRenderNodeTest, ResetSurfaceTest, TestSize.Level1)
+HWTEST_F(RSCanvasDrawingRenderNodeTest, ResetSurfaceTest001, TestSize.Level1)
 {
     int width = 0;
     int height = 0;
@@ -151,6 +152,33 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, ResetSurfaceTest, TestSize.Level1)
     RSCanvasDrawingRenderNode rsCanvasDrawingRenderNode(nodeId, context);
     auto res = rsCanvasDrawingRenderNode.ResetSurface(width, height, *canvas_);
     ASSERT_FALSE(res);
+}
+
+/**
+ * @tc.name: ResetSurfaceTest002
+ * @tc.desc: test results of ResetSurface
+ * @tc.type:FUNC
+ * @tc.require: #ICDBD1
+ */
+HWTEST_F(RSCanvasDrawingRenderNodeTest, ResetSurfaceTest002, TestSize.Level1)
+{
+    int width = 0;
+    int height = 0;
+    NodeId nodeId = 1;
+    NodeId rootNodeId = 2;
+    auto context = std::make_shared<RSContext>();
+    RSCanvasDrawingRenderNode rsCanvasDrawingRenderNode(nodeId, context);
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(rootNodeId);
+    surfaceNode->SetColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    context->GetMutableNodeMap().RegisterRenderNode(surfaceNode);
+    rsCanvasDrawingRenderNode.instanceRootNodeId_ = rootNodeId;
+    EXPECT_NE(rsCanvasDrawingRenderNode.GetInstanceRootNode(), nullptr);
+    auto appSurfaceNode =
+        RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(rsCanvasDrawingRenderNode.GetInstanceRootNode());
+    EXPECT_NE(appSurfaceNode, nullptr);
+    rsCanvasDrawingRenderNode.ResetSurface(width, height);
+    ASSERT_EQ(rsCanvasDrawingRenderNode.stagingRenderParams_->surfaceParams_.colorSpace,
+        GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
 }
 
 /**
@@ -173,7 +201,7 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, GetSizeFromDrawCmdModifiersTest001, Test
     property->GetRef() = drawCmdList;
     std::list<std::shared_ptr<RSRenderModifier>> listModifier { std::make_shared<RSDrawCmdListRenderModifier>(
         property) };
-    rsCanvasDrawingRenderNode.renderContent_->drawCmdModifiers_.emplace(RSModifierType::CONTENT_STYLE, listModifier);
+    rsCanvasDrawingRenderNode.drawCmdModifiers_.emplace(RSModifierType::CONTENT_STYLE, listModifier);
     EXPECT_TRUE(rsCanvasDrawingRenderNode.GetSizeFromDrawCmdModifiers(width, height));
 }
 
@@ -226,7 +254,7 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, GetSizeFromDrawCmdModifiersTest003, Test
     property->GetRef() = drawCmdList;
     std::list<std::shared_ptr<RSRenderModifier>> listModifier { std::make_shared<RSDrawCmdListRenderModifier>(
         property) };
-    rsCanvasDrawingRenderNode.renderContent_->drawCmdModifiers_.emplace(RSModifierType::CONTENT_STYLE, listModifier);
+    rsCanvasDrawingRenderNode.drawCmdModifiers_.emplace(RSModifierType::CONTENT_STYLE, listModifier);
     EXPECT_FALSE(rsCanvasDrawingRenderNode.GetSizeFromDrawCmdModifiers(width, height));
 }
 /**
@@ -462,7 +490,7 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, AddDirtyType, TestSize.Level1)
     auto property2 = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>();
     auto modifier2 = std::make_shared<RSDrawCmdListRenderModifier>(property2);
     listModifier.emplace_back(modifier2);
-    rsCanvasDrawingRenderNode.renderContent_->drawCmdModifiers_.emplace(type, listModifier);
+    rsCanvasDrawingRenderNode.drawCmdModifiers_.emplace(type, listModifier);
     std::list<Drawing::DrawCmdListPtr> listDrawCmd;
     auto listDrawCmdMax = 20;
     for (int i = 0; i < listDrawCmdMax; ++i) {

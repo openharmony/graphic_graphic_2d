@@ -31,6 +31,9 @@
 #include "screen_manager/rs_screen_manager.h"
 #include "screen_manager/screen_types.h"
 
+#undef LOG_TAG
+#define LOG_TAG "RSRenderServiceVisitor"
+
 namespace OHOS {
 namespace Rosen {
 
@@ -59,7 +62,7 @@ void RSRenderServiceVisitor::PrepareDisplayRenderNode(RSDisplayRenderNode& node)
     displayHasSecSurface_.emplace(currentVisitDisplay_, false);
     sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
     if (!screenManager) {
-        RS_LOGE("RSRenderServiceVisitor::PrepareDisplayRenderNode ScreenManager is nullptr");
+        RS_LOGE("PrepareDisplayRenderNode ScreenManager is nullptr");
         return;
     }
     offsetX_ = node.GetDisplayOffsetX();
@@ -79,7 +82,7 @@ void RSRenderServiceVisitor::PrepareDisplayRenderNode(RSDisplayRenderNode& node)
         auto mirrorSource = node.GetMirrorSource();
         auto existingSource = mirrorSource.lock();
         if (!existingSource) {
-            RS_LOGI("RSRenderServiceVisitor::PrepareDisplayRenderNode mirrorSource haven't existed");
+            RS_LOGI("PrepareDisplayRenderNode mirrorSource haven't existed");
             return;
         }
         if (mParallelEnable) {
@@ -101,14 +104,13 @@ void RSRenderServiceVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
 {
     /* need reset isSecurityDisplay_ on ProcessDisplayRenderNode */
     isSecurityDisplay_ = node.GetSecurityDisplay();
-    RS_LOGD("RsDebug RSRenderServiceVisitor::ProcessDisplayRenderNode: nodeid:[%{public}" PRIu64 "]"
-        " screenid:[%{public}" PRIu64 "] \
-        isSecurityDisplay:[%{public}s] child size:[%{public}d]",
+    RS_LOGD("RsDebug ProcessDisplayRenderNode: nodeid:[%{public}" PRIu64 "]"
+        " screenid:[%{public}" PRIu64 "] isSecurityDisplay:[%{public}s] child size:[%{public}d]",
         node.GetId(), node.GetScreenId(), isSecurityDisplay_ ? "true" : "false", node.GetChildrenCount());
     globalZOrder_ = 0.0f;
     sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
     if (!screenManager) {
-        RS_LOGE("RSRenderServiceVisitor::ProcessDisplayRenderNode ScreenManager is nullptr");
+        RS_LOGE("ProcessDisplayRenderNode ScreenManager is nullptr");
         return;
     }
     ScreenInfo curScreenInfo = screenManager->QueryScreenInfo(node.GetScreenId());
@@ -134,7 +136,7 @@ void RSRenderServiceVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         auto mirrorSource = node.GetMirrorSource();
         auto existingSource = mirrorSource.lock();
         if (!existingSource) {
-            RS_LOGI("RSRenderServiceVisitor::ProcessDisplayRenderNode mirrorSource haven't existed");
+            RS_LOGI("ProcessDisplayRenderNode mirrorSource haven't existed");
             return;
         }
         if (isSecurityDisplay_ && displayHasSecSurface_[node.GetScreenId()]) {
@@ -168,23 +170,23 @@ void RSRenderServiceVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
 
     if (isSecurityDisplay_ && node.GetSpecialLayerMgr().Find(SpecialLayerType::SECURITY)) {
         displayHasSecSurface_[currentVisitDisplay_] = true;
-        RS_LOGI("RSRenderServiceVisitor::PrepareSurfaceRenderNode node : [%{public}" PRIu64 "] prepare paused \
-            because of security SurfaceNode.", node.GetId());
+        RS_LOGI("PrepareSurfaceRenderNode node: [%{public}" PRIu64 "] prepare paused "
+            "because of security SurfaceNode.", node.GetId());
         return;
     }
     
     if (isSecurityDisplay_ && node.GetSpecialLayerMgr().Find(SpecialLayerType::SKIP)) {
-        RS_LOGD("RSRenderServiceVisitor::PrepareSurfaceRenderNode node : [%{public}" PRIu64 "] prepare paused \
-            because of skip SurfaceNode.", node.GetId());
+        RS_LOGD("PrepareSurfaceRenderNode node : [%{public}" PRIu64 "] prepare paused "
+            "because of skip SurfaceNode.", node.GetId());
         return;
     }
     if (!canvas_) {
-        RS_LOGD("RSRenderServiceVisitor::PrepareSurfaceRenderNode node : %{public}" PRIu64 " canvas is nullptr",
+        RS_LOGD("PrepareSurfaceRenderNode node : %{public}" PRIu64 " canvas is nullptr",
             node.GetId());
         return;
     }
     if (!node.ShouldPaint()) {
-        RS_LOGD("RSRenderServiceVisitor::PrepareSurfaceRenderNode node : %{public}" PRIu64 " is invisible",
+        RS_LOGD("PrepareSurfaceRenderNode node : %{public}" PRIu64 " is invisible",
             node.GetId());
         return;
     }
@@ -203,7 +205,7 @@ void RSRenderServiceVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
 void RSRenderServiceVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
 {
     if (!processor_) {
-        RS_LOGE("RSRenderServiceVisitor::ProcessSurfaceRenderNode processor is nullptr");
+        RS_LOGE("ProcessSurfaceRenderNode processor is nullptr");
         return;
     }
    
@@ -213,7 +215,7 @@ void RSRenderServiceVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     }
 
     if (!node.ShouldPaint()) {
-        RS_LOGD("RSRenderServiceVisitor::ProcessSurfaceRenderNode node : %{public}" PRIu64 " is invisible",
+        RS_LOGD("ProcessSurfaceRenderNode node : %{public}" PRIu64 " is invisible",
             node.GetId());
         return;
     }
@@ -221,8 +223,8 @@ void RSRenderServiceVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
         return;
     }
     if (isSecurityDisplay_ && node.GetMultableSpecialLayerMgr().Find(SpecialLayerType::SKIP)) {
-        RS_LOGD("RSRenderServiceVisitor::ProcessSurfaceRenderNode node[%{public}" PRIu64 "] process paused \
-            because of skip SurfaceNode.", node.GetId());
+        RS_LOGD("ProcessSurfaceRenderNode node[%{public}" PRIu64 "] process paused "
+            "because of skip SurfaceNode.", node.GetId());
         return;
     }
     if (mParallelEnable) {
@@ -286,7 +288,7 @@ bool RSRenderServiceVisitor::CreateProcessor(RSDisplayRenderNode& node)
 {
     processor_ = RSProcessorFactory::CreateProcessor(node.GetCompositeType());
     if (processor_ == nullptr) {
-        RS_LOGE("RSRenderServiceVisitor::CreateProcessor: processor_ is null!");
+        RS_LOGE("CreateProcessor: processor_ is null!");
         return false;
     }
 
@@ -299,7 +301,7 @@ bool RSRenderServiceVisitor::CreateProcessor(RSDisplayRenderNode& node)
 
     if (!processor_->Init(node, node.GetDisplayOffsetX(), node.GetDisplayOffsetY(),
         mirrorNode ? mirrorNode->GetScreenId() : INVALID_SCREEN_ID, processorRenderEngine_)) {
-        RS_LOGE("RSRenderServiceVisitor::ProcessDisplayRenderNode: processor init failed!");
+        RS_LOGE("ProcessDisplayRenderNode: processor init failed!");
         return false;
     }
 
@@ -319,7 +321,7 @@ void RSRenderServiceVisitor::UpdateDisplayNodeCompositeType(RSDisplayRenderNode&
                 RSDisplayRenderNode::CompositeType::HARDWARE_COMPOSITE);
             break;
         default:
-            RS_LOGE("RSRenderServiceVisitor::PrepareDisplayRenderNode State is unusual");
+            RS_LOGE("PrepareDisplayRenderNode State is unusual");
             return;
     }
 }

@@ -59,7 +59,7 @@ static void UpdateApiEntries(LayerSetupFunc func,
         char const *name = *entries;
         EglWrapperFuncPointer layerFunc = func(name, *curr);
         if (layerFunc == nullptr) {
-            WLOGW("LayerSetupFunc(%{public}s) return nullptr.", name);
+            WLOGD("LayerSetupFunc(%{public}s) return nullptr.", name);
         } else if (layerFunc != *curr) {
             WLOGI("Update api entry for %{public}s", name);
             *curr = layerFunc;

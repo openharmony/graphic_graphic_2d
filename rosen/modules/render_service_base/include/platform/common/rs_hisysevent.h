@@ -16,7 +16,7 @@
 #ifndef RENDER_SERVICE_BASE_COMMON_RS_HISYSEVENT_H
 #define RENDER_SERVICE_BASE_COMMON_RS_HISYSEVENT_H
 
-#include "base/hiviewdfx/hisysevent/interfaces/native/innerkits/hisysevent/include/hisysevent.h"
+#include "hisysevent.h"
 #include "platform/common/rs_log.h"
 #include <string>
 #include <unordered_map>

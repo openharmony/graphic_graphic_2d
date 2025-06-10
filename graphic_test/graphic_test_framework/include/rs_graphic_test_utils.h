@@ -37,6 +37,11 @@ using WriteToPngParam = struct {
     const uint8_t *data;
 };
 
+struct Size {
+    uint32_t width = 0;
+    uint32_t height = 0;
+};
+
 bool WriteToPngWithPixelMap(const std::string& fileName, OHOS::Media::PixelMap& pixelMap);
 void WaitTimeout(int ms);
 

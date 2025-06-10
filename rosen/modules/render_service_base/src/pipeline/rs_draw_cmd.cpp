@@ -15,6 +15,7 @@
 
 #include <sstream>
 
+#include "common/rs_optional_trace.h"
 #include "pipeline/rs_draw_cmd.h"
 #include "pipeline/rs_recording_canvas.h"
 #include "platform/common/rs_log.h"
@@ -33,13 +34,20 @@
 #include "native_window.h"
 #endif
 #ifdef RS_ENABLE_VK
+#ifdef USE_M133_SKIA
+#include "include/gpu/ganesh/GrBackendSemaphore.h"
+#else
 #include "include/gpu/GrBackendSemaphore.h"
+#endif
 #include "platform/ohos/backend/native_buffer_utils.h"
 #include "platform/ohos/backend/rs_vulkan_context.h"
 #endif
 
+#ifdef USE_M133_SKIA
+#include "include/gpu/ganesh/GrDirectContext.h"
+#else
 #include "include/gpu/GrDirectContext.h"
-#include "utils/graphic_coretrace.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -243,12 +251,14 @@ RSExtendImageObject *RSExtendImageObject::Unmarshalling(Parcel &parcel)
 void RSExtendImageObject::PreProcessPixelMap(Drawing::Canvas& canvas, const std::shared_ptr<Media::PixelMap>& pixelMap,
     const Drawing::SamplingOptions& sampling)
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        RS_RSEXTENDIMAGEOBJECT_PREPROCESSPIXELMAP);
     if (!pixelMap || !rsImage_) {
         return;
     }
     auto colorSpace = RSPixelMapUtil::GetPixelmapColorSpace(pixelMap);
+    RS_OPTIONAL_TRACE_NAME_FMT("RSExtendImageObject::PreProcessPixelMap pixelMap width: %d, height: %d,"
+        " colorSpaceName: %d, isHDR: %d",
+        pixelMap->GetWidth(), pixelMap->GetHeight(), pixelMap->InnerGetGrColorSpace().GetColorSpaceName(),
+        pixelMap->IsHdr());
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     if (pixelMap->IsHdr()) {
         colorSpace = Drawing::ColorSpace::CreateSRGB();
@@ -306,8 +316,6 @@ void RSExtendImageObject::PreProcessPixelMap(Drawing::Canvas& canvas, const std:
 bool RSExtendImageObject::GetRsImageCache(Drawing::Canvas& canvas, const std::shared_ptr<Media::PixelMap>& pixelMap,
     SurfaceBuffer *surfaceBuffer, const std::shared_ptr<Drawing::ColorSpace>& colorSpace)
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        RS_RSEXTENDIMAGEOBJECT_GETRSIMAGECACHE);
     if (pixelMap == nullptr) {
         return false;
     }
@@ -415,8 +423,6 @@ bool RSExtendImageObject::GetDrawingImageFromSurfaceBuffer(Drawing::Canvas& canv
 bool RSExtendImageObject::MakeFromTextureForVK(Drawing::Canvas& canvas, SurfaceBuffer *surfaceBuffer,
     const std::shared_ptr<Drawing::ColorSpace>& colorSpace)
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        RS_RSEXTENDIMAGEOBJECT_MAKEFROMTEXTUREFORVK);
     if (!RSSystemProperties::IsUseVulkan()) {
         return false;
     }
@@ -1066,6 +1072,10 @@ UNMARSHALLING_REGISTER(DrawFunc, DrawOpItem::DRAW_FUNC_OPITEM,
 DrawFuncOpItem::DrawFuncOpItem(const DrawCmdList& cmdList, DrawFuncOpItem::ConstructorHandle* handle)
     : DrawOpItem(DRAW_FUNC_OPITEM)
 {
+    if (handle == nullptr) {
+        LOGE("DrawFuncOpItem handle is nullptr!");
+        return;
+    }
     objectHandle_ = CmdListHelper::GetDrawFuncObjFromCmdList(cmdList, handle->funcObjectId);
 }
 
@@ -1076,6 +1086,10 @@ DrawFuncOpItem::DrawFuncOpItem(RecordingCanvas::DrawFunc&& drawFunc) : DrawOpIte
 
 std::shared_ptr<DrawOpItem> DrawFuncOpItem::Unmarshalling(const DrawCmdList& cmdList, void* handle)
 {
+    if (handle == nullptr) {
+        LOGE("Unmarshalling handle is nullptr!");
+        return nullptr;
+    }
     return std::make_shared<DrawFuncOpItem>(cmdList, static_cast<DrawFuncOpItem::ConstructorHandle*>(handle));
 }
 
@@ -1434,8 +1448,6 @@ GLenum DrawSurfaceBufferOpItem::GetGLTextureFormatByBitmapFormat(Drawing::ColorT
 
 void DrawSurfaceBufferOpItem::DrawWithVulkan(Canvas* canvas)
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        RS_DRAWSURFACEBUFFEROPITEM_DRAWWITHVULKAN);
 #ifdef RS_ENABLE_VK
     if (surfaceBufferInfo_.acquireFence_) {
         RS_TRACE_NAME_FMT("DrawSurfaceBufferOpItem::DrawWithVulkan waitfence");

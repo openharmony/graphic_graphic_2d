@@ -173,21 +173,6 @@ HWTEST_F(StaticFactoryTest, GetDrawingPointsForTextBlob001, TestSize.Level1)
     StaticFactory::GetDrawingPointsForTextBlob(blob.get(), points);
     ASSERT_TRUE(blob != nullptr);
 }
-
-/**
- * @tc.name: GetGroupParameters001
- * @tc.desc: Test StaticFactory
- * @tc.type: FUNC
- * @tc.require:I91EDT
- */
-HWTEST_F(StaticFactoryTest, GetGroupParameters001, TestSize.Level1)
-{
-    DrawingAnimationType type = DrawingAnimationType::SCALE_TYPE;
-    DrawingCommonSubType subType = DrawingCommonSubType::DOWN;
-    auto param = StaticFactory::GetGroupParameters(type, 0, 0, subType);
-    ASSERT_TRUE(param.empty());
-}
-
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

@@ -19,7 +19,10 @@
 
 #include "include/core/SkCanvas.h"
 #include "src/image/SkImage_Base.h"
-#ifdef NEW_SKIA
+#ifdef USE_M133_SKIA
+#include "include/gpu/ganesh/GrBackendSurface.h"
+#include "include/gpu/ganesh/GrDirectContext.h"
+#else
 #include "include/gpu/GrBackendSurface.h"
 #include "include/gpu/GrDirectContext.h"
 #endif
@@ -34,6 +37,7 @@
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_recording_canvas.h"
+#include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_task_dispatcher.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "pipeline/sk_resource_manager.h"
@@ -46,6 +50,7 @@ namespace Rosen {
 static std::mutex drawingMutex_;
 namespace {
 constexpr uint32_t DRAWCMDLIST_COUNT_LIMIT = 300;
+constexpr uint32_t DRAWCMDLIST_OPSIZE_TOTAL_COUNT_LIMIT = 10000;
 }
 RSCanvasDrawingRenderNode::RSCanvasDrawingRenderNode(
     NodeId id, const std::weak_ptr<RSContext>& context, bool isTextureExportNode)
@@ -564,6 +569,7 @@ void RSCanvasDrawingRenderNode::AddDirtyType(RSModifierType modifierType)
     }
 
     size_t originCmdListSize = drawCmdLists_[modifierType].size();
+    ReportOpCount(drawCmdLists_[modifierType]);
     for (const auto& modifier : itr->second) {
         if (modifier == nullptr) {
             continue;
@@ -585,6 +591,20 @@ void RSCanvasDrawingRenderNode::AddDirtyType(RSModifierType modifierType)
     CheckDrawCmdListSize(modifierType, originCmdListSize);
 }
 
+void RSCanvasDrawingRenderNode::ReportOpCount(const std::list<Drawing::DrawCmdListPtr>& cmdLists) const
+{
+    size_t totalOpCount = 0;
+    for (const auto& cmdList : cmdLists) {
+        if (cmdList != nullptr) {
+            totalOpCount += cmdList->GetOpItemSize();
+        }
+    }
+    if (totalOpCount > DRAWCMDLIST_OPSIZE_TOTAL_COUNT_LIMIT) {
+        RS_LOGI_LIMIT("CanvasDrawingNode OpCount oversize, NodeId[%{public}" PRIu64 "] totalOpCount[%{public}zu]",
+            GetId(), totalOpCount);
+    }
+}
+
 void RSCanvasDrawingRenderNode::ClearOp()
 {
     std::lock_guard<std::mutex> lock(drawCmdListsMutex_);
@@ -600,9 +620,16 @@ void RSCanvasDrawingRenderNode::ResetSurface(int width, int height)
     }
     surface_ = nullptr;
     recordingCanvas_ = nullptr;
+    GraphicColorGamut colorSpace = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+#ifndef ROSEN_CROSS_PLATFORM
+    auto appSurfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(GetInstanceRootNode());
+    if (appSurfaceNode) {
+        colorSpace = appSurfaceNode->GetColorSpace();
+    }
+#endif
 #ifdef RS_ENABLE_GPU
     stagingRenderParams_->SetCanvasDrawingSurfaceChanged(true);
-    stagingRenderParams_->SetCanvasDrawingSurfaceParams(width, height);
+    stagingRenderParams_->SetCanvasDrawingSurfaceParams(width, height, colorSpace);
 #endif
 }
 

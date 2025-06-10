@@ -14,7 +14,10 @@
  */
 #include "gtest/gtest.h"
 
+#include "ge_visual_effect.h"
+#include "ge_visual_effect_container.h"
 #include "render/rs_render_color_gradient_filter.h"
+#include "render/rs_shader_mask.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -42,10 +45,10 @@ void RSRenderColorGradientFilterTest::TearDown() {}
 HWTEST_F(RSRenderColorGradientFilterTest, GetDescription001, TestSize.Level1)
 {
     auto rsRenderFilterPara = std::make_shared<RSRenderColorGradientFilterPara>(0);
+    std::string temp = "RSRenderColorGradientFilterPara";
     std::string out;
     rsRenderFilterPara->GetDescription(out);
-    std::cout << out << std::endl;
-    EXPECT_TRUE(out.length() > 0);
+    EXPECT_EQ(out, temp);
 }
 
 /**
@@ -128,9 +131,9 @@ HWTEST_F(RSRenderColorGradientFilterTest, GetLeafRenderProperties001, TestSize.L
     EXPECT_TRUE(rsRenderPropertyBaseVec.empty());
 
     // 1.0, 0.0, 0.0, 1.0 is the color rgba params
-    std::vector<float> colors = { 1.0, 0.0, 0.0, 1.0 };
-    std::vector<float> positions = { 1.0, 1.0 }; // 1.0, 1.0 is poition xy params
-    std::vector<float> strengths = { 0.5 }; // 0.5 is strength params
+    std::vector<float> colors = { 1.0f, 0.0f, 0.0f, 1.0f };
+    std::vector<float> positions = { 1.0f, 1.0f }; // 1.0, 1.0 is poition xy params
+    std::vector<float> strengths = { 0.5f }; // 0.5 is strength params
 
     auto color = std::make_shared<RSRenderAnimatableProperty<std::vector<float>>>(colors);
     fliterPara->Setter(RSUIFilterType::COLOR_GRADIENT_COLOR, color);
@@ -146,6 +149,66 @@ HWTEST_F(RSRenderColorGradientFilterTest, GetLeafRenderProperties001, TestSize.L
     fliterPara->Setter(RSUIFilterType::COLOR_GRADIENT_STRENGTH, strength);
     rsRenderPropertyBaseVec = fliterPara->GetLeafRenderProperties();
     EXPECT_FALSE(rsRenderPropertyBaseVec.empty());
+}
+
+/**
+ * @tc.name: RSRenderColorGradientFilterTest001
+ * @tc.desc: Verify function RSRenderColorGradientFilterTest
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderColorGradientFilterTest, RSRenderColorGradientFilterTest001, TestSize.Level1)
+{
+    auto filter = std::make_shared<RSRenderColorGradientFilterPara>(0);
+    filter->GenerateGEVisualEffect(nullptr);
+
+    filter->colors_ = { 1.0f, 0.0f, 0.0f, 1.0f };
+    filter->positions_ = { 1.0f, 1.0f }; // 1.0, 1.0 is position xy params
+    filter->strengths_ = { 0.5f };      // 0.5 is strength params
+
+    EXPECT_EQ(filter->GetMask(), nullptr);
+    EXPECT_FALSE(filter->GetColors().empty());
+    EXPECT_FALSE(filter->GetPositions().empty());
+    EXPECT_FALSE(filter->GetStrengths().empty());
+
+    auto container = std::make_shared<Drawing::GEVisualEffectContainer>();
+    filter->GenerateGEVisualEffect(container);
+    EXPECT_FALSE(container->GetFilters().empty());
+
+    filter->mask_ = std::make_shared<RSShaderMask>(std::make_shared<RSRenderMaskPara>(RSUIFilterType::RIPPLE_MASK));
+    EXPECT_NE(filter->GetMask(), nullptr);
+
+    filter->GenerateGEVisualEffect(container);
+    EXPECT_FALSE(container->GetFilters().empty());
+}
+
+/**
+ * @tc.name: ParseFilterValuesTest001
+ * @tc.desc: Verify function ParseFilterValues
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderColorGradientFilterTest, ParseFilterValuesTest001, TestSize.Level1)
+{
+    std::vector<float> colors = { 1.0f, 0.0f, 0.0f, 1.0f };
+    std::vector<float> positions = { 1.0f, 1.0f }; // 1.0, 1.0 is position xy params
+    std::vector<float> strengths = { 0.5f };      // 0.5 is strength params
+    auto filter = std::make_shared<RSRenderColorGradientFilterPara>(0, RSUIFilterType::RIPPLE_MASK);
+    EXPECT_FALSE(filter->ParseFilterValues());
+
+    auto colorsProperty = std::make_shared<RSRenderAnimatableProperty<std::vector<float>>>(colors, 0);
+    filter->Setter(RSUIFilterType::COLOR_GRADIENT_COLOR, colorsProperty);
+    EXPECT_FALSE(filter->ParseFilterValues());
+
+    auto positionsProperty = std::make_shared<RSRenderAnimatableProperty<std::vector<float>>>(positions, 0);
+    filter->Setter(RSUIFilterType::COLOR_GRADIENT_POSITION, positionsProperty);
+    EXPECT_FALSE(filter->ParseFilterValues());
+
+    auto strengthsProperty = std::make_shared<RSRenderAnimatableProperty<std::vector<float>>>(strengths, 0);
+    filter->Setter(RSUIFilterType::COLOR_GRADIENT_STRENGTH, strengthsProperty);
+    EXPECT_TRUE(filter->ParseFilterValues());
+
+    auto maskRenderProperty = std::make_shared<RSRenderMaskPara>(RSUIFilterType::RIPPLE_MASK);
+    filter->Setter(RSUIFilterType::RIPPLE_MASK, maskRenderProperty);
+    EXPECT_TRUE(filter->ParseFilterValues());
 }
 } // namespace Rosen
 } // namespace OHOS

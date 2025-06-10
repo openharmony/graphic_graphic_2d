@@ -95,6 +95,10 @@ void RSUIDispDistortFilterPara::SetDisplacementDistort(
     }
     maskType_ = RSUIMaskPara::ConvertMaskType(maskPara->GetMaskParaType());
     std::shared_ptr<RSUIMaskPara> maskProperty = CreateMask(maskType_);
+    if (maskProperty == nullptr) {
+        ROSEN_LOGW("RSUIDispDistortFilterPara::SetDisplacementDistort maskProperty nullptr");
+        return;
+    }
     maskProperty->SetPara(maskPara);
     SetMask(maskProperty);
 }
@@ -123,7 +127,7 @@ std::shared_ptr<RSRenderFilterParaBase> RSUIDispDistortFilterPara::CreateRSRende
         return nullptr;
     }
     auto factProperty = std::make_shared<RSRenderAnimatableProperty<Vector2f>>(
-        factor->Get(), factor->GetId(), RSRenderPropertyType::PROPERTY_VECTOR2F);
+        factor->Get(), factor->GetId(), RSPropertyType::VECTOR2F);
     frProperty->Setter(RSUIFilterType::DISPLACEMENT_DISTORT_FACTOR, factProperty);
 
     auto mask = std::static_pointer_cast<RSUIMaskPara>(GetRSProperty(maskType_));

@@ -287,6 +287,123 @@ HWTEST_F(RegionTest, CloneTest001, TestSize.Level1)
     other2 = region2;
     EXPECT_TRUE(region2.Contains(15, 15));
 }
+
+/**
+ * @tc.name: EqualsTest001
+ * @tc.desc: test for two regions are equal.
+ * @tc.type: FUNC
+ * @tc.require: I766AZ
+ */
+HWTEST_F(RegionTest, EqualsTest001, TestSize.Level1)
+{
+    Region region;
+    Region region2;
+    ASSERT_TRUE(region == region2);
+    RectI rectI(0, 0, 256, 256);
+    region.SetRect(rectI);
+    ASSERT_FALSE(region == region2);
+}
+
+/**
+ * @tc.name: SetEmptyTest001
+ * @tc.desc: test for set region empty.
+ * @tc.type: FUNC
+ * @tc.require: I766AZ
+ */
+HWTEST_F(RegionTest, SetEmptyTest001, TestSize.Level1)
+{
+    Region region;
+    RectI rectI(0, 0, 256, 256);
+    region.SetRect(rectI);
+    region.SetEmpty();
+    ASSERT_TRUE(region.IsEmpty());
+}
+
+/**
+ * @tc.name: SetRegionTest001
+ * @tc.desc: test for set region.
+ * @tc.type: FUNC
+ * @tc.require: I766AZ
+ */
+HWTEST_F(RegionTest, SetRegionTest001, TestSize.Level1)
+{
+    Region region;
+    Region region2;
+    RectI rectI(0, 0, 256, 256);
+    region.SetRect(rectI);
+    ASSERT_FALSE(region == region2);
+    region2.SetRegion(region);
+    ASSERT_TRUE(region == region2);
+}
+
+/**
+ * @tc.name: GetBoundsTest001
+ * @tc.desc: test for set region.
+ * @tc.type: FUNC
+ * @tc.require: I766AZ
+ */
+HWTEST_F(RegionTest, GetBoundsTest001, TestSize.Level1)
+{
+    Region region;
+    Region region2;
+    RectI rectI(0, 0, 256, 256);
+    region.SetRect(rectI);
+    ASSERT_TRUE(rectI == region.GetBounds());
+}
+
+/**
+ * @tc.name: isComplexTest001
+ * @tc.desc: test for region has multi rects.
+ * @tc.type: FUNC
+ * @tc.require: I766AZ
+ */
+HWTEST_F(RegionTest, isComplexTest001, TestSize.Level1)
+{
+    Region region;
+    Region region2;
+    RectI rectI(0, 0, 256, 256);
+    RectI otherRectI(50, 50, 400, 400);
+    region.SetRect(rectI);
+    ASSERT_FALSE(region.IsComplex());
+    region2.SetRect(otherRectI);
+    region.Op(region2, RegionOp::UNION);
+    ASSERT_TRUE(region.IsComplex());
+}
+
+/**
+ * @tc.name: QuickRejectTest001
+ * @tc.desc: test for region QuickReject with other.
+ * @tc.type: FUNC
+ * @tc.require: I766AZ
+ */
+HWTEST_F(RegionTest, QuickRejectTest001, TestSize.Level1)
+{
+    Region region;
+    Region region2;
+    RectI rectI(0, 0, 256, 256);
+    RectI otherRectI(50, 50, 400, 400);
+    region.SetRect(rectI);
+    region2.SetRect(otherRectI);
+    ASSERT_FALSE(region2.QuickReject(region));
+}
+
+/**
+ * @tc.name: TranslateTest001
+ * @tc.desc: test for region QuickReject with other.
+ * @tc.type: FUNC
+ * @tc.require: I766AZ
+ */
+HWTEST_F(RegionTest, TranslateTest001, TestSize.Level1)
+{
+    Region region;
+    Region region2;
+    RectI rectI(0, 0, 100, 100);
+    RectI otherRectI(100, 100, 200, 200);
+    region.SetRect(rectI);
+    region2.SetRect(otherRectI);
+    region.Translate(100, 100);
+    ASSERT_TRUE(region == region2);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

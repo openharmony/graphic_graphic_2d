@@ -63,7 +63,7 @@ void RSAnimationBaseTest::InitNode(int width, int height)
     canvasNode->SetFrame(ANIMATION_START_BOUNDS);
     canvasNode->SetBackgroundColor(SK_ColorBLUE);
     rootNode->AddChild(canvasNode, -1);
-    rsUiDirector->SetRoot(rootNode->GetId());
+    rsUiDirector->SetRSRootNode(rootNode->ReinterpretCastTo<RSRootNode>());
 }
 
 void RSAnimationBaseTest::InitAnimationWindow()

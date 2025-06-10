@@ -23,7 +23,11 @@
 #include <utility>
 
 #include "include/core/SkColorSpace.h"
+#ifdef USE_M133_SKIA
+#include "modules/skcms/skcms.h"
+#else
 #include "include/third_party/skcms/skcms.h"
+#endif
 
 namespace OHOS {
 namespace ColorManager {
@@ -203,6 +207,11 @@ public:
     float GetGamma() const
     {
         return transferFunc.g;
+    }
+
+    TransferFunc GetTransferFunction() const
+    {
+        return transferFunc;
     }
 
     Vector3 ToLinear(Vector3 color) const;

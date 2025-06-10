@@ -26,6 +26,17 @@ using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
+
+namespace {
+constexpr float DEFAULT_NEAR_ZERO_THRESHOLD = 1.0f / 256.0f;
+constexpr float FLOAT_NEAR_ZERO_COARSE_THRESHOLD = 1.0f / 256.0f;
+constexpr float FLOAT_NEAR_ZERO_MEDIUM_THRESHOLD = 1.0f / 1000.0f;
+constexpr float FLOAT_NEAR_ZERO_FINE_THRESHOLD = 1.0f / 3072.0f;
+constexpr float COLOR_NEAR_ZERO_THRESHOLD = 0.0f;
+constexpr float LAYOUT_NEAR_ZERO_THRESHOLD = 0.5f;
+constexpr float ZERO = 0.0f;
+} // namespace
+
 class RSPropertyTest : public testing::Test {
 public:
     constexpr static float floatData[] = {
@@ -445,7 +456,7 @@ HWTEST_F(RSPropertyTest, Unlikeness001, TestSize.Level1)
 HWTEST_F(RSPropertyTest, GetPropertyType001, TestSize.Level1)
 {
     auto rsAnimatableProperty = std::make_shared<RSAnimatableProperty<Vector3f>>(Vector3f(1.0f, 2.0f, 3.0f));
-    EXPECT_TRUE(rsAnimatableProperty->GetPropertyType() == RSRenderPropertyType::PROPERTY_VECTOR3F);
+    EXPECT_TRUE(rsAnimatableProperty->GetPropertyType() == RSPropertyType::VECTOR3F);
     rsAnimatableProperty->Set(Vector3f(4.0f, 5.0f, 6.0f));
     EXPECT_EQ(rsAnimatableProperty->Get(), Vector3f(4.0f, 5.0f, 6.0f));
 }
@@ -460,9 +471,282 @@ HWTEST_F(RSPropertyTest, GetPropertyType002, TestSize.Level1)
 {
     std::vector<float> tempVec = {1.0f, 2.0f, 3.0f};
     auto rsAnimatableProperty = std::make_shared<RSAnimatableProperty<std::vector<float>>>(tempVec);
-    EXPECT_TRUE(rsAnimatableProperty->GetPropertyType() == RSRenderPropertyType::PROPERTY_SHADER_PARAM);
+    EXPECT_TRUE(rsAnimatableProperty->GetPropertyType() == RSPropertyType::SHADER_PARAM);
     std::vector<float> tempVec2 = {4.0f, 5.0f, 6.0f};
     rsAnimatableProperty->Set(tempVec2);
     EXPECT_EQ(rsAnimatableProperty->Get(), tempVec2);
+}
+
+/**
+ * @tc.name: GetRenderProperty001
+ * @tc.desc: test template value is integral
+ * @tc.type: FUNC
+ * @tc.require: issueICAZAW
+ */
+HWTEST_F(RSPropertyTest, GetRenderProperty001, TestSize.Level1)
+{
+    RSAnimatableProperty<int> property(0);
+    property.isCustom_ = true;
+    property.renderProperty_ = std::make_shared<RSRenderAnimatableProperty<int>>();
+    auto rsRenderProperty1 = property.GetRenderProperty();
+    EXPECT_NE(rsRenderProperty1, nullptr);
+
+    property.renderProperty_ = nullptr;
+    auto rsRenderProperty2 = property.GetRenderProperty();
+    EXPECT_NE(rsRenderProperty2, nullptr);
+
+    property.isCustom_ = false;
+    property.renderProperty_ = nullptr;
+    auto rsRenderProperty3 = property.GetRenderProperty();
+    EXPECT_NE(rsRenderProperty3, nullptr);
+}
+
+/**
+ * @tc.name: GetRenderProperty002
+ * @tc.desc: test template value is float
+ * @tc.type: FUNC
+ * @tc.require: issueICAZAW
+ */
+HWTEST_F(RSPropertyTest, GetRenderProperty002, TestSize.Level1)
+{
+    RSAnimatableProperty<float> property(0.f);
+    property.isCustom_ = true;
+    property.renderProperty_ = std::make_shared<RSRenderAnimatableProperty<float>>();
+    auto rsRenderProperty1 = property.GetRenderProperty();
+    EXPECT_NE(rsRenderProperty1, nullptr);
+
+    property.renderProperty_ = nullptr;
+    auto rsRenderProperty2 = property.GetRenderProperty();
+    EXPECT_NE(rsRenderProperty2, nullptr);
+
+    property.isCustom_ = false;
+    property.renderProperty_ = nullptr;
+    auto rsRenderProperty3 = property.GetRenderProperty();
+    EXPECT_NE(rsRenderProperty3, nullptr);
+}
+
+/**
+ * @tc.name: GetRenderProperty003
+ * @tc.desc: test template value is RSColor
+ * @tc.type: FUNC
+ * @tc.require: issueICAZAW
+ */
+HWTEST_F(RSPropertyTest, GetRenderProperty003, TestSize.Level1)
+{
+    RSColor color = RSColor(0, 0, 0, 255);
+    RSAnimatableProperty<RSColor> property(color);
+    property.isCustom_ = true;
+    property.renderProperty_ = std::make_shared<RSRenderAnimatableProperty<RSColor>>();
+    auto rsRenderProperty1 = property.GetRenderProperty();
+    EXPECT_NE(rsRenderProperty1, nullptr);
+
+    property.renderProperty_ = nullptr;
+    auto rsRenderProperty2 = property.GetRenderProperty();
+    EXPECT_NE(rsRenderProperty2, nullptr);
+
+    property.isCustom_ = false;
+    property.renderProperty_ = nullptr;
+    auto rsRenderProperty3 = property.GetRenderProperty();
+    EXPECT_NE(rsRenderProperty3, nullptr);
+}
+
+/**
+ * @tc.name: GetRenderProperty004
+ * @tc.desc: test template value is Matrix3f
+ * @tc.type: FUNC
+ * @tc.require: issueICAZAW
+ */
+HWTEST_F(RSPropertyTest, GetRenderProperty004, TestSize.Level1)
+{
+    RSAnimatableProperty<Matrix3f> property(Matrix3f::ZERO);
+    property.isCustom_ = true;
+    property.renderProperty_ = std::make_shared<RSRenderAnimatableProperty<Matrix3f>>();
+    auto rsRenderProperty1 = property.GetRenderProperty();
+    EXPECT_NE(rsRenderProperty1, nullptr);
+
+    property.renderProperty_ = nullptr;
+    auto rsRenderProperty2 = property.GetRenderProperty();
+    EXPECT_NE(rsRenderProperty2, nullptr);
+
+    property.isCustom_ = false;
+    property.renderProperty_ = nullptr;
+    auto rsRenderProperty3 = property.GetRenderProperty();
+    EXPECT_NE(rsRenderProperty3, nullptr);
+}
+
+/**
+ * @tc.name: GetRenderProperty005
+ * @tc.desc: test template value is Vector2f
+ * @tc.type: FUNC
+ * @tc.require: issueICAZAW
+ */
+HWTEST_F(RSPropertyTest, GetRenderProperty005, TestSize.Level1)
+{
+    RSAnimatableProperty<Vector2f> property(Vector2f(0.f, 0.f));
+    property.isCustom_ = true;
+    property.renderProperty_ = std::make_shared<RSRenderAnimatableProperty<Vector2f>>();
+    auto rsRenderProperty1 = property.GetRenderProperty();
+    EXPECT_NE(rsRenderProperty1, nullptr);
+
+    property.renderProperty_ = nullptr;
+    auto rsRenderProperty2 = property.GetRenderProperty();
+    EXPECT_NE(rsRenderProperty2, nullptr);
+
+    property.isCustom_ = false;
+    property.renderProperty_ = nullptr;
+    auto rsRenderProperty3 = property.GetRenderProperty();
+    EXPECT_NE(rsRenderProperty3, nullptr);
+}
+
+/**
+ * @tc.name: GetRenderProperty006
+ * @tc.desc: test template value is Vector3f
+ * @tc.type: FUNC
+ * @tc.require: issueICAZAW
+ */
+HWTEST_F(RSPropertyTest, GetRenderProperty006, TestSize.Level1)
+{
+    RSAnimatableProperty<Vector3f> property(Vector3f(0.f, 0.f, 0.f));
+    property.isCustom_ = true;
+    property.renderProperty_ = std::make_shared<RSRenderAnimatableProperty<Vector3f>>();
+    auto rsRenderProperty1 = property.GetRenderProperty();
+    EXPECT_NE(rsRenderProperty1, nullptr);
+
+    property.renderProperty_ = nullptr;
+    auto rsRenderProperty2 = property.GetRenderProperty();
+    EXPECT_NE(rsRenderProperty2, nullptr);
+
+    property.isCustom_ = false;
+    property.renderProperty_ = nullptr;
+    auto rsRenderProperty3 = property.GetRenderProperty();
+    EXPECT_NE(rsRenderProperty3, nullptr);
+}
+
+/**
+ * @tc.name: GetRenderProperty007
+ * @tc.desc: test template value is Vector4f
+ * @tc.type: FUNC
+ * @tc.require: issueICAZAW
+ */
+HWTEST_F(RSPropertyTest, GetRenderProperty007, TestSize.Level1)
+{
+    RSAnimatableProperty<Vector4f> property(Vector4f(0.f, 0.f, 0.f, 0.f));
+    property.isCustom_ = true;
+    property.renderProperty_ = std::make_shared<RSRenderAnimatableProperty<Vector4f>>();
+    auto rsRenderProperty1 = property.GetRenderProperty();
+    EXPECT_NE(rsRenderProperty1, nullptr);
+
+    property.renderProperty_ = nullptr;
+    auto rsRenderProperty2 = property.GetRenderProperty();
+    EXPECT_NE(rsRenderProperty2, nullptr);
+
+    property.isCustom_ = false;
+    property.renderProperty_ = nullptr;
+    auto rsRenderProperty3 = property.GetRenderProperty();
+    EXPECT_NE(rsRenderProperty3, nullptr);
+}
+
+/**
+ * @tc.name: GetRenderProperty008
+ * @tc.desc: test template value is Quaternion
+ * @tc.type: FUNC
+ * @tc.require: issueICAZAW
+ */
+HWTEST_F(RSPropertyTest, GetRenderProperty008, TestSize.Level1)
+{
+    RSAnimatableProperty<Quaternion> property(Quaternion(0.f, 0.1f, 0.2f, 0.3f));
+    property.isCustom_ = true;
+    property.renderProperty_ = std::make_shared<RSRenderAnimatableProperty<Quaternion>>();
+    auto rsRenderProperty1 = property.GetRenderProperty();
+    EXPECT_NE(rsRenderProperty1, nullptr);
+
+    property.renderProperty_ = nullptr;
+    auto rsRenderProperty2 = property.GetRenderProperty();
+    EXPECT_NE(rsRenderProperty2, nullptr);
+
+    property.isCustom_ = false;
+    property.renderProperty_ = nullptr;
+    auto rsRenderProperty3 = property.GetRenderProperty();
+    EXPECT_NE(rsRenderProperty3, nullptr);
+}
+
+/**
+ * @tc.name: GetRenderProperty010
+ * @tc.desc: test template value is Vector4<Color>
+ * @tc.type: FUNC
+ * @tc.require: issueICAZAW
+ */
+HWTEST_F(RSPropertyTest, GetRenderProperty010, TestSize.Level1)
+{
+    auto colorVec = Vector4<RSColor>(
+        RSColor(0, 0, 0, 255),
+        RSColor(0, 0, 255, 255),
+        RSColor(0, 255, 255, 255),
+        RSColor(255, 255, 255, 255)
+    );
+    RSAnimatableProperty<Vector4<RSColor>> property(colorVec);
+    property.isCustom_ = true;
+    property.renderProperty_ = std::make_shared<RSRenderAnimatableProperty<Vector4<RSColor>>>();
+    auto rsRenderProperty1 = property.GetRenderProperty();
+    EXPECT_NE(rsRenderProperty1, nullptr);
+
+    property.renderProperty_ = nullptr;
+    auto rsRenderProperty2 = property.GetRenderProperty();
+    EXPECT_NE(rsRenderProperty2, nullptr);
+
+    property.isCustom_ = false;
+    property.renderProperty_ = nullptr;
+    auto rsRenderProperty3 = property.GetRenderProperty();
+    EXPECT_NE(rsRenderProperty3, nullptr);
+}
+
+/**
+ * @tc.name: GetRenderProperty011
+ * @tc.desc: test template value is RRect
+ * @tc.type: FUNC
+ * @tc.require: issueICAZAW
+ */
+HWTEST_F(RSPropertyTest, GetRenderProperty011, TestSize.Level1)
+{
+    RRect rrect = RRect({0, 0, 0, 0}, 10.f, 10.f);
+    RSAnimatableProperty<RRect> property(rrect);
+    property.isCustom_ = true;
+    property.renderProperty_ = std::make_shared<RSRenderAnimatableProperty<RRect>>();
+    auto rsRenderProperty1 = property.GetRenderProperty();
+    EXPECT_NE(rsRenderProperty1, nullptr);
+
+    property.renderProperty_ = nullptr;
+    auto rsRenderProperty2 = property.GetRenderProperty();
+    EXPECT_NE(rsRenderProperty2, nullptr);
+
+    property.isCustom_ = false;
+    property.renderProperty_ = nullptr;
+    auto rsRenderProperty3 = property.GetRenderProperty();
+    EXPECT_NE(rsRenderProperty3, nullptr);
+}
+
+/**
+ * @tc.name: GetRenderProperty012
+ * @tc.desc: test template value is std::vector<float>
+ * @tc.type: FUNC
+ * @tc.require: issueICAZAW
+ */
+HWTEST_F(RSPropertyTest, GetRenderProperty012, TestSize.Level1)
+{
+    std::vector<float> floatVec = {0.0f, 0.2f, 0.3f};
+    RSAnimatableProperty<std::vector<float>> property(floatVec);
+    property.isCustom_ = true;
+    property.renderProperty_ = std::make_shared<RSRenderAnimatableProperty<std::vector<float>>>();
+    auto rsRenderProperty1 = property.GetRenderProperty();
+    EXPECT_NE(rsRenderProperty1, nullptr);
+
+    property.renderProperty_ = nullptr;
+    auto rsRenderProperty2 = property.GetRenderProperty();
+    EXPECT_NE(rsRenderProperty2, nullptr);
+
+    property.isCustom_ = false;
+    property.renderProperty_ = nullptr;
+    auto rsRenderProperty3 = property.GetRenderProperty();
+    EXPECT_NE(rsRenderProperty3, nullptr);
 }
 } // namespace OHOS::Rosen

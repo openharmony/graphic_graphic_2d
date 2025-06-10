@@ -221,6 +221,81 @@ void OH_Drawing_DestroyRunPositions(OH_Drawing_Array* positionsArray)
     }
 }
 
+OH_Drawing_Font* OH_Drawing_GetRunFont(OH_Drawing_Run* run)
+{
+    if (run == nullptr) {
+        return nullptr;
+    }
+
+    Drawing::Font* font = new Drawing::Font(reinterpret_cast<AdapterTxt::RunImpl*>(run)->GetFont());
+    return reinterpret_cast<OH_Drawing_Font*>(font);
+}
+
+OH_Drawing_TextDirection OH_Drawing_GetRunTextDirection(OH_Drawing_Run* run)
+{
+    if (run == nullptr) {
+        return TEXT_DIRECTION_LTR;
+    }
+
+    auto textDirection = reinterpret_cast<AdapterTxt::RunImpl*>(run)->GetTextDirection();
+    if (textDirection == TextDirection::RTL) {
+        return TEXT_DIRECTION_RTL;
+    } else {
+        return TEXT_DIRECTION_LTR;
+    }
+}
+
+OH_Drawing_Array* OH_Drawing_GetRunGlyphAdvances(OH_Drawing_Run* run, uint32_t start, uint32_t length)
+{
+    if (run == nullptr) {
+        return nullptr;
+    }
+
+    auto advances = reinterpret_cast<AdapterTxt::RunImpl*>(run)->GetAdvances(start, length);
+    if (advances.size() == 0) {
+        return nullptr;
+    }
+    Drawing::Point* advancesArr = new (std::nothrow) Drawing::Point[advances.size()];
+    if (advancesArr == nullptr) {
+        return nullptr;
+    }
+    ObjectArray* array = new (std::nothrow) ObjectArray;
+    if (array == nullptr) {
+        delete[] advancesArr;
+        return nullptr;
+    }
+    for (size_t i = 0; i < advances.size(); ++i) {
+        advancesArr[i] = advances[i];
+    }
+    array->addr = advancesArr;
+    array->num = advances.size();
+    array->type = ObjectType::TEXT_RUN;
+    return reinterpret_cast<OH_Drawing_Array*>(array);
+}
+
+OH_Drawing_Point* OH_Drawing_GetRunGlyphAdvanceByIndex(OH_Drawing_Array* advances, size_t index)
+{
+    ObjectArray* advancesArray = reinterpret_cast<ObjectArray*>(advances);
+    if (advancesArray != nullptr && advancesArray->type == ObjectType::TEXT_RUN &&
+        index < advancesArray->num && advancesArray->addr) {
+        Drawing::Point* advancesArr =  reinterpret_cast<Drawing::Point*>(advancesArray->addr);
+        return reinterpret_cast<OH_Drawing_Point*>(&advancesArr[index]);
+    }
+    return nullptr;
+}
+
+void OH_Drawing_DestroyRunGlyphAdvances(OH_Drawing_Array* advances)
+{
+    ObjectArray* advancesArray = reinterpret_cast<ObjectArray*>(advances);
+    if (advancesArray != nullptr && advancesArray->addr && advancesArray->type == ObjectType::TEXT_RUN) {
+        delete[] reinterpret_cast<Drawing::Point*>(advancesArray->addr);
+        advancesArray->num = 0;
+        advancesArray->type = ObjectType::INVALID;
+        advancesArray->addr = nullptr;
+        delete advancesArray;
+    }
+}
+
 void OH_Drawing_RunPaint(OH_Drawing_Canvas* canvas, OH_Drawing_Run* run, double x, double y)
 {
     if (canvas == nullptr || run == nullptr) {

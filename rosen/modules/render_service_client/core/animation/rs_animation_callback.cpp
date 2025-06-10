@@ -20,12 +20,12 @@ namespace OHOS {
 namespace Rosen {
 AnimationCallback::AnimationCallback(const std::function<void()>&& callback) : callback_(std::move(callback))
 {
-    RS_TRACE_NAME_FMT("AnimationCallback %zd", std::hash<AnimationCallback*>()(this));
+    RS_TRACE_NAME_FMT("AnimationCallback %zu", std::hash<AnimationCallback*>()(this));
 }
 
 AnimationCallback::~AnimationCallback()
 {
-    RS_TRACE_NAME_FMT("~AnimationCallback %zd", std::hash<AnimationCallback*>()(this));
+    RS_TRACE_NAME_FMT("~AnimationCallback %zu", std::hash<AnimationCallback*>()(this));
     if (callback_ != nullptr) {
         callback_();
     }

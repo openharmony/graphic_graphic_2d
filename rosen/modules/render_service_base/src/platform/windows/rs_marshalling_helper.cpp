@@ -19,13 +19,14 @@
 #include <message_parcel.h>
 #include <unistd.h>
 
+#include "pixel_map.h"
 #include "securec.h"
 
+#include "animation/rs_particle_noise_field.h"
 #include "animation/rs_render_curve_animation.h"
 #include "animation/rs_render_interpolating_spring_animation.h"
 #include "animation/rs_render_keyframe_animation.h"
 #include "animation/rs_render_particle.h"
-#include "animation/rs_particle_noise_field.h"
 #include "animation/rs_render_path_animation.h"
 #include "animation/rs_render_spring_animation.h"
 #include "animation/rs_render_transition.h"
@@ -34,11 +35,8 @@
 #include "common/rs_matrix3.h"
 #include "common/rs_vector4.h"
 #include "modifier/rs_render_modifier.h"
-#include "property/rs_properties_def.h"
-#include "pixel_map.h"
 #include "platform/common/rs_log.h"
-#include "render/rs_blur_filter.h"
-#include "render/rs_filter.h"
+#include "property/rs_properties_def.h"
 #include "render/rs_gradient_blur_para.h"
 #include "render/rs_image.h"
 #include "render/rs_image_base.h"
@@ -62,6 +60,43 @@ namespace Rosen {
     {                                                                      \
         return {};                                                         \
     }
+
+// basic types
+MARSHALLING_AND_UNMARSHALLING(bool, Bool)
+MARSHALLING_AND_UNMARSHALLING(int8_t, Int8)
+MARSHALLING_AND_UNMARSHALLING(uint8_t, Uint8)
+MARSHALLING_AND_UNMARSHALLING(int16_t, Int16)
+MARSHALLING_AND_UNMARSHALLING(uint16_t, Uint16)
+MARSHALLING_AND_UNMARSHALLING(int32_t, Int32)
+MARSHALLING_AND_UNMARSHALLING(uint32_t, Uint32)
+MARSHALLING_AND_UNMARSHALLING(int64_t, Int64)
+MARSHALLING_AND_UNMARSHALLING(uint64_t, Uint64)
+MARSHALLING_AND_UNMARSHALLING(float, Float)
+MARSHALLING_AND_UNMARSHALLING(double, Double)
+
+#undef MARSHALLING_AND_UNMARSHALLING
+
+#define MARSHALLING_AND_UNMARSHALLING(TYPE, TYPENAME)                                                       \
+    bool RSMarshallingHelper::CompatibleMarshalling(Parcel& parcel, const TYPE& val, uint16_t paramVersion) \
+    {                                                                                                       \
+        return parcel.Write##TYPENAME(val);                                                                 \
+    }                                                                                                       \
+    bool RSMarshallingHelper::CompatibleUnmarshalling(                                                      \
+        Parcel& parcel, TYPE& val, TYPE defaultValue, uint16_t paramVersion)                                \
+    {                                                                                                       \
+        if (RSMarshallingHelper::TransactionVersionCheck(parcel, paramVersion)) {                           \
+            return parcel.Read##TYPENAME(val);                                                              \
+        }                                                                                                   \
+        val = defaultValue;                                                                                 \
+        return true;                                                                                        \
+    }
+
+void RSMarshallingHelper::CompatibleUnmarshallingObsolete(Parcel& parcel, size_t typeSize, uint16_t paramVersion)
+{
+    if (paramVersion != RSPARCELVER_ALWAYS && !RSMarshallingHelper::TransactionVersionCheck(parcel, paramVersion)) {
+        parcel.SkipBytes(typeSize);
+    }
+}
 
 // basic types
 MARSHALLING_AND_UNMARSHALLING(bool, Bool)
@@ -298,16 +333,6 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSMask>&
     return {};
 }
 
-// RSFilter
-bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSFilter>& val)
-{
-    return {};
-}
-bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSFilter>& val)
-{
-    return {};
-}
-
 // RSRenderFilter
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSRenderFilter>& val)
 {
@@ -375,7 +400,8 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, RRectT<float>& val)
 
 
 // Drawing::DrawCmdList
-bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Drawing::DrawCmdList>& val)
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Drawing::DrawCmdList>& val,
+    int32_t recordCmdDepth)
 {
     return {};
 }
@@ -445,7 +471,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSRender
             ROSEN_LOGE("RSMarshallingHelper::Unmarshalling ReadInt16 failed");                                        \
             return false;                                                                                             \
         }                                                                                                             \
-        RSRenderPropertyType type = static_cast<RSRenderPropertyType>(typeId);                                        \
+        RSPropertyType type = static_cast<RSPropertyType>(typeId);                                                    \
         if (!parcel.ReadUint64(id)) {                                                                                 \
             ROSEN_LOGE("RSMarshallingHelper::Unmarshalling ReadUint64 failed");                                       \
             return false;                                                                                             \
@@ -480,7 +506,6 @@ MARSHALLING_AND_UNMARSHALLING(RSRenderAnimatableProperty)
     EXPLICIT_INSTANTIATION(TEMPLATE, ForegroundColorStrategyType)  \
     EXPLICIT_INSTANTIATION(TEMPLATE, Matrix3f)                     \
     EXPLICIT_INSTANTIATION(TEMPLATE, Quaternion)                   \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSFilter>)    \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSRenderFilter>) \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSImage>)     \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSMask>)      \
@@ -516,7 +541,6 @@ BATCH_EXPLICIT_INSTANTIATION(RSRenderProperty)
     EXPLICIT_INSTANTIATION(TEMPLATE, Color)                               \
     EXPLICIT_INSTANTIATION(TEMPLATE, Matrix3f)                            \
     EXPLICIT_INSTANTIATION(TEMPLATE, Quaternion)                          \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSFilter>)           \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector2f)                            \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector3f)                            \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector4<Color>)                      \
@@ -567,6 +591,18 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSRe
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSRenderPropertyBase>& val)
 {
     return true;
+}
+bool RSMarshallingHelper::MarshallingTransactionVer(Parcel& parcel)
+{
+    return true;
+}
+bool RSMarshallingHelper::UnmarshallingTransactionVer(Parcel& parcel)
+{
+    return true;
+}
+bool RSMarshallingHelper::TransactionVersionCheck(Parcel& parcel, uint8_t supportedFlag)
+{
+    return false;
 }
 } // namespace Rosen
 } // namespace OHOS

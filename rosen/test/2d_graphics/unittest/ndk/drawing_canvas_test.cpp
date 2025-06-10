@@ -1790,6 +1790,58 @@ HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_CanvasDrawRecordCmdNes
 }
 
 /*
+ * @tc.name: NativeDrawingCanvasTest_CanvasDrawRecordCmdNesting002
+ * @tc.desc: test for OH_Drawing_CanvasDrawRecordCmdNesting.
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_CanvasDrawRecordCmdNesting002, TestSize.Level1)
+{
+    int32_t width = 10; // canvas width is 10
+    int32_t height = 20; // canvas width is 20
+    OH_Drawing_Canvas* recordCanvas1 = nullptr;
+    OH_Drawing_RecordCmdUtils* recordCmdUtils1 = OH_Drawing_RecordCmdUtilsCreate();
+    EXPECT_TRUE(recordCmdUtils1 != nullptr);
+    OH_Drawing_ErrorCode code = OH_Drawing_RecordCmdUtilsBeginRecording(recordCmdUtils1, width, height, &recordCanvas1);
+    EXPECT_TRUE(recordCanvas1 != nullptr);
+    EXPECT_EQ(code, OH_DRAWING_SUCCESS);
+    OH_Drawing_CanvasDrawLine(recordCanvas1, 0, 0, static_cast<float>(width), static_cast<float>(height));
+    OH_Drawing_RecordCmd* recordCmd1 = nullptr;
+    code = OH_Drawing_RecordCmdUtilsFinishRecording(recordCmdUtils1, &recordCmd1);
+    EXPECT_TRUE(recordCmd1 != nullptr);
+    EXPECT_EQ(code, OH_DRAWING_SUCCESS);
+    OH_Drawing_RecordCmdUtilsDestroy(recordCmdUtils1);
+
+    OH_Drawing_Canvas* recordCanvas2 = nullptr;
+    OH_Drawing_RecordCmdUtils* recordCmdUtils2 = OH_Drawing_RecordCmdUtilsCreate();
+    EXPECT_TRUE(recordCmdUtils2 != nullptr);
+    code = OH_Drawing_RecordCmdUtilsBeginRecording(recordCmdUtils2, width, height, &recordCanvas2);
+    EXPECT_TRUE(recordCanvas2 != nullptr);
+    EXPECT_EQ(code, OH_DRAWING_SUCCESS);
+    OH_Drawing_CanvasDrawLine(recordCanvas2, static_cast<float>(width), 0, 0, static_cast<float>(height));
+    code = OH_Drawing_CanvasDrawRecordCmdNesting(recordCanvas2, recordCmd1);
+    EXPECT_EQ(code, OH_DRAWING_SUCCESS);
+    OH_Drawing_RecordCmd* recordCmd2 = nullptr;
+    // test beginRecording repeatedly
+    code = OH_Drawing_RecordCmdUtilsBeginRecording(recordCmdUtils2, width, height, &recordCanvas2);
+    EXPECT_EQ(code, OH_DRAWING_SUCCESS);
+    code = OH_Drawing_CanvasDrawRecordCmdNesting(recordCanvas2, recordCmd1);
+    EXPECT_EQ(code, OH_DRAWING_SUCCESS);
+    // test DrawRecordCmdNesting repeatedly
+    code = OH_Drawing_CanvasDrawRecordCmdNesting(recordCanvas2, recordCmd1);
+    EXPECT_EQ(code, OH_DRAWING_SUCCESS);
+    // test DrawRecordCmdNesting and DrawRecordCmdNest
+    code = OH_Drawing_CanvasDrawRecordCmd(recordCanvas2, recordCmd1);
+    EXPECT_EQ(code, OH_DRAWING_SUCCESS);
+    OH_Drawing_RecordCmdDestroy(recordCmd1);
+    code = OH_Drawing_RecordCmdUtilsFinishRecording(recordCmdUtils2, &recordCmd2);
+    EXPECT_TRUE(recordCmd2 != nullptr);
+    EXPECT_EQ(code, OH_DRAWING_SUCCESS);
+    OH_Drawing_RecordCmdUtilsDestroy(recordCmdUtils2);
+    OH_Drawing_RecordCmdDestroy(recordCmd2);
+}
+
+/*
  * @tc.name: NativeOH_Drawing_CanvasQuickRejectPath001
  * @tc.desc: test for OH_Drawing_CanvasQuickRejectPath.
  * @tc.type: FUNC

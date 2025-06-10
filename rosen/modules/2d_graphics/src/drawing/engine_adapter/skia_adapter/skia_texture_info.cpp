@@ -25,17 +25,29 @@ GrBackendTexture SkiaTextureInfo::ConvertToGrBackendVKTexture(const TextureInfo&
 {
     GrVkImageInfo imageInfo;
     if (!SystemProperties::IsUseVulkan()) {
+#ifdef USE_M133_SKIA
+        GrBackendTexture backendTexture;
+#else
         GrBackendTexture backendTexture(0, 0, imageInfo);
+#endif
         return backendTexture;
     }
 
     auto vkInfo = info.GetVKTextureInfo();
     if (!vkInfo) {
+#ifdef USE_M133_SKIA
+        GrBackendTexture backendTexture = GrBackendTextures::MakeVk(info.GetWidth(), info.GetHeight(), imageInfo);
+#else
         GrBackendTexture backendTexture(info.GetWidth(), info.GetHeight(), imageInfo);
+#endif
         return backendTexture;
     }
     imageInfo.fImage = vkInfo->vkImage;
+#ifdef USE_M133_SKIA
+    skgpu::VulkanAlloc alloc;
+#else
     GrVkAlloc alloc;
+#endif
     alloc.fMemory = vkInfo->vkAlloc.memory;
     alloc.fOffset = vkInfo->vkAlloc.offset;
     alloc.fSize = vkInfo->vkAlloc.size;
@@ -51,7 +63,11 @@ GrBackendTexture SkiaTextureInfo::ConvertToGrBackendVKTexture(const TextureInfo&
     imageInfo.fCurrentQueueFamily = vkInfo->currentQueueFamily;
     imageInfo.fProtected = vkInfo->vkProtected ? GrProtected::kYes : GrProtected::kNo;
 
+#ifdef USE_M133_SKIA
+    skgpu::VulkanYcbcrConversionInfo ycbcrInfo = {
+#else
     GrVkYcbcrConversionInfo ycbcrInfo = {
+#endif
         .fFormat = vkInfo->ycbcrConversionInfo.format,
         .fExternalFormat = vkInfo->ycbcrConversionInfo.externalFormat,
         .fYcbcrModel = vkInfo->ycbcrConversionInfo.ycbcrModel,
@@ -66,7 +82,11 @@ GrBackendTexture SkiaTextureInfo::ConvertToGrBackendVKTexture(const TextureInfo&
 
     imageInfo.fSharingMode = vkInfo->sharingMode;
 
+#ifdef USE_M133_SKIA
+    GrBackendTexture backendTexture = GrBackendTextures::MakeVk(info.GetWidth(), info.GetHeight(), imageInfo);
+#else
     GrBackendTexture backendTexture(info.GetWidth(), info.GetHeight(), imageInfo);
+#endif
     return backendTexture;
 }
 
@@ -80,7 +100,11 @@ void SkiaTextureInfo::ConvertToVKTexture(const GrBackendTexture& backendTexture,
     info.SetHeight(backendTexture.height());
 
     GrVkImageInfo vkImageInfo;
+#ifdef USE_M133_SKIA
+    GrBackendTextures::GetVkImageInfo(backendTexture, &vkImageInfo);
+#else
     backendTexture.getVkImageInfo(&vkImageInfo);
+#endif
 
     vkInfo->vkImage = vkImageInfo.fImage;
 
@@ -122,14 +146,26 @@ GrBackendTexture SkiaTextureInfo::ConvertToGrBackendTexture(const TextureInfo& i
         return ConvertToGrBackendVKTexture(info);
     } else {
         GrGLTextureInfo grGLTextureInfo = { info.GetTarget(), info.GetID(), info.GetFormat() };
+#ifdef USE_M133_SKIA
+        GrBackendTexture backendTexture = GrBackendTextures::MakeGL(info.GetWidth(), info.GetHeight(),
+            static_cast<skgpu::Mipmapped>(info.GetIsMipMapped()? skgpu::Mipmapped::kYes : skgpu::Mipmapped::kNo),
+            grGLTextureInfo);
+#else
         GrBackendTexture backendTexture(info.GetWidth(), info.GetHeight(),
             static_cast<GrMipMapped>(info.GetIsMipMapped()), grGLTextureInfo);
+#endif
         return backendTexture;
     }
 #else
     GrGLTextureInfo grGLTextureInfo = { info.GetTarget(), info.GetID(), info.GetFormat() };
+#ifdef USE_M133_SKIA
+    GrBackendTexture backendTexture = GrBackendTextures::MakeGL(info.GetWidth(), info.GetHeight(),
+        static_cast<skgpu::Mipmapped>(info.GetIsMipMapped()? skgpu::Mipmapped::kYes : skgpu::Mipmapped::kNo),
+        grGLTextureInfo);
+#else
     GrBackendTexture backendTexture(info.GetWidth(), info.GetHeight(),
         static_cast<GrMipMapped>(info.GetIsMipMapped()), grGLTextureInfo);
+#endif
     return backendTexture;
 #endif
 }
@@ -137,7 +173,11 @@ GrBackendTexture SkiaTextureInfo::ConvertToGrBackendTexture(const TextureInfo& i
 TextureInfo SkiaTextureInfo::ConvertToTextureInfo(const GrBackendTexture& grBackendTexture)
 {
     GrGLTextureInfo* grGLTextureInfo = new GrGLTextureInfo();
+#ifdef USE_M133_SKIA
+    GrBackendTextures::GetGLTextureInfo(grBackendTexture, grGLTextureInfo);
+#else
     grBackendTexture.getGLTextureInfo(grGLTextureInfo);
+#endif
     TextureInfo textureInfo;
     textureInfo.SetWidth(grBackendTexture.width());
     textureInfo.SetHeight(grBackendTexture.height());
@@ -149,7 +189,6 @@ TextureInfo SkiaTextureInfo::ConvertToTextureInfo(const GrBackendTexture& grBack
     return textureInfo;
 }
 #endif
-
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

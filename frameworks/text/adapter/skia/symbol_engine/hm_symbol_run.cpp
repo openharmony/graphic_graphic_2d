@@ -25,7 +25,7 @@ namespace Rosen {
 namespace SPText {
 static const std::vector<RSEffectStrategy> COMMON_ANIMATION_TYPES = {
     RSEffectStrategy::SCALE, RSEffectStrategy::APPEAR, RSEffectStrategy::DISAPPEAR,
-    RSEffectStrategy::BOUNCE, RSEffectStrategy::REPLACE_APPEAR};
+    RSEffectStrategy::BOUNCE, RSEffectStrategy::REPLACE_APPEAR, RSEffectStrategy::QUICK_REPLACE_APPEAR};
 
 HMSymbolRun::HMSymbolRun(uint64_t symbolId,
     const HMSymbolTxt& symbolTxt,
@@ -66,11 +66,68 @@ RSSymbolLayers HMSymbolRun::GetSymbolLayers(uint16_t glyphId, const HMSymbolTxt&
         symbolInfo.symbolGlyphId = symbolInfoOrign.symbolGlyphId;
     }
 
-    std::vector<RSSColor> colorList = symbolText.GetRenderColor();
+    if (symbolText.GetSymbolColor().colorType == SymbolColorType::GRADIENT_TYPE) {
+        SetGradientColor(renderMode, symbolInfo);
+    }
+
+    bool isNeed = symbolText.GetSymbolColor().colorType == SymbolColorType::COLOR_TYPE ||
+        gradients_.empty();
+    if (isNeed) {
+        SetRenderColor(renderMode, symbolInfo);
+    }
+    return symbolInfo;
+}
+
+void HMSymbolRun::SetRenderColor(const RSSymbolRenderingStrategy& renderMode, RSSymbolLayers& symbolInfo)
+{
+    std::vector<RSSColor> colorList = symbolTxt_.GetRenderColor();
+
     if (!colorList.empty()) {
         SetSymbolRenderColor(renderMode, colorList, symbolInfo);
     }
-    return symbolInfo;
+
+    std::vector<std::shared_ptr<SymbolGradient>> gradients;
+    for (const auto& group : symbolInfo.renderGroups) {
+        auto gradient = std::make_shared<SymbolGradient>();
+        std::vector<Drawing::ColorQuad> colorQuads;
+        Drawing::Color color;
+        color.SetRgb(group.color.r, group.color.g, group.color.b);
+        color.SetAlphaF(group.color.a);
+        colorQuads.push_back(color.CastToColorQuad());
+        gradient->SetColors(colorQuads);
+        gradients.push_back(gradient);
+    }
+    gradients_ = gradients;
+}
+
+void HMSymbolRun::SetGradientColor(const RSSymbolRenderingStrategy& renderMode, const RSSymbolLayers& symbolInfo)
+{
+    SymbolColor symbolColor = symbolTxt_.GetSymbolColor();
+    if (symbolColor.gradients.empty()) {
+        return;
+    }
+    std::vector<std::shared_ptr<SymbolGradient>> gradients;
+    if (renderMode == RSSymbolRenderingStrategy::SINGLE) {
+        gradients.push_back(symbolColor.gradients[0]);
+        gradients_ = gradients;
+        return;
+    }
+
+    size_t i = 0;
+    const size_t n = symbolColor.gradients.size() - 1;
+    for (size_t index = 0; index < symbolInfo.renderGroups.size(); index++) {
+        std::shared_ptr<SymbolGradient> gradient = nullptr;
+        if (i <= n) {
+            gradient = symbolColor.gradients[i];
+            i++;
+        } else {
+            gradient = SymbolNodeBuild::CreateGradient(symbolColor.gradients[n]);
+        }
+        if (gradient != nullptr) {
+            gradients.push_back(gradient);
+        }
+    }
+    gradients_ = gradients;
 }
 
 void HMSymbolRun::SetSymbolRenderColor(const RSSymbolRenderingStrategy& renderMode,
@@ -231,6 +288,46 @@ void HMSymbolRun::SetTextBlob(const std::shared_ptr<RSTextBlob>& textBlob)
     }
 }
 
+void HMSymbolRun::SetGradients(const std::vector<std::shared_ptr<SymbolGradient>>& gradients)
+{
+    symbolTxt_.SetGradients(gradients);
+}
+
+void HMSymbolRun::DrawPaths(RSCanvas* canvas, const std::vector<RSPath>& multPaths,
+    const RSPath& path)
+{
+    Drawing::Brush brush;
+    Drawing::Pen pen;
+    brush.SetAntiAlias(true);
+    pen.SetAntiAlias(true);
+
+    size_t n = gradients_.size();
+    bool isSingle = symbolTxt_.GetRenderMode() == RSSymbolRenderingStrategy::SINGLE && n > 0 &&
+        gradients_[0] != nullptr;
+    if (isSingle) { // if renderMode is SINGLE only set one color
+        gradients_[0]->Make(path.GetBounds());
+        brush = gradients_[0]->CreateGradientBrush();
+        pen = gradients_[0]->CreateGradientPen();
+    }
+
+    size_t i = 0;
+    for (const auto& multPath: multPaths) {
+        bool isValid = symbolTxt_.GetRenderMode() != RSSymbolRenderingStrategy::SINGLE && i < n &&
+            gradients_[i] != nullptr;
+        if (isValid) {
+            gradients_[i]->Make(multPath.GetBounds());
+            brush = gradients_[i]->CreateGradientBrush();
+            pen = gradients_[i]->CreateGradientPen();
+            i = i + 1 < n ? i + 1 : i;
+        }
+        canvas->AttachPen(pen);
+        canvas->AttachBrush(brush);
+        canvas->DrawPath(multPath);
+        canvas->DetachBrush();
+        canvas->DetachPen();
+    }
+}
+
 void HMSymbolRun::OnDrawSymbol(RSCanvas* canvas, const RSHMSymbolData& symbolData, RSPoint locate)
 {
     RSPath path(symbolData.path_);
@@ -248,31 +345,17 @@ void HMSymbolRun::OnDrawSymbol(RSCanvas* canvas, const RSHMSymbolData& symbolDat
     RSHMSymbol::PathOutlineDecompose(path, paths);
     std::vector<RSPath> pathLayers;
     RSHMSymbol::MultilayerPath(symbolData.symbolInfo_.layers, paths, pathLayers);
-
-    // 3.0 set paint
-    Drawing::Brush brush;
-    Drawing::Pen pen;
-    brush.SetAntiAlias(true);
-    pen.SetAntiAlias(true);
-
-    // draw path
+    // Stratification
     std::vector<RSRenderGroup> groups = symbolData.symbolInfo_.renderGroups;
     TEXT_LOGD("RenderGroup size %{public}zu", groups.size());
-    RSColor color;
+    std::vector<RSPath> multPaths;
     for (auto group : groups) {
         RSPath multPath;
         SymbolNodeBuild::MergeDrawingPath(multPath, group, pathLayers);
-        // set color
-        color.SetRgb(group.color.r, group.color.g, group.color.b);
-        color.SetAlphaF(group.color.a);
-        brush.SetColor(color);
-        pen.SetColor(color);
-        canvas->AttachPen(pen);
-        canvas->AttachBrush(brush);
-        canvas->DrawPath(multPath);
-        canvas->DetachPen();
-        canvas->DetachBrush();
+        multPaths.push_back(multPath);
     }
+
+    DrawPaths(canvas, multPaths, path);
 }
 
 bool HMSymbolRun::SymbolAnimation(const RSHMSymbolData& symbol, const std::pair<float, float>& offset)
@@ -303,6 +386,18 @@ bool HMSymbolRun::SymbolAnimation(const RSHMSymbolData& symbol, const std::pair<
     symbolNode.SetAnimationStart(symbolTxt_.GetAnimationStart());
     symbolNode.SetCommonSubType(symbolTxt_.GetCommonSubType());
     symbolNode.SetCurrentAnimationHasPlayed(currentAnimationHasPlayed_);
+    symbolNode.SetRenderMode(symbolTxt_.GetRenderMode());
+    symbolNode.SetGradients(gradients_);
+    symbolNode.SetSlope(animationSetting.slope);
+    if (effectMode == RSEffectStrategy::DISABLE) {
+        symbolNode.SetCommonSubType(animationSetting.commonSubType);
+    }
+    bool isNeed = (symbolTxt_.GetRenderMode() != RSSymbolRenderingStrategy::SINGLE &&
+        gradients_.size() < symbolTxt_.GetGradients().size());
+    if (isNeed) {
+        auto gradients = symbolTxt_.GetGradients();
+        symbolNode.SetDisableSlashColor(gradients[gradients_.size()]);
+    }
     return symbolNode.DecomposeSymbolAndDraw();
 }
 

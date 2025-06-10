@@ -113,10 +113,9 @@ bool DoGet002(const uint8_t* data, size_t size)
 
     // test
     RSModifierExtractor modifierExtractor(1);
+    modifierExtractor.GetHDRUIBrightness();
     modifierExtractor.GetOutlineRadius();
     modifierExtractor.GetForegroundEffectRadius();
-    modifierExtractor.GetBackgroundFilter();
-    modifierExtractor.GetFilter();
     modifierExtractor.GetShadowColor();
     modifierExtractor.GetShadowOffsetX();
     modifierExtractor.GetShadowOffsetY();

@@ -67,7 +67,8 @@ bool CheckHfbcStatus(const std::vector<std::string>& packageList)
  */
 HWTEST_F(HfbcParamTest, SetHfbcConfigForApp, Function | SmallTest | Level1)
 {
-    EXPECT_EQ(HFBCParam::GetHfbcConfigMap().size(), 0);
+    // default disable list mode
+    HFBCParam::hfbcConfig_ = {};
 
     std::string appName = "com.test.banapp";
     std::vector<std::string> packages = { appName };
@@ -90,20 +91,17 @@ HWTEST_F(HfbcParamTest, SetHfbcConfigForApp, Function | SmallTest | Level1)
  */
 HWTEST_F(HfbcParamTest, SetHfbcConfigForApp2, Function | SmallTest | Level1)
 {
-    // disable list mode
+    // enable list mode
     g_blackListMode = false;
-    EXPECT_EQ(HFBCParam::GetHfbcConfigMap().size(), 0);
-    std::string appName = "com.test.banapp";
+    HFBCParam::hfbcConfig_ = {};
+
+    std::string appName = "com.test.allowapp";
     std::vector<std::string> packages = { appName };
-
-    EXPECT_EQ(CheckHfbcStatus(packages), true);
-
     HFBCParam::SetHfbcConfigForApp(appName, "1");
-
-    EXPECT_EQ(CheckHfbcStatus(packages), false);
+    EXPECT_EQ(CheckHfbcStatus(packages), false); // enabled
 
     packages = { { "com.test.banapp2", "1"} };
-    EXPECT_EQ(CheckHfbcStatus(packages), true);
+    EXPECT_EQ(CheckHfbcStatus(packages), true); // disabled
 }
 } // namespace Rosen
 } // namespace OHOS

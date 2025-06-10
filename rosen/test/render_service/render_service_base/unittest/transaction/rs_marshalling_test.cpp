@@ -135,8 +135,6 @@ static std::shared_ptr<Drawing::Image> CreateDrawingImage()
     return surface->GetImageSnapshot();
 }
 
-
-
 static Drawing::Path CreateDrawingPath()
 {
     Drawing::Path path;
@@ -144,6 +142,60 @@ static Drawing::Path CreateDrawingPath()
     path.QuadTo(20, 60, 80, 50);
     path.QuadTo(20, 60, 20, 80);
     return path;
+}
+
+template<typename T>
+static void TestCompatibleMarshalling(T value, bool isNewViersion)
+{
+    const T srcValue = value;
+
+    Parcel parcel;
+
+    parcel.WriteInt32(0);
+
+    if (isNewViersion) {
+        parcel.WriteInt64(-1);
+    }
+
+    RSMarshallingHelper::MarshallingTransactionVer(parcel);
+    
+    const auto headerLen = parcel.GetWritePosition();
+    parcel.SkipBytes(headerLen);
+
+    EXPECT_TRUE(RSMarshallingHelper::CompatibleMarshalling(parcel, value, 0));
+    EXPECT_TRUE(RSMarshallingHelper::CompatibleUnmarshalling(parcel, value, 0, 0));
+
+    if constexpr (std::is_same_v<T, float> == true || std::is_same_v<T, double> == true) {
+        constexpr auto eps = 0.001;
+        EXPECT_NEAR(value, srcValue, eps);
+    } else {
+        EXPECT_EQ(value, srcValue);
+    }
+}
+
+template<typename T>
+static void TestCompatibleMarshallingObsolete(T value, bool isNewViersion)
+{
+    Parcel parcel;
+
+    parcel.WriteInt32(0);
+
+    if (isNewViersion) {
+        parcel.WriteInt64(-1);
+    }
+    
+    RSMarshallingHelper::MarshallingTransactionVer(parcel);
+
+    const auto headerLen = parcel.GetWritePosition();
+    parcel.SkipBytes(headerLen);
+
+    EXPECT_TRUE(RSMarshallingHelper::CompatibleMarshalling(parcel, value, 0));
+
+    RSMarshallingHelper::CompatibleUnmarshallingObsolete(parcel, sizeof(value), 1);
+
+    const auto valueSize = std::max<size_t>(sizeof(value), 4);
+
+    EXPECT_EQ(parcel.GetWritePosition(), headerLen + valueSize);
 }
 
 /**
@@ -292,9 +344,6 @@ HWTEST_F(RSMarshallingTest, SkPaintSerialization001, Function | MediumTest | Lev
     Drawing::Pen penUnmarshal;
     ASSERT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, penUnmarshal));
     ASSERT_EQ(penUnmarshal.GetColor(), pen.GetColor());
-#ifndef NEW_SKIA
-    ASSERT_EQ(penUnmarshal.GetBlendMode(), pen.GetBlendMode());
-#endif
     ASSERT_EQ(penUnmarshal.GetWidth(), pen.GetWidth());
 }
 
@@ -494,4 +543,103 @@ HWTEST_F(RSMarshallingTest, SkipSkImage001, Function | MediumTest | Level2)
     RSMarshallingHelper::SkipImage(parcel);
     EXPECT_NE(RSMarshallingHelper::MIN_DATA_SIZE, 0);
 }
+
+/**
+ * @tc.name: ParcelVersion
+ * @tc.desc:
+ * @tc.type:FUNC
+ * @tc.require: issueIC9VTO
+ */
+HWTEST_F(RSMarshallingTest, ParcelVersion, Function | MediumTest | Level2)
+{
+    Parcel parcel;
+
+    ASSERT_TRUE(RSMarshallingHelper::MarshallingTransactionVer(parcel));
+    ASSERT_TRUE(RSMarshallingHelper::UnmarshallingTransactionVer(parcel));
+}
+
+/**
+ * @tc.name: CompatibleMarshalling
+ * @tc.desc:
+ * @tc.type:FUNC
+ * @tc.require: issueIC9VTO
+ */
+HWTEST_F(RSMarshallingTest, CompatibleMarshalling, Function | MediumTest | Level2)
+{
+    TestCompatibleMarshalling(true, true);
+    TestCompatibleMarshalling(true, false);
+
+    TestCompatibleMarshalling(static_cast<int8_t>(123), true);
+    TestCompatibleMarshalling(static_cast<int8_t>(56), false);
+
+    TestCompatibleMarshalling(static_cast<uint8_t>(132), true);
+    TestCompatibleMarshalling(static_cast<uint8_t>(21), false);
+
+    TestCompatibleMarshalling(static_cast<int16_t>(2342), true);
+    TestCompatibleMarshalling(static_cast<int16_t>(653), false);
+
+    TestCompatibleMarshalling(static_cast<uint16_t>(998), true);
+    TestCompatibleMarshalling(static_cast<uint16_t>(854), false);
+
+    TestCompatibleMarshalling(54432, true);
+    TestCompatibleMarshalling(5445, false);
+
+    TestCompatibleMarshalling(98123u, true);
+    TestCompatibleMarshalling(35323u, false);
+
+    TestCompatibleMarshalling(static_cast<int64_t>(653434), true);
+    TestCompatibleMarshalling(static_cast<int64_t>(453434), false);
+
+    TestCompatibleMarshalling(static_cast<uint64_t>(543495), true);
+    TestCompatibleMarshalling(static_cast<uint64_t>(443695), false);
+
+    TestCompatibleMarshalling(154.76f, true);
+    TestCompatibleMarshalling(54.76f, false);
+
+    TestCompatibleMarshalling(565.76, true);
+    TestCompatibleMarshalling(656.76, false);
+}
+
+/**
+ * @tc.name: CompatibleMarshallingObsolete
+ * @tc.desc:
+ * @tc.type:FUNC
+ * @tc.require: issueIC9VTO
+ */
+HWTEST_F(RSMarshallingTest, CompatibleMarshallingObsolete, Function | MediumTest | Level2)
+{
+    TestCompatibleMarshallingObsolete(true, true);
+    TestCompatibleMarshallingObsolete(true, false);
+
+    TestCompatibleMarshallingObsolete(static_cast<int8_t>(123), true);
+    TestCompatibleMarshallingObsolete(static_cast<int8_t>(56), false);
+
+    TestCompatibleMarshallingObsolete(static_cast<uint8_t>(132), true);
+    TestCompatibleMarshallingObsolete(static_cast<uint8_t>(21), false);
+
+    TestCompatibleMarshallingObsolete(static_cast<int16_t>(2342), true);
+    TestCompatibleMarshallingObsolete(static_cast<int16_t>(653), false);
+
+    TestCompatibleMarshallingObsolete(static_cast<uint16_t>(998), true);
+    TestCompatibleMarshallingObsolete(static_cast<uint16_t>(854), false);
+
+    TestCompatibleMarshallingObsolete(54432, true);
+    TestCompatibleMarshallingObsolete(5445, false);
+
+    TestCompatibleMarshallingObsolete(98123u, true);
+    TestCompatibleMarshallingObsolete(35323u, false);
+
+    TestCompatibleMarshallingObsolete(static_cast<int64_t>(653434), true);
+    TestCompatibleMarshallingObsolete(static_cast<int64_t>(453434), false);
+
+    TestCompatibleMarshallingObsolete(static_cast<uint64_t>(543495), true);
+    TestCompatibleMarshallingObsolete(static_cast<uint64_t>(443695), false);
+
+    TestCompatibleMarshallingObsolete(154.76f, true);
+    TestCompatibleMarshallingObsolete(54.76f, false);
+
+    TestCompatibleMarshallingObsolete(565.76, true);
+    TestCompatibleMarshallingObsolete(656.76, false);
+}
+
 } // namespace OHOS::Rosen

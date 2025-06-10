@@ -26,7 +26,33 @@ namespace OHOS {
 namespace Rosen {
 using namespace ANIMATIONTEST;
 class RSSymbolAnimationTest : public RSAnimationBaseTest {
+public:
+    std::shared_ptr<TextEngine::SymbolAnimationConfig> symbolAnimationConfig_;
+    void InitSymbolConfigData();
 };
+
+void RSSymbolAnimationTest::InitSymbolConfigData()
+{
+    symbolAnimationConfig_ = std::make_shared<TextEngine::SymbolAnimationConfig>();
+    symbolAnimationConfig_->symbolNodes = {};
+    symbolAnimationConfig_->effectStrategy = Drawing::DrawingEffectStrategy::DISABLE;
+    symbolAnimationConfig_->slope = -1; // -1: the Angle of the slash
+    Drawing::Path path;
+    path.AddCircle(100.0f, 100.0f, 40.0f); // 100.0f x, 100.0f y, 40.0f radius
+    TextEngine::NodeLayerInfo info;
+    info.path = path;
+    Vector4f boundary = {0.0f, 0.0f, 40.0f, 40.0f}; // 0.0f 0.0f: offset, 40.0f width 40.0f height
+    // symbolNodes size is 3
+    for (uint32_t i = 0; i < 3; i++) {
+        TextEngine::SymbolNode symbolNode;
+        // -1: no effect, 0: first layer effect
+        symbolNode.animationIndex = i == 0 ? -1 : 0;
+        symbolNode.isMask = i == 1 ? true : false;
+        symbolNode.pathsInfo.push_back(info);
+        symbolNode.nodeBoundary = boundary;
+        symbolAnimationConfig_->symbolNodes.push_back(symbolNode);
+    }
+}
 
 /**
  * @tc.name: SetSymbolAnimation001
@@ -381,7 +407,8 @@ HWTEST_F(RSSymbolAnimationTest, SetReplaceAnimation002, TestSize.Level1)
     // init symbolNodes
     Drawing::Path path1;
     path1.AddCircle(100, 100, 50); // 100 x, 100 y, 50 radius
-    Drawing::DrawingSColor color = {1, 255, 255, 0}; // the color 1 A, 255 R, 255 G, 0 B
+    auto color = std::make_shared<SymbolGradient>();
+    color->colors_ = {0XFFFF0000}; // 0XFFFF0000 is ARGB
     TextEngine::SymbolNode symbolNode;
     symbolNode.pathsInfo = {{path1, color}};
     symbolNode.nodeBoundary = {100, 100, 50, 50}; // 100 x, 100 y, 50 width, 50 height
@@ -1202,7 +1229,8 @@ HWTEST_F(RSSymbolAnimationTest, DrawPathOnCanvas001, TestSize.Level1)
     path.AddCircle(100, 100, 50); // 100 x, 100 y, 50 radius
     Drawing::DrawingHMSymbolData symbol;
     symbol.path_ = path;
-    Drawing::DrawingSColor color = {1, 255, 255, 0}; // the color 1 A, 255 R, 255 G, 0 B
+    auto color = std::make_shared<SymbolGradient>();
+    color->colors_ = {0XFFFF0000}; // 0XFFFF0000 is ARGB
     TextEngine::NodeLayerInfo layerinfo;
     layerinfo.path = path;
     layerinfo.color = color;
@@ -1405,6 +1433,9 @@ HWTEST_F(RSSymbolAnimationTest, SetTextFlipAnimation002, TestSize.Level1)
     symbolAnimation.PopNodeFromFlipList(symbolSpanId);
     bool flag3 = symbolAnimation.SetTextFlipAnimation(symbolAnimationConfig);
     EXPECT_TRUE(flag3);
+    symbolAnimationConfig->currentAnimationHasPlayed = true;
+    bool flag4 = symbolAnimation.SetTextFlipAnimation(symbolAnimationConfig);
+    EXPECT_TRUE(flag4);
     NotifyStartAnimation();
 }
 
@@ -1564,6 +1595,266 @@ HWTEST_F(RSSymbolAnimationTest, BlurAnimationBase, TestSize.Level1)
     symbolAnimation.BlurAnimationBase(canvasNode, blurProperty, flipParameter1, groupAnimation);
     EXPECT_FALSE(groupAnimation.empty());
     NotifyStartAnimation();
+}
+
+/**
+ * @tc.name: SetSymbolAnimation004
+ * @tc.desc: Test SetSymbolAnimation by invalid input
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSymbolAnimationTest, SetSymbolAnimation004, TestSize.Level1) {
+    /**
+     * @tc.steps: step1. init data
+     */
+    auto symbolAnimation = RSSymbolAnimation();
+    symbolAnimation.SetNode(rootNode);
+    auto symbolAnimationConfig = std::make_shared<TextEngine::SymbolAnimationConfig>();
+    symbolAnimationConfig->symbolNodes.resize(1); // symbolNodes size is 3
+    symbolAnimationConfig->effectStrategy = Drawing::DrawingEffectStrategy::DISABLE;
+    bool result = symbolAnimation.SetSymbolAnimation(symbolAnimationConfig);
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: SetCreateSameNode001
+ * @tc.desc: Test SetCreateSameNode
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSymbolAnimationTest, SetCreateSameNode001, TestSize.Level1) {
+    /**
+     * @tc.steps: step1. init data
+     */
+    auto symbolAnimation = RSSymbolAnimation();
+    symbolAnimation.SetNode(rootNode);
+    std::shared_ptr<RSNode> rsNode = nullptr;
+    uint64_t symbolId = 115;
+    /**
+     * @tc.steps: step2. Test invalid input
+     */
+    rootNode->canvasNodesListMap_.erase(symbolId);
+    symbolAnimation.CreateSameNode(symbolId, rsNode, nullptr);
+    EXPECT_FALSE(rsNode);
+    /**
+     * @tc.steps: step2. Test valid input
+     */
+    symbolAnimation.CreateSameNode(symbolId, rsNode, rootNode);
+    EXPECT_NE(rsNode, nullptr);
+
+    rootNode->canvasNodesListMap_[symbolId].erase(symbolId);
+    symbolAnimation.CreateSameNode(symbolId, rsNode, rootNode);
+    EXPECT_NE(rsNode, nullptr);
+
+    symbolAnimation.CreateSameNode(symbolId, rsNode, rootNode);
+    EXPECT_NE(rsNode, nullptr);
+}
+
+/**
+ * @tc.name: SetCreateNode001
+ * @tc.desc: Test SetCreateSymbolNode and CreateSymbolReplaceNode by nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSymbolAnimationTest, SetCreateNode001, TestSize.Level1) {
+    /**
+     * @tc.steps: step1. init data
+     */
+    auto symbolAnimation = RSSymbolAnimation();
+    symbolAnimation.SetNode(rootNode);
+    std::shared_ptr<RSCanvasNode> rsNode;
+    uint64_t symbolId = 115;
+    Vector4f bounds;
+    /**
+     * @tc.steps: step2. Test invalid input
+     */
+    symbolAnimation.CreateSymbolNode(bounds, symbolId, 0, nullptr, rsNode);
+    EXPECT_FALSE(rsNode);
+    symbolAnimation.CreateSymbolReplaceNode(symbolAnimationConfig_, bounds, 0, nullptr, rsNode);
+    EXPECT_FALSE(rsNode);
+}
+
+/**
+ * @tc.name: SetDisableAnimation001
+ * @tc.desc: Test SetDisableAnimation by invalid input
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSymbolAnimationTest, SetDisableAnimation001, TestSize.Level1) {
+    /**
+     * @tc.steps: step1. init data
+     */
+    auto symbolAnimation = RSSymbolAnimation();
+    symbolAnimation.SetNode(rootNode);
+    auto symbolAnimationConfig = std::make_shared<TextEngine::SymbolAnimationConfig>();
+    symbolAnimationConfig->symbolNodes.clear();
+    /**
+     * @tc.steps: step2. test symbolNodes is empty
+     */
+    bool result = symbolAnimation.SetDisableAnimation(symbolAnimationConfig);
+    EXPECT_FALSE(result);
+    /**
+     * @tc.steps: step3. test GetAnimationGroupParameters failed
+     */
+    symbolAnimationConfig->symbolNodes.resize(3); // symbolNodes size is 3
+    result = symbolAnimation.SetDisableAnimation(symbolAnimationConfig);
+    EXPECT_FALSE(result);
+    /**
+     * @tc.steps: step4. test createSymbol failed
+     */
+    auto symbolAnimation1 = std::make_shared<RSSymbolAnimation>();
+    symbolAnimationConfig->effectStrategy = Drawing::DrawingEffectStrategy::DISABLE;
+    result = symbolAnimation1->SetDisableAnimation(symbolAnimationConfig);
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: SetDisableAnimation002
+ * @tc.desc: Test SetDisableAnimation by symbolNodes with path and parameters
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSymbolAnimationTest, SetDisableAnimation002, TestSize.Level1) {
+    /**
+     * @tc.steps: step1. init data
+     */
+    auto symbolAnimation = RSSymbolAnimation();
+    symbolAnimation.SetNode(rootNode);
+    InitSymbolConfigData();
+    std::vector<std::vector<Drawing::DrawingPiecewiseParameter>> parameters;
+    /**
+     * @tc.steps: step2. test parameters is empty
+     */
+    symbolAnimationConfig_->symbolSpanId = 8888; // 8888 is symbolId
+    bool result = symbolAnimation.SetDisableAnimation(symbolAnimationConfig_, parameters);
+    EXPECT_FALSE(result);
+    /**
+     * @tc.steps: step3. test parameters not is empty
+     */
+    parameters = {{DISABLE_TRANSLATE_RATIO, DISABLE_CLIP_PROP, DISABLE_ALPHA_PROP}};
+    result = symbolAnimation.SetDisableAnimation(symbolAnimationConfig_, parameters);
+    EXPECT_TRUE(result);
+
+    ASSERT_TRUE(symbolAnimationConfig_->symbolNodes.size() > 1);
+    size_t n = symbolAnimationConfig_->symbolNodes.size() - 1;
+    symbolAnimationConfig_->symbolNodes[n].animationIndex = 1; // 1: second layer effect
+    result = symbolAnimation.SetDisableAnimation(symbolAnimationConfig_, parameters);
+    EXPECT_FALSE(result);
+
+    symbolAnimationConfig_->symbolNodes[n].isMask = true;
+    result = symbolAnimation.SetDisableAnimation(symbolAnimationConfig_, parameters);
+    EXPECT_FALSE(result);
+
+    uint64_t symbolId = 115;
+    rootNode->canvasNodesListMap_.erase(symbolId);
+    symbolAnimationConfig_->symbolSpanId = symbolId;
+    std::shared_ptr<RSNode> rsNode = RSCanvasNode::Create();
+    symbolAnimation.CreateSameNode(symbolId, rsNode, rootNode);
+    rsNode->canvasNodesListMap_[symbolId][0] = nullptr;
+    result = symbolAnimation.SetDisableAnimation(symbolAnimationConfig_, parameters);
+    EXPECT_FALSE(result);
+
+    rootNode->canvasNodesListMap_[symbolId][symbolId] = nullptr;
+    result = symbolAnimation.SetDisableAnimation(symbolAnimationConfig_, parameters);
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: SetDisableBaseLayer001
+ * @tc.desc: Test SetDisableBaseLayer by canvasNodes is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSymbolAnimationTest, SetDisableBaseLayer001, TestSize.Level1) {
+    /**
+     * @tc.steps: step1. init data
+     */
+    auto symbolAnimation = RSSymbolAnimation();
+    symbolAnimation.SetNode(rootNode);
+    InitSymbolConfigData();
+    std::vector<std::vector<Drawing::DrawingPiecewiseParameter>> parameters;
+    Vector4f offsets = {10.0f, 10.0f, 15.0f, 15.0f}; // 10.0f 10.0f: first offset, 15.0f 15.0f: second offset
+    /**
+     * @tc.steps: step2. test canvasNodes is nullptr
+     */
+    uint64_t symbolId = 1196;
+    symbolAnimationConfig_->symbolSpanId = symbolId;
+    std::shared_ptr<RSNode> rsNode = RSCanvasNode::Create();
+    symbolAnimation.CreateSameNode(symbolId, rsNode, rootNode);
+    rsNode->canvasNodesListMap_[symbolId] = {{0, nullptr}};
+    parameters = {{DISABLE_TRANSLATE_RATIO, DISABLE_CLIP_PROP, DISABLE_ALPHA_PROP}};
+    bool result = symbolAnimation.SetDisableBaseLayer(rsNode, symbolAnimationConfig_, parameters, offsets);
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: SetDisableParameter001
+ * @tc.desc: Test SetDisableParameter
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSymbolAnimationTest, SetDisableParameter001, TestSize.Level1) {
+    /**
+     * @tc.steps: step1. init data
+     */
+    auto symbolAnimation = RSSymbolAnimation();
+    symbolAnimation.SetNode(rootNode);
+    auto symbolAnimationConfig = std::make_shared<TextEngine::SymbolAnimationConfig>();
+    TextEngine::SymbolNode symbolNode;
+    symbolAnimationConfig->symbolNodes.push_back(symbolNode);
+    std::vector<Drawing::DrawingPiecewiseParameter> parameters;
+    /**
+     * @tc.steps: step2. test parameters is invalid
+     */
+    symbolAnimation.SetDisableParameter(parameters, symbolAnimationConfig);
+    parameters = {DISABLE_ALPHA_PROP};
+    symbolAnimation.SetDisableParameter(parameters, symbolAnimationConfig);
+    InitSymbolConfigData();
+    symbolAnimation.SetDisableParameter(parameters, symbolAnimationConfig_);
+    EXPECT_FALSE(parameters[0].properties.count(TRANSLATE_PROP_X) > 0);
+    /**
+     * @tc.steps: step2. test parameters is valid
+     */
+    parameters = {DISABLE_TRANSLATE_RATIO};
+    symbolAnimation.SetDisableParameter(parameters, symbolAnimationConfig_);
+    EXPECT_TRUE(parameters[0].properties.count(TRANSLATE_PROP_X) > 0);
+}
+
+/**
+ * @tc.name: SetClipAnimation001
+ * @tc.desc: Test SetClipAnimation
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSymbolAnimationTest, SetClipAnimation001, TestSize.Level1) {
+    /**
+     * @tc.steps: step1. init data
+     */
+    auto symbolAnimation = RSSymbolAnimation();
+    symbolAnimation.SetNode(rootNode);
+    InitSymbolConfigData();
+    auto symbolId = symbolAnimationConfig_->symbolSpanId;
+    std::vector<Drawing::DrawingPiecewiseParameter> parameters;
+    Vector4f offsets = {10.0f, 10.0f, 15.0f, 15.0f}; // 10.0f 10.0f: first offset, 15.0f 15.0f: second offset
+    uint32_t index = 2;
+    /**
+     * @tc.steps: step2. test parameters is invalid
+     */
+    bool result = symbolAnimation.SetClipAnimation(rootNode, symbolAnimationConfig_, parameters, index, offsets);
+    EXPECT_FALSE(result);
+    /**
+     * @tc.steps: step3. test parameters is valid
+     */
+    parameters = {DISABLE_TRANSLATE_RATIO, DISABLE_CLIP_PROP, DISABLE_ALPHA_PROP};
+    rootNode->canvasNodesListMap_[symbolId] = {{index, nullptr}};
+    result = symbolAnimation.SetClipAnimation(rootNode, symbolAnimationConfig_, parameters, index, offsets);
+    EXPECT_FALSE(result);
+
+    std::shared_ptr<RSNode> rsNode = RSCanvasNode::Create();
+    rootNode->canvasNodesListMap_[symbolId][index] = rsNode;
+    rsNode->canvasNodesListMap_[symbolId] = {{index, nullptr}};
+    result = symbolAnimation.SetClipAnimation(rootNode, symbolAnimationConfig_, parameters, index, offsets);
+    EXPECT_FALSE(result);
+    rootNode->canvasNodesListMap_.erase(symbolId);
+
+    result = symbolAnimation.SetClipAnimation(rootNode, symbolAnimationConfig_, parameters, index, offsets);
+    EXPECT_TRUE(result);
+
+    symbolAnimation.DrawClipOnCanvas(nullptr, symbolAnimationConfig_->symbolNodes[0], offsets);
+    result = symbolAnimation.SetClipAnimation(rootNode, symbolAnimationConfig_, parameters, index, offsets);
+    EXPECT_TRUE(result);
 }
 } // namespace Rosen
 } // namespace OHOS

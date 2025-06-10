@@ -20,8 +20,18 @@
 #include <array>
 
 #include "include/core/SkExecutor.h"
+#ifdef USE_M133_SKIA
+#include "include/gpu/ganesh/GrTypes.h"
+#include "include/gpu/ganesh/GrContextOptions.h"
+#include "include/gpu/ganesh/GrDirectContext.h"
+#include "include/gpu/ganesh/gl/GrGLDirectContext.h"
+#ifdef RS_ENABLE_VK
+#include "include/gpu/ganesh/vk/GrVkDirectContext.h"
+#endif
+#else
 #include "include/gpu/GrContextOptions.h"
 #include "include/gpu/GrDirectContext.h"
+#endif
 
 #include "image/gpu_context.h"
 #include "impl_interface/gpu_context_impl.h"
@@ -56,8 +66,13 @@ public:
     bool BuildFromGL(const GPUContextOptions& options) override;
 
 #ifdef RS_ENABLE_VK
+#ifdef USE_M133_SKIA
+    bool BuildFromVK(const skgpu::VulkanBackendContext& context) override;
+    bool BuildFromVK(const skgpu::VulkanBackendContext& context, const GPUContextOptions& options) override;
+#else
     bool BuildFromVK(const GrVkBackendContext& context) override;
     bool BuildFromVK(const GrVkBackendContext& context, const GPUContextOptions& options) override;
+#endif
 #endif
 
     void Flush() override;
@@ -78,8 +93,6 @@ public:
     void DumpGpuStats(std::string& out) override;
 
     void DumpAllResource(std::stringstream& dump) override;
-
-    void DumpAllCoreTrace(std::stringstream& dump) override;
 
     void ReleaseResourcesAndAbandonContext() override;
 

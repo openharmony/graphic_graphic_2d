@@ -249,7 +249,7 @@ void RSUniUICapture::RSUniUICaptureVisitor::SetCanvas(std::shared_ptr<ExtendReco
         renderContext = RSOffscreenRenderThread::Instance().GetRenderContext();
 #endif
     } else {
-#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK) || defined(NEW_RENDER_CONTEXT)
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
         renderContext = RSMainThread::Instance()->GetRenderEngine()->GetRenderContext();
 #endif
     }

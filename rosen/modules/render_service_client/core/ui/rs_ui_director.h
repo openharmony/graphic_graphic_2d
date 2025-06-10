@@ -146,6 +146,8 @@ public:
     /**
      * @brief Sets the root node for the UI director.
      *
+     * It is recommended to use the SetRSRootNode interface, as the SetRoot interface is planned to be deprecated.
+     *
      * @param root The ID of the node to be set as the root.
      */
     void SetRoot(NodeId root);
@@ -283,8 +285,16 @@ public:
      * @return A shared pointer to the RSUIContext instance.
      */
     std::shared_ptr<RSUIContext> GetRSUIContext() const;
+
+    /**
+     * @brief Sets the root node for the UI director.
+     *
+     * @param rootNode A std::shared_ptr pointing to the RSRootNode object to be set.
+     */
     void SetRSRootNode(std::shared_ptr<RSRootNode> rootNode);
+
 private:
+    void ReportUiSkipEvent(const std::string& abilityName);
     void AttachSurface();
     static void RecvMessages();
     static void RecvMessages(std::shared_ptr<RSTransactionData> cmds, bool useMultiInstance = false);
@@ -319,6 +329,7 @@ private:
     bool isUniRenderEnabled_ = false;
     uint64_t refreshPeriod_ = 16666667;
     uint64_t timeStamp_ = 0;
+    int64_t lastUiSkipTimestamp_ = 0; // ms
     uint32_t index_ = 0;
     std::string abilityName_;
     std::weak_ptr<RSSurfaceNode> surfaceNode_;

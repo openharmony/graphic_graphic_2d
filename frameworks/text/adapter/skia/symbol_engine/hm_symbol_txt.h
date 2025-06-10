@@ -23,10 +23,17 @@
 #include "drawing.h"
 #include "rosen_text/symbol_constants.h"
 #include "rosen_text/hm_symbol_txt.h"
+#include "symbol_gradient.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace SPText {
+
+struct SymbolColor {
+    SymbolColorType colorType = SymbolColorType::COLOR_TYPE;
+    std::vector<std::shared_ptr<SymbolGradient>> gradients;
+};
+
 class HMSymbolTxt {
 public:
     HMSymbolTxt() {}
@@ -58,6 +65,14 @@ public:
 
     bool operator ==(HMSymbolTxt const &symbol) const;
 
+    void SetGradients(const std::vector<std::shared_ptr<SymbolGradient>>& gradients);
+
+    std::vector<std::shared_ptr<SymbolGradient>> GetGradients() const;
+
+    void SetSymbolColor(const SymbolColor& symbolColor);
+
+    SymbolColor GetSymbolColor() const;
+
     std::vector<RSSColor> GetRenderColor() const;
 
     RSSymbolRenderingStrategy GetRenderMode() const;
@@ -81,7 +96,7 @@ public:
     std::string familyName_;
 
 private:
-    std::vector<RSSColor> colorList_;
+    SymbolColor symbolColor_;
     RSSymbolRenderingStrategy renderMode_ = RSSymbolRenderingStrategy::SINGLE;
     RSEffectStrategy effectStrategy_ = RSEffectStrategy::NONE;
     size_t symbolUid_ = 0;

@@ -174,6 +174,11 @@ typedef enum {
     ALIGNMENT_BOTTOM_OF_ROW_BOX,
     /** Center of Row Box */
     ALIGNMENT_CENTER_OF_ROW_BOX,
+    /**
+     * Follow paragraph setting
+     * @since 20
+     */
+    ALIGNMENT_FOLLOW_PARAGRAPH,
 } OH_Drawing_PlaceholderVerticalAlignment;
 
 /**
@@ -581,6 +586,24 @@ typedef enum OH_Drawing_TextBadgeType {
     /* Subscript */
     TEXT_SUBSCRIPT,
 } OH_Drawing_TextBadgeType;
+
+/**
+ * @brief Type of vertical alignment.
+ *
+ * @since 20
+ * @version 1.0
+ */
+typedef enum OH_Drawing_TextVerticalAlignment {
+    /** Baseline of text line */
+    TEXT_VERTICAL_ALIGNMENT_BASELINE,
+    /** Bottom of text line */
+    TEXT_VERTICAL_ALIGNMENT_BOTTOM,
+    /** Center of text line */
+    TEXT_VERTICAL_ALIGNMENT_CENTER,
+    /** Top of text line */
+    TEXT_VERTICAL_ALIGNMENT_TOP
+} OH_Drawing_TextVerticalAlignment;
+
 
 /**
  * @brief Defines the font style struct.
@@ -1443,6 +1466,19 @@ void OH_Drawing_SetTextStyleEllipsisModal(OH_Drawing_TextStyle*, int);
  * @version 1.0
  */
 void OH_Drawing_SetTextStyleBadgeType(OH_Drawing_TextStyle* style, OH_Drawing_TextBadgeType textBadgeType);
+
+/**
+ * @brief Sets the typography vertical alignment mode.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param style Indicates the pointer to an <b>OH_Drawing_TypographyStyle</b> object.
+ * @param align Indicates the typography vertical alignment mode. For details,
+ * see the enum <b>OH_Drawing_TextVerticalAlignment</b>.
+ * @since 20
+ * @version 1.0
+ */
+void OH_Drawing_SetTypographyVerticalAlignment(OH_Drawing_TypographyStyle* style,
+    OH_Drawing_TextVerticalAlignment align);
 
 /**
  * @brief Sets the break strategy.
@@ -2386,6 +2422,17 @@ void OH_Drawing_TypographyUpdateDecorationThicknessScale(OH_Drawing_Typography* 
  */
 void OH_Drawing_TypographyUpdateDecorationStyle(OH_Drawing_Typography* typography,
     OH_Drawing_TextDecorationStyle decorationStyle);
+
+/**
+ * @brief Updates the decoration color of the paragraph.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param typography Indicates the pointer to the text <b>OH_Drawing_Typography</b> object.
+ * @param color Indicates the text decoration color to update.
+ * @since 20
+ * @version 1.0
+ */
+void OH_Drawing_TypographyUpdateDecorationColor(OH_Drawing_Typography* typography, uint32_t color);
 
 /**
  * @brief Get whether the text layout enables line styles.

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -39,4 +39,64 @@ protected:
     void OnTestPerformance(OH_Drawing_Canvas* canvas) override;
 };
 
+
+class PenSetColor4f : public TestBase {
+public:
+    explicit PenSetColor4f(int type) : TestBase(type)
+    {
+        fileName_ = "PenSetColor4f";
+    };
+    ~PenSetColor4f() override {};
+
+protected:
+    void OnTestPerformance(OH_Drawing_Canvas* canvas) override;
+};
+
+class PenGetAlphaFloat : public TestBase {
+public:
+    explicit PenGetAlphaFloat(int type) : TestBase(type)
+    {
+        fileName_ = "PenGetAlphaFloat";
+    };
+    ~PenGetAlphaFloat() override {};
+
+protected:
+    void OnTestPerformance(OH_Drawing_Canvas* canvas) override;
+};
+
+class PenGetRedFloat : public TestBase {
+public:
+    explicit PenGetRedFloat(int type) : TestBase(type)
+    {
+        fileName_ = "PenGetRedFloat";
+    };
+    ~PenGetRedFloat() override {};
+
+protected:
+    void OnTestPerformance(OH_Drawing_Canvas* canvas) override;
+};
+
+class PenGetBlueFloat : public TestBase {
+public:
+    explicit PenGetBlueFloat(int type) : TestBase(type)
+    {
+        fileName_ = "PenGetBlueFloat";
+    };
+    ~PenGetBlueFloat() override {};
+
+protected:
+    void OnTestPerformance(OH_Drawing_Canvas* canvas) override;
+};
+
+class PenGetGreenFloat : public TestBase {
+public:
+    explicit PenGetGreenFloat(int type) : TestBase(type)
+    {
+        fileName_ = "PenGetGreenFloat";
+    };
+    ~PenGetGreenFloat() override {};
+
+protected:
+    void OnTestPerformance(OH_Drawing_Canvas* canvas) override;
+};
 #endif // INTERFACE_PEN_TEST_H

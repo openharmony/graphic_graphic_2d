@@ -28,7 +28,6 @@
 
 namespace OHOS::Rosen {
 class RSRenderNode;
-class RSRenderContent;
 
 // NOTE: MUST update DrawableGeneratorLut in rs_drawable_content.cpp when new slots are added
 enum class RSDrawableSlot : int8_t {

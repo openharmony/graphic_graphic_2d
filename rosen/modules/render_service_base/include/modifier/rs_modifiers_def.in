@@ -104,10 +104,6 @@ DECLARE_NOANIMATABLE_MODIFIER(OutlineDashGap, Vector4f, OUTLINE_DASH_GAP, Foregr
 
 DECLARE_ANIMATABLE_MODIFIER(OutlineRadius, Vector4f, OUTLINE_RADIUS, Add, Foreground, MEDIUM)
 
-DECLARE_ANIMATABLE_MODIFIER(Filter, std::shared_ptr<RSFilter>, FILTER, Add, Foreground, COARSE)
-
-DECLARE_ANIMATABLE_MODIFIER(BackgroundFilter, std::shared_ptr<RSFilter>, BACKGROUND_FILTER, Add, Background, COARSE)
-
 DECLARE_NOANIMATABLE_MODIFIER(LinearGradientBlurPara, std::shared_ptr<RSLinearGradientBlurPara>, LINEAR_GRADIENT_BLUR_PARA, Foreground)
 
 DECLARE_NOANIMATABLE_MODIFIER(MotionBlurPara, std::shared_ptr<MotionBlurParam>, MOTION_BLUR_PARA, Foreground)
@@ -285,3 +281,5 @@ DECLARE_NOANIMATABLE_MODIFIER(AlwaysSnapshot, bool, ALWAYS_SNAPSHOT, Background)
 DECLARE_ANIMATABLE_MODIFIER(AttractionFraction, float, ATTRACTION_FRACTION, Replace, Appearance, MEDIUM)
 
 DECLARE_ANIMATABLE_MODIFIER(AttractionDstPoint, Vector2f, ATTRACTION_DSTPOINT, Replace, Appearance, MEDIUM)
+
+DECLARE_ANIMATABLE_MODIFIER(HDRBrightnessFactor, float, HDR_BRIGHTNESS_FACTOR, Replace, Foreground, COARSE)

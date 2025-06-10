@@ -166,7 +166,7 @@ bool RSUIEdgeLightFilterPara::CreateRSRenderFilterAlpha(
     }
 
     auto renderAlpha = std::make_shared<RSRenderAnimatableProperty<float>>(
-        alpha->Get(), alpha->GetId(), RSRenderPropertyType::PROPERTY_FLOAT);
+        alpha->Get(), alpha->GetId(), RSPropertyType::FLOAT);
     frProperty->Setter(RSUIFilterType::EDGE_LIGHT_ALPHA, renderAlpha);
     return true;
 }
@@ -182,7 +182,7 @@ bool RSUIEdgeLightFilterPara::CreateRSRenderFilterColor(
     }
 
     auto renderColor = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(
-        color->Get(), color->GetId(), RSRenderPropertyType::PROPERTY_VECTOR4F);
+        color->Get(), color->GetId(), RSPropertyType::VECTOR4F);
     frProperty->Setter(RSUIFilterType::EDGE_LIGHT_COLOR, renderColor);
     return true;
 }

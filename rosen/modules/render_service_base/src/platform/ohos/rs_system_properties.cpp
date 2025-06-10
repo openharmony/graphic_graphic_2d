@@ -111,6 +111,13 @@ int RSSystemProperties::GetSceneJankFrameThreshold()
     return sceneJankFrameThreshold;
 }
 
+bool RSSystemProperties::GetProfilerPixelCheckMode()
+{
+    static CachedHandle handle = CachedParameterCreate("persist.graphic.profiler.pixelcheck", "0");
+    int32_t changed = 0;
+    return ConvertToInt(CachedParameterGetChanged(handle, &changed), 0) != 0;
+}
+
 int RSSystemProperties::GetRecordingEnabled()
 {
     static CachedHandle g_Handle = CachedParameterCreate("debug.graphic.recording.enabled", "0");
@@ -118,7 +125,6 @@ int RSSystemProperties::GetRecordingEnabled()
     const char *num = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(num, 0);
 }
-
 
 void RSSystemProperties::SetRecordingDisenabled()
 {
@@ -343,6 +349,14 @@ bool RSSystemProperties::GetExpandScreenDirtyEnabled()
     int changed = 0;
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(enable, 0) != 0;
+}
+
+bool RSSystemProperties::GetVirtualExpandScreenSkipEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.uni.virtualexpandscreenskip.enabled", "1");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 1) != 0;
 }
 
 bool RSSystemProperties::GetReleaseResourceEnabled()
@@ -1392,6 +1406,13 @@ bool RSSystemProperties::GetTimeVsyncDisabled()
     return timeVsyncDisabled;
 }
 
+bool RSSystemProperties::GetTextureExportDFXEnabled()
+{
+    static bool textureexportDFXEnabled =
+        std::atoi((system::GetParameter("persist.rosen.textureexportdfx.enabled", "0")).c_str()) != 0;
+    return textureexportDFXEnabled;
+}
+
 bool RSSystemProperties::GetHybridRenderEnabled()
 {
     return GetHybridRenderSystemEnabled() || GetHybridRenderCcmEnabled();
@@ -1532,6 +1553,20 @@ void RSSystemProperties::SetBehindWindowFilterEnabled(bool enabled)
 bool RSSystemProperties::GetBehindWindowFilterEnabled()
 {
     return isBehindWindowFilterEnabled_;
+}
+
+bool RSSystemProperties::GetSubThreadControlFrameRate()
+{
+    static bool subThreadControlFrameRateEnable =
+        system::GetBoolParameter("const.graphic.subthread.control.framerate", false);
+    return subThreadControlFrameRateEnable;
+}
+
+int RSSystemProperties::GetSubThreadDropFrameInterval()
+{
+    static bool dropFrameInterval =
+        system::GetIntParameter("const.graphic.subthread.dropframe.interval", 1);
+    return dropFrameInterval;
 }
 } // namespace Rosen
 } // namespace OHOS

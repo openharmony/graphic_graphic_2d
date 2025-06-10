@@ -16,22 +16,18 @@
 #include "surface_ohos_vulkan.h"
 
 #include <iostream>
-#ifdef RS_ENABLE_OLD_VK
-#include <vulkan_native_surface_ohos.h>
-#include <vulkan_window.h>
-#include <vulkan_proc_table.h>
-#include <hilog/log.h>
-#include <display_type.h>
-#include "window.h"
-#endif
 
 #include "native_buffer_inner.h"
 #include "native_window.h"
 #include "vulkan/vulkan_core.h"
 
 #include "rs_vulkan_context.h"
-#include "include/gpu/GrBackendSemaphore.h"
 
+#ifdef USE_M133_SKIA
+#include "include/gpu/ganesh/vk/GrVkBackendSemaphore.h"
+#else
+#include "include/gpu/GrBackendSemaphore.h"
+#endif
 
 #include "engine_adapter/skia_adapter/skia_surface.h"
 
@@ -49,12 +45,6 @@ SurfaceOhosVulkan::~SurfaceOhosVulkan()
         DestoryNativeWindow(mNativeWindow_);
         mNativeWindow_ = nullptr;
     }
-#ifdef RS_ENABLE_OLD_VK
-    if (mVulkanWindow_ != nullptr) {
-        delete mVulkanWindow_;
-        mVulkanWindow_ = nullptr;
-    }
-#endif
 }
 
 void SurfaceOhosVulkan::SetNativeWindowInfo(int32_t width, int32_t height)
@@ -80,52 +70,7 @@ void SurfaceOhosVulkan::SetNativeWindowInfo(int32_t width, int32_t height)
 
 std::unique_ptr<SurfaceFrame> SurfaceOhosVulkan::RequestFrame(int32_t width, int32_t height)
 {
-#ifdef RS_ENABLE_OLD_VK
-    if (mNativeWindow_ == nullptr) {
-        mNativeWindow_ = CreateNativeWindowFromSurface(&producer_);
-        if (mNativeWindow_ == nullptr) {
-            LOGE("SurfaceOhosVulkan nativewindow is null");
-            return nullptr;
-        }
-    }
-
-    if (mVulkanWindow_ == nullptr) {
-        auto vulkan_surface_ohos = std::make_unique<vulkan::RSVulkanNativeSurfaceOHOS>(mNativeWindow_);
-        mVulkanWindow_ = new vulkan::RSVulkanWindow(std::move(vulkan_surface_ohos));
-    }
-
-    surface_ = std::make_shared<Drawing::Surface>();
-#ifdef ENABLE_DDGR_OPTIMIZE
-    auto ddgrSurface = mVulkanWindow_->AcquireSurface();
-    if (!ddgrSurface) {
-        LOGE("SurfaceOhosVulkan: ddgrSurface or skSurface is null, return");
-        return nullptr;
-    }
-
-    if (!ddgrCanvas_) {
-        ddgrCanvas_ = std::make_shared<DDGR::DDGRCanvasV2>(*(mVulkanWindow_->GetDDGRContext()));
-    }
-    ddgrCanvas_->SetCurSurface(ddgrSurface);
-    ddgrCanvas_->BeginFrame();
-    surface_->GetImpl<Drawing::DDGRSurface>()->ImportDDGRSurface(ddgrSurface);
-    surface_->GetImpl<Drawing::DDGRSurface>()->SetGrContext(mVulkanWindow_->GetDDGRContext());
-#else // ENABLE_DDGR_OPTIMIZE
-    sk_sp<SkSurface> skSurface = mVulkanWindow_->AcquireSurface();
-    surface_->GetImpl<Drawing::SkiaSurface>()->SetSkSurface(skSurface);
-#endif // ENABLE_DDGR_OPTIMIZE
-
-    frame_ = std::make_unique<SurfaceFrameOhosVulkan>(surface_, width, height);
-
-    frame_->SetColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
-
-    NativeWindowHandleOpt(mNativeWindow_, SET_BUFFER_GEOMETRY, width, height);
-    NativeWindowHandleOpt(mNativeWindow_, SET_COLOR_GAMUT, frame_->GetColorSpace());
-
-    std::unique_ptr<SurfaceFrame> ret(std::move(frame_));
-    return ret;
-#else
     return nullptr;
-#endif
 }
 
 void SurfaceOhosVulkan::CreateVkSemaphore(
@@ -228,23 +173,6 @@ std::unique_ptr<SurfaceFrame> SurfaceOhosVulkan::NativeRequestFrame(int32_t widt
 
 bool SurfaceOhosVulkan::FlushFrame(std::unique_ptr<SurfaceFrame>& frame)
 {
-#ifdef RS_ENABLE_OLD_VK
-    if (drawingProxy_ == nullptr) {
-        LOGE("drawingProxy_ is nullptr, can not FlushFrame");
-        return false;
-    }
-    // gpu render flush
-    drawingProxy_->RenderFrame();
-    if (mVulkanWindow_ != nullptr) {
-#ifdef ENABLE_DDGR_OPTIMIZE
-        mVulkanWindow_->SwapBuffers(ddgrCanvas_);
-#else
-        mVulkanWindow_->SwapBuffers();
-#endif
-    } else {
-        LOGE("mVulkanWindow_ is null");
-    }
-#endif
     return true;
 }
 

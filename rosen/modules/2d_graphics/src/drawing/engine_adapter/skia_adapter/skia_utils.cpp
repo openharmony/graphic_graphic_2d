@@ -13,11 +13,13 @@
  * limitations under the License.
  */
 
-#include "include/gpu/vk/GrVkGraphicCoreTrace.h"
-#include "utils/graphic_coretrace.h"
 #include "skia_utils.h"
 
+#ifdef USE_M133_SKIA
+#include "src/base/SkUtils.h"
+#else
 #include "src/core/SkUtils.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -25,20 +27,8 @@ namespace Drawing {
 
 void SkiaUtils::SetVmaCacheStatus(bool flag)
 {
+#ifndef USE_M133_SKIA
     SkSetVmaCacheFlag(flag);
-}
-
-void SkiaUtils::RecordCoreTrace(int functionType)
-{
-#if defined(SK_VULKAN) && defined(SKIA_DFX_FOR_GPURESOURCE_CORETRACE)
-    GraphicCoreTrace::RecordCoreTrace(functionType);
-#endif
-}
-
-void SkiaUtils::RecordCoreTrace(int functionType, uint64_t nodeId)
-{
-#if defined(SK_VULKAN) && defined(SKIA_DFX_FOR_GPURESOURCE_CORETRACE)
-    GraphicCoreTrace::RecordCoreTrace(functionType, nodeId);
 #endif
 }
 } // namespace Drawing

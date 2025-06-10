@@ -232,8 +232,6 @@ void RSPropertiesFuzzTestInner03(RSProperties& properties)
     properties.SetOutlineDashWidth(widthVector);
     properties.SetOutlineDashGap(widthVector);
     properties.SetBorderStyle(style);
-    properties.SetBackgroundFilter(backgroundFilter);
-    properties.SetFilter(filter);
     properties.SetShadowColor(color1);
     properties.SetShadowOffsetX(offsetX);
     properties.SetShadowOffsetY(offsetY);
@@ -332,7 +330,6 @@ bool RSPropertiesPainterFuzzTest(const uint8_t* data, size_t size)
     RSPropertiesPainter::Clip(tmpCanvas, rect);
     RSPropertiesPainter::DrawBorder(properties, tmpCanvas);
     RSPropertiesPainter::GetShadowDirtyRect(dirtyShadow, properties);
-    RSPropertiesPainter::DrawForegroundColor(properties, tmpCanvas);
     RSPropertiesPainter::DrawMask(properties, tmpCanvas);
     RSPropertiesPainter::DrawMask(properties, tmpCanvas, maskBounds);
     RSPropertiesPainter::GetGravityMatrix(gravity, rect, fW, fH, mat);

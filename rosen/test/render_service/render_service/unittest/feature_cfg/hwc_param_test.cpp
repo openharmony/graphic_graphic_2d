@@ -148,5 +148,41 @@ HWTEST_F(HwcParamTest, IsSolidLayerEnable001, Function | SmallTest | Level1)
     HWCParam::SetSolidLayerEnable(false);
     ASSERT_FALSE(HWCParam::IsSolidLayerEnable());
 }
+
+/**
+ * @tc.name: SetEnableHwcNodeBelowSelfInAppForApp001
+ * @tc.desc: Verify the SetEnableHwcNodeBelowSelfInAppForApp function
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HwcParamTest, SetEnableHwcNodeBelowSelfInAppForApp001, Function | SmallTest | Level1)
+{
+    HWCParam hwcParam;
+    std::string appName = "TestApp";
+    std::string val = "1";
+    hwcParam.SetEnableHwcNodeBelowSelfInAppForApp(appName, val);
+    auto it = hwcParam.enableHwcNodeBelowSelfInAppMap_.find(appName);
+    EXPECT_NE(it, hwcParam.enableHwcNodeBelowSelfInAppMap_.end());
+    EXPECT_EQ(it->second, val);
+}
+
+/**
+ * @tc.name: SetEnableHwcNodeBelowSelfInAppForApp002
+ * @tc.desc: Verify the SetEnableHwcNodeBelowSelfInAppForApp function
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HwcParamTest, SetEnableHwcNodeBelowSelfInAppForApp002, Function | SmallTest | Level1)
+{
+    HWCParam hwcParam;
+    std::string appName = "TestApp";
+    std::string initialVal = "0";
+    hwcParam.SetEnableHwcNodeBelowSelfInAppForApp(appName, initialVal);
+    std::string newVal = "1";
+    hwcParam.SetEnableHwcNodeBelowSelfInAppForApp(appName, newVal);
+    auto it = hwcParam.enableHwcNodeBelowSelfInAppMap_.find(appName);
+    EXPECT_NE(it, hwcParam.enableHwcNodeBelowSelfInAppMap_.end());
+    EXPECT_EQ(it->second, newVal);
+}
 } // namespace Rosen
 } // namespace OHOS

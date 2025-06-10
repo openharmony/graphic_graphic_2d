@@ -22,7 +22,11 @@
 #include "common/rs_color.h"
 #include "common/rs_macros.h"
 #include "image/gpu_context.h"
+#ifdef USE_M133_SKIA
+#include "src/core/SkChecksum.h"
+#else
 #include "src/core/SkOpts.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -89,7 +93,12 @@ public:
     void SetFilterType(FilterType type)
     {
         type_ = type;
-        hash_ = SkOpts::hash(&type_, sizeof(type_), hash_);
+#ifdef USE_M133_SKIA
+        const auto hashFunc = SkChecksum::Hash32;
+#else
+        const auto hashFunc = SkOpts::hash;
+#endif
+        hash_ = hashFunc(&type_, sizeof(type_), hash_);
     }
 
     virtual bool IsValid() const
@@ -108,27 +117,6 @@ public:
         return hash_;
     }
 
-    virtual bool IsNearEqual(
-        const std::shared_ptr<RSFilter>& other, float threshold = std::numeric_limits<float>::epsilon()) const
-    {
-        return true;
-    }
-
-    virtual bool IsNearZero(float threshold = std::numeric_limits<float>::epsilon()) const
-    {
-        return true;
-    }
-
-    virtual bool IsEqual(const std::shared_ptr<RSFilter>& other) const
-    {
-        return true;
-    }
-
-    virtual bool IsEqualZero() const
-    {
-        return true;
-    }
-
     bool NeedSnapshotOutset() const
     {
         return needSnapshotOutset_;
@@ -144,15 +132,6 @@ protected:
     uint32_t hash_ = 0;
     bool needSnapshotOutset_ = true;
     RSFilter();
-    virtual std::shared_ptr<RSFilter> Add(const std::shared_ptr<RSFilter>& rhs) { return nullptr; }
-    virtual std::shared_ptr<RSFilter> Sub(const std::shared_ptr<RSFilter>& rhs) { return nullptr; }
-    virtual std::shared_ptr<RSFilter> Multiply(float rhs) { return nullptr; }
-    virtual std::shared_ptr<RSFilter> Negate() { return nullptr; }
-    friend RSB_EXPORT std::shared_ptr<RSFilter> operator+(const std::shared_ptr<RSFilter>& lhs,
-                                                         const std::shared_ptr<RSFilter>& rhs);
-    friend RSB_EXPORT std::shared_ptr<RSFilter> operator-(const std::shared_ptr<RSFilter>& lhs,
-                                                         const std::shared_ptr<RSFilter>& rhs);
-    friend RSB_EXPORT std::shared_ptr<RSFilter> operator*(const std::shared_ptr<RSFilter>& lhs, float rhs);
 };
 } // namespace Rosen
 } // namespace OHOS

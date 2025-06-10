@@ -82,10 +82,16 @@ public:
     void Relayout(double width, const TypographyStyle& typograhyStyle,
         const std::vector<TextStyle>& textStyles) override;
     void UpdateAllTextStyles(const TextStyle& textStyleTemplate) override;
+    void SetTextEffectState(bool state) override;
+    bool HasEnabledTextEffect() const override;
+    std::vector<TextBlobRecordInfo> GetTextBlobRecordInfo() const override;
+    void SetTextEffectAssociation(bool association) override { textEffectAssociation_ = association; }
+    bool GetTextEffectAssociation() const override { return textEffectAssociation_; }
 private:
     std::unique_ptr<SPText::Paragraph> paragraph_ = nullptr;
     std::vector<TextStyle> lineMetricsStyles_;
     std::optional<std::vector<LineMetrics>> lineMetrics_;
+    bool textEffectAssociation_{false};
     mutable std::shared_mutex mutex_;
 };
 } // namespace AdapterTxt

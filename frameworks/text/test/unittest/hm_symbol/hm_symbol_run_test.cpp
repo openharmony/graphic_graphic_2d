@@ -137,8 +137,8 @@ HWTEST_F(OHHmSymbolRunTest, DrawSymbol003, TestSize.Level1)
 HWTEST_F(OHHmSymbolRunTest, SetSymbolRenderColor001, TestSize.Level1)
 {
     // step 1: Simulation input
-    RSSColor color1 = {1.0, 255, 0, 0}; // the 1.0 is alpha, 255, 0, 0 is RGB
-    RSSColor color2 = {0.5, 0, 255, 0}; // the 0.5 is alpha, 255, 0, 0 is RGB
+    RSSColor color1 = {1.0f, 255, 0, 0}; // the 1.0 is alpha, 255, 0, 0 is RGB
+    RSSColor color2 = {0.5f, 0, 255, 0}; // the 0.5 is alpha, 0, 255, 0 is RGB
     std::vector<RSSColor> colors = {color1, color2};
     RSRenderGroup group1;
     RSRenderGroup group2;
@@ -175,7 +175,7 @@ HWTEST_F(OHHmSymbolRunTest, SetSymbolRenderColor001, TestSize.Level1)
 HWTEST_F(OHHmSymbolRunTest, SetSymbolRenderColor002, TestSize.Level1)
 {
     std::vector<RSSColor> colors = {};
-    RSSColor color = {1.0, 0, 255, 0}; // the 1.0 is alpha, 0, 255, 0 is RGB
+    RSSColor color = {1.0f, 0, 255, 0}; // the 1.0 is alpha, 0, 255, 0 is RGB
     RSRenderGroup group1;
     group1.color = color;
     RSSymbolLayers symbolInfo;
@@ -633,6 +633,33 @@ HWTEST_F(OHHmSymbolRunTest, SetSymbolEffect008, TestSize.Level1)
     EXPECT_FALSE(hmSymbolRun.currentAnimationHasPlayed_);
     hmSymbolRun.DrawSymbol(rsCanvas.get(), paint_);
     EXPECT_TRUE(hmSymbolRun.currentAnimationHasPlayed_);
+}
+
+/*
+ * @tc.name: SetSymbolEffect009
+ * @tc.desc: test SetSymbolEffect with different DrawingEffectStrategy::QUICK_REPLACE_APPEAR
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolRunTest, SetSymbolEffect009, TestSize.Level1)
+{
+    std::shared_ptr<RSCanvas> rsCanvas = std::make_shared<RSCanvas>();
+    RSPoint paint_ = {100, 100}; // 100, 100 is the offset
+    const char* str = "A";
+    Drawing::Font font;
+    auto textblob = Drawing::TextBlob::MakeFromText(str, strlen(str), font, Drawing::TextEncoding::UTF8);
+    HMSymbolTxt symbolTxt;
+    std::function<bool(const std::shared_ptr<TextEngine::SymbolAnimationConfig>&)> animationFunc =
+        [](const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig) {
+            return true;
+        };
+    HMSymbolRun hmSymbolRun = HMSymbolRun(0, symbolTxt, textblob, animationFunc);
+    hmSymbolRun.SetAnimationStart(true);
+    hmSymbolRun.currentAnimationHasPlayed_ = true;
+
+    hmSymbolRun.SetSymbolEffect(Drawing::DrawingEffectStrategy::QUICK_REPLACE_APPEAR);
+    EXPECT_EQ(hmSymbolRun.symbolTxt_.GetEffectStrategy(), Drawing::DrawingEffectStrategy::QUICK_REPLACE_APPEAR);
+    EXPECT_FALSE(hmSymbolRun.currentAnimationHasPlayed_);
+    hmSymbolRun.DrawSymbol(rsCanvas.get(), paint_);
 }
 
 /*
@@ -1115,6 +1142,142 @@ HWTEST_F(OHHmSymbolRunTest, SymbolTxt001, TestSize.Level1)
     EXPECT_EQ(hmSymbolRun.GetSymbolTxt().GetRenderMode(), Drawing::DrawingSymbolRenderingStrategy::MULTIPLE_COLOR);
 }
 
+/*
+ * @tc.name: SymbolAnimationTest001
+ * @tc.desc: test SymbolAnimation with disable effectStrategy
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolRunTest, SymbolAnimationTest001, TestSize.Level1)
+{
+    // init data
+    HMSymbolRun hmSymbolRun = HMSymbolRun();
+    hmSymbolRun.SetSymbolEffect(RSEffectStrategy::DISABLE);
+    RSHMSymbolData symbol;
+    std::pair<float, float> offsetXY(10.0f, 15.0f);
+    Drawing::DrawingAnimationSetting animationSettingOne = {
+        // animationTypes
+        {
+            Drawing::DrawingAnimationType::DISABLE_TYPE
+        },
+        // groupSettings
+        {
+            // {0, 1}: layerIndes, 0: animationIndex
+            {{{{0, 1}}}, 0}
+        }
+    };
+    hmSymbolRun.symbolLayersGroups_.animationSettings.push_back(animationSettingOne);
+    // test SymbolAnimation by DISABLE
+    bool result = hmSymbolRun.SymbolAnimation(symbol, offsetXY);
+    EXPECT_FALSE(result);
+
+    std::vector<std::shared_ptr<SymbolGradient>> gradients;
+    gradients.push_back(std::make_shared<SymbolGradient>());
+    hmSymbolRun.gradients_ = gradients;
+    gradients.push_back(std::make_shared<SymbolGradient>());
+    hmSymbolRun.SetGradients(gradients);
+    hmSymbolRun.SetRenderMode(RSSymbolRenderingStrategy::MULTIPLE_COLOR);
+    result = hmSymbolRun.SymbolAnimation(symbol, offsetXY);
+    EXPECT_FALSE(result);
+}
+
+/*
+ * @tc.name: SetGradients001
+ * @tc.desc: test SetGradients
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolRunTest, SetGradients001, TestSize.Level1)
+{
+    uint16_t glyphId = 3; // 3 is an existing GlyphID
+    HMSymbolRun hmSymbolRun = HMSymbolRun();
+    auto color1 = std::make_shared<SymbolGradient>();
+    color1->SetColors({0XFFFF0000}); // 0XFFFF0000 is ARGB
+    auto color2 = std::make_shared<SymbolGradient>();
+    color2->SetColors({0XFF0000FF}); // 0XFF0000FF is ARGB
+    SymbolColor symbolColor = {SymbolColorType::GRADIENT_TYPE, {color1, color2}};
+    SPText::HMSymbolTxt symbolTxt;
+    symbolTxt.SetSymbolColor(symbolColor);
+    hmSymbolRun.SetSymbolTxt(symbolTxt);
+    hmSymbolRun.UpdateSymbolLayersGroups(glyphId);
+    auto symbolLayer = hmSymbolRun.GetSymbolLayers(glyphId, symbolTxt);
+
+    std::vector<std::shared_ptr<SymbolGradient>> gradients = {};
+    hmSymbolRun.SetGradients(gradients);
+    symbolLayer = hmSymbolRun.GetSymbolLayers(glyphId, symbolTxt);
+    EXPECT_EQ(symbolLayer.symbolGlyphId, glyphId);
+}
+
+/*
+ * @tc.name: SetGradientColor001
+ * @tc.desc: test SetGradientColor
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolRunTest, SetGradientColor001, TestSize.Level1)
+{
+    // test gradients is empty
+    RSSymbolRenderingStrategy renderMode = RSSymbolRenderingStrategy::SINGLE;
+    RSSymbolLayers symbolInfo;
+    HMSymbolRun hmSymbolRun = HMSymbolRun();
+    hmSymbolRun.SetGradientColor(renderMode, symbolInfo);
+    EXPECT_TRUE(hmSymbolRun.gradients_.empty());
+
+    // test gradients is not empty
+    std::vector<std::shared_ptr<SymbolGradient>> gradients;
+    gradients.push_back(std::make_shared<SymbolGradient>());
+    gradients.push_back(std::make_shared<SymbolGradient>());
+    hmSymbolRun.SetGradients(gradients);
+    hmSymbolRun.SetGradientColor(renderMode, symbolInfo);
+    EXPECT_TRUE(hmSymbolRun.gradients_.size() == 1);
+
+    // test renderMode is MULTIPLE_COLOR
+    renderMode = RSSymbolRenderingStrategy::MULTIPLE_COLOR;
+    symbolInfo.renderGroups.push_back({});
+    symbolInfo.renderGroups.push_back({});
+    gradients[0] = nullptr;
+    hmSymbolRun.SetGradients(gradients);
+    hmSymbolRun.SetGradientColor(renderMode, symbolInfo);
+    EXPECT_FALSE(hmSymbolRun.gradients_.empty());
+
+    gradients = {};
+    gradients.push_back(std::make_shared<SymbolLineGradient>(50.0f)); // 50.0f is angle of lineGradient
+    hmSymbolRun.SetGradients(gradients);
+    hmSymbolRun.SetGradientColor(renderMode, symbolInfo);
+    EXPECT_FALSE(hmSymbolRun.gradients_.empty());
+}
+
+/*
+ * @tc.name: SetDrawPath001
+ * @tc.desc: test SetDrawPath
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolRunTest, SetDrawPath001, TestSize.Level1)
+{
+    // test renderMode is SINGLE
+    std::shared_ptr<RSCanvas> rsCanvas = std::make_shared<RSCanvas>();
+    RSSymbolRenderingStrategy renderMode = RSSymbolRenderingStrategy::SINGLE;
+    HMSymbolRun hmSymbolRun = HMSymbolRun();
+    hmSymbolRun.SetRenderMode(renderMode);
+    std::vector<RSPath> multPaths;
+    RSPath path;
+    hmSymbolRun.DrawPaths(rsCanvas.get(), multPaths, path);
+    EXPECT_TRUE(hmSymbolRun.gradients_.empty());
+
+    // Test multPaths not is empty
+    path.AddCircle(100.0f, 100.0f, 50.0f); // 100.0f x, 100.0f y, 50.0f radius
+    multPaths.push_back(path);
+    std::vector<std::shared_ptr<SymbolGradient>> gradients;
+    gradients.push_back(std::make_shared<SymbolGradient>());
+    gradients.push_back(std::make_shared<SymbolGradient>());
+    hmSymbolRun.SetGradients(gradients);
+    hmSymbolRun.DrawPaths(rsCanvas.get(), multPaths, path);
+    EXPECT_EQ(hmSymbolRun.symbolTxt_.GetRenderMode(), RSSymbolRenderingStrategy::SINGLE);
+    
+    // test renderMode is MULTIPLE_COLOR
+    renderMode = RSSymbolRenderingStrategy::MULTIPLE_COLOR;
+    hmSymbolRun.SetRenderMode(renderMode);
+    hmSymbolRun.gradients_ = gradients;
+    hmSymbolRun.DrawPaths(rsCanvas.get(), multPaths, path);
+    EXPECT_EQ(hmSymbolRun.symbolTxt_.GetRenderMode(), RSSymbolRenderingStrategy::MULTIPLE_COLOR);
+}
 } // namespace SPText
 } // namespace Rosen
 } // namespace OHOS

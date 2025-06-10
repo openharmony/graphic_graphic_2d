@@ -3051,6 +3051,22 @@ HWTEST_F(RSScreenManagerTest, GetScreenSecurityMask001, TestSize.Level1)
 }
 
 /*
+ * @tc.name: GetVirtualScreenSecLayerOption001
+ * @tc.desc: Test GetVirtualScreenSecLayerOption
+ * @tc.type: FUNC
+ * @tc.require: issueICCRA8
+ */
+HWTEST_F(RSScreenManagerTest, GetMirrorScreenSecLayerOption001, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    constexpr uint32_t sizeWidth = 720;
+    constexpr uint32_t sizeHeight = 1280;
+    auto virtualScreenId = screenManager->CreateVirtualScreen("virtualScreen01", sizeWidth, sizeHeight, nullptr, 0, 1);
+    ASSERT_EQ(screenManager->GetVirtualScreenSecLayerOption(virtualScreenId), 1);
+}
+
+/*
  * @tc.name: SetScreenLinearMatrix
  * @tc.desc: Test SetScreenLinearMatrix
  * @tc.type: FUNC
@@ -4044,7 +4060,7 @@ HWTEST_F(RSScreenManagerTest, OnRefresh, TestSize.Level1)
     EXPECT_NE(screenManagerImpl, nullptr);
 
     ScreenId sId = 100;
-    RSScreenManager* screenManager = new OHOS::Rosen::impl::RSScreenManager();
+    auto screenManager = sptr<impl::RSScreenManager>::MakeSptr();
     screenManagerImpl->RSScreenManager::OnRefresh(sId, nullptr);
     screenManagerImpl->RSScreenManager::OnRefresh(sId, screenManager);
     EXPECT_NE(screenManager, nullptr);
@@ -4131,5 +4147,21 @@ HWTEST_F(RSScreenManagerTest, OnHotPlugEvent, TestSize.Level1)
     screenManagerImpl->RSScreenManager::OnHotPlugEvent(output, true);
     // case2: Same screenId event cover
     screenManagerImpl->RSScreenManager::OnHotPlugEvent(output, true);
+}
+
+/*
+ * @tc.name: ProcessVSyncScreenIdWhilePowerStatusChangedTest
+ * @tc.desc: Test ProcessVSyncScreenIdWhilePowerStatusChanged
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSScreenManagerTest, ProcessVSyncScreenIdWhilePowerStatusChangedTest, TestSize.Level1)
+{
+    auto sampler = CreateVSyncSampler();
+    VSyncSampler::SetScreenVsyncEnabledCallback cb = [](uint64_t screenId, bool enabled) {};
+    sampler->RegSetScreenVsyncEnabledCallback(cb);
+    auto screenManager = CreateOrGetScreenManager();
+    static_cast<impl::RSScreenManager*>(screenManager.GetRefPtr())->ProcessVSyncScreenIdWhilePowerStatusChanged(
+        0, ScreenPowerStatus::POWER_STATUS_OFF);
+    ASSERT_EQ(static_cast<impl::VSyncSampler*>(sampler.GetRefPtr())->hardwareVSyncStatus_, false);
 }
 } // namespace OHOS::Rosen

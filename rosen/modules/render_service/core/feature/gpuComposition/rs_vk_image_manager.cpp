@@ -20,7 +20,11 @@
 #include "include/core/SkColorSpace.h"
 #include "native_buffer_inner.h"
 #include "platform/common/rs_log.h"
+#ifdef USE_M133_SKIA
+#include "include/gpu/ganesh/vk/GrVkBackendSurface.h"
+#else
 #include "include/gpu/GrBackendSurface.h"
+#endif
 #include "pipeline/hardware_thread/rs_hardware_thread.h"
 #include "pipeline/rs_task_dispatcher.h"
 #include "rs_trace.h"
@@ -51,16 +55,16 @@ static const bool ENABLE_SEMAPHORE =
                    (void) HILOG_DEBUG(LOG_CORE, format, ##__VA_ARGS__))
 }
 
-NativeVkImageRes::~NativeVkImageRes()
+VkImageResource::~VkImageResource()
 {
     NativeBufferUtils::DeleteVkImage(mVulkanCleanupHelper);
     DestroyNativeWindowBuffer(mNativeWindowBuffer);
 }
 
-std::shared_ptr<NativeVkImageRes> NativeVkImageRes::Create(sptr<OHOS::SurfaceBuffer> buffer)
+std::shared_ptr<ImageResource> VkImageResource::Create(sptr<OHOS::SurfaceBuffer> buffer)
 {
     if (buffer == nullptr) {
-        ROSEN_LOGE("NativeVkImageRes::Create buffer is nullptr");
+        ROSEN_LOGE("VkImageResource::Create buffer is nullptr");
         return nullptr;
     }
     auto width = buffer->GetSurfaceBufferWidth();
@@ -73,7 +77,7 @@ std::shared_ptr<NativeVkImageRes> NativeVkImageRes::Create(sptr<OHOS::SurfaceBuf
         DestroyNativeWindowBuffer(nativeWindowBuffer);
         return nullptr;
     }
-    return std::make_unique<NativeVkImageRes>(
+    return std::make_shared<VkImageResource>(
         nativeWindowBuffer,
         backendTexture,
         new NativeBufferUtils::VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
@@ -118,7 +122,7 @@ bool RSVkImageManager::WaitVKSemaphore(Drawing::Surface *drawingSurface, const s
     return true;
 }
 
-std::shared_ptr<NativeVkImageRes> RSVkImageManager::MapVkImageFromSurfaceBuffer(
+std::shared_ptr<ImageResource> RSVkImageManager::MapVkImageFromSurfaceBuffer(
     const sptr<OHOS::SurfaceBuffer>& buffer,
     const sptr<SyncFence>& acquireFence,
     pid_t threadIndex, Drawing::Surface *drawingSurface)
@@ -143,12 +147,12 @@ std::shared_ptr<NativeVkImageRes> RSVkImageManager::MapVkImageFromSurfaceBuffer(
     }
 }
 
-std::shared_ptr<NativeVkImageRes> RSVkImageManager::CreateImageCacheFromBuffer(sptr<OHOS::SurfaceBuffer> buffer,
+std::shared_ptr<ImageResource> RSVkImageManager::CreateImageCacheFromBuffer(const sptr<OHOS::SurfaceBuffer>& buffer,
     const sptr<SyncFence>& acquireFence)
 {
     WaitAcquireFence(acquireFence);
     auto bufferId = buffer->GetSeqNum();
-    auto imageCache = NativeVkImageRes::Create(buffer);
+    auto imageCache = VkImageResource::Create(buffer);
     if (imageCache == nullptr) {
         ROSEN_LOGE(
             "RSVkImageManager::CreateImageCacheFromBuffer: failed to create ImageCache for buffer id %{public}d.",
@@ -158,12 +162,12 @@ std::shared_ptr<NativeVkImageRes> RSVkImageManager::CreateImageCacheFromBuffer(s
     return imageCache;
 }
 
-std::shared_ptr<NativeVkImageRes> RSVkImageManager::NewImageCacheFromBuffer(
+std::shared_ptr<ImageResource> RSVkImageManager::NewImageCacheFromBuffer(
     const sptr<OHOS::SurfaceBuffer>& buffer, pid_t threadIndex, bool isProtectedCondition)
 {
     auto bufferId = buffer->GetSeqNum();
     auto deleteFlag = buffer->GetBufferDeleteFromCacheFlag();
-    auto imageCache = NativeVkImageRes::Create(buffer);
+    auto imageCache = VkImageResource::Create(buffer);
     if (imageCache == nullptr) {
         ROSEN_LOGE("RSVkImageManager::NewImageCacheFromBuffer: failed to create ImageCache for buffer id %{public}d.",
             bufferId);
@@ -190,7 +194,7 @@ std::shared_ptr<NativeVkImageRes> RSVkImageManager::NewImageCacheFromBuffer(
     return imageCache;
 }
 
-void RSVkImageManager::UnMapVkImageFromSurfaceBuffer(uint32_t seqNum)
+void RSVkImageManager::UnMapImageFromSurfaceBuffer(int32_t seqNum)
 {
     DFX_LOG(ENABLE_VKIMAGE_DFX, "RSVkImageManagerDfx: tryUnmapImage, bufferId=%{public}u", seqNum);
     pid_t threadIndex = UNI_RENDER_THREAD_INDEX;

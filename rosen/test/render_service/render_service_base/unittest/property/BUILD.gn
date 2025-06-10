@@ -26,10 +26,6 @@ ohos_unittest("RSRenderServiceBasePropertyTest") {
     "rs_properties_painter_test.cpp",
     "rs_properties_test.cpp",
     "rs_properties_test2.cpp",
-    "rs_property_drawable_bounds_geometry_test.cpp",
-    "rs_property_drawable_frame_geometry_test.cpp",
-    "rs_property_drawable_test.cpp",
-    "rs_property_drawable_utilities_test.cpp",
     "rs_property_trace_test.cpp",
   ]
 
@@ -58,6 +54,7 @@ ohos_unittest("RSRenderServiceBasePropertyTest") {
 
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "googletest:gtest_main",
     "graphics_effect:graphics_effect_core",
     "hilog:libhilog",

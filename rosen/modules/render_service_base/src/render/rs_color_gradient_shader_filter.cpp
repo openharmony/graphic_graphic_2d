@@ -17,6 +17,12 @@
 
 #include "pipeline/rs_paint_filter_canvas.h"
 
+#ifdef USE_M133_SKIA
+#include "src/core/SkChecksum.h"
+#else
+#include "src/core/SkOpts.h"
+#endif
+
 namespace OHOS {
 namespace Rosen {
 
@@ -25,10 +31,10 @@ RSColorGradientShaderFilter::RSColorGradientShaderFilter(std::vector<float> colo
     : colors_(colors), positions_(positions), strengths_(strengths), mask_(mask)
 {
     type_ = ShaderFilterType::COLOR_GRADIENT;
-#ifndef ENABLE_M133_SKIA
-    const auto hashFunc = SkOpts::hash;
-#else
+#ifdef USE_M133_SKIA
     const auto hashFunc = SkChecksum::Hash32;
+#else
+    const auto hashFunc = SkOpts::hash;
 #endif
     hash_ = hashFunc(colors_.data(), colors_.size() * sizeof(float), hash_);
     hash_ = hashFunc(positions_.data(), positions_.size() * sizeof(float), hash_);

@@ -409,6 +409,89 @@ HWTEST_F(RSSurfaceRenderNodeTest, ResetSurfaceOpaqueRegion07, TestSize.Level1)
 }
 
 /**
+ * @tc.name: ResetSurfaceOpaqueRegion08
+ * @tc.desc: function test when NeedDrawBehindWindow() return true
+ * @tc.type:FUNC
+ * @tc.require: issueIC9HNQ
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, ResetSurfaceOpaqueRegion08, TestSize.Level1)
+{
+    auto surfaceRenderNode = std::make_shared<MockRSSurfaceRenderNode>(id);
+    ASSERT_NE(surfaceRenderNode, nullptr);
+    RectI screenRect {0, 0, 2560, 1600};
+    RectI absRect {0, 100, 400, 500};
+    surfaceRenderNode->SetAbilityBGAlpha(0);
+    Vector4f cornerRadius;
+    Vector4f::Max(
+        surfaceRenderNode->GetWindowCornerRadius(), surfaceRenderNode->GetGlobalCornerRadius(), cornerRadius);
+    Vector4<int> dstCornerRadius(static_cast<int>(std::ceil(cornerRadius.x_)),
+                                 static_cast<int>(std::ceil(cornerRadius.y_)),
+                                 static_cast<int>(std::ceil(cornerRadius.z_)),
+                                 static_cast<int>(std::ceil(cornerRadius.w_)));
+    surfaceRenderNode->occlusionRegionBehindWindow_ = Occlusion::Region(Occlusion::Rect(defaultLargeRect));
+    EXPECT_CALL(*surfaceRenderNode, NeedDrawBehindWindow()).WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(*surfaceRenderNode, GetFilterRect()).WillRepeatedly(testing::Return(defaultSmallRect));
+    surfaceRenderNode->ResetSurfaceOpaqueRegion(
+        screenRect, absRect, ScreenRotation::ROTATION_0, false, dstCornerRadius);
+    ASSERT_TRUE(surfaceRenderNode->IsBehindWindowOcclusionChanged());
+}
+
+/**
+ * @tc.name: ResetSurfaceOpaqueRegion09
+ * @tc.desc: function test when NeedDrawBehindWindow() return false
+ * @tc.type:FUNC
+ * @tc.require: issueIC9HNQ
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, ResetSurfaceOpaqueRegion09, TestSize.Level1)
+{
+    auto surfaceRenderNode = std::make_shared<MockRSSurfaceRenderNode>(id);
+    ASSERT_NE(surfaceRenderNode, nullptr);
+    RectI screenRect {0, 0, 2560, 1600};
+    RectI absRect {0, 100, 400, 500};
+    surfaceRenderNode->SetAbilityBGAlpha(0);
+    Vector4f cornerRadius;
+    Vector4f::Max(
+        surfaceRenderNode->GetWindowCornerRadius(), surfaceRenderNode->GetGlobalCornerRadius(), cornerRadius);
+    Vector4<int> dstCornerRadius(static_cast<int>(std::ceil(cornerRadius.x_)),
+                                 static_cast<int>(std::ceil(cornerRadius.y_)),
+                                 static_cast<int>(std::ceil(cornerRadius.z_)),
+                                 static_cast<int>(std::ceil(cornerRadius.w_)));
+    surfaceRenderNode->occlusionRegionBehindWindow_ = Occlusion::Region(Occlusion::Rect(defaultLargeRect));
+    EXPECT_CALL(*surfaceRenderNode, NeedDrawBehindWindow()).WillRepeatedly(testing::Return(false));
+    surfaceRenderNode->ResetSurfaceOpaqueRegion(
+        screenRect, absRect, ScreenRotation::ROTATION_0, false, dstCornerRadius);
+    ASSERT_TRUE(surfaceRenderNode->IsBehindWindowOcclusionChanged());
+}
+
+/**
+ * @tc.name: ResetSurfaceOpaqueRegion10
+ * @tc.desc: function test when NeedDrawBehindWindow() return true and occlusionRegionBehindWindow has not changed
+ * @tc.type:FUNC
+ * @tc.require: issueIC9HNQ
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, ResetSurfaceOpaqueRegion10, TestSize.Level1)
+{
+    auto surfaceRenderNode = std::make_shared<MockRSSurfaceRenderNode>(id);
+    ASSERT_NE(surfaceRenderNode, nullptr);
+    RectI screenRect {0, 0, 2560, 1600};
+    RectI absRect {0, 100, 400, 500};
+    surfaceRenderNode->SetAbilityBGAlpha(0);
+    Vector4f cornerRadius;
+    Vector4f::Max(
+        surfaceRenderNode->GetWindowCornerRadius(), surfaceRenderNode->GetGlobalCornerRadius(), cornerRadius);
+    Vector4<int> dstCornerRadius(static_cast<int>(std::ceil(cornerRadius.x_)),
+                                 static_cast<int>(std::ceil(cornerRadius.y_)),
+                                 static_cast<int>(std::ceil(cornerRadius.z_)),
+                                 static_cast<int>(std::ceil(cornerRadius.w_)));
+    surfaceRenderNode->occlusionRegionBehindWindow_ = Occlusion::Region(Occlusion::Rect(defaultLargeRect));
+    EXPECT_CALL(*surfaceRenderNode, NeedDrawBehindWindow()).WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(*surfaceRenderNode, GetFilterRect()).WillRepeatedly(testing::Return(defaultLargeRect));
+    surfaceRenderNode->ResetSurfaceOpaqueRegion(
+        screenRect, absRect, ScreenRotation::ROTATION_0, false, dstCornerRadius);
+    ASSERT_FALSE(surfaceRenderNode->IsBehindWindowOcclusionChanged());
+}
+
+/**
  * @tc.name: SetNodeCostTest
  * @tc.desc: function test
  * @tc.type:FUNC
@@ -779,12 +862,12 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetSkipLayer001, TestSize.Level2)
 }
 
 /**
- * @tc.name: SetBlackListWithScreen001
+ * @tc.name: UpdateBlackListStatus001
  * @tc.desc: Test UpdateBlackListStatus
  * @tc.type: FUNC
  * @tc.require: issueIC9I11
  */
-HWTEST_F(RSSurfaceRenderNodeTest, SetBlackListWithScreen001, TestSize.Level1)
+HWTEST_F(RSSurfaceRenderNodeTest, UpdateBlackListStatus001, TestSize.Level1)
 {
     auto rsContext = std::make_shared<RSContext>();
     ASSERT_NE(rsContext, nullptr);
@@ -794,10 +877,16 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetBlackListWithScreen001, TestSize.Level1)
     node->addedToPendingSyncList_ = true;
     auto params = static_cast<RSSurfaceRenderParams*>(node->stagingRenderParams_.get());
     EXPECT_NE(params, nullptr);
+    node->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
 
     auto virtualScreenId = 1;
     node->UpdateBlackListStatus(virtualScreenId, true);
+    node->UpdateBlackListStatus(virtualScreenId, true);
+    node->UpdateRenderParams();
+    EXPECT_TRUE(params->HasBlackListByScreenId(virtualScreenId));
     node->UpdateBlackListStatus(virtualScreenId, false);
+    node->UpdateRenderParams();
+    EXPECT_FALSE(params->HasBlackListByScreenId(virtualScreenId));
 }
 
 /**
@@ -2000,12 +2089,12 @@ HWTEST_F(RSSurfaceRenderNodeTest, UpdateFilterCacheStatusIfNodeStatic, TestSize.
     node->filterNodes_.emplace_back(mockNode2);
     auto mockNode3 = std::make_shared<RSRenderNode>(id + 3);
     mockNode3->isOnTheTree_ = true;
-    mockNode3->GetMutableRenderProperties().SetBackgroundFilter(std::make_shared<RSFilter>());
+    mockNode3->GetMutableRenderProperties().backgroundFilter_ = std::make_shared<RSFilter>();
     node->filterNodes_.emplace_back(mockNode3);
     auto mockNode4 = std::make_shared<RSRenderNode>(id + 4);
     mockNode4->isOnTheTree_ = true;
     mockNode4->GetMutableRenderProperties().needFilter_ = true;
-    mockNode4->GetMutableRenderProperties().SetFilter(std::make_shared<RSFilter>());
+    mockNode4->GetMutableRenderProperties().filter_ = std::make_shared<RSFilter>();
     node->filterNodes_.emplace_back(mockNode4);
     std::shared_ptr<RSRenderNode> mockNode5 = nullptr;
     node->filterNodes_.emplace_back(mockNode5);
@@ -2014,7 +2103,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, UpdateFilterCacheStatusIfNodeStatic, TestSize.
     std::shared_ptr<RSRenderNode> mockNode6 = std::make_shared<RSEffectRenderNode>(id + 6);
     mockNode6->isOnTheTree_ = true;
     mockNode6->GetMutableRenderProperties().needFilter_ = true;
-    mockNode6->GetMutableRenderProperties().SetBackgroundFilter(std::make_shared<RSFilter>());
+    mockNode6->GetMutableRenderProperties().backgroundFilter_ = std::make_shared<RSFilter>();
     node->filterNodes_.emplace_back(mockNode6);
     node->UpdateFilterCacheStatusIfNodeStatic(RectI(0, 0, 100, 100), false);
     ASSERT_NE(node->filterNodes_.size(), 0);
@@ -2341,6 +2430,38 @@ HWTEST_F(RSSurfaceRenderNodeTest, GetOriAncoForceDoDirect, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetTunnelLayerId
+ * @tc.desc: test results of SetTunnelLayerId
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SetTunnelLayerId, TestSize.Level1)
+{
+    auto testNode = std::make_shared<RSSurfaceRenderNode>(id, context);
+    ASSERT_NE(testNode, nullptr);
+    ASSERT_EQ(testNode->GetTunnelLayerId(), 0);
+    testNode->SetTunnelLayerId(1);
+    ASSERT_EQ(testNode->GetTunnelLayerId(), 1);
+}
+ 
+/**
+ * @tc.name: IsHardwareForcedDisabled001
+ * @tc.desc: test results of IsHardwareForcedDisabled001
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, IsHardwareForcedDisabled001, TestSize.Level1)
+{
+    auto testNode = std::make_shared<RSSurfaceRenderNode>(id, context);
+    ASSERT_NE(testNode, nullptr);
+    ASSERT_EQ(testNode->GetTunnelLayerId(), 0);
+ 
+    testNode->SetTunnelLayerId(1);
+    ASSERT_EQ(testNode->GetTunnelLayerId(), 1);
+    ASSERT_EQ(testNode->IsHardwareForcedDisabled(), false);
+}
+
+/**
  * @tc.name: SetStencilVal
  * @tc.desc: test SetStencilVal
  * @tc.type: FUNC
@@ -2582,5 +2703,53 @@ HWTEST_F(RSSurfaceRenderNodeTest, GetSourceDisplayRenderNodeId, TestSize.Level1)
     testNode->SetSourceDisplayRenderNodeId(sourceDisplayRenderNodeId);
     ASSERT_EQ(testNode->GetSourceDisplayRenderNodeId(), sourceDisplayRenderNodeId);
 }
+
+#ifndef ROSEN_CROSS_PLATFORM
+/**
+ * @tc.name: UpdateLayerSrcRectForAnco
+ * @tc.desc: test results of UpdateLayerSrcRectForAnco
+ * @tc.type: FUNC
+ * @tc.require: issueICA0I8
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, UpdateLayerSrcRectForAnco, TestSize.Level1)
+{
+    std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(0);
+    ASSERT_NE(node, nullptr);
+    ASSERT_EQ(node->stagingRenderParams_, nullptr);
+    node->SetAncoFlags(static_cast<uint32_t>(AncoFlags::ANCO_SFV_NODE));
+    node->SetAncoSrcCrop({0, 0, 0, 0});
+    node->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(1);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(node->stagingRenderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+    RSLayerInfo layerInfo{};
+    node->UpdateLayerSrcRectForAnco(layerInfo, *surfaceParams);
+    node->SetAncoFlags(static_cast<uint32_t>(AncoFlags::ANCO_SFV_NODE));
+    node->SetAncoSrcCrop({0, 0, 0, 0});
+    GraphicIRect rect{0, 0, 100, 100};
+    layerInfo.srcRect = rect;
+    surfaceParams->SetLayerInfo(layerInfo);
+    node->UpdateLayerSrcRectForAnco(layerInfo, *surfaceParams);
+    auto layer = node->stagingRenderParams_->GetLayerInfo();
+    ASSERT_TRUE(layer.srcRect == rect);
+
+    node->SetAncoSrcCrop({0, 0, 50, 0});
+    node->UpdateLayerSrcRectForAnco(layerInfo, *surfaceParams);
+    layer = node->stagingRenderParams_->GetLayerInfo();
+    ASSERT_TRUE(layer.srcRect == rect);
+
+    node->SetAncoSrcCrop({0, 0, 0, 50});
+    node->UpdateLayerSrcRectForAnco(layerInfo, *surfaceParams);
+    layer = node->stagingRenderParams_->GetLayerInfo();
+    ASSERT_TRUE(layer.srcRect == rect);
+
+    node->SetAncoSrcCrop({0, 0, 50, 50});
+    rect = GraphicIRect {0, 0, 50, 50};
+    node->UpdateLayerSrcRectForAnco(layerInfo, *surfaceParams);
+    layer = node->stagingRenderParams_->GetLayerInfo();
+    ASSERT_TRUE(layer.srcRect == rect);
+    GraphicTransformType transform{};
+    node->UpdateHwcNodeLayerInfo(transform);
+}
+#endif
 } // namespace Rosen
 } // namespace OHOS

@@ -21,6 +21,7 @@
 #include "common/rs_color.h"
 #include "drawable/rs_property_drawable.h"
 #include "drawable/rs_render_node_drawable_adapter.h"
+#include "property/rs_properties_def.h"
 
 #if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
 #include "external_window.h"

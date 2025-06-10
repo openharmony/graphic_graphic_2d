@@ -443,6 +443,35 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, CaptureSurface005, TestSize.Level1)
 }
 
 /**
+ * @tc.name: CaptureSurface006
+ * @tc.desc: Test CaptureSurface
+ * @tc.type: FUNC
+ * @tc.require: issueICCRA8
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, CaptureSurface006, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable_->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+    RSSpecialLayerManager slManager;
+    surfaceParams->specialLayerManager_ = slManager;
+    surfaceParams->GetMultableSpecialLayerMgr().Set(SpecialLayerType::SECURITY, true);
+
+    CaptureParam captureParam;
+    captureParam.isMirror_ = true;
+    RSUniRenderThread::SetCaptureParam(captureParam);
+
+    RSRenderThreadParamsManager::Instance().renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
+    auto& uniParams = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+    ASSERT_NE(uniParams, nullptr);
+    uniParams->isSecurityExemption_ = false;
+    surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
+
+    captureParam.isMirror_ = false;
+    surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
+}
+
+/**
  * @tc.name: CrossDisplaySurfaceDirtyRegionConversion
  * @tc.desc: Test CrossDisplaySurfaceDirtyRegionConversion, if node is cross-display, the surface dirty will be offset.
  * @tc.type: FUNC
@@ -1352,7 +1381,7 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, DrawCacheImageForMultiScreenView002, T
     ASSERT_NE(surfaceParams, nullptr);
     auto renderNode = std::make_shared<RSRenderNode>(id);
     auto displayRenderNodeDrawable = std::make_shared<RSDisplayRenderNodeDrawable>(renderNode);
-    displayRenderNodeDrawable->cacheImgForMultiScreenView_ = nullptr;
+    displayRenderNodeDrawable->cacheImgForCapture_ = nullptr;
     surfaceParams->sourceDisplayRenderNodeDrawable_ = displayRenderNodeDrawable;
     ASSERT_TRUE(surfaceDrawable_->DrawCacheImageForMultiScreenView(*canvas_, *surfaceParams));
 }
@@ -1371,8 +1400,8 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, DrawCacheImageForMultiScreenView003, T
     ASSERT_NE(surfaceParams, nullptr);
     auto renderNode = std::make_shared<RSRenderNode>(id);
     auto displayRenderNodeDrawable = std::make_shared<RSDisplayRenderNodeDrawable>(renderNode);
-    auto cacheImgForMultiScreenView = std::make_shared<Drawing::Image>();
-    displayRenderNodeDrawable->cacheImgForMultiScreenView_ = cacheImgForMultiScreenView;
+    auto cacheImg = std::make_shared<Drawing::Image>();
+    displayRenderNodeDrawable->cacheImgForCapture_ = cacheImg;
     surfaceParams->sourceDisplayRenderNodeDrawable_ = displayRenderNodeDrawable;
     ASSERT_TRUE(surfaceDrawable_->DrawCacheImageForMultiScreenView(*canvas_, *surfaceParams));
 }

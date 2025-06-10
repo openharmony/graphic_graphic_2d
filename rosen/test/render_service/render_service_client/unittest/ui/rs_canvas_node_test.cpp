@@ -4025,4 +4025,98 @@ HWTEST_F(RSCanvasNodeTest, ResetSurface002, TestSize.Level1)
     EXPECT_EQ(ret, true);
 }
 #endif
+
+/**
+ * @tc.name: SetRSUIContextTest001
+ * @tc.desc: test result of SetRSUIContext
+ * @tc.type: FUNC
+ * @tc.require: issueICBXE1
+ */
+HWTEST_F(RSCanvasNodeTest, SetRSUIContextTest001, TestSize.Level1)
+{
+    auto uiDirector1 = RSUIDirector::Create();
+    uiDirector1->Init(true, true);
+    auto uiDirector2 = RSUIDirector::Create();
+    uiDirector2->Init(true, true);
+    auto node = RSCanvasNode::Create();
+    ASSERT_EQ(node->GetRSUIContext(), nullptr);
+    ASSERT_NE(uiDirector1->GetRSUIContext(), nullptr);
+    ASSERT_NE(uiDirector2->GetRSUIContext(), nullptr);
+    node->SetRSUIContext(uiDirector1->GetRSUIContext());
+    ASSERT_TRUE(node->GetRSUIContext() != nullptr && node->GetRSUIContext() == uiDirector1->GetRSUIContext());
+    node->SetRSUIContext(uiDirector1->GetRSUIContext());
+    ASSERT_TRUE(node->GetRSUIContext() != nullptr && node->GetRSUIContext() == uiDirector1->GetRSUIContext());
+    node->SetRSUIContext(uiDirector2->GetRSUIContext());
+    ASSERT_TRUE(node->GetRSUIContext() != nullptr && node->GetRSUIContext() == uiDirector2->GetRSUIContext());
+}
+
+/**
+ * @tc.name: SetRSUIContextTest002
+ * @tc.desc: test result of SetRSUIContext
+ * @tc.type: FUNC
+ * @tc.require: issueICBXE1
+ */
+HWTEST_F(RSCanvasNodeTest, SetRSUIContextTest002, TestSize.Level1)
+{
+    auto uiDirector1 = RSUIDirector::Create();
+    uiDirector1->Init(true, true);
+    auto uiDirector2 = RSUIDirector::Create();
+    uiDirector2->Init(true, true);
+    auto node = RSCanvasNode::Create();
+    ASSERT_EQ(node->GetRSUIContext(), nullptr);
+    ASSERT_NE(uiDirector1->GetRSUIContext(), nullptr);
+    ASSERT_NE(uiDirector2->GetRSUIContext(), nullptr);
+    uiDirector1->GetRSUIContext()->rsTransactionHandler_ = nullptr;
+    node->SetRSUIContext(uiDirector1->GetRSUIContext());
+    ASSERT_TRUE(node->GetRSUIContext() != nullptr && node->GetRSUIContext() == uiDirector1->GetRSUIContext());
+    node->SetRSUIContext(uiDirector2->GetRSUIContext());
+    ASSERT_TRUE(node->GetRSUIContext() != nullptr && node->GetRSUIContext() == uiDirector2->GetRSUIContext());
+}
+
+/**
+ * @tc.name: SetRSUIContextTest003
+ * @tc.desc: test result of SetRSUIContext
+ * @tc.type: FUNC
+ * @tc.require: issueICBXE1
+ */
+HWTEST_F(RSCanvasNodeTest, SetRSUIContextTest003, TestSize.Level1)
+{
+    auto uiDirector1 = RSUIDirector::Create();
+    uiDirector1->Init(true, true);
+    auto uiDirector2 = RSUIDirector::Create();
+    uiDirector2->Init(true, true);
+    auto node = RSCanvasNode::Create();
+    ASSERT_EQ(node->GetRSUIContext(), nullptr);
+    ASSERT_NE(uiDirector1->GetRSUIContext(), nullptr);
+    ASSERT_NE(uiDirector2->GetRSUIContext(), nullptr);
+    node->SetRSUIContext(uiDirector1->GetRSUIContext());
+    ASSERT_TRUE(node->GetRSUIContext() != nullptr && node->GetRSUIContext() == uiDirector1->GetRSUIContext());
+    uiDirector2->GetRSUIContext()->rsTransactionHandler_ = nullptr;
+    node->SetRSUIContext(uiDirector2->GetRSUIContext());
+    ASSERT_TRUE(node->GetRSUIContext() != nullptr && node->GetRSUIContext() == uiDirector2->GetRSUIContext());
+}
+
+/**
+ * @tc.name: SetRSUIContextTest004
+ * @tc.desc: test result of SetRSUIContext
+ * @tc.type: FUNC
+ * @tc.require: issueICBXE1
+ */
+HWTEST_F(RSCanvasNodeTest, SetRSUIContextTest004, TestSize.Level1)
+{
+    auto uiDirector1 = RSUIDirector::Create();
+    uiDirector1->Init(true, true);
+    auto uiDirector2 = RSUIDirector::Create();
+    uiDirector2->Init(true, true);
+    auto node = RSCanvasNode::Create();
+    ASSERT_EQ(node->GetRSUIContext(), nullptr);
+    ASSERT_NE(uiDirector1->GetRSUIContext(), nullptr);
+    ASSERT_NE(uiDirector2->GetRSUIContext(), nullptr);
+    uiDirector1->GetRSUIContext()->rsTransactionHandler_ = nullptr;
+    node->SetRSUIContext(uiDirector1->GetRSUIContext());
+    ASSERT_TRUE(node->GetRSUIContext() != nullptr && node->GetRSUIContext() == uiDirector1->GetRSUIContext());
+    uiDirector2->GetRSUIContext()->rsTransactionHandler_ = nullptr;
+    node->SetRSUIContext(uiDirector2->GetRSUIContext());
+    ASSERT_TRUE(node->GetRSUIContext() != nullptr && node->GetRSUIContext() == uiDirector2->GetRSUIContext());
+}
 } // namespace OHOS::Rosen

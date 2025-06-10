@@ -27,8 +27,8 @@
 #include "common/rs_macros.h"
 #include "common/rs_rect.h"
 #include "drawable/rs_property_drawable.h"
+#include "pipeline/rs_paint_filter_canvas.h"
 #include "recording/recording_canvas.h"
-#include "pipeline/rs_render_content.h"
 #include "utils/rect.h"
 
 #ifndef ROSEN_CROSS_PLATFORM

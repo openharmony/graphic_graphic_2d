@@ -169,7 +169,7 @@ public:
     void NotifyPackageEvent(const std::vector<std::string>& packageList);
     void HandleTouchEvent(int32_t touchStatus, int32_t touchCnt);
     void SetBufferInfo(uint64_t id, const std::string &name, uint32_t queueSize,
-        int32_t bufferCount, int64_t lastConsumeTime);
+        int32_t bufferCount, int64_t lastConsumeTime, bool isUrgent);
     bool AdaptiveDVSyncEnable(const std::string &nodeName, int64_t timeStamp, int32_t bufferCount, bool &needConsume);
 
     // used by V Rate

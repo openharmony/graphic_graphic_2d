@@ -43,6 +43,7 @@ namespace OHOS {
 namespace Rosen {
 namespace SPText {
 constexpr const char* OHOS_THEME_FONT = "OhosThemeFont";
+constexpr const char* OHOS_THEME_FONT_LOW = "ohosthemefont";
 class TEXTING_API DefaultFamilyNameMgr {
 public:
     static DefaultFamilyNameMgr& GetInstance();
@@ -50,6 +51,7 @@ public:
     std::vector<std::string> GetThemeFontFamilies() const;
     void ModifyThemeFontFamilies(size_t index);
     static std::string GenerateThemeFamilyName(size_t index);
+    static bool IsThemeFontFamily(std::string familyName);
 
 private:
     DefaultFamilyNameMgr();

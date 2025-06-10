@@ -55,7 +55,7 @@ public:
     bool ContainPid(pid_t pid) const;
     // On remote died, the instance root node will be directly removed from the tree,
     // and the remaining subtree will be released in batches (this feature is enabled by default).
-    void FilterNodeByPid(pid_t pid);
+    void FilterNodeByPid(pid_t pid, bool immediate = false);
     void MoveRenderNodeMap(
         std::shared_ptr<std::unordered_map<NodeId, std::shared_ptr<RSBaseRenderNode>>> subRenderNodeMap, pid_t pid);
     void TraversalNodes(std::function<void (const std::shared_ptr<RSBaseRenderNode>&)> func) const;

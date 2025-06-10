@@ -298,7 +298,7 @@ OH_Drawing_TextLine* OH_Drawing_TextLineCreateTruncatedLine(OH_Drawing_TextLine*
 
     std::string ellipsisStr(ellipsis);
     auto truncatedTextLine = reinterpret_cast<SPText::TextLineBase*>(spTextLines)->CreateTruncatedLine(
-        width, static_cast<EllipsisModal>(mode), ellipsisStr);
+        width, static_cast<OHOS::Rosen::SPText::EllipsisModal>(mode), ellipsisStr);
     if (truncatedTextLine == nullptr) {
         TEXT_LOGE("Failed to create truncated line");
         return nullptr;

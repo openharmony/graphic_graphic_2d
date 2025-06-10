@@ -81,7 +81,7 @@ HWTEST_F(SkFontMgrOhosTest, GetFontFullName001, TestSize.Level1)
 HWTEST_F(SkFontMgrOhosTest, CountFamilies001, TestSize.Level1)
 {
     int count = m_fontMgrOhosImpl->countFamilies();
-    ASSERT_EQ(count, 9);
+    ASSERT_EQ(count, 10);
 }
 
 /**
@@ -114,10 +114,16 @@ HWTEST_F(SkFontMgrOhosTest, GetFamilyName001, TestSize.Level1)
  */
 HWTEST_F(SkFontMgrOhosTest, CreateStyleSet001, TestSize.Level1)
 {
+#ifdef USE_M133_SKIA
+    sk_sp<SkFontStyleSet> styleSet = m_fontMgrOhosImpl->createStyleSet(9);
+#else
     SkFontStyleSet* styleSet = m_fontMgrOhosImpl->createStyleSet(9);
+#endif
     ASSERT_NE(styleSet, nullptr);
-    ASSERT_EQ(styleSet->count(), 0);
+    ASSERT_EQ(styleSet->count(), 1);
+#ifndef USE_M133_SKIA
     delete styleSet;
+#endif
     styleSet = nullptr;
 
     styleSet = m_fontMgrOhosImpl->createStyleSet(0);
@@ -136,8 +142,9 @@ HWTEST_F(SkFontMgrOhosTest, CreateStyleSet001, TestSize.Level1)
     EXPECT_EQ(style.weight(), SkFontStyle::kNormal_Weight);
     EXPECT_EQ(style.width(), SkFontStyle::kNormal_Width);
     EXPECT_EQ(style.slant(), SkFontStyle::kItalic_Slant);
-
+#ifndef USE_M133_SKIA
     delete styleSet;
+#endif
 }
 
 /**
@@ -148,23 +155,36 @@ HWTEST_F(SkFontMgrOhosTest, CreateStyleSet001, TestSize.Level1)
 HWTEST_F(SkFontMgrOhosTest, MatchFamily001, TestSize.Level1)
 {
     std::string testRes1 = BASE_NAME + " Sans";
+#ifdef USE_M133_SKIA
+    sk_sp<SkFontStyleSet> styleSet1 = m_fontMgrOhosImpl->matchFamily(testRes1.c_str());
+#else
     SkFontStyleSet* styleSet1 = m_fontMgrOhosImpl->matchFamily(testRes1.c_str());
+#endif
     ASSERT_NE(styleSet1, nullptr);
     ASSERT_EQ(styleSet1->count(), 0);
 
     std::string testRes2 = BASE_NAME + "-Sans";
+#ifdef USE_M133_SKIA
+    sk_sp<SkFontStyleSet> styleSet2 = m_fontMgrOhosImpl->matchFamily(testRes2.c_str());
+#else
     SkFontStyleSet* styleSet2 = m_fontMgrOhosImpl->matchFamily(testRes2.c_str());
+#endif
     ASSERT_NE(styleSet2, nullptr);
     ASSERT_EQ(styleSet2->count(), 2);
 
     std::string testRes3 = BASE_NAME + " Sans SC";
+#ifdef USE_M133_SKIA
+    sk_sp<SkFontStyleSet> styleSet3 = m_fontMgrOhosImpl->matchFamily(testRes3.c_str());
+#else
     SkFontStyleSet* styleSet3 = m_fontMgrOhosImpl->matchFamily(testRes3.c_str());
+#endif
     ASSERT_NE(styleSet3, nullptr);
     ASSERT_EQ(styleSet3->count(), 1);
-
+#ifndef USE_M133_SKIA
     delete styleSet1;
     delete styleSet2;
     delete styleSet3;
+#endif
 }
 
 /**
@@ -172,6 +192,37 @@ HWTEST_F(SkFontMgrOhosTest, MatchFamily001, TestSize.Level1)
  * @tc.desc: Test MatchFamilyStyle
  * @tc.type: FUNC
  */
+#ifdef USE_M133_SKIA
+HWTEST_F(SkFontMgrOhosTest, MatchFamilyStyle001, TestSize.Level1)
+{
+    SkFontStyle style;
+    sk_sp<SkTypeface> tp = m_fontMgrOhosImpl->matchFamilyStyle(nullptr, style);
+    ASSERT_NE(tp, nullptr);
+    SkString familyName;
+    tp->getFamilyName(&familyName);
+    std::string testRes = BASE_NAME + "-Sans";
+    ASSERT_STREQ(familyName.c_str(), testRes.c_str());
+
+    std::string inputName1 = BASE_NAME + "-Sans";
+    sk_sp<SkTypeface> tp1 = m_fontMgrOhosImpl->matchFamilyStyle(inputName1.c_str(), style);
+    ASSERT_NE(tp1, nullptr);
+    SkString familyName1;
+    tp1->getFamilyName(&familyName1);
+    std::string testRes1 = BASE_NAME + "-Sans";
+    ASSERT_STREQ(familyName1.c_str(), testRes1.c_str());
+
+    sk_sp<SkTypeface> tp2 = m_fontMgrOhosImpl->matchFamilyStyle("TestNoFound", style);
+    ASSERT_EQ(tp2, nullptr);
+
+    std::string inputName3 = BASE_NAME + " Sans SC";
+    sk_sp<SkTypeface> tp3 = m_fontMgrOhosImpl->matchFamilyStyle(inputName3.c_str(), style);
+    ASSERT_NE(tp3, nullptr);
+    SkString familyName3;
+    tp3->getFamilyName(&familyName3);
+    std::string testRes3 = BASE_NAME + " Sans SC";
+    ASSERT_STREQ(familyName3.c_str(), testRes3.c_str());
+}
+#else
 HWTEST_F(SkFontMgrOhosTest, MatchFamilyStyle001, TestSize.Level1)
 {
     SkFontStyle style;
@@ -204,12 +255,47 @@ HWTEST_F(SkFontMgrOhosTest, MatchFamilyStyle001, TestSize.Level1)
     ASSERT_STREQ(familyName3.c_str(), testRes3.c_str());
     SkSafeUnref(tp3);
 }
+#endif
 
 /**
  * @tc.name: MatchFamilyStyleCharacter001
  * @tc.desc: Test MatchFamilyStyleCharacter
  * @tc.type: FUNC
  */
+#ifdef USE_M133_SKIA
+HWTEST_F(SkFontMgrOhosTest, MatchFamilyStyleCharacter001, TestSize.Level1)
+{
+    SkFontStyle style;
+    sk_sp<SkTypeface> tp = m_fontMgrOhosImpl->matchFamilyStyleCharacter(nullptr, style, nullptr, 0, 0x0626);
+    ASSERT_NE(tp, nullptr);
+    SkString familyName;
+    tp->getFamilyName(&familyName);
+    std::string testRes1 = BASE_NAME + " Sans Naskh Arabic UI";
+    ASSERT_STREQ(familyName.c_str(), testRes1.c_str());
+
+    std::vector<const char*> bcp47;
+    sk_sp<SkTypeface> tp1 = m_fontMgrOhosImpl->matchFamilyStyleCharacter(nullptr, style, bcp47.data(),
+        bcp47.size(), 0x63CF);
+    ASSERT_NE(tp1, nullptr);
+    tp1->getFamilyName(&familyName);
+    std::string testRes2 = BASE_NAME + " Sans SC";
+    ASSERT_STREQ(familyName.c_str(), testRes2.c_str());
+
+    bcp47.push_back("zh-Hant");
+    sk_sp<SkTypeface> tp2 = m_fontMgrOhosImpl->matchFamilyStyleCharacter(nullptr, style, bcp47.data(),
+        bcp47.size(), 0x63CF);
+    ASSERT_NE(tp2, nullptr);
+    tp2->getFamilyName(&familyName);
+    std::string testRes3 = BASE_NAME + " Sans TC";
+    ASSERT_STREQ(familyName.c_str(), testRes3.c_str());
+
+    sk_sp<SkTypeface> tp3 = m_fontMgrOhosImpl->matchFamilyStyleCharacter(nullptr, style, bcp47.data(),
+        bcp47.size(), 0x1F600);
+    ASSERT_NE(tp3, nullptr);
+    tp3->getFamilyName(&familyName);
+    ASSERT_STREQ(familyName.c_str(), "HMOS Color Emoji");
+}
+#else
 HWTEST_F(SkFontMgrOhosTest, MatchFamilyStyleCharacter001, TestSize.Level1)
 {
     SkFontStyle style;
@@ -244,6 +330,7 @@ HWTEST_F(SkFontMgrOhosTest, MatchFamilyStyleCharacter001, TestSize.Level1)
     SkSafeUnref(tp2);
     SkSafeUnref(tp3);
 }
+#endif
 
 /**
  * @tc.name: MakeFromStreamIndex001

@@ -30,7 +30,7 @@ RSRenderKeyframeAnimation::RSRenderKeyframeAnimation(AnimationId id, const Prope
 void RSRenderKeyframeAnimation::DumpAnimationInfo(std::string& out) const
 {
     out += "Type:RSRenderKeyframeAnimation";
-    RSRenderPropertyType type = RSRenderPropertyType::INVALID;
+    RSPropertyType type = RSPropertyType::INVALID;
     if (property_ != nullptr) {
         type = property_->GetPropertyType();
         out += ", ModifierType: " + std::to_string(static_cast<int16_t>(property_->GetModifierType()));

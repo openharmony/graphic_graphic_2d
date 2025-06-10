@@ -72,14 +72,18 @@ void RSOcclusionHandler::CollectNodeInner(const RSRenderNode& node)
         return;
     }
     auto itParent = occlusionNodes_.find(parent->GetId());
+    auto itNode = occlusionNodes_.find(node.GetId());
     if (itParent == occlusionNodes_.end() || itParent->second == nullptr || itParent->second->IsSubTreeIgnored()) {
+        // If the parent is not collected or ignored, but the node is already collected,
+        // we should delete the node and its subtree.
+        if (itNode != occlusionNodes_.end() && itNode->second != nullptr) {
+            itNode->second->RemoveSubTree(occlusionNodes_);
+        }
         return;
     }
     auto parentOcNode = itParent->second;
-    auto itNode = occlusionNodes_.find(node.GetId());
     auto ocNode = (itNode != occlusionNodes_.end() && itNode->second != nullptr) ?
         itNode->second : std::make_shared<OcclusionNode>(nodeId, node.GetType());
-
     parentOcNode->ForwardOrderInsert(ocNode);
     ocNode->CollectNodeProperties(node);
     ocNode->CalculateNodeAllBounds();

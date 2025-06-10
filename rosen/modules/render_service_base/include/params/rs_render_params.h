@@ -64,6 +64,7 @@ public:
     struct SurfaceParam {
         int width = 0;
         int height = 0;
+        GraphicColorGamut colorSpace = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     };
 
     void SetDirtyType(RSRenderParamsDirtyType dirtyType);
@@ -168,14 +169,14 @@ public:
         return globalAlpha_;
     }
 
-    inline bool IsInBlackList() const
+    inline bool NodeGroupHasChildInBlackList() const
     {
-        return isInBlackList_;
+        return isNodeGroupHasChildInBlackList_;
     }
 
-    inline void SetInBlackList(bool isInBlackList)
+    inline void SetNodeGroupHasChildInBlackList(bool isInBlackList)
     {
-        isInBlackList_ = isInBlackList;
+        isNodeGroupHasChildInBlackList_ = isInBlackList;
     }
     
     inline bool IsSnapshotSkipLayer() const
@@ -235,7 +236,8 @@ public:
     bool GetCanvasDrawingSurfaceChanged() const;
     void SetCanvasDrawingSurfaceChanged(bool changeFlag);
     SurfaceParam GetCanvasDrawingSurfaceParams();
-    void SetCanvasDrawingSurfaceParams(int width, int height);
+    void SetCanvasDrawingSurfaceParams(int width, int height,
+        GraphicColorGamut colorSpace = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
 
     void SetStartingWindowFlag(bool b)
     {
@@ -416,7 +418,7 @@ private:
     bool isDrawingCacheChanged_ = false;
     std::atomic_bool isNeedUpdateCache_ = false;
     bool drawingCacheIncludeProperty_ = false;
-    bool isInBlackList_ = false;
+    bool isNodeGroupHasChildInBlackList_ = false;
     bool isSnapshotSkipLayer_ = false;
     bool shouldPaint_ = false;
     bool contentEmpty_  = false;

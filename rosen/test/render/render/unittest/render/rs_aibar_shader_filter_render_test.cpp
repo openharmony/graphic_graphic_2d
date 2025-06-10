@@ -15,7 +15,7 @@
 
 #include "gtest/gtest.h"
 
-#include "render/rs_aibar_shader_filter.h"
+#include "render/rs_render_aibar_filter.h"
 
 using namespace testing;
 using namespace testing::ext;

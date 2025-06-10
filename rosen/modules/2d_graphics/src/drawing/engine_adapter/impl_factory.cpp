@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -197,6 +197,16 @@ std::unique_ptr<PathImpl> ImplFactory::CreatePathImpl()
     }
 #endif
     return EngineImplFactory::CreatePath();
+}
+
+std::unique_ptr<PathIterImpl> ImplFactory::CreatePathIterImpl(const Path& path, bool forceClose)
+{
+#ifdef ENABLE_DDGR_OPTIMIZE
+    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return DDGRImplFactory::CreatePathIter(path, forceClose);
+    }
+#endif
+    return EngineImplFactory::CreatePathIter(path, forceClose);
 }
 
 std::unique_ptr<PathIteratorImpl> ImplFactory::CreatePathIteratorImpl(const Path& path)

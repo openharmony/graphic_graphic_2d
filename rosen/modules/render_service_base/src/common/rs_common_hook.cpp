@@ -98,4 +98,14 @@ void RsCommonHook::GetComponentPowerFps(FrameRateRange& range)
     }
 }
 
+bool RsCommonHook::GetIsWhiteListForEnableHwcNodeBelowSelfInApp() const
+{
+    return isWhiteListForEnableHwcNodeBelowSelfInApp_;
+}
+
+void RsCommonHook::SetIsWhiteListForEnableHwcNodeBelowSelfInApp(bool isWhiteListForEnableHwcNodeBelowSelfInApp)
+{
+    isWhiteListForEnableHwcNodeBelowSelfInApp_ = isWhiteListForEnableHwcNodeBelowSelfInApp;
+}
+
 } // namespace OHOS::Rosen

@@ -32,6 +32,7 @@ ohos_fuzztest("RSBaseRenderNodeFuzzTest") {
 
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "hilog:libhilog",
   ]
 }

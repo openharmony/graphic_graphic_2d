@@ -56,7 +56,7 @@ HWTEST_F(RSDrawableTest, CalculateDirtySlots, TestSize.Level1)
     RSDrawable::Vec drawableVec;
     dirtyTypes.set();
     std::optional<Vector4f> aiInvert = { Vector4f() };
-    node.renderContent_->GetMutableRenderProperties().SetAiInvert(aiInvert);
+    node.GetMutableRenderProperties().SetAiInvert(aiInvert);
     ASSERT_TRUE(node.GetRenderProperties().GetAiInvert());
     ASSERT_EQ(RSDrawable::CalculateDirtySlots(dirtyTypes, drawableVec).size(), 34);
 }
@@ -75,10 +75,10 @@ HWTEST_F(RSDrawableTest, UpdateDirtySlots, TestSize.Level1)
     ModifierDirtyTypes dirtyTypes;
     dirtyTypes.set();
     std::optional<Vector4f> aiInvert = { Vector4f() };
-    node.renderContent_->GetMutableRenderProperties().SetAiInvert(aiInvert);
+    node.GetMutableRenderProperties().SetAiInvert(aiInvert);
     std::unordered_set<RSDrawableSlot> dirtySlots = RSDrawable::CalculateDirtySlots(dirtyTypes, drawableVec);
     std::shared_ptr<RSShader> shader = RSShader::CreateRSShader();
-    node.renderContent_->GetMutableRenderProperties().SetBackgroundShader(shader);
+    node.GetMutableRenderProperties().SetBackgroundShader(shader);
     for (auto& drawable : drawableVec) {
         drawable = DrawableV2::RSBackgroundShaderDrawable::OnGenerate(node);
         ASSERT_TRUE(drawable);
@@ -114,10 +114,10 @@ HWTEST_F(RSDrawableTest, FuzeDrawableSlots, TestSize.Level1)
     RSDrawable::Vec drawableVec;
     ASSERT_FALSE(RSDrawable::FuzeDrawableSlots(node, drawableVec));
 
-    node.renderContent_->GetMutableRenderProperties().SetBackgroundBlurRadius(10.f);  // 10.f: radius
+    node.GetMutableRenderProperties().SetBackgroundBlurRadius(10.f);  // 10.f: radius
     std::optional<Vector2f> greyPara = { Vector2f(1.f, 1.f) };  // 1.f: grey coef
-    node.renderContent_->GetMutableRenderProperties().SetGreyCoef(greyPara);
-    node.renderContent_->GetMutableRenderProperties().GenerateBackgroundMaterialBlurFilter();
+    node.GetMutableRenderProperties().SetGreyCoef(greyPara);
+    node.GetMutableRenderProperties().GenerateBackgroundMaterialBlurFilter();
     std::shared_ptr<RSDrawable> bgDrawable = DrawableV2::RSBackgroundFilterDrawable::OnGenerate(node);
     drawableVec[static_cast<size_t>(RSDrawableSlot::BACKGROUND_FILTER)] = bgDrawable;
     auto stretchDrawable = std::make_shared<DrawableV2::RSPixelStretchDrawable>();
@@ -126,7 +126,7 @@ HWTEST_F(RSDrawableTest, FuzeDrawableSlots, TestSize.Level1)
     
     // -1.f: stretch param
     std::optional<Vector4f> pixelStretchPara = { Vector4f(-1.f, -1.f, -1.f, -1.f) };
-    node.renderContent_->GetMutableRenderProperties().SetPixelStretch(pixelStretchPara);
+    node.GetMutableRenderProperties().SetPixelStretch(pixelStretchPara);
     ASSERT_TRUE(RSDrawable::FuzeDrawableSlots(node, drawableVec));
 
     auto colorFilterDrawable = std::make_shared<DrawableV2::RSColorFilterDrawable>();
@@ -164,7 +164,7 @@ HWTEST_F(RSDrawableTest, UpdateSaveRestore001, TestSize.Level1)
     RSDrawable::UpdateSaveRestore(node, drawableVec, drawableVecStatus);
     ASSERT_EQ(drawableVecStatus, 1);
 
-    node.renderContent_->GetMutableRenderProperties().SetUseEffect(true);
+    node.GetMutableRenderProperties().SetUseEffect(true);
     std::shared_ptr<RSDrawable> drawable = DrawableV2::RSUseEffectDrawable::OnGenerate(node);
     drawableVec[static_cast<size_t>(RSDrawableSlot::CONTENT_BEGIN)] = drawable;
     drawableVec[static_cast<size_t>(RSDrawableSlot::BG_PROPERTIES_BEGIN)] = drawable;
@@ -198,7 +198,7 @@ HWTEST_F(RSDrawableTest, UpdateSaveRestore002, TestSize.Level1)
     NodeId id = 1;
     RSEffectRenderNode node(id);
     RSDrawable::Vec drawableVec;
-    node.renderContent_->GetMutableRenderProperties().SetUseEffect(true);
+    node.GetMutableRenderProperties().SetUseEffect(true);
     uint8_t drawableVecStatus = 2;
     std::shared_ptr<RSDrawable> drawable = DrawableV2::RSUseEffectDrawable::OnGenerate(node);
     drawableVec[static_cast<size_t>(RSDrawableSlot::CONTENT_BEGIN)] = drawable;

@@ -17,12 +17,15 @@
 
 #include <cstdint>
 
-#include "js_drawing_utils.h"
 #include "color_filter_napi/js_color_filter.h"
 #include "image_filter_napi/js_image_filter.h"
+#include "js_color_space.h"
+#include "js_drawing_utils.h"
 #include "mask_filter_napi/js_mask_filter.h"
 #include "shader_effect_napi/js_shader_effect.h"
 #include "shadow_layer_napi/js_shadow_layer.h"
+
+#include "utils/colorspace_convertor.h"
 
 namespace OHOS::Rosen {
 namespace Drawing {
@@ -33,6 +36,8 @@ napi_value JsBrush::Init(napi_env env, napi_value exportObj)
     napi_property_descriptor properties[] = {
         DECLARE_NAPI_FUNCTION("setColor", SetColor),
         DECLARE_NAPI_FUNCTION("getColor", GetColor),
+        DECLARE_NAPI_FUNCTION("setColor4f", SetColor4f),
+        DECLARE_NAPI_FUNCTION("getColor4f", GetColor4f),
         DECLARE_NAPI_FUNCTION("getHexColor", GetHexColor),
         DECLARE_NAPI_FUNCTION("setAntiAlias", SetAntiAlias),
         DECLARE_NAPI_FUNCTION("isAntiAlias", IsAntiAlias),
@@ -188,6 +193,57 @@ napi_value JsBrush::GetColor(napi_env env, napi_callback_info info)
 
     const Color& color = brush->GetColor();
     return GetColorAndConvertToJsValue(env, color);
+}
+
+napi_value JsBrush::SetColor4f(napi_env env, napi_callback_info info)
+{
+    JsBrush* jsBrush = CheckParamsAndGetThis<JsBrush>(env, info);
+    if (!jsBrush) {
+        return nullptr;
+    }
+    Brush* brush = jsBrush->GetBrush();
+    if (brush == nullptr) {
+        ROSEN_LOGE("JsBrush::SetColor4f brush is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+    napi_value argv[ARGC_TWO] = { nullptr };
+    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_TWO);
+
+    Drawing::Color4f drawingColor4f;
+    if (!ConvertFromAdaptJsColor4F(env, argv[ARGC_ZERO], drawingColor4f)) {
+        ROSEN_LOGE("JsBrush::SetColor4f Argv[0] is invalid");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Parameter verification failed.");
+    }
+
+    std::shared_ptr<Drawing::ColorSpace> drawingColorSpace = nullptr;
+    ColorManager::JsColorSpace* jsColorSpace = nullptr;
+    GET_UNWRAP_PARAM_OR_NULL(ARGC_ONE, jsColorSpace);
+    if (jsColorSpace != nullptr) {
+        auto colorManagerColorSpace = jsColorSpace->GetColorSpaceToken();
+        if (colorManagerColorSpace != nullptr) {
+            drawingColorSpace = Drawing::ColorSpaceConvertor::
+                ColorSpaceConvertToDrawingColorSpace(colorManagerColorSpace);
+        }
+    }
+    brush->SetColor(drawingColor4f, drawingColorSpace);
+    return nullptr;
+}
+
+napi_value JsBrush::GetColor4f(napi_env env, napi_callback_info info)
+{
+    JsBrush* jsBrush = CheckParamsAndGetThis<JsBrush>(env, info);
+    if (jsBrush == nullptr) {
+        ROSEN_LOGE("JsBrush::GetColor4f jsBrush is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+    Brush* brush = jsBrush->GetBrush();
+    if (brush == nullptr) {
+        ROSEN_LOGE("JsBrush::GetColor4f brush is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    const Color4f& color4f = brush->GetColor4f();
+    return GetColor4FAndConvertToJsValue(env, color4f);
 }
 
 napi_value JsBrush::GetHexColor(napi_env env, napi_callback_info info)

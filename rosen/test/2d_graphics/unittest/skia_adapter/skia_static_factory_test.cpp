@@ -214,25 +214,6 @@ HWTEST_F(SkiaStaticFactoryTest, GetDrawingPointsForTextBlob001, TestSize.Level1)
     ASSERT_TRUE(textBlob.get() != nullptr);
     SkiaStaticFactory::GetDrawingPointsForTextBlob(textBlob.get(), point);
 }
-
-/**
- * @tc.name: GetGroupParameters001
- * @tc.desc: Test GetGroupParameters
- * @tc.type: FUNC
- * @tc.require:I91EDT
- */
-
-HWTEST_F(SkiaStaticFactoryTest, GetGroupParameters001, TestSize.Level1)
-{
-    uint16_t groupSum = 1;
-    uint16_t animationMode = 1;
-    auto skiaStatic = SkiaStaticFactory::GetGroupParameters(
-        DrawingAnimationType::SCALE_TYPE, groupSum, animationMode, DrawingCommonSubType::UP);
-    if (!skiaStatic.empty()) {
-        EXPECT_EQ(skiaStatic.size(), groupSum);
-    }
-}
-
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

@@ -358,7 +358,7 @@ HWTEST_F(RSDividedUICaptureTest, ProcessSurfaceRenderNode, TestSize.Level1)
     rsDividedUICaptureVisitor.ProcessSurfaceRenderNode(node);
     EXPECT_TRUE(rsDividedUICaptureVisitor.canvas_ != nullptr);
 
-    node.renderContent_->GetMutableRenderProperties().visible_ = false;
+    node.GetMutableRenderProperties().visible_ = false;
     rsDividedUICaptureVisitor.ProcessSurfaceRenderNode(node);
     EXPECT_TRUE(rsDividedUICaptureVisitor.canvas_ != nullptr);
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -1019,6 +1019,163 @@ HWTEST_F(NativeDrawingPathTest, NativeDrawingPathTest_OH_Drawing_PathGetFillType
     OH_Drawing_ErrorCode code4 = OH_Drawing_PathGetFillType(nullptr, nullptr);
     EXPECT_EQ(code4, OH_DRAWING_ERROR_INVALID_PARAMETER);
     OH_Drawing_PathDestroy(path);
+}
+
+/*
+ * @tc.name: NativeDrawingPathTest_PathApproximate044
+ * @tc.desc: test for OH_Drawing_PathApproximate.
+ * @tc.type: FUNC
+ * @tc.require: ICAWXU
+ */
+HWTEST_F(NativeDrawingPathTest, NativeDrawingPathTest_PathApproximate044, TestSize.Level1)
+{
+    OH_Drawing_Path* path = OH_Drawing_PathCreate();
+    EXPECT_NE(path, nullptr);
+    float acceptableError = 0.5f; // 0.5f is acceptableError
+    uint32_t count = 0;
+    EXPECT_EQ(OH_Drawing_PathApproximate(path, acceptableError, nullptr, &count), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(count, 6); // 6 for the test
+    float* points = new float[count];
+    EXPECT_EQ(OH_Drawing_PathApproximate(nullptr, acceptableError, points, &count), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(OH_Drawing_PathApproximate(path, -1.0f, points, &count), OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE);
+    EXPECT_EQ(OH_Drawing_PathApproximate(path, acceptableError, points, nullptr), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(OH_Drawing_PathApproximate(path, acceptableError, points, &count), OH_DRAWING_SUCCESS);
+    for (uint32_t i = 0; i < count; i += 3) { // 3 three values for each point
+        scalar fraction = points[i];
+        EXPECT_GE(fraction, 0.0f);
+        EXPECT_LE(fraction, 1.0f);
+        EXPECT_EQ(points[i + 1], 0.0f);
+        EXPECT_EQ(points[i + 2], 0.0f); // 2 is the y value
+    }
+    if (points != nullptr) {
+        delete[] points;
+    }
+    OH_Drawing_PathReset(path);
+    uint32_t count2 = 0;
+    OH_Drawing_PathMoveTo(path, 0, 0);
+    OH_Drawing_PathLineTo(path, 5, 5);             // 5, 5 is the end point
+    OH_Drawing_PathQuadTo(path, 10, 50, 100, 100); // 10, 50 is control point, 100, 100 is the end point
+    // 150, 200 is control point, 250, 350 is the end point, 0.5f is the weight
+    OH_Drawing_PathConicTo(path, 150, 200, 250, 350, 0.5f);
+    // 350, 450, 450, 550 is the control point, 650, 750 is the end point
+    OH_Drawing_PathCubicTo(path, 350, 450, 450, 550, 550, 650);
+    OH_Drawing_PathClose(path);
+    EXPECT_EQ(OH_Drawing_PathApproximate(path, acceptableError, nullptr, &count2), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(count2, 75);    // 75 for the test
+    EXPECT_EQ(count2 % 3, 0); // 3 three values for each point
+    float* points2 = new float[count2];
+    EXPECT_EQ(OH_Drawing_PathApproximate(path, acceptableError, points2, &count2), OH_DRAWING_SUCCESS);
+    for (uint32_t i = 0; i < count2; i += 3) { // 3 three values for each point
+        scalar fraction = points2[i];
+        EXPECT_GE(fraction, 0.0f);
+        EXPECT_LE(fraction, 1.0f);
+    }
+    if (points2 != nullptr) {
+        delete[] points2;
+    }
+    OH_Drawing_PathDestroy(path);
+}
+
+/*
+ * @tc.name: NativeDrawingPathTest_PathInterpolate045
+ * @tc.desc: test for OH_Drawing_PathInterpolate.
+ * @tc.type: FUNC
+ * @tc.require: ICAWXU
+ */
+HWTEST_F(NativeDrawingPathTest, NativeDrawingPathTest_PathInterpolate045, TestSize.Level1)
+{
+    OH_Drawing_Path* path = OH_Drawing_PathCreate();
+    OH_Drawing_PathMoveTo(path, 50, 50); // 50, 50 is the start point
+    OH_Drawing_PathLineTo(path, 100, 100); // 100, 100 is the control point
+    OH_Drawing_PathLineTo(path, 200, 200); // 200, 200 is the end point
+    OH_Drawing_Path* otherPath1 = OH_Drawing_PathCreate();
+    OH_Drawing_PathMoveTo(otherPath1, 80, 200); // 80, 200 is the start point
+    OH_Drawing_PathLineTo(otherPath1, 300, 300); // 300, 300 is the control point
+    OH_Drawing_Path* otherPath2 = OH_Drawing_PathCreate();
+    OH_Drawing_PathMoveTo(otherPath2, 100, 50); // 100, 50 is the start point
+    OH_Drawing_PathLineTo(otherPath2, 200, 300); // 200, 300 is the control point
+    OH_Drawing_PathLineTo(otherPath2, 300, 400); // 300, 400 is the end point
+    OH_Drawing_Path* interpolatedPath = OH_Drawing_PathCreate();
+    bool result = false;
+    EXPECT_EQ(OH_Drawing_PathInterpolate(path, otherPath2, 2.0, &result, interpolatedPath),
+        OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE); // 2.0 is weight
+    EXPECT_EQ(OH_Drawing_PathInterpolate(path, otherPath2, -1.0, &result, interpolatedPath),
+        OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE); // -1.0 is weight
+    EXPECT_EQ(OH_Drawing_PathInterpolate(nullptr, otherPath2, 0.5, &result, interpolatedPath),
+        OH_DRAWING_ERROR_INVALID_PARAMETER); // 0.5 is weight
+    EXPECT_EQ(OH_Drawing_PathInterpolate(path, nullptr, 0.5, &result, interpolatedPath),
+        OH_DRAWING_ERROR_INVALID_PARAMETER); // 0.5 is weight
+    EXPECT_EQ(OH_Drawing_PathInterpolate(path, otherPath2, 0.5, nullptr, interpolatedPath),
+        OH_DRAWING_ERROR_INVALID_PARAMETER); // 0.5 is weight
+    EXPECT_EQ(OH_Drawing_PathInterpolate(path, otherPath2, 0.5, &result, nullptr),
+        OH_DRAWING_ERROR_INVALID_PARAMETER); // 0.5 is weight
+    EXPECT_EQ(result, false);
+    EXPECT_EQ(OH_Drawing_PathInterpolate(path, otherPath1, 0.0, &result, interpolatedPath), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(result, false);
+    // 0.5 is weight
+    EXPECT_EQ(OH_Drawing_PathInterpolate(path, otherPath1, 0.5, &result, interpolatedPath), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(result, false);
+    EXPECT_EQ(OH_Drawing_PathInterpolate(path, otherPath1, 1.0, &result, interpolatedPath), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(result, false);
+    EXPECT_EQ(OH_Drawing_PathInterpolate(path, otherPath2, 0.0, &result, interpolatedPath), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(result, true);
+    // 0.5 is weight
+    EXPECT_EQ(OH_Drawing_PathInterpolate(path, otherPath2, 0.5, &result, interpolatedPath), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(result, true);
+    EXPECT_EQ(OH_Drawing_PathInterpolate(path, otherPath2, 1.0, &result, interpolatedPath), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(result, true);
+    OH_Drawing_PathDestroy(path);
+    OH_Drawing_PathDestroy(otherPath1);
+    OH_Drawing_PathDestroy(otherPath2);
+    OH_Drawing_PathDestroy(interpolatedPath);
+}
+
+/*
+ * @tc.name: NativeDrawingPathTest_PathIsInterpolate046
+ * @tc.desc: test for OH_Drawing_PathIsInterpolate.
+ * @tc.type: FUNC
+ * @tc.require: ICAWXU
+ */
+HWTEST_F(NativeDrawingPathTest, NativeDrawingPathTest_PathIsInterpolate046, TestSize.Level1)
+{
+    OH_Drawing_Path* path1 = OH_Drawing_PathCreate();
+    OH_Drawing_Path* path2 = OH_Drawing_PathCreate();
+    bool result = false;
+
+    EXPECT_EQ(OH_Drawing_PathIsInterpolate(nullptr, path2, &result), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(OH_Drawing_PathIsInterpolate(path1, nullptr, &result), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(OH_Drawing_PathIsInterpolate(path1, path2, nullptr), OH_DRAWING_ERROR_INVALID_PARAMETER);
+
+    EXPECT_EQ(OH_Drawing_PathIsInterpolate(path1, path2, &result), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(result, true);
+
+    OH_Drawing_PathMoveTo(path1, 0, 0);
+    OH_Drawing_PathLineTo(path1, 100, 100); // 100, 100 is the end point
+    OH_Drawing_PathMoveTo(path2, 50, 50); // 50, 50 is the start point
+    OH_Drawing_PathQuadTo(path2, 75, 75, 100, 100); // 75, 75 is the control point, 100, 100 is the end point
+    EXPECT_EQ(OH_Drawing_PathIsInterpolate(path1, path2, &result), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(result, false);
+
+    OH_Drawing_PathReset(path2);
+    OH_Drawing_PathMoveTo(path2, 0, 1);
+    OH_Drawing_PathLineTo(path2, 200, 200); // 200, 200 is the end point
+    EXPECT_EQ(OH_Drawing_PathIsInterpolate(path1, path2, &result), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(result, true);
+
+    OH_Drawing_PathConicTo(path1, 150, 150, 200, 200, 0.5f); // 150,150 is control, 200,200 is end, 0.5f is weight
+    OH_Drawing_PathConicTo(path2, 150, 150, 200, 200, 0.5f); // 150,150 is control, 200,200 is end, 0.5f is weight
+    EXPECT_EQ(OH_Drawing_PathIsInterpolate(path1, path2, &result), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(result, true);
+
+    OH_Drawing_PathReset(path2);
+    OH_Drawing_PathMoveTo(path2, 0, 0);
+    OH_Drawing_PathLineTo(path2, 100, 100); // 100, 100 is the end point
+    OH_Drawing_PathConicTo(path2, 150, 150, 200, 200, 0.8f); // 150,150 is control, 200,200 is end, 0.8f is weight
+    EXPECT_EQ(OH_Drawing_PathIsInterpolate(path1, path2, &result), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(result, false);
+
+    OH_Drawing_PathDestroy(path1);
+    OH_Drawing_PathDestroy(path2);
 }
 } // namespace Drawing
 } // namespace Rosen

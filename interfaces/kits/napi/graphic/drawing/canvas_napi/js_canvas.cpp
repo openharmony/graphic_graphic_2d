@@ -17,7 +17,11 @@
 
 #include <mutex>
 
+#ifdef USE_M133_SKIA
+#include "src/base/SkUTF.h"
+#else
 #include "src/utils/SkUTF.h"
+#endif
 
 #ifdef ROSEN_OHOS
 #include "pixel_map_napi.h"

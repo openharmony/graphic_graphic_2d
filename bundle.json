@@ -48,7 +48,6 @@
         "graphic_2d_feature_tp_switch_enbale",
         "graphic_2d_feature_rs_enable_profiler",
         "graphic_2d_feature_enable_chipset_vsync",
-        "graphic_2d_feature_enable_flutter_vulkan",
         "graphic_2d_feature_enable_opengl",
         "graphic_2d_feature_enable_opinc",
         "graphic_2d_feature_enable_rspipeline",
@@ -60,7 +59,8 @@
         "graphic_2d_feature_bootanimation_ext_enable",
         "graphic_2d_feature_overlay_display_enable",
         "graphic_2d_feature_enable_opengl_to_vulkan",
-        "graphic_2d_feature_screenless_enable"
+        "graphic_2d_feature_screenless_enable",
+        "graphic_2d_feature_tv_metadata_enable"
       ],
       "rom": "10000KB",
       "ram": "10000KB",
@@ -120,7 +120,9 @@
           "faultloggerd",
           "freetype",
           "rust_cxx",
-          "media_foundation"
+          "media_foundation",
+          "selinux_adapter",
+          "runtime_core"
         ],
         "third_party": [
           "skia"
@@ -129,9 +131,9 @@
       "build": {
         "group_type": {
           "base_group": [
-            "//third_party/libpng:libpng",
             "//foundation/graphic/graphic_2d/interfaces/kits/napi:napi_packages",
             "//foundation/graphic/graphic_2d/interfaces/kits/cj:ffi_packages",
+            "//foundation/graphic/graphic_2d/interfaces/kits/ani:ani_packages",
             "//foundation/graphic/graphic_2d/rosen/modules/effect/effect_common:effect_common",
             "//foundation/graphic/graphic_2d/rosen/modules/composer:libcomposer",
             "//foundation/graphic/graphic_2d/rosen/modules/composer/native_vsync:libnative_vsync",
@@ -190,6 +192,16 @@
                 "vsync_receiver.h"
               ],
               "header_base": "//foundation/graphic/graphic_2d/interfaces/inner_api/composer"
+            }
+          },
+          {
+            "type": "so",
+            "name": "//foundation/graphic/graphic_2d/rosen/modules/glfw_render_context:libglfw_render_context",
+            "header": {
+              "header_files": [
+                "glfw_render_context.h"
+              ],
+              "header_base": "//foundation/graphic/graphic_2d/rosen/modules/glfw_render_context/export"
             }
           },
           {

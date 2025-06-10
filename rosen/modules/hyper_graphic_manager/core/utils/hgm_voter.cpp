@@ -129,15 +129,14 @@ bool HgmVoter::DeliverVote(const VoteInfo& voteInfo, bool eventStatus)
             // remove
             it = vec.erase(it);
             return true;
-        } else {
-            if ((*it).min != voteInfo.min || (*it).max != voteInfo.max) {
-                // modify
-                vec.erase(it);
-                vec.push_back(voteInfo);
-                return true;
-            }
-            return false;
         }
+        if ((*it).min != voteInfo.min || (*it).max != voteInfo.max) {
+            // modify
+            vec.erase(it);
+            vec.push_back(voteInfo);
+            return true;
+        }
+        return false;
     }
 
     // add

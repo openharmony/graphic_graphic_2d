@@ -14,7 +14,11 @@
  */
 #include "render/rs_light_up_effect_filter.h"
 
+#ifdef USE_M133_SKIA
+#include "src/core/SkChecksum.h"
+#else
 #include "src/core/SkOpts.h"
+#endif
 
 #include "platform/common/rs_log.h"
 #include "effect/color_matrix.h"
@@ -27,8 +31,13 @@ RSLightUpEffectFilter::RSLightUpEffectFilter(float lightUpDegree)
 {
     type_ = FilterType::LIGHT_UP_EFFECT;
 
-    hash_ = SkOpts::hash(&type_, sizeof(type_), 0);
-    hash_ = SkOpts::hash(&lightUpDegree_, sizeof(lightUpDegree_), hash_);
+#ifdef USE_M133_SKIA
+    const auto hashFunc = SkChecksum::Hash32;
+#else
+    const auto hashFunc = SkOpts::hash;
+#endif
+    hash_ = hashFunc(&type_, sizeof(type_), 0);
+    hash_ = hashFunc(&lightUpDegree_, sizeof(lightUpDegree_), hash_);
 }
 
 RSLightUpEffectFilter::~RSLightUpEffectFilter() = default;
@@ -63,68 +72,13 @@ std::shared_ptr<RSDrawingFilterOriginal> RSLightUpEffectFilter::Compose(
     std::shared_ptr<RSLightUpEffectFilter> result = std::make_shared<RSLightUpEffectFilter>(lightUpDegree_);
     result->imageFilter_ = Drawing::ImageFilter::CreateComposeImageFilter(imageFilter_, other->GetImageFilter());
     auto otherHash = other->Hash();
-    result->hash_ = SkOpts::hash(&otherHash, sizeof(otherHash), hash_);
+#ifdef USE_M133_SKIA
+    const auto hashFunc = SkChecksum::Hash32;
+#else
+    const auto hashFunc = SkOpts::hash;
+#endif
+    result->hash_ = hashFunc(&otherHash, sizeof(otherHash), hash_);
     return result;
-}
-
-std::shared_ptr<RSFilter> RSLightUpEffectFilter::Add(const std::shared_ptr<RSFilter>& rhs)
-{
-    if ((rhs == nullptr) || (rhs->GetFilterType() != FilterType::LIGHT_UP_EFFECT)) {
-        return shared_from_this();
-    }
-    auto lightUpFilter = std::static_pointer_cast<RSLightUpEffectFilter>(rhs);
-    return std::make_shared<RSLightUpEffectFilter>(lightUpDegree_ + lightUpFilter->GetLightUpDegree());
-}
-
-std::shared_ptr<RSFilter> RSLightUpEffectFilter::Sub(const std::shared_ptr<RSFilter>& rhs)
-{
-    if ((rhs == nullptr) || (rhs->GetFilterType() != FilterType::LIGHT_UP_EFFECT)) {
-        return shared_from_this();
-    }
-    auto lightUpFilter = std::static_pointer_cast<RSLightUpEffectFilter>(rhs);
-    return std::make_shared<RSLightUpEffectFilter>(lightUpDegree_ - lightUpFilter->GetLightUpDegree());
-}
-
-std::shared_ptr<RSFilter> RSLightUpEffectFilter::Multiply(float rhs)
-{
-    return std::make_shared<RSLightUpEffectFilter>(lightUpDegree_ * rhs);
-}
-
-std::shared_ptr<RSFilter> RSLightUpEffectFilter::Negate()
-{
-    return std::make_shared<RSLightUpEffectFilter>(-lightUpDegree_);
-}
-
-bool RSLightUpEffectFilter::IsNearEqual(const std::shared_ptr<RSFilter>& other, float threshold) const
-{
-    auto otherLightUpFilter = std::static_pointer_cast<RSLightUpEffectFilter>(other);
-    if (otherLightUpFilter == nullptr) {
-        ROSEN_LOGE("RSLightUpEffectFilter::IsNearEqual: the types of filters are different.");
-        return true;
-    }
-    float otherLightUpDegree = otherLightUpFilter->GetLightUpDegree();
-    return ROSEN_EQ(lightUpDegree_, otherLightUpDegree, threshold);
-}
-
-bool RSLightUpEffectFilter::IsNearZero(float threshold) const
-{
-    return ROSEN_EQ(lightUpDegree_, 0.0f, threshold);
-}
-
-bool RSLightUpEffectFilter::IsEqual(const std::shared_ptr<RSFilter>& other) const
-{
-    auto otherLightUpFilter = std::static_pointer_cast<RSLightUpEffectFilter>(other);
-    if (otherLightUpFilter == nullptr) {
-        ROSEN_LOGE("RSLightUpEffectFilter::IsEqual: the types of filters are different.");
-        return true;
-    }
-    float otherLightUpDegree = otherLightUpFilter->GetLightUpDegree();
-    return ROSEN_EQ(lightUpDegree_, otherLightUpDegree);
-}
-
-bool RSLightUpEffectFilter::IsEqualZero() const
-{
-    return ROSEN_EQ(lightUpDegree_, 0.0f);
 }
 } // namespace Rosen
 } // namespace OHOS

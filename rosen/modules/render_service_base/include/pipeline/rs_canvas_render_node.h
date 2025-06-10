@@ -77,6 +77,8 @@ public:
     void SetLinkedRootNodeId(NodeId rootNodeId);
     RSB_EXPORT NodeId GetLinkedRootNodeId() const;
 
+    void UpdateDisplayHDRNodeList(bool flag, NodeId displayNodeId) const;
+
 protected:
     explicit RSCanvasRenderNode(NodeId id,
         const std::weak_ptr<RSContext>& context = {}, bool isTextureExportNode = false);
@@ -92,6 +94,7 @@ private:
 
     friend class RSCanvasNodeCommandHelper;
     friend class RSColorfulShadowDrawable;
+    friend class RSRenderNodeAllocator;
     friend class RSRenderTransition;
     friend class RSPropertiesPainter;
     bool hasHdrPresent_ = false;

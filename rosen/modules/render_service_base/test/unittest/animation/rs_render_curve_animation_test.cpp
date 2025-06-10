@@ -74,13 +74,13 @@ HWTEST_F(RSRenderCurveAnimationTest, Marshalling001, TestSize.Level1)
 HWTEST_F(RSRenderCurveAnimationTest, Marshalling002, TestSize.Level1)
 {
     auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
     ASSERT_TRUE(property != nullptr);
     auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.1f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
     ASSERT_TRUE(property1 != nullptr);
     auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
     ASSERT_TRUE(property2 != nullptr);
 
     auto renderCurveAnimation = std::make_shared<RSRenderCurveAnimation>(
@@ -104,13 +104,13 @@ HWTEST_F(RSRenderCurveAnimationTest, Marshalling002, TestSize.Level1)
 HWTEST_F(RSRenderCurveAnimationTest, Marshalling003, TestSize.Level1)
 {
     auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
     ASSERT_TRUE(property != nullptr);
     auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.1f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
     ASSERT_TRUE(property1 != nullptr);
     auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
     ASSERT_TRUE(property2 != nullptr);
 
     auto renderCurveAnimation = std::make_shared<RSRenderCurveAnimation>(
@@ -131,13 +131,13 @@ HWTEST_F(RSRenderCurveAnimationTest, Marshalling003, TestSize.Level1)
 HWTEST_F(RSRenderCurveAnimationTest, Marshalling004, TestSize.Level1)
 {
     auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
-        PROPERTY_ID, RSRenderPropertyType::INVALID);
+        PROPERTY_ID, RSPropertyType::INVALID);
     ASSERT_TRUE(property != nullptr);
     auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.1f,
-        PROPERTY_ID, RSRenderPropertyType::INVALID);
+        PROPERTY_ID, RSPropertyType::INVALID);
     ASSERT_TRUE(property1 != nullptr);
     auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f,
-        PROPERTY_ID, RSRenderPropertyType::INVALID);
+        PROPERTY_ID, RSPropertyType::INVALID);
     ASSERT_TRUE(property2 != nullptr);
 
     auto renderCurveAnimation = std::make_shared<RSRenderCurveAnimation>(
@@ -208,11 +208,11 @@ HWTEST_F(RSRenderCurveAnimationTest, Unmarshalling002, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSRenderCurveAnimationTest Unmarshalling002 start";
     auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
     auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
     auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
 
     auto renderCurveAnimation = std::make_shared<RSRenderCurveAnimation>(
         ANIMATION_ID, PROPERTY_ID, property, property1, property2);
@@ -235,7 +235,7 @@ HWTEST_F(RSRenderCurveAnimationTest, Unmarshalling003, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSRenderCurveAnimationTest Unmarshalling003 start";
     auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
     Parcel parcel;
     bool result = parcel.WriteUint64(ANIMATION_ID) &&
         parcel.WriteInt32(0) &&
@@ -287,7 +287,7 @@ HWTEST_F(RSRenderCurveAnimationTest, InitValueEstimatorTest002, TestSize.Level1)
 {
     RSRenderCurveAnimation renderCurveAnimation;
     auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
 
     renderCurveAnimation.AttachRenderProperty(property);
     renderCurveAnimation.InitValueEstimator();
@@ -331,11 +331,11 @@ HWTEST_F(RSRenderCurveAnimationTest, DumpAnimationInfo002, TestSize.Level1)
 HWTEST_F(RSRenderCurveAnimationTest, ParseParam001, TestSize.Level1)
 {
     auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
     auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
     auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
 
     auto renderCurveAnimation = std::make_shared<RSRenderCurveAnimation>(
         ANIMATION_ID, PROPERTY_ID, property, property1, property2);
@@ -361,11 +361,11 @@ HWTEST_F(RSRenderCurveAnimationTest, ParseParam001, TestSize.Level1)
 HWTEST_F(RSRenderCurveAnimationTest, ParseParam002, TestSize.Level1)
 {
     auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
-        PROPERTY_ID, RSRenderPropertyType::INVALID);
+        PROPERTY_ID, RSPropertyType::INVALID);
     auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.1f,
-        PROPERTY_ID, RSRenderPropertyType::INVALID);
+        PROPERTY_ID, RSPropertyType::INVALID);
     auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f,
-        PROPERTY_ID, RSRenderPropertyType::INVALID);
+        PROPERTY_ID, RSPropertyType::INVALID);
 
     auto renderCurveAnimation = std::make_shared<RSRenderCurveAnimation>(
         ANIMATION_ID, PROPERTY_ID, property, property1, property2);
@@ -391,11 +391,11 @@ HWTEST_F(RSRenderCurveAnimationTest, ParseParam002, TestSize.Level1)
 HWTEST_F(RSRenderCurveAnimationTest, OnSetFraction001, TestSize.Level1)
 {
     auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
     auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.1f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
     auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
 
     auto renderCurveAnimation = std::make_shared<RSRenderCurveAnimation>(
         ANIMATION_ID, PROPERTY_ID, property, property1, property2);
@@ -419,11 +419,11 @@ HWTEST_F(RSRenderCurveAnimationTest, OnSetFraction001, TestSize.Level1)
 HWTEST_F(RSRenderCurveAnimationTest, OnSetFraction002, TestSize.Level1)
 {
     auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
     auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.1f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
     auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
 
     auto renderCurveAnimation = std::make_shared<RSRenderCurveAnimation>(
         ANIMATION_ID, PROPERTY_ID, property, property1, property2);
@@ -448,11 +448,11 @@ HWTEST_F(RSRenderCurveAnimationTest, OnSetFraction002, TestSize.Level1)
 HWTEST_F(RSRenderCurveAnimationTest, UpdateFractionAfterContinue001, TestSize.Level1)
 {
     auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
     auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.1f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
     auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
 
     auto renderCurveAnimation = std::make_shared<RSRenderCurveAnimation>(
         ANIMATION_ID, PROPERTY_ID, property, property1, property2);
@@ -475,11 +475,11 @@ HWTEST_F(RSRenderCurveAnimationTest, UpdateFractionAfterContinue001, TestSize.Le
 HWTEST_F(RSRenderCurveAnimationTest, UpdateFractionAfterContinue002, TestSize.Level1)
 {
     auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
     auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.1f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
     auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
 
     auto renderCurveAnimation = std::make_shared<RSRenderCurveAnimation>(
         ANIMATION_ID, PROPERTY_ID, property, property1, property2);
@@ -504,11 +504,11 @@ HWTEST_F(RSRenderCurveAnimationTest, UpdateFractionAfterContinue002, TestSize.Le
 HWTEST_F(RSRenderCurveAnimationTest, UpdateFractionAfterContinue003, TestSize.Level1)
 {
     auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
     auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.1f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
     auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
 
     auto renderCurveAnimation = std::make_shared<RSRenderCurveAnimation>(
         ANIMATION_ID, PROPERTY_ID, property, property1, property2);
@@ -533,11 +533,11 @@ HWTEST_F(RSRenderCurveAnimationTest, UpdateFractionAfterContinue003, TestSize.Le
 HWTEST_F(RSRenderCurveAnimationTest, OnAnimate001, TestSize.Level1)
 {
     auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
     auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
     auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
 
     auto renderCurveAnimation = std::make_shared<RSRenderCurveAnimation>(
         ANIMATION_ID, PROPERTY_ID, property, property1, property2);
@@ -562,11 +562,11 @@ HWTEST_F(RSRenderCurveAnimationTest, OnAnimate001, TestSize.Level1)
 HWTEST_F(RSRenderCurveAnimationTest, OnAnimate002, TestSize.Level1)
 {
     auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
     auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
     auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
 
     auto renderCurveAnimation = std::make_shared<RSRenderCurveAnimation>(
         ANIMATION_ID, PROPERTY_ID, property, property1, property2);
@@ -589,11 +589,11 @@ HWTEST_F(RSRenderCurveAnimationTest, OnAnimate002, TestSize.Level1)
 HWTEST_F(RSRenderCurveAnimationTest, OnAnimate003, TestSize.Level1)
 {
     auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
     auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
     auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
 
     auto renderCurveAnimation = std::make_shared<RSRenderCurveAnimation>(
         ANIMATION_ID, PROPERTY_ID, property, property1, property2);
@@ -617,11 +617,11 @@ HWTEST_F(RSRenderCurveAnimationTest, OnAnimate003, TestSize.Level1)
 HWTEST_F(RSRenderCurveAnimationTest, OnAnimateInner001, TestSize.Level1)
 {
     auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
     auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
     auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
 
     auto renderCurveAnimation = std::make_shared<RSRenderCurveAnimation>(
         ANIMATION_ID, PROPERTY_ID, property, property1, property2);
@@ -646,11 +646,11 @@ HWTEST_F(RSRenderCurveAnimationTest, OnAnimateInner001, TestSize.Level1)
 HWTEST_F(RSRenderCurveAnimationTest, OnAnimateInner002, TestSize.Level1)
 {
     auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
     auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
     auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
 
     auto renderCurveAnimation = std::make_shared<RSRenderCurveAnimation>(
         ANIMATION_ID, PROPERTY_ID, property, property1, property2);
@@ -673,11 +673,11 @@ HWTEST_F(RSRenderCurveAnimationTest, OnAnimateInner002, TestSize.Level1)
 HWTEST_F(RSRenderCurveAnimationTest, OnAnimateInner003, TestSize.Level1)
 {
     auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
     auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
     auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f,
-        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+        PROPERTY_ID, RSPropertyType::FLOAT);
 
     auto renderCurveAnimation = std::make_shared<RSRenderCurveAnimation>(
         ANIMATION_ID, PROPERTY_ID, property, property1, property2);

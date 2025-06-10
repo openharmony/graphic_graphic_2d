@@ -461,6 +461,7 @@ void RSRenderParams::OnCanvasDrawingSurfaceChange(const std::unique_ptr<RSRender
     target->canvasDrawingNodeSurfaceChanged_ = true;
     target->surfaceParams_.width = surfaceParams_.width;
     target->surfaceParams_.height = surfaceParams_.height;
+    target->surfaceParams_.colorSpace = surfaceParams_.colorSpace;
     if (GetParamsType() == RSRenderParamsType::RS_PARAM_OWNED_BY_DRAWABLE) {
         return;
     }
@@ -509,10 +510,11 @@ RSRenderParams::SurfaceParam RSRenderParams::GetCanvasDrawingSurfaceParams()
     return surfaceParams_;
 }
 
-void RSRenderParams::SetCanvasDrawingSurfaceParams(int width, int height)
+void RSRenderParams::SetCanvasDrawingSurfaceParams(int width, int height, GraphicColorGamut colorSpace)
 {
     surfaceParams_.width = width;
     surfaceParams_.height = height;
+    surfaceParams_.colorSpace = colorSpace;
 }
 
 void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
@@ -542,7 +544,7 @@ void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     target->isDrawingCacheChanged_ = target->isDrawingCacheChanged_ || isDrawingCacheChanged_;
     target->shadowRect_ = shadowRect_;
     target->drawingCacheIncludeProperty_ = drawingCacheIncludeProperty_;
-    target->isInBlackList_ = isInBlackList_;
+    target->isNodeGroupHasChildInBlackList_ = isNodeGroupHasChildInBlackList_;
     target->dirtyRegionInfoForDFX_ = dirtyRegionInfoForDFX_;
     target->isRepaintBoundary_ = isRepaintBoundary_;
     target->alphaOffScreen_ = alphaOffScreen_;

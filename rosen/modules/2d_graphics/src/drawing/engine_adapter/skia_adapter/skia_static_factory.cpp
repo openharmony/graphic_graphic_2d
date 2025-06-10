@@ -23,7 +23,6 @@
 #include "skia_document.h"
 #include "skia_adapter/skia_font_style_set.h"
 #include "skia_adapter/skia_hm_symbol.h"
-#include "skia_adapter/skia_hm_symbol_config_ohos.h"
 #include "skia_adapter/skia_image.h"
 #include "skia_adapter/skia_surface.h"
 #include "skia_adapter/skia_text_blob.h"
@@ -215,17 +214,6 @@ void SkiaStaticFactory::GetDrawingPointsForTextBlob(const TextBlob* blob, std::v
     return SkiaTextBlob::GetDrawingPointsForTextBlob(blob, points);
 }
 
-DrawingSymbolLayersGroups SkiaStaticFactory::GetSymbolLayersGroups(uint16_t glyphId)
-{
-    return SkiaHmSymbolConfigOhos::GetSymbolLayersGroups(glyphId);
-}
-
-std::vector<std::vector<DrawingPiecewiseParameter>> SkiaStaticFactory::GetGroupParameters(
-    DrawingAnimationType type, uint16_t groupSum, uint16_t animationMode, DrawingCommonSubType commonSubType)
-{
-    return SkiaHmSymbolConfigOhos::GetGroupParameters(type, groupSum, animationMode, commonSubType);
-}
-
 std::shared_ptr<Blender> SkiaStaticFactory::CreateWithBlendMode(BlendMode mode)
 {
     return SkiaBlender::CreateWithBlendMode(mode);
@@ -236,67 +224,85 @@ void SkiaStaticFactory::SetVmaCacheStatus(bool flag)
     SkiaUtils::SetVmaCacheStatus(flag);
 }
 
-void SkiaStaticFactory::RecordCoreTrace(int functionType)
-{
-    SkiaUtils::RecordCoreTrace(functionType);
-}
-
-void SkiaStaticFactory::RecordCoreTrace(int functionType, uint64_t nodeId)
-{
-    SkiaUtils::RecordCoreTrace(functionType, nodeId);
-}
-
 void SkiaStaticFactory::ResetStatsData()
 {
+#ifndef USE_M133_SKIA
     GrPerfMonitorReporter::GetInstance().resetStatsData();
+#endif
 }
 
 void SkiaStaticFactory::ResetPerfEventData()
 {
+#ifndef USE_M133_SKIA
     GrPerfMonitorReporter::GetInstance().resetPerfEventData();
+#endif
 }
 
 std::map<std::string, std::vector<uint16_t>> SkiaStaticFactory::GetBlurStatsData()
 {
+#ifdef USE_M133_SKIA
+    return std::map<std::string, std::vector<uint16_t>> {};
+#else
     return GrPerfMonitorReporter::GetInstance().getBlurStatsData();
+#endif
 }
 
 std::map<std::string, RsBlurEvent> SkiaStaticFactory::GetBlurPerfEventData()
 {
     std::map<std::string, RsBlurEvent> rsBlurEvent;
+#ifndef USE_M133_SKIA
     std::map<std::string, BlurEvent> grBlurEvent =
         GrPerfMonitorReporter::GetInstance().getBlurPerfEventData();
     GrBlurEventConvert2Rs(rsBlurEvent, grBlurEvent);
+#endif
     return rsBlurEvent;
 }
 
 std::map<std::string, std::vector<uint16_t>> SkiaStaticFactory::GetTextureStatsData()
 {
+#ifdef USE_M133_SKIA
+    return std::map<std::string, std::vector<uint16_t>> {};
+#else
     return GrPerfMonitorReporter::GetInstance().getTextureStatsData();
+#endif
 }
 
 std::map<std::string, RsTextureEvent> SkiaStaticFactory::GetTexturePerfEventData()
 {
     std::map<std::string, RsTextureEvent> rsTextureEvent;
+#ifndef USE_M133_SKIA
     std::map<std::string, TextureEvent> grTextureEvent =
         GrPerfMonitorReporter::GetInstance().getTexturePerfEventData();
     GrTextureEventConvert2Rs(rsTextureEvent, grTextureEvent);
+#endif
     return rsTextureEvent;
 }
 
 int16_t SkiaStaticFactory::GetSplitRange(int64_t duration)
 {
+#ifdef USE_M133_SKIA
+    return 0;
+#else
     return GrPerfMonitorReporter::getSplitRange(duration);
+#endif
 }
 
 bool SkiaStaticFactory::IsOpenPerf()
 {
+#ifdef USE_M133_SKIA
+    return false;
+#else
     return GrPerfMonitorReporter::GetInstance().isOpenPerf();
+#endif
 }
 
 int64_t SkiaStaticFactory::GetCurrentTime()
 {
+#ifdef USE_M133_SKIA
+    return 0;
+#else
     return GrPerfMonitorReporter::getCurrentTime();
+#endif
 }
 
 void SkiaStaticFactory::SetCurrentNodeId(uint64_t nodeId)
@@ -304,6 +310,7 @@ void SkiaStaticFactory::SetCurrentNodeId(uint64_t nodeId)
     RECORD_GPU_RESOURCE_DRAWABLE_CALLER(nodeId);
 }
 
+#ifndef USE_M133_SKIA
 void SkiaStaticFactory::GrTextureEventConvert2Rs(std::map<std::string, RsTextureEvent>& rsTextureEvent,
     const std::map<std::string, TextureEvent>& grTextureEvent)
 {
@@ -323,6 +330,7 @@ void SkiaStaticFactory::GrBlurEventConvert2Rs(std::map<std::string, RsBlurEvent>
         rsBlurEvent[nodeName] = event;
     }
 }
+#endif
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

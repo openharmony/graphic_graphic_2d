@@ -629,6 +629,22 @@ HWTEST_F(RSSurfaceNodeCommandTest, SetAncoFlagsTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetAncoSrcCropTest
+ * @tc.desc: Verify function SetAncoSrcCrop
+ * @tc.type:FUNC
+ * @tc.require: issueICA0I8
+ */
+HWTEST_F(RSSurfaceNodeCommandTest, SetAncoSrcCropTest, TestSize.Level1)
+{
+    RSContext context;
+    Rect rect{0, 0, 0, 0};
+    SurfaceNodeCommandHelper::SetAncoSrcCrop(context, 0, rect);
+    SurfaceNodeCommandHelper::Create(context, 1);
+    SurfaceNodeCommandHelper::SetAncoSrcCrop(context, 1, rect);
+    EXPECT_TRUE(context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(1) != nullptr);
+}
+
+/**
  * @tc.name: SetHDRPresentTest
  * @tc.desc: Verify function SetHDRPresent
  * @tc.type:FUNC

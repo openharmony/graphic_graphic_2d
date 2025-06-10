@@ -410,8 +410,13 @@ void SkiaShaderEffect::InitWithLightUp(const float& lightUpDeg, const ShaderEffe
     if (imageShaderImpl_ != nullptr) {
         sk_sp<SkShader> children[] = {imageShaderImpl_->GetShader()};
         size_t childCount = 1;
+#ifdef TODO_M133_SKIA
+        (void)lightUpDeg;
+        (void)childCount;
+#else
         shader_ = effect->makeShader(SkData::MakeWithCopy(
             &lightUpDeg, sizeof(lightUpDeg)), children, childCount, nullptr, false);
+#endif
     } else {
         LOGE("SkiaShaderEffect::InitWithLightUp: imageShader is nullptr");
     }
@@ -443,7 +448,11 @@ std::shared_ptr<Data> SkiaShaderEffect::Serialize() const
         return nullptr;
     }
 
+#ifdef USE_M133_SKIA
+    SkBinaryWriteBuffer writer({});
+#else
     SkBinaryWriteBuffer writer;
+#endif
     writer.writeFlattenable(shader_.get());
     size_t length = writer.bytesWritten();
     std::shared_ptr<Data> data = std::make_shared<Data>();

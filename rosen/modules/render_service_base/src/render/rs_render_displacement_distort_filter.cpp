@@ -12,9 +12,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "platform/common/rs_log.h"
 #include "render/rs_render_displacement_distort_filter.h"
+
+#include "ge_visual_effect.h"
+#include "ge_visual_effect_container.h"
+
+#include "platform/common/rs_log.h"
 #include "render/rs_render_pixel_map_mask.h"
+#include "render/rs_shader_mask.h"
+
 
 namespace OHOS {
 namespace Rosen {
@@ -137,6 +143,51 @@ namespace Rosen {
             return nullptr;
         }
         return std::static_pointer_cast<RSRenderMaskPara>(property);
+    }
+
+    bool RSRenderDispDistortFilterPara::ParseFilterValues()
+    {
+        auto displacementDistortFactor = std::static_pointer_cast<RSRenderAnimatableProperty<Vector2f>>(
+            GetRenderPropert(RSUIFilterType::DISPLACEMENT_DISTORT_FACTOR));
+        auto maskProperty = std::static_pointer_cast<RSRenderMaskPara>(GetRenderPropert(maskType_));
+        if (!displacementDistortFactor || !maskProperty) {
+            ROSEN_LOGE("RSRenderDispDistortFilterPara::ParseFilterValues GetRenderPropert has nullptr.");
+            return false;
+        }
+        factor_ = displacementDistortFactor->Get();
+        mask_ = std::make_shared<RSShaderMask>(maskProperty);
+#ifdef USE_M133_SKIA
+        const auto hashFunc = SkChecksum::Hash32;
+#else
+        const auto hashFunc = SkOpts::hash;
+#endif
+        hash_ = hashFunc(&factor_, sizeof(factor_), hash_);
+        auto maskHash = mask_->Hash();
+        hash_ = hashFunc(&maskHash, sizeof(maskHash), hash_);
+        return true;
+    }
+
+    void RSRenderDispDistortFilterPara::GenerateGEVisualEffect(
+        std::shared_ptr<Drawing::GEVisualEffectContainer> visualEffectContainer)
+    {
+        if (!mask_) {
+            return;
+        }
+        auto distortFilter =
+            std::make_shared<Drawing::GEVisualEffect>("DISPLACEMENT_DISTORT", Drawing::DrawingPaintType::BRUSH);
+        distortFilter->SetParam(GE_FILTER_DISPLACEMENT_DISTORT_FACTOR, std::make_pair(factor_[0], factor_[1]));
+        distortFilter->SetParam(GE_FILTER_DISPLACEMENT_DISTORT_MASK, mask_->GenerateGEShaderMask());
+        visualEffectContainer->AddToChainedFilter(distortFilter);
+    }
+
+    const Vector2f& RSRenderDispDistortFilterPara::GetFactor() const
+    {
+        return factor_;
+    }
+
+    const std::shared_ptr<RSShaderMask>& RSRenderDispDistortFilterPara::GetMask() const
+    {
+        return mask_;
     }
 } // namespace Rosen
 } // namespace OHOS

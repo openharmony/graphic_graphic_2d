@@ -66,6 +66,11 @@ public:
         return mPolicyConfigData_;
     }
 
+    std::shared_ptr<PolicyConfigVisitor> GetPolicyConfigVisitor() const
+    {
+        return mPolicyConfigVisitor_;
+    }
+
     // called by RSMainThread
     void SetPendingScreenRefreshRate(uint32_t rate)
     {
@@ -342,6 +347,7 @@ private:
     HgmCore(const HgmCore&&) = delete;
     HgmCore& operator=(const HgmCore&) = delete;
     HgmCore& operator=(const HgmCore&&) = delete;
+    friend class HgmUserDefineImpl;
 
     void Init();
     void CheckCustomFrameRateModeValid();
@@ -357,6 +363,7 @@ private:
     static constexpr char configFileProduct[] = "/sys_prod/etc/graphic/hgm_policy_config.xml";
     std::unique_ptr<XMLParser> mParser_ = nullptr;
     std::shared_ptr<PolicyConfigData> mPolicyConfigData_ = nullptr;
+    std::shared_ptr<PolicyConfigVisitor> mPolicyConfigVisitor_ = nullptr;
 
     int32_t customFrameRateMode_ = HGM_REFRESHRATE_MODE_AUTO;
     std::vector<ScreenId> screenIds_;

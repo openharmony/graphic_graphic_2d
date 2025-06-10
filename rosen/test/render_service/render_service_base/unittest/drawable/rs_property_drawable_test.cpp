@@ -20,9 +20,8 @@
 #include "pipeline/rs_recording_canvas.h"
 #include "pipeline/rs_render_node.h"
 #include "render/rs_drawing_filter.h"
-#include "render/rs_shader_filter.h"
-#include "render/rs_aibar_shader_filter.h"
-#include "render/rs_linear_gradient_blur_shader_filter.h"
+#include "render/rs_render_aibar_filter.h"
+#include "render/rs_render_linear_gradient_blur_filter.h"
 #include "drawable/rs_property_drawable_utils.h"
 
 using namespace testing;
@@ -110,11 +109,11 @@ HWTEST_F(RSPropertyDrawableTest, OnGenerateAndOnUpdateTest003, TestSize.Level1)
     EXPECT_NE(frameOffsetDrawable, nullptr);
 
     RSRenderNode node(0);
-    node.renderContent_->renderProperties_.frameOffsetX_ = 0.0f;
-    node.renderContent_->renderProperties_.frameOffsetY_ = 0.0f;
+    node.renderProperties_.frameOffsetX_ = 0.0f;
+    node.renderProperties_.frameOffsetY_ = 0.0f;
     EXPECT_EQ(frameOffsetDrawable->OnGenerate(node), nullptr);
 
-    node.renderContent_->renderProperties_.frameOffsetX_ = 1.0f;
+    node.renderProperties_.frameOffsetX_ = 1.0f;
     EXPECT_NE(frameOffsetDrawable->OnGenerate(node), nullptr);
 }
 
@@ -131,18 +130,18 @@ HWTEST_F(RSPropertyDrawableTest, OnUpdateTest004, TestSize.Level1)
     EXPECT_NE(clipToBoundsDrawable, nullptr);
 
     RSRenderNode nodeTest1(0);
-    nodeTest1.renderContent_->renderProperties_.clipPath_ = std::make_shared<RSPath>();
-    EXPECT_NE(nodeTest1.renderContent_->renderProperties_.clipPath_, nullptr);
+    nodeTest1.renderProperties_.clipPath_ = std::make_shared<RSPath>();
+    EXPECT_NE(nodeTest1.renderProperties_.clipPath_, nullptr);
     EXPECT_TRUE(clipToBoundsDrawable->OnUpdate(nodeTest1));
 
     RSRenderNode nodeTest2(0);
     RectT<float> rect(1.0f, 1.0f, 1.0f, 1.0f);
     RRectT<float> rectt(rect, 1.0f, 1.0f);
-    nodeTest2.renderContent_->renderProperties_.clipRRect_ = rectt;
+    nodeTest2.renderProperties_.clipRRect_ = rectt;
     EXPECT_TRUE(clipToBoundsDrawable->OnUpdate(nodeTest2));
 
     RSRenderNode nodeTest3(0);
-    nodeTest3.renderContent_->renderProperties_.cornerRadius_ = 1.0f;
+    nodeTest3.renderProperties_.cornerRadius_ = 1.0f;
     EXPECT_TRUE(clipToBoundsDrawable->OnUpdate(nodeTest3));
 
     RSRenderNode nodeTest4(0);
@@ -162,15 +161,15 @@ HWTEST_F(RSPropertyDrawableTest, OnGenerateAndOnUpdateTest005, TestSize.Level1)
     EXPECT_NE(clipToFrameDrawable, nullptr);
 
     RSRenderNode node(0);
-    node.renderContent_->renderProperties_.clipToFrame_ = false;
+    node.renderProperties_.clipToFrame_ = false;
     EXPECT_EQ(clipToFrameDrawable->OnGenerate(node), nullptr);
 
     RSObjGeometry geometry;
 
     geometry.width_ = 1.0f;
     geometry.height_ = 1.0f;
-    node.renderContent_->renderProperties_.frameGeo_ = geometry;
-    node.renderContent_->renderProperties_.clipToFrame_ = true;
+    node.renderProperties_.frameGeo_ = geometry;
+    node.renderProperties_.clipToFrame_ = true;
     EXPECT_NE(clipToFrameDrawable->OnGenerate(node), nullptr);
 }
 
@@ -400,24 +399,5 @@ HWTEST_F(RSPropertyDrawableTest, RSFilterDrawableTest014, TestSize.Level1)
     auto drawFunc = drawable->CreateDrawFunc();
     drawFunc(filterCanvas.get(), &rect);
     EXPECT_NE(filterCanvas->cacheBehindWindowData_, nullptr);
-}
-
-/**
- * @tc.name: IsPendingPurgeTest
- * @tc.desc: class RSFilterDrawable IsPendingPurge test
- * @tc.type: FUNC
- */
-HWTEST_F(RSPropertyDrawableTest, IsPendingPurgeTest, TestSize.Level1)
-{
-    std::shared_ptr<DrawableV2::RSFilterDrawable> filterDrawable = std::make_shared<DrawableV2::RSFilterDrawable>();
-    EXPECT_NE(filterDrawable, nullptr);
-    EXPECT_NE(filterDrawable->stagingCacheManager_, nullptr);
-    EXPECT_FALSE(filterDrawable->IsPendingPurge());
-
-    filterDrawable->stagingCacheManager_->pendingPurge_ = true;
-    EXPECT_TRUE(filterDrawable->IsPendingPurge());
-
-    filterDrawable->stagingCacheManager_ = nullptr;
-    EXPECT_FALSE(filterDrawable->IsPendingPurge());
 }
 } // namespace OHOS::Rosen

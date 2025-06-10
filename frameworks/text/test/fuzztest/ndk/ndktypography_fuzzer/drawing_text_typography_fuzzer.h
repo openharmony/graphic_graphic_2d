@@ -31,6 +31,7 @@
 #include "drawing_pen.h"
 #include "drawing_point.h"
 #include "drawing_text_declaration.h"
+#include "drawing_text_global.h"
 #include "drawing_text_line.h"
 #include "drawing_text_lineTypography.h"
 #include "drawing_text_typography.h"

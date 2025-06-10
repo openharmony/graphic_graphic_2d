@@ -16,8 +16,6 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_RENDER_RS_IMAGE_H
 #define RENDER_SERVICE_CLIENT_CORE_RENDER_RS_IMAGE_H
 
-#include <pthread.h>
-
 #include "draw/canvas.h"
 #include "effect/color_filter.h"
 #include "image/image.h"
@@ -99,6 +97,8 @@ public:
     RSImage() = default;
     ~RSImage();
 
+    using RSImageBase::SetCompressData;
+
     bool IsEqual(const RSImage& other) const;
     void CanvasDrawImage(Drawing::Canvas& canvas, const Drawing::Rect& rect,
         const Drawing::SamplingOptions& samplingOptions, bool isBackground = false);
@@ -110,7 +110,6 @@ public:
     void SetInnerRect(const std::optional<Drawing::RectI>& innerRect) { innerRect_ = innerRect;}
 
     void SetCompressData(const std::shared_ptr<Drawing::Data> data, uint32_t id, int width, int height);
-    void SetCompressData(const std::shared_ptr<Drawing::Data> compressData);
 
     bool HDRConvert(const Drawing::SamplingOptions& sampling, Drawing::Canvas& canvas);
     void SetPaint(Drawing::Paint paint);
@@ -159,7 +158,6 @@ public:
 private:
     bool HasRadius() const;
     void ApplyCanvasClip(Drawing::Canvas& canvas);
-    void UploadGpu(Drawing::Canvas& canvas);
     std::pair<float, float> CalculateByDegree(const Drawing::Rect& rect);
     void DrawImageRect(
             Drawing::Canvas& canvas, const Drawing::Rect& rect, const Drawing::SamplingOptions& samplingOptions);
@@ -171,7 +169,7 @@ private:
     std::shared_ptr<Drawing::ShaderEffect> GenerateImageShaderForDrawRect(
         const Drawing::Canvas& canvas, const Drawing::SamplingOptions& sampling) const;
     void DrawImageShaderRectOnCanvas(
-        Drawing::Canvas& canvas, const std::shared_ptr<Drawing::ShaderEffect>& imageShader, pthread_t imageTid) const;
+        Drawing::Canvas& canvas, const std::shared_ptr<Drawing::ShaderEffect>& imageShader) const;
     void DrawImageWithFirMatrixRotateOnCanvas(
         const Drawing::SamplingOptions& samplingOptions, Drawing::Canvas& canvas) const;
     void ApplyImageOrientation(Drawing::Canvas& canvas);
@@ -184,7 +182,6 @@ private:
     static void ProcessImageAfterCreation(RSImage* rsImage, const uint64_t uniqueId, const bool useSkImage,
         const std::shared_ptr<Media::PixelMap>& pixelMap);
 #endif
-    std::shared_ptr<Drawing::Data> compressData_;
     ImageFit imageFit_ = ImageFit::COVER;
     ImageRepeat imageRepeat_ = ImageRepeat::NO_REPEAT;
     std::vector<Drawing::Point> radius_ = std::vector<Drawing::Point>(4);

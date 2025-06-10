@@ -18,6 +18,7 @@
 
 #include "rosen_text/run.h"
 #include "txt/run.h"
+#include "typography_types.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -33,6 +34,8 @@ public:
     std::vector<Drawing::Point> GetOffsets() override;
     std::vector<uint16_t> GetGlyphs(int64_t start, int64_t length) const override;
     std::vector<Drawing::Point> GetPositions(int64_t start, int64_t length) const override;
+    std::vector<Drawing::Point> GetAdvances(uint32_t start, uint32_t length) const override;
+    TextDirection GetTextDirection() const override;
     void GetStringRange(uint64_t* location, uint64_t* length) const override;
     std::vector<uint64_t> GetStringIndices(int64_t start, int64_t length) const override;
     Drawing::Rect GetImageBounds() const override;

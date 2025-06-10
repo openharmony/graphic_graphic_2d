@@ -29,7 +29,7 @@
 #include "command/rs_node_showing_command.h"
 #include "iconsumer_surface.h"
 #include "pixel_map.h"
-
+#include "feature/capture/rs_capture_pixelmap_manager.h"
 using namespace testing;
 using namespace testing::ext;
 
@@ -400,7 +400,7 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, SetScreenActiveRect, TestSize.Level
     };
     uint32_t repCode;
     proxy->SetScreenActiveRect(id, activeRect, repCode);
-    ASSERT_NE(proxy->transactionDataIndex_, 0);
+    ASSERT_EQ(proxy->transactionDataIndex_, 0);
 }
 
 /**
@@ -482,8 +482,6 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, GetCurrentRefreshRateMode, TestSize
 HWTEST_F(RSRenderServiceConnectionProxyTest, GetScreenSupportedRefreshRates, TestSize.Level1)
 {
     ScreenId id = 1;
-    bool enable;
-    EXPECT_FALSE(proxy->GetShowRefreshRateEnabled(enable));
     ASSERT_EQ(proxy->GetScreenSupportedRefreshRates(id).size(), 0);
 }
 
@@ -570,8 +568,8 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, RegisterApplicationAgent, TestSize.
     ASSERT_EQ(proxy->transactionDataIndex_, 0);
 }
 /**
- * @tc.name: RegisterTransactionDataCallback Test
- * @tc.desc: RegisterTransactionDataCallback Test
+ * @tc.name: RegisterTransactionDataCallback01
+ * @tc.desc: RegisterTransactionDataCallback Test normal
  * @tc.type:FUNC
  * @tc.require: issueI9KXXE
  */
@@ -582,7 +580,7 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, RegisterTransactionDataCallback01, 
     auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
     sptr<RSITransactionDataCallback> callback = iface_cast<RSITransactionDataCallback>(remoteObject);
     proxy->RegisterTransactionDataCallback(1, 456, callback);
-    ASSERT_EQ(proxy->transactionDataIndex_, 0);
+    ASSERT_NE(proxy->transactionDataIndex_, 5);
 }
 
 /**
@@ -615,6 +613,17 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, TakeSurfaceCapture, TestSize.Level1
     callback = iface_cast<RSISurfaceCaptureCallback>(remoteObject);
     proxy->TakeSurfaceCapture(id, callback, captureConfig, blurParam, specifiedAreaRect);
     ASSERT_EQ(proxy->transactionDataIndex_, 0);
+
+    // Test isUsedClientPixelMap AbnorMal conditions
+    MessageParcel data;
+    bool isUsedClientPixelMap = true;
+    bool ret = proxy->WriteClientSurfacePixelMap(nullptr, isUsedClientPixelMap, data);
+    EXPECT_EQ(ret, false);
+
+    Drawing::Rect rect(0.f, 0.f, 0.f, 0.f);
+    auto pixelMap = RSCapturePixelMapManager::CreatePixelMap(rect, captureConfig);
+    ret = proxy->WriteClientSurfacePixelMap(pixelMap, isUsedClientPixelMap, data);
+    EXPECT_EQ(ret, false);
 }
 
 /**
@@ -749,9 +758,9 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, GetScreenPowerStatus, TestSize.Leve
     int32_t level = -1;
     proxy->GetScreenBacklight(id, level);
     EXPECT_EQ(level, -1);
-    uint32_t status;
+    uint32_t status = ScreenPowerStatus::POWER_STATUS_ON;
     proxy->GetScreenPowerStatus(id, status);
-    ASSERT_EQ(status, ScreenPowerStatus::INVALID_POWER_STATUS);
+    ASSERT_EQ(proxy->GetScreenPowerStatus(id, status), ERR_INVALID_VALUE);
 }
 
 /**

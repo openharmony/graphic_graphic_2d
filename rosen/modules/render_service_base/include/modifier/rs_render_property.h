@@ -24,6 +24,9 @@
 #include "modifier/rs_modifier_type.h"
 #include "recording/draw_cmd_list.h"
 #include "transaction/rs_marshalling_helper.h"
+#ifdef USE_M133_SKIA
+#include "include/core/SkMatrix.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -36,6 +39,31 @@ enum PropertyUpdateType : int8_t {
     UPDATE_TYPE_OVERWRITE,       // overwrite by given value
     UPDATE_TYPE_INCREMENTAL,     // incremental update by given value
     UPDATE_TYPE_FORCE_OVERWRITE, // overwrite and cancel all previous animations
+};
+
+enum class RSPropertyType : int16_t {
+    INVALID = 0,
+    FLOAT,
+    RS_COLOR,
+    MATRIX3F,
+    QUATERNION,
+    FILTER,
+    VECTOR2F,
+    VECTOR3F,
+    VECTOR4F,
+    VECTOR4_COLOR,
+    SKMATRIX,
+    RRECT,
+    SHADER_PARAM,
+    UI_FILTER,
+};
+
+enum class RSPropertyUnit : int16_t {
+    UNKNOWN = 0,
+    PIXEL_POSITION,
+    PIXEL_SIZE,
+    RATIO_SCALE,
+    ANGLE_ROTATION,
 };
 
 class RSB_EXPORT RSRenderPropertyBase : public std::enable_shared_from_this<RSRenderPropertyBase> {
@@ -94,11 +122,11 @@ protected:
 
     virtual void SetValue(const std::shared_ptr<RSRenderPropertyBase>& value) {}
 
-    virtual void SetPropertyType(const RSRenderPropertyType type) {}
+    virtual void SetPropertyType(const RSPropertyType type) {}
 
-    virtual RSRenderPropertyType GetPropertyType() const
+    virtual RSPropertyType GetPropertyType() const
     {
-        return RSRenderPropertyType::INVALID;
+        return RSPropertyType::INVALID;
     }
 
     virtual void SetPropertyUnit(RSPropertyUnit unit) {}
@@ -189,7 +217,7 @@ class RSB_EXPORT_TMP RSRenderProperty : public RSRenderPropertyBase {
 public:
     RSRenderProperty() : RSRenderPropertyBase(0) {}
     RSRenderProperty(const T& value, const PropertyId& id) : RSRenderPropertyBase(id), stagingValue_(value) {}
-    RSRenderProperty(const T& value, const PropertyId& id, const RSRenderPropertyType type)
+    RSRenderProperty(const T& value, const PropertyId& id, const RSPropertyType type)
         : RSRenderPropertyBase(id), stagingValue_(value), type_(type)
     {}
     virtual ~RSRenderProperty() = default;
@@ -233,9 +261,9 @@ public:
 
 protected:
     T stagingValue_;
-    RSRenderPropertyType type_ = RSRenderPropertyType::INVALID;
+    RSPropertyType type_ = RSPropertyType::INVALID;
     std::function<void(const std::shared_ptr<RSRenderPropertyBase>&)> updateUIPropertyFunc_;
-    RSRenderPropertyType GetPropertyType() const override
+    RSPropertyType GetPropertyType() const override
     {
         return type_;
     }
@@ -249,11 +277,11 @@ public:
     RSRenderAnimatableProperty() : RSRenderProperty<T>() {}
     RSRenderAnimatableProperty(const T& value) : RSRenderProperty<T>(value, 0) {}
     RSRenderAnimatableProperty(const T& value, const PropertyId& id) : RSRenderProperty<T>(value, id) {}
-    RSRenderAnimatableProperty(const T& value, const PropertyId& id, const RSRenderPropertyType type)
+    RSRenderAnimatableProperty(const T& value, const PropertyId& id, const RSPropertyType type)
         : RSRenderProperty<T>(value, id, type)
     {}
     RSRenderAnimatableProperty(const T& value, const PropertyId& id,
-        const RSRenderPropertyType type, const RSPropertyUnit unit)
+        const RSPropertyType type, const RSPropertyUnit unit)
         : RSRenderProperty<T>(value, id, type), unit_(unit)
     {}
     virtual ~RSRenderAnimatableProperty() = default;
@@ -286,12 +314,12 @@ protected:
         }
     }
 
-    void SetPropertyType(const RSRenderPropertyType type) override
+    void SetPropertyType(const RSPropertyType type) override
     {
         RSRenderProperty<T>::type_ = type;
     }
 
-    virtual RSRenderPropertyType GetPropertyType() const override
+    virtual RSPropertyType GetPropertyType() const override
     {
         return RSRenderProperty<T>::type_;
     }
@@ -409,8 +437,6 @@ RSB_EXPORT void RSRenderProperty<Matrix3f>::Dump(std::string& out) const;
 template<>
 RSB_EXPORT void RSRenderProperty<Color>::Dump(std::string& out) const;
 template<>
-RSB_EXPORT void RSRenderProperty<std::shared_ptr<RSFilter>>::Dump(std::string& out) const;
-template<>
 RSB_EXPORT void RSRenderProperty<Vector4<Color>>::Dump(std::string& out) const;
 template<>
 RSB_EXPORT void RSRenderProperty<RRect>::Dump(std::string& out) const;
@@ -465,17 +491,11 @@ template<>
 RSB_EXPORT bool RSRenderAnimatableProperty<Color>::IsNearEqual(
     const std::shared_ptr<RSRenderPropertyBase>& value, float zeroThreshold) const;
 template<>
-RSB_EXPORT bool RSRenderAnimatableProperty<std::shared_ptr<RSFilter>>::IsNearEqual(
-    const std::shared_ptr<RSRenderPropertyBase>& value, float zeroThreshold) const;
-template<>
 RSB_EXPORT bool RSRenderAnimatableProperty<Vector4<Color>>::IsNearEqual(
     const std::shared_ptr<RSRenderPropertyBase>& value, float zeroThreshold) const;
 template<>
 RSB_EXPORT bool RSRenderAnimatableProperty<RRect>::IsNearEqual(
     const std::shared_ptr<RSRenderPropertyBase>& value, float zeroThreshold) const;
-template<>
-RSB_EXPORT bool RSRenderAnimatableProperty<std::shared_ptr<RSFilter>>::IsEqual(
-    const std::shared_ptr<const RSRenderPropertyBase>& value) const;
 
 template<>
 RSB_EXPORT size_t RSRenderProperty<Drawing::DrawCmdListPtr>::GetSize() const;
@@ -491,7 +511,6 @@ extern template class RSRenderProperty<Vector2f>;
 extern template class RSRenderProperty<Vector3f>;
 extern template class RSRenderProperty<Matrix3f>;
 extern template class RSRenderProperty<Color>;
-extern template class RSRenderProperty<std::shared_ptr<RSFilter>>;
 extern template class RSRenderProperty<Vector4<Color>>;
 extern template class RSRenderProperty<RRect>;
 extern template class RSRenderProperty<Drawing::DrawCmdListPtr>;
@@ -519,7 +538,6 @@ extern template class RSRenderAnimatableProperty<Vector3f>;
 extern template class RSRenderAnimatableProperty<RRect>;
 extern template class RSRenderAnimatableProperty<Matrix3f>;
 extern template class RSRenderAnimatableProperty<Color>;
-extern template class RSRenderAnimatableProperty<std::shared_ptr<RSFilter>>;
 extern template class RSRenderAnimatableProperty<Vector4<Color>>;
 extern template class RSRenderAnimatableProperty<std::vector<float>>;
 #endif

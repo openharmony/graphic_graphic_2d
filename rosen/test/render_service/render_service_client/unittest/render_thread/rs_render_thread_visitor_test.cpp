@@ -1174,27 +1174,6 @@ HWTEST_F(RSRenderThreadVisitorTest, ProcessShadowFirst001, TestSize.Level1)
 }
 
 /**
- * @tc.name: UpdateAnimatePropertyCacheSurface001
- * @tc.desc: test results of UpdateAnimatePropertyCacheSurface
- * @tc.type: FUNC
- * @tc.require: issueI5HRIF
- */
-HWTEST_F(RSRenderThreadVisitorTest, UpdateAnimatePropertyCacheSurface001, TestSize.Level1)
-{
-    RSRenderThreadVisitor visitor;
-    RSRenderNode node(0);
-    bool res = visitor.UpdateAnimatePropertyCacheSurface(node);
-    EXPECT_EQ(res, false);
-
-    node.cacheSurface_ = std::make_shared<Drawing::Surface>();
-    node.cacheSurface_->cachedCanvas_ = std::make_shared<Drawing::Canvas>();
-    Drawing::Canvas canvas;
-    visitor.canvas_ = std::make_shared<RSPaintFilterCanvas>(&canvas);
-    res = visitor.UpdateAnimatePropertyCacheSurface(node);
-    EXPECT_TRUE(res);
-}
-
-/**
  * @tc.name: ProcessEffectRenderNode001
  * @tc.desc: test results of ProcessEffectRenderNode
  * @tc.type: FUNC

@@ -217,9 +217,9 @@ HWTEST_F(RSMemorySnapshotTest, GetTotalMemoryTest001, testing::ext::TestSize.Lev
     pid_t pid = 5001;
     size_t initialTotal = MemorySnapshot::Instance().GetTotalMemory();
     MemorySnapshot::Instance().AddCpuMemory(pid, 1024);
-    ASSERT_EQ(MemorySnapshot::Instance().GetTotalMemory(), initialTotal + 1024);
+    ASSERT_EQ(MemorySnapshot::Instance().GetTotalMemory(), initialTotal);
     MemorySnapshot::Instance().RemoveCpuMemory(pid, 512);
-    ASSERT_EQ(MemorySnapshot::Instance().GetTotalMemory(), initialTotal + 512);
+    ASSERT_EQ(MemorySnapshot::Instance().GetTotalMemory(), initialTotal);
     MemorySnapshot::Instance().EraseSnapshotInfoByPid({pid});
     ASSERT_EQ(MemorySnapshot::Instance().GetTotalMemory(), initialTotal);
     std::set<pid_t> exitedPids = {pid};

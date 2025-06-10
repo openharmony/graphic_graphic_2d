@@ -47,14 +47,14 @@ public:
         const Drawing::Matrix& gravityMatrix, const Drawing::Matrix& scalingModeMatrix);
     static void UpdateRealSrcRect(RSSurfaceRenderNode& node, const RectI& absRect);
     static GraphicTransformType GetConsumerTransform(const RSSurfaceRenderNode& node,
-        const sptr<SurfaceBuffer> buffer, const sptr<IConsumerSurface> consumer);
+        const sptr<SurfaceBuffer>& buffer, const sptr<IConsumerSurface>& consumer);
     static GraphicTransformType GetRotateTransformForRotationFixed(RSSurfaceRenderNode& node,
         sptr<IConsumerSurface> consumer);
     static void UpdateHwcNodeProperty(const std::shared_ptr<RSSurfaceRenderNode>& hwcNode);
     static bool HasNonZRotationTransform(const Drawing::Matrix& matrix);
     static GraphicTransformType GetLayerTransform(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo);
     static std::optional<Drawing::Matrix> GetMatrix(const std::shared_ptr<RSRenderNode>& hwcNode);
-    static void IntersectRect(Drawing::Rect& rect1, const Drawing::Rect& rect2);
+    static bool IntersectRect(Drawing::Rect& result, const Drawing::Rect& other);
     static bool IsBlendNeedFilter(RSRenderNode& node);
     static bool IsBlendNeedBackground(RSRenderNode& node);
     static bool IsBlendNeedChildNode(RSRenderNode& node);

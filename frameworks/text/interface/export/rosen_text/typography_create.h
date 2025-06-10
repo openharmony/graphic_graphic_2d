@@ -34,6 +34,7 @@ enum class PlaceholderVerticalAlignment {
     TOP_OF_ROW_BOX,
     BOTTOM_OF_ROW_BOX,
     CENTER_OF_ROW_BOX,
+    FOLLOW_PARAGRAPH,
 };
 
 struct PlaceholderSpan {

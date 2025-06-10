@@ -33,7 +33,6 @@ public:
     ADD_RANDOM_COMMAND_WITH_PARAM_4(RSUpdatePropertyGravity, Uint64, Gravity, Uint64, PropertyUpdateType);
     ADD_RANDOM_COMMAND_WITH_PARAM_4(RSUpdatePropertyMatrix3f, Uint64, Matrix3f, Uint64, PropertyUpdateType);
     ADD_RANDOM_COMMAND_WITH_PARAM_4(RSUpdatePropertyQuaternion, Uint64, Quaternion, Uint64, PropertyUpdateType);
-    ADD_RANDOM_COMMAND_WITH_PARAM_4(RSUpdatePropertyFilter, Uint64, RSFilterSharedPtr, Uint64, PropertyUpdateType);
     ADD_RANDOM_COMMAND_WITH_PARAM_4(RSUpdatePropertyImage, Uint64, RSImageSharedPtr, Uint64, PropertyUpdateType);
     ADD_RANDOM_COMMAND_WITH_PARAM_4(RSUpdatePropertyMask, Uint64, RSMaskSharedPtr, Uint64, PropertyUpdateType);
     ADD_RANDOM_COMMAND_WITH_PARAM_4(RSUpdatePropertyPath, Uint64, RSPathSharedPtr, Uint64, PropertyUpdateType);

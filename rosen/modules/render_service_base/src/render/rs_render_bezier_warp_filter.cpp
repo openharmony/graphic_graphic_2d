@@ -12,8 +12,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "platform/common/rs_log.h"
 #include "render/rs_render_bezier_warp_filter.h"
+
+#include "ge_visual_effect.h"
+#include "ge_visual_effect_container.h"
+
+#include "platform/common/rs_log.h"
+#ifdef USE_M133_SKIA
+#include "src/core/SkChecksum.h"
+#else
+#include "src/core/SkOpts.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -103,7 +112,7 @@ std::shared_ptr<RSRenderPropertyBase> RSRenderBezierWarpFilterPara::CreateRender
         case RSUIFilterType::BEZIER_CONTROL_POINT10 :
         case RSUIFilterType::BEZIER_CONTROL_POINT11 : {
             return std::make_shared<RSRenderAnimatableProperty<Vector2f>>(
-                Vector2f(0.f, 0.f), 0, RSRenderPropertyType::PROPERTY_VECTOR2F);
+                Vector2f(0.f, 0.f), 0, RSPropertyType::VECTOR2F);
         }
         default: {
             ROSEN_LOGD("RSRenderBezierWarpFilterPara::CreateRenderProperty is nullptr");
@@ -121,5 +130,58 @@ std::vector<std::shared_ptr<RSRenderPropertyBase>> RSRenderBezierWarpFilterPara:
     }
     return out;
 }
+
+bool RSRenderBezierWarpFilterPara::ParseFilterValues()
+{
+    std::array<RSUIFilterType, BEZIER_WARP_POINT_NUM> ctrlPointsType = {
+        RSUIFilterType::BEZIER_CONTROL_POINT0,
+        RSUIFilterType::BEZIER_CONTROL_POINT1,
+        RSUIFilterType::BEZIER_CONTROL_POINT2,
+        RSUIFilterType::BEZIER_CONTROL_POINT3,
+        RSUIFilterType::BEZIER_CONTROL_POINT4,
+        RSUIFilterType::BEZIER_CONTROL_POINT5,
+        RSUIFilterType::BEZIER_CONTROL_POINT6,
+        RSUIFilterType::BEZIER_CONTROL_POINT7,
+        RSUIFilterType::BEZIER_CONTROL_POINT8,
+        RSUIFilterType::BEZIER_CONTROL_POINT9,
+        RSUIFilterType::BEZIER_CONTROL_POINT10,
+        RSUIFilterType::BEZIER_CONTROL_POINT11,
+    };
+    Vector2f tmpBezierCtrlPoint;
+    std::shared_ptr<RSRenderAnimatableProperty<Vector2f>> ctrlPointProperty;
+    for (size_t i = 0; i < BEZIER_WARP_POINT_NUM; ++i) {
+        ctrlPointProperty =
+            std::static_pointer_cast<RSRenderAnimatableProperty<Vector2f>>(GetRenderPropert(ctrlPointsType[i]));
+        if (ctrlPointProperty == nullptr) {
+            ROSEN_LOGE("RSRenderBezierWarpFilterPara::ParseFilterValues GetRenderPropert nullptr, index:%zu", i);
+            return false;
+        }
+        tmpBezierCtrlPoint = ctrlPointProperty->Get();
+        destinationPatch_[i].Set(tmpBezierCtrlPoint.x_, tmpBezierCtrlPoint.y_);
+    }
+#ifdef USE_M133_SKIA
+    const auto hashFunc = SkChecksum::Hash32;
+#else
+    const auto hashFunc = SkOpts::hash;
+#endif
+    hash_ = hashFunc(&destinationPatch_, sizeof(destinationPatch_), hash_);
+    return true;
+}
+
+const std::array<Drawing::Point, BEZIER_WARP_POINT_NUM>& RSRenderBezierWarpFilterPara::GetBezierWarpPoints() const
+{
+    return destinationPatch_;
+}
+
+void RSRenderBezierWarpFilterPara::GenerateGEVisualEffect(
+    std::shared_ptr<Drawing::GEVisualEffectContainer> visualEffectContainer)
+{
+    auto bezierWarpFilter = std::make_shared<Drawing::GEVisualEffect>("BEZIER_WARP",
+        Drawing::DrawingPaintType::BRUSH);
+
+    bezierWarpFilter->SetParam("BEZIER_WARP_DESTINATION_PATCH", destinationPatch_);
+    visualEffectContainer->AddToChainedFilter(bezierWarpFilter);
+}
+
 } // namespace Rosen
 } // namespace OHOS

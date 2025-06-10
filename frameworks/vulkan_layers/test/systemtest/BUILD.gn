@@ -27,9 +27,7 @@ ohos_systemtest("vulkan_loader_system_test") {
   module_out_path = module_out_path
   sources = [ "vulkan_loader_system_test.cpp" ]
   deps = [ ":vulkan_loader_test_common" ]
-  external_deps = [
-    "googletest:gtest_main",
-  ]
+  external_deps = [ "googletest:gtest_main" ]
 }
 
 ohos_static_library("vulkan_loader_test_common") {
@@ -43,6 +41,7 @@ ohos_static_library("vulkan_loader_test_common") {
     "$graphic_2d_root/utils:libgraphic_utils",
   ]
   public_external_deps = [
+    "eventhandler:libeventhandler",
     "vulkan-headers:vulkan_headers",
     "zlib:libz",
   ]

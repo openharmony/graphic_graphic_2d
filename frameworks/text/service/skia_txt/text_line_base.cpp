@@ -74,8 +74,8 @@ std::unique_ptr<TextLineBase> TextLineBaseImpl::CreateTruncatedLine(double width
         return nullptr;
     }
 
-    std::unique_ptr<SPText::TextLineBase> textLine = textlinebase_->CreateTruncatedLine(width, ellipsisMode,
-        ellipsisStr);
+    std::unique_ptr<SPText::TextLineBase> textLine = textlinebase_->CreateTruncatedLine(width,
+        static_cast<OHOS::Rosen::SPText::EllipsisModal>(ellipsisMode), ellipsisStr);
     if (textLine == nullptr) {
         return nullptr;
     }

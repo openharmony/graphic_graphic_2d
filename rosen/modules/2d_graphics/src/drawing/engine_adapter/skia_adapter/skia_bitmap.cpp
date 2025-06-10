@@ -24,7 +24,11 @@
 #include "image/image.h"
 #include "SkImagePriv.h"
 #include "skia_image.h"
+#ifdef USE_M133_SKIA
+#include "src/base/SkAutoMalloc.h"
+#else
 #include "src/core/SkAutoMalloc.h"
+#endif
 #include "src/core/SkReadBuffer.h"
 #include "src/core/SkWriteBuffer.h"
 #include "utils/data.h"
@@ -239,7 +243,11 @@ SkBitmap& SkiaBitmap::GetSkBitmap()
 
 std::shared_ptr<Data> SkiaBitmap::Serialize() const
 {
+#ifdef USE_M133_SKIA
+    SkBinaryWriteBuffer writer({});
+#else
     SkBinaryWriteBuffer writer;
+#endif
     size_t rb = skiaBitmap_.rowBytes();
     int width = skiaBitmap_.width();
     int height = skiaBitmap_.height();

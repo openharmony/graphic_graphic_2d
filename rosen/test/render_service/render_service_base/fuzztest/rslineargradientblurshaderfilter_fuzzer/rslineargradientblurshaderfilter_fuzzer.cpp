@@ -30,7 +30,7 @@
 #include "ge_render.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "render/rs_gradient_blur_para.h"
-#include "render/rs_linear_gradient_blur_shader_filter.h"
+#include "render/rs_render_linear_gradient_blur_filter.h"
 
 namespace OHOS {
 namespace Rosen {

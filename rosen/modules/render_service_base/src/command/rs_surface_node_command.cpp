@@ -460,5 +460,12 @@ void SurfaceNodeCommandHelper::SetFrameGravityNewVersionEnabled(RSContext& conte
         node->SetFrameGravityNewVersionEnabled(isEnabled);
     }
 }
+
+void SurfaceNodeCommandHelper::SetAncoSrcCrop(RSContext& context, NodeId nodeId, const Rect& srcCrop)
+{
+    if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
+        node->SetAncoSrcCrop(srcCrop);
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

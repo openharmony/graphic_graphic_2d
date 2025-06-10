@@ -35,6 +35,8 @@ public:
 
     static napi_value SetColor(napi_env env, napi_callback_info info);
     static napi_value GetColor(napi_env env, napi_callback_info info);
+    static napi_value SetColor4f(napi_env env, napi_callback_info info);
+    static napi_value GetColor4f(napi_env env, napi_callback_info info);
     static napi_value GetHexColor(napi_env env, napi_callback_info info);
     static napi_value SetStrokeWidth(napi_env env, napi_callback_info info);
     static napi_value SetAntiAlias(napi_env env, napi_callback_info info);

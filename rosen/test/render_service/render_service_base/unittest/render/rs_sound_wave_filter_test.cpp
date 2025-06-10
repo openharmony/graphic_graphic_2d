@@ -41,28 +41,28 @@ void RSSoundWaveFilterTest::TearDown() {}
  */
 HWTEST_F(RSSoundWaveFilterTest, RSSoundWaveFilter001, TestSize.Level1)
 {
-    RSColor colorA = RSColor(0XFFFF0000);
-    RSColor colorB = RSColor(0XFF00FF00);
-    RSColor colorC = RSColor(0XFF0000FF);
+    Vector4f colorA = { 1.0f, 1.0f, 1.0f, 1.0f };
+    Vector4f colorB = { 1.0f, 1.0f, 1.0f, 1.0f };
+    Vector4f colorC = { 1.0f, 1.0f, 1.0f, 1.0f };
     float colorProgress = 1.0f;
-    float centerBrightness = 0.5f;
     float soundIntensity = 1.5f;
     float shockWaveAlphaA = 0.6f;
     float shockWaveAlphaB = 0.8f;
     float shockWaveProgressA = 0.7f;
     float shockWaveProgressB = 1.0f;
+    float shockWaveTotalAlpha = 1.0f;
     auto filter = std::make_shared<RSSoundWaveFilter>(colorA, colorB, colorC,
-        colorProgress, centerBrightness, soundIntensity, shockWaveAlphaA,
-        shockWaveAlphaB, shockWaveProgressA, shockWaveProgressB);
+        colorProgress, soundIntensity, shockWaveAlphaA,
+        shockWaveAlphaB, shockWaveProgressA, shockWaveProgressB, shockWaveTotalAlpha);
 
     EXPECT_NE(filter, nullptr);
     EXPECT_TRUE(ROSEN_EQ<float>(filter->GetColorProgress(), colorProgress));
-    EXPECT_TRUE(ROSEN_EQ<float>(filter->GetCenterBrightness(), centerBrightness));
     EXPECT_TRUE(ROSEN_EQ<float>(filter->GetSoundIntensity(), soundIntensity));
     EXPECT_TRUE(ROSEN_EQ<float>(filter->GetShockWaveAlphaA(), shockWaveAlphaA));
     EXPECT_TRUE(ROSEN_EQ<float>(filter->GetShockWaveAlphaB(), shockWaveAlphaB));
     EXPECT_TRUE(ROSEN_EQ<float>(filter->GetShockWaveProgressA(), shockWaveProgressA));
     EXPECT_TRUE(ROSEN_EQ<float>(filter->GetShockWaveProgressB(), shockWaveProgressB));
+    EXPECT_TRUE(ROSEN_EQ<float>(filter->GetShockWaveTotalAlpha(), shockWaveTotalAlpha));
 }
 
 /**
@@ -72,19 +72,19 @@ HWTEST_F(RSSoundWaveFilterTest, RSSoundWaveFilter001, TestSize.Level1)
  */
 HWTEST_F(RSSoundWaveFilterTest, GenerateGEVisualEffect001, TestSize.Level1)
 {
-    RSColor colorA = RSColor(0XFFFF0000);
-    RSColor colorB = RSColor(0XFF00FF00);
-    RSColor colorC = RSColor(0XFF0000FF);
+    Vector4f colorA = { 1.0f, 1.0f, 1.0f, 1.0f };
+    Vector4f colorB = { 1.0f, 1.0f, 1.0f, 1.0f };
+    Vector4f colorC = { 1.0f, 1.0f, 1.0f, 1.0f };
     float colorProgress = 1.0f;
-    float centerBrightness = 0.5f;
     float soundIntensity = 1.5f;
     float shockWaveAlphaA = 0.6f;
     float shockWaveAlphaB = 0.8f;
     float shockWaveProgressA = 0.7f;
     float shockWaveProgressB = 1.0f;
+    float shockWaveTotalAlpha = 1.0f;
     auto filter = std::make_shared<RSSoundWaveFilter>(colorA, colorB, colorC,
-        colorProgress, centerBrightness, soundIntensity, shockWaveAlphaA,
-        shockWaveAlphaB, shockWaveProgressA, shockWaveProgressB);
+        colorProgress, soundIntensity, shockWaveAlphaA,
+        shockWaveAlphaB, shockWaveProgressA, shockWaveProgressB, shockWaveTotalAlpha);
 
     auto visualEffectContainer = std::make_shared<Drawing::GEVisualEffectContainer>();
     filter->GenerateGEVisualEffect(visualEffectContainer);

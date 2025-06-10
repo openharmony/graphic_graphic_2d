@@ -341,20 +341,6 @@ public:
     float GetForegroundEffectRadius() const;
 
     /**
-     * @brief Gets the background filter.
-     *
-     * @return The pointer to background filter.
-     */
-    std::shared_ptr<RSFilter> GetBackgroundFilter() const;
-
-    /**
-     * @brief Gets the filter.
-     *
-     * @return The pointer to filter.
-     */
-    std::shared_ptr<RSFilter> GetFilter() const;
-
-    /**
      * @brief Gets the color of shadow.
      *
      * @return The color of shadow.
@@ -474,6 +460,13 @@ public:
      * @return The HDR UI component brightness ratio.
      */
     float GetHDRUIBrightness() const;
+
+    /**
+     * @brief Gets the HDR brightness factor of displayNode.
+     *
+     * @return The HDR brightness factor of displayNode.
+     */
+    float GetHDRBrightnessFactor() const;
 
     /**
      * @brief Gets the degree of light up effect.

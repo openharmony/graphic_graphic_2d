@@ -292,8 +292,8 @@ OH_Drawing_ErrorCode OH_Drawing_FontMeasureText(const OH_Drawing_Font* font, con
  * @return Returns the error code.
  *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
  *         Returns {@link OH_DRAWING_ERROR_INVALID_PARAMETER} if any of font, text
- *                 and textWidth is nullptr or byteLength is 0 or brush and pen are both not nullptr.
- * @since 20
+ *                 and textWidth is nullptr or byteLength is 0 or brush and pen are both not empty.
+ * @since 19
  * @version 1.0
  */
 OH_Drawing_ErrorCode OH_Drawing_FontMeasureTextWithBrushOrPen(const OH_Drawing_Font* font, const void* text,
@@ -301,7 +301,7 @@ OH_Drawing_ErrorCode OH_Drawing_FontMeasureTextWithBrushOrPen(const OH_Drawing_F
     OH_Drawing_Rect* bounds, float* textWidth);
 
 /**
- * @brief Retrieves the advance and bounding box for each glyph in glyphs
+ * @brief Retrieves the advance and bounding box for each glyph in glyphs.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param font Indicates the pointer to an <b>OH_Drawing_Font</b> object.
@@ -310,12 +310,12 @@ OH_Drawing_ErrorCode OH_Drawing_FontMeasureTextWithBrushOrPen(const OH_Drawing_F
  * @param brush Indicates the pointer to an <b>OH_Drawing_Brush</b> object.
  * @param pen Indicates the pointer to an <b>OH_Drawing_Pen</b> object.
  * @param widths Indicates the text advances for each glyph returned to the caller.
- * @param bounds Indicates the text bounding box for each glyph returned to caller.
+ * @param bounds Indicates the text bounding box for each glyph returned to the caller.
  * @return Returns the error code.
  *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
  *         Returns {@link OH_DRAWING_ERROR_INVALID_PARAMETER} if any of font and glyphs is nullptr
- *                 or count is no larger than 0 or brush and pen are both not nullptr.
- * @since 20
+ *                 or count is no larger than 0 or brush and pen are both not empty.
+ * @since 19
  * @version 1.0
  */
 OH_Drawing_ErrorCode OH_Drawing_FontGetWidthsBounds(const OH_Drawing_Font* font, const uint16_t* glyphs, int count,
@@ -329,16 +329,16 @@ OH_Drawing_ErrorCode OH_Drawing_FontGetWidthsBounds(const OH_Drawing_Font* font,
  * @param glyphs Indicates the array of glyph indices to be measured.
  * @param count Indicates the number of glyphs.
  * @param origin Indicates the location of the first glyph.
- * @param points Indicates the relative position for each glyph returned to tha caller.
+ * @param points Indicates the relative position for each glyph returned to the caller.
  * @return Returns the error code.
  *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
  *         Returns {@link OH_DRAWING_ERROR_INVALID_PARAMETER} if any of font, glyphs and points is nullptr or
- *                 count is not larger than 0.
- * @since 20
+ *                 count is no larger than 0.
+ * @since 19
  * @version 1.0
  */
 OH_Drawing_ErrorCode OH_Drawing_FontGetPos(const OH_Drawing_Font* font, const uint16_t* glyphs, int count,
-    const OH_Drawing_Point* origin, OH_Drawing_Point2D* bounds);
+    const OH_Drawing_Point* origin, OH_Drawing_Point2D* points);
 
 /**
  * @brief Returns the recommended spacing between lines.
@@ -349,7 +349,7 @@ OH_Drawing_ErrorCode OH_Drawing_FontGetPos(const OH_Drawing_Font* font, const ui
  * @return Returns the error code.
  *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
  *         Returns {@link OH_DRAWING_ERROR_INVALID_PARAMETER} if any of font and spacing is nullptr.
- * @since 20
+ * @since 19
  * @version 1.0
  */
 OH_Drawing_ErrorCode OH_Drawing_FontGetSpacing(const OH_Drawing_Font* font, float* spacing);

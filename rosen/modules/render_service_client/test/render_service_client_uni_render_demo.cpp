@@ -54,7 +54,7 @@ static void Init(std::shared_ptr<RSUIDirector> rsUiDirector, int width, int heig
 
     rootNode->AddChild(canvasNode, -1);
 
-    rsUiDirector->SetRoot(rootNode->GetId());
+    rsUiDirector->SetRSRootNode(rootNode->ReinterpretCastTo<RSRootNode>());
 }
 
 void InitNativeTokenInfo()

@@ -14,9 +14,11 @@
  */
 
 #include "transaction/rs_transaction_proxy.h"
+#include <mutex>
 #include <stdlib.h>
 
 #ifdef ROSEN_OHOS
+#include "hisysevent.h"
 #include "mem_mgr_client.h"
 #endif
 #include "platform/common/rs_log.h"
@@ -168,6 +170,8 @@ void RSTransactionProxy::FlushImplicitTransaction(uint64_t timestamp, const std:
         RS_LOGE_LIMIT(__func__, __line__, "FlushImplicitTransaction return, [renderServiceClient_:%{public}d," \
             " transactionData empty:%{public}d]",
             renderServiceClient_ != nullptr, implicitRemoteTransactionData_->IsEmpty());
+        RS_TRACE_NAME("UI skip");
+        uiSkipCount_++;
         return;
     }
 
@@ -184,6 +188,30 @@ void RSTransactionProxy::FlushImplicitTransaction(uint64_t timestamp, const std:
 #endif
     renderServiceClient_->CommitTransaction(transactionData);
     transactionDataIndex_ = transactionData->GetIndex();
+}
+
+void RSTransactionProxy::ReportUiSkipEvent(const std::string& ability, int64_t nowMs, int64_t lastTimestamp)
+{
+    static uint32_t lastCount_ = 0;
+    static std::mutex mtx;
+    uint32_t nowCount = 0;
+    uint32_t lastCount = 0;
+    {
+        std::lock_guard<std::mutex> lock(mtx);
+        nowCount = uiSkipCount_;
+        lastCount = lastCount_;
+        lastCount_ = nowCount;
+    }
+    int64_t duration = (nowMs > lastTimestamp) ? nowMs - lastTimestamp : 0;
+    if (duration > 60 * 1000 && nowCount > lastCount && nowCount - lastCount > 100) { // 60 * 1000 ms, gt 100 frame
+        int32_t count = static_cast<int32_t>(nowCount - lastCount);
+        RS_LOGE_LIMIT(__func__, __line__, "ui_skip count:%{public}d", count);
+#ifdef ROSEN_OHOS
+        using namespace OHOS::HiviewDFX;
+        HiSysEventWrite(HiSysEvent::Domain::GRAPHIC, "RS_UI_SKIP_ANOMALY",
+            HiSysEvent::EventType::STATISTIC, "ABILITY", ability, "COUNT", count, "DURATION", duration);
+#endif
+    }
 }
 
 uint32_t RSTransactionProxy::GetTransactionDataIndex() const

@@ -29,8 +29,11 @@
 #include "graphic_common_c.h"
 #include "hgm_core.h"
 #include "include/core/SkGraphics.h"
+#ifdef USE_M133_SKIA
+#include "include/gpu/ganesh/GrDirectContext.h"
+#else
 #include "include/gpu/GrDirectContext.h"
-#include "utils/graphic_coretrace.h"
+#endif
 #include "memory/rs_memory_manager.h"
 #include "mem_param.h"
 #include "params/rs_display_render_params.h"
@@ -342,8 +345,6 @@ void RSUniRenderThread::Sync(std::unique_ptr<RSRenderThreadParams>&& stagingRend
 
 void RSUniRenderThread::Render()
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        RS_RSUNIRENDERTHREAD_RENDER);
     if (!rootNodeDrawable_) {
         RS_LOGE("rootNodeDrawable is nullptr");
         return;
@@ -699,23 +700,15 @@ static void TrimMemEmptyType(Drawing::GPUContext* gpuContext)
     SkGraphics::PurgeAllCaches();
     gpuContext->FreeGpuResources();
     gpuContext->PurgeUnlockedResources(true);
-#ifdef NEW_RENDER_CONTEXT
-    MemoryHandler::ClearShader();
-#else
     std::shared_ptr<RenderContext> rendercontext = std::make_shared<RenderContext>();
     rendercontext->CleanAllShaderCache();
-#endif
     gpuContext->FlushAndSubmit(true);
 }
 
 static void TrimMemShaderType()
 {
-#ifdef NEW_RENDER_CONTEXT
-    MemoryHandler::ClearShader();
-#else
     std::shared_ptr<RenderContext> rendercontext = std::make_shared<RenderContext>();
     rendercontext->CleanAllShaderCache();
-#endif
 }
 
 static void TrimMemGpuLimitType(Drawing::GPUContext* gpuContext, std::string& dumpString,

@@ -76,14 +76,15 @@ void RSVKImageManagerTest::TearDown() {}
 HWTEST_F(RSVKImageManagerTest, MapAndUnMapVKImage001, TestSize.Level1)
 {
     auto size = vkImageManager_->imageCacheSeqs_.size();
-    auto image = vkImageManager_->MapVkImageFromSurfaceBuffer(new SurfaceBufferImpl(), SyncFence::INVALID_FENCE, fakeTid_);
+    auto image = vkImageManager_->MapVkImageFromSurfaceBuffer(
+        new SurfaceBufferImpl(), SyncFence::INVALID_FENCE, fakeTid_);
     EXPECT_EQ(image, nullptr);
     EXPECT_EQ(size, vkImageManager_->imageCacheSeqs_.size());
 
     image = vkImageManager_->MapVkImageFromSurfaceBuffer(buffer_, BufferFence_, fakeTid_);
     EXPECT_NE(image, nullptr);
     EXPECT_EQ(size + 1, vkImageManager_->imageCacheSeqs_.size());
-    vkImageManager_->UnMapVkImageFromSurfaceBuffer(buffer_->GetSeqNum());
+    vkImageManager_->UnMapImageFromSurfaceBuffer(buffer_->GetSeqNum());
     EXPECT_EQ(size, vkImageManager_->imageCacheSeqs_.size());
 }
 
@@ -103,7 +104,8 @@ HWTEST_F(RSVKImageManagerTest, MapAndUnMapVKImage002, TestSize.Level1)
         ASSERT_NE(buffer, nullptr);
 
         bufferSeqNums[i - 1] = buffer->GetSeqNum();
-        auto imageCache = vkImageManager_->MapVkImageFromSurfaceBuffer(buffer, SyncFence::INVALID_FENCE, fakeTid_);
+        auto imageCache = vkImageManager_->MapVkImageFromSurfaceBuffer(
+            buffer, SyncFence::INVALID_FENCE, fakeTid_);
         EXPECT_NE(imageCache, nullptr);
         EXPECT_EQ(i, vkImageManager_->imageCacheSeqs_.size());
     }
@@ -113,7 +115,7 @@ HWTEST_F(RSVKImageManagerTest, MapAndUnMapVKImage002, TestSize.Level1)
     EXPECT_NE(dumpString, "");
 
     for (uint32_t i = cacheNums; i >= 1; i--) {
-        vkImageManager_->UnMapVkImageFromSurfaceBuffer(bufferSeqNums[i - 1]);
+        vkImageManager_->UnMapImageFromSurfaceBuffer(bufferSeqNums[i - 1]);
         EXPECT_EQ(i - 1, vkImageManager_->imageCacheSeqs_.size());
     }
 }
@@ -135,7 +137,8 @@ HWTEST_F(RSVKImageManagerTest, MapAndUnMapVKImage003, TestSize.Level1)
         ASSERT_NE(buffer, nullptr);
 
         bufferSeqNums[i - 1] = buffer->GetSeqNum();
-        auto imageCache = vkImageManager_->MapVkImageFromSurfaceBuffer(buffer, SyncFence::INVALID_FENCE, fakeTid_);
+        auto imageCache = vkImageManager_->MapVkImageFromSurfaceBuffer(
+            buffer, SyncFence::INVALID_FENCE, fakeTid_);
         EXPECT_NE(imageCache, nullptr);
         if (i <= MAX_CACHE_SIZE) {
             EXPECT_EQ(i, vkImageManager_->imageCacheSeqs_.size());
@@ -149,7 +152,7 @@ HWTEST_F(RSVKImageManagerTest, MapAndUnMapVKImage003, TestSize.Level1)
     EXPECT_NE(dumpString, "");
 
     for (uint32_t i = cacheNums; i >= 1; i--) {
-        vkImageManager_->UnMapVkImageFromSurfaceBuffer(bufferSeqNums[i - 1]);
+        vkImageManager_->UnMapImageFromSurfaceBuffer(bufferSeqNums[i - 1]);
     }
     EXPECT_EQ(0, vkImageManager_->imageCacheSeqs_.size());
 }
@@ -169,19 +172,21 @@ HWTEST_F(RSVKImageManagerTest, MapAndUnMapVKImage004, TestSize.Level1)
         auto buffer = CreateBuffer();
         ASSERT_NE(buffer, nullptr);
         bufferVector.push_back(buffer);
-        auto imageCache = vkImageManager_->MapVkImageFromSurfaceBuffer(buffer, SyncFence::INVALID_FENCE, fakeTid_);
+        auto imageCache = vkImageManager_->MapVkImageFromSurfaceBuffer(
+            buffer, SyncFence::INVALID_FENCE, fakeTid_);
         EXPECT_NE(imageCache, nullptr);
         EXPECT_EQ(i, vkImageManager_->imageCacheSeqs_.size());
     }
 
     for (uint32_t i = 1; i <= cacheNums; i++) {
-        auto imageCache = vkImageManager_->MapVkImageFromSurfaceBuffer(bufferVector[i - 1], SyncFence::INVALID_FENCE, fakeTid_);
+        auto imageCache = vkImageManager_->MapVkImageFromSurfaceBuffer(
+            bufferVector[i - 1], SyncFence::INVALID_FENCE, fakeTid_);
         EXPECT_NE(imageCache, nullptr);
         EXPECT_EQ(cacheNums, vkImageManager_->imageCacheSeqs_.size());
     }
 
     for (uint32_t i = cacheNums; i >= 1; i--) {
-        vkImageManager_->UnMapVkImageFromSurfaceBuffer(bufferVector[i - 1]->GetSeqNum());
+        vkImageManager_->UnMapImageFromSurfaceBuffer(bufferVector[i - 1]->GetSeqNum());
     }
     EXPECT_EQ(0, vkImageManager_->imageCacheSeqs_.size());
 }
@@ -194,26 +199,32 @@ HWTEST_F(RSVKImageManagerTest, MapAndUnMapVKImage004, TestSize.Level1)
  */
 HWTEST_F(RSVKImageManagerTest, MapAndUnMapVKImage005, TestSize.Level1)
 {
-    auto image = vkImageManager_->MapVkImageFromSurfaceBuffer(buffer_, nullptr, fakeTid_, nullptr);
+    auto image = vkImageManager_->MapVkImageFromSurfaceBuffer(
+        buffer_, nullptr, fakeTid_, nullptr);
     EXPECT_NE(image, nullptr);
-    image = vkImageManager_->MapVkImageFromSurfaceBuffer(buffer_, BufferFence_, fakeTid_, nullptr);
+    image = vkImageManager_->MapVkImageFromSurfaceBuffer(
+        buffer_, BufferFence_, fakeTid_, nullptr);
     EXPECT_NE(image, nullptr);
-    image = vkImageManager_->MapVkImageFromSurfaceBuffer(nullptr, BufferFence_, fakeTid_, nullptr);
+    image = vkImageManager_->MapVkImageFromSurfaceBuffer(
+        nullptr, BufferFence_, fakeTid_, nullptr);
     EXPECT_EQ(image, nullptr);
-    image = vkImageManager_->MapVkImageFromSurfaceBuffer(nullptr, nullptr, fakeTid_, nullptr);
+    image = vkImageManager_->MapVkImageFromSurfaceBuffer(
+        nullptr, nullptr, fakeTid_, nullptr);
     EXPECT_EQ(image, nullptr);
 
     auto drawingSurface = std::make_unique<Drawing::Surface>();
     EXPECT_NE(drawingSurface, nullptr);
     if (drawingSurface) {
-        image = vkImageManager_->MapVkImageFromSurfaceBuffer(buffer_, BufferFence_, fakeTid_, drawingSurface.get());
+        image = vkImageManager_->MapVkImageFromSurfaceBuffer(
+            buffer_, BufferFence_, fakeTid_, drawingSurface.get());
         EXPECT_NE(image, nullptr);
-        image = vkImageManager_->MapVkImageFromSurfaceBuffer(buffer_, nullptr, fakeTid_, drawingSurface.get());
+        image = vkImageManager_->MapVkImageFromSurfaceBuffer(
+            buffer_, nullptr, fakeTid_, drawingSurface.get());
         EXPECT_NE(image, nullptr);
     }
 
     auto size = vkImageManager_->imageCacheSeqs_.size();
-    vkImageManager_->UnMapVkImageFromSurfaceBuffer(buffer_->GetSeqNum());
+    vkImageManager_->UnMapImageFromSurfaceBuffer(buffer_->GetSeqNum());
     EXPECT_EQ(size - 1, vkImageManager_->imageCacheSeqs_.size());
 }
 
@@ -230,19 +241,21 @@ HWTEST_F(RSVKImageManagerTest, MapAndUnMapVKImage006, TestSize.Level1)
     EXPECT_NE(drawingSurface, nullptr);
     if (drawingSurface) {
         RsVulkanContext::GetSingleton().GetRsVulkanInterface().device_ = VK_NULL_HANDLE;
-        auto image = vkImageManager_->MapVkImageFromSurfaceBuffer(buffer_, BufferFence_, fakeTid_, drawingSurface.get());
+        auto image = vkImageManager_->MapVkImageFromSurfaceBuffer(
+            buffer_, BufferFence_, fakeTid_, drawingSurface.get());
         EXPECT_EQ(image, nullptr); // Map fail due to vkdevice is null
     }
     RsVulkanContext::GetSingleton().GetRsVulkanInterface().device_ = device;
     auto size = vkImageManager_->imageCacheSeqs_.size();
-    vkImageManager_->UnMapVkImageFromSurfaceBuffer(buffer_->GetSeqNum());
+    vkImageManager_->UnMapImageFromSurfaceBuffer(buffer_->GetSeqNum());
     EXPECT_EQ(size, vkImageManager_->imageCacheSeqs_.size());
 
     sptr<SyncFence> tempFence = new SyncFence(-1);
-    auto image = vkImageManager_->MapVkImageFromSurfaceBuffer(buffer_, tempFence, fakeTid_, drawingSurface.get());
+    auto image = vkImageManager_->MapVkImageFromSurfaceBuffer(
+        buffer_, tempFence, fakeTid_, drawingSurface.get());
     EXPECT_NE(image, nullptr);
     size = vkImageManager_->imageCacheSeqs_.size();
-    vkImageManager_->UnMapVkImageFromSurfaceBuffer(buffer_->GetSeqNum());
+    vkImageManager_->UnMapImageFromSurfaceBuffer(buffer_->GetSeqNum());
     EXPECT_EQ(size - 1, vkImageManager_->imageCacheSeqs_.size());
 }
 
@@ -257,6 +270,51 @@ HWTEST_F(RSVKImageManagerTest, CreateImageCacheFromBuffer001, TestSize.Level1)
     EXPECT_NE(vkImageManager_->CreateImageCacheFromBuffer(buffer_, BufferFence_), nullptr);
 
     // invalid buffer
-    EXPECT_EQ(vkImageManager_->CreateImageCacheFromBuffer(new SurfaceBufferImpl(), SyncFence::INVALID_FENCE), nullptr);
+    EXPECT_EQ(vkImageManager_->CreateImageCacheFromBuffer(
+        new SurfaceBufferImpl(), SyncFence::INVALID_FENCE), nullptr);
+}
+
+/**
+ * @tc.name: CreateTest
+ * @tc.desc: CreateTest
+ * @tc.type: FUNC
+ * @tc.require: issueI6QHNP
+ */
+HWTEST_F(RSVKImageManagerTest, CreateTest, TestSize.Level1)
+{
+    std::shared_ptr<RSImageManager> imageManager;
+#ifdef RS_ENABLE_VK
+    imageManager = RSImageManager::Create();
+    ASSERT_NE(imageManager, nullptr);
+#endif // RS_ENABLE_VK
+#ifdef RS_ENABLE_GL
+    imageManager = RSImageManager::Create();
+    ASSERT_NE(imageManager, nullptr);
+#endif // RS_ENABLE_GL
+}
+
+/**
+ * @tc.name: CreateImageResourceTest
+ * @tc.desc: CreateImageResourceTest
+ * @tc.type: FUNC
+ * @tc.require: issueI6QHNP
+ */
+HWTEST_F(RSVKImageManagerTest, CreateImageResourceTest, TestSize.Level1)
+{
+    std::shared_ptr<ImageResource> imageResource;
+#ifdef RS_ENABLE_VK
+    NativeWindowBuffer* nativeWindowBuffer = nullptr;
+    Drawing::BackendTexture backendTexture = Drawing::BackendTexture();
+    NativeBufferUtils::VulkanCleanupHelper* vulkanCleanupHelper = nullptr;
+    imageResource = ImageResource::VkCreate(nativeWindowBuffer, backendTexture, vulkanCleanupHelper);
+    ASSERT_NE(imageResource, nullptr);
+#endif // RS_ENABLE_VK
+#ifdef RS_ENABLE_GL
+    EGLDisplay eglDisplay = EGL_NO_DISPLAY;
+    EGLImageKHR eglImage = EGL_NO_IMAGE_KHR;
+    EGLClientBuffer eglClientBuffer = nullptr;
+    imageResource = ImageResource::EglCreate(eglDisplay, eglImage, eglClientBuffer);
+    ASSERT_NE(imageResource, nullptr);
+#endif // RS_ENABLE_GL
 }
 } // namespace OHOS::Rosen

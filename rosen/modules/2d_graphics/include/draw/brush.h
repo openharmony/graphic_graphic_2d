@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -112,6 +112,33 @@ public:
     inline scalar GetAlphaF() const
     {
         return color_.GetAlphaF();
+    }
+
+    /**
+     * @brief Retrieves the red component of the color, ranging from 0 to 1.
+     * @return Return red component of color, from zero to 1.
+     */
+    inline scalar GetRedF() const
+    {
+        return color_.GetRedF();
+    }
+
+    /**
+     * @brief Retrieves the green component of the color, ranging from 0 to 1.
+     * @return Return green component of color, from zero to 1.
+     */
+    inline scalar GetGreenF() const
+    {
+        return color_.GetGreenF();
+    }
+
+    /**
+     * @brief Retrieves the blue component of the color, ranging from 0 to 1.
+     * @return Return blue component of color, from zero to 1.
+     */
+    inline scalar GetBlueF() const
+    {
+        return color_.GetBlueF();
     }
 
     /**

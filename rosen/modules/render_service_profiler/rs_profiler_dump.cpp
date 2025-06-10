@@ -241,13 +241,9 @@ void RSProfiler::DumpNodeOptionalFlags(const RSRenderNode& node, JsonWriter& out
 
 void RSProfiler::DumpNodeDrawCmdModifiers(const RSRenderNode& node, JsonWriter& out)
 {
-    if (!node.renderContent_) {
-        return;
-    }
-
     auto& modifiersJson = out["DrawCmdModifiers"];
     modifiersJson.PushArray();
-    for (auto& [type, modifiers] : node.renderContent_->drawCmdModifiers_) {
+    for (auto& [type, modifiers] : node.drawCmdModifiers_) {
         modifiersJson.PushObject();
         modifiersJson["type"] = static_cast<int>(type);
         auto& modifierDesc = modifiersJson["modifiers"];
@@ -310,7 +306,11 @@ void RSProfiler::DumpNodeDrawCmdModifier(
         auto propertyPtr = std::static_pointer_cast<RSRenderProperty<SkMatrix>>(modifier.GetProperty());
         if (propertyPtr) {
             std::string str;
+#ifdef USE_M133_SKIA
+            propertyPtr->Get(); // todo : Intrusive modification of the waiting turn
+#else
             propertyPtr->Get().dump(str, 0);
+#endif
             out.PushObject();
             out["GEOMETRYTRANS"] = str;
             out.PopObject();
@@ -331,6 +331,15 @@ void RSProfiler::DumpNodeDrawCmdModifier(
             propertyPtr->Dump(str);
             out.PushObject();
             out["HDR_BRIGHTNESS"] = str;
+            out.PopObject();
+        }
+    } else if (modType == RSModifierType::HDR_BRIGHTNESS_FACTOR) {
+        auto propertyPtr = std::static_pointer_cast<RSRenderAnimatableProperty<float>>(modifier.GetProperty());
+        if (propertyPtr) {
+            std::string str;
+            propertyPtr->Dump(str);
+            out.PushObject();
+            out["HDR_BRIGHTNESS_FACTOR"] = str;
             out.PopObject();
         }
     }

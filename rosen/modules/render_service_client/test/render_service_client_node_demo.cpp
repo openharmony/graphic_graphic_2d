@@ -61,7 +61,7 @@ void Init(std::shared_ptr<RSUIDirector> rsUiDirector, int width, int height)
     rootNode->AddChild(nodes[1], -1);
     rootNode->AddChild(nodes[2], -1);
     rootNode->AddChild(nodes[3], -1);
-    rsUiDirector->SetRoot(rootNode->GetId());
+    rsUiDirector->SetRSRootNode(rootNode->ReinterpretCastTo<RSRootNode>());
 }
 
 int main()

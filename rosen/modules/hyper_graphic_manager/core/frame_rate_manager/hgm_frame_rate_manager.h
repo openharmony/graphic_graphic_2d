@@ -24,6 +24,7 @@
 #include "common/rs_common_def.h"
 #include "hgm_app_page_url_strategy.h"
 #include "hgm_command.h"
+#include "hgm_frame_voter.h"
 #include "hgm_idle_detector.h"
 #include "hgm_multi_app_strategy.h"
 #include "hgm_soft_vsync_manager.h"
@@ -34,6 +35,7 @@
 #include "hgm_pointer_manager.h"
 #include "hgm_voter.h"
 #include "hgm_vsync_generator_controller.h"
+#include "hgm_user_define.h"
 #include "vsync_distributor.h"
 #include "modifier/rs_modifier_type.h"
 #include "pipeline/rs_render_frame_rate_linker.h"
@@ -162,7 +164,6 @@ public:
     // only called by RSMainThread
     bool HandleGameNode(const RSRenderNodeMap& nodeMap);
 
-    static std::pair<bool, bool> MergeRangeByPriority(VoteRange& rangeRes, const VoteRange& curVoteRange);
     void HandleAppStrategyConfigEvent(pid_t pid, const std::string& pkgName,
         const std::vector<std::pair<std::string, std::string>>& newConfig);
     HgmSimpleTimer& GetRsFrameRateTimer() { return rsFrameRateTimer_; };
@@ -177,7 +178,11 @@ public:
     // called by OS_IPC thread
     bool SetVsyncRateDiscountLTPO(const std::vector<uint64_t>& linkerIds, uint32_t rateDiscount);
     HgmSoftVSyncManager& SoftVSyncMgrRef() { return softVSyncManager_; };
+    HgmFrameVoter& FrameVoterRef() { return frameVoter_; }
 private:
+    friend class HgmUserDefineImpl;
+
+    void InitConfig();
     void Reset();
     void UpdateAppSupportedState();
     void UpdateGuaranteedPlanVote(uint64_t timestamp);
@@ -198,6 +203,7 @@ private:
     static float SqrPixelToSqrMM(T sqrPixel);
 
     void HandleIdleEvent(bool isIdle);
+    void HandleStylusSceneEvent(const std::string& sceneName);
     void HandleSceneEvent(pid_t pid, EventInfo eventInfo);
     void HandleVirtualDisplayEvent(pid_t pid, EventInfo eventInfo);
     void HandleGamesEvent(pid_t pid, EventInfo eventInfo);
@@ -217,20 +223,11 @@ private:
     void MarkVoteChange(const std::string& voter = "");
     static bool IsCurrentScreenSupportAS();
     void ProcessAdaptiveSync(const std::string& voterName);
-    // merge [VOTER_LTPO, VOTER_IDLE)
-    bool MergeLtpo2IdleVote(
-        std::vector<std::string>::iterator& voterIter, VoteInfo& resultVoteInfo, VoteRange& mergedVoteRange);
-    void CheckAncoVoter(const std::string& voter, VoteInfo& curVoteInfo);
     bool CheckAncoVoterStatus() const;
-    bool ProcessRefreshRateVote(std::vector<std::string>::iterator& voterIter, VoteInfo& resultVoteInfo,
-        VoteRange& voteRange, bool &voterGamesEffective);
     VoteInfo ProcessRefreshRateVote();
-    void ChangePriority(uint32_t curScenePriority);
-    void UpdateVoteRule();
     void ReportHiSysEvent(const VoteInfo& frameRateVoteInfo);
     void SetResultVoteInfo(VoteInfo& voteInfo, uint32_t min, uint32_t max);
     void UpdateEnergyConsumptionConfig();
-    static void ProcessVoteLog(const VoteInfo& curVoteInfo, bool isSkip);
     void RegisterCoreCallbacksAndInitController(sptr<VSyncController> rsController,
         sptr<VSyncController> appController,
         sptr<VSyncGenerator> vsyncGenerator, sptr<VSyncDistributor> appDistributor);
@@ -275,15 +272,6 @@ private:
     std::function<void(bool, bool)> forceUpdateCallback_ = nullptr;
     HgmSimpleTimer rsFrameRateTimer_;
 
-    std::vector<std::string> voters_;
-    // FORMAT: <sceneName, pid>
-    std::vector<std::pair<std::string, pid_t>> sceneStack_;
-    // FORMAT: "voterName, <<pid, <min, max>>, effective>"
-    std::unordered_map<std::string, std::pair<std::vector<VoteInfo>, bool>> voteRecord_;
-    // Used to record your votes, and clear your votes after you die
-    std::unordered_set<pid_t> pidRecord_;
-    std::unordered_set<std::string> gameScenes_;
-    std::unordered_set<std::string> ancoScenes_;
     std::unordered_map<pid_t, std::unordered_set<CleanPidCallbackType>> cleanPidCallback_;
     // FORMAT: <timestamp, VoteInfo>
     std::vector<std::pair<int64_t, VoteInfo>> frameRateVoteInfoVec_;
@@ -297,15 +285,16 @@ private:
     std::unordered_map<std::string, std::pair<int32_t, bool>> screenExtStrategyMap_ = HGM_CONFIG_SCREENEXT_STRATEGY_MAP;
     int32_t isAmbientStatus_ = 0;
     bool isAmbientEffect_ = false;
-    int32_t stylusMode_ = -1;
+    bool isStylusWakeUp_ = false;
     int32_t idleFps_ = OLED_60_HZ;
     VoteInfo lastVoteInfo_;
     HgmMultiAppStrategy multiAppStrategy_;
     HgmTouchManager touchManager_;
     HgmPointerManager pointerManager_;
     HgmSoftVSyncManager softVSyncManager_;
+    HgmFrameVoter frameVoter_;
+    HgmUserDefine userDefine_;;
     std::atomic<bool> voterTouchEffective_ = false;
-    std::atomic<bool> voterGamesEffective_ = false;
     // For the power consumption module, only monitor touch up 3s and 600ms without flashing frames
     std::atomic<bool> startCheck_ = false;
     HgmIdleDetector idleDetector_;
@@ -327,7 +316,6 @@ private:
     ChangeDssRefreshRateCbType changeDssRefreshRateCb_;
     HgmAppPageUrlStrategy appPageUrlStrategy_;
 
-    bool isDragScene_ = false;
     uint32_t lastLTPORefreshRate_ = 0;
     long lastLTPOVoteTime_ = 0;
 };

@@ -136,7 +136,8 @@ bool RSUniRenderVirtualProcessor::InitForRenderThread(DrawableV2::RSDisplayRende
     }
 
     RS_LOGD("RSUniRenderVirtualProcessor::Init, RequestFrame succeed.");
-    RS_OPTIONAL_TRACE_NAME_FMT("RSUniRenderVirtualProcessor::Init, RequestFrame succeed.");
+    RS_OPTIONAL_TRACE_NAME_FMT("RSUniRenderVirtualProcessor::Init, RequestFrame succeed, colorSpace: %d.",
+        renderFrameConfig_.colorGamut);
     uint64_t pSurfaceUniqueId = producerSurface_->GetUniqueId();
     auto rsSurface = displayDrawable.GetVirtualSurface(pSurfaceUniqueId);
     if (rsSurface != nullptr && SetColorSpaceForMetadata(rsSurface->GetColorSpace()) != GSERROR_OK) {
@@ -262,7 +263,7 @@ GSError RSUniRenderVirtualProcessor::SetColorSpaceForMetadata(GraphicColorGamut 
     return buffer->SetMetadata(ATTRKEY_COLORSPACE_INFO, colorSpaceVec);
 }
 
-void RSUniRenderVirtualProcessor::SetDirtyInfo(std::vector<RectI>& damageRegion)
+void RSUniRenderVirtualProcessor::SetDirtyInfo(const std::vector<RectI>& damageRegion)
 {
     if (renderFrame_ == nullptr) {
         RS_LOGW("RSUniRenderVirtualProcessor::SetDirtyInfo renderFrame_ is null.");
@@ -274,7 +275,7 @@ void RSUniRenderVirtualProcessor::SetDirtyInfo(std::vector<RectI>& damageRegion)
     }
 }
 
-GSError RSUniRenderVirtualProcessor::SetRoiRegionToCodec(std::vector<RectI>& damageRegion)
+GSError RSUniRenderVirtualProcessor::SetRoiRegionToCodec(const std::vector<RectI>& damageRegion)
 {
     if (renderFrame_ == nullptr) {
         RS_LOGD("RSUniRenderVirtualProcessor::SetRoiRegionToCodec renderFrame is null.");
@@ -403,8 +404,8 @@ void RSUniRenderVirtualProcessor::ProcessSurface(RSSurfaceRenderNode& node)
 
 void RSUniRenderVirtualProcessor::CalculateTransform(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable)
 {
-    if (canvas_ == nullptr || displayDrawable.GetRSSurfaceHandlerOnDraw()->GetBuffer() == nullptr) {
-        RS_LOGE("RSUniRenderVirtualProcessor::CalculateTransform: Canvas or buffer is null!");
+    if (canvas_ == nullptr) {
+        RS_LOGE("RSUniRenderVirtualProcessor::CalculateTransform: Canvas is null!");
         return;
     }
 

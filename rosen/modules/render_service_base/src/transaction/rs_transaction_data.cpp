@@ -224,6 +224,19 @@ void RSTransactionData::AddCommand(std::unique_ptr<RSCommand>&& command, NodeId 
     }
 }
 
+void RSTransactionData::MoveCommandByNodeId(std::unique_ptr<RSTransactionData>& transactionData, NodeId nodeId)
+{
+    for (auto it = payload_.begin(); it != payload_.end();) {
+        auto& command = std::get<2>(*it);
+        if (command && command->GetNodeId() == nodeId) {
+            transactionData->AddCommand(command, std::get<0>(*it), std::get<1>(*it));
+            it = payload_.erase(it);
+        } else {
+            ++it;
+        }
+    }
+}
+
 bool RSTransactionData::UnmarshallingCommand(Parcel& parcel)
 {
     Clear();

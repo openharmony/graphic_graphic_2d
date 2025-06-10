@@ -81,7 +81,7 @@ public:
 private:
     std::shared_ptr<MaskPara> maskPara_ = nullptr;
 
-    float opacity_;
+    float opacity_ = 0.0f;
     Vector2f redOffset_;
     Vector2f greenOffset_;
     Vector2f blueOffset_;

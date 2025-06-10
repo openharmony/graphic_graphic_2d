@@ -116,7 +116,11 @@ std::shared_ptr<Data> SkiaData::Serialize() const
         return nullptr;
     }
 
+#ifdef USE_M133_SKIA
+    SkBinaryWriteBuffer writer({});
+#else
     SkBinaryWriteBuffer writer;
+#endif
     writer.writeDataAsByteArray(skData_.get());
 
     size_t length = writer.bytesWritten();

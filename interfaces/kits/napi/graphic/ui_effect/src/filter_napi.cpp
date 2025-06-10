@@ -168,6 +168,7 @@ napi_value FilterNapi::CreateFilter(napi_env env, napi_callback_info info)
         DECLARE_NAPI_FUNCTION("edgeLight", SetEdgeLight),
         DECLARE_NAPI_FUNCTION("bezierWarp", SetBezierWarp),
         DECLARE_NAPI_FUNCTION("maskDispersion", SetMaskDispersion),
+        DECLARE_NAPI_FUNCTION("hdrBrightnessRatio", SetHDRBrightnessRatio),
     };
     status = napi_define_properties(env, object, sizeof(resultFuncs) / sizeof(resultFuncs[0]), resultFuncs);
     UIEFFECT_NAPI_CHECK_RET_DELETE_POINTER(status == napi_ok, nullptr, filterObj,
@@ -801,6 +802,12 @@ napi_value FilterNapi::SetEdgeLight(napi_env env, napi_callback_info info)
 
 napi_value FilterNapi::SetMaskDispersion(napi_env env, napi_callback_info info)
 {
+    if (!UIEffectNapiUtils::IsSystemApp()) {
+        FILTER_LOG_E("SetMaskDispersion failed, is not system app");
+        napi_throw_error(env, std::to_string(ERR_NOT_SYSTEM_APP).c_str(),
+            "FilterNapi SetMaskDispersion failed, is not system app");
+        return nullptr;
+    }
     static const size_t requireArgc = NUM_5;
     size_t realArgc = NUM_5;
     napi_value result = nullptr;
@@ -848,6 +855,51 @@ napi_value FilterNapi::SetMaskDispersion(napi_env env, napi_callback_info info)
     status = napi_unwrap(env, thisVar, reinterpret_cast<void**>(&filterObj));
     UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && filterObj != nullptr, nullptr,
         FILTER_LOG_E("FilterNapi SetMaskDispersion unwrap filterObj fail"));
+    filterObj->AddPara(para);
+    return thisVar;
+}
+
+napi_value FilterNapi::SetHDRBrightnessRatio(napi_env env, napi_callback_info info)
+{
+    if (!UIEffectNapiUtils::IsSystemApp()) {
+        FILTER_LOG_E("FilterNapi SetHDRBrightnessRatio not system app");
+        napi_throw_error(env, std::to_string(ERR_NOT_SYSTEM_APP).c_str(),
+            "The SetHDRBrightnessRatio is only accessible to system applications.");
+        return nullptr;
+    }
+    static const size_t requireArgc = NUM_1;
+    size_t realArgc = NUM_1;
+    napi_value result = nullptr;
+    napi_get_undefined(env, &result);
+    napi_status status;
+    napi_value argv[requireArgc] = {0};
+    napi_value thisVar = nullptr;
+    UIEFFECT_JS_ARGS(env, info, status, realArgc, argv, thisVar);
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && requireArgc == realArgc, nullptr,
+        FILTER_LOG_E("FilterNapi SetHDRBrightnessRatio parsing input fail"));
+
+    napi_valuetype valueType = napi_undefined;
+    status = napi_typeof(env, argv[0], &valueType);
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && valueType == napi_number, nullptr,
+        FILTER_LOG_E("FilterNapi SetHDRBrightnessRatio input is not number"));
+
+    double brightnessRatio = 1.0;
+    status = napi_get_value_double(env, argv[0], &brightnessRatio);
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok, nullptr,
+        FILTER_LOG_E("FilterNapi SetHDRBrightnessRatio parsing double fail"));
+
+    if (std::isnan(brightnessRatio)) {
+        FILTER_LOG_E("FilterNapi SetHDRBrightnessRatio brightnessRatio is nan");
+        brightnessRatio = 1.0f;
+    }
+
+    Filter* filterObj = nullptr;
+    status = napi_unwrap(env, thisVar, reinterpret_cast<void**>(&filterObj));
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok, nullptr,
+        FILTER_LOG_E("FilterNapi SetHDRBrightnessRatio filterObj is nullptr"));
+
+    std::shared_ptr<HDRBrightnessRatioPara> para = std::make_shared<HDRBrightnessRatioPara>();
+    para->SetBrightnessRatio(static_cast<float>(brightnessRatio));
     filterObj->AddPara(para);
     return thisVar;
 }

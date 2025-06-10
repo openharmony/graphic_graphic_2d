@@ -18,7 +18,11 @@
 #include "render/rs_filter.h"
 
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+#ifdef USE_M133_SKIA
+#include "include/gpu/ganesh/GrBackendSurface.h"
+#else
 #include "include/gpu/GrBackendSurface.h"
+#endif
 #include "src/image/SkImage_Base.h"
 
 #include "common/rs_optional_trace.h"
@@ -26,7 +30,7 @@
 #include "platform/common/rs_system_properties.h"
 #include "render/rs_drawing_filter.h"
 #include "render/rs_high_performance_visual_engine.h"
-#include "render/rs_magnifier_shader_filter.h"
+#include "render/rs_render_magnifier_filter.h"
 #include "render/rs_skia_filter.h"
 #include "drawable/rs_property_drawable_utils.h"
 
@@ -151,6 +155,10 @@ bool RSFilterCacheManager::DrawFilterWithoutSnapshot(RSPaintFilterCanvas& canvas
     Drawing::Rect srcRect = Drawing::Rect(0, 0, cachedSnapshot_->cachedImage_->GetWidth(),
             cachedSnapshot_->cachedImage_->GetHeight());
     Drawing::Rect dstRect = clipIBounds;
+    RS_OPTIONAL_TRACE_NAME_FMT("DrawFilterWithoutSnapshot srcRect:%s, dstRect:%s",
+        srcRect.ToString().c_str(), dstRect.ToString().c_str());
+    ROSEN_LOGD("DrawFilterWithoutSnapshot srcRect:%{public}s, dstRect:%{public}s",
+        srcRect.ToString().c_str(), dstRect.ToString().c_str());
     bool discardCanvas = CanDiscardCanvas(canvas, dst);
     filter->DrawImageRect(canvas, cachedSnapshot_->cachedImage_, srcRect, dstRect, { discardCanvas, false });
     filter->PostProcess(canvas);
@@ -228,21 +236,19 @@ void RSFilterCacheManager::TakeSnapshot(
     // shrink the srcRect by 1px to avoid edge artifacts.
     Drawing::RectI snapshotIBounds = srcRect;
 
-    std::shared_ptr<RSShaderFilter> magnifierShaderFilter = filter->GetShaderFilterWithType(RSShaderFilter::MAGNIFIER);
+    auto magnifierShaderFilter = filter->GetShaderFilterWithType(RSUIFilterType::MAGNIFIER);
     if (magnifierShaderFilter != nullptr) {
         auto tmpFilter = std::static_pointer_cast<RSMagnifierShaderFilter>(magnifierShaderFilter);
         snapshotIBounds.Offset(tmpFilter->GetMagnifierOffsetX(), tmpFilter->GetMagnifierOffsetY());
     }
     std::shared_ptr<Drawing::Image> snapshot;
-    std::shared_ptr<RSShaderFilter> aibarShaderFilter = filter->GetShaderFilterWithType(RSShaderFilter::AIBAR);
-
+    auto aibarShaderFilter = filter->GetShaderFilterWithType(RSUIFilterType::AIBAR);
     if ((aibarShaderFilter != nullptr) && (HveFilter::GetHveFilter().GetSurfaceNodeSize() > 0)) {
         snapshot = HveFilter::GetHveFilter().SampleLayer(canvas, srcRect);
     } else {
         // Take a screenshot
         snapshot = drawingSurface->GetImageSnapshot(snapshotIBounds, false);
     }
-
     if (snapshot == nullptr) {
         ROSEN_LOGD("RSFilterCacheManager::TakeSnapshot failed to make an image snapshot.");
         return;
@@ -431,9 +437,9 @@ void RSFilterCacheManager::MarkFilterRegionIsLargeArea()
     stagingIsLargeArea_ = true;
 }
 
-void RSFilterCacheManager::MarkInForegroundFilterAndCheckNeedForceClearCache(bool inForegroundFilter)
+void RSFilterCacheManager::MarkInForegroundFilterAndCheckNeedForceClearCache(NodeId offscreenCanvasNodeId)
 {
-    stagingInForegroundFilter_ = inForegroundFilter;
+    stagingInForegroundFilter_ = offscreenCanvasNodeId;
     if (stagingInForegroundFilter_ != lastInForegroundFilter_ && lastCacheType_ != FilterCacheType::NONE) {
         MarkFilterForceClearCache();
     }
@@ -534,7 +540,7 @@ void RSFilterCacheManager::MarkNeedClearFilterCache(NodeId nodeId)
     RS_TRACE_NAME_FMT("RSFilterCacheManager::MarkNeedClearFilterCache nodeId[%llu] forceUseCache_:%d,"
         "forceClearCache_:%d, hashChanged:%d, regionChanged_:%d, belowDirty_:%d,"
         "lastCacheType:%d, cacheUpdateInterval_:%d, canSkip:%d, isLargeArea:%d, filterType_:%d, pendingPurge_:%d,"
-        "forceClearCacheWithLastFrame:%d, rotationChanged:%d, inForegroundFilter:%d", nodeId,
+        "forceClearCacheWithLastFrame:%d, rotationChanged:%d, offscreenCanvasNodeId:%llu", nodeId,
         stagingForceUseCache_, stagingForceClearCache_, stagingFilterHashChanged_,
         stagingFilterRegionChanged_, stagingFilterInteractWithDirty_,
         lastCacheType_, cacheUpdateInterval_, canSkipFrame_, stagingIsLargeArea_,
@@ -545,7 +551,8 @@ void RSFilterCacheManager::MarkNeedClearFilterCache(NodeId nodeId)
         "forceClearCache_:%{public}d, hashChanged:%{public}d, regionChanged_:%{public}d, belowDirty_:%{public}d,"
         "lastCacheType:%{public}hhu, cacheUpdateInterval_:%{public}d, canSkip:%{public}d, isLargeArea:%{public}d,"
         "filterType_:%{public}d, pendingPurge_:%{public}d,"
-        "forceClearCacheWithLastFrame:%{public}d, rotationChanged:%{public}d, inForegroundFilter:%{public}d",
+        "forceClearCacheWithLastFrame:%{public}d, rotationChanged:%{public}d,"
+        "offscreenCanvasNodeId:%{public}" PRIu64,
         stagingForceUseCache_, stagingForceClearCache_,
         stagingFilterHashChanged_, stagingFilterRegionChanged_, stagingFilterInteractWithDirty_,
         lastCacheType_, cacheUpdateInterval_, canSkipFrame_, stagingIsLargeArea_,
@@ -594,11 +601,6 @@ bool RSFilterCacheManager::NeedPendingPurge() const
     return !stagingFilterInteractWithDirty_ && pendingPurge_;
 }
 
-bool RSFilterCacheManager::IsPendingPurge() const
-{
-    return pendingPurge_;
-}
-
 void RSFilterCacheManager::ClearFilterCache()
 {
     // 1. clear memory when region changed and is not the first time occured.
@@ -630,6 +632,11 @@ void RSFilterCacheManager::ClearFilterCache()
         " isOccluded_:%d, lastCacheType:%d needClearMemoryForGpu:%d ClearFilteredCacheAfterDrawing:%d",
         renderClearType_, stagingIsOccluded_, lastCacheType_, needClearMemoryForGpu,
         renderClearFilteredCacheAfterDrawing_);
+    ROSEN_LOGD("RSFilterCacheManager::ClearFilterCache, clearType:%{public}d,"
+        " isOccluded_:%{public}d, lastCacheType:%{public}d needClearMemoryForGpu:%{public}d"
+        " ClearFilteredCacheAfterDrawing:%{public}d",
+        static_cast<int>(renderClearType_), stagingIsOccluded_, static_cast<int>(lastCacheType_),
+        needClearMemoryForGpu, renderClearFilteredCacheAfterDrawing_);
 }
 
 bool RSFilterCacheManager::IsSkippingFrame() const
@@ -648,6 +655,8 @@ bool RSFilterCacheManager::IsFilterCacheValidForOcclusion()
     auto cacheType = GetCachedType();
     RS_OPTIONAL_TRACE_NAME_FMT("RSFilterCacheManager::IsFilterCacheValidForOcclusion cacheType:%d renderClearType_:%d",
         cacheType, renderClearType_);
+    ROSEN_LOGD("RSFilterCacheManager::IsFilterCacheValidForOcclusion cacheType:%{public}d renderClearType_:%{public}d",
+        static_cast<int>(cacheType), static_cast<int>(renderClearType_));
 
     return cacheType != FilterCacheType::NONE;
 }
@@ -667,6 +676,9 @@ bool RSFilterCacheManager::WouldDrawLargeAreaBlur()
     RS_TRACE_NAME_FMT("wouldDrawLargeAreaBlur stagingIsLargeArea:%d canSkipFrame:%d"
         " stagingUpdateInterval:%d stagingFilterInteractWithDirty:%d",
         stagingIsLargeArea_, canSkipFrame_, cacheUpdateInterval_, stagingFilterInteractWithDirty_);
+    ROSEN_LOGD("wouldDrawLargeAreaBlur stagingIsLargeArea:%{public}d canSkipFrame:%{public}d"
+        " stagingUpdateInterval:%{public}d stagingFilterInteractWithDirty:%{public}d",
+        stagingIsLargeArea_, canSkipFrame_, cacheUpdateInterval_, stagingFilterInteractWithDirty_);
     if (stagingIsLargeArea_) {
         if (!canSkipFrame_) {
             return true;
@@ -683,6 +695,12 @@ bool RSFilterCacheManager::WouldDrawLargeAreaBlurPrecisely()
         " stagingUpdateInterval:%d stagingLastCacheType:%d", stagingIsLargeArea_,
         stagingForceClearCache_, canSkipFrame_, stagingFilterHashChanged_, stagingFilterInteractWithDirty_,
         stagingFilterRegionChanged_, cacheUpdateInterval_, lastCacheType_);
+    ROSEN_LOGD("wouldDrawLargeAreaBlurPrecisely stagingIsLargeArea:%{public}d stagingForceClearCache:%{public}d"
+        " canSkipFrame:%{public}d stagingFilterHashChanged:%{public}d stagingFilterInteractWithDirty:%{public}d"
+        " stagingFilterRegionChanged:%{public}d stagingUpdateInterval:%{public}d stagingLastCacheType:%{public}d",
+        stagingIsLargeArea_, stagingForceClearCache_, canSkipFrame_, stagingFilterHashChanged_,
+        stagingFilterInteractWithDirty_, stagingFilterRegionChanged_, cacheUpdateInterval_,
+        static_cast<int>(lastCacheType_));
     if (!stagingIsLargeArea_) {
         return false;
     }

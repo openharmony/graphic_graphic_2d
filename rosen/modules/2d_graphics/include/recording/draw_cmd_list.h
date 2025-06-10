@@ -249,6 +249,8 @@ public:
      */
     bool IsHybridRenderEnabled(uint32_t maxPixelMapWidth, uint32_t maxPixelMapHeight);
 
+    const std::vector<std::shared_ptr<DrawOpItem>> GetDrawOpItems() const;
+
 private:
     void ClearCache();
     void GenerateCacheByVector(Canvas* canvas, const Rect* rect);
@@ -256,7 +258,7 @@ private:
 
     void PlaybackToDrawCmdList(std::shared_ptr<DrawCmdList> drawCmdList);
     void PlaybackByVector(Canvas& canvas, const Rect* rect = nullptr);
-    bool UnmarshallingDrawOpsSimple();
+    bool UnmarshallingDrawOpsSimple(std::vector<std::shared_ptr<DrawOpItem>>& drawOpItems, size_t& lastOpGenSize);
     void PlaybackByBuffer(Canvas& canvas, const Rect* rect = nullptr);
     void CaculatePerformanceOpType();
 

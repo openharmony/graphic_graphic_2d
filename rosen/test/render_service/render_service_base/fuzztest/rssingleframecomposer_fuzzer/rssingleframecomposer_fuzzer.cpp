@@ -25,7 +25,7 @@
 #include <securec.h>
 #include <unistd.h>
 
-#include "pipeline/rs_single_frame_composer.h"
+#include "feature/single_frame_composer/rs_single_frame_composer.h"
 #include "platform/common/rs_system_properties.h"
 
 namespace OHOS {

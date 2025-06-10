@@ -122,6 +122,118 @@ HWTEST_F(SkiaRegionTest, Contains001, TestSize.Level1)
     ret = skiaRegion->Contains(50, 150); // 50, 100 is point
     EXPECT_TRUE(ret);
 }
+
+/**
+ * @tc.name: Equals001
+ * @tc.desc: Test Contains
+ * @tc.type: FUNC
+ * @tc.require: I8VQSW
+ */
+HWTEST_F(SkiaRegionTest, EqualsTest001, TestSize.Level1)
+{
+    SkiaRegion region;
+    Region region2;
+    EXPECT_TRUE(region.Equals(region2));
+    RectI rectI(0, 0, 256, 256);
+    region.SetRect(rectI);
+    ASSERT_FALSE(region.Equals(region2));
+}
+
+/**
+ * @tc.name: SetEmpty001
+ * @tc.desc: Test SetEmpty
+ * @tc.type: FUNC
+ * @tc.require: I8VQSW
+ */
+HWTEST_F(SkiaRegionTest, SetEmptyTest001, TestSize.Level1)
+{
+    SkiaRegion region;
+    RectI rectI(0, 0, 256, 256);
+    region.SetRect(rectI);
+    region.SetEmpty();
+    ASSERT_TRUE(region.IsEmpty());
+}
+
+/**
+ * @tc.name: SetRegion001
+ * @tc.desc: Test SetRegion
+ * @tc.type: FUNC
+ * @tc.require: I8VQSW
+ */
+HWTEST_F(SkiaRegionTest, SetRegionTest001, TestSize.Level1)
+{
+    SkiaRegion region;
+    Region reg;
+    RectI rectI(0, 0, 256, 256);
+    reg.SetRect(rectI);
+    region.SetRegion(reg);
+    ASSERT_TRUE(rectI == region.GetBounds());
+}
+
+/**
+ * @tc.name: GetBounds001
+ * @tc.desc: Test GetBounds
+ * @tc.type: FUNC
+ * @tc.require: I8VQSW
+ */
+HWTEST_F(SkiaRegionTest, GetBoundsTest001, TestSize.Level1)
+{
+    SkiaRegion region;
+    RectI rectI(0, 0, 256, 256);
+    region.SetRect(rectI);
+    ASSERT_TRUE(rectI == region.GetBounds());
+}
+
+/**
+ * @tc.name: IsComplex001
+ * @tc.desc: Test IsComplex
+ * @tc.type: FUNC
+ * @tc.require: I8VQSW
+ */
+HWTEST_F(SkiaRegionTest, IsComplexTest001, TestSize.Level1)
+{
+    SkiaRegion region;
+    SkiaRegion region2;
+    RectI rectI(0, 0, 256, 256);
+    RectI otherRectI(50, 50, 400, 400);
+    region.SetRect(rectI);
+    ASSERT_FALSE(region.IsComplex());
+}
+
+/**
+ * @tc.name: QuickReject001
+ * @tc.desc: Test QuickReject
+ * @tc.type: FUNC
+ * @tc.require: I8VQSW
+ */
+HWTEST_F(SkiaRegionTest, QuickRejectTest001, TestSize.Level1)
+{
+    SkiaRegion region;
+    Region region2;
+    RectI rectI(0, 0, 256, 256);
+    RectI otherRectI(50, 50, 400, 400);
+    region.SetRect(rectI);
+    region2.SetRect(otherRectI);
+    ASSERT_FALSE(region.QuickReject(region2));
+}
+
+/**
+ * @tc.name: Translate001
+ * @tc.desc: Test Translate
+ * @tc.type: FUNC
+ * @tc.require: I8VQSW
+ */
+HWTEST_F(SkiaRegionTest, TranslateTest001, TestSize.Level1)
+{
+    SkiaRegion region;
+    SkiaRegion region2;
+    RectI rectI(0, 0, 100, 100);
+    RectI otherRectI(100, 100, 200, 200);
+    region.SetRect(rectI);
+    region2.SetRect(otherRectI);
+    region.Translate(100, 100);
+    ASSERT_FALSE(region.GetSkRegion() == region2.GetSkRegion());
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

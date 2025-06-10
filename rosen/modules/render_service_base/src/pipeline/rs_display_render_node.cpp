@@ -130,11 +130,15 @@ void RSDisplayRenderNode::SetMirrorSource(SharedPtr node)
     if (!isMirroredDisplay_ || node == nullptr) {
         return;
     }
+    node->SetHasMirrorDisplay(true);
     mirrorSource_ = node;
 }
 
 void RSDisplayRenderNode::ResetMirrorSource()
 {
+    if (auto mirrorSource = mirrorSource_.lock()) {
+        mirrorSource->SetHasMirrorDisplay(false);
+    }
     mirrorSource_.reset();
 }
 
@@ -556,7 +560,7 @@ void RSDisplayRenderNode::SetForceCloseHdr(bool isForceCloseHdr)
 
 bool RSDisplayRenderNode::GetForceCloseHdr() const
 {
-    return isForceCloseHdr_;
+    return ROSEN_EQ(GetRenderProperties().GetHDRBrightnessFactor(), 0.0f);
 }
 
 RSRenderNode::ChildrenListSharedPtr RSDisplayRenderNode::GetSortedChildren() const
@@ -656,6 +660,19 @@ void RSDisplayRenderNode::SetWindowContainer(std::shared_ptr<RSBaseRenderNode> c
 std::shared_ptr<RSBaseRenderNode> RSDisplayRenderNode::GetWindowContainer() const
 {
     return windowContainer_;
+}
+
+void RSDisplayRenderNode::SetHasMirrorDisplay(bool hasMirrorDisplay)
+{
+    auto displayParams = static_cast<RSDisplayRenderParams*>(stagingRenderParams_.get());
+    if (displayParams == nullptr) {
+        RS_LOGE("RSDisplayRenderNode::SetHasMirrorDisplay displayParams is null");
+        return;
+    }
+    displayParams->SetHasMirrorDisplay(hasMirrorDisplay);
+    if (stagingRenderParams_->NeedSync()) {
+        AddToPendingSyncList();
+    }
 }
 
 void RSDisplayRenderNode::SetTargetSurfaceRenderNodeDrawable(DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr drawable)

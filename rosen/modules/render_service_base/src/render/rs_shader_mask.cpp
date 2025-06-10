@@ -14,12 +14,19 @@
  */
 
 #include "render/rs_shader_mask.h"
-#include "ge_ripple_shader_mask.h"
+
 #include "ge_pixel_map_shader_mask.h"
+#include "ge_ripple_shader_mask.h"
+#ifdef USE_M133_SKIA
+#include "src/core/SkChecksum.h"
+#else
+#include "src/core/SkOpts.h"
+#endif
+
 #include "common/rs_vector4.h"
-#include "render/rs_render_ripple_mask.h"
-#include "render/rs_render_pixel_map_mask.h"
 #include "platform/common/rs_log.h"
+#include "render/rs_render_pixel_map_mask.h"
+#include "render/rs_render_ripple_mask.h"
 #include "utils/rect.h"
 
 namespace OHOS {
@@ -82,10 +89,10 @@ void RSShaderMask::CalHash()
     if (!renderMask_) {
         return;
     }
-#ifndef ENABLE_M133_SKIA
-    const auto hashFunc = SkOpts::hash;
-#else
+#ifdef USE_M133_SKIA
     const auto hashFunc = SkChecksum::Hash32;
+#else
+    const auto hashFunc = SkOpts::hash;
 #endif
 
     switch (renderMask_->GetType()) {

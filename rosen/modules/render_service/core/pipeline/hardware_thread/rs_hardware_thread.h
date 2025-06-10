@@ -20,10 +20,10 @@
 #include <mutex>
 
 #include "event_handler.h"
+#include "feature/hyper_graphic_manager/hgm_hardware_utils.h"
 #include "hdi_backend.h"
 #include "hgm_core.h"
 #include "pipeline/main_thread/rs_main_thread.h"
-#include "feature/hyper_graphic_manager/rs_vblank_idle_corrector.h"
 #ifdef RES_SCHED_ENABLE
 #include "vsync_system_ability_listener.h"
 #endif
@@ -34,17 +34,6 @@ using UniFallbackCallback = std::function<void(const sptr<Surface>& surface, con
 using OutputPtr = std::shared_ptr<HdiOutput>;
 using LayerPtr = std::shared_ptr<HdiLayer>;
 class ScheduledTask;
-
-struct RefreshRateParam {
-    uint32_t rate = 0;
-    uint64_t frameTimestamp = 0;
-    int64_t actualTimestamp = 0;
-    uint64_t vsyncId = 0;
-    uint64_t constraintRelativeTime = 0;
-    bool isForceRefresh = false;
-    uint64_t fastComposeTimeStampDiff = 0;
-};
-
 class RSHardwareThread {
 public:
     static RSHardwareThread& Instance();
@@ -73,6 +62,12 @@ public:
     void PreAllocateProtectedBuffer(sptr<SurfaceBuffer> buffer, uint64_t screenId);
     void ChangeLayersForActiveRectOutside(std::vector<LayerInfoPtr>& layers, ScreenId screenId);
     void DumpVkImageInfo(std::string &dumpString);
+
+    int64_t GetDelayTime()
+    {
+        return delayTime_;
+    }
+
 private:
     RSHardwareThread() = default;
     ~RSHardwareThread() = default;
@@ -84,9 +79,6 @@ private:
     void OnPrepareComplete(sptr<Surface>& surface, const PrepareCompleteParam& param, void* data);
     void Redraw(const sptr<Surface>& surface, const std::vector<LayerInfoPtr>& layers, uint32_t screenId);
     void RedrawScreenRCD(RSPaintFilterCanvas& canvas, const std::vector<LayerInfoPtr>& layers);
-    void PerformSetActiveMode(OutputPtr output, uint64_t timestamp, uint64_t constraintRelativeTime);
-    void ExecuteSwitchRefreshRate(const OutputPtr& output, uint32_t refreshRate);
-    void ChangeDssRefreshRate(ScreenId screenId, uint32_t refreshRate, bool followPipline);
     void AddRefreshRateCount(const OutputPtr& output);
     void RecordTimestamp(const std::vector<LayerInfoPtr>& layers);
     int64_t GetCurTimeCount();
@@ -99,6 +91,8 @@ private:
         int64_t currTime);
     std::shared_ptr<RSSurfaceOhos> CreateFrameBufferSurfaceOhos(const sptr<Surface>& surface);
     void EndCheck(RSTimer timer);
+    bool IsDropDirtyFrame(OutputPtr output);
+    void ContextRegisterPostTask();
 #ifdef RES_SCHED_ENABLE
     void SubScribeSystemAbility();
     sptr<VSyncSystemAbilityListener> saStatusChangeListener_ = nullptr;
@@ -122,9 +116,6 @@ private:
     int hardwareTid_ = -1;
     std::unordered_map<uint64_t,std::shared_ptr<RSSurfaceOhos>> frameBufferSurfaceOhosMap_;
 
-    HgmRefreshRates hgmRefreshRates_ = HgmRefreshRates::SET_RATE_NULL;
-    RSVBlankIdleCorrector vblankIdleCorrector_;
-
     std::map<uint32_t, uint64_t> refreshRateCounts_;
     sptr<SyncFence> releaseFence_ = SyncFence::InvalidFence();
     int64_t delayTime_ = 0;
@@ -136,10 +127,7 @@ private:
     std::mutex frameBufferSurfaceOhosMapMutex_;
     std::mutex surfaceMutex_;
 
-    bool needRetrySetRate_ = false;
-
-    std::unordered_map<ScreenId, std::weak_ptr<HdiOutput>> outputMap_;
-    RefreshRateParam refreshRateParam_;
+    HgmHardwareUtils hgmHardwareUtils_;
 
     friend class RSUniRenderThread;
     friend class RSUifirstManager;

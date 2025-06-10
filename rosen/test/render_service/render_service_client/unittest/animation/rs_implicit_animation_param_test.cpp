@@ -25,7 +25,7 @@
 #include "modifier/rs_property_modifier.h"
 #include <unistd.h>
 #ifdef ROSEN_OHOS
-#include "base/hiviewdfx/hisysevent/interfaces/native/innerkits/hisysevent/include/hisysevent.h"
+#include "hisysevent.h"
 #include "sandbox_utils.h"
 #endif
 using namespace testing;

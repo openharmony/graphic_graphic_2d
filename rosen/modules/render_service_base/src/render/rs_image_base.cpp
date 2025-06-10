@@ -33,7 +33,6 @@
 #include "rs_trace.h"
 #include "sandbox_utils.h"
 #include "rs_profiler.h"
-#include "utils/graphic_coretrace.h"
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 #include "native_buffer_inner.h"
@@ -43,6 +42,9 @@
 #endif
 namespace OHOS::Rosen {
 namespace {
+#if defined(ROSEN_OHOS) && (defined(RS_ENABLE_VK) || defined(RS_ENABLE_GL))
+constexpr uint8_t ASTC_HEADER_SIZE = 16;
+#endif
 #ifdef ROSEN_OHOS
 bool PixelMapCanBePurge(std::shared_ptr<Media::PixelMap>& pixelMap)
 {
@@ -119,15 +121,17 @@ Drawing::ColorType GetColorTypeWithVKFormat(VkFormat vkFormat)
 void RSImageBase::DrawImage(Drawing::Canvas& canvas, const Drawing::SamplingOptions& samplingOptions,
     Drawing::SrcRectConstraint constraint)
 {
-    RECORD_GPURESOURCE_CORETRACE_CALLER(Drawing::CoreFunction::
-        RS_RSIMAGEBASE_DRAWIMAGE);
 #ifdef ROSEN_OHOS
     auto pixelMapUseCountGuard = PixelMapUseCountGuard(pixelMap_, IsPurgeable());
     DePurge();
 #endif
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
-    if (pixelMap_ && pixelMap_->GetAllocatorType() == Media::AllocatorType::DMA_ALLOC) {
+    if (pixelMap_ && pixelMap_->GetAllocatorType() == Media::AllocatorType::DMA_ALLOC && !pixelMap_->IsAstc()) {
         BindPixelMapToDrawingImage(canvas);
+    }
+    if (pixelMap_ && pixelMap_->IsAstc()) {
+        SetCompressedDataForASTC();
+        UploadGpu(canvas);
     }
 #endif
     if (!image_) {
@@ -572,6 +576,54 @@ void RSImageBase::ProcessYUVImage(std::shared_ptr<Drawing::GPUContext> gpuContex
 }
 #endif
 
+void RSImageBase::SetCompressData(const std::shared_ptr<Drawing::Data> compressData)
+{
+#if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+    isDrawn_ = false;
+    compressData_ = compressData;
+    canPurgeShareMemFlag_ = CanPurgeFlag::DISABLED;
+#endif
+}
+
+#if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+bool RSImageBase::SetCompressedDataForASTC()
+{
+    if (!pixelMap_ || !pixelMap_->GetFd() || !pixelMap_->IsAstc()) {
+        RS_LOGE("%{public}s fail, pixelMap_ is invalid", __func__);
+        return false;
+    }
+    std::shared_ptr<Drawing::Data> fileData = std::make_shared<Drawing::Data>();
+#if defined(RS_ENABLE_VK)
+    if (pixelMap_->GetAllocatorType() == Media::AllocatorType::DMA_ALLOC &&
+        (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR)) {
+        sptr<SurfaceBuffer> surfaceBuf(reinterpret_cast<SurfaceBuffer *>(pixelMap_->GetFd()));
+        nativeWindowBuffer_ = CreateNativeWindowBufferFromSurfaceBuffer(&surfaceBuf);
+        OH_NativeBuffer* nativeBuffer = OH_NativeBufferFromNativeWindowBuffer(nativeWindowBuffer_);
+        if (nativeBuffer == nullptr || !fileData->BuildFromOHNativeBuffer(nativeBuffer, pixelMap_->GetCapacity())) {
+            RS_LOGE("%{public}s data BuildFromOHNativeBuffer fail", __func__);
+            return false;
+        }
+    } else {
+#endif // RS_ENABLE_VK
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
+        const void* data = pixelMap_->GetPixels();
+        if (pixelMap_->GetCapacity() > ASTC_HEADER_SIZE &&
+            (data == nullptr || !fileData->BuildWithoutCopy(
+                reinterpret_cast<const void *>(reinterpret_cast<const char *>(data) + ASTC_HEADER_SIZE),
+                pixelMap_->GetCapacity() - ASTC_HEADER_SIZE))) {
+            RS_LOGE("%{public}s data BuildWithoutCopy fail", __func__);
+            return false;
+        }
+#endif // RS_ENABLE_GL || RS_ENABLE_VK
+#if defined(RS_ENABLE_VK)
+    }
+#endif // RS_ENABLE_VK
+    SetCompressData(fileData);
+    return true;
+}
+#endif // ROSEN_OHOS && (RS_ENABLE_GL || RS_ENABLE_VK)
+
 std::shared_ptr<Media::PixelMap> RSImageBase::GetPixelMap() const
 {
     return pixelMap_;
@@ -659,4 +711,74 @@ RSImageBase::PixelMapUseCountGuard::~PixelMapUseCountGuard()
     }
 }
 #endif
+
+#if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+static Drawing::CompressedType PixelFormatToCompressedType(Media::PixelFormat pixelFormat)
+{
+    switch (pixelFormat) {
+        case Media::PixelFormat::ASTC_4x4: return Drawing::CompressedType::ASTC_RGBA8_4x4;
+        case Media::PixelFormat::ASTC_6x6: return Drawing::CompressedType::ASTC_RGBA8_6x6;
+        case Media::PixelFormat::ASTC_8x8: return Drawing::CompressedType::ASTC_RGBA8_8x8;
+        case Media::PixelFormat::UNKNOWN:
+        default: return Drawing::CompressedType::NoneType;
+    }
+}
+
+static std::shared_ptr<Drawing::ColorSpace> ColorSpaceToDrawingColorSpace(ColorManager::ColorSpaceName
+ colorSpaceName)
+{
+    switch (colorSpaceName) {
+        case ColorManager::ColorSpaceName::DISPLAY_P3:
+            return Drawing::ColorSpace::CreateRGB(
+                Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::DCIP3);
+        case ColorManager::ColorSpaceName::LINEAR_SRGB:
+            return Drawing::ColorSpace::CreateSRGBLinear();
+        case ColorManager::ColorSpaceName::SRGB:
+            return Drawing::ColorSpace::CreateSRGB();
+        default:
+            return Drawing::ColorSpace::CreateSRGB();
+    }
+}
+#endif
+
+void RSImageBase::UploadGpu(Drawing::Canvas& canvas)
+{
+#if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+    if (compressData_) {
+        auto cache = RSImageCache::Instance().GetRenderDrawingImageCacheByPixelMapId(uniqueId_, gettid());
+        std::lock_guard<std::mutex> lock(mutex_);
+        if (cache) {
+            image_ = cache;
+        } else {
+            if (canvas.GetGPUContext() == nullptr) {
+                return;
+            }
+            RS_TRACE_NAME("make compress img");
+            Media::ImageInfo imageInfo;
+            pixelMap_->GetImageInfo(imageInfo);
+            Media::Size realSize;
+            pixelMap_->GetAstcRealSize(realSize);
+            auto image = std::make_shared<Drawing::Image>();
+            std::shared_ptr<Drawing::ColorSpace> colorSpace =
+                ColorSpaceToDrawingColorSpace(pixelMap_->InnerGetGrColorSpace().GetColorSpaceName());
+            bool result = image->BuildFromCompressed(*canvas.GetGPUContext(), compressData_,
+                static_cast<int>(realSize.width), static_cast<int>(realSize.height),
+                PixelFormatToCompressedType(imageInfo.pixelFormat), colorSpace);
+            if (result) {
+                image_ = image;
+                SKResourceManager::Instance().HoldResource(image);
+                RSImageCache::Instance().CacheRenderDrawingImageByPixelMapId(uniqueId_, image, gettid());
+            } else {
+                RS_LOGE("make astc image %{public}d (%{public}d, %{public}d) failed",
+                    (int)uniqueId_, (int)srcRect_.width_, (int)srcRect_.height_);
+            }
+            compressData_ = nullptr;
+        }
+        return;
+    }
+    if (isYUVImage_) {
+        ProcessYUVImage(canvas.GetGPUContext());
+    }
+#endif
+}
 }

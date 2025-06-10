@@ -158,6 +158,11 @@ bool RSSystemProperties::GetExpandScreenDirtyEnabled()
     return false;
 }
 
+bool RSSystemProperties::GetVirtualExpandScreenSkipEnabled()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetOcclusionEnabled()
 {
     return {};
@@ -205,13 +210,6 @@ bool RSSystemProperties::GetCacheEnabledForRotation()
 {
     return {};
 }
-
-#ifndef NEW_SKIA
-bool RSSystemProperties::GetReleaseResourceEnabled()
-{
-    return {};
-}
-#endif
 
 ParallelRenderingType RSSystemProperties::GetPrepareParallelRenderingEnabled()
 {
@@ -640,6 +638,11 @@ bool RSSystemProperties::GetTimeVsyncDisabled()
     return false;
 }
 
+bool RSSystemProperties::GetTextureExportDFXEnabled()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetHybridRenderEnabled()
 {
     return false;
@@ -734,5 +737,14 @@ bool RSSystemProperties::GetBehindWindowFilterEnabled()
     return false;
 }
 
+bool RSSystemProperties::GetSubThreadControlFrameRate()
+{
+    return false;
+}
+
+int RSSystemProperties::GetSubThreadDropFrameInterval()
+{
+    return 0;
+}
 } // namespace Rosen
 } // namespace OHOS

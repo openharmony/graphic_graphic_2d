@@ -156,7 +156,7 @@ HWTEST_F(RSChildrenDrawableTest, RSCustomModifierDrawable, TestSize.Level1)
     property->GetRef() = std::make_shared<Drawing::DrawCmdList>(1, 1);
     list.emplace_back(std::make_shared<RSDrawCmdListRenderModifier>(propertyTwo));
 
-    node.renderContent_->drawCmdModifiers_.emplace(RSModifierType::BOUNDS, list);
+    node.drawCmdModifiers_.emplace(RSModifierType::BOUNDS, list);
     node.AddDirtyType(RSModifierType::BOUNDS);
     auto drawable = std::static_pointer_cast<DrawableV2::RSCustomModifierDrawable>(
         DrawableV2::RSCustomModifierDrawable::OnGenerate(node, RSModifierType::BOUNDS));
@@ -169,7 +169,7 @@ HWTEST_F(RSChildrenDrawableTest, RSCustomModifierDrawable, TestSize.Level1)
 
     NodeId idTwo = 2;
     RSRenderNode nodeTwo(idTwo);
-    nodeTwo.renderContent_->drawCmdModifiers_.emplace(RSModifierType::BOUNDS, list);
+    nodeTwo.drawCmdModifiers_.emplace(RSModifierType::BOUNDS, list);
     drawable = std::static_pointer_cast<DrawableV2::RSCustomModifierDrawable>(
         DrawableV2::RSCustomModifierDrawable::OnGenerate(nodeTwo, RSModifierType::BOUNDS));
     ASSERT_NE(drawable, nullptr);
@@ -260,7 +260,7 @@ HWTEST_F(RSChildrenDrawableTest, RSEnvFGColorDrawable001, TestSize.Level1)
     auto property = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>();
     property->GetRef() = drawCmdList;
     std::list<std::shared_ptr<RSRenderModifier>> list { std::make_shared<RSDrawCmdListRenderModifier>(property) };
-    node.renderContent_->drawCmdModifiers_.emplace(RSModifierType::ENV_FOREGROUND_COLOR, list);
+    node.drawCmdModifiers_.emplace(RSModifierType::ENV_FOREGROUND_COLOR, list);
     node.GetMutableRenderProperties().SetColorBlendApplyType(2);
     auto drawable = std::static_pointer_cast<DrawableV2::RSEnvFGColorDrawable>(
         DrawableV2::RSEnvFGColorDrawable::OnGenerate(node));
@@ -303,7 +303,7 @@ HWTEST_F(RSChildrenDrawableTest, RSEnvFGColorStrategyDrawable001, TestSize.Level
     auto property = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>();
     property->GetRef() = drawCmdList;
     std::list<std::shared_ptr<RSRenderModifier>> list { std::make_shared<RSDrawCmdListRenderModifier>(property) };
-    node.renderContent_->drawCmdModifiers_.emplace(RSModifierType::ENV_FOREGROUND_COLOR_STRATEGY, list);
+    node.drawCmdModifiers_.emplace(RSModifierType::ENV_FOREGROUND_COLOR_STRATEGY, list);
     auto drawable = std::static_pointer_cast<DrawableV2::RSEnvFGColorStrategyDrawable>(
         DrawableV2::RSEnvFGColorStrategyDrawable::OnGenerate(node));
     ASSERT_NE(drawable, nullptr);
@@ -352,7 +352,7 @@ HWTEST_F(RSChildrenDrawableTest, RSCustomClipToFrameDrawable001, TestSize.Level1
     auto property = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>();
     property->GetRef() = drawCmdList;
     std::list<std::shared_ptr<RSRenderModifier>> list { std::make_shared<RSDrawCmdListRenderModifier>(property) };
-    node.renderContent_->drawCmdModifiers_.emplace(RSModifierType::CUSTOM_CLIP_TO_FRAME, list);
+    node.drawCmdModifiers_.emplace(RSModifierType::CUSTOM_CLIP_TO_FRAME, list);
     auto drawable = std::static_pointer_cast<DrawableV2::RSCustomClipToFrameDrawable>(
         DrawableV2::RSCustomClipToFrameDrawable::OnGenerate(node));
     ASSERT_NE(drawable, nullptr);

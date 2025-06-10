@@ -71,6 +71,20 @@ uint32_t OH_Drawing_RegisterFont(OH_Drawing_FontCollection*, const char* fontFam
  */
 uint32_t OH_Drawing_RegisterFontBuffer(OH_Drawing_FontCollection*, const char* fontFamily, uint8_t* fontBuffer,
     size_t length);
+
+/**
+ * @brief Unregister a customized font by the font family.
+ * Unregistering a font that is currently in use by UI components may lead to text rendering anomalies,
+ * including garbled characters or missing glyphs.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param fontCollection Indicates the pointer to an <b>OH_Drawing_FontCollection</b> object.
+ * @param fontFamily Indicates the family-name of the font which need to be unregistered.
+ * @return error code.
+ * @since 20
+ * @version 1.0
+ */
+uint32_t OH_Drawing_UnregisterFont(OH_Drawing_FontCollection* fontCollection, const char* fontFamily);
 #ifdef __cplusplus
 }
 #endif

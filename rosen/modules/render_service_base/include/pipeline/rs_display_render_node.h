@@ -556,6 +556,20 @@ public:
         return displayTotalHdrStatus_;
     }
 
+    void InsertHDRNode(NodeId id)
+    {
+        hdrNodeList_.insert(id);
+    }
+
+    void RemoveHDRNode(NodeId id)
+    {
+        hdrNodeList_.erase(id);
+    }
+
+    std::unordered_set<NodeId>& GetHDRNodeList()
+    {
+        return hdrNodeList_;
+    }
     using ScreenStatusNotifyTask = std::function<void(bool)>;
 
     static void SetScreenStatusNotifyTask(ScreenStatusNotifyTask task);
@@ -598,6 +612,13 @@ public:
     {
         return targetSurfaceRenderNodeId_;
     }
+
+    bool HasMirrorDisplay() const
+    {
+        return hasMirrorDisplay_;
+    }
+
+    void SetHasMirrorDisplay(bool hasMirrorDisplay);
 
     void SetTargetSurfaceRenderNodeDrawable(DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr drawable);
 
@@ -647,6 +668,8 @@ private:
     int32_t lastScbPid_ = -1;
     HdrStatus displayTotalHdrStatus_ = HdrStatus::NO_HDR;
     uint64_t screenId_ = 0;
+    // save children hdr canvasNode id
+    std::unordered_set<NodeId> hdrNodeList_;
     // Use in MultiLayersPerf
     size_t surfaceCountForMultiLayersPerf_ = 0;
     int64_t lastRefreshTime_ = 0;
@@ -691,6 +714,8 @@ private:
     std::vector<NodeId> lastSurfaceIds_;
 
     std::vector<int32_t> oldScbPids_ {};
+
+    bool hasMirrorDisplay_ = false;
 
     // Use in round corner display
     // removed later due to rcd node will be handled by RS tree in OH 6.0 rcd refactoring

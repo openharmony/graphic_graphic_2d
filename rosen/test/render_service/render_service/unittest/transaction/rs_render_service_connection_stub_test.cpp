@@ -29,7 +29,8 @@
 #include "rs_irender_service.h"
 #include "transaction/rs_render_service_connection_stub.h"
 #include "screen_manager/rs_screen.h"
-
+#include "feature/capture/rs_capture_pixelmap_manager.h"
+#include "ipc_callbacks/surface_capture_callback_stub.h"
 using namespace testing;
 using namespace testing::ext;
 
@@ -39,7 +40,6 @@ namespace {
 };
 
 namespace OHOS::Rosen {
-DECLARE_INTERFACE_DESCRIPTOR(u"ohos.rosen.RenderServiceConnection");
 class RSRenderServiceConnectionStubTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -58,6 +58,7 @@ public:
     int32_t offsetY = 0; //screenOffset on y axis equals to 0
     float mirrorAdaptiveCoefficient = 1.0f;
     static uint32_t screenId_;
+    static std::shared_ptr<RSSurfaceRenderNode> surfaceNode_;
 private:
     int OnRemoteRequestTest(uint32_t code);
     static sptr<RSIConnectionToken> token_;
@@ -68,6 +69,8 @@ uint32_t RSRenderServiceConnectionStubTest::screenId_ = 0;
 sptr<RSIConnectionToken> RSRenderServiceConnectionStubTest::token_ = new IRemoteStub<RSIConnectionToken>();
 sptr<RSRenderServiceConnectionStub> RSRenderServiceConnectionStubTest::connectionStub_ = new RSRenderServiceConnection(
     0, nullptr, RSMainThread::Instance(), CreateOrGetScreenManager(), token_->AsObject(), nullptr);
+std::shared_ptr<RSSurfaceRenderNode> RSRenderServiceConnectionStubTest::surfaceNode_ =
+    std::make_shared<RSSurfaceRenderNode>(10003, std::make_shared<RSContext>(), true);
 
 void RSRenderServiceConnectionStubTest::SetUpTestCase()
 {
@@ -82,6 +85,147 @@ void RSRenderServiceConnectionStubTest::SetUpTestCase()
     EXPECT_CALL(*hdiDeviceMock_, RegHotPlugCallback(_, _)).WillRepeatedly(testing::Return(0));
     EXPECT_CALL(*hdiDeviceMock_, RegHwcDeadCallback(_, _)).WillRepeatedly(testing::Return(false));
     EXPECT_CALL(*hdiDeviceMock_, RegRefreshCallback(_, _)).WillRepeatedly(testing::Return(0));
+}
+
+class RSSurfaceCaptureCallbackStubMock : public RSSurfaceCaptureCallbackStub {
+public:
+    RSSurfaceCaptureCallbackStubMock() = default;
+    virtual ~RSSurfaceCaptureCallbackStubMock() = default;
+    void OnSurfaceCapture(NodeId id, const RSSurfaceCaptureConfig& captureConfig,
+        Media::PixelMap* pixelmap) override {};
+};
+/**
+ * @tc.name: NotifySurfaceCaptureTest001
+ * @tc.desc: NotifySurfaceCaptureTest001.
+ * @tc.type: FUNC
+ * @tc.require: issueI60KUK
+ */
+HWTEST_F(RSRenderServiceConnectionStubTest, NotifySurfaceCaptureTest001, TestSize.Level1)
+{
+    auto newPid = getpid();
+    auto screenManagerPtr = impl::RSScreenManager::GetInstance();
+    auto mainThread = RSMainThread::Instance();
+
+    sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSRenderServiceConnectionStub> connectionStub_ =
+        new RSRenderServiceConnection(newPid, nullptr, mainThread, screenManagerPtr, token_->AsObject(), nullptr);
+    ASSERT_EQ(connectionStub_ != nullptr, true);
+    NodeId nodeId = surfaceNode_->GetId();
+    sptr<RSISurfaceCaptureCallback> callback = new RSSurfaceCaptureCallbackStubMock();
+    ASSERT_EQ(callback != nullptr, true);
+
+    RSSurfaceCaptureConfig captureConfig;
+    RSSurfaceCaptureBlurParam blurParam;
+    Drawing::Rect specifiedAreaRect;
+
+    captureConfig.scaleX = 2;
+    captureConfig.scaleY = 2;
+    captureConfig.isClientPixelMap = true;
+    captureConfig.useCurWindow = true;
+    auto pixelMap = RSCapturePixelMapManager::GetClientCapturePixelMap({0, 0, 50, 50}, captureConfig,
+        UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL);
+    connectionStub_->TakeSurfaceCapture(nodeId, callback, captureConfig, blurParam,
+        specifiedAreaRect, std::move(pixelMap));
+    
+    // for code coverage
+    auto& nodeMap = RSMainThread::Instance()->GetContext().nodeMap;
+    nodeMap.RegisterRenderNode(surfaceNode_);
+
+    captureConfig.isClientPixelMap = false;
+    captureConfig.scaleX = 2;
+    connectionStub_->TakeUICaptureInRange(nodeId, callback, captureConfig);
+    nodeMap.UnregisterRenderNode(nodeId);
+}
+
+void g_WriteSurfaceCaptureConfigMock(RSSurfaceCaptureConfig& captureConfig, MessageParcel& data)
+{
+    data.WriteFloat(captureConfig.scaleX);
+    data.WriteFloat(captureConfig.scaleY);
+    data.WriteBool(captureConfig.useDma);
+    data.WriteBool(captureConfig.useCurWindow);
+    data.WriteUint8(static_cast<uint8_t>(captureConfig.captureType));
+    data.WriteBool(captureConfig.isSync);
+    data.WriteBool(captureConfig.isClientPixelMap);
+    data.WriteFloat(captureConfig.mainScreenRect.left_);
+    data.WriteFloat(captureConfig.mainScreenRect.top_);
+    data.WriteFloat(captureConfig.mainScreenRect.right_);
+    data.WriteFloat(captureConfig.mainScreenRect.bottom_);
+    data.WriteUint64(captureConfig.uiCaptureInRangeParam.endNodeId);
+    data.WriteBool(captureConfig.uiCaptureInRangeParam.useBeginNodeSize);
+    data.WriteUInt64Vector(captureConfig.blackList);
+}
+
+/**
+ * @tc.name: NotifySurfaceCaptureRemoteTest001
+ * @tc.desc: NotifySurfaceCaptureRemoteTest001.
+ * @tc.type: FUNC
+ * @tc.require: issueI60KUK
+ */
+HWTEST_F(RSRenderServiceConnectionStubTest, NotifySurfaceCaptureRemoteTest001, TestSize.Level1)
+{
+    auto newPid = getpid();
+    auto screenManagerPtr = impl::RSScreenManager::GetInstance();
+    auto mainThread = RSMainThread::Instance();
+
+    sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSRenderServiceConnectionStub> connectionStub_ =
+        new RSRenderServiceConnection(newPid, nullptr, mainThread, screenManagerPtr, token_->AsObject(), nullptr);
+    ASSERT_EQ(connectionStub_ != nullptr, true);
+    sptr<RSISurfaceCaptureCallback> callback = new RSSurfaceCaptureCallbackStubMock();
+    ASSERT_EQ(callback != nullptr, true);
+
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::TAKE_SURFACE_CAPTURE);
+    NodeId id = surfaceNode_->GetId();
+    // Test0 abnormal
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.isClientPixelMap = true;
+    data.WriteUint64(id);
+    data.WriteRemoteObject(callback->AsObject());
+    g_WriteSurfaceCaptureConfigMock(captureConfig, data);
+    // Write Blur Parm
+    data.WriteBool(false);
+    data.WriteFloat(0);
+    // write AreaRect;
+    data.WriteFloat(0);
+    data.WriteFloat(0);
+    data.WriteFloat(0);
+    data.WriteFloat(0);
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, ERR_INVALID_DATA);
+
+    // Test1: normal Capture
+    auto& nodeMap = RSMainThread::Instance()->GetContext().nodeMap;
+    nodeMap.RegisterRenderNode(surfaceNode_);
+
+    MessageParcel data2;
+    RSSurfaceCaptureConfig captureConfig2;
+    captureConfig.isClientPixelMap = true;
+    data2.WriteUint64(id);
+    data2.WriteRemoteObject(callback->AsObject());
+    g_WriteSurfaceCaptureConfigMock(captureConfig, data2);
+    // Write Blur Parm
+    data2.WriteBool(false);
+    data2.WriteFloat(0);
+    // write AreaRect;
+    data2.WriteFloat(0);
+    data2.WriteFloat(0);
+    data2.WriteFloat(0);
+    data2.WriteFloat(0);
+    // Write pixelMap
+    auto pixelMap = RSCapturePixelMapManager::GetClientCapturePixelMap({0, 0, 50, 50}, captureConfig,
+        UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL);
+    data2.WriteParcelable(pixelMap.get());
+
+    res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+
+    ASSERT_EQ(res, ERR_INVALID_DATA);
+    constexpr uint32_t TIME_OF_CAPTURE_TASK_REMAIN = 1000000;
+    usleep(TIME_OF_CAPTURE_TASK_REMAIN);
+    nodeMap.UnregisterRenderNode(id);
 }
 
 void RSRenderServiceConnectionStubTest::TearDownTestCase()
@@ -253,7 +397,7 @@ HWTEST_F(RSRenderServiceConnectionStubTest, TestRSRenderServiceConnectionStub004
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_REFRESH_INFO)), ERR_INVALID_DATA);
 #else
     EXPECT_EQ(OnRemoteRequestTest(
-        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_REFRESH_INFO)), ERR_INVALID_REPLY);
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_REFRESH_INFO)), ERR_INVALID_DATA);
 #endif
 }
 
@@ -525,6 +669,12 @@ HWTEST_F(RSRenderServiceConnectionStubTest, TestRSRenderServiceConnectionStub012
     ASSERT_EQ(OnRemoteRequestTest(
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_REFRESH_RATE_EVENT)), ERR_INVALID_DATA);
     ASSERT_EQ(OnRemoteRequestTest(
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_WINDOW_EXPECTED_BY_WINDOW_ID)),
+        ERR_INVALID_DATA);
+    ASSERT_EQ(OnRemoteRequestTest(
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_WINDOW_EXPECTED_BY_VSYNC_NAME)),
+        ERR_INVALID_DATA);
+    ASSERT_EQ(OnRemoteRequestTest(
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_ANCO_FORCE_DO_DIRECT)), ERR_INVALID_STATE);
     ASSERT_EQ(OnRemoteRequestTest(
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_SOFT_VSYNC_EVENT)), ERR_INVALID_DATA);
@@ -766,7 +916,7 @@ HWTEST_F(RSRenderServiceConnectionStubTest, TestRSRenderServiceConnectionStub024
 
 /**
  * @tc.name: TestRSRenderServiceConnectionStub025
- * @tc.desc: Test
+ * @tc.desc: Test callback is null
  * @tc.type: FUNC
  * @tc.require: issueIBRN69
  */
@@ -780,38 +930,114 @@ HWTEST_F(RSRenderServiceConnectionStubTest, TestRSRenderServiceConnectionStub025
     data.WriteInt32(123);
     data.WriteUint64(456);
     int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, ERR_NULL_OBJECT);
+}
+
+class RSTransactionDataCallbackStubMock : public RSTransactionDataCallbackStub {
+public:
+    RSTransactionDataCallbackStubMock() = default;
+    virtual ~RSTransactionDataCallbackStubMock() = default;
+    void OnAfterProcess(int32_t pid, uint64_t timeStamp) override {};
+};
+
+/**
+ * @tc.name: TestRSRenderServiceConnectionStub026
+ * @tc.desc: Test callback exit
+ * @tc.type: FUNC
+ * @tc.require: issueIBRN69
+ */
+HWTEST_F(RSRenderServiceConnectionStubTest, TestRSRenderServiceConnectionStub026, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_TRANSACTION_DATA_CALLBACK);
+    data.WriteInt32(123);
+    data.WriteUint64(456);
+    sptr<RSTransactionDataCallbackStubMock> callback = new RSTransactionDataCallbackStubMock();
+    data.WriteRemoteObject(callback->AsObject());
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(res, NO_ERROR);
 }
 
-HWTEST_F(RSRenderServiceConnectionStubTest, ShowWatermarkTest, TestSize.Level1)
+/**
+ * @tc.name: NotifyWindowExpectedByWindowIDTest001
+ * @tc.desc: Test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderServiceConnectionStubTest, NotifyWindowExpectedByWindowIDTest001, TestSize.Level1)
 {
-    auto newPid = getpid();
-    sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
-    sptr<RSRenderServiceConnectionStub> connectionStub_ =
-        new RSRenderServiceConnection(newPid, nullptr, nullptr, nullptr, token_->AsObject(), nullptr);
-
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SHOW_WATERMARK);
-    MessageParcel dataParcel;
-    MessageParcel replyParcel;
+    MessageParcel data;
+    MessageParcel reply;
     MessageOption option;
-    dataParcel.WriteInterfaceToken(GetDescriptor());
-    EXPECT_EQ(connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option), ERR_INVALID_DATA);
+    data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_WINDOW_EXPECTED_BY_WINDOW_ID);
+    data.WriteUint32(120);
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, ERR_INVALID_DATA);
+}
+ 
+/**
+ * @tc.name: NotifyWindowExpectedByWindowIDTest002
+ * @tc.desc: Test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderServiceConnectionStubTest, NotifyWindowExpectedByWindowIDTest002, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_WINDOW_EXPECTED_BY_WINDOW_ID);
+    data.WriteUint32(1);
+    data.WriteUint64(0);
+    EventInfo eventInfo = {"VOTER1", true, 60, 120, "SCENE1"};
+    eventInfo.Serialize(data);
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, ERR_NONE);
+}
+ 
+/**
+ * @tc.name: NotifyWindowExpectedByVsyncNameTest001
+ * @tc.desc: Test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderServiceConnectionStubTest, NotifyWindowExpectedByVsyncNameTest001, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
+    uint32_t code = static_cast<uint32_t>(
+        RSIRenderServiceConnectionInterfaceCode::NOTIFY_WINDOW_EXPECTED_BY_VSYNC_NAME);
+    data.WriteUint32(120);
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, ERR_INVALID_DATA);
 }
 
-HWTEST_F(RSRenderServiceConnectionStubTest, CreateVirtualScreenTest, TestSize.Level1)
+/**
+ * @tc.name: NotifyWindowExpectedByVsyncNameTest002
+ * @tc.desc: Test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderServiceConnectionStubTest, NotifyWindowExpectedByVsyncNameTest002, TestSize.Level1)
 {
-    auto newPid = getpid();
-    auto screenManagerPtr = impl::RSScreenManager::GetInstance();
-    auto mainThread = RSMainThread::Instance();
-    sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
-    sptr<RSRenderServiceConnectionStub> connectionStub_ =
-        new RSRenderServiceConnection(newPid, nullptr, mainThread, screenManagerPtr, token_->AsObject(), nullptr);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_VIRTUAL_SCREEN);
-
-    MessageParcel dataParcel;
-    MessageParcel replyParcel;
+    MessageParcel data;
+    MessageParcel reply;
     MessageOption option;
-    dataParcel.WriteInterfaceToken(GetDescriptor());
-    EXPECT_EQ(connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option), ERR_INVALID_DATA);
+    data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
+    uint32_t code = static_cast<uint32_t>(
+        RSIRenderServiceConnectionInterfaceCode::NOTIFY_WINDOW_EXPECTED_BY_VSYNC_NAME);
+    data.WriteUint32(1);
+    data.WriteString("vsync1");
+    EventInfo eventInfo = {"VOTER1", true, 60, 120, "SCENE1"};
+    eventInfo.Serialize(data);
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, ERR_NONE);
 }
 } // namespace OHOS::Rosen

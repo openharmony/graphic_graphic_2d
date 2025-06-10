@@ -14,6 +14,7 @@
  */
 #include "gtest/gtest.h"
 
+#include "pipeline/rs_render_node_allocator.h"
 #include "pipeline/rs_render_node_gc.h"
 #include "drawable/rs_render_node_shadow_drawable.h"
 
@@ -73,6 +74,24 @@ HWTEST_F(RSRenderNodeGCTest, NodeDestructorInner001, TestSize.Level1)
 
     node.NodeDestructorInner(ptr.get());
     EXPECT_TRUE(ptr != nullptr);
+}
+
+/**
+ * @tc.name: ReleaseNodeBucketTest
+ * @tc.desc: test results of ReleaseNodeBucket
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeGCTest, ReleaseNodeBucketTest, TestSize.Level1)
+{
+    RSRenderNodeGC& gc = RSRenderNodeGC::Instance();
+    RSRenderNodeAllocator& nodeAllocator = RSRenderNodeAllocator::Instance();
+    auto ptr = nodeAllocator.CreateRSCanvasRenderNode(0);
+    std::queue<std::vector<RSRenderNode*>> tempQueue;
+    tempQueue.push({ptr.get()});
+    gc.nodeBucket_.swap(tempQueue);
+    gc.ReleaseNodeBucket();
+    EXPECT_TRUE(gc.nodeBucket_.size() == 0);
 }
 
 /**
