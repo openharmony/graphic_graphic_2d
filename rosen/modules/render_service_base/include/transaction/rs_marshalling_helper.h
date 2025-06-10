@@ -349,10 +349,11 @@ public:
         if (!Unmarshalling(parcel, size)) {
             return false;
         }
-        if (val.size() > maxSize) {
+        if (size > maxSize) {
             return false;
         }
         val.clear();
+        val.reserve(size);
         for (uint32_t i = 0; i < size; ++i) {
             // in-place unmarshalling
             T tmp;

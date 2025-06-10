@@ -573,12 +573,12 @@ RSB_EXPORT size_t RSRenderProperty<Drawing::DrawCmdListPtr>::GetSize() const;
 
 
 #if defined(_WIN32)
-#define DECLARE_PROPERTY(T, TYPE_ENUM) extern template class RSRenderProperty<T>;
-#define DECLARE_ANIMATABLE_PROPERTY(T, TYPE_ENUM) extern template class RSRenderAnimatableProperty<T>;
+#define DECLARE_PROPERTY(T, TYPE_ENUM) extern template class RSRenderProperty<T>
+#define DECLARE_ANIMATABLE_PROPERTY(T, TYPE_ENUM) extern template class RSRenderAnimatableProperty<T>
 #else
 #define DECLARE_PROPERTY(T, TYPE_ENUM) \
     template<>                         \
-    inline const RSPropertyType RSRenderProperty<T>::type_ = RSPropertyType::TYPE_ENUM;
+    inline const RSPropertyType RSRenderProperty<T>::type_ = RSPropertyType::TYPE_ENUM
 #define DECLARE_ANIMATABLE_PROPERTY(T, TYPE_ENUM) DECLARE_PROPERTY(T, TYPE_ENUM)
 #endif
 

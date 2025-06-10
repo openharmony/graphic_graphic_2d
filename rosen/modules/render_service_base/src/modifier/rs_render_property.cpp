@@ -681,8 +681,8 @@ bool RSRenderAnimatableProperty<RRect>::IsNearEqual(
     return true;
 }
 
-#define DECLARE_PROPERTY(T, TYPE_ENUM) template class RSRenderProperty<T>;
-#define DECLARE_ANIMATABLE_PROPERTY(T, TYPE_ENUM) template class RSRenderAnimatableProperty<T>;
+#define DECLARE_PROPERTY(T, TYPE_ENUM) template class RSRenderProperty<T>
+#define DECLARE_ANIMATABLE_PROPERTY(T, TYPE_ENUM) template class RSRenderAnimatableProperty<T>
 
 #include "modifier/rs_property_def.in"
 

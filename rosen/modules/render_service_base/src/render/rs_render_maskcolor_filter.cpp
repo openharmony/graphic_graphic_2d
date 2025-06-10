@@ -14,7 +14,6 @@
  */
 #include "render/rs_render_maskcolor_filter.h"
 
-#include "render/rs_filter.h"
 #ifdef USE_M133_SKIA
 #include "include/core/SkColor.h"
 #include "src/core/SkChecksum.h"

@@ -168,6 +168,7 @@ HWTEST_F(RSRenderPropertyTest, PropertyIPC001, TestSize.Level1)
     props.push_back(std::make_shared<MockRSRenderAnimatableProperty<Quaternion>>());
     props.push_back(std::make_shared<MockRSRenderAnimatableProperty<std::vector<float>>>());
     props.push_back(std::make_shared<MockRSRenderAnimatableProperty<Vector2f>>());
+    props.push_back(std::make_shared<MockRSRenderAnimatableProperty<Vector3f>>());
     props.push_back(std::make_shared<MockRSRenderAnimatableProperty<Vector4f>>());
     props.push_back(std::make_shared<MockRSRenderAnimatableProperty<Vector4<Color>>>());
 
@@ -202,6 +203,7 @@ HWTEST_F(RSRenderPropertyTest, PropertyIPC002, TestSize.Level1)
     props.push_back(std::make_shared<MockRSRenderProperty<Matrix3f>>());
     props.push_back(std::make_shared<MockRSRenderProperty<Quaternion>>());
     props.push_back(std::make_shared<MockRSRenderProperty<Vector2f>>());
+    props.push_back(std::make_shared<MockRSRenderProperty<Vector3f>>());
     props.push_back(std::make_shared<MockRSRenderProperty<Vector4f>>());
     props.push_back(std::make_shared<MockRSRenderProperty<Vector4<Color>>>());
     props.push_back(std::make_shared<MockRSRenderProperty<std::shared_ptr<RSRenderFilter>>>());
