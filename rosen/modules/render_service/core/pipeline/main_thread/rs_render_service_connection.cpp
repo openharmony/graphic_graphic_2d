@@ -1055,22 +1055,22 @@ ErrCode RSRenderServiceConnection::GetRefreshInfo(pid_t pid, std::string& enable
     if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
 #ifdef RS_ENABLE_GPU
         RSHardwareThread::Instance().ScheduleTask(
-            [weakThis = wptr<RSRenderServiceConnection>(this), &dumpString, &pid]() {
+            [weakThis = wptr<RSRenderServiceConnection>(this), &dumpString, &surfaceName]() {
                 sptr<RSRenderServiceConnection> connection = weakThis.promote();
                 if (connection == nullptr || connection->screenManager_ == nullptr) {
                     return;
                 }
-                RSSurfaceFpsManager::GetInstance().DumpByPid(dumpString, pid);
+                connection->screenManager_->FpsDump(dumpString, surfaceName);
             }).wait();
 #endif
     } else {
         mainThread_->ScheduleTask(
-            [weakThis = wptr<RSRenderServiceConnection>(this), &dumpString, &pid]() {
+            [weakThis = wptr<RSRenderServiceConnection>(this), &dumpString, &surfaceName]() {
                 sptr<RSRenderServiceConnection> connection = weakThis.promote();
                 if (connection == nullptr || connection->screenManager_ == nullptr) {
                     return;
                 }
-                RSSurfaceFpsManager::GetInstance().DumpByPid(dumpString, pid);
+                connection->screenManager_->FpsDump(dumpString, surfaceName);
             }).wait();
     }
     enable = dumpString;
