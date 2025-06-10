@@ -1420,5 +1420,34 @@ HWTEST_F(PropertiesTest, GenerateBezierWarpFilter_001, TestSize.Level1)
     properties.GenerateBezierWarpFilter();
     EXPECT_NE(properties.foregroundFilter_, nullptr);
 }
+/**
+ * @tc.name: SetAlwaysSnapshot
+ * @tc.desc: SetAlwaysSnapshot
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, SetAlwaysSnapshotTest, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.GenerateBackgroundFilter();
+    EXPECT_EQ(properties.backgroundFilter_, nullptr);
+
+    properties.SetAlwaysSnapshot(true);
+    EXPECT_EQ(properties.GetAlwaysSnapshot(), true);
+    properties.GenerateBackgroundFilter();
+    ASSERT_NE(properties.backgroundFilter_, nullptr);
+    EXPECT_EQ(properties.backgroundFilter_->GetFilterType(), RSFilter::ALWAYS_SNAPSHOT);
+}
+/**
+ * @tc.name: GenerateAlwaysSnapshotFilterTest
+ * @tc.desc: test GenerateAlwaysSnapshotFilter
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest,  GenerateAlwaysSnapshotFilterTest, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.GenerateAlwaysSnapshotFilter();
+    ASSERT_NE(properties.backgroundFilter_, nullptr);
+    EXPECT_EQ(properties.backgroundFilter_->GetFilterType(), RSFilter::ALWAYS_SNAPSHOT);
+}
 } // namespace Rosen
 } // namespace OHOS
