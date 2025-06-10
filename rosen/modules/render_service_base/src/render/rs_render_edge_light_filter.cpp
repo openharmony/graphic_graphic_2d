@@ -208,11 +208,9 @@ bool RSRenderEdgeLightFilterPara::ParseFilterValues()
     // color
     auto edgeLightColor = std::static_pointer_cast<RSRenderAnimatableProperty<Vector4f>>(
         GetRenderPropert(RSUIFilterType::EDGE_LIGHT_COLOR));
-    if (edgeLightColor == nullptr) {
-        return false;
+    if (edgeLightColor != nullptr) {
+        color_ = edgeLightColor->Get();
     }
-    color_ = edgeLightColor->Get();
-
     // mask
     if (maskType_ != RSUIFilterType::NONE) {
         auto edgeLightMask = std::static_pointer_cast<RSRenderMaskPara>(GetRenderPropert(maskType_));

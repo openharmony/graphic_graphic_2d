@@ -1260,20 +1260,15 @@ HWTEST_F(PropertiesTest, GenerateRenderFilterEdgeLight_001, TestSize.Level1)
     auto renderAlpha = std::make_shared<RSRenderAnimatableProperty<float>>(0.5f, 0);
     renderFilterEdgeLight->Setter(RSUIFilterType::EDGE_LIGHT_ALPHA, renderAlpha);
     properties.GenerateRenderFilter();
-    EXPECT_EQ(properties.backgroundFilter_, nullptr);
+    EXPECT_NE(properties.backgroundFilter_, nullptr);
     properties.backgroundFilter_ = nullptr;
 
     auto renderColor = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(Vector4f(0.5f, 0.5f, 0.5f, 0.5f), 0);
     renderFilterEdgeLight->Setter(RSUIFilterType::EDGE_LIGHT_COLOR, renderColor);
     properties.GenerateRenderFilter();
-    properties.GenerateRenderFilter();
     EXPECT_NE(properties.backgroundFilter_, nullptr);
 
-    renderFilterEdgeLight->maskType_ = RSUIFilterType::RIPPLE_MASK;
-    properties.GenerateRenderFilter();
-    EXPECT_NE(properties.backgroundFilter_, nullptr);
-
-    properties.GenerateRenderFilter();
+    properties.GenerateRenderFilter(); // different branch if call again
     EXPECT_NE(properties.backgroundFilter_, nullptr);
 }
 

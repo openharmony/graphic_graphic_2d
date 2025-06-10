@@ -107,6 +107,10 @@ HWTEST_F(RSRenderBezierWarpFilterTest, GetLeafRenderPropertiesTest001, TestSize.
     EXPECT_TRUE(out.empty());
 }
 
+const std::array<Drawing::Point, BEZIER_WARP_POINT_NUM> POINTS = { { { 1.0f, 2.0f }, { 3.0f, 4.0f }, { 5.0f, 6.0f },
+    { 7.0f, 8.0f }, { 9.0f, 10.0f }, { 11.0f, 12.0f }, { 13.0f, 14.0f }, { 15.0f, 16.0f }, { 17.0f, 18.0f },
+    { 19.0f, 20.0f }, { 21.0f, 22.0f }, { 23.0f, 24.0f } } };
+
 /**
  * @tc.name: GetBezierWarpPointsTest001
  * @tc.desc: Verify function GetBezierWarpPoints
@@ -114,22 +118,8 @@ HWTEST_F(RSRenderBezierWarpFilterTest, GetLeafRenderPropertiesTest001, TestSize.
  */
 HWTEST_F(RSRenderBezierWarpFilterTest, GetBezierWarpPointsTest001, TestSize.Level1)
 {
-    std::array<Drawing::Point, BEZIER_WARP_POINT_NUM> points = {{
-        {1.0f, 2.0f},
-        {3.0f, 4.0f},
-        {5.0f, 6.0f},
-        {7.0f, 8.0f},
-        {9.0f, 10.0f},
-        {11.0f, 12.0f},
-        {13.0f, 14.0f},
-        {15.0f, 16.0f},
-        {17.0f, 18.0f},
-        {19.0f, 20.0f},
-        {21.0f, 22.0f},
-        {23.0f, 24.0f}
-    }};
     auto rsBezierWarpFilter = std::make_shared<RSRenderBezierWarpFilterPara>(0);
-    rsBezierWarpFilter->destinationPatch_ = points;
+    rsBezierWarpFilter->destinationPatch_ = POINTS;
     auto bezierWarpPoints = rsBezierWarpFilter->GetBezierWarpPoints();
     EXPECT_EQ(bezierWarpPoints.size(), BEZIER_WARP_POINT_NUM);
 }
@@ -141,26 +131,27 @@ HWTEST_F(RSRenderBezierWarpFilterTest, GetBezierWarpPointsTest001, TestSize.Leve
  */
 HWTEST_F(RSRenderBezierWarpFilterTest, GenerateGEVisualEffectTest001, TestSize.Level1)
 {
-    std::array<Drawing::Point, BEZIER_WARP_POINT_NUM> points = {{
-        {1.0f, 2.0f},
-        {3.0f, 4.0f},
-        {5.0f, 6.0f},
-        {7.0f, 8.0f},
-        {9.0f, 10.0f},
-        {11.0f, 12.0f},
-        {13.0f, 14.0f},
-        {15.0f, 16.0f},
-        {17.0f, 18.0f},
-        {19.0f, 20.0f},
-        {21.0f, 22.0f},
-        {23.0f, 24.0f}
-    }};
     auto rsBezierWarpFilter = std::make_shared<RSRenderBezierWarpFilterPara>(0);
-    rsBezierWarpFilter->destinationPatch_ = points;
+    rsBezierWarpFilter->destinationPatch_ = POINTS;
     auto visualEffectContainer = std::make_shared<Drawing::GEVisualEffectContainer>();
     rsBezierWarpFilter->GenerateGEVisualEffect(visualEffectContainer);
     EXPECT_FALSE(visualEffectContainer->filterVec_.empty());
 }
+
+constexpr std::array<RSUIFilterType, BEZIER_WARP_POINT_NUM> POINTS_TYPE = {
+    RSUIFilterType::BEZIER_CONTROL_POINT0,
+    RSUIFilterType::BEZIER_CONTROL_POINT1,
+    RSUIFilterType::BEZIER_CONTROL_POINT2,
+    RSUIFilterType::BEZIER_CONTROL_POINT3,
+    RSUIFilterType::BEZIER_CONTROL_POINT4,
+    RSUIFilterType::BEZIER_CONTROL_POINT5,
+    RSUIFilterType::BEZIER_CONTROL_POINT6,
+    RSUIFilterType::BEZIER_CONTROL_POINT7,
+    RSUIFilterType::BEZIER_CONTROL_POINT8,
+    RSUIFilterType::BEZIER_CONTROL_POINT9,
+    RSUIFilterType::BEZIER_CONTROL_POINT10,
+    RSUIFilterType::BEZIER_CONTROL_POINT11,
+};
 
 /**
  * @tc.name: ParseFilterValuesTest001
@@ -172,23 +163,9 @@ HWTEST_F(RSRenderBezierWarpFilterTest, ParseFilterValuesTest001, TestSize.Level1
     auto rsBezierWarpFilter = std::make_shared<RSRenderBezierWarpFilterPara>(0);
     EXPECT_FALSE(rsBezierWarpFilter->ParseFilterValues());
 
-    std::array<RSUIFilterType, BEZIER_WARP_POINT_NUM> ctrlPointsType = {
-        RSUIFilterType::BEZIER_CONTROL_POINT0,
-        RSUIFilterType::BEZIER_CONTROL_POINT1,
-        RSUIFilterType::BEZIER_CONTROL_POINT2,
-        RSUIFilterType::BEZIER_CONTROL_POINT3,
-        RSUIFilterType::BEZIER_CONTROL_POINT4,
-        RSUIFilterType::BEZIER_CONTROL_POINT5,
-        RSUIFilterType::BEZIER_CONTROL_POINT6,
-        RSUIFilterType::BEZIER_CONTROL_POINT7,
-        RSUIFilterType::BEZIER_CONTROL_POINT8,
-        RSUIFilterType::BEZIER_CONTROL_POINT9,
-        RSUIFilterType::BEZIER_CONTROL_POINT10,
-        RSUIFilterType::BEZIER_CONTROL_POINT11,
-    };
     for (int i = 0; i < BEZIER_WARP_POINT_NUM; i++) {
         auto renderProperty = std::make_shared<RSRenderAnimatableProperty<Vector2f>>(Vector2f(0.f, 0.f), 0);
-        rsBezierWarpFilter->Setter(ctrlPointsType[i], renderProperty);
+        rsBezierWarpFilter->Setter(POINTS_TYPE[i], renderProperty);
     }
     EXPECT_TRUE(rsBezierWarpFilter->ParseFilterValues());
 }
@@ -203,23 +180,9 @@ HWTEST_F(RSRenderBezierWarpFilterTest, ParseFilterValuesTest002, TestSize.Level1
     auto rsBezierWarpFilter = std::make_shared<RSRenderBezierWarpFilterPara>(0);
     EXPECT_FALSE(rsBezierWarpFilter->ParseFilterValues());
 
-    std::array<RSUIFilterType, BEZIER_WARP_POINT_NUM> ctrlPointsType = {
-        RSUIFilterType::BEZIER_CONTROL_POINT0,
-        RSUIFilterType::BEZIER_CONTROL_POINT1,
-        RSUIFilterType::BEZIER_CONTROL_POINT2,
-        RSUIFilterType::BEZIER_CONTROL_POINT3,
-        RSUIFilterType::BEZIER_CONTROL_POINT4,
-        RSUIFilterType::BEZIER_CONTROL_POINT5,
-        RSUIFilterType::BEZIER_CONTROL_POINT6,
-        RSUIFilterType::BEZIER_CONTROL_POINT7,
-        RSUIFilterType::BEZIER_CONTROL_POINT8,
-        RSUIFilterType::BEZIER_CONTROL_POINT9,
-        RSUIFilterType::BEZIER_CONTROL_POINT10,
-        RSUIFilterType::BEZIER_CONTROL_POINT11,
-    };
     for (int i = 0; i < BEZIER_WARP_POINT_NUM - 1; i++) {
         auto renderProperty = std::make_shared<RSRenderAnimatableProperty<Vector2f>>(Vector2f(0.f, 0.f), 0);
-        rsBezierWarpFilter->Setter(ctrlPointsType[i], renderProperty);
+        rsBezierWarpFilter->Setter(POINTS_TYPE[i], renderProperty);
     }
     EXPECT_FALSE(rsBezierWarpFilter->ParseFilterValues());
 }

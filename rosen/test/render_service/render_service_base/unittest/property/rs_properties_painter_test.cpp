@@ -710,7 +710,7 @@ HWTEST_F(RSPropertiesPainterTest, DrawFilter002, TestSize.Level1)
  * @tc.name: DrawFilter003
  * @tc.desc: test results of DrawFilter
  * @tc.type:FUNC
- * @tc.require:
+ * @tc.require:issuesICBIDA
  */
 HWTEST_F(RSPropertiesPainterTest, DrawFilter003, TestSize.Level1)
 {
@@ -721,14 +721,15 @@ HWTEST_F(RSPropertiesPainterTest, DrawFilter003, TestSize.Level1)
     RSPaintFilterCanvas canvas(&drawingCanvas);
     canvas.surface_ = nullptr;
     RSPropertiesPainter::DrawFilter(properties, canvas, FilterType::BACKGROUND_FILTER);
-    EXPECT_NE(kawaseBlurFilter, nullptr);
+    int res = RSPropertiesPainter::GetAndResetBlurCnt();
+    EXPECT_NE(res, 0);
 }
 
 /**
  * @tc.name: DrawFilter004
  * @tc.desc: test results of DrawFilter
  * @tc.type:FUNC
- * @tc.require:
+ * @tc.require:issuesICBIDA
  */
 HWTEST_F(RSPropertiesPainterTest, DrawFilter004, TestSize.Level1)
 {

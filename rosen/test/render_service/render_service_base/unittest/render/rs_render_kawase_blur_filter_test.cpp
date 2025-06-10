@@ -52,9 +52,9 @@ HWTEST_F(RSKawaseBlurShaderFilterTest, GetRadiusTest, TestSize.Level1)
 
 /**
  * @tc.name: GetDescriptionTest
- * @tc.desc: Verify function GetRadius
+ * @tc.desc: Verify function GetDescription
  * @tc.type:FUNC
- * @tc.require: issuesI9UWCD
+ * @tc.require: issuesICBIDA
  */
 HWTEST_F(RSKawaseBlurShaderFilterTest, GetDescriptionTest, TestSize.Level1)
 {
