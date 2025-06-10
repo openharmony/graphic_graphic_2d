@@ -23,6 +23,7 @@ ohos_unittest("rosen_text_skia_txt_test") {
     "asset_font_manager_test.cpp",
     "drawing_painter_impl_test.cpp",
     "font_collection_test.cpp",
+    "font_mgr_test.cpp",
     "paint_record_test.cpp",
     "paragraph_builder_test.cpp",
     "paragraph_style_test.cpp",
@@ -68,14 +69,10 @@ ohos_unittest("rosen_text_skia_txt_test") {
       "samgr:samgr_proxy",
     ]
     if (use_new_skia) {
-      external_deps += [
-        "skia:skia_paragraph_ohos_new",
-      ]
+      external_deps += [ "skia:skia_paragraph_ohos_new" ]
     } else {
-      external_deps += [
-        "skia:skia_paragraph_ohos",
-      ]
-    }      
+      external_deps += [ "skia:skia_paragraph_ohos" ]
+    }
     defines = [ "ENABLE_OHOS_ENHANCE" ]
   }
 
