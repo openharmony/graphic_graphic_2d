@@ -37,7 +37,9 @@ group("eventhandler") {
 }
 
 config("eventhandler_config") {
-  include_dirs = [ "eventhandler" ]
+  if (!(platform == "ohos" || cross_platform)) {
+    include_dirs = [ "eventhandler" ]
+  }
 }
 
 ohos_source_set("impl_eventhandler") {
@@ -76,7 +78,7 @@ ohos_source_set("hilog") {
   if (current_os == "android" || current_os == "ios") {
     public_deps = hilog_deps
   } else {
-    external_deps = [ "hilog:libhilog" ]
+    public_external_deps = [ "hilog:libhilog" ]
   }
   part_name = "graphic_2d"
   subsystem_name = "graphic"
@@ -96,7 +98,9 @@ group("image_native") {
 }
 
 config("image_native_config") {
-  include_dirs = [ "image_native" ]
+  if (!(platform == "ohos" || platform == "android" || platform == "ios")) {
+    include_dirs = [ "image_native" ]
+  }
 }
 
 ohos_source_set("mock_image_native") {
@@ -120,7 +124,9 @@ group("ipc_core") {
 }
 
 config("ipc_core_config") {
-  include_dirs = [ "ipc_core" ]
+  if (platform != "ohos") {
+    include_dirs = [ "ipc_core" ]
+  }
 }
 
 ohos_source_set("mock_ipc_core") {
@@ -155,7 +161,13 @@ group("utils") {
 }
 
 config("utils_config") {
-  include_dirs = [ "utils" ]
+  if (!(platform == "ohos" || platform == "android" || platform == "ios")) {
+    include_dirs = [ "utils" ]
+  }
+
+  if (platform == "ios") {
+    defines = [ "IOS_PLATFORM" ]
+  }
 }
 
 config("ios_utils_config") {
@@ -179,4 +191,15 @@ ohos_source_set("mock_utils") {
   part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
+
 # utils }}}
+
+group("platform") {
+  public_deps = [
+    ":ace_skia",
+    ":eventhandler",
+    ":hilog",
+    ":ipc_core",
+    ":utils",
+  ]
+}

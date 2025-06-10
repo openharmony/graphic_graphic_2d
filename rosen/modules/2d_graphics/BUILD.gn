@@ -411,11 +411,12 @@ if (!is_arkui_x) {
     }
     deps = [ ":2d_graphics_source_$platform" ]
 
-    external_deps = [
-      "bounds_checking_function:libsec_static",
+    external_deps = [ "bounds_checking_function:libsec_static" ]
+    public_external_deps = [
       "hilog:libhilog",
+      "skia:skia_canvaskit",
     ]
-    public_external_deps = [ "skia:skia_canvaskit" ]
+
     public_configs = [ ":export_config" ]
 
     if (platform == "ohos") {
