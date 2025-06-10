@@ -47,6 +47,8 @@ public:
 
     void SetRenderColor(const std::vector<RSSColor>& colorList);
 
+    void SetSymbolColor(const SymbolColor& symbolColor);
+
     void SetRenderMode(RSSymbolRenderingStrategy renderMode);
 
     void SetSymbolEffect(const RSEffectStrategy& effectStrategy);
@@ -84,8 +86,6 @@ public:
     {
         return symbolTxt_;
     }
-
-    void SetGradients(const std::vector<std::shared_ptr<SymbolGradient>>& gradients);
 
 private:
     void OnDrawSymbol(RSCanvas* canvas, const RSHMSymbolData& symbolData, RSPoint locate);

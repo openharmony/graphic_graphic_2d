@@ -29,11 +29,6 @@ namespace OHOS {
 namespace Rosen {
 namespace SPText {
 
-struct SymbolColor {
-    SymbolColorType colorType = SymbolColorType::COLOR_TYPE;
-    std::vector<std::shared_ptr<SymbolGradient>> gradients;
-};
-
 class HMSymbolTxt {
 public:
     HMSymbolTxt() {}

@@ -236,6 +236,11 @@ void HMSymbolRun::SetRenderColor(const std::vector<RSSColor>& colorList)
     symbolTxt_.SetRenderColor(colorList);
 }
 
+void HMSymbolRun::SetSymbolColor(const SymbolColor& symbolColor)
+{
+    symbolTxt_.SetSymbolColor(symbolColor);
+}
+
 void HMSymbolRun::SetRenderMode(RSSymbolRenderingStrategy renderMode)
 {
     symbolTxt_.SetRenderMode(renderMode);
@@ -286,11 +291,6 @@ void HMSymbolRun::SetTextBlob(const std::shared_ptr<RSTextBlob>& textBlob)
         }
         textBlob_ = textBlob;
     }
-}
-
-void HMSymbolRun::SetGradients(const std::vector<std::shared_ptr<SymbolGradient>>& gradients)
-{
-    symbolTxt_.SetGradients(gradients);
 }
 
 void HMSymbolRun::DrawPaths(RSCanvas* canvas, const std::vector<RSPath>& multPaths,

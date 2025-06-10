@@ -129,7 +129,6 @@ static std::string RemoveQuotes(const std::string& str)
 void CopyTextStyleSymbol(const TextStyle& style, SPText::TextStyle& textStyle)
 {
     textStyle.symbol.SetSymbolType(style.symbol.GetSymbolType());
-    textStyle.symbol.SetRenderColor(style.symbol.GetRenderColor());
     textStyle.symbol.SetRenderMode(style.symbol.GetRenderMode());
     textStyle.symbol.SetSymbolEffect(style.symbol.GetEffectStrategy());
     textStyle.symbol.SetAnimationMode(style.symbol.GetAnimationMode());
@@ -138,6 +137,7 @@ void CopyTextStyleSymbol(const TextStyle& style, SPText::TextStyle& textStyle)
     textStyle.symbol.SetCommonSubType(style.symbol.GetCommonSubType());
     textStyle.symbol.SetSymbolUid(style.symbol.GetSymbolUid());
     textStyle.symbol.SetSymbolBitmap(style.symbol.GetSymbolBitmap());
+    textStyle.symbol.SetSymbolColor(style.symbol.GetSymbolColor());
     for (auto [tag, value] : style.symbol.GetVisualMap()) {
         textStyle.fontFeatures.SetFeature(RemoveQuotes(tag), value);
     }
@@ -219,7 +219,7 @@ SPText::TextStyle Convert(const TextStyle& style)
 
 void CopyTextStyleSymbol(const SPText::TextStyle& style, TextStyle& textStyle)
 {
-    textStyle.symbol.SetRenderColor(style.symbol.GetRenderColor());
+    textStyle.symbol.SetSymbolColor(style.symbol.GetSymbolColor());
     textStyle.symbol.SetRenderMode(style.symbol.GetRenderMode());
     textStyle.symbol.SetSymbolEffect(style.symbol.GetEffectStrategy());
     textStyle.symbol.SetAnimationMode(style.symbol.GetAnimationMode());

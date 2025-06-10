@@ -971,7 +971,7 @@ HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest024, TestSize.Le
     std::vector<Drawing::DrawingSColor> colors;
     colors.push_back({1.0, 255, 0, 0});
     colors.push_back({1.0, 0, 255, 0});
-    textStyle.symbol.colorList_ = colors;
+    textStyle.symbol.SetRenderColor(colors);
 
     textStyle.symbol.SetRenderMode(Drawing::DrawingSymbolRenderingStrategy::MULTIPLE_OPACITY);
     std::bitset<static_cast<size_t>(RelayoutSymbolStyleAttribute::SYMBOL_ATTRIBUTE_BUTT)> symbolStyleBitset;

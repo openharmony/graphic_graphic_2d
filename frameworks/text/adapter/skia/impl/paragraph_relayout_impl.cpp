@@ -493,10 +493,13 @@ namespace {
             symbolRun->SetCommonSubType(symbolStyle.GetCommonSubType());
         },
         [](const HMSymbolTxt& symbolStyle, std::shared_ptr<HMSymbolRun>& symbolRun, skt::InternalState& state) {
-            symbolRun->SetRenderColor(symbolStyle.GetRenderColor());
+            symbolRun->SetSymbolColor(symbolStyle.GetSymbolColor());
         },
         [](const HMSymbolTxt& symbolStyle, std::shared_ptr<HMSymbolRun>& symbolRun, skt::InternalState& state) {
             symbolRun->SetRenderMode(symbolStyle.GetRenderMode());
+        },
+        [](const HMSymbolTxt& symbolStyle, std::shared_ptr<HMSymbolRun>& symbolRun, skt::InternalState& state) {
+            symbolRun->SetSymbolColor(symbolStyle.GetSymbolColor());
         },
     };
 }
