@@ -271,7 +271,7 @@ ohos_unittest("RSComposerAdapterTest") {
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
   }
-  defines = []
+  defines = ["RS_SUBSCRIBE_SENSOR_ENABLE"]
   defines += gpu_defines
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
     defines += [ "USE_ROSEN_DRAWING" ]
@@ -444,7 +444,7 @@ ohos_unittest("RSUniRenderComposerAdapterTest") {
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
   }
-  defines = []
+  defines = ["RS_SUBSCRIBE_SENSOR_ENABLE"]
   defines += gpu_defines
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
     defines += [ "USE_ROSEN_DRAWING" ]

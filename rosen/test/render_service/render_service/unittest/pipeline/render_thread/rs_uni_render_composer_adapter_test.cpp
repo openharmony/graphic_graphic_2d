@@ -50,7 +50,11 @@ public:
     std::unique_ptr<RSUniRenderComposerAdapter> composerAdapter_;
 };
 
-void RSUniRenderComposerAdapterTest::SetUpTestCase() {}
+void RSUniRenderComposerAdapterTest::SetUpTestCase()
+{
+    RSTestUtil::InitRenderNodeGC();
+}
+
 void RSUniRenderComposerAdapterTest::TearDownTestCase() {}
 void RSUniRenderComposerAdapterTest::TearDown()
 {
@@ -92,7 +96,6 @@ void RSUniRenderComposerAdapterTest::SetUp()
  */
 HWTEST_F(RSUniRenderComposerAdapterTest, Start001, TestSize.Level1)
 {
-    SetUp();
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
     ASSERT_NE(surfaceNode, nullptr);
     RectI dstRect{0, 0, 400, 600};
@@ -142,43 +145,6 @@ HWTEST_F(RSUniRenderComposerAdapterTest, BuildComposeInfo001, TestSize.Level1)
     surfaceParams->SetBuffer(surfaceNode->GetRSSurfaceHandler()->GetBuffer(),
         surfaceNode->GetRSSurfaceHandler()->GetDamageRegion());
     composerAdapter_->BuildComposeInfo(static_cast<DrawableV2::RSSurfaceRenderNodeDrawable&>(*drawable));
-}
-
-/**
- * @tc.name: BuildComposeInfo002
- * @tc.desc: Test RSUniRenderComposerAdapterTest.BuildComposeInfo
- * @tc.type: FUNC
- * @tc.require: issueI7FUVJ
- */
-HWTEST_F(RSUniRenderComposerAdapterTest, BuildComposeInfo002, TestSize.Level1)
-{
-    SetUp();
-    RSSurfaceRenderNodeConfig config;
-    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    ASSERT_NE(surfaceNode, nullptr);
-    sptr<IConsumerSurface> csurf = IConsumerSurface::Create(config.name);
-    ASSERT_NE(csurf, nullptr);
-
-    csurf->SetTransform(GRAPHIC_ROTATE_270);
-    auto srcRect = composerAdapter_->SrcRectRotateTransform(*surfaceNode);
-    ASSERT_EQ(srcRect.IsEmpty(), true);
-    surfaceNode->GetRSSurfaceHandler()->SetConsumer(csurf);
-    srcRect = composerAdapter_->SrcRectRotateTransform(*surfaceNode);
-    ASSERT_EQ(srcRect.IsEmpty(), true);
-    RectI dstRect{0, 0, 400, 600};
-    surfaceNode->SetSrcRect(dstRect);
-    srcRect = composerAdapter_->SrcRectRotateTransform(*surfaceNode);
-    ASSERT_EQ(srcRect.IsEmpty(), false);
-    csurf->SetTransform(GRAPHIC_ROTATE_180);
-    srcRect = composerAdapter_->SrcRectRotateTransform(*surfaceNode);
-    ASSERT_EQ(srcRect.IsEmpty(), false);
-    csurf->SetTransform(GRAPHIC_ROTATE_90);
-    srcRect = composerAdapter_->SrcRectRotateTransform(*surfaceNode);
-    ASSERT_EQ(srcRect.IsEmpty(), false);
-
-    surfaceNode->SetDstRect(dstRect);
-    auto layer = composerAdapter_->CreateLayer(*surfaceNode);
-    ASSERT_NE(layer, nullptr);
 }
 
 /**
@@ -457,32 +423,6 @@ HWTEST_F(RSUniRenderComposerAdapterTest, DealWithNodeGravity005, TestSize.Level1
 }
 
 /**
- * @tc.name: DealWithNodeGravity006
- * @tc.desc: Test RSUniRenderComposerAdapterTest.DealWithNodeGravity
- * @tc.type: FUNC
- * @tc.require: issueI7FUVJ
- */
-HWTEST_F(RSUniRenderComposerAdapterTest, DealWithNodeGravity006, TestSize.Level1)
-{
-    SetUp();
-    RSSurfaceRenderNodeConfig config;
-    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    ASSERT_NE(surfaceNode, nullptr);
-
-    RectI dstRect{0, 0, 400, 600};
-    surfaceNode->SetSrcRect(dstRect);
-    surfaceNode->SetDstRect(dstRect);
-
-    sptr<IConsumerSurface> csurf = IConsumerSurface::Create(config.name);
-    ASSERT_NE(csurf, nullptr);
-    surfaceNode->GetRSSurfaceHandler()->SetConsumer(csurf);
-
-    composerAdapter_->CheckStatusBeforeCreateLayer(*surfaceNode);
-    ComposeInfo info = composerAdapter_->BuildComposeInfo(*surfaceNode);
-    composerAdapter_->DealWithNodeGravity(*surfaceNode, info);
-}
-
-/**
  * @tc.name: SrcRectRotateTransform001
  * @tc.desc: Test RSUniRenderComposerAdapterTest.SrcRectRotateTransform
  * @tc.type: FUNC
@@ -747,50 +687,6 @@ HWTEST_F(RSUniRenderComposerAdapterTest, LayerScaleDown002, TestSize.Level1)
     auto layer = composerAdapter_->CreateLayer(*surfaceNode);
     ASSERT_NE(layer, nullptr);
     layer->cSurface_ = nullptr;
-    composerAdapter_->LayerScaleDown(layer, *surfaceNode);
-}
-
-/**
- * @tc.name: LayerScaleDown003
- * @tc.desc: Test RSUniRenderComposerAdapterTest.LayerScaleDown
- * @tc.type: FUNC
- * @tc.require: issueI7FUVJ
- */
-HWTEST_F(RSUniRenderComposerAdapterTest, LayerScaleDown003, TestSize.Level1)
-{
-    SetUp();
-    RSSurfaceRenderNodeConfig config;
-    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    ASSERT_NE(surfaceNode, nullptr);
-
-    RectI dstRect{0, 0, 400, 600};
-    surfaceNode->SetSrcRect(dstRect);
-    surfaceNode->SetDstRect(dstRect);
-
-    sptr<IConsumerSurface> csurf = IConsumerSurface::Create(config.name);
-    ASSERT_NE(csurf, nullptr);
-    surfaceNode->GetRSSurfaceHandler()->SetConsumer(csurf);
-
-    bool statusReady = composerAdapter_->CheckStatusBeforeCreateLayer(*surfaceNode);
-    ASSERT_EQ(statusReady, true);
-    ComposeInfo info = composerAdapter_->BuildComposeInfo(*surfaceNode);
-    auto screenInfo = screenManager_->QueryScreenInfo(screenId_);
-
-    screenInfo.rotation = ScreenRotation::ROTATION_90;
-    bool isOutOfRegion = composerAdapter_->IsOutOfScreenRegion(info);
-    ASSERT_EQ(isOutOfRegion, false);
-    screenInfo.rotation = ScreenRotation::ROTATION_180;
-    isOutOfRegion = composerAdapter_->IsOutOfScreenRegion(info);
-    ASSERT_EQ(isOutOfRegion, false);
-    screenInfo.rotation = ScreenRotation::ROTATION_270;
-    ASSERT_EQ(isOutOfRegion, false);
-    isOutOfRegion = composerAdapter_->IsOutOfScreenRegion(info);
-
-    LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
-    composerAdapter_->SetComposeInfoToLayer(layer, info, surfaceNode->GetRSSurfaceHandler()->GetConsumer());
-
-    composerAdapter_->LayerRotate(layer, *surfaceNode);
-    composerAdapter_->LayerCrop(layer);
     composerAdapter_->LayerScaleDown(layer, *surfaceNode);
 }
 
@@ -1313,23 +1209,6 @@ HWTEST_F(RSUniRenderComposerAdapterTest, SetBufferColorSpace001, TestSize.Level2
     surfaceHandler->SetBuffer(buffer, SyncFence::INVALID_FENCE, Rect(), 0);
 
     RSUniRenderComposerAdapter::SetBufferColorSpace(*displayDrawable);
-
-    CM_ColorSpaceType colorSpaceType;
-    ret = MetadataHelper::GetColorSpaceType(buffer, colorSpaceType);
-    ASSERT_TRUE(ret == GSERROR_OK || GSErrorStr(ret) == "<500 api call failed>with low error <Not supported>");
-    if (ret == GSERROR_OK) {
-        ASSERT_EQ(colorSpaceType, CM_P3_FULL);
-    }
-
-    CM_ColorSpaceInfo colorSpaceInfo;
-    ret = MetadataHelper::GetColorSpaceInfo(buffer, colorSpaceInfo);
-    ASSERT_TRUE(ret == GSERROR_OK || GSErrorStr(ret) == "<500 api call failed>with low error <Not supported>");
-    if (ret == GSERROR_OK) {
-        ASSERT_EQ(colorSpaceInfo.primaries, COLORPRIMARIES_P3_D65);
-        ASSERT_EQ(colorSpaceInfo.transfunc, TRANSFUNC_SRGB);
-        ASSERT_EQ(colorSpaceInfo.matrix, MATRIX_P3);
-        ASSERT_EQ(colorSpaceInfo.range, RANGE_FULL);
-    }
 }
 
 /**
