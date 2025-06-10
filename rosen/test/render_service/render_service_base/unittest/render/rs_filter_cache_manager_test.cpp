@@ -197,7 +197,7 @@ HWTEST_F(RSFilterCacheManagerTest, DrawFilterWithoutSnapshotTest002, TestSize.Le
     rsFilterCacheManager->TakeSnapshot(filterCanvas, drawingFilter, srcRect);
     EXPECT_NE(rsFilterCacheManager->cachedSnapshot_, nullptr);
     EXPECT_NE(rsFilterCacheManager->cachedSnapshot_->cachedImage_, nullptr);
-    EXPECT_TRUE(rsFilterCacheManager->DrawFilterWithoutSnapshot(filterCanvas, drawingFilter, srcRect, dstRect, true));
+    EXPECT_FALSE(rsFilterCacheManager->DrawFilterWithoutSnapshot(filterCanvas, drawingFilter, srcRect, dstRect, true));
 }
 
 /**

@@ -96,7 +96,6 @@ bool RSRenderPixelMapMaskPara::WriteToParcel(Parcel& parcel)
 
 bool RSRenderPixelMapMaskPara::ReadFromParcel(Parcel& parcel)
 {
-    cacheImage_ = nullptr;
     if (!RSMarshallingHelper::Unmarshalling(parcel, id_) ||
         !RSMarshallingHelper::Unmarshalling(parcel, type_) ||
         !RSMarshallingHelper::Unmarshalling(parcel, modifierType_)) {
@@ -118,23 +117,11 @@ bool RSRenderPixelMapMaskPara::ReadFromParcel(Parcel& parcel)
     }
 
     properties_.clear();
-    std::shared_ptr<Media::PixelMap> pixelMap = nullptr;
-    if (!RSMarshallingHelper::Unmarshalling(parcel, pixelMap)) {
+    cacheImage_ = nullptr;
+    if (!ReadPixelMapFromParcel(parcel)) {
         ROSEN_LOGE("RSRenderPixelMapMaskPara::ReadFromParcel unmarshall pixel map failed");
         return false;
     }
-    if (pixelMap == nullptr) {
-        ROSEN_LOGE("RSRenderPixelMapMaskPara::ReadFromParcel unmarshall null pixel map");
-        return false;
-    }
-
-    auto pixelMapProperty = std::make_shared<RSRenderProperty<std::shared_ptr<Media::PixelMap>>>(pixelMap, 0);
-    cacheImage_ = RSPixelMapUtil::ExtractDrawingImage(pixelMap);
-    if (cacheImage_ == nullptr) {
-        ROSEN_LOGE("RSRenderPixelMapMaskPara::ReadFromParcel extract image from pixel map failed");
-        return false;
-    }
-    Setter(RSUIFilterType::PIXEL_MAP_MASK_PIXEL_MAP, pixelMapProperty);
 
     for (size_t i = 1; i < size; ++i) {
         RSUIFilterType key;
@@ -154,6 +141,28 @@ bool RSRenderPixelMapMaskPara::ReadFromParcel(Parcel& parcel)
     return true;
 }
 
+bool RSRenderPixelMapMaskPara::ReadPixelMapFromParcel(Parcel& parcel)
+{
+    std::shared_ptr<Media::PixelMap> pixelMap = nullptr;
+    if (!RSMarshallingHelper::Unmarshalling(parcel, pixelMap)) {
+        ROSEN_LOGE("RSRenderPixelMapMaskPara::ReadPixelMapFromParcel unmarshall pixel map failed");
+        return false;
+    }
+    if (pixelMap == nullptr) {
+        ROSEN_LOGE("RSRenderPixelMapMaskPara::ReadPixelMapFromParcel unmarshall null pixel map");
+        return false;
+    }
+
+    auto pixelMapProperty = std::make_shared<RSRenderProperty<std::shared_ptr<Media::PixelMap>>>(pixelMap, 0);
+    cacheImage_ = RSPixelMapUtil::ExtractDrawingImage(pixelMap);
+    if (cacheImage_ == nullptr) {
+        ROSEN_LOGE("RSRenderPixelMapMaskPara::ReadPixelMapFromParcel extract image from pixel map failed");
+        return false;
+    }
+    Setter(RSUIFilterType::PIXEL_MAP_MASK_PIXEL_MAP, pixelMapProperty);
+    return true;
+}
+
 std::vector<std::shared_ptr<RSRenderPropertyBase>> RSRenderPixelMapMaskPara::GetLeafRenderProperties()
 {
     std::vector<std::shared_ptr<RSRenderPropertyBase>> out;
@@ -166,6 +175,33 @@ std::vector<std::shared_ptr<RSRenderPropertyBase>> RSRenderPixelMapMaskPara::Get
 const std::shared_ptr<Drawing::Image> RSRenderPixelMapMaskPara::GetImage() const
 {
     return cacheImage_;
+}
+
+uint32_t RSRenderPixelMapMaskPara::CalcHash()
+{
+#ifndef ENABLE_M133_SKIA
+    const auto hashFunc = SkOpts::hash;
+#else
+    const auto hashFunc = SkChecksum::Hash32;
+#endif
+    auto image = GetImage();
+    auto srcProp = GetRenderAnimatableProperty<Vector4f>(RSUIFilterType::PIXEL_MAP_MASK_SRC);
+    auto dstProp = GetRenderAnimatableProperty<Vector4f>(RSUIFilterType::PIXEL_MAP_MASK_DST);
+    auto fillColorProp = GetRenderAnimatableProperty<Vector4f>(RSUIFilterType::PIXEL_MAP_MASK_FILL_COLOR);
+    if (image == nullptr || srcProp == nullptr || dstProp == nullptr || fillColorProp == nullptr) {
+        ROSEN_LOGE("RSRenderPixelMapMaskPara::CalcHash some property not found");
+        return 0;
+    }
+    auto imageUniqueID = image->GetUniqueID();
+    auto src = srcProp->Get();
+    auto dst = dstProp->Get();
+    auto fillColor = fillColorProp->Get();
+    uint32_t hash = 0;
+    hash = hashFunc(&imageUniqueID, sizeof(imageUniqueID), hash);
+    hash = hashFunc(&src, sizeof(src), hash);
+    hash = hashFunc(&dst, sizeof(dst), hash);
+    hash = hashFunc(&fillColor, sizeof(fillColor), hash);
+    return hash;
 }
 } // namespace Rosen
 } // namespace OHOS

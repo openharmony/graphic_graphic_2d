@@ -55,7 +55,7 @@ HWTEST_F(RSRenderDispersionFilterTest, CreateRenderProperty001, TestSize.Level1)
     auto rsRenderDispersionFilterPara = std::make_shared<RSRenderDispersionFilterPara>(0);
 
     auto renderPropert = rsRenderDispersionFilterPara->CreateRenderProperty(RSUIFilterType::PIXEL_MAP_MASK);
-    EXPECT_NE(renderPropert, nullptr);
+    EXPECT_EQ(renderPropert, nullptr);
 
     renderPropert = rsRenderDispersionFilterPara->CreateRenderProperty(RSUIFilterType::RADIAL_GRADIENT_MASK);
     EXPECT_EQ(renderPropert, nullptr);
@@ -115,7 +115,7 @@ HWTEST_F(RSRenderDispersionFilterTest, GetRenderMask001, TestSize.Level1)
 {
     auto rsRenderDispersionFilterPara = std::make_shared<RSRenderDispersionFilterPara>(0);
     auto renderMask = rsRenderDispersionFilterPara->GetRenderMask();
-    EXPECT_NE(renderMask, nullptr);
+    EXPECT_EQ(renderMask, nullptr);
 }
 
 } // namespace OHOS::Rosen

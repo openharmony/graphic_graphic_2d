@@ -894,5 +894,40 @@ HWTEST_F(RSHpsBlurTest, ApplyHpsBlurTest009, TestSize.Level1)
     HpsBlurFilter filter;
     EXPECT_EQ(filter.ApplyHpsBlur(*canvas, image, param, alpha, colorFilter), false);
 }
+
+/**
+ * @tc.name: ApplymaskColorFilterTest001
+ * @tc.desc: Verify function ApplymaskColorFilter
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSHpsBlurTest, ApplymaskColorFilterTest001, TestSize.Level1)
+{
+    Drawing::Canvas canvas;
+    HpsBlurFilter filter;
+    float alpha1 = 0.0f;
+    RSColor maskColor1 = RSColor();
+    float newAlpha1 = filter.ApplyMaskColorFilter(canvas, alpha1, maskColor1);
+    EXPECT_EQ(alpha1, newAlpha1);
+
+    float alpha2 = 0.0f;
+    RSColor maskColor2 = RSColor(255, 0, 0, 255); // maskColor1 r 255, g 0, b 0, a 255
+    float newAlpha2 = filter.ApplyMaskColorFilter(canvas, alpha2, maskColor2);
+    EXPECT_NE(alpha2, newAlpha2);
+
+    float alpha3 = 0.0f;
+    RSColor maskColor3 = RSColor(255, 255, 255, 0); // maskColor1 r 0, g 255, b 255, a 255
+    float newAlpha3 = filter.ApplyMaskColorFilter(canvas, alpha3, maskColor3);
+    EXPECT_EQ(alpha3, newAlpha3);
+
+    float alpha4 = 0.5f;
+    RSColor maskColor4 = RSColor(255, 255, 0, 255); // maskColor1 r 255, g 255, b 0, a 255
+    float newAlpha4 = filter.ApplyMaskColorFilter(canvas, alpha4, maskColor4);
+    EXPECT_NE(alpha4, newAlpha4);
+
+    float alpha5 = 1.0f;
+    RSColor maskColor5 = RSColor(255, 255, 255, 255); // maskColor1 r 255, g 255, b 255, a 255
+    float newAlpha5 = filter.ApplyMaskColorFilter(canvas, alpha5, maskColor5);
+    EXPECT_EQ(alpha5, newAlpha5);
+}
 } // namespace Rosen
 } // namespace OHOS

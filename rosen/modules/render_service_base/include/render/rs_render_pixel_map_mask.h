@@ -50,7 +50,11 @@ public:
 
     const std::shared_ptr<Drawing::Image> GetImage() const;
 
+    uint32_t CalcHash();
+
 private:
+    bool ReadPixelMapFromParcel(Parcel& parcel);
+
     std::shared_ptr<Drawing::Image> cacheImage_ = nullptr;
 };
 } // namespace Rosen

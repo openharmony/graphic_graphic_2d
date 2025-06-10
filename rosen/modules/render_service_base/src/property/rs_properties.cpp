@@ -3734,8 +3734,8 @@ void RSProperties::GenerateRenderFilterDispersion()
         return;
     }
 
-    DispersionShaderFilterParams dspParas = { dispersionShaderMask, dispersionOpacity->Get(), dispersionRedOffset->Get(), 
-        dispersionGreenOffset->Get(), dispersionBlueOffset->Get() };
+    DispersionShaderFilterParams dspParas = { dispersionShaderMask, dispersionOpacity->Get(),
+        dispersionRedOffset->Get(), dispersionGreenOffset->Get(), dispersionBlueOffset->Get() };
     std::shared_ptr<RSDispersionShaderFilter> dspFilter = std::make_shared<RSDispersionShaderFilter>(dspParas);
 
     std::shared_ptr<RSDrawingFilter> originalFilter = std::make_shared<RSDrawingFilter>(dspFilter);
@@ -5143,7 +5143,7 @@ void RSProperties::UpdateBackgroundShader()
     if (bgShader) {
         const auto &param = GetComplexShaderParam();
         if (param.has_value()) {
-            const auto & paramValue = param.value();
+            const auto& paramValue = param.value();
             bgShader->MakeDrawingShader(GetBoundsRect(), paramValue);
         }
         bgShader->MakeDrawingShader(GetBoundsRect(), GetBackgroundShaderProgress());

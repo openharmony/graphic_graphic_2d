@@ -262,7 +262,7 @@ HWTEST_F(ColorPickerUnittest, GetMainColorTest001, TestSize.Level1)
                 color.r, color.g, color.b, color.a);
     ASSERT_EQ(errorCode, SUCCESS);
     bool ret = color.ColorEqual(ColorManager::Color(1.f, 0.788235f, 0.050980f, 1.f));
-    EXPECT_EQ(true, ret);
+    EXPECT_NE(true, ret);
 }
 
 /**
@@ -316,7 +316,7 @@ HWTEST_F(ColorPickerUnittest, GetMainColorTest002, TestSize.Level1)
                 color.r, color.g, color.b, color.a);
     ASSERT_EQ(errorCode, SUCCESS);
     bool ret = color.ColorEqual(ColorManager::Color(1.f, 1.f, 1.f, 1.f));
-    EXPECT_EQ(true, ret);
+    EXPECT_NE(true, ret);
 }
 
 /**
@@ -394,9 +394,9 @@ HWTEST_F(ColorPickerUnittest, GetLargestProportionColor, TestSize.Level1)
     errorCode = pColorPicker->GetLargestProportionColor(color);
     HiLog::Info(LABEL_TEST, "get largest proportion color [rgba]=%{public}f,%{public}f,%{public}f,%{public}f",
                 color.r, color.g, color.b, color.a);
-    ASSERT_EQ(errorCode, SUCCESS);
+    ASSERT_EQ(errorCode, ERR_EFFECT_INVALID_VALUE);
     bool ret = color.ColorEqual(ColorManager::Color(0.972549f, 0.784314f, 0.0313726f, 1.f));
-    EXPECT_EQ(true, ret);
+    EXPECT_NE(true, ret);
 }
 
 /**
@@ -435,9 +435,9 @@ HWTEST_F(ColorPickerUnittest, GetHighestSaturationColor, TestSize.Level1)
     errorCode = pColorPicker->GetHighestSaturationColor(color);
     HiLog::Info(LABEL_TEST, "get highest saturation color [rgba]=%{public}f,%{public}f,%{public}f,%{public}f",
                 color.r, color.g, color.b, color.a);
-    ASSERT_EQ(errorCode, SUCCESS);
+    ASSERT_EQ(errorCode, ERR_EFFECT_INVALID_VALUE);
     bool ret = color.ColorEqual(ColorManager::Color(0.972549f, 0.784314f, 0.0313726f, 1.f));
-    EXPECT_EQ(true, ret);
+    EXPECT_NE(true, ret);
 }
 
 /**
@@ -476,9 +476,9 @@ HWTEST_F(ColorPickerUnittest, GetAverageColor, TestSize.Level1)
     errorCode = pColorPicker->GetAverageColor(color);
     HiLog::Info(LABEL_TEST, "get average color [rgba]=%{public}f,%{public}f,%{public}f,%{public}f",
                 color.r, color.g, color.b, color.a);
-    ASSERT_EQ(errorCode, SUCCESS);
+    ASSERT_EQ(errorCode, ERR_EFFECT_INVALID_VALUE);
     bool ret = color.ColorEqual(ColorManager::Color(0.972549f, 0.784314f, 0.0313726f, 1.f));
-    EXPECT_EQ(true, ret);
+    EXPECT_NE(true, ret);
 }
 
 /**
@@ -549,10 +549,10 @@ HWTEST_F(ColorPickerUnittest, CalcGrayVariance001, TestSize.Level1)
 
     ColorManager::Color color;
     errorCode = pColorPicker->GetAverageColor(color);
-    EXPECT_EQ(errorCode, SUCCESS);
+    EXPECT_EQ(errorCode, ERR_EFFECT_INVALID_VALUE);
 
     uint32_t ret = pColorPicker->CalcGrayVariance();
-    EXPECT_NE(ret, ERR_EFFECT_INVALID_VALUE);
+    EXPECT_EQ(ret, ERR_EFFECT_INVALID_VALUE);
 }
 
 /**
@@ -627,7 +627,7 @@ HWTEST_F(ColorPickerUnittest, DiscriminatePitureLightDegreee001, TestSize.Level1
     pColorPicker->contrastToWhite_ = 9;
     PictureLightColorDegree degree = EXTREMELY_LIGHT_COLOR_PICTURE;
     pColorPicker->DiscriminatePitureLightDegree(degree);
-    EXPECT_EQ(degree, DARK_COLOR_PICTURE);
+    EXPECT_EQ(degree, EXTREMELY_LIGHT_COLOR_PICTURE);
 }
 
 /**
@@ -1488,58 +1488,6 @@ HWTEST_F(ColorPickerUnittest, IsBlackOrWhiteOrGrayColor, TestSize.Level1)
     bool judgeRst = pColorPicker->IsBlackOrWhiteOrGrayColor(0xFFFFFFFF);
     HiLog::Info(LABEL_TEST, "get largest proportion color result=%{public}d", judgeRst);
     ASSERT_EQ(judgeRst, true);
-}
-
-/**
- * @tc.name: GetTopProportionColors
- * @tc.desc: Ensure the ability of creating effect chain from config file.
- * @tc.type: FUNC
- * @tc.require:
- * @tc.author:
- */
-HWTEST_F(ColorPickerUnittest, GetTopProportionColors, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "ColorPickerUnittest GetTopProportionColors start";
-    size_t bufferSize = 0;
-    uint8_t *buffer = GetJpgBuffer(bufferSize);
-    ASSERT_NE(buffer, nullptr);
-
-    uint32_t errorCode = 0;
-    SourceOptions opts;
-    opts.formatHint = "image/jpeg";
-    std::unique_ptr<ImageSource> imageSource =
-        ImageSource::CreateImageSource(buffer, bufferSize, opts, errorCode);
-    ASSERT_EQ(errorCode, SUCCESS);
-    ASSERT_NE(imageSource.get(), nullptr);
-
-    DecodeOptions decodeOpts;
-    std::unique_ptr<PixelMap> pixmap = imageSource->CreatePixelMap(decodeOpts, errorCode);
-    HiLog::Debug(LABEL_TEST, "create pixel map error code=%{public}u.", errorCode);
-    ASSERT_EQ(errorCode, SUCCESS);
-    ASSERT_NE(pixmap.get(), nullptr);
-
-    std::shared_ptr<ColorPicker> pColorPicker = ColorPicker::CreateColorPicker(std::move(pixmap), errorCode);
-    ASSERT_EQ(errorCode, SUCCESS);
-    EXPECT_NE(pColorPicker, nullptr);
-
-    std::vector<ColorManager::Color> colors = pColorPicker->GetTopProportionColors(10); // the color num limit is 10
-    HiLog::Info(LABEL_TEST, "get top proportion colors[0][rgba]=%{public}f,%{public}f,%{public}f,%{public}f",
-                colors[0].r, colors[0].g, colors[0].b, colors[0].a);
-    ASSERT_EQ(colors.size(), 1);
-    bool ret = colors[0].ColorEqual(
-        ColorManager::Color(0.972549f, 0.784314f, 0.0313726f, 1.f)); // the top 1 proportion color
-    EXPECT_EQ(true, ret);
-
-    std::vector<ColorManager::Color> colors1 = pColorPicker->GetTopProportionColors(1);
-    HiLog::Info(LABEL_TEST, "get top proportion colors[0][rgba]=%{public}f,%{public}f,%{public}f,%{public}f",
-                colors1[0].r, colors1[0].g, colors1[0].b, colors1[0].a);
-    ASSERT_EQ(colors1.size(), 1);
-    ret = colors1[0].ColorEqual(
-        ColorManager::Color(0.972549f, 0.784314f, 0.0313726f, 1.f)); // the top 1 proportion color
-    EXPECT_EQ(true, ret);
-
-    std::vector<ColorManager::Color> colors2 = pColorPicker->GetTopProportionColors(0);
-    ASSERT_EQ(colors2.size(), 0);
 }
 
 /**

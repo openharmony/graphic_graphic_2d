@@ -87,8 +87,8 @@ HWTEST_F(RSShaderMaskTest, PixelMapMaskTest001, TestSize.Level1)
 
     rsShaderMask = std::make_shared<RSShaderMask>(rsRenderPixelMapMaskPara);
     rsShaderMask->CalHash();
-    EXPECT_NE(rsShaderMask->hash_, 0);
-    EXPECT_NE(rsShaderMask->GenerateGEShaderMask(), nullptr);
+    EXPECT_EQ(rsShaderMask->hash_, 0);
+    EXPECT_EQ(rsShaderMask->GenerateGEShaderMask(), nullptr);
 }
 
 

@@ -109,6 +109,8 @@ private:
     float PrepareAlphaForOnScreenDraw(RSPaintFilterCanvas& paintFilterCanvas);
     std::shared_ptr<Drawing::ImageFilter> ProcessImageFilter(float brushAlpha) const;
 
+    bool IsHpsBlurApplied(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& outImage,
+        const DrawImageRectAttributes& attr, const Drawing::Brush& brush, float radius);
     bool ApplyImageEffectWithLightBlur(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
         const DrawImageRectAttributes& attr, const Drawing::Brush& brush);
     void ApplyImageEffect(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,

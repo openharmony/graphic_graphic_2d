@@ -111,23 +111,8 @@ void RSShaderMask::CalHash()
         }
         case RSUIFilterType::PIXEL_MAP_MASK: {
             auto pixelMapMask = std::static_pointer_cast<RSRenderPixelMapMaskPara>(renderMask_);
-            auto image = pixelMapMask->GetImage();
-            auto srcProp = pixelMapMask->GetRenderAnimatableProperty<Vector4f>(RSUIFilterType::PIXEL_MAP_MASK_SRC);
-            auto dstProp = pixelMapMask->GetRenderAnimatableProperty<Vector4f>(RSUIFilterType::PIXEL_MAP_MASK_DST);
-            auto fillColorProp =
-                pixelMapMask->GetRenderAnimatableProperty<Vector4f>(RSUIFilterType::PIXEL_MAP_MASK_FILL_COLOR);
-            if (image == nullptr || srcProp == nullptr || dstProp == nullptr || fillColorProp == nullptr) {
-                ROSEN_LOGE("RSShaderMask::CalHash pixel map mask some property not found");
-                return;
-            }
-            auto imageUniqueID = image->GetUniqueID();
-            auto src = srcProp->Get();
-            auto dst = dstProp->Get();
-            auto fillColor = fillColorProp->Get();
-            hash_ = hashFunc(&imageUniqueID, sizeof(imageUniqueID), hash_);
-            hash_ = hashFunc(&src, sizeof(src), hash_);
-            hash_ = hashFunc(&dst, sizeof(dst), hash_);
-            hash_ = hashFunc(&fillColor, sizeof(fillColor), hash_);
+            auto pixelMapMaskHash = pixelMapMask->CalcHash();
+            hash_ = hashFunc(&pixelMapMaskHash, sizeof(pixelMapMaskHash), hash_);
             break;
         }
         default: {
