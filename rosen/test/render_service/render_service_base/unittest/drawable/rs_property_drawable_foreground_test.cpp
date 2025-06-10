@@ -358,6 +358,46 @@ HWTEST_F(RSPropertyDrawableForegroundTest, OnSyncTest003, TestSize.Level1)
 }
 
 /**
+ * @tc.name: OnSyncTest004
+ * @tc.desc: OnSync test
+ * @tc.type: FUNC
+ * @tc.require:issueI9SCBR
+ */
+HWTEST_F(RSPropertyDrawableForegroundTest, OnSyncTest004, TestSize.Level1)
+{
+    RSProperties propertiesTest1;
+    std::shared_ptr<RSIlluminated> illuminatedPtrTest1 = std::make_shared<RSIlluminated>();
+    EXPECT_NE(illuminatedPtrTest1, nullptr);
+    illuminatedPtrTest1->lightSourcesAndPosMap_.emplace(
+        std::make_shared<RSLightSource>(), Vector4f(0.0f, 0.0f, 1.0f, 1.0f));
+    illuminatedPtrTest1->illuminatedType_ = IlluminatedType::BLEND_BORDER_CONTENT;
+    propertiesTest1.illuminatedPtr_ = illuminatedPtrTest1;
+    std::shared_ptr<DrawableV2::RSPointLightDrawable> pointLightDrawableTest1 =
+        std::make_shared<DrawableV2::RSPointLightDrawable>(propertiesTest1);
+    EXPECT_NE(pointLightDrawableTest1, nullptr);
+    pointLightDrawableTest1->OnSync();
+    RSProperties propertiesTest2;
+    std::shared_ptr<RSIlluminated> illuminatedPtrTest2 = std::make_shared<RSIlluminated>();
+    EXPECT_NE(illuminatedPtrTest2, nullptr);
+    illuminatedPtrTest2->lightSourcesAndPosMap_.emplace(
+        std::make_shared<RSLightSource>(), Vector4f(0.0f, 0.0f, 1.0f, 1.0f));
+    illuminatedPtrTest2->illuminatedType_ = IlluminatedType::FEATHERING_BORDER;
+    propertiesTest2.illuminatedPtr_ = illuminatedPtrTest2;
+    std::shared_ptr<RSObjAbsGeometry> boundsGeo = std::make_shared<RSObjAbsGeometry>();
+    EXPECT_NE(boundsGeo, nullptr);
+    boundsGeo->absRect_ = RectI(0, 1, 2, 3);
+    propertiesTest2.boundsGeo_ = boundsGeo;
+    propertiesTest2.SetIlluminatedBorderWidth(1.0f);
+
+    std::shared_ptr<DrawableV2::RSPointLightDrawable> pointLightDrawableTest2 =
+        std::make_shared<DrawableV2::RSPointLightDrawable>(propertiesTest2);
+    EXPECT_NE(pointLightDrawableTest2, nullptr);
+    pointLightDrawableTest2->OnSync();
+    EXPECT_FLOAT_EQ(pointLightDrawableTest2->contentRRect_.GetRect().GetWidth(),
+        pointLightDrawableTest2->borderRRect_.GetRect().GetWidth() + 1.0f);
+}
+
+/**
  * @tc.name: CreateDrawFuncTest001
  * @tc.desc: CreateDrawFunc test
  * @tc.type: FUNC
@@ -440,6 +480,28 @@ HWTEST_F(RSPropertyDrawableForegroundTest, DrawLightTest001, TestSize.Level1)
     pointLightDrawableTest->lightSourcesAndPosVec_.emplace_back(
         std::make_shared<RSLightSource>(), Vector4f(0.0f, 0.0f, 1.0f, 1.0f));
     pointLightDrawableTest->DrawLight(&canvasTest4);
+
+    Drawing::Canvas canvasTest5;
+    pointLightDrawableTest->illuminatedType_ = IlluminatedType::FEATHERING_BORDER;
+    pointLightDrawableTest->lightSourcesAndPosVec_.emplace_back(
+        std::make_shared<RSLightSource>(), Vector4f(0.0f, 0.0f, 1.0f, 1.0f));
+    pointLightDrawableTest->DrawLight(&canvasTest5);
+}
+
+/**
+ * @tc.name: GetShaderTest001
+ * @tc.desc: GetPhongShaderBuilder GetFeatheringBoardLightShaderBuilder test
+ * @tc.type: FUNC
+ * @tc.require:issueI9SCBR
+ */
+HWTEST_F(RSPropertyDrawableForegroundTest, GetShaderTest001, TestSize.Level1)
+{
+    RSProperties propertiesTest;
+    std::shared_ptr<DrawableV2::RSPointLightDrawable> pointLightDrawableTest =
+        std::make_shared<DrawableV2::RSPointLightDrawable>(propertiesTest);
+    EXPECT_NE(pointLightDrawableTest, nullptr);
+    EXPECT_NE(pointLightDrawableTest->GetPhongShaderBuilder(), nullptr);
+    EXPECT_NE(pointLightDrawableTest->GetFeatheringBoardLightShaderBuilder(), nullptr);
 }
 
 /**

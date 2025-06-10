@@ -554,7 +554,8 @@ void RSPointLightDrawable::OnSync()
     if (illuminatedType_ == IlluminatedType::BORDER_CONTENT ||
         illuminatedType_ == IlluminatedType::CONTENT ||
         illuminatedType_ == IlluminatedType::BLEND_CONTENT ||
-        illuminatedType_ == IlluminatedType::BLEND_BORDER_CONTENT) {
+        illuminatedType_ == IlluminatedType::BLEND_BORDER_CONTENT ||
+        illuminatedType_ == IlluminatedType::FEATHERING_BORDER) {
         contentRRect_ = RSPropertyDrawableUtils::RRect2DrawingRRect(rrect);
     }
     if (properties_.GetBoundsGeometry()) {
@@ -573,11 +574,11 @@ void RSPointLightDrawable::DrawLight(Drawing::Canvas* canvas) const
     }
     if (illuminatedType_ == IlluminatedType::FEATHERING_BORDER) {
         phongShaderBuilder = GetFeatheringBoardLightShaderBuilder();
-        float rectWidth = borderRRect_.GetRect().GetWidth() + borderWidth_;
-        float rectHeight = borderRRect_.GetRect().GetHeight() + borderWidth_;
+        float rectWidth = contentRRect_.GetRect().GetWidth();
+        float rectHeight = contentRRect_.GetRect().GetHeight();
         phongShaderBuilder->SetUniform("iResolution", rectWidth, rectHeight);
         phongShaderBuilder->SetUniform("borderRadius",
-            borderRRect_.GetCornerRadius(Drawing::RoundRect::CornerPos::TOP_LEFT_POS).GetX());
+            contentRRect_.GetCornerRadius(Drawing::RoundRect::CornerPos::TOP_LEFT_POS).GetX());
     }
     constexpr int vectorLen = 4;
     float lightPosArray[vectorLen * MAX_LIGHT_SOURCES] = { 0 };
@@ -691,50 +692,45 @@ const std::shared_ptr<Drawing::RuntimeShaderBuilder>& RSPointLightDrawable::GetF
         uniform vec4 specularLightColor[12];
         uniform float specularStrength[12];
 
-        float sdRoundedBox(vec2 p, vec2 b, vec4 r, float inOffset)
+        float sdRoundedBox(vec2 p, vec2 b, float r)
         {
-            r.xy = (p.x>0.0)?r.xy : r.zw;
-            r.x  = (p.y>0.0)?r.x  : r.y;
-            vec2 q = abs(p)-b+r.x;
-            return (min(max(q.x, q.y), 0.0) +
-                length(max(q, 0.0)) - r.x) + inOffset;
+            vec2 q = abs(p)-b+r;
+            return (min(max(q.x, q.y), 0.0) + length(max(q, 0.0)) - r);
         }
 
-        float smin(float a, float b, float k)
+        vec2 sdRoundedBoxGradient(vec2 p, vec2 b, float r)
         {
-            k *= 6.0;
-            float h = max(k-abs(a-b), 0.0)/k;
-            return min(a, b) - h*h*h*k*(1.0/6.0);
+            vec2 signs = vec2(p.x >= 0.0 ? 1.0 : -1.0, p.y >= 0.0 ? 1.0 : -1.0);
+            vec2 q = abs(p) - b + r;
+            vec2 nor = (q.y > q.x) ? vec2(0.0, 1.0) : vec2(1.0, 0.0);
+            nor = (q.x > 0.0 && q.y > 0.0) ? normalize(q) : nor;
+            return signs * nor;
         }
 
         mediump vec4 main(vec2 drawing_coord) {
-            vec4 lightColor = vec4(1.0, 1.0, 1.0, 1.0);
-            float ambientStrength = 0.0;
-            vec4 diffuseColor = vec4(1.0, 1.0, 1.0, 1.0);
-            float diffuseStrength = 0.0;
             float shininess = 8.0;
             mediump vec4 fragColor = vec4(0.0, 0.0, 0.0, 0.0);
-            vec4 NormalMap = vec4(0.0, 0.0, 1.0, 0.0);
-            // ambient
-            vec4 ambient = lightColor * ambientStrength;
-            vec3 norm = normalize(NormalMap.rgb);
-            float sd = sdRoundedBox(drawing_coord.xy - iResolution.xy/2.0,
-                vec2(iResolution.x/2.0, iResolution.y/2.0),
-                vec4(borderRadius), 0.0)/(iResolution.y*0.5);
-
+            vec2 halfResolution = iResolution.xy * 0.5;
+            float sd = sdRoundedBox(drawing_coord.xy - halfResolution,
+                halfResolution,
+                borderRadius) / halfResolution.y;
+            vec2 grad = sdRoundedBoxGradient(drawing_coord.xy - halfResolution,
+                halfResolution, borderRadius);
             for (int i = 0; i < 12; i++) {
-                if (abs(specularStrength[i]) > 0.01) {
+                vec2 lightGrad = sdRoundedBoxGradient(lightPos[i].xy - halfResolution,
+                    halfResolution, borderRadius); // lightGrad could be pre-computed
+                float angleEfficient = dot(grad, lightGrad);
+                if (angleEfficient > 0.0) {
                     vec3 lightDir = normalize(vec3(lightPos[i].xy - drawing_coord, lightPos[i].z));
-                    float diff = max(dot(norm, lightDir), 0.0);
-                    vec4 diffuse = diff * lightColor;
                     vec3 viewDir = normalize(vec3(viewPos[i].xy - drawing_coord, viewPos[i].z)); // view vector
                     vec3 halfwayDir = normalize(lightDir + viewDir); // half vector
-                    float spec = pow(max(dot(norm, halfwayDir), 0.0), shininess); // exponential relationship of angle
-                    spec = ((-smin(1.0-spec, abs(sd), 0.3)-0.018)/0.282);
-                    vec4 specular = lightColor * spec; // multiply color of incident light
-                    vec4 o = ambient + diffuse * diffuseStrength * diffuseColor; // diffuse reflection
+                    // exponential relationship of angle
+                    float spec = pow(max(halfwayDir.z, 0.0), shininess); // norm is (0.0, 0.0, 1.0)
+                    spec *= specularStrength[i];
+                    spec *= smoothstep(-0.28, 0.0, sd);
+                    spec *= (smoothstep(1.0, 0.0, spec) * 0.2 + 0.8);
                     vec4 specularColor = specularLightColor[i];
-                    fragColor = fragColor + o + specular * specularStrength[i] * specularColor;
+                    fragColor += specularColor * (spec * angleEfficient);
                 }
             }
             return fragColor;
