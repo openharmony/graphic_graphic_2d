@@ -28,6 +28,7 @@
 #include "render/rs_filter_cache_manager.h"
 #include "render/rs_drawing_filter.h"
 #include "render/rs_render_linear_gradient_blur_filter.h"
+#include "hpae_base/rs_hpae_filter_cache_manager.h"
 
 namespace OHOS::Rosen {
 namespace DrawableV2 {
@@ -178,6 +179,7 @@ RSFilterDrawable::RSFilterDrawable()
         stagingCacheManager_ = std::make_unique<RSFilterCacheManager>();
         cacheManager_ = std::make_unique<RSFilterCacheManager>();
     }
+    hpaeCacheManager_ = std::make_shared<RSHpaeFilterCacheManager>();
 }
 
 void RSFilterDrawable::OnSync()
@@ -186,6 +188,7 @@ void RSFilterDrawable::OnSync()
         filter_ = std::move(stagingFilter_);
         needSync_ = false;
     }
+
     renderNodeId_ = stagingNodeId_;
     renderNodeName_ = stagingNodeName_;
     renderIntersectWithDRM_ = stagingIntersectWithDRM_;
@@ -286,7 +289,7 @@ Drawing::RecordingCanvas::DrawFunc RSFilterDrawable::CreateDrawFunc() const
             }
             int64_t startBlurTime = Drawing::PerfmonitorReporter::GetCurrentTime();
             RSPropertyDrawableUtils::DrawFilter(canvas, ptr->filter_,
-                ptr->cacheManager_, ptr->IsForeground());
+                ptr->cacheManager_, ptr->hpaeCacheManager_, ptr->renderNodeId_, ptr->IsForeground());
             int64_t blurDuration = Drawing::PerfmonitorReporter::GetCurrentTime() - startBlurTime;
             auto filterType = ptr->filter_->GetFilterType();
             RSPerfMonitorReporter::GetInstance().RecordBlurNode(ptr->renderNodeName_, blurDuration,

@@ -160,6 +160,21 @@ HWTEST_F(VsyncReceiverTest, Init002, Function | MediumTest| Level3)
 }
 
 /*
+ * Function: Init003
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call Init
+ */
+HWTEST_F(VsyncReceiverTest, Init003, Function | MediumTest| Level3)
+{
+    auto& rsClient = RSInterfaces::GetInstance();
+    auto rsReceiver = rsClient.CreateVSyncReceiver("VsyncReceiverTest");
+    rsReceiver->looper_ = nullptr;
+    ASSERT_EQ(rsReceiver->Init(), VSYNC_ERROR_OK);
+}
+
+/*
 * Function: IsRequestedNextVSync001
 * Type: Function
 * Rank: Important(2)

@@ -46,6 +46,7 @@ if (!defined(graphic_2d_ext_feature_enable_ddgr) ||
       "skia_memory_tracer_test.cpp",
       "skia_paint_test.cpp",
       "skia_path_effect_test.cpp",
+      "skia_path_iterator_test.cpp",
       "skia_path_test.cpp",
       "skia_picture_test.cpp",
       "skia_pixmap_test.cpp",

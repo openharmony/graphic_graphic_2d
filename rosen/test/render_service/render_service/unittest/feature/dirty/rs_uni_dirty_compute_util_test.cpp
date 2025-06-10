@@ -12,6 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <parameters.h>
+
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 
@@ -29,6 +31,10 @@ using namespace testing::ext;
 using namespace OHOS::Rosen::DrawableV2;
 
 namespace OHOS::Rosen {
+namespace {
+constexpr NodeId DEFAULT_ID = 0xFFFF;
+constexpr NodeId DEFAULT_RENDER_NODE_ID = 10;
+}
 class RSUniDirtyComputeUtilTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -113,6 +119,109 @@ HWTEST_F(RSUniDirtyComputeUtilTest, ScreenIntersectDirtyRectsTest, Function | Sm
     EXPECT_TRUE(RSUniDirtyComputeUtil::ScreenIntersectDirtyRects(region, screenInfo).empty());
 }
 
+/**
+ * @tc.name: UpdateVirtualExpandDisplayAccumulatedParams001
+ * @tc.desc: UpdateVirtualExpandDisplayAccumulatedParams can update params
+ * @tc.type: FUNC
+ * @tc.require: issueICCV9N
+ */
+HWTEST_F(RSUniDirtyComputeUtilTest, UpdateVirtualExpandDisplayAccumulatedParams001, TestSize.Level1)
+{
+    RSDisplayNodeConfig config;
+    RSDisplayRenderNodeDrawable* displayDrawable = GenerateDisplayDrawableById(DEFAULT_ID, config);
+    ASSERT_NE(displayDrawable, nullptr);
+    displayDrawable->renderParams_ = std::make_unique<RSDisplayRenderParams>(DEFAULT_ID);
+    auto params = static_cast<RSDisplayRenderParams*>(displayDrawable->GetRenderParams().get());
+    ASSERT_NE(params, nullptr);
+    params->SetMainAndLeashSurfaceDirty(true);
+    params->SetAccumulatedUifirstForceUpdate(true);
+    params->SetHDRStatusChanged(true);
+    RSUniDirtyComputeUtil::UpdateVirtualExpandDisplayAccumulatedParams(*params, *displayDrawable);
+    ASSERT_TRUE(params->GetAccumulatedDirty());
+    ASSERT_TRUE(params->GetAccumulatedUifirstForceUpdate());
+    ASSERT_TRUE(params->GetAccumulatedHdrStatusChanged());
+}
+
+/**
+ * @tc.name: CheckVirtualExpandDisplaySkip001
+ * @tc.desc: CheckVirtualExpandDisplaySkip return true when no accumulate status
+ * @tc.type: FUNC
+ * @tc.require: issueICCV9N
+ */
+HWTEST_F(RSUniDirtyComputeUtilTest, CheckVirtualExpandDisplaySkip001, TestSize.Level1)
+{
+    RSDisplayNodeConfig config;
+    RSDisplayRenderNodeDrawable* displayDrawable = GenerateDisplayDrawableById(DEFAULT_ID, config);
+    ASSERT_NE(displayDrawable, nullptr);
+    displayDrawable->renderParams_ = std::make_unique<RSDisplayRenderParams>(DEFAULT_ID);
+    auto params = static_cast<RSDisplayRenderParams*>(displayDrawable->GetRenderParams().get());
+    ASSERT_NE(params, nullptr);
+    params->SetAccumulatedDirty(false);
+    params->SetAccumulatedUifirstForceUpdate(false);
+    params->SetAccumulatedHdrStatusChanged(false);
+    bool result = RSUniDirtyComputeUtil::CheckVirtualExpandDisplaySkip(*params, *displayDrawable);
+    ASSERT_TRUE(result);
+}
+
+/**
+ * @tc.name: CheckVirtualExpandDisplaySkip002
+ * @tc.desc: CheckVirtualExpandDisplaySkip return false when skip enabled is false
+ * @tc.type: FUNC
+ * @tc.require: issueICCV9N
+ */
+HWTEST_F(RSUniDirtyComputeUtilTest, CheckVirtualExpandDisplaySkip002, TestSize.Level1)
+{
+    RSDisplayNodeConfig config;
+    RSDisplayRenderNodeDrawable* displayDrawable = GenerateDisplayDrawableById(DEFAULT_ID, config);
+    ASSERT_NE(displayDrawable, nullptr);
+    displayDrawable->renderParams_ = std::make_unique<RSDisplayRenderParams>(DEFAULT_ID);
+    auto params = static_cast<RSDisplayRenderParams*>(displayDrawable->GetRenderParams().get());
+    ASSERT_NE(params, nullptr);
+    auto type = system::GetParameter("rosen.uni.virtualexpandscreenskip.enabled", "1");
+    system::SetParameter("rosen.uni.virtualexpandscreenskip.enabled", "0");
+    bool result = RSUniDirtyComputeUtil::CheckVirtualExpandDisplaySkip(*params, *displayDrawable);
+    ASSERT_FALSE(result);
+    system::SetParameter("rosen.uni.virtualexpandscreenskip.enabled", type);
+}
+
+/**
+ * @tc.name: CheckVirtualExpandDisplaySkip003
+ * @tc.desc: CheckVirtualExpandDisplaySkip return false when has special layer
+ * @tc.type: FUNC
+ * @tc.require: issueICCV9N
+ */
+HWTEST_F(RSUniDirtyComputeUtilTest, CheckVirtualExpandDisplaySkip003, TestSize.Level1)
+{
+    RSDisplayNodeConfig config;
+    RSDisplayRenderNodeDrawable* displayDrawable = GenerateDisplayDrawableById(DEFAULT_ID, config);
+    ASSERT_NE(displayDrawable, nullptr);
+    displayDrawable->renderParams_ = std::make_unique<RSDisplayRenderParams>(DEFAULT_ID);
+    auto params = static_cast<RSDisplayRenderParams*>(displayDrawable->GetRenderParams().get());
+    ASSERT_NE(params, nullptr);
+    params->specialLayerManager_.AddIds(SpecialLayerType::SKIP, DEFAULT_RENDER_NODE_ID);
+    bool result = RSUniDirtyComputeUtil::CheckVirtualExpandDisplaySkip(*params, *displayDrawable);
+    ASSERT_FALSE(result);
+}
+
+/**
+ * @tc.name: CheckVirtualExpandDisplaySkip004
+ * @tc.desc: CheckVirtualExpandDisplaySkip return false when has accumulate dirty
+ * @tc.type: FUNC
+ * @tc.require: issueICCV9N
+ */
+HWTEST_F(RSUniDirtyComputeUtilTest, CheckVirtualExpandDisplaySkip004, TestSize.Level1)
+{
+    RSDisplayNodeConfig config;
+    RSDisplayRenderNodeDrawable* displayDrawable = GenerateDisplayDrawableById(DEFAULT_ID, config);
+    ASSERT_NE(displayDrawable, nullptr);
+    displayDrawable->renderParams_ = std::make_unique<RSDisplayRenderParams>(DEFAULT_ID);
+    auto params = static_cast<RSDisplayRenderParams*>(displayDrawable->GetRenderParams().get());
+    ASSERT_NE(params, nullptr);
+    params->SetAccumulatedDirty(true);
+    bool result = RSUniDirtyComputeUtil::CheckVirtualExpandDisplaySkip(*params, *displayDrawable);
+    ASSERT_FALSE(result);
+}
+
 /*
  * @tc.name: IntersectRect
  * @tc.desc: test GraphicIRect intersect with GraphicIRect
@@ -171,7 +280,6 @@ HWTEST_F(RSUniDirtyComputeUtilTest, GenerateFilterDirtyRegionInfo_001, TestSize.
     auto effectNode = std::make_shared<RSEffectRenderNode>(id, context->weak_from_this());
     ASSERT_NE(effectNode, nullptr);
     effectNode->childHasVisibleEffect_ = true;
-    effectNode->GetMutableRenderProperties().boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
     effectNode->GetMutableRenderProperties().boundsGeo_->absRect_ = DEFAULT_RECT1;  // mock filter rect.
 
     auto subNode = std::make_shared<RSBaseRenderNode>(++id, context->weak_from_this());

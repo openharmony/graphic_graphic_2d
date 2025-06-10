@@ -223,10 +223,10 @@ bool RSRenderEdgeLightFilterPara::ParseFilterValues()
         }
         mask_ = std::make_shared<RSShaderMask>(edgeLightMask);
     }
-#ifndef ENABLE_M133_SKIA
-    const auto hashFunc = SkOpts::hash;
-#else
+#ifdef USE_M133_SKIA
     const auto hashFunc = SkChecksum::Hash32;
+#else
+    const auto hashFunc = SkOpts::hash;
 #endif
     hash_ = hashFunc(&alpha_, sizeof(alpha_), hash_);
     hash_ = hashFunc(&color_, sizeof(color_), hash_);

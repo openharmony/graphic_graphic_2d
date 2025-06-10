@@ -257,7 +257,17 @@ public:
      */
     void SetWindowId(uint32_t windowId);
 
+    /**
+     * @brief Controls surface content freezing for window snapshot or resource release
+     *
+     * Only works in Unified Render mode (UniRender)
+     *
+     * @param isFreeze Freeze control flag:
+     *                - true: Freeze current frame into static texture
+     *                - false: Resume normal buffer updates
+     */
     void SetFreeze(bool isFreeze) override;
+    
     // codes for arkui-x
 #ifdef USE_SURFACE_TEXTURE
     void SetSurfaceTexture(const RSSurfaceExtConfig& config);

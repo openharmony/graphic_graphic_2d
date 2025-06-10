@@ -559,7 +559,7 @@ int main()
     rootNode->SetBounds(0, 0, rect.width_, rect.height_);
     rootNode->SetFrame(0, 0, rect.width_, rect.height_);
     rootNode->SetBackgroundColor(SK_ColorWHITE);
-    rsUiDirector->SetRoot(rootNode->GetId());
+    rsUiDirector->SetRSRootNode(rootNode->ReinterpretCastTo<RSRootNode>());
 
     std::cout << "nodes[0] appearing." << std::endl;
     Transition1();

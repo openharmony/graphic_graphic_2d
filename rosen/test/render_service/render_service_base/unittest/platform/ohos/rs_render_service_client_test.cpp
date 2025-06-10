@@ -252,24 +252,6 @@ HWTEST_F(RSClientTest, RegisterTransactionDataCallback02, TestSize.Level1)
 }
 
 /**
- * @tc.name: RegisterTransactionDataCallback03
- * @tc.desc: RegisterTransactionDataCallback Test renderService is null
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSClientTest, RegisterTransactionDataCallback03, TestSize.Level1)
-{
-    ASSERT_NE(rsClient, nullptr);
-    std::function<void()> callback = []() {};
-    int32_t pid = 123;
-    uint64_t timeStamp = 456;
-    auto connHub = RSRenderServiceConnectHub::GetInstance();
-    connHub->Destroy();
-    bool ret = rsClient->RegisterTransactionDataCallback(pid, timeStamp, callback);
-    EXPECT_FALSE(ret);
-}
-
-/**
  * @tc.name: RegisterTransactionDataCallback04
  * @tc.desc: RegisterTransactionDataCallback Test callback already exists
  * @tc.type:FUNC

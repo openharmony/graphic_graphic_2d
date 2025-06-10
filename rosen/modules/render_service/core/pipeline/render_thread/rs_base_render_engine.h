@@ -110,6 +110,12 @@ public:
             surfaceFrame_->SetDamageRegion(rects);
         }
     }
+
+    // some frame maynot need to call FlushFrame
+    void Reset() {
+        targetSurface_ = nullptr;
+        surfaceFrame_ = nullptr;
+    }
 private:
     std::shared_ptr<RSSurfaceOhos> targetSurface_;
     std::unique_ptr<RSSurfaceFrame> surfaceFrame_;
@@ -133,7 +139,7 @@ class RSBaseRenderEngine {
 public:
     RSBaseRenderEngine();
     virtual ~RSBaseRenderEngine() noexcept;
-    void Init(bool independentContext = false);
+    void Init();
     RSBaseRenderEngine(const RSBaseRenderEngine&) = delete;
     void operator=(const RSBaseRenderEngine&) = delete;
 

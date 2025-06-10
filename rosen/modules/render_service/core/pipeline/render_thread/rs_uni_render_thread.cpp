@@ -39,6 +39,7 @@
 #include "params/rs_display_render_params.h"
 #include "params/rs_surface_render_params.h"
 #include "feature/uifirst/rs_sub_thread_manager.h"
+#include "feature/hpae/rs_hpae_manager.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
 #include "graphic_feature_param_manager.h"
 #include "pipeline/hardware_thread/rs_hardware_thread.h"
@@ -195,6 +196,8 @@ void RSUniRenderThread::InitGrContext()
             auto& schedClient = ResSchedClient::GetInstance();
             schedClient.ReportData(ResType::RES_TYPE_THREAD_QOS_CHANGE, 0, mapPayload);
         });
+    RSHpaeManager::GetInstance().InitIoBuffers();
+    RSHpaeManager::GetInstance().InitHpaeBlurResource();
 }
 
 void RSUniRenderThread::Inittcache()
@@ -700,23 +703,15 @@ static void TrimMemEmptyType(Drawing::GPUContext* gpuContext)
     SkGraphics::PurgeAllCaches();
     gpuContext->FreeGpuResources();
     gpuContext->PurgeUnlockedResources(true);
-#ifdef NEW_RENDER_CONTEXT
-    MemoryHandler::ClearShader();
-#else
     std::shared_ptr<RenderContext> rendercontext = std::make_shared<RenderContext>();
     rendercontext->CleanAllShaderCache();
-#endif
     gpuContext->FlushAndSubmit(true);
 }
 
 static void TrimMemShaderType()
 {
-#ifdef NEW_RENDER_CONTEXT
-    MemoryHandler::ClearShader();
-#else
     std::shared_ptr<RenderContext> rendercontext = std::make_shared<RenderContext>();
     rendercontext->CleanAllShaderCache();
-#endif
 }
 
 static void TrimMemGpuLimitType(Drawing::GPUContext* gpuContext, std::string& dumpString,

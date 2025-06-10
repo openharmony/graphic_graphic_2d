@@ -26,13 +26,6 @@
 using namespace OHOS;
 namespace OHOS {
 namespace {
-#if (defined(__aarch64__) || defined(__x86_64__))
-    constexpr const char *VENDOR_LIB_PATH = "/vendor/lib64/chipsetsdk/";
-    constexpr const char *SYSTEM_LIB_PATH = "/system/lib64/";
-#else
-    constexpr const char *VENDOR_LIB_PATH = "/vendor/lib/chipsetsdk/";
-    constexpr const char *SYSTEM_LIB_PATH = "/system/lib/";
-#endif
 constexpr const char *LIB_EGL_NAME = "libEGL_impl.so";
 constexpr const char *LIB_GLESV1_NAME = "libGLESv1_impl.so";
 constexpr const char *LIB_GLESV2_NAME = "libGLESv2_impl.so";
@@ -57,27 +50,10 @@ using GetProcAddressType = FunctionPointerType (*)(const char *);
 bool EglWrapperLoader::LoadEgl(const char* libName, EglHookTable* table)
 {
     WLOGD("");
-    std::string path = std::string(VENDOR_LIB_PATH) + std::string(libName);
-    std::string realPath = "";
-    if (!PathToRealPath(path, realPath) ||
-        strncmp(realPath.c_str(), VENDOR_LIB_PATH, strlen(VENDOR_LIB_PATH)) != 0) {
-        WLOGD("Vendor path is invalid or not within vendor directory: %{private}s", path.c_str());
-        dlEglHandle_ = nullptr;
-    } else {
-        dlEglHandle_ = dlopen(realPath.c_str(), RTLD_NOW | RTLD_LOCAL);
-    }
+    dlEglHandle_ = dlopen(libName, RTLD_NOW | RTLD_LOCAL);
     if (dlEglHandle_ == nullptr) {
-        path = std::string(SYSTEM_LIB_PATH) + std::string(libName);
-        if (!PathToRealPath(path, realPath) ||
-            strncmp(realPath.c_str(), SYSTEM_LIB_PATH, strlen(SYSTEM_LIB_PATH)) != 0) {
-            WLOGE("System path is invalid or not within system directory: %{private}s", path.c_str());
-            return false;
-        }
-        dlEglHandle_ = dlopen(realPath.c_str(), RTLD_NOW | RTLD_LOCAL);
-        if (dlEglHandle_ == nullptr) {
-            WLOGE("dlopen failed. error: %{public}s.", dlerror());
-            return false;
-        }
+        WLOGE("dlopen failed. error: %{public}s.", dlerror());
+        return false;
     }
 
     GetProcAddressType getProcAddr =
@@ -140,27 +116,11 @@ bool EglWrapperLoader::LoadGlFromMesa(char const * const *glName, FunctionPointe
 void *EglWrapperLoader::LoadGl(const char *libName, char const * const *glName, FunctionPointerType *entry)
 {
     WLOGD("");
-    std::string path = std::string(VENDOR_LIB_PATH) + std::string(libName);
-    std::string realPath = "";
     void *dlHandle = nullptr;
-    if (!PathToRealPath(path, realPath) ||
-        strncmp(realPath.c_str(), VENDOR_LIB_PATH, strlen(VENDOR_LIB_PATH)) != 0) {
-        WLOGD("Vendor path is invalid or not within vendor directory: %{private}s", path.c_str());
-    } else {
-        dlHandle = dlopen(realPath.c_str(), RTLD_NOW | RTLD_LOCAL);
-    }
+    dlHandle = dlopen(libName, RTLD_NOW | RTLD_LOCAL);
     if (dlHandle == nullptr) {
-        path = std::string(SYSTEM_LIB_PATH) + std::string(libName);
-        if (!PathToRealPath(path, realPath) ||
-            strncmp(realPath.c_str(), SYSTEM_LIB_PATH, strlen(SYSTEM_LIB_PATH)) != 0) {
-            WLOGE("System path is invalid or not within system directory: %{private}s", path.c_str());
-            return nullptr;
-        }
-        dlHandle = dlopen(realPath.c_str(), RTLD_NOW | RTLD_LOCAL);
-        if (dlHandle == nullptr) {
-            WLOGE("dlopen failed. error: %{public}s.", dlerror());
-            return nullptr;
-        }
+        WLOGE("dlopen failed. error: %{public}s.", dlerror());
+        return nullptr;
     }
 
     GetProcAddressType getProcAddr =

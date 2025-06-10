@@ -137,12 +137,8 @@ RectI SkiaCanvas::GetRoundInDeviceClipBounds() const
         LOGD("skCanvas_ is null, return on line %{public}d", __LINE__);
         return RectI();
     }
-#ifdef USE_M133_SKIA
-    return RectI();
-#else
     auto iRect = skCanvas_->getRoundInDeviceClipBounds();
     return RectI(iRect.fLeft, iRect.fTop, iRect.fRight, iRect.fBottom);
-#endif
 }
 
 #ifdef RS_ENABLE_GPU
@@ -1201,12 +1197,12 @@ void SkiaCanvas::Flush()
         LOGD("skCanvas_ is null, return on line %{public}d", __LINE__);
         return;
     }
-#ifndef USE_M133_SKIA
-    skCanvas_->flush();
-#else
+#ifdef USE_M133_SKIA
     if (auto dContext = GrAsDirectContext(skCanvas_->recordingContext())) {
         dContext->flushAndSubmit();
     }
+#else
+    skCanvas_->flush();
 #endif
 }
 

@@ -593,6 +593,7 @@ void SkiaSurface::Flush(FlushInfo *drawingflushInfo)
         auto rContext = skSurface_->recordingContext();
         if (!rContext) {
             LOGD("rContext is nullptr");
+            return;
         }
         rContext->asDirectContext()->flush(flushInfo);
 #else
@@ -607,6 +608,7 @@ void SkiaSurface::Flush(FlushInfo *drawingflushInfo)
     auto rContext = skSurface_->recordingContext();
     if (!rContext) {
         LOGD("rContext is nullptr");
+        return;
     }
     rContext->asDirectContext()->flush();
 #else
@@ -678,7 +680,9 @@ void SkiaSurface::SetDrawingArea(const std::vector<RectI>& rects)
         SkIRect skIRect = {rect.GetLeft(), rect.GetTop(), rect.GetRight(), rect.GetBottom()};
         skIRects.push_back(skIRect);
     }
+#ifndef TODO_M133_SKIA
     skSurface_->setDrawingArea(skIRects);
+#endif
 }
 
 void SkiaSurface::ClearDrawingArea()

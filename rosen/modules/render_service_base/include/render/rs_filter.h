@@ -22,7 +22,11 @@
 #include "common/rs_color.h"
 #include "common/rs_macros.h"
 #include "image/gpu_context.h"
+#ifdef USE_M133_SKIA
+#include "src/core/SkChecksum.h"
+#else
 #include "src/core/SkOpts.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -89,7 +93,12 @@ public:
     void SetFilterType(FilterType type)
     {
         type_ = type;
-        hash_ = SkOpts::hash(&type_, sizeof(type_), hash_);
+#ifdef USE_M133_SKIA
+        const auto hashFunc = SkChecksum::Hash32;
+#else
+        const auto hashFunc = SkOpts::hash;
+#endif
+        hash_ = hashFunc(&type_, sizeof(type_), hash_);
     }
 
     virtual bool IsValid() const
@@ -118,7 +127,12 @@ public:
         needSnapshotOutset_ = needSnapshotOutset;
     }
 
+    bool GetHpaeCallback() const {
+        return hasHape_;
+    }
+
 protected:
+    bool hasHpae_ = false;
     FilterType type_;
     uint32_t hash_ = 0;
     bool needSnapshotOutset_ = true;

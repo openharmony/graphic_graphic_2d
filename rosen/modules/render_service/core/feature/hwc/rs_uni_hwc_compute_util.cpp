@@ -52,7 +52,7 @@ GraphicTransformType RSUniHwcComputeUtil::GetRotateTransformForRotationFixed(RSS
 }
 
 GraphicTransformType RSUniHwcComputeUtil::GetConsumerTransform(const RSSurfaceRenderNode& node,
-    const sptr<SurfaceBuffer> buffer, const sptr<IConsumerSurface> consumer)
+    const sptr<SurfaceBuffer>& buffer, const sptr<IConsumerSurface>& consumer)
 {
     auto transformType = GraphicTransformType::GRAPHIC_ROTATE_NONE;
     if (consumer != nullptr && buffer != nullptr) {

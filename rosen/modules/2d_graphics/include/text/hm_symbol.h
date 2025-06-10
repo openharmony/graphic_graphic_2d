@@ -39,6 +39,8 @@ enum DrawingAnimationType {
     REPLACE_APPEAR_TYPE = 7,
     REPLACE_DISAPPEAR_TYPE = 8,
     DISABLE_TYPE = 9,
+    QUICK_REPLACE_APPEAR_TYPE = 10,
+    QUICK_REPLACE_DISAPPEAR_TYPE = 11,
 };
 
 enum DrawingCurveType {
@@ -113,6 +115,8 @@ enum DrawingEffectStrategy {
     REPLACE_APPEAR = 7,
     REPLACE_DISAPPEAR = 8,
     DISABLE = 9,
+    QUICK_REPLACE_APPEAR = 10,
+    QUICK_REPLACE_DISAPPEAR = 11,
 
     TEXT_FLIP = 100, // text type start from 100
 };

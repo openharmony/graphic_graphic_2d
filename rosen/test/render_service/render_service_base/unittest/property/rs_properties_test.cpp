@@ -390,7 +390,7 @@ HWTEST_F(RSPropertiesTest, Dump001, TestSize.Level1)
     properties.Dump();
 }
 
-#if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+#if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
 /**
  * @tc.name: CreateFilterCacheManagerIfNeed001
  * @tc.desc: test results of CreateFilterCacheManagerIfNeed

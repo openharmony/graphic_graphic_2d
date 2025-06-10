@@ -111,6 +111,7 @@ ohos_unittest("RSSurfaceCaptureParallelTaskTest") {
   module_out_path = module_output_path
   sources = [
     "$graphic_2d_root/rosen/modules/render_service_base/src/pipeline/rs_canvas_render_node.cpp",
+    "$graphic_2d_root/rosen/modules/render_service_base/src/feature/capture/rs_capture_pixelmap_manager.cpp",
     "capture/rs_surface_capture_task_parallel_test.cpp",
   ]
   deps = [

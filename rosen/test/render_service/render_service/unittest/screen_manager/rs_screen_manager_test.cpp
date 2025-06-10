@@ -3051,6 +3051,22 @@ HWTEST_F(RSScreenManagerTest, GetScreenSecurityMask001, TestSize.Level1)
 }
 
 /*
+ * @tc.name: GetVirtualScreenSecLayerOption001
+ * @tc.desc: Test GetVirtualScreenSecLayerOption
+ * @tc.type: FUNC
+ * @tc.require: issueICCRA8
+ */
+HWTEST_F(RSScreenManagerTest, GetMirrorScreenSecLayerOption001, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    constexpr uint32_t sizeWidth = 720;
+    constexpr uint32_t sizeHeight = 1280;
+    auto virtualScreenId = screenManager->CreateVirtualScreen("virtualScreen01", sizeWidth, sizeHeight, nullptr, 0, 1);
+    ASSERT_EQ(screenManager->GetVirtualScreenSecLayerOption(virtualScreenId), 1);
+}
+
+/*
  * @tc.name: SetScreenLinearMatrix
  * @tc.desc: Test SetScreenLinearMatrix
  * @tc.type: FUNC

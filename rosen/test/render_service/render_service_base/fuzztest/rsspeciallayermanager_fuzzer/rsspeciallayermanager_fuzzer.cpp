@@ -88,27 +88,27 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
 
     // prepare test functions
     std::vector<std::function<void(RSSpecialLayerManager&)>> testFunctions;
-    AddTestFunction(testFunctions, [](RSSpecialLayerManager& rsSpecialLayerManager){
+    AddTestFunction(testFunctions, [](RSSpecialLayerManager& rsSpecialLayerManager) {
         rsSpecialLayerManager.Set(GetData<uint32_t>(), GetData<bool>());
     });
-    AddTestFunction(testFunctions, [](RSSpecialLayerManager& rsSpecialLayerManager){
+    AddTestFunction(testFunctions, [](RSSpecialLayerManager& rsSpecialLayerManager) {
         rsSpecialLayerManager.Find(GetData<uint32_t>());
     });
-    AddTestFunction(testFunctions, [](RSSpecialLayerManager& rsSpecialLayerManager){
+    AddTestFunction(testFunctions, [](RSSpecialLayerManager& rsSpecialLayerManager) {
         auto type = GetData<uint32_t>();
         rsSpecialLayerManager.Set(type, GetData<bool>());
         rsSpecialLayerManager.Find(type);
     });
-    AddTestFunction(testFunctions, [](RSSpecialLayerManager& rsSpecialLayerManager){
+    AddTestFunction(testFunctions, [](RSSpecialLayerManager& rsSpecialLayerManager) {
         rsSpecialLayerManager.Get();
     });
-    AddTestFunction(testFunctions, [](RSSpecialLayerManager& rsSpecialLayerManager){
+    AddTestFunction(testFunctions, [](RSSpecialLayerManager& rsSpecialLayerManager) {
         rsSpecialLayerManager.AddIds(GetData<uint32_t>(), GetData<NodeId>());
     });
-    AddTestFunction(testFunctions, [](RSSpecialLayerManager& rsSpecialLayerManager){
+    AddTestFunction(testFunctions, [](RSSpecialLayerManager& rsSpecialLayerManager) {
         rsSpecialLayerManager.RemoveIds(GetData<uint32_t>(), GetData<NodeId>());
     });
-    AddTestFunction(testFunctions, [](RSSpecialLayerManager& rsSpecialLayerManager){
+    AddTestFunction(testFunctions, [](RSSpecialLayerManager& rsSpecialLayerManager) {
         auto type = GetData<uint32_t>();
         auto id = GetData<NodeId>();
         rsSpecialLayerManager.AddIds(type, id);

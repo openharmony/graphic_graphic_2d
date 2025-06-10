@@ -241,7 +241,7 @@ void Init(shared_ptr<RSUIDirector> rsUiDirector, int width, int height)
     canvasDrawingNode->SetBackgroundColor(SK_ColorGREEN);
     myLittleRootNode->AddChild(canvasDrawingNode, -1);
 
-    rsUiDirector->SetRoot(rootNode->GetId());
+    rsUiDirector->SetRSRootNode(rootNode->ReinterpretCastTo<RSRootNode>());
     rsUiDirector->SendMessages();
 }
 

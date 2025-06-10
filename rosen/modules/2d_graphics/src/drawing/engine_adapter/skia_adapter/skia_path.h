@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -86,6 +86,9 @@ public:
     PathFillType GetFillStyle() const override;
 
     bool Interpolate(const Path& ending, scalar weight, Path& out) override;
+    int CountVerbs() const override;
+    Point GetPoint(int index) const override;
+    bool IsInterpolate(const Path& other) override;
     void Transform(const Matrix& matrix) override;
     void TransformWithPerspectiveClip(const Matrix& matrix, Path* dst, bool applyPerspectiveClip) override;
     void Offset(scalar dx, scalar dy) override;

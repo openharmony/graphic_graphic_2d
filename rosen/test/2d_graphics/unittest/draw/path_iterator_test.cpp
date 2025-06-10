@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -87,6 +87,71 @@ HWTEST_F(PathIteratorTest, PeekTest001, TestSize.Level1)
     ASSERT_TRUE(iter != nullptr);
     auto verb = iter->Peek();
     ASSERT_TRUE(verb == PathVerb::MOVE);
+}
+
+/**
+ * @tc.name: CreatePathIter001
+ * @tc.desc: test for creating PathIter with path.
+ * @tc.type: FUNC
+ * @tc.require: ICAWXU
+ */
+HWTEST_F(PathIteratorTest, CreatePathIter001, TestSize.Level1)
+{
+    auto path = std::make_unique<Path>();
+    std::unique_ptr<PathIter> iter = std::make_unique<PathIter>(*path, false);
+    ASSERT_TRUE(iter != nullptr);
+}
+
+/**
+ * @tc.name: PathIterNextTest001
+ * @tc.desc: test for PathIter next func.
+ * @tc.type: FUNC
+ * @tc.require: ICAWXU
+ */
+HWTEST_F(PathIteratorTest, PathIterNextTest001, TestSize.Level1)
+{
+    auto path = std::make_unique<Path>();
+    ASSERT_TRUE(path != nullptr);
+    path->MoveTo(4.5f, 5.0f);   // 4.5f, 5.0f is the start point
+    path->LineTo(10.0f, 10.0f); // 10.0f, 10.0f is the end point
+    std::unique_ptr<PathIter> iter = std::make_unique<PathIter>(*path, false);
+    ASSERT_TRUE(iter != nullptr);
+    Point points[4] = { { 0, 0 }, { 0, 0 }, { 0, 0 }, { 0, 0 } };
+    auto verb = iter->Next(points);
+    ASSERT_TRUE(verb == PathVerb::MOVE);
+    ASSERT_EQ(points[0].GetX(), 4.5f); // 4.5f is the start point x
+    ASSERT_EQ(points[0].GetY(), 5.0f); // 5.0f is the start point y
+    auto verb2 = iter->Next(nullptr);
+    ASSERT_TRUE(verb2 == PathVerb::DONE);
+}
+
+/**
+ * @tc.name: PathIterConicWeightTest001
+ * @tc.desc: test PathIter ConicWeight with default and custom weights.
+ * @tc.type: FUNC
+ * @tc.require: ICAWXU
+ */
+HWTEST_F(PathIteratorTest, PathIterConicWeightTest001, TestSize.Level1)
+{
+    auto path = std::make_unique<Path>();
+    ASSERT_TRUE(path != nullptr);
+    path->MoveTo(0.0f, 0.0f);
+    // 50.0f, 50.0f is the control, 100.0f, 100.0f is the end, 2.0f is the weight
+    path->ConicTo(50.0f, 50.0f, 100.0f, 100.0f, 2.0f);
+    std::unique_ptr<PathIter> iter = std::make_unique<PathIter>(*path, false);
+    ASSERT_TRUE(iter != nullptr);
+    PathVerb verb;
+    bool isConic = false;
+    do {
+        Point points[4] = {}; // 4 is the max points
+        verb = iter->Next(points);
+    } while (verb != PathVerb::CONIC && verb != PathVerb::DONE);
+    if (verb == PathVerb::CONIC) {
+        isConic = true;
+        auto weight = iter->ConicWeight();
+        ASSERT_EQ(weight, 2.0f); // 2.0f is the weight
+    }
+    ASSERT_EQ(isConic, true);
 }
 } // namespace Drawing
 } // namespace Rosen

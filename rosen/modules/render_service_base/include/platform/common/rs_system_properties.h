@@ -166,6 +166,7 @@ public:
     static bool GetProfilerEnabled();
     static void SetProfilerDisabled();
     static bool GetInstantRecording();
+    static bool GetProfilerPixelCheckMode();
     static void SetInstantRecording(bool flag);
     static uint32_t GetBetaRecordingMode();
     static void SetBetaRecordingMode(uint32_t param);
@@ -192,6 +193,7 @@ public:
     static bool GetVirtualDirtyDebugEnabled();
     static bool GetVirtualDirtyEnabled();
     static bool GetExpandScreenDirtyEnabled();
+    static bool GetVirtualExpandScreenSkipEnabled();
     static bool GetOcclusionEnabled();
     static std::string GetRSEventProperty(const std::string &paraName);
     static bool GetHighContrastStatus();
@@ -267,6 +269,7 @@ public:
     static int WatchSystemProperty(const char* name, OnSystemPropertyChanged func, void* context);
     static bool GetCacheOptimizeRotateEnable();
     static CrossNodeOffScreenRenderDebugType GetCrossNodeOffScreenStatus();
+    static bool GetHeterogComputingSkiaDemoEnabled(); // gpu常上电问题解决后，需移除
     static bool GetSingleDrawableLockerEnabled();
     static bool GetUIFirstEnabled();
     static bool GetUIFirstDebugEnabled();
@@ -346,6 +349,8 @@ public:
     static bool GetDmaReclaimParam();
     static bool GetOptimizeParentNodeRegionEnabled();
     static bool GetOptimizeHwcComposeAreaEnabled();
+    static bool GetHpaeBlurUsingAAE();
+
     static bool GetWindowKeyFrameEnabled();
     static bool GetNodeGroupGroupedByUIEnabled();
     static bool GetTimeVsyncDisabled();

@@ -163,7 +163,7 @@ HWTEST_F(DrawCmdListTest, GetBounds001, TestSize.Level1)
 {
     auto drawCmdList = new DrawCmdList(DrawCmdList::UnmarshalMode::IMMEDIATE);
     EXPECT_TRUE(drawCmdList->opAllocator_.GetSize() <= drawCmdList->offset_);
-    auto ret = drawCmdList->UnmarshallingDrawOpsSimple();
+    auto ret = drawCmdList->UnmarshallingDrawOpsSimple(drawCmdList->drawOpItems_, drawCmdList->lastOpGenSize_);
     EXPECT_EQ(ret, false);
     Rect rect;
     drawCmdList->GetBounds(rect);
@@ -182,7 +182,7 @@ HWTEST_F(DrawCmdListTest, GetBounds002, TestSize.Level1)
     auto drawCmdList = new DrawCmdList(DrawCmdList::UnmarshalMode::IMMEDIATE);
     drawCmdList->opAllocator_.size_ = drawCmdList->offset_ + 1;
     EXPECT_TRUE(drawCmdList->opAllocator_.GetSize() > drawCmdList->offset_);
-    auto ret = drawCmdList->UnmarshallingDrawOpsSimple();
+    auto ret = drawCmdList->UnmarshallingDrawOpsSimple(drawCmdList->drawOpItems_, drawCmdList->lastOpGenSize_);
     EXPECT_EQ(ret, true);
     Rect rect;
     drawCmdList->GetBounds(rect);
@@ -206,7 +206,7 @@ HWTEST_F(DrawCmdListTest, GetBounds003, TestSize.Level1)
     Rect rect = Rect(0.0f, 0.0f, 100.0f, 100.0f);
     auto opItem = std::make_shared<HybridRenderPixelMapSizeOpItem>(rect.GetWidth(), rect.GetHeight());
     drawCmdList->drawOpItems_.emplace_back(opItem);
-    auto ret = drawCmdList->UnmarshallingDrawOpsSimple();
+    auto ret = drawCmdList->UnmarshallingDrawOpsSimple(drawCmdList->drawOpItems_, drawCmdList->lastOpGenSize_);
     EXPECT_EQ(ret, true);
     Rect rectGet;
     drawCmdList->GetBounds(rectGet);
@@ -336,6 +336,24 @@ HWTEST_F(DrawCmdListTest, ProfilerMarshallingDrawOps, TestSize.Level1)
     drawCmdList->drawOpItems_.emplace_back(std::make_shared<DrawBackgroundOpItem>(brush));
     drawCmdList->ProfilerMarshallingDrawOps(secondDrawCmdList);
     EXPECT_EQ(secondDrawCmdList->drawOpItems_.size(), 1);
+    delete drawCmdList;
+}
+
+/**
+ * @tc.name: Dump003
+ * @tc.desc: Test the Dump function.
+ * @tc.type: UnmarshallingDrawOpsSimple
+ */
+HWTEST_F(DrawCmdListTest, Dump003, TestSize.Level1)
+{
+    auto drawCmdList = new DrawCmdList(DrawCmdList::UnmarshalMode::IMMEDIATE);
+    drawCmdList->opAllocator_.size_ = drawCmdList->offset_ + 1;
+    EXPECT_FALSE(drawCmdList->IsEmpty());
+    EXPECT_TRUE(drawCmdList->drawOpItems_.empty());
+    
+    std::string out;
+    drawCmdList->Dump(out);
+    EXPECT_TRUE(out.empty());
     delete drawCmdList;
 }
 } // namespace Drawing

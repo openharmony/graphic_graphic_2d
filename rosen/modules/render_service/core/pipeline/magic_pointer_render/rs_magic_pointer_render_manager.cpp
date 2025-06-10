@@ -19,7 +19,11 @@
 #include "pipeline/sk_resource_manager.h"
 #include "rs_magic_pointer_render_manager.h"
 #include "rs_trace.h"
+#ifdef USE_M133_SKIA
+#include "src/gpu/ganesh/gl/GrGLDefines.h"
+#else
 #include "src/gpu/gl/GrGLDefines.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {

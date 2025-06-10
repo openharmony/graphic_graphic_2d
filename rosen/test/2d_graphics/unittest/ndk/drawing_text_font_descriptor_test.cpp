@@ -67,9 +67,9 @@ HWTEST_F(OH_Drawing_FontDescriptorTest, OH_Drawing_FontDescriptorTest002, TestSi
     OH_Drawing_DestroyFontDescriptor(desc);
     EXPECT_NE(descArr, nullptr);
     if (ExistStylishFontConfigFile()) {
-        EXPECT_EQ(num, 142);
+        EXPECT_EQ(num, 143);
     } else {
-        EXPECT_EQ(num, 141);
+        EXPECT_EQ(num, 142);
     }
     OH_Drawing_DestroyFontDescriptors(descArr, num);
 }
@@ -236,9 +236,9 @@ HWTEST_F(OH_Drawing_FontDescriptorTest, OH_Drawing_FontDescriptorTest009, TestSi
     ASSERT_NE(fontList, nullptr);
     size_t size = OH_Drawing_GetDrawingArraySize(fontList);
     if (ExistStylishFontConfigFile()) {
-        EXPECT_EQ(size, 141);
+        EXPECT_EQ(size, 142);
     } else {
-        EXPECT_EQ(size, 140);
+        EXPECT_EQ(size, 141);
     }
     for (size_t i = 0; i < size; i++) {
         const OH_Drawing_String *fontFullName = OH_Drawing_GetSystemFontFullNameByIndex(fontList, i);
@@ -295,9 +295,9 @@ HWTEST_F(OH_Drawing_FontDescriptorTest, OH_Drawing_FontDescriptorTest011, TestSi
     ASSERT_NE(fontList, nullptr);
     size_t size = OH_Drawing_GetDrawingArraySize(fontList);
     if (ExistStylishFontConfigFile()) {
-        EXPECT_EQ(size, 142);
+        EXPECT_EQ(size, 143);
     } else {
-        EXPECT_EQ(size, 140);
+        EXPECT_EQ(size, 141);
     }
     for (size_t i = 0; i < size; i++) {
         const OH_Drawing_String *fontFullName = OH_Drawing_GetSystemFontFullNameByIndex(fontList, i);
@@ -351,9 +351,9 @@ HWTEST_F(OH_Drawing_FontDescriptorTest, OH_Drawing_FontDescriptorTest013, TestSi
     OH_Drawing_Array *ttfs = OH_Drawing_GetSystemFontFullNamesByType(ALL);
     size_t num = OH_Drawing_GetDrawingArraySize(ttfs);
     if (ExistStylishFontConfigFile()) {
-        EXPECT_EQ(num, 142);
+        EXPECT_EQ(num, 143);
     } else {
-        EXPECT_EQ(num, 140);
+        EXPECT_EQ(num, 141);
     }
     FontDescriptorMgrInstance.ClearFontFileCache();
     OH_Drawing_DestroyFontCollection(fc);

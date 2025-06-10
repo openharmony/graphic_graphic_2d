@@ -119,6 +119,28 @@ public:
     void SwapDataAndInitStagingFlags(std::unique_ptr<RSFilterCacheManager>& cacheManager);
     bool WouldDrawLargeAreaBlur();
     bool WouldDrawLargeAreaBlurPrecisely();
+
+    std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> GetCachedSnapshot() const { return cachedSnapshot_; }
+    std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> GetCachedFilteredSnapshot() const { return cachedFilteredSnapshot_; }
+    RectI GetSnapshotRegion() const { return snapshotRegion_; }
+    void ResetFilterCache(std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> cachedSnapshot,
+        std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> cachedFilteredSnapshot, RectI snapshotRegion,
+        bool isHpaeCacheFilteredSnapshot = false) {
+        if (cachedSnapshot) {
+            cachedSnapshot_ = std::make_shared<RSPaintFilterCanvas::CachedEffectData>(cachedSnapshot->cachedImage_, cachedSnapshot->cachedRect_);
+        } else {
+            cachedSnapshot_.reset();
+        }
+        if (cachedFilteredSnapshot) {
+            cachedFilteredSnapshot_ = std::make_shared<RSPaintFilterCanvas::CachedEffectData>(cachedFilteredSnapshot->cachedImage_, cachedFilteredSnapshot->cachedRect_);
+        } else {
+            cachedFilteredSnapshot.reset();
+        }
+        snapshotRegion_ = snapshotRegion;
+        isHpaeCachedFilteredSnapshot_ = isHpaeCachedFilteredSnapshot;
+    }
+    bool ClearCacheAfterDrawing() const { return renderClearFilteredCachedAfterDrawing_; }
+
     void MarkInForegroundFilterAndCheckNeedForceClearCache(NodeId offscreenCanvasNodeId);
     RSFilter::FilterType GetFilterType() const {
         return filterType_;
@@ -194,6 +216,7 @@ private:
     bool canSkipFrame_ = false;
     bool stagingIsSkipFrame_  = false;
     RSFilter::FilterType filterType_ = RSFilter::NONE;
+    bool forceUseCached_ = false;
 
     // Cache age, used to determine if we can delay the cache update.
     int cacheUpdateInterval_ = 0;
@@ -204,6 +227,8 @@ private:
     // last stagingInForegroundFilter_ value
     NodeId lastInForegroundFilter_ = INVALID_NODEID;
 
+    bool isHpaeCachedFilteredSnapshot_ = false;
+    bool snapshotNeedUpdate_ = false;
 public:
     static bool isCCMFilterCacheEnable_;
     static bool isCCMEffectMergeEnable_;

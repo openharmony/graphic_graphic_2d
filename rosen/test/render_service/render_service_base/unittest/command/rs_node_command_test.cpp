@@ -436,4 +436,26 @@ HWTEST_F(RSNodeCommandTest, DumpClientNodeTree001, TestSize.Level1)
 
     SUCCEED();
 }
+
+/**
+ * @tc.name: SetUITokenTest001
+ * @tc.desc: test results of SetUIToken
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSNodeCommandTest, SetUITokenTest001, TestSize.Level1)
+{
+    RSContext context;
+    NodeId nodeId = static_cast<NodeId>(-1);
+    uint64_t token = 1001;
+    RSNodeCommandHelper::SetUIToken(context, nodeId, token);
+    ASSERT_EQ(context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId), nullptr);
+
+    nodeId = 1;
+    RSCanvasNodeCommandHelper::Create(context, nodeId, false);
+    auto canvasNode = context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId);
+    RSNodeCommandHelper::SetUIToken(context, nodeId, token);
+    ASSERT_NE(canvasNode, nullptr);
+    ASSERT_EQ(canvasNode->uiContextToken_, token);
+}
 } // namespace OHOS::Rosen

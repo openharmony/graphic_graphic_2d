@@ -139,10 +139,10 @@ public:
 
     RsVulkanInterface() {};
     ~RsVulkanInterface();
-    void Init(VulkanInterfaceType vulkanInterfaceType, bool isProtected = false);
+    void Init(VulkanInterfaceType vulkanInterfaceType, bool isProtected = false, bool isHtsEnable = false);
     bool CreateInstance();
     bool SelectPhysicalDevice(bool isProtected = false);
-    bool CreateDevice(bool isProtected = false);
+    bool CreateDevice(bool isProtected = false, bool isHtsEnable = false);
 #ifdef USE_M133_SKIA
     bool CreateSkiaBackendContext(skgpu::VulkanBackendContext* context, bool isProtected = false);
 #else
@@ -439,6 +439,7 @@ public:
 
     static bool GetIsInited();
 
+    static bool IsRecyclableSingletonValid();
 private:
     static RsVulkanContext& GetRecyclableSingleton(const std::string& cacheDir = "");
     static std::unique_ptr<RsVulkanContext>& GetRecyclableSingletonPtr(const std::string& cacheDir = "");
@@ -455,6 +456,7 @@ private:
     // use for recyclable singleton
     static std::recursive_mutex recyclableSingletonMutex_;
     static bool isRecyclable_;
+    static std::atomic<bool> isRecyclableSingletonValid_;
     // use to mark current process has created vulkan context at least once
     static std::atomic<bool> isInited_;
 };

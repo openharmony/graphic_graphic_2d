@@ -37,6 +37,7 @@
 #include "drawable/rs_drawable.h"
 #include "drawable/rs_property_drawable.h"
 #include "feature/opinc/rs_opinc_cache.h"
+#include "feature/single_frame_composer/rs_single_frame_composer.h"
 #include "hwc/rs_hwc_recorder.h"
 #include "image/gpu_context.h"
 #include "memory/rs_dfx_string.h"
@@ -46,7 +47,6 @@
 #include "pipeline/rs_render_display_sync.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_render_content.h"
-#include "pipeline/rs_single_frame_composer.h"
 #include "property/rs_properties.h"
 #include "drawable/rs_render_node_drawable_adapter.h"
 
@@ -708,6 +708,8 @@ public:
     {
         isTextureExportNode_ = isTextureExportNode;
     }
+
+    bool HasHpaeBackgroundFilter() const;
 
 #ifdef RS_ENABLE_STACK_CULLING
     void SetFullSurfaceOpaqueMarks(const std::shared_ptr<RSRenderNode> curSurfaceNodeParam);

@@ -111,6 +111,13 @@ int RSSystemProperties::GetSceneJankFrameThreshold()
     return sceneJankFrameThreshold;
 }
 
+bool RSSystemProperties::GetProfilerPixelCheckMode()
+{
+    static CachedHandle handle = CachedParameterCreate("persist.graphic.profiler.pixelcheck", "0");
+    int32_t changed = 0;
+    return ConvertToInt(CachedParameterGetChanged(handle, &changed), 0) != 0;
+}
+
 int RSSystemProperties::GetRecordingEnabled()
 {
     static CachedHandle g_Handle = CachedParameterCreate("debug.graphic.recording.enabled", "0");
@@ -118,7 +125,6 @@ int RSSystemProperties::GetRecordingEnabled()
     const char *num = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(num, 0);
 }
-
 
 void RSSystemProperties::SetRecordingDisenabled()
 {
@@ -343,6 +349,14 @@ bool RSSystemProperties::GetExpandScreenDirtyEnabled()
     int changed = 0;
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(enable, 0) != 0;
+}
+
+bool RSSystemProperties::GetVirtualExpandScreenSkipEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.uni.virtualexpandscreenskip.enabled", "1");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 1) != 0;
 }
 
 bool RSSystemProperties::GetReleaseResourceEnabled()
@@ -822,6 +836,15 @@ bool RSSystemProperties::GetCacheOptimizeRotateEnable()
 {
     static bool debugEnable = system::GetBoolParameter("const.cache.optimize.rotate.enable", false);
     return debugEnable;
+}
+
+// 开机panic问题解决后，可删除
+bool RSSystemProperties::GetHeterogComputingSkiaDemoEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.heterog.computing.skiademo.enabled", "0");
+    int changed = 0;
+    const char *enable = CacheParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 0) != 0;
 }
 
 CrossNodeOffScreenRenderDebugType RSSystemProperties::GetCrossNodeOffScreenStatus()
@@ -1367,6 +1390,14 @@ bool RSSystemProperties::GetOptimizeHwcComposeAreaEnabled()
     static CachedHandle g_Handle = CachedParameterCreate("rosen.graphic.optimizeHwcComposeArea.enabled", "1");
     int changed = 0;
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 1) != 0;
+}
+
+bool RSSystemProperties::GetHpaeBlurUsingAEE()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.graphic.hpae.blur.aee.enabled", "1");
+    int changed = 0;
+    const char *enable = CacheParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(enable, 1) != 0;
 }
 

@@ -133,6 +133,7 @@ bool RSSymbolAnimation::SetSymbolAnimation(
     if (!symbolAnimationConfig->currentAnimationHasPlayed) {
         switch (symbolAnimationConfig->effectStrategy) {
             case Drawing::DrawingEffectStrategy::REPLACE_APPEAR:
+            case Drawing::DrawingEffectStrategy::QUICK_REPLACE_APPEAR:
                 PopNodeFromReplaceList(symbolAnimationConfig->symbolSpanId);
                 break;
             case Drawing::DrawingEffectStrategy::TEXT_FLIP:
@@ -148,6 +149,7 @@ bool RSSymbolAnimation::SetSymbolAnimation(
 
     switch (symbolAnimationConfig->effectStrategy) {
         case Drawing::DrawingEffectStrategy::REPLACE_APPEAR:
+        case Drawing::DrawingEffectStrategy::QUICK_REPLACE_APPEAR:
             return SetReplaceAnimation(symbolAnimationConfig);
         case Drawing::DrawingEffectStrategy::TEXT_FLIP:
             return SetTextFlipAnimation(symbolAnimationConfig);
@@ -252,7 +254,15 @@ bool RSSymbolAnimation::SetReplaceDisappear(
 
     auto& disappearNodes = rsNode_->replaceNodesSwapArr_[APPEAR_STATUS];
     std::vector<std::vector<Drawing::DrawingPiecewiseParameter>> parameters;
-    Drawing::DrawingEffectStrategy effectStrategy = Drawing::DrawingEffectStrategy::REPLACE_DISAPPEAR;
+    Drawing::DrawingEffectStrategy effectStrategy;
+    if (symbolAnimationConfig->effectStrategy == Drawing::DrawingEffectStrategy::REPLACE_APPEAR) {
+        effectStrategy = Drawing::DrawingEffectStrategy::REPLACE_DISAPPEAR;
+    } else if (symbolAnimationConfig->effectStrategy == Drawing::DrawingEffectStrategy::QUICK_REPLACE_APPEAR) {
+        effectStrategy = Drawing::DrawingEffectStrategy::QUICK_REPLACE_DISAPPEAR;
+    } else {
+        return false;
+    }
+
     bool res = GetAnimationGroupParameters(symbolAnimationConfig, parameters, effectStrategy);
     for (const auto& config : disappearNodes) {
         if (!res || (config.symbolNode.animationIndex < 0)) {
@@ -286,9 +296,7 @@ bool RSSymbolAnimation::SetReplaceAppear(
     Vector4f offsets = CalculateOffset(symbolFirstNode.symbolData.path_,
         symbolFirstNode.nodeBoundary[0], symbolFirstNode.nodeBoundary[1]); // index 0 offsetX and 1 offsetY of layout
     std::vector<std::vector<Drawing::DrawingPiecewiseParameter>> parameters;
-    Drawing::DrawingEffectStrategy effectStrategy = Drawing::DrawingEffectStrategy::REPLACE_APPEAR;
-    bool res = GetAnimationGroupParameters(symbolAnimationConfig, parameters,
-        effectStrategy);
+    bool res = GetAnimationGroupParameters(symbolAnimationConfig, parameters, symbolAnimationConfig->effectStrategy);
     uint32_t nodeNum = symbolAnimationConfig->numNodes;
     rsNode_->replaceNodesSwapArr_[APPEAR_STATUS].resize(nodeNum);
     for (uint32_t n = 0; n < nodeNum; n++) {

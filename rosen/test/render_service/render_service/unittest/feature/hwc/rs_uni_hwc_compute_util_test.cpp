@@ -992,6 +992,53 @@ HWTEST_F(RSUniHwcComputeUtilTest, GetLayerTransformTest002, TestSize.Level2)
 }
 
 /*
+ * @tc.name: FixedRotationTransformTest001
+ * @tc.desc: Test GetLayerTransform when consumer and buffer is not nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueICCYNK
+ */
+HWTEST_F(RSUniHwcComputeUtilTest, FixedRotationTransformTest001, TestSize.Level2)
+{
+    ScreenInfo screenInfo;
+    NodeId id = 0;
+    auto node = std::make_shared<RSSurfaceRenderNode>(id);
+    node->InitRenderParams();
+    node->SetForceHardwareAndFixRotation(true);
+    node->SetAbsRotation(0.f);
+    ASSERT_NE(node->GetRSSurfaceHandler(), nullptr);
+    node->GetRSSurfaceHandler()->buffer_.buffer = SurfaceBuffer::Create();
+    node->GetRSSurfaceHandler()->consumer_ = IConsumerSurface::Create();
+    auto type1 = RSUniHwcComputeUtil::GetLayerTransform(*node, screenInfo);
+
+    node->SetAbsRotation(90.f);
+    auto type2 = RSUniHwcComputeUtil::GetLayerTransform(*node, screenInfo);
+    ASSERT_EQ(type1, type2);
+}
+
+/*
+ * @tc.name: FixedRotationTransformTest002
+ * @tc.desc: Test GetLayerTransform when consumer and buffer is not nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueICCYNK
+ */
+HWTEST_F(RSUniHwcComputeUtilTest, FixedRotationTransformTest002, TestSize.Level2)
+{
+    ScreenInfo screenInfo;
+    NodeId id = 0;
+    auto node = std::make_shared<RSSurfaceRenderNode>(id);
+    node->InitRenderParams();
+    node->SetAbsRotation(0.f);
+    ASSERT_NE(node->GetRSSurfaceHandler(), nullptr);
+    node->GetRSSurfaceHandler()->buffer_.buffer = SurfaceBuffer::Create();
+    node->GetRSSurfaceHandler()->consumer_ = IConsumerSurface::Create();
+    auto type1 = RSUniHwcComputeUtil::GetLayerTransform(*node, screenInfo);
+
+    node->SetAbsRotation(90.f);
+    auto type2 = RSUniHwcComputeUtil::GetLayerTransform(*node, screenInfo);
+    ASSERT_NE(type1, type2);
+}
+
+/*
  * @tc.name: UpdateHwcNodeProperty_001
  * @tc.desc: Test UpdateHwcNodeProperty
  * @tc.type: FUNC

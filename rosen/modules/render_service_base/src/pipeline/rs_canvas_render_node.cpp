@@ -82,7 +82,9 @@ void RSCanvasRenderNode::QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visi
     if (!visitor) {
         return;
     }
+    // TODO: check if node has backgroundFilter here
     ApplyModifiers();
+    visitor->RegisterHpaeCallback(*this);    // TODO: may alse register for RSEffectNode
     visitor->QuickPrepareCanvasRenderNode(*this);
 }
 

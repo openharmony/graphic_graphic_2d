@@ -157,9 +157,6 @@ ohos_source_set("render_service_base_src") {
     #delegate
     "src/delegate/rs_functional_delegate.cpp",
 
-    #feature
-    "src/feature/opinc/rs_opinc_cache.cpp",
-
     #ipc_callbacks
     "src/ipc_callbacks/buffer_available_callback_proxy.cpp",
     "src/ipc_callbacks/buffer_available_callback_stub.cpp",
@@ -221,10 +218,10 @@ ohos_source_set("render_service_base_src") {
     "src/pipeline/rs_render_frame_rate_linker.cpp",
     "src/pipeline/rs_render_frame_rate_linker_map.cpp",
     "src/pipeline/rs_render_node.cpp",
+    "src/pipeline/rs_render_node_allocator.cpp",
     "src/pipeline/rs_render_node_gc.cpp",
     "src/pipeline/rs_render_node_map.cpp",
     "src/pipeline/rs_root_render_node.cpp",
-    "src/pipeline/rs_single_frame_composer.cpp",
     "src/pipeline/rs_surface_buffer_callback_manager.cpp",
     "src/pipeline/rs_surface_handler.cpp",
     "src/pipeline/rs_surface_render_node.cpp",
@@ -241,6 +238,15 @@ ohos_source_set("render_service_base_src") {
     "src/property/rs_property_drawable_frame_geometry.cpp",
     "src/property/rs_property_drawable_utilities.cpp",
     "src/property/rs_property_trace.cpp",
+
+    #hpae
+    "src/hpae_base/rs_hpae_base_data.cpp",
+    "src/hpae_base/rs_hpae_hianimation.cpp",
+    "src/hpae_base/rs_hpae_ffrt_pattern_manager.cpp",
+    "src/hpae_base/rs_hpae_fliter_cache_manager.cpp",
+    "src/hpae_base/rs_hpae_scheduler.cpp",
+    "src/hpae_base/rs_hpae_perf_thread.cpp",
+    "src/hpae_base/rs_hpae_fusion_operator.cpp",
 
     #render
     "src/render/rs_attraction_effect_filter.cpp",
@@ -346,6 +352,9 @@ ohos_source_set("render_service_base_src") {
 
     #feature
     "src/feature/capture/rs_ui_capture_helper.cpp",
+    "src/feature/opinc/rs_opinc_cache.cpp",
+    "src/feature/single_frame_composer/rs_single_frame_composer.cpp",
+    "src/feature/capture/rs_capture_pixelmap_manager.cpp",
 
     #dirty_region
     "src/dirty_region/rs_filter_dirty_collector.cpp",
@@ -562,6 +571,7 @@ ohos_source_set("render_service_base_src") {
       "hisysevent:libhisysevent",
       "image_framework:image_native",
       "lz4:liblz4_shared",
+      "init:libbegetutil",
     ]
   }
 

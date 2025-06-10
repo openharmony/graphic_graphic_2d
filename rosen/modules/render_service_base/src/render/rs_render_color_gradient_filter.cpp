@@ -228,10 +228,10 @@ bool RSRenderColorGradientFilterPara::ParseFilterValues()
     positions_ = positionProperty->Get();
     strengths_ = strengthProperty->Get();
     mask_ = maskProperty ? std::make_shared<RSShaderMask>(maskProperty) : nullptr;
-#ifndef ENABLE_M133_SKIA
-    const auto hashFunc = SkOpts::hash;
-#else
+#ifdef USE_M133_SKIA
     const auto hashFunc = SkChecksum::Hash32;
+#else
+    const auto hashFunc = SkOpts::hash;
 #endif
     hash_ = hashFunc(colors_.data(), colors_.size() * sizeof(float), hash_);
     hash_ = hashFunc(positions_.data(), positions_.size() * sizeof(float), hash_);

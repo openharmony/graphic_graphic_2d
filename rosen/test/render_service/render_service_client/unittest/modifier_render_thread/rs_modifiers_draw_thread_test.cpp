@@ -88,50 +88,6 @@ HWTEST_F(RSModifiersDrawThreadTest, Start001, TestSize.Level1)
 }
 
 /**
- * @tc.name: InitMaxPixelMapSize001
- * @tc.desc: test InitMaxPixelMapSize of Start
- * @tc.type: FUNC
- * @tc.require: issueIC8J12
- */
-HWTEST_F(RSModifiersDrawThreadTest, InitMaxPixelMapSize001, TestSize.Level1)
-{
-    EXPECT_EQ(RSModifiersDrawThread::Instance().isFirst_, true);
-    RSModifiersDrawThread::Instance().InitMaxPixelMapSize();
-    EXPECT_EQ(RSModifiersDrawThread::Instance().isFirst_, false);
-
-    RSModifiersDrawThread::Instance().InitMaxPixelMapSize();
-    EXPECT_EQ(RSModifiersDrawThread::Instance().isFirst_, false);
-}
-
-/**
- * @tc.name: GetMaxPixelMapWidth001
- * @tc.desc: test GetMaxPixelMapWidth of Start
- * @tc.type: FUNC
- * @tc.require: issueIC8J12
- */
-HWTEST_F(RSModifiersDrawThreadTest, GetMaxPixelMapWidth001, TestSize.Level1)
-{
-    EXPECT_EQ(RSModifiersDrawThread::Instance().GetMaxPixelMapWidth(), INT_MAX);
-    uint32_t width = 1000;
-    RSModifiersDrawThread::Instance().maxPixelMapWidth_ = width;
-    EXPECT_EQ(RSModifiersDrawThread::Instance().GetMaxPixelMapWidth(), width);
-}
-
-/**
- * @tc.name: GetMaxPixelMapHeight001
- * @tc.desc: test GetMaxPixelMapHeight of Start
- * @tc.type: FUNC
- * @tc.require: issueIC8J12
- */
-HWTEST_F(RSModifiersDrawThreadTest, GetMaxPixelMapHeight001, TestSize.Level1)
-{
-    EXPECT_EQ(RSModifiersDrawThread::Instance().GetMaxPixelMapHeight(), INT_MAX);
-    uint32_t height = 1000;
-    RSModifiersDrawThread::Instance().maxPixelMapHeight_ = height;
-    EXPECT_EQ(RSModifiersDrawThread::Instance().GetMaxPixelMapHeight(), height);
-}
-
-/**
  * @tc.name: PostTask001
  * @tc.desc: test results of PostTask
  * @tc.type: FUNC
@@ -154,6 +110,24 @@ HWTEST_F(RSModifiersDrawThreadTest, PostTask002, TestSize.Level1)
     RSModifiersDrawThread::Instance().Start();
     RSModifiersDrawThread::Instance().PostTask([]() {});
     ASSERT_NE(RSModifiersDrawThread::Instance().handler_, nullptr);
+}
+
+/**
+ * @tc.name: PostTask003
+ * @tc.desc: test results of PostTask, if not started
+ * @tc.type: FUNC
+ * @tc.require: issueICCICO
+ */
+HWTEST_F(RSModifiersDrawThreadTest, PostTask003, TestSize.Level1)
+{
+    RSModifiersDrawThread::Instance().Start();
+    ASSERT_EQ(RSModifiersDrawThread::Instance().isStarted_, true);
+    // manually change member variable
+    RSModifiersDrawThread::Instance().isStarted_ = false;
+    bool testResult = false;
+    auto testFunc = [&testResult]() { testResult = true; };
+    RSModifiersDrawThread::Instance().PostTask(testFunc);
+    ASSERT_FALSE(testResult);
 }
 
 /**
@@ -222,7 +196,8 @@ HWTEST_F(RSModifiersDrawThreadTest, ConvertTransactionTest001, TestSize.Level1)
     auto cmd = std::make_unique<RSCanvasNodeUpdateRecording>(nodeId, cmdList, static_cast<uint16_t>(mType));
     auto transactionData = std::make_unique<RSTransactionData>();
     transactionData->AddCommand(std::move(cmd), nodeId, FollowType::NONE);
-    RSModifiersDrawThread::ConvertTransaction(transactionData);
+    RSModifiersDrawThread::Instance().PostSyncTask(
+        [&]() { RSModifiersDrawThread::ConvertTransaction(transactionData); });
     ASSERT_NE(transactionData, nullptr);
 }
 
@@ -241,7 +216,8 @@ HWTEST_F(RSModifiersDrawThreadTest, ConvertTransactionTest002, TestSize.Level1)
     auto cmd = std::make_unique<RSCanvasNodeUpdateRecording>(nodeId, cmdList, static_cast<uint16_t>(mType));
     auto transactionData = std::make_unique<RSTransactionData>();
     transactionData->AddCommand(std::move(cmd), nodeId, FollowType::NONE);
-    RSModifiersDrawThread::ConvertTransaction(transactionData);
+    RSModifiersDrawThread::Instance().PostSyncTask(
+        [&]() { RSModifiersDrawThread::ConvertTransaction(transactionData); });
     ASSERT_NE(transactionData, nullptr);
 }
 
@@ -282,5 +258,23 @@ HWTEST_F(RSModifiersDrawThreadTest, RemoveTask002, TestSize.Level1)
     RSModifiersDrawThread::Instance().PostTask(task, TASK_NAME, DELAY_TIME);
     RSModifiersDrawThread::Instance().RemoveTask(TASK_NAME);
     ASSERT_FALSE(tag);
+}
+
+/**
+ * @tc.name: ClearEventResource001
+ * @tc.desc: test results of ClearEventResource, while handler/runner are(not) nullptr.
+ * @tc.type: FUNC
+ * @tc.require: issueICCICO
+ */
+HWTEST_F(RSModifiersDrawThreadTest, ClearEventResource001, TestSize.Level1)
+{
+    RSModifiersDrawThread::Instance().Start();
+    ASSERT_NE(RSModifiersDrawThread::Instance().handler_, nullptr);
+    ASSERT_NE(RSModifiersDrawThread::Instance().runner_, nullptr);
+    RSModifiersDrawThread::Instance().ClearEventResource();
+    ASSERT_EQ(RSModifiersDrawThread::Instance().handler_, nullptr);
+    ASSERT_EQ(RSModifiersDrawThread::Instance().runner_, nullptr);
+    RSModifiersDrawThread::Instance().ClearEventResource();
+    RSModifiersDrawThread::Instance().Destroy();
 }
 } // namespace OHOS::Rosen

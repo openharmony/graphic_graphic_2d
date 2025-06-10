@@ -47,7 +47,7 @@ public:
         const Drawing::Matrix& gravityMatrix, const Drawing::Matrix& scalingModeMatrix);
     static void UpdateRealSrcRect(RSSurfaceRenderNode& node, const RectI& absRect);
     static GraphicTransformType GetConsumerTransform(const RSSurfaceRenderNode& node,
-        const sptr<SurfaceBuffer> buffer, const sptr<IConsumerSurface> consumer);
+        const sptr<SurfaceBuffer>& buffer, const sptr<IConsumerSurface>& consumer);
     static GraphicTransformType GetRotateTransformForRotationFixed(RSSurfaceRenderNode& node,
         sptr<IConsumerSurface> consumer);
     static void UpdateHwcNodeProperty(const std::shared_ptr<RSSurfaceRenderNode>& hwcNode);

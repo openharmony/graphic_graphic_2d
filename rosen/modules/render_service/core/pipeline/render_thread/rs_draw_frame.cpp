@@ -27,6 +27,7 @@
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_render_node_gc.h"
 #include "render/rs_filter_cache_manager.h"
+#include "feature/hpae/rs_hpae_manager.h"
 #include "rs_frame_report.h"
 #include "rs_uni_render_thread.h"
 
@@ -224,6 +225,11 @@ void RSDrawFrame::Sync()
 {
     RS_TRACE_NAME_FMT("Sync");
     RSMainThread::Instance()->GetContext().GetGlobalRootRenderNode()->Sync();
+    bool isHdrOn = false;
+    if (stagingRenderThreadParams_ && stagingRenderThreadParams_->HasDiaplayHdron()) {
+        isHdrOn = true;
+    }
+    RSHpaeManager::GetInstance().OnSync(isHdrOn);
 
     auto& pendingSyncNodes = RSMainThread::Instance()->GetContext().pendingSyncNodes_;
     for (auto [id, weakPtr] : stagingSyncCanvasDrawingNodes_) {

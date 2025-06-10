@@ -40,6 +40,9 @@
 #include "qos.h"
 #endif
 
+#undef LOG_TAG
+#define LOG_TAG "RSSubThread"
+
 namespace OHOS::Rosen {
 RSSubThread::~RSSubThread()
 {

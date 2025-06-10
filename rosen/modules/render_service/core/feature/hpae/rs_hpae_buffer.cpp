@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -155,5 +155,60 @@ GSError RSHpaeBuffer::ForceDropFrame(uint64_t presentWhen)
 
     return OHOS::GSERROR_OK;
 }
+
+// reference to RSDisplayRenderNodeDrawable::CreateSurface
+bool RSHpaeBuffer::CreateSurface(sptr<IBufferConsumerListener> listener)
+{
+    auto consumer = surfaceHandler_->GetConsumer();
+    if (consumer != nullptr && rsSurface_ != nullptr) {
+        RS_LOGI("RSHpaeBuffer::CreateSurface already created, return");
+        return true;
+    }
+    consumer = IConsumerSurface::Create(layerName_);
+    if (consumer == nullptr) {
+        RS_LOGE("RSHpaeBuffer::CreateSurface get consumer surface fail");
+        return false;
+    }
+    SurfaceError ret = consumer->RegisterConsumerListener(listener);
+    if (ret != SURFACE_ERROR_OK) {
+        RS_LOGE("RSHpaeBuffer::CreateSurface RegisterConsumerListener fail");
+        return false;
+    }
+    // consumerListener_ = listener;
+    auto producer = consumer->GetProducer();
+    producerSurface_ = Surface::CreateSurfaceAsProducer(producer);
+    if (!producerSurface_) {
+        RS_LOGE("RSHpaeBuffer::CreateSurface CreateSurfaceAsProducer fail");
+        return false;
+    }
+    producerSurface_->SetQueueSize(HPAE_BUFFER_SIZE);
+
+    auto client = std::static_pointer_cast(RSRenderServiceClient)(RSIRenderClient::CreateRenderServiceClient());
+    auto surface = client->CreateRSSurface(producerSurface_);
+    rsSurface_ = std::static_pointer_cast<RSSurfaceOhos>(surface);
+    RS_LOGI("RSHpaeBuffer::CreateSurface end");
+    surfaceCreated_ = true;
+    surfaceHandle_->SetConsumer(consumer);
+
+    return true;
 }
+
+BufferHandle* RSHpaeBuffer::GetBufferHandle()
+{
+    if (UNLIKELY(!rsSurface_)) {
+        HPAE_LOGE("surface not exist");
+        return nullptr;
+    }
+
+    auto buffer = rsSurface_->GetCurrentBuffer();
+    if (buffer) {
+        bufferHandle_ = buffer->GetBufferHandle();
+        HPAE_TRACE_NAME_FMT("getBufferHandle: %p", bufferHnadle_);
+        return bufferHandl_;
+    }
+
+    return nullptr;
 }
+
+} // DrawableV2
+} // OHOS::Rosen

@@ -247,6 +247,7 @@ bool RSRenderPropertyBase::Unmarshalling(Parcel& parcel, std::shared_ptr<RSRende
         case RSPropertyType::FLOAT: {
             float value;
             if (!RSMarshallingHelper::Unmarshalling(parcel, value)) {
+                ROSEN_LOGE("RSRenderPropertyBase::Unmarshalling PROPERTY_FLOAT failed");
                 return false;
             }
             val.reset(new RSRenderAnimatableProperty<float>(value, id, type, unit));
@@ -255,6 +256,7 @@ bool RSRenderPropertyBase::Unmarshalling(Parcel& parcel, std::shared_ptr<RSRende
         case RSPropertyType::RS_COLOR: {
             Color value;
             if (!RSMarshallingHelper::Unmarshalling(parcel, value)) {
+                ROSEN_LOGE("RSRenderPropertyBase::Unmarshalling PROPERTY_COLOR failed");
                 return false;
             }
             val.reset(new RSRenderAnimatableProperty<Color>(value, id, type, unit));
@@ -263,6 +265,7 @@ bool RSRenderPropertyBase::Unmarshalling(Parcel& parcel, std::shared_ptr<RSRende
         case RSPropertyType::MATRIX3F: {
             Matrix3f value;
             if (!RSMarshallingHelper::Unmarshalling(parcel, value)) {
+                ROSEN_LOGE("RSRenderPropertyBase::Unmarshalling PROPERTY_MATRIX3F failed");
                 return false;
             }
             val.reset(new RSRenderAnimatableProperty<Matrix3f>(value, id, type, unit));
@@ -271,6 +274,7 @@ bool RSRenderPropertyBase::Unmarshalling(Parcel& parcel, std::shared_ptr<RSRende
         case RSPropertyType::QUATERNION: {
             Quaternion value;
             if (!RSMarshallingHelper::Unmarshalling(parcel, value)) {
+                ROSEN_LOGE("RSRenderPropertyBase::Unmarshalling PROPERTY_QUATERNION failed");
                 return false;
             }
             val.reset(new RSRenderAnimatableProperty<Quaternion>(value, id, type, unit));
@@ -279,6 +283,7 @@ bool RSRenderPropertyBase::Unmarshalling(Parcel& parcel, std::shared_ptr<RSRende
         case RSPropertyType::VECTOR2F: {
             Vector2f value;
             if (!RSMarshallingHelper::Unmarshalling(parcel, value)) {
+                ROSEN_LOGE("RSRenderPropertyBase::Unmarshalling PROPERTY_VECTOR2F failed");
                 return false;
             }
             val.reset(new RSRenderAnimatableProperty<Vector2f>(value, id, type, unit));
@@ -287,6 +292,7 @@ bool RSRenderPropertyBase::Unmarshalling(Parcel& parcel, std::shared_ptr<RSRende
         case RSPropertyType::VECTOR3F: {
             Vector3f value;
             if (!RSMarshallingHelper::Unmarshalling(parcel, value)) {
+                ROSEN_LOGE("RSRenderPropertyBase::Unmarshalling PROPERTY_VECTOR3F failed");
                 return false;
             }
             val.reset(new RSRenderAnimatableProperty<Vector3f>(value, id, type, unit));
@@ -295,6 +301,7 @@ bool RSRenderPropertyBase::Unmarshalling(Parcel& parcel, std::shared_ptr<RSRende
         case RSPropertyType::VECTOR4F: {
             Vector4f value;
             if (!RSMarshallingHelper::Unmarshalling(parcel, value)) {
+                ROSEN_LOGE("RSRenderPropertyBase::Unmarshalling PROPERTY_VECTOR4F failed");
                 return false;
             }
             val.reset(new RSRenderAnimatableProperty<Vector4f>(value, id, type, unit));
@@ -303,6 +310,7 @@ bool RSRenderPropertyBase::Unmarshalling(Parcel& parcel, std::shared_ptr<RSRende
         case RSPropertyType::VECTOR4_COLOR: {
             Vector4<Color> value;
             if (!RSMarshallingHelper::Unmarshalling(parcel, value)) {
+                ROSEN_LOGE("RSRenderPropertyBase::Unmarshalling PROPERTY_VECTOR4_COLOR failed");
                 return false;
             }
             val.reset(new RSRenderAnimatableProperty<Vector4<Color>>(value, id, type, unit));
@@ -311,6 +319,7 @@ bool RSRenderPropertyBase::Unmarshalling(Parcel& parcel, std::shared_ptr<RSRende
         case RSPropertyType::RRECT: {
             RRect value;
             if (!RSMarshallingHelper::Unmarshalling(parcel, value)) {
+                ROSEN_LOGE("RSRenderPropertyBase::Unmarshalling PROPERTY_RRECT failed");
                 return false;
             }
             val.reset(new RSRenderAnimatableProperty<RRect>(value, id, type, unit));
@@ -319,6 +328,7 @@ bool RSRenderPropertyBase::Unmarshalling(Parcel& parcel, std::shared_ptr<RSRende
         case RSPropertyType::SHADER_PARAM: {
             std::vector<float> value;
             if (!RSMarshallingHelper::Unmarshalling(parcel, value)) {
+                ROSEN_LOGE("RSRenderPropertyBase::Unmarshalling PROPERTY_SHADER_PARAM failed");
                 return false;
             }
             val.reset(new RSRenderAnimatableProperty<std::vector<float>>(value, id, type, unit));

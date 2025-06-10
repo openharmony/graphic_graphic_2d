@@ -70,6 +70,27 @@ void FontParser::ProcessTable(const CmapTables* cmapTable, FontParser::FontDescr
     }
 }
 
+bool FontParser::CheckFullNameParamInvalid(FontParser::FontDescriptor& fontDescriptor, unsigned int languageId,
+    const std::string& nameString)
+{
+    if (!fontDescriptor.requestedFullname.empty() &&
+        fontDescriptor.fullName == fontDescriptor.requestedFullname) {
+        return true;
+    }
+    if (nameString.empty()) {
+        return true;
+    }
+    if (fontDescriptor.requestedLid != LANGUAGE_DEFAULT) {
+        if (!fontDescriptor.fullName.empty()) {
+            return true;
+        }
+        if (fontDescriptor.requestedLid != languageId) {
+            return true;
+        }
+    }
+    return false;
+}
+
 void FontParser::GetStringFromNameId(FontParser::NameId nameId, unsigned int languageId, const std::string& nameString,
     FontParser::FontDescriptor& fontDescriptor)
 {
@@ -85,8 +106,7 @@ void FontParser::GetStringFromNameId(FontParser::NameId nameId, unsigned int lan
             break;
         }
         case FontParser::NameId::FULL_NAME: {
-            if (!fontDescriptor.requestedFullname.empty() &&
-                fontDescriptor.fullName == fontDescriptor.requestedFullname) {
+            if (CheckFullNameParamInvalid(fontDescriptor, languageId, nameString)) {
                 break;
             }
 

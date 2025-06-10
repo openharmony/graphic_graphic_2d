@@ -19,8 +19,7 @@
 #include <parameters.h>
 #include <sys/mman.h>
 
-#include "draw/surface.h"
-#include "draw/color.h"
+
 #include "rs_trace.h"
 
 #include "common/rs_background_thread.h"
@@ -164,6 +163,75 @@ bool RSUiCaptureSoloTaskParallel::CreateResources()
         RS_LOGE("RSUiCaptureSoloTaskParallel::CreateResources: pixelMap_ is nullptr");
         return false;
     }
+    return true;
+}
+
+bool RSUiCaptureSoloTaskParallel::CopyDataToPixelMap(std::shared_ptr<Drawing::Image> img,
+    const std::unique_ptr<Media::PixelMap>& pixelmap,
+    std::shared_ptr<Drawing::ColorSpace> colorSpace)
+{
+    if (!img || !pixelmap) {
+        RS_LOGE("RSSurfaceCaptureTask::CopyDataToPixelMap failed, img or pixelmap is nullptr");
+        return false;
+    }
+    auto size = pixelmap->GetRowBytes() * pixelmap->GetHeight();
+#ifdef ROSEN_OHOS
+    int fd = AshmemCreate("RSSurfaceCapture Data", size);
+    if (fd < 0) {
+        RS_LOGE("RSSurfaceCaptureTask::CopyDataToPixelMap AshmemCreate fd < 0");
+        return false;
+    }
+    int result = AshmemSetProt(fd, PROT_READ | PROT_WRITE);
+    if (result < 0) {
+        RS_LOGE("RSSurfaceCaptureTask::CopyDataToPixelMap AshmemSetProt error");
+        ::close(fd);
+        return false;
+    }
+    void* ptr = ::mmap(nullptr, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+    auto data = static_cast<uint8_t*>(ptr);
+    if (ptr == MAP_FAILED || ptr == nullptr) {
+        RS_LOGE("RSSurfaceCaptureTask::CopyDataToPixelMap data is nullptr");
+        ::close(fd);
+        return false;
+    }
+
+    Drawing::BitmapFormat format { Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_PREMUL };
+    Drawing::Bitmap bitmap;
+    bitmap.Build(pixelmap->GetWidth(), pixelmap->GetHeight(), format, 0, colorSpace);
+    bitmap.SetPixels(data);
+    if (!img->ReadPixels(bitmap, 0, 0)) {
+        RS_LOGE("RSSurfaceCaptureTask::CopyDataToPixelMap readPixels failed");
+        ::close(fd);
+        return false;
+    }
+    void* fdPtr = new int32_t();
+    *static_cast<int32_t*>(fdPtr) = fd;
+    pixelmap->SetPixelsAddr(data, fdPtr, size, Media::AllocatorType::SHARE_MEM_ALLOC, nullptr);
+#else
+    auto data = (uint8_t *)malloc(size);
+    if (data == nullptr) {
+        RS_LOGE("RSSurfaceCaptureTask::CopyDataToPixelMap data is nullptr");
+        return false;
+    }
+
+    Drawing::BitmapFormat format { Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_PREMUL };
+    Drawing::Bitmap bitmap;
+    bitmap.Build(pixelmap->GetWidth(), pixelmap->GetHeight(), format, 0, colorSpace);
+    bitmap.SetPixels(data);
+    if (!img->ReadPixels(bitmap, 0, 0)) {
+        RS_LOGE("RSSurfaceCaptureTask::CopyDataToPixelMap readPixels failed");
+        free(data);
+        data = nullptr;
+        return false;
+    }
+
+    pixelmap->SetPixelsAddr(data, nullptr, size, Media::AllocatorType::HEAP_ALLOC, nullptr);
+    if (colorSpace != nullptr) {
+        pixelmap->InnerSetColorSpace(colorSpace->IsSRGB()?
+            OHOS::ColorManager::ColorSpace(OHOS::ColorManager::ColorSpaceName::SRGB):
+            OHOS::ColorManager::ColorSpace(OHOS::ColorManager::ColorSpaceName::DISPLAY_P3));
+    }
+#endif
     return true;
 }
 

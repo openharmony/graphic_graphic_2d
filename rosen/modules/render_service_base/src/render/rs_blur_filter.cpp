@@ -15,7 +15,11 @@
 
 #include "render/rs_blur_filter.h"
 
+#ifdef USE_M133_SKIA
+#include "src/core/SkChecksum.h"
+#else
 #include "src/core/SkOpts.h"
+#endif
 
 #include "common/rs_common_def.h"
 #include "platform/common/rs_log.h"
@@ -37,10 +41,15 @@ RSBlurFilter::RSBlurFilter(float blurRadiusX, float blurRadiusY, bool disableSys
 
     float blurRadiusXForHash = DecreasePrecision(blurRadiusX);
     float blurRadiusYForHash = DecreasePrecision(blurRadiusY);
-    hash_ = SkOpts::hash(&type_, sizeof(type_), 0);
-    hash_ = SkOpts::hash(&blurRadiusXForHash, sizeof(blurRadiusXForHash), hash_);
-    hash_ = SkOpts::hash(&blurRadiusYForHash, sizeof(blurRadiusYForHash), hash_);
-    hash_ = SkOpts::hash(&disableSystemAdaptation, sizeof(disableSystemAdaptation), hash_);
+#ifdef USE_M133_SKIA
+    const auto hashFunc = SkChecksum::Hash32;
+#else
+    const auto hashFunc = SkOpts::hash;
+#endif
+    hash_ = hashFunc(&type_, sizeof(type_), 0);
+    hash_ = hashFunc(&blurRadiusXForHash, sizeof(blurRadiusXForHash), hash_);
+    hash_ = hashFunc(&blurRadiusYForHash, sizeof(blurRadiusYForHash), hash_);
+    hash_ = hashFunc(&disableSystemAdaptation, sizeof(disableSystemAdaptation), hash_);
 }
 
 RSBlurFilter::~RSBlurFilter() = default;
@@ -85,7 +94,12 @@ std::shared_ptr<RSDrawingFilterOriginal> RSBlurFilter::Compose(
         disableSystemAdaptation_);
     result->imageFilter_ = Drawing::ImageFilter::CreateComposeImageFilter(imageFilter_, other->GetImageFilter());
     auto otherHash = other->Hash();
-    result->hash_ = SkOpts::hash(&otherHash, sizeof(otherHash), hash_);
+#ifdef USE_M133_SKIA
+    const auto hashFunc = SkChecksum::Hash32;
+#else
+    const auto hashFunc = SkOpts::hash;
+#endif
+    result->hash_ = hashFunc(&otherHash, sizeof(otherHash), hash_);
     return result;
 }
 

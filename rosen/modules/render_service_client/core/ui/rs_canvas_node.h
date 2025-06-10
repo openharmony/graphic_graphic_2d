@@ -117,11 +117,14 @@ public:
     void DrawOnNode(RSModifierType type, DrawFunc func) override;
 
     /**
-     * @brief Sets the freeze state of the node.
+     * @brief Controls freeze state of canvas node rendering content
      *
-     * The property is valid only for CanvasNode and SurfaceNode in uniRender.
+     * Freezes current frame data when enabled, preventing content refresh until unfrozen.
+     * Used for scenarios requiring static snapshots or temporary rendering suspension.
      *
-     * @param isFreeze If true, the node will be frozen; if false, the node will be unfrozen.
+     * @param isFreeze Freeze control flag:
+     *                - true: Freeze current content
+     *                - false: Resume normal rendering pipeline
      */
     void SetFreeze(bool isFreeze) override;
 

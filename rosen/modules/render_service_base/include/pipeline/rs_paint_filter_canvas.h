@@ -242,6 +242,7 @@ public:
     struct CachedEffectData {
         CachedEffectData() = default;
         CachedEffectData(std::shared_ptr<Drawing::Image>&& image, const Drawing::RectI& rect);
+        CachedEffectData(const std::shared_ptr<Drawing::Image>& image, const Drawing::RectI& rect);
         ~CachedEffectData() = default;
         std::shared_ptr<Drawing::Image> cachedImage_ = nullptr;
         Drawing::RectI cachedRect_ = {};

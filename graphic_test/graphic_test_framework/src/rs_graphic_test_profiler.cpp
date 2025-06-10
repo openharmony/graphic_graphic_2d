@@ -504,12 +504,23 @@ void RSGraphicTestProfiler::TestCaseBufferDump(bool isScreenshot, const std::str
 bool RSGraphicTestProfiler::CropRawFile(
     const std::string& srcFileName, const std::string& dstFileName, Size dumpBufferSize)
 {
-    std::ifstream input(srcFileName, std::ios::binary);
+    char srcFilePath[PATH_MAX] = {0};
+    if (srcFileName.length() <= 0 || srcFileName.length() > PATH_MAX || !realpath(srcFileName.c_str(), srcFilePath)) {
+        std::cout << "Raw src file path is invalid :" << srcFileName << std::endl;
+        return false;
+    }
+    std::ifstream input(srcFilePath, std::ios::binary);
     if (!input) {
         std::cout << "Failed to open input file" << std::endl;
         return false;
     }
-    std::ofstream output(dstFileName, std::ios::binary);
+    std::filesystem::path dstFilePath = dstFileName;
+    char srcFileParentPath[PATH_MAX] = {0};
+    if (!realpath(dstFilePath.parent_path().c_str(), srcFileParentPath)) {
+        std::cout << "Raw dst file path is invalid :" << dstFilePath << std::endl;
+        return false;
+    }
+    std::ofstream output(dstFilePath, std::ios::binary);
     const int bytesPerPixel = 4; //RGBA
     size_t stride = AlignValue(dumpBufferSize.width * bytesPerPixel);
     size_t cropRowSize = GetScreenSize()[0] * bytesPerPixel;

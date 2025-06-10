@@ -73,10 +73,7 @@ class RSChildrenDrawableAdapter : public RSDrawable {
 public:
     RSChildrenDrawableAdapter() = default;
     ~RSChildrenDrawableAdapter() override = default;
-    bool OnUpdate(const RSRenderNode& content) override
-    {
-        return true;
-    }
+    bool OnUpdate(const RSRenderNode& content) override { return true; }
     void OnSync() override {}
     Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override
     {
@@ -85,10 +82,7 @@ public:
     }
 
 private:
-    bool OnSharedTransition(const std::shared_ptr<RSRenderNode>& node)
-    {
-        return true;
-    }
+    bool OnSharedTransition(const std::shared_ptr<RSRenderNode>& node) { return true; }
     friend class RSRenderNode;
 };
 
@@ -227,31 +221,54 @@ HWTEST_F(RSUniRenderVisitorTest, ProcessFilterNodeObscured, TestSize.Level1)
 
 /**
  * @tc.name: AfterUpdateSurfaceDirtyCalc_001
- * @tc.desc: AfterUpdateSurfaceDirtyCalc Test, property.GetBoundsGeometry() is null, expect false
+ * @tc.desc: AfterUpdateSurfaceDirtyCalc Test，property.GetBoundsGeometry() not null
+ * node.IsHardwareEnabledType() && node.GetZorderChanged() && curSurfaceNode_ is true
+ * node is not LeashOrMainWindow and not MainWindowType
  * @tc.type:FUNC
  * @tc.require:issuesIAJO0U
  */
 HWTEST_F(RSUniRenderVisitorTest, AfterUpdateSurfaceDirtyCalc_001, TestSize.Level2)
 {
-    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-    ASSERT_NE(rsUniRenderVisitor, nullptr);
-
-    NodeId id = 1;
-    auto node = std::make_shared<RSSurfaceRenderNode>(id);
+    auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
     ASSERT_NE(node, nullptr);
 
-    auto& property = node->renderContent_->renderProperties_;
-    property.boundsGeo_ = nullptr;
-    ASSERT_EQ(property.GetBoundsGeometry(), nullptr);
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
 
-    ASSERT_FALSE(rsUniRenderVisitor->AfterUpdateSurfaceDirtyCalc(*node));
+    NodeId id = 1;
+    RSDisplayNodeConfig config;
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config);
+    ASSERT_NE(displayNode, nullptr);
+    displayNode->InitRenderParams();
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->curSurfaceNode_ = surfaceNode;
+    rsUniRenderVisitor->curDisplayNode_ = displayNode;
+
+    ASSERT_NE(node->renderContent_, nullptr);
+    ASSERT_NE(node->GetRenderProperties().GetBoundsGeometry(), nullptr);
+
+    node->isHardwareEnabledNode_ = true;
+    node->nodeType_ = RSSurfaceNodeType::SELF_DRAWING_NODE;
+    ASSERT_TRUE(node->IsHardwareEnabledType());
+    node->zOrderChanged_ = true;
+    ASSERT_TRUE(node->GetZorderChanged());
+    ASSERT_NE(rsUniRenderVisitor->curSurfaceNode_, nullptr);
+    ASSERT_TRUE((node->IsHardwareEnabledType() && node->GetZorderChanged() && rsUniRenderVisitor->curSurfaceNode_));
+
+    node->nodeType_ = RSSurfaceNodeType::UI_EXTENSION_COMMON_NODE;
+    ASSERT_FALSE(node->IsLeashOrMainWindow());
+    ASSERT_FALSE(node->IsMainWindowType());
+
+    ASSERT_TRUE(rsUniRenderVisitor->AfterUpdateSurfaceDirtyCalc(*node));
 }
 
 /**
  * @tc.name: AfterUpdateSurfaceDirtyCalc_002
  * @tc.desc: AfterUpdateSurfaceDirtyCalc Test，property.GetBoundsGeometry() not null
  * node.IsHardwareEnabledType() && node.GetZorderChanged() && curSurfaceNode_ is true
- * node is not LeashOrMainWindow and not MainWindowType
+ * node is LeashOrMainWindow and is not MainWindowType
  * @tc.type:FUNC
  * @tc.require:issuesIAJO0U
  */
@@ -275,55 +292,6 @@ HWTEST_F(RSUniRenderVisitorTest, AfterUpdateSurfaceDirtyCalc_002, TestSize.Level
     rsUniRenderVisitor->curDisplayNode_ = displayNode;
 
     ASSERT_NE(node->renderContent_, nullptr);
-    auto& property = node->renderContent_->renderProperties_;
-    property.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
-    ASSERT_NE(node->GetRenderProperties().GetBoundsGeometry(), nullptr);
-
-    node->isHardwareEnabledNode_ = true;
-    node->nodeType_ = RSSurfaceNodeType::SELF_DRAWING_NODE;
-    ASSERT_TRUE(node->IsHardwareEnabledType());
-    node->zOrderChanged_ = true;
-    ASSERT_TRUE(node->GetZorderChanged());
-    ASSERT_NE(rsUniRenderVisitor->curSurfaceNode_, nullptr);
-    ASSERT_TRUE((node->IsHardwareEnabledType() && node->GetZorderChanged() && rsUniRenderVisitor->curSurfaceNode_));
-
-    node->nodeType_ = RSSurfaceNodeType::UI_EXTENSION_COMMON_NODE;
-    ASSERT_FALSE(node->IsLeashOrMainWindow());
-    ASSERT_FALSE(node->IsMainWindowType());
-
-    ASSERT_TRUE(rsUniRenderVisitor->AfterUpdateSurfaceDirtyCalc(*node));
-}
-
-/**
- * @tc.name: AfterUpdateSurfaceDirtyCalc_003
- * @tc.desc: AfterUpdateSurfaceDirtyCalc Test，property.GetBoundsGeometry() not null
- * node.IsHardwareEnabledType() && node.GetZorderChanged() && curSurfaceNode_ is true
- * node is LeashOrMainWindow and is not MainWindowType
- * @tc.type:FUNC
- * @tc.require:issuesIAJO0U
- */
-HWTEST_F(RSUniRenderVisitorTest, AfterUpdateSurfaceDirtyCalc_003, TestSize.Level2)
-{
-    auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    ASSERT_NE(node, nullptr);
-
-    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
-    ASSERT_NE(surfaceNode, nullptr);
-
-    NodeId id = 1;
-    RSDisplayNodeConfig config;
-    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config);
-    ASSERT_NE(displayNode, nullptr);
-    displayNode->InitRenderParams();
-
-    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-    ASSERT_NE(rsUniRenderVisitor, nullptr);
-    rsUniRenderVisitor->curSurfaceNode_ = surfaceNode;
-    rsUniRenderVisitor->curDisplayNode_ = displayNode;
-
-    ASSERT_NE(node->renderContent_, nullptr);
-    auto& property = node->renderContent_->renderProperties_;
-    property.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
     ASSERT_NE(node->GetRenderProperties().GetBoundsGeometry(), nullptr);
 
     node->isHardwareEnabledNode_ = true;
@@ -1230,8 +1198,7 @@ HWTEST_F(RSUniRenderVisitorTest, CollectSubTreeAndProcessOcclusion001, TestSize.
     rsUniRenderVisitor->InitializeOcclusionHandler(*surfaceNode);
     ASSERT_NE(rsUniRenderVisitor->curOcclusionHandler_, nullptr);
     rsUniRenderVisitor->curOcclusionHandler_->rootNodeId_ = surfaceNode->GetId();
-    
-    
+
     auto rsContext = std::make_shared<RSContext>();
     auto canvasNodeId = surfaceNode->GetId();
     ++canvasNodeId;
@@ -2181,15 +2148,10 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateCornerRadiusInfoForDRM, TestSize.Level2)
 
     instanceRootNode->absDrawRect_ = {-10, -10, 100, 100};
     instanceRootNode->SetGlobalCornerRadius({-10, -10, 100, 100});
-    auto surfaceBoundsGeo = surfaceNode->GetRenderProperties().GetBoundsGeometry();
-    surfaceNode->renderContent_->renderProperties_.boundsGeo_ = nullptr;
-    rsUniRenderVisitor->UpdateCornerRadiusInfoForDRM(surfaceNode, hwcRects);
-
-    surfaceNode->renderContent_->renderProperties_.boundsGeo_ = surfaceBoundsGeo;
     rsUniRenderVisitor->UpdateCornerRadiusInfoForDRM(surfaceNode, hwcRects);
 
     surfaceNode->GetInstanceRootNode()->renderContent_->renderProperties_.SetBounds({0, 0, 1, 1});
-    Drawing::Matrix matrix = Drawing::Matrix();
+    Drawing::Matrix matrix;
     matrix.SetMatrix(1, 2, 3, 4, 5, 6, 7, 8, 9);
     surfaceNode->SetTotalMatrix(matrix);
     surfaceNode->selfDrawRect_ = {0, 0, 1, 1};
@@ -4108,7 +4070,6 @@ HWTEST_F(RSUniRenderVisitorTest, QuickPrepareDisplayRenderNode001, TestSize.Leve
     ASSERT_NE(rsDisplayRenderNode, nullptr);
     rsDisplayRenderNode->dirtyManager_ = std::make_shared<RSDirtyRegionManager>();
     ASSERT_NE(rsDisplayRenderNode->dirtyManager_, nullptr);
-    rsDisplayRenderNode->GetMutableRenderProperties().boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
 
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
@@ -4139,7 +4100,6 @@ HWTEST_F(RSUniRenderVisitorTest, QuickPrepareDisplayRenderNode002, TestSize.Leve
     ASSERT_NE(rsDisplayRenderNode, nullptr);
     rsDisplayRenderNode->dirtyManager_ = std::make_shared<RSDirtyRegionManager>();
     ASSERT_NE(rsDisplayRenderNode->dirtyManager_, nullptr);
-    rsDisplayRenderNode->GetMutableRenderProperties().boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
 
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
@@ -4502,8 +4462,6 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateSubSurfaceNodeRectInSkippedSubTree, TestS
 
     rsUniRenderVisitor->curSurfaceNode_ = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(node->renderContent_, nullptr);
-    auto& property = node->renderContent_->renderProperties_;
-    property.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
     ASSERT_NE(node->GetRenderProperties().GetBoundsGeometry(), nullptr);
     rsUniRenderVisitor->UpdateSubSurfaceNodeRectInSkippedSubTree(*node);
     rsUniRenderVisitor->curSurfaceDirtyManager_ = rsUniRenderVisitor->curSurfaceNode_->GetDirtyManager();
@@ -4619,7 +4577,6 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeInfoForAppNode002, TestSize.Level2
 
     rsSurfaceRenderNode->dynamicHardwareEnable_ = true;
     ASSERT_NE(rsSurfaceRenderNode->renderContent_, nullptr);
-    rsSurfaceRenderNode->renderContent_->renderProperties_.boundsGeo_ = nullptr;
     rsUniRenderVisitor->UpdateHwcNodeInfoForAppNode(*rsSurfaceRenderNode);
 }
 
@@ -5305,8 +5262,8 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateOffscreenCanvasNodeId001, TestSize.Level2
     EXPECT_EQ(rsUniRenderVisitor->offscreenCanvasNodeId_, INVALID_NODEID);
 
     auto rsChildrenDrawable = std::make_shared<RSChildrenDrawableAdapter>();
-    rsCanvasRenderNode->drawableVec_[static_cast<uint32_t>(RSDrawableSlot::FOREGROUND_FILTER)]
-        = std::move(rsChildrenDrawable);
+    rsCanvasRenderNode->drawableVec_[static_cast<uint32_t>(RSDrawableSlot::FOREGROUND_FILTER)] =
+        std::move(rsChildrenDrawable);
     rsUniRenderVisitor->UpdateOffscreenCanvasNodeId(*rsCanvasRenderNode);
     EXPECT_EQ(rsUniRenderVisitor->offscreenCanvasNodeId_, nodeId);
 }

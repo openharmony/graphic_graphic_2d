@@ -30,7 +30,13 @@
 #include "render/rs_render_magnifier_filter.h"
 #include "render/rs_render_maskcolor_filter.h"
 #include "render/rs_render_mesa_blur_filter.h"
-
+#include "hpae_base/rs_hpae_filter_cache_manager.h"
+#include "hpae_base/rs_hpae_base_data.h"
+#ifdef USE_M133_SKIA
+#include "src/core/SkChecksum.h"
+#else
+#include "src/core/SkOpts.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -271,6 +277,7 @@ void RSPropertyDrawableUtils::CeilMatrixTrans(Drawing::Canvas* canvas)
 
 void RSPropertyDrawableUtils::DrawFilter(Drawing::Canvas* canvas,
     const std::shared_ptr<RSFilter>& rsFilter, const std::unique_ptr<RSFilterCacheManager>& cacheManager,
+    const std::shared_ptr<RSHpaeFilterCacheManager>& hpaeCacheManager, NodeId nodeId,
     const bool isForegroundFilter)
 {
     if (!RSSystemProperties::GetBlurEnabled()) {
@@ -323,12 +330,31 @@ void RSPropertyDrawableUtils::DrawFilter(Drawing::Canvas* canvas,
         imageClipIBounds.Offset(tmpFilter->GetMagnifierOffsetX(), tmpFilter->GetMagnifierOffsetY());
     }
 
+    bool hasHpaeBlur = false;
+    if (nodeId == RSHpaeBaseData::GetInstance().GetBlurNodeId()) {
+        hasHpaeBlur = RSHpaeBaseData::GetInstance().GetHasHpaeBlurNode() && hpaeCacheManager;
+    }
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     // Optional use cacheManager to draw filter
     if (!paintFilterCanvas->GetDisableFilterCache() && cacheManager != nullptr && RSProperties::filterCacheEnabled_) {
         if (cacheManager->GetCachedType() == FilterCacheType::FILTERED_SNAPSHOT) {
             g_blurCnt--;
         }
+
+        if (hasHpaeBlur) {
+            hpaeCacheManager->ResetFilterCache(cacheManager->GetCachedSnapshot(), cachemanager->GetCachedFilteredSnapshot(),
+                cacheManager->GetSnapshotRegion());
+            if (0 == hapeCacheManager->DrawFilter(*paintFilterCanvas, filter, cacheManager->ClearCacheAfterDrawing())) {
+                cacheManager->ResetFilterCache(hpaeCacheManager->GetCachedSnapshot(),
+                    hpaeCacheManager->GetCachedFilteredSnapshot(), hpaeCacheManager->GetSnapshotRegion(), true);
+                cacheManager->CompactFilterCache(); // falg for clear witch cache after drawing
+                RSHpaeBaseData::GetInstance().SetBlurContentChanged(hpaeCacheManager->BlurContentChanged());
+                return;
+            } else {
+                hpaeCacheManager->InvalidateFilterCache(FilterCacheType::BOTH);
+            }
+        }
+
         auto rsShaderFilter = filter->GetShaderFilterWithType(RSUIFilterType::LINEAR_GRADIENT_BLUR);
         if (rsShaderFilter != nullptr) {
             auto tmpFilter = std::static_pointer_cast<RSLinearGradientBlurShaderFilter>(rsShaderFilter);
@@ -339,6 +365,14 @@ void RSPropertyDrawableUtils::DrawFilter(Drawing::Canvas* canvas,
         return;
     }
 #endif
+    // if (hasHpaeBlur) {
+    //     hpaeCacheManager->ClearFilterCacheIfNeed(nullptr, nullptr);
+    //     if (0 == hpaeCacheManager->DrawFilter(*paintFilterCanvas, filter, true)) {
+    //         return;
+    //     } else {
+    //         hpaeCacheManager->InvalidateFilterCache(FilterCacheType::BOTH);
+    //     }
+    // }
 
     auto rsShaderFilter = filter->GetShaderFilterWithType(RSUIFilterType::LINEAR_GRADIENT_BLUR);
     if (rsShaderFilter != nullptr) {
@@ -852,7 +886,7 @@ void RSPropertyDrawableUtils::DrawBinarization(Drawing::Canvas* canvas, const st
     canvas->DrawBackground(brush);
 }
 
-void RSPropertyDrawableUtils::DrawPixelStretch(Drawing::Canvas* canvas, const std::optional<Vector4f>& pixelStretch,
+void RSPropertyDrawableUtils::DrawPixelStretch(Drawing::Canvas* canvas, NodeId nodeId, const std::optional<Vector4f>& pixelStretch,
     const RectF& boundsRect, const bool boundsGeoValid, const Drawing::TileMode pixelStretchTileMode)
 {
     if (!pixelStretch.has_value()) {
@@ -883,6 +917,9 @@ void RSPropertyDrawableUtils::DrawPixelStretch(Drawing::Canvas* canvas, const st
     auto tmpBounds = canvas->GetDeviceClipBounds();
     RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(TRACE_LEVEL_TWO,
         "RSPropertyDrawableUtils::DrawPixelStretch, tmpBounds: %s", tmpBounds.ToString().c_str());
+    if (nodeId == RSHpaeBaseData::GetInstance().GetBlurNodeId()) {
+        return;
+    }
     canvas->Restore();
     Drawing::Rect clipBounds(
         tmpBounds.GetLeft(), tmpBounds.GetTop(), tmpBounds.GetRight() - 1, tmpBounds.GetBottom() - 1);
@@ -1411,7 +1448,12 @@ std::shared_ptr<RSFilter> RSPropertyDrawableUtils::GenerateBehindWindowFilter(fl
     RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(TRACE_LEVEL_TWO,
         "RSPropertyDrawableUtils::GenerateBehindWindowFilter, Radius: %f, Saturation: %f, "
         "Brightness: %f, MaskColor: %08X", radius, saturation, brightness, maskColor.AsArgbInt());
-    uint32_t hash = SkOpts::hash(&radius, sizeof(radius), 0);
+#ifdef USE_M133_SKIA
+    const auto hashFunc = SkChecksum::Hash32;
+#else
+    const auto hashFunc = SkOpts::hash;
+#endif
+    uint32_t hash = hashFunc(&radius, sizeof(radius), 0);
     std::shared_ptr<Drawing::ColorFilter> colorFilter = GenerateMaterialColorFilter(saturation, brightness);
     std::shared_ptr<Drawing::ImageFilter> blurColorFilter =
         Drawing::ImageFilter::CreateColorBlurImageFilter(*colorFilter, radius, radius);
@@ -1423,8 +1465,8 @@ std::shared_ptr<RSFilter> RSPropertyDrawableUtils::GenerateBehindWindowFilter(fl
             filter->Compose(colorImageFilter, hash) : std::make_shared<RSDrawingFilter>(colorImageFilter, hash);
         filter = filter->Compose(std::static_pointer_cast<RSRenderFilterParaBase>(kawaseBlurFilter));
     } else {
-        hash = SkOpts::hash(&saturation, sizeof(saturation), hash);
-        hash = SkOpts::hash(&brightness, sizeof(brightness), hash);
+        hash = hashFunc(&saturation, sizeof(saturation), hash);
+        hash = hashFunc(&brightness, sizeof(brightness), hash);
         filter = filter?
             filter->Compose(blurColorFilter, hash) : std::make_shared<RSDrawingFilter>(blurColorFilter, hash);
     }

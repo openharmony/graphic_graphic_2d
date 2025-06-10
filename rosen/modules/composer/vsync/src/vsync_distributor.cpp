@@ -826,6 +826,9 @@ void VSyncDistributor::TriggerNext(sptr<VSyncConnection> con)
 
 void VSyncDistributor::ConnPostEvent(sptr<VSyncConnection> con, int64_t now, int64_t period, int64_t vsyncCount)
 {
+#if defined(RS_ENABLE_DVSYNC_2)
+    DVSync::Instance().SetAppRequestedStatus(con, false);
+#endif
     int32_t ret = con->PostEvent(now, period, vsyncCount);
     VLOGD("Distributor name: %{public}s, Conn name: %{public}s, ret: %{public}d",
         name_.c_str(), con->info_.name.c_str(), ret);
@@ -1112,6 +1115,9 @@ VsyncError VSyncDistributor::RequestNextVSync(const sptr<VSyncConnection> &conne
     }
 
     RS_TRACE_NAME_FMT("%s_RequestNextVSync", connection->info_.name_.c_str());
+#if defined(RS_ENABLE_DVSYNC_2)
+    DVSync::Instance().SetAppRequestedStatus(con, true);
+#endif
     bool NeedPreexecute = false;
     bool isUrgent = fromWhom == URGENT_SELF_DRAWING;
     int64_t timestamp = 0;
@@ -1815,10 +1821,32 @@ void VSyncDistributor::HandleTouchEvent(int32_t touchStatus, int32_t touchCnt)
 }
 
 void VSyncDistributor::SetBufferInfo(uint64_t id, const std::string &name, uint32_t queueSize,
-    int32_t bufferCount, int64_t lastConsumeTime)
+    int32_t bufferCount, int64_t lastConsumeTime, bool isUrgent)
 {
 #if defined(RS_ENABLE_DVSYNC_2)
     DVSync::Instance().SetBufferInfo(id, name, queueSize, bufferCount, lastConsumeTime);
+    if (isUrgent) {
+        RS_TRACE_NAME("SetBufferInfo, isUrgent");
+        return;
+    }
+    bool isAppRequested = DVSync::Instance().IsAppRequested();
+    if (!isAppRequested) {
+        RS_TRACE_NAME("SetBufferInfo, app is not requested");
+        return;
+    }
+    sptr<VSyncConnection> connection = DVSync::Instance().GetVSyncConnectionApp();
+    if (connection == nullptr) {
+        RS_TRACE_NAME("SetBufferInfo, connection is nullptr");
+        return;
+    }
+    int64_t timestamp = 0;
+    int64_t period = 0;
+    int64_t vsyncCount = 0;
+    bool needPreexecute = DVSyncCheckPreexecuteAndUpdateTs(connection, timestamp, period, vsyncCount);
+    RS_TRACE_NAME_FMT("SetBufferInfo, needPreexecute:%d", needPreexecute);
+    if (needPreexecute) {
+        ConnPostEvent(connection, timestamp, period, vsyncCount);
+    }
 #endif
 }
 

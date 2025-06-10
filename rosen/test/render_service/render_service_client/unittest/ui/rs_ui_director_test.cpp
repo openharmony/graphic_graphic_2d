@@ -132,6 +132,21 @@ HWTEST_F(RSUIDirectorTest, SetRSSurfaceNode002 , TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetRSSurfaceNode001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSUIDirectorTest, GetRSSurfaceNode001, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    ASSERT_NE(director, nullptr);
+    RSSurfaceNodeConfig c;
+    auto surfaceNode = RSSurfaceNode::Create(c);
+    director->SetRSSurfaceNode(surfaceNode);
+    ASSERT_EQ(surfaceNode, director->GetRSSurfaceNode());
+}
+
+/**
  * @tc.name: PlatformInit001
  * @tc.desc:
  * @tc.type:FUNC
@@ -223,6 +238,22 @@ HWTEST_F(RSUIDirectorTest, UIDirectorSetRoot001, TestSize.Level1)
     RSNode::SharedPtr testNode = RSCanvasNode::Create();
     director->SetRoot(testNode->GetId());
     director->SetRoot(testNode->GetId());
+}
+
+/**
+ * @tc.name: UIDirectorSetRSRootNode001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSUIDirectorTest, UIDirectorSetRSRootNode001, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    ASSERT_NE(director, nullptr);
+    director->Init(true, true);
+    RSNode::SharedPtr rootNode = RSRootNode::Create(false, false, director->GetRSUIContext());
+    director->SetRSRootNode(rootNode->ReinterpretCastTo<RSRootNode>());
+    director->SetRSRootNode(rootNode->ReinterpretCastTo<RSRootNode>());
+    ASSERT_EQ(rootNode, director->rootNode_.lock());
 }
 
 /**

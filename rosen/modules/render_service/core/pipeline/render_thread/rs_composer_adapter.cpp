@@ -503,13 +503,6 @@ bool RSComposerAdapter::CheckStatusBeforeCreateLayer(RSSurfaceRenderNode& node, 
         return false;
     }
 
-    auto& geoPtr = (node.GetRenderProperties().GetBoundsGeometry());
-    if (geoPtr == nullptr) {
-        RS_LOGW("RsDebug RSComposerAdapter::CheckStatusBeforeCreateLayer: node(%{public}" PRIu64 ")'s"
-            " geoPtr is nullptr!", node.GetId());
-        return false;
-    }
-
     if (!node.IsNotifyRTBufferAvailable()) {
         // Only ipc for one time.
         RS_LOGD("RsDebug RSPhysicalScreenProcessor::ProcessSurface id = %{public}" PRIu64 " Notify RT buffer available",

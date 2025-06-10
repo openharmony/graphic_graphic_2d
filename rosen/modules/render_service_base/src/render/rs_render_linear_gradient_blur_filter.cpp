@@ -16,8 +16,11 @@
 
 #include "ge_visual_effect.h"
 #include "ge_visual_effect_container.h"
+#ifdef USE_M133_SKIA
+#include "src/core/SkChecksum.h"
+#else
 #include "src/core/SkOpts.h"
-
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -27,9 +30,14 @@ RSLinearGradientBlurShaderFilter::RSLinearGradientBlurShaderFilter(
 {
     geoWidth_ = geoWidth;
     geoHeight_ = geoHeight;
-    hash_ = SkOpts::hash(&linearGradientBlurPara_, sizeof(linearGradientBlurPara_), 0);
-    hash_ = SkOpts::hash(&geoWidth_, sizeof(geoWidth_), hash_);
-    hash_ = SkOpts::hash(&geoHeight_, sizeof(geoHeight_), hash_);
+#ifdef USE_M133_SKIA
+    const auto hashFunc = SkChecksum::Hash32;
+#else
+    const auto hashFunc = SkOpts::hash;
+#endif
+    hash_ = hashFunc(&linearGradientBlurPara_, sizeof(linearGradientBlurPara_), 0);
+    hash_ = hashFunc(&geoWidth_, sizeof(geoWidth_), hash_);
+    hash_ = hashFunc(&geoHeight_, sizeof(geoHeight_), hash_);
 }
 
 void RSLinearGradientBlurShaderFilter::GenerateGEVisualEffect(

@@ -36,6 +36,7 @@
 #include "transaction/rs_transaction_proxy.h"
 #include "ui/rs_proxy_node.h"
 #include "rs_trace.h"
+#include "common/rs_optional_trace.h"
 #include "rs_ui_context.h"
 
 #ifndef ROSEN_CROSS_PLATFORM
@@ -604,6 +605,7 @@ void RSSurfaceNode::SetFreeze(bool isFreeze)
         ROSEN_LOGE("SetFreeze is not supported in separate render");
         return;
     }
+    RS_OPTIONAL_TRACE_NAME_FMT("RSSurfaceNode::SetFreeze id:%llu", GetId());
     std::unique_ptr<RSCommand> command = std::make_unique<RSSetFreeze>(GetId(), isFreeze);
     AddCommand(command, true);
 }
@@ -690,6 +692,12 @@ void RSSurfaceNode::SetHardwareEnabled(bool isEnabled, SelfDrawingNodeType selfD
     }
 }
 
+/**
+ * @brief Enable Camera Rotation Unchanged
+ *
+ * @param flag If flag is set to true, the camera fix rotation is enabled.
+ * @return void
+ */
 void RSSurfaceNode::SetForceHardwareAndFixRotation(bool flag)
 {
     std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeSetHardwareAndFixRotation>(GetId(), flag);

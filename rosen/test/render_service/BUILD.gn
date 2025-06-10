@@ -126,6 +126,7 @@ group("test") {
     "render_service_base/unittest/dirty_region:unittest",
     "render_service_base/unittest/display_engine:unittest",
     "render_service_base/unittest/drawable:unittest",
+    "render_service_base/unittest/hpae_base:unittest",
     "render_service_base/unittest/feature:unittest",
     "render_service_base/unittest/gfx:unittest",
     "render_service_base/unittest/hwc:unittest",
