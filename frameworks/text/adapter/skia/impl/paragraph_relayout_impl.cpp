@@ -42,7 +42,7 @@ namespace SPText {
 using PaintID = skt::ParagraphPainter::PaintID;
 using ParagraphStyleFuncVector = std::vector<std::function<void(skt::Paragraph&, const ParagraphStyle&,
     skt::InternalState&)>>;
-using TextStyleFuncVector = std::vector<std::function<void(Paragraph&, skt::Block&, const TextStyle&,
+using TextStyleFuncVector = std::vector<std::function<void(ParagraphImpl&, skt::Block&, const TextStyle&,
     skt::InternalState&)>>;
 using SymbolFuncVecotr = std::vector<std::function<void(const HMSymbolTxt&, std::shared_ptr<HMSymbolRun>&,
     skt::InternalState&)>>;
@@ -317,13 +317,13 @@ namespace {
     };
 
     TextStyleFuncVector g_textStyleHandlers = {
-        [](Paragraph& paragraph, skt::Block& skiaBlock, const TextStyle& spTextStyle, skt::InternalState& state) {
+        [](ParagraphImpl& paragraph, skt::Block& skiaBlock, const TextStyle& spTextStyle, skt::InternalState& state) {
             skt::TextStyle& skiaTextStyle = skiaBlock.fStyle;
             skiaTextStyle.setFontSize(spTextStyle.fontSize);
             state = std::min(skt::InternalState::kIndexed, state);
         },
 
-        [](Paragraph& paragraph, skt::Block& skiaBlock, const TextStyle& spTextStyle, skt::InternalState& state) {
+        [](ParagraphImpl& paragraph, skt::Block& skiaBlock, const TextStyle& spTextStyle, skt::InternalState& state) {
             skt::TextStyle& skiaTextStyle = skiaBlock.fStyle;
             RSFontStyle skiaFontStyle = skiaTextStyle.getFontStyle();
             skiaTextStyle.setFontStyle(RSFontStyle(TextFontUtils::GetSkiaFontWeight(spTextStyle.fontWeight),
@@ -336,7 +336,7 @@ namespace {
             state = std::min(skt::InternalState::kIndexed, state);
         },
 
-        [](Paragraph& paragraph, skt::Block& skiaBlock, const TextStyle& spTextStyle, skt::InternalState& state) {
+        [](ParagraphImpl& paragraph, skt::Block& skiaBlock, const TextStyle& spTextStyle, skt::InternalState& state) {
             skt::TextStyle& skiaTextStyle = skiaBlock.fStyle;
             RSFontStyle skiaFontStyle = skiaTextStyle.getFontStyle();
             skiaTextStyle.setFontStyle(RSFontStyle(skiaFontStyle.GetWeight(),
@@ -344,7 +344,7 @@ namespace {
             state = std::min(skt::InternalState::kIndexed, state);
         },
 
-        [](Paragraph& paragraph, skt::Block& skiaBlock, const TextStyle& spTextStyle, skt::InternalState& state) {
+        [](ParagraphImpl& paragraph, skt::Block& skiaBlock, const TextStyle& spTextStyle, skt::InternalState& state) {
             skt::TextStyle& skiaTextStyle = skiaBlock.fStyle;
             RSFontStyle skiaFontStyle = skiaTextStyle.getFontStyle();
             skiaTextStyle.setFontStyle(RSFontStyle(skiaFontStyle.GetWeight(), skiaFontStyle.GetWidth(),
@@ -352,32 +352,32 @@ namespace {
             state = std::min(skt::InternalState::kIndexed, state);
         },
 
-        [](Paragraph& paragraph, skt::Block& skiaBlock, const TextStyle& spTextStyle, skt::InternalState& state) {
+        [](ParagraphImpl& paragraph, skt::Block& skiaBlock, const TextStyle& spTextStyle, skt::InternalState& state) {
             skt::TextStyle& skiaTextStyle = skiaBlock.fStyle;
             std::vector<SkString> skiaFontFamiles = TextFontUtils::GetSkiaFontfamilies(spTextStyle.fontFamilies);
             skiaTextStyle.setFontFamilies(skiaFontFamiles);
             state = std::min(skt::InternalState::kIndexed, state);
         },
 
-        [](Paragraph& paragraph, skt::Block& skiaBlock, const TextStyle& spTextStyle, skt::InternalState& state) {
+        [](ParagraphImpl& paragraph, skt::Block& skiaBlock, const TextStyle& spTextStyle, skt::InternalState& state) {
             skt::TextStyle& skiaTextStyle = skiaBlock.fStyle;
             skiaTextStyle.setLetterSpacing(spTextStyle.letterSpacing);
             state = std::min(skt::InternalState::kIndexed, state);
         },
 
-        [](Paragraph& paragraph, skt::Block& skiaBlock, const TextStyle& spTextStyle, skt::InternalState& state) {
+        [](ParagraphImpl& paragraph, skt::Block& skiaBlock, const TextStyle& spTextStyle, skt::InternalState& state) {
             skt::TextStyle& skiaTextStyle = skiaBlock.fStyle;
             skiaTextStyle.setWordSpacing(spTextStyle.wordSpacing);
             state = std::min(skt::InternalState::kIndexed, state);
         },
 
-        [](Paragraph& paragraph, skt::Block& skiaBlock, const TextStyle& spTextStyle, skt::InternalState& state) {
+        [](ParagraphImpl& paragraph, skt::Block& skiaBlock, const TextStyle& spTextStyle, skt::InternalState& state) {
             skt::TextStyle& skiaTextStyle = skiaBlock.fStyle;
             skiaTextStyle.setHeightOverride(spTextStyle.heightOverride);
             state = std::min(skt::InternalState::kIndexed, state);
         },
 
-        [](Paragraph& paragraph, skt::Block& skiaBlock, const TextStyle& spTextStyle, skt::InternalState& state) {
+        [](ParagraphImpl& paragraph, skt::Block& skiaBlock, const TextStyle& spTextStyle, skt::InternalState& state) {
             skt::TextStyle& skiaTextStyle = skiaBlock.fStyle;
             skiaTextStyle.setHeight(spTextStyle.height);
             if (skiaTextStyle.getHeightOverride()) {
@@ -385,7 +385,7 @@ namespace {
             }
         },
 
-        [](Paragraph& paragraph, skt::Block& skiaBlock, const TextStyle& spTextStyle, skt::InternalState& state) {
+        [](ParagraphImpl& paragraph, skt::Block& skiaBlock, const TextStyle& spTextStyle, skt::InternalState& state) {
             skt::TextStyle& skiaTextStyle = skiaBlock.fStyle;
             skiaTextStyle.resetFontFeatures();
             for (std::pair<std::string, int> spFontFeature: spTextStyle.fontFeatures.GetFontFeatures()) {
@@ -394,7 +394,7 @@ namespace {
             state = std::min(skt::InternalState::kIndexed, state);
         },
 
-        [](Paragraph& paragraph, skt::Block& skiaBlock, const TextStyle& spTextStyle, skt::InternalState& state) {
+        [](ParagraphImpl& paragraph, skt::Block& skiaBlock, const TextStyle& spTextStyle, skt::InternalState& state) {
             skt::TextStyle& skiaTextStyle = skiaBlock.fStyle;
             if (!spTextStyle.fontVariations.GetAxisValues().empty()) {
                 TextFontUtils::MakeFontArguments(skiaTextStyle, spTextStyle.fontVariations);
@@ -402,57 +402,61 @@ namespace {
             }
         },
 
-        [](Paragraph& paragraph, skt::Block& skiaBlock, const TextStyle& spTextStyle, skt::InternalState& state) {
+        [](ParagraphImpl& paragraph, skt::Block& skiaBlock, const TextStyle& spTextStyle, skt::InternalState& state) {
             skt::TextStyle& skiaTextStyle = skiaBlock.fStyle;
             skiaTextStyle.setBaselineShift(spTextStyle.baseLineShift);
             state = std::min(skt::InternalState::kIndexed, state);
         },
 
-        [](Paragraph& paragraph, skt::Block& skiaBlock, const TextStyle& spTextStyle, skt::InternalState& state) {
+        [](ParagraphImpl& paragraph, skt::Block& skiaBlock, const TextStyle& spTextStyle, skt::InternalState& state) {
             skt::TextStyle& skiaTextStyle = skiaBlock.fStyle;
             skiaTextStyle.setDecoration(static_cast<skt::TextDecoration>(spTextStyle.decoration));
             state = std::min(skt::InternalState::kFormatted, state);
         },
 
-        [](Paragraph& paragraph, skt::Block& skiaBlock, const TextStyle& spTextStyle, skt::InternalState& state) {
+        [](ParagraphImpl& paragraph, skt::Block& skiaBlock, const TextStyle& spTextStyle, skt::InternalState& state) {
             skt::TextStyle& skiaTextStyle = skiaBlock.fStyle;
             skiaTextStyle.setDecorationColor(spTextStyle.decorationColor);
             state = std::min(skt::InternalState::kFormatted, state);
         },
 
-        [](Paragraph& paragraph, skt::Block& skiaBlock, const TextStyle& spTextStyle, skt::InternalState& state) {
+        [](ParagraphImpl& paragraph, skt::Block& skiaBlock, const TextStyle& spTextStyle, skt::InternalState& state) {
             skt::TextStyle& skiaTextStyle = skiaBlock.fStyle;
             skiaTextStyle.setDecorationStyle(static_cast<skt::TextDecorationStyle>(spTextStyle.decorationStyle));
             state = std::min(skt::InternalState::kFormatted, state);
         },
 
-        [](Paragraph& paragraph, skt::Block& skiaBlock, const TextStyle& spTextStyle, skt::InternalState& state) {
+        [](ParagraphImpl& paragraph, skt::Block& skiaBlock, const TextStyle& spTextStyle, skt::InternalState& state) {
             skt::TextStyle& skiaTextStyle = skiaBlock.fStyle;
             skiaTextStyle.setDecorationThicknessMultiplier(SkDoubleToScalar(spTextStyle.decorationThicknessMultiplier));
             state = std::min(skt::InternalState::kFormatted, state);
         },
 
-        [](Paragraph& paragraph, skt::Block& skiaBlock, const TextStyle& spTextStyle, skt::InternalState& state) {
+        [](ParagraphImpl& paragraph, skt::Block& skiaBlock, const TextStyle& spTextStyle, skt::InternalState& state) {
             skt::TextStyle& skiaTextStyle = skiaBlock.fStyle;
             skiaTextStyle.setBackgroundRect({spTextStyle.backgroundRect.color, spTextStyle.backgroundRect.leftTopRadius,
                 spTextStyle.backgroundRect.rightTopRadius, spTextStyle.backgroundRect.rightBottomRadius,
                 spTextStyle.backgroundRect.leftBottomRadius});
+            if (paragraph.isRunCombinated()) {
+                state = std::min(skt::InternalState::kIndexed, state);
+                return;
+            }
             state = std::min(skt::InternalState::kFormatted, state);
         },
 
-        [](Paragraph& paragraph, skt::Block& skiaBlock, const TextStyle& spTextStyle, skt::InternalState& state) {
+        [](ParagraphImpl& paragraph, skt::Block& skiaBlock, const TextStyle& spTextStyle, skt::InternalState& state) {
             skt::TextStyle& skiaTextStyle = skiaBlock.fStyle;
             skiaTextStyle.setStyleId(spTextStyle.styleId);
             state = std::min(skt::InternalState::kFormatted, state);
         },
 
-        [](Paragraph& paragraph, skt::Block& skiaBlock, const TextStyle& spTextStyle, skt::InternalState& state) {
+        [](ParagraphImpl& paragraph, skt::Block& skiaBlock, const TextStyle& spTextStyle, skt::InternalState& state) {
             skt::TextRange textRange = skiaBlock.fRange;
             paragraph.UpdateColor(textRange.start, textRange.end, spTextStyle.color, skt::UtfEncodeType::kUtf16);
             state = std::min(skt::InternalState::kFormatted, state);
         },
 
-        [](Paragraph& paragraph, skt::Block& skiaBlock, const TextStyle& spTextStyle, skt::InternalState& state) {
+        [](ParagraphImpl& paragraph, skt::Block& skiaBlock, const TextStyle& spTextStyle, skt::InternalState& state) {
             skt::TextStyle& skiaTextStyle = skiaBlock.fStyle;
             bool hasShadow = skiaTextStyle.getShadowNumber() > 0;
             skiaTextStyle.resetShadows();
@@ -466,13 +470,13 @@ namespace {
             state = std::min(skt::InternalState::kShaped, state);
         },
 
-        [](Paragraph& paragraph, skt::Block& skiaBlock, const TextStyle& spTextStyle, skt::InternalState& state) {
+        [](ParagraphImpl& paragraph, skt::Block& skiaBlock, const TextStyle& spTextStyle, skt::InternalState& state) {
             skt::TextStyle& skiaTextStyle = skiaBlock.fStyle;
             skiaTextStyle.setHalfLeading(spTextStyle.halfLeading);
             state = std::min(skt::InternalState::kIndexed, state);
         },
 
-        [](Paragraph& paragraph, skt::Block& skiaBlock, const TextStyle& spTextStyle, skt::InternalState& state) {
+        [](ParagraphImpl& paragraph, skt::Block& skiaBlock, const TextStyle& spTextStyle, skt::InternalState& state) {
             std::ignore = skiaBlock;
             std::ignore = state;
             paragraph.UpdateForegroundBrush(spTextStyle);
