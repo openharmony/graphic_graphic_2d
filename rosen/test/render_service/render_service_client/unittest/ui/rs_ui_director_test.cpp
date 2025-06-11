@@ -684,6 +684,33 @@ HWTEST_F(RSUIDirectorTest, HasFirstFrameAnimationTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: ReportUiSkipEvent
+ * @tc.desc: test ReportUiSkipEvent
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSUIDirectorTest, ReportUiSkipEventTest, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    ASSERT_TRUE(director != nullptr);
+    EXPECT_NE(RSTransactionProxy::GetInstance(), nullptr);
+    director->lastUiSkipTimestamp_ = 0;
+    director->ReportUiSkipEvent("test");
+    director->lastUiSkipTimestamp_ = INT64_MAX;
+    director->ReportUiSkipEvent("test");
+
+    delete RSTransactionProxy::instance_;
+    RSTransactionProxy::instance_ = nullptr;
+    EXPECT_TRUE(RSTransactionProxy::instance_ == nullptr);
+    EXPECT_EQ(RSTransactionProxy::GetInstance(), nullptr);
+    director->lastUiSkipTimestamp_ = 0;
+    director->ReportUiSkipEvent("test");
+    director->lastUiSkipTimestamp_ = INT64_MAX;
+    director->ReportUiSkipEvent("test");
+    EXPECT_TRUE(RSTransactionProxy::GetInstance() == nullptr);
+    RSTransactionProxy::instance_ = new RSTransactionProxy();
+}
+
+/**
  * @tc.name: StartTextureExportTest001
  * @tc.desc: StartTextureExport Test
  * @tc.type: FUNC
