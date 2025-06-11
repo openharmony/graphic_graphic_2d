@@ -130,7 +130,7 @@ public:
     RSModifiersDrawThread();
     ~RSModifiersDrawThread();
 
-    static std::mutex transactionDataMutex_;
+    static std::recursive_mutex transactionDataMutex_;
 private:
     static std::unique_ptr<RSModifiersDrawThread>& InstancePtr();
     static void Destroy();

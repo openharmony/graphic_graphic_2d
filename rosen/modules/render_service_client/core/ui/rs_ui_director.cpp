@@ -172,9 +172,9 @@ void RSUIDirector::InitHybridRender()
                         }
                     }
                     auto dataHolder = std::make_shared<TransactionDataHolder>(std::move(transactionData));
-                    std::unique_lock<std::mutex> lock(RSModifiersDrawThread::transactionDataMutex_);
+                    std::unique_lock<std::recursive_mutex> lock(RSModifiersDrawThread::transactionDataMutex_);
                     auto task = [dataHolder]() {
-                        std::unique_lock<std::mutex> lock(RSModifiersDrawThread::transactionDataMutex_);
+                        std::unique_lock<std::recursive_mutex> lock(RSModifiersDrawThread::transactionDataMutex_);
                         (void) dataHolder;
                     };
                     rsUICtx == nullptr ? RSUIDirector::PostTask(task, instanceId) : rsUICtx->PostTask(task);

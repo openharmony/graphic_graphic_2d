@@ -33,7 +33,7 @@
 namespace OHOS {
 namespace Rosen {
 std::atomic<bool> RSModifiersDrawThread::isStarted_ = false;
-std::mutex RSModifiersDrawThread::transactionDataMutex_;
+std::recursive_mutex RSModifiersDrawThread::transactionDataMutex_;
 
 constexpr uint32_t DEFAULT_MODIFIERS_DRAW_THREAD_LOOP_NUM = 3;
 constexpr uint32_t HYBRID_MAX_PIXELMAP_WIDTH = 8192;  // max width value from PhysicalDeviceProperties
