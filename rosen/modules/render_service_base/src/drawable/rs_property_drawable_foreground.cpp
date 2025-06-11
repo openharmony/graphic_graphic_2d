@@ -712,7 +712,8 @@ const std::shared_ptr<Drawing::RuntimeShaderBuilder>& RSPointLightDrawable::GetF
             float shininess = 8.0;
             mediump vec4 fragColor = vec4(0.0, 0.0, 0.0, 0.0);
             vec2 halfResolution = iResolution.xy * 0.5;
-            float sd = sdRoundedBox(drawing_coord.xy - halfResolution, halfResolution, contentBorderRadius) / halfResolution.y;
+            float sd = sdRoundedBox(drawing_coord.xy - halfResolution, halfResolution, contentBorderRadius)
+                / halfResolution.y;
             vec2 grad = sdRoundedBoxGradient(drawing_coord.xy - halfResolution, halfResolution, contentBorderRadius);
             for (int i = 0; i < 12; i++) {
                 if (abs(specularStrength[i]) > 0.01) {
