@@ -541,6 +541,10 @@ bool RsSubThreadCache::UpdateCacheSurfaceDirtyManager(DrawableV2::RSSurfaceRende
 
 void RsSubThreadCache::UpdateUifirstDirtyManager(DrawableV2::RSSurfaceRenderNodeDrawable* surfaceDrawable)
 {
+    if (!(RSUifirstManager::Instance().GetUiFirstType() == UiFirstCcmType::MULTI &&
+        RSSystemProperties::GetUIFirstDirtyEnabled())) {
+        return;
+    }
     if (!surfaceDrawable) {
         RS_LOGE("UpdateUifirstDirtyManager surfaceDrawable is nullptr");
         return;
@@ -668,12 +672,16 @@ bool RsSubThreadCache::CalculateUifirstDirtyRegion(DrawableV2::RSSurfaceRenderNo
 bool RsSubThreadCache::MergeUifirstAllSurfaceDirtyRegion(DrawableV2::RSSurfaceRenderNodeDrawable* surfaceDrawable,
     Drawing::RectI& dirtyRects)
 {
+    if (!(RSUifirstManager::Instance().GetUiFirstType() == UiFirstCcmType::MULTI &&
+        RSSystemProperties::GetUIFirstDirtyEnabled())) {
+        return false;
+    }
     if (!surfaceDrawable) {
         RS_LOGE("MergeUifirstAllSurfaceDirtyRegion surfaceDrawable is nullptr");
         return false;
     }
     uifirstMergedDirtyRegion_ = {};
-    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable->GetRenderParams().get());
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable->GetUifirstRenderParams().get());
     if (!surfaceParams) {
         RS_LOGE("CalculateUifirstDirtyRegion params is nullptr");
         return false;
@@ -705,13 +713,17 @@ bool RsSubThreadCache::MergeUifirstAllSurfaceDirtyRegion(DrawableV2::RSSurfaceRe
 void RsSubThreadCache::UpadteAllSurfaceUifirstDirtyEnableState(DrawableV2::RSSurfaceRenderNodeDrawable* surfaceDrawable,
     bool isEnableDirtyRegion)
 {
+    if (!(RSUifirstManager::Instance().GetUiFirstType() == UiFirstCcmType::MULTI &&
+        RSSystemProperties::GetUIFirstDirtyEnabled())) {
+        return;
+    }
     if (!surfaceDrawable) {
         RS_LOGE("UpadteAllSurfaceUifirstDirtyEnableState surfaceDrawable is nullptr");
         return;
     }
     SetUifirstDirtyRegion(uifirstMergedDirtyRegion_);
     SetUifrstDirtyEnableFlag(isEnableDirtyRegion);
-    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable->GetRenderParams().get());
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable->GetUifirstRenderParams().get());
     if (!surfaceParams) {
         RS_LOGE("UpadteAllSurfaceUifirstDirtyState params is nullptr");
         return;
@@ -750,9 +762,7 @@ void RsSubThreadCache::SubDraw(DrawableV2::RSSurfaceRenderNodeDrawable* surfaceD
 
     // merge uifirst dirty region
     Drawing::RectI uifirstSurfaceDrawRects = {};
-    auto dirtyEnableFlag = MergeUifirstAllSurfaceDirtyRegion(surfaceDrawable, uifirstSurfaceDrawRects) &&
-        RSSystemProperties::GetUIFirstDirtyEnabled() &&
-        RSUifirstManager::Instance().GetUiFirstType() == UiFirstCcmType::MULTI;
+    auto dirtyEnableFlag = MergeUifirstAllSurfaceDirtyRegion(surfaceDrawable, uifirstSurfaceDrawRects);
     UpadteAllSurfaceUifirstDirtyEnableState(surfaceDrawable, dirtyEnableFlag);
     if (!dirtyEnableFlag) {
         rscanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
@@ -771,17 +781,13 @@ void RsSubThreadCache::SubDraw(DrawableV2::RSSurfaceRenderNodeDrawable* surfaceD
     surfaceDrawable->DrawUifirstContentChildren(*rscanvas, bounds);
     int totalNodes = RSRenderNodeDrawable::GetProcessedNodeCount();
     int totalSurfaces = GetTotalProcessedSurfaceCount();
-    const auto& params = surfaceDrawable->GetRenderParams();
-    float globalAlpha = params? params->GetGlobalAlpha() : -1.f;
-    RS_TRACE_NAME_FMT("SubDraw totalSurfaces:%d totalNodes:%d alpha:%f", totalSurfaces, totalNodes, globalAlpha);
+    RS_TRACE_NAME_FMT("SubDraw totalSurfaces:%d totalNodes:%d", totalSurfaces, totalNodes);
     if (totalSurfaces <= 0 || totalNodes <= 0) {
-        RS_LOGI("uifirst subDraw id:%{public}" PRIu64 ",name:%{public}s,totalSurfaces:%{public}d,totalNodes:%{public}d"
-            ",alpha:%{public}f", surfaceDrawable->GetId(), surfaceDrawable->name_.c_str(), totalSurfaces, totalNodes,
-            globalAlpha);
+        RS_LOGI("subDraw id:%{public}" PRIu64 ",name:%{public}s,totalSurfaces:%{public}d,totalNodes:%{public}d",
+            surfaceDrawable->GetId(), surfaceDrawable->name_.c_str(), totalSurfaces, totalNodes);
     } else {
-        RS_LOGD("uifirst subDraw id:%{public}" PRIu64 ",name:%{public}s,totalSurfaces:%{public}d,totalNodes:%{public}d"
-            ",alpha:%{public}f", surfaceDrawable->GetId(), surfaceDrawable->name_.c_str(), totalSurfaces, totalNodes,
-            globalAlpha);
+        RS_LOGD("subDraw id:%{public}" PRIu64 ",name:%{public}s,totalSurfaces:%{public}d,totalNodes:%{public}d",
+            surfaceDrawable->GetId(), surfaceDrawable->name_.c_str(), totalSurfaces, totalNodes);
     }
     RSRenderParams::SetParentSurfaceMatrix(parentSurfaceMatrix);
     // uifirst dirty dfx
