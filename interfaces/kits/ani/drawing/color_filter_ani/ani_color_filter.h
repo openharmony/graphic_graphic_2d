@@ -30,6 +30,8 @@ public:
 
     static ani_object CreateBlendModeColorFilter(ani_env* env,
         ani_object obj, ani_object objColor, ani_enum_item aniBlendMode);
+    static ani_object CreateBlendModeColorFilterWithNumber(ani_env* env,
+        ani_object obj, ani_object objColor, ani_enum_item aniBlendMode);
 
     DRAWING_API std::shared_ptr<ColorFilter> GetColorFilter();
 private:

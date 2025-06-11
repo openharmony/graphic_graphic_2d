@@ -31,8 +31,12 @@ ani_status AniColorFilter::AniInit(ani_env *env)
     }
 
     std::array methods = {
-        ani_native_function { "createBlendModeColorFilter", nullptr,
+        ani_native_function { "createBlendModeColorFilter", "L@ohos/graphics/common2D/common2D/Color;"
+            "L@ohos/graphics/drawing/drawing/BlendMode;:L@ohos/graphics/drawing/drawing/ColorFilter;",
             reinterpret_cast<void*>(CreateBlendModeColorFilter) },
+        ani_native_function { "createBlendModeColorFilter", "Lstd/core/Object;"
+            "L@ohos/graphics/drawing/drawing/BlendMode;:L@ohos/graphics/drawing/drawing/ColorFilter;",
+            reinterpret_cast<void*>(CreateBlendModeColorFilterWithNumber) },
     };
 
     ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
@@ -54,7 +58,7 @@ ani_object AniColorFilter::CreateBlendModeColorFilter(
     ani_env* env, [[maybe_unused]] ani_object obj, ani_object objColor, ani_enum_item aniBlendMode)
 {
     ColorQuad color;
-    if (!GetColorQuadFromParam(env, objColor, color)) {
+    if (!GetColorQuadFromColorObj(env, objColor, color)) {
         ROSEN_LOGE("AniColorFilter::CreateBlendModeColorFilter failed cause by colorObj");
         AniThrowError(env, "Invalid params. "); // message length must be a multiple of 4, for example 16, 20, etc
         return CreateAniUndefined(env);
@@ -75,6 +79,35 @@ ani_object AniColorFilter::CreateBlendModeColorFilter(
     if (isUndefined) {
         delete colorFilter;
         ROSEN_LOGE("AniColorFilter::CreateBlendModeColorFilter failed cause aniObj is undefined");
+    }
+    return aniObj;
+}
+
+ani_object AniColorFilter::CreateBlendModeColorFilterWithNumber(
+    ani_env* env, [[maybe_unused]] ani_object obj, ani_object objColor, ani_enum_item aniBlendMode)
+{
+    ColorQuad color;
+    if (!GetColorQuadFromParam(env, objColor, color)) {
+        ROSEN_LOGE("AniColorFilter::CreateBlendModeColorFilterWithNumber failed cause by colorObj");
+        AniThrowError(env, "Invalid params. "); // message length must be a multiple of 4, for example 16, 20, etc
+        return CreateAniUndefined(env);
+    }
+
+    ani_int blendMode;
+    if (ANI_OK != env->EnumItem_GetValue_Int(aniBlendMode, &blendMode)) {
+        ROSEN_LOGE("AniColorFilter::CreateBlendModeColorFilterWithNumber failed cause by blendMode");
+        AniThrowError(env, "Invalid params. "); // message length must be a multiple of 4, for example 16, 20, etc
+        return CreateAniUndefined(env);
+    }
+
+    AniColorFilter* colorFilter = new AniColorFilter(
+        ColorFilter::CreateBlendModeColorFilter(color, static_cast<BlendMode>(blendMode)));
+    ani_object aniObj = CreateAniObjectStatic(env, ANI_CLASS_COLORFILTER_NAME, colorFilter);
+    ani_boolean isUndefined;
+    env->Reference_IsUndefined(aniObj, &isUndefined);
+    if (isUndefined) {
+        delete colorFilter;
+        ROSEN_LOGE("AniColorFilter::CreateBlendModeColorFilterWithNumber failed cause aniObj is undefined");
     }
     return aniObj;
 }
