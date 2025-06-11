@@ -25,6 +25,7 @@ rs_display_effect_sources = [
   "rs_display_effect/animation/animation_protocol_test.cpp",
   "rs_display_effect/animation/point_custom_modifier_test.cpp",
   "rs_display_effect/content_display/content_effectnode_test.cpp",
+  "rs_display_effect/content_display/rs_image_native_test.cpp",
   "rs_display_effect/property_display/appearance_alpha_test.cpp",
   "rs_display_effect/property_display/appearance_border_radius_test.cpp",
   "rs_display_effect/property_display/appearance_border_test.cpp",
