@@ -29,13 +29,13 @@ rosen/modules/render_service_base/include/render/ @lyt1024
 rosen/modules/render_service_base/src/render/ @lyt1024
 
 [IPC]
-rosen/modules/render_service/core/transaction/ @chuchengcheng
-rosen/modules/render_service/core/pipeline/rs_render_service_connection.h @chuchengcheng
-rosen/modules/render_service/core/pipeline/rs_render_service_connection.cpp @chuchengcheng
-rosen/modules/render_service_base/src/platform/ohos/rs_marshalling_helper.cpp @chuchengcheng
-rosen/modules/render_service_base/src/platform/ohos/rs_render_service_connection_proxy.h @chuchengcheng
-rosen/modules/render_service_base/src/platform/ohos/rs_render_service_connection_proxy.cpp @chuchengcheng
-etc/graphic.para.dac @chuchengcheng
+rosen/modules/render_service/core/transaction/ @white-dragon-tiger
+rosen/modules/render_service/core/pipeline/rs_render_service_connection.h @white-dragon-tiger
+rosen/modules/render_service/core/pipeline/rs_render_service_connection.cpp @white-dragon-tiger
+rosen/modules/render_service_base/src/platform/ohos/rs_marshalling_helper.cpp @white-dragon-tiger
+rosen/modules/render_service_base/src/platform/ohos/rs_render_service_connection_proxy.h @white-dragon-tiger
+rosen/modules/render_service_base/src/platform/ohos/rs_render_service_connection_proxy.cpp @white-dragon-tiger
+etc/graphic.para.dac @white-dragon-tiger
 rosen/modules/safuzz/ @siyuan_zhou
 
 [animation]
