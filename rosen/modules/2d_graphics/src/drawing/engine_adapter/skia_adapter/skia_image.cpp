@@ -654,9 +654,7 @@ bool SkiaImage::IsOpaque() const
 
 void SkiaImage::HintCacheGpuResource() const
 {
-#ifndef USE_M133_SKIA
     as_IB(skiaImage_.get())->hintCacheGpuResource();
-#endif
 }
 
 const sk_sp<SkImage> SkiaImage::GetImage() const

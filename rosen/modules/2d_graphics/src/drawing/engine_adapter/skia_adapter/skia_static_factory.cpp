@@ -226,21 +226,21 @@ void SkiaStaticFactory::SetVmaCacheStatus(bool flag)
 
 void SkiaStaticFactory::ResetStatsData()
 {
-#ifndef USE_M133_SKIA
+#ifndef TODO_M133_SKIA
     GrPerfMonitorReporter::GetInstance().resetStatsData();
 #endif
 }
 
 void SkiaStaticFactory::ResetPerfEventData()
 {
-#ifndef USE_M133_SKIA
+#ifndef TODO_M133_SKIA
     GrPerfMonitorReporter::GetInstance().resetPerfEventData();
 #endif
 }
 
 std::map<std::string, std::vector<uint16_t>> SkiaStaticFactory::GetBlurStatsData()
 {
-#ifdef USE_M133_SKIA
+#ifdef TODO_M133_SKIA
     return std::map<std::string, std::vector<uint16_t>> {};
 #else
     return GrPerfMonitorReporter::GetInstance().getBlurStatsData();
@@ -250,7 +250,7 @@ std::map<std::string, std::vector<uint16_t>> SkiaStaticFactory::GetBlurStatsData
 std::map<std::string, RsBlurEvent> SkiaStaticFactory::GetBlurPerfEventData()
 {
     std::map<std::string, RsBlurEvent> rsBlurEvent;
-#ifndef USE_M133_SKIA
+#ifndef TODO_M133_SKIA
     std::map<std::string, BlurEvent> grBlurEvent =
         GrPerfMonitorReporter::GetInstance().getBlurPerfEventData();
     GrBlurEventConvert2Rs(rsBlurEvent, grBlurEvent);
@@ -260,7 +260,7 @@ std::map<std::string, RsBlurEvent> SkiaStaticFactory::GetBlurPerfEventData()
 
 std::map<std::string, std::vector<uint16_t>> SkiaStaticFactory::GetTextureStatsData()
 {
-#ifdef USE_M133_SKIA
+#ifdef TODO_M133_SKIA
     return std::map<std::string, std::vector<uint16_t>> {};
 #else
     return GrPerfMonitorReporter::GetInstance().getTextureStatsData();
@@ -270,7 +270,7 @@ std::map<std::string, std::vector<uint16_t>> SkiaStaticFactory::GetTextureStatsD
 std::map<std::string, RsTextureEvent> SkiaStaticFactory::GetTexturePerfEventData()
 {
     std::map<std::string, RsTextureEvent> rsTextureEvent;
-#ifndef USE_M133_SKIA
+#ifndef TODO_M133_SKIA
     std::map<std::string, TextureEvent> grTextureEvent =
         GrPerfMonitorReporter::GetInstance().getTexturePerfEventData();
     GrTextureEventConvert2Rs(rsTextureEvent, grTextureEvent);
@@ -280,7 +280,7 @@ std::map<std::string, RsTextureEvent> SkiaStaticFactory::GetTexturePerfEventData
 
 int16_t SkiaStaticFactory::GetSplitRange(int64_t duration)
 {
-#ifdef USE_M133_SKIA
+#ifdef TODO_M133_SKIA
     return 0;
 #else
     return GrPerfMonitorReporter::getSplitRange(duration);
@@ -289,7 +289,7 @@ int16_t SkiaStaticFactory::GetSplitRange(int64_t duration)
 
 bool SkiaStaticFactory::IsOpenPerf()
 {
-#ifdef USE_M133_SKIA
+#ifdef TODO_M133_SKIA
     return false;
 #else
     return GrPerfMonitorReporter::GetInstance().isOpenPerf();
@@ -298,7 +298,7 @@ bool SkiaStaticFactory::IsOpenPerf()
 
 int64_t SkiaStaticFactory::GetCurrentTime()
 {
-#ifdef USE_M133_SKIA
+#ifdef TODO_M133_SKIA
     return 0;
 #else
     return GrPerfMonitorReporter::getCurrentTime();
@@ -310,7 +310,7 @@ void SkiaStaticFactory::SetCurrentNodeId(uint64_t nodeId)
     RECORD_GPU_RESOURCE_DRAWABLE_CALLER(nodeId);
 }
 
-#ifndef USE_M133_SKIA
+#ifndef TODO_M133_SKIA
 void SkiaStaticFactory::GrTextureEventConvert2Rs(std::map<std::string, RsTextureEvent>& rsTextureEvent,
     const std::map<std::string, TextureEvent>& grTextureEvent)
 {

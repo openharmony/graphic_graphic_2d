@@ -63,7 +63,7 @@ std::shared_ptr<Image> SkiaRuntimeShaderBuilder::MakeImage(GPUContext* grContext
         return nullptr;
     }
 #ifdef RS_ENABLE_GPU
-#ifdef USE_M133_SKIA
+#ifdef TODO_M133_SKIA
     return std::make_shared<Image>();
 #else
     sk_sp<SkImage> skImage = skRuntimeShaderBuilder_->makeImage(

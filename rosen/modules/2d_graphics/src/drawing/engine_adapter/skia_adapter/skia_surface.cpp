@@ -635,7 +635,7 @@ void SkiaSurface::Wait(const std::vector<GrGLsync>& syncs)
     } else {
         std::vector<GrBackendSemaphore> semaphores;
         semaphores.reserve(count);
-#ifndef USE_M133_SKIA
+#ifndef TODO_M133_SKIA
         for (auto& sync : syncs) {
             GrBackendSemaphore backendSemaphore;
             backendSemaphore.initGL(sync);

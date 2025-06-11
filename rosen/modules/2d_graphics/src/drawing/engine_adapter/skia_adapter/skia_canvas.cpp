@@ -972,7 +972,7 @@ void SkiaCanvas::DrawSymbol(const DrawingHMSymbolData& symbol, Point locate, con
         return;
     }
 
-#ifndef USE_M133_SKIA
+#ifndef TODO_M133_SKIA
     HMSymbolData skSymbol;
     if (!ConvertToHMSymbolData(symbol, skSymbol)) {
         LOGD("ConvertToHMSymbolData failed, return on line %{public}d", __LINE__);
