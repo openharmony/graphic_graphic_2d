@@ -16,7 +16,6 @@
 #include <fstream>
 #include <functional>
 
-#include "include/private/SkOnce.h"
 #include "securec.h"
 #include "src/ports/skia_ohos/HmSymbolConfig_ohos.h"
 #include "symbol_default_config_parser.h"
